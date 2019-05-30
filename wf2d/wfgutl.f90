@@ -1,4 +1,4 @@
-!     $Id$
+!     $Id: wfgutl.f90,v 1.1 2011/07/19 07:16:11 maruyama Exp $
 !     *********************
 
 !     CLIPPING FOR GRAPHICS

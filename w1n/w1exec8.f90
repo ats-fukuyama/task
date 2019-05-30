@@ -1,12 +1,10 @@
 ! w1exec8.f90
 
-MODULE w1exec8
+MODULE w1qtbl
 
   USE w1comm,ONLY: rkind
-  USE w1fflr,ONLY: w1fnmn
 
-  PRIVATE
-  PUBLIC w1_exec8,w1qtblx
+  PUBLIC
 
   REAL(rkind):: DXD
   COMPLEX(rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: CL
@@ -16,6 +14,13 @@ MODULE w1exec8
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: YX
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: SF,SG,AF,AG
   INTEGER:: NXDMIN,NXDMAX,NXWMAX,NXLMAX,NCLMAX
+END MODULE w1qtbl
+
+MODULE w1exec8
+
+  USE w1comm,ONLY: rkind
+  USE w1fflr,ONLY: w1fnmn
+  USE w1qtbl
 
 CONTAINS
 

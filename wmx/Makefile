@@ -22,12 +22,20 @@ FFLAGS=$(DFLAGS)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-MODINCLUDE= -I./$(MOD) -I../plx/$(MOD) -I../dpx/$(MOD) \
+MODINCLUDE= -I./$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) -I../dpx/$(MOD) \
             -I../lib/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
 SRCS = wmcomm.f90 vmcomm.f90 \
        wminit.f90 wmparm.f90 wmview.f90 \
+       wmsetg.f90 wmprof.f90 wmdisp.f90 \
        wmmenu.f90
+
+SRCX = wmsetm.f90 wmsetf.f90 wmxprf.f90 wmdprf.f90 \
+       wmpout.f90 wmgout.f90 wmgsub.f90 wmdout.f90 wmfout.f90 \
+       wmsolv.f90 wmexec.f90 wmloop.f90 wmtaem.f90 \
+       wmvmec.f90 wmbooz.f90 wmvout.f90 wmtpcs.f90 \
+       wmeign.f90 \
+       wmcont.f90 wmtest.f90
 
 OBJS = $(SRCS:.f90=.o)
 

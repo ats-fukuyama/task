@@ -1,103 +1,101 @@
-!     $Id$
+!     ######### /TASK/WF2/WFDIV ########
 !
-!     ********** F.E.M. DIVIDER ( FIRST ORDER ) **********
+!      MESH DATA GENERATION PROGRAM
 !
+!     #################################
 subroutine WFDIV
 
   use libmpi
-  use libmtx
   use wfcomm
+  use wfparm
   implicit none
-  integer :: IERR,NE,NN,ID
-  character KID*1
+  integer   :: NE,NN,IERR
+  character :: KID*1
 
 1 continue
 
   if (nrank.eq.0) then  
-     write(6,601) 
-601  format('## INPUT: D/DIV  G/DRAW  P,V/PARM'&
-                    '  S/SAVE  L/LOAD  W/LIST  X/EXIT')
+     write(6,*) '## INPUT: D/DIV  G/DRAW  P,V/PARM ',&
+                          'S/SAVE  L/LOAD  W/LIST  X/EXIT'
      read(5,'(A1)',ERR=1,END=9000) KID
      call GUCPTL(KID)
   end if
   call mtx_barrier
   call mtx_broadcast_character(KID,1)
   
-2 continue
-
   if(KID.eq.'D') then
-     call wfdiv_initialize
-     call wfdiv_allocate
+     NZMH = NZM/2
 
+2    continue
+
+     KID=""
      if (nrank.eq.0) then
-        write(6,602) 
-602     format('## TYPE:  X/RECT  C/CIRCLE  A/COAXIAL')
-        read(5,'(A1)',ERR=2,END=1) KID
+        write(6,'(A24)') '## TYPE: X/RECT C/CIRCLE'
+        read(5,'(A1)') KID
         call GUCPTL(KID)
-        
-        if(KID.eq.'X') then
-3          write(6,603) BXMIN,BXMAX,BYMIN,BYMAX,BZMIN,BZMAX
-603        format('## DIV:   BXMIN,BXMAX,BYMIN,BYMAX,BZMIN,BZMAX = '/&
-                  '          ',6F10.4/&
-                  '## INPUT: BXMIN,BXMAX,BYMAX,BYMAX,BZMIN,BZMAX ? ')
-           read(5,*,ERR=3,END=2) BXMIN,BXMAX,BYMIN,BYMAX,BZMIN,BZMAX
-           IDDIV=0
-
-        elseif(KID.eq.'C') then
-4          write(6,604) RB,BZMIN,BZMAX
-604        format('## DIV:   RB,BZMIN,BZMAX = ',3F10.4/&
-                  '## INPUT: RB,BZMIN,BZMAX ? ')
-           read(5,*,ERR=4,END=2) RB,BZMIN,BZMAX
-           BXMIN=-RB
-           BXMAX= RB
-           BYMIN=-RB
-           BYMAX= RB
-           IDDIV=1
-
-        elseif(KID.eq.'A') then
-5          write(6,605) RB,RBAX,BZMIN,BZMAX
-605        format('## DIV:   RB,RBAX,BZMIN,BZMAX = ',4F10.4/&
-                  '## INPUT: RB,RBAX,BZMIN,BZMAX ? ')
-           read(5,*,ERR=5,END=2) RB,RBAX,BZMIN,BZMAX
-           BXMIN=-RB
-           BXMAX= RB
-           BYMIN=-RB
-           BYMAX= RB
-           IDDIV=2
-        else
-           write(6,*) 'XX UNKNOWN KID: ',KID
-        end if
+        if (KID.ne."X".and.KID.ne."C") goto 2
      end if
+     call mtx_barrier
+     call mtx_broadcast_character(KID,1)
 
-7    continue
+     if(nrank.eq.0)then
+        if(KID.eq.'X') then
+3          write(6,'(A,4F10.4)') '## DIV:   BDRMIN,BDRMAX,BDZMIN,BDZMAX = ',&
+                                            BDRMIN,BDRMAX,BDZMIN,BDZMAX
+           write(6,'(A)')        '## INPUT: BDRMIN,BDRMAX,BDZMIN,BDZMAX ? '
+           read(5,*,ERR=3,END=2)            BDRMIN,BDRMAX,BDZMIN,BDZMAX
+           write(6,'(A,4F10.4)') '## DIV:   BDRMIN,BDRMAX,BDZMIN,BDZMAX = ',&
+                                            BDRMIN,BDRMAX,BDZMIN,BDZMAX
+4          write(6,'(A,2F10.4)') '## DIV:   DELR,DELZ = ',DELR,DELZ
+           write(6,'(A)')        '## INPUT: DELR,DELZ ? '
+           read(5,*,ERR=4,END=2) DELR,DELZ
+           write(6,'(A,2F10.4)') '## DIV:   DELR,DELZ = ',DELR,DELZ
+           write(6,'(A)')        '## INPUT: DELR,DELZ ? '
+           if(abs(DELR).le.1.d-6.or.abs(DELZ).le.1.d-6) goto 2
+           iddiv=1
+           r_corner(1)=BDRMIN
+           z_corner(1)=BDZMIN
+           r_corner(2)=BDRMAX
+           z_corner(2)=BDZMIN
+           r_corner(3)=BDRMIN
+           z_corner(3)=BDZMAX
+           
+        elseif(KID.eq.'C') then
+5          write(6,'(A15,F10.4)') '## DIV:   RB = ',RB
+           write(6,'(A15)')       '## INPUT: RB ? '
+           read(5,*,ERR=5,END=2) RB
+           BDRMIN=-RB
+           BDRMAX= RB
+           BDZMIN=-RB
+           BDZMAX= RB
+6          write(6,'(A17,F10.4)') '## DIV:   DELR = ',DELR
+           write(6,'(A17)')       '## INPUT: DELR ? '
+           read(5,*,ERR=6,END=2) DELR
+           if(abs(DELR).le.1.D-6) goto 2
+           iddiv=2
+           r_corner(1)=BDRMIN
+           z_corner(1)=BDZMIN
+           r_corner(2)=BDRMAX
+           z_corner(2)=BDZMIN
+           r_corner(3)=BDRMIN
+           z_corner(3)=BDZMAX
 
-     if (nrank.eq.0) then
-        write(6,607) DELX,DELY,DELZ
-607     format('## DIV:   DELX,DELY,DELZ = ',3F10.4/&
-               '## INPUT: DELX,DELY,DELZ ? ')
-        read(5,*,ERR=7,END=2) DELX,DELY,DELZ
-        if(ABS(DELX).le.1.D-6.or.&
-           ABS(DELY).le.1.D-6) goto 2
+        end if
+
      end if
 
      call wfdiv_broadcast
-
-     call DFNODE(IERR)
-     if(IERR.ne.0) goto 7
-     call SETNOD(IERR)
-     if(IERR.ne.0) goto 7
-     if(IDDIV.ne.2) then
-        call SETELM(IERR)
-     else
-        call SETELMX(IERR)
+     if(KID.eq.'X') then
+        call SETNODX
+     elseif(KID.eq.'C') then
+        call SETNODC
      end if
-     if(IERR.ne.0) GOTO 7
 
      if(nrank.eq.0) write(6,*) '--- WFINDX start ---'
      call WFINDX
      if(nrank.eq.0) write(6,*) '--- WFFEPI start ---'
      call WFFEPI
-     
+  
      NKMAX=1
      do NE=1,NEMAX
         KAELM(NE)=1
@@ -109,999 +107,388 @@ subroutine WFDIV
      do NN=1,NNMAX
         KANOD(NN)=0
      end do
-
-     call wfdiv_deallocate
-
+    
   elseif(KID.eq.'G') then
      if (nrank.eq.0) then
         call WFGDIV
-        if(NDRAWD.eq.-1) then
-           call WFGNAS(0)
-           call WFGNAS(1)
-           call WFGNAS(2)
-           call WFGNAS(3)
-           call WFGNAS(4)
-           call WFGNAS(5)
-        end if
      end if
-
+     
   elseif(KID.eq.'W') then
      if (nrank.eq.0) call WFLDIV
-
-
+     
   elseif(KID.eq.'L') then
-     call WFRELM(ID)
-
+     !     call WFRELM(ID)
+     
   elseif(KID.eq.'P') then
-     if(nrank.eq.0) call WFPARM(KID)
+     if(nrank.eq.0) call WF_PARM(0,'WF',IERR)
      call wfparm_broadcast
-
+     
   elseif(KID.eq.'V') then
-     if (nrank.eq.0) call WFVIEW
-
+     if (nrank.eq.0) call WF_VIEW
+     
   elseif(KID.eq.'S') then
-     if (nrank.eq.0) call WFWELM(0)
-
+     !     if (nrank.eq.0) call WFWELM(0)
+     
   elseif(KID.eq.'X') then
      goto 9000
   end if
   goto 1
-
+  
 9000 continue
   return
 end subroutine WFDIV
 
-!     ****** Definititon of Boundary ******
-function BOUNDF(X,Y)
-
-  use wfcomm
-  implicit none
-  real(8) :: BOUNDF,X,Y
-  
-  if(IDDIV.eq.0) then
-     BOUNDF=(X-BXMIN)*(BXMAX-X)*(Y-BYMIN)*(BYMAX-Y)
-  elseif(IDDIV.eq.1) then
-     BOUNDF=(RB*RB-X*X-Y*Y)
-  end if
-
-  return
-end function BOUNDF
-
-!     ****** Definititon of Boundary for Fixed Y ******
-function BOUNDX(X)
+! *** rectangular mesh ***
+subroutine SETNODX
   
   use wfcomm
   implicit none
-  real(8) :: BOUNDX,X,BOUNDF
-  BOUNDX=BOUNDF(X,YF)
 
-  return
-end function BOUNDX
+  integer :: NN,NE
+  integer :: NN1,NN2,NN3,NN4
+  integer :: NR,NZ
+  integer :: NRMAX,NZMAX
+  real(8) :: DR,DZ,BDRLEN,BDZLEN
 
-!     ****** Definititon of Boundary for Fixed X ******
+  BDRLEN=BDRMAX-BDRMIN
+  BDZLEN=BDZMAX-BDZMIN
 
-function BOUNDY(Y)
+  ! --- set NNMAX ---
+  NRMAX=NINT(BDRLEN/DELR)
+  if(MOD(NRMAX,2).eq.0) NRMAX=NRMAX+1
+  DR=DBLE(BDRLEN/(NRMAX-1))
+  NZMAX=NINT(BDZLEN/DELZ)
+  if(MOD(NZMAX,2).eq.0) NZMAX=NZMAX+1
+  DZ=DBLE(BDZLEN/(NZMAX-1))
+  NNMAX=NRMAX*NZMAX
 
-  use wfcomm
-  implicit none
-  real(8) :: BOUNDY,BOUNDF,Y
-  BOUNDY=BOUNDF(XF,Y)
-  
-  return
-end function BOUNDY
+  ! --- set NEMAX ---
+  NEMAX=2*(NRMAX-1)*(NZMAX-1)
+  call wfelm_allocate
+  call wfelm_allocate
 
-!     ****** Define 2-D Node Array ******
-
-subroutine DFNODE(IERR)
-
-  use wfcomm
-  implicit none
-  integer :: IERR
-
-  if(IDDIV.eq.0) then
-     call DFNODX(IERR)
-  elseif(IDDIV.eq.1) then
-     call DFNODC(IERR)
-  elseif(IDDIV.eq.2) then
-     call DFNODCX(IERR)
-  end if
-  
-  return
-end subroutine DFNODE
-
-!     ****** Define 2-D Node Array (RECTANGULAR) ******
-
-subroutine DFNODX(IERR)
-
-  use wfcomm
-  implicit none
-  integer :: NY,NXMAX,NX,IERR
-  real(8) :: DY,Y,DX,X,XREL,YREL,R,FACTOR
-  
-  NYMAX=NINT((BYMAX-BYMIN)/DELY)+1
-  NYMAX=NYMAX+MOD(NYMAX+1,2)
-  if(NYMAX.gt.NYM) goto 9200
-  DY=(BYMAX-BYMIN)/DBLE(NYMAX-1)
-  
-  do NY=1,NYMAX
-     Y=BYMIN+DY*(NY-1)
-     
-     XL(NY)=BXMIN
-     XR(NY)=BXMAX
-     NXMAX=NINT((XR(NY)-XL(NY))/DELX)+1
-     NXMAX=NXMAX+MOD(NXMAX+1,2)
-     if(NXMAX.gt.NXM) goto 9300
-     DX=(XR(NY)-XL(NY))/DBLE(NXMAX-1)
-     
-     NXA(NY)=NXMAX
-     do NX=1,NXMAX
-        X=DX*(NX-1)+XL(NY)
-        XREL=DX*DBLE(NX-(NXMAX+1)/2)
-        YREL=DY*DBLE(NY-(NYMAX+1)/2)
-        R=SQRT(XREL**2+YREL**2)
-        FACTOR=1.D0-R*1.D-6
-        XNDA(NX,NY)=X*FACTOR
-        YNDA(NX,NY)=Y*FACTOR
-     end do
-  end do
-
-  IERR=0
-  return
-        
-9200 if (nrank.eq.0) then
-     write(6,602) NYMAX,NYM
-602  format(' ','DFNODE : NYMAX EXCEEDS NYM : ',2I8)
-  end if
-  IERR=1
-  return
-  
-9300 if (nrank.eq.0) then
-     write(6,603) NY,NXMAX,NXM
-603  format(' ','DFNODE : NX EXCEEDS NXM AT NY =',I8,' : ',2I8)
-  end if
-  IERR=1
-  return
-end subroutine DFNODX
-
-!     ****** Define 2-D Node Array (CIRCULAR) ******
-
-subroutine DFNODC(IERR)
-
-  use libmpi
-  use libmtx
-  use wfcomm
-  implicit none
-  integer :: IND,NYDO,NY,ILL,NXA1(NYMH),NXR1(NYMH),NXL1(NYMH),NYU(NXM)
-  integer :: NYMID,NX,NLMID,NRMID,NXMID,INDC,NYUL,I,NYA,NYB,IERR
-  real(8) :: XS,XE,DX,DXL,DXR,XL1(NYMH),XR1(NYMH)
-  real(8) :: XNDA1(NXM,NYMH),YNDA1(NXM,NYMH),XU(NXM),YU(NXM),DYU(NXM)
-  real(8) :: YMID,YS,YE,DY
-  real(8),parameter:: EPS=1.d-8
-
-  EXTERNAL BOUNDX,BOUNDY
-
-  NYMAX=NINT(BYMAX/DELY)+1
-  if(NYMAX.gt.NYM) goto 9200
-  IND=0
-
-  do NYDO=1,NYMAX
-     NY=NYDO
-     YF=DELY*DBLE(NY-1)
-     if(NY.eq.1) then
-        XS=0.5D0*(BXMIN+BXMAX)
-     else
-        XS=0.5D0*(XL1(NY-1)+XR1(NY-1))
-     end if
-     XE=BXMIN-1.D-5
-     DX=-DELX*0.3D0
-     ILL=0
-     call FRGFLS(XS,XE,DX,XL1(NY),BOUNDX,EPS,ILL)
-     if(ILL.eq.902) then
-        NY=NY-1
-        goto 20
-     end if
-     if(ILL.gt.0) goto 9000
-     XE=BXMAX+1.D-5
-     DX=DELX*0.3D0
-     ILL=0
-     call FRGFLS(XS,XE,DX,XR1(NY),BOUNDX,EPS,ILL)
-     if(ILL.eq.902) then
-        NY=NY-1
-        goto 20
-     end if
-     if(ILL.gt.0) goto 9000
-     if(NY.gt.1) then
-        DXL=ABS(XL1(NY)-XL1(NY-1))/DELX
-        DXR=ABS(XR1(NY)-XR1(NY-1))/DELX
-        if(DXL**2+DXR**2.lt.1.D0) then
-           NYMID=NY
-        else
-           IND=1
-        end if
-     end if
-  end do
-20 continue
-  
-  NYMAX=MIN(NYMAX,NY)
-  
-  do NY=1,NYMID
-     NXA1(NY)=NINT((XR1(NY)-XL1(NY))/DELX)+1
-     if(NXA1(NY).gt.NXM) goto 9300
-     if(NXA1(NY).eq.1) then
-        NXL1(NY)=1
-        NXR1(NY)=0
-        XNDA1(1,NY)=XL1(NY)
-        YNDA1(1,NY)=DELY*DBLE(NY-1)
-        IND=0
-        goto 1010
-     end if
-     if(MOD(NXA1(NY),2).eq.0) NXA1(NY)=NXA1(NY)+1
-     DX=(XR1(NY)-XL1(NY))/DBLE(NXA1(NY)-1)
-     NXL1(NY)=1
-     NXR1(NY)=1
-     do NX=1,NXA1(NY)
-        XNDA1(NX,NY)=DX*DBLE(NX-1)+XL1(NY)
-        YNDA1(NX,NY)=DELY*DBLE(NY-1)
-     end do
-  end do
-1010 continue
-  
-  if(IND.ge.1.and.NYMID.lt.NYMAX) then
-     NLMID=NXL1(NYMID)
-     NRMID=NXR1(NYMID)
-     NXMID=NXA1(NYMID)
-     YMID =DELY*DBLE(NYMID-1)
-     do NX=NLMID+1,NXMID-NRMID
-        XU(NX)=XNDA1(NX,NYMID)
-        XF=XU(NX)
-        YS=YMID
-        YE=BYMAX+1.D-5
-        DY=DELY
-        ILL=0
-        call FRGFLS(YS,YE,DY,YU(NX),BOUNDY,EPS,ILL)
-        if(ILL.gt.0) goto 9400
-        NYU(NX)=MAX(1,NINT((YU(NX)-YMID)/DELY))
-        DYU(NX)=(YU(NX)-YMID)/DBLE(NYU(NX))
-        NYMAX=MAX(NYMAX,NYU(NX)+NYMID)
-     end do
-     
-     do NY=NYMID+1,NYMAX
-        NX=0
-        INDC=0
-        NXL1(NY)=0
-        NXR1(NY)=0
-        NYUL=NY-NYMID
-        do I=NLMID+1,NXMID-NRMID
-           if(NYU(I).eq.NYUL) then
-              NX=NX+1
-              XNDA1(NX,NY)=XNDA1(I,NYMID)
-              YNDA1(NX,NY)=YU(I)
-              if(INDC.eq.0) then
-                 NXL1(NY)=NXL1(NY)+1
-              else
-                 NXR1(NY)=NXR1(NY)+1
-              end if
-           else if(NYU(I).gt.NYUL) then
-              NX=NX+1
-              XNDA1(NX,NY)=XNDA1(I,NYMID)
-              YNDA1(NX,NY)=DYU(I)*DBLE(NYUL)+YMID
-              INDC=1
-           end if
-        end do
-        if(NX.eq.0) goto 4305
-        NXA1(NY)=NX
-     end do
-     goto 4310
-4305 NYMAX=NY-1
-4310 continue
-  else
-     NXL1(NYMAX)=NXA1(NYMAX)
-     NXR1(NYMAX)=0
-  end if
-  
-  do NY=1,NYMAX
-     NYA=NYMAX+1-NY
-     NYB=NYMAX-1+NY
-     XL(NYA)=XL1(NY)
-     XL(NYB)=XL1(NY)
-     XR(NYA)=XR1(NY)
-     XR(NYB)=XR1(NY)
-     NXA(NYA)=NXA1(NY)
-     NXA(NYB)=NXA1(NY)
-     do NX=1,NXA1(NY)
-        XNDA(NX,NYA)= XNDA1(NX,NY)
-        XNDA(NX,NYB)= XNDA1(NX,NY)
-        YNDA(NX,NYA)=-YNDA1(NX,NY)
-        YNDA(NX,NYB)= YNDA1(NX,NY)
-     end do
-  end do
-  NYMAX=2*NYMAX-1
-  
-  IERR=0
-  return
-  
-9000 if (nrank.eq.0) then
-     write(6,601) NX,NY,YF,XS,XE,XL(NY),XR(NY),ILL
-601  format(' ','DFNODE : FRGFLS ERROR : NX,NY,YF,XS,XE,XL,XR,ILL'/&
-          &       ' ',2I5,1P5E15.5,I5)
-  end if
-  IERR=1
-  return
-  
-9200 if (nrank.eq.0) then
-     write(6,602) NYMAX,NYM
-602  format(' ','DFNODE : NYMAX EXCEEDS NYM : ',2I8)
-  end if
-  IERR=1
-  return
-  
-9300 if (nrank.eq.0) then
-     write(6,603) NY,NXA(NY),NXM
-603  format(' ','DFNODE : NX EXCEEDS NXM AT NY =',I8,' : ',2I8)
-  end if
-  IERR=1
-  return
-  
-9400 if (nrank.eq.0) then
-     write(6,604) NX,NY,XF,YS,YE,YU(NX),ILL
-604  format(' ','NODE1 : FRGFLS ERROR : NX,NY,XF,YS,YE,YU,ILL'/&
-            ' ',2I5,1P4E15.5,I5)
-  end if
-  IERR=1
-  return
-end subroutine DFNODC
-
-!     ****** Define 2-D Node Array (CIRCULAR COAXIAL) ******
-
-subroutine DFNODCX(IERR)
-
-  use wfcomm
-  implicit none
-  integer :: NY,NXMAX,NX,IERR
-  real(8) :: DY,R,DX,TH
-
-  NYMAX=NINT((RB-RBAX)/DELY)+1
-  if(NYMAX.gt.NYM) goto 9100
-  if(NYMAX.le.1) goto 9100
-  DY=(RB-RBAX)/(NYMAX-1)
-  
-  do NY=1,NYMAX
-     R=RBAX+DY*(NY-1)
-     if(R.le.0.D0) then
-        NXA(NY)=1
-        XNDA(1,NY)=0.D0
-        YNDA(1,NY)=0.D0
-     else
-        NXMAX=NINT((2.D0*PI*R)/DELX)+1
-        if(NXMAX.gt.NXM) goto 9200
-        NXMAX=4*((NXMAX-1)/4+1)
-        if(NXMAX.eq.4) NXMAX=8
-        DX=2.D0*PI/NXMAX
-        NXA(NY)=NXMAX
-        do NX=1,NXMAX
-           TH=DX*(NX-1)
-           XNDA(NX,NY)=R*COS(TH)
-           YNDA(NX,NY)=R*SIN(TH)
-        end do
-     end if
-  end do
-  
-  IERR=0
-  return
-  
-9100 if (nrank.eq.0) then
-     write(6,601) NYMAX,NYM
-601  format(' ','DFNODCX : NYMAX EXCEEDS NYM : ',2I8)
-  end if
-  IERR=1
-  return
-  
-9200 if (nrank.eq.0) then
-     write(6,602) NY,NXMAX,NXM
-602  format(' ','DFNODCX : NXMAX EXCEEDS NXM AT NX=',I8,' : ',2I8)
-  end if
-  IERR=1
-  return
-end subroutine DFNODCX
-
-!     ****** Set Node Array ******
-
-subroutine SETNOD(IERR)
-  
-  use wfcomm
-  implicit none
-  integer :: NZ,IN,INMAX,NY,NX,IERR
-  real(8) :: DZ,FACTOR
-
-  NZMAX=NINT((BZMAX-BZMIN)/DELZ)+1
-  if(NZMAX.gt.NZM) goto 9100
-  DZ=(BZMAX-BZMIN)/(NZMAX-1)
+  ! --- set node ---
+  NN=0
   do NZ=1,NZMAX
-     ZNDA(NZ)=(NZ-1)*DZ+BZMIN
-  end do
-
-  ! --- deside NNMAX ---
-  IN=0
-  do NY=1,NYMAX
-     do NX=1,NXA(NY)
-        do NZ=1,NZMAX
-           IN=IN+1
-        end do
+     do NR=1,NRMAX
+        NN=NN+1
+        RNODE(NN)=BDRMIN+DR*(NR-1)
+        ZNODE(NN)=BDZMIN+DZ*(NZ-1)
      end do
   end do
-  NNMAX=IN
-
-  call wfelm_allocate
   
-  IN=0
-  do NY=1,NYMAX
-     do NX=1,NXA(NY)
-        do NZ=1,NZMAX
-           IN=IN+1
-           NDA(NX,NY,NZ)=IN
-           FACTOR=1.D0
+  ! --- set element ---
+  NE=0
+  do NZ=1,NZMAX-1
+     do NR=1,NRMAX-1
+        NN1=NR+NRMAX*(NZ-1)
+        NN2=NR+NRMAX*(NZ-1)+1
+        NN3=NR+NRMAX*NZ+1
+        NN4=NR+NRMAX*NZ
+
+        if(NR.le.NRMAX/2) then
+           if(NZ.le.NZMAX/2) then
+              NE=NE+1
+              NDELM(1,NE)=NN1
+              NDELM(2,NE)=NN3
+              NDELM(3,NE)=NN4         
+              NE=NE+1
+              NDELM(1,NE)=NN1
+              NDELM(2,NE)=NN2
+              NDELM(3,NE)=NN3
+           else
+              NE=NE+1
+              NDELM(1,NE)=NN1
+              NDELM(2,NE)=NN2
+              NDELM(3,NE)=NN4         
+              NE=NE+1
+              NDELM(1,NE)=NN2
+              NDELM(2,NE)=NN3
+              NDELM(3,NE)=NN4
+           end if
+        else
+           if(NZ.le.NZMAX/2) then
+              NE=NE+1
+              NDELM(1,NE)=NN1
+              NDELM(2,NE)=NN2
+              NDELM(3,NE)=NN4
+              NE=NE+1
+              NDELM(1,NE)=NN2
+              NDELM(2,NE)=NN3
+              NDELM(3,NE)=NN4
+           else
+              NE=NE+1
+              NDELM(1,NE)=NN1
+              NDELM(2,NE)=NN3
+              NDELM(3,NE)=NN4
+              NE=NE+1
+              NDELM(1,NE)=NN1
+              NDELM(2,NE)=NN2
+              NDELM(3,NE)=NN3
+           end if
+        end if
+     end do
+  end do
+  return
+end subroutine SETNODX
+
+! *** circular mesh ***
+subroutine SETNODC
+
+  use wfcomm
+  implicit none
+
+  integer :: NN,NE
+  integer :: NN1,NN2,NN3,NN4
+  integer :: NR,NTH,NTH1
+  integer :: NRMAX,INNODE
+  integer,dimension(:),pointer :: NTHMAX
+  real(8) :: RRING,THETA,DR
+
+  ! --- set the number of rings ---
+                                
+  NRMAX=NINT(RB/DELR)+1
+  DR=DBLE(RB/(NRMAX-1))
+  allocate(NTHMAX(NRMAX))
+
+  ! --- set NNMAX & NTHMAX---
+                                     
+  NN=1
+  NTHMAX(1)=1
+  do NR=2,NRMAX
+     NTHMAX(NR)=(NR-1)*6
+     DO NTH=1,NTHMAX(NR)
+        NN=NN+1
+     end DO
+  end do
+  NNMAX=NN
+
+  ! --- set NEMAX ---
+
+  NE=0
+  do NR=1,NRMAX-1
+     NE=NE+6*(2*NR-1)
+  end do
+  NEMAX=NE
+  call wfelm_allocate
+  call wfelm_allocate
+
+  ! --- set node ---
+  NN=1
+  NR=1
+  RNODE(1)=0.d0 + RR
+  ZNODE(1)=0.d0
+
+  do NR=2,NRMAX
+     RRING=DR*DBLE(NR-1)
+     DO NTH=1,NTHMAX(NR)
+        NN=NN+1
+        THETA=DBLE(NTH-1)*2.d0*PI/DBLE(NTHMAX(NR))
+        RNODE(NN)=RRING*cos(THETA) + RR
+        ZNODE(NN)=RRING*sin(THETA)
+     END DO
+  END do
+  
+  ! --- set element ---
+  
+  NE=0
+  NR=1
+
+  NN1=1
+  NN2=2
+  NN3=3
+  NN4=4
+
+  NE=NE+1
+  NDELM(1,NE)=NN1
+  NDELM(2,NE)=NN2
+  NDELM(3,NE)=NN3
+  NE=NE+1
+  NDELM(1,NE)=NN1
+  NDELM(2,NE)=NN3
+  NDELM(3,NE)=NN4
+
+  NN1=1
+  NN2=4
+  NN3=5
+  NN4=6
+
+  NE=NE+1
+  NDELM(1,NE)=NN1
+  NDELM(2,NE)=NN2
+  NDELM(3,NE)=NN3
+  NE=NE+1
+  NDELM(1,NE)=NN1
+  NDELM(2,NE)=NN3
+  NDELM(3,NE)=NN4
+
+  NN1=1
+  NN2=6
+  NN3=7
+  NN4=2
+
+  NE=NE+1
+  NDELM(1,NE)=NN1
+  NDELM(2,NE)=NN2
+  NDELM(3,NE)=NN3
+  NE=NE+1
+  NDELM(1,NE)=NN1
+  NDELM(2,NE)=NN3
+  NDELM(3,NE)=NN4
+
+  DO NR=2,NRMAX-1
+
+     NTH=0
+     NTH1=0
+     
+1    continue
+     
+     NTH=NTH+1
+     NTH1=NTH1+1
+     
+     NN1=NTH +INNODE(NR)
+     NN2=NTH1+INNODE(NR+1)
+     NN3=NTH1+INNODE(NR+1)+1
+     NN4=NTH +INNODE(NR)  +1
+     if(NTH.eq.NTHMAX(NR)) NN4=NN4-NTHMAX(NR)
+     
+     NE=NE+1
+     NDELM(1,NE)=NN1
+     NDELM(2,NE)=NN2
+     NDELM(3,NE)=NN3
+     NE=NE+1
+     NDELM(1,NE)=NN1
+     NDELM(2,NE)=NN3
+     NDELM(3,NE)=NN4
+     
+     if (mod(NTH,NR-1).eq.0) then
+        NE=NE+1
+        NN1=NTH +INNODE(NR)  +1
+        NN2=NTH1+INNODE(NR+1)+1
+        NN3=NTH1+INNODE(NR+1)+2
+        if(NTH.eq.NTHMAX(NR)) NN1=NN1-NTHMAX(NR)
+        if(NTH1+1.eq.NTHMAX(NR+1)) NN3=NN3-NTHMAX(NR+1)
+        NDELM(1,NE)=NN1
+        NDELM(2,NE)=NN2
+        NDELM(3,NE)=NN3
+        NTH1=NTH1+1
+        
+     end if
            
-           XND(IN)= XNDA(NX,NY)*FACTOR
-           YND(IN)= YNDA(NX,NY)*FACTOR
-           ZND(IN)= ZNDA(NZ)
-        end do
-     end do
-  end do
-  IERR=0
+     if (NTH1.lt.NTHMAX(NR+1)) goto 1
+  END DO
+
   return
-  
-9100 if (nrank.eq.0) then
-     write(6,602) NZMAX,NZM
-602  format(' ','SETNOD : NZMAX EXCEEDS NZM : ',2I8)
-  end if
-  IERR=2
-  return
-end subroutine SETNOD
+end subroutine SETNODC
 
-!  ****** Set Element Array ******
-
-subroutine SETELM(IERR)
-
-  use wfcomm
+! ***** the number of innner-ring-nodes *****
+function INNODE(NR)
   implicit none
-  integer :: IE,NYDO,NY,NXMAX,NX1MAX,NX,NX1,NZ,IERR
-  real(8) :: XAI,XAJ,XBI,XBJ,YAI,YAJ,YBI,YBJ,VA,VB
+  integer :: NR,INNODE
 
-  IERR=0
-  IE=0
-
-! --- decide NEMAX ---
-  do NYDO=1,NYMAX-1
-     NY=NYDO
-     NXMAX=NXA(NY)
-     NX1MAX=NXA(NY+1)
-     NX=1
-     NX1=1
-     
-     XAI=XNDA(NX,  NY   )
-18   XBJ=XNDA(NX1+1,NY+1)
-     if(XBJ.lt.XAI) then
-        NX1=NX1+1
-        goto 18
-     end if
-     XAJ=XNDA(NX1,  NY+1)
-19   XBI=XNDA(NX+1,NY   )
-     if(XBI.lt.XAJ) then
-        NX=NX+1
-        goto 19
-     end if
-20   XAI=XNDA(NX,  NY   )
-     XBI=XNDA(NX+1,NY   )
-     XAJ=XNDA(NX1,  NY+1)
-     XBJ=XNDA(NX1+1,NY+1)
-     YAI=YNDA(NX,  NY   )
-     YBI=YNDA(NX+1,NY   )
-     YAJ=YNDA(NX1,  NY+1)
-     YBJ=YNDA(NX1+1,NY+1)
-     VA=(XAI-XBJ)**2+(YAI-YBJ)**2
-     VB=(XBI-XAJ)**2+(YBI-YAJ)**2
-     if(VA.gt.VB) then
-        do NZ=1,NZMAX-1
-           IE=IE+3
-        end do
-        NX=NX+1
-     else
-        do NZ=1,NZMAX-1
-           IE=IE+3
-        end do
-        NX1=NX1+1
-     end if
-     if(NX.lt.NXMAX) then
-        if(NX1.lt.NX1MAX) then
-           goto 20
-        else
-21         continue
-           XAI=XNDA(NX, NY  )
-           XAJ=XNDA(NX1,NY+1)
-           if(XAI.le.XAJ) then
-              do NZ=1,NZMAX-1
-                 IE=IE+3
-              end do
-              NX=NX+1
-              if(NX.lt.NXMAX) goto 21
-           end if
-        end if
-     else
-        if(NX1.lt.NX1MAX) then
-22         continue
-           XAI=XNDA(NX,  NY   )
-           XAJ=XNDA(NX1, NY+1)
-           if(XAJ.le.XAI) then
-              do NZ=1,NZMAX-1
-                 IE=IE+3
-              end do
-              NX1=NX1+1
-              if(NX1.lt.NX1MAX) goto 22
-           end if
-        end if
-     end if
-  end do
-  NEMAX=IE
-
-  call wfelm_allocate
-
-  IE = 0
-  
-  do NYDO=1,NYMAX-1
-     NY=NYDO
-     NXMAX=NXA(NY)
-     NX1MAX=NXA(NY+1)
-     NX=1
-     NX1=1
-     
-     XAI=XNDA(NX,  NY   )
-23   XBJ=XNDA(NX1+1,NY+1)
-     if(XBJ.lt.XAI) then
-        NX1=NX1+1
-        goto 23
-     end if
-     XAJ=XNDA(NX1,  NY+1)
-24   XBI=XNDA(NX+1,NY   )
-     if(XBI.lt.XAJ) then
-        NX=NX+1
-        goto 24
-     end if
-25   XAI=XNDA(NX,  NY   )
-     XBI=XNDA(NX+1,NY   )
-     XAJ=XNDA(NX1,  NY+1)
-     XBJ=XNDA(NX1+1,NY+1)
-     YAI=YNDA(NX,  NY   )
-     YBI=YNDA(NX+1,NY   )
-     YAJ=YNDA(NX1,  NY+1)
-     YBJ=YNDA(NX1+1,NY+1)
-     VA=(XAI-XBJ)**2+(YAI-YBJ)**2
-     VB=(XBI-XAJ)**2+(YBI-YAJ)**2
-     if(VA.gt.VB) then
-        do NZ=1,NZMAX-1
-           call SETELL(NX,NX1,NY,NZ,IE,0)
-        end do
-        NX=NX+1
-     else
-        do NZ=1,NZMAX-1
-           call SETELL(NX,NX1,NY,NZ,IE,1)
-        end do
-        NX1=NX1+1
-     end if
-     if(NX.lt.NXMAX) then
-        if(NX1.lt.NX1MAX) then
-           goto 25
-        else
-26         continue
-           XAI=XNDA(NX, NY  )
-           XAJ=XNDA(NX1,NY+1)
-           if(XAI.le.XAJ) then
-              do NZ=1,NZMAX-1
-                 call SETELL(NX,NX1,NY,NZ,IE,0)
-              end do
-              NX=NX+1
-              if(NX.lt.NXMAX) goto 26
-           end if
-        end if
-     else
-        if(NX1.lt.NX1MAX) then
-27         continue
-           XAI=XNDA(NX,  NY   )
-           XAJ=XNDA(NX1, NY+1)
-           if(XAJ.le.XAI) then
-              do NZ=1,NZMAX-1
-                 call SETELL(NX,NX1,NY,NZ,IE,1)
-              end do
-              NX1=NX1+1
-              if(NX1.lt.NX1MAX) goto 27
-           end if
-        end if
-     end if
-  end do
-
-  IERR=0
-  return
-end subroutine SETELM
-
-!     ****** Set Element Array SUB******
-
-subroutine SETELL(NX,NX1,NY,NZ,IE,ID)
-
-  use wfcomm
-  implicit none
-  integer :: NEL(6),NID(4,3,2),IE,ID,NX,NX1,NY,NZ,IEL
-
-  DATA NID/1,2,3,6, 1,4,5,6, 1,5,2,6, 2,3,1,6, 2,4,5,6, 2,1,4,6/
-  
-  if(ID.eq.0) then
-     if(NX+NX1.ge.(NXA(NY)+1)/2+(NXA(NY+1)+1)/2) then
-        if(NY.ge.(NYMAX+1)/2) then
-           NEL(1)=NDA(NX   ,NY  ,NZ  )
-           NEL(2)=NDA(NX+1 ,NY  ,NZ  )
-           NEL(3)=NDA(NX1  ,NY+1,NZ  )
-           NEL(4)=NDA(NX   ,NY  ,NZ+1)
-           NEL(5)=NDA(NX+1 ,NY  ,NZ+1)
-           NEL(6)=NDA(NX1  ,NY+1,NZ+1)
-           IEL=1
-        else
-           NEL(1)=NDA(NX1  ,NY+1,NZ  )
-           NEL(2)=NDA(NX   ,NY  ,NZ  )
-           NEL(3)=NDA(NX+1 ,NY  ,NZ  )
-           NEL(4)=NDA(NX1  ,NY+1,NZ+1)
-           NEL(5)=NDA(NX   ,NY  ,NZ+1)
-           NEL(6)=NDA(NX+1 ,NY  ,NZ+1)
-           IEL=1
-        end if
-     else
-        if(NY.ge.(NYMAX+1)/2) then
-           NEL(1)=NDA(NX   ,NY  ,NZ  )
-           NEL(2)=NDA(NX+1 ,NY  ,NZ  )
-           NEL(3)=NDA(NX1  ,NY+1,NZ  )
-           NEL(4)=NDA(NX   ,NY  ,NZ+1)
-           NEL(5)=NDA(NX+1 ,NY  ,NZ+1)
-           NEL(6)=NDA(NX1  ,NY+1,NZ+1)
-           IEL=2
-        else
-           NEL(1)=NDA(NX+1 ,NY  ,NZ  )
-           NEL(2)=NDA(NX1  ,NY+1,NZ  )
-           NEL(3)=NDA(NX   ,NY  ,NZ  )
-           NEL(4)=NDA(NX+1 ,NY  ,NZ+1)
-           NEL(5)=NDA(NX1  ,NY+1,NZ+1)
-           NEL(6)=NDA(NX   ,NY  ,NZ+1)
-           IEL=2
-        end if
-     end if
-  else
-     if(NX+NX1.ge.(NXA(NY)+1)/2+(NXA(NY+1)+1)/2) then
-        if(NY.ge.(NYMAX+1)/2) then
-           NEL(1)=NDA(NX1  ,NY+1,NZ  )
-           NEL(2)=NDA(NX   ,NY  ,NZ  )
-           NEL(3)=NDA(NX1+1,NY+1,NZ  )
-           NEL(4)=NDA(NX1  ,NY+1,NZ+1)
-           NEL(5)=NDA(NX   ,NY  ,NZ+1)
-           NEL(6)=NDA(NX1+1,NY+1,NZ+1)
-           IEL=2
-        else
-           NEL(1)=NDA(NX1+1,NY+1,NZ  )
-           NEL(2)=NDA(NX1  ,NY+1,NZ  )
-           NEL(3)=NDA(NX   ,NY  ,NZ  )
-           NEL(4)=NDA(NX1+1,NY+1,NZ+1)
-           NEL(5)=NDA(NX1  ,NY+1,NZ+1)
-           NEL(6)=NDA(NX   ,NY  ,NZ+1)
-           IEL=2
-        end if
-     else
-        if(NY.ge.(NYMAX+1)/2) then
-           NEL(1)=NDA(NX   ,NY  ,NZ  )
-           NEL(2)=NDA(NX1+1,NY+1,NZ  )
-           NEL(3)=NDA(NX1  ,NY+1,NZ  )
-           NEL(4)=NDA(NX   ,NY  ,NZ+1)
-           NEL(5)=NDA(NX1+1,NY+1,NZ+1)
-           NEL(6)=NDA(NX1  ,NY+1,NZ+1)
-           IEL=1
-        else
-           NEL(1)=NDA(NX1+1,NY+1,NZ  )
-           NEL(2)=NDA(NX1  ,NY+1,NZ  )
-           NEL(3)=NDA(NX   ,NY  ,NZ  )
-           NEL(4)=NDA(NX1+1,NY+1,NZ+1)
-           NEL(5)=NDA(NX1  ,NY+1,NZ+1)
-           NEL(6)=NDA(NX   ,NY  ,NZ+1)
-           IEL=1
-        end if
-     end if
-  end if
-  IE=IE+1
-  NDELM(1,IE)=NEL(NID(1,1,IEL))
-  NDELM(2,IE)=NEL(NID(2,1,IEL))
-  NDELM(3,IE)=NEL(NID(3,1,IEL))
-  NDELM(4,IE)=NEL(NID(4,1,IEL))
-  IE=IE+1
-  NDELM(1,IE)=NEL(NID(1,2,IEL))
-  NDELM(2,IE)=NEL(NID(2,2,IEL))
-  NDELM(3,IE)=NEL(NID(3,2,IEL))
-  NDELM(4,IE)=NEL(NID(4,2,IEL))
-  IE=IE+1
-  NDELM(1,IE)=NEL(NID(1,3,IEL))
-  NDELM(2,IE)=NEL(NID(2,3,IEL))
-  NDELM(3,IE)=NEL(NID(3,3,IEL))
-  NDELM(4,IE)=NEL(NID(4,3,IEL))
+  INNODE=3*(NR-1)*(NR-2)+1
 
   return
-end subroutine SETELL
+end function INNODE
 
-!     ****** Set Element Array ******
-
-subroutine SETELMX(IERR)
-
-  use wfcomm
-  implicit none
-  integer :: NY,NX0MAX,NX1MAX,NX10,NX11,NZ,IERR,NX00,NX01
-  integer :: IE,NYDO
-  real(8) :: RL00,RL01
-
-  IE=0
-
-  do NYDO=1,NYMAX-1
-     NY=NYDO
-     NX0MAX=NXA(NY)
-     NX1MAX=NXA(NY+1)
-     
-     if(NX0MAX.eq.1) then
-        do NX10=1,NX1MAX
-           NX11=NX10+1
-           if(NX11.gt.NX1MAX) NX11=1
-           do NZ=1,NZMAX-1
-              IE=IE+3
-           end do
-        end do
-     else
-
-        NX00=1
-        NX10=1
-        
-100     NX01=NX00+1
-        if(NX01.gt.NX0MAX) NX01=1
-        NX11=NX10+1
-        if(NX11.gt.NX1MAX) NX11=1
-        
-        RL00=(XNDA(NX11,NY+1)-XNDA(NX00,NY))**2&
-             &          +(YNDA(NX11,NY+1)-YNDA(NX00,NY))**2
-        RL01=(XNDA(NX10,NY+1)-XNDA(NX01,NY))**2&
-             &          +(YNDA(NX10,NY+1)-YNDA(NX01,NY))**2
-        
-        if(RL00.lt.RL01) then
-           do NZ=1,NZMAX-1
-              IE=IE+3
-           end do
-           if(NX10.eq.NX1MAX) then
-              do NZ=1,NZMAX-1
-                 IE=IE+3
-              end do
-              goto 200
-           else
-              NX10=NX10+1
-           end if
-        else if(RL00.ge.RL01) then
-           do NZ=1,NZMAX-1
-              IE=IE+3
-           end do
-           if(NX00.eq.NX0MAX) then
-              do NZ=1,NZMAX-1
-                 IE=IE+3
-              end do
-              goto 200
-           else
-              NX00=NX00+1
-           end if
-        end if
-        goto 100
-        
-200     continue
-     end if
-
-  end do
-  
-  NEMAX=IE
-  
-  call wfelm_allocate
-
-  do NYDO=1,NYMAX-1
-     NY=NYDO
-     NX0MAX=NXA(NY)
-     NX1MAX=NXA(NY+1)
-     
-     if(NX0MAX.eq.1) then
-        do NX10=1,NX1MAX
-           NX11=NX10+1
-           if(NX11.gt.NX1MAX) NX11=1
-           do NZ=1,NZMAX-1
-              call SETELLX(1,NX10,NX11,NY,NZ,IE,0)
-           end do
-        end do
-     else
-        
-        NX00=1
-        NX10=1
-        
-110     NX01=NX00+1
-        if(NX01.gt.NX0MAX) NX01=1
-        NX11=NX10+1
-        if(NX11.gt.NX1MAX) NX11=1
-        
-        RL00=(XNDA(NX11,NY+1)-XNDA(NX00,NY))**2&
-            +(YNDA(NX11,NY+1)-YNDA(NX00,NY))**2
-        RL01=(XNDA(NX10,NY+1)-XNDA(NX01,NY))**2&
-            +(YNDA(NX10,NY+1)-YNDA(NX01,NY))**2
-        
-        if(RL00.lt.RL01) then
-           do NZ=1,NZMAX-1
-              call SETELLX(NX00,NX10,NX11,NY,NZ,IE,0)
-           end do
-           if(NX10.eq.NX1MAX) then
-              do NZ=1,NZMAX-1
-                 call SETELLX(NX00,NX01,NX11,NY,NZ,IE,1)
-              end do
-              goto 210
-           else
-              NX10=NX10+1
-           end if
-        else if(RL00.ge.RL01) then
-           do NZ=1,NZMAX-1
-              call SETELLX(NX00,NX01,NX10,NY,NZ,IE,1)
-           end do
-           if(NX00.eq.NX0MAX) then
-              do NZ=1,NZMAX-1
-                 call SETELLX(NX01,NX10,NX11,NY,NZ,IE,0)
-              end do
-              goto 210
-           else
-              NX00=NX00+1
-           end if
-        end if
-
-        GOTO 110
-
-210     CONTINUE
-     ENDIF
-     
-  ENDDO
-
-  NEMAX=IE
-  IERR=0
-  RETURN
-end subroutine SETELMX
-
-!     ****** Set Element Array SUB******
-
-subroutine SETELLX(NX0,NX1,NX2,NY,NZ,IE,ID)
-  
-  use wfcomm
-  implicit none
-  integer :: NEL(6),NID(4,3,4),IE,ID,NX0,NY,NZ,NX1,NX2,IEL
-  real(8) :: XC,YC
-  DATA NID/1,2,3,6, 1,4,5,6, 1,5,2,6, 1,2,3,5, 1,6,4,5, 1,3,6,5,&
-           1,2,3,6, 2,4,5,6, 1,4,2,6, 1,2,3,6, 1,4,5,6, 1,5,2,6/
-  
-  if(ID.eq.0) then
-     NEL(1)=NDA(NX0,NY  ,NZ  )
-     NEL(2)=NDA(NX1,NY+1,NZ  )
-     NEL(3)=NDA(NX2,NY+1,NZ  )
-     NEL(4)=NDA(NX0,NY  ,NZ+1)
-     NEL(5)=NDA(NX1,NY+1,NZ+1)
-     NEL(6)=NDA(NX2,NY+1,NZ+1)
-     IEL=1
-  else
-     NEL(1)=NDA(NX1,NY  ,NZ  )
-     NEL(2)=NDA(NX0,NY  ,NZ  )
-     NEL(3)=NDA(NX2,NY+1,NZ  )
-     NEL(4)=NDA(NX1,NY  ,NZ+1)
-     NEL(5)=NDA(NX0,NY  ,NZ+1)
-     NEL(6)=NDA(NX2,NY+1,NZ+1)
-     IEL=3
-  end if
-  
-  XC=XND(NEL(1))+XND(NEL(2))+XND(NEL(3))
-  YC=YND(NEL(1))+YND(NEL(2))+YND(NEL(3))
-  if(XC*YC.lt.0.D0) IEL=IEL+1
-  
-  IE=IE+1
-  NDELM(1,IE)=NEL(NID(1,1,IEL))
-  NDELM(2,IE)=NEL(NID(2,1,IEL))
-  NDELM(3,IE)=NEL(NID(3,1,IEL))
-  NDELM(4,IE)=NEL(NID(4,1,IEL))
-  IE=IE+1
-  NDELM(1,IE)=NEL(NID(1,2,IEL))
-  NDELM(2,IE)=NEL(NID(2,2,IEL))
-  NDELM(3,IE)=NEL(NID(3,2,IEL))
-  NDELM(4,IE)=NEL(NID(4,2,IEL))
-  IE=IE+1
-  NDELM(1,IE)=NEL(NID(1,3,IEL))
-  NDELM(2,IE)=NEL(NID(2,3,IEL))
-  NDELM(3,IE)=NEL(NID(3,3,IEL))
-  NDELM(4,IE)=NEL(NID(4,3,IEL))
-  
-  return
-end subroutine SETELLX
 
 !     ****** List Element Data ******
-
 subroutine WFLDIV
 
   use wfcomm
   implicit none
-  integer :: I,J
+  integer :: I,J,NE,ISD,NSD_1,NSD_2
 
-  write(6,100) NNMAX,(I,XND(I),YND(I),ZND(I),I=1,NNMAX)
+  write(6,100) NNMAX,(I,RNODE(I),ZNODE(I),I=1,NNMAX)
 100 format(/' ','NODE DATA',7X,'NNMAX=',I6/&
-            ' ',8X,'XND',10X,'YND',10X,'ZND'/&
-           (' ',I6,1P3E13.4))
-     
-  write(6,200) NEMAX,(I,(NDELM(J,I),J=1,4),&
-                      I=1,NEMAX)
-200 format(/' ','ELEMENT DATA',5X,'NEMAX=',I6/&
-           (' ',2(I5,'(',4I5,')',2X)))
-     
-  write(6,400) NBMAX,(NDBDY(I),I=1,NBMAX)
-400 format(' ','BOUNDARY DATA',4X,'NBMAX=',I6/&
-          (' ',10(I6)))
-     
-  write(6,500) MBND,MLEN,(I,KANOD(I),IMLEN(I),I=1,NSDMAX)
-500 format(' ','NODE AND MATRIX',2X,'MBND=',I6,4X,'MLEN=',I4/&
-          (' ',4(I5,'(',2I5,')')))
+            ' ',8X,'RNODE',10X,'ZNODE'/&
+           (' ',I6,1P2E13.4))
+
+  write(6,*) '----------------------------------------------'
+  write(6,200) NSDMAX,(I,NDSID(1,I),NDSID(2,I),I=1,NSDMAX)
+200 format(/' ','SIDE DATA',7X,'NSDMAX=',I6/&
+            ' ',10X,'ND1',4X,'ND2',10X,'ND1',4X,'ND2'/&
+           (' ',2(I6,'(',2I6,')')))
+
+  write(6,*) '----------------------------------------------'
+  write(6,300) NEMAX,(I,(NDELM(J,I),J=1,3),I=1,NEMAX)
+300 format(' ','ELEMENT NODE DATA',5X,'NEMAX=',I6/&
+          (' ',2(I5,'(',3I5,')',2X)))
+  
+  write(6,*) '----------------------------------------------'
+  write(6,*) ' ELEMENT SIDE DATA'
+  do NE=1,NEMAX-1,2
+     write(6,'(2(A,I4,A,2X))') 'NE=',NE,  '   NSD   ND1   ND2',&
+                               'NE=',NE+1,'   NSD   ND1   ND2'
+     do ISD=1,3
+        NSD_1=NSDELM(ISD,NE  )
+        NSD_2=NSDELM(ISD,NE+1)
+        if(NSD_1.ge.0) then
+           if(NSD_2.ge.0) then
+              write(6,'(7X,3I6,9X,4I6)')&
+                   NSD_1,NDSID(1,NSD_1),NDSID(2,NSD_1),&
+                   NSD_2,NDSID(1,NSD_2),NDSID(2,NSD_2)
+           else
+              NSD_2=-NSD_2
+              write(6,'(7X,3I6,9X,4I6)')&
+                   NSD_1,NDSID(1,NSD_1),NDSID(2,NSD_1),&
+                   NSD_2,NDSID(2,NSD_2),NDSID(1,NSD_2)
+           end if
+        else
+           NSD_1=-NSD_1
+           if(NSD_2.ge.0) then
+              write(6,'(7X,3I6,9X,4I6)')&
+                   NSD_1,NDSID(2,NSD_1),NDSID(1,NSD_1),&
+                   NSD_2,NDSID(1,NSD_2),NDSID(2,NSD_2)
+           else
+              NSD_2=-NSD_2
+              write(6,'(7X,3I6,9X,4I6)')&
+                   NSD_1,NDSID(2,NSD_1),NDSID(1,NSD_1),&
+                   NSD_2,NDSID(2,NSD_2),NDSID(1,NSD_2)
+           end if
+        end if
+     end do
+  end do
+
+  write(6,*) '----------------------------------------------'
+  write(6,500) MLEN,(I,KANOD(I),I=1,NNMAX)
+500 format(' ','BOUNDARY NODE DATA',4X,'MLEN=',I4/&
+          (' ',4(I5,'(',I1,') ')))
   return
 end subroutine WFLDIV
-!------------------------------------------------------------
+
+!-- broadcast data --
 subroutine wfdiv_broadcast
 
-  use libmpi
-  use libmtx
   use wfcomm
+  use libmpi
   implicit none
 
-  real(8),dimension(11) :: rdata
-  integer,dimension(1)  :: idata 
-  integer :: NDATA
+  real(8),dimension(7) :: rdata
 
   if (nrank.eq.0) then
-     rdata(1)=BXMIN
-     rdata(2)=BXMAX
-     rdata(3)=BYMIN
-     rdata(4)=BYMAX
-     rdata(5)=BZMIN
-     rdata(6)=BZMAX
-     rdata(7)=DELX
-     rdata(8)=DELY
-     rdata(9)=DELZ
-     if (IDDIV.eq.1.or.&
-         IDDIV.eq.2) rdata(10)=RB
-     if (IDDIV.eq.2) rdata(11)=RBAX
-     idata(1)=IDDIV
+     rdata(1)=BDRMIN
+     rdata(2)=BDRMAX
+     rdata(3)=BDZMIN
+     rdata(4)=BDZMAX
+     rdata(5)=DELR
+     rdata(6)=DELZ
+     rdata(7)=RB
   end if
   
   call mtx_barrier
-  call mtx_broadcast_integer(idata,1)
-  IDDIV=idata(1)
-  if (IDDIV.eq.0) then
-     NDATA=9
-  else if(IDDIV.eq.1) then
-     NDATA=10
-  else if(IDDIV.eq.2) then
-     NDATA=11
-  end if
-  
-  call mtx_barrier
-  call mtx_broadcast_real8(rdata,NDATA)
-  BXMIN=rdata(1)
-  BXMAX=rdata(2)
-  BYMIN=rdata(3)
-  BYMAX=rdata(4)
-  BZMIN=rdata(5)
-  BZMAX=rdata(6)
-  DELX =rdata(7)
-  DELY =rdata(8)
-  DELZ =rdata(9)
-  if (IDDIV.eq.1.or.&
-      IDDIV.eq.2) RB  =rdata(10)
-  if (IDDIV.eq.2) RBAX=rdata(11)
+  call mtx_broadcast_real8(rdata,7)
+
+  BDRMIN=rdata(1)
+  BDRMAX=rdata(2)
+  BDZMIN=rdata(3)
+  BDZMAX=rdata(4)
+  DELR  =rdata(5)
+  DELZ  =rdata(6)
+  RB    =rdata(7)
+
+  call mtx_broadcast_real8(r_corner,3)
+  call mtx_broadcast_real8(z_corner,3)
 
   return 
 end subroutine wfdiv_broadcast

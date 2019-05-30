@@ -16,6 +16,7 @@ CONTAINS
     USE dpparm,ONLY: dp_parm,dp_view
     USE dproot,ONLY: dp_root,dpgrp1,dpgrp0
     USE dpcont,ONLY: dp_cont,dp_contx
+    USE dpcont2,ONLY: dp_cont2
     USE dptens,ONLY: dp_tens
     IMPLICIT NONE
       
@@ -32,7 +33,7 @@ CONTAINS
 
 1   CONTINUE
     WRITE(6,*) '## DP MENU: P,V/PARM  ', &
-               'D0,D1,D2,D3/DISP  F/ROOT  T,S,K/TEST  Q/QUIT'
+               'D0,D1,D2,D3,D4/DISP  F/ROOT  T,S,K/TEST  Q/QUIT'
 
     CALL TASK_KLIN(LINE,KID,MODE,DP_PARM)
     IF(MODE.NE.1) GOTO 1
@@ -53,6 +54,8 @@ CONTAINS
           CALL DP_CONT
        ELSEIF(NID.EQ.3) THEN
           CALL DP_CONTX
+       ELSEIF(NID.EQ.4) THEN
+          CALL DP_CONT2
        ELSE
           WRITE(6,*) 'XX DPMENU: unknown NID'
        ENDIF

@@ -1,13 +1,17 @@
-!     $Id$
+!     $Id: wflib.f90,v 1.2 2011/10/04 04:22:07 maruyama Exp $
 
 !     ***** REGULA FALSI METHOD *****
 
 SUBROUTINE FRGFLS(XS,XE,DX,XR,FUNC,EPS,ILL)
 
   implicit none
-  integer :: ILMAX,ILL
-  real(8) :: DX,XE,XS,D,X,Y,FUNC,EPS,XR,XX,YY,YYY,DD
+  integer,intent(out) :: ILL
+  integer :: ILMAX
+  real(8),intent(in) :: XS,XE,DX,EPS
+  real(8),intent(out):: XR
+  real(8) :: D,X,Y,XX,YY,YYY,DD,FUNC
   EXTERNAL FUNC
+
   ILMAX=-ILL
   IF(ILMAX.EQ.0) ILMAX=-30
   ILL=0

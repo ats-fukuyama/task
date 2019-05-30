@@ -12,24 +12,24 @@ SUBROUTINE WFWAVE
 
   GTMAIN=0.0
   GTSOLV=0.0
-  
+
   CALL GUTIME(GCPUT0)
-  
+
   if (nrank.eq.0) WRITE(6,*) '--- WFWPRE started ---'
   CALL WFWPRE(IERR)
   IF(IERR.NE.0) GOTO 9000
-  
+
   if (nrank.eq.0) WRITE(6,*) '--- CVCALC started ---'
   CALL CVCALC
-  
+
   CALL GUTIME(GCPUT1)
-  
+
   if(nrank.eq.0) WRITE(6,*) '--- CVSOLV started ---'
   CALL CVSOLV(IERR)
-  
+
   CALL GUTIME(GCPUT2)
   IF(IERR.NE.0) GOTO 9000
-  
+
   CALL CALFLD
   CALL PWRABS
   CALL PWRRAD
@@ -46,7 +46,7 @@ SUBROUTINE WFWAVE
 
 100 FORMAT(' ','****** CPU TIME : MAIN = ',F10.3,' SEC',5X,&
          &                     ': SOLV = ',F10.3,' SEC ******')
-  
+
 9000 continue
 
   RETURN
@@ -67,15 +67,15 @@ SUBROUTINE WFWPRE(IERR)
   if (nrank.eq.0) WRITE(6,*) '----- SETBDY start ---'
   CALL SETBDY(IERR)
   IF(IERR.NE.0) RETURN
-  
+
   if (nrank.eq.0) WRITE(6,*) '----- SETSID start ---'
   CALL SETSID(IERR)
   IF(IERR.NE.0) RETURN
-  
+
   if (nrank.eq.0) WRITE(6,*) '----- MODANT start ---'
   CALL MODANT(IERR)
   IF(IERR.NE.0) RETURN
-  
+
   if (nrank.eq.0) WRITE(6,*) '----- SETKAN start ---'
   CALL SETKAN(IERR)
   IF(IERR.NE.0) RETURN
@@ -83,7 +83,7 @@ SUBROUTINE WFWPRE(IERR)
   if (nrank.eq.0) WRITE(6,*) '----- DEFBND start ---'
   CALL DEFBND(IERR)
   IF(IERR.NE.0) RETURN
-  
+
   call wffld_allocate
   call wfpwr_allocate
 
@@ -103,7 +103,7 @@ SUBROUTINE SETKAN(IERR)
 
   use wfcomm
   implicit none
-  
+
   integer :: IERR,NE,NB,NBP,IN,IN1,NN,NSF,ISD,IN2,IN3
   integer :: KAN1,KAN2,KAN3,K1,K2,K3
 
@@ -141,7 +141,7 @@ SUBROUTINE SETKAN(IERR)
         KAELM(NE)=1
      ENDDO
   ENDIF
-  
+
   DO NB=1,NBMAX
      if (nrank.eq.0) WRITE(6,'(3I8,4X,A)') NB,KABDY(NB),NBPMAX(NB),KDBDY(NB)
      IF(KABDY(NB).LT.8) THEN
@@ -194,7 +194,7 @@ SUBROUTINE SETKAN(IERR)
            ENDIF
         ENDDO
      ENDIF
-     
+
      DO NSF=1,NSFMAX
         KAN1=KANOD(NDSRF(1,NSF))
         KAN2=KANOD(NDSRF(2,NSF))
@@ -207,7 +207,7 @@ SUBROUTINE SETKAN(IERR)
            ENDDO
         ENDIF
      ENDDO
-     
+
      DO NE=1,NEMAX
         DO IN=1,4
            IN1=MOD(IN,4)+1
@@ -224,7 +224,7 @@ SUBROUTINE SETKAN(IERR)
         ENDDO
      ENDDO
   ENDDO
-  
+
   RETURN
 END SUBROUTINE SETKAN
 
@@ -243,12 +243,12 @@ SUBROUTINE DTENSR(NN,CK)
   real(8)    :: PCRT,PBKG,WCI,WRD,WDIF
 
   WW=2.D0*PI*RF*1.D6
-  
+
   DO NS=1,NSMAX
      WP(NS)=PZ(NS)*PZ(NS)*AEE*AEE*1.D20/(PA(NS)*AMP*EPS0*WW*WW)
      WC(NS)=PZ(NS)*AEE/(PA(NS)*AMP*WW)
   ENDDO
-  
+
   CALL WFSMAG(NN,BABS,AL)
   CALL WFSDEN(NN,RN,RTPR,RTPP,RZCL)
 
@@ -276,11 +276,11 @@ SUBROUTINE DTENSR(NN,CK)
      CDT0= CWP/(1.D0-CWC**2)
      CDX0= CII*CWP*CWC/(1.D0-CWC**2)
      CDP0= CWP
-     
+
      CDT=CDT0
      CDP=CDP0-CDT
      CDX=CDX0
-     
+
      FX=AL(1)
      FY=AL(2)
      FZ=AL(3)
@@ -293,7 +293,7 @@ SUBROUTINE DTENSR(NN,CK)
      CZX= CDX*FY+CDP*FZ*FX
      CZY=-CDX*FX+CDP*FZ*FY
      CZZ= CDT   +CDP*FZ*FZ
-     
+
      CK(1,1,NS)=-CXX
      CK(1,2,NS)=-CXY
      CK(1,3,NS)=-CXZ
@@ -304,7 +304,7 @@ SUBROUTINE DTENSR(NN,CK)
      CK(3,2,NS)=-CZY
      CK(3,3,NS)=-CZZ
   end do
-  
+
   return
 END SUBROUTINE DTENSR
 
@@ -326,7 +326,7 @@ SUBROUTINE CVCALC
         CVTOT(N,NE)=0.D0
      ENDDO
   ENDDO
-  
+
   DO NA=1,NAMAX
      PHASE =APH(NA)*PI/180.D0
 ! ----- Add. By YOKOYAMA Mar./05/2013 ----
@@ -380,10 +380,10 @@ SUBROUTINE CMCALC(NE)
   RW=2.D0*PI*RF*1.D6
   WC=RW/VC
   WC2=WC**2
-  
+
   NME=NMKA(KAELM(NE))
   NBE=NBELM(NE)
-  
+
   IF(NBE.EQ.0) THEN
      ISDMAX=6
      IMDMAX=1
@@ -391,9 +391,9 @@ SUBROUTINE CMCALC(NE)
      ISDMAX=7
      IMDMAX=NMBDY(NBE)
   ENDIF
-  
+
   CALL WFABCDX(NE,F,DF,RWE,DWE,V)
-  
+
   DO IM=1,ISDMAX
      DO IN=1,ISDMAX
         DO J=1,IMDMAX
@@ -403,7 +403,7 @@ SUBROUTINE CMCALC(NE)
         ENDDO
      ENDDO
   ENDDO
-  
+
   DO IN=1,ISDMAX
      DO I=1,IMDMAX
         CV(I,IN)=0.D0
@@ -452,7 +452,7 @@ SUBROUTINE CMCALC(NE)
               ID=0
            ENDIF
         ENDIF
-        
+
         IF(ID.EQ.0) THEN
            EPSD=EPSDM(NME)
            SIGD=SIGDM(NME)
@@ -464,7 +464,7 @@ SUBROUTINE CMCALC(NE)
            SIGD=REAL(-CII*CEPS)*RW*EPS0
            AMUD=AMUDM(NME)
         ENDIF
-        
+
         DO I=1,3
            DO J=1,3
               IF(I.EQ.J) THEN
@@ -481,7 +481,7 @@ SUBROUTINE CMCALC(NE)
   DO N=1,6
      DO M=1,6
         CP=RWE(1,N)*RWE(1,M)+RWE(2,N)*RWE(2,M)+RWE(3,N)*RWE(3,M)
-        
+
         CM(1,1,N,M)=CM(1,1,N,M)+XMU*V*CP
 
         DO I=1,3
@@ -497,10 +497,10 @@ SUBROUTINE CMCALC(NE)
               ENDDO
            ENDDO
         ENDDO
-        
+
      ENDDO
   ENDDO
- 
+
 !     ***** BOUNDARY SURFACE *****
 
   DO L=1,4
@@ -509,14 +509,14 @@ SUBROUTINE CMCALC(NE)
         NB=-KN
         KA=KABDY(NB)
         CALL WF2ABC(L,NE,S)
-        
+
         IF(KA.GE.8) THEN
            DO K0S=1,3
               K0=MOD(L+K0S-1,4)+1
               ND=NDELM(K0,NE)
               CALL WFBFWG(ND,CBWG(1,0,K0S))
            ENDDO
-         
+
            DO N=1,6
               DO K1S=1,3
                  K1=MOD(L+K1S-1,4)+1
@@ -535,7 +535,7 @@ SUBROUTINE CMCALC(NE)
                  ENDDO
               ENDDO
            ENDDO
-           
+
         ELSEIF(KA.EQ.4) THEN
            DO N=1,6
               DO M=1,6
@@ -555,9 +555,9 @@ SUBROUTINE CMCALC(NE)
         ENDIF
      ENDIF
   ENDDO
- 
+
 !     ----- boundary tangential electric field is given -----
-  
+
   DO M=1,6
      NSD=ABS(NSDELM(M,NE))
      KA=KASID(NSD)
@@ -576,7 +576,7 @@ SUBROUTINE CMCALC(NE)
   ENDDO
 
 !     ----- boundary weighting function are coupled -----
-  
+
   DO N=1,6
      NSD=ABS(NSDELM(N,NE))
      KA=KASID(NSD)
@@ -627,7 +627,7 @@ SUBROUTINE CALFLD
         ENDDO
      ENDIF
   ENDDO
-  
+
   DO NSD=1,NSDMAX
      KA=KASID(NSD)
      IF(KA.EQ.0) THEN
@@ -653,7 +653,7 @@ SUBROUTINE CALFLD
         CEF(I,NN)=0.D0
      ENDDO
   ENDDO
-  
+
   DO NE=1,NEMAX
      CALL WFABCDX(NE,F,DF,RWE,DWE,V)
      DO IN=1,4
@@ -690,7 +690,7 @@ SUBROUTINE PWRABS
   
   RW=2.D0*PI*RF*1.D6
   CNST=0.5D0*CII*RW*EPS0
-  
+
   PABST=0.D0
   DO NS=1,NSMAX
      PABSS(NS)=0.D0
@@ -698,7 +698,7 @@ SUBROUTINE PWRABS
   DO NK=1,NKMAX
      PABSK(NK)=0.D0
   ENDDO
-  
+
   DO NN=1,NNMAX
      PABSTN(NN)=0.D0
      DO NS=1,NSMAX
@@ -708,12 +708,12 @@ SUBROUTINE PWRABS
         PABSKN(NN,NK)=0.D0
      ENDDO
   ENDDO
-  
+
   DO NEDO=1,NEMAX
      NE=NEDO
      NME=NMKA(KAELM(NE))
      NKE=KAELM(NE)
-     
+
      IF(NME.EQ.0) THEN
         NSMAXL=NSMAX
      ELSE
@@ -722,15 +722,15 @@ SUBROUTINE PWRABS
      DO NS=1,NSMAXL
         PABSL(NS)=0.D0
      ENDDO
-     
+
      CALL WFNODE(NE,XE,YE,ZE)
      CALL WFABCDX(NE,F,DF,RWE,DWE,V)
-   
+
      IF(NME.EQ.0) THEN
         DO K=1,4
            NK=NDELM(K,NE)
            CALL DTENSR(NK,CK)
-           
+
            DO I=1,3
               DO J=1,3
                  DO NS=1,NSMAX
@@ -762,7 +762,7 @@ SUBROUTINE PWRABS
                  ID=0
               ENDIF
            ENDIF
-           
+
            IF(ID.EQ.0) THEN
               EPSD=EPSDM(NME)
               SIGD=SIGDM(NME)
@@ -783,7 +783,7 @@ SUBROUTINE PWRABS
            ENDDO
         ENDDO
      ENDIF
-     
+
      DO N=1,6
         NSD=ABS(NSDELM(N,NE))
         DO M=1,6
@@ -791,7 +791,6 @@ SUBROUTINE PWRABS
            DO K2=1,4
               DO I=1,3
                  DO J=1,3
-                    
                     SUM=0.D0
                     DO K1=1,4
                        DO K3=1,4
@@ -834,7 +833,7 @@ SUBROUTINE PWRABS
         ENDDO
      ENDIF
   ENDDO
-  
+
   RETURN
 END SUBROUTINE PWRABS
 
@@ -849,7 +848,7 @@ SUBROUTINE PWRRAD
   real(8)    :: W(4),F(4),DF(3,4),RWE(3,6),DWE(3,4,6),PHASE,V
   real(8)    :: X1,Y1,Z1,X2,Y2,Z2,XM,YM,ZM
   complex(8) :: CJ(3),CVJ
-  
+
   DO NA=1,NAMAX
      PHASE =APH(NA)*PI/180.D0
 ! ----- Add. By YOKOYAMA Mar./05/2013 ----
@@ -899,27 +898,27 @@ SUBROUTINE PWRRAD
   DO NA=1,NAMAX
      CTIMP=CTIMP+CIMP(NA)
   ENDDO
-  
+
   RETURN
 END SUBROUTINE PWRRAD
 
 !     ****** COMPLETE EFIELD AND POWER ******
 
 SUBROUTINE TERMEP
-  
+
   use wfcomm
   implicit none
 
   integer :: NN,NS,NK,I,J,MAX
   real(8) :: EABS(3),FACT,FACTR,ETOTL
-  
+
   IF(PIN.GE.0.D0.OR.PABST.EQ.0.D0) THEN
      FACT=1.D0
   ELSE
      FACT=-PIN/ABS(PABST)
   ENDIF
   FACTR=SQRT(FACT)
-  
+
   PABST=FACT*PABST
   DO NN=1,NNMAX
      PABSTN(NN)=FACT*PABSTN(NN)/VNOD(NN)
@@ -936,17 +935,17 @@ SUBROUTINE TERMEP
         PABSKN(NN,NK)=FACT*PABSKN(NN,NK)/VNOD(NN)
      ENDDO
   ENDDO
-  
+
   PNMAX=PABSTN(1)
   DO NN=2,NNMAX
      PNMAX=MAX(PNMAX,PABSTN(NN))
   ENDDO
-  
+
   ETMAX=0.D0
   DO I=1,3
      EMAX(I)=0.D0
   ENDDO
-  
+
   DO NN=1,NNMAX
      DO J=1,3
         CEF(J,NN)=FACTR*CEF(J,NN)
@@ -957,10 +956,10 @@ SUBROUTINE TERMEP
      ETOTL =SQRT(EABS(1)*EABS(1)+EABS(2)*EABS(2)+EABS(3)*EABS(3))
      ETMAX =MAX(ETMAX,ETOTL)
   ENDDO
-  
+
   RETURN
 END SUBROUTINE TERMEP
-      
+
 !     ****** CALCULATE MAGNETIC FIELD AND POLARIZED FIELD ******
 
 SUBROUTINE WFCALB
@@ -976,13 +975,13 @@ SUBROUTINE WFCALB
 
   RW=2.D0*PI*RF*1.D6
   COEFB=-CII*VC/RW
-  
+
   DO I=1,3
      DO NN=1,NNMAX
         CBF(I,NN)=0.D0
      ENDDO
   ENDDO
-  
+
   DO NE=1,NEMAX
      CALL WFABCDX(NE,F,DF,RWE,DWE,V)
      CB(1)=(0.D0,0.D0)
@@ -1001,7 +1000,7 @@ SUBROUTINE WFCALB
         CBF(3,NN)=CBF(3,NN)+CB(3)*0.25D0*VELM(NE)/VNOD(NN)
      ENDDO
   ENDDO
-  
+
   DO NN=1,NNMAX
      CALL WFSMAG(NN,BABS,AL)
      SUM=SQRT(AL(1)*AL(1)+AL(3)*AL(3))
@@ -1059,26 +1058,26 @@ SUBROUTINE WFCALB
           CERT(2,NN)=-1.D0*CE1*SIN(ANGLE(NN))+CE2*COS(ANGLE(NN))
           CBRT(1,NN)=      CB1*COS(ANGLE(NN))+CB2*SIN(ANGLE(NN))
           CBRT(2,NN)=-1.D0*CB1*SIN(ANGLE(NN))+CB2*COS(ANGLE(NN))
-!
+
 !         右回り(E+)，左回り(E-)円偏波成分の計算 (Bx=By=0を仮定)
 !         For  exp( -j omega t )    : MODELI=0 & CI=j
 !         E+ : CEP(1,NN) = E-r  +  j * E-theta
 !         E- : CEP(2,NN) = E-r  -  j * E-theta
-!
+
           CEP(1,NN)=CERT(1,NN)+CI*CERT(2,NN)
           CEP(2,NN)=CERT(1,NN)-CI*CERT(2,NN)
           CBP(1,NN)=CBRT(1,NN)+CI*CBRT(2,NN)
           CBP(2,NN)=CBRT(1,NN)-CI*CBRT(2,NN)
-!
+
           IF(NN.EQ.1) THEN
              WRITE(6,*) '## IMAGINARY UNIT: CI=',CI
           ENDIF
        ENDIF
-!
+
 ! ----- Mar./05/2013 -----
-!
+
   ENDDO
-  
+
   FACTOR=0.5D0/(VC*RMU0)
   DO NN=1,NNMAX
      PFV(NN,1)=FACTOR*DBLE((DCONJG(CEF(2,NN))*CBF(3,NN) &
@@ -1090,7 +1089,7 @@ SUBROUTINE WFCALB
 !     WRITE(6,'(A,I8,1P3E12.4)') 'NN,PFV=', &
 !          &        NN,PFV(NN,1),PFV(NN,2),PFV(NN,3)
   ENDDO
-  
+
   RETURN
 END SUBROUTINE WFCALB
 
@@ -1104,18 +1103,18 @@ SUBROUTINE LPEFLD
   integer :: I,J,NS,NA,NK
 
   IF(NPRINT.LT.1) RETURN
-     
+
   WRITE(6,110) (EMAX(I),I=1,3),ETMAX,PNMAX
 110 FORMAT(' ','EXMAX  =',1PE12.4 &
          &,3X ,'EYMAX  =',1PE12.4 &
          &,3X ,'EZMAX  =',1PE12.4/&
          & ' ','EMAX   =',1PE12.4 &
          &,3X ,'PNMAX  =',1PE12.4)
-  
+
   WRITE(6,120) DBLE(CTIMP),PABST
 120 FORMAT(' ','RADIATED POWER =',1PE12.4/&
          & ' ','ABSORBED POWER =',1PE12.4)
-  
+
   IF(ABS(PABST).GT.1.D-32) THEN
      DO NS=1,NSMAX
         WRITE(6,125) NS,PABSS(NS)
@@ -1126,7 +1125,7 @@ SUBROUTINE LPEFLD
 126     FORMAT(' ','      PABS(NK=',I2,') =',1PE12.4)
      ENDDO
   ENDIF
-  
+
   IF(NAMAX.GT.0) THEN
      WRITE(6,130)
 130  FORMAT(' ',' I JNUM', ' AJ(I)','  APH(I)','  AWD(I)', &
@@ -1138,14 +1137,14 @@ SUBROUTINE LPEFLD
           &                            XJ(1,NA),YJ(1,NA),CIMP(NA)
 140  FORMAT(' ',I3,I3,0PF7.4,F7.2,4F7.4,2X,'(',1P2E12.4,')')
   ENDDO
-  
+
   IF(NPRINT.LT.2) RETURN
-  
+
   WRITE(6,150) (I,KANOD(I),PABSTN(I),(CEF(J,I),J=1,3),I=1,NNMAX)
 150 FORMAT('ABSORBED POWER DENSITY AND ELECTRIC FIELD'/&
          &       'NOD ','KB',3X,'POWER',12X,'EX',19X,'EY',19X,'EZ'/&
          &      (I4,I2,1PE10.2,3(1X,1P2E10.2)))
-  
+
   RETURN
 END SUBROUTINE LPEFLD
 
@@ -1159,7 +1158,7 @@ SUBROUTINE LPELMT
   integer :: I,J,NA,NS,NK
 
   IF(NPRINT.LT.3) RETURN
-     
+
   WRITE(6,110) NNMAX
 110 FORMAT(/' ','NODE DATA     : #### NNMAX =',I5,' ####'/&
          &       ' ',2('  NNMAX',' IMLEN',' KANOD',' INLEN',&
@@ -1189,10 +1188,10 @@ SUBROUTINE LPELMT
          ENDDO
          DO NK=1,NKMAX
             WRITE(6,126) NK,PABSK(NK)
-!
+
 ! 125 FORMAT(/' ','NOP     DATA  : #### NEMAX =',I5,' ####'/&
 !         &      (' ',(I8,'(',7I8,')',2X)))
-!  
+
 ! WRITE(6,130) NBMAX
   126       FORMAT(' ','      PABS(NK=',I2,') =',1PE12.4)
          ENDDO
@@ -1215,20 +1214,20 @@ SUBROUTINE LPELMT
 !  
 !  DO NA=1,NAMAX
 !     WRITE(6,140) NA,JNUM0(NA)
-!
+
 ! ----- Mar./05/2013 -----
-!
+
 140  FORMAT(/' ','ORIGINAL ANTENNA DATA : NA =',I5,' JNUM0 =',I5/&
           &          ' ',3('  NO.',13X,' XJ0',11X,' YJ0',6X))
      WRITE(6,150) (I,XJ0(I,NA),YJ0(I,NA),I=1,JNUM0(NA))
 150  FORMAT((' ',3(I5,8X,1P2E15.7)))
-     
+
      WRITE(6,154) NA,JNUM(NA)
 154  FORMAT(/' ','MODIFIED ANTENNA DATA : NA =',I5,' JNUM  =',I5/&
           &          ' ',3('  NO.',' JELM',8X,' JX ',11X,' JY ',6X))
      WRITE(6,156) (I,JELMT(I,NA),XJ(I,NA),YJ(I,NA),I=1,JNUM(NA))
 156  FORMAT((' ',3(2I5,3X,1P2E15.7)))
   ENDDO
-  
+
   RETURN
 END SUBROUTINE LPELMT

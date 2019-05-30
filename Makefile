@@ -10,24 +10,28 @@ message:
 	@echo '     and make it'
 
 clean:
-	(cd lib; make clean)
-	(cd mtx; make clean)
-	(cd mtxp; make clean)
-	(cd mpi; make clean)
-	(cd eq; make clean)
-	(cd equ; make clean)
-	(cd pl; make clean)
-	(cd plx; make clean)
+	(cd adpost; make clean)
 	(cd dp; make clean)
 	(cd dpx; make clean)
-	(cd wr; make clean)
-	(cd wrx; make clean)
+	(cd eq; make clean)
+	(cd equ; make clean)
+	(cd fit3d; make clean)
 	(cd fp; make clean)
+	(cd lib; make clean)
+	(cd mpi; make clean)
+	(cd mtx; make clean)
+	(cd mtxp; make clean)
+	(cd open-adas/adf11/adf11-lib; make clean)
+	(cd pic; make clean)
+	(cd pl; make clean)
+	(cd plx; make clean)
 	(cd t2; make clean)
 	(cd t2x; make clean)
+	(cd ti; make clean)
+	(cd tools; make clean)
+	(cd tot; make clean)
 	(cd tr; make clean)
 	(cd trn; make clean)
-	(cd ti; make clean)
 	(cd tx; make clean)
 	(cd w1; make clean)
 	(cd w1n; make clean)
@@ -37,32 +41,38 @@ clean:
 	(cd wf3; make clean)
 	(cd wf3d; make clean)
 	(cd wi; make clean)
+	(cd wim; make clean)
 	(cd wm; make clean)
 	(cd wmf; make clean)
 	(cd wmfn; make clean)
-	(cd tot; make clean)
-	(cd tools; make clean)
+	(cd wmx; make clean)
+	(cd wr; make clean)
+	(cd wrx; make clean)
 	rm -f core a.out *.o ./*~
 
 veryclean: clean
-	(cd lib; make veryclean)
-	(cd mtx; make veryclean)
-	(cd mtxp; make veryclean)
-	(cd mpi; make veryclean)
-	(cd eq; make veryclean)
-	(cd equ; make veryclean)
-	(cd pl; make veryclean)
-	(cd plx; make veryclean)
+	(cd adpost; make veryclean)
 	(cd dp; make veryclean)
 	(cd dpx; make veryclean)
-	(cd wr; make veryclean)
-	(cd wrx; make veryclean)
+	(cd eq; make veryclean)
+	(cd equ; make veryclean)
+	(cd fit3d; make veryclean)
 	(cd fp; make veryclean)
+	(cd lib; make veryclean)
+	(cd mpi; make veryclean)
+	(cd mtx; make veryclean)
+	(cd mtxp; make veryclean)
+	(cd open-adas/adf11/adf11-lib; make veryclean)
+	(cd pic; make veryclean)
+	(cd pl; make veryclean)
+	(cd plx; make veryclean)
 	(cd t2; make veryclean)
 	(cd t2x; make veryclean)
+	(cd ti; make veryclean)
+	(cd tools; make veryclean)
+	(cd tot; make veryclean)
 	(cd tr; make veryclean)
 	(cd trn; make veryclean)
-	(cd ti; make veryclean)
 	(cd tx; make veryclean)
 	(cd w1; make veryclean)
 	(cd w1n; make veryclean)
@@ -72,39 +82,11 @@ veryclean: clean
 	(cd wf3; make veryclean)
 	(cd wf3d; make veryclean)
 	(cd wi; make veryclean)
+	(cd wim; make veryclean)
 	(cd wm; make veryclean)
 	(cd wmf; make veryclean)
 	(cd wmfn; make veryclean)
-	(cd tot; make veryclean)
-	(cd tools; make veryclean)
+	(cd wmx; make veryclean)
+	(cd wr; make veryclean)
+	(cd wrx; make veryclean)
 
-new:
-	-mkdir ../tasknew
-	cp Makefile ../tasknew
-	cp make.header.org ../tasknew
-	(cd lib; make new)
-	mv libnew ../tasknew/lib
-	(cd mtx; make new)
-	mv mtxnew ../tasknew/mtx
-	(cd mpi; make new)
-	mv mpinew ../tasknew/mpi
-	(cd eq; make new)
-	mv eqnew ../tasknew/eq
-	(cd pl; make new)
-	mv plnew ../tasknew/pl
-	(cd dp; make new)
-	mv dpnew ../tasknew/dp
-	(cd wr; make new)
-	mv wrnew ../tasknew/wr
-	(cd fp; make new)
-	mv fpnew ../tasknew/fp
-	(cd wm; make new)
-	mv wmnew ../tasknew/wm
-	(cd tr; make new)
-	mv trnew ../tasknew/tr
-	(cd tx; make new)
-	mv txnew ../tasknew/tx
-	(cd tot; make new)
-	mv totnew ../tasknew/tot
-	(cd tools; make new)
-	mv toolsnew ../tasknew/tools

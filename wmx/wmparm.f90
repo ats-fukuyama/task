@@ -57,7 +57,7 @@ CONTAINS
            MODELG,MODELB,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF, &
            RHOGMN,RHOGMX,MODEFR,MODEFW,IDEBUG, &
            KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,KNAMTR,KNAMEQ2, &
-           MODELP,MODELV,NDISP1,NDISP2,PMAX,EMAX, &
+           MODELP,MODELV,NCMIN,NCMAX,PMAX,EMAX, &
            NRMAX,NTHMAX,NPMAX,NSAMAX,RMIN,RMAX, &
            NHHMAX,NPHMAX,factor_nth,factor_nhh, &
            NSUMAX,NSWMAX,B0_FACT, &
@@ -99,7 +99,7 @@ CONTAINS
          '       MODELG,MODELB,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF,', &
          '       RHOGMN,RHOGMX,MODEFR,MODEFW,IDEBUG,', &
          '       KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,', &
-         '       MODELP,MODELV,NDISP1,NDISP2,PMAX,EMAX,', &
+         '       MODELP,MODELV,NCMIN,NCMAX,PMAX,EMAX,', &
          '       NPMAX,NTHMAX,NRMAX,NSAMAX,RMIN,RMAX,', &
          '       NHHMAX,NPHMAX,factor_nth,factor_nhh,', &
          '       NSUMAX,NSWMAX,B0_FACT,', &
@@ -260,9 +260,8 @@ CONTAINS
 
     CALL mtx_broadcast_integer(MODELP,NSMAX)
     CALL mtx_broadcast_integer(MODELV,NSMAX)
-    CALL mtx_broadcast_integer(NDISP1,NSMAX)
-    CALL mtx_broadcast_integer(NDISP2,NSMAX)
-    CALL mtx_broadcast_integer(NDISP2,NSMAX)
+    CALL mtx_broadcast_integer(NCMIN,NSMAX)
+    CALL mtx_broadcast_integer(NCMAX,NSMAX)
     CALL mtx_broadcast_real8(PMAX,NSMAX)
     CALL mtx_broadcast_real8(EMAX,NSMAX)
 

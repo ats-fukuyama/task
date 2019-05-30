@@ -26,7 +26,6 @@ CONTAINS
     INTEGER,INTENT(OUT):: IERR
 
     IERR=0
-    CALL W1BCND
     CALL W1DSPC
     CALL W1BNDC(NZ,IERR)
        IF(IERR.NE.0) RETURN
@@ -35,65 +34,6 @@ CONTAINS
     CALL W1CLPW(NZ)
     RETURN
   END SUBROUTINE w1_exec9
-
-!     ****** SET BOUNDARY CONDITIONS AT R=RA ******
-
-  SUBROUTINE W1BCND
-    USE w1comm
-    IMPLICIT NONE
-    INTEGER:: I,J
-    REAL(rkind):: RW,RKV,RKPR,RNPR,RCE
-    COMPLEX(rkind):: CKKV2,CKKV
-
-    RW=2.D6*PI*RF
-    RKV=RW/VC
-    RKPR=RKZ
-    RNPR=VC*RKPR/RW
-    RCE=VC*EPS0
-    CKKV2=RNPR*RNPR-1.D0
-    CKKV =SQRT(CKKV2)
-
-    IF(ABS(WALLR).GT.1.D-12) THEN
-       CKKV2=RNPR*RNPR-1.D0-DCMPLX(0.D0,1.D0/(RCE*RKV*WALLR))
-       CKKV =SQRT(CKKV2)
-    ELSE 
-       CKKV2=RNPR*RNPR-1.D0
-       CKKV =SQRT(CKKV2)
-    ENDIF
-
-    DO I=1,4    ! I=1:DEY I=2:DEZ I=3:EY I=4:EZ
-       DO J=1,4 ! J=1:N-1, J=2:N, J=3:N+1, J=4:RHS
-          CGIN(J,I)=(0.D0,0.D0)
-       END DO
-    END DO
-    DO I=1,4    ! I=1:EY I=2:EZ I=3:DEY I=4:DEZ
-       DO J=1,4 ! J=1:N-1, J=2:N, J=3:N+1, J=4:RHS
-          CGOT(J,I)=(0.D0,0.D0)
-       END DO
-    END DO
-
-    IF(MDLWG.EQ.4) THEN    ! HFS Xmode
-       CGIN(2,1)=-CI*CKKV             ! y component derivative
-       CGIN(3,1)=+CI*CKKV
-    END IF
-
-    IF(MDLWG.EQ.3) THEN    ! HFS Omode
-       CGIN(2,2)=-CI*CKKV             ! z component derivative
-       CGIN(3,2)=+CI*CKKV
-    END IF
- 
-    IF(MDLWG.EQ.2) THEN    ! LFS Xmode
-       CGOT(1,3)=-CI*CKKV             ! y component derivative
-       CGOT(2,3)=+CI*CKKV
-    END IF
-
-    IF(MDLWG.EQ.1) THEN      ! LFS Omode
-       CGOT(1,4)=-CI*CKKV             ! z component derivative
-       CGOT(2,4)=+CI*CKKV
-    END IF
-
-    RETURN
-  END SUBROUTINE W1BCND
 
 !     ******* LOCAL PLASMA PARAMETERS *******
 
@@ -159,7 +99,8 @@ CONTAINS
     REAL(rkind):: DV0(2,2),DV1(2,2),DV2(2,2),DV3(2,2)
 
     INTEGER:: I,J,K,NX,L,N1,N2,M,NS
-    REAL(rkind):: RW,RKV,DTT0,DSS0,DTS1,DTS2,DTTW,RKPR,RNPR,DX
+    REAL(rkind):: RW,RKV,DTT0,DSS0,DTS1,DTS2,DTTW,RKPR,RNPR,DX,RCE
+    COMPLEX(rkind):: CKKV,CKKV2
 
     MWID=11
     MCEN=6
@@ -169,6 +110,25 @@ CONTAINS
 
     RW=2.D6*PI*RF
     RKV=RW/VC
+    RKPR=RKZ
+    IF(ABS(RKPR).LE.1.D-6) RKPR=1.D-6
+    RNPR=VC*RKPR/RW
+    RCE=VC*EPS0
+
+    IF(ABS(WALLR).GT.1.D-12) THEN
+       IF(1.D0-RNPR*RNPR.GT.0.D0) THEN
+          CKKV=CI*SQRT(1.D0-RNPR*RNPR+DCMPLX(0.D0,1.D0/(RCE*RKV*WALLR)))
+       ELSE
+          CKKV=-SQRT(RNPR*RNPR-1.D0-DCMPLX(0.D0,1.D0/(RCE*RKV*WALLR)))
+       END IF
+    ELSE
+       IF(1.D0-RNPR*RNPR.GT.0.D0) THEN
+          CKKV=CI*SQRT(1.D0-RNPR*RNPR)
+       ELSE
+          CKKV=-SQRT(RNPR*RNPR-1.D0)
+       END IF
+    END IF
+    CKKV2=CKKV*CKKV
 
     DO I=1,2
        DO J=1,2
@@ -259,9 +219,6 @@ CONTAINS
           DTTW=DV3(I,J)
 
           DO NX=1,NXMAX-1
-             RKPR=RKZ
-             IF(ABS(RKPR).LE.1.D-6) RKPR=1.D-6
-             RNPR=VC*RKPR/RW
              N1=NX
              N2=NX+1
              DX=RKV*(XA(N2)-XA(N1))
@@ -330,29 +287,37 @@ CONTAINS
 
 ! --- wave guide B.C. ---
 
-    CF(MCEN  ,1)=1.D0
-    CF(MCEN  ,2)=1.D0
-    DO I=1,MWID
-       CF(I,4)=0.D0
-       CF(I,5)=0.D0
-    END DO
-    CF(MCEN,4)=1.D0
-    CA(4)=CFWG4
-    CF(MCEN,5)=1.D0
-    CA(5)=CFWG3
+    CF(MCEN+3,1)=1.D0
+    CF(MCEN  ,1)=-1.D0
+    CA(1)=CFWG4
+
+    CF(MCEN+3,2)=1.D0
+    CF(MCEN  ,2)=-1.D0
+    CA(1)=CFWG3
+
+    CF(MCEN-3,4)=-CKKV
+    CA(4)=-CKKV*CFWG4
+
+    CF(MCEN-2,5)=CF(MCEN-2,5)+CI*RNPR
+    CF(MCEN-3,5)=-CKKV
+    CA(5)=-CKKV*CFWG3
 
     CF(MCEN,  MLEN-4)=1.D0    ! ER over RHS wall
 
-    DO I=1,MWID
-       CF(I,MLEN-3)=0.D0
-       CF(I,MLEN-2)=0.D0
-    END DO
-    CF(MCEN,MLEN-3)=1.D0
-    CA(MLEN-3)=CFWG2
-    CF(MCEN,MLEN-2)=1.D0
-    CA(MLEN-2)=CFWG1
-    CF(MCEN,MLEN-1)=1.D0
-    CF(MCEN,MLEN)=1.D0
+    CF(MCEN+2,MLEN-3)=CKKV
+    CA(MLEN-3)=CKKV*CFWG2
+
+    CF(MCEN-2,MLEN-2)=CF(MCEN-2,MLEN-2)+CI*RNPR
+    CF(MCEN+2,MLEN-2)=CKKV
+    CA(MLEN-2)=CKKV*CFWG1
+
+    CF(MCEN-2,MLEN-1)=1.D0
+    CF(MCEN,MLEN-1)=-1.D0
+    CA(MLEN-1)=CFWG2
+
+    CF(MCEN-2,MLEN)=1.D0
+    CF(MCEN,MLEN)=-1.D0
+    CA(MLEN)=CFWG1
 
     CA(3*(NXANT1-1)+2+2)=CI*CFJY1/(RW*EPS0)
     CA(3*(NXANT1-1)+2+3)=CI*CFJZ1/(RW*EPS0)
@@ -403,10 +368,14 @@ CONTAINS
        CE2DA(NZ,NX,2)=CA(3*NX+1)
        CE2DA(NZ,NX,3)=CA(3*NX+2)
     END DO
-!       CE2DA(NZ,1,2)=CE2DA(NZ,1,2)+CA(1)
-!       CE2DA(NZ,1,3)=CE2DA(NZ,1,3)+CA(2)
-!       CE2DA(NZ,NXMAX,2)=CE2DA(NZ,NXMAX,2)+CA(3*NXMAX+3)
-!       CE2DA(NZ,NXMAX,3)=CE2DA(NZ,NXMAX,3)+CA(3*NXMAX+4)
+
+    WRITE(6,'(A,I5,1PE12.4)') &
+         '== reflection coefficients == NZ,RKZ',NZ,AKZ(NZ)
+    WRITE(6,'(A,1P5E12.4)') &
+         'HFS-O:',CFWG4,CA(1),ABS(CA(1))**2, &
+         'HFS-X:',CFWG3,CA(2),ABS(CA(2))**2, &
+         'LFS-O:',CFWG2,CA(MLEN-1),ABS(CA(MLEN-1))**2, &
+         'LFS-X:',CFWG1,CA(MLEN),ABS(CA(MLEN))**2
 
     DO NS=1,NSMAX
        DO NX=1,NXMAX-1

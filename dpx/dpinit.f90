@@ -92,6 +92,7 @@ MODULE dpinit
 !
 !     RF0,RFI0,RKX0,RKY0,RKZ0 : STANDARD PARAMETER FOR ROOT FINDING
 !     RX0,RY0,RZ0             : STANDARD POSITION FOR ROOT FINDING
+!     RK0,RKANG0              : STANDARD WAVE NUMBER AND ANGLE TO B (B:y,k:x,y)
 !     RF1,RF2                 : SCAN RANGE OF REAL FREQUENCY (MHZ)
 !     RFI1,RFI2               : SCAN RANGE OF IMAGINARY FREQUENCY (MHZ)
 !     RKX1,RKX2               : SCAN RANGE OF WAVE NUMBER KX (1/M)
@@ -100,6 +101,7 @@ MODULE dpinit
 !     RX1,RX2                 : SCAN RANGE OF POSITION X (M)
 !     RY1,RY2                 : SCAN RANGE OF POSITION Y (M)
 !     RZ1,RZ2                 : SCAN RANGE OF POSITION Z (M)
+!     RK1,RK2                 : SCAN RANGE OF WAVE NUMBER K (1/M) 
 !
 !     NGXMAX : NUMBER OF 1D SCAN POINTS
 !     NGYMAX : NUMBER OF 2D SCAN POINTS
@@ -116,6 +118,8 @@ MODULE dpinit
     RX0    = RR
     RY0    = 0.D0
     RZ0    = 0.D0
+    RK0    = 100.D0
+    RKANG0 = 0.D0
 !
     RF1    = 80000.D0
     RF2    = 16000.D0
@@ -133,6 +137,8 @@ MODULE dpinit
     RY2    =  0.5D0
     RZ1    = -RKAP*RA
     RZ2    =  RKAP*RA
+    RK1    = 0.D0
+    RK2    = 1600.D0
 
     NGXMAX  = 21
     NGYMAX  = 21

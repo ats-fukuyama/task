@@ -1,322 +1,403 @@
-!     $Id$
+!     $Id: wfsolv.f90,v 1.19 2012/03/05 06:29:02 maruyama Exp $
 
+!    ******* SET MLEN *******
 
-!     ******* SET KANOD ARRAY *******
-
-SUBROUTINE DEFBND(IERR)
+SUBROUTINE DEFMLEN
 
   use wfcomm
   implicit none
-  integer :: IERR,IL,NSD,KA,K,NB,MAX,NE,IN,NN
+  integer :: NSD,NN
 
-! ----- caluculate MLEN -------
+  NBSID=0
+  do NSD=1,NSDMAX
+     if(KASID(NSD).eq.1) NBSID=NBSID+1
+  end do
 
-! -- Count number of variables to describe a node --
+  NBNOD=0
+  do NN=1,NNMAX
+     if(KANOD(NN).eq.1) NBNOD=NBNOD+1
+  end do
 
-  IERR=0
-  IL=0
-  DO NSD=1,NSDMAX
-     KA=KASID(NSD)
-     IF(KA.EQ.0) THEN
-        K=1
-     ELSEIF(KA.EQ.1) THEN
-        K=0
-     ELSEIF(KA.EQ.4) THEN
-        K=1
-     ELSEIF(KA.LT.0) THEN
-        K=0
-     ELSE
-        WRITE(6,*) 'XX DEFBND: UNDEFINED KANOD=',KA
-        IERR=2
-     ENDIF
-     IL=IL+K
-  ENDDO
-
-! -- WG boundary block requires a node --
-
-  DO NB=1,NBMAX
-     IF(KABDY(NB).GE.8) THEN
-        K=NMBDY(NB)
-        IL=IL+K
-     ENDIF
-  ENDDO
-
-  MLEN=IL
+  MLEN=NSDMAX+NNMAX-NBSID-NBNOD
 
   call wfslv_allocate
 
-! ------------------------------------------------
-
-!     Set number of variables to describe a node
-
-  IERR=0
-  IL=1
-  DO NSD=1,NSDMAX
-     KA=KASID(NSD)
-     IF(KA.EQ.0) THEN
-        K=1
-     ELSEIF(KA.EQ.1) THEN
-        K=0
-     ELSEIF(KA.EQ.4) THEN
-        K=1
-     ELSEIF(KA.LT.0) THEN
-        K=0
-     ELSE
-        WRITE(6,*) 'XX DEFBND: UNDEFINED KANOD=',KA
-        IERR=2
-     ENDIF
-     INLEN(NSD)=K
-     IMLEN(NSD)=IL
-     IL=IL+K
-!     WRITE(6,'(A,5I5)') 'NSD,KA,K,IL=',NSD,KA,K,IL
-  ENDDO
-
-!     WG boundary block requires a node
-
-  NSD=NSDMAX
-  NMDMAX=1
-  DO NB=1,NBMAX
-     IF(KABDY(NB).GE.8) THEN
-        K=NMBDY(NB)
-        NMDMAX=MAX(NMDMAX,K)
-        NSD=NSD+1
-        NDBDY(NB)=NSD
-        INLEN(NSD)=K
-        IMLEN(NSD)=IL
-        IL=IL+K
-     ENDIF
-  ENDDO
-  
-  NNBMAX=NSD
-  MLEN=IL-1
-  IMLEN(NSD+1)=IL
-  
-!     Set NBELM to identify an element with WG boundary
-!         NDELM for additional node for the element
-
-  DO NE=1,NEMAX
-     NBELM(NE)=0
-  ENDDO
-  DO NE=NEMAX,1,-1
-     DO IN=1,4
-        NN=NDELM(IN,NE)
-        KA=KANOD(NN)
-        IF(KA.LT.0) THEN
-           NB=-KA
-           IF(KABDY(NB).GT.8) THEN
-              NSDELM(7,NE)=NDBDY(NB)
-              IF(NBELM(NE).EQ.0) THEN
-                 NBELM(NE)=NB
-              ELSE
-                 IF(NBELM(NE).NE.NB) THEN
-                    WRITE(6,*) 'XX Element faces two boundary block'
-                    WRITE(6,*) '   NE=',NE
-                    IERR=3
-                 ENDIF
-              ENDIF
-           ENDIF
-        ENDIF
-     ENDDO
-  ENDDO
-! DO NB=1,NBMAX
-!     NN=NDBDY(NB)
-!     WRITE(6,'(A,6I5)') 'NB,KABDY,NMBDY,NDBDY,INLEN,IMLEN=',&
-!     &        NB,KABDY(NB),NMBDY(NB),NN,INLEN(NN),IMLEN(NN)
-!  ENDDO
-!  WRITE(6,*) 'MLEN,MLENM =',MLEN,MLENM
   RETURN
-  
-!9000 WRITE(6,*) 'XX DEFBND ERROR : MLEN,MLENM =',MLEN,MLENM
-!  IERR=900
-  RETURN
-END SUBROUTINE DEFBND
+END SUBROUTINE DEFMLEN
 
-! ****************************
-SUBROUTINE CVSOLV(IERR)
+!     ****** SOLV MATRIX EQUATION *****
 
+SUBROUTINE CVSOLV
+
+  use wfcomm
   use libmpi
   use libmtx
-  use wfcomm
+  use libqsort
   implicit none
-  integer :: I,ISDMAX,ISD
-  integer :: NSD,NE,NVMAX,J,KC,M
-  integer :: K,L,II,JJ,LL,IE,NV,IV
-  integer :: KK,IN,IERR,INSD,JNSD
-  integer :: isize,itype
+  integer :: ISD,NSD,NV
+  integer :: NE,NN
+  integer :: I,J,KK,LL
+  integer :: JNSD,JNN,INSD,INN
+  integer :: IN,INV,JNV,KB
+  integer :: itype
   integer :: its
-  integer :: MLENP
   integer :: JMIN,JMAX,MILEN,MJLEN
-  integer :: NNZME!Number of Non-Zero Matrix Element
-  integer,dimension(:),pointer :: NEFLAG
-  real(8) :: tolerance
+  integer :: NNZ,NNZMAX,NNZME      !Number of Non-Zero Matrix Element
+  integer,dimension(:),ALLOCATABLE :: NEFLAG
+  integer :: ORIENTJ,ORIENTI
   real(8),dimension(1) :: ddata
   real(4) :: cputime1,cputime2
-  complex(8),dimension(:),pointer   :: CRVP
-  complex(8),dimension(:,:),pointer :: CEQP
+  complex(8):: CEB
+  complex(8),dimension(:),ALLOCATABLE :: CRVP,CEQP
+  integer(8),dimension(:),ALLOCATABLE :: NSEQ
+  INTEGER(8):: IX,IY
 
-! ----- initialize for parallel computing -----
-
-  if (nrank.eq.0) then
-     write(*,*) "## INPUT: tolerance"
-     read (*,*) tolerance
-     write(*,'(A,1P,D16.4)') " tolerance =", tolerance
-     ddata(1)=tolerance
-  end if
+  ! ----- initialize ------
   
-  call mtx_broadcast_real8(ddata,1)
-  tolerance=ddata(1)
-  itype = 0
+  do NV=1,MLEN
+     CSV(NV) =(0.d0,0.d0)
+  end do
 
-  call mtxc_setup(MLEN,istart,iend,MLEN)
+  ! --- decide istart,iend ---
 
-! ----- initialize ------
+  IF(nrank.EQ.0) write(6,*) 'MLEN=',MLEN
+  call mtxc_setup(MLEN,istart,iend,0)
+  call mtxc_cleanup
 
-  CSV =(0.d0,0.d0)
-
-  DO NE=1,NEMAX
-     IF(NBELM(NE).EQ.0) THEN
-        ISDMAX=6
-     ELSE
-        ISDMAX=7
-     ENDIF
-     DO ISD=1,ISDMAX
-        ISDELM(ISD,NE)=ABS(NSDELM(ISD,NE))
-     ENDDO
-  ENDDO
-
-! ------ create NV-NSD table -----
+  ! ----- set NVNSD & NVNN -----
 
   NV=0
   do NSD=1,NSDMAX
-     do IV=1,INLEN(NSD)
+     if(KASID(NSD).eq.1) then
+        NVNSD(NSD)=0
+     else
         NV=NV+1
-        NSDNV(NV)=NSD
-     end do
+        NVNSD(NSD)=NV
+     end if
+  end do
+  do NN=1,NNMAX
+     if(KANOD(NN).eq.1) then
+        NVNN(NN)=0
+     else
+        NV=NV+1
+        NVNN(NN)=NV
+     end if
   end do
 
-! ----- set NEFLAG ------
+!  do NSD=1,NSDMAX
+!     write(*,*) NSD,KASID(NSD),NVNSD(NSD)
+!  end do
+!  do NN=1,NNMAX
+!     write(*,*) NN,KANOD(NN),NVNN(NN)
+!  end do
+
+  ! ----- set NEFLAG ------
 
   allocate(NEFLAG(NEMAX))
-  NEFLAG=0
+  do NE=1,NEMAX
+     NEFLAG(NE)=0
+  end do
 
   do NE=1,NEMAX
-     IF(NBELM(NE).EQ.0) THEN
-        ISDMAX=6
-     ELSE
-        ISDMAX=7
-     ENDIF
-     do ISD=1,ISDMAX
-        NSD=ISDELM(ISD,NE)
-        if(NSD.ge.NSDNV(istart).and.&
-           NSD.le.NSDNV(iend) )then  
+     do ISD=1,3
+        NSD=ABS(NSDELM(ISD,NE))
+        NV=NVNSD(NSD)
+        if(NV.ge.istart.and.&
+           NV.le.iend ) then
            NEFLAG(NE)=1
         end if
      end do
+
+     if(NEFLAG(NE).eq.0) then
+        do IN=1,3
+           NN=NDELM(IN,NE)
+           NV=NVNN(NN)
+           if(NV.ge.istart.and.&
+              NV.le.iend) then
+              NEFLAG(NE)=1
+           end if
+        end do
+     end if
+
   end do
 
-  ! --- decide MJLEN ---
+  ! ----- set MJLEN -----
 
   JMIN=MLEN
   JMAX=0
   do NE=1,NEMAX
+
      if(NEFLAG(NE).eq.0) goto 8100
-     IF(NBELM(NE).EQ.0) THEN
-        ISDMAX=6
-     ELSE
-        ISDMAX=7
-     ENDIF
-     do ISD=1,ISDMAX
-        LL=0
-        DO J=1,ISDMAX
-           JNSD=ABS(ISDELM(J,NE))
-           DO JJ=1,INLEN(JNSD)
-              LL=IMLEN(JNSD)+JJ-1
-              KK=0
-              DO I=1,ISDMAX
-                 INSD=ABS(ISDELM(I,NE))
-                 DO II=1,INLEN(INSD)
-                    KK=IMLEN(INSD)+II-1
-                    if((KK.ge.istart).and.&
-                       (KK.le.iend  )) then
-                          if(LL.lt.JMIN) JMIN=LL
-                          if(LL.gt.JMAX) JMAX=LL
-                    end if
-                 ENDDO
-              ENDDO
-           ENDDO
+
+     LL=0
+     DO J=1,6
+        if(J.ge.1.and.J.le.3) then
+           JNSD=ABS(NSDELM(J,NE))
+           JNV =NVNSD(JNSD)
+        else
+           JNN=NDELM(J-3,NE)
+           JNV=NVNN(JNN)
+        end if
+        if (JNV.eq.0) goto 8110
+        LL=JNV
+
+        KK=0
+        DO I=1,6
+           if(I.ge.1.and.I.le.3) then
+              INSD=ABS(NSDELM(I,NE))
+              INV=NVNSD(INSD)
+           else
+              INN=NDELM(I-3,NE)
+              INV=NVNN(INN)
+           end if
+           if(INV.eq.0) goto 8120
+           KK=INV
+
+           if((KK.ge.istart).and.&
+              (KK.le.iend  )) then
+              if(LL.lt.JMIN) JMIN=LL
+              if(LL.gt.JMAX) JMAX=LL
+           end if
+
+8120       continue
         ENDDO
-     end do
+8110    continue
+     ENDDO
+     
 8100 continue
   end do
 
-  MJLEN=JMAX-JMIN+1
-  MILEN=iend-istart+1
+! ------ Count non-zero component -------
 
-  allocate(CEQP(MILEN,MJLEN),CRVP(MILEN))
-  CEQP=(0.d0,0.d0)
-  CRVP=(0.d0,0.d0)
+  NNZ=0
+
+  DO NE=1,NEMAX
+     IF(NEFLAG(NE).NE.0) THEN
+
+        LL=0
+        DO J=1,6
+           IF(J.ge.1.and.J.le.3) then
+              JNSD=NSDELM(J,NE)
+              if(JNSD.lt.0) then
+                 JNSD=-JNSD
+              end if
+              JNV =NVNSD(JNSD)
+           else
+              JNN=NDELM(J-3,NE)
+              JNV=NVNN(JNN)
+           END IF
+           LL=JNV
+
+           if ((LL.GE.JMIN).AND.(LL.LE.JMAX)) THEN
+
+              KK=0
+              DO I=1,6
+                 if(I.ge.1.and.I.le.3) then
+                    INSD=NSDELM(I,NE)
+                    if(INSD.lt.0) then
+                       INSD=-INSD
+                    end if
+                    INV =NVNSD(INSD)
+                 else
+                    INN=NDELM(I-3,NE)
+                    INV=NVNN(INN)
+                 end if
+                 KK=INV
+
+                 if((KK.ge.istart).and.&
+                      (KK.le.iend  )) then
+                    NNZ=NNZ+1
+                 end if
+              END DO
+           END if
+        ENDDO
+     END IF
+  END DO
+
+  NNZMAX=NNZ
+  MILEN=iend-istart+1
+  MJLEN=JMAX-JMIN+1
+
+  ! ----- set CEQP,CRVP -----
+
+  allocate(CEQP(NNZMAX),NSEQ(NNZMAX),CRVP(MILEN))
+  DO NNZ=1,NNZMAX
+     CEQP(NNZ)=(0.d0,0.d0)
+     NSEQ(NNZ)=0  ! (i-istart)*MJLEN+j-jmin
+  END DO
+  DO I=1,MILEN
+     CRVP(I)=(0.d0,0.d0)
+  END DO
 
 ! ------ set grobal matrix -------
 
-  NNZME=0
+  NNZ=0
+
   do NE=1,NEMAX
      if(NEFLAG(NE).eq.0) goto 8000
-     IF(NBELM(NE).EQ.0) THEN
-        ISDMAX=6
-     ELSE
-        ISDMAX=7
-     ENDIF
-     CALL CMCALC(NE)     
+     CALL CMCALC(NE)
      
-     !    ----- ASSEMBLY -----
-     !     --- if KK are out of assigned range,  
-     !           CVSOLV do not save the matrix element. ---
+!    === ASSEMBLY ===
+!    If KK (or LL) is out of assigned range,  
+!      CVSOLV do not save the matrix element. 
+
+!    --- inside of the boundary ---
+     LL=0
+     DO J=1,6
+        ORIENTJ=1
+        if(J.ge.1.and.J.le.3) then
+           JNSD=NSDELM(J,NE)
+           if(JNSD.lt.0) then
+              JNSD=-JNSD
+              ORIENTJ=-1
+           end if
+           JNV =NVNSD(JNSD)
+        else
+           JNN=NDELM(J-3,NE)
+           JNV=NVNN(JNN)
+        end if
+        LL=JNV
+
+        if ((LL.GE.JMIN).AND.(LL.LE.JMAX)) THEN
+
+           KK=0
+           DO I=1,6
+              ORIENTI=1
+              if(I.ge.1.and.I.le.3) then
+                 INSD=NSDELM(I,NE)
+                 if(INSD.lt.0) then
+                    INSD=-INSD
+                    ORIENTI=-1
+                 end if
+                 INV =NVNSD(INSD)
+              else
+                 INN=NDELM(I-3,NE)
+                 INV=NVNN(INN)
+              end if
+              KK=INV
+              if((KK.ge.istart).and.&
+                   (KK.le.iend  )) then
+                 if(abs(CM(I,J)).ne.0.d0) THEN 
+                    NNZ=NNZ+1
+                    IX=KK-istart
+                    IY=MJLEN
+                    NSEQ(NNZ)=IX*IY+LL-jmin
+                    CEQP(NNZ)=ORIENTJ*ORIENTI*CM(I,J)
+                 END if
+              end if
+           END DO
+        END if
+     ENDDO
+
+!    --- Contribution from the boundary ---
 
      LL=0
-     DO J=1,ISDMAX
-        JNSD=ABS(ISDELM(J,NE))
-        DO JJ=1,INLEN(JNSD)
-           LL=IMLEN(JNSD)+JJ-1
-           if(LL.gt.JMAX) goto 8200
-           KK=0
-           DO I=1,ISDMAX
-              INSD=ABS(ISDELM(I,NE))
-              DO II=1,INLEN(INSD)
-                 KK=IMLEN(INSD)+II-1
-                 if((KK.ge.istart).and.&
-                    (KK.le.iend  )) then
-                      CEQP(KK-istart+1,LL+1-JMIN)=CEQP(KK-istart+1,LL+1-JMIN)+CM(II,JJ,I,J)
-                      if(CM(II,JJ,I,J).ne.(0.d0,0.d0)) NNZME=NNZME+1
-                 end if
-              ENDDO
-           ENDDO
-8200       continue
-        ENDDO
-     ENDDO
-     
-     KK=0
-     DO I=1,ISDMAX
-        INSD=ABS(ISDELM(I,NE))
-        DO II=1,INLEN(INSD)
-           KK=IMLEN(INSD)+II-1
-           if((KK.ge.istart).and.&
-              (KK.le.iend  )) then
-                CRVP(KK-istart+1)=CRVP(KK-istart+1)+CV(II,I)
+     DO J=1,6
+        ORIENTJ=1
+        if(J.ge.1.and.J.le.3) then
+           JNSD=NSDELM(J,NE)
+           if(JNSD.lt.0) then
+              JNSD=-JNSD
+              ORIENTJ=-1
            end if
-        ENDDO
+           KB =KBSID(JNSD)
+           IF(KB.NE.0) CEB=CEBSD(KB)
+        else
+           JNN=NDELM(J-3,NE)
+           KB=KBNOD(JNN)
+           IF(KB.NE.0) CEB=CEBND(KB)
+        end if
+
+        IF(KB.NE.0.AND.ABS(CEB).GT.0.D0) THEN
+
+           KK=0
+           DO I=1,6
+              ORIENTI=1
+              if(I.ge.1.and.I.le.3) then
+                 INSD=NSDELM(I,NE)
+                 if(INSD.lt.0) then
+                    INSD=-INSD
+                    ORIENTI=-1
+                 end if
+                 INV =NVNSD(INSD)
+              else
+                 INN=NDELM(I-3,NE)
+                 INV=NVNN(INN)
+              end if
+              KK=INV
+              if((KK.ge.istart).and.&
+                 (KK.le.iend  )) then
+!              write(6,'(4I8,1P4E12.4)') NE,KK,I,J,CEB,CM(I,J)
+              CRVP(KK-istart+1)=CRVP(KK-istart+1)-ORIENTI*ORIENTJ*CM(I,J)*CEB
+              end if
+           END DO
+        END if
      ENDDO
+
+!    --- Contribution from the antenna current ---
+
+     KK=0
+     DO I=1,6
+        ORIENTI=1
+        if(I.ge.1.and.I.le.3) then
+           INSD=NSDELM(I,NE)
+           if(INSD.lt.0) then
+              INSD=-INSD
+              ORIENTI=-1
+           end if
+           INV =NVNSD(INSD)
+        else
+           INN=NDELM(I-3,NE)
+           INV=NVNN(INN)
+        end if
+        KK=INV
+        if((KK.ge.istart).and.&
+           (KK.le.iend  )) then
+           CRVP(KK-istart+1)=CRVP(KK-istart+1)+ORIENTI*CVTOT(I,NE)
+        end if
+     ENDDO
+
 8000 continue
   end do
 
-  if(nrank.eq.0) write(6,'(49A)') " nrank  IMIN  IMAX MILEN  JMIN  JMAX MJLEN NNZME"
-  call mtx_barrier
-  write(6,'(8I6)') nrank,istart,iend,iend-istart+1,JMIN,JMAX,jMAX-JMIN+1,NNZME
+  IF(nrank.EQ.0) write(6,*) 'wfsolv: sort started'
+  CALL qsort_lc(NSEQ,CEQP)
+  IF(nrank.EQ.0) write(6,*) 'wfsolv: reduction started'
+  NNZME=1
+  DO NNZ=2,NNZMAX
+     IF(NSEQ(NNZ).EQ.NSEQ(NNZME)) THEN
+        CEQP(NNZME)=CEQP(NNZME)+CEQP(NNZ)
+     ELSE
+        NNZME=NNZME+1
+        NSEQ(NNZME)=NSEQ(NNZ)
+        CEQP(NNZME)=CEQP(NNZ)
+     END IF
+  END DO
 
-  do j=1,MJLEN
-     do i=istart,iend
-        if (abs(CEQP(i-istart+1,j)).ne.0.d0) &
-             call mtxc_set_matrix(i,JMIN-1+j,CEQP(i-istart+1,j))
-     end do
+
+
+  if(nrank.eq.0) write(6,'(A77)') &
+  '      nrank     istart       iend      MILEN      MJLEN     NNZMAX      NNZME'
+  call mtx_barrier
+  write(6,'(7I11)') nrank,istart,iend,iend-istart+1, &
+                    JMAX-JMIN+1,NNZMAX,NNZME
+
+  ! ----- initialize for parallel computing -----
+
+  itype = 0
+  call mtxc_setup(MLEN,istart,iend,nzmax=NNZME)
+
+  do NNZ=1,NNZME
+     IF(ABS(CEQP(NNZ)).GT.0.D0) THEN
+        i=NSEQ(NNZ)/MJLEN
+        j=NSEQ(NNZ)-i*MJLEN
+        if(i+istart.lt.0) then
+           WRITE(6,'(A/6I12)') 'NNZ,NSEQ(NNZ),i,istart,i+istart,iend=', &
+                               NNZ,NSEQ(NNZ),i,istart,i+istart,iend
+           STOP
+        END if
+        call mtxc_set_matrix(i+istart,j+jmin,CEQP(NNZ))
+     END IF
   end do
 
   do i=istart,iend
@@ -324,18 +405,17 @@ SUBROUTINE CVSOLV(IERR)
   end do
 
   call GUTIME(cputime1)
-  
+
   call mtxc_solve(itype,tolerance,its)
   !zmumps always return "its = 0"
   if(nrank.eq.0) write(6,*) 'Iteration Number=',its
-  
+
   call GUTIME(cputime2)
-  write(*,*) nrank,cputime2-cputime1
 
   call mtxc_gather_vector(CSV)
 
-  deallocate(CEQP,CRVP)
+  deallocate(CEQP,NSEQ,CRVP)
   deallocate(NEFLAG)
+  call mtxc_cleanup
   RETURN
 END SUBROUTINE CVSOLV
-    

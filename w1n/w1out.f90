@@ -45,13 +45,13 @@ CONTAINS
 
     DO NX=1,NXMAX
        SELECT CASE(NMODEL)
-       CASE(0:6)
+       CASE(0:6,12)
           IF(NX.LE.NXVMAX) THEN
              NXPRNT(NX)=NXPMAX+NXVMAX+NX
           ELSE
              NXPRNT(NX)=NX-NXVMAX
           ENDIF
-       CASE(7:9)
+       CASE(7:11)
           NXPRNT(NX)=NX
        END SELECT
     END DO

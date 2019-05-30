@@ -23,8 +23,6 @@ MODULE wmcomm_parm
 
   USE dpcomm_parm
 
-!,ONLY: & MODELP,MODELV,NDISP1,NDISP2,NS_NSA,PMAX,EMAX
-
   IMPLICIT NONE
   PUBLIC
 
@@ -214,7 +212,7 @@ CONTAINS
     ALLOCATE(CJANT(3,nthmax,nhhmax))
     ALLOCATE(CEWALL(3,nthmax,nhhmax))
     ALLOCATE(CFVG(mlen))
-    ALLOCATE(CTNSR(3,3,nthmax_f,nhhmax_f,nthmax,nhhmax))
+    ALLOCATE(CTNSR(3,3,mdmin_f:mdmax_f,ndmin_f:ndmax_f,nthmax,nhhmax))
     ALLOCATE(CGD(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
     ALLOCATE(CPSF(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
     ALLOCATE(RG11(nthmax_f,nhhmax_f,nrmax),RG12(nthmax_f,nhhmax_f,nrmax))
