@@ -33,7 +33,6 @@ c
       do ns=1,species%nsmax
          species%data(ns)%pa=fmass(ns-1)
          species%data(ns)%pz=fchrg(ns-1)
-         species%data(ns)%pz0=fchrg(ns-1)
       enddo
       call bpsd_set_species(species,ierr)
 c
