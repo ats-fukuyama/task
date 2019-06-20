@@ -16,7 +16,7 @@ CONTAINS
     USE dpparm,ONLY: dp_parm,dp_view
     USE dproot,ONLY: dp_root,dpgrp1,dpgrp0
     USE dpcont,ONLY: dp_cont,dp_contx
-    USE dpcont2,ONLY: dp_cont2
+    USE dpcont2,ONLY: dp_cont4
     USE dptens,ONLY: dp_tens
     IMPLICIT NONE
       
@@ -55,7 +55,7 @@ CONTAINS
        ELSEIF(NID.EQ.3) THEN
           CALL DP_CONTX
        ELSEIF(NID.EQ.4) THEN
-          CALL DP_CONT2
+          CALL DP_CONT4
        ELSE
           WRITE(6,*) 'XX DPMENU: unknown NID'
        ENDIF
@@ -68,6 +68,7 @@ CONTAINS
        RKX0_SAVE=RKX0
        RL=RR
 1001   WRITE(6,*) '# INPUT: RL,RF0,RKZ0,RKX0 ='
+       WRITE(6,'(10X,1P4E12.4)')RL,RF0,RKZ0,RKX0
        READ(5,*,ERR=1001,END=1002) RL,RF0,RKZ0,RKX0
        IF(RF0.LE.0.D0) GOTO 1002
        CW=2.D0*PI*DCMPLX(RF0,RFI0)*1.D6
@@ -77,14 +78,14 @@ CONTAINS
        RHON=mag%rhon
        CALL PL_PROF(RHON,plf)
        CALL PL_GRAD(RHON,grd)
-       MODELP(1)=1
-       CALL DP_TENS(CW,CKPR,CKPP,1,mag,plf,grd,CD4)
-       MODELP(1)=4
-       CALL DP_TENS(CW,CKPR,CKPP,1,mag,plf,grd,CD5)
        MODELP(1)=5
+       CALL DP_TENS(CW,CKPR,CKPP,1,mag,plf,grd,CD4)
+       MODELP(1)=6
+       CALL DP_TENS(CW,CKPR,CKPP,1,mag,plf,grd,CD5)
+       MODELP(1)=7
        CALL DP_TENS(CW,CKPR,CKPP,1,mag,plf,grd,CD6)
        WRITE(6,602) 
-602    FORMAT(8X,'MODELP=1',16X,'MODELP=4',16X,'MODELP=5')
+602    FORMAT(8X,'MODELP=5',16X,'MODELP=6',16X,'MODELP=7')
        WRITE(6,603) (I,CD4(I),CD5(I),CD6(I),I=1,6)
 603    FORMAT(I5,1P6E12.4)
        GOTO 1001

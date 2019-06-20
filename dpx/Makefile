@@ -25,7 +25,7 @@ MODINCLUDE= -I $(MOD) -I../plx/$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD) -I../m
 
 SRCS = dpcomm.f90 dpinit.f90 dpfpin.f90 dpparm.f90 \
        dphotf.f90 dphotr.f90 \
-       dptnsr1.f90 dptnsr2.f90 dptens.f90 dpdisp.f90 \
+       dptnsr1.f90 dptnsr2.f90 dptnsr3.f90 dptens.f90 dpdisp.f90 \
        dpgsub.f90 dpglib.f90 dproot.f90 dpcont.f90 dpcont2.f90 \
        dpmenu.f90	
 	
@@ -79,6 +79,7 @@ dpdisp.o: dpdisp.f90 $(DPCOMM) ../plx/plprof.f90
 dptens.o: dptens.f90 $(DPCOMM)
 dptnsr1.o: dptnsr1.f90 $(DPCOMM)
 dptnsr2.o: dptnsr2.f90 $(DPCOMM)
+dptnsr3.o: dptnsr3.f90 $(DPCOMM)
 dpfpin.o: dpfpin.f90 $(DPCOMM) ../plx/plprof.f90
 dphotf.o: dphotf.f90 $(DPCOMM)
 dphotr.o: dphotr.f90 $(DPCOMM)

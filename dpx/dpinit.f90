@@ -109,6 +109,8 @@ MODULE dpinit
 !
 !     EPSRT  : CONVERGENCE CRITERION OF ROOT FINDING
 !     LMAXRT : MAXIMUM ITERATION COUNT OF ROOT FINDING
+!     MDLDPG : plot axis normalization: 
+!                 0: real value, 1:normalized by wci, VA/wci
 
     RF0    = 160.D3
     RFI0   =   0.D0
@@ -119,7 +121,7 @@ MODULE dpinit
     RY0    = 0.D0
     RZ0    = 0.D0
     RK0    = 100.D0
-    RKANG0 = 0.D0
+    RKANG0 = 89.70
 !
     RF1    = 80000.D0
     RF2    = 16000.D0
@@ -144,8 +146,10 @@ MODULE dpinit
     NGYMAX  = 21
     NGPMAX  = 21
 
-    EPSRT  = 1.D-8
+    EPSRT  = 1.D-12
     LMAXRT = 20
+    EPSDP  = 1.D-3
+    MDLDPG = 1
 
 !     --- Velocity distribution function parameters ---
 !

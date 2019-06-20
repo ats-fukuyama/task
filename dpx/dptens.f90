@@ -104,6 +104,7 @@ CONTAINS
     USE dpcomm
     USE dptnsr1
     USE dptnsr2
+    USE dptnsr3
     USE plprof
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
@@ -128,7 +129,9 @@ CONTAINS
          CALL DPTNKS(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
       CASE(6) ! kinetic with FLR model
          CALL DPTNKP(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
-      CASE(7) ! weakly relativistic model
+      CASE(7) ! knetic with drift and FLR
+         CALL DPTNKD(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+      CASE(8) ! weakly relativistic model
          CALL DPTNKR(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
       CASE(11:15) ! old WM models model
          CALL DPTNFK2(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
