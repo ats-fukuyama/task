@@ -8,6 +8,8 @@ CONTAINS
 
     USE dpcomm
     USE dptnsr1
+    USE dptnsr3
+    USE dptnsr4
     USE dpfpin
     USE dphotf
     USE dphotr
@@ -106,6 +108,7 @@ CONTAINS
     USE dptnsr1
     USE dptnsr2
     USE dptnsr3
+    USE dptnsr4
     USE plprof
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
@@ -126,17 +129,19 @@ CONTAINS
          CALL DPTNRM(CW,NS,mag,plf,CLDISP)
       CASE(4) ! kinetic without FLR model
          CALL DPTNHP(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
-      CASE(5) ! kinetic with FLR model
+      CASE(5) ! kinetic with FLR model (symmetric)
          CALL DPTNKS(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
       CASE(6) ! kinetic with FLR model
          CALL DPTNKP(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
-      CASE(7) ! knetic with drift and FLR
+      CASE(7) ! kinetic with drift and FLR by Swanson
          CALL DPTNKD(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
-      CASE(8) ! weakly relativistic model
+      CASE(8) ! kinetic with drift and FLR by T. Watanabe
+         CALL DPTNTW(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+      CASE(9) ! weakly relativistic model
          CALL DPTNKR(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
       CASE(11:15) ! old WM models model
          CALL DPTNFK2(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
-      CASE(16) ! old WM drift kinetic model
+      CASE(21) ! old WM drift kinetic model
          CALL DPTNDK0(CW,CKPR,CKPP,NS,mag,plf,grd,CLDISP)
       CASE DEFAULT
          WRITE(6,*) 'XX WRONG MODELP IN DPTENS: ID1=',ID1

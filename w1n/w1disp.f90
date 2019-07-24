@@ -134,9 +134,9 @@ CONTAINS
                 END DO
              END DO
              DO NC=1,NCMAXS
-                CALL DSPFNV(NXPMAX,CGZ(1:NXPMAX,NC), &
-                                   CZ(1:NXPMAX,NC),CDZ(1:NXPMAX,NC), &
-                                   CDDZ(1:NXPMAX,NC),CDDDZ(1:NXPMAX,NC))
+                CALL DSPFNVA(NXPMAX,CGZ(1:NXPMAX,NC), &
+                                    CZ(1:NXPMAX,NC),CDZ(1:NXPMAX,NC), &
+                                    CDDZ(1:NXPMAX,NC),CDDDZ(1:NXPMAX,NC))
              END DO
              DO NX=1,NXPMAX
                 RKPR= RKZ
@@ -189,9 +189,9 @@ CONTAINS
              END DO
 
              DO NC=1,5
-                CALL DSPFNV(NXPMAX,CGZ(1:NXPMAX,NC), &
-                                   CZ(1:NXPMAX,NC),CDZ(1:NXPMAX,NC), &
-                                   CDDZ(1:NXPMAX,NC),CDDDZ(1:NXPMAX,NC))
+                CALL DSPFNVA(NXPMAX,CGZ(1:NXPMAX,NC), &
+                                    CZ(1:NXPMAX,NC),CDZ(1:NXPMAX,NC), &
+                                    CDDZ(1:NXPMAX,NC),CDDDZ(1:NXPMAX,NC))
              END DO
              DO NX=1,NXPMAX
                 RKPR= RKZ

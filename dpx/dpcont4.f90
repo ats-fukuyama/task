@@ -35,8 +35,6 @@ CONTAINS
 
       IF(INIT.EQ.0) THEN
          KID='1'
-         NGXMAX=51
-         NGYMAX=51
          INIT=1
       ENDIF
 

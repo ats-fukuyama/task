@@ -26,15 +26,17 @@ CONTAINS
 !                 4 : KINETIC MODEL WITHOUT FLR
 !                 5 : KINETIC MODEL WITH FLR (symmetric)
 !                 6 : KINETIC MODEL WITH FLR
-!                 7 : KINETIC MODEL WITH RELATIVISTIC EFFECTS (test)
-!                 8 : DRIFTKINETIC MODEL (coming)
-!                 9 : GYROKINETIC MODEL (coming)
+!                 7 : Kiknetic with parallel drift and FLR by Swanson
+!                 8 : Kiknetic with paralleldrift and FLR by T. Watanabe
+!                 9 : KINETIC MODEL WITH RELATIVISTIC EFFECTS (test)
 !                11 : (WM) MHD plasma
 !                12 : (WM) Cold plasma
 !                13 : (WM) Hot plasma (No FLR)
 !                14 : (WM) Hot plasma (Cold FLR)
 !                15 : (WM) Hot plasma (FLR)
 !                16 : (WM) Drift kinetic plasma
+!                21 : DRIFTKINETIC MODEL (coming)
+!                22 : GYROKINETIC MODEL (coming)
 !
 !             0- 99 : PROPAGATION  = GIVEN MODEL
 !                     POLARIZATION = GIVEN MODEL
