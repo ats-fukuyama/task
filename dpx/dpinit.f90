@@ -5,20 +5,20 @@ MODULE dpinit
   PRIVATE
   PUBLIC dp_init
 
-  CONTAINS
+CONTAINS
 
   SUBROUTINE dp_init
 
-    USE dpcomm_parm
+    USE dpcomm_parm_local
     IMPLICIT NONE
     INTEGER:: NS
 
 !
-!     *********** INPUT PARAMETERS ***********
+!     *********** INPUT PARAMETERS fof DP library ***********
 !
 !     --- PLASMA MODEL PARAMETERS ---
 !
-!     MODELP: TYPE OF ANALYTIC DIELECTRIC TENSOR
+!     MODELP(NS): TYPE OF ANALYTIC DIELECTRIC TENSOR
 !                 0 : COLLISIONLESS COLD MODEL
 !                 1 : COLLISIONAL COLD MODEL
 !                 2 : IDEAL MHD MODEL
@@ -64,7 +64,7 @@ MODULE dpinit
 !                     POLARIZATION = KINETIC 6
 !                     ABSORPTION   = GIVEN MODEL
 !
-!     MODELV : NUMERICAL MODEL (*: not yet implemented)
+!     MODELV(NS) : NUMERICAL MODEL (*: not yet implemented)
 !              0 : ANALYTIC MODEL
 !              1 : KINETIC: ANALYTIC MAXWELLIAN DISTRIBUTION
 !              2 : KINETIC: READ FPDATA DISTRIBUTION
@@ -74,43 +74,21 @@ MODULE dpinit
 !              6 : DRIFTKINETIC: READ FPDATA DISTRIBUTION
 !              9 : LOCAL MODEL (MODELV locally specified by MODELVR)
 !
-!     NCMIN: MINIMUM HARMONIC NUMBER
-!     NCMAXx: MAXMUM  HARMONIC NUMBER
+!     NCMIN(NS): MINIMUM HARMONIC NUMBER
+!     NCMAX(NS): MAXMUM  HARMONIC NUMBER
 
     DO NS=1,NSM
        MODELP(NS)= 0
        MODELV(NS)= 0
        NCMIN(NS)=-2
        NCMAX(NS)= 2
-       PMAX(NS)= 7.D0
-       NS_NSA(NS)=NS
     ENDDO
-    RHON_MIN=0.D0
-    RHON_MAX=1.D0
 
 !     --- Root finding and dispersion plot parameters ---
 !
 !     RF0,RFI0,RKX0,RKY0,RKZ0 : STANDARD PARAMETER FOR ROOT FINDING
 !     RX0,RY0,RZ0             : STANDARD POSITION FOR ROOT FINDING
 !     RK0,RKANG0              : STANDARD WAVE NUMBER AND ANGLE TO B (B:y,k:x,y)
-!     RF1,RF2                 : SCAN RANGE OF REAL FREQUENCY (MHZ)
-!     RFI1,RFI2               : SCAN RANGE OF IMAGINARY FREQUENCY (MHZ)
-!     RKX1,RKX2               : SCAN RANGE OF WAVE NUMBER KX (1/M)
-!     RKY1,RKY2               : SCAN RANGE OF WAVE NUMBER KY (1/M)
-!     RKZ1,RKZ2               : SCAN RANGE OF WAVE NUMBER KZ (1/M)
-!     RX1,RX2                 : SCAN RANGE OF POSITION X (M)
-!     RY1,RY2                 : SCAN RANGE OF POSITION Y (M)
-!     RZ1,RZ2                 : SCAN RANGE OF POSITION Z (M)
-!     RK1,RK2                 : SCAN RANGE OF WAVE NUMBER K (1/M) 
-!
-!     NGXMAX : NUMBER OF 1D SCAN POINTS
-!     NGYMAX : NUMBER OF 2D SCAN POINTS
-!     NGPMAX : NUMBER OF PARAMETER SCAN POINTS
-!
-!     EPSRT  : CONVERGENCE CRITERION OF ROOT FINDING
-!     LMAXRT : MAXIMUM ITERATION COUNT OF ROOT FINDING
-!     MDLDPG : plot axis normalization: 
-!                 0: real value, 1:normalized by wci, VA/wci
 
     RF0    = 160.D3
     RFI0   =   0.D0
@@ -122,7 +100,57 @@ MODULE dpinit
     RZ0    = 0.D0
     RK0    = 100.D0
     RKANG0 = 89.70
+
+!     EPSRT  : CONVERGENCE CRITERION OF ROOT FINDING
+!     LMAXRT : MAXIMUM ITERATION COUNT OF ROOT FINDING
+
+    EPSRT  = 1.D-12
+    LMAXRT = 20
+
+!     --- Velocity distribution function parameters ---
+!             --- usually read from fpfile ---
 !
+!     NS_NSA(NS)   : particle species of NSA
+!     PMAX(NS)     : maximum momentum normalized by p_thermal
+!     EMAX(NS)     : maximum energy in keV, if EMAX is not zero
+!     rhon_min(NS) : minimum radius of velocity distribution function (r/a)
+!     rhon_max(NS) : maximum radius of velocity distribution function (r/a)
+!
+!     NPMAX  : number of momentum magnitude mesh
+!     NTHMAX : number of momentum angle mesh
+!     NRMAX  : number of radial mesh
+!     NSMAX  : number of total particle species
+!     NSAMAX : number of test particle species
+
+    DO NS=1,NSM
+       NS_NSA(NS)=NS
+       PMAX(NS)= 7.D0
+       EMAX(NS)= 7.D0
+       rhon_min(NS)=0.D0
+       rhon_max(NS)=1.D0
+    ENDDO
+
+    NPMAX=50
+    NTHMAX=50
+    NRMAX=3
+    NSMAX=2
+    NSAMAX=2
+
+!
+!     *********** INPUT PARAMETERS fof DP program ***********
+!
+!     --- dispersin range parameters ---
+!
+!     RF1,RF2                 : SCAN RANGE OF REAL FREQUENCY (MHZ)
+!     RFI1,RFI2               : SCAN RANGE OF IMAGINARY FREQUENCY (MHZ)
+!     RKX1,RKX2               : SCAN RANGE OF WAVE NUMBER KX (1/M)
+!     RKY1,RKY2               : SCAN RANGE OF WAVE NUMBER KY (1/M)
+!     RKZ1,RKZ2               : SCAN RANGE OF WAVE NUMBER KZ (1/M)
+!     RX1,RX2                 : SCAN RANGE OF POSITION X (M)
+!     RY1,RY2                 : SCAN RANGE OF POSITION Y (M)
+!     RZ1,RZ2                 : SCAN RANGE OF POSITION Z (M)
+!     RK1,RK2                 : SCAN RANGE OF WAVE NUMBER K (1/M) 
+
     RF1    = 80000.D0
     RF2    = 16000.D0
     RFI1   =-5.D0
@@ -142,36 +170,41 @@ MODULE dpinit
     RK1    = 0.D0
     RK2    = 1600.D0
 
+!     NGXMAX : NUMBER OF 1D SCAN POINTS
+!     NGYMAX : NUMBER OF 2D SCAN POINTS
+!     NGPMAX : NUMBER OF PARAMETER SCAN POINTS
+
     NGXMAX  = 21
     NGYMAX  = 21
     NGPMAX  = 21
 
-    EPSRT  = 1.D-12
-    LMAXRT = 20
+!     NGPMAX : NUMBER OF PARAMETER SCAN POINTS
+
     EPSDP  = 1.D-3
-    MDLDPG = 1
 
-!     --- Velocity distribution function parameters ---
-!
-!     NPMAX  : number of momentum magnitude mesh
-!     NTHMAX : number of momentum angle mesh
-!     NRMAX  : number of radial mesh
-!     NSAMAX : number of test particle species
-!     MODEFA : Type of fast particle contribution
-!     RMIN   : minimum of radial mesh (r/a)
-!     RMAX   : maximum of radial mesh (r/a)
+!     --- Graphic parameters ---
+!                 WC: absolute value of angular cyclotron frequency
+!                 VT: thermal velocity
+!                 VA: Alfven velocity
+!     NORMF  : frequency normalization
+!                 0: no normalization (Hz)
+!                 positive: normalized by WC of NS=NORMF
+!     NORMK  : wave number normalization
+!                 0: no normalization (Hz)
+!                 positive: normalized by VT/WC of NS=NORMK
+!                 negative: normalized by VA/WC of NS=NORMK
 
-    NPMAX=50
-    NTHMAX=50
-    NRMAX=3
-    NSMAX=2
-    NSAMAX=2
-    RMIN=0.1D0
-    RMAX=0.3D0
-    MODEFA   = 0
-    RMIN=0.D0
-    RMAX=1.D0
+    NORMF=0
+    NORMK=0
+
+!     NFLOUT: file output control
+!             0: no file output
+!            21: D4 and D5 point data
+
+    NFLOUT=0
 
     RETURN
   END SUBROUTINE dp_init
 END MODULE dpinit
+
+

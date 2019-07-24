@@ -14,8 +14,8 @@ CONTAINS
       IMPLICIT NONE
       INTEGER,INTENT(OUT):: IERR
       CHARACTER(LEN=80),SAVE::  KNAMFP_SAVE=' '
-      INTEGER:: NSA,NTH,NP,NR,NS
-      REAL(rkind):: PT0,PTH0,PTH0W
+      INTEGER:: NSA,NTH,NP,NR,NS,NSBMAX
+      REAL(rkind):: PT0,PTH0,PTH0W,RMIN,RMAX
       
       IERR=0
       IF(KNAMFP.EQ.KNAMFP_SAVE) RETURN
@@ -35,6 +35,8 @@ CONTAINS
 
          READ(21) DELR,DELTH,RMIN,RMAX
          DO NSA=1,NSAMAX
+            RHON_MIN(NS)=RMIN
+            RHON_MAX(NS)=RMAX
             READ(21) NS_NSA(NSA)
             READ(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
          END DO
@@ -171,10 +173,10 @@ CONTAINS
     IF(NRMAX.EQ.1) THEN
        DELR=0.1D0
     ELSE
-       DELR=(RMAX-RMIN)/(NRMAX-1)
+       DELR=(RHON_MAX(NS_NSA(NS))-RHON_MIN(NS_NSA(NSA)))/(NRMAX-1)
     ENDIF
     DO NR=1,NRMAX
-       RM(NR)=RMIN+DELR*(NR-1)
+       RM(NR)=RHON_MIN(NS_NSA(NS))+DELR*(NR-1)
     ENDDO
 
     DELTH=PI/NTHMAX
@@ -342,7 +344,7 @@ CONTAINS
             DO NR=1,NRMAX
                FP(NTH,NP,NR)=FNS(NTH,NP,NR,NSA)
             ENDDO
-            IF(RHON_MIN.EQ.0.D0)THEN
+            IF(RHON_MIN(NS_NSA(NSA)).EQ.0.D0)THEN
                FPR(1)=(9.D0*FP(NTH,NP,1)-FP(NTH,NP,2))/8.D0
                FPRX(1)=0.D0
                ID=1

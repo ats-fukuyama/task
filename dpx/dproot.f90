@@ -11,7 +11,7 @@ CONTAINS
 
   SUBROUTINE DPGRP0
 
-    USE dpcomm
+    USE dpcomm_local
     USE dpdisp
     USE dpfpin,ONLY: dpldfm
     IMPLICIT NONE
@@ -95,7 +95,7 @@ CONTAINS
 
   SUBROUTINE DPGRP1
 
-    USE dpcomm
+    USE dpcomm_local
     USE dpdisp
     IMPLICIT NONE
     REAL(4),DIMENSION(:),ALLOCATABLE:: GX,GY
@@ -251,7 +251,7 @@ CONTAINS
 
   SUBROUTINE DP_ROOT
 
-    USE dpcomm
+    USE dpcomm_local
     IMPLICIT NONE
     REAL(4),DIMENSION(:),ALLOCATABLE::  GX,GY,GY2
     REAL(4),DIMENSION(:,:),ALLOCATABLE:: GXA,GYA,GY2A
@@ -467,7 +467,7 @@ CONTAINS
 
   SUBROUTINE DPBRENT1(CX)
 
-    USE dpcomm
+    USE dpcomm_local
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(INOUT):: CX
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: X,F,WA
@@ -497,7 +497,7 @@ CONTAINS
 
   SUBROUTINE DPFUNC1(N,X,F,ID)
 
-    USE dpcomm
+    USE dpcomm_local
     USE dpdisp
     IMPLICIT NONE
     INTEGER,INTENT(IN):: N,ID
@@ -522,7 +522,7 @@ CONTAINS
 
   SUBROUTINE DPBRENT2(CX)
 
-    USE dpcomm
+    USE dpcomm_local
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(INOUT):: CX
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: X,F,WA
@@ -555,7 +555,7 @@ CONTAINS
 
   SUBROUTINE DPFUNC2(N,X,F,I)
 
-    USE dpcomm
+    USE dpcomm_local
     USE dpdisp
     IMPLICIT NONE
 
@@ -581,7 +581,7 @@ CONTAINS
 !
 !  SUBROUTINE DPBRENT3(CX)
 !
-!    USE dpcomm
+!    USE dpcomm_local
 !    IMPLICIT NONE
 !    COMPLEX(rkind),INTENT(INOUT):: CX
 !    REAL(rkind),DIMENSION(:),ALLOCATABLE:: X,F,WA
@@ -614,7 +614,7 @@ CONTAINS
 !
 !  SUBROUTINE DPFUNC3(N,X,F,I)
 !
-!    USE dpcomm
+!    USE dpcomm_local
 !    USE dpdisp
 !    IMPLICIT NONE
 !
@@ -762,7 +762,7 @@ CONTAINS
 
   SUBROUTINE DPGPRM(ISW)
 
-    USE dpcomm
+    USE dpcomm_local
     IMPLICIT NONE
     INTEGER,INTENT(IN):: ISW
 

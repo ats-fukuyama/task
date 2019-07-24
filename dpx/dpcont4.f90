@@ -1,4 +1,7 @@
-MODULE dpcont2
+MODULE dpcont4
+
+  PRIVATE
+  PUBLIC dp_cont4
 
 CONTAINS
 
@@ -6,7 +9,7 @@ CONTAINS
 
   SUBROUTINE DP_CONT4
 
-    USE dpcomm
+    USE dpcomm_local
     USE plprof
     USE PLPARM,ONLY: pl_parm,pl_view
     USE dpparm
@@ -14,7 +17,7 @@ CONTAINS
     USE dpglib
     IMPLICIT NONE
     REAL(4),ALLOCATABLE:: GX(:),GY(:),GZ(:,:)
-    REAL(rkind),ALLOCATABLE:: WCINX(:),VANX(:)
+    REAL(rkind),ALLOCATABLE:: RFNORM(:),RKNORM(:)
     REAL(rkind),ALLOCATABLE:: Z(:,:)
     INTEGER,ALLOCATABLE:: KA(:,:,:)
     TYPE(pl_mag_type):: mag
@@ -24,8 +27,8 @@ CONTAINS
     INTEGER:: NX,NY,NS,NY1,NY2,NX1,NX2,NGULEN,IERR
     INTEGER:: NGXMAX_SAVE,NGYMAX_SAVE,INFO
     REAL(rkind):: XMIN,XMAX,YMIN,YMAX,DX,DY,Y,X,FACTY,FACTX,DZY,DZX,DZ2
-    REAL(rkind):: RX,RY,RZ,Y1,Y2,VAL1,VAL2,Y0,RF,RFI,V,VL
-    REAL(rkind):: RHON,WC,WCI,WP2,VA,XN,YN,YNI
+    REAL(rkind):: RX,RY,RZ,Y1,Y2,VAL1,VAL2,VAL3,Y0,RF,RFI,V,VL,RFPREV
+    REAL(rkind):: RHON,WC,WCI,WP2,VA,VT,XN,YN,YNI
     COMPLEX(rkind):: CRF,CKX,CKY,CKZ,CD,CW,CWC,CD0,CD1
     REAL(4):: GUCLIP,F
     REAL(4):: GXMIN,GXMAX,GYMIN,GYMAX,GXSMN,GXSMX,GSCALX,GYSMN,GYSMX,GSCALY
@@ -44,9 +47,6 @@ CONTAINS
       IF(KID.EQ.'X') THEN
          GOTO 9000
       ELSEIF(KID.EQ.'P') THEN
-         CALL PL_PARM(0,'PL',IERR)
-         GOTO 1
-      ELSEIF(KID.EQ.'D') THEN
          CALL DP_PARM(0,'DP',IERR)
          GOTO 1
       ELSEIF(KID.EQ.'V') THEN
@@ -137,7 +137,7 @@ CONTAINS
       RF2=YMAX
 
       ALLOCATE(GX(NGXMAX),GY(NGYMAX),GZ(NGXMAX,NGYMAX))
-      ALLOCATE(WCINX(NGXMAX),VANX(NGXMAX))
+      ALLOCATE(RFNORM(NGXMAX),RKNORM(NGXMAX))
       ALLOCATE(Z(NGXMAX,NGYMAX),KA(8,NGXMAX,NGYMAX))
 
       DY=(YMAX-YMIN)/(NGYMAX-1)
@@ -169,7 +169,7 @@ CONTAINS
             CKY=X*COS(RKANG0*PI/180.D0)
          ENDIF
 
-         IF(MDLDPG.EQ.1) THEN
+         IF(NORMF.NE.0.OR.NORMK.NE.0) THEN
             CALL PL_MAG(RX,RY,RZ,mag)
             RHON=mag%rhon
             IF(MODELG.LE.1.OR.MODELG.GT.10) THEN
@@ -177,18 +177,38 @@ CONTAINS
             ELSE
                CALL PL_PROF(RHON,plf)
             END IF
-            VA=1.D0
-            DO NS=1,NSMAX
+            IF(NORMK.LT.0) THEN
+               VA=1.D0
+               DO NS=1,NSMAX
+                  WC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS))
+                  WP2=plf(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE &
+                       /(EPS0*AMP*PA(NS))
+                  VA=VA+WP2/WC**2
+               END DO
+               VA=VC/SQRT(VA)
+            END IF
+            IF(NORMF.GE.1.AND.NORMF.LE.NSMAX) THEN
+               NS=NORMF
                WC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS))
-               WP2=plf(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE &
-                    /(EPS0*AMP*PA(NS))
-               VA=VA+WP2/WC**2
-            END DO
-            NS=2
-            WCI=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS))
-            VA=VC/SQRT(VA)
-            WCINX(NX)=WCI
-            VANX(NX)=VA
+               RFNORM(NX)=2.D0*PI*1.D6/WC
+            ELSE
+               RFNORM(NX)=1.D0
+            END IF
+            IF(NORMK.GE.1.AND.NORMK.LE.NSMAX) THEN
+               NS=NORMK
+               WC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS))
+               VT=SQRT(plf(NS)%RTPP*AEE*1.D3/(AMP*PA(NS)))
+               RKNORM(NX)=VT/WC
+            ELSEIF(-NORMK.GE.1.AND.-NORMK.LE.NSMAX) THEN
+               NS=-NORMK
+               WC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS))
+               RKNORM(NX)=VA/WC
+            ELSE
+               RKNORM(NX)=1.D0
+            END IF
+         ELSE
+            RFNORM(NX)=1.D0
+            RKNORM(NX)=1.D0
          END IF
 
          DO NY=1,NGYMAX
@@ -196,56 +216,20 @@ CONTAINS
             CRF=DCMPLX(Y,0.D0)
             CD=CFDISP(CRF,CKX,CKY,CKZ,RX,RY,RZ)
 
-            IF(MDLDPG.EQ.0) THEN
+            SELECT CASE(KID)
+            CASE('1','2','3','7')
+               GX(NX)=GUCLIP(X*RKNORM(NX))
+               GY(NY)=GUCLIP(Y*RFNORM(NX))
+            CASE('4','5','6')
                GX(NX)=GUCLIP(X)
-               GY(NY)=GUCLIP(Y)
-            ELSEIF(MDLDPG.EQ.1) THEN
-               SELECT CASE(KID)
-               CASE('1','2','3','7')
-                  GX(NX)=GUCLIP(X)*VA/WCI
-                  GY(NY)=GUCLIP(Y)*2.D0*PI*1.D6/WCI
-               CASE('4','5','6')
-                  GX(NX)=GUCLIP(X)
-                  GY(NY)=GUCLIP(Y)*2.D0*PI*1.D6/WCI
-               END SELECT
-            END IF
+               GY(NY)=GUCLIP(Y*RFNORM(NX))
+            END SELECT
             Z(NX,NY)=DBLE(CD)
-!            WRITE(21,'(A,2I5,1P5E12.4)') 'CD:',NX,NY,Y,DBLE(CKX),DBLE(CKY),CD
          ENDDO
       ENDDO
 
       DO NY=1,NGYMAX
-         IF(NY.EQ.1) THEN
-            NY1=NY
-            NY2=NY+1
-            FACTY=1.D0
-         ELSEIF(NY.EQ.NGYMAX) THEN
-            NY1=NY-1
-            NY2=NY
-            FACTY=1.D0
-         ELSE
-            NY1=NY-1
-            NY2=NY+1
-            FACTY=0.5D0
-         ENDIF
       DO NX=1,NGXMAX
-         IF(NX.EQ.1) THEN
-            NX1=NX
-            NX2=NX+1
-            FACTX=1.D0
-         ELSEIF(NX.EQ.NGXMAX) THEN
-            NX1=NX-1
-            NX2=NX
-            FACTX=1.D0
-         ELSE
-            NX1=NX-1
-            NX2=NX+1
-            FACTX=0.5D0
-         ENDIF
-!         DZY=FACTY*(Z(NX,NY2)-Z(NX,NY1))
-!         DZX=FACTX*(Z(NX2,NY)-Z(NX1,NY))
-!         DZ2=MAX(SQRT(DZX**2+DZY**2),1.D0)
-!         GZ(NX,NY)=GUCLIP(Z(NX,NY)/DZ2)
          GZ(NX,NY)=GUCLIP(Z(NX,NY))
       ENDDO
       ENDDO
@@ -275,6 +259,7 @@ CONTAINS
       CALL CONTQ2(GZ,GX,GY,NGXMAX,NGXMAX,NGYMAX,0.0,2.0,1,0,0,KA)
 
       CALL SETMKS(3,0.1)
+      RFPREV=0.D0
       DO NX=1,NGXMAX
          VAL1=Z(NX,1)
          DO NY=2,NGYMAX
@@ -317,10 +302,9 @@ CONTAINS
                RFI=AIMAG(CRF)
                IF(INFO.GE.1.AND.INFO.LE.3.AND. &
                     RF.GE.YMIN.AND.RF.LE.YMAX.AND. &
-                    ABS(CD1).LE.EPSDP) THEN
-!                  WRITE(21,'(1P3E16.8)') X,CRF
+                    ABS(CD1).LE.EPSDP.AND. &
+                    ABS(RF-RFPREV).GT.EPSDP) THEN
                   V=RFI/RF
-!                  WRITE(6,'(A,1P3E12.4)') 'V,RFI,RF=',V,RFI,RF
                   IF(V.GT.1.D-12) THEN
                      VL=MAX(MIN(0.D0,LOG10(V)),-12.D0)+12.D0  ! 0<VL<12
                      f=GUCLIP(VL/12.D0)
@@ -334,30 +318,26 @@ CONTAINS
                      f=0.0
                      CALL SETRGB(0.0,1.0,0.0)
                   END IF
-!                  WRITE(6,'(A,2I5,1P6E11.3)') 'RT:',NX,NY,X,CRF,V,VL,f
                   
-                  IF(MDLDPG.EQ.1) THEN
-                     SELECT CASE(KID)
-                     CASE('1','2','3','7')
-                        XN=X*VANX(NX)/WCINX(NX)
-                        YN=RF*2.D0*PI*1.D6/WCINX(NX)
-                        YNI=RFI*2.D0*PI*1.D6/WCINX(NX)
-                     CASE('4','5','6')
-                        XN=X
-                        YN=RF*2.D0*PI*1.D6/WCINX(NX)
-                        YNI=RFI*2.D0*PI*1.D6/WCINX(NX)
-                     END SELECT
-                  ELSE
+                  SELECT CASE(KID)
+                  CASE('1','2','3','7')
+                     XN=X*RKNORM(NX)
+                     YN=RF*RFNORM(NX)
+                     YNI=RFI*RFNORM(NX)
+                  CASE('4','5','6')
                      XN=X
-                     YN=RF
-                     YNI=RFI
-                  END IF
+                     YN=RF*RFNORM(NX)
+                     YNI=RFI*RFNORM(NX)
+                  END SELECT
                   
                   CALL MARK2D(GUCLIP(XN),GUCLIP(YN))
-                  WRITE(21,'(1P6E15.7,I5,1P2E15.7)') &
-                       X,RF,RFI,XN,YN,YNI,INFO,CD1
-                  
+                  IF(NFLOUT.EQ.21) THEN
+                     WRITE(21,'(1P6E15.7,I5,1P2E15.7)') &
+                          X,RF,RFI,XN,YN,YNI,INFO,CD1
+                    RFPREV=RF
+                 END IF
                END IF
+               RFPREV=RF
             END IF
             VAL1=VAL2
          END DO
@@ -411,7 +391,7 @@ CONTAINS
       CALL TEXT('ANG =',5)
       CALL NUMBD(RKANG0,'(1PE11.3)',11)
       CALL PAGEE
-      DEALLOCATE(GX,GY,GZ,Z,KA,WCINX,VANX)
+      DEALLOCATE(GX,GY,GZ,Z,KA,RFNORM,RKNORM)
       GOTO 2
 
  9000 RETURN
@@ -423,7 +403,7 @@ CONTAINS
 
   SUBROUTINE DPBRENTX(CX,INFO)
 
-    USE dpcomm
+    USE dpcomm_local
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(INOUT):: CX
     INTEGER,INTENT(OUT):: INFO
@@ -444,7 +424,7 @@ CONTAINS
 
   SUBROUTINE DPFUNCX(N,X,F,ID)
 
-    USE dpcomm
+    USE dpcomm_local
     USE dpdisp
     IMPLICIT NONE
     INTEGER,INTENT(IN):: N,ID
@@ -463,4 +443,4 @@ CONTAINS
     RETURN
   END SUBROUTINE DPFUNCX
 
-END MODULE dpcont2
+END MODULE dpcont4

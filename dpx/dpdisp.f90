@@ -205,7 +205,7 @@ CONTAINS
 
     USE dpcomm
     USE plprof
-    USE DPTENS
+    USE dptnsr0
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
@@ -234,7 +234,7 @@ CONTAINS
           
        DO NS1=1,NSMAX
 
-          CALL DP_TENS(CW,CKPR,CKPP,NS1,mag,plf,grd,CLDISP)
+          CALL DP_TNSR0(CW,CKPR,CKPP,NS1,mag,plf,grd,CLDISP)
           DO I=1,6
              CDISP(I)=CDISP(I)+CLDISP(I)
           ENDDO
@@ -247,7 +247,7 @@ CONTAINS
           grd(ns)%grdu=0.D0
        END IF
 
-       CALL DP_TENS(CW,CKPR,CKPP,NS,mag,plf,grd,CDISP)
+       CALL DP_TNSR0(CW,CKPR,CKPP,NS,mag,plf,grd,CDISP)
     ENDIF
 
     CDTNS(1,1)= CDISP(1)
@@ -269,7 +269,7 @@ CONTAINS
 
     USE dpcomm
     USE plprof
-    USE dptens
+    USE dptnsr0
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR
     TYPE(pl_mag_type),INTENT(IN):: mag
@@ -298,7 +298,7 @@ CONTAINS
     DO NS1=1,NSMAX
        MODELP_SAVE=MODELP(NS1)
        MODELP(NS1)=0
-       CALL DP_TENS(CW,CKPR,CKPP,NS1,mag,plf,grd,CLDISP)
+       CALL DP_TNSR0(CW,CKPR,CKPP,NS1,mag,plf,grd,CLDISP)
        DO I=1,6
           CDISP(I)=CDISP(I)+CLDISP(I)
        ENDDO

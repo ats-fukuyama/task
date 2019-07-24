@@ -152,6 +152,18 @@ CONTAINS
        PZCL(NSM)= 3.0D-3
     END DO
 
+!   Edge damping region (absorption ns=NSMAX)
+!      MDAMP=0 : no damping region
+!           <>0: damping region in all direction except wg layer
+!             1: no damp in the region r=rmin, zdamp_min<z<zdamp_max 
+!             2: no damp in the region r=rmax, zdamp_min<z<zdamp_max 
+!             3: no damp in the region z=zmin, rdamp_min<r<rdamp_max 
+!             4: no damp in the region z=zmax, rdamp_min<r<rdamp_max 
+!      WDAMP   : width of damping region [m]
+!      FDAMP   : damping factor       epsilon=FDAMP*(WDAMP-DX)/(DX+CI*PZCL(NSMAX))
+!      PZCL(NSMAX): damping factor     
+
+    MDAMP=0
     WDAMP=0.D0
     FDAMP=0.3D0
 

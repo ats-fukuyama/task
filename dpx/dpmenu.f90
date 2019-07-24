@@ -15,9 +15,9 @@ CONTAINS
     USE plparm,ONLY: pl_view
     USE dpparm,ONLY: dp_parm,dp_view
     USE dproot,ONLY: dp_root,dpgrp1,dpgrp0
-    USE dpcont,ONLY: dp_cont,dp_contx
-    USE dpcont2,ONLY: dp_cont4
-    USE dptens,ONLY: dp_tens
+    USE dpcont,ONLY: dp_cont2,dp_cont3
+    USE dpcont4,ONLY: dp_cont4
+    USE dptnsr0,ONLY: dp_tnsr0
     IMPLICIT NONE
       
     CHARACTER(LEN=1):: KID
@@ -51,9 +51,9 @@ CONTAINS
        ELSEIF(NID.EQ.1) THEN
           CALL DPGRP1
        ELSEIF(NID.EQ.2) THEN
-          CALL DP_CONT
+          CALL DP_CONT2
        ELSEIF(NID.EQ.3) THEN
-          CALL DP_CONTX
+          CALL DP_CONT3
        ELSEIF(NID.EQ.4) THEN
           CALL DP_CONT4
        ELSE
@@ -79,11 +79,11 @@ CONTAINS
        CALL PL_PROF(RHON,plf)
        CALL PL_GRAD(RHON,grd)
        MODELP(1)=5
-       CALL DP_TENS(CW,CKPR,CKPP,1,mag,plf,grd,CD4)
+       CALL DP_TNSR0(CW,CKPR,CKPP,1,mag,plf,grd,CD4)
        MODELP(1)=6
-       CALL DP_TENS(CW,CKPR,CKPP,1,mag,plf,grd,CD5)
+       CALL DP_TNSR0(CW,CKPR,CKPP,1,mag,plf,grd,CD5)
        MODELP(1)=7
-       CALL DP_TENS(CW,CKPR,CKPP,1,mag,plf,grd,CD6)
+       CALL DP_TNSR0(CW,CKPR,CKPP,1,mag,plf,grd,CD6)
        WRITE(6,602) 
 602    FORMAT(8X,'MODELP=5',16X,'MODELP=6',16X,'MODELP=7')
        WRITE(6,603) (I,CD4(I),CD5(I),CD6(I),I=1,6)

@@ -1,10 +1,10 @@
-MODULE DPTENS
+MODULE DPTNSR0
 
 CONTAINS
 
 !     ****** CALCULATE DIELECTRIC TENSOR ******
 
-  SUBROUTINE DP_TENS(CW,CKPR,CKPP,NS,mag,plf,grd,CLDISP)
+  SUBROUTINE DP_TNSR0(CW,CKPR,CKPP,NS,mag,plf,grd,CLDISP)
 
     USE dpcomm
     USE dptnsr1
@@ -24,68 +24,69 @@ CONTAINS
 
 !    WRITE(6,*) 'dp_tens:',modelp(1),modelv(1)
 
-      IF(plf(NS)%RN.LE.0.D0) THEN
-         CALL DPTNCL(CW,NS,mag,plf,CLDISP)
+    IF(plf(NS)%RN.LE.0.D0) THEN
+       CALL DPTNCL(CW,NS,mag,plf,CLDISP)
 !      ELSEIF(mag%RHON.LT.RHON_MIN.OR.mag%RHON.GT.RHON_MAX) THEN
 !         ID1=MOD(MODELP(NS),100)
 !         CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plf,grd,CLDISP)
-      ELSE
-         ID1=MOD(MODELP(NS),100)
-         ID2=MODELP(NS)/100
-         IDV=MODELV(NS)
-         IF(IDV.NE.0.AND.(mag%RHON.LT.RHON_MIN.OR.mag%RHON.GT.RHON_MAX)) THEN
-            CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plf,grd,CLDISP)
-         ELSE
-         SELECT CASE(IDV)
-         CASE(0)
-            CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plf,grd,CLDISP)
-         CASE(1)
-            CALL DPFMFL(NS,plf,0)
-            IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-               CALL DP_HOTFI(CW,CKPR,CKPP,NS,mag,CLDISP)
-            ELSE
-               CALL DP_HOTF(CW,CKPR,CKPP,NS,mag,CLDISP)
-            ENDIF
-         CASE(2)
-            CALL DPFPFL(NS,mag,IERR)
-            IF(IERR.NE.0) RETURN
-            IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-               CALL DP_HOTFI(CW,CKPR,CKPP,NS,mag,CLDISP)
-            ELSE
-               CALL DP_HOTF(CW,CKPR,CKPP,NS,mag,CLDISP)
-            ENDIF
-         CASE(3)
-            CALL DPFMFL(NS,plf,1)
-            IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-               CALL DP_HOTRI(CW,CKPR,CKPP,NS,mag,CLDISP)
-            ELSE
-               CALL DP_HOTR(CW,CKPR,CKPP,NS,mag,CLDISP)
-            ENDIF
-         CASE(4)
-            CALL DPFPFL(NS,mag,IERR)
-            IF(IERR.NE.0) RETURN
-            IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-               CALL DP_HOTRI(CW,CKPR,CKPP,NS,mag,CLDISP)
-            ELSE
-               CALL DP_HOTR(CW,CKPR,CKPP,NS,mag,CLDISP)
-            ENDIF
-         END SELECT
-         END IF
-         IF(ID2.EQ.2) THEN
-            CALL DPTNCL(CW,NS,mag,plf,CLDISP1)
-         ELSEIF(ID2.EQ.3) THEN
-            CALL DPTNKP(CW,CKPR,CKPP,NS,mag,plf,CLDISP1)
-         ENDIF
+    ELSE
+       ID1=MOD(MODELP(NS),100)
+       ID2=MODELP(NS)/100
+       IDV=MODELV(NS)
+       IF(IDV.NE.0.AND.(mag%RHON.LT.RHON_MIN(NS).OR. &
+                        mag%RHON.GT.RHON_MAX(NS))) THEN
+          CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plf,grd,CLDISP)
+       ELSE
+          SELECT CASE(IDV)
+          CASE(0)
+             CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plf,grd,CLDISP)
+          CASE(1)
+             CALL DPFMFL(NS,plf,0)
+             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
+                CALL DP_HOTFI(CW,CKPR,CKPP,NS,mag,CLDISP)
+             ELSE
+                CALL DP_HOTF(CW,CKPR,CKPP,NS,mag,CLDISP)
+             ENDIF
+          CASE(2)
+             CALL DPFPFL(NS,mag,IERR)
+             IF(IERR.NE.0) RETURN
+             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
+                CALL DP_HOTFI(CW,CKPR,CKPP,NS,mag,CLDISP)
+             ELSE
+                CALL DP_HOTF(CW,CKPR,CKPP,NS,mag,CLDISP)
+             ENDIF
+          CASE(3)
+             CALL DPFMFL(NS,plf,1)
+             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
+                CALL DP_HOTRI(CW,CKPR,CKPP,NS,mag,CLDISP)
+             ELSE
+                CALL DP_HOTR(CW,CKPR,CKPP,NS,mag,CLDISP)
+             ENDIF
+          CASE(4)
+             CALL DPFPFL(NS,mag,IERR)
+             IF(IERR.NE.0) RETURN
+             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
+                CALL DP_HOTRI(CW,CKPR,CKPP,NS,mag,CLDISP)
+             ELSE
+                CALL DP_HOTR(CW,CKPR,CKPP,NS,mag,CLDISP)
+             ENDIF
+          END SELECT
+       END IF
+       IF(ID2.EQ.2) THEN
+          CALL DPTNCL(CW,NS,mag,plf,CLDISP1)
+       ELSEIF(ID2.EQ.3) THEN
+          CALL DPTNKP(CW,CKPR,CKPP,NS,mag,plf,CLDISP1)
+       ENDIF
 
-         IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-            CLDISP(1)=DBLE(CLDISP1(1))+CI*DIMAG(CLDISP(1))
-            CLDISP(2)=DBLE(CLDISP1(2))+CI*DIMAG(CLDISP(2))
-            CLDISP(3)=DBLE(CLDISP1(3))+CI*DIMAG(CLDISP(3))
-            CLDISP(4)=DBLE(CLDISP1(4))+CI*DIMAG(CLDISP(4))
-            CLDISP(5)=CI*DIMAG(CLDISP1(5))+DBLE(CLDISP(5))
-            CLDISP(6)=CI*DIMAG(CLDISP1(6))+DBLE(CLDISP(6))
-         ENDIF
-      ENDIF
+       IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
+          CLDISP(1)=DBLE(CLDISP1(1))+CI*DIMAG(CLDISP(1))
+          CLDISP(2)=DBLE(CLDISP1(2))+CI*DIMAG(CLDISP(2))
+          CLDISP(3)=DBLE(CLDISP1(3))+CI*DIMAG(CLDISP(3))
+          CLDISP(4)=DBLE(CLDISP1(4))+CI*DIMAG(CLDISP(4))
+          CLDISP(5)=CI*DIMAG(CLDISP1(5))+DBLE(CLDISP(5))
+          CLDISP(6)=CI*DIMAG(CLDISP1(6))+DBLE(CLDISP(6))
+       ENDIF
+    ENDIF
 !         WRITE(6,'(A,3I5,1PE12.4)') &
 !              'NS,ID1,ID2,RN =',NS,ID1,ID2,RN(NS)
 !         WRITE(6,'(A,1P6E12.4)') &
@@ -94,8 +95,8 @@ CONTAINS
 !              'CLDISP=',CLDISP(1),CLDISP(2),CLDISP(3)
 !         WRITE(6,'(A,1P6E12.4)') &
 !              'CLDISP=',CLDISP(4),CLDISP(5),CLDISP(6)
-      RETURN
-  END SUBROUTINE DP_TENS
+    RETURN
+  END SUBROUTINE DP_TNSR0
 
 !     ****** CALCULATE ANALYTIC DIELECTRIC TENSOR ******
 
@@ -142,4 +143,4 @@ CONTAINS
       END SELECT
       RETURN
   END SUBROUTINE DPTENS_AN
-END MODULE DPTENS
+END MODULE DPTNSR0

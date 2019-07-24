@@ -10,22 +10,30 @@ MODULE dpcomm_parm
 
 ! --- input paramters ---
 
-  INTEGER:: MODELP(NSM),MODELV(NSM),NCMIN(NSM),NCMAX(NSM),NS_NSA(NSM)
-  REAL(rkind):: PMAX(NSM),EMAX(NSM)
-
+  INTEGER:: MODELP(NSM),MODELV(NSM),NCMIN(NSM),NCMAX(NSM)
   REAL(rkind):: RF0,RFI0,RKX0,RKY0,RKZ0,RX0,RY0,RZ0,RK0,RKANG0
+  REAL(rkind):: EPSRT
+  INTEGER:: LMAXRT
+
+  INTEGER:: NS_NSA(NSM)
+  REAL(rkind):: PMAX(NSM),EMAX(NSM),RHON_MIN(NSM),RHON_MAX(NSM)
+  INTEGER:: NPMAX,NTHMAX,NRMAX,NSAMAX
+
+END MODULE dpcomm_parm
+
+MODULE dpcomm_parm_local     ! only for DP program, not for DP library
+
+  USE dpcomm_parm
+  IMPLICIT NONE
+
   REAL(rkind):: RF1,RFI1,RKX1,RKY1,RKZ1,RX1,RY1,RZ1,RK1
   REAL(rkind):: RF2,RFI2,RKX2,RKY2,RKZ2,RX2,RY2,RZ2,RK2
   INTEGER:: NGXMAX,NGYMAX,NGPMAX
-  REAL(rkind):: EPSRT,EPSDP
-  INTEGER:: LMAXRT,MDLDPG
+  REAL(rkind):: EPSDP
+  INTEGER:: NORMF,NORMK
+  INTEGER:: NFLOUT
 
-  INTEGER:: NPMAX,NTHMAX,NRMAX,NSAMAX,NSBMAX
-  INTEGER:: MODEFA
-  REAL(rkind):: RMIN,RMAX
-  REAL(rkind):: RHON_MIN,RHON_MAX
-
-END MODULE dpcomm_parm
+END MODULE dpcomm_parm_local
 
 MODULE dpcomm
   USE dpcomm_parm
@@ -132,3 +140,11 @@ CONTAINS
   END SUBROUTINE dpfp_deallocate
 
 END MODULE dpcomm
+
+MODULE dpcomm_local
+
+  USE dpcomm
+  USE dpcomm_parm_local
+
+END MODULE dpcomm_local
+

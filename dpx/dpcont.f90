@@ -1,12 +1,15 @@
 MODULE dpcont
 
+  PRIVATE
+  PUBLIC dp_cont2,dp_cont3
+
 CONTAINS
 
 !     ***** PLOT CONTOUR GRAPH *************************************
 
-  SUBROUTINE DP_CONT
+  SUBROUTINE DP_CONT2
 
-    USE dpcomm
+    USE dpcomm_local
     USE plprof
     USE PLPARM,ONLY: pl_parm,pl_view
     USE dpparm
@@ -35,13 +38,13 @@ CONTAINS
       ENDIF
 
     1 WRITE(6,*)'## SELECT : XY : W/RF X/KX Y/KY Z/KZ 1/X 2/Y 3/Z: ', &
-                'P,D,V/PARM X/EXIT'
+                'P,D,V/PARM 0/EXIT'
       READ(5,*,ERR=1,END=9000) KID
       KID1=KID(1:1)
       KID2=KID(2:2)
       CALL GUCPTL(KID1)
       CALL GUCPTL(KID2)
-      IF(KID1.EQ.'X'.AND.KID2.EQ.' ') THEN
+      IF(KID1.EQ.'0') THEN
          GOTO 9000
       ELSEIF(KID1.EQ.'P') THEN
          CALL PL_PARM(0,'PL',IERR)
@@ -292,14 +295,14 @@ CONTAINS
       ENDDO
       ENDDO
 
-      DO NY=1,NGYMAX
-         DO NX=1,NGXMAX
-            IF(MOD(NX-1,10).EQ.0.AND.MOD(NY-1,10).EQ.0) THEN
-               WRITE(6,'(2I5,1P4E15.7)')  &
-                    NX,NY,GX(NX),GY(NY),Z(NX,NY),GZ(NX,NY)
-            ENDIF
-         ENDDO
-      ENDDO
+!      DO NY=1,NGYMAX
+!         DO NX=1,NGXMAX
+!            IF(MOD(NX-1,10).EQ.0.AND.MOD(NY-1,10).EQ.0) THEN
+!               WRITE(6,'(2I5,1P4E15.7)')  &
+!                    NX,NY,GX(NX),GY(NY),Z(NX,NY),GZ(NX,NY)
+!            ENDIF
+!         ENDDO
+!      ENDDO
 
       CALL PAGES
       CALL SETLIN(0,0,7)
@@ -378,14 +381,14 @@ CONTAINS
       GOTO 2
 
  9000 RETURN
-  END SUBROUTINE DP_CONT
+  END SUBROUTINE DP_CONT2
 
 !     ***** PLOT CONTOUR GRAPH *****
 !     ***** DENSITY SCAN *****
 
-  SUBROUTINE DP_CONTX
+  SUBROUTINE DP_CONT3
 
-    USE dpcomm
+    USE dpcomm_local
     USE plprof
     USE plinit
     USE dpparm
@@ -640,5 +643,5 @@ CONTAINS
       GOTO 1
 
  9000 RETURN
-  END SUBROUTINE DP_CONTX
+  END SUBROUTINE DP_CONT3
 END MODULE dpcont

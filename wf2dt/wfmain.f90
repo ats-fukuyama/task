@@ -24,6 +24,7 @@
 program wfmain
   
   USE wfcomm
+  USE plinit
   USE wfinit
   USE wfparm
   USE libmtx
@@ -42,6 +43,7 @@ program wfmain
   end if
 
   call setaif
+  CALL pl_init
   call wf_init
 
   if (nrank.eq.0) call wf_parm(1,'wfparm',IERR)
