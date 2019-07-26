@@ -54,6 +54,7 @@ dplib.a: $(OBJS)
 libs:
 	(cd ../lib; make tasklib.a)
 	(cd ../../bpsd; make bpsdlib.a)
+	(cd ../mtxp; make)
 	(cd ../plx; make pllib.a)
 	(cd ../eq; make eqlib.a)
 
