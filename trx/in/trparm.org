@@ -1,0 +1,13 @@
+ &tr
+   MDLJBS=4
+   MDLKNC=2
+   MDLETA=2
+   PECCD=1.D0
+   PECR0=0.D0
+   PECRW=0.1D0  
+   PECNPR=5.D0
+   PLHCD=1.D0
+   PLHR0=0.8D0
+   PLHRw=0.2D0
+   PLHNPR=2.D0
+ &end
