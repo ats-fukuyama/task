@@ -4,8 +4,8 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS = -g $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = -g $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD) -I../eq/$(MOD) \
 	    -I../plx/$(MOD)

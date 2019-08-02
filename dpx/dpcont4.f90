@@ -7,7 +7,7 @@ CONTAINS
 
 !     ***** PLOT CONTOUR GRAPH *************************************
 
-  SUBROUTINE DP_CONT4
+  SUBROUTINE DP_CONT4(NID)
 
     USE dpcomm_local
     USE plprof
@@ -16,6 +16,7 @@ CONTAINS
     USE dpdisp
     USE dpglib
     IMPLICIT NONE
+    INTEGER,INTENT(IN):: NID
     REAL(4),ALLOCATABLE:: GX(:),GY(:),GZ(:,:)
     REAL(rkind),ALLOCATABLE:: RFNORM(:),RKNORM(:)
     REAL(rkind),ALLOCATABLE:: Z(:,:)
@@ -232,14 +233,16 @@ CONTAINS
       ENDDO
       ENDDO
 
-      DO NY=1,NGYMAX
-         DO NX=1,NGXMAX
-            IF(MOD(NX-1,10).EQ.0.AND.MOD(NY-1,10).EQ.0) THEN
-               WRITE(6,'(2I5,1P4E15.7)')  &
-                    NX,NY,GX(NX),GY(NY),Z(NX,NY),GZ(NX,NY)
-            ENDIF
+      IF(IDEBUG.GE.1) THEN
+         DO NY=1,NGYMAX
+            DO NX=1,NGXMAX
+               IF(MOD(NX-1,10).EQ.0.AND.MOD(NY-1,10).EQ.0) THEN
+                  WRITE(6,'(2I5,1P4E15.7)')  &
+                       NX,NY,GX(NX),GY(NY),Z(NX,NY),GZ(NX,NY)
+               ENDIF
+            ENDDO
          ENDDO
-      ENDDO
+      END IF
 
       CALL PAGES
       CALL SETLIN(0,0,7)
@@ -254,7 +257,9 @@ CONTAINS
       CALL GSCALE(0.0,0.0,GYSMN,GSCALY,0.2,9)
       CALL GVALUE(GXSMN,2*GSCALX,0.0,0.0,NGULEN(2*GSCALX))
       CALL GVALUE(0.0,0.0,GYSMN,2*GSCALY,NGULEN(2*GSCALY))
-      CALL CONTQ2(GZ,GX,GY,NGXMAX,NGXMAX,NGYMAX,0.0,2.0,1,0,0,KA)
+      IF(NID.EQ.4) THEN
+         CALL CONTQ2(GZ,GX,GY,NGXMAX,NGXMAX,NGYMAX,0.0,2.0,1,0,0,KA)
+      END IF
 
       CALL SETMKS(3,0.1)
       RFPREV=0.D0
@@ -294,14 +299,17 @@ CONTAINS
                CD0=CFDISP(CRF,CKX0,CKY0,CKZ0,XPOS0,YPOS0,ZPOS0)
                CALL DPBRENTX(CRF,INFO)
                CD1=CFDISP(CRF,CKX0,CKY0,CKZ0,XPOS0,YPOS0,ZPOS0)
-               WRITE(6,'(A,2I5,1P5E11.3)')    'RT:',NX,NY,X,Y0,0.D0,CD0
-               WRITE(6,'(A,2I5,1P5E11.3,I5)') '   ',NX,NY,X,CRF,    CD1,INFO
+               IF(IDEBUG.GE.2) THEN
+                  WRITE(22,'(A,2I5,1P5E11.3)')    'RT:',NX,NY,X,Y0,0.D0,CD0
+                  WRITE(22,'(A,2I5,1P5E11.3,I5)') '   ',NX,NY,X,CRF,    CD1,INFO
+                  CALL FLUSH
+               END IF
                RF=DBLE(CRF)
                RFI=AIMAG(CRF)
                IF(INFO.GE.1.AND.INFO.LE.3.AND. &
                     RF.GE.YMIN.AND.RF.LE.YMAX.AND. &
                     ABS(CD1).LE.EPSDP.AND. &
-                    ABS(RF-RFPREV).GT.EPSDP) THEN
+                    ABS(RF-RFPREV).GT.EPSRF) THEN
                   V=RFI/RF
                   IF(V.GT.1.D-12) THEN
                      VL=MAX(MIN(0.D0,LOG10(V)),-12.D0)+12.D0  ! 0<VL<12

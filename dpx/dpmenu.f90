@@ -33,7 +33,7 @@ CONTAINS
 
 1   CONTINUE
     WRITE(6,*) '## DP MENU: P,V/PARM  ', &
-               'D0,D1,D2,D3,D4/DISP  F/ROOT  T,S,K/TEST  Q/QUIT'
+               'D0,D1,D2,D3,D4,D5/DISP  F/ROOT  T,S,K/TEST  Q/QUIT'
 
     CALL TASK_KLIN(LINE,KID,MODE,DP_PARM)
     IF(MODE.NE.1) GOTO 1
@@ -46,19 +46,20 @@ CONTAINS
        CALL DP_VIEW
     ELSEIF(KID.EQ.'D') THEN
        READ(LINE(2:),*,ERR=1,END=1) NID
-       IF(NID.EQ.0) THEN
+       SELECT CASE(NID)
+       CASE(0)
           CALL DPGRP0
-       ELSEIF(NID.EQ.1) THEN
+       CASE(1)
           CALL DPGRP1
-       ELSEIF(NID.EQ.2) THEN
+       CASE(2)
           CALL DP_CONT2
-       ELSEIF(NID.EQ.3) THEN
+       CASE(3)
           CALL DP_CONT3
-       ELSEIF(NID.EQ.4) THEN
-          CALL DP_CONT4
-       ELSE
+       CASE(4,5)
+          CALL DP_CONT4(NID)
+       CASE DEFAULT
           WRITE(6,*) 'XX DPMENU: unknown NID'
-       ENDIF
+       END SELECT
     ELSEIF(KID.EQ.'F') THEN
        CALL DP_ROOT
     ELSEIF(KID.EQ.'T') THEN

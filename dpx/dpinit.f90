@@ -180,9 +180,11 @@ CONTAINS
     NGYMAX  = 21
     NGPMAX  = 21
 
-!     NGPMAX : NUMBER OF PARAMETER SCAN POINTS
+!     EPSDP : Convergence torelance for root finding
+!     EPSRF : Torelance for removing duplicate root
 
-    EPSDP  = 1.D-3
+    EPSDP  = 1.D0
+    EPSRF  = 1.D-3
 
 !     --- Graphic parameters ---
 !                 WC: absolute value of angular cyclotron frequency

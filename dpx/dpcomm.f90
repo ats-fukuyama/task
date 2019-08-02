@@ -29,7 +29,7 @@ MODULE dpcomm_parm_local     ! only for DP program, not for DP library
   REAL(rkind):: RF1,RFI1,RKX1,RKY1,RKZ1,RX1,RY1,RZ1,RK1
   REAL(rkind):: RF2,RFI2,RKX2,RKY2,RKZ2,RX2,RY2,RZ2,RK2
   INTEGER:: NGXMAX,NGYMAX,NGPMAX
-  REAL(rkind):: EPSDP
+  REAL(rkind):: EPSDP,EPSRF
   INTEGER:: NORMF,NORMK
   INTEGER:: NFLOUT
 

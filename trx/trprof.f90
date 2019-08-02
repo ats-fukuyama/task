@@ -34,8 +34,10 @@
 
       CALL TR_EQS_SELECT(0)
 
+      NROMAX=NRMAX
       NRAMAX=INT(RHOA*NRMAX)
       DR = 1.D0/DBLE(NRMAX)
+      NRMAX=NRAMAX
 
       NT    = 0
       T     = 0.D0
