@@ -704,7 +704,7 @@
       subroutine trsetg(ierr)
 
       use trcomm, only : modelg, nrmax, knameq, knameq2, RR, RA
-      use tr_bpsd, only: tr_bpsd_init,tr_bpsd_set,tr_bpsd_get
+      use tr_bpsd, only: tr_bpsd_init,tr_bpsd_put,tr_bpsd_get
       use equnit_mod, only: eq_parm,eq_prof,eq_calc,eq_load
 !      use equunit_mod, only: equ_prof,equ_calc
       use pl_vmec_mod, only: pl_vmec
@@ -713,7 +713,7 @@
       character(len=80):: line
 
       call tr_bpsd_init
-      call tr_bpsd_set(ierr)
+      call tr_bpsd_put(ierr)
 
       if(modelg.eq.3.or.modelg.eq.5.or.modelg.eq.8) then
          write(line,'(A,I5)') 'nrmax=',nrmax+1

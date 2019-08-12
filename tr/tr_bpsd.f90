@@ -41,7 +41,7 @@
          species%data(ns)%pz=pz(ns)
          species%data(ns)%npa=npa(ns)
       enddo
-      call bpsd_set_data(species,ierr)
+      call bpsd_put_data(species,ierr)
 
       if((equ1D%nrmax.ne.nrmax+1)) then
          if(associated(equ1D%rho)) then
@@ -105,7 +105,7 @@
       end subroutine tr_bpsd_init
 
 !=======================================================================
-      subroutine tr_bpsd_set(ierr)
+      subroutine tr_bpsd_put(ierr)
 !=======================================================================
       use trcomm
       integer(4) :: ierr
@@ -122,7 +122,7 @@
       device%ip=RIP
       device%elip=RKAP
       device%trig=RDLT
-      call bpsd_set_data(device,ierr)
+      call bpsd_put_data(device,ierr)
 
       plasmaf%time=t
       do ns=1,nsmax
@@ -150,9 +150,9 @@
      &                -(plasmaf%rho(2))**2*plasmaf%qinv(3)) &
      &               /((plasmaf%rho(3))**2-(plasmaf%rho(2))**2)
 
-      call bpsd_set_data(plasmaf,ierr)
+      call bpsd_put_data(plasmaf,ierr)
       return
-      end subroutine tr_bpsd_set
+      end subroutine tr_bpsd_put
 
 !=======================================================================
       subroutine tr_bpsd_get(ierr)

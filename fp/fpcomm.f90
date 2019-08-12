@@ -78,6 +78,10 @@ MODULE fpcomm_parm
       integer,dimension(:,:),pointer:: I_FIT_H, I_FIT_D
       double precision,dimension(:),pointer:: D_FIT_H, D_FIT_D
       integer,dimension(:,:),pointer:: number_of_lines_fit_H, number_of_lines_fit_D
+    CONTAINS
+      SUBROUTINE open_fpcomm_parm
+        RETURN
+      END SUBROUTINE open_fpcomm_parm
 
 END module fpcomm_parm
 

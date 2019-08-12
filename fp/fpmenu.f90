@@ -10,7 +10,7 @@
 
       USE fpcomm
       USE fpinit
-!      USE fpparm
+      USE fpparm
       USE fpprep
       USE fploop
       USE fpgout

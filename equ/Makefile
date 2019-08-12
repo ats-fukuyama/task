@@ -1,4 +1,3 @@
-## $Id$ ##
 include ../make.header
 
 #FFLAGS = $(OFLAGS)
@@ -21,12 +20,12 @@ SRCEQ = eqpfds.f eqsub.f eqinit.f \
 SRCTR = trpl.f trset.f tradv.f trunit.f
 
 #
-BPSDLIB= ../../bpsd/bpsdlib.a
+BPSDLIB= ../../bpsd/libbpsd.a
 OBJCOM = $(SRCCOM:.f=.o)
 OBJTPX= $(SRCTPX:.f=.o)
 OBJEQ= $(SRCEQ:.f=.o)
 OBJTR= $(SRCTR:.f=.o)
-LIBS = ../lib/tasklib.a $(BPSDLIB) $(OBJCOM)  tpxlib.a eqlib.a trlib.a
+LIBS = ../lib/libtask.a $(BPSDLIB) $(OBJCOM)  libtpx.a libeq.a libtr.a
 #
 MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD)
 #
@@ -38,14 +37,14 @@ MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD)
 
 all: $(LIBS) equ
 
-$(BPSDLIB):
-	(cd ../../bpsd; make bpsdlib.a)
+$(LIBBPSD):
+	(cd ../../bpsd; make libbpsd.a)
 
-tpxlib.a: $(OBJTPX)
+libtpx.a: $(OBJTPX)
 	$(LD) $(LDFLAGS) $@ $(OBJTPX)
-eqlib.a: $(OBJEQ)
+libeq.a: $(OBJEQ)
 	$(LD) $(LDFLAGS) $@ $(OBJEQ)
-trlib.a: $(OBJTR)
+libtr.a: $(OBJTR)
 	$(LD) $(LDFLAGS) $@ $(OBJTR)
 equ: $(LIBS) eqmenu.o eqmain.o
 	$(FCFIXED) eqmain.o eqmenu.o $(LIBS) $(FLIBS) -o $@ $(FFLAGS)

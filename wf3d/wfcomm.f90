@@ -53,7 +53,7 @@ module wfcomm
 !  real(rkind):: PPN0,PTN0,PIN
   real(rkind):: PIN
   integer(ikind):: NPRINT,NDRAWD,NDRAWA,NGRAPH
-  integer(ikind):: MODELI,MODELB
+  integer(ikind):: MODELI
   integer(ikind):: MODELD,MODELP,MODELS,MODELX,MODELA
   real(rkind):: POSRES,POSABS,EPSABS,DLTABS
 

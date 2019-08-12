@@ -12,8 +12,10 @@ CONTAINS
   SUBROUTINE tot_menu
 
     USE plmenu,ONLY:pl_menu
+    USE dpmenu,ONLY:dp_menu
     USE fpmenu,ONLY:fp_menu
     USE timenu,ONLY:ti_menu
+    USE wrmenu,ONLY:wr_menu
     USE commpi
     USE libmpi
     IMPLICIT NONE
@@ -42,13 +44,13 @@ CONTAINS
     CASE('TR')
        CALL trmenu
     CASE('WR')
-       CALL wrmenu
+       CALL wr_menu
     CASE('WM')
        CALL wmmenu
     CASE('FP')
        CALL fp_menu
     CASE('DP')
-       CALL dpmenu
+       CALL dp_menu
     CASE('PL')
        CALL pl_menu
     CASE('TI')

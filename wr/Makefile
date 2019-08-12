@@ -1,6 +1,7 @@
-### $Id$ ###
+### Madefile for wr
 include ../make.header
 include ../mtxp/make.mtxp
+
 LIB_MTX=$(LIB_MTX_BND)
 LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIB_MTX_PCG)
@@ -10,44 +11,51 @@ LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
-MODINCLUDE= -I./$(MOD) -I../plx/$(MOD) -I../lib/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
+.SUFFIXES:
+.SUFFIXES: .f90 .mod .o .a
 
-SRCS = wrmenu.f wrinit.f wrcalc.f wrbeam.f wrgout.f wrfile.f
-
-OBJS = $(SRCS:.f=.o)
-
-LIBS = wrlib.a  ../dp/dplib.a ../eq/eqlib.a ../plx/pllib.a \
-       ../lib/tasklib.a ../../bpsd/bpsdlib.a
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
+MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../dp/$(MOD) -I../lib/$(MOD) \
+            -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
+
+SRCS = wrcomm.f90 wrinit.f90 wrparm.f90 \
+       wrsub.f90 wrexecr.f90 wrcalc.f90 wrbeam.f90 wrgout.f90 wrfile.f90 \
+       wrmenu.f90
+
+OBJS = $(SRCS:.f90=.o)
+
+LIBS = libwr.a  ../dp/libdp.a ../eq/libeq.a ../pl/libpl.a \
+       ../lib/libtask.a ../../bpsd/libbpsd.a
+
 all : wr
 
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
-../../bpsd/bpsdlib.a:
-	(cd ../../bpsd; make bpsdlib.a)
-../plx/pllib.a:
-	(cd ../plx; make pllib.a)
-../eq/eqlib.a:
-	(cd ../eq; make eqlib.a)
-../dp/dplib.a:
-	(cd ../dp; make dplib.a)
-wrlib.a: $(OBJS)
-	$(LD) $(LDFLAGS) wrlib.a $(OBJS)
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
+../lib/libtask.a:
+	(cd ../lib; make libtask.a)
+../pl/libpl.a:
+	(cd ../pl; make libpl.a)
+../eq/libeq.a:
+	(cd ../eq; make libeq.a)
+../dp/libdp.a:
+	(cd ../dp; make libdp.a)
+libwr.a: $(OBJS)
+	$(LD) $(LDFLAGS) libwr.a $(OBJS)
 
 libs:
-	(cd ../lib; make tasklib.a)
-	(cd ../../bpsd; make bpsdlib.a)
+	(cd ../../bpsd; make libbpsd.a)
+	(cd ../lib; make libtask.a)
 	(cd ../mtxp; make)
-	(cd ../plx; make pllib.a)
-	(cd ../eq; make eqlib.a)
-	(cd ../dp; make dplib.a)
+	(cd ../pl; make libpl.a)
+	(cd ../eq; make libeq.a)
+	(cd ../dp; make libdp.a)
 
 wr : $(LIBS) wrmain.o
 	$(FLINKER) wrmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
@@ -58,16 +66,14 @@ clean:
 veryclean: clean
 	-rm -f wr
 
-new:
-	-mkdir ../wrnew
-	cp Makefile ../wrnew
-	cp *.f ../wrnew
-	cp *.inc ../wrnew
-
-WRCOMM=wrcomm.inc wrcom1.inc ../dp/dpcom1.inc ../plx/plcomm.f90
-wrmain.o: wrmain.f $(WRCOMM)
-wrmenu.o: wrmenu.f $(WRCOMM)
-wrinit.o: wrinit.f $(WRCOMM)
-wrcalc.o: wrcalc.f $(WRCOMM) ../plx/plprof.f90
-wrbeam.o: wrbeam.f $(WRCOMM) ../plx/plprof.f90
-wrgout.o: wrgout.f $(WRCOMM)
+WRCOMM=wrcomm.f90 ../dp/dpcomm.f90 ../pl/plcomm.f90
+wrmain.o: wrmain.f90 $(WRCOMM)
+wrmenu.o: wrmenu.f90 $(WRCOMM)
+wrinit.o: wrinit.f90 $(WRCOMM)
+wrparm.o: wrparm.f90 $(WRCOMM)
+wrcalc.o: wrcalc.f90 $(WRCOMM) ../pl/plprof.f90
+wrexecr.o:wrexecr.f90 $(WRCOMM) ../pl/plprof.f90
+wrbeam.o: wrbeam.f90 $(WRCOMM) ../pl/plprof.f90
+wrsub.o:  wrsub.f90 $(WRCOMM)
+wrgout.o: wrgout.f90 $(WRCOMM)
+wrfile.o: wrfile.f90 $(WRCOMM)

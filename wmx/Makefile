@@ -22,7 +22,7 @@ FFLAGS=$(DFLAGS)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-MODINCLUDE= -I./$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) -I../dpx/$(MOD) \
+MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) -I../dp/$(MOD) \
             -I../lib/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
 SRCS = wmcomm.f90 vmcomm.f90 \
@@ -39,33 +39,33 @@ SRCX = wmsetm.f90 wmsetf.f90 wmxprf.f90 wmdprf.f90 \
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = libwm.a ../dpx/dplib.a ../eq/eqlib.a ../plx/pllib.a \
-       ../lib/tasklib.a ../../bpsd/bpsdlib.a
+LIBS = libwm.a ../dp/libdp.a ../eq/libeq.a ../pl/libpl.a \
+       ../lib/libtask.a ../../bpsd/libbpsd.a
 
 all: libs wm
 
-../../bpsd/bpsdlib.a:
-	(cd ../../bpsd; make bpsdlib.a)
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
-../plx/pllib.a:
-	(cd ../plx; make pllib.a)
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
+../lib/libtask.a:
+	(cd ../lib; make libtask.a)
+../pl/pllib.a:
+	(cd ../pl; make libpl.a)
 ../eq/eqlib.a:
-	(cd ../eq; make eqlib.a)
-../dpx/dplib.a:
-	(cd ../dpx; make dplib.a)
+	(cd ../eq; make libeq.a)
+../dp/dplib.a:
+	(cd ../dp; make libdp.a)
 $(LIB_MTX):
 	(cd ../mtxp; make)
 libwm.a: $(OBJS)
 	$(LD) $(LDFLAGS) $@ $(OBJS)
 
 libs:
-	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../lib; make tasklib.a)
+	(cd ../../bpsd; make libbpsd.a)
+	(cd ../lib; make libtask.a)
 	(cd ../mtxp; make)
-	(cd ../plx; make pllib.a)
-	(cd ../eq; make eqlib.a)
-	(cd ../dpx; make dplib.a)
+	(cd ../pl; make libpl.a)
+	(cd ../eq; make libeq.a)
+	(cd ../dp; make libdp.a)
 
 wm : $(LIB_MTX) $(LIBS) wmmain.o 
 	$(FLINKER) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)

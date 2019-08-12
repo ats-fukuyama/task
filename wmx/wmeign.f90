@@ -25,7 +25,7 @@ C
             GOTO 9000
          ENDIF
          IF(MODE.EQ.2) THEN
-            CALL WMPRBC
+            CALL wm_broadcast
             GOTO 1
          ENDIF
          IF(MODE.EQ.3) GOTO 1
@@ -68,7 +68,7 @@ C
             GOTO 9000
          ENDIF
          IF(MODE.EQ.2) THEN
-            CALL WMPRBC
+            CALL wm_broadcast
             GOTO 1
          ENDIF
          IF(MODE.EQ.3) GOTO 1
@@ -191,7 +191,7 @@ C
             GOTO 9000
          ENDIF
          IF(MODE.EQ.2) THEN
-            CALL WMPRBC
+            CALL wm_broadcast
             GOTO 1
          ENDIF
          IF(MODE.EQ.3) GOTO 1
@@ -422,7 +422,7 @@ C
             GOTO 9000
          ENDIF
          IF(MODE.EQ.2) THEN
-            CALL WMPRBC
+            CALL wm_broadcast
             GOTO 1
          ENDIF
          IF(MODE.EQ.3) GOTO 1
@@ -487,7 +487,7 @@ C
             GOTO 9000
          ENDIF
          IF(MODE.EQ.2) THEN
-            CALL WMPRBC
+            CALL wm_broadcast
             GOTO 1
          ENDIF
          IF(MODE.EQ.3) GOTO 1
@@ -580,7 +580,7 @@ C
             GOTO 9000
          ENDIF
          IF(MODE1.EQ.2) THEN
-            CALL WMPRBC
+            CALL wm_broadcast
             GOTO 11
          ENDIF
          IF(MODE1.EQ.3) GOTO 11

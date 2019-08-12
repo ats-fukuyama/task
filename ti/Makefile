@@ -23,7 +23,7 @@ FFLAGS = $(OFLAGS)
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 MODINCLUDE= -I./$(MOD) -I../open-adas/adf11/adf11-lib/$(MOD) \
-            -I../adpost/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) \
+            -I../adpost/$(MOD) -I../eq/$(MOD) -I../pl/$(MOD) \
             -I../mtxp/$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD) 
 
 SRCS=   ticomm.f90 tiadas.f90 \
@@ -43,7 +43,7 @@ SRCS=   ticomm.f90 tiadas.f90 \
 
 OBJS=$(SRCS:.f90=.o)
 
-LIBS=libti.a ../adpost/lib-adpost.a ../open-adas/adf11/adf11-lib/lib-adf11.a ../eq/eqlib.a ../plx/pllib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
+LIBS=libti.a ../adpost/lib-adpost.a ../open-adas/adf11/adf11-lib/lib-adf11.a ../eq/libeq.a ../pl/libpl.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
 
 all: libs ti
@@ -55,26 +55,26 @@ libti.a: $(OBJS)
 	(cd ../open-adas/adf11/adf11-lib; make lib-adf11.a)
 ../adpost/lib-adpost.a: 
 	(cd ../adpost; make lib-adpost.a)
-../eq/eqlib.a:
-	(cd ../eq; make eqlib.a)
-../plx/pllib.a:
-	(cd ../plx; make pllib.a)
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
+../eq/libeq.a:
+	(cd ../eq; make libeq.a)
+../pl/libpl.a:
+	(cd ../pl; make libpl.a)
+../lib/libtask.a:
+	(cd ../lib; make libtask.a)
 $(LIB_MTX):
 	(cd ../mtxp; make)
-../../bpsd/bpsdlib.a:
-	(cd ../../bpsd; make bpsdlib.a)
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
 
 
 libs:
-	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../lib; make tasklib.a)
+	(cd ../../bpsd; make libbpsd.a)
+	(cd ../lib; make libtask.a)
 	(cd ../mtxp; make)
 	(cd ../open-adas/adf11/adf11-lib; make lib-adf11.a)
 	(cd ../adpost; make lib-adpost.a)
-	(cd ../plx; make pllib.a)
-	(cd ../eq; make eqlib.a)
+	(cd ../pl; make libpl.a)
+	(cd ../eq; make libeq.a)
 
 ti: $(LIB_MTX) $(LIBS) timain.o 
 	$(FLINKER) timain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
@@ -87,7 +87,7 @@ veryclean : clean
 
 distclean: clean
 	cd ../tr && make clean
-	cd ../plx && make clean
+	cd ../pl && make clean
 	cd ../eq && make clean
 	cd ../lib && make clean
 

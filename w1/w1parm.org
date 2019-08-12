@@ -6,7 +6,7 @@
       RF    = 2450D0
       RD    = 0.17D0
       RKZ   = 32.0D0
-      ISMAX=1
+      NSMAX=1
       pn(1)=0.0010D0
       aprfpn=1.D0
       pns(1)=0.0001D0

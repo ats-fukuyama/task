@@ -31,7 +31,7 @@ c
 c-----------------------------------------------------------------------
       call trset
       call trpl_init
-      call trpl_set(ierr)
+      call trpl_put(ierr)
       return
       end subroutine tr_prof
 c=======================================================================
@@ -46,7 +46,7 @@ c
 c-----------------------------------------------------------------------
       call trpl_get(ierr)
       call tradv
-      call trpl_set(ierr)
+      call trpl_put(ierr)
       return
       end subroutine tr_exec
 c

@@ -41,13 +41,13 @@ OBJSMDS = $(MDSPLUS:.f=.o)
 .f90.o :
 	$(FCFREE) $(LFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : tasklib.a mdslib.a
+all : libtask.a libmds.a
 
-tasklib.a: $(OBJSFREE) $(OBJSFIXED)
-	$(LD) $(LDFLAGS) tasklib.a $(OBJSFREE) $(OBJSFIXED)
+libtask.a: $(OBJSFREE) $(OBJSFIXED)
+	$(LD) $(LDFLAGS) libtask.a $(OBJSFREE) $(OBJSFIXED)
 
-mdslib.a: $(OBJSMDS)
-	$(LD) $(LDFLAGS) mdslib.a $(OBJSMDS)
+libmds.a: $(OBJSMDS)
+	$(LD) $(LDFLAGS) libmds.a $(OBJSMDS)
 
 check :
 	ftnchek $(SRCSFREE) $(SRCSFIXED) $(MDSPLUS) | less
@@ -57,39 +57,39 @@ clean:
 
 veryclean: clean
 
-testfem: tasklib.a libtestfem.o fem_calc.o fem_calc_15.o fem_calc_16.o testfem.o 
-	$(FCFREE) libtestfem.o fem_calc.o fem_calc_15.o fem_calc_16.o testfem.o tasklib.a $(FFLAGS) -o $@ $(FLIBS) $(MODINCLUDE)
+testfem: libtask.a libtestfem.o fem_calc.o fem_calc_15.o fem_calc_16.o testfem.o 
+	$(FCFREE) libtestfem.o fem_calc.o fem_calc_15.o fem_calc_16.o testfem.o libtask.a $(FFLAGS) -o $@ $(FLIBS) $(MODINCLUDE)
 
 fem_calc.o:	libtestfem.f90 fem_calc.f90
 fem_calc_15.o:	libtestfem.f90 fem_calc_15.f90
 fem_calc_16.o:	libtestfem.f90 fem_calc_16.f90
 
-testfem_func: tasklib.a testfem_func.o 
-	$(FCFREE) testfem_func.o tasklib.a $(FFLAGS) -o $@ $(FLIBS) $(MODINCLUDE)
+testfem_func: libtask.a testfem_func.o 
+	$(FCFREE) testfem_func.o libtask.a $(FFLAGS) -o $@ $(FLIBS) $(MODINCLUDE)
 
-testbes: tasklib.a testbes.o 
-	$(FCFIXED) testbes.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
-testlamb: tasklib.a testlamb.o 
-	$(FCFREE) testlamb.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
+testbes: libtask.a testbes.o 
+	$(FCFIXED) testbes.o libtask.a $(FFLAGS) -o $@ $(FLIBS)
+testlamb: libtask.a testlamb.o 
+	$(FCFREE) testlamb.o libtask.a $(FFLAGS) -o $@ $(FLIBS)
 
-testell: tasklib.a testell.o 
-	$(FCFIXED) testell.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
+testell: libtask.a testell.o 
+	$(FCFIXED) testell.o libtask.a $(FFLAGS) -o $@ $(FLIBS)
 
-testspl: tasklib.a testspl.o 
-	$(FCFIXED) testspl.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
+testspl: libtask.a testspl.o 
+	$(FCFIXED) testspl.o libtask.a $(FFLAGS) -o $@ $(FLIBS)
 
-testspl3d: tasklib.a testspl3d.o 
-	$(FCFIXED) testspl3d.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
+testspl3d: libtask.a testspl3d.o 
+	$(FCFIXED) testspl3d.o libtask.a $(FFLAGS) -o $@ $(FLIBS)
 
 mmconvert: mmconvert.o
 	$(FCFIXED) mmconvert.o $(FFLAGS) -o $@
 
-testgrf: tasklib.a testgrf.o 
-	$(FCFIXED) testgrf.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
-testqsort: tasklib.a testqsort.o 
-	$(FCFREE) testqsort.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
-testgrd: tasklib.a testgrd.o 
-	$(FCFIXED) testgrd.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
+testgrf: libtask.a testgrf.o 
+	$(FCFIXED) testgrf.o libtask.a $(FFLAGS) -o $@ $(FLIBS)
+testqsort: libtask.a testqsort.o 
+	$(FCFREE) testqsort.o libtask.a $(FFLAGS) -o $@ $(FLIBS)
+testgrd: libtask.a testgrd.o 
+	$(FCFIXED) testgrd.o libtask.a $(FFLAGS) -o $@ $(FLIBS)
 
 libgrf/grftype.o: libgrf/grftype.f90
 libgrf/grfutils.o: libgrf/grfutils.f90 libgrf/grftype.f90

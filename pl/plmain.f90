@@ -11,21 +11,28 @@
 !                     Kyoto 606-8501, Japan
 
 !                     V1.00  : 1997 AUG 05
-!                     V1.10  : 2000 NOV 25
+!                     V1.20  : 2009 JUL 21
 !
 !-----------------------------------------------------------------------
 
-!      INCLUDE 'plcomm.inc'
-      implicit none
-      integer(4)  :: ier
+    PROGRAM plmain
+      USE plcomm
+      USE plinit,ONLY: pl_init
+      USE plparm,ONLY: pl_parm
+      USE plmenu,ONLY: pl_menu
 
-      WRITE(6,*) '## TASK/PL 2004/11/08'
+      IMPLICIT none
+      INTEGER(ikind)  :: ierr
+
+      WRITE(6,*) '## TASK/PL 2018/09/14'
       OPEN(7,STATUS='SCRATCH')
-      CALL PLINIT
-      CALL PLPARM(1,'plparm',IER)
+      CALL gsopen
+      CALL pl_init
+      CALL pl_parm(1,'plparm',IERR)
 
-      CALL PLMENU
+      CALL pl_menu
 
+      CALL gsclos
       CLOSE(7)
       STOP
-      END
+    END PROGRAM plmain

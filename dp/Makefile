@@ -10,75 +10,82 @@ LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
-MODINCLUDE= -I $(MOD) -I../plx/$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) 
-
-SRCS = dpmenu.f dpinit.f dproot.f dpcont.f dpdisp.f \
-       dptens.f dptnsr1.f dptnsr2.f \
-       dpfpin.f dphotf.f dphotr.f dpdkdt.f dpgsub.f 
-
-OBJS = $(SRCS:.f=.o) 
-
-LIBS = $(LIBX_MTX) ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a \
-       ../eq/eqlib.a dplib.a 
+.SUFFIXES:
+.SUFFIXES: .f90 .mod .o .a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
+MODINCLUDE= -I $(MOD) -I../pl/$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) 
+
+SRCS = dpcomm.f90 dpinit.f90 dpfpin.f90 dpparm.f90 \
+       dphotf.f90 dphotr.f90 \
+       dptnsr1.f90 dptnsr2.f90 dptnsr3.f90 dptnsr4.f90 dptnsr0.f90 dpdisp.f90 \
+       dpgsub.f90 dpglib.f90 dproot.f90 dpcont.f90 dpcont4.f90 \
+       dpmenu.f90	
+	
+SRCSX = dpdkdt.f dptestk.f
+
+
+OBJS = $(SRCS:.f90=.o)
+
+LIBS = ../lib/libtask.a ../../bpsd/libbpsd.a ../pl/libpl.a \
+       ../eq/libeq.a libdp.a 
+
 all : dp
 
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
-../../bpsd/bpsdlib.a:
-	(cd ../../bpsd; make bpsdlib.a)
-../plx/pllib.a:
-	(cd ../plx; make pllib.a)
-../eq/eqlib.a:
-	(cd ../eq; make eqlib.a)
-dplib.a: $(OBJS)
-	$(LD) $(LDFLAGS) dplib.a $(OBJS)
+../lib/libtask.a:
+	(cd ../lib; make libtask.a)
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
+../pl/libpl.a:
+	(cd ../pl; make libpl.a)
+../eq/libeq.a:
+	(cd ../eq; make libeq.a)
+
+libdp.a: $(OBJS)
+	$(LD) $(LDFLAGS) libdp.a $(OBJS)
 
 libs:
-	(cd ../lib; make tasklib.a)
-	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../plx; make pllib.a)
-	(cd ../eq; make eqlib.a)
+	(cd ../lib; make libtask.a)
+	(cd ../../bpsd; make libbpsd.a)
+	(cd ../mtxp; make)
+	(cd ../pl; make libpl.a)
+	(cd ../eq; make libeq.a)
 
 dp : $(LIBS) dpmain.o
-	$(FLINKER) dpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
-
-check :
-	ftnchek $(FCKFLAGS) $(SRCS) | less
+	$(FLINKER) dpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean:
-	-rm -f core a.out *.o *.a ./*~
+	-rm -f core a.out *.o *.a ./*~ $(MOD)/*.mod
 
 veryclean: clean
 	-rm -f dp
 
-new:
-	-mkdir ../dpnew
-	cp -f Makefile ../dpnew
-	cp -f *.f ../dpnew
-	cp -f *.inc ../dpnew
+DPCOMM=dpcomm.f90
 
-DPCOMM=dpcomm.inc dpcom1.inc dpcom2.inc ../plx/plcomm.f90
-
-dpmain.o: dpmain.f $(DPCOMM)
-dpmenu.o: dpmenu.f $(DPCOMM)
-dpinit.o: dpinit.f $(DPCOMM)
-dproot.o: dproot.f $(DPCOMM)
-dpcont.o: dpcont.f $(DPCOMM) ../plx/plprof.f90
-dpdisp.o: dpdisp.f $(DPCOMM) ../plx/plprof.f90
-dptens.o: dptens.f $(DPCOMM) ../plx/plprof.f90
-dptnsr1.o: dptnsr1.f $(DPCOMM) ../plx/plprof.f90
-dptnsr2.o: dptnsr2.f $(DPCOMM) ../plx/plprof.f90
-dpfpin.o: dpfpin.f $(DPCOMM) ../plx/plprof.f90
-dphotf.o: dphotf.f $(DPCOMM) ../plx/plprof.f90
-dphotr.o: dphotr.f $(DPCOMM) ../plx/plprof.f90
-dpdkdt.o: dpdkdt.f $(DPCOMM) ../plx/plprof.f90
-dpgsub.o: dpgsub.f
+dpcomm.o: dpcomm.f90 ../pl/plcomm.f90
+dpinit.o: dpinit.f90 $(DPCOMM)
+dpparm.o: dpparm.f90 $(DPCOMM)
+dproot.o: dproot.f90 $(DPCOMM)
+dpcont.o: dpcont.f90 $(DPCOMM)
+dpcont4.o: dpcont4.f90 $(DPCOMM)
+dpscan.o: dpscan.f $(DPCOMM)
+dpdisp.o: dpdisp.f90 $(DPCOMM) ../pl/plprof.f90
+dptnsr0.o: dptnsr0.f90 $(DPCOMM)
+dptnsr1.o: dptnsr1.f90 $(DPCOMM)
+dptnsr2.o: dptnsr2.f90 $(DPCOMM)
+dptnsr3.o: dptnsr3.f90 $(DPCOMM)
+dptnsr4.o: dptnsr4.f90 $(DPCOMM)
+dpfpin.o: dpfpin.f90 $(DPCOMM) ../pl/plprof.f90
+dphotf.o: dphotf.f90 $(DPCOMM)
+dphotr.o: dphotr.f90 $(DPCOMM)
+dpdkdt.o: dpdkdt.f90 $(DPCOMM) ../pl/plprof.f90
+dpgsub.o: dpgsub.f90
+dpmenu.o: dpmenu.f90 $(DPCOMM) ../pl/plprof.f90
+dpmain.o: dpmain.f90 $(DPCOMM)

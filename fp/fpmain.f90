@@ -21,6 +21,7 @@
       use plparm
       use equnit_mod
       use fpinit
+      use fpparm
       use fpmenu
       use fpwrin
       use libmtx

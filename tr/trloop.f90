@@ -10,7 +10,7 @@
      &   DT, MDLUF, MODELG, NT, NTEQIT, NTMAX, Q0, QP, RG, RIP, RIPE, RIPS, &
      &   TPRST, TST, DIPDT
       USE TRCOM1, ONLY : NTAMAX
-      use tr_bpsd,only: tr_bpsd_set, tr_bpsd_get
+      use tr_bpsd,only: tr_bpsd_put, tr_bpsd_get
       use trunit
       use equnit_mod
 !      use equunit_mod
@@ -57,7 +57,7 @@
 !               if(ierr.ne.0) return
 !            endif
             if(modelg.eq.9) THEN
-               call tr_bpsd_set(IERR)
+               call tr_bpsd_put(IERR)
                call eq_calc
                call tr_bpsd_get(IERR)
                if(ierr.ne.0) return

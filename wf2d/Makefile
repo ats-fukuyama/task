@@ -15,7 +15,7 @@ LIBX_MTX=$(LIBX_MTX_MUMPS)
 FFLAGS = $(DFLAGS)
 LFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I./$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
+MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../mtxp/$(MOD) \
             -I../lib/$(MOD)
 
@@ -26,8 +26,8 @@ SRCS = 	wfcomm.f90 wfinit.f90 wfparm.f90 wfload.f90 wfprof.f90 \
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = wflib.a ../plx/pllib.a ../eq/eqlib.a   \
-        ../lib/tasklib.a ../../bpsd/bpsdlib.a $(LIB_MTX)
+LIBS = libwf.a ../pl/libpl.a ../eq/libeq.a   \
+        ../lib/libtask.a ../../bpsd/libbpsd.a $(LIB_MTX)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -36,24 +36,24 @@ LIBS = wflib.a ../plx/pllib.a ../eq/eqlib.a   \
 
 all: wf
 
-wflib.a: $(OBJS)
-	$(LD) $(LDFLAGS) wflib.a $(OBJS)
+libwf.a: $(OBJS)
+	$(LD) $(LDFLAGS) libwf.a $(OBJS)
 
-../../bpsd/bpsdlib.a:
-	(cd ../../bpsd; make bpsdlib.a)
-../plx/pllib.a:
-	(cd ../plx; make pllib.a)
-../eq/eqlib.a:
-	(cd ../eq; make eqlib.a)
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make loibbpsd.a)
+../pl/liobpl.a:
+	(cd ../pl; make loibpl.a)
+../eq/libeq.a:
+	(cd ../eq; make libeq.a)
+../lib/loibtask.a:
+	(cd ../lib; make libtask.a)
 
 libs:
-	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../lib; make tasklib.a)
+	(cd ../../bpsd; make libbpsd.a)
+	(cd ../lib; make libtask.a)
 	(cd ../mtxp; make)
-	(cd ../plx; make pllib.a)
-	(cd ../eq; make eqlib.a)
+	(cd ../pl; make libpl.a)
+	(cd ../eq; make libeq.a)
 
 wf : libs $(LIBS) wfmain.o
 	$(FLINKER) wfmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
@@ -76,7 +76,7 @@ clean:
 veryclean: clean
 	rm -f wf testin 
 
-wfcomm.o: wfcomm.f90 ../plx/plcomm.f90
+wfcomm.o: wfcomm.f90 ../pl/plcomm.f90
 wfmain.o: wfmain.f90 wfcomm.f90
 wfmenu.o: wfmenu.f90 wfcomm.f90
 wfinit.o: wfinit.f90 wfcomm.f90

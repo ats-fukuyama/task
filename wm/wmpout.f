@@ -472,14 +472,14 @@ C
          D=3.D0/Z
          QC=3.83D0
          A=0.D0
-         RM=1.38D0
-         RC=0.389D0
+         RMX=1.38D0
+         RCX=0.389D0
       ELSE
          D=11.91D0/(0.678D0+Z)
          QC=4.13D0
          A=12.3D0
-         RM=2.48D0
-         RC=0.0987D0
+         RMX=2.48D0
+         RCX=0.0987D0
       ENDIF
       IF(WT.LE.1.D-20) THEN
          W=1.D-20
@@ -500,7 +500,7 @@ C
          YT=(1.D0-Y2)*WT*WT/Y2
       ENDIF
       IF(YT.GE.0.D0.AND.RC*YT.LT.40.D0) THEN
-         ARG=(RC*YT)**RM
+         ARG=(RCX*YT)**RMX
          IF(ARG.LE.100.D0) THEN
             EFF3=1.D0-MIN(EXP(-ARG),1.D0)
          ELSE

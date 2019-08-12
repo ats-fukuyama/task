@@ -13,12 +13,26 @@ PROGRAM tot
   USE plinit,ONLY:pl_init
   USE plparm,ONLY:pl_parm
   USE equnit_mod,ONLY:eq_init
-  USE fpinit,ONLY:fp_init,fp_parm
+  USE trcomm,ONLY:open_trcomm
+  USE ticomm,ONLY:open_ticomm_parm
   USE tiinit,ONLY:ti_init
   USE tiparm,ONLY:ti_parm,ti_broadcast
+  USE fpinit,ONLY:fp_init
+  USE fpparm,ONLY:fp_parm
+  USE fpcomm,ONLY:open_fpcomm_parm
+  USE dpinit,ONLY:dp_init
+  USE dpparm,ONLY:dp_parm
+  USE wrcomm,ONLY:open_wrcomm_parm
+  USE wrinit,ONLY:wr_init
+  USE wrparm,ONLY:wr_parm
   USE commpi
   USE libmtx
-  USE totmenu
+  USE totmenu,ONLY: tot_menu
+
+  CALL open_trcomm
+  CALL open_ticomm_parm
+  CALL open_fpcomm_parm
+  CALL open_wrcomm_parm
 
   CALL mtx_initialize
 
@@ -31,8 +45,8 @@ PROGRAM tot
   CALL pl_init
   CALL eq_init
   CALL trinit
-  CALL dpinit
-  CALL wrinit
+  CALL dp_init
+  CALL wr_init
   CALL wminit
   CALL fp_init
   CALL ti_init
@@ -42,8 +56,8 @@ PROGRAM tot
      CALL pl_parm(1,'plparm',IERR)
      CALL eqparm(1,'eqparm',IERR)
      CALL trparm(1,'trparm',IERR)
-     CALL dpparm(1,'dpparm',IERR)
-     CALL wrparm(1,'wrparm',IERR)
+     CALL dp_parm(1,'dpparm',IERR)
+     CALL wr_parm(1,'wrparm',IERR)
      CALL wmparm(1,'wmparm',IERR)
      CALL fp_parm(1,'fpparm',IERR)
      CALL ti_parm(1,'tiparm',IERR)

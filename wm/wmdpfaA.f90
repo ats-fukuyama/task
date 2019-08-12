@@ -26,7 +26,7 @@ SUBROUTINE WMDPFAA(CW,RHOWM,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
   USE bpsd_constants,ONLY : CI,PI,AMP,AEE
   USE wmfa
   USE libgrf, ONLY : grd1d,grd2d
-  INCLUDE '../dp/dpcomm.inc'
+  USE dpcomm
 
 !  IMPLICIT NONE
 !  INTEGER,INTENT(IN) :: NRWM
@@ -277,7 +277,7 @@ SUBROUTINE PVINT(j,l,CINT)
  USE wmfa
 ! USE libde,ONLY : DEFTC
  USE libgrf
- INCLUDE '../dp/dpcomm.inc'
+ USE dpcomm
 ! IMPLICIT NONE
  INTEGER,INTENT(IN) :: j  ! j-> (df/dp or df/dr) and power 
  INTEGER,INTENT(IN) :: l  ! l -> Integral boundary 
@@ -393,7 +393,7 @@ SUBROUTINE PVINT(j,l,CINT)
   USE plcomm
   USE pllocal
   USE wmfa
-  INCLUDE '../dp/dpcomm.inc'
+  USE dpcomm
   REAL(8),INTENT(IN) :: x,xm,xp
   COMPLEX(8) :: CFUNCdp
 
@@ -410,7 +410,7 @@ SUBROUTINE PVINT(j,l,CINT)
   USE plcomm
   USE pllocal
   USE wmfa
-  INCLUDE '../dp/dpcomm.inc'
+  USE dpcomm
   REAL(8),INTENT(IN) :: x,xm,xp
   COMPLEX(8) :: CFUNCdr
 
@@ -427,7 +427,7 @@ SUBROUTINE PVINT(j,l,CINT)
   USE plcomm
   USE pllocal
   USE wmfa
-  INCLUDE '../dp/dpcomm.inc'
+  use dpcomm
   REAL(8),INTENT(IN) :: x,xm,xp
   REAL(8) :: FL,FR
   COMPLEX(8) :: CFUNCpldp
@@ -454,7 +454,7 @@ SUBROUTINE PVINT(j,l,CINT)
   USE plcomm
   USE pllocal
   USE wmfa
-  INCLUDE '../dp/dpcomm.inc'
+  USE dpcomm
   REAL(8),INTENT(IN) :: x,xm,xp
   REAL(8) :: FL,FR
   COMPLEX(8) :: CFUNCpldr

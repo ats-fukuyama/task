@@ -49,6 +49,7 @@
 !       main program
 !
 !
+        USE libfio
         USE commpi
         USE libmpi,ONLY: mtx_broadcast1_integer,mtx_broadcast1_real8, &
                          mtx_broadcast_integer,mtx_broadcast_real8

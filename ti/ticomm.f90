@@ -54,6 +54,12 @@ MODULE ticomm_parm
   CHARACTER(LEN=80):: adpost_dir,adpost_filename
   CHARACTER(LEN=80):: adas_adf11_dir,adas_adf11_filename
 
+CONTAINS
+
+  SUBROUTINE open_ticomm_parm
+    RETURN
+  END SUBROUTINE open_ticomm_parm
+
 END MODULE ticomm_parm
 
 MODULE ticomm

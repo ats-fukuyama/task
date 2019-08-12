@@ -82,7 +82,7 @@ c      call intequ
       call eqfct
       call eqout
 c      call inttrn
-      call eqpl_set(ierr)
+      call eqpl_put(ierr)
       return
       end subroutine equ_calc
 c=======================================================================

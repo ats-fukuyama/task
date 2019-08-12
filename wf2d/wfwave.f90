@@ -574,7 +574,7 @@ SUBROUTINE CMCALC(NE)
         end do
      end do
   CASE(1)
-  IF(NPHI.EQ.0) THEN
+  IF(NPH.EQ.0) THEN
      do K=1,3
         do J=1,3
            do I=1,3
@@ -664,7 +664,7 @@ SUBROUTINE CMCALC(NE)
         end do
      end do
   CASE(1)
-  IF(NPHI.EQ.0) THEN
+  IF(NPH.EQ.0) THEN
      do K=1,3
         do J=1,3
            do I=1,3
