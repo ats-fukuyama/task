@@ -13,7 +13,7 @@ SRCSFREE = mcnbi_all.f90
 SRCSFIXED = 
 
 OBJS = $(SRCSFREE:.f90=.o) $(SRCSFIXED:.f=.o)
-LIBS = hfreya2/hfreya2lib.a mcnbi/mcnbilib.a fit/fitlib.a ../lib/tasklib.a
+LIBS = hfreya2/libhfreya2.a mcnbi/libmcnbi.a fit/libfit.a ../lib/libtask.a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -22,11 +22,11 @@ LIBS = hfreya2/hfreya2lib.a mcnbi/mcnbilib.a fit/fitlib.a ../lib/tasklib.a
 
 all : fit3d
 
-hfreya2/hfreya2lib.a:
+hfreya2/libhfreya2.a:
 	(cd hfreya2; make)
-mcnbi/mcnbilib.a:
+mcnbi/libmcnbi.a:
 	(cd mcnbi; make)
-fit/fitlib.a:
+fit/libfit.a:
 	(cd fit; make)
 
 libs:

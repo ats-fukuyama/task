@@ -25,9 +25,9 @@ OBJS = $(SRCS:.f90=.o) $(SRCX:.f=.o)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : mcnbilib.a
+all : libmcnbi.a
 
-mcnbilib.a: $(OBJS)
+libmcnbi.a: $(OBJS)
 	$(LD) $(LDFLAGS) $@ $(OBJS)
 
 clean :

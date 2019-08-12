@@ -21,36 +21,36 @@ SRCSFREE = wicomm.f90 wiparm.f90 wiprep.f90 \
 
 OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
 
-LIBS = wilib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
+LIBS = libwi.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
 all : wi plotwi plotwi2
 
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
-../../bpsd/bpsdlib.a:
-	(cd ../../bpsd; make bpsdlib.a)
-wilib.a: $(OBJS)
-	$(LD) $(LDFLAGS) wilib.a $(OBJS)
+../lib/ibtask.a:
+	(cd ../lib; make libtask.a)
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
+libwi.a: $(OBJS)
+	$(LD) $(LDFLAGS) libwi.a $(OBJS)
 
 libs:
-	(cd ../lib; make tasklib.a)
-	(cd ../../bpsd; make bpsdlib.a)
+	(cd ../lib; make libtask.a)
+	(cd ../../bpsd; make libbpsd.a)
 
 wi : $(LIBS) wimain.o
 	$(FCFREE) wimain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) \
            $(MODDIR) $(MODINCLUDE)
 
 wiunmag : wiunmag-old.f
-	$(FCFIXED) wiunmag-old.f ../lib/tasklib.a -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFIXED) wiunmag-old.f ../lib/libtask.a -o $@ $(FFLAGS) $(FLIBS)
 
 clean:
 	-rm -f core a.out *.o *.mod ./*~ ./#* *.a $(MOD)/*.mod
 
 plotwi : plotwi.o
-	$(FCFREE) plotwi.o ../lib/tasklib.a -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFREE) plotwi.o ../lib/libtask.a -o $@ $(FFLAGS) $(FLIBS)
 
 plotwi2 : plotwi2.o
-	$(FCFREE) plotwi2.o ../lib/tasklib.a -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFREE) plotwi2.o ../lib/libtask.a -o $@ $(FFLAGS) $(FLIBS)
 
 veryclean: clean
 	-rm -f wi wiunmag

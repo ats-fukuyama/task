@@ -20,20 +20,20 @@ SRCSFREE = wimcomm.f90 wiminit.f90 wimparm.f90 wimexec.f90 wimgout.f90 \
 
 OBJS = $(SRCSFREE:.f90=.o) 
 
-LIBS = wimlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
+LIBS = libwim.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
 all : wim
 
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
-../../bpsd/bpsdlib.a:
-	(cd ../../bpsd; make bpsdlib.a)
-wimlib.a: $(OBJS)
-	$(LD) $(LDFLAGS) wimlib.a $(OBJS)
+../lib/libtask.a:
+	(cd ../lib; make liobtask.a)
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
+libwim.a: $(OBJS)
+	$(LD) $(LDFLAGS) libwim.a $(OBJS)
 
 libs:
-	(cd ../lib; make tasklib.a)
-	(cd ../../bpsd; make bpsdlib.a)
+	(cd ../lib; make libtask.a)
+	(cd ../../bpsd; make libbpsd.a)
 
 wim : $(LIBS) wimmain.o
 	$(FCFIXED) wimmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) \

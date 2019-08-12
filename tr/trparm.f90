@@ -21,7 +21,7 @@
 !     IERR=7 : unknown MODE
 !     IERR=10X : input parameter out of range
 
-      USE TRCOMM, ONLY : NTMAX, NTMAX_SAVE
+      USE TRCOMM, ONLY : NTMAX, NTMAX_SAVE,pnbtot
       IMPLICIT NONE
       INTEGER(4),INTENT(IN) :: MODE
       CHARACTER(LEN=*),INTENT(IN)::  KIN
@@ -98,6 +98,7 @@
 
 
       IF(NID.GE.0) THEN
+         READ(NID,TR,IOSTAT=IST,ERR=9800,END=9900)
          NTMAX_SAVE=NTMAX
       ENDIF
       IST=0

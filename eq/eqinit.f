@@ -654,8 +654,7 @@ C
      &             'PN0EQ ',PN0EQ
       WRITE(6,601) 'PROFR0',PROFR0,
      &             'PROFR1',PROFR1,
-     &             'PROFR2',PROFR2,
-     &             'RHOITB',RHOITB
+     &             'PROFR2',PROFR2
       WRITE(6,601) 'EPSEQ ',EPSEQ,
      &             'EPSNW ',EPSNW,
      &             'DELNW ',DELNW

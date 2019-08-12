@@ -24,9 +24,9 @@ OBJS = $(SRCS:.f90=.o) $(SRCT:.f=.o)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : hfreya2lib.a
+all : libhfreya2.a
 
-hfreya2lib.a: $(OBJS)
+libhfreya2.a: $(OBJS)
 	$(LD) $(LDFLAGS) $@ $(OBJS)
 
 clean :
