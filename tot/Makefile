@@ -82,6 +82,8 @@ libs:
 	(cd ../lib; make libtask.a)
 	(cd ../lib; make libmds.a)
 	(cd ../../bpsd; make libbpsd.a)
+	(cd ../adpost; make lib-adpost.a)
+	(cd ../open-adas/adf11/adf11-lib; make lib-adf11.a)
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 	(cd ../pl; make noeqlib.o)
