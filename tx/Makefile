@@ -23,8 +23,8 @@ OBJNC= $(SRCNC:.f=.o)
 OBJMM= $(SRCMM:.f=.o)
 PROG2= tx2
 PROG3= tx
-LIBS2= tx2lib.a ../lib/tasklib.a
-LIBS3= tx3lib.a ../lib/tasklib.a
+LIBS2= libtx2.a ../lib/libtask.a
+LIBS3= libtx3.a ../lib/libtask.a
 
 .SUFFIXES: .f90
 
@@ -36,13 +36,13 @@ LIBS3= tx3lib.a ../lib/tasklib.a
 all: $(PROG2)
 #all: $(PROG3)
 
-tx2lib.a: $(OBJS) $(OBJ2D) $(OBJNC) $(INCNC) $(OBJMM)
-	$(LD) $(LDFLAGS) tx2lib.a $(OBJS) $(OBJ2D) $(OBJNC) $(OBJMM)
+libtx2.a: $(OBJS) $(OBJ2D) $(OBJNC) $(INCNC) $(OBJMM)
+	$(LD) $(LDFLAGS) libtx2.a $(OBJS) $(OBJ2D) $(OBJNC) $(OBJMM)
 
-tx3lib.a: $(OBJS) $(OBJ3D) $(OBJNC) $(INCNC) $(OBJMM)
-	$(LD) $(LDFLAGS) tx3lib.a $(OBJS) $(OBJ3D) $(OBJNC) $(OBJMM)
+libtx3.a: $(OBJS) $(OBJ3D) $(OBJNC) $(INCNC) $(OBJMM)
+	$(LD) $(LDFLAGS) libtx3.a $(OBJS) $(OBJ3D) $(OBJNC) $(OBJMM)
 
-../lib/tasklib.a:
+../lib/libtask.a:
 	(cd ../lib; make)
 
 libs:

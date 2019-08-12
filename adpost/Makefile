@@ -16,7 +16,7 @@ SRCS = lib-adpost.f90
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = lib-adpost.a ../mtxp/libmtxmpi.o ../lib/tasklib.a ../../bpsd/bpsdlib.a
+LIBS = lib-adpost.a ../mtxp/libmtxmpi.o ../lib/libtask.a ../../bpsd/libbpsd.a
 
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
