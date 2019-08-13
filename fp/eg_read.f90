@@ -33,13 +33,17 @@
       IMPLICIT NONE
       double precision,intent(in):: time
       double precision:: weight
-      integer:: ntime1, NS, NR
+      integer:: ntime1, NS, NR, NSA
 
-      CALL time_interpolation_tms(time, ntime1, weight)
-      CALL MAKE_PROF_FROM_TMS(ntime1,weight)
+      IF(MODEL_EX_READ_Tn.ne.0)THEN
+         CALL time_interpolation_tms(time, ntime1, weight)
+         CALL MAKE_PROF_FROM_TMS(ntime1,weight)
+      END IF
 
-      CALL time_interpolation_cx(time, ntime1, weight)
-      CALL MAKE_PROF_FROM_CX(ntime1,weight)
+      IF(MODEL_EX_READ_Tn.eq.2)THEN
+         CALL time_interpolation_cx(time, ntime1, weight)
+         CALL MAKE_PROF_FROM_CX(ntime1,weight)
+      END IF
 
       DO NS=1, NSMAX
          IF(NS.eq.1)THEN
@@ -49,22 +53,45 @@
                
                RT_TEMP(NR,NS)=RTE_EXP(NR)
                RN_TEMP(NR,NS)=RNE_EXP(NR)
-               
-               RT_BULK(NR,NS)=RTE_EXP(NR)
             END DO
          ELSE
-            DO NR=1, NRMAX
-               RT_READ(NR,NS)=RTI_EXP(NR)
-               RN_READ(NR,NS)=RNE_EXP(NR)*NI_RATIO(NS)
+            IF(MODEL_EX_READ_Tn.eq.1)THEN
+               DO NR=1, NRMAX
+                  RT_READ(NR,NS)=RTE_EXP(NR) ! assume to be same to electron
+                  RN_READ(NR,NS)=RNE_EXP(NR)*NI_RATIO(NS)
                
-               RT_TEMP(NR,NS)=RTI_EXP(NR)
-               RN_TEMP(NR,NS)=RNE_EXP(NR)*NI_RATIO(NS)
+                  RT_TEMP(NR,NS)=RTE_EXP(NR)
+                  RN_TEMP(NR,NS)=RNE_EXP(NR)*NI_RATIO(NS)
+               END DO
+            ELSEIF(MODEL_EX_READ_Tn.eq.2)THEN
+               DO NR=1, NRMAX
+                  RT_READ(NR,NS)=RTI_EXP(NR)
+                  RN_READ(NR,NS)=RNE_EXP(NR)*NI_RATIO(NS)
                
-               RT_BULK(NR,NS)=RTI_EXP(NR)
-            END DO
+                  RT_TEMP(NR,NS)=RTI_EXP(NR)
+                  RN_TEMP(NR,NS)=RNE_EXP(NR)*NI_RATIO(NS)
+               END DO
+            END IF
          END IF
       END DO
-
+      DO NSA=1, NSAMAX
+         NS=NS_NSA(NSA)
+         IF(NS.eq.1)THEN
+            DO NR=1,NRMAX
+               RT_BULK(NR,NSA)=RTE_EXP(NR)
+            END DO
+         ELSE
+            IF(MODEL_EX_READ_Tn.eq.1)THEN
+               DO NR=1, NRMAX
+                  RT_BULK(NR,NSA)=RTE_EXP(NR)
+               END DO
+            ELSEIF(MODEL_EX_READ_Tn.eq.2)THEN
+               DO NR=1, NRMAX
+                  RT_BULK(NR,NSA)=RTI_EXP(NR)
+               END DO
+            END IF
+         END IF
+      END DO
       END SUBROUTINE MAKE_EXP_PROF
 !-----------------------------------
       SUBROUTINE READ_EXP_TMS
@@ -190,9 +217,16 @@
             rho = RM(NR)
             rte_ex = cte_fit(1)+cte_fit(2)*rho**2+cte_fit(3)*rho**4+cte_fit(4)*rho**6
             rne_ex = cne_fit(1)+cne_fit(2)*rho**2+cne_fit(3)*rho**4+cne_fit(4)*rho**6+cne_fit(5)*rho**8
-            
-            prof_te_temp(NR,k)=rte_ex
-            prof_ne_temp(NR,k)=rne_ex
+            IF(rte_ex.gt.0.D0)THEN
+               prof_te_temp(NR,k)=rte_ex
+            ELSE
+               prof_te_temp(NR,k)=1.D-1
+            END IF
+            IF(rne_ex.gt.0.D0)THEN
+               prof_ne_temp(NR,k)=rne_ex
+            ELSE
+               prof_ne_temp(NR,k)=1.D-3               
+            END IF
          END DO
       END DO
       
@@ -360,7 +394,7 @@
       FUNCTION FPMXWL_EXP(PML,NR,NS)
 
       USE plprof
-      USE libbes,ONLY: besekn 
+      USE libbes,ONLY: beseknx 
       implicit none
       integer :: NR, NS
       real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
@@ -386,7 +420,11 @@
       ENDIF
       CALL PL_PROF(RHON,PLF)
 
-      RNFDL=RN_TEMP(NR,NS)/RNFD0L
+      IF(MODEL_DELTA_F(NS).eq.1)THEN
+         RNFDL=(RN_TEMP(NR,NS)-RNS_DELF(NR,NS))/RNFD0L
+      ELSE
+         RNFDL=(RN_TEMP(NR,NS))/RNFD0L
+      END IF
       RTFDL=RT_TEMP(NR,NS)
 
       IF(MODELR.EQ.0) THEN
@@ -397,7 +435,7 @@
          THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
          THETAL=THETA0L*RTFDL/RTFD0L
          Z=1.D0/THETAL
-         DKBSL=BESEKN(2,Z)
+         DKBSL=BESEKNX(2,Z)
          FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
               *RTFD0L
          EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL

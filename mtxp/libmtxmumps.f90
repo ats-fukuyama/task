@@ -48,7 +48,7 @@
       COMPLEX(8),DIMENSION(:),POINTER:: bc,bc_loc
 
       INTEGER,DIMENSION(:),POINTER:: istartx,iendx,isizex,nz_tot
-      INTEGER:: imax,istart,iend,irange,jwidth,nzcount,nzmax_save,idebug_save
+      INTEGER:: imax,istart,iend,irange,nzcount,nzmax_save,idebug_save
 
       CONTAINS
 
@@ -319,6 +319,7 @@
       id%JOB=6
       CALL dmumps(id)
 
+      CALL mtx_broadcast_real8(id%RHS,imax)
       its=0
       RETURN
       END SUBROUTINE mtx_solve
@@ -613,6 +614,7 @@
       idc%JOB=6
       CALL zmumps(idc)
 
+      CALL mtx_broadcast_complex8(idc%RHS,imax)
       its=0
       RETURN
       END SUBROUTINE mtxc_solve

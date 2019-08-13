@@ -21,20 +21,20 @@ SRCSFREE = xxcomm.f90 xxinit.f90 xxparm.f90 \
 
 OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
 
-LIBS = xxlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
+LIBS = xxlib.a ../lib/libtask.a ../../bpsd/loibbpsd.a
 
 all : xx
 
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
-../../bpsd/bpsdlib.a:
-	(cd ../../bpsd; make bpsdlib.a)
-xxlib.a: $(OBJS)
-	$(LD) $(LDFLAGS) xxlib.a $(OBJS)
+../lib/libtask.a:
+	(cd ../lib; make loibtask.a)
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
+libxx.a: $(OBJS)
+	$(LD) $(LDFLAGS) libxx.a $(OBJS)
 
 libs:
-	(cd ../lib; make tasklib.a)
-	(cd ../../bpsd; make bpsdlib.a)
+	(cd ../lib; make libtask.a)
+	(cd ../../bpsd; make libbpsd.a)
 
 xx : $(LIBS) xxmain.o
 	$(FCFIXED) xxmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) \

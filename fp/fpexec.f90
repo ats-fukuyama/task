@@ -199,12 +199,17 @@
 
 !     ----- Get solution vector -----
 
-      CALL mtx_gather_vector(BM_L)
+      CALL mtx_get_vector(BM_L)
+
       DO NR=NRSTART, NREND
          DO NP=NPSTART, NPEND
             DO NTH=1,NTHMAX
                NM=NMA(NTH,NP,NR)
-               FNS0(NTH,NP,NR,NSA)=BM_L(NM-NMSTART+1)
+               IF(ABS(BM_L(NM-NMSTART+1)).LT.1.D-100) THEN
+                  FNS0(NTH,NP,NR,NSA)=0.D0
+               ELSE
+                  FNS0(NTH,NP,NR,NSA)=BM_L(NM-NMSTART+1)
+               END IF
             END DO
          END DO
       END DO
@@ -216,7 +221,6 @@
       CALL mtx_set_communicator(comm_nr)
       CALL shadow_comm_nr(NSA)
       CALL mtx_set_communicator(comm_nrnp) !3D
-
 
 !      CALL mtx_gather_vector(BMTOT)
 !      DO NR=NRSTARTW,NRENDWM

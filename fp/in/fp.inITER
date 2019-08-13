@@ -25,10 +25,14 @@ p
    MODELC=4
    MODELR=1
    DELT=1.d-3
-   NTSTPC=1
-   NSFPMI=1
-   NSFPMA=1
-   pwave=0.001D0
+   NTSTEP_COLL=1
+   NSAMAX=1
+   NSBMAX=3
+   NS_NSA(1)=1
+   NS_NSB(1)=1
+   NS_NSB(2)=2
+   NS_NSB(3)=3
+   PABS_WR=1.D0
  &end
 v
 r

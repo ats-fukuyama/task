@@ -65,6 +65,6 @@ C
 c     dsc = mdsfdescr(mds__cstring(), str, 0, len(str))
 c     status = mdsfvalue(cmd //char(0), dsc, 0, size)
 c     call mds_addblanks(str)
-      mds_errstr = status
+      mds_errstr = 0
       return
       end

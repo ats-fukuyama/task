@@ -48,6 +48,7 @@ C        PTPP  : Perpendicular temperature at center           (keV)
 C        PTS   : Temperature on surface                        (keV)
 C        PU    : Toroidal rotation velocity at center          (m/s)
 C        PUS   : Toroidal rotation velocity on surface         (m/s)
+C        RHOITB: rho at ITB (0 for no ITB)
 C        PNITB : Density increment at ITB              (1.0E20/Mm*3)
 C        PTITB : Temperature increment at ITB                  (keV)
 C        PUITB : Toroidal rotation velocity increment at ITB   (m/s)
@@ -63,6 +64,7 @@ C
          PTS(1)  = 0.05D0
          PU(1)   = 0.D0
          PUS(1)  = 0.D0
+         RHOITB(1)= 0.D0
          PNITB(1)= 0.D0
          PTITB(1)= 0.D0
          PUITB(1)= 0.D0
@@ -77,6 +79,7 @@ C
          PTS(2)  = 0.05D0
          PU(2)   = 0.D0
          PUS(2)  = 0.D0
+         RHOITB(2)= 0.D0
          PNITB(2)= 0.D0
          PTITB(2)= 0.D0
          PUITB(2)= 0.D0
@@ -92,6 +95,7 @@ C
          PTS(NS)  = 0.0D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
+         RHOITB(NS)= 0.D0
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
@@ -107,12 +111,14 @@ C        PROFT2: Temperature profile parameter (power of (1 - rho^PROFN1))
 C        PROFU1: Rotation profile parameter (power of rho)
 C        PROFU2: Rotation profile parameter (power of (1 - rho^PROFN1))
 C
-      PROFN1= 2.D0
-      PROFN2= 0.5D0
-      PROFT1= 2.D0
-      PROFT2= 1.D0
-      PROFU1= 2.D0
-      PROFU2= 1.D0
+      DO NS=1,NSM
+         PROFN1(NS)= 2.D0
+         PROFN2(NS)= 0.5D0
+         PROFT1(NS)= 2.D0
+         PROFT2(NS)= 1.D0
+         PROFU1(NS)= 2.D0
+         PROFU2(NS)= 1.D0
+      END DO
 C
 C     ======( MODEL PARAMETERS )======
 C
@@ -140,12 +146,10 @@ C
 C
 C        RHOMIN: rho at minimum q (0 for positive shear)
 C        QMIN  : q minimum for reversed shear
-C        RHOITB: rho at ITB (0 for no ITB)
 C        RHOEDG: rho at EDGE for smoothing (1 for no smooth)
 C
       RHOMIN = 0.D0
       QMIN   = 1.5D0
-      RHOITB = 0.D0
       RHOEDG = 1.D0
 C
 C     ======( GRAPHIC PARAMETERS )======
@@ -249,13 +253,13 @@ C        PT0   : Plasma temperature (main component)           (keV)
 C        PT1   : Plasma temperature (sub component)            (keV)
 C        PT2   : Plasma temperature (increment within ITB)     (keV)
 C        PTSEQ : Plasma temperature (at surface)               (keV)
-C        PROFT0: Temperature profile parameter
-C        PROFT1: Temperature profile parameter
-C        PROFT2: Temperature profile parameter
+C        PROFTP0: Temperature profile parameter
+C        PROFTP1: Temperature profile parameter
+C        PROFTP2: Temperature profile parameter
 C
-C        TPSI=PTSEQ+(PT0-PTSEQ)*(1.D0-PSIN**PROFR0)**PROFT0
-C    &       +PT1*(1.D0-PSIN**PROFR1)**PROFT1
-C    &       +PT2*(1.D0-PSIN/PSIITB)**PROFR2)**PROFT2
+C        TPSI=PTSEQ+(PT0-PTSEQ)*(1.D0-PSIN**PROFR0)**PROFTP0
+C    &       +PT1*(1.D0-PSIN**PROFR1)**PROFTP1
+C    &       +PT2*(1.D0-PSIN/PSIITB)**PROFR2)**PROFTP2
 C    &       +PTSEQ
 C
 C        The third term exits for RHO < RHOITB
@@ -265,9 +269,9 @@ C
       PT2    = 0.0D0
       PTSEQ  = 0.05D0
 C
-      PROFT0 = 1.5D0
-      PROFT1 = 1.5D0
-      PROFT2 = 2.0D0
+      PROFTP0 = 1.5D0
+      PROFTP1 = 1.5D0
+      PROFTP2 = 2.0D0
 C----
 C        PV0   : Toroidal rotation (main component)              (m/s)
 C        PV1   : Toroidal rotation (sub component)               (m/s)
@@ -301,7 +305,6 @@ C
       PROFR0 = 1.D0
       PROFR1 = 2.D0
       PROFR2 = 2.D0
-      RHOITB = 0.5D0
 C
 C        OTC   : Constant OMEGA**2/TPSI
 C        HM    : Constant                                       (Am)
@@ -484,7 +487,7 @@ C
      &              PP0,PP1,PP2,PROFP0,PROFP1,PROFP2,
      &              FF0,FF1,FF2,PROFF0,PROFF1,PROFF2,
      &              PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2,
-     &              PT0,PT1,PT2,PROFT0,PROFT1,PROFT2,PTSEQ,
+     &              PT0,PT1,PT2,PROFTP0,PROFTP1,PROFTP2,PTSEQ,
      &              PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,PN0EQ,
      &              PROFR0,PROFR1,PROFR2,EPSEQ,NLPMAX,
      &              NSGMAX,NTGMAX,NUGMAX,EPSNW,DELNW,NLPNW,
@@ -520,7 +523,7 @@ C
      &       9X,'PP0,PP1,PP2,PROFP0,PROFP1,PROFP2'/
      &       9X,'FF0,FF1,FF2,PROFF0,PROFF1,PROFF2'/
      &       9X,'PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2'/
-     &       9X,'PT0,PT1,PT2,PROFT0,PROFT1,PROFT2,PTSEQ'/
+     &       9X,'PT0,PT1,PT2,PROFTP0,PROFTP1,PROFTP2,PTSEQ'/
      &       9X,'PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,PN0EQ,HM'/
      &       9X,'PROFR0,PROFR1,PROFR2'/
      &       9X,'NSGMAX,NTGMAX,NUGMAX,NRGMAX,NZGMAX,NPSMAX'/
@@ -636,23 +639,22 @@ C
       WRITE(6,601) 'FF2   ',FF2,
      &             'PROFF2',PROFF2
       WRITE(6,601) 'PT0   ',PT0,
-     &             'PROFT0',PROFT0,
+     &             'PROFT0',PROFTP0,
      &             'PV0   ',PV0,
      &             'PROFV0',PROFV0
       WRITE(6,601) 'PT1   ',PT1,
-     &             'PROFT1',PROFT1,
+     &             'PROFT1',PROFTP1,
      &             'PV1   ',PV1,
      &             'PROFV1',PROFV1
       WRITE(6,601) 'PT2   ',PT2,
-     &             'PROFT2',PROFT2,
+     &             'PROFT2',PROFTP2,
      &             'PV2   ',PV2,
      &             'PROFV2',PROFV2
       WRITE(6,601) 'PTSEQ ',PTSEQ,
      &             'PN0EQ ',PN0EQ
       WRITE(6,601) 'PROFR0',PROFR0,
      &             'PROFR1',PROFR1,
-     &             'PROFR2',PROFR2,
-     &             'RHOITB',RHOITB
+     &             'PROFR2',PROFR2
       WRITE(6,601) 'EPSEQ ',EPSEQ,
      &             'EPSNW ',EPSNW,
      &             'DELNW ',DELNW

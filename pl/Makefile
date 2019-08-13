@@ -7,34 +7,40 @@ include ../make.header
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
-MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD)
-
-SRCSFREE = modules.f90 plcomm.f90 plfile_prof.f90 pl_vmec.f90 plunit.f90
-SRCSFIXED = plmenu.f plinit.f plprof.f pldata.f plintf.f
-SRCO = noeqlib.f noequlib.f
-
-OBJS = $(SRCSFREE:.f90=.o) $(SRCSFIXED:.f=.o)
-OBJO = $(SRCO:.f=.o) 
-
-LIBS = pllib.a ../eq/eqlib.a ../lib/tasklib.a ../wmf/wmlib.a
+MODINCLUDE=-I $(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all: libs pllib.a noeqlib.o noequlib.o
+SRCSFIXED = 
+SRCSFREE = modules.f90 pl_vmec.f90 plcomm.f90 plinit.f90 plparm.f90 \
+           plload.f90 plprof2d.f90 plprof.f90 plgout.f90 plmenu.f90
+SRCO = noeqlib.f noequlib.f
 
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
+OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
+OBJO = $(SRCO:.f=.o) 
+
+LIBS = libpl.a ../eq/libeq.a ../lib/libtask.a ../../bpsd/libbpsd.a
+
+all : libpl.a  noeqlib.o noequlib.o pl
+
+../lib/libtask.a:
+	(cd ../lib; make libtask.a)
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
+../eqb/libeq.a:
+	(cd ../eq; make libeq.a)
+libpl.a: $(OBJS)
+	$(LD) $(LDFLAGS) libpl.a $(OBJS)
 
 libs:
-	(cd ../lib; make tasklib.a)
+	(cd ../lib; make libtask.a)
+	(cd ../../bpsd; make libbpsd.a)
+	(cd ../eq; make libeq.a)
 
-pllib.a: $(OBJS)
-	$(LD) $(LDFLAGS) pllib.a $(OBJS)
-
-pl : plmain.o $(LIBS)
+pl : $(LIBS) plmain.o
 	$(FCFIXED) plmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 check :
@@ -52,9 +58,15 @@ new:
 	cp -f *.f ../plnew
 	cp -f *.inc ../plnew
 
-plmain.o: plmain.f plcomm.f90 plcom0.f90 plcom1.inc
-plmenu.o: plmenu.f plcomm.inc plcom0.inc plcom1.inc
-plinit.o: plinit.f plcomm.inc plcom0.inc plcom1.inc plcnst.inc
-plintf.o: plintf.f plcomm.inc plcom0.inc plcom1.inc
-plprof.o: plprof.f plcomm.inc plcom0.inc plcom1.inc plcom2.inc plxprf.inc
-pldata.o: pldata.f plcomd.inc plcom0.inc plcom3.inc
+WMCOMM = ../wm/wmcomm.inc ../wm/wmcom0.inc ../wm/wmcom1.inc ../mpi/mpicom.inc ../dp/dpcom1.inc
+
+plmain.o: plmain.f90 plcomm.f90
+plmenu.o: plmenu.f90 plcomm.f90
+plinit.o: plinit.f90 plcomm.f90
+plparm.o: plparm.f90 plcomm.f90
+plintf.o: plintf.f90 plcomm.f90
+pldata.o: pldata.f90 plcomm.f90
+plprof.o: plprof.f90 plcomm.f90 plload.f90
+plgout.o: plgout.f90 plcomm.f90
+plload.o: plload.f90
+plcomm.o: plcomm.f90

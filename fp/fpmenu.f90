@@ -10,13 +10,18 @@
 
       USE fpcomm
       USE fpinit
+      USE fpparm
       USE fpprep
       USE fploop
-      USE fploop_exp
       USE fpgout
       USE fpfout
       USE plinit
+      USE plparm
       USE fpfile
+      USE fpcaltp
+      USE fpcalte
+      USE fpcaldeff
+      USE fpcalchieff
       USE libmpi
       USE libmtx
 
@@ -32,7 +37,7 @@
          ierr=0
          WRITE(6,601)
   601    FORMAT('## FP MENU: R:RUN C:CONT P,V:PARAM G,F:GRAPH', &
-                           ' L,S:FILE Y:COEF Q:QUIT')
+                           ' L,S:FILE Y,Z:COEF W:WRITE Q:QUIT')
          CALL TASK_KLIN(LINE,KID,MODE(1),fp_parm)
       ENDIF
       CALL mtx_barrier
@@ -52,11 +57,7 @@
             CALL fp_continue(ierr)
             IF(ierr.ne.0) GO TO 1
          ENDIF
-         IF(MODEL_EX_READ_Tn.eq.0)THEN
-            CALL fp_loop
-         ELSEIF(MODEL_EX_READ_Tn.eq.1)THEN
-            CALL fp_loop_exp
-         END IF
+         CALL fp_loop
          IF(nrank.eq.0) THEN
             CALL CPU_TIME(cputime2)
             write(6,'(A,F12.3)') &
@@ -84,14 +85,15 @@
          ENDIF
          CALL mtx_barrier
       ELSEIF (KID.EQ.'W') THEN
-         IF(NTG2.ne.0)THEN
-            CALL fpsglb
-            CALL fpwrtglb
-            CALL fpsprf
-            CALL fpwrtprf
-         ELSE
-            if(nrank.eq.0) WRITE(6,*) 'XX no data to write'
-         END IF
+         CALL FPWRTSNAP
+!         IF(NTG2.ne.0)THEN
+!            CALL fpsglb
+!            CALL fpwrtglb
+!            CALL fpsprf
+!            CALL fpwrtprf
+!         ELSE
+!            if(nrank.eq.0) WRITE(6,*) 'XX no data to write'
+!         END IF
       ELSEIF (KID.EQ.'Y') THEN
          TIMEFP=0.D0
          CALL fp_prep(ierr)
@@ -111,6 +113,9 @@
          if(nrank.eq.0) CALL fp_load2
          CALL mtx_barrier
          CALL FP_POST_LOAD
+      ELSEIF (KID.EQ.'Z') THEN
+         CALL fp_caldeff
+         CALL fp_calchieff
       ELSEIF (KID.EQ.'Q') THEN
          CALL CLOSE_EVOLVE_DATA_OUTPUT 
          GO TO 9000

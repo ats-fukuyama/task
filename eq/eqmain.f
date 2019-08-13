@@ -13,6 +13,8 @@ C                      PSI0 at (Raxis,Zaxis), 0 on surface
 C
 C   ************************************************
 C
+      USE plinit,ONLY: pl_init
+      USE plparm,ONLY: pl_parm
       INCLUDE 'eqcomc.inc'
 C
       WRITE(6,*) '## TASK/EQ 2009/09/01'

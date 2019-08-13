@@ -8,7 +8,6 @@
 
 SUBROUTINE WMDPFA2(CW,AM,RHOL,RKPR,VTA,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
 
-!  USE libbes,ONLY: bessjn
   USE plcomm
   USE pllocal
   USE bpsd_constants,ONLY : CI,PI

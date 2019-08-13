@@ -20,8 +20,8 @@
       INTEGER:: idimen,isiz,isource,itype,m1,m2,idebug
       INTEGER:: istart,iend,its 
       INTEGER:: imax,jwidth,jsource 
-      INTEGER:: i,j,k,l,m,n,iskip,ncom 
-      REAL(8):: v,tolerance 
+      INTEGER:: i,j,k,l,m,n,iskip
+      REAL(8):: tolerance 
       REAL(8),DIMENSION(:),POINTER:: x
       INTEGER,DIMENSION(7):: idata 
       REAL(8),DIMENSION(1):: ddata

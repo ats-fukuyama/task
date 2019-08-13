@@ -1,15 +1,14 @@
 ### $Id$
 include ../make.header
-
-##### Without PETSc library #####
-#FLINKER=$(FCFREE)
-#LIBMTX=../mtxp/libmtxbnd.o ../mtxp/libmtxnompi.o
-#LIBMUMPSX=
-##### With MUMPS library #####
-FLINKER=$(MF90)
-LIBMTX=../mtxp/libmtxmumps.o ../mtxp/libmtxmpi.o
-LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common \
-  -lpord -lscalapack -lparmetis -lmetis -llapack -lblas
+include ../mtxp/make.mtxp
+#LIB_MTX=$(LIB_MTX_BND)
+#LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_PCG)
+LIB_MTX=$(LIB_MTX_MUMPS)
+LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIB_MTX=$(LIBXMTX_KSP)
+#LIBX_MTX=$(LIBX_MTX_KSP)
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
@@ -17,8 +16,8 @@ LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common \
 #FFLAGS = $(OFLAGS)
 FFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I../plx/$(MOD) -I../eq/$(MOD) \
-            -I../../bpsd/$(MOD) -I../mtxp -I $(MOD)
+MODINCLUDE= -I../pl/$(MOD) -I../lib/$(MOD) -I../eq/$(MOD) \
+            -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I $(MOD)
 
 SRCS = wfcomm.f90 wfmenu.f90 wfinit.f90 wfdiv.f90 wfant.f90 wfwave.f90 \
        wfsolv.f90 wfprof.f90 wfsub.f90 wfnas.f90 wfsort.f90 wffile.f90 \
@@ -26,8 +25,8 @@ SRCS = wfcomm.f90 wfmenu.f90 wfinit.f90 wfdiv.f90 wfant.f90 wfwave.f90 \
        wfgsub.f90 wfgutl.f90 mbant.f90
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = wflib.a ../plx/pllib.a ../eq/eqlib.a   \
-        ../lib/tasklib.a ../../bpsd/bpsdlib.a $(LIBMTX)
+LIBS = libwf.a ../pl/libpl.a ../eq/libeq.a   \
+        ../lib/libtask.a ../../bpsd/libbpsd.a $(LIBMTX)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -36,13 +35,13 @@ LIBS = wflib.a ../plx/pllib.a ../eq/eqlib.a   \
 
 all: wf
 
-wflib.a: $(OBJS)
-	$(LD) $(LDFLAGS) wflib.a $(OBJS)
+libwf.a: $(OBJS)
+	$(LD) $(LDFLAGS) libwf.a $(OBJS)
 
-../../bpsd/bpsdlib.a:
-	(cd ../../bpsd; make bpsdlib.a)
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
+../lib/libtask.a:
+	(cd ../lib; make libtask.a)
 ../mtxp/libmtxbnd.o:
 	(cd ../mtxp; make libmtxbnd.o)
 ../mtxp/libmtxmumps.o:
@@ -51,21 +50,20 @@ wflib.a: $(OBJS)
 	(cd ../mtxp; make libmtxmpi.o)
 ../mtxp/libmtxnompi.o:
 	(cd ../mtxp; make libmtxnompi.o)
-../plx/pllib.a:
-	(cd ../../plx; make pllib.a)
-../eq/eqlib.a:
-	(cd ../eq; make eqlib.a)
+../pl/libpl.a:
+	(cd ../../pl; make libpl.a)
+../eq/libeq.a:
+	(cd ../eq; make libeq.a)
 
 libs:
-	(cd ../lib; make tasklib.a)
-	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../mtxp; make libmtxmpi.o libmtxnompi.o \
-                                  libmtxbnd.o libmtxmumps.o)
-	(cd ../eq; make eqlib.a)
-	(cd ../plx; make pllib.a)
+	(cd ../../bpsd; make libbpsd.a)
+	(cd ../lib; make libtask.a)
+	(cd ../mtxp; make)
+	(cd ../pl; make libpl.a)
+	(cd ../eq; make libeq.a)
 
-wf : libs wflib.a wfmain.o
-	$(FLINKER) wfmain.o -o $@ $(FFLAGS) $(LIBS) $(FLIBS) $(LIBMUMPSX)
+wf : $(LIB_MTX) $(LIBS) wfmain.o
+	$(FLINKER) wfmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean:
 	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod

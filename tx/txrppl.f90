@@ -358,14 +358,14 @@ contains
 
   real(8) function ripple(RL,theta,FSRP) result(f)
     use tx_commons, only : RR, NTCOIL, DltRPn, RA
-    use libbes, only : besin
+    use libbes, only : besinx
     real(8), intent(in) :: RL, theta, FSRP
     real(8) :: a, L0, Rmag0 = 2.4D0 ! specific value for JT-60U
 
     if(FSRP /= 0.D0) then
        L0 = RR - Rmag0
        a = sqrt((RL**2+L0**2+2.D0*RL*L0*cos(theta))*(RR-L0)/(RR+RL*cos(theta)))
-       f = DltRPn * BESIN(0,NTCOIL/(RR-L0)*a)
+       f = DltRPn * BESINX(0,NTCOIL/(RR-L0)*a)
     else
        f = 0.d0
     end if
@@ -422,6 +422,7 @@ contains
 
   subroutine ripple_input(ier)
 
+    USE libfio
     integer(4) :: ier, nrpin, ist, nrpmax, n, i, j
     character(len=130) :: kline
 

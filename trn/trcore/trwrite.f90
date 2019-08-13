@@ -44,7 +44,7 @@ CONTAINS
     ! *** The csv output routine for radial profile ***
     ! *** The unit of the variables correspond to the list in trcomm.f90
     USE trcomm,ONLY: unitid,mdluf,nrmax,ntmax,neqmax,nsamax,  &
-         ns_nsa,nsa_neq,nva_neq,kidns,idnsa,t,rhog,rhom,&
+         ns_nsa,nsa_neq,nva_neq,kid_ns,idnsa,t,rhog,rhom,&
          rn,ru,rt,dtr,vtr,dtr_tb,vtr_tb,dtr_nc,vtr_nc,  &
          fluxtb,fluxnc,eta,qp,jtot,joh,jbs_nc,jex_nc,   &
          jcd_nb,jcd_ec,jcd_lh,jcd_ic,ptot,poh,pnb,pec,  &
@@ -77,19 +77,19 @@ CONTAINS
 !
        DO nsa = 1, nsamax
           ns = ns_nsa(nsa)
-          kwnsa = 'RN'//TRIM(kidns(ns))
+          kwnsa = 'RN'//TRIM(kid_ns(ns))
           IF(idnsa(nsa)==2) kwnsa = TRIM(kwnsa)//'_f'
           wcsv(nwr) = rn(nsa,nr) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
        END DO
 !!$       DO nsa = 1, nsamax
 !!$          ns = ns_nsa(nsa)
-!!$          kwnsa = 'RU'//TRIM(kidns(ns))
+!!$          kwnsa = 'RU'//TRIM(kid_ns(ns))
 !!$          IF(idnsa(nsa)==2) kwnsa = TRIM(kwnsa)//'_f'
 !!$          wcsv(nwr) = ru(nsa,nr) ; kwscv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
 !!$       END DO
        DO nsa = 1, nsamax
           ns = ns_nsa(nsa)
-          kwnsa = 'RT'//TRIM(kidns(ns))
+          kwnsa = 'RT'//TRIM(kid_ns(ns))
           IF(idnsa(nsa)==2) kwnsa = TRIM(kwnsa)//'_f'
           wcsv(nwr) = rt(nsa,nr) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
        END DO
@@ -97,19 +97,19 @@ CONTAINS
        IF(mdluf > 0)THEN ! experimental data
           DO nsa = 1, nsamax
              ns = ns_nsa(nsa)
-             kwnsa = 'RN_exp'//TRIM(kidns(ns))
+             kwnsa = 'RN_exp'//TRIM(kid_ns(ns))
              IF(idnsa(nsa)==2) kwnsa = TRIM(kwnsa)//'_f'
              wcsv(nwr) = rnug(nsa,nr) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
           END DO
 !!$          DO nsa = 1, nsamax
 !!$             ns = ns_nsa(nsa)
-!!$             kwnsa = 'RU_exp'//TRIM(kidns(ns))
+!!$             kwnsa = 'RU_exp'//TRIM(kid_ns(ns))
 !!$             IF(idnsa(nsa)==2) kwnsa = TRIM(kwnsa)//'_f'
 !!$             wcsv(nwr) = ru(nsa,nr) ; kwscv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
 !!$          END DO
           DO nsa = 1, nsamax
              ns = ns_nsa(nsa)
-             kwnsa = 'RT_exp'//TRIM(kidns(ns))
+             kwnsa = 'RT_exp'//TRIM(kid_ns(ns))
              IF(idnsa(nsa)==2) kwnsa = TRIM(kwnsa)//'_f'
              wcsv(nwr) = rtug(nsa,nr) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
           END DO
@@ -117,7 +117,7 @@ CONTAINS
 
        DO nsa = 1, nsamax
           ns = ns_nsa(nsa)
-          kwnsa = 'D'//TRIM(kidns(ns))
+          kwnsa = 'D'//TRIM(kid_ns(ns))
           IF(idnsa(nsa)==2 .OR. idnsa(nsa)==0) CYCLE
           wcsv(nwr) = dtr(1+3*nsa-2,1+3*nsa-2,nr) ; kwcsv(nwr) = TRIM(kwnsa)
           nwr = nwr + 1
@@ -131,7 +131,7 @@ CONTAINS
 !!$       END DO
        DO nsa = 1, nsamax
           ns = ns_nsa(nsa)
-          kwnsa = 'chi'//TRIM(kidns(ns))
+          kwnsa = 'chi'//TRIM(kid_ns(ns))
           IF(idnsa(nsa)==2 .OR. idnsa(nsa)==0) CYCLE
           wcsv(nwr) = dtr(1+3*nsa  ,1+3*nsa  ,nr) ; kwcsv(nwr) = TRIM(kwnsa)
           nwr = nwr + 1
@@ -182,7 +182,7 @@ CONTAINS
   SUBROUTINE tr_writet_csv
     ! *** The csv output routine for radial profile ***
     USE trcomm,ONLY: unitid,mdluf,nrmax,ntmax,neqmax,nsamax,    &
-         ns_nsa,nsa_neq,nva_neq,kidns,idnsa,t,rhog,rhom,t,&
+         ns_nsa,nsa_neq,nva_neq,kid_ns,idnsa,t,rhog,rhom,t,&
          rn,ru,rt,dtr,vtr,dtr_tb,vtr_tb,dtr_nc,vtr_nc,    &
          fluxtb,fluxnc,eta,qp,rip,jtot,joh,jbs_nc,jex_nc, &
          jcd_nb,jcd_ec,jcd_lh,jcd_ic,ptot,poh,pnb,pec,    &
@@ -217,31 +217,31 @@ CONTAINS
     DO nsa = 1, nsamax
        IF(idnsa(nsa)==0 .OR. idnsa(nsa)==2) CYCLE
        ns = ns_nsa(nsa)
-       kwnsa = 'RN(0)'//TRIM(kidns(nsa))
+       kwnsa = 'RN(0)'//TRIM(kid_ns(nsa))
        wcsv(nwr) = rn(nsa,nr0)  ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
-       kwnsa = 'RN(0.2)'//TRIM(kidns(nsa))
+       kwnsa = 'RN(0.2)'//TRIM(kid_ns(nsa))
        wcsv(nwr) = rn(nsa,nr02) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
-       kwnsa = 'RN(0.9)'//TRIM(kidns(nsa))
+       kwnsa = 'RN(0.9)'//TRIM(kid_ns(nsa))
        wcsv(nwr) = rn(nsa,nr09) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
     END DO
 !!$    DO nsa = 1, nsamax
 !!$       IF(idnsa(nsa)==0 .OR. idnsa(nsa)==2) CYCLE
 !!$       ns = ns_nsa(nsa)
-!!$       kwnsa = 'RU(0)'//TRIM(kidns(nsa))
+!!$       kwnsa = 'RU(0)'//TRIM(kid_ns(nsa))
 !!$       wcsv(nwr) = ru(nsa,nr0)  ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
-!!$       kwnsa = 'RU(0.2)'//TRIM(kidns(nsa))
+!!$       kwnsa = 'RU(0.2)'//TRIM(kid_ns(nsa))
 !!$       wcsv(nwr) = ru(nsa,nr02) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
-!!$       kwnsa = 'RU(0.9)'//TRIM(kidns(nsa))
+!!$       kwnsa = 'RU(0.9)'//TRIM(kid_ns(nsa))
 !!$       wcsv(nwr) = ru(nsa,nr09) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
 !!$    END DO
     DO nsa = 1, nsamax
        IF(idnsa(nsa)==0 .OR. idnsa(nsa)==2) CYCLE
        ns = ns_nsa(nsa)
-       kwnsa = 'RT(0)'//TRIM(kidns(nsa))
+       kwnsa = 'RT(0)'//TRIM(kid_ns(nsa))
        wcsv(nwr) = rt(nsa,nr0)  ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
-       kwnsa = 'RT(0.2)'//TRIM(kidns(nsa))
+       kwnsa = 'RT(0.2)'//TRIM(kid_ns(nsa))
        wcsv(nwr) = rt(nsa,nr02) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
-       kwnsa = 'RT(0.9)'//TRIM(kidns(nsa))
+       kwnsa = 'RT(0.9)'//TRIM(kid_ns(nsa))
        wcsv(nwr) = rt(nsa,nr09) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
     END DO
 
@@ -249,31 +249,31 @@ CONTAINS
        DO nsa = 1, nsamax
           IF(idnsa(nsa)==0 .OR. idnsa(nsa)==2) CYCLE
           ns = ns_nsa(nsa)
-          kwnsa = 'RN_exp(0)'//TRIM(kidns(nsa))
+          kwnsa = 'RN_exp(0)'//TRIM(kid_ns(nsa))
           wcsv(nwr) = rnug(nsa,nr0)  ; kwcsv(nwr) = TRIM(kwnsa); nwr = nwr + 1
-          kwnsa = 'RN_exp(0.2)'//TRIM(kidns(nsa))
+          kwnsa = 'RN_exp(0.2)'//TRIM(kid_ns(nsa))
           wcsv(nwr) = rnug(nsa,nr02) ; kwcsv(nwr) = TRIM(kwnsa); nwr = nwr + 1
-          kwnsa = 'RN_exp(0.9)'//TRIM(kidns(nsa))
+          kwnsa = 'RN_exp(0.9)'//TRIM(kid_ns(nsa))
           wcsv(nwr) = rnug(nsa,nr09) ; kwcsv(nwr) = TRIM(kwnsa); nwr = nwr + 1
        END DO
 !!$    DO nsa = 1, nsamax
 !!$       IF(idnsa(nsa)==0 .OR. idnsa(nsa)==2) CYCLE
 !!$       ns = ns_nsa(nsa)
-!!$       kwnsa = 'RU(0)'//TRIM(kidns(nsa))
+!!$       kwnsa = 'RU(0)'//TRIM(kid_ns(nsa))
 !!$       wcsv(nwr) = ru(nsa,nr0)  ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
-!!$       kwnsa = 'RU(0.2)'//TRIM(kidns(nsa))
+!!$       kwnsa = 'RU(0.2)'//TRIM(kid_ns(nsa))
 !!$       wcsv(nwr) = ru(nsa,nr02) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
-!!$       kwnsa = 'RU(0.9)'//TRIM(kidns(nsa))
+!!$       kwnsa = 'RU(0.9)'//TRIM(kid_ns(nsa))
 !!$       wcsv(nwr) = ru(nsa,nr09) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
 !!$    END DO
        DO nsa = 1, nsamax
           IF(idnsa(nsa)==0 .OR. idnsa(nsa)==2) CYCLE
           ns = ns_nsa(nsa)
-          kwnsa = 'RT_exp(0)'//TRIM(kidns(nsa))
+          kwnsa = 'RT_exp(0)'//TRIM(kid_ns(nsa))
           wcsv(nwr) = rtug(nsa,nr0)  ; kwcsv(nwr) = TRIM(kwnsa); nwr = nwr + 1
-          kwnsa = 'RT_exp(0.2)'//TRIM(kidns(nsa))
+          kwnsa = 'RT_exp(0.2)'//TRIM(kid_ns(nsa))
           wcsv(nwr) = rtug(nsa,nr02) ; kwcsv(nwr) = TRIM(kwnsa); nwr = nwr + 1
-          kwnsa = 'RT_exp(0.9)'//TRIM(kidns(nsa))
+          kwnsa = 'RT_exp(0.9)'//TRIM(kid_ns(nsa))
           wcsv(nwr) = rtug(nsa,nr09) ; kwcsv(nwr) = TRIM(kwnsa); nwr = nwr + 1
        END DO
     END IF
@@ -318,13 +318,13 @@ CONTAINS
        DO nsa = 1, nsamax
           IF(idnsa(nsa)==0 .OR. idnsa(nsa)==2) CYCLE
           ns = ns_nsa(nsa)
-          kwnsa = 'STD_T'//TRIM(kidns(nsa))
+          kwnsa = 'STD_T'//TRIM(kid_ns(nsa))
           wcsv(nwr) = std_rt(nsa) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
-          kwnsa = 'OFF_T'//TRIM(kidns(nsa))
+          kwnsa = 'OFF_T'//TRIM(kid_ns(nsa))
           wcsv(nwr) = off_rt(nsa) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
-          kwnsa = 'STD_IPB'//TRIM(kidns(nsa))
+          kwnsa = 'STD_IPB'//TRIM(kid_ns(nsa))
           wcsv(nwr) = std_ipb(nsa) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
-          kwnsa = 'OFF_IPB'//TRIM(kidns(nsa))
+          kwnsa = 'OFF_IPB'//TRIM(kid_ns(nsa))
           wcsv(nwr) = off_ipb(nsa) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
        END DO
     END IF

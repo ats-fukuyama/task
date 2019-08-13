@@ -1,7 +1,8 @@
 subroutine wfmenu
 
-  use wfcomm
   use libmpi
+  use wfcomm
+  USE wfparm
   USE plload, ONLY: pl_load
   USE wfload, ONLY: wf_load_wg
   implicit none
@@ -13,24 +14,23 @@ subroutine wfmenu
 
 1 continue
 
-  if(nrank.eq.0) then
-     write(6,*) '## INPUT: P,V:PARM  D:DIV  A:ANT', &
+  IF(nrank.EQ.0) THEN
+     WRITE(6,*) '## INPUT: P,V:PARM  D:DIV  A:ANT', &
                          ' W,C:WAVE G:GRAPH  S,L:FILE  Q:QUIT'
-     call GUFLSH
-     call WFKLIN(LINE,KID,MODE)
-  end if
+     CALL TASK_KLIN(LINE,KID,MODE,WF_PARM)
+  END IF
+  call mtx_barrier
 
   call mtx_broadcast1_character(KID)
   call mtx_broadcast1_integer(MODE)
-  call mtx_barrier
   if(MODE.ne.1) goto 1
 
   if     (KID.eq.'P') then
-     if(nrank.eq.0) call wfparm(KID)
+     if(nrank.eq.0) call wf_parm(0,'wf',IERR)
      call wfparm_broadcast
      goto 1
   elseif (KID.eq.'V') then
-     if (nrank.eq.0) call WFVIEW
+     if (nrank.eq.0) call WF_VIEW
   elseif (KID.eq.'D') then
      call WFDIV
   elseif (KID.eq.'A') then
@@ -61,61 +61,6 @@ subroutine wfmenu
 9000 continue
   return
 end subroutine wfmenu
-
-! ***** INPUT KID or LINE *****
-! MODE=0 : LINE INPUT
-!      1 : KID INPUT
-!      2 : PARM INPUT
-!      3 : ERROR
-
-subroutine WFKLIN(LINE,KID,MODE)
-
-  USE wfcomm
-  implicit none
-  integer,intent(out) :: MODE
-  integer :: ID,I
-  character,intent(inout) :: LINE*80,KID*1
-
-  read(5,'(A80)',ERR=2,END=3) LINE
-
-  ID=0
-  do I=1,80
-     if(LINE(I:I).eq.'=') ID=1
-  end do
-  if(ID.eq.1) then
-     call WFPARL(LINE)
-     MODE=2
-     return
-  end if
-  
-  KID=LINE(1:1)
-  call GUCPTL(KID)
-  if(KID.eq.'P'.or.&
-     KID.eq.'V'.or.&
-     KID.eq.'D'.or.&
-     KID.eq.'A'.or.&
-     KID.eq.'S'.or.&
-     KID.eq.'L'.or.&
-     KID.eq.'W'.or.&
-     KID.eq.'G'.or.&
-     KID.eq.'?'.or.&
-     KID.eq.'Q') then
-     MODE=1
-     return
-  end if
-  
-  KID=' '
-  MODE=0
-  return
-  
-2 IF(nrank.EQ.0) write(6,*) 'XX INPUT ERROR !'
-  MODE=3
-  return
-  
-3 KID='Q'
-  MODE=1
-  return
-end subroutine WFKLIN
 
 !     ***** DEBUG INFORMATION ROUTINE *****
 

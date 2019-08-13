@@ -11,7 +11,7 @@
 #### With MPI, Without PETSc
 #EXEC=testbnd testbndc testpcg
 #FLINKER=$(MFC)
-#INCLUDE_MTX_MPI=-I /usr/local/mpich313-ifort-gcc/include
+#INCLUDE_MTX_MPI=-I /usr/local/mpich32-ifort-gcc7/include
 #LIBMTXMPI=../mtxp/libmtxmpi.o
 #LIB_MTX_BND=$(LIBMTXMPI) ../mtxp/libmtxbndmpi.o
 #LIB_MTX_PCG=$(LIBMTXMPI) ../mtxp/libmtxpcgmpi.o
@@ -31,15 +31,18 @@
 ##### PETSc 3.6
 #INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/externalpackages/MUMPS/include
 #include ${PETSC_DIR}/lib/petsc/conf/variables
-##### PETSc 3.7
+##### PETSc 3.7/8/9
 #INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/externalpackages/git.mumps/include
+#include ${PETSC_DIR}/lib/petsc/conf/variables
+##### PETSc 3.10
+#INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/include
 #include ${PETSC_DIR}/lib/petsc/conf/variables
 #####
 #INCLUDE_MTX_PETSC=-I${PETSC_DIR}/include -I${PETSC_DIR}/include/petsc -I${PETSC_DIR}/${PETSC_ARCH}/include
 #LIBMTXMPI=../mtxp/libmtxmpi.o
 #LIB_MTX_BND=$(LIBMTXMPI) ../mtxp/libmtxbndmpi.o
 #LIB_MTX_PCG=$(LIBMTXMPI) ../mtxp/libmtxpcgmpi.o
-#MUMPS_LIB=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lparmetis -lmetis -llapack -lblas ../lib/tasklib.a
+#MUMPS_LIB=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lparmetis -lmetis -llapack -lblas ../lib/libtask.a
 
 ##### End of configurable section #####
 

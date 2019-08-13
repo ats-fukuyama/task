@@ -47,7 +47,7 @@
       call eq_bpsd_get(ierr)
       call eqcalc(ierr)
       call eqcalq(ierr)
-      call eq_bpsd_set(ierr)
+      call eq_bpsd_put(ierr)
       return
       end subroutine eq_calc
 !=======================================================================
@@ -85,9 +85,9 @@
          RETURN
       ENDIF
 
-      call eq_bpsd_set(ierr)
+      call eq_bpsd_put(ierr)
       IF(ierr.NE.0) THEN
-         WRITE(6,*) 'XX eq_load: eq_bpsd_set: ierr=',ierr
+         WRITE(6,*) 'XX eq_load: eq_bpsd_put: ierr=',ierr
          RETURN
       ENDIF
       RETURN

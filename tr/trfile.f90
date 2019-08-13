@@ -23,6 +23,7 @@
      &                   RM, RMJRHO, RMNRHO, RN, RNF, RPSI, RR, RT, RTF, RU, RW, T, TAUE1, TAUE2, TAUE89, TIME_INT, TPRE, TPRST,  &
      &                   TS0, TSAV, TSST, TST, TTRHO, TTRHOG, VLOOP, VPOL, VSEC, VTOR, WPPRE, WPT, WST, &
      &                   ABVRHO, ABVRHOG, RDPVRHOG, AJTTOR
+      USE libfio
       IMPLICIT NONE
       INTEGER(4):: IERR, NDD, NDM, NDY, NTH1, NTM1, NTS1
       CHARACTER(LEN=3):: K1, K2, K3, K4, K5, K6
@@ -149,6 +150,7 @@
      &                   RIPS, RJCB, RKAP, RKPRHO, RKPRHOG, RM, RMJRHO, RMNRHO, RN, RNF, RPSI, RR, RT, RTF, RU, RW, T, TIME_INT,&
      &                   TPRE, TPRST, TSST, TST, TTRHO, TTRHOG, VPOL, VSEC, VTOR, WPPRE, &
      &                   ALLOCATE_TRCOMM, ABVRHO, ABVRHOG, RDPVRHOG
+      USE libfio
       IMPLICIT NONE
       INTEGER(4):: IERR
       REAL(8)   :: FCTR

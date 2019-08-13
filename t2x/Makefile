@@ -14,7 +14,7 @@ SRCS = libt2.f90
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = ../lib/tasklib.a ../../bpsd/bpsdlib.a t2lib.a
+LIBS = ../lib/libtask.a ../../bpsd/libbpsd.a libt2.a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -23,13 +23,13 @@ LIBS = ../lib/tasklib.a ../../bpsd/bpsdlib.a t2lib.a
 
 all : testt2
 
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
+../lib/libtask.a:
+	(cd ../lib; make libtask.a)
 ../../bpsd/bpsdlib.a:
-	(cd ../../bpsd; make bpsdlib.a)
+	(cd ../../bpsd; make libbpsd.a)
 
-t2lib.a: $(OBJS)
-	$(LD) $(LDFLAGS) t2lib.a $(OBJS)
+libt2.a: $(OBJS)
+	$(LD) $(LDFLAGS) libt2.a $(OBJS)
 
 testt2 : $(LIBS) testt2.o
 	$(FCFIXED) testt2.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)

@@ -58,14 +58,36 @@ end subroutine WFWAVE
 subroutine WFWPRE(IERR)
 
   USE wfcomm
+  USE wfparm
   USE plload,ONLY: pl_load
+  USE libbes
   IMPLICIT NONE
+  REAL(rkind):: RGAMMA
   INTEGER,INTENT(OUT) :: IERR
 
   IERR=0
 
   CALL pl_load(ierr)
   if(IERR.ne.0) return
+
+  IF(MODELG.EQ.11) THEN
+     RGAMMA=ABS(Hpitch1*RRCH)
+     IF(RGAMMA.LT.1.D-5) THEN
+        HA1=0.D0
+     ELSE
+        HA1=RGAMMA*BESKNX(1,2.D0*RGAMMA)+BESKNX(2,2.D0*RGAMMA)
+     ENDIF
+     RKAP=SQRT((1.D0+2.D0*HA1)/(1.D0-2.D0*HA1))
+     WRITE(6,'(A,1P2E12.4)') 'HA1,RKAP=',HA1,RKAP
+  ENDIF
+  
+
+  SELECT CASE(MODELG)
+  CASE(0,1,10,11)
+     CALL WFBPSI(RA,0.D0,PSIA)
+  CASE(2:9)
+     CALL WFBPSI(RR+RA,0.D0,PSIA)
+  END SELECT
 
   call LPELMT
 
@@ -89,7 +111,7 @@ subroutine WFWPRE(IERR)
   
   call wffld_allocate
 
-  if (nrank.eq.0) call WFVIEW
+  if (nrank.eq.0) call WF_VIEW
 
   return
 end subroutine WFWPRE
@@ -321,7 +343,7 @@ SUBROUTINE CVCALC
                     +B(I)*R1*RR &
                     +C(I)*Z1*RR
            end do
-        CASE(2)
+        CASE(1,2)
            do I=1,3
               LIF(I)=A(I)*R1 &
                     +B(I)*R1*R1 &
@@ -359,7 +381,7 @@ SUBROUTINE CVCALC
                     +B(I)*(R1+R2)*RR/2.D0 &
                     +C(I)*(Z1+Z2)*RR/2.D0
            end do
-        CASE(2)
+        CASE(1,2)
            do I=1,3
               LIF(I)=A(I)*(R1+R2)/2.d0 &
                     +B(I)*(R2**2+R1*R2+R1**2)/3.d0 &
@@ -454,13 +476,13 @@ SUBROUTINE CMCALC(NE)
 
   ! ----- rotErotF term -----
 
+  ! --- E1F1 ---
+
   do J=1,3
      do I=1,3
         CM1(I,J)=(0.d0,0.d0)
      end do
   end do
-
-  ! --- E1F1 ---
 
   SELECT CASE(MODELG)
   CASE(0,12)
@@ -468,7 +490,7 @@ SUBROUTINE CMCALC(NE)
         do J=1,3
            do I=1,3
               CM1(I,J)=CM1(I,J) &
-                      +(real(NPH)**2)/RR &
+                      +(RKZ**2)*RR &
                        *( AW(I)*AW(J)-(AW(I)*BW(J)+AW(J)*BW(I))*Z(K) &
                          +CW(I)*CW(J)-(BW(I)*CW(J)+BW(J)*CW(I))*R(K) &
                          +BW(I)*BW(J)*(R(K)**2+Z(K)**2)) &
@@ -498,13 +520,13 @@ SUBROUTINE CMCALC(NE)
      end do
   end do
 
+  ! --- E1F2 --- 
+
   do J=1,3
      do I=1,3
         CM1(I,J)=(0.d0,0.d0)
      end do
   end do
-
-  ! --- E1F2 --- 
 
   SELECT CASE(MODELG)
   CASE(0,12)
@@ -512,21 +534,16 @@ SUBROUTINE CMCALC(NE)
         do J=1,3
            do I=1,3
               CM1(I,J)=CM1(I,J) &
-!
-                      +(CII*real(NPH)) &
+                      +(CII*RKZ*RR) &
                        *(-B(I) &
                           *(AW(J)-BW(J)*Z(K)) &
                          +C(I) &
                           *(CW(J)-BW(J)*R(K))) &
                        *S*AIF1(K)
-!
-!                      +(CII*real(NPH)) &
-!                       *(-(AW(J)-BW(J)*Z(K))/RR) &
-!                      *S*AIF2(I,K)
            end do
         end do
      end do
-  CASE(2)
+  CASE(1,2)
      do K=1,3
         do J=1,3
            do I=1,3
@@ -553,13 +570,13 @@ SUBROUTINE CMCALC(NE)
      end do
   end do
 
+  ! --- E2F1 ---
+
   do J=1,3
      do I=1,3
         CM1(I,J)=(0.d0,0.d0)
      end do
   end do
-
-  ! --- E2F1 ---
 
   SELECT CASE(MODELG)
   CASE(0,12)
@@ -567,21 +584,16 @@ SUBROUTINE CMCALC(NE)
         do J=1,3
            do I=1,3
               CM1(I,J)=CM1(I,J) &
-!
-                      -(CII*real(NPH)) &
+                      -(CII*RKZ*RR) &
                        *(-B(J) &
                           *(AW(I)-BW(I)*Z(K)) &
                          +C(J)&
                           *(CW(I)-BW(I)*R(K))) &
                         *S*AIF1(K)
-!
-!                      -(CII*real(NPH)) &
-!                       *(-(AW(I)-BW(I)*Z(K))/RR) &
-!                        *S*AIF2(J,K)
            end do
         end do
      end do
-  CASE(2)
+  CASE(1,2)
      do K=1,3
         do J=1,3
            do I=1,3
@@ -607,13 +619,13 @@ SUBROUTINE CMCALC(NE)
      end do
   end do
 
+  ! --- E2F2 ---
+
   do J=1,3
      do I=1,3
         CM1(I,J)=(0.d0,0.d0)
      end do
   end do
-
-  ! --- E2F2 ---
 
   SELECT CASE(MODELG)
   CASE(0,12)
@@ -628,7 +640,7 @@ SUBROUTINE CMCALC(NE)
            end do
         end do
      end do
-  CASE(2)
+  CASE(1,2)
      do K=1,3
         do J=1,3
            do I=1,3

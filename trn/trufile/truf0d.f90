@@ -74,7 +74,7 @@ CONTAINS
     pz_mimp = uf0d(113)%fr0 ! PIMPZ: charge number of the plasma main impurity
 
     ! Determination of main ion which is used for correction of profile.
-    IF(idpgasa .EQV. .FALSE. .OR. idpgasz .EQV. .FALSE.)THEN
+    IF(idpgasa .EQ. .FALSE. .OR. idpgasz .EQ. .FALSE.)THEN
        pa_mion = 2.d0
        pz_mion = 1.d0 ! Deuterium: defalut
 
@@ -89,7 +89,7 @@ CONTAINS
     END IF
 
     ! Determination of main impurity which is used for correction of profile.
-    IF(idpimpa .EQV. .FALSE. .OR. idpimpz .EQV. .FALSE.)THEN
+    IF(idpimpa .EQ. .FALSE. .OR. idpimpz .EQ. .FALSE.)THEN
        pa_mimp = 12.d0
        pz_mimp = 6.d0 ! Carbon: default
 
@@ -176,7 +176,7 @@ CONTAINS
 
     DO nsi = 2, nsum
        num = (nsi-2)*2 + 68 ! see uf0d list: NFAST1A ~ NFAST9Z
-       IF(uf0d(num)%lex .EQV. .TRUE. .AND. uf0d(num+1)%lex .EQV. .TRUE.)THEN
+       IF(uf0d(num)%lex .EQ. .TRUE. .AND. uf0d(num+1)%lex .EQ. .TRUE.)THEN
           IF(0 < uf0d(num)%fr0   .AND.   uf0d(num)%fr0 < pamax .AND.  &
              0 < uf0d(num+1)%fr0 .AND. uf0d(num+1)%fr0 < pzmax)THEN
              idnfastaz(nsi) = .TRUE.
@@ -184,7 +184,7 @@ CONTAINS
        END IF
 
        num = (nsi-2)*2 + 86 ! see uf0d list: NM1A ~ NM9Z
-       IF(uf0d(num)%lex .EQV. .TRUE. .AND. uf0d(num+1)%lex .EQV. .TRUE.)THEN
+       IF(uf0d(num)%lex .EQ. .TRUE. .AND. uf0d(num+1)%lex .EQ. .TRUE.)THEN
           IF(0 < uf0d(num)%fr0   .AND.   uf0d(num)%fr0 < pamax .AND.  &
              0 < uf0d(num+1)%fr0 .AND. uf0d(num+1)%fr0 < pzmax)THEN
              idnmaz(nsi) = .TRUE.
@@ -192,11 +192,11 @@ CONTAINS
        END IF
 
        ! The species can not be idetified in the following case.
-       IF(idnfast(nsi).EQV. .TRUE. .AND. idnfastaz(nsi).EQV. .FALSE.)THEN
+       IF(idnfast(nsi).EQ. .TRUE. .AND. idnfastaz(nsi).EQ. .FALSE.)THEN
           ierr1 = ierr1 + 1
           nsi1  = nsi
        END IF
-       IF(idnm(nsi).EQV. .TRUE. .AND. idnmaz(nsi).EQV. .FALSE.)THEN
+       IF(idnm(nsi).EQ. .TRUE. .AND. idnmaz(nsi).EQ. .FALSE.)THEN
           ierr2 = ierr2 + 1
           nsi2  = nsi
        END IF
@@ -337,16 +337,16 @@ CONTAINS
              nsu_mimp = nsi
           END IF
        END IF
-       IF(idnfast(nsi) .EQV. .TRUE.)THEN
+       IF(idnfast(nsi) .EQ. .TRUE.)THEN
           id_fion = .TRUE.
           nsu_fion = nsi ! for now, just identifier of the existence
        END IF
     END DO
 
     ! the case that the main ion density data can not be found.
-    IF(id_mion .EQV. .FALSE.)THEN
+    IF(id_mion .EQ. .FALSE.)THEN
        DO nsi = 2, nsum
-          IF(idnm(nsi) .EQV. .FALSE.)THEN
+          IF(idnm(nsi) .EQ. .FALSE.)THEN
              idnmaz(nsi) = .TRUE.
 
              nsu_mion = nsi
@@ -364,9 +364,9 @@ CONTAINS
     END IF
 
     ! the case that the main impurity density data can not be found.
-    IF(id_mimp .EQV. .FALSE.)THEN
+    IF(id_mimp .EQ. .FALSE.)THEN
        DO nsi = 3, nsum ! nsi = 2: impurity data should not be stored.
-          IF(idnm(nsi) .EQV. .FALSE.)THEN
+          IF(idnm(nsi) .EQ. .FALSE.)THEN
              idnmaz(nsi) = .TRUE.
 
              nsu_mimp = nsi

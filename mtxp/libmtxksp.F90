@@ -2,6 +2,10 @@
 
       MODULE libmtx
 
+!  for PETSc V3.8
+#include "petsc/finclude/petsc.h"
+      use petsc
+!
       use libmpi
       use commpi
       PRIVATE
@@ -13,6 +17,7 @@
       PUBLIC mtx_set_matrix
       PUBLIC mtx_set_source
       PUBLIC mtx_set_vector
+      PUBLIC mtx_split_operation
       PUBLIC mtx_solve
       PUBLIC mtx_get_vector_j
       PUBLIC mtx_get_vector
@@ -70,15 +75,18 @@
 !     petscviewer.h - viewers
 !     petscis.h     - index sets
 !
-#include "petsc/finclude/petsc.h"
+!  for PETSc V3.8: remove #include 
+!#include "finclude/petsc.h"
 !#include "finclude/petscvec.h"
 !#include "finclude/petscmat.h"
 !#include "finclude/petscpc.h"
 !#include "finclude/petscksp.h"
 !#include "finclude/petscsys.h"
 !#include "finclude/petsckspdef.h"
-#include "petsc/finclude/petscvec.h90"
-!
+
+!  for PETSc V3.8: remove #include 
+!#include "finclude/petscvec.h90"
+
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !                   Variable declarations
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -428,15 +436,20 @@
 
 !  Set operators. Here the matrix that defines the linear system
 !  also serves as the preconditioning matrix.
-      SELECT CASE(itype/2)
-      CASE(0)
+!
+!  for PETSc V3.8, comment out the following
+!
+!      SELECT CASE(itype/2)
+!      CASE(0)
 !         CALL KSPSetOperators(ksp,A,A,DIFFERENT_NONZERO_PATTERN,ierr)
-         CALL KSPSetOperators(ksp,A,A,ierr)
-      CASE(1)
-         CALL KSPSetOperators(ksp,A,A,SAME_NONZERO_PATTERN,ierr)
-      CASE(2)
-         CALL KSPSetOperators(ksp,A,A,SAME_PRECONDITIONER,ierr)
-      END SELECT
+!      CASE(1)
+!         CALL KSPSetOperators(ksp,A,A,SAME_NONZERO_PATTERN,ierr)
+!      CASE(2)
+!         CALL KSPSetOperators(ksp,A,A,SAME_PRECONDITIONER,ierr)
+!      END SELECT
+
+      CALL KSPSetOperators(ksp,A,A,ierr)
+
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_solve: KSPSetOperators: ierr=',ierr
 
@@ -476,7 +489,7 @@
          CALL KSPSetType(ksp,KSPRICHARDSON,ierr)
          CALL KSPRichardsonSetScale(ksp,damping_factor_,ierr)
       CASE(1)
-         CALL KSPSetType(ksp,KSPCHEBYCHEV,ierr)
+         CALL KSPSetType(ksp,KSPCHEBYSHEV,ierr)
          CALL KSPChebyshevSetEigenvalues(ksp,emax_,emin_,ierr)
       CASE(2)
          CALL KSPSetType(ksp,KSPCG,ierr)
@@ -623,7 +636,7 @@
 
       REAL(8),DIMENSION(irange),intent(out):: v
       PetscScalar,pointer:: x_value(:)
-      INTEGER:: j,ierr,imax_
+      INTEGER:: j,ierr
 
       call VecGetArrayF90(x,x_value,ierr)
       IF(ierr.NE.0) WRITE(6,*) &

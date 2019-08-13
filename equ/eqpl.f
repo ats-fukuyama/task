@@ -3,7 +3,7 @@ c
 c
       use bpsd
       use tpxssl_mod
-      public eqpl_init, eqpl_prof, eqpl_get, eqpl_set
+      public eqpl_init, eqpl_prof, eqpl_get, eqpl_put
       private
 c
       type(bpsd_device_type),private,save  :: device_eq
@@ -45,7 +45,7 @@ c
       device_eq%ip=tcu
       device_eq%elip=elip
       device_eq%trig=trig
-      call bpsd_set_data(device_eq,ierr)
+      call bpsd_put_data(device_eq,ierr)
 c
       equ1D%time=0.D0
       if(equ1D%nrmax.ne.nv) then
@@ -126,7 +126,7 @@ c set pressure profiles
          plasmaf%qinv(n)=nut(n)*(2.D0*cnpi)**2
       enddo
 
-      call bpsd_set_plasmaf(plasmaf,ierr)
+      call bpsd_put_plasmaf(plasmaf,ierr)
 
       return
       end subroutine eqpl_prof
@@ -219,7 +219,7 @@ c-----------------------------------------------------------------------
       end subroutine eqpl_get
 c
 c=======================================================================
-      subroutine eqpl_set(ierr)
+      subroutine eqpl_put(ierr)
 c=======================================================================
 c     interface eqiulibrium <>transport                            JAERI
 c         transport grid -> equilibrium grid     
@@ -259,7 +259,7 @@ c
          equ1D%data(n)%pip=hdv(n)/aav(n)/cnmu*(2.D0*cnpi)
          equ1D%data(n)%pit=ckv(n)*sdv(n)/cnmu/(2.D0*cnpi)
       enddo
-      call bpsd_set_equ1D(equ1D,ierr)
+      call bpsd_put_equ1D(equ1D,ierr)
 c
       do n=1,nv
          metric1D%rho(n)=SQRT(hiv(n)/hiv(nv))
@@ -279,7 +279,7 @@ c
          metric1D%data(n)%elip=elv(n)
          metric1D%data(n)%trig=dlv(n)
       enddo
-      call bpsd_set_metric1D(metric1D,ierr)
+      call bpsd_put_metric1D(metric1D,ierr)
 c
          
       call spln(sit,hit,nt,siv,hiv,nv,ww1,0)
@@ -378,7 +378,7 @@ c-----
 c         plasmaf%qinv(n)=nut(n)*(2.D0*cnpi)**2
       enddo
 
-      call bpsd_set_plasmaf(plasmaf,ierr)
+      call bpsd_put_plasmaf(plasmaf,ierr)
 c-----
 c     call spln(cpdt,hit,nt,cpds,hiv,nv,ww1,0)
 c=======================================================================
@@ -455,6 +455,6 @@ c=======================================================================
       vlr2d(ntr2d)=vlt(nro)
 c-----------------------------------------------------------------------
       return
-      end subroutine eqpl_set
+      end subroutine eqpl_put
 c
       end module equpl_mod

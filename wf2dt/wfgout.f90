@@ -191,19 +191,12 @@ SUBROUTINE WFCTOG(CF,ID,KWD)
   if(KID.eq.'R'.or.&
      KID.eq.'I'.or.&
      KID.eq.'C') then
-     DY=(ZNDMAX-ZNDMIN)/(NGYMAX-1)
-     DX=(RNDMAX-RNDMIN)/(NGXMAX-1)
-     DO NGX=1,NGXMAX
-        G2X(NGX)=GCLIP(RNDMIN+DX*(NGX-1))
-     ENDDO
+     CALL WFGMESH
      DO NGY=1,NGYMAX
-        G2Y(NGY)=GCLIP(ZNDMIN+DY*(NGY-1))
-     ENDDO
-     DO NGY=1,NGYMAX
-        Y=ZNDMIN+DY*(NGY-1)
+        Y=G2Y(NGY)
         DO NGX=1,NGXMAX
-           X=RNDMIN+DX*(NGX-1)
-           CALL FEP(X,Y,IE)
+           X=G2X(NGX)
+           IE=IEGZ(NGX,NGY)
            IF(IE.EQ.0) THEN
               GZ(NGX,NGY)=0.0
            ELSE

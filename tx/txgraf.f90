@@ -30,7 +30,7 @@ contains
     use tx_interface, only : TXGRUR, TOUPPER, TXGLOD!, INTG_F
     use tx_ripple, only : ripple
     use libgrf, only : grd1d
-    use libbes, only : besin
+    use libbes, only : besinx
 
     INTEGER(4) :: MODE, NGPR, NGPT, NGPV, NGYR, NQ, NQL, NGF, NGFMAX, I, IST, NGRT, NG, IER, J, NGTL
 !    real(4), dimension(0:NRMAX,0:5,1:NGYRM) :: GYL
@@ -284,7 +284,7 @@ contains
                 DO NY = 1, NYMAX
                    ZZL(NY) = DZ * (NY - 1)
                    AL = SQRT(((RRL(NX) - 2.4)**2 + ZZL(NY)**2) * (2.4 / RRL(NX)))
-                   VAL(NX,NY) = REAL(DltRPnL * BESIN(0,NTCOIL/2.4D0*AL))
+                   VAL(NX,NY) = REAL(DltRPnL * BESINX(0,NTCOIL/2.4D0*AL))
                 END DO
              END DO
 

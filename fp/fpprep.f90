@@ -211,7 +211,7 @@
             VOLR(NR)=2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1)) &
                  *2.D0*PI*RR
          ENDDO
-      CASE(3:4) ! toroidal
+      CASE(3,5,8) ! toroidal
          DO NR=1,NRMAX
             RHOL=RM(NR)
             RHOL1=RG(NR)
@@ -497,7 +497,7 @@
 
       USE libmtx
       IMPLICIT NONE
-      INTEGER:: ierr, NREND1, keys
+      INTEGER:: ierr, NREND1, keys,N
       INTEGER,DIMENSION(nsize):: ima1,ima2,npa1,npa2,nra1,nra2,nma1,nma2,insa1,insa2
 
 !     ----- Check nsize -----
@@ -550,6 +550,12 @@
 !      NSAEND =   (NSAMAX/N_partition_s)*(colors+1)
 
 
+      IF(N_partition_s.GT.NSAMAX) THEN
+         IF(NRANK.EQ.0) &
+              write(6,'(A,2I5)') 'XX N_partition_s.GT.NSAMAX:', &
+              N_partition_s,NSAMAX
+         STOP
+      END IF
       keys=comm_nsa%rankl
       NSASTART = (NSAMAX/N_partition_s)*keys+1 !3D
       NSAEND =   (NSAMAX/N_partition_s)*(keys+1)
@@ -609,6 +615,8 @@
       nmstart= imtxstart !3D
       nmend  = imtxend
 
+      CALL mtx_reset_communicator
+
       CALL mtx_gather1_integer(imtxstart,ima1)
       CALL mtx_gather1_integer(imtxend,  ima2)
       CALL mtx_gather1_integer(npstart,  npa1)
@@ -620,16 +628,17 @@
       CALL mtx_gather1_integer(nsastart,insa1)
       CALL mtx_gather1_integer(nsaend,  insa2)
 
-!      IF(nrank.EQ.0) THEN
-!         write(6,'(A,2I10)') '  imtxsize,imtxwidth=',imtxsize,imtxwidth
-!         write(6,'(A,A,A)') '     nrank   imtxstart   imtxend   npstart    npend', &
-!                          '    nrstart     nrend   nmstart     nmend', &
-!                          '      nsastart      nsaend'
-!         DO N=1,nsize
-!            write(6,'(11I10)') N,ima1(N),ima2(N),npa1(N),npa2(N),nra1(N),nra2(N), &
-!                              nma1(N),nma2(N),insa1(N),insa2(N)
-!         ENDDO
-!      ENDIF
+      IF(nrank.EQ.0) THEN
+         write(6,'(A,2I10)') '  imtxsize,imtxwidth=',imtxsize,imtxwidth
+         write(6,'(A,A,A)') '  nrank imtxstart end  npstart  end', &
+                                   ' nrstart   end  nmstart  end', &
+                                   ' nsastart  end'
+         DO N=1,nsize
+            write(6,'(11I7)') N,ima1(N),ima2(N),npa1(N),npa2(N), &
+                                nra1(N),nra2(N),nma1(N),nma2(N), &
+                                insa1(N),insa2(N)
+         ENDDO
+      ENDIF
 
 !      IF(NRANK.eq.0) WRITE(6,*) "      NRANK, nsa_rank, nr_rank, np_rank, nrnp_rank, nsanp_rank, nsanr_rank"
 !      write(6,'(7I10)') NRANK, comm_nsa%rankl, comm_nr%rankl, &
@@ -731,6 +740,7 @@
 !-------------------------------------------------------------
       SUBROUTINE FNSP_INIT
 
+        USE fpsub
       IMPLICIT NONE
       INTEGER:: NTH,NP,NR,NSA,NS,NSB
       REAL(8):: FL
@@ -741,6 +751,8 @@
             IF(NR.ge.1.and.NR.le.NRMAX)THEN
                DO NP=NPSTARTW,NPENDWM
                   FL=FPMXWL(PM(NP,NS),NR,NS)
+!                  IF(NRANK.EQ.0) WRITE(6,'(A,4I5,1PE12.4)') &
+!                       'NSA,NS,NR,NP,FL=',NSA,NS,NR,NP,FL
                   DO NTH=1,NTHMAX
                      FNSP(NTH,NP,NR,NSA)=FL
                      FNS0(NTH,NP,NR,NSA)=FL
@@ -784,6 +796,7 @@
 !-------------------------------------------------------------
       SUBROUTINE FNSP_INIT_EDGE
 
+      USE fpsub
       IMPLICIT NONE
       INTEGER:: NTH,NP,NR,NSA,NS
       REAL(8):: FL
@@ -1009,7 +1022,6 @@
 
       CALL mtx_broadcast1_real8(ZEFF)
       call mtx_broadcast_real8(tau_ta0,nsamax)
-
 !     ----- set relativistic parameters -----
 
       IF (MODELR.EQ.0) THEN
@@ -1075,20 +1087,14 @@
 
          IF(NRANK.eq.0)THEN
             WRITE(*,'(A,E14.6)') "E_CR on axis=   ", E_CR
-            WRITE(*,'(A,1PE14.6,2E14.6)') &
-                 "E0, tau_se_E0 on axis=   ", Ebeam0, tau_se_E0
-            WRITE(*,'(A,1PE14.6,2E14.6)') &
-                 "E1, tau_se_E0E1, wo E_CR on axis= ", &
+            WRITE(*,'(A,1PE14.6,2E14.6)') "E0, tau_se_E0 on axis=   ", Ebeam0, tau_se_E0
+            WRITE(*,'(A,1PE14.6,2E14.6)') "E1, tau_se_E0E1, wo E_CR on axis= ",&
                  Ebeam1, tau_se_E0E1, tau_se_E0*log(Ebeam0/Ebeam1)*0.5D0
-            WRITE(*,'(A,E14.6)') &
-                 "tau_cx_E1 on axis=   ", tau_cx_E1
+            WRITE(*,'(A,E14.6)') "tau_cx_E1 on axis=   ", tau_cx_E1
          END IF
          IF(NRSTART.eq.NRMAX.and.NPSTART.eq.1.and.NSASTART.eq.1)THEN
-            WRITE(*,'(A,1PE14.6,2E14.6)') &
-                 "E0, tau_se_E0, on edge=   ", Ebeam0, tau_se_E0
-            WRITE(*,'(A,1PE14.6,2E14.6)') &
-                 "E1, tau_se_E0E1, on edge= ", Ebeam1, tau_se_E0E1, &
-                 tau_se_E0*log(Ebeam0/Ebeam1)*0.5D0
+            WRITE(*,'(A,1PE14.6,2E14.6)') "E0, tau_se_E0, on edge=   ", Ebeam0, tau_se_E0
+            WRITE(*,'(A,1PE14.6,2E14.6)') "E1, tau_se_E0E1, on edge= ", Ebeam1, tau_se_E0E1, tau_se_E0*log(Ebeam0/Ebeam1)*0.5D0
             WRITE(*,'(A,E14.6)') "tau_cx_E1 on edge=   ", tau_cx_E1
          END IF
       END IF
@@ -1234,7 +1240,9 @@
       IF(NRANK.eq.0.and.MODEL_disrupt.ne.0)THEN
          CALL display_disrupt_initials
       END IF
+
       CALL FPSSUB
+
       IF(nrank.EQ.0) THEN
          CALL FPSGLB
          CALL FPSPRF
@@ -1338,12 +1346,13 @@
       RNS_DELF(:,:)=0.D0
 !     ----- set parameters for target species -----
       CALL fp_set_normalize_param
+
 !     ----- Initialize velocity distribution function of all species -----
 
       CALL FNSP_INIT     
-
       CALL FNSP_INIT_EDGE
-!      WRITE(6,*) "END INIT"
+      IF(NRANK.EQ.0) WRITE(6,*) 'END INIT'
+
 !     ----- set background f
 
       CALL mtx_set_communicator(comm_nsa)
@@ -1362,6 +1371,7 @@
             CALL SV_WEIGHT_R
         END DO
       END IF
+
 !     ----- set parallel electric field -----
 
       IF(MODEL_DISRUPT.eq.0)THEN

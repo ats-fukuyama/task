@@ -25,7 +25,7 @@ c-----------------------------------------------------------------------
 c=======================================================================
 c            set data to pl
 c-----------------------------------------------------------------------
-      subroutine eq_setpl
+      subroutine eq_putpl
 c
       use bpsd_metric1D
       implicit none
@@ -41,10 +41,10 @@ c-----------------------------------------------------------------------
          metric1D%data(nr)%psip=hiv(nr)
          
 
-      call bpsd_set('metric1D',metric1D)
+      call bpsd_put('metric1D',metric1D)
       deallocate(metricD%data)
       return
-      end subroutine eq_setpl
+      end subroutine eq_putpl
 c=======================================================================
       end module eqplintf_mod
 c=======================================================================

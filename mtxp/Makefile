@@ -17,29 +17,29 @@ all: $(EXEC)
 
 testbnd: $(LIB_MTX_BND) testmtx.o 
 	-$(FLINKER) -g -o testbnd testmtx.o $(LIBX_MTX_BND) \
-	../lib/tasklib.a $(FLIBS)
+	../lib/libtask.a $(FLIBS)
 
 testbndc: $(LIB_MTX_BND) testmtxc.o 
 	-$(FLINKER) -g -o testbndc testmtxc.o $(LIBX_MTX_BND) \
-	../lib/tasklib.a $(FLIBS)
+	../lib/libtask.a $(FLIBS)
 
 testpcg: $(LIB_MTX_PCG) testmtx.o 
 	-$(FLINKER) $(FFLAGS) -o testpcg testmtx.o $(LIBX_MTX_PCG) \
-	../lib/tasklib.a $(FLIBS)
+	../lib/libtask.a $(FLIBS)
 
 
 testdmumps: $(LIB_MTX_MUMPS) testmtx.o
 	-${FLINKER} -g -o testdmumps testmtx.o $(LIBX_MTX_MUMPS) \
-	../lib/tasklib.a $(FLIBS)
+	../lib/libtask.a $(FLIBS)
 
 testzmumps: $(LIB_MTX_MUMPS) testmtxc.o
 	-${FLINKER} -g -o testzmumps testmtxc.o $(LIBX_MTX_MUMPS) \
-	../lib/tasklib.a $(FLIBS)
+	../lib/libtask.a $(FLIBS)
 
 
 testksp: $(LIB_MTX_KSP) testmtx.o
 	-${FLINKER} -g -o testksp testmtx.o $(LIBX_MTX_KSP) \
-	../lib/tasklib.a $(FLIBS)
+	../lib/libtask.a $(FLIBS)
 
 
 testmtx.o: testmtx.f90
@@ -65,6 +65,7 @@ testmtxc.o: testmtxc.f90
 	$(INCLUDE_MTX_PETSC)
 
 clean :
-	-rm -f core a.out *.o *.a ./#* ./*~ ./*.mod ./mod/*.mod
+	-rm -f core a.out *.o *.a *.i90 ./#* ./*~ ./*.mod ./mod/*.mod
+
 veryclean : clean
-	-rm testbnd testbndc testpcg testdmumps testzmumps testksp
+	-rm -f $(EXEC)

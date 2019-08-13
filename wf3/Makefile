@@ -15,7 +15,7 @@ SRCS = wfinit.f wfdiv.f wfant.f wfwave.f wfsolv.f \
 
 OBJS = $(SRCS:.f=.o)
 
-LIBS=wflib.a ../lib/tasklib.a
+LIBS=libwf.a ../lib/libtask.a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -24,11 +24,11 @@ LIBS=wflib.a ../lib/tasklib.a
 
 all: wf
 
-wflib.a: $(OBJS)
-	$(LD) $(LDFLAGS) wflib.a $(OBJS)
+libwf.a: $(OBJS)
+	$(LD) $(LDFLAGS) libwf.a $(OBJS)
 
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
+../lib/libtask.a:
+	(cd ../lib; make libtask.a)
 
 wf : wfcomm.inc $(LIBS) wfmain.o
 	$(FCFIXED) wfmain.o -o $@ $(FFLAGS) $(LIBS) $(FLIBS)

@@ -1,7 +1,7 @@
       module eq_bpsd_mod
 ! interface module with TASK/TR new version
       use bpsd
-      public eq_bpsd_init, eq_bpsd_set, eq_bpsd_get
+      public eq_bpsd_init, eq_bpsd_put, eq_bpsd_get
       private
 
       type(bpsd_device_type),  private,save :: device
@@ -48,7 +48,7 @@
       end subroutine eq_bpsd_init
 
 !=======================================================================
-      subroutine eq_bpsd_set(ierr)
+      subroutine eq_bpsd_put(ierr)
 !=======================================================================
 !     interface eqiulibrium => transport
 !          equilibrium grid => transport grid     
@@ -70,7 +70,7 @@
       device%ip   = RIP
       device%elip = RKAP
       device%trig = RDLT
-      call bpsd_set_data(device,ierr)
+      call bpsd_put_data(device,ierr)
 
       equ1D%nrmax = nrpmax
       do nr=1,nrmax
@@ -82,7 +82,7 @@
          equ1D%data(nr)%pip  = tts(nr)/rmu0
          equ1D%data(nr)%pit  = 0.d0
       enddo
-      call bpsd_set_data(equ1D,ierr)
+      call bpsd_put_data(equ1D,ierr)
 
       metric1D%nrmax = nrpmax
       do nr=1,nrmax
@@ -108,9 +108,9 @@
          metric1D%data(nr)%trig    = fntrgps (rhot(nr)) ! trigpsi on rhot
          metric1D%data(nr)%aveb    = fnavbb  (rhot(nr)) ! avebb   on rhot
       enddo
-      call bpsd_set_data(metric1D,ierr)
+      call bpsd_put_data(metric1D,ierr)
 
-      end subroutine eq_bpsd_set
+      end subroutine eq_bpsd_put
 
 !=======================================================================
       subroutine eq_bpsd_get(ierr)

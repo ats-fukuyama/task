@@ -1,31 +1,17 @@
-!     $Id$
+!     $Id: wfindx.f90,v 1.9 2011/11/06 07:51:15 fukuyama Exp $
 
 !     ***** SORT INDEX FUNCTION ******
 
-FUNCTION FINDEX(X,Y,Z)
+FUNCTION FINDEX(R,Z)
 
   use wfcomm
   implicit none
-  real(8) :: FINDEX,XN,X,YN,Y,ZN,Z
+  real(8) :: FINDEX,RN,R,ZN,Z
 
-  XN=(X-XNDMIN)/(XNDMAX-XNDMIN)
-  YN=(Y-YNDMIN)/(YNDMAX-YNDMIN)
+  RN=(R-RNDMIN)/(RNDMAX-RNDMIN)
   ZN=(Z-ZNDMIN)/(ZNDMAX-ZNDMIN)
-  IF(MODELS.EQ.0) THEN
-     FINDEX=1.001D0*XN+0.999D0*YN+ZN
-  ELSEIF(MODELS.EQ.1) THEN
-     FINDEX=1.D3*XN+1.001D0*YN+0.999D0*ZN
-  ELSEIF(MODELS.EQ.2) THEN
-     FINDEX=0.999D0*XN+1.D3*YN+1.001D0*ZN
-  ELSEIF(MODELS.EQ.3) THEN
-     FINDEX=1.001D0*XN+0.999D0*YN+1.D3*ZN
-  ELSEIF(MODELS.EQ.4) THEN
-     FINDEX=XN+1.001D3*YN+0.999D3*ZN
-  ELSEIF(MODELS.EQ.5) THEN
-     FINDEX=0.999D3*XN+YN+1.001D3*ZN
-  ELSEIF(MODELS.EQ.6) THEN
-     FINDEX=1.001D3*XN+0.999D3*YN+ZN
-  ENDIF
+  FINDEX=0.999D3*RN+ZN
+
   RETURN
 END FUNCTION FINDEX
 
@@ -36,23 +22,20 @@ SUBROUTINE WFINDX
   use wfcomm
   implicit none
   integer :: NE,IN,NN
-  real(8) :: XC,YC,ZC,FINDEX
+  real(8) :: RC,ZC,FINDEX
   EXTERNAL WFSRTS,WFSRTX
 
-  CALL WFVLIM
+  CALL WFSLIM
   call wfsrt_allocate
-  
   DO NE=1,NEMAX
-     XC=0.D0
-     YC=0.D0
+     RC=0.D0
      ZC=0.D0
-     DO IN=1,4
+     DO IN=1,3
         NN=NDELM(IN,NE)
-        XC=XC+XND(NN)
-        YC=YC+YND(NN)
-        ZC=ZC+ZND(NN)
+        RC=RC+RNODE(NN)
+        ZC=ZC+ZNODE(NN)
      ENDDO
-     SINDEX(NE)=FINDEX(0.25D0*XC,0.25D0*YC,0.25D0*ZC)
+     SINDEX(NE)=FINDEX(0.333D0*RC,0.333D0*ZC)
   ENDDO
   
   DO NE=1,NEMAX
@@ -72,19 +55,21 @@ SUBROUTINE WFINDX
   DO NE=1,NEMAX
      IWELM(IVELM(NE))=NE
   ENDDO
+
 !  DO NE=1,NEMAX
 !     WRITE(6,'(A,3I8,1P,E12.4)') &
 !          &        'NE,IV,IW,SINDEX=',NE,IVELM(NE),IWELM(NE),SINDEX(NE)
 !  ENDDO
+
   DO NE=1,NEMAX
      if (nrank.eq.0) then
         IF(IWELM(NE).EQ.0) WRITE(6,*) 'XXXX IWELM UNDEFINED'
      end if
   ENDDO
   
-  CALL WFVLIM
-  CALL WFVELM
-  
+  CALL WFSLIM
+  CALL WFSELM
+
   RETURN
 END SUBROUTINE WFINDX
 
@@ -95,25 +80,22 @@ SUBROUTINE WFFEPI
   use wfcomm
   implicit none
   integer :: NE,IN,NN
-  real(8) :: SINDXL(4),XNDL(4),YNDL(4),ZNDL(4),FINDEX
+  real(8) :: SINDXL(3),RNDL(3),ZNDL(3),FINDEX
   real(8) :: SMAX,SMIN
 
   DO NE=1,NEMAX
-     DO IN=1,4
+     DO IN=1,3
         NN=NDELM(IN,NE)
-        SINDXL(IN)=FINDEX(XND(NN),YND(NN),ZND(NN))
-        XNDL(IN)=XND(NN)
-        YNDL(IN)=YND(NN)
-        ZNDL(IN)=ZND(NN)
+        SINDXL(IN)=FINDEX(RNODE(NN),ZNODE(NN))
+        RNDL(IN)=RNODE(NN)
+        ZNDL(IN)=ZNODE(NN)
      ENDDO
-     SINDEX_MIN(NE)=MIN(SINDXL(1),SINDXL(2),SINDXL(3),SINDXL(4))
-     SINDEX_MAX(NE)=MAX(SINDXL(1),SINDXL(2),SINDXL(3),SINDXL(4))
-     XEMIN(NE)=MIN(XNDL(1),XNDL(2),XNDL(3),XNDL(4))
-     XEMAX(NE)=MAX(XNDL(1),XNDL(2),XNDL(3),XNDL(4))
-     YEMIN(NE)=MIN(YNDL(1),YNDL(2),YNDL(3),YNDL(4))
-     YEMAX(NE)=MAX(YNDL(1),YNDL(2),YNDL(3),YNDL(4))
-     ZEMIN(NE)=MIN(ZNDL(1),ZNDL(2),ZNDL(3),ZNDL(4))
-     ZEMAX(NE)=MAX(ZNDL(1),ZNDL(2),ZNDL(3),ZNDL(4))
+     SINDEX_MIN(NE)=MIN(SINDXL(1),SINDXL(2),SINDXL(3))
+     SINDEX_MAX(NE)=MAX(SINDXL(1),SINDXL(2),SINDXL(3))
+     REMIN(NE)=MIN(RNDL(1),RNDL(2),RNDL(3))
+     REMAX(NE)=MAX(RNDL(1),RNDL(2),RNDL(3))
+     ZEMIN(NE)=MIN(ZNDL(1),ZNDL(2),ZNDL(3))
+     ZEMAX(NE)=MAX(ZNDL(1),ZNDL(2),ZNDL(3))
   ENDDO
   
   SMAX=SINDEX_MAX(1)
@@ -130,64 +112,18 @@ SUBROUTINE WFFEPI
   RETURN
 END SUBROUTINE WFFEPI
 
-!     ******* FIND ELEMENT INCLUDING NODES N1,N2,N3 *******
+!     ******* FIND ELEMENT INCLUDING NODES N1,N2 *******
 
-SUBROUTINE EFINDK(IES,N1,N2,N3,IE)
+SUBROUTINE EFINDS(IES,N1,N2,IE)
 
   use wfcomm
   implicit none
-  integer :: IES,NELMIN,NELMAX,I,J,K,ND1,N1,L,ND2,N2,M,ND3,N3,IE
-  real(8) :: SIDX1,FINDEX,SIDX2,SIDX3,SIDX_MIN,SIDX_MAX
+  integer,intent(in):: IES,N1,N2
+  integer,intent(out):: IE
+  integer :: I,J,K,ND1,L,ND2
 
-  
   IF(IES.LT.0.OR.IES.GT.NEMAX) GOTO 9000
-  
-  SIDX1=FINDEX(XND(N1),YND(N1),ZND(N1))
-  SIDX2=FINDEX(XND(N2),YND(N2),ZND(N2))
-  SIDX3=FINDEX(XND(N3),YND(N3),ZND(N3))
-  SIDX_MIN=MIN(SIDX1,SIDX2,SIDX3)
-  SIDX_MAX=MAX(SIDX1,SIDX2,SIDX3)
-  
-  IF(SIDX_MAX.GT.SINDEX_MAX(NEMAX)) THEN
-     NELMIN=NEMAX
-10   IF(SINDEX_MAX(NELMIN-1).EQ.SINDEX_MAX(NEMAX)) THEN
-        NELMIN=NELMIN-1
-        IF(NELMIN.GT.1) GOTO 10
-     ENDIF
-  ELSEIF(SIDX_MAX.LT.SINDEX_MAX(1)) THEN
-     NELMIN=1
-  ELSE
-     CALL WFLCAT_MAX(SINDEX_MAX,NEMAX,SIDX_MAX,NELMIN)
-  ENDIF
-  
-  IF(SIDX_MIN.LT.SINDEX_MIN(1)) THEN
-     NELMAX=1
-20   IF(SINDEX_MIN(NELMAX+1).EQ.SINDEX_MIN(1)) THEN
-        NELMAX=NELMAX+1
-        IF(NELMAX.LT.NEMAX) GOTO 20
-     ENDIF
-  ELSEIF(SIDX_MIN.GT.SINDEX_MIN(NEMAX)) THEN
-     NELMAX=NEMAX
-  ELSE
-     CALL WFLCAT_MIN(SINDEX_MIN,NEMAX,SIDX_MIN,NELMAX)
-  ENDIF
-  
-  IF(IES.LT.NELMIN.OR.IES.GT.NELMAX) THEN
-     if (nrank.eq.0) WRITE(6,*) 'XX NELMIN,IES,NELMAX=',NELMIN,IES,NELMAX
-!         WRITE(6,'(A,1P3E12.4)') &
-!     &              'MIN:',SINDEX_MIN(1),SIDX_MIN,SINDEX_MIN(NEMAX)
-!         WRITE(6,'(A,1P3E12.4)') &
-!     &              'MAX:',SINDEX_MAX(1),SIDX_MAX,SINDEX_MAX(NEMAX)
-!         WRITE(6,'(A,I5,1P3E12.4)') 'N1,X,Y,Z=', &
-!     &                               N1,XND(N1),YND(N1),ZND(N1)
-!         WRITE(6,'(A,I5,1P3E12.4)') 'N2,X,Y,Z=', &
-!     &                               N2,XND(N2),YND(N2),ZND(N2)
-!         WRITE(6,'(A,I5,1P3E12.4)') 'N3,X,Y,Z=', &
-!     &                               N3,XND(N3),YND(N3),ZND(N3)
-     IES=(NELMIN+NELMAX)/2
-  ENDIF
-  
-  DO I=1,MAX(NELMAX-IES,IES-NELMIN)
+  DO I=1,MAX(NEMAX-IES,IES)
      DO J=1,2
         IF(J.EQ.1) THEN
            IE=IES+I
@@ -195,17 +131,12 @@ SUBROUTINE EFINDK(IES,N1,N2,N3,IE)
            IE=IES-I
         ENDIF
         IF(IE.GE.1.AND.IE.LE.NEMAX) THEN
-           DO K=1,4
+           DO K=1,3
               ND1=NDELM(K,IE)
               IF(ND1.EQ.N1) THEN
-                 DO L=1,4
+                 DO L=1,3
                     ND2=NDELM(L,IE)
-                    IF(ND2.EQ.N2) THEN
-                       DO M=1,4
-                          ND3=NDELM(M,IE)
-                          IF(ND3.EQ.N3) RETURN
-                       ENDDO
-                    ENDIF
+                    IF(ND2.EQ.N2) RETURN
                  ENDDO
               ENDIF
            ENDDO
@@ -217,74 +148,34 @@ SUBROUTINE EFINDK(IES,N1,N2,N3,IE)
   RETURN
   
 9000 IE=0
-  if (nrank.eq.0) WRITE(6,*) 'XX EFINDK: 9000'
-  RETURN
-  
-! 9001 IE=0
-!      WRITE(6,*) 'XX EFINDK: 9001'
-!      WRITE(6,'(1P3E12.4)') SINDEX_MAX(1),SIDX_MAX,SINDEX_MAX(NEMAX)
-!      RETURN
-
-! 9002 IE=0
-!      WRITE(6,*) 'XX EFINDK: 9002'
-!      WRITE(6,'(1P3E12.4)') SINDEX_MIN(1),SIDX_MIN,SINDEX_MIN(NEMAX)
-!      RETURN
-END SUBROUTINE EFINDK
-
-!     ******* FIND SUFACE INCLUDING NODES N1,N2 *******
-
-SUBROUTINE EFINDS(NSF,N1,N2,ISF)
-
-  use wfcomm
-  implicit none
-  integer :: NSF,I,J,K,ND1,N1,L,ND2,N2,ISF
-
-  IF(NSF.LT.0.OR.NSF.GT.NSFMAX) GOTO 9000
-  DO I=1,MAX(NSFMAX-NSF,NSF)
-     DO J=1,2
-        IF(J.EQ.1) THEN
-           ISF=NSF+I
-        ELSE
-           ISF=NSF-I
-        ENDIF
-        IF(ISF.GE.1.AND.ISF.LE.NSFMAX) THEN
-           DO K=1,3
-              ND1=NDSRF(K,ISF)
-              IF(ND1.EQ.N1) THEN
-                 DO L=1,3
-                    ND2=NDSRF(L,ISF)
-                    IF(ND2.EQ.N2) RETURN
-                 ENDDO
-              ENDIF
-           ENDDO
-        ENDIF
-     ENDDO
-  ENDDO
-  
-  ISF=0
-  RETURN
-  
-9000 ISF=0
   RETURN
 END SUBROUTINE EFINDS
 
-!     ******* FIND ELEMENT INCLUDING POINT (X,Y) *******
+!     ******* FIND ELEMENT INCLUDING POINT (R,Z) *******
 
-SUBROUTINE FEP(X,Y,Z,IE)
+SUBROUTINE FEP(R,Z,IE)
 
   use wfcomm
   implicit none
-  integer :: IE,ICOUNT,INMIN,NN1,NN2,NN3,NELMAX,NELMIN,IES,I,IDELT,J
-  real(8) :: EPS,X,Y,Z,WGT(4),WGTMIN,XC,YC,ZC,RES,SIDX,FINDEX
-  DATA EPS/1.D-12/
+  real(8),intent(in) :: R,Z
+  integer,intent(inout):: IE
+  integer :: ICOUNT,INMIN,NN1,NN2,NN3,NELMAX,NELMIN,IES,I,IDELT,J
+  real(8),parameter :: EPS = 1.d-12
+  real(8) :: WGT(3),WGTMIN,RC,ZC,RES,SIDX,FINDEX
+  INTEGER:: IN,NN
   
-  IF(IE.NE.0) THEN
+  IF(IE.NE.0) THEN   ! with initial guess
+
+!    move to a neighboring element colser to the point
+
      ICOUNT=0
      
 1000 CONTINUE
      ICOUNT=ICOUNT+1
-     IF(ICOUNT.GT.NEMAX/4)  GOTO 2000
-     CALL WFWGT(X,Y,Z,IE,WGT)
+     IF(ICOUNT.GT.NEMAX/3)  GOTO 2000 ! Could not find, try another method
+
+     CALL WFWGT(IE,R,Z,WGT)
+
      WGTMIN=WGT(1)
      INMIN=1
      IF(WGT(2).LT.WGTMIN) THEN
@@ -295,37 +186,30 @@ SUBROUTINE FEP(X,Y,Z,IE)
         WGTMIN=WGT(3)
         INMIN=3
      ENDIF
-     IF(WGT(4).LT.WGTMIN) THEN
-        WGTMIN=WGT(4)
-        INMIN=4
-     ENDIF
-     
-     IF(IDEBUG.NE.0) THEN
-        NN1=NDELM(1,IE)
-        NN2=NDELM(2,IE)
-        NN3=NDELM(3,IE)
-        XC=(XND(NN1)+XND(NN2)+XND(NN3))/3.D0
-        YC=(YND(NN1)+YND(NN2)+YND(NN3))/3.D0
-        ZC=(ZND(NN1)+ZND(NN2)+ZND(NN3))/3.D0
-        RES=SQRT((X-XC)**2+(Y-YC)**2+(Z-ZC)**2)
-        if (nrank.eq.0) WRITE(6,'(A,I5,1P5E12.4)') 'IE,WGT:', &
-             &              IE,WGT(1),WGT(2),WGT(3),WGT(4),RES
+
+     IF(IDEBUG.EQ.2) THEN
+        if (nrank.eq.0) THEN
+           WRITE(6,'(A,I8,1P5E12.4)') 'IE,WGT,R,Z:', &
+                        IE,WGT(1),WGT(2),WGT(3),R,Z
+           DO IN=1,3
+              NN=NDELM(IN,IE)
+              WRITE(6,'(A,3I8,1P2E12.4)') 'IE,IN,NN,R,Z,:', &
+                        IE,IN,NN,RNODE(NN),ZNODE(NN)
+           END DO
+        END if
      ENDIF
      
      IF(WGTMIN.GE.-EPS) RETURN
      
      IE=KNELM(INMIN,IE)
-     IF(IE.LE.0) GOTO 2000
+     IF(IE.LE.0) GOTO 2000 ! out of region
      GOTO 1000
   ENDIF
-  
-2000 SIDX=FINDEX(X,Y,Z)
-  if (nrank.eq.0) then
-     IF(IDEBUG.NE.0) WRITE(6,'(A,1P3E12.4)') 'SIDX:MIN=',&
-          &     SIDX,SINDEX_MIN(1),SINDEX_MIN(NEMAX)
-     IF(IDEBUG.NE.0) WRITE(6,'(A,1P3E12.4)') 'SIDX:MAX=',&
-          &     SIDX,SINDEX_MAX(1),SINDEX_MAX(NEMAX)
-  end  if
+
+! without initial guess or could not find by sequential scheme
+! find the element using the index of elements
+
+2000 SIDX=FINDEX(R,Z)
   IF(SIDX.GE.SINDEX_MIN(1)) THEN
      IF(SIDX.GT.SINDEX_MIN(NEMAX)) THEN
         NELMAX=NEMAX
@@ -340,32 +224,23 @@ SUBROUTINE FEP(X,Y,Z,IE)
         ENDIF
         
         IES=(NELMIN+NELMAX)/2
-        if (nrank.eq.0) then
-           IF(IDEBUG.NE.0) WRITE(6,*) 'IE,NELMIN,NELMAX=',IE,NELMIN,NELMAX
-        end if
         DO I=0,MAX(NELMAX-IES,IES-NELMIN)+1
            IDELT=I
            DO J=1,2
               IDELT=-IDELT
               IE=IES+IDELT
               IF(IE.GE.1.AND.IE.LE.NEMAX) THEN
-!               WRITE(6,'(A,1P3E12.4)') 'X:',XEMIN(IE),X,XEMAX(IE)
-!               WRITE(6,'(A,1P3E12.4)') 'Y:',YEMIN(IE),Y,YEMAX(IE)
-!               WRITE(6,'(A,1P3E12.4)') 'Z:',ZEMIN(IE),Z,ZEMAX(IE)
-                 CALL WFWGT(X,Y,Z,IE,WGT)
-                 if (nrank.eq.0) then
-                    IF(IDEBUG.NE.0) WRITE(6,'(A,I8,1PE12.4)')&
-                         &                 'IE,WGTMIN=',IE,WGTMIN
-                 end if
-                 IF(X.GE.XEMIN(IE).AND.X.LE.XEMAX(IE).AND.&
-                      &            Y.GE.YEMIN(IE).AND.Y.LE.YEMAX(IE).AND.&
-                      &            Z.GE.ZEMIN(IE).AND.Z.LE.ZEMAX(IE)) THEN
-                    CALL WFWGT(X,Y,Z,IE,WGT)
-                    WGTMIN=MIN(WGT(1),WGT(2),WGT(3),WGT(4))
+                 IF(R.GE.REMIN(IE).AND.R.LE.REMAX(IE).AND.&
+                  & Z.GE.ZEMIN(IE).AND.Z.LE.ZEMAX(IE)) THEN
+                    CALL WFWGT(IE,R,Z,WGT)
+                    WGTMIN=MIN(WGT(1),WGT(2),WGT(3))
                     if (nrank.eq.0) then
-                       IF(IDEBUG.NE.0) WRITE(6,'(A,I8,1PE12.4)')&
-                            &                 'IE,WGTMIN=',IE,WGTMIN
-                    end if
+                       IF(IDEBUG.EQ.2) THEN
+                          WRITE(6,'(A,I8,1P3E12.4)') &
+                                     'IE,R,Z,WGTMIN=', &
+                                      IE,R,Z,WGTMIN
+                       end if
+                    END if
                     IF(WGTMIN.GE.-EPS) RETURN
                  ENDIF
               ENDIF

@@ -16,7 +16,8 @@
       COMPLEX(rkind),DIMENSION(:,:),POINTER:: &  !(0:NITMAXM,NRAYMAX)
            CEXS,CEYS,CEZS
       REAL(rkind),DIMENSION(:,:),POINTER:: &  !(0:NITMAXM,NRAYMAX)
-           RKXS,RKYS,RKZS,RXS,RYS,RZS,RAYRB1,RAYRB2
+           RKXS,RKYS,RKZS,RXS,RYS,RZS,RAYRB1,RAYRB2, &
+           BNXS,BNYS,BNZS,BABSS
       REAL(rkind),DIMENSION(:,:,:),POINTER:: &  !(0:8,0:NITMAXM,NRAYMAX)
            RAYS
 
@@ -59,6 +60,10 @@
       ALLOCATE(RZS(0:NITMAXM,NRAYMAX))
       ALLOCATE(RAYRB1(0:NITMAXM,NRAYMAX))
       ALLOCATE(RAYRB2(0:NITMAXM,NRAYMAX))
+      ALLOCATE(BNXS(0:NITMAXM,NRAYMAX))
+      ALLOCATE(BNYS(0:NITMAXM,NRAYMAX))
+      ALLOCATE(BNZS(0:NITMAXM,NRAYMAX))
+      ALLOCATE(BABSS(0:NITMAXM,NRAYMAX))
       ALLOCATE(RAYS(0:8,0:NITMAXM,NRAYMAX))
 
       ALLOCATE(PSIX(0:NITMAXM,NRAYMAX))
@@ -110,6 +115,9 @@
       IF(ASSOCIATED(RZS)) DEALLOCATE(RZS)
       IF(ASSOCIATED(RAYRB1)) DEALLOCATE(RAYRB1)
       IF(ASSOCIATED(RAYRB2)) DEALLOCATE(RAYRB2)
+      IF(ASSOCIATED(BNXS)) DEALLOCATE(BNXS)
+      IF(ASSOCIATED(BNYS)) DEALLOCATE(BNYS)
+      IF(ASSOCIATED(BNZS)) DEALLOCATE(BNZS)
       IF(ASSOCIATED(RAYS)) DEALLOCATE(RAYS)
 
       IF(ASSOCIATED(PSIX))  DEALLOCATE(PSIX)
@@ -144,6 +152,7 @@
       SUBROUTINE fp_wr_read(IERR)
 
       USE plprof
+      USE libfio
       USE libmpi
       USE libmtx
       IMPLICIT NONE
@@ -211,6 +220,10 @@
             DO I=0,8
                READ(21) (RAYS(I,NIT,NRAY),NIT=0,NITMAX(NRAY))
             ENDDO
+            READ(21) (BNXS(NIT,NRAY) ,NIT=0,NITMAX(NRAY))
+            READ(21) (BNYS(NIT,NRAY) ,NIT=0,NITMAX(NRAY))
+            READ(21) (BNZS(NIT,NRAY) ,NIT=0,NITMAX(NRAY))
+            READ(21) (BABSS(NIT,NRAY) ,NIT=0,NITMAX(NRAY))
          ENDDO
          CLOSE(21)
          WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
@@ -230,6 +243,10 @@
          CALL mtx_broadcast_real8(RZS(0:NITMAX(NRAY),NRAY),NITMAX(NRAY)+1)
          CALL mtx_broadcast_real8(RAYRB1(0:NITMAX(NRAY),NRAY),NITMAX(NRAY)+1)
          CALL mtx_broadcast_real8(RAYRB2(0:NITMAX(NRAY),NRAY),NITMAX(NRAY)+1)
+         CALL mtx_broadcast_real8(BNXS(0:NITMAX(NRAY),NRAY),NITMAX(NRAY)+1)
+         CALL mtx_broadcast_real8(BNYS(0:NITMAX(NRAY),NRAY),NITMAX(NRAY)+1)
+         CALL mtx_broadcast_real8(BNZS(0:NITMAX(NRAY),NRAY),NITMAX(NRAY)+1)
+         CALL mtx_broadcast_real8(BABSS(0:NITMAX(NRAY),NRAY),NITMAX(NRAY)+1)
          DO I=0,8
             IF(nrank.EQ.0) THEN
                DO NIT=0,NITMAX(NRAY)
@@ -246,6 +263,13 @@
       ENDDO
       DEALLOCATE(rdata)
 
+!      NRAY=1
+!      DO NIT=NITMAX(NRAY)-10,NITMAX(NRAY)
+!         CALL pl_mag(RXS(NIT,NRAY),RYS(NIT,NRAY),RZS(NIT,NRAY),RHON,MAG)
+!         WRITE(6,'(A,I5,1P5E12.4)') 'NIT,X,Y,Z,B,B=',NIT, &
+!              RXS(NIT,NRAY),RYS(NIT,NRAY),RZS(NIT,NRAY), &
+!              MAG.BABS,BABSS(NIT,NRAY)
+!      END DO
 !     ----- Calculate spline coefficients -----
 !
       ALLOCATE(CFD(0:NITMAXM))
@@ -253,8 +277,8 @@
       DO NRAY=1,NRAYMAX
          NITMX=NITMAX(NRAY)
          DO NIT=0,NITMX
-            CALL pl_mag(RXS(NIT,NRAY),RYS(NIT,NRAY),RZS(NIT,NRAY),RHON,MAG)
-            PSIX(NIT,NRAY)=RHON**2
+            CALL pl_mag(RXS(NIT,NRAY),RYS(NIT,NRAY),RZS(NIT,NRAY),MAG)
+            PSIX(NIT,NRAY)=MAG%RHON**2
             SI(NIT,NRAY)=RAYS(0,NIT,NRAY)
          ENDDO
 
@@ -282,6 +306,7 @@
             NCR=0
             DO NIT=1,NITMX
                PSIL=PSIX(NIT,NRAY)
+!               WRITE(6,'(A,2I5,1P3E12.4)') 'RAY-PSI:',NR,NIT,PSIPRE,PSIL,PSICR
                IF((PSIPRE-PSICR)*(PSIL-PSICR).LT.0.D0.OR. &
                    PSIL-PSICR.EQ.0.D0) THEN
                   CALL FPCROS(PSICR,NIT,NRAY,SICR)

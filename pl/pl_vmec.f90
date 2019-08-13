@@ -13,17 +13,17 @@ subroutine pl_vmec(file_name,ierr)
 
   use def_kind
   implicit none
-  character(len=*),intent(in):: file_name
+  character(len=*),intent(inout):: file_name
   integer(kind=ikind),intent(out):: ierr
 
-  call set_equil(file_name,ierr)
+  call put_equil(file_name,ierr)
   if(ierr.ne.0) return
-  call set_bpsd
+  call put_bpsd
   return
 
 end subroutine pl_vmec
 
-subroutine set_equil(file_name,ierr)
+subroutine put_equil(file_name,ierr)
 
 !
 !  read wout-file by vmec2000 and calculate S11, S12, <B2>, p', V', and so on.
@@ -32,9 +32,10 @@ subroutine set_equil(file_name,ierr)
   use def_kind
   use def_param
   use var_equil3D
+  USE libfio
   implicit none
 
-  character(len=*),intent(in):: file_name
+  character(len=*),intent(inout):: file_name
   integer(kind=ikind),intent(out):: ierr
   character(len=80)   :: cdummy
   real(kind=rkind)    :: dummy
@@ -413,10 +414,10 @@ subroutine set_equil(file_name,ierr)
 
   close(8)
 
-end subroutine set_equil
+end subroutine put_equil
 
 !=======================================================================
-      subroutine set_bpsd
+      subroutine put_bpsd
 
       use def_kind
       use def_param
@@ -447,7 +448,7 @@ end subroutine set_equil
       device%ip=Itorf(ns)
       device%trig=0.d0
       bpsd_debug_flag=.true.
-      call bpsd_set_data(device,ierr)
+      call bpsd_put_data(device,ierr)
       bpsd_debug_flag=.false.
 
       equ1D%time=0.D0
@@ -478,7 +479,7 @@ end subroutine set_equil
          equ1D%data(nr+1)%pit=Itorf(nr)
       enddo
 
-      call bpsd_set_data(equ1D,ierr)
+      call bpsd_put_data(equ1D,ierr)
 
       do nr=0,ns
          metric1D%rho(nr+1)=sqrt(s(nr))
@@ -499,7 +500,7 @@ end subroutine set_equil
          metric1D%data(nr+1)%elip=device%elip
          metric1D%data(nr+1)%trig=0.d0
       enddo
-      call bpsd_set_data(metric1D,ierr)
-      end subroutine set_bpsd
+      call bpsd_put_data(metric1D,ierr)
+      end subroutine put_bpsd
 
 end module pl_vmec_mod

@@ -109,7 +109,7 @@ CONTAINS
 !        PTITB : Temperature increment at ITB                  (keV)
 !        PUITB : Toroidal rotation velocity increment at ITB   (m/s)
 
-!        KIDNS : index of particle species
+!        KID_NS: index of particle species
 !        IDION :  1 = fast ion particle
 !                 0 = else                                                     
 

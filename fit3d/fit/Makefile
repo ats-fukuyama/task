@@ -19,9 +19,9 @@ OBJS = $(SRCSFREE:.f90=.o) $(SRCSFIXED:.f=.o)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : fitlib.a
+all : libfit.a
 
-fitlib.a: $(OBJS)
+libfit.a: $(OBJS)
 	$(LD) $(LDFLAGS) $@ $(OBJS)
 
 clean :

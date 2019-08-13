@@ -4,7 +4,6 @@ C     ****** PSI ******
 C
       SUBROUTINE WFSPSI(X,Y,PSIN)
 C
-      USE libbes,ONLY: besin
       INCLUDE 'wfcomm.inc'
 C
       SELECT CASE(MODELB)
@@ -30,7 +29,7 @@ C     ****** MAGNETIC FIELD PROFILE ******
 C
       SUBROUTINE WFBMAG(X,Y,BABS,AL)
 C
-      USE libbes,ONLY: BESIN
+      USE libbes,ONLY: BESINX
       INCLUDE 'wfcomm.inc'
 C
       DIMENSION BLO(3),AL(3)
@@ -51,8 +50,8 @@ C
          A0=0.5D0*(1.D0+RMIR)*BB
          A1=0.5D0*(1.D0-RMIR)*BB
          RL=0.5D0*PI*X/ZBB
-         BLO(1)=  -A1*SIN(PI*Y/ZBB)*BESIN(1,RL)
-         BLO(2)=A0+A1*COS(PI*Y/ZBB)*BESIN(0,RL)
+         BLO(1)=  -A1*SIN(PI*Y/ZBB)*BESINX(1,RL)
+         BLO(2)=A0+A1*COS(PI*Y/ZBB)*BESINX(0,RL)
          BLO(3)=0.D0
       ELSEIF(MODELB.EQ.4) THEN
          A0=0.5D0*(1.D0+RMIR)*BB
@@ -112,7 +111,7 @@ C     ****** MAGNETIC FLUX PROFILE ******
 C
       SUBROUTINE WFBPSI(X,Y,PSI)
 C
-      USE libbes,ONLY: besin
+      USE libbes,ONLY: besinx
       INCLUDE 'wfcomm.inc'
 C
       IF(MODELB.EQ.0) THEN
@@ -126,7 +125,7 @@ C
          A1=0.5D0*(1.D0-RMIR)*BB
          RL = PI* X/ZBB
          ZL = PI* Y/ZBB
-         PSI = 0.5D0*A0*X *X +A1*(ZBB/PI)**2*COS(ZL)*RL *BESIN(1,RL )
+         PSI = 0.5D0*A0*X *X +A1*(ZBB/PI)**2*COS(ZL)*RL *BESINX(1,RL )
       ELSEIF(MODELB.EQ.4) THEN
          A0=0.5D0*(1.D0+RMIR)*BB
          A1=0.5D0*(1.D0-RMIR)*BB

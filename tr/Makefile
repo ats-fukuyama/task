@@ -7,18 +7,20 @@ include ../make.header
 #FFLAGS = -g $(OFLAGS)
 FFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD)
-EQLIBS=../eq/eqlib.a
-PLLIBS=../../bpsd/bpsdlib.a ../plx/pllib.a 
+MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD) -I../eq/$(MOD) \
+	    -I../pl/$(MOD)
+EQLIBS=../eq/libeq.a
+PLLIBS=../../bpsd/libbpsd.a ../pl/libpl.a 
 
 SRC90M=trcom0.f90 trcom1.f90 trcomm.f90 tr_bpsd.f90
-SRC90=trinit.f90 trprof.f90 trufsub.f90 trufile.f90 trfile.f90 trhelp.f90 \
-      trexec.f90 trcalc.f90 cdbm.f90 trmodels.f90 trcoef.f90 tritg.f90 \
+SRC90=trinit.f90 trparm.f90 trprep.f90  \
+      trprof.f90 trufsub.f90 trufile.f90 trfile.f90 trhelp.f90 \
+      trexec.f90 trcalc.f90 \
+      tradat.f90 cdbm.f90 trmodels.f90 trcoef.f90 tritg.f90 \
       trrslt.f90 trpnb.f90 trprf.f90 trpnf.f90 trpel.f90 trpsc.f90 trmdlt.f90 \
       trgout.f90 trgrar.f90 trgrat.f90 trgrap.f90 trgrae.f90 \
       trgrad.f90 trgram.f90 trgsub.f90 trfout.f90 \
-      trunit.f90 trloop.f90 trmenu.f90 \
-
+      trunit.f90 trloop.f90 trmenu.f90
 
 SRCITG= glf/callglf2d.f \
         itg/ifspppl_model.f itg/weiland.f
@@ -34,7 +36,8 @@ SRCNC=trncls.f nclass/nclass_mod.f nclass/rarray_sum.f \
 INCNC=trncls.inc nclass/pamx_mi.inc nclass/pamx_ms.inc nclass/pamx_mz.inc
 INCGLF=trglf.inc glf/glf.m
 SRCCYT=cytran/cytran_mod.f90 cytran/tr_cytran_mod.f90
-SRCMMM=mmm95/stripx.f mmm95/tomsqz.f mmm95/weiland14.f mmm95/mmm95.f
+SRCMMM95=mmm95/stripx.f mmm95/tomsqz.f mmm95/weiland14.f mmm95/mmm95.f
+SRCMMM7=libmmm7_1/w20mod.f90 libmmm7_1/modmmm7_1.f90
 SRCMBGB=mbgb/mixed_Bohm_gyro_Bohm.f
 
 OBJM= $(SRC90M:.f90=.o)
@@ -43,14 +46,14 @@ OBJE=$(SRCE:.f=.o)
 OBJL=$(SRCL:.f=.o)
 OBJNC=$(SRCNC:.f=.o)
 OBJCYT=$(SRCCYT:.f90=.o)
-OBJMMM=$(SRCMMM:.f=.o)
+OBJMMM=$(SRCMMM95:.f=.o) $(SRCMMM7:.f90=.o)
 OBJMBGB=$(SRCMBGB:.f=.o)
 OBJTR=$(OBJM) $(OBJE) $(OBJL) $(OBJNC) $(OBJCYT) $(OBJMMM) $(OBJMBGB) $(OBJS)
 OBJ2D=$(SRC2D:.f90=.o)
 OBJ3D=$(SRC3D:.f90=.o)
 
-LIBS2=../lib/tasklib.a ../lib/mdslib.a $(PLLIBS) $(EQLIBS) tr2lib.a
-LIBS3=../lib/tasklib.a ../lib/mdslib.a $(PLLIBS) $(EQLIBS) tr3lib.a  
+LIBS2=../lib/libtask.a ../lib/libmds.a $(PLLIBS) $(EQLIBS) libtr2.a
+LIBS3=../lib/libtask.a ../lib/libmds.a $(PLLIBS) $(EQLIBS) libtr3.a  
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -60,74 +63,57 @@ LIBS3=../lib/tasklib.a ../lib/mdslib.a $(PLLIBS) $(EQLIBS) tr3lib.a
 #all: libs tr2 tr3
 all: libs tr2
 
-tr2lib.a: $(OBJTR) $(OBJ2D) $(INCNC) $(INCGLF)
-	$(LD) $(LDFLAGS) tr2lib.a $(OBJTR) $(OBJ2D)
+libtr2.a: $(OBJTR) $(OBJ2D) $(INCNC) $(INCGLF)
+	$(LD) $(LDFLAGS) libtr2.a $(OBJTR) $(OBJ2D)
 
-tr3lib.a: $(OBJTR) $(OBJ3D) $(INCNC) $(INCGLF)
-	$(LD) $(LDFLAGS) tr3lib.a $(OBJTR) $(OBJ3D)
+libtr3.a: $(OBJTR) $(OBJ3D) $(INCNC) $(INCGLF)
+	$(LD) $(LDFLAGS) libtr3.a $(OBJTR) $(OBJ3D)
 
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
-../lib/mdslib.a:
-	(cd ../lib; make mdslib.a)
-../../bpsd/bpsdlib.a:
-	(cd ../../bpsd; make bpsdlib.a)
-../plx/pllib.a:
-	(cd ../plx; make pllib.a)
-../eq/eqlib.a:
+../lib/libtask.a:
+	(cd ../lib; make libtask.a)
+../lib/libmds.a:
+	(cd ../lib; make libmds.a)
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
+../pl/libpl.a:
+	(cd ../pl; make libpl.a)
+../eq/libeq.a:
 	(cd ../eq; make eqlib.a)
 
 libs:
-	(cd ../lib; make tasklib.a)
-	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../plx; make pllib.a)
-	(cd ../eq; make eqlib.a)
+	(cd ../lib; make libtask.a)
+	(cd ../../bpsd; make libbpsd.a)
+	(cd ../pl; make libpl.a)
+	(cd ../eq; make libeq.a)
 
-tr2: trcom2.o trcom3.o $(LIBS2) trmain.o 
-	$(FCFREE) trmain.o trcom2.o trcom3.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(MODULE) $(MODO) $(MODINCLUDE)
+tr2: $(LIBS2) trmain.o 
+	$(FCFREE) trmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(MODULE) $(MODO) $(MODINCLUDE)
 
-tr3: trcom2.o trcom3.o $(LIBS3) trmain.o 
-	$(FCFREE) trmain.o trcom2.o trcom3.o $(LIBS3) -o $@ $(FFLAGS) $(FLIBS) $(MODINCLUDE)
+tr3: $(LIBS3) trmain.o 
+	$(FCFREE) trmain.o $(LIBS3) -o $@ $(FFLAGS) $(FLIBS) $(MODINCLUDE)
 
-xtr: trcom2.o trcom3.o $(LIBS2) xtr.o 
-	$(FCFREE) xtr.o trcom2.o trcom3.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(MODULE) $(MODO) $(MODINCLUDE)
+xtr: $(LIBS2) xtr.o 
+	$(FCFREE) xtr.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(MODULE) $(MODO) $(MODINCLUDE)
 
 check : $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRCNC) $(FCKPIPE) | less
 
 clean : 
-	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm95/*.o mbgb/*.o a.out core *.a *.mod $(MOD)/*.mod
+	-rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm95/*.o libmmm7_1/*.o mbgb/*.o a.out core *.a *.mod $(MOD)/*.mod
 
 veryclean : clean
-	rm -f tr2 tr3
+	-rm -f tr2 tr3
 
 distclean: clean
-	cd ../plx && make clean
+	cd ../pl && make clean
 	cd ../eq && make clean
 	cd ../lib && make clean
 
-new :
-	-mkdir ../trnew
-	cp Makefile ../trnew
-	-cp -f HISTORY ../trnew
-	cp *.f ../trnew
-	cp *.inc ../trnew
-	-mkdir ../trnew/itg
-	-cp -f itg/*.f ../trnew/itg
-	-mkdir ../trnew/glf
-	-cp -f glf/*.f ../trnew/glf
-	-cp -f glf/*.m ../trnew/glf
-	-cp -f glf/*.F ../trnew/glf
-	-cp -f glf/*.h ../trnew/glf
-	-mkdir ../trnew/nclass
-	-cp -f nclass/*.f ../trnew/nclass
-	-cp -f nclass/*.inc ../trnew/nclass
-	-mkdir ../trnew/doc
-	-cp -f doc/* ../trnew/doc
-
 trmain.o : trmain.f90 trcomm.f90  
 trmenu.o : trmenu.f90 trcomm.f90 trcom1.f90 trunit.f90
-trinit.o : trinit.f90 trcomm.f90 trcom1.f90 trcom3.f90
+trinit.o : trinit.f90 trcomm.f90 trcom1.f90
+trparm.o : trparm.f90 trcomm.f90 trcom1.f90
+trprep.o : trprep.f90 trcomm.f90 trcom1.f90
 trprof.o : trprof.f90 trcomm.f90 trcom1.f90
 trfile.o : trfile.f90 trcomm.f90 trcom1.f90
 trufile.o : trufile.f90 trcomm.f90 trcom1.f90
@@ -135,7 +121,7 @@ trufsub.o : trufsub.f90 trcomm.f90 trcom1.f90
 trloop.o : trloop.f90 trcomm.f90 trcom1.f90
 trexec.o : trexec.f90 trcomm.f90 trcom1.f90
 trpl.o : trpl.f90 trcomm.f90 trcom1.f90
-trrslt.o : trrslt.f90 trcomm.f90 trcom2.f90
+trrslt.o : trrslt.f90 trcomm.f90
 trcalc.o : trcalc.f90 trcomm.f90 trcom1.f90
 trcoef.o : trcoef.f90 trcomm.f90 trglf.inc
 trpnb.o  : trpnb.f90  trcomm.f90 
@@ -186,4 +172,6 @@ mmm95/stripx.o: mmm95/stripx.f
 mmm95/tomsqz.o: mmm95/tomsqz.f
 mmm95/weiland14.: mmm95/weiland14.f
 mmm95/mmm95.o: mmm95/mmm95.f
+libmmm7_1/w20mod.o: libmmm7_1/w20mod.f90
+libmmm7_1/modmmm7_1.o: libmmm7_1/modmmm7_1.f90 libmmm7_1/w20mod.f90
 mbgb/mixed_Bohm_gyro_Bohm.o: mbgb/mixed_Bohm_gyro_Bohm.f

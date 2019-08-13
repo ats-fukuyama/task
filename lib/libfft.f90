@@ -3,6 +3,10 @@ MODULE libfft
   PRIVATE
   PUBLIC CFFT2D,CFFT1D,FFT2L,cdft,rdft,ddct,ddst,dfct,dfst
 
+  REAL(8),DIMENSION(:),ALLOCATABLE:: RFFT
+  INTEGER,DIMENSION(:),ALLOCATABLE:: LFFT
+  INTEGER:: N_SAVE=0
+
 CONTAINS
 
 !     ****** Complex FFT2D ******
@@ -22,7 +26,7 @@ CONTAINS
          STOP
       ENDIF
 
-      DO n2=1,n2
+      DO n2=1,n2max
          DO n1=1,n1max
             CA1(n1)=CA(n1,n2)
          ENDDO
@@ -53,11 +57,7 @@ CONTAINS
       COMPLEX(8),INTENT(IN),DIMENSION(N):: CA
       COMPLEX(8),INTENT(OUT),DIMENSION(N):: CB
       INTEGER,INTENT(IN):: N,KEY
-      REAL(8),DIMENSION(:),POINTER:: RFFT
-      INTEGER,DIMENSION(:),POINTER:: LFFT
-      INTEGER,SAVE:: NS
       INTEGER:: IND
-      DATA NS/0/
 
       IF(key.ne.0.AND.key.ne.1) THEN
          WRITE(6,*) 'XX cfft1d ERROR: key is not 0 or 1'
@@ -65,17 +65,19 @@ CONTAINS
       ENDIF
 
       IF(N.NE.1) THEN
-         IF(N.EQ.NS) THEN
+         IF(N.EQ.N_SAVE) THEN
             IND=0
          ELSE
-            IF(N.GT.NS) THEN
-               IF(NS.NE.0) DEALLOCATE(RFFT,LFFT)
+            IF(N.GT.N_SAVE) THEN
+               IF(N_SAVE.NE.0) DEALLOCATE(RFFT,LFFT)
                ALLOCATE(RFFT(N),LFFT(N))
             ENDIF
             IND=1
-            NS=N
+            N_SAVE=N
          ENDIF
          CALL FFT2L(CA,CB,RFFT,LFFT,N,IND,KEY)
+      ELSE
+         CB(1)=CA(1)
       ENDIF
 
       RETURN
@@ -90,11 +92,7 @@ CONTAINS
       COMPLEX(8),INTENT(IN),DIMENSION(N):: CA
       COMPLEX(8),INTENT(OUT),DIMENSION(N):: CB
       INTEGER,INTENT(IN):: N,KEY
-      REAL(8),DIMENSION(:),POINTER:: RFFT
-      INTEGER,DIMENSION(:),POINTER:: LFFT
-      INTEGER,SAVE:: NS
       INTEGER:: IND
-      DATA NS/0/
 
       IF(key.ne.0.AND.key.ne.1) THEN
          WRITE(6,*) 'XX cfft1d ERROR: key is not 0 or 1'
@@ -102,15 +100,15 @@ CONTAINS
       ENDIF
 
       IF(N.NE.1) THEN
-         IF(N.EQ.NS) THEN
+         IF(N.EQ.N_SAVE) THEN
             IND=0
          ELSE
-            IF(N.GT.NS) THEN
-               IF(NS.NE.0) DEALLOCATE(RFFT,LFFT)
+            IF(N.GT.N_SAVE) THEN
+               IF(N_SAVE.NE.0) DEALLOCATE(RFFT,LFFT)
                ALLOCATE(RFFT(N),LFFT(N))
             ENDIF
             IND=1
-            NS=N
+            N_SAVE=N
          ENDIF
          CALL FFT2L(CA,CB,RFFT,LFFT,N,IND,KEY)
       ENDIF

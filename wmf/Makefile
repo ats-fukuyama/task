@@ -1,5 +1,14 @@
 ### $Id$ ###
 include ../make.header
+include ../mtxp/make.mtxp
+LIB_MTX=$(LIB_MTX_BND)
+LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_PCG)
+#LIB_MTX=$(LIB_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIB_MTX=$(LIBXMTX_KSP)
+#LIBX_MTX=$(LIBX_MTX_KSP)
 
 #FFLAGS = $(OFLAGS)
 FFLAGS = $(DFLAGS)
@@ -7,19 +16,7 @@ FFLAGS = $(DFLAGS)
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-##### Without PETSc library (no MPI, real8 and complex8) #####
-FLINKER=$(FCFREE)
-LIBNOMPI=../mtxp/libmtxnompi.o
-LIBMTXP=$(LIBNOMPI) ../mtxp/libmtxbnd.o
-LIBMUMPSX=.
-
-##### With MUMPS library (MPI, real8 and complex8)
-#FLINKER=$(MF90)
-#LIBMPI=../mtxp/libmtxmpi.o
-#LIBMTXP=$(LIBMPI) ../mtxp/libmtxmumps.o
-#LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lblacs -lparmetis -lmetis -llapack -lblas
-
-MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
+MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
             -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
 SRCFIXED1 = wmfem_comm.f  ../eq/wmeqin.f
@@ -41,8 +38,8 @@ SRCS = $(SRC0)
 
 OBJS = $(SRCFIXED1:.f=.o) $(SRCFREE1:.f90=.o) $(SRCFIXED2:.f=.o) $(SRCFREE2:.f90=.o) $(SRCFIXED3:.f=.o) 
 
-LIB0 = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a \
-       ../eq/eqlib.a ../dp/dplib.a
+LIB0 = ../lib/libtask.a ../../bpsd/libbpsd.a ../plx/libpl.a \
+       ../eq/libeq.a ../dp/libdp.a
 
 LIBS = $(LIBMTXP) ../mpi/mpilib.o ../mtx/mtxlib.a $(LIB0) wmlib.a  
 

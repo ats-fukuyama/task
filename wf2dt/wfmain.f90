@@ -23,9 +23,13 @@
 
 program wfmain
   
-  use wfcomm
-  use libmtx
+  USE wfcomm
+  USE plinit
+  USE wfinit
+  USE wfparm
+  USE libmtx
   implicit none
+  INTEGER:: ierr
   
   ! --- initialize ---
   call mtx_initialize
@@ -39,9 +43,10 @@ program wfmain
   end if
 
   call setaif
-  call wfinit
+  CALL pl_init
+  call wf_init
 
-  if (nrank.eq.0) call wfparf
+  if (nrank.eq.0) call wf_parm(1,'wfparm',IERR)
   call wfparm_broadcast
 
   ! --- menu ---

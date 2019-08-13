@@ -1,0 +1,95 @@
+2010/01/06
+        Fusion reaction extended for D-He3
+
+2005/12/06
+	The accuracy of the derivatives and the extrapolations are
+          improved to include the Aitken-Neville method for inter- and
+          extrapolation and the formula having the second-order accuracy
+	  applied not only to the simple boundary conditions but also
+          to the coefficients of the band matrix.
+	The model of trapped partcle fraction is fixed, which is Kim
+          model.
+	The model of radial electric field is fixed, which is Waltz
+          model.
+
+2004/12/10
+	TASK/TR can implement one dimensional modelling tests of
+	  the mean and the mean square deviations of the predictions
+ 	  for stored energies(AVERW, RW), and the standard 
+	  deviations(STD) and offsets(OFF) for electron and ion
+          (you can see details in Ncl. Fus. Vol.39, No.12 p2219-2222 
+          (1999)).
+	The procedure is the following:
+	  1. Run TASK/TR.
+	  2. Push the key of 'M' if it pauses then it writes out
+	     pre-statistical analysis datafile named 
+             '(device)(shot#).dat'.
+	  3. Iterate this procedure until datafiles of each shot
+ 	     you'd like to survey are accumulated.
+	  4. Implement perl script 'trstat' which gathers all files
+  	     which have the extention names of 'dat' in a current
+             directory then you can get 'stat_results' file.
+	  5. Make a graph with, for instance, Kaleida graph or something
+	     kind of that to read 'stat_results'.
+	You can use perl script 'trclsf' if you'd like to put it into
+	  sections in order to show an analysis graph topically.
+
+2003/11/18
+	The NCLASS module is added, which calculates the neoclassical
+	  transport properties of a multi-species axisymmetric plasma of
+	  arbitrary aspect ratio, geometry and collisionality.
+	The NCLASS module for TR consists of header file, trncls.inc, 
+ 	  subroutine file, trncls.f, and original files in "nclass"
+	  directory.
+	The NCLASS module calculate the following parameters.
+	*****
+	  Neoclassical plasma resistivity: ETA
+	  Bootstrap current:               <J_bs.B> or coefficients
+	  Heat conduction coefficients:    p'/p and T'/T
+	  Diffusion coefficients:          p'/p and T'/T
+	  Heat convection velocity:        <E.B>
+	  Particle convection velocity:    <E.B>
+	  Radial heat conduction flux components: 
+		m=1, banana-plateau, p' and T'
+		m=2, Pfirsch-Schluter
+	 	m=3, classical
+		m=4, banana-plateau, <E.B>
+		m=5, banana-plateau, external parallel force
+	  Radial particle flux components: 
+		m=1, banana-plateau, p' and T'
+		m=2, Pfirsch-Schluter
+	 	m=3, classical
+		m=4, banana-plateau, <E.B>
+		m=5, banana-plateau, external parallel force
+	*****
+	We must compute a complete matrix of coefficients of n and T.
+	Please note that NCLASS switch parameter, MDNCLS, is prioritized
+	  over other its parameters like MDLETA, MDLAD, MDLJBS, MDLAVK, 
+	  MDLKNC, CNC and so on.
+
+2003/11/10
+	Sauter's approximate equations are added, which are neoclassical
+	  conductivity and bootstrap current formulas for general 
+	  axisymmetric equilibria and arbitrary collisionality regime.
+	This formulas are used when we calculate bootstrap current and
+	  neoclassical plasma resistivity.
+
+2003/10/23
+	The GLF23 model for Ion Temperature Gradient (ITG) and Trapped
+          Electron Mode (TEM) modes is added. 
+	This model calculates anomalous transport coefficients and includes
+	  the effect of magnetic shear and Shafranov shift stabilization
+	  in addition to ExB rotational shear stabilization.
+	I think this model was built in TR successfully, but it doesn't work
+	  well. The cause of this is not apparently understood.
+	We can select the two way of use, one is a normal version and 
+	  the other is the version called diffusion-convection method.
+ 	  They say that this method makes numerical instabilities 
+	  greatly depressed, however it also did not work well.
+
+2003/10/**
+	TR can calculate neutral particle transport.
+	The representations of collisional cross-sections are not understood
+	  well, especially in terms of the use of a maxwell distribution 
+	  function.
+	I produced sole use ionization subroutine for neutral transport.

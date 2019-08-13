@@ -1,0 +1,40 @@
+MODULE w1prep
+
+CONTAINS
+
+!     ****** SUBSTITUTION BY VIRUE OF SYMMETRY IN Z-DIRECTION ******
+
+  SUBROUTINE W1SYMS(NZ)
+
+    USE w1comm
+    IMPLICIT NONE
+    INTEGER:: NZ 
+    INTEGER:: NZ0,NX
+    INTEGER:: NS
+
+    NZ0 = NZMAX +2 -NZ
+
+    IF(NSYM.EQ.1) THEN
+       DO NX = 1, NXMAX
+          CE2DA(NZ,NX,1) =  CE2DA(NZ0,NX,1)
+          CE2DA(NZ,NX,2) =  CE2DA(NZ0,NX,2)
+          CE2DA(NZ,NX,3) = -CE2DA(NZ0,NX,3)
+       END DO
+    ELSE IF(NSYM.EQ.-1) THEN
+       DO NX = 1, NXMAX
+          CE2DA(NZ,NX,1) = -CE2DA(NZ0,NX,1)
+          CE2DA(NZ,NX,2) = -CE2DA(NZ0,NX,2)
+          CE2DA(NZ,NX,3) =  CE2DA(NZ0,NX,3)
+       END DO
+    END IF
+    PAKT(NZ,1) =  PAKT(NZ0,1)
+    PAKT(NZ,2) =  PAKT(NZ0,2)
+    PAKT(NZ,3) =  PAKT(NZ0,3)
+    CPANTK(NZ) =  CPANTK(NZ0)
+    DO NS = 1, NSMAX
+       PAK(NZ,NS) =  PAK(NZ0,NS)
+    END DO
+
+    RETURN
+  END SUBROUTINE W1SYMS
+END MODULE w1prep

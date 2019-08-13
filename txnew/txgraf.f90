@@ -80,7 +80,7 @@ contains
   !***************************************************************
   
   SUBROUTINE TXGOUT
-    use libbes, only : BESIN
+    use libbes, only : BESINX
     use libgrf, only : GRD1D
     use tx_commons, only : T_TX, TPRE, NQMAX, NRMAX, rhob, RA, PI, RR, NRA, thrp, kappa, &
          &                 IRPIN, DltRPn, NTCOIL, DltRP_mid, DltRP, epst, rho, ieqread
@@ -349,7 +349,7 @@ contains
 !!$                DO NY = 1, NYMAX
 !!$                   ZZL(NY) = DZ * (NY - 1)
 !!$                   AL = SQRT(((RRL(NX) - 2.4)**2 + ZZL(NY)**2) * (2.4 / RRL(NX)))
-!!$                   VAL(NX,NY) = REAL(DltRPnL * BESIN(0,NTCOIL/2.4D0*AL))
+!!$                   VAL(NX,NY) = REAL(DltRPnL * BESINX(0,NTCOIL/2.4D0*AL))
 !!$                END DO
 !!$             END DO
 !!$

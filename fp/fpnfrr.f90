@@ -221,13 +221,22 @@
 
          NSB1=NSB1_NF(ID)
          NSB2=NSB2_NF(ID)
-         NS1=NS_NSB(NSB1)
-         NS2=NS_NSB(NSB2)
+         IF(NSB1.ne.0)THEN
+            NS1=NS_NSB(NSB1)
+         ELSE
+            NS1=0
+         END IF
+         IF(NSB2.ne.0)THEN
+            NS2=NS_NSB(NSB2)
+         ELSE
+            NS2=0
+         END IF
 
 !     ---- identify whether reaction can be described or not ----
 
-         IF(NSB1.NE.0.AND.NSB2.NE.0.AND.NSA1_NF(ID).NE.0) THEN
-
+!         IF(NSB1.NE.0.AND.NSB2.NE.0.AND.NSA1_NF(ID).NE.0) THEN
+         IF(NSB1.NE.0.AND.NSB2.NE.0) THEN
+         IF(NSA1_NF(ID).ne.0.or.NSA2_NF(ID).ne.0)THEN
 !         WRITE(6,*) 'NF_REACTION_COEF:'
 !         WRITE(6,'(A,5I5)') 'ID,NSB1,NSB2,NSA1_NF(ID),NSA2_NF(ID)=', &
 !                             ID,NSB1,NSB2,NSA1_NF(ID),NSA2_NF(ID)
@@ -322,7 +331,7 @@
             ENDDO
 
             ENDIF ! MODELS=3
-
+         END IF
          ENDIF
       ENDDO ! ID
 
@@ -444,7 +453,7 @@
       CALL mtx_reset_communicator
 
       IF((N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP).and.NR.eq.1.and.NPSTART.eq.1)THEN
-         WRITE(6,'(A,3I4)') '|-NF_REACTION_RATE:', nrank, comm_nr%rank, comm_nsa%rank
+         WRITE(6,'(A,E14.6,3I4)') '|-NF_REACTION_RATE:', TIMEFP, nrank, comm_nr%rank, comm_nsa%rank
          WRITE(6,'(A,I5,A,2I5,A,2I5)') '   |-ID,NSB1,NSB2 -> NSA1,NSA2=' &
               ,ID,':  ',NSB1,NSB2,' -> ',NSA1,NSA2
          WRITE(6, *) "  |-ID,  NR,NSB1,NSB2,  <sigma*v>,      ENG1_NF,      RATE_NF,   RATE_NF_BB"
@@ -514,6 +523,8 @@
       END DO
 
       CALL mtx_reset_communicator
+
+!      WRITE(*,'(A,4I5,E14.6)') "TEST ", NRANK, NPSTART, NRSTART, NSASTART, RATE_NF(NRSTART,1)
 
       END SUBROUTINE ALLREDUCE_NF_RATE
 !===========================================================

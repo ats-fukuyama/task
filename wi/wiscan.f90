@@ -42,6 +42,7 @@ CONTAINS
          xmax,pn0,nxmax,nwmax,kfscan
     USE wiexec,ONLY: wi_exec
     USE libgrf,ONLY: grd1d
+    USE libfio,ONLY: fwopen
     
     IMPLICIT NONE
     INTEGER(ikind),INTENT(OUT):: ierr
@@ -89,6 +90,7 @@ CONTAINS
     USE wiprep,ONLY: wi_prep
     USE wigout,ONLY: wi_gra1
     USE libgrf,ONLY: grd1d
+    USE libfio,ONLY: fwopen
     
     IMPLICIT NONE
     INTEGER(ikind),INTENT(OUT):: ierr

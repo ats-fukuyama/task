@@ -8,7 +8,8 @@ C                    Email: fukuyama@nucleng.kyoto-u.ac.jp
 C                  URL: http://p-grp.nucleng.kyoto-u.ac.jp/wm/
 C***********************************************************************
 C
-      USE plinit,ONLY:pl_init,pl_parm
+      USE plinit,ONLY:pl_init
+      USE plparm,ONLY:pl_parm
       USE equnit_mod,ONLY:eq_init
       USE fpinit,ONLY:fp_init,fp_parm
       USE commpi

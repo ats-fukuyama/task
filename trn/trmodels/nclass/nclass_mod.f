@@ -165,7 +165,7 @@
         GOTO 1000
       ENDIF
 !     Highest charge state at least 1 but not greater than mx_mz
-      IF(m_z.lt.1.or.m_i.gt.mx_mz) THEN
+      IF(m_z.lt.1.or.m_z.gt.mx_mz) THEN
         iflag=3
         GOTO 1000
       ENDIF
@@ -1367,6 +1367,7 @@
         xnz2(im)=xnz2(im)+iz**2*den_iz(im,iza)
       ENDDO
       DO i=1,m_i
+         write(6,*) 'nclass_mod:1370',i,xn(i),xnz(i)
         xz(i)=xnz(i)/xn(i)
       ENDDO
       DO im=1,m_i

@@ -1,10 +1,10 @@
 ### $Id$ ###
 include ../make.header
 
-#FFLAGS=-g $(OFLAGS)
-FFLAGS=$(DFLAGS)
+FFLAGS=-g $(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
-MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../plx/$(MOD) -I../lib/$(MOD)
+MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD) -I../lib/$(MOD)
 
 SRCX = equcom.f90 equread.f90
 SRCS = eqbpsd.f eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f \
@@ -25,8 +25,8 @@ OBJA = $(SRCA:.f=.o)
 OBJ2D=$(SRC2D:.f=.o)
 OBJ3D=$(SRC3D:.f=.o)
 
-LIBS2 = ../plx/pllib.a eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
-LIBS3 = ../plx/pllib.a eq3lib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
+LIBS2 = ../pl/libpl.a libeq.a ../lib/libtask.a ../../bpsd/libbpsd.a
+LIBS3 = ../pl/pllib.a libeq3.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
 .SUFFIXES: .f90
 
@@ -38,22 +38,22 @@ LIBS3 = ../plx/pllib.a eq3lib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
 all : eq
 
 
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
-../../bpsd/bpsdlib.a:
-	(cd ../../bpsd; make bpsdlib.a)
-../plx/pllib.a:
-	(cd ../plx; make pllib.a)
-eqlib.a: $(OBJS) $(OBJ2D)
-	(cd ../plx; make plcomm.o)
-	$(LD) $(LDFLAGS) eqlib.a $(OBJS) $(OBJ2D)
-eq3lib.a: $(OBJS) $(OBJ3D)
-	$(LD) $(LDFLAGS) eq3lib.a $(OBJS) $(OBJ3D)
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
+../lib/libtask.a:
+	(cd ../lib; make libtask.a)
+../pl/libpl.a:
+	(cd ../pl; make libpl.a)
+libeq.a: $(OBJS) $(OBJ2D)
+	(cd ../pl; make plcomm.o)
+	$(LD) $(LDFLAGS) libeq.a $(OBJS) $(OBJ2D)
+libeq3.a: $(OBJS) $(OBJ3D)
+	$(LD) $(LDFLAGS) libeq3.a $(OBJS) $(OBJ3D)
 
 libs:
-	(cd ../lib; make tasklib.a)
-	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../plx; make pllib.a)
+	(cd ../lib; make libtask.a)
+	(cd ../../bpsd; make libbpsd.a)
+	(cd ../pl; make libpl.a)
 
 eq: $(LIBS2) eqmain.o
 	$(FCFIXED) eqmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)

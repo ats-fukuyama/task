@@ -1,0 +1,205 @@
+! vmcomm.f90
+
+MODULE vmcomm
+
+  USE bpsd_kinds
+  IMPLICIT NONE
+  PUBLIC 
+
+  INTEGER:: mnmax
+  INTEGER:: nsrmax
+  INTEGER:: ntheta
+  INTEGER:: nzeta
+  INTEGER:: mpol
+  INTEGER:: ntor
+
+  INTEGER:: nsd,nsrm,nsrmp,nmnm,nsmnm,ntz,nmax,nmin,mnd,mnsd
+  INTEGER:: nthpts,nrt,npl
+
+  REAL(rkind),ALLOCATABLE:: XM(:),XN(:),RMNC(:),ZMNS(:)
+  REAL(rkind),ALLOCATABLE:: RLMNS(:),BMOD(:),RGMOD(:)
+  REAL(rkind),ALLOCATABLE:: BSU(:),BSV(:)
+  REAL(rkind),ALLOCATABLE:: RIOTAS(:),RMASS(:),PRES(:)
+  REAL(rkind),ALLOCATABLE:: PHIPS(:),BPCO(:),BACO(:)
+  REAL(rkind),ALLOCATABLE:: PHI(:),RCHI(:),VP(:)
+  REAL(rkind),ALLOCATABLE:: RJTHETA(:),RJZETA(:),SPECW(:)
+  REAL(rkind),ALLOCATABLE:: XS(:),XSH(:),XSHRHO(:)
+  REAL(rkind),ALLOCATABLE:: BBOZH(:,:)
+  REAL(rkind),ALLOCATABLE:: RBOZH(:,:)
+  REAL(rkind),ALLOCATABLE:: ZBOZH(:,:)
+  REAL(rkind),ALLOCATABLE:: PBOZH(:,:)
+  REAL(rkind),ALLOCATABLE:: SHALF(:),WJS(:),WIS(:)
+
+  REAL(rkind),ALLOCATABLE:: BSQ1(:,:),PHIMOD(:),PHIMOD2(:)
+  REAL(rkind),ALLOCATABLE:: LMNS(:),BETAP(:),BPOL(:),BTOR1(:)
+  REAL(rkind),ALLOCATABLE:: BZCO(:)
+  REAL(rkind),ALLOCATABLE:: UB(:),IXM(:),IXN(:)
+
+  REAL(rkind),ALLOCATABLE:: RJTOR(:)
+  REAL(rkind),ALLOCATABLE:: RJROL(:)
+  REAL(rkind):: RGAM,VOLI
+
+  REAL(rkind),ALLOCATABLE:: FSQT(:),WDOT(:),AMVM(:)
+  INTEGER:: MN0,NTOR0
+  REAL(rkind)::HS,OHS,DNORM,RC
+
+  REAL(rkind),ALLOCATABLE:: YRBS(:),YZBS(:)
+  REAL(rkind),ALLOCATABLE:: R1DATA(:),R2DATA(:,:),R3DATA(:,:)
+
+  REAL(rkind),ALLOCATABLE:: SRMNC(:,:),DRMNC(:,:)
+  REAL(rkind),ALLOCATABLE:: SZMNS(:,:),DZMNS(:,:)
+  REAL(rkind),ALLOCATABLE:: SPMNS(:,:),DPMNS(:,:)
+  REAL(rkind),ALLOCATABLE:: SBMNC(:,:),DBMNC(:,:)
+  REAL(rkind),ALLOCATABLE:: RMNCC(:,:),ZMNSS(:,:)
+
+  REAL(rkind),ALLOCATABLE:: BSTH(:,:),BSPH(:,:)
+  REAL(rkind),ALLOCATABLE:: U1(:,:,:),FX1(:)
+  REAL(rkind),ALLOCATABLE:: U2(:,:,:),FX2(:)
+  REAL(rkind),ALLOCATABLE:: U3(:,:,:),FX3(:)
+  REAL(rkind),ALLOCATABLE:: U4(:,:,:),FX4(:)
+  REAL(rkind),ALLOCATABLE:: U5(:,:),FX5(:)
+  REAL(rkind),ALLOCATABLE:: U6(:,:),FX6(:)
+  REAL(rkind),ALLOCATABLE:: BSTHSV(:),BSTHSD(:)
+  REAL(rkind),ALLOCATABLE:: BSPHSV(:),BSPHSD(:)
+
+CONTAINS
+
+  SUBROUTINE wm_allocate_vm
+
+    USE wmcomm,ONLY: rkind,nrmax
+    IMPLICIT NONE
+    INTEGER,SAVE:: mnmax_save=0
+    INTEGER,SAVE:: nsrmax_save=0
+    INTEGER,SAVE:: ntheta_save=0
+    INTEGER,SAVE:: nzeta_save=0
+    INTEGER,SAVE:: mpol_save=0
+    INTEGER,SAVE:: ntor_save=0
+    INTEGER,SAVE:: nrmax_save=0
+    INTEGER,SAVE:: init=0
+
+    IF(INIT.NE.0) THEN
+       IF(mnmax.EQ.mnmax_SAVE.AND. &
+          nsrmax.EQ.nsrmax_save.AND. &
+          ntheta.EQ.ntheta_save.AND. &
+          nzeta.EQ.nzeta_save.AND. &
+          mpol.EQ.mpol_save.AND. &
+          ntor.EQ.ntor_save.AND. &
+          nrmax.EQ.nrmax_save) RETURN
+       CALL wm_deallocate_vm
+    END IF
+
+    nsd=nsrmax
+    nsrm=nsrmax
+    nsrmp=nsrm+3
+    nmnm=mnmax
+    nsmnm=nsrmp*nmnm
+    ntz=ntheta*nzeta
+    nmax=ntor
+    nmin=-nmax
+    mnd=mpol*(2*nmax+1)
+    mnsd=mpol*(2*nmax+1)*nsrmax
+
+    nthpts=49
+    nrt=nsd*nthpts
+    npl=nrt-nthpts
+
+    ALLOCATE(XM(NSMNM),XN(NSMNM),RMNC(NSMNM),ZMNS(NSMNM))
+    ALLOCATE(RLMNS(NSMNM),BMOD(NSMNM),RGMOD(NSMNM))
+    ALLOCATE(BSU(NSMNM),BSV(NSMNM))
+    ALLOCATE(RIOTAS(NSRMP),RMASS(NSRMP),PRES(NSRMP))
+    ALLOCATE(PHIPS(NSRMP),BPCO(NSRMP),BACO(NSRMP))
+    ALLOCATE(PHI(NSRMP),RCHI(NSRMP),VP(NSRMP))
+    ALLOCATE(RJTHETA(NSRMP),RJZETA(NSRMP),SPECW(NSRMP))
+    ALLOCATE(XS(NSRMP),XSH(NSRMP),XSHRHO(NSRMP))
+    ALLOCATE(BBOZH(NMNM,NSRMP))
+    ALLOCATE(RBOZH(NMNM,NSRMP))
+    ALLOCATE(ZBOZH(NMNM,NSRMP))
+    ALLOCATE(PBOZH(NMNM,NSRMP))
+    ALLOCATE(SHALF(NSRMP),WJS(NSRMP),WIS(NSRMP))
+
+    ALLOCATE(BSQ1(NTZ,NSD),PHIMOD(MNSD),PHIMOD2(MNSD))
+    ALLOCATE(LMNS(MNSD),BETAP(NSD),BPOL(NSD),BTOR1(NSD))
+    ALLOCATE(BZCO(NSD))
+    ALLOCATE(UB(NSD),IXM(MND),IXN(MND))
+    ALLOCATE(RJTOR(NSD))
+    ALLOCATE(RJROL(NSD))
+    ALLOCATE(FSQT(100),WDOT(100),AMVM(0:10))
+
+    ALLOCATE(YRBS(NSRMP),YZBS(NSRMP))
+    ALLOCATE(R1DATA(12),R2DATA(11,NSRMP),R3DATA(2,100))
+
+    ALLOCATE(SRMNC(NMNM,nrmax),DRMNC(NMNM,nrmax))
+    ALLOCATE(SZMNS(NMNM,nrmax),DZMNS(NMNM,nrmax))
+    ALLOCATE(SPMNS(NMNM,nrmax),DPMNS(NMNM,nrmax))
+    ALLOCATE(SBMNC(NMNM,nrmax),DBMNC(NMNM,nrmax))
+    ALLOCATE(RMNCC(NMNM,NSRMP),ZMNSS(NMNM,NSRMP))
+
+    ALLOCATE(BSTH(NMNM,nrmax),BSPH(NMNM,nrmax))
+    ALLOCATE(U1(4,NSRMP,NMNM),FX1(NSRMP))
+    ALLOCATE(U2(4,NSRMP,NMNM),FX2(NSRMP))
+    ALLOCATE(U3(4,NSRMP,NMNM),FX3(NSRMP))
+    ALLOCATE(U4(4,NSRMP,NMNM),FX4(NSRMP))
+    ALLOCATE(U5(4,NSRMP),FX5(NSRMP))
+    ALLOCATE(U6(4,NSRMP),FX6(NSRMP))
+    ALLOCATE(BSTHSV(NMNM),BSTHSD(NMNM))
+    ALLOCATE(BSPHSV(NMNM),BSPHSD(NMNM))
+
+    mnmax_save=mnmax
+    nsrmax_save=nsrmax
+    ntheta_save=ntheta
+    nzeta_save=nzeta
+    mpol_save=mpol
+    ntor_save=ntor
+    nrmax_save=nrmax
+
+    init=1
+    RETURN
+  END SUBROUTINE wm_allocate_vm
+
+  SUBROUTINE wm_deallocate_vm
+
+    DEALLOCATE(XM,XN,RMNC,ZMNS)
+    DEALLOCATE(RLMNS,BMOD,RGMOD)
+    DEALLOCATE(BSU,BSV)
+    DEALLOCATE(RIOTAS,RMASS,PRES)
+    DEALLOCATE(PHIPS,BPCO,BACO)
+    DEALLOCATE(PHI,RCHI,VP)
+    DEALLOCATE(RJTHETA,RJZETA,SPECW)
+    DEALLOCATE(XS,XSH,XSHRHO)
+    DEALLOCATE(BBOZH)
+    DEALLOCATE(RBOZH)
+    DEALLOCATE(ZBOZH)
+    DEALLOCATE(PBOZH)
+    DEALLOCATE(SHALF,WJS,WIS)
+
+    DEALLOCATE(BSQ1,PHIMOD,PHIMOD2)
+    DEALLOCATE(LMNS,BETAP,BPOL,BTOR1)
+    DEALLOCATE(BZCO)
+    DEALLOCATE(UB,IXM,IXN)
+    DEALLOCATE(RJTOR)
+    DEALLOCATE(RJROL)
+    DEALLOCATE(FSQT,WDOT,AMVM)
+
+    DEALLOCATE(YRBS,YZBS)
+    DEALLOCATE(R1DATA,R2DATA,R3DATA)
+
+    DEALLOCATE(SRMNC,DRMNC)
+    DEALLOCATE(SZMNS,DZMNS)
+    DEALLOCATE(SPMNS,DPMNS)
+    DEALLOCATE(SBMNC,DBMNC)
+    DEALLOCATE(RMNCC,ZMNSS)
+
+    DEALLOCATE(BSTH,BSPH)
+    DEALLOCATE(U1,FX1)
+    DEALLOCATE(U2,FX2)
+    DEALLOCATE(U3,FX3)
+    DEALLOCATE(U4,FX4)
+    DEALLOCATE(U5,FX5)
+    DEALLOCATE(U6,FX6)
+    DEALLOCATE(BSTHSV,BSTHSD)
+    DEALLOCATE(BSPHSV,BSPHSD)
+
+    RETURN
+  END SUBROUTINE wm_deallocate_vm
+END MODULE vmcomm
+

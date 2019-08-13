@@ -6,6 +6,7 @@ C
 C
 C      use plfile_prof_mod
       use wmtest
+      USE dpparm,ONLY: dpprep
       INCLUDE 'wmcomm.inc'
 C
       EXTERNAL WMPARM
@@ -25,7 +26,7 @@ C
      &      'G,Y/GRAPH T/TAE O/OUT S,W/SAVE Q/QUIT')
             CALL TASK_KLIN(LINE,KID,MODE,WMPARM)
          ENDIF
-         CALL DPPREP(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),RR,IERR) !=====
+         CALL DPPREP(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),IERR) !=====
          CALL MPBCIA(MODE)
          IF(MODE.EQ.2) CALL WMPRBC
       IF(MODE.NE.1) GOTO 1
@@ -40,7 +41,7 @@ C
             KID=' '
          ELSE IF(KID.EQ.'V') THEN
             IF(NRANK.EQ.0) CALL WMVIEW
-            CALL DPPREP(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),RR,IERR) !=====
+            CALL DPPREP(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),IERR) !=====
             CALL MPSYNC
             KID=' '
 C

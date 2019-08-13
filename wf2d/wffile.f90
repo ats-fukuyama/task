@@ -1,4 +1,4 @@
-!     $Id$
+!     $Id: wffile.f90,v 1.1 2011/07/19 07:16:11 maruyama Exp $
 
 !     ******* OUTPUT ELEMENT DATA *******
 
@@ -84,7 +84,7 @@ SUBROUTINE WFRELM(ID)
   ENDIF
 
 30 READ(25,ERR=9100,END=9000) KID
-  
+
   IF(KID.EQ.'PAF-ELM0-V01') THEN
      ID=0
      

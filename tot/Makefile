@@ -1,6 +1,10 @@
-### $Id$ ###
+###### $Id$ ###
 include ../make.header
 include ../mtxp/make.mtxp
+<<<<<<< HEAD
+=======
+
+>>>>>>> develop
 LIB_MTX=$(LIB_MTX_BND)
 LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIB_MTX_PCG)
@@ -10,92 +14,102 @@ LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
-MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) -I../fp/$(MOD) -I../mtxp/$(MOD)
-EQLIBS= ../plx/noequlib.o ../eq/eqlib.a 
-
-SRCS = main.f
-
-OBJS = $(SRCS:.f=.o)
-
+<<<<<<< HEAD
 LIBS = ../lib/mdslib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a \
        ../plx/pllib.a \
        ../tr/trcom2.o ../tr/trcom3.o $(EQLIBS) \
        ../tr/tr2lib.a ../dp/dplib.a ../wr/wrlib.a ../wm/wmlib.a \
        ../fp/fplib.a
+=======
+.SUFFIXES:
+.SUFFIXES: .f .f90 .mod .o .a
+>>>>>>> develop
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : tot
+MODINCLUDE= -I$(MOD) -I../open-adas/adf11/adf11-lib/$(MOD) \
+            -I../adpost/$(MOD) -I../eq/$(MOD) -I../pl/$(MOD) \
+            -I../dp/$(MOD) -I../wr/$(MOD) -I../wm/$(MOD) \
+            -I../fp/$(MOD) -I../tr/$(MOD) -I../ti/$(MOD) \
+            -I../mtxp/$(MOD) -I../lib/$(MOD) \
+            -I../../bpsd/$(MOD) 
 
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
-../lib/mdslib.a:
-	(cd ../lib; make mdslib.a)
-../mtxp/libmtxmpi.o:
-	(cd ../mtxp; make libmtxmpi.o)
-../mtxp/libmtxnompi.o:
-	(cd ../mtxp; make libmtxnompi.o)
-../mtxp/libmtxksp.o:
-	(cd ../mtxp; make libmtxksp.o)
-../mtxp/libmtxmumps.o:
-	(cd ../mtxp; make libmtxmumps.o)
-../mtxp/libmtxbnd.o:
-	(cd ../mtxp; make libmtxbnd.o)
-../../bpsd/bpsdlib.a:
-	(cd ../../bpsd; make bpsdlib.a)
-../plx/pllib.a:
-	(cd ../plx; make pllib.a)
-../plx/noeqlib.o:
-	(cd ../plx; make noeqlib.o)
-../plx/noequlib.o:
-	(cd ../plx; make noequlib.o)
-../eq/eqlib.a:
-	(cd ../eq; make eqlib.a)
-../tr/trcom2.o:
-	(cd ../tr; make trcom2.o)
-../tr/trcom3.o:
-	(cd ../tr; make trcom3.o)
-../tr/tr2lib.a:
-	(cd ../tr; make tr2lib.a)
-../dp/dplib.a:
-	(cd ../dp; make dplib.a)
-../wr/wrlib.a:
-	(cd ../wr; make wrlib.a)
-../wm/wmlib.a:
-	(cd ../wm; make wmlib.a)
-../wm/mpiwmlib.a:
-	(cd ../wm; make mpiwmlib.a)
-../fp/fplib.a:
-	(cd ../fp; make fplib.a)
+EQLIBS= ../pl/noequlib.o ../eq/libeq.a 
+
+SRCS = totmenu.f90
+
+OBJS = $(SRCS:.f90=.o)
+
+LIBS = ../lib/libmds.a ../lib/libtask.a ../../bpsd/libbpsd.a \
+       ../adpost/lib-adpost.a ../open-adas/adf11/adf11-lib/lib-adf11.a \
+       ../pl/libpl.a \
+       $(EQLIBS) \
+       ../tr/libtr2.a ../dp/libdp.a ../wr/libwr.a ../wm/libwm.a \
+       ../fp/libfp.a ../ti/libti.a
+
+
+all : libs tot
+
+../open-adas/adf11/adf11-lib/lib-adf11.a:
+	(cd ../open-adas/adf11/adf11-lib; make lib-adf11.a)
+../adpost/lib-adpost.a:
+	(cd ../adpost; make lib-adpost.a)
+../lib/libtask.a:
+	(cd ../lib; make libtask.a)
+../lib/libmds.a:
+	(cd ../lib; make libmds.a)
+$(LIB_MTX):
+	(cd ../mtxp; make)
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
+../pl/libpl.a:
+	(cd ../pl; make libpl.a)
+../pl/noeqlib.o:
+	(cd ../pl; make noeqlib.o)
+../pl/noequlib.o:
+	(cd ../pl; make noequlib.o)
+../eq/libeq.a:
+	(cd ../eq; make libeq.a)
+../tr/libtr2.a:
+	(cd ../tr; make libtr2.a)
+../dp/libdp.a:
+	(cd ../dp; make libdp.a)
+../wr/libwr.a:
+	(cd ../wr; make libwr.a)
+../wm/libwm.a:
+	(cd ../wm; make libwm.a)
+../fp/libfp.a:
+	(cd ../fp; make libfp.a)
+../ti/libti.a:
+	(cd ../ti; make libti.a)
 
 libs:
-	(cd ../lib; make tasklib.a)
-	(cd ../lib; make mdslib.a)
-	(cd ../../bpsd; make bpsdlib.a)
+	(cd ../lib; make libtask.a)
+	(cd ../lib; make libmds.a)
+	(cd ../../bpsd; make libbpsd.a)
+	(cd ../adpost; make lib-adpost.a)
+	(cd ../open-adas/adf11/adf11-lib; make lib-adf11.a)
 	(cd ../mtxp; make)
-	(cd ../plx; make pllib.a)
-	(cd ../plx; make noeqlib.o)
-	(cd ../plx; make noequlib.o)
-	(cd ../eq; make eqlib.a)
-	(cd ../tr; make trcom2.o)
-	(cd ../tr; make trcom3.o)
-	(cd ../tr; make tr2lib.a)
-	(cd ../dp; make dplib.a)
-	(cd ../wr; make wrlib.a)
-	(cd ../wm; make wmlib.a)
-	(cd ../fp; make fplib.a)
+	(cd ../pl; make libpl.a)
+	(cd ../pl; make noeqlib.o)
+	(cd ../pl; make noequlib.o)
+	(cd ../eq; make libeq.a)
+	(cd ../tr; make libtr2.a)
+	(cd ../dp; make libdp.a)
+	(cd ../wr; make libwr.a)
+	(cd ../wm; make libwm.a)
+	(cd ../fp; make libfp.a)
+	(cd ../ti; make libti.a)
+	make totmenu.o
 
-tot : libs main.o
-	$(FLINKER) main.o -o $@ $(FFLAGS) $(MODINCLUDE) $(LIBS) $(FLIBS) $(LIBX_MTX)
-
-mpitot : $(LIBM) main.o
-	$(FLINKER) main.o -o $@ $(FFLAGS) $(MODINCLUDE) $(LIB) $(FLIBS) $(LIBX_MTX)
+tot : $(LIB_MTX) $(LIBS) totmenu.o totmain.o
+	$(FLINKER) totmenu.o totmain.o -o $@ $(FFLAGS) $(LIBS) $(FLIBS) $(LIBX_MTX)
 
 clean:
 	-rm -f core a.out *.o *.mod ./*~ *.a $(MOD)/*.mod
@@ -103,5 +117,6 @@ clean:
 veryclean: clean
 	-rm -f tot
 
-main.o: main.f ../wm/wmcomm.inc
+totmain.o: totmain.f90
+totmenu.o: totmenu.f90
 

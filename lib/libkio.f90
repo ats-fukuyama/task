@@ -13,9 +13,15 @@
       INTEGER(4)  :: I, ID, IERR, IKID
       EXTERNAL XXPARM
 
-      READ(5,'(A80)',ERR=2,END=3) LINE
+      READ(5,'(A80)',ERR=2,END=3) LINE    ! read one line
 
-      ID=0
+      KID=LINE(1:1)                  ! if first char is '!'
+      IF(KID.EQ.'!') THEN           ! comment input
+         MODE=0
+         RETURN
+      END IF
+
+      ID=0                                ! if "=" is included, namelist
       DO I=1,80
          IF(LINE(I:I).EQ.'=') ID=1
       ENDDO
@@ -25,18 +31,18 @@
          RETURN
       ENDIF
 
-      KID=LINE(1:1)
+      KID=LINE(1:1)                  ! if first char is lower-case, captalized
       IKID=ICHAR(KID)
       IF(IKID.GE.97.AND.IKID.LE.122) IKID=IKID-32
       KID=CHAR(IKID)
 
       IF((KID.GE.'A'.AND.KID.LE.'Z').OR. &
-     &    KID.EQ.'?'.OR.KID.EQ.'#') THEN
+     &    KID.EQ.'?'.OR.KID.EQ.'#'.OR.KID.EQ.'!') THEN  ! one char input
          MODE=1
          RETURN
       ENDIF
 
-      KID=' '
+      KID=' '                                           ! line char
       MODE=0
       RETURN
 

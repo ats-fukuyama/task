@@ -10,7 +10,7 @@ LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-FLAGS=$(OFLAGS)
+FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
 .SUFFIXES:
@@ -21,42 +21,43 @@ FLAGS=$(OFLAGS)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-MODINCLUDE= -I./$(MOD) -I../lib/$(MOD) \
-            -I../plx/$(MOD) -I../eq/$(MOD) \
-            -I../../bpsd/$(MOD) -I../mtxp/$(MOD)
+MODINCLUDE= -I./$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
-SRCS = fpcomm.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpexec.f90 eg_read.f90 fpsave.f90 \
+SRCS = fpcomm.f90 eg_read.f90 fpinit.f90 fpparm.f90 \
+       fpmpi.f90 fpbroadcast.f90 fpsub.f90 \
+       fpexec.f90 fpsave.f90 \
+       fpcaltp.f90 fpcalte.f90 fpcaldeff.f90 fpcalchieff.f90 \
        fpoutdata.f90 fpwmin.f90 fpwrin.f90 fpcalwm.f90 fpcalwr.f90 fpcalw.f90 \
        fpcalcn.f90 fpcalcnr.f90 fpcalc.f90 fpnfrr.f90 fpnflg.f90 \
-       cdbm.f90 fpcalr.f90 sv_read.f90 fpcoef.f90 fpcale.f90 \
-       fpbounce.f90 fpdisrupt.f90 fpprep.f90 fploop.f90 fploop_exp.f90 \
+       cdbmfp.f90 fpcalr.f90 sv_read.f90 fpcoef.f90 fpcale.f90 \
+       fpbounce.f90 fpdisrupt.f90 fpprep.f90 fploop.f90 \
        fpcont.f90 fpfout.f90 fpgout.f90 fpfile.f90 fpmenu.f90
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = fplib.a ../plx/pllib.a ../eq/eqlib.a  \
-        ../lib/tasklib.a ../../bpsd/bpsdlib.a
+LIBS = libfp.a ../pl/libpl.a ../eq/libeq.a  \
+        ../lib/libtask.a ../../bpsd/libbpsd.a
 
 all: libs fp
 
-fplib.a: $(OBJS)
-	$(LD) $(LDFLAGS) fplib.a $(OBJS)
+libfp.a: $(OBJS)
+	$(LD) $(LDFLAGS) libfp.a $(OBJS)
 
-../../bpsd/bpsdlib.a:
-	(cd ../../bpsd; make bpsdlib.a)
-../plx/pllib.a:
-	(cd ../plx; make pllib.a)
-../eq/eqlib.a:
-	(cd ../eq; make eqlib.a)
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
+../pl/libpl.a:
+	(cd ../pl; make libpl.a)
+../eq/libeq.a:
+	(cd ../eq; make libeq.a)
+../lib/libtask.a:
+	(cd ../lib; make libtask.a)
 
 libs:
-	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../lib; make tasklib.a)
+	(cd ../../bpsd; make libbpsd.a)
+	(cd ../lib; make libtask.a)
 	(cd ../mtxp; make)
-	(cd ../plx; make pllib.a)
-	(cd ../eq; make eqlib.a)
+	(cd ../pl; make libpl.a)
+	(cd ../eq; make libeq.a)
 
 fp : $(LIB_MTX) $(LIBS) fpmain.o 
 	$(FLINKER) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
@@ -73,12 +74,12 @@ new:
 	cp -f *.f ../fpnew
 	cp -f *.inc ../fpnew
 
-fpmain.o : fpinit.f90 fpmain.f90 fpcomm.f90
-fpmenu.o : fpwrin.f90 fpgout.f90 fpfout.f90 fploop_exp.f90 fploop.f90 fpprep.f90 fpinit.f90 fpfile.f90 fpmenu.f90 fpcomm.f90
+fpmain.o : fpinit.f90 fpparm.f90 fpmain.f90 fpcomm.f90
+fpmenu.o : fpwrin.f90 fpgout.f90 fpfout.f90 fploop.f90 fpprep.f90 fpparm.f90 fpfile.f90 fpmenu.f90 fpcomm.f90
 fpinit.o : fpinit.f90 fpcomm.f90
-fpprep.o : fpoutdata.f90 fpcale.f90 fpbounce.f90 fpnfrr.f90 fpwmin.f90 fpwrin.f90 fpsave.f90 fpcalw.f90 fpbroadcast.f90 fpinit.f90 fpcoef.f90 fpdisrupt.f90 eg_read.f90 sv_read.f90 fpprep.f90 fpcomm.f90
+fpparm.o : fpparm.f90 fpcomm.f90
+fpprep.o : fpoutdata.f90 fpcale.f90 fpbounce.f90 fpnfrr.f90 fpwmin.f90 fpwrin.f90 fpsave.f90 fpcalw.f90 fpbroadcast.f90 fpparm.f90 fpcoef.f90 fpdisrupt.f90 eg_read.f90 sv_read.f90 fpprep.f90 fpcomm.f90
 fploop.o : fpoutdata.f90 fpnfrr.f90 fpsave.f90 fpexec.f90 fpprep.f90 fpcoef.f90 fpdisrupt.f90 eg_read.f90 fploop.f90 fpcomm.f90 fpoutdata.f90
-fploop_exp.o : fpoutdata.f90 fpsave.f90 fpexec.f90 fploop.f90 fpprep.f90 fpcoef.f90 eg_read.f90 fploop_exp.f90 fpcomm.f90
 fpexec.o : fpexec.f90 fpcomm.f90
 fpdrexec.o : fpdrexec.f90 fpcomm.f90
 fpbroadcast.o : fpbroadcast.f90 fpcomm.f90
@@ -96,11 +97,13 @@ fpfile.o : fpprep.f90 eg_read.f90 sv_read.f90 fpfile.f90 fpcomm.f90
 fpsave.o : fpexec.f90 eg_read.f90 fpsave.f90 fpcomm.f90
 fpwrin.o : fpwrin.f90 fpcomm.f90
 fpwmin.o : fpwrin.f90 fpcomm.f90
-fpnfrr.o : fpinit.f90 fpnfrr.f90 fpcomm.f90
-fpbounce.o : fpinit.f90 fpbounce.f90 fpcomm.f90
+fpnfrr.o : fpparm.f90 fpnfrr.f90 fpcomm.f90
+fpbounce.o : fpparm.f90 fpbounce.f90 fpcomm.f90
 fpcale.o: fpcale.f90 fpmpi.f90
 fpdisrupt.o: fpcale.f90 fpcoef.f90 fpdisrupt.f90 fpcomm.f90
 fpcalr.o: fpcalr.f90 fpcomm.f90
 eg_read.o: eg_read.f90 fpcomm.f90
 sv_read.o: sv_read.f90 fpcomm.f90
 fpoutdata.o: fpoutdata.f90 eg_read.f90 fpcomm.f90
+fpcaltp.o: fpcaltp.f90 fpcomm.f90
+fpcaldeff.o: fpcaldeff.f90 fpcomm.f90

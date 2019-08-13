@@ -33,9 +33,8 @@ c
       do ns=1,species%nsmax
          species%data(ns)%pa=fmass(ns-1)
          species%data(ns)%pz=fchrg(ns-1)
-         species%data(ns)%pz0=fchrg(ns-1)
       enddo
-      call bpsd_set_species(species,ierr)
+      call bpsd_put_species(species,ierr)
 c
       if((plasmaf%nsmax.ne.mion+1).or.
      &   (plasmaf%nrmax.ne.nro)) then
@@ -67,12 +66,12 @@ c
          enddo
          plasmaf%qinv(nr)=0.D0
       enddo
-      call bpsd_set_plasmaf(plasmaf,ierr)
+      call bpsd_put_plasmaf(plasmaf,ierr)
       return
       end subroutine trpl_init
 c
 c=======================================================================
-      subroutine trpl_set(ierr)
+      subroutine trpl_put(ierr)
 c=======================================================================
       use trn_mod
       implicit none
@@ -92,9 +91,9 @@ c
          enddo
          plasmaf%qinv(nr)=qi(nr)*(2.D0*cnpi)**2
       enddo
-      call bpsd_set_plasmaf(plasmaf,ierr)
+      call bpsd_put_plasmaf(plasmaf,ierr)
       return
-      end subroutine trpl_set
+      end subroutine trpl_put
 c
 c=======================================================================
       subroutine trpl_get(ierr)
