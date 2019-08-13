@@ -1,10 +1,7 @@
 ###### $Id$ ###
 include ../make.header
 include ../mtxp/make.mtxp
-<<<<<<< HEAD
-=======
 
->>>>>>> develop
 LIB_MTX=$(LIB_MTX_BND)
 LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIB_MTX_PCG)
@@ -17,16 +14,8 @@ LIBX_MTX=$(LIBX_MTX_BND)
 #FFLAGS=$(OFLAGS)
 FFLAGS=$(DFLAGS)
 
-<<<<<<< HEAD
-LIBS = ../lib/mdslib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a \
-       ../plx/pllib.a \
-       ../tr/trcom2.o ../tr/trcom3.o $(EQLIBS) \
-       ../tr/tr2lib.a ../dp/dplib.a ../wr/wrlib.a ../wm/wmlib.a \
-       ../fp/fplib.a
-=======
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
->>>>>>> develop
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -90,12 +79,12 @@ $(LIB_MTX):
 	(cd ../ti; make libti.a)
 
 libs:
+	(cd ../../bpsd; make libbpsd.a)
 	(cd ../lib; make libtask.a)
 	(cd ../lib; make libmds.a)
-	(cd ../../bpsd; make libbpsd.a)
+	(cd ../mtxp; make)
 	(cd ../adpost; make lib-adpost.a)
 	(cd ../open-adas/adf11/adf11-lib; make lib-adf11.a)
-	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 	(cd ../pl; make noeqlib.o)
 	(cd ../pl; make noequlib.o)

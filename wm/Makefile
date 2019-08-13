@@ -20,7 +20,7 @@ SRCS = mpilib.f wmmenu.f wminit.f wmeign.f wmsetg.f \
        ../eq/wmeqin.f wmprof.f wmdisp.f \
        wmsetm.f wmsetf.f wmxprf.f wmdprf.f \
        wmpout.f wmgout.f wmgsub.f wmdout.f wmfout.f \
-       wmexec.f wmloop.f wmtae.f \
+       wmexec.f wmloop.f wmtae.f wmsolv.f \
        wmvmec.f wmbooz.f wmvout.f wmtpcs.f
 
 SRCX = wmcont.f90 wmtest.f90 
