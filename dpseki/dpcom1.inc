@@ -1,6 +1,0 @@
-C     $Id: dpcom1.inc,v 1.3 2005/08/29 01:26:40 fukuyama Exp $
-C
-      COMMON /DPPRM1/ MODELP(NSM),NDISP1(NSM),NDISP2(NSM)
-      COMMON /DPPRM2/ MODELV(NSM)
-C
-      COMMON /DPVAR1/ NSDP(NSM)
