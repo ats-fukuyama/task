@@ -3,6 +3,14 @@
 ###
 include ../make.header
 include ../mtxp/make.mtxp
+LIB_MTX=$(LIB_MTX_BND)
+LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_PCG)
+#LIB_MTX=$(LIB_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIB_MTX=$(LIBXMTX_KSP)
+#LIBX_MTX=$(LIBX_MTX_KSP)
 
 .SUFFIXES:
 .SUFFIXES: .f .for .f90 .mod .o .a
@@ -21,13 +29,20 @@ LIBS = lib-adpost.a ../mtxp/libmtxmpi.o ../lib/libtask.a ../../bpsd/libbpsd.a
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : test-adpost
+all : libs test-adpost
 
 lib-adpost.a: $(OBJS)
 	$(LD) $(LDFLAGS) $@ $(OBJS)
 
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
+../lib/libtask.a:
+	(cd ../lib; make libtask.a)
+
 libs:
-	(cd ../lib; make)
+	(cd ../../bpsd; make libbpsd.a)
+	(cd ../mtxp; make)
+	(cd ../lib; make libtask.a)
 
 test-adpost : $(LIBS) test-adpost.o
 	$(FLINKER) test-adpost.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
