@@ -43,11 +43,18 @@ C
       CALL SETCLP(2.0,2.0+GPR,2.0,2.0+GPZ)
       CALL SETLIN(0,-1,7)
       IF(GFMIN*GFMAX.GT.0.) THEN
+         IF(GFMAX.GT.0.0) THEN
+            CALL SETRGB(1.0,0.0,0.0)
+         ELSE
+            CALL SETRGB(0.0,0.0,1.0)
+         END IF
          CALL CONTQ5(GF,GR,GZ,NRM,NRMAX,NTHMAX,
      &               GGFMIN,GGFSTP,NSTEP,2,0,KA)
       ELSE
+         CALL SETRGB(1.0,0.0,0.0)
          CALL CONTQ5(GF,GR,GZ,NRM,NRMAX,NTHMAX,
      &                0.5*GGFSTP, GGFSTP,NSTEP,2,0,KA)
+         CALL SETRGB(0.0,0.0,1.0)
          CALL CONTQ5(GF,GR,GZ,NRM,NRMAX,NTHMAX,
      &               -0.5*GGFSTP,-GGFSTP,NSTEP,2,2,KA)
       ENDIF

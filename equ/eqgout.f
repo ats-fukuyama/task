@@ -249,10 +249,12 @@ c=======================================================================
 !     &                  ngcoil,rgcoil,zgcoil,
 !     &                  ngbound,rgboud,zgboud)
 c
+      USE aaa_mod,ONLY: icvdm
+      USE vac_mod,ONLY: rcoil,zcoil,ccoil,ncoil
       USE libgrf,ONLY: grfut1,grfut2,grfut3,grfut4, 
      &                 grf2dax,grf2dbx,grf2dcx
       implicit none
-      integer ngp,nxm,nxmax,nymax,nx,ny,ntype
+      integer ngp,nxm,nxmax,nymax,nx,ny,ntype,i,n
       real*8, dimension(nxmax) :: x
       real*8, dimension(nymax) :: y
       real*8, dimension(nxm,nymax) :: z
@@ -267,6 +269,7 @@ c
       real*4 glx,gly,glratio
       real*4 gp(4),gp3d(6)
       real*4 guclip
+      real*4 gcross,gxc,gyc
 c
       allocate(gx(nxmax))
       allocate(gy(nymax))
@@ -295,6 +298,10 @@ c
       call grfut3(gxmin,gxmax,gsxmin,gsxmax,gxstep,gxorg)
       call grfut3(gymin,gymax,gsymin,gsymax,gystep,gyorg)
       call grfut3(gzmin,gzmax,gszmin,gszmax,gzstep,gzorg)
+      gsymin=gymin
+      gsymax=gymax
+      gsxmin=gxmin
+      gsxmax=gxmax
 !      IF(ngline.EQ.0) THEN
          gzstep=0.2*gzstep
 !      ELSE
@@ -354,6 +361,26 @@ C         gp3d(5)=65.0
      &                gx,gy,gz,nxm,nxmax,nymax,
      &                str,gp3d)
       endif
+
+C      gcross=MIN(gxmax-gxmin,gymax-gymin)/20.0
+C      CALL SETRGB(0.0,1.0,0.0)
+C      DO n=1,icvdm
+C         IF(ncoil(n).GT.0) THEN
+C            DO i=1,ncoil(n)
+C               IF(ABS(ccoil(i,n)).GT.1.E-8) THEN
+C                  WRITE(6,'(A,2I5,1P3E12.4)')
+C     &                 'COIL:',n,i,ccoil(i,n),rcoil(i,n),zcoil(i,n)
+C                  gxc=GUCLIP(rcoil(i,n))
+C                  gyc=GUCLIP(zcoil(i,n))
+C                  CALL MOVE2D(gxc,gyc-gcross)
+C                  CALL DRAW2D(gxc,gyc+gcross)
+C                  CALL MOVE2D(gxc-gcross,gyc)
+C                  CALL DRAW2D(gxc+gcross,gyc)
+C               END IF
+C            END DO
+C         END IF
+C      END DO
+            
 c
       deallocate(ka)
       deallocate(gz)
