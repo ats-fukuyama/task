@@ -380,8 +380,8 @@
       ENDDO
       ENDDO
       ENDDO
-      DO I=1,3
-      DO J=1,2
+      DO I=1,2
+      DO J=1,3
       DO K=1,2
          S2=S2+C(I,J,K)*(LOG(EB))**(I-1)*(LOG(ANEX))**(J-1)*(LOG(TEX))**(K-1)
          S3=S3+F(I,J,K)*(LOG(EB))**(I-1)*(LOG(ANEX))**(J-1)*(LOG(TEX))**(K-1)
