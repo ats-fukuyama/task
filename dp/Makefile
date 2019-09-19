@@ -68,24 +68,25 @@ veryclean: clean
 	-rm -f dp
 
 DPCOMM=dpcomm.f90
+PLPROF=../pl/plprof.f90 ../pl/plprofw.f90
 
 dpcomm.o: dpcomm.f90 ../pl/plcomm.f90
 dpinit.o: dpinit.f90 $(DPCOMM)
 dpparm.o: dpparm.f90 $(DPCOMM)
 dproot.o: dproot.f90 $(DPCOMM)
-dpcont.o: dpcont.f90 $(DPCOMM)
-dpcont4.o: dpcont4.f90 $(DPCOMM)
+dpcont.o: dpcont.f90 $(DPCOMM) $(PLPROF)
+dpcont4.o: dpcont4.f90 $(DPCOMM) $(PLPROF)
 dpscan.o: dpscan.f $(DPCOMM)
-dpdisp.o: dpdisp.f90 $(DPCOMM) ../pl/plprof.f90
-dptnsr0.o: dptnsr0.f90 $(DPCOMM)
-dptnsr1.o: dptnsr1.f90 $(DPCOMM)
-dptnsr2.o: dptnsr2.f90 $(DPCOMM)
-dptnsr3.o: dptnsr3.f90 $(DPCOMM)
-dptnsr4.o: dptnsr4.f90 $(DPCOMM)
-dpfpin.o: dpfpin.f90 $(DPCOMM) ../pl/plprof.f90
-dphotf.o: dphotf.f90 $(DPCOMM)
-dphotr.o: dphotr.f90 $(DPCOMM)
-dpdkdt.o: dpdkdt.f90 $(DPCOMM) ../pl/plprof.f90
+dpdisp.o: dpdisp.f90 $(DPCOMM) $(PLPROF)
+dptnsr0.o: dptnsr0.f90 $(DPCOMM) $(PLPROF)
+dptnsr1.o: dptnsr1.f90 $(DPCOMM) $(PLPROF)
+dptnsr2.o: dptnsr2.f90 $(DPCOMM) $(PLPROF)
+dptnsr3.o: dptnsr3.f90 $(DPCOMM) $(PLPROF)
+dptnsr4.o: dptnsr4.f90 $(DPCOMM) $(PLPROF)
+dpfpin.o: dpfpin.f90 $(DPCOMM) $(PLPROF)
+dphotf.o: dphotf.f90 $(DPCOMM) $(PLPROF)
+dphotr.o: dphotr.f90 $(DPCOMM) $(PLPROF)
+dpdkdt.o: dpdkdt.f90 $(DPCOMM)
 dpgsub.o: dpgsub.f90
-dpmenu.o: dpmenu.f90 $(DPCOMM) ../pl/plprof.f90
+dpmenu.o: dpmenu.f90 $(DPCOMM) $(PLPROF)
 dpmain.o: dpmain.f90 $(DPCOMM)

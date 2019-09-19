@@ -3,9 +3,8 @@
 
     REAL(rkind):: XPOS_LOC,YPOS_LOC,ZPOS_LOC,RHON_LOC
     REAL(rkind):: BNX,BNY,BNZ,BABS
-    REAL(rkind),DIMENSION(NSM):: RN,RTPR,RTPP,RU,RNUC,RZCL
-!    REAL(rkind),DIMENSION(NSM):: GRDN,GRDTPR,GRDTPP,GRDU
-    REAL(rkind),DIMENSION(NSM):: RLN,RLRPT,RLTPP,RLU
+    REAL(rkind),DIMENSION(NSM):: RN,RTPR,RTPP,RU,RUPL,RUPR,RUPP,RNUC,RZCL
+    REAL(rkind),DIMENSION(NSM):: RLN,RLRPT,RLTPP,RLU,RLUPL
   END MODULE pllocal
 
   MODULE plprof
@@ -21,21 +20,23 @@
     END TYPE pl_mag_type
 
     TYPE pl_plf_type       ! local plasma parameter
-       real(rkind):: RN,RTPR,RTPP,RU,RNUC,RZCL
+       real(rkind):: RN,RTPR,RTPP,RU,RUPL,RNUC,RZCL
                            ! RN:   number density [10^{20}m^{-3}]
                            ! RTPR: parallel temperature [keV]
                            ! RTPP: perpendicular temperature [keV]
                            ! RU:   toroidal fluid velocity [m/s]
+                           ! RUPL: poloidal fluid velocity [m/s]
                            ! RNUC: collision frequency [1/s]
                            ! RZCL: collision parameter (RNUC/OMEGA)
     END TYPE pl_plf_type
 
     TYPE pl_grd_type
-       real(rkind):: grdn,grdtpr,grdtpp,grdu
+       real(rkind):: grdn,grdtpr,grdtpp,grdu,grdupl
                            ! GRDNN:  density gradient [1/m]
                            ! GRDTPR: parallel temperature gradient [1/m]
                            ! GRDTPP: perpendicular temperature gradient [1/m]
-                           ! RU:     toroidal fluid velocity gradient [1/m]
+                           ! GRDU:   toroidal fluid velocity gradient [1/m]
+                           ! GRDUPL: poloidal fluid velocity gradient [1/m]
     END TYPE pl_grd_type
 
     INTERFACE
@@ -296,8 +297,6 @@
          RTPR(NS)=PLF(NS)%RTPR
          RTPP(NS)=PLF(NS)%RTPP
          RU(NS)  =PLF(NS)%RU
-!         RNUC(NS)=PLF(NS)%RNUC
-!         RZCL(NS)=PLF(NS)%RZCL
       ENDDO
       RETURN
     END SUBROUTINE pl_prof2
@@ -307,7 +306,7 @@
     SUBROUTINE pl_prof3d_old(X,Y,Z)
 
       USE plcomm,ONLY: NSMAX
-      USE pllocal,ONLY: RN,RTPR,RTPP,RU,RNUC,RZCL
+      USE pllocal,ONLY: RN,RTPR,RTPP,RU,RUPL,RNUC,RZCL
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: X,Y,Z
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
@@ -319,6 +318,7 @@
          RTPR(NS)=PLF(NS)%RTPR
          RTPP(NS)=PLF(NS)%RTPP
          RU(NS)=PLF(NS)%RU
+         RUPL(NS)=PLF(NS)%RUPL
          RNUC(NS)=PLF(NS)%RNUC
          RZCL(NS)=PLF(NS)%RZCL
       END DO
@@ -330,7 +330,7 @@
     SUBROUTINE pl_prof_old(RHON)
 
       USE plcomm,ONLY: NSMAX
-      USE pllocal,ONLY: RN,RTPR,RTPP,RU,RNUC,RZCL
+      USE pllocal,ONLY: RN,RTPR,RTPP,RU,RUPL,RNUC,RZCL
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: RHON
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
@@ -342,6 +342,7 @@
          RTPR(NS)=PLF(NS)%RTPR
          RTPP(NS)=PLF(NS)%RTPP
          RU(NS)=PLF(NS)%RU
+         RUPL(NS)=PLF(NS)%RUPL
          RNUC(NS)=PLF(NS)%RNUC
          RZCL(NS)=PLF(NS)%RZCL
       END DO
@@ -356,8 +357,9 @@
 !             PLF(NS)%RTPR : Parallel temperature
 !             PLF(NS)%RTPP : Perpendicular temperature
 !             PLF(NS)%RU   : Toroidal rotation velocity
+!             PLF(NS)%RUPL : Poloidal rotation velocity
+!             PLF(NS)%RNUC : collision frequency
 !             PLF(NS)%RZCL : collision factor (=nu/omega) 
-!                                  : nu will be given separately in future
 
 
 !     ****** CALCULATE PLASMA PROFILE in 3D ******
@@ -372,6 +374,7 @@
 !             PLF(NS)%RTPR : Parallel temperature
 !             PLF(NS)%RTPP : Perpendicular temperature
 !             PLF(NS)%RU   : Toroidal rotation velocity
+!             PLF(NS)%RUPL : Poloidal rotation velocity
 
     SUBROUTINE pl_prof3d(X,Y,Z,PLF)
 
@@ -383,7 +386,8 @@
         IMPLICIT NONE
         REAL(rkind),INTENT(IN):: X,Y,Z
         TYPE(pl_plf_type),DIMENSION(NSMAX),INTENT(OUT):: PLF
-        REAL(rkind),DIMENSION(NSMAX) :: RNPL,RTPL,RUPL,RTPRPL,RTPPPL,RZCLPL
+        REAL(rkind),DIMENSION(NSMAX) :: &
+             RN_PL,RT_PL,RTPR_PL,RTPP_PL,RU_PL,RNUC_PL,RZCL_PL
         REAL(rkind):: RHON,FACTX,FACTY,FACTN,FACTT,FACTU
         INTEGER:: NS,NSMAXL,IERR
 
@@ -408,6 +412,7 @@
               PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACTT+PTS(NS)
               PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
               PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+              PLF(NS)%RUPL=0.D0
               PLF(NS)%RNUC=0.D0
               PLF(NS)%RZCL=PZCL(NS)
            END DO
@@ -430,36 +435,40 @@
               PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACTT+PTS(NS)
               PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
               PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+              PLF(NS)%RUPL=0.D0
               PLF(NS)%RNUC=0.D0
               PLF(NS)%RZCL=PZCL(NS)
            END DO
         CASE(11)
-           CALL PLSDEN11(X,Y,RNPL,RTPRPL,RTPPPL,RZCLPL)
+           CALL PLSDEN11(X,Y,RN_PL,RTPR_PL,RTPP_PL,RZCL_PL)
            DO NS=1,NSMAX
-              PLF(NS)%RN  =RNPL(NS)
-              PLF(NS)%RTPR=RTPRPL(NS)
-              PLF(NS)%RTPP=RTPPPL(NS)
+              PLF(NS)%RN  =RN_PL(NS)
+              PLF(NS)%RTPR=RTPR_PL(NS)
+              PLF(NS)%RTPP=RTPP_PL(NS)
               PLF(NS)%RU  =0.D0
+              PLF(NS)%RUPL=0.D0
               PLF(NS)%RNUC=0.D0
               PLF(NS)%RZCL=PZCL(NS)
            ENDDO
         CASE(12)
-           CALL pl_read_p2D(X,Y,RNPL,RTPL,RUPL,NSMAXL,IERR)
+           CALL pl_read_p2D(X,Y,RN_PL,RT_PL,RU_PL,NSMAXL,IERR)
            DO NS=1,NSMAXL
-              PLF(NS)%RN  =RNPL(NS)
-              PLF(NS)%RTPR=RTPL(NS)
-              PLF(NS)%RTPP=RTPL(NS)
-              PLF(NS)%RU  =RUPL(NS)
+              PLF(NS)%RN  =RN_PL(NS)
+              PLF(NS)%RTPR=RT_PL(NS)
+              PLF(NS)%RTPP=RT_PL(NS)
+              PLF(NS)%RU  =RU_PL(NS)
+              PLF(NS)%RUPL=0.D0
               PLF(NS)%RNUC=0.D0
               PLF(NS)%RZCL=PZCL(NS)
            ENDDO
         CASE(13)
-           CALL PLSDEN13(X,Y,RNPL,RTPRPL,RTPPPL,RZCLPL)
+           CALL PLSDEN13(X,Y,RN_PL,RTPR_PL,RTPP_PL,RZCL_PL)
            DO NS=1,NSMAX
-              PLF(NS)%RN  =RNPL(NS)
-              PLF(NS)%RTPR=RTPRPL(NS)
-              PLF(NS)%RTPP=RTPPPL(NS)
+              PLF(NS)%RN  =RN_PL(NS)
+              PLF(NS)%RTPR=RTPR_PL(NS)
+              PLF(NS)%RTPP=RTPP_PL(NS)
               PLF(NS)%RU  =0.D0
+              PLF(NS)%RUPL=0.D0
               PLF(NS)%RNUC=0.D0
               PLF(NS)%RZCL=PZCL(NS)
            ENDDO
@@ -488,7 +497,8 @@
                       PL, FACT, FNX, DFNX, AN, BN, FTX, DFTX, &
                       AT, BT, FUX, DFUX, AU, BU, VAL, PNL, PTL
         INTEGER(ikind)  :: NS
-        REAL(rkind),DIMENSION(NSMAX) :: RNPL,RTPL,RTPRPL,RTPPPL,RUPL
+        REAL(rkind),DIMENSION(NSMAX) :: &
+             RN_PL,RT_PL,RTPR_PL,RTPP_PL,RU_PL,RUPL_PL
 
         IF(RHON.LE.0.D0) THEN
            RHOL=0.D0
@@ -512,11 +522,11 @@
                  PLF(NS)%RTPR=PTS(NS)
                  PLF(NS)%RTPP=PTS(NS)
                  PLF(NS)%RU  =PUS(NS)
+                 PLF(NS)%RUPL=0.D0
                  PLF(NS)%RNUC=0.D0
                  PLF(NS)%RZCL=PZCL(NS)
               ENDDO
            ELSE
-
               DO NS=1,NSMAX
                  FACTN=(1.D0-RHOL**PROFN1(NS))**PROFN2(NS)
                  FACTT=(1.D0-RHOL**PROFT1(NS))**PROFT2(NS)
@@ -525,6 +535,7 @@
                  PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACTT+PTS(NS)
                  PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
                  PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+                 PLF(NS)%RUPL=0.D0
                  PLF(NS)%RNUC=0.D0
                  PLF(NS)%RZCL=PZCL(NS)
                  IF(RHOL.LT.RHOITB(NS)) THEN
@@ -533,6 +544,7 @@
                     PLF(NS)%RTPR=PLF(NS)%RTPR+PTITB(NS)*FACTITB
                     PLF(NS)%RTPP=PLF(NS)%RTPP+PTITB(NS)*FACTITB
                     PLF(NS)%RU  =PLF(NS)%RU  +PUITB(NS)*FACTITB
+                    PLF(NS)%RUPL=0.D0
                     PLF(NS)%RNUC=0.D0
                     PLF(NS)%RZCL=PZCL(NS)
                ENDIF
@@ -546,6 +558,7 @@
                PLF(NS)%RTPR=PTS(NS)
                PLF(NS)%RTPP=PTS(NS)
                PLF(NS)%RU  =PUS(NS)
+               PLF(NS)%RUPL=0.D0
                PLF(NS)%RNUC=0.D0
                PLF(NS)%RZCL=PZCL(NS)
             ENDDO
@@ -555,10 +568,11 @@
             FACT=SQRT(PL/PL0)
             DO NS=1,NSMAX
                FACTU=(1.D0-RHOL**PROFU1(NS))**PROFU2(NS)
-               PLF(NS)%RN  =PN(NS)  *FACT
-               PLF(NS)%RTPR=PTPR(NS)*FACT
-               PLF(NS)%RTPP=PTPP(NS)*FACT
+               PLF(NS)%RN  =(PN(NS)-PNS(NS))*FACT+PNS(NS)
+               PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACT+PTS(NS)
+               PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACT+PTS(NS)
                PLF(NS)%RU  =(PU(NS)-PUS(NS))*FACTU+PUS(NS)
+               PLF(NS)%RUPL=0.D0
                PLF(NS)%RNUC=0.D0
                PLF(NS)%RZCL=PZCL(NS)
             ENDDO
@@ -571,6 +585,7 @@
                PLF(NS)%RTPR=PTS(NS)
                PLF(NS)%RTPP=PTS(NS)
                PLF(NS)%RU  =PUS(NS)
+               PLF(NS)%RUPL=0.D0
                PLF(NS)%RNUC=0.D0
                PLF(NS)%RZCL=PZCL(NS)
             ENDDO
@@ -607,6 +622,7 @@
                PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACTT+PTS(NS)
                PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
                PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+               PLF(NS)%RUPL=0.D0
                PLF(NS)%RNUC=0.D0
                PLF(NS)%RZCL=PZCL(NS)
                IF(RHOL.LT.RHOITB(NS)) THEN
@@ -615,6 +631,7 @@
                   PLF(NS)%RTPR=PLF(NS)%RTPR+PTITB(NS)*FACTITB
                   PLF(NS)%RTPP=PLF(NS)%RTPP+PTITB(NS)*FACTITB
                   PLF(NS)%RU  =PLF(NS)%RU  +PUITB(NS)*FACTITB
+                  PLF(NS)%RUPL=0.D0
                   PLF(NS)%RNUC=0.D0
                   PLF(NS)%RZCL=PZCL(NS)
                ENDIF
@@ -623,16 +640,16 @@
 
       CASE(8)
          DO NS=1,NSMAX
-            CALL WMSPL_PROF(Rhol,NS,RNPL(NS),RTPL(NS))
+            CALL WMSPL_PROF(Rhol,NS,RN_PL(NS),RT_PL(NS))
          ENDDO
 
 !----  Modification for charge neutrality after spline interpolation
 
          VAL=0.D0
          DO NS=2,NSMAX-1
-            VAL=VAL+PZ(NS)*RNPL(NS)
+            VAL=VAL+PZ(NS)*RN_PL(NS)
          ENDDO
-         RNPL(NSMAX)=(RNPL(1)-VAL)/PZ(NSMAX)
+         RN_PL(NSMAX)=(RN_PL(1)-VAL)/PZ(NSMAX)
 
 !----
 
@@ -640,14 +657,15 @@
             DO NS=1,NSMAX
                PLF(NS)%RN=PNS(NS)
                IF (NS.EQ.1.OR.NS.GT.1) THEN
-                  CALL WMSPL_PROF(1.D0,NS,RNPL(NS),RTPL(NS))
-                  PLF(NS)%RTPR=RTPL(NS)*1.D-3
-                  PLF(NS)%RTPP=RTPL(NS)*1.D-3
+                  CALL WMSPL_PROF(1.D0,NS,RN_PL(NS),RT_PL(NS))
+                  PLF(NS)%RTPR=RT_PL(NS)*1.D-3
+                  PLF(NS)%RTPP=RT_PL(NS)*1.D-3
                ELSE
                   PLF(NS)%RTPR=PTS(NS)
                   PLF(NS)%RTPP=PTS(NS)
                ENDIF
                PLF(NS)%RU  =PUS(NS)
+               PLF(NS)%RUPL=0.D0
                PLF(NS)%RNUC=0.D0
                PLF(NS)%RZCL=PZCL(NS)
             ENDDO
@@ -657,27 +675,29 @@
                FACTT=(1.D0-RHOL**PROFT1(NS))**PROFT2(NS)
                FACTU=(1.D0-RHOL**PROFU1(NS))**PROFU2(NS)
                IF (NS.EQ.1.OR.NS.GT.1) THEN
-                  PLF(NS)%RN  = RNPL(NS)*1.D-20
-                  PLF(NS)%RTPR= RTPL(NS)*1.D-3
-                  PLF(NS)%RTPP= RTPL(NS)*1.D-3
+                  PLF(NS)%RN  = RN_PL(NS)*1.D-20
+                  PLF(NS)%RTPR= RT_PL(NS)*1.D-3
+                  PLF(NS)%RTPP= RT_PL(NS)*1.D-3
                ELSE
                   PLF(NS)%RN  =((PN(NS)  -PNS(NS))*FACTN+PNS(NS))
                   PLF(NS)%RTPR=((PTPR(NS)-PTS(NS))*FACTT+PTS(NS))
                   PLF(NS)%RTPP=((PTPP(NS)-PTS(NS))*FACTT+PTS(NS))
                ENDIF
                PLF(NS)%RU  = (PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+               PLF(NS)%RUPL=0.D0
                PLF(NS)%RNUC=0.D0
                PLF(NS)%RZCL=PZCL(NS)
             ENDDO
          ENDIF
 
       CASE(9)
-         CALL pl_bpsd_get(RHOL,RNPL,RTPRPL,RTPPPL,RUPL)
+         CALL pl_bpsd_get(RHOL,RN_PL,RTPR_PL,RTPP_PL,RU_PL,RUPL_PL)
          DO NS=1,NSMAX
-            PLF(NS)%RN  =RNPL(NS)
-            PLF(NS)%RTPR=RTPRPL(NS)
-            PLF(NS)%RTPP=RTPPPL(NS)
-            PLF(NS)%RU  =RUPL(NS)
+            PLF(NS)%RN  =RN_PL(NS)
+            PLF(NS)%RTPR=RTPR_PL(NS)
+            PLF(NS)%RTPP=RTPP_PL(NS)
+            PLF(NS)%RU  =RU_PL(NS)
+            PLF(NS)%RUPL=RUPL_PL(NS)
             PLF(NS)%RNUC=0.D0
             PLF(NS)%RZCL=PZCL(NS)
          ENDDO
@@ -689,6 +709,7 @@
             PLF(NS)%RTPR=PTL
             PLF(NS)%RTPP=PTL
             PLF(NS)%RU  =0.D0
+            PLF(NS)%RUPL=0.D0
             PLF(NS)%RNUC=0.D0
             PLF(NS)%RZCL=PZCL(NS)
             IF(NS.EQ.1) WRITE(6,'(A,1P3E12.4)') 'rhol,pnl,ptl=',RHOL,PNL,PTL
@@ -704,22 +725,37 @@
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: rhon
       TYPE(pl_grd_type),DIMENSION(NSMAX),INTENT(OUT):: grd
+      TYPE(pl_plf_type),DIMENSION(NSMAX):: plf1,plf2
       INTEGER:: ns
+      REAL(rkind):: drhon=1.D-6
 
-      DO ns=1,nsmax
-         grd(ns)%grdn  =-2.D0*rhon/RA**2
-         grd(ns)%grdtpr=-2.D0*rhon/RA**2
-         grd(ns)%grdtpp=-2.D0*rhon/RA**2
-         grd(ns)%grdu  =-2.D0*rhon/RA**2
-      END DO
+      IF(rhon.LE.0.D0.OR.rhon.GT.1.D0) THEN
+         DO ns=1,nsmax
+            grd(ns)%grdn  =0.D0
+            grd(ns)%grdtpr=0.D0
+            grd(ns)%grdtpp=0.D0
+            grd(ns)%grdu  =0.D0
+            grd(ns)%grdupl=0.D0
+         END DO
+      ELSE
+         CALL pl_prof(rhon+drhon,plf1)
+         CALL pl_prof(rhon-drhon,plf2)
+         DO ns=1,nsmax
+            grd(ns)%grdn  =(plf2(ns)%rn  -plf1(ns)%rn  )/(2.D0*rhon*RA)
+            grd(ns)%grdtpr=(plf2(ns)%rtpr-plf1(ns)%rtpr)/(2.D0*rhon*RA)
+            grd(ns)%grdtpp=(plf2(ns)%rtpp-plf1(ns)%rtpp)/(2.D0*rhon*RA)
+            grd(ns)%grdu  =(plf2(ns)%ru  -plf1(ns)%ru  )/(2.D0*rhon*RA)
+            grd(ns)%grdupl=(plf2(ns)%rupl-plf1(ns)%rupl)/(2.D0*rhon*RA)
+         END DO
+      END IF
       RETURN
     END SUBROUTINE pl_grad
 
-    SUBROUTINE pl_bpsd_get(rho,rn,rtpr,rtpp,ru)
+    SUBROUTINE pl_bpsd_get(rho,rn,rtpr,rtpp,ru,rupl)
       USE plcomm
       USE bpsd
       REAL(rkind),INTENT(IN):: rho
-      REAL(rkind),DIMENSION(nsmax),INTENT(OUT):: rn,rtpr,rtpp,ru
+      REAL(rkind),DIMENSION(nsmax),INTENT(OUT):: rn,rtpr,rtpp,ru,rupl
       TYPE(bpsd_plasmaf_type),save :: plasmaf
       INTEGER(ikind):: ns,ierr
 
@@ -727,10 +763,11 @@
       plasmaf%rho(1)=rho
       CALL bpsd_get_data(plasmaf,ierr)
       DO ns=1,min(nsmax,plasmaf%nsmax)
-         rn(ns)=plasmaf%data(1,ns)%pn
-         rtpr(ns)=plasmaf%data(1,ns)%ptpr
-         rtpp(ns)=plasmaf%data(1,ns)%ptpp
-         ru(ns)=plasmaf%data(1,ns)%pu
+         rn(ns)  =plasmaf%data(1,ns)%density
+         rtpr(ns)=plasmaf%data(1,ns)%temperature_para
+         rtpp(ns)=plasmaf%data(1,ns)%temperature_perp
+         ru(ns)  =plasmaf%data(1,ns)%velocity_tor
+         rupl(ns)=plasmaf%data(1,ns)%velocity_pol
       ENDDO
     END SUBROUTINE pl_bpsd_get
 
@@ -1115,7 +1152,5 @@
 
       RETURN
     END SUBROUTINE pl_getB
-
-    
 
   END MODULE plprof

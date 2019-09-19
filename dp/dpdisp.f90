@@ -103,13 +103,14 @@ CONTAINS
 
     USE dpcomm
     USE plprof
+    USE plprofw
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CRF,CKX,CKY,CKZ
     REAL(rkind),INTENT(IN):: XPOS,YPOS,ZPOS
     INTEGER,INTENT(IN):: NS
     COMPLEX(rkind),INTENT(OUT):: CDTNS(3,3)
     TYPE(pl_mag_type):: mag
-    TYPE(pl_plf_type),DIMENSION(nsmax):: plf
+    TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
     TYPE(pl_grd_type),DIMENSION(nsmax):: grd
     REAL(rkind):: RHON,BNXY
     COMPLEX(rkind):: CW,CKPR,CKPP
@@ -121,9 +122,9 @@ CONTAINS
     CALL PL_MAG(XPOS,YPOS,ZPOS,mag)
     RHON=mag%rhon
     IF(MODELG.LE.1.OR.MODELG.GT.10) THEN
-       CALL PL_PROF3D(XPOS,YPOS,ZPOS,plf)
+       CALL PL_PROFW3D(XPOS,YPOS,ZPOS,plfw)
     ELSE
-       CALL PL_PROF(RHON,plf)
+       CALL PL_PROFW(RHON,plfw)
     END IF
     CALL PL_GRAD(RHON,grd)
 
@@ -133,7 +134,7 @@ CONTAINS
     IF(ABS(CKPR).LE.1.D-8) CKPR=1.D-8
     CKPP=SQRT(CKX**2+CKY**2+CKZ**2-CKPR**2)
 
-    CALL DP_CALC(CW,CKPR,CKPP,NS,mag,plf,CDTNS,GRD=grd)
+    CALL DP_CALC(CW,CKPR,CKPP,NS,mag,plfw,CDTNS,GRD=grd)
 
     IF(ABS(CKPP).EQ.0.D0) THEN
        BNXY=SQRT(mag%BNX*mag%BNX+mag%BNY*mag%BNY)
@@ -201,16 +202,17 @@ CONTAINS
 
 !     ****** CALCULATE DIELECTRIC TENSOR ******
 
-  SUBROUTINE DP_CALC(CW,CKPR,CKPP,NS,mag,plf,CDTNS,grd)
+  SUBROUTINE DP_CALC(CW,CKPR,CKPP,NS,mag,plfw,CDTNS,grd)
 
     USE dpcomm
     USE plprof
+    USE plprofw
     USE dptnsr0
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
     TYPE(pl_mag_type),INTENT(IN):: mag
-    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+    TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
     TYPE(pl_grd_type),DIMENSION(nsmax),OPTIONAL:: grd
     COMPLEX(rkind),INTENT(OUT):: CDTNS(3,3)
     COMPLEX(rkind):: CDISP(6),CLDISP(6)
@@ -234,7 +236,7 @@ CONTAINS
           
        DO NS1=1,NSMAX
 
-          CALL DP_TNSR0(CW,CKPR,CKPP,NS1,mag,plf,grd,CLDISP)
+          CALL DP_TNSR0(CW,CKPR,CKPP,NS1,mag,plfw,grd,CLDISP)
           DO I=1,6
              CDISP(I)=CDISP(I)+CLDISP(I)
           ENDDO
@@ -247,7 +249,7 @@ CONTAINS
           grd(ns)%grdu=0.D0
        END IF
 
-       CALL DP_TNSR0(CW,CKPR,CKPP,NS,mag,plf,grd,CDISP)
+       CALL DP_TNSR0(CW,CKPR,CKPP,NS,mag,plfw,grd,CDISP)
     ENDIF
 
     CDTNS(1,1)= CDISP(1)
@@ -265,15 +267,16 @@ CONTAINS
 
 !     ****** CALCULATE COLD KPERP ******
 
-  SUBROUTINE DPCOLD_RKPERP(CW,CKPR,mag,plf,CKPPF,CKPPS)
+  SUBROUTINE DPCOLD_RKPERP(CW,CKPR,mag,plfw,CKPPF,CKPPS)
 
     USE dpcomm
     USE plprof
+    USE plprofw
     USE dptnsr0
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR
     TYPE(pl_mag_type),INTENT(IN):: mag
-    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+    TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
     TYPE(pl_grd_type),DIMENSION(nsmax):: grd
     COMPLEX(rkind),INTENT(OUT):: CKPPF,CKPPS
     COMPLEX(rkind):: CDISP(6),CLDISP(6)
@@ -298,7 +301,7 @@ CONTAINS
     DO NS1=1,NSMAX
        MODELP_SAVE=MODELP(NS1)
        MODELP(NS1)=0
-       CALL DP_TNSR0(CW,CKPR,CKPP,NS1,mag,plf,grd,CLDISP)
+       CALL DP_TNSR0(CW,CKPR,CKPP,NS1,mag,plfw,grd,CLDISP)
        DO I=1,6
           CDISP(I)=CDISP(I)+CLDISP(I)
        ENDDO

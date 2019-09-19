@@ -344,11 +344,12 @@ C
 C           NR : NODE NUMBER (RADIAL POSITION)
 C           NS : PARTICLE SPECIES 
 C
-      USE plprof,ONLY: pl_prof,pl_mag_type,pl_plf_type
+      USE plprof,ONLY: pl_mag_type
+      USE plprofw,ONLY: pl_profw,pl_plfw_type
       USE dpdisp,ONLY: dp_calc
       INCLUDE 'wmcoml.inc'
       TYPE(pl_mag_type):: mag
-      TYPE(pl_plf_type),DIMENSION(nsmax):: plf
+      TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
       DIMENSION CDTNS(3,3)
 C
       CW=2.D0*PI*CRF*1.D6
@@ -356,7 +357,7 @@ C
 C
       RHON=XRHO(NR)
       CALL PL_PROF_OLD(RHON)
-      CALL PL_PROF(RHON,plf)
+      CALL PL_PROFW(RHON,plfw)
 C
 C      IF(NS.EQ.1.AND.NR.EQ.1) THEN
 C      IF(NS.EQ.1) THEN
@@ -451,7 +452,7 @@ C            UYY2=0.D0
 C
             CKPR=RKPR
             CKPP=RKPP
-            CALL DP_CALC(CW,CKPR,CKPP,NS,mag,plf,CDTNS)
+            CALL DP_CALC(CW,CKPR,CKPP,NS,mag,plfw,CDTNS)
 C
 C      IF(NR.EQ.1.AND.
 C     &   MD.EQ.0.AND.

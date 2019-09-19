@@ -87,6 +87,8 @@
 !        PTS   : Temperature on surface                        (keV)
 !        PU    : Toroidal rotation velocity at center          (m/s)
 !        PUS   : Toroidal rotation velocity on surface         (m/s)
+!        PUPR  : typical parallel velocity                     (m/s)
+!        PUPP  : typical perpendicular velocity                (m/s)
 !        RHOITB: rho at ITB (0 for no ITB)
 !        PNITB : Density increment at ITB              (1.0E20/Mm*3)
 !        PTITB : Temperature increment at ITB                  (keV)
@@ -116,6 +118,8 @@
          PTS(NS)  = 0.05D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
+         PUPR(NS) = 0.D0
+         PUPP(NS) = 0.D0
          RHOITB(NS)=0.D0
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
@@ -137,6 +141,8 @@
          PTS(NS)  = 0.05D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
+         PUPR(NS) = 0.D0
+         PUPP(NS) = 0.D0
          RHOITB(NS)=0.D0
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
@@ -157,6 +163,8 @@
          PTS(NS)  = 0.05D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
+         PUPR(NS) = 0.D0
+         PUPP(NS) = 0.D0
          RHOITB(NS)=0.D0
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
@@ -177,6 +185,8 @@
          PTS(NS)  = 0.05D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
+         PUPR(NS) = 0.D0
+         PUPP(NS) = 0.D0
          RHOITB(NS)=0.D0
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
@@ -196,6 +206,8 @@
          PTS(NS)  = 0.0D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
+         PUPR(NS) = 0.D0
+         PUPP(NS) = 0.D0
          RHOITB(NS)=0.D0
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
@@ -279,11 +291,12 @@
 !             13: 2D plane 
 
 !        MODELN: Control plasma profile
-!                   0: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; 0 in SOL
+!                   0: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; PN=0 in SOL
 !                   1: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; PNS in SOL
-!                   7: Read from file through WMDPRF (DIII-D)
+!                   2: n,T from pressure profile; u from PU,PUS; PNS in SOL
+!                   3: with RHOEDG from PN,PNS,PTPR,PTPP,PTS,PU,PUS; PNS in SOL
 !                   8: Read from file through WMXPRF (JT-60)
-!                   9: Read from file KNAMTR (TASK/TR)
+!                   9: Read from bpsd_plasmaf
 !                  12: Read from 2D nT file
 !                  14: Read from 2D nT file
 !                  21: Read from trdata

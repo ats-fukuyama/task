@@ -48,11 +48,11 @@ all: libs wm
 	(cd ../../bpsd; make libbpsd.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
-../pl/pllib.a:
+../pl/libpl.a:
 	(cd ../pl; make libpl.a)
-../eq/eqlib.a:
+../eq/libeq.a:
 	(cd ../eq; make libeq.a)
-../dp/dplib.a:
+../dp/libdp.a:
 	(cd ../dp; make libdp.a)
 $(LIB_MTX):
 	(cd ../mtxp; make)

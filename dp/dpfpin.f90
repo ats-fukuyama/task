@@ -148,11 +148,11 @@ CONTAINS
   SUBROUTINE DPLDFM(NS,ID,IERR)
 
     USE dpcomm
-    USE plprof
+    USE plprofw
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NS,ID  ! ID=0 : non-relativistic, ID=1: relativistic
     INTEGER,INTENT(OUT):: IERR
-    TYPE(pl_plf_type),DIMENSION(nsmax):: plf
+    TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
     INTEGER NR,NTH,NSA,NP,NSA1
     REAL(rkind):: PTH0W,RHON,RN0,TPR,TPP,RT0,PN0,PT0,PTH0
     REAL(rkind):: TNPR,TNPP,SUM,PML,PPP,PPR,EX,TN00,FACTOR
@@ -214,11 +214,11 @@ CONTAINS
 
     DO NR=1,NRMAX_DP
        RHON=RM(NR)
-       CALL PL_PROF(RHON,plf)
+       CALL PL_PROFW(RHON,plfw)
 
-       RN0 = plf(NSA)%RN
-       TPR = plf(NSA)%RTPR
-       TPP = plf(NSA)%RTPP
+       RN0 = plfw(NSA)%RN
+       TPR = plfw(NSA)%RTPR
+       TPP = plfw(NSA)%RTPP
        RT0 = (TPR+2.D0*TPP)/3.D0
 
        IF(ID.EQ.0) THEN
@@ -405,13 +405,13 @@ CONTAINS
 
 !****** SET MAXWELLIAN VELOCITY DISTRIBUTION DATA ******
 
-  SUBROUTINE DPFMFL(NS,plf,ID)
+  SUBROUTINE DPFMFL(NS,plfw,ID)
 
       USE dpcomm
-      USE plprof
+      USE plprofw
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NS,ID
-      TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       REAL(RKIND):: RN0,TPR,TPP,RT0,PN0,PT0,PTH0,PTH0W,TNPR,TNPP,SUM
       REAL(RKIND):: PPP,PPR,EX,TN00,PML,FACTOR
       INTEGER:: NP,NTH
@@ -423,9 +423,9 @@ CONTAINS
       PT0 = (PTPR(NS)+2*PTPP(NS))/3.D0
       PTH0 = SQRT(PT0*1.D3*AEE*AMP*PA(NS))
 
-      RN0 = plf(NS)%RN
-      TPR = plf(NS)%RTPR
-      TPP = plf(NS)%RTPP
+      RN0 = plfw(NS)%RN
+      TPR = plfw(NS)%RTPR
+      TPP = plfw(NS)%RTPP
       RT0 = (TPR+2.D0*TPP)/3.D0
 
       IF(ID.EQ.0) THEN

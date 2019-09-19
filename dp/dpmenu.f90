@@ -12,6 +12,7 @@ CONTAINS
 
     USE dpcomm
     USE plprof
+    USE plprofw
     USE plparm,ONLY: pl_view
     USE dpparm,ONLY: dp_parm,dp_view
     USE dproot,ONLY: dp_root,dpgrp1,dpgrp0
@@ -28,7 +29,7 @@ CONTAINS
     REAL(rkind):: RF0_SAVE,RKZ0_SAVE,RKX0_SAVE,RL,RHON
     COMPLEX(rkind):: CW,CKPR,CKPP
     TYPE(pl_mag_type):: mag
-    TYPE(pl_plf_type),DIMENSION(nsmax):: plf
+    TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
     TYPE(pl_grd_type),DIMENSION(nsmax):: grd
 
 1   CONTINUE
@@ -77,14 +78,14 @@ CONTAINS
        CKPP=RKX0
        CALL PL_MAG(RL,0.D0,0.D0,mag)
        RHON=mag%rhon
-       CALL PL_PROF(RHON,plf)
+       CALL PL_PROFW(RHON,plfw)
        CALL PL_GRAD(RHON,grd)
        MODELP(1)=5
-       CALL DP_TNSR0(CW,CKPR,CKPP,1,mag,plf,grd,CD4)
+       CALL DP_TNSR0(CW,CKPR,CKPP,1,mag,plfw,grd,CD4)
        MODELP(1)=6
-       CALL DP_TNSR0(CW,CKPR,CKPP,1,mag,plf,grd,CD5)
+       CALL DP_TNSR0(CW,CKPR,CKPP,1,mag,plfw,grd,CD5)
        MODELP(1)=7
-       CALL DP_TNSR0(CW,CKPR,CKPP,1,mag,plf,grd,CD6)
+       CALL DP_TNSR0(CW,CKPR,CKPP,1,mag,plfw,grd,CD6)
        WRITE(6,602) 
 602    FORMAT(8X,'MODELP=5',16X,'MODELP=6',16X,'MODELP=7')
        WRITE(6,603) (I,CD4(I),CD5(I),CD6(I),I=1,6)

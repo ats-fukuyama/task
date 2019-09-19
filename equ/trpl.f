@@ -58,11 +58,11 @@ c
       do nr=1,plasmaf%nrmax
          plasmaf%rho(nr)=ro(nr)
          do ns=1,plasmaf%nsmax
-            plasmaf%data(nr,ns)%pn=0.d0
-            plasmaf%data(nr,ns)%pt=0.d0
-            plasmaf%data(nr,ns)%ptpr=0.d0
-            plasmaf%data(nr,ns)%ptpp=0.d0
-            plasmaf%data(nr,ns)%pu=0.d0
+            plasmaf%data(nr,ns)%density=0.d0
+            plasmaf%data(nr,ns)%temperature=0.d0
+            plasmaf%data(nr,ns)%temperature_para=0.d0
+            plasmaf%data(nr,ns)%temperature_perp=0.d0
+            plasmaf%data(nr,ns)%velocity_tor=0.d0
          enddo
          plasmaf%qinv(nr)=0.D0
       enddo
@@ -83,11 +83,11 @@ c
       plasmaf%time=0.d0
       do nr=1,plasmaf%nrmax
          do ns=1,plasmaf%nsmax
-            plasmaf%data(nr,ns)%pn=den(nr,ns-1)
-            plasmaf%data(nr,ns)%pt=tem(nr,ns-1)
-            plasmaf%data(nr,ns)%ptpr=tem(nr,ns-1)
-            plasmaf%data(nr,ns)%ptpp=tem(nr,ns-1)
-            plasmaf%data(nr,ns)%pu=0.d0
+            plasmaf%data(nr,ns)%density=den(nr,ns-1)
+            plasmaf%data(nr,ns)%temperature=tem(nr,ns-1)
+            plasmaf%data(nr,ns)%temperature_para=tem(nr,ns-1)
+            plasmaf%data(nr,ns)%temperature_perp=tem(nr,ns-1)
+            plasmaf%data(nr,ns)%velocity_tor=0.d0
          enddo
          plasmaf%qinv(nr)=qi(nr)*(2.D0*cnpi)**2
       enddo
@@ -109,8 +109,8 @@ c
 c
       do nr=1,plasmaf%nrmax
          do ns=1,plasmaf%nsmax
-            den(nr,ns-1)=plasmaf%data(nr,ns)%pn
-            tem(nr,ns-1)=plasmaf%data(nr,ns)%pt
+            den(nr,ns-1)=plasmaf%data(nr,ns)%density
+            tem(nr,ns-1)=plasmaf%data(nr,ns)%temperature
             pre(nr,ns-1)=cnec*tem(nr,ns-1)*den(nr,ns-1)
          enddo
          qi(nr)=plasmaf%qinv(nr)/(2.d0*cnpi)**2

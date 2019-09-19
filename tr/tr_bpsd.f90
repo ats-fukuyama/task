@@ -135,11 +135,12 @@
       enddo
       do nr=1,plasmaf%nrmax
          do ns=1,plasmaf%nsmax
-            plasmaf%data(nr,ns)%pn=temp(nr,ns,1)*1.d20
-            plasmaf%data(nr,ns)%pt=temp(nr,ns,2)*1.D3
-            plasmaf%data(nr,ns)%ptpr=temp(nr,ns,2)*1.D3
-            plasmaf%data(nr,ns)%ptpp=temp(nr,ns,2)*1.D3
-            plasmaf%data(nr,ns)%pu=temp(nr,ns,3)
+            plasmaf%data(nr,ns)%density=temp(nr,ns,1)*1.d20
+            plasmaf%data(nr,ns)%temperature=temp(nr,ns,2)*1.D3
+            plasmaf%data(nr,ns)%temperature_para=temp(nr,ns,2)*1.D3
+            plasmaf%data(nr,ns)%temperature_perp=temp(nr,ns,2)*1.D3
+            plasmaf%data(nr,ns)%velocity_tor=temp(nr,ns,3)
+            plasmaf%data(nr,ns)%velocity_pol=0.D0
          enddo
       enddo
 
@@ -182,9 +183,9 @@
 
       do ns=1,plasmaf%nsmax
          do nr=1,plasmaf%nrmax
-            temp(nr,ns,1)=plasmaf%data(nr,ns)%pn*1.d-20
-            temp(nr,ns,2)=plasmaf%data(nr,ns)%pt*1.D-3
-            temp(nr,ns,3)=plasmaf%data(nr,ns)%pu
+            temp(nr,ns,1)=plasmaf%data(nr,ns)%density*1.d-20
+            temp(nr,ns,2)=plasmaf%data(nr,ns)%temperature*1.D-3
+            temp(nr,ns,3)=plasmaf%data(nr,ns)%velocity_tor
          enddo
       enddo
       do nr=2,plasmaf%nrmax

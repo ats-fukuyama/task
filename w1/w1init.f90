@@ -89,6 +89,7 @@ CONTAINS
 !                   IF IHARM GE 3 THEN FAST WAVE FLR FOR 3..IHARM
 !                   IF IHARM LT 0 THEN FAST WAVE FLR FOR 0..ABS(IHARM))
 !     IELEC : 1 for electron, 0 for else other
+!     IELEC : 1 for electron, 0 for else other
 
     NSMAX = 3
 
@@ -200,6 +201,11 @@ CONTAINS
 !             1 : WITH    SYMMETRY
 !            -1 : WITH   ASYMMETRY
 !
+!     MODELN:  0: parabolic with pn=0 in SOL
+!              1: parabolic with pn=pns in SOL
+!             10: linear with pn=0 in SOL
+!             11: linear with pn=pns in SOL
+!
 !     NALPHA: 0 : NO ALPHA PARTICLE EFFECT
 !             1 : SLOWING DOWN DISTRIBUTION FOR ALPHA (IS=4, NMODEL=1)
 !             2 : ALPHA DENSITY BY FUSION REACTION (IS 2:D 3:T 4:ALPHA)
@@ -223,6 +229,7 @@ CONTAINS
     NZMAX= 1
 
     NMODEL= 5
+    MODELN= 0
 
     NPRINT= 0
     NFILE = 0

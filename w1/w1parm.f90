@@ -54,7 +54,7 @@ CONTAINS
                   AJYH,AJZH,APYH,APZH,ALZH,APHH,AJYL,AJZL,APYL,APZL,ALZL,APHL,&
                   PA,PZ,PN,PTPP,PTPR,PU,PNS,PTS,PZCL,NSMAX, &
                   NXMAX,NZMAX,NPRINT,NFILE,NGRAPH,NLOOP,NSYM, &
-                  NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NDISP, &
+                  NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NDISP,MODELN, &
                   EPSH,ZEFF,WVYSIZ,NCDTYP,NXABS,IELEC, &
                   MDLWG,MDLWGS,WGZ1,WGZ2,WGAMP,WGNZ
 
@@ -85,7 +85,7 @@ CONTAINS
          '        AJYL,AJZL,APYL,APZL,ALZL,APHL,', &
          '        PA,PZ,PN,PTPP,PTPR,PU,PNS,PTS,PZCL,NSMAX,', &
          '        NXMAX,NZMAX,NPRINT,NFILE,NGRAPH,NLOOP,NSYM,', &
-         '        NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NDISP,', &
+         '        NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NDISP,MODELN,', &
          '        EPSH,ZEFF,WVYSIZ,NCDTYP,NXABS,IELEC', &
          '        MDLWG,MDLWGS,WGZ1,WGZ2,WGAMP,WGNZ'
     RETURN
@@ -163,7 +163,7 @@ CONTAINS
                  'NPRINT',NPRINT,'NFILE ',NFILE, &
                  'NGRAPH',NGRAPH,'NLOOP ',NLOOP, &
                  'NSYM  ',NSYM  ,'NMODEL',NMODEL, &
-                 'NALPHA',NALPHA, &
+                 'NALPHA',NALPHA,'MODELN',MODELN, &
                  'NSYS  ',NSYS  ,'NDISP ',NDISP, &
                  'NCDTYP',NCDTYP,'NXABS ',NXABS, &
                  'MDLWG ',MDLWG ,'MDLWGS',MDLWGS

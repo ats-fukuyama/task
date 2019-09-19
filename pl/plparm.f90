@@ -54,7 +54,7 @@ CONTAINS
       NAMELIST /PL/ &
            RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
            RMIR,ZBB,Hpitch1,Hpitch2,RRCH,RCOIL,ZCOIL,BCOIL,NCOILMAX, &
-           NSMAX,NPA,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PZCL, &
+           NSMAX,NPA,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PUPR,PUPP,PZCL, &
            ID_NS,KID_NS, &
            r_corner,z_corner, &
            br_corner,bz_corner,bt_corner, &
@@ -99,7 +99,7 @@ CONTAINS
 
   601 FORMAT(' ','# &PL : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,'/ &
              9X,'RMIR,ZBB,Hpitch1,Hpitch2,RRCH,RCOI,ZCOIL,BCOIL,NCOILMAX,'/ &
-             9X,'NSMAX,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PZCL,'/ &
+             9X,'NSMAX,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PUPR,PUPP,PZCL,'/ &
              9X,'ID_NS,KID_NS,'/ &
              9X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'/ &
              9X,'r_corner,z_corner,br_corner,bz_corner,bt_corner,'/ &
@@ -210,7 +210,10 @@ CONTAINS
       DO NS=1,NSMAX
          WRITE(6,130) NS,PTPR(NS),PTPP(NS),PTS(NS),PU(NS),PUS(NS)
       ENDDO
-
+      WRITE(6,131)
+      DO NS=1,NSMAX
+         WRITE(6,132) NS,PUPR(NS),PUPP(NS)
+      ENDDO
       WRITE(6,140)
       DO NS=1,NSMAX
          WRITE(6,150) NS,RHOITB(NS),PNITB(NS),PTITB(NS),PUITB(NS),PZCL(NS)
@@ -247,6 +250,8 @@ CONTAINS
   120 FORMAT(' ','NS    PTPR        PTPP        PTS         ', &
                        'PU          PUS')
   130 FORMAT(' ',I2,' ',1P5E12.4)                               
+  131 FORMAT(' ','NS    PUPR        PUPP')
+  132 FORMAT(' ',I2,' ',1P2E12.4)                               
   140 FORMAT(' ','NS    RHOITB      PNITB       PTITB       ', &
                        'PUITB       PZCL')
   150 FORMAT(' ',I2,' ',1P5E12.4)                               

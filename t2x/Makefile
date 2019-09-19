@@ -25,7 +25,7 @@ all : testt2
 
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
-../../bpsd/bpsdlib.a:
+../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
 
 libt2.a: $(OBJS)

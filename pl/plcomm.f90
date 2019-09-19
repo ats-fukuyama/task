@@ -8,6 +8,7 @@ MODULE plcomm_parm
 
       INTEGER:: NSMAX,NCOILMAX
       INTEGER:: MODELG,MODELB,MODELN,MODELQ,IDEBUG,MODEFR,MODEFW
+      INTEGER:: mdlplw
       INTEGER:: MODEL_PROF,MODEL_NPROF
 
       REAL(rkind):: RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ
@@ -20,7 +21,8 @@ MODULE plcomm_parm
       REAL(rkind),DIMENSION(3,NSM):: pn_corner,ptpr_corner,ptpp_corner
 
       REAL(rkind),DIMENSION(NSM):: & 
-           PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS, &
+           PA,PZ,PN,PNS,PTPR,PTPP,PTS, &
+           PU,PUS,PUPR,PUPP, &
            RHOITB,PNITB,PTITB,PUITB, &
            PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
            PZCL

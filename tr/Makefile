@@ -78,7 +78,7 @@ libtr3.a: $(OBJTR) $(OBJ3D) $(INCNC) $(INCGLF)
 ../pl/libpl.a:
 	(cd ../pl; make libpl.a)
 ../eq/libeq.a:
-	(cd ../eq; make eqlib.a)
+	(cd ../eq; make libeq.a)
 
 libs:
 	(cd ../lib; make libtask.a)

@@ -21,12 +21,12 @@ SRCSFREE = xxcomm.f90 xxinit.f90 xxparm.f90 \
 
 OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
 
-LIBS = xxlib.a ../lib/libtask.a ../../bpsd/loibbpsd.a
+LIBS = libxx.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
 all : xx
 
 ../lib/libtask.a:
-	(cd ../lib; make loibtask.a)
+	(cd ../lib; make libtask.a)
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
 libxx.a: $(OBJS)

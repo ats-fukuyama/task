@@ -112,13 +112,13 @@ c set pressure profiles
          pretot=(mut(n)/cnmu)*hdt(n)**gam
          dentot=0.d0
          do ns=1,plasmaf%nsmax
-            dentot=dentot+plasmaf%data(n,ns)%pn
+            dentot=dentot+plasmaf%data(n,ns)%density
          enddo
          temave=pretot/(cnec*dentot)
          do ns=1,plasmaf%nsmax
-            plasmaf%data(n,ns)%pt=temave
-            plasmaf%data(n,ns)%ptpr=temave
-            plasmaf%data(n,ns)%ptpp=temave
+            plasmaf%data(n,ns)%temperature=temave
+            plasmaf%data(n,ns)%temperature_para=temave
+            plasmaf%data(n,ns)%temperature_perp=temave
          enddo
       enddo
 
@@ -172,8 +172,8 @@ c=======================================================================
          hit(n)=hiv(nv)*plasmaf%rho(n)**2
          qi(n)=plasmaf%qinv(n)/(2.D0*cnpi)**2
          do ns=1,plasmaf%nsmax
-            den(n,ns-1)=plasmaf%data(n,ns)%pn
-            tem(n,ns-1)=plasmaf%data(n,ns)%pt
+            den(n,ns-1)=plasmaf%data(n,ns)%density
+            tem(n,ns-1)=plasmaf%data(n,ns)%temperature
             pre(n,ns-1)=cnec*tem(n,ns-1)*den(n,ns-1)
          enddo
       enddo
@@ -369,11 +369,11 @@ c-----
       do n=1,plasmaf%nrmax
          do ns=1,plasmaf%nsmax
             tem(n,ns-1)=pre(n,ns-1)/(cnec*den(n,ns-1))
-            plasmaf%data(n,ns)%pn=den(n,ns-1)
-            plasmaf%data(n,ns)%pt=tem(n,ns-1)
-            plasmaf%data(n,ns)%ptpr=tem(n,ns-1)
-            plasmaf%data(n,ns)%ptpp=tem(n,ns-1)
-            plasmaf%data(n,ns)%pu=0.d0
+            plasmaf%data(n,ns)%density=den(n,ns-1)
+            plasmaf%data(n,ns)%temperature=tem(n,ns-1)
+            plasmaf%data(n,ns)%temperature_para=tem(n,ns-1)
+            plasmaf%data(n,ns)%temperature_perp=tem(n,ns-1)
+            plasmaf%data(n,ns)%velocity_tor=0.d0
          enddo
 c         plasmaf%qinv(n)=nut(n)*(2.D0*cnpi)**2
       enddo

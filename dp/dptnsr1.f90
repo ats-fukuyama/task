@@ -19,19 +19,20 @@ CONTAINS
 
 !     ****** COLLISIONLESS COLD MODEL ******
 
-  SUBROUTINE DPTNCL(CW,NS,mag,plf,CLDISP)
+  SUBROUTINE DPTNCL(CW,NS,mag,plfw,CLDISP)
 
       USE dpcomm
       USE plprof
+      USE plprofw
       IMPLICIT NONE
       COMPLEX(rkind),INTENT(IN):: CW
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind):: CWP,CWC
 
-      CWP=plf(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      CWP=plfw(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
 
       CLDISP(1)=-CWP/(1.D0-CWC*CWC)
@@ -46,25 +47,26 @@ CONTAINS
 
 !     ****** COLLISIONAL COLD MODEL ******
 
-  SUBROUTINE DPTNCC(CW,NS,mag,plf,CLDISP)
+  SUBROUTINE DPTNCC(CW,NS,mag,plfw,CLDISP)
 
       USE dpcomm
       USE plprof
+      USE plprofw
       IMPLICIT NONE
       COMPLEX(rkind),INTENT(IN):: CW
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind):: CWP,CWC,CWNU
 
-      CWP=plf(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      CWP=plfw(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
 
-      IF(plf(NS)%RNUC.EQ.0.D0) THEN
-         CWNU=DCMPLX(1.D0,plf(NS)%RZCL)
+      IF(plfw(NS)%RNUC.EQ.0.D0) THEN
+         CWNU=DCMPLX(1.D0,plfw(NS)%RZCL)
       ELSE
-         CWNU=1.D0+CI*plf(NS)%RNUC/CW
+         CWNU=1.D0+CI*plfw(NS)%RNUC/CW
       END IF
       CWP=CWP/CWNU
       CWC=CWC/CWNU
@@ -80,26 +82,27 @@ CONTAINS
 
 !     ****** IDEAL MHD MODEL ******
 
-  SUBROUTINE DPTNIM(CKPR,NS,mag,plf,CLDISP)
+  SUBROUTINE DPTNIM(CKPR,NS,mag,plfw,CLDISP)
 
       USE dpcomm
       USE plprof
+      USE plprofw
       IMPLICIT NONE
       COMPLEX(rkind),INTENT(IN):: CKPR
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind):: CWP,CWC,CPARA
       REAL(rkind):: RKPR,VTE
 
-      CWP=plf(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS))
+      CWP=plfw(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS))
       CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS))
 
       RKPR=DBLE(CKPR)
       IF(ABS(RKPR).LT.1.D-8) RKPR=1.D-8
-      VTE=SQRT(plf(NS)%RTPR*AEE*1.D3/(PA(NS)*AMP))
-      CPARA=plf(NS)%RN*1.D20*AEE*AEE &
+      VTE=SQRT(plfw(NS)%RTPR*AEE*1.D3/(PA(NS)*AMP))
+      CPARA=plfw(NS)%RN*1.D20*AEE*AEE &
            /(EPS0*AMP*PA(NS)*RKPR**2*VTE**2)
 
       CLDISP(1)= CWP/(CWC*CWC)
@@ -113,25 +116,26 @@ CONTAINS
 
 !     ****** RESISTIVE MHD MODEL ******
 
-  SUBROUTINE DPTNRM(CW,NS,mag,plf,CLDISP)
+  SUBROUTINE DPTNRM(CW,NS,mag,plfw,CLDISP)
 
       USE dpcomm
       USE plprof
+      USE plprofw
       IMPLICIT NONE
       COMPLEX(rkind),INTENT(IN):: CW
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind):: CWP,CWC,CWNU
 
-      CWP=plf(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      CWP=plfw(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
 
-      IF(plf(NS)%RNUC.EQ.0.D0) THEN
-         CWNU=DCMPLX(1.D0,plf(NS)%RZCL)
+      IF(plfw(NS)%RNUC.EQ.0.D0) THEN
+         CWNU=DCMPLX(1.D0,plfw(NS)%RZCL)
       ELSE
-         CWNU=1.D0+CI*plf(NS)%RNUC/CW
+         CWNU=1.D0+CI*plfw(NS)%RNUC/CW
       END IF
       CWP=CWP/CWNU
       CWC=CWC/CWNU
@@ -147,32 +151,33 @@ CONTAINS
 
 !     ****** WARM PLAMSA MODEL ******
 
-  SUBROUTINE DPTNWP(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+  SUBROUTINE DPTNWP(CW,CKPR,CKPP,NS,mag,plfw,CLDISP)
 
       USE dpcomm
       USE plprof
+      USE plprofw
       IMPLICIT NONE
       COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind):: CWP,CWC,CWNU,CTPR,CTPP
       REAL(rkind):: WTPR,WTPP,WTPX
 
-      CWP=plf(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      CWP=plfw(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
 
-      IF(plf(NS)%RNUC.EQ.0.D0) THEN
-         CWNU=DCMPLX(1.D0,plf(NS)%RZCL)
+      IF(plfw(NS)%RNUC.EQ.0.D0) THEN
+         CWNU=DCMPLX(1.D0,plfw(NS)%RZCL)
       ELSE
-         CWNU=1.D0+CI*plf(NS)%RNUC/CW
+         CWNU=1.D0+CI*plfw(NS)%RNUC/CW
       END IF
       CWP=CWP/CWNU
       CWC=CWC/CWNU
 
-      WTPR=plf(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))
-      WTPP=plf(NS)%RTPP*1.D3*AEE/(AMP*PA(NS))
+      WTPR=plfw(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))
+      WTPP=plfw(NS)%RTPP*1.D3*AEE/(AMP*PA(NS))
       WTPX=SQRT(WTPR/WTPP)
 
       CTPR=1.D0/(1.D0-CKPR**2*WTPR/(CW*CW*CWNU))
@@ -190,30 +195,31 @@ CONTAINS
 
 !     ******  UNMAGNETIZE KINETIC DISPERSION ******
 
-  SUBROUTINE DPTNUP(CW,CKPR,CKPP,NS,plf,CLDISP)
+  SUBROUTINE DPTNUP(CW,CKPR,CKPP,NS,plfw,CLDISP)
 
       USE libdsp,ONLY: DSPFN
       USE dpcomm
       USE plprof
+      USE plprofw
       IMPLICIT NONE
       COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
       INTEGER,INTENT(IN):: NS
-      TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind):: CK2,CGZ,CZ,CDZ,CWP,CFX,CFZ,CLP,CLT,CWNU
       REAL(rkind):: RT,VT2
 
-      RT=(plf(NS)%RTPR+2.D0*plf(NS)%RTPP)/3.D0
+      RT=(plfw(NS)%RTPR+2.D0*plfw(NS)%RTPP)/3.D0
       CK2=SQRT(CKPR**2+CKPP**2)
       VT2=RT*AEE*1.D3/(AMP*PA(NS))
       CGZ=CW/SQRT(2.D0*CK2*VT2)
       CALL DSPFN(CGZ,CZ,CDZ)
 
-      CWP=plf(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
-      IF(plf(NS)%RNUC.EQ.0.D0) THEN
-         CWNU=DCMPLX(1.D0,plf(NS)%RZCL)
+      CWP=plfw(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      IF(plfw(NS)%RNUC.EQ.0.D0) THEN
+         CWNU=DCMPLX(1.D0,plfw(NS)%RZCL)
       ELSE
-         CWNU=1.D0+CI*plf(NS)%RNUC/CW
+         CWNU=1.D0+CI*plfw(NS)%RNUC/CW
       END IF
       CWP=CWP/CWNU
 
@@ -233,16 +239,17 @@ CONTAINS
 
 !     ****** KINETIC MODEL WITHOUT FLR ******
 
-  SUBROUTINE DPTNHP(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+  SUBROUTINE DPTNHP(CW,CKPR,CKPP,NS,mag,plfw,CLDISP)
 
       USE libdsp,ONLY: DSPFN
       USE dpcomm
       USE plprof
+      USE plprofw
       IMPLICIT NONE
       COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind):: CALAM(0:2)
       COMPLEX(rkind):: CWP,CWC,CBETA,CPR,CGZ,CZ,CDZ,CK,CFW,CFF,CFG
@@ -254,17 +261,17 @@ CONTAINS
          CLDISP(I)=0.D0
       ENDDO
 
-      CWP=plf(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      CWP=plfw(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
 
-      IF(plf(NS)%RNUC.EQ.0.D0) THEN
-         CWNU=DCMPLX(1.D0,plf(NS)%RZCL)
+      IF(plfw(NS)%RNUC.EQ.0.D0) THEN
+         CWNU=DCMPLX(1.D0,plfw(NS)%RZCL)
       ELSE
-         CWNU=1.D0+CI*plf(NS)%RNUC/CW
+         CWNU=1.D0+CI*plfw(NS)%RNUC/CW
       END IF
 
-      WTPR=plf(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))
-      WTPP=plf(NS)%RTPP*1.D3*AEE/(AMP*PA(NS))
+      WTPR=plfw(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))
+      WTPP=plfw(NS)%RTPP*1.D3*AEE/(AMP*PA(NS))
       WTPX=SQRT(WTPR/WTPP)
       CBETA=0.D0
       CALAM(0)=1.D0
@@ -300,17 +307,18 @@ CONTAINS
 
 !     ****** KINETIC MODEL WITH LOWEST FLR ******
 
-  SUBROUTINE DPTNKL(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+  SUBROUTINE DPTNKL(CW,CKPR,CKPP,NS,mag,plfw,CLDISP)
 
       USE libdsp,ONLY: DSPFN
       USE libbes,ONLY: BESEINX
       USE dpcomm
       USE plprof
+      USE plprofw
       IMPLICIT NONE
       COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind):: CALAM(0:3)
       COMPLEX(rkind):: CWP,CWC,CBETA,CPR,CGZ,CZ,CDZ,CK,CFW,CFF,CFG
@@ -323,17 +331,17 @@ CONTAINS
       ENDDO
 
       NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)))+1
-      CWP=plf(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      CWP=plfw(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
 
-      IF(plf(NS)%RNUC.EQ.0.D0) THEN
-         CWNU=DCMPLX(1.D0,plf(NS)%RZCL)
+      IF(plfw(NS)%RNUC.EQ.0.D0) THEN
+         CWNU=DCMPLX(1.D0,plfw(NS)%RZCL)
       ELSE
-         CWNU=1.D0+CI*plf(NS)%RNUC/CW
+         CWNU=1.D0+CI*plfw(NS)%RNUC/CW
       END IF
 
-      WTPR=plf(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))
-      WTPP=plf(NS)%RTPP*1.D3*AEE/(AMP*PA(NS))
+      WTPR=plfw(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))
+      WTPP=plfw(NS)%RTPP*1.D3*AEE/(AMP*PA(NS))
       WTPX=SQRT(WTPR/WTPP)
       CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
       DO NC=0,NHMAX
@@ -369,17 +377,18 @@ CONTAINS
 
 !     ****** KINETIC MODEL WITH FLR (SYMMETRIC) ******
 
-  SUBROUTINE DPTNKS(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+  SUBROUTINE DPTNKS(CW,CKPR,CKPP,NS,mag,plfw,CLDISP)
 
       USE libdsp,ONLY: DSPFN
       USE libbes,ONLY: BESEINX
       USE dpcomm
       USE plprof
+      USE plprofw
       IMPLICIT NONE
       COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind),ALLOCATABLE:: CALAM(:)
       COMPLEX(rkind):: CWP,CWC,CBETA,CPR,CGZ,CZ,CDZ,CK,CFW,CFF,CFG
@@ -394,17 +403,17 @@ CONTAINS
       NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)))+1
       ALLOCATE(CALAM(0:NHMAX))
 
-      CWP=plf(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      CWP=plfw(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
 
-      IF(plf(NS)%RNUC.EQ.0.D0) THEN
-         CWNU=DCMPLX(1.D0,plf(NS)%RZCL)
+      IF(plfw(NS)%RNUC.EQ.0.D0) THEN
+         CWNU=DCMPLX(1.D0,plfw(NS)%RZCL)
       ELSE
-         CWNU=1.D0+CI*plf(NS)%RNUC/CW
+         CWNU=1.D0+CI*plfw(NS)%RNUC/CW
       END IF
 
-      WTPR=plf(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))
-      WTPP=plf(NS)%RTPP*1.D3*AEE/(AMP*PA(NS))
+      WTPR=plfw(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))
+      WTPP=plfw(NS)%RTPP*1.D3*AEE/(AMP*PA(NS))
       WTPX=SQRT(WTPR/WTPP)
       CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
       DO NH=0,NHMAX
@@ -446,17 +455,18 @@ CONTAINS
 
 !     ****** KINETIC MODEL WITH FLR ******
 
-    SUBROUTINE DPTNKP(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+    SUBROUTINE DPTNKP(CW,CKPR,CKPP,NS,mag,plfw,CLDISP)
 
       USE libdsp,ONLY: DSPFN
       USE libbes,ONLY: BESEINX
       USE dpcomm
       USE plprof
+      USE plprofw
       IMPLICIT NONE
       COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind),ALLOCATABLE:: CALAM(:)
       COMPLEX(rkind):: CWP,CWC,CBETA,CPR,CGZ,CZ,CDZ,CK,CFW,CFF,CFG
@@ -471,17 +481,17 @@ CONTAINS
       NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)))+1
       ALLOCATE(CALAM(0:NHMAX))
 
-      CWP=plf(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      CWP=plfw(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
 
-      IF(plf(NS)%RNUC.EQ.0.D0) THEN
-         CWNU=DCMPLX(1.D0,plf(NS)%RZCL)
+      IF(plfw(NS)%RNUC.EQ.0.D0) THEN
+         CWNU=DCMPLX(1.D0,plfw(NS)%RZCL)
       ELSE
-         CWNU=1.D0+CI*plf(NS)%RNUC/CW
+         CWNU=1.D0+CI*plfw(NS)%RNUC/CW
       END IF
 
-      WTPR=plf(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))
-      WTPP=plf(NS)%RTPP*1.D3*AEE/(AMP*PA(NS))
+      WTPR=plfw(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))
+      WTPP=plfw(NS)%RTPP*1.D3*AEE/(AMP*PA(NS))
       WTPX=SQRT(WTPR/WTPP)
       CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
       DO NH=0,NHMAX
@@ -527,16 +537,17 @@ CONTAINS
 !     ******                    IN                      ******
 !     ******     WEAKLY RELATIVISTIC THERMAL PLASMA     ******
 
-  SUBROUTINE DPTNKR(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+  SUBROUTINE DPTNKR(CW,CKPR,CKPP,NS,mag,plfw,CLDISP)
 
       USE libdsp,ONLY: DSPFN
       USE dpcomm
       USE plprof
+      USE plprofw
       IMPLICIT NONE
       COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
 !      COMPLEX(rkind),ALLOCATABLE:: CALAM(:)
       COMPLEX(rkind):: CWP,CWC,CBETA,CNPP,CNPR,CZ,CWNU
@@ -548,17 +559,17 @@ CONTAINS
 
       DELZ=1.D-6
 
-      CWP=plf(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      CWP=plfw(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CWC=ABS(mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW))
 
-      IF(plf(NS)%RNUC.EQ.0.D0) THEN
-         CWNU=DCMPLX(1.D0,plf(NS)%RZCL)
+      IF(plfw(NS)%RNUC.EQ.0.D0) THEN
+         CWNU=DCMPLX(1.D0,plfw(NS)%RZCL)
       ELSE
-         CWNU=1.D0+CI*plf(NS)%RNUC/CW
+         CWNU=1.D0+CI*plfw(NS)%RNUC/CW
       END IF
 
-      WTPR=plf(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))
-      WTPP=plf(NS)%RTPP*1.D3*AEE/(AMP*PA(NS))
+      WTPR=plfw(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))
+      WTPP=plfw(NS)%RTPP*1.D3*AEE/(AMP*PA(NS))
       CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
 
       RMU=VC**2/WTPR
