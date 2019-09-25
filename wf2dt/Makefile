@@ -12,7 +12,7 @@ LIBX_MTX=$(LIBX_MTX_MUMPS)
 
 #FFLAGS = $(OFLAGS)
 #LFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS)
+FFLAGS = $(DFLAGS) -warn all
 LFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \

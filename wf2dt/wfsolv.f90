@@ -45,7 +45,6 @@ SUBROUTINE CVSOLV
   integer :: NNZ,NNZMAX,NNZME      !Number of Non-Zero Matrix Element
   integer,dimension(:),ALLOCATABLE :: NEFLAG
   integer :: ORIENTJ,ORIENTI
-  real(8),dimension(1) :: ddata
   real(4) :: cputime1,cputime2
   complex(8):: CEB
   complex(8),dimension(:),ALLOCATABLE :: CRVP,CEQP
@@ -289,7 +288,7 @@ SUBROUTINE CVSOLV
         END if
      ENDDO
 
-!    --- Contribution from the boundary ---
+!    --- Contribution from the boundary electric field ---
 
      LL=0
      DO J=1,6

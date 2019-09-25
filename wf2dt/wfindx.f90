@@ -159,9 +159,9 @@ SUBROUTINE FEP(R,Z,IE)
   implicit none
   real(8),intent(in) :: R,Z
   integer,intent(inout):: IE
-  integer :: ICOUNT,INMIN,NN1,NN2,NN3,NELMAX,NELMIN,IES,I,IDELT,J
+  integer :: ICOUNT,INMIN,NELMAX,NELMIN,IES,I,IDELT,J
   real(8),parameter :: EPS = 1.d-12
-  real(8) :: WGT(3),WGTMIN,RC,ZC,RES,SIDX,FINDEX
+  real(8) :: WGT(3),WGTMIN,SIDX,FINDEX
   INTEGER:: IN,NN
   
   IF(IE.NE.0) THEN   ! with initial guess

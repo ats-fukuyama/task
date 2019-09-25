@@ -4,8 +4,8 @@
 
 SUBROUTINE WFBPSI(R,Z,PSI)
 
-  USE wfcomm,ONLY: rkind,PI,RA,ZBB,RMIR,BB,MODELG,MODELB,NCOILMAX, &
-       RCOIL,ZCOIL,BCOIL,Hpitch1,Hpitch2,RRCH,HA1
+  USE wfcomm,ONLY: rkind,PI,ZBB,RMIR,BB,MODELG,MODELB,NCOILMAX, &
+       RCOIL,ZCOIL,BCOIL,Hpitch1,HA1
   USE libbes,ONLY: BESINX
   IMPLICIT NONE
   REAL(8),INTENT(IN) :: R,Z
@@ -112,7 +112,6 @@ SUBROUTINE WFSMAG0(R,Z,BABS,AL)
   use wfcomm
   USE plload
   implicit none
-  integer :: I
   real(8),intent(in) :: R,Z
   real(8),intent(out):: BABS,AL(3)
   real(8) :: rfactor,zfactor,br,bz,bt
@@ -185,7 +184,7 @@ END SUBROUTINE WFSMAG2
 
 SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
 
-  use wfcomm,ONLY: modelg,nsm,NSMAX
+  use wfcomm,ONLY: modelg,nsm
   use plload
   implicit none
   real(8),intent(in) :: R,Z
@@ -260,12 +259,11 @@ SUBROUTINE WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
   use wfcomm
   use plprof2d
   implicit none
-  integer :: NS,NSI
+  integer :: NS
   real(8),intent(in) :: R,Z
   real(8),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
   real(8) :: LR,LZ
-  real(8) :: TE,TI,RLAMEE,RLAMEI,RLAMII,SN,PNN0,VTE,RNUEE,RNUEI,RNUEN
-  real(8) :: RNUE,VTI,RNUIE,RNUII,RNUIN,RNUI,FACT,PSI
+  real(8) :: FACT,PSI
 
   ! --- set FACT ---
 

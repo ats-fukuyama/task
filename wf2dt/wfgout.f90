@@ -173,7 +173,7 @@ SUBROUTINE WFCTOG(CF,ID,KWD)
   integer,intent(in) :: ID
   integer :: IE,NGX,NGY,NGV
   real(4) :: GCLIP
-  real(8) :: FR,FI,DX,DY,X,Y
+  real(8) :: DX,DY,X,Y
   real(8) :: XPOS,YPOS
   complex(8),intent(in) :: CF(NSDMAX)
   complex(8) :: CE
@@ -351,7 +351,7 @@ subroutine wfgout_2d_vector
 
   integer :: IE,NGX,NGY
   complex(8):: CE
-  real(8):: DX,DY,X,Y,theta
+  real(8):: DX,DY,X,Y
   REAL(4):: GCLIP
   real(8),dimension(:,:),ALLOCATABLE::GZ_r,GZ_z
 
