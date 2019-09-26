@@ -343,6 +343,13 @@
       RHOGMN = 0.D0
       RHOGMX = 1.D0
 
+!     ======( profile for wave parameter )======
+
+!        mdlplw: 0  rupr=pupr, rupp=pupp
+!                1  rupr=ru*bnt+rupl*bnp  rupp=-ru*bnp+rupl*bnt
+         mdlplw=0
+
+
 !     ======( IO FILE NAMES )======
 
 !        KNAMEQ: Filename of equilibrium data
