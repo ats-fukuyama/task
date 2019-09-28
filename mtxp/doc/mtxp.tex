@@ -1,0 +1,276 @@
+\documentclass[11pt]{article}
+\usepackage{af}
+\usepackage{sym}
+\usepackage{doc}
+
+\begin{document}
+\begin{flushright}
+2019-09-28
+\end{flushright}
+
+\begin{center}
+{\Large \bf Parallel processing and matrix solver interface: mtxp}
+\end{center}
+
+\tableofcontents
+
+
+\section{Parallel processing library: MPICH}
+
+\subsection{Download}
+
+\begin{enumerate}
+\item
+Download a source file from MPICH web: 
+\begin{quote}
+\begin{verbatim}
+https://www.mpich.org/downloads/
+mpich-3.3.1.tar.gz (26MB)
+\end{verbatim}
+\end{quote}
+\item
+Make a directory and expand the source file
+\begin{quote}
+\begin{verbatim}
+mkdir mpich
+cd mpich
+mv ~/Download./mpich-3.3.1.tar.gz .
+tar xzf mpich-3.3.1.tar.gz
+cd mpich-3.3.1
+\end{verbatim}
+\end{quote}
+\end{enumerate}
+
+\subsection{Configure}
+\begin{enumerate}
+\item
+Create a configure script ``run'' by your favarite editor
+
+\begin{quote}
+\begin{verbatim}
+CC=gcc CFLAGS="-m64" CXX=c++ CXXFLAGS="-m64" FC=gfortran
+FFLAGS="-m64" ./configure --prefix=/usr/local/mpich331-gfortran-gcc
+--enable-cxx --enable-fast --enable-romio --disable-shared
+\end{verbatim}
+Install directory: \verb|/usr/local/mpich331-gfortran-gcc|
+\end{quote}
+
+\item
+Make ``run'' executable 
+\begin{quote}
+\begin{verbatim}
+chmod 755 run
+\end{verbatim}
+\end{quote}
+
+\item
+Configure
+\begin{quote}
+\begin{verbatim}
+./run
+\end{verbatim}
+\end{quote}
+\end{enumerate}
+
+\subsection{Compile and install}
+\begin{enumerate}
+\item
+Compile
+\begin{quote}
+\begin{verbatim}
+make
+\end{verbatim}
+\end{quote}
+\item
+Install
+\begin{quote}
+\begin{verbatim}
+sudo make install
+\end{verbatim}
+\end{quote}
+\end{enumerate}
+
+
+\section{Parallel matrix solver library: PETSc}
+
+\subsection{Download}
+\begin{enumerate}
+\item
+Download a source file from PETSc web site
+\begin{quote}
+\begin{verbatim}
+https://www.mcs.anl.gov/petsc/download/
+petsc-3.11.3.tar.gz (33.2MB)
+\end{verbatim}
+\end{quote}
+\item
+Make a directory and expand the source file
+\begin{quote}
+\begin{verbatim}
+sudo mkdir /opt
+cd /opt
+sudo mkdir petsc
+sudo chown admin:admin petsc \qquad ("admin" should be replaced by you
+user name)
+cd petsc
+mv ~/Download/petsc-3.11.3.tar.gz .
+tar xzf petsc-3.11.3.tar.gz
+\end{verbatim}
+\end{quote}
+\end{enumerate}
+
+\subsection{Configure}
+\begin{enumerate}
+\item
+Create a configure script ``gfortran.py'' by your favarite editor
+\begin{quote}
+\hrule
+\begin{verbatim}
+#!/usr/bin/env python
+
+# Build PETSc, with gfortran
+
+configure_options = [
+  '--with-mpi=1',
+  '--with-mpi-dir=/usr/local/mpich331-gfortran-gcc',
+  '--with-shared-libraries=0',
+  '--with-cxx-dialect=C++11',
+  '--download-mpich=0',
+  '--download-hypre=0',
+  '--download-fblaslapack=1',
+  '--download-spooles=1',
+  '--download-superlu=1',
+  '--download-metis=1',
+  '--download-parmetis=1',
+  '--download-superlu_dist=1',
+  '--download-blacs=1',
+  '--download-scalapack=1',
+  '--download-mumps=1'
+  ]
+
+if __name__ == '__main__':
+  import sys,os
+  sys.path.insert(0,os.path.abspath('config'))
+  import configure
+  configure.petsc_configure(configure_options)
+\end{verbatim}
+\hrule
+\end{quote}
+\item
+Make ``gfortran.py'' executable
+\begin{quote}
+\begin{verbatim}
+chmod 755 gfortran.py
+\end{verbatim}
+\end{quote}
+\item
+Setup environment variables for PETSc
+\begin{quote}
+\begin{verbatim}
+export PETSC_DIR=/opt/petsc/petsc-3.11.3
+export PETSC_ARCH=gfortran
+\end{verbatim}
+\end{quote}
+\item
+Configure
+\begin{quote}
+\begin{verbatim}
+./gfortran.py
+\end{verbatim}
+\end{quote}
+\end{enumerate}
+
+\subsection{Compile}
+\begin{enumerate}
+\item
+Compile
+\begin{quote}
+\begin{verbatim}
+make all
+\end{verbatim}
+\end{quote}
+\end{enumerate}
+
+\section{Compile of task/mtxp module}
+
+\subsection{Update setup file}
+\begin{enumerate}
+\item
+Goto mtxp directory
+\begin{quote}
+\begin{verbatim}
+cd task/mtxp
+\end{verbatim}
+\end{quote}
+\item
+Create a setup file 
+\begin{quote}
+\begin{verbatim}
+cp make.mtxp.org make.mtxp
+\end{verbatim}
+\end{quote}
+\item
+Edit the setup file ``make.mtxp''
+\begin{itemize}
+\item
+If MPI is not available, 
+remove comment mark ``\#'' on lines 4--9
+\item
+If MPI is available but PETs not, 
+remove comment mark ``\#'' on lines 12--17
+\item
+If MPI and PETSc are available, 
+remove comment mark ``\#'' on lines 21, 38,39, 41--45
+\end{itemize}
+\end{enumerate}
+\subsection{Compile}
+\begin{enumerate}
+\item
+Compile
+\begin{quote}
+\begin{verbatim}
+make
+\end{verbatim}
+\end{quote}
+\end{enumerate}
+
+\section{Compile of task/fp and related modules}
+
+\subsection{Update Makefile}
+\begin{enumerate}
+\item
+Change directory
+\begin{quote}
+\begin{verbatim}
+cd ../fp
+\end{verbatim}
+\end{quote}
+\item
+Edit Makefile
+\begin{itemize}
+\item
+To use serial band matrix solver, remove comment mark ``\#'' on lines 4-5.
+\item
+To use serial iterative solver, remove comment mark ``\#'' on lines 6-7.
+\item
+To use parallel direct solver MUMPS, remove comment mark ``\#'' on lines 8-9.
+\item
+To use parallel direct solver library PETSc, remove comment mark ``\#''
+on lines 10-11. .
+\end{itemize}
+\end{enumerate}
+
+\subsection{Compile}
+\begin{enumerate}
+\item
+Compile related modules and task/fp files
+\begin{quote}
+\begin{verbatim}
+make
+\end{verbatim}
+\end{quote}
+\end{enumerate}
+\end{document}
+
+make
+
