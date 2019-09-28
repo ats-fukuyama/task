@@ -14,6 +14,12 @@
 
 \tableofcontents
 
+\bigskip
+\begin{center}
+Version number of the software in the following will change owing to
+updates of the software, 
+\end{center}
+\bigskip
 
 \section{Parallel processing library: MPICH}
 
@@ -52,7 +58,14 @@ CC=gcc CFLAGS="-m64" CXX=c++ CXXFLAGS="-m64" FC=gfortran
 FFLAGS="-m64" ./configure --prefix=/usr/local/mpich331-gfortran-gcc
 --enable-cxx --enable-fast --enable-romio --disable-shared
 \end{verbatim}
-Install directory: \verb|/usr/local/mpich331-gfortran-gcc|
+
+\begin{itemize}
+\item
+One line text (no new line in the file)
+\item
+Install directory is defined as
+\verb|/usr/local/mpich331-gfortran-gcc|
+\end{itemize}
 \end{quote}
 
 \item
