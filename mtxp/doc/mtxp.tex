@@ -42,6 +42,9 @@ mpich-3.3.1.tar.gz (26MB)
 Make a directory and expand the source file
 \begin{quote}
 \begin{verbatim}
+cd
+mkdir soft
+cd soft
 mkdir mpich
 cd mpich
 mv ~/Download/mpich-3.3.1.tar.gz .
@@ -57,12 +60,18 @@ cd mpich-3.3.1
 Create a configure script ``run'' by your favorite editor
 
 \begin{quote}
+run:
+\hrule
 \begin{verbatim}
 CC=gcc CFLAGS="-m64" CXX=c++ CXXFLAGS="-m64" FC=gfortran
 FFLAGS="-m64" ./configure --prefix=/usr/local/mpich331-gfortran-gcc
 --enable-cxx --enable-fast --enable-romio --disable-shared
 \end{verbatim}
+\hrule
+\end{quote}
 
+
+\begin{quote}
 \begin{itemize}
 \item
 One line text (no new line in the file)
@@ -141,6 +150,7 @@ tar xzf petsc-3.11.3.tar.gz
 \item
 Create a configure script ``gfortran.py'' by your favarite editor
 \begin{quote}
+gfortran.py
 \hrule
 \begin{verbatim}
 #!/usr/bin/env python
@@ -287,7 +297,104 @@ make
 \end{verbatim}
 \end{quote}
 \end{enumerate}
-\end{document}
 
-make
+\section{Install on Ubuntu}
+
+\subsection{Install of required modules}
+
+\begin{verbatim}
+sudo apt-get install gfortran-8
+sudo apt-get install gcc-8
+sudo apt-get install g++-8
+
+sudo apt-get install emacs
+sudo apt-get install git
+sudo apt-get install xorg-dev
+sudo apt-get install valgrind
+sudo apt-get install cmake
+sudo apt-get install python
+\end{verbatim}
+
+\subsection{Install of MPICH}
+
+\begin{enumerate}
+\item
+Download of mpich-3.3.1.tar.gz \qquad (\textit{See 1.1})
+\item
+Expand at ~/soft/mpich \qquad (\textit{See 1.1})
+\item
+Configure by executing ``./run''  \qquad (\textit{See 1.2})
+
+\begin{quote}
+run:
+\hrule
+\begin{verbatim}
+CC=gcc-8 CFLAGS=''-m64'' CXX=g++-8 CXXFLAGS=''-m64'' FC=gfortran-8
+FFLAGS=''-m64'' ./configure --prefix=/usr/local/mpich331-gfortran-gcc8
+--enable-cxx --enable-fast --enable-romio --disable-shared
+\end{verbatim}
+\hrule
+\end{quote}
+
+\item
+Compile and install \qquad (\textit{See 1.3})
+\end{enumerate}
+
+\subsection{Install of PETSc}
+
+\begin{enumerate}
+\item
+Download of petsc-3.11.3.tar.gz \qquad (\textit{See 2.1})
+\item
+Expand at /opt/PETSc/ \qquad (\textit{See 2.1})
+\item
+Setup environment variables \qquad (\textit{See 2.2})
+\begin{quote}
+\begin{verbatim}
+export PETSC_DIR=/opt/PETSc/petsc-3.11.3
+export PETSC_ARCH=gfortran
+\end{verbatim}
+\end{quote}
+\item
+Configure by gfortran.py  \qquad (\textit{See 2.2})
+\item
+Execute fortran.py
+
+\begin{quote}
+gortran.py:
+\hrule
+\begin{verbatim}
+#!/usr/bin/env python
+
+# Build PETSc, with gfortran
+
+configure_options = [
+  '--with-mpi=1',
+  '--with-mpi-dir=/usr/local/mpich331-gfortran-gcc8’,
+  '--with-shared-libraries=0',
+  '--with-cxx-dialect=C++11',
+  '--download-mpich=0',
+  '--download-hypre=0',
+  '--download-fblaslapack=1',
+  '--download-spooles=1',
+  '--download-superlu=1',
+  '--download-metis=1',
+  '--download-parmetis=1',
+  '--download-superlu_dist=1',
+  '--download-blacs=1',
+  '--download-scalapack=1',
+  '--download-mumps=1'
+  ]
+
+if __name__ == '__main__':
+  import sys,os
+  sys.path.insert(0,os.path.abspath('config'))
+  import configure
+  configure.petsc_configure(configure_options)
+\end{verbatim}
+\hrule
+\end{quote}
+\end{enumerate}
+
+\end{document}
 
