@@ -205,6 +205,14 @@ Configure
 ./gfortran.py
 \end{verbatim}
 \end{quote}
+\item
+Make a soft link to prepare for library updates
+\begin{quote}
+\begin{verbatim}
+sudo ln -s petsc-3.11.3  petsc
+\end{verbatim}
+\end{quote}
+
 \end{enumerate}
 
 \subsection{Compile}
@@ -220,7 +228,7 @@ make all
 
 \section{Compile of task/mtxp module}
 
-\subsection{Update setup file}
+\subsection{Setup make.mtxp file}
 \begin{enumerate}
 \item
 Goto mtxp directory
@@ -250,13 +258,100 @@ If MPI and PETSc are available,
 remove comment mark ``\#'' on lines 21, 38,39, 41--45
 \end{itemize}
 \end{enumerate}
+
+\subsection{Modify make.header file}
+\begin{enumerate}
+\item
+Go to task directory
+\begin{quote}
+\begin{verbatim}
+cd ..
+\end{verbatim}
+\end{quote}
+\item
+Edit make.header to use lapack and blas libraries for fortran
+\begin{itemize}
+\item
+Near the beginning of the file, remove comment and ajust the path
+\begin{quote}
+\begin{verbatim}
+LAPACK = lapack.f
+LIBLA=-L /opt/PETSc/petsc/gfortran/lib -lflapack -lfblas
+\end{verbatim}
+\end{quote}
+\item
+In the following, add comment marks
+\begin{quote}
+\begin{verbatim}
+#LAPACK = nolapack.f
+#LIBLA =
+MODLA95 =
+\end{verbatim}
+Keep MODLA95 as it is, since lapack95 is not used.
+\end{quote}
+\item
+Go back to mtxp directory
+\begin{quote}
+\begin{verbatim}
+cd mtxp
+\end{verbatim}
+\end{quote}
+\end{itemize}
+\end{enumerate}
+
 \subsection{Compile}
 \begin{enumerate}
 \item
 Compile
 \begin{quote}
 \begin{verbatim}
+make clean
 make
+\end{verbatim}
+\end{quote}
+\end{enumerate}
+
+\subsection{Test mtxp}
+\begin{enumerate}
+\item
+Test programs solving 1d, 2D and 3D diffusion equation are generated
+\begin{itemize}
+\item
+\verb|testbnd|: Direct band matrix solver (non-parallel)
+\item
+\verb|testpcg|: Iterative band matrix solver (non-parallel)
+\item
+\verb|testdmumps|: Direct band matrix solver (parallel using MUMPS)
+\item
+\verb|testkdsp|: Iterative band matrix solver (parallel using PETSc)
+\end{itemize}
+\item
+Input parameters
+\begin{itemize}
+\item
+\verb|idimen| : number of dimension (i or 2 or 3),  0 for quit
+\item
+\verb|isiz| : number of mesh point in one dimension
+\item
+\verb|isource| : source position is all dimensions
+\item
+\verb|itype| : tyoe of initial guess for PETSc  0..5 (default=0)
+\item
+\verb|m1| : type of solver (methodKSP) of PETSc  0..13 (default=4)
+\item
+\verb|m2| : type of preconditioner (methodPC)  0..12 (default=5)
+\item
+\verb|tolerance| : tolerance in iterative method
+\end{itemize}
+\item
+Example input For parallel processing
+\begin{quote}
+\begin{verbatim}
+mpirun -np 4 ./testdmumps
+# INPUT: idimen,isiz,isource,itype,m1,m2,tolerance,idebug= 
+1,11,6,0,4,5,1.D-7
+3/
+0/
 \end{verbatim}
 \end{quote}
 \end{enumerate}
