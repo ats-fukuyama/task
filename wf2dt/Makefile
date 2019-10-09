@@ -2,18 +2,18 @@
 include ../make.header
 include ../mtxp/make.mtxp
 
-#LIB_MTX=$(LIB_MTX_BND)
-#LIBX_MTX=$(LIBX_MTX_BND)
-LIB_MTX=$(LIB_MTX_MUMPS)
-LIBX_MTX=$(LIBX_MTX_MUMPS)
+LIB_MTX=$(LIB_MTX_BND)
+LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-#FFLAGS = $(OFLAGS)
-#LFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS)
-LFLAGS = $(DFLAGS)
+FFLAGS = $(OFLAGS)
+LFLAGS = $(OFLAGS)
+#FFLAGS = $(DFLAGS)
+#LFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../mtxp/$(MOD) \
@@ -27,7 +27,7 @@ SRCS = 	wfcomm.f90 wfinit.f90 wfparm.f90 wfload.f90 wfprof.f90 \
 OBJS = $(SRCS:.f90=.o)
 
 LIBS = libwf.a ../pl/libpl.a ../eq/libeq.a   \
-        ../lib/libtask.a ../../bpsd/libbpsd.a $(LIB_MTX)
+        ../lib/libtask.a ../../bpsd/libbpsd.a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -57,18 +57,6 @@ libs:
 
 wf : libs $(LIBS) wfmain.o
 	$(FLINKER) wfmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
-
-save :
-	mkdir ../wfx.save
-	cp -f Makefile ../wfx.save
-	cp -f HISTORY ../wfx.save
-	cp -f *.f90 ../wfx.save
-	cp -f *.c ../wfx.save
-	cp -f *.inc ../wfx.save
-	mkdir ../wfx.save/in
-	cp -f in/wf.in* ../wfx.save/in
-	mkdir ../wfx.save/doc
-	cp -f doc/*.txt doc/*.tex ../wfx.save/doc
 
 clean:
 	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod

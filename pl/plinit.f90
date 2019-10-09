@@ -285,10 +285,10 @@
 !              8: RZphi call TASK/EQU
 !              9: RZphi call TASK/EQ
 !             10: reserved for GAMMA-10
-!             11: Straight helical geometry
+!               : Straight helical geometry
 !             11: 2D plane profile (B defined by corner)
-!             12: 2D plane profile (B read from file
-!             13: 2D plane 
+!             12: 2D plane profile (B read from file)
+!             13: 2D plane profile (simple parabolic cylinder)
 
 !        MODELN: Control plasma profile
 !                   0: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; PN=0 in SOL
