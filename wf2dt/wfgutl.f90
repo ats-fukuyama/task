@@ -12,7 +12,13 @@ FUNCTION GCLIP(D)
   real(8) :: D
 
   IF(ABS(D).GT.1.D-15) THEN
-     GCLIP=REAL(D)
+     IF(D.GT.1.D30) THEN
+        GCLIP=1.D30
+     ELSE IF(D.LT.-1.D30) THEN
+        GCLIP=-1.D30
+     ELSE
+        GCLIP=REAL(D)
+     END IF
   ELSE
      GCLIP=0.0
   ENDIF

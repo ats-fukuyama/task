@@ -77,23 +77,42 @@ module wfcomm
 !       /WFELM/
   integer(ikind):: NNMAX,NEMAX,NBNOD,NBSID
   real(rkind)   ,dimension(:)  ,ALLOCATABLE :: RNODE,ZNODE !(NNMAX)
+                                                ! poisition of node
   integer(ikind),dimension(:)  ,ALLOCATABLE :: KANOD,KBNOD !(NNMAX)
+                                                ! if boundary
+                                                !  KANOD=1
+                                                !  KBNOD=boundary node number
   real(rkind)   ,dimension(:)  ,ALLOCATABLE :: SELM        !(NEMAX)
-  integer(ikind),dimension(:)  ,ALLOCATABLE :: KAELM,NBELM !(NEMAX)
+                                                ! area of element
+  integer(ikind),dimension(:)  ,ALLOCATABLE :: KAELM !(NEMAX)
+                                                ! KAELM=dielectric id number
   real(rkind)   ,dimension(:)  ,ALLOCATABLE :: REMIN,ZEMIN !(NEMAX)
   real(rkind)   ,dimension(:)  ,ALLOCATABLE :: REMAX,ZEMAX !(NEMAX)
-  integer(ikind),dimension(:,:),ALLOCATABLE :: NDELM       !(5,NEMAX)
+                                                ! range of element area
+  integer(ikind),dimension(:,:),ALLOCATABLE :: NDELM       !(3,NEMAX)
+                                                ! node number of element
   integer(ikind),dimension(:,:),ALLOCATABLE :: KNELM       !(3,NEMAX)
+                                                ! element number of adjascent
+  integer(ikind),dimension(:,:),ALLOCATABLE :: NSDELM     !(3,NEMAX)
+                                                ! side number of element
   integer(ikind),dimension(:)  ,ALLOCATABLE :: NVNN        !(NNMAX)
+                                                ! variable number of node E
         
 !       /WFSID/
   integer(ikind):: NSDMAX
   real(ikind)   ,dimension(:)  ,ALLOCATABLE :: LSID       !(NSDMAX)
+                                                ! length of side
   integer(ikind),dimension(:,:),ALLOCATABLE :: NDSID      !(2,NSDMAX)
+                                                ! node number of side
   integer(ikind),dimension(:)  ,ALLOCATABLE :: INSID,NESID!(NSDMAX) 
+                                                ! side number in a element
+                                                ! element number of a side
   integer(ikind),dimension(:)  ,ALLOCATABLE :: KASID,KBSID!(NSDMAX) 
-  integer(ikind),dimension(:,:),ALLOCATABLE :: NSDELM     !(3,NEM)
+                                                ! if boundary
+                                                !   KASID=1
+                                                !   KBSID: boundary side number
   integer(ikind),dimension(:)  ,ALLOCATABLE :: NVNSD      !(NSDMAX)
+                                                ! variable number of side E
         
 !       /WFSRT/
   real(rkind)   ,dimension(:),ALLOCATABLE :: SINDEX       !(NEMAX)
@@ -131,9 +150,9 @@ module wfcomm
   complex(rkind),dimension(:)  ,ALLOCATABLE :: CQQ    !(MBND)
 
 !       /WFAIF/
-  real(rkind),dimension(3,3,3):: AIF3
-  real(rkind),dimension(3,3)  :: AIF2
-  real(rkind),dimension(3)    :: AIF1
+  real(rkind),dimension(3,3,3):: AIF3,AIE3
+  real(rkind),dimension(3,3)  :: AIF2,AIE2
+  real(rkind),dimension(3)    :: AIF1,AIE1
         
 !       /WFFLD/
   complex(rkind),dimension(:)  ,ALLOCATABLE :: CESD   !(NSDMAX)
@@ -253,7 +272,7 @@ contains
        NNMAX_save = NNMAX
 
     else if(elminit.eq.1) then
-       allocate(SELM(NEMAX),KAELM(NEMAX),NBELM(NEMAX))
+       allocate(SELM(NEMAX),KAELM(NEMAX))
        allocate(REMIN(NEMAX),ZEMIN(NEMAX))
        allocate(REMAX(NEMAX),ZEMAX(NEMAX))
        allocate(NDELM(3,NEMAX),KNELM(3,NEMAX))
@@ -267,7 +286,7 @@ contains
   subroutine wfelm_deallocate
     implicit none
 
-    deallocate(RNODE,ZNODE,KANOD,KBNOD,SELM,KAELM,NBELM)
+    deallocate(RNODE,ZNODE,KANOD,KBNOD,SELM,KAELM)
     deallocate(REMIN,ZEMIN,REMAX,ZEMAX,NDELM,KNELM,NVNN)
 
     return

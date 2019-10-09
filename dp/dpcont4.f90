@@ -11,6 +11,7 @@ CONTAINS
 
     USE dpcomm_local
     USE plprof
+    USE plprofw
     USE PLPARM,ONLY: pl_parm,pl_view
     USE dpparm
     USE dpdisp
@@ -22,7 +23,7 @@ CONTAINS
     REAL(rkind),ALLOCATABLE:: Z(:,:)
     INTEGER,ALLOCATABLE:: KA(:,:,:)
     TYPE(pl_mag_type):: mag
-    TYPE(pl_plf_type),DIMENSION(nsmax):: plf
+    TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
     CHARACTER(LEN=1):: KID
     INTEGER,SAVE:: INIT=0
     INTEGER:: NX,NY,NS,NY1,NY2,NX1,NX2,NGULEN,IERR
@@ -172,15 +173,15 @@ CONTAINS
             CALL PL_MAG(RX,RY,RZ,mag)
             RHON=mag%rhon
             IF(MODELG.LE.1.OR.MODELG.GT.10) THEN
-               CALL PL_PROF3D(RX,RY,RZ,plf)
+               CALL PL_PROFW3D(RX,RY,RZ,plfw)
             ELSE
-               CALL PL_PROF(RHON,plf)
+               CALL PL_PROFW(RHON,plfw)
             END IF
             IF(NORMK.LT.0) THEN
                VA=1.D0
                DO NS=1,NSMAX
                   WC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS))
-                  WP2=plf(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE &
+                  WP2=plfw(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE &
                        /(EPS0*AMP*PA(NS))
                   VA=VA+WP2/WC**2
                END DO
@@ -196,7 +197,7 @@ CONTAINS
             IF(NORMK.GE.1.AND.NORMK.LE.NSMAX) THEN
                NS=NORMK
                WC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS))
-               VT=SQRT(plf(NS)%RTPP*AEE*1.D3/(AMP*PA(NS)))
+               VT=SQRT(plfw(NS)%RTPP*AEE*1.D3/(AMP*PA(NS)))
                RKNORM(NX)=VT/WC
             ELSEIF(-NORMK.GE.1.AND.-NORMK.LE.NSMAX) THEN
                NS=-NORMK

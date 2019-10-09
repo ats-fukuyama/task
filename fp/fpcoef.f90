@@ -100,6 +100,20 @@
 !     ----- Radial diffusion term -----
 
       IF(MODELD.NE.0) CALL FP_CALR
+      IF(MODELD.NE.0) THEN
+         NTH=2
+         NP=2
+         NR=NRMAX
+         NSA=1
+         WRITE(6,'(A,4I5,1PE12.4)') &
+              'DRR:',NTH,NP,NR,NSA,DRR(NTH,NP,NR,NSA)
+         NTH=2
+         NP=2
+         NR=NRMAX+1
+         NSA=1
+         WRITE(6,'(A,4I5,1PE12.4)') &
+              'DRR:',NTH,NP,NR,NSA,DRR(NTH,NP,NR,NSA)
+      END IF
 
 !     ----- Particle source term -----
 

@@ -43,6 +43,7 @@ program wfmain
   end if
 
   call setaif
+  call setaie
   CALL pl_init
   call wf_init
 

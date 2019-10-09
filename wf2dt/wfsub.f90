@@ -93,7 +93,6 @@ SUBROUTINE WFCLASS(NE,R,Z,WGT,IND)
   real(rkind),intent(in) :: R,Z
   real(rkind),intent(out):: WGT(3)
   integer,intent(out) :: IND
-  integer :: IN
   REAL(rkind),PARAMETER:: eps=1.D-12
 
   CALL WFWGT(NE,R,Z,WGT)
@@ -200,7 +199,7 @@ SUBROUTINE WFNODE(NE,RE,ZE)
   RETURN
 END SUBROUTINE WFNODE
 
-!     ******* INITIALIZE INTEGRAL OF ELEMENT FUNCTION *******
+!     *******  INITIALISE SURFACE INTEGRAL OF ELEMENT FUNCTION *******
 
 SUBROUTINE SETAIF
 
@@ -233,7 +232,7 @@ SUBROUTINE SETAIF
   RETURN
 END SUBROUTINE SETAIF
 
-!     ******* INTEGRAL OF ELEMENT FUNCTION *******
+!     ******* SURFACE INTEGRAL OF ELEMENT FUNCTION *******
 !     KAI(X) = X! (X FACTORIAL)
 !     WHEN YOU USE AIF, YOU SHOULD MULTIPLY AREA OF ELEMNT(S)
 
@@ -248,6 +247,55 @@ FUNCTION AIF(L1,L2,L3)
 
   RETURN
 END FUNCTION AIF
+
+!     *******  INITIALISE LINE INTEGRAL OF ELEMENT FUNCTION *******
+
+SUBROUTINE SETAIE
+
+  use wfcomm
+  implicit none
+  integer :: ID(3,3),I,L1,L2,L3,J,K
+  real(8) :: AIE
+
+  DATA ID/1,0,0,0,1,0,0,0,1/
+  
+  DO I=1,3
+     L1=ID(1,I)
+     L2=ID(2,I)
+     L3=ID(3,I)
+     AIE1(I)=AIE(L1,L2,L3)
+     DO J=1,3
+        L1=ID(1,I)+ID(1,J)
+        L2=ID(2,I)+ID(2,J)
+        L3=ID(3,I)+ID(3,J)
+        AIE2(I,J)=AIE(L1,L2,L3)
+        DO K=1,3
+           L1=ID(1,I)+ID(1,J)+ID(1,K)
+           L2=ID(2,I)+ID(2,J)+ID(2,K)
+           L3=ID(3,I)+ID(3,J)+ID(3,K)
+           AIE3(I,J,K)=AIE(L1,L2,L3)
+        ENDDO
+     ENDDO
+  ENDDO
+ 
+  RETURN
+END SUBROUTINE SETAIE
+
+!     ******* LINE INTEGRAL OF ELEMENT FUNCTION *******
+!     KAI(X) = X! (X FACTORIAL)
+!     WHEN YOU USE AIE, YOU SHOULD MULTIPLY AREA OF ELEMNT(S)
+
+FUNCTION AIE(L1,L2,L3)
+
+  implicit none
+  integer :: KAI(0:10),L1,L2,L3
+  real(8) :: AIE
+  DATA KAI/1,1,2,6,24,120,720,5040,40320,362880,3628800/
+  
+  AIE=DBLE(KAI(L1)*KAI(L2)*KAI(L3))/DBLE(KAI(L1+L2+L3+1))
+
+  RETURN
+END FUNCTION AIE
 
 !     ****** Set Boundary Attribute for Side and Node ******
 

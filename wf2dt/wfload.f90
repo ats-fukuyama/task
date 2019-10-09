@@ -31,7 +31,7 @@ CONTAINS
       USE libgrf
       IMPLICIT NONE
       INTEGER,INTENT(OUT):: ierr
-      INTEGER:: NFL,NY,NV,IY,IERSPL,NYEND
+      INTEGER:: NFL,NY,NV,IERSPL
       INTEGER,PARAMETER:: NYM=1000
       REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: VATEMP
       REAL(rkind),DIMENSION(:),ALLOCATABLE:: FX
@@ -125,7 +125,6 @@ CONTAINS
     SUBROUTINE wf_read_wg(Y,CEX,CEY,CEZ,IERR)
 
       USE bpsd_kinds
-      USE wfcomm,ONLY: MODELWG
       USE wfwg1D
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: Y    ! Position

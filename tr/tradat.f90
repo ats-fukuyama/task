@@ -7,9 +7,10 @@
 
       SUBROUTINE TRZEFF
 
-      USE TRCOMM, ONLY : ANC,ANFE,MDLEQN,MDLUF,NRMAX,PZ,PZC,PZFE,RN,RNF,RT,ZEFF
+      USE TRCOMM, ONLY : &
+           ANC,ANFE,MDLEQN,MDLUF,NRMAX,PZ,PZC,PZFE,RN,RNF,RT,ZEFF,NSMAX
       IMPLICIT NONE
-      INTEGER(4):: NR
+      INTEGER(4):: NR,NS
       REAL(8)   :: TE, TRZEC, TRZEFE
 
       DO NR=1,NRMAX
@@ -20,20 +21,22 @@
 
       IF(MDLUF.EQ.0) THEN
          DO NR=1,NRMAX
-            TE =RT(NR,1)
-            ZEFF(NR) =(PZ(2)**2   *RN(NR,2) &
-                      +PZ(3)**2   *RN(NR,3) &
-                      +PZ(4)**2   *RN(NR,4) &
-                      +PZC(NR)**2 *ANC (NR) &
-                      +PZFE(NR)**2*ANFE(NR))/RN(NR,1)
+            ZEFF(NR) =0.D0
+            DO NS=1,NSMAX
+               ZEFF(NR)=ZEFF(NR) + PZ(NS)**2*RN(NR,NS)
+            END DO
+            ZEFF(NR)=ZEFF(NR) &
+                    +PZC(NR)**2 *ANC (NR) &
+                    +PZFE(NR)**2*ANFE(NR)
+            ZEFF(NR)=ZEFF(NR)/RN(NR,1)
          ENDDO
       ELSE
          IF(MDLEQN.EQ.0) THEN ! fixed density
-            DO NR=1,NRMAX
-               ZEFF(NR) =(PZ(2)**2*RN(NR,2) &
-                         +PZ(3)**2*RN(NR,3) &
-                         +PZ(2)**2*RNF(NR,1))/RN(NR,1)
-            ENDDO
+            ZEFF(NR) =0.D0
+            DO NS=1,NSMAX
+               ZEFF(NR)=ZEFF(NR) + PZ(NS)**2*RN(NR,NS)
+            END DO
+            ZEFF(NR)=ZEFF(NR)/RN(NR,1)
          ENDIF
       ENDIF
 
