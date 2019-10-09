@@ -140,6 +140,7 @@
             plasmaf%data(nr,ns)%temperature_para=temp(nr,ns,2)*1.D3
             plasmaf%data(nr,ns)%temperature_perp=temp(nr,ns,2)*1.D3
             plasmaf%data(nr,ns)%velocity_tor=temp(nr,ns,3)
+            plasmaf%data(nr,ns)%velocity_pol=0.D0
          enddo
       enddo
 

@@ -330,21 +330,23 @@
       CALL TRSTGF
       CALL TRGFRG
 
+!     *** CALCULATE ANEAVE and ANC, ANFE ***
+
+      ANEAVE=SUM(RN(1:NRMAX,1)*RM(1:NRMAX))*2.D0*DR
+      DO NR=1,NRMAX
+         ANC (NR)= (0.9D0+0.60D0*(0.7D0/ANEAVE)**2.6D0)*PNC *1.D-2*RN(NR,1)
+         ANFE(NR)= (0.0D0+0.05D0*(0.7D0/ANEAVE)**2.3D0)*PNFE*1.D-2*RN(NR,1)
+      END DO
+
 !     *** CALCULATE PZC,PZFE ***
 
       CALL TRZEFF
-
-!     *** CALCULATE ANEAVE ***
-
-      ANEAVE=SUM(RN(1:NRMAX,1)*RM(1:NRMAX))*2.D0*DR
 
 !     *** CALCULATE IMPURITY DENSITY
 !                ACCORDING TO ITER PHYSICS DESIGN GUIDELINE ***
 
       IF(MDLUF.NE.3) THEN
          DO NR=1,NRMAX
-            ANC (NR)= (0.9D0+0.60D0*(0.7D0/ANEAVE)**2.6D0)*PNC *1.D-2*RN(NR,1)
-            ANFE(NR)= (0.0D0+0.05D0*(0.7D0/ANEAVE)**2.3D0)*PNFE*1.D-2*RN(NR,1)
             ANI = SUM(PZ(2:NSM)*RN(NR,2:NSM))
             ANZ = PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
             DILUTE = 1.D0-ANZ/ANI
