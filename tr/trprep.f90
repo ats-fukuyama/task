@@ -1,3 +1,106 @@
+! trprep.f90
+
+MODULE trprep
+
+  PRIVATE
+  PUBLIC tr_prep
+
+CONTAINS
+
+  SUBROUTINE tr_prep(ierr)
+
+    USE trcomm
+    USE trcom0, ONLY : NSTM
+    USE trcom1, ONLY : NTAMAX,KDIRX
+    USE trprof
+    USE trbpsd
+    USE trmetric
+    IMPLICIT NONE
+    INTEGER,INTENT(OUT):: ierr
+
+      CALL ALLOCATE_TRCOMM(IERR)
+      IF(IERR.NE.0) RETURN
+
+      IF(MDLUF.NE.0.AND.MDLXP.NE.0) CALL IPDB_OPEN(KUFDEV, KUFDCG)
+      IF(MDLUF.NE.0) CALL UFILE_INTERFACE(KDIRX,KUFDIR,KUFDEV,KUFDCG,0)
+      CALL TR_EQS_SELECT(0)
+
+      NRAMAX=INT(RHOA*NRMAX)
+      DR = 1.D0/DBLE(NRMAX)
+
+      IF(MDLUF.EQ.1) THEN
+!         IF(INIT.EQ.2.AND.NT.NE.0) THEN
+         IF(NT.NE.0) THEN
+            NT=0
+            NTMAX=NTMAX_SAVE
+         ENDIF
+         CALL TR_UFILE_CONTROL(1)
+      ELSEIF(MDLUF.EQ.2) THEN
+         CALL TR_UFILE_CONTROL(2)
+      ELSEIF(MDLUF.EQ.3) THEN
+!         IF(INIT.EQ.2.AND.NT.NE.0) THEN
+         IF(NT.NE.0) THEN
+            NT=0
+            NTMAX=NTMAX_SAVE
+         ENDIF
+         CALL TR_UFILE_CONTROL(3)
+      ELSE
+         CALL TR_UFILE_CONTROL(0)
+      ENDIF
+
+      NT    = 0
+      T     = 0.D0
+      TPRE  = 0.D0
+      TST   = 0.D0
+      VSEC  = 0.D0
+      NGR   = 0
+      NGT   = 0
+      NGST  = 0
+      RIP   = RIPS
+
+      IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
+         IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
+      ENDIF
+
+      CALL tr_prof
+
+!     *** Initialize bpsd data ***
+
+      CALL tr_bpsd_init
+      CALL tr_bpsd_put(ierr)
+      IF(ierr.NE.0) THEN
+         write(6,'(A,I5)') 'XX tr_bpsd_put in tr_prof: ierr=',ierr
+         STOP
+      END IF
+
+!     *** CALCULATE METRIC FACTOR ***
+
+      CALL tr_set_metric(ierr)
+      IF(ierr.NE.0) THEN
+         write(6,'(A,I5)') 'XX tr_set_metric in tr_prof: ierr=',ierr
+         STOP
+      END IF
+      
+!     *** CALCULATE ANEAVE and ANC, ANFE ***
+
+      CALL tr_prof_impurity
+
+
+!     *** CALCULATE AJ, QP, BP, EZ ***
+
+      CALL tr_prof_current
+
+!     *** initilize graphic data ***
+
+      GRG(1)=0.0
+      GRM(1:NRMAX)  =SNGL(RM(1:NRMAX))
+      GRG(2:NRMAX+1)=SNGL(RG(1:NRMAX))
+
+      RETURN
+
+    END SUBROUTINE tr_prep
+  END MODULE trprep
+
 
 !     ***********************************************************
 

@@ -39,7 +39,10 @@
       use plparm,ONLY: pl_parm
       use equnit_mod
 !      use equunit_mod
-      use trunit
+      USE trinit
+      USE trparm
+      USE trmenu
+
       IMPLICIT NONE
       REAL(4)   :: GTCPU2
       INTEGER(4):: IERR
@@ -50,9 +53,10 @@
 
       CALL GSOPEN
       CALL GUTIME(GTCPU1)
+      OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
 
       CALL pl_init
-      call eq_init
+      CALL eq_init
 !      call equ_init
       CALL tr_init
 
@@ -61,9 +65,9 @@
 !      CALL equ_parm(1,'equparm',IERR)
       CALL tr_parm(1,'trparm',IERR)
 
-      CALL TRMENU
+      CALL tr_menu
 
-      CALL tr_term
+      CLOSE(7)
 
       CALL GUTIME(GTCPU2)
       WRITE(6,666) GTCPU2-GTCPU1

@@ -1,11 +1,19 @@
-!     $ID$
+! trfile.f90
+
+MODULE trfile
+
+  PRIVATE
+  PUBLIC tr_save,tr_load,tr_grsv,tr_grld
+
+CONTAINS
+
 !     ***********************************************************
 
 !           SAVE TRANSPORT DATA
 
 !     ***********************************************************
 
-      SUBROUTINE TRSAVE
+      SUBROUTINE tr_save
 
       USE TRCOMM, ONLY : ABB2RHOG, ABRHO, ABRHOG, AD0, AIB2RHOG, AJBST, AJNBT, AJOH, AJOHT, AJRFT, AJT, ALI, ALP, AMZ, ANC,       &
      &                   ANFE, ANNU, ANSAV, AR1RHO, AR1RHOG, AR2RHO, AR2RHOG, ARHBRHOG, ARRHO, ARRHOG, AV0, BB, BETA0, BETAA,     &
@@ -125,7 +133,7 @@
       CLOSE(16)
 
   900 RETURN
-      END SUBROUTINE TRSAVE
+      END SUBROUTINE tr_save
 
 !     ***********************************************************
 
@@ -133,7 +141,7 @@
 
 !     ***********************************************************
 
-      SUBROUTINE TRLOAD
+      SUBROUTINE tr_load
 
       USE TRCOMM, ONLY : ABB2RHOG, ABRHO, ABRHOG, AD0, AIB2RHOG, AJOH, ALP, AMZ, ANC, ANFE, ANNU, AR1RHO, AR1RHOG, AR2RHO,      &
      &                   AR2RHOG, ARHBRHOG, ARRHO, ARRHOG, AV0, BB, BP, CALF, CDH, CDP, CDW, CHP, CK0, CK1, CKALFA, CKBETA,     &
@@ -206,7 +214,7 @@
       Q0=FCTR(RG(1),RG(2),QP(1),QP(2))
 
   900 RETURN
-      END SUBROUTINE TRLOAD
+      END SUBROUTINE tr_load
 
 !     ***********************************************************
 
@@ -214,7 +222,7 @@
 
 !     ***********************************************************
 
-      SUBROUTINE TRGRSV
+      SUBROUTINE tr_grsv
 
       USE TRCOMM, ONLY : GRG, GRM, GT, GTR, GVR, GVT, NGR, NGT
       IMPLICIT NONE
@@ -253,7 +261,7 @@
       WRITE(6,*) '# DATA WAS SUCCESSFULLY SAVED TO THE FILE.'
 
   900 RETURN
-      END SUBROUTINE TRGRSV
+      END SUBROUTINE tr_grsv
 
 !     ***********************************************************
 
@@ -261,7 +269,7 @@
 
 !     ***********************************************************
 
-      SUBROUTINE TRGRLD
+      SUBROUTINE tr_grld
 
       USE TRCOMM, ONLY : GRG, GRM, GT, GTR, GVR, GVT, NGR, NGT
       IMPLICIT NONE
@@ -291,4 +299,5 @@
       WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
 
   900 RETURN
-      END SUBROUTINE TRGRLD
+      END SUBROUTINE tr_grld
+    END MODULE trfile

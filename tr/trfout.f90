@@ -1,10 +1,19 @@
+! trfout.f90
+
+MODULE trfout
+
+  PRIVATE
+  PUBLIC tr_fout
+
+CONTAINS
+
 !     ***********************************************************
 
 !          FILE Output PROFILE DATA
 
 !     ***********************************************************
 
-      SUBROUTINE trfout
+      SUBROUTINE tr_fout
 
       USE TRCOMM,ONLY : GT,GRM,GVT,GVRT,GVR,NGT,NGR,NRMAX,NCTM,NCRTM,NCGM, &
           RM,RN,RT,ANC,ANFE,AD,AV,AK,PIN,POH,PNB,PNF,PEX,PRF,PFCL, &
@@ -208,7 +217,7 @@
       GOTO 1
 
 9000  RETURN
-      END SUBROUTINE TRFOUT
+      END SUBROUTINE tr_fout
 
 !     ===== 1D file output ====
 
@@ -305,3 +314,4 @@
       RETURN
       END SUBROUTINE TRF2DRG
 
+    END MODULE trfout

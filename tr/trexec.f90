@@ -1,11 +1,19 @@
-!     $Id$
+! trexec.f90
+
+MODULE trexec
+
+  PRIVATE
+  PUBLIC tr_exec,tr_eval,tr_coef_decide
+
+CONTAINS
+
 !     ***********************************************************
 
 !           MAIN ROUTINE FOR TRANSPORT CALCULATION
 
 !     ***********************************************************
 
-      SUBROUTINE TREXEC(DT,IERR)
+      SUBROUTINE tr_exec(DT,IERR)
 
       USE TRCOMM, ONLY : &
      &   ABRHOG, AJ, AJU, AMM, ANC, ANFE, ANNU, AR1RHOG, AX, AY, AZ, BB, &
@@ -369,9 +377,9 @@
 !       ENDIF
 
       RETURN
-      END SUBROUTINE TREXEC
+    END SUBROUTINE tr_exec
 
-      SUBROUTINE TREVAL(NT,IERR)
+      SUBROUTINE tr_eval(NT,IERR)
 
       USE TRCOMM, ONLY : NGRSTP, NGTSTP, NTSTEP,AJRFV,RT
       IMPLICIT NONE
@@ -401,7 +409,7 @@
       ENDIF
       IERR=0
       RETURN
-      END SUBROUTINE TREVAL
+    END SUBROUTINE tr_eval
 
 !     ***********************************************************
 
@@ -1126,15 +1134,18 @@
 
       SUBROUTINE TR_COEF_DECIDE(NR,NSW,DV53)
 
-      USE TRCOMM, ONLY : ABRHO, AD, ADLD, ADLP, AJ, AJOH, AK, AKLD, AKLP, AMM, AR1RHO, AR2RHO, ARRHO, AV, AVK, BB, DD, DI,  &
-     &                   DR, DT, DVRHO, ETA, FA, FB, FC, MDDIAG, MDLEQ0, MDLEQE, MDLFLX, NEQM, NEQMAX, NRMAX, NSS, NSV,&
-     &                   NVM, PA, PIN, PZ, RGFLS, RGFLX, RKEV, RM, RMU0, RQFLS, RT, RTM, SPE, SSIN, TTRHO, VI, VOID, VV
+      USE trcomm
       USE TRCOM1, ONLY : D, RD
+      
       IMPLICIT NONE
       INTEGER(4),INTENT(IN) :: NR, NSW
       REAL(8)   , INTENT(OUT)::DV53
-      INTEGER(4):: IND, NEQ, NEQ1, NEQLMAX, NF, NI, NJ, NMK, NMKL, NO, NRF, NRJ, NSSN, NSSN1, NSVN, NSVN1, NV, NW
-      REAL(8)   :: AITKEN2P, C83, CC, DISUMN, DISUMT1, DISUMT2, DV11, DV23, RNV, RPV, RTV, VISUMN, VISUMT1, VISUMT2
+      INTEGER(4):: &
+           IND, NEQ, NEQ1, NEQLMAX, NF, NI, NJ, NMK, NMKL, NO, NRF, NRJ, &
+           NSSN, NSSN1, NSVN, NSVN1, NV, NW
+      REAL(8)   :: &
+           AITKEN2P, C83, CC, DISUMN, DISUMT1, DISUMT2, DV11, DV23, VISUMN, &
+           VISUMT1, VISUMT2
       REAL(8),DIMENSION(2) :: F2C
       REAL(8),DIMENSION(4) :: SIG, FCB
 
@@ -1668,11 +1679,12 @@
 
 !     **************************************************************
 
-      REAL(8) FUNCTION RNV(NR,NS)
+      FUNCTION RNV(NR,NS)
 
       USE TRCOMM, ONLY : NRMAX, PNSS, PNSSA, RHOA, RN
       IMPLICIT NONE
       INTEGER(4),INTENT(IN):: NR,NS
+      REAL(8):: RNV
 
       IF(NR.EQ.NRMAX) THEN
          IF(RHOA.EQ.1.D0) THEN
@@ -1687,11 +1699,12 @@
       RETURN
       END FUNCTION RNV
 
-      REAL(8) FUNCTION RTV(NR,NS)
+      FUNCTION RTV(NR,NS)
 
       USE TRCOMM, ONLY : NRMAX, PTS, PTSA, RHOA, RT
       IMPLICIT NONE
       INTEGER(4),INTENT(IN):: NR,NS
+      REAL(8):: RTV
 
       IF(NR.EQ.NRMAX) THEN
          IF(RHOA.EQ.1.D0) THEN
@@ -1706,11 +1719,12 @@
       RETURN
       END FUNCTION RTV
 
-      REAL(8) FUNCTION RPV(NR,NS)
+      FUNCTION RPV(NR,NS)
 
       USE TRCOMM, ONLY : NRMAX, PNSS, PNSSA, PTS, PTSA, RHOA, RN, RT
       IMPLICIT NONE
       INTEGER(4),INTENT(IN):: NR, NS
+      REAL(8):: RPV
 
 
       IF(NR.EQ.NRMAX) THEN
@@ -1727,3 +1741,5 @@
 
       RETURN
       END FUNCTION RPV
+
+END MODULE trexec

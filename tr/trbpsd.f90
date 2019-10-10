@@ -1,21 +1,23 @@
-!     $Id$
-      module tr_bpsd
+! trbpsd.f90
 
-      use bpsd
-      type(bpsd_device_type),  private,save :: device
-      type(bpsd_species_type), private,save :: species
-      type(bpsd_equ1D_type),   private,save :: equ1D
-      type(bpsd_metric1D_type),private,save :: metric1D
-      type(bpsd_plasmaf_type), private,save :: plasmaf
-      logical, private, save :: tr_bpsd_init_flag = .TRUE.
-      public
+MODULE trbpsd
 
-      contains
+  USE bpsd
+  type(bpsd_device_type),  private,save :: device
+  type(bpsd_species_type), private,save :: species
+  type(bpsd_equ1D_type),   private,save :: equ1D
+  type(bpsd_metric1D_type),private,save :: metric1D
+  type(bpsd_plasmaf_type), private,save :: plasmaf
+  LOGICAL, PRIVATE, SAVE :: tr_bpsd_init_flag = .TRUE.
+  PRIVATE
+  PUBLIC tr_bpsd_init,tr_bpsd_get,tr_bpsd_put
+
+CONTAINS
 
 !=======================================================================
-      subroutine tr_bpsd_init
+  SUBROUTINE tr_bpsd_init
 !=======================================================================
-      use trcomm
+    USE trcomm
 ! local variables
       integer(4) :: ns,nr,ierr
       real(8)    :: temp(nrmp,nsm,3)
@@ -102,16 +104,16 @@
       enddo
 
       return
-      end subroutine tr_bpsd_init
+  END SUBROUTINE tr_bpsd_init
 
 !=======================================================================
-      subroutine tr_bpsd_put(ierr)
+  SUBROUTINE tr_bpsd_put(ierr)
 !=======================================================================
-      use trcomm
-      integer(4) :: ierr
+      USE trcomm
+      INTEGER(4) :: ierr
 ! local variables
-      integer(4) :: ns,nr
-      real(8)    :: temp(nrmp,nsm,3)
+      INTEGER(4) :: ns,nr
+      REAL(8)    :: temp(nrmp,nsm,3)
 !=======================================================================
 
       device%rr=RR
@@ -145,7 +147,7 @@
       enddo
 
       do nr=1,nrmax
-         plasmaf%qinv(nr+1)=(4.D0*PI**2*RDPVRHOG(nr))/(TTRHOG(nr)*ARRHOG(nr))
+         plasmaf%qinv(nr+1)=qpinv(nr)
       enddo
       plasmaf%qinv(1)=((plasmaf%rho(3))**2*plasmaf%qinv(2) &
      &                -(plasmaf%rho(2))**2*plasmaf%qinv(3)) &
@@ -153,12 +155,12 @@
 
       call bpsd_put_data(plasmaf,ierr)
       return
-      end subroutine tr_bpsd_put
+  END SUBROUTINE tr_bpsd_put
 
 !=======================================================================
-      subroutine tr_bpsd_get(ierr)
+  SUBROUTINE tr_bpsd_get(ierr)
 !=======================================================================
-      use trcomm
+      USE trcomm
       integer(4),intent(out) :: ierr
 ! local variables
       integer(4) :: ns,nr
@@ -376,7 +378,7 @@
       endif
 
       return
-      end subroutine tr_bpsd_get
+  END SUBROUTINE tr_bpsd_get
 
 !     ----- convert half mesh to origin + grid mesh -----
 !
@@ -506,4 +508,4 @@
       return
       end subroutine data_interpolate_gtom
 
-      end module tr_bpsd
+    end module trbpsd

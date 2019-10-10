@@ -1,36 +1,21 @@
+! trinit.f90
+
+MODULE trinit
+
+  PRIVATE
+  PUBLIC tr_init
+
+CONTAINS
+
 !     ***********************************************************
 
 !           INITIALIZE CONSTANTS AND DEFAULT VALUES
 
 !     ***********************************************************
 
-      SUBROUTINE TRINIT
+      SUBROUTINE tr_init
 
-      USE TRCOMM,ONLY : &
-           AD0, AEE, ALP, AME, AMM, AV0, BB, CALF, CDH, CDP, CDW, CHP, &
-           CK0, CK1, CKALFA, CKBETA, CKGUMA,          &
-           CNB, CNH, CNN, CNP, CSPRS, CWEB, DT, EPS0, EPSLTR, IREAD, &
-           IZERO, KFNLOG, KNAMEQ, KNAMTR, KUFDCG,       &
-           KUFDEV, LMAXTR, MDCD05, MDDW, MDEDGE, MDLAD, MDLAVK, MDLCD, &
-           MDLEC, MDLEOI, MDLEQ0, MDLEQB, MDLEQE,     &
-           MDLEQN, MDLEQT, MDLEQU, MDLEQZ, MDLER, MDLETA, MDLFLX, MDLIC, &
-           MDLJBS, MDLJQ, MDLKAI, MDLKNC, MDLLH,    &
-           MDLNB, MDLNF, MDLPCK, MDLPEL, MDLST, MDLTPF, MDLUF, MDLWLD, &
-           MDLXP, MDNCLS, MDNI, MDTC, MODELG, MODEP,  &
-           NGPST, NGRSTP, NGTSTP, NRMAX, NSLMAX, NSMAX, NSNMAX, NSTM, &
-           NSZMAX, NT, NTEQIT, NTMAX, NTSTEP, PA, PBSCD, &
-           PECCD, PECNPR, PECR0, PECRW, PECTOE, PECTOT, PELPAT, PELR0, &
-           PELRAD, PELRW, PELTIM, PELTOT, PELVEL, PI, &
-           PICCD, PICNPR, PICR0, PICRW, PICTOE, PICTOT, PLHNPR, PLHR0, &
-           PLHRW, PLHTOE, PLHTOT, PN, PNBCD, PNBENG,  &
-           PNBR0, PNBRTG, PNBRW, PNBTOT, PNBVW, PNBVY, PNC, PNFE, PNNU, &
-           PNNUS, PNS, PROFJ1, PROFJ2, PROFN1,       &
-           PROFN2, PROFT1, PROFT2, PROFU1, PROFU2, PT, PTS, PZ, RA, RDLT, &
-           RHOA, RIPE, RIPS, RKAP, RKEV, RMU0, RR, &
-           SUMPBM, TIME_INT, TPRST, TSST, VC, VOID, KUFDIR, &
-           MDLPR,SYNCABS,SYNCSELF, PU, PUS, PROFNU1, PROFNU2, &
-           ELMWID, ELMDUR, ELMNRD, ELMTRD, ELMENH, NSMM, MDLELM, KNAMEQ2, &
-           MDLPSC,NPSCMAX,NPSCM,PSCTOT,PSCR0,PSCRW,NSPSC
+      USE trcomm
       IMPLICIT NONE
       INTEGER(4) NS, IERR, NPSC
 
@@ -735,4 +720,5 @@
       IREAD=0
 
       RETURN
-      END SUBROUTINE TRINIT
+      END SUBROUTINE tr_init
+END MODULE trinit

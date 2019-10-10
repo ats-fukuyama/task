@@ -1,8 +1,18 @@
+! trgout.f
+
+MODULE trgout
+
+  PRIVATE
+  PUBLIC tr_gout
+
+CONTAINS
+
 !     ***** TASK/TR/GOUT MENU *****
 
-      SUBROUTINE TRGOUT
+      SUBROUTINE tr_gout
 
       USE TRCOMM, ONLY : NGR, NGT
+      USE trfile
       IMPLICIT NONE
       INTEGER(4), SAVE :: INIT =0, INQG
       CHARACTER(LEN=5) :: KIG
@@ -49,9 +59,9 @@
                WRITE(6,*) '## GRAPHIC SCALE INQUIRE MODE : OFF'
             ENDIF
          case('S')
-            CALL TRGRSV
+            CALL tr_grsv
          case('L')
-            CALL TRGRLD
+            CALL tr_grld
          case('R')
             CALL TRGRR0(K2,INQG)
          case('Y')
@@ -82,4 +92,5 @@
       END DO
 
  9000 RETURN
-      END SUBROUTINE TRGOUT
+      END SUBROUTINE tr_gout
+    END MODULE trgout

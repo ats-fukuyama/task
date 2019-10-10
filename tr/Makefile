@@ -1,11 +1,11 @@
-### $Id$ ###
+### Makefile
 include ../make.header
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS = -g $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = -g $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD) -I../eq/$(MOD) \
 	    -I../pl/$(MOD)
@@ -13,8 +13,10 @@ EQLIBS=../eq/libeq.a
 PLLIBS=../../bpsd/libbpsd.a ../pl/libpl.a 
 
 SRC90M=trcom0.f90 trcom1.f90 trcomm.f90 trbpsd.f90
-SRC90=trinit.f90 trparm.f90 trprep.f90  \
-      trprof.f90 trufsub.f90 trufile.f90 trfile.f90 trhelp.f90 \
+SRC90=trinit.f90 trparm.f90 \
+      trmetric.f90 trprof.f90 trprep.f90 \
+      trufsub.f90 tr_ufile_task.f90 tr_ufile_topics.f90 trufile.f90 \
+      trfile.f90 trhelp.f90 \
       trexec.f90 trcalc.f90 \
       tradat.f90 cdbm.f90 trmodels.f90 trcoef.f90 tritg.f90 \
       trrslt.f90 trpnb.f90 trprf.f90 trpnf.f90 trpel.f90 trpsc.f90 trmdlt.f90 \
@@ -111,13 +113,17 @@ distclean: clean
 
 trmain.o : trmain.f90 trcomm.f90  
 trmenu.o : trmenu.f90 trcomm.f90 trcom1.f90 trunit.f90
+trunit.o : trunit.f90 trprep.f90
 trinit.o : trinit.f90 trcomm.f90 trcom1.f90
 trparm.o : trparm.f90 trcomm.f90 trcom1.f90
 trprep.o : trprep.f90 trcomm.f90 trcom1.f90
 trprof.o : trprof.f90 trcomm.f90 trcom1.f90
+trmetric.o : trmetric.f90 trcomm.f90 trcom1.f90
 trfile.o : trfile.f90 trcomm.f90 trcom1.f90
 trbpsd.o : trbpsd.f90 trcomm.f90
 trufile.o : trufile.f90 trcomm.f90 trcom1.f90
+tr_ufile_task.o : tr_ufile_task.f90 trcomm.f90 trcom1.f90
+tr_ufile_topics.o : tr_ufile_topics.f90 trcomm.f90 trcom1.f90
 trufsub.o : trufsub.f90 trcomm.f90 trcom1.f90
 trloop.o : trloop.f90 trcomm.f90 trcom1.f90
 trexec.o : trexec.f90 trcomm.f90 trcom1.f90
