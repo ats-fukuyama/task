@@ -1652,3 +1652,220 @@
 
       RETURN
       END SUBROUTINE GET_DATE
+
+!   *** setup variable name strings ***
+
+      SUBROUTINE tr_setup_kv
+
+      USE TRCOMM
+      IMPLICIT NONE
+
+      KVT( 1) = 'ANS0(1)   '
+      KVT( 2) = 'ANS0(2)   '
+      KVT( 3) = 'ANS0(3)   '
+      KVT( 4) = 'ANS0(4)   '
+      KVT( 5) = 'ANSAV(1)  '
+      KVT( 6) = 'ANSAV(2)  '
+      KVT( 7) = 'ANSAV(3)  '
+      KVT( 8) = 'ANSAV(4)  '
+
+      KVT( 9) = 'TS0(1)    '
+      KVT(10) = 'TS0(2)    '
+      KVT(11) = 'TS0(3)    '
+      KVT(12) = 'TS0(4)    '
+      KVT(13) = 'TSAV(1)   '
+      KVT(14) = 'TSAV(2)   '
+      KVT(15) = 'TSAV(3)   '
+      KVT(16) = 'TSAV(4)   '
+
+      KVT(17) = 'WST(1)    '
+      KVT(18) = 'WST(2)    '
+      KVT(19) = 'WST(3)    '
+      KVT(20) = 'WST(4)    '
+
+      KVT(21) = 'ANF0(1)   '
+      KVT(22) = 'ANF0(2)   '
+      KVT(23) = 'ANFAV(1)  '
+      KVT(24) = 'ANFAV(2)  '
+      KVT(25) = 'TF0(1)    '
+      KVT(26) = 'TF0(2)    '
+      KVT(27) = 'TFAV(1)   '
+      KVT(28) = 'TFAV(2)   '
+
+      KVT(29) = 'WFT(1)    '
+      KVT(30) = 'WFT(2)    '
+      KVT(31) = 'WBULKT    '
+      KVT(32) = 'WTAILT    '
+      KVT(33) = 'WPT       '
+
+      KVT(34) = 'AJT       '
+      KVT(35) = 'AJOHT     '
+      KVT(36) = 'AJNBT     '
+      KVT(37) = 'AJRFT     '
+      KVT(38) = 'AJBST     '
+
+      KVT(39) = 'PINT      '
+      KVT(40) = 'POHT      '
+      KVT(41) = 'PNBT      '
+      KVT(42) = 'PRFT(1)   '
+      KVT(43) = 'PRFT(2)   '
+      KVT(44) = 'PRFT(3)   '
+      KVT(45) = 'PRFT(4)   '
+      KVT(46) = 'PNFT      '
+
+      KVT(47) = 'PBINT     '
+      KVT(48) = 'PBCLT(1)  '
+      KVT(49) = 'PBCLT(2)  '
+      KVT(50) = 'PBCLT(3)  '
+      KVT(51) = 'PBCLT(4)  '
+      KVT(52) = 'PFINT     '
+      KVT(53) = 'PFCLT(1)  '
+      KVT(54) = 'PFCLT(2)  '
+      KVT(55) = 'PFCLT(3)  '
+      KVT(56) = 'PFCLT(4)  '
+
+      KVT(57) = 'POUT      '
+      KVT(58) = 'PCXT      '
+      KVT(59) = 'PIET      '
+      KVT(60) = 'PRSUMT    '
+      KVT(61) = 'PLT(1)    '
+      KVT(62) = 'PLT(2)    '
+      KVT(63) = 'PLT(3)    '
+      KVT(64) = 'PLT(4)    '
+
+      KVT(65) = 'SINT      '
+      KVT(66) = 'SIET      '
+      KVT(67) = 'SNBT      '
+      KVT(68) = 'SNFT      '
+      KVT(69) = 'SOUT      '
+      KVT(70) = 'SLT(1)    '
+      KVT(71) = 'SLT(2)    '
+      KVT(72) = 'SLT(3)    '
+      KVT(73) = 'SLT(4)    '
+
+      KVT(74) = 'VLOOP     '
+      KVT(75) = 'ALI       '
+      KVT(76) = 'RQ1       '
+      KVT(77) = 'Q0        '
+
+      KVT(78) = 'WPDOT     '
+      KVT(79) = 'TAUE1     '
+      KVT(80) = 'TAUE2     '
+      KVT(81) = 'TAUE89    '
+
+      KVT(82) = 'BETAP0    '
+      KVT(83) = 'BETAPA    '
+      KVT(84) = 'BETA0     '
+      KVT(85) = 'BETAA     '
+
+      KVT(86) = 'ZEFF0     '
+      KVT(87) = 'QF        '
+      KVT(88) = 'RIP       '
+!
+      KVT(89) = 'PEXT(1)   '
+      KVT(90) = 'PEXT(2)   '
+      KVT(91) = 'PRFVT(1,1)' ! ECH  to electron
+      KVT(92) = 'PRFVT(2,1)' ! ECH  to ions
+      KVT(93) = 'PRFVT(1,2)' ! LH   to electron
+      KVT(94) = 'PRFVT(2,2)' ! LH   to ions
+      KVT(95) = 'PRFVT(1,3)' ! ICRH to electron
+      KVT(96) = 'PRFVT(2,3)' ! ICRH to ions
+
+      KVT(97) = 'RR        '
+      KVT(98) = 'RA        '
+      KVT(99) = 'BB        '
+      KVT(100)= 'RKAP      '
+      KVT(101)= 'AJTTOR    '
+
+      KVT(102)= 'TAUE98    '
+      KVT(103)= 'H98Y2     '
+      KVT(104)= 'ANLAV(1)  '
+      KVT(105)= 'ANLAV(2)  '
+      KVT(106)= 'ANLAV(3)  '
+      KVT(107)= 'ANLAV(4)  '
+
+      KVT(108)= 'PRBT      '
+      KVT(109)= 'PRCT      '
+      KVT(110)= 'PRLT      '
+
+!     *** FOR 3D ***
+
+      KVRT( 1) = 'RT(1)     '
+      KVRT( 2) = 'RT(2)     '
+      KVRT( 3) = 'RT(3)     '
+      KVRT( 4) = 'RT(4)     '
+
+      KVRT( 5) = 'RN(1)     '
+      KVRT( 6) = 'RN(2)     '
+      KVRT( 7) = 'RN(3)     '
+      KVRT( 8) = 'RN(4)     '
+
+      KVRT( 9) = 'AJ        '
+      KVRT(10) = 'AJOH      '
+      KVRT(11) = 'AJNB      '
+      KVRT(12) = 'AJRF      '
+      KVRT(13) = 'AJBS      '
+
+      KVRT(14) = 'PTOT      '
+      KVRT(15) = 'POH       '
+      KVRT(16) = 'PNB       '
+      KVRT(17) = 'PNF       '
+      KVRT(18) = 'PRF(1)    '
+      KVRT(19) = 'PRF(2)    '
+      KVRT(20) = 'PRF(3)    '
+      KVRT(21) = 'PRF(4)    '
+      KVRT(22) = 'PRL       '
+      KVRT(23) = 'PCX       '
+      KVRT(24) = 'PIE       '
+      KVRT(25) = 'PEX(1)    '
+      KVRT(26) = 'PEX(2)    '
+      KVRT(27) = 'QP        '
+      KVRT(28) = 'EZOH      '
+      KVRT(29) = 'BETA      '
+      KVRT(30) = 'BETAP     '
+      KVRT(31) = 'EZOH*2PIRR'
+      KVRT(32) = 'ETA       '
+      KVRT(33) = 'ZEFF      '
+      KVRT(34) = 'AK(1)     '
+      KVRT(35) = 'AK(2)     '
+
+      KVRT(36) = 'PRFV(1,1) '
+      KVRT(37) = 'PRFV(1,2) '
+      KVRT(38) = 'PRFV(1,3) '
+      KVRT(39) = 'PRFV(2,1) '
+      KVRT(40) = 'PRFV(2,2) '
+      KVRT(41) = 'PRFV(2,3) '
+
+      KVRT(42) = 'AJRFV(1)  '
+      KVRT(43) = 'AJRFV(2)  '
+      KVRT(44) = 'AJRFV(3)  '
+
+      KVRT(45) = 'RW(1+2)   '
+      KVRT(46) = 'ANC+ANFE  '
+      KVRT(47) = 'BP        '
+      KVRT(48) = 'RPSI      '
+
+      KVRT(49) = 'RMJRHO    '
+      KVRT(50) = 'RMNRHO    '
+      KVRT(51) = 'F0D       '
+      KVRT(52) = 'RKPRHO    '
+      KVRT(53) = 'DELTAR    '
+      KVRT(54) = 'AR1RHO    '
+      KVRT(55) = 'AR2RHO    '
+      KVRT(56) = 'AKDW(1)   '
+      KVRT(57) = 'AKDW(2)   '
+      KVRT(58) = 'RN*RT(1)  '
+      KVRT(59) = 'RN*RT(2)  '
+
+      KVRT(60) = 'VTOR      '
+      KVRT(61) = 'VPOL      '
+
+      KVRT(62) = 'S-ALPHA   '
+      KVRT(63) = 'ER        '
+      KVRT(64) = 'S         '
+      KVRT(65) = 'ALPHA     '
+      KVRT(66) = 'TRCOFS    '
+      KVRT(67) = '2PI/QP    '
+
+      RETURN
+    END SUBROUTINE tr_setup_kv

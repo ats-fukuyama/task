@@ -22,7 +22,7 @@ SRC90=trinit.f90 trparm.f90 \
       trrslt.f90 trpnb.f90 trprf.f90 trpnf.f90 trpel.f90 trpsc.f90 trmdlt.f90 \
       trgout.f90 trgrar.f90 trgrat.f90 trgrap.f90 trgrae.f90 \
       trgrad.f90 trgram.f90 trgsub.f90 trfout.f90 \
-      trunit.f90 trloop.f90 trmenu.f90
+      trloop.f90 trmenu.f90
 
 SRCITG= glf/callglf2d.f \
         itg/ifspppl_model.f itg/weiland.f
@@ -112,8 +112,7 @@ distclean: clean
 	cd ../lib && make clean
 
 trmain.o : trmain.f90 trcomm.f90  
-trmenu.o : trmenu.f90 trcomm.f90 trcom1.f90 trunit.f90
-trunit.o : trunit.f90 trprep.f90
+trmenu.o : trmenu.f90 trcomm.f90 trcom1.f90
 trinit.o : trinit.f90 trcomm.f90 trcom1.f90
 trparm.o : trparm.f90 trcomm.f90 trcom1.f90
 trprep.o : trprep.f90 trcomm.f90 trcom1.f90

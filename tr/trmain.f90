@@ -65,6 +65,8 @@
 !      CALL equ_parm(1,'equparm',IERR)
       CALL tr_parm(1,'trparm',IERR)
 
+      CALL tr_setup_kv
+
       CALL tr_menu
 
       CLOSE(7)
