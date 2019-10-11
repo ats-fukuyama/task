@@ -32,13 +32,15 @@ CONTAINS
 1     CALL KKINT(NCTM,KNCTM)
       CALL KKINT(NCGM,KNCGM)
       CALL KKINT(NCRTM,KNCRTM)
-      WRITE(6,'(A)') &
+      WRITE(6,'(13A)') &
            '# FOUT: GT[0-',KNCTM(1:LEN_TRIM(KNCTM)),'], ', &
                    'RT[0-',KNCRTM(1:LEN_TRIM(KNCRTM)),'], ', &
                    'RN[0-',KNCRTM(1:LEN_TRIM(KNCRTM)),'], ', &
-                   'RG[0-',KNCGM(1:LEN_TRIM(KNCGM)),'], ', &
-                   'CR[0-',KNCRTM(1:LEN_TRIM(KNCRTM)),'], ', &
-                   'A:all,CP,CN:csv,F:filename,?:help,X:exit'
+                   'RG[0-',KNCGM(1:LEN_TRIM(KNCGM)),']:txt, ', &
+                   'A:all,'
+      WRITE(6,'(4A)') &
+           '        CR[1-',KNCRTM(1:LEN_TRIM(KNCRTM)),'], ', &
+                   'CP,CN:csv,F:filename,?:help,X:exit'
       READ(5,'(A80)',END=9000,ERR=1) LINE
       KID=LINE(1:2)
       CALL GUCPTL(KID(1:1))
@@ -176,12 +178,13 @@ CONTAINS
 
       IF(KID.EQ.'CR') THEN
          READ(LINE(3:),*,END=1,ERR=1) ID
-         WRITE(NFL,'(A,A,I5,A,I5)') KVRT(ID),' NRMAX=',NRMAX,' NTMAX= ',NGT
+         WRITE(NFL,'(A,A,I5,A,I5)') KVRT(ID),', NRMAX=',NRMAX,', NTMAX= ',NGT
          WRITE(KFORM,'(A,I5,A)') '(',NGT,'(1PE13.6,","),1PE13.6)'
          WRITE(NFL,KFORM) 0.D0,(GT(NTL),NTL=1,NGT)
          DO NR=1,NRMAX
             WRITE(NFL,KFORM) GRM(NR),(GVRT(NR,NTL,ID),NTL=1,NGT)
          END DO
+         WRITE(6,'(A,A)') '# data saved in ',FILENAME(1:LEN_TRIM(FILENAME))
          GO TO 1
       END IF
             
