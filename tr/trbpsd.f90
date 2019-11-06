@@ -20,7 +20,6 @@ CONTAINS
     USE trcomm
 ! local variables
       integer(4) :: ns,nr,ierr
-      real(8)    :: temp(nrmp,nsm,3)
 !=======================================================================
 
       if(tr_bpsd_init_flag) then

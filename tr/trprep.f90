@@ -85,7 +85,6 @@ CONTAINS
 
       CALL tr_prof_impurity
 
-
 !     *** CALCULATE AJ, QP, BP, EZ ***
 
       CALL tr_prof_current
@@ -289,7 +288,6 @@ CONTAINS
 !     *** EQUATION SELECTOR ***
 
 !     Format : NEA(species,equation) for all equations
-
       NEA(0:NSTM,0:3)=0
       DO NEQ=1,NEQMAX
          NEA(NSS(NEQ),NSV(NEQ))=NEQ

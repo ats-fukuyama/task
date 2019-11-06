@@ -20,7 +20,7 @@ CONTAINS
       USE trfout
       USE libfio
       IMPLICIT NONE
-      INTEGER(4)       :: IERR, MODE, NFL, NFLMAX, NTMOLD
+      INTEGER(4)       :: IERR, MODE, NTMOLD
       INTEGER(4), SAVE :: INIT=0
       CHARACTER(LEN=1) :: KID
       CHARACTER(LEN=80):: LINE

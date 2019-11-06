@@ -7,14 +7,15 @@
 !  x-array to be summed
 !  incx-increment in sx index
 !***********************************************************************
+      USE trcomm,ONLY: rkind
       IMPLICIT NONE
-      REAL           RARRAY_SUM
+      REAL(rkind)    RARRAY_SUM
 !Declaration of input variables
       INTEGER        incx,                    n
-      REAL           x(*)
+      REAL(rkind)    x(*)
 !Declaration of local variables
       INTEGER        i,                       ix
-      RARRAY_SUM=0.0
+      RARRAY_SUM=0.D0
       ix=1
       DO i=1,n
         RARRAY_SUM=RARRAY_SUM+x(ix)

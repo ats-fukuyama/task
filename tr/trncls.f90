@@ -84,6 +84,7 @@
      &         NSZMAX,    PA,           PADD,         PNSS,         PTS,          PZ,           Q0,           QP,          &
      &         RA,        RDP,          RG,           RGFLS,        RHOG,         RKAP,         RM,           RN,          &
      &         RQFLS,     RR,           RT,           TTRHOG,       VPAR,         VPOL,         VPRP,         VTOR
+      USE trcomm,ONLY: rkind
       IMPLICIT NONE
       INCLUDE 'nclass/pamx_mi.inc'
       INCLUDE 'nclass/pamx_ms.inc'
@@ -91,40 +92,40 @@
 !      INCLUDE 'trncls.inc'
 !Declaration of input to NCLASS
       INTEGER(4)::                        k_order,  k_potato, m_i,      m_z
-      REAL(4)::                           c_den,    c_potb,   c_potl,   p_b2,     p_bm2,    p_eb,   &
+      REAL(rkind)::                       c_den,    c_potb,   c_potl,   p_b2,     p_bm2,    p_eb,   &
      &                                    p_fhat,   p_ft,     p_grbm2,  p_ngrth,  p_grphi,  p_gr2phi
-      REAL(4),DIMENSION(3)            ::  p_fm
-      REAL(4),DIMENSION(mx_mi)        ::  amu_i,    grt_i,    temp_i
-      REAL(4),DIMENSION(mx_mi,mx_mz)  ::  den_iz,   grp_iz
-      REAL(4),DIMENSION(3,mx_mi,mx_mz)::  fex_iz
+      REAL(rkind),DIMENSION(3)            ::  p_fm
+      REAL(rkind),DIMENSION(mx_mi)        ::  amu_i,    grt_i,    temp_i
+      REAL(rkind),DIMENSION(mx_mi,mx_mz)  ::  den_iz,   grp_iz
+      REAL(rkind),DIMENSION(3,mx_mi,mx_mz)::  fex_iz
 
 !Declaration of output from NCLASS
       INTEGER(4)::                        iflag,    m_s
       INTEGER(4),DIMENSION(mx_ms)::       jm_s,     jz_s
-      REAL(4)::                           p_bsjb,   p_etap,    p_exjb
-      REAL(4),DIMENSION(3,3,mx_mi)::      calm_i
-      REAL(4),DIMENSION(3,3,mx_mi,mx_mi)::caln_ii,  capm_ii,  capn_ii
-      REAL(4),DIMENSION(mx_ms)::          bsjbp_s,  bsjbt_s,  dn_s,     sqz_s,    vn_s,     veb_s,    qeb_s,    xi_s
-      REAL(4),DIMENSION(5,mx_ms)::        gfl_s,    qfl_s
-      REAL(4),DIMENSION(3,3,mx_ms)::      upar_s,   utheta_s, ymu_s
-      REAL(4),DIMENSION(mx_ms,mx_ms)::    chip_ss,  chit_ss,  dp_ss,    dt_ss
+      REAL(rkind)::                           p_bsjb,   p_etap,    p_exjb
+      REAL(rkind),DIMENSION(3,3,mx_mi)::      calm_i
+      REAL(rkind),DIMENSION(3,3,mx_mi,mx_mi)::caln_ii,  capm_ii,  capn_ii
+      REAL(rkind),DIMENSION(mx_ms)::          bsjbp_s,  bsjbt_s,  dn_s,     sqz_s,    vn_s,     veb_s,    qeb_s,    xi_s
+      REAL(rkind),DIMENSION(5,mx_ms)::        gfl_s,    qfl_s
+      REAL(rkind),DIMENSION(3,3,mx_ms)::      upar_s,   utheta_s, ymu_s
+      REAL(rkind),DIMENSION(mx_ms,mx_ms)::    chip_ss,  chit_ss,  dp_ss,    dt_ss
 
       INTEGER(4),INTENT(OUT):: IERR
-      INTEGER(4)::  i,iz,k_out,k_v,na,nm,nr,ns,ns1,nsn,nsz
-      REAL(4)   ::  a0,bt0,e0,p_eps,p_q,q0l,r0
-      REAL(8)   ::  aitken2p,bpol,btor,btot,deriv3p,eps,ftpf,pzmax,uthai
+      INTEGER(4)::  i,k_out,k_v,na,nm,nr,ns,ns1,nsn,nsz
+      REAL(rkind)   ::  a0,bt0,e0,p_eps,p_q,q0l,r0
+      REAL(rkind)   ::  aitken2p,bpol,btor,btot,deriv3p,eps,ftpf,pzmax,uthai
 
 
-      REAL(8),DIMENSION(NRMAX):: EROPSI
+      REAL(rkind),DIMENSION(NRMAX):: EROPSI
 
 !     *** Initialization ***
 
-      amu_i(1:mx_mi)=0.0
-      grt_i(1:mx_mi)=0.0
-      temp_i(1:mx_mi)=0.0
-      den_iz(1:mx_mi,1:mx_mz)=0.0
-      grp_iz(1:mx_mi,1:mx_mz)=0.0
-      fex_iz(1:3,1:mx_mi,1:mx_mz)=0.0
+      amu_i(1:mx_mi)=0.D0
+      grt_i(1:mx_mi)=0.D0
+      temp_i(1:mx_mi)=0.D0
+      den_iz(1:mx_mi,1:mx_mz)=0.D0
+      grp_iz(1:mx_mi,1:mx_mz)=0.D0
+      fex_iz(1:3,1:mx_mi,1:mx_mz)=0.D0
       
       IERR=0
 
@@ -154,7 +155,7 @@
          ENDDO
       ENDIF
       m_z=INT(PZMAX)
-      c_den=1.E10
+      c_den=1.D10
       c_potb=SNGL(RKAP*BB/(2.D0*Q0**2))
       c_potl=SNGL(Q0*RR)
 
@@ -174,80 +175,81 @@
          p_bm2=SNGL(AIB2RHOG(NR))
          p_fhat=SNGL(TTRHOG(NR)/RDP(NR))
          DO i=1,3
-            p_fm(i)=0.0
+            p_fm(i)=0.D0
          ENDDO
-         IF(SNGL(EPS).gt.0.0) THEN
+         IF(EPS.gt.0.D0) THEN
             DO i=1,3
-               p_fm(i)=SNGL(DBLE(i)*((1.D0-SQRT(1.D0-EPS**2))/EPS)**(2*i) &
-     &                 *(1.D0+DBLE(i)*SQRT(1.D0-EPS**2))/((1.D0-EPS**2)**1.5D0*(QP(NR)*RR)**2))
+               p_fm(i)=DBLE(i)*((1.D0-SQRT(1.D0-EPS**2))/EPS)**(2*i) &
+     &                 *(1.D0+DBLE(i)*SQRT(1.D0-EPS**2))/((1.D0-EPS**2)**1.5D0*(QP(NR)*RR)**2)
             ENDDO
          ENDIF
-         p_ft=SNGL(FTPF(MDLTPF,EPS))
-         p_grbm2=SNGL(ARHBRHOG(NR))
+         p_ft=FTPF(MDLTPF,EPS)
+         p_grbm2=ARHBRHOG(NR)
          p_grphi=ER(NR)
-!         p_gr2phi=SNGL(RDP(NR)*DERIV3(NR,RG,EROPSI,NRMAX,1))
+!         p_gr2phi=RDP(NR)*DERIV3(NR,RG,EROPSI,NRMAX,1)
          p_gr2phi=0.D0
-         p_ngrth=SNGL(BP(NR)/(BB*RHOG(NR)))
+         p_ngrth=BP(NR)/(BB*RHOG(NR))
          IF(NR.EQ.NRMAX) THEN
             DO NS=1,NSLMAX
-               temp_i(NS)=SNGL(PTS(NS))
-               grt_i(NS)=SNGL(DERIV3P(PTS(NS),RT(NR,NS),RT(NR-1,NS), &
-     &                               RG(NR),RM(NR),RM(NR-1)))
-               den_iz(NS,INT(ABS(PZ(NS))))=SNGL(PNSS(NS))*1.E20
+               temp_i(NS)=PTS(NS)
+               grt_i(NS)=DERIV3P(PTS(NS),RT(NR,NS),RT(NR-1,NS), &
+     &                               RG(NR),RM(NR),RM(NR-1))
+               den_iz(NS,INT(ABS(PZ(NS))))=PNSS(NS)*1.D20
                grp_iz(NS,INT(ABS(PZ(NS)))) &
-     &              =SNGL(DERIV3P(PNSS(NS)*PTS(NS),RN(NR  ,NS)*RT(NR  ,NS), &
-     &                           RN(NR-1,NS)*RT(NR-1,NS),RG(NR),RM(NR),RM(NR-1)))*1.E20
-!     &                           RN(NR+1,NS)*RT(NR+1,NS),RG(NR),RM(NR),RM(NR-1)))*1.E20
+     &              =DERIV3P(PNSS(NS)*PTS(NS),RN(NR  ,NS)*RT(NR  ,NS), &
+     &                 RN(NR-1,NS)*RT(NR-1,NS),RG(NR),RM(NR),RM(NR-1))*1.D20
+!     &                 RN(NR+1,NS)*RT(NR+1,NS),RG(NR),RM(NR),RM(NR-1))*1.D20
                DO NA=1,3
-                  fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.0
+                  fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.D0
                ENDDO
             ENDDO
             IF(MDLEQZ.NE.0) THEN
                DO NSZ=1,NSZMAX
                   NS =NSM+NSZ
                   NSN=NSLMAX+NSZ
-                  temp_i(NSN)=SNGL(PTS(NS))
-                  grt_i(NSN)=SNGL(DERIV3P(PTS(NS),RT(NR,NS),RT(NR-1,NS), &
-     &                               RG(NR),RM(NR),RM(NR-1)))
-                  den_iz(NSN,INT(ABS(PZ(NS))))=SNGL(PNSS(NS))*1.E20
+                  temp_i(NSN)=PTS(NS)
+                  grt_i(NSN)=DERIV3P(PTS(NS),RT(NR,NS),RT(NR-1,NS), &
+     &                               RG(NR),RM(NR),RM(NR-1))
+                  den_iz(NSN,INT(ABS(PZ(NS))))=PNSS(NS)*1.D20
                   grp_iz(NSN,INT(ABS(PZ(NS)))) &
-     &                 =SNGL(DERIV3P(PNSS(NS)*PTS(NS),RN(NR  ,NS)*RT(NR  ,NS), &
-     &                              RN(NR+1,NS)*RT(NR+1,NS),RG(NR),RM(NR),RM(NR-1)))*1.E20
+     &                 =DERIV3P(PNSS(NS)*PTS(NS),RN(NR  ,NS)*RT(NR  ,NS), &
+     &                    RN(NR+1,NS)*RT(NR+1,NS),RG(NR),RM(NR),RM(NR-1))*1.D20
                   DO NA=1,3
-                     fex_iz(NA,NSN,INT(ABS(PZ(NS))))=0.0
+                     fex_iz(NA,NSN,INT(ABS(PZ(NS))))=0.D0
                   ENDDO
                ENDDO
             ENDIF
-            p_eb=SNGL(AITKEN2P(RG(NR),ETA(NR)*AJOH(NR), &
-     &                ETA(NR-1)*AJOH(NR-1),ETA(NR-2)*AJOH(NR-2),RM(NR),RM(NR-1),RM(NR-2))*BB)
+            p_eb=AITKEN2P(RG(NR),ETA(NR)*AJOH(NR), &
+     &                    ETA(NR-1)*AJOH(NR-1),ETA(NR-2)*AJOH(NR-2), &
+                          RM(NR),RM(NR-1),RM(NR-2))*BB
          ELSE
             DO NS=1,NSLMAX
-               temp_i(NS)=SNGL(0.5D0*(RT(NR+1,NS)+RT(NR,NS)))
-               grt_i(NS)=SNGL((RT(NR+1,NS)-RT(NR,NS))/DR)
-               den_iz(NS,INT(ABS(PZ(NS))))=SNGL(0.5D0*(RN(NR+1,NS)+RN(NR,NS)))*1.E20
+               temp_i(NS)=0.5D0*(RT(NR+1,NS)+RT(NR,NS))
+               grt_i(NS)=(RT(NR+1,NS)-RT(NR,NS))/DR
+               den_iz(NS,INT(ABS(PZ(NS))))=0.5D0*(RN(NR+1,NS)+RN(NR,NS))*1.D20
                grp_iz(NS,INT(ABS(PZ(NS)))) &
-     &             =SNGL(( RN(NR+1,NS)*RT(NR+1,NS)+PADD(NR+1) &
-     &                    -RN(NR  ,NS)*RT(NR  ,NS)-PADD(NR  ))/DR)*1.E20
+     &             =( RN(NR+1,NS)*RT(NR+1,NS)+PADD(NR+1) &
+     &               -RN(NR  ,NS)*RT(NR  ,NS)-PADD(NR  ))/DR*1.D20
                DO NA=1,3
-                  fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.0
+                  fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.D0
                ENDDO
             ENDDO
             IF(MDLEQZ.NE.0) THEN
                DO NSZ=1,NSZMAX
                   NS =NSM+NSZ
                   NSN=NSLMAX+NSZ
-                  temp_i(NSN)=SNGL(0.5D0*(RT(NR+1,NS)+RT(NR,NS)))
-                  grt_i(NSN)=SNGL((RT(NR+1,NS)-RT(NR,NS))/DR)
-                  den_iz(NSN,INT(ABS(PZ(NS))))=SNGL(0.5D0*(RN(NR+1,NS)+RN(NR,NS)))*1.E20
+                  temp_i(NSN)=0.5D0*(RT(NR+1,NS)+RT(NR,NS))
+                  grt_i(NSN)=(RT(NR+1,NS)-RT(NR,NS))/DR
+                  den_iz(NSN,INT(ABS(PZ(NS))))=0.5D0*(RN(NR+1,NS)+RN(NR,NS))*1.D20
                   grp_iz(NSN,INT(ABS(PZ(NS)))) &
-     &               =SNGL(( RN(NR+1,NS)*RT(NR+1,NS)+PADD(NR+1) &
-     &                      -RN(NR  ,NS)*RT(NR  ,NS)-PADD(NR  ))/DR)*1.E20
+     &               =( RN(NR+1,NS)*RT(NR+1,NS)+PADD(NR+1) &
+     &                 -RN(NR  ,NS)*RT(NR  ,NS)-PADD(NR  ))/DR*1.D20
                   DO NA=1,3
-                     fex_iz(NA,NSN,INT(ABS(PZ(NS))))=0.0
+                     fex_iz(NA,NSN,INT(ABS(PZ(NS))))=0.D0
                   ENDDO
                ENDDO
             ENDIF
-            p_eb=SNGL(0.5D0*(ETA(NR+1)*AJOH(NR+1)+ETA(NR)*AJOH(NR))*BB)
+            p_eb=0.5D0*(ETA(NR+1)*AJOH(NR+1)+ETA(NR)*AJOH(NR))*BB
          ENDIF
 
       CALL NCLASS(  &
@@ -262,13 +264,13 @@
      &            chip_ss,chit_ss,dp_ss,dt_ss,iflag)
 
       IF(k_out.eq.1.or.k_out.eq.2) THEN
-         p_eps = SNGL(EPS)
-         p_q   = SNGL(QP(NR))
-         r0    = SNGL(RR)
-         a0    = SNGL(RA)
-         e0    = SNGL(RKAP)
-         bt0   = SNGL(BB)
-         q0l   = SNGL(Q0)
+         p_eps = EPS
+         p_q   = QP(NR)
+         r0    = RR
+         a0    = RA
+         e0    = RKAP
+         bt0   = BB
+         q0l   = Q0
          CALL NCLASS_CHECK(6,NR, &
      &        k_out,k_order,m_i,m_z,p_fhat,p_grphi, &
      &        amu_i,grt_i,temp_i,den_iz,grp_iz,p_eps,bt0, &
@@ -289,71 +291,71 @@
          ELSE
             IF(iflag.NE. 0) WRITE(6,*) "XX iflag=",iflag
          ENDIF
-         AJBSNC(NR)=DBLE(p_bsjb)/BB
-         ETANC(NR) =DBLE(p_etap)
-         AJEXNC(NR)=DBLE(p_exjb)/BB
+         AJBSNC(NR)=p_bsjb/BB
+         ETANC(NR) =p_etap
+         AJEXNC(NR)=p_exjb/BB
 
 !     ADNCG : Diagonal diffusivity for graphic use only
 !     AVNCG : Off-diagonal part driven pinch and neoclassical pinch
 !             for graphic use only
 
          DO NS=1,NSM
-            CJBSP(NR,NS)=DBLE(bsjbp_s(NS))
-            CJBST(NR,NS)=DBLE(bsjbt_s(NS))
-            ADNCG(NR,NS)=DBLE(dn_s(NS))/AR2RHO(NR)
-            AVNCG(NR,NS)=DBLE(vn_s(NS)+veb_s(NS))/AR1RHO(NR)
+            CJBSP(NR,NS)=bsjbp_s(NS)
+            CJBST(NR,NS)=bsjbt_s(NS)
+            ADNCG(NR,NS)=dn_s(NS)/AR2RHO(NR)
+            AVNCG(NR,NS)=(vn_s(NS)+veb_s(NS))/AR1RHO(NR)
             DO NS1=1,NSLMAX
-               AKNCP(NR,NS,NS1)=DBLE(chip_ss(NS,NS1))/AR2RHO(NR)
-               AKNCT(NR,NS,NS1)=DBLE(chit_ss(NS,NS1))/AR2RHO(NR)
-               ADNCP(NR,NS,NS1)=DBLE(dp_ss(NS,NS1))/AR2RHO(NR)
-               ADNCT(NR,NS,NS1)=DBLE(dt_ss(NS,NS1))/AR2RHO(NR)
+               AKNCP(NR,NS,NS1)=chip_ss(NS,NS1)/AR2RHO(NR)
+               AKNCT(NR,NS,NS1)=chit_ss(NS,NS1)/AR2RHO(NR)
+               ADNCP(NR,NS,NS1)=dp_ss(NS,NS1)/AR2RHO(NR)
+               ADNCT(NR,NS,NS1)=dt_ss(NS,NS1)/AR2RHO(NR)
             ENDDO
             DO NM=1,5
-               RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NS))*1.D-20/AR1RHO(NR)
-               RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NS))*1.D-20/AR1RHO(NR)
+               RGFLS(NR,NM,NS)=gfl_s(NM,NS)*1.D-20/AR1RHO(NR)
+               RQFLS(NR,NM,NS)=qfl_s(NM,NS)*1.D-20/AR1RHO(NR)
             ENDDO
-            AVKNC(NR,NS)=DBLE(qeb_s(NS))/AR1RHO(NR)
-            AVNC (NR,NS)=DBLE(veb_s(NS))/AR1RHO(NR)
+            AVKNC(NR,NS)=qeb_s(NS)/AR1RHO(NR)
+            AVNC (NR,NS)=veb_s(NS)/AR1RHO(NR)
          ENDDO
          IF(MDLEQZ.NE.0) THEN
             DO NSZ=1,NSZMAX
                NS =NSM+NSZ
                NSN=NSLMAX+NSZ
-               CJBSP(NR,NS)=DBLE(bsjbp_s(NSN))
-               CJBST(NR,NS)=DBLE(bsjbt_s(NSN))
-               ADNCG(NR,NS)=DBLE(dn_s(NSN))/AR2RHO(NR)
-               AVNCG(NR,NS)=DBLE(vn_s(NSN)+veb_s(NSN))/AR1RHO(NR)
+               CJBSP(NR,NS)=bsjbp_s(NSN)
+               CJBST(NR,NS)=bsjbt_s(NSN)
+               ADNCG(NR,NS)=dn_s(NSN)/AR2RHO(NR)
+               AVNCG(NR,NS)=(vn_s(NSN)+veb_s(NSN))/AR1RHO(NR)
                DO NS1=1,NSLMAX
-                  AKNCP(NR,NS,NS1)=DBLE(chip_ss(NSN,NS1))/AR2RHO(NR)
-                  AKNCT(NR,NS,NS1)=DBLE(chit_ss(NSN,NS1))/AR2RHO(NR)
-                  ADNCP(NR,NS,NS1)=DBLE(dp_ss(NSN,NS1))/AR2RHO(NR)
-                  ADNCT(NR,NS,NS1)=DBLE(dt_ss(NSN,NS1))/AR2RHO(NR)
+                  AKNCP(NR,NS,NS1)=chip_ss(NSN,NS1)/AR2RHO(NR)
+                  AKNCT(NR,NS,NS1)=chit_ss(NSN,NS1)/AR2RHO(NR)
+                  ADNCP(NR,NS,NS1)=dp_ss(NSN,NS1)/AR2RHO(NR)
+                  ADNCT(NR,NS,NS1)=dt_ss(NSN,NS1)/AR2RHO(NR)
                ENDDO
                DO NM=1,5
-                  RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NSN))*1.D-20/AR1RHO(NR)
-                  RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NSN))*1.D-20/AR1RHO(NR)
+                  RGFLS(NR,NM,NS)=gfl_s(NM,NSN)*1.D-20/AR1RHO(NR)
+                  RQFLS(NR,NM,NS)=qfl_s(NM,NSN)*1.D-20/AR1RHO(NR)
                ENDDO
-               AVKNC(NR,NS)=DBLE(qeb_s(NSN))/AR1RHO(NR)
-               AVNC (NR,NS)=DBLE(veb_s(NSN))/AR1RHO(NR)
+               AVKNC(NR,NS)=qeb_s(NSN)/AR1RHO(NR)
+               AVNC (NR,NS)=veb_s(NSN)/AR1RHO(NR)
             ENDDO
          ENDIF
 
 !     /* neoclassical bulk ion toroidal and poloidal velocities */
 !
          IF(k_v.ne.0) THEN
-            btor=bt0/(1.0+p_eps)
+            btor=bt0/(1.D0+p_eps)
             bpol=btor/p_fhat
             btot=SQRT(btor**2+bpol**2)*btor/ABS(btor)
             DO i=1,m_s
                uthai=utheta_s(1,1,i)+utheta_s(1,2,i)+utheta_s(1,3,i)
 !               IF(DBLE(amu_i(jm_s(i))).eq.PA(2).and.iz.eq.int(PZ(2))) then
-               IF(DBLE(amu_i(jm_s(i))).eq.PA(2).and.jz_s(i).eq.int(PZ(2))) then
+               IF(amu_i(jm_s(i)).eq.PA(2).and.jz_s(i).eq.int(PZ(2))) then
 !     Poloidal
-                  VPOL(NR)=DBLE(uthai*bpol)
+                  VPOL(NR)=uthai*bpol
 !     Parallel
-                  VPAR(NR)=DBLE(bpol/btot*VPOL(NR)+btor/btot*VTOR(NR))
+                  VPAR(NR)=bpol/btot*VPOL(NR)+btor/btot*VTOR(NR)
 !     Perpendicular
-                  VPRP(NR)=DBLE(btor/btot*VPOL(NR)-bpol/btot*VTOR(NR))
+                  VPRP(NR)=btor/btot*VPOL(NR)-bpol/btot*VTOR(NR)
                ENDIF
             ENDDO
          ENDIF
@@ -377,6 +379,7 @@
      &            upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s, &
      &            chip_ss,chit_ss,dp_ss,dt_ss,iflag)
 
+      USE trcomm,ONLY: rkind
       IMPLICIT NONE
       INCLUDE 'nclass/pamx_mi.inc'
       INCLUDE 'nclass/pamx_ms.inc'
@@ -384,20 +387,20 @@
 !      INCLUDE 'trncls.inc'
 !Declaration of input to NCLASS
       INTEGER(4)::                        k_order,  m_i,      m_z
-      REAL(4)::                           p_fhat,   p_grphi
-      REAL(4),DIMENSION(mx_mi)        ::  amu_i,    grt_i,    temp_i
-      REAL(4),DIMENSION(mx_mi,mx_mz)  ::  den_iz,   grp_iz
+      REAL(rkind)::                           p_fhat,   p_grphi
+      REAL(rkind),DIMENSION(mx_mi)        ::  amu_i,    grt_i,    temp_i
+      REAL(rkind),DIMENSION(mx_mi,mx_mz)  ::  den_iz,   grp_iz
 
 !Declaration of output from NCLASS
       INTEGER(4)::                        iflag,    m_s
       INTEGER(4),DIMENSION(mx_ms)::       jm_s,     jz_s
-      REAL(4)::                           p_bsjb,   p_etap,    p_exjb
-      REAL(4),DIMENSION(3,3,mx_mi)::      calm_i
-      REAL(4),DIMENSION(3,3,mx_mi,mx_mi)::caln_ii,  capm_ii,  capn_ii
-      REAL(4),DIMENSION(mx_ms)::          bsjbp_s,  bsjbt_s,  dn_s,     vn_s,     veb_s,    qeb_s,    xi_s
-      REAL(4),DIMENSION(5,mx_ms)::        gfl_s,    qfl_s
-      REAL(4),DIMENSION(3,3,mx_ms)::      upar_s,   utheta_s, ymu_s
-      REAL(4),DIMENSION(mx_ms,mx_ms)::    chip_ss,  chit_ss,  dp_ss,    dt_ss
+      REAL(rkind)::                           p_bsjb,   p_etap,    p_exjb
+      REAL(rkind),DIMENSION(3,3,mx_mi)::      calm_i
+      REAL(rkind),DIMENSION(3,3,mx_mi,mx_mi)::caln_ii,  capm_ii,  capn_ii
+      REAL(rkind),DIMENSION(mx_ms)::          bsjbp_s,  bsjbt_s,  dn_s,     vn_s,     veb_s,    qeb_s,    xi_s
+      REAL(rkind),DIMENSION(5,mx_ms)::        gfl_s,    qfl_s
+      REAL(rkind),DIMENSION(3,3,mx_ms)::      upar_s,   utheta_s, ymu_s
+      REAL(rkind),DIMENSION(mx_ms,mx_ms)::    chip_ss,  chit_ss,  dp_ss,    dt_ss
 
 !Declaration of local variables
       CHARACTER(LEN=120):: label
@@ -409,27 +412,27 @@
      &               k_out,                   l, &
      &               nout
       INTEGER        idum(8)
-      REAL           bt0, &
+      REAL(rkind)    bt0, &
      &               bpol,                    btor, &
      &               btot, &
      &               p_eps, &
      &               ppr, &
      &               uthai
-      REAL           dq_s(mx_ms),             vq_s(mx_ms)
-      REAL           z_coulomb,               z_electronmass, &
+      REAL(rkind)    dq_s(mx_ms),             vq_s(mx_ms)
+      REAL(rkind)    z_coulomb,               z_electronmass, &
      &               z_j7kv,                  z_mu0, &
      &               z_pi,                    z_protonmass
-      REAL           dum(8),                  edum(8), &
+      REAL(rkind)    dum(8),                  edum(8), &
      &               rdum(8)
 !Declaration of functions
-      REAL           RARRAY_SUM
+      REAL(rkind)    RARRAY_SUM
 !Physical and conversion constants
-      z_coulomb=1.6022e-19
-      z_electronmass=9.1095e-31
-      z_j7kv=1.6022e-16
-      z_mu0=1.2566e-06
-      z_pi=ACOS(-1.0)
-      z_protonmass=1.6726e-27
+      z_coulomb=1.6022D-19
+      z_electronmass=9.1095D-31
+      z_j7kv=1.6022D-16
+      z_mu0=1.2566D-06
+      z_pi=ACOS(-1.D0)
+      z_protonmass=1.6726D-27
 
       IF(iflag.ne.0) WRITE(nout,'(A3,I3)') "NR=",NR
 !Check warning flags
@@ -794,7 +797,7 @@
           vq_s(i)=rdum(1)/(den_iz(im,iza)*z_j7kv*temp_i(im))+dq_s(i)*grt_i(im)/temp_i(im)
           rdum(2)=den_iz(im,iza)*z_j7kv*(-dq_s(i)*grt_i(im) +vq_s(i)*temp_i(im))
 !    Conduction total is sum over T' and p' of all species
-          rdum(3)=0.0
+          rdum(3)=0.D0
           DO j=1,m_s
             jm=jm_s(j)
             jza=IABS(jz_s(j))

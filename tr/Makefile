@@ -4,8 +4,8 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-#FFLAGS = -g $(OFLAGS)
-FFLAGS = $(DFLAGS)
+FFLAGS = -g $(OFLAGS)
+FFLAGS = $(DFLAGS) -Wall
 
 MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD) -I../eq/$(MOD) \
 	    -I../pl/$(MOD)
@@ -120,6 +120,7 @@ trprof.o : trprof.f90 trcomm.f90 trcom1.f90
 trmetric.o : trmetric.f90 trcomm.f90 trcom1.f90
 trfile.o : trfile.f90 trcomm.f90 trcom1.f90
 trbpsd.o : trbpsd.f90 trcomm.f90
+tradat.o : tradat.f90 trcomm.f90
 trufile.o : trufile.f90 trcomm.f90 trcom1.f90
 tr_ufile_task.o : tr_ufile_task.f90 trcomm.f90 trcom1.f90
 tr_ufile_topics.o : tr_ufile_topics.f90 trcomm.f90 trcom1.f90

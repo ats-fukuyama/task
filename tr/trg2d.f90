@@ -139,15 +139,15 @@
       CALL GVALUE3DY(GSYMIN,GSTEPY,1,NGULEN(GSTEPY))
       CALL GVALUE3DZ(GSZMIN,GSTEPZ,2,NGULEN(GSTEPZ))
 
-!      CALL GTEXTX(GX1-0.3,0.5*(GY1+GY2),
-!     &              '@TIME (sec)@',
-!     &              2)
-!      CALL GTEXTX(0.5*(GX1+GX2),GY1-0.3,
-!     &              '@R@',
-!     &              2)
-!      CALL GTEXTX(GX1,GY2+0.1,
-!     &              KV,
-!     &              0)
+      CALL GTEXTX(GX1-0.3,0.5*(GY1+GY2), &
+                   '@TIME (sec)@', &
+                   2)
+      CALL GTEXTX(0.5*(GX1+GX2),GY1-0.3, &
+                   '@RHO@', &
+                   2)
+      CALL GTEXTX(GX1,GY2+0.1, &
+                   KV, &
+                   0)
 
       IF(GZMIN*GZMAX.LT.0.0) THEN
          CALL CPLOT3D1(7,R2W2B)

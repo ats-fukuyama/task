@@ -8,7 +8,7 @@
       SUBROUTINE TRZEFF
 
       USE TRCOMM, ONLY : &
-           ANC,ANFE,MDLEQN,MDLUF,NRMAX,PZ,PZC,PZFE,RN,RNF,RT,ZEFF,NSMAX
+           ANC,ANFE,MDLEQN,MDLUF,NRMAX,PZ,PZC,PZFE,RN,RT,ZEFF,NSMAX
       IMPLICIT NONE
       INTEGER(4):: NR,NS
       REAL(8)   :: TE, TRZEC, TRZEFE
@@ -231,14 +231,13 @@
 
       USE TRCOMM, ONLY : AEE, ANC, ANFE, ANNU, DT, KUFDEV, MDLUF, MDLPR, &
            NRMAX, NT, NTUM, PCX, PIE, PRB, PRC, PRSUM, PRL, PRLU, RKEV, RN, &
-           RT, SCX, SIE, TSCX, TSIE
+           RT, SCX, SIE, TSCX, TSIE,NSMAX
       USE TRCOM1, ONLY : NTAMAX, NTXMAX, PNBI, TMU
       USE tr_cytran_mod, ONLY: tr_cytran
       IMPLICIT NONE
       INTEGER(4):: IERR, NR
       REAL(8):: ANDX, ANE, ANHE, ANT, EION, PLC, PLD, PLFE, PLHE, PLTT, &
            PRLL, SCH, SION, TD, TE, TN, TNU, TRRPC, TRRPFE, TSL
-
 
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(NT.EQ.0) THEN
@@ -279,18 +278,30 @@
       ELSE
          DO NR=1,NRMAX
             ANE =RN(NR,1)
-            ANDX=RN(NR,2)
-            ANT =RN(NR,3)
-            ANHE=RN(NR,4)
             TE  =RT(NR,1)
 !     Radiation loss caused by impurities
             PLFE  = ANE*ANFE(NR)*TRRPFE(TE)*1.D40
             PLC   = ANE*ANC (NR)*TRRPC (TE)*1.D40
             PRL(NR)=PLFE+PLC
 !     Bremsstrahlung
-            PLD   = ANE*ANDX*5.35D-37*1.D0**2*SQRT(ABS(TE))*1.D40
-            PLTT  = ANE*ANT *5.35D-37*1.D0**2*SQRT(ABS(TE))*1.D40
-            PLHE  = ANE*ANHE*5.35D-37*2.D0**2*SQRT(ABS(TE))*1.D40
+            IF(NSMAX.GE.2) THEN
+               ANDX=RN(NR,2)
+               PLD   = ANE*ANDX*5.35D-37*1.D0**2*SQRT(ABS(TE))*1.D40
+            ELSE
+               PLD=0.D0
+            END IF
+            IF(NSMAX.GE.3) THEN
+               ANT =RN(NR,3)
+               PLTT  = ANE*ANT *5.35D-37*1.D0**2*SQRT(ABS(TE))*1.D40
+            ELSE
+               PLTT=0.D0
+            END IF
+            IF(NSMAX.GE.4) THEN
+               ANHE=RN(NR,4)
+               PLHE  = ANE*ANHE*5.35D-37*2.D0**2*SQRT(ABS(TE))*1.D40
+            ELSE
+               PLHE=0.D0
+            END IF
             PRB(NR)= PLD+PLTT+PLHE
 !     Sumup
             SELECT CASE(MDLPR)
