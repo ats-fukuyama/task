@@ -444,6 +444,7 @@
       IF(MODE.EQ.2) THEN
          jmax=2*max(-icmin,icmax)+1
          joffset=(jmax+1)/2
+         write(6,'(A,2I10)') 'imax,jmax=',imax,jmax
          ALLOCATE(Ac(jmax,imax))
          DO i=1,imax
             DO j=1,jmax
@@ -458,7 +459,7 @@
 !              '-- libmtxbnd: mtxc_solve: irmax,icmin,icmax,irc=', &
 !                                         irmax,icmin,icmax,irc
       END IF
-         
+
       CALL BANDCD(Ac,xc,imax,jmax,jmax,ierr)
       IF(ierr.ne.0) then
          WRITE(6,'(A,I5)') 'XX BANDCD in mtxc_solve: ierr=',ierr

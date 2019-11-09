@@ -64,6 +64,7 @@ CONTAINS
                   R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG, &
                   AMPWG,ANGWG,ELPWG,DPHWG,MODELWG, &
                   NGXMAX,NGYMAX,NGVMAX,IDEBUG, &
+                  sort_weight_x,sort_weight_y, &
                   br_corner,bz_corner,bt_corner, &
                   pn_corner,ptpr_corner,ptpp_corner, &
                   tolerance,wdamp,fdamp,gfactor, &
@@ -134,6 +135,7 @@ CONTAINS
        WRITE(6,*) '     R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,'
        WRITE(6,*) '     AMPWG,ANGWG,ELPWG,DPHWG,MODELWG,'
        WRITE(6,*) '     NGXMAX,NGYMAX,NGVMAX,IDEBUG,'
+       WRITE(6,*) '     sort_weight_x,sort_weight_y'
        WRITE(6,*) '     br_corner,bz_corner,bt_corner,'
        WRITE(6,*) '     pn_corner,ptpr_corner,ptpp_corner,'
        WRITE(6,*) '     tolerance,wdamp,fdamp,gfactor,'
@@ -235,6 +237,8 @@ CONTAINS
   WRITE(6,601) 'PPN0  ',PPN0  ,'PTN0  ',PTN0  
   WRITE(6,602) 'tolerance ',tolerance,'wdamp     ',wdamp, &
                'fdamp     ',fdamp
+  WRITE(6,603) 'sort_weight_x   ',sort_weight_x, &
+               'sort_weight_y   ',sort_weight_y
   WRITE(6,604) 'mdamp ',mdamp
   WRITE(6,602) 'rdamp_min ',rdamp_min,'rdamp_max ',rdamp_max
   WRITE(6,602) 'zdamp_min ',zdamp_min,'zdamp_max ',zdamp_max
@@ -244,6 +248,7 @@ CONTAINS
          &  2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
 602 FORMAT(' ',A10,'=',1PE12.4:2X,A10,'=',1PE12.4:&
          &  2X,A10,'=',1PE12.4)
+603 FORMAT(' ',A16,'=',1PE12.4:2X,A16,'=',1PE12.4)
 604 FORMAT(' ',A6,'=',I6     :2X,A6,'=',I6     :&
           & 2X,A6,'=',I6     :2X,A6,'=',I6     :&
           & 2X,A6,'=',I6)

@@ -244,6 +244,8 @@ CONTAINS
             RN(NR,7) = (PN(7)-PNS(7))*PROF+PNS(7)
             RN(NR,8) = (PN(8)-PNS(8))*PROF+PNS(8)
             ANNU(NR) = RN(NR,7)+RN(NR,8)
+         ELSE
+            ANNU(NR)=0.D0
          ENDIF
 
          RW(NR,1:NFM) = 0.D0

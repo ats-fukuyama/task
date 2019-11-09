@@ -455,7 +455,7 @@
 !***********************************************************************
 
       USE TRCOMM, ONLY : &
-           AR1RHOG, AR2RHOG, BB, DR, EPSRHO, MDDW, MDLKAI, MDLTPF, NGLF, &
+           AR1RHOG, AR2RHOG, BB, DR, EPSRHO, MDDW, MDLKAI, MDLTPF, &
            NRMAX, NT, PA, PNSS, PTS, PZ, QP, RA, RHOG, RHOM, RJCB, RKAP, &
            RKEV, RMU0, RN, RR, RT, WEXB, S
       IMPLICIT NONE
@@ -597,7 +597,7 @@
       SUBROUTINE WEILAND_COEF(NR,CHIL,CHEL,DL,CHQL,DQL) !,SCHI,SCHE,SD,SCHQ,SDQ)
 
       USE TRCOMM, ONLY : &
-           ADDW, ADDWD, ADDWP, AKDW, AKDWD, AKDWP, MDLWLD, NGLF, NSM, PA
+           ADDW, ADDWD, ADDWP, AKDW, AKDWD, AKDWP, MDLWLD, NSM, PA
       IMPLICIT NONE
       INTEGER(4)  :: NR
 !      REAL(8)     :: SCHE, SCHI, SCHQ, SD, SDQ

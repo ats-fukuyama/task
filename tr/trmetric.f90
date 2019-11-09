@@ -15,7 +15,7 @@ CONTAINS
 
       SUBROUTINE tr_set_metric(ierr)
 
-      USE trcomm, ONLY : modelg, nrmax, knameq, knameq2, RR, RA
+      USE trcomm, ONLY : modelg, nrmax, knameq, knameq2
       USE trbpsd, ONLY: tr_bpsd_init,tr_bpsd_put,tr_bpsd_get
       USE equnit_mod, ONLY: eq_parm,eq_prof,eq_calc,eq_load
       USE pl_vmec_mod, ONLY: pl_vmec
@@ -71,10 +71,10 @@ CONTAINS
       USE TRCOMM, ONLY : &
            ABRHO, ABRHOU, AR1RHO, AR1RHOU, AR2RHO, AR2RHOU, ARRHO, &
            ARRHOU, BB, BP, BPRHO, DVRHO, DVRHOU, EPSRHO, MDLUF, &
-           MDPHIA, MODELG, NRMAX, PHIA, PI, QP, QRHO, RA, RG, &
+           MDPHIA, NRMAX, PHIA, PI, QP, QRHO, RA, RG, &
            RHOG, RHOM, RJCB, RKAP, RKPRHO, RKPRHOU, RM, RMJRHO, &
            RMJRHOU, RMNRHO, RMNRHOU, RR, TTRHO, TTRHOU, VOLAU, &
-           ABVRHO, ABVRHOG, PVOLRHOG, PSURRHOG, ABB1RHO
+           ABVRHO, PVOLRHOG, PSURRHOG, ABB1RHO
       IMPLICIT NONE
       INTEGER(4) :: NR
       REAL(8)    :: RKAPS, RHO_A
@@ -176,7 +176,7 @@ CONTAINS
       USE TRCOMM, ONLY : &
            ABB2RHOG, ABRHO, ABRHOG, AIB2RHOG, AR1RHO, AR1RHOG, AR2RHO, &
            AR2RHOG, ARHBRHOG, ARRHO, ARRHOG, BB, DVRHO, DVRHOG, EPSRHO, &
-           NRMAX, RG, RKPRHO, RKPRHOG, RM, TTRHO, TTRHOG, ABVRHO, ABVRHOG
+           NRMAX, RG, RKPRHO, RKPRHOG, RM, TTRHO, TTRHOG, ABVRHOG
       IMPLICIT NONE
       INTEGER(4) :: NR
       REAL(8)    :: RGL

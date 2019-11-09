@@ -389,7 +389,8 @@ subroutine wfgout_2d_vector
      Y=ZNDMIN+DY*(NGY-1)
      DO NGX=1,NGXMAX
         X=RNDMIN+DX*(NGX-1)
-        write(100,'(E16.8,X,E16.8,X,E16.8,X,E16.8)') X,Y,GZ_r(NGX,NGY),GZ_z(NGX,NGY)
+        write(100,'(E16.8,1X,E16.8,1X,E16.8,1X,E16.8)') &
+             X,Y,GZ_r(NGX,NGY),GZ_z(NGX,NGY)
      end DO
   end DO
   close(100)

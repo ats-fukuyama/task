@@ -7,7 +7,7 @@ include ../make.header
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
-MODINCLUDE=-I $(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD)
+MODINCLUDE=-I$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -31,7 +31,7 @@ all : libpl.a  noeqlib.o noequlib.o pl
 	(cd ../lib; make libtask.a)
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
-../eqb/libeq.a:
+../eq/libeq.a:
 	(cd ../eq; make libeq.a)
 libpl.a: $(OBJS)
 	$(LD) $(LDFLAGS) libpl.a $(OBJS)
@@ -70,5 +70,5 @@ pldata.o: pldata.f90 plcomm.f90
 plprof.o: plprof.f90 plcomm.f90 plload.f90
 plprofw.o: plprofw.f90 plcomm.f90 plprof.f90
 plgout.o: plgout.f90 plcomm.f90
-plload.o: plload.f90
+plload.o: plload.f90 plcomm.f90
 plcomm.o: plcomm.f90

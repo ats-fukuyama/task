@@ -134,6 +134,8 @@
       REAL(8), PARAMETER :: EPS = 1.D-70
       INTEGER(4) :: I, J, K, LH, LHM, NM, LHMK, NPMK, LPMI, IPIVOT, IP, JJ
 
+!      write(6,'(A,3I8)') 'bandcd: ',N,L,LA
+
       IF( MOD(L,2) .EQ. 0 ) GO TO 9000
       LH  = (L+1)/2
       LHM = LH-1

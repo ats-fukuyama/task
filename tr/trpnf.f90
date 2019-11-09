@@ -183,8 +183,8 @@
       SUBROUTINE TRNFDHe3
 
       USE TRCOMM, ONLY : &
-           AME, AMM, ANC, ANFE, MDLNF, NRMAX, PA, PBIN, PFCL, &
-           PFIN, PI, PNBENG, PNF, PZ, PZC, PZFE, RKEV, &
+           AME, AMM, MDLNF, NRMAX, PA, PFCL, &
+           PFIN, PI, PNF, PZ, RKEV, &
            RN, RNF, RT, RTF, RW, SNF, TAUF
       IMPLICIT NONE
       REAL(8)   :: &

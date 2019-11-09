@@ -215,6 +215,11 @@ CONTAINS
     NDRAWV = 0
     NGRAPH = 1
 
+!     *** variable_sort parameters ***
+
+   sort_weight_x=1.D0
+   sort_weight_y=1.D0
+
 !     *** DIVIDER PARAMETERS ***
 
 !        RB    : Boundary radius (m)

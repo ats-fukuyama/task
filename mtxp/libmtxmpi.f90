@@ -478,8 +478,8 @@
 
       SUBROUTINE mtx_broadcast_logical(vdata,ndata)
         IMPLICIT NONE
-        LOGICAL,DIMENSION(ndata),INTENT(INOUT):: vdata
         INTEGER,INTENT(IN):: ndata
+        LOGICAL,DIMENSION(ndata),INTENT(INOUT):: vdata
         INTEGER:: ierr
       
         call MPI_BCAST(vdata,ndata,MPI_LOGICAL,0,ncomm,ierr)
@@ -492,8 +492,8 @@
 
       SUBROUTINE mtx_broadcast_integer(vdata,ndata)
       IMPLICIT NONE
-      INTEGER,DIMENSION(ndata),INTENT(INOUT):: vdata
       INTEGER,INTENT(IN):: ndata
+      INTEGER,DIMENSION(ndata),INTENT(INOUT):: vdata
       INTEGER:: ierr
 
       call MPI_BCAST(vdata,ndata,MPI_INTEGER,0,ncomm,ierr)
@@ -506,8 +506,8 @@
 
       SUBROUTINE mtx_broadcast_real4(vdata,ndata)
       IMPLICIT NONE
-      REAL(4),DIMENSION(ndata),INTENT(INOUT):: vdata
       INTEGER,INTENT(IN):: ndata
+      REAL(4),DIMENSION(ndata),INTENT(INOUT):: vdata
       INTEGER:: ierr
       
       call MPI_BCAST(vdata,ndata,MPI_REAL,0,ncomm,ierr)
@@ -520,8 +520,8 @@
 
       SUBROUTINE mtx_broadcast_real8(vdata,ndata)
       IMPLICIT NONE
-      REAL(8),DIMENSION(ndata),INTENT(INOUT):: vdata
       INTEGER,INTENT(IN):: ndata
+      REAL(8),DIMENSION(ndata),INTENT(INOUT):: vdata
       INTEGER:: ierr
       
       call MPI_BCAST(vdata,ndata,MPI_DOUBLE_PRECISION,0,ncomm,ierr)
@@ -534,8 +534,8 @@
 
       SUBROUTINE mtx_broadcast_complex8(vdata,ndata)
       IMPLICIT NONE
-      COMPLEX(8),DIMENSION(ndata),INTENT(INOUT):: vdata
       INTEGER,INTENT(IN):: ndata
+      COMPLEX(8),DIMENSION(ndata),INTENT(INOUT):: vdata
       INTEGER:: ierr
       
       call MPI_BCAST(vdata,ndata,MPI_DOUBLE_COMPLEX,0,ncomm,ierr)
@@ -548,8 +548,8 @@
 
       SUBROUTINE mtx_broadcast2d_integer(vdata,n1,m1,m2)
       IMPLICIT NONE
-      INTEGER,DIMENSION(n1,m2),INTENT(INOUT):: vdata
       INTEGER,INTENT(IN):: n1,m1,m2
+      INTEGER,DIMENSION(n1,m2),INTENT(INOUT):: vdata
 !      INTEGER,DIMENSION(m1*m2):: tdata
       INTEGER,DIMENSION(:),allocatable:: tdata
       INTEGER:: i,i1,i2,ierr
@@ -580,8 +580,8 @@
 
       SUBROUTINE mtx_broadcast2D_real4(vdata,n1,m1,m2)
       IMPLICIT NONE
-      REAL(4),DIMENSION(n1,m2),INTENT(INOUT):: vdata
       INTEGER,INTENT(IN):: n1,m1,m2
+      REAL(4),DIMENSION(n1,m2),INTENT(INOUT):: vdata
 !      REAL(4),DIMENSION(m1*m2):: tdata
       REAL(4),DIMENSION(:),allocatable:: tdata
       INTEGER:: i,i1,i2,ierr
@@ -612,8 +612,8 @@
 
       SUBROUTINE mtx_broadcast2D_real8(vdata,n1,m1,m2)
       IMPLICIT NONE
-      REAL(8),DIMENSION(n1,m2),INTENT(INOUT):: vdata
       INTEGER,INTENT(IN):: n1,m1,m2
+      REAL(8),DIMENSION(n1,m2),INTENT(INOUT):: vdata
 !      REAL(8),DIMENSION(m1*m2):: tdata
       REAL(8),DIMENSION(:),allocatable:: tdata
       INTEGER:: i,i1,i2,ierr
@@ -644,8 +644,8 @@
 
       SUBROUTINE mtx_broadcast2D_complex8(vdata,n1,m1,m2)
       IMPLICIT NONE
-      COMPLEX(8),DIMENSION(n1,m2),INTENT(INOUT):: vdata
       INTEGER,INTENT(IN):: n1,m1,m2
+      COMPLEX(8),DIMENSION(n1,m2),INTENT(INOUT):: vdata
 !      COMPLEX(8),DIMENSION(m1*m2):: tdata
       COMPLEX(8),DIMENSION(:),allocatable:: tdata
       INTEGER:: i,i1,i2,ierr
@@ -728,8 +728,8 @@
 
       SUBROUTINE mtx_gather_integer(vdata,ndata,vtot)
       IMPLICIT NONE
-      INTEGER,DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata
+      INTEGER,DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,DIMENSION(ndata*nsize),INTENT(OUT):: vtot
       INTEGER:: ierr
 
@@ -745,8 +745,8 @@
 
       SUBROUTINE mtx_gather_real4(vdata,ndata,vtot)
       IMPLICIT NONE
-      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata
+      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
       REAL(4),DIMENSION(ndata*nsize),INTENT(OUT):: vtot
       INTEGER:: ierr
 
@@ -762,8 +762,8 @@
 
       SUBROUTINE mtx_gather_real8(vdata,ndata,vtot)
       IMPLICIT NONE
-      REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata
+      REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
       REAL(8),DIMENSION(ndata*nsize),INTENT(OUT):: vtot
       INTEGER:: ierr
 
@@ -779,8 +779,8 @@
 
       SUBROUTINE mtx_gather_complex8(vdata,ndata,vtot)
       IMPLICIT NONE
-      COMPLEX(8),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata
+      COMPLEX(8),DIMENSION(ndata),INTENT(IN):: vdata
       COMPLEX(8),DIMENSION(ndata*nsize),INTENT(OUT):: vtot
       INTEGER:: ierr
 
@@ -796,10 +796,10 @@
 
       SUBROUTINE mtx_gatherv_integer(vdata,ndata,vtot,ntot,ilena,iposa)
       IMPLICIT NONE
-      INTEGER,DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata
-      INTEGER,DIMENSION(ntot),INTENT(OUT):: vtot
       INTEGER,INTENT(IN):: ntot
+      INTEGER,DIMENSION(ndata),INTENT(IN):: vdata
+      INTEGER,DIMENSION(ntot),INTENT(OUT):: vtot
       INTEGER,DIMENSION(nsize):: ilena,iposa
       INTEGER:: ierr
 
@@ -815,10 +815,10 @@
 
       SUBROUTINE mtx_gatherv_real4(vdata,ndata,vtot,ntot,ilena,iposa)
       IMPLICIT NONE
-      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata
-      REAL(4),DIMENSION(ntot),INTENT(OUT):: vtot
       INTEGER,INTENT(IN):: ntot
+      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
+      REAL(4),DIMENSION(ntot),INTENT(OUT):: vtot
       INTEGER,DIMENSION(nsize):: ilena,iposa
       INTEGER:: ierr
 
@@ -834,10 +834,10 @@
 
       SUBROUTINE mtx_gatherv_real8(vdata,ndata,vtot,ntot,ilena,iposa)
       IMPLICIT NONE
-      REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata
-      REAL(8),DIMENSION(ntot),INTENT(OUT):: vtot
       INTEGER,INTENT(IN):: ntot
+      REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
+      REAL(8),DIMENSION(ntot),INTENT(OUT):: vtot
       INTEGER,DIMENSION(nsize):: ilena,iposa
       INTEGER:: ierr
 
@@ -853,10 +853,10 @@
 
       SUBROUTINE mtx_gatherv_complex8(vdata,ndata,vtot,ntot,ilena,iposa)
       IMPLICIT NONE
-      COMPLEX(8),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata
-      COMPLEX(8),DIMENSION(ntot),INTENT(OUT):: vtot
       INTEGER,INTENT(IN):: ntot
+      COMPLEX(8),DIMENSION(ndata),INTENT(IN):: vdata
+      COMPLEX(8),DIMENSION(ntot),INTENT(OUT):: vtot
       INTEGER,DIMENSION(nsize):: ilena,iposa
       INTEGER:: ierr
 
@@ -924,8 +924,8 @@
 
       SUBROUTINE mtx_allgather_integer(vdata,ndata,vtot)
       IMPLICIT NONE
-      INTEGER,DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata
+      INTEGER,DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,DIMENSION(ndata*nsize),INTENT(OUT):: vtot
       INTEGER:: ierr
 
@@ -941,8 +941,8 @@
 
       SUBROUTINE mtx_allgather_real4(vdata,ndata,vtot)
       IMPLICIT NONE
-      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata
+      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
       REAL(4),DIMENSION(ndata*nsize),INTENT(OUT):: vtot
       INTEGER:: ierr
 
@@ -958,8 +958,8 @@
 
       SUBROUTINE mtx_allgather_real8(vdata,ndata,vtot)
       IMPLICIT NONE
-      REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata
+      REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
       REAL(8),DIMENSION(ndata*nsize),INTENT(OUT):: vtot
       INTEGER:: ierr
 
@@ -975,8 +975,8 @@
 
       SUBROUTINE mtx_allgather_complex8(vdata,ndata,vtot)
       IMPLICIT NONE
-      COMPLEX(8),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata
+      COMPLEX(8),DIMENSION(ndata),INTENT(IN):: vdata
       COMPLEX(8),DIMENSION(ndata*nsize),INTENT(OUT):: vtot
       INTEGER:: ierr
 
@@ -992,10 +992,10 @@
 
       SUBROUTINE mtx_allgatherv_integer(vdata,ndata,vtot,ntot,ilena,iposa)
       IMPLICIT NONE
-      INTEGER,DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata
-      INTEGER,DIMENSION(ntot),INTENT(OUT):: vtot
       INTEGER,INTENT(IN):: ntot
+      INTEGER,DIMENSION(ndata),INTENT(IN):: vdata
+      INTEGER,DIMENSION(ntot),INTENT(OUT):: vtot
       INTEGER,DIMENSION(nsize):: ilena,iposa
       INTEGER:: ierr
 
@@ -1011,10 +1011,10 @@
 
       SUBROUTINE mtx_allgatherv_real4(vdata,ndata,vtot,ntot,ilena,iposa)
       IMPLICIT NONE
-      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata
-      REAL(4),DIMENSION(ntot),INTENT(OUT):: vtot
       INTEGER,INTENT(IN):: ntot
+      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
+      REAL(4),DIMENSION(ntot),INTENT(OUT):: vtot
       INTEGER,DIMENSION(nsize):: ilena,iposa
       INTEGER:: ierr
 
@@ -1030,10 +1030,10 @@
 
       SUBROUTINE mtx_allgatherv_real8(vdata,ndata,vtot,ntot,ilena,iposa)
       IMPLICIT NONE
-      REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata
-      REAL(8),DIMENSION(ntot),INTENT(OUT):: vtot
       INTEGER,INTENT(IN):: ntot
+      REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
+      REAL(8),DIMENSION(ntot),INTENT(OUT):: vtot
       INTEGER,DIMENSION(nsize):: ilena,iposa
       INTEGER:: ierr
 
@@ -1049,10 +1049,10 @@
 
       SUBROUTINE mtx_allgatherv_complex8(vdata,ndata,vtot,ntot,ilena,iposa)
       IMPLICIT NONE
-      COMPLEX(8),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata
-      COMPLEX(8),DIMENSION(ntot),INTENT(OUT):: vtot
       INTEGER,INTENT(IN):: ntot
+      COMPLEX(8),DIMENSION(ndata),INTENT(IN):: vdata
+      COMPLEX(8),DIMENSION(ntot),INTENT(OUT):: vtot
       INTEGER,DIMENSION(nsize):: ilena,iposa
       INTEGER:: ierr
 
@@ -1144,8 +1144,8 @@
 
       SUBROUTINE mtx_reduce_integer(vdata,ndata,nop,vreduce,vloc)
       IMPLICIT NONE
-      INTEGER,DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata,nop
+      INTEGER,DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
 !      INTEGER,DIMENSION(2,ndata):: d_send, d_recv
@@ -1194,8 +1194,8 @@
 
       SUBROUTINE mtx_reduce_real4(vdata,ndata,nop,vreduce,vloc)
       IMPLICIT NONE
-      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata,nop
+      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
       REAL(4),DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
 !      REAL(4),DIMENSION(2,ndata):: d_send, d_recv
@@ -1244,8 +1244,8 @@
 
       SUBROUTINE mtx_reduce_real8(vdata,ndata,nop,vreduce,vloc)
       IMPLICIT NONE
-      REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata,nop
+      REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
       REAL(8),DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
 !      REAL(8),DIMENSION(2,ndata):: d_send, d_recv
@@ -1420,8 +1420,8 @@
 
       SUBROUTINE mtx_allreduce_integer(vdata,ndata,nop,vreduce,vloc)
       IMPLICIT NONE
-      INTEGER,DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata,nop
+      INTEGER,DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
 !      INTEGER,DIMENSION(2,ndata):: d_send, d_recv
@@ -1470,8 +1470,8 @@
 
       SUBROUTINE mtx_allreduce_real4(vdata,ndata,nop,vreduce,vloc)
       IMPLICIT NONE
-      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata,nop
+      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
       REAL(4),DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
 !      REAL(4),DIMENSION(2,ndata):: d_send, d_recv
@@ -1520,8 +1520,8 @@
 
       SUBROUTINE mtx_allreduce_real8(vdata,ndata,nop,vreduce,vloc)
       IMPLICIT NONE
-      REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata,nop
+      REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
       REAL(8),DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
 !      REAL(8),DIMENSION(2,ndata):: d_send, d_recv
@@ -1570,8 +1570,8 @@
 
       SUBROUTINE mtx_allreduce_complex8(vdata,ndata,nop,vreduce,vloc)
       IMPLICIT NONE
-      COMPLEX(8),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata,nop
+      COMPLEX(8),DIMENSION(ndata),INTENT(IN):: vdata
       COMPLEX(8),DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
 !      COMPLEX(8),DIMENSION(2,ndata):: d_send, d_recv

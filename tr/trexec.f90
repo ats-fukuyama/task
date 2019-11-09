@@ -257,8 +257,10 @@ CONTAINS
                        + X(NEQRMAX*(NR-1)+NSTN))/(PA(NSSN)*AMM*RN(NR,NSSN))
                ENDIF
             ENDIF
-         ENDDO
-         ANNU(NR)=RN(NR,7)+RN(NR,8)
+         END DO
+         IF(NSMAX.GE.8) THEN
+            ANNU(NR)=RN(NR,7)+RN(NR,8)
+         END IF
 !!!         BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
          RW(NR,1)  = 0.5D0*(YV(1,NR)+Y(1,NR))
          RW(NR,2)  = 0.5D0*(YV(2,NR)+Y(2,NR))
@@ -385,8 +387,10 @@ CONTAINS
       INTEGER,INTENT(OUT) :: IERR
       integer:: IDGLOB
 
+      write(6,*) '--- point 101'
       CALL TRCALC(IERR)
       IF(IERR.ne.0) RETURN
+      write(6,*) '--- point 102'
 
       IDGLOB=0
       IF(MOD(NT,NTSTEP).EQ.0) THEN
@@ -405,6 +409,7 @@ CONTAINS
          IDGLOB=1
          CALL TRATOG
       ENDIF
+      write(6,*) '--- point 103'
       IERR=0
       RETURN
     END SUBROUTINE tr_eval
@@ -773,9 +778,9 @@ CONTAINS
       SUBROUTINE TR_BAND_LAPACK(A,B,C,AX,NRMAX,NEQRMAX,NVM,LDAB,MLM)
 
       IMPLICIT NONE
+      INTEGER(4),INTENT(IN) :: NRMAX, NEQRMAX, NVM, LDAB, MLM
       REAL(8),DIMENSION(NVM,NVM,NRMAX),INTENT(IN) :: A, B, C
       REAL(8),DIMENSION(LDAB,MLM)  ,INTENT(OUT) :: AX
-      INTEGER(4),INTENT(IN) :: NRMAX, NEQRMAX, NVM, LDAB, MLM
       INTEGER(4):: KL, NR, NV, NW
 
       KL=2*NEQRMAX-1
@@ -1001,7 +1006,9 @@ CONTAINS
          ENDDO
          RW(NR,1) = YV(1,NR)
          RW(NR,2) = YV(2,NR)
-         ANNU(NR) = RN(NR,7)+RN(NR,8)
+         IF(NSMAX.GE.8) THEN
+            ANNU(NR) = RN(NR,7)+RN(NR,8)
+         END IF
 !!!         BP(NR)   = AR1RHOG(NR)*RDP(NR)/RR
       ENDDO
 

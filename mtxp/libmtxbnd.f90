@@ -437,6 +437,7 @@
       IF(MODE.EQ.2) THEN
          jmax=2*max(-icmin,icmax)+1
          joffset=(jmax+1)/2
+!         write(6,'(A,2I10)') 'imax,jmax=',imax,jmax
          ALLOCATE(Ac(jmax,imax))
          DO i=1,imax
             DO j=1,jmax

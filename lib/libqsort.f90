@@ -1,4 +1,4 @@
-module libqsort
+MODULE libqsort
 
 ! Recursive Fortran 95 quicksort routine
 ! sorts numbers and associated array into ascending numerical order
@@ -8,13 +8,13 @@ module libqsort
 
 ! Made F conformant by Walt Brainerd
 
-implicit none
-public :: qsort_ic,qsort_lc
-private :: partition_ic,partition_lc
+  IMPLICIT NONE
+  PRIVATE
+  PUBLIC :: qsort_ic,qsort_lc,qsort_di,qsort_dl
 
-contains
+CONTAINS
 
-recursive subroutine qsort_ic(A, B)
+RECURSIVE SUBROUTINE qsort_ic(A, B)
   integer, intent(in out), dimension(:) :: A
   complex(8), intent(in out), dimension(:) :: B
   integer :: iq
@@ -24,9 +24,9 @@ recursive subroutine qsort_ic(A, B)
      call qsort_ic(A(:iq-1),B(:iq-1))
      call qsort_ic(A(iq:),B(iq:))
   endif
-end subroutine qsort_ic
+END SUBROUTINE qsort_ic
 
-subroutine partition_ic(A, marker, B)
+SUBROUTINE partition_ic(A, marker, B)
   integer, intent(in out), dimension(:) :: A
   complex(8), intent(in out), dimension(:) :: B
   integer, intent(out) :: marker
@@ -66,9 +66,9 @@ subroutine partition_ic(A, marker, B)
      endif
   end do
 
-end subroutine partition_ic
+END SUBROUTINE partition_ic
 
-recursive subroutine qsort_lc(A, B)
+RECURSIVE SUBROUTINE qsort_lc(A, B)
   integer(8), intent(in out), dimension(:) :: A
   complex(8), intent(in out), dimension(:) :: B
   integer(8) :: iq
@@ -78,9 +78,9 @@ recursive subroutine qsort_lc(A, B)
      call qsort_lc(A(:iq-1),B(:iq-1))
      call qsort_lc(A(iq:),B(iq:))
   endif
-end subroutine qsort_lc
+END SUBROUTINE qsort_lc
 
-subroutine partition_lc(A, marker, B)
+SUBROUTINE PARTITION_LC(A, marker, B)
   integer(8), intent(in out), dimension(:) :: A
   complex(8), intent(in out), dimension(:) :: B
   integer(8), intent(out) :: marker
@@ -120,6 +120,116 @@ subroutine partition_lc(A, marker, B)
      endif
   end do
 
-end subroutine partition_lc
+END SUBROUTINE partition_lc
 
-end module libqsort
+RECURSIVE SUBROUTINE qsort_di(A, B)
+  real(8), intent(in out), dimension(:) :: A
+  integer, intent(in out), dimension(:) :: B
+  integer :: iq
+
+  if(size(A) > 1) then
+     call partition_di(A, iq, B)
+     call qsort_di(A(:iq-1),B(:iq-1))
+     call qsort_di(A(iq:),B(iq:))
+  endif
+END SUBROUTINE qsort_di
+
+SUBROUTINE partition_di(A, marker, B)
+  real(8), intent(in out), dimension(:) :: A
+  integer, intent(in out), dimension(:) :: B
+  integer, intent(out) :: marker
+  integer :: i, j
+  real(8) :: temp
+  integer :: ctemp
+  real(8) :: x      ! pivot point
+
+  x = A(1)
+  i= 0
+  j= size(A) + 1
+
+  do
+     j = j-1
+     do
+        if (A(j) <= x) exit
+        j = j-1
+     end do
+     i = i+1
+     do
+        if (A(i) >= x) exit
+        i = i+1
+     end do
+     if (i < j) then
+        ! exchange A(i) and A(j)
+        temp = A(i)
+        A(i) = A(j)
+        A(j) = temp
+        ctemp = B(i)
+        B(i) = B(j)
+        B(j) = ctemp
+     elseif (i == j) then
+        marker = i+1
+        return
+     else
+        marker = i
+        return
+     endif
+  end do
+
+END SUBROUTINE partition_di
+
+RECURSIVE SUBROUTINE qsort_dl(A, B)
+  real(8), intent(in out), dimension(:) :: A
+  integer(8), intent(in out), dimension(:) :: B
+  integer(8) :: iq
+
+  if(size(A) > 1) then
+     call partition_dl(A, iq, B)
+     call qsort_dl(A(:iq-1),B(:iq-1))
+     call qsort_dl(A(iq:),B(iq:))
+  endif
+END SUBROUTINE qsort_dl
+
+SUBROUTINE partition_dl(A, marker, B)
+  real(8), intent(in out), dimension(:) :: A
+  integer(8), intent(in out), dimension(:) :: B
+  integer(8), intent(out) :: marker
+  integer(8) :: i, j
+  real(8) :: temp
+  integer(8) :: ctemp
+  real(8) :: x      ! pivot point
+
+  x = A(1)
+  i= 0
+  j= size(A) + 1
+
+  do
+     j = j-1
+     do
+        if (A(j) <= x) exit
+        j = j-1
+     end do
+     i = i+1
+     do
+        if (A(i) >= x) exit
+        i = i+1
+     end do
+     if (i < j) then
+        ! exchange A(i) and A(j)
+        temp = A(i)
+        A(i) = A(j)
+        A(j) = temp
+        ctemp = B(i)
+        B(i) = B(j)
+        B(j) = ctemp
+     elseif (i == j) then
+        marker = i+1
+        return
+     else
+        marker = i
+        return
+     endif
+  end do
+
+END SUBROUTINE partition_dl
+
+END MODULE libqsort

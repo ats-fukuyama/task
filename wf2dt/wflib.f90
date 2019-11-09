@@ -632,7 +632,8 @@ END SUBROUTINE SETTBL
 SUBROUTINE SETLST (LIST,N2,LP)
 
   implicit none
-  integer :: N1,NN,K,M,J,I,LIST(N2,LP),N2,LP
+  integer :: N1,NN,K,M,J,I,N2,LP
+  integer :: LIST(N2,LP)
   N1 = N2
   NN =  1
   DO K=1,LP

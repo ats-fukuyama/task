@@ -20,6 +20,7 @@
       INTEGER(4)                :: NR,NS
       REAL(8)                   :: FCTR
 
+      write(6,*) '--- point 1011'
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       IERR=0
 
@@ -63,25 +64,44 @@
       QP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)/(4.D0*PI**2*RDPVRHOG(1:NRMAX))
       Q0=FCTR(RG(1),RG(2),QP(1),QP(2))
 
+      write(6,*) '--- point 1012'
 !     *** RADIAL ELECTRIC FIELD ***
 
       CALL TRERAD
+      write(6,*) '--- point 1013'
 
       IF(T.LT.PELTIM+0.5D0*DT.AND. T.GE.PELTIM-0.5D0*DT) CALL TRPELT
+      write(6,*) '--- point 1014'
       CALL TRPSC
-      CALL TRZEFF
-     IF(MDLPR.GT.0) CALL TR_CYTRAN
+      write(6,*) '--- point 1012'
+!     *** RADIAL ELECTRIC FIELD ***
 
+      CALL TRERAD
+      write(6,*) '--- point 1013'
+
+      IF(T.LT.PELTIM+0.5D0*DT.AND. T.GE.PELTIM-0.5D0*DT) CALL TRPELT
+      write(6,*) '--- point 1014'
+      CALL TRPSC
+      write(6,*) '--- point 1015'
+      CALL TRZEFF
+      write(6,*) '--- point 1016'
+      IF(MDLPR.GT.0) CALL TR_CYTRAN
+
+      write(6,*) '--- point 1017'
       IF(MDNCLS.NE.0) THEN
          CALL TR_NCLASS(IERR)
          IF(IERR.NE.0) RETURN
       ENDIF
+      write(6,*) '--- point 1018'
 
       CALL TRCOEF
+      write(6,*) '--- point 1019'
       CALL TRLOSS
-      CALL TRLOSS
+      write(6,*) '--- point 10191'
       IF(MDLUF.NE.1.AND.MDLUF.NE.3) CALL TRPWRF
+      write(6,*) '--- point 10192'
       CALL TRPWNB
+      write(6,*) '--- point 10193'
 
       IF(MDNCLS.NE.0) THEN
          CALL TRAJBS_NCLASS
