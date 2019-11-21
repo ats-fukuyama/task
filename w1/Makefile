@@ -39,11 +39,9 @@ all: w1
 libw1.a: $(OBJS)
 	$(LD) $(LDFLAGS) libw1.a $(OBJS)
 
-libs:
-	(cd ../lib; make libtask.a)
-	(cd ../../bpsd; make libbpsd.a)
-
-w1 : $(LIBS) w1main.o
+libs: ../../bpsd/libbpsd.a ../lib/libtask.a libw1.a
+ 
+w1 : libs w1main.o
 	$(FCFREE) w1main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) \
            $(MODDIR) $(MODINCLUDE)
 

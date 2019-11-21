@@ -248,6 +248,13 @@ C
             IF(FACT.LT.0.D0) THEN
                FACT=0.D0
             ENDIF
+         ELSEIF(MODELP.EQ.7) THEN
+            FACTX=1.D0-(XD(IN)/RA)**2
+            FACTY=EXP(-(YD(IN)-PNPROFY0)**2/PNPROFYW**2)
+            FACT=FACTX*FACTY
+            IF(FACT.LT.0.D0) THEN
+               FACT=0.D0
+            ENDIF
          ELSE
             WRITE(6,*) 'XX WFSDEN: UNKNOWN MODELP: ',MODELP
          ENDIF

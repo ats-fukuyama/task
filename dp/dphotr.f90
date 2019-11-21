@@ -776,6 +776,8 @@ CONTAINS
 
 !   PNEAR1
 
+!!            WRITE(6,'(A,1P4E12.4)') 'pth0=',PTH0,DNPR,TCSM(NTH),DNPR*TCSM(NTH)
+
             PNEAR1 = (AMP*PA(NS)*VC)/(1-(DNPR*TCSM(NTH))**2)* &
                     (DNPR*NC*DCWC*TCSM(NTH)+SQRT(D-1))/PTH0
             IF (PNEAR1.LT.0.D0.OR.PNEAR1.GT.DELP(NS)*NPMAX_DP) THEN

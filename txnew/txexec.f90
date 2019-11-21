@@ -85,6 +85,7 @@ contains
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ, &
          &                 NGR, NGRM, NGRSTP, NGTSTP, NGVSTP, GY, GT
     use tx_ntv, only : Wnm_spline
+#ifdef lapack95
 #ifdef laself
     ! for self-compiled lapack
     use f95_lapack, only : GBSV => LA_GBSV
@@ -94,7 +95,7 @@ contains
     !        whose name conflicts with PTsV defined in TASK/TX.  
     use lapack95, only : GBSV
 #endif
-
+#endif
     real(8), dimension(:,:), allocatable :: BA, BL
     real(8), dimension(:),   allocatable :: BX
     integer(4) :: NR, NQ, IC = 0, IDIV, NTDO, ICSUM, IDIAGL, istat
@@ -106,6 +107,8 @@ contains
     real(8) :: TIME0, DIP, EPSabs
     real(8), dimension(1:NQMAX) :: tiny_array
     character(len=80) :: MSG_NQ
+    integer(4):: m,kl,n,ku,nrhs,ldbl,ldbx
+    integer(4),DIMENSION(:),ALLOCATABLE:: ipiv
 
     allocate( BA(1:4*NQMAX-1,1:NQMAX*(NRMAX+1)) &
          &  , BL(1:6*NQMAX-2,1:NQMAX*(NRMAX+1)) &
@@ -173,26 +176,30 @@ contains
                 XN = XP
                 GOTO 180
              END IF
-          ELSE
-             ! +++ NOTE ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-             !  These LAPACK subroutines are threaded via BLAS in Intel MKL.
-             !  However, with regard to the usage of TASK/TX, say, GBTRF internally calls
-             !    the LAPACK routine, DGBTF2, which calls the BLAS routine, DGER, which is
-             !    NOT multi-threaded.
-             !  Thus, these routines are executed as a single threaded regardless of the
-             !    MKL link option.
-             ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-!             m    = NQMAX*(NRMAX+1)
-!             kl   = 2*NQMAX-1
+          ELSE IF(MDLPCK == 1) THEN
+! +++ NOTE ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!  These LAPACK subroutines are threaded via BLAS in Intel MKL.
+!  However, with regard to the usage of TASK/TX, say, GBTRF internally calls
+!    the LAPACK routine, DGBTF2, which calls the BLAS routine, DGER, which is
+!    NOT multi-threaded.
+!  Thus, these routines are executed as a single threaded regardless of the
+!    MKL link option.
+! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+             m    = NQMAX*(NRMAX+1)
+             kl   = 2*NQMAX-1
 !!           +++ F77 +++
-!             n    = m
-!             ku   = kl
-!             nrhs = 1
-!             ldBL = 6*NQMAX-2
-!             ldBX = NQMAX*(NRMAX+1)
-!             CALL LAPACK_DGBSV(n,kl,ku,nrhs,BL,ldBL,ipiv,BX,ldBX,ierr_la) 
-!             CALL DGBTRF(m,n,kl,ku,BL,ldBL,ipiv,ierr_la)
-!             CALL DGBTRS('N',n,kl,ku,nrhs,BL,ldBL,ipiv,BX,ldBX,ierr_la)
+             n    = m
+             ku   = kl
+             nrhs = 1
+             ldBL = 6*NQMAX-2
+             ldBX = NQMAX*(NRMAX+1)
+             ALLOCATE(ipiv(n))
+             CALL LAPACK_DGBSV(n,kl,ku,nrhs,BL,ldBL,ipiv,BX,ldBX,ierr_la) 
+             CALL DGBTRF(m,n,kl,ku,BL,ldBL,ipiv,ierr_la)
+             CALL DGBTRS('N',n,kl,ku,nrhs,BL,ldBL,ipiv,BX,ldBX,ierr_la)
+             DEALLOCATE(ipiv)
+#ifdef lapack95
+          ELSE
 !           +++ F95 +++
 !             CALL LA_GBSV(BL,BX,INFO=ierr_la) ! for self-compiled LAPACK95
              CALL GBSV(BL,BX,INFO=ierr_la) ! for intel mkl LAPACK95
@@ -205,6 +212,7 @@ contains
                 XN = XP
                 GOTO 180
              ENDIF
+#endif
           END IF
 
           ! Copy calculated variables' vector to variable matrix

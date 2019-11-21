@@ -152,7 +152,7 @@ CONTAINS
       IF(IERL.NE.0) IERR=8005
       CALL SPL1DF(YL,EI,YD,UA(1,1,1,6),NYMAX,IERL)
       IF(IERL.NE.0) IERR=8006
-      CEZ=CMPLX(ER,EI)
+      CEZ=CMPLX(-ER,-EI)
          
       RETURN
     END SUBROUTINE wf_read_wg

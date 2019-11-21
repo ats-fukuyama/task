@@ -82,7 +82,8 @@ CONTAINS
 
       IF(nrank.eq.0) THEN
       WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
-      WRITE(6,*) 'NRMAX_DP,NPMAX_DP,NTHMAX_DP,NSAMAX_DP =',NRMAX_DP,NPMAX_DP,NTHMAX_DP,NSAMAX_DP
+      WRITE(6,*) 'NRMAX_DP,NPMAX_DP,NTHMAX_DP,NSAMAX_DP =', &
+           NRMAX_DP,NPMAX_DP,NTHMAX_DP,NSAMAX_DP
       WRITE(6,'(A,1P4E12.4)') 'DELR/TH,RMIN/MAX =', &
                                DELR,DELTH,RMIN,RMAX
       DO NSA=1,NSAMAX_DP
@@ -149,13 +150,14 @@ CONTAINS
 
     USE dpcomm
     USE plprofw
+    USE libbes
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NS,ID  ! ID=0 : non-relativistic, ID=1: relativistic
     INTEGER,INTENT(OUT):: IERR
     TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
     INTEGER NR,NTH,NSA,NP,NSA1
     REAL(rkind):: PTH0W,RHON,RN0,TPR,TPP,RT0,PN0,PT0,PTH0
-    REAL(rkind):: TNPR,TNPP,SUM,PML,PPP,PPR,EX,TN00,FACTOR
+    REAL(rkind):: TNPR,TNPP,SUM,PML,PPP,PPR,EX,TN00,FACTOR,TNL
       
     NSA=0
     DO NSA1=1,NSAMAX_DP
@@ -165,6 +167,7 @@ CONTAINS
     END DO
     IF(NSA.EQ.0) THEN
        WRITE(6,'(A,I5)') 'XX DPLDFM: NSA is not defined fo NS=',NS
+       IERR=1
        RETURN
     END IF
          
@@ -204,7 +207,7 @@ CONTAINS
 
     RNFP0(NSA)=PN0
     RTFP0(NSA)=PT0
-    AMFP(NSA)=PA(NS)
+    AMFP(NSA)=AMP*PA(NS)
 
     IF(ID.EQ.0) THEN
        PTH0W=0.D0
@@ -213,7 +216,11 @@ CONTAINS
     ENDIF
 
     DO NR=1,NRMAX_DP
-       RHON=RM(NR)
+       IF(NRMAX_DP.EQ.1) THEN
+          RHON=0.D0
+       ELSE
+          RHON=RM(NR)
+       END IF
        CALL PL_PROFW(RHON,plfw)
 
        RN0 = plfw(NSA)%RN
@@ -236,6 +243,7 @@ CONTAINS
              ENDDO
           ENDDO
           SUM=SUM*2.D0*PI*DELP(NS)*DELTH
+          SUM=1.D0/(SQRT(2.D0*PI)**3*SQRT(TNPR)*(TNPP))
        ELSE
           TN00=RT0*1.D3*AEE/(AMP*PA(NS)*VC**2)
           TNPR=TPR*1.D3*AEE/(AMP*PA(NS)*VC**2)
@@ -253,6 +261,9 @@ CONTAINS
              ENDDO
           ENDDO
           SUM=SUM*2.D0*PI*DELP(NS)*DELTH
+          TNL=(TNPR+2.D0*TNPP)/3.D0
+          SUM=SUM*SQRT(TNL)/(4.D0*PI*BESEKNX(2,1.D0/TNL) &
+                           *SQRT(TPR/PT0)*(TPP/PT0))
        ENDIF
 
        WRITE(6,'(A,I5,1P3E12.4)') 'NS,PN0,RN0:',NS,PN0,RN0,SUM
@@ -410,12 +421,15 @@ CONTAINS
 
       USE dpcomm
       USE plprofw
+      USE libbes
       IMPLICIT NONE
-      INTEGER,INTENT(IN):: NS,ID
+      INTEGER,INTENT(IN):: NS,ID ! ID=0 : non-relativistic, ID=1: relativistic
       TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       REAL(RKIND):: RN0,TPR,TPP,RT0,PN0,PT0,PTH0,PTH0W,TNPR,TNPP,SUM
-      REAL(RKIND):: PPP,PPR,EX,TN00,PML,FACTOR
+      REAL(RKIND):: PPP,PPR,EX,TN0,TNL,PML,FACTOR
       INTEGER:: NP,NTH
+
+      CALL dpfp_allocate
 
       RHON_MIN=0.D0
       RHON_MAX=1.D0
@@ -423,11 +437,17 @@ CONTAINS
       PN0 = PN(NS)
       PT0 = (PTPR(NS)+2*PTPP(NS))/3.D0
       PTH0 = SQRT(PT0*1.D3*AEE*AMP*PA(NS))
+      write(6,'(A,1P3E15.7)') 'pth0:',PT0,PA(NS),PTH0
+      RNFP0(NS)=PN0
+      RTFP0(NS)=PT0
+      AMFP(NS)=AMP*PA(NS)
 
       RN0 = plfw(NS)%RN
       TPR = plfw(NS)%RTPR
       TPP = plfw(NS)%RTPP
       RT0 = (TPR+2.D0*TPP)/3.D0
+
+      write(6,'(A,1P6E12.4)') 'PN0:',PN0,RN0,PT0,RT0,PTH0,AMP*PA(NS)
 
       IF(ID.EQ.0) THEN
          PTH0W=0.D0
@@ -437,6 +457,9 @@ CONTAINS
 
       DELP(NS)=PMAX(NS)/NPMAX_DP
       DELTH=PI/NTHMAX_DP
+
+      write(6,'(A,2I5,1P4E12.4)') &
+           'DEL:',NPMAX_DP,NTHMAX_DP,DELP(NS),PMAX(NS),DELTH
 
       DO NP=1,NPMAX_DP
          PM(NP,NS)=DELP(NS)*(NP-0.5D0)
@@ -457,45 +480,60 @@ CONTAINS
       ENDDO
 
       IF(ID.EQ.0) THEN
-         TNPR=TPR/RT0
-         TNPP=TPP/RT0
+         TNPR=TPR/PT0
+         TNPP=TPP/PT0
+         FACTOR=1.D0/(SQRT(2.D0*PI)**3*SQRT(TNPR)*(TNPP))
          SUM=0.D0
          DO NP=1,NPMAX_DP
             PML=PM(NP,NS)
             DO NTH=1,NTHMAX_DP
-               PPP=PML*TSNM(NTH)
                PPR=PML*TCSM(NTH)
-               EX=(PPR**2/TNPR+PPP**2/TNPP)*0.5D0
+               PPP=PML*TSNM(NTH)
+               EX=0.5D0*(PPR**2/TNPR+PPP**2/TNPP)
+               IF(NTH.EQ.1) THEN
+                  IF(NP.EQ.1.OR.NP.EQ.NPMAX_DP/2.OR.NP.EQ.NPMAX_DP) &
+                       WRITE(6,'(A,1P5E12.4)') &
+                       'EX: ',PPR,TNPR,PPP,TNPP,EX
+               END IF
                FM(NP,NTH)=EXP(-EX)
                SUM=SUM+FM(NP,NTH)*PM(NP,NS)*PM(NP,NS)*TSNM(NTH)
             ENDDO
          ENDDO
+         SUM=FACTOR*SUM
+         write(6,'(A,1PE12.4)') 'sum1:',SUM
          SUM=SUM*2.D0*PI*DELP(NS)*DELTH
+         write(6,'(A,1PE12.4)') 'sum2:',SUM
       ELSE
-         TN00=RT0*1.D3*AEE/(AMP*PA(NS)*VC**2)
-         TNPR=TPR*1.D3*AEE/(AMP*PA(NS)*VC**2)
-         TNPP=TPP*1.D3*AEE/(AMP*PA(NS)*VC**2)
+         TN0=PT0*1.D3*AEE/(AMP*PA(NS)*VC**2)
+         TNL=RT0*1.D3*AEE/(AMP*PA(NS)*VC**2)
+         FACTOR=SQRT(TNL)/(4.D0*PI*BESEKNX(2,1.D0/TNL) &
+               *SQrt(TPR/PT0)*(TPP/PT0))
          SUM=0.D0
          DO NP=1,NPMAX_DP
             PML=PM(NP,NS)
             DO NTH=1,NTHMAX_DP
                PPP=PML*TSNM(NTH)
                PPR=PML*TCSM(NTH)
-               EX=SQRT(1.D0/TN00**2+PPR**2/TNPR+PPP**2/TNPP) &
-                 -SQRT(1.D0/TN00**2)
+               EX=(SQRT(1.D0+(TN0*PT0/TPR)*PPR**2 &
+                           +(TN0*PT0/TPP)*PPR**2) &
+                  -1.D0)/TN0
                FM(NP,NTH) = EXP(-EX)
                SUM=SUM+FM(NP,NTH)*PM(NP,NS)*PM(NP,NS)*TSNM(NTH)
             ENDDO
          ENDDO
          SUM=SUM*2.D0*PI*DELP(NS)*DELTH
+         SUM=FACTOR*SUM
       ENDIF
 
+      WRITE(6,'(A,I5,1P3E12.4)') 'NS,PN0,RN0,SUM:',NS,PN0,RN0,SUM
       FACTOR=RN0/(PN0*SUM)
       DO NP=1,NPMAX_DP
          DO NTH=1,NTHMAX_DP
             FM(NP,NTH) = FACTOR*FM(NP,NTH)
          ENDDO
       ENDDO
+      WRITE(6,'(A,1P3E12.4)') 'FM: ',FM(1,1),FM(NPMAX_DP/2,1),FM(NPMAX_DP,1)
+
       RETURN
   END SUBROUTINE DPFMFL
 

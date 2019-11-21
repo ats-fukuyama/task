@@ -95,15 +95,15 @@ SUBROUTINE WFGOUT
      IF(    KID.EQ.'E') THEN
         KID=KWD(2:2)
         IF(    KID.EQ.'R') THEN
-           if(NDRAWE.eq.0) CALL WFCTOG(CESD,1,KWD)
-           if(NDRAWE.eq.1) CALL WFCTOG(CESD,4,KWD)
+           if(NDRAWE.eq.0) CALL WFCTOG(CESD,1,KWD)  ! E_R    (R,Z,psi)
+           if(NDRAWE.eq.1) CALL WFCTOG(CESD,4,KWD)  ! E_rho  (rho,theta,-psi)
         ELSEIF(KID.EQ.'P') THEN
-           if(NDRAWE.eq.0) CALL WFCTOG(CEND,2,KWD)
-           if(NDRAWE.eq.1) CALL WFCTOG(CEND,5,KWD)
+           if(NDRAWE.eq.0) CALL WFCTOG(CEND,2,KWD)  ! E_psi
+           if(NDRAWE.eq.1) CALL WFCTOG(CEND,5,KWD)  ! -E_psi
         ELSEIF(KID.EQ.'Z') THEN
-           CALL WFCTOG(CESD,3,KWD)
+           CALL WFCTOG(CESD,3,KWD)                  ! E_Z
         ELSEIF(KID.eq.'T') THEN
-           CALL WFCTOG(CESD,6,KWD)
+           CALL WFCTOG(CESD,6,KWD)                  ! E_theta
         ELSE
            WRITE(6,*) 'XX UNKNOWN KID2:',KID
            GOTO 1000

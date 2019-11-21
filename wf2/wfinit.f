@@ -54,6 +54,14 @@ C
       RMIR   = 2.0D0
       ZBB    = 0.15D0
 C
+C     *** Density Profile Parameters ***
+C
+C        PNPROFY0 : center position of dennsity profile in Z   (m)
+C        PNPROFYW : effective width of density profile in Z    (m)
+C
+      PNPROFY0 = 0.0D0
+      PNPROFYW = 0.15D0
+C
 C     *** CONFIGURATION PARAMETERS (TOKAMAK: MODELB=5) ***
 C
 C        RR    : Plasma major radius                             (m)
@@ -201,6 +209,8 @@ C                2 : Axially exponential profile
 C                3 : Radially and axially parabolic profile
 C                4 : Temporal use
 C                5 : Radially parabolic and axially quartic profile
+C                6 : Radially offset-parabolic and axially parabolic profile
+C                7 : Radially parabolic and axially Gaussian profile
 C
 C        MODELW: 0 : Fixed density and fixed temperature on boundary
 C                1 : Free density and fixed temperature on boundary
@@ -480,6 +490,7 @@ C
       WRITE(6,*) '     DC,PGIVEN,SGIVEN,XGIVEN,YGIVEN,RGIVEN'
       WRITE(6,*) '     NGRAPH,FRATIO,NGXORG,GA,GB,GC,GD,GE,GXN,GYN,GZN,'
       WRITE(6,*) '     GXN1,GXN2,GYN1,GYN2,IXY,IDN'
+      WRITE(6,*) '     PNPROFY0,PNPROFYW'
       RETURN
       END
 C
@@ -507,7 +518,7 @@ C
      &              MODELS,MODELB,MODELD,MODELP,MODELW,MODELT,MODELN,
      &              KGINX,KGINV,NGRAPH,FRATIO,NGXORG,
      &              GA,GB,GC,GD,GE,GXN,GYN,GZN,GXN1,GXN2,GYN1,GYN2,
-     &              IXY,IDN,MODIFY
+     &              IXY,IDN,MODIFY,PNPROFY0,PNPROFYW
       CHARACTER KSNAME*32,KSNAMZ*32,KSNAMA*32,KSNAMF*32
       CHARACTER KPNAME*32,KLINE*70,KNAME*80,KID*1
       LOGICAL LEX
@@ -722,6 +733,7 @@ C
      &             'XGIVEN',XGIVEN,'YGIVEN',YGIVEN
       WRITE(6,601) 'RGIVEN',RGIVEN,'RFES  ',RFES  ,
      &             'PHIES ',PHIES ,'FACIMP',FACIMP
+      WRITE(6,611) 'PNPROFY0  ',PNPROFY0  ,'PNPROFYW  ',PNPROFYW
       WRITE(6,*)
       RETURN
 C
@@ -737,4 +749,6 @@ C
   605 FORMAT(1H ,A6,'=',1PE11.3:2X,A6,'=',I7,4X  :
      &        2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
   610 FORMAT(1H ,I1,7(1PE11.3))
+  611 FORMAT(1H ,A10,'=',1PE12.4:2X,A10,'=',1PE12.4:
+     &        2X,A10,'=',1PE12.4)
       END
