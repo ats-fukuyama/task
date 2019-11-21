@@ -641,7 +641,8 @@ SUBROUTINE TXINIT
 
   !   Mode of LAPACK
   !   0    : Use BANDRD
-  !   else : Use LAPACK_DGBSV or LA_GBSV
+  !   1    : Use LAPACK_DGBSV (F77)
+  !   else : Use GBSV or LA_GBSV (LAPACK95) #ifdef lapack95
   MDLPCK = 1
 
   !   Mode of fixed temperature profile
@@ -963,6 +964,7 @@ SUBROUTINE TXPROF
   use tx_ntv, only : perturb_mag, Wnm_spline
   use eqread_mod, only : AJphVRL
   use mod_eqneo, only : wrap_eqneo
+#ifdef flapack95
 #ifdef laself
   ! for self-compiled lapack
   use f95_lapack, only : GESV => LA_GESV
@@ -971,6 +973,7 @@ SUBROUTINE TXPROF
   !  Note: This module file includes "ptsv" subroutine, 
   !        whose name conflicts with PTsV defined in TASK/TX.  
   use lapack95, only : GESV
+#endif
 #endif
 
   implicit none
@@ -985,6 +988,7 @@ SUBROUTINE TXPROF
   real(8), dimension(:), allocatable :: AJPHL, tmpa, RHSV, Prof1, Prof2, &
        & Profsdt, dProfsdt
   real(8), dimension(:,:), allocatable :: CMTX!, dPsV
+  INTEGER, DIMENSION(:),ALLOCATABLE:: ipiv
 
   !  Read spline table for neoclassical toroidal viscosity
   IF(FSRP /= 0.D0) CALL Wnm_spline
@@ -1381,11 +1385,18 @@ SUBROUTINE TXPROF
   end if
 
   RHSV(1:NRMAX) = - tmpa(0:NRMAX-1) / (X(0:NRMAX-1,LQi1) * achg(2))
-  if( MDLPCK /= 0 ) then
-     call gesv(CMTX,RHSV)
-  else
+  if( MDLPCK == 0 ) then
      CALL INVMRD(CMTX,NRMAX,NRMAX,IER)
      RHSV(1:NRMAX) = matmul(CMTX,RHSV)
+  ELSE if( MDLPCK == 1 ) then
+     ALLOCATE(IPIV(NRMAX))
+     CALL LAPACK_DGESV(NRMAX,1,CMTX,NRMAX,IPIV,RHSV,NRMAX,IER)
+     DEALLOCATE(IPIV)
+#ifdef lapack95
+  ELSE
+     call gesv(CMTX,RHSV)
+#endif
+  else
   end if
 
   do NR = NRMAX, 1, -1

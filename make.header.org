@@ -42,7 +42,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #LD=ar
 #LDFLAGS=crs
 
-## for Intel fortran compiler EM64T
+## for Linux Intel fortran compiler EM64T lib64
 #GFLIBS=-L/usr/local/lib64 -lg3d-ifc64 -lgsp-ifc64 -lgdp-ifc64 -L/usr/X11R6/lib64 -lX11
 #GLLIBS=-L/usr/local/lib64 -lgsgl-ixc
 #OFLAGS = -O3 -vec-report0 -mcmodel=medium -shared-intel
@@ -54,7 +54,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #LD=ld
 #LDFLAGS=-r -o
 
-## for Mac OSX Intel fortran compiler EM64T
+## for macos Intel fortran compiler EM64T lib
 #GFLIBS=-L/usr/local/lib -lg3d-ifc64 -lgsp-ifc64 -lgdp-ifc64 -L/opt/X11/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-ixc
 #OFLAGS = -O3
@@ -66,7 +66,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #LD=libtool
 #LDFLAGS=-static -o
 
-## for mac osx gfortran (64bit) lib
+## for macos gfortran (64bit) lib
 #GFLIBS=-L/usr/local/lib -lg3d-gfc64 -lgsp-gfc64 -lgdp-gfc64  -L/opt/X11/lib -lX11
 #OFLAGS = -g -O3 -m64 -std=legacy
 #DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow,underflow -fbacktrace -fcheck=all -std=legacy
@@ -96,6 +96,18 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FCFREE = gfortran -ffree-form
 #MOD = mod
 #MODDIR = -Jmod
+#LD=ld
+#LDFLAGS=-r -o
+
+## for macos pgf95 EM64T lib
+#GFLIBS=-L/usr/local/lib -lg3d-pgf64 -lgsp-pgf64 -lgdp-pgf64 -L/opt/X11/lib -lX11
+#GLLIBS=-L/usr/local/lib -lgsgl-pgf64
+#OFLAGS = -O3 -Mbyteswapio -m64
+#DFLAGS = -g -Mbounds -Minform,inform -Ktrap=fp,unf,denorm -Mbyteswapio -traceback -m64
+#FCFIXED = pgfortran
+#FCFREE  = pgfortran
+#MOD = mod
+#MODDIR = -module mod
 #LD=ld
 #LDFLAGS=-r -o
 

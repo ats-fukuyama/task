@@ -133,10 +133,13 @@ CONTAINS
     ENDDO
 
     NSMAX=2
-    NPMAX_DP=50
-    NTHMAX_DP=50
+    NPMAX_DP=100
+    NTHMAX_DP=100
     NRMAX_DP=3
     NSAMAX_DP=2
+    DO NS=1,NSM
+       PMAX(NS)=10.D0
+    END DO
 
 !
 !     *********** INPUT PARAMETERS fof DP program ***********

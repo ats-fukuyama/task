@@ -3,8 +3,8 @@ include ../make.header
 
 #FOMP = -qopenmp
 FOMP = 
-FFLAGS_MAIN = $(OFLAGS)
-#FFLAGS_MAIN = $(DFLAGS)
+#FFLAGS_MAIN = $(OFLAGS)
+FFLAGS_MAIN = $(DFLAGS)
 FFLAGS_LINK = $(FFLAGS_MAIN)
 FFLAGS = $(FFLAGS_MAIN)
 #FFLAGS = $(FFLAGS_MAIN) $(FOMP) #-fpe0
