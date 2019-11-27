@@ -457,6 +457,53 @@ C
       RETURN
       END
 C
+C     ****** Potential at ELEMENT(IE),POINT(X,Y) ******
+C
+      SUBROUTINE FIELDA(X,Y,IE,NZ,ID,X,Y,CA,CAX,CAY,CAZ)
+C
+      INCLUDE 'wfcomm.inc'
+C
+      DIMENSION CA(4),CAX(4),CAY(4),CAZ(4)
+      REAL*8 A(3),B(3),C(3)
+C
+      IF(MODELS.EQ.1) THEN
+         IF(X.LE.0.D0) THEN
+            CKZ=0.D0
+         ELSE
+            CKZ=CI*NPHIF(NZ)/X
+         ENDIF
+      ELSEIF(MODELS.EQ.2) THEN
+         CKZ=CI*NPHIF(NZ)/(RR+X)
+      ELSE
+         CKZ=CI*RKZF(NZ)
+      ENDIF
+      CALL WFABC(IE,A,B,C,S)
+      DO J=1,4
+         CA(J)=(0.D0,0.D0)
+      END DO
+      DO I=1,3
+         IN=IELM(I,IE)
+         WEIGHT=A(I)+B(I)*X+C(I)*Y
+         IF(ID.EQ.0) THEN
+            DO J=1,4
+               CA(J) =CA(J) +WEIGHT*CAFF(NZ,J,IN)
+               CAX(J)=CAX(J)+  B(I)*CAFF(NZ,J,IN)
+               CAY(J)=CAY(J)+  C(I)*CAFF(NZ,J,IN)
+               CAZ(J)=CAZ(J)+   CKZ*CAFF(NZ,J,IN)
+            END DO
+         ELSE
+            DO J=1,4
+               CA(J) =CA(J) +WEIGHT*CAFR(NZ,J,IN)
+               CAX(J)=CAX(J)+  B(I)*CAFR(NZ,J,IN)
+               CAY(J)=CAY(J)+  C(I)*CAFR(NZ,J,IN)
+               CAZ(J)=CAZ(J)+   CKZ*CAFR(NZ,J,IN)
+            END DO
+         END IF
+      END DO
+C
+      RETURN
+      END
+C
 C     ****** FIELD AT ELEMENT(IE),POINT(X,Y) ******
 C
       SUBROUTINE FIELDC(IE,X,Y,CZ,IDM,ID,FR,FI)

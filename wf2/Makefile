@@ -4,8 +4,8 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f90 .f .mod .o .a
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 MODINCLUDE=-I ../lib/mod -I $(MOD)
 
@@ -14,7 +14,9 @@ SRCS = wfinit.f wfdiv.f wfzone.f wfant.f \
        wffreq.f wfprof.f wffile.f wfsub.f wfgsub.f wflib.f \
        wfatmd.f
 
-OBJS = $(SRCS:.f=.o)
+SRCX = wfhout.f90
+
+OBJS = $(SRCS:.f=.o) $(SRCX:.f90=.o) 
 
 LIBS = libwf.a ../lib/libtask.a
 

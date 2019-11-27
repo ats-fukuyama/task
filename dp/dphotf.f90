@@ -292,9 +292,7 @@ CONTAINS
       CWP=PN0*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMFP(NS)*CW*CW)
       CWC=mag%BABS*PZ(NS)*AEE/(AMFP(NS)*CW)
       WCM=mag%BABS*PZ(NS)*AEE
-      write(6,'(A,1P4E12.4)') 'WCM:',mag%BABS,PZ(NS),AEE,WCM
       CKPRW=CKPR*PTH0/(AMFP(NS)*CW)
-      write(6,'(A,1P2E12.4)') 'CKPRW=',CKPRW
       DKPRW=DBLE(CKPRW)
       DKPP=DBLE(CKPP)
 
@@ -336,7 +334,6 @@ CONTAINS
       CINTG332 = (0.D0,0.D0)
       CINTG333 = (0.D0,0.D0)
 
-      WRITE(6,*) 'NCMIN,NCMAX=',NCMIN(NS),NCMAX(NS)
       DO NTH=1,NTHMAX_DP
 !               
          CSM11 = (0.D0,0.D0)
@@ -362,19 +359,11 @@ CONTAINS
                DIF = (PNEAR - PG(NP,NS))/DELP(NS)
                DFP3 = DIF*DFP(NP+1,NTH)+(1.D0-DIF)*DFP(NP,NTH)
             ENDIF
-            write(21,'(A,3I5,1P3E12.4)') &
-                 'DFP:',NTH,NC,NP,PNEAR,DIF,DFP3
-            write(21,'(A,3I5,1P3E12.4)') &
-                 'DFP:',NTH,NC,NP,DFP(NP+1,NTH),DFP(NP,NTH),DFP(NP-1,NTH)
-            write(21,'(A,3I5,1P3E12.4)') &
-                 'FM: ',NTH,NC,NP,FM(NP+1,NTH),FM(NP,NTH),FM(NP-1,NTH)
             
             NCD = ABS(NC)
 
             X = DKPP*PTH0*PNEAR*TSNM(NTH)/WCM
-            write(6,'(A,1P6E12.4)') 'X:',DKPP,PTH0,PNEAR,TSNM(NTH),WCM,X
             CALL BESSJN(X,NHMAX,ADJ,ADJD)
-            write(6,'(A,2I5,1P2E12.4)') 'BES:',NTH,NCD,ADJ(NCD),ADJD(NCD)
             
             IF(X.EQ.0.D0) THEN
                IF(NCD.EQ.0) THEN
@@ -391,10 +380,6 @@ CONTAINS
             PAI3  = ADJ(NCD)/TTNM(NTH)
 
             CPART31= DFP3*(RGM-NC*CWC)**3
-            write(21,'(A,3I5,1P3E12.4)') &
-                 'CP1:',NTH,NC,NP,DFP3,RGM,REAL(RGM-NC*CWC)
-            write(21,'(A,2I5,1P5E12.4)') &
-                 'NTH,NC=',NTH,NC,PAI1,DIMAG(CPAI2),PAI3,CPART31
             
             CSM11 = CSM11 + PAI1* PAI1*CPART31
             CSM12 = CSM12 + PAI1*CPAI2*CPART31
@@ -406,10 +391,6 @@ CONTAINS
          ENDDO
          CPART32= -CI*PI*ABS(1.D0/(CKPRW*TCSM(NTH))) &
                  *(TTNM(NTH)/CKPRW)**3*DELTH
-
-         write(21,'(A,I5,1P2E12.4)') 'NTH:',NTH,CPART32
-         write(21,'(A,1P6E12.4)')    'CSM:',CSM11,CSM12,CSM13
-         write(21,'(A,1P6E12.4)')    '    ',CSM22,CSM23,CSM33
 
          CINTG311 = CINTG311 + CSM11*CPART32
          CINTG312 = CINTG312 + CSM12*CPART32
@@ -506,9 +487,6 @@ CONTAINS
       ENDDO
 
       FACT=2.D0*PI*DBLE(CWP)
-
-      write(6,'(A,1P4E12.4)') 'CINTG311,411=',CINTG311,CINTG411
-      write(6,'(A,1P4E12.4)') 'CINTG333,433=',CINTG333,CINTG433
 
       CLDISP(1)=FACT*(CINTG311+CINTG411)
       CLDISP(2)=FACT*(CINTG333+CINTG433)-CLDISP(1)

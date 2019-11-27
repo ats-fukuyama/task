@@ -154,15 +154,8 @@ CONTAINS
             else
                PAI1  = NC*INC*ADJ(NCD)/X
             endif
-!            WRITE(6,'(A,I5,1PE12.4)') &
-!                 'NCD,ADJD=', &
-!                 NCD,ADJD(NCD)
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNM(NTH)
-
-!            WRITE(6,'(A,3I5,1P3E12.4)') &
-!                 'np,nth,nc,CPAI2,CDEN=', &
-!                 np,nth,nc,CPAI2,CDEN
 
             CSM11 = CSM11 + PAI1          *PAI1*CDEN
             CSM12 = CSM12 + PAI1         *CPAI2*CDEN
@@ -308,11 +301,10 @@ CONTAINS
     COMPLEX(rkind):: cdelta
 
 !    cdelta=CI*0.01D0
-!    cdelta=CI*0.003D0
-    cdelta=CI*0.0
+    cdelta=CI*0.003D0
+!    cdelta=CI*0.0D0
 
       NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)),2)+2
-!      WRITE(6,'(A,3I5)') 'NC:',NCMIN(NS),NCMAX(NS),NHMAX
       ALLOCATE(ADJ(0:NHMAX),ADJD(0:NHMAX))
 
       PN0=RNFP0(NS)
@@ -375,15 +367,6 @@ CONTAINS
             PNEAR1 = (AMP*PA(NS)*VC)/(1-(DNPR*TCSM(NTH))**2) &
                     *(DNPR*NC*DCWC*TCSM(NTH)+SQRT(D))/PTH0
             IF (PNEAR1.LT.0.D0.OR.PNEAR1.GT.DELP(NS)*NPMAX_DP) GOTO 302
-!            IF (DKPRW*TCSM(NTH)*PNEAR1+NC*DCWC.LT.0.D0) GOTO 302
-
-!            IF(DNPR**2.LE.1.D0) THEN
-!               FL = NC*DCWC/SQRT(1-DNPR**2)
-!               IF(FL.LT.1.D0) THEN
-!                  WRITE(6,'(A,I5,1p3E12.4)') 
-!     &                 'FL:NC,DCWC,DNPR,FL=',NC,DCWC,DNPR,FL
-!               ENDIF
-!            ENDIF
 
             NP1 = INT(PNEAR1/DELP(NS))
             IF (NP1.LT.0.OR.NP1.GE.NPMAX_DP) GOTO 302
@@ -435,15 +418,6 @@ CONTAINS
   302       PNEAR2 = (AMP*PA(NS)*VC)/(1-(DNPR*TCSM(NTH))**2) &
                     *(DNPR*NC*DCWC*TCSM(NTH)-SQRT(D))/PTH0
             IF (PNEAR2.LT.0.D0.OR.PNEAR2.GT.DELP(NS)*NPMAX_DP) GOTO 310
-!            IF (DKPRW*TCSM(NTH)*PNEAR2+NC*DCWC.LT.0.D0) GOTO 310
-
-!            IF(DNPR**2.LE.1.D0) THEN
-!               FL = NC*DCWC/SQRT(1-DNPR**2)
-!               IF(FL.LT.1.D0) THEN
-!                  WRITE(6,'(A,I5,1p3E12.4)') 
-!     &                 'FL:NC,DCWC,DNPR,FL=',NC,DCWC,DNPR,FL
-!               ENDIF
-!            ENDIF
 
             NP2 = INT(PNEAR2/DELP(NS))
             IF (NP2.LT.0.OR.NP2.GE.NPMAX_DP) GOTO 310
@@ -461,10 +435,6 @@ CONTAINS
             NCD = ABS(NC)
             X = DKPP*PTH0*PNEAR2*TSNM(NTH)/WCM
             CALL BESSJN(X,NHMAX,ADJ,ADJD)
-
-!            WRITE(6,'(A,1PE12.4)') 'BESSJN: X=',X
-!            WRITE(6,'(1P5E12.4)') (ADJ(n),n=0,NHMAX)
-!            WRITE(6,'(1P5E12.4)') (ADJD(n),n=0,NHMAX)
 
             RGM=SQRT(1+PTH0W*PNEAR2**2) 
             CPART31= DFP3*PNEAR2**3 &
@@ -541,15 +511,6 @@ CONTAINS
             PNEAR1 = (AMP*PA(NS)*VC)/(1-(DNPR*TCSG(NTH))**2) &
                     *(DNPR*NC*DCWC*TCSG(NTH)+SQRT(D))/PTH0
             IF (PNEAR1.LT.0.D0.OR.PNEAR1.GT.DELP(NS)*NPMAX_DP) GOTO 402
-!            IF (DKPRW*TCSG(NTH)*PNEAR1+NC*DCWC.LT.0.D0) GOTO 402
-
-!            IF(DNPR**2.LE.1.D0) THEN
-!               FL = NC*DCWC/SQRT(1-DNPR**2)
-!               IF(FL.LT.1.D0) THEN
-!                  WRITE(6,'(A,I5,1p3E12.4)') 
-!     &                 'FL:NC,DCWC,DNPR,FL=',NC,DCWC,DNPR,FL
-!               ENDIF
-!            ENDIF
 
             NP1 = INT(PNEAR1/DELP(NS)+0.5D0)
             IF (NP1.LT.0.OR.NP1.GE.NPMAX_DP) GOTO 402
@@ -602,14 +563,6 @@ CONTAINS
                     *(DNPR*NC*DCWC*TCSG(NTH)-SQRT(D))/PTH0
             IF(PNEAR2.LT.0.D0.OR.PNEAR2.GT.DELP(NS)*NPMAX_DP) GOTO 410
 !            IF (DKPRW*TCSG(NTH)*PNEAR2+NC*DCWC.LT.0.D0) GOTO 410
-
-!            IF(DNPR**2.LE.1.D0) THEN
-!               FL = NC*DCWC/SQRT(1-DNPR**2)
-!               IF(FL.LT.1.D0) THEN
-!                  WRITE(6,'(A,I5,1p3E12.4)') 
-!     &                 'FL:NC,DCWC,DNPR,FL=',NC,DCWC,DNPR,FL
-!               ENDIF
-!            ENDIF
 
             NP2 = INT(PNEAR2/DELP(NS)+0.5D0)
             IF (NP2.LT.0.OR.NP2.GE.NPMAX_DP) GOTO 410
@@ -680,9 +633,6 @@ CONTAINS
       CLDISP(4)=FACT*(CINTG313+CINTG413)
       CLDISP(5)=FACT*(CINTG312+CINTG412)
       CLDISP(6)=FACT*(CINTG323+CINTG423)
-
-!      WRITE(6,'(1P6E12.4)') CLDISP(1),CLDISP(2),CLDISP(3)
-!      WRITE(6,'(1P6E12.4)') CLDISP(4),CLDISP(5),CLDISP(6)
 
       DEALLOCATE(ADJ,ADJD)
       RETURN
@@ -775,8 +725,6 @@ CONTAINS
             IF(D.LE.1.D0) GOTO 310
 
 !   PNEAR1
-
-!!            WRITE(6,'(A,1P4E12.4)') 'pth0=',PTH0,DNPR,TCSM(NTH),DNPR*TCSM(NTH)
 
             PNEAR1 = (AMP*PA(NS)*VC)/(1-(DNPR*TCSM(NTH))**2)* &
                     (DNPR*NC*DCWC*TCSM(NTH)+SQRT(D-1))/PTH0
@@ -1055,9 +1003,6 @@ CONTAINS
       CLDISP(5)=FACT*(CINTG312+CINTG412)
       CLDISP(6)=FACT*(CINTG323+CINTG423)
 
-!      WRITE(6,'(1P6E12.4)') CLDISP(1),CLDISP(2),CLDISP(3)
-!      WRITE(6,'(1P6E12.4)') CLDISP(4),CLDISP(5),CLDISP(6)
- 
       RETURN
     END  SUBROUTINE DP_HOTRI
 END MODULE dphotr

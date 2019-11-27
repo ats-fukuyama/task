@@ -426,7 +426,7 @@ CONTAINS
       INTEGER,INTENT(IN):: NS,ID ! ID=0 : non-relativistic, ID=1: relativistic
       TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       REAL(RKIND):: RN0,TPR,TPP,RT0,PN0,PT0,PTH0,PTH0W,TNPR,TNPP,SUM
-      REAL(RKIND):: PPP,PPR,EX,TN0,TNL,PML,FACTOR
+      REAL(RKIND):: PPP,PPR,EX,EXX,TN0,TNL,PML,FACTOR
       INTEGER:: NP,NTH
 
       CALL dpfp_allocate
@@ -437,7 +437,6 @@ CONTAINS
       PN0 = PN(NS)
       PT0 = (PTPR(NS)+2*PTPP(NS))/3.D0
       PTH0 = SQRT(PT0*1.D3*AEE*AMP*PA(NS))
-      write(6,'(A,1P3E15.7)') 'pth0:',PT0,PA(NS),PTH0
       RNFP0(NS)=PN0
       RTFP0(NS)=PT0
       AMFP(NS)=AMP*PA(NS)
@@ -447,8 +446,6 @@ CONTAINS
       TPP = plfw(NS)%RTPP
       RT0 = (TPR+2.D0*TPP)/3.D0
 
-      write(6,'(A,1P6E12.4)') 'PN0:',PN0,RN0,PT0,RT0,PTH0,AMP*PA(NS)
-
       IF(ID.EQ.0) THEN
          PTH0W=0.D0
       ELSE
@@ -457,9 +454,6 @@ CONTAINS
 
       DELP(NS)=PMAX(NS)/NPMAX_DP
       DELTH=PI/NTHMAX_DP
-
-      write(6,'(A,2I5,1P4E12.4)') &
-           'DEL:',NPMAX_DP,NTHMAX_DP,DELP(NS),PMAX(NS),DELTH
 
       DO NP=1,NPMAX_DP
          PM(NP,NS)=DELP(NS)*(NP-0.5D0)
@@ -479,9 +473,9 @@ CONTAINS
          TTNG(NTH) = TAN(THG(NTH))
       ENDDO
 
+      TNPR=TPR/PT0
+      TNPP=TPP/PT0
       IF(ID.EQ.0) THEN
-         TNPR=TPR/PT0
-         TNPP=TPP/PT0
          FACTOR=1.D0/(SQRT(2.D0*PI)**3*SQRT(TNPR)*(TNPP))
          SUM=0.D0
          DO NP=1,NPMAX_DP
@@ -490,49 +484,37 @@ CONTAINS
                PPR=PML*TCSM(NTH)
                PPP=PML*TSNM(NTH)
                EX=0.5D0*(PPR**2/TNPR+PPP**2/TNPP)
-               IF(NTH.EQ.1) THEN
-                  IF(NP.EQ.1.OR.NP.EQ.NPMAX_DP/2.OR.NP.EQ.NPMAX_DP) &
-                       WRITE(6,'(A,1P5E12.4)') &
-                       'EX: ',PPR,TNPR,PPP,TNPP,EX
-               END IF
-               FM(NP,NTH)=EXP(-EX)
+               FM(NP,NTH)=FACTOR*EXP(-EX)
                SUM=SUM+FM(NP,NTH)*PM(NP,NS)*PM(NP,NS)*TSNM(NTH)
             ENDDO
          ENDDO
-         SUM=FACTOR*SUM
-         write(6,'(A,1PE12.4)') 'sum1:',SUM
          SUM=SUM*2.D0*PI*DELP(NS)*DELTH
-         write(6,'(A,1PE12.4)') 'sum2:',SUM
       ELSE
          TN0=PT0*1.D3*AEE/(AMP*PA(NS)*VC**2)
          TNL=RT0*1.D3*AEE/(AMP*PA(NS)*VC**2)
          FACTOR=SQRT(TNL)/(4.D0*PI*BESEKNX(2,1.D0/TNL) &
-               *SQrt(TPR/PT0)*(TPP/PT0))
+               *SQRT(TNPR)*(TNPP))
          SUM=0.D0
          DO NP=1,NPMAX_DP
             PML=PM(NP,NS)
             DO NTH=1,NTHMAX_DP
                PPP=PML*TSNM(NTH)
                PPR=PML*TCSM(NTH)
-               EX=(SQRT(1.D0+(TN0*PT0/TPR)*PPR**2 &
-                           +(TN0*PT0/TPP)*PPR**2) &
-                  -1.D0)/TN0
-               FM(NP,NTH) = EXP(-EX)
+               EXX=PPR**2/TNPR+PPP**2/TNPP
+               EX=(SQRT(1.D0+TN0*EXX)-1.D0)/TN0
+               FM(NP,NTH) = FACTOR*EXP(-EX)
                SUM=SUM+FM(NP,NTH)*PM(NP,NS)*PM(NP,NS)*TSNM(NTH)
             ENDDO
          ENDDO
          SUM=SUM*2.D0*PI*DELP(NS)*DELTH
-         SUM=FACTOR*SUM
       ENDIF
 
-      WRITE(6,'(A,I5,1P3E12.4)') 'NS,PN0,RN0,SUM:',NS,PN0,RN0,SUM
-      FACTOR=RN0/(PN0*SUM)
+      FACTOR=RN0/PN0
       DO NP=1,NPMAX_DP
          DO NTH=1,NTHMAX_DP
             FM(NP,NTH) = FACTOR*FM(NP,NTH)
          ENDDO
       ENDDO
-      WRITE(6,'(A,1P3E12.4)') 'FM: ',FM(1,1),FM(NPMAX_DP/2,1),FM(NPMAX_DP,1)
 
       RETURN
   END SUBROUTINE DPFMFL

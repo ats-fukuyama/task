@@ -509,7 +509,7 @@ CONTAINS
          ELSE
             CPR=CW/SQRT(2.D0*CKPR**2*WTPR)
             CK=CKPP/CKPR
-        ENDIF
+         ENDIF
          CGZ= (CWNU-NC*CWC)*CPR
          CALL DSPFN(CGZ,CZ,CDZ)
 

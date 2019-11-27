@@ -147,6 +147,7 @@
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
+         PZCL(NS) = 0.D0
 
 !     *** triton ***
          NS = 3
@@ -169,6 +170,7 @@
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
+         PZCL(NS) = 0.D0
 
 !     *** Helium ion ***
          NS = 4
@@ -191,6 +193,7 @@
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
+         PZCL(NS) = 0.D0
 
          ! *** dummy ***
       DO NS = 5, NSM
