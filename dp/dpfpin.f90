@@ -266,7 +266,6 @@ CONTAINS
                            *SQRT(TPR/PT0)*(TPP/PT0))
        ENDIF
 
-       WRITE(6,'(A,I5,1P3E12.4)') 'NS,PN0,RN0:',NS,PN0,RN0,SUM
        FACTOR=RN0/(PN0*SUM)
        DO NP=1,NPMAX_DP
           DO NTH=1,NTHMAX_DP

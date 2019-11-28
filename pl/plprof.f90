@@ -485,20 +485,19 @@
 
     SUBROUTINE pl_prof(RHON,PLF)
 
-        USE plcomm,ONLY: PZ,PN,PTPR,PTPP,PU,PNS,PTS,PUS,PZCL, &
-             NSMAX,MODELN,RA,RB, &
-             PROFN1,PROFN2,PROFT1,PROFT2, PROFU1,PROFU2, &
-             PNITB,PTITB,PUITB,RHOITB,RHOEDG
+        USE plcomm,ONLY: PZ,PN,PTPR,PTPP,PU,PNS,PTS,PUS,PZCL, NSMAX&
+             &,MODELN,RA,RB, PROFN1,PROFN2,PROFT1,PROFT2, PROFU1&
+             &,PROFU2, PNITB,PTITB,PUITB,RHOITB,RHOEDG
         USE plload,ONLY: pl_read_trdata
         IMPLICIT NONE
         REAL(rkind),INTENT(IN):: RHON
         TYPE(pl_plf_type),DIMENSION(NSMAX),INTENT(OUT):: PLF
-        REAL(rkind):: RHOL, FACTN, FACTT, FACTU, FACTITB, PL0, &
-                      PL, FACT, FNX, DFNX, AN, BN, FTX, DFTX, &
-                      AT, BT, FUX, DFUX, AU, BU, VAL, PNL, PTL
+        REAL(rkind):: RHOL, FACTN, FACTT, FACTU, FACTITB, PL0, PL,&
+             & FACT, FNX, DFNX, AN, BN, FTX, DFTX, AT, BT, FUX, DFUX,&
+             & AU, BU, VAL, PNL, PTL
         INTEGER(ikind)  :: NS
-        REAL(rkind),DIMENSION(NSMAX) :: &
-             RN_PL,RT_PL,RTPR_PL,RTPP_PL,RU_PL,RUPL_PL
+        REAL(rkind),DIMENSION(NSMAX) :: RN_PL,RT_PL,RTPR_PL,RTPP_PL&
+             &,RU_PL,RUPL_PL
 
         IF(RHON.LE.0.D0) THEN
            RHOL=0.D0

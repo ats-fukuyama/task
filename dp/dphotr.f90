@@ -146,14 +146,14 @@ CONTAINS
                INC=1
             ENDIF
             IF(X.EQ.0.d0) THEN
-               if(NCD.eq.1) THEN
+               IF(NCD.EQ.1) THEN
                   PAI1=NC*INC*0.5D0
-               else
+               ELSE
                   PAI1=0.D0
-               endif
-            else
+               ENDIF
+            ELSE
                PAI1  = NC*INC*ADJ(NCD)/X
-            endif
+            ENDIF
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNM(NTH)
 
@@ -217,14 +217,14 @@ CONTAINS
                INC=1
             ENDIF
             IF(X.EQ.0.d0) THEN
-               if(NCD.eq.1) THEN
+               IF(NCD.EQ.1) THEN
                   PAI1=NC*INC*0.5D0
-               else
+               ELSE
                   PAI1=0.D0
-               endif
-            else
+               ENDIF
+            ELSE
                PAI1  = NC*INC*ADJ(NCD)/X
-            endif
+            ENDIF
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNG(NTH)
 
@@ -395,14 +395,14 @@ CONTAINS
                INC=1
             ENDIF
             IF(X.EQ.0.d0) THEN
-               if(NCD.eq.1) THEN
+               IF(NCD.EQ.1) THEN
                   PAI1=NC*INC*0.5D0
-               else
+               ELSE
                   PAI1=0.D0
-               endif
-            else
+               ENDIF
+            ELSE
                PAI1  = NC*INC*ADJ(NCD)/X
-            endif
+            ENDIF
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNM(NTH)
 
@@ -446,14 +446,14 @@ CONTAINS
                INC=1
             ENDIF
             IF(X.EQ.0.d0) THEN
-               if(NCD.eq.1) THEN
+               IF(NCD.EQ.1) THEN
                   PAI1=NC*INC*0.5D0
-               else
+               ELSE
                   PAI1=0.D0
-               endif
-            else
+               ENDIF
+            ELSE
                PAI1  = NC*INC*ADJ(NCD)/X
-            endif
+            ENDIF
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNM(NTH)
 
@@ -539,14 +539,14 @@ CONTAINS
                INC=1
             ENDIF
             IF(X.EQ.0.d0) THEN
-               if(NCD.eq.1) THEN
+               IF(NCD.EQ.1) THEN
                   PAI1=NC*INC*0.5D0
-               else
+               ELSE
                   PAI1=0.D0
-               endif
-            else
+               ENDIF
+            ELSE
                PAI1  = NC*INC*ADJ(NCD)/X
-            endif
+            ENDIF
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNG(NTH)
 
@@ -591,14 +591,14 @@ CONTAINS
                INC=1
             ENDIF
             IF(X.EQ.0.d0) THEN
-               if(NCD.eq.1) THEN
+               IF(NCD.EQ.1) THEN
                   PAI1=NC*INC*0.5D0
-               else
+               ELSE
                   PAI1=0.D0
-               endif
-            else
+               ENDIF
+            ELSE
                PAI1  = NC*INC*ADJ(NCD)/X
-            endif
+            ENDIF
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNG(NTH)
 
@@ -656,7 +656,7 @@ CONTAINS
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
     INTEGER:: NHMAX,NTH,NP,NC,NCD,NP1,INC,NP2,N
-    REAL(rkind):: WCM,DKPRW,PTH0C,PTH0W,DCWC,DNPR,DKPP,D,ADJN
+    REAL(rkind):: WCM,DKPRW,PTH0C,PTH0W,DCWC,DNPR,DKPP,D
     REAL(rkind):: PNEAR1,DIF,DFP3,X,RGM,PAI1,PAI3,PNEAR2,DFT4,FACT
     REAL(rkind):: PN0,PT0,PTH0
     COMPLEX(rkind):: CWP,CWC,CKPRW,CPAI2
@@ -750,19 +750,6 @@ CONTAINS
             NCD = ABS(NC)
             X = DKPP*PTH0*PNEAR1*TSNM(NTH)/WCM
             CALL BESSJN(X,NHMAX,ADJ,ADJD)
-            IF(ABS(NCD).EQ.0) THEN
-               ADJN=0.D0
-            ELSE
-               IF(ABS(X).LE.1.D-16) THEN
-                  IF(ABS(NCD).EQ.1) THEN
-                     ADJN=ADJD(NCD)
-                  ELSE
-                     ADJN=0.D0
-                  END IF
-               ELSE
-                  ADJN=NCD*ADJ(NCD)/X
-               END IF
-            END IF
 
             RGM=SQRT(1+PTH0W*PNEAR1**2) 
             CPART31= DFP3*PNEAR1**3 &
@@ -773,7 +760,15 @@ CONTAINS
             ELSE
                INC=1
             ENDIF
-            PAI1  =    INC*ADJN
+            IF(X.EQ.0.d0) THEN
+               IF(NCD.EQ.1) THEN
+                  PAI1=NC*INC*0.5D0
+               ELSE
+                  PAI1=0.D0
+               ENDIF
+            ELSE
+               PAI1  = NC*INC*ADJ(NCD)/X
+            ENDIF
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNM(NTH)
 
@@ -820,7 +815,15 @@ CONTAINS
             ELSE
                INC=1
             ENDIF
-            PAI1  = NC*INC*ADJ(NCD)/X
+            IF(X.EQ.0.d0) THEN
+               IF(NCD.EQ.1) THEN
+                  PAI1=NC*INC*0.5D0
+               ELSE
+                  PAI1=0.D0
+               ENDIF
+            ELSE
+               PAI1  = NC*INC*ADJ(NCD)/X
+            ENDIF
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNM(NTH)
 
@@ -898,20 +901,6 @@ CONTAINS
             X = DKPP*PTH0*PNEAR1*TSNG(NTH)/WCM
             CALL BESSJN(X,NHMAX,ADJ,ADJD)
 
-            IF(ABS(NCD).EQ.0) THEN
-               ADJN=0.D0
-            ELSE
-               IF(ABS(X).LE.1.D-16) THEN
-                  IF(ABS(NCD).EQ.1) THEN
-                     ADJN=ADJD(NCD)
-                  ELSE
-                     ADJN=0.D0
-                  END IF
-               ELSE
-                  ADJN=NCD*ADJ(NCD)/X
-               END IF
-            END IF
-
             RGM=SQRT(1+PTH0W*PNEAR1**2) 
             CPART41=DFT4*PNEAR1**2*(TCSG(NTH)-PNEAR1*CKPRW/RGM) &
                    /ABS(PTH0W*PNEAR1/RGM-CKPRW*TCSG(NTH))
@@ -921,7 +910,15 @@ CONTAINS
             ELSE
                INC=1
             ENDIF
-            PAI1  = NC*INC*ADJN
+            IF(X.EQ.0.d0) THEN
+               IF(NCD.EQ.1) THEN
+                  PAI1=NC*INC*0.5D0
+               ELSE
+                  PAI1=0.D0
+               ENDIF
+            ELSE
+               PAI1  = NC*INC*ADJ(NCD)/X
+            ENDIF
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNG(NTH)
 
@@ -968,7 +965,15 @@ CONTAINS
             ELSE
                INC=1
             ENDIF
-            PAI1  = NC*INC*ADJ(NCD)/X
+            IF(X.EQ.0.d0) THEN
+               IF(NCD.EQ.1) THEN
+                  PAI1=NC*INC*0.5D0
+               ELSE
+                  PAI1=0.D0
+               ENDIF
+            ELSE
+               PAI1  = NC*INC*ADJ(NCD)/X
+            ENDIF
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNG(NTH)
 
