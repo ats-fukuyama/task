@@ -35,8 +35,8 @@ CONTAINS
 
          READ(21) DELR,DELTH,RMIN,RMAX
          DO NSA=1,NSAMAX_DP
-            RHON_MIN(NS)=RMIN
-            RHON_MAX(NS)=RMAX
+            RHON_MIN(NSA)=RMIN
+            RHON_MAX(NSA)=RMAX
             READ(21) NS_NSA(NSA)
             READ(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
          END DO

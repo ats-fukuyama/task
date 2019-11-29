@@ -8,7 +8,7 @@ CONTAINS
 
       IMPLICIT NONE
       REAL(8),INTENT(IN):: PMAX
-      INTEGER(4),INTENT(IN):: NPMAX,NTHMAX
+      INTEGER(4),INTENT(IN):: NTHM,NPMAX,NTHMAX
       real(8),dimension(NPMAX),INTENT(IN):: P
       real(8),dimension(NTHMAX),INTENT(IN):: TH
       real(8),DIMENSION(NTHM,NPMAX),INTENT(IN):: F
@@ -24,7 +24,7 @@ CONTAINS
       real(4):: GPMAX, GPMIN1, GPMAX1, GPSTEP
       real(4):: GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
       integer:: NP,NTH
-      integer:: NTHM,NGLMAX,NGL
+      integer:: NGLMAX,NGL
       real(4):: GUCLIP
       integer:: NGULEN
 

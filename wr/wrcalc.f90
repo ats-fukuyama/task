@@ -90,9 +90,7 @@ CONTAINS
           rkr0_22=-rkr0_2
           WRITE(6,'(A,1P2E12.4)') 'COLD: RKR0_1,RKR0_2',RKR0_1,RKR0_2
           RKR0=RKR0_11
-          write(6,*) '--- point 1'
           CALL WRCALE_I(EPARA,EPERP)
-          write(6,*) '--- point 2'
           WRITE(6,'(A,1P3E12.4)') &
                'RKR0_11,EPARA,EPERP=',RKR0_11,EPARA,EPERP
           RKR0=RKR0_12

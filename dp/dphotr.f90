@@ -670,7 +670,9 @@ CONTAINS
     COMPLEX(rkind):: CSM11,CSM12,CSM13,CSM22,CSM23,CSM33
     COMPLEX(rkind):: cdelta
 
-      NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)),2)+2
+    write(6,*) '--- print 221'
+    
+    NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)),2)+2
       ALLOCATE(ADJ(0:NHMAX),ADJD(0:NHMAX))
 
       PN0=RNFP0(NS)
@@ -687,15 +689,18 @@ CONTAINS
       DNPR=DBLE(CKPR*VC/CW)
       DKPP=DBLE(CKPP)
 
-      DO 50 NTH=1,NTHMAX_DP
-      DO 50 NP=1,NPMAX_DP-1
-         DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP(NS)
-   50 CONTINUE 
-      DO 60 NP=1,NPMAX_DP
-      DO 60 NTH=1,NTHMAX_DP-1
-         DFT(NP,NTH) = (FM(NP,NTH+1) - FM(NP,NTH))/DELTH
-   60 CONTINUE
+      DO NTH=1,NTHMAX_DP
+         DO NP=1,NPMAX_DP-1
+            DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP(NS)
+         END DO
+      END DO
+      DO NP=1,NPMAX_DP
+         DO NTH=1,NTHMAX_DP-1
+            DFT(NP,NTH) = (FM(NP,NTH+1) - FM(NP,NTH))/DELTH
+         END DO
+      END DO
 
+    write(6,*) '--- print 222'
 !***************SINGULAR POINT***************************
 
 !*****************SUM3************************
@@ -848,6 +853,7 @@ CONTAINS
          CINTG333 = CINTG333 + CSM33*CPART32
   300 CONTINUE
  
+    write(6,*) '--- print 222'
 !*****************SUM4************************
  
       CINTG411 = (0.D0,0.D0)
@@ -985,6 +991,7 @@ CONTAINS
             CSM33 = CSM33 + PAI3          *PAI3*CPART41
 
   410    CONTINUE 
+    write(6,*) '--- print 223'
 
          CPART42= -CI*PI*TSNG(NTH)**2*DELTH
 

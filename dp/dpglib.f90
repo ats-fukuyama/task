@@ -29,8 +29,8 @@ CONTAINS
     USE dpcomm,ONLY: rkind
     IMPLICIT NONE
     REAL(4),INTENT(IN):: X1,X2,Y1,Y2
-    REAL(rkind),INTENT(IN):: RGB(3,nmax)
     INTEGER,INTENT(IN):: nmax,ind
+    REAL(rkind),INTENT(IN):: RGB(3,nmax)
     REAL(rkind):: DX,DY,DXL,DYL
     REAL(4):: X(5),Y(5)
     INTEGER:: n

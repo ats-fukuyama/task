@@ -375,7 +375,7 @@ CONTAINS
             YL=RAYS(2,NSTP,NRAY)
             ZL=RAYS(3,NSTP,NRAY)
             CALL PL_MAG_OLD(XL,YL,ZL,RHON)
-	    GUX(NSTP+1)=GUCLIP(RHON)
+            GUX(NSTP+1)=GUCLIP(RHON)
             GUY(NSTP+1)=GUCLIP(RAYS(7,NSTP,NRAY))
          ENDDO
          CALL SETLIN(0,0,7-MOD(NRAY-1,5))
@@ -404,7 +404,7 @@ CONTAINS
             YL=RAYS(2,NSTP,NRAY)
             ZL=RAYS(3,NSTP,NRAY)
             CALL PL_MAG_OLD(XL,YL,ZL,RHON)
-	    GUX(NSTP+1)=GUCLIP(SQRT(XL**2+YL**2))
+            GUX(NSTP+1)=GUCLIP(SQRT(XL**2+YL**2))
             GUY(NSTP+1)=GUCLIP(RAYS(7,NSTP,NRAY))
          ENDDO
          CALL SETLIN(0,0,7-MOD(NRAY-1,5))
