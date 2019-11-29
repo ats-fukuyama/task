@@ -459,7 +459,7 @@ C
 C
 C     ****** Potential at ELEMENT(IE),POINT(X,Y) ******
 C
-      SUBROUTINE FIELDA(X,Y,IE,NZ,ID,X,Y,CA,CAX,CAY,CAZ)
+      SUBROUTINE FIELDA(X,Y,IE,NZ,ID,CA,CAX,CAY,CAZ)
 C
       INCLUDE 'wfcomm.inc'
 C

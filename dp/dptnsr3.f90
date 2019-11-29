@@ -12,8 +12,6 @@ MODULE DPTNSR3
 !             CLDISP(5)=EPS_XY
 !             CLDISP(6)=EPS_YZ
 
-  PUBLIC DPTNSH
-
 CONTAINS
 
 !     ****** KINETIC MODEL WITH FLR and Drift (by Swanson) ******
