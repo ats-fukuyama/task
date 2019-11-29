@@ -48,7 +48,8 @@ CONTAINS
       IF(PRESENT(CONVERT)) THEN
          CONVERT_=CONVERT
       ELSE
-         CONVERT_="native"
+!         CONVERT_="native"
+         CONVERT_="BIG_ENDIAN"
       END IF
 
       KNAM=KNAMFL
@@ -70,7 +71,7 @@ CONTAINS
      &           FORM='UNFORMATTED',CONVERT=CONVERT_)
          ELSEIF(MODEF.EQ.1) THEN
             OPEN(NFL,FILE=KNAM,IOSTAT=IST,STATUS='OLD',ERR=20, &
-     &           FORM='FORMATTED',CONVERT=CONVERT_)
+     &           FORM='FORMATTED')
          ELSE
             WRITE(6,*) 'XX FROPEN: UNKNOWN MODEF : MODEF=',MODEF
             GOTO 9005

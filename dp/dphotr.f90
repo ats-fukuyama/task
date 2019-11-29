@@ -670,8 +670,6 @@ CONTAINS
     COMPLEX(rkind):: CSM11,CSM12,CSM13,CSM22,CSM23,CSM33
     COMPLEX(rkind):: cdelta
 
-    write(6,*) '--- print 221'
-    
     NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)),2)+2
       ALLOCATE(ADJ(0:NHMAX),ADJD(0:NHMAX))
 
@@ -700,7 +698,6 @@ CONTAINS
          END DO
       END DO
 
-    write(6,*) '--- print 222'
 !***************SINGULAR POINT***************************
 
 !*****************SUM3************************
@@ -853,7 +850,6 @@ CONTAINS
          CINTG333 = CINTG333 + CSM33*CPART32
   300 CONTINUE
  
-    write(6,*) '--- print 222'
 !*****************SUM4************************
  
       CINTG411 = (0.D0,0.D0)
@@ -991,7 +987,6 @@ CONTAINS
             CSM33 = CSM33 + PAI3          *PAI3*CPART41
 
   410    CONTINUE 
-    write(6,*) '--- print 223'
 
          CPART42= -CI*PI*TSNG(NTH)**2*DELTH
 
