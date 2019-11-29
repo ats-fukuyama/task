@@ -49,6 +49,8 @@ CONTAINS
           plfw(ns)%rupr= plf(ns)%ru*bnt+plf(ns)%rupl*bnp
           plfw(ns)%rupp=-plf(ns)%ru*bnp+plf(ns)%rupl*bnt
        END SELECT
+       plfw(ns)%rnuc=0.D0
+       plfw(ns)%rzcl=PZCL(NS)
     END DO
   END SUBROUTINE pl_profw
 
@@ -95,6 +97,8 @@ CONTAINS
           plfw(ns)%rupr= plf(ns)%ru*bnt+plf(ns)%rupl*bnp
           plfw(ns)%rupp=-plf(ns)%ru*bnp+plf(ns)%rupl*bnt
        END SELECT
+       plfw(ns)%rnuc=0.D0
+       plfw(ns)%rzcl=PZCL(NS)
     END DO
   END SUBROUTINE pl_profw3d
 

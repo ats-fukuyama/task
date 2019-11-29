@@ -489,7 +489,6 @@ CONTAINS
       ELSE
          CWNU=1.D0+CI*plfw(NS)%RNUC/CW
       END IF
-
       WTPR=plfw(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))
       WTPP=plfw(NS)%RTPP*1.D3*AEE/(AMP*PA(NS))
       WTPX=SQRT(WTPR/WTPP)

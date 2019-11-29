@@ -10,8 +10,8 @@ LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-#FFLAGS=$(OFLAGS)
-FFLAGS=$(DFLAGS)
+FFLAGS=$(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
 .SUFFIXES:
 .SUFFIXES: .f90 .mod .o .a
@@ -28,7 +28,7 @@ SRCS = dpcomm.f90 dpinit.f90 dpfpin.f90 dpparm.f90 \
        dptnsr1.f90 dptnsr2.f90 dptnsr3.f90 dptnsr4.f90 dptnsr0.f90 dpdisp.f90 \
        dpgsub.f90 dpglib.f90 dproot.f90 dpcont.f90 dpcont4.f90 \
        dpmenu.f90	
-	
+
 SRCSX = dpdkdt.f dptestk.f
 
 

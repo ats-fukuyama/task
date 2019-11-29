@@ -6,6 +6,7 @@ include ../make.header
 
 LFLAGS = $(OFLAGS)
 #LFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
 FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I $(MOD) -I ../../bpsd/$(MOD)
