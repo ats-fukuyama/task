@@ -34,6 +34,7 @@ subroutine WFWAVE
   call PWRRAD
 !  CALL TERMEP
 !  CALL WFCALB
+  CALL LPEFLD
 
   call GUTIME(GCPUT3)
   GTSOLV=GTSOLV+GCPUT2-GCPUT1
@@ -1128,6 +1129,11 @@ SUBROUTINE PWRABS
      end do
   end do
 
+  PABSTT=0.D0
+  DO NS=1,NSMAX
+     PABSTT=PABSTT+PABST(NS)
+  END DO
+
   deallocate(PABS)
 
   RETURN
@@ -1211,15 +1217,60 @@ SUBROUTINE PWRRAD
      end do
   end do
 
-!  CTIMP=(0.d0,0.d0)
+  CTIMP=(0.d0,0.d0)
 
-!  do NA=1,NAMAX
-!     CTIMP=CTIMP+CIMP(NA)
-!  end do
+  do NA=1,NAMAX
+     CTIMP=CTIMP+CIMP(NA)
+  end do
 
   RETURN
 END SUBROUTINE PWRRAD
 
+!     ******* OUTPUT FIELD DATA *******
+
+  SUBROUTINE LPEFLD
+
+    USE wfcomm
+    IMPLICIT NONE
+    INTEGER:: I,NR1,NR2,NR3,NR4,NS,NR,NA,NZ,J
+    REAL(rkind):: P
+    REAL(rkind):: P1(NSM),P2(NSM),P3(NSM),P4(NSM)
+
+    IF(NPRINT.LT.1) RETURN
+
+!    WRITE(6,110) (EMAX(I),I=1,3),ETMAX,PNMAX
+!110 FORMAT(1H ,'EXMAX  =',1PE12.4 &
+!         ,3X ,'EYMAX  =',1PE12.4 &
+!         ,3X ,'EZMAX  =',1PE12.4/ &
+!         1H ,'EMAX   =',1PE12.4 &
+!         ,3X ,'PNMAX  =',1PE12.4)
+
+    WRITE(6,120) DBLE(CTIMP),PABSTT
+120 FORMAT(1H ,'RADIATED POWER =',1PE12.4/ &
+         1H ,'ABSORBED POWER =',1PE12.4)
+
+    DO NS=1,NSMAX
+       WRITE(6,126) NS,PABST(NS)
+126    FORMAT(1H ,'      PABS(',I2,') =',1PE12.4)
+    END DO
+
+    WRITE(6,130)
+130 FORMAT(1H ,' I JNUM', '  AJ(I)','  APH(I)','  AWD(I)', &
+            ' APOS(I)',' XJ(I)','  YJ(I)', &
+            8X,'LOADING IMP.[ohm]')
+    DO NA=1,NAMAX
+       WRITE(6,140) NA,JNUM(NA),AJ(NA),APH(NA),AWD(NA),APOS(NA), &
+                               RJ(1,NA),ZJ(1,NA),CIMP(NA)
+140    FORMAT(1H ,I2,I3,0PF8.2,F8.2,1X,4F7.4,2X,'(',1P2E12.4,')')
+    END DO
+
+    IF(NPRINT.LT.2) RETURN
+
+    ! field output
+
+    RETURN
+  END SUBROUTINE LPEFLD
+  
 !     ******* OUTPUT ELEMENT DATA *******
 
 SUBROUTINE LPELMT

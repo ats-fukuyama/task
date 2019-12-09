@@ -164,6 +164,7 @@ module wfcomm
   complex(rkind),dimension(:,:),ALLOCATABLE :: CRFL!(NMDM,NBM)
        
 !       /WFPWR/
+  real(rkind):: PABSTT
   real(rkind),dimension(NSM):: PABST
 !  real(rkind),dimension(:)  ,ALLOCATABLE :: PABSS !(NSM)
 !  real(rkind),dimension(:)  ,ALLOCATABLE :: PABSK !(NKMAX)

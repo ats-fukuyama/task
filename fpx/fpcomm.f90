@@ -29,14 +29,14 @@ MODULE fpcomm_parm
       integer:: MODEL_LOSS,MODEL_SYNCH,MODEL_NBI,MODEL_WAVE
       integer:: IMTX,MODEL_KSP,MODEL_PC,LMAXFP,LMAXE
       integer:: NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP
-      integer:: MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp,MODEL_LNL
+      integer:: MODEL_DISRUPT
+      integer:: MODEL_Connor_fp,MODEL_BS,MODEL_jfp,MODEL_LNL
       integer:: MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY,MODEL_SINK,N_IMPU
       integer:: MODEL_EX_READ_Tn,MODEL_EX_READ_DH_RATIO
       integer:: MODEL_BULK_CONST,MODEL_CX_LOSS
       integer:: N_partition_r,N_partition_s,N_partition_p
       integer:: OUTPUT_TXT_DELTA_F, OUTPUT_TXT_F1, OUTPUT_TXT_BEAM_WIDTH, OUTPUT_TXT_HEAT_PROF
       integer:: OUTPUT_TXT_BEAM_DENS
-      integer:: NRAYS_WR,NRAYE_WR
 
       real(rkind):: PMAX(NSM),PMAX_BB(NSM),EMAX(NSM)
       real(rkind):: R1,DELR1,RMIN,RMAX
@@ -476,22 +476,6 @@ module fpcomm
              allocate(DWTP_P(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
              allocate(DWTT_P(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
           END IF
-          IF(MODEL_DISRUPT.ne.0)THEN
-             allocate(ER_drei(NRMAX),ER_crit(NRMAX),Rconnor(NRMAX), lnl_gl(NRMAX),RP_crit(NRMAX))
-             allocate(RN_disrupt(NRMAX),RN_runaway(NRMAX), RN_drei(NRMAX),RN_runaway_M(NRMAX))
-             allocate(Rj_ohm(NRMAX),RJ_runaway(NRMAX),RJ_bs(NRMAX),R_djdt(NRMAX))
-             allocate(RJ_bsm(NRSTART:NREND))
-             allocate(previous_rate(nrstart:nrend),previous_rate_p(nrstart:nrend))
-             allocate(previous_rate_G(nrmax),previous_rate_p_G(nrmax))
-             allocate(SIGMA_SPP(NRSTART:NREND),SIGMA_SPM(NRSTART:NREND))
-             allocate(RE_PITCH(NTHMAX))
-             allocate(RT_quench(NRMAX),RT_quench_f(NRMAX))          
-             allocate(POST_LNLAM_f(NRSTART:NREND+1,NSBMAX,NSBMAX))
-             allocate(POST_LNLAM(NRSTART:NREND+1,NSBMAX,NSBMAX))
-             allocate(POST_tau_ta0_f(NSAMAX))
-             allocate(POST_tau_ta(NRMAX,NSAMAX))
-             allocate(E_drei0(NSAMAX),E_crit0(NSAMAX))
-          END IF
           allocate(conduct_sp(NRMAX))
 
           allocate(SPP (NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX))
@@ -707,20 +691,6 @@ module fpcomm
              deallocate(DWECPP,DWECPT,DWECTP,DWECTT)
              deallocate(DWWRPP,DWWRPT,DWWRTP,DWWRTT)
              deallocate(DWWMPP,DWWMPT,DWWMTP,DWWMTT)
-          END IF
-          IF(MODEL_DISRUPT.ne.0)THEN
-             deallocate(ER_drei, ER_crit,RP_crit)
-             deallocate(previous_rate, previous_rate_p)
-             deallocate(previous_rate_G, previous_rate_p_G)
-             deallocate(RT_quench, RT_quench_f, conduct_sp)
-             deallocate(RE_PITCH)
-             deallocate(RN_disrupt, RN_runaway, Rj_ohm, RJ_runaway, RN_drei,RN_runaway_M)
-             deallocate(RJ_bs, RJ_bsm, R_djdt)
-             deallocate(SIGMA_SPP,SIGMA_SPM)
-             deallocate(POST_LNLAM_f,POST_LNLAM)
-             deallocate(E_drei0,E_crit0)
-             deallocate(POST_tau_ta0_f)
-             deallocate(POST_tau_ta)
           END IF
           deallocate(tau_ta0)
 

@@ -36,18 +36,8 @@
 
 ! =============  CALCULATION OF DWPP AND DWPT  ===============
 
-      IF(NRAYS_WR.EQ.0) THEN
-         NRAYS=1
-      ELSE
-         NRAYS=NRAYS_WR
-      END IF
-      IF(NRAYE_WR.EQ.0.OR.NRAYE_WR.GT.NRAYMAX) THEN
-         NRAYE=NRAYMAX
-      ELSE
-         NRAYE=NRAYE_WR
-      END IF
-
-      ALLOCATE(DLA(0:NITMAXM,NRAYS:NRAYE))
+      ALLOCATE(DLA(0:NITMAXM,NRAYMAX))
+      FACT=0.5D0
 
       NS=NS_NSA(NSA)
 
@@ -61,7 +51,7 @@
                   ETAL=DELH*(NAV-0.5D0)-2.D0*ETAM(NTH,NR)
                   CALL pl_getRZ(RM(NR),ETAL,RL,ZL)
 
-                  DO NRAY=NRAYS,NRAYE
+                  DO NRAY=1,NRAYMAX
                      NITMX=NITMAX(NRAY)
                      RF_WR=RAYIN(1,NRAY)
 
@@ -229,7 +219,7 @@
                   ETAL=DELH*(NAV-0.5D0)-2.D0*ETAG(NTH,NR)
                   CALL pl_getRZ(RM(NR),ETAL,RL,ZL)
 
-                  DO NRAY=NRAYS,NRAYE
+                  DO NRAY=1,NRAYMAX
                      NITMX=NITMAX(NRAY)
                      RF_WR=RAYIN(1,NRAY)
 
@@ -405,7 +395,7 @@
          ETAL=DELH*(NAV-0.5D0)-2.D0*ETA
          CALL pl_getRZ(RM(NR),ETAL,RL,ZL)
 
-         DO NRAY=NRAYS,NRAYE
+         DO NRAY=1,NRAYMAX
             RF_WR=RAYIN(1,NRAY)
 
             IF(MODELW(NS).EQ.1) THEN

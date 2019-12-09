@@ -48,8 +48,8 @@ CONTAINS
       IF(PRESENT(CONVERT)) THEN
          CONVERT_=CONVERT
       ELSE
-!         CONVERT_="native"
-         CONVERT_="BIG_ENDIAN"
+         CONVERT_="native"
+!         CONVERT_="BIG_ENDIAN"
       END IF
 
       KNAM=KNAMFL

@@ -11,8 +11,8 @@ LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 .SUFFIXES:
 .SUFFIXES: .f90 .mod .o .a
@@ -57,6 +57,9 @@ libs:
 	(cd ../eq; make libeq.a)
 	(cd ../dp; make libdp.a)
 
+testf: $(LIBS) test.o
+	$(FLINKER) test.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+
 wr : $(LIBS) wrmain.o
 	$(FLINKER) wrmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
@@ -77,3 +80,4 @@ wrbeam.o: wrbeam.f90 $(WRCOMM) ../pl/plprof.f90
 wrsub.o:  wrsub.f90 $(WRCOMM)
 wrgout.o: wrgout.f90 $(WRCOMM)
 wrfile.o: wrfile.f90 $(WRCOMM)
+test.o: test.f90 $(WRCOMM)

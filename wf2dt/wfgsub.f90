@@ -285,7 +285,7 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
 !!! the following should be corrected by including poloidal magnetic field
      SELECT CASE(MODELG)
      CASE(0,12)
-        n_para=R0.D0
+        n_para=0.D0
      CASE(1)
         n_para=NPH*VC/(RA*WW)
      CASE(2:6)

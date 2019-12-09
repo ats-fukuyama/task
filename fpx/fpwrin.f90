@@ -11,7 +11,6 @@
       INTEGER:: NRAYMAX,NITMAXM
       INTEGER,PARAMETER:: NCRMAXM=5
       INTEGER,DIMENSION(:),POINTER:: NITMAX  !(NRAYMAX)
-      INTEGER:: NRAYS,NRAYE
 
       REAL(rkind),DIMENSION(:,:),POINTER:: RAYIN !(8,NRAYMAX)
       COMPLEX(rkind),DIMENSION(:,:),POINTER:: &  !(0:NITMAXM,NRAYMAX)
@@ -185,13 +184,11 @@
       IF(nrank.EQ.0) THEN
          REWIND(21)
          READ(21) NRAYMAX
-         write(6,*) '--- print 1: nraymax=',nraymax
          ALLOCATE(NITMAX(NRAYMAX))
 
          NITMAXM=1
          DO NRAY=1,NRAYMAX
             READ(21) NITMAX(NRAY)
-            write(6,*) '--- print 2: nray,nitmax=',nray,nitmax(nray)
             NITMAXM=MAX(NITMAX(NRAY),NITMAXM)
          ENDDO
          idata(1)=NRAYMAX

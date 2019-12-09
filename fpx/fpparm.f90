@@ -75,7 +75,7 @@ contains
            KNAMEQ,KNAMWR,KNAMFP,KNAMWM,KNAMPF, &
            KNAMFO,KNAMTR,KNAMEQ2,KID_NS,ID_NS, &
            NSAMAX,NSBMAX,NS_NSA,NS_NSB, &
-           LMAX_WR,NRAYS_WR,NRAYE_WR,NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF, &
+           LMAX_WR,NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF, &
            NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX, &
            NTMAX,NTSTEP_COEF,NTSTEP_COLL, &
            NTG1STEP,NTG1MIN,NTG1MAX, &
@@ -135,8 +135,7 @@ contains
       WRITE(6,*) '      KNAMEQ,KNAMWR,KNAMFP,KNAMWM,KNAMPF,'
       WRITE(6,*) '      KNAMFO,KNAMTR,KNAMEQ2,KID_NS,ID_NS,'
       WRITE(6,*) '      NSAMAX,NSBMAX,NS_NSA,NS_NSB,'
-      WRITE(6,*) '      LMAX_WR,NRAYS_WR,NRAYE_WR,'
-      WRITE(6,*) '      NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF,'
+      WRITE(6,*) '      LMAX_WR,NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF,'
       WRITE(6,*) '      NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX,'
       WRITE(6,*) '      NTMAX,NTSTEP_COEF,NTSTEP_COLL,'
       WRITE(6,*) '      NTG1STEP,NTG1MIN,NTG1MAX,'
@@ -373,10 +372,8 @@ contains
       idata(68)=OUTPUT_TXT_HEAT_PROF
       idata(69)=OUTPUT_TXT_BEAM_WIDTH
       idata(70)=OUTPUT_TXT_BEAM_DENS
-      idata(71)=NRAYS_WR
-      idata(72)=NRAYE_WR
 
-      CALL mtx_broadcast_integer(idata,72)
+      CALL mtx_broadcast_integer(idata,70)
       NSAMAX         =idata( 1)
       NSBMAX         =idata( 2)
       LMAX_WR        =idata( 3)
@@ -450,8 +447,6 @@ contains
       OUTPUT_TXT_HEAT_PROF=idata(68)
       OUTPUT_TXT_BEAM_WIDTH=idata(69)
       OUTPUT_TXT_BEAM_DENS=idata(70)
-      NRAYS_WR=idata(71)
-      NRAYE_WR=idata(72)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -710,7 +705,6 @@ contains
                          'DELY_WR ',DELY_WR
             WRITE(6,601) 'FACT_WR ',FACT_WR ,'EPS_WR  ',EPS_WR   , &
                          'LMAX_WR ',LMAX_WR
-            WRITE(6,603) 'NRAYS_WR',NRAYS_WR,'NRAYE_WR',NRAYE_WR
             
          ELSEIF(MODELW(NS).EQ.3) THEN
             WRITE(6,600) 'PABS_WM ',PABS_WM ,'RF_WM   ',RF_WM, &
