@@ -727,10 +727,10 @@
       plasmaf%rho(1)=rho
       CALL bpsd_get_data(plasmaf,ierr)
       DO ns=1,min(nsmax,plasmaf%nsmax)
-         rn(ns)=plasmaf%data(1,ns)%pn
-         rtpr(ns)=plasmaf%data(1,ns)%ptpr
-         rtpp(ns)=plasmaf%data(1,ns)%ptpp
-         ru(ns)=plasmaf%data(1,ns)%pu
+         rn(ns)=plasmaf%data(1,ns)%density
+         rtpr(ns)=plasmaf%data(1,ns)%temperature_para
+         rtpp(ns)=plasmaf%data(1,ns)%temperature_perp
+         ru(ns)=plasmaf%data(1,ns)%velocity_tor
       ENDDO
     END SUBROUTINE pl_bpsd_get
 

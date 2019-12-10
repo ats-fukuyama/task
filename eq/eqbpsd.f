@@ -141,7 +141,8 @@
          ptot = 0.d0
          DO ns = 1, plasmaf%nsmax
             ptot = ptot
-     &           + plasmaf%data(ntr,ns)%pn * plasmaf%data(ntr,ns)%pt
+     &           + plasmaf%data(ntr,ns)%density
+     &           * plasmaf%data(ntr,ns)%temperature
      &           * aee
          END DO
          ptrrho(ntr) = ptot*1.D-6
