@@ -17,34 +17,28 @@ C
       LP=INT(LOG(DBLE(NZMAX))/ALOG2 + 0.001D0)
       NZMAX=2**LP
             
-! --- Cartesian coordinate ---
-      IF(MODELS.EQ.0) THEN
-         RKZ_save=RKZ
-         IF(NZMAX.EQ.1) THEN
-            RKZF(1)=RKZ
-         ELSE
-            DZ=2.D0*PI*RZ/NZMAX
-            DKZ=1.D0/RZ
-            RKZF(1)=0.001D0
-            RKZF(NZMAX/2+1)=DKZ*DBLE(NZMAX/2)
-            DO NZ=1,NZMAX/2-1
-               RKZF(NZ+1)=DKZ*NZ
-               RKZF(NZMAX-NZ+1)=-DKZ*NZ
-            END DO
-         END IF
-! --- Cylindrical coordinate ---
+! --- vertical or toroidal coordinate ---
+      RKZ_save=RKZ
+      NPHI_save=NPHI
+      IF(NZMAX.EQ.1) THEN
+         RKZF(1)=RKZ
+         NPHIF(1)=NPHI
       ELSE
-         NPHI_save=NPHI
-         IF(NZMAX.EQ.1) THEN
-            NPHIF(1)=NPHI
+         IF(MODELS.EQ.0) THEN ! --- Cartesian ---
+            DKZ=2.D0*PI/RZ
          ELSE
-            NPHIF(1)=0
-            NPHIF(NZMAX/2+1)=NZMAX/2
-            DO NZ=1,NZMAX/2-1
-               NPHIF(NZ+1)=NZ
-               NPHIF(NZMAX-NZ+1)=-NZ
-            END DO
+            DKZ=1.D0/RR
          END IF
+         RKZF(1)=0.001D0
+         NPHIF(1)=0
+         RKZF(NZMAX/2+1)=DKZ*DBLE(NZMAX/2)
+         NPHIF(NZMAX/2+1)=NZMAX/2
+         DO NZ=1,NZMAX/2-1
+            RKZF(NZ+1)=DKZ*NZ
+            RKZF(NZMAX-NZ+1)=-DKZ*NZ
+            NPHIF(NZ+1)=NZ
+            NPHIF(NZMAX-NZ+1)=-NZ
+         END DO
       END IF
 
       CALL SETANT
@@ -52,9 +46,15 @@ C
 C
       DO NZDO=1,NZMAX
          NZ=NZDO
-            CALL GUTIME(GCPUT0)
-         RKZ=RKZF(NZ)
-         NPHI=NPHIF(NZ)
+         CALL GUTIME(GCPUT0)
+         IF(MODELS.EQ.0) THEN
+            RKZ=RKZF(NZ)
+            NPHI=NZ
+         ELSE
+            NPHI=NPHIF(NZ)
+            RKZ=NPHI/RR
+         END IF
+
          DO NA=1,NAMAX
             CAJ(NA)=CAJF(NZ,NA)
          END DO
@@ -456,7 +456,7 @@ C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
                CJ(2)=(0.D0,0.D0)
                CJ(3)=CVJ*XM
             CASE(3)
-               IF(IJ.EQ.1) GO TO 20
+               IF(IJ.EQ.1.OR.MOD(NPHI,2).EQ.0) GO TO 20
                X1=XJ(IJ-1,NA)
                Y1=YJ(IJ-1,NA)
                X2=XJ(IJ,NA)
@@ -471,11 +471,9 @@ C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
                CFACT=EXP(CI*NPHI*ARG*PI/180.D00)
                FACTOR=-XJ0(1,NA)*(RTJ0(2,NA)-RTJ0(1,NA))*PI/180.D0
      &                  /(YJ0(2,NA)-YJ0(1,NA))
-               IF(MOD(NPHI,2).EQ.0) THEN
-                  CVJ=0.D0
-               ELSE
-                  CVJ=-CNST*CFACT*CAJ(1)/PI
-               END IF
+               CVJ=-CNST*CFACT*CAJ(1)/PI
+               WRITE(6,'(A,I5,1P7E10.2)') 'CJ;',IJ,YM,ARG*PI/180.D0,
+     &                                          CFACT,FACTOR,CVJ
                CJ(1)= (0.D0,0.D0)
                CJ(2)= CVJ*(Y2-Y1)
                CJ(3)= CVJ*FACTOR*(Y2-Y1)
@@ -1584,9 +1582,11 @@ C     ****** RADIATED POWER ******
 C
       SUBROUTINE PWRRAD
 C
+      USE libgrf
       INCLUDE 'wfcomm.inc'
 C
       DIMENSION CJ(3),CE(3),CIMPK(NAM)
+      REAL(8),ALLOCATABLE:: EANT(:,:),FANT(:,:),PANT(:,:),YMA(:)
       REAL*8 A(3),B(3),C(3)
 C
       CNST=1.D0
@@ -1604,12 +1604,16 @@ C
          END SELECT
          IF(NTYPJ0(NA).EQ.11) THEN
             IJMAX=JNUM(NA)
-         ELSEIF(NTYPJ0(NA).NE.0.OR.JNUM0(NA).EQ.2) THEN
+         ELSEIF(NTYPJ0(NA).NE.0.OR.JNUM0(NA).EQ.3) THEN
             IJMAX=JNUM(NA)+1
          ELSE
             IJMAX=JNUM(NA)
          ENDIF
          CIMPK(NA)=0.D0
+         IF(NTYPJ0(NA).EQ.11.AND.NA.EQ.3) THEN
+            ALLOCATE(YMA(IJMAX),EANT(IJMAX,6),FANT(IJMAX,6),
+     &           PANT(IJMAX,4))
+         END IF
          DO 50 IJ=1,IJMAX
             IF(NTYPJ0(NA).LE.10) THEN
             IF(JNUM(NA).EQ.1) THEN
@@ -1793,7 +1797,7 @@ C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
                CJ(2)=(0.D0,0.D0)
                CJ(3)=CVJ*XM
             CASE(3)
-               IF(IJ.EQ.1) GO TO 50
+               IF(IJ.EQ.1.OR.MOD(NPHI,2).EQ.0) GO TO 50
                X1=XJ(IJ-1,NA)
                Y1=YJ(IJ-1,NA)
                X2=XJ(IJ,NA)
@@ -1807,15 +1811,14 @@ C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
      &            +RTJ0(1,NA)
                CFACT=EXP(CI*NPHI*ARG*PI/180.D00)
                FACTOR=-XJ0(1,NA)*(RTJ0(2,NA)-RTJ0(1,NA))*PI/180.D0
-     &                  /(YJ0(2,NA)-YJ0(1,NA))
-               IF(MOD(NPHI,2).EQ.0) THEN
-                  CVJ=0.D0
-               ELSE
-                  CVJ=-CNST*CAJ(1)*CFACT/PI
-               END IF
+     &              /(YJ0(2,NA)-YJ0(1,NA))
+               CVJ=-CNST*CAJ(1)*CFACT/PI
+!               CVJ=-CNST*CAJ(1)*CFACT
                CJ(1)= (0.D0,0.D0)
                CJ(2)= CVJ*(Y2-Y1)
                CJ(3)= CVJ*FACTOR*(Y2-Y1)
+               WRITE(6,'(A,I5,1P7E10.2)') 'CJ;',IJ,YM,ARG*PI/180.D0,
+     &                                          CFACT,FACTOR,CVJ
             CASE(4)
                IF(IJ.EQ.1) GO TO 50
                X1=XJ(IJ-1,NA)
@@ -1834,8 +1837,8 @@ C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
      &                   /(YJ0(2,3)-YJ0(1,3))
 C               CVJ=CNST*CAJ(1)*CFACT/(2.D0*PI)
                CVJ=0.D0
-               CJ(1)= CVJ*(X2-X1)
-               CJ(2)= CVJ*(Y2-Y1)
+               CJ(1)= CVJ*(X2-X1)**2/SQRT((X2-X1)**2+(Y2-Y1)**2)
+               CJ(2)= CVJ*(Y2-Y1)**2/SQRT((X2-X1)**2+(Y2-Y1)**2)
                CJ(3)= CVJ*FACTOR*(Y2-Y1)*XM
             END SELECT
             ENDIF
@@ -1851,20 +1854,52 @@ C               CVJ=CNST*CAJ(1)*CFACT/(2.D0*PI)
                CKZ=CI*RKZ
             ENDIF
 C
-            DO 20 N=1,3
+            CE(1)=(0.D0,0.D0)
+            CE(2)=(0.D0,0.D0)
+            CE(3)=(0.D0,0.D0)
+            DO N=1,3
                WEIGHT=A(N)+XM*B(N)+YM*C(N)
                IN=IELM(N,IE)
-               IF(KNODW(IN).EQ.0) THEN
-                  CE(1)=CI*(WEIGHT*CAF(1,IN)+CI*B(N)*CAF(4,IN))
-                  CE(2)=CI*(WEIGHT*CAF(2,IN)+CI*C(N)*CAF(4,IN))
-                  CE(3)=CI*(WEIGHT*CAF(3,IN)+CI*CKZ*WEIGHT*CAF(4,IN))
-                  DO 30 I=1,3
-                     CIMPK(NA)=CIMPK(NA)
-     &                    -0.5D0*DCONJG(CE(I))*CJ(I)*RL
-   30             CONTINUE
-               END IF
-   20       CONTINUE
+               CE(1)=CE(1)+CI*(WEIGHT*CAF(1,IN)+CI*B(N)*CAF(4,IN))
+               CE(2)=CE(2)+CI*(WEIGHT*CAF(2,IN)+CI*C(N)*CAF(4,IN))
+               CE(3)=CE(3)+CI*(WEIGHT*CAF(3,IN)+CI*CKZ*WEIGHT*CAF(4,IN))
+            END DO
+            IF(NTYPJ0(NA).EQ.11.AND.NA.EQ.3) THEN
+               YMA(IJ-1)=YM
+               EANT(IJ-1,1)=REAL(CE(1))
+               EANT(IJ-1,2)=AIMAG(CE(1))
+               EANT(IJ-1,3)=REAL(CE(2))
+               EANT(IJ-1,4)=AIMAG(CE(2))
+               EANT(IJ-1,5)=REAL(CE(3))
+               EANT(IJ-1,6)=AIMAG(CE(3))
+               FANT(IJ-1,1)=REAL(CJ(1))
+               FANT(IJ-1,2)=AIMAG(CJ(1))
+               FANT(IJ-1,3)=REAL(CJ(2))
+               FANT(IJ-1,4)=AIMAG(CJ(2))
+               FANT(IJ-1,5)=REAL(CJ(3))
+               FANT(IJ-1,6)=AIMAG(CJ(3))
+               PANT(IJ-1,1)=REAL(CONJG(CE(1))*CJ(1))
+               PANT(IJ-1,2)=REAL(CONJG(CE(2))*CJ(2))
+               PANT(IJ-1,3)=REAL(CONJG(CE(3))*CJ(3))
+               PANT(IJ-1,4)=PANT(IJ,1)+PANT(IJ,2)+PANT(IJ,3)
+            END IF
+!            WRITE(6,'(A,2I4,1P6E11.3)') 'CE:',NA,IJ,CE(1),CE(2),CE(3)
+            DO I=1,3
+               CIMPK(NA)=CIMPK(NA)
+     &              -0.5D0*DCONJG(CE(I))*CJ(I)*RL
+            END DO
    50    CONTINUE
+
+         WRITE(6,*) NTYPJ0(NA),NA
+         IF(NTYPJ0(NA).EQ.11.AND.NA.EQ.3) THEN
+            CALL PAGES
+            CALL GRD1D(1,YMA,EANT,IJMAX,IJMAX-1,6,'@EANT@')
+            CALL GRD1D(2,YMA,FANT,IJMAX,IJMAX-1,6,'@JANT@')
+!            CALL GRD1D(3,YMA,PANT,IJMAX,IJMAX-1,4,'@PANT@')
+            CALL PAGEE
+            DEALLOCATE(YMA,EANT,FANT,PANT)
+         END IF
+         
   100 CONTINUE
 C
       DO NA=1,NAMAX

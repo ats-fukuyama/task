@@ -128,7 +128,7 @@ c
       if(id.eq.18) call eqgr1d(ipos,hiv,muv,nv,'@muv(psi_t)@')
       if(id.eq.19) call eqgr1d(ipos,hiv,nuv,nv,'@nuv(psi_t)@')
       if(id.eq.20) call eqgr1d(ipos,hiv,prv,nv,'@prv(psi_t)@')
-      if(id.eq.21) call eqgr1d(ipos,hiv,qqv,nv,'@prv(psi_t)@')
+      if(id.eq.21) call eqgr1d(ipos,hiv,qqv,nv,'@qqv(psi_t)@')
       if(id.eq.22) call eqgr1d(ipos,hiv,sha,nv,'@sha(psi_t)@')
       if(id.eq.23) call eqgr1d(ipos,hiv,cuv,nv,'@cuv(psi_t)@')
       if(id.eq.24) call eqgr1d(ipos,hiv,pds,nv,'@pds(psi_t)@')

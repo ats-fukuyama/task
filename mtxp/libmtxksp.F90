@@ -357,19 +357,19 @@
 !        methodKSP=14: Preconditioning only
 !
 !        methodPC : type of Pre-Conditioner (default=5 or 1)
-!        mdthodPC=  0: Jacobi
-!        mdthodPC=  1: Block Jacobi
-!        mdthodPC=  2: SOR
-!        mdthodPC=  3: SOR with Eisenstat trick
-!        mdthodPC=  4: Incomplete Cholesky
-!        mdthodPC=  5: Incomplete LU
-!        mdthodPC=  6: Additive Schwarz
-!        mdthodPC=  7: Linear solver
-!        mdthodPC=  8: Combination of preconditioners
-!        mdthodPC=  9: LU
-!        mdthodPC= 10: Cholesky
-!        mdthodPC= 11: No preconditioning
-!        mdthodPC= 12: Shell for user-defined PC
+!        methodPC=  0: Jacobi
+!        methodPC=  1: Block Jacobi
+!        methodPC=  2: SOR
+!        methodPC=  3: SOR with Eisenstat trick
+!        methodPC=  4: Incomplete Cholesky
+!        methodPC=  5: Incomplete LU
+!        methodPC=  6: Additive Schwarz
+!        methodPC=  7: Linear solver
+!        methodPC=  8: Combination of preconditioners
+!        methodPC=  9: LU
+!        methodPC= 10: Cholesky
+!        methodPC= 11: No preconditioning
+!        methodPC= 12: Shell for user-defined PC
 
 !  Assemble matrix, using the 2-step process:
 !       MatAssemblyBegin(), MatAssemblyEnd()

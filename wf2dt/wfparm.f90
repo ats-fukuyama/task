@@ -151,7 +151,8 @@ CONTAINS
   
     use wfcomm
     implicit none
-    integer :: NA,NS,NC
+    integer :: NA,NS,NC,ID
+    REAL(8):: RZCL(NSMAX)
 
     write(6,*) '*** USED PARAMETERS ***'
     write(6,'(A8,1PE11.3:2X,A7,1PE11.3:2X,A7,1PE11.3)') &
@@ -204,10 +205,16 @@ CONTAINS
           ENDDO
        CASE(2)
           DO NS=1,NSMAX
-           WRITE(6,610) NS,PA(NS),PZ(NS),PN(NS),PNS(NS),PZCL(NS)
-        ENDDO
-     END SELECT
-  ENDIF
+             WRITE(6,610) NS,PA(NS),PZ(NS),PN(NS),PNS(NS),PZCL(NS)
+          ENDDO
+       END SELECT
+
+       ID=0
+       DO NS=1,NSMAX
+          IF(PZCL(NS).EQ.0.D0) ID=1
+       END DO
+       IF(ID.NE.0) CALL WFCOLL(PN,PTPR,PTPP,RZCL,1)
+    ENDIF
 
   IF(MODELG.EQ.0) THEN
      WRITE(6,601) 'br_c1 ',br_corner(1),'br_c2 ',br_corner(2), &

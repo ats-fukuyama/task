@@ -202,7 +202,7 @@ SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
      DO NS=1,NSMAXL
         RTPP(NS)=RTPR(NS)
      END DO
-     CALL WFCOLL(rn,rtpr,rtpp,rzcl)
+     CALL WFCOLL(rn,rtpr,rtpp,rzcl,0)
   END SELECT
   RETURN
 END SUBROUTINE WFSDEN
@@ -249,7 +249,7 @@ SUBROUTINE WFSDEN0(R,Z,RN,RTPR,RTPP,RZCL)
                 +(ptpp_corner(3,ns)-ptpp_corner(1,ns))*zfactor**2
      END DO
   END SELECT
-  CALL WFCOLL(rn,rtpr,rtpp,rzcl)
+  CALL WFCOLL(rn,rtpr,rtpp,rzcl,0)
 
   RETURN
 END SUBROUTINE WFSDEN0
@@ -296,7 +296,7 @@ SUBROUTINE WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
 
   ! --- set collision frequency ---
   
-  CALL WFCOLL(rn,rtpr,rtpp,rzcl)
+  CALL WFCOLL(rn,rtpr,rtpp,rzcl,0)
 
 !  WRITE(6,*) 'ZND= ',ZND(IN)
 !  WRITE(6,*) 'RN = ',RN(1),RN(2)
@@ -309,10 +309,12 @@ SUBROUTINE WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
   RETURN
 END SUBROUTINE WFSDEN2
 
-SUBROUTINE WFCOLL(rn,rtpr,rtpp,rzcl)
+SUBROUTINE WFCOLL(rn,rtpr,rtpp,rzcl,id)
   USE wfcomm
   IMPLICIT NONE
-  REAL(8),DIMENSION(NSM):: rn,rtpr,rtpp,rzcl
+  REAL(8),INTENT(IN):: rn(NSM),rtpr(NSM),rtpp(NSM)
+  REAL(8),INTENT(OUT):: rzcl(NSM)
+  INTEGER,INTENT(IN):: id  ! id=0 without output, id=1 with output
   REAL(8):: TE,TI,RNTI,RNZI,RLAMEE,RLAMEI,RLAMII,SN,PNN0
   REAL(8):: VTE,RNUEE,RNUEI,RNUEN,RNUE
   REAL(8):: VTI,RNUIE,RNUII,RNUIN,RNUI
@@ -345,6 +347,15 @@ SUBROUTINE WFCOLL(rn,rtpr,rtpp,rzcl)
               RNUEN=PNN0*SN*0.88D0*VTE
               RNUE=RNUEE+RNUEI+RNUEN
               RZCL(NS)=RNUE/(2.D6*PI*RF)
+              IF(ID.NE.0) THEN
+                 WRITE(6,'(A,1P3E12.4)') &
+                      'PPN0,PTN0,PNN0    =',PPN0,PTN0,PNN0
+                 WRITE(6,'(A,I12,1P4E12.4)') &
+                      'NS,RN,PTPR,PTPP,TE=',NS,RN(1),PTPR(1),PTPP(1),TE
+                 WRITE(6,'(A,1P5E12.4)') &
+                      'RNUEE/I/N/TOT/RZCL=', &
+                      RNUEE,RNUEI,RNUEN,RNUE,RZCL(1)
+              END IF
            ELSE
               TI=(RTPR(NS)+2.D0*RTPP(NS))*1.D3/3.D0
               VTI=SQRT(2.D0*TI*AEE/(PA(NS)*AMP))
@@ -355,6 +366,14 @@ SUBROUTINE WFCOLL(rn,rtpr,rtpp,rzcl)
               RNUIN=PNN0*SN*0.88D0*VTI
               RNUI=RNUIE+RNUII+RNUIN
               RZCL(NS)=RNUI/(2.D6*PI*RF)
+              IF(ID.NE.0) THEN
+                 WRITE(6,'(A,I12,1P4E12.4)') &
+                      'NS,RN,RTPR,RTPP,TI=', &
+                      NS,RN(NS),PTPR(NS),PTPP(NS),TI
+                 WRITE(6,'(A,1P5E12.4)') &
+                      'RNUIE/I/N/TOT/RZCL=', &
+                      RNUIE,RNUII,RNUIN,RNUI,RZCL(NS)
+              END IF
            ENDIF
         ELSE
            RZCL(NS)=PZCL(NS)

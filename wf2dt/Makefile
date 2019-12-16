@@ -62,7 +62,10 @@ clean:
 	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
 
 veryclean: clean
-	rm -f wf testin 
+	rm -f wf testin
+
+rnu:	rnu.o
+	$(FCFREE) rnu.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 wfcomm.o: wfcomm.f90 ../pl/plcomm.f90
 wfmain.o: wfmain.f90 wfcomm.f90
@@ -90,3 +93,4 @@ wflib.o: wflib.f90 wfcomm.f90
 	$(FCFREE) $(LFLAGS) -c $< $(MODDIR) $(MODINCLUDE)
 wfbes.o: wfbes.f90
 	$(FCFREE) $(LFLAGS) -c $< 
+rnu.o: rnu.f90
