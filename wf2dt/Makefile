@@ -64,9 +64,6 @@ clean:
 veryclean: clean
 	rm -f wf testin
 
-rnu:	rnu.o
-	$(FLINKER) rnu.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
-
 wfcomm.o: wfcomm.f90 ../pl/plcomm.f90
 wfmain.o: wfmain.f90 wfcomm.f90
 wfmenu.o: wfmenu.f90 wfcomm.f90
@@ -93,4 +90,3 @@ wflib.o: wflib.f90 wfcomm.f90
 	$(FCFREE) $(LFLAGS) -c $< $(MODDIR) $(MODINCLUDE)
 wfbes.o: wfbes.f90
 	$(FCFREE) $(LFLAGS) -c $< 
-rnu.o: rnu.f90

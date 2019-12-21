@@ -4,10 +4,10 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f90 .f .mod .o .a
 
-#FFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS)
+FFLAGS = $(OFLAGS)
+#FFLAGS = $(DFLAGS)
 
-MODINCLUDE=-I ../lib/mod -I $(MOD)
+MODINCLUDE=-I ../../bpsd/mod -I ../lib/mod -I $(MOD)
 
 SRCS = wfinit.f wfdiv.f wfzone.f wfant.f \
        wfwave.f wfevol.f wfgout.f \

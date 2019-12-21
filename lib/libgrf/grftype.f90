@@ -57,7 +57,7 @@ MODULE grftype
      REAL(4):: XSCALE_SIZE,YSCALE_SIZE,FSCALE_SIZE ! Scale length or grid pat.
      INTEGER:: XSCALE_TYPE,YSCALE_TYPE,FSCALE_TYPE ! Scale type (0 for grid)
      INTEGER:: XSCALE_LTYPE,YSCALE_LTYPE,FSCALE_LTYPE ! Scale type for log plot
-     INTEGER:: XSCALE_ZERO,YSCALE_ZERO,FSCALE_ZERO ! /= for origin grid
+     INTEGER:: XSCALE_ZERO,YSCALE_ZERO,FSCALE_ZERO ! /=0 for origin grid
      INTEGER:: XSCALE_ZERO_PAT,YSCALE_ZERO_PAT,FSCALE_ZERO_PAT ! org grid pat
      INTEGER:: VALUE_FONT   ! Value font type
      REAL(4):: VALUE_SIZE   ! Value font size

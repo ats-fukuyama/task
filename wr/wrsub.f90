@@ -4,7 +4,7 @@ MODULE wrsub
 
   PRIVATE
   PUBLIC wr_cold_rkr0,wrmodconv,wrnwtn,wrmodnwtn,dispfn,dispxr,dispxi, &
-         wrcale,wrcale_i,wrcalk
+         wrcale,wrcalep,wrcale_i,wrcalk
 
 CONTAINS
 
@@ -237,6 +237,7 @@ CONTAINS
   SUBROUTINE WRNWTN(IERR)
 
     USE wrcomm
+    USE dppola
     IMPLICIT NONE
 !    REAL(rkind),INTENT(IN):: RKR0
 !    REAL(rkind),INTENT(IN):: RKZI,RKPHII
@@ -244,6 +245,8 @@ CONTAINS
     INTEGER,INTENT(OUT):: IERR
     INTEGER:: ICOUNT
     REAL(rkind):: OMG,S,T,RKR,XP,YP,ZP,RKXP,RKXP1,RKXP2,RKYP,RKYP1,RKYP2,RKZP
+    COMPLEX(rkind):: cdet(3,3),cepola(3),CRF,CKX,CKY,CKZ
+    REAL(rkind):: err
 
       IERR=0
       OMG=2.D6*PI*RF
@@ -301,9 +304,19 @@ CONTAINS
       RKRI=RKR
       GOTO 10
 
- 8000 WRITE(6,*) ' WRNWTN: DOES NOT CONVERGE'
+8000  WRITE(6,*) ' WRNWTN: DOES NOT CONVERGE'
       IERR=1000
- 9000 RETURN   
+9000  CONTINUE
+      CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
+      CKX=RKXP
+      CKY=RKYP
+      CKZ=RKZP
+      CALL dp_pola(crf,ckx,cky,ckz,xp,yp,zp,cdet,cepola,err)
+      WRITE(6,'(A,1P2E12.4)') 'CRF=',crf
+      WRITE(6,'(A,1P6E12.4)') 'K,X=',rkxp,rkyp,rkzp,xp,yp,zp
+      WRITE(6,'(A,1P6E12.4)') 'cep=',cepola(1),cepola(2),cepola(3)
+      WRITE(6,'(A,1PE12.4)')  'err=',err
+      RETURN   
   END SUBROUTINE WRNWTN
 
 !  ----- calculate wave number satifying D=0 -----
@@ -608,6 +621,80 @@ CONTAINS
 
       RETURN
   END SUBROUTINE WRCALE
+
+!  ----- calculate polarization along ray -----
+
+  SUBROUTINE wrcalep(nstp,nray,cepola,cenorm,err)
+
+    USE wrcomm
+    USE plprof,ONLY: pl_mag_type,pl_mag
+    USE dppola,ONLY: dp_pola
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: nstp,nray
+    COMPLEX(rkind),INTENT(OUT):: cepola(3),cenorm(3)
+    REAL(rkind),INTENT(OUT):: err
+    TYPE(pl_mag_type):: mag
+    REAL(rkind):: x,y,z,rkx,rky,rkz,rk
+    REAL(rkind):: bnx,bny,bnz,knx,kny,knz,r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z
+    REAL(rkind):: en1,en2,en3
+    COMPLEX(rkind):: crf,ckx,cky,ckz,cdet(3,3),cphase
+
+    x=rays(1,nstp,nray)
+    y=rays(2,nstp,nray)
+    z=rays(3,nstp,nray)
+    rkx=rays(4,nstp,nray)
+    rky=rays(5,nstp,nray)
+    rkz=rays(6,nstp,nray)
+    CALL pl_mag(x,y,z,mag)
+
+    crf=rfin(nray)
+    ckx=rkx
+    cky=rky
+    ckz=rkz
+    CALL dp_pola(crf,ckx,cky,ckz,x,y,z,cdet,cepola,err)
+
+    bnx=mag%bnx
+    bny=mag%bny
+    bnz=mag%bnz
+    rk=sqrt(rkx**2+rky**2+rkz**2)
+    knx=rkx/rk
+    kny=rky/rk
+    knz=rkz/rk
+
+    r3x=knx              ! r3 = bn
+    r3y=kny
+    r3z=knz
+    r2x=bny*knz-bnz*kny  ! r2 = bn x kn
+    r2y=bnz*knx-bnx*knz
+    r2z=bnx*kny-bny*knx
+    r1x=r2y*r3z-r2z*r3y  ! r1 = r2 x r3
+    r1y=r2z*r3x-r2x*r3z
+    r1z=r2x*r3y-r2y*r3x
+
+    cenorm(1)=cepola(1)*r1x+cepola(2)*r1y+cepola(3)*r1z  ! O : plane on B and k
+    cenorm(2)=cepola(1)*r2x+cepola(2)*r2y+cepola(3)*r2z  ! X : perp to B and k
+    cenorm(3)=cepola(1)*r3x+cepola(2)*r3y+cepola(3)*r3z  ! P : parallel to B
+    en1=ABS(cenorm(1))
+    en2=ABS(cenorm(2))
+    en3=ABS(cenorm(3))
+    IF(en1.GE.en2) THEN
+       IF(en1.GE.en3) THEN
+          cphase=CONJG(cenorm(1)/en1)
+       ELSE
+          cphase=CONJG(cenorm(3)/en3)
+       END IF
+    ELSE
+       IF(en2.GE.en3) THEN
+          cphase=CONJG(cenorm(2)/en2)
+       ELSE
+          cphase=CONJG(cenorm(3)/en3)
+       END IF
+    END IF
+    cenorm(1)=cenorm(1)*cphase
+    cenorm(2)=cenorm(2)*cphase
+    cenorm(3)=cenorm(3)*cphase
+    RETURN
+  END SUBROUTINE wrcalep
 
 !  ----- calculate wave number along ray -----
 

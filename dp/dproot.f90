@@ -252,12 +252,13 @@ CONTAINS
   SUBROUTINE DP_ROOT
 
     USE dpcomm_local
+    USE dppola
     IMPLICIT NONE
     REAL(4),DIMENSION(:),ALLOCATABLE::  GX,GY,GY2
     REAL(4),DIMENSION(:,:),ALLOCATABLE:: GXA,GYA,GY2A
     INTEGER,DIMENSION(:),ALLOCATABLE::  NGXMAXA
-    REAL(rkind):: RFX,RFIX,DKX,DKY,DKZ,DXPOS,RKXX,RKXIX
-    COMPLEX(rkind):: CRF,CKX
+    REAL(rkind):: RFX,RFIX,DKX,DKY,DKZ,DXPOS,RKXX,RKXIX,err
+    COMPLEX(rkind):: CRF,CKX,cdet(3,3),cepola(3)
     REAL(4):: GUCLIP
     INTEGER:: NX,ISW,I,IGMAX
 
@@ -269,6 +270,8 @@ CONTAINS
     IF(ISW.EQ.0) GOTO 9000
     RFX=RF0
     RFIX=RFI0
+    RKXX=RKX0
+    RKXIX=0.D0
 
     IF(ISW.EQ.1) THEN
 2      WRITE(6,'(A,1P2E12.4)') ' INPUT : RFX,RFIX: ',RFX,RFIX
@@ -282,7 +285,11 @@ CONTAINS
        ZPOS0=RZ0
        CRF=DCMPLX(RFX,RFIX)
        CALL DPBRENT1(CRF)
-       WRITE(6,*) CRF
+       CALL dp_pola(crf,ckx0,cky0,ckz0,xpos0,ypos0,zpos0,cdet,cepola,err)
+       WRITE(6,'(A,1P2E12.4)') 'CRF=',CRF
+       WRITE(6,'(A,1P6E12.4)') 'CE= ',cepola(1),cepola(2),cepola(3)
+       WRITE(6,'(A,1PE12.4)')  'err=',err
+       
        GOTO 2
     ELSEIF(ISW.EQ.2) THEN
 202    WRITE(6,'(A,1P2E12.4,I5)') &
@@ -379,7 +386,7 @@ CONTAINS
 602    WRITE(6,'(A,1P2E12.4)') ' INPUT : RKX,RKXI: ',RKXX,RKXIX
        READ(5,*,ERR=602,END=1) RKXX,RKXIX
        ILIST=1
-       CRF0=DCMPLX(RF0,0.D0)
+       CRF0=DCMPLX(RF0,RFI0)
        CKY0=RKY0
        CKZ0=RKZ0
        XPOS0=RX0
@@ -387,7 +394,10 @@ CONTAINS
        ZPOS0=RZ0
        CKX=DCMPLX(RKXX,RKXIX)
        CALL DPBRENT2(CKX)
-       WRITE(6,*) CKX
+       CALL dp_pola(crf0,ckx,cky0,ckz0,xpos0,ypos0,zpos0,cdet,cepola,err)
+       WRITE(6,'(A,1P2E12.4)') 'CKX=',CKX
+       WRITE(6,'(A,1P6E12.4)') 'CE= ',cepola(1),cepola(2),cepola(3)
+       WRITE(6,'(A,1PE12.4)')  'err=',err
        GOTO 602
     ELSEIF(ISW.EQ.7) THEN
 702    WRITE(6,'(A,1P2E12.4,I5)') &
@@ -481,7 +491,7 @@ CONTAINS
     X(2)=DIMAG(CX)
 
     CALL FBRENTN(DPFUNC1,NBRMAX,X,F,EPSRT,INFO,WA,LWA)
-    IF(INFO.GE.1.AND.INFO.LE.3) THEN
+    IF(INFO.LT.1.OR.INFO.GT.3) THEN
        X(1)=RF0
        X(2)=RFI0
     ENDIF

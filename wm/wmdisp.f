@@ -346,7 +346,7 @@ C           NS : PARTICLE SPECIES
 C
       USE plprof,ONLY: pl_mag_type
       USE plprofw,ONLY: pl_profw,pl_plfw_type
-      USE dpdisp,ONLY: dp_calc
+      USE dpdisp,ONLY: dp_dtns_pzp
       INCLUDE 'wmcoml.inc'
       TYPE(pl_mag_type):: mag
       TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
@@ -452,7 +452,7 @@ C            UYY2=0.D0
 C
             CKPR=RKPR
             CKPP=RKPP
-            CALL DP_CALC(CW,CKPR,CKPP,NS,mag,plfw,CDTNS)
+            CALL dp_dtns_pzp(CW,CKPR,CKPP,NS,mag,plfw,CDTNS)
 C
 C      IF(NR.EQ.1.AND.
 C     &   MD.EQ.0.AND.

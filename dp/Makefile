@@ -25,7 +25,8 @@ MODINCLUDE= -I $(MOD) -I../pl/$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD) -I../mt
 
 SRCS = dpcomm.f90 dpinit.f90 dpfpin.f90 dpparm.f90 \
        dphotf.f90 dphotr.f90 \
-       dptnsr1.f90 dptnsr2.f90 dptnsr3.f90 dptnsr4.f90 dptnsr0.f90 dpdisp.f90 \
+       dptnsr1.f90 dptnsr2.f90 dptnsr3.f90 dptnsr4.f90 dptnsr0.f90 \
+       dpdisp.f90 dppola.f90 \
        dpgsub.f90 dpglib.f90 dproot.f90 dpcont.f90 dpcont4.f90 \
        dpmenu.f90	
 
@@ -61,6 +62,12 @@ libs:
 dp : $(LIBS) dpmain.o
 	$(FLINKER) dpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
+rnu:	rnu.o
+	$(FLINKER) rnu.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
+
+freq:	freq.o
+	$(FLINKER) freq.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
+
 clean:
 	-rm -f core a.out *.o *.a ./*~ $(MOD)/*.mod
 
@@ -90,3 +97,6 @@ dpdkdt.o: dpdkdt.f90 $(DPCOMM)
 dpgsub.o: dpgsub.f90
 dpmenu.o: dpmenu.f90 $(DPCOMM) $(PLPROF)
 dpmain.o: dpmain.f90 $(DPCOMM)
+
+rnu.o: rnu.f90
+freq.o: freq.f90
