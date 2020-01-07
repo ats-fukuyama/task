@@ -387,10 +387,8 @@ CONTAINS
       INTEGER,INTENT(OUT) :: IERR
       integer:: IDGLOB
 
-      write(6,*) '--- point 101'
       CALL TRCALC(IERR)
       IF(IERR.ne.0) RETURN
-      write(6,*) '--- point 102'
 
       IDGLOB=0
       IF(MOD(NT,NTSTEP).EQ.0) THEN
@@ -409,7 +407,6 @@ CONTAINS
          IDGLOB=1
          CALL TRATOG
       ENDIF
-      write(6,*) '--- point 103'
       IERR=0
       RETURN
     END SUBROUTINE tr_eval

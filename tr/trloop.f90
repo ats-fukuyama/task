@@ -24,11 +24,9 @@ CONTAINS
       INTEGER(4):: IERR,nr
       REAL(8)   :: FCTR
 
-      write(6,*) '--- point 1'
       IF(NT.GE.NTMAX) GOTO 9000
       CALL tr_eval(NT,IERR)
       IF(IERR.NE.0) GOTO 9000
-      write(6,*) '--- point 11'
 
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
@@ -39,17 +37,14 @@ CONTAINS
          write(6,'(A,1P4E12.4)') "**RIP,RIPS,RIPE,DIP=",RIP,RIPS,RIPE,DIPDT
       ENDIF
 
-      write(6,*) '--- point 12'
       call tr_bpsd_get(ierr)
       if(ierr.ne.0) GOTO 9000
 
  1000 CONTINUE
-      write(6,*) '--- point 2'
 
       CALL tr_exec(DT,IERR)
       IF(IERR.NE.0) GOTO 9000
 
-      write(6,*) '--- point 3'
       DO nr=1,nrmax
          QPINV(nr)=(4.D0*PI**2*RDPVRHOG(nr))/(TTRHOG(nr)*ARRHOG(nr))
       END DO
