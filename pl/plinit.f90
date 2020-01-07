@@ -361,6 +361,7 @@
 !        KNAMFP: Filename of Fokker-Planck data
 !        KNAMFO: Filename of File output
 !        KNAMPF: Filename of profile data
+!        KNAMTR: Filename of transport data
 
       KNAMEQ = 'eqdata'
       KNAMWR = 'wrdata'
@@ -368,6 +369,7 @@
       KNAMFP = 'fpdata'
       KNAMFO = 'fodata'
       KNAMPF = 'pfdata'
+      KNAMTR = 'trdata'
 
 !     ======( FILE IO MODES )======
 

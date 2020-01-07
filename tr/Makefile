@@ -54,8 +54,8 @@ OBJTR=$(OBJM) $(OBJE) $(OBJL) $(OBJNC) $(OBJCYT) $(OBJMMM) $(OBJMBGB) $(OBJS)
 OBJ2D=$(SRC2D:.f90=.o)
 OBJ3D=$(SRC3D:.f90=.o)
 
-LIBS2=../lib/libtask.a ../lib/libmds.a $(PLLIBS) $(EQLIBS) libtr2.a
-LIBS3=../lib/libtask.a ../lib/libmds.a $(PLLIBS) $(EQLIBS) libtr3.a  
+LIBS2=libtr2.a $(EQLIBS) $(PLLIBS) ../lib/libmds.a ../lib/libtask.a
+LIBS3=libtr3.a $(EQLIBS) $(PLLIBS) ../lib/libmds.a ../lib/libtask.a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -89,13 +89,13 @@ libs:
 	(cd ../eq; make libeq.a)
 
 tr2: $(LIBS2) trmain.o 
-	$(FCFREE) trmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(MODULE) $(MODO) $(MODINCLUDE)
+	$(FCFREE) trmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(MODINCLUDE)
 
 tr3: $(LIBS3) trmain.o 
 	$(FCFREE) trmain.o $(LIBS3) -o $@ $(FFLAGS) $(FLIBS) $(MODINCLUDE)
 
 xtr: $(LIBS2) xtr.o 
-	$(FCFREE) xtr.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(MODULE) $(MODO) $(MODINCLUDE)
+	$(FCFREE) xtr.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(MODINCLUDE)
 
 check : $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRCNC) $(FCKPIPE) | less

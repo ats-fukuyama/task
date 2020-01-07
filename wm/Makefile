@@ -58,7 +58,7 @@ libs:
 	(cd ../eq; make libeq.a)
 	(cd ../dp; make libdp.a)
 
-wm : $(LIBS) wmmain.o
+wm : libs libwm.a wmmain.o
 	$(FLINKER) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean:

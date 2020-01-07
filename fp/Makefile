@@ -38,7 +38,7 @@ OBJS = $(SRCS:.f90=.o)
 LIBS = libfp.a ../pl/libpl.a ../eq/libeq.a  \
         ../lib/libtask.a ../../bpsd/libbpsd.a
 
-all: libs fp
+all: fp
 
 libfp.a: $(OBJS)
 	$(LD) $(LDFLAGS) libfp.a $(OBJS)
@@ -59,7 +59,7 @@ libs:
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
 
-fp : $(LIB_MTX) $(LIBS) fpmain.o 
+fp : libs libfp.a fpmain.o 
 	$(FLINKER) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean :

@@ -55,15 +55,19 @@ libs:
 	(cd ../../bpsd; make libbpsd.a)
 	(cd ../pl; make libpl.a)
 
-eq: $(LIBS2) eqmain.o
+eq: libs libeq.a eqmain.o
 	$(FCFIXED) eqmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
-eq3: $(LIBS3) eqmain.o
+
+eq3: libs libeq3.a eqmain.o
 	$(FCFIXED) eqmain.o $(LIBS3) -o $@ $(FFLAGS) $(FLIBS)
-tr : $(LIBS2) $(OBJT)
+
+tr : libs libeq.a $(OBJT)
 	$(FCFIXED) $(OBJT) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
-pl : $(LIBS2) $(OGJP)
+
+pl : libs libeq.a $(OGJP)
 	$(FCFIXED) $(OBJP) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
-ak : $(LIBS2) $(OBJA)
+
+ak : libs libeq.a $(OBJA)
 	$(FCFIXED) $(OBJA) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
 
 check : $(SRCS)
@@ -81,12 +85,6 @@ clean:
 
 veryclean: clean
 	rm -f eq pl ak
-
-new:
-	-mkdir ../eqnew
-	cp -f Makefile ../eqnew
-	cp -f *.f ../eqnew
-	cp -f *.inc ../eqnew
 
 EQCOMM = eqcom0.inc eqcom1.inc
 

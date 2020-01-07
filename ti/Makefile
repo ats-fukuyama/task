@@ -46,7 +46,7 @@ OBJS=$(SRCS:.f90=.o)
 LIBS=libti.a ../adpost/lib-adpost.a ../open-adas/adf11/adf11-lib/lib-adf11.a ../eq/libeq.a ../pl/libpl.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
 
-all: libs ti
+all: ti
 
 libti.a: $(OBJS)
 	$(LD) $(LDFLAGS) $@ $(OBJS)
@@ -61,8 +61,6 @@ libti.a: $(OBJS)
 	(cd ../pl; make libpl.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
-$(LIB_MTX):
-	(cd ../mtxp; make)
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
 
@@ -76,7 +74,7 @@ libs:
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
 
-ti: $(LIB_MTX) $(LIBS) timain.o 
+ti: libs libti.a timain.o 
 	$(FLINKER) timain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean : 

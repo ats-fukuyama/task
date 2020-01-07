@@ -25,7 +25,7 @@ OBJO = $(SRCO:.f=.o)
 
 LIBS = libpl.a ../eq/libeq.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
-all : libpl.a  noeqlib.o noequlib.o pl
+all : pl
 
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
@@ -41,7 +41,7 @@ libs:
 	(cd ../../bpsd; make libbpsd.a)
 	(cd ../eq; make libeq.a)
 
-pl : $(LIBS) plmain.o
+pl : libs libpl.a plmain.o
 	$(FCFIXED) plmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 check :

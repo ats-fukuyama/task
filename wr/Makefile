@@ -57,10 +57,10 @@ libs:
 	(cd ../eq; make libeq.a)
 	(cd ../dp; make libdp.a)
 
-testf: $(LIBS) test.o
+testf: libs test.o
 	$(FLINKER) test.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
-wr : $(LIBS) wrmain.o
+wr : libs wrmain.o
 	$(FLINKER) wrmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean:

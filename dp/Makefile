@@ -35,8 +35,8 @@ SRCSX = dpdkdt.f dptestk.f
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = ../lib/libtask.a ../../bpsd/libbpsd.a ../pl/libpl.a \
-       ../eq/libeq.a libdp.a 
+LIBS = libdp.a ../eq/libeq.a ../pl/libpl.a ../lib/libtask.a \
+       ../../bpsd/libbpsd.a 
 
 all : dp
 
@@ -59,7 +59,7 @@ libs:
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
 
-dp : $(LIBS) dpmain.o
+dp : libs libdp.a dpmain.o
 	$(FLINKER) dpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 rnu:	rnu.o
