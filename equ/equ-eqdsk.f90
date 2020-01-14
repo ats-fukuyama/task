@@ -52,14 +52,14 @@ CONTAINS
 
     rdim=rwmx-rwmn
     zdim=2.D0*zwmx
-    rctr=0.5D0*(rwmx+rwmn)
+    rctr=rmaj
     rleft=rwmn
     zmid=0.D0
-    WRITE(6,'(A,1P4E12.4)') 'rz/minmax:',rmin,rmax,zmin,zmax
-    WRITE(6,'(A,1P4E12.4)') 'rz/dimctr:',rdim,zdim,rctr,zmid
-    WRITE(6,'(A,1P3E12.4)') 'rzs/axis: ',raxis,zaxis,saxis
+!    WRITE(6,'(A,1P4E12.4)') 'rz/minmax:',rmin,rmax,zmin,zmax
+!    WRITE(6,'(A,1P4E12.4)') 'rz/dimctr:',rdim,zdim,rctr,zmid
+!    WRITE(6,'(A,1P3E12.4)') 'rzs/axis: ',raxis,zaxis,saxis
     WRITE(neqdsk,2020) rdim,zdim,rctr,rleft,zmid
-    bctr=btv/rmaj
+    bctr=btv/rctr
     WRITE(neqdsk,2020) raxis,zaxis,saxis,0.D0,bctr
     WRITE(neqdsk,2020) tcur*1.D6,saxis,xdum,raxis,xdum
     WRITE(neqdsk,2020) zaxis,xdum,0.D0,xdum,xdum
@@ -100,8 +100,8 @@ CONTAINS
        ffprime(nps)=pf*dpf*dpv
        CALL SPL1DF(pv,qpsi(nps),vlv,uqqv,nv,ierr)
        IF(ierr.NE.0) GOTO 9090
-       WRITE(6,'(A,I5,1P5E12.4)') &
-            'nps=',nps,ps,pres(nps),pprime(nps),fpol(nps),ffprime(nps)
+!       WRITE(6,'(A,I5,1P5E12.4)') &
+!            'nps=',nps,ps,pres(nps),pprime(nps),fpol(nps),ffprime(nps)
     END DO
        
     WRITE(neqdsk,2020) (fpol(nps),nps=1,npsmax)
@@ -119,7 +119,7 @@ CONTAINS
 
     WRITE(neqdsk,2020) (qpsi(nps),nps=1,npsmax)
 
-    WRITE(neqdsk,2022) nsumax,ilimt
+    WRITE(neqdsk,2022) nsu,ilimt
     WRITE(neqdsk,2020) (rsu(isu),zsu(isu),isu=1,nsu)
     WRITE(neqdsk,2020) (rlimt(ilim),zlimt(ilim),ilim=1,ilimt)
 
@@ -130,6 +130,7 @@ CONTAINS
     DEALLOCATE(pres,pprime,fpol,ffprime,qpsi)
     REWIND(neqdsk)
     CLOSE(neqdsk)
+    WRITE(6,*) '-- equ-eqdsk-data wrriten in ',TRIM(KNAMEQ)
     RETURN
 
 9010 WRITE(6,*) 'XX equ_efit: SPL1D(siv,vlv...): ierr=',ierr

@@ -19,7 +19,13 @@ c=======================================================================
 c
       integer id,i,idx
       character kid*4,kid1*1
-c
+
+C      write(6,'(A,1P2E12.4)') 'saxis=',saxis
+C      DO i=1,nv
+C         write(6,'(i5,1P6E12.4)')
+C     &        i,vlv(i),siv(i),hiv(i),prv(i),pds(i),qqv(i)
+C      END DO
+      
     1 continue
       write(6,*) '## input graph kid: Ann,Bnn,Cnn,Dn,Pn,X'
       read(5,'(A4)',ERR=1,END=9000) kid
@@ -95,12 +101,10 @@ c=======================================================================
 c
       integer id,ipos
 c
-      if(id.ge.21.and.id.le.40) then
-         rovv(1)=0.d0
-         do n=2,nv
-            rovv(n)=sqrt(hiv(n)/hiv(nv))
-         enddo
-      endif
+      rovv(1)=0.d0
+      do n=2,nv
+         rovv(n)=sqrt(hiv(n)/hiv(nv))
+      enddo
 c
       if(id.eq. 1) call eqgr1d(ipos,hiv,vlv,nv,'@volume(psi_t)@')
       if(id.eq. 2) call eqgr1d(ipos,hiv,arv,nv,'@area(psi_t)@')

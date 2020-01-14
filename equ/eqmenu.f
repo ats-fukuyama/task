@@ -5,6 +5,7 @@ C
       use eqgout_mod
       use equunit_mod
       use trunit_mod
+      use equ_eqdsk
       public
       contains
 c
@@ -29,7 +30,7 @@ c
          ierr=0
          write(6,601) 
   601    format('## eq menu: R/RUN  C/CONT  P,V,F/PARM  G/GRAPH',
-     &                  '  S,L,K/FILE  Q/QUIT')
+     &                  '  S,L,E,K/FILE  Q/QUIT')
 c
          call task_klin(line,kid,mode,eqparm)
       if(mode.ne.1) goto 1
@@ -63,7 +64,6 @@ c
 c
       elseif(kid.eq.'S') then
          call equ_save
-c
       elseif(kid.eq.'L') then
 c         call ktrim(knameq,kl)
 c   10    write(6,*) '#equ> input : eqdata file name : ',knameq(1:kl)
@@ -86,6 +86,8 @@ c         call eqread(0,ierr)
 c         if(ierr.ne.0) goto 11
 c         mstat=2
 c
+      elseif(kid.eq.'E') then
+         CALL equ_eqdsk_write(ierr)
       else if(kid.eq.'X'.or.kid.eq.'#') then
          continue
       elseif(kid.eq.'Q') then

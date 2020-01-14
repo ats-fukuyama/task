@@ -7,8 +7,8 @@ include ../make.header
 #FFLAGS = -g $(OFLAGS)
 FFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD) -I../eq/$(MOD) \
-	    -I../pl/$(MOD)
+MODINCLUDE= -I../../bpsd/$(MOD) -I../lib/$(MOD) -I../eq/$(MOD) \
+	    -I../pl/$(MOD) -I$(MOD)
 EQLIBS=../eq/libeq.a
 PLLIBS=../../bpsd/libbpsd.a ../pl/libpl.a 
 

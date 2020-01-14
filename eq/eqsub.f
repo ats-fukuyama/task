@@ -34,7 +34,7 @@ C
          ZMIN=ZGMIN
       ENDIF
 C
-C      write(6,'(1P4E12.4)') RMAX,RMIN,ZMAX,ZMIN
+C      write(6,'(1P6E12.4)') RAXIS,RMIN,RMAX,ZAXIS,ZMIN,ZMAX
 C
       IF(RAXIS.LE.RMAX.AND.
      &   RAXIS.GE.RMIN.AND.

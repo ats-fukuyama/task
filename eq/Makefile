@@ -9,7 +9,7 @@ MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD) -I../lib/$(MOD)
 SRCX = equcom.f90 equread.f90
 SRCS = eqbpsd.f eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f \
        eqsub.f eqfunc.f eqintf.f eqsplf.f equintf.f \
-       eqf-efit.f eqf-qst.f eqfile.f \
+       eq-eqdsk.f eq-qst.f eqfile.f \
        eqgout.f eqgsub.f \
        newton.f invematrix.f equnit.f eqrppl.f
 SRCT = trtest.f treqin.f
@@ -98,6 +98,8 @@ eqsub.o : eqsub.f  $(EQCOMM) eqcom2.inc
 eqfunc.o: eqfunc.f $(EQCOMM) eqcom2.inc eqcom4.inc
 eqsplf.o: eqsplf.f $(EQCOMM) eqcom3.inc
 eqfile.o: eqfile.f $(EQCOMM) eqcom2.inc
+eq-eqdsk.o: eq-eqdsk.f $(EQCOMM) eqcom2.inc
+eq-qst.o: eq-qst.f $(EQCOMM) eqcom2.inc
 eqintf.o: eqintf.f $(EQCOMM) eqcom2.inc
 eqgout.o: eqgout.f $(EQCOMM) eqcom2.inc eqcom3.inc
 eqbpsd.o: eqbpsd.f $(EQCOMM) eqcom3.inc

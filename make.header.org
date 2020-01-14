@@ -102,14 +102,26 @@ GLLIBS=-L/usr/local/lib -lgsgl
 ## for macos pgf95 EM64T lib
 #GFLIBS=-L/usr/local/lib -lg3d-pgf64 -lgsp-pgf64 -lgdp-pgf64 -L/opt/X11/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-pgf64
-#OFLAGS = -O3 -Mbyteswapio -m64
-#DFLAGS = -g -Mbounds -Minform,inform -Ktrap=fp,unf,denorm -Mbyteswapio -traceback -m64
+#OFLAGS = -O3 -m64
+#DFLAGS = -g -Mbounds -Minform,inform -Ktrap=fp,unf,denorm -traceback -m64
 #FCFIXED = pgfortran
 #FCFREE  = pgfortran
 #MOD = mod
 #MODDIR = -module mod
 #LD=ld
 #LDFLAGS=-r -o
+
+## for Cray fortran (JFRS-1)
+#GFLIBS=-L$(HOME)/lib -lg3d -lgsp -lgdum
+#OFLAGS = 
+#DFLAGS = -g -K trap=divz,fp -Rb 
+#FCFIXED = ftn -f fixed -hnoomp
+#FCFREE = ftn -f free -hnoomp
+#MOD = mod
+#MODDIR = -Jmod
+#LD=ld
+#LDFLAGS=-r -o
+#MFC = ftn
 
 FLIBS = $(GFLIBS) $(MDSLIB) $(LIBLA)
 #FLIBS = $(GLLIBS) $(MDSLIB) $(LIBLA)
