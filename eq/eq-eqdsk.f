@@ -17,7 +17,7 @@ c
       REWIND(neqdsk)
       read (neqdsk,2000) (case(i),i=1,6),idum,NRGMAX,NZGMAX
       NPSMAX=NRGMAX
-      read (neqdsk,2020) rdim,zdim,RR,rleft,zmid
+      read (neqdsk,2020) rdim,zdim,Rctr,rleft,zmid
       DR=rdim/(NRGMAX-1)
       DZ=zdim/(NZGMAX-1)
       DO NRG=1,NRGMAX
@@ -79,8 +79,8 @@ C for negative Ip and negative BB
       ENDIF
 
 C *** The following variable defined in Tokamaks 3rd, Sec. 14.14 ***
-C      RR   = 0.5d0 * (RSUMAX - RSUMIN) + RSUMIN
-      RA   = RR - RSUMIN
+      RR   = 0.5d0 * (RSUMAX + RSUMIN)
+      RA   = 0.5d0 * (RSUMAX - RSUMIN)
       !==  RB: wall minor radius  ======================
       !    Multiplication factor 1.1 is tentatively set.
       RB   = 1.1d0 * RA
@@ -92,7 +92,7 @@ C      RR   = 0.5d0 * (RSUMAX - RSUMIN) + RSUMIN
 !      RDLT = 0.5d0 * (ABS(RR-R_ZSUMIN) + ABS(RR-R_ZSUMAX)) / RA
 
       RDLT = 0.5d0 * ((RR-R_ZSUMIN) + (RR-R_ZSUMAX)) / RA
-      BB   = Bctr
+      BB   = Bctr*Rctr/RR
       RIPX = RIP
 C
 C      GOTO 1000
