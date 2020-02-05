@@ -15,7 +15,7 @@ contains
 
       use fpcomm_parm
       IMPLICIT NONE
-      integer:: ns,nsa,nsb,nbeam
+      integer:: ns,nsa,nsb,nbeam,nray
 
 !-----PARTICLE SPECIES--------------------------------------------------
 !     nsamax: number of test particle species
@@ -63,8 +63,9 @@ contains
 !     PABS_WM : input power of WM [MW] (0 for given E) MODELW=3 or 4
 !     RF_WM   : wave frequency [MHz] used for MODELW=3
 
-!     FACT_WM: Numerical factor for wave amplitude for WR
-!     FACT_WR: Numerical factor for wave amplitude for WM
+!     FACT_WM: Numerical factor for wave amplitude for WM
+!     FACT_WR: Numerical factor for wave amplitude for WR
+!     FACT_NRAY(NRAYM): Numerical factor for input power of ray
 !     DELNPR_WR: width of toroidal mode number for WR
 !     DELNPR_WM: width of toroidal mode number for WM
 !     LMAX_WR: max loop count in newton method to find ray position
@@ -86,6 +87,9 @@ contains
 
       FACT_WR  = 1.D0
       FACT_WM  = 1.D0
+      DO NRAY=1,NRAYM
+         FACT_NRAY(NRAY)=1.D0
+      END DO
       DELNPR_WR= 0.05D0
       DELNPR_WM= 0.05D0
       LMAX_WR = 100

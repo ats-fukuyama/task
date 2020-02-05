@@ -9,8 +9,8 @@ LIBX_MTX=$(LIBX_MTX_BND)
 #LIBX_MTX=$(LIBX_MTX_MUMPS)
 
 # select compile options
-#FFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS)
+FFLAGS = $(OFLAGS)
+#FFLAGS = $(DFLAGS)
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
@@ -32,7 +32,7 @@ SRCX = wmcont.f90 wmtest.f90
 OBJS = $(SRCX:.f90=.o) $(SRCS:.f=.o)
 
 LIBS =  wmlib.a ../plx/pllib.a ../eq/eqlib.a ../dpseki/dplib.a \
-        ../lib/tasklib.a ../../bpsd/bpsdlib.a $(LIB_MTX)
+        ../lib/tasklib.a ../../bpsd/bpsdlib.a #$(LIB_MTX)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)

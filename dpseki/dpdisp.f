@@ -180,6 +180,12 @@ C
       BABS=BABS1
       CALL PL_PROF_OLD(RHON)
 C
+      IF (RHON > 1.0)then
+         RTPR(:)=1d-3
+         RTPP(:)=1d-3
+         RN(:)  =0.D0
+      ENDIF
+
       IF(NS.EQ.0) THEN
          CDISP(1)=1.D0
          DO I=2,6
@@ -193,12 +199,14 @@ C
 !               write(6,'(1P6E12.4)') ckpr,ckppf,ckpps 
                IF(real(ckppf**2).GT.0.d0) THEN
                   ckpp1=ckppf
+!                  write(6,'(1P6E12.4)') ckpr,ckppf,ckpps 
                ELSE
                   ckpp1=ckpp
                ENDIF
             ELSE
                ckpp1=ckpp
-            ENDIF
+            ENDIF 
+            ckpp1=ckpp
             CALL DPTENS(CW,CKPR,CKPP1,NS1,CLDISP)
             DO I=1,6
                CDISP(I)=CDISP(I)+CLDISP(I)
@@ -209,15 +217,105 @@ C
      &      modelp(ns).eq.6.OR.
      &      modelp(ns).eq.15) THEN
             CALL DPCOLD_RKPERP(cw,ckpr,ckppf,ckpps)
+!            write(6,'(1P6E12.4)') ckpr,ckppf,ckpps 
             IF(real(ckppf**2).GT.0.d0) THEN
               ckpp1=ckppf
+!            write(6,'(1P6E12.4)') ckpr,ckppf,ckpps 
             ELSE
                ckpp1=ckpp
             ENDIF
          ELSE
             ckpp1=ckpp
          ENDIF
+         ckpp1=ckpp
          CALL DPTENS(CW,CKPR,CKPP1,NS,CDISP)
+      ENDIF
+C
+
+      CDTNS(1,1)= CDISP(1)
+      CDTNS(1,2)= CDISP(5)
+      CDTNS(1,3)= CDISP(4)
+      CDTNS(2,1)=-CDISP(5)
+      CDTNS(2,2)= CDISP(1)+CDISP(3)
+      CDTNS(2,3)= CDISP(6)
+      CDTNS(3,1)= CDISP(4)
+      CDTNS(3,2)=-CDISP(6)
+      CDTNS(3,3)= CDISP(1)+CDISP(2)
+C
+      RETURN
+      END
+C
+      SUBROUTINE DPCALC_2(CW,CKPR,CKPP,RHON,BABS1,BTH1,NS,CDTNS)
+C
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY: pl_prof_old
+      INCLUDE '../dp/dpcomm.inc'
+      COMPLEX(8),INTENT(IN):: CW,CKPR,CKPP
+      REAL(8),INTENT(IN):: RHON,BABS1,BTH1
+      INTEGER(4),INTENT(IN):: NS
+      COMPLEX(8),DIMENSION (3,3),INTENT(OUT):: CDTNS
+      COMPLEX(8),DIMENSION(6):: CDISP,CLDISP
+C
+      BABS=BABS1
+C
+      BTH=BTH1
+      CALL PL_PROF_OLD(RHON)
+   
+      IF (RHON > 1.0)then
+         RTPR(:)=1d-3
+         RTPP(:)=1d-3
+         RN(:)  =0.D0
+      ENDIF
+C
+      CDISP=0d0
+      CLDISP=0d0
+      IF(NS.EQ.0) THEN
+         CDISP(1)=1.D0
+         DO I=2,6
+            CDISP(I)=0.D0
+         ENDDO
+         DO NS1=1,NSMAX
+            IF(modelp(ns1).EQ.5.OR.
+     &         modelp(ns1).EQ.6.OR.
+     &         modelp(ns1).eq.15) THEN
+               CALL DPCOLD_RKPERP_2(cw,ckpr,ckppf,ckpps,BABS1,BTH1)
+!               write(6,'(1P6E12.4)') ckpr,ckppf,ckpps 
+               IF(real(ckppf**2).GT.0.d0) THEN
+                  ckpp1=ckppf
+                  write(6,'(1P8E12.4)') ckpr,ckpp,ckppf,ckpps 
+               ELSE
+                 ckpp1=ckpp
+               ENDIF
+            ELSE
+               ckpp1=ckpp
+            ENDIF
+            ckpp1=ckpp
+            CALL DPTENS_2(CW,CKPR,CKPP1,BABS1,BTH1,NS1,CLDISP)
+            DO I=1,6
+               CDISP(I)=CDISP(I)+CLDISP(I)
+            ENDDO
+         ENDDO
+      ELSE
+         IF(modelp(ns).EQ.5.OR.
+     &      modelp(ns).eq.6.OR.
+     &      modelp(ns).eq.15) THEN
+            CALL DPCOLD_RKPERP_2(cw,ckpr,ckppf,ckpps,BABS1,BTH1)
+!            write(6,'(1P8E12.4)') ckpr,ckppf,ckpps 
+            IF(real(ckppf**2).GT.0.d0) THEN
+              ckpp1=ckppf
+!              if (abs(imag(ckppf))>0d0)then
+!              write(6,'(1P8E12.4)') ckpr,ckpp,ckppf,ckpps 
+!              endif
+            ELSE
+               ckpp1=ckpp
+            ENDIF
+         ELSE
+            ckpp1=ckpp
+         ENDIF
+         ckpp1=ckpp
+         CALL DPTENS_2(CW,CKPR,CKPP1,BABS1,BTH1,NS,CDISP)
+!         print *,ss1,modelp(ns),CKPR,CKPP1,CDISP
       ENDIF
 C
 
@@ -251,13 +349,14 @@ C
       CNPR=CKPR*VC/CW
 
       DO NS1=1,NSMAX
-         MODELP_SAVE=MODELP(NS1)
-         MODELP(NS1)=0
-         CALL DPTENS(CW,CKPR,CKPP,NS1,CLDISP)
+!         MODELP_SAVE=MODELP(NS1)
+!         MODELP(NS1)=0
+!         CALL DPTENS(CW,CKPR,CKPP,NS1,CLDISP)
+         CALL DPTENS_AN(0,CW,CKPR,CKPP,NS1,CLDISP)
          DO I=1,6
             CDISP(I)=CDISP(I)+CLDISP(I)
          ENDDO
-         MODELP(NS1)=MODELP_SAVE
+!         MODELP(NS1)=MODELP_SAVE
       ENDDO
 
       CCS= CDISP(1)
@@ -270,14 +369,14 @@ C
       CCD=SQRT(CCB**2-4.D0*CCA*CCC)
       CKPPA=(-CCB+CCD)/(2.D0*CCA)
       CKPPB=(-CCB-CCD)/(2.D0*CCA)
-      RKPPA2=REAL(CKPPA)
-      RKPPB2=REAL(CKPPB)
-      RKPPA2_im=abs(imag(CKPPA))
-      RKPPB2_im=abs(imag(CKPPB))
-      IF(RKPPA2.GE.0.D0 .and. RKPPA2_im .LT. 1d-18) THEN
-         IF(RKPPB2.GE.0.D0 .and. RKPPB2_im .LT. 1d-18) THEN
-!      IF(RKPPA2.GE.0.D0 ) THEN
-!         IF(RKPPB2.GE.0.D0 ) THEN
+      RKPPA2=REAL(CKPPA**2)
+      RKPPB2=REAL(CKPPB**2)
+      RKPPA2_im=abs(imag(CKPPA**2))
+      RKPPB2_im=abs(imag(CKPPB**2))
+!      IF(RKPPA2.GE.0.D0 .and. RKPPA2_im .LT. 1d-18) THEN
+!         IF(RKPPB2.GE.0.D0 .and. RKPPB2_im .LT. 1d-18) THEN
+      IF(RKPPA2.GE.0.D0 ) THEN
+         IF(RKPPB2.GE.0.D0 ) THEN
             IF(RKPPA2.GT.RKPPB2) THEN
                CTEMP=CKPPA
                CKPPA=CKPPB
@@ -297,5 +396,98 @@ C
       ENDIF
       CKPPF=SQRT(CKPPA)*CW/VC
       CKPPS=SQRT(CKPPB)*CW/VC
+      RETURN
+      END
+C
+C     ****** CALCULATE COLD KPERP ******
+C
+      SUBROUTINE DPCOLD_RKPERP_2(CW,CKPR,CKPPF,CKPPS,BABS1,BTH1)
+C
+      USE plcomm
+      USE pllocal
+      INCLUDE '../dp/dpcomm.inc'
+      DIMENSION CDISP(6),CLDISP(6)
+      REAL(8),INTENT(IN):: BABS1,BTH1
+C
+      CDISP(1)=1.D0
+      DO I=2,6
+         CDISP(I)=0.D0
+      ENDDO
+      CKPP=(0.D0,0.D0)
+      CLDISP=0d0
+      CNPR=CKPR*VC/CW
+
+      DO NS1=1,NSMAX
+!         MODELP_SAVE=MODELP(NS1)
+!         MODELP(NS1)=0
+!         CALL DPTENS(CW,CKPR,CKPP,NS1,CLDISP)
+         CALL DPTENS_AN_2(0,CW,CKPR,CKPP,BABS1,BTH1,NS1,CLDISP)
+         DO I=1,6
+            CDISP(I)=CDISP(I)+CLDISP(I)
+         ENDDO
+!         MODELP(NS1)=MODELP_SAVE
+      ENDDO
+
+      CCS= CDISP(1)
+      CCD= -CI*CDISP(5)
+      CCP= CDISP(1)+CDISP(2)
+
+      CCA=CCS
+      CCB=(CCP+CCS)*CNPR**2-(CCS**2-CCD**2+CCS*CCP)
+      CCC=((CCS-CNPR**2)**2-CCD**2)*CCP
+      CCD=SQRT(CCB**2-4.D0*CCA*CCC)
+      CKPPA=(-CCB+CCD)/(2.D0*CCA)
+      CKPPB=(-CCB-CCD)/(2.D0*CCA)
+      RKPPA2=REAL(CKPPA**2)
+      RKPPB2=REAL(CKPPB**2)
+      IF(RKPPA2.GE.0.D0) THEN
+         IF(RKPPB2.GE.0.D0) THEN
+            IF(RKPPA2.GT.RKPPB2) THEN
+               CTEMP=CKPPA
+               CKPPA=CKPPB
+               CKPPB=CTEMP
+            ENDIF
+         ELSE
+            CKPPB=0.D0
+         ENDIF
+      ELSE
+         IF(RKPPB2.GE.0.D0) THEN
+            CKPPA=CKPPB
+            CKPPB=0.D0
+         ELSE
+            CKPPA=0.D0
+            CKPPB=0.D0
+         ENDIF
+      ENDIF
+      CKPPF=SQRT(CKPPA)*CW/VC
+      CKPPS=SQRT(CKPPB)*CW/VC
+
+!!      RKPPA2=REAL(CKPPA)**2
+!!      RKPPB2=REAL(CKPPB)**2
+!      RKPPA2_im=abs(imag(CKPPA**2))
+!      RKPPB2_im=abs(imag(CKPPB**2))
+!!      RKPPA2_im=abs(imag(CKPPA)**2)
+!!      RKPPB2_im=abs(imag(CKPPB)**2)
+!      IF(RKPPA2.GE.0.D0 .and. RKPPA2_im .LT. 1d-18) THEN
+!         IF(RKPPB2.GE.0.D0 .and. RKPPB2_im .LT. 1d-18) THEN
+!!      IF(RKPPA2.GE.0.D0 ) THEN
+!!         IF(RKPPB2.GE.0.D0 ) THEN
+!            IF(RKPPA2.GT.RKPPB2) THEN
+!               CTEMP=CKPPA
+!               CKPPA=CKPPB
+!               CKPPB=CTEMP
+!            ENDIF
+!         ELSE
+!            CKPPB=0.D0
+!         ENDIF
+!      ELSE
+!         IF(RKPPB2.GE.0.D0) THEN
+!            CKPPA=CKPPB
+!            CKPPB=0.D0
+!         ELSE
+!            CKPPA=0.D0
+!            CKPPB=0.D0
+!         ENDIF
+!      ENDIF
       RETURN
       END

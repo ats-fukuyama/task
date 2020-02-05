@@ -45,7 +45,6 @@ C	    wjs	  : toroidal current within a flux surface
 C	    wis	  : poloidal current without a flux surface
 C
 C
-      USE libfio
       INCLUDE 'wmcomm.inc'
       INCLUDE 'vmcomm.inc'
 C

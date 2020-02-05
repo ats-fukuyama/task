@@ -245,7 +245,6 @@
 
 !     ======( PROFILE PARAMETERS )======
 
-
 !        PROFN1: Density profile parameter (power of rho)
 !        PROFN2: Density profile parameter (power of (1 - rho^PROFN1))
 !        PROFT1: Temperature profile parameter (power of rho)
@@ -262,7 +261,22 @@
      PROFU2(NS)= 1.D0
   END DO
 
-!     ======( MODEL PARAMETERS )======
+!     ======( TRAVIS PROFILE PARAMETERS )======
+
+!        PROF=g-h+(1-g+h)(1-x^p)^q + h(1-EXP(-x^2/w^2))
+
+  profn_travis_g=0.D0
+  profn_travis_h=0.D0
+  profn_travis_p=2.D0
+  profn_travis_q=1.D0
+  profn_travis_w=1.D0
+  proft_travis_g=0.D0
+  proft_travis_h=0.D0
+  proft_travis_p=2.D0
+  proft_travis_q=1.D0
+  proft_travis_w=1.D0
+
+  !     ======( MODEL PARAMETERS )======
 
 !        MODELG: Control plasma geometry model
 !              0: XYZ Slab geometry
@@ -300,9 +314,8 @@
 !                   3: with RHOEDG from PN,PNS,PTPR,PTPP,PTS,PU,PUS; PNS in SOL
 !                   8: Read from file through WMXPRF (JT-60)
 !                   9: Read from bpsd_plasmaf
-!                  12: Read from 2D nT file
-!                  14: Read from 2D nT file
 !                  21: Read from trdata
+!                  31: Calculated from profn_travis and proft_travis
 !        MODELQ: Control safety factor profile (for MODELG=1,2)
 !                   0: Parabolic q profile (Q0,QA,RHOMIN)
 !                   1: Given current profile (RIP,PROFJ)

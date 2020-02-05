@@ -553,11 +553,6 @@ CONTAINS
       CALL mtx_broadcast1_real8(Q0)
       CALL mtx_broadcast1_real8(QA)
 
-         RMAX=RSU(1,1)
-         DO NSU=2,NSUMAX
-            RMAX=MAX(RMAX,RSU(NSU,1))
-         ENDDO
-
          DO NR=1,NRMAX+1
             ARG=RHOT(NR)
             IF(ARG.LE.0.D0) THEN

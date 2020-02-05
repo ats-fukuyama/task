@@ -341,10 +341,10 @@ C        ----- Invert matrix to obtain mu^(-1)=RMB and g^(-1)=RGB -----
          DO J=1,3
          DO I=1,3
             RMB(I,J)=RMA(I,J)
-            RGB(I,J)=RGA(I,J)
+C            RGB(I,J)=RGA(I,J)
 
             RMHB(I,J)=RMHA(I,J)
-            RGHB(I,J)=RGHA(I,J)
+C            RGHB(I,J)=RGHA(I,J)
          ENDDO
          ENDDO
 
@@ -358,16 +358,36 @@ C        ----- Invert matrix to obtain mu^(-1)=RMB and g^(-1)=RGB -----
 
          CALL INVMRD(RMHB,3,3,ILL)
 
-         CALL INVMRD(RGB,3,3,ILL)
-         IF(ILL.NE.0) THEN
-            WRITE(6,*) 'XX WMSETF: INVMRD(RGB) : SINGULAR MATRIX'
-            WRITE(6,*) '   NTH,NHH,NR = ',NTH,NHH,NR
-            GOTO 9000
-         ENDIF
-
-         CALL INVMRD(RGHB,3,3,ILL)
+C         CALL INVMRD(RGB,3,3,ILL)
+C         IF(ILL.NE.0) THEN
+C            WRITE(6,*) 'XX WMSETF: INVMRD(RGB) : SINGULAR MATRIX'
+C            WRITE(6,*) '   NTH,NHH,NR = ',NTH,NHH,NR
+C            GOTO 9000
+C         ENDIF
+C
+C         CALL INVMRD(RGHB,3,3,ILL)
 
 C        ----- RGB = g^(-1)
+         RGB(1,1)=RGI11(NTHF,NHHF,NR)
+         RGB(1,2)=RGI12(NTHF,NHHF,NR)
+         RGB(1,3)=RGI13(NTHF,NHHF,NR)
+         RGB(2,1)=RGI12(NTHF,NHHF,NR)
+         RGB(2,2)=RGI22(NTHF,NHHF,NR)
+         RGB(2,3)=RGI23(NTHF,NHHF,NR)
+         RGB(3,1)=RGI13(NTHF,NHHF,NR)
+         RGB(3,2)=RGI23(NTHF,NHHF,NR)
+         RGB(3,3)=RGI33(NTHF,NHHF,NR)
+
+         RGHB(1,1)=RGIH11(NTHF,NHHF,NR)
+         RGHB(1,2)=RGIH12(NTHF,NHHF,NR)
+         RGHB(1,3)=RGIH13(NTHF,NHHF,NR)
+         RGHB(2,1)=RGIH12(NTHF,NHHF,NR)
+         RGHB(2,2)=RGIH22(NTHF,NHHF,NR)
+         RGHB(2,3)=RGIH23(NTHF,NHHF,NR)
+         RGHB(3,1)=RGIH13(NTHF,NHHF,NR)
+         RGHB(3,2)=RGIH23(NTHF,NHHF,NR)
+         RGHB(3,3)=RGIH33(NTHF,NHHF,NR)
+
 
          RGB(1,1)=RGB(1,1)*XRL**2
          RGB(1,2)=RGB(1,2)
@@ -978,9 +998,9 @@ C        ----- Invert matrix to obtain mu^(-1)=RMB and g^(-1)=RGB -----
          DO J=1,3
          DO I=1,3
             RMB(I,J)=RMA(I,J)
-            RGB(I,J)=RGA(I,J)
+!            RGB(I,J)=RGA(I,J)
             RMHB(I,J)=RMHA(I,J)
-            RGHB(I,J)=RGHA(I,J)
+!            RGHB(I,J)=RGHA(I,J)
          ENDDO
          ENDDO
 C
@@ -993,16 +1013,35 @@ C
 
          CALL INVMRD(RMHB,3,3,ILL)
 
-         CALL INVMRD(RGB,3,3,ILL)
-         IF(ILL.NE.0) THEN
-            WRITE(6,*) 'XX WMSETF: INVMRD(RGB) : SINGULAR MATRIX'
-            WRITE(6,*) '   NTH,NHH,NR = ',NTH,NHH,NR
-            GOTO 9000
-         ENDIF
+!         CALL INVMRD(RGB,3,3,ILL)
+!         IF(ILL.NE.0) THEN
+!            WRITE(6,*) 'XX WMSETF: INVMRD(RGB) : SINGULAR MATRIX'
+!            WRITE(6,*) '   NTH,NHH,NR = ',NTH,NHH,NR
+!            GOTO 9000
+!         ENDIF
 
-         CALL INVMRD(RGHB,3,3,ILL)
+!         CALL INVMRD(RGHB,3,3,ILL)
 
 C        ----- RGB = g^(-1)
+         RGB(1,1)=RGI11(NTHF,NHHF,NR)
+         RGB(1,2)=RGI12(NTHF,NHHF,NR)
+         RGB(1,3)=RGI13(NTHF,NHHF,NR)
+         RGB(2,1)=RGI12(NTHF,NHHF,NR)
+         RGB(2,2)=RGI22(NTHF,NHHF,NR)
+         RGB(2,3)=RGI23(NTHF,NHHF,NR)
+         RGB(3,1)=RGI13(NTHF,NHHF,NR)
+         RGB(3,2)=RGI23(NTHF,NHHF,NR)
+         RGB(3,3)=RGI33(NTHF,NHHF,NR)
+
+         RGHB(1,1)=RGIH11(NTHF,NHHF,NR)
+         RGHB(1,2)=RGIH12(NTHF,NHHF,NR)
+         RGHB(1,3)=RGIH13(NTHF,NHHF,NR)
+         RGHB(2,1)=RGIH12(NTHF,NHHF,NR)
+         RGHB(2,2)=RGIH22(NTHF,NHHF,NR)
+         RGHB(2,3)=RGIH23(NTHF,NHHF,NR)
+         RGHB(3,1)=RGIH13(NTHF,NHHF,NR)
+         RGHB(3,2)=RGIH23(NTHF,NHHF,NR)
+         RGHB(3,3)=RGIH33(NTHF,NHHF,NR)
 
          RGB(1,1)=RGB(1,1)*XRL**2
          RGB(1,2)=RGB(1,2)

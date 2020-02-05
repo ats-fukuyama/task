@@ -86,6 +86,42 @@ CONTAINS
        NCMAX(NS)= 2
     ENDDO
 
+!     EPSRT  : CONVERGENCE CRITERION OF ROOT FINDING
+!     LMAXRT : MAXIMUM ITERATION COUNT OF ROOT FINDING
+
+    EPSRT  = 1.D-12
+    LMAXRT = 20
+
+!     --- Velocity distribution function parameters ---
+!             --- usually read from fpfile ---
+!
+!     NS_NSA_DP(NSA): particle species of NSA
+!     PMAX(NSA)     : maximum momentum normalized by p_thermal
+!     EMAX(NSA)     : maximum energy in keV, if EMAX is not zero
+!     rhon_min(NSA) : minimum radius of velocity distribution function (r/a)
+!     rhon_max(NSA) : maximum radius of velocity distribution function (r/a)
+!
+!     NPMAX_DP : number of momentum magnitude mesh
+!     NTHMAX_DP: number of momentum angle mesh
+!     NRMAX_DP : number of radial mesh
+!     NSAMAX_DP: number of test particle species
+
+    DO NS=1,NSM
+       NS_NSA_DP(NS)=NS
+       PMAX(NS)= 7.D0
+       EMAX(NS)= 7.D0
+       rhon_min(NS)=0.D0
+       rhon_max(NS)=1.D0
+    ENDDO
+
+    NPMAX_DP=100
+    NTHMAX_DP=100
+    NRMAX_DP=3
+    NSAMAX_DP=2
+    DO NS=1,NSM
+       PMAX(NS)=10.D0
+    END DO
+
 !     --- Root finding and dispersion plot parameters ---
 !
 !     RF0,RFI0,RKX0,RKY0,RKZ0 : STANDARD PARAMETER FOR ROOT FINDING
@@ -102,44 +138,6 @@ CONTAINS
     RZ0    = 0.D0
     RK0    = 100.D0
     RKANG0 = 89.70
-
-!     EPSRT  : CONVERGENCE CRITERION OF ROOT FINDING
-!     LMAXRT : MAXIMUM ITERATION COUNT OF ROOT FINDING
-
-    EPSRT  = 1.D-12
-    LMAXRT = 20
-
-!     --- Velocity distribution function parameters ---
-!             --- usually read from fpfile ---
-!
-!     NS_NSA(NS)   : particle species of NSA
-!     PMAX(NS)     : maximum momentum normalized by p_thermal
-!     EMAX(NS)     : maximum energy in keV, if EMAX is not zero
-!     rhon_min(NS) : minimum radius of velocity distribution function (r/a)
-!     rhon_max(NS) : maximum radius of velocity distribution function (r/a)
-!
-!     NPMAX_DP : number of momentum magnitude mesh
-!     NTHMAX_DP: number of momentum angle mesh
-!     NRMAX_DP : number of radial mesh
-!     NSMAX_DP : number of total particle species
-!     NSAMAX_DP: number of test particle species
-
-    DO NS=1,NSM
-       NS_NSA(NS)=NS
-       PMAX(NS)= 7.D0
-       EMAX(NS)= 7.D0
-       rhon_min(NS)=0.D0
-       rhon_max(NS)=1.D0
-    ENDDO
-
-    NSMAX=2
-    NPMAX_DP=100
-    NTHMAX_DP=100
-    NRMAX_DP=3
-    NSAMAX_DP=2
-    DO NS=1,NSM
-       PMAX(NS)=10.D0
-    END DO
 
 !
 !     *********** INPUT PARAMETERS fof DP program ***********

@@ -93,7 +93,7 @@ contains
            PMAX,PMAX_BB,EMAX, &
            R1,DELR1,RMIN,RMAX,E0,ZEFF, &
            PABS_LH,PABS_FW,PABS_EC,PABS_wr,PABS_WM,RF_WM, &
-           FACT_WM,FACT_WR,DELNPR_WR,DELNPR_WM,EPS_WR,DELY_WR, &
+           FACT_WM,FACT_WR,FACT_NRAY,DELNPR_WR,DELNPR_WM,EPS_WR,DELY_WR, &
            DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC, &
            DLH,PLH1,PLH2,RLH,DFW,PFW1,PFW2,RFW, &
            CEWR,CEWTH,CEWPH,RKWR,RKWTH,RKWPH, &
@@ -155,7 +155,7 @@ contains
       WRITE(6,*) '      R1,DELR1,RMIN,RMAX,E0,ZEFF,'
       WRITE(6,*) '      PABS_LH,PABS_FW,PABS_EC,PABS_WR,PABS_WM,RF_WM,'
       WRITE(6,*) '      FACT_WM,FACT_WR,DELNPR_WR,DELNPR_WM,EPS_WR,DELY_WR,'
-      WRITE(6,*) '      Y0_WM,DELY_WM,'
+      WRITE(6,*) '      FACT_NRAY,Y0_WM,DELY_WM,'
       WRITE(6,*) '      DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC,'
       WRITE(6,*) '      DLH,PLH1,PLH2,RLH,DFW,PFW1,PFW2,RFW,'
       WRITE(6,*) '      CEWR,CEWTH,CEWPH,RKWR,RKWTH,RKWPH,'
@@ -638,6 +638,8 @@ contains
       CALL mtx_broadcast_real8(SPBANG,NBEAMMAX)
       CALL mtx_broadcast_real8(SPBPANG,NBEAMMAX)
 
+      CALL mtx_broadcast_real8(FACT_NRAY,NRAYM)
+
       cdata (1)=CEWR
       cdata (2)=CEWTH
       cdata (3)=CEWPH
@@ -704,13 +706,13 @@ contains
             WRITE(6,600) 'PABS_WR ',PABS_WR ,'DELNPR_R',DELNPR_WR, &
                          'DELY_WR ',DELY_WR
             WRITE(6,602) 'EPS_WR  ',EPS_WR  ,'LMAX_WR ',LMAX_WR
+            WRITE(6,603) 'NRAYS_WR',NRAYS_WR,'NRAYE_WR',NRAYE_WR
 
          ELSEIF(MODELW(NS).EQ.2) THEN
             WRITE(6,600) 'PABS_WR ',PABS_WR ,'DELNPR_R',DELNPR_WR, &
                          'DELY_WR ',DELY_WR
             WRITE(6,601) 'FACT_WR ',FACT_WR ,'EPS_WR  ',EPS_WR   , &
                          'LMAX_WR ',LMAX_WR
-            WRITE(6,603) 'NRAYS_WR',NRAYS_WR,'NRAYE_WR',NRAYE_WR
             
          ELSEIF(MODELW(NS).EQ.3) THEN
             WRITE(6,600) 'PABS_WM ',PABS_WM ,'RF_WM   ',RF_WM, &

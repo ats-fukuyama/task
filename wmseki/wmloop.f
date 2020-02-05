@@ -10,37 +10,23 @@ c
       DIMENSION PABSR_SV(NRM,NSM),PABST_SV(NSM)
       CHARACTER KNHC*2, KNPH0*4
 c
-      IERR=0
-      MODELEG=0
-      MODELK=1
-C     MODELK=0
-
-      CALL WMSETG(IERR)
-      IF(IERR.NE.0) RETURN
-
-      DO NNR=1,NRMAX
-         IF(XRHO(NNR)>1.d0) EXIT
-      ENDDO
-      NR_S=NNR-1
-      IF(nrank.EQ.0) WRITE(6,'(A,I5)') 'NR_S=',NR_S
-      
-      CALL DPCHEK(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),RR,IERR)
-      IF(IERR.NE.0) RETURN
-      CALL WMSOLV_PREP
-
-      NPH0_SV  = NPH0
-      NPHMAX_SV = NPHMAX
-      NHHMAX_SV = NHHMAX
 
       IF(NPHMAX.EQ.1) THEN
          CALL WMEXEC(IERR)
          RETURN
       ENDIF
 
-      IF(NPHMAX.eq.NHHMAX .and. NHC .gt. 1) THEN
-         NHHMAX=NPHMAX/NHC
-         NPHMAX=NHC
-      END IF
+      NPH0_SV  = NPH0
+!      NPHMAX_SV = NPHMAX
+!      NHHMAX_SV = NHHMAX
+!
+!      IF(NHHMAX.GT.1) THEN
+!         NHHMAX=NPHMAX/NHC
+!         NPHMAX=NHC
+!      ELSE
+!         NHC=1
+!      END IF
+   
 C
 C     Axisymmetric case : NHHMAX=1
 C
@@ -71,6 +57,7 @@ C
          END DO
       END DO
       
+      CALL WMSETG(IERR)
       CALL WMPOUT_INIT
       DO NPH = 1,NPHMAX
          NPH0 = NPH-NPHMAX/2-1 + NPH0_SV
@@ -80,11 +67,27 @@ C
          CALL mtx_barrier
          IF(IERR.NE.0) EXIT
 
+C         DO NR=1,NRMAX+1
+C            DO NHH=1,NHHMAX
+C               DO NTH=1,NTHMAX
+C               CEFLD3D(1,NTH,NHH,NR)=CEFLD(1,NTH,NHH,NR)
+C               CEFLD3D(2,NTH,NHH,NR)=CEFLD(2,NTH,NHH,NR)
+C               CEFLD3D(3,NTH,NHH,NR)=CEFLD(3,NTH,NHH,NR)
+C               END DO
+C            END DO
+C         END DO
+C
          DO NS=1,NSMAX
             DO NR=1,NRMAX+1
                DO NHH=1,NHHMAX
                   NPH1=NPH + NHC*(NHH-1)
                   DO NTH=1,NTHMAX
+CC                  CPABS3D(NTH,NPH1,NR,NS)=CPABS(NTH,NHH,NR,NS)
+CC                   PABS3D(NTH,NPH1,NR,NS)= PABS(NTH,NHH,NR,NS)
+CC                  CPABS3D(NTH,NHH,NR,NS)=CPABS3D(NTH,NHH,NR,NS)
+CC     &                          + CPABS(NTH,NHH,NR,NS)
+CC                   PABS3D(NTH,NHH,NR,NS)= PABS3D(NTH,NHH,NR,NS)
+CC     &                          + PABS(NTH,NHH,NR,NS)
                   END DO
                END DO
                PABSR_SV(NR,NS)=PABSR_SV(NR,NS)

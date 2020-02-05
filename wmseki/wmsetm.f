@@ -68,13 +68,13 @@ C     ICOMP=3 : PHI COMPONENT OF MAXWELL EQUATION
          END IF
       ENDIF
 
-      DO MB=1,MBND
+      DO MB=1,2*MBND-1
          CA(MB)=CEMP(MB,NKXD,MLXD,ICOMP)
       ENDDO
       CB=CFVP(NKXD,MLXD,ICOMP)
 
 C      IF(IGD.LE.3) THEN
-C         DO MB=1,MBND-1
+C         DO MB=1,2*MBND-1
 C            j=IGD+MB-MBND-1
 C            WRITE(6,'(A,3I5,1P2E12.4)') 'i,j,NRP,A=',IGD,j,NRP,CA(MB)
 C         END DO
@@ -106,8 +106,6 @@ C      END IF
       DIMENSION CIMAC(3,3,3)
       DIMENSION CIMACH(3,3,3)
       DIMENSION CROT(9,MDM,MDM,NDM,NDM,3)
-
-      MCEN=(MBND+1)/2
 
       IF(IND.EQ.1) THEN
          CALL WMSETF(NR,0)
@@ -305,7 +303,7 @@ C        LD : m'              = l - m
 C        MM : m               = m0 +  MD
 C        ML : l = m + m'      = m0 + (MD + LD)
 
-         DO LBAND=1,MBND
+         DO LBAND=1,2*MBND-1
          DO NKX=1,NDSIZ
          DO MLX=1,MDSIZ
             CEMP(LBAND,NKX,MLX,1)=0.D0
@@ -391,28 +389,28 @@ C        ML : l = m + m'      = m0 + (MD + LD)
             ID=3*MDSIZ*NDSIZ         
 
         IF (MD == MLD .and. ND == NKD)THEN
-            LBND=MCEN-3*KD*MDSIZ-3*LD-1
+            LBND=MBND-3*KD*MDSIZ-3*LD-1
             CEMP(LBND+ID  +1    ,NKX,MLX,1)
      &         = CEMP(LBND+ID  +1    ,NKX,MLX,1)
      &         +   1d0
 
-            LBND=MCEN-3*KD*MDSIZ-3*LD-2
+            LBND=MBND-3*KD*MDSIZ-3*LD-2
             CEMP(LBND+ID  +2    ,NKX,MLX,2)
      &          =CEMP(LBND+ID  +2    ,NKX,MLX,2)
      &          + 1d0
-            LBND=MCEN-3*KD*MDSIZ-3*LD-3
+            LBND=MBND-3*KD*MDSIZ-3*LD-3
             CEMP(LBND+ID  +3    ,NKX,MLX,3)
      &          = CEMP(LBND+ID  +3    ,NKX,MLX,3)
      &          + 1d0
         ENDIF
-            LBND=MCEN-3*KD*MDSIZ-3*LD-1
+            LBND=MBND-3*KD*MDSIZ-3*LD-1
 
             CEMP(LBND-ID  +1    ,NKX,MLX,1)
      &         = CEMP(LBND-ID  +1    ,NKX,MLX,1)
      &         - CMACH(1,1,2)
 
 
-            LBND=MCEN-3*KD*MDSIZ-3*LD-2
+            LBND=MBND-3*KD*MDSIZ-3*LD-2
             CEMP(LBND-ID  +2    ,NKX,MLX,2)
      &          = CEMP(LBND-ID  +2    ,NKX,MLX,2)
      &          - CMAC(2,2,2)
@@ -420,7 +418,7 @@ C        ML : l = m + m'      = m0 + (MD + LD)
      &          = CEMP(LBND-ID  +3    ,NKX,MLX,2)
      &          - CMAC(2,3,2)
 
-            LBND=MCEN-3*KD*MDSIZ-3*LD-3
+            LBND=MBND-3*KD*MDSIZ-3*LD-3
             CEMP(LBND-ID  +2    ,NKX,MLX,3)
      &          = CEMP(LBND-ID  +2    ,NKX,MLX,3)
      &          - CMAC(3,2,2)
@@ -705,7 +703,7 @@ C        LD : m'              = l - m
 C        MM : m               = m0 +  MD
 C        ML : l = m + m'      = m0 + (MD + LD)
 
-         DO LBAND=1,MBND
+         DO LBAND=1,2*MBND-1
          DO NKX=1,NDSIZ
          DO MLX=1,MDSIZ
             CEMP(LBAND,NKX,MLX,1)=0.D0
@@ -991,7 +989,7 @@ C     --- PHI COMPONENT OF MAXWELL EQUATION ---
          ENDDO
 
 
-         DO LBAND=1,MBND
+         DO LBAND=1,2*MBND-1
          DO NKX=1,NDSIZ
          DO MLX=1,MDSIZ
             CEMP(LBAND,NKX,MLX,1)=0.D0
@@ -1041,8 +1039,7 @@ C     --- PHI COMPONENT OF MAXWELL EQUATION ---
             ENDDO
             ENDDO
 
-            MCEN=(MBND+1)/2
-            LBND=MCEN-3*KD*MDSIZ-3*LD-1
+            LBND=MBND-3*KD*MDSIZ-3*LD-1
 
             ID=3*MDSIZ*NDSIZ
             CEMP(LBND+1    ,NKX,MLX,1)
@@ -1084,7 +1081,7 @@ C     --- PHI COMPONENT OF MAXWELL EQUATION ---
 
 C     --- THETA COMPONENT OF MAXWELL EQUATION ---
 
-            LBND=MCEN-3*KD*MDSIZ-3*LD-2
+            LBND=MBND-3*KD*MDSIZ-3*LD-2
 
             CEMP(LBND+1   ,NKX,MLX,2)
      &                         =CEMP(LBND+1   ,NKX,MLX,2)
@@ -1139,7 +1136,7 @@ C     --- THETA COMPONENT OF MAXWELL EQUATION ---
 
 C     --- PHI COMPONENT OF MAXWELL EQUATION ---
 
-            LBND=MCEN-3*KD*MDSIZ-3*LD-3
+            LBND=MBND-3*KD*MDSIZ-3*LD-3
 
             CEMP(LBND+1   ,NKX,MLX,3)
      &                         =CEMP(LBND+1   ,NKX,MLX,3)
@@ -1193,7 +1190,7 @@ C     --- PHI COMPONENT OF MAXWELL EQUATION ---
      &                         +CROT(9,LDX,MLX,KDX,NKX,3)
      &                          )
 
-            LBND=MCEN-3*KD*MDSIZ-3*LD-1
+            LBND=MBND-3*KD*MDSIZ-3*LD-1
             ID=3*MDSIZ*NDSIZ
             CEMP_TP(LBND+1    ,NKX,MLX,1)
      &                         =CEMP_TP(LBND+1   ,NKX,MLX,1)
@@ -1228,7 +1225,7 @@ C     --- PHI COMPONENT OF MAXWELL EQUATION ---
 
 C     --- THETA COMPONENT OF MAXWELL EQUATION ---
 
-            LBND=MCEN-3*KD*MDSIZ-3*LD-2
+            LBND=MBND-3*KD*MDSIZ-3*LD-2
 
             CEMP_TP(LBND+1   ,NKX,MLX,2)
      &                         =CEMP_TP(LBND+1   ,NKX,MLX,2)
@@ -1256,7 +1253,7 @@ C     --- THETA COMPONENT OF MAXWELL EQUATION ---
 
 C     --- PHI COMPONENT OF MAXWELL EQUATION ---
 
-            LBND=MCEN-3*KD*MDSIZ-3*LD-3
+            LBND=MBND-3*KD*MDSIZ-3*LD-3
 
             CEMP_TP(LBND+1   ,NKX,MLX,3)
      &                         =CEMP_TP(LBND+1   ,NKX,MLX,3)
@@ -1553,7 +1550,7 @@ C        LD : m'              = l - m
 C        MM : m               = m0 +  MD
 C        ML : l = m + m'      = m0 + (MD + LD)
 
-         DO LBAND=1,MBND
+         DO LBAND=1,2*MBND-1
          DO NKX=1,NDSIZ
          DO MLX=1,MDSIZ
             CEMP(LBAND,NKX,MLX,1)=0.D0
@@ -1785,7 +1782,7 @@ C     --- PHI COMPONENT OF MAXWELL EQUATION ---
          ENDDO
 
 
-         DO LBAND=1,MBND
+         DO LBAND=1,2*MBND-1
          DO NKX=1,NDSIZ
          DO MLX=1,MDSIZ
             CEMP(LBAND,NKX,MLX,1)=0.D0
@@ -1832,8 +1829,7 @@ C     --- PHI COMPONENT OF MAXWELL EQUATION ---
             ENDDO
             ENDDO
 
-            MCEN=(MBND+1)/2
-            LBND=MCEN-3*KD*MDSIZ-3*LD-1
+            LBND=MBND-3*KD*MDSIZ-3*LD-1
 
             ID=3*MDSIZ*NDSIZ
             CEMP(LBND+1    ,NKX,MLX,1)
@@ -1875,7 +1871,7 @@ C     --- PHI COMPONENT OF MAXWELL EQUATION ---
 
 C     --- THETA COMPONENT OF MAXWELL EQUATION ---
 
-            LBND=MCEN-3*KD*MDSIZ-3*LD-2
+            LBND=MBND-3*KD*MDSIZ-3*LD-2
 
             CEMP(LBND+1   ,NKX,MLX,2)
      &                         =CEMP(LBND+1   ,NKX,MLX,2)
@@ -1931,7 +1927,7 @@ C     --- THETA COMPONENT OF MAXWELL EQUATION ---
 
 C     --- PHI COMPONENT OF MAXWELL EQUATION ---
 
-            LBND=MCEN-3*KD*MDSIZ-3*LD-3
+            LBND=MBND-3*KD*MDSIZ-3*LD-3
 
             CEMP(LBND+1   ,NKX,MLX,3)
      &                         =CEMP(LBND+1   ,NKX,MLX,3)
@@ -2159,8 +2155,6 @@ C     ****** SET BOUNDARY CONDITION ******
 
       DIMENSION CEMP(MBNDM,NDM,MDM,3),CFVP(NDM,MDM,3)
 
-         MCEN=(MBND+1)/2
-
          DRHO1=(XRHO(2)-XRHO(1))**2
          DRHO2=(XRHO(3)-XRHO(1))**2
          A1= DRHO2/(DRHO2-DRHO1)
@@ -2204,7 +2198,7 @@ C        ****** EPH'(0) = 0 FOR MM.EQ.0 ******
                   IF(MM.EQ.0 .and. 
      &                  CMAF(3,3,-MDMIN+1,-NDMIN+1,1) .NE.0 ) THEN
                       
-                    LBND=MCEN-3*KD*MDSIZ-3*LD-1
+                    LBND=MBND-3*KD*MDSIZ-3*LD-1
                     CEMP(LBND   +3,NKX,MLX,1)
      &                               =CEMP(LBND   +3,NKX,MLX,1)
      &                               +CEMP(LBND-ID+3,NKX,MLX,1)*A1
@@ -2215,7 +2209,7 @@ C        ****** EPH'(0) = 0 FOR MM.EQ.0 ******
 
                      CEMP(LBND-ID+3,NKX,MLX,1)=0.D0
 
-                     LBND=MCEN-3*KD*MDSIZ-3*LD-2
+                     LBND=MBND-3*KD*MDSIZ-3*LD-2
 
                      CEMP(LBND   +3,NKX,MLX,2)
      &                               =CEMP(LBND   +3,NKX,MLX,2)
@@ -2227,7 +2221,7 @@ C        ****** EPH'(0) = 0 FOR MM.EQ.0 ******
 
                      CEMP(LBND-ID+3,NKX,MLX,2)=0.D0
 
-                     LBND=MCEN-3*KD*MDSIZ-3*LD-3
+                     LBND=MBND-3*KD*MDSIZ-3*LD-3
 
                      CEMP(LBND   +3,NKX,MLX,3)
      &                               =CEMP(LBND   +3,NKX,MLX,3)
@@ -2244,7 +2238,7 @@ C        ****** ETH'(0) = 0 FOR ABS(MM).EQ.1 ******
 
                   ELSEIF(ABS(MM).EQ.1) THEN
 
-                     LBND=MCEN-3*KD*MDSIZ-3*LD-1
+                     LBND=MBND-3*KD*MDSIZ-3*LD-1
                     CEMP(LBND   +2,NKX,MLX,1)
      &                               =CEMP(LBND   +2,NKX,MLX,1)
      &                               +CEMP(LBND-ID+2,NKX,MLX,1)*A1
@@ -2253,7 +2247,7 @@ C        ****** ETH'(0) = 0 FOR ABS(MM).EQ.1 ******
      &                               =CEMP(LBND+ID+2,NKX,MLX,1)
      &                               +CEMP(LBND-ID+2,NKX,MLX,1)*A2
 
-                    LBND=MCEN-3*KD*MDSIZ-3*LD-2
+                    LBND=MBND-3*KD*MDSIZ-3*LD-2
 
                      CEMP(LBND   +2,NKX,MLX,2)
      &                               =CEMP(LBND   +2,NKX,MLX,2)
@@ -2261,7 +2255,7 @@ C        ****** ETH'(0) = 0 FOR ABS(MM).EQ.1 ******
                     CEMP(LBND+ID+2,NKX,MLX,2)
      &                               =CEMP(LBND+ID+2,NKX,MLX,2)
      &                               +CEMP(LBND-ID+2,NKX,MLX,2)*A2
-                    LBND=MCEN-3*KD*MDSIZ-3*LD-3
+                    LBND=MBND-3*KD*MDSIZ-3*LD-3
 
                      CEMP(LBND   +2,NKX,MLX,3)
      &                               =CEMP(LBND   +2,NKX,MLX,3)
@@ -2286,12 +2280,12 @@ C        ****** ETH = 0, EPH =0 AT R=RA ******
                NDX=ND-NDMIN+1
             DO MD=MDMIN,MDMAX
                MDX=MD-MDMIN+1
-               DO MB=1,MBND
+               DO MB=1,2*MBND-1
                   CEMP(MB,NDX,MDX,2)= 0.D0
                   CEMP(MB,NDX,MDX,3)= 0.D0
                ENDDO
-               CEMP(MCEN,NDX,MDX,2)= 1.D0
-               CEMP(MCEN,NDX,MDX,3)= 1.D0
+               CEMP(MBND,NDX,MDX,2)= 1.D0
+               CEMP(MBND,NDX,MDX,3)= 1.D0
                CFVP(NDX,MDX,2)= CEWALL(MDX,NDX,2)
                CFVP(NDX,MDX,3)= CEWALL(MDX,NDX,3)
                
@@ -2307,14 +2301,14 @@ C     ****** ELIMINATE EFLD AT MDMAX ******
                NDX=ND-NDMIN+1
                MD=MDMAX
                MDX=MD-MDMIN+1
-               DO MB=1,MBND
+               DO MB=1,2*MBND-1
                   CEMP(MB,NDX,MDX,1)= 0.D0
                   CEMP(MB,NDX,MDX,2)= 0.D0
                   CEMP(MB,NDX,MDX,3)= 0.D0
                ENDDO
-               CEMP(MCEN,NDX,MDX,1)= 1.D0
-               CEMP(MCEN,NDX,MDX,2)= 1.D0
-               CEMP(MCEN,NDX,MDX,3)= 1.D0
+               CEMP(MBND,NDX,MDX,1)= 1.D0
+               CEMP(MBND,NDX,MDX,2)= 1.D0
+               CEMP(MBND,NDX,MDX,3)= 1.D0
                CFVP(NDX,MDX,1)= 0.D0
                CFVP(NDX,MDX,2)= 0.D0
                CFVP(NDX,MDX,3)= 0.D0
@@ -2328,14 +2322,14 @@ C     ****** ELIMINATE EFLD AT NDMAX ******
             NDX=ND-NDMIN+1
             DO MD=MDMIN,MDMAX
                MDX=MD-MDMIN+1
-               DO MB=1,MBND
+               DO MB=1,2*MBND-1
                   CEMP(MB,NDX,MDX,1)= 0.D0
                   CEMP(MB,NDX,MDX,2)= 0.D0
                   CEMP(MB,NDX,MDX,3)= 0.D0
                ENDDO
-               CEMP(MCEN,NDX,MDX,1)= 1.D0
-               CEMP(MCEN,NDX,MDX,2)= 1.D0
-               CEMP(MCEN,NDX,MDX,3)= 1.D0
+               CEMP(MBND,NDX,MDX,1)= 1.D0
+               CEMP(MBND,NDX,MDX,2)= 1.D0
+               CEMP(MBND,NDX,MDX,3)= 1.D0
                CFVP(NDX,MDX,1)= 0.D0
                CFVP(NDX,MDX,2)= 0.D0
                CFVP(NDX,MDX,3)= 0.D0

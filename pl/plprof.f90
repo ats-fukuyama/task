@@ -489,12 +489,13 @@
              &,MODELN,RA,RB, PROFN1,PROFN2,PROFT1,PROFT2, PROFU1&
              &,PROFU2, PNITB,PTITB,PUITB,RHOITB,RHOEDG
         USE plload,ONLY: pl_read_trdata
+        USE plprof_travis
         IMPLICIT NONE
         REAL(rkind),INTENT(IN):: RHON
         TYPE(pl_plf_type),DIMENSION(NSMAX),INTENT(OUT):: PLF
         REAL(rkind):: RHOL, FACTN, FACTT, FACTU, FACTITB, PL0, PL,&
              & FACT, FNX, DFNX, AN, BN, FTX, DFTX, AT, BT, FUX, DFUX,&
-             & AU, BU, VAL, PNL, PTL
+             & AU, BU, VAL, PNL, PTL, profn, proft
         INTEGER(ikind)  :: NS
         REAL(rkind),DIMENSION(NSMAX) :: RN_PL,RT_PL,RTPR_PL,RTPP_PL&
              &,RU_PL,RUPL_PL
@@ -546,177 +547,189 @@
                     PLF(NS)%RUPL=0.D0
                     PLF(NS)%RNUC=0.D0
                     PLF(NS)%RZCL=PZCL(NS)
-               ENDIF
-            ENDDO
-         ENDIF
+                 ENDIF
+              ENDDO
+           ENDIF
 
-      CASE(2)
-         IF(RHOL.GE.1.D0) THEN
-            DO NS=1,NSMAX
-               PLF(NS)%RN  =PNS(NS)
-               PLF(NS)%RTPR=PTS(NS)
-               PLF(NS)%RTPP=PTS(NS)
-               PLF(NS)%RU  =PUS(NS)
-               PLF(NS)%RUPL=0.D0
-               PLF(NS)%RNUC=0.D0
-               PLF(NS)%RZCL=PZCL(NS)
-            ENDDO
-         ELSE
-            CALL GETPP(0.D0,PL0)
-            CALL GETPP(RHOL,PL)
-            FACT=SQRT(PL/PL0)
-            DO NS=1,NSMAX
-               FACTU=(1.D0-RHOL**PROFU1(NS))**PROFU2(NS)
-               PLF(NS)%RN  =(PN(NS)-PNS(NS))*FACT+PNS(NS)
-               PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACT+PTS(NS)
-               PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACT+PTS(NS)
-               PLF(NS)%RU  =(PU(NS)-PUS(NS))*FACTU+PUS(NS)
-               PLF(NS)%RUPL=0.D0
-               PLF(NS)%RNUC=0.D0
-               PLF(NS)%RZCL=PZCL(NS)
-            ENDDO
-         ENDIF
+        CASE(2)
+           IF(RHOL.GE.1.D0) THEN
+              DO NS=1,NSMAX
+                 PLF(NS)%RN  =PNS(NS)
+                 PLF(NS)%RTPR=PTS(NS)
+                 PLF(NS)%RTPP=PTS(NS)
+                 PLF(NS)%RU  =PUS(NS)
+                 PLF(NS)%RUPL=0.D0
+                 PLF(NS)%RNUC=0.D0
+                 PLF(NS)%RZCL=PZCL(NS)
+              ENDDO
+           ELSE
+              CALL GETPP(0.D0,PL0)
+              CALL GETPP(RHOL,PL)
+              FACT=SQRT(PL/PL0)
+              DO NS=1,NSMAX
+                 FACTU=(1.D0-RHOL**PROFU1(NS))**PROFU2(NS)
+                 PLF(NS)%RN  =(PN(NS)-PNS(NS))*FACT+PNS(NS)
+                 PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACT+PTS(NS)
+                 PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACT+PTS(NS)
+                 PLF(NS)%RU  =(PU(NS)-PUS(NS))*FACTU+PUS(NS)
+                 PLF(NS)%RUPL=0.D0
+                 PLF(NS)%RNUC=0.D0
+                 PLF(NS)%RZCL=PZCL(NS)
+              ENDDO
+           ENDIF
 
-      CASE(3)
-         IF(RHOL.GE.1.D0) THEN
-            DO NS=1,NSMAX
-               PLF(NS)%RN  =PNS(NS)
-               PLF(NS)%RTPR=PTS(NS)
-               PLF(NS)%RTPP=PTS(NS)
-               PLF(NS)%RU  =PUS(NS)
-               PLF(NS)%RUPL=0.D0
-               PLF(NS)%RNUC=0.D0
-               PLF(NS)%RZCL=PZCL(NS)
-            ENDDO
-         ELSE
-            DO NS=1,NSMAX
-               IF(RHOL.LE.RHOEDG) THEN
-                  FACTN=(1.D0-RHOL**PROFN1(NS))**PROFN2(NS)
-                  FACTT=(1.D0-RHOL**PROFT1(NS))**PROFT2(NS)
-                  FACTU=(1.D0-RHOL**PROFU1(NS))**PROFU2(NS)
-               ELSE
-                  FNX=(1.D0-RHOEDG**PROFN1(NS))**PROFN2(NS)
-                  DFNX=-PROFN1(NS)*PROFN2(NS)*RHOEDG**(PROFN1(NS)-1.D0) &
-                       *(1.D0-RHOEDG**PROFN1(NS))**(PROFN2(NS)-1.D0)
-                  AN= 3.D0*FNX/(1.D0-RHOEDG)**2+DFNX/(1.D0-RHOEDG)
-                  BN=-2.D0*FNX/(1.D0-RHOEDG)**3-DFNX/(1.D0-RHOEDG)**2
-                  FACTN=AN*(1.D0-RHOL)**2+BN*(1.D0-RHOL)**3
+        CASE(3)
+           IF(RHOL.GE.1.D0) THEN
+              DO NS=1,NSMAX
+                 PLF(NS)%RN  =PNS(NS)
+                 PLF(NS)%RTPR=PTS(NS)
+                 PLF(NS)%RTPP=PTS(NS)
+                 PLF(NS)%RU  =PUS(NS)
+                 PLF(NS)%RUPL=0.D0
+                 PLF(NS)%RNUC=0.D0
+                 PLF(NS)%RZCL=PZCL(NS)
+              ENDDO
+           ELSE
+              DO NS=1,NSMAX
+                 IF(RHOL.LE.RHOEDG) THEN
+                    FACTN=(1.D0-RHOL**PROFN1(NS))**PROFN2(NS)
+                    FACTT=(1.D0-RHOL**PROFT1(NS))**PROFT2(NS)
+                    FACTU=(1.D0-RHOL**PROFU1(NS))**PROFU2(NS)
+                 ELSE
+                    FNX=(1.D0-RHOEDG**PROFN1(NS))**PROFN2(NS)
+                    DFNX=-PROFN1(NS)*PROFN2(NS)*RHOEDG**(PROFN1(NS)-1.D0) &
+                         *(1.D0-RHOEDG**PROFN1(NS))**(PROFN2(NS)-1.D0)
+                    AN= 3.D0*FNX/(1.D0-RHOEDG)**2+DFNX/(1.D0-RHOEDG)
+                    BN=-2.D0*FNX/(1.D0-RHOEDG)**3-DFNX/(1.D0-RHOEDG)**2
+                    FACTN=AN*(1.D0-RHOL)**2+BN*(1.D0-RHOL)**3
 
-                  FTX=(1.D0-RHOEDG**PROFT1(NS))**PROFT2(NS)
-                  DFTX=-PROFT1(NS)*PROFT2(NS)*RHOEDG**(PROFT1(NS)-1.D0) &
-                       *(1.D0-RHOEDG**PROFT1(NS))**(PROFT2(NS)-1.D0)
-                  AT= 3.D0*FTX/(1.D0-RHOEDG)**2+DFTX/(1.D0-RHOEDG)
-                  BT=-2.D0*FTX/(1.D0-RHOEDG)**3-DFTX/(1.D0-RHOEDG)**2
-                  FACTT=AT*(1.D0-RHOL)**2+BT*(1.D0-RHOL)**3
+                    FTX=(1.D0-RHOEDG**PROFT1(NS))**PROFT2(NS)
+                    DFTX=-PROFT1(NS)*PROFT2(NS)*RHOEDG**(PROFT1(NS)-1.D0) &
+                         *(1.D0-RHOEDG**PROFT1(NS))**(PROFT2(NS)-1.D0)
+                    AT= 3.D0*FTX/(1.D0-RHOEDG)**2+DFTX/(1.D0-RHOEDG)
+                    BT=-2.D0*FTX/(1.D0-RHOEDG)**3-DFTX/(1.D0-RHOEDG)**2
+                    FACTT=AT*(1.D0-RHOL)**2+BT*(1.D0-RHOL)**3
 
-                  FUX=(1.D0-RHOEDG**PROFU1(NS))**PROFU2(NS)
-                  DFUX=-PROFU1(NS)*PROFU2(NS)*RHOEDG**(PROFU1(NS)-1.D0) &
-                       *(1.D0-RHOEDG**PROFU1(NS))**(PROFU2(NS)-1.D0)
-                  AU= 3.D0*FUX/(1.D0-RHOEDG)**2+DFUX/(1.D0-RHOEDG)
-                  BU=-2.D0*FUX/(1.D0-RHOEDG)**3-DFUX/(1.D0-RHOEDG)**2
-                  FACTU=AU*(1.D0-RHOL)**2+BU*(1.D0-RHOL)**3
-               ENDIF
+                    FUX=(1.D0-RHOEDG**PROFU1(NS))**PROFU2(NS)
+                    DFUX=-PROFU1(NS)*PROFU2(NS)*RHOEDG**(PROFU1(NS)-1.D0) &
+                         *(1.D0-RHOEDG**PROFU1(NS))**(PROFU2(NS)-1.D0)
+                    AU= 3.D0*FUX/(1.D0-RHOEDG)**2+DFUX/(1.D0-RHOEDG)
+                    BU=-2.D0*FUX/(1.D0-RHOEDG)**3-DFUX/(1.D0-RHOEDG)**2
+                    FACTU=AU*(1.D0-RHOL)**2+BU*(1.D0-RHOL)**3
+                 ENDIF
 
-               PLF(NS)%RN  =(PN(NS)  -PNS(NS))*FACTN+PNS(NS)
-               PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACTT+PTS(NS)
-               PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
-               PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
-               PLF(NS)%RUPL=0.D0
-               PLF(NS)%RNUC=0.D0
-               PLF(NS)%RZCL=PZCL(NS)
-               IF(RHOL.LT.RHOITB(NS)) THEN
-                  FACTITB =(1.D0-(RHOL/RHOITB(NS))**4)**2
-                  PLF(NS)%RN  =PLF(NS)%RN  +PNITB(NS)*FACTITB
-                  PLF(NS)%RTPR=PLF(NS)%RTPR+PTITB(NS)*FACTITB
-                  PLF(NS)%RTPP=PLF(NS)%RTPP+PTITB(NS)*FACTITB
-                  PLF(NS)%RU  =PLF(NS)%RU  +PUITB(NS)*FACTITB
-                  PLF(NS)%RUPL=0.D0
-                  PLF(NS)%RNUC=0.D0
-                  PLF(NS)%RZCL=PZCL(NS)
-               ENDIF
-            ENDDO
-         ENDIF
+                 PLF(NS)%RN  =(PN(NS)  -PNS(NS))*FACTN+PNS(NS)
+                 PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACTT+PTS(NS)
+                 PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
+                 PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+                 PLF(NS)%RUPL=0.D0
+                 PLF(NS)%RNUC=0.D0
+                 PLF(NS)%RZCL=PZCL(NS)
+                 IF(RHOL.LT.RHOITB(NS)) THEN
+                    FACTITB =(1.D0-(RHOL/RHOITB(NS))**4)**2
+                    PLF(NS)%RN  =PLF(NS)%RN  +PNITB(NS)*FACTITB
+                    PLF(NS)%RTPR=PLF(NS)%RTPR+PTITB(NS)*FACTITB
+                    PLF(NS)%RTPP=PLF(NS)%RTPP+PTITB(NS)*FACTITB
+                    PLF(NS)%RU  =PLF(NS)%RU  +PUITB(NS)*FACTITB
+                    PLF(NS)%RUPL=0.D0
+                    PLF(NS)%RNUC=0.D0
+                    PLF(NS)%RZCL=PZCL(NS)
+                 ENDIF
+              ENDDO
+           ENDIF
 
-      CASE(8)
-         DO NS=1,NSMAX
-            CALL WMSPL_PROF(Rhol,NS,RN_PL(NS),RT_PL(NS))
-         ENDDO
+        CASE(8)
+           DO NS=1,NSMAX
+              CALL WMSPL_PROF(Rhol,NS,RN_PL(NS),RT_PL(NS))
+           ENDDO
 
 !----  Modification for charge neutrality after spline interpolation
 
-         VAL=0.D0
-         DO NS=2,NSMAX-1
-            VAL=VAL+PZ(NS)*RN_PL(NS)
-         ENDDO
-         RN_PL(NSMAX)=(RN_PL(1)-VAL)/PZ(NSMAX)
+           VAL=0.D0
+           DO NS=2,NSMAX-1
+              VAL=VAL+PZ(NS)*RN_PL(NS)
+           ENDDO
+           RN_PL(NSMAX)=(RN_PL(1)-VAL)/PZ(NSMAX)
 
 !----
 
-         IF(RHOL.GE.1.D0) THEN
-            DO NS=1,NSMAX
-               PLF(NS)%RN=PNS(NS)
-               IF (NS.EQ.1.OR.NS.GT.1) THEN
-                  CALL WMSPL_PROF(1.D0,NS,RN_PL(NS),RT_PL(NS))
-                  PLF(NS)%RTPR=RT_PL(NS)*1.D-3
-                  PLF(NS)%RTPP=RT_PL(NS)*1.D-3
-               ELSE
-                  PLF(NS)%RTPR=PTS(NS)
-                  PLF(NS)%RTPP=PTS(NS)
-               ENDIF
-               PLF(NS)%RU  =PUS(NS)
-               PLF(NS)%RUPL=0.D0
-               PLF(NS)%RNUC=0.D0
-               PLF(NS)%RZCL=PZCL(NS)
-            ENDDO
-         ELSE
-            DO NS=1,NSMAX
-               FACTN=(1.D0-RHOL**PROFN1(NS))**PROFN2(NS)
-               FACTT=(1.D0-RHOL**PROFT1(NS))**PROFT2(NS)
-               FACTU=(1.D0-RHOL**PROFU1(NS))**PROFU2(NS)
-               IF (NS.EQ.1.OR.NS.GT.1) THEN
-                  PLF(NS)%RN  = RN_PL(NS)*1.D-20
-                  PLF(NS)%RTPR= RT_PL(NS)*1.D-3
-                  PLF(NS)%RTPP= RT_PL(NS)*1.D-3
-               ELSE
-                  PLF(NS)%RN  =((PN(NS)  -PNS(NS))*FACTN+PNS(NS))
-                  PLF(NS)%RTPR=((PTPR(NS)-PTS(NS))*FACTT+PTS(NS))
-                  PLF(NS)%RTPP=((PTPP(NS)-PTS(NS))*FACTT+PTS(NS))
-               ENDIF
-               PLF(NS)%RU  = (PU(NS)  -PUS(NS))*FACTU+PUS(NS)
-               PLF(NS)%RUPL=0.D0
-               PLF(NS)%RNUC=0.D0
-               PLF(NS)%RZCL=PZCL(NS)
-            ENDDO
-         ENDIF
+           IF(RHOL.GE.1.D0) THEN
+              DO NS=1,NSMAX
+                 PLF(NS)%RN=PNS(NS)
+                 IF (NS.EQ.1.OR.NS.GT.1) THEN
+                    CALL WMSPL_PROF(1.D0,NS,RN_PL(NS),RT_PL(NS))
+                    PLF(NS)%RTPR=RT_PL(NS)*1.D-3
+                    PLF(NS)%RTPP=RT_PL(NS)*1.D-3
+                 ELSE
+                    PLF(NS)%RTPR=PTS(NS)
+                    PLF(NS)%RTPP=PTS(NS)
+                 ENDIF
+                 PLF(NS)%RU  =PUS(NS)
+                 PLF(NS)%RUPL=0.D0
+                 PLF(NS)%RNUC=0.D0
+                 PLF(NS)%RZCL=PZCL(NS)
+              ENDDO
+           ELSE
+              DO NS=1,NSMAX
+                 FACTN=(1.D0-RHOL**PROFN1(NS))**PROFN2(NS)
+                 FACTT=(1.D0-RHOL**PROFT1(NS))**PROFT2(NS)
+                 FACTU=(1.D0-RHOL**PROFU1(NS))**PROFU2(NS)
+                 IF (NS.EQ.1.OR.NS.GT.1) THEN
+                    PLF(NS)%RN  = RN_PL(NS)*1.D-20
+                    PLF(NS)%RTPR= RT_PL(NS)*1.D-3
+                    PLF(NS)%RTPP= RT_PL(NS)*1.D-3
+                 ELSE
+                    PLF(NS)%RN  =((PN(NS)  -PNS(NS))*FACTN+PNS(NS))
+                    PLF(NS)%RTPR=((PTPR(NS)-PTS(NS))*FACTT+PTS(NS))
+                    PLF(NS)%RTPP=((PTPP(NS)-PTS(NS))*FACTT+PTS(NS))
+                 ENDIF
+                 PLF(NS)%RU  = (PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+                 PLF(NS)%RUPL=0.D0
+                 PLF(NS)%RNUC=0.D0
+                 PLF(NS)%RZCL=PZCL(NS)
+              ENDDO
+           ENDIF
 
-      CASE(9)
-         CALL pl_bpsd_get(RHOL,RN_PL,RTPR_PL,RTPP_PL,RU_PL,RUPL_PL)
-         DO NS=1,NSMAX
-            PLF(NS)%RN  =RN_PL(NS)
-            PLF(NS)%RTPR=RTPR_PL(NS)
-            PLF(NS)%RTPP=RTPP_PL(NS)
-            PLF(NS)%RU  =RU_PL(NS)
-            PLF(NS)%RUPL=RUPL_PL(NS)
-            PLF(NS)%RNUC=0.D0
-            PLF(NS)%RZCL=PZCL(NS)
-         ENDDO
+        CASE(9)
+           CALL pl_bpsd_get(RHOL,RN_PL,RTPR_PL,RTPP_PL,RU_PL,RUPL_PL)
+           DO NS=1,NSMAX
+              PLF(NS)%RN  =RN_PL(NS)
+              PLF(NS)%RTPR=RTPR_PL(NS)
+              PLF(NS)%RTPP=RTPP_PL(NS)
+              PLF(NS)%RU  =RU_PL(NS)
+              PLF(NS)%RUPL=RUPL_PL(NS)
+              PLF(NS)%RNUC=0.D0
+              PLF(NS)%RZCL=PZCL(NS)
+           ENDDO
 
-      CASE(21)
-         DO NS=1,NSMAX
-            CALL pl_read_trdata(RHOL,NS,PNL,PTL)
-            PLF(NS)%RN  =PNL
-            PLF(NS)%RTPR=PTL
-            PLF(NS)%RTPP=PTL
-            PLF(NS)%RU  =0.D0
-            PLF(NS)%RUPL=0.D0
-            PLF(NS)%RNUC=0.D0
-            PLF(NS)%RZCL=PZCL(NS)
-            IF(NS.EQ.1) WRITE(6,'(A,1P3E12.4)') 'rhol,pnl,ptl=',RHOL,PNL,PTL
-         ENDDO
+        CASE(21)
+           DO NS=1,NSMAX
+              CALL pl_read_trdata(RHOL,NS,PNL,PTL)
+              PLF(NS)%RN  =PNL
+              PLF(NS)%RTPR=PTL
+              PLF(NS)%RTPP=PTL
+              PLF(NS)%RU  =0.D0
+              PLF(NS)%RUPL=0.D0
+              PLF(NS)%RNUC=0.D0
+              PLF(NS)%RZCL=PZCL(NS)
+              IF(NS.EQ.1) WRITE(6,'(A,1P3E12.4)') 'rhol,pnl,ptl=',RHOL,PNL,PTL
+           ENDDO
 
-      END SELECT
+        CASE(31)
+           profn=plprof_travis_n(rhon)
+           proft=plprof_travis_t(rhon)
+           DO NS=1,NSMAX
+              PLF(NS)%RN  =PN(NS)*profn
+              PLF(NS)%RTPR=PTPR(NS)*proft
+              PLF(NS)%RTPP=PTPP(NS)*proft
+              PLF(NS)%RU  =0.D0
+              PLF(NS)%RUPL=0.D0
+              PLF(NS)%RNUC=0.D0
+              PLF(NS)%RZCL=PZCL(NS)
+           END DO
+        END SELECT
 
-      RETURN
+        RETURN
     END SUBROUTINE pl_prof
 
     SUBROUTINE pl_grad(rhon,grd)

@@ -485,7 +485,8 @@ C
          BTH=ABS(BSUPTH*RA*RHON)
 !         BTH=ABS(BSUPTH*RA)
          WTPR=RTPR(NS)*1.D3*AEE/(AMP*PA(NS))
-         RKPR_EFF=SQRT(CW*BTH/SQRT(8.D0*WTPR)/RR/BABS)
+!         RKPR_EFF=SQRT(CW*BTH/SQRT(8.D0*WTPR)/RR/BABS)
+         RKPR_EFF=SQRT(CW*BTHOBN(NR)/SQRT(8.D0*WTPR)/RR)
          IF (RKPR_EFF < 1d-5)then
            print *,RKPR_EFF,BTH,WKPT
            RKPR_EFF=1.D-5
@@ -526,25 +527,41 @@ C
 C               RKX2=     MM*MM*RG22(NTH,NHH,NR)*XRHO(NR)**2
 C     &             +2.D0*MM*NN*RG23(NTH,NHH,NR)*XRHO(NR)
 C     &             +     NN*NN*RG33(NTH,NHH,NR)
+C               RKX2=     MM*MM*RGI22(NTH,NHH,NR)/XRHO(NR)**2
+C     &             +2.D0*MM*NN*RGI23(NTH,NHH,NR)/XRHO(NR)
+C     &             +     NN*NN*RGI33(NTH,NHH,NR)
               IF (NR .eq. 1)then
-                 RKX2= MM*MM/(RG22(NTH,NHH,2)*XRHO(2)**2)
-     &             +     NN*NN/(RG33(NTH,NHH,NR))
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+               RKX2=     MM*MM*RGI22(NTH,NHH,NR)*(1d6/XRHO(2))**2
+     &             +2.D0*MM*NN*RGI23(NTH,NHH,NR)*(1d6/XRHO(2))
+     &             +     NN*NN*RGI33(NTH,NHH,NR)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+C                 RKX2=  NN*NN*(RGI33(NTH,NHH,NR))
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+              ELSE
+               RKX2=     MM*MM*RGI22(NTH,NHH,NR)/XRHO(NR)**2
+     &             +2.D0*MM*NN*RGI23(NTH,NHH,NR)/XRHO(NR)
+     &             +     NN*NN*RGI33(NTH,NHH,NR)
+              ENDIF
+!              IF (NR .eq. 1)then
+!                 RKX2= MM*MM/(RG22(NTH,NHH,2)*XRHO(2)**2)
+!     &             +     NN*NN/(RG33(NTH,NHH,NR))
 !                 IF (ABS(RG23(NTH,NHH,2)) .gt. 1d-15)THEN
 !                    RKX2= RKX2
 !     &                  +2.D0*MM*NN/(RG23(NTH,NHH,2)*XRHO(2))
 !                 ENDIF
-               ELSE
-                 RKX2= MM*MM/(RG22(NTH,NHH,NR)*XRHO(NR)**2)
-     &             +     NN*NN/(RG33(NTH,NHH,NR))
+!               ELSE
+!                 RKX2= MM*MM/(RG22(NTH,NHH,NR)*XRHO(NR)**2)
+!     &             +     NN*NN/(RG33(NTH,NHH,NR))
 !                 IF (ABS(RG23(NTH,NHH,NR)) .gt. 1d-15)THEN
 !                    RKX2= RKX2
 !     &                  +2.D0*MM*NN/(RG23(NTH,NHH,NR)*XRHO(NR))
 !                 ENDIF
-               ENDIF
+!               ENDIF
                IF(RKPP2.GT.0.D0) THEN
                   RKPP=SQRT(RKPP2)
                   RKT2=RKX2-RKPR**2
-                  IF(RKT2.GT.0.D0) THEN
+                  IF(RKT2.GE.0.D0) THEN
                      IF(RKT2.LE.RKPP2) THEN
                         RKR2=RKPP2-RKT2
                      ELSE
@@ -553,6 +570,8 @@ C     &             +     NN*NN*RG33(NTH,NHH,NR)
                   ELSE
                      RKT2=0.D0
                      RKR2=RKPP2
+!                     RKPP=0d0
+!                     RKR2=0d0
                   ENDIF
 !                  UXX2= RKX2/RKPP2
                   UXX2= RKT2/RKPP2
@@ -749,6 +768,7 @@ C
 !$OMP+private(RNPP2,RKPP2,RKX2,CDTNS)
 !$OMP+private(RKT2,RKR2,UXX2,UYY2)
 !$OMP+private(CKPR,CKPP,CPERM)
+!$OMP+private(CKPPF,CKPPS)
 !$OMP+private(MM,NN)
       DO NTH=1,NTHMAX_IPS_F
 !!!!!!!! seki
@@ -763,12 +783,15 @@ C
          BTH=ABS(BSUPTH*RA*RHON)
          WTPR=RTPR(NS)*1.D3*AEE/(AMP*PA(NS))
          RKPR_EFF=SQRT(CW*BTH/SQRT(8.D0*WTPR)/RR/BABS)
+!         RKPR_EFF=SQRT(CW*BTHOBN(NR)/SQRT(8.D0*WTPR)/RR)
          IF (RKPR_EFF < 1d-5)then
            RKPR_EFF=1.D-5
-           if (NR .NE. 1)then 
-             print *,RKPR_EFF,BTH,WKPT
-             STOP
-           ENDIF
+!         IF (RKPR_EFF < 1d1*RHON)then
+!           RKPR_EFF=1.D1*RHON
+!           if (NR .NE. 1)then 
+!             print *,RKPR_EFF,BTH,WKPT
+!             STOP
+!           ENDIF
          endif
 C         DO ND=-NDSIZX_TMP,NDSIZX_TMP
 !!!!!!!! seki
@@ -789,6 +812,8 @@ Cseki            IF(ABS(RKPR).LT.1.D-5) RKPR=1.D-5
             IF(ABS(RKPR).LE.RKPR_EFF)RKPR=SIGN(RKPR_EFF,RKPR)
             RNPR=VC*RKPR/WW
 C
+            CKPPF=0d0
+C            IF(MM .eq. 0 .AND. NN .eq. 0)cycle
             IF(MODELP(NS).EQ.5.OR.MODELP(NS).EQ.15) THEN
                DTT=1.D0
                DTX=0.D0
@@ -802,25 +827,48 @@ C
                ENDDO
                RNPP2=((DTT-RNPR**2)**2-DTX**2)/(DTT-RNPR**2)
                RKPP2=RNPP2*WW*WW/(VC*VC)
+               CKPR=RKPR
+               CKPPF=RKPP
+
+               call DPCOLD_RKPERP_2(CW,CKPR,CKPPF,CKPPS,BABS,BTH)
+               RKPP2=REAL(CKPPF**2)
+    
+
 C               RKX2=     MM*MM*RG22_IPS(NTH,NHH,NR)*XRHO(NR)**2
 C     &             +2.D0*MM*NN*RG23_IPS(NTH,NHH,NR)*XRHO(NR)
 C     &             +     NN*NN*RG33_IPS(NTH,NHH,NR)
+C               RKX2=     MM*MM*RGI22_IPS(NTH,NHH,NR)/XRHO(NR)**2
+C     &             +2.D0*MM*NN*RGI23_IPS(NTH,NHH,NR)/XRHO(NR)
+C     &             +     NN*NN*RGI33_IPS(NTH,NHH,NR)
               IF (NR .eq. 1)then
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+               RKX2=     MM*MM*RGI22_IPS(NTH,NHH,NR)*(1d6/XRHO(2))**2
+     &             +2.D0*MM*NN*RGI23_IPS(NTH,NHH,NR)*(1d6/XRHO(2))
+     &             +     NN*NN*RGI33_IPS(NTH,NHH,NR)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+C                 RKX2=  NN*NN*(RGI33_IPS(NTH,NHH,NR))
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+              ELSE
+               RKX2=     MM*MM*RGI22_IPS(NTH,NHH,NR)/XRHO(NR)**2
+     &             +2.D0*MM*NN*RGI23_IPS(NTH,NHH,NR)/XRHO(NR)
+     &             +     NN*NN*RGI33_IPS(NTH,NHH,NR)
+              ENDIF
+!              IF (NR .eq. 1)then
 !                 RKX2= MM*MM/(RG22_IPS(NTH,NHH,2)*XRHO(2)**2)
 !     &             +     NN*NN/(RG33_IPS(NTH,NHH,NR))
 !                 IF (ABS(RG23_IPS(NTH,NHH,2)) .gt. 1d-15)THEN
 !                    RKX2= RKX2
 !     &                  +2.D0*MM*NN/(RG23_IPS(NTH,NHH,2)*XRHO(2))
 !                 ENDIF
-                 RKX2=  NN*NN/(RG33_IPS(NTH,NHH,NR))
-               ELSE
-                 RKX2= MM*MM/(RG22_IPS(NTH,NHH,NR)*XRHO(NR)**2)
-     &             +     NN*NN/(RG33_IPS(NTH,NHH,NR))
+!                 RKX2=  NN*NN/(RG33_IPS(NTH,NHH,NR))
+!               ELSE
+!                 RKX2= MM*MM/(RG22_IPS(NTH,NHH,NR)*XRHO(NR)**2)
+!     &             +     NN*NN/(RG33_IPS(NTH,NHH,NR))
 !                 IF (ABS(RG23_IPS(NTH,NHH,NR)) .gt. 1d-15)THEN
 !                    RKX2= RKX2
 !     &                  +2.D0*MM*NN/(RG23_IPS(NTH,NHH,NR)*XRHO(NR))
 !                 ENDIF
-               ENDIF
+!               ENDIF
 
                IF(RKPP2.GT.0.D0) THEN
                   RKPP=SQRT(RKPP2)
@@ -836,12 +884,14 @@ C     &             +     NN*NN*RG33_IPS(NTH,NHH,NR)
                   ELSE
                      RKT2=0.D0
                      RKR2=RKPP2
+!                     RKPP=0d0
+!                     RKR2=0d0
                   ENDIF
 !                  UXX2= RKX2/RKPP2
                   UXX2= RKT2/RKPP2
                   UYY2= RKR2/RKPP2
                ELSE
-!                  print *,"seki2",RKPP2
+!                  print *,"seki2",XRHO(NR),RKPP2
 !                  RKPP2=0.D0
                   RKPP=0.D0
                   RKT2=0.D0
@@ -854,6 +904,7 @@ C     &             +     NN*NN*RG33_IPS(NTH,NHH,NR)
 !                  RKR2=0.D0
 !                  UXX2=0.D0
 !                  UYY2=0.D0
+                   CKPPF=RKPP
                ENDIF
             ELSE
                RKPP2=0.D0
@@ -862,6 +913,7 @@ C     &             +     NN*NN*RG33_IPS(NTH,NHH,NR)
                RKR2=0.D0
                UXX2=0.D0
                UYY2=0.D0
+               CKPPF=RKPP
             ENDIF
 C
 C            RKPP=0.D0
@@ -875,10 +927,12 @@ C
 !            CKPP=RKPP2
 !            CKPP=sqrt(CKPP)
 
-            CKPP=RKPP
+!            CKPP=RKPP
+            CKPP=CKPPF
 
 !            CALL DPCALC(CW,CKPR,CKPP,RHON,BABS,NS,CDTNS)
 !            print *,CW,CKPR,CKPP,RHON,BABS,BSUPTH*RA,NS
+!            print "(10(es10.3,1x))",XRHO(NR), CKPP,CKPR,UXX2,UYY2
             CALL DPCALC_2(CW,CKPR,CKPP,RHON,BABS,BTH
      &                     ,NS,CDTNS)
 C            print *,"1"

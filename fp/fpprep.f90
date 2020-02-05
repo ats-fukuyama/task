@@ -76,7 +76,10 @@
          CALL eqcalq(IERR)
          CALL eqgetb(BB,RR,RIP,RA,RKAP,RDLT,RB)
       ENDIF
-!      WRITE(6,*) 'RKAP=',RKAP,' set to 1.0'
+      WRITE(6,*) 'BB  =',BB
+      WRITE(6,*) 'RR  =',RR
+      WRITE(6,*) 'RIP =',RIP
+      WRITE(6,*) 'RA  =',RA
       RKAP=1.D0
 
 !     ----- set radial mesh -----
@@ -1338,12 +1341,12 @@
       CALL fp_set_nsa_nsb
 
 !     ----- create meches -----
-!      WRITE(6,*) "START MESH"
       CALL fp_mesh(ierr)
-!      WRITE(6,*) "END MESH"
+
 !     ----- Initialize diffusion coef. -----
       call FPCINI
       RNS_DELF(:,:)=0.D0
+
 !     ----- set parameters for target species -----
       CALL fp_set_normalize_param
 

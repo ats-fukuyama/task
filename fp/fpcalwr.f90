@@ -47,6 +47,8 @@
          NRAYE=NRAYE_WR
       END IF
 
+      FACT=0.5D0
+
       ALLOCATE(DLA(0:NITMAXM,NRAYS:NRAYE))
 
       NS=NS_NSA(NSA)

@@ -12,6 +12,7 @@ MODULE fpcomm_parm
 
       integer,parameter:: kind8=rkind
       integer,parameter:: NBEAMM=20
+      integer,parameter:: NRAYM=20
       real(rkind),parameter:: rkev=aee*1.D3
 
       integer:: NSAMAX,NSBMAX,NS_NSA(NSM),NS_NSB(NSM)
@@ -61,6 +62,7 @@ MODULE fpcomm_parm
       real(rkind):: v_RE,target_zeff,SPITOT,FACT_BULK
       real(rkind):: RN_NEU0, RN_NEUS ! temporal 
       real(rkind):: NI_RATIO(NSM)
+      real(rkind):: FACT_NRAY(NRAYM)
 
 !     for read experiment data
       CHARACTER(len=80):: EG_NAME_TMS, EG_NAME_CX, EG_NAME_HA3

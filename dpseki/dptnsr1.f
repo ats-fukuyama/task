@@ -34,6 +34,27 @@ C
       RETURN
       END
 C
+      SUBROUTINE DPTNCL_2(CW,CKPR,CKPP,BABS1,NS,CLDISP)
+C
+      USE plcomm
+      USE pllocal
+      INCLUDE '../dp/dpcomm.inc'
+      DIMENSION CLDISP(6)
+      REAL(8),INTENT(IN):: BABS1
+C
+      CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      CWC=BABS1*PZ(NS)*AEE/(AMP*PA(NS)*CW)
+C
+      CLDISP(1)=-CWP/(1.D0-CWC*CWC)
+      CLDISP(2)=-CWP-CLDISP(1)
+      CLDISP(3)= 0.D0
+      CLDISP(4)= 0.D0
+      CLDISP(5)=(0.D0,-1.D0)*CWP*CWC/(1.D0-CWC*CWC)
+      CLDISP(6)= 0.D0
+
+      RETURN
+      END
+C
 C     ****** COLLISIONAL COLD MODEL ******
 C
       SUBROUTINE DPTNCC(CW,CKPR,CKPP,NS,CLDISP)
@@ -45,6 +66,50 @@ C
 C
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
+C
+      RNR=abs(CKPR)
+!      IF (RNR > 1d2)RNR=1d2
+!      IF (RNR < 5d0)RNR=5d0
+!      RNYU=PZCL(NS)/((5d0+RNR)/5d0)
+      RNYU=PZCL(NS)
+      CWP=CWP/DCMPLX(1.D0,RNYU)
+      CWC=CWC/DCMPLX(1.D0,RNYU)
+C
+!      print *,CKPR,RNR
+!      print *,DCMPLX(1.D0,RNYU)
+      CLDISP(1)=-CWP/(1.D0-CWC*CWC)
+!      print *,CLDISP(1)
+!      print *,"seki"
+      CLDISP(2)=-CWP-CLDISP(1)
+      CLDISP(3)= 0.D0
+      CLDISP(4)= 0.D0
+      CLDISP(5)=(0.D0,-1.D0)*CWP*CWC/(1.D0-CWC*CWC)
+      CLDISP(6)= 0.D0
+
+c$$$      write(6,'(A)') 'DPTNCC'
+c$$$      write(6,'(A,I5)') 'NS=',NS
+c$$$      write(6,'(A,1P4E12.4)') 'PA,PZ,RN,B=',PA(NS),PZ(NS),RN(NS),BABS
+c$$$      write(6,'(A,1P4E12.4)') 'CW,CKPR=',CW,CKPR
+c$$$      write(6,'(A,1P4E12.4)') 'CWP,CWC=',CWP,CWC
+c$$$      write(6,'(A,1P4E12.4)') 'CLDISP(1/2)=',CLDISP(1),CLDISP(2)
+c$$$      write(6,'(A,1P4E12.4)') 'CLDISP(3/4)=',CLDISP(3),CLDISP(4)
+c$$$      write(6,'(A,1P4E12.4)') 'CLDISP(5/6)=',CLDISP(5),CLDISP(6)
+c$$$      pause
+      RETURN
+      END
+C
+C     ****** COLLISIONAL COLD MODEL ******
+C
+      SUBROUTINE DPTNCC_2(CW,CKPR,CKPP,BABS1,NS,CLDISP)
+C
+      USE plcomm
+      USE pllocal
+      INCLUDE '../dp/dpcomm.inc'
+      DIMENSION CLDISP(6)
+      REAL(8),INTENT(IN):: BABS1
+C
+      CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      CWC=BABS1*PZ(NS)*AEE/(AMP*PA(NS)*CW)
 C
       RNR=abs(CKPR)
 !      IF (RNR > 1d2)RNR=1d2
@@ -239,6 +304,61 @@ C
       RETURN
       END
 C
+C     ****** KINETIC MODEL WITHOUT FLR ******
+C
+      SUBROUTINE DPTNHP_2(CW,CKPR,CKPP,BABS1,NS,CLDISP)
+C
+      USE libdsp,ONLY: DSPFN
+      USE plcomm
+      USE pllocal
+      INCLUDE '../dp/dpcomm.inc'
+      DIMENSION CLDISP(6)
+      REAL(8),INTENT(IN):: BABS1
+      DIMENSION CALAM2(0:NHM)
+C
+      DO I=1,6
+         CLDISP(I)=0.D0
+      ENDDO
+C
+      CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      CWC=BABS1*PZ(NS)*AEE/(AMP*PA(NS)*CW)
+C
+      WTPR=RTPR(NS)*1.D3*AEE/(AMP*PA(NS))
+      WTPP=RTPP(NS)*1.D3*AEE/(AMP*PA(NS))
+      WTPX=SQRT(WTPR/WTPP)
+      CBETA=0.D0
+      CALAM2(0)=1.D0
+      CALAM2(1)=0.D0
+      CALAM2(2)=0.D0
+C
+      DO NC=-1,1
+C
+         CPR=CW/SQRT(2.D0*CKPR**2*WTPR)
+         CGZ= (1.D0-NC*CWC)*CPR
+         CALL DSPFN(CGZ,CZ,CDZ)
+C
+         CK=CKPP/CKPR
+C
+         CFW=CPR*CZ+0.5D0*(1.D0-WTPX)*CDZ
+         CFF=0.5D0*(WTPX/CWC-NC*(WTPX-1.D0))*CDZ
+         CFG=-CPR*(1.D0-NC*(1.D0-1.D0/WTPX))*CGZ*CDZ
+C
+         CLAM=CALAM2(ABS(NC))
+         CLAMM=CALAM2(ABS(NC-1))
+         CLAMP=CALAM2(ABS(NC+1))
+         CDLAM=0.5D0*(CLAMM+CLAMP)-CLAM
+         CBLAM=0.5D0*(CLAMM-CLAMP)
+C
+         CLDISP(1)=CLDISP(1)+CWP*   NC*CBLAM*CFW
+         CLDISP(2)=CLDISP(2)+CWP*     (CLAM*CFG-NC*CBLAM*CFW)
+         CLDISP(3)=CLDISP(3)-CWP* 2.D0*CBETA*CDLAM*CFW
+         CLDISP(4)=CLDISP(4)-CWP*   CK*CBLAM*CFF
+         CLDISP(5)=CLDISP(5)+CWP*CI*NC*CDLAM*CFW
+         CLDISP(6)=CLDISP(6)+CWP*CI*CK*CDLAM*CFF
+      ENDDO
+      RETURN
+      END
+C
 C     ****** KINETIC MODEL WITH LOWEST FLR ******
 C
       SUBROUTINE DPTNKL(CW,CKPR,CKPP,NS,CLDISP)
@@ -302,6 +422,71 @@ C
       RETURN
       END
 C
+C     ****** KINETIC MODEL WITH LOWEST FLR ******
+C
+      SUBROUTINE DPTNKL_2(CW,CKPR,CKPP,BABS1,NS,CLDISP)
+C
+      USE libdsp,ONLY: DSPFN
+      USE plcomm
+      USE pllocal
+      INCLUDE '../dp/dpcomm.inc'
+      DIMENSION CLDISP(6)
+      REAL(8),INTENT(IN):: BABS1
+      DIMENSION CALAM2(0:NHM)
+C
+      DO I=1,6
+         CLDISP(I)=0.D0
+      ENDDO
+C
+      CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      CWC=BABS1*PZ(NS)*AEE/(AMP*PA(NS)*CW)
+C
+      WTPR=RTPR(NS)*1.D3*AEE/(AMP*PA(NS))
+      WTPP=RTPP(NS)*1.D3*AEE/(AMP*PA(NS))
+      WTPX=SQRT(WTPR/WTPP)
+      CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
+      CALAM2(0)=1.D0-      CBETA+0.750D0*CBETA*CBETA
+      CALAM2(1)=     0.5D0*CBETA-0.500D0*CBETA*CBETA
+      CALAM2(2)=                 0.125D0*CBETA*CBETA
+      CALAM2(3)=0.D0
+C
+      DO NC=-2,2
+C
+
+C         IF(ABS(CKPR).LE.0.D0) THEN
+C            CPR=CW/SQRT(2.D0*1.D-4**2*WTPR)
+C            CK=CKPP/1.D-4
+C         ELSE
+C            CPR=CW/SQRT(2.D0*CKPR**2*WTPR)
+C            CK=CKPP/CKPR
+C        ENDIF
+
+         CPR=CW/SQRT(2.D0*CKPR**2*WTPR)
+         CK=CKPP/CKPR
+
+         CGZ= (1.D0-NC*CWC)*CPR
+         CALL DSPFN(CGZ,CZ,CDZ)
+C
+         CFW=CPR*CZ+0.5D0*(1.D0-WTPX)*CDZ
+         CFF=0.5D0*(WTPX/CWC-NC*(WTPX-1.D0))*CDZ
+         CFG=-CPR*(1.D0-NC*(1.D0-1.D0/WTPX))*CGZ*CDZ
+C
+         CLAM=CALAM2(ABS(NC))
+         CLAMM=CALAM2(ABS(NC-1))
+         CLAMP=CALAM2(ABS(NC+1))
+         CDLAM=0.5D0*(CLAMM+CLAMP)-CLAM
+         CBLAM=0.5D0*(CLAMM-CLAMP)
+C
+         CLDISP(1)=CLDISP(1)+CWP*   NC*CBLAM*CFW
+         CLDISP(2)=CLDISP(2)+CWP*     (CLAM*CFG-NC*CBLAM*CFW)
+         CLDISP(3)=CLDISP(3)-CWP* 2.D0*CBETA*CDLAM*CFW
+         CLDISP(4)=CLDISP(4)-CWP*   CK*CBLAM*CFF
+         CLDISP(5)=CLDISP(5)+CWP*CI*NC*CDLAM*CFW
+         CLDISP(6)=CLDISP(6)+CWP*CI*CK*CDLAM*CFF
+      ENDDO
+      RETURN
+      END
+C
 C     ****** KINETIC MODEL WITH FLR (SYMMETRIC) ******
 C
       SUBROUTINE DPTNKS(CW,CKPR,CKPP,NS,CLDISP)
@@ -312,10 +497,12 @@ C
       USE pllocal
       INCLUDE '../dp/dpcomm.inc'
       DIMENSION CLDISP(6)
+      DIMENSION CALAM2(0:NHM)
 C
       DO I=1,6
          CLDISP(I)=0.D0
       ENDDO
+      CALAM2=0d0
 C
       NMIN=NDISP1(NS)
       NMAX=NDISP2(NS)
@@ -328,7 +515,8 @@ C
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
 C
-      RNYU=PZCL(NS)
+C      RNYU=PZCL(NS)
+      RNYU=0d0
       CWP=CWP/DCMPLX(1.D0,RNYU)
       CWC=CWC/DCMPLX(1.D0,RNYU)
 C
@@ -336,24 +524,170 @@ C
       WTPP=RTPP(NS)*1.D3*AEE/(AMP*PA(NS))
       WTPX=SQRT(WTPR/WTPP)
       CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
-      CALL LAMBDA(MAX(ABS(NMIN),ABS(NMAX))+1,CBETA,CALAM,IERR)
+      CALL LAMBDA(MAX(ABS(NMIN),ABS(NMAX))+1,CBETA,CALAM2,IERR)
+!       CALAM2(0)=1d0
+!      CALAM2=CBETA
+!            print *,CBETA
+!            print *,CALAM(1)
+!      RKPP2=CKPP*CKPP
+!            print *,CKPP*CKPP
+!      print *,"sek2",RKPP2
+!      if (RKPP2 < 0d0)then
+!            print *,CKPP*CKPP
+!            pause
+!      endif
 
       IF(IERR.EQ.1) WRITE(6,*) 'XX LAMBDA: N out of range'
-
+C      IF(IERR.EQ.2) WRITE(6,*) 'XX LAMBDA: CBETA out of range'
+C
+C      RKPR_EFF=SQRT(CW*BTH/SQRT(8.D0*WTPR)/RR/BABS)
+C      IF (RKPR_EFF < 1d-5)then
+C         print *,RKPR_EFF
+C         RKPR_EFF=1.D-5
+C      endif
+CC      RKPR_EFF=1.D-4
       DO NC=NMIN,NMAX
-         CPR=CW/SQRT(2.D0*CKPR**2*WTPR)
-         CK=CKPP/CKPR
-        
-         CGZ= (1.D0-NC*CWC)*CPR
-         CALL DSPFN(CGZ,CZ,CDZ)
+C
 
+         IF(ABS(CKPR).LE.RKPR_EFF) THEN
+            CPR=CW/SQRT(2.D0*RKPR_EFF**2*WTPR)
+CC         IF(ABS(CKPR).LE.0.D0) THEN
+CC            CPR=CW/SQRT(2.D0*1.D-4**2*WTPR)
+            CK=CKPP/SIGN(RKPR_EFF,ABS(CKPR))
+C         IF(ABS(CKPR).LE.0.D0) THEN
+C            CPR=CW/SQRT(2.D0*1.D-4**2*WTPR)
+C            CK=CKPP/1.D-4
+         ELSE
+            CPR=CW/SQRT(2.D0*CKPR**2*WTPR)
+            CK=CKPP/CKPR
+        ENDIF
+        
+!         rlimit=1d-6
+!         IF (ABS((1.D0-NC*CWC)) >rlimit  )then
+           CGZ= (1.D0-NC*CWC)*CPR
+!         ELSEIF (real((1.D0-NC*CWC)) >= 0d0  )then
+!           CGZ= rlimit*CPR
+!         ELSE
+!           CGZ= -rlimit*CPR
+!         ENDIF
+         CALL DSPFN(CGZ,CZ,CDZ)
+C
          CFW=CPR*CZ+0.5D0*(1.D0-WTPX)*CDZ
          CFF=0.5D0*(WTPX/CWC-NC*(WTPX-1.D0))*CDZ
          CFG=-CPR*(1.D0-NC*(1.D0-1.D0/WTPX))*CGZ*CDZ
+C
+         CLAM=CALAM2(ABS(NC))
+         CLAMM=CALAM2(ABS(NC-1))
+         CLAMP=CALAM2(ABS(NC+1))
+         CDLAM=0.5D0*(CLAMM+CLAMP)-CLAM
+         CBLAM=0.5D0*(CLAMM-CLAMP)
+C
+         CLDISP(1)=CLDISP(1)+CWP*   NC*CBLAM*CFW
+         CLDISP(2)=CLDISP(2)+CWP*     (CLAM*CFG-NC*CBLAM*CFW)
+         CLDISP(3)=CLDISP(3)-CWP* 2.D0*CBETA*CDLAM*CFW
+!         CLDISP(4)=CLDISP(4)-CWP*   CK*CBLAM*CFF
+         CLDISP(4)=0.D0
+         CLDISP(5)=CLDISP(5)+CWP*CI*NC*CDLAM*CFW
+!         CLDISP(6)=CLDISP(6)+CWP*CI*CK*CDLAM*CFF
+         CLDISP(6)=0.D0
+      ENDDO
+      RETURN
+      END
+C
+C     ****** KINETIC MODEL WITH FLR (SYMMETRIC) ******
+C
+      SUBROUTINE DPTNKS_2(CW,CKPR,CKPP,BABS1,BTH1,NS,CLDISP)
+C
+      USE libdsp,ONLY: DSPFN
+      USE libbes,ONLY: lambda
+      USE plcomm
+      USE pllocal
+      INCLUDE '../dp/dpcomm.inc'
+      DIMENSION CLDISP(6)
+      DIMENSION CALAM2(0:NHM)
+      REAL(8),INTENT(IN):: BABS1,BTH1
+C
+      DO I=1,6
+         CLDISP(I)=0.D0
+      ENDDO
+      CALAM2=0d0
+C
+      NMIN=NDISP1(NS)
+      NMAX=NDISP2(NS)
+      IF(MAX(ABS(NMIN),ABS(NMAX))+1.GT.NHM) THEN
+        WRITE(6,*) 'XX NDISP+1 EXCEEDS NHM: NHM = ',NHM
+        NMIN=-NHM+1
+        NMAX= NHM-1
+      ENDIF
+C
+      CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      CWC=BABS1*PZ(NS)*AEE/(AMP*PA(NS)*CW)
+C
+      RNYU=PZCL(NS)
+!      RNYU=0.0d0
+!      RKPR_ABS=ABS(REAL(CKPR))
+!      CWP=CWP/DCMPLX(1.D0,RNYU*RKPR_ABS**2)
+!      CWC=CWC/DCMPLX(1.D0,RNYU*RKPR_ABS**2)
+      CWP=CWP/DCMPLX(1.D0,RNYU)
+      CWC=CWC/DCMPLX(1.D0,RNYU)
+C
+      WTPR=RTPR(NS)*1.D3*AEE/(AMP*PA(NS))
+      WTPP=RTPP(NS)*1.D3*AEE/(AMP*PA(NS))
+      WTPX=SQRT(WTPR/WTPP)
+      CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
+      CALL LAMBDA(MAX(ABS(NMIN),ABS(NMAX))+1,CBETA,CALAM2,IERR)
+!      CALAM(0)=1.D0-      CBETA+0.750D0*CBETA*CBETA
+!      CALAM(1)=     0.5D0*CBETA-0.500D0*CBETA*CBETA
+!      CALAM(2)=                 0.125D0*CBETA*CBETA
+!      CALAM(3)=0.D0
+!      print "(I1,14(es15.8,1x))",1,CALAM(0:3),CBETA
+!      print "(I1,14(es15.8,1x))",2,CALAM2(0:3),CBETA
+!            print *,CBETA
+!            print *,CALAM(1)
+!      RKPP2=CKPP*CKPP
+!            print *,CKPP*CKPP
+!      print *,"sek2",RKPP2
+!      if (RKPP2 < 0d0)then
+!            print *,CKPP*CKPP
+!            pause
+!      endif
 
-         CLAM=CALAM(ABS(NC))
-         CLAMM=CALAM(ABS(NC-1))
-         CLAMP=CALAM(ABS(NC+1))
+      IF(IERR.EQ.1) WRITE(6,*) 'XX LAMBDA: N out of range'
+C      IF(IERR.EQ.2) WRITE(6,*) 'XX LAMBDA: CBETA out of range'
+C
+!      RKPR_EFF=SQRT(CW*BTH1/SQRT(8.D0*WTPR)/RR/BABS1)
+!      IF (RKPR_EFF < 1d-5)then
+!!         print *,RKPR_EFF,BTH1,BABS1
+!         RKPR_EFF=1.D-5
+!      endif
+
+      DO NC=NMIN,NMAX
+!      DO NC=-1,1
+C
+
+!         IF(ABS(CKPR).LE.RKPR_EFF) THEN
+!            CPR=CW/SQRT(2.D0*RKPR_EFF**2*WTPR)
+!CC         IF(ABS(CKPR).LE.0.D0) THEN
+!CC            CPR=CW/SQRT(2.D0*1.D-4**2*WTPR)
+!            CK=CKPP/SIGN(RKPR_EFF,ABS(CKPR))
+!C         IF(ABS(CKPR).LE.0.D0) THEN
+!C            CPR=CW/SQRT(2.D0*1.D-4**2*WTPR)
+!C            CK=CKPP/1.D-4
+!         ELSE
+            CPR=CW/SQRT(2.D0*CKPR**2*WTPR)
+            CK=CKPP/CKPR
+!        ENDIF
+        
+         CGZ= (1.D0-NC*CWC)*CPR
+         CALL DSPFN(CGZ,CZ,CDZ)
+C
+         CFW=CPR*CZ+0.5D0*(1.D0-WTPX)*CDZ
+         CFF=0.5D0*(WTPX/CWC-NC*(WTPX-1.D0))*CDZ
+         CFG=-CPR*(1.D0-NC*(1.D0-1.D0/WTPX))*CGZ*CDZ
+C
+         CLAM=CALAM2(ABS(NC))
+         CLAMM=CALAM2(ABS(NC-1))
+         CLAMP=CALAM2(ABS(NC+1))
          CDLAM=0.5D0*(CLAMM+CLAMP)-CLAM
          CBLAM=0.5D0*(CLAMM-CLAMP)
 C

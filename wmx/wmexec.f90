@@ -166,17 +166,17 @@ C
       DO MD=MDMIN,MDMAX
          MDX=MD-MDMIN+1
          MM=NTH0+MD
-         IF(ABS(MM+BETAJ).LE.0.D0) THEN
+         IF(ABS(MM+BETAJ(NA)).LE.0.D0) THEN
             CJMP=-CI*(TH2-TH1)
          ELSE
-            CJMP=(EXP(-CI*(MM+BETAJ)*TH2)-EXP(-CI*(MM+BETAJ)*TH1))
-     &           /(MM+BETAJ)
+            CJMP=(EXP(-CI*(MM+BETAJ(NA))*TH2)-EXP(-CI*(MM+BETAJ(NA))*TH1))
+     &           /(MM+BETAJ(NA))
          ENDIF
-         IF(ABS(MM-BETAJ).LE.0.D0) THEN
+         IF(ABS(MM-BETAJ(NA)).LE.0.D0) THEN
             CJMM=-CI*(TH2-TH1)
          ELSE
-            CJMM=(EXP(-CI*(MM-BETAJ)*TH2)-EXP(-CI*(MM-BETAJ)*TH1))
-     &           /(MM-BETAJ)
+            CJMM=(EXP(-CI*(MM-BETAJ(NA))*TH2)-EXP(-CI*(MM-BETAJ(NA))*TH1))
+     &           /(MM-BETAJ(NA))
          ENDIF
          CJTEMP=CAJ/(8*PI**2)*CJN*(CJMP+CJMM)
          CJT(MDX,NDX,NA)=CJTEMP*COS(2*PI*ANTANG(NA)/360.D0)

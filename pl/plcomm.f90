@@ -19,6 +19,9 @@ MODULE plcomm_parm
       REAL(rkind),DIMENSION(3):: r_corner,z_corner
       REAL(rkind),DIMENSION(3):: br_corner,bz_corner,bt_corner
       REAL(rkind),DIMENSION(3,NSM):: pn_corner,ptpr_corner,ptpp_corner
+      REAL(rkind):: profn_travis_g,profn_travis_h,profn_travis_p, &
+           profn_travis_q,profn_travis_w,proft_travis_g,proft_travis_h, &
+           proft_travis_p,proft_travis_q,proft_travis_w
 
       REAL(rkind),DIMENSION(NSM):: & 
            PA,PZ,PN,PNS,PTPR,PTPP,PTS, &

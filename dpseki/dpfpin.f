@@ -205,7 +205,6 @@ C
       SUBROUTINE DPLDFP
 C
       USE plcomm
-      USE libfio
       INCLUDE 'dpcomm.inc'
       CHARACTER(LEN=80),SAVE::  KNAMFP_SAVE=' '
 C

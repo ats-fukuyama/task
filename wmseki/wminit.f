@@ -279,12 +279,12 @@ C
      &              PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,NSMAX,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              PNA,PNAL,PTA,ZEFF,NDISP1,NDISP2,
-     &              RF,RFI,RD,BETAJ,AJ,AEWGT,AEWGZ,ANTANG,
+     &              RF,RFI,RD,BETAJ,AJ,AEWGT,AEWGZ,
      &              APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,
-     &              NRMAX,NTHMAX,NTH0,NPH0,NHC,
+     &              NRMAX,NTHMAX,NHHMAX,NTH0,NPH0,NHC,
      &              NPRINT,NGRAPH,MODELG,MODELJ,MODELP,MODELN,MODELA,
      &              MODELQ,MODELM,MODELW,MODELV,
-     &              MWGMAX,MODEFR,MODEFW,
+     &              MWGMAX,MODEFR,MODEFW,ANTANG,
      &              FRMIN,FRMAX,FIMIN,FIMAX,FI0,FRINI,FIINI,
      &              NGFMAX,NGXMAX,NGYMAX,SCMIN,SCMAX,NSCMAX,LISTEG,
      &              DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,NCONT,
@@ -296,7 +296,7 @@ C
 ! seki
      &              NSUMAX,NSWMAX,NPHMAX,NPH0L,PFRACL,
      &              MDMAX_IPS,NDMAX_IPS,
-     &              B0_FACT,MODELPH
+     &              B0_FACT
 C
       RF=DREAL(CRF)
       RFI=DIMAG(CRF)
@@ -497,7 +497,7 @@ C
       WRITE(6,601) 'RF    ',RF    ,'RFI   ',RFI   ,
      &             'RD    ',RD    ,'BETAJ ',BETAJ
       WRITE(6,602) 'NRMAX ',NRMAX ,'NTHMAX',NTHMAX,
-     &             'NHHMAX',NHHMAX,'NPHMAX',NPHMAX
+     &             'NHHMAX',NHHMAX
       WRITE(6,602) 'NTH0  ',NTH0  ,'NPH0  ',NPH0  ,
      &             'NHC   ',NHC   ,'MWGMAX',MWGMAX
       WRITE(6,602) 'MODELG',MODELG,'MODELJ',MODELJ,

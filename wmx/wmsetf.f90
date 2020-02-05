@@ -105,15 +105,10 @@ C     ----- Calculate dielectric tensor -----
          NS2=NS0
       ENDIF
 
-      NDSIZX_TMP=NDSIZX_F
-      MDSIZX_TMP=MDSIZX_F
-      IF (NDSIZX_TMP==1)NDSIZX_TMP=0
-      IF (MDSIZX_TMP==1)MDSIZX_TMP=0
-
-      DO ND=-NDSIZX_TMP,NDSIZX_TMP
-      DO MD=-MDSIZX_TMP,MDSIZX_TMP
-         DO NHH=1,NHHMAX_IPS_F
-         DO NTH=1,NTHMAX_IPS_F
+      DO ND=NDMIN_F,NDMAX_F
+      DO MD=MDMIN_F,MDMAX_F
+         DO NHH=1,NHHMAX
+         DO NTH=1,NTHMAX
             DO J=1,3
             DO I=1,3
               CEP0_1 (I,J,NTH,NHH)=0.D0
@@ -795,8 +790,8 @@ C     ----- Calculate dielectric tensor -----
 
       DO NHH=1,NHHMAX_F
       DO NTH=1,NTHMAX_F
-      DO ND=-NDSIZX_F,NDSIZX_F
-      DO MD=-MDSIZX_F,MDSIZX_F
+      DO ND=NDMIN_F,NDMAX_F
+      DO MD=MDMIN_F,MDMAX_F
          DO J=1,3
          DO I=1,3
             CEP0 (I,J,MD,ND,NTH,NHH)=0.D0
@@ -829,8 +824,8 @@ C     ----- Calculate dielectric tensor -----
 
            DO NHH=1,NHHMAX_F
            DO NTH=1,NTHMAX_F
-              DO ND=-NDSIZX_F,NDSIZX_F
-              DO MD=-MDSIZX_F,MDSIZX_F
+              DO ND=NDMIN_F,NDMAX_F
+              DO MD=MDMIN_F,MDMAX_F
                  DO J=1,3
                  DO I=1,3
                     CEP0(I,J,MD,ND,NTH,NHH)
@@ -852,8 +847,8 @@ C     ----- Calculate dielectric tensor -----
 
            DO NHH=1,NHHMAX_F
            DO NTH=1,NTHMAX_F
-              DO ND=-NDSIZX_F,NDSIZX_F
-              DO MD=-MDSIZX_F,MDSIZX_F
+              DO ND=NDMIN_F,NDMAX_F
+              DO MD=MDMIN_F,MDMAX_F
                  DO J=1,3
                  DO I=1,3
                     CEPH0(I,J,MD,ND,NTH,NHH)
@@ -869,8 +864,8 @@ C     ----- Calculate dielectric tensor -----
         ENDDO
            DO NHH=1,NHHMAX_F
            DO NTH=1,NTHMAX_F
-              DO ND=-NDSIZX_F,NDSIZX_F
-              DO MD=-MDSIZX_F,MDSIZX_F
+              DO ND=NDMIN_F,NDMAX_F
+              DO MD=MDMIN_F,MDMAX_F
                  DO J=1,3
                  DO I=1,3
                     CEPH0(I,J,MD,ND,NTH,NHH)
@@ -889,8 +884,8 @@ C      CEPH0(:,:,:,:,:,:)=CEPH0(:,:,:,:,:,:)/2d0
       IF(NR .GE. NR_S)THEN
       DO NHH=1,NHHMAX_F
       DO NTH=1,NTHMAX_F
-      DO ND=-NDSIZX_F,NDSIZX_F
-      DO MD=-MDSIZX_F,MDSIZX_F
+      DO ND=NDMIN_F,NDMAX_F
+      DO MD=MDMIN_F,MDMAX_F
          DO J=1,3
          DO I=1,3
             CEP0 (I,J,MD,ND,NTH,NHH)=0.D0
@@ -1087,8 +1082,8 @@ C        ----- Setup Matrix A=CRA, B=CRB, C=CRC -----
            ENDDO
            ENDDO
 
-         DO ND=-NDSIZX_F,NDSIZX_F
-         DO MD=-MDSIZX_F,MDSIZX_F
+         DO ND=NDMIN_F,NDMAX_F
+         DO MD=MDMIN_F,MDMAX_F
             DO J=1,3
             DO I=1,3
                CRB(NTHF,NHHF,I,J,MD,ND)=CEP0(I,J,MD,ND,NTHF,NHHF)
@@ -1096,8 +1091,8 @@ C        ----- Setup Matrix A=CRA, B=CRB, C=CRC -----
             ENDDO
          ENDDO
          ENDDO
-         DO ND=-NDSIZX_F,NDSIZX_F
-         DO MD=-MDSIZX_F,MDSIZX_F
+         DO ND=NDMIN_F,NDMAX_F
+         DO MD=MDMIN_F,MDMAX_F
             DO J=1,3
             DO I=1,3
                CRHB(NTHF,NHHF,I,J,MD,ND)=CEPH0(I,J,MD,ND,NTHF,NHHF)
@@ -1129,8 +1124,8 @@ C     ----- Fourier decompose A, B, C -----
       ENDDO
       ENDDO
 
-      DO ND=-NDSIZX_F,NDSIZX_F
-      DO MD=-MDSIZX_F,MDSIZX_F
+      DO ND=NDMIN_F,NDMAX_F
+      DO MD=MDMIN_F,MDMAX_F
       DO J=1,3
       DO I=1,3
          CALL WMSUBF_F(CRB(1,1,I,J,MD,ND),CFB(1,1,I,J,MD,ND))

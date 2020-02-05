@@ -1,4 +1,4 @@
-C     $Id: wmpttl.f,v 1.6 2012/08/20 01:27:15 fukuyama Exp $
+C     $Id: wmpabs.f,v 1.6 2012/08/20 01:27:15 fukuyama Exp $
 C
 C     ****** CALCULATE TOTAL ABSORPED POWER ROUTINE ******
 C
@@ -104,7 +104,7 @@ C
       READ(11,*) ZEFFD
       READ(11,*) PNAD,PNALD,PTAD
       READ(11,*) RFD,RFID
-      READ(11,*) RDD,BETAJD
+      READ(11,*) RDD
 C
       READ(10,*) NSMAX,NAMAX,NRMAX,NTHMAX,NHHMAX
       READ(10,*) NHC
@@ -114,7 +114,7 @@ C
       READ(10,*) ZEFF
       READ(10,*) PNA,PNAL,PTA
       READ(10,*) RF,RFI
-      READ(10,*) RD,BETAJ
+      READ(10,*) RD
 C
       IF(NSMAXD.NE.NSMAX) THEN
          WRITE(6,*) 'NSMAX DIFFERENT',NSMAXD,NSMAX
@@ -238,10 +238,6 @@ C
       ENDIF
       IF(RDD.NE.RD) THEN
          WRITE(6,*) 'RD DIFFERENT',RDD,RD
-         GO TO 9000
-      ENDIF
-      IF(BETAJD.NE.BETAJ) THEN
-         WRITE(6,*) 'BETAJ DIFFERENT',BETAJD,BETAJ
          GO TO 9000
       ENDIF
 C

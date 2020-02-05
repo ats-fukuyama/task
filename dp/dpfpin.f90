@@ -37,7 +37,7 @@ CONTAINS
          DO NSA=1,NSAMAX_DP
             RHON_MIN(NSA)=RMIN
             RHON_MAX(NSA)=RMAX
-            READ(21) NS_NSA(NSA)
+            READ(21) NS_NSA_DP(NSA)
             READ(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
          END DO
 
@@ -66,7 +66,7 @@ CONTAINS
       CALL mtx_broadcast1_real8(DELTH)
       CALL mtx_broadcast1_real8(RMIN)
       CALL mtx_broadcast1_real8(RMAX)
-      CALL mtx_broadcast_integer(NS_NSA,NSAMAX_DP)
+      CALL mtx_broadcast_integer(NS_NSA_DP,NSAMAX_DP)
       CALL mtx_broadcast_real8(AEFP,NSAMAX_DP)
       CALL mtx_broadcast_real8(AMFP,NSAMAX_DP)
       CALL mtx_broadcast_real8(RNFP0,NSAMAX_DP)
@@ -87,7 +87,7 @@ CONTAINS
       WRITE(6,'(A,1P4E12.4)') 'DELR/TH,RMIN/MAX =', &
                                DELR,DELTH,RMIN,RMAX
       DO NSA=1,NSAMAX_DP
-         WRITE(6,*) 'NSA,NS =',NSA,NS_NSA(NSA)
+         WRITE(6,*) 'NSA,NS =',NSA,NS_NSA_DP(NSA)
          WRITE(6,'(A,1P5E12.4)') 'AE,AM,RN0,RT0,DELP=', &
                AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA),DELP(NSA)
       ENDDO
@@ -133,7 +133,7 @@ CONTAINS
 
       FPDATA(1)=DELR
       DO NSA=1,NSAMAX_DP
-         NS=NS_NSA(NSA)
+         NS=NS_NSA_DP(NSA)
          FPDATAS(NS)=DELP(NSA)
       ENDDO
       FPDATA(2)=DELTH
@@ -161,7 +161,7 @@ CONTAINS
       
     NSA=0
     DO NSA1=1,NSAMAX_DP
-       IF(NS.EQ.NS_NSA(NSA1)) THEN
+       IF(NS.EQ.NS_NSA_DP(NSA1)) THEN
           NSA=NSA1
        END IF
     END DO
@@ -176,10 +176,10 @@ CONTAINS
     IF(NRMAX_DP.EQ.1) THEN
        DELR=0.1D0
     ELSE
-       DELR=(RHON_MAX(NS_NSA(NS))-RHON_MIN(NS_NSA(NSA)))/(NRMAX_DP-1)
+       DELR=(RHON_MAX(NS_NSA_DP(NS))-RHON_MIN(NS_NSA_DP(NSA)))/(NRMAX_DP-1)
     ENDIF
     DO NR=1,NRMAX_DP
-       RM(NR)=RHON_MIN(NS_NSA(NS))+DELR*(NR-1)
+       RM(NR)=RHON_MIN(NS_NSA_DP(NS))+DELR*(NR-1)
     ENDDO
 
     DELTH=PI/NTHMAX_DP
@@ -307,7 +307,7 @@ CONTAINS
       ALLOCATE(U2(4,NTHMAX_DP+2))
 
       DO NSA1=1,NSAMAX_DP
-         IF(NS1.EQ.NS_NSA(NSA1)) THEN
+         IF(NS1.EQ.NS_NSA_DP(NSA1)) THEN
             NSA=NSA1
             GO TO 1
          ENDIF
@@ -355,7 +355,7 @@ CONTAINS
             DO NR=1,NRMAX_DP
                FP(NTH,NP,NR)=FNS(NTH,NP,NR,NSA)
             ENDDO
-            IF(RHON_MIN(NS_NSA(NSA)).EQ.0.D0)THEN
+            IF(RHON_MIN(NS_NSA_DP(NSA)).EQ.0.D0)THEN
                FPR(1)=(9.D0*FP(NTH,NP,1)-FP(NTH,NP,2))/8.D0
                FPRX(1)=0.D0
                ID=1
@@ -366,9 +366,13 @@ CONTAINS
             DO NR=1,NRMAX_DP
                FPR(NR+1)=FP(NTH,NP,NR)
             ENDDO
-            FPR(NRMAX_DP+2)=(4.D0*FP(NTH,NP,NRMAX_DP+1)-FP(NTH,NP,NRMAX_DP))/3.D0
+            FPR(NRMAX_DP+2) &
+                 =(4.D0*FP(NTH,NP,NRMAX_DP+1)-FP(NTH,NP,NRMAX_DP))/3.D0
             CALL SPL1D(RFP,FPR,FPRX,URFP(1,1,NP,NTH),NRMAX_DP+2,ID,IERR)
-            IF(IERR.NE.0) RETURN
+            IF(IERR.NE.0) THEN
+               WRITE(6,*) 'XX DPFPFL: SPL1D: RFP-FPR: IERR=',IERR
+               STOP
+            END IF
          ENDDO
       ENDDO
 
@@ -379,7 +383,10 @@ CONTAINS
       DO NP=1,NPMAX_DP
          DO NTH=1,NTHMAX_DP
             CALL SPL1DF(RHON,Y,RFP,URFP(1,1,NP,NTH),NRMAX_DP+2,IERR)
-            IF(IERR.NE.0) RETURN
+            IF(IERR.NE.0) THEN
+               WRITE(6,*) 'XX DPFPFL: SPL1DF: RHON-RFP: IERR=',IERR
+               STOP
+            END IF
             FPT(NTH+1)=Y
          ENDDO
          THT(1)=0.D0
@@ -392,7 +399,10 @@ CONTAINS
          FPTX(1)=0.D0
          FPTX(NTHMAX_DP+2)=0.D0
          CALL SPL1D(THT,FPT,FPTX,U2,NTHMAX_DP+2,3,IERR)
-         IF(IERR.NE.0) RETURN
+         IF(IERR.NE.0) THEN
+            WRITE(6,*) 'XX DPFPFL: SPL1D: THT-FPT: IERR=',IERR
+            STOP
+         END IF
          DO NTH2=1,NTHMAX_DP
             TH=DELTH*(NTH2-0.5D0)
             XX=SQRT(1/PSIS)*SIN(TH)
@@ -406,6 +416,10 @@ CONTAINS
                ENDIF
             ENDIF
             CALL SPL1DF(X,Y,THT,U2,NTHMAX_DP+2,IERR)
+            IF(IERR.NE.0) THEN
+               WRITE(6,*) 'XX DPFPFL: SPL1DF: THT-FPT: IERR=',IERR
+               STOP
+            END IF
             IF(IERR.NE.0) RETURN
             FM(NP,NTH2)=Y
          ENDDO

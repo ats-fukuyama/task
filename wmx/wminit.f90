@@ -52,7 +52,6 @@ CONTAINS
 !     RF    : Wave frequency                            (MHz)
 !     RFI   : Wave growth rate                          (MHz)
 !     RD    : Antenna minor radius                      (m)
-!     BETAJ : Antenna current profile parameter
 !     NTH0  : Central value of poloidal mode number
 !     NPH0  : Central value of toroidal mode number
 !     NHC   : Number of helical coils
@@ -61,7 +60,6 @@ CONTAINS
       RF     = 50.D0
       RFI    = 0.D0
       RD     = 1.1D0
-      BETAJ  = 0.D0
       PRFIN  = 0.D0
 
 !     NTH0  : Central value of poloidal mode number
@@ -84,6 +82,7 @@ CONTAINS
 !        PHJ1  : Start toroidal angle of antenna            (degree)
 !        PHJ2  : End toroidal angle of antenna              (degree)
 !        ANTANG: Antenna angle: 0 for vertical antenna or perp WG
+!        BETAJ : Antenna current profile parameter
 
       NAMAX  = 1
       DO NA=1,NAM
@@ -96,6 +95,7 @@ CONTAINS
          PHJ1(NA)  = 0.D0
          PHJ2(NA)  = 0.D0
          ANTANG(NA)= 0.D0
+         BETAJ(NA) = 0.D0
       ENDDO
 
 !     **** ALPHA PARTICLE PARAMETERS ****
@@ -147,6 +147,9 @@ CONTAINS
 !                   8: BANDCDM
 !                   9: BANDCDBM
 !                  10: BSTABCDBM
+!        MDLWMK: toroidal effect of minimum parallel wave number
+!                   0: OFF            
+!                   1: ON
 
       NPRINT = 2
       NGRAPH = 1

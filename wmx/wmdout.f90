@@ -40,7 +40,7 @@ C
       WRITE(11,*) ZEFF
       WRITE(11,*) PNA,PNAL,PTA
       WRITE(11,*) RF,RFI
-      WRITE(11,*) RD,BETAJ
+      WRITE(11,*) RD
       DO NS=1,NSMAX
          WRITE(11,*) PA(NS)
       ENDDO
@@ -67,6 +67,9 @@ C
       ENDDO
       DO NA=1,NAMAX
          WRITE(11,*) PHJ1(NA),PHJ2(NA)
+      ENDDO
+      DO NA=1,NAMAX
+         WRITE(11,*) BETAJ(NA)
       ENDDO
       WRITE(11,*) RGMAX,RGMIN
       WRITE(11,*) ZGMAX,ZGMIN
@@ -120,7 +123,7 @@ C
       WRITE(10,*) ZEFF
       WRITE(10,*) PNA,PNAL,PTA
       WRITE(10,*) RF,RFI
-      WRITE(10,*) RD,BETAJ
+      WRITE(10,*) RD
 C
       DO NS=1,NSMAX
          WRITE(10,*) PA(NS)
@@ -148,6 +151,9 @@ C
       ENDDO
       DO NA=1,NAMAX
          WRITE(10,*) PHJ1(NA),PHJ2(NA)
+      ENDDO
+      DO NA=1,NAMAX
+         WRITE(10,*) BETAJ(NA)
       ENDDO
 C     
       DO NS=1,NSMAX

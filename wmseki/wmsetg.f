@@ -67,8 +67,11 @@ C
          CALL WMXRZB(IERR)
       ENDIF
 C
-      
+
+C
       IF(IERR.NE.0) RETURN
+C
+      CALL WMRGINVERT
 C
       IF(MODELN.EQ.7) CALL WMDPRF(IERR)
       IF(MODELN.EQ.8) CALL WMXPRF(IERR)
@@ -108,7 +111,7 @@ C
          NDSIZX_F = 1
       ELSE
          NDSIZ  = NHHMAX
-         NDMSIZ  = NHHMAX*NHC
+         NDMSIZ  = NHHMAX*NHCF    !
          NHHMAX_F  = NHHMAX*NFACT
 !         NHHMAX_IPS_F  = NHHMAX_F*NIPSFACT
 !         NHHMAX_IPS_F  = NDMIPSF
@@ -200,6 +203,7 @@ C         MDSIZX_F = 3*NTHMAX_F
 
 C
       IF(MODELG.NE.6) CALL WMICRS
+      CALL BTHOB
       IERR=0
       RETURN
       END
@@ -388,7 +392,6 @@ C
             XR(NR)=RA*RHOL
             CALL PL_QPRF(RHOL,QPS(NR))
          ENDDO
-         WRITE(6,'(I5,1P2E12.4)') (NR,XRHO(NR),XR(NR),NR=1,NRMAX+1)
 C
 !  seki
          DTH=2.D0*PI/NTHMAX_F
@@ -883,4 +886,119 @@ C         ENDIF
       ENDDO
 C
       RETURN
+      END
+C
+C     ****** CALCULATE INVERT MATRIX ******
+C
+      SUBROUTINE WMRGINVERT
+C
+      INCLUDE 'wmcomm.inc'
+      DIMENSION RGA(3,3),RGB(3,3)
+C        ----- Invert matrix to obtain mu^(-1)=RMB and g^(-1)=RGB ----
+      DO NR  =1,NRMAX+1
+      DO NHHF=1,NHHMAX_F
+      DO NTHF=1,NTHMAX_F
+         RGA(1,1)=RG11(NTHF,NHHF,NR)
+         RGA(1,2)=RG12(NTHF,NHHF,NR)
+         RGA(1,3)=RG13(NTHF,NHHF,NR)
+         RGA(2,1)=RG12(NTHF,NHHF,NR)
+         RGA(2,2)=RG22(NTHF,NHHF,NR)
+         RGA(2,3)=RG23(NTHF,NHHF,NR)
+         RGA(3,1)=RG13(NTHF,NHHF,NR)
+         RGA(3,2)=RG23(NTHF,NHHF,NR)
+         RGA(3,3)=RG33(NTHF,NHHF,NR)
+         DO J=1,3
+         DO I=1,3
+            RGB(I,J)=RGA(I,J)
+         ENDDO
+         ENDDO
+         CALL INVMRD(RGB,3,3,ILL)
+         RGI11(NTHF,NHHF,NR)=RGB(1,1)
+         RGI12(NTHF,NHHF,NR)=RGB(1,2)
+         RGI13(NTHF,NHHF,NR)=RGB(1,3)
+         RGI22(NTHF,NHHF,NR)=RGB(2,2)
+         RGI23(NTHF,NHHF,NR)=RGB(2,3)
+         RGI33(NTHF,NHHF,NR)=RGB(3,3)
+      ENDDO
+      ENDDO
+      ENDDO
+
+      DO NR  =1,NRMAX+1
+      DO NHHF=1,NHHMAX_F
+      DO NTHF=1,NTHMAX_F
+         RGA(1,1)=RGH11(NTHF,NHHF,NR)
+         RGA(1,2)=RGH12(NTHF,NHHF,NR)
+         RGA(1,3)=RGH13(NTHF,NHHF,NR)
+         RGA(2,1)=RGH12(NTHF,NHHF,NR)
+         RGA(2,2)=RGH22(NTHF,NHHF,NR)
+         RGA(2,3)=RGH23(NTHF,NHHF,NR)
+         RGA(3,1)=RGH13(NTHF,NHHF,NR)
+         RGA(3,2)=RGH23(NTHF,NHHF,NR)
+         RGA(3,3)=RGH33(NTHF,NHHF,NR)
+         DO J=1,3
+         DO I=1,3
+            RGB(I,J)=RGA(I,J)
+         ENDDO
+         ENDDO
+         CALL INVMRD(RGB,3,3,ILL)
+         RGIH11(NTHF,NHHF,NR)=RGB(1,1)
+         RGIH12(NTHF,NHHF,NR)=RGB(1,2)
+         RGIH13(NTHF,NHHF,NR)=RGB(1,3)
+         RGIH22(NTHF,NHHF,NR)=RGB(2,2)
+         RGIH23(NTHF,NHHF,NR)=RGB(2,3)
+         RGIH33(NTHF,NHHF,NR)=RGB(3,3)
+      ENDDO
+      ENDDO
+      ENDDO
+
+      DO NR  =1,NRMAX+1
+      DO NHHF=1,NHHMAX_IPS_F
+      DO NTHF=1,NTHMAX_IPS_F
+         RGA(1,1)=RG11_IPS(NTHF,NHHF,NR)
+         RGA(1,2)=RG12_IPS(NTHF,NHHF,NR)
+         RGA(1,3)=RG13_IPS(NTHF,NHHF,NR)
+         RGA(2,1)=RG12_IPS(NTHF,NHHF,NR)
+         RGA(2,2)=RG22_IPS(NTHF,NHHF,NR)
+         RGA(2,3)=RG23_IPS(NTHF,NHHF,NR)
+         RGA(3,1)=RG13_IPS(NTHF,NHHF,NR)
+         RGA(3,2)=RG23_IPS(NTHF,NHHF,NR)
+         RGA(3,3)=RG33_IPS(NTHF,NHHF,NR)
+         DO J=1,3
+         DO I=1,3
+            RGB(I,J)=RGA(I,J)
+         ENDDO
+         ENDDO
+         CALL INVMRD(RGB,3,3,ILL)
+         RGI11_IPS(NTHF,NHHF,NR)=RGB(1,1)
+         RGI12_IPS(NTHF,NHHF,NR)=RGB(1,2)
+         RGI13_IPS(NTHF,NHHF,NR)=RGB(1,3)
+         RGI22_IPS(NTHF,NHHF,NR)=RGB(2,2)
+         RGI23_IPS(NTHF,NHHF,NR)=RGB(2,3)
+         RGI33_IPS(NTHF,NHHF,NR)=RGB(3,3)
+      ENDDO
+      ENDDO
+      ENDDO
+      END
+C
+C
+C
+      SUBROUTINE BTHOB
+      INCLUDE 'wmcomm.inc'
+      DIMENSION RGA(3,3),RGB(3,3)
+C        ----- Invert matrix to obtain mu^(-1)=RMB and g^(-1)=RGB ----
+      DO NR  =1,NRMAX+1
+         BTHOBN(NR)=0d0
+         RHON=XRHO(NR)
+      DO NHHF=1,NHHMAX_F
+      DO NTHF=1,NTHMAX_F
+         BSUPTH=BFLD(2,NTHF,NHHF,NR)
+         BSUPPH=BFLD(3,NTHF,NHHF,NR)
+         BABS  =BPST(NTHF,NHHF,NR)
+         BTH=ABS(BSUPTH*RA*RHON)
+         BTHOBN(NR)=BTHOBN(NR) + BTH/BABS
+      ENDDO
+      ENDDO
+         BTHOBN(NR)=ABS(BTHOBN(NR))/DBLE(NHHMAX_F*NTHMAX_F)
+         print *,"BTHOBN",BTHOBN(NR)
+      ENDDO
       END

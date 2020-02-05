@@ -58,12 +58,13 @@ CONTAINS
            RHOGMN,RHOGMX,MODEFR,MODEFW,IDEBUG, &
            KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,KNAMTR,KNAMEQ2, &
            MODELP,MODELV,NCMIN,NCMAX,PMAX,EMAX, &
-           NRMAX,NTHMAX,NPMAX,NSAMAX,RMIN,RMAX, &
-           NHHMAX,NPHMAX,factor_nth,factor_nhh, &
+           NRMAX,NTHMAX,NHHMAX,NPHMAX,factor_nth,factor_nhh, &
+           NRMAX_DP,NTHMAX_DP,NPMAX_DP,NSAMAX_DP,RHON_MIN,RHON_MAX, &
+           MODELP,MODELV,NCMIN,NCMAX,NS_NSA_DP,EPSRT,LMAXRT, &
            NSUMAX,NSWMAX,B0_FACT, &
            RF,RFI,RD,PRFIN,BETAJ,NTH0,NPH0,NHC, &
            NAMAX,AJ,AEWGT,AEWGZ,APH,THJ1,THJ2,PHJ1,PHJ2,ANTANG, &
-           NPRINT,NGRAPH,MODELJ,MODELA,MODELM,PNA,PNAL,PTA,ZEFF, &
+           NPRINT,NGRAPH,MODELJ,MODELA,MODELM,MDLWMK,PNA,PNAL,PTA,ZEFF, &
            FRMIN,FRMAX,FIMIN,FIMAX,FI0,NGFMAX,NGXMAX,NGYMAX, &
            SCMIN,SCMAX,NSCMAX,LISTEG,FRINI,FIINI,DLTNW,EPSNW,LMAXNW,LISTNW, &
            MODENW,NCONT,ILN1,IBL1,ICL1,ILN2,IBL2,ICL2,WAEMIN,WAEMAX,nthgmax
@@ -100,12 +101,13 @@ CONTAINS
          '       RHOGMN,RHOGMX,MODEFR,MODEFW,IDEBUG,', &
          '       KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,', &
          '       MODELP,MODELV,NCMIN,NCMAX,PMAX,EMAX,', &
-         '       NPMAX,NTHMAX,NRMAX,NSAMAX,RMIN,RMAX,', &
+         '       NPMAX,NTHMAX,NRMAX,NSAMAX,RHON_MIN,RHON_MAX,', &
          '       NHHMAX,NPHMAX,factor_nth,factor_nhh,', &
          '       NSUMAX,NSWMAX,B0_FACT,', &
          '       RF,RFI,RD,PRFIN,BETAJ,NTH0,NPH0,NHC,', &
          '       NAMAX,AJ,AEWGT,AEWGZ,APH,THJ1,THJ2,PHJ1,PHJ2,ANTANG,', &
-         '       NPRINT,NGRAPH,MODELJ,MODELA,MODELM,PNA,PNAL,PTA,ZEFF,', &
+         '       NPRINT,NGRAPH,MODELJ,MODELA,MODELM,MDLWMK,', &
+         '       PNA,PNAL,PTA,ZEFF,', &
          '       FRMIN,FRMAX,FIMIN,FIMAX,FI0,NGFMAX,NGXMAX,NGYMAX,', &
          '       SCMIN,SCMAX,NSCMAX,LISTEG,FRINI,FIINI,', &
          '       DLTNW,EPSNW,LMAXNW,LISTNW,', &
@@ -150,120 +152,21 @@ CONTAINS
   SUBROUTINE wm_broadcast
 
     USE wmcomm_parm
+    USE plparm,ONLY: pl_broadcast
+    USE dpparm,ONLY: dp_broadcast
     USE libmpi
     IMPLICIT NONE
     INTEGER,DIMENSION(99):: idata
     REAL(rkind),DIMENSION(99):: rdata
     INTEGER:: NS
 
-!----- PL input parameters -----     
+    !----- PL input parameters -----     
 
-    idata( 1)=NSMAX
-    idata( 2)=MODELG
-    idata( 3)=MODELN
-    idata( 4)=MODELQ
-    idata( 5)=IDEBUG
-    idata( 6)=MODEFR
-    idata( 7)=MODEFW
-    idata( 8)=MODEL_PROF
-    idata( 9)=MODEL_PROF
-
-    CALL mtx_broadcast_integer(idata,9)
-
-    NSMAX =idata( 1)
-    MODELG=idata( 2)
-    MODELN=idata( 3)
-    MODELQ=idata( 4)
-    IDEBUG=idata( 5)
-    MODEFR=idata( 6)
-    MODEFW=idata( 7)
-    MODEL_PROF=idata( 8)
-    MODEL_PROF=idata( 9)
-
-    rdata( 1)=RR
-    rdata( 2)=RA
-    rdata( 3)=RB
-    rdata( 4)=RKAP
-    rdata( 5)=RDLT
-    rdata( 6)=BB
-    rdata( 7)=Q0
-    rdata( 8)=QA
-    rdata( 9)=RIP
-    rdata(10)=PROFJ
-    rdata(11)=RHOMIN
-    rdata(12)=QMIN
-    rdata(13)=RHOEDG
-    rdata(14)=RHOGMN
-    rdata(15)=RHOGMX
-    rdata(16)=PPN0
-    rdata(17)=PTN0
-    rdata(18)=RF_PL
-
-    CALL mtx_broadcast_real8(rdata,22)
-
-    RR    =rdata( 1)
-    RA    =rdata( 2)
-    RB    =rdata( 3)
-    RKAP  =rdata( 4)
-    RDLT  =rdata( 5)
-    BB    =rdata( 6)
-    Q0    =rdata( 7)
-    QA    =rdata( 8)
-    RIP   =rdata( 9)
-    PROFJ =rdata(10)
-    RHOMIN=rdata(11)
-    QMIN  =rdata(12)
-    RHOEDG=rdata(13)
-    RHOGMN=rdata(14)
-    RHOGMX=rdata(15)
-    PPN0=rdata(16)
-    PTN0=rdata(17)
-    RF_PL=rdata(18)
-
-    CALL mtx_broadcast_integer(NPA,NSMAX)
-    CALL mtx_broadcast_real8(PA,NSMAX)
-    CALL mtx_broadcast_real8(PZ,NSMAX)
-    CALL mtx_broadcast_real8(PN,NSMAX)
-    CALL mtx_broadcast_real8(PNS,NSMAX)
-    CALL mtx_broadcast_real8(PTPR,NSMAX)
-    CALL mtx_broadcast_real8(PTPP,NSMAX)
-    CALL mtx_broadcast_real8(PTS,NSMAX)
-    CALL mtx_broadcast_real8(PU,NSMAX)
-    CALL mtx_broadcast_real8(PUS,NSMAX)
-    CALL mtx_broadcast_real8(RHOITB,NSMAX)
-    CALL mtx_broadcast_real8(PNITB,NSMAX)
-    CALL mtx_broadcast_real8(PTITB,NSMAX)
-    CALL mtx_broadcast_real8(PUITB,NSMAX)
-    CALL mtx_broadcast_real8(PROFN1,NSMAX)
-    CALL mtx_broadcast_real8(PROFN2,NSMAX)
-    CALL mtx_broadcast_real8(PROFT1,NSMAX)
-    CALL mtx_broadcast_real8(PROFT2,NSMAX)
-    CALL mtx_broadcast_real8(PROFU1,NSMAX)
-    CALL mtx_broadcast_real8(PROFU2,NSMAX)
-    CALL mtx_broadcast_real8(PZCL,NSMAX)
-
-    CALL mtx_broadcast_integer(ID_NS,NSMAX)
-    DO NS=1,NSMAX
-       CALL mtx_broadcast_character(KID_NS(NS),2)
-    END DO
-
-    CALL mtx_broadcast_character(KNAMEQ,80)
-    CALL mtx_broadcast_character(KNAMWR,80)
-    CALL mtx_broadcast_character(KNAMFP,80)
-    CALL mtx_broadcast_character(KNAMWM,80)
-    CALL mtx_broadcast_character(KNAMPF,80)
-    CALL mtx_broadcast_character(KNAMFO,80)
-    CALL mtx_broadcast_character(KNAMTR,80)
-    CALL mtx_broadcast_character(KNAMEQ2,80)
+    CALL pl_broadcast
 
 !----- DP input parameters -----
 
-    CALL mtx_broadcast_integer(MODELP,NSMAX)
-    CALL mtx_broadcast_integer(MODELV,NSMAX)
-    CALL mtx_broadcast_integer(NCMIN,NSMAX)
-    CALL mtx_broadcast_integer(NCMAX,NSMAX)
-    CALL mtx_broadcast_real8(PMAX,NSMAX)
-    CALL mtx_broadcast_real8(EMAX,NSMAX)
+    CALL dp_broadcast
 
 ! --- WM specific input parameters ---
 
@@ -271,34 +174,34 @@ CONTAINS
     idata( 2)=NTHMAX
     idata( 3)=NHHMAX
     idata( 4)=NPHMAX
-    idata( 5)=0
-    idata( 6)=0
-    idata( 7)=NPMAX
-    idata( 8)=NSAMAX
-    idata( 9)=NSUMAX
-    idata(10)=NTH0
-    idata(11)=NPH0
-    idata(12)=NHC
-    idata(13)=NAMAX
-    idata(14)=NPRINT
-    idata(15)=NGRAPH
-    idata(16)=MODELJ
-    idata(17)=MODELA
-    idata(18)=MODELM
-    idata(19)=NGFMAX
-    idata(20)=NGXMAX
-    idata(21)=NGYMAX
-    idata(22)=LMAXNW
-    idata(23)=LISTNW
-    idata(24)=MODENW
-    idata(25)=NCONT
-    idata(26)=ILN1
-    idata(27)=IBL1
-    idata(28)=ICL1
-    idata(29)=ILN2
-    idata(30)=IBL2
-    idata(31)=ICL2
-    idata(32)=nthgmax
+    idata( 5)=NSUMAX
+    idata( 6)=NSWMAX
+    idata( 7)=NTH0
+    idata( 8)=NPH0
+    idata( 9)=NHC
+    idata(10)=NAMAX
+    idata(11)=NPRINT
+    idata(12)=NGRAPH
+    idata(13)=MODELJ
+    idata(14)=MODELA
+    idata(15)=MODELM
+    idata(16)=NGFMAX
+    idata(17)=NGXMAX
+    idata(18)=NGYMAX
+    idata(19)=NSCMAX
+    idata(20)=LISTEG
+    idata(21)=LMAXNW
+    idata(22)=LISTNW
+    idata(23)=MODENW
+    idata(24)=NCONT
+    idata(25)=ILN1
+    idata(26)=IBL1
+    idata(27)=ICL1
+    idata(28)=ILN2
+    idata(29)=IBL2
+    idata(30)=ICL2
+    idata(31)=NTHGMAX
+    idata(32)=MDLWMK
 
     CALL mtx_broadcast_integer(idata,32)
 
@@ -306,46 +209,46 @@ CONTAINS
     NTHMAX=idata( 2)
     NHHMAX=idata( 3)
     NPHMAX=idata( 4)
-!    NTHMAX_F=idata( 5)
-!    NHHMAX_F=idata( 6)
-    NPMAX=idata( 7)
-    NSAMAX=idata( 8)
-    NSUMAX=idata( 9)
-    NTH0=idata(10)
-    NPH0=idata(11)
-    NHC=idata(12)
-    NAMAX=idata(13)
-    NPRINT=idata(14)
-    NGRAPH=idata(15)
-    MODELJ=idata(16)
-    MODELA=idata(17)
-    MODELM=idata(18)
-    NGFMAX=idata(19)
-    NGXMAX=idata(20)
-    NGYMAX=idata(21)
-    LMAXNW=idata(22)
-    LISTNW=idata(23)
-    MODENW=idata(24)
-    NCONT=idata(25)
-    ILN1=idata(26)
-    IBL1=idata(27)
-    ICL1=idata(28)
-    ILN2=idata(29)
-    IBL2=idata(30)
-    ICL2=idata(31)
-    nthgmax=idata(32)
+    NSUMAX=idata( 5)
+    NSWMAX=idata( 6)
+    NTH0=idata( 7)
+    NPH0=idata( 8)
+    NHC=idata( 9)
+    NAMAX=idata(10)
+    NPRINT=idata(11)
+    NGRAPH=idata(12)
+    MODELJ=idata(13)
+    MODELA=idata(14)
+    MODELM=idata(15)
+    NGFMAX=idata(16)
+    NGXMAX=idata(17)
+    NGYMAX=idata(18)
+    NSCMAX=idata(19)
+    LISTEG=idata(20)
+    LMAXNW=idata(21)
+    LISTNW=idata(22)
+    MODENW=idata(23)
+    NCONT=idata(24)
+    ILN1=idata(25)
+    IBL1=idata(26)
+    ICL1=idata(27)
+    ILN2=idata(28)
+    IBL2=idata(29)
+    ICL2=idata(30)
+    NTHGMAX=idata(31)
+    MDLWMK=idata(32)
 
     rdata( 1)=RF
     rdata( 2)=RFI
     rdata( 3)=RD
     rdata( 4)=PRFIN
-    rdata( 5)=BETAJ
+    rdata( 5)=0.D0
     rdata( 6)=PNA
     rdata( 7)=PNAL
     rdata( 8)=PTA
     rdata( 9)=ZEFF
-    rdata(10)=RMAX
-    rdata(11)=RMIN
+    rdata(10)=0.D0
+    rdata(11)=0.D0
     rdata(12)=B0_FACT
     rdata(13)=FRMIN
     rdata(14)=FRMAX
@@ -368,13 +271,13 @@ CONTAINS
     RFI=rdata( 2)
     RD=rdata( 3)
     PRFIN=rdata( 4)
-    BETAJ=rdata( 5)
+!    BETAJ=rdata( 5)
     PNA=rdata( 6)
     PNAL=rdata( 7)
     PTA=rdata( 8)
     ZEFF=rdata( 9)
-    RMAX=rdata(10)
-    RMIN=rdata(11)
+!    RMAX=rdata(10)
+!    RMIN=rdata(11)
     B0_FACT=rdata(12)
     FRMIN=rdata(13)
     FRMAX=rdata(14)
@@ -400,6 +303,7 @@ CONTAINS
     CALL mtx_broadcast_real8(PHJ1,NAMAX)
     CALL mtx_broadcast_real8(PHJ2,NAMAX)
     CALL mtx_broadcast_real8(ANTANG,NAMAX)
+    CALL mtx_broadcast_real8(BETAJ,NAMAX)
 
   END SUBROUTINE wm_broadcast
 END MODULE wmparm

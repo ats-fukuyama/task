@@ -23,6 +23,13 @@ MODULE wmcomm_parm
 
   USE dpcomm_parm
 
+!  MODELP(NSM),MODELV(NSM),NCMIN(NSM),NCMAX(NSM)
+!  RF0,RFI0,RKX0,RKY0,RKZ0,RX0,RY0,RZ0,RK0,RKANG0
+!  EPSRT,LMAXRT
+!  NS_NSA_DP(NSM)
+!  PMAX(NSM),EMAX(NSM),RHON_MIN(NSM),RHON_MAX(NSM)
+!  NPMAX_DP,NTHMAX_DP,NRMAX_DP,NSAMAX_DP
+
   IMPLICIT NONE
   PUBLIC
 
@@ -30,28 +37,29 @@ MODULE wmcomm_parm
 
 ! --- wm specific input parameters ---  
 
-!  INTEGER:: NRMAX       ! number of radial mesh (element) in plcomm.parm
-!  INTEGER:: NTHMAX      ! number of poloidal mesh         in plcomm.parm
+  INTEGER:: NRMAX       ! number of radial mesh (element) in plcomm.parm
+  INTEGER:: NTHMAX      ! number of poloidal mesh         in plcomm.parm
 
   INTEGER:: NHHMAX      ! number of helical mesh (0 for axisymmetric)
   INTEGER:: NPHMAX      ! number of toroidal mesh (0 for single toroidal mode)
                         !   NPHMAX should be >= NHHMAX*NHC for helical sym.
-  REAL(rkind):: factor_nth ! Factor of nthmax expansion for couping tensor 
-  REAL(rkind):: factor_nhh ! Factor of nhhmax expansion for couping tensor 
 
   INTEGER:: NSUMAX          ! Number of plasma surface plot points
   INTEGER:: NSWMAX          ! Number of wall surface plot points
+
   REAL(rkind):: B0_FACT     ! B factor for equilibrium data
 
   REAL(rkind):: RF      ! Real part of wave frequency [MHz]
   REAL(rkind):: RFI     ! Imaginary part of wave frequency [MHz]
   REAL(rkind):: RD      ! Antenna minor radius [m]
   REAL(rkind):: PRFIN   ! Input power (0 for given antenna current) [W]:
-  REAL(rkind):: BETAJ   ! Antenna current profile parameter
 
   INTEGER:: NTH0        ! Central valude of poloidal mode number
   INTEGER:: NPH0        ! Central valude of toroidal mode number
   INTEGER:: NHC         ! Number of helical coils 
+
+  REAL(rkind):: factor_nth ! Factor of nthmax expansion for couping tensor 
+  REAL(rkind):: factor_nhh ! Factor of nhhmax expansion for couping tensor 
   
   INTEGER:: NAMAX           ! number of antenna
   REAL(rkind):: AJ(NAM)     ! Antenna current density [A/m]
@@ -63,12 +71,14 @@ MODULE wmcomm_parm
   REAL(rkind):: PHJ1(NAM)   ! Start toroidal angle of antenna
   REAL(rkind):: PHJ2(NAM)   ! End toroidal angle of antenna
   REAL(rkind):: ANTANG(NAM) ! Antenna angle to vertical
+  REAL(rkind):: BETAJ(NAM)  ! Antenna current profile parameter
 
   INTEGER:: NPRINT          ! Print output control
   INTEGER:: NGRAPH          ! Graph output contral
   INTEGER:: MODELJ          ! Antenna current model parameter
   INTEGER:: MODELA          ! Alpha particle contribution model parameter
   INTEGER:: MODELM          ! Matrix solver parameter
+  INTEGER:: MDLWMK          ! k_paralle toroidal effect
   
   REAL(rkind):: PNA         ! Alpha denisty [10^20 m^-3]
   REAL(rkind):: PNAL        ! Density scale length [m]
@@ -82,8 +92,8 @@ MODULE wmcomm_parm
   REAL(rkind):: FI0         ! Imag part of frequency in 1D amplitude scan
 
   INTEGER:: NGFMAX          ! Number of real freq mesh in 1D amplitude scan
-!  INTEGER:: NGXMAX          ! Number of real f. mesh in 2D scan in plcomm_parm
-!  INTEGER:: NGYMAX          ! Number of imag f. mesh in 2D scan in plasma_parm
+  INTEGER:: NGXMAX          ! Number of real f. mesh in 2D scan in plcomm_parm
+  INTEGER:: NGYMAX          ! Number of imag f. mesh in 2D scan in plasma_parm
 
   REAL(rkind):: SCMIN       ! Minimum value in parameter scan
   REAL(rkind):: SCMAX       ! Maximum value in parameter scan

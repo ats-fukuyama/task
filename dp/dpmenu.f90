@@ -10,7 +10,7 @@ CONTAINS
 
   SUBROUTINE dp_menu
 
-    USE dpcomm
+    USE dpcomm_local
     USE plprof
     USE plprofw
     USE plparm,ONLY: pl_view

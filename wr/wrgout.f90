@@ -20,6 +20,7 @@ CONTAINS
   SUBROUTINE WR_GOUT(NSTAT)
 
     USE wrcomm
+    USE plgout
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NSTAT
     CHARACTER(LEN=1)::  KID
@@ -29,7 +30,8 @@ CONTAINS
        RETURN
     END IF
 
-1   WRITE(6,*) '## INPUT GRAPH TYPE : ray:1,2,3,4,5, beam:6,7,8,9  end:X'
+1   WRITE(6,*) &
+         '## INPUT GRAPH TYPE : ray:1,2,3,4,5, beam:6,7,8,9  P:prof  end:X'
     READ(5,'(A1)',ERR=1,END=9000) KID
     CALL GUCPTL(KID)
 
@@ -42,6 +44,7 @@ CONTAINS
     IF(KID.EQ.'7'.AND.NSTAT.GE.2) CALL WRGRF7
     IF(KID.EQ.'8'.AND.NSTAT.GE.2) CALL WRGRF8
     IF(KID.EQ.'9'.AND.NSTAT.GE.2) CALL WRGRF9
+    IF(KID.EQ.'P') CALL pl_gout
     IF(KID.EQ.'X') GOTO 9000
 
     GOTO 1

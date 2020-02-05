@@ -1,5 +1,14 @@
 ### $Id$ ###
 include ../make.header
+include ../mtxp/make.mtxp
+LIB_MTX=$(LIB_MTX_BND)
+LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_PCG)
+#LIB_MTX=$(LIB_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIB_MTX=$(LIBXMTX_KSP)
+#LIBX_MTX=$(LIBX_MTX_KSP)
 
 FFLAGS=-g $(OFLAGS)
 #FFLAGS=$(DFLAGS)
@@ -9,7 +18,7 @@ MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD) -I../lib/$(MOD)
 SRCX = equcom.f90 equread.f90
 SRCS = eqbpsd.f eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f \
        eqsub.f eqfunc.f eqintf.f eqsplf.f equintf.f \
-       eq-eqdsk.f eq-qst.f eqfile.f \
+       eq-eqdsk-old.f eq-qst.f eqfile.f \
        eqgout.f eqgsub.f \
        newton.f invematrix.f equnit.f eqrppl.f
 SRCT = trtest.f treqin.f
@@ -56,28 +65,19 @@ libs:
 	(cd ../pl; make libpl.a)
 
 eq: libs libeq.a eqmain.o
-	$(FCFIXED) eqmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
+	$(FLINKER) eqmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 eq3: libs libeq3.a eqmain.o
-	$(FCFIXED) eqmain.o $(LIBS3) -o $@ $(FFLAGS) $(FLIBS)
+	$(FLINKER) eqmain.o $(LIBS3) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 tr : libs libeq.a $(OBJT)
-	$(FCFIXED) $(OBJT) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
+	$(FLINKER) $(OBJT) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 pl : libs libeq.a $(OGJP)
-	$(FCFIXED) $(OBJP) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
+	$(FLINKER) $(OBJP) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 ak : libs libeq.a $(OBJA)
-	$(FCFIXED) $(OBJA) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
-
-check : $(SRCS)
-	ftnchek $(FCKFLAGS) $(SRCS) $(SRC3D) | $(PAGER)
-checktr : $(SRCT)
-	ftnchek $(FCKFLAGS) $(SRCT) | $(PAGER)
-checkpl : $(SRCP)
-	ftnchek $(FCKFLAGS) $(SRCP) | $(PAGER)
-checkak : $(SRCA)
-	ftnchek $(FCKFLAGS) $(SRCA) | $(PAGER)
+	$(FLINKER) $(OBJA) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean:
 	-rm -f core a.out *.o *.mod ./*~ *.a $(MOD)/*.mod

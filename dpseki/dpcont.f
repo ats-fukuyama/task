@@ -6,7 +6,7 @@ C
 C
       USE plcomm
       USE pllocal
-      USE plparm,ONLY: pl_parm,pl_view
+      USE PLINIT,ONLY: pl_parm,pl_view
       INCLUDE 'dpcomm.inc'
       DIMENSION GX(NGXM),GY(NGYM),GZ(NGXM,NGYM)
       DIMENSION Z(NGXM,NGYM)
