@@ -131,7 +131,7 @@ CONTAINS
             1.D0-RAYS(7,NSTPMAX_NRAY(NRAY),NRAY)
     ENDDO
 
-    CALL WRAPWR
+    CALL wr_calc_pwr
 
     CALL GUTIME(TIME2)
     WRITE(6,*) '% CPU TIME = ',TIME2-TIME1,' sec'
@@ -294,117 +294,181 @@ CONTAINS
     RETURN
   END SUBROUTINE WRSETUP
 
-  SUBROUTINE WRAPWR
+  ! --- calculation of radial profile of power absorption ---
+
+  SUBROUTINE wr_calc_pwr
 
     USE wrcomm
     USE pllocal
     USE plprof,ONLY: PL_MAG_OLD
+    USE libgrf
     IMPLICIT NONE
-    REAL(rkind):: PWRRAY(NRDIVMAX,NRAYMAX)
-    REAL(rkind):: PWR(NRDIVMAX),AJR(NRDIVMAX)
-    INTEGER:: NRAY,NSTP,NR,NRS1,NRS2,NDR,LOCMAX
-    REAL(rkind):: DRHO,XL,YL,ZL,RHON1,RHON2,SDR,DELPW
-    REAL(rkind):: PWRMAX,RHOMAX,DPWR,DDPWR
+    INTEGER:: nrs,nray,nstp,nrs1,nrs2,ndrs,locmax
+    REAL(rkind):: drho,xl,yl,zl,rhon1,rhon2,sdr,delpwr,pwrmax,dpwr,ddpwr
+    INTEGER,SAVE:: nrsmax_save=0,nrrmax_save=0,nraymax_save=0,nstpmax_save=0
 
-!     ----- CALCULATE RADIAL DEPOSITION PROFILE -----
+    !   --- allocate variables for power deposition profile ---
 
-      DRHO=1.D0/(NRDIVMAX-1)
-      DO NRAY=1,NRAYMAX
-         DO NR=1,NRDIVMAX
-            PWRRAY(NR,NRAY)=0.D0
-         ENDDO
-      ENDDO
+    IF(nstpmax.NE.nstpmax_save.OR.nraymax.NE.nraymax_save) THEN
+       IF(ALLOCATED(rs_nstp_nray)) DEALLOCATE(rs_nstp_nray)
+       IF(ALLOCATED(rr_nstp_nray)) DEALLOCATE(rr_nstp_nray)
+       ALLOCATE(rs_nstp_nray(nstpmax,nraymax),rr_nstp_nray(nstpmax,nraymax))
+    END IF
+    IF(nrsmax.NE.nrsmax_save.OR.nraymax.NE.nraymax_save) THEN
+       IF(ALLOCATED(pos_nrs)) DEALLOCATE(pos_nrs)
+       IF(ALLOCATED(pwr_nrs)) DEALLOCATE(pwr_nrs)
+       IF(ALLOCATED(pwr_nrs_nray)) DEALLOCATE(pwr_nrs_nray)
+       ALLOCATE(pos_nrs(nrsmax),pwr_nrs(nrsmax),pwr_nrs_nray(nrsmax,nraymax))
+    END IF
+    IF(nrrmax.NE.nrrmax_save.OR.nraymax.NE.nraymax_save) THEN
+       IF(ALLOCATED(pos_nrr)) DEALLOCATE(pos_nrr)
+       IF(ALLOCATED(pwr_nrr)) DEALLOCATE(pwr_nrr)
+       IF(ALLOCATED(pwr_nrr_nray)) DEALLOCATE(pwr_nrr_nray)
+       ALLOCATE(pos_nrr(nrrmax),pwr_nrr(nrrmax),pwr_nrr_nray(nrrmax,nraymax))
+    END IF
+    IF(nraymax.NE.nraymax_save) THEN
+       IF(ALLOCATED(pos_pwrmax_rs_nray)) DEALLOCATE(pos_pwrmax_rs_nray)
+       IF(ALLOCATED(pwrmax_rs_nray)) DEALLOCATE(pwrmax_rs_nray)
+       IF(ALLOCATED(pos_pwrmax_rr_nray)) DEALLOCATE(pos_pwrmax_rr_nray)
+       IF(ALLOCATED(pwrmax_rr_nray)) DEALLOCATE(pwrmax_rr_nray)
+       ALLOCATE(pos_pwrmax_rs_nray(nraymax),pwrmax_rs_nray(nraymax))
+       ALLOCATE(pos_pwrmax_rr_nray(nraymax),pwrmax_rr_nray(nraymax))
+    END IF
+    nrsmax_save=nrsmax
+    nrrmax_save=nrrmax
+    nraymax_save=nraymax
+    nstpmax_save=nstpmax
 
-      DO NRAY=1,NRAYMAX
-         DO NSTP=0,NSTPMAX_NRAY(NRAY)-1
-            XL=RAYS(1,NSTP,NRAY)
-            YL=RAYS(2,NSTP,NRAY)
-            ZL=RAYS(3,NSTP,NRAY)
-            CALL PL_MAG_OLD(XL,YL,ZL,RHON1)
-            IF(RHON1.LE.1.D0) THEN
-               NRS1=INT(RHON1/DRHO)+1
-               IF(NRS1.GT.NRDIVMAX-1) NRS1=NRDIVMAX-1
-               XL=RAYS(1,NSTP+1,NRAY)
-               YL=RAYS(2,NSTP+1,NRAY)
-               ZL=RAYS(3,NSTP+1,NRAY)
-               CALL PL_MAG_OLD(XL,YL,ZL,RHON2)
-               NRS2=INT(RHON2/DRHO)+1
-               IF(NRS2.GT.NRDIVMAX-1) NRS2=NRDIVMAX-1
-               NDR=ABS(NRS2-NRS1)
-               IF(NDR.EQ.0) THEN
-                  PWRRAY(NRS1,NRAY) &
-                       =PWRRAY(NRS1,NRAY)+RAYS(8,NSTP+1,NRAY)
-               ELSE IF(NRS1.LT.NRS2) THEN
-                  SDR=(RHON2-RHON1)/DRHO
-                  DELPW=RAYS(8,NSTP+1,NRAY)/SDR
-                  PWRRAY(NRS1,NRAY)=PWRRAY(NRS1,NRAY) &
-                       +(DBLE(NRS1)-RHON1/DRHO)*DELPW
-                  DO NR=NRS1+1,NRS2-1
-                     PWRRAY(NR,NRAY)=PWRRAY(NR,NRAY)+DELPW
-                  END DO
-                  PWRRAY(NRS2,NRAY)=PWRRAY(NRS2,NRAY) &
-                       +(RHON2/DRHO-DBLE(NRS2-1))*DELPW
-               ELSE
-                  SDR=(RHON1-RHON2)/DRHO
-                  DELPW=RAYS(8,NSTP+1,NRAY)/SDR
-                  PWRRAY(NRS2,NRAY)=PWRRAY(NRS2,NRAY) &
-                       +(DBLE(NRS2)-RHON2/DRHO)*DELPW
-                  DO NR=NRS2+1,NRS1-1
-                     PWRRAY(NR,NRAY)=PWRRAY(NR,NRAY)+DELPW
-                  END DO
-                  PWRRAY(NRS1,NRAY)=PWRRAY(NRS1,NRAY) &
-                       +(RHON1/DRHO-DBLE(NRS1-1))*DELPW
-               END IF
-            END IF
-         END DO
-      END DO
+!     ----- CALCULATE RADIAL DEPOSITION PROFILE (Minor radius) -----
 
-!     ----- divide by area -----
+    drho=1.D0/nrsmax
+    DO nrs=1,nrsmax
+       pos_nrs(nrs)=(DBLE(nrs)-0.5D0)*drho
+    ENDDO
+    DO nray=1,nraymax
+       DO nrs=1,nrsmax
+          pwr_nrs_nray(nrs,nray)=0.D0
+       ENDDO
+    ENDDO
+    DO nrs=1,nrsmax
+       pwr_nrs(nrs)=0.D0
+    ENDDO
 
-      DO NRAY=1,NRAYMAX
-         DO NR=1,NRDIVMAX
-            PWRRAY(NR,NRAY)=PWRRAY(NR,NRAY) &
-                       /(2*PI*(DBLE(NR)-0.5D0)*DRHO*DRHO)
-         ENDDO
-      ENDDO
+    DO nray=1,nraymax
+       DO nstp=0,nstpmax_nray(nray)-1
+          xl=rays(1,nstp,nray)
+          yl=rays(2,nstp,nray)
+          zl=rays(3,nstp,nray)
+          CALL pl_mag_old(xl,yl,zl,rhon1)
+          IF(rhon1.LE.1.D0) THEN
+             nrs1=INT(rhon1/drho)+1
+             IF(nrs1.GT.nrsmax) nrs1=nrsmax
+             xl=rays(1,nstp+1,nray)
+             yl=rays(2,nstp+1,nray)
+             zl=rays(3,nstp+1,nray)
+             CALL PL_MAG_OLD(xl,yl,zl,rhon2)
+             nrs2=int(rhon2/drho)+1
+             IF(nrs2.GT.nrsmax) nrs2=nrsmax
+             ndrs=ABS(nrs2-nrs1)
+             IF(ndrs.EQ.0) THEN
+                pwr_nrs_nray(nrs1,nray)=pwr_nrs_nray(nrs1,nray) &
+                     +rays(8,nstp+1,nray)
+             ELSE IF(nrs1.lt.nrs2) THEN
+                sdr=(rhon2-rhon1)/drho
+                delpwr=rays(8,nstp+1,nray)/sdr
+                pwr_nrs_nray(nrs1,nray)=pwr_nrs_nray(nrs1,nray) &
+                     +(DBLE(nrs1)-rhon1/drho)*delpwr
+                DO nrs=nrs1+1,nrs2-1
+                   pwr_nrs_nray(nrs,nray)=pwr_nrs_nray(nrs,nray)+delpwr
+                ENDDO
+                pwr_nrs_nray(nrs2,nray)=pwr_nrs_nray(nrs2,nray) &
+                     +(rhon2/drho-DBLE(nrs2-1))*delpwr
+             ELSE
+                sdr=(rhon1-rhon2)/drho
+                delpwr=rays(8,nstp+1,nray)/sdr
+                pwr_nrs_nray(nrs2,nray)=pwr_nrs_nray(nrs2,nray) &
+                     +(DBLE(nrs2)-rhon2/drho)*delpwr
+                DO nrs=nrs2+1,nrs1-1
+                   pwr_nrs_nray(nrs,nray)=pwr_nrs_nray(nrs,nray)+delpwr
+                ENDDO
+                pwr_nrs_nray(nrs1,nray)=pwr_nrs_nray(nrs1,nray) &
+                     +(rhon1/drho-DBLE(nrs1-1))*delpwr
+             END IF
+          ENDIF
+       ENDDO
 
-!     ----- weight of power for each ray-------
+       DO nrs=1,nrsmax
+          pwr_nrs_nray(nrs,nray)=pwr_nrs_nray(nrs,nray) &
+               /(2.D0*PI*(DBLE(nrs)-0.5D0)*drho*drho)
+       ENDDO
+    ENDDO
 
-      DO NR=1,NRDIVMAX
-         PWR(NR)=0.D0
-         DO NRAY=1,NRAYMAX
-            PWR(NR)=PWR(NR)+PWRRAY(NR,NRAY)
-         ENDDO
-      ENDDO
+!     ----- sum of power for each ray-------
 
-      DO NR=1,NRDIVMAX
-         AJR(NR)=0.D0
-      ENDDO
+    DO nrs=1,nrsmax
+       pwr_nrs(nrs)=0.D0
+       DO nray=1,nraymax
+          pwr_nrs(nrs)=pwr_nrs(nrs)+pwr_nrs_nray(nrs,nray)
+       ENDDO
+    ENDDO
 
 !     ----- find location of absorbed power peak -----
 
-      PWRMAX=0.D0
-      LOCMAX=0
-      DO NR=1,NRDIVMAX
-         IF(PWR(NR).GT.PWRMAX) THEN
-            PWRMAX=PWR(NR)
-            LOCMAX=NR
-         ENDIF
-      END DO
-      IF(LOCMAX.LE.1) THEN
-         RHOMAX=0.D0
-      ELSE IF(LOCMAX.EQ.NRDIVMAX) THEN
-         RHOMAX=1.D0
-      ELSE
-         DPWR =(PWR(LOCMAX+1)-PWR(LOCMAX-1))/(2.D0*DRHO)
-         DDPWR=(PWR(LOCMAX+1)-2*PWR(LOCMAX)+PWR(LOCMAX-1))/DRHO**2
-         RHOMAX=(LOCMAX-0.5D0)/(NRDIVMAX-1.D0)-DPWR/DDPWR
-         PWRMAX=PWRMAX-DPWR**2/(2.D0*DDPWR)
-      ENDIF
-      WRITE(6,'(A,1PE12.4,A,1PE12.4)') &
-           '    PWRMAX=',PWRMAX,'  AT RHON =',RHOMAX
+    DO nray=1,nraymax
+       pwrmax=0.D0
+       locmax=0
+       DO nrs=1,nrsmax
+          IF(pwr_nrs_nray(nrs,nray).GT.pwrmax) THEN
+             pwrmax=pwr_nrs_nray(nrs,nray)
+             locmax=nrs
+          ENDIF
+       END DO
+       IF(locmax.LE.1) THEN
+          pos_pwrmax_rs_nray(nray)=pos_nrs(1)
+       ELSE IF(locmax.GE.nrsmax) THEN
+          pos_pwrmax_rs_nray(nray)=pos_nrs(nrsmax)
+       ELSE
+          dpwr =(pwr_nrs_nray(locmax+1,nray) &
+                -pwr_nrs_nray(locmax-1,nray))/(2.D0*drho)
+          ddpwr=(pwr_nrs_nray(locmax+1,nray) &
+              -2*pwr_nrs_nray(locmax  ,nray) &
+                +pwr_nrs_nray(locmax-1,nray))/drho**2
+          pos_pwrmax_rs_nray(nray)=(locmax-0.5D0)/(nrsmax-1.D0)-dpwr/ddpwr
+          pwrmax_rs_nray(nray)=pwrmax-dpwr**2/(2.D0*ddpwr)
+       ENDIF
+    END DO
+   
+    pwrmax=0.D0
+    locmax=0
+    DO nrs=1,nrsmax
+       IF(pwr_nrs(nrs).GT.pwrmax) THEN
+          pwrmax=pwr_nrs(nrs)
+          locmax=nrs
+       ENDIF
+    END DO
+    IF(locmax.LE.1) THEN
+       pos_pwrmax_rs=pos_nrs(1)
+    ELSE IF(locmax.GE.nrsmax) THEN
+       pos_pwrmax_rs=pos_nrs(nrsmax)
+    ELSE
+       dpwr =(pwr_nrs(locmax+1) &
+             -pwr_nrs(locmax-1))/(2.D0*drho)
+       ddpwr=(pwr_nrs(locmax+1) &
+           -2*pwr_nrs(locmax  ) &
+             +pwr_nrs(locmax-1))/drho**2
+       pos_pwrmax_rs=(locmax-0.5D0)/(nrsmax-1.D0)-dpwr/ddpwr
+       pwrmax_rs=pwrmax-dpwr**2/(2.D0*ddpwr)
+    ENDIF
+   
+    WRITE(6,'(A,1PE12.4,A,1PE12.4)') &
+         '    PWRMAX=',pwrmax_rs,'  AT RHON =',pos_pwrmax_rs
 
-      RETURN
-  END SUBROUTINE WRAPWR
+    CALL PAGES
+    CALL grd1d(0,pos_nrs,pwr_nrs_nray,nrsmax,nrsmax,nraymax, &
+         '@pwr_nrs vs. pos_nrs@')
+    CALL PAGEE
+
+    RETURN
+  END SUBROUTINE wr_calc_pwr
 
 END MODULE wrcalc

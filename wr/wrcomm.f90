@@ -11,7 +11,7 @@ MODULE wrcomm_parm
 
 ! --- input parameters ---
 
-  INTEGER:: NRAYMAX,NSTPMAX,NRDIVMAX,LMAXNW
+  INTEGER:: NRAYMAX,NSTPMAX,NRSMAX,NRRMAX,LMAXNW
   INTEGER:: MDLWRI,MDLWRG,MDLWRP,MDLWRQ,MDLWRW
   REAL(rkind) SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW
   REAL(rkind) RF,RPI,ZPI,PHII,RNZI,RNPHII,RKR0,UUI,RKRI,RKPHII,RKZI
@@ -62,7 +62,18 @@ MODULE wrcomm
        RK2B,RP2B
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        RAMPB
-
+  REAL(rkind),ALLOCATABLE:: &
+       pos_nrs(:),pwr_nrs(:),pwr_nrs_nray(:,:)
+  REAL(rkind),ALLOCATABLE:: &
+       pos_nrr(:),pwr_nrr(:),pwr_nrr_nray(:,:)
+  REAL(rkind),ALLOCATABLE:: &
+       rs_nstp_nray(:,:),rr_nstp_nray(:,:)
+  REAL(rkind),ALLOCATABLE:: &
+       pos_pwrmax_rs_nray(:),pwrmax_rs_nray(:)
+  REAL(rkind):: pos_pwrmax_rs,pwrmax_rs
+  REAL(rkind),ALLOCATABLE:: &
+       pos_pwrmax_rr_nray(:),pwrmax_rr_nray(:)
+  REAL(rkind):: pos_pwrmax_rr,pwrmax_rr
 CONTAINS
 
   SUBROUTINE wr_allocate

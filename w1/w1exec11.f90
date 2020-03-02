@@ -505,11 +505,10 @@ CONTAINS
     USE w1comm
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NZ
-    INTEGER:: NS,NX,NX1,NXD,NCL,IL,NN,MM,IA,IB
+    INTEGER:: NS,NX,NX1,NXD0,NCL0,IL,NN,MM,IA,IB,NCL1,NXD1
     REAL(rkind):: RW,RKV,RCE,DX,PABSL,RNZ
     REAL(rkind):: PIN1,PIN2,PIN3,PIN4,PIN,POUT1,POUT2,POUT3,POUT4,POUT,PCONV
-    COMPLEX(rkind):: CABSL,CDEY,CDEZ,CBY,CBZ
-
+    COMPLEX(rkind):: CABSL,CDEY,CDEZ,CBY,CBZ,CLH0,CLH1
     RW=2.D6*PI*RF
     RKV=2.D6*PI*RF/VC
     RCE=VC*EPS0
@@ -560,12 +559,22 @@ CONTAINS
                  POUT1/PIN,POUT2/PIN,POUT3/PIN,POUT4/PIN,PCONV/PIN
 
     DO NS=1,NSMAX
+       DO NX=1,NXMAX
+          NN=3*NX-1
+          DO IA=1,3
+             CAJ0(NN+IA)=0.D0
+             CAJ1(NN+IA)=0.D0
+          END DO
+       END DO
+          
        DO NX=1,NXMAX-1
           DX=RKV*(XA(NX+1)-XA(NX))
           DO NX1=MAX(1,NX+NXDMIN),MIN(NX+NXDMAX,NXMAX-1)
-             NXD=NX1-NX+NXDMAX+1 ! positive
-             NCL=NCLA(NXD,NX,NS)
-             IF(NCL.NE.0) THEN
+             NXD0=NX1-NX+NXDMAX+1 ! positive
+             NCL0=NCLA(NXD0,NX,NS)
+             NXD1=NX-NX1+NXDMAX+1 ! positive
+             NCL1=NCLA(NXD1,NX1,NS)
+             IF(NCL0.NE.0.AND.NCL1.NE.0) THEN
                 DO IL=1,4
                    CABSL=0.D0
                    NN=3*NX-1
@@ -575,12 +584,19 @@ CONTAINS
                    IF(IL.EQ.4) NN=NN+3
                    IF(IL.EQ.4) MM=MM+3
                    DO IA=1,3
+                      CAJ0(NN+IA)=0.D0
+                      CAJ1(MM+IA)=0.D0
                       DO IB=1,3
-                         CABSL=CABSL &
-                         +0.5D0*CONJG(CA(NN+IA))*CL(IA,IB,IL,NCL)*CA(MM+IB) &
-                         -0.5D0*CA(NN+IA)*CONJG(CL(IB,IA,IL,NCL)*CA(MM+IB))
-!                         -CONJG(CA(NN+IA))*CL(IA,IB,IL,NCL)*CA(MM+IB)
+                         CLH0=0.5D0*(CL(IA,IB,IL,NCL0) &
+                                    -CONJG(CL(IB,IA,IL,NCL0)))
+                         CLH1=0.5D0*(CL(IA,IB,IL,NCL1) &
+                                    -CONJG(CL(IB,IA,IL,NCL1)))
+                         CAJ0(NN+IA)=CAJ0(NN+IA)+CLH0*CA(MM+IB)
+                         CAJ1(MM+IA)=CAJ1(MM+IA)+CLH1*CA(NN+IB)
                       END DO
+                     CABSL=CABSL &
+                           +0.5D0*CONJG(CA(NN+IA))*CAJ0(NN+IA) &
+                           +0.5D0*CONJG(CA(MM+IA))*CAJ1(MM+IA)
                    END DO
                    PABSL=-CI*RCE*CABSL*RKV
 !                   WRITE(6,'(A,2I5,1P5E12.4)') &
@@ -590,6 +606,12 @@ CONTAINS
                 END DO
              END IF
           END DO
+          CJ2DA(NZ,NX,1,NS)=CAJ0(3*NX)
+          CJ2DA(NZ,NX,2,NS)=CAJ0(3*NX+1)
+          CJ2DA(NZ,NX,3,NS)=CAJ0(3*NX+2)
+          CJ2DB(NZ,NX,1,NS)=CAJ1(3*NX)
+          CJ2DB(NZ,NX,2,NS)=CAJ1(3*NX+1)
+          CJ2DB(NZ,NX,3,NS)=CAJ1(3*NX+2)
        END DO
     END DO
 
@@ -618,7 +640,7 @@ CONTAINS
     USE w1comm
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NZ
-    INTEGER:: NX,NS,I
+    INTEGER:: NX,NS,I,NZ1,NZ2,NKZ1,NKZ2,NKZ,NZZ,IA,IB
     REAL(rkind):: FACT,DX,RKZA
     COMPLEX(rkind):: CPANTKX1,CPANTKY1,CPANTKZ1,CPANTKX2,CPANTKY2,CPANTKZ2
     COMPLEX(rkind):: CFJX1,CFJX2
@@ -833,5 +855,47 @@ CONTAINS
     W1CDEF=EFF0*EFF1*EFF2*EFF3
     RETURN
   END FUNCTION W1CDEF
+
+  FUNCTION nkz_nz(nz)
+    USE w1comm,ONLY: nzmax
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: nz
+    INTEGER:: nkz_nz
+
+    IF(nz.GT.nzmax/2) THEN
+       nkz_nz=nz-nzmax
+    ELSE
+       nkz_nz=nz-1
+    END IF
+    RETURN
+  END FUNCTION nkz_nz
+
+  FUNCTION nzz_nkz(nkz)
+    USE w1comm,ONLY: nzmax
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: nkz
+    INTEGER:: nzz_nkz
+
+    IF(nkz.GE.0) THEN
+       nzz_nkz=nkz+1           ! nkz=0 nzz=1, nkz=nzmax-1 nzz=nzmax
+    ELSE
+       nzz_nkz=nkz+2*nzmax+1   ! nkz=-nzmax nzz=nzmax+1, nkz=-1 nzz=2*nzmax
+    END IF
+    RETURN
+  END FUNCTION nzz_nkz
+
+  FUNCTION nkz_nzz(nzz)
+    USE w1comm,ONLY: nzmax
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: nzz
+    INTEGER:: nkz_nzz
+
+    IF(nzz.LE.nzmax) THEN
+       nkz_nzz=nzz-1           ! nkz=0 nzz=1, nkz=nzmax-1 nzz=nzmax
+    ELSE
+       nkz_nzz=nzz-2*nzmax-1   ! nkz=-nzmax nzz=nzmax+1, nkz=-1 nzz=2*nzmax
+    END IF
+    RETURN
+  END FUNCTION nkz_nzz
 
 END MODULE w1exec11

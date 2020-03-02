@@ -198,12 +198,12 @@ CONTAINS
 
 !   ----- CALCULATE RADIAL DEPOSITION PROFILE -----
 
-    DRHO=1.D0/NRDIVMAX
-    DO NRDIV=1,NRDIVMAX
+    DRHO=1.D0/nrsmax
+    DO NRDIV=1,nrsmax
        GPX(NRDIV)=GUCLIP(NRDIV*DRHO)
     ENDDO
     DO NRAY=1,NRAYMAX
-       DO NRDIV=1,NRDIVMAX
+       DO NRDIV=1,nrsmax
           GPY(NRDIV,NRAY)=0.0
        ENDDO
     ENDDO
@@ -248,7 +248,7 @@ CONTAINS
     ENDDO
 
     DO NRAY=1,NRAYMAX
-       DO NRDIV=1,NRDIVMAX
+       DO NRDIV=1,nrsmax
           GPY(NRDIV,NRAY)=GPY(NRDIV,NRAY) &
                          /GUCLIP(2*PI*(DBLE(NRDIV)-0.5D0)*DRHO*DRHO)
        ENDDO
@@ -258,7 +258,7 @@ CONTAINS
 
     CALL GQSCAL(GUCLIP(RHOGMN),GUCLIP(RHOGMX),GXMIN,GXMAX,GXSTEP)
 
-    CALL GMNMX2(GPY,NSTPMAX+1,1,NRDIVMAX,1,1,NRAYMAX,1,GYMIN,GYMAX)
+    CALL GMNMX2(GPY,NSTPMAX+1,1,nrsmax,1,1,NRAYMAX,1,GYMIN,GYMAX)
     CALL GQSCAL(GYMIN,GYMAX,GYSMIN,GYSMAX1,GYSCAL1)
     GYSMIN=0.0
     GYSMAX2=0.1 
@@ -287,7 +287,7 @@ CONTAINS
 
     DO NRAY=1,NRAYMAX
        CALL SETLIN(0,2,7-MOD(NRAY-1,5))
-       CALL GPLOTP(GPX,GPY(1,NRAY),1,NRDIVMAX,1,0,0,0)
+       CALL GPLOTP(GPX,GPY(1,NRAY),1,nrsmax,1,0,0,0)
     ENDDO
     CALL SETLIN(0,2,7)
 
@@ -363,6 +363,7 @@ CONTAINS
 
 !   ----- PLASMA BOUNDARY -----
 
+    write(6,*) '--- point 1'
     ALLOCATE(RSU(NSUM),ZSU(NSUM))
     CALL PL_RZSU(RSU,ZSU,NSUM,NSUMAX)
     RMIN=RSU(1)
@@ -374,6 +375,7 @@ CONTAINS
 
 !   --- TOROIDAL CROSS SECTION -----
 
+    write(6,*) '--- point 2'
     NSRMAX=101
     ALLOCATE(GLCX(NSRMAX),GLCY(NSRMAX),GSCX(NSRMAX),GSCY(NSRMAX))
     DTH=2*PI/(NSRMAX-1)
@@ -414,9 +416,10 @@ CONTAINS
        CALL GPLOTP(GX,GY,1,NSTPMAX_NRAY(NRAY)+1,1,0,0,0)
     ENDDO
 
+    write(6,*) '--- point 3'
 !     ----- major radius dependence of absorbed power -----
 
-    NRLMAX=101
+    NRLMAX=100
     ALLOCATE(GPX(NRLMAX),GPY(NRLMAX,NRAYMAX))
     DRL=(RMAX-RMIN)/(NRLMAX-1)
     DO NRL=1,NRLMAX
@@ -477,6 +480,7 @@ CONTAINS
     ENDDO
 
 !     ----- draw deposition profile -----
+    write(6,*) '--- point 4'
 
     CALL GMNMX2(GPY,NRLMAX,1,NRLMAX,1,1,NRAYMAX,1,GYMIN,GYMAX)
     CALL GQSCAL(GYMIN,GYMAX,GYSMIN,GYSMAX,GYSCAL)
@@ -495,6 +499,7 @@ CONTAINS
        CALL GPLOTP(GPX,GPY(1:NRLMAX,NRAY),1,NRLMAX,1,0,0,0)
     ENDDO
 
+    write(6,*) '--- point 5'
 !     ----- DRAW POWER FLUX ----- major radius ---
 
     GZSMIN=0.0
@@ -524,6 +529,7 @@ CONTAINS
        CALL SETLIN(0,0,7-MOD(NRAY-1,5))
        CALL GPLOTP(GUX,GUY,1,NSTPMAX_NRAY(NRAY)+1,1,0,0,0)      
     ENDDO
+    write(6,*) '--- point 6'
 
     CALL WRGPRM
     CALL PAGEE
@@ -949,8 +955,8 @@ CONTAINS
     REAL(4):: GPX(NSTPMAX+1),GPY(NSTPMAX+1,NRAYMAX)
     REAL(4):: GKX(NSTPMAX+1,NRAYMAX)
     REAL(4):: GKY(NSTPMAX+1,NRAYMAX)
-    REAL(rkind):: FRLRO1(0:NRDIVMAX+1),FZLRO1(0:NRDIVMAX+1)
-    REAL(rkind):: FRLRO2(0:NRDIVMAX+1),FZLRO2(0:NRDIVMAX+1)
+    REAL(rkind):: FRLRO1(0:nrsmax+1),FZLRO1(0:nrsmax+1)
+    REAL(rkind):: FRLRO2(0:nrsmax+1),FZLRO2(0:nrsmax+1)
     REAL(4):: GPAY(NSTPMAX+1,NRAYMAX)
     REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
          RLMA1,ZLMA1,FASSX1,FASSZ1,DELP1, &
@@ -969,16 +975,16 @@ CONTAINS
     INTEGER:: NRSMIN1,NRSMAX1,NDBRD1,NABSM1,NRSA1,NCS,NRSMAX2,NRSMIN2
     INTEGER:: NDBRD2,NABSM2,NRSA2,NRSDA1,NRSDA2,NCS2
 
-      ALLOCATE(RLMA1(0:NSTPMAX+1,0:NRDIVMAX))
-      ALLOCATE(RLMA2(0:NSTPMAX+1,0:NRDIVMAX))
-      ALLOCATE(ZLMA1(0:NSTPMAX+1,0:NRDIVMAX))
-      ALLOCATE(ZLMA2(0:NSTPMAX+1,0:NRDIVMAX))
-      ALLOCATE(FASSX1(0:NSTPMAX+1,0:NRDIVMAX))
-      ALLOCATE(FASSX2(0:NSTPMAX+1,0:NRDIVMAX))
-      ALLOCATE(FASSZ1(0:NSTPMAX+1,0:NRDIVMAX))
-      ALLOCATE(FASSZ2(0:NSTPMAX+1,0:NRDIVMAX))
-      ALLOCATE(DELP1(0:NSTPMAX+1,0:NRDIVMAX))
-      ALLOCATE(DELP2(0:NSTPMAX+1,0:NRDIVMAX))
+      ALLOCATE(RLMA1(0:NSTPMAX+1,0:nrsmax))
+      ALLOCATE(RLMA2(0:NSTPMAX+1,0:nrsmax))
+      ALLOCATE(ZLMA1(0:NSTPMAX+1,0:nrsmax))
+      ALLOCATE(ZLMA2(0:NSTPMAX+1,0:nrsmax))
+      ALLOCATE(FASSX1(0:NSTPMAX+1,0:nrsmax))
+      ALLOCATE(FASSX2(0:NSTPMAX+1,0:nrsmax))
+      ALLOCATE(FASSZ1(0:NSTPMAX+1,0:nrsmax))
+      ALLOCATE(FASSZ2(0:NSTPMAX+1,0:nrsmax))
+      ALLOCATE(DELP1(0:NSTPMAX+1,0:nrsmax))
+      ALLOCATE(DELP2(0:NSTPMAX+1,0:nrsmax))
 
       CALL PAGES
       CALL SETFNT(32)
@@ -1108,12 +1114,12 @@ CONTAINS
 !     -------------------------------------------------------------------
 !     ----- CALCULATE RADIAL DEPOSITION PROFILE (without beam radial)----
 !     -------------------------------------------------------------------
-      DRHO=1.D0/NRDIVMAX
-      DO NRDIV=1,NRDIVMAX
+      DRHO=1.D0/nrsmax
+      DO NRDIV=1,nrsmax
          GPX(NRDIV)=GUCLIP(NRDIV*DRHO)
       ENDDO
       DO NRAY=1,NRAYMAX
-         DO NRDIV=1,NRDIVMAX
+         DO NRDIV=1,nrsmax
             GPY(NRDIV,NRAY)=0.0
          ENDDO
       ENDDO
@@ -1152,15 +1158,15 @@ CONTAINS
                             +GUCLIP((RHON1/DRHO-DBLE(NRS1-1))*DELPWR)
             ENDIF
          ENDDO
-!         WRITE(6,'(5(I3,1PE12.4))') (NRDIV,GPY(NRDIV,NRAY),NRDIV=1,NRDIVMAX)
+!         WRITE(6,'(5(I3,1PE12.4))') (NRDIV,GPY(NRDIV,NRAY),NRDIV=1,nrsmax)
       ENDDO
 
       DO NRAY=1,NRAYMAX
-      DO NRDIV=1,NRDIVMAX
+      DO NRDIV=1,nrsmax
          GPY(NRDIV,NRAY)=GPY(NRDIV,NRAY) &
                         /GUCLIP(2*PI*(DBLE(NRDIV)-0.5D0)*DRHO*DRHO)
       ENDDO
-!         WRITE(6,'(5(I3,1PE12.4))') (NRDIV,GPY(NRDIV,NRAY),NRDIV=1,NRDIVMAX)
+!         WRITE(6,'(5(I3,1PE12.4))') (NRDIV,GPY(NRDIV,NRAY),NRDIV=1,nrsmax)
       ENDDO
 
 !     -------------------------------------------------------------------
@@ -1168,9 +1174,9 @@ CONTAINS
 !     -------------------------------------------------------------------
 
       IF (MODELG.EQ.3.OR.MODELG.EQ.5.OR.MODELG.EQ.8) THEN
-         DRHO=1.D0/NRDIVMAX  
+         DRHO=1.D0/nrsmax  
          DO NRAY=1,NRAYMAX
-            DO NRDIV=1,NRDIVMAX
+            DO NRDIV=1,nrsmax
                GPX (NRDIV)=GUCLIP(NRDIV*DRHO)
                GPAY(NRDIV,NRAY)=0.0
             ENDDO
@@ -1178,7 +1184,7 @@ CONTAINS
 
          DO NRAY=1,NRAYMAX
             DO NSTP=0,NSTPMAX_NRAY(NRAY)-1
-               DRAD=1.D0/DBLE(NRDIVMAX)
+               DRAD=1.D0/DBLE(nrsmax)
 
 !     ----- CALC SLOPE OF RAY TRAJECTORY-----------------------
 
@@ -1199,15 +1205,15 @@ CONTAINS
 !        ---------------------------------------------------------
 
 !        ----- JUDGE MAGNETIC SURFACE-----------------------------
-               DO NRDIV=0,NRDIVMAX
+               DO NRDIV=0,nrsmax
                   FRLRO1(NRDIV)=RLA+NRDIV*DRAD*DRLSN*RAYB(23,NSTP)
                   FZLRO1(NRDIV)=ZLA+NRDIV*DRAD*DZLSN*RAYB(23,NSTP)
                ENDDO
 
 !            ------ BEAM RADIAL DIRECTION ----------------
 
-               RLDMAX1=FRLRO1(NRDIVMAX)
-               ZLDMAX1=FZLRO1(NRDIVMAX)
+               RLDMAX1=FRLRO1(nrsmax)
+               ZLDMAX1=FZLRO1(nrsmax)
                CALL GETRZ(RLDMAX1,ZLDMAX1,PHIL,BR,BZ,BPHI,RHOMAX1)
                NRSMAX1=INT(RHOMAX1/DRHO)+1
                CALL GETRZ(RLA,ZLA,PHIL,BR,BZ,BPHI,RHOMIN1)
@@ -1216,7 +1222,7 @@ CONTAINS
                NABSM1=ABS(NDBRD1)
 
                
-           DO NRDIV=0,NRDIVMAX-1
+           DO NRDIV=0,nrsmax-1
                RL1=FRLRO1(NRDIV)
                ZL1=FZLRO1(NRDIV)
                CALL GETRZ(RL1,ZL1,PHIL,BR,BZ,BPHI,RHON1)
@@ -1289,13 +1295,13 @@ CONTAINS
 !      ------------------------------------------------------
 
 !      ------ JUDGE MAGNETIC SURFACE ------------------------
-            DO NRDIV=0,NRDIVMAX
+            DO NRDIV=0,nrsmax
                FRLRO2(NRDIV)=RLA+NRDIV*DRAD*DRLTN*RAYB(23,NSTP)
                FZLRO2(NRDIV)=ZLA+NRDIV*DRAD*DZLTN*RAYB(23,NSTP)
             ENDDO
 
-               RLDMAX2=FRLRO2(NRDIVMAX)
-               ZLDMAX2=FZLRO2(NRDIVMAX)
+               RLDMAX2=FRLRO2(nrsmax)
+               ZLDMAX2=FZLRO2(nrsmax)
                CALL GETRZ(RLDMAX2,ZLDMAX2,PHIL,BR,BZ,BPHI,RHOMAX2)
 !               WRITE(6,'(A,1P3E12.4)') 'RLD: ',RLDMAX2,ZLDMAX2,RHOMAX2
                NRSMAX2=INT(RHOMAX2/DRHO)+1
@@ -1305,7 +1311,7 @@ CONTAINS
                NDBRD2=(NRSMAX2-NRSMIN2)
                NABSM2=ABS(NDBRD2)
 
-            DO NRDIV=0,NRDIVMAX-1
+            DO NRDIV=0,nrsmax-1
                RL2=FRLRO2(NRDIV)
                ZL2=FZLRO2(NRDIV)
                CALL GETRZ(RL2,ZL2,PHIL,BR,BZ,BPHI,RHON2)
@@ -1369,11 +1375,11 @@ CONTAINS
 
 
       DO NRAY=1,NRAYMAX
-         DO NRDIV=1,NRDIVMAX
+         DO NRDIV=1,nrsmax
             GPAY(NRDIV,NRAY)=GPAY(NRDIV,NRAY) &
                             /GUCLIP(2*PI*(DBLE(NRDIV)-0.5D0)*DRHO*DRHO)
          ENDDO
-!         WRITE(6,'(5(I3,1PE12.4))') (NRDIV,GPAY(NRDIV,NRAY),NRDIV=1,NRDIVMAX)
+!         WRITE(6,'(5(I3,1PE12.4))') (NRDIV,GPAY(NRDIV,NRAY),NRDIV=1,nrsmax)
       ENDDO
       ENDIF
 !     -----Fig.4 draw deposition profile -----
@@ -1384,7 +1390,7 @@ CONTAINS
          CALL GQSCAL(GUCLIP(RHOGMN),GUCLIP(RHOGMX),GXMIN,GXMAX,GXSTEP)
       ENDIF
 !
-      CALL GMNMX2(GPY,NSTPMAX+1,1,NRDIVMAX,1,1,NRAYMAX,1,GYMIN,GYMAX)
+      CALL GMNMX2(GPY,NSTPMAX+1,1,nrsmax,1,1,NRAYMAX,1,GYMIN,GYMAX)
       CALL GQSCAL(GYMIN,GYMAX,GYSMIN,GYSMAX1,GYSCAL1)
       GYSMIN=0.0
       GYSMAX2=0.1 
@@ -1403,13 +1409,13 @@ CONTAINS
 !      CALL SETLIN(0,0,4)
       DO NRAY=1,NRAYMAX
          CALL SETLIN(0,2,7-MOD(NRAY-1,5))
-         CALL GPLOTP(GPX,GPY(1,NRAY),1,NRDIVMAX,1,0,0,0)
+         CALL GPLOTP(GPX,GPY(1,NRAY),1,nrsmax,1,0,0,0)
          CALL SETRGB(0.0,0.0,0.0)
       ENDDO
 
       DO NRAY=1,NRAYMAX
          CALL SETLIN(0,2,7-MOD(NRAY,5))
-         CALL GPLOTP(GPX,GPAY(1,NRAY),1,NRDIVMAX,1,0,0,0)
+         CALL GPLOTP(GPX,GPAY(1,NRAY),1,nrsmax,1,0,0,0)
          CALL SETRGB(1.0,0.0,0.0)
       ENDDO     
       DEALLOCATE(RLMA1)
@@ -2072,13 +2078,13 @@ CONTAINS
 
 !     ----- CALCULATE RADIAL DEPOSITION PROFILE -----
 
-      DRHO=(r_corner(2)-r_corner(1))/NRDIVMAX
+      DRHO=(r_corner(2)-r_corner(1))/nrsmax
       RHO0=r_corner(1)
-      DO NRDIV=1,NRDIVMAX
+      DO NRDIV=1,nrsmax
          GPX(NRDIV)=GUCLIP(RHO0+(NRDIV-0.5D0)*DRHO)
       ENDDO
       DO NRAY=1,NRAYMAX
-         DO NRDIV=1,NRDIVMAX
+         DO NRDIV=1,nrsmax
              GPY(NRDIV,NRAY)=0.0
              GPRY(NRDIV,NRAY)=0.0
          ENDDO
@@ -2091,7 +2097,7 @@ CONTAINS
             XL2=RAYS(1,NSTP+1,NRAY)
             NRS2=INT((XL2-RHO0)/DRHO)+1
             NDR=ABS(NRS2-NRS1)
-            IF(MIN(NRS1,NRS2).GE.1.AND.MAX(NRS1,NRS2).LE.NRDIVMAX) THEN
+            IF(MIN(NRS1,NRS2).GE.1.AND.MAX(NRS1,NRS2).LE.nrsmax) THEN
             IF(NDR.EQ.0) THEN
                GPY(NRS1,NRAY)=GPY(NRS1,NRAY)+GUCLIP(RAYS(8,NSTP+1,NRAY))
             ELSE IF(NRS1.LT.NRS2) THEN
@@ -2119,7 +2125,7 @@ CONTAINS
 !            WRITE(6,'(3I5,1P5E12.4))') &
 !                NSTP,NRS1,NRS2,RHON1,RHON2,SDR,DELPWR,RAYS(8,NSTP+1,NRAY)
          ENDDO
-!         WRITE(6,'(5(I3,1PE12.4))') (NRDIV,GPY(NRDIV,NRAY),NRDIV=1,NRDIVMAX)
+!         WRITE(6,'(5(I3,1PE12.4))') (NRDIV,GPY(NRDIV,NRAY),NRDIV=1,nrsmax)
       ENDDO
 
 !     ----- draw deposition profile -----
@@ -2147,7 +2153,7 @@ CONTAINS
 !      CALL SETLIN(0,0,4)
       DO NRAY=1,NRAYMAX
          CALL SETLIN(0,2,7-MOD(NRAY-1,5))
-         CALL GPLOTP(GPX,GPY(1,NRAY),1,NRDIVMAX,1,0,0,0)
+         CALL GPLOTP(GPX,GPY(1,NRAY),1,nrsmax,1,0,0,0)
       ENDDO
       CALL SETLIN(0,2,7)
 

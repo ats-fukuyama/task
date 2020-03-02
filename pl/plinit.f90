@@ -343,6 +343,11 @@
       QMIN   = 1.5D0
       RHOEDG = 1.D0
 
+!        BAXIS_SCALED: if not 0.D0, magnetic field is scaled
+!                      by Baxis_scaled/Baxis_real
+
+      BAXIS_SCALED=0.D0
+      
 !        PPN0: Neutral pressure [Pa] 1 Torr = 1 mmHg = 133.322 Pa
 !        PTN0: Neutral temperature [eV]
 !        RF_PL: wave frequency [MHz], usually set in wave code

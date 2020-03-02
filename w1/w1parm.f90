@@ -54,7 +54,7 @@ CONTAINS
                   AJYH,AJZH,APYH,APZH,ALZH,APHH,AJYL,AJZL,APYL,APZL,ALZL,APHL,&
                   PA,PZ,PN,PTPP,PTPR,PU,PNS,PTS,PZCL,NSMAX, &
                   NXMAX,NZMAX,NPRINT,NFILE,NGRAPH,NLOOP,NSYM, &
-                  NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NDISP,MODELN, &
+                  NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NGDSP,MODELN, &
                   EPSH,ZEFF,WVYSIZ,NCDTYP,NXABS,IELEC, &
                   MDLWG,MDLWGS,WGZ1,WGZ2,WGAMP,WGNZ
 
@@ -85,7 +85,7 @@ CONTAINS
          '        AJYL,AJZL,APYL,APZL,ALZL,APHL,', &
          '        PA,PZ,PN,PTPP,PTPR,PU,PNS,PTS,PZCL,NSMAX,', &
          '        NXMAX,NZMAX,NPRINT,NFILE,NGRAPH,NLOOP,NSYM,', &
-         '        NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NDISP,MODELN,', &
+         '        NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NGDSP,MODELN,', &
          '        EPSH,ZEFF,WVYSIZ,NCDTYP,NXABS,IELEC', &
          '        MDLWG,MDLWGS,WGZ1,WGZ2,WGAMP,WGNZ'
     RETURN
@@ -164,7 +164,7 @@ CONTAINS
                  'NGRAPH',NGRAPH,'NLOOP ',NLOOP, &
                  'NSYM  ',NSYM  ,'NMODEL',NMODEL, &
                  'NALPHA',NALPHA,'MODELN',MODELN, &
-                 'NSYS  ',NSYS  ,'NDISP ',NDISP, &
+                 'NSYS  ',NSYS  ,'NGDSP ',NGDSP, &
                  'NCDTYP',NCDTYP,'NXABS ',NXABS, &
                  'MDLWG ',MDLWG ,'MDLWGS',MDLWGS
     RETURN

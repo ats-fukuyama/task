@@ -189,6 +189,10 @@
          MAG%BNY = BY/MAG%BABS
          MAG%BNZ = BZ/MAG%BABS
       ENDIF
+
+!      IF(BAXIS_SCALED.NE.0.D0) THEN
+!         MAG%BABS=(BAXIS_SCALED/BAXIS_PL)*MAG%BABS
+!      END IF
       RETURN
     END SUBROUTINE pl_mag
 

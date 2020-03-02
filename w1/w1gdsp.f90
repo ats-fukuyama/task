@@ -141,6 +141,16 @@ CONTAINS
           SKR3(NX)=SQK2R(CSKX(KK+3))
           SKI3(NX)=SQK2I(CSKX(KK+3))
        ENDIF
+       IF(NGDSP.GE.1) THEN
+          SKR1(NX)=FOLDED(SKR1(NX),SKMIN,SKMAX)
+          SKI1(NX)=FOLDED(SKI1(NX),SKMIN,SKMAX)
+          SKR2(NX)=FOLDED(SKR2(NX),SKMIN,SKMAX)
+          SKI2(NX)=FOLDED(SKI2(NX),SKMIN,SKMAX)
+          IF(NMODEL.GT.3) THEN
+             SKR3(NX)=FOLDED(SKR3(NX),SKMIN,SKMAX)
+             SKI3(NX)=FOLDED(SKI3(NX),SKMIN,SKMAX)
+          END IF
+       END IF
     END DO
 
     CALL PAGES
@@ -181,5 +191,52 @@ CONTAINS
 
     RETURN
   END SUBROUTINE W1GDSPA
-!         
+
+  FUNCTION FOLDED(F,FMIN,FMAX)
+    USE w1comm,ONLY: rkind,ngdsp
+    IMPLICIT NONE
+    REAL(4),INTENT(IN):: F,FMIN,FMAX
+    REAL(4):: FOLDED
+
+    IF(NGDSP.GE.1.AND.F.GT.FMAX) THEN
+       IF(NGDSP.GE.2.AND.F.GT.3.0*FMAX) THEN
+          IF(NGDSP.GE.3.AND.F.GT.10.0*FMAX) THEN
+             IF(NGDSP.GE.4.AND.F.GT.30.0*FMAX) THEN
+                IF(NGDSP.GE.5.AND.F.GT.100.0*FMAX) THEN
+                   FOLDED=F/300.0
+                ELSE
+                   FOLDED=F/100.0
+                END IF
+             ELSE
+                FOLDED=F/30.0
+             END IF
+          ELSE
+             FOLDED=F/10.0
+          END IF
+       ELSE
+          FOLDED=F/3.0
+       END IF
+    ELSE IF(NGDSP.GE.1.AND.F.LT.FMIN) THEN
+       IF(NGDSP.GE.2.AND.F.LT.3.0*FMIN) THEN
+          IF(NGDSP.GE.3.AND.F.LT.10.0*FMIN) THEN
+             IF(NGDSP.GE.4.AND.F.LT.30.0*FMIN) THEN
+                IF(NGDSP.GE.5.AND.F.LT.100.0*FMIN) THEN
+                   FOLDED=F/300.0
+                ELSE
+                   FOLDED=F/100.0
+                END IF
+             ELSE
+                FOLDED=F/30.0
+             END IF
+          ELSE
+             FOLDED=F/10.0
+          END IF
+       ELSE
+          FOLDED=F/3.0
+       END IF
+    ELSE
+       FOLDED=F
+    END IF
+    RETURN
+  END FUNCTION FOLDED
 END MODULE w1gdsp

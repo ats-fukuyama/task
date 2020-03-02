@@ -28,9 +28,10 @@ MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) -I../dp/$(MOD) \
 SRCS = wmcomm.f90 vmcomm.f90 \
        wminit.f90 wmparm.f90 wmview.f90 \
        wmsetg.f90 wmprof.f90 wmdisp.f90 \
+       wmsetm.f90 wmsetf.f90 \
        wmmenu.f90
 
-SRCX = wmsetm.f90 wmsetf.f90 wmxprf.f90 wmdprf.f90 \
+SRCX = wmxprf.f90 wmdprf.f90 \
        wmpout.f90 wmgout.f90 wmgsub.f90 wmdout.f90 wmfout.f90 \
        wmsolv.f90 wmexec.f90 wmloop.f90 wmtaem.f90 \
        wmvmec.f90 wmbooz.f90 wmvout.f90 wmtpcs.f90 \

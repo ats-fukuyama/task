@@ -141,12 +141,7 @@ CONTAINS
 !                   3: Precession of both alpha particles and electrons
 !                   4: Calculate alpha particle density using slowing down
 !        MODELM: Control matrix solver
-!                   0: BANDCD
-!                   1: BANDCDB
-!                   2: BSTABCDB
-!                   8: BANDCDM
-!                   9: BANDCDBM
-!                  10: BSTABCDBM
+!                   0: Default
 !        MDLWMK: toroidal effect of minimum parallel wave number
 !                   0: OFF            
 !                   1: ON

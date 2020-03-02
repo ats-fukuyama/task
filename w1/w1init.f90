@@ -214,8 +214,12 @@ CONTAINS
 !     NSYS  : 0 : TOKAMAK CONFIGURATION
 !             1 : HELICAL CONFIGURATION
 !
-!     NDISP : 0 : FIELD CALCULATION
-!             1 : WAVE NUMBER DISPLAY
+!     NGDSP : 0 : WAVE NUMBER DISPLAY (without folding)
+!             1 : WAVE NUMBER DISPLAY (folded by 3)
+!             2 : WAVE NUMBER DISPLAY (folded by 3 and 10)
+!             3 : WAVE NUMBER DISPLAY (folded by 3, 10, and 30)
+!             4 : WAVE NUMBER DISPLAY (folded by 3, 10, 30, and 100)
+!             5 : WAVE NUMBER DISPLAY (folded by 3, 10, 30, 100 and 300)
 !
 !     XDMAX : MAXIMUM VALUE OF GYRORADIUS IN INTEGRATION (NMODEL=6)
 !     NDMAX : MAXIMUM NUMBER OF INTEGRAL TABLE (NMODEL=6)
@@ -240,7 +244,7 @@ CONTAINS
     NSYM  = 0
     NALPHA= 0
     NSYS  = 0
-    NDISP = 0
+    NGDSP = 0
     XDMAX = 10.D0
     NDMAX = 100
     DXFACT= 0.D0

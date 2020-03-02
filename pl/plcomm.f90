@@ -16,6 +16,7 @@ MODULE plcomm_parm
       REAL(rkind),DIMENSION(NCOILM):: RCOIL,ZCOIL,BCOIL
       REAL(rkind):: RHOMIN,QMIN,RHOEDG,RHOGMN,RHOGMX
       REAL(rkind):: PPN0,PTN0,RF_PL
+      REAL(rkind):: BAXIS_SCALED
       REAL(rkind),DIMENSION(3):: r_corner,z_corner
       REAL(rkind),DIMENSION(3):: br_corner,bz_corner,bt_corner
       REAL(rkind),DIMENSION(3,NSM):: pn_corner,ptpr_corner,ptpp_corner

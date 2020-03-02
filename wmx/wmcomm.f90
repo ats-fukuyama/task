@@ -141,7 +141,9 @@ MODULE wmcomm
   COMPLEX(rkind),ALLOCATABLE:: CJANT(:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CEWALL(:,:,:)
   INTEGER:: MLEN,MBND
-  INTEGER:: istart,iend,nrstart,nrend,nbstart,nbend
+  INTEGER:: istart,iend,nr_start,nr_end
+  INTEGER:: MODELK  ! control wave number spectrum model
+  INTEGER:: MODEEG  ! indicate eigen mode calculation
   COMPLEX(rkind),ALLOCATABLE:: CFVG(:)
   COMPLEX(rkind),ALLOCATABLE:: CTNSR(:,:,:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CGD(:,:,:,:,:,:,:)
