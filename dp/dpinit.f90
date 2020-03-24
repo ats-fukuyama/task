@@ -86,6 +86,9 @@ CONTAINS
        NCMAX(NS)= 2
     ENDDO
 
+!     MODEL_ES : 0: Electromagnetic wave, 1:Electrostatic wave
+    MODEL_ES=0
+    
 !     EPSRT  : CONVERGENCE CRITERION OF ROOT FINDING
 !     LMAXRT : MAXIMUM ITERATION COUNT OF ROOT FINDING
 

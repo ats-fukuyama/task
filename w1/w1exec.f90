@@ -134,25 +134,25 @@ CONTAINS
              CALL W1EVAC(NZP)
              CALL W1CLCD(NZP)
              CALL W1CLPW(NZP)
-          CASE(6) ! new intg (one region)
+          CASE(6) ! FEM cold collsional (one region, reflecting wall))
              CALL W1_EXEC6(NZP,IERR)
                 IF(IERR.NE.0) GOTO 2000
-          CASE(7) ! new warm
+          CASE(7) ! FEM warm differential (one region, reflecting wall))
              CALL W1_EXEC7(NZP,IERR)
                 IF(IERR.NE.0) GOTO 2000
-          CASE(8) ! new cold-collisional
+          CASE(8) ! FEM hot integro-differential (one region, reflecting wall)
              CALL W1_EXEC8(NZP,IERR)
                 IF(IERR.NE.0) GOTO 2000
-          CASE(9) ! new intg (one region)
+          CASE(9) ! FEM cold collsional (one region, absorbing wall))
              CALL W1_EXEC9(NZP,IERR)
                 IF(IERR.NE.0) GOTO 2000
-          CASE(10) ! new warm
+          CASE(10) ! FEM warm differential (one region, absorbing wall))
              CALL W1_EXEC10(NZP,IERR)
                 IF(IERR.NE.0) GOTO 2000
-          CASE(11) ! new cold-collisional
+          CASE(11) ! FEM hot integro-differential (one region, absorbing wall)
              CALL W1_EXEC11(NZP,IERR)
                 IF(IERR.NE.0) GOTO 2000
-          CASE(12) ! intg
+          CASE(12) ! old FEM hot integro-differential
              CALL W1_BCND
              CALL W1DSPQ
              CALL W1BNDQ(IERR)

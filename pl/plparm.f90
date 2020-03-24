@@ -58,7 +58,7 @@ CONTAINS
            ID_NS,KID_NS, &
            PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
            RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG, &
-           PPN0,PTN0,RF_PL,BAXIS_SCALED &
+           PPN0,PTN0,RF_PL,BAXIS_SCALED, &
            r_corner,z_corner, &
            br_corner,bz_corner,bt_corner, &
            pn_corner,ptpr_corner,ptpp_corner, &

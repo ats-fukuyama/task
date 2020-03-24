@@ -508,7 +508,8 @@ CONTAINS
     INTEGER:: NS,NX,NX1,NXD0,NCL0,IL,NN,MM,IA,IB,NCL1,NXD1
     REAL(rkind):: RW,RKV,RCE,DX,PABSL,RNZ
     REAL(rkind):: PIN1,PIN2,PIN3,PIN4,PIN,POUT1,POUT2,POUT3,POUT4,POUT,PCONV
-    COMPLEX(rkind):: CABSL,CDEY,CDEZ,CBY,CBZ,CLH0,CLH1
+    COMPLEX(rkind):: CPABSL,CDEY,CDEZ,CBY,CBZ,CLH0,CLH1,CAJ0L,CAJ1L
+    COMPLEX(rkind):: CPABS0,CPABS1
     RW=2.D6*PI*RF
     RKV=2.D6*PI*RF/VC
     RCE=VC*EPS0
@@ -574,38 +575,66 @@ CONTAINS
              NCL0=NCLA(NXD0,NX,NS)
              NXD1=NX-NX1+NXDMAX+1 ! positive
              NCL1=NCLA(NXD1,NX1,NS)
+             CPABSL=0.D0
              IF(NCL0.NE.0.AND.NCL1.NE.0) THEN
                 DO IL=1,4
-                   CABSL=0.D0
-                   NN=3*NX-1
-                   MM=3*NX1-1
-                   IF(IL.EQ.2) NN=NN+3
-                   IF(IL.EQ.3) MM=MM+3
-                   IF(IL.EQ.4) NN=NN+3
-                   IF(IL.EQ.4) MM=MM+3
+                   SELECT CASE(IL)
+                   CASE(1)
+                      NN=3*NX-1
+                      MM=3*NX1-1
+                   CASE(2)
+                      NN=3*NX+2
+                      MM=3*NX1-1
+                   CASE(3)
+                      NN=3*NX-1
+                      MM=3*NX1+2
+                   CASE(4)
+                      NN=3*NX+2
+                      MM=3*NX1+2
+                   END SELECT
+                   CPABS0=0.D0
+                   CPABS1=0.D0
                    DO IA=1,3
-                      CAJ0(NN+IA)=0.D0
-                      CAJ1(MM+IA)=0.D0
+                      CAJ0L=0.D0
+                      CAJ1L=0.D0
                       DO IB=1,3
+!                         CLH0=0.5D0*(CL(IA,IB,IL,NCL0) &
+!                                    -CONJG(CL(IB,IA,IL,NCL0)))
+!                         CLH1=0.5D0*(CL(IA,IB,IL,NCL1) &
+!                                    -CONJG(CL(IB,IA,IL,NCL1)))
                          CLH0=0.5D0*(CL(IA,IB,IL,NCL0) &
                                     -CONJG(CL(IB,IA,IL,NCL0)))
                          CLH1=0.5D0*(CL(IA,IB,IL,NCL1) &
                                     -CONJG(CL(IB,IA,IL,NCL1)))
-                         CAJ0(NN+IA)=CAJ0(NN+IA)+CLH0*CA(MM+IB)
-                         CAJ1(MM+IA)=CAJ1(MM+IA)+CLH1*CA(NN+IB)
+                         CAJ0L=CAJ0L+CLH0*CA(MM+IB)
+                         CAJ1L=CAJ1L+CLH1*CA(NN+IB)
                       END DO
-                     CABSL=CABSL &
-                           +0.5D0*CONJG(CA(NN+IA))*CAJ0(NN+IA) &
-                           +0.5D0*CONJG(CA(MM+IA))*CAJ1(MM+IA)
+                      CPABS0=CPABS0+0.5D0*CONJG(CA(NN+IA))*CAJ0L
+                      CPABS1=CPABS1+0.5D0*CONJG(CA(MM+IA))*CAJ1L
+!                      CABSL=CABSL &
+!                           +0.5D0*CONJG(CA(NN+IA))*CAJ0L &
+!                           +0.5D0*CONJG(CA(MM+IA))*CAJ1L
+!                      CAJ0(NN+IA)=CAJ0(NN+IA)+CAJ0L
+!                      CAJ1(MM+IA)=CAJ1(MM+IA)+CAJ1L
                    END DO
-                   PABSL=-CI*RCE*CABSL*RKV
-!                   WRITE(6,'(A,2I5,1P5E12.4)') &
-!                        'PABS:',NS,NX,RCE,CABSL,RKV,PABSL
-                   PABS(NX,   NS)=PABS(NX,   NS)+0.5D0*PABSL
-                   PABS(NX1,  NS)=PABS(NX1,  NS)+0.5D0*PABSL
+                   IF(NX.EQ.4000.AND.NX1.EQ.4001) THEN
+                      WRITE(6,'(A,3I5,1P4E12.4)') &
+                           'CPABS0:',NX,NX1,IL,CPABS0,CPABS1
+                   END IF
+                   IF(NX.EQ.4001.AND.NX1.EQ.4000) THEN
+                      WRITE(6,'(A,3I5,1P4E12.4)') &
+                           'CPABS1:',NX,NX1,IL,CPABS0,CPABS1
+                   END IF
+                   CPABSL=CPABSL+CPABS0+CPABS1
                 END DO
              END IF
+             PABSL=-CI*RCE*CPABSL*RKV
+             PABS(NX,   NS)=PABS(NX,   NS)+0.5D0*PABSL
+             PABS(NX1,  NS)=PABS(NX1,  NS)+0.5D0*PABSL
           END DO
+          IF(ABS(PABSL).GT.1.D-8) WRITE(6,'(A,I6,1PE12.4)') 'NX,PABSL=',NX,PABSL
+       END DO
+       DO NX=1,NXMAX
           CJ2DA(NZ,NX,1,NS)=CAJ0(3*NX)
           CJ2DA(NZ,NX,2,NS)=CAJ0(3*NX+1)
           CJ2DA(NZ,NX,3,NS)=CAJ0(3*NX+2)

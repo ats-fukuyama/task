@@ -11,6 +11,7 @@ MODULE dpcomm_parm
 ! --- input paramters ---
 
   INTEGER:: MODELP(NSM),MODELV(NSM),NCMIN(NSM),NCMAX(NSM)
+  INTEGER:: MODEL_ES
   REAL(rkind):: EPSRT
   INTEGER:: LMAXRT
 

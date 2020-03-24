@@ -37,7 +37,7 @@ SUBROUTINE WFSLIM
      LNDMIN=MIN(LNDMIN,LNODE)
      LNDMAX=MAX(LNDMAX,LNODE)
   ENDDO
-  write(6,'(A,1p4E12.4)') ':wfsub:',RNDMIN,RNDMAX,ZNDMIN,ZNDMAX
+  IF(nrank.EQ.0) write(6,'(A,1p4E12.4)') ':wfsub:',RNDMIN,RNDMAX,ZNDMIN,ZNDMAX
 
   RETURN
 END SUBROUTINE WFSLIM
@@ -530,7 +530,7 @@ SUBROUTINE SETEWG
   DO NSD=1,NSDMAX
      IF(KASID(NSD).EQ.1) NBSID=NBSID+1
   END DO
-  write(6,*) 'NBSID=',NBSID
+  IF(nrank.EQ.0) write(6,*) 'NBSID=',NBSID
   IF(ALLOCATED(NSDBS)) DEALLOCATE(NSDBS)
   IF(ALLOCATED(CEBSD)) DEALLOCATE(CEBSD)
   ALLOCATE(NSDBS(NBSID))
@@ -583,7 +583,7 @@ SUBROUTINE SETEWG
            PROD=(R2WG-R1WG)*(RNODE(NN2)-RNODE(NN1)) &
                +(Z2WG-Z1WG)*(ZNODE(NN2)-ZNODE(NN1))
            CALL wf_read_wg(Z,CEX,CEY,CEZ,IERR)
-           write(6,'(A,1P6E12.4)') 'R,Z,CEY=', &
+           IF(nrank.EQ.0) write(6,'(A,1P6E12.4)') 'R,Z,CEY=', &
                                     R,Z,CEY,PROD,ZNODE(NN2)-ZNODE(NN1)
 !!!           IF(PROD.GT.0.D0) CEY=-CEY
            CEBSD(NBSD)=AMPWG*CEY
@@ -645,7 +645,7 @@ SUBROUTINE SETEWG
         IF((R.GE.R1WG-EPSWG).AND.(R.LE.R2WG+EPSWG).AND. &
            (Z.GE.Z1WG-EPSWG).AND.(Z.LE.Z2WG+EPSWG)) THEN
            CALL wf_read_wg(Z,CEX,CEY,CEZ,IERR)
-           write(6,'(A,1P4E12.4)') 'R,Z,CEZ=',R,Z,CEZ
+           IF(nrank.EQ.0) write(6,'(A,1P4E12.4)') 'R,Z,CEZ=',R,Z,CEZ
            CEBND(NBND)=AMPWG*CEZ
         ELSE
            CEBND(NBND)=(0.D0,0.D0)

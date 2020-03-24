@@ -60,7 +60,7 @@ CONTAINS
                   KNAMEQ,KNAMWR,KNAMFP,MODEFR,MODEFW,IDEBUG, &
                   MODELP,MODELV,NCMIN,NCMAX, &
                   RF0,RFI0,RKX0,RKY0,RKZ0,RX0,RY0,RZ0,RK0,RKANG0, &
-                  EPSRT,LMAXRT, &
+                  MODEL_ES,EPSRT,LMAXRT, &
                   NS_NSA_DP,PMAX,EMAX,RHON_MIN,RHON_MAX, &
                   NPMAX_DP,NTHMAX_DP,NRMAX_DP,NSAMAX_DP, &
                   RF1,RFI1,RKX1,RKY1,RKZ1,RX1,RY1,RZ1,RK1, &
@@ -104,7 +104,7 @@ CONTAINS
             9X,'KNAMEQ,KNAMWR,KNAMFP,MODEFR,MODEFW,IDEBUG,'/ &
             9X,'MODELP,MODELV,NCMIN,NCMAX,'/ &
             9X,'RF0,RFI0,RKX0,RKY0,RKZ0,RX0,RY0,RZ0,RK0,RKANG0,'/ &
-            9X,'EPSRT,LMAXRT,'/ &
+            9X,'MODEL_ES,EPSRT,LMAXRT,'/ &
             9X,'NS_NSA_DP,PMAX,EMAX,ROHN_MIN,ROHN_MAX,'/ &
             9X,'NPMAX_DP,NTHMAX_DP,NRMAX_DP,NSAMAX_DP,'/ &
             9X,'RF1,RFI1,RKX1,RKY1,RKZ1,RX1,RY1,RZ1,RK1,'/ &
@@ -202,6 +202,7 @@ CONTAINS
     WRITE(6,611) 'NPMAX_DP   ',NPMAX_DP ,'NTHMAX_DP  ',NTHMAX_DP, &
                  'NRMAX_DP   ',NRMAX_DP ,'NSAMAX_DP  ',NSAMAX_DP
     WRITE(6,602) 'NORMF ',NORMF ,'NORMK ',NORMK
+    WRITE(6,611) 'MODEL_ES   ',MODEL_ES
     WRITE(6,601) 'EPSRT ',EPSRT ,'EPSDP ',EPSDP
     WRITE(6,601) 'EPSRF ',EPSRF
     WRITE(6,602) 'LMAXRT',LMAXRT,'NFLOUT',NFLOUT
@@ -235,14 +236,16 @@ CONTAINS
     idata(3)=NRMAX_DP
     idata(4)=NSAMAX_DP
     idata(5)=LMAXRT
+    idata(6)=MODEL_ES
 
-    CALL mtx_broadcast_integer(idata,5)
+    CALL mtx_broadcast_integer(idata,6)
 
     NPMAX_DP=idata(1)
     NTHMAX_DP=idata(2)
     NRMAX_DP=idata(3)
     NSAMAX_DP=idata(4)
     LMAXRT=idata(5)
+    MODEL_ES=idata(6)
 
     rdata(1)=EPSRT
 
