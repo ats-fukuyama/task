@@ -1580,7 +1580,7 @@ C
 C
 C     ****** RADIATED POWER ******
 C
-      SUBROUTINE PWRRAD
+      SUBROUTINE PWRRAD(NZ)
 C
       USE libgrf
       INCLUDE 'wfcomm.inc'
