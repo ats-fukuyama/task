@@ -14,6 +14,7 @@ CONTAINS
     USE plmenu,ONLY:pl_menu
     USE dpmenu,ONLY:dp_menu
     USE fpmenu,ONLY:fp_menu
+    USE trmenu,ONLY:tr_menu
     USE timenu,ONLY:ti_menu
     USE wrmenu,ONLY:wr_menu
     USE commpi
@@ -42,7 +43,7 @@ CONTAINS
     CASE('EQ')
        CALL eqmenu
     CASE('TR')
-       CALL trmenu
+       CALL tr_menu
     CASE('WR')
        CALL wr_menu
     CASE('WM')

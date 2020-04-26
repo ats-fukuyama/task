@@ -14,6 +14,8 @@ PROGRAM tot
   USE plparm,ONLY:pl_parm
   USE equnit_mod,ONLY:eq_init
   USE trcomm,ONLY:open_trcomm
+  USE trinit,ONLY:tr_init
+  USE trparm,ONLY:tr_parm
   USE ticomm,ONLY:open_ticomm_parm
   USE tiinit,ONLY:ti_init
   USE tiparm,ONLY:ti_parm,ti_broadcast
@@ -44,7 +46,7 @@ PROGRAM tot
 
   CALL pl_init
   CALL eq_init
-  CALL trinit
+  CALL tr_init
   CALL dp_init
   CALL wr_init
   CALL wminit
@@ -55,7 +57,7 @@ PROGRAM tot
   IF(nrank.EQ.0) THEN
      CALL pl_parm(1,'plparm',IERR)
      CALL eqparm(1,'eqparm',IERR)
-     CALL trparm(1,'trparm',IERR)
+     CALL tr_parm(1,'trparm',IERR)
      CALL dp_parm(1,'dpparm',IERR)
      CALL wr_parm(1,'wrparm',IERR)
      CALL wmparm(1,'wmparm',IERR)

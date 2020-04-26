@@ -126,6 +126,8 @@ CONTAINS
        CONTINUE
     ELSEIF(KID.EQ.'S') THEN
        CONTINUE
+    ELSEIF(KID.EQ.'?') THEN
+       CALL dp_help(0)
     ELSEIF(KID.EQ.'Q') THEN
        GOTO 9000
     ENDIF
@@ -134,4 +136,32 @@ CONTAINS
 9000 RETURN
   END SUBROUTINE dp_menu
 
+  ! --- Help message ---
+
+  SUBROUTINE dp_help(id)
+
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: id
+
+    SELECT CASE(id)
+    CASE(0)
+       WRITE(6,'(A)') 'Menu Help:  D=the determinant of dispersion&
+            & matrix'
+       WRITE(6,'(A)') 'D0: Show D for various plasma model, '
+       WRITE(6,'(A)') 'D1: Draw D as a function of one parameter, omega, k'
+       WRITE(6,'(A)') 'D2: Draw contour of D=0 on 2D parameter plane'
+       WRITE(6,'(A)') 'D3: Draw contours of D=0 on 2D for various density'
+       WRITE(6,'(A)') 'D4: Draw dispersion curve and contour D=0'
+       WRITE(6,'(A)') 'D5: Draw dispersion curve'
+       WRITE(6,'(A)') 'F : Find a root of D=0'
+       WRITE(6,'(A)') 'T : show D for various plasma model for EC waves'
+       WRITE(6,'(A)') ' '
+       WRITE(6,'(A)') 'P : parameter input through namelist'
+       WRITE(6,'(A)') 'V : show input parameters'
+       WRITE(6,'(A)') '? : this helpmessage'
+       WRITE(6,'(A)') 'Q : end of this run.'
+       RETURN
+    END SELECT
+  END SUBROUTINE dp_help
+       
 END MODULE dpmenu
