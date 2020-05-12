@@ -1170,7 +1170,8 @@
       IMPLICIT NONE
       integer:: ierr_g
 
-      ierr_g=0
+      WRITE(6,*) 'XX mtx_abort: ierr_g=',ierr_g
+      STOP
 
       END SUBROUTINE mtx_abort
 !-----

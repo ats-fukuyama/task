@@ -84,7 +84,7 @@ subroutine WFWPRE(IERR)
   
 
   SELECT CASE(MODELG)
-  CASE(0,11,12)
+  CASE(0,12)
      CALL WFBPSI(RA,0.D0,PSIA)
   CASE(1:10,13)
      CALL WFBPSI(RR+RA,0.D0,PSIA)
@@ -338,7 +338,7 @@ SUBROUTINE CVCALC
         CJ(2)=CVJ*RR
         CJ(3)=0.D0
         SELECT CASE(MODELG)
-        CASE(0,11,12)
+        CASE(0,12)
            do I=1,3
               LIF(I)=A(I)*RR &
                     +B(I)*R1*RR &
@@ -376,7 +376,7 @@ SUBROUTINE CVCALC
         CJ(3)=CVJ*Z21  
 
         SELECT CASE(MODELG)
-        CASE(0,11,12)
+        CASE(0,12)
            do I=1,3
               LIF(I)=A(I)*RR &
                     +B(I)*(R1+R2)*RR/2.D0 &
@@ -500,7 +500,7 @@ SUBROUTINE CMCALCV(NE)
   end do
 
   SELECT CASE(MODELG)
-  CASE(0,11,12)
+  CASE(0,12)
      do K=1,3 
         do J=1,3
            do I=1,3
@@ -544,7 +544,7 @@ SUBROUTINE CMCALCV(NE)
   end do
 
   SELECT CASE(MODELG)
-  CASE(0,11,12)
+  CASE(0,12)
      do K=1,3
         do J=1,3
            do I=1,3
@@ -594,7 +594,7 @@ SUBROUTINE CMCALCV(NE)
   end do
 
   SELECT CASE(MODELG)
-  CASE(0,11,12)
+  CASE(0,12)
      do K=1,3
         do J=1,3
            do I=1,3
@@ -643,7 +643,7 @@ SUBROUTINE CMCALCV(NE)
   end do
 
   SELECT CASE(MODELG)
-  CASE(0,11,12)
+  CASE(0,12)
      do K=1,3
         do J=1,3
            do I=1,3
@@ -735,7 +735,7 @@ SUBROUTINE CMCALCS(NE)
         I=ISD
         J=ISD
         SELECT CASE(MODELG)
-        CASE(0,11,12)
+        CASE(0,12)
            DO K1=1,2
               K=IND(K1)
               CTEMP=CM(I,J)
@@ -764,7 +764,7 @@ SUBROUTINE CMCALCS(NE)
         DO J1=1,2
            J=IND(J1)
            SELECT CASE(MODELG)
-           CASE(0,11,12)
+           CASE(0,12)
               DO K1=1,2
                  K=IND(K1)
                  CTEMP=CM(I,J+3)
@@ -793,7 +793,7 @@ SUBROUTINE CMCALCS(NE)
            DO I1=1,2
               I=IND(I1)
               SELECT CASE(MODELG)
-              CASE(0,11,12)
+              CASE(0,12)
                  DO K1=1,2
                     K=IND(K1)
                     CTEMP=CM(I+3,J+3)
@@ -882,7 +882,7 @@ SUBROUTINE CMCALCP(NE)
   end do
 
   SELECT CASE(MODELG)
-  CASE(0,11,12)
+  CASE(0,12)
      do JJ=1,6
         do II=1,6
            do K=1,3
@@ -1043,7 +1043,7 @@ SUBROUTINE PWRABS
 
      do NS=1,NSMAX
         SELECT CASE(MODELG)
-        CASE(0,11,12)
+        CASE(0,12)
            do JJ=1,6
               do II=1,6
                  do K=1,3
@@ -1175,7 +1175,7 @@ SUBROUTINE PWRRAD
         call WFABC(NE,A,B,C)
 
         SELECT CASE(MODELG)
-        CASE(0,11,12)
+        CASE(0,12)
            do I=1,3
               LIF(I)= A(I)*RR &
                      +B(I)*RR*(R2+R1)/2.d0 &

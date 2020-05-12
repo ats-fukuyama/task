@@ -1,0 +1,79 @@
+### Madefile for ob
+include ../make.header
+include ../mtxp/make.mtxp
+
+LIB_MTX=$(LIB_MTX_BND)
+LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_PCG)
+#LIB_MTX=$(LIB_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIB_MTX=$(LIBXMTX_KSP)
+#LIBX_MTX=$(LIBX_MTX_KSP)
+
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
+
+.SUFFIXES:
+.SUFFIXES: .f90 .mod .o .a
+
+.f.o :
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+.f90.o :
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+
+MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../lib/$(MOD) \
+            -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
+
+SRCS = obcomm.f90 obinit.f90 obparm.f90 \
+       obexec.f90 obcalc.f90 obgout.f90 \
+       obmenu.f90
+#       obfile.f90 obsub.f90 \
+
+OBJS = $(SRCS:.f90=.o)
+
+LIBS = libob.a  ../eq/libeq.a ../pl/libpl.a \
+       ../lib/libtask.a ../../bpsd/libbpsd.a
+
+all : ob
+
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
+../lib/libtask.a:
+	(cd ../lib; make libtask.a)
+../pl/libpl.a:
+	(cd ../pl; make libpl.a)
+../eq/libeq.a:
+	(cd ../eq; make libeq.a)
+libob.a: $(OBJS)
+	$(LD) $(LDFLAGS) libob.a $(OBJS)
+
+libs:
+	(cd ../../bpsd; make libbpsd.a)
+	(cd ../lib; make libtask.a)
+	(cd ../mtxp; make)
+	(cd ../pl; make libpl.a)
+	(cd ../eq; make libeq.a)
+
+testf: libs libob.a test.o
+	$(FLINKER) test.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+
+ob : libs libob.a obmain.o
+	$(FLINKER) obmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
+
+clean:
+	-rm -f core a.out *.o *.a ./*~ $(MOD)/*.mod
+
+veryclean: clean
+	-rm -f ob
+
+OBCOMM=obcomm.f90 ../pl/plcomm.f90
+obmain.o: obmain.f90 $(OBCOMM)
+obmenu.o: obmenu.f90 $(OBCOMM)
+obinit.o: obinit.f90 $(OBCOMM)
+obparm.o: obparm.f90 $(OBCOMM)
+obcalc.o: obcalc.f90 $(OBCOMM) ../pl/plprof.f90
+obexec.o: obexec.f90 $(OBCOMM) ../pl/plprof.f90
+obsub.o:  obsub.f90 $(OBCOMM)
+obgout.o: obgout.f90 $(OBCOMM)
+obfile.o: obfile.f90 $(OBCOMM)

@@ -323,7 +323,7 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
               TRC(NGX,NGY)=TRC(NGX,NGY)-WP(NSDO)/(1.D0+WC(NSDO))
               TLC(NGX,NGY)=TLC(NGX,NGY)-WP(NSDO)/(1.D0-WC(NSDO))
            end do
-           
+
            GTCR(NGX,NGY)=GUCLIP(1.D0-TCR(NGX,NGY))
            GTCO(NGX,NGY)=GUCLIP(TCO(NGX,NGY))
            GTHR(NGX,NGY)=GUCLIP(THR(NGX,NGY))

@@ -302,8 +302,7 @@
 !              8: RZphi call TASK/EQU
 !              9: RZphi call TASK/EQ
 !             10: reserved for GAMMA-10
-!               : Straight helical geometry
-!             11: 2D plane profile (B defined by corner)
+!             11: Straight helical geometry
 !             12: 2D plane profile (B read from file)
 !             13: 2D plane profile (simple parabolic cylinder)
 
