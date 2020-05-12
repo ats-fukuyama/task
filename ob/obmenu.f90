@@ -15,7 +15,7 @@ CONTAINS
     USE plparm,ONLY: pl_view
     USE obparm,ONLY: ob_parm,ob_view
     USE obcalc,ONLY: ob_calc
-!    USE obgout,ONLY: ob_gout
+    USE obgout,ONLY: ob_gout
 !    USE obfile,ONLY: ob_save,ob_load
     IMPLICIT NONE
     CHARACTER(LEN=1):: KID
@@ -39,10 +39,10 @@ CONTAINS
          CALL OB_VIEW
       ELSEIF(KID.EQ.'R') THEN
          CALL ob_allocate
-!         CALL OB_CALC(IERR)
+         CALL OB_CALC(IERR)
          NSTAT=1
       ELSEIF(KID.EQ.'G') THEN
-!         CALL OB_GOUT(NSTAT)
+         CALL OB_GOUT(NSTAT)
       ELSEIF(KID.EQ.'S') THEN
 !         CALL OB_SAVE
       ELSEIF(KID.EQ.'L') THEN

@@ -941,7 +941,6 @@ CONTAINS
             YL=OBTS(2,NSTP,NOBT)
             ZL=OBTS(3,NSTP,NOBT)
             CALL PL_MAG_OLD(XL,YL,ZL,RHON)
-            CALL WRCALK(NSTP,NOBT,RKPARA,RKPERP)
             GKX( NSTP+1,NOBT)=GUCLIP(XL)
             GKY1(NSTP+1,NOBT)=GUCLIP(RKPARA)
             GKY2(NSTP+1,NOBT)=GUCLIP(RKPERP)
@@ -1064,7 +1063,6 @@ CONTAINS
             YL=OBTS(2,NSTP,NOBT)
             ZL=OBTS(3,NSTP,NOBT)
             CALL PL_MAG_OLD(XL,YL,ZL,RHON)
-            CALL WRCALK(NSTP,NOBT,RKPARA,RKPERP)
             GKX( NSTP+1,NOBT)=GUCLIP(RHON)
             GKY1(NSTP+1,NOBT)=GUCLIP(RKPARA*VC &
                                   /(2*PI*OBTIN(1,NOBT)*1.D6))
