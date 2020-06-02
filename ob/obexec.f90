@@ -7,14 +7,14 @@ MODULE obexec
 
 CONTAINS
 
-!   ***** Obt tracing module *****
+!   ***** Orbit tracing module *****
 
-  SUBROUTINE ob_exec(NOBT,IERR)
+  SUBROUTINE ob_exec(nobt,ierr)
 
     USE obcomm
     IMPLICIT NONE
-    INTEGER,INTENT(IN):: NOBT
-    INTEGER,INTENT(OUT):: IERR
+    INTEGER,INTENT(IN):: nobt
+    INTEGER,INTENT(OUT):: ierr
     REAL(rkind):: Y(NEQ)
     INTEGER:: NSTP
 

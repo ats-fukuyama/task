@@ -12,32 +12,30 @@ MODULE obcomm_parm
 ! --- input parameters ---
 
   INTEGER:: &
-       nobtmax, &             ! number of orbits
-       nstpmax, &             ! maximum number of orbits
+       nobt_max, &            ! number of orbits
+       nstp_max, &            ! maximum number of orbit steps
        ns_ob, &               ! id of particle species
-       lmaxnw                 ! maximum number of iteration (initial condition)
+       lmax_nw                ! maximum number of iteration (initial condition)
   INTEGER:: &
-       mdlobi, &              ! model id of initial input parameters
+       mdlobp, &              ! model id of equation of motion
+       mdlobi, &              ! model id of input scheme of initial parameters
+       mdlobq, &              ! model id of ODE solver
        mdlobg                 ! model id of graphics
   REAL(rkind) &
        smax, &                ! maximum of orbit length
        dels, &                ! step size of orbit length
-       epsobt, &              ! convergence criterion of orbit solution
-       delobt, &              ! step size of iteration (initial condition)
-       epsnw                  ! convergence criterion of iteration (initial c.)
+       eps_obt, &             ! convergence criterion of orbit solution
+       del_obt, &             ! step size of iteration (initial condition)
+       eps_nw                 ! convergence criterion of iteration (initial c.)
 
   REAL(rkind),DIMENSION(nobt_m):: &
-       zetab_in, &            ! initial toroidal boozer angle
-       thetab_in, &           ! initial poloidal boozer angle
-       pzeta_in, &            ! initial toroidal momentum
-       ptheta_in, &           ! initial poloidal momentum
-       psip_in, &             ! initial poloidal magnetic flux
-       rhopara_in, &          ! initial parallel velocity divided by 
-       penerg_in, &           ! initial particle energy (mdlobi=1)
-       pangle_in, &           ! initial sine of pitch angle (mdlobj=1)
-       rr_in, &               ! initial major radius (mdlobj=1)
-       zz_in, &               ! initial vertical position (mdlobj=1)
-       zeta_in                ! initial toroidal angle (mdlobj=1)
+       penergy_in, &          ! initial particle energy (mdlobi=0,1) [keV]
+       pangle_in, &           ! initial sine of pitch angle (mdlobi=0,1) [mu/E]
+       zeta_in, &             ! initial toroidal angle (mdlobi=0,1) [deg]
+       pzeta_in, &            ! initial toroidal momentum (mdlobi=0) [P/E]
+       theta_in, &            ! initial poloidal angle (mdlobi=0) [deg]
+       rr_in, &               ! initial major radius (mdlobi=1) [m]
+       zz_in                  ! initial vertical position (mdlobi=1) [m]
 
 CONTAINS
 
@@ -53,10 +51,10 @@ MODULE obcomm
   USE commpi
   IMPLICIT NONE
 
-  INTEGER,PARAMETER:: neq=6
+  INTEGER,PARAMETER:: neq_max=4
 
   INTEGER,DIMENSION(:),ALLOCATABLE:: &
-       nstpmax_nobt           ! number of steps for nobt
+       nstp_max_nobt           ! number of steps for nobt
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
        obt_in                 ! initial condition of orbit equation
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
@@ -70,7 +68,7 @@ MODULE obcomm
        rhopara_ob, &          ! parallel velocity devidede by cyclotron freq.
        babs_ob, &             ! absolute value of magnetic field
        phi_ob, &              ! electrostatic potential
-       penerg_ob, &           ! particle energy
+       penergy_ob, &          ! particle energy
        pangle_ob, &           ! pitch angle
        rr_ob, &               ! major radius
        zz_ob, &               ! vertical positon
@@ -78,48 +76,51 @@ MODULE obcomm
        rs_ob, &               ! minor radius
        theta_ob               ! poloidal angle
 
+  REAL(rkind):: &
+       rr_axis,zz_axis        ! position of magnetic axis
+
 CONTAINS
        
   SUBROUTINE ob_allocate
     IMPLICIT NONE
     INTEGER,SAVE:: init=0
-    INTEGER,SAVE:: nobtmax_save=0
-    INTEGER,SAVE:: nstpmax_save=0
+    INTEGER,SAVE:: nobt_max_save=0
+    INTEGER,SAVE:: nstp_max_save=0
 
     IF(init.EQ.0) THEN
        init=1
     ELSE
-       IF((nobtmax.EQ.nobtmax_save).AND. &
-          (nstpmax.EQ.nstpmax_save)) RETURN
+       IF((nobt_max.EQ.nobt_max_save).AND. &
+          (nstp_max.EQ.nstp_max_save)) RETURN
        CALL ob_deallocate
     END IF
 
-    ALLOCATE(obt_in(neq,nobtmax))
-    ALLOCATE(nstpmax_nobt(nobtmax))
-    ALLOCATE(obts(0:neq,0:nstpmax,nobtmax))
+    ALLOCATE(obt_in(neq_max,nobt_max))
+    ALLOCATE(nstp_max_nobt(nobt_max))
+    ALLOCATE(obts(0:neq_max,0:nstp_max,nobt_max))
 
-    ALLOCATE(zetab_ob(0:nstpmax,nobtmax))
-    ALLOCATE(thetab_ob(0:nstpmax,nobtmax))
-    ALLOCATE(pzeta_ob(0:nstpmax,nobtmax))
-    ALLOCATE(ptheta_ob(0:nstpmax,nobtmax))
-    ALLOCATE(psip_ob(0:nstpmax,nobtmax))
-    ALLOCATE(rhopara_ob(0:nstpmax,nobtmax))
-    ALLOCATE(babs_ob(0:nstpmax,nobtmax))
-    ALLOCATE(phi_ob(0:nstpmax,nobtmax))
-    ALLOCATE(penerg_ob(0:nstpmax,nobtmax))
-    ALLOCATE(pangle_ob(0:nstpmax,nobtmax))
-    ALLOCATE(rr_ob(0:nstpmax,nobtmax))
-    ALLOCATE(zz_ob(0:nstpmax,nobtmax))
-    ALLOCATE(zeta_ob(0:nstpmax,nobtmax))
-    ALLOCATE(rs_ob(0:nstpmax,nobtmax))
-    ALLOCATE(theta_ob(0:nstpmax,nobtmax))
+    ALLOCATE(zetab_ob(0:nstp_max,nobt_max))
+    ALLOCATE(thetab_ob(0:nstp_max,nobt_max))
+    ALLOCATE(pzeta_ob(0:nstp_max,nobt_max))
+    ALLOCATE(ptheta_ob(0:nstp_max,nobt_max))
+    ALLOCATE(psip_ob(0:nstp_max,nobt_max))
+    ALLOCATE(rhopara_ob(0:nstp_max,nobt_max))
+    ALLOCATE(babs_ob(0:nstp_max,nobt_max))
+    ALLOCATE(phi_ob(0:nstp_max,nobt_max))
+    ALLOCATE(penergy_ob(0:nstp_max,nobt_max))
+    ALLOCATE(pangle_ob(0:nstp_max,nobt_max))
+    ALLOCATE(rr_ob(0:nstp_max,nobt_max))
+    ALLOCATE(zz_ob(0:nstp_max,nobt_max))
+    ALLOCATE(zeta_ob(0:nstp_max,nobt_max))
+    ALLOCATE(rs_ob(0:nstp_max,nobt_max))
+    ALLOCATE(theta_ob(0:nstp_max,nobt_max))
   END SUBROUTINE ob_allocate
 
   SUBROUTINE ob_deallocate
     IMPLICIT NONE
 
     DEALLOCATE(obt_in)
-    DEALLOCATE(nstpmax_nobt)
+    DEALLOCATE(nstp_max_nobt)
     DEALLOCATE(obts)
 
     DEALLOCATE(zetab_ob)
@@ -130,7 +131,7 @@ CONTAINS
     DEALLOCATE(rhopara_ob)
     DEALLOCATE(babs_ob)
     DEALLOCATE(phi_ob)
-    DEALLOCATE(penerg_ob)
+    DEALLOCATE(penergy_ob)
     DEALLOCATE(pangle_ob)
     DEALLOCATE(rr_ob)
     DEALLOCATE(zz_ob)

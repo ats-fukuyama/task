@@ -25,10 +25,10 @@ FFLAGS=$(DFLAGS)
 MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../lib/$(MOD) \
             -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
-SRCS = obcomm.f90 obinit.f90 obparm.f90 \
-       obexec.f90 obcalc.f90 obgout.f90 \
+SRCS = obcomm.f90 obinit.f90 obparm.f90 obview.f90 \
+       obprep.f90  obcalc.f90 obgout.f90 \
        obmenu.f90
-#       obfile.f90 obsub.f90 \
+#       obexec.f90 obfile.f90 obsub.f90 \
 
 OBJS = $(SRCS:.f90=.o)
 
@@ -72,6 +72,8 @@ obmain.o: obmain.f90 $(OBCOMM)
 obmenu.o: obmenu.f90 $(OBCOMM)
 obinit.o: obinit.f90 $(OBCOMM)
 obparm.o: obparm.f90 $(OBCOMM)
+obview.o: obview.f90 $(OBCOMM)
+obprep.o: obprep.f90 $(OBCOMM)
 obcalc.o: obcalc.f90 $(OBCOMM) ../pl/plprof.f90
 obexec.o: obexec.f90 $(OBCOMM) ../pl/plprof.f90
 obsub.o:  obsub.f90 $(OBCOMM)

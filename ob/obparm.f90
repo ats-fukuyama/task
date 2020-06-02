@@ -9,192 +9,137 @@ CONTAINS
 
 !     ****** INPUT PARAMETERS ******
 
-  SUBROUTINE OB_PARM(MODE,KIN,IERR)
+  SUBROUTINE ob_parm(mode,kin,ierr)
 
-!     MODE=0 : standard namelinst input
-!     MODE=1 : namelist file input
-!     MODE=2 : namelist line input
+!     mode=0 : standard namelinst input
+!     mode=1 : namelist file input
+!     mode=2 : namelist line input
 
-!     IERR=0 : normal end
-!     IERR=1 : namelist standard input error
-!     IERR=2 : namelist file does not exist
-!     IERR=3 : namelist file open error
-!     IERR=4 : namelist file read error
-!     IERR=5 : namelist file abormal end of file
-!     IERR=6 : namelist line input error
-!     IERR=7 : unknown MODE
-!     IERR=10X : input parameter out of range
+!     ierr=0 : normal end
+!     ierr=1 : namelist standard input error
+!     ierr=2 : namelist file does not exist
+!     ierr=3 : namelist file open error
+!     ierr=4 : namelist file read error
+!     ierr=5 : namelist file abormal end of file
+!     ierr=6 : namelist line input error
+!     ierr=7 : unknown MODE
+!     ierr=10X : input parameter out of range
 
     IMPLICIT NONE
-    INTEGER,INTENT(IN):: MODE
-    CHARACTER(LEN=*),INTENT(IN):: KIN
-    INTEGER,INTENT(OUT):: IERR
+    INTEGER,INTENT(IN):: mode
+    CHARACTER(LEN=*),INTENT(IN):: kin
+    INTEGER,INTENT(OUT):: ierr
 
-    IERR=0
+    ierr=0
 
-1   CALL TASK_PARM(MODE,'OB',KIN,OBNLIN,OBPLST,IERR)
-    IF(IERR.NE.0) RETURN
+1   CALL task_parm(mode,'OB',kin,ob_nlin,ob_plst,ierr)
+    IF(ierr.NE.0) RETURN
 
-    CALl EQCHEK(IERR)
-    CALl OB_CHEK(IERR)
-    IF(MODE.EQ.0.AND.IERR.NE.0) GOTO 1
+    CALl eqchek(ierr)
+    IF(ierr.NE.0) GOTO 1
+    CALl ob_chek(ierr)
+    IF(mode.EQ.0.AND.ierr.NE.0) GOTO 1
 
     RETURN
-  END SUBROUTINE OB_PARM
+  END SUBROUTINE ob_parm
 
 !     ****** INPUT NAMELIST ******
 
-  SUBROUTINE OBNLIN(NID,IST,IERR)
+  SUBROUTINE ob_nlin(nid,ist,ierr)
 
     USE obcomm_parm
     IMPLICIT NONE
-    INTEGER,INTENT(IN):: NID
-    INTEGER,INTENT(OUT):: IST,IERR
+    INTEGER,INTENT(IN):: nid
+    INTEGER,INTENT(OUT):: ist,ierr
     INTEGER:: NS
 
-    NAMELIST /OB/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
-                  NSMAX,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PZCL, &
-                  r_corner,z_corner, &
-                  br_corner,bz_corner,bt_corner, &
-                  pn_corner,ptpr_corner,ptpp_corner, &
-                  PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
-                  RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG, &
-                  PPN0,PTN0,RF_PL, &
-                  MODELG,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF, &
-                  RHOGMN,RHOGMX, &
-                  KNAMEQ,KNAMFP,KNAMFO,KNAMEQ2, &
-                  MODEFW,MODEFR,IDEBUG, &
-                  RF,RPI,ZPI,PHII,RNZI,RNPHII,RKR0,MODEW,UUI, &
-                  RCURVA,RCURVB,RBRADA,RBRADB, &
-                  RFIN,RPIN,ZPIN,PHIIN,RNZIN,RNPHIIN,RKRIN,MODEWIN,UUIN, &
-                  ANGZIN,ANGPHIN,RCURVAIN,RCURVBIN,RBRADAIN,RBRADBIN, &
-                  NOBTMAX,NSTPMAX,NRSMAX,NRRMAX,LMAXNW, &
-                  MDLOBI,MDLOBG,MDLOBP,MDLOBQ,MDLOBW, &
-                  SMAX,DELS,UUMIN,EPSOBT,DELOBT,DELDER,DELKR,EPSNW
+    NAMELIST /ob/ &
+         RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
+         RMIR,ZBB,Hpitch1,Hpitch2,RRCH,RCOIL,ZCOIL,BCOIL,NCOILMAX, &
+         NSMAX,NPA,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PUPR,PUPP,PZCL, &
+         ID_NS,KID_NS, &
+         PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
+         RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG, &
+         PPN0,PTN0,RF_PL,BAXIS_SCALED, &
+         r_corner,z_corner, &
+         br_corner,bz_corner,bt_corner, &
+         pn_corner,ptpr_corner,ptpp_corner, &
+         profn_travis_g,profn_travis_h,profn_travis_p,profn_travis_q, &
+         profn_travis_w,proft_travis_g,proft_travis_h,proft_travis_p, &
+         proft_travis_q,proft_travis_w, &
+         MODELG,MODELB,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF, &
+         RHOGMN,RHOGMX, &
+         KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
+         MODEFR,MODEFW,IDEBUG,mdlplw, &
+    !
+         nobt_max,nstp_max,ns_ob,lmax_nw, &
+         mdlobp,mdlobi,mdlobq,mdlobg,smax,dels,eps_obt,del_obt,eps_nw, &
+         penergy_in,pangle_in,zeta_in,pzeta_in,theta_in,rr_in,zz_in
 
-    READ(NID,OB,IOSTAT=IST,ERR=9800,END=9900)
+    READ(nid,ob,IOSTAT=ist,ERR=9800,END=9900)
     
-    IF(MODEL_PROF.EQ.0) THEN
-       DO NS=1,NSMAX
-          PROFN1(NS)=PROFN1(1)
-          PROFN2(NS)=PROFN2(1)
-          PROFT1(NS)=PROFT1(1)
-          PROFT2(NS)=PROFT2(1)
-          PROFU1(NS)=PROFU1(1)
-          PROFU2(NS)=PROFU2(1)
+    IF(model_prof.EQ.0) THEN
+       DO ns=1,nsmax
+          profn1(ns)=profn1(1)
+          profn2(ns)=profn2(1)
+          proft1(ns)=proft1(1)
+          proft2(ns)=proft2(1)
+          profu1(ns)=profu1(1)
+          profu2(ns)=profu2(1)
        END DO
     END IF
-    IERR=0
-      RETURN
+    ierr=0
+    RETURN
 
- 9800 IERR=8
-      RETURN
- 9900 IERR=9
-      RETURN
-  END SUBROUTINE OBNLIN
+9800 CONTINUE
+    ierr=8
+    RETURN
+9900 CONTINUE
+    ierr=9
+    RETURN
+  END SUBROUTINE ob_nlin
 
 !     ***** INPUT PARAMETER LIST *****
 
-  SUBROUTINE OBPLST
+  SUBROUTINE ob_plst
 
     WRITE(6,601)
     RETURN
 
   601 FORMAT(' ','# &OB : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,'/ &
-             9X,'NSMAX,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PZCL,'/ &
+             9X,'RMIR,ZBB,Hpitch1,Hpitch2,RRCH,RCOI,ZCOIL,BCOIL,NCOILMAX,'/ &
+             9X,'NSMAX,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PUPR,PUPP,PZCL,'/ &
+             9X,'ID_NS,KID_NS,'/ &
              9X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'/ &
              9X,'r_corner,z_corner,br_corner,bz_corner,bt_corner,'/ &
              9X,'pn_corner,ptpr_corner,ptpp_corner,'/ &
+             9X,'profn_travis_g,profn_travis_h,profn_travis_p,'/ &
+             9X,'profn_travis_q,profn_travis_w,proft_travis_g,'/ &
+             9X,'proft_travis_h,proft_travis_p,proft_travis_q,'/ &
+             9X 'proft_travis_w,'/ &
              9X,'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,'/ &
-             9X,'PPN0,PTN0,RFCL,'/ &
-             9X,'MODELG,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF,'/ &
+             9X,'PPN0,PTN0,RFCL,BAXIS_SCALED,'/ &
+             9X,'MODELG,MODELB,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF,'/ &
              9X,'RHOGMN,RHOGMX,'/ &
-             9X,'KNAMEQ,KNAMOB,KNAMFP,KNAMFO,KNAMEQ2'/ &
-             9X,'MODEFW,MODEFR,IDEBUG'/ &
-             9X,'RF,RPI,ZPI,PHII,RNZI,RNPHII,RKR0,MODEW,UUI,'/ &
-             9X,'RCURVA,RCURVB,RBRADA,RBRADB,'/ &
-             9X,'RFIN,RPIN,ZPIN,PHIIN,RNZIN,RNPHIIN,RKR0IN,MODEWIN,UUIN,'/ &
-             9X,'ANGZIN,ANGPHIN,RCURVAIN,RCURVBIN,RBRADAIN,RBRADBIN,'/ &
-             9X,'NOBTMAX,NSTPMAX,NRSMAX,NRRMAX,LMAXNW,'/ &
-             9X,'MDLOBI,MDLOBG,MDLOBP,MDLOBQ,MDLOBW,'/ &
-             9X,'SMAX,DELS,UUMIN,EPSOBT,DELOBT,DELDER,DELKR,EPSNW')
-  END SUBROUTINE OBPLST
+             9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2'/ &
+             9X,'MODEFW,MODEFR,IDEBUG,mdlplw,'/ &
+             9X,'nobt_max,nstp_max,ns_ob,lmax_nw,'/ &
+             9X,'mdlobp,mdlobi,mdlobq,mdlobg,max,eps_obt,del_obt,eps_nw,'/ &
+             9X,'smax,dels,'/ &
+             9X,'penergy_in,pangle_in,zeta_in,pzeta_in,theta_in,rr_in,zz_in')
+  END SUBROUTINE ob_plst
 
 !     ***** CHECK INPUT PARAMETERS *****
 
-  SUBROUTINE OB_CHEK(IERR)
+  SUBROUTINE ob_chek(ierr)
 
     USE obcomm_parm
     IMPLICIT NONE
-    INTEGER,INTENT(OUT):: IERR
-    CHARACTER(LEN=80):: LINE
-    INTEGER,SAVE:: INITEQ=0
+    INTEGER,INTENT(OUT):: ierr
 
-    IERR=0
-
-    IF(MODELG.EQ.3.OR.MODELG.EQ.5) THEN
-       IF(INITEQ.EQ.0) THEN
-          CALL EQLOAD(MODELG,KNAMEQ,IERR)
-          IF(IERR.EQ.0) THEN
-             WRITE(LINE,'(A,I5)') 'NRMAX =',51
-             CALL EQPARM(2,LINE,IERR)
-             WRITE(LINE,'(A,I5)') 'NTHMAX=',64
-             CALL EQPARM(2,LINE,IERR)
-             WRITE(LINE,'(A,I5)') 'NSUMAX=',64
-             CALL EQPARM(2,LINE,IERR)
-             CALL EQCALQ(IERR)
-             CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
-             INITEQ=1
-          ELSE
-             WRITE(6,*) 'XX EQLOAD: IERR=',IERR
-             INITEQ=0
-          ENDIF
-       ENDIF
-    ELSE IF(MODELG.EQ.8) THEN
-       IF(INITEQ.EQ.0) THEN
-          CALL EQREAD(IERR)
-          IF(IERR.EQ.0) THEN
-             CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
-             INITEQ=1
-          ELSE
-             WRITE(6,*) 'XX EQREAD: IERR=',IERR
-             INITEQ=0
-          ENDIF
-       ENDIF
-    ELSE
-       INITEQ=0
-    ENDIF
+    ierr=0
 
     RETURN
-  END SUBROUTINE OB_CHEK
-
-!     ****** SHOW PARAMETERS ******
-
-  SUBROUTINE OB_VIEW
-
-    USE obcomm_parm
-    IMPLICIT NONE
-
-    WRITE(6,603) 'NOBTMAX     ',NOBTMAX, &
-                 'NSTPMAX     ',NSTPMAX
-    WRITE(6,603) 'NRSMAX      ',NRSMAX, &
-                 'NRRMAX      ',NRRMAX
-    WRITE(6,601) 'SMAX  ',SMAX  ,'DELS  ',DELS  , &
-                 'UUMIN ',UUMIN
-    WRITE(6,601) 'EPSOBT',EPSOBT,'DELOBT',DELOBT, &
-                 'DELDER',DELDER
-    WRITE(6,601) 'DELKR ',DELKR, 'EPSNW ',EPSNW
-    WRITE(6,602) 'LMAXNW',LMAXNW
-    WRITE(6,602) 'MDLOBI',MDLOBI,'MDLOBG',MDLOBG, &
-                 'MDLOBP',MDLOBP
-    WRITE(6,602) 'MDLOBQ',MDLOBQ,'MDLOBW',MDLOBW
-    RETURN
-
-601 FORMAT(1H ,A6,'=',1PE11.3:2X,A6,'=',1PE11.3: &
-            2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
-602 FORMAT(1H ,A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &
-            2X,A6,'=',I7,4X  :2X,A6,'=',I7)
-603 FORMAT(1H ,A12,'=',I7,4X  :2X,A12,'=',I7,4X  : &
-            2X,A12,'=',I7)
-  END SUBROUTINE OB_VIEW
+  END SUBROUTINE ob_chek
 END MODULE obparm
+
