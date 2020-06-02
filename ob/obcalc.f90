@@ -12,7 +12,7 @@ CONTAINS
   SUBROUTINE ob_calc(ierr)
 
     USE obcomm
-    USE obexec,ONLY: ob_exec
+!    USE obexec,ONLY: ob_exec
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
     REAL(4):: time1,time2
