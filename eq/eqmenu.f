@@ -91,6 +91,7 @@ C
          READ(5,'(A80)',ERR=10,END=9000) KNAM
          IF(KNAM(1:2).NE.'/ ') KNAMEQ=KNAM
 C
+         IF(MODELG.EQ.2) MODELG=3
          CALL EQREAD(IERR)
 C         IF(IERR.NE.0) GOTO 10
          CALL EQCALQ(IERR)

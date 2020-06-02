@@ -267,8 +267,7 @@
       id%NRHS=1
       id%LRHS=imax
 !     ----- distributed matrix -----
-!      id%ICNTL(18)=3
-      id%ICNTL(18)=0
+      id%ICNTL(18)=3
 !     ----- error output level contrall -----
       IF(itype.EQ.0) THEN
          id%ICNTL(1)=0

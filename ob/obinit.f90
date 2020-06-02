@@ -6,13 +6,13 @@ CONTAINS
 
 !     ****** INITIALIZE INPUT PARAMETERS ******
 
-  SUBROUTINE OB_INIT
+  SUBROUTINE ob_init
 
     USE obcomm_parm
     IMPLICIT NONE
-    INTEGER:: NOBT
+    INTEGER:: nobt
 
-!     *********** Obt/Beam inital parameters ***********
+!     *********** obt/Beam inital parameters ***********
 
 !     RF     : WAVE FREQUENCY FOR OBT TRACING [MHZ]
 !     RPI    : INITIAL MAJOR RADIUS R [M]

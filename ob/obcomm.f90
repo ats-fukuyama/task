@@ -6,22 +6,38 @@ MODULE obcomm_parm
   IMPLICIT NONE
   PUBLIC
 
-  INTEGER,PARAMETER:: NOBTM=100
+  INTEGER,PARAMETER:: &
+       nobt_m=100             ! maximum number of orbits
 
 ! --- input parameters ---
 
-  INTEGER:: NOBTMAX,NSTPMAX,NRSMAX,NRRMAX,LMAXNW
-  INTEGER:: MDLOBI,MDLOBG,MDLOBP,MDLOBQ,MDLOBW
-  REAL(rkind) SMAX,DELS,UUMIN,EPSOBT,DELOBT,DELDER,DELKR,EPSNW
-  REAL(rkind) RF,RPI,ZPI,PHII,RNZI,RNPHII,RKR0,UUI,RKRI,RKPHII,RKZI
-  REAL(rkind) RCURVA,RCURVB,RBRADA,RBRADB,NRADMX
-  INTEGER:: MODEW
+  INTEGER:: &
+       nobtmax, &             ! number of orbits
+       nstpmax, &             ! maximum number of orbits
+       ns_ob, &               ! id of particle species
+       lmaxnw                 ! maximum number of iteration (initial condition)
+  INTEGER:: &
+       mdlobi, &              ! model id of initial input parameters
+       mdlobg                 ! model id of graphics
+  REAL(rkind) &
+       smax, &                ! maximum of orbit length
+       dels, &                ! step size of orbit length
+       epsobt, &              ! convergence criterion of orbit solution
+       delobt, &              ! step size of iteration (initial condition)
+       epsnw                  ! convergence criterion of iteration (initial c.)
 
-  REAL(rkind),DIMENSION(NOBTM):: &
-       RFIN,RPIN,ZPIN,PHIIN,RKRIN,RNZIN,RNPHIIN,ANGZIN,ANGPHIN,UUIN, &
-       RCURVAIN,RCURVBIN,RBRADAIN,RBRADBIN
-  INTEGER,DIMENSION(NOBTM):: &
-       MODEWIN
+  REAL(rkind),DIMENSION(nobt_m):: &
+       zetab_in, &            ! initial toroidal boozer angle
+       thetab_in, &           ! initial poloidal boozer angle
+       pzeta_in, &            ! initial toroidal momentum
+       ptheta_in, &           ! initial poloidal momentum
+       psip_in, &             ! initial poloidal magnetic flux
+       rhopara_in, &          ! initial parallel velocity divided by 
+       penerg_in, &           ! initial particle energy (mdlobi=1)
+       pangle_in, &           ! initial sine of pitch angle (mdlobj=1)
+       rr_in, &               ! initial major radius (mdlobj=1)
+       zz_in, &               ! initial vertical position (mdlobj=1)
+       zeta_in                ! initial toroidal angle (mdlobj=1)
 
 CONTAINS
 
@@ -37,96 +53,89 @@ MODULE obcomm
   USE commpi
   IMPLICIT NONE
 
-  INTEGER,PARAMETER:: NEQ=8
-  INTEGER,PARAMETER:: NBEQ=19
-  INTEGER,PARAMETER:: NBVAR=53
+  INTEGER,PARAMETER:: neq=6
 
   INTEGER,DIMENSION(:),ALLOCATABLE:: &
-       NSTPMAX_NOBT
+       nstpmax_nobt           ! number of steps for nobt
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
-       OBTIN
+       obt_in                 ! initial condition of orbit equation
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
-       OBTS
-  COMPLEX(rkind),DIMENSION(:,:),ALLOCATABLE:: &
-       CEXS,CEYS,CEZS
+       obts                   ! solution of orbit equation
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
-       RKXS,RKYS,RKZS,RXS,RYS,RZS,BNXS,BNYS,BNZS,BABSS
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
-       OBTB,OBTRB1,OBTRB2
-  COMPLEX(rkind),DIMENSION(:),ALLOCATABLE:: &
-       CEXB,CEYB,CEZB
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
-       RK1B,RP1B
-  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
-       RK2B,RP2B
-  REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
-       RAMPB
-  REAL(rkind),ALLOCATABLE:: &
-       pos_nrs(:),pwr_nrs(:),pwr_nrs_nobt(:,:)
-  REAL(rkind),ALLOCATABLE:: &
-       pos_nrr(:),pwr_nrr(:),pwr_nrr_nobt(:,:)
-  REAL(rkind),ALLOCATABLE:: &
-       rs_nstp_nobt(:,:),rr_nstp_nobt(:,:)
-  REAL(rkind),ALLOCATABLE:: &
-       pos_pwrmax_rs_nobt(:),pwrmax_rs_nobt(:)
-  REAL(rkind):: pos_pwrmax_rs,pwrmax_rs
-  REAL(rkind),ALLOCATABLE:: &
-       pos_pwrmax_rr_nobt(:),pwrmax_rr_nobt(:)
-  REAL(rkind):: pos_pwrmax_rr,pwrmax_rr
-CONTAINS
+       zetab_ob, &            ! toroidal boozer angle zeta translated from obts
+       thetab_ob, &           ! poloidal boozer angle theta
+       pzeta_ob, &            ! toroidal momentum pzeta
+       ptheta_ob, &           ! poloidal momentum ptheta
+       psip_ob, &             ! poloidal magnetic flux
+       rhopara_ob, &          ! parallel velocity devidede by cyclotron freq.
+       babs_ob, &             ! absolute value of magnetic field
+       phi_ob, &              ! electrostatic potential
+       penerg_ob, &           ! particle energy
+       pangle_ob, &           ! pitch angle
+       rr_ob, &               ! major radius
+       zz_ob, &               ! vertical positon
+       zeta_ob, &             ! toroidal angle
+       rs_ob, &               ! minor radius
+       theta_ob               ! poloidal angle
 
+CONTAINS
+       
   SUBROUTINE ob_allocate
     IMPLICIT NONE
-    INTEGER,SAVE:: INIT=0
-    INTEGER,SAVE:: NOBTMAX_SAVE=0
-    INTEGER,SAVE:: NSTPMAX_SAVE=0
+    INTEGER,SAVE:: init=0
+    INTEGER,SAVE:: nobtmax_save=0
+    INTEGER,SAVE:: nstpmax_save=0
 
-    IF(INIT.EQ.0) THEN
-       INIT=1
+    IF(init.EQ.0) THEN
+       init=1
     ELSE
-       IF((NOBTMAX.EQ.NOBTMAX_SAVE).AND. &
-          (NSTPMAX.EQ.NSTPMAX_SAVE)) RETURN
+       IF((nobtmax.EQ.nobtmax_save).AND. &
+          (nstpmax.EQ.nstpmax_save)) RETURN
        CALL ob_deallocate
     END IF
 
-    ALLOCATE(OBTIN(NEQ,NOBTMAX))
-    ALLOCATE(NSTPMAX_NOBT(NOBTMAX))
-    ALLOCATE(OBTS(0:NEQ,0:NSTPMAX,NOBTMAX))
+    ALLOCATE(obt_in(neq,nobtmax))
+    ALLOCATE(nstpmax_nobt(nobtmax))
+    ALLOCATE(obts(0:neq,0:nstpmax,nobtmax))
 
-    ALLOCATE(CEXS(0:NSTPMAX,NOBTMAX))
-    ALLOCATE(CEYS(0:NSTPMAX,NOBTMAX))
-    ALLOCATE(CEZS(0:NSTPMAX,NOBTMAX))
-    ALLOCATE(RKXS(0:NSTPMAX,NOBTMAX))
-    ALLOCATE(RKYS(0:NSTPMAX,NOBTMAX))
-    ALLOCATE(RKZS(0:NSTPMAX,NOBTMAX))
-    ALLOCATE(RXS(0:NSTPMAX,NOBTMAX))
-    ALLOCATE(RYS(0:NSTPMAX,NOBTMAX))
-    ALLOCATE(RZS(0:NSTPMAX,NOBTMAX))
-    ALLOCATE(BNXS(0:NSTPMAX,NOBTMAX))
-    ALLOCATE(BNYS(0:NSTPMAX,NOBTMAX))
-    ALLOCATE(BNZS(0:NSTPMAX,NOBTMAX))
-    ALLOCATE(BABSS(0:NSTPMAX,NOBTMAX))
-
-    ALLOCATE(OBTB(0:NBVAR,0:NSTPMAX))
-    ALLOCATE(OBTRB1(0:NSTPMAX,NOBTMAX))
-    ALLOCATE(OBTRB2(0:NSTPMAX,NOBTMAX))
-    ALLOCATE(CEXB(0:NSTPMAX),CEYB(0:NSTPMAX),CEZB(0:NSTPMAX))
-    ALLOCATE(RK1B(3,0:NSTPMAX),RP1B(3,0:NSTPMAX))
-    ALLOCATE(RK2B(3,3,0:NSTPMAX),RP2B(3,3,0:NSTPMAX))
-    ALLOCATE(RAMPB(0:NSTPMAX))
+    ALLOCATE(zetab_ob(0:nstpmax,nobtmax))
+    ALLOCATE(thetab_ob(0:nstpmax,nobtmax))
+    ALLOCATE(pzeta_ob(0:nstpmax,nobtmax))
+    ALLOCATE(ptheta_ob(0:nstpmax,nobtmax))
+    ALLOCATE(psip_ob(0:nstpmax,nobtmax))
+    ALLOCATE(rhopara_ob(0:nstpmax,nobtmax))
+    ALLOCATE(babs_ob(0:nstpmax,nobtmax))
+    ALLOCATE(phi_ob(0:nstpmax,nobtmax))
+    ALLOCATE(penerg_ob(0:nstpmax,nobtmax))
+    ALLOCATE(pangle_ob(0:nstpmax,nobtmax))
+    ALLOCATE(rr_ob(0:nstpmax,nobtmax))
+    ALLOCATE(zz_ob(0:nstpmax,nobtmax))
+    ALLOCATE(zeta_ob(0:nstpmax,nobtmax))
+    ALLOCATE(rs_ob(0:nstpmax,nobtmax))
+    ALLOCATE(theta_ob(0:nstpmax,nobtmax))
   END SUBROUTINE ob_allocate
 
   SUBROUTINE ob_deallocate
     IMPLICIT NONE
 
-    DEALLOCATE(NSTPMAX_NOBT)
-    DEALLOCATE(OBTIN)
-    DEALLOCATE(OBTS)
-    DEALLOCATE(CEXS,CEYS,CEZS)
-    DEALLOCATE(RKXS,RKYS,RKZS,RXS,RYS,RZS,BNXS,BNYS,BNZS,BABSS)
-    DEALLOCATE(OBTB,OBTRB1,OBTRB2)
-    DEALLOCATE(CEXB,CEYB,CEZB)
-    DEALLOCATE(RK1B,RP1B)
-    DEALLOCATE(RK2B,RP2B,RAMPB)
+    DEALLOCATE(obt_in)
+    DEALLOCATE(nstpmax_nobt)
+    DEALLOCATE(obts)
+
+    DEALLOCATE(zetab_ob)
+    DEALLOCATE(thetab_ob)
+    DEALLOCATE(pzeta_ob)
+    DEALLOCATE(ptheta_ob)
+    DEALLOCATE(psip_ob)
+    DEALLOCATE(rhopara_ob)
+    DEALLOCATE(babs_ob)
+    DEALLOCATE(phi_ob)
+    DEALLOCATE(penerg_ob)
+    DEALLOCATE(pangle_ob)
+    DEALLOCATE(rr_ob)
+    DEALLOCATE(zz_ob)
+    DEALLOCATE(zeta_ob)
+    DEALLOCATE(rs_ob)
+    DEALLOCATE(theta_ob)
   END SUBROUTINE ob_deallocate
 END MODULE obcomm
