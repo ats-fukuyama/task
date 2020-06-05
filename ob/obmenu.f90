@@ -13,7 +13,8 @@ CONTAINS
 
     USE obcomm
     USE plparm,ONLY: pl_view
-    USE obparm,ONLY: ob_parm,ob_view
+    USE obparm,ONLY: ob_parm
+    USE obview,ONLY: ob_view
     USE obcalc,ONLY: ob_calc
     USE obgout,ONLY: ob_gout
 !    USE obfile,ONLY: ob_save,ob_load

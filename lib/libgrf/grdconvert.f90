@@ -198,7 +198,7 @@ CONTAINS
           END IF
        END IF
     ELSE
-       A%ASPECT=0.75
+       A%ASPECT=0.68    ! 15.0/22.0
     END IF
 
     SELECT CASE(A%MODE_XY)
