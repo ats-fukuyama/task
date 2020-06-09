@@ -19,22 +19,12 @@ CONTAINS
     INTEGER:: NSTP
 
     IERR=0
-    IF(MODELG.EQ.0.OR.MODELG.EQ.1.OR.MODELG.EQ.11) THEN
-       Y(1)= RPI
-       Y(2)= PHII
-       Y(3)= ZPI
-       Y(4)= RKRI
-       Y(5)= RKPHII
-       Y(6)= RKZI
-    ELSE
-       Y(1)= RPI*COS(PHII)
-       Y(2)= RPI*SIN(PHII)
-       Y(3)= ZPI
-       Y(4)= RKRI*COS(PHII)-RKPHII*SIN(PHII)
-       Y(5)= RKRI*SIN(PHII)+RKPHII*COS(PHII)
-       Y(6)= RKZI
-    ENDIF
-    Y(7)= UUI
+    
+    Y(1)= zetab_ob(0,nobt)
+    Y(2)= tehtab_ob(0,nobt)
+    Y(3)= psip_ob(0,nobt)
+    Y(4)= rhopara_ob(0,nobt)
+    
     IF(MDLOBQ.EQ.0) THEN
        CALL OBRKFT(Y,OBTS(0,0,NOBT),NSTPMAX_NOBT(NOBT))
     ELSEIF(MDLOBQ.EQ.1) THEN

@@ -2,27 +2,18 @@
 
 MODULE obgout
 
-  INTERFACE
-     FUNCTION guclip(x)
-       REAL(8):: lX
-       REAL(4):: guclip
-     END FUNCTION guclip
-     FUNCTION ngulen(y)
-       REAL(4):: y
-       INTEGER:: ngulen
-     END FUNCTION ngulen
-  END INTERFACE
+  PRIVATE
+  PUBLIC ob_gout
 
 CONTAINS
 
 !*********************** GRAPHIC DATA OUTPUT ************************
 
-  SUBROUTINE ob_gout(nstat)
+  SUBROUTINE ob_gout
 
     USE obcomm
     USE plgout
     IMPLICIT NONE
-    INTEGER,INTENT(IN):: Nstat
     CHARACTER(LEN=1)::  kid
 
 1   WRITE(6,*) &
@@ -30,9 +21,7 @@ CONTAINS
     READ(5,'(A1)',ERR=1,END=9000) kid
     CALL GUCPTL(kid)
 
-    IF(KID.EQ.'1'.AND.nstat.GE.1) CALL ob_grf1
-    IF(KID.EQ.'2'.AND.nstat.GE.1) CALL ob_grf2
-    IF(KID.EQ.'3'.AND.nstat.GE.1) CALL ob_grf3
+    IF(KID.EQ.'1') CALL ob_grf1
     IF(KID.EQ.'P') CALL pl_gout
     IF(KID.EQ.'X') GOTO 9000
 
@@ -46,616 +35,124 @@ CONTAINS
   SUBROUTINE ob_grf1
 
     USE obcomm
-    USE plprof,ONLY:PL_RZSU,PL_MAG_OLD,PL_MAG_TYPE,PL_MAG
+    USE plprof,ONLY: pl_rzsu,pl_mag_old,pl_mag_type,pl_mag
+    USE libgrf
     IMPLICIT NONE
-    INTEGER,PARAMETER:: NSUM=501
-    INTEGER,PARAMETER:: NGXL=101
-    INTEGER,PARAMETER:: NGYL=101
+    INTEGER,PARAMETER:: nsu_m=501
+    INTEGER,PARAMETER:: nx_max=101
+    INTEGER,PARAMETER:: ny_max=101
 
-    REAL(rkind),ALLOCATABLE:: RSU(:),ZSU(:)
-    REAL(4):: GRS(NSUM+1),GZS(NSUM+1)
-    REAL(4):: GX(NSTPMAX+1),GY(NSTPMAX+1)
-    REAL(4):: GUX(NSTPMAX+1),GUY(NSTPMAX+1)
-    REAL(4):: GPX(NSTPMAX+1),GPY(NSTPMAX+1,NOBTMAX)
-    REAL(4):: GCF(NGXL,NGYL),GCX(NGXL),GCY(NGYL)
-    INTEGER:: KA(4,NGXL,NGYL)
-    TYPE(pl_mag_type):: MAG
-    INTEGER:: NSU,NSUMAX,NGX,NGY,NOBT,NSTP,NRDIV,NRS1,NRS2,NDR,NR
-    INTEGER:: MODEG,ID
-    REAL(4):: GRSMIN,GRSMAX,GRMIN,GRMAX,GRSTEP,GRORG,GRLEN
-    REAL(4):: GZSMIN,GZSMAX,GZMIN,GZMAX,GZSTEP,GZLEN
-    REAL(4):: GRMID,GZMID
-    REAL(4):: GYSMIN,GYSMAX1,GYSCAL1,GYSMAX2,GYSCAL2,GYSMAX,GYSCAL
-    REAL(4):: GXMIN,GXMAX,GXSTEP,GYMIN,GYMAX,GXORG,GZSCAL
-    REAL(rkind):: DGX,DGY,ZL,RL,RHON,XL,YL,DRHO,RHON1,RHON2,SDR,DELPWR
-    REAL(rkind):: FACTA,FACTB,RFL,wwl,wce
+    REAL(rkind),ALLOCATABLE:: rsu_temp(:),zsu_temp(:)
+    REAL(rkind),ALLOCATABLE:: rsu(:),zsu(:)
+    REAL(rkind),ALLOCATABLE:: xg(:),yg(:),f(:,:)
+    REAL(rkind):: dx,dy,x,y,xmin,xmax,ymin,ymax,dlx,dly,factor
+    REAL(rkind),PARAMETER:: aspect_ob=0.D0
+    REAL:: line_width
+    REAL,ALLOCATABLE:: reda(:),greena(:),bluea(:)
+    INTEGER:: nsu,nsu_max,nstp,nobt,nx,ny
 
 !  ----- PLASMA BOUNDARY -----
 
-    ALLOCATE(RSU(NSUM),ZSU(NSUM))
-    CALL PL_RZSU(RSU,ZSU,NSUM,NSUMAX)
-    DO NSU=1,NSUMAX
-       GRS(NSU)=GUCLIP(RSU(NSU))
-       GZS(NSU)=GUCLIP(ZSU(NSU))
-    ENDDO
-    GRS(NSUMAX+1)=GRS(1)
-    GZS(NSUMAX+1)=GZS(1)
-    DEALLOCATE(RSU,ZSU)
+    dlx=0.02D0*(xmax-xmin)
+    dly=0.02D0*(ymax-ymin)
 
-    CALL GMNMX1(GRS,1,NSUMAX,1,GRSMIN,GRSMAX)
-    CALL GMNMX1(GZS,1,NSUMAX,1,GZSMIN,GZSMAX)
-    CALL GQSCAL(GRSMIN,GRSMAX,GRMIN,GRMAX,GRSTEP)
-    CALL GQSCAL(GZSMIN,GZSMAX,GZMIN,GZMAX,GZSTEP)
+    ALLOCATE(rsu_temp(nsu_m),zsu_temp(nsu_m))
+    CALL pl_rzsu(rsu_temp,zsu_temp,nsu_m,nsu_max)
+    ALLOCATE(rsu(nsu_max+1),zsu(nsu_max+1))
+    DO nsu=1,nsu_max
+       rsu(nsu)=rsu_temp(nsu)
+       zsu(nsu)=zsu_temp(nsu)
+    END DO
+    rsu(nsu_max+1)=rsu(1)
+    zsu(nsu_max+1)=zsu(1)
+    DEALLOCATE(rsu_temp,zsu_temp)
 
-    GRORG=(INT(GRMIN/(2*GRSTEP))+1)*2*GRSTEP
+    xmin=rsu(1)
+    xmax=rsu(1)
+    ymin=zsu(1)
+    ymax=zsu(1)
+    DO nsu=2,nsu_max
+       xmin=MIN(xmin,rsu(nsu))
+       xmax=MAX(xmax,rsu(nsu))
+       ymin=MIN(ymin,zsu(nsu))
+       ymax=MAX(ymax,zsu(nsu))
+    END DO
+       
+    dlx=0.02D0*(xmax-xmin)
+    dly=0.02D0*(ymax-ymin)
 
-    GRLEN=GRMAX-GRMIN
-    GZLEN=GZMAX-GZMIN
-    IF(1.5*GRLEN.GT.GZLEN) THEN
-       GZMID=0.5*(GZMIN+GZMAX)
-       GZMIN=GZMID-0.75*GRLEN
-       GZMAX=GZMID+0.75*GRLEN
-    ELSE
-       GRMID=0.5*(GRMIN+GRMAX)
-       GRMIN=GRMID-0.333*GZLEN
-       GRMAX=GRMID+0.333*GZLEN
-    ENDIF
+    CALL pages
+    CALL INQLNW(line_width)
+    CALL SETLNW(0.0)
 
-    CALL GDEFIN(1.5,11.5,1.0,16.0,GRMIN,GRMAX,GZMIN,GZMAX)
-
-    CALL PAGES
-    CALL SETCHS(0.25,0.)
-    CALL SETFNT(32)
-    CALL SETLIN(0,2,7)
-
-    CALL GFRAME
-    CALL GSCALE(GRORG,  GRSTEP,0.0,  GZSTEP,0.1,9)
-    CALL GVALUE(GRORG,2*GRSTEP,0.0,0.0,NGULEN(2*GRSTEP))
-    CALL GVALUE(0.0,0.0,0.0,2*GZSTEP,NGULEN(2*GZSTEP))
-    CALL SETLIN(0,2,4)
-    CALL GPLOTP(GRS,GZS,1,NSUMAX,1,0,0,0)
+    CALL GRD2D_FRAME_START(0,xmin-dlx,xmax+dlx,ymin-dly,ymax+dly, &
+         '@orbit in (r,z)@', ASPECT=aspect_ob,NOINFO=1, & !
+         GPXMIN=2.D0,XSCALE_ZERO=0,YSCALE_ZERO=0)
 
 !     ----- magnetic surface -----
 
-    IF(MODELG.EQ.3.OR.MODELG.EQ.5.OR.MODELG.EQ.8) THEN
-       DGX=DBLE(GRMAX-GRMIN)/(NGXL-1)
-       DO NGX=1,NGXL
-          GCX(NGX)=GRMIN+(NGX-1)*GUCLIP(DGX)
+    ALLOCATE(xg(1:nx_max),yg(1:ny_max),f(1:nx_max,1:ny_max))
+    dx=(xmax-xmin)/nx_max
+    dy=(ymax-ymin)/ny_max
+    DO nx=1,nx_max
+       xg(nx)=xmin+(nx-1)*dx
+    ENDDO
+    DO ny=1,ny_max
+       yg(ny)=ymin+(ny-1)*dx
+    ENDDO
+    DO ny=1,ny_max
+       y=yg(ny)
+       DO nx=1,nx_max
+          x=xg(nx)
+          CALL PL_MAG_OLD(x,0.D0,y,f(nx,ny))
        ENDDO
-       DGY=DBLE(GZMAX-GZMIN)/(NGYL-1)
-       DO NGY=1,NGYL
-          GCY(NGY)=GZMIN+(NGY-1)*GUCLIP(DGY)
-       ENDDO
-       DO NGY=1,NGYL
-          ZL=DBLE(GCY(NGY))
-          DO NGX=1,NGXL
-             RL=DBLE(GCX(NGX))
-             CALL PL_MAG_OLD(RL,0.D0,ZL,RHON)
-             GCF(NGX,NGY)=GUCLIP(RHON)
-          ENDDO
-       ENDDO
-       CALL CONTP2(GCF,GCX,GCY,NGXL,NGXL,NGYL,0.1,0.1,9,0,1,KA)
-    ENDIF
+    ENDDO
+    CALL GRD2D(0,xg,yg,f,nx_max,nx_max,ny_max, &
+         XMIN=xmin-dlx,XMAX=xmax+dlx,YMIN=ymin-dly,YMAX=ymax+dly, &
+         NOTITLE=1,NOFRAME=1,NOINFO=1)
 
-!  ----- OBT TRAJECTORY -----
+    !  ----- PLASMA SURFACE -----
 
+    CALL SETRGB(0.0,0.0,1.0)
+    CALL MOVE2D(rsu(1),zsu(1))
+    DO nsu=1,nsu_max
+       CALL DRAW2D(rsu(nsu+1),zsu(nsu+1))
+    ENDDO
+    ALLOCATE(rsu(nsu_max+1),zsu(nsu_max+1))
+
+    !  ----- OBT TRAJECTORY -----
+
+    ALLOCATE(reda(nobt_max),greena(nobt_max),bluea(nobt_max))
+    IF(nobt_max.EQ.1) THEN
+       reda(1)=1.0; greena(1)=0.0; bluea(1)=0.0
+    ELSE
+       DO nobt=1,nobt_max/2
+          factor=REAL(nobt-1)/REAL(nobt_max/2)
+          reda(1)=1.0-factor; greena(1)=factor; bluea(1)=0.0
+       END DO
+       DO nobt=nobt_max/2+1,nobt_max
+          factor=REAL(nobt-nobt_max/2-1)/REAL(nobt_max/2)
+          reda(1)=0.0; greena(1)=1.0-factor; bluea(1)=factor
+       END DO
+    END IF
     DO nobt=1,nobt_max
-       DO nstp=0,nstpmax_nobt(nobt)
-          RL=SQRT(OBTS(1,NSTP,NOBT)**2+OBTS(2,NSTP,NOBT)**2)
-          GX(NSTP+1)=GUCLIP(RL)
-          GY(NSTP+1)=GUCLIP(OBTS(3,NSTP,NOBT))
-       ENDDO
-       CALL SETLIN(0,2,7-MOD(NOBT-1,5))
-       CALL GPLOTP(GX,GY,1,NSTPMAX_NOBT(NOBT)+1,1,0,0,0)
-    ENDDO
-    CALL SETLIN(0,2,7)
-
-!   ----- CALCULATE RADIAL DEPOSITION PROFILE -----
-
-    DRHO=1.D0/nrsmax
-    DO NRDIV=1,nrsmax
-       GPX(NRDIV)=GUCLIP(NRDIV*DRHO)
-    ENDDO
-    DO NOBT=1,NOBTMAX
-       DO NRDIV=1,nrsmax
-          GPY(NRDIV,NOBT)=0.0
+       CALL SETRGB(reda(nobt),greena(nobt),bluea(nobt))
+       CALL MOVE2D(rr_ob(0,nobt),zz_ob(0,nobt))
+       DO nstp=1,nstp_max_nobt(nobt)
+          CALL DRAW2D(rr_ob(nstp,nobt),zz_ob(nstp,nobt))
        ENDDO
     ENDDO
+    DEALLOCATE(reda,greena,bluea)
 
-    DO NOBT=1,NOBTMAX
-       DO NSTP=0,NSTPMAX_NOBT(NOBT)-1
-          XL=OBTS(1,NSTP,NOBT)
-          YL=OBTS(2,NSTP,NOBT)
-          ZL=OBTS(3,NSTP,NOBT)
-          CALL PL_MAG_OLD(XL,YL,ZL,RHON1)
-          NRS1=INT(RHON1/DRHO)+1
-          XL=OBTS(1,NSTP+1,NOBT)
-          YL=OBTS(2,NSTP+1,NOBT)
-          ZL=OBTS(3,NSTP+1,NOBT)
-          CALL PL_MAG_OLD(XL,YL,ZL,RHON2)
-          NRS2=INT(RHON2/DRHO)+1
-          NDR=ABS(NRS2-NRS1)
-          IF(NDR.EQ.0) THEN
-             GPY(NRS1,NOBT)=GPY(NRS1,NOBT)+GUCLIP(OBTS(8,NSTP+1,NOBT))
-          ELSE IF(NRS1.LT.NRS2) THEN
-             SDR=(RHON2-RHON1)/DRHO
-             DELPWR=OBTS(8,NSTP+1,NOBT)/SDR
-             GPY(NRS1,NOBT)=GPY(NRS1,NOBT) &
-                           +GUCLIP((DBLE(NRS1)-RHON1/DRHO)*DELPWR)
-             DO NR=NRS1+1,NRS2-1
-                GPY(NR,NOBT)=GPY(NR,NOBT)+GUCLIP(DELPWR)
-             ENDDO
-             GPY(NRS2,NOBT)=GPY(NRS2,NOBT) &
-                           +GUCLIP((RHON2/DRHO-DBLE(NRS2-1))*DELPWR)
-          ELSE
-             SDR=(RHON1-RHON2)/DRHO
-             DELPWR=OBTS(8,NSTP+1,NOBT)/SDR
-             GPY(NRS2,NOBT)=GPY(NRS2,NOBT) &
-                           +GUCLIP((DBLE(NRS2)-RHON2/DRHO)*DELPWR)
-             DO NR=NRS2+1,NRS1-1
-                GPY(NR,NOBT)=GPY(NR,NOBT)+GUCLIP(DELPWR)
-             ENDDO
-             GPY(NRS1,NOBT)=GPY(NRS1,NOBT) &
-                           +GUCLIP((RHON1/DRHO-DBLE(NRS1-1))*DELPWR)
-          ENDIF
-       ENDDO
-    ENDDO
+    CALL GRD2D_FRAME_END
 
-    DO NOBT=1,NOBTMAX
-       DO NRDIV=1,nrsmax
-          GPY(NRDIV,NOBT)=GPY(NRDIV,NOBT) &
-                         /GUCLIP(2*PI*(DBLE(NRDIV)-0.5D0)*DRHO*DRHO)
-       ENDDO
-    ENDDO
-
-!     ----- draw deposition profile -----
-
-    CALL GQSCAL(GUCLIP(RHOGMN),GUCLIP(RHOGMX),GXMIN,GXMAX,GXSTEP)
-
-    CALL GMNMX2(GPY,NSTPMAX+1,1,nrsmax,1,1,NOBTMAX,1,GYMIN,GYMAX)
-    CALL GQSCAL(GYMIN,GYMAX,GYSMIN,GYSMAX1,GYSCAL1)
-    GYSMIN=0.0
-    GYSMAX2=0.1 
-    GYSCAL2=2.E-2
-    GYSMAX=MAX(GYSMAX1,GYSMAX2)
-    GYSCAL=MAX(GYSCAL1,GYSCAL2)
-
-    CALL MOVE(13.5,16.1)
-    CALL TEXT('ABS POWER',10)
-    IF(MOD(MDLOBG/2,2).EQ.0) THEN
-       CALL GDEFIN(13.5,23.5,9.0,16.0,0.0,GXMAX,0.0,GYSMAX)
-       CALL SETLIN(0,2,7)
-       CALL GFRAME
-       CALL GSCALE(0.0,  GXSTEP,0.0,  GYSCAL,0.1,9)
-       CALL GVALUE(0.0,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
-       CALL GVALUE(0.0,0.0,0.0,GYSCAL,NGULEN(GYSCAL))
-    ELSE
-       CALL GDEFIN(13.5,23.5,9.0,16.0,GXMIN,GXMAX,0.0,GYSMAX)
-       CALL SETLIN(0,2,7)
-       CALL GFRAME
-       GXORG=(INT(GXMIN/(2*GXSTEP))+1)*2*GXSTEP
-       CALL GSCALE(GXORG,  GXSTEP,0.0,  GYSCAL,0.1,9)
-       CALL GVALUE(GXORG,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
-       CALL GVALUE(0.0,0.0,0.0,GYSCAL,NGULEN(GYSCAL))
-    ENDIF
-
-    DO NOBT=1,NOBTMAX
-       CALL SETLIN(0,2,7-MOD(NOBT-1,5))
-       CALL GPLOTP(GPX,GPY(1,NOBT),1,nrsmax,1,0,0,0)
-    ENDDO
-    CALL SETLIN(0,2,7)
-
-
-!  ----- DRAW POWER FLUX ----- minor raduis -----
-      
-    GZSMIN=0.0
-    GZSMAX=1.1
-    GZSCAL=0.2
-
-    CALL MOVE(13.5,8.1)
-    CALL TEXT('POWER FLUX',10)
-    IF(MOD(MDLOBG/2,2).EQ.0) THEN
-       CALL GDEFIN(13.5,23.5,1.0,8.0,0.0,GXMAX,0.0,GZSMAX)
-       CALL SETLIN(0,2,7)
-       CALL GFRAME
-       CALL GSCALE(0.0,  GXSTEP,0.0,  GZSCAL,0.1,9)
-       CALL GVALUE(0.0,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
-       CALL GVALUE(0.0,0.0,0.0,GZSCAL,1)
-    ELSE
-       CALL GDEFIN(13.5,23.5,1.0,8.0,GXMIN,GXMAX,0.0,GZSMAX)
-       CALL SETLIN(0,2,7)
-       CALL GFRAME
-       GXORG=(INT(GXMIN/(2*GXSTEP))+1)*2*GXSTEP
-       CALL GSCALE(GXORG,  GXSTEP,0.0,  GZSCAL,0.1,9)
-       CALL GVALUE(GXORG,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
-       CALL GVALUE(0.0,0.0,0.0,GZSCAL,1)
-    ENDIF
-    DO NOBT=1,NOBTMAX
-       DO NSTP=0,NSTPMAX_NOBT(NOBT)
-          XL=OBTS(1,NSTP,NOBT)
-          YL=OBTS(2,NSTP,NOBT)
-          ZL=OBTS(3,NSTP,NOBT)
-          CALL PL_MAG_OLD(XL,YL,ZL,RHON)
-          GUX(NSTP+1)=GUCLIP(RHON)
-          GUY(NSTP+1)=GUCLIP(OBTS(7,NSTP,NOBT))
-       ENDDO
-       CALL SETLIN(0,0,7-MOD(NOBT-1,5))
-       CALL GPLOTP(GUX,GUY,1,NSTPMAX_NOBT(NOBT)+1,1,0,0,0)      
-    ENDDO
+    CALL SETLNW(line_width)
+    CALL SETRGB(0.0,0.0,0.0)
 
     CALL OBGPRM
     CALL PAGEE
     RETURN
-  END SUBROUTINE OBGRF1
-
-!  ***** TOROIDAL TRAJECTORY AND POWER *****
-
-  SUBROUTINE OBGRF2
-
-    USE obcomm
-    USE plprof,ONLY: pl_mag,pl_mag_old,pl_rzsu
-    IMPLICIT NONE
-    INTEGER,PARAMETER:: NSUM=201
-    INTEGER,PARAMETER:: NGXL=101
-    INTEGER,PARAMETER:: NGYL=101
-    REAL(4),ALLOCATABLE:: GLCX(:),GLCY(:),GSCX(:),GSCY(:)
-    REAL(4):: GX(NSTPMAX+1),GY(NSTPMAX+1)
-    REAL(4):: GKX(NSTPMAX+1,NOBTMAX)
-    REAL(4):: GKY1(NSTPMAX+1,NOBTMAX),GKY2(NSTPMAX+1,NOBTMAX)
-    INTEGER:: NSR,NSRMAX,NSU,NSUMAX,NRL,NRLMAX,NOBT,NSTP
-    REAL(4):: GRMIN,GRMAX,GXMIN,GXMAX,GXSTEP,GYMIN,GYMAX,GYSTEP,GXORG
-    REAL(4):: GYMIN1,GYMIN2,GYMAX1,GYMAX2,GYORG
-    REAL(rkind):: RMAX,RMIN,DRL,DTH,TH,XL,YL,ZL,RHON,RKPARA,RKPERP
-    REAL(rkind),ALLOCATABLE:: RSU(:),ZSU(:)
-    REAL(4),ALLOCATABLE:: GRS(:),GZS(:)
-    REAL(4):: GUX(NSTPMAX+1),GUY(NSTPMAX+1)
-    REAL(4),ALLOCATABLE:: GPX(:),GPY(:,:)
-    REAL(rkind):: RL1,RL2,SDR,DELPWR
-    INTEGER:: NRL1,NRL2,NDR
-    REAL(4):: GYSMIN,GYSMAX,GYSCAL,GRSMIN,GRSMAX,GRSCAL,GRORG
-    REAL(4):: GZSMIN,GZSMAX,GZSCAL
-
-!   ----- PLASMA BOUNDARY -----
-
-    write(6,*) '--- point 1'
-    ALLOCATE(RSU(NSUM),ZSU(NSUM))
-    CALL PL_RZSU(RSU,ZSU,NSUM,NSUMAX)
-    RMIN=RSU(1)
-    RMAX=RSU(1)
-    DO NSU=2,NSUMAX
-       RMIN=MIN(RMIN,RSU(NSU))
-       RMAX=MAX(RMAX,RSU(NSU))
-    END DO
-
-!   --- TOROIDAL CROSS SECTION -----
-
-    write(6,*) '--- point 2'
-    NSRMAX=101
-    ALLOCATE(GLCX(NSRMAX),GLCY(NSRMAX),GSCX(NSRMAX),GSCY(NSRMAX))
-    DTH=2*PI/(NSRMAX-1)
-    DO NSR=1,NSRMAX
-       TH=DTH*(NSR-1)
-       GLCX(NSR)=GUCLIP(RMAX*COS(TH))
-       GLCY(NSR)=GUCLIP(RMAX*SIN(TH))
-       GSCX(NSR)=GUCLIP(RMIN*COS(TH))
-       GSCY(NSR)=GUCLIP(RMIN*SIN(TH))
-    ENDDO
-    GRMIN=GUCLIP(RMIN)
-    GRMAX=GUCLIP(RMAX)
-    CALL GQSCAL(-GRMAX,GRMAX,GXMIN,GXMAX,GXSTEP)
-    CALL GQSCAL(-GRMAX,GRMAX,GYMIN,GYMAX,GYSTEP)
-
-    CALL PAGES
-    CALL SETCHS(0.25,0.)
-    CALL SETFNT(32)
-    CALL SETLIN(0,2,7)
-
-    CALL GDEFIN(1.7,11.7,1.0,11.0,GXMIN,GXMAX,GYMIN,GYMAX)
-    CALL GFRAME
-
-    CALL GSCALE(GXORG,GXSTEP,0.0,GYSTEP,0.1,9)
-    CALL GVALUE(GXORG,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
-    CALL GVALUE(0.0,0.0,0.0,2*GYSTEP,NGULEN(2*GYSTEP))
-
-    CALL SETLIN(0,2,4)
-    CALL GPLOTP(GLCX,GLCY,1,101,1,0,0,0)
-    CALL GPLOTP(GSCX,GSCY,1,101,1,0,0,0)
-
-    DO NOBT=1,NOBTMAX
-       DO NSTP=0,NSTPMAX_NOBT(NOBT)
-          GX(NSTP+1)=GUCLIP(OBTS(1,NSTP,NOBT))
-          GY(NSTP+1)=GUCLIP(OBTS(2,NSTP,NOBT))
-       ENDDO
-       CALL SETLIN(0,0,7-MOD(NOBT-1,5))
-       CALL GPLOTP(GX,GY,1,NSTPMAX_NOBT(NOBT)+1,1,0,0,0)
-    ENDDO
-
-    write(6,*) '--- point 3'
-!     ----- major radius dependence of absorbed power -----
-
-    NRLMAX=100
-    ALLOCATE(GPX(NRLMAX),GPY(NRLMAX,NOBTMAX))
-    DRL=(RMAX-RMIN)/(NRLMAX-1)
-    DO NRL=1,NRLMAX
-       GPX(NRL)=GUCLIP(RMIN+(NRL-1)*DRL)
-    ENDDO
-    DO NOBT=1,NOBTMAX
-       DO NRL=1,NRLMAX
-          GPY(NRL,NOBT)=0.0
-       ENDDO
-    ENDDO
-
-    DO NOBT=1,NOBTMAX
-       DO NSTP=0,NSTPMAX_NOBT(NOBT)-1
-          XL=OBTS(1,NSTP,NOBT)
-          YL=OBTS(2,NSTP,NOBT)
-          RL1=SQRT(XL**2+YL**2)
-          NRL1=INT((RL1-RMIN)/DRL)+1
-          XL=OBTS(1,NSTP+1,NOBT)
-          YL=OBTS(2,NSTP+1,NOBT)
-          RL2=SQRT(XL**2+YL**2)
-          NRL2=INT((RL2-RMIN)/DRL)+1
-          NDR=ABS(NRL2-NRL1)
-          IF(NDR.EQ.0) THEN
-             GPY(NRL1,NOBT)=GPY(NRL1,NOBT)+GUCLIP(OBTS(8,NSTP+1,NOBT))
-          ELSE IF(NRL1.LT.NRL2) THEN
-             SDR=(RL2-RL1)/DRL
-             DELPWR=OBTS(8,NSTP+1,NOBT)/SDR
-             GPY(NRL1,NOBT)=GPY(NRL1,NOBT) &
-                  +GUCLIP((DBLE(NRL1)-(RL1-RMIN)/DRL)*DELPWR)
-             DO NRL=NRL1+1,NRL2-1
-                GPY(NRL,NOBT)=GPY(NRL,NOBT)+GUCLIP(DELPWR)
-             ENDDO
-             GPY(NRL2,NOBT)=GPY(NRL2,NOBT) &
-                  +GUCLIP(((RL2-RMIN)/DRL-DBLE(NRL2-1))*DELPWR)
-          ELSE
-             SDR=(RL1-RL2)/DRL
-             DELPWR=OBTS(8,NSTP+1,NOBT)/SDR
-             GPY(NRL2,NOBT)=GPY(NRL2,NOBT) &
-                  +GUCLIP((DBLE(NRL2)-(RL2-RMIN)/DRL)*DELPWR)
-             DO NRL=NRL2+1,NRL1-1
-                GPY(NRL,NOBT)=GPY(NRL,NOBT)+GUCLIP(DELPWR)
-             ENDDO
-             GPY(NRL1,NOBT)=GPY(NRL1,NOBT) &
-                  +GUCLIP(((RL1-RMIN)/DRL-DBLE(NRL1-1))*DELPWR)
-          ENDIF
-!            WRITE(6,'(3I5,1P5E12.4))') &
-!                NSTP,NRS1,NRS2,RHON1,RHON2,SDR,DELP,OBTS(8,NSTP+1,NOBT)
-       ENDDO
-!         WRITE(6,'(5(I3,1PE12.4))') (NRZ,GPY(NRZ,NOBT),NRZ=1,NRZMAX)
-    ENDDO
-
-    DO NOBT=1,NOBTMAX
-       DO NRL=1,NRLMAX
-          GPY(NRL,NOBT)=GPY(NRL,NOBT) &
-               /GUCLIP(2*PI*(DBLE(NRL)-0.5D0)*DRL*DRL)
-       ENDDO
-!         WRITE(6,'(5(I3,1PE12.4))') (NRL,GPY(NRL,NOBT),NRL=1,NRZMAX)
-    ENDDO
-
-!     ----- draw deposition profile -----
-    write(6,*) '--- point 4'
-
-    CALL GMNMX2(GPY,NRLMAX,1,NRLMAX,1,1,NOBTMAX,1,GYMIN,GYMAX)
-    CALL GQSCAL(GYMIN,GYMAX,GYSMIN,GYSMAX,GYSCAL)
-    CALL GQSCAL(GRMIN,GRMAX,GRSMIN,GRSMAX,GRSCAL)
-    
-    CALL MOVE(13.5,16.1)
-    CALL TEXT('ABS POWER vs R',10)
-    CALL GDEFIN(13.5,23.5,9.0,16.0,GRSMIN,GRSMAX,0.0,GYSMAX)
-    CALL SETLIN(0,2,7)
-    CALL GFRAME
-    CALL GSCALE(GRSMIN,  GRSCAL,0.0,GYSCAL,0.1,9)
-    CALL GVALUE(GRSMIN,2*GRSCAL,0.0,   0.0,NGULEN(2*GRSCAL))
-    CALL GVALUE(GRSMIN,     0.0,0.0,GYSCAL,NGULEN(GYSCAL))
-    DO NOBT=1,NOBTMAX
-       CALL SETLIN(0,2,7-MOD(NOBT-1,5))
-       CALL GPLOTP(GPX,GPY(1:NRLMAX,NOBT),1,NRLMAX,1,0,0,0)
-    ENDDO
-
-    write(6,*) '--- point 5'
-!     ----- DRAW POWER FLUX ----- major radius ---
-
-    GZSMIN=0.0
-    GZSMAX=1.1
-    GZSCAL=0.2
-
-    CALL MOVE(13.5,8.1)
-    CALL TEXT('POWER FLUX',10)
-    CALL GDEFIN(13.5,23.5,1.0,8.0,GRSMIN,GRSMAX,0.0,GZSMAX)
-    CALL SETLIN(0,2,7)
-    CALL GFRAME
-    CALL GSCALE(GRSMIN,  GRSCAL,0.0,GZSCAL,0.1,9)
-    CALL GVALUE(GRSMIN,2*GRSCAL,0.0,   0.0,NGULEN(2*GRSCAL))
-    CALL GVALUE(0.0,0.0,0.0,GZSCAL,1)
-    DO NOBT=1,NOBTMAX
-       DO NSTP=0,NSTPMAX_NOBT(NOBT)
-          XL=OBTS(1,NSTP,NOBT)
-          YL=OBTS(2,NSTP,NOBT)
-          ZL=OBTS(3,NSTP,NOBT)
-          CALL PL_MAG_OLD(XL,YL,ZL,RHON)
-          GUX(NSTP+1)=GUCLIP(SQRT(XL**2+YL**2))
-          GUY(NSTP+1)=GUCLIP(OBTS(7,NSTP,NOBT))
-          IF(MOD(NSTP,100).EQ.0) &
-               WRITE(6,'(A,I5,1P5E12.4)') &
-               'PF:',NSTP,XL,YL,ZL,RHON,OBTS(7,NSTP,NOBT)
-       ENDDO
-       CALL SETLIN(0,0,7-MOD(NOBT-1,5))
-       CALL GPLOTP(GUX,GUY,1,NSTPMAX_NOBT(NOBT)+1,1,0,0,0)      
-    ENDDO
-    write(6,*) '--- point 6'
-
-    CALL OBGPRM
-    CALL PAGEE
-    RETURN
-  END SUBROUTINE OBGRF2
-
-!     ***** RADIAL DEPENDENCE 2 *****
-
-  SUBROUTINE OBGRF3
-
-    USE obcomm
-    USE plprof,ONLY:PL_MAG_OLD
-    IMPLICIT NONE
-
-    REAL(4):: GKX(NSTPMAX+1,NOBTMAX)
-    REAL(4):: GKY(NSTPMAX+1,NOBTMAX)
-    INTEGER:: NOBT,NSTP
-    REAL(4):: GXMIN,GXMAX,GXSTEP
-    REAL(4):: GYMIN1,GYMAX1,GYMIN,GYMAX,GYSTEP,GYORG
-    REAL(rkind):: XL,YL,ZL,RHON,RL,RKR,RKZ,RKPHI,RNPHI
-
-    CALL PAGES
-    CALL SETFNT(32)
-    CALL SETCHS(0.25,0.)
-    CALL SETLIN(0,2,7)
-
-!     ----- X AXIS -----
-
-    DO NOBT=1,NOBTMAX
-       DO NSTP=0,NSTPMAX_NOBT(NOBT)
-          XL=OBTS(1,NSTP,NOBT)
-          YL=OBTS(2,NSTP,NOBT)
-          ZL=OBTS(3,NSTP,NOBT)
-          CALL PL_MAG_OLD(XL,YL,ZL,RHON)
-          GKX( NSTP+1,NOBT)=GUCLIP(RHON)
-       ENDDO
-    ENDDO
-    CALL GQSCAL(0.0,1.0,GXMIN,GXMAX,GXSTEP)
-
-!     ----- Fig.1 -----
-
-    DO NOBT=1,NOBTMAX
-       DO NSTP=0,NSTPMAX_NOBT(NOBT)
-          RL=SQRT(OBTS(1,NSTP,NOBT)**2+OBTS(2,NSTP,NOBT)**2)
-          RKR  =( OBTS(4,NSTP,NOBT)*OBTS(1,NSTP,NOBT) &
-                 +OBTS(5,NSTP,NOBT)*OBTS(2,NSTP,NOBT))/RL
-          GKY( NSTP+1,NOBT)=GUCLIP(RKR)
-       ENDDO
-    ENDDO
-    NOBT=1
-    CALL GMNMX1(GKY(1,NOBT),1,NSTPMAX_NOBT(NOBT)+1,1,GYMIN1,GYMAX1)
-    DO NOBT=2,NOBTMAX
-       CALL GMNMX1(GKY(1,NOBT),1,NSTPMAX_NOBT(NOBT)+1,1,GYMIN,GYMAX)
-       GYMIN1=MIN(GYMIN1,GYMIN)
-       GYMAX1=MAX(GYMAX1,GYMAX)
-    ENDDO
-    CALL GQSCAL(GYMIN1,GYMAX1,GYMIN,GYMAX,GYSTEP)
-
-    CALL MOVE(1.7,16.1)
-    CALL TEXT('k-R',3)
-    CALL GDEFIN(1.7,11.7,9.0,16.0,0.0,GXMAX,GYMIN,GYMAX)
-    CALL SETLIN(0,2,7)
-    CALL GFRAME
-    GYORG=(INT(GYMIN/(2*GYSTEP))+1)*2*GYSTEP
-    CALL GSCALE(0.0,GXSTEP,GYORG,GYSTEP,0.1,9)
-    CALL GVALUE(0.0,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
-    CALL GVALUE(0.0,0.0,GYORG,2*GYSTEP,NGULEN(2*GYSTEP))
-    DO NOBT=1,NOBTMAX
-       CALL SETLIN(0,0,7-MOD(NOBT-1,5))
-       CALL GPLOTP(GKX(1,NOBT),GKY(1,NOBT),1,NSTPMAX_NOBT(NOBT)+1,1,0,0,0)
-    ENDDO
-
-!     ----- Fig.2 -----
-
-    DO NOBT=1,NOBTMAX
-       DO NSTP=0,NSTPMAX_NOBT(NOBT)
-          RKZ  =  OBTS(6,NSTP,NOBT)
-          GKY( NSTP+1,NOBT)=GUCLIP(RKZ)
-       ENDDO
-    ENDDO
-    NOBT=1
-       CALL GMNMX1(GKY(1,NOBT),1,NSTPMAX_NOBT(NOBT)+1,1,GYMIN1,GYMAX1)
-    DO NOBT=2,NOBTMAX
-       CALL GMNMX1(GKY(1,NOBT),1,NSTPMAX_NOBT(NOBT)+1,1,GYMIN,GYMAX)
-       GYMIN1=MIN(GYMIN1,GYMIN)
-       GYMAX1=MAX(GYMAX1,GYMAX)
-    ENDDO
-    CALL GQSCAL(GYMIN1,GYMAX1,GYMIN,GYMAX,GYSTEP)
-
-    CALL MOVE(13.7,16.1)
-    CALL TEXT('k-Z',3)
-    CALL GDEFIN(13.7,23.7,9.0,16.0,0.0,GXMAX,GYMIN,GYMAX)
-    CALL SETLIN(0,2,7)
-    CALL GFRAME
-    GYORG=(INT(GYMIN/(2*GYSTEP))+1)*2*GYSTEP
-    CALL GSCALE(0.0,GXSTEP,GYORG,GYSTEP,0.1,9)
-    CALL GVALUE(0.0,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
-    CALL GVALUE(0.0,0.0,GYORG,2*GYSTEP,NGULEN(2*GYSTEP))
-    DO NOBT=1,NOBTMAX
-       CALL SETLIN(0,0,7-MOD(NOBT-1,5))
-       CALL GPLOTP(GKX(1,NOBT),GKY(1,NOBT),1,NSTPMAX_NOBT(NOBT)+1,1,0,0,0)
-    ENDDO
-
-!     ----- Fig.3 -----
-
-    DO NOBT=1,NOBTMAX
-       DO NSTP=0,NSTPMAX_NOBT(NOBT)
-          RL=SQRT(OBTS(1,NSTP,NOBT)**2+OBTS(2,NSTP,NOBT)**2)
-          RKPHI=(-OBTS(4,NSTP,NOBT)*OBTS(2,NSTP,NOBT) &
-               +OBTS(5,NSTP,NOBT)*OBTS(1,NSTP,NOBT))/RL
-          GKY( NSTP+1,NOBT)=GUCLIP(RKPHI)
-       ENDDO
-    ENDDO
-    NOBT=1
-       CALL GMNMX1(GKY(1,NOBT),1,NSTPMAX_NOBT(NOBT)+1,1,GYMIN1,GYMAX1)
-    DO NOBT=2,NOBTMAX
-       CALL GMNMX1(GKY(1,NOBT),1,NSTPMAX_NOBT(NOBT)+1,1,GYMIN,GYMAX)
-       GYMIN1=MIN(GYMIN1,GYMIN)
-       GYMAX1=MAX(GYMAX1,GYMAX)
-    ENDDO
-    CALL GQSCAL(GYMIN1,GYMAX1,GYMIN,GYMAX,GYSTEP)
-
-    CALL MOVE(1.7,8.1)
-    CALL TEXT('k-phi',5)
-    CALL GDEFIN(1.7,11.7,1.0,8.0,0.0,GXMAX,GYMIN,GYMAX)
-    CALL SETLIN(0,2,7)
-    CALL GFRAME
-    GYORG=(INT(GYMIN/(2*GYSTEP))+1)*2*GYSTEP
-    CALL GSCALE(0.0,GXSTEP,GYORG,GYSTEP,0.1,9)
-    CALL GVALUE(0.0,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
-    CALL GVALUE(0.0,0.0,GYORG,2*GYSTEP,NGULEN(2*GYSTEP))
-    DO NOBT=1,NOBTMAX
-       CALL SETLIN(0,0,7-MOD(NOBT-1,5))
-       CALL GPLOTP(GKX(1,NOBT),GKY(1,NOBT),1,NSTPMAX_NOBT(NOBT)+1,1,0,0,0)
-    ENDDO
-
-!     ----- Fig.4 -----
-
-    DO NOBT=1,NOBTMAX
-       DO NSTP=0,NSTPMAX_NOBT(NOBT)
-          RNPHI=(-OBTS(4,NSTP,NOBT)*OBTS(2,NSTP,NOBT) &
-                 +OBTS(5,NSTP,NOBT)*OBTS(1,NSTP,NOBT))
-          GKY( NSTP+1,NOBT)=GUCLIP(RNPHI)
-       ENDDO
-    ENDDO
-    NOBT=1
-       CALL GMNMX1(GKY(1,NOBT),1,NSTPMAX_NOBT(NOBT)+1,1,GYMIN1,GYMAX1)
-    DO NOBT=2,NOBTMAX
-       CALL GMNMX1(GKY(1,NOBT),1,NSTPMAX_NOBT(NOBT)+1,1,GYMIN,GYMAX)
-       GYMIN1=MIN(GYMIN1,GYMIN)
-       GYMAX1=MAX(GYMAX1,GYMAX)
-    ENDDO
-    CALL GQSCAL(GYMIN1,GYMAX1,GYMIN,GYMAX,GYSTEP)
-
-    CALL MOVE(13.7,8.1)
-    CALL TEXT('R*k-phi',7)
-    CALL GDEFIN(13.7,23.7,1.0,8.0,0.0,GXMAX,GYMIN,GYMAX)
-    CALL SETLIN(0,2,7)
-    CALL GFRAME
-    GYORG=(INT(GYMIN/(2*GYSTEP))+1)*2*GYSTEP
-    CALL GSCALE(0.0,GXSTEP,GYORG,GYSTEP,0.1,9)
-    CALL GVALUE(0.0,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
-    CALL GVALUE(0.0,0.0,GYORG,2*GYSTEP,NGULEN(2*GYSTEP))
-    DO NOBT=1,NOBTMAX
-       CALL SETLIN(0,0,7-MOD(NOBT-1,5))
-       CALL GPLOTP(GKX(1,NOBT),GKY(1,NOBT),1,NSTPMAX_NOBT(NOBT)+1,1,0,0,0)
-    ENDDO
-
-    CALL OBGPRM
-    CALL PAGEE
-    RETURN
-  END SUBROUTINE OBGRF3
+  END SUBROUTINE ob_grf1
 
 !     ***** DRAW PARAMETERS *****
 
@@ -673,8 +170,6 @@ CONTAINS
       CALL OBPRMT(1.0,16.8, 'RKAP =',6, RKAP,'(F8.3)',8)
       CALL OBPRMT(5.0,18.0, 'Q0   =',6, Q0  ,'(F8.3)',8)
       CALL OBPRMT(5.0,17.6, 'QA   =',6, QA  ,'(F8.3)',8)
-      CALL OBPRMT(5.0,17.2, 'RF =',  4, RF  ,'(1PE10.3)',10)
-      CALL OBPRMT(5.0,16.8, 'NPHII=',6,RNPHII,'(F8.4)',8)
       CALL OBPRMT(9.0,18.0, 'PA(1)  =',8,PA(1),'(F8.4)',8)
       CALL OBPRMT(9.0,17.6, 'PZ(1)  =',8,PZ(1),'(F8.4)',8)
       CALL OBPRMT(9.0,17.2, 'PN(1)  =',8,PN(1),'(F8.4)',8)

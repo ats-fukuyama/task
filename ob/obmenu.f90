@@ -15,6 +15,7 @@ CONTAINS
     USE plparm,ONLY: pl_view
     USE obparm,ONLY: ob_parm
     USE obview,ONLY: ob_view
+    USE obprep,ONLY: ob_prep
     USE obcalc,ONLY: ob_calc
     USE obgout,ONLY: ob_gout
 !    USE obfile,ONLY: ob_save,ob_load
@@ -39,15 +40,16 @@ CONTAINS
          CALL PL_VIEW
          CALL OB_VIEW
       ELSEIF(KID.EQ.'R') THEN
+         CALL ob_prep
          CALL ob_allocate
          CALL OB_CALC(IERR)
          NSTAT=1
       ELSEIF(KID.EQ.'G') THEN
-         CALL OB_GOUT(NSTAT)
+         CALL OB_GOUT
       ELSEIF(KID.EQ.'S') THEN
 !         CALL OB_SAVE
       ELSEIF(KID.EQ.'L') THEN
-!         CALL OB_LOAD(NSTAT)
+!         CALL OB_LOAD
       ELSEIF(KID.EQ.'Q') THEN
          GOTO 9000
       ELSE

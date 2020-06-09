@@ -26,9 +26,9 @@ MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../lib/$(MOD) \
             -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
 SRCS = obcomm.f90 obinit.f90 obparm.f90 obview.f90 \
-       obprep.f90  obcalc.f90 obgout.f90 \
+       obprep.f90  obexec.f90 obcalc.f90 obgout.f90 \
        obmenu.f90
-#       obexec.f90 obfile.f90 obsub.f90 \
+#       obfile.f90 obsub.f90 \
 
 OBJS = $(SRCS:.f90=.o)
 
