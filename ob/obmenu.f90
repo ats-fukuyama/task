@@ -40,9 +40,9 @@ CONTAINS
          CALL PL_VIEW
          CALL OB_VIEW
       ELSEIF(KID.EQ.'R') THEN
-         CALL ob_prep
+         CALL ob_prep(ierr)
          CALL ob_allocate
-         CALL OB_CALC(IERR)
+         CALL OB_CALC(ierr)
          NSTAT=1
       ELSEIF(KID.EQ.'G') THEN
          CALL OB_GOUT

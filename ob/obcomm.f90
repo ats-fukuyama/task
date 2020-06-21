@@ -20,6 +20,7 @@ MODULE obcomm_parm
        mdlobp, &              ! model id of equation of motion
        mdlobi, &              ! model id of input scheme of initial parameters
        mdlobq, &              ! model id of ODE solver
+       mdlobw, &              ! model id of output interval
        mdlobg                 ! model id of graphics
   REAL(rkind) &
        smax, &                ! maximum of orbit length
@@ -36,6 +37,10 @@ MODULE obcomm_parm
        theta_in, &            ! initial poloidal angle (mdlobi=0) [deg]
        rr_in, &               ! initial major radius (mdlobi=1) [m]
        zz_in                  ! initial vertical position (mdlobi=1) [m]
+
+  INTEGER:: nrmax_ob, &       ! number of radial mesh
+            nthmax_ob, &      ! number of pooidal mesh
+            nsumax_ob         ! number plasma surface points (same as wall)
 
 CONTAINS
 
@@ -69,7 +74,7 @@ MODULE obcomm
        babs_ob, &             ! absolute value of magnetic field
        phi_ob, &              ! electrostatic potential
        penergy_ob, &          ! particle energy
-       pangle_ob, &           ! pitch angle
+       pangle_ob, &           ! cos(pitch angle) (1:para,0:perp,-1:anti-para)
        rr_ob, &               ! major radius
        zz_ob, &               ! vertical positon
        zeta_ob, &             ! toroidal angle

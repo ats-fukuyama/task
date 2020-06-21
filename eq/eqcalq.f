@@ -287,6 +287,7 @@ C
 Chonda         write(6,'(4E15.7)') PSIP(NR),SUMAVGR2,SUMV,AVEGVR2(NR)
          AVEGP2 (NR)=SUMAVGV2/SUMV*4.d0*PI**2
          AVEIR  (NR)=SUMAVIR /SUMV
+         RITOR  (NR)=SUMAVGR2
 
          call zminmax(YA,NZMINR,ZMIN,ZMINR)
          call zminmax(YA,NZMAXR,ZMAX,ZMAXR)

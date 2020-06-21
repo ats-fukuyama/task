@@ -12,6 +12,8 @@ CONTAINS
     IMPLICIT NONE
     INTEGER:: nobt
 
+    modelg=3
+    
     nobt_max=1                ! number of orbits
     nstp_max=100              ! maximum number of orbits
     ns_ob=2                   ! id of particle species
@@ -26,7 +28,16 @@ CONTAINS
                               !   100: line input with pzeta,theta
                               !   101: line input with rr,zz
     mdlobq=0                  ! model id of initial input parameters
-                              !     0: 4th -order Runge-Kutta-Gill 
+                              !     0: 4th-order Runge-Kutta-Gill 
+                              !     1: universal ODE solver (TBI)
+                              !     2: symplectic solver (TBI)
+    mdlobw=0                  ! model id of output interval
+                              !     0: no output
+                              !     1: every step
+                              !     2: every 10 step
+                              !     3: every 100 step
+                              !     4: every 1000 step
+                              !     5: every 10000 step
     mdlobg=0                  ! model id of graphics
                               !     0: default
 
@@ -43,6 +54,12 @@ CONTAINS
     theta_in(1)=0.D0          ! initial poloidal angle (mdlobi=0) [deg]
     rr_in(1)=4.D0             ! initial major radius (mdlobi=1) [m]
     zz_in(1)=0.D0             ! initial vertical position (mdlobi=1) [m]
+
+! --- equilibirum parameters ---
+
+    nrmax_ob=100   ! number of radial meshes
+    nthmax_ob=64   ! number of radial meshes
+    nsumax_ob=100  ! number of radial meshes
 
     RETURN
   END SUBROUTINE ob_init

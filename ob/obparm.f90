@@ -73,8 +73,9 @@ CONTAINS
          MODEFR,MODEFW,IDEBUG,mdlplw, &
     !
          nobt_max,nstp_max,ns_ob,lmax_nw, &
-         mdlobp,mdlobi,mdlobq,mdlobg,smax,dels,eps_obt,del_obt,eps_nw, &
-         penergy_in,pangle_in,zeta_in,pzeta_in,theta_in,rr_in,zz_in
+         mdlobp,mdlobi,mdlobq,mdlobw,mdlobg,smax,dels,eps_obt,del_obt,eps_nw, &
+         penergy_in,pangle_in,zeta_in,pzeta_in,theta_in,rr_in,zz_in, &
+         nrmax_ob,nthmax_ob,nsumax_ob
 
     READ(nid,ob,IOSTAT=ist,ERR=9800,END=9900)
     
@@ -124,9 +125,10 @@ CONTAINS
              9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2'/ &
              9X,'MODEFW,MODEFR,IDEBUG,mdlplw,'/ &
              9X,'nobt_max,nstp_max,ns_ob,lmax_nw,'/ &
-             9X,'mdlobp,mdlobi,mdlobq,mdlobg,max,eps_obt,del_obt,eps_nw,'/ &
-             9X,'smax,dels,'/ &
-             9X,'penergy_in,pangle_in,zeta_in,pzeta_in,theta_in,rr_in,zz_in')
+             9X,'eps_obt,del_obt,eps_nw,smax,dels,'/ &
+             9X,'mdlobp,mdlobi,mdlobq,mdlobw,mdlobg,max,'/ &
+             9X,'penergy_in,pangle_in,zeta_in,pzeta_in,theta_in,'/ &
+             9X,'rr_in,zz_in,nrmax_ob,nthmax_ob,nsumax_ob')
   END SUBROUTINE ob_plst
 
 !     ***** CHECK INPUT PARAMETERS *****

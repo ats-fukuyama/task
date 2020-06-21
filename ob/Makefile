@@ -22,20 +22,22 @@ FFLAGS=$(DFLAGS)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../lib/$(MOD) \
+MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) -I../lib/$(MOD) \
             -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
 SRCS = obcomm.f90 obinit.f90 obparm.f90 obview.f90 \
-       obprep.f90  obexec.f90 obcalc.f90 obgout.f90 \
+       obprep.f90 obexec.f90 obcalc.f90 obgout.f90 \
        obmenu.f90
 #       obfile.f90 obsub.f90 \
 
-OBJS = $(SRCS:.f90=.o)
+SRCX = ../eq/wmeqin.f
+
+OBJS = $(SRCS:.f90=.o) $(SRCX:.f=.o)
 
 LIBS = libob.a  ../eq/libeq.a ../pl/libpl.a \
        ../lib/libtask.a ../../bpsd/libbpsd.a
 
-all : ob
+all : libs ob
 
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
@@ -45,6 +47,8 @@ all : ob
 	(cd ../pl; make libpl.a)
 ../eq/libeq.a:
 	(cd ../eq; make libeq.a)
+../eq/wmeqin.o:
+	(cd ../eq; make wmeqin.a)
 libob.a: $(OBJS)
 	$(LD) $(LDFLAGS) libob.a $(OBJS)
 
@@ -73,9 +77,11 @@ obmenu.o: obmenu.f90 $(OBCOMM)
 obinit.o: obinit.f90 $(OBCOMM)
 obparm.o: obparm.f90 $(OBCOMM)
 obview.o: obview.f90 $(OBCOMM)
+obifeq.o: obifeq.f90 $(OBCOMM)
 obprep.o: obprep.f90 $(OBCOMM)
 obcalc.o: obcalc.f90 $(OBCOMM) ../pl/plprof.f90
 obexec.o: obexec.f90 $(OBCOMM) ../pl/plprof.f90
 obsub.o:  obsub.f90 $(OBCOMM)
 obgout.o: obgout.f90 $(OBCOMM)
 obfile.o: obfile.f90 $(OBCOMM)
+../eq/wmeqin.o: ../eq/wmeqin.f

@@ -22,6 +22,7 @@ CONTAINS
          'mdlobi      ',mdlobi
     WRITE(6,603) &
          'mdlobq      ',mdlobq, &
+         'mdlobw      ',mdlobw, &
          'mdlobg      ',mdlobg
     WRITE(6,604) &
          'smax        ',smax, &
@@ -46,6 +47,10 @@ CONTAINS
     CASE DEFAULT
        WRITE(6,*) 'XX obview: undefined mdlobi: mdlobi=',mdlobi
     END SELECT
+    WRITE(6,603) &
+         'nrmax_ob    ',nrmax_ob, &
+         'nthmax_ob   ',nthmax_ob, &
+         'nsumax_ob   ',nsumax_ob
     RETURN
 
 601 FORMAT(1H ,A6,'=',1PE11.3:2X,A6,'=',1PE11.3: &
