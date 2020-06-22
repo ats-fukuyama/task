@@ -80,16 +80,16 @@ CONTAINS
        DEALLOCATE(chi)
     END IF
     ALLOCATE(rhot(nrmax_ob),psip(nrmax_ob),psit(nrmax_ob))
-    ALLOCATE(rpsi(nthmax_ob+1,nrmax_ob))
-    ALLOCATE(drpsi(nthmax_ob+1,nrmax_ob))
-    ALLOCATE(drchi(nthmax_ob+1,nrmax_ob))
-    ALLOCATE(zpsi(nthmax_ob+1,nrmax_ob))
-    ALLOCATE(dzpsi(nthmax_ob+1,nrmax_ob))
-    ALLOCATE(dzchi(nthmax_ob+1,nrmax_ob))
-    ALLOCATE(bpr(nthmax_ob+1,nrmax_ob))
-    ALLOCATE(bpz(nthmax_ob+1,nrmax_ob))
-    ALLOCATE(bpt(nthmax_ob+1,nrmax_ob))
-    ALLOCATE(btp(nthmax_ob+1,nrmax_ob))
+    ALLOCATE(rpsi(nthmax_ob,nrmax_ob))
+    ALLOCATE(drpsi(nthmax_ob,nrmax_ob))
+    ALLOCATE(drchi(nthmax_ob,nrmax_ob))
+    ALLOCATE(zpsi(nthmax_ob,nrmax_ob))
+    ALLOCATE(dzpsi(nthmax_ob,nrmax_ob))
+    ALLOCATE(dzchi(nthmax_ob,nrmax_ob))
+    ALLOCATE(bpr(nthmax_ob,nrmax_ob))
+    ALLOCATE(bpz(nthmax_ob,nrmax_ob))
+    ALLOCATE(bpt(nthmax_ob,nrmax_ob))
+    ALLOCATE(btp(nthmax_ob,nrmax_ob))
     ALLOCATE(pps(nrmax_ob),qps(nrmax_ob),rbps(nrmax_ob))
     ALLOCATE(vps(nrmax_ob),rlen(nrmax_ob),ritps(nrmax_ob))
     ALLOCATE(rsu(nsumax_ob),zsu(nsumax_ob),rsw(nsumax_ob),zsw(nsumax_ob))
@@ -109,8 +109,10 @@ CONTAINS
     ! ra:   plasma minor radius [m]
     ! rkap: ellipticity
     ! rdlt: triangularity
-    
+
+    WRITE(6,'(A,I5)') 'nrmax_ob=',nrmax_ob
     CALL eqgetp(rhot,psip,nrmax_ob)  ! normalized psit radius
+    WRITE(6,'(A,I5)') 'nrmax_ob=',nrmax_ob
     ! rhot: normalized minor radius defined by toroidal magnetic flux
     ! psip: poloidal magnetic flux (0 on magnetic axis) [Tm^2]
     
@@ -174,6 +176,8 @@ CONTAINS
     WRITE(6,'(A,1P6E12.4)') 'Ip,It: ', &
          rbps(1),rbps(nrmax_ob/2),rbps(nrmax_ob), &
          ritps(1),ritps(nrmax_ob/2),ritps(nrmax_ob)
+    WRITE(6,'(1P6E12.4)') &
+         (rhot(nr),psip(nr),pps(nr),qps(nr),rbps(nr),ritps(nr),nr=1,nrmax_ob)
 
     WRITE(6,'(A,1P2E12.4)') 'eqload: completed:',psipa
     

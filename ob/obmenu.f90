@@ -58,7 +58,7 @@ CONTAINS
       ENDIF
       GOTO 1
 
-9000  CALL ob_deallocate
+9000  IF(ALLOCATED(obt_in)) CALL ob_deallocate
       RETURN
   END SUBROUTINE OB_MENU
 END MODULE obmenu

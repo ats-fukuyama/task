@@ -212,12 +212,12 @@ CONTAINS
       INTEGER,PARAMETER:: npsip_max=50
       INTEGER,PARAMETER:: nchi_max=65
       REAL(rkind),ALLOCATABLE:: psip_l(:),chi_l(:)
-      REAL(rkind),ALLOCATABLE:: f1(:),f2a(:,:),f2b(:,:),f2c(:,:)
+      REAL(rkind),ALLOCATABLE:: f1(:,:),f2a(:,:),f2b(:,:),f2c(:,:)
       INTEGER:: nchi,npsip,ierr
       REAL(rkind):: dchi,dpsip,psip0
 
       ALLOCATE(psip_l(npsip_max),chi_l(nchi_max))
-      ALLOCATE(f1(npsip_max),f2a(nchi_max,npsip_max))
+      ALLOCATE(f1(npsip_max,2),f2a(nchi_max,npsip_max))
       ALLOCATE(f2b(nchi_max,npsip_max),f2c(nchi_max,npsip_max))
 
       psip0=0.D0
@@ -257,6 +257,26 @@ CONTAINS
       CALL grd2d(4,chi_l,psip_l,f2b,nchi_max,nchi_max,npsip_max, &
                  '@db_dchi(chi,psip)@',0)
 
+      CALL pagee
+
       CALL pages
+
+      DO npsip=1,npsip_max
+         CALL cal_qps_pos(psip_l(npsip),f1(npsip,1),f1(npsip,2),ierr)
+      END DO
+      CALL grd1d(1,psip_l,f1,npsip_max,npsip_max,2,'@qps(psip)@',0)
+      
+      DO npsip=1,npsip_max
+         CALL cal_rbps_pos(psip_l(npsip),f1(npsip,1),f1(npsip,2),ierr)
+      END DO
+      CALL grd1d(2,psip_l,f1,npsip_max,npsip_max,2,'@rbps(psip)@',0)
+      
+      DO npsip=1,npsip_max
+         CALL cal_ritps_pos(psip_l(npsip),f1(npsip,1),f1(npsip,2),ierr)
+      END DO
+      CALL grd1d(2,psip_l,f1,npsip_max,npsip_max,2,'@ritps(psip)@',0)
+      
+      CALL pagee
+      
     END SUBROUTINE ob_gsube
 END MODULE OBGOUT
