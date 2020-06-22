@@ -45,6 +45,7 @@ CONTAINS
          CALL OB_CALC(ierr)
          NSTAT=1
       ELSEIF(KID.EQ.'G') THEN
+         CALL ob_prep(ierr)
          CALL OB_GOUT
       ELSEIF(KID.EQ.'S') THEN
 !         CALL OB_SAVE

@@ -1,0 +1,66 @@
+&fow
+npsmax=33
+nzemax=32
+!npmax=20
+
+nrgmax=40
+nzgmax=40
+&end
+
+ &fp
+   RR=3.D0
+   RA=1.D0
+   BB=3.D0
+   RKAP=1.5D0
+
+   NRMAX=32
+   RMIN=0.D0
+   RMAX=1.0D0
+
+   NSMAX=2
+   NSAMAX=2
+   NSBMAX=2
+   NS_NSA(1)=1,2
+   NS_NSB(1)=1,2
+   PMAX(1)=7.D0
+
+   PA(2)=2.D0
+   PZ(2)=1.D0
+   PN(1)=0.5D0,0.5D0
+   PNS(1)=0.005D0,0.005D0
+   PTPR(1)=5.D0,5.D0
+   PTPP(1)=5.D0,5.D0
+   PTS(1)=0.5D0,0.5D0
+   MODELN=1
+   ZEFF=2.D0
+
+   MODEL_NBI=1
+   NBEAMMAX=2
+   NSSPB(1)=2
+   SPBTOT(1)=50.D0
+   SPBR0(1)=0.3D0
+   SPBRW(1)=0.1D0
+   SPBPANG(1)=0.D0
+   SPBENG(1)=3.D2
+   SPBANG(1)=45.D0
+   NSSPB(2)=2
+   SPBTOT(2)=1.25D0
+   SPBR0(2)=0.3D0
+   SPBRW(2)=0.1D0
+   SPBPANG(2)=0.D0
+   SPBENG(2)=1.D6
+   SPBANG(2)=45.D0
+
+   MODELA=1
+   MODELC=0
+   MODELR=1
+   MODEL_WAVE=0
+   MODELD=1
+   MODELD_RDEP=2
+   MODELD_PDEP=0
+
+   DELT=1.D-2
+   NTMAX=5
+   npmax=40
+   nthmax=32
+ &end

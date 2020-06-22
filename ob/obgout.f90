@@ -17,11 +17,12 @@ CONTAINS
     CHARACTER(LEN=1)::  kid
 
 1   WRITE(6,*) &
-         '## INPUT GRAPH TYPE : 1,2,3   P:profile X:end'
+         '## INPUT GRAPH TYPE : 1   E:equilibrium P:profile X:end'
     READ(5,'(A1)',ERR=1,END=9000) kid
     CALL GUCPTL(kid)
 
     IF(KID.EQ.'1') CALL ob_grf1
+    IF(KID.EQ.'E') CALL ob_gsube
     IF(KID.EQ.'P') CALL pl_gout
     IF(KID.EQ.'X') GOTO 9000
 
@@ -203,4 +204,59 @@ CONTAINS
       RETURN
     END SUBROUTINE OBPRMT
 
+    SUBROUTINE ob_gsube
+      USE obcomm
+      USE obprep
+      USE libgrf
+      IMPLICIT NONE
+      INTEGER,PARAMETER:: npsip_max=50
+      INTEGER,PARAMETER:: nchi_max=65
+      REAL(rkind),ALLOCATABLE:: psip_l(:),chi_l(:)
+      REAL(rkind),ALLOCATABLE:: f1(:),f2a(:,:),f2b(:,:),f2c(:,:)
+      INTEGER:: nchi,npsip,ierr
+      REAL(rkind):: dchi,dpsip,psip0
+
+      ALLOCATE(psip_l(npsip_max),chi_l(nchi_max))
+      ALLOCATE(f1(npsip_max),f2a(nchi_max,npsip_max))
+      ALLOCATE(f2b(nchi_max,npsip_max),f2c(nchi_max,npsip_max))
+
+      psip0=0.D0
+      dpsip=(psipa-psip0)/npsip_max
+      dchi=2.D0*Pi/(nchi_max-1)
+      DO npsip=1,npsip_max
+         psip_l(npsip)=psip0+dpsip*npsip
+      END DO
+      DO nchi=1,nchi_max
+         chi_l(nchi)=dchi*(nchi-1)
+      END DO
+
+      CALL pages
+
+      DO npsip=1,npsip_max
+         DO nchi=1,nchi_max
+            CALL cal_r_pos(chi_l(nchi),psip_l(npsip),f2a(nchi,npsip),ierr)
+            CALL cal_z_pos(chi_l(nchi),psip_l(npsip),f2b(nchi,npsip),ierr)
+         END DO
+      END DO
+      
+      CALL grd2d(1,chi_l,psip_l,f2a,nchi_max,nchi_max,npsip_max, &
+                 '@r_pos(chi,psip)@',0)
+
+      CALL grd2d(2,chi_l,psip_l,f2b,nchi_max,nchi_max,npsip_max, &
+                 '@z_pos(chi,psip)@',0)
+
+      DO npsip=1,npsip_max
+         DO nchi=1,nchi_max
+            CALL cal_b_pos(chi_l(nchi),psip_l(npsip),f2a(nchi,npsip), &
+                 f2b(nchi,npsip),f2c(nchi,npsip),ierr)
+         END DO
+      END DO
+      
+      CALL grd2d(3,chi_l,psip_l,f2a,nchi_max,nchi_max,npsip_max, &
+                 '@b_pos(chi,psip)@',0)
+      CALL grd2d(4,chi_l,psip_l,f2b,nchi_max,nchi_max,npsip_max, &
+                 '@db_dchi(chi,psip)@',0)
+
+      CALL pages
+    END SUBROUTINE ob_gsube
 END MODULE OBGOUT
