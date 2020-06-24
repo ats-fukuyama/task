@@ -65,16 +65,18 @@ MODULE obcomm
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
        obts                   ! solution of orbit equation
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
+       time_ob, &             ! time
        zetab_ob, &            ! toroidal boozer angle zeta translated from obts
        thetab_ob, &           ! poloidal boozer angle theta
-       pzeta_ob, &            ! toroidal momentum pzeta
-       ptheta_ob, &           ! poloidal momentum ptheta
        psip_ob, &             ! poloidal magnetic flux
        rhopara_ob, &          ! parallel velocity devidede by cyclotron freq.
+       pzeta_ob, &            ! toroidal momentum pzeta
+       ptheta_ob, &           ! poloidal momentum ptheta
        babs_ob, &             ! absolute value of magnetic field
        phi_ob, &              ! electrostatic potential
        penergy_ob, &          ! particle energy
        pangle_ob, &           ! cos(pitch angle) (1:para,0:perp,-1:anti-para)
+       psit_ob, &             ! toroidal magnetic flux
        rr_ob, &               ! major radius
        zz_ob, &               ! vertical positon
        zeta_ob, &             ! toroidal angle
@@ -104,16 +106,18 @@ CONTAINS
     ALLOCATE(nstp_max_nobt(nobt_max))
     ALLOCATE(obts(0:neq_max,0:nstp_max,nobt_max))
 
+    ALLOCATE(time_ob(0:nstp_max,nobt_max))
     ALLOCATE(zetab_ob(0:nstp_max,nobt_max))
     ALLOCATE(thetab_ob(0:nstp_max,nobt_max))
-    ALLOCATE(pzeta_ob(0:nstp_max,nobt_max))
-    ALLOCATE(ptheta_ob(0:nstp_max,nobt_max))
     ALLOCATE(psip_ob(0:nstp_max,nobt_max))
     ALLOCATE(rhopara_ob(0:nstp_max,nobt_max))
+    ALLOCATE(pzeta_ob(0:nstp_max,nobt_max))
+    ALLOCATE(ptheta_ob(0:nstp_max,nobt_max))
     ALLOCATE(babs_ob(0:nstp_max,nobt_max))
     ALLOCATE(phi_ob(0:nstp_max,nobt_max))
     ALLOCATE(penergy_ob(0:nstp_max,nobt_max))
     ALLOCATE(pangle_ob(0:nstp_max,nobt_max))
+    ALLOCATE(psit_ob(0:nstp_max,nobt_max))
     ALLOCATE(rr_ob(0:nstp_max,nobt_max))
     ALLOCATE(zz_ob(0:nstp_max,nobt_max))
     ALLOCATE(zeta_ob(0:nstp_max,nobt_max))
@@ -128,16 +132,18 @@ CONTAINS
     DEALLOCATE(nstp_max_nobt)
     DEALLOCATE(obts)
 
+    DEALLOCATE(time_ob)
     DEALLOCATE(zetab_ob)
     DEALLOCATE(thetab_ob)
-    DEALLOCATE(pzeta_ob)
-    DEALLOCATE(ptheta_ob)
     DEALLOCATE(psip_ob)
     DEALLOCATE(rhopara_ob)
+    DEALLOCATE(pzeta_ob)
+    DEALLOCATE(ptheta_ob)
     DEALLOCATE(babs_ob)
     DEALLOCATE(phi_ob)
     DEALLOCATE(penergy_ob)
     DEALLOCATE(pangle_ob)
+    DEALLOCATE(psit_ob)
     DEALLOCATE(rr_ob)
     DEALLOCATE(zz_ob)
     DEALLOCATE(zeta_ob)

@@ -49,11 +49,11 @@ CONTAINS
             KNAMWG_SAVE=KNAMWG
             istatus=1
 
-!----    open defined by toroidal magnetic flux
+!----    open WG elecric field data file ---
 
             NFL=22
             CALL FROPEN(NFL,KNAMWG,1,0,'WG',ierr) 
-                                       !open to read formatted without pronpt
+                        !open to read formatted without pronpt
             IF(ierr.NE.0) GOTO 9990
 
             READ(NFL,*,END=9991) ! skip 1 lines: KZ
@@ -69,6 +69,7 @@ CONTAINS
                READ(NFL,'(8E22.12)',ERR=9994,END=9991) &
                     (VATEMP(NY,NV),NV=1,8)
             END DO
+
             WRITE(6,'(A)') '## WG 1D data successfully loaded'
             WRITE(6,'(A)') '   WG 1D data file: '
             WRITE(6,'(A)') KNAMWG
@@ -87,7 +88,6 @@ CONTAINS
 
 9995        REWIND NFL
             CLOSE(NFL)
-            IF(ALLOCATED(FX)) DEALLOCATE(FX)
 
             IF(ALLOCATED(YD)) DEALLOCATE(YD,VA,UA,FX)
             ALLOCATE(YD(NYMAX),VA(NYMAX,7))
@@ -102,10 +102,6 @@ CONTAINS
             END DO
 
             DEALLOCATE(VATEMP)
-
-            WRITE(6,'(A)') '## WG 1D data successfully loaded'
-            WRITE(6,'(A)') '   WG 1D data file: '
-            WRITE(6,'(A)') KNAMWG
 
             WRITE(6,'(A,1P2E12.4)') 'YMIN,YMAX =',YD(1),YD(NYMAX)
 

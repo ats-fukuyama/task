@@ -12,6 +12,7 @@ CONTAINS
   SUBROUTINE ob_calc(ierr)
 
     USE obcomm
+    USE obprep
     USE obexec,ONLY: ob_exec
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
@@ -61,11 +62,13 @@ CONTAINS
           penergy_ob(0,nobt)=penergy_in(nobt)
           pangle_ob(0,nobt)=pangle_in(nobt)
           zetab_ob(0,nobt)=zeta_in(nobt)
-          pzeta_ob(0,nobt)=pzeta_in(nobt)
+          psip_ob(0,nobt)=psip_in(nobt)
           thetab_ob(0,nobt)=theta_in(nobt)
 
-          ptheta_ob(0,nobt)=0
-          psip_ob(0,nobt)=0
+          CALL cal_b_pos(thetab_ob(0,nobt),psip_ob(0,nobt),b_pos,db1,db2)
+
+          ptheta_ob(0,nobt)=psip_ob(
+          pzeta_ob(0,nobt)=0
           rhopara_ob(0,nobt)=0
           
           babs_ob(0,nobt)=0 ! psip,thetab => babs,phi

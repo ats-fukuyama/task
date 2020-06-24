@@ -247,7 +247,7 @@ CONTAINS
 
       DO npsip=1,npsip_max
          DO nchi=1,nchi_max
-            CALL cal_b_pos(chi_l(nchi),psip_l(npsip),f2a(nchi,npsip), &
+            CALL cal_bdb_pos(chi_l(nchi),psip_l(npsip),f2a(nchi,npsip), &
                  f2b(nchi,npsip),f2c(nchi,npsip),ierr)
          END DO
       END DO
@@ -263,19 +263,24 @@ CONTAINS
 
       DO npsip=1,npsip_max
          CALL cal_qps_pos(psip_l(npsip),f1(npsip,1),f1(npsip,2),ierr)
+         f1(npsip,2)=f1(npsip,2)*psip_l(npsip)/f1(npsip,1)
       END DO
       CALL grd1d(1,psip_l,f1,npsip_max,npsip_max,2,'@qps(psip)@',0)
       
       DO npsip=1,npsip_max
          CALL cal_rbps_pos(psip_l(npsip),f1(npsip,1),f1(npsip,2),ierr)
+         f1(npsip,2)=f1(npsip,2)*psipa
       END DO
       CALL grd1d(2,psip_l,f1,npsip_max,npsip_max,2,'@rbps(psip)@',0)
       
       DO npsip=1,npsip_max
          CALL cal_ritps_pos(psip_l(npsip),f1(npsip,1),f1(npsip,2),ierr)
+         f1(npsip,2)=f1(npsip,2)*psipa
       END DO
-      CALL grd1d(2,psip_l,f1,npsip_max,npsip_max,2,'@ritps(psip)@',0)
+      CALL grd1d(3,psip_l,f1,npsip_max,npsip_max,2,'@ritps(psip)@',0)
       
+      CALL grd2d(4,chi_l,psip_l,f2c,nchi_max,nchi_max,npsip_max, &
+                 '@db_dpsip(chi,psip)@',0)
       CALL pagee
       
     END SUBROUTINE ob_gsube

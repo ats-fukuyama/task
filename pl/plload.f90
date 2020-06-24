@@ -272,104 +272,157 @@ CONTAINS
       USE plp2D
       USE libfio
       USE libgrf
+      USE libmpi
+      USE commpi
       IMPLICIT NONE
       INTEGER,INTENT(OUT):: ierr
       INTEGER:: NFL,NX,NY,NV,IX,IY,IERSPL
       REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: FX,FY,FXY
+      REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: VATEMP
       CHARACTER(LEN=80),SAVE:: KNAMPF_SAVE=' '
+      INTEGER:: istatus
 
       ierr = 0
-      IF(KNAMPF.EQ.KNAMPF_SAVE) RETURN
-      KNAMPF_SAVE=KNAMPF
+      istatus=0
 
-!----    open defined by toroidal magnetic flux
+      IF(nrank.EQ.0) THEN
+         IF(KNAMPF.NE.KNAMPF_SAVE) THEN
+            KNAMPF_SAVE=KNAMPF
+            istatus=1
 
-      NFL=22
-      CALL FROPEN(NFL,KNAMPF,1,0,'PF',ierr) 
-                                       !open to read formatted without pronpt
-      IF(ierr.NE.0) GOTO 9990
-      READ(NFL,*,END=9991) ! skip 2 lines: rf,kx,ky,kz
-      READ(NFL,*,END=9991)
-      READ(NFL,*,ERR=9992,END=9991) NXMAX
-      READ(NFL,*,END=9991)
-      READ(NFL,*,ERR=9993,END=9991) NYMAX
+! --- open 2D profile data faile ---
+            
+            NFL=22
+            CALL FROPEN(NFL,KNAMPF,1,0,'PF',ierr) 
+                        ! open to read formatted without pronpt
+            IF(ierr.NE.0) GOTO 9990
+            READ(NFL,*,END=9991) ! skip 2 lines: rf,kx,ky,kz
+            READ(NFL,*,END=9991)
+            READ(NFL,*,ERR=9992,END=9991) NXMAX
+            READ(NFL,*,END=9991)
+            READ(NFL,*,ERR=9993,END=9991) NYMAX
 
-      IF(ALLOCATED(XD)) DEALLOCATE(XD,YD,VA,UA,FX,FY,FXY)
-      ALLOCATE(XD(NXMAX),YD(NYMAX),VA(NXMAX,NYMAX,13))
-      ALLOCATE(UA(4,4,NXMAX,NYMAX,10))
-      ALLOCATE(FX(NXMAX,NYMAX),FY(NXMAX,NYMAX),FXY(NXMAX,NYMAX))
+            ALLOCATE(VATEMP(NXMAX,NYMAX,10))
 
-      READ(NFL,*,END=9991) ! skip 1 line: variable name
-      DO NX=1,NXMAX
-         DO NY=1,NYMAX
-            READ(NFL,'(10E22.12)',ERR=9994,END=9991) &
-                 (VA(NX,NY,NV),NV=1,10)
-         END DO
-      END DO
+            READ(NFL,*,END=9991) ! skip 1 line: variable name
+            DO NX=1,NXMAX
+               DO NY=1,NYMAX
+                  READ(NFL,'(10E22.12)',ERR=9994,END=9991) &
+                       (VATEMP(NX,NY,NV),NV=1,10)
+               END DO
+            END DO
+            
+            WRITE(6,'(A)') '## profile data successfully loaded'
+            WRITE(6,'(A)') '   profile data file: '
+            WRITE(6,'(A)') KNAMPF
+            GO TO 9995
 
-      DO NX=1,NXMAX
-         XD(NX)=VA(NX,1,1)
-      END DO
-      DO NY=1,NYMAX
-         YD(NY)=VA(1,NY,2)
-      END DO
+9990        WRITE(6,*) '==========  pl_load_p2D OPEN ERROR  ========'
+            WRITE(6,*) '   IERR = ',IERR
+            GO TO 9995
+9991        WRITE(6,*) '==========  pl_load_p2D ABNORMAL END of FILE  ========'
+            GO TO 9995
+9992        WRITE(6,*) '==========  pl_load_p2D FILE READ ERROR: NXMAX  ======'
+            GO TO 9995
+9993        WRITE(6,*) '==========  pl_load_p2D FILE READ ERROR: NYMAX  ======'
+            GO TO 9995
+9994        WRITE(6,*) '==========  pl_load_p2D FILE READ ERROR: VA  ========='
+            GO TO 9995
+      
+9995        REWIND NFL
+            CLOSE(NFL)
+            
+            IF(ALLOCATED(XD)) DEALLOCATE(XD,YD,VA,UA)
+            ALLOCATE(XD(NXMAX),YD(NYMAX),VA(NXMAX,NYMAX,8))
+            ALLOCATE(UA(4,4,NXMAX,NYMAX,8))
+            ALLOCATE(FX(NXMAX,NYMAX),FY(NXMAX,NYMAX),FXY(NXMAX,NYMAX))
 
-      WRITE(6,'(A)') '## profile data successfully loaded'
-      WRITE(6,'(A)') '   profile data file: '
-      WRITE(6,'(A)') KNAMPF
+            DO NX=1,NXMAX
+               XD(NX)=VATEMP(NX,1,1)
+            END DO
+            DO NY=1,NYMAX
+               YD(NY)=VATEMP(1,NY,2)
+            END DO
 
-      WRITE(6,'(A,1P4E12.4)') 'XMIN,XMAX,YMIN,YMAX =', &
-           XD(1),XD(NXMAX),YD(1),YD(NYMAX)
+            DO NV=1,8
+               DO NY=1,NYMAX
+                  DO NX=1,NXMAX
+                     VA(NX,NY,NV)=VATEMP(NX,NY,NV+2)
+                  END DO
+               END DO
+            END DO
 
-      IF(IDEBUG.EQ.1) THEN
-         CALL PAGES
-         CALL GRD2D(14,XD,YD,VA(1:NXMAX,1:NYMAX,1),NXMAX,NXMAX,NYMAX,'@XD@')
-         CALL GRD2D(15,XD,YD,VA(1:NXMAX,1:NYMAX,2),NXMAX,NXMAX,NYMAX,'@YD@')
-         CALL GRD2D(16,XD,YD,VA(1:NXMAX,1:NYMAX,3),NXMAX,NXMAX,NYMAX,'@BX@')
-         CALL GRD2D(17,XD,YD,VA(1:NXMAX,1:NYMAX,4),NXMAX,NXMAX,NYMAX,'@BY@')
-         CALL GRD2D(18,XD,YD,VA(1:NXMAX,1:NYMAX,5),NXMAX,NXMAX,NYMAX,'@BZ@')
-         CALL GRD2D(19,XD,YD,VA(1:NXMAX,1:NYMAX,6),NXMAX,NXMAX,NYMAX,'@BTOT@')
-         CALL GRD2D(20,XD,YD,VA(1:NXMAX,1:NYMAX,7),NXMAX,NXMAX,NYMAX,'@TE@')
-         CALL GRD2D(21,XD,YD,VA(1:NXMAX,1:NYMAX,8),NXMAX,NXMAX,NYMAX,'@NE@')
-         CALL GRD2D(22,XD,YD,VA(1:NXMAX,1:NYMAX,9),NXMAX,NXMAX,NYMAX,'@TI@')
-         CALL GRD2D(23,XD,YD,VA(1:NXMAX,1:NYMAX,10),NXMAX,NXMAX,NYMAX,'@NI@')
-         CALL PAGEE
+            DEALLOCATE(VATEMP)
+            
+            WRITE(6,'(A,1P4E12.4)') 'XMIN,XMAX,YMIN,YMAX =', &
+                 XD(1),XD(NXMAX),YD(1),YD(NYMAX)
+         END IF
       END IF
+
+      CALL mtx_broadcast1_integer(istatus)
+
+      IF(istatus.EQ.1) THEN
+         CALL mtx_broadcast1_integer(nxmax)
+         CALL mtx_broadcast1_integer(nymax)
+
+         IF(nrank.NE.0) THEN
+            IF(ALLOCATED(XD)) DEALLOCATE(XD,YD,VA,UA,FX,FY,FXY)
+            ALLOCATE(XD(NXMAX),YD(NYMAX),VA(NXMAX,NYMAX,8))
+            ALLOCATE(UA(4,4,NXMAX,NYMAX,8))
+            ALLOCATE(FX(NXMAX,NYMAX),FY(NXMAX,NYMAX),FXY(NXMAX,NYMAX))
+         END IF
+
+         CALL mtx_broadcast_real8(xd,nxmax)
+         CALL mtx_broadcast_real8(yd,nymax)
+         DO nv=1,8
+            CALL mtx_broadcast2D_real8(va(1:nxmax,1:nymax,nv), &
+                 nxmax,nxmax,nymax)
+         END DO
+
+         IF(nrank.EQ.0) THEN
+            IF(IDEBUG.EQ.1) THEN
+               CALL PAGES
+               CALL GRD2D(14,XD,YD,VA(1:NXMAX,1:NYMAX,1), &
+                    NXMAX,NXMAX,NYMAX,'@XD@')
+               CALL GRD2D(15,XD,YD,VA(1:NXMAX,1:NYMAX,2), &
+                    NXMAX,NXMAX,NYMAX,'@YD@')
+               CALL GRD2D(16,XD,YD,VA(1:NXMAX,1:NYMAX,3), &
+                    NXMAX,NXMAX,NYMAX,'@BX@')
+               CALL GRD2D(17,XD,YD,VA(1:NXMAX,1:NYMAX,4), &
+                    NXMAX,NXMAX,NYMAX,'@BY@')
+               CALL GRD2D(18,XD,YD,VA(1:NXMAX,1:NYMAX,5), &
+                    NXMAX,NXMAX,NYMAX,'@BZ@')
+               CALL GRD2D(19,XD,YD,VA(1:NXMAX,1:NYMAX,6), &
+                    NXMAX,NXMAX,NYMAX,'@BTOT@')
+               CALL GRD2D(20,XD,YD,VA(1:NXMAX,1:NYMAX,7), &
+                    NXMAX,NXMAX,NYMAX,'@TE@')
+               CALL GRD2D(21,XD,YD,VA(1:NXMAX,1:NYMAX,8), &
+                    NXMAX,NXMAX,NYMAX,'@NE@')
+               CALL GRD2D(22,XD,YD,VA(1:NXMAX,1:NYMAX,9), &
+                    NXMAX,NXMAX,NYMAX,'@TI@')
+               CALL GRD2D(23,XD,YD,VA(1:NXMAX,1:NYMAX,10), &
+                    NXMAX,NXMAX,NYMAX,'@NI@')
+               CALL PAGEE
+            END IF
+         END IF
 
 !----  Set coefficient for spline
 
-      DO NV=3,10
-         CALL SPL2D(XD,YD,VA(1,1,NV),FX,FY,FXY,UA(1,1,1,1,NV), &
-                    NXMAX,NXMAX,NYMAX,0,0,IERSPL)
-         IF (IERSPL.NE.0) THEN
-            WRITE(6,*) 'XX pl_load_p2D: SPL2D: NV=', NV
-            GO TO 9997
-         END IF
-      END DO
-      GO TO 9999
+         DO NV=1,8
+            CALL SPL2D(XD,YD,VA(1,1,NV),FX,FY,FXY,UA(1,1,1,1,NV), &
+                       NXMAX,NXMAX,NYMAX,0,0,IERSPL)
+            IF (IERSPL.NE.0) THEN
+               WRITE(6,*) 'XX pl_load_p2D: SPL2D: NV=', NV
+               GO TO 9997
+            END IF
+         END DO
+         GO TO 9999
 
- 9990 WRITE(6,*) '==========  pl_load_p2D OPEN ERROR  =========='
-      WRITE(6,*) '   IERR = ',IERR
-      GO TO 9999
- 9991 WRITE(6,*) '==========  pl_load_p2D ABNORMAL END of FILE  =========='
-      GO TO 9999
- 9992 WRITE(6,*) '==========  pl_load_p2D FILE READ ERROR: NXMAX  =========='
-      GO TO 9999
- 9993 WRITE(6,*) '==========  pl_load_p2D FILE READ ERROR: NYMAX  =========='
-      GO TO 9999
- 9994 WRITE(6,*) '==========  pl_load_p2D FILE READ ERROR: VA  =========='
-      GO TO 9999
- 9995 WRITE(6,*) '==========  pl_load_p2D INCONSISTENT DATA: IX != NX'
-      GO TO 9999
- 9996 WRITE(6,*) '==========  pl_load_p2D INCONSISTENT DATA: IY != NY'
-      GO TO 9999
- 9997 WRITE(6,*) '==========  pl_load_p2D SPL2D ERROR  =========='
-      WRITE(6,*) '   IERSPL = ',IERSPL
-      GO TO 9999
+9997     WRITE(6,*) '==========  pl_load_p2D SPL2D ERROR  =========='
+         WRITE(6,*) '   IERSPL = ',IERSPL
 
- 9999 REWIND NFL
-      CLOSE(NFL)
-      IF(ALLOCATED(FX)) DEALLOCATE(FX,FY,FXY)
+9999     CONTINUE
+      END IF
       RETURN
     END SUBROUTINE pl_load_p2D
 
@@ -394,11 +447,11 @@ CONTAINS
       IF(YL.GT.YD(NYMAX)) YL=YD(NYMAX)
 
       IERR=0
-      CALL SPL2DF(XL,YL,BX,XD,YD,UA(1,1,1,1,3),NXMAX,NXMAX,NYMAX,IERL)
+      CALL SPL2DF(XL,YL,BX,XD,YD,UA(1,1,1,1,1),NXMAX,NXMAX,NYMAX,IERL)
       IF(IERL.NE.0) IERR=8001
-      CALL SPL2DF(XL,YL,BY,XD,YD,UA(1,1,1,1,4),NXMAX,NXMAX,NYMAX,IERL)
+      CALL SPL2DF(XL,YL,BY,XD,YD,UA(1,1,1,1,2),NXMAX,NXMAX,NYMAX,IERL)
       IF(IERL.NE.0) IERR=8002
-      CALL SPL2DF(XL,YL,BZ,XD,YD,UA(1,1,1,1,5),NXMAX,NXMAX,NYMAX,IERL)
+      CALL SPL2DF(XL,YL,BZ,XD,YD,UA(1,1,1,1,3),NXMAX,NXMAX,NYMAX,IERL)
       IF(IERL.NE.0) IERR=8003
 
       RETURN
@@ -432,17 +485,17 @@ CONTAINS
       NSMAXL=2
 
       IERR=0
-      CALL SPL2DF(XL,YL,RNPL(1),XD,YD,UA(1,1,1,1, 8),NXMAX,NXMAX,NYMAX,IERL)
+      CALL SPL2DF(XL,YL,RNPL(1),XD,YD,UA(1,1,1,1, 6),NXMAX,NXMAX,NYMAX,IERL)
       IF(IERL.NE.0) IERR=8001
       RNPL(1)=RNPL(1)*1.D-20
-      CALL SPL2DF(XL,YL,RTPL(1),XD,YD,UA(1,1,1,1, 7),NXMAX,NXMAX,NYMAX,IERL)
+      CALL SPL2DF(XL,YL,RTPL(1),XD,YD,UA(1,1,1,1, 5),NXMAX,NXMAX,NYMAX,IERL)
       IF(IERL.NE.0) IERR=8002
       RTPL(1)=RTPL(1)*1.D-3
       RUPL(1)=0.D0
-      CALL SPL2DF(XL,YL,RNPL(2),XD,YD,UA(1,1,1,1,10),NXMAX,NXMAX,NYMAX,IERL)
+      CALL SPL2DF(XL,YL,RNPL(2),XD,YD,UA(1,1,1,1, 8),NXMAX,NXMAX,NYMAX,IERL)
       IF(IERL.NE.0) IERR=8003
       RNPL(2)=RNPL(2)*1.D-20
-      CALL SPL2DF(XL,YL,RTPL(2),XD,YD,UA(1,1,1,1, 9),NXMAX,NXMAX,NYMAX,IERL)
+      CALL SPL2DF(XL,YL,RTPL(2),XD,YD,UA(1,1,1,1, 7),NXMAX,NXMAX,NYMAX,IERL)
       IF(IERL.NE.0) IERR=8004
       RTPL(2)=RTPL(2)*1.D-3
       RUPL(2)=0.D0

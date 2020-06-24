@@ -391,6 +391,7 @@ C
       AVEJPR(1)  = FCTR2(PS2,PS3,PS4,AVEJPR (2),AVEJPR (3),AVEJPR (4))
       AVEJTR(1)  = FCTR2(PS2,PS3,PS4,AVEJTR (2),AVEJTR (3),AVEJTR (4))
       AVEIR (1)  = FCTR2(PS2,PS3,PS4,AVEIR  (2),AVEIR  (3),AVEIR  (4))
+      RITOR (1)  = 0.D0
 
       RRMIN(1)   = RAXIS
       RRMAX(1)   = RAXIS
@@ -612,6 +613,7 @@ C            call polintx(nr,npmax,nrm,dsdpsit)
             PSIT(NR)=PSIT(NRPMAX)*Sratio
 !            QPS(NR)=(PSIT(NR)-PSIT(NR-1))/(PSIP(NR)-PSIP(NR-1))
             QPS(NR)=QPS(NRPMAX)*Sratio
+            RITOR(NR)=RITOR(NRPMAX)
 
 C            write(6,'(A,I5,1P3E12.4)') 
 C     &           'NR,PSIP,PSIT,QPS=',NR,PSIP(NR),PSIT(NR),QPS(NR)
@@ -766,6 +768,7 @@ C
             ENDDO
 C
             QPS(NR)=SUMAVIR2*TTS(NR)/(4.D0*PI**2)
+            RITOR(NR)=RITOR(NRPMAX)
             DVDPSIP(NR)=SUMV
             DVDPSIT(NR)=SUMV/QPS(NR)
             SPS(NR)=SUMS*2.D0*PI

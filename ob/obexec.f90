@@ -152,14 +152,14 @@ CONTAINS
 
     pzem=PZ(ns_ob)*AEE/(PA(ns_ob)*AMP)
 
-    zetab=Y(1)
+    zetab=y(1)
     thetab=y(2)
     psip=y(3)
     rho_para=y(4)
 
     CALL cal_r_pos(thetab,psip,r_pos,ierr)
     CALL cal_z_pos(thetab,psip,z_pos,ierr)
-    CALL cal_b_pos(thetab,psip,b_pos,db_dthetab,db_dpsip,ierr)
+    CALL cal_bdb_pos(thetab,psip,b_pos,db_dthetab,db_dpsip,ierr)
 
     CALL cal_qps_pos(psip,qps,dqps_dpsip,ierr)
     CALL cal_rbps_pos(psip,rbps,drbps_dpsip,ierr)

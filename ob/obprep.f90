@@ -12,14 +12,14 @@ MODULE obprep
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:,:,:):: &
        urpsi,uzpsi,ubpsi
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: &
-       uqps,urbps,uritps
+       uqps,urbps,uritps,upsit
   REAL(rkind):: &
        raxis,zaxis,psipa,psita,q0,qa
   REAL(rkind):: &
        rsumin,rsumax,zsumin,zsumax
   
   PRIVATE
-  PUBLIC ob_prep,cal_r_pos,cal_z_pos,cal_b_pos, &
+  PUBLIC ob_prep,cal_r_pos,cal_z_pos,cal_b_pos,cal_bdb_pos, &
        cal_qps_pos,cal_rbps_pos,cal_ritps_pos, &
        psipa
 
@@ -76,7 +76,7 @@ CONTAINS
        DEALLOCATE(rhot,psip,psit,pps,qps,rbps,vps,rlen,ritps,rsu,zsu,rsw,zsw)
        DEALLOCATE(rpsi,drpsi,drchi,zpsi,dzpsi,dzchi,bpr,bpz,bpt,btp)
        DEALLOCATE(urpsi,uzpsi,ubpsi)
-       DEALLOCATE(uqps,urbps,uritps)
+       DEALLOCATE(uqps,urbps,uritps,upsit)
        DEALLOCATE(chi)
     END IF
     ALLOCATE(rhot(nrmax_ob),psip(nrmax_ob),psit(nrmax_ob))
@@ -98,6 +98,7 @@ CONTAINS
     ALLOCATE(uzpsi(4,4,nthmax_ob+1,nrmax_ob))
     ALLOCATE(ubpsi(4,4,nthmax_ob+1,nrmax_ob))
     ALLOCATE(uqps(4,nrmax_ob),urbps(4,nrmax_ob),uritps(4,nrmax_ob))
+    ALLOCATE(upsit(4,nrmax_ob))
     ALLOCATE(chi(nthmax_ob+1))
 
     ! --- read eq data file ---
@@ -110,9 +111,7 @@ CONTAINS
     ! rkap: ellipticity
     ! rdlt: triangularity
 
-    WRITE(6,'(A,I5)') 'nrmax_ob=',nrmax_ob
     CALL eqgetp(rhot,psip,nrmax_ob)  ! normalized psit radius
-    WRITE(6,'(A,I5)') 'nrmax_ob=',nrmax_ob
     ! rhot: normalized minor radius defined by toroidal magnetic flux
     ! psip: poloidal magnetic flux (0 on magnetic axis) [Tm^2]
     
@@ -154,33 +153,6 @@ CONTAINS
     ! q0:    safety factor on magnetic axis
     ! qa:    safety factor on plasma surface
 
-    WRITE(6,'(A,1P6E12.4)') 'R: ', &
-         rpsi(1,          nrmax_ob/2), &
-         rpsi(nthmax_ob/2,nrmax_ob/2), &
-         rpsi(nthmax_ob,  nrmax_ob/2), &
-         rpsi(1,          nrmax_ob), &
-         rpsi(nthmax_ob/2,nrmax_ob), &
-         rpsi(nthmax_ob,  nrmax_ob)
-
-    WRITE(6,'(A,1P6E12.4)') 'Z: ', &
-         zpsi(1,            nrmax_ob/2), &
-         zpsi(nthmax_ob/4,  nrmax_ob/2), &
-         zpsi(3*nthmax_ob/4,nrmax_ob/2), &
-         zpsi(1,            nrmax_ob), &
-         rpsi(nthmax_ob/4,  nrmax_ob), &
-         zpsi(3*nthmax_ob/4,nrmax_ob)
-
-    WRITE(6,'(A,1P6E12.4)') 'p,q: ', &
-         pps(1),pps(nrmax_ob/2),pps(nrmax_ob), &
-         qps(1),qps(nrmax_ob/2),qps(nrmax_ob)
-    WRITE(6,'(A,1P6E12.4)') 'Ip,It: ', &
-         rbps(1),rbps(nrmax_ob/2),rbps(nrmax_ob), &
-         ritps(1),ritps(nrmax_ob/2),ritps(nrmax_ob)
-    WRITE(6,'(1P6E12.4)') &
-         (rhot(nr),psip(nr),pps(nr),qps(nr),rbps(nr),ritps(nr),nr=1,nrmax_ob)
-
-    WRITE(6,'(A,1P2E12.4)') 'eqload: completed:',psipa
-    
     ! --- define toroidal flux with 0 on magnetci axis ---
 
     DO nr=1,nrmax_ob
@@ -207,6 +179,7 @@ CONTAINS
 
   SUBROUTINE ob_eqspline(ierr)
     USE obcomm
+    USE libgrf
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
     REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: f,fx,fy,fxy
@@ -216,7 +189,7 @@ CONTAINS
 
     ierr=0
     
-    DCHI=1.D0*PI/nthmax_ob
+    DCHI=2.D0*PI/nthmax_ob
     DO nth=1,nthmax_ob+1     ! chi=0 for nchi=1, chi=2*pi for nci=nchimax_ob+1
        CHI(nth)=dchi*(nth-1)
     END DO
@@ -237,6 +210,10 @@ CONTAINS
          4,0,ierr) ! spline R(chi,psip)
     IF(ierr.NE.0) RETURN
 
+!    CALL pages
+!    CALL grd2d(0,chi,psip,f,nthmax_ob+1,nthmax_ob+1,nrmax_ob,'@rpsi@')
+!    CALL pagee
+
     DO nr=1,nrmax_ob
        DO nth=1,nthmax_ob
           f(nth,nr)=zpsi(nth,nr)
@@ -247,6 +224,10 @@ CONTAINS
                4,0,ierr) ! spline Z(chi,psip)
     IF(ierr.NE.0) RETURN
 
+!    CALL pages
+!    CALL grd2d(0,chi,psip,f,nthmax_ob+1,nthmax_ob+1,nrmax_ob,'@zpsi@')
+!    CALL pagee
+
     DO nr=1,nrmax_ob
        DO nth=1,nthmax_ob
           f(nth,nr)=SQRT(bpt(nth,nr)**2+btp(nth,nr)**2)
@@ -254,14 +235,22 @@ CONTAINS
        f(nthmax_ob+1,nr)=f(1,nr)
     END DO
     CALL SPL2D(chi,psip,f,fx,fy,fxy,ubpsi,nthmax_ob+1,nthmax_ob+1,nrmax_ob, &
-               4,0,ierr) ! spline Z(chi,psip)
+               4,0,ierr) ! spline B(chi,psip)
     IF(ierr.NE.0) RETURN
+
+!    CALL pages
+!    CALL grd2d(0,chi,psip,f,nthmax_ob+1,nthmax_ob+1,nrmax_ob,'@bpsi@')
+!    CALL pagee
 
     CALL SPL1D(psip,qps,fd,uqps,nrmax_ob,0,ierr)
     IF(ierr.NE.0) RETURN
-    CALL SPL1D(psip,rbps,fd,urbps,nrmax_ob,0,ierr)
+    fd(nrmax_ob)=0.D0
+    CALL SPL1D(psip,rbps,fd,urbps,nrmax_ob,2,ierr)
     IF(ierr.NE.0) RETURN
-    CALL SPL1D(psip,ritps,fd,uritps,nrmax_ob,0,ierr)
+    fd(nrmax_ob)=0.D0
+    CALL SPL1D(psip,ritps,fd,uritps,nrmax_ob,2,ierr)
+    IF(ierr.NE.0) RETURN
+    CALL SPL1D(psip,psit,fd,upsit,nrmax_ob,2,ierr)
     IF(ierr.NE.0) RETURN
 
     DEALLOCATE(f,fx,fy,fxy,fd)
@@ -326,7 +315,19 @@ CONTAINS
     
   ! B(chi,psip)
   
-  SUBROUTINE cal_b_pos(chi_pos,psip_pos,b_pos,db_dchi,db_dpsip,ierr)
+  SUBROUTINE cal_b_pos(chi_pos,psip_pos,b_pos,ierr)
+    USE obcomm
+    IMPLICIT NONE
+    REAL(rkind),INTENT(IN):: chi_pos,psip_pos
+    REAL(rkind),INTENT(OUT):: b_pos
+    INTEGER,INTENT(OUT):: ierr
+
+    CALL SPL2DF(chi_pos,psip_pos,b_pos,chi,psip,ubpsi, &
+         nthmax_ob+1,nthmax_ob+1,nrmax_ob,ierr)
+    RETURN
+  END SUBROUTINE cal_b_pos
+    
+  SUBROUTINE cal_bdb_pos(chi_pos,psip_pos,b_pos,db_dchi,db_dpsip,ierr)
     USE obcomm
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: chi_pos,psip_pos
@@ -336,7 +337,7 @@ CONTAINS
     CALL SPL2DD(chi_pos,psip_pos,b_pos,db_dchi,db_dpsip,chi,psip,ubpsi, &
          nthmax_ob+1,nthmax_ob+1,nrmax_ob,ierr)
     RETURN
-  END SUBROUTINE cal_b_pos
+  END SUBROUTINE cal_bdb_pos
     
   ! qps(chi,psip)
   
@@ -376,6 +377,18 @@ CONTAINS
     INTEGER,INTENT(OUT):: ierr
 
     CALL SPL1DD(psip_pos,ritps_pos,dritps_dpsip,psip,uritps,nrmax_ob,ierr)
+    
+    RETURN
+  END SUBROUTINE cal_ritps_pos
+    
+  SUBROUTINE cal_psit_pos(psip_pos,psit_pos,dpsit_dpsip,ierr)
+    USE obcomm
+    IMPLICIT NONE
+    REAL(rkind),INTENT(IN):: psip_pos
+    REAL(rkind),INTENT(OUT):: psit_pos,dpsit_dpsip
+    INTEGER,INTENT(OUT):: ierr
+
+    CALL SPL1DD(psip_pos,psit_pos,dpsit_dpsip,psip,upsit,nrmax_ob,ierr)
     
     RETURN
   END SUBROUTINE cal_ritps_pos
