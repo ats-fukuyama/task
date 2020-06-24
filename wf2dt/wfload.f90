@@ -29,6 +29,8 @@ CONTAINS
       USE wfwg1D
       USE libfio
       USE libgrf
+      USE libmpi
+      USE commpi
       IMPLICIT NONE
       INTEGER,INTENT(OUT):: ierr
       INTEGER:: NFL,NY,NV,IERSPL
@@ -36,87 +38,125 @@ CONTAINS
       REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: VATEMP
       REAL(rkind),DIMENSION(:),ALLOCATABLE:: FX
       CHARACTER(LEN=80),SAVE:: KNAMWG_SAVE=' '
+      INTEGER:: istatus
+
 
       ierr = 0
-      IF(KNAMWG.EQ.KNAMWG_SAVE) RETURN
-      KNAMWG_SAVE=KNAMWG
+      istatus=0
+
+      IF(nrank.EQ.0) THEN
+         IF(KNAMWG.NE.KNAMWG_SAVE) THEN
+            KNAMWG_SAVE=KNAMWG
+            istatus=1
 
 !----    open defined by toroidal magnetic flux
 
-      NFL=22
-      CALL FROPEN(NFL,KNAMWG,1,0,'WG',ierr) 
+            NFL=22
+            CALL FROPEN(NFL,KNAMWG,1,0,'WG',ierr) 
                                        !open to read formatted without pronpt
-      IF(ierr.NE.0) GOTO 9990
+            IF(ierr.NE.0) GOTO 9990
 
-      READ(NFL,*,END=9991) ! skip 1 lines: KZ
-      READ(NFL,*,ERR=9994,END=9991) RKZ
-      READ(NFL,*,END=9991) ! skip 2 lines: title,nymax
-      READ(NFL,*,END=9991)
-      READ(NFL,*,ERR=9994,END=9991) NYMAX
+            READ(NFL,*,END=9991) ! skip 1 lines: KZ
+            READ(NFL,*,ERR=9992,END=9991) RKZ
+            READ(NFL,*,END=9991) ! skip 2 lines: title,nymax
+            READ(NFL,*,END=9991)
+            READ(NFL,*,ERR=9993,END=9991) NYMAX
+      
+            ALLOCATE(VATEMP(NYMAX,8))
 
-      ALLOCATE(VATEMP(NYMAX,8))
+            READ(NFL,*,END=9991) ! skip 1 line: variable name
+            DO NY=1,NYMAX
+               READ(NFL,'(8E22.12)',ERR=9994,END=9991) &
+                    (VATEMP(NY,NV),NV=1,8)
+            END DO
+            WRITE(6,'(A)') '## WG 1D data successfully loaded'
+            WRITE(6,'(A)') '   WG 1D data file: '
+            WRITE(6,'(A)') KNAMWG
+            GO TO 9995
+            
+9990        WRITE(6,*) '==========  wf_load_wg OPEN ERROR  =========='
+            WRITE(6,*) '   IERR = ',IERR
+            GO TO 9995
+9991        WRITE(6,*) '==========  wf_load_wg ABNORMAL END of FILE  ========='
+            GO TO 9995
+9992        WRITE(6,*) '==========  wf_load_wg FILE READ ERROR: RKZ  ======='
+            GO TO 9995
+9993        WRITE(6,*) '==========  wf_load_wg FILE READ ERROR: NYMAX  ======='
+            GO TO 9995
+9994        WRITE(6,*) '==========  wf_load_wg FILE READ ERROR: VA  =========='
 
-      READ(NFL,*,END=9991) ! skip 1 line: variable name
-      DO NY=1,NYMAX
-         READ(NFL,'(8E22.12)',ERR=9994,END=9991) &
-              (VATEMP(NY,NV),NV=1,8)
-      END DO
+9995        REWIND NFL
+            CLOSE(NFL)
+            IF(ALLOCATED(FX)) DEALLOCATE(FX)
 
-      IF(ALLOCATED(YD)) DEALLOCATE(YD,VA,UA,FX)
-      ALLOCATE(YD(NYMAX),VA(NYMAX,7))
-      ALLOCATE(UA(4,4,NYMAX,7))
-      ALLOCATE(FX(NYMAX))
+            IF(ALLOCATED(YD)) DEALLOCATE(YD,VA,UA,FX)
+            ALLOCATE(YD(NYMAX),VA(NYMAX,7))
+            ALLOCATE(UA(4,4,NYMAX,7))
+            ALLOCATE(FX(NYMAX))
 
-      DO NY=1,NYMAX
-         YD(NY)=VATEMP(NY,1)
-         DO NV=1,7
-            VA(NY,NV)=VATEMP(NY,NV+1)
-         END DO
-      END DO
+            DO NY=1,NYMAX
+               YD(NY)=VATEMP(NY,1)
+               DO NV=1,7
+                  VA(NY,NV)=VATEMP(NY,NV+1)
+               END DO
+            END DO
 
-      DEALLOCATE(VATEMP)
+            DEALLOCATE(VATEMP)
 
-      WRITE(6,'(A)') '## WG 1D data successfully loaded'
-      WRITE(6,'(A)') '   WG 1D data file: '
-      WRITE(6,'(A)') KNAMWG
+            WRITE(6,'(A)') '## WG 1D data successfully loaded'
+            WRITE(6,'(A)') '   WG 1D data file: '
+            WRITE(6,'(A)') KNAMWG
 
-      WRITE(6,'(A,1P2E12.4)') 'YMIN,YMAX =',YD(1),YD(NYMAX)
+            WRITE(6,'(A,1P2E12.4)') 'YMIN,YMAX =',YD(1),YD(NYMAX)
 
-      IF(IDEBUG.EQ.1) THEN
-         CALL PAGES
-         CALL GRD1D( 1,YD,VA(1,1),NYMAX,NYMAX,2,'@EX@')
-         CALL GRD1D( 2,YD,VA(1,3),NYMAX,NYMAX,2,'@EY@')
-         CALL GRD1D( 3,YD,VA(1,5),NYMAX,NYMAX,2,'@EZ@')
-         CALL GRD1D( 4,YD,VA(1,7),NYMAX,NYMAX,1,'@EABS@')
-         CALL PAGEE
+         END IF
       END IF
 
+      CALL mtx_broadcast1_integer(istatus)
+
+      IF(istatus.EQ.1) THEN
+         CALL mtx_broadcast1_real8(rkz)
+         CALL mtx_broadcast1_integer(nymax)
+         IF(nrank.NE.0) THEN
+            IF(ALLOCATED(YD)) DEALLOCATE(YD,VA,UA,FX)
+            ALLOCATE(YD(NYMAX),VA(NYMAX,7))
+            ALLOCATE(UA(4,4,NYMAX,7))
+            ALLOCATE(FX(NYMAX))
+         END IF
+
+         CALL mtx_broadcast_real8(yd(1:nymax),nymax)
+         DO nv=1,7
+            CALL mtx_broadcast_real8(va(1:nymax,nv),nymax)
+         END DO
+
+         IF(nrank.EQ.0) THEN
+            IF(IDEBUG.EQ.1) THEN
+               CALL PAGES
+               CALL GRD1D( 1,YD,VA(1,1),NYMAX,NYMAX,2,'@EX@')
+               CALL GRD1D( 2,YD,VA(1,3),NYMAX,NYMAX,2,'@EY@')
+               CALL GRD1D( 3,YD,VA(1,5),NYMAX,NYMAX,2,'@EZ@')
+               CALL GRD1D( 4,YD,VA(1,7),NYMAX,NYMAX,1,'@EABS@')
+               CALL PAGEE
+            END IF
+         END IF
+         
 !----  Set coefficient for spline
 
-      DO NV=1,6
-         CALL SPL1D(YD,VA(1,NV),FX,UA(1,1,1,NV), &
-                    NYMAX,0,IERSPL)
-         IF (IERSPL.NE.0) THEN
-            WRITE(6,*) 'XX wf_load_wg: SPL1D: NV=', NV
-            GO TO 9997
-         END IF
-      END DO
-      GO TO 9999
+         DO NV=1,6
+            CALL SPL1D(YD,VA(1,NV),FX,UA(1,1,1,NV),NYMAX,0,IERSPL)
+            IF (IERSPL.NE.0) THEN
+               WRITE(6,*) 'XX wf_load_wg: SPL1D: NV=', NV
+               GO TO 9997
+            END IF
+         END DO
+         GO TO 9999
 
- 9990 WRITE(6,*) '==========  wf_load_wg OPEN ERROR  =========='
-      WRITE(6,*) '   IERR = ',IERR
-      GO TO 9999
- 9991 WRITE(6,*) '==========  wf_load_wg ABNORMAL END of FILE  =========='
-      GO TO 9999
- 9994 WRITE(6,*) '==========  wf_load_wg FILE READ ERROR: VA  =========='
-      GO TO 9999
- 9997 WRITE(6,*) '==========  wf_load_wg SPL1D ERROR  =========='
-      WRITE(6,*) '   IERSPL = ',IERSPL
-      GO TO 9999
+9997     WRITE(6,*) '==========  wf_load_wg SPL1D ERROR  =========='
+         WRITE(6,*) '   IERSPL = ',IERSPL
 
- 9999 REWIND NFL
-      CLOSE(NFL)
-      IF(ALLOCATED(FX)) DEALLOCATE(FX)
+9999     CONTINUE
+      END IF
+
       RETURN
     END SUBROUTINE wf_load_wg
 
