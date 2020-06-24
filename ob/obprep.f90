@@ -7,8 +7,6 @@ MODULE obprep
        rhot,psip,psit,pps,qps,rbps,vps,rlen,ritps,rsu,zsu,rsw,zsw
   REAL(rkind),Allocatable,DIMENSION(:,:):: &
        rpsi,drpsi,drchi,zpsi,dzpsi,dzchi,bpr,bpz,bpt,btp
-  REAL(rkind),Allocatable,DIMENSION(:,:):: &
-       rg11,rg12,rg13,rg22,rg23,rg33,rj,bfld2,bfld3
   REAL(rkind),ALLOCATABLE,DIMENSION(:)::  &
        chi
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:,:,:):: &
@@ -17,10 +15,13 @@ MODULE obprep
        uqps,urbps,uritps
   REAL(rkind):: &
        raxis,zaxis,psipa,psita,q0,qa
+  REAL(rkind):: &
+       rsumin,rsumax,zsumin,zsumax
   
   PRIVATE
   PUBLIC ob_prep,cal_r_pos,cal_z_pos,cal_b_pos, &
-         cal_qps_pos,cal_rbps_pos,cal_ritps_pos
+       cal_qps_pos,cal_rbps_pos,cal_ritps_pos, &
+       psipa
 
 CONTAINS
   
@@ -31,7 +32,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
     CHARACTER(LEN=80) :: line
-    INTEGER:: nr,nth
+    INTEGER:: nr,nth,nsu
 
     ierr=0
 
@@ -74,7 +75,6 @@ CONTAINS
     IF(ALLOCATED(rhot)) THEN
        DEALLOCATE(rhot,psip,psit,pps,qps,rbps,vps,rlen,ritps,rsu,zsu,rsw,zsw)
        DEALLOCATE(rpsi,drpsi,drchi,zpsi,dzpsi,dzchi,bpr,bpz,bpt,btp)
-       DEALLOCATE(rg11,rg12,rg13,rg22,rg23,rg33,rj,bfld2,bfld3)
        DEALLOCATE(urpsi,uzpsi,ubpsi)
        DEALLOCATE(uqps,urbps,uritps)
        DEALLOCATE(chi)
@@ -93,11 +93,6 @@ CONTAINS
     ALLOCATE(pps(nrmax_ob),qps(nrmax_ob),rbps(nrmax_ob))
     ALLOCATE(vps(nrmax_ob),rlen(nrmax_ob),ritps(nrmax_ob))
     ALLOCATE(rsu(nsumax_ob),zsu(nsumax_ob),rsw(nsumax_ob),zsw(nsumax_ob))
-    ALLOCATE(rg11(nthmax_ob,nrmax_ob),rg12(nthmax_ob,nrmax_ob))
-    ALLOCATE(rg13(nthmax_ob,nrmax_ob),rg22(nthmax_ob,nrmax_ob))
-    ALLOCATE(rg23(nthmax_ob,nrmax_ob),rg33(nthmax_ob,nrmax_ob))
-    ALLOCATE(rJ(nthmax_ob,nrmax_ob))
-    ALLOCATE(bfld2(nthmax_ob,nrmax_ob),bfld3(nthmax_ob,nrmax_ob))
 
     ALLOCATE(urpsi(4,4,nthmax_ob+1,nrmax_ob))
     ALLOCATE(uzpsi(4,4,nthmax_ob+1,nrmax_ob))
@@ -105,57 +100,106 @@ CONTAINS
     ALLOCATE(uqps(4,nrmax_ob),urbps(4,nrmax_ob),uritps(4,nrmax_ob))
     ALLOCATE(chi(nthmax_ob+1))
 
-    ! --- read eq data from eq ---
+    ! --- read eq data file ---
 
     CALL eqgetb(bb,rr,rip,ra,rkap,rdlt,rb) ! get basic eq. parameter
-    CALL eqgetp(rhot,psip,nrmax_ob)  ! normalized psit radius
-    CALL eqgetr(rpsi,drpsi,drchi,nthmax_ob,nthmax_ob,nrmax_ob) ! R and deriv
-    CALL eqgetz(zpsi,dzpsi,dzchi,nthmax_ob,nthmax_ob,nrmax_ob) ! Z and deriv
-    CALL eqgetbb(bpr,bpz,bpt,btp,nthmax_ob,nthmax_ob,nrmax_ob) ! mag field
-    CALL eqgetqn(pps,qps,rbps,vps,rlen,ritps,nrmax_ob) ! flux functions
-    CALL eqgetu(rsu,zsu,rsw,zsw,nsumax_ob) ! plasma and wall surface
-    CALL eqgeta(raxis,zaxis,psipa,psita,q0,qa) ! axis and mag parameters
+    ! bb:   toroidal magnetic field at r=rr [T]
+    ! rr:   plasma major radius [m:
+    ! rip:  toroidal plasma current [MA]
+    ! ra:   plasma minor radius [m]
+    ! rkap: ellipticity
+    ! rdlt: triangularity
 
+    WRITE(6,'(A,I5)') 'nrmax_ob=',nrmax_ob
+    CALL eqgetp(rhot,psip,nrmax_ob)  ! normalized psit radius
+    WRITE(6,'(A,I5)') 'nrmax_ob=',nrmax_ob
+    ! rhot: normalized minor radius defined by toroidal magnetic flux
+    ! psip: poloidal magnetic flux (0 on magnetic axis) [Tm^2]
+    
+    CALL eqgetr(rpsi,drpsi,drchi,nthmax_ob,nthmax_ob,nrmax_ob) ! R and deriv
+    ! rpsi:  radial coordinates for psip and chi [m]
+    ! drpsi: drpsi/dpsip psip derivatice of rpsi [1/Tm]
+    ! drchi: drpsi/dchi  chi  derivatice of rpsi [m]
+    
+    CALL eqgetz(zpsi,dzpsi,dzchi,nthmax_ob,nthmax_ob,nrmax_ob) ! Z and deriv
+    ! zpsi:  vertical coordinates for psip and chi [m]
+    ! dzpsi: dzpsi/dpsip psip derivatice of zpsi   [1/Tm]
+    ! dzchi: dzpsi/dchi  chi  derivatice of zpsi   [m]
+    
+    CALL eqgetbb(bpr,bpz,bpt,btp,nthmax_ob,nthmax_ob,nrmax_ob) ! mag field
+    ! bpr:  r component of poloidal magnetic field [T]
+    ! bpz:  zcomponent of poloidal magnetic field [T]
+    ! bpt:  total poloidal magnetic field [T] =SQRT(bpr**2+bpz**2)
+    ! btp:  toroidal magnetic field [T]
+    
+    CALL eqgetqn(pps,qps,rbps,vps,rlen,ritps,nrmax_ob) ! flux functions
+    ! pps:   plasma pressure as a function of psip [Pa]
+    ! qps:   safety factor
+    ! rbps:  poloidal plasma current RB_t [Tm]
+    ! vps:   volume [m^3]
+    ! rlen:  contour length [m]
+    ! ritps: toroidal plasma current (2 Pi rs Bp) [Tm]
+    
+    CALL eqgetu(rsu,zsu,rsw,zsw,nsumax_ob) ! plasma and wall surface
+    ! rsu: r coordinates of plasma surface
+    ! zsu: z coordinates of plasma surface
+    ! rsw: r coordinates of wall surface
+    ! zsw: z coordinates of wall surface
+
+    CALL eqgeta(raxis,zaxis,psipa,psita,q0,qa) ! axis and mag parameters
+    ! raxis: r coordinates of magnetic axis
+    ! zaxis: z coordinates of magnetic axis
+    ! psipa: poloidal magnetic flux on plasma surface
+    ! psita: toroidal poloidal magnetic flux on plasma surface
+    ! q0:    safety factor on magnetic axis
+    ! qa:    safety factor on plasma surface
+
+    WRITE(6,'(A,1P6E12.4)') 'R: ', &
+         rpsi(1,          nrmax_ob/2), &
+         rpsi(nthmax_ob/2,nrmax_ob/2), &
+         rpsi(nthmax_ob,  nrmax_ob/2), &
+         rpsi(1,          nrmax_ob), &
+         rpsi(nthmax_ob/2,nrmax_ob), &
+         rpsi(nthmax_ob,  nrmax_ob)
+
+    WRITE(6,'(A,1P6E12.4)') 'Z: ', &
+         zpsi(1,            nrmax_ob/2), &
+         zpsi(nthmax_ob/4,  nrmax_ob/2), &
+         zpsi(3*nthmax_ob/4,nrmax_ob/2), &
+         zpsi(1,            nrmax_ob), &
+         rpsi(nthmax_ob/4,  nrmax_ob), &
+         zpsi(3*nthmax_ob/4,nrmax_ob)
+
+    WRITE(6,'(A,1P6E12.4)') 'p,q: ', &
+         pps(1),pps(nrmax_ob/2),pps(nrmax_ob), &
+         qps(1),qps(nrmax_ob/2),qps(nrmax_ob)
+    WRITE(6,'(A,1P6E12.4)') 'Ip,It: ', &
+         rbps(1),rbps(nrmax_ob/2),rbps(nrmax_ob), &
+         ritps(1),ritps(nrmax_ob/2),ritps(nrmax_ob)
+    WRITE(6,'(1P6E12.4)') &
+         (rhot(nr),psip(nr),pps(nr),qps(nr),rbps(nr),ritps(nr),nr=1,nrmax_ob)
+
+    WRITE(6,'(A,1P2E12.4)') 'eqload: completed:',psipa
+    
     ! --- define toroidal flux with 0 on magnetci axis ---
 
     DO nr=1,nrmax_ob
        psit(nr)=psita*rhot(nr)**2
     END DO
 
-    ! -- define metric tensor, Jacobian and magnetic field  ---
+    ! --- evaluated min and max of rsu and zsu for graphics
 
-    DO nr=2,nrmax_ob
-       DO nth=1,nthmax_ob
-          rg11(nth,nr)=drpsi(nth,nr)**2+dzpsi(nth,nr)**2
-          rg12(nth,nr)=drpsi(nth,nr)*drchi(nth,nr) &
-                      +dzpsi(nth,nr)*dzchi(nth,nr)
-          rg13(nth,nr)=0.D0
-          rg22(nth,nr)=drchi(nth,nr)**2+dzchi(nth,nr)**2
-          rg23(nth,nr)=0.D0
-          rg33(nth,nr)=rpsi(nth,nr)**2
-          rj  (nth,nr)=rpsi(nth,nr)*(drpsi(nth,nr)*dzchi(nth,nr) &
-                                   -drchi(nth,nr)*dzpsi(nth,nr))
+    rsumin=rsu(1)
+    rsumax=rsu(1)
+    zsumin=zsu(1)
+    zsumax=zsu(1)
+    DO nsu=2,nsumax_ob
+       rsumin=MIN(rsumin,rsu(nsu))
+       rsumax=MAX(rsumax,rsu(nsu))
+       zsumin=MIN(zsumin,zsu(nsu))
+       zsumax=MAX(zsumax,zsu(nsu))
+    END DO
 
-          bfld2(nth,nr)=(bpr(nth,nr)*dzpsi(nth,nr) &
-                         -bpz(nth,nr)*drpsi(nth,nr)) &
-                         /SQRT(rg11(nth,nr)) &
-                         /SQRT(rg22(nth,nr))
-          bfld3(nth,nr)=btp(nth,nr)/rpsi(nth,nr)
-       ENDDO
-    ENDDO
-
-    nr=1
-    DO nth=1,nthmax_ob
-       rg11(nth,nr)= rg11(nth,2)
-       rg12(nth,nr)= rg12(nth,2)
-       rg13(nth,nr)= 0.d0
-       rg22(nth,nr)= rg22(nth,2)
-       rg23(nth,nr)= 0.D0
-       rg33(nth,nr)= rpsi(nth,nr)**2
-       rj  (nth,nr)= rj(nth,2)
-       bfld2(nth,nr)=bfld2(nth,2)
-       bfld3(nth,nr)=btp(nth,nr)/rpsi(nth,nr)
-    ENDDO
     RETURN
   END SUBROUTINE ob_eqload
 
@@ -289,7 +333,7 @@ CONTAINS
     REAL(rkind),INTENT(OUT):: b_pos,db_dchi,db_dpsip
     INTEGER,INTENT(OUT):: ierr
 
-    CALL SPL2DD(chi_pos,psip_pos,b_pos,db_dchi,db_dpsip,ubpsi, &
+    CALL SPL2DD(chi_pos,psip_pos,b_pos,db_dchi,db_dpsip,chi,psip,ubpsi, &
          nthmax_ob+1,nthmax_ob+1,nrmax_ob,ierr)
     RETURN
   END SUBROUTINE cal_b_pos
