@@ -33,7 +33,7 @@ CONTAINS
     y_in(4)= rhopara_ob(0,nobt)
 
     peng=penergy_ob(0,nobt)
-    pmuze=penergy_ob(0,nobt)*(1.D0-pangle_ob(0,nobt)**2)/(pz(ns_ob)*AEE)
+    pmuze=penergy_ob(0,nobt)*(1.D0-pcangle_ob(0,nobt)**2)/(pz(ns_ob)*AEE)
     
     IF(mdlobq.EQ.0) THEN
        CALL ob_rkft(y_in,y,nstp)
@@ -142,7 +142,7 @@ CONTAINS
     REAL(rkind),INTENT(IN):: x,y(neq_max)
     REAL(rkind),INTENT(OUT):: F(neq_max)
     REAL(rkind):: pzem,zetab,thetab,psip,rho_para
-    REAL(rkind):: r_pos,z_pos,b_pos,db_dthetab,db_dpsip
+    REAL(rkind):: rr_pos,zz_pos,bb_pos,db_dthetab,db_dpsip
     REAL(rkind):: qps,dqps_dpsip,rbps,drbps_dpsip,ritps,dritps_dpsip
     REAL(rkind):: fg,fI,fq,dg,dI,fD
     REAL(rkind):: dphi_dzetab,dphi_dthetab,dphi_dpsip,db_dzetab
@@ -157,9 +157,9 @@ CONTAINS
     psip=y(3)
     rho_para=y(4)
 
-    CALL cal_r_pos(thetab,psip,r_pos,ierr)
-    CALL cal_z_pos(thetab,psip,z_pos,ierr)
-    CALL cal_bdb_pos(thetab,psip,b_pos,db_dthetab,db_dpsip,ierr)
+    CALL cal_rr_pos(thetab,psip,rr_pos,ierr)
+    CALL cal_zz_pos(thetab,psip,zz_pos,ierr)
+    CALL cal_bdb_pos(thetab,psip,bb_pos,db_dthetab,db_dpsip,ierr)
 
     CALL cal_qps_pos(psip,qps,dqps_dpsip,ierr)
     CALL cal_rbps_pos(psip,rbps,drbps_dpsip,ierr)
@@ -178,9 +178,9 @@ CONTAINS
     dphi_dpsip=0.D0
     db_dzetab=0.D0
 
-    coef1=pzem*rho_para*b_pos**2
+    coef1=pzem*rho_para*bb_pos**2
     coef2=(fq+rho_para*dI)/fD
-    coef3=pmuze+pzem*rho_para**2+b_pos
+    coef3=pmuze+pzem*rho_para**2+bb_pos
     coef4=fI/fD
     coef5=(1.D0-rho_para*dg)/fD
     coef6=fg/fD

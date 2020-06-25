@@ -72,16 +72,15 @@ veryclean: clean
 	-rm -f ob
 
 OBCOMM=obcomm.f90 ../pl/plcomm.f90
-obmain.o: obmain.f90 $(OBCOMM)
-obmenu.o: obmenu.f90 $(OBCOMM)
+obmain.o: obmain.f90 ../pl/plinit.f90 ../pl/plparm.f90 obinit.f90 obparm.f90 obmenu.f90 $(OBCOMM)
+obmenu.o: obmenu.f90 obparm.f90 obview.f90 obprep.f90 obcalc.f90 obgout.f90  $(OBCOMM)
 obinit.o: obinit.f90 $(OBCOMM)
 obparm.o: obparm.f90 $(OBCOMM)
 obview.o: obview.f90 $(OBCOMM)
-obifeq.o: obifeq.f90 $(OBCOMM)
 obprep.o: obprep.f90 $(OBCOMM)
-obcalc.o: obcalc.f90 $(OBCOMM) ../pl/plprof.f90
-obexec.o: obexec.f90 $(OBCOMM) ../pl/plprof.f90
-obsub.o:  obsub.f90 $(OBCOMM)
-obgout.o: obgout.f90 $(OBCOMM)
+obcalc.o: obcalc.f90 obprep.f90 obexec.f90 $(OBCOMM)
+obexec.o: obexec.f90 obprep.f90 $(OBCOMM)
+obsub.o:  obsub.f90
+obgout.o: obprep.f90 ../pl/plgout.f90 ../pl/plprof.f90 $(OBCOMM) obgout.f90
 obfile.o: obfile.f90 $(OBCOMM)
 ../eq/wmeqin.o: ../eq/wmeqin.f

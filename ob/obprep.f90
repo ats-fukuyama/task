@@ -19,9 +19,9 @@ MODULE obprep
        rsumin,rsumax,zsumin,zsumax
   
   PRIVATE
-  PUBLIC ob_prep,cal_r_pos,cal_z_pos,cal_b_pos,cal_bdb_pos, &
-       cal_qps_pos,cal_rbps_pos,cal_ritps_pos, &
-       psipa
+  PUBLIC ob_prep,cal_rr_pos,cal_zz_pos,cal_bb_pos,cal_bdb_pos, &
+       cal_qps_pos,cal_rbps_pos,cal_ritps_pos,cal_psit_pos, &
+       psipa,psita
 
 CONTAINS
   
@@ -287,45 +287,45 @@ CONTAINS
 
   ! R(chi,psip)
   
-  SUBROUTINE cal_r_pos(chi_pos,psip_pos,r_pos,ierr)
+  SUBROUTINE cal_rr_pos(chi_pos,psip_pos,rr_pos,ierr)
     USE obcomm
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: chi_pos,psip_pos
-    REAL(rkind),INTENT(OUT):: r_pos
+    REAL(rkind),INTENT(OUT):: rr_pos
     INTEGER,INTENT(OUT):: ierr
 
-    CALL SPL2DF(chi_pos,psip_pos,r_pos,chi,psip,urpsi, &
+    CALL SPL2DF(chi_pos,psip_pos,rr_pos,chi,psip,urpsi, &
          nthmax_ob+1,nthmax_ob+1,nrmax_ob,ierr)
     RETURN
-  END SUBROUTINE cal_r_pos
+  END SUBROUTINE cal_rr_pos
     
   ! Z(chi,psip)
   
-  SUBROUTINE cal_z_pos(chi_pos,psip_pos,z_pos,ierr)
+  SUBROUTINE cal_zz_pos(chi_pos,psip_pos,zz_pos,ierr)
     USE obcomm
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: chi_pos,psip_pos
-    REAL(rkind),INTENT(OUT):: z_pos
+    REAL(rkind),INTENT(OUT):: zz_pos
     INTEGER,INTENT(OUT):: ierr
 
-    CALL SPL2DF(chi_pos,psip_pos,z_pos,chi,psip,uzpsi, &
+    CALL SPL2DF(chi_pos,psip_pos,zz_pos,chi,psip,uzpsi, &
          nthmax_ob+1,nthmax_ob+1,nrmax_ob,ierr)
     RETURN
-  END SUBROUTINE cal_z_pos
+  END SUBROUTINE cal_zz_pos
     
   ! B(chi,psip)
   
-  SUBROUTINE cal_b_pos(chi_pos,psip_pos,b_pos,ierr)
+  SUBROUTINE cal_bb_pos(chi_pos,psip_pos,bb_pos,ierr)
     USE obcomm
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: chi_pos,psip_pos
-    REAL(rkind),INTENT(OUT):: b_pos
+    REAL(rkind),INTENT(OUT):: bb_pos
     INTEGER,INTENT(OUT):: ierr
 
-    CALL SPL2DF(chi_pos,psip_pos,b_pos,chi,psip,ubpsi, &
+    CALL SPL2DF(chi_pos,psip_pos,bb_pos,chi,psip,ubpsi, &
          nthmax_ob+1,nthmax_ob+1,nrmax_ob,ierr)
     RETURN
-  END SUBROUTINE cal_b_pos
+  END SUBROUTINE cal_bb_pos
     
   SUBROUTINE cal_bdb_pos(chi_pos,psip_pos,b_pos,db_dchi,db_dpsip,ierr)
     USE obcomm
@@ -381,6 +381,8 @@ CONTAINS
     RETURN
   END SUBROUTINE cal_ritps_pos
     
+  ! psit(chi,psip)
+  
   SUBROUTINE cal_psit_pos(psip_pos,psit_pos,dpsit_dpsip,ierr)
     USE obcomm
     IMPLICIT NONE
@@ -391,7 +393,7 @@ CONTAINS
     CALL SPL1DD(psip_pos,psit_pos,dpsit_dpsip,psip,upsit,nrmax_ob,ierr)
     
     RETURN
-  END SUBROUTINE cal_ritps_pos
+  END SUBROUTINE cal_psit_pos
     
 END MODULE obprep
 

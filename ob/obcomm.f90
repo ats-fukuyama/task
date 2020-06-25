@@ -31,9 +31,9 @@ MODULE obcomm_parm
 
   REAL(rkind),DIMENSION(nobt_m):: &
        penergy_in, &          ! initial particle energy (mdlobi=0,1) [keV]
-       pangle_in, &           ! initial sine of pitch angle (mdlobi=0,1) [mu/E]
+       pcangle_in, &          ! initial cosine of pitch angle (mdlobi=0,1)
        zeta_in, &             ! initial toroidal angle (mdlobi=0,1) [deg]
-       pzeta_in, &            ! initial toroidal momentum (mdlobi=0) [P/E]
+       psipn_in, &            ! initial normalized flux (mdlobi=0)
        theta_in, &            ! initial poloidal angle (mdlobi=0) [deg]
        rr_in, &               ! initial major radius (mdlobi=1) [m]
        zz_in                  ! initial vertical position (mdlobi=1) [m]
@@ -75,7 +75,7 @@ MODULE obcomm
        babs_ob, &             ! absolute value of magnetic field
        phi_ob, &              ! electrostatic potential
        penergy_ob, &          ! particle energy
-       pangle_ob, &           ! cos(pitch angle) (1:para,0:perp,-1:anti-para)
+       pcangle_ob, &          ! cos(pitch angle) (1:para,0:perp,-1:anti-para)
        psit_ob, &             ! toroidal magnetic flux
        rr_ob, &               ! major radius
        zz_ob, &               ! vertical positon
@@ -116,7 +116,7 @@ CONTAINS
     ALLOCATE(babs_ob(0:nstp_max,nobt_max))
     ALLOCATE(phi_ob(0:nstp_max,nobt_max))
     ALLOCATE(penergy_ob(0:nstp_max,nobt_max))
-    ALLOCATE(pangle_ob(0:nstp_max,nobt_max))
+    ALLOCATE(pcangle_ob(0:nstp_max,nobt_max))
     ALLOCATE(psit_ob(0:nstp_max,nobt_max))
     ALLOCATE(rr_ob(0:nstp_max,nobt_max))
     ALLOCATE(zz_ob(0:nstp_max,nobt_max))
@@ -142,7 +142,7 @@ CONTAINS
     DEALLOCATE(babs_ob)
     DEALLOCATE(phi_ob)
     DEALLOCATE(penergy_ob)
-    DEALLOCATE(pangle_ob)
+    DEALLOCATE(pcangle_ob)
     DEALLOCATE(psit_ob)
     DEALLOCATE(rr_ob)
     DEALLOCATE(zz_ob)

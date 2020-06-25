@@ -204,6 +204,8 @@ CONTAINS
       RETURN
     END SUBROUTINE OBPRMT
 
+! *** equilibrimu quantities plot ***
+    
     SUBROUTINE ob_gsube
       USE obcomm
       USE obprep
@@ -211,12 +213,12 @@ CONTAINS
       IMPLICIT NONE
       INTEGER,PARAMETER:: npsip_max=50
       INTEGER,PARAMETER:: nchi_max=65
-      REAL(rkind),ALLOCATABLE:: psip_l(:),chi_l(:)
+      REAL(rkind),ALLOCATABLE:: psip_l(:),chi_l(:),gx(:)
       REAL(rkind),ALLOCATABLE:: f1(:,:),f2a(:,:),f2b(:,:),f2c(:,:)
       INTEGER:: nchi,npsip,ierr
       REAL(rkind):: dchi,dpsip,psip0
 
-      ALLOCATE(psip_l(npsip_max),chi_l(nchi_max))
+      ALLOCATE(psip_l(npsip_max),chi_l(nchi_max),gx(npsip_max))
       ALLOCATE(f1(npsip_max,2),f2a(nchi_max,npsip_max))
       ALLOCATE(f2b(nchi_max,npsip_max),f2c(nchi_max,npsip_max))
 
@@ -224,7 +226,8 @@ CONTAINS
       dpsip=(psipa-psip0)/npsip_max
       dchi=2.D0*Pi/(nchi_max-1)
       DO npsip=1,npsip_max
-         psip_l(npsip)=psip0+dpsip*npsip
+         psip_l(npsip)=(psip0+dpsip*npsip)
+         gx(npsip)=psip_l(npsip)/psipa
       END DO
       DO nchi=1,nchi_max
          chi_l(nchi)=dchi*(nchi-1)
@@ -234,16 +237,16 @@ CONTAINS
 
       DO npsip=1,npsip_max
          DO nchi=1,nchi_max
-            CALL cal_r_pos(chi_l(nchi),psip_l(npsip),f2a(nchi,npsip),ierr)
-            CALL cal_z_pos(chi_l(nchi),psip_l(npsip),f2b(nchi,npsip),ierr)
+            CALL cal_rr_pos(chi_l(nchi),psip_l(npsip),f2a(nchi,npsip),ierr)
+            CALL cal_zz_pos(chi_l(nchi),psip_l(npsip),f2b(nchi,npsip),ierr)
          END DO
       END DO
       
       CALL grd2d(1,chi_l,psip_l,f2a,nchi_max,nchi_max,npsip_max, &
-                 '@r_pos(chi,psip)@',0)
+                 '@rr_pos(chi,psip)@',0,XMAX=chi_l(nchi_max))
 
       CALL grd2d(2,chi_l,psip_l,f2b,nchi_max,nchi_max,npsip_max, &
-                 '@z_pos(chi,psip)@',0)
+                 '@zz_pos(chi,psip)@',0,XMAX=chi_l(nchi_max))
 
       DO npsip=1,npsip_max
          DO nchi=1,nchi_max
@@ -253,9 +256,7 @@ CONTAINS
       END DO
       
       CALL grd2d(3,chi_l,psip_l,f2a,nchi_max,nchi_max,npsip_max, &
-                 '@b_pos(chi,psip)@',0)
-      CALL grd2d(4,chi_l,psip_l,f2b,nchi_max,nchi_max,npsip_max, &
-                 '@db_dchi(chi,psip)@',0)
+                 '@bb_pos(chi,psip)@',0,XMAX=chi_l(nchi_max))
 
       CALL pagee
 
@@ -265,22 +266,38 @@ CONTAINS
          CALL cal_qps_pos(psip_l(npsip),f1(npsip,1),f1(npsip,2),ierr)
          f1(npsip,2)=f1(npsip,2)*psip_l(npsip)/f1(npsip,1)
       END DO
-      CALL grd1d(1,psip_l,f1,npsip_max,npsip_max,2,'@qps(psip)@',0)
+      CALL grd1d(1,gx,f1,npsip_max,npsip_max,2,'@qps(psipn)@',0)
       
       DO npsip=1,npsip_max
          CALL cal_rbps_pos(psip_l(npsip),f1(npsip,1),f1(npsip,2),ierr)
          f1(npsip,2)=f1(npsip,2)*psipa
       END DO
-      CALL grd1d(2,psip_l,f1,npsip_max,npsip_max,2,'@rbps(psip)@',0)
+      CALL grd1d(2,gx,f1,npsip_max,npsip_max,2,'@rbps(psipn)@',0)
       
       DO npsip=1,npsip_max
          CALL cal_ritps_pos(psip_l(npsip),f1(npsip,1),f1(npsip,2),ierr)
          f1(npsip,2)=f1(npsip,2)*psipa
       END DO
-      CALL grd1d(3,psip_l,f1,npsip_max,npsip_max,2,'@ritps(psip)@',0)
+      CALL grd1d(3,gx,f1,npsip_max,npsip_max,2,'@ritps(psipn)@',0)
       
+      DO npsip=1,npsip_max
+         CALL cal_psit_pos(psip_l(npsip),f1(npsip,1),f1(npsip,2),ierr)
+         f1(npsip,1)=f1(npsip,1)/psita
+      END DO
+      CALL grd1d(4,gx,f1,npsip_max,npsip_max,2,'@psit(psipn)@',0)
+      
+      CALL pagee
+
+      ! page 3
+      
+      CALL pages
+      
+      CALL grd2d(1,chi_l,psip_l,f2a,nchi_max,nchi_max,npsip_max, &
+                 '@bb_pos(chi,psip)@',0,XMAX=chi_l(nchi_max))
+      CALL grd2d(3,chi_l,psip_l,f2b,nchi_max,nchi_max,npsip_max, &
+                 '@db_dchi(chi,psip)@',0,XMAX=chi_l(nchi_max))
       CALL grd2d(4,chi_l,psip_l,f2c,nchi_max,nchi_max,npsip_max, &
-                 '@db_dpsip(chi,psip)@',0)
+                 '@db_dpsip(chi,psip)@',0,XMAX=chi_l(nchi_max))
       CALL pagee
       
     END SUBROUTINE ob_gsube

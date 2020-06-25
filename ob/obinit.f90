@@ -23,9 +23,9 @@ CONTAINS
                               !     0: Eq of Motion  with Boozer coordinates
                               !     1: Eq of Motion  with Cylindrical coord.
     mdlobi=0                  ! model id of input scheme of initial parameters
-                              !     0: penergy,pangle,zeta,pzeta,theta
-                              !     1: penergy,pangle,zeta,rr,zz
-                              !   100: line input with pzeta,theta
+                              !     0: penergy,pcangle,zeta,psipn,theta
+                              !     1: penergy,pcangle,zeta,rr,zz
+                              !   100: line input with psipn,theta
                               !   101: line input with rr,zz
     mdlobq=0                  ! model id of initial input parameters
                               !     0: 4th-order Runge-Kutta-Gill 
@@ -48,9 +48,9 @@ CONTAINS
     eps_nw=1.D-6              ! convergence criterion of iteration (initial c.)
 
     penergy_in(1)=1.D0        ! initial particle energy (mdlobi=0,1) [keV]
-    pangle_in(1)=1.D0         ! initial sine of pitch angle (mdlobi=0,1) [mu/E]
+    pcangle_in(1)=0.5D0       ! initial cosine of pitch angle (mdlobi=0,1)
     zeta_in(1)=0.D0           ! initial toroidal angle (mdlobi=0,1) [degree]
-    pzeta_in(1)=-0.5D0        ! initial toroidal momentum (mdlobi=0) [P/E]
+    psipn_in(1)=0.5D0         ! initial normalized poloidal flux (mdlobi=0)
     theta_in(1)=0.D0          ! initial poloidal angle (mdlobi=0) [deg]
     rr_in(1)=4.D0             ! initial major radius (mdlobi=1) [m]
     zz_in(1)=0.D0             ! initial vertical position (mdlobi=1) [m]
