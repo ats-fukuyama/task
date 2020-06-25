@@ -398,10 +398,6 @@ CONTAINS
                     NXMAX,NXMAX,NYMAX,'@TE@')
                CALL GRD2D(21,XD,YD,VA(1:NXMAX,1:NYMAX,8), &
                     NXMAX,NXMAX,NYMAX,'@NE@')
-               CALL GRD2D(22,XD,YD,VA(1:NXMAX,1:NYMAX,9), &
-                    NXMAX,NXMAX,NYMAX,'@TI@')
-               CALL GRD2D(23,XD,YD,VA(1:NXMAX,1:NYMAX,10), &
-                    NXMAX,NXMAX,NYMAX,'@NI@')
                CALL PAGEE
             END IF
          END IF

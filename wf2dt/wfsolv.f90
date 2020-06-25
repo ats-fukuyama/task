@@ -67,6 +67,7 @@ SUBROUTINE CVSOLV
   call mtxc_setup(MLEN,istart,iend,0)
   call mtxc_cleanup
 
+  IF(nrank.EQ.0) WRITE(6,*) '@@@ point 1'
   ! ----- set NV_NSD & NV_NN -----
 
   ALLOCATE(ntyp_nv(nnmax+nsdmax),nnsd_nv(nnmax+nsdmax))
@@ -93,6 +94,7 @@ SUBROUTINE CVSOLV
      end if
   end do
   NVMAX=NV
+  IF(nrank.EQ.0) WRITE(6,*) '@@@ point 2'
 
   ALLOCATE(NV_SORT(NVMAX),VAL_SORT(NVMAX))
 
@@ -113,6 +115,7 @@ SUBROUTINE CVSOLV
      nv_sort(NV)=NV
      val_sort(NV)=VAL
   END DO
+  IF(nrank.EQ.0) WRITE(6,*) '@@@ point 3'
 
   CALL qsort_dl(val_sort,nv_sort)
 
@@ -136,6 +139,7 @@ SUBROUTINE CVSOLV
 !        write(21,'(I10,A,I10,1P3E12.4)') nv,' side ',nsd,X,Y,VAL
      END IF
   END DO
+  IF(nrank.EQ.0) WRITE(6,*) '@@@ point 4'
      
   DEALLOCATE(NV_SORT,VAL_SORT,ntyp_nv,nnsd_nv)
 
@@ -175,6 +179,7 @@ SUBROUTINE CVSOLV
      end if
 
   end do
+  IF(nrank.EQ.0) WRITE(6,*) '@@@ point 5'
 
   ! ----- set MJLEN -----
 
@@ -221,6 +226,7 @@ SUBROUTINE CVSOLV
      
 8100 continue
   end do
+  IF(nrank.EQ.0) WRITE(6,*) '@@@ point 6'
 
 ! ------ Count non-zero component -------
 
@@ -272,6 +278,7 @@ SUBROUTINE CVSOLV
   NNZMAX=NNZ
   MILEN=iend-istart+1
   MJLEN=JMAX-JMIN+1
+  IF(nrank.EQ.0) WRITE(6,*) '@@@ point 7'
 
   ! ----- set CEQP,CRVP -----
 
@@ -284,6 +291,7 @@ SUBROUTINE CVSOLV
      CRVP(I)=(0.d0,0.d0)
   END DO
 
+  IF(nrank.EQ.0) WRITE(6,*) '@@@ point 8'
 ! ------ set grobal matrix -------
 
   NNZ=0
@@ -415,10 +423,12 @@ SUBROUTINE CVSOLV
 
 8000 continue
   end do
+  IF(nrank.EQ.0) WRITE(6,*) '@@@ point 9'
 
   IF(nrank.EQ.0) write(6,*) 'wfsolv: sort started'
   CALL qsort_lc(NSEQ,CEQP)
   IF(nrank.EQ.0) write(6,*) 'wfsolv: reduction started'
+  IF(nrank.EQ.0) WRITE(6,*) '@@@ point 10'
   NNZME=1
   DO NNZ=2,NNZMAX
      IF(NSEQ(NNZ).EQ.NSEQ(NNZME)) THEN
@@ -429,6 +439,7 @@ SUBROUTINE CVSOLV
         CEQP(NNZME)=CEQP(NNZ)
      END IF
   END DO
+  IF(nrank.EQ.0) WRITE(6,*) '@@@ point 11'
 
   if(nrank.eq.0) write(6,'(A77)') &
   '      nrank     istart       iend      MILEN      MJLEN     NNZMAX      NNZME'
