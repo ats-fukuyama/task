@@ -52,6 +52,9 @@ CONTAINS
           obts(neq,nstp,nobt)=y(neq,nstp)
        END DO
     END DO
+
+    CALL ob_convert(nobt,ierr)
+
     RETURN
   END SUBROUTINE ob_exec
 
@@ -70,7 +73,7 @@ CONTAINS
          qps_pos,psit_pos,fg_pos,fI_pos,phi_pos,ptheta_pos,pzeta_pos,dummy, &
          ppara_pos,pperp_pos
 
-    DO nstp=1,nstp_max_nobt(nobt)
+    DO nstp=0,nstp_max_nobt(nobt)
        zetab=obts(1,nstp,nobt)
        thetab=obts(2,nstp,nobt)
        psip=obts(3,nstp,nobt)

@@ -17,11 +17,12 @@ CONTAINS
     CHARACTER(LEN=1)::  kid
 
 1   WRITE(6,*) &
-         '## INPUT GRAPH TYPE : 1   E:equilibrium P:profile X:end'
+         '## INPUT GRAPH TYPE : 1,2   E:equilibrium P:profile X:end'
     READ(5,'(A1)',ERR=1,END=9000) kid
     CALL GUCPTL(kid)
 
     IF(KID.EQ.'1') CALL ob_grf1
+    IF(KID.EQ.'2') CALL ob_grf2
     IF(KID.EQ.'E') CALL ob_gsube
     IF(KID.EQ.'P') CALL pl_gout
     IF(KID.EQ.'X') GOTO 9000
@@ -36,26 +37,29 @@ CONTAINS
   SUBROUTINE ob_grf1
 
     USE obcomm
+    USE obprep,ONLY: psipa
     USE plprof,ONLY: pl_rzsu,pl_mag_old,pl_mag_type,pl_mag
     USE libgrf
     IMPLICIT NONE
     INTEGER,PARAMETER:: nsu_m=501
     INTEGER,PARAMETER:: nx_max=101
     INTEGER,PARAMETER:: ny_max=101
-
+    REAL(rkind),PARAMETER:: aspect_ob=0.D0
+    REAL(rkind):: rgba(3,1),ltha(1)
     REAL(rkind),ALLOCATABLE:: rsu_temp(:),zsu_temp(:)
     REAL(rkind),ALLOCATABLE:: rsu(:),zsu(:)
     REAL(rkind),ALLOCATABLE:: xg(:),yg(:),f(:,:)
     REAL(rkind):: dx,dy,x,y,xmin,xmax,ymin,ymax,dlx,dly,factor
-    REAL(rkind),PARAMETER:: aspect_ob=0.D0
     REAL:: line_width
     REAL,ALLOCATABLE:: reda(:),greena(:),bluea(:)
     INTEGER:: nsu,nsu_max,nstp,nobt,nx,ny
 
-!  ----- PLASMA BOUNDARY -----
+    rgba(1,1)=0.0D0
+    rgba(2,1)=0.5D0
+    rgba(3,1)=0.0D0
+    ltha(1)=0.0D0
 
-    dlx=0.02D0*(xmax-xmin)
-    dly=0.02D0*(ymax-ymin)
+    !  ----- PLASMA BOUNDARY -----
 
     ALLOCATE(rsu_temp(nsu_m),zsu_temp(nsu_m))
     CALL pl_rzsu(rsu_temp,zsu_temp,nsu_m,nsu_max)
@@ -82,24 +86,27 @@ CONTAINS
     dlx=0.02D0*(xmax-xmin)
     dly=0.02D0*(ymax-ymin)
 
+    WRITE(6,'(A,I5,1P4E12.4)') 'nsu_max,xmin,xmax,ymin,ymax=', &
+         nsu_max,xmin,xmax,ymin,ymax
+
     CALL pages
     CALL INQLNW(line_width)
     CALL SETLNW(0.0)
 
     CALL GRD2D_FRAME_START(0,xmin-dlx,xmax+dlx,ymin-dly,ymax+dly, &
          '@orbit in (r,z)@', ASPECT=aspect_ob,NOINFO=1, & !
-         GPXMIN=2.D0,XSCALE_ZERO=0,YSCALE_ZERO=0)
+         XSCALE_ZERO=0,YSCALE_ZERO=0)
 
 !     ----- magnetic surface -----
 
     ALLOCATE(xg(1:nx_max),yg(1:ny_max),f(1:nx_max,1:ny_max))
-    dx=(xmax-xmin)/nx_max
-    dy=(ymax-ymin)/ny_max
+    dx=(xmax-xmin)/(nx_max-1)
+    dy=(ymax-ymin)/(ny_max-1)
     DO nx=1,nx_max
        xg(nx)=xmin+(nx-1)*dx
     ENDDO
     DO ny=1,ny_max
-       yg(ny)=ymin+(ny-1)*dx
+       yg(ny)=ymin+(ny-1)*dy
     ENDDO
     DO ny=1,ny_max
        y=yg(ny)
@@ -110,16 +117,17 @@ CONTAINS
     ENDDO
     CALL GRD2D(0,xg,yg,f,nx_max,nx_max,ny_max, &
          XMIN=xmin-dlx,XMAX=xmax+dlx,YMIN=ymin-dly,YMAX=ymax+dly, &
-         NOTITLE=1,NOFRAME=1,NOINFO=1)
+         NOTITLE=1,NOFRAME=1,NOINFO=1,ASPECT=aspect_ob, &
+         LINE_RGB=rgba,LINE_THICKNESS=ltha)
 
     !  ----- PLASMA SURFACE -----
 
     CALL SETRGB(0.0,0.0,1.0)
-    CALL MOVE2D(rsu(1),zsu(1))
-    DO nsu=1,nsu_max
-       CALL DRAW2D(rsu(nsu+1),zsu(nsu+1))
+    CALL MOVE2D(REAL(rsu(1)),REAL(zsu(1)))
+    DO nsu=2,nsu_max
+       CALL DRAW2D(REAL(rsu(nsu)),REAL(zsu(nsu)))
     ENDDO
-    ALLOCATE(rsu(nsu_max+1),zsu(nsu_max+1))
+    CALL DRAW2D(REAL(rsu(1)),REAL(zsu(1)))
 
     !  ----- OBT TRAJECTORY -----
 
@@ -138,9 +146,9 @@ CONTAINS
     END IF
     DO nobt=1,nobt_max
        CALL SETRGB(reda(nobt),greena(nobt),bluea(nobt))
-       CALL MOVE2D(rr_ob(0,nobt),zz_ob(0,nobt))
+       CALL MOVE2D(REAL(rr_ob(0,nobt)),REAL(zz_ob(0,nobt)))
        DO nstp=1,nstp_max_nobt(nobt)
-          CALL DRAW2D(rr_ob(nstp,nobt),zz_ob(nstp,nobt))
+          CALL DRAW2D(REAL(rr_ob(nstp,nobt)),REAL(zz_ob(nstp,nobt)))
        ENDDO
     ENDDO
     DEALLOCATE(reda,greena,bluea)
@@ -150,10 +158,85 @@ CONTAINS
     CALL SETLNW(line_width)
     CALL SETRGB(0.0,0.0,0.0)
 
-    CALL OBGPRM
+!    CALL OBGPRM
     CALL PAGEE
     RETURN
   END SUBROUTINE ob_grf1
+
+!     ***** 1D plots *****
+
+  SUBROUTINE ob_grf2
+
+    USE obcomm
+    USE libgrf
+    IMPLICIT NONE
+    REAL(rkind):: fx(nstp_max),fy(nstp_max,1)
+    INTEGER:: nobt,nxmax
+
+    DO nobt=1,nobt_max
+       CALL PAGES
+       nxmax=nstp_max_nobt(nobt)
+       fx(1:nxmax)=time_ob(1:nxmax,nobt)
+
+       fy(1:nxmax,1)=zetab_ob(1:nxmax,nobt)
+       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@zetab(s)@')
+
+       fy(1:nxmax,1)=thetab_ob(1:nxmax,nobt)
+       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@thetab(s)@')
+
+       fy(1:nxmax,1)=psip_ob(1:nxmax,nobt)
+       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@psip(s)@')
+
+       fy(1:nxmax,1)=rhopara_ob(1:nxmax,nobt)
+       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@rhopara(s)@')
+
+       CALL PAGES
+
+       fy(1:nxmax,1)=pzeta_ob(1:nxmax,nobt)
+       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@pzeta(s)@')
+
+       fy(1:nxmax,1)=ptheta_ob(1:nxmax,nobt)
+       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@ptheta(s)@')
+
+       fy(1:nxmax,1)=babs_ob(1:nxmax,nobt)
+       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@babs(s)@')
+
+       fy(1:nxmax,1)=phi_ob(1:nxmax,nobt)
+       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@phi(s)@')
+
+       CALL PAGES
+
+       fy(1:nxmax,1)=ppara_ob(1:nxmax,nobt)
+       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@ppara(s)@')
+
+       fy(1:nxmax,1)=pperp_ob(1:nxmax,nobt)
+       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@pperp(s)@')
+
+       fy(1:nxmax,1)=psit_ob(1:nxmax,nobt)
+       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@psit(s)@')
+
+       fy(1:nxmax,1)=rr_ob(1:nxmax,nobt)
+       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@rr(s)@')
+
+       CALL PAGES
+
+       fy(1:nxmax,1)=zz_ob(1:nxmax,nobt)
+       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@zz(s)@')
+
+       fy(1:nxmax,1)=zeta_ob(1:nxmax,nobt)
+       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@zeta(s)@')
+
+       fy(1:nxmax,1)=rs_ob(1:nxmax,nobt)
+       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@rs(s)@')
+
+       fy(1:nxmax,1)=theta_ob(1:nxmax,nobt)
+       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@theta(s)@')
+
+       CALL PAGEE
+       
+    END DO
+    RETURN
+  END SUBROUTINE ob_grf2
 
 !     ***** DRAW PARAMETERS *****
 
