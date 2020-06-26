@@ -83,9 +83,6 @@ MODULE obcomm
        rs_ob, &               ! minor radius
        theta_ob               ! poloidal angle
 
-  REAL(rkind):: &
-       rr_axis,zz_axis        ! position of magnetic axis
-
 CONTAINS
        
   SUBROUTINE ob_allocate

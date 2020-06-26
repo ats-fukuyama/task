@@ -191,6 +191,9 @@ CONTAINS
                     +coef3*coef4*db_dzetab -coef6*dphi_dthetab
     F(4)=           -coef3*coef5*db_dthetab-coef5*dphi_dthetab &
                     -coef3*coef2*db_dzetab -coef2*dphi_dzetab
+
+    WRITE(6,'(A,1P5E12.4)') 'Y:',Y(1),Y(2),Y(3),Y(4),X
+    WRITE(6,'(A,1P4E12.4)') 'F:',F(1),F(2),F(3),F(4)
     RETURN
   END SUBROUTINE ob_fdrv
 

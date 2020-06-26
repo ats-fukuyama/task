@@ -14,14 +14,14 @@ MODULE obprep
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: &
        uqps,urbps,uritps,upsit
   REAL(rkind):: &
-       raxis,zaxis,psipa,psita,q0,qa
+       rr_axis,zz_axis,psipa,psita,q0,qa
   REAL(rkind):: &
        rsumin,rsumax,zsumin,zsumax
   
   PRIVATE
   PUBLIC ob_prep,cal_rr_pos,cal_zz_pos,cal_bb_pos,cal_bdb_pos, &
        cal_qps_pos,cal_rbps_pos,cal_ritps_pos,cal_psit_pos, &
-       psipa,psita
+       psipa,psita,rr_axis,zz_axis
 
 CONTAINS
   
@@ -145,7 +145,7 @@ CONTAINS
     ! rsw: r coordinates of wall surface
     ! zsw: z coordinates of wall surface
 
-    CALL eqgeta(raxis,zaxis,psipa,psita,q0,qa) ! axis and mag parameters
+    CALL eqgeta(rr_axis,zz_axis,psipa,psita,q0,qa) ! axis and mag parameters
     ! raxis: r coordinates of magnetic axis
     ! zaxis: z coordinates of magnetic axis
     ! psipa: poloidal magnetic flux on plasma surface
@@ -294,6 +294,9 @@ CONTAINS
     REAL(rkind),INTENT(OUT):: rr_pos
     INTEGER,INTENT(OUT):: ierr
 
+!    WRITE(6,'(A,1P2E12.4)') 'pos: ',chi_pos,psip_pos
+!    WRITE(6,'(A,1P2E12.4)') 'chi: ',chi(1),chi(nthmax_ob+1)
+!    WRITE(6,'(A,1P2E12.4)') 'psip:',psip(1),psip(nrmax_ob)
     CALL SPL2DF(chi_pos,psip_pos,rr_pos,chi,psip,urpsi, &
          nthmax_ob+1,nthmax_ob+1,nrmax_ob,ierr)
     RETURN
