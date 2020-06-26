@@ -15,7 +15,7 @@ CONTAINS
     modelg=3
     
     nobt_max=1                ! number of orbits
-    nstp_max=100              ! maximum number of orbits
+    nstp_max=10000            ! maximum number of orbit stop
     ns_ob=2                   ! id of particle species
     lmax_nw=20                ! maximum number of iteration (initial condition)
 
@@ -31,7 +31,7 @@ CONTAINS
                               !     0: 4th-order Runge-Kutta-Gill 
                               !     1: universal ODE solver (TBI)
                               !     2: symplectic solver (TBI)
-    mdlobw=0                  ! model id of output interval
+    mdlobw=3                  ! model id of output interval
                               !     0: no output
                               !     1: every step
                               !     2: every 10 step
