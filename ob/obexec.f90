@@ -65,6 +65,59 @@ CONTAINS
     RETURN
   END SUBROUTINE ob_exec
 
+!   ***** variable conversion *****
+
+  SUBROUTINE ob_convert(nobt,ierr)
+
+    USE obcomm
+    USE oblocal
+    USE obprep
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: nobt
+    INTEGER,INTENT(OUT):: ierr
+    REAL(rkind),ALLOCATABLE:: y_in(:),y(:,:)
+    REAL(rkind):: bb_pos,phi_pos
+    INTEGER:: nstp,neq
+
+    ierr=0
+    ALLOCATE(y_in(neq_max),y(0:neq_max,0:nstp_max))
+    
+    y_in(1)= zetab_ob(0,nobt)
+    y_in(2)= thetab_ob(0,nobt)
+    y_in(3)= psip_ob(0,nobt)
+    y_in(4)= rhopara_ob(0,nobt)
+
+    CALL cal_bb_pos(thetab_ob(0,nobt),psip_ob(0,nobt),bb_pos,ierr)
+    phi_pos=0.d0
+    peng=AEE*1.D3*penergy_ob(0,nobt)
+    pmu=(peng-pz(ns_ob)*AEE*phi_pos)*(1.D0-pcangle_ob(0,nobt)**2)/bb_pos
+    
+    IF(mdlobq.EQ.0) THEN
+       CALL ob_rkft(y_in,y,nstp)
+    ELSEIF(mdlobq.EQ.1) THEN
+!       CALL obrkft_ode(y_in,y,nstp)
+    ELSEIF(mdlobq.EQ.2) THEN
+!       CALL obsymp(y_in,y,nstp)
+    ELSE
+       WRITE(6,*) 'XX OBCALC: unknown mdlobq =', mdlobq
+       ierr=1
+       RETURN
+    ENDIF
+
+    nstp_max_nobt(nobt)=nstp
+    obts(0,0,nobt)=0.D0
+    DO neq=1,neq_max
+       obts(neq,0,nobt)=y_in(neq)
+    END DO
+    DO nstp=1,nstp_max_nobt(nobt)
+       DO neq=0,neq_max
+          obts(neq,nstp,nobt)=y(neq,nstp)
+       END DO
+    END DO
+    DEALLOCATE(y_in,y)
+    RETURN
+  END SUBROUTINE ob_convert
+
 !  --- original Runge-Kutta method ---
 
   SUBROUTINE ob_rkft(y_in,ya,nstp_last)

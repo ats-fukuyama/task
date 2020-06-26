@@ -102,7 +102,7 @@ C
 C
 C     ----- calculate PSIITB -----
 C
-      CALL EQCNVA(RHOITB**2,PSIITB)
+      CALL EQCNVA(RHOITB(1)**2,PSIITB)
 C
 C      DO NR=1,11
 C         PSIPNL=0.002*(NR-1)
