@@ -2,7 +2,7 @@
 
 MODULE oblocal
   USE obcomm,ONLY: rkind
-  REAL(rkind):: peng,pmu
+  REAL(rkind):: peng,pmu,pcangl
 END MODULE oblocal
 
 MODULE obexec
@@ -14,30 +14,21 @@ CONTAINS
 
 !   ***** Orbit tracing module *****
 
-  SUBROUTINE ob_exec(nobt,ierr)
+  SUBROUTINE ob_exec(y_in,nobt,ierr)
 
     USE obcomm
     USE oblocal
     USE obprep
     IMPLICIT NONE
+    REAL(rkind),INTENT(IN):: y_in(neq_max)
     INTEGER,INTENT(IN):: nobt
     INTEGER,INTENT(OUT):: ierr
-    REAL(rkind),ALLOCATABLE:: y_in(:),y(:,:)
+    REAL(rkind),ALLOCATABLE:: y(:,:)
     REAL(rkind):: bb_pos,phi_pos
     INTEGER:: nstp,neq
 
     ierr=0
-    ALLOCATE(y_in(neq_max),y(0:neq_max,0:nstp_max))
-    
-    y_in(1)= zetab_ob(0,nobt)
-    y_in(2)= thetab_ob(0,nobt)
-    y_in(3)= psip_ob(0,nobt)
-    y_in(4)= rhopara_ob(0,nobt)
-
-    CALL cal_bb_pos(thetab_ob(0,nobt),psip_ob(0,nobt),bb_pos,ierr)
-    phi_pos=0.d0
-    peng=AEE*1.D3*penergy_ob(0,nobt)
-    pmu=(peng-pz(ns_ob)*AEE*phi_pos)*(1.D0-pcangle_ob(0,nobt)**2)/bb_pos
+    ALLOCATE(y(0:neq_max,0:nstp_max))
     
     IF(mdlobq.EQ.0) THEN
        CALL ob_rkft(y_in,y,nstp)
@@ -61,7 +52,6 @@ CONTAINS
           obts(neq,nstp,nobt)=y(neq,nstp)
        END DO
     END DO
-    DEALLOCATE(y_in,y)
     RETURN
   END SUBROUTINE ob_exec
 
@@ -75,46 +65,54 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,INTENT(IN):: nobt
     INTEGER,INTENT(OUT):: ierr
-    REAL(rkind),ALLOCATABLE:: y_in(:),y(:,:)
-    REAL(rkind):: bb_pos,phi_pos
-    INTEGER:: nstp,neq
+    INTEGER:: nstp
+    REAL(rkind):: zetab,thetab,psip,rhopara,pze,pzem,rr_pos,zz_pos,bb_pos, &
+         qps_pos,psit_pos,fg_pos,fI_pos,phi_pos,ptheta_pos,pzeta_pos,dummy, &
+         ppara_pos,pperp_pos
 
-    ierr=0
-    ALLOCATE(y_in(neq_max),y(0:neq_max,0:nstp_max))
-    
-    y_in(1)= zetab_ob(0,nobt)
-    y_in(2)= thetab_ob(0,nobt)
-    y_in(3)= psip_ob(0,nobt)
-    y_in(4)= rhopara_ob(0,nobt)
-
-    CALL cal_bb_pos(thetab_ob(0,nobt),psip_ob(0,nobt),bb_pos,ierr)
-    phi_pos=0.d0
-    peng=AEE*1.D3*penergy_ob(0,nobt)
-    pmu=(peng-pz(ns_ob)*AEE*phi_pos)*(1.D0-pcangle_ob(0,nobt)**2)/bb_pos
-    
-    IF(mdlobq.EQ.0) THEN
-       CALL ob_rkft(y_in,y,nstp)
-    ELSEIF(mdlobq.EQ.1) THEN
-!       CALL obrkft_ode(y_in,y,nstp)
-    ELSEIF(mdlobq.EQ.2) THEN
-!       CALL obsymp(y_in,y,nstp)
-    ELSE
-       WRITE(6,*) 'XX OBCALC: unknown mdlobq =', mdlobq
-       ierr=1
-       RETURN
-    ENDIF
-
-    nstp_max_nobt(nobt)=nstp
-    obts(0,0,nobt)=0.D0
-    DO neq=1,neq_max
-       obts(neq,0,nobt)=y_in(neq)
-    END DO
     DO nstp=1,nstp_max_nobt(nobt)
-       DO neq=0,neq_max
-          obts(neq,nstp,nobt)=y(neq,nstp)
-       END DO
+       zetab=obts(1,nstp,nobt)
+       thetab=obts(2,nstp,nobt)
+       psip=obts(3,nstp,nobt)
+       rhopara=obts(4,nstp,nobt)
+
+       CALL cal_rr_pos(thetab,psip,rr_pos,ierr)
+       CALL cal_zz_pos(thetab,psip,zz_pos,ierr)
+       CALL cal_bb_pos(thetab,psip,bb_pos,ierr)
+
+       CALL cal_qps_pos(psip,qps_pos,dummy,ierr)
+       CALL cal_psit_pos(psip,psit_pos,dummy,ierr)
+       CALL cal_rbps_pos(psip,fg_pos,dummy,ierr)
+       CALL cal_ritps_pos(psip,fI_pos,dummy,ierr)
+    
+       pze=PZ(ns_ob)*AEE
+       pzem=pze/(PA(ns_ob)*AMP)
+
+       phi_pos=0.d0
+       ptheta_pos=pze*(psit_pos+rhopara*fI_pos)
+       pzeta_pos= pze*(rhopara*fg_pos-psip)
+
+       ppara_pos=SQRT(2.D0*PA(ns_ob)*AMP*(peng-pze*phi_pos))*pcangl
+       pperp_pos=SQRT(2.D0*PA(ns_ob)*AMP*pmu*bb_pos)
+
+       time_ob(nstp,nobt)   = obts(0,nstp,nobt)
+       zetab_ob(nstp,nobt)  = obts(1,nstp,nobt)
+       thetab_ob(nstp,nobt) = obts(2,nstp,nobt)
+       psip_ob(nstp,nobt)   = obts(3,nstp,nobt)
+       rhopara_ob(nstp,nobt)= obts(4,nstp,nobt)
+       pzeta_ob(nstp,nobt)  = pzeta_pos
+       ptheta_ob(nstp,nobt) = ptheta_pos
+       babs_ob(nstp,nobt)   = bb_pos
+       phi_ob(nstp,nobt)    = phi_pos
+       ppara_ob(nstp,nobt)= ppara_pos
+       pperp_ob(nstp,nobt)= pperp_pos
+       psit_ob(nstp,nobt)   = psit_pos
+       rr_ob(nstp,nobt)     = rr_pos
+       zz_ob(nstp,nobt)     = zz_pos
+       zeta_ob(nstp,nobt)   = zetab_ob(nstp,nobt)
+       rs_ob(nstp,nobt)     = SQRT((rr_pos-rr_axis)**2+(zz_pos-zz_axis)**2)
+       theta_ob(nstp,nobt)  = ATAN2(zz_pos-zz_axis,rr_pos-rr_axis)
     END DO
-    DEALLOCATE(y_in,y)
     RETURN
   END SUBROUTINE ob_convert
 
@@ -144,7 +142,7 @@ CONTAINS
     ENDDO
     IF(mdlobw.GE.1) &
          WRITE(6,'(6X,A,A/I10,1P5E12.4)') 'nstp', &
-         '  length [m]  zeta [deg]  theta [deg]     psipn rho_para [m]', &
+         '  length [m]  zeta [deg]  theta [deg]     psipn  rhopara [m]', &
          0,xs,ys(1)*180.D0/Pi,ys(2)*180.D0/Pi,ys(3)/psipa,ys(4)
 
     DO nstp = 1,nstp_lim
@@ -204,7 +202,7 @@ CONTAINS
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: x,y(neq_max)
     REAL(rkind),INTENT(OUT):: F(neq_max)
-    REAL(rkind):: pze,pzem,zetab,thetab,psip,rho_para,pepara,vpara
+    REAL(rkind):: pze,pzem,zetab,thetab,psip,rhopara,pepara,vpara
     REAL(rkind):: rr_pos,zz_pos,bb_pos,db_dthetab,db_dpsip
     REAL(rkind):: qps,dqps_dpsip,rbps,drbps_dpsip,ritps,dritps_dpsip
     REAL(rkind):: fg,fI,fq,dg,dI,fD
@@ -218,7 +216,7 @@ CONTAINS
     zetab=y(1)
     thetab=y(2)
     psip=y(3)
-    rho_para=y(4)
+    rhopara=y(4)
 
     CALL cal_rr_pos(thetab,psip,rr_pos,ierr)
     CALL cal_zz_pos(thetab,psip,zz_pos,ierr)
@@ -234,7 +232,7 @@ CONTAINS
     dg=drbps_dpsip
     dI=dritps_dpsip
     
-    fD=fg*fq+fI+rho_para*(fg*dI-fI*dg)
+    fD=fg*fq+fI+rhopara*(fg*dI-fI*dg)
     
     phi=0.D0
     dphi_dzetab=0.D0
@@ -245,11 +243,11 @@ CONTAINS
     pepara=peng-pze*phi-pmu*bb_pos
     vpara=SQRT(2.D0*pepara/(PA(ns_ob)*AMP))
 
-    coef1=pzem*rho_para*bb_pos**2
-    coef2=(fq+rho_para*dI)/fD
-    coef3=pmu/pze+pzem*rho_para**2*bb_pos
+    coef1=pzem*rhopara*bb_pos**2
+    coef2=(fq+rhopara*dI)/fD
+    coef3=pmu/pze+pzem*rhopara**2*bb_pos
     coef4=fI/fD
-    coef5=(1.D0-rho_para*dg)/fD
+    coef5=(1.D0-rhopara*dg)/fD
     coef6=fg/fD
       
     F(1)=(coef1*coef2-coef3*coef4*db_dpsip  -coef4*dphi_dpsip)/vpara

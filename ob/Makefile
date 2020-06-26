@@ -48,7 +48,7 @@ all : libs ob
 ../eq/libeq.a:
 	(cd ../eq; make libeq.a)
 ../eq/wmeqin.o:
-	(cd ../eq; make wmeqin.a)
+	(cd ../eq; make wmeqin.o)
 libob.a: $(OBJS)
 	$(LD) $(LDFLAGS) libob.a $(OBJS)
 
@@ -58,6 +58,7 @@ libs:
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
+	(cd ../eq; make wmeqin.o)
 
 testf: libs libob.a test.o
 	$(FLINKER) test.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
