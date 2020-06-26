@@ -114,6 +114,9 @@ CONTAINS
     CALL eqgetp(rhot,psip,nrmax_ob)  ! normalized psit radius
     ! rhot: normalized minor radius defined by toroidal magnetic flux
     ! psip: poloidal magnetic flux (0 on magnetic axis) [Tm^2]
+    DO nr=1,nrmax_ob
+       psip(nr)=psip(nr)/(2.D0*Pi)
+    END DO
     
     CALL eqgetr(rpsi,drpsi,drchi,nthmax_ob,nthmax_ob,nrmax_ob) ! R and deriv
     ! rpsi:  radial coordinates for psip and chi [m]
@@ -127,7 +130,7 @@ CONTAINS
     
     CALL eqgetbb(bpr,bpz,bpt,btp,nthmax_ob,nthmax_ob,nrmax_ob) ! mag field
     ! bpr:  r component of poloidal magnetic field [T]
-    ! bpz:  zcomponent of poloidal magnetic field [T]
+    ! bpz:  z component of poloidal magnetic field [T]
     ! bpt:  total poloidal magnetic field [T] =SQRT(bpr**2+bpz**2)
     ! btp:  toroidal magnetic field [T]
     
@@ -137,7 +140,12 @@ CONTAINS
     ! rbps:  poloidal plasma current RB_t [Tm]
     ! vps:   volume [m^3]
     ! rlen:  contour length [m]
-    ! ritps: toroidal plasma current (2 Pi rs Bp) [Tm]
+    ! ritps: toroidal plasma current (rs Bp) [Tm]
+    DO nr=1,nrmax_ob
+       ritps(nr)=ritps(nr)/(2.D0*Pi)
+       rbps(nr)=rbps(nr)/(2.D0*Pi)
+    END DO
+    
     
     CALL eqgetu(rsu,zsu,rsw,zsw,nsumax_ob) ! plasma and wall surface
     ! rsu: r coordinates of plasma surface
@@ -152,6 +160,8 @@ CONTAINS
     ! psita: toroidal poloidal magnetic flux on plasma surface
     ! q0:    safety factor on magnetic axis
     ! qa:    safety factor on plasma surface
+    psipa=psipa/(2.D0*Pi)
+    psita=psita/(2.D0*Pi)
 
     ! --- define toroidal flux with 0 on magnetci axis ---
 

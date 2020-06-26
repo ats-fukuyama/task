@@ -178,59 +178,59 @@ CONTAINS
        nxmax=nstp_max_nobt(nobt)
        fx(1:nxmax)=time_ob(1:nxmax,nobt)
 
-       fy(1:nxmax,1)=zetab_ob(1:nxmax,nobt)
-       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@zetab(s)@')
+       fy(1:nxmax,1)=zetab_ob(1:nxmax,nobt)*180.D0/Pi
+       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@zetab(s) [deg]@')
 
-       fy(1:nxmax,1)=thetab_ob(1:nxmax,nobt)
-       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@thetab(s)@')
+       fy(1:nxmax,1)=thetab_ob(1:nxmax,nobt)*180.D0/Pi
+       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@thetab(s) [deg]@')
 
        fy(1:nxmax,1)=psip_ob(1:nxmax,nobt)
-       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@psip(s)@')
+       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@psip(s) [Bm^2]@')
 
        fy(1:nxmax,1)=rhopara_ob(1:nxmax,nobt)
-       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@rhopara(s)@')
+       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@rhopara(s) [m]@')
 
        CALL PAGES
 
-       fy(1:nxmax,1)=pzeta_ob(1:nxmax,nobt)
-       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@pzeta(s)@')
+       fy(1:nxmax,1)=pzeta_ob(1:nxmax,nobt)/AEE
+       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@pzeta(s) [eV]@')
 
-       fy(1:nxmax,1)=ptheta_ob(1:nxmax,nobt)
-       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@ptheta(s)@')
+       fy(1:nxmax,1)=ptheta_ob(1:nxmax,nobt)/AEE
+       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@ptheta(s) [eV]@')
 
        fy(1:nxmax,1)=babs_ob(1:nxmax,nobt)
-       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@babs(s)@')
+       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@babs(s) [T]@')
 
        fy(1:nxmax,1)=phi_ob(1:nxmax,nobt)
-       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@phi(s)@')
+       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@phi(s) [V]@')
 
        CALL PAGES
 
-       fy(1:nxmax,1)=ppara_ob(1:nxmax,nobt)
-       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@ppara(s)@')
+       fy(1:nxmax,1)=vpara_ob(1:nxmax,nobt)
+       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@vpara(s) [m/s]@')
 
-       fy(1:nxmax,1)=pperp_ob(1:nxmax,nobt)
-       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@pperp(s)@')
+       fy(1:nxmax,1)=vperp_ob(1:nxmax,nobt)
+       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@vperp(s) [m/s]@')
 
        fy(1:nxmax,1)=psit_ob(1:nxmax,nobt)
-       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@psit(s)@')
+       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@psit(s) [Bm^2]@')
 
-       fy(1:nxmax,1)=rr_ob(1:nxmax,nobt)
-       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@rr(s)@')
+       fy(1:nxmax,1)=zeta_ob(1:nxmax,nobt)
+       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@zeta(s) [deg]@')
 
        CALL PAGES
 
-       fy(1:nxmax,1)=zz_ob(1:nxmax,nobt)
-       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@zz(s)@')
+       fy(1:nxmax,1)=rr_ob(1:nxmax,nobt)
+       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@rr(s) [m]@')
 
-       fy(1:nxmax,1)=zeta_ob(1:nxmax,nobt)
-       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@zeta(s)@')
+       fy(1:nxmax,1)=zz_ob(1:nxmax,nobt)
+       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@zz(s) [m]@')
 
        fy(1:nxmax,1)=rs_ob(1:nxmax,nobt)
-       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@rs(s)@')
+       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@rs(s) [m]@')
 
-       fy(1:nxmax,1)=theta_ob(1:nxmax,nobt)
-       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@theta(s)@')
+       fy(1:nxmax,1)=theta_ob(1:nxmax,nobt)*180.D0/Pi
+       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@theta(s) [deg]@')
 
        CALL PAGEE
        

@@ -74,12 +74,12 @@ MODULE obcomm
        ptheta_ob, &           ! poloidal momentum ptheta
        babs_ob, &             ! absolute value of magnetic field
        phi_ob, &              ! electrostatic potential
-       ppara_ob, &            ! parallel momentum
-       pperp_ob, &            ! perpendicular momentum
+       vpara_ob, &            ! parallel velocity
+       vperp_ob, &            ! perpendicular velocity
        psit_ob, &             ! toroidal magnetic flux
+       zeta_ob, &             ! toroidal angle
        rr_ob, &               ! major radius
        zz_ob, &               ! vertical positon
-       zeta_ob, &             ! toroidal angle
        rs_ob, &               ! minor radius
        theta_ob               ! poloidal angle
 
@@ -112,12 +112,12 @@ CONTAINS
     ALLOCATE(ptheta_ob(0:nstp_max,nobt_max))
     ALLOCATE(babs_ob(0:nstp_max,nobt_max))
     ALLOCATE(phi_ob(0:nstp_max,nobt_max))
-    ALLOCATE(ppara_ob(0:nstp_max,nobt_max))
-    ALLOCATE(pperp_ob(0:nstp_max,nobt_max))
+    ALLOCATE(vpara_ob(0:nstp_max,nobt_max))
+    ALLOCATE(vperp_ob(0:nstp_max,nobt_max))
     ALLOCATE(psit_ob(0:nstp_max,nobt_max))
+    ALLOCATE(zeta_ob(0:nstp_max,nobt_max))
     ALLOCATE(rr_ob(0:nstp_max,nobt_max))
     ALLOCATE(zz_ob(0:nstp_max,nobt_max))
-    ALLOCATE(zeta_ob(0:nstp_max,nobt_max))
     ALLOCATE(rs_ob(0:nstp_max,nobt_max))
     ALLOCATE(theta_ob(0:nstp_max,nobt_max))
   END SUBROUTINE ob_allocate
@@ -138,12 +138,12 @@ CONTAINS
     DEALLOCATE(ptheta_ob)
     DEALLOCATE(babs_ob)
     DEALLOCATE(phi_ob)
-    DEALLOCATE(ppara_ob)
-    DEALLOCATE(pperp_ob)
+    DEALLOCATE(vpara_ob)
+    DEALLOCATE(vperp_ob)
     DEALLOCATE(psit_ob)
+    DEALLOCATE(zeta_ob)
     DEALLOCATE(rr_ob)
     DEALLOCATE(zz_ob)
-    DEALLOCATE(zeta_ob)
     DEALLOCATE(rs_ob)
     DEALLOCATE(theta_ob)
   END SUBROUTINE ob_deallocate

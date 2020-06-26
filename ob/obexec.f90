@@ -71,7 +71,7 @@ CONTAINS
     INTEGER:: nstp
     REAL(rkind):: zetab,thetab,psip,rhopara,pze,pzem,rr_pos,zz_pos,bb_pos, &
          qps_pos,psit_pos,fg_pos,fI_pos,phi_pos,ptheta_pos,pzeta_pos,dummy, &
-         ppara_pos,pperp_pos
+         vpara_pos,vperp_pos
 
     DO nstp=0,nstp_max_nobt(nobt)
        zetab=obts(1,nstp,nobt)
@@ -95,8 +95,8 @@ CONTAINS
        ptheta_pos=pze*(psit_pos+rhopara*fI_pos)
        pzeta_pos= pze*(rhopara*fg_pos-psip)
 
-       ppara_pos=SQRT(2.D0*PA(ns_ob)*AMP*(peng-pze*phi_pos))*pcangl
-       pperp_pos=SQRT(2.D0*PA(ns_ob)*AMP*pmu*bb_pos)
+       vpara_pos=SQRT(2.D0*(peng-pze*phi_pos)/(PA(ns_ob)*AMP))*pcangl
+       vperp_pos=SQRT(2.D0*pmu*bb_pos/(PA(ns_ob)*AMP))
 
        time_ob(nstp,nobt)   = obts(0,nstp,nobt)
        zetab_ob(nstp,nobt)  = obts(1,nstp,nobt)
@@ -107,12 +107,12 @@ CONTAINS
        ptheta_ob(nstp,nobt) = ptheta_pos
        babs_ob(nstp,nobt)   = bb_pos
        phi_ob(nstp,nobt)    = phi_pos
-       ppara_ob(nstp,nobt)= ppara_pos
-       pperp_ob(nstp,nobt)= pperp_pos
+       vpara_ob(nstp,nobt)  = vpara_pos
+       vperp_ob(nstp,nobt)  = vperp_pos
        psit_ob(nstp,nobt)   = psit_pos
+       zeta_ob(nstp,nobt)   = zetab_ob(nstp,nobt)
        rr_ob(nstp,nobt)     = rr_pos
        zz_ob(nstp,nobt)     = zz_pos
-       zeta_ob(nstp,nobt)   = zetab_ob(nstp,nobt)
        rs_ob(nstp,nobt)     = SQRT((rr_pos-rr_axis)**2+(zz_pos-zz_axis)**2)
        theta_ob(nstp,nobt)  = ATAN2(zz_pos-zz_axis,rr_pos-rr_axis)
     END DO
