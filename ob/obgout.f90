@@ -17,13 +17,14 @@ CONTAINS
     CHARACTER(LEN=1)::  kid
 
 1   WRITE(6,*) &
-         '## INPUT GRAPH TYPE : 1,2   E:equilibrium P:profile X:end'
+         '## INPUT GRAPH TYPE : 1,2   L,E:equilibrium P:profile X:end'
     READ(5,'(A1)',ERR=1,END=9000) kid
     CALL GUCPTL(kid)
 
     IF(KID.EQ.'1') CALL ob_grf1
     IF(KID.EQ.'2') CALL ob_grf2
-    IF(KID.EQ.'E') CALL ob_gsube
+    IF(KID.EQ.'L') CALL ob_gsube
+    IF(KID.EQ.'E') CALL eqgsdd
     IF(KID.EQ.'P') CALL pl_gout
     IF(KID.EQ.'X') GOTO 9000
 
@@ -85,9 +86,6 @@ CONTAINS
        
     dlx=0.02D0*(xmax-xmin)
     dly=0.02D0*(ymax-ymin)
-
-    WRITE(6,'(A,I5,1P4E12.4)') 'nsu_max,xmin,xmax,ymin,ymax=', &
-         nsu_max,xmin,xmax,ymin,ymax
 
     CALL pages
     CALL INQLNW(line_width)
@@ -195,7 +193,7 @@ CONTAINS
        fy(1:nxmax,1)=pzeta_ob(1:nxmax,nobt)/AEE
        CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@pzeta(s) [eV]@')
 
-       fy(1:nxmax,1)=ptheta_ob(1:nxmax,nobt)/AEE
+       fy(1:nxmax,1)=ptheta_ob(1:nxmax,nobt)
        CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@ptheta(s) [eV]@')
 
        fy(1:nxmax,1)=babs_ob(1:nxmax,nobt)

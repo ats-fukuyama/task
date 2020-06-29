@@ -303,11 +303,18 @@ CONTAINS
     REAL(rkind),INTENT(IN):: chi_pos,psip_pos
     REAL(rkind),INTENT(OUT):: rr_pos
     INTEGER,INTENT(OUT):: ierr
+    REAL(rkind):: chi_local
+    INTEGER:: nchi
 
-!    WRITE(6,'(A,1P2E12.4)') 'pos: ',chi_pos,psip_pos
-!    WRITE(6,'(A,1P2E12.4)') 'chi: ',chi(1),chi(nthmax_ob+1)
-!    WRITE(6,'(A,1P2E12.4)') 'psip:',psip(1),psip(nrmax_ob)
-    CALL SPL2DF(chi_pos,psip_pos,rr_pos,chi,psip,urpsi, &
+    IF(chi_pos.LT.0.D0) THEN
+       nchi=-chi_pos/(2.D0*Pi)
+       chi_local=chi_pos+2.D0*(nchi+1)*Pi
+    ELSE
+       nchi=chi_pos/(2.D0*Pi)
+       chi_local=chi_pos-2.D0*nchi*Pi
+    END IF
+
+    CALL SPL2DF(chi_local,psip_pos,rr_pos,chi,psip,urpsi, &
          nthmax_ob+1,nthmax_ob+1,nrmax_ob,ierr)
     RETURN
   END SUBROUTINE cal_rr_pos
@@ -320,8 +327,18 @@ CONTAINS
     REAL(rkind),INTENT(IN):: chi_pos,psip_pos
     REAL(rkind),INTENT(OUT):: zz_pos
     INTEGER,INTENT(OUT):: ierr
+    REAL(rkind):: chi_local
+    INTEGER:: nchi
 
-    CALL SPL2DF(chi_pos,psip_pos,zz_pos,chi,psip,uzpsi, &
+    IF(chi_pos.LT.0.D0) THEN
+       nchi=-chi_pos/(2.D0*Pi)
+       chi_local=chi_pos+2.D0*(nchi+1)*Pi
+    ELSE
+       nchi=chi_pos/(2.D0*Pi)
+       chi_local=chi_pos-2.D0*nchi*Pi
+    END IF
+
+    CALL SPL2DF(chi_local,psip_pos,zz_pos,chi,psip,uzpsi, &
          nthmax_ob+1,nthmax_ob+1,nrmax_ob,ierr)
     RETURN
   END SUBROUTINE cal_zz_pos
@@ -334,8 +351,18 @@ CONTAINS
     REAL(rkind),INTENT(IN):: chi_pos,psip_pos
     REAL(rkind),INTENT(OUT):: bb_pos
     INTEGER,INTENT(OUT):: ierr
+    REAL(rkind):: chi_local
+    INTEGER:: nchi
 
-    CALL SPL2DF(chi_pos,psip_pos,bb_pos,chi,psip,ubpsi, &
+    IF(chi_pos.LT.0.D0) THEN
+       nchi=-chi_pos/(2.D0*Pi)
+       chi_local=chi_pos+2.D0*(nchi+1)*Pi
+    ELSE
+       nchi=chi_pos/(2.D0*Pi)
+       chi_local=chi_pos-2.D0*nchi*Pi
+    END IF
+
+    CALL SPL2DF(chi_local,psip_pos,bb_pos,chi,psip,ubpsi, &
          nthmax_ob+1,nthmax_ob+1,nrmax_ob,ierr)
     RETURN
   END SUBROUTINE cal_bb_pos
@@ -346,8 +373,18 @@ CONTAINS
     REAL(rkind),INTENT(IN):: chi_pos,psip_pos
     REAL(rkind),INTENT(OUT):: b_pos,db_dchi,db_dpsip
     INTEGER,INTENT(OUT):: ierr
+    REAL(rkind):: chi_local
+    INTEGER:: nchi
 
-    CALL SPL2DD(chi_pos,psip_pos,b_pos,db_dchi,db_dpsip,chi,psip,ubpsi, &
+    IF(chi_pos.LT.0.D0) THEN
+       nchi=-chi_pos/(2.D0*Pi)
+       chi_local=chi_pos+2.D0*(nchi+1)*Pi
+    ELSE
+       nchi=chi_pos/(2.D0*Pi)
+       chi_local=chi_pos-2.D0*nchi*Pi
+    END IF
+
+    CALL SPL2DD(chi_local,psip_pos,b_pos,db_dchi,db_dpsip,chi,psip,ubpsi, &
          nthmax_ob+1,nthmax_ob+1,nrmax_ob,ierr)
     RETURN
   END SUBROUTINE cal_bdb_pos

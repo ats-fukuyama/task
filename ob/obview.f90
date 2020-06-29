@@ -25,8 +25,8 @@ CONTAINS
          'mdlobw      ',mdlobw, &
          'mdlobg      ',mdlobg
     WRITE(6,604) &
-         'smax        ',smax, &
-         'dels        ',dels
+         'tmax        ',tmax, &
+         'delt        ',delt
     WRITE(6,604) &
          'eps_obt     ',eps_obt, &
          'del_obt     ',del_obt, &

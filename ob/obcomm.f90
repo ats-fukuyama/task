@@ -23,8 +23,8 @@ MODULE obcomm_parm
        mdlobw, &              ! model id of output interval
        mdlobg                 ! model id of graphics
   REAL(rkind) &
-       smax, &                ! maximum of orbit length
-       dels, &                ! step size of orbit length
+       tmax, &                ! maximum of orbit following time in omega_bounce
+       delt, &                ! time step size in onega_bounce
        eps_obt, &             ! convergence criterion of orbit solution
        del_obt, &             ! step size of iteration (initial condition)
        eps_nw                 ! convergence criterion of iteration (initial c.)

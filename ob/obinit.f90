@@ -15,7 +15,7 @@ CONTAINS
     modelg=3
     
     nobt_max=1                ! number of orbits
-    nstp_max=10000            ! maximum number of orbit stop
+    nstp_max=10000            ! maximum number of orbit step
     ns_ob=2                   ! id of particle species
     lmax_nw=20                ! maximum number of iteration (initial condition)
 
@@ -41,8 +41,11 @@ CONTAINS
     mdlobg=0                  ! model id of graphics
                               !     0: default
 
-    smax=10.D0                ! maximum of orbit length
-    dels=0.01d0               ! step size of orbit length
+    tmax=10.D0                ! maximum of orbit following time in omega_bounce
+    delt=0.1d0                ! time step size in omega_bounce
+                              ! t_bounce = 2 Pi/ omega_bounce
+                              ! omega bounce = (v_perp/qR) SQRT(r/2R)
+                              ! omega_bounce^2 = (mu B /m)*(r/q^2 R^3)
     eps_obt=1.D-6             ! convergence criterion of orbit solution
     del_obt=1.D-4             ! step size of iteration (initial condition)
     eps_nw=1.D-6              ! convergence criterion of iteration (initial c.)
