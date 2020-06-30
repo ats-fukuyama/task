@@ -95,16 +95,14 @@ CONTAINS
           y_in(2)= thetab_pos
           y_in(3)= psip_pos
           y_in(4)= rhopara_pos
+
+          CALL ob_exec(y_in,nobt,ierr)
+          IF(ierr.NE.0) cycle
        END DO
     CASE(1,101)
        WRITE(6,'(A,I5)') 'XX obcalc: not-yet supported mdlobi:',mdlobi
     END SELECT
        
-    DO nobt=1,nobt_max
-       CALL ob_exec(y_in,nobt,ierr)
-       IF(ierr.NE.0) cycle
-    ENDDO
-
     CALL GUTIME(time2)
     WRITE(6,*) '% CPU TIME = ',time2-time1,' sec'
 

@@ -2,6 +2,12 @@
 f
 test.gs
 c
+nobt_max=4
+penergy_in=4*3000.0
+pcangle_in=0.2 0.4 0.6 0.8
+zeta_in=4*0.D0
+theta_in=4*0.D0
+psipn_in=4*0.5D0
 tmax=10.D0
 delt=0.1D0
 mdlobw=2

@@ -135,14 +135,16 @@ CONTAINS
     ELSE
        DO nobt=1,nobt_max/2
           factor=REAL(nobt-1)/REAL(nobt_max/2)
-          reda(1)=1.0-factor; greena(1)=factor; bluea(1)=0.0
+          reda(nobt)=1.0-factor; greena(nobt)=factor; bluea(nobt)=0.0
        END DO
        DO nobt=nobt_max/2+1,nobt_max
           factor=REAL(nobt-nobt_max/2-1)/REAL(nobt_max/2)
-          reda(1)=0.0; greena(1)=1.0-factor; bluea(1)=factor
+          reda(nobt)=0.0; greena(nobt)=1.0-factor; bluea(nobt)=factor
        END DO
     END IF
     DO nobt=1,nobt_max
+!       WRITE(6,'(A,I5,1P3E12.4)') &
+!            'rgb:',nobt,reda(nobt),greena(nobt),bluea(nobt)
        CALL SETRGB(reda(nobt),greena(nobt),bluea(nobt))
        CALL MOVE2D(REAL(rr_ob(0,nobt)),REAL(zz_ob(0,nobt)))
        DO nstp=1,nstp_max_nobt(nobt)
