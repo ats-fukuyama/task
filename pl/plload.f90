@@ -280,6 +280,7 @@ CONTAINS
       REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: FX,FY,FXY
       REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: VATEMP
       CHARACTER(LEN=80),SAVE:: KNAMPF_SAVE=' '
+      REAL(rkind):: VAMAX
       INTEGER:: istatus
 
       ierr = 0
@@ -352,6 +353,22 @@ CONTAINS
                END DO
             END DO
 
+            DO NV=5,8
+               VAMAX=VA(1,1,NV)
+               DO NY=1,NYMAX
+                  DO NX=1,NXMAX
+                     VAMAX=MAX(VAMAX,VA(NX,NY,NV))
+                  END DO
+               END DO
+               IF(VAMAX.NE.0.D0) THEN
+                  DO NY=1,NYMAX
+                     DO NX=1,NXMAX
+                        VA(NX,NY,NV)=VA(NX,NY,NV)/VAMAX
+                     END DO
+                  END DO
+               END IF
+            END DO
+
             DEALLOCATE(VATEMP)
             
             WRITE(6,'(A,1P4E12.4)') 'XMIN,XMAX,YMIN,YMAX =', &
@@ -383,21 +400,21 @@ CONTAINS
             IF(IDEBUG.EQ.1) THEN
                CALL PAGES
                CALL GRD2D(14,XD,YD,VA(1:NXMAX,1:NYMAX,1), &
-                    NXMAX,NXMAX,NYMAX,'@XD@')
+                    NXMAX,NXMAX,NYMAX,'@BX@',MODE_2D=2)
                CALL GRD2D(15,XD,YD,VA(1:NXMAX,1:NYMAX,2), &
-                    NXMAX,NXMAX,NYMAX,'@YD@')
+                    NXMAX,NXMAX,NYMAX,'@BY@',MODE_2D=2)
                CALL GRD2D(16,XD,YD,VA(1:NXMAX,1:NYMAX,3), &
-                    NXMAX,NXMAX,NYMAX,'@BX@')
+                    NXMAX,NXMAX,NYMAX,'@BZ@',MODE_2D=2)
                CALL GRD2D(17,XD,YD,VA(1:NXMAX,1:NYMAX,4), &
-                    NXMAX,NXMAX,NYMAX,'@BY@')
+                    NXMAX,NXMAX,NYMAX,'@BTOT@',MODE_2D=2)
                CALL GRD2D(18,XD,YD,VA(1:NXMAX,1:NYMAX,5), &
-                    NXMAX,NXMAX,NYMAX,'@BZ@')
+                    NXMAX,NXMAX,NYMAX,'@TE@',MODE_2D=2)
                CALL GRD2D(19,XD,YD,VA(1:NXMAX,1:NYMAX,6), &
-                    NXMAX,NXMAX,NYMAX,'@BTOT@')
+                    NXMAX,NXMAX,NYMAX,'@NE@',MODE_2D=2)
                CALL GRD2D(20,XD,YD,VA(1:NXMAX,1:NYMAX,7), &
-                    NXMAX,NXMAX,NYMAX,'@TE@')
+                    NXMAX,NXMAX,NYMAX,'@TI@',MODE_2D=2)
                CALL GRD2D(21,XD,YD,VA(1:NXMAX,1:NYMAX,8), &
-                    NXMAX,NXMAX,NYMAX,'@NE@')
+                    NXMAX,NXMAX,NYMAX,'@NI@',MODE_2D=2)
                CALL PAGEE
             END IF
          END IF
@@ -457,7 +474,7 @@ CONTAINS
 
     SUBROUTINE pl_read_p2D(X,Y,RNPL,RTPL,RUPL,NSMAXL,IERR)
 
-      USE plcomm,ONLY: rkind,ikind,NSMAX
+      USE plcomm,ONLY: rkind,ikind,NSMAX,PN,PTPP,PTPR
       USE plp2d
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: X,Y    ! Position
@@ -468,8 +485,8 @@ CONTAINS
       INTEGER(ikind),INTENT(OUT):: &
            NSMAXL,&! Number of provided particle species
            IERR    ! ERROR Indicator 
-      REAL(rkind):: XL,YL
-      INTEGER(ikind):: IERL
+      REAL(rkind):: XL,YL,SHAPEN,SHAPET
+      INTEGER(ikind):: IERL,NS
 
       XL=X
       IF(XL.LT.XD(1))     XL=XD(1)
@@ -478,23 +495,25 @@ CONTAINS
       IF(YL.LT.YD(1))     YL=YD(1)
       IF(YL.GT.YD(NYMAX)) YL=YD(NYMAX)
 
-      NSMAXL=2
+      NSMAXL=NSMAX
 
       IERR=0
-      CALL SPL2DF(XL,YL,RNPL(1),XD,YD,UA(1,1,1,1, 6),NXMAX,NXMAX,NYMAX,IERL)
+      CALL SPL2DF(XL,YL,SHAPEN,XD,YD,UA(1,1,1,1, 6),NXMAX,NXMAX,NYMAX,IERL)
       IF(IERL.NE.0) IERR=8001
-      RNPL(1)=RNPL(1)*1.D-20
-      CALL SPL2DF(XL,YL,RTPL(1),XD,YD,UA(1,1,1,1, 5),NXMAX,NXMAX,NYMAX,IERL)
+      CALL SPL2DF(XL,YL,SHAPET,XD,YD,UA(1,1,1,1, 5),NXMAX,NXMAX,NYMAX,IERL)
       IF(IERL.NE.0) IERR=8002
-      RTPL(1)=RTPL(1)*1.D-3
+      RNPL(1)=PN(1)*SHAPEN
+      RTPL(1)=(PTPR(1)+PTPP(1))/3.D0*SHAPET
       RUPL(1)=0.D0
-      CALL SPL2DF(XL,YL,RNPL(2),XD,YD,UA(1,1,1,1, 8),NXMAX,NXMAX,NYMAX,IERL)
+      CALL SPL2DF(XL,YL,SHAPEN,XD,YD,UA(1,1,1,1, 8),NXMAX,NXMAX,NYMAX,IERL)
       IF(IERL.NE.0) IERR=8003
-      RNPL(2)=RNPL(2)*1.D-20
-      CALL SPL2DF(XL,YL,RTPL(2),XD,YD,UA(1,1,1,1, 7),NXMAX,NXMAX,NYMAX,IERL)
+      CALL SPL2DF(XL,YL,SHAPET,XD,YD,UA(1,1,1,1, 7),NXMAX,NXMAX,NYMAX,IERL)
       IF(IERL.NE.0) IERR=8004
-      RTPL(2)=RTPL(2)*1.D-3
-      RUPL(2)=0.D0
+      DO NS=2,NSMAX
+         RNPL(NS)=PN(NS)*SHAPEN
+         RTPL(NS)=(PTPR(NS)+2*PTPP(NS))/3.D0*SHAPET
+         RUPL(NS)=0.D0
+      END DO
          
       RETURN
     END SUBROUTINE pl_read_p2D
