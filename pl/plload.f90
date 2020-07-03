@@ -280,7 +280,6 @@ CONTAINS
       REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: FX,FY,FXY
       REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: VATEMP
       CHARACTER(LEN=80),SAVE:: KNAMPF_SAVE=' '
-      REAL(rkind):: VAMAX
       INTEGER:: istatus
 
       ierr = 0
@@ -351,22 +350,6 @@ CONTAINS
                      VA(NX,NY,NV)=VATEMP(NX,NY,NV+2)
                   END DO
                END DO
-            END DO
-
-            DO NV=5,8
-               VAMAX=VA(1,1,NV)
-               DO NY=1,NYMAX
-                  DO NX=1,NXMAX
-                     VAMAX=MAX(VAMAX,VA(NX,NY,NV))
-                  END DO
-               END DO
-               IF(VAMAX.NE.0.D0) THEN
-                  DO NY=1,NYMAX
-                     DO NX=1,NXMAX
-                        VA(NX,NY,NV)=VA(NX,NY,NV)/VAMAX
-                     END DO
-                  END DO
-               END IF
             END DO
 
             DEALLOCATE(VATEMP)
@@ -472,20 +455,20 @@ CONTAINS
 
 !     ***** 2D density and temperature profile *****
 
-    SUBROUTINE pl_read_p2D(X,Y,RNPL,RTPL,RUPL,NSMAXL,IERR)
+    SUBROUTINE pl_read_p2D(X,Y,RN,RTPR,RTPP,RU,IERR)
 
       USE plcomm,ONLY: rkind,ikind,NSMAX,PN,PTPP,PTPR
       USE plp2d
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: X,Y    ! Position
       REAL(rkind),DIMENSION(NSMAX),INTENT(OUT):: &
-           RNPL,  &! Density [10^{20} m^{-3}]
-           RTPL,  &! Temperature [keV]
-           RUPL    ! Flow velosity [m/s]
+           RN,    &! Density [10^{20} m^{-3}]
+           RTPR,  &! Parallel Temperature [keV]
+           RTPP,  &! Parallel Temperature [keV]
+           RU      ! Flow velosity [m/s]
       INTEGER(ikind),INTENT(OUT):: &
-           NSMAXL,&! Number of provided particle species
            IERR    ! ERROR Indicator 
-      REAL(rkind):: XL,YL,SHAPEN,SHAPET
+      REAL(rkind):: XL,YL,RN_PL,RT_PL
       INTEGER(ikind):: IERL,NS
 
       XL=X
@@ -495,25 +478,23 @@ CONTAINS
       IF(YL.LT.YD(1))     YL=YD(1)
       IF(YL.GT.YD(NYMAX)) YL=YD(NYMAX)
 
-      NSMAXL=NSMAX
-
       IERR=0
-      CALL SPL2DF(XL,YL,SHAPEN,XD,YD,UA(1,1,1,1, 6),NXMAX,NXMAX,NYMAX,IERL)
+      CALL SPL2DF(XL,YL,RN_PL,XD,YD,UA(1,1,1,1, 6),NXMAX,NXMAX,NYMAX,IERL)
       IF(IERL.NE.0) IERR=8001
-      CALL SPL2DF(XL,YL,SHAPET,XD,YD,UA(1,1,1,1, 5),NXMAX,NXMAX,NYMAX,IERL)
+      CALL SPL2DF(XL,YL,RT_PL,XD,YD,UA(1,1,1,1, 5),NXMAX,NXMAX,NYMAX,IERL)
       IF(IERL.NE.0) IERR=8002
-      RNPL(1)=PN(1)*SHAPEN
-      RTPL(1)=(PTPR(1)+PTPP(1))/3.D0*SHAPET
-      RUPL(1)=0.D0
-      CALL SPL2DF(XL,YL,SHAPEN,XD,YD,UA(1,1,1,1, 8),NXMAX,NXMAX,NYMAX,IERL)
+      RN(1)=RN_PL*1.D-20
+      RTPR(1)=RT_PL*1.D-3
+      RTPP(1)=RT_PL*1.D-3
+      RU(1)=0.D0
+      CALL SPL2DF(XL,YL,RN_PL,XD,YD,UA(1,1,1,1, 8),NXMAX,NXMAX,NYMAX,IERL)
       IF(IERL.NE.0) IERR=8003
-      CALL SPL2DF(XL,YL,SHAPET,XD,YD,UA(1,1,1,1, 7),NXMAX,NXMAX,NYMAX,IERL)
+      CALL SPL2DF(XL,YL,RT_PL,XD,YD,UA(1,1,1,1, 7),NXMAX,NXMAX,NYMAX,IERL)
       IF(IERL.NE.0) IERR=8004
-      DO NS=2,NSMAX
-         RNPL(NS)=PN(NS)*SHAPEN
-         RTPL(NS)=(PTPR(NS)+2*PTPP(NS))/3.D0*SHAPET
-         RUPL(NS)=0.D0
-      END DO
+      RN(2)=RN_PL*1.D-20
+      RTPR(2)=RT_PL*1.D-3
+      RTPP(2)=RT_PL*1.D-3
+      RU(2)=0.D0
          
       RETURN
     END SUBROUTINE pl_read_p2D
