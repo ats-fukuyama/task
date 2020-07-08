@@ -383,21 +383,21 @@ CONTAINS
             IF(IDEBUG.EQ.1) THEN
                CALL PAGES
                CALL GRD2D(14,XD,YD,VA(1:NXMAX,1:NYMAX,1), &
-                    NXMAX,NXMAX,NYMAX,'@XD@')
-               CALL GRD2D(15,XD,YD,VA(1:NXMAX,1:NYMAX,2), &
-                    NXMAX,NXMAX,NYMAX,'@YD@')
-               CALL GRD2D(16,XD,YD,VA(1:NXMAX,1:NYMAX,3), &
                     NXMAX,NXMAX,NYMAX,'@BX@')
-               CALL GRD2D(17,XD,YD,VA(1:NXMAX,1:NYMAX,4), &
+               CALL GRD2D(15,XD,YD,VA(1:NXMAX,1:NYMAX,2), &
                     NXMAX,NXMAX,NYMAX,'@BY@')
-               CALL GRD2D(18,XD,YD,VA(1:NXMAX,1:NYMAX,5), &
+               CALL GRD2D(16,XD,YD,VA(1:NXMAX,1:NYMAX,3), &
                     NXMAX,NXMAX,NYMAX,'@BZ@')
-               CALL GRD2D(19,XD,YD,VA(1:NXMAX,1:NYMAX,6), &
+               CALL GRD2D(17,XD,YD,VA(1:NXMAX,1:NYMAX,4), &
                     NXMAX,NXMAX,NYMAX,'@BTOT@')
+               CALL GRD2D(18,XD,YD,VA(1:NXMAX,1:NYMAX,5), &
+                    NXMAX,NXMAX,NYMAX,'@PTE@')
+               CALL GRD2D(19,XD,YD,VA(1:NXMAX,1:NYMAX,6), &
+                    NXMAX,NXMAX,NYMAX,'@PNE@')
                CALL GRD2D(20,XD,YD,VA(1:NXMAX,1:NYMAX,7), &
-                    NXMAX,NXMAX,NYMAX,'@TE@')
+                    NXMAX,NXMAX,NYMAX,'@PTI@')
                CALL GRD2D(21,XD,YD,VA(1:NXMAX,1:NYMAX,8), &
-                    NXMAX,NXMAX,NYMAX,'@NE@')
+                    NXMAX,NXMAX,NYMAX,'@PNI@')
                CALL PAGEE
             END IF
          END IF

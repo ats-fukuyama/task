@@ -162,14 +162,14 @@ CONTAINS
        SELECT CASE(A%MODE_2D)
        CASE(11)
           IF(PRESENT(PAINT_RGB_SUB)) THEN
-             CALL CPLOT3D1(A%BEV_TYPE,PAINT_RGB_SUB)
+             CALL CPLOT3D1(MOD(A%BEV_TYPE,10),PAINT_RGB_SUB)
           ELSE
              IF(A%FMIN*A%FMAX.LT.0.0) THEN
-                CALL CPLOT3D1(A%BEV_TYPE,R2W2B)
+                CALL CPLOT3D1(MOD(A%BEV_TYPE,10),R2W2B)
              ELSEIF(A%FMIN.LT.0.0) THEN
-                CALL CPLOT3D1(A%BEV_TYPE,W2G2B)
+                CALL CPLOT3D1(MOD(A%BEV_TYPE,10),W2G2B)
              ELSE
-                CALL CPLOT3D1(A%BEV_TYPE,R2Y2W)
+                CALL CPLOT3D1(MOD(A%BEV_TYPE,10),R2Y2W)
              ENDIF
           END IF
        CASE(12)

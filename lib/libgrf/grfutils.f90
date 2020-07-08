@@ -356,10 +356,10 @@ CONTAINS
        GP(4)=17.0
     ELSE
        IF(NGP.LE.4) THEN
-          X0= 3.0
-          XL=12.0
-          Y0= 1.75
-          YL= 8.5
+          X0= 3.0     ! 3.0
+          XL=12.0     ! 12.0
+          Y0= 1.75    ! 1.75
+          YL= 8.5     ! 8.5
           IX=MOD(NGP-1,2)
           IY=1-(NGP-1)/2
        ELSEIF(NGP.LE.13) THEN
