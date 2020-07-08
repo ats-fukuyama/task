@@ -70,8 +70,8 @@ CONTAINS
     REAL(rkind),INTENT(OUT):: ya(0:neq_max,0:nstp_max)
     INTEGER,INTENT(OUT):: nstp_last
     REAL(rkind):: ys(neq_max),ye(neq_max),work(neq_max,2)
-    INTEGER:: nstp,neq,id,nstp_lim
-    REAL(rkind):: xs,xe
+    INTEGER:: nstp,neq,id,nstp_lim,mode_theta
+    REAL(rkind):: xs,xe,theta_init
 
     xs = 0.D0
     xe = delt
@@ -88,6 +88,9 @@ CONTAINS
          '  zeta [deg]  theta [deg]     psipn  rhopara [m]', &
          0,xs,ys(1)*180.D0/Pi,ys(2)*180.D0/Pi,ys(3)/psipa,ys(4)
 
+    mode_theta=0
+    theta_init=ys(2)
+    
     DO nstp = 1,nstp_lim
        CALL ODERK(neq_max,ob_fdrv,xs,xe,1,ys,ye,work)
 
@@ -118,7 +121,18 @@ CONTAINS
 
        !   --- bound check ---
 
-       nstp_last=nstp
+       SELECT CASE(mdlobc)
+       CASE(0)
+          IF(xe+delt.GT.tmax) EXIT
+       CASE(1)
+          SELECT CASE(mode_theta)
+          CASE(0)
+             IF(ye(2).GT.theta_init+2.D0*Pi) EXIT
+             IF(ye(2).LT.theta_init) mode_theta=1
+          CASE(1)
+             IF(ye(2).GT.theta_init) EXIT
+          END SELECT
+       END SELECT
 
        xs=xe
        xe=xs+delt
