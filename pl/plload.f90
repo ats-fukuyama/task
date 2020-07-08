@@ -383,21 +383,21 @@ CONTAINS
             IF(IDEBUG.EQ.1) THEN
                CALL PAGES
                CALL GRD2D(14,XD,YD,VA(1:NXMAX,1:NYMAX,1), &
-                    NXMAX,NXMAX,NYMAX,'@BX@')
+                    NXMAX,NXMAX,NYMAX,'@BX@',MODE_2D=2)
                CALL GRD2D(15,XD,YD,VA(1:NXMAX,1:NYMAX,2), &
-                    NXMAX,NXMAX,NYMAX,'@BY@')
+                    NXMAX,NXMAX,NYMAX,'@BY@',MODE_2D=2)
                CALL GRD2D(16,XD,YD,VA(1:NXMAX,1:NYMAX,3), &
-                    NXMAX,NXMAX,NYMAX,'@BZ@')
+                    NXMAX,NXMAX,NYMAX,'@BZ@',MODE_2D=2)
                CALL GRD2D(17,XD,YD,VA(1:NXMAX,1:NYMAX,4), &
-                    NXMAX,NXMAX,NYMAX,'@BTOT@')
+                    NXMAX,NXMAX,NYMAX,'@BTOT@',MODE_2D=2)
                CALL GRD2D(18,XD,YD,VA(1:NXMAX,1:NYMAX,5), &
-                    NXMAX,NXMAX,NYMAX,'@PTE@')
+                    NXMAX,NXMAX,NYMAX,'@TE@',MODE_2D=2)
                CALL GRD2D(19,XD,YD,VA(1:NXMAX,1:NYMAX,6), &
-                    NXMAX,NXMAX,NYMAX,'@PNE@')
+                    NXMAX,NXMAX,NYMAX,'@NE@',MODE_2D=2)
                CALL GRD2D(20,XD,YD,VA(1:NXMAX,1:NYMAX,7), &
-                    NXMAX,NXMAX,NYMAX,'@PTI@')
+                    NXMAX,NXMAX,NYMAX,'@TI@',MODE_2D=2)
                CALL GRD2D(21,XD,YD,VA(1:NXMAX,1:NYMAX,8), &
-                    NXMAX,NXMAX,NYMAX,'@PNI@')
+                    NXMAX,NXMAX,NYMAX,'@NI@',MODE_2D=2)
                CALL PAGEE
             END IF
          END IF
@@ -455,21 +455,21 @@ CONTAINS
 
 !     ***** 2D density and temperature profile *****
 
-    SUBROUTINE pl_read_p2D(X,Y,RNPL,RTPL,RUPL,NSMAXL,IERR)
+    SUBROUTINE pl_read_p2D(X,Y,RN,RTPR,RTPP,RU,IERR)
 
-      USE plcomm,ONLY: rkind,ikind,NSMAX
+      USE plcomm,ONLY: rkind,ikind,NSMAX,PN,PTPP,PTPR
       USE plp2d
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: X,Y    ! Position
       REAL(rkind),DIMENSION(NSMAX),INTENT(OUT):: &
-           RNPL,  &! Density [10^{20} m^{-3}]
-           RTPL,  &! Temperature [keV]
-           RUPL    ! Flow velosity [m/s]
+           RN,    &! Density [10^{20} m^{-3}]
+           RTPR,  &! Parallel Temperature [keV]
+           RTPP,  &! Parallel Temperature [keV]
+           RU      ! Flow velosity [m/s]
       INTEGER(ikind),INTENT(OUT):: &
-           NSMAXL,&! Number of provided particle species
            IERR    ! ERROR Indicator 
-      REAL(rkind):: XL,YL
-      INTEGER(ikind):: IERL
+      REAL(rkind):: XL,YL,RN_PL,RT_PL
+      INTEGER(ikind):: IERL,NS
 
       XL=X
       IF(XL.LT.XD(1))     XL=XD(1)
@@ -478,23 +478,23 @@ CONTAINS
       IF(YL.LT.YD(1))     YL=YD(1)
       IF(YL.GT.YD(NYMAX)) YL=YD(NYMAX)
 
-      NSMAXL=2
-
       IERR=0
-      CALL SPL2DF(XL,YL,RNPL(1),XD,YD,UA(1,1,1,1, 6),NXMAX,NXMAX,NYMAX,IERL)
+      CALL SPL2DF(XL,YL,RN_PL,XD,YD,UA(1,1,1,1, 6),NXMAX,NXMAX,NYMAX,IERL)
       IF(IERL.NE.0) IERR=8001
-      RNPL(1)=RNPL(1)*1.D-20
-      CALL SPL2DF(XL,YL,RTPL(1),XD,YD,UA(1,1,1,1, 5),NXMAX,NXMAX,NYMAX,IERL)
+      CALL SPL2DF(XL,YL,RT_PL,XD,YD,UA(1,1,1,1, 5),NXMAX,NXMAX,NYMAX,IERL)
       IF(IERL.NE.0) IERR=8002
-      RTPL(1)=RTPL(1)*1.D-3
-      RUPL(1)=0.D0
-      CALL SPL2DF(XL,YL,RNPL(2),XD,YD,UA(1,1,1,1, 8),NXMAX,NXMAX,NYMAX,IERL)
+      RN(1)=RN_PL*1.D-20
+      RTPR(1)=RT_PL*1.D-3
+      RTPP(1)=RT_PL*1.D-3
+      RU(1)=0.D0
+      CALL SPL2DF(XL,YL,RN_PL,XD,YD,UA(1,1,1,1, 8),NXMAX,NXMAX,NYMAX,IERL)
       IF(IERL.NE.0) IERR=8003
-      RNPL(2)=RNPL(2)*1.D-20
-      CALL SPL2DF(XL,YL,RTPL(2),XD,YD,UA(1,1,1,1, 7),NXMAX,NXMAX,NYMAX,IERL)
+      CALL SPL2DF(XL,YL,RT_PL,XD,YD,UA(1,1,1,1, 7),NXMAX,NXMAX,NYMAX,IERL)
       IF(IERL.NE.0) IERR=8004
-      RTPL(2)=RTPL(2)*1.D-3
-      RUPL(2)=0.D0
+      RN(2)=RN_PL*1.D-20
+      RTPR(2)=RT_PL*1.D-3
+      RTPP(2)=RT_PL*1.D-3
+      RU(2)=0.D0
          
       RETURN
     END SUBROUTINE pl_read_p2D

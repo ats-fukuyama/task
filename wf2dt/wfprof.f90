@@ -184,7 +184,7 @@ END SUBROUTINE WFSMAG2
 
 SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
 
-  use wfcomm,ONLY: modelg,nsm
+  use wfcomm,ONLY: modelg,nsm,nsmax,mdamp
   use plload
   implicit none
   real(8),intent(in) :: R,Z
@@ -198,10 +198,13 @@ SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
   CASE(1,2)
      CALL WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
   CASE(12)
-     CALL pl_read_p2D(R,Z,RN,RTPR,RU,NSMAXL,IERR)
-     DO NS=1,NSMAXL
-        RTPP(NS)=RTPR(NS)
-     END DO
+     CALL pl_read_p2D(R,Z,RN,RTPR,RTPP,RU,IERR)
+     IF(mdamp.NE.0) THEN
+        RN(NSMAX)=0.D0
+        RTPR(NSMAX)=1.D0
+        RTPP(NSMAX)=1.D0
+        RU(NSMAX)=0.D0
+     END IF
      CALL WFCOLL(rn,rtpr,rtpp,rzcl,0)
   END SELECT
   RETURN

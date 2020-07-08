@@ -455,11 +455,11 @@
               PLF(NS)%RZCL=PZCL(NS)
            ENDDO
         CASE(12)
-           CALL pl_read_p2D(X,Y,RN_PL,RT_PL,RU_PL,NSMAXL,IERR)
+           CALL pl_read_p2D(X,Y,RN_PL,RTPR_PL,RTPP_PL,RU_PL,IERR)
            DO NS=1,NSMAXL
               PLF(NS)%RN  =RN_PL(NS)
-              PLF(NS)%RTPR=RT_PL(NS)
-              PLF(NS)%RTPP=RT_PL(NS)
+              PLF(NS)%RTPR=RTPR_PL(NS)
+              PLF(NS)%RTPP=RTPP_PL(NS)
               PLF(NS)%RU  =RU_PL(NS)
               PLF(NS)%RUPL=0.D0
               PLF(NS)%RNUC=0.D0
