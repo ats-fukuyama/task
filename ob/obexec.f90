@@ -71,7 +71,8 @@ CONTAINS
     INTEGER,INTENT(OUT):: nstp_last
     REAL(rkind):: ys(neq_max),ye(neq_max),work(neq_max,2)
     INTEGER:: nstp,neq,id,nstp_lim,mode_theta
-    REAL(rkind):: xs,xe,theta_init
+    REAL(rkind):: xs,xe,theta_init,factor
+    LOGICAL:: l_end
 
     xs = 0.D0
     xe = delt
@@ -92,7 +93,7 @@ CONTAINS
     theta_init=ys(2)
     
     DO nstp = 1,nstp_lim
-       CALL ODERK(neq_max,ob_fdrv,xs,xe,1,ys,ye,work)
+       CALL ODERKN(neq_max,ob_fdrv,xs,xe,1,ys,ye)
 
        IF(mdlobw.GE.1) THEN
           id=0
@@ -121,18 +122,41 @@ CONTAINS
 
        !   --- bound check ---
 
+       l_end=.FALSE.
        SELECT CASE(mdlobc)
        CASE(0)
-          IF(xe+delt.GT.tmax) EXIT
+          IF(xe+delt.GT.tmax) l_end=.TRUE.
        CASE(1)
           SELECT CASE(mode_theta)
           CASE(0)
-             IF(ye(2).GT.theta_init+2.D0*Pi) EXIT
+             IF(ye(2).GT.theta_init+2.D0*Pi) THEN ! untrapped particle
+                factor=((theta_init+2.D0*Pi)-ys(2))/(ye(2)-ys(2))
+                xe=xs+(xe-xs)*factor
+                DO neq=1,neq_max
+                   ye(neq)=ys(neq)+(ye(neq)-ys(neq))*factor
+                END DO
+                l_end=.TRUE.
+             END IF
              IF(ye(2).LT.theta_init) mode_theta=1
           CASE(1)
-             IF(ye(2).GT.theta_init) EXIT
+             IF(ye(2).GT.theta_init) THEN ! trapped particle
+                factor=(theta_init-ys(2))/(ye(2)-ys(2))
+                xe=xs+(xe-xs)*factor
+                DO neq=1,neq_max
+                   ye(neq)=ys(neq)+(ye(neq)-ys(neq))*factor
+                END DO
+                l_end=.TRUE.
+             END IF
           END SELECT
        END SELECT
+
+       ya(0,nstp)=xe
+       DO neq=1,neq_max
+          ya(neq,nstp)=ye(neq)
+       ENDDO
+       nstp_last=nstp
+
+       IF(l_end) EXIT
 
        xs=xe
        xe=xs+delt

@@ -1,3 +1,9 @@
+! librk.f90
+
+! *** Ordinary differential equation ***
+
+! --- old version ---
+
       SUBROUTINE ODERK(NEQ,SUB,X0,XE,N,Y0,YN,WORK)
 
       IMPLICIT NONE
@@ -22,6 +28,44 @@
       X0 = XE
       RETURN
       END SUBROUTINE ODERK
+
+! --- old version ---
+
+      SUBROUTINE ODERKN(neq_max,sub,xs,xe,nt_max,ys,ye)
+
+      IMPLICIT NONE
+      INTEGER(4), INTENT(IN)   :: neq_max,nt_max
+      REAL(8)   , INTENT(IN)   :: xs
+      REAL(8)   , INTENT(IN)   :: xe
+      REAL(8), INTENT(IN), DIMENSION(neq_max) :: ys
+      REAL(8), INTENT(OUT), DIMENSION(neq_max) :: ye
+      REAL(8), ALLOCATABLE:: y(:),work(:,:)
+      REAL(8)     :: xstep,x
+      INTEGER(4)  :: neq,nt
+
+      EXTERNAL sub
+
+      ALLOCATE(y(neq_max),work(neq_max,2))
+
+      x = xs
+      xstep = (xe - xs) / nt_max
+      DO neq = 1,neq_max
+         y(neq)=ys(neq)
+      END DO
+      DO nt= 1,nt_max
+         CALL RKSTEP(neq_max,sub,x,xstep,y,ye, &
+              work(1:neq_max,1),work(1:neq_max,2))
+         x = x + xstep
+         DO neq = 1,neq_max
+            y(neq) = ye(neq)
+         ENDDO
+      ENDDO
+
+      DEALLOCATE(y,work)
+      RETURN
+      END SUBROUTINE ODERKN
+
+! --- 4th-order Runge-Kutta one stap ---
 
       SUBROUTINE RKSTEP(NEQ,SUB,X,H,Y0,YN,AK,W)
 
