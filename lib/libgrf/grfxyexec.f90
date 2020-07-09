@@ -68,6 +68,7 @@ CONTAINS
              CALL DRAW2D(GD(1,NT,ND),GD(2,NT,ND))
           END DO
        END DO
+       CALL OFFCLP
 
        IF(A%NOFRAME.EQ.0) CALL GRF_FRAME2D(A)
        IF(A%NOTITLE.EQ.0) CALL GRF_TITLE(A)
