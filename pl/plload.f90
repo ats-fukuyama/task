@@ -379,28 +379,28 @@ CONTAINS
                  nxmax,nxmax,nymax)
          END DO
 
-         IF(nrank.EQ.0) THEN
-            IF(IDEBUG.EQ.1) THEN
-               CALL PAGES
-               CALL GRD2D(14,XD,YD,VA(1:NXMAX,1:NYMAX,1), &
-                    NXMAX,NXMAX,NYMAX,'@BX@',MODE_2D=2)
-               CALL GRD2D(15,XD,YD,VA(1:NXMAX,1:NYMAX,2), &
-                    NXMAX,NXMAX,NYMAX,'@BY@',MODE_2D=2)
-               CALL GRD2D(16,XD,YD,VA(1:NXMAX,1:NYMAX,3), &
-                    NXMAX,NXMAX,NYMAX,'@BZ@',MODE_2D=2)
-               CALL GRD2D(17,XD,YD,VA(1:NXMAX,1:NYMAX,4), &
-                    NXMAX,NXMAX,NYMAX,'@BTOT@',MODE_2D=2)
-               CALL GRD2D(18,XD,YD,VA(1:NXMAX,1:NYMAX,5), &
-                    NXMAX,NXMAX,NYMAX,'@TE@',MODE_2D=2)
-               CALL GRD2D(19,XD,YD,VA(1:NXMAX,1:NYMAX,6), &
-                    NXMAX,NXMAX,NYMAX,'@NE@',MODE_2D=2)
-               CALL GRD2D(20,XD,YD,VA(1:NXMAX,1:NYMAX,7), &
-                    NXMAX,NXMAX,NYMAX,'@TI@',MODE_2D=2)
-               CALL GRD2D(21,XD,YD,VA(1:NXMAX,1:NYMAX,8), &
-                    NXMAX,NXMAX,NYMAX,'@NI@',MODE_2D=2)
-               CALL PAGEE
-            END IF
-         END IF
+!         IF(nrank.EQ.0) THEN
+!            IF(IDEBUG.EQ.1) THEN
+!               CALL PAGES
+!               CALL GRD2D(14,XD,YD,VA(1:NXMAX,1:NYMAX,1), &
+!                    NXMAX,NXMAX,NYMAX,'@BX@',MODE_2D=2)
+!               CALL GRD2D(15,XD,YD,VA(1:NXMAX,1:NYMAX,2), &
+!                    NXMAX,NXMAX,NYMAX,'@BY@',MODE_2D=2)
+!               CALL GRD2D(16,XD,YD,VA(1:NXMAX,1:NYMAX,3), &
+!                    NXMAX,NXMAX,NYMAX,'@BZ@',MODE_2D=2)
+!               CALL GRD2D(17,XD,YD,VA(1:NXMAX,1:NYMAX,4), &
+!                    NXMAX,NXMAX,NYMAX,'@BTOT@',MODE_2D=2)
+!               CALL GRD2D(18,XD,YD,VA(1:NXMAX,1:NYMAX,5), &
+!                    NXMAX,NXMAX,NYMAX,'@TE@',MODE_2D=2)
+!               CALL GRD2D(19,XD,YD,VA(1:NXMAX,1:NYMAX,6), &
+!                    NXMAX,NXMAX,NYMAX,'@NE@',MODE_2D=2)
+!               CALL GRD2D(20,XD,YD,VA(1:NXMAX,1:NYMAX,7), &
+!                    NXMAX,NXMAX,NYMAX,'@TI@',MODE_2D=2)
+!               CALL GRD2D(21,XD,YD,VA(1:NXMAX,1:NYMAX,8), &
+!                    NXMAX,NXMAX,NYMAX,'@NI@',MODE_2D=2)
+!               CALL PAGEE
+!            END IF
+!         END IF
 
 !----  Set coefficient for spline
 

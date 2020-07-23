@@ -95,15 +95,15 @@ SUBROUTINE WFGOUT
      IF(    KID.EQ.'E') THEN
         KID=KWD(2:2)
         IF(    KID.EQ.'R') THEN
-           if(NDRAWE.eq.0) CALL WFCTOG(CESD,1,KWD)  ! E_R    (R,Z,psi)
-           if(NDRAWE.eq.1) CALL WFCTOG(CESD,4,KWD)  ! E_rho  (rho,theta,-psi)
+           if(NDRAWE.eq.0) CALL WFCTOGSD(1,KWD)  ! E_R    (R,Z,psi)
+           if(NDRAWE.eq.1) CALL WFCTOGSD(4,KWD)  ! E_rho  (rho,theta,-psi)
         ELSEIF(KID.EQ.'P') THEN
-           if(NDRAWE.eq.0) CALL WFCTOG(CEND,2,KWD)  ! E_psi
-           if(NDRAWE.eq.1) CALL WFCTOG(CEND,5,KWD)  ! -E_psi
+           if(NDRAWE.eq.0) CALL WFCTOGND(2,KWD)  ! E_psi
+           if(NDRAWE.eq.1) CALL WFCTOGND(5,KWD)  ! -E_psi
         ELSEIF(KID.EQ.'Z') THEN
-           CALL WFCTOG(CESD,3,KWD)                  ! E_Z
+           CALL WFCTOGSD(3,KWD)                  ! E_Z
         ELSEIF(KID.eq.'T') THEN
-           CALL WFCTOG(CESD,6,KWD)                  ! E_theta
+           CALL WFCTOGSD(6,KWD)                  ! E_theta
         ELSE
            WRITE(6,*) 'XX UNKNOWN KID2:',KID
            GOTO 1000
@@ -166,16 +166,242 @@ END SUBROUTINE WFGOUT
 
 !     ****** EXTRACT FROM COMPLEX DATA ******
 
-SUBROUTINE WFCTOG(CF,ID,KWD)
+SUBROUTINE WFCTOGSD(ID,KWD)
 
   use wfcomm
+  use feminterpolate
   implicit none
   integer,intent(in) :: ID
   integer :: IE,NGX,NGY,NGV
   real(4) :: GCLIP
   real(8) :: DX,DY,X,Y
   real(8) :: XPOS,YPOS
-  complex(8),intent(in) :: CF(NSDMAX)
+  complex(8) :: CE
+  character,intent(in) :: KWD*(NCHM)
+  CHARACTER  :: KID*1
+  INTEGER:: N1,N2,N3
+  COMPLEX(8) :: CE1,CE2,CE3
+
+  real(8) :: theta
+  complex(8)::CE_R,CE_Z
+
+  KID=KWD(3:3)
+  IE=0
+
+! --- EXTRACT DATA FOR 2D PLOT ---  
+
+  if(KID.eq.'R'.or.&
+     KID.eq.'I'.or.&
+     KID.eq.'C') then
+     CALL WFGMESH
+     DO NGY=1,NGYMAX
+        Y=G2Y(NGY)
+        DO NGX=1,NGXMAX
+           X=G2X(NGX)
+           !           IE=IEGZ(NGX,NGY)
+           CALL fem_find_nelm_for_xy(x,y,ie)
+           IF(IE.EQ.0) THEN
+              GZ(NGX,NGY)=0.0
+           ELSE
+              IF(ID.eq.1) THEN
+                 CALL FIELDCR(IE,X,Y,CESD,CE)
+              ELSE IF(ID.eq.3) THEN
+                 CALL FIELDCZ(IE,X,Y,CESD,CE)
+              ELSEIF(ID.eq.4.or.ID.eq.6) THEN
+                 theta=datan2(Y,(X-RR))
+                 CALL FIELDCR(IE,X,Y,CESD,CE)
+                 CE_R=CE
+                 CALL FIELDCZ(IE,X,Y,CESD,CE)
+                 CE_Z=CE
+                 if(ID.eq.4) then
+                    CE=-CE_R*cos(theta)-CE_Z*sin(theta)
+                 elseif(ID.eq.6) then
+                    CE= CE_R*sin(theta)-CE_Z*cos(theta)
+                 end if
+              ENDIF
+              IF(ABS(CE).LT.1.D-12) CE=(0.D0,0.D0)
+              IF(Y.GT.0.3D0.AND.Y.LT.0.5D0) THEN
+              N1=NSDELM(1,IE)
+              IF(N1.GT.0) THEN
+                 CE1=CESD(N1)
+              ELSE
+                 CE1=-CESD(-N1)
+              END IF
+              N2=NSDELM(2,IE)
+              IF(N2.GT.0) THEN
+                 CE2=CESD(N2)
+              ELSE
+                 CE2=-CESD(-N2)
+              END IF
+              N3=NSDELM(3,IE)
+              IF(N3.GT.0) THEN
+                 CE3=CESD(N3)
+              ELSE
+                 CE3=-CESD(-N3)
+              END IF
+             
+              IF(ABS(CE).NE.0.D0) THEN
+                 WRITE(6,'(A,I12,1P5E12.4)') 'CESD:',IE,X,Y,CE
+                 WRITE(6,'(A,1P6E12.4)')     '     ', CE1,CE2,CE3
+                 WRITE(6,'(A,1P6E12.4)')     '     ', &
+                      RNODE(NDELM(1,IE)),ZNODE(NDELM(1,IE)), &
+                      RNODE(NDELM(2,IE)),ZNODE(NDELM(2,IE)), &
+                      RNODE(NDELM(3,IE)),ZNODE(NDELM(3,IE))
+              END IF
+              END IF
+                 
+              ! -----------
+              IF(KID.EQ.'R') THEN
+                 GZ(NGX,NGY)=GCLIP(REAL(CE))
+              ELSE IF(KID.EQ.'I') THEN
+                 GZ(NGX,NGY)=GCLIP(AIMAG(CE))
+              ELSE IF(KID.EQ.'A') THEN
+                 GZ(NGX,NGY)=GCLIP(ABS(CE))
+              ENDIF
+           ENDIF
+        END DO
+     ENDDO
+
+! --- EXTRACT DATA FOR 1D X PLOT ---
+
+  elseif(KID.eq.'X') then
+     READ(KWD(4:NCHM),*,ERR=9000) YPOS
+     DX=(RNDMAX-RNDMIN)/(NGVMAX-1)
+     DO NGV=1,NGVMAX
+        X=RNDMIN+DX*(NGV-1)
+        CALL fem_find_nelm_for_xy(x,ypos,ie)
+!        CALL FEP(X,YPOS,IE)
+        WRITE(6,*) '@@@:',NGV,X,ypos,ie
+        IF(IE.EQ.0) THEN
+           GX(NGV)=GCLIP(X)
+           GV(NGV,1)=0.0
+           GV(NGV,2)=0.0
+           GV(NGV,3)=0.0
+        ELSE
+           IF(ID.eq.1) THEN
+              CALL FIELDCR(IE,X,YPOS,CESD,CE)
+           ELSE IF(ID.eq.3) THEN
+              CALL FIELDCZ(IE,X,YPOS,CESD,CE)
+           ELSEIF(ID.eq.4.or.ID.eq.6) THEN
+              theta=datan2(Y,(X-RR))
+              CALL FIELDCR(IE,X,Y,CESD,CE)
+              CE_R=CE
+              CALL FIELDCZ(IE,X,Y,CESD,CE)
+              CE_Z=CE
+              if(ID.eq.4) then
+                 CE=-CE_R*cos(theta)-CE_Z*sin(theta)
+              elseif(ID.eq.6) then
+                 CE= CE_R*sin(theta)-CE_Z*cos(theta)
+              end if
+           ENDIF
+           IF(ABS(CE).LT.1.D-12) CE=(0.D0,0.D0)
+           GX(NGV)=GCLIP(X)
+           GV(NGV,1)=GCLIP(REAL(CE))
+           GV(NGV,2)=GCLIP(AIMAG(CE))
+           GV(NGV,3)=GCLIP(ABS(CE))
+        ENDIF
+        IF(ABS(CE).NE.0.D0) THEN
+           WRITE(6,'(A,I12,1P5E12.4)') 'CESD:',IE,X,YPOS,CE
+           WRITE(6,'(A,1P6E12.4)')     '     ', &
+                CESD(ABS(NSDELM(1,IE))),CESD(ABS(NSDELM(2,IE))), &
+                CESD(ABS(NSDELM(3,IE)))
+           WRITE(6,'(A,1P6E12.4)')     '     ', &
+                RNODE(NDELM(1,IE)),ZNODE(NDELM(1,IE)), &
+                RNODE(NDELM(2,IE)),ZNODE(NDELM(2,IE)), &
+                RNODE(NDELM(3,IE)),ZNODE(NDELM(3,IE))
+        END IF
+     ENDDO
+
+  ! --- EXTRACT DATA FOR 1D Y PLOT ---
+
+  else if(KID.eq.'Y') then
+     READ(KWD(4:NCHM),*,ERR=9000) XPOS
+     DY=(ZNDMAX-ZNDMIN)/(NGVMAX-1)
+     DO NGV=1,NGVMAX
+        Y=ZNDMIN+DY*(NGV-1)
+        IF(Y.GT.0.4D0.AND.Y.LT.0.41D0) THEN
+           idebug=-1
+        ELSE
+           idebug=0
+        END IF
+        CALL fem_find_nelm_for_xy(xpos,y,ie)
+!        CALL FEP(XPOS,Y,IE)
+        IF(IE.EQ.0) THEN
+           GX(NGV)=GCLIP(Y)
+           GV(NGV,1)=0.0
+           GV(NGV,2)=0.0
+           GV(NGV,3)=0.0
+        ELSE
+           IF(ID.eq.1) THEN
+              CALL FIELDCR(IE,XPOS,Y,CESD,CE)
+           ELSE IF(ID.eq.3) THEN
+              CALL FIELDCZ(IE,XPOS,Y,CESD,CE)
+           ELSEIF(ID.eq.4.or.ID.eq.6) THEN
+              theta=datan2(Y,(X-RR))
+              CALL FIELDCR(IE,X,Y,CESD,CE)
+              CE_R=CE
+              CALL FIELDCZ(IE,X,Y,CESD,CE)
+              CE_Z=CE
+              if(ID.eq.4) then
+                 CE=-CE_R*cos(theta)-CE_Z*sin(theta)
+              elseif(ID.eq.6) then
+                 CE= CE_R*sin(theta)-CE_Z*cos(theta)
+              end if
+           ENDIF
+              IF(idebug.EQ.-1) THEN
+              N1=NSDELM(1,IE)
+              IF(N1.GT.0) THEN
+                 CE1=CESD(N1)
+              ELSE
+                 CE1=-CESD(-N1)
+              END IF
+              N2=NSDELM(2,IE)
+              IF(N2.GT.0) THEN
+                 CE2=CESD(N2)
+              ELSE
+                 CE2=-CESD(-N2)
+              END IF
+              N3=NSDELM(3,IE)
+              IF(N3.GT.0) THEN
+                 CE3=CESD(N3)
+              ELSE
+                 CE3=-CESD(-N3)
+              END IF
+             
+              IF(ABS(CE).NE.0.D0) THEN
+                 WRITE(6,'(A,I12,1P5E12.4)') 'CESD:',IE,XPOS,Y,CE
+                 WRITE(6,'(A,1P6E12.4)')     '     ', CE1,CE2,CE3
+                 WRITE(6,'(A,1P6E12.4)')     '     ', &
+                      RNODE(NDELM(1,IE)),ZNODE(NDELM(1,IE)), &
+                      RNODE(NDELM(2,IE)),ZNODE(NDELM(2,IE)), &
+                      RNODE(NDELM(3,IE)),ZNODE(NDELM(3,IE))
+              END IF
+              END IF
+           IF(ABS(CE).LT.1.D-12) CE=(0.D0,0.D0)
+           GX(NGV)=GCLIP(Y)
+           GV(NGV,1)=GCLIP(REAL(CE))
+           GV(NGV,2)=GCLIP(AIMAG(CE))
+           GV(NGV,3)=GCLIP(ABS(CE))
+        ENDIF
+     ENDDO
+  end if
+  
+9000 CONTINUE
+  RETURN
+END SUBROUTINE WFCTOGSD
+
+!     ****** EXTRACT FROM COMPLEX DATA ******
+
+SUBROUTINE WFCTOGND(ID,KWD)
+
+  use wfcomm
+  use feminterpolate
+  implicit none
+  integer,intent(in) :: ID
+  integer :: IE,NGX,NGY,NGV
+  real(4) :: GCLIP
+  real(8) :: DX,DY,X,Y
+  real(8) :: XPOS,YPOS
   complex(8) :: CE
   character,intent(in) :: KWD*(NCHM)
   CHARACTER  :: KID*1
@@ -196,32 +422,29 @@ SUBROUTINE WFCTOG(CF,ID,KWD)
         Y=G2Y(NGY)
         DO NGX=1,NGXMAX
            X=G2X(NGX)
-           IE=IEGZ(NGX,NGY)
+           !           IE=IEGZ(NGX,NGY)
+           CALL fem_find_nelm_for_xy(x,y,ie)
            IF(IE.EQ.0) THEN
               GZ(NGX,NGY)=0.0
            ELSE
-              IF(ID.eq.1) THEN
-                 CALL FIELDCR(IE,X,Y,CF,CE)
-              ELSE IF(ID.eq.2) THEN
-                 CALL FIELDCP(IE,X,Y,CF,CE)
-              ELSE IF(ID.eq.3) THEN
-                 CALL FIELDCZ(IE,X,Y,CF,CE)
+              IF(ID.eq.2) THEN
+                 CALL FIELDCP(IE,X,Y,CEND,CE)
               ! -----------
               ELSEIF(ID.eq.5) THEN
-                 CALL FIELDCP(IE,X,Y,CF,CE)
+                 CALL FIELDCP(IE,X,Y,CEND,CE)
                  CE=-CE
-              ELSEIF(ID.eq.4.or.ID.eq.6) THEN
-                 theta=datan2(Y,(X-RR))
-                 CALL FIELDCR(IE,X,Y,CESD,CE)
-                 CE_R=CE
-                 CALL FIELDCZ(IE,X,Y,CESD,CE)
-                 CE_Z=CE
-                 if(ID.eq.4) then
-                    CE=-CE_R*cos(theta)-CE_Z*sin(theta)
-                 elseif(ID.eq.6) then
-                    CE= CE_R*sin(theta)-CE_Z*cos(theta)
-                 end if
               ENDIF
+              IF(ABS(CE).LT.1.D-12) CE=(0.D0,0.D0)
+!              IF(ABS(CE).NE.0.D0) THEN
+!                 WRITE(6,'(A,I12,1P5E12.4)') 'CEND:',IE,X,Y,CE
+!                 WRITE(6,'(A,1P6E12.4)')     '     ', &
+!                      CEND(NDELM(1,IE)),CEND(NDELM(2,IE)),CEND(NDELM(3,IE))
+!                 WRITE(6,'(A,1P6E12.4)')     '     ', &
+!                      RNODE(NDELM(1,IE)),ZNODE(NDELM(1,IE)), &
+!                      RNODE(NDELM(2,IE)),ZNODE(NDELM(2,IE)), &
+!                      RNODE(NDELM(3,IE)),ZNODE(NDELM(3,IE))
+!              END IF
+                 
               ! -----------
               IF(KID.EQ.'R') THEN
                  GZ(NGX,NGY)=GCLIP(REAL(CE))
@@ -241,56 +464,76 @@ SUBROUTINE WFCTOG(CF,ID,KWD)
      DX=(RNDMAX-RNDMIN)/(NGVMAX-1)
      DO NGV=1,NGVMAX
         X=RNDMIN+DX*(NGV-1)
-        CALL FEP(X,YPOS,IE)
+        CALL fem_find_nelm_for_xy(x,ypos,ie)
+!        CALL FEP(X,YPOS,IE)
         IF(IE.EQ.0) THEN
            GX(NGV)=GCLIP(X)
            GV(NGV,1)=0.0
            GV(NGV,2)=0.0
            GV(NGV,3)=0.0
         ELSE
-           IF(ID.eq.1) THEN
-              CALL FIELDCR(IE,X,YPOS,CF,CE)
-           ELSE IF(ID.eq.2) THEN
-              CALL FIELDCP(IE,X,YPOS,CF,CE)
-           ELSE IF(ID.eq.3) THEN
-              CALL FIELDCZ(IE,X,YPOS,CF,CE)
+           IF(ID.eq.2) THEN
+              CALL FIELDCP(IE,X,YPOS,CEND,CE)
+           ELSE IF(ID.eq.5) THEN
+              CALL FIELDCP(IE,X,YPOS,CEND,CE)
+              CE=-CE
            ENDIF
+           IF(ABS(CE).LT.1.D-12) CE=(0.D0,0.D0)
            GX(NGV)=GCLIP(X)
            GV(NGV,1)=GCLIP(REAL(CE))
            GV(NGV,2)=GCLIP(AIMAG(CE))
            GV(NGV,3)=GCLIP(ABS(CE))
         ENDIF
+!        IF(ABS(CE).NE.0.D0) THEN
+!           WRITE(6,'(A,I12,1P5E12.4)') 'CEND:',IE,X,Y,CE
+!           WRITE(6,'(A,1P6E12.4)')     '     ', &
+!                CEND(NDELM(1,IE)),CEND(NDELM(2,IE)),CEND(NDELM(3,IE))
+!           WRITE(6,'(A,1P6E12.4)')     '     ', &
+!                RNODE(NDELM(1,IE)),ZNODE(NDELM(1,IE)), &
+!                RNODE(NDELM(2,IE)),ZNODE(NDELM(2,IE)), &
+!                RNODE(NDELM(3,IE)),ZNODE(NDELM(3,IE))
+!        END IF
      ENDDO
   else if(KID.eq.'Y') then
      READ(KWD(4:NCHM),*,ERR=9000) XPOS
      DY=(ZNDMAX-ZNDMIN)/(NGVMAX-1)
      DO NGV=1,NGVMAX
         Y=ZNDMIN+DY*(NGV-1)
-        CALL FEP(XPOS,Y,IE)
+        CALL fem_find_nelm_for_xy(xpos,y,ie)
+!        CALL FEP(XPOS,Y,IE)
         IF(IE.EQ.0) THEN
            GX(NGV)=GCLIP(Y)
            GV(NGV,1)=0.0
            GV(NGV,2)=0.0
            GV(NGV,3)=0.0
         ELSE
-           IF(ID.eq.1) THEN
-              CALL FIELDCR(IE,XPOS,Y,CF,CE)
-           ELSE IF(ID.eq.2) THEN
-              CALL FIELDCP(IE,XPOS,Y,CF,CE)
-           ELSE IF(ID.eq.3) THEN
-              CALL FIELDCZ(IE,XPOS,Y,CF,CE)
+           IF(ID.eq.2) THEN
+              CALL FIELDCP(IE,XPOS,Y,CEND,CE)
+           ELSE IF(ID.eq.5) THEN
+              CALL FIELDCZ(IE,XPOS,Y,CEND,CE)
+              CE=-CE
            ENDIF
+           IF(ABS(CE).LT.1.D-12) CE=(0.D0,0.D0)
            GX(NGV)=GCLIP(Y)
            GV(NGV,1)=GCLIP(REAL(CE))
            GV(NGV,2)=GCLIP(AIMAG(CE))
            GV(NGV,3)=GCLIP(ABS(CE))
         ENDIF
+!        IF(ABS(CE).NE.0.D0) THEN
+!           WRITE(6,'(A,I12,1P5E12.4)') 'CEND:',IE,X,Y,CE
+!           WRITE(6,'(A,1P6E12.4)')     '     ', &
+!                CEND(NDELM(1,IE)),CEND(NDELM(2,IE)),CEND(NDELM(3,IE))
+!           WRITE(6,'(A,1P6E12.4)')     '     ', &
+!                RNODE(NDELM(1,IE)),ZNODE(NDELM(1,IE)), &
+!                RNODE(NDELM(2,IE)),ZNODE(NDELM(2,IE)), &
+!                RNODE(NDELM(3,IE)),ZNODE(NDELM(3,IE))
+!        END IF
      ENDDO
   end if
   
 9000 CONTINUE
   RETURN
-END SUBROUTINE WFCTOG
+END SUBROUTINE WFCTOGND
 
 !     ****** WRITE 2D PROFILE IN TEXT FILE ******
 

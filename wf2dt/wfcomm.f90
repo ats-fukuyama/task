@@ -58,6 +58,7 @@ module wfcomm
   integer(ikind):: MODELWG
   CHARACTER(LEN=80):: KNAMWG
   real(rkind):: gfactor
+  integer(ikind):: MODELWF
 
 !       /WFPRK/
   character(len=32) :: KFNAME,KFNAMA,KFNAMF,KFNAMN
@@ -215,6 +216,9 @@ module wfcomm
 ! --- allocation flag ---
   integer(rkind):: divinit,elminit,sidinit,srtinit,medinit
   integer(rkind):: srfinit,slvinit,fldinit,pwrinit,nasinit,wininit
+
+! --- fem module variables ---
+  INTEGER(rkind):: nxzone_max,nyzone_max
 
 ! -----------------------------------------------------------------
 

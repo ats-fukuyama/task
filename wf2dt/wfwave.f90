@@ -61,12 +61,18 @@ subroutine WFWPRE(IERR)
   USE wfcomm
   USE wfparm
   USE plload,ONLY: pl_load
+  USE femmeshprep
+  USE feminterpolate
   USE libbes
   IMPLICIT NONE
   REAL(rkind):: RGAMMA
   INTEGER,INTENT(OUT) :: IERR
 
   IERR=0
+
+  CALL fem_meshprep
+
+  CALL fem_setup_zone
 
   CALL pl_load(ierr)
   if(IERR.ne.0) return
@@ -268,12 +274,15 @@ subroutine MUTENSR(NE,MU)
 
   do ISD=1,3
      NSD=ABS(NSDELM(ISD,NE))
+     IF(MODELWF.EQ.0) THEN
         L(ISD)=LSID(NSD)
-!     IF(NSDELM(ISD,NE).GT.0.D0) THEN
-!        L(ISD)=LSID(NSD)
-!     ELSE
-!        L(ISD)=-LSID(NSD)
-!     END IF
+     ELSE
+        IF(NSDELM(ISD,NE).GT.0.D0) THEN
+           L(ISD)=LSID(NSD)
+        ELSE
+           L(ISD)=-LSID(NSD)
+        END IF
+     END IF
   end do
 
   call WFABC(NE,A,B,C)
@@ -477,7 +486,15 @@ SUBROUTINE CMCALCV(NE)
 
   do ISD=1,3
      NSD=ABS(NSDELM(ISD,NE))
-     L(ISD)=LSID(NSD)
+     IF(MODELWF.EQ.0) THEN
+        L(ISD)=LSID(NSD)
+     ELSE
+        IF(NSDELM(ISD,NE).GT.0.D0) THEN
+           L(ISD)=LSID(NSD)
+        ELSE
+           L(ISD)=-LSID(NSD)
+        END IF
+     END IF
   end do
 
   do ISD=1,3
@@ -708,7 +725,16 @@ SUBROUTINE CMCALCS(NE)
   DO ISD=1,3
      NSD=ABS(NSDELM(ISD,NE))
      IF(KASID(NSD).EQ.1) THEN
-        L(ISD)=LSID(NSD)
+        IF(MODELWF.EQ.0) THEN
+           L(ISD)=LSID(NSD)
+        ELSE
+           IF(NSDELM(ISD,NE).GT.0.D0) THEN
+              L(ISD)=LSID(NSD)
+           ELSE
+              L(ISD)=-LSID(NSD)
+           END IF
+        END IF
+
         ND1=ISD
         ND2=ISD+1
         IF(ND2.GT.3) ND2=ND2-3

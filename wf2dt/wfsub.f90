@@ -696,7 +696,8 @@ SUBROUTINE MODANT(IERR)
   NE=0
   DO NA=1,NAMAX
      CALL FEP(RJ0(1,NA),ZJ0(1,NA),NE)
-     WRITE(6,'(A,I5,1P2E12.4,I5)') 'NA,RJ0,ZJ0=',NA,RJ0(1,NA),ZJ0(1,NA),NE
+     IF(nrank.EQ.0) &
+          WRITE(6,'(A,I5,1P2E12.4,I5)') 'NA,RJ0,ZJ0=',NA,RJ0(1,NA),ZJ0(1,NA),NE
 !    outside starting point
 
      IF(NE.EQ.0) THEN
@@ -902,11 +903,20 @@ SUBROUTINE FIELDCR(NE,R,Z,CVALUE,CE)
   complex(8),intent(in) :: CVALUE(NSDMAX)
   complex(8):: CF
   complex(8),intent(out) :: CE
+  REAL(8):: DR,DZ,DL
 
   CALL WFABC(NE,A,B,C)
   do ISD=1,3
      NSD=ABS(NSDELM(ISD,NE))
-     L=LSID(NSD)
+     IF(MODELWF.EQ.0) THEN
+        L=LSID(NSD)
+     ELSE
+        IF(NSDELM(ISD,NE).GT.0.D0) THEN
+           L=LSID(NSD)
+        ELSE
+           L=-LSID(NSD)
+        END IF
+     END IF
 
      M=ISD
      N=ISD+1
@@ -926,6 +936,8 @@ SUBROUTINE FIELDCR(NE,R,Z,CVALUE,CE)
      end if
      WEIGHT=AW(ISD)-BW(ISD)*Z
      CE=CE+WEIGHT*CF
+     IF(idebug.EQ.-1) &
+          WRITE(6,'(A,I10,I5,1P5E12.4)') 'FR:',NE,ISD,weight,CF,CE
   END DO
 
   RETURN
@@ -948,8 +960,16 @@ SUBROUTINE FIELDCZ(NE,R,Z,CVALUE,CE)
   CALL WFABC(NE,A,B,C)
   do ISD=1,3
      NSD=ABS(NSDELM(ISD,NE))
-     L=LSID(NSD)
-
+     IF(MODELWF.EQ.0) THEN
+        L=LSID(NSD)
+     ELSE
+        IF(NSDELM(ISD,NE).GT.0.D0) THEN
+           L=LSID(NSD)
+        ELSE
+           L=-LSID(NSD)
+        END IF
+     END IF
+     
      M=ISD
      N=ISD+1
      IF(N.gt.3) N=N-3

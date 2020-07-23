@@ -62,14 +62,15 @@ CONTAINS
                   DELR,DELZ,&
                   PIN,RD,THETJ1,THETJ2,NJMAX,&
                   R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG, &
-                  AMPWG,ANGWG,ELPWG,DPHWG,MODELWG, &
+                  AMPWG,ANGWG,ELPWG,DPHWG,MODELWG,MODELWF, &
                   NGXMAX,NGYMAX,NGVMAX,IDEBUG, &
                   sort_weight_x,sort_weight_y, &
                   br_corner,bz_corner,bt_corner, &
                   pn_corner,ptpr_corner,ptpp_corner, &
                   tolerance,wdamp,fdamp,gfactor, &
                   mdamp,rdamp_min,rdamp_max,zdamp_min,zdamp_max, &
-                  NCOILMAX,RCOIL,ZCOIL,BCOIL
+                  NCOILMAX,RCOIL,ZCOIL,BCOIL, &
+                  nxzone_max,nyzone_max
 
     READ(NID,WF,IOSTAT=IST,ERR=9800,END=9900)
     IF(IST.NE.0) GO TO 9100
@@ -133,14 +134,15 @@ CONTAINS
        WRITE(6,*) '     DELR,DELZ,'
        WRITE(6,*) '     PIN,RD,THETJ1,THETJ2,NJMAX,ZANT,ZWALL,'
        WRITE(6,*) '     R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,'
-       WRITE(6,*) '     AMPWG,ANGWG,ELPWG,DPHWG,MODELWG,'
+       WRITE(6,*) '     AMPWG,ANGWG,ELPWG,DPHWG,MODELWG,MODELWF,'
        WRITE(6,*) '     NGXMAX,NGYMAX,NGVMAX,IDEBUG,'
        WRITE(6,*) '     sort_weight_x,sort_weight_y'
        WRITE(6,*) '     br_corner,bz_corner,bt_corner,'
        WRITE(6,*) '     pn_corner,ptpr_corner,ptpp_corner,'
        WRITE(6,*) '     tolerance,wdamp,fdamp,gfactor,'
        WRITE(6,*) '     mdamp,rdamp_min,rdamp_max,zdamp_min,zdamp_max,'
-       WRITE(6,*) '     NCOILMAX,RCOIL,ZCOIL,BCOIL'
+       WRITE(6,*) '     NCOILMAX,RCOIL,ZCOIL,BCOIL,'
+       WRITE(6,*) '     nxzone_max,nyzone_max '
     end if
     RETURN
   END SUBROUTINE WFPLST
@@ -189,7 +191,7 @@ CONTAINS
        WRITE(6,601) 'PH1WG ',PH1WG ,'PH2WG ',PH2WG , &
                     'AMPWG ',AMPWG ,'ANGWG ',ANGWG
        WRITE(6,601) 'ELPWG ',ELPWG ,'DPHWG ',DPHWG
-       WRITE(6,605) 'MODELWG',MODELWG
+       WRITE(6,605) 'MODELWG',MODELWG,'MODELWF',MODELWF
     END IF
   
     IF(NSMAX.GT.0) THEN
@@ -249,6 +251,7 @@ CONTAINS
   WRITE(6,604) 'mdamp ',mdamp
   WRITE(6,602) 'rdamp_min ',rdamp_min,'rdamp_max ',rdamp_max
   WRITE(6,602) 'zdamp_min ',zdamp_min,'zdamp_max ',zdamp_max
+  WRITE(6,605) 'nxzone_max',nxzone_max,'nyzone_max',nyzone_max
   RETURN
   
 601 FORMAT(' ',A6,'=',1PE11.3:2X,A6,'=',1PE11.3:&
@@ -274,7 +277,7 @@ SUBROUTINE wfparm_broadcast
   USE wfcomm
   IMPLICIT NONE
 
-  INTEGER,DIMENSION(22) :: idata
+  INTEGER,DIMENSION(23) :: idata
   REAL(8),DIMENSION(35) :: ddata
   
 ! ---  broadcast integer data -----
@@ -302,9 +305,10 @@ SUBROUTINE wfparm_broadcast
      idata(20)=MODELWG
      idata(21)=MDAMP
      idata(22)=NCOILMAX
+     idata(23)=MODELWF
   end if
   
-  call mtx_broadcast_integer(idata,22)
+  call mtx_broadcast_integer(idata,23)
   
   NSMAX =idata(1)
   NAMAX =idata(2)
@@ -328,6 +332,7 @@ SUBROUTINE wfparm_broadcast
   MODELWG =idata(20)
   MDAMP =idata(21)
   NCOILMAX =idata(22)
+  MODELWF =idata(23)
 
 ! ----- broadcast real(8) data ------
 

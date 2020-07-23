@@ -275,6 +275,9 @@ CONTAINS
 
     GFACTOR= 0.5
 
+    nxzone_max=100
+    nyzone_max=100
+
 !     *** Numerical computation parameter ***
 
     tolerance = 1.D-8
@@ -296,6 +299,8 @@ CONTAINS
     RNDMAX = 0.D0
 
     NDFILE=25
+
+    MODELWF=0         ! side field: 0: positive 1: alternative
 
     RETURN
 END SUBROUTINE WF_INIT
