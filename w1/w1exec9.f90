@@ -370,35 +370,39 @@ CONTAINS
        CE2DA(NZ,NX,3)=CA(3*NX+2)
     END DO
 
-    WRITE(6,'(A,I5,1PE12.4)') &
-         '== Wave electric field == NZ,RKZ',NZ,AKZ(NZ)
-    WRITE(6,'(A,1P5E12.4)') &
-         'HFS-O:',CFWG4,CA(1),ABS(CA(1))**2, &
-         'HFS-X:',CFWG3,CA(2),ABS(CA(2))**2, &
-         'LFS-O:',CFWG2,CA(MLEN-1),ABS(CA(MLEN-1))**2, &
-         'LFS-X:',CFWG1,CA(MLEN),ABS(CA(MLEN))**2
     RNZ=AKZ(NZ)*VC/RW
     IF(ABS(RNZ).LT.1.D0) THEN
-!       PIN1=ABS(CFWG1)**2*(1.D0+RNZ**2)*SQRT(1.D0-RNZ**2)
-       PIN1=ABS(CFWG1)**2*SQRT(1.D0-RNZ**2)
-       PIN2=ABS(CFWG2)**2              *SQRT(1.D0-RNZ**2)
-!       PIN3=ABS(CFWG3)**2*(1.D0+RNZ**2)*SQRT(1.D0-RNZ**2)
-       PIN3=ABS(CFWG3)**2              *SQRT(1.D0-RNZ**2)
-       PIN4=ABS(CFWG4)**2              *SQRT(1.D0-RNZ**2)
+       PIN1=ABS(CFWG1)**2/SQRT(1.D0-RNZ**2)
+       PIN2=ABS(CFWG2)**2*SQRT(1.D0-RNZ**2)
+       PIN3=ABS(CFWG3)**2/SQRT(1.D0-RNZ**2)
+       PIN4=ABS(CFWG4)**2*SQRT(1.D0-RNZ**2)
        PIN=PIN1+PIN2+PIN3+PIN4
-!       POUT1=ABS(CA(MLEN  ))**2*(1.D0+RNZ**2)*SQRT(1.D0-RNZ**2)
-       POUT1=ABS(CA(MLEN  ))**2               *SQRT(1.D0-RNZ**2)
-       POUT2=ABS(CA(MLEN-1))**2              *SQRT(1.D0-RNZ**2)
-!       POUT3=ABS(CA(2     ))**2*(1.D0+RNZ**2)*SQRT(1.D0-RNZ**2)
-       POUT3=ABS(CA(2     ))**2              *SQRT(1.D0-RNZ**2)
-       POUT4=ABS(CA(1     ))**2              *SQRT(1.D0-RNZ**2)
+       POUT1=ABS(CA(MLEN  ))**2/SQRT(1.D0-RNZ**2)
+       POUT2=ABS(CA(MLEN-1))**2*SQRT(1.D0-RNZ**2)
+       POUT3=ABS(CA(2     ))**2/SQRT(1.D0-RNZ**2)
+       POUT4=ABS(CA(1     ))**2*SQRT(1.D0-RNZ**2)
        POUT=POUT1+POUT2+POUT3+POUT4
        PCONV=PIN-POUT
     ELSE
+       PIN1=ABS(CFWG1)**2
+       PIN2=ABS(CFWG2)**2
+       PIN3=ABS(CFWG3)**2
+       PIN4=ABS(CFWG4)**2
        PIN=1.D0
+       POUT1=ABS(CA(MLEN  ))**2
+       POUT2=ABS(CA(MLEN-1))**2
+       POUT3=ABS(CA(2     ))**2
+       POUT4=ABS(CA(1     ))**2
        POUT=0.D0
        PCONV=PIN-POUT
     END IF
+    WRITE(6,'(A,I5,1PE12.4)') &
+         '== Wave electric field == NZ,RKZ',NZ,AKZ(NZ)
+    WRITE(6,'(A,1P6E12.4)') &
+         'HFS-X:',CFWG4,CA(1),     PIN4,POUT4, &
+         'HFS-O:',CFWG3,CA(2),     PIN3,POUT3, &
+         'LFS-X:',CFWG2,CA(MLEN-1),PIN2,POUT2, &
+         'LFS-O:',CFWG1,CA(MLEN),  PIN1,POUT1
     WRITE(6,'(A,F7.2,F7.3,1P5E12.4)') &
          'REFL:',AKZ(NZ),RNZ,  &
                  POUT1/PIN,POUT2/PIN,POUT3/PIN,POUT4/PIN,PCONV/PIN

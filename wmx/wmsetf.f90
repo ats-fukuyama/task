@@ -13,70 +13,37 @@ CONTAINS
 
     USE wmcomm
     IMPLICIT NONE
+    INTEGER,INTENT(IN):: NR1,NS0
+    REAL(rkind):: RMA(3,3),RMB(3,3),RGA(3,3),RGB(3,3),NDMIPSF,3,3)
+    COMPLEX(rkind),ALLOCATABLE:: &
+         CEP0(:,:,:,:),CRA(:,:,:,:),CFA(:,:,:,:),CRB(:,:,:,:), &
+         CFB(:,:,:,:,:,:),CRC(:,:,:,:),CFC(:,:,:,:),SUMA(:,:,:,:,:,:)
+    COMPLEX(rkind):: CFB(MDMF,NDMF,3,3,-MDMXF:MDMXF,-NDMXF:NDMXF)
+    COMPLEX(rkind):: CRC(MDMF,NDMF,3,3),CFC(MDMF,NDMF,3,3)
+    COMPLEX(rkind):: CSUMA(3,3,MDMF,MDM,NDMF,NDM),CS(3,3,MDMF,NDMF)
+    COMPLEX(rkind):: CW,CWC2
+    REAL(rkind):: XRHI,XRHL,XRI,XRH
+    INTEGER:: NR,ND,MD
 
-    REAL(rkind):: RMA(3,3),RMB(3,3),RGA(3,3),RGB(3,3)
-
-    DIMENSION CEP0(3,3,MDMIPSF,NDMIPSF)
-      DIMENSION CRA(MDMF,NDMF,3,3),CFA(MDMF,NDMF,3,3)
-      DIMENSION CRB(MDMIPSF,NDMIPSF,3,3)
-      DIMENSION CFB(MDMF,NDMF,3,3,-MDMXF:MDMXF,-NDMXF:NDMXF)
-      DIMENSION CRC(MDMF,NDMF,3,3),CFC(MDMF,NDMF,3,3)
-      DIMENSION CSUMA(3,3,MDMF,MDM,NDMF,NDM),CS(3,3,MDMF,NDMF)
+    ALLOCATE(CEP0(3,3,MDMIPSF,NDMIPSF))
+    ALLOCATE(CRA(MDMF,NDMF,3,3),CFA(MDMF,NDMF,3,3))
+    ALLOCATE(CRB(MDMIPSF,NDMIPSF,3,3))
+    ALLOCATE(CFB(MDMF,NDMF,3,3,-MDMXF:MDMXF,-NDMXF:NDMXF))
+    ALLOCATE(CRC(MDMF,NDMF,3,3),CFC(MDMF,NDMF,3,3))
+    ALLOCATE(CSUMA(3,3,MDMF,MDM,NDMF,NDM),CS(3,3,MDMF,NDMF))
 
       CW=2.D0*PI*CRF*1.D6
       CWC2=CW**2/VC**2
 
-      NR=NR1 !+50
-      XRHI=1d0
-      XRHL=1d0
       IF(NR.EQ.1) THEN
          XRI=1.D6/XRHO(2)
          XRL=XRHO(2)/1.D6
-          XRHI=2d0/(2D0*XRHO(NR)+XRHO(NR)-XRHO(NR+1))
-          XRHL=(2D0*XRHO(NR)+XRHO(NR)-XRHO(NR+1))/2d0
       ELSE
          XRI=1.D0/XRHO(NR)
          XRL=XRHO(NR)
-         IF(NR .GT. 1 )THEN
-           XRHI=2d0/(XRHO(NR)+XRHO(NR-1))
-           XRHL=(XRHO(NR)+XRHO(NR-1))/2d0
-         ENDIF
       ENDIF
-      RGH11=0d0
-      RGH12=0d0
-      RGH13=0d0
-      RGH22=0d0
-      RGH23=0d0
-      RGH33=0d0
-      RJH =0d0
 
 !     ----- Fourier decompose metric tensor g -----
-
-      IF (NR .GT. 1)THEN
-      DO ND=1,NDMF
-      DO MD=1,MDMF
-      RGH11(MD,ND,NR)=(RG11(MD,ND,NR) + RG11(MD,ND,NR-1))/2d0
-      RGH12(MD,ND,NR)=(RG12(MD,ND,NR) + RG12(MD,ND,NR-1))/2d0
-      RGH13(MD,ND,NR)=(RG13(MD,ND,NR) + RG13(MD,ND,NR-1))/2d0
-      RGH22(MD,ND,NR)=(RG22(MD,ND,NR) + RG22(MD,ND,NR-1))/2d0
-      RGH23(MD,ND,NR)=(RG23(MD,ND,NR) + RG23(MD,ND,NR-1))/2d0
-      RGH33(MD,ND,NR)=(RG33(MD,ND,NR) + RG33(MD,ND,NR-1))/2d0
-      RJH  (MD,ND,NR)=  (RJ(MD,ND,NR) + RJ(MD,ND,NR-1))/2d0
-      ENDDO
-      ENDDO
-      ELSE
-      DO ND=1,NDMF
-      DO MD=1,MDMF
-        RGH11(MD,ND,NR)=(3D0*RG11(MD,ND,NR) - RG11(MD,ND,NR+1))/2d0
-        RGH12(MD,ND,NR)=(3D0*RG12(MD,ND,NR) - RG12(MD,ND,NR+1))/2d0
-        RGH13(MD,ND,NR)=(3D0*RG13(MD,ND,NR) - RG13(MD,ND,NR+1))/2d0
-        RGH22(MD,ND,NR)=(3D0*RG22(MD,ND,NR) - RG22(MD,ND,NR+1))/2d0
-        RGH23(MD,ND,NR)=(3D0*RG23(MD,ND,NR) - RG23(MD,ND,NR+1))/2d0
-        RGH33(MD,ND,NR)=(3D0*RG33(MD,ND,NR) - RG33(MD,ND,NR+1))/2d0
-        RJH  (MD,ND,NR)=  (3D0*RJ(MD,ND,NR) -   RJ(MD,ND,NR+1))/2d0
-      ENDDO
-      ENDDO
-      ENDIF
 
       CALL WMSUBG_F(RG11(1,1,NR),RJ(1,1,NR),CGF11(1,1,3))
       CALL WMSUBG_F(RG12(1,1,NR),RJ(1,1,NR),CGF12(1,1,3))
@@ -84,13 +51,6 @@ CONTAINS
       CALL WMSUBG_F(RG22(1,1,NR),RJ(1,1,NR),CGF22(1,1,3))
       CALL WMSUBG_F(RG23(1,1,NR),RJ(1,1,NR),CGF23(1,1,3))
       CALL WMSUBG_F(RG33(1,1,NR),RJ(1,1,NR),CGF33(1,1,3))
-
-      CALL WMSUBG_F(RGH11(1,1,NR),RJH(1,1,NR),CGHF11(1,1,3))
-      CALL WMSUBG_F(RGH12(1,1,NR),RJH(1,1,NR),CGHF12(1,1,3))
-      CALL WMSUBG_F(RGH13(1,1,NR),RJH(1,1,NR),CGHF13(1,1,3))
-      CALL WMSUBG_F(RGH22(1,1,NR),RJH(1,1,NR),CGHF22(1,1,3))
-      CALL WMSUBG_F(RGH23(1,1,NR),RJH(1,1,NR),CGHF23(1,1,3))
-      CALL WMSUBG_F(RGH33(1,1,NR),RJH(1,1,NR),CGHF33(1,1,3))
 
 !     ----- Calculate dielectric tensor -----
 
@@ -129,13 +89,13 @@ CONTAINS
             DO NTH=1,NTHMAX_IPS_F
                DO J=1,3
                DO I=1,3
-                    CEP0_1(I,J,NTH,NHH)
-     &             =CEP0_1(I,J,NTH,NHH)
-     &             +CTNSR_1(I,J,NTH,NHH)
+                    CEP0_1(I,J,NTH,NHH) &
+                   =CEP0_1(I,J,NTH,NHH) &
+                   +CTNSR_1(I,J,NTH,NHH)
 
-                    CEPH0_1(I,J,NTH,NHH)
-     &             =CEPH0_1(I,J,NTH,NHH)
-     &             +CTNSR_1(I,J,NTH,NHH)/2d0
+                    CEPH0_1(I,J,NTH,NHH) &
+                   =CEPH0_1(I,J,NTH,NHH) &
+                   +CTNSR_1(I,J,NTH,NHH)/2d0
                ENDDO
                ENDDO
             ENDDO
@@ -145,9 +105,9 @@ CONTAINS
             DO NTH=1,NTHMAX_IPS_F
                DO J=1,3
                DO I=1,3
-                    CEPH0_1(I,J,NTH,NHH)
-     &             =CEPH0_1(I,J,NTH,NHH)
-     &             +CTNSR_1(I,J,NTH,NHH)
+                    CEPH0_1(I,J,NTH,NHH) &
+                   =CEPH0_1(I,J,NTH,NHH) &
+                   +CTNSR_1(I,J,NTH,NHH)
                ENDDO
                ENDDO
             ENDDO
@@ -164,9 +124,9 @@ CONTAINS
              DO NTH=1,NTHMAX_IPS_F
                DO J=1,3
                DO I=1,3
-                    CEPH0_1(I,J,NTH,NHH)
-     &             =CEPH0_1(I,J,NTH,NHH)
-     &             +CTNSR_1(I,J,NTH,NHH)/2d0
+                    CEPH0_1(I,J,NTH,NHH) &
+                   =CEPH0_1(I,J,NTH,NHH) &
+                   +CTNSR_1(I,J,NTH,NHH)/2d0
                ENDDO
                ENDDO
              ENDDO
@@ -180,9 +140,9 @@ CONTAINS
             DO NTH=1,NTHMAX_IPS_F
                DO J=1,3
                DO I=1,3
-                    CEPH0_1(I,J,NTH,NHH)
-     &             =CEPH0_1(I,J,NTH,NHH)
-     &             -CTNSR_1(I,J,NTH,NHH)/2d0
+                    CEPH0_1(I,J,NTH,NHH) &
+                   =CEPH0_1(I,J,NTH,NHH) &
+                   -CTNSR_1(I,J,NTH,NHH)/2d0
                ENDDO
                ENDDO
             ENDDO
@@ -268,43 +228,43 @@ CONTAINS
 
 !        ***** RF11=RJ*SQRT(G^11)/XR *****
 
-         RF11=SQRT(RG22(NTHF,NHHF,NR)*RG33(NTHF,NHHF,NR)
-     &            -RG23(NTHF,NHHF,NR)*RG23(NTHF,NHHF,NR))
+         RF11=SQRT(RG22(NTHF,NHHF,NR)*RG33(NTHF,NHHF,NR) &
+                  -RG23(NTHF,NHHF,NR)*RG23(NTHF,NHHF,NR))
          RMA(1,1)= RJ(NTHF,NHHF,NR)/RF11*XRI
          RMA(2,1)= 0.D0
          RMA(3,1)= 0.D0
-         RMA(1,2)= (TC2*(RG23(NTHF,NHHF,NR)*RG12(NTHF,NHHF,NR)
-     &                  -RG22(NTHF,NHHF,NR)*RG13(NTHF,NHHF,NR))
-     &             +TC3*(RG33(NTHF,NHHF,NR)*RG12(NTHF,NHHF,NR)
-     &                  -RG23(NTHF,NHHF,NR)*RG13(NTHF,NHHF,NR))*XRI)
-     &             /RF11
+         RMA(1,2)= (TC2*(RG23(NTHF,NHHF,NR)*RG12(NTHF,NHHF,NR) &
+                        -RG22(NTHF,NHHF,NR)*RG13(NTHF,NHHF,NR)) &
+                   +TC3*(RG33(NTHF,NHHF,NR)*RG12(NTHF,NHHF,NR) &
+                        -RG23(NTHF,NHHF,NR)*RG13(NTHF,NHHF,NR))*XRI) &
+                   /RF11
          RMA(2,2)= TC3*RF11*XRL
          RMA(3,2)=-TC2*RF11*XRL
-         RMA(1,3)=TC2*RG12(NTHF,NHHF,NR)
-     &           +TC3*RG13(NTHF,NHHF,NR)*XRI
-         RMA(2,3)=TC2*RG22(NTHF,NHHF,NR)*XRL*XRL
-     &           +TC3*RG23(NTHF,NHHF,NR)*XRL
-         RMA(3,3)=TC2*RG23(NTHF,NHHF,NR)*XRL
-     &           +TC3*RG33(NTHF,NHHF,NR)
+         RMA(1,3)=TC2*RG12(NTHF,NHHF,NR) &
+                 +TC3*RG13(NTHF,NHHF,NR)*XRI
+         RMA(2,3)=TC2*RG22(NTHF,NHHF,NR)*XRL*XRL &
+                 +TC3*RG23(NTHF,NHHF,NR)*XRL
+         RMA(3,3)=TC2*RG23(NTHF,NHHF,NR)*XRL &
+                 +TC3*RG33(NTHF,NHHF,NR)
         
-         RFH11=SQRT(RGH22(NTHF,NHHF,NR)*RGH33(NTHF,NHHF,NR)
-     &             -RGH23(NTHF,NHHF,NR)*RGH23(NTHF,NHHF,NR))
+         RFH11=SQRT(RGH22(NTHF,NHHF,NR)*RGH33(NTHF,NHHF,NR) &
+                   -RGH23(NTHF,NHHF,NR)*RGH23(NTHF,NHHF,NR))
          RMHA(1,1)= RJH(NTHF,NHHF,NR)/RFH11*XRHI
          RMHA(2,1)= 0.D0
          RMHA(3,1)= 0.D0
-         RMHA(1,2)=(TCH2*(RGH23(NTHF,NHHF,NR)*RGH12(NTHF,NHHF,NR)
-     &                   -RGH22(NTHF,NHHF,NR)*RGH13(NTHF,NHHF,NR))
-     &             +TCH3*(RGH33(NTHF,NHHF,NR)*RGH12(NTHF,NHHF,NR)
-     &                   -RGH23(NTHF,NHHF,NR)*RGH13(NTHF,NHHF,NR))*XRHI)
-     &              /RFH11
+         RMHA(1,2)=(TCH2*(RGH23(NTHF,NHHF,NR)*RGH12(NTHF,NHHF,NR) &
+                         -RGH22(NTHF,NHHF,NR)*RGH13(NTHF,NHHF,NR)) &
+                   +TCH3*(RGH33(NTHF,NHHF,NR)*RGH12(NTHF,NHHF,NR) &
+                        -RGH23(NTHF,NHHF,NR)*RGH13(NTHF,NHHF,NR))*XRHI) &
+                    /RFH11
          RMHA(2,2)= TCH3*RFH11*XRHL
          RMHA(3,2)=-TCH2*RFH11*XRHL
-         RMHA(1,3)=TCH2*RGH12(NTHF,NHHF,NR)
-     &            +TCH3*RGH13(NTHF,NHHF,NR)*XRHI
-         RMHA(2,3)=TCH2*RGH22(NTHF,NHHF,NR)*XRHL*XRHL
-     &            +TCH3*RGH23(NTHF,NHHF,NR)*XRHL
-         RMHA(3,3)=TCH2*RGH23(NTHF,NHHF,NR)*XRHL
-     &            +TCH3*RGH33(NTHF,NHHF,NR)
+         RMHA(1,3)=TCH2*RGH12(NTHF,NHHF,NR) &
+                  +TCH3*RGH13(NTHF,NHHF,NR)*XRHI
+         RMHA(2,3)=TCH2*RGH22(NTHF,NHHF,NR)*XRHL*XRHL &
+                  +TCH3*RGH23(NTHF,NHHF,NR)*XRHL
+         RMHA(3,3)=TCH2*RGH23(NTHF,NHHF,NR)*XRHL &
+                  +TCH3*RGH33(NTHF,NHHF,NR)
 
 !        ----- Set metric matrix g=RGA -----
 
@@ -561,19 +521,19 @@ CONTAINS
                   DO I=1,3
                   DO L=1,3
 !                     CS(I,K,LABX,KABX)=CS(I,K,LABX,KABX)
-        CSUMA(I,K,LABX,MDX,KABX,NDX)=CSUMA(I,K,LABX,MDX,KABX,NDX)
-     &                      +CFA(LAX,KAX,I,L)
-     &                      *0.25D0*(CFB(LBX,KBX,L,K,MB1,NB1)
-     &                              +CFB(LBX,KBX,L,K,MB1,NB2)
-     &                              +CFB(LBX,KBX,L,K,MB2,NB1)
-     &                              +CFB(LBX,KBX,L,K,MB2,NB2))
+        CSUMA(I,K,LABX,MDX,KABX,NDX)=CSUMA(I,K,LABX,MDX,KABX,NDX) &
+                            +CFA(LAX,KAX,I,L) &
+                            *0.25D0*(CFB(LBX,KBX,L,K,MB1,NB1) &
+                                    +CFB(LBX,KBX,L,K,MB1,NB2) &
+                                    +CFB(LBX,KBX,L,K,MB2,NB1) &
+                                    +CFB(LBX,KBX,L,K,MB2,NB2))
 !                     CSH(I,K,LABX,KABX)=CSH(I,K,LABX,KABX)
-        CSUMAH(I,K,LABX,MDX,KABX,NDX)=CSUMAH(I,K,LABX,MDX,KABX,NDX)
-     &                      +CFHA(LAX,KAX,I,L)
-     &                      *0.25D0*(CFHB(LBX,KBX,L,K,MB1,NB1)
-     &                              +CFHB(LBX,KBX,L,K,MB1,NB2)
-     &                              +CFHB(LBX,KBX,L,K,MB2,NB1)
-     &                              +CFHB(LBX,KBX,L,K,MB2,NB2))
+        CSUMAH(I,K,LABX,MDX,KABX,NDX)=CSUMAH(I,K,LABX,MDX,KABX,NDX) &
+                            +CFHA(LAX,KAX,I,L) &
+                            *0.25D0*(CFHB(LBX,KBX,L,K,MB1,NB1) &
+                                    +CFHB(LBX,KBX,L,K,MB1,NB2) &
+                                    +CFHB(LBX,KBX,L,K,MB2,NB1) &
+                                    +CFHB(LBX,KBX,L,K,MB2,NB2))
                   ENDDO
                   ENDDO
                   ENDDO
@@ -615,17 +575,17 @@ CONTAINS
                      DO K=1,3
                      DO L=1,3
 !                     CPF(L,K,LBXK,KBXK)=CPF(L,K,LBXK,KBXK)
-      CSUMPF(L,K,LBXK,MDX,KBXK,NDX)=CSUMPF(L,K,LBXK,MDX,KBXK,NDX)
-     &                       +0.25D0*(CFB(LBX,KBX,L,K,MB1,NB1)
-     &                               +CFB(LBX,KBX,L,K,MB1,NB2)
-     &                               +CFB(LBX,KBX,L,K,MB2,NB1)
-     &                               +CFB(LBX,KBX,L,K,MB2,NB2))
+      CSUMPF(L,K,LBXK,MDX,KBXK,NDX)=CSUMPF(L,K,LBXK,MDX,KBXK,NDX) &
+                             +0.25D0*(CFB(LBX,KBX,L,K,MB1,NB1) &
+                                     +CFB(LBX,KBX,L,K,MB1,NB2) &
+                                     +CFB(LBX,KBX,L,K,MB2,NB1) &
+                                     +CFB(LBX,KBX,L,K,MB2,NB2))
 !                     CPHF(L,K,LBXK,KBXK)=CPHF(L,K,LBXK,KBXK)
-      CSUMPHF(L,K,LBXK,MDX,KBXK,NDX)=CSUMPHF(L,K,LBXK,MDX,KBXK,NDX)
-     &                       +0.25D0*(CFHB(LBX,KBX,L,K,MB1,NB1)
-     &                               +CFHB(LBX,KBX,L,K,MB1,NB2)
-     &                               +CFHB(LBX,KBX,L,K,MB2,NB1)
-     &                               +CFHB(LBX,KBX,L,K,MB2,NB2))
+      CSUMPHF(L,K,LBXK,MDX,KBXK,NDX)=CSUMPHF(L,K,LBXK,MDX,KBXK,NDX) &
+                             +0.25D0*(CFHB(LBX,KBX,L,K,MB1,NB1) &
+                                     +CFHB(LBX,KBX,L,K,MB1,NB2) &
+                                     +CFHB(LBX,KBX,L,K,MB2,NB1) &
+                                     +CFHB(LBX,KBX,L,K,MB2,NB2))
                      ENDDO
                      ENDDO
                ENDDO
@@ -686,16 +646,17 @@ CONTAINS
 
  9000 CONTINUE
       RETURN
-      END
+    END SUBROUTINE wm_setf
 
 !     ****** 2D FOURIER TRANSFORM ******
 
-      SUBROUTINE WMSUBG(RF1,RF2,CF)
+    SUBROUTINE WMSUBG(RF1,RF2,CF)
 
-      INCLUDE 'wmcomm.inc'
-
-      DIMENSION RF1(MDM,NDM),RF2(MDM,NDM),CF(MDM,NDM)
-      DIMENSION CFM(MDM),CFN(NDM)
+      USE wmcomm
+      IMPLICIT NONE
+      REAL(rkind):: RF1(MDM,NDM),RF2(MDM,NDM),CF(MDM,NDM)
+      COMPLEX(rkind):: CFM(MDM),CFN(NDM)
+      INTEGER:: NHH,NTH,LDX,KDX
 
       DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
@@ -727,16 +688,17 @@ CONTAINS
          ENDIF
       ENDDO
       RETURN
-      END
+    END SUBROUTINE WMSUBG
 
 !     ****** 2D FOURIER TRANSFORM ******
 
-      SUBROUTINE WMSUBG_F(RF1,RF2,CF)
+    SUBROUTINE WMSUBG_F(RF1,RF2,CF)
 
-      INCLUDE 'wmcomm.inc'
-
-      DIMENSION RF1(MDMF,NDMF),RF2(MDMF,NDMF),CF(MDMF,NDMF)
-      DIMENSION CFM(MDMF),CFN(NDMF)
+      USE wmcomm
+      IMPLICIT NONE
+      REAL(rkind):: RF1(MDMF,NDMF),RF2(MDMF,NDMF),CF(MDMF,NDMF)
+      COMPLEX(rkind):: CFM(MDMF),CFN(NDMF)
+      INTEGER:: NHH,NTH,LDX,KDX
 
       DO NHH=1,NHHMAX_F
          DO NTH=1,NTHMAX_F
@@ -768,16 +730,18 @@ CONTAINS
          ENDIF
       ENDDO
       RETURN
-      END
+    END SUBROUTINE WMSUBG_F
 
 !     ****** 2D FOURIER TRANSFORM ******
 
-      SUBROUTINE WMSUBF(CF1,CF2)
+    SUBROUTINE WMSUBF(CF1,CF2)
 
-      INCLUDE 'wmcomm.inc'
-
-      DIMENSION CF1(MDM,NDM),CF2(MDM,NDM)
-      DIMENSION CFM(MDM),CFN(NDM)
+      USE wmcomm
+      IMPLICIT NONE
+      COMPLEX(rkind),INTENT(IN):: CF1(MDM,NDM)
+      COMPLEX(rkind),INTENT(OUT):: CF2(MDM,NDM)
+      COMPLEX(rkind):: CFM(MDM),CFN(NDM)
+      INTEGER:: NHH,NTH,LDX,KDX
 
       DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
@@ -809,16 +773,18 @@ CONTAINS
          ENDIF
       ENDDO
       RETURN
-      END
+    END SUBROUTINE WMSUBF
 
 !     ****** 2D FOURIER TRANSFORM 2 ******
 
-      SUBROUTINE WMSUBF_F(CF1,CF2)
+    SUBROUTINE WMSUBF_F(CF1,CF2)
 
-      INCLUDE 'wmcomm.inc'
-
-      DIMENSION CF1(MDMF,NDMF),CF2(MDMF,NDMF)
-      DIMENSION CFM(MDMF),CFN(NDMF)
+      USE wmcomm
+      IMPLICIT NONE
+      COMPLEX(rkind),INTENT(IN):: CF1(MDMF,NDMF)
+      COMPLEX(rkind),INTENT(OUT):: CF2(MDMF,NDMF)
+      COMPLEX(rkind):: CFM(MDMF),CFN(NDMF)
+      INTEGER:: NHH,NTH,LDX,KDX
 
       DO NHH=1,NHHMAX_F
          DO NTH=1,NTHMAX_F
@@ -850,17 +816,22 @@ CONTAINS
          ENDIF
       ENDDO
       RETURN
-      END
+    END SUBROUTINE WMSUBF_F
 
 !     ****** INTERFACE FOR FFT ******
 
-      SUBROUTINE WMXFFT(CA,N,KEY)
+    SUBROUTINE WMXFFT(CA,N,KEY)
 
+      USE wmcomm
       USE libfft,ONLY: FFT2L
-      INCLUDE 'wmcomm.inc'
-
-      COMPLEX*16 CA(N)
-      DATA NS/0/
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: N,KEY
+      COMPLEX(rkind),INTENT(INOUT):: CA(N)
+      COMPLEX(rkind):: CT(MDM*2)
+      REAL(rkind):: RFFT(MDM*2)
+      INTEGER:: LFFT(MDM*2)
+      INTEGER,SAVE:: NS=0
+      INTEGER:: IND
 !
       IF(N.NE.1) THEN
          IF(N.EQ.NS) THEN
@@ -887,4 +858,5 @@ CONTAINS
       ENDIF
 
       RETURN
-      END
+    END SUBROUTINE WMXFFT
+  END MODULE wmsetf
