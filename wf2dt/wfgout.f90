@@ -220,35 +220,35 @@ SUBROUTINE WFCTOGSD(ID,KWD)
                  end if
               ENDIF
               IF(ABS(CE).LT.1.D-12) CE=(0.D0,0.D0)
-              IF(Y.GT.0.3D0.AND.Y.LT.0.5D0) THEN
-              N1=NSDELM(1,IE)
-              IF(N1.GT.0) THEN
-                 CE1=CESD(N1)
-              ELSE
-                 CE1=-CESD(-N1)
-              END IF
-              N2=NSDELM(2,IE)
-              IF(N2.GT.0) THEN
-                 CE2=CESD(N2)
-              ELSE
-                 CE2=-CESD(-N2)
-              END IF
-              N3=NSDELM(3,IE)
-              IF(N3.GT.0) THEN
-                 CE3=CESD(N3)
-              ELSE
-                 CE3=-CESD(-N3)
-              END IF
+!              IF(Y.GT.0.3D0.AND.Y.LT.0.5D0) THEN
+!              N1=NSDELM(1,IE)
+!              IF(N1.GT.0) THEN
+!                 CE1=CESD(N1)
+!              ELSE
+!                 CE1=-CESD(-N1)
+!              END IF
+!              N2=NSDELM(2,IE)
+!              IF(N2.GT.0) THEN
+!                 CE2=CESD(N2)
+!              ELSE
+!                 CE2=-CESD(-N2)
+!              END IF
+!              N3=NSDELM(3,IE)
+!              IF(N3.GT.0) THEN
+!                 CE3=CESD(N3)
+!              ELSE
+!                 CE3=-CESD(-N3)
+!              END IF
              
-              IF(ABS(CE).NE.0.D0) THEN
-                 WRITE(6,'(A,I12,1P5E12.4)') 'CESD:',IE,X,Y,CE
-                 WRITE(6,'(A,1P6E12.4)')     '     ', CE1,CE2,CE3
-                 WRITE(6,'(A,1P6E12.4)')     '     ', &
-                      RNODE(NDELM(1,IE)),ZNODE(NDELM(1,IE)), &
-                      RNODE(NDELM(2,IE)),ZNODE(NDELM(2,IE)), &
-                      RNODE(NDELM(3,IE)),ZNODE(NDELM(3,IE))
-              END IF
-              END IF
+!              IF(ABS(CE).NE.0.D0) THEN
+!                 WRITE(6,'(A,I12,1P5E12.4)') 'CESD:',IE,X,Y,CE
+!                 WRITE(6,'(A,1P6E12.4)')     '     ', CE1,CE2,CE3
+!                 WRITE(6,'(A,1P6E12.4)')     '     ', &
+!                      RNODE(NDELM(1,IE)),ZNODE(NDELM(1,IE)), &
+!                      RNODE(NDELM(2,IE)),ZNODE(NDELM(2,IE)), &
+!                      RNODE(NDELM(3,IE)),ZNODE(NDELM(3,IE))
+!              END IF
+!              END IF
                  
               ! -----------
               IF(KID.EQ.'R') THEN
@@ -300,16 +300,16 @@ SUBROUTINE WFCTOGSD(ID,KWD)
            GV(NGV,2)=GCLIP(AIMAG(CE))
            GV(NGV,3)=GCLIP(ABS(CE))
         ENDIF
-        IF(ABS(CE).NE.0.D0) THEN
-           WRITE(6,'(A,I12,1P5E12.4)') 'CESD:',IE,X,YPOS,CE
-           WRITE(6,'(A,1P6E12.4)')     '     ', &
-                CESD(ABS(NSDELM(1,IE))),CESD(ABS(NSDELM(2,IE))), &
-                CESD(ABS(NSDELM(3,IE)))
-           WRITE(6,'(A,1P6E12.4)')     '     ', &
-                RNODE(NDELM(1,IE)),ZNODE(NDELM(1,IE)), &
-                RNODE(NDELM(2,IE)),ZNODE(NDELM(2,IE)), &
-                RNODE(NDELM(3,IE)),ZNODE(NDELM(3,IE))
-        END IF
+!        IF(ABS(CE).NE.0.D0) THEN
+!           WRITE(6,'(A,I12,1P5E12.4)') 'CESD:',IE,X,YPOS,CE
+!           WRITE(6,'(A,1P6E12.4)')     '     ', &
+!                CESD(ABS(NSDELM(1,IE))),CESD(ABS(NSDELM(2,IE))), &
+!                CESD(ABS(NSDELM(3,IE)))
+!           WRITE(6,'(A,1P6E12.4)')     '     ', &
+!                RNODE(NDELM(1,IE)),ZNODE(NDELM(1,IE)), &
+!                RNODE(NDELM(2,IE)),ZNODE(NDELM(2,IE)), &
+!                RNODE(NDELM(3,IE)),ZNODE(NDELM(3,IE))
+!        END IF
      ENDDO
 
   ! --- EXTRACT DATA FOR 1D Y PLOT ---
@@ -348,35 +348,35 @@ SUBROUTINE WFCTOGSD(ID,KWD)
                  CE= CE_R*sin(theta)-CE_Z*cos(theta)
               end if
            ENDIF
-              IF(idebug.EQ.-1) THEN
-              N1=NSDELM(1,IE)
-              IF(N1.GT.0) THEN
-                 CE1=CESD(N1)
-              ELSE
-                 CE1=-CESD(-N1)
-              END IF
-              N2=NSDELM(2,IE)
-              IF(N2.GT.0) THEN
-                 CE2=CESD(N2)
-              ELSE
-                 CE2=-CESD(-N2)
-              END IF
-              N3=NSDELM(3,IE)
-              IF(N3.GT.0) THEN
-                 CE3=CESD(N3)
-              ELSE
-                 CE3=-CESD(-N3)
-              END IF
+!              IF(idebug.EQ.-1) THEN
+!              N1=NSDELM(1,IE)
+!              IF(N1.GT.0) THEN
+!                 CE1=CESD(N1)
+!              ELSE
+!                 CE1=-CESD(-N1)
+!              END IF
+!              N2=NSDELM(2,IE)
+!              IF(N2.GT.0) THEN
+!                 CE2=CESD(N2)
+!              ELSE
+!                 CE2=-CESD(-N2)
+!              END IF
+!              N3=NSDELM(3,IE)
+!              IF(N3.GT.0) THEN
+!                 CE3=CESD(N3)
+!              ELSE
+!                 CE3=-CESD(-N3)
+!              END IF
              
-              IF(ABS(CE).NE.0.D0) THEN
-                 WRITE(6,'(A,I12,1P5E12.4)') 'CESD:',IE,XPOS,Y,CE
-                 WRITE(6,'(A,1P6E12.4)')     '     ', CE1,CE2,CE3
-                 WRITE(6,'(A,1P6E12.4)')     '     ', &
-                      RNODE(NDELM(1,IE)),ZNODE(NDELM(1,IE)), &
-                      RNODE(NDELM(2,IE)),ZNODE(NDELM(2,IE)), &
-                      RNODE(NDELM(3,IE)),ZNODE(NDELM(3,IE))
-              END IF
-              END IF
+!              IF(ABS(CE).NE.0.D0) THEN
+!                 WRITE(6,'(A,I12,1P5E12.4)') 'CESD:',IE,XPOS,Y,CE
+!                 WRITE(6,'(A,1P6E12.4)')     '     ', CE1,CE2,CE3
+!                 WRITE(6,'(A,1P6E12.4)')     '     ', &
+!                      RNODE(NDELM(1,IE)),ZNODE(NDELM(1,IE)), &
+!                      RNODE(NDELM(2,IE)),ZNODE(NDELM(2,IE)), &
+!                      RNODE(NDELM(3,IE)),ZNODE(NDELM(3,IE))
+!              END IF
+!           END IF
            IF(ABS(CE).LT.1.D-12) CE=(0.D0,0.D0)
            GX(NGV)=GCLIP(Y)
            GV(NGV,1)=GCLIP(REAL(CE))

@@ -1263,7 +1263,8 @@ END SUBROUTINE PWRRAD
     REAL(rkind):: P1(NSM),P2(NSM),P3(NSM),P4(NSM)
 
     IF(NPRINT.LT.1) RETURN
-
+    IF(nrank.NE.0) RETURN
+    
 !    WRITE(6,110) (EMAX(I),I=1,3),ETMAX,PNMAX
 !110 FORMAT(1H ,'EXMAX  =',1PE12.4 &
 !         ,3X ,'EYMAX  =',1PE12.4 &
@@ -1307,6 +1308,7 @@ SUBROUTINE LPELMT
   integer :: I,J,NA
 
   IF(NPRINT.LT.3) RETURN
+  IF(nrank.NE.0) RETURN
      
   WRITE(6,110) NNMAX
 110 FORMAT(/' ','NODE DATA     : #### NNMAX =',I5,' ####'/&
