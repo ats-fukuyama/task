@@ -1,4 +1,4 @@
-module eqfp
+module foweq
 
 contains
 

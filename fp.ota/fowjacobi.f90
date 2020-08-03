@@ -5,7 +5,7 @@ contains
   subroutine fow_jacobian(J,dIdu,th,p,rg,zg,nze,nps,nsa)
 
     use fpcomm
-    use fow_global
+    use fowcomm
 
     implicit none
 
