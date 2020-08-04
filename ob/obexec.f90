@@ -70,10 +70,13 @@ CONTAINS
     REAL(rkind),INTENT(OUT):: ya(0:neq_max,0:nstp_max)
     INTEGER,INTENT(OUT):: nstp_last
     REAL(rkind):: ys(neq_max),ye(neq_max),work(neq_max,2)
+    REAL(rkind):: fs(neq_max)
     INTEGER:: nstp,neq,id,nstp_lim,mode_theta
     REAL(rkind):: xs,xe,theta_init,factor
     LOGICAL:: l_end
 
+    ! --- initialization ---
+    
     xs = 0.D0
     xe = delt
     nstp_lim=MIN(INT(tmax/delt),nstp_max)
@@ -84,13 +87,29 @@ CONTAINS
        ys(neq)=y_in(neq)
        ya(neq,nstp)=y_in(neq)
     ENDDO
+
+    ! --- check initial theta-dot to identify orbit mode ---
+    
+    CALL ob_fdrv(xs,ys,fs)
+    IF(fs(2).GT.0.D0) THEN
+       mode_theta=0
+    ELSE IF(fs(2).LT.0.D0) THEN
+       mode_theta=1
+    ELSE
+       IF(mdlobw.GE.1) &
+            WRITE(6,'(A)') '!! starting from bounce point in theta'
+       nstp_last=0
+       RETURN
+    END IF
+
+       
+    theta_init=ys(2)
+
     IF(mdlobw.GE.1) &
          WRITE(6,'(A,A/I7,1P5E12.4)') '   nstp wb time [s]', &
          '  zeta [deg]  theta [deg]     psipn  rhopara [m]', &
          0,xs,ys(1)*180.D0/Pi,ys(2)*180.D0/Pi,ys(3)/psipa,ys(4)
 
-    mode_theta=0
-    theta_init=ys(2)
     
     DO nstp = 1,nstp_lim
        CALL ODERKN(neq_max,ob_fdrv,xs,xe,1,ys,ye)
@@ -128,7 +147,7 @@ CONTAINS
           IF(xe+delt.GT.tmax) l_end=.TRUE.
        CASE(1)
           SELECT CASE(mode_theta)
-          CASE(0)
+          CASE(0) ! increasing theta
              IF(ye(2).GT.theta_init+2.D0*Pi) THEN ! untrapped particle
                 factor=((theta_init+2.D0*Pi)-ys(2))/(ye(2)-ys(2))
                 xe=xs+(xe-xs)*factor
@@ -137,9 +156,28 @@ CONTAINS
                 END DO
                 l_end=.TRUE.
              END IF
-             IF(ye(2).LT.theta_init) mode_theta=1
-          CASE(1)
+             IF(ye(2).LT.theta_init) mode_theta=2
+          CASE(1) ! decreasing theta
+             IF(ye(2).LT.theta_init-2.D0*Pi) THEN ! untrapped particle
+                factor=((theta_init-2.D0*Pi)-ys(2))/(ye(2)-ys(2))
+                xe=xs+(xe-xs)*factor
+                DO neq=1,neq_max
+                   ye(neq)=ys(neq)+(ye(neq)-ys(neq))*factor
+                END DO
+                l_end=.TRUE.
+             END IF
+             IF(ye(2).GT.theta_init) mode_theta=3
+          CASE(2) ! decreasing after increasing theta
              IF(ye(2).GT.theta_init) THEN ! trapped particle
+                factor=(theta_init-ys(2))/(ye(2)-ys(2))
+                xe=xs+(xe-xs)*factor
+                DO neq=1,neq_max
+                   ye(neq)=ys(neq)+(ye(neq)-ys(neq))*factor
+                END DO
+                l_end=.TRUE.
+             END IF
+          CASE(3) ! increasing after decreasing theta
+             IF(ye(2).LT.theta_init) THEN ! trapped particle
                 factor=(theta_init-ys(2))/(ye(2)-ys(2))
                 xe=xs+(xe-xs)*factor
                 DO neq=1,neq_max
@@ -157,6 +195,8 @@ CONTAINS
        nstp_last=nstp
 
        IF(l_end) EXIT
+
+       ! --- prepare for next step ----
 
        xs=xe
        xe=xs+delt
@@ -184,7 +224,7 @@ CONTAINS
     USE obprep
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: x,y(neq_max)
-    REAL(rkind),INTENT(OUT):: F(neq_max)
+    REAL(rkind),INTENT(OUT):: f(neq_max)
     REAL(rkind):: pze,pzem,zetab,thetab,psip,rhopara
     REAL(rkind):: rr_pos,zz_pos,bb_pos,db_dthetab,db_dpsip
     REAL(rkind):: qps,dqps_dpsip,rbps,drbps_dpsip,ritps,dritps_dpsip
