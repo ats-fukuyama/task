@@ -4,9 +4,9 @@ import seaborn
 
 
 class plot:
-    def __init__(self, val, name, ymin=0, ymax=0):
+    def __init__(self, path, name, ymin=0, ymax=0):
         self.name = name
-        self.val = val
+        self.val = np.loadtxt(path, delimiter=',')
         self.raxis = np.arange(0, self.val.shape[0])*1.0/self.val.shape[0]
         self.ymin = ymin
         self.ymax = ymax
@@ -56,24 +56,19 @@ def plot_profile1D(y, option):
         plt.show()
 
 
-CSVDIR = "/Users/ota/git/task/fp/csv/"
+CSVDIR = "/Users/ota/git/task/fp.ota/csv/"
 
-psi = plot(np.loadtxt(CSVDIR+"psi.csv", delimiter=','), r"$\psi$")
-# psitmp = plot(np.loadtxt(CSVDIR+"psitmp.csv", delimiter=','), r"$\psi_{tmp}$")
-F = plot(np.loadtxt(CSVDIR+"F.csv", delimiter=','), r"$F$", 0, 35)
-# Ftmp = plot(np.loadtxt(CSVDIR+"Ftmp.csv", delimiter=','), r"$F_{tmp}$")
-# f = plot(np.loadtxt(CSVDIR+"f.csv", delimiter=','), r"$f$")
-# f1 = plot(np.loadtxt(CSVDIR+"f1.csv", delimiter=','), r"$f1$")
-# f2 = plot(np.loadtxt(CSVDIR+"f2.csv", delimiter=','), r"$f2$")
-# ftest = plot(np.loadtxt(CSVDIR+"ftest.csv", delimiter=','), r"$f$")
-# gtest = plot(np.loadtxt(CSVDIR+"gtest.csv", delimiter=','), r"$g$")
-Bout = plot(np.loadtxt(CSVDIR+"Bout.csv", delimiter=','), r"$B_{out}$")
-Bin = plot(np.loadtxt(CSVDIR+"Bin.csv", delimiter=','), r"$B_{in}$")
-psieq = plot(np.loadtxt(CSVDIR+"psieq.csv", delimiter=','), r"$\psi_{eq}$")
-Beq = plot(np.loadtxt(CSVDIR+"Beq.csv", delimiter=','), r"$B_{eq}$")
+psim = plot(CSVDIR+"psim.csv", "psim")
+Bin = plot(CSVDIR+"Bin.csv", "Bin")
+Bout = plot(CSVDIR+"Bout.csv", "Bout")
+Fpsi = plot(CSVDIR+"Fpsi.csv", "Fpsi")
+psimg = plot(CSVDIR+"psimg.csv", "psimg")
+Bing = plot(CSVDIR+"Bing.csv", "Bing")
+Boutg = plot(CSVDIR+"Boutg.csv", "Boutg")
+Fpsig = plot(CSVDIR+"Fpsig.csv", "Fpsig")
 
 
-y = [Bin, Bout, psieq, Beq, F, psi]
+y = [psim, Bin, Bout, Fpsi, psimg, Bing, Boutg, Fpsig]
 
 # plot_profile1D(y, [1])
 plot_profile1D(y, [0])

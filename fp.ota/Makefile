@@ -26,7 +26,8 @@ OBJDIR   = ./obj
 ${OBJDIR}/%.o:%.f90
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-MODINCLUDE= -I./$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
+MODINCLUDE= -I./$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
+						-I../mtxp/$(MOD) -I../../bpsd/$(MOD) -I../ob/$(MOD)
 
 SRCS = fpcomm.f90 eg_read.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpsub.f90 \
        fpexec.f90 fpsave.f90 fpwrite.f90 fpdifcoef.f90 fprad.f90\
@@ -36,14 +37,15 @@ SRCS = fpcomm.f90 eg_read.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpsub.f90 \
        fpbounce.f90 fpdisrupt.f90 fpprep.f90 fploop.f90 \
        fpcont.f90 fpfout.f90 fpgout.f90 fpfile.f90 fpmenu.f90
 
-SRCSFOW = foweq.f90 fowglobal.f90 fowjacobi.f90
+SRCSFOW = fowcomm.f90 foweq.f90 fowprep.f90  foworbitclassify.f90 fowob.f90
 
 # OBJS = $(SRCS:.f90=.o)
 OBJS = $(addprefix $(OBJDIR)/, $(SRCS:.f90=.o))
 OBJSFOW = $(addprefix $(OBJDIR)/, $(SRCSFOW:.f90=.o))
 
+
 LIBS = fplib.a ../pl/libpl.a ../eq/libeq.a  \
-        ../lib/libtask.a ../../bpsd/libbpsd.a
+        ../lib/libtask.a ../../bpsd/libbpsd.a ../ob/libob.a
 
 LIBFOW = fowlib.a
 
@@ -62,6 +64,8 @@ fowlib.a: $(OBJSFOW)
 	(cd ../eq; make libeq.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
+../ob/libob.a:
+	(cd ../ob; make libob.a)
 
 libs:
 	(cd ../../bpsd; make libbpsd.a)
@@ -69,18 +73,14 @@ libs:
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
+	(cd ../ob; make libob.a)
 
 fp : $(LIB_MTX) $(LIBS) fpmain.o
 	$(FLINKER) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
-# fow : $(LIBFOW) $(LIB_MTX) $(LIBS) $(OBJDIR)/orbit.o $(OBJDIR)
-# 	$(FLINKER) $(OBJDIR)/orbit.o $(LIBFOW) $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX) $(MODINCLUDE)
+fow : $(LIB_MTX) $(LIBS) $(LIBFOW) $(OBJDIR)/fowmain.o $(OBJDIR)
+	$(FLINKER) $(OBJDIR)/fowmain.o $(LIBS) $(LIBFOW) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX) $(MODINCLUDE)
 
-fow : $(LIBFOW) $(LIB_MTX) $(LIBS) $(OBJDIR)/fowmain.o $(OBJDIR)
-	$(FLINKER) $(OBJDIR)/fowmain.o $(LIBFOW) $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX) $(MODINCLUDE)
-
-test :
-	gfortran test_spl.f90 ../lib/libspl.o ../lib/libspl2d.o
 
 libregion.so : $(LIBEQ) $(LIB_MTX) $(LIBS) $(OBJDIR)/global_region.o $(OBJDIR)/dylibregion.o
 	$(FCFREE) -shared $(OBJDIR)/dylibregion.o $(LIBEQ) $(LIBS) $(OBJDIR)/global_region.o -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX) $(MODINCLUDE)
@@ -88,6 +88,9 @@ libregion.so : $(LIBEQ) $(LIB_MTX) $(LIBS) $(OBJDIR)/global_region.o $(OBJDIR)/d
 clean :
 	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
 	-rm -f ./obj/*.o
+	-rm -f fp fow
+	-rm -rf ./*.dSYM
+	-rm -f ./csv/*
 
 veryclean: clean
 	-rm -f fp
@@ -132,15 +135,12 @@ fpdifcoef.o: fpdifcoef.f90 fpcomm.f90 fpwrite.f90
 fprad.o: fprad.f90 fpcomm.f90
 fpwrite.o : fpcomm.f90
 
-fowmain.o : fpfow.f90 foweq.f90 fowglobal.f90 fpprep.f90 fpinit.f90 fpcomm.f90 fpwrite.f90
-foweq.o : foweq.f90
-fowglobal.o : fowglobal.f90
-fowjacobi.o : fowjacobi.f90 fowglobal.f90 fpcomm.f90
-# fpfow.o : fpfow.f90 foweq.f90 fowglobal.f90 fpprep.f90 fpinit.f90 fpcomm.f90 fpwrite.f90
+fowmain.o : fowmain.f90 foweq.f90 fowcomm.f90 fowprep.f90 fowob.f90\
+						fpprep.f90 fpinit.f90 fpcomm.f90 fpwrite.f90 foworbitclassify.f90
+foweq.o : foweq.f90 fpwrite.f90
+fowcomm.o : fowcomm.f90
+fowprep.o : fowprep.f90 fowcomm.f90
+fowob.o : fowob.f90 fowcomm.f90 fpcomm.f90 foworbitclassify.f90
+foworbitclassify.o : foworbitclassify.f90 fowcomm.f90 fpcomm.f90
 
-orbit.o : orbit.f90 orbitGlobal.f90 orbitClassify.f90 orbitEquation.f90 ../eq/fpeqin.f90
-orbitGlobal.o : orbitGlobal.f90
-orbitClassify.o : orbitClassify.f90 orbitGlobal.f90
-orbitEquation.o : orbitEquation.f90 orbitGlobal.f90
-../eq/libeqfp.a : ../eq/fpeqin.f90
-	(cd ../eq; make libeqfp.a)
+# fowjacobi.o : fowjacobi.f90 fowcomm.f90 fpcomm.f90
