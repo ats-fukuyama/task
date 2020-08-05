@@ -618,7 +618,7 @@
       END FUNCTION FCTR4pt
 
 !     *** Extrapolate center value *********************************
-!     *  assuming the 2st-derivative is zero at the center (rho=0) *
+!     *  assuming the 2nd-derivative is zero at the center (rho=0) *
 !     *  (Higher order version)                                    *
 !     **************************************************************
 
