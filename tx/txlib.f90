@@ -1108,29 +1108,6 @@ END SUBROUTINE APRTOS
 
 !***************************************************************
 !
-!   Convert Strings to Upper Case
-!
-!***************************************************************
-
-SUBROUTINE TOUPPER(KTEXT)
-
-  implicit none
-  character(len=*), INTENT(INOUT) ::  KTEXT
-
-  INTEGER(4) :: NCHAR, I, ID
-
-  NCHAR = LEN(KTEXT)
-  DO I = 1, NCHAR
-     ID=IACHAR(KTEXT(I:I))
-     IF(ID >= 97 .AND. ID <= 122) ID = ID - 32
-     KTEXT(I:I)=ACHAR(ID)
-  END DO
-
-  RETURN
-END SUBROUTINE TOUPPER
-
-!***************************************************************
-!
 !   Separate string at char (similar to KSPLIT in task/lib/libchar.f90)
 !
 !***************************************************************

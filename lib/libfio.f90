@@ -194,7 +194,7 @@ CONTAINS
      &                 ') IS GOING TO BE OVERWRITTEN'
             WRITE(6,*) '  ARE YOU SURE ? (Y/N)'
             READ(5,'(A1)',ERR=3,END=9001) KID
-            CALL GUCPTL(KID)
+            CALL TOUPPER(KID)
             IF(KID.EQ.'N') GOTO 9007
          ELSEIF(MODEPII.EQ.2) THEN
             MODEPI=1

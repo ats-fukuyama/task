@@ -363,7 +363,6 @@ CONTAINS
 
 !   ----- PLASMA BOUNDARY -----
 
-    write(6,*) '--- point 1'
     ALLOCATE(RSU(NSUM),ZSU(NSUM))
     CALL PL_RZSU(RSU,ZSU,NSUM,NSUMAX)
     RMIN=RSU(1)
@@ -375,7 +374,6 @@ CONTAINS
 
 !   --- TOROIDAL CROSS SECTION -----
 
-    write(6,*) '--- point 2'
     NSRMAX=101
     ALLOCATE(GLCX(NSRMAX),GLCY(NSRMAX),GSCX(NSRMAX),GSCY(NSRMAX))
     DTH=2*PI/(NSRMAX-1)
@@ -399,6 +397,9 @@ CONTAINS
     CALL GDEFIN(1.7,11.7,1.0,11.0,GXMIN,GXMAX,GYMIN,GYMAX)
     CALL GFRAME
 
+!    GXORG=(INT(GXMIN/(2*GXSTEP))+1)*2*GXSTEP
+    GXORG=0.0
+    WRITE(6,'(A,1P3E12.4)') 'GX:',GXORG,GXSTEP,GYSTEP
     CALL GSCALE(GXORG,GXSTEP,0.0,GYSTEP,0.1,9)
     CALL GVALUE(GXORG,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
     CALL GVALUE(0.0,0.0,0.0,2*GYSTEP,NGULEN(2*GYSTEP))
@@ -416,7 +417,6 @@ CONTAINS
        CALL GPLOTP(GX,GY,1,NSTPMAX_NRAY(NRAY)+1,1,0,0,0)
     ENDDO
 
-    write(6,*) '--- point 3'
 !     ----- major radius dependence of absorbed power -----
 
     NRLMAX=100
@@ -437,10 +437,14 @@ CONTAINS
           YL=RAYS(2,NSTP,NRAY)
           RL1=SQRT(XL**2+YL**2)
           NRL1=INT((RL1-RMIN)/DRL)+1
+          IF(NRL1.LT.1) NRL1=1
+          IF(NRL1.GT.NRLMAX) NRL1=NRLMAX
           XL=RAYS(1,NSTP+1,NRAY)
           YL=RAYS(2,NSTP+1,NRAY)
           RL2=SQRT(XL**2+YL**2)
           NRL2=INT((RL2-RMIN)/DRL)+1
+          IF(NRL2.LT.1) NRL2=1
+          IF(NRL2.GT.NRLMAX) NRL2=NRLMAX
           NDR=ABS(NRL2-NRL1)
           IF(NDR.EQ.0) THEN
              GPY(NRL1,NRAY)=GPY(NRL1,NRAY)+GUCLIP(RAYS(8,NSTP+1,NRAY))
@@ -480,7 +484,6 @@ CONTAINS
     ENDDO
 
 !     ----- draw deposition profile -----
-    write(6,*) '--- point 4'
 
     CALL GMNMX2(GPY,NRLMAX,1,NRLMAX,1,1,NRAYMAX,1,GYMIN,GYMAX)
     CALL GQSCAL(GYMIN,GYMAX,GYSMIN,GYSMAX,GYSCAL)
@@ -499,7 +502,6 @@ CONTAINS
        CALL GPLOTP(GPX,GPY(1:NRLMAX,NRAY),1,NRLMAX,1,0,0,0)
     ENDDO
 
-    write(6,*) '--- point 5'
 !     ----- DRAW POWER FLUX ----- major radius ---
 
     GZSMIN=0.0
@@ -522,14 +524,13 @@ CONTAINS
           CALL PL_MAG_OLD(XL,YL,ZL,RHON)
           GUX(NSTP+1)=GUCLIP(SQRT(XL**2+YL**2))
           GUY(NSTP+1)=GUCLIP(RAYS(7,NSTP,NRAY))
-          IF(MOD(NSTP,100).EQ.0) &
-               WRITE(6,'(A,I5,1P5E12.4)') &
-               'PF:',NSTP,XL,YL,ZL,RHON,RAYS(7,NSTP,NRAY)
+!          IF(MOD(NSTP,100).EQ.0) &
+!               WRITE(6,'(A,I5,1P5E12.4)') &
+!               'PF:',NSTP,XL,YL,ZL,RHON,RAYS(7,NSTP,NRAY)
        ENDDO
        CALL SETLIN(0,0,7-MOD(NRAY-1,5))
        CALL GPLOTP(GUX,GUY,1,NSTPMAX_NRAY(NRAY)+1,1,0,0,0)      
     ENDDO
-    write(6,*) '--- point 6'
 
     CALL WRGPRM
     CALL PAGEE

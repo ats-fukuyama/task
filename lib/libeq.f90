@@ -129,9 +129,9 @@
  9000 XX=X
       YY=Y
       RETURN
-  600 FORMAT(" ",6X,'X,Y,FX,FY = ',1P4E15.7)
-  601 FORMAT(" ",6X,'FXX,YY,XY = ',1P4E15.7)
-  602 FORMAT(" ",6X,'DX,DY     = ',1P2E15.7)
+  600 FORMAT(" ",6X,'X,Y,FX,FY = ',4ES15.7)
+  601 FORMAT(" ",6X,'FXX,YY,XY = ',4ES15.7)
+  602 FORMAT(" ",6X,'DX,DY     = ',2ES15.7)
       END SUBROUTINE NEWTN
 
 !   ***************************************

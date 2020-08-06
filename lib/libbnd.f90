@@ -61,6 +61,11 @@
          ENDDO
 
          IF( ABS2 .LT. EPS ) GO TO 9002
+!         IF( ABS2 .LT. EPS ) THEN
+!            WRITE(6,'(A,I8,3ES12.4)') 'A(1,I),EPS=',I,ABS2,EPS
+!            GO TO 9002
+!         END IF
+
          IF( IPIVOT .NE. I ) THEN
             TEMP        = X( I      )
             X( I      ) = X( IPIVOT )
@@ -88,7 +93,8 @@
       ENDDO
 
       IF( ABS(A(1,N)) .LT. EPS ) THEN
-         WRITE(6,'(A,I8,1P3E12.4)') 'A(1,I),EPS=',I,A(1,I),EPS
+!         WRITE(6,'(A,I8,3ES12.4)') 'A(1,N),EPS=',N,A(1,N),EPS
+         I=N
          GO TO 9002
       END IF
       X( N ) = X( N ) / A( 1 , N )
@@ -137,8 +143,6 @@
       REAL(8), PARAMETER :: EPS = 1.D-70
       INTEGER(4) :: I, J, K, LH, LHM, NM, LHMK, NPMK, LPMI, IPIVOT, IP, JJ
 
-!      write(6,'(A,3I8)') 'bandcd: ',N,L,LA
-
       IF( MOD(L,2) .EQ. 0 ) GO TO 9000
       LH  = (L+1)/2
       LHM = LH-1
@@ -167,11 +171,11 @@
             ENDIF
          ENDDO
 
-!         IF( ABS2 .LT. EPS ) GO TO 9002
-      IF( ABS2 .LT. EPS ) THEN
-         write(6,'(A,I8,1P3E12.4)') 'A(1,I),EPS=',I,A(1,I),EPS
-         GOTO 9002
-      ENDIF
+         IF( ABS2 .LT. EPS ) GO TO 9002
+!         IF( ABS2 .LT. EPS ) THEN
+!            WRITE(6,'(A,I8,3ES12.4)') 'A(1,I),EPS=',I,ABS2,EPS
+!            GOTO 9002
+!         ENDIF
 
          IF( IPIVOT .NE. I ) THEN
             TEMP        = X( I      )
@@ -199,10 +203,9 @@
          IF( LH .LT. N ) LH = LH + 1
       ENDDO
 
-!      IF( ABS(A(1,N)) .LT. EPS ) GO TO 9002
-!      IF( CDABS(A(1,N)) .LT. EPS ) GOTO 9002
-      IF( CDABS(A(1,N)) .LT. EPS ) THEN
-         write(6,'(A,1P3E12.4)') 'A(1,N),EPS=',A(1,N),EPS
+      IF( ABS(A(1,N)) .LT. EPS ) THEN
+!         WRITE(6,'(A,3ES12.4)') 'A(1,N),EPS=',A(1,N),EPS
+         I=N
          GOTO 9002
       ENDIF
 
@@ -305,7 +308,10 @@
          IF( LH .LT. N ) LH = LH + 1
       ENDDO
 
-      IF( ABS(A(1,N)) .LT. EPS ) GO TO 9002
+      IF( ABS(A(1,N)) .LT. EPS ) THEN
+         I=N
+         GO TO 9002
+      END IF
       X( N ) = X( N ) / A( 1 , N )
       JJ = 2
       DO I = 1 , NM
@@ -380,12 +386,7 @@
             ENDIF
          ENDDO
 
-!         IF( ABS2 .LT. EPS ) GO TO 9002
-      IF( ABS2 .LT. EPS ) THEN
-         write(6,'(A,I8,1P3E12.4)') 'A(1,I),EPS=',I,A(1,I),EPS
-         GOTO 9002
-      ENDIF
-
+         IF( ABS2 .LT. EPS ) GO TO 9002
          IF( IPIVOT .NE. I ) THEN
             TEMP        = X( I      )
             X( I      ) = X( IPIVOT )
@@ -413,10 +414,8 @@
          IF( LH .LT. N ) LH = LH + 1
       ENDDO
 
-!      IF( ABS(A(1,N)) .LT. EPS ) GO TO 9002
-!      IF( CDABS(A(1,N)) .LT. EPS ) GOTO 9002
-      IF( CDABS(A(1,N)) .LT. EPS ) THEN
-         write(6,'(A,1P3E12.4)') 'A(1,N),EPS=',A(1,N),EPS
+      IF( ABS(A(1,N)) .LT. EPS ) THEN
+         I=N
          GOTO 9002
       ENDIF
 

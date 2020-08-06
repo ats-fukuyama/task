@@ -1,5 +1,14 @@
-### $Id$ ###
+### Makefile
 include ../make.header
+include ../mtxp/make.mtxp
+LIB_MTX=$(LIB_MTX_BND)
+LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_PCG)
+#LIB_MTX=$(LIB_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIB_MTX=$(LIBXMTX_KSP)
+#LIBX_MTX=$(LIBX_MTX_KSP)
 
 FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
@@ -23,8 +32,8 @@ OBJNC= $(SRCNC:.f=.o)
 OBJMM= $(SRCMM:.f=.o)
 PROG2= tx2
 PROG3= tx
-LIBS2= libtx2.a ../lib/libtask.a
-LIBS3= libtx3.a ../lib/libtask.a
+LIBS2= libtx2.a ../lib/libtask.a ../lib/libgrf.a
+LIBS3= libtx3.a ../lib/libtask.a ../lib/libgrf.a
 
 .SUFFIXES: .f90
 
@@ -42,20 +51,18 @@ libtx2.a: $(OBJS) $(OBJ2D) $(OBJNC) $(INCNC) $(OBJMM)
 libtx3.a: $(OBJS) $(OBJ3D) $(OBJNC) $(INCNC) $(OBJMM)
 	$(LD) $(LDFLAGS) libtx3.a $(OBJS) $(OBJ3D) $(OBJNC) $(OBJMM)
 
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 ../lib/libtask.a:
-	(cd ../lib; make)
-
+	(cd ../lib; make libtask.a)
 libs:
 	(cd ../lib; make)
 
 $(PROG2): $(LIBS2) 
-	$(FCFREE) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
+	$(FLINKER) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 $(PROG3): $(LIBS3)
-	$(FCFREE) $(LIBS3) -o $@ $(FFLAGS) $(GLIBS)
-
-check: $(SRCS) $(SRC2D) $(SRC3D)
-	ftnchek $(FCKFLAGS) $(SRCS) $(SRC2D) $(SRC3D) | $(PAGER)
+	$(FCFREE) $(LIBS3) -o $@ $(FFLAGS) $(GLIBS) $(LIBX_MTX)
 
 clean:
 	rm -f *.o ./*~ ./#* nclass/*.o mmm/*.o *.a $(MOD)/*.mod

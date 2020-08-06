@@ -39,7 +39,7 @@ SRCS = fpcomm.f90 fpinit.f90 fpparm.f90 \
 OBJS = $(SRCS:.f90=.o)
 
 LIBS = libfp.a ../pl/libpl.a ../eq/libeq.a  \
-        ../lib/libtask.a ../../bpsd/libbpsd.a
+        ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
 all: libs fp
 
@@ -54,9 +54,12 @@ libfp.a: $(OBJS)
 	(cd ../eq; make libeq.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 
 libs:
 	(cd ../../bpsd; make libbpsd.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../lib; make libtask.a)
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)

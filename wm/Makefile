@@ -29,7 +29,7 @@ SRCX = wmcont.f90 wmtest.f90
 OBJS = $(SRCX:.f90=.o) $(SRCS:.f=.o)
 
 LIBS = libwm.a ../dp/libdp.a ../pl/libpl.a  ../eq/libeq.a \
-       ../lib/libtask.a ../../bpsd/libbpsd.a
+       ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -41,6 +41,8 @@ all: wm
 libwm.a: $(OBJS)
 	$(LD) $(LDFLAGS) libwm.a $(OBJS)
 
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 ../pl/libpl.a:
@@ -52,6 +54,7 @@ libwm.a: $(OBJS)
 ../dp/libdp.a:
 	(cd ../dp; make libdp.a)
 libs:
+	(cd ../lib; make libgrf.a)
 	(cd ../lib; make libtask.a)
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)

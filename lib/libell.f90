@@ -381,21 +381,21 @@
       ELLRF = 0.0D0
       IF (MIN(X,Y,Z).LT.0.0D0) THEN
          IER = 1
-         WRITE(6,'(A,1P3E12.4)')  &
+         WRITE(6,'(A,3ES12.4)')  &
              'XX ELLRF: MIN(X,Y,Z).LT.0.D0: X,Y,Z=',X,Y,Z
          RETURN
       ENDIF
 !
       IF (MAX(X,Y,Z).GT.UPLIM) THEN
          IER = 3
-         WRITE(6,'(A,1P3E12.4)')  &
+         WRITE(6,'(A,3ES12.4)')  &
              'XX ELLRF: MAN(X,Y,Z).GT.UPLIM: X,Y,Z=',X,Y,Z
          RETURN
       ENDIF
 !
       IF (MIN(X+Y,X+Z,Y+Z).LT.LOLIM) THEN
          IER = 2
-         WRITE(6,'(A,1P3E12.4)')  &
+         WRITE(6,'(A,3ES12.4)')  &
              'XX ELLRF: MIN(X+Y,Y+Z,Z+X).LT.LOLIM: X,Y,Z=',X,Y,Z
          RETURN
       ENDIF
@@ -774,21 +774,21 @@
       ELLRD = 0.0D0
       IF( MIN(X,Y).LT.0.0D0) THEN
          IER = 1
-         WRITE(6,'(A,1P2E12.4)')  &
+         WRITE(6,'(A,2ES12.4)')  &
              'XX ELLRD: MIN(X,Y).LT.0: X,Y=',X,Y
          RETURN
       ENDIF
 !
       IF (MAX(X,Y,Z).GT.UPLIM) THEN
          IER = 3
-         WRITE(6,'(A,1P3E12.4)')  &
+         WRITE(6,'(A,3ES12.4)')  &
              'XX ELLRD: MAN(X,Y,Z).GT.UPLIM: X,Y,Z=',X,Y,Z
          RETURN
       ENDIF
 !
       IF (MIN(X+Y,Z).LT.LOLIM) THEN
          IER = 2
-         WRITE(6,'(A,1P3E12.4)')  &
+         WRITE(6,'(A,3ES12.4)')  &
              'XX ELLRD: MIN(X+Y,Z).LT.LOLIM: X,Y,Z=',X,Y,Z
          RETURN
       ENDIF

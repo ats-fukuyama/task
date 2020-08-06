@@ -613,7 +613,7 @@
 !      DO NX=1,NXMAX
 !      DO NY=1,NYMAX
 !      DO NZ=1,NZMAX
-!         WRITE(6,'(3I3,1P7E10.2)') NX,NY,NZ, &
+!         WRITE(6,'(3I3,7ES10.2)') NX,NY,NZ, &
 !              F(NX,NY,NZ),FX(NX,NY,NZ),FY(NX,NY,NZ),FZ(NX,NY,NZ), &
 !              FXY(NX,NY,NZ),FYZ(NX,NY,NZ),FZX(NX,NY,NZ)
 !      ENDDO
@@ -1714,7 +1714,7 @@
 !      DO NX=1,NXMAX
 !      DO NY=1,NYMAX
 !      DO NZ=1,NZMAX
-!         WRITE(6,'(3I3,1P7E10.2)') NX,NY,NZ, &
+!         WRITE(6,'(3I3,7ES10.2)') NX,NY,NZ, &
 !              F(NX,NY,NZ),FX(NX,NY,NZ),FY(NX,NY,NZ),FZ(NX,NY,NZ), &
 !              FXY(NX,NY,NZ),FYZ(NX,NY,NZ),FZX(NX,NY,NZ)
 !      ENDDO

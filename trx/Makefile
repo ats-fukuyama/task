@@ -1,5 +1,14 @@
-### $Id$ ###
+### Makefile
 include ../make.header
+include ../mtxp/make.mtxp
+LIB_MTX=$(LIB_MTX_BND)
+LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_PCG)
+#LIB_MTX=$(LIB_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIB_MTX=$(LIBXMTX_KSP)
+#LIBX_MTX=$(LIBX_MTX_KSP)
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
@@ -52,8 +61,8 @@ OBJTR=$(OBJM) $(OBJE) $(OBJL) $(OBJNC) $(OBJCYT) $(OBJMMM) $(OBJMBGB) $(OBJS)
 OBJ2D=$(SRC2D:.f90=.o)
 OBJ3D=$(SRC3D:.f90=.o)
 
-LIBS2=../lib/libtask.a ../lib/libmds.a $(PLLIBS) $(EQLIBS) libtr2.a
-LIBS3=../lib/libtask.a ../lib/libmds.a $(PLLIBS) $(EQLIBS) libtr3.a  
+LIBS2=../lib/libgrf.a ../lib/libtask.a ../lib/libmds.a $(PLLIBS) $(EQLIBS) libtr2.a
+LIBS3=../lib/libgrf.a ../lib/libtask.a ../lib/libmds.a $(PLLIBS) $(EQLIBS) libtr3.a  
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -69,6 +78,8 @@ libtr2.a: $(OBJTR) $(OBJ2D) $(INCNC) $(INCGLF)
 libtr3.a: $(OBJTR) $(OBJ3D) $(INCNC) $(INCGLF)
 	$(LD) $(LDFLAGS) libtr3.a $(OBJTR) $(OBJ3D)
 
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 ../lib/libmds.a:
@@ -81,22 +92,20 @@ libtr3.a: $(OBJTR) $(OBJ3D) $(INCNC) $(INCGLF)
 	(cd ../eq; make libeq.a)
 
 libs:
+	(cd ../lib; make libgrf.a)
 	(cd ../lib; make libtask.a)
 	(cd ../../bpsd; make libbpsd.a)
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
 
 tr2: trcom2.o trcom3.o $(LIBS2) trmain.o 
-	$(FCFREE) trmain.o trcom2.o trcom3.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(MODULE) $(MODO) $(MODINCLUDE)
+	$(FLINKER) trmain.o trcom2.o trcom3.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 tr3: trcom2.o trcom3.o $(LIBS3) trmain.o 
-	$(FCFREE) trmain.o trcom2.o trcom3.o $(LIBS3) -o $@ $(FFLAGS) $(FLIBS) $(MODINCLUDE)
+	$(FLINKER) trmain.o trcom2.o trcom3.o $(LIBS3) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 xtr: trcom2.o trcom3.o $(LIBS2) xtr.o 
-	$(FCFREE) xtr.o trcom2.o trcom3.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(MODULE) $(MODO) $(MODINCLUDE)
-
-check : $(SRCS)
-	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRCNC) $(FCKPIPE) | less
+	$(FLINKER) xtr.o trcom2.o trcom3.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean : 
 	-rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm95/*.o libmmm7_1/*.o mbgb/*.o a.out core *.a *.mod $(MOD)/*.mod

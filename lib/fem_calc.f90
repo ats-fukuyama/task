@@ -121,7 +121,7 @@ CONTAINS
 !                  do i=1,4
 !                     temp=temp+coef(i)*table_hhh(i,j,k)
 !                  enddo
-!                  write(6,'(2I5,1P4E12.4)') j,k,temp,
+!                  write(6,'(2I5,4ES12.4)') j,k,temp,
 !     &                 table_hhh(1,j,k),table_hhh(3,j,k),table_hh(j,k)
 !               enddo
 !            enddo
@@ -465,7 +465,7 @@ CONTAINS
 
       do nr=1,nrmax-1
          if((0.85d0-rho(nr))*(rho(nr+1)-0.85d0).ge.0.d0) then
-!$$$            write(6,'A,I5,1P4E12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
+!$$$            write(6,'A,I5,4ES12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
 !$$$     &           rho(nr+1)-0.85d0,0.85d0-rho(nr)
             fvb(3*(nr-1)+2)=(rho(nr+1)-0.85d0)*(1.d0-angl)
             fvb(3* nr   +2)=(0.85d0-rho(nr)  )*(1.d0-angl)
@@ -693,7 +693,7 @@ CONTAINS
 
       do nr=1,nrmax-1
          if((0.85d0-rho(nr))*(rho(nr+1)-0.85d0).ge.0.d0) then
-!$$$            write(6,'A,I5,1P4E12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
+!$$$            write(6,'A,I5,4ES12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
 !$$$     &           rho(nr+1)-0.85d0,0.85d0-rho(nr)
             fvb(3*(nr-1)+2)=(rho(nr+1)-0.85d0)*(1.d0-angl)
             fvb(3* nr   +2)=(0.85d0-rho(nr)  )*(1.d0-angl)
@@ -917,7 +917,7 @@ CONTAINS
 
       do nr=1,nrmax-1
          if((0.85d0-rho(nr))*(rho(nr+1)-0.85d0).ge.0.d0) then
-!$$$            write(6,'A,I5,1P4E12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
+!$$$            write(6,'A,I5,4ES12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
 !$$$     &           rho(nr+1)-0.85d0,0.85d0-rho(nr)
             fvb(4*(nr-1)+3)=(rho(nr+1)-0.85d0)*(1.d0-angl)
             fvb(4* nr   +3)=(0.85d0-rho(nr)  )*(1.d0-angl)
@@ -1193,7 +1193,7 @@ CONTAINS
 
       do nr=1,nrmax-1
          if((0.85d0-rho(nr))*(rho(nr+1)-0.85d0).ge.0.d0) then
-!$$$            write(6,'A,I5,1P4E12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
+!$$$            write(6,'A,I5,4ES12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
 !$$$     &           rho(nr+1)-0.85d0,0.85d0-rho(nr)
             fvb(6*(nr-1)+3)=(rho(nr+1)-0.85d0)*(1.d0-angl)
             fvb(6* nr   +3)=(0.85d0-rho(nr)  )*(1.d0-angl)
@@ -1365,7 +1365,7 @@ CONTAINS
 
       do nr=1,nrmax-1
          if((0.85d0-rho(nr))*(rho(nr+1)-0.85d0).ge.0.d0) then
-!$$$            write(6,'A,I5,1P4E12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
+!$$$            write(6,'A,I5,4ES12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
 !$$$     &           rho(nr+1)-0.85d0,0.85d0-rho(nr)
             fvb(3*(nr-1)+2)=(rho(nr+1)-0.85d0)*(1.d0-angl)
             fvb(3* nr   +2)=(0.85d0-rho(nr)  )*(1.d0-angl)
@@ -1583,7 +1583,7 @@ CONTAINS
 
       do nr=1,nrmax-1
          if((0.85d0-rho(nr))*(rho(nr+1)-0.85d0).ge.0.d0) then
-!$$$            write(6,'A,I5,1P4E12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
+!$$$            write(6,'A,I5,4ES12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
 !$$$     &           rho(nr+1)-0.85d0,0.85d0-rho(nr)
             fvb(3*(nr-1)+2)=(rho(nr+1)-0.85d0)*(1.d0-angl)
             fvb(3* nr   +2)=(0.85d0-rho(nr)  )*(1.d0-angl)
@@ -1843,7 +1843,7 @@ CONTAINS
 
       do nr=1,nrmax-1
          if((0.85d0-rho(nr))*(rho(nr+1)-0.85d0).ge.0.d0) then
-!$$$            write(6,'A,I5,1P4E12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
+!$$$            write(6,'A,I5,4ES12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
 !$$$     &           rho(nr+1)-0.85d0,0.85d0-rho(nr)
             fvb(4*(nr-1)+3)=(rho(nr+1)-0.85d0)*(1.d0-angl)
             fvb(4* nr   +3)=(0.85d0-rho(nr)  )*(1.d0-angl)
@@ -2092,7 +2092,7 @@ CONTAINS
 
       do nr=1,nrmax-1
          if((0.85d0-rho(nr))*(rho(nr+1)-0.85d0).ge.0.d0) then
-!$$$            write(6,'A,I5,1P4E12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
+!$$$            write(6,'A,I5,4ES12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
 !$$$     &           rho(nr+1)-0.85d0,0.85d0-rho(nr)
             fvb(6*(nr-1)+3)=(rho(nr+1)-0.85d0)*(1.d0-angl)
             fvb(6* nr   +3)=(0.85d0-rho(nr)  )*(1.d0-angl)
@@ -2866,7 +2866,7 @@ CONTAINS
 !$$$      do ml=1,mlmax
 !$$$         do mw=1,mwmax
 !$$$            if(abs(fma(mw,ml)).ne.0.d0) then
-!$$$               write(6,'(2I5,1P2E12.4)') ml,mw,fma(mw,ml)
+!$$$               write(6,'(2I5,2ES12.4)') ml,mw,fma(mw,ml)
 !$$$            endif
 !$$$         enddo
 !$$$      enddo
@@ -3080,7 +3080,7 @@ CONTAINS
 !$$$      do ml=1,mlmax
 !$$$         do mw=1,mwmax
 !$$$            if(abs(fma(mw,ml)).ne.0.d0) then
-!$$$               write(6,'(2I5,1P2E12.4)') ml,mw,fma(mw,ml)
+!$$$               write(6,'(2I5,2ES12.4)') ml,mw,fma(mw,ml)
 !$$$            endif
 !$$$         enddo
 !$$$      enddo
@@ -3323,7 +3323,7 @@ CONTAINS
 
       do nr=1,nrmax-1
          if((0.85d0-rho(nr))*(rho(nr+1)-0.85d0).ge.0.d0) then
-!$$$            write(6,'A,I5,1P4E12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
+!$$$            write(6,'A,I5,4ES12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
 !$$$     &           rho(nr+1)-0.85d0,0.85d0-rho(nr)
             fvb(6*(nr-1)+1)= CI*(rho(nr+1)-0.85d0)*(1.d0-angl)
             fvb(6* nr   +1)= CI*(0.85d0-rho(nr)  )*(1.d0-angl)
@@ -3542,7 +3542,7 @@ CONTAINS
       rkph=nph
       do nr=1,nrmax-1
          if((rd-rho(nr))*(rho(nr+1)-rd).ge.0.d0) then
-!$$$            write(6,'A,I5,1P4E12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
+!$$$            write(6,'A,I5,4ES12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
 !$$$     &           rho(nr+1)-rd,rd-rho(nr)
             divj=rkth*(1.D0-angl)+rkph*angl
             drho=rho(nr+1)-rho(nr)

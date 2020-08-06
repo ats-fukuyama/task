@@ -28,7 +28,7 @@ SRCS = libt2.f90  t2cnst.f90 t2comm.f90 t2intg.f90 t2ngra.f90 t2vgra.f90\
 
 OBJS = $(SRCS:.f90=.o) 
 
-LIBS= ../lib/libtask.a ../../bpsd/libbpsd.a $(LIBMTX) \
+LIBS= ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a $(LIBMTX) \
       libt2x.a ../pl/libpl.a ../eq/libeq.a
 .f90.o:
 	$(FLINKER) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -37,6 +37,8 @@ all: t2
 
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 ../bpsd/libbpsd.a:
 	(cd ../bpsd; make libbpsd.a)
 ../pl/libpl.a:
@@ -47,6 +49,7 @@ libt2x.a: $(OBJS)
 	$(LD) $(LDFLAGS) libt2x.a $(OBJS)
 
 libs:
+	(cd ../lib; make libgrf.a)
 	(cd ../lib; make libtask.a)
 	(cd ../../bpsd; make libbpsd.a)
 	(cd ../mtxp; make libmtxmpi.o libmtxnompi.o)

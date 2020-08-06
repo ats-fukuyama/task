@@ -24,7 +24,7 @@ SRCS = lib-adpost.f90
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = lib-adpost.a ../mtxp/libmtxmpi.o ../lib/libtask.a ../../bpsd/libbpsd.a
+LIBS = lib-adpost.a ../mtxp/libmtxmpi.o ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a
 
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -38,11 +38,14 @@ lib-adpost.a: $(OBJS)
 	(cd ../../bpsd; make libbpsd.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 
 libs:
 	(cd ../../bpsd; make libbpsd.a)
 	(cd ../mtxp; make)
 	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
 
 test-adpost : $(LIBS) test-adpost.o
 	$(FLINKER) test-adpost.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)

@@ -27,7 +27,7 @@ SRCS = 	wfcomm.f90 wfinit.f90 wfparm.f90 wfload.f90 wfprof.f90 \
 OBJS = $(SRCS:.f90=.o)
 
 LIBS = libwf.a ../pl/libpl.a ../eq/libeq.a   \
-        ../lib/libtask.a ../../bpsd/libbpsd.a $(LIB_MTX)
+        ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a $(LIB_MTX)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -45,11 +45,14 @@ libwf.a: $(OBJS)
 	(cd ../pl; make loibpl.a)
 ../eq/libeq.a:
 	(cd ../eq; make libeq.a)
-../lib/loibtask.a:
+../lib/libtask.a:
 	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 
 libs:
 	(cd ../../bpsd; make libbpsd.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../lib; make libtask.a)
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)

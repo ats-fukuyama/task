@@ -463,10 +463,10 @@ CONTAINS
     WRITE(6,'(A,1PE12.4,A,1PE12.4)') &
          '    PWRMAX=',pwrmax_rs,'  AT RHON =',pos_pwrmax_rs
 
-    CALL PAGES
-    CALL grd1d(0,pos_nrs,pwr_nrs_nray,nrsmax,nrsmax,nraymax, &
-         '@pwr_nrs vs. pos_nrs@')
-    CALL PAGEE
+!    CALL PAGES
+!    CALL grd1d(0,pos_nrs,pwr_nrs_nray,nrsmax,nrsmax,nraymax, &
+!         '@pwr-nrs vs. pos-nrs@')
+!    CALL PAGEE
 
     RETURN
   END SUBROUTINE wr_calc_pwr

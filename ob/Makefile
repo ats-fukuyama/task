@@ -35,12 +35,14 @@ SRCX = ../eq/wmeqin.f
 OBJS = $(SRCS:.f90=.o) $(SRCX:.f=.o)
 
 LIBS = libob.a  ../eq/libeq.a ../pl/libpl.a \
-       ../lib/libtask.a ../../bpsd/libbpsd.a
+       ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
 all : libs ob
 
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 ../pl/libpl.a:
@@ -54,6 +56,7 @@ libob.a: $(OBJS)
 
 libs:
 	(cd ../../bpsd; make libbpsd.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../lib; make libtask.a)
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)

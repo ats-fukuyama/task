@@ -20,12 +20,14 @@ SRCSFREE = wimcomm.f90 wiminit.f90 wimparm.f90 wimexec.f90 wimgout.f90 \
 
 OBJS = $(SRCSFREE:.f90=.o) 
 
-LIBS = libwim.a ../lib/libtask.a ../../bpsd/libbpsd.a
+LIBS = libwim.a ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
 all : wim
 
 ../lib/libtask.a:
-	(cd ../lib; make liobtask.a)
+	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
 libwim.a: $(OBJS)
@@ -33,6 +35,7 @@ libwim.a: $(OBJS)
 
 libs:
 	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../../bpsd; make libbpsd.a)
 
 wim : $(LIBS) wimmain.o

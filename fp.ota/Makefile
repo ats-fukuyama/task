@@ -45,7 +45,7 @@ OBJSFOW = $(addprefix $(OBJDIR)/, $(SRCSFOW:.f90=.o))
 
 
 LIBS = fplib.a ../pl/libpl.a ../eq/libeq.a  \
-        ../lib/libtask.a ../../bpsd/libbpsd.a ../ob/libob.a
+       ../lib/libgrf.a  ../lib/libtask.a ../../bpsd/libbpsd.a ../ob/libob.a
 
 LIBFOW = fowlib.a
 
@@ -64,12 +64,15 @@ fowlib.a: $(OBJSFOW)
 	(cd ../eq; make libeq.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 ../ob/libob.a:
 	(cd ../ob; make libob.a)
 
 libs:
 	(cd ../../bpsd; make libbpsd.a)
 	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)

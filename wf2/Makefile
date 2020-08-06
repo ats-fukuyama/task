@@ -18,7 +18,7 @@ SRCX = wfhout.f90
 
 OBJS = $(SRCS:.f=.o) $(SRCX:.f90=.o) 
 
-LIBS = libwf.a ../lib/libtask.a
+LIBS = libwf.a ../lib/libtask.a ../lib/libgrf.a
 
 .f90.o:
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -32,6 +32,8 @@ libwf.a: $(OBJS)
 
 ../lib/libtask.a:
 	(cd ../lib; make loibtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make loibgrf.a)
 
 wf : wfcomm.inc $(LIBS) wfmain.o
 	$(FCFIXED) wfmain.o -o $@ $(FFLAGS) $(LIBS) $(FLIBS)

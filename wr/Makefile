@@ -32,12 +32,14 @@ SRCS = wrcomm.f90 wrinit.f90 wrparm.f90 \
 OBJS = $(SRCS:.f90=.o)
 
 LIBS = libwr.a  ../dp/libdp.a ../eq/libeq.a ../pl/libpl.a \
-       ../lib/libtask.a ../../bpsd/libbpsd.a
+       ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a
 
 all : wr
 
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 ../pl/libpl.a:
@@ -51,6 +53,7 @@ libwr.a: $(OBJS)
 
 libs:
 	(cd ../../bpsd; make libbpsd.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../lib; make libtask.a)
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)

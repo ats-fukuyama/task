@@ -143,7 +143,7 @@ CONTAINS
        CALL DKBESL(XX,ALPHA,NN+1,2,BK,NCALC)
        IF(NCALC.LT.NN+1) THEN
           WRITE(6,*) 'XX BESEKNX: NCALC=',NCALC
-          WRITE(6,'(A,I5,1P2E12.4)') 'XX NN,XX,ALPHA=',NN,XX,ALPHA
+          WRITE(6,'(A,I5,2ES12.4)') 'XX NN,XX,ALPHA=',NN,XX,ALPHA
           STOP
        END IF
        BESEKNX=BK(NN+1)
@@ -349,7 +349,7 @@ CONTAINS
 
       CALL BESJNV(NMAX,X,BJN,IERR)
 !      write(6,*) ierr,X
-!      WRITE(6,'(1P5E12.4)') (BJN(n),n=0,nmax)
+!      WRITE(6,'(5ES12.4)') (BJN(n),n=0,nmax)
       IF(IERR.NE.0) THEN
          WRITE(6,*) 'XX BESSJN: BESJNV error: IERR=',IERR
          STOP
@@ -366,7 +366,7 @@ CONTAINS
             DBJN(N)=BJN(N-1)-N*BJN(N)/X
          ENDDO
       ENDIF
-!      WRITE(6,'(1P5E12.4)') (DBJN(n),n=0,nmax)
+!      WRITE(6,'(5ES12.4)') (DBJN(n),n=0,nmax)
       RETURN
     END SUBROUTINE BESSJN
 

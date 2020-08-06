@@ -31,7 +31,7 @@ SRCSFREE = libgrf/plot2.f90 libgrf/grf2dpexec.f90 libgrf/grfpconvert.f90 \
 
 OBJS = $(SRCSFREE:.f90=.o)
 
-LIBS = ../../bpsd/libbpsd.a ../lib/libtask.a libpic.a
+LIBS = ../../bpsd/libbpsd.a ../lib/libgrf.a ../lib/libtask.a libpic.a
 
 all : pic
 
@@ -39,6 +39,8 @@ all : pic
 
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
 libpic.a: $(OBJS)
@@ -46,6 +48,7 @@ libpic.a: $(OBJS)
 
 libs:
 	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../../bpsd; make libbpsd.a)
 	(cd ../mtxp; make)
 

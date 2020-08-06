@@ -21,18 +21,21 @@ SRCSFREE = wicomm.f90 wiparm.f90 wiprep.f90 \
 
 OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
 
-LIBS = libwi.a ../lib/libtask.a ../../bpsd/libbpsd.a
+LIBS = libwi.a ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a
 
 all : wi plotwi plotwi2
 
-../lib/ibtask.a:
+../lib/libtask.a:
 	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
 libwi.a: $(OBJS)
 	$(LD) $(LDFLAGS) libwi.a $(OBJS)
 
 libs:
+	(cd ../lib; make libgrf.a)
 	(cd ../lib; make libtask.a)
 	(cd ../../bpsd; make libbpsd.a)
 
@@ -47,10 +50,10 @@ clean:
 	-rm -f core a.out *.o *.mod ./*~ ./#* *.a $(MOD)/*.mod
 
 plotwi : plotwi.o
-	$(FCFREE) plotwi.o ../lib/libtask.a -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFREE) plotwi.o ../lib/libgrf.a ../lib/libtask.a -o $@ $(FFLAGS) $(FLIBS)
 
 plotwi2 : plotwi2.o
-	$(FCFREE) plotwi2.o ../lib/libtask.a -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFREE) plotwi2.o ../lib/libgrf.a ../lib/libtask.a -o $@ $(FFLAGS) $(FLIBS)
 
 veryclean: clean
 	-rm -f wi wiunmag

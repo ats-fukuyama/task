@@ -34,8 +34,8 @@ OBJA = $(SRCA:.f=.o)
 OBJ2D=$(SRC2D:.f=.o)
 OBJ3D=$(SRC3D:.f=.o)
 
-LIBS2 = ../pl/libpl.a libeq.a ../lib/libtask.a ../../bpsd/libbpsd.a
-LIBS3 = ../pl/libpl.a libeq3.a ../lib/libtask.a ../../bpsd/libbpsd.a
+LIBS2 = ../pl/libpl.a libeq.a ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a
+LIBS3 = ../pl/libpl.a libeq3.a ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
 .SUFFIXES: .f90
 
@@ -51,6 +51,8 @@ all : eq
 	(cd ../../bpsd; make libbpsd.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgr.a)
 ../pl/libpl.a:
 	(cd ../pl; make libpl.a)
 libeq.a: $(OBJS) $(OBJ2D)
@@ -61,6 +63,7 @@ libeq3.a: $(OBJS) $(OBJ3D)
 
 libs:
 	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../../bpsd; make libbpsd.a)
 	(cd ../pl; make libpl.a)
 

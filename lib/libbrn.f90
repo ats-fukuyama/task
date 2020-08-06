@@ -47,7 +47,7 @@
      &    fb .ne. 0.0d0) then
          if (fa * (fb/abs(fb)) .gt. 0.0d0) then
             write(6,*) 'XX FBRENT: f(ax) and f(bx) have same sign.'
-            write(6,'(A,1P4E12.4)') '  ax,bx,f(ax),f(bx)=',a,b,fa,fb
+            write(6,'(A,4ES12.4)') '  ax,bx,f(ax),f(bx)=',a,b,fa,fb
             return
          endif
       endif

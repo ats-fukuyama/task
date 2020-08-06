@@ -21,7 +21,7 @@ testbnd: $(LIB_MTX_BND) testmtx.o
 
 testbndc: $(LIB_MTX_BND) testmtxc.o 
 	-$(FLINKER) -g -o testbndc testmtxc.o $(LIBX_MTX_BND) \
-	../lib/libtask.a $(FLIBS)
+	../lib/libgrf.a ../lib/libtask.a $(FLIBS)
 
 testpcg: $(LIB_MTX_PCG) testmtx.o 
 	-$(FLINKER) $(FFLAGS) -o testpcg testmtx.o $(LIBX_MTX_PCG) \
@@ -34,7 +34,7 @@ testdmumps: $(LIB_MTX_MUMPS) testmtx.o
 
 testzmumps: $(LIB_MTX_MUMPS) testmtxc.o
 	-${FLINKER} -g -o testzmumps testmtxc.o $(LIBX_MTX_MUMPS) \
-	../lib/libtask.a $(FLIBS)
+	../lib/libgrf.a ../lib/libtask.a $(FLIBS)
 
 
 testksp: $(LIB_MTX_KSP) testmtx.o

@@ -33,12 +33,14 @@ SRCO = noeqlib.f noequlib.f
 OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
 OBJO = $(SRCO:.f=.o) 
 
-LIBS = libpl.a ../eq/libeq.a ../lib/libtask.a ../../bpsd/libbpsd.a
+LIBS = libpl.a ../eq/libeq.a ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
 all : pl
 
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
 ../eq/libeq.a:
@@ -48,15 +50,13 @@ libpl.a: $(OBJS)
 
 libs:
 	(cd ../../bpsd; make libbpsd.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../lib; make libtask.a)
 	(cd ../mtxp; make)
 	(cd ../eq; make libeq.a)
 
 pl : libs libpl.a plmain.o
 	$(FLINKER) plmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
-
-check :
-	ftnchek $(FCKFLAGS) $(SRCSFIXED) | less
 
 clean:
 	-rm -f core a.out *.o *.mod ./*~ ./#* *.a $(MOD)/*.mod

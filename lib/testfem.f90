@@ -39,7 +39,7 @@ program testfem
       rf=1.d0
       angl=0.d0
 
-    1 write(6,'(A,I3,I5,I3,I3,I3,1PE12.4,0PF8.4)') &
+    1 write(6,'(A,I3,I5,I3,I3,I3,ES12.4,F8.4)') &
               '## input: id,nrmax,npow,nth,nph,rf,angl=', &
                          id,nrmax,npow,nth,nph,rf,angl
       read(5,*,err=1,end=9000) id,nrmax,npow,nth,nph,rf,angl
@@ -52,7 +52,7 @@ program testfem
 !$$$      call femgr1dc( 3,rho,cf3,nrmax,'@cf3(rho)@')
 !$$$      call pagee
 !$$$      do nr=1,nrmax
-!$$$         write(6,'(I5,1P7E10.2)') nr,rho(nr),cf1(nr),cf2(nr),cf3(nr)
+!$$$         write(6,'(I5,7ES10.2)') nr,rho(nr),cf1(nr),cf2(nr),cf3(nr)
 !$$$      enddo
 
       SELECT CASE(ID)
@@ -133,9 +133,9 @@ program testfem
       end select
 
 !      do ml=1,mlmax
-!         write(16,'(1P6E12.4)') (fma(mw,ml),mw=1,mwmax)
+!         write(16,'(6ES12.4)') (fma(mw,ml),mw=1,mwmax)
 !      enddo
-!      write(16,'(1P6E12.4)') (fvb(ml),ml=1,mlmax)
+!      write(16,'(6ES12.4)') (fvb(ml),ml=1,mlmax)
 
       do ml=1,mlmax
          fvx(ml)=fvb(ml)

@@ -1122,16 +1122,16 @@
       DX=X0-X(NX-1)
       DY=Y0-Y(NY-1)
 
-!      WRITE(6,'(2I5,1P2E12.4)') NX,NY,X0,Y0
+!      WRITE(6,'(2I5,2ES12.4)') NX,NY,X0,Y0
 !      IF(NX.EQ.33 .AND. NY.EQ.18) THEN
-!         WRITE(6,'(1P4E12.4)') X0,Y0,DX,DY
-!         WRITE(6,'(1P4E12.4)') U(1,1,NX,NY),U(1,2,NX,NY),
+!         WRITE(6,'(4ES12.4)') X0,Y0,DX,DY
+!         WRITE(6,'(4ES12.4)') U(1,1,NX,NY),U(1,2,NX,NY),
 !     &                         U(1,3,NX,NY),U(1,4,NX,NY)
-!         WRITE(6,'(1P4E12.4)') U(2,1,NX,NY),U(2,2,NX,NY),
+!         WRITE(6,'(4ES12.4)') U(2,1,NX,NY),U(2,2,NX,NY),
 !     &                         U(2,3,NX,NY),U(2,4,NX,NY)
-!         WRITE(6,'(1P4E12.4)') U(3,1,NX,NY),U(3,2,NX,NY),
+!         WRITE(6,'(4ES12.4)') U(3,1,NX,NY),U(3,2,NX,NY),
 !     &                         U(3,3,NX,NY),U(3,4,NX,NY)
-!         WRITE(6,'(1P4E12.4)') U(4,1,NX,NY),U(4,2,NX,NY),
+!         WRITE(6,'(4ES12.4)') U(4,1,NX,NY),U(4,2,NX,NY),
 !     &                         U(4,3,NX,NY),U(4,4,NX,NY)
 !         CALL GUFLSH
 !      ENDIF

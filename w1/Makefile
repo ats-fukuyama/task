@@ -28,18 +28,20 @@ SRCSFREE =w1comm.f90 w1lib.f90 w1init.f90 w1parm.f90 \
 
 #OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
 OBJS = $(SRCSFREE:.f90=.o) $(SRCSFIXED:.f=.o) 
-LIBS = libw1.a ../lib/libtask.a ../../bpsd/libbpsd.a
+LIBS = libw1.a ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a
 
 all: w1
 
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
 libw1.a: $(OBJS)
 	$(LD) $(LDFLAGS) libw1.a $(OBJS)
 
-libs: ../../bpsd/libbpsd.a ../lib/libtask.a libw1.a
+libs: ../../bpsd/libbpsd.a ../lib/libgrf.a ../lib/libtask.a libw1.a
  
 w1 : libs w1main.o
 	$(FCFREE) w1main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) \

@@ -20,7 +20,7 @@ PROGRAM testlamb
   nxmax=201
 
 1 CONTINUE
-  WRITE(6,'(A,3I5,1P2E12.4)') &
+  WRITE(6,'(A,3I5,2ES12.4)') &
        '## nxmax,nmin,nmax,xmin,xmax=',nxmax,nmin,nmax,xmin,xmax
   READ(5,*,ERR=1,END=9000) nxmax,nmin,nmax,xmin,xmax
   IF(nxmax.LE.0) GOTO 9000
@@ -37,7 +37,7 @@ PROGRAM testlamb
         ca=xdata(nx)
         CALL LAMBDA(nmax,ca,cl,ierr)
         IF(ierr.NE.0) THEN
-           WRITE(6,'(A,I5,1P3E12.4)') 'XX Error in LAMBDA: ierr,ca=',ierr,ca
+           WRITE(6,'(A,I5,3ES12.4)') 'XX Error in LAMBDA: ierr,ca=',ierr,ca
            EXIT
         END IF
         fdata(nx,n)=REAL(cl(n))
