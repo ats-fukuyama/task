@@ -142,12 +142,13 @@ CONTAINS
           reda(nobt)=0.0; greena(nobt)=1.0-factor; bluea(nobt)=factor
        END DO
     END IF
+    CALL setmks(3,0.2)
     DO nobt=1,nobt_max
 !       WRITE(6,'(A,I5,1P3E12.4)') &
 !            'rgb:',nobt,reda(nobt),greena(nobt),bluea(nobt)
        CALL SETRGB(reda(nobt),greena(nobt),bluea(nobt))
-       CALL MOVE2D(REAL(rr_ob(0,nobt)),REAL(zz_ob(0,nobt)))
-       DO nstp=0,nstp_max_nobt(nobt)
+       CALL MARK2D(REAL(rr_ob(0,nobt)),REAL(zz_ob(0,nobt)))
+       DO nstp=1,nstp_max_nobt(nobt)
           CALL DRAW2D(REAL(rr_ob(nstp,nobt)),REAL(zz_ob(nstp,nobt)))
        ENDDO
     ENDDO
