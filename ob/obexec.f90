@@ -88,6 +88,11 @@ CONTAINS
        ya(neq,nstp)=y_in(neq)
     ENDDO
 
+    IF(omega_bounce.LE.1.D-80) THEN
+       nstp_last=0
+       RETURN
+    END IF
+
     ! --- check initial theta-dot to identify orbit mode ---
     
     CALL ob_fdrv(xs,ys,fs)

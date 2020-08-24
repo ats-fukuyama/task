@@ -147,7 +147,7 @@ CONTAINS
 !            'rgb:',nobt,reda(nobt),greena(nobt),bluea(nobt)
        CALL SETRGB(reda(nobt),greena(nobt),bluea(nobt))
        CALL MOVE2D(REAL(rr_ob(0,nobt)),REAL(zz_ob(0,nobt)))
-       DO nstp=1,nstp_max_nobt(nobt)
+       DO nstp=0,nstp_max_nobt(nobt)
           CALL DRAW2D(REAL(rr_ob(nstp,nobt)),REAL(zz_ob(nstp,nobt)))
        ENDDO
     ENDDO
@@ -172,65 +172,122 @@ CONTAINS
     IMPLICIT NONE
     REAL(rkind):: fx(nstp_max+1),fy(nstp_max+1,1)
     INTEGER:: nobt,nxmax
+    REAL(rkind):: line_rgb(3,1),line_mark_size(1)
+    INTEGER:: line_mark(1),line_mark_step(1)
+
+    line_rgb(1,1)=1.D0
+    line_rgb(2,1)=0.D0
+    line_rgb(3,1)=0.D0
+    line_mark_size(1)=0.3
+    line_mark(1)=-3
 
     DO nobt=1,nobt_max
        CALL PAGES
        nxmax=nstp_max_nobt(nobt)+1
+       line_mark_step(1)=nxmax ! mark only at first point
        fx(1:nxmax)=time_ob(0:nxmax-1,nobt)
 
        fy(1:nxmax,1)=zetab_ob(0:nxmax-1,nobt)*180.D0/Pi
-       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@zetab(s) [deg]@')
+       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@zetab(s) [deg]@', &
+                  NLMAX=1, &
+                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
+                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
 
        fy(1:nxmax,1)=thetab_ob(0:nxmax-1,nobt)*180.D0/Pi
-       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@thetab(s) [deg]@')
+       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@thetab(s) [deg]@', &
+                  NLMAX=1, &
+                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
+                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
 
        fy(1:nxmax,1)=psip_ob(0:nxmax-1,nobt)
-       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@psip(s) [Bm^2]@')
+       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@psip(s) [Bm^2]@', &
+                  NLMAX=1, &
+                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
+                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
 
        fy(1:nxmax,1)=rhopara_ob(0:nxmax-1,nobt)
-       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@rhopara(s) [m]@')
+       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@rhopara(s) [m]@', &
+                  NLMAX=1, &
+                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
+                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
 
        CALL PAGES
 
        fy(1:nxmax,1)=pzeta_ob(0:nxmax-1,nobt)/AEE
-       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@pzeta(s) [eV]@')
+       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@pzeta(s) [eV]@', &
+                  NLMAX=1, &
+                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
+                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
 
        fy(1:nxmax,1)=ptheta_ob(0:nxmax-1,nobt)
-       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@ptheta(s) [eV]@')
+       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@ptheta(s) [eV]@', &
+                  NLMAX=1, &
+                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
+                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
 
        fy(1:nxmax,1)=babs_ob(0:nxmax-1,nobt)
-       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@babs(s) [T]@')
+       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@babs(s) [T]@', &
+                  NLMAX=1, &
+                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
+                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
 
        fy(1:nxmax,1)=phi_ob(0:nxmax-1,nobt)
-       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@phi(s) [V]@')
+       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@phi(s) [V]@', &
+                  NLMAX=1, &
+                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
+                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
 
        CALL PAGES
 
        fy(1:nxmax,1)=vpara_ob(0:nxmax-1,nobt)
-       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@vpara(s) [m/s]@')
+       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@vpara(s) [m/s]@', &
+                  NLMAX=1, &
+                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
+                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
 
        fy(1:nxmax,1)=vperp_ob(0:nxmax-1,nobt)
-       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@vperp(s) [m/s]@')
+       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@vperp(s) [m/s]@', &
+                  NLMAX=1, &
+                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
+                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
 
        fy(1:nxmax,1)=psit_ob(0:nxmax-1,nobt)
-       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@psit(s) [Bm^2]@')
+       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@psit(s) [Bm^2]@', &
+                  NLMAX=1, &
+                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
+                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
 
        fy(1:nxmax,1)=zeta_ob(0:nxmax-1,nobt)
-       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@zeta(s) [deg]@')
+       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@zeta(s) [deg]@', &
+                  NLMAX=1, &
+                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
+                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
 
        CALL PAGES
 
        fy(1:nxmax,1)=rr_ob(0:nxmax-1,nobt)
-       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@rr(s) [m]@')
+       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@rr(s) [m]@', &
+                  NLMAX=1, &
+                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
+                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
 
        fy(1:nxmax,1)=zz_ob(0:nxmax-1,nobt)
-       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@zz(s) [m]@')
+       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@zz(s) [m]@', &
+                  NLMAX=1, &
+                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
+                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
 
        fy(1:nxmax,1)=rs_ob(0:nxmax-1,nobt)
-       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@rs(s) [m]@')
+       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@rs(s) [m]@', &
+                  NLMAX=1, &
+                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
+                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
 
        fy(1:nxmax,1)=theta_ob(0:nxmax-1,nobt)*180.D0/Pi
-       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@theta(s) [deg]@')
+       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@theta(s) [deg]@', &
+                  NLMAX=1, &
+                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
+                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
 
        CALL PAGEE
        
