@@ -66,7 +66,7 @@ CONTAINS
 !     NRAYMAX  : Number of rays
 !     NSTPMAX  : Maxmum number of steps 
 !     NRSMAX   : Number of minor radius division for absorbed power
-!     NRRMAX   : Number of major radius division for absorbed power
+!     NRLMAX   : Number of major radius division for absorbed power
 
 !     SMAX   : MAXIMUM RAY LENGTH
 !     DELS   : INCREMENTAL LENGTH OF RAY
@@ -130,7 +130,7 @@ CONTAINS
       NRAYMAX  = 1
       NSTPMAX  = 10000
       NRSMAX   = 100
-      NRRMAX   = 200
+      NRLMAX   = 200
 
       MDLWRI = 0
       MDLWRG = 0
