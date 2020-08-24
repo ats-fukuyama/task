@@ -54,6 +54,7 @@ all : eq
 ../lib/libgrf.a:
 	(cd ../lib; make libgr.a)
 ../pl/libpl.a:
+	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 libeq.a: $(OBJS) $(OBJ2D)
 	(cd ../pl; make plcomm.o)
@@ -65,6 +66,7 @@ libs:
 	(cd ../lib; make libtask.a)
 	(cd ../lib; make libgrf.a)
 	(cd ../../bpsd; make libbpsd.a)
+	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 
 eq: libs libeq.a eqmain.o
