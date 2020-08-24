@@ -1,6 +1,7 @@
 ! cvcomm.f90
 
 MODULE cvcomm_parm
+  INTEGER,PARAMETER :: dp = selected_real_kind(15) !double precision
   CHARACTER(LEN=256):: knam_csv_in,knam_csv_out_cases,knam_csv_out_deaths
 
 END MODULE cvcomm_parm

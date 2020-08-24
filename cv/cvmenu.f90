@@ -15,6 +15,7 @@ CONTAINS
     USE cvparm,ONLY: cv_parm
     USE cvview,ONLY: cv_view
     USE cvfile,ONLY: cv_read,cv_write
+    USE cvgout,ONLY: cv_gout
     USE cvlib
     IMPLICIT NONE
     CHARACTER(LEN=1):: kid
@@ -47,7 +48,7 @@ CONTAINS
        IF(nstat.EQ.0) THEN
           WRITE(6,'(A)') 'XX cvmenu: No date ha been loaded'
        ELSE
-!          CALL cv_gout
+          CALL cv_gout
        END IF
     ELSEIF(kid.EQ.'T') THEN
 7001   CONTINUE

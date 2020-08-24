@@ -14,207 +14,127 @@ CONTAINS
     USE wmcomm
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NR1,NS0
-    REAL(rkind):: RMA(3,3),RMB(3,3),RGA(3,3),RGB(3,3),NDMIPSF,3,3)
     COMPLEX(rkind),ALLOCATABLE:: &
          CEP0(:,:,:,:),CRA(:,:,:,:),CFA(:,:,:,:),CRB(:,:,:,:), &
-         CFB(:,:,:,:,:,:),CRC(:,:,:,:),CFC(:,:,:,:),SUMA(:,:,:,:,:,:)
-    COMPLEX(rkind):: CFB(MDMF,NDMF,3,3,-MDMXF:MDMXF,-NDMXF:NDMXF)
-    COMPLEX(rkind):: CRC(MDMF,NDMF,3,3),CFC(MDMF,NDMF,3,3)
-    COMPLEX(rkind):: CSUMA(3,3,MDMF,MDM,NDMF,NDM),CS(3,3,MDMF,NDMF)
+         CFB(:,:,:,:),CRC(:,:,:,:),CFC(:,:,:,:), &
+         CS(:,:,:,:),CSUMA(:,:,:,:,:,:),CFB_MDND(:,:,:,:,:,:)
+    REAL(rkind):: RMA(3,3),RMB(3,3),RGA(3,3),RGB(3,3)
     COMPLEX(rkind):: CW,CWC2
-    REAL(rkind):: XRHI,XRHL,XRI,XRH
-    INTEGER:: NR,ND,MD
+    REAL(rkind):: XRI,XRL
+    INTEGER:: NR,ND,MD,NS1,NS2,NS,NHH,NTH,I,J
 
-    ALLOCATE(CEP0(3,3,MDMIPSF,NDMIPSF))
-    ALLOCATE(CRA(MDMF,NDMF,3,3),CFA(MDMF,NDMF,3,3))
-    ALLOCATE(CRB(MDMIPSF,NDMIPSF,3,3))
-    ALLOCATE(CFB(MDMF,NDMF,3,3,-MDMXF:MDMXF,-NDMXF:NDMXF))
-    ALLOCATE(CRC(MDMF,NDMF,3,3),CFC(MDMF,NDMF,3,3))
-    ALLOCATE(CSUMA(3,3,MDMF,MDM,NDMF,NDM),CS(3,3,MDMF,NDMF))
+    ALLOCATE(CEP0(3,3,nthmax_f,nhhmax_f))
+    ALLOCATE(CRA(nthmax_f,nhhmax_f,3,3),CFA(nthmax_f,nhhmax_f,3,3))
+    ALLOCATE(CRB(nthmax_f,nhhmax_f,3,3))
+    ALLOCATE(CFB(nthmax_f,nhhmax_f,3,3))
+    ALLOCATE(CFB_MDND(nthmax_f,nhhmax_f,3,3, &
+                      -nthmax_f:nthmax_f,-nhhmax_f:nhhmax_f))
+    ALLOCATE(CRC(nthmax_f,nhhmax_f,3,3),CFC(nthmax_f,nhhmax_f,3,3))
+    ALLOCATE(CSUMA(3,3,nthmax_f,nhhmax_f,nthmax_f, &
+         nhhmax_f,nthmax_f,nhhmax_f,nthmax_f,nhhmax_f))
+    ALLOCATE(CS(3,3,nthmax_f,nhhmax_f))
 
-      CW=2.D0*PI*CRF*1.D6
-      CWC2=CW**2/VC**2
+    CW=2.D0*PI*DCMPLX(RF,RFI)*1.D6
+    CWC2=CW**2/VC**2
 
-      IF(NR.EQ.1) THEN
-         XRI=1.D6/XRHO(2)
-         XRL=XRHO(2)/1.D6
-      ELSE
-         XRI=1.D0/XRHO(NR)
-         XRL=XRHO(NR)
-      ENDIF
+    IF(NR.EQ.1) THEN
+       XRI=1.D6/XRHO(2)
+       XRL=XRHO(2)/1.D6
+    ELSE
+       XRI=1.D0/XRHO(NR)
+       XRL=XRHO(NR)
+    ENDIF
 
 !     ----- Fourier decompose metric tensor g -----
 
-      CALL WMSUBG_F(RG11(1,1,NR),RJ(1,1,NR),CGF11(1,1,3))
-      CALL WMSUBG_F(RG12(1,1,NR),RJ(1,1,NR),CGF12(1,1,3))
-      CALL WMSUBG_F(RG13(1,1,NR),RJ(1,1,NR),CGF13(1,1,3))
-      CALL WMSUBG_F(RG22(1,1,NR),RJ(1,1,NR),CGF22(1,1,3))
-      CALL WMSUBG_F(RG23(1,1,NR),RJ(1,1,NR),CGF23(1,1,3))
-      CALL WMSUBG_F(RG33(1,1,NR),RJ(1,1,NR),CGF33(1,1,3))
+    CALL WMSUBG_F(RG11(1,1,NR),RJ(1,1,NR),CGF11(1,1,3))
+    CALL WMSUBG_F(RG12(1,1,NR),RJ(1,1,NR),CGF12(1,1,3))
+    CALL WMSUBG_F(RG13(1,1,NR),RJ(1,1,NR),CGF13(1,1,3))
+    CALL WMSUBG_F(RG22(1,1,NR),RJ(1,1,NR),CGF22(1,1,3))
+    CALL WMSUBG_F(RG23(1,1,NR),RJ(1,1,NR),CGF23(1,1,3))
+    CALL WMSUBG_F(RG33(1,1,NR),RJ(1,1,NR),CGF33(1,1,3))
 
 !     ----- Calculate dielectric tensor -----
 
-      IF(NS0.EQ.0) THEN
-         NS1=1
-         NS2=NSMAX
-      ELSE
-         NS1=NS0
-         NS2=NS0
-      ENDIF
+    IF(NS0.EQ.0) THEN
+       NS1=1
+       NS2=NSMAX
+    ELSE
+       NS1=NS0
+       NS2=NS0
+    ENDIF
 
-      DO ND=NDMIN_F,NDMAX_F
-      DO MD=MDMIN_F,MDMAX_F
-         DO NHH=1,NHHMAX
-         DO NTH=1,NTHMAX
-            DO J=1,3
-            DO I=1,3
-              CEP0_1 (I,J,NTH,NHH)=0.D0
-              CEPH0_1(I,J,NTH,NHH)=0.D0
-            ENDDO
-            ENDDO
-            IF(NS0.EQ.0) THEN
-              CEP0_1 (1,1,NTH,NHH)=1.D0
-              CEP0_1 (2,2,NTH,NHH)=1.D0
-              CEP0_1 (3,3,NTH,NHH)=1.D0
-              CEPH0_1(1,1,NTH,NHH)=1.D0
-              CEPH0_1(2,2,NTH,NHH)=1.D0
-              CEPH0_1(3,3,NTH,NHH)=1.D0
-            ENDIF
-         ENDDO
-         ENDDO
-         DO NS=NS1,NS2
-            CALL WMTNSR_IPS(NR,NS,MD,ND)
-
-            DO NHH=1,NHHMAX_IPS_F
-            DO NTH=1,NTHMAX_IPS_F
-               DO J=1,3
-               DO I=1,3
-                    CEP0_1(I,J,NTH,NHH) &
-                   =CEP0_1(I,J,NTH,NHH) &
-                   +CTNSR_1(I,J,NTH,NHH)
-
-                    CEPH0_1(I,J,NTH,NHH) &
-                   =CEPH0_1(I,J,NTH,NHH) &
-                   +CTNSR_1(I,J,NTH,NHH)/2d0
-               ENDDO
-               ENDDO
-            ENDDO
-            ENDDO
-         IF (NR .EQ. 1 )THEN
-            DO NHH=1,NHHMAX_IPS_F
-            DO NTH=1,NTHMAX_IPS_F
-               DO J=1,3
-               DO I=1,3
-                    CEPH0_1(I,J,NTH,NHH) &
-                   =CEPH0_1(I,J,NTH,NHH) &
-                   +CTNSR_1(I,J,NTH,NHH)
-               ENDDO
-               ENDDO
-            ENDDO
-            ENDDO
-         ENDIF
-
-         ENDDO
-
-         IF (NR .GT. 1)THEN
-         DO NS=NS1,NS2
-            CALL WMTNSR_IPS(NR-1,NS,MD,ND)
-
-             DO NHH=1,NHHMAX_IPS_F
-             DO NTH=1,NTHMAX_IPS_F
-               DO J=1,3
-               DO I=1,3
-                    CEPH0_1(I,J,NTH,NHH) &
-                   =CEPH0_1(I,J,NTH,NHH) &
-                   +CTNSR_1(I,J,NTH,NHH)/2d0
-               ENDDO
-               ENDDO
+    DO ND=NDMIN_F,NDMAX_F
+       DO MD=MDMIN_F,MDMAX_F
+          DO NHH=1,NHHMAX_F
+             DO NTH=1,NTHMAX_F
+                DO J=1,3
+                   DO I=1,3
+                      CEP0(I,J,NTH,NHH)=0.D0
+                   ENDDO
+                ENDDO
+                IF(NS0.EQ.0) THEN
+                   CEP0(1,1,NTH,NHH)=1.D0
+                   CEP0(2,2,NTH,NHH)=1.D0
+                   CEP0(3,3,NTH,NHH)=1.D0
+                ENDIF
              ENDDO
+          ENDDO
+
+          DO NS=NS1,NS2
+             CALL WMTNSR(NR,NS,MD,ND)
+
+             DO NHH=1,NHHMAX_F
+                DO NTH=1,NTHMAX_F
+                   DO J=1,3
+                      DO I=1,3
+                         CEP0(I,J,NTH,NHH) &
+                              =CEP0(I,J,NTH,NHH) &
+                              +CTNSR(I,J,NTH,NHH)
+                      ENDDO
+                   ENDDO
+                ENDDO
              ENDDO
-         ENDDO
-         ELSE
-         DO NS=NS1,NS2
-            CALL WMTNSR_IPS(NR+1,NS,MD,ND)
+          END DO
 
-            DO NHH=1,NHHMAX_IPS_F
-            DO NTH=1,NTHMAX_IPS_F
-               DO J=1,3
-               DO I=1,3
-                    CEPH0_1(I,J,NTH,NHH) &
-                   =CEPH0_1(I,J,NTH,NHH) &
-                   -CTNSR_1(I,J,NTH,NHH)/2d0
-               ENDDO
-               ENDDO
-            ENDDO
-            ENDDO
-         ENDDO
-         ENDIF
-
-         IF(NR .EQ. NR_S)THEN
-         DO NHH=1,NHHMAX_IPS_F
-         DO NTH=1,NTHMAX_IPS_F
-           DO J=1,3
-           DO I=1,3
-             CEP0_1 (I,J,NTH,NHH)=0.D0
-           ENDDO
-           ENDDO
-           IF(NS0.EQ.0) THEN
-              CEP0_1 (1,1,NTH,NHH)=1.D0
-              CEP0_1 (2,2,NTH,NHH)=1.D0
-              CEP0_1 (3,3,NTH,NHH)=1.D0
-           ENDIF
-        ENDDO
-        ENDDO
-        ENDIF
-
-        DO NHHF=1,NHHMAX_IPS_F
-        DO NTHF=1,NTHMAX_IPS_F
-           DO J=1,3
-           DO I=1,3
-              CRB_1(NTHF,NHHF,I,J)=CEP0_1(I,J,NTHF,NHHF)
-              CRHB_1(NTHF,NHHF,I,J)=CEPH0_1(I,J,NTHF,NHHF)
-           ENDDO
-           ENDDO
-        ENDDO
-        ENDDO
-        DO J=1,3
-        DO I=1,3
-            CALL WMSUBF_IPS_F(CRB_1(1,1,I,J),CFB_1(1,1,I,J))
-            CALL WMSUBF_IPS_F(CRHB_1(1,1,I,J),CFHB_1(1,1,I,J))
-        ENDDO
-        ENDDO
-          KDMAX_TMP=KDMAX_F
-          LDMAX_TMP=LDMAX_F
-          IF(KDMAX_F==0)KDMAX_TMP=0
-          IF(LDMAX_F==0)LDMAX_TMP=0
-        DO J=1,3
-        DO I=1,3
-          DO KD=KDMIN_F,KDMAX_TMP
-            KDX_1=KD-KDMIN_IPS_F+1
-            KDX=KD-KDMIN_F+1
-          DO LD=LDMIN_F,LDMAX_TMP
-            LDX_1=LD-LDMIN_IPS_F+1
-            LDX=LD-LDMIN_F+1
-            CFB(LDX,KDX,I,J,MD,ND) =CFB_1(LDX_1,KDX_1,I,J)
-            CFHB(LDX,KDX,I,J,MD,ND)=CFHB_1(LDX_1,KDX_1,I,J)
+          DO NHH=1,NHHMAX_F
+             DO NTH=1,NTHMAX_F
+                DO J=1,3
+                   DO I=1,3
+                      CRB(NTH,NHH,I,J)=CEP0(I,J,NTH,NHH)
+                   ENDDO
+                ENDDO
+             ENDDO
           ENDDO
+            
+          DO J=1,3
+             DO I=1,3
+                CALL WMSUBF_F(CRB(1,1,I,J),CFB(1,1,I,J))
+             ENDDO
           ENDDO
-        ENDDO
-        ENDDO
-      ENDDO
-      ENDDO
+            
+          DO J=1,3
+             DO I=1,3
+                DO KD=KDMIN_F,KDMAX_F
+                   KDX=KD-KDMIN_F+1
+                   DO LD=LDMIN_F,LDMAX_F
+                      LDX=LD-LDMIN_F+1
+                      CFB(LDX,KDX,I,J,MD,ND) =CFB(LDX,KDX,I,J)
+                   ENDDO
+                ENDDO
+             ENDDO
+          ENDDO
+       ENDDO !ND
+    ENDDO !MD
 
-      TCH2=0d0
-      TCH3=0d0
-
-      DO NHHF=1,NHHMAX_F
-      DO NTHF=1,NTHMAX_F
+    DO NHH=1,NHHMAX_F
+       DO NTH=1,NTHMAX_F
 
 !        ----- Calculate rotation matrix mu=RMA -----
 
-         CALL WMCMAG_F(NR,NTHF,NHHF,BABS,BSUPTH,BSUPPH)
-         TC2=BSUPTH/BABS
-         TC3=BSUPPH/BABS
+          CALL WMCMAG_F(NR,NTH,NHH,BABS,BSUPTH,BSUPPH)
+          TC2=BSUPTH/BABS
+          TC3=BSUPPH/BABS
 
          IF(NR .GT. 1)THEN
          CALL WMCMAG_F(NR-1,NTHF,NHHF,BABSH,BSUPTHH,BSUPPHH)
@@ -654,7 +574,8 @@ CONTAINS
 
       USE wmcomm
       IMPLICIT NONE
-      REAL(rkind):: RF1(MDM,NDM),RF2(MDM,NDM),CF(MDM,NDM)
+      REAL(rkind),INTENT(IN):: RF1(MDM,NDM),RF2(MDM,NDM)
+      COMPLEX(rkind),INTENT(OUT):: CF(MDM,NDM)
       COMPLEX(rkind):: CFM(MDM),CFN(NDM)
       INTEGER:: NHH,NTH,LDX,KDX
 
@@ -696,8 +617,9 @@ CONTAINS
 
       USE wmcomm
       IMPLICIT NONE
-      REAL(rkind):: RF1(MDMF,NDMF),RF2(MDMF,NDMF),CF(MDMF,NDMF)
-      COMPLEX(rkind):: CFM(MDMF),CFN(NDMF)
+      REAL(rkind),INTENT(IN):: RF1(nthmax_f,nhhmax_f),RF2(nthmax_f,nhhmax_f)
+      COMPLEX(rkind),INTENT(OUT):: CF(nthmax_f,nhhmax_f)
+      COMPLEX(rkind):: CFM(nthmax_f),CFN(nhhmax_f)
       INTEGER:: NHH,NTH,LDX,KDX
 
       DO NHH=1,NHHMAX_F
@@ -781,8 +703,8 @@ CONTAINS
 
       USE wmcomm
       IMPLICIT NONE
-      COMPLEX(rkind),INTENT(IN):: CF1(MDMF,NDMF)
-      COMPLEX(rkind),INTENT(OUT):: CF2(MDMF,NDMF)
+      COMPLEX(rkind),INTENT(IN):: CF1(nthmax_f,nhhmax_f)
+      COMPLEX(rkind),INTENT(OUT):: CF2(nthmax_f,nhhmax_f)
       COMPLEX(rkind):: CFM(MDMF),CFN(NDMF)
       INTEGER:: NHH,NTH,LDX,KDX
 

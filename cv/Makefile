@@ -15,6 +15,7 @@ MODINCLUDE= -I./$(MOD) -I../lib/$(MOD)
 
 SRCS = cvcomm.f90 cvlib.f90 \
        cvinit.f90 cvparm.f90 cvview.f90 cvfile.f90 \
+       cvgout.f90 \
        cvmenu.f90
 
 OBJS = $(SRCS:.f90=.o)
@@ -47,5 +48,6 @@ cvinit.o: cvinit.f90 $(CVCOMM)
 cvparm.o: cvparm.f90 $(CVCOMM)
 cvview.o: cvview.f90 $(CVCOMM)
 cvfile.o: cvfile.f90 $(CVCOMM)
+cvgout.o: cvgout.f90 $(CVCOMM)
 cvconvert1.o: cvconvert1.f90 $(CVCOMM)
 cvlib.o:  cvlib.f90

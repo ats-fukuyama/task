@@ -145,7 +145,7 @@ MODULE wmcomm
   INTEGER:: MODELK  ! control wave number spectrum model
   INTEGER:: MODEEG  ! indicate eigen mode calculation
   COMPLEX(rkind),ALLOCATABLE:: CFVG(:)
-  COMPLEX(rkind),ALLOCATABLE:: CTNSR(:,:,:,:,:,:)
+  COMPLEX(rkind),ALLOCATABLE:: CTNSR(:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CGD(:,:,:,:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CPSF(:,:,:,:,:,:,:)
 
@@ -224,7 +224,7 @@ CONTAINS
     ALLOCATE(CJANT(3,nthmax,nhhmax))
     ALLOCATE(CEWALL(3,nthmax,nhhmax))
     ALLOCATE(CFVG(mlen))
-    ALLOCATE(CTNSR(3,3,mdmin_f:mdmax_f,ndmin_f:ndmax_f,nthmax,nhhmax))
+    ALLOCATE(CTNSR(3,3,nthmax_f,nhhmax_f))
     ALLOCATE(CGD(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
     ALLOCATE(CPSF(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
     ALLOCATE(RG11(nthmax_f,nhhmax_f,nrmax),RG12(nthmax_f,nhhmax_f,nrmax))
