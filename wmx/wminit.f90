@@ -72,7 +72,7 @@ CONTAINS
 
 !     *** ANTENNA PARAMETERS for multi mode analysis***
 
-!        NAMAX : Number of antennae
+!        NAMAX : Number of vertical antennae
 !        AJ    : Antenna current density                       (A/m)
 !        AEWGT : Waveguide electric field (poloidal)           (V/m)
 !        AEWGZ : Waveguide electric field (toroidal)           (V/m)

@@ -137,6 +137,7 @@ MODULE wmcomm
   INTEGER:: MDSIZ_F,MDMIN_F,MDMAX_F,LDSIZ_F,LDMIN_F,LDMAX_F
   INTEGER:: NDSIZ,NDMIN,NDMAX,KDSIZ,KDMIN,KDMAX
   INTEGER:: NDSIZ_F,NDMIN_F,NDMAX_F,KDSIZ_F,KDMIN_F,KDMAX_F
+  INTEGER:: MODEWG,MWGMAX
 
   COMPLEX(rkind),ALLOCATABLE:: CJANT(:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CEWALL(:,:,:)
@@ -178,6 +179,11 @@ MODULE wmcomm
   REAL(rkind),ALLOCATABLE:: PCUR(:,:,:),PCURR(:)
   REAL(rkind):: PCURT
 
+! --- allocatable for FFT
+  COMPLEX(rkind),ALLOCATABLE:: CFFT(:)
+  REAL(rkind),ALLOCATABLE:: RFFT(:)
+  INTEGER,ALLOCATABLE:: LFFT(:)
+
 ! --- equilibrium
 
   REAL(rkind),ALLOCATABLE:: RPST(:,:,:),ZPST(:,:,:)
@@ -217,8 +223,12 @@ CONTAINS
        CALL wm_deallocate
     END IF
 
-    mlen=3*nrmax*nthmax*nphmax
-    mbnd=12*nthmax*nphmax
+    IF(modewg.EQ.0) THEN
+       mlen=3*nrmax*nthmax*nhhmax
+    ELSE
+       mlen=3*nrmax*nthmax*nhhmax+mwgmax*namax
+    END IF
+    mbnd=12*nthmax*nhhmax-1
 
     ALLOCATE(XR(nrmax),XRHO(nrmax))
     ALLOCATE(CJANT(3,nthmax,nhhmax))

@@ -643,7 +643,7 @@ CONTAINS
 
 !     ****** CALCULATE INVERT MATRIX ******
 
-  SUBROUTINE WMRGINVERT
+  SUBROUTINE wm_invert_rg
 
     USE wmcomm
     IMPLICIT NONE
@@ -652,33 +652,33 @@ CONTAINS
 
 !        ----- Invert matrix to obtain mu^(-1)=RMB and g^(-1)=RGB ----
 
-      DO NR =1,NRMAX+1
-      DO NHH=1,NHHMAX_F
-      DO NTH=1,NTHMAX_F
-         RGA(1,1)=RG11(NTH,NHH,NR)
-         RGA(1,2)=RG12(NTH,NHH,NR)
-         RGA(1,3)=RG13(NTH,NHH,NR)
-         RGA(2,1)=RG12(NTH,NHH,NR)
-         RGA(2,2)=RG22(NTH,NHH,NR)
-         RGA(2,3)=RG23(NTH,NHH,NR)
-         RGA(3,1)=RG13(NTH,NHH,NR)
-         RGA(3,2)=RG23(NTH,NHH,NR)
-         RGA(3,3)=RG33(NTH,NHH,NR)
-         DO J=1,3
-         DO I=1,3
-            RGB(I,J)=RGA(I,J)
-         ENDDO
-         ENDDO
-         CALL INVMRD(RGB,3,3,ILL)
-         RGI11(NTH,NHH,NR)=RGB(1,1)
-         RGI12(NTH,NHH,NR)=RGB(1,2)
-         RGI13(NTH,NHH,NR)=RGB(1,3)
-         RGI22(NTH,NHH,NR)=RGB(2,2)
-         RGI23(NTH,NHH,NR)=RGB(2,3)
-         RGI33(NTH,NHH,NR)=RGB(3,3)
-      ENDDO
-      ENDDO
-      ENDDO
+    DO NR =1,NRMAX+1
+       DO NHH=1,NHHMAX_F
+          DO NTH=1,NTHMAX_F
+             RGA(1,1)=RG11(NTH,NHH,NR)
+             RGA(1,2)=RG12(NTH,NHH,NR)
+             RGA(1,3)=RG13(NTH,NHH,NR)
+             RGA(2,1)=RG12(NTH,NHH,NR)
+             RGA(2,2)=RG22(NTH,NHH,NR)
+             RGA(2,3)=RG23(NTH,NHH,NR)
+             RGA(3,1)=RG13(NTH,NHH,NR)
+             RGA(3,2)=RG23(NTH,NHH,NR)
+             RGA(3,3)=RG33(NTH,NHH,NR)
+             DO J=1,3
+                DO I=1,3
+                   RGB(I,J)=RGA(I,J)
+                ENDDO
+             ENDDO
+             CALL INVMRD(RGB,3,3,ILL)
+             RGI11(NTH,NHH,NR)=RGB(1,1)
+             RGI12(NTH,NHH,NR)=RGB(1,2)
+             RGI13(NTH,NHH,NR)=RGB(1,3)
+             RGI22(NTH,NHH,NR)=RGB(2,2)
+             RGI23(NTH,NHH,NR)=RGB(2,3)
+             RGI33(NTH,NHH,NR)=RGB(3,3)
+          ENDDO
+       ENDDO
+    ENDDO
 
-  END SUBROUTINE WMRGINVERT
+  END SUBROUTINE wm_invert_rg
 END MODULE wmsetg

@@ -1,112 +1,87 @@
-C     $Id: wmexec.f,v 1.39 2014/10/11 05:33:13 fukuyama Exp $
-C
-C     ****** CALCULATE ANTENNA EXCITATION ******
-C
-      SUBROUTINE WMEXEC(IERR)
-C
-      INCLUDE 'wmcomm.inc'
-C
-      IERR=0
-      MODEEG=0
-      MODELK=1
-C      MODELK=0
-C
-      CALL WMSETG(IERR)
-      IF(IERR.NE.0) RETURN
-      CALL DPCHEK(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),RR,IERR)
-      IF(IERR.NE.0) RETURN
-      CALL WMSETJ(IERR)
-      IF(IERR.NE.0) RETURN
-      CALL WMSETEW
+! wmexec.f90
+
+MODULE wmexec
+
+  PRIVATE
+  PUBLIC wm_exec
+
+CONTAINS
+
+  !     ****** CALCULATE ANTENNA EXCITATION ******
+  
+  SUBROUTINE wm_exec(IERR)
+
+    USE wmcomm
+    USE wmsetg
+    USE dpparm
+    IMPLICIT NONE
+    INTEGER,INTENT(OUT):: ierr
+    INTEGER:: nnr
+
+    IERR=0
+    
+    MODEEG=0
+    MODELK=1
+
+    CALL wm_setg(IERR)
+    IF(IERR.NE.0) RETURN
+    
+    CALL dp_chek(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),RR,IERR)
+    IF(IERR.NE.0) RETURN
+
+    CALL wm_setj(IERR)
+    IF(IERR.NE.0) RETURN
+
+    CALL wm_setew
      
-!      if (MODELP(1)==5) then
-!        CALL WMINIKPARA
-!      endif
-       
-      DO NNR=1,NRMAX
-         IF(XRHO(NNR)>1.d0)EXIT
-      ENDDO
-!      NR_S=N
-      NR_S=NNR-1
-!      NR_S=NNR+3000
-      print *,NR_S
-      print *, MODELM,NRANK
-      
-      CALL WMSOLV
-      NBST=1
-      CALL WMEFLD
-      CALL WMBFLD
-      CALL WMPABS
-      if(nrank.eq.0) then
-         CALL WMPFLX
-         CALL WMPANT
-      endif
-C
-      IF(NRANK.EQ.0) THEN
-         CALL WMPOUT
-         IF(MODELW.EQ.1) CALL WMDOUT(IERR)
-      ENDIF
-      RETURN
-      END
-C
-C     ****** DEBUG: NO CALCULATION ******
-C
-      SUBROUTINE WMDEBUG(IERR)
-C
-      INCLUDE 'wmcomm.inc'
-C
-      IERR=0
-      MODEEG=0
-      CALL WMSETG(IERR)
-      IF(IERR.NE.0) RETURN
-      CALL WMSETJ(IERR)
-      IF(IERR.NE.0) RETURN
-C
-C      CALL WMSOLV
-C      CALL WMEFLD
-C      CALL WMBFLD
-C      CALL WMPABS
-C
-      IF(NRANK.EQ.0) THEN
-C         CALL WMPFLX
-C         CALL WMPANT
-C         CALL WMPOUT
-C         IF(MODELW.EQ.1) CALL WMDOUT(IERR)
-      ENDIF
-      RETURN
-      END
-C
-C     ****** CALCULATE ANTENNA CURRENT ******
-C     
-      SUBROUTINE WMSETJ(IERR)
-C
-      INCLUDE 'wmcomm.inc'
-C
-      DIMENSION RHO(0:3,1:3,2:3)
-C
-      DATA RHO/ 3.832, 1.841, 3.054, 4.201,
-     &          7.016, 5.332, 6.706, 8.015,
-     &         10.173, 8.536, 9.969,11.346,
-     &          2.405, 3.832, 5.136, 6.380,
-     &          5.520, 7.016, 8.417, 9.761,
-     &          8.654,10.173,11.620,13.015/
-C
-         IF(RD.LE.RA.OR.RD.GE.RB) THEN
-            IF(NRANK.EQ.0) WRITE(6,*) '!! WMSETJ: RD = (RA+RB)/2'
-            RD=0.5D0*(RA+RB)
-            IF(NRANK.EQ.0) 
-     &           WRITE(6,'(A,1P3E12.4)') 'RA,RB,RD=',RA,RB,RD
-         ENDIF
-C
-      DO NDX=1,NDSIZ
-      DO MDX=1,MDSIZ
+    CALL wm_solv
+    
+    CALL wm_efield
+    CALL wm_bfield
+    CALL wm_pabs
+    IF(nrank.EQ.0) THEN
+       CALL wm_pwrflux
+       CALL wm_pwrant
+    ENDIF
+    IF(nrank.EQ.0) THEN
+       CALL wm_pout
+       IF(MODELW.EQ.1) CALL wm_dout(ierr)
+    ENDIF
+    RETURN
+  END SUBROUTINE wm_exec
+  
+!     ****** CALCULATE ANTENNA CURRENT ******
+
+  SUBROUTINE wm_setj(ierr)
+    USE wmcomm
+    IMPLICIT NONE
+    INTEGER,INTENT(OUT):: ierr
+    REAL(rkind),DIMENSION(0:3,1:3,2:3):: RHO &
+         =(/ &
+                3.832, 1.841, 3.054, 4.201, &
+                7.016, 5.332, 6.706, 8.015, &
+               10.173, 8.536, 9.969,11.346, &
+                2.405, 3.832, 5.136, 6.380, &
+                5.520, 7.016, 8.417, 9.761, &
+                8.654,10.173,11.620,13.015/)
+    INTEGER:: NDX,MDX
+    
+    IF(RD.LE.RA.OR.RD.GE.RB) THEN
+       IF(NRANK.EQ.0) WRITE(6,*) '!! WMSETJ: RD = (RA+RB)/2'
+       RD=0.5D0*(RA+RB)
+       IF(NRANK.EQ.0) &
+            WRITE(6,'(A,1P3E12.4)') 'RA,RB,RD=',RA,RB,RD
+    ENDIF
+    
+    DO NDX=1,NDSIZ
+       DO MDX=1,MDSIZ
          CJANT(1,MDX,NDX)=(0.D0,0.D0)
          CJANT(2,MDX,NDX)=(0.D0,0.D0)
          CJANT(3,MDX,NDX)=(0.D0,0.D0)
       ENDDO
-      ENDDO
-C
-      MODELWG=0
+   ENDDO
+
+   MODELWG=0
       IF(MODELJ.EQ.0) THEN
          CALL WMCANT
       ELSEIF(MODELJ.EQ.1) THEN
@@ -128,32 +103,24 @@ C
          CRF=DCMPLX(RF,RFI)
          CJANT(IMODE,1,1)=(1.D0,0.D0)
       ENDIF
-C
       IERR=0
       RETURN
-C
  9000 WRITE(6,*) 'XX WMCALJ ERROR'
       IERR=1
       RETURN
       END
-C
-C     ****** CALCULATE ANTENNA CURRENT ******
-C
+!     ****** CALCULATE ANTENNA CURRENT ******
       SUBROUTINE WMCANT
-C
       INCLUDE 'wmcomm.inc'
-C
       DIMENSION CJT(MDM,NDM,NAM)
       DIMENSION CJZ(MDM,NDM,NAM)
-C
       DO NA=1,NAMAX
          TH1=THJ1(NA)*PI/180.D0
          TH2=THJ2(NA)*PI/180.D0
          PH1=PHJ1(NA)*PI/180.D0
          PH2=PHJ2(NA)*PI/180.D0
-C
          CAJ=AJ(NA)*EXP(DCMPLX(0.D0,APH(NA)*PI/180.D0))
-C   
+!   
       DO ND=NDMIN,NDMAX
          NDX=ND-NDMIN+1
          NN=NPH0+NHC*ND
@@ -184,7 +151,6 @@ C
       ENDDO
       ENDDO
       ENDDO
-C
       DO ND=NDMIN,NDMAX
          NDX=ND-NDMIN+1
       DO MD=MDMIN,MDMAX
@@ -200,16 +166,11 @@ C
       ENDDO
       ENDDO
       ENDDO
-C
       RETURN
       END
-C
-C     ****** CALCULATE WAVEGUIDE FIELD (simple) ******
-C
+!     ****** CALCULATE WAVEGUIDE FIELD (simple) ******
       SUBROUTINE WMSETEW
-C
       INCLUDE 'wmcomm.inc'
-C
       DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
             CEWALL(NTH,NHH,1)=(0.D0,0.D0)
@@ -217,7 +178,6 @@ C
             CEWALL(NTH,NHH,3)=(0.D0,0.D0)
          END DO
       END DO
-!
 !      CW=2.D0*PI*CRF*1.D6
 !      DO NA=1,NAMAX
 !         TH1=THJ1(NA)*PI/180.D0
@@ -225,9 +185,7 @@ C
 !         PH1=PHJ1(NA)*PI/180.D0
 !         PH2=PHJ2(NA)*PI/180.D0
 !         ANG=ANTANG(NA)*PI/180.D0
-!
 !         CAJ=EXP(DCMPLX(0.D0,APH(NA)*PI/180.D0))
-!
 !         RWPH=RR+RB
 !         WTH=ABS(TH2-TH1)
 !         TH0=0.5D0*(TH1+TH2)
@@ -263,11 +221,10 @@ C
 !      END DO
 !      END DO
 
-CCCCCCCCCCCCCCCCCcseki
-C      DO NHH=1,NHHMAX
-C         CALL WMSUBC(CEWALL(1,NHH,2))
-C         CALL WMSUBC(CEWALL(1,NHH,3))
-C      ENDDO
-C
+!CCCCCCCCCCCCCCCCcseki
+!      DO NHH=1,NHHMAX
+!         CALL WMSUBC(CEWALL(1,NHH,2))
+!         CALL WMSUBC(CEWALL(1,NHH,3))
+!      ENDDO
       RETURN
       END
