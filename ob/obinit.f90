@@ -31,6 +31,9 @@ CONTAINS
                               !     0: 4th-order Runge-Kutta-Gill 
                               !     1: universal ODE solver (TBI)
                               !     2: symplectic solver (TBI)
+    mdlobt=1                  ! model id of time normalization
+                              !     0: real time
+                              !     1: normalized by approximate bounce time
     mdlobc=0                  ! model id of one cycle calculation
                               !     0: independent of cycle, until tmax
                               !     1: one cycle for trapped and untrapped

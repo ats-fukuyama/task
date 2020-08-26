@@ -22,9 +22,10 @@ CONTAINS
          'mdlobi      ',mdlobi
     WRITE(6,603) &
          'mdlobq      ',mdlobq, &
-         'mdlobw      ',mdlobc, &
-         'mdlobw      ',mdlobw
+         'mdlobt      ',mdlobt, &
+         'mdlobc      ',mdlobc
     WRITE(6,603) &
+         'mdlobw      ',mdlobw, &
          'mdlobg      ',mdlobg
     WRITE(6,604) &
          'tmax        ',tmax, &

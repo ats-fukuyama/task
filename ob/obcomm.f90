@@ -20,6 +20,7 @@ MODULE obcomm_parm
        mdlobp, &              ! model id of equation of motion
        mdlobi, &              ! model id of input scheme of initial parameters
        mdlobq, &              ! model id of ODE solver
+       mdlobt, &              ! model id of time normalization
        mdlobc, &              ! model id of cycle (0: not cycle, 1: one cycle)
        mdlobw, &              ! model id of output interval
        mdlobg                 ! model id of graphics

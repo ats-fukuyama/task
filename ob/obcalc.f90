@@ -25,6 +25,7 @@ CONTAINS
          bb_pos,phi_pos,penergy_pos,pcangle_pos,psit_pos,rr_pos,zz_pos, &
          qps_pos
     REAL(rkind):: dummy,fg_pos,fI_pos,pze,v_para,omega_c
+    REAL(rkind):: omega_bounce1,omega_bounce2
 
     ierr=0
 
@@ -82,8 +83,11 @@ CONTAINS
           pcangl=pcangle_in(nobt)
           pze=PZ(ns_ob)*AEE
           pmu=(peng-pze*phi_pos)*(1.D0-pcangl**2)/bb_pos
-          omega_bounce=SQRT(pmu*bb_pos/(PA(ns_ob)*AMP) &
-                            *RA*SQRT(psipn_in(nobt))/(qps_pos**2*rr_pos**3))
+          omega_bounce1=SQRT(pmu*bb_pos/(PA(ns_ob)*AMP) &
+               *RA*SQRT(psipn_in(nobt))/(qps_pos**2*rr_pos**3))
+          omega_bounce2=pcangl*SQRT(2.D0*peng/(PA(ns_ob)*AMP))/(qps_pos*rr_pos)
+          WRITE(6,'(A,2ES12.4)') 'omega_bounce=',omega_bounce1,omega_bounce2
+          omega_bounce=MAX(omega_bounce1,ABS(omega_bounce2))
 
     ! --- calculate initial rhopara
 

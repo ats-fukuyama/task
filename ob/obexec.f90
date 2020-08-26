@@ -72,26 +72,32 @@ CONTAINS
     REAL(rkind):: ys(neq_max),ye(neq_max),work(neq_max,2)
     REAL(rkind):: fs(neq_max)
     INTEGER:: nstp,neq,id,nstp_lim,mode_theta
-    REAL(rkind):: xs,xe,theta_init,factor
+    REAL(rkind):: dx,xmax,xs,xe,theta_init,factor
     LOGICAL:: l_end
 
     ! --- initialization ---
-    
-    xs = 0.D0
-    xe = delt
-    nstp_lim=MIN(INT(tmax/delt),nstp_max)
 
+    SELECT CASE(mdlobt)
+    CASE(0)
+       dx=delt
+       xs=0.D0
+       xe=dx
+       xmax=tmax
+       nstp_lim=MIN(INT(xmax/dx),nstp_max)
+    CASE(1)
+       dx=delt/omega_bounce
+       xs=0.D0
+       xe=dx
+       xmax=tmax/omega_bounce
+       nstp_lim=MIN(INT(xmax/dx),nstp_max)
+    END SELECT
+    
     nstp=0
     ya(0,nstp)=xs
     DO neq=1,neq_max
        ys(neq)=y_in(neq)
        ya(neq,nstp)=y_in(neq)
     ENDDO
-
-    IF(omega_bounce.LE.1.D-80) THEN
-       nstp_last=0
-       RETURN
-    END IF
 
     ! --- check initial theta-dot to identify orbit mode ---
     
@@ -106,7 +112,6 @@ CONTAINS
        nstp_last=0
        RETURN
     END IF
-
        
     theta_init=ys(2)
 
@@ -149,7 +154,7 @@ CONTAINS
        l_end=.FALSE.
        SELECT CASE(mdlobc)
        CASE(0)
-          IF(xe+delt.GT.tmax) l_end=.TRUE.
+          IF(xe+dx.GT.xmax) l_end=.TRUE.
        CASE(1)
           SELECT CASE(mode_theta)
           CASE(0) ! increasing theta
@@ -204,7 +209,7 @@ CONTAINS
        ! --- prepare for next step ----
 
        xs=xe
-       xe=xs+delt
+       xe=xs+dx
        DO neq=1,neq_max
           ys(neq)=ye(neq)
        ENDDO
@@ -236,6 +241,7 @@ CONTAINS
     REAL(rkind):: fg,fI,fq,dg,dI,fD
     REAL(rkind):: phi,dphi_dzetab,dphi_dthetab,dphi_dpsip,db_dzetab
     REAL(rkind):: coef1,coef2,coef3,coef4,coef5,coef6
+    REAL(rkind):: dx,xmax
     INTEGER:: ierr
     
     pze=PZ(ns_ob)*AEE
@@ -279,12 +285,12 @@ CONTAINS
     coef5=(1.D0-rhopara*dg)/fD
     coef6=fg/fD
       
-    F(1)=(coef1*coef2-coef3*coef4*db_dpsip  -coef4*dphi_dpsip)/omega_bounce
-    F(2)=(coef1*coef5+coef3*coef6*db_dpsip  +coef6*dphi_dpsip)/omega_bounce
+    F(1)=(coef1*coef2-coef3*coef4*db_dpsip  -coef4*dphi_dpsip)
+    F(2)=(coef1*coef5+coef3*coef6*db_dpsip  +coef6*dphi_dpsip)
     F(3)=(           -coef3*coef6*db_dthetab+coef4*dphi_dzetab &
-                     +coef3*coef4*db_dzetab -coef6*dphi_dthetab)/omega_bounce
+                     +coef3*coef4*db_dzetab -coef6*dphi_dthetab)
     F(4)=(           -coef3*coef5*db_dthetab-coef5*dphi_dthetab &
-                     -coef3*coef2*db_dzetab -coef2*dphi_dzetab)/omega_bounce
+                     -coef3*coef2*db_dzetab -coef2*dphi_dzetab)
 
     IF(idebug.EQ.9) THEN
        WRITE(6,'(A,1P6E12.4)') 'coef:',coef1,coef2,coef3,coef4,coef5,coef6

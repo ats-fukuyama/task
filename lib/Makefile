@@ -29,7 +29,8 @@ SRCSGRF   =  libgrf/grftype.f90 libgrf/grfutils.f90 \
 	     libgrf/grfxyexec.f90 \
 	     libgrf/grfconvert.f90 libgrf/grdconvert.f90 \
              libgrf/grf1d.f90 libgrf/grd1d.f90 \
-	     libgrf/grf2d.f90 libgrf/grd2d.f90 libgrf/grd2dframe.f90 \
+	     libgrf/grf2d.f90 libgrf/grd2d.f90 \
+             libgrf/grd1dframe.f90 libgrf/grd2dframe.f90 \
 	     libgrf/grdxy.f90 \
 	     libgrf.f90
 
@@ -116,6 +117,8 @@ libgrf/grd1d.o: libgrf/grd1d.f90 libgrf/grf1dexec.f90 libgrf/grf2dexec.f90 \
 libgrf/grf2d.o: libgrf/grf2d.f90 libgrf/grf1dexec.f90 libgrf/grf2dexec.f90 \
                 libgrf/grfconvert.f90 libgrf/grftype.f90
 libgrf/grd2d.o: libgrf/grd2d.f90 libgrf/grf1dexec.f90 libgrf/grf2dexec.f90 \
+                libgrf/grdconvert.f90 libgrf/grftype.f90
+libgrf/grd1dframe.o: libgrf/grd1dframe.f90 \
                 libgrf/grdconvert.f90 libgrf/grftype.f90
 libgrf/grd2dframe.o: libgrf/grd2dframe.f90 \
                 libgrf/grdconvert.f90 libgrf/grftype.f90

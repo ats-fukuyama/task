@@ -896,9 +896,9 @@ CONTAINS
 !       NSTPA(3)=NSTP_PLMAX
 !       NSTPA(4)=NSTPMAX_NRAY(NRAY)
        NSTPA(1)=NSTP_PLMAX/2
-       NSTPA(2)=NSTP_PLMAX-100
+       NSTPA(2)=MAX(NSTP_PLMAX-100,NSTP_PLMAX/2)
        NSTPA(3)=NSTP_PLMAX
-       NSTPA(4)=NSTP_PLMAX+100
+       NSTPA(4)=MIN(NSTP_PLMAX+100,NSTPMAX_NRAY(nray))
 
        omega=2*PI*RAYIN(1,NRAY)*1.D6
 
@@ -907,6 +907,8 @@ CONTAINS
           xl=rays(1,nstp,nray)
           yl=rays(2,nstp,nray)
           zl=rays(3,nstp,nray)
+          WRITE(6,'(A,3I8,3ES12.4)') &
+               'nray,nstp,nloop,xl,yl,zl=',nray,nstp,nloop,xl,yl,zl 
           CALL pl_mag(xl,yl,zl,mag)
           rhon=mag%rhon
           babs=mag%babs
