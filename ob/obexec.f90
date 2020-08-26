@@ -341,7 +341,7 @@ CONTAINS
        vpara_pos=SQRT(2.D0*(peng-pze*phi_pos)/(PA(ns_ob)*AMP))*pcangl
        vperp_pos=SQRT(2.D0*pmu*bb_pos/(PA(ns_ob)*AMP))
 
-       time_ob(nstp,nobt)   = obts(0,nstp,nobt)
+       time_ob(nstp,nobt)   = obts(0,nstp,nobt)*omega_bounce
        zetab_ob(nstp,nobt)  = obts(1,nstp,nobt)
        thetab_ob(nstp,nobt) = obts(2,nstp,nobt)
        psip_ob(nstp,nobt)   = obts(3,nstp,nobt)

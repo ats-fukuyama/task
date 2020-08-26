@@ -122,6 +122,7 @@ CONTAINS
 !                   2: Minimum print out (with input data)
 !                   3: Standard print out
 !                   4: More print out
+!                   5: and absorbed power detail
 !        NGRAPH: Control graphic output
 !                   0: No graphic out
 !                   1: Standard graphic out (2D: Coutour)

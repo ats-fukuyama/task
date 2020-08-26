@@ -5,6 +5,17 @@ MODULE obgout
   PRIVATE
   PUBLIC ob_gout
 
+  INTERFACE
+     FUNCTION GUCLIP(X)
+       REAL(8):: X
+       REAL(4):: GUCLIP
+     END FUNCTION GUCLIP
+     FUNCTION NGULEN(Y)
+       REAL(4):: Y
+       INTEGER:: NGULEN
+     END FUNCTION NGULEN
+  END INTERFACE
+
 CONTAINS
 
 !*********************** GRAPHIC DATA OUTPUT ************************
@@ -172,15 +183,51 @@ CONTAINS
     USE libgrf
     IMPLICIT NONE
     REAL(rkind):: fx(nstp_max+1),fy(nstp_max+1,1)
-    INTEGER:: nobt,nxmax
+    INTEGER:: nstp,nobt,nxmax
     REAL(rkind):: line_rgb(3,1),line_mark_size(1)
     INTEGER:: line_mark(1),line_mark_step(1)
+    REAL(rkind):: xmin,xmax,fmin,fmax,x,f
 
     line_rgb(1,1)=1.D0
     line_rgb(2,1)=0.D0
     line_rgb(3,1)=0.D0
     line_mark_size(1)=0.3
     line_mark(1)=-3
+
+    xmin=time_ob(0,1)
+    xmax=time_ob(nstp_max_nobt(1),1)
+    DO nobt=2,nobt_max
+       xmin=MIN(xmin,time_ob(0,nobt))
+       xmax=MAX(xmax,time_ob(nstp_max_nobt(nobt),nobt))
+    END DO
+
+    CALL PAGES
+    fmin=zetab_ob(0,1)
+    fmax=zetab_ob(0,1)
+    DO nobt=1,nobt_max
+       DO nstp=1,nstp_max_nobt(nobt)
+          fmin=MIN(fmin,zetab_ob(nstp,nobt))
+          fmax=MAX(fmax,zetab_ob(nstp,nobt))
+       END DO
+    END DO
+    fmin=fmin*180.D0/Pi
+    fmax=fmax*180.D0/Pi
+    WRITE(6,'(A,4ES12.4)') 'xf:',xmin,xmax,fmin,fmax
+    CALL GRD1D_FRAME_START(1,xmin,xmax,fmin,fmax, &
+                          '@zetab(s) [deg]@')
+    DO nobt=1,nobt_max
+       CALL SETMKS(3,0.2)
+       CALL SETRGB(1.0-REAL(nobt)/REAL(nobt_max),0.0,REAL(nobt)/REAL(nobt_max))
+       x=time_ob(0,nobt)
+       f=zetab_ob(0,nobt)*180.D0/Pi
+       CALL MARK2D(GUCLIP(x),GUCLIP(f))
+       DO nstp=1,nstp_max_nobt(nobt)
+          x=time_ob(nstp,nobt)
+          f=zetab_ob(nstp,nobt)*180.D0/Pi
+          CALL DRAW2D(GUCLIP(x),GUCLIP(f))
+       END DO
+    END DO
+    CALL GRD1D_FRAME_END
 
     DO nobt=1,nobt_max
        CALL PAGES
@@ -442,4 +489,5 @@ CONTAINS
       CALL pagee
       
     END SUBROUTINE ob_gsube
-END MODULE OBGOUT
+
+  END MODULE OBGOUT
