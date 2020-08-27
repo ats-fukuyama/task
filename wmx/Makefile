@@ -15,7 +15,7 @@ LIBX_MTX=$(LIBX_MTX_BND)
 FFLAGS=$(DFLAGS)
 
 .SUFFIXES:
-.SUFFIXES: .f90 .mod .o .a
+.SUFFIXES: .f .f90 .mod .o .a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -25,12 +25,13 @@ FFLAGS=$(DFLAGS)
 MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) -I../dp/$(MOD) \
             -I../lib/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
-SRCS = wmcomm.f90 vmcomm.f90 \
+SRCS = wmcomm.f90 vmcomm.f90 wmeqin.f90 wmsub.f90 \
        wminit.f90 wmparm.f90 wmview.f90 \
        wmsetg.f90 wmprof.f90 wmdisp.f90 \
-       wmsetm.f90 wmsetf.f90 \
+       wmsetf.f90 wmsetm.f90 \
        wmsolv.f90 wmexec.f90 \
        wmmenu.f90
+SRC7 = wmeqin.f
 
 SRCX = wmxprf.f90 wmdprf.f90 \
        wmpout.f90 wmgout.f90 wmgsub.f90 wmdout.f90 wmfout.f90 \
@@ -39,7 +40,7 @@ SRCX = wmxprf.f90 wmdprf.f90 \
        wmeign.f90 \
        wmcont.f90 wmtest.f90
 
-OBJS = $(SRCS:.f90=.o)
+OBJS = $(SRC7:.f=.o) $(SRCS:.f90=.o)
 
 LIBS = libwm.a ../dp/libdp.a ../eq/libeq.a ../pl/libpl.a \
        ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a
@@ -84,9 +85,19 @@ veryclean: clean
 wmcomm.o: wmcomm.f90
 vmcomm.o: vmcomm.f90
 
+wmeqin.o: wmeqin.f ../eq/eqcomq.inc
+wmsub.o: wmsub.f90 wmcomm.f90
 wminit.o: wminit.f90 wmcomm.f90
-wmparm.o: wmparm.f90 wmcomm.f90
+wmparm.o: wmparm.f90 ../dp/dpcomm.f90 ../pl/plcomm.f90 wmcomm.f90
 wmview.o: wmview.f90 wmcomm.f90
+wmeqin.f: wmeqin.f ../eq/eqcomq.inc 
+wmsetg.o: wmsetg.f90 wmeqin.f ../pl/plprof.f90 wmcomm.f90
+wmprof.o: wmprof.f90 ../pl/plprof.f90 wmcomm.f90
+wmdisp.o: wmdisp.f90 wmprof.f90 ../dp/dptnsr0.f90 ../pl/plprofw.f90 ../pl/plprof.f90 ../lib/libdsp.f90 wmcomm.f90
+wmsetf.o: wmsetf.f90 wmprof.f90 wmdisp.f90 wmsub.f90 ../lib/libfft.f90 wmcomm.f90
+wmsetm.o: wmsetm.f90 wmsetf.f90 ../pl/plprof.f90 wmcomm.f90
+wmsolv.o: wmsolv.f90 wmcomm.f90
+wmexec.o: wmexec.f90 wmsetg.f90 wmsolv.f90 wmsub.f90 ../dp/dpparm.f90 wmcomm.f90
 
-wmmenu.0: wmmenu.f90 wmcomm.f90
-wmmain.0: wmmain.f90 wmcomm.f90
+wmmenu.o: wmmenu.f90 wmcomm.f90
+wmmain.o: wmmain.f90 wmcomm.f90

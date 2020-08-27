@@ -120,7 +120,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             CEFM1(MDX,NDXM)=CEFLD(I,MDX,NDX,NR)
          ENDDO
          ENDDO
-         CALL WMSUBEM(CEFM1,CEFM2)
+         CALL WMSUBE(CEFM1,CEFM2)
          DO NHH=1,NDMSIZ
          DO NTH=1,NTHMAX
             CEFLDM(I,NTH,NHH,NR)=CEFM2(NTH,NHH)
@@ -175,13 +175,13 @@ C
 C
       DO NHH=1,NHHMAX
       DO NTH=1,NTHMAX
-         NHHF=(NHH-1)*NFACT +1
-         NTHF=(NTH-1)*MFACT +1
-         NHHD=(NHH-1)*NHCF +1
+         NHHF=(NHH-1)*2 +1
+         NTHF=(NTH-1)*2 +1
+C         NHHD=(NHH-1)*NHCF +1
 C
 C        ----- Calculate rotation matrix mu=RMA -----
 C
-         CALL WMCMAG_F(NR,NTHF,NHHF,BABS,BSUPTH,BSUPPH)
+         CALL WMCMAG(NR,NTHF,NHHF,BABS,BSUPTH,BSUPPH)
          TC2=BSUPTH/BABS
          TC3=BSUPPH/BABS
 C
@@ -547,7 +547,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
             CBFM1(MDX,NDXM)=CBFLDK(I,MDX,NDX,NR)
          ENDDO
          ENDDO
-         CALL WMSUBEM(CBFM1,CBFM2)
+         CALL WMSUBE(CBFM1,CBFM2)
          DO NHH=1,NDMSIZ
          DO NTH=1,NTHMAX
             CBFLDM(I,NTH,NHH,NR)=CBFM2(NTH,NHH)
@@ -773,193 +773,6 @@ C  603 FORMAT(' ',I5,I5,3X,1P2E12.4,3X,1P3E12.4)
 C  604 FORMAT(' ',8X,3F8.4,24X,2F8.4)
 C  605 FORMAT(' ',9F8.4)
 C
-      END
-C
-C     ****** 2D FOURIER TRANSFORM ******
-C
-      SUBROUTINE WMSUBH(RF1,CF2)
-C
-      INCLUDE 'wmcomm.inc'
-C
-      DIMENSION RF1(MDM,NDM),CF2(MDM,NDM)
-      DIMENSION CFM(MDM),CFN(NDM)
-C
-      DO NHH=1,NHHMAX
-         DO NTH=1,NTHMAX
-            CFM(NTH)=RF1(NTH,NHH)
-         ENDDO
-         CALL WMXFFT(CFM,NTHMAX,0)
-         DO LDX=1,LDSIZ
-            CF2(LDX,NHH)=CFM(LDX)
-         ENDDO
-      ENDDO
-C
-      DO LDX=1,LDSIZ
-         DO NHH=1,NHHMAX
-            CFN(NHH)=CF2(LDX,NHH)
-         ENDDO
-         CALL WMXFFT(CFN,NHHMAX,0)
-         DO KDX=1,KDSIZ
-            CF2(LDX,KDX)=CFN(KDX)
-         ENDDO
-      ENDDO
-      RETURN
-      END
-C
-C     ****** 2D FOURIER TRANSFORM ******
-C
-      SUBROUTINE WMSUBC(CF1)
-C
-      INCLUDE 'wmcomm.inc'
-C
-      DIMENSION CF1(MDM,NDM),CF2(MDM,NDM)
-      DIMENSION CFM(MDM),CFN(NDM)
-C
-      DO NHH=1,NHHMAX
-         DO NTH=1,NTHMAX
-            CFM(NTH)=CF1(NTH,NHH)
-         ENDDO
-         CALL WMXFFT(CFM,NTHMAX,0)
-         DO LDX=1,LDSIZ
-            CF2(LDX,NHH)=CFM(LDX)
-         ENDDO
-      ENDDO
-C
-      DO LDX=1,LDSIZ
-         DO NHH=1,NHHMAX
-            CFN(NHH)=CF2(LDX,NHH)
-         ENDDO
-         CALL WMXFFT(CFN,NHHMAX,0)
-         DO KDX=1,KDSIZ
-            CF1(LDX,KDX)=CFN(KDX)
-         ENDDO
-      ENDDO
-      RETURN
-      END
-C     
-C     ****** 2D FOURIER TRANSFORM ******
-C
-      SUBROUTINE WMSUBE(CF1,CF2)
-C
-      INCLUDE 'wmcomm.inc'
-C
-      DIMENSION CF1(MDM,NDM),CF2(MDM,NDM)
-      DIMENSION CFM(MDM),CFN(NDM)
-C
-      DO NDX=1,NDSIZ
-         DO MDX=1,MDSIZ
-            CFM(MDX)=CF1(MDX,NDX)
-         ENDDO
-         CALL WMXFFT(CFM,NTHMAX,1)
-         DO NTH=1,NTHMAX
-            CF2(NTH,NDX)=CFM(NTH)
-         ENDDO
-      ENDDO
-C
-      DO NTH=1,NTHMAX
-         DO NDX=1,NDSIZ
-            CFN(NDX)=CF2(NTH,NDX)
-         ENDDO
-         CALL WMXFFT(CFN,NHHMAX,1)
-         DO NHH=1,NHHMAX
-            CF2(NTH,NHH)=CFN(NHH)
-         ENDDO
-      ENDDO
-      RETURN
-      END
-C     
-C     ****** 2D FOURIER TRANSFORM ******
-C
-      SUBROUTINE WMSUBE_F(CF1,CF2)
-C
-      INCLUDE 'wmcomm.inc'
-C
-      DIMENSION CF1(MDMF,NDMF),CF2(MDMF,NDMF)
-      DIMENSION CFM(MDMF),CFN(NDMF)
-C
-      DO NDX=1,NDSIZ_F
-         DO MDX=1,MDSIZ_F
-            CFM(MDX)=CF1(MDX,NDX)
-         ENDDO
-         CALL WMXFFT(CFM,NTHMAX_F,1)
-         DO NTH=1,NTHMAX_F
-            CF2(NTH,NDX)=CFM(NTH)
-         ENDDO
-      ENDDO
-C
-      DO NTH=1,NTHMAX_F
-         DO NDX=1,NDSIZ_F
-            CFN(NDX)=CF2(NTH,NDX)
-         ENDDO
-         CALL WMXFFT(CFN,NHHMAX_F,1)
-         DO NHH=1,NHHMAX_F
-            CF2(NTH,NHH)=CFN(NHH)
-         ENDDO
-      ENDDO
-      RETURN
-      END
-C     
-C     ****** 2D FOURIER TRANSFORM ******
-C
-      SUBROUTINE WMSUBEM(CF1,CF2)
-C
-      INCLUDE 'wmcomm.inc'
-C
-      DIMENSION CF1(MDMM,NDMM),CF2(MDMM,NDMM)
-      DIMENSION CFM(MDMM),CFN(NDMM)
-C
-      DO NDX=1,NDMSIZ
-         DO MDX=1,MDMSIZ
-            CFM(MDX)=CF1(MDX,NDX)
-         ENDDO
-         CALL WMXFFT(CFM,NTHMAX,1)
-         DO NTH=1,NTHMAX
-            CF2(NTH,NDX)=CFM(NTH)
-         ENDDO
-      ENDDO
-C
-      DO NTH=1,NTHMAX
-         DO NDX=1,NDMSIZ
-            CFN(NDX)=CF2(NTH,NDX)
-         ENDDO
-         CALL WMXFFT(CFN,NDMSIZ,1)
-         DO NHH=1,NDMSIZ
-            CF2(NTH,NHH)=CFN(NHH)
-         ENDDO
-      ENDDO
-      RETURN
-      END
-
-C
-C     ****** 2D FOURIER TRANSFORM ******
-C
-      SUBROUTINE WMSUBD(RF1,CF2)
-C
-      INCLUDE 'wmcomm.inc'
-C
-      DIMENSION RF1(MDM,NDM),CF2(MDM,NDM)
-      DIMENSION CFM(MDM),CFN(NDM)
-C
-      DO NHH=1,NHHMAX
-         DO NTH=1,NTHMAX
-            CFM(NTH)=1.D0/RF1(NTH,NHH)
-         ENDDO
-         CALL WMXFFT(CFM,NTHMAX,0)
-         DO LDX=1,LDSIZ
-            CF2(LDX,NHH)=CFM(LDX)
-         ENDDO
-      ENDDO
-C
-      DO LDX=1,LDSIZ
-         DO NHH=1,NHHMAX
-            CFN(NHH)=CF2(LDX,NHH)
-         ENDDO
-         CALL WMXFFT(CFN,NHHMAX,0)
-         DO KDX=1,KDSIZ
-            CF2(LDX,KDX)=CFN(KDX)
-         ENDDO
-      ENDDO
-      RETURN
       END
 C
 C     ****** CALCULATE ABSORBED POWER ******
@@ -1540,7 +1353,7 @@ C
                    DO NTH=1,NTHMAX
                      NHHF=(NHH-1)*NFACT +1
                      NTHF=(NTH-1)*MFACT +1
-                     CALL WMCMAG_F(NR,NTHF,NHHF,BABS,BSUPTH,BSUPPH)
+                     CALL WMCMAG(NR,NTHF,NHHF,BABS,BSUPTH,BSUPPH)
                      RKPR=MM*BSUPTH/BABS+NN*BSUPPH/BABS
                     IF(ABS(RKPR).LT.1.D-8) RKPR=1.D-8
                     IF(ABS(WW/RKPR).LT.VC) THEN
@@ -1568,7 +1381,7 @@ C
                DO NTH=1,NTHMAX
                   NHHF=(NHH-1)*NFACT +1
                   NTHF=(NTH-1)*MFACT +1
-                  CALL WMCMAG_F(NR+1,NTHF,NHHF,BABS,BSUPTH,BSUPPH)
+                  CALL WMCMAG(NR+1,NTHF,NHHF,BABS,BSUPTH,BSUPPH)
                   RKPR=MM*BSUPTH/BABS+NN*BSUPPH/BABS
                  IF(ABS(RKPR).LT.1.D-8) RKPR=1.D-8
                  IF(ABS(WW/RKPR).LT.VC) THEN

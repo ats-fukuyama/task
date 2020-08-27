@@ -13,6 +13,7 @@ CONTAINS
 
     USE wmcomm
     USE wmsetg
+    USE wmsolv
     USE dpparm
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
@@ -36,16 +37,16 @@ CONTAINS
      
     CALL wm_solv
     
-    CALL wm_efield
-    CALL wm_bfield
-    CALL wm_pabs
+!    CALL wm_efield
+!    CALL wm_bfield
+!    CALL wm_pabs
     IF(nrank.EQ.0) THEN
-       CALL wm_pwrflux
-       CALL wm_pwrant
+!       CALL wm_pwrflux
+!       CALL wm_pwrant
     ENDIF
     IF(nrank.EQ.0) THEN
-       CALL wm_pout
-       IF(nprint.GE.5) CALL wm_dout(ierr)
+!       CALL wm_pout
+!       IF(nprint.GE.5) CALL wm_dout(ierr)
     ENDIF
     RETURN
   END SUBROUTINE wm_exec
@@ -184,67 +185,78 @@ CONTAINS
   
 !     ****** CALCULATE WAVEGUIDE FIELD (simple) ******
 
-  SUBROUTINE WMSETEW
+  SUBROUTINE wm_setew
     USE wmcomm
+    USE wmsub
     IMPLICIT NONE
-    INTEGER:: NHH,NTH
+    COMPLEX(rkind):: cetemp2(nthmax),cetemp3(nthmax)
+    INTEGER:: NHH,NTH,NA,ND,NN
+    REAL(rkind):: TH1,TH2,PH1,PH2,ANG,RWPH,WTH,TH0,DTH,TH
+    COMPLEX(rkind):: CW,CAJ,COEF,CJA,CJB,CETH,CEPH
 
     DO NHH=1,NHHMAX
        DO NTH=1,NTHMAX
-          CEWALL(NTH,NHH,1)=(0.D0,0.D0)
-          CEWALL(NTH,NHH,2)=(0.D0,0.D0)
-          CEWALL(NTH,NHH,3)=(0.D0,0.D0)
+          CEWALL(1,NTH,NHH)=(0.D0,0.D0)
+          CEWALL(2,NTH,NHH)=(0.D0,0.D0)
+          CEWALL(3,NTH,NHH)=(0.D0,0.D0)
        END DO
     END DO
 
-!      CW=2.D0*PI*CRF*1.D6
-!      DO NA=1,NAMAX
-!         TH1=THJ1(NA)*PI/180.D0
-!         TH2=THJ2(NA)*PI/180.D0
-!         PH1=PHJ1(NA)*PI/180.D0
-!         PH2=PHJ2(NA)*PI/180.D0
-!         ANG=ANTANG(NA)*PI/180.D0
-!         CAJ=EXP(DCMPLX(0.D0,APH(NA)*PI/180.D0))
-!         RWPH=RR+RB
-!         WTH=ABS(TH2-TH1)
-!         TH0=0.5D0*(TH1+TH2)
-!         DTH=2.D0*PI/NTHMAX
-!      DO ND=NDMIN,NDMAX
-!         NHH=ND-NDMIN+1
-!         NN=NPH0+NHC*ND
-!         CJA=EXP(-CI*NN*PH1)/(2.D0*PI)
-!         COEF=-RWPH*CW*SIN(ANG)/VC-NN
-!         IF(ABS(COEF).EQ.0.D0) THEN
-!            CJB=PH2-PH1
-!         ELSE
-!            CJB=-CI*(EXP(CI*COEF*(PH2-PH1))-1.D0)/COEF
-!        ENDIF
-!         DO NTH=1,NTHMAX
-!            TH=DTH*(NTH-1)
-!            IF(TH >= TH1              .AND. TH <= TH2        )THEN
-!               CETH=CJA*CJB*AEWGT(NA)
-!               CEPH=CJA*CJB*AEWGZ(NA)*COS((TH-TH0)/WTH*PI)
-!               DO NHH=1,NHHMAX
-!                  CEWALL(NTH,NHH,2)=CEWALL(NTH,NHH,2)+CETH
-!                  CEWALL(NTH,NHH,3)=CEWALL(NTH,NHH,3)+CEPH
-!               END DO
-!            ELSE IF(TH >= TH1+2.D0*PI .AND. TH <= TH2+2.D0*PI) THEN
-!               CETH=CJA*CJB*CAJ*AEWGT(NA)
-!               CEPH=CJA*CJB*CAJ*AEWGZ(NA)*COS((TH-TH0-2.D0*PI)/WTH*PI)
-!               DO NHH=1,NHHMAX
-!                  CEWALL(NTH,NHH,2)=CEWALL(NTH,NHH,2)+CETH
-!                  CEWALL(NTH,NHH,3)=CEWALL(NTH,NHH,3)+CEPH
-!               END DO
-!            END IF
-!         END DO
-!      END DO
-!      END DO
+    CW=2.D0*PI*CMPLX(RF,RFI)*1.D6
+    DO NA=1,NAMAX
+       TH1=THJ1(NA)*PI/180.D0
+       TH2=THJ2(NA)*PI/180.D0
+       PH1=PHJ1(NA)*PI/180.D0
+       PH2=PHJ2(NA)*PI/180.D0
+       ANG=ANTANG(NA)*PI/180.D0
+       CAJ=EXP(CMPLX(0.D0,APH(NA)*PI/180.D0))
+       RWPH=RR+RB
+       WTH=ABS(TH2-TH1)
+       TH0=0.5D0*(TH1+TH2)
+       DTH=2.D0*PI/NTHMAX
+       DO ND=NDMIN,NDMAX
+          NHH=ND-NDMIN+1
+          NN=NPH0+NHC*ND
+          CJA=EXP(-CI*NN*PH1)/(2.D0*PI)
+          COEF=-RWPH*CW*SIN(ANG)/VC-NN
+          IF(ABS(COEF).EQ.0.D0) THEN
+             CJB=PH2-PH1
+          ELSE
+             CJB=-CI*(EXP(CI*COEF*(PH2-PH1))-1.D0)/COEF
+          ENDIF
+          DO NTH=1,NTHMAX
+             TH=DTH*(NTH-1)
+             IF(TH.GE.TH1.AND.TH.LE.TH2)THEN
+                CETH=CJA*CJB*AEWGT(NA)
+                CEPH=CJA*CJB*AEWGZ(NA)*COS((TH-TH0)/WTH*PI)
+                DO NHH=1,NHHMAX
+                   CEWALL(2,NTH,NHH)=CEWALL(2,NTH,NHH)+CETH
+                   CEWALL(3,NTH,NHH)=CEWALL(3,NTH,NHH)+CEPH
+                END DO
+             ELSE IF(TH >= TH1+2.D0*PI .AND. TH <= TH2+2.D0*PI) THEN
+                CETH=CJA*CJB*CAJ*AEWGT(NA)
+                CEPH=CJA*CJB*CAJ*AEWGZ(NA)*COS((TH-TH0-2.D0*PI)/WTH*PI)
+                DO NHH=1,NHHMAX
+                   CEWALL(2,NTH,NHH)=CEWALL(2,NTH,NHH)+CETH
+                   CEWALL(3,NTH,NHH)=CEWALL(3,NTH,NHH)+CEPH
+                END DO
+             END IF
+          END DO
+       END DO
+    END DO
 
-!CCCCCCCCCCCCCCCCcseki
-!      DO NHH=1,NHHMAX
-!         CALL WMSUBC(CEWALL(1,NHH,2))
-!         CALL WMSUBC(CEWALL(1,NHH,3))
-!      ENDDO
+    DO nhh=1,nhhmax
+       DO nth=1,nthmax
+          cetemp2(nth)=cewall(2,nth,nhh)
+          cetemp3(nth)=cewall(3,nth,nhh)
+       END DO
+       CALL WMSUBC(cetemp2)
+       CALL WMSUBC(cetemp3)
+       DO nth=1,nthmax
+          cewall(2,nth,nhh)=cetemp2(nth)
+          cewall(3,nth,nhh)=cetemp3(nth)
+       END DO
+    END DO
     RETURN
-  END SUBROUTINE WMSETEW
+  END SUBROUTINE wm_setew
 END MODULE wmexec

@@ -54,17 +54,17 @@ CONTAINS
 !     ****** EQUILIBRIUM (VMEC) ******
 
     CASE(4)
-       CALL wmsetg_vmec(IERR)
+!       CALL wmsetg_vmec(IERR)
 
 !     ****** EQUILIBRIUM (EQDSK) ******
 
     CASE(5)
-       CALL wmsetg_eqdsk(IERR)
+!       CALL wmsetg_eqdsk(IERR)
 
 !     ****** EQUILIBRIUM (BOOZER) ******
 
     CASE(6)
-       CALL wmsetg_boozer(IERR)
+!       CALL wmsetg_boozer(IERR)
     END SELECT
 
     IF(IERR.NE.0) RETURN
@@ -75,9 +75,9 @@ CONTAINS
 
 ! --- load plasma profile data ---
 
-    IF(MODELN.EQ.7) CALL WMDPRF(IERR)
-    IF(MODELN.EQ.8) CALL WMXPRF(IERR)
-    IF(MODELN.EQ.9) CALL WMTRLOAD(IERR)
+!    IF(MODELN.EQ.7) CALL WMDPRF(IERR)
+!    IF(MODELN.EQ.8) CALL WMXPRF(IERR)
+!    IF(MODELN.EQ.9) CALL WMTRLOAD(IERR)
 
     IF(IERR.NE.0) RETURN
 
@@ -447,6 +447,8 @@ CONTAINS
   SUBROUTINE wmsetg_eq(IERR)
 
     USE wmcomm
+    USE wmeqin
+    USE libmpi
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
     CHARACTER(LEN=80):: LINE
@@ -681,4 +683,27 @@ CONTAINS
     ENDDO
 
   END SUBROUTINE wm_invert_rg
+
+  SUBROUTINE BTHOB
+    USE wmcomm
+    REAL(rkind):: RGA(3,3),RGB(3,3)
+    INTEGER:: nr,nth,nhh
+    
+    ! ----- Invert matrix to obtain mu^(-1)=RMB and g^(-1)=RGB ----
+    
+    DO NR  =1,NRMAX+1
+       BTHOBN(NR)=0.D0
+       RHON=XRHO(NR)
+       DO NHH=1,NHHMAX_F
+          DO NTH=1,NTHMAX_F
+             BSUPTH=BFLD(2,NTH,NHH,NR)
+             BSUPPH=BFLD(3,NTH,NHH,NR)
+             BABS  =BPST(NTH,NHH,NR)
+             BTH=ABS(BSUPTH*RA*RHON)
+             BTHOBN(NR)=BTHOBN(NR) + BTH/BABS
+          ENDDO
+       ENDDO
+       BTHOBN(NR)=ABS(BTHOBN(NR))/DBLE(NHHMAX_F*NTHMAX_F)
+    ENDDO
+  END SUBROUTINE BTHOB
 END MODULE wmsetg

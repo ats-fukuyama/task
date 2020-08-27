@@ -13,14 +13,13 @@ CONTAINS
 
     USE wmcomm
     IMPLICIT NONE
-    INTEGER:: nblock_size
     INTEGER:: ierr
 
     nblock_size=3*MDSIZ*NDSIZ
     ! mlen=NRMAX*nblock_size+MWGMAX*NAMAX defined in wm_alloc in wmcomm.f90
     ! mbnd=4*nblock_size-1 defined in wm_alloc in wmcomm.f90
     
-    CALL wm_solv_mtxp(CFVG,MLEN,MBND,nblock_size,ierr)
+    CALL wm_solv_mtxp(CFVG,ierr)
     IF(IERR.NE.0) WRITE(6,*) 'XX wm_solv_mtxp error: ierr=',ierr
 
     RETURN
@@ -28,20 +27,18 @@ CONTAINS
 
   ! --- solving complex matrix equation
   
-  SUBROUTINE wm_solve_mtxp(svec,MLEN,MBND,nblock_size,ierr)
+  SUBROUTINE wm_solv_mtxp(svec,ierr)
 
-    USE wmcomm,ONLY: rkind,NRMAX,MODEWG,MWGMAX,NAMAX
+    USE wmcomm
     USE libmtx
     USE wmsetm
     USE commpi
     IMPLICIT NONE
     COMPLEX(rkind),DIMENSION(MLEN),INTENT(OUT):: svec
-    INTEGER,INTENT(IN):: MLEN,MBND,nblock_size
     INTEGER,INTENT(OUT)::ierr 
     COMPLEX(rkind),DIMENSION(:),ALLOCATABLE:: A
     COMPLEX(rkind):: X
-    INTEGER:: nblock_start,nblock_end
-    INTEGER:: istart,iend,i,j,nr_previous
+    INTEGER:: i,j,nr_previous
     INTEGER:: itype,its
     REAL(rkind):: tolerance
 
@@ -49,11 +46,11 @@ CONTAINS
 
     CALL mtxc_setup(MLEN,istart,iend,jwidth=MBND)
 
-    nblock_start=(istart-1)/nblock_size+1
-    nblock_end=(iend-1)/nblock_size+1
-    IF(nrank.EQ.nsize-1) nblock_end=NRMAX
-    WRITE(6,'(A,3I8)') 'nrank,nblock_start,nblock_end=', &
-                        nrank,nblock_start,nblock_end
+    nr_start=(istart-1)/nblock_size+1
+    nr_end=(iend-1)/nblock_size+1
+    IF(nrank.EQ.nsize-1) nr_end=NRMAX
+    WRITE(6,'(A,4I8)') 'nrank,nr_start,nr_end,nblock_size=', &
+                        nrank,nr_start,nr_end,nblock_size
 
 !   ***** CALCULATE MATRIX COEFFICIENTS *****
 
@@ -74,7 +71,7 @@ CONTAINS
     itype=0
     tolerance=1.D-12
     CALL mtxc_solve(itype,tolerance,its)
-    WRITE(6,'(A,I8)') '## wmsolv: iteration=',its
+    WRITE(6,'(A,I8)') '## wm_solv: iteration=',its
       
     CALL mtxc_gather_vector(svec)
 
@@ -84,5 +81,5 @@ CONTAINS
     IERR=0
 
     RETURN
-  END SUBROUTINE wm_solve_mtxp
+  END SUBROUTINE wm_solv_mtxp
 END MODULE wmsolv

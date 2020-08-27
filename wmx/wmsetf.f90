@@ -9,11 +9,14 @@ CONTAINS
 
 !     ****** CALCULATE LOCAL MATRIX ******
 
-  SUBROUTINE wm_setf(NR1,NS0)
+  SUBROUTINE wm_setf(NR,NS0)
 
     USE wmcomm
+    USE wmprof
+    USE wmdisp
+    USE wmsub
     IMPLICIT NONE
-    INTEGER,INTENT(IN):: NR1,NS0
+    INTEGER,INTENT(IN):: NR,NS0
     COMPLEX(rkind),ALLOCATABLE:: &
          CEP0(:,:,:,:),CRA(:,:,:,:),CFA(:,:,:,:),CRB(:,:,:,:),CFB(:,:,:,:), &
          CRC(:,:,:,:),CFC(:,:,:,:),CMC(:,:,:,:),CMF(:,:,:,:), &
@@ -22,7 +25,7 @@ CONTAINS
     REAL(rkind):: RMA(3,3),RMB(3,3),RGA(3,3),RGB(3,3)
     COMPLEX(rkind):: CW,CWC2,CSUM
     REAL(rkind):: XRI,XRL,BABS,BSUPTH,BSUPPH,TC2,TC3,RF11
-    INTEGER:: NR,ND,MD,NS1,NS2,NS,NHH,NTH,I,J,K,L,KD,LD,KDX,LDX,NDX,MDX
+    INTEGER:: ND,MD,NS1,NS2,NS,NHH,NTH,I,J,K,L,KD,LD,KDX,LDX,NDX,MDX
     INTEGER:: KA,KAX,KB,KBX,NB1,NB2,LA,LAX,LB,LBX,MB1,MB2,LAB,LABX,KAB,KABX
     INTEGER:: NDN,MDN,LBXK,KBXK
     INTEGER:: ILL
@@ -87,7 +90,8 @@ CONTAINS
           ENDDO
 
           DO NS=NS1,NS2
-             CALL WMTNSR(NR,NS,MD,ND)
+             WRITE(6,'(A,4I8)') 'setf: NR,NS,MD,ND=',NR,NS,MD,ND
+             CALL wm_tnsr(NR,NS,MD,ND)
 
              DO NHH=1,NHHMAX_F
                 DO NTH=1,NTHMAX_F
@@ -137,7 +141,7 @@ CONTAINS
 
 !        ----- Calculate rotation matrix mu=RMA -----
 
-          CALL WMCMAG_F(NR,NTH,NHH,BABS,BSUPTH,BSUPPH)
+          CALL WMCMAG(NR,NTH,NHH,BABS,BSUPTH,BSUPPH)
           TC2=BSUPTH/BABS
           TC3=BSUPPH/BABS
 
@@ -436,216 +440,4 @@ CONTAINS
     RETURN
   END SUBROUTINE wm_setf
 
-!     ****** 2D FOURIER TRANSFORM ******
-
-  SUBROUTINE WMSUBG(RF1,RF2,CF)
-
-    USE wmcomm
-    IMPLICIT NONE
-    REAL(rkind),INTENT(IN):: RF1(nthmax,nhhmax),RF2(nthmax,nhhmax)
-    COMPLEX(rkind),INTENT(OUT):: CF(nthmax,nhhmax)
-    COMPLEX(rkind):: CFM(nthmax),CFN(nhhmax)
-    INTEGER:: NHH,NTH,LDX,KDX
-
-    DO NHH=1,NHHMAX
-       DO NTH=1,NTHMAX
-          CFM(NTH)=RF1(NTH,NHH)/RF2(NTH,NHH)
-       ENDDO
-       CALL WMXFFT(CFM,NTHMAX,0)
-       IF (LDSIZ == 1)THEN
-          LDX=LDSIZ
-          CF(LDX,NHH)=CFM(LDX)
-       ELSE
-          DO LDX=1,LDSIZ
-             CF(LDX,NHH)=CFM(LDX)
-          ENDDO
-       ENDIF
-    ENDDO
-
-    DO LDX=1,LDSIZ
-       DO NHH=1,NHHMAX
-          CFN(NHH)=CF(LDX,NHH)
-       ENDDO
-       CALL WMXFFT(CFN,NHHMAX,0)
-       IF (KDSIZ == 1)THEN
-          KDX=KDSIZ
-          CF(LDX,KDX)=CFN(KDX)
-       ELSE
-          DO KDX=1,KDSIZ
-             CF(LDX,KDX)=CFN(KDX)
-          ENDDO
-       ENDIF
-    ENDDO
-    RETURN
-  END SUBROUTINE WMSUBG
-
-!     ****** 2D FOURIER TRANSFORM ******
-
-  SUBROUTINE WMSUBG_F(RF1,RF2,CF)
-
-    USE wmcomm
-    IMPLICIT NONE
-    REAL(rkind),INTENT(IN):: RF1(nthmax_f,nhhmax_f),RF2(nthmax_f,nhhmax_f)
-    COMPLEX(rkind),INTENT(OUT):: CF(nthmax_f,nhhmax_f)
-    COMPLEX(rkind):: CFM(nthmax_f),CFN(nhhmax_f)
-    INTEGER:: NHH,NTH,LDX,KDX
-
-    DO NHH=1,NHHMAX_F
-       DO NTH=1,NTHMAX_F
-          CFM(NTH)=RF1(NTH,NHH)/RF2(NTH,NHH)
-       ENDDO
-       CALL WMXFFT(CFM,NTHMAX_F,0)
-       IF (LDSIZ_F == 1)THEN
-          LDX=LDSIZ_F
-          CF(LDX,NHH)=CFM(LDX)
-       ELSE
-          DO LDX=1,LDSIZ_F
-             CF(LDX,NHH)=CFM(LDX)
-          ENDDO
-       ENDIF
-    ENDDO
-
-    DO LDX=1,LDSIZ_F
-       DO NHH=1,NHHMAX_F
-          CFN(NHH)=CF(LDX,NHH)
-       ENDDO
-       CALL WMXFFT(CFN,NHHMAX_F,0)
-       IF (KDSIZ_F == 1)THEN
-          KDX=KDSIZ_F
-          CF(LDX,KDX)=CFN(KDX)
-       ELSE
-          DO KDX=1,KDSIZ_F
-             CF(LDX,KDX)=CFN(KDX)
-          ENDDO
-       ENDIF
-    ENDDO
-    RETURN
-  END SUBROUTINE WMSUBG_F
-
-!     ****** 2D FOURIER TRANSFORM ******
-
-  SUBROUTINE WMSUBF(CF1,CF2)
-
-    USE wmcomm
-    IMPLICIT NONE
-    COMPLEX(rkind),INTENT(IN):: CF1(nthmax,nhhmax)
-    COMPLEX(rkind),INTENT(OUT):: CF2(nthmax,nhhmax)
-    COMPLEX(rkind):: CFM(nthmax),CFN(nhhmax)
-    INTEGER:: NHH,NTH,LDX,KDX
-
-    DO NHH=1,NHHMAX
-       DO NTH=1,NTHMAX
-          CFM(NTH)=CF1(NTH,NHH)
-       ENDDO
-       CALL WMXFFT(CFM,NTHMAX,0)
-       IF (LDSIZ == 1)THEN
-          LDX=LDSIZ
-          CF2(LDX,NHH)=CFM(LDX)
-       ELSE
-          DO LDX=1,LDSIZ
-             CF2(LDX,NHH)=CFM(LDX)
-          ENDDO
-       ENDIF
-    ENDDO
-
-    DO LDX=1,LDSIZ
-       DO NHH=1,NHHMAX
-          CFN(NHH)=CF2(LDX,NHH)
-       ENDDO
-       CALL WMXFFT(CFN,NHHMAX,0)
-       IF (KDSIZ == 1)THEN
-          KDX=KDSIZ
-          CF2(LDX,KDX)=CFN(KDX)
-       ELSE
-          DO KDX=1,KDSIZ
-             CF2(LDX,KDX)=CFN(KDX)
-          ENDDO
-       ENDIF
-    ENDDO
-    RETURN
-  END SUBROUTINE WMSUBF
-
-!     ****** 2D FOURIER TRANSFORM 2 ******
-
-  SUBROUTINE WMSUBF_F(CF1,CF2)
-
-    USE wmcomm
-    IMPLICIT NONE
-    COMPLEX(rkind),INTENT(IN):: CF1(nthmax_f,nhhmax_f)
-    COMPLEX(rkind),INTENT(OUT):: CF2(nthmax_f,nhhmax_f)
-    COMPLEX(rkind):: CFM(nthmax_f),CFN(nhhmax_f)
-    INTEGER:: NHH,NTH,LDX,KDX
-
-    DO NHH=1,NHHMAX_F
-       DO NTH=1,NTHMAX_F
-          CFM(NTH)=CF1(NTH,NHH)
-       ENDDO
-       CALL WMXFFT(CFM,NTHMAX_F,0)
-       IF (LDSIZ_F == 1)THEN
-          LDX=LDSIZ_F
-          CF2(LDX,NHH)=CFM(LDX)
-       ELSE
-          DO LDX=1,LDSIZ_F
-             CF2(LDX,NHH)=CFM(LDX)
-          ENDDO
-       ENDIF
-    ENDDO
-
-    DO LDX=1,LDSIZ_F
-       DO NHH=1,NHHMAX_F
-          CFN(NHH)=CF2(LDX,NHH)
-       ENDDO
-       CALL WMXFFT(CFN,NHHMAX_F,0)
-       IF (KDSIZ_F == 1)THEN
-          KDX=KDSIZ_F
-          CF2(LDX,KDX)=CFN(KDX)
-       ELSE
-          DO KDX=1,KDSIZ_F
-             CF2(LDX,KDX)=CFN(KDX)
-          ENDDO
-       ENDIF
-    ENDDO
-    RETURN
-  END SUBROUTINE WMSUBF_F
-
-!     ****** INTERFACE FOR FFT ******
-
-  SUBROUTINE WMXFFT(CA,N,KEY)
-
-    USE wmcomm
-    USE libfft,ONLY: FFT2L
-    IMPLICIT NONE
-    INTEGER,INTENT(IN):: N,KEY
-    COMPLEX(rkind),INTENT(INOUT):: CA(N)
-    INTEGER,SAVE:: NS=0
-    INTEGER:: IND,I,IX
-!
-    IF(N.NE.1) THEN
-       IF(N.EQ.NS) THEN
-          IND=0
-       ELSE
-          IF(ALLOCATED(CFFT)) DEALLOCATE(CFFT,RFFT,LFFT)
-          ALLOCATE(CFFT(N*2),RFFT(N*2),LFFT(N*2))
-          IND=1
-          NS=N
-       END IF
-       IF(KEY.EQ.0) THEN
-          CALL FFT2L(CA,CFFT,RFFT,LFFT,N,IND,KEY)
-          DO I=1,N
-             IX=I+N/2-1
-             IF(IX.GT.N) IX=IX-N
-             CA(IX)=CFFT(I)
-          ENDDO
-       ELSE
-          DO I=1,N
-             IX=I+N/2-1
-             IF(IX.GT.N) IX=IX-N
-             CFFT(I)=CA(IX)
-          ENDDO
-          CALL FFT2L(CFFT,CA,RFFT,LFFT,N,IND,KEY)
-       ENDIF
-    ENDIF
-
-    RETURN
-  END SUBROUTINE WMXFFT
 END MODULE wmsetf

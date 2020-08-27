@@ -457,8 +457,8 @@ C
             DO NTH=1,NTHMAX
                NTHP=NTH+1
                IF(NTHP.GT.NTHMAX) NTHP=1
-               CALL WMCMAG(NR,NTH, NHH,BABS, BSUPTH, BSUPPH )
-               CALL WMCMAG(NR,NTHP,NHH,BABSP,BSUPTHP,BSUPPHP)
+               CALL WMCMAG(NR,2*NTH-1, 2*NHH-1,BABS, BSUPTH, BSUPPH )
+               CALL WMCMAG(NR,2*NTHP-1,2*NHH-1,BABSP,BSUPTHP,BSUPPHP)
                DO NTHG=1,NTHGS
                   NTHL=(NTH-1)*NTHGS+NTHG
                   FACT=DBLE(NTHG-1)/DBLE(NTHGS)

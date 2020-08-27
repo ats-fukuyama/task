@@ -11,8 +11,6 @@ MODULE wmsetm
   COMPLEX(rkind),ALLOCATABLE:: CGC11(:,:),CGC12(:,:),CGC13(:,:)
   COMPLEX(rkind),ALLOCATABLE:: CGPH22(:,:),CGPH23(:,:),CGPH33(:,:)
   COMPLEX(rkind),ALLOCATABLE:: CGP12(:,:),CGP13(:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CGHF11(:,:,:),CGHF12(:,:,:),CGHF13(:,:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CGHF22(:,:,:),CGHF23(:,:,:),CGHF33(:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CMAHF(:,:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CROT(:,:,:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CGDD(:,:,:,:,:,:,:)
@@ -91,9 +89,6 @@ CONTAINS
     ALLOCATE(CGPH22(nthmax_f,nhhmax_f),CGPH23(nthmax_f,nhhmax_f))
     ALLOCATE(CGPH33(nthmax_f,nhhmax_f))
     ALLOCATE(CGP12(nthmax_f,nhhmax_f),CGP13(nthmax_f,nhhmax_f))
-    ALLOCATE(CGHF11(nthmax_f,nhhmax_f,3),CGHF12(nthmax_f,nhhmax_f,3))
-    ALLOCATE(CGHF13(nthmax_f,nhhmax_f,3),CGHF22(nthmax_f,nhhmax_f,3))
-    ALLOCATE(CGHF23(nthmax_f,nhhmax_f,3),CGHF33(nthmax_f,nhhmax_f,3))
     ALLOCATE(CMAHF(3,3,nthmax_f,nhhmax_f,3))
     ALLOCATE(CGDD(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
     ALLOCATE(CGDH(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
@@ -123,9 +118,10 @@ CONTAINS
 
 !     ****** ASSEMBLE TOTAL ELEMENT COEFFICIENT MATRIX ******
 
-  SUBROUTINE wm_setm_m(NR,IND)
+  SUBROUTINE wm_setm_matrix(NR,IND)
 
-      USE wmcomm
+    USE wmcomm
+    USE wmsetf
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR,IND
       COMPLEX(rkind):: CEMP_TMP(9,3)
@@ -148,7 +144,7 @@ CONTAINS
       
       IF(IND.EQ.1) THEN
 
-         CALL WMSETF(NR,0)
+         CALL wm_setf(NR,0)
 
          DO KDX=1,KDSIZ_F
             DO LDX=1,LDSIZ_F
@@ -158,13 +154,6 @@ CONTAINS
                CGF22(LDX,KDX,2)=CGF22(LDX,KDX,3)
                CGF23(LDX,KDX,2)=CGF23(LDX,KDX,3)
                CGF33(LDX,KDX,2)=CGF33(LDX,KDX,3)
-               
-               CGHF11(LDX,KDX,2)=CGHF11(LDX,KDX,3)
-               CGHF12(LDX,KDX,2)=CGHF12(LDX,KDX,3)
-               CGHF13(LDX,KDX,2)=CGHF13(LDX,KDX,3)
-               CGHF22(LDX,KDX,2)=CGHF22(LDX,KDX,3)
-               CGHF23(LDX,KDX,2)=CGHF23(LDX,KDX,3)
-               CGHF33(LDX,KDX,2)=CGHF33(LDX,KDX,3)
             ENDDO
          ENDDO
          DO KDX=1,KDSIZ_F
@@ -202,7 +191,7 @@ CONTAINS
             ENDDO
          ENDDO
 
-         CALL WMSETF(NR+1,0)
+         CALL wm_setf(NR+1,0)
 
       ENDIF
 
@@ -220,19 +209,6 @@ CONTAINS
             CGF22(LDX,KDX,2)=CGF22(LDX,KDX,3)
             CGF23(LDX,KDX,2)=CGF23(LDX,KDX,3)
             CGF33(LDX,KDX,2)=CGF33(LDX,KDX,3)
-
-            CGHF11(LDX,KDX,1)=CGHF11(LDX,KDX,2)
-            CGHF12(LDX,KDX,1)=CGHF12(LDX,KDX,2)
-            CGHF13(LDX,KDX,1)=CGHF13(LDX,KDX,2)
-            CGHF22(LDX,KDX,1)=CGHF22(LDX,KDX,2)
-            CGHF23(LDX,KDX,1)=CGHF23(LDX,KDX,2)
-            CGHF33(LDX,KDX,1)=CGHF33(LDX,KDX,2)
-            CGHF11(LDX,KDX,2)=CGHF11(LDX,KDX,3)
-            CGHF12(LDX,KDX,2)=CGHF12(LDX,KDX,3)
-            CGHF13(LDX,KDX,2)=CGHF13(LDX,KDX,3)
-            CGHF22(LDX,KDX,2)=CGHF22(LDX,KDX,3)
-            CGHF23(LDX,KDX,2)=CGHF23(LDX,KDX,3)
-            CGHF33(LDX,KDX,2)=CGHF33(LDX,KDX,3)
          ENDDO
       ENDDO
       DO KDX=1,KDSIZ_F
@@ -274,7 +250,7 @@ CONTAINS
          ENDDO
       ENDDO
 
-      IF(NR.LT.NRMAX) CALL WMSETF(NR+2,0)
+      IF(NR.LT.NRMAX) CALL wm_setf(NR+2,0)
 
       IF(NR.EQ.1) THEN
          XRHOM = XRHO(2)/1.D6
@@ -995,11 +971,11 @@ CONTAINS
       ENDDO
 
       RETURN
-    END SUBROUTINE wm_setm_m
+    END SUBROUTINE wm_setm_matrix
 
 !     ****** ASSEMBLE TOTAL ELEMENT FREE VECTOR ******
 
-    SUBROUTINE WMSETM_V(NR)
+    SUBROUTINE wm_setm_vector(NR)
 
       USE wmcomm
       USE plprof,ONLY: pl_prof2
@@ -1158,11 +1134,11 @@ CONTAINS
       ENDIF
 
       RETURN
-    END SUBROUTINE WMSETM_V
+    END SUBROUTINE wm_setm_vector
 
 !     ****** SET BOUNDARY CONDITION ******
 
-    SUBROUTINE WMSETM_B(NR)
+    SUBROUTINE wm_setm_boundary(NR)
 
       USE wmcomm
       IMPLICIT NONE
@@ -1303,8 +1279,8 @@ CONTAINS
                ENDDO
                CEMP(MBND,NDX,MDX,2)= 1.D0
                CEMP(MBND,NDX,MDX,3)= 1.D0
-               CFVP(NDX,MDX,2)= CEWALL(MDX,NDX,2)
-               CFVP(NDX,MDX,3)= CEWALL(MDX,NDX,3)
+               CFVP(NDX,MDX,2)= CEWALL(2,MDX,NDX)
+               CFVP(NDX,MDX,3)= CEWALL(3,MDX,NDX)
 
             ENDDO
          ENDDO
@@ -1354,5 +1330,5 @@ CONTAINS
       ENDIF
 
       RETURN
-    END SUBROUTINE WMSETM_B
+    END SUBROUTINE wm_setm_boundary
   END MODULE wmsetm

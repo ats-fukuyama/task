@@ -3,7 +3,7 @@
 MODULE wmprof
 
   PRIVATE
-  PUBLIC wmcden,wmcmag
+  PUBLIC wmcden,wmcmag,wmcpos
 
 CONTAINS
 
