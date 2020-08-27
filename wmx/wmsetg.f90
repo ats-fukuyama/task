@@ -20,12 +20,12 @@ CONTAINS
     IF(NTHMAX.EQ.1) THEN
        NTHMAX_F=1
     ELSE
-       NTHMAX_F=NINT(NTHMAX*factor_nth)
+       NTHMAX_F=2
     END IF
     IF(NHHMAX.EQ.1) THEN
        NHHMAX_F=1
     ELSE
-       NHHMAX_F=NINT(NHHMAX*factor_nhh)
+       NHHMAX_F=2*NHHMAX
     END IF
 
     SELECT CASE(MODELG)

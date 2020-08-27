@@ -25,7 +25,7 @@ FFLAGS=$(DFLAGS)
 MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) -I../dp/$(MOD) \
             -I../lib/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
-SRCS = wmcomm.f90 vmcomm.f90 wmeqin.f90 wmsub.f90 \
+SRCS = wmcomm.f90 vmcomm.f90 wmsub.f90 \
        wminit.f90 wmparm.f90 wmview.f90 \
        wmsetg.f90 wmprof.f90 wmdisp.f90 \
        wmsetf.f90 wmsetm.f90 \
@@ -90,7 +90,6 @@ wmsub.o: wmsub.f90 wmcomm.f90
 wminit.o: wminit.f90 wmcomm.f90
 wmparm.o: wmparm.f90 ../dp/dpcomm.f90 ../pl/plcomm.f90 wmcomm.f90
 wmview.o: wmview.f90 wmcomm.f90
-wmeqin.f: wmeqin.f ../eq/eqcomq.inc 
 wmsetg.o: wmsetg.f90 wmeqin.f ../pl/plprof.f90 wmcomm.f90
 wmprof.o: wmprof.f90 ../pl/plprof.f90 wmcomm.f90
 wmdisp.o: wmdisp.f90 wmprof.f90 ../dp/dptnsr0.f90 ../pl/plprofw.f90 ../pl/plprof.f90 ../lib/libdsp.f90 wmcomm.f90

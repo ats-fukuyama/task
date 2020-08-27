@@ -230,6 +230,8 @@ CONTAINS
        mlen=3*nrmax*nthmax*nhhmax+mwgmax*namax
     END IF
     mbnd=12*nthmax*nhhmax-1
+    nthmax_f=2*nthmax
+    nhhmax_f=2*nhhmax
 
     ALLOCATE(XR(nrmax+1),XRHO(nrmax+1))
     ALLOCATE(CJANT(3,nthmax,nhhmax))

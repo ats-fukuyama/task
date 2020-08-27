@@ -57,15 +57,14 @@ CONTAINS
     USE wmcomm
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
-    REAL(rkind),DIMENSION(0:3,1:3,2:3):: RHO &
-         =(/ &
-                3.832, 1.841, 3.054, 4.201, &
+    INTEGER:: NDX,MDX,NMODE,IMODE,NA
+    REAL(rkind),DIMENSION(0:3,1:3,2:3):: RHO
+    DATA RHO/   3.832, 1.841, 3.054, 4.201, &
                 7.016, 5.332, 6.706, 8.015, &
                10.173, 8.536, 9.969,11.346, &
                 2.405, 3.832, 5.136, 6.380, &
                 5.520, 7.016, 8.417, 9.761, &
-                8.654,10.173,11.620,13.015/)
-    INTEGER:: NDX,MDX,NMODE,IMODE,NA
+                8.654,10.173,11.620,13.015/
     
     IF(RD.LE.RA.OR.RD.GE.RB) THEN
        IF(NRANK.EQ.0) WRITE(6,*) '!! WMSETJ: RD = (RA+RB)/2'
