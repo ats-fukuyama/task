@@ -167,15 +167,17 @@ MODULE wmcomm
   COMPLEX(rkind),ALLOCATABLE:: CBN(:,:,:,:),CBP(:,:,:,:)
 
   REAL(rkind),ALLOCATABLE:: PABS(:,:,:,:),PABSK(:,:,:,:),PABSR(:,:,:)
-  REAL(rkind),ALLOCATABLE:: PABSRT(:,:),PABST(:,:),PABSTT(:),PABSTS(:)
+  REAL(rkind),ALLOCATABLE:: PABSKT(:,:,:),PABSRT(:,:),PABST(:)
+  REAL(rkind):: PABSTT
+  REAL(rkind),ALLOCATABLE:: PABST3D(:,:),PABSTT3D(:)
   COMPLEX(rkind),ALLOCATABLE:: CPABS(:,:,:,:),CPABSK(:,:,:,:),CPABSR(:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CPABS3D(:,:,:,:),CPABS3DK(:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CPABS3DR(:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CFLX(:,:,:),CFLXK(:,:,:),CFLXR(:,:)
   COMPLEX(rkind),ALLOCATABLE:: CFLX3D(:,:,:),CFLX3DK(:,:,:),CFLX3DR(:,:)
   COMPLEX(rkind),ALLOCATABLE:: CFLXRR(:),CFLXT(:)
-  COMPLEX(rkind),ALLOCATABLE:: CRADK(:,:,:),CRADKT(:,:),CRADT(:)
-  COMPLEX(rkind):: CRADTT
+  COMPLEX(rkind),ALLOCATABLE:: CPRADK(:,:)
+  COMPLEX(rkind):: CPRAD
   REAL(rkind),ALLOCATABLE:: PCUR(:,:,:),PCURR(:)
   REAL(rkind):: PCURT
 
@@ -264,10 +266,11 @@ CONTAINS
     ALLOCATE(PABS(nthmax,nhhmax,nrmax,nsmax))
     ALLOCATE(PABSK(nthmax,nhhmax,nrmax,nsmax))
     ALLOCATE(PABSR(nhhmax,nrmax,nsmax))
+    ALLOCATE(PABSKT(nthmax,nhhmax,nsmax))
     ALLOCATE(PABSRT(nrmax,nsmax))
-    ALLOCATE(PABST(nphmax,nsmax))
-    ALLOCATE(PABSTT(nphmax))
-    ALLOCATE(PABSTS(nsmax))
+    ALLOCATE(PABST(nsmax))
+    ALLOCATE(PABST3D(nphmax,nsmax))
+    ALLOCATE(PABSTT3D(nphmax))
     ALLOCATE(CPABS(nthmax,nhhmax,nrmax,nsmax))
     ALLOCATE(CPABSK(nthmax,nhhmax,nrmax,nsmax))
     ALLOCATE(CPABSR(nhhmax,nrmax,nsmax))
@@ -282,7 +285,7 @@ CONTAINS
     ALLOCATE(CFLX3DR(nphmax,nrmax+1))
     ALLOCATE(CFLXRR(nrmax+1))
     ALLOCATE(CFLXT(nphmax+1))
-    ALLOCATE(CRADK(nthmax,nhhmax,namax),CRADKT(nthmax,nhhmax),CRADT(namax))
+    ALLOCATE(CPRADK(nthmax,nhhmax))
     ALLOCATE(PCUR(nthmax,nhhmax,nrmax),PCURR(nrmax))
 
     ALLOCATE(RPST(nthmax_f,nhhmax_f,nrmax+1))
@@ -336,12 +339,12 @@ CONTAINS
     DEALLOCATE(CEN,CEP,CBN,CBP)
 
     DEALLOCATE(PABS,PABSK,PABSR)
+    DEALLOCATE(PABSKT,PABSRT,PABST,PABST3D,PABSTT3D)
     DEALLOCATE(CPABS,CPABSK,CPABSR)
     DEALLOCATE(CPABS3D,CPABS3DK,CPABS3DR)
-    DEALLOCATE(PABSR,PABST,PABSTT,PABSTS)
     DEALLOCATE(CFLX,CFLXK,CFLXR)
     DEALLOCATE(CFLX3D,CFLX3DK,CFLX3DR,CFLXR,CFLXT)
-    DEALLOCATE(CRADK,CRADKT,CRADT)
+    DEALLOCATE(CPRADK)
     DEALLOCATE(PCUR,PCURR)
 
     DEALLOCATE(RSU,ZSU)

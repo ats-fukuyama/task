@@ -18,7 +18,7 @@ MODULE wmsetm
   COMPLEX(rkind),ALLOCATABLE:: CGDDH(:,:,:,:,:,:,:)
   
   PRIVATE
-  PUBLIC wm_setm
+  PUBLIC wm_setm,wm_setv
 
 CONTAINS
 
@@ -70,6 +70,28 @@ CONTAINS
 
     RETURN
   END SUBROUTINE wm_setm
+
+!     ****** CALCULATE LOCAL right_hand_side vector ******
+
+  SUBROUTINE wm_setv(NR,CFVP_)
+
+    USE wmcomm
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: NR
+    COMPLEX(rkind),INTENT(OUT):: CFVP_(nhhmax,nthmax,3)
+    INTEGER:: ndx,mdx,i
+    
+    CALL wm_setm_vector(NR)
+
+    DO i=1,3
+       DO mdx=1,mdsiz
+          DO ndx=1,ndsiz
+             CFVP_(ndx,mdx,i)=CFVP(ndx,mdx,i)
+          END DO
+       END DO
+    END DO
+    RETURN
+  END SUBROUTINE wm_setv
 
   ! --- allocate wmsetm local data ---
 

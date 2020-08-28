@@ -201,7 +201,10 @@ CONTAINS
        xmax=MAX(xmax,time_ob(nstp_max_nobt(nobt),nobt))
     END DO
 
-    CALL PAGES
+    DO nfig=1,12
+       
+       IF(MODnfig-1
+CALL PAGES
     fmin=zetab_ob(0,1)
     fmax=zetab_ob(0,1)
     DO nobt=1,nobt_max

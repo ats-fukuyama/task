@@ -30,11 +30,12 @@ SRCS = wmcomm.f90 vmcomm.f90 wmsub.f90 \
        wmsetg.f90 wmprof.f90 wmdisp.f90 \
        wmsetf.f90 wmsetm.f90 \
        wmsolv.f90 wmexec.f90 \
+       wmemfp.f90 wmpout.f90 wmgout.f90 wmgsub.f90 \
        wmmenu.f90
 SRC7 = wmeqin.f
 
 SRCX = wmxprf.f90 wmdprf.f90 \
-       wmpout.f90 wmgout.f90 wmgsub.f90 wmdout.f90 wmfout.f90 \
+       wmdout.f90 wmfout.f90 \
        wmloop.f90 wmtaem.f90 \
        wmvmec.f90 wmbooz.f90 wmvout.f90 wmtpcs.f90 \
        wmeign.f90 \
@@ -97,6 +98,11 @@ wmsetf.o: wmsetf.f90 wmprof.f90 wmdisp.f90 wmsub.f90 ../lib/libfft.f90 wmcomm.f9
 wmsetm.o: wmsetm.f90 wmsetf.f90 ../pl/plprof.f90 wmcomm.f90
 wmsolv.o: wmsolv.f90 wmcomm.f90
 wmexec.o: wmexec.f90 wmsetg.f90 wmsolv.f90 wmsub.f90 ../dp/dpparm.f90 wmcomm.f90
+
+wmemfp.o: wmemfp.f90 wmcomm.f90
+wmpout.o: wmpout.f90 wmcomm.f90
+wmgout.o: wmgout.f90 wmgsub.f90 wmcomm.f90
+wmgsub.o: wmgsub.f90
 
 wmmenu.o: wmmenu.f90 wmcomm.f90
 wmmain.o: wmmain.f90 wmcomm.f90
