@@ -24,13 +24,15 @@ CONTAINS
 !                 =1 : single toroidal mode calculation
 !                 >1 : multi toroidal mode calculation (-NPHMAX/2+1..NPHMAX/2)
 !                      NPHMAX >= NHHMAX*NHC
+!     factor_nth : ratio of nthmax_f and nthmax [INTEGER]    
+!     factor_nhh : ratio of nhhmax_f and nhhmax [INTEGER]    
 
       NRMAX   = 50
       NTHMAX  = 1
       NHHMAX  = 1
       NPHMAX  = 1
-      factor_nth = 2.D0
-      factor_nhh = 2.D0
+      factor_nth = 2
+      factor_nhh = 2
 
 !     NSUMAX: Number of plasma surface plot points
 !     NSWMAX: Number of wall surface plot points 

@@ -1,17 +1,19 @@
-! wmebpf.f90
+! wmemfp.f90
 
-MODULE wmebpf
+MODULE wmemfp
 
   PRIVATE
-  PUBLIC wm_efld,wm_bfld,wm_pflx,wm_pant,wm_pabs
+  PUBLIC wm_efield,wm_bfield,wm_pwrflux,wm_pwrant,wm_pabs
 
 CONTAINS
   
 !     ****** CALCULATE ELECTRIC FIELD ******
 
-  SUBROUTINE wm_efld
+  SUBROUTINE wm_efield
 
     USE wmcomm
+    USE wmprof
+    USE wmsub
     IMPLICIT NONE
     COMPLEX(rkind),ALLOCATABLE:: CEF1(:,:),CEF2(:,:),CEFM1(:,:),CEFM2(:,:)
     COMPLEX(rkind),ALLOCATABLE:: CEFLDR(:,:),CRMARHF(:,:),CEFLDM(:,:,:,:)
@@ -113,7 +115,7 @@ CONTAINS
           CEFM1(1:nthmax,1:nhhmax)=(0.D0,0.D0)
           DO NDX=1,NDSIZ
              DO MDX=1,MDSIZ
-                CEFM1(MDX,NDXM)=CEFLD(I,MDX,NDX,NR)
+                CEFM1(MDX,NDX)=CEFLD(I,MDX,NDX,NR)
              ENDDO
           ENDDO
           CALL WMSUBE(CEFM1,CEFM2)
@@ -169,8 +171,8 @@ CONTAINS
 
        DO NHH=1,NHHMAX
           DO NTH=1,NTHMAX
-             NHHF=(NHH-1)*2 +1
-             NTHF=(NTH-1)*2 +1
+             NHHF=(NHH-1)*FACTOR_NHH +1
+             NTHF=(NTH-1)*FACTOR_NTH +1
 
 !        ----- Calculate rotation matrix mu=RMA -----
 
@@ -256,8 +258,8 @@ CONTAINS
     DO NR=1,NRMAX+1
        DO NHH=1,NHHMAX
           DO NTH=1,NTHMAX
-             NHHF=(NHH-1)*2 +1
-             NTHF=(NTH-1)*2 +1
+             NHHF=(NHH-1)*FACTOR_NHH+1
+             NTHF=(NTH-1)*FACTOR_NTH +1
  
              RF11=(RG22(NTHF,NHHF,NR)*RG33(NTHF,NHHF,NR) &
                   -RG23(NTHF,NHHF,NR)**2)/RJ(NTHF,NHHF,NR)**2
@@ -277,12 +279,13 @@ CONTAINS
     ENDDO
 
     RETURN
-  END SUBROUTINE wm_efld
+  END SUBROUTINE wm_efield
 
 !     ****** CALCULATE MAGNETIC FIELD ******
 
-  SUBROUTINE wm_bfld
+  SUBROUTINE wm_bfield
     USE wmcomm
+    USE wmsub
     IMPLICIT NONE
     COMPLEX(rkind),ALLOCATABLE:: CBF1(:,:),CBF2(:,:)
     COMPLEX(rkind):: CW,CBFLD1,CBFLD2,CBFLD3
@@ -376,8 +379,8 @@ CONTAINS
     DO NR=1,NRMAX+1
        DO NHH=1,NHHMAX
           DO NTH=1,NTHMAX
-             NHHF=(NHH-1)*2 +1
-             NTHF=(NTH-1)*2 +1
+             NHHF=(NHH-1)*FACTOR_NHH +1
+             NTHF=(NTH-1)*FACTOR_NTH +1
              CBFLD(1,NTH,NHH,NR)=CBFLD(1,NTH,NHH,NR)/RJ(NTHF,NHHF,NR) &
                                 *SQRT(RG11(NTHF,NHHF,NR))
              CBFLD(2,NTH,NHH,NR)=CBFLD(2,NTH,NHH,NR)/RJ(NTHF,NHHF,NR) &
@@ -389,7 +392,7 @@ CONTAINS
     ENDDO
 
     RETURN
-  END SUBROUTINE wm_bfld
+  END SUBROUTINE wm_bfield
 
 !     ****** HERMITIAN ******
 
@@ -405,19 +408,20 @@ CONTAINS
 
 !     ****** CALCULATE ENERGY FLUX ******
 
-  SUBROUTINE wm_pflx
+  SUBROUTINE wm_pwrflux
 
     USE wmcomm
     IMPLICIT NONE
 
     RETURN
-  END SUBROUTINE wm_pflx
+  END SUBROUTINE wm_pwrflux
 
 !     ****** CALCULATE ANTENNA IMPEDANCE ******
 
-  SUBROUTINE wm_pant
+  SUBROUTINE wm_pwrant
 
     USE wmcomm
+    USE wmsetm
     IMPLICIT NONE
     COMPLEX(rkind),ALLOCATABLE:: CFVP(:,:,:)
     COMPLEX(rkind):: CCE1,CCE2,CCE3,CPRAD_L
@@ -464,7 +468,7 @@ CONTAINS
     ENDIF
 
     RETURN
-  END SUBROUTINE wm_pant
+  END SUBROUTINE wm_pwrant
 
 !     ****** CALCULATE CURRENT DRIVE EFFICIENCY ******
 
@@ -478,7 +482,8 @@ CONTAINS
   FUNCTION W1CDEF(WT,Z,XL,YL,ID)
     USE wmcomm
     IMPLICIT NONE
-    REAL(rkind),INTENT(IN):: WT,Z,XL,YL,ID
+    REAL(rkind),INTENT(IN):: WT,Z,XL,YL
+    INTEGER,INTENT(IN):: ID
     REAL(rkind):: W1CDEF
     REAL(rkind):: R,D,QC,A,RM,RC,W,EFF0,EFF1,Y2,Y1,EFF2,YT,ARG,EFF3
 
@@ -532,8 +537,11 @@ CONTAINS
 
 !     ****** CALCULATE ABSORBED POWER ******
 
-  SUBROUTINE WMPABS
+  SUBROUTINE wm_pabs
     USE wmcomm
+    USE wmsetf
+    USE wmprof
+    USE wmsub
     IMPLICIT NONE
     INTEGER,ALLOCATABLE:: iposa(:),ilena(:)
     REAL(rkind),ALLOCATABLE:: DS(:),DSS(:,:,:)
@@ -543,12 +551,27 @@ CONTAINS
     COMPLEX(rkind),ALLOCATABLE,DIMENSION(:,:,:,:):: CPABSKC
     COMPLEX(rkind),ALLOCATABLE,DIMENSION(:):: CFA,CFB
     REAL(rkind):: RN(NSMAX),RTPR(NSMAX),RTPP(NSMAX),RU(NSMAX)
+    REAL(rkind):: RNC(NSMAX),RTPRC(NSMAX),RTPPC(NSMAX),RUC(NSMAX)
     COMPLEX(rkind):: CDV(3,3,3),CDW(3,3,3)
-    COMPLEX(rkind):: CW
+    COMPLEX(rkind):: CW,CDV11M,CDV11C,CDV12M,CDV12C,CDV13M,CDV13C
+    COMPLEX(rkind):: CDV21C,CDV22C,CDV23C,CDV31C,CDV32C,CDV33C
+    COMPLEX(rkind):: CEMM11,CEMC11,CEMM12,CEMC12,CEMM13,CEMC13
+    COMPLEX(rkind):: CEMC21,CEMP21,CEMC22,CEMC23
+    COMPLEX(rkind):: CEMP31,CEMC31,CEMC32,CEMC33
+    COMPLEX(rkind):: CCE1,CCE2,CCE3
+    COMPLEX(rkind):: CPM11,CPC11,CPM12,CPC12,CPM13,CPC13
+    COMPLEX(rkind):: CPC21,CPP21,CPC22,CPP22,CPC23
+    COMPLEX(rkind):: CPC31,CPP31,CPC32,CPP32,CPC33
+    COMPLEX(rkind):: CPABSM,CPABSC
     REAL(rkind):: DTH,DHH,XRHOC,XRHOM,XRHOP,XRHOMH,XRHOPH,DRHOM,DRHOP
-    REAL(rkind):: QPMH,QPC,DPSIDRHOMH,DPSIDRHOC,DRHOPM,FMHM,FMHC,FCMH,FCPH
+    REAL(rkind):: QPMH,QPC,FMHM,FMHC,FCMH,FCPH
+    REAL(rkind):: DPSIPDRHOMH,DPSIPDRHOC,DRHOPM
+    REAL(rkind):: FACT1M,FACT1C,FACT2C,FACT2P,FACT3C,FACT3P
+    REAL(rkind):: VTE,WW,RLNLMD,RT,VTEC,RLNLMDC,RTC
+    REAL(rkind):: BABS,BSUPTH,BSUPPH,RKPR,W,XL,YL,EFCD
     INTEGER:: NM,NBSTX,NBEDX,NR,NS,NHH,NTH,NDX,KDX,MDX,LDX,I,J,MLX,NKX
-    INTEGER:: ND,NK,KDMAX_TMP,LL,KD,KK,KKX,KX1,NX1,MD
+    INTEGER:: ND,NK,KDMAX_TMP,LL,KD,KK,KKX,KX1,NX1,MD,NRPP,ML,LDMAX_TMP,LLX
+    INTEGER:: LD,LX1,MX1,K,NHHF,NTHF,NN,MM
 
     ALLOCATE(DS(nrmax),DSS(nthmax,nhhmax,nrmax))
     ALLOCATE(CPF1(nthmax,nhhmax),CPF2(nthmax,nhhmax))
@@ -581,7 +604,7 @@ CONTAINS
 
     NR=nr_start
     DO NS=1,NSMAX
-       CALL WMSETF(NR,NS)
+       CALL wm_setf(NR,NS)
        DO NDX=1,NDSIZ
           DO KDX=1,KDSIZ_F
              DO MDX=1,MDSIZ
@@ -609,7 +632,7 @@ CONTAINS
              ENDDO !kdx
           ENDDO !nkx
 
-          CALL WMSETF(NR+1,NS)
+          CALL wm_setf(NR+1,NS)
           DO NDX=1,NDSIZ
              DO KDX=1,KDSIZ_F
                 DO MDX=1,MDSIZ
@@ -852,8 +875,6 @@ CONTAINS
                 CALL WMSUBE(CPF1,CPF2)
                 DO NHH=1,NHHMAX
                    DO NTH=1,NTHMAX
-                      NHHF=NHH
-                      NTHF=NTH
                       CPABS(NTH,NHH,NR,NS)=CPABS(NTH,NHH,NR,NS) &
                            +CPF2(NTH,NHH)
                       CPABS3D(NTH,NHH,NR,NS)=CPABS3D(NTH,NHH,NR,NS) &
@@ -879,8 +900,6 @@ CONTAINS
                 CALL WMSUBE(CPF1,CPF2)
                 DO NHH=1,NHHMAX
                    DO NTH=1,NTHMAX
-                      NHHF=NHH
-                      NTHF=NTH
                       CPABS(NTH,NHH,NR+1,NS)=CPABS(NTH,NHH,NR+1,NS) &
                            +CPF2(NTH,NHH)
                       CPABS3D(NTH,NHH,NR+1,NS)=CPABS3D(NTH,NHH,NR+1,NS) &
@@ -927,8 +946,8 @@ CONTAINS
                    CALL WMSUBE(CPF1,CPF2)
                    DO NHH=1,NHHMAX
                       DO NTH=1,NTHMAX
-                         NHHF=(NHH-1)*NFACT +1
-                         NTHF=(NTH-1)*MFACT +1
+                         NHHF=(NHH-1)*FACTOR_NHH+1
+                         NTHF=(NTH-1)*FACTOR_NTH+1
                          CALL WMCMAG(NR,NTHF,NHHF,BABS,BSUPTH,BSUPPH)
                          RKPR=MM*BSUPTH/BABS+NN*BSUPPH/BABS
                          IF(ABS(RKPR).LT.1.D-8) RKPR=1.D-8
@@ -956,8 +975,8 @@ CONTAINS
                    CALL WMSUBE(CPF1,CPF2)
                    DO NHH=1,NHHMAX
                       DO NTH=1,NTHMAX
-                         NHHF=(NHH-1)*NFACT +1
-                         NTHF=(NTH-1)*MFACT +1
+                         NHHF=(NHH-1)*FACTOR_NHH +1
+                         NTHF=(NTH-1)*FACTOR_NTH +1
                          CALL WMCMAG(NR+1,NTHF,NHHF,BABS,BSUPTH,BSUPPH)
                          RKPR=MM*BSUPTH/BABS+NN*BSUPPH/BABS
                          IF(ABS(RKPR).LT.1.D-8) RKPR=1.D-8
@@ -987,5 +1006,5 @@ CONTAINS
     DEALLOCATE(CPABSKC)
 
     RETURN
-  END SUBROUTINE WMPABS
-END MODULE wmebpf
+  END SUBROUTINE wm_pabs
+END MODULE wmemfp

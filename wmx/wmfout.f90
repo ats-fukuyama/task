@@ -194,8 +194,8 @@ C
          DRHO=0.5D0*(XRHO(NR+1)-XRHO(NR-1))
          DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-         NHHF=(NHH-1)*NFACT +1
-         NTHF=(NTH-1)*MFACT +1
+         NHHF=(NHH-1)*FACTOR_NHH +1
+         NTHF=(NTH-1)*FACTOR_NTH +1
             IF(MODELG.EQ.3) THEN
                DPSIPDRHO=2.D0*PSITA*XRHO(NR)/QPS(NR)
             ELSE

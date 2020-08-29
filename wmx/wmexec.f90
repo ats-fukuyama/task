@@ -14,6 +14,8 @@ CONTAINS
     USE wmcomm
     USE wmsetg
     USE wmsolv
+    USE wmemfp
+    USE wmpout
     USE dpparm
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
@@ -37,15 +39,15 @@ CONTAINS
      
     CALL wm_solv
     
-!    CALL wm_efield
-!    CALL wm_bfield
-!    CALL wm_pabs
+    CALL wm_efield
+    CALL wm_bfield
+    CALL wm_pabs
     IF(nrank.EQ.0) THEN
-!       CALL wm_pwrflux
-!       CALL wm_pwrant
+       CALL wm_pwrflux
+       CALL wm_pwrant
     ENDIF
     IF(nrank.EQ.0) THEN
-!       CALL wm_pout
+       CALL wm_pout
 !       IF(nprint.GE.5) CALL wm_dout(ierr)
     ENDIF
     RETURN

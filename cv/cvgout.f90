@@ -72,7 +72,7 @@ CONTAINS
        END DO
        title='@'//country_id_nlist(nlist)//': '// &
                   TRIM(country_name_nlist(nlist))//': '// &
-                  region_name_nlist(nlist)//': '// &
+                  region_id_nlist(nlist)//': '// &
                   'total cases@'
        ndata=1
     CASE(2)
@@ -81,7 +81,7 @@ CONTAINS
        END DO
        title='@'//country_id_nlist(nlist)//': '// &
                   TRIM(country_name_nlist(nlist))//': '// &
-                  region_name_nlist(nlist)//': '// &
+                  region_id_nlist(nlist)//': '// &
                   'total deaths@'
        ndata=1
     CASE(3)
@@ -90,7 +90,7 @@ CONTAINS
        END DO
        title='@'//country_id_nlist(nlist)//': '// &
                   TRIM(country_name_nlist(nlist))//': '// &
-                  region_name_nlist(nlist)//': '// &
+                  region_id_nlist(nlist)//': '// &
                   'new cases@'
        ndata=1
     CASE(4)
@@ -99,7 +99,7 @@ CONTAINS
        END DO
        title='@'//country_id_nlist(nlist)//': '// &
                   TRIM(country_name_nlist(nlist))//': '// &
-                  region_name_nlist(nlist)//': '// &
+                  region_id_nlist(nlist)//': '// &
                   'new deaths@'
        ndata=1
     CASE(5)
@@ -117,7 +117,7 @@ CONTAINS
        END DO
        title='@'//country_id_nlist(nlist)//': '// &
                   TRIM(country_name_nlist(nlist))//': '// &
-                  region_name_nlist(nlist)//': '// &
+                  region_id_nlist(nlist)//': '// &
                   'new cases (7days ave)@'
        ndata=2
     CASE(6)
@@ -135,7 +135,7 @@ CONTAINS
        END DO
        title='@'//country_id_nlist(nlist)//': '// &
                   TRIM(country_name_nlist(nlist))//': '// &
-                  region_name_nlist(nlist)//': '// &
+                  region_id_nlist(nlist)//': '// &
                   'new deaths (7 dasy ave)@'
        ndata=2
     END SELECT

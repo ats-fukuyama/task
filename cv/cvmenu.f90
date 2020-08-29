@@ -16,6 +16,8 @@ CONTAINS
     USE cvview,ONLY: cv_view
     USE cvfile,ONLY: cv_read,cv_write
     USE cvgout,ONLY: cv_gout
+    USE cvregion,ONLY: cv_region
+    USE cvselect,ONLY: cv_select
     USE cvlib
     IMPLICIT NONE
     CHARACTER(LEN=1):: kid
@@ -27,9 +29,9 @@ CONTAINS
 
 1   CONTINUE
     ierr=0
-    WRITE(6,601)
-601 FORMAT('## CV MENU: P,V/parm  R/read  C/convert  G/graph  T/test', &
-                '  Q/quit')
+    WRITE(6,'(A,A)') &
+         '## CV MENU: P,V/parm  L/load  C/convert  G/graph  R/region  ', &
+         'S/select  Q/quit'
     CALL task_klin(line,kid,mode,cv_parm)
     IF(mode.NE.1) GOTO 1
 
@@ -37,7 +39,7 @@ CONTAINS
        CALL cv_parm(0,'CV',ierr)
     ELSEIF(kid.EQ.'V') THEN
        CALL cv_view
-    ELSEIF(kid.EQ.'R') THEN
+    ELSEIF(kid.EQ.'L') THEN
        CALL cv_read(ierr)
        nstat=1
     ELSEIF(kid.EQ.'C') THEN
@@ -49,6 +51,18 @@ CONTAINS
           WRITE(6,'(A)') 'XX cvmenu: No date ha been loaded'
        ELSE
           CALL cv_gout
+       END IF
+    ELSEIF(kid.EQ.'R') THEN
+       IF(nstat.EQ.0) THEN
+          WRITE(6,'(A)') 'XX cvmenu: No date ha been loaded'
+       ELSE
+          CALL cv_region
+       END IF
+    ELSEIF(kid.EQ.'S') THEN
+       IF(nstat.EQ.0) THEN
+          WRITE(6,'(A)') 'XX cvmenu: No date ha been loaded'
+       ELSE
+          CALL cv_select
        END IF
     ELSEIF(kid.EQ.'T') THEN
 7001   CONTINUE

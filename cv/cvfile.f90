@@ -26,11 +26,11 @@ CONTAINS
     CHARACTER(LEN=10):: date_id
     CHARACTER(LEN=2):: country_id
     CHARACTER(LEN=80):: country_name
-    CHARACTER(LEN=4):: region_name
+    CHARACTER(LEN=4):: region_id
     CHARACTER(LEN=10),ALLOCATABLE:: date_id_ndata(:)
     CHARACTER(LEN=2),ALLOCATABLE:: country_id_ndata(:)
     CHARACTER(LEN=80),ALLOCATABLE:: country_name_ndata(:)
-    CHARACTER(LEN=4),ALLOCATABLE:: region_name_ndata(:)
+    CHARACTER(LEN=4),ALLOCATABLE:: region_id_ndata(:)
     INTEGER:: ncases_new,ncases_total,ndeaths_new,ndeaths_total
     INTEGER,ALLOCATABLE:: &
          ncases_new_ndata(:),ncases_total_ndata(:), &
@@ -70,7 +70,7 @@ CONTAINS
        date_id=line(1:ipos_comma(1)-1)
        country_id=line(ipos_comma(1)+1:ipos_comma(2)-1)
        country_name=line(ipos_comma(2)+1:ipos_comma(3)-1)
-       region_name=line(ipos_comma(3)+1:ipos_comma(4)-1)
+       region_id=line(ipos_comma(3)+1:ipos_comma(4)-1)
        READ(line(ipos_comma(4)+1:ipos_comma(5)-1),*) ncases_new
        READ(line(ipos_comma(5)+1:ipos_comma(6)-1),*) ncases_total
        READ(line(ipos_comma(6)+1:ipos_comma(7)-1),*) ndeaths_new
@@ -94,7 +94,7 @@ CONTAINS
     ALLOCATE(date_id_ndata(ndata_max))
     ALLOCATE(country_id_ndata(ndata_max))
     ALLOCATE(country_name_ndata(ndata_max))
-    ALLOCATE(region_name_ndata(ndata_max))
+    ALLOCATE(region_id_ndata(ndata_max))
     ALLOCATE(ncases_new_ndata(ndata_max))
     ALLOCATE(ncases_total_ndata(ndata_max))
     ALLOCATE(ndeaths_new_ndata(ndata_max))
@@ -131,7 +131,7 @@ CONTAINS
        ELSE
           country_name_ndata(ndata)=line(ipos_comma(2)+1:ipos_comma(3)-1)
        END IF
-       region_name_ndata(ndata)=line(ipos_comma(3)+1:ipos_comma(4)-1)
+       region_id_ndata(ndata)=line(ipos_comma(3)+1:ipos_comma(4)-1)
        READ(line(ipos_comma(4)+1:ipos_comma(5)-1),*) ncases_new_ndata(ndata)
        READ(line(ipos_comma(5)+1:ipos_comma(6)-1),*) ncases_total_ndata(ndata)
        READ(line(ipos_comma(6)+1:ipos_comma(7)-1),*) ndeaths_new_ndata(ndata)
@@ -171,27 +171,27 @@ CONTAINS
     nlist_max=nlist
     WRITE(6,'(A,I8)') '## nlist_max=',nlist_max
 
-    ! --- make lists of country_id, country_name and region_name
+    ! --- make lists of country_id, country_name and region_id
     
     IF(ALLOCATED(country_id_nlist)) THEN
        DEALLOCATE(country_id_nlist)
        DEALLOCATE(country_name_nlist)
-       DEALLOCATE(region_name_nlist)
+       DEALLOCATE(region_id_nlist)
     END IF
     ALLOCATE(country_id_nlist(nlist_max))
     ALLOCATE(country_name_nlist(nlist_max))
-    ALLOCATE(region_name_nlist(nlist_max))
+    ALLOCATE(region_id_nlist(nlist_max))
     
     DO ndata=1,ndata_max
        IF(nlist_ndata(ndata).NE.0) THEN
           nlist=nlist_ndata(ndata)
           country_id_nlist(nlist)=country_id_ndata(ndata)
           country_name_nlist(nlist)=country_name_ndata(ndata)
-          region_name_nlist(nlist)=region_name_ndata(ndata)
+          region_id_nlist(nlist)=region_id_ndata(ndata)
        END IF
     END DO
 
-    DEALLOCATE(country_id_ndata,country_name_ndata,region_name_ndata)
+    DEALLOCATE(country_id_ndata,country_name_ndata,region_id_ndata)
 
     ! --- convert date string to ndate --- ndata=1 for 2020-01-21
 
@@ -334,7 +334,7 @@ CONTAINS
        END IF
        WRITE(nfl,format2,IOSTAT=nstat,ERR=9002) &
             country_id_nlist(nlist),TRIM(country_name), &
-            region_name_nlist(nlist), &
+            region_id_nlist(nlist), &
             (ncases_total_ndate_nlist(ndate,nlist),ndate=1,ndate_max)
     END DO
     CLOSE(nfl)
@@ -366,7 +366,7 @@ CONTAINS
        END IF
        WRITE(nfl,format2,IOSTAT=nstat,ERR=9004) &
             country_id_nlist(nlist),TRIM(country_name), &
-            region_name_nlist(nlist), &
+            region_id_nlist(nlist), &
             (ndeaths_total_ndate_nlist(ndate,nlist),ndate=1,ndate_max)
     END DO
     CLOSE(nfl)

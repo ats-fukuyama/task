@@ -90,7 +90,7 @@ CONTAINS
           ENDDO
 
           DO NS=NS1,NS2
-             WRITE(6,'(A,4I8)') 'setf: NR,NS,MD,ND=',NR,NS,MD,ND
+!             WRITE(6,'(A,4I8)') 'setf: NR,NS,MD,ND=',NR,NS,MD,ND
              CALL wm_tnsr(NR,NS,MD,ND)
 
              DO NHH=1,NHHMAX_F

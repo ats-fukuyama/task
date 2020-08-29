@@ -18,7 +18,7 @@ CONTAINS
     IF(NPRINT.LT.1) RETURN
 
     IF(NRANK.EQ.0) THEN
-       WRITE(6,601) CRADTT,PABSTT,PCURT
+       WRITE(6,601) CPRAD,PABSTT,PCURT
        WRITE(6,602) (PABST(NS),NS=1,NSMAX)
     ENDIF
 
@@ -32,7 +32,7 @@ CONTAINS
           DO MD=MDMIN,MDMAX
              MDX=MD-MDMIN+1
              MM=NTH0+MD
-             WRITE(6,603) NN,MM,CRADKT(MDX,NDX), &
+             WRITE(6,603) NN,MM,CPRADK(MDX,NDX), &
                           (PABSKT(MDX,NDX,NS),NS=1,NSMAX)
           ENDDO
        ENDDO
@@ -67,8 +67,6 @@ CONTAINS
     IMPLICIT NONE
     INTEGER:: NS,NR,NHH,NTH,ND,NDX,MD,MDX
 
-    CRADTT=0.D0
-    
     DO NS=1,NSMAX
        DO NR=1,NRMAX+1
           DO ND=NDMIN_F,NDMAX_F
@@ -211,8 +209,8 @@ CONTAINS
        DRHO=0.5D0*(XRHO(NR+1)-XRHO(NR-1))
        DO NHH=1,NHHMAX
           DO NTH=1,NTHMAX
-             NHHF=(NHH-1)*2+1
-             NTHF=(NTH-1)*2+1
+             NHHF=(NHH-1)*FACTOR_NHH+1
+             NTHF=(NTH-1)*FACTOR_NTH+1
              IF(MODELG.EQ.3) THEN
                 DPSIPDRHO=2.D0*PSITA*XRHO(NR)/QPS(NR)
              ELSE

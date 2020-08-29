@@ -202,8 +202,10 @@ CONTAINS
     idata(30)=ICL2
     idata(31)=NTHGMAX
     idata(32)=MDLWMK
+    idata(33)=factor_nth
+    idata(34)=factor_nhh
 
-    CALL mtx_broadcast_integer(idata,32)
+    CALL mtx_broadcast_integer(idata,34)
 
     NRMAX=idata( 1)
     NTHMAX=idata( 2)
@@ -237,6 +239,8 @@ CONTAINS
     ICL2=idata(30)
     NTHGMAX=idata(31)
     MDLWMK=idata(32)
+    factor_nth=idata(33)
+    factor_nhh=idata(34)
 
     rdata( 1)=RF
     rdata( 2)=RFI
@@ -262,10 +266,8 @@ CONTAINS
     rdata(22)=DLTNW
     rdata(23)=WAEMIN
     rdata(24)=WAEMAX
-    rdata(25)=factor_nth
-    rdata(26)=factor_nhh
 
-    CALL mtx_broadcast_real8(rdata,26)
+    CALL mtx_broadcast_real8(rdata,24)
 
     RF=rdata( 1)
     RFI=rdata( 2)

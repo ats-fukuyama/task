@@ -52,8 +52,11 @@ CONTAINS
     INTEGER:: NS
 
     NAMELIST /cv/ &
-         knam_csv_in,knam_csv_out_cases,knam_csv_out_deaths
-
+         knam_csv_in,knam_csv_out_cases,knam_csv_out_deaths, &
+         knam_csv_region_cases,knam_csv_region_deaths, &
+         knam_csv_select_cases,knam_csv_select_deaths, &
+         knam_cv_select
+    
     READ(nid,cv,IOSTAT=ist,ERR=9800,END=9900)
     
     ierr=0
@@ -72,7 +75,10 @@ CONTAINS
   SUBROUTINE cv_plst
 
     WRITE(6,'(A)') &
-         '# &cv :          knam_csv_in,knam_css_out_cases,knam_css_out_deaths'
+         '# &cv : knam_csv_in,knam_css_out_cases,knam_css_out_deaths', &
+         '        knam_csv_region_cases,knam_csv_region_deaths', &
+         '        knam_csv_select_cases,knam_csv_select_deaths', &
+         '        knam_cv_select'
     RETURN
   END SUBROUTINE cv_plst
 

@@ -398,8 +398,8 @@ C
          NTHGMAX=NTHMAX
          DO NR=1,NRMAX+1
          DO NTH=1,NTHGMAX
-            NHHF=(NHH-1)*NFACT +1
-            NTHF=(NTH-1)*MFACT +1
+            NHHF=(NHH-1)*FACTOR_NHH +1
+            NTHF=(NTH-1)*FACTOR_NTH +1
             GRL(NR,NTH)=GUCLIP(RPST(NTHF,NHHF,NR))
             GZL(NR,NTH)=GUCLIP(ZPST(NTHF,NHHF,NR))
          ENDDO
@@ -694,8 +694,8 @@ C
          NTHGMAX=NTHMAX
          DO NR=1,NRMAX+1
          DO NTH=1,NTHGMAX
-            NHHF=(NHH-1)*NFACT +1
-            NTHF=(NTH-1)*MFACT +1
+            NHHF=(NHH-1)*FACTOR_NHH +1
+            NTHF=(NTH-1)*FACTOR_NTH +1
             GRL(NR,NTH)=GUCLIP(RPST(NTHF,NHHF,NR))
             GZL(NR,NTH)=GUCLIP(ZPST(NTHF,NHHF,NR))
          ENDDO
@@ -714,9 +714,9 @@ C
       DO NR=1,NRMAX+1
       DO NTH=1,NTHMAX
          NTHP=NTH+1
-         NHHF=(NHH-1)*NFACT +1
-         NTHF=(NTH-1)*MFACT +1
-         NTHPF=(NTHP-1)*MFACT +1
+         NHHF=(NHH-1)*FACTOR_NHH+1
+         NTHF=(NTH-1)*FACTOR_NTH+1
+         NTHPF=(NTHP-1)*FACTOR_NTH+1
          IF(NTHP.GT.NTHMAX) NTHP=1
          DO NTHG=1,NTHGS
             NTHL=(NTH-1)*NTHGS+NTHG
@@ -898,8 +898,8 @@ C
 C
       DO NR=1,NRMAX+1
       DO NTH=1,NTHMAX
-         NHHF=(NHH-1)*NFACT +1
-         NTHF=(NTH-1)*MFACT +1
+         NHHF=(NHH-1)*FACTOR_NHH +1
+         NTHF=(NTH-1)*FACTOR_NTH +1
          RBS(NR,NTH)=RPST(NTHF,NHHF,NR)
          ZBS(NR,NTH)=ZPST(NTHF,NHHF,NR)
          FBS(NR,NTH)=DBLE(GFL(NR,NTH))

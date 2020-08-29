@@ -58,8 +58,8 @@ MODULE wmcomm_parm
   INTEGER:: NPH0        ! Central valude of toroidal mode number
   INTEGER:: NHC         ! Number of helical coils 
 
-  REAL(rkind):: factor_nth ! Factor of nthmax expansion for couping tensor 
-  REAL(rkind):: factor_nhh ! Factor of nhhmax expansion for couping tensor 
+  INTEGER:: factor_nth  ! Factor of nthmax expansion for couping tensor 
+  INTEGER:: factor_nhh  ! Factor of nhhmax expansion for couping tensor 
   
   INTEGER:: NAMAX           ! number of antenna
   REAL(rkind):: AJ(NAM)     ! Antenna current density [A/m]
