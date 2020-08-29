@@ -153,7 +153,7 @@ CONTAINS
     WRITE(format1,'(A,i8,A)') '(A,',ndate_max,'(",",A10))'
     WRITE(format2,'(A,i8,A)') '(A,",",A2,',ndate_max,'(",",I0))'
     WRITE(nfl,format1,IOSTAT=nstat,ERR=9001) &
-         'select cases,ID,', &
+         'select cases,ID', &
          (date_id_ndate(ndate),ndate=1,ndate_max)
     DO nselect=1,nselect_max
        country_name=country_name_nselect(nselect)
@@ -180,7 +180,7 @@ CONTAINS
     WRITE(format1,'(A,i8,A)') '(A,',ndate_max,'(",",A10))'
     WRITE(format2,'(A,i8,A)') '(A,",",A2,',ndate_max,'(",",I0))'
     WRITE(nfl,format1,IOSTAT=nstat,ERR=9001) &
-         'select deaths,ID,', &
+         'select deaths,ID', &
          (date_id_ndate(ndate),ndate=1,ndate_max)
     DO nselect=1,nselect_max
        country_name=country_name_nselect(nselect)
