@@ -2,11 +2,11 @@
 
 MODULE wmcomm_parm
 
-!  USE bpsd_kinds
-!  USE bpsd_constants
   USE commpi                    ! ncomm,nrank,nsize
 
 ! --- plcomm_parm
+!  USE bpsd_kinds
+!  USE bpsd_constants
 
   USE plcomm_parm
 
@@ -32,7 +32,9 @@ MODULE wmcomm_parm
 
   IMPLICIT NONE
   PUBLIC
-
+! Followings are defined in bpsd_kinds.f90
+!  INTEGER,PARAMETER :: dp = selected_real_kind(15) !double precision
+!  INTEGER,PARAMETER :: sp = selected_real_kind(6)  !singld precision 
   INTEGER,PARAMETER:: NAM=8       ! maximum number of antenna
 
 ! --- wm specific input parameters ---  
@@ -122,6 +124,19 @@ MODULE wmcomm_parm
 
   INTEGER:: NTHGMAX         ! number of poloidal mesh in graphics
 
+  INTERFACE
+     FUNCTION GUCLIP(X)
+       USE bpsd_kinds
+       REAL(rkind):: X
+       REAL(sp):: GUCLIP
+     END FUNCTION GUCLIP
+     FUNCTION NGULEN(X)
+       USE bpsd_kinds
+       REAL(sp):: X
+       INTEGER:: NGULEN
+     END FUNCTION NGULEN
+  END INTERFACE
+
 END MODULE wmcomm_parm
 
 MODULE wmcomm
@@ -181,6 +196,8 @@ MODULE wmcomm
   REAL(rkind),ALLOCATABLE:: PCUR(:,:,:),PCURR(:)
   REAL(rkind):: PCURT
 
+  REAL(rkind):: AMPEIGEN
+
 ! --- allocatable for FFT
   COMPLEX(rkind),ALLOCATABLE:: CFFT(:)
   REAL(rkind),ALLOCATABLE:: RFFT(:)
@@ -204,6 +221,8 @@ MODULE wmcomm
   REAL(rkind),ALLOCATABLE:: BPR(:,:),BPZ(:,:),BPT(:,:),BTP(:,:)
   REAL(rkind),ALLOCATABLE:: SIOTA(:)
   REAL(rkind),ALLOCATABLE:: RPSG(:,:),ZPSG(:,:)
+
+  INTEGER,ALLOCATABLE:: KACONT(:,:,:)
 
 CONTAINS
 
@@ -308,6 +327,8 @@ CONTAINS
     ALLOCATE(SIOTA(nrmax+1))
 
     ALLOCATE(RPSG(nthgmax,nrmax+1),ZPSG(nthgmax,nrmax+1))
+
+    ALLOCATE(KACONT(8,nrmax+1,nthmax_f))
 
     nrmax_save=nrmax
     nthmax_save=nthmax
