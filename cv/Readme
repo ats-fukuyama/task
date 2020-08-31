@@ -1,0 +1,46 @@
+This program, cv,  converts WHO-COVID-19-global-data.csv file to
+csv files including date-sequential line for each country (cases and deaths)
+summary cvs files for each region (cases and deaths)
+a date-sequential csv file for selectred countries (cases and deaths)
+
+Where to get the present WHO-COVID-19-global-data.csv
+    https://covid19.who.int/table
+    download button at the right end of the second line with an input column
+
+Input parameter file (namelist "cv")
+    cvparm
+Input file name
+    knam_csv_in='WHO-COVID-19-global-data-200821.csv'
+List of selected files
+    knam_cv_select='cv-select.data'
+Output file name (for all countries)
+    knam_csv_out_cases='cv-data-cases.csv'
+    knam_csv_out_deaths='cv-data-deaths.csv'
+Output file name (for regions)
+    knam_csv_region_cases='cv-region-cases.csv'
+    knam_csv_region_deaths='cv-region-deaths.csv'
+Output file name (for selected countries)
+    knam_csv_select_cases='cv-select-cases.csv'
+    knam_csv_select_deaths='cv-select-deaths.csv'
+
+Sample files for
+    input parameters: cvparm.sample
+    list of selected countries: cv-select.data.sample
+       countries are specified by two-alphabet-chars country-id.
+       country-id can be found in input file, csv_in or output file csv_out.
+
+Install:
+    you need gsaf, bpsd and task/lib directories and task/make.header file
+    "make"
+
+To run:
+   "./cv"
+   "5"   for graphic window size
+   "c"   to continuer and start cv
+         follow the input menu
+   "l"   to load WHO cvs file
+   "c"   to convert to date-sequential cvs files
+   "r"   to make region cvs files
+   "s"   to make selected countries cvs files
+   "g"   to show graphs (you have to start from xterm on X-window system)
+   "q"   to quit cv

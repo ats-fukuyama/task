@@ -14,10 +14,11 @@ CONTAINS
     INTEGER:: nlist_plot,nlist,id
 
 1   CONTINUE
-    WRITE(6,'(A)') '## cvgout: INPUT country_id (LEN=2):'
+    WRITE(6,'(A)') &
+         '## cvgout: INPUT country_id (LEN=2): e.g. JP for Japan, XX for end'
     READ(5,*,ERR=1,END=9000) country_id
-
     CALL TOUPPER(country_id)
+    IF(country_id.EQ.'XX') GO TO 9000
     nlist_plot=0
     DO nlist=1,nlist_max
        IF(country_id.EQ.country_id_nlist(nlist)) THEN
@@ -33,9 +34,9 @@ CONTAINS
     WRITE(6,'(A,A)') '   Now plotting: ',country_name_nlist(nlist_plot)
 
 2   CONTINUE
-    WRITE(6,'(A)') '## INPUT graph type id: 1:6'
+    WRITE(6,'(A)') '## INPUT graph type id: 1:6, 0 for end'
     READ(5,*,ERR=2,END=1) id
-    IF(id.EQ.0) GO TO 2
+    IF(id.EQ.0) GO TO 1
     IF(id.LT.1.OR.id.GT.6) THEN
        WRITE(6,'(A,I)') 'XX cvgout: id out of range [1:6] : id=',id
        GO TO 2
@@ -136,7 +137,7 @@ CONTAINS
        title='@'//country_id_nlist(nlist)//': '// &
                   TRIM(country_name_nlist(nlist))//': '// &
                   region_id_nlist(nlist)//': '// &
-                  'new deaths (7 dasy ave)@'
+                  'new deaths (7 days ave)@'
        ndata=2
     END SELECT
 

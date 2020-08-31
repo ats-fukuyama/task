@@ -43,9 +43,11 @@ CONTAINS
        CALL cv_read(ierr)
        nstat=1
     ELSEIF(kid.EQ.'C') THEN
-       CALL cv_read(ierr)
-       CALL cv_write(ierr)
-       nstat=1
+       IF(nstat.EQ.0) THEN
+          WRITE(6,'(A)') 'XX cvmenu: No date ha been loaded'
+       ELSE
+          CALL cv_write(ierr)
+       END IF
     ELSEIF(kid.EQ.'G') THEN
        IF(nstat.EQ.0) THEN
           WRITE(6,'(A)') 'XX cvmenu: No date ha been loaded'
