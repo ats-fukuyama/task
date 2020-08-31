@@ -14,11 +14,16 @@ CONTAINS
     INTEGER:: nlist_plot,nlist,id
 
 1   CONTINUE
-    WRITE(6,'(A)') &
-         '## cvgout: INPUT country_id (LEN=2): e.g. JP for Japan, XX for end'
+    WRITE(6,'(A,A)') &
+         '## cvgout: INPUT country_id (LEN=2): e.g. JP for Japan,', &
+         'XL for list, XX for end'
     READ(5,*,ERR=1,END=9000) country_id
     CALL TOUPPER(country_id)
     IF(country_id.EQ.'XX') GO TO 9000
+    IF(country_id.EQ.'XL') THEN
+       WRITE(6,'(25(1X,A2))') (country_id_nlist(nlist),nlist=1,nlist_max)
+       GO TO 1
+    END IF
     nlist_plot=0
     DO nlist=1,nlist_max
        IF(country_id.EQ.country_id_nlist(nlist)) THEN
@@ -31,14 +36,14 @@ CONTAINS
        GO TO 1
     END IF
 
-    WRITE(6,'(A,A)') '   Now plotting: ',country_name_nlist(nlist_plot)
+    WRITE(6,'(A,A)') '   Now plotting: ',TRIM(country_name_nlist(nlist_plot))
 
 2   CONTINUE
-    WRITE(6,'(A)') '## INPUT graph type id: 1:6, 0 for end'
+    WRITE(6,'(A)') '## INPUT graph type id: 0:6, 9 for end'
     READ(5,*,ERR=2,END=1) id
-    IF(id.EQ.0) GO TO 1
-    IF(id.LT.1.OR.id.GT.6) THEN
-       WRITE(6,'(A,I)') 'XX cvgout: id out of range [1:6] : id=',id
+    IF(id.EQ.9) GO TO 1
+    IF(id.LT.0.OR.id.GT.6) THEN
+       WRITE(6,'(A,I)') 'XX cvgout: id out of range [0:6] : id=',id
        GO TO 2
     END IF
 
@@ -59,12 +64,44 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,INTENT(IN):: nlist,id
     REAL(dp):: xg(ndate_max),fg(ndate_max,4)
-    INTEGER:: ndate,ndate_ave,ndata
+    INTEGER:: ndata,ndate
     CHARACTER(LEN=80):: title
 
     DO ndate=1,ndate_max
        xg(ndate)=DBLE(ndate)
     END DO
+
+    IF(id.EQ.0) THEN
+       CALL PAGES
+       CALL cv_gsub11(1,nlist,fg,title,ndata)
+       CALL grd1d(1,xg,fg,ndate_max,ndate_max,ndata,title)
+       CALL cv_gsub11(2,nlist,fg,title,ndata)
+       CALL grd1d(2,xg,fg,ndate_max,ndate_max,ndata,title)
+       CALL cv_gsub11(5,nlist,fg,title,ndata)
+       CALL grd1d(3,xg,fg,ndate_max,ndate_max,ndata,title)
+       CALL cv_gsub11(6,nlist,fg,title,ndata)
+       CALL grd1d(4,xg,fg,ndate_max,ndate_max,ndata,title)
+       CALL PAGEE
+    ELSE
+       CALL cv_gsub11(id,nlist,fg,title,ndata)
+       CALL PAGES
+       CALL grd1d(0,xg,fg,ndate_max,ndate_max,ndata,title)
+       CALL PAGEE
+    END IF
+
+    RETURN
+  END SUBROUTINE cv_gsub1
+
+  ! --- set up data '''
+
+  SUBROUTINE cv_gsub11(id,nlist,fg,title,ndata)
+    USE cvcomm
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: id,nlist
+    REAL(dp),INTENT(OUT):: fg(ndate_max,4)
+    CHARACTER(LEN=80),INTENT(OUT):: title
+    INTEGER,INTENT(OUT):: ndata
+    INTEGER:: ndate,ndate_ave
 
     SELECT CASE(id)
     CASE(1)
@@ -141,10 +178,7 @@ CONTAINS
        ndata=2
     END SELECT
 
-    CALL PAGES
-    CALL grd1d(0,xg,fg,ndate_max,ndate_max,ndata,title)
-    CALL PAGEE
-
     RETURN
-  END SUBROUTINE cv_gsub1
+  END SUBROUTINE cv_gsub11
+    
 END MODULE cvgout
