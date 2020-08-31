@@ -17,7 +17,8 @@ CONTAINS
     IMPLICIT NONE
     COMPLEX(rkind),ALLOCATABLE:: CEF1(:,:),CEF2(:,:),CEFM1(:,:),CEFM2(:,:)
     COMPLEX(rkind),ALLOCATABLE:: CEFLDR(:,:),CRMARHF(:,:),CEFLDM(:,:,:,:)
-    COMPLEX(rkind):: RMA(3,3),CEN1,CEN2,CEN3,CEP1,CEP2,CEP3
+    COMPLEX(rkind):: CEN1,CEN2,CEN3,CEP1,CEP2,CEP3
+    REAL(rkind):: RMA(3,3)
     REAL(rkind):: DRHO1,DRHO2,A1,A2,XRI,XRL,BABS,BSUPTH,BSUPPH
     REAL(rkind):: TC2,TC3,RF11,RF22,RF33,RG011,RG022,RG033
     INTEGER:: NR,ND,MD,NDX,MDX,IG,NRP,I,NDXM,NPH,NPP,NTH,NHH,NTHF,NHHF
@@ -205,6 +206,10 @@ CONTAINS
              IF(ILL.NE.0) THEN
                 WRITE(6,*) 'XX WEFLD: INVMRD(RMA) : SINGULAR MATRIX'
                 WRITE(6,'(3I5,1P2E12.4)') NR,NTH,NHH,TC3,TC2
+                WRITE(6,'(15X,3ES12.4)') (RMA(1,I),I=1,3)
+                WRITE(6,'(15X,3ES12.4)') (RMA(2,I),I=1,3)
+                WRITE(6,'(15X,3ES12.4)') (RMA(3,I),I=1,3)
+                STOP
              ENDIF
 
              CEN(1,NTH,NHH,NR) =CEFLD(1,NTH,NHH,NR)
@@ -585,7 +590,7 @@ CONTAINS
     NM=nrmax*nsmax*nthmax*nhhmax
 
     DO NS=1,NSMAX
-       DO NR=1,NRMAX+1
+       DO NR=1,NRMAX
           DO NHH=1,NHHMAX
              DO NTH=1,NTHMAX
                 CPABS(NTH,NHH,NR,NS)=(0.D0,0.D0)
@@ -594,7 +599,7 @@ CONTAINS
        ENDDO !nr
     END DO !ns
     
-    DO NR=1,NRMAX+1
+    DO NR=1,NRMAX
        DO NHH=1,NHHMAX
           DO NTH=1,NTHMAX
              PCUR(NTH,NHH,NR)=0.D0
@@ -620,7 +625,7 @@ CONTAINS
           ENDDO !kdx
        ENDDO !ndx
 
-       DO NR=nr_start,nr_end
+       DO NR=nr_start,MIN(nr_end,nrmax-1)
           DO NKX=1,NDSIZ
              DO KDX=1,KDSIZ
                 DO MLX=1,MDSIZ

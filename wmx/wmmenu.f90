@@ -16,6 +16,7 @@ CONTAINS
     USE wmparm,ONLY: wm_parm,wm_broadcast
     USE wmview,ONLY: wm_view
     USE wmexec,ONLY: wm_exec
+!    USE wmgout,ONLY: wm_gout
     USE libmpi
 
     IMPLICIT NONE
