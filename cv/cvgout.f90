@@ -40,7 +40,7 @@ CONTAINS
     CASE(3,30:34)
        CALL cv_gsub3(ncountry_plot,id)
     CASE DEFAULT
-       WRITE(6,'(A,I)') 'XX cvgout: graph id out of range : id=',id
+       WRITE(6,'(A,I3)') 'XX cvgout: graph id out of range : id=',id
     END SELECT
     GO TO 2
 
@@ -108,15 +108,16 @@ CONTAINS
     INTEGER:: ndata,ndate
     CHARACTER(LEN=80):: title
     INTEGER,PARAMETER:: nlmax=1
-    REAL(dp):: line_rgb(3,nlmax)=(/ 1.D0,0.D0,0.D0 /)
-    REAL(dp):: line_mark_size(nlmax)=(/ 0.3D0 /)
-    INTEGER:: line_mark(nlmax)=(/ -1 /)
-    INTEGER:: line_mark_step(nlmax)=(/ 14 /)
+    REAL(dp),PARAMETER:: line_rgb(3,nlmax)=RESHAPE([1.D0,0.D0,0.D0],[3,1])
+    REAL(dp),PARAMETER:: line_mark_size(nlmax)=[ 0.3D0 ]
+    INTEGER,PARAMETER:: line_mark(nlmax)=[ -1 ]
+    INTEGER,PARAMETER:: line_mark_step(nlmax)=[ 14 ]
     INTEGER,PARAMETER:: nlmax2=2
-    REAL(dp):: line_rgb2(3,nlmax2)=(/ 0.D0,0.D0,1.D0, 1.D0,0.D0,0.D0 /)
-    REAL(dp):: line_mark_size2(nlmax2)=(/ 0.3D0, 0.3D0 /)
-    INTEGER:: line_mark2(nlmax2)=(/ 0, -1 /)
-    INTEGER:: line_mark_step2(nlmax2)=(/ 1, 14 /)
+    REAL(dp):: line_rgb2(3,nlmax2) &
+         =RESHAPE( [0.D0,0.D0,1.D0, 1.D0,0.D0,0.D0],[3,2])
+    REAL(dp),PARAMETER:: line_mark_size2(nlmax2)=[ 0.3D0, 0.3D0 ]
+    INTEGER,PARAMETER:: line_mark2(nlmax2)=[ 0, -1 ]
+    INTEGER,PARAMETER:: line_mark_step2(nlmax2)=[ 1, 14 ]
 
     DO ndate=1,ndate_max
        xg(ndate)=DBLE(ndate)
@@ -252,15 +253,16 @@ CONTAINS
     INTEGER:: ndata,ndate
     CHARACTER(LEN=80):: title
     INTEGER,PARAMETER:: nlmax=1
-    REAL(dp):: line_rgb(3,nlmax)=(/ 1.D0,0.D0,0.D0 /)
-    REAL(dp):: line_mark_size(nlmax)=(/ 0.3D0 /)
-    INTEGER:: line_mark(nlmax)=(/ -1 /)
-    INTEGER:: line_mark_step(nlmax)=(/ 14 /)
+    REAL(dp),PARAMETER:: line_rgb(3,nlmax)=RESHAPE([1.D0,0.D0,0.D0],[3,1])
+    REAL(dp),PARAMETER:: line_mark_size(nlmax)=[ 0.3D0 ]
+    INTEGER,PARAMETER:: line_mark(nlmax)=[ -1 ]
+    INTEGER,PARAMETER:: line_mark_step(nlmax)=[ 14 ]
     INTEGER,PARAMETER:: nlmax2=2
-    REAL(dp):: line_rgb2(3,nlmax2)=(/ 0.D0,0.D0,1.D0, 1.D0,0.D0,0.D0 /)
-    REAL(dp):: line_mark_size2(nlmax2)=(/ 0.3D0, 0.3D0 /)
-    INTEGER:: line_mark2(nlmax2)=(/ 0, -1 /)
-    INTEGER:: line_mark_step2(nlmax2)=(/ 1, 14 /)
+    REAL(dp):: line_rgb2(3,nlmax2) &
+         =RESHAPE( [0.D0,0.D0,1.D0, 1.D0,0.D0,0.D0],[3,2])
+    REAL(dp),PARAMETER:: line_mark_size2(nlmax2)=[ 0.3D0, 0.3D0 ]
+    INTEGER,PARAMETER:: line_mark2(nlmax2)=[ 0, -1 ]
+    INTEGER,PARAMETER:: line_mark_step2(nlmax2)=[ 1, 14 ]
 
     DO ndate=1,ndate_max
        xg(ndate)=DBLE(ndate)
@@ -402,11 +404,11 @@ CONTAINS
     INTEGER:: ndata,ndate
     CHARACTER(LEN=80):: title
     INTEGER,PARAMETER:: nlmax=1
-    REAL(dp):: line_rgb(3,nlmax)=(/ 1.D0,0.D0,0.D0 /)
-    REAL(dp):: line_mark_size(nlmax)=(/ 0.3D0 /)
-    INTEGER:: line_mark(nlmax)=(/ -1 /)
-    INTEGER:: line_mark_step(nlmax)=(/ 14 /)
-    REAL(dp):: scale_thickness=0.035D0
+    REAL(dp),PARAMETER:: line_rgb(3,nlmax)=RESHAPE([1.D0,0.D0,0.D0],[3,1])
+    REAL(dp),PARAMETER:: line_mark_size(nlmax)=[ 0.3D0 ]
+    INTEGER,PARAMETER:: line_mark(nlmax)=[ -1 ]
+    INTEGER,PARAMETER:: line_mark_step(nlmax)=[ 14 ]
+    REAL(dp),PARAMETER:: scale_thickness=0.035D0
 
     SELECT CASE(id)
     CASE(3,30)
