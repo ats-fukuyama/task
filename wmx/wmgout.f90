@@ -12,6 +12,7 @@ CONTAINS
   SUBROUTINE wm_gout
 
     USE wmcomm
+    USE wmgsub
     USE equnit_mod
     IMPLICIT NONE
     CHARACTER(LEN=5):: KSTR
@@ -54,7 +55,7 @@ CONTAINS
           IF(K2.EQ.'G') THEN
              CALL wm_greqg(K2,K3,K4)
           ELSEIF(K2.EQ.'Z') THEN
-             CALL wm_gbooz
+!             CALL wm_gbooz
           ELSE
              CALL wm_gr1d(K2,K3)
           ENDIF
@@ -62,7 +63,7 @@ CONTAINS
        IF(K1.EQ.'P'.OR.(K1.EQ.'C'.AND.NGRAPH.EQ.0)) CALL wm_greq(K2,K3,K4)
        IF(K1.EQ.'C') CALL wm_grth(K2,K3,K4)
        IF(K1.EQ.'M') CALL wm_grmd(K2,K3,K4)
-       IF(K1.EQ.'S'.AND.(MODELG.EQ.4.OR.MODELG.EQ.6)) CALL wm_grms
+!       IF(K1.EQ.'S'.AND.(MODELG.EQ.4.OR.MODELG.EQ.6)) CALL wm_grms
        IF(K1.EQ.'E'.AND.K2.EQ.'Q'.AND.MODELG.GE.3) CALL eq_gout
     ELSE
        WRITE(6,*) '## UNDEFINED CONTROL CHARACTER: K1=',K1
@@ -77,6 +78,7 @@ CONTAINS
   SUBROUTINE wm_gr1d(K2,K3)
 
     USE wmcomm
+    USE wmgsub
     IMPLICIT NONE
     CHARACTER(LEN=1),INTENT(IN):: K2,K3
     REAL(sp),ALLOCATABLE:: GX1(:),GX2(:),GY(:,:),GY1(:,:),GY2(:,:)
@@ -459,7 +461,7 @@ CONTAINS
           GY(NR,2)=GUCLIP(DIMAG(CF(NR,2)))
           GY(NR,3)=GUCLIP(ABS(CF(NR,2)))
        ENDDO
-       CALL WMGSUB(NX1,GX1,GXMIN,GXMAX,GY,2,GP(1,2),KTITL(2))
+       CALL wm_gsub(NX1,GX1,GXMIN,GXMAX,GY,2,GP(1,2),KTITL(2))
 
 !      *** E/B(Z) ****
 
@@ -632,6 +634,7 @@ CONTAINS
   SUBROUTINE wm_grth(K2,K3,K4)
 
     USE wmcomm
+    USE wmgsub
     IMPLICIT NONE
     CHARACTER(LEN=1),INTENT(IN):: K2,K3,K4
     REAL(sp),ALLOCATABLE:: GXR(:),GY(:,:)
@@ -771,7 +774,7 @@ CONTAINS
 
     CALL GDEFIN(2.5,17.5,2.5,17.5,-GRMAX,GRMAX,-GRMAX,GRMAX)
     CALL SETLIN(0,2,4)
-    CALL CIRCLE(GRMAX)
+    CALL wm_circle(GRMAX)
     IF(GZMIN.GT.0.0) THEN
        CALL SETLIN(0,2,6)
        CALL CONTQ3(GY,GXR,nrmax+1,NX,MDSIZ,GZMIN,GZSTEP,NSTEP,0,KACONT)
@@ -874,6 +877,7 @@ CONTAINS
   SUBROUTINE wm_grmd(K2,K3,K4)
 
     USE wmcomm
+    USE wmgsub
     IMPLICIT NONE
     CHARACTER(LEN=1):: K2,K3,K4
     REAL(sp),ALLOCATABLE:: GY(:,:)
@@ -1139,178 +1143,6 @@ CONTAINS
 
     RETURN
   END SUBROUTINE wm_gcon
-
-!
-!     ****** WRITE PARAMETERS ******
-
-  SUBROUTINE wm_gprm(K1,K3,NTH,NHH,MD,ND)
-
-    USE wmcomm
-    IMPLICIT NONE
-    CHARACTER(LEN=1),INTENT(IN):: K1,K3
-    INTEGER,INTENT(IN):: nth,nhh,md,nd
-    REAL(sp):: XPOS,YPOS,DY
-    INTEGER:: NS,MDX,NDX
-
-    CALL SETCHS(0.3,0.0)
-    XPOS=22.0
-    YPOS=17.5
-    DY=0.4
-
-    CALL MOVE(XPOS,YPOS)
-
-    CALL TEXT('MP=',3)
-    DO NS=1,NSMAX
-       CALL NUMBI(MODELP(NS),'(I3)',3)
-    END DO
-
-!     ****** DEVICE PARAMETERS ******
-
-    CALL MOVE(XPOS,YPOS-DY)
-    CALL TEXT('BB: ',4)
-    CALL NUMBD(BB,'(F8.4)',8)
-
-    CALL MOVE(XPOS,YPOS-2*DY)
-    CALL TEXT('RR: ',4)
-    CALL NUMBD(RR,'(F8.4)',8)
-
-    CALL MOVE(XPOS,YPOS-3*DY)
-    CALL TEXT('Q0: ',4)
-    CALL NUMBD(Q0,'(F8.4)',8)
-
-    CALL MOVE(XPOS,YPOS-4*DY)
-    CALL TEXT('QA: ',4)
-    CALL NUMBD(QA,'(F8.4)',8)
-    YPOS=YPOS-5*DY
-
-!     ****** PLASMA PARAMETERS ******
-
-    CALL MOVE(XPOS,YPOS)
-    CALL TEXT('PN: ',4)
-    DO NS=1,NSMAX
-       CALL MOVE(XPOS,YPOS-NS*DY)
-       CALL NUMBD(PN(NS),'(F12.4)',12)
-    ENDDO
-
-    YPOS=YPOS-7*DY
-    CALL MOVE(XPOS,YPOS)
-    CALL TEXT('PTPR: ',6)
-    DO NS=1,NSMAX
-       CALL MOVE(XPOS,YPOS-NS*DY)
-       CALL NUMBD(PTPR(NS),'(F12.4)',12)
-    ENDDO
-    YPOS= YPOS-8*DY
-
-!     ****** WAVE PARAMETERS ******
-
-    IF(MODEEG.EQ.0) THEN
-       CALL MOVE(XPOS,YPOS)
-       CALL TEXT('RF:',3)
-       CALL NUMBD(RF,'(F9.4)',9)
-       YPOS= YPOS-2*DY
-    ELSE
-       CALL MOVE(XPOS,YPOS)
-       CALL TEXT('RFR:',4)
-       CALL MOVE(XPOS,YPOS-DY)
-       CALL NUMBD(RF,'(1PD12.4)',12)
-       CALL MOVE(XPOS,YPOS-2*DY)
-       CALL TEXT('RFI:',4)
-       CALL MOVE(XPOS,YPOS-3*DY)
-       CALL NUMBD(RFI,'(1PD12.4)',12)
-       CALL MOVE(XPOS,YPOS-4*DY)
-       CALL TEXT('AMP:',4)
-       CALL MOVE(XPOS,YPOS-5*DY)
-       CALL NUMBD(AMPEIGEN,'(1PD12.4)',12)
-       YPOS= YPOS-7*DY
-    ENDIF
-
-    CALL MOVE(XPOS,YPOS)
-    CALL TEXT('NPH0:',5)
-    CALL NUMBI(NPH0,'(I7)',7)
-
-    CALL MOVE(XPOS,YPOS-DY)
-    CALL TEXT('NTH0:',5)
-    CALL NUMBI(NTH0,'(I7)',7)
-
-    CALL MOVE(XPOS,YPOS-2*DY)
-    CALL TEXT('NRMAX:',6)
-    CALL NUMBI(NRMAX,'(I6)',6)
-
-    CALL MOVE(XPOS,YPOS-3*DY)
-    CALL TEXT('NTHMAX:',7)
-    CALL NUMBI(NTHMAX,'(I5)',5)
-
-    CALL MOVE(XPOS,YPOS-4*DY)
-    CALL TEXT('NHHMAX:',7)
-    CALL NUMBI(NHHMAX,'(I5)',5)
-    YPOS=YPOS-6*DY
-
-!     ****** COMPUTATION RESULTS ******
-
-    CALL MOVE(XPOS,YPOS)
-    IF(K1.EQ.'R'.AND.K3.EQ.'M') THEN
-       MDX=MD-MDMIN+1
-       NDX=ND-NDMIN+1
-       CALL TEXT('Pabs(MD):',9)
-       DO NS=1,NSMAX
-          CALL MOVE(XPOS,YPOS-NS*DY)
-          CALL NUMBD(PABSKT(MDX,NDX,NS),'(1PD12.4)',12)
-       ENDDO
-    ELSE
-       CALL TEXT('Pabs:',5)
-       DO NS=1,NSMAX
-          CALL MOVE(XPOS,YPOS-NS*DY)
-          CALL NUMBD(PABST(NS),'(1PD12.4)',12)
-       ENDDO
-    ENDIF
-    YPOS=YPOS-7*DY
-
-    IF(MODEEG.EQ.0) THEN
-       CALL MOVE(XPOS,YPOS)
-       CALL TEXT('CUR:',4)
-       CALL MOVE(XPOS,YPOS-DY)
-       CALL NUMBD(PCURT,'(1PE12.4)',12)
-       YPOS=YPOS-2*DY
-       CALL MOVE(XPOS,YPOS)
-       IF(K1.EQ.'R'.AND.K3.EQ.'M') THEN
-          NDX=ND-NDMIN+1
-          MDX=MD-MDMIN+1
-          CALL TEXT('Imp(MD):',8)
-          CALL MOVE(XPOS,YPOS-DY)
-          CALL NUMBD(DBLE(CPRADK(MDX,NDX)),'(1PE12.4)',12)
-          CALL MOVE(XPOS,YPOS-2*DY)
-          CALL NUMBD(DIMAG(CPRADK(MDX,NDX)),'(1PE12.4)',12)
-       ELSE
-          CALL TEXT('Imp:',4)
-          CALL MOVE(XPOS,YPOS-DY)
-          CALL NUMBD(DBLE(CPRAD),'(1PE12.4)',12)
-          CALL MOVE(XPOS,YPOS-2*DY)
-          CALL NUMBD(DIMAG(CPRAD),'(1PE12.4)',12)
-       ENDIF
-       YPOS=YPOS-4*DY
-    ENDIF
-
-!     ****** THETA/MODE ******
-
-    CALL MOVE(XPOS,YPOS)
-    IF(K1.EQ.'R') THEN
-       IF(K3.EQ.'M') THEN
-          CALL TEXT('MD:',3)
-          CALL NUMBI(MD,'(I7)',7)
-          CALL MOVE(XPOS,YPOS-DY)
-          CALL TEXT('ND:',3)
-          CALL NUMBI(ND,'(I7)',7)
-       ELSEIF(K3.EQ.'T'.OR.K3.EQ.'A') THEN
-          CALL TEXT('Th:',3)
-          CALL NUMBD(DBLE(NTH-1)/DBLE(NTHMAX)*360.D0,'(F9.4)',9)
-          CALL MOVE(XPOS,YPOS-DY)
-          CALL TEXT('Ph:',3)
-          CALL NUMBD(DBLE(NHH-1)/DBLE(NHHMAX)*360.D0,'(F9.4)',9)
-       ENDIF
-    ENDIF
-
-    RETURN
-  END SUBROUTINE wm_gprm
 
 !     ****** EXPLANATION OF GRAPHIC COMMAND ******
 

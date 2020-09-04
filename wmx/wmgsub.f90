@@ -1,9 +1,9 @@
 ! wmgsub.f90
 
-MODULE wmsub
+MODULE wmgsub
 
   PRIVATE
-  PUBLIC wm_greq,wm_greqg,wm_gfwr,wm_gxeq,wm_gxeqp,wm_g3dr
+  PUBLIC wm_greq,wm_greqg,wm_gfwr,wm_gxeq,wm_gxeqp,wm_g3dr,wm_gprm,wm_circle
 
 CONTAINS
 
@@ -14,11 +14,11 @@ CONTAINS
     USE wmcomm
     IMPLICIT NONE
     CHARACTER(LEN=1),INTENT(IN):: K2,K3,K4
-    REAL(sp),ALLOCATABLE:: GY
+    REAL(4),ALLOCATABLE:: GY(:,:)
     COMPLEX(rkind):: CFL
     INTEGER:: NA3,NG3,NHH,NTH,NR
 
-    ALLOCATE(GY(nrmax,nthmax))
+    ALLOCATE(GY(nrmax+1,nthmax))
 
     IF(K2.EQ.'E'.OR.K2.EQ.'B') THEN
        IF(K3.EQ.'R') THEN
@@ -49,7 +49,7 @@ CONTAINS
           NA3=3
           NG3=3
        ELSE
-          WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #3 IN WMGREQ'
+          WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #3 IN wm_greq'
           GOTO 9000
        ENDIF
     ELSEIF(K2.EQ.'P') THEN
@@ -72,7 +72,7 @@ CONTAINS
        ELSEIF(K3.EQ.'6') THEN
           NG3=6
        ELSE
-          WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #3 IN WMGREQ'
+          WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #3 IN wm_greq'
           GOTO 9000
        ENDIF
     ELSE IF(K2.EQ.'J') THEN
@@ -103,11 +103,11 @@ CONTAINS
        ELSEIF(K3.EQ.'7') THEN
           NG3=12
        ELSE
-          WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #3 IN WMGREQ'
+          WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #3 IN wm_greq'
           GOTO 9000
        ENDIF
     ELSE
-       WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #2 IN WMGREQ'
+       WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #2 IN wm_greq'
        GOTO 9000
     ENDIF
 
@@ -144,7 +144,7 @@ CONTAINS
              ELSEIF(K4.EQ.'A') THEN
                 GY(NR,NTH)=GUCLIP(ABS(CFL))
              ELSE
-                WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #4 IN WMGRTH'
+                WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #4 IN wm_grth'
                 GOTO 9000
              ENDIF
           ELSEIF(K2.EQ.'P') THEN
@@ -190,16 +190,16 @@ CONTAINS
     ENDDO
 
     IF(NGRAPH.EQ.0) THEN
-       CALL WMGFWR(GY,NHH,K2,K3,K4)
+       CALL wm_gfwr(GY,NHH,K2,K3,K4)
        GOTO 9000
     ELSEIF(NGRAPH.EQ.1) THEN
        CALL PAGES
        CALL SETCHS(0.3,0.0)
-       CALL WMGXEQ(GY,NHH,K2,K3)
+       CALL wm_gxeq(GY,NHH,K2,K3)
     ELSE IF(NGRAPH.EQ.2) THEN
        CALL PAGES
        CALL SETCHS(0.3,0.0)
-       CALL WMGXEQP(GY,NHH,K2,K3)
+       CALL wm_gxeqp(GY,NHH,K2,K3)
     ELSE IF(NGRAPH.EQ.3) THEN
        IF(NTHMAX.LE.2) THEN
           WRITE(6,*) 'XX NTHMAX:',NTHMAX,'  CONDITION:NTHMAX >= 4'
@@ -207,7 +207,7 @@ CONTAINS
        ENDIF
        CALL PAGES
        CALL SETCHS(0.3,0.0)
-       CALL WMG3DA(GY,NHH,K2,K3,0)
+       CALL wm_g3da(GY,NHH,K2,K3,0)
     ELSE IF(NGRAPH.EQ.4) THEN
        IF(NTHMAX.LE.2) THEN
           WRITE(6,*) 'XX NTHMAX:',NTHMAX,'  CONDITION:NTHMAX >= 4'
@@ -215,9 +215,9 @@ CONTAINS
        ENDIF
        CALL PAGES
        CALL SETCHS(0.3,0.0)
-       CALL WMG3DA(GY,NHH,K2,K3,4)
+       CALL wm_g3da(GY,NHH,K2,K3,4)
     ELSE
-       WRITE(6,*) 'XX WMGREQ: UNDEFINED NGRAPH: NGRAPH=',NGRAPH
+       WRITE(6,*) 'XX wm_greq: UNDEFINED NGRAPH: NGRAPH=',NGRAPH
        GO TO 9000
     ENDIF
 
@@ -253,7 +253,7 @@ CONTAINS
     IF(K4.EQ.'I') CALL TEXT('Imag ',5)
     IF(K4.EQ.'A') CALL TEXT('Abs ',4)
 
-    CALL WMGPRM('C',K3,0,0,0,0)
+    CALL wm_gprm('C',K3,0,0,0,0)
 
     CALL PAGEE
 
@@ -268,14 +268,16 @@ CONTAINS
     USE wmcomm
     IMPLICIT NONE
     CHARACTER(LEN=1),INTENT(IN):: K2,K3,K4
-    REAL(sp),ALLOCATABLE:: GY
+    REAL(4),ALLOCATABLE:: GY(:,:)
     CHARACTER(LEN=6)::  RTITL(8)
     INTEGER:: NHH,NTH,NR
-    REAL(sp):: GP(4,4)
+    REAL(4):: GP(4,4)
     DATA GP/ 3.0, 10.8,  9.5, 16.5, &
              3.0, 10.8,  1.0,  8.0, &
             13.8, 21.6,  9.5, 16.5, &
             13.8, 21.6,  1.0,  8.0/
+
+    ALLOCATE(GY(nrmax+1,nthmax))
 
 2   CONTINUE
     IF(NHHMAX.EQ.1) THEN
@@ -304,26 +306,26 @@ CONTAINS
           GY(NR,NTH)=GUCLIP(RG11(NTH,NHH,NR))
        ENDDO
     ENDDO
-    CALL WMGGR(GY,NTHMAX,RTITL(1),GP(1,1))
+    CALL wm_ggr(GY,NTHMAX,RTITL(1),GP(1,1))
     DO NTH=1,NTHMAX
        DO NR=1,NRMAX+1
           GY(NR,NTH)=GUCLIP(RG12(NTH,NHH,NR))
        ENDDO
     ENDDO
-    CALL WMGGR(GY,NTHMAX,RTITL(2),GP(1,2))
+    CALL wm_ggr(GY,NTHMAX,RTITL(2),GP(1,2))
     DO NTH=1,NTHMAX
        DO NR=1,NRMAX+1
           GY(NR,NTH)=GUCLIP(RG13(NTH,NHH,NR))
        ENDDO
     ENDDO
-    CALL WMGGR(GY,NTHMAX,RTITL(3),GP(1,3))
+    CALL wm_ggr(GY,NTHMAX,RTITL(3),GP(1,3))
     DO NTH=1,NTHMAX
        DO NR=1,NRMAX+1
           GY(NR,NTH)=GUCLIP(RG22(NTH,NHH,NR))
        ENDDO
     ENDDO
-    CALL WMGGR(GY,NTHMAX,RTITL(4),GP(1,4))
-    CALL WMGPRM('C',K3,0,0,0,0)
+    CALL wm_ggr(GY,NTHMAX,RTITL(4),GP(1,4))
+    CALL wm_gprm('C',K3,0,0,0,0)
     CALL PAGEE
 
     CALL PAGES
@@ -333,24 +335,24 @@ CONTAINS
           GY(NR,NTH)=GUCLIP(RG23(NTH,NHH,NR))
        ENDDO
     ENDDO
-    CALL WMGGR(GY,NTHMAX,RTITL(5),GP(1,1))
+    CALL wm_ggr(GY,NTHMAX,RTITL(5),GP(1,1))
     DO NTH=1,NTHMAX
        DO NR=1,NRMAX+1
           GY(NR,NTH)=GUCLIP(RG33(NTH,NHH,NR))
        ENDDO
     ENDDO
-    CALL WMGGR(GY,NTHMAX,RTITL(6),GP(1,2))
+    CALL wm_ggr(GY,NTHMAX,RTITL(6),GP(1,2))
     DO NTH=1,NTHMAX
        DO NR=1,NRMAX+1
           GY(NR,NTH)=GUCLIP(RJ(NTH,NHH,NR))
        ENDDO
     ENDDO
-    CALL WMGGR(GY,NTHMAX,RTITL(7),GP(1,3))
+    CALL wm_ggr(GY,NTHMAX,RTITL(7),GP(1,3))
     DO NR=1,NRMAX+1
        GY(NR,1)=GUCLIP(PSIP(NR))
     ENDDO
-    CALL WMGGR(GY,1,RTITL(8),GP(1,4))
-    CALL WMGPRM('C',K3,0,0,0,0)
+    CALL wm_ggr(GY,1,RTITL(8),GP(1,4))
+    CALL wm_gprm('C',K3,0,0,0,0)
     CALL PAGEE     
     CALL MOVE(20.0,17.5)
     IF(K2.EQ.'G') CALL TEXT('RG',2)
@@ -368,11 +370,11 @@ CONTAINS
 
     USE wmcomm
     IMPLICIT NONE
-    REAL(sp),INTENT(IN):: GGL(nrmax,nthmax)
+    REAL(4),INTENT(IN):: GGL(nrmax,nthmax)
     INTEGER,INTENT(IN):: NHH
     CHARACTER(LEN=1),INTENT(IN):: K2,K3,K4
-    REAL(sp),ALLOCATABLE:: GRL,RZL
-    INTEGER:: NT,NTH,NFD
+    REAL(4),ALLOCATABLE:: GRL(:,:),GZL(:,:)
+    INTEGER:: NR,NTH,NFD
     
     ALLOCATE(GRL(nrmax,nthmax),GZL(nrmax,nthmax))
 
@@ -389,7 +391,7 @@ CONTAINS
     WRITE(NFD,'(1P3E15.7)') ((GRL(NR,NTH),GZL(NR,NTH),GGL(NR,NTH), &
                               NR=1,NRMAX+1),NTH=1,NTHMAX)
 
-    WRITE(6,*) '## WMGFWR: Data written in fort.23'
+    WRITE(6,*) '## wm_gfwr: Data written in fort.23'
     RETURN
   END SUBROUTINE wm_gfwr
 
@@ -398,26 +400,26 @@ CONTAINS
   SUBROUTINE wm_gxeq(GGL,NHH,K2,K3)
 
     USE wmcomm
+    USE wmprof
     IMPLICIT NONE
-    REAL(sp),INTENT(IN):: GGL(nrmax,nthmax)
+    REAL(4),INTENT(IN):: GGL(nrmax,nthmax)
     INTEGER,INTENT(IN):: NHH
     CHARACTER(LEN=1):: K2,K3
-    INTEGER:: NS
-    REAL(rkind):: RKTH,RKPH,RKPR,RNPR
-    REAL(sp),ALLOCATABLE:: GBY(:,:),GFL(:,:),GRL(:,:),GZL(:,:),GRS(:),GZS(:)
-    REAL(sp),ALLOCATABLE:: GTHR(:,:),GTCO(:,:),GTRC(:,:),GTLC(:,:)
+    REAL(4),ALLOCATABLE:: GBY(:,:),GFL(:,:),GRL(:,:),GZL(:,:),GRS(:),GZS(:)
+    REAL(4),ALLOCATABLE:: GTHR(:,:),GTCO(:,:),GTRC(:,:),GTLC(:,:)
     REAL(rkind),ALLOCATABLE:: THR(:,:),TCO(:,:),TRC(:,:),TLC(:,:)
-    REAL(rkin):: RN(nsmax),RTPR(nsmax),RTPP(nsmax),RU(nsmax)
+    REAL(rkind):: RN(nsmax),RTPR(nsmax),RTPP(nsmax),RU(nsmax)
     REAL(rkind):: WP(nsmax),WC(nsmax)
-    INTEGER: NTHGMAX,NR,NTH,NTHF,NHHF,NTHGS,NTHP,NTHL,NS,IRORG,NC,NRLCFS
+    INTEGER:: NS,NR,NTH,NTHF,NHHF,NTHGS,NTHP,NTHL,IRORG,NC,NRLCFS,NSTEP
+    INTEGER:: NTHG,nthmax_g,NSU
     REAL(rkind):: RCOS,RSIN,FACT,VAL,WF,RHOL,DTH,DPH
     REAL(rkind):: BYL,BST,BSP,RKTH,RKPH,RKPR,RNPR
     REAL(rkind):: RNL,AM,AE,FACTORHR,FACTORRC,FACTORLC
     REAL(rkind):: BABS,BSUPTH,BSUPPH,BABSP,BSUPTHP,BSUPPHP
-    REAL(rkind):: BCF
-    REAL(sp):: GRLEN,GZLEN,GPR,GPZ,GRORG
-    REAL(sp):: GGRMIN,GGRMAX,GGRSTP,GGZMIN,GGZMAX,GGZSTP
-    REAL(sp):: GBCF,GFMIN,GFMAX,GGFMIN,GGFMAX,GGFSTP
+    REAL(rkind):: BCF,DTHG
+    REAL(4):: GRLEN,GZLEN,GPR,GPZ,GRORG
+    REAL(4):: GGRMIN,GGRMAX,GGRSTP,GGZMIN,GGZMAX,GGZSTP
+    REAL(4):: GBCF,GFMIN,GFMAX,GGFMIN,GGFMAX,GGFSTP
 
     ALLOCATE(THR(nrmax,nthmax_f),TCO(nrmax,nthmax_f))
     ALLOCATE(TRC(nrmax,nthmax_f),TLC(nrmax,nthmax_f))
@@ -428,18 +430,19 @@ CONTAINS
     ALLOCATE(GRS(nsumax+1),GZS(nsumax+1))
 
     IF(MODELG.EQ.4.OR.MODELG.EQ.6) THEN
-       NTHGMAX=NTHMAX
+       nthmax_g=NTHMAX
        DO NR=1,NRMAX+1
-          DO NTH=1,NTHGMAX
-             NHHF=(NHH-1)*nhh_factor +1
-             NTHF=(NTH-1)*nth_factor +1
+          DO NTH=1,nthmax_g
+             NHHF=(NHH-1)*factor_nhh +1
+             NTHF=(NTH-1)*factor_nth +1
              GRL(NR,NTH)=GUCLIP(RPST(NTHF,NHHF,NR))
              GZL(NR,NTH)=GUCLIP(ZPST(NTHF,NHHF,NR))
           ENDDO
        ENDDO
     ELSE
+       DTHG=2.D0*PI/nthmax_g
        DO NR=1,NRMAX+1
-          DO NTH=1,NTHGM
+          DO NTH=1,nthmax_g
              RCOS=COS(DTHG*(NTH-1))
              RSIN=SIN(DTHG*(NTH-1))
              IF(MODELG.EQ.0) THEN
@@ -450,16 +453,16 @@ CONTAINS
              ZPSG(NTH,NR)  =         XR(NR)*RSIN
           ENDDO
        END DO
-       NTHGMAX=nthmax_f
+       nthmax_g=nthmax_f
        DO NR=1,NRMAX+1
-          DO NTH=1,NTHGMAX
+          DO NTH=1,nthmax_g
              GRL(NR,NTH)=GUCLIP(RPSG(NTH,NR))
              GZL(NR,NTH)=GUCLIP(ZPSG(NTH,NR))
           ENDDO
        ENDDO
     ENDIF
 
-    NTHGS=NTHGMAX/NTHMAX
+    NTHGS=nthmax_g/NTHMAX
 
     DO NR=1,NRMAX+1
        DO NTH=1,NTHMAX
@@ -579,7 +582,7 @@ CONTAINS
              BCF=PA(NS)*AMP*WF/(NC*ABS(PZ(NS))*AEE)
              GBCF=GUCLIP(BCF)
              CALL SETRGB(1.0,1.0,(NC-1)*0.1)
-             CALL CONTQ5(GBY,GRL,GZL,nrmax+1,NRMAX+1,NTHGMAX, &
+             CALL CONTQ5(GBY,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
                          GBCF,1.0,1,2,4,KACONT)
           ENDDO
        ENDDO
@@ -587,38 +590,38 @@ CONTAINS
 !     ****** DRAW PLASMA CUTOFF SURFACE (medium blue, two-dot-dashed) ******
 
        CALL SETRGB(0.0,1.0,1.0)
-       CALL CONTQ5(GTCO,GRL,GZL,nrmax+1,NRMAX+1,NTHGMAX, &
+       CALL CONTQ5(GTCO,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
                    0.0,1000.0,1,2,6,KACONT)
 
 !     ****** DRAW RIGHT CUT OFF SURFACE (light blue, two-dot-dashed) ******
 
        CALL SETRGB(0.5,1.0,1.0)
-       CALL CONTQ5(GTRC,GRL,GZL,nrmax+1,NRMAX+1,NTHGMAX, &
+       CALL CONTQ5(GTRC,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
                    0.0,1000.0,1,2,6,KACONT)
 
 !     ****** DRAW LEFT CUT OFF SURFACE (light purple, two-dots-dashed) ******
 
        CALL SETRGB(1.0,0.5,1.0)
-       CALL CONTQ5(GTLC,GRL,GZL,nrmax+1,NRMAX+1,NTHGMAX, &
+       CALL CONTQ5(GTLC,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
                    0.0,1000.0,1,2,6,KACONT)
 
 !     ****** DRAW HYBRID RESONANCE SURFACE (purple, long-dashed) ******
 
        CALL SETRGB(1.0,0.0,1.0)
-       CALL CONTQ5(GTHR,GRL,GZL,nrmax+1,NRMAX+1,NTHGMAX, &
+       CALL CONTQ5(GTHR,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
                    0.0,1000.0,1,2,3,KACONT)
 
     ENDIF
 
 !     ****** DRAW MAIN DATA ****** 
 
-!    CALL GMNMX2(GFL,nrmax+1,1,NRMAX+1,1,1,NTHGMAX,1,GFMIN,GFMAX)
+!    CALL GMNMX2(GFL,nrmax+1,1,NRMAX+1,1,1,nthmax_g,1,GFMIN,GFMAX)
     DO NR=1,NRMAX
        IF (xrho(NR).LT. 1.D0) THEN
           NRLCFS=NR
        END IF
     ENDDO
-    CALL GMNMX2(GFL,nrmax+1,1,NRLCFS,1,1,NTHGMAX,1,GFMIN,GFMAX)
+    CALL GMNMX2(GFL,nrmax+1,1,NRLCFS,1,1,nthmax_g,1,GFMIN,GFMAX)
 
     IF(ABS(GFMIN).GT.GFMAX) GFMAX=ABS(GFMIN)
     GFMIN=-ABS(GFMAX)
@@ -633,14 +636,14 @@ CONTAINS
 !Chonda      IF(GFMIN*GFMAX.GT.0.0) THEN
     IF(DBLE(GFMIN)*DBLE(GFMAX).GT.0.d0) THEN ! To avoid floating overflow
        CALL SETLIN(-1,-1,6)
-       CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,NTHGMAX, &
+       CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
                    GGFMIN,GGFSTP,NSTEP,2,0,KACONT)
     ELSE
        CALL SETLIN(-1,-1,6)
-       CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,NTHGMAX, &
+       CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
                    0.5*GGFSTP, GGFSTP,NSTEP,2,0,KACONT)
        CALL SETLIN(-1,-1,5)
-       CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,NTHGMAX, &
+       CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
                   -0.5*GGFSTP,-GGFSTP,NSTEP,2,2,KACONT)
     ENDIF
 
@@ -685,29 +688,32 @@ CONTAINS
 
 !     ****** PAINT CONTOUR IN MAGNETIC SURFACE COORDINATES ******
 
-  SUBROUTINE wm_gexpq(GGL,NHH,K2,K3)
+  SUBROUTINE wm_gxeqp(GGL,NHH,K2,K3)
 
     USE wmcomm
     IMPLICIT NONE
-    REAL(sp),INTENT(IN):: GGL(nrmax,nthmax)
+    REAL(4),INTENT(IN):: GGL(nrmax,nthmax)
     INTEGER,INTENT(IN):: NHH
     CHARACTER(LEN=1):: K2,K3
     INTEGER,PARAMETER:: NRGBA=5
     INTEGER,PARAMETER:: NSTEPM=101
-    REAL(sp),ALLOCATABLE:: GBY(:,:),GFL(:,:),GRL(:,:),GZL(:,:),GRS(:),GZS(:)
-    REAL(sp),ALLOCATABLE:: GDL(:),GRGBL(:,:)
-    REAL(sp):: GRGBA(3,NRGBA),GLA(NRGBA)
+    REAL(4),ALLOCATABLE:: GBY(:,:),GFL(:,:),GRL(:,:),GZL(:,:),GRS(:),GZS(:)
+    REAL(4),ALLOCATABLE:: GDL(:),GRGBL(:,:)
+    REAL(4):: GRGBA(3,NRGBA),GLA(NRGBA)
     DATA GRGBA/0.0,0.0,1.0, &
                0.0,1.0,1.0, &
                1.0,1.0,1.0, &
                1.0,1.0,0.0, &
                1.0,0.0,0.0/
     DATA GLA/0.0,0.40,0.5,0.60,1.0/
-    INTEGER:: NTHGMAX,NR,NTH,NHHF,NTHF,NTHGS,NTHP,NTHPF,NTHG,NTHL,NRLCFS
-    INTEGER*: ISTEP,I,ITORG,NNHD,NSW
+    INTEGER:: NR,NTH,NHHF,NTHF,NTHGS,NTHP,NTHPF,NTHG,NTHL,NRLCFS
+    INTEGER:: ISTEP,I,ITORG,NNHD,NSW,nthmax_g,IRORG,NSTEP,NSU,NHHD
     REAL(rkind):: FACT,VAL
-    REAL(sp):: GZA,GDZ,GFACT,GRLEN,GZLEN,GPR,GPZ
-    REAL(sp):: GGRMIN,GGRMAX,GGRSTP,GGZMIN,GGZMAX,GGZSTP,GRORG
+    REAL(4):: GZA,GDZ,GFACT,GRLEN,GZLEN,GPR,GPZ
+    REAL(4):: GGRMIN,GGRMAX,GGRSTP,GGZMIN,GGZMAX,GGZSTP,GRORG
+    REAL(4):: GFMIN,GFMAX,GGFMIN,GGFMAX,GGFSTP
+    REAL(rkind):: BICF
+    REAL(4):: GBICF
     
     ALLOCATE(GBY(nrmax,nthmax_f))
     ALLOCATE(GFL(nrmax,nthmax_f),GRL(nrmax,nthmax_f),GZL(nrmax,nthmax_f))
@@ -715,26 +721,26 @@ CONTAINS
     ALLOCATE(GDL(NSTEPM),GRGBL(3,0:NSTEPM))
       
     IF(MODELG.EQ.4.OR.MODELG.EQ.6) THEN
-       NTHGMAX=NTHMAX
+       nthmax_g=NTHMAX
        DO NR=1,NRMAX+1
-          DO NTH=1,NTHGMAX
-             NHHF=(NHH-1)*nhh_factor+1
-             NTHF=(NTH-1)*nth_factor+1
+          DO NTH=1,nthmax_g
+             NHHF=(NHH-1)*factor_nhh+1
+             NTHF=(NTH-1)*factor_nth+1
              GRL(NR,NTH)=GUCLIP(RPST(NTHF,NHHF,NR))
              GZL(NR,NTH)=GUCLIP(ZPST(NTHF,NHHF,NR))
           ENDDO
        ENDDO
     ELSE
-       NTHGMAX=nthmax_f
+       nthmax_g=nthmax_f
        DO NR=1,NRMAX+1
-          DO NTH=1,NTHGMAX
+          DO NTH=1,nthmax_g
              GRL(NR,NTH)=GUCLIP(RPSG(NTH,NR))
              GZL(NR,NTH)=GUCLIP(ZPSG(NTH,NR))
           ENDDO
        ENDDO
     ENDIF
 
-    NTHGS=NTHGMAX/NTHMAX
+    NTHGS=nthmax_g/NTHMAX
     DO NR=1,NRMAX+1
        DO NTH=1,NTHMAX
           NTHP=NTH+1
@@ -753,13 +759,13 @@ CONTAINS
        ENDDO
     ENDDO
 
-    CALL GMNMX2(GFL,nrmax+1,1,NRMAX+1,1,1,NTHGMAX,1,GFMIN,GFMAX)
+    CALL GMNMX2(GFL,nrmax+1,1,NRMAX+1,1,1,nthmax_g,1,GFMIN,GFMAX)
     DO NR=1,NRMAX
        IF(xrho(NR).LT.1.D0) THEN
           NRLCFS=NR
        END IF
     ENDDO
-    CALL GMNMX2(GFL,nrmax+1,1,NRLCFS,1,1,NTHGMAX,1,GFMIN,GFMAX)
+    CALL GMNMX2(GFL,nrmax+1,1,NRLCFS,1,1,nthmax_g,1,GFMIN,GFMAX)
     IF(ABS(GFMIN).GT.GFMAX) GFMAX=ABS(GFMIN)
     GFMIN=-ABS(GFMAX)
 
@@ -816,25 +822,25 @@ CONTAINS
     CALL GSCALE(0.0,0.0,0.0,GGZSTP,0.1,9)
     CALL GVALUE(0.0,0.0,0.0,GGZSTP*2,NGULEN(2*GGZSTP))
 
-    CALL CONTF6(GFL,GRL,GZL,nrmax+1,NRMAX+1,NTHGMAX, &
+    CALL CONTF6(GFL,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
                 GDL,GRGBL,ISTEP,2)
 
     IF(GFMIN*GFMAX.GT.0.0) THEN
        CALL SETLIN(0,0,6)
-       CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,NTHGMAX, &
+       CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
                    GGFMIN,GGFSTP,NSTEP,2,0,KACONT)
     ELSE
 !       CALL SETLIN(0,0,6)
-!       CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,NTHGMAX, &
+!       CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
 !                   0.25*GGFSTP, GGFSTP,NSTEP,2,0,KACONT)
        CALL SETRGB(0.8,0.8,0.0)
-       CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,NTHGMAX, &
+       CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
                    0.15*GGFSTP, GGFSTP,1,2,0,KACONT)
 !       CALL SETLIN(0,0,5)
-!       CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,NTHGMAX, &
+!       CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
 !                  -0.25*GGFSTP,-GGFSTP,NSTEP,2,2,KACONT)
        CALL SETRGB(0.0,0.8,0.8)
-       CALL CONTQ5(GFL,GRL,GZL,NRM,NRMAX+1,NTHGMAX, &
+       CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
                   -0.15*GGFSTP,-GGFSTP,1,2,0,KACONT)
     ENDIF
 
@@ -845,7 +851,7 @@ CONTAINS
        BICF=2.D0*PI*AMP*RF*1.D6/AEE
        GBICF=GUCLIP(BICF)
        CALL SETRGB(0.0,1.0,0.0)
-       CALL CONTQ5(GBY,GRL,GZL,nrmax+1,NRMAX+1,NTHGMAX, &
+       CALL CONTQ5(GBY,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
                    GBICF,1.0,1,2,7,KACONT)
 
     ENDIF
@@ -886,7 +892,7 @@ CONTAINS
     CALL NUMBR(GDZ,'(1PE9.2)',9)
 
     RETURN
-  END SUBROUTINE wm_gexpq
+  END SUBROUTINE wm_gxeqp
 
 !     ****** DRAW BIRD-EYE VIEW IN MAGNETIC SURFACE COORDINATES ******
 
@@ -894,32 +900,39 @@ CONTAINS
 
     USE wmcomm
     IMPLICIT NONE
-    REAL(sp),INTENT(IN):: GFL(nrmax,nthmax)
+    REAL(4),INTENT(IN):: GFL(nrmax,nthmax)
     INTEGER,INTENT(IN):: NHH,IND
     CHARACTER(LEN=1):: K2,K3
     INTEGER,PARAMETER:: NDIVM=101
 
-    REAL(sp),ALLOCATABLE:: GFM(:,:)
-    REAL(rkind),ALLOCATABLE:: RBS(:,:),ZBS(:,:),FBS(:,:),TH(:)
+    REAL(4),ALLOCATABLE:: GFM(:,:)
+    REAL(rkind),ALLOCATABLE:: RBS(:,:),ZBS(:,:),FBS(:,:)
     REAL(rkind),ALLOCATABLE:: RSWF(:),ZSWF(:),RSWB(:),ZSWB(:)
     REAL(rkind),ALLOCATABLE:: UR(:,:,:,:),UZ(:,:,:,:),UF(:,:,:,:)
-    REAL(rkind),ALLOCATABLE:: FX(N:,:),FY(:,:),FXY(:,:)
+    REAL(rkind),ALLOCATABLE:: FX(:,:),FY(:,:),FXY(:,:)
     REAL(rkind),ALLOCATABLE:: U1(:,:),F1(:),U2(:,:),F2(:)
     REAL(rkind),ALLOCATABLE:: XMP(:),YMP(:)
     REAL(rkind):: A(2,2),B(2)
 
-    INTEGER:: NTH,NT,NHHF,NTHF,NHHD,NSW,NRMN,NDIV,I,NSWMAX1,NSWMAX2,MN
+    INTEGER:: NR,NTH,NHHF,NTHF,NHHD,NSW,NRMN,NDIV,I,NSWMAX1,NSWMAX2,MN
     INTEGER:: NYP,IXFST,NXP,IERR,ICNVG,ITER
     INTEGER:: NY,NSU
     REAL(rkind):: DTH,RMIN,RMAX,ZMIN,ZMAX,RMIN1,RMAX1,ZMIN1,ZMAX1
     REAL(rkind):: XLNG,YLNG,DXM,DYM,EPS,RHO,THETA,RHOP,XMPP,YMPP
-    REAL(rkind):: DRHO,DTHETA
-    REAL(sp):: GZMIN.GZMAX,GZMIN1,GZMAX1,GMAX,GXMIN.GXMAX,GYMIN,GYMAX
-    REAL(sp):: GXL,GYL,GRL,GZL,GPHI,GTHETA,GRADIUS
+    REAL(rkind):: DRHO,DTHETA,ZUPL,ZDWL,XDIF,YDIF,FMP,DFX,DFY
+    REAL(4):: GZMIN,GZMAX,GZMIN1,GZMAX1,GMAX,GXMIN,GXMAX,GYMIN,GYMAX
+    REAL(4):: GXL,GYL,GRL,GZL,GPHI,GTHETA,GRADIUS,GXP,GYP
+
+    INTERFACE
+       SUBROUTINE R2W2B(R,RGB)
+         REAL(4),INTENT(IN):: R
+         REAL(4),INTENT(OUT):: RGB(3)
+       END SUBROUTINE R2W2B
+    END INTERFACE
 
     ALLOCATE(GFM(NDIVM,NDIVM))
-    ALLOCATE(RBS(nrmax+1,nthmax+1),ZBS(nrmax+1,nrhmax+1))
-    ALLOCATE(,FBS(nrmax+1,nthmax+1),TH(nthmax+1))
+    ALLOCATE(RBS(nrmax+1,nthmax+1),ZBS(nrmax+1,nthmax+1))
+    ALLOCATE(FBS(nrmax+1,nthmax+1))
     ALLOCATE(RSWF(nsumax+1),ZSWF(nsumax+1))
     ALLOCATE(RSWB(nsumax+1),ZSWB(nsumax+1))
     ALLOCATE(UR(4,4,nrmax+1,nthmax+1),UZ(4,4,nrmax+1,nthmax+1))
@@ -928,16 +941,11 @@ CONTAINS
     ALLOCATE(U1(4,nsumax+1),F1(nsumax+1))
     ALLOCATE(U2(4,nsumax+1),F2(nsumax+1))
     ALLOCATE(XMP(NDIVM),YMP(NDIVM))
-! 
-    DTH=2.D0*PI/NTHMAX
-    DO NTH=1,NTHMAX+1
-       TH(NTH)=DTH*(NTH-1)
-    ENDDO
 
-    NHHF=(NHH-1)*nhh_factor+1
+    NHHF=(NHH-1)*factor_nhh+1
     DO NR=1,NRMAX+1
        DO NTH=1,NTHMAX
-          NTHF=(NTH-1)*nth_factor+1
+          NTHF=(NTH-1)*factor_nth+1
           RBS(NR,NTH)=RPST(NTHF,NHHF,NR)
           ZBS(NR,NTH)=ZPST(NTHF,NHHF,NR)
           FBS(NR,NTH)=DBLE(GFL(NR,NTH))
@@ -950,13 +958,13 @@ CONTAINS
        FBS(NR,NTHMAX+1)=DBLE(GFL(NR,1))
     ENDDO
 
-    CALL SPL2D(XR,TH,RBS,FX,FY,FXY,UR, &
+    CALL SPL2D(XR,XTH,RBS,FX,FY,FXY,UR, &
                nrmax+1,NRMAX+1,NTHMAX+1,0,4,IERR)
 
-    CALL SPL2D(XR,TH,ZBS,FX,FY,FXY,UZ, &
+    CALL SPL2D(XR,XTH,ZBS,FX,FY,FXY,UZ, &
                nrmax+1,NRMAX+1,NTHMAX+1,0,4,IERR)
 
-    CALL SPL2D(XR,TH,FBS,FX,FY,FXY,UF, &
+    CALL SPL2D(XR,XTH,FBS,FX,FY,FXY,UF, &
                nrmax+1,NRMAX+1,NTHMAX+1,0,4,IERR)
 
     RMIN= 1.D32
@@ -1055,13 +1063,13 @@ CONTAINS
           ENDIF
           DO ITER=1,100
 !               IF(NYP.EQ.NDIV/2+1) THETA=PI
-             CALL SPL2DD(RHO,THETA,B(1),A(1,1),A(2,1),XR,TH,UR, &
+             CALL SPL2DD(RHO,THETA,B(1),A(1,1),A(2,1),XR,XTH,UR, &
                          nrmax+1,nrmax+1,nthmax+1,IERR)
              IF(IERR.EQ.2.OR.IERR.EQ.4) THEN
                 CALL SUBSPL1(RHO,THETA,B(1),A(1,1),A(2,1),UR,IERR)
              ENDIF
-             CALL SPL2DD(RHO,THETA,B(2),A(1,2),A(2,2),XR,TH,UZ, &
-                         rnmax+1,nrmax+1,nthmax+1,IERR)
+             CALL SPL2DD(RHO,THETA,B(2),A(1,2),A(2,2),XR,XTH,UZ, &
+                         nrmax+1,nrmax+1,nthmax+1,IERR)
              IF(IERR.EQ.2.OR.IERR.EQ.4) THEN
                 CALL SUBSPL1(RHO,THETA,B(2),A(1,2),A(2,2),UZ,IERR)
              ENDIF
@@ -1121,7 +1129,7 @@ CONTAINS
           GO TO 10
 
 20        CONTINUE
-          CALL SPL2DD(RHO,THETA,FMP,DFX,DFY,XR,TH,UF, &
+          CALL SPL2DD(RHO,THETA,FMP,DFX,DFY,XR,XTH,UF, &
                       nrmax+1,nrmax+1,nthmax+1,IERR)
           IF(IERR.EQ.2.OR.IERR.EQ.4) THEN
              FMP = 0.D0
@@ -1220,14 +1228,186 @@ CONTAINS
     RETURN
   END SUBROUTINE wm_g3da
 
+!
+!     ****** WRITE PARAMETERS ******
+
+  SUBROUTINE wm_gprm(K1,K3,NTH,NHH,MD,ND)
+
+    USE wmcomm
+    IMPLICIT NONE
+    CHARACTER(LEN=1),INTENT(IN):: K1,K3
+    INTEGER,INTENT(IN):: nth,nhh,md,nd
+    REAL(sp):: XPOS,YPOS,DY
+    INTEGER:: NS,MDX,NDX
+
+    CALL SETCHS(0.3,0.0)
+    XPOS=22.0
+    YPOS=17.5
+    DY=0.4
+
+    CALL MOVE(XPOS,YPOS)
+
+    CALL TEXT('MP=',3)
+    DO NS=1,NSMAX
+       CALL NUMBI(MODELP(NS),'(I3)',3)
+    END DO
+
+!     ****** DEVICE PARAMETERS ******
+
+    CALL MOVE(XPOS,YPOS-DY)
+    CALL TEXT('BB: ',4)
+    CALL NUMBD(BB,'(F8.4)',8)
+
+    CALL MOVE(XPOS,YPOS-2*DY)
+    CALL TEXT('RR: ',4)
+    CALL NUMBD(RR,'(F8.4)',8)
+
+    CALL MOVE(XPOS,YPOS-3*DY)
+    CALL TEXT('Q0: ',4)
+    CALL NUMBD(Q0,'(F8.4)',8)
+
+    CALL MOVE(XPOS,YPOS-4*DY)
+    CALL TEXT('QA: ',4)
+    CALL NUMBD(QA,'(F8.4)',8)
+    YPOS=YPOS-5*DY
+
+!     ****** PLASMA PARAMETERS ******
+
+    CALL MOVE(XPOS,YPOS)
+    CALL TEXT('PN: ',4)
+    DO NS=1,NSMAX
+       CALL MOVE(XPOS,YPOS-NS*DY)
+       CALL NUMBD(PN(NS),'(F12.4)',12)
+    ENDDO
+
+    YPOS=YPOS-7*DY
+    CALL MOVE(XPOS,YPOS)
+    CALL TEXT('PTPR: ',6)
+    DO NS=1,NSMAX
+       CALL MOVE(XPOS,YPOS-NS*DY)
+       CALL NUMBD(PTPR(NS),'(F12.4)',12)
+    ENDDO
+    YPOS= YPOS-8*DY
+
+!     ****** WAVE PARAMETERS ******
+
+    IF(MODEEG.EQ.0) THEN
+       CALL MOVE(XPOS,YPOS)
+       CALL TEXT('RF:',3)
+       CALL NUMBD(RF,'(F9.4)',9)
+       YPOS= YPOS-2*DY
+    ELSE
+       CALL MOVE(XPOS,YPOS)
+       CALL TEXT('RFR:',4)
+       CALL MOVE(XPOS,YPOS-DY)
+       CALL NUMBD(RF,'(1PD12.4)',12)
+       CALL MOVE(XPOS,YPOS-2*DY)
+       CALL TEXT('RFI:',4)
+       CALL MOVE(XPOS,YPOS-3*DY)
+       CALL NUMBD(RFI,'(1PD12.4)',12)
+       CALL MOVE(XPOS,YPOS-4*DY)
+       CALL TEXT('AMP:',4)
+       CALL MOVE(XPOS,YPOS-5*DY)
+       CALL NUMBD(AMPEIGEN,'(1PD12.4)',12)
+       YPOS= YPOS-7*DY
+    ENDIF
+
+    CALL MOVE(XPOS,YPOS)
+    CALL TEXT('NPH0:',5)
+    CALL NUMBI(NPH0,'(I7)',7)
+
+    CALL MOVE(XPOS,YPOS-DY)
+    CALL TEXT('NTH0:',5)
+    CALL NUMBI(NTH0,'(I7)',7)
+
+    CALL MOVE(XPOS,YPOS-2*DY)
+    CALL TEXT('NRMAX:',6)
+    CALL NUMBI(NRMAX,'(I6)',6)
+
+    CALL MOVE(XPOS,YPOS-3*DY)
+    CALL TEXT('NTHMAX:',7)
+    CALL NUMBI(NTHMAX,'(I5)',5)
+
+    CALL MOVE(XPOS,YPOS-4*DY)
+    CALL TEXT('NHHMAX:',7)
+    CALL NUMBI(NHHMAX,'(I5)',5)
+    YPOS=YPOS-6*DY
+
+!     ****** COMPUTATION RESULTS ******
+
+    CALL MOVE(XPOS,YPOS)
+    IF(K1.EQ.'R'.AND.K3.EQ.'M') THEN
+       MDX=MD-MDMIN+1
+       NDX=ND-NDMIN+1
+       CALL TEXT('Pabs(MD):',9)
+       DO NS=1,NSMAX
+          CALL MOVE(XPOS,YPOS-NS*DY)
+          CALL NUMBD(PABSKT(MDX,NDX,NS),'(1PD12.4)',12)
+       ENDDO
+    ELSE
+       CALL TEXT('Pabs:',5)
+       DO NS=1,NSMAX
+          CALL MOVE(XPOS,YPOS-NS*DY)
+          CALL NUMBD(PABST(NS),'(1PD12.4)',12)
+       ENDDO
+    ENDIF
+    YPOS=YPOS-7*DY
+
+    IF(MODEEG.EQ.0) THEN
+       CALL MOVE(XPOS,YPOS)
+       CALL TEXT('CUR:',4)
+       CALL MOVE(XPOS,YPOS-DY)
+       CALL NUMBD(PCURT,'(1PE12.4)',12)
+       YPOS=YPOS-2*DY
+       CALL MOVE(XPOS,YPOS)
+       IF(K1.EQ.'R'.AND.K3.EQ.'M') THEN
+          NDX=ND-NDMIN+1
+          MDX=MD-MDMIN+1
+          CALL TEXT('Imp(MD):',8)
+          CALL MOVE(XPOS,YPOS-DY)
+          CALL NUMBD(DBLE(CPRADK(MDX,NDX)),'(1PE12.4)',12)
+          CALL MOVE(XPOS,YPOS-2*DY)
+          CALL NUMBD(DIMAG(CPRADK(MDX,NDX)),'(1PE12.4)',12)
+       ELSE
+          CALL TEXT('Imp:',4)
+          CALL MOVE(XPOS,YPOS-DY)
+          CALL NUMBD(DBLE(CPRAD),'(1PE12.4)',12)
+          CALL MOVE(XPOS,YPOS-2*DY)
+          CALL NUMBD(DIMAG(CPRAD),'(1PE12.4)',12)
+       ENDIF
+       YPOS=YPOS-4*DY
+    ENDIF
+
+!     ****** THETA/MODE ******
+
+    CALL MOVE(XPOS,YPOS)
+    IF(K1.EQ.'R') THEN
+       IF(K3.EQ.'M') THEN
+          CALL TEXT('MD:',3)
+          CALL NUMBI(MD,'(I7)',7)
+          CALL MOVE(XPOS,YPOS-DY)
+          CALL TEXT('ND:',3)
+          CALL NUMBI(ND,'(I7)',7)
+       ELSEIF(K3.EQ.'T'.OR.K3.EQ.'A') THEN
+          CALL TEXT('Th:',3)
+          CALL NUMBD(DBLE(NTH-1)/DBLE(NTHMAX)*360.D0,'(F9.4)',9)
+          CALL MOVE(XPOS,YPOS-DY)
+          CALL TEXT('Ph:',3)
+          CALL NUMBD(DBLE(NHH-1)/DBLE(NHHMAX)*360.D0,'(F9.4)',9)
+       ENDIF
+    ENDIF
+
+    RETURN
+  END SUBROUTINE wm_gprm
+
 !     ****** SET DATA COLOR ******
 
   SUBROUTINE MYR2G2B(R,RGB)
 
-    USE wmcomm,ONLY: dp
+    USE wmcomm
     IMPLICIT NONE
-    REAL(sp),INTENT(IN):: R
-    REAL(sp),INTENT(OUT):: RGB(3)
+    REAL(4),INTENT(IN):: R
+    REAL(4),INTENT(OUT):: RGB(3)
     INTEGER:: IR
 
     IR=INT(12.0*R)
@@ -1256,11 +1436,11 @@ CONTAINS
 
   SUBROUTINE MYR2W2B(R,RGB)
 
-    USE wmcomm,ONLY: dp
+    USE wmcomm
     IMPLICIT NONE
-    REAL(sp),INTENT(IN):: R
-    REAL(sp),INTENT(OUT):: RGB(3)
-    REAL(sp):: X,F
+    REAL(4),INTENT(IN):: R
+    REAL(4),INTENT(OUT):: RGB(3)
+    REAL(4):: X,F
     INTEGER:: IR
 
 !      0 < R < 1
@@ -1299,255 +1479,277 @@ CONTAINS
 
 !     ****** EXCEED THE MAX POINT ******
 
-      SUBROUTINE SUBSPL1(X,Y,Z,DZX,DZY,U,IERR)
+  SUBROUTINE SUBSPL1(X,Y,Z,DZX,DZY,U,IERR)
 
-      INCLUDE 'wmcomm.inc'
+    USE wmcomm
+    IMPLICIT NONE
+    REAL(rkind),intent(IN):: X,Y
+    REAL(rkind),INTENT(IN):: U(4,4,nrmax+1,nthmax+1)
+    REAL(rkind),INTENT(OUT):: Z,DZX,DZY
+    INTEGER,INTENT(OUT):: IERR
 
-      COMMON /WMSPL1/ TH(NTHM+1)
+    IF(IERR.EQ.1) THEN
+       CALL SPL2DD(XR(1),Y,Z,DZX,DZY,XR,XTH,U, &
+                     nrmax+1,NRMAX+1,NTHMAX+1,IERR)
+       IF(IERR.EQ.0) THEN
+          Z=Z+DZX*(X-XR(1))
+       ELSE IF(IERR.EQ.4) THEN
+          CALL SPL2DD(XR(1),XTH(NTHMAX+1),Z,DZX,DZY,XR,XTH,U, &
+                        nrmax+1,NRMAX+1,NTHMAX+1,IERR)
+          Z=Z+DZX*(X-XR(1))+DZY*(Y-XTH(NTHMAX+1))
+       ELSE
+          WRITE(6,*) 'XXX : SPLINE IERR=',IERR
+       ENDIF
 
-      DIMENSION U(4,4,NRM,NTHM+1)
+    ELSE IF(IERR.EQ.2) THEN
+       CALL SPL2DD(XR(NRMAX+1),Y,Z,DZX,DZY,XR,XTH,U, &
+                   nrmax+1,NRMAX+1,NTHMAX+1,IERR)
+       IF(IERR.EQ.0) THEN
+          Z=Z+DZX*(X-XR(NRMAX+1))
+       ELSE IF(IERR.EQ.4) THEN
+          CALL SPL2DD(XR(NRMAX+1),XTH(NTHMAX+1),Z,DZX,DZY,XR,XTH,U, &
+                      nrmax+1,NRMAX+1,NTHMAX+1,IERR)
+          Z=Z+DZX*(X-XR(NRMAX+1))+DZY*(Y-XTH(NTHMAX+1))
+       ELSE
+          WRITE(6,*) 'XXX : SPLINE IERR=',IERR
+       ENDIF
 
-      IF(IERR.EQ.1) THEN
-         CALL SPL2DD(XR(1),Y,Z,DZX,DZY,XR,TH,U,
-     &               NRM,NRMAX+1,NTHMAX+1,IERR)
-         IF(IERR.EQ.0) THEN
-            Z=Z+DZX*(X-XR(1))
-         ELSE IF(IERR.EQ.4) THEN
-            CALL SPL2DD(XR(1),TH(NTHMAX+1),Z,DZX,DZY,XR,TH,U,
-     &                  NRM,NRMAX+1,NTHMAX+1,IERR)
-            Z=Z+DZX*(X-XR(1))+DZY*(Y-TH(NTHMAX+1))
-         ELSE
-            WRITE(6,*) 'XXX : SPLINE IERR=',IERR
-         ENDIF
+    ELSE IF(IERR.EQ.4) THEN
+       CALL SPL2DD(X,XTH(NTHMAX+1),Z,DZX,DZY,XR,XTH,U, &
+                   nrmax+1,NRMAX+1,NTHMAX+1,IERR)
+       IF(IERR.EQ.0) THEN
+          Z=Z+DZY*(Y-XTH(NTHMAX+1))
+       ELSE
+          WRITE(6,*) 'XXX : SPLINE IERR',IERR
+       ENDIF
+    ENDIF
 
-      ELSE IF(IERR.EQ.2) THEN
-         CALL SPL2DD(XR(NRMAX+1),Y,Z,DZX,DZY,XR,TH,U,
-     &               NRM,NRMAX+1,NTHMAX+1,IERR)
-         IF(IERR.EQ.0) THEN
-            Z=Z+DZX*(X-XR(NRMAX+1))
-         ELSE IF(IERR.EQ.4) THEN
-            CALL SPL2DD(XR(NRMAX+1),TH(NTHMAX+1),Z,DZX,DZY,XR,TH,U,
-     &                  NRM,NRMAX+1,NTHMAX+1,IERR)
-            Z=Z+DZX*(X-XR(NRMAX+1))+DZY*(Y-TH(NTHMAX+1))
-         ELSE
-            WRITE(6,*) 'XXX : SPLINE IERR=',IERR
-         ENDIF
-
-      ELSE IF(IERR.EQ.4) THEN
-         CALL SPL2DD(X,TH(NTHMAX+1),Z,DZX,DZY,XR,TH,U,
-     &               NRM,NRMAX+1,NTHMAX+1,IERR)
-         IF(IERR.EQ.0) THEN
-            Z=Z+DZY*(Y-TH(NTHMAX+1))
-         ELSE
-            WRITE(6,*) 'XXX : SPLINE IERR',IERR
-         ENDIF
-      ENDIF
-
-      RETURN
-      END
+    RETURN
+  END SUBROUTINE SUBSPL1
 
 !     ****** CONTOUR PAINT : XY, VARIABLE STEP ******
 
-      SUBROUTINE CONTF6(Z,X,Y,NXA,NXMAX,NYMAX,
-     &                  ZL,RGB,NSTEP,IPRD)
+  SUBROUTINE CONTF6(Z,X,Y,NXA,NXMAX,NYMAX,ZL,RGB,NSTEP,IPRD)
 
-      EXTERNAL CONTV1
-      DIMENSION Z(NXA,NYMAX),X(NXA,NYMAX),Y(NXA,NYMAX)
-      DIMENSION ZL(NSTEP),RGB(3,NSTEP)
+    USE wmcomm
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: NXA,NXMAX,NYMAX,NSTEP,IPRD
+    REAL(4),INTENT(IN):: Z(NXA,NYMAX),X(NXA,NYMAX),Y(NXA,NYMAX)
+    REAL(4),INTENT(IN):: ZL(NSTEP),RGB(3,NSTEP)
+    INTERFACE
+       SUBROUTINE CONTV1(XA,YA,N,XB,YB,M,NN)
+         INTEGER,INTENT(IN):: N,M
+         REAL(4),INTENT(IN):: XA(N),YA(N)
+         REAL(4),INTENT(OUT):: XB(M),YB(M)
+         INTEGER,INTENT(OUT):: NN
+       END SUBROUTINE CONTV1
+    END INTERFACE
 
-      CALL CONTFD(Z,X,Y,NXA,NXMAX,NYMAX,
-     &            ZL,RGB,NSTEP,IPRD,3,CONTV1)
+    CALL CONTFD(Z,X,Y,NXA,NXMAX,NYMAX,&
+                ZL,RGB,NSTEP,IPRD,3,CONTV1)
 
-      RETURN
-      END
+    RETURN
+  END SUBROUTINE CONTF6
 
 !     ****** CONTOUR PAINT : COMMON SUB *******
 
-      SUBROUTINE CONTFD(Z,X,Y,NXA,NX,NY,ZL,RGB,NSTEP,
-     &                  IPRD,INDX,SUBV)
+  SUBROUTINE CONTFD(Z,X,Y,NXA,NX,NY,ZL,RGB,NSTEP,IPRD,INDX,SUBV)
 
-      IMPLICIT LOGICAL(L)
-      EXTERNAL SUBV
-      DIMENSION Z(NXA,NY),X(NXA*NY),Y(NXA*NY),ZL(NSTEP),RGB(3,0:NSTEP)
-      DIMENSION XA(4),YA(4),ZA(4)
-      DIMENSION XG(101),YG(101)
-      PARAMETER(NH=101)
-      DIMENSION XT(8,0:NH),YT(8,0:NH),JH(0:NH),HT(0:NH+1)
-      DIMENSION RGBS(3,0:NH)
+    USE wmcomm,ONLY: sp
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: NXA,NX,NY,NSTEP,IPRD,INDX
+    REAL(4),INTENT(IN):: Z(NXA,NY),X(NXA*NY),Y(NXA*NY)
+    REAL(4),INTENT(IN):: ZL(NSTEP),RGB(3,0:NSTEP)
+    REAL(4):: XA(4),YA(4),ZA(4)
+    REAL(4):: XG(101),YG(101)
+    INTEGER,PARAMETER:: NH=101
+    REAL(4):: XT(8,0:NH),YT(8,0:NH),HT(0:NH+1)
+    INTEGER:: JH(0:NH)
+    REAL(4):: RGBS(3,0:NH)
+    INTERFACE
+       SUBROUTINE SUBV(XA,YA,N,XB,YB,M,NN)
+         INTEGER,INTENT(IN):: N,M
+         REAL(4),INTENT(IN):: XA(N),YA(N)
+         REAL(4),INTENT(OUT):: XB(M),YB(M)
+         INTEGER,INTENT(OUT):: NN
+       END SUBROUTINE SUBV
+    END INTERFACE
+    INTEGER:: KMAX,J,I,NXMAX,NYMAX,JJ,II,IH,NN
+    REAL(4):: RS,GS,BS
 
-      CALL INQRGB(RS,GS,BS)
+    CALL INQRGB(RS,GS,BS)
 
-      KMAX=NSTEP
-      IF(KMAX.GT.NH) KMAX=NH
+    KMAX=NSTEP
+    IF(KMAX.GT.NH) KMAX=NH
 
-      IF(ZL(1).LE.ZL(KMAX)) THEN
-         RGBS(1,0)=RGB(1,0)
-         RGBS(2,0)=RGB(2,0)
-         RGBS(3,0)=RGB(3,0)
-         DO J=1,KMAX
-            HT(J)=ZL(J)
-            RGBS(1,J)=RGB(1,J)
-            RGBS(2,J)=RGB(2,J)
-            RGBS(3,J)=RGB(3,J)
-         ENDDO
-      ELSE
-         RGBS(1,0)=RGB(1,KMAX)
-         RGBS(2,0)=RGB(2,KMAX)
-         RGBS(3,0)=RGB(3,KMAX)
-         DO J=1,KMAX
-            HT(J)=ZL(KMAX-J+1)
-            RGBS(1,J)=RGB(1,KMAX-J+1)
-            RGBS(2,J)=RGB(2,KMAX-J+1)
-            RGBS(3,J)=RGB(3,KMAX-J+1)
-         ENDDO
-      ENDIF
+    IF(ZL(1).LE.ZL(KMAX)) THEN
+       RGBS(1,0)=RGB(1,0)
+       RGBS(2,0)=RGB(2,0)
+       RGBS(3,0)=RGB(3,0)
+       DO J=1,KMAX
+          HT(J)=ZL(J)
+          RGBS(1,J)=RGB(1,J)
+          RGBS(2,J)=RGB(2,J)
+          RGBS(3,J)=RGB(3,J)
+       ENDDO
+    ELSE
+       RGBS(1,0)=RGB(1,KMAX)
+       RGBS(2,0)=RGB(2,KMAX)
+       RGBS(3,0)=RGB(3,KMAX)
+       DO J=1,KMAX
+          HT(J)=ZL(KMAX-J+1)
+          RGBS(1,J)=RGB(1,KMAX-J+1)
+          RGBS(2,J)=RGB(2,KMAX-J+1)
+          RGBS(3,J)=RGB(3,KMAX-J+1)
+       ENDDO
+    ENDIF
 
-      HT(0)=-1.E35
-      HT(KMAX+1)=1.E35
+    HT(0)=-1.E35
+    HT(KMAX+1)=1.E35
 
-      NXMAX=NX-1
-      NYMAX=NY-1
-      IF(IPRD.EQ.1.OR.IPRD.EQ.3) NXMAX=NX
-      IF(IPRD.EQ.2.OR.IPRD.EQ.3) NYMAX=NY
+    NXMAX=NX-1
+    NYMAX=NY-1
+    IF(IPRD.EQ.1.OR.IPRD.EQ.3) NXMAX=NX
+    IF(IPRD.EQ.2.OR.IPRD.EQ.3) NYMAX=NY
 
-      DO J=1,NYMAX
-      DO I=1,NXMAX
-         IF(INDX.EQ.0.OR.INDX.EQ.2) THEN
-            XA(1)=X(1)*(NXA*(J-1)+I-1)+X(2)
-            XA(2)=X(1)*(NXA*(J-1)+I  )+X(2)
-         ELSE
-            XA(1)=X(NXA*(J-1)+I  )
-            XA(2)=X(NXA*(J-1)+I+1)
-            IF(J.EQ.NYMAX.AND.(IPRD.EQ.2.OR.IPRD.EQ.3)) THEN
-               XA(3)=X(I+1)
-               XA(4)=X(I)
-            ELSE
-               XA(3)=X(NXA*(J-1)+I+1+NXA)
-               XA(4)=X(NXA*(J-1)+I  +NXA)
-            ENDIF
-         ENDIF
-!         XA(3)=XA(2)
-!         XA(4)=XA(1)
-         IF(INDX.EQ.0.OR.INDX.EQ.1) THEN
-            YA(1)=Y(1)*(NXA*(J-1)+I-1)+Y(2)
-            YA(3)=Y(1)*(NXA*(J-1)+I  )+Y(2)
-         ELSE
-            YA(1)=Y(NXA*(J-1)+I  )
-            YA(2)=Y(NXA*(J-1)+I+1)
-            IF(J.EQ.NYMAX.AND.(IPRD.EQ.2.OR.IPRD.EQ.3)) THEN
-               YA(3)=Y(I+1)
-               YA(4)=Y(I)
-            ELSE
-               YA(3)=Y(NXA*(J-1)+I+1+NXA)
-               YA(4)=Y(NXA*(J-1)+I  +NXA)
-            ENDIF
-         ENDIF
-!         YA(2)=YA(1)
-!         YA(4)=YA(3)
+    DO J=1,NYMAX
+       DO I=1,NXMAX
+          IF(INDX.EQ.0.OR.INDX.EQ.2) THEN
+             XA(1)=X(1)*(NXA*(J-1)+I-1)+X(2)
+             XA(2)=X(1)*(NXA*(J-1)+I  )+X(2)
+          ELSE
+             XA(1)=X(NXA*(J-1)+I  )
+             XA(2)=X(NXA*(J-1)+I+1)
+             IF(J.EQ.NYMAX.AND.(IPRD.EQ.2.OR.IPRD.EQ.3)) THEN
+                XA(3)=X(I+1)
+                XA(4)=X(I)
+             ELSE
+                XA(3)=X(NXA*(J-1)+I+1+NXA)
+                XA(4)=X(NXA*(J-1)+I  +NXA)
+             ENDIF
+          ENDIF
+          IF(INDX.EQ.0.OR.INDX.EQ.1) THEN
+             YA(1)=Y(1)*(NXA*(J-1)+I-1)+Y(2)
+             YA(3)=Y(1)*(NXA*(J-1)+I  )+Y(2)
+          ELSE
+             YA(1)=Y(NXA*(J-1)+I  )
+             YA(2)=Y(NXA*(J-1)+I+1)
+             IF(J.EQ.NYMAX.AND.(IPRD.EQ.2.OR.IPRD.EQ.3)) THEN
+                YA(3)=Y(I+1)
+                YA(4)=Y(I)
+             ELSE
+                YA(3)=Y(NXA*(J-1)+I+1+NXA)
+                YA(4)=Y(NXA*(J-1)+I  +NXA)
+             ENDIF
+          ENDIF
 
-         JJ=J+1
-         IF(J.EQ.NY) JJ=1
-         II=I+1
-         IF(I.EQ.NX) II=1
-         ZA(1)=Z(I, J )
-         ZA(2)=Z(II,J )
-         ZA(3)=Z(II,JJ)
-         ZA(4)=Z(I, JJ)
-!         WRITE(27,'(A,2I5)') 'I,J=',I,J
-!         WRITE(27,'(A,1P4E12.4)') 'XA =',XA(1),XA(2),XA(3),XA(4)
-!         WRITE(27,'(A,1P4E12.4)') 'YA =',YA(1),YA(2),YA(3),YA(4)
-!         WRITE(27,'(A,1P4E12.4)') 'ZA =',ZA(1),ZA(2),ZA(3),ZA(4)
-         
+          JJ=J+1
+          IF(J.EQ.NY) JJ=1
+          II=I+1
+          IF(I.EQ.NX) II=1
+          ZA(1)=Z(I, J )
+          ZA(2)=Z(II,J )
+          ZA(3)=Z(II,JJ)
+          ZA(4)=Z(I, JJ)
 
-         CALL CONTFX(XA,YA,ZA,4,XT,YT,JH,HT,KMAX)
+          CALL CONTFX(XA,YA,ZA,4,XT,YT,JH,HT,KMAX)
 
-         DO IH=0,KMAX
-            IF(JH(IH).GE.3) THEN
-               CALL SETRGB(RGBS(1,IH),RGBS(2,IH),RGBS(3,IH))
-               CALL SUBV(XT(1,IH),YT(1,IH),JH(IH),XG,YG,100,NN)
-               XG(NN+1)=XG(1)
-               YG(NN+1)=YG(1)
-               CALL POLY(XG,YG,NN+1)
-            ENDIF
-      ENDDO
-      ENDDO
-      ENDDO
+          DO IH=0,KMAX
+             IF(JH(IH).GE.3) THEN
+                CALL SETRGB(RGBS(1,IH),RGBS(2,IH),RGBS(3,IH))
+                CALL SUBV(XT(1,IH),YT(1,IH),JH(IH),XG,YG,100,NN)
+                XG(NN+1)=XG(1)
+                YG(NN+1)=YG(1)
+                CALL POLY(XG,YG,NN+1)
+             ENDIF
+          ENDDO
+       ENDDO
+    ENDDO
 
-      CALL SETRGB(RS,GS,BS)
-      RETURN
-      END
+    CALL SETRGB(RS,GS,BS)
+    RETURN
+  END SUBROUTINE CONTFD
 
 !     ****** DRAW METRIC GRAPH ******
 
-      SUBROUTINE WMGGR(GY,NGMAX,RTITL,GP)
+  SUBROUTINE wm_ggr(GY,NGMAX,RTITL,GP)
 
-      INCLUDE 'wmcomm.inc'
+    USE wmcomm
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: NGMAX
+    REAL(4),INTENT(IN):: GY(nrmax+1,nthmax),GP(4)
+    CHARACTER(LEN=6),INTENT(IN):: RTITL
+    INTEGER:: ICL(6)=[7,6,5,4,3,2]
+    INTEGER:: IPAT(6)=[0,2,4,6,3,1]
+    REAL(4):: GX(nrmax+1)
+    INTEGER:: NR,I,ILD
+    REAL(4):: GXMIN,GXMAX,GYMIN,GYMAX,GSXMIN,GSXMAX,GSX,GSYMIN,GSYMAX,GSY
 
-      DIMENSION GX(NRM),GY(NRM,MDM),GP(4)
-      DIMENSION ICL(6),IPAT(6)
-      CHARACTER RTITL*6
+    GXMIN=GUCLIP(XRHO(1))
+    GXMAX=GUCLIP(XRHO(NRMAX+1))
+    DO NR=1,NRMAX+1
+       GX(NR)=GUCLIP(XRHO(NR))
+    ENDDO
+    CALL GMNMX2(GY,nrmax+1,1,NRMAX+1,1,1,NGMAX,1,GYMIN,GYMAX)
 
-      DATA ICL/7,6,5,4,3,2/,IPAT/0,2,4,6,3,1/
+    CALL GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GSX)
 
-      GXMIN=GUCLIP(XRHO(1))
-      GXMAX=GUCLIP(XRHO(NRMAX+1))
-      DO NR=1,NRMAX+1
-         GX(NR)=GUCLIP(XRHO(NR))
-      ENDDO
-      CALL GMNMX2(GY,NRM,1,NRMAX+1,1,1,NGMAX,1,GYMIN,GYMAX)
+    IF(GYMIN*GYMAX.GT.0.0) THEN
+       IF(GYMIN.GT.0.0) THEN
+          GYMIN=0.0
+       ELSE
+          GYMAX=0.0
+       ENDIF
+    ENDIF
+    CALL GQSCAL(GYMIN,GYMAX,GSYMIN,GSYMAX,GSY)
 
-      CALL GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GSX)
-!     GSX=0.1
+    IF(ABS(GSYMAX-GSYMIN).LT.1.E-32) GOTO 9000
 
-      IF(GYMIN*GYMAX.GT.0.0) THEN
-         IF(GYMIN.GT.0.0) THEN
-            GYMIN=0.0
-         ELSE
-            GYMAX=0.0
-         ENDIF
-      ENDIF
-      CALL GQSCAL(GYMIN,GYMAX,GSYMIN,GSYMAX,GSY)
+    CALL GDEFIN(GP(1),GP(2),GP(3),GP(4),GXMIN,GXMAX,GSYMIN,GSYMAX)
+    CALL GFRAME
+    CALL GSCALE(GXMIN,GSX,0.0,0.0,0.1,9)
+    CALL GVALUE(GXMIN,GSX*5,0.0,0.0,NGULEN(GSX*5))
+    CALL GSCALE(0.0,0.0,0.0,GSY,0.1,9)
+    CALL GVALUE(0.0,0.0,0.0,GSY*2,NGULEN(GSY*2))
 
-      IF(ABS(GSYMAX-GSYMIN).LT.1.E-32) GOTO 9000
+    DO I=1,NGMAX
+       ILD=MOD(I-1,6)+1
+       CALL SETLIN(0,2,ICL(ILD))
+       CALL GPLOTP(GX,GY(1,I),1,NRMAX+1,1,0,0,IPAT(ILD))
+    ENDDO
+    CALL SETLIN(0,2,7)
 
-      CALL GDEFIN(GP(1),GP(2),GP(3),GP(4),GXMIN,GXMAX,GSYMIN,GSYMAX)
-      CALL GFRAME
-      CALL GSCALE(GXMIN,GSX,0.0,0.0,0.1,9)
-      CALL GVALUE(GXMIN,GSX*5,0.0,0.0,NGULEN(GSX*5))
-      CALL GSCALE(0.0,0.0,0.0,GSY,0.1,9)
-      CALL GVALUE(0.0,0.0,0.0,GSY*2,NGULEN(GSY*2))
+9000 CONTINUE
+    CALL MOVE(GP(1),GP(4)+0.2)
+    CALL TEXT(RTITL,6)
 
-      DO I=1,NGMAX
-         ILD=MOD(I-1,6)+1
-         CALL SETLIN(0,2,ICL(ILD))
-         CALL GPLOTP(GX,GY(1,I),1,NRMAX+1,1,0,0,IPAT(ILD))
-      ENDDO
-      CALL SETLIN(0,2,7)
+    RETURN
+  END SUBROUTINE wm_ggr
 
- 9000 CALL MOVE(GP(1),GP(4)+0.2)
-      CALL TEXT(RTITL,6)
+  !     ****** DRAW CIRCLE ******
 
-      RETURN
-      END
+  SUBROUTINE wm_circle(RMAX)
 
-!     ****** DRAW CIRCLE ******
+    IMPLICIT NONE
+    REAL(4),INTENT(IN):: RMAX
+    REAL(4):: PXMIN,PXMAX,PYMIN,PYMAX,GXMIN,GXMAX,GYMIN,GYMAX
+    REAL(4):: DX,DY,DT1,X1,Y1
+    INTEGER:: I
+    
+    CALL INQGDEFIN(PXMIN,PXMAX,PYMIN,PYMAX,GXMIN,GXMAX,GYMIN,GYMAX)
+    DX=(PXMAX-PXMIN)/(GXMAX-GXMIN)
+    DY=(PYMAX-PYMIN)/(GYMAX-GYMIN)
 
-      SUBROUTINE CIRCLE(RMAX)
+    DT1=2*3.1415926/100
+    X1=DX*(RMAX-GXMIN)+PXMIN
+    Y1=DY*(    -GYMIN)+PYMIN
+    CALL MOVE(X1,Y1)
+    DO I=1,101
+       X1=DX*(RMAX*COS(DT1*(I-1))-GXMIN)+PXMIN
+       Y1=DY*(RMAX*SIN(DT1*(I-1))-GYMIN)+PYMIN
+       CALL DRAW(X1,Y1)
+    ENDDO
 
-      CALL INQGDEFIN(PXMIN,PXMAX,PYMIN,PYMAX,
-     &               GXMIN,GXMAX,GYMIN,GYMAX)
-      DX=(PXMAX-PXMIN)/(GXMAX-GXMIN)
-      DY=(PYMAX-PYMIN)/(GYMAX-GYMIN)
-
-      DT1=2*3.1415926/100
-      X1=DX*(RMAX-GXMIN)+PXMIN
-      Y1=DY*(    -GYMIN)+PYMIN
-      CALL MOVE(X1,Y1)
-      DO I=1,101
-         X1=DX*(RMAX*COS(DT1*(I-1))-GXMIN)+PXMIN
-         Y1=DY*(RMAX*SIN(DT1*(I-1))-GYMIN)+PYMIN
-         CALL DRAW(X1,Y1)
-      ENDDO
-
-      RETURN
-      END
+    RETURN
+  END SUBROUTINE wm_circle
+END MODULE wmgsub

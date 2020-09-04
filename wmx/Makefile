@@ -103,7 +103,7 @@ wmexec.o: wmexec.f90 wmsetg.f90 wmsolv.f90 wmemfp.f90 wmpout.f90 wmsub.f90 ../dp
 wmemfp.o: wmemfp.f90 wmcomm.f90
 wmpout.o: wmpout.f90 wmcomm.f90
 wmgout.o: wmgout.f90 wmgsub.f90 wmcomm.f90
-wmgsub.o: wmgsub.f90
+wmgsub.o: wmgsub.f90 wmcomm.f90
 
 wmmenu.o: wmmenu.f90 wmcomm.f90
 wmmain.o: wmmain.f90 wmcomm.f90
