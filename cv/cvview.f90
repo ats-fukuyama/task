@@ -19,6 +19,7 @@ CONTAINS
     WRITE(6,'(A,A)') 'knam_csv_select_cases =',knam_csv_select_cases
     WRITE(6,'(A,A)') 'knam_csv_select_deaths=',knam_csv_select_deaths
     WRITE(6,'(A,A)') 'knam_cv_select        =',knam_cv_select
+    WRITE(6,'(A,A)') 'knam_cv_population    =',knam_cv_population
     RETURN
   END SUBROUTINE cv_view
 END MODULE cvview

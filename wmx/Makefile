@@ -31,7 +31,7 @@ SRCS = wmcomm.f90 vmcomm.f90 wmsub.f90 \
        wmsetf.f90 wmsetm.f90 \
        wmsolv.f90 \
        wmemfp.f90 wmpout.f90 \
-       wmexec.f90 wmgout.f90 \
+       wmexec.f90 wmgsub.f90 wmgout.f90 \
        wmmenu.f90
 SRC7 = wmeqin.f
 

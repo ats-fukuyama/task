@@ -16,7 +16,7 @@ CONTAINS
     USE wmparm,ONLY: wm_parm,wm_broadcast
     USE wmview,ONLY: wm_view
     USE wmexec,ONLY: wm_exec
-!    USE wmgout,ONLY: wm_gout
+    USE wmgout,ONLY: wm_gout
     USE libmpi
 
     IMPLICIT NONE
@@ -82,7 +82,7 @@ CONTAINS
        init=1
 
     CASE('G')                                      ! graph output
-!       IF(init.EQ.1.AND.nrank.EQ.0) CALL wm_gout
+       IF(init.EQ.1.AND.nrank.EQ.0) CALL wm_gout
 
     CASE('S')
 !       IF(nrank.EQ.0) CALL wm_save

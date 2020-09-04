@@ -19,7 +19,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
     INTEGER:: nfl,nstat,ndata,ncountry,i,ndata_max,id1,id2,ipos,iactive
-    INTEGER:: nlist,ndate,nyear,nmonth,nday,nshift
+    INTEGER:: ndate,nyear,nmonth,nday,nshift
     CHARACTER(LEN=256):: line
     INTEGER:: ipos_comma(7)
     CHARACTER(LEN=256):: column_name(8)
@@ -36,8 +36,8 @@ CONTAINS
          ncases_new_ndata(:),ncases_total_ndata(:), &
          ndeaths_new_ndata(:),ndeaths_total_ndata(:)
     INTEGER,ALLOCATABLE::&
-         nlist_ndata(:),ndate_ndata(:)
-    INTEGER:: ndata_id1_id2(27,26),nlist_id1_id2(27,26)
+         ncountry_ndata(:),ndate_ndata(:)
+    INTEGER:: ndata_id1_id2(27,26),ncountry_id1_id2(27,26)
 
     ierr=0
 
@@ -82,15 +82,6 @@ CONTAINS
     ndata_max=ndata
     WRITE(6,'(A,I8)') '## ndata_max=',ndata_max
 
-    IF(ALLOCATED(date_id_ndata)) THEN
-       DEALLOCATE(date_id_ndata)
-       DEALLOCATE(ncases_new_ndata)
-       DEALLOCATE(ncases_total_ndata)
-       DEALLOCATE(ndeaths_new_ndata)
-       DEALLOCATE(ndeaths_total_ndata)
-       DEALLOCATE(nlist_ndata)
-       DEALLOCATE(ndate_ndata)
-    END IF
     ALLOCATE(date_id_ndata(ndata_max))
     ALLOCATE(country_id_ndata(ndata_max))
     ALLOCATE(country_name_ndata(ndata_max))
@@ -99,7 +90,7 @@ CONTAINS
     ALLOCATE(ncases_total_ndata(ndata_max))
     ALLOCATE(ndeaths_new_ndata(ndata_max))
     ALLOCATE(ndeaths_total_ndata(ndata_max))
-    ALLOCATE(nlist_ndata(ndata_max))
+    ALLOCATE(ncountry_ndata(ndata_max))
     ALLOCATE(ndate_ndata(ndata_max))
 
     REWIND(nfl)
@@ -125,6 +116,7 @@ CONTAINS
        END DO
        date_id_ndata(ndata)=line(1:ipos_comma(1)-1)
        country_id_ndata(ndata)=line(ipos_comma(1)+1:ipos_comma(2)-1)
+       IF(country_id_ndata(ndata).EQ.' ') country_id_ndata(ndata)='OT'
        IF(line(ipos_comma(2)+1:ipos_comma(2)+1).EQ.'"'.AND. &
           line(ipos_comma(3)-1:ipos_comma(3)-1).EQ.'"') THEN
           country_name_ndata(ndata)=line(ipos_comma(2)+2:ipos_comma(3)-2)
@@ -141,11 +133,11 @@ CONTAINS
 
     ! --- initialize table to convert from country_id to ndata
     ndata_id1_id2(1:27,1:26)=0
-    nlist_id1_id2(1:27,1:26)=0
-    nlist_ndata(1:ndata_max)=0
+    ncountry_id1_id2(1:27,1:26)=0
+    ncountry_ndata(1:ndata_max)=0
 
     ! --- list up unique country_id
-    nlist=0
+    ncountry=0
     DO ndata=1,ndata_max
        IF(country_id_ndata(ndata).EQ.' ') THEN
           id1=27
@@ -162,32 +154,32 @@ CONTAINS
        END IF
 
        IF(ndata_id1_id2(id1,id2).EQ.0) THEN
-          nlist=nlist+1
+          ncountry=ncountry+1
           ndata_id1_id2(id1,id2)=ndata
-          nlist_id1_id2(id1,id2)=nlist
+          ncountry_id1_id2(id1,id2)=ncountry
        END IF
-       nlist_ndata(ndata)=nlist_id1_id2(id1,id2)
+       ncountry_ndata(ndata)=ncountry_id1_id2(id1,id2)
     END DO
-    nlist_max=nlist
-    WRITE(6,'(A,I8)') '## nlist_max=',nlist_max
+    ncountry_max=ncountry
+    WRITE(6,'(A,I8)') '## ncountry_max=',ncountry_max
 
     ! --- make lists of country_id, country_name and region_id
     
-    IF(ALLOCATED(country_id_nlist)) THEN
-       DEALLOCATE(country_id_nlist)
-       DEALLOCATE(country_name_nlist)
-       DEALLOCATE(region_id_nlist)
+    IF(ALLOCATED(country_id_ncountry)) THEN
+       DEALLOCATE(country_id_ncountry)
+       DEALLOCATE(country_name_ncountry)
+       DEALLOCATE(region_id_ncountry)
     END IF
-    ALLOCATE(country_id_nlist(nlist_max))
-    ALLOCATE(country_name_nlist(nlist_max))
-    ALLOCATE(region_id_nlist(nlist_max))
+    ALLOCATE(country_id_ncountry(ncountry_max))
+    ALLOCATE(country_name_ncountry(ncountry_max))
+    ALLOCATE(region_id_ncountry(ncountry_max))
     
     DO ndata=1,ndata_max
-       IF(nlist_ndata(ndata).NE.0) THEN
-          nlist=nlist_ndata(ndata)
-          country_id_nlist(nlist)=country_id_ndata(ndata)
-          country_name_nlist(nlist)=country_name_ndata(ndata)
-          region_id_nlist(nlist)=region_id_ndata(ndata)
+       IF(ncountry_ndata(ndata).NE.0) THEN
+          ncountry=ncountry_ndata(ndata)
+          country_id_ncountry(ncountry)=country_id_ndata(ndata)
+          country_name_ncountry(ncountry)=country_name_ndata(ndata)
+          region_id_ncountry(ncountry)=region_id_ndata(ndata)
        END IF
     END DO
 
@@ -217,47 +209,47 @@ CONTAINS
        CALL convert_ndate_to_date_id(ndate,date_id_ndate(ndate))
     END DO
 
-    ! --- convert (ndata) array to (ndate,nlist) array ---
+    ! --- convert (ndata) array to (ndate,ncountry) array ---
 
-    IF(ALLOCATED(ncases_new_ndate_nlist)) THEN
-       DEALLOCATE(ncases_new_ndate_nlist)
-       DEALLOCATE(ncases_total_ndate_nlist)
-       DEALLOCATE(ndeaths_new_ndate_nlist)
-       DEALLOCATE(ndeaths_total_ndate_nlist)
+    IF(ALLOCATED(ncases_new_ndate_ncountry)) THEN
+       DEALLOCATE(ncases_new_ndate_ncountry)
+       DEALLOCATE(ncases_total_ndate_ncountry)
+       DEALLOCATE(ndeaths_new_ndate_ncountry)
+       DEALLOCATE(ndeaths_total_ndate_ncountry)
     END IF
-    ALLOCATE(ncases_new_ndate_nlist(ndate_max,nlist_max))
-    ALLOCATE(ncases_total_ndate_nlist(ndate_max,nlist_max))
-    ALLOCATE(ndeaths_new_ndate_nlist(ndate_max,nlist_max))
-    ALLOCATE(ndeaths_total_ndate_nlist(ndate_max,nlist_max))
+    ALLOCATE(ncases_new_ndate_ncountry(ndate_max,ncountry_max))
+    ALLOCATE(ncases_total_ndate_ncountry(ndate_max,ncountry_max))
+    ALLOCATE(ndeaths_new_ndate_ncountry(ndate_max,ncountry_max))
+    ALLOCATE(ndeaths_total_ndate_ncountry(ndate_max,ncountry_max))
 
-    ncases_new_ndate_nlist(1:ndate_max,1:nlist_max)=0
-    ncases_total_ndate_nlist(1:ndate_max,1:nlist_max)=0
-    ndeaths_new_ndate_nlist(1:ndate_max,1:nlist_max)=0
-    ndeaths_total_ndate_nlist(1:ndate_max,1:nlist_max)=0
+    ncases_new_ndate_ncountry(1:ndate_max,1:ncountry_max)=0
+    ncases_total_ndate_ncountry(1:ndate_max,1:ncountry_max)=0
+    ndeaths_new_ndate_ncountry(1:ndate_max,1:ncountry_max)=0
+    ndeaths_total_ndate_ncountry(1:ndate_max,1:ncountry_max)=0
     
     DO ndata=1,ndata_max
-       nlist=nlist_ndata(ndata)
+       ncountry=ncountry_ndata(ndata)
        ndate=ndate_ndata(ndata)
-       ncases_new_ndate_nlist(ndate,nlist)=ncases_new_ndata(ndata)
-       ncases_total_ndate_nlist(ndate,nlist)=ncases_total_ndata(ndata)
-       ndeaths_new_ndate_nlist(ndate,nlist)=ndeaths_new_ndata(ndata)
-       ndeaths_total_ndate_nlist(ndate,nlist)=ndeaths_total_ndata(ndata)
+       ncases_new_ndate_ncountry(ndate,ncountry)=ncases_new_ndata(ndata)
+       ncases_total_ndate_ncountry(ndate,ncountry)=ncases_total_ndata(ndata)
+       ndeaths_new_ndate_ncountry(ndate,ncountry)=ndeaths_new_ndata(ndata)
+       ndeaths_total_ndate_ncountry(ndate,ncountry)=ndeaths_total_ndata(ndata)
     END DO
 
     ! --- correct missing data ---
 
-    DO nlist=1,nlist_max
-       ncases_total=ncases_total_ndate_nlist(1,nlist)
-       ndeaths_total=ndeaths_total_ndate_nlist(1,nlist)
+    DO ncountry=1,ncountry_max
+       ncases_total=ncases_total_ndate_ncountry(1,ncountry)
+       ndeaths_total=ndeaths_total_ndate_ncountry(1,ncountry)
        DO ndate=2,ndate_max
           IF(ncases_total.NE.0) THEN
-             IF(ncases_total_ndate_nlist(ndate,nlist).EQ.0) &
-                ncases_total_ndate_nlist(ndate,nlist)=ncases_total
-             IF(ndeaths_total_ndate_nlist(ndate,nlist).EQ.0) &
-                ndeaths_total_ndate_nlist(ndate,nlist)=ndeaths_total
+             IF(ncases_total_ndate_ncountry(ndate,ncountry).EQ.0) &
+                ncases_total_ndate_ncountry(ndate,ncountry)=ncases_total
+             IF(ndeaths_total_ndate_ncountry(ndate,ncountry).EQ.0) &
+                ndeaths_total_ndate_ncountry(ndate,ncountry)=ndeaths_total
           END IF
-          ncases_total=ncases_total_ndate_nlist(1,nlist)
-          ndeaths_total=ndeaths_total_ndate_nlist(1,nlist)
+          ncases_total=ncases_total_ndate_ncountry(1,ncountry)
+          ndeaths_total=ndeaths_total_ndate_ncountry(1,ncountry)
        END DO
     END DO
        
@@ -304,7 +296,7 @@ CONTAINS
     USE libfio
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
-    INTEGER:: nfl,nlist,ndate,nstat
+    INTEGER:: nfl,ncountry,ndate,nstat
     CHARACTER(LEN=2):: country_id
     CHARACTER(LEN=256):: country_name
     CHARACTER(LEN=80):: format1,format2
@@ -325,17 +317,17 @@ CONTAINS
     WRITE(nfl,format1,IOSTAT=nstat,ERR=9001) &
          'country_id,country_name,region_id', &
          (date_id_ndate(ndate),ndate=1,ndate_max)
-    DO nlist=1,nlist_max
-       country_id=country_id_nlist(nlist)
+    DO ncountry=1,ncountry_max
+       country_id=country_id_ncountry(ncountry)
        IF(country_id.EQ.'PS'.OR.country_id.EQ.'BQ') THEN
-          country_name='"'//TRIM(country_name_nlist(nlist))//'"'
+          country_name='"'//TRIM(country_name_ncountry(ncountry))//'"'
        ELSE
-          country_name=country_name_nlist(nlist)
+          country_name=country_name_ncountry(ncountry)
        END IF
        WRITE(nfl,format2,IOSTAT=nstat,ERR=9002) &
-            country_id_nlist(nlist),TRIM(country_name), &
-            region_id_nlist(nlist), &
-            (ncases_total_ndate_nlist(ndate,nlist),ndate=1,ndate_max)
+            country_id_ncountry(ncountry),TRIM(country_name), &
+            region_id_ncountry(ncountry), &
+            (ncases_total_ndate_ncountry(ndate,ncountry),ndate=1,ndate_max)
     END DO
     CLOSE(nfl)
 
@@ -357,17 +349,17 @@ CONTAINS
     WRITE(nfl,format1,IOSTAT=nstat,ERR=9003) &
          'country_id,country_name,region_id', &
          (date_id_ndate(ndate),ndate=1,ndate_max)
-    DO nlist=1,nlist_max
-       country_id=country_id_nlist(nlist)
+    DO ncountry=1,ncountry_max
+       country_id=country_id_ncountry(ncountry)
        IF(country_id.EQ.'PS'.OR.country_id.EQ.'BQ') THEN
-          country_name='"'//TRIM(country_name_nlist(nlist))//'"'
+          country_name='"'//TRIM(country_name_ncountry(ncountry))//'"'
        ELSE
-          country_name=country_name_nlist(nlist)
+          country_name=country_name_ncountry(ncountry)
        END IF
        WRITE(nfl,format2,IOSTAT=nstat,ERR=9004) &
-            country_id_nlist(nlist),TRIM(country_name), &
-            region_id_nlist(nlist), &
-            (ndeaths_total_ndate_nlist(ndate,nlist),ndate=1,ndate_max)
+            country_id_ncountry(ncountry),TRIM(country_name), &
+            region_id_ncountry(ncountry), &
+            (ndeaths_total_ndate_ncountry(ndate,ncountry),ndate=1,ndate_max)
     END DO
     CLOSE(nfl)
 

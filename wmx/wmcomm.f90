@@ -122,7 +122,7 @@ MODULE wmcomm_parm
   REAL(rkind):: WAEMIN      ! minimum frequency range in Alfven frequency
   REAL(rkind):: WAEMAX      ! maximum frequency range in Alfven frequency
 
-  INTEGER:: NTHGMAX         ! number of poloidal mesh in graphics
+  INTEGER:: nthgmax         ! number of poloidal mesh for graphics
 
   INTERFACE
      FUNCTION GUCLIP(X)
@@ -145,7 +145,7 @@ MODULE wmcomm
   USE commpi
   IMPLICIT NONE
 
-  REAL(rkind),ALLOCATABLE:: XR(:),XRHO(:)
+  REAL(rkind),ALLOCATABLE:: XR(:),XRHO(:),XTH(:),XTHF(:)
   INTEGER:: NTHMAX_F    ! number of extended poloidal mesh =NTHMAX*factor_nth
   INTEGER:: NHHMAX_F    ! number of extended helical mesh  =NHHMAX*factor_nhh
   INTEGER:: MDSIZ,MDMIN,MDMAX,LDSIZ,LDMIN,LDMAX
@@ -229,7 +229,7 @@ CONTAINS
   SUBROUTINE wm_allocate
     IMPLICIT NONE
     INTEGER,SAVE:: nrmax_save,nthmax_save,nhhmax_save,nphmax_save
-    INTEGER,SAVE:: nsumax_save,nswmax_save,nthgmax_save
+    INTEGER,SAVE:: nsumax_save,nswmax_save
     INTEGER,SAVE:: INIT=0
     
     IF(INIT.EQ.0) THEN
@@ -240,8 +240,7 @@ CONTAINS
           nhhmax.EQ.nhhmax_save.AND. &
           nphmax.EQ.nphmax_save.AND. &
           nsumax.EQ.nsumax_save.AND. &
-          nswmax.EQ.nswmax_save.AND. &
-          nthgmax.EQ.nthgmax_save) RETURN
+          nswmax.EQ.nswmax_save) RETURN
        CALL wm_deallocate
     END IF
 
@@ -254,7 +253,7 @@ CONTAINS
     nthmax_f=2*nthmax
     nhhmax_f=2*nhhmax
 
-    ALLOCATE(XR(nrmax+1),XRHO(nrmax+1))
+    ALLOCATE(XR(nrmax+1),XRHO(nrmax+1),XTH(nthmax+1),XTHF(nthmax_f+1))
     ALLOCATE(CJANT(3,nthmax,nhhmax))
     ALLOCATE(CEWALL(3,nthmax,nhhmax))
     ALLOCATE(CFVG(mlen))
@@ -326,8 +325,6 @@ CONTAINS
     ALLOCATE(BPT(nthmax_f,nrmax+1),BTP(nthmax_f,nrmax+1))
     ALLOCATE(SIOTA(nrmax+1))
 
-    ALLOCATE(RPSG(nthgmax,nrmax+1),ZPSG(nthgmax,nrmax+1))
-
     ALLOCATE(KACONT(8,nrmax+1,nthmax_f))
 
     nrmax_save=nrmax
@@ -336,13 +333,12 @@ CONTAINS
     nphmax_save=nphmax
     nsumax_save=nsumax
     nswmax_save=nswmax
-    nthgmax_save=nthgmax
   END SUBROUTINE wm_allocate
 
   SUBROUTINE wm_deallocate
     IMPLICIT NONE
 
-    DEALLOCATE(XR,XRHO)
+    DEALLOCATE(XR,XRHO,XTH,XTHF)
     DEALLOCATE(CJANT)
     DEALLOCATE(CEWALL)
     DEALLOCATE(CFVG)
@@ -378,6 +374,5 @@ CONTAINS
     DEALLOCATE(BPR,BPZ,BPT,BTP)
     DEALLOCATE(SIOTA)
 
-    DEALLOCATE(RPSG,ZPSG)
   END SUBROUTINE wm_deallocate
 END MODULE wmcomm

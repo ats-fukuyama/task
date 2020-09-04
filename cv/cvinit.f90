@@ -22,6 +22,7 @@ CONTAINS
     knam_csv_select_cases='cv-select-cases.csv'
     knam_csv_select_deaths='cv-select-deaths.csv'
     knam_cv_select='cv-select.data'
+    knam_cv_population='cv-population.data'
     
     RETURN
   END SUBROUTINE cv_init

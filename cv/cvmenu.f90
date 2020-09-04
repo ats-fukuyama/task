@@ -18,6 +18,7 @@ CONTAINS
     USE cvgout,ONLY: cv_gout
     USE cvregion,ONLY: cv_region
     USE cvselect,ONLY: cv_select
+    USE cvpopulation,ONLY: cv_population_read
     USE cvlib
     IMPLICIT NONE
     CHARACTER(LEN=1):: kid
@@ -41,6 +42,7 @@ CONTAINS
        CALL cv_view
     ELSEIF(kid.EQ.'L') THEN
        CALL cv_read(ierr)
+       CALL cv_population_read(ierr)
        nstat=1
     ELSEIF(kid.EQ.'C') THEN
        IF(nstat.EQ.0) THEN

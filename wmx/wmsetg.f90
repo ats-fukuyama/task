@@ -152,7 +152,7 @@ CONTAINS
     USE wmcomm
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
-    REAL(rkind):: PSIPB,DRHO,RHOL,DTH,DTHG,RS,RSD,RCOS,RSIN,P0
+    REAL(rkind):: PSIPB,DRHO,RHOL,DTH,DTHF,RS,RSD,RCOS,RSIN,P0
     REAL(rkind):: FEDGE,FACTN,PT,FACTT,DTHU,RRG
     INTEGER:: NR,NSU,NTH,NHH,NS
 
@@ -188,8 +188,16 @@ CONTAINS
        ENDIF
     ENDDO
 
-    DTH=2.D0*PI/NTHMAX_F
-    DTHG=2.D0*PI/nthgmax
+    DTH=2.D0*PI/NTHMAX
+    DO NTH=1,NTHMAX+1
+       XTH(NTH)=DTH*(NTH-1)
+    END DO
+
+    DTHF=2.D0*PI/NTHMAX_F
+    DO NTH=1,NTHMAX_F+1
+       XTHF(NTH)=DTHF*(NTH-1)
+    END DO
+
     DO NR=1,NRMAX+1
        IF(NR.EQ.1) THEN
           RS=XR(2)/XRHO(2)
@@ -198,24 +206,14 @@ CONTAINS
        ENDIF
        RSD=QPS(NR)/(BB*RS)
        DO NTH=1,NTHMAX_F
-          RCOS=COS(DTH*(NTH-1))
-          RSIN=SIN(DTH*(NTH-1))
+          RCOS=COS(DTHF*(NTH-1))
+          RSIN=SIN(DTHF*(NTH-1))
           RPS(NTH,NR)    = RR + XR(NR)*RCOS
           ZPS(NTH,NR)    =      XR(NR)*RSIN
           DRPSI(NTH,NR)  =      RSD   *RCOS
           DZPSI(NTH,NR)  =      RSD   *RSIN
           DRCHI(NTH,NR)  =     -RS    *RSIN
           DZCHI(NTH,NR)  =      RS    *RCOS
-       ENDDO
-       DO NTH=1,nthgmax
-          RCOS=COS(DTHG*(NTH-1))
-          RSIN=SIN(DTHG*(NTH-1))
-          IF(MODELG.EQ.0) THEN
-             RPSG(NTH,NR)  =      XR(NR)*RCOS
-          ELSE IF(MODELG.EQ.1) THEN
-             RPSG(NTH,NR)  = RR + XR(NR)*RCOS
-          ENDIF
-          ZPSG(NTH,NR)  =         XR(NR)*RSIN
        ENDDO
     ENDDO
 
@@ -294,57 +292,53 @@ CONTAINS
     USE plprof,ONLY: pl_qprf
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
-    REAL(rkind):: DRHO,RHOL,DTH,RSD,RCOS,RSIN,DTHG,P0,FEDGE,FACTN,PT,FACTT
+    REAL(rkind):: DRHO,RHOL,DTH,DTHF,RSD,RCOS,RSIN,P0,FEDGE,FACTN,PT,FACTT
     REAL(rkind):: DTHU,RRG
     INTEGER:: NR,NTH,NS,NSU,NHH
 
-         IERR=0
+    IERR=0
 
-         NSUMAX=31
-         NSWMAX=31
-         NHHMAX=1
-         NHHMAX_F=1
+    NSUMAX=31
+    NSWMAX=31
+    NHHMAX=1
+    NHHMAX_F=1
 
 !         CALL plfile_prof_read(modeln,modelq,ierr)
 
-         PSIPA=RA*RA*BB/(Q0+QA)
-         DRHO=(RB/RA)/NRMAX
+    PSIPA=RA*RA*BB/(Q0+QA)
+    DRHO=(RB/RA)/NRMAX
 
-         DO NR=1,NRMAX+1
-            RHOL=DRHO*(NR-1)
-            XRHO(NR)=RHOL
-            XR(NR)=RA*RHOL
-            CALL PL_QPRF(RHOL,QPS(NR))
-         ENDDO
+    DO NR=1,NRMAX+1
+       RHOL=DRHO*(NR-1)
+       XRHO(NR)=RHOL
+       XR(NR)=RA*RHOL
+       CALL PL_QPRF(RHOL,QPS(NR))
+    ENDDO
 
-         DTH=2.D0*PI/NTHMAX_F
-         DO NR=1,NRMAX+1
-            RSD=RA/(2.D0*PSIPA)
-            DO NTH=1,NTHMAX_F
-               RCOS=COS(DTH*(NTH-1))
-               RSIN=SIN(DTH*(NTH-1))
-               RPS(NTH,NR) = RR + XR(NR)*RCOS
-               ZPS(NTH,NR)    =      XR(NR)*RSIN
-               DRPSI(NTH,NR)  =      RSD   *RCOS
-               DZPSI(NTH,NR)  =      RSD   *RSIN
-               DRCHI(NTH,NR)  =     -RA    *RSIN
-               DZCHI(NTH,NR)  =      RA    *RCOS
-            ENDDO
-         END DO
+    DTH=2.D0*PI/NTHMAX
+    DO NTH=1,NTHMAX+1
+       XTH(NTH)=DTH*(NTH-1)
+    END DO
 
-         DTHG=2.D0*PI/NTHGMAX
-         DO NR=1,NRMAX+1
-            DO NTH=1,NTHGMAX
-               RCOS=COS(DTHG*(NTH-1))
-               RSIN=SIN(DTHG*(NTH-1))
-               IF(MODELG.EQ.0) THEN
-                  RPSG(NTH,NR)  =      XR(NR)*RCOS
-               ELSE
-                  RPSG(NTH,NR)  = RR + XR(NR)*RCOS
-               ENDIF
-               ZPSG(NTH,NR)  =         XR(NR)*RSIN
-            ENDDO
-         ENDDO
+    DTHF=2.D0*PI/NTHMAX_F
+    DO NTH=1,NTHMAX_F+1
+       XTHF(NTH)=DTHF*(NTH-1)
+    END DO
+
+    DTH=2.D0*PI/NTHMAX_F
+    DO NR=1,NRMAX+1
+       RSD=RA/(2.D0*PSIPA)
+       DO NTH=1,NTHMAX_F
+          RCOS=COS(DTHF*(NTH-1))
+          RSIN=SIN(DTHF*(NTH-1))
+          RPS(NTH,NR) = RR + XR(NR)*RCOS
+          ZPS(NTH,NR)    =      XR(NR)*RSIN
+          DRPSI(NTH,NR)  =      RSD   *RCOS
+          DZPSI(NTH,NR)  =      RSD   *RSIN
+          DRCHI(NTH,NR)  =     -RA    *RSIN
+          DZCHI(NTH,NR)  =      RA    *RCOS
+       ENDDO
+    END DO
 
          P0=0.D0
          DO NS=1,NSMAX

@@ -198,7 +198,7 @@ CONTAINS
           END IF
        END IF
     ELSE
-       A%ASPECT=0.68    ! 15.0/22.0
+       A%ASPECT=(A%GPYMAX-A%GPYMIN)/(A%GPXMAX-A%GPXMIN)
     END IF
 
     SELECT CASE(A%MODE_XY)
@@ -389,12 +389,43 @@ CONTAINS
     A%YMAX=A%YMAX+0.5*GL*A%YSPACE_FACTOR
     A%YMIN=A%YMIN-0.5*GL*A%YSPACE_FACTOR
 
-!     ----- Adjust of graph shape by actual 2D shape -----
+!     ---- Adjust origin to be between min and max 
+    
+    IF(A%MODE_LS.EQ.0.OR.A%MODE_LS.EQ.2) THEN
+       IF(A%XORG.LT.A%XMIN) A%XORG=A%XMIN
+       IF(A%XORG.LT.A%XMAX) A%XORG=A%XMAX
+    ELSE
+       IF(A%XORG.LT.A%XMIN) A%XORG=A%XORG+INT(A%XMIN-A%XORG)+1.D0
+       IF(A%XORG.LT.A%XMAX) A%XORG=A%XORG-INT(A%XORG-A%XMAX)-1.D0
+    END IF
+
+    IF(A%MODE_LS.EQ.0.OR.A%MODE_LS.EQ.1) THEN
+       IF(A%YORG.LT.A%YMIN) A%YORG=A%YMIN
+       IF(A%YORG.LT.A%YMAX) A%YORG=A%YMAX
+    ELSE
+       IF(A%YORG.LT.A%YMIN) A%YORG=A%YORG+INT(A%YMIN-A%YORG)+1.D0
+       IF(A%YORG.LT.A%YMAX) A%YORG=A%YORG-INT(A%YORG-A%YMAX)-1.D0
+    END IF
+
+!     ----- Adjust of graph shape by actual 2D/1D shape -----
 
     IF(A%MODE_2D >= 1) THEN
        IF(A%ASPECT == 0.0) THEN
           IF(A%XMAX-A%XMIN /= 0.0) THEN
              A%ASPECT=(A%YMAX-A%YMIN)/(A%XMAX-A%XMIN)
+             IF(A%ASPECT /= 0.0) THEN
+                IF(A%ASPECT >= 1.0) THEN
+                   A%GPXMAX=A%GPXMIN+(A%GPYMAX-A%GPYMIN)/A%ASPECT
+                ELSE
+                   A%GPYMAX=A%GPYMIN+(A%GPXMAX-A%GPXMIN)*A%ASPECT
+                END IF
+             END IF
+          END IF
+       END IF
+    ELSE
+       IF(A%ASPECT == 0.0) THEN
+          IF(A%XMAX-A%XMIN /= 0.0) THEN
+             A%ASPECT=(A%FMAX-A%FMIN)/(A%XMAX-A%XMIN)
              IF(A%ASPECT /= 0.0) THEN
                 IF(A%ASPECT >= 1.0) THEN
                    A%GPXMAX=A%GPXMIN+(A%GPYMAX-A%GPYMIN)/A%ASPECT

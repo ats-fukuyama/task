@@ -55,7 +55,7 @@ CONTAINS
          knam_csv_in,knam_csv_out_cases,knam_csv_out_deaths, &
          knam_csv_region_cases,knam_csv_region_deaths, &
          knam_csv_select_cases,knam_csv_select_deaths, &
-         knam_cv_select
+         knam_cv_select,knam_cv_population
     
     READ(nid,cv,IOSTAT=ist,ERR=9800,END=9900)
     
@@ -78,7 +78,7 @@ CONTAINS
          '# &cv : knam_csv_in,knam_css_out_cases,knam_css_out_deaths', &
          '        knam_csv_region_cases,knam_csv_region_deaths', &
          '        knam_csv_select_cases,knam_csv_select_deaths', &
-         '        knam_cv_select'
+         '        knam_cv_select,knam_cv_population'
     RETURN
   END SUBROUTINE cv_plst
 

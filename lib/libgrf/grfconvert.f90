@@ -186,8 +186,15 @@ CONTAINS
 
     IF(PRESENT(ASPECT)) THEN
        A%ASPECT=ASPECT
+       IF(A%ASPECT /= 0.0) THEN
+          IF(A%ASPECT >= 1.0) THEN
+             A%GPXMAX=A%GPXMIN+(A%GPYMAX-A%GPYMIN)/A%ASPECT
+          ELSE
+             A%GPYMAX=A%GPYMIN+(A%GPXMAX-A%GPXMIN)*A%ASPECT
+          END IF
+       END IF
     ELSE
-       A%ASPECT=0.68   ! 15.0/22.0
+       A%ASPECT=(A%GPYMAX-A%GPYMIN)/(A%GPXMAX-A%GPXMIN)
     END IF
 
     SELECT CASE(A%MODE_XY)
@@ -378,7 +385,7 @@ CONTAINS
     A%YMAX=A%YMAX+0.5*GL*A%YSPACE_FACTOR
     A%YMIN=A%YMIN-0.5*GL*A%YSPACE_FACTOR
 
-!     ----- Adjust of graph shape by actual 2D shape -----
+!     ----- Adjust of graph shape by actual 2D/1D shape -----
 
     IF(A%MODE_2D >= 1) THEN
        IF(A%ASPECT == 0.0) THEN
@@ -393,8 +400,20 @@ CONTAINS
              END IF
           END IF
        END IF
+    ELSE
+       IF(A%ASPECT == 0.0) THEN
+          IF(A%XMAX-A%XMIN /= 0.0) THEN
+             A%ASPECT=(A%FMAX-A%FMIN)/(A%XMAX-A%XMIN)
+             IF(A%ASPECT /= 0.0) THEN
+                IF(A%ASPECT >= 1.0) THEN
+                   A%GPXMAX=A%GPXMIN+(A%GPYMAX-A%GPYMIN)/A%ASPECT
+                ELSE
+                   A%GPYMAX=A%GPYMIN+(A%GPXMAX-A%GPXMIN)*A%ASPECT
+                END IF
+             END IF
+          END IF
+       END IF
     END IF
-
 
 !     ----- LINE SECTION -----
 

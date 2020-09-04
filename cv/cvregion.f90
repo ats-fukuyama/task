@@ -29,12 +29,12 @@ CONTAINS
     USE cvcomm
     IMPLICIT NONE
     CHARACTER(LEN=4):: region_id
-    INTEGER:: nlist,nregion
+    INTEGER:: ncountry,nregion
 
-    IF(ALLOCATED(nregion_nlist)) DEALLOCATE(nregion_nlist)
-    ALLOCATE(nregion_nlist(nlist_max))
-    DO nlist=1,nlist_max
-       nregion_nlist(nlist)=0
+    IF(ALLOCATED(nregion_ncountry)) DEALLOCATE(nregion_ncountry)
+    ALLOCATE(nregion_ncountry(ncountry_max))
+    DO ncountry=1,ncountry_max
+       nregion_ncountry(ncountry)=0
     END DO
     nregion_max=7
     IF(ALLOCATED(region_id_nregion)) DEALLOCATE(region_id_nregion)
@@ -48,24 +48,24 @@ CONTAINS
     
     IF(nregion_max.EQ.0) THEN
        nregion_max=1
-       region_id_nregion(1)=region_id_nlist(1)
+       region_id_nregion(1)=region_id_ncountry(1)
        ncount_nregion(1)=1
-       nregion_nlist(1)=1
-       DO nlist=2,nlist_max
-          region_id=region_id_nlist(nlist)
+       nregion_ncountry(1)=1
+       DO ncountry=2,ncountry_max
+          region_id=region_id_ncountry(ncountry)
           DO nregion=1,nregion_max
              IF(region_id.EQ.region_id_nregion(nregion)) THEN ! region found
                 ncount_nregion(nregion)=ncount_nregion(nregion)+1
-                nregion_nlist(nlist)=nregion
+                nregion_ncountry(ncountry)=nregion
                 EXIT
              END IF
           END DO
-          IF(nregion_nlist(nlist).EQ.0) THEN ! region not foundd: new region
+          IF(nregion_ncountry(ncountry).EQ.0) THEN ! region not found: new one
              nregion_max=nregion_max+1
              nregion=nregion_max
              region_id_nregion(nregion)=region_id
              ncount_nregion(nregion)=1
-             nregion_nlist(nlist)=nregion
+             nregion_ncountry(ncountry)=nregion
           END IF
        END DO
        WRITE(6,'(A,I8)') '## nregion_max=',nregion_max
@@ -80,12 +80,12 @@ CONTAINS
        DO nregion=1,nregion_max
           ncount_nregion(nregion)=0
        END DO
-       DO nlist=1,nlist_max
-          region_id=region_id_nlist(nlist)
+       DO ncountry=1,ncountry_max
+          region_id=region_id_ncountry(ncountry)
           DO nregion=1,nregion_max
              IF(region_id.EQ.region_id_nregion(nregion)) THEN ! region found
                 ncount_nregion(nregion)=ncount_nregion(nregion)+1
-                nregion_nlist(nlist)=nregion
+                nregion_ncountry(ncountry)=nregion
                 EXIT
              END IF
           END DO
@@ -127,7 +127,7 @@ CONTAINS
     USE libfio
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
-    INTEGER:: nfl,nregion,nlist,ndate,nstat
+    INTEGER:: nfl,nregion,ncountry,ndate,nstat
     CHARACTER(LEN=4):: region_id
     CHARACTER(LEN=256):: region_name
     CHARACTER(LEN=80):: format1,format2
@@ -154,21 +154,21 @@ CONTAINS
        END DO
     END DO
 
-    DO nlist=1,nlist_max
-       nregion=nregion_nlist(nlist)
+    DO ncountry=1,ncountry_max
+       nregion=nregion_ncountry(ncountry)
        DO ndate=1,ndate_max
           ncases_new_ndate_nregion(ndate,nregion) &
                =ncases_new_ndate_nregion(ndate,nregion) &
-               +ncases_new_ndate_nlist(ndate,nlist)
+               +ncases_new_ndate_ncountry(ndate,ncountry)
           ncases_total_ndate_nregion(ndate,nregion) &
                =ncases_total_ndate_nregion(ndate,nregion) &
-               +ncases_total_ndate_nlist(ndate,nlist)
+               +ncases_total_ndate_ncountry(ndate,ncountry)
           ndeaths_new_ndate_nregion(ndate,nregion) &
                =ndeaths_new_ndate_nregion(ndate,nregion) &
-               +ndeaths_new_ndate_nlist(ndate,nlist)
+               +ndeaths_new_ndate_ncountry(ndate,ncountry)
           ndeaths_total_ndate_nregion(ndate,nregion) &
                =ndeaths_total_ndate_nregion(ndate,nregion) &
-               +ndeaths_total_ndate_nlist(ndate,nlist)
+               +ndeaths_total_ndate_ncountry(ndate,ncountry)
        END DO
     END DO
 

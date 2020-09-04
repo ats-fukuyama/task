@@ -30,7 +30,7 @@ CONTAINS
     USE libfio
     IMPLICIT NONE
     CHARACTER(LEN=2):: country_id
-    INTEGER:: nlist,nselect,ierr,nfl,nstat
+    INTEGER:: ncountry,nselect,ierr,nfl,nstat
 
     ierr=0
 
@@ -60,8 +60,8 @@ CONTAINS
     ALLOCATE(country_id_nselect(nselect_max))  
     IF(ALLOCATED(country_name_nselect)) DEALLOCATE(country_name_nselect)
     ALLOCATE(country_name_nselect(nselect_max))  
-    IF(ALLOCATED(nlist_nselect)) DEALLOCATE(nlist_nselect)
-    ALLOCATE(nlist_nselect(nselect_max))  
+    IF(ALLOCATED(ncountry_nselect)) DEALLOCATE(ncountry_nselect)
+    ALLOCATE(ncountry_nselect(nselect_max))  
 
     REWIND(nfl)
     nselect=0
@@ -80,22 +80,22 @@ CONTAINS
 
     DO nselect=1,nselect_max
        country_id=country_id_nselect(nselect)
-       nlist_nselect(nselect)=0
-       DO nlist=1,nlist_max
-          IF(country_id_nlist(nlist).EQ.country_id) THEN
-             nlist_nselect(nselect)=nlist
+       ncountry_nselect(nselect)=0
+       DO ncountry=1,ncountry_max
+          IF(country_id_ncountry(ncountry).EQ.country_id) THEN
+             ncountry_nselect(nselect)=ncountry
              EXIT
           END IF
        END DO
-       IF(nlist_nselect(nselect).EQ.0) THEN
+       IF(ncountry_nselect(nselect).EQ.0) THEN
           WRITE(6,'(A,A2,A,I4)') &
                'XX cvselect error: unknown country_id: ',country_id, &
                '  nselect=',nselect
        ELSE
-          nlist=nlist_nselect(nselect)
+          ncountry=ncountry_nselect(nselect)
           WRITE(6,'(I4,2X,A2,2X,A)') &
-               nselect,country_id,TRIM(country_name_nlist(nlist))
-          country_name_nselect(nselect)=country_name_nlist(nlist)
+               nselect,country_id,TRIM(country_name_ncountry(ncountry))
+          country_name_nselect(nselect)=country_name_ncountry(ncountry)
        END IF
     END DO
        
@@ -110,7 +110,7 @@ CONTAINS
     USE libfio
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
-    INTEGER:: nfl,nselect,nlist,ndate,nstat
+    INTEGER:: nfl,nselect,ncountry,ndate,nstat
     CHARACTER(LEN=2):: country_id
     CHARACTER(LEN=256):: country_name
     CHARACTER(LEN=80):: format1,format2
@@ -127,16 +127,16 @@ CONTAINS
     ALLOCATE(ndeaths_total_ndate_nselect(ndate_max,nselect_max))
 
     DO nselect=1,nselect_max
-       nlist=nlist_nselect(nselect)
+       ncountry=ncountry_nselect(nselect)
        DO ndate=1,ndate_max
           ncases_new_ndate_nselect(ndate,nselect) &
-               =ncases_new_ndate_nlist(ndate,nlist)
+               =ncases_new_ndate_ncountry(ndate,ncountry)
           ncases_total_ndate_nselect(ndate,nselect) &
-               =ncases_total_ndate_nlist(ndate,nlist)
+               =ncases_total_ndate_ncountry(ndate,ncountry)
           ndeaths_new_ndate_nselect(ndate,nselect) &
-               =ndeaths_new_ndate_nlist(ndate,nlist)
+               =ndeaths_new_ndate_ncountry(ndate,ncountry)
           ndeaths_total_ndate_nselect(ndate,nselect) &
-               =ndeaths_total_ndate_nlist(ndate,nlist)
+               =ndeaths_total_ndate_ncountry(ndate,ncountry)
        END DO
     END DO
 
