@@ -81,7 +81,7 @@ CONTAINS
     USE wmgsub
     IMPLICIT NONE
     CHARACTER(LEN=1),INTENT(IN):: K2,K3
-    REAL(sp),ALLOCATABLE:: GX1(:),GX2(:),GY(:,:),GY1(:,:),GY2(:,:)
+    REAL(sp),ALLOCATABLE:: GX1(:),GX2(:),GYS(:,:),GY(:,:),GY1(:,:),GY2(:,:)
     COMPLEX(rkind),ALLOCATABLE:: CF(:,:),CF1(:,:),CF2(:,:),CF3(:,:)
     REAL(rkind),ALLOCATABLE:: POWER(:,:),PF1(:,:),PF2(:,:)
     INTEGER:: NR,NX1,NX2,NG4,I,NS,NTH,NHH,MD,MD1,MD2,MDX,ND,NDX,IMAX
@@ -93,7 +93,8 @@ CONTAINS
             13.8, 21.6,  9.5, 16.5, &
             13.8, 21.6,  1.0,  8.0/
 
-    ALLOCATE(GX1(nrmax+1),GX2(nrmax+1),GY(nrmax+1,nsmax))
+    ALLOCATE(GX1(nrmax+1),GX2(nrmax+1),GYS(nrmax+1,nsmax))
+    ALLOCATE(GY(nrmax+1,3))
     ALLOCATE(GY1(nrmax+1,nthmax*nhhmax),GY2(nrmax+1,nthmax*nhhmax))
     ALLOCATE(CF(nrmax+1,3),CF1(nrmax+1,nthmax*nhhmax))
     ALLOCATE(CF2(nrmax+1,nthmax*nhhmax),CF3(nrmax+1,nthmax*nhhmax))
@@ -418,31 +419,31 @@ CONTAINS
 
        DO I=1,NG4
           DO NR=1,NX2
-             GY(NR,I)=GUCLIP(POWER(NR,I))
+             GYS(NR,I)=GUCLIP(POWER(NR,I))
           ENDDO
        ENDDO
-       CALL wm_gsub(NX2,GX2,GXMIN,GXMAX,GY,NG4,GP(1,1),KTITL(1))
+       CALL wm_gsub(NX2,GX2,GXMIN,GXMAX,GYS,NG4,GP(1,1),KTITL(1))
 
 !      *** POWER : species 1 ***
 
        DO NR=1,NX2
-          GY(NR,1)=GUCLIP(POWER(NR,1))
+          GYS(NR,1)=GUCLIP(POWER(NR,1))
        ENDDO
-       CALL wm_gsub(NX2,GX2,GXMIN,GXMAX,GY,  1,GP(1,2),KTITL(2))
+       CALL wm_gsub(NX2,GX2,GXMIN,GXMAX,GYS,  1,GP(1,2),KTITL(2))
 
 !      *** POWER : species 2 ***
 
        DO NR=1,NX2
-          GY(NR,1)=GUCLIP(POWER(NR,2))
+          GYS(NR,1)=GUCLIP(POWER(NR,2))
        ENDDO
-       CALL wm_gsub(NX2,GX2,GXMIN,GXMAX,GY,  1,GP(1,3),KTITL(3))
+       CALL wm_gsub(NX2,GX2,GXMIN,GXMAX,GYS,  1,GP(1,3),KTITL(3))
 
 !      *** POWER : species 3 ***
 
        DO NR=1,NX2
-          GY(NR,1)=GUCLIP(POWER(NR,3))
+          GYS(NR,1)=GUCLIP(POWER(NR,3))
        ENDDO
-       CALL wm_gsub(NX2,GX2,GXMIN,GXMAX,GY,  1,GP(1,4),KTITL(4))
+       CALL wm_gsub(NX2,GX2,GXMIN,GXMAX,GYS,  1,GP(1,4),KTITL(4))
     ELSE
 
 !      *** E/B(R) ****
