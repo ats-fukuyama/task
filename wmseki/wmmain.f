@@ -12,7 +12,8 @@ C                    Email: fukuyama@nucleng.kyoto-u.ac.jp
 C                  URL: http://p-grp.nucleng.kyoto-u.ac.jp/wm/
 C***********************************************************************
 C
-      USE plinit,ONLY:pl_init,pl_parm
+      USE plinit,ONLY:pl_init
+      USE plparm,ONLY:pl_parm
       INCLUDE 'wmcomm.inc'
 C
       CALL mtx_initialize

@@ -19,7 +19,7 @@ C
       USE libdsp,ONLY: dspfn
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CLDISP(6)
 C
       DO I=1,6
@@ -167,7 +167,7 @@ C
 C
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CLDISP(6)
 C
       RLA=RLN(NS) ! inverse of density scale lenth

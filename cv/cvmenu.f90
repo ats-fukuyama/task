@@ -14,11 +14,11 @@ CONTAINS
     USE cvcomm
     USE cvparm,ONLY: cv_parm
     USE cvview,ONLY: cv_view
-    USE cvfile,ONLY: cv_read,cv_write
+    USE cvfile,ONLY: cv_load,cv_global
     USE cvgout,ONLY: cv_gout
     USE cvregion,ONLY: cv_region
     USE cvselect,ONLY: cv_select
-    USE cvpopulation,ONLY: cv_population_read
+    USE cvpopulation,ONLY: cv_population_load
     USE cvlib
     IMPLICIT NONE
     CHARACTER(LEN=1):: kid
@@ -41,14 +41,14 @@ CONTAINS
     ELSEIF(kid.EQ.'V') THEN
        CALL cv_view
     ELSEIF(kid.EQ.'L') THEN
-       CALL cv_read(ierr)
-       CALL cv_population_read(ierr)
+       CALL cv_load(ierr)
+       CALL cv_population_load(ierr)
        nstat=1
     ELSEIF(kid.EQ.'C') THEN
        IF(nstat.EQ.0) THEN
           WRITE(6,'(A)') 'XX cvmenu: No date ha been loaded'
        ELSE
-          CALL cv_write(ierr)
+          CALL cv_global(ierr)
        END IF
     ELSEIF(kid.EQ.'G') THEN
        IF(nstat.EQ.0) THEN

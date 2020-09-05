@@ -9,6 +9,7 @@ C       RHO, NE, TE, TI
 C
 C       number of data is number of lines
 C
+      USE libfio
       INCLUDE 'wmcomm.inc'
 C
       DIMENSION RHOFL(NRM),RNEFL(NRM),RTEFL(NRM),RTIFL(NRM)

@@ -18,7 +18,7 @@ C
 C
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CLDISP(6)
 C
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
@@ -38,7 +38,7 @@ C
 C
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CLDISP(6)
       REAL(8),INTENT(IN):: BABS1
 C
@@ -61,7 +61,7 @@ C
 C
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CLDISP(6)
 C
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
@@ -104,7 +104,7 @@ C
 C
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CLDISP(6)
       REAL(8),INTENT(IN):: BABS1
 C
@@ -148,7 +148,7 @@ C
 C
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CLDISP(6)
 C
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS))
@@ -169,7 +169,7 @@ C
 C
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CLDISP(6)
 C
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
@@ -194,7 +194,7 @@ C
 C
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CLDISP(6)
 C
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
@@ -227,7 +227,7 @@ C
       USE libdsp,ONLY: DSPFN
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CLDISP(6)
 C
       RT=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
@@ -258,7 +258,7 @@ C
       USE libdsp,ONLY: DSPFN
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CLDISP(6)
 C
       DO I=1,6
@@ -311,7 +311,7 @@ C
       USE libdsp,ONLY: DSPFN
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CLDISP(6)
       REAL(8),INTENT(IN):: BABS1
       DIMENSION CALAM2(0:NHM)
@@ -366,7 +366,7 @@ C
       USE libdsp,ONLY: DSPFN
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CLDISP(6)
 C
       DO I=1,6
@@ -429,7 +429,7 @@ C
       USE libdsp,ONLY: DSPFN
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CLDISP(6)
       REAL(8),INTENT(IN):: BABS1
       DIMENSION CALAM2(0:NHM)
@@ -495,7 +495,7 @@ C
       USE libbes,ONLY: lambda
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CLDISP(6)
       DIMENSION CALAM2(0:NHM)
 C
@@ -602,7 +602,7 @@ C
       USE libbes,ONLY: lambda
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CLDISP(6)
       DIMENSION CALAM2(0:NHM)
       REAL(8),INTENT(IN):: BABS1,BTH1
@@ -709,7 +709,7 @@ C
       USE libbes,ONLY: lambda
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CLDISP(6)
 C
       DO I=1,6
@@ -787,7 +787,7 @@ C
       USE libbes,ONLY: lambda
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CLDISP(6)
 C
       DO I=1,6
@@ -853,7 +853,7 @@ C
 C
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CLDISP(6)
 C
       DELZ=1.D-6
@@ -983,7 +983,7 @@ C
 C
       USE libdsp,ONLY: DSPFN
       USE plcomm
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
 C
       IF(ABS(CZ).GT.15.D0) THEN
          NUMAX=20
@@ -1023,7 +1023,7 @@ C
 C
       USE libdsp,ONLY: DSPFN
       USE plcomm
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
 C
       NUMAX=NINT(Q-3.D0/2.D0)
       CSUM=(0.D0,0.D0)
@@ -1044,7 +1044,7 @@ C
       FUNCTION CFQZ_EXP(Q,CZ)
 C
       USE plcomm
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
 C
       CFQZ=(0.D0,0.D0)
 C

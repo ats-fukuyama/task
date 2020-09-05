@@ -4,7 +4,7 @@ include ../make.header
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
-MODINCLUDE= -I $(MOD) -I../plx/$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD)
+MODINCLUDE= -I $(MOD) -I../pl/$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD)
 
 SRCS = dpmenu.f dpinit.f dproot.f dpcont.f dpdisp.f \
        dptens.f dptnsr1.f dptnsr2.f \
@@ -12,8 +12,8 @@ SRCS = dpmenu.f dpinit.f dproot.f dpcont.f dpdisp.f \
 
 OBJS = $(SRCS:.f=.o) 
 
-LIBS = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a \
-       ../eq/eqlib.a dplib.a 
+LIBS = ../lib/libtask.a ../../bpsd/libbpsd.a ../pl/libpl.a \
+       ../eq/libeq.a libdp.a 
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -22,22 +22,22 @@ LIBS = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a \
 
 all : dp
 
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
-../../bpsd/bpsdlib.a:
-	(cd ../../bpsd; make bpsdlib.a)
-../plx/pllib.a:
-	(cd ../plx; make pllib.a)
-../eq/eqlib.a:
-	(cd ../eq; make eqlib.a)
-dplib.a: $(OBJS)
-	$(LD) $(LDFLAGS) dplib.a $(OBJS)
+../lib/libtask.a:
+	(cd ../lib; make libtask.a)
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
+../pl/libpl.a:
+	(cd ../pl; make libpl.a)
+../eq/libeq.a:
+	(cd ../eq; make libeq.a)
+libdp.a: $(OBJS)
+	$(LD) $(LDFLAGS) libdp.a $(OBJS)
 
 libs:
-	(cd ../lib; make tasklib.a)
-	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../plx; make pllib.a)
-	(cd ../eq; make eqlib.a)
+	(cd ../lib; make libtask.a)
+	(cd ../../bpsd; make libbpsd.a)
+	(cd ../pl; make libpl.a)
+	(cd ../eq; make libeq.a)
 
 dp : $(LIBS) dpmain.o
 	$(FCFIXED) dpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
@@ -57,19 +57,19 @@ new:
 	cp -f *.f ../dpnew
 	cp -f *.inc ../dpnew
 
-DPCOMM=dpcomm.inc dpcom1.inc dpcom2.inc ../plx/plcomm.f90
+DPCOMM=dpcomm.inc dpcom1.inc dpcom2.inc ../pl/plcomm.f90
 
 dpmain.o: dpmain.f $(DPCOMM)
 dpmenu.o: dpmenu.f $(DPCOMM)
 dpinit.o: dpinit.f $(DPCOMM)
 dproot.o: dproot.f $(DPCOMM)
-dpcont.o: dpcont.f $(DPCOMM) ../plx/plprof.f90
-dpdisp.o: dpdisp.f $(DPCOMM) ../plx/plprof.f90
-dptens.o: dptens.f $(DPCOMM) ../plx/plprof.f90
-dptnsr1.o: dptnsr1.f $(DPCOMM) ../plx/plprof.f90
-dptnsr2.o: dptnsr2.f $(DPCOMM) ../plx/plprof.f90
-dpfpin.o: dpfpin.f $(DPCOMM) ../plx/plprof.f90
-dphotf.o: dphotf.f $(DPCOMM) ../plx/plprof.f90
-dphotr.o: dphotr.f $(DPCOMM) ../plx/plprof.f90
-dpdkdt.o: dpdkdt.f $(DPCOMM) ../plx/plprof.f90
+dpcont.o: dpcont.f $(DPCOMM) ../pl/plprof.f90
+dpdisp.o: dpdisp.f $(DPCOMM) ../pl/plprof.f90
+dptens.o: dptens.f $(DPCOMM) ../pl/plprof.f90
+dptnsr1.o: dptnsr1.f $(DPCOMM) ../pl/plprof.f90
+dptnsr2.o: dptnsr2.f $(DPCOMM) ../pl/plprof.f90
+dpfpin.o: dpfpin.f $(DPCOMM) ../pl/plprof.f90
+dphotf.o: dphotf.f $(DPCOMM) ../pl/plprof.f90
+dphotr.o: dphotr.f $(DPCOMM) ../pl/plprof.f90
+dpdkdt.o: dpdkdt.f $(DPCOMM) ../pl/plprof.f90
 dpgsub.o: dpgsub.f

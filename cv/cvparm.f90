@@ -52,10 +52,13 @@ CONTAINS
     INTEGER:: NS
 
     NAMELIST /cv/ &
-         knam_csv_in,knam_csv_out_cases,knam_csv_out_deaths, &
+         knam_csv_in, &
+         knam_csv_global_cases,knam_csv_global_deaths, &
          knam_csv_region_cases,knam_csv_region_deaths, &
          knam_csv_select_cases,knam_csv_select_deaths, &
-         knam_cv_select,knam_cv_population
+         knam_cv_select,knam_cv_population, &
+         ndate_step_global,ndate_step_region,ndate_step_select, &
+         ndate_start
     
     READ(nid,cv,IOSTAT=ist,ERR=9800,END=9900)
     
@@ -75,10 +78,13 @@ CONTAINS
   SUBROUTINE cv_plst
 
     WRITE(6,'(A)') &
-         '# &cv : knam_csv_in,knam_css_out_cases,knam_css_out_deaths', &
+         '# &cv : knam_csv_in,', &
+         '        knam_csv_global_cases,knam_csv_global_deaths', &
          '        knam_csv_region_cases,knam_csv_region_deaths', &
          '        knam_csv_select_cases,knam_csv_select_deaths', &
-         '        knam_cv_select,knam_cv_population'
+         '        knam_cv_select,knam_cv_population', &
+         '        ndate_step_global,ndate_step_region,ndate_step_select', &
+         '        ndate_start'
     RETURN
   END SUBROUTINE cv_plst
 
@@ -91,6 +97,11 @@ CONTAINS
     INTEGER,INTENT(OUT):: ierr
 
     ierr=0
+
+    IF(ndate_step_global.LE.0) ndate_step_global=1
+    IF(ndate_step_region.LE.0) ndate_step_region=1
+    IF(ndate_step_select.LE.0) ndate_step_select=1
+    IF(ndate_start      .LE.0) ndate_start=1
 
     RETURN
   END SUBROUTINE cv_chek

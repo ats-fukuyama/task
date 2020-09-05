@@ -127,7 +127,7 @@ CONTAINS
     USE libfio
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
-    INTEGER:: nfl,nregion,ncountry,ndate,nstat
+    INTEGER:: nfl,nregion,ncountry,ndate,nstat,ncount
     CHARACTER(LEN=4):: region_id
     CHARACTER(LEN=256):: region_name
     CHARACTER(LEN=80):: format1,format2
@@ -181,16 +181,18 @@ CONTAINS
        RETURN
     END IF
 
-    WRITE(format1,'(A,i8,A)') '(A,',ndate_max,'(",",A10))'
-    WRITE(format2,'(A,i8,A)') '(A,',ndate_max,'(",",I0))'
+    ncount=(ndate_max-ndate_start)/ndate_step_region+1
+    WRITE(format1,'(A,i8,A)') '(A,',ncount,'(",",A10))'
+    WRITE(format2,'(A,i8,A)') '(A,',ncount,'(",",I0))'
     WRITE(nfl,format1,IOSTAT=nstat,ERR=9001) &
          'region cases', &
-         (date_id_ndate(ndate),ndate=1,ndate_max)
+         (date_id_ndate(ndate),ndate=ndate_start,ndate_max,ndate_step_region)
     DO nregion=1,nregion_max
        region_name=region_name_nregion(nregion)
        WRITE(nfl,format2,IOSTAT=nstat,ERR=9002) &
             TRIM(region_name), &
-            (ncases_total_ndate_nregion(ndate,nregion),ndate=1,ndate_max)
+            (ncases_total_ndate_nregion(ndate,nregion), &
+             ndate=ndate_start,ndate_max,ndate_step_region)
     END DO
     CLOSE(nfl)
 
@@ -207,16 +209,17 @@ CONTAINS
        RETURN
     END IF
 
-    WRITE(format1,'(A,i8,A)') '(A,',ndate_max,'(",",A10))'
-    WRITE(format2,'(A,i8,A)') '(A,',ndate_max,'(",",I0))'
+    WRITE(format1,'(A,i8,A)') '(A,',ncount,'(",",A10))'
+    WRITE(format2,'(A,i8,A)') '(A,',ncount,'(",",I0))'
     WRITE(nfl,format1,IOSTAT=nstat,ERR=9001) &
          'region deaths', &
-         (date_id_ndate(ndate),ndate=1,ndate_max)
+         (date_id_ndate(ndate),ndate=ndate_start,ndate_max,ndate_step_region)
     DO nregion=1,nregion_max
        region_name=region_name_nregion(nregion)
        WRITE(nfl,format2,IOSTAT=nstat,ERR=9002) &
             TRIM(region_name), &
-            (ndeaths_total_ndate_nregion(ndate,nregion),ndate=1,ndate_max)
+            (ndeaths_total_ndate_nregion(ndate,nregion), &
+             ndate=ndate_start,ndate_max,ndate_step_region)
     END DO
     CLOSE(nfl)
 

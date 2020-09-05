@@ -110,7 +110,7 @@ CONTAINS
     USE libfio
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
-    INTEGER:: nfl,nselect,ncountry,ndate,nstat
+    INTEGER:: nfl,nselect,ncountry,ndate,nstat,ncount
     CHARACTER(LEN=2):: country_id
     CHARACTER(LEN=256):: country_name
     CHARACTER(LEN=80):: format1,format2
@@ -150,17 +150,19 @@ CONTAINS
        RETURN
     END IF
 
-    WRITE(format1,'(A,i8,A)') '(A,',ndate_max,'(",",A10))'
-    WRITE(format2,'(A,i8,A)') '(A,",",A2,',ndate_max,'(",",I0))'
+    ncount=(ndate_max-ndate_start)/ndate_step_select+1
+    WRITE(format1,'(A,i8,A)') '(A,',ncount,'(",",A10))'
+    WRITE(format2,'(A,i8,A)') '(A,",",A2,',ncount,'(",",I0))'
     WRITE(nfl,format1,IOSTAT=nstat,ERR=9001) &
          'select cases,ID', &
-         (date_id_ndate(ndate),ndate=1,ndate_max)
+         (date_id_ndate(ndate),ndate=ndate_start,ndate_max,ndate_step_select)
     DO nselect=1,nselect_max
        country_name=country_name_nselect(nselect)
        country_id=country_id_nselect(nselect)
        WRITE(nfl,format2,IOSTAT=nstat,ERR=9002) &
             TRIM(country_name),country_id, &
-            (ncases_total_ndate_nselect(ndate,nselect),ndate=1,ndate_max)
+            (ncases_total_ndate_nselect(ndate,nselect), &
+             ndate=ndate_start,ndate_max,ndate_step_select)
     END DO
     CLOSE(nfl)
 
@@ -177,17 +179,18 @@ CONTAINS
        RETURN
     END IF
 
-    WRITE(format1,'(A,i8,A)') '(A,',ndate_max,'(",",A10))'
-    WRITE(format2,'(A,i8,A)') '(A,",",A2,',ndate_max,'(",",I0))'
+    WRITE(format1,'(A,i8,A)') '(A,',ncount,'(",",A10))'
+    WRITE(format2,'(A,i8,A)') '(A,",",A2,',ncount,'(",",I0))'
     WRITE(nfl,format1,IOSTAT=nstat,ERR=9001) &
          'select deaths,ID', &
-         (date_id_ndate(ndate),ndate=1,ndate_max)
+         (date_id_ndate(ndate),ndate=ndate_start,ndate_max,ndate_step_select)
     DO nselect=1,nselect_max
        country_name=country_name_nselect(nselect)
        country_id=country_id_nselect(nselect)
        WRITE(nfl,format2,IOSTAT=nstat,ERR=9002) &
             TRIM(country_name),country_id, &
-            (ndeaths_total_ndate_nselect(ndate,nselect),ndate=1,ndate_max)
+            (ndeaths_total_ndate_nselect(ndate,nselect), &
+             ndate=ndate_start,ndate_max,ndate_step_select)
     END DO
     CLOSE(nfl)
 

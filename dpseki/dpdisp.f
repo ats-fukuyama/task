@@ -5,7 +5,7 @@ C
       COMPLEX*16 FUNCTION CFDISP(CRF,CKX,CKY,CKZ,XPOS,YPOS,ZPOS)
 C
       USE plcomm
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE '../dpseki/dpcomm.inc'
       DIMENSION CDET(3,3)
 C
       CALL DPDISP(CRF,CKX,CKY,CKZ,XPOS,YPOS,ZPOS,CDET)
@@ -32,7 +32,7 @@ C
       COMPLEX*16 FUNCTION CFDISPR(CRF,CKX,CKY,CKZ,XPOS,YPOS,ZPOS)
 C
       USE plcomm
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE '../dpseki/dpcomm.inc'
       DIMENSION CDET(3,3)
 C
       CALL DPDISP(CRF,CKX,CKY,CKZ,XPOS,YPOS,ZPOS,CDET)
@@ -60,7 +60,7 @@ C
 C
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE '../dpseki/dpcomm.inc'
       DIMENSION CDTNS(3,3),CDET(3,3)
 C
       CW=2.D0*PI*1.D6*CRF
@@ -88,7 +88,7 @@ C
       USE plcomm
       USE pllocal
       USE plprof
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CDTNS(3,3)
 C
       CALL PL_MAG_OLD(XPOS,YPOS,ZPOS,RHON)
@@ -170,7 +170,7 @@ C
       USE plcomm
       USE pllocal
       USE plprof,ONLY: pl_prof_old
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       COMPLEX(8),INTENT(IN):: CW,CKPR,CKPP
       REAL(8),INTENT(IN):: RHON,BABS1
       INTEGER(4),INTENT(IN):: NS
@@ -250,7 +250,7 @@ C
       USE plcomm
       USE pllocal
       USE plprof,ONLY: pl_prof_old
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       COMPLEX(8),INTENT(IN):: CW,CKPR,CKPP
       REAL(8),INTENT(IN):: RHON,BABS1,BTH1
       INTEGER(4),INTENT(IN):: NS
@@ -338,7 +338,7 @@ C
 C
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CDISP(6),CLDISP(6)
 C
       CDISP(1)=1.D0
@@ -405,7 +405,7 @@ C
 C
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       DIMENSION CDISP(6),CLDISP(6)
       REAL(8),INTENT(IN):: BABS1,BTH1
 C

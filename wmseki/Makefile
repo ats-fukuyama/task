@@ -15,7 +15,7 @@ FFLAGS = $(OFLAGS)
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
+MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
             -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
 SRCS = wmmenu.f wminit.f wmeign.f wmsetg.f \
@@ -31,8 +31,8 @@ SRCX = wmcont.f90 wmtest.f90
 
 OBJS = $(SRCX:.f90=.o) $(SRCS:.f=.o)
 
-LIBS =  wmlib.a ../plx/pllib.a ../eq/eqlib.a ../dpseki/dplib.a \
-        ../lib/tasklib.a ../../bpsd/bpsdlib.a #$(LIB_MTX)
+LIBS =  wmlib.a ../pl/libpl.a ../eq/libeq.a ../dpseki/libdp.a \
+        ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a #$(LIB_MTX)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -60,23 +60,26 @@ wmlib.a: $(OBJS)
 	(cd ../mtx; make mtxlib.a)
 ../mtx/mpimtxlib.a:
 	(cd ../mtx; make mpimtxlib.a)
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
-../plx/pllib.a:
-	(cd ../plx; make pllib.a)
-../eq/eqlib.a:
-	(cd ../eq; make eqlib.a)
+../lib/libtask.a:
+	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
+../pl/libpl.a:
+	(cd ../pl; make libpl.a)
+../eq/libeq.a:
+	(cd ../eq; make libeq.a)
 ../eq/wmeqin.o:
 	(cd ../eq; make wmeqin.o)
-../dpseki/dplib.a:
-	(cd ../dpseki; make dplib.a)
+../dpseki/libdp.a:
+	(cd ../dpseki; make libdp.a)
 libs:
-	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../lib; make tasklib.a)
+	(cd ../../bpsd; make libbpsd.a)
+	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../mtxp; make)
-	(cd ../plx; make pllib.a)
-	(cd ../eq; make eqlib.a)
-	(cd ../dpseki; make dplib.a)
+	(cd ../pl; make libpl.a)
+	(cd ../eq; make libeq.a)
+	(cd ../dpseki; make libdp.a)
 
 wm : $(LIBS) wmmain.o
 	$(FLINKER) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
@@ -87,7 +90,7 @@ clean:
 veryclean: clean
 	rm -f wm
 
-WMCOMM = wmcomm.inc wmcom0.inc wmcom1.inc ../plx/plcomm.f90 \
+WMCOMM = wmcomm.inc wmcom0.inc wmcom1.inc ../pl/plcomm.f90 \
  ../dpseki/dpcom1.inc
 
 wmmain.o : wmmain.f $(WMCOMM)

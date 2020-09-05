@@ -3,7 +3,7 @@
 MODULE cvpopulation
 
   PRIVATE
-  PUBLIC cv_population_read
+  PUBLIC cv_population_load
 
 CONTAINS
 
@@ -11,7 +11,7 @@ CONTAINS
 !     read population and are csv data
 !***********************************************************************
 
-  SUBROUTINE cv_population_read(ierr)
+  SUBROUTINE cv_population_load(ierr)
 
     USE cvcomm
     USE cvlib
@@ -167,5 +167,5 @@ CONTAINS
     WRITE(6,'(A,I8)') 'XX cvpopulation: FILE READ ERROR: IOSTAT=',nstat
     RETURN
 
-  END SUBROUTINE cv_population_read
+  END SUBROUTINE cv_population_load
 END MODULE cvpopulation

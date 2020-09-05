@@ -6,7 +6,7 @@ C
 C
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
 C
       DIMENSION CLDISP(6),CLDISP1(6)
 C
@@ -85,7 +85,7 @@ C
 C
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
 C
       DIMENSION CLDISP(6),CLDISP1(6)
       REAL(8),INTENT(IN):: BABS1,BTH1
@@ -166,7 +166,7 @@ C
 C
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
 C
       DIMENSION CLDISP(6)
 C
@@ -203,7 +203,7 @@ C
 C
       USE plcomm
       USE pllocal
-      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE 'dpcomm.inc'
       REAL(8),INTENT(IN):: BABS1,BTH1
 C
       DIMENSION CLDISP(6)
