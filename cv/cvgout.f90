@@ -33,7 +33,7 @@ CONTAINS
     nplot=0
     DO nword=1,nword_max
        kword=kworda(nword)
-       WRITE(6,'(A,i5,2XA2)') 'nword,kword=',nword,kword
+       WRITE(6,'(A,i5,2X,A2)') 'nword,kword=',nword,kword
        READ(kword,'(I2)',ERR=2) idx
        id=idx
        IF(id.EQ.9) GO TO 9000

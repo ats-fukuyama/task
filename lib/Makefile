@@ -100,7 +100,9 @@ testqsort: libtask.a testqsort.o
 testgrd: libtask.a testgrd.o 
 	$(FCFIXED) testgrd.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS)
 
-libgrf.o: libgrf.f90
+libgrf.o: libgrf.f90 libgrf/grftype.f90 libgrf/grfutils.f90 libgrf/grf1d.f90 \
+          libgrf/grd1d.f90 libgrf/grf2d.f90 libgrf/grd2d.f90 libgrf/grdxy.f90 \
+          libgrf/grd2dframe.f90 libgrf/grd1dframe.f90
 libgrf/grftype.o: libgrf/grftype.f90
 libgrf/grfutils.o: libgrf/grfutils.f90 libgrf/grftype.f90
 libgrf/grfconvert.o: libgrf/grfconvert.f90 libgrf/grfutils.f90 \
