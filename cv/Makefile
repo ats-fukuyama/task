@@ -13,7 +13,7 @@ FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I./$(MOD) -I../lib/$(MOD)
 
-SRCS = cvcomm.f90 cvlib.f90 \
+SRCS = cvcomm.f90 cvlib.f90 libcharx.f90 \
        cvinit.f90 cvparm.f90 cvview.f90 cvfile.f90 \
        cvpopulation.f90 \
        cvgout.f90 cvregion.f90 cvselect.f90 \

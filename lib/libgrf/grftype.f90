@@ -59,6 +59,8 @@ MODULE grftype
      INTEGER:: XSCALE_LTYPE,YSCALE_LTYPE,FSCALE_LTYPE ! Scale type for log plot
      INTEGER:: XSCALE_ZERO,YSCALE_ZERO,FSCALE_ZERO ! /=0 for origin grid
      INTEGER:: XSCALE_ZERO_PAT,YSCALE_ZERO_PAT,FSCALE_ZERO_PAT ! org grid pat
+     REAL(4):: XGRID_STEP,YGRID_STEP,FGRID_STEP ! Grid step size (/=0 for grid)
+     INTEGER:: XGRID_LTYPE,YGRID_LTYPE,FGRID_LTYPE ! Scale type for log plot
      INTEGER:: VALUE_FONT   ! Value font type
      REAL(4):: VALUE_SIZE   ! Value font size
      REAL(4):: VALUE_RGB(3) ! Value font color
@@ -81,6 +83,7 @@ MODULE grftype
 !                          17 : Bird's eye view X mesh
 !                          18 : Bird's eye view Y mesh
 !                          19 : Bird's eye view X and Y mesh
+!                          21 : X-Y plot
      INTEGER:: MODE_XY   ! Coordinate tupe
 !                           0 : Rectangular coordinates
 !                           1 : Circle

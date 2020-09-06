@@ -20,13 +20,19 @@ CONTAINS
     USE cvselect,ONLY: cv_select
     USE cvpopulation,ONLY: cv_population_load
     USE cvlib
+    USE libcharx
     IMPLICIT NONE
     CHARACTER(LEN=1):: kid
     CHARACTER(LEN=80):: line
-    INTEGER:: nstat,ierr,mode,nid,ndate,ndate1
+    INTEGER:: ierr,mode,nid,ndate,ndate1
     CHARACTER(LEN=10):: date_id
+    CHARACTER(LEN=10):: kidn
+    INTEGER,PARAMETER:: lword=10
+    INTEGER:: nword,nword_max
+    CHARACTER(LEN=lword),ALLOCATABLE:: kworda(:)
 
-    nstat=0
+    CALL cv_load(ierr)
+    CALL cv_population_load(ierr)
 
 1   CONTINUE
     ierr=0
@@ -43,31 +49,14 @@ CONTAINS
     ELSEIF(kid.EQ.'L') THEN
        CALL cv_load(ierr)
        CALL cv_population_load(ierr)
-       nstat=1
     ELSEIF(kid.EQ.'C') THEN
-       IF(nstat.EQ.0) THEN
-          WRITE(6,'(A)') 'XX cvmenu: No date ha been loaded'
-       ELSE
-          CALL cv_global(ierr)
-       END IF
+       CALL cv_global(ierr)
     ELSEIF(kid.EQ.'G') THEN
-       IF(nstat.EQ.0) THEN
-          WRITE(6,'(A)') 'XX cvmenu: No date ha been loaded'
-       ELSE
-          CALL cv_gout
-       END IF
+       CALL cv_gout
     ELSEIF(kid.EQ.'R') THEN
-       IF(nstat.EQ.0) THEN
-          WRITE(6,'(A)') 'XX cvmenu: No date ha been loaded'
-       ELSE
-          CALL cv_region
-       END IF
+       CALL cv_region
     ELSEIF(kid.EQ.'S') THEN
-       IF(nstat.EQ.0) THEN
-          WRITE(6,'(A)') 'XX cvmenu: No date ha been loaded'
-       ELSE
-          CALL cv_select
-       END IF
+       CALL cv_select
     ELSEIF(kid.EQ.'T') THEN
 7001   CONTINUE
        WRITE(6,'(A)') '## cvtest: input ndate:'
@@ -77,6 +66,17 @@ CONTAINS
        CALL convert_date_id_to_ndate(date_id,ndate1)
        WRITE(6,'(A,2I10)') '  ndate=',ndate,ndate1
        GO TO 7001
+    ELSEIF(kid.EQ.'U') THEN
+7002   CONTINUE
+       WRITE(6,'(A)') '## ksplitn test: input line?'
+       READ(5,'(A)',END=1,ERR=7002) line
+       kidn=' ,'
+       CALL ksplitn(line,kidn,lword,nword_max,kworda)
+       WRITE(6,'(A,I8)') '  nword_max=',nword_max
+       DO nword=1,nword_max
+          WRITE(6,'(2I8,2X,A)') nword,LEN_TRIM(kworda(nword)),kworda(nword)
+       END DO
+       GO TO 7002
     ELSEIF(kid.EQ.'Q') THEN
        GO TO 9000
     ELSE

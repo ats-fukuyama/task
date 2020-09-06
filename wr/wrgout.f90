@@ -844,7 +844,7 @@ CONTAINS
        END DO
        WRITE(6,'(A,I5,1PE12.4)') 'nray,errmax=',nray,errmax
 
-       CALL grdxy(0,gx,gy,gepola,nxmax,nymax,2,nstpmax+1,ntmax,3*nraymax, &
+       CALL grdxy(0,gepola,2,nstpmax+1,ntmax,3*nraymax, &
             '@Polarization@',NLMAX=3,XSCALE_ZERO=0,YSCALE_ZERO=0, &
             LINE_RGB=LINE_RGB)
     END DO

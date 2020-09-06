@@ -81,6 +81,6 @@ wrcalc.o: wrcalc.f90 $(WRCOMM) ../pl/plprof.f90
 wrexecr.o:wrexecr.f90 $(WRCOMM) ../pl/plprof.f90
 wrbeam.o: wrbeam.f90 $(WRCOMM) ../pl/plprof.f90
 wrsub.o:  wrsub.f90 $(WRCOMM)
-wrgout.o: wrgout.f90 $(WRCOMM)
+wrgout.o: wrgout.f90 ../lib/libgrf/grdxy.f90 $(WRCOMM)
 wrfile.o: wrfile.f90 $(WRCOMM)
 test.o: test.f90 $(WRCOMM)
