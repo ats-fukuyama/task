@@ -8,8 +8,11 @@ MODULE cvcomm_parm
   CHARACTER(LEN=256):: knam_csv_select_cases,knam_csv_select_deaths
   CHARACTER(LEN=256):: knam_cv_select
   CHARACTER(LEN=256):: knam_cv_population
-  integer:: ndate_start
+  INTEGER:: ndate_start
   INTEGER:: ndate_step_global,ndate_step_region,ndate_step_select
+  REAL(dp):: cases_number_log_min,deaths_number_log_min
+  REAL(dp):: cases_rate_log_min,deaths_rate_log_min
+  REAL(dp):: ratio_new_total_log_min
 
 END MODULE cvcomm_parm
 

@@ -58,7 +58,10 @@ CONTAINS
          knam_csv_select_cases,knam_csv_select_deaths, &
          knam_cv_select,knam_cv_population, &
          ndate_step_global,ndate_step_region,ndate_step_select, &
-         ndate_start
+         ndate_start, &
+         cases_number_log_min,deaths_number_log_min, &
+         cases_rate_log_min,deaths_rate_log_min, &
+         ratio_new_total_log_min
     
     READ(nid,cv,IOSTAT=ist,ERR=9800,END=9900)
     
@@ -84,7 +87,10 @@ CONTAINS
          '        knam_csv_select_cases,knam_csv_select_deaths', &
          '        knam_cv_select,knam_cv_population', &
          '        ndate_step_global,ndate_step_region,ndate_step_select', &
-         '        ndate_start'
+         '        ndate_start', &
+         '        cases_number_log_min,deaths_number_log_min', &
+         '        cases_rate_log_min,deaths_rate_log_min', &
+         '        ratio_new_total_log_min'
     RETURN
   END SUBROUTINE cv_plst
 

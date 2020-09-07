@@ -1,4 +1,6 @@
  &cv
- knam_csv_in="WHO-COVID-19-global-data-200830.csv"
+ knam_csv_in="WHO-COVID-19-global-data.csv"
+ ndate_start=7
+ ndate_step_select=7
  &end
  

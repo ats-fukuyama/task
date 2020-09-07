@@ -37,7 +37,7 @@ CONTAINS
 1   CONTINUE
     ierr=0
     WRITE(6,'(A,A)') &
-         '## CV MENU: P,V/parm  L/load  C/convert  G/graph  R/region  ', &
+         '## CV MENU: P,V/parm  G/graph  L/load  R/region  A/all  ', &
          'S/select  Q/quit'
     CALL task_klin(line,kid,mode,cv_parm)
     IF(mode.NE.1) GOTO 1
@@ -46,17 +46,17 @@ CONTAINS
        CALL cv_parm(0,'CV',ierr)
     ELSEIF(kid.EQ.'V') THEN
        CALL cv_view
-    ELSEIF(kid.EQ.'L') THEN
-       CALL cv_load(ierr)
-       CALL cv_population_load(ierr)
-    ELSEIF(kid.EQ.'C') THEN
-       CALL cv_global(ierr)
     ELSEIF(kid.EQ.'G') THEN
        CALL cv_gout
     ELSEIF(kid.EQ.'R') THEN
        CALL cv_region
+    ELSEIF(kid.EQ.'A') THEN
+       CALL cv_global(ierr)
     ELSEIF(kid.EQ.'S') THEN
        CALL cv_select
+    ELSEIF(kid.EQ.'L') THEN
+       CALL cv_load(ierr)
+       CALL cv_population_load(ierr)
     ELSEIF(kid.EQ.'T') THEN
 7001   CONTINUE
        WRITE(6,'(A)') '## cvtest: input ndate:'
