@@ -31,7 +31,7 @@ CONTAINS
     deaths_number_log_min=1.D0     ! minimum number for ndeaths in log
     cases_rate_log_min=1.D0        ! minimum rate for ncases in log
     deaths_rate_log_min=0.01D0     ! minimum rate for ndeaths in log
-    ratio_new_total_log_min=0.0D0  ! ratio of log minimum between new and total
+    ratio_new_total_log_min=0.1D0  ! ratio of log minimum between new and total
     RETURN
   END SUBROUTINE cv_init
 END MODULE cvinit

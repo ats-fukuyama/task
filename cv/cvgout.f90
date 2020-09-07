@@ -21,7 +21,7 @@ CONTAINS
     nplot_max=0
 
 1   CONTINUE
-    
+
     WRITE(6,'(A)') &
          '## INPUT country id or graph id: XL:list XH:help XX or 9 for end'
     READ(5,'(A)',ERR=1,END=9000) line
@@ -440,6 +440,7 @@ CONTAINS
                    END DO
                    fg(ndate,nplot)=LOG10(MAX(ratio_new_total_log_min &
                                             *cases_number_log_min,rcases/7.D0))
+
                 END DO
              END DO
           END SELECT
