@@ -107,9 +107,11 @@ CONTAINS
 
     SELECT CASE(id)
     CASE(1)
+       WRITE(6,'(A)') '## List of country id:'
        WRITE(6,'(25(1X,A2))') &
             (country_id_ncountry(ncountry),ncountry=1,ncountry_max)
     CASE(2)
+       WRITE(6,'(A)') '## List of graph id:'
        WRITE(6,'((A))') &
             ' 1: 10: 11+12+13+14', &
             '    11: total cases vs time', &
