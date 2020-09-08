@@ -195,7 +195,7 @@ CONTAINS
     IF(PRESENT(ASPECT)) THEN
        A%ASPECT=GUCLIP(ASPECT)
        IF(A%ASPECT /= 0.0) THEN
-          IF(A%ASPECT >= 1.0) THEN
+          IF(A%ASPECT >= 0.75) THEN  ! 0.75=15/20=(17-2)/(24-4)
              A%GPXMAX=A%GPXMIN+(A%GPYMAX-A%GPYMIN)/A%ASPECT
           ELSE
              A%GPYMAX=A%GPYMIN+(A%GPXMAX-A%GPXMIN)*A%ASPECT
@@ -429,7 +429,7 @@ CONTAINS
           IF(A%XMAX-A%XMIN /= 0.0) THEN
              A%ASPECT=(A%YMAX-A%YMIN)/(A%XMAX-A%XMIN)
              IF(A%ASPECT /= 0.0) THEN
-                IF(A%ASPECT >= 1.0) THEN
+                IF(A%ASPECT >= 0.75) THEN   ! 0.75=15/20=(17-2)/(24-4)
                    A%GPXMAX=A%GPXMIN+(A%GPYMAX-A%GPYMIN)/A%ASPECT
                 ELSE
                    A%GPYMAX=A%GPYMIN+(A%GPXMAX-A%GPXMIN)*A%ASPECT
@@ -442,7 +442,7 @@ CONTAINS
           IF(A%XMAX-A%XMIN /= 0.0) THEN
              A%ASPECT=(A%FMAX-A%FMIN)/(A%XMAX-A%XMIN)
              IF(A%ASPECT /= 0.0) THEN
-                IF(A%ASPECT >= 1.0) THEN
+                IF(A%ASPECT >= 0.75) THEN  ! 0.75=15/20=(17-2)/(24-4)
                    A%GPXMAX=A%GPXMIN+(A%GPYMAX-A%GPYMIN)/A%ASPECT
                 ELSE
                    A%GPYMAX=A%GPYMIN+(A%GPXMAX-A%GPXMIN)*A%ASPECT
@@ -456,7 +456,7 @@ CONTAINS
 !     ----- LINE SECTION -----
 
     SELECT CASE(A%MODE_2D)
-    CASE(0,21) ! 1D data and X-Y plot
+    CASE(0,21,22) ! 1D data and X-Y plot
        IF(PRESENT(NLMAX)) THEN
           A%NLMAX=NLMAX
        ELSE

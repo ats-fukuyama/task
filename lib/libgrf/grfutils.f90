@@ -363,7 +363,7 @@ CONTAINS
     INTEGER NGP
     REAL*4 GP(4)
     INTEGER IX,IY
-    REAL*4 X0,XL,Y0,YL
+    REAL*4 X0,XL,Y0,YL,XS,YS
 
     IF(NGP.EQ.0) THEN
        GP(1)= 4.0
@@ -371,39 +371,56 @@ CONTAINS
        GP(3)= 2.0
        GP(4)=17.0
     ELSE
-       IF(NGP.LE.4) THEN
-          X0= 3.0     ! 3.0
+       IF(NGP.LE.4) THEN ! 4 figs
+          X0= 2.0     ! 3.0
           XL=12.0     ! 12.0
-          Y0= 1.75    ! 1.75
+          XS=12.8
+          Y0= 1.0     ! 1.75
           YL= 8.5     ! 8.5
+          YS= 9.0     ! 8.5
           IX=MOD(NGP-1,2)
           IY=1-(NGP-1)/2
-       ELSEIF(NGP.LE.13) THEN
-          X0= 3.0*0.666
+       ELSEIF(NGP.LE.13) THEN ! 9 figs
+          X0= 2.0*0.666
           XL=12.0*0.666
-          Y0= 1.75*0.666
+          XS=12.8*0.666
+          Y0= 1.0*0.666
           YL= 8.5*0.666
+          YS= 9.0*0.666
           IX=MOD(NGP-5,3)
           IY=2-(NGP-5)/3
-       ELSEIF(NGP.LE.29) THEN
-          X0= 3.0*0.5
+       ELSEIF(NGP.LE.29) THEN ! 16 figs
+          X0= 2.0*0.5
           XL=12.0*0.5
-          Y0= 1.75*0.5
+          XS=12.8*0.5
+          Y0= 1.0*0.5
           YL= 8.5*0.5
+          YS= 9.0*0.5
           IX=MOD(NGP-14,4)
           IY=3-(NGP-14)/4
-       ELSEIF(NGP.LE.54) THEN
-          X0= 3.0*0.4
+       ELSEIF(NGP.LE.54) THEN ! 25 figs
+          X0= 2.0*0.4
           XL=12.0*0.4
-          Y0= 1.75*0.4
+          XS=12.8*0.4
+          Y0= 1.0*0.4
           YL= 8.5*0.4
+          YS= 9.0*0.4
+          IX=MOD(NGP-30,5)
+          IY=4-(NGP-30)/5
+       ELSEIF(NGP.LE.90) THEN ! 36 figs
+          X0= 2.0*0.333
+          XL=12.0*0.333
+          XS=12.8*0.333
+          Y0= 1.0*0.333
+          YL= 8.5*0.333
+          YS= 9.0*0.4
           IX=MOD(NGP-30,5)
           IY=4-(NGP-30)/5
        ENDIF
-       GP(1)=IX*XL+X0
-       GP(2)=IX*XL+XL
-       GP(3)=IY*YL+Y0
-       GP(4)=IY*YL+YL
+       GP(1)=IX*XS+X0
+       GP(2)=IX*XS+XL
+       GP(3)=IY*YS+Y0
+       GP(4)=IY*YS+YL
     ENDIF
     RETURN
   END SUBROUTINE GRFUT4

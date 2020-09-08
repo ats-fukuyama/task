@@ -15,7 +15,7 @@ CONTAINS
 
     INTEGER,INTENT(IN):: NDIM,NTM,NDMAX,NTMAX(NDMAX)
     REAL(4),INTENT(IN):: GD(NDIM,NTM,NDMAX)
-    REAL(4):: line_width
+    REAL(4):: line_width,x1,x2,x3
     TYPE(grf_attr_type),INTENT(IN):: A
 
     REAL(4),ALLOCATABLE:: GX(:),GY(:)
@@ -24,7 +24,7 @@ CONTAINS
     CALL INQLNW(line_width)
 
     SELECT CASE(A%MODE_2D)
-    CASE(21) ! 2D trajectory
+    CASE(21,22) ! 2D trajectory
 
        CALL GDEFIN(A%GPXMIN,A%GPXMAX,A%GPYMIN,A%GPYMAX, &
                    A%XMIN,A%XMAX,A%YMIN,A%YMAX)
@@ -39,13 +39,25 @@ CONTAINS
           NL=MOD(ND-1,A%NLMAX)+1
           CALL SETLNW(A%LINE_THICKNESS(NL))
           CALL SETMKS(0,A%LINE_MARK_SIZE(NL))
-          CALL SETRGBA(A%LINE_RGB(1:3,NL))
-          DO NT=1,NTMAX(ND)
-             GX(NT)=GD(1,NT,ND)
-             GY(NT)=GD(2,NT,ND)
-          END DO
-          CALL GPLOTP(GX,GY,A%NXMIN,NTMAX(ND),A%NXSTEP, &
-                      A%LINE_MARK(NL),A%LINE_MARK_STEP(NL),A%LINE_PAT(NL))
+          SELECT CASE(A%MODE_2D)
+          CASE(21)
+             CALL SETRGBA(A%LINE_RGB(1:3,NL))
+             DO NT=1,NTMAX(ND)
+                GX(NT)=GD(1,NT,ND)
+                GY(NT)=GD(2,NT,ND)
+             END DO
+             CALL GPLOTP(GX,GY,A%NXMIN,NTMAX(ND),A%NXSTEP, &
+                         A%LINE_MARK(NL),A%LINE_MARK_STEP(NL),A%LINE_PAT(NL))
+          CASE(22)
+             CALL SETRGBA(A%LINE_RGB(1:3,NL))
+             DO NT=1,NTMAX(ND)
+                GX(NT)=GD(1,NT,ND)
+                GY(NT)=GD(2,NT,ND)
+             END DO
+             CALL GPLOTPG(GX,GY,A%NXMIN,NTMAX(ND),A%NXSTEP, &
+                          A%LINE_MARK(NL),A%LINE_MARK_STEP(NL), &
+                          A%LINE_PAT(NL),1)
+          END SELECT
        END DO
        CALL OFFCLP
 
