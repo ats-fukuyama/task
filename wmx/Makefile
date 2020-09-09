@@ -32,12 +32,12 @@ SRCS = wmcomm.f90 vmcomm.f90 wmsub.f90 \
        wmsolv.f90 \
        wmemfp.f90 wmpout.f90 \
        wmexec.f90 wmgsub.f90 wmgout.f90 \
+       wmxprf.f90 wmdprf.f90 \
+       wmdout.f90 wmfout.f90 \
        wmmenu.f90
 SRC7 = wmeqin.f
 
-SRCX = wmxprf.f90 wmdprf.f90 \
-       wmdout.f90 wmfout.f90 \
-       wmloop.f90 wmtaem.f90 \
+SRCX = wmloop.f90 wmtaem.f90 \
        wmvmec.f90 wmbooz.f90 wmvout.f90 wmtpcs.f90 \
        wmeign.f90 \
        wmcont.f90 wmtest.f90
@@ -104,6 +104,8 @@ wmemfp.o: wmemfp.f90 wmcomm.f90
 wmpout.o: wmpout.f90 wmcomm.f90
 wmgout.o: wmgout.f90 wmgsub.f90 wmcomm.f90
 wmgsub.o: wmgsub.f90 wmcomm.f90
+
+wmxprf.o: wmxprf.f90 ../pl/plprof.f90 wmcomm.f90
 
 wmmenu.o: wmmenu.f90 wmcomm.f90
 wmmain.o: wmmain.f90 wmcomm.f90

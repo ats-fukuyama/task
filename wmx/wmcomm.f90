@@ -222,6 +222,15 @@ MODULE wmcomm
   REAL(rkind),ALLOCATABLE:: SIOTA(:)
   REAL(rkind),ALLOCATABLE:: RPSG(:,:),ZPSG(:,:)
 
+! --- wmxprf
+
+  REAL(rkind),ALLOCATABLE:: PTSSV(:),PNSSV(:)
+  REAL(rkind),ALLOCATABLE:: PN60(:,:),PT60(:,:)
+  REAL(rkind),ALLOCATABLE:: RNPRF(:,:),RTPRF(:,:)
+  CHARACTER(LEN=80):: KNAMEQ_SAVE
+
+! --- graphics
+
   INTEGER,ALLOCATABLE:: KACONT(:,:,:)
 
 CONTAINS
@@ -325,6 +334,12 @@ CONTAINS
     ALLOCATE(BPT(nthmax_f,nrmax+1),BTP(nthmax_f,nrmax+1))
     ALLOCATE(SIOTA(nrmax+1))
 
+    ALLOCATE(PTSSV(nsmax),PNSSV(nsmax))
+    PTSSV(1:nsmax)=0.D0
+    PNSSV(1:nsmax)=0.D0
+    ALLOCATE(PN60(nrmax+1,nsmax),PT60(nrmax+1,nsmax))
+    ALLOCATE(RNPRF(nrmax+1,nsmax),RTPRF(nrmax+1,nsmax))
+
     ALLOCATE(KACONT(8,nrmax+1,nthmax_f))
 
     nrmax_save=nrmax
@@ -373,6 +388,10 @@ CONTAINS
     DEALLOCATE(PPS,QPS,RBPS,VPS,RLEN)
     DEALLOCATE(BPR,BPZ,BPT,BTP)
     DEALLOCATE(SIOTA)
+    DEALLOCATE(RPSG,ZPSG)
+    DEALLOCATE(PNSSV,PTSSV)
+    DEALLOCATE(PN60,PT60)
+    DEALLOCATE(RNPRF,RTPRF)
 
   END SUBROUTINE wm_deallocate
 END MODULE wmcomm

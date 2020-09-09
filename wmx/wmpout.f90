@@ -73,8 +73,8 @@ CONTAINS
              NDX=ND-NDMIN_F+1
              DO MD=MDMIN_F,MDMAX_F
                 MDX=MD-MDMIN_F+1
-                PABSK(NTH,NHH,NR,NS)=0d0
-                CPABSK(NTH,NHH,NR,NS)=0d0
+                PABSK(MDX,NDX,NR,NS)=0d0
+                CPABSK(MDX,NDX,NR,NS)=0d0
              END DO
           END DO
        END DO
