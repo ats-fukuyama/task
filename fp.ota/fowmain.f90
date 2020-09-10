@@ -1,10 +1,10 @@
 program fow
 
-  use foweq
   use fowcomm
   use fowprep
-  use fowob
+  use foworbit
   use foworbitclassify
+  use fowdistribution
 
   use fpwrite
 
@@ -15,13 +15,15 @@ program fow
   use fpmenu
   use fpcomm
   use fpprep
+  use fpsub
+
   use libmtx
 
   implicit none
 
-  integer :: IERR=0,nps,nze,np
-  
-  real(8),allocatable :: check_orbit(:,:),lorentz(:),lorentzg(:),beta(:),betag(:)
+  integer :: IERR=0,nr,nth,np,nsa,nstp
+  integer :: mode(3)
+  real(rkind),allocatable :: check_orbit(:,:),lorentz(:),lorentzg(:),beta(:),betag(:),fu(:,:,:,:),fI(:,:,:,:),J(:,:,:,:)
 
   call mtx_initialize
 
@@ -37,40 +39,101 @@ program fow
 
   call fow_read_namelist
   call fow_allocate
-  call interfaceEQandFP(psim,psirz,Fpsi,Frz,Bout,Bin,Brz,psi0)
   call fow_prep
 
-  call fow_ob_run
+  call fow_orbit_construct(orbit_m)
 
-  allocate(check_orbit(nzemax,npsmax))
+  allocate(fu(npmax,nthmax,nrmax,nsamax),fI(npmax,nthmax,nrmax,nsamax),J(npmax,nthmax,nrmax,nsamax))
+  do nsa = 1, nsamax
+    do nr = 1, nrmax
+      do nth = 1, nthmax
+        do np = 1, npmax
+          fu(np,nth,nr,nsa)=FPMXWL(PM(NP,NSA),NR,NSA)
+        end do
+      end do
+    end do
+  end do
+  call fpcsv2D(fu(:,:,1,1),"./csv/fu.csv")
 
+  write(*,*)"1"
+  call fow_orbit_jacobian(J,orbit_m)
+  call fow_distribution_u2I(fI, fu, orbit_m)
+  write(*,*)"2"
+  call fpcsv2D(J(:,:,1,1),"./csv/J.csv")
+  call fpcsv2D(fI(:,:,1,1),"./csv/fI.csv")
 
-  do nps=1,npsmax
-    do nze=1,nzemax
-      do np=npmax,1,-1
-        if(trapped(np,nze,nps,2,[0,0,0]))then
-          check_orbit(nze,nps)=pm(np,2)
+  nsa=2
+  mode=[0,1,0]
+  allocate(check_orbit(nthmax+mode(2),nrmax+mode(3)))
+  do nr=1,nrmax+mode(3)
+    do nth=1,nthmax+mode(2)
+      do np=npmax+mode(1),1,-1
+        if(trapped(np,nth,nr,2,[0,0,0]))then
+          if(mode(1)==0)check_orbit(nth,nr)=sqrt(1.d0-1.d0/sqrt(1.d0+theta0(nsa)*pm(np,nsa)**2)**2)
+          if(mode(1)==1)check_orbit(nth,nr)=sqrt(1.d0-1.d0/sqrt(1.d0+theta0(nsa)*pg(np,nsa)**2)**2)
           exit
-        elseif(np==1.and.(.not.trapped(np,nze,nps,2,[0,0,0])))then
-          check_orbit(nze,nps)=0.d0
+        elseif(np==1.and.(.not.trapped(np,nth,nr,2,mode)))then
+          check_orbit(nth,nr)=0.d0
         end if
       end do
     end do
   end do
-  call fpcsv2D(check_orbit,"./csv/check_orbit_trapped.csv")
-  do nps=1,npsmax
-    do nze=1,nzemax
-      do np=npmax,1,-1
-        if(.not.forbitten(np,nze,nps,2,[1,1,1]))then
-          check_orbit(nze,nps)=pm(np,2)
+  call fpcsv2D(check_orbit,"./csv/check_orbit_trapped_ion.csv")
+  deallocate(check_orbit)
+
+  mode=[0,1,0]
+  allocate(check_orbit(nthmax+mode(2),nrmax+mode(3)))
+  do nr=1,nrmax+mode(3)
+    do nth=1,nthmax+mode(2)
+      do np=npmax+mode(1),1,-1
+        if(.not.forbitten(np,nth,nr,2,mode))then
+          if(mode(1)==0)check_orbit(nth,nr)=sqrt(1.d0-1.d0/sqrt(1.d0+theta0(nsa)*pm(np,nsa)**2)**2)
+          if(mode(1)==1)check_orbit(nth,nr)=sqrt(1.d0-1.d0/sqrt(1.d0+theta0(nsa)*pg(np,nsa)**2)**2)
           exit
-        elseif(np==1.and.(forbitten(np,nze,nps,2,[1,1,1])))then
-          check_orbit(nze,nps)=0.d0
+        elseif(np==1.and.(forbitten(np,nth,nr,2,mode)))then
+          check_orbit(nth,nr)=0.d0
         end if
       end do
     end do
   end do
-  call fpcsv2D(check_orbit,"./csv/check_orbit_forbitten.csv")
+  call fpcsv2D(check_orbit,"./csv/check_orbit_forbitten_ion.csv")
+  deallocate(check_orbit)
+
+  nsa=1
+  mode=[0,1,0]
+  allocate(check_orbit(nthmax+mode(2),nrmax+mode(3)))
+  do nr=1,nrmax+mode(3)
+    do nth=1,nthmax+mode(2)
+      do np=npmax+mode(1),1,-1
+        if(trapped(np,nth,nr,1,[0,0,0]))then
+          if(mode(1)==0)check_orbit(nth,nr)=sqrt(1.d0-1.d0/sqrt(1.d0+theta0(nsa)*pm(np,nsa)**2)**2)
+          if(mode(1)==1)check_orbit(nth,nr)=sqrt(1.d0-1.d0/sqrt(1.d0+theta0(nsa)*pg(np,nsa)**2)**2)
+          exit
+        elseif(np==1.and.(.not.trapped(np,nth,nr,1,mode)))then
+          check_orbit(nth,nr)=0.d0
+        end if
+      end do
+    end do
+  end do
+  call fpcsv2D(check_orbit,"./csv/check_orbit_trapped_ele.csv")
+  deallocate(check_orbit)
+
+  mode=[0,1,0]
+  allocate(check_orbit(nthmax+mode(2),nrmax+mode(3)))
+  do nr=1,nrmax+mode(3)
+    do nth=1,nthmax+mode(2)
+      do np=npmax+mode(1),1,-1
+        if(.not.forbitten(np,nth,nr,1,mode))then
+          if(mode(1)==0)check_orbit(nth,nr)=sqrt(1.d0-1.d0/sqrt(1.d0+theta0(nsa)*pm(np,nsa)**2)**2)
+          if(mode(1)==1)check_orbit(nth,nr)=sqrt(1.d0-1.d0/sqrt(1.d0+theta0(nsa)*pg(np,nsa)**2)**2)
+          exit
+        elseif(np==1.and.(forbitten(np,nth,nr,1,mode)))then
+          check_orbit(nth,nr)=0.d0
+        end if
+      end do
+    end do
+  end do
+  call fpcsv2D(check_orbit,"./csv/check_orbit_forbitten_ele.csv")
 
   call fpcsv1D(psimg,"./csv/psimg.csv")
   call fpcsv1D(Fpsig,"./csv/Fpsig.csv")
@@ -82,7 +145,6 @@ program fow
   call fpcsv1D(Bin,"./csv/Bin.csv")
 
   deallocate(check_orbit)
-  write(*,*)npmax,nzemax,npsmax
 
   write(*,*)"end"
   call fow_deallocate

@@ -1,17 +1,17 @@
 ### $Id: Makefile,v 1.69 2012/07/25 07:53:52 nuga Exp $ ###
 include ../make.header
 include ../mtxp/make.mtxp
-#LIB_MTX=$(LIB_MTX_BND)
-#LIBX_MTX=$(LIBX_MTX_BND)
-#LIB_MTX=$(LIB_MTX_PCG)
-#LIBX_MTX=$(LIBX_MTX_PCG)
+# LIB_MTX=$(LIB_MTX_BND)
+# LIBX_MTX=$(LIBX_MTX_BND)
+# LIB_MTX=$(LIB_MTX_PCG)
+# LIBX_MTX=$(LIBX_MTX_PCG)
 LIB_MTX=$(LIB_MTX_MUMPS)
 LIBX_MTX=$(LIBX_MTX_MUMPS)
 # LIB_MTX=$(LIBXMTX_KSP)
 # LIBX_MTX=$(LIBX_MTX_KSP)
 
 FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+# FFLAGS=$(DFLAGS)
 
 OBJDIR   = ./obj
 
@@ -37,7 +37,7 @@ SRCS = fpcomm.f90 eg_read.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpsub.f90 \
        fpbounce.f90 fpdisrupt.f90 fpprep.f90 fploop.f90 \
        fpcont.f90 fpfout.f90 fpgout.f90 fpfile.f90 fpmenu.f90
 
-SRCSFOW = fowcomm.f90 foweq.f90 fowprep.f90  foworbitclassify.f90 fowob.f90
+SRCSFOW = fowcomm.f90 fowprep.f90  foworbitclassify.f90 foworbit.f90 fowbounceaverage.f90 fowdistribution.f90
 
 # OBJS = $(SRCS:.f90=.o)
 OBJS = $(addprefix $(OBJDIR)/, $(SRCS:.f90=.o))
@@ -49,7 +49,8 @@ LIBS = fplib.a ../pl/libpl.a ../eq/libeq.a  \
 
 LIBFOW = fowlib.a
 
-all: libs fp
+# all: libs fp
+all: libs fow
 
 fplib.a: $(OBJS)
 	$(LD) $(LDFLAGS) fplib.a $(OBJS)
@@ -91,7 +92,7 @@ libregion.so : $(LIBEQ) $(LIB_MTX) $(LIBS) $(OBJDIR)/global_region.o $(OBJDIR)/d
 clean :
 	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
 	-rm -f ./obj/*.o
-	-rm -f fp fow
+	-rm -f fp fow out
 	-rm -rf ./*.dSYM
 	-rm -f ./csv/*
 
@@ -138,12 +139,14 @@ fpdifcoef.o: fpdifcoef.f90 fpcomm.f90 fpwrite.f90
 fprad.o: fprad.f90 fpcomm.f90
 fpwrite.o : fpcomm.f90
 
-fowmain.o : fowmain.f90 foweq.f90 fowcomm.f90 fowprep.f90 fowob.f90\
+fowmain.o : fowmain.f90 fowcomm.f90 fowprep.f90 foworbit.f90\
 						fpprep.f90 fpinit.f90 fpcomm.f90 fpwrite.f90 foworbitclassify.f90
-foweq.o : foweq.f90 fpwrite.f90
 fowcomm.o : fowcomm.f90
 fowprep.o : fowprep.f90 fowcomm.f90
-fowob.o : fowob.f90 fowcomm.f90 fpcomm.f90 foworbitclassify.f90
+foworbit.o : foworbit.f90 fowcomm.f90 fpcomm.f90 foworbitclassify.f90
 foworbitclassify.o : foworbitclassify.f90 fowcomm.f90 fpcomm.f90
+fowdistribution.o : fowdistribution.f90 foworbit.f90 foworbitclassify.f90 fowcomm.f90 fpcomm.f90
+fowbounceaverage.o : fowbounceaverage.f90 fowcomm.f90 fpcomm.f90
 
+# foweq.o : foweq.f90 fpwrite.f90
 # fowjacobi.o : fowjacobi.f90 fowcomm.f90 fpcomm.f90

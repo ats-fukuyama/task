@@ -4,10 +4,11 @@ import seaborn
 
 
 class plot:
-    def __init__(self, path, name, ymin=0, ymax=0):
+    def __init__(self, path, name, xname='r/a', ymin=0, ymax=0):
         self.name = name
         self.val = np.loadtxt(path, delimiter=',')
         self.raxis = np.arange(0, self.val.shape[0])*1.0/self.val.shape[0]
+        self.xname = xname
         self.ymin = ymin
         self.ymax = ymax
 
@@ -36,7 +37,7 @@ def plot_profile1D(y, option):
 
         for i in range(n):
             plt.subplot(m1, m2, i+1)
-            plt.xlabel('r')
+            plt.xlabel(y[i].xname)
             plt.ylabel(y[i].name)
             plt.plot(y[i].raxis, y[i].val)
             if y[i].ymin != y[i].ymax:
@@ -46,7 +47,7 @@ def plot_profile1D(y, option):
 
     elif option[0] == 1:
         plt.subplot(1, 1, 1)
-        plt.xlabel('r')
+        plt.xlabel(y[0].xname)
         for i in range(n):
             plt.plot(y[i].raxis, y[i].val, linewidth=2, label=y[i].name)
             if y[i].ymin != y[i].ymax:
@@ -56,19 +57,24 @@ def plot_profile1D(y, option):
         plt.show()
 
 
-CSVDIR = "/Users/ota/git/task/fp.ota/csv/"
+if __name__ == "__main__":
 
-psim = plot(CSVDIR+"psim.csv", "psim")
-Bin = plot(CSVDIR+"Bin.csv", "Bin")
-Bout = plot(CSVDIR+"Bout.csv", "Bout")
-Fpsi = plot(CSVDIR+"Fpsi.csv", "Fpsi")
-psimg = plot(CSVDIR+"psimg.csv", "psimg")
-Bing = plot(CSVDIR+"Bing.csv", "Bing")
-Boutg = plot(CSVDIR+"Boutg.csv", "Boutg")
-Fpsig = plot(CSVDIR+"Fpsig.csv", "Fpsig")
+    CSVDIR = "/Users/ota/git/task/fp.ota/csv/"
 
+    psim = plot(CSVDIR+"psim.csv", "psim")
+    Bin = plot(CSVDIR+"Bin.csv", "Bin")
+    Bout = plot(CSVDIR+"Bout.csv", "Bout")
+    Fpsi = plot(CSVDIR+"Fpsi.csv", "Fpsi")
+    psimg = plot(CSVDIR+"psimg.csv", "psimg")
+    Bing = plot(CSVDIR+"Bing.csv", "Bing")
+    Boutg = plot(CSVDIR+"Boutg.csv", "Boutg")
+    Fpsig = plot(CSVDIR+"Fpsig.csv", "Fpsig")
+    dfdpsi = plot(CSVDIR+"dFdpsi.csv", "dfdpsi")
+    dbindpsi = plot(CSVDIR+"dBm_indpsi.csv", "dBm_indpsi")
+    dboutdpsi = plot(CSVDIR+"dBm_outdpsi.csv", "dBm_outdpsi")
 
-y = [psim, Bin, Bout, Fpsi, psimg, Bing, Boutg, Fpsig]
+    # y = [psim, Bin, Bout, Fpsi, psimg, Bing, Boutg, Fpsig]
+    y = [dfdpsi, dbindpsi, dboutdpsi]
 
-# plot_profile1D(y, [1])
-plot_profile1D(y, [0])
+    # plot_profile1D(y, [1])
+    plot_profile1D(y, [0])
