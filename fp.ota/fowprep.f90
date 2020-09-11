@@ -6,62 +6,61 @@ contains
   subroutine fow_prep
 
     use fowcomm
+    use fpcomm,only:rkind,nrmax,nthmax,npmax
 
     implicit none
 
-    integer :: nze,nps,nrg,nzg,ierr = 0
-    real(8),allocatable :: fx(:,:),fy(:,:),fxy(:,:),R(:),Z(:)
+    integer :: nth,nr,nrg,nzg,ierr = 0,eps = 1.0d-8
+    real(rkind),allocatable :: fx(:,:),fy(:,:),fxy(:,:),R(:),Z(:)
 
-    do nze = 1,nzemax
-      zeta(nze) = (nze-0.5d0)/nzemax*(-2.d0)+1.d0
-      zetag(nze) = (nze-1.d0)/nzemax*(-2.d0)+1.d0
+    do nth = 1,nthmax
+      xi(nth) = (nth-0.5d0)/nthmax*(-2.d0)+1.d0
+      xig(nth) = (nth-1.d0)/nthmax*(-2.d0)+1.d0
     end do
-    zetag(nzemax+1) = -1.d0
+    xig(nthmax+1) = -1.d0
 
-    call mesh_to_grid1D(Bout,Boutg)
-    call mesh_to_grid1D(Bin,Bing)
+    ! do nr = 1,nrmax
+    !   do nth = 1,nthmax
+    !     if(xi(nth)<0.d0)then
+    !       BBm(nth,nr) = Bin(nr)
+    !     else
+    !       BBm(nth,nr) = Bout(nr)
+    !     end if
+    !   end do
+    ! end do
 
-    do nps = 1,npsmax
-      do nze = 1,nzemax
-        if(zeta(nze)<0.d0)then
-          BBm(nze,nps) = Bin(nps)
-        else
-          BBm(nze,nps) = Bout(nps)
-        end if
-      end do
-    end do
+    ! allocate(fx(nrgmax,nzgmax),fy(nrgmax,nzgmax),fxy(nrgmax,nzgmax),R(nrgmax),Z(nzgmax))
 
-    allocate(fx(nrgmax,nzgmax),fy(nrgmax,nzgmax),fxy(nrgmax,nzgmax),R(nrgmax),Z(nzgmax))
+    ! do nrg = 1,nrgmax
+    !   R(nrg) = nrg*1.d0
+    ! end do
+    ! do nzg = 1,nzgmax
+    !   Z(nzg) = nzg*1.d0
+    ! end do
 
-    do nrg = 1,nrgmax
-      R(nrg) = nrg*1.d0
-    end do
-    do nzg = 1,nzgmax
-      Z(nzg) = nzg*1.d0
-    end do
-
-    call SPL2D(R,Z,Brz,fx,fy,fxy,UBspl,nrgmax,nrgmax,nzgmax,0,0,ierr)
-    call SPL2D(R,Z,Frz,fx,fy,fxy,UFspl,nrgmax,nrgmax,nzgmax,0,0,ierr)
+    ! call SPL2D(R,Z,Brz,fx,fy,fxy,UBspl,nrgmax,nrgmax,nzgmax,0,0,ierr)
+    ! call SPL2D(R,Z,Frz,fx,fy,fxy,UFspl,nrgmax,nrgmax,nzgmax,0,0,ierr)
 
     call fow_eqload(ierr)
 
-    deallocate(fx,fy,fxy,R,Z)
+    ! deallocate(fx,fy,fxy,R,Z)
 
   end subroutine fow_prep
 
   subroutine fow_eqload(ierr)
     use fowcomm
-    use fpcomm,only:rkind
+    use fpcomm,only:rkind,nrmax,nthmax,npmax
     implicit none
     integer,intent(out):: ierr
     character(len = 80) :: line
+    real(rkind) :: rr_axis,zz_axis,psit0,qaxis,qsurf
     real(rkind),allocatable,dimension(:) :: ppsi,qpsi,vpsi,rlen,ritpsi,rhot
     real(rkind),allocatable,dimension(:,:) :: Br,Bz,Bp,Bt
-    integer :: nps,nthp
+    integer :: nr,nthp
 
-    allocate(ppsi(npsmax+1),qpsi(npsmax+1),vpsi(npsmax+1),rlen(npsmax+1),ritpsi(npsmax+1)&
-            ,rhot(npsmax+1))
-    allocate(Br(nthpmax,npsmax+1),Bz(nthpmax,npsmax+1),Bp(nthpmax,npsmax+1),Bt(nthpmax,npsmax+1))
+    allocate(ppsi(nrmax+1),qpsi(nrmax+1),vpsi(nrmax+1),rlen(nrmax+1),ritpsi(nrmax+1)&
+            ,rhot(nrmax+1))
+    allocate(Br(nthpmax,nrmax+1),Bz(nthpmax,nrmax+1),Bp(nthpmax,nrmax+1),Bt(nthpmax,nrmax+1))
 
     ierr = 0
     write(*,*)"FP------------------------------------"
@@ -73,7 +72,7 @@ contains
     call eqparm(2,line,ierr)
     if(ierr.ne.0) return
 
-    write(line,'(a,i5)') 'nrmax = ',npsmax+1
+    write(line,'(a,i5)') 'nrmax = ',nrmax+1
     call eqparm(2,line,ierr)
     if(ierr.ne.0) return
 
@@ -81,74 +80,73 @@ contains
     call eqparm(2,line,ierr)
     if(ierr.ne.0) return
 
-    write(line,'(a,i5)') 'nsumax = ',npsmax+1
+    write(line,'(a,i5)') 'nsumax = ',nrmax+1
     call eqparm(2,line,ierr)
     if(ierr.ne.0) return
 
     call eqcalq(ierr)
     if(ierr.ne.0) return
 
-    call eqgetp(rhot,psimg,npsmax+1)  ! normalized psit radius
-    call eqgetqn(ppsi,qpsi,Fpsig,vpsi,rlen,ritpsi,npsmax+1) ! flux functions
-    CALL eqgetbb(Br,Bz,Bp,Bt,nthpmax,nthpmax,npsmax+1) ! mag field
+    call eqgetp(rhot,psimg,nrmax+1)                        ! normalized psit radius , use only psimg
+    call eqgetqn(ppsi,qpsi,Fpsig,vpsi,rlen,ritpsi,nrmax+1) ! flux functions         , use only Fpsig
+    call eqgetbb(Br,Bz,Bp,Bt,nthpmax,nthpmax,nrmax+1)      ! mag field              , use only Bt and Bp
+    call eqgeta(rr_axis,zz_axis,psi0,psit0,qaxis,qsurf)     ! axis and mag parameters, use only psi0
 
-    do nps = 1, npsmax+1
+    do nr = 1, nrmax+1
+      Fpsig(nr) = Fpsig(nr)/(2*pi)
       do nthp = 1, nthpmax
-        Babs(nthp,nps) = sqrt(Bt(nthp,nps)**2+Bp(nthp,nps)**2)
+        Babs(nthp,nr) = sqrt(Bt(nthp,nr)**2+Bp(nthp,nr)**2)
       end do
     end do
 
-    do nps=1,npsmax+1
-      Fpsig(nps)=Fpsig(nps)/(2*pi)
-    end do
-
     write(*,*)"FP------------------------------------"
-    call fow_calcurate_equator_variable(ierr)
+
+    call fow_calculate_equator_variable(ierr)
 
   end subroutine
 
-  subroutine fow_calcurate_equator_variable(ierr)
+  subroutine fow_calculate_equator_variable(ierr)
     use fowcomm
-    use fpcomm,only:rkind
+    use fpcomm,only:rkind,nrmax,nthmax,npmax
     implicit none
     integer,intent(inout) :: ierr
     real(rkind),allocatable,dimension(:) :: x,f,fx,g,gx,h1,h2,h1x,h2x
     real(rkind),allocatable,dimension(:,:) :: U,V,W1,W2
     real(rkind) :: dps0,dps
-    integer :: nps,i,j
+    integer :: nr,i,j
 
     ierr = 0
 
-    allocate(x(npsmax+1),f(npsmax+1),fx(npsmax+1),U(4,npsmax+1))
-    allocate(g(npsmax+1),gx(npsmax+1),V(4,npsmax+1))
-    allocate(h1(npsmax+1),h1x(npsmax+1),W1(4,npsmax+1))
-    allocate(h2(npsmax+1),h2x(npsmax+1),W2(4,npsmax+1))
+    allocate(x(nrmax+1),f(nrmax+1),fx(nrmax+1),U(4,nrmax+1))
+    allocate(g(nrmax+1),gx(nrmax+1),V(4,nrmax+1))
+    allocate(h1(nrmax+1),h1x(nrmax+1),W1(4,nrmax+1))
+    allocate(h2(nrmax+1),h2x(nrmax+1),W2(4,nrmax+1))
 
-    do nps = 1,npsmax+1
-      x(nps) = (nps-1)*1.d0
-      f(nps) = psimg(nps)
-      g(nps) = Fpsig(nps)
-      h1(nps) = Babs(1,nps)
-      h2(nps) = Babs((nthpmax+1)/2,nps)
+    do nr = 1,nrmax+1
+      x(nr) = (nr-1)*1.d0
+      f(nr) = psimg(nr)
+      g(nr) = Fpsig(nr)
+      h1(nr) = Babs(1,nr)
+      h2(nr) = Babs((nthpmax+1)/2,nr)
     end do
 
-    call SPL1D(x,f,fx,U,npsmax+1,0,IERR)
-    call SPL1D(x,g,gx,V,npsmax+1,0,IERR)
-    call SPL1D(x,h1,h1x,W1,npsmax+1,0,IERR)
-    call SPL1D(x,h2,h2x,W2,npsmax+1,0,IERR)
+    call SPL1D(x,f,fx,U,nrmax+1,0,IERR)
+    call SPL1D(x,g,gx,V,nrmax+1,0,IERR)
+    call SPL1D(x,h1,h1x,W1,nrmax+1,0,IERR)
+    call SPL1D(x,h2,h2x,W2,nrmax+1,0,IERR)
 
     Boutg(1) = h1(1)
     Bing(1)  = h2(1)
 
-    do nps = 2,npsmax+1
-      if ( psi0 <= cal_spl1D(U(:,nps),1.d0) ) then
+    do nr = 2,nrmax+1
+      if ( psi0 <= cal_spl1D(U(:,nr),1.d0) ) then
         dps0 = 1.d0
-        call newton_spl1D(U(:,nps),psi0,dps0)
-        dps = (x(nps-1)+dps0)/npsmax
+        call newton_spl1D(U(:,nr),psi0,dps0)
+        dps = (x(nr-1)+dps0)/nrmax
 
         ! define psimg and Fpsimg
-        do i = 2, npsmax+1 ! i is label of psimg and Fpsig
-          do j = 2, npsmax+1 
+        do i = 2, nrmax+1 ! i is label of psimg and Fpsig
+          do j = 2, nrmax+1 
             if ( x(j-1) < (i-1)*dps .and. (i-1)*dps <= x(j) ) then
               psimg(i) = cal_spl1D(U(:,j), (i-1)*dps-x(j-1))
               Fpsig(i) = cal_spl1D(V(:,j), (i-1)*dps-x(j-1))
@@ -160,8 +158,8 @@ contains
         end do
 
         ! define psim and Fpsim
-        do i = 1, npsmax ! i is label of psim and Fpsi
-          do j = 2, npsmax+1 
+        do i = 1, nrmax ! i is label of psim and Fpsi
+          do j = 2, nrmax+1 
             if ( x(j-1) < (i-0.5d0)*dps .and. (i-0.5d0)*dps <= x(j) ) then
               psim(i) = cal_spl1D(U(:,j), (i-0.5d0)*dps-x(j-1))
               Fpsi(i) = cal_spl1D(V(:,j), (i-0.5d0)*dps-x(j-1))
@@ -176,7 +174,7 @@ contains
       end if
     end do
 
-  end subroutine fow_calcurate_equator_variable
+  end subroutine fow_calculate_equator_variable
 
   function cal_spl1D(U,dx) result(cal)
     use fpcomm,only:rkind
@@ -193,11 +191,12 @@ contains
 
   subroutine newton_spl1D(U,a,x)
     ! U4*x**3+U3*x**2+U2*x+U1 = a
+    use fpcomm,only:rkind
     implicit none
-    real(8),intent(in) :: U(4),a
-    real(8),intent(inout):: x
+    real(rkind),intent(in) :: U(4),a
+    real(rkind),intent(inout):: x
     integer :: i = 0,j
-    real(8) :: x0,e = 1.d10,eps = 1.d-18,V(4),d
+    real(rkind) :: x0,e = 1.d10,eps = 1.d-18,V(4),d
 
     V = U
     V(1) = V(1)-a
@@ -218,9 +217,10 @@ contains
   end subroutine newton_spl1D
 
   subroutine mesh_to_grid1D(f,g)
+    use fpcomm,only:rkind
     implicit none
-    real(8) :: f(:),g(:)
-    real(8),allocatable :: x(:),fx(:),U(:,:)
+    real(rkind) :: f(:),g(:)
+    real(rkind),allocatable :: x(:),fx(:),U(:,:)
     integer :: i,j,imax,jmax,IERR = 0,k
 
     imax = size(f)

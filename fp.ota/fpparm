@@ -1,6 +1,4 @@
 &fow
-  npsmax=20
-  nzemax=20
   nthpmax=32
 
   nrgmax=40
@@ -18,15 +16,26 @@
 &end
 
 &OB
-  tmax=10.D0
+  RR=6.2
+  RA=2.0
+  RKAP=1.7
+  RDLT=0.33
+  RB=2.1
+  BB=5.3
+  RIP=15
+  
+  tmax=10.D1
   delt=0.1D0
   mdlobw=2
   mdlobc=1
   idebug=0
-
 &end
 
 &fp
+  npmax=32
+  nthmax=32
+  nrmax=32
+
   RR=6.2
   RA=2.0
   RKAP=1.7
@@ -35,7 +44,6 @@
   BB=5.3
   RIP=15
 
-  NRMAX=32
   RMIN=0.D0
   RMAX=1.0D0
 
@@ -83,6 +91,4 @@
 
   DELT=1.D-2
   NTMAX=5
-  npmax=20
-  nthmax=32
 &end

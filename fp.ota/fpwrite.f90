@@ -15,9 +15,25 @@ contains
      open(1985,file=filename)
        do i=1,imax
          if(i==imax)then
-           write(1985,'(e18.11)')f(i)
+          if ( abs(f(i))<1.d-99 ) then
+            write(1985,'(e18.11)')0.d0
+          else if(f(i)>0.1d99) then
+            write(1985,'(e18.11)')0.1d99
+          else if(f(i)<-0.1d99) then
+            write(1985,'(e18.11)')-0.1d99
+          else
+            write(1985,'(e18.11)')f(i)
+          end if           
          else
-           write(1985,'(e18.11,",")',advance="no")f(i)
+          if ( abs(f(i))<1.d-99 ) then
+            write(1985,'(e18.11,",")',advance="no")0.d0
+          else if(f(i)>0.1d99) then
+            write(1985,'(e18.11,",")',advance="no")0.1d99
+          else if(f(i)<-0.1d99) then
+            write(1985,'(e18.11,",")',advance="no")-0.1d99
+          else
+            write(1985,'(e18.11,",")',advance="no")f(i)
+          end if
          end if
        end do
      close(1985)
@@ -37,9 +53,25 @@ contains
     do j =1,jmax
      do i=1,imax
        if(i==imax)then
-         write(1985,'(e18.11)')f(i,j)
+        if ( abs(f(i,j))<1.d-99 ) then
+          write(1985,'(e18.11)')0.d0
+        else if(f(i,j)>0.1d99) then
+          write(1985,'(e18.11)')0.1d99
+        else if(f(i,j)<-0.1d99) then
+          write(1985,'(e18.11)')-0.1d99
+        else
+          write(1985,'(e18.11)')f(i,j)
+        end if           
        else
-         write(1985,'(e18.11,",")',advance="no")f(i,j)
+        if ( abs(f(i,j))<1.d-99 ) then
+          write(1985,'(e18.11,",")',advance="no")0.d0
+        else if(f(i,j)>0.1d99) then
+          write(1985,'(e18.11,",")',advance="no")0.1d99
+        else if(f(i,j)<-0.1d99) then
+          write(1985,'(e18.11,",")',advance="no")-0.1d99
+        else
+          write(1985,'(e18.11,",")',advance="no")f(i,j)
+        end if           
        end if
      end do
     end do
