@@ -100,14 +100,14 @@ libs:
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
 
-tr2: $(LIBS2) trmain.o 
-	$(FLINKER) trmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
+tr2: $(LIBS) trmain.o 
+	$(FLINKER) trmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 tr3: $(LIBS3) trmain.o 
 	$(FLINKER) trmain.o $(LIBS3) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
-xtr: $(LIBS2) xtr.o 
-	$(FLINKER) xtr.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
+xtr: $(LIBS) xtr.o 
+	$(FLINKER) xtr.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean : 
 	-rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm95/*.o libmmm7_1/*.o mbgb/*.o a.out core *.a *.mod $(MOD)/*.mod

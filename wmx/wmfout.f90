@@ -78,6 +78,8 @@ CONTAINS
 
     USE wmcomm
     USE wmsetg
+    USE libfio
+    USE dpparm
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
     INTEGER:: I,MD,ND,NR,NS

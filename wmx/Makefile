@@ -28,13 +28,13 @@ MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) -I../tr/$(MOD) \
 
 SRCS = wmcomm.f90 vmcomm.f90 wmsub.f90 \
        wminit.f90 wmparm.f90 wmview.f90 \
+       wmxprf.f90 wmdprf.f90 \
        wmsetg.f90 wmprof.f90 wmdisp.f90 \
        wmsetf.f90 wmsetm.f90 \
        wmsolv.f90 \
        wmemfp.f90 wmpout.f90 \
        wmexec.f90 wmgsub.f90 wmgout.f90 \
        wmloop.f90 \
-       wmxprf.f90 wmdprf.f90 \
        wmdout.f90 wmfout.f90 \
        wmmenu.f90
 SRC7 = wmeqin.f
@@ -47,7 +47,7 @@ SRCX = wmloop.f90 wmtaem.f90 \
 OBJS = $(SRC7:.f=.o) $(SRCS:.f90=.o)
 
 LIBS = libwm.a ../dp/libdp.a ../eq/libeq.a ../pl/libpl.a ../tr/libtr.a \
-       ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a
+       ../lib/libtask.a ../lib/libmds.a ../lib/libgrf.a ../../bpsd/libbpsd.a
 
 all: libs wm
 
