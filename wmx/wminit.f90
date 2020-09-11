@@ -26,13 +26,15 @@ CONTAINS
 !                      NPHMAX >= NHHMAX*NHC
 !     factor_nth : ratio of nthmax_f and nthmax [INTEGER]    
 !     factor_nhh : ratio of nhhmax_f and nhhmax [INTEGER]    
+!     factor_nph : ratio of nphmax_f and nphmax [INTEGER]    
 
       NRMAX   = 50
       NTHMAX  = 1
       NHHMAX  = 1
       NPHMAX  = 1
-      factor_nth = 2
+      factor_nth = 2 
       factor_nhh = 2
+      factor_nph = 2
 
 !     NSUMAX: Number of plasma surface plot points
 !     NSWMAX: Number of wall surface plot points 

@@ -75,7 +75,8 @@ CONTAINS
     WRITE(6,601) 'RF    ',RF    ,'RFI   ',RFI   , &
                  'RD    ',RD    ,'BETAJ ',BETAJ
     WRITE(6,603) 'factor_nth  ',factor_nth, &
-                 'factor_nhh  ',factor_nhh
+                 'factor_nhh  ',factor_nhh, &
+                 'factor_nph  ',factor_nph
     WRITE(6,602) 'NRMAX ',NRMAX ,'NTHMAX',NTHMAX, &
                  'NHHMAX',NHHMAX,'NPHMAX',NPHMAX
     WRITE(6,602) 'NTH0  ',NTH0  ,'NPH0  ',NPH0  , &

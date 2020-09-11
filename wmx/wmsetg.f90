@@ -20,17 +20,6 @@ CONTAINS
 
     IERR=0
 
-    IF(NTHMAX.EQ.1) THEN
-       NTHMAX_F=1
-    ELSE
-       NTHMAX_F=NTHMAX*factor_nth
-    END IF
-    IF(NHHMAX.EQ.1) THEN
-       NHHMAX_F=1
-    ELSE
-       NHHMAX_F=NHHMAX*factor_nhh
-    END IF
-
     SELECT CASE(MODELG)
 
 !     ****** Rectangular COORDINATES ******

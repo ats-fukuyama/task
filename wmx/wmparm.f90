@@ -58,7 +58,7 @@ CONTAINS
            RHOGMN,RHOGMX,MODEFR,MODEFW,IDEBUG, &
            KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,KNAMTR,KNAMEQ2, &
            MODELP,MODELV,NCMIN,NCMAX,PMAX,EMAX, &
-           NRMAX,NTHMAX,NHHMAX,NPHMAX,factor_nth,factor_nhh, &
+           NRMAX,NTHMAX,NHHMAX,NPHMAX,factor_nth,factor_nhh,factor_nph, &
            NRMAX_DP,NTHMAX_DP,NPMAX_DP,NSAMAX_DP,RHON_MIN,RHON_MAX, &
            MODELP,MODELV,NCMIN,NCMAX,NS_NSA_DP,EPSRT,LMAXRT, &
            NSUMAX,NSWMAX,B0_FACT, &
@@ -102,7 +102,7 @@ CONTAINS
          '       KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,', &
          '       MODELP,MODELV,NCMIN,NCMAX,PMAX,EMAX,', &
          '       NPMAX,NTHMAX,NRMAX,NSAMAX,RHON_MIN,RHON_MAX,', &
-         '       NHHMAX,NPHMAX,factor_nth,factor_nhh,', &
+         '       NHHMAX,NPHMAX,factor_nth,factor_nhh,factor_nph,', &
          '       NSUMAX,NSWMAX,B0_FACT,', &
          '       RF,RFI,RD,PRFIN,BETAJ,NTH0,NPH0,NHC,', &
          '       NAMAX,AJ,AEWGT,AEWGZ,APH,THJ1,THJ2,PHJ1,PHJ2,ANTANG,', &
@@ -204,8 +204,9 @@ CONTAINS
     idata(32)=MDLWMK
     idata(33)=factor_nth
     idata(34)=factor_nhh
+    idata(35)=factor_nph
 
-    CALL mtx_broadcast_integer(idata,34)
+    CALL mtx_broadcast_integer(idata,35)
 
     NRMAX=idata( 1)
     NTHMAX=idata( 2)
@@ -241,6 +242,7 @@ CONTAINS
     MDLWMK=idata(32)
     factor_nth=idata(33)
     factor_nhh=idata(34)
+    factor_nph=idata(35)
 
     rdata( 1)=RF
     rdata( 2)=RFI
@@ -293,8 +295,6 @@ CONTAINS
     DLTNW=rdata(22)
     WAEMIN=rdata(23)
     WAEMAX=rdata(24)
-    factor_nth=rdata(25)
-    factor_nhh=rdata(26)
 
     CALL mtx_broadcast_real8(AJ,NAMAX)
     CALL mtx_broadcast_real8(AEWGT,NAMAX)

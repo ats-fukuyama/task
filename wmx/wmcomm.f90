@@ -269,8 +269,21 @@ CONTAINS
        mlen=3*nrmax*nthmax*nhhmax+mwgmax*namax
     END IF
     mbnd=12*nthmax*nhhmax-1
-    nthmax_f=2*nthmax
-    nhhmax_f=2*nhhmax
+    IF(nthmax.EQ.1) THEN
+       nthmax_f=1
+    ELSE
+       nthmax_f=nthmax*factor_nth
+    END IF
+    IF(nhhmax.EQ.1) THEN
+       nhhmax_f=1
+    ELSE
+       nhhmax_f=nhhmax*factor_nhh
+    END IF
+    IF(nphmax.EQ.1) THEN
+       nphmax_f=1
+    ELSE
+       nphmax_f=nphmax*factor_nph
+    END IF
 
     ALLOCATE(XR(nrmax+1),XRHO(nrmax+1),XTH(nthmax+1),XTHF(nthmax_f+1))
     ALLOCATE(NPH_LOOP(nphmax))
