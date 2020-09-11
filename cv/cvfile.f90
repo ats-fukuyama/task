@@ -312,12 +312,13 @@ CONTAINS
        RETURN
     END IF
 
-    ncount=(ndate_max-ndate_start)/ndate_step_global+1
+    ncount=(ndate_max-ndate_start_global)/ndate_step_global+1
     WRITE(format1,'(A,i8,A)') '(A,',ncount,'(",",A10))'
     WRITE(format2,'(A,i8,A)') '(A2,",",A,",",A4,',ncount,'(",",I0))'
     WRITE(nfl,format1,IOSTAT=nstat,ERR=9001) &
          'country_id,country_name,region_id', &
-         (date_id_ndate(ndate),ndate=ndate_start,ndate_max,ndate_step_global)
+         (date_id_ndate(ndate), &
+         ndate=ndate_start_global,ndate_max,ndate_step_global)
     DO ncountry=1,ncountry_max
        country_id=country_id_ncountry(ncountry)
        IF(country_id.EQ.'PS'.OR.country_id.EQ.'BQ') THEN
@@ -329,7 +330,7 @@ CONTAINS
             country_id_ncountry(ncountry),TRIM(country_name), &
             region_id_ncountry(ncountry), &
             (ncases_total_ndate_ncountry(ndate,ncountry), &
-            ndate=ndate_start,ndate_max,ndate_step_global)
+            ndate=ndate_start_global,ndate_max,ndate_step_global)
     END DO
     CLOSE(nfl)
 
@@ -350,7 +351,8 @@ CONTAINS
     WRITE(format2,'(A,i8,A)') '(A2,",",A,",",A4,',ncount,'(",",I0))'
     WRITE(nfl,format1,IOSTAT=nstat,ERR=9003) &
          'country_id,country_name,region_id', &
-         (date_id_ndate(ndate),ndate=ndate_start,ndate_max,ndate_step_global)
+         (date_id_ndate(ndate), &
+         ndate=ndate_start_global,ndate_max,ndate_step_global)
     DO ncountry=1,ncountry_max
        country_id=country_id_ncountry(ncountry)
        IF(country_id.EQ.'PS'.OR.country_id.EQ.'BQ') THEN
@@ -362,7 +364,7 @@ CONTAINS
             country_id_ncountry(ncountry),TRIM(country_name), &
             region_id_ncountry(ncountry), &
             (ndeaths_total_ndate_ncountry(ndate,ncountry), &
-            ndate=ndate_start,ndate_max,ndate_step_global)
+            ndate=ndate_start_global,ndate_max,ndate_step_global)
     END DO
     CLOSE(nfl)
 

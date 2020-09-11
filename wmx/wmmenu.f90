@@ -33,12 +33,12 @@ CONTAINS
     IF(nrank.EQ.0) THEN
        IF(init.EQ.0) THEN
           WRITE(6,601)
-601       FORMAT('## WM MENU: P,V/PARM R/RUN D0-3/AMP F/ROOT ', &
-                 'T/TAE L/LOAD Q/QUIT')
+601       FORMAT('## WM MENU: P,V/parm R/run D0-3/amp F/root ', &
+                 'T/tae L/load Q/quit')
        ELSE
           WRITE(6,602)
-602       FORMAT('## WM MENU: P,V/PARM R/RUN D0-3/AMP F/ROOT ', &
-                 'G,Y/GRAPH T/TAE S.W.O/SAVE L/LOAD ? Q/QUIT')
+602       FORMAT('## WM MENU: P,V/parm R/run D0-3/amp F/root ', &
+                 'G,Y/graph T/tae S,W,O,L/file ? Q/quit')
        END IF
        CALL TASK_KLIN(line,kid,mode,wm_parm)
     END IF

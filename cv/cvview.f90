@@ -23,7 +23,9 @@ CONTAINS
     WRITE(6,'(A,I8)')     'ndate_step_global      =',ndate_step_global
     WRITE(6,'(A,I8)')     'ndate_step_region      =',ndate_step_region
     WRITE(6,'(A,I8)')     'ndate_step_select      =',ndate_step_select
-    WRITE(6,'(A,I8)')     'ndate_start            =',ndate_start
+    WRITE(6,'(A,I8)')     'ndate_start_global     =',ndate_start_global
+    WRITE(6,'(A,I8)')     'ndate_start_region     =',ndate_start_region
+    WRITE(6,'(A,I8)')     'ndate_start_select     =',ndate_start_select
     WRITE(6,'(A,I8)')     'ndays_ave              =',ndays_ave
     WRITE(6,'(A,ES12.4)') 'cases_number_log_min   =',cases_number_log_min
     WRITE(6,'(A,ES12.4)') 'deaths_number_log_min  =',deaths_number_log_min

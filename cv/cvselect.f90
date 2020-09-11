@@ -150,19 +150,20 @@ CONTAINS
        RETURN
     END IF
 
-    ncount=(ndate_max-ndate_start)/ndate_step_select+1
+    ncount=(ndate_max-ndate_start_select)/ndate_step_select+1
     WRITE(format1,'(A,i8,A)') '(A,',ncount,'(",",A10))'
     WRITE(format2,'(A,i8,A)') '(A,",",A2,',ncount,'(",",I0))'
     WRITE(nfl,format1,IOSTAT=nstat,ERR=9001) &
          'select cases,ID', &
-         (date_id_ndate(ndate),ndate=ndate_start,ndate_max,ndate_step_select)
+         (date_id_ndate(ndate), &
+          ndate=ndate_start_select,ndate_max,ndate_step_select)
     DO nselect=1,nselect_max
        country_name=country_name_nselect(nselect)
        country_id=country_id_nselect(nselect)
        WRITE(nfl,format2,IOSTAT=nstat,ERR=9002) &
             TRIM(country_name),country_id, &
             (ncases_total_ndate_nselect(ndate,nselect), &
-             ndate=ndate_start,ndate_max,ndate_step_select)
+             ndate=ndate_start_select,ndate_max,ndate_step_select)
     END DO
     CLOSE(nfl)
 
@@ -183,14 +184,15 @@ CONTAINS
     WRITE(format2,'(A,i8,A)') '(A,",",A2,',ncount,'(",",I0))'
     WRITE(nfl,format1,IOSTAT=nstat,ERR=9001) &
          'select deaths,ID', &
-         (date_id_ndate(ndate),ndate=ndate_start,ndate_max,ndate_step_select)
+         (date_id_ndate(ndate), &
+          ndate=ndate_start_select,ndate_max,ndate_step_select)
     DO nselect=1,nselect_max
        country_name=country_name_nselect(nselect)
        country_id=country_id_nselect(nselect)
        WRITE(nfl,format2,IOSTAT=nstat,ERR=9002) &
             TRIM(country_name),country_id, &
             (ndeaths_total_ndate_nselect(ndate,nselect), &
-             ndate=ndate_start,ndate_max,ndate_step_select)
+             ndate=ndate_start_select,ndate_max,ndate_step_select)
     END DO
     CLOSE(nfl)
 

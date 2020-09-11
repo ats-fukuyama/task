@@ -182,7 +182,7 @@ CONTAINS
           IF(K3.EQ.'A') THEN
              DO NS=1,NSMAX
                 DO NR=1,NRMAX
-                   POWER(NR,NS)=PABSRT(NR,NS)
+                   POWER(NR,NS)=PABSR(NR,NS)
                 ENDDO
                 POWER(NRMAX+1,NS)=0.D0
              ENDDO
@@ -203,7 +203,7 @@ CONTAINS
           IF(K3.EQ.'A') THEN
              DO NS=1,NSMAX
                 DO NR=1,NRMAX
-                   POWER(NR,NS)=PABSRT(NR,NS)
+                   POWER(NR,NS)=PABSR(NR,NS)
                 ENDDO
                 POWER(NRMAX+1,NS)=0.D0
              ENDDO
@@ -224,7 +224,7 @@ CONTAINS
           IF(K3.EQ.'A') THEN
              DO NS=1,NSMAX
                 DO NR=1,NRMAX
-                   POWER(NR,NS)=PABSRT(NR,NS)
+                   POWER(NR,NS)=PABSR(NR,NS)
                 ENDDO
                 POWER(NRMAX+1,NS)=0.D0
              ENDDO
@@ -362,7 +362,7 @@ CONTAINS
     ELSEIF(K3.EQ.' ') THEN
        DO NS=1,NSMAX
           DO NR=1,NRMAX
-             POWER(NR,NS)=PABSRT(NR,NS)
+             POWER(NR,NS)=PABSR(NR,NS)
           ENDDO
           POWER(NRMAX+1,NS)=0.D0
        ENDDO

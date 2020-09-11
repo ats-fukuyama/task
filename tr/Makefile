@@ -63,7 +63,7 @@ OBJTR=$(OBJM) $(OBJE) $(OBJL) $(OBJNC) $(OBJCYT) $(OBJMMM) $(OBJMBGB) $(OBJS)
 OBJ2D=$(SRC2D:.f90=.o)
 OBJ3D=$(SRC3D:.f90=.o)
 
-LIBS2=libtr2.a $(EQLIBS) $(PLLIBS) ../lib/libmds.a ../lib/libtask.a ../lib/libgrf.a 
+LIBS=libtr.a $(EQLIBS) $(PLLIBS) ../lib/libmds.a ../lib/libtask.a ../lib/libgrf.a 
 LIBS3=libtr3.a $(EQLIBS) $(PLLIBS) ../lib/libmds.a ../lib/libtask.a ../lib/libgrf.a
 
 .f.o :
@@ -74,8 +74,8 @@ LIBS3=libtr3.a $(EQLIBS) $(PLLIBS) ../lib/libmds.a ../lib/libtask.a ../lib/libgr
 #all: libs tr2 tr3
 all: libs tr2
 
-libtr2.a: $(OBJTR) $(OBJ2D) $(INCNC) $(INCGLF)
-	$(LD) $(LDFLAGS) libtr2.a $(OBJTR) $(OBJ2D)
+libtr.a: $(OBJTR) $(OBJ2D) $(INCNC) $(INCGLF)
+	$(LD) $(LDFLAGS) libtr.a $(OBJTR) $(OBJ2D)
 
 libtr3.a: $(OBJTR) $(OBJ3D) $(INCNC) $(INCGLF)
 	$(LD) $(LDFLAGS) libtr3.a $(OBJTR) $(OBJ3D)

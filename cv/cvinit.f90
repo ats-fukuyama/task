@@ -26,7 +26,10 @@ CONTAINS
     ndate_step_global=1  ! ndate step of global data: 1: all, 7: week interval
     ndate_step_region=1  ! ndate step of region data: 1: all, 7: week interval
     ndate_step_select=7  ! ndata step of select data: 1: all, 7: week interval
-    ndate_start=7        ! initial ndate: 1 for 2020-01-04 (Sat), 7 for Friday 
+    ndate_start_global=1 ! initial ndate of global data:
+    ndate_start_region=1 ! initial ndate of region data:
+    ndate_start_select=7 ! initial ndate of select data:
+                         !         1 for 2020-01-04 (Sat), 7 for Friday 
     ndays_ave=7          ! range of day averageing
     cases_number_log_min=10.D0     ! minimum number for ncases in log
     deaths_number_log_min=1.D0     ! minimum number for ndeaths in log

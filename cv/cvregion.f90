@@ -181,18 +181,19 @@ CONTAINS
        RETURN
     END IF
 
-    ncount=(ndate_max-ndate_start)/ndate_step_region+1
+    ncount=(ndate_max-ndate_start_region)/ndate_step_region+1
     WRITE(format1,'(A,i8,A)') '(A,',ncount,'(",",A10))'
     WRITE(format2,'(A,i8,A)') '(A,',ncount,'(",",I0))'
     WRITE(nfl,format1,IOSTAT=nstat,ERR=9001) &
          'region cases', &
-         (date_id_ndate(ndate),ndate=ndate_start,ndate_max,ndate_step_region)
+         (date_id_ndate(ndate), &
+          ndate=ndate_start_region,ndate_max,ndate_step_region)
     DO nregion=1,nregion_max
        region_name=region_name_nregion(nregion)
        WRITE(nfl,format2,IOSTAT=nstat,ERR=9002) &
             TRIM(region_name), &
             (ncases_total_ndate_nregion(ndate,nregion), &
-             ndate=ndate_start,ndate_max,ndate_step_region)
+             ndate=ndate_start_region,ndate_max,ndate_step_region)
     END DO
     CLOSE(nfl)
 
@@ -213,13 +214,14 @@ CONTAINS
     WRITE(format2,'(A,i8,A)') '(A,',ncount,'(",",I0))'
     WRITE(nfl,format1,IOSTAT=nstat,ERR=9001) &
          'region deaths', &
-         (date_id_ndate(ndate),ndate=ndate_start,ndate_max,ndate_step_region)
+         (date_id_ndate(ndate), &
+          ndate=ndate_start_region,ndate_max,ndate_step_region)
     DO nregion=1,nregion_max
        region_name=region_name_nregion(nregion)
        WRITE(nfl,format2,IOSTAT=nstat,ERR=9002) &
             TRIM(region_name), &
             (ndeaths_total_ndate_nregion(ndate,nregion), &
-             ndate=ndate_start,ndate_max,ndate_step_region)
+             ndate=ndate_start_region,ndate_max,ndate_step_region)
     END DO
     CLOSE(nfl)
 

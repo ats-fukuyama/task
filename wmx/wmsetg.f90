@@ -12,6 +12,9 @@ CONTAINS
   SUBROUTINE wm_setg(ierr)
 
     USE wmcomm
+    USE wmdprf
+    USE wmxprf
+    USE trfile,ONLY: tr_load
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
 
@@ -75,9 +78,9 @@ CONTAINS
 
 ! --- load plasma profile data ---
 
-!    IF(MODELN.EQ.7) CALL WMDPRF(IERR)
-!    IF(MODELN.EQ.8) CALL WMXPRF(IERR)
-!    IF(MODELN.EQ.9) CALL WMTRLOAD(IERR)
+    IF(MODELN.EQ.7) CALL wm_dprf(IERR)
+    IF(MODELN.EQ.8) CALL wm_xprf(IERR)
+    IF(MODELN.EQ.9) CALL tr_load
 
     IF(IERR.NE.0) RETURN
 

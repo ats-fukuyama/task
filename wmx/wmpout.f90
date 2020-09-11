@@ -141,30 +141,30 @@ CONTAINS
     IMPLICIT NONE
     REAL(rkind),ALLOCATABLE:: DS(:),DSS(:,:,:)
     COMPLEX(rkind):: cw
-    REAL(rkind):: DTH,DPH,DRHO,DPSIPDRHO,DSSS,FACT,FACTSQ
+    REAL(rkind):: DTH,DHH,DRHO,DPSIPDRHO,DSSS,FACT,FACTSQ
     INTEGER:: NR,NHH,NTH,NS,NHHF,NTHF,ND,NDX,MD,MDX
     
     ALLOCATE(DS(nrmax),DSS(nthmax,nhhmax,nrmax))
     
     CW=2.D0*PI*CMPLX(RF,RFI)*1.D6
     DTH=2.D0*PI/DBLE(NTHMAX)
-    DPH=2.D0*PI/DBLE(NHHMAX)/DBLE(NHC)
+    DHH=2.D0*PI/DBLE(NHHMAX*NHC)
 
     DO NR=1,NRMAX
        PCURR(NR)=0.D0
        DO NHH=1,NHHMAX
           DO NTH=1,NTHMAX
-             PCURR(NR)=PCURR(NR)+PCUR(NTH,NHH,NR)*DTH*DPH*NHC
+             PCURR(NR)=PCURR(NR)+PCUR(NTH,NHH,NR)*DTH*DHH
           ENDDO
        ENDDO
     ENDDO
 
     DO NS=1,NSMAX
        DO NR=1,NRMAX
-          PABSRT(NR,NS)=0.D0
+          PABSR(NR,NS)=0.D0
           DO NHH=1,NHHMAX
              DO NTH=1,NTHMAX
-                PABSRT(NR,NS)=PABSRT(NR,NS)+PABS(NTH,NHH,NR,NS)*DTH*DPH*NHC
+                PABSR(NR,NS)=PABSR(NR,NS)+PABS(NTH,NHH,NR,NS)*DTH*DHH
              ENDDO
           ENDDO
        ENDDO
@@ -178,7 +178,7 @@ CONTAINS
     DO NS=1,NSMAX
        PABST(NS)=0.D0
        DO NR=1,NRMAX
-          PABST(NS)=PABST(NS)+PABSRT(NR,NS)
+          PABST(NS)=PABST(NS)+PABSR(NR,NS)
        ENDDO
     ENDDO
 
@@ -218,7 +218,7 @@ CONTAINS
              ENDIF
              DSSS=DPSIPDRHO*DRHO*RJ(NTHF,NHHF,NR)
              DSS(NTH,NHH,NR)=1.D0/DSSS
-             DS(NR)=DS(NR)+DSSS*DTH*DPH*NHC
+             DS(NR)=DS(NR)+DSSS*DTH*DHH
           ENDDO
        ENDDO
        DS(NR)=1.D0/DS(NR)
@@ -230,7 +230,7 @@ CONTAINS
     DO NS=1,NSMAX
        PABST(NS)=FACT*PABST(NS)
        DO NR=1,NRMAX
-          PABSRT(NR,NS)=FACT*PABSRT(NR,NS)*DS(NR)
+          PABSR(NR,NS)=FACT*PABSR(NR,NS)*DS(NR)
           DO NHH=1,NHHMAX
              DO NTH=1,NTHMAX
                 PABS(NTH,NHH,NR,NS)=FACT*PABS(NTH,NHH,NR,NS) &

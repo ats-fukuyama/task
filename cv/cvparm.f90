@@ -58,7 +58,8 @@ CONTAINS
          knam_csv_select_cases,knam_csv_select_deaths, &
          knam_cv_select,knam_cv_population, &
          ndate_step_global,ndate_step_region,ndate_step_select, &
-         ndate_start,ndays_ave, &
+         ndate_start_global,ndate_start_region,ndate_start_select, &
+         ndays_ave, &
          cases_number_log_min,deaths_number_log_min, &
          cases_rate_log_min,deaths_rate_log_min, &
          ratio_new_total_log_min
@@ -87,7 +88,8 @@ CONTAINS
          '        knam_csv_select_cases,knam_csv_select_deaths', &
          '        knam_cv_select,knam_cv_population', &
          '        ndate_step_global,ndate_step_region,ndate_step_select', &
-         '        ndate_start,ndays_ave', &
+         '        ndate_start_global,ndate_star_region,ndate_start_select', &
+         '        ndays_ave', &
          '        cases_number_log_min,deaths_number_log_min', &
          '        cases_rate_log_min,deaths_rate_log_min', &
          '        ratio_new_total_log_min'
@@ -107,7 +109,9 @@ CONTAINS
     IF(ndate_step_global.LE.0) ndate_step_global=1
     IF(ndate_step_region.LE.0) ndate_step_region=1
     IF(ndate_step_select.LE.0) ndate_step_select=1
-    IF(ndate_start      .LE.0) ndate_start=1
+    IF(ndate_start_global.LE.0) ndate_start_global=1
+    IF(ndate_start_region.LE.0) ndate_start_region=1
+    IF(ndate_start_select.LE.0) ndate_start_select=1
 
     RETURN
   END SUBROUTINE cv_chek

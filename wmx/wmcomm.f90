@@ -32,9 +32,9 @@ MODULE wmcomm_parm
 
   IMPLICIT NONE
   PUBLIC
-! Followings are defined in bpsd_kinds.f90
-!  INTEGER,PARAMETER :: dp = selected_real_kind(15) !double precision
-!  INTEGER,PARAMETER :: sp = selected_real_kind(6)  !singld precision 
+
+! --- fixed parameter necessary for parameter input
+  
   INTEGER,PARAMETER:: NAM=8       ! maximum number of antenna
 
 ! --- wm specific input parameters ---  
@@ -62,6 +62,7 @@ MODULE wmcomm_parm
 
   INTEGER:: factor_nth  ! Factor of nthmax expansion for couping tensor 
   INTEGER:: factor_nhh  ! Factor of nhhmax expansion for couping tensor 
+  INTEGER:: factor_nph  ! Factor of nphmax expansion for couping tensor 
   
   INTEGER:: NAMAX           ! number of antenna
   REAL(rkind):: AJ(NAM)     ! Antenna current density [A/m]
@@ -148,12 +149,15 @@ MODULE wmcomm
   REAL(rkind),ALLOCATABLE:: XR(:),XRHO(:),XTH(:),XTHF(:)
   INTEGER:: NTHMAX_F    ! number of extended poloidal mesh =NTHMAX*factor_nth
   INTEGER:: NHHMAX_F    ! number of extended helical mesh  =NHHMAX*factor_nhh
+  INTEGER:: NPHMAX_F    ! number of extended toroidal mesh =NPHMAX*factor_nph
   INTEGER:: MDSIZ,MDMIN,MDMAX,LDSIZ,LDMIN,LDMAX
   INTEGER:: MDSIZ_F,MDMIN_F,MDMAX_F,LDSIZ_F,LDMIN_F,LDMAX_F
   INTEGER:: NDSIZ,NDMIN,NDMAX,KDSIZ,KDMIN,KDMAX
   INTEGER:: NDSIZ_F,NDMIN_F,NDMAX_F,KDSIZ_F,KDMIN_F,KDMAX_F
   INTEGER:: MODEWG,MWGMAX
 
+  INTEGER,ALLOCATABLE:: NPH_LOOP(:)
+  
   COMPLEX(rkind),ALLOCATABLE:: CJANT(:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CEWALL(:,:,:)
   INTEGER:: MLEN,MBND
@@ -175,22 +179,28 @@ MODULE wmcomm
   COMPLEX(rkind),ALLOCATABLE:: CMAF(:,:,:,:,:),CRMAF(:,:,:,:,:)
 
   COMPLEX(rkind),ALLOCATABLE:: CEFLD(:,:,:,:),CEFLDK(:,:,:,:)
+  COMPLEX(rkind),ALLOCATABLE:: CEFLD3D(:,:,:,:),CEFLDK3D(:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CBFLD(:,:,:,:),CBFLDK(:,:,:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CEFLD3D(:,:,:,:),CEFLD3DK(:,:,:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CBFLD3D(:,:,:,:),CBFLD3DK(:,:,:,:)
+  COMPLEX(rkind),ALLOCATABLE:: CBFLD3D(:,:,:,:),CBFLDK3D(:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CEN(:,:,:,:),CEP(:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CBN(:,:,:,:),CBP(:,:,:,:)
 
-  REAL(rkind),ALLOCATABLE:: PABS(:,:,:,:),PABSK(:,:,:,:),PABSR(:,:,:)
-  REAL(rkind),ALLOCATABLE:: PABSKT(:,:,:),PABSRT(:,:),PABST(:)
-  REAL(rkind):: PABSTT
-  REAL(rkind),ALLOCATABLE:: PABST3D(:,:),PABSTT3D(:)
   COMPLEX(rkind),ALLOCATABLE:: CPABS(:,:,:,:),CPABSK(:,:,:,:),CPABSR(:,:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CPABS3D(:,:,:,:),CPABS3DK(:,:,:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CPABS3DR(:,:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CFLX(:,:,:),CFLXK(:,:,:),CFLXR(:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CFLX3D(:,:,:),CFLX3DK(:,:,:),CFLX3DR(:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CFLXRR(:),CFLXT(:)
+  REAL(rkind),ALLOCATABLE:: PABS(:,:,:,:),PABSK(:,:,:,:),PABSR(:,:)
+  REAL(rkind),ALLOCATABLE:: PABST(:)
+
+  COMPLEX(rkind),ALLOCATABLE:: CPABS3D(:,:,:,:),CPABSK3D(:,:,:,:)
+  COMPLEX(rkind),ALLOCATABLE:: CPABSR3D(:,:,:)
+  
+  REAL(rkind),ALLOCATABLE:: PABS3D(:,:,:,:),PABS2D(:,:,:)
+  REAL(rkind),ALLOCATABLE:: PABSR3D(:,:,:),PABSKT(:,:,:)
+  REAL(rkind),ALLOCATABLE:: PABST3D(:,:),PABSTT3D(:)
+  REAL(rkind):: PABSTT
+
+  REAL(rkind),ALLOCATABLE:: FLUX3DR(:,:,:),FLUX3DTH(:,:,:),FLUX3DPH(:,:,:)
+  REAL(rkind),ALLOCATABLE:: FLUX2DR(:,:),FLUX2DTH(:,:),FLUXR(:)
+  REAL(rkind):: FLUXT
+  
   COMPLEX(rkind),ALLOCATABLE:: CPRADK(:,:)
   COMPLEX(rkind):: CPRAD
   REAL(rkind),ALLOCATABLE:: PCUR(:,:,:),PCURR(:)
@@ -263,6 +273,7 @@ CONTAINS
     nhhmax_f=2*nhhmax
 
     ALLOCATE(XR(nrmax+1),XRHO(nrmax+1),XTH(nthmax+1),XTHF(nthmax_f+1))
+    ALLOCATE(NPH_LOOP(nphmax))
     ALLOCATE(CJANT(3,nthmax,nhhmax))
     ALLOCATE(CEWALL(3,nthmax,nhhmax))
     ALLOCATE(CFVG(mlen))
@@ -283,35 +294,46 @@ CONTAINS
     ALLOCATE(CMAF(3,3,nthmax_f,nhhmax_f,3))
     ALLOCATE(CRMAF(3,3,nthmax_f,nhhmax_f,3))
 
-    ALLOCATE(CEFLD(3,nthmax,nhhmax,nrmax+1),CEFLDK(3,nthmax,nhhmax,nrmax+1))
-    ALLOCATE(CEFLD3D(3,nthmax,nphmax,nrmax+1),CEFLD3DK(3,nthmax,nphmax,nrmax+1))
-    ALLOCATE(CBFLD(3,nthmax,nhhmax,nrmax+1),CBFLDK(3,nthmax,nhhmax,nrmax+1))
-    ALLOCATE(CBFLD3D(3,nthmax,nphmax,nrmax+1),CBFLD3DK(3,nthmax,nphmax,nrmax+1))
-    ALLOCATE(CEN(3,nthmax,nhhmax,nrmax+1),CEP(3,nthmax,nhhmax,nrmax+1))
-    ALLOCATE(CBN(3,nthmax,nhhmax,nrmax+1),CBP(3,nthmax,nhhmax,nrmax+1))
+    ALLOCATE(CEFLD(3,nthmax,nhhmax,nrmax+1))
+    ALLOCATE(CEFLDK(3,nthmax,nhhmax,nrmax+1))
+    ALLOCATE(CEFLD3D(3,nthmax,nphmax,nrmax+1))
+    ALLOCATE(CEFLDK3D(3,nthmax,nphmax,nrmax+1))
+    ALLOCATE(CBFLD(3,nthmax,nhhmax,nrmax+1))
+    ALLOCATE(CBFLDK(3,nthmax,nhhmax,nrmax+1))
+    ALLOCATE(CBFLD3D(3,nthmax,nphmax,nrmax+1))
+    ALLOCATE(CBFLDK3D(3,nthmax,nphmax,nrmax+1))
+    ALLOCATE(CEN(3,nthmax,nhhmax,nrmax+1))
+    ALLOCATE(CEP(3,nthmax,nhhmax,nrmax+1))
+    ALLOCATE(CBN(3,nthmax,nhhmax,nrmax+1))
+    ALLOCATE(CBP(3,nthmax,nhhmax,nrmax+1))
 
-    ALLOCATE(PABS(nthmax,nhhmax,nrmax,nsmax))
-    ALLOCATE(PABSK(nthmax,nhhmax,nrmax,nsmax))
-    ALLOCATE(PABSR(nhhmax,nrmax,nsmax))
-    ALLOCATE(PABSKT(nthmax,nhhmax,nsmax))
-    ALLOCATE(PABSRT(nrmax,nsmax))
+    ALLOCATE(CPABS(nthmax_f,nhhmax_f,nrmax,nsmax))
+    ALLOCATE(CPABSK(nthmax_f,nhhmax_f,nrmax,nsmax))
+    ALLOCATE(CPABSR(nhhmax_f,nrmax,nsmax))
+
+    ALLOCATE(PABS(nthmax_f,nhhmax_f,nrmax,nsmax))
+    ALLOCATE(PABSK(nthmax_f,nhhmax_f,nrmax,nsmax))
+    ALLOCATE(PABSR(nrmax,nsmax))
     ALLOCATE(PABST(nsmax))
-    ALLOCATE(PABST3D(nphmax,nsmax))
-    ALLOCATE(PABSTT3D(nphmax))
-    ALLOCATE(CPABS(nthmax,nhhmax,nrmax,nsmax))
-    ALLOCATE(CPABSK(nthmax,nhhmax,nrmax,nsmax))
-    ALLOCATE(CPABSR(nhhmax,nrmax,nsmax))
-    ALLOCATE(CPABS3D(nthmax,nphmax,nrmax,nsmax))
-    ALLOCATE(CPABS3DK(nthmax,nphmax,nrmax,nsmax))
-    ALLOCATE(CPABS3DR(nphmax,nrmax,nsmax))
-    ALLOCATE(CFLX(nthmax,nhhmax,nrmax+1))
-    ALLOCATE(CFLXK(nthmax,nhhmax,nrmax+1))
-    ALLOCATE(CFLXR(nhhmax,nrmax+1))
-    ALLOCATE(CFLX3D(nthmax,nphmax,nrmax+1))
-    ALLOCATE(CFLX3DK(nthmax,nphmax,nrmax+1))
-    ALLOCATE(CFLX3DR(nphmax,nrmax+1))
-    ALLOCATE(CFLXRR(nrmax+1))
-    ALLOCATE(CFLXT(nphmax+1))
+    
+    ALLOCATE(CPABS3D(nthmax_f,nphmax_f,nrmax,nsmax))
+    ALLOCATE(CPABSK3D(nthmax_f,nphmax_f,nrmax,nsmax))
+    ALLOCATE(CPABSR3D(nphmax_f,nrmax,nsmax))
+
+    ALLOCATE(PABS3D(nthmax_f,nphmax_f,nrmax,nsmax))
+    ALLOCATE(PABS2D(nthmax_f,nrmax,nsmax))
+    ALLOCATE(PABSR3D(nphmax_f,nrmax,nsmax))
+    ALLOCATE(PABSKT(nthmax_f,nhhmax_f,nsmax))
+    ALLOCATE(PABST3D(nphmax_f,nsmax))
+    ALLOCATE(PABSTT3D(nphmax_f))
+
+    ALLOCATE(FLUX3DR(nthmax_f,nphmax_f,nrmax+1))
+    ALLOCATE(FLUX3DTH(nthmax_f,nphmax_f,nrmax+1))
+    ALLOCATE(FLUX3DPH(nthmax_f,nphmax_f,nrmax+1))
+    ALLOCATE(FLUX2DR(nthmax_f,nrmax+1))
+    ALLOCATE(FLUX2DTH(nthmax_f,nrmax+1))
+    ALLOCATE(FLUXR(nrmax+1))
+
     ALLOCATE(CPRADK(nthmax,nhhmax))
     ALLOCATE(PCUR(nthmax,nhhmax,nrmax),PCURR(nrmax))
 
@@ -366,16 +388,16 @@ CONTAINS
     DEALLOCATE(CGF11,CGF12,CGF13,CGF22,CGF23,CGF33)
     DEALLOCATE(CMAF,CRMAF)
 
-    DEALLOCATE(CEFLD,CEFLDK,CEFLD3D,CEFLD3DK)
-    DEALLOCATE(CBFLD,CBFLDK,CBFLD3D,CBFLD3DK)
+    DEALLOCATE(CEFLD,CEFLDK,CEFLD3D,CEFLDK3D)
+    DEALLOCATE(CBFLD,CBFLDK,CBFLD3D,CBFLDK3D)
     DEALLOCATE(CEN,CEP,CBN,CBP)
 
-    DEALLOCATE(PABS,PABSK,PABSR)
-    DEALLOCATE(PABSKT,PABSRT,PABST,PABST3D,PABSTT3D)
     DEALLOCATE(CPABS,CPABSK,CPABSR)
-    DEALLOCATE(CPABS3D,CPABS3DK,CPABS3DR)
-    DEALLOCATE(CFLX,CFLXK,CFLXR)
-    DEALLOCATE(CFLX3D,CFLX3DK,CFLX3DR,CFLXR,CFLXT)
+    DEALLOCATE(PABS,PABSK,PABSR,PABST)
+
+    DEALLOCATE(CPABS3D,CPABSK3D,CPABSR3D)
+    DEALLOCATE(PABS3D,PABS2D,PABSR3D,PABSKT,PABST3D,PABSTT3D)
+    DEALLOCATE(FLUX3DR,FLUX3DTH,FLUX3DPH,FLUX2DR,FLUX2DTH,FLUXR)
     DEALLOCATE(CPRADK)
     DEALLOCATE(PCUR,PCURR)
 
