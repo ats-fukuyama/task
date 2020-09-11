@@ -3,7 +3,7 @@
 MODULE wmexec
 
   PRIVATE
-  PUBLIC wm_exec
+  PUBLIC wm_exec,wm_setj,wm_setew
 
 CONTAINS
 

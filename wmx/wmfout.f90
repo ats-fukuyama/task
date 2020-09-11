@@ -3,7 +3,7 @@
 MODULE wmfout
 
   PRIVATE
-  PUBLIC wm_fout
+  PUBLIC wm_fout,wm_save
 
 CONTAINS
 
@@ -78,6 +78,7 @@ CONTAINS
 
     USE wmcomm
     USE wmsetg
+    USE wmexec
     USE libfio
     USE dpparm
     IMPLICIT NONE

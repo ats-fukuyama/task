@@ -16,6 +16,9 @@ CONTAINS
   SUBROUTINE WM_LOOP(IERR)
 
     USE wmcomm
+    USE wmsetg
+    USE wmexec
+    USE wmfout
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
     INTEGER:: NPH0_SV,NPH,NR,NTH,NS,NHH,IKNWM,NPH1
@@ -25,7 +28,7 @@ CONTAINS
 
     IF(NPHMAX.EQ.1) THEN
        NPH_LOOP(1)=NPH0
-       CALL WMEXEC(IERR)
+       CALL wm_exec(IERR)
        RETURN
     ENDIF
 
@@ -64,14 +67,13 @@ CONTAINS
        END DO
     END DO
       
-    CALL WMSETG(IERR)
-    CALL WMPOUT_INIT
+    CALL wm_setg(IERR)
       
     DO NPH = 1,NPHMAX
        NPH0 = NPH_LOOP(NPH)
        WRITE(6,'(A,I4)') "== Toroidal mode number : ",NPH0
 
-       CALL WMEXEC(IERR)
+       CALL wm_exec(IERR)
        IF(IERR.NE.0) EXIT
 
        DO NR=1,NRMAX+1
@@ -155,16 +157,13 @@ CONTAINS
                 WRITE(KNPH0,"(A1,i3.3)")"m",-NPH0
              ENDIF
              KNAMWM=''//TRIM(KNAMWM_SAVE)//'_'//KNPH0//''
-             CALL WMSAVE
+             CALL wm_save(ierr)
              KNAMWM=KNAMWM_SAVE
           ENDIF
        ENDIF
     ENDDO
 
     NPH0  = NPH0_SV
-    CALL WMEFLD_POST
-    CALL WMPABS_POST
-    CALL WMPOUT
 
 !      DO NS=1,NSMAX
 !         DO NR=1,NRMAX+1
