@@ -346,7 +346,7 @@ CONTAINS
     TYPE(pl_mag_type):: mag
     TYPE(pl_grd_type),DIMENSION(NSMAX):: grd
     INTEGER:: NHH,NTH,MM,NN,NS1
-    COMPLEX(rkind):: CDTNS(3,3),CW,CKPR,CKPP
+    COMPLEX(rkind):: CLDISP(6),CDTNS(3,3),CW,CKPR,CKPP
     REAL(rkind):: WW,RHON,RKPR_EFF,BNPR,RKPR,RNPR,RKPP2
     REAL(rkind):: BABS,BSUPTH,BSUPPH,BTH,WTPR,RKTH,RKPH
 
@@ -406,8 +406,26 @@ CONTAINS
             END IF
                
             CKPR=RKPR
-            CALL dp_tnsr0(CW,CKPR,CKPP,ns,mag,plfw,grd,CDTNS)
-
+            CALL dp_tnsr0(CW,CKPR,CKPP,ns,mag,plfw,grd,CLDISP)
+            CDTNS(1,1)= CLDISP(1)
+            CDTNS(1,2)= CLDISP(5)
+            CDTNS(1,3)= CLDISP(4)
+            CDTNS(2,1)=-CLDISP(5)
+            CDTNS(2,2)= CLDISP(1)+CLDISP(3)
+            CDTNS(2,3)= CLDISP(6)
+            CDTNS(3,1)= CLDISP(4)
+            CDTNS(3,2)=-CLDISP(6)
+            CDTNS(3,3)= CLDISP(1)+CLDISP(2)
+!            WRITE(6,'(A,3I6)') 'modelp:',modelp(1),modelp(2)
+!            WRITE(6,'(A,6E12.4)') 'CW:,',CW,CKPR,CKPP
+!            WRITE(6,'(A,5E12.4)') &
+!                 'mag:',mag%babs,mag%bnx,mag%bny,mag%bnz,mag%rhon
+!            WRITE(6,'(A,3E12.4)') &
+!                 'plfw:ns=1:',plfw(1)%rn,plfw(1)%rtpr,plfw(1)%rtpp
+!            WRITE(6,'(A,3E12.4)') &
+!                 'plfw:ns=2:',plfw(2)%rn,plfw(2)%rtpr,plfw(2)%rtpp
+!            WRITE(6,'(A,(6ES12.4))') 'CDTNS:',CDTNS(1:3,1:3)
+!            IF(NR.EQ.3) STOP
             CTNSR(1,1,NTH,NHH) &
            =CTNSR(1,1,NTH,NHH) + CDTNS(1,1)
             CTNSR(1,2,NTH,NHH) &
