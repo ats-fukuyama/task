@@ -129,11 +129,11 @@ MODULE wmcomm_parm
      FUNCTION GUCLIP(X)
        USE bpsd_kinds
        REAL(rkind):: X
-       REAL(sp):: GUCLIP
+       REAL(4):: GUCLIP
      END FUNCTION GUCLIP
      FUNCTION NGULEN(X)
        USE bpsd_kinds
-       REAL(sp):: X
+       REAL(4):: X
        INTEGER:: NGULEN
      END FUNCTION NGULEN
   END INTERFACE
@@ -206,7 +206,7 @@ MODULE wmcomm
   REAL(rkind),ALLOCATABLE:: PCUR(:,:,:),PCURR(:)
   REAL(rkind):: PCURT
 
-  REAL(rkind):: AMPEIGEN
+  REAL(rkind):: AMP_EIGEN
 
 ! --- allocatable for FFT
   COMPLEX(rkind),ALLOCATABLE:: CFFT(:)

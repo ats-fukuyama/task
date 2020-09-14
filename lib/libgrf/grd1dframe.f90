@@ -137,7 +137,6 @@ CONTAINS
     GX(1)=GUCLIP(XMIN)
     GX(2)=GUCLIP(XMAX)
     GY(1)=0.0
-    GY(2)=1.0
     GF(1,1)=GUCLIP(FMIN)
     GF(2,1)=GUCLIP(FMAX)
     MODE_LS=0
@@ -188,12 +187,12 @@ CONTAINS
 
   SUBROUTINE GRD1D_FRAME_END
 
-    USE grfutils,ONLY: grf_title,grf_frame2d,grf_info
+    USE grfutils,ONLY: grf_title,grf_frame1d,grf_info
     IMPLICIT NONE
 
     CALL OFFCLP
 
-    IF(A%NOFRAME.EQ.0) CALL GRF_FRAME2D(A)
+    IF(A%NOFRAME.EQ.0) CALL GRF_FRAME1D(A)
     IF(A%NOTITLE.EQ.0) CALL GRF_TITLE(A)
     IF(A%NOINFO.EQ.0)  CALL GRF_INFO(A)
 

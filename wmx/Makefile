@@ -26,24 +26,20 @@ MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) -I../tr/$(MOD) \
             -I../dp/$(MOD) -I../lib/$(MOD) -I../mtxp/$(MOD) \
             -I../../bpsd/$(MOD)
 
-SRCS = wmcomm.f90 vmcomm.f90 wmsub.f90 \
+SRCS = wmcomm.f90 vmcomm.f90 wmlib.f90 wmsub.f90 \
        wminit.f90 wmparm.f90 wmview.f90 \
-       wmxprf.f90 wmdprf.f90 \
-       wmdout.f90 \
+       wmxprf.f90 wmdprf.f90 wmdout.f90 \
+       wmgsub.f90 wmgout.f90 \
+       wmvmec.f90 wmbooz.f90 wmvout.f90 \
        wmsetg.f90 wmprof.f90 wmdisp.f90 \
-       wmsetf.f90 wmsetm.f90 \
-       wmsolv.f90 \
+       wmsetf.f90 wmsetm.f90 wmsolv.f90 \
        wmemfp.f90 wmpout.f90 \
-       wmexec.f90 wmgsub.f90 wmgout.f90 \
-       wmfout.f90 \
-       wmloop.f90 \
+       wmexec.f90 \
+       wmfile.f90 \
+       wmloop.f90 wmtest.f90 \
+       wmeign.f90 wmtaem.f90 \
        wmmenu.f90
 SRC7 = wmeqin.f
-
-SRCX = wmloop.f90 wmtaem.f90 \
-       wmvmec.f90 wmbooz.f90 wmvout.f90 \
-       wmeign.f90 \
-       wmcont.f90 wmtest.f90
 
 OBJS = $(SRC7:.f=.o) $(SRCS:.f90=.o)
 
@@ -92,31 +88,47 @@ veryclean: clean
 
 wmcomm.o: wmcomm.f90
 vmcomm.o: vmcomm.f90
-
-wmeqin.o: wmeqin.f ../eq/eqcomq.inc
-wmsub.o: wmsub.f90 wmcomm.f90
+wmlib.o: wmlib.f90 wmcomm.f90
+wmsub.o: wmsub.f90 wmcomm.f90 
 wminit.o: wminit.f90 wmcomm.f90
-wmparm.o: wmparm.f90 ../dp/dpcomm.f90 ../pl/plcomm.f90 wmcomm.f90
+wmparm.o: wmparm.f90 wmlib.f90 ../dp/dpcomm.f90 ../pl/plcomm.f90 wmcomm.f90
 wmview.o: wmview.f90 wmcomm.f90
-wmsetg.o: wmsetg.f90 wmeqin.f ../pl/plprof.f90 ../tr/trfile.f90 wmcomm.f90
-wmprof.o: wmprof.f90 ../pl/plprof.f90 wmcomm.f90
-wmdisp.o: wmdisp.f90 wmprof.f90 ../dp/dptnsr0.f90 ../pl/plprofw.f90 ../pl/plprof.f90 ../lib/libdsp.f90 wmcomm.f90
-wmsetf.o: wmsetf.f90 wmprof.f90 wmdisp.f90 wmsub.f90 ../lib/libfft.f90 wmcomm.f90
-wmsetm.o: wmsetm.f90 wmsetf.f90 ../pl/plprof.f90 wmcomm.f90
-wmsolv.o: wmsolv.f90 wmcomm.f90
-wmexec.o: wmexec.f90 wmsetg.f90 wmsolv.f90 wmemfp.f90 wmpout.f90 wmsub.f90 ../dp/dpparm.f90 wmcomm.f90
-
-wmemfp.o: wmemfp.f90 wmcomm.f90
-wmpout.o: wmpout.f90 wmcomm.f90
-wmgout.o: wmgout.f90 wmgsub.f90 wmcomm.f90
-wmgsub.o: wmgsub.f90 wmcomm.f90
-
-wmloop.o: wmloop.f90 wmexec.f90 wmfout.f90 wmcomm.f90
 
 wmxprf.o: wmxprf.f90 ../pl/plprof.f90 wmcomm.f90
 wmdprf.o: wmdprf.f90 wmcomm.f90
 wmdout.o: wmdout.f90 wmcomm.f90
-wmfout.o: wmfout.f90 wmcomm.f90
 
-wmmenu.o: wmmenu.f90 wmcomm.f90
-wmmain.o: wmmain.f90 wmcomm.f90
+wmgout.o: wmgout.f90 wmgsub.f90 wmcomm.f90
+wmgsub.o: wmgsub.f90 wmprof.f90 wmcomm.f90
+
+wmvmec.o: wmvmec.f90 wmgsub.f90 vmcomm.f90 wmcomm.f90
+wmbooz.o: wmbooz.f90 vmcomm.f90 wmcomm.f90
+wmvout.o: wmvout.f90 vmcomm.f90 wmcomm.f90
+
+wmsetg.o: wmsetg.f90 wmdprf.f90 wmxprf.f90 ../pl/plprof.f90 \
+          ../tr/trfile.f90 ../eq/wmeqin.f wmcomm.f90
+wmprof.o: wmprof.f90 ../pl/plprof.f90 wmcomm.f90
+wmdisp.o: wmdisp.f90 wmprof.f90 ../dp/dptnsr0.f90 ../pl/plprofw.f90 \
+          ../pl/plprof.f90 wmcomm.f90
+
+wmsetf.o: wmsetf.f90 wmprof.f90 wmdisp.f90 wmsub.f90 wmcomm.f90
+wmsetm.o: wmsetm.f90 wmsetf.f90 ../pl/plprof.f90 wmcomm.f90
+wmsolv.o: wmsolv.f90 wmcomm.f90
+
+wmemfp.o: wmemfp.f90 wmprof.f90 wmsub.f90 wmsetm.f90 wmsetf.f90 wmcomm.f90
+wmpout.o: wmpout.f90 wmcomm.f90
+
+wmexec.o: wmexec.f90 wmsetg.f90 wmsolv.f90 wmemfp.f90 wmpout.f90 \
+          wmsub.f90 ../dp/dpparm.f90 wmcomm.f90
+
+wmfile.o: wmfile.f90 wmsetg.f90 wmexec.f90 ../dp/dpparm.f90 wmcomm.f90
+wmloop.o: wmloop.f90 wmsetg.f90 wmexec.f90 wmfile.f90 wmcomm.f90
+wmtest.o: wmtest.f90
+
+wmeign.o: wmeign.f90 wmparm.f90 wmsetg.f90 wmsolv.f90 wmemfp.f90 wmcomm.f90
+wmtaem.o: wmtaem.f90 wmprof.f90 ../pl/plprof.f90 wmsub.f90 wmcomm.f90
+
+wmmenu.o: wmmenu.f90 wminit.f90 wmparm.f90 wmview.f90 wmexec.f90 \
+          wmgout.f90 wmdout.f90 wmfile.f90 wmeign.f90 wmtaem.f90 wmcomm.f90
+wmmain.o: wmmain.f90 ../pl/plinit.f90 ../eq/equnit.f ../dp/dpinit.f90 \
+          ../dp/dpparm.f90 wminit.f90 wmparm.f90 wmmenu.f90 wmcomm.f90

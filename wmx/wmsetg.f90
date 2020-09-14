@@ -14,6 +14,8 @@ CONTAINS
     USE wmcomm
     USE wmdprf
     USE wmxprf
+    USE wmvmec,ONLY: wmsetg_vmec
+    USE wmbooz,ONLY: wmsetg_boozer
     USE trfile,ONLY: tr_load
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
@@ -38,25 +40,20 @@ CONTAINS
     CASE(2)
        CALL wmsetg_tor(IERR)
 
-!     ****** EQUILIBRIUM (TASK/EQ) ******
+!     ****** EQUILIBRIUM (TASK/EQ,EQDSK) ******
 
-    CASE(3)
+    CASE(3,5)
        CALL wmsetg_eq(IERR)
 
 !     ****** EQUILIBRIUM (VMEC) ******
 
     CASE(4)
-!       CALL wmsetg_vmec(IERR)
-
-!     ****** EQUILIBRIUM (EQDSK) ******
-
-    CASE(5)
-!       CALL wmsetg_eqdsk(IERR)
+       CALL wmsetg_vmec(IERR)
 
 !     ****** EQUILIBRIUM (BOOZER) ******
 
     CASE(6)
-!       CALL wmsetg_boozer(IERR)
+       CALL wmsetg_boozer(IERR)
     END SELECT
 
     IF(IERR.NE.0) RETURN
@@ -294,8 +291,6 @@ CONTAINS
     NSWMAX=31
     NHHMAX=1
     NHHMAX_F=1
-
-!         CALL plfile_prof_read(modeln,modelq,ierr)
 
     PSIPA=RA*RA*BB/(Q0+QA)
     DRHO=(RB/RA)/NRMAX

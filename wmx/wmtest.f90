@@ -1,5 +1,4 @@
 MODULE wmtest
-  USE wmcont
 
 CONTAINS
 

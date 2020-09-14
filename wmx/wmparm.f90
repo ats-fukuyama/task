@@ -121,11 +121,53 @@ CONTAINS
   SUBROUTINE wm_check(ierr)
 
     USE wmcomm_parm
+    USE wmlib
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
+    INTEGER:: nphmax_mod,nhhmax_mod
 
     ierr=0
 
+    IF(nhhmax.EQ.1) THEN ! axisymmetric (Tokamak)
+       IF(nphmax.EQ.1) THEN ! tokamak single mode
+          WRITE(6,'(A,2I6)') &
+               '# axisymmetric single mode: nhhmax,nphmax=',nhhmax,nphmax
+       ELSE ! toakamk multi mode
+          CALL adjust_power2(nphmax,nphmax_mod)
+          IF(nphmax.NE.nphmax_mod) THEN
+             WRITE(6,'(A,2I6)') &
+                  '# NPHMAX adjusted to power of two: original, adjusted:', &
+                  nphmax,nphmax_mod
+             nphmax=nphmax_mod
+          END IF
+          WRITE(6,'(A,2I6)') &
+               '# axisymmetric multi mode : nhhmax,nphmax=',nhhmax,nphmax
+       END IF
+    ELSE ! non-axisymmetric (Helical)
+       CALL adjust_power2(nhhmax,nhhmax_mod)
+       IF(nhhmax.NE.nhhmax_mod) THEN
+          WRITE(6,'(A,2I6)') &
+               '# NHHMAX adjusted to power of two: original, adjusted:', &
+               nhhmax,nhhmax_mod
+          nhhmax=nhhmax_mod
+       END IF
+       IF(nphmax.LE.nhhmax) THEN ! helical single mode
+          nphmax=nhhmax
+          WRITE(6,'(A,2I6)') &
+               '# helical single mode: nhhmax,nphmax=',nhhmax,nphmax
+       ELSE ! helical multi mode
+          CALL adjust_power2(nphmax,nphmax_mod)
+          IF(nphmax.NE.nphmax_mod) THEN
+             WRITE(6,'(A,2I6)') &
+                  '# NPHMAX adjusted to power of two: original, adjusted:', &
+                  nphmax,nphmax_mod
+             nphmax=nphmax_mod
+          END IF
+          WRITE(6,'(A,2I6)') &
+               '# helical multi mode: NHHMAX,NPHMAX=',nhhmax,nphmax
+       END IF
+    END IF
+          
     IF(NSMAX.LT.0.OR.NSMAX.GT.NSM) THEN
        WRITE(6,*) 'XXX INPUT ERROR : ILLEGAL NSMAX'
        WRITE(6,*) '                  NSMAX,NSM =',NSMAX,NSM

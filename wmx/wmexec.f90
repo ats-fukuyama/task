@@ -16,7 +16,8 @@ CONTAINS
     USE wmsolv
     USE wmemfp
     USE wmpout
-    USE dpparm
+    USE wmdout,ONLY: wm_dout
+    USE dpparm,ONLY: dpprep
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
     INTEGER:: nnr
@@ -48,7 +49,7 @@ CONTAINS
     ENDIF
     IF(nrank.EQ.0) THEN
        CALL wm_pout
-!       IF(nprint.GE.5) CALL wm_dout(ierr)
+       IF(nprint.GE.5) CALL wm_dout(ierr)
     ENDIF
     RETURN
   END SUBROUTINE wm_exec

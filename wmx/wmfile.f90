@@ -1,9 +1,9 @@
-! wmfout.f90
+! wmfile.f90
 
-MODULE wmfout
+MODULE wmfile
 
   PRIVATE
-  PUBLIC wm_fout,wm_save
+  PUBLIC wm_save,wm_load
 
 CONTAINS
 
@@ -225,4 +225,4 @@ CONTAINS
     ENDIF
 
   END SUBROUTINE PREGOUT
-END MODULE wmfout
+END MODULE wmfile

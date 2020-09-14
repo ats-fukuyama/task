@@ -348,6 +348,8 @@ CONTAINS
           ELSE
              GORG=(INT(TEMP))*2*GSTEP
           ENDIF
+          IF(GORG.LE.GSMIN) GORG=GORG+2*GSTEP   ! 2020-09-14 AF: 
+          IF(GORG.GE.GSMAX) GORG=GORG-2*GSTEP   !   cope with no scale case
        ELSE
           GORG=GSMIN
        END IF

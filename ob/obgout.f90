@@ -182,11 +182,14 @@ CONTAINS
     USE obcomm
     USE libgrf
     IMPLICIT NONE
-    REAL(rkind):: fx(nstp_max+1),fy(nstp_max+1,1)
-    INTEGER:: nstp,nobt,nxmax
+    REAL(rkind):: fx(nstp_max+1)
+    INTEGER:: nstp,nobt,nxmax,nfig,nfig_max,ngid
     REAL(rkind):: line_rgb(3,1),line_mark_size(1)
     INTEGER:: line_mark(1),line_mark_step(1)
-    REAL(rkind):: xmin,xmax,fmin,fmax,x,f
+    REAL(rkind):: xmin,xmax,fmin,fmax,x,f,diff,fgmin,fgmax
+    CHARACTER(LEN=80):: title
+
+    REAL(rkind),ALLOCATABLE:: fy(:,:)
 
     line_rgb(1,1)=1.D0
     line_rgb(2,1)=0.D0
@@ -196,153 +199,151 @@ CONTAINS
 
     xmin=time_ob(0,1)
     xmax=time_ob(nstp_max_nobt(1),1)
+    nxmax=nobt_max
     DO nobt=2,nobt_max
        xmin=MIN(xmin,time_ob(0,nobt))
        xmax=MAX(xmax,time_ob(nstp_max_nobt(nobt),nobt))
     END DO
 
-    DO nfig=1,12
+    nfig_max=16
+    nxmax=nstp_max
+    ALLOCATE(fy(nxmax,nobt_max))
+
+    DO nfig=1,nfig_max
+
+       ngid=MOD(nfig-1,4)+1
+       IF(ngid.EQ.1) CALL PAGES
+
+       SELECT CASE(nfig)
+       CASE(1)
+          DO nobt=1,nobt_max
+             fy(1:nxmax,nobt)=zetab_ob(0:nxmax-1,nobt)*180.D0/Pi
+          END DO
+          title='@zetab(s) [deg]@'
+       CASE(2)
+          DO nobt=1,nobt_max
+             fy(1:nxmax,nobt)=thetab_ob(0:nxmax-1,nobt)*180.D0/Pi
+          END DO
+          title='@thetab(s) [deg]@'
+       CASE(3)
+          DO nobt=1,nobt_max
+             fy(1:nxmax,nobt)=psip_ob(0:nxmax-1,nobt)
+          END DO
+          title='@psip(s) [Bm^2]@'
+       CASE(4)
+          DO nobt=1,nobt_max
+             fy(1:nxmax,nobt)=rhopara_ob(0:nxmax-1,nobt)
+          END DO
+          title='@rhopara(s) [m]@'
+       CASE(5)
+          DO nobt=1,nobt_max
+             fy(1:nxmax,nobt)=pzeta_ob(0:nxmax-1,nobt)/AEE
+          END DO
+          title='@pzeta(s) [eV]@'
+       CASE(6)
+          DO nobt=1,nobt_max
+             fy(1:nxmax,nobt)=ptheta_ob(0:nxmax-1,nobt)
+          END DO
+          title='@ptheta(s) [eV]@'
+       CASE(7)
+          DO nobt=1,nobt_max
+             fy(1:nxmax,nobt)=babs_ob(0:nxmax-1,nobt)
+          END DO
+          title='@babs(s) [T]@'
+       CASE(8)
+          DO nobt=1,nobt_max
+             fy(1:nxmax,nobt)=phi_ob(0:nxmax-1,nobt)
+          END DO
+          title='@phi(s) [V]@'
+       CASE(9)
+          DO nobt=1,nobt_max
+             fy(1:nxmax,nobt)=vpara_ob(0:nxmax-1,nobt)
+          END DO
+          title='@vpara(s) [m/s]@'
+       CASE(10)
+          DO nobt=1,nobt_max
+             fy(1:nxmax,nobt)=vperp_ob(0:nxmax-1,nobt)
+          END DO
+          title='@vperp(s) [m/s]@'
+       CASE(11)
+          DO nobt=1,nobt_max
+             fy(1:nxmax,nobt)=psit_ob(0:nxmax-1,nobt)
+          END DO
+          title='@psit(s) [Bm^2]@'
+       CASE(12)
+          DO nobt=1,nobt_max
+             fy(1:nxmax,nobt)=zeta_ob(0:nxmax-1,nobt)
+          END DO
+          title='@zeta(s) [deg]@'
+       CASE(13)
+          DO nobt=1,nobt_max
+             fy(1:nxmax,nobt)=rr_ob(0:nxmax-1,nobt)
+          END DO
+          title='@rr(s) [m]@'
+       CASE(14)
+          DO nobt=1,nobt_max
+             fy(1:nxmax,nobt)=zz_ob(0:nxmax-1,nobt)
+          END DO
+          title='@zz(s) [m]@'
+       CASE(15)
+          DO nobt=1,nobt_max
+             fy(1:nxmax,nobt)=rs_ob(0:nxmax-1,nobt)
+          END DO
+          title='@rs(s) [m]@'
+       CASE(16)
+          DO nobt=1,nobt_max
+             fy(1:nxmax,nobt)=theta_ob(0:nxmax-1,nobt)*180.D0/Pi
+          END DO
+          title='@theta(s) [deg]@'
+       END SELECT
        
-       IF(MODnfig-1
-CALL PAGES
-    fmin=zetab_ob(0,1)
-    fmax=zetab_ob(0,1)
-    DO nobt=1,nobt_max
-       DO nstp=1,nstp_max_nobt(nobt)
-          fmin=MIN(fmin,zetab_ob(nstp,nobt))
-          fmax=MAX(fmax,zetab_ob(nstp,nobt))
+       fmin=fy(1,1)
+       fmax=fy(1,1)
+       DO nobt=1,nobt_max
+          DO nstp=1,nstp_max_nobt(nobt)
+             fmin=MIN(fmin,fy(nstp,nobt))
+             fmax=MAX(fmax,fy(nstp,nobt))
+          END DO
        END DO
-    END DO
-    fmin=fmin*180.D0/Pi
-    fmax=fmax*180.D0/Pi
-    WRITE(6,'(A,4ES12.4)') 'xf:',xmin,xmax,fmin,fmax
-    CALL GRD1D_FRAME_START(1,xmin,xmax,fmin,fmax, &
-                          '@zetab(s) [deg]@')
-    DO nobt=1,nobt_max
-       CALL SETMKS(3,0.2)
-       CALL SETRGB(1.0-REAL(nobt)/REAL(nobt_max),0.0,REAL(nobt)/REAL(nobt_max))
-       x=time_ob(0,nobt)
-       f=zetab_ob(0,nobt)*180.D0/Pi
-       CALL MARK2D(GUCLIP(x),GUCLIP(f))
-       DO nstp=1,nstp_max_nobt(nobt)
-          x=time_ob(nstp,nobt)
-          f=zetab_ob(nstp,nobt)*180.D0/Pi
-          CALL DRAW2D(GUCLIP(x),GUCLIP(f))
+
+       diff=fmax-fmin
+       IF(diff.LE.1.D-32) THEN
+          IF(ABS(fmax).GE.1.D-32) THEN
+             diff=0.1*ABS(fmax)
+             fgmax=fmax+diff
+             fgmin=fmin-diff
+          ELSE
+             fgmax= 0.1D0
+             fgmin=-0.1d0
+          END IF
+       ELSE
+          fgmax=fmax
+          fgmin=fmin
+       END IF
+       WRITE(6,'(A,6ES12.4)') 'xf:',xmin,xmax,fmin,fmax,fgmin,fgmax
+
+       CALL GRD1D_FRAME_START(ngid,xmin,xmax,fgmin,fgmax,title)
+
+       DO nobt=1,nobt_max
+          CALL SETMKS(3,0.2)
+          CALL SETRGB(1.0-REAL(nobt)/REAL(nobt_max),0.0, &
+                      REAL(nobt)/REAL(nobt_max))
+          x=time_ob(0,nobt)
+          f=fy(1,nobt)
+          CALL MARK2D(GUCLIP(x),GUCLIP(f))
+          DO nstp=1,nstp_max_nobt(nobt)
+             x=time_ob(nstp,nobt)
+             f=fy(nstp,nobt)
+             CALL DRAW2D(GUCLIP(x),GUCLIP(f))
+          END DO
        END DO
-    END DO
-    CALL GRD1D_FRAME_END
-
-    DO nobt=1,nobt_max
-       CALL PAGES
-       nxmax=nstp_max_nobt(nobt)+1
-       line_mark_step(1)=nxmax ! mark only at first point
-       fx(1:nxmax)=time_ob(0:nxmax-1,nobt)
-
-       fy(1:nxmax,1)=zetab_ob(0:nxmax-1,nobt)*180.D0/Pi
-       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@zetab(s) [deg]@', &
-                  NLMAX=1, &
-                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
-                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
-
-       fy(1:nxmax,1)=thetab_ob(0:nxmax-1,nobt)*180.D0/Pi
-       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@thetab(s) [deg]@', &
-                  NLMAX=1, &
-                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
-                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
-
-       fy(1:nxmax,1)=psip_ob(0:nxmax-1,nobt)
-       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@psip(s) [Bm^2]@', &
-                  NLMAX=1, &
-                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
-                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
-
-       fy(1:nxmax,1)=rhopara_ob(0:nxmax-1,nobt)
-       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@rhopara(s) [m]@', &
-                  NLMAX=1, &
-                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
-                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
-
-       CALL PAGES
-
-       fy(1:nxmax,1)=pzeta_ob(0:nxmax-1,nobt)/AEE
-       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@pzeta(s) [eV]@', &
-                  NLMAX=1, &
-                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
-                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
-
-       fy(1:nxmax,1)=ptheta_ob(0:nxmax-1,nobt)
-       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@ptheta(s) [eV]@', &
-                  NLMAX=1, &
-                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
-                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
-
-       fy(1:nxmax,1)=babs_ob(0:nxmax-1,nobt)
-       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@babs(s) [T]@', &
-                  NLMAX=1, &
-                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
-                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
-
-       fy(1:nxmax,1)=phi_ob(0:nxmax-1,nobt)
-       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@phi(s) [V]@', &
-                  NLMAX=1, &
-                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
-                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
-
-       CALL PAGES
-
-       fy(1:nxmax,1)=vpara_ob(0:nxmax-1,nobt)
-       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@vpara(s) [m/s]@', &
-                  NLMAX=1, &
-                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
-                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
-
-       fy(1:nxmax,1)=vperp_ob(0:nxmax-1,nobt)
-       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@vperp(s) [m/s]@', &
-                  NLMAX=1, &
-                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
-                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
-
-       fy(1:nxmax,1)=psit_ob(0:nxmax-1,nobt)
-       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@psit(s) [Bm^2]@', &
-                  NLMAX=1, &
-                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
-                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
-
-       fy(1:nxmax,1)=zeta_ob(0:nxmax-1,nobt)
-       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@zeta(s) [deg]@', &
-                  NLMAX=1, &
-                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
-                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
-
-       CALL PAGES
-
-       fy(1:nxmax,1)=rr_ob(0:nxmax-1,nobt)
-       CALL GRD1D(1,fx,fy,nstp_max,nxmax,1,'@rr(s) [m]@', &
-                  NLMAX=1, &
-                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
-                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
-
-       fy(1:nxmax,1)=zz_ob(0:nxmax-1,nobt)
-       CALL GRD1D(2,fx,fy,nstp_max,nxmax,1,'@zz(s) [m]@', &
-                  NLMAX=1, &
-                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
-                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
-
-       fy(1:nxmax,1)=rs_ob(0:nxmax-1,nobt)
-       CALL GRD1D(3,fx,fy,nstp_max,nxmax,1,'@rs(s) [m]@', &
-                  NLMAX=1, &
-                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
-                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
-
-       fy(1:nxmax,1)=theta_ob(0:nxmax-1,nobt)*180.D0/Pi
-       CALL GRD1D(4,fx,fy,nstp_max,nxmax,1,'@theta(s) [deg]@', &
-                  NLMAX=1, &
-                  LINE_RGB=line_rgb,LINE_MARK_SIZE=line_mark_size, &
-                  LINE_MARK=line_mark,LINE_MARK_STEP=line_mark_step)
-
-       CALL PAGEE
+       
+       CALL GRD1D_FRAME_END
+       
+       IF(ngid.EQ.4.OR.nfig.EQ.nfig_max) CALL PAGEE
        
     END DO
+
     RETURN
   END SUBROUTINE ob_grf2
 
