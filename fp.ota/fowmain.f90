@@ -57,10 +57,12 @@ program fow
 
   write(*,*)"1"
   call fow_orbit_jacobian(J,orbit_m)
-  call fow_distribution_u2I(fI, fu, orbit_m)
+  call fow_distribution_maxwellian_inCOM(fI)
   write(*,*)"2"
   call fpcsv2D(J(:,:,1,1),"./csv/J.csv")
-  call fpcsv2D(fI(:,:,1,1),"./csv/fI.csv")
+  call fpcsv2D(fI(:,:,1,2),"./csv/fI_center.csv")
+  call fpcsv2D(fI(:,:,nrmax,2),"./csv/fI_edge.csv")
+  call fpcsv2D(fI(:,:,nrmax/2,2),"./csv/fI_quarter.csv")
 
   nsa=2
   mode=[0,1,0]

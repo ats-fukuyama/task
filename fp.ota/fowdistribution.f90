@@ -1,9 +1,36 @@
 module fowdistribution
   implicit none
   private
-  public :: fow_distribution_u2I
+  public :: fow_distribution_u2I, fow_distribution_maxwellian_inCOM
 
 contains
+
+  subroutine fow_distribution_maxwellian_inCOM(fm_I)
+    ! calculate Maxwellian in COM space. fm_I is value on mesh points.
+    use fowcomm
+    use foworbitclassify
+    use fpcomm
+    use fpsub
+
+    real(rkind),intent(out) :: fm_I(:,:,:,:)
+    integer :: np, nth, nr, nsa
+
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do nth = 1, nthmax
+          do np = 1, npmax
+            if ( forbitten(np, nth, nr, nsa, [0,0,0]) ) then
+              fm_I(np,nth,nr,nsa) = 0.d0
+            else
+              fm_I(np,nth,nr,nsa)=FPMXWL(PM(NP,NSA),NR,NSA)
+            end if
+          end do
+        end do
+      end do
+    end do
+  
+  end subroutine fow_distribution_maxwellian_inCOM
+
   subroutine fow_distribution_u2I(fI_out, fu_in, orbit_in)
     ! calculate fI(np,nth,nr,nsa), distribution function in COM space, from fu(np,nth,nr,nsa)
     use fowcomm

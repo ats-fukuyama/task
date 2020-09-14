@@ -41,7 +41,7 @@ contains
       call fow_orbit_prep(nobt_in_max, nobt_in, nsa, mode)
       nobt_max = nobt_in_max
       if ( nobt_in_max>=nobt_m ) then
-        write(*,*)"ERROR at fow_execute_ob : nobt_max must be less than nobt_m"
+        write(*,*)"ERROR at fow_orbit_construct : nobt_max must be less than nobt_m"
         write(*,*)"nobt_max = ",nobt_in_max
         write(*,*)"nobt_m   = ",nobt_m
         STOP

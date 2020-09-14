@@ -143,7 +143,8 @@ fowmain.o : fowmain.f90 fowcomm.f90 fowprep.f90 foworbit.f90\
 						fpprep.f90 fpinit.f90 fpcomm.f90 fpwrite.f90 foworbitclassify.f90
 fowcomm.o : fowcomm.f90
 fowprep.o : fowprep.f90 fowcomm.f90
-foworbit.o : foworbit.f90 fowcomm.f90 fpcomm.f90 foworbitclassify.f90
+foworbit.o : foworbit.f90 fowcomm.f90 fpcomm.f90 foworbitclassify.f90 \
+			../ob/obcomm.f90 ../ob/obcalc.f90 ../ob/obprep.f90 ../obinit.f90 ../ob/obparm.f90
 foworbitclassify.o : foworbitclassify.f90 fowcomm.f90 fpcomm.f90
 fowdistribution.o : fowdistribution.f90 foworbit.f90 foworbitclassify.f90 fowcomm.f90 fpcomm.f90
 fowbounceaverage.o : fowbounceaverage.f90 fowcomm.f90 fpcomm.f90

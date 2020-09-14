@@ -32,9 +32,9 @@
 &end
 
 &fp
-  npmax=32
-  nthmax=32
-  nrmax=32
+  npmax=33
+  nthmax=33
+  nrmax=33
 
   RR=6.2
   RA=2.0
@@ -52,7 +52,7 @@
   NSBMAX=2
   NS_NSA(1)=1,2
   NS_NSB(1)=1,2
-  PMAX(1)=40.D0,40.D0
+  PMAX(1)=10.D0,10.D0
 
   PA(2)=2.D0
   PZ(2)=1.D0
