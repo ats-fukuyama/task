@@ -1,4 +1,51 @@
-SUBROUTINE wqgout(W,dx,RR,omega,EX,EY,EZ,ne,OCE,OPE,OUH,AP,OR,OL,flag)
+! wqgout.f90
+
+MODULE wqgout
+
+  PRIVATE
+  PUBLIC wq_gout
+
+CONTAINS
+
+  SUBROUTINE wq_gout
+    USE wqcomm
+    USE wqparm,ONLY: wq_parm,wq_broadcast
+    USE wqview,ONLY: wq_view
+    USE libmpi
+    IMPLICIT NONE
+    CHARACTER(LEN=80):: line
+    CHARACTER(LEN=1):: kid
+    INTEGER:: mode
+
+1   CONTINUE
+    
+    IF(nrank.EQ.0) THEN
+       WRITE(6,'(A)') &
+            '## wqgout menu: A,B  parm  X/end'
+       CALL TASK_KLIN(line,kid,mode,wq_parm)
+    END IF
+    CALL ToUpper(kid)
+    CALL mtx_broadcast1_character(kid)
+    CALL mtx_broadcast1_integer(mode)
+
+    IF(mode.EQ.2) CALL wq_broadcast
+    IF(mode.NE.1) GO TO 1
+
+    SELECT CASE(kid)
+    CASE('A')
+       CALL wq_gsub(W,dx,RR,omega,EX,EY,EZ,ne,OCE,OPE,OUH,AP,OR,OL,0)
+    CASE('B')
+       CALL wq_gsub(W,dx,RR,omega,EX,EY,EZ,ne,OCE,OPE,OUH,AP,OR,OL,1)
+    CASE('X')
+       GO TO 9000
+    END SELECT
+    GO TO 1
+
+9000 CONTINUE
+    RETURN
+  END SUBROUTINE wq_gout
+
+  SUBROUTINE wq_gsub(W,dx,RR,omega,EX,EY,EZ,ne,OCE,OPE,OUH,AP,OR,OL,flag)
 
   use bpsd
   USE libgrf
@@ -11,6 +58,8 @@ SUBROUTINE wqgout(W,dx,RR,omega,EX,EY,EZ,ne,OCE,OPE,OUH,AP,OR,OL,flag)
   CHARACTER(LEN=80)     :: STR
   REAL(8)               :: FX(W),FY(W),FZ(W,W)
 
+
+  WRITE(6,'(A,I6)') 'wa_gsub: flag=',flag
   DO i=1,W
      FX(i)=RR+dx*DBLE(i-W/2)
   ENDDO
@@ -165,4 +214,5 @@ SUBROUTINE wqgout(W,dx,RR,omega,EX,EY,EZ,ne,OCE,OPE,OUH,AP,OR,OL,flag)
    END SELECT
   
   RETURN
-END SUBROUTINE wqgout
+  END SUBROUTINE wq_gsub
+END MODULE wqgout

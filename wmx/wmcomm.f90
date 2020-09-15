@@ -125,19 +125,6 @@ MODULE wmcomm_parm
 
   INTEGER:: nthgmax         ! number of poloidal mesh for graphics
 
-  INTERFACE
-     FUNCTION GUCLIP(X)
-       USE bpsd_kinds
-       REAL(rkind):: X
-       REAL(4):: GUCLIP
-     END FUNCTION GUCLIP
-     FUNCTION NGULEN(X)
-       USE bpsd_kinds
-       REAL(4):: X
-       INTEGER:: NGULEN
-     END FUNCTION NGULEN
-  END INTERFACE
-
 END MODULE wmcomm_parm
 
 MODULE wmcomm
@@ -242,6 +229,21 @@ MODULE wmcomm
 ! --- graphics
 
   INTEGER,ALLOCATABLE:: KACONT(:,:,:)
+
+! --- Inerface
+
+  INTERFACE
+     FUNCTION GUCLIP(X)
+       USE bpsd_kinds
+       REAL(rkind):: X
+       REAL(4):: GUCLIP
+     END FUNCTION GUCLIP
+     FUNCTION NGULEN(X)
+       USE bpsd_kinds
+       REAL(4):: X
+       INTEGER:: NGULEN
+     END FUNCTION NGULEN
+  END INTERFACE
 
 CONTAINS
 

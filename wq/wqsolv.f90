@@ -1,4 +1,13 @@
-subroutine wqsolv(EX,EY,EZ,W,A,CD,RR,dt,dx,omega,TMN)
+! wqsolv.f90
+
+MODULE wqsolv
+
+  PRIVATE
+  PUBLIC wq_solv
+
+CONTAINS
+  
+subroutine wq_solv(EX,EY,EZ,W,A,CD,RR,dt,dx,omega,TMN)
 
   !$ use omp_lib
   use bpsd
@@ -81,4 +90,5 @@ subroutine wqsolv(EX,EY,EZ,W,A,CD,RR,dt,dx,omega,TMN)
   end do
 
   return
-end subroutine wqsolv
+end subroutine wq_solv
+END MODULE wqsolv

@@ -1,4 +1,13 @@
-subroutine wqtens(CD,ne,OCE,OPE,OUH,OR,OL,W,dx,omega,B0,nu,RR,RA,q0,qa,n0)
+! wqtens
+
+MODULE wqtens
+
+  PRIVATE
+  PUBLIC wq_tens
+
+CONTAINS
+  
+subroutine wq_tens(CD,ne,OCE,OPE,OUH,OR,OL,W,dx,omega,B0,nu,RR,RA,q0,qa,n0)
 
   use bpsd
   implicit none
@@ -88,4 +97,6 @@ subroutine wqtens(CD,ne,OCE,OPE,OUH,OR,OL,W,dx,omega,B0,nu,RR,RA,q0,qa,n0)
   END DO
 
   RETURN
-END SUBROUTINE wqtens
+END SUBROUTINE wq_tens
+
+END MODULE wqtens
