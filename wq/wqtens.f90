@@ -7,91 +7,91 @@ MODULE wqtens
 
 CONTAINS
   
-subroutine wq_tens(CD,ne,OCE,OPE,OUH,OR,OL,W,dx,omega,B0,nu,RR,RA,q0,qa,n0)
+subroutine wq_tens(omega_,CD_)
 
-  use bpsd
+  use wqcomm
   implicit none
 
-  INTEGER(4),INTENT(IN)  :: W
-  COMPLEX(8),INTENT(OUT) :: CD(W,W,3,3)
-  REAL(8)   ,INTENT(OUT) :: ne(W,W),OCE(W,W),OPE(W,W),OUH(W,W),OR(W,W),OL(W,W)
-  REAL(8)   ,INTENT(IN)  :: dx,omega,B0,nu,RR,RA,q0,qa,n0
-
+  REAL(rkind),INTENT(IN):: omega_
+  COMPLEX(rkind),INTENT(OUT):: CD_(3,3,nxmax,nymax)
   COMPLEX(8) :: Comega,COEF
-  integer(4) :: i,j
-  REAL(8)    :: OCEX(W,W),OCEY(W,W),OCEZ(W,W)
-  REAL(8)    :: BX(W,W),BY(W,W),BZ(W,W),r,rx,ry,q
+  integer(4) :: nx,ny
+  REAL(8)    :: OCEX(nxmax,nymax),OCEY(nxmax,nymax),OCEZ(nxmax,nymax)
+  REAL(8)    :: BX(nxmax,nymax),BY(nxmax,nymax),BZ(nxmax,nymax),r,rx,ry,q
   
-  DO j=1,W
-     DO i=1,W
+  DO ny=1,nymax
+     DO nx=1,nxmax
        
-        rx  = (DBLE(i)-DBLE(W)*0.5d0)*dx
-        ry  = (DBLE(j)-DBLE(W)*0.5d0)*dx
+        rx  = (DBLE(nx)-DBLE(nxmax/2))*dx
+        ry  = (DBLE(ny)-DBLE(nymax/2))*dy
         r   =  SQRT(rx**2+ry**2)
 
         IF(r.le.RA)THEN
 
            q=q0+(qa-q0)*(r/RA)**2
 
-           BX(i,j)=-B0*ry/(RR*q)
-           BY(i,j)= B0*rx/(RR*q)
-           BZ(i,j)= B0*RR/(RR+rx)
-           ne(i,j)= n0*(1.d0-(r/RA)**2)
+           BX(nx,ny)=-B0*ry/(RR*q)
+           BY(nx,ny)= B0*rx/(RR*q)
+           BZ(nx,ny)= B0*RR/(RR+rx)
+           ne(nx,ny)= n0*(1.d0-(r/RA)**2)
 
         ELSE
 
            q=qa*RA/r
 
-           BX(i,j)=-B0*ry/(RR*q)
-           BY(i,j)= B0*rx/(RR*q)
-           BZ(i,j)= B0*RR/(RR+rx)
-           ne(i,j)= 0.0d0
+           BX(nx,ny)=-B0*ry/(RR*q)
+           BY(nx,ny)= B0*rx/(RR*q)
+           BZ(nx,ny)= B0*RR/(RR+rx)
+           ne(nx,ny)= 0.0d0
 
         END IF
 
      END DO
   END DO
 
-!  DO j=1,W
-!    DO i=1,W
-!        BX(i,j) = 0.d0
-!        BY(i,j) = 0.d0
-!        BZ(i,j) = B0
-!        ne(i,j) = n0*DBLE(2*W-i-j)/DBLE(W-2)
+!  DO ny=1,nymax
+!    DO nx=1,nxmax
+!        BX(nx,ny) = 0.d0
+!        BY(nx,ny) = 0.d0
+!        BZ(nx,ny) = B0
+!        ne(nx,ny) = n0*(DBLE(nxmax-nx)/DBLE(nxmax) &
+!                       +DBLE(nymax-ny)/DBLE(nymax)
 !     END DO
 !  END DO
 
-  DO j=1,W
-     DO i=1,W
+  DO ny=1,nymax
+     DO nx=1,nxmax
 
-        OPE  (i,j) = sqrt(ne(i,j)*AEE**2/(AME*EPS0))
-        OCEX (i,j) = AEE*BX(i,j)/AME
-        OCEY (i,j) = AEE*BY(i,j)/AME
-        OCEZ (i,j) = AEE*BZ(i,j)/AME
-        OCE  (i,j) = sqrt(OCEX(i,j)**2+OCEY(i,j)**2+OCEZ(i,j)**2)
-        OUH  (i,j) = sqrt(OCE(i,j)**2+OPE(i,j)**2)
-        OR   (i,j) = 0.5d0*(sqrt(OCE(i,j)**2+4.d0*OPE(i,j)**2)+ABS(OCE(i,j)))
-        OL   (i,j) = 0.5d0*(sqrt(OCE(i,j)**2+4.d0*OPE(i,j)**2)-ABS(OCE(i,j)))
+        OPE  (nx,ny) = sqrt(ne(nx,ny)*AEE**2/(AME*EPS0))
+        OCEX (nx,ny) = AEE*BX(nx,ny)/AME
+        OCEY (nx,ny) = AEE*BY(nx,ny)/AME
+        OCEZ (nx,ny) = AEE*BZ(nx,ny)/AME
+        OCE  (nx,ny) = sqrt(OCEX(nx,ny)**2+OCEY(nx,ny)**2+OCEZ(nx,ny)**2)
+        OUH  (nx,ny) = sqrt(OCE(nx,ny)**2+OPE(nx,ny)**2)
+        OR   (nx,ny) = 0.5d0*(sqrt(OCE(nx,ny)**2+4.d0*OPE(nx,ny)**2) &
+                     +ABS(OCE(nx,ny)))
+        OL   (nx,ny) = 0.5d0*(sqrt(OCE(nx,ny)**2+4.d0*OPE(nx,ny)**2) &
+                     -ABS(OCE(nx,ny)))
 
      END DO
   END DO
 
-  Comega=-CI*omega+nu !collision version of omega
+  Comega=-CI*omega_+nu !collision version of omega
 
-  DO j=1,W
-     DO i=1,W
+  DO ny=1,nymax
+     DO nx=1,nxmax
         
-        COEF        = ne(i,j)*AME**2/(AME*Comega*(OCE(i,j)**2+Comega**2))
+        COEF        = ne(nx,ny)*AME**2/(AME*Comega*(OCE(nx,ny)**2+Comega**2))
 
-        CD(i,j,1,1) = COEF*(    Comega**2    +OCEX(i,j)**2       ) 
-        CD(i,j,1,2) = COEF*( OCEZ(i,j)*Comega+OCEX(i,j)*OCEY(i,j))
-        CD(i,j,1,3) = COEF*(-OCEY(i,j)*Comega+OCEZ(i,j)*OCEX(i,j))
-        CD(i,j,2,1) = COEF*(-OCEZ(i,j)*Comega+OCEX(i,j)*OCEY(i,j))
-        CD(i,j,2,2) = COEF*(    Comega**2    +OCEY(i,j)**2       )
-        CD(i,j,2,3) = COEF*( OCEX(i,j)*Comega+OCEY(i,j)*OCEZ(i,j))
-        CD(i,j,3,1) = COEF*( OCEY(i,j)*Comega+OCEZ(i,j)*OCEX(i,j))
-        CD(i,j,3,2) = COEF*(-OCEX(i,j)*Comega+OCEY(i,j)*OCEZ(i,j))
-        CD(i,j,3,3) = COEF*(    Comega**2    +OCEZ(i,j)**2       )
+        CD_(1,1,nx,ny) = COEF*(    Comega**2    +OCEX(nx,ny)**2       ) 
+        CD_(1,2,nx,ny) = COEF*( OCEZ(nx,ny)*Comega+OCEX(nx,ny)*OCEY(nx,ny))
+        CD_(1,3,nx,ny) = COEF*(-OCEY(nx,ny)*Comega+OCEZ(nx,ny)*OCEX(nx,ny))
+        CD_(2,1,nx,ny) = COEF*(-OCEZ(nx,ny)*Comega+OCEX(nx,ny)*OCEY(nx,ny))
+        CD_(2,2,nx,ny) = COEF*(    Comega**2    +OCEY(nx,ny)**2       )
+        CD_(2,3,nx,ny) = COEF*( OCEX(nx,ny)*Comega+OCEY(nx,ny)*OCEZ(nx,ny))
+        CD_(3,1,nx,ny) = COEF*( OCEY(nx,ny)*Comega+OCEZ(nx,ny)*OCEX(nx,ny))
+        CD_(3,2,nx,ny) = COEF*(-OCEX(nx,ny)*Comega+OCEY(nx,ny)*OCEZ(nx,ny))
+        CD_(3,3,nx,ny) = COEF*(    Comega**2    +OCEZ(nx,ny)**2       )
 
     END DO
   END DO

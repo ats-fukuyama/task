@@ -7,83 +7,95 @@ MODULE wqsolv
 
 CONTAINS
   
-subroutine wq_solv(EX,EY,EZ,W,A,CD,RR,dt,dx,omega,TMN)
+subroutine wq_solv
 
-  !$ use omp_lib
-  use bpsd
+  use wqcomm
   implicit none
-  integer(4),intent(in)   :: W
-  complex(8),intent(inout):: EX(W,W),EY(W,W),EZ(W,W)
-  complex(8),intent(in)   :: A(W,W,3,3),CD(W,W,3,3)
-  real(8)   ,intent(in)   :: RR,dt,dx,omega,TMN
 
-  integer(4) :: i,j
+  integer(4) :: nx,ny
   real(8)    :: kz
-  complex(8) :: EXNEXT(W,W),EYNEXT(W,W),EZNEXT(W,W),B(3),P,Q,R1,R2,R3
+  complex(8) :: EXNEXT(nxmax,nymax),EYNEXT(nxmax,nymax),EZNEXT(nxmax,nymax)
+  complex(8) :: BV(3),P,Q,R1xy,R2xx,R2yy,R3x,R3y
 
   kz = TMN/RR
 
   P  = omega**2/VC**2
   Q  = CI*omega*RMU0
-  R1 = 0.25d0/dx**2
-  R2 = 1.00d0/dx**2
-  R3 = 0.50d0*CI*kz/dx
+  R1xy = 0.25d0/(dx*dy)
+  R2xx = 1.00d0/dx**2
+  R2yy = 1.00d0/dy**2
+  R3x = 0.50d0*CI*kz/dx
+  R3y = 0.50d0*CI*kz/dy
 
-  do j=1,W
-     do i=1,W
-        EXNEXT(i,j)=0.0d0
-        EYNEXT(i,j)=0.0d0
-        EZNEXT(i,j)=0.0d0
+  do ny=1,nymax
+     do nx=1,nxmax
+        EXNEXT(nx,ny)=0.0d0
+        EYNEXT(nx,ny)=0.0d0
+        EZNEXT(nx,ny)=0.0d0
      end do
   end do
 
 !$omp do        
-  do j=2,W-1
-     do i=2,W-1
+  do ny=2,nymax-1
+     do nx=2,nxmax-1
         
-        B(1)= R1   *(EY(i+1,j+1)-     EY(i+1,j-1)-EY(i-1,j+1)+EY(i-1,j-1))&
-             +R3   *(EZ(i+1,j  )-     EZ(i-1,j  )                        )&
-             -R2   *(EX(i  ,j+1)-2.d0*EX(i  ,j  )+EX(i  ,j-1)            )&
-             +kz**2* EX(i  ,j  )                                          &
-             -P    * EX(i  ,j  )                                          &
-             -Q    *(CD(i,j,1,1)*EX(i,j)+CD(i,j,1,2)*EY(i,j)+CD(i,j,1,3)*EZ(i,j))
+        BV(1)= R1xy *(EY(nx+1,ny+1)-     EY(nx+1,ny-1)  &
+                     -EY(nx-1,ny+1)+     EY(nx-1,ny-1)) &
+              +R3x  *(EZ(nx+1,ny  )-     EZ(nx-1,ny  )              ) &
+              -R2yy *(EX(nx  ,ny+1)-2.d0*EX(nx  ,ny  )+EX(nx  ,ny-1)) &
+              +kz**2* EX(nx  ,ny  ) &
+              -P    * EX(nx  ,ny  ) &
+              -Q    *(CD(1,1,nx,ny)*EX(nx,ny) &
+                     +CD(1,2,nx,ny)*EY(nx,ny) &
+                     +CD(1,3,nx,ny)*EZ(nx,ny))
         
-        B(2)= R3   *(EZ(i  ,j+1)-     EZ(i  ,j-1)                        )&
-             +R1   *(EX(i+1,j+1)-     EX(i+1,j-1)-EX(i-1,j+1)+EX(i-1,j-1))&
-             +kz**2* EY(i  ,j  )                                          &
-             -R2   *(EY(i+1,j  )-2.d0*EY(i  ,j  )+EY(i-1,j  )            )&
-             -P    * EY(i  ,j  )                                          &
-             -Q    *(CD(i,j,2,1)*EX(i,j)+CD(i,j,2,2)*EY(i,j)+CD(i,j,2,3)*EZ(i,j))
+        BV(2)= R3y  *(EZ(nx  ,ny+1)-     EZ(nx  ,ny-1)) &
+              +R1xy *(EX(nx+1,ny+1)-     EX(nx+1,ny-1)  &
+                     -EX(nx-1,ny+1)+     EX(nx-1,ny-1)) &
+              +kz**2* EY(nx  ,ny  ) &
+              -R2xx *(EY(nx+1,ny  )-2.d0*EY(nx  ,ny  )+EY(nx-1,ny  )) &
+              -P    * EY(nx  ,ny  ) &
+              -Q    *(CD(2,1,nx,ny)*EX(nx,ny) &
+                     +CD(2,2,nx,ny)*EY(nx,ny) &
+                     +CD(2,3,nx,ny)*EZ(nx,ny))
 
-        B(3)= R3   *(EX(i+1,j  )-     EX(i-1,j  )                        )&
-             +R3   *(EY(i  ,j+1)-     EY(i  ,j-1)                        )&
-             -R2   *(EZ(i+1,j  )-2.d0*EZ(i  ,j  )+EZ(i-1,j  )            )&
-             -R2   *(EZ(i  ,j+1)-2.d0*EZ(i  ,j  )+EZ(i  ,j-1)            )&
-             -P    * EZ(i  ,j  )                                          &
-             -Q    *(CD(i,j,3,1)*EX(i,j)+CD(i,j,3,2)*EY(i,j)+CD(i,j,3,3)*EZ(i,j))
+        BV(3)= R3x  *(EX(nx+1,ny  )-     EX(nx-1,ny  )) &
+              +R3y  *(EY(nx  ,ny+1)-     EY(nx  ,ny-1)) &
+              -R2xx *(EZ(nx+1,ny  )-2.d0*EZ(nx  ,ny  )+EZ(nx-1,ny  )) &
+              -R2yy *(EZ(nx  ,ny+1)-2.d0*EZ(nx  ,ny  )+EZ(nx  ,ny-1)) &
+              -P    * EZ(nx  ,ny  ) &
+              -Q    *(CD(3,1,nx,ny)*EX(nx,ny) &
+                     +CD(3,2,nx,ny)*EY(nx,ny) &
+                     +CD(3,3,nx,ny)*EZ(nx,ny))
 
-        EXNEXT(i,j)=dt*(A(i,j,1,1)*B(1)+A(i,j,1,2)*B(2)+A(i,j,1,3)*B(3))+EX(i,j)
-        EYNEXT(i,j)=dt*(A(i,j,2,1)*B(1)+A(i,j,2,2)*B(2)+A(i,j,2,3)*B(3))+EY(i,j)
-        EZNEXT(i,j)=dt*(A(i,j,3,1)*B(1)+A(i,j,3,2)*B(2)+A(i,j,3,3)*B(3))+EZ(i,j)
+        EXNEXT(nx,ny)=dt*(A(1,1,nx,ny)*BV(1) &
+                         +A(1,2,nx,ny)*BV(2) &
+                         +A(1,3,nx,ny)*BV(3))+EX(nx,ny)
+        EYNEXT(nx,ny)=dt*(A(2,1,nx,ny)*BV(1) &
+                         +A(2,2,nx,ny)*BV(2) &
+                         +A(2,3,nx,ny)*BV(3))+EY(nx,ny)
+        EZNEXT(nx,ny)=dt*(A(3,1,nx,ny)*BV(1) &
+                         +A(3,2,nx,ny)*BV(2) &
+                         +A(3,3,nx,ny)*BV(3))+EZ(nx,ny)
 
      end do
   end do
 
-  do j=1,W
-     do i=1,W
+  do ny=1,nymax
+     do nx=1,nxmax
 
-        if(i.eq.1)then
-           EX(i,j)=EXNEXT(i+1,j  )
-        else if(i.eq.W)then
-           EX(i,j)=EXNEXT(i-1,j  )
-        else if(j.eq.1)then
-           EY(i,j)=EYNEXT(i  ,j+1)
-        else if(j.eq.W)then
-           EY(i,j)=EYNEXT(i  ,j-1)
+        if(nx.eq.1)then
+           EX(nx,ny)=EXNEXT(nx+1,ny  )
+        else if(nx.eq.nxmax)then
+           EX(nx,ny)=EXNEXT(nx-1,ny  )
+        else if(ny.eq.1)then
+           EY(nx,ny)=EYNEXT(nx  ,ny+1)
+        else if(ny.eq.nymax)then
+           EY(nx,ny)=EYNEXT(nx  ,ny-1)
         else
-           EX(i,j)=EXNEXT(i,j)
-           EY(i,j)=EYNEXT(i,j)
-           EZ(i,j)=EZNEXT(i,j)
+           EX(nx,ny)=EXNEXT(nx,ny)
+           EY(nx,ny)=EYNEXT(nx,ny)
+           EZ(nx,ny)=EZNEXT(nx,ny)
         end if
         
      end do
