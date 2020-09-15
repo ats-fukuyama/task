@@ -120,7 +120,7 @@ program wqmain
   write(*,'(A10,1PE12.4,1X,A7)')  "delta_t is", dtfactor, "*Period"
   write(*,'(A10,1PE12.4,1X,A11)') "delta_x is", dxfactor, "*WaveLength"
   write(*,*)                      "----Please input ntmax----"
-  read (*,*) ntmax
+  read (*,*,ERR=1,END=9000) ntmax
   if(ntmax.eq.0) goto 9000
 
   do nt=1,ntmax

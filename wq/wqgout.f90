@@ -18,7 +18,8 @@ SUBROUTINE wqgout(W,dx,RR,omega,EX,EY,EZ,ne,OCE,OPE,OUH,AP,OR,OL,flag)
      FY(j)=dx*DBLE(j-1-W/2)
   ENDDO
 
-  if(flag.eq.1) go to 1
+  SELECT CASE(flag)
+  CASE(0)
 
   call PAGES
   
@@ -94,7 +95,7 @@ SUBROUTINE wqgout(W,dx,RR,omega,EX,EY,EZ,ne,OCE,OPE,OUH,AP,OR,OL,flag)
 
   call PAGEE
 
-1 continue
+  CASE(1)
 
   call PAGES
 
@@ -161,7 +162,7 @@ SUBROUTINE wqgout(W,dx,RR,omega,EX,EY,EZ,ne,OCE,OPE,OUH,AP,OR,OL,flag)
   
   CALL PAGEE
 
-  if(flag.ne.1) flag = 1
+   END SELECT
   
   RETURN
 END SUBROUTINE wqgout
