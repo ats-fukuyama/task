@@ -15,12 +15,12 @@ program wqmain
   real(8)   ,ALLOCATABLE :: ne(:,:),OCE(:,:),OPE(:,:),OUH(:,:),AP(:,:),OR(:,:),OL(:,:)
   complex(8),ALLOCATABLE :: EX(:,:),EY(:,:),EZ(:,:),A(:,:,:,:),AA(:,:),B(:,:)
   complex(8),ALLOCATABLE :: CD(:,:,:,:),CDplus(:,:,:,:),CDminus(:,:,:,:)
+  NAMELIST /wq/ FREQ,dtfactor,dxfactor,nufactor,B0,RR,RA,q0,qa,n0,W,INMODE,TMN
    
   ! Initialize
 
-  OPEN(10,FILE='input.dat')
-  NAMELIST /input/ FREQ,dtfactor,dxfactor,nufactor,B0,RR,RA,q0,qa,n0,W,INMODE,TMN
-  READ(10,input)
+  OPEN(10,FILE='wqparm')
+  READ(10,wq)
 
   OPEN(5000,FILE='APS.d')
 
