@@ -2,7 +2,8 @@
 !   wq
 !         ---ANALYSIS OF WAVE PROPAGATION USING QUASI-WAVE OPTICS
 !
-!                               coded by Y.Maruyama
+!                               coded by Y. Maruyama
+!                               updated by A. Fukuyama
 
 program wqmain
 
