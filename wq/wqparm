@@ -1,0 +1,14 @@
+&wq     FREQ     = 5.0d9,
+        dtfactor = 1.0d-4,
+        dxfactor = 1.0d-1,
+        nufactor = 1.0d-3,
+        B0       = 0.072d0,
+        RR       = 0.22d0,
+        RA       = 0.16d0,
+        q0       = 1.d0,
+        qa       = 3.d0,
+        n0       = 1.0d17,
+        W        = 61,
+        INMODE   = 1,
+        TMN      = 1.0d0
+/
