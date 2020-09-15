@@ -9,21 +9,21 @@ FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I./$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD)
 
-SRCS = wmqtens.f90 wmqsolv.f90 wmqgout.f90
+SRCS = wqtens.f90 wqsolv.f90 wqgout.f90
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = libwmq.a ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a
+LIBS = libwq.a ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all: wmq
+all: wq
 
-libwmq.a: $(OBJS)
-	$(LD) $(LDFLAGS) libwmq.a $(OBJS)
+libwq.a: $(OBJS)
+	$(LD) $(LDFLAGS) libwq.a $(OBJS)
 
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
@@ -37,17 +37,17 @@ libs:
 	(cd ../lib; make libtask.a)
 	(cd ../lib; make libgrf.a)
 
-wmq: $(LIBS) wmqmain.o
-	$(FCFREE) wmqmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(GFLIBS)
+wq: $(LIBS) wqmain.o
+	$(FCFREE) wqmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(GFLIBS)
 
 clean:
 	rm -f core *.o ./*~ 
 
 veryclean: clean
-	rm -f wmq
+	rm -f wq
 
-wmqmain.o: wmqmain.f90
-wmqtens.o: wmqtens.f90
-wmqsolv.o: wmqsolv.f90
-wmqgout.o: wmqgout.f90
+wqmain.o: wqmain.f90
+wqtens.o: wqtens.f90
+wqsolv.o: wqsolv.f90
+wqgout.o: wqgout.f90
 

@@ -1,4 +1,4 @@
-subroutine wmqtens(CD,ne,OCE,OPE,OUH,OR,OL,W,dx,omega,B0,nu,RR,RA,q0,qa,n0)
+subroutine wqtens(CD,ne,OCE,OPE,OUH,OR,OL,W,dx,omega,B0,nu,RR,RA,q0,qa,n0)
 
   use bpsd
   implicit none
@@ -88,4 +88,4 @@ subroutine wmqtens(CD,ne,OCE,OPE,OUH,OR,OL,W,dx,omega,B0,nu,RR,RA,q0,qa,n0)
   END DO
 
   RETURN
-END SUBROUTINE wmqtens
+END SUBROUTINE wqtens

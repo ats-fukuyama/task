@@ -1,10 +1,10 @@
 ! 
-!   wmq
+!   wq
 !         ---ANALYSIS OF WAVE PROPAGATION USING QUASI-WAVE OPTICS
 !
 !                               coded by Y.Maruyama
 
-program wmqmain
+program wqmain
 
   use bpsd
   implicit none
@@ -43,9 +43,9 @@ program wmqmain
 
   CALL GSOPEN
   
-  CALL wmqtens(CDplus ,ne,OCE,OPE,OUH,OR,OL,W,dx,omegaplus ,B0,nu,RR,RA,q0,qa,n0)
-  CALL wmqtens(CDminus,ne,OCE,OPE,OUH,OR,OL,W,dx,omegaminus,B0,nu,RR,RA,q0,qa,n0)
-  CALL wmqtens(CD     ,ne,OCE,OPE,OUH,OR,OL,W,dx,omega     ,B0,nu,RR,RA,q0,qa,n0)
+  CALL wqtens(CDplus ,ne,OCE,OPE,OUH,OR,OL,W,dx,omegaplus ,B0,nu,RR,RA,q0,qa,n0)
+  CALL wqtens(CDminus,ne,OCE,OPE,OUH,OR,OL,W,dx,omegaminus,B0,nu,RR,RA,q0,qa,n0)
+  CALL wqtens(CD     ,ne,OCE,OPE,OUH,OR,OL,W,dx,omega     ,B0,nu,RR,RA,q0,qa,n0)
 
   ! compute A
 
@@ -139,7 +139,7 @@ program wmqmain
      end do
 
      !compute next E
-     call wmqsolv(EX,EY,EZ,W,A,CD,RR,dt,dx,omega,TMN)
+     call wqsolv(EX,EY,EZ,W,A,CD,RR,dt,dx,omega,TMN)
      t=t+dt
      if(mod(nt,1000).eq.0)then
         write(6,'(I4)') (ntmax-nt)/1000
@@ -170,7 +170,8 @@ program wmqmain
   
   steps=steps+ntmax
 
-  call wmqgout(W,dx,RR,omega,EX,EY,EZ,ne,OCE,OPE,OUH,AP,OR,OL,flag)  
+  call wqgout(W,dx,RR,omega,EX,EY,EZ,ne,OCE,OPE,OUH,AP,OR,OL,0)  
+  call wqgout(W,dx,RR,omega,EX,EY,EZ,ne,OCE,OPE,OUH,AP,OR,OL,1)  
 
   go to 1
 
@@ -180,4 +181,4 @@ program wmqmain
 
   close(5000)
   stop
-end program wmqmain
+end program wqmain

@@ -1,4 +1,4 @@
-SUBROUTINE wmqgout(W,dx,RR,omega,EX,EY,EZ,ne,OCE,OPE,OUH,AP,OR,OL,flag)
+SUBROUTINE wqgout(W,dx,RR,omega,EX,EY,EZ,ne,OCE,OPE,OUH,AP,OR,OL,flag)
 
   use bpsd
   USE libgrf
@@ -22,60 +22,57 @@ SUBROUTINE wmqgout(W,dx,RR,omega,EX,EY,EZ,ne,OCE,OPE,OUH,AP,OR,OL,flag)
 
   call PAGES
   
-  NGP=5
   NXM=W
   NXMAX=W
   NYMAX=W
-  STR='/AP/'
   MODE=0
   IPRD=0
-  IG2D=2
+  IG2D=1
+
+  NGP=5
+  STR='/AP/'
   DO j=1,W
      DO i=1,W
         FZ(i,j)=AP(i,j)
      END DO
   END DO
-  CALL GRD2D(NGP,FX,FY,FZ,NXM,NXMAX,NYMAX,STR,MODE_LS=MODE,MODE_PRD=IPRD,MODE_2D=IG2D)
+  CALL GRD2D(NGP,FX,FY,FZ,NXM,NXMAX,NYMAX,STR,MODE,IPRD,IG2D,ASPECT=0.D0)
 
   NGP=6
   STR='/OUH/'
-  IG2D=2
   DO j=1,W
      DO i=1,W
         FZ(i,j)=OUH(i,j)**2/omega**2-1.d0
      END DO
   END DO
-  CALL GRD2D(NGP,FX,FY,FZ,NXM,NXMAX,NYMAX,STR,MODE,IPRD,IG2D)
+  CALL GRD2D(NGP,FX,FY,FZ,NXM,NXMAX,NYMAX,STR,MODE,IPRD,IG2D,ASPECT=0.D0)
 
   NGP=7
   STR='/R/'
-  IG2D=2
   DO j=1,W
      DO i=1,W
         FZ(i,j)=OR(i,j)**2/omega**2-1.d0
      END DO
   END DO
-  CALL GRD2D(NGP,FX,FY,FZ,NXM,NXMAX,NYMAX,STR,MODE,IPRD,IG2D)
+  CALL GRD2D(NGP,FX,FY,FZ,NXM,NXMAX,NYMAX,STR,MODE,IPRD,IG2D,ASPECT=0.D0)
 
   NGP=8
   STR='/L/'
-  IG2D=2
   DO j=1,W
      DO i=1,W
         FZ(i,j)=OL(i,j)**2/omega**2-1.d0
      END DO
   END DO
-  CALL GRD2D(NGP,FX,FY,FZ,NXM,NXMAX,NYMAX,STR,MODE,IPRD,IG2D)
+  CALL GRD2D(NGP,FX,FY,FZ,NXM,NXMAX,NYMAX,STR,MODE,IPRD,IG2D,ASPECT=0.D0)
 
   NGP=9
   STR='/OCE/'
-  IG2D=2
   DO j=1,W
      DO i=1,W
         FZ(i,j)=OCE(i,j)**2/omega**2-1.d0
      END DO
   END DO
-  CALL GRD2D(NGP,FX,FY,FZ,NXM,NXMAX,NYMAX,STR,MODE,IPRD,IG2D)
+  CALL GRD2D(NGP,FX,FY,FZ,NXM,NXMAX,NYMAX,STR,MODE,IPRD,IG2D,ASPECT=0.D0)
 
   NGP=10
   STR='/OPE/'
@@ -84,7 +81,7 @@ SUBROUTINE wmqgout(W,dx,RR,omega,EX,EY,EZ,ne,OCE,OPE,OUH,AP,OR,OL,flag)
         FZ(i,j)=OPE(i,j)**2/omega**2-1.d0
      END DO
   END DO
-  CALL GRD2D(NGP,FX,FY,FZ,NXM,NXMAX,NYMAX,STR,MODE,IPRD,IG2D)
+  CALL GRD2D(NGP,FX,FY,FZ,NXM,NXMAX,NYMAX,STR,MODE,IPRD,IG2D,ASPECT=0.D0)
 
   NGP=11
   STR='/ne/'
@@ -93,7 +90,7 @@ SUBROUTINE wmqgout(W,dx,RR,omega,EX,EY,EZ,ne,OCE,OPE,OUH,AP,OR,OL,flag)
         FZ(i,j)=ne(i,j)
      END DO
   END DO
-  CALL GRD2D(NGP,FX,FY,FZ,NXM,NXMAX,NYMAX,STR,MODE,IPRD,IG2D)
+  CALL GRD2D(NGP,FX,FY,FZ,NXM,NXMAX,NYMAX,STR,MODE,IPRD,IG2D,ASPECT=0.D0)
 
   call PAGEE
 
@@ -101,14 +98,15 @@ SUBROUTINE wmqgout(W,dx,RR,omega,EX,EY,EZ,ne,OCE,OPE,OUH,AP,OR,OL,flag)
 
   call PAGES
 
-  NGP=5
   NXM=W
   NXMAX=W
   NYMAX=W
-  STR='/Real(EX)/'
   MODE=0
   IPRD=0
-  IG2D=2
+  IG2D=1
+
+  NGP=5
+  STR='/Real(EX)/'
   DO j=1,W
      DO i=1,W
         FZ(i,j)=REAL(EX(i,j))
@@ -166,4 +164,4 @@ SUBROUTINE wmqgout(W,dx,RR,omega,EX,EY,EZ,ne,OCE,OPE,OUH,AP,OR,OL,flag)
   if(flag.ne.1) flag = 1
   
   RETURN
-END SUBROUTINE wmqgout
+END SUBROUTINE wqgout

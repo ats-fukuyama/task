@@ -1,4 +1,4 @@
-subroutine wmqsolv(EX,EY,EZ,W,A,CD,RR,dt,dx,omega,TMN)
+subroutine wqsolv(EX,EY,EZ,W,A,CD,RR,dt,dx,omega,TMN)
 
   !$ use omp_lib
   use bpsd
@@ -81,4 +81,4 @@ subroutine wmqsolv(EX,EY,EZ,W,A,CD,RR,dt,dx,omega,TMN)
   end do
 
   return
-end subroutine wmqsolv
+end subroutine wqsolv
