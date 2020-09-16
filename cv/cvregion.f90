@@ -200,6 +200,7 @@ CONTAINS
     WRITE(6,*) &
          '# CASES DATA WAS SUCCESSFULLY SAVED TO THE FILE: ', &
          TRIM(knam_csv_out_region)
+    WRITE(nfl,*)
 
     ! --- write deaths data ---
 

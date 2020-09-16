@@ -315,9 +315,9 @@ CONTAINS
 
     ncount=(ndate_max-ndate_start_global)/ndate_step_global+1
     WRITE(format1,'(A,i8,A)') '(A,',ncount,'(",",A10))'
-    WRITE(format2,'(A,i8,A)') '(A2,",",A,",",A4,',ncount,'(",",I0))'
+    WRITE(format2,'(A,i8,A)') '(A,",",A2,",",A4,',ncount,'(",",I0))'
     WRITE(nfl,format1,IOSTAT=nstat,ERR=9001) &
-         'country_id,country_name,region_id', &
+         'global cases,ID,region', &
          (date_id_ndate(ndate), &
          ndate=ndate_start_global,ndate_max,ndate_step_global)
     DO ncountry=1,ncountry_max
@@ -328,7 +328,7 @@ CONTAINS
           country_name=country_name_ncountry(ncountry)
        END IF
        WRITE(nfl,format2,IOSTAT=nstat,ERR=9002) &
-            country_id_ncountry(ncountry),TRIM(country_name), &
+            TRIM(country_name),country_id_ncountry(ncountry), &
             region_id_ncountry(ncountry), &
             (ncases_total_ndate_ncountry(ndate,ncountry), &
             ndate=ndate_start_global,ndate_max,ndate_step_global)
@@ -337,14 +337,15 @@ CONTAINS
     WRITE(6,*) &
          '# CASES DATA WAS SUCCESSFULLY SAVED TO THE FILE: ', &
          TRIM(knam_csv_out_global)
+    WRITE(nfl,*)
 
     ! --- write deaths data ---
     
 
     WRITE(format1,'(A,i8,A)') '(A,',ncount,'(",",A10))'
-    WRITE(format2,'(A,i8,A)') '(A2,",",A,",",A4,',ncount,'(",",I0))'
+    WRITE(format2,'(A,i8,A)') '(A,",",A2,",",A4,',ncount,'(",",I0))'
     WRITE(nfl,format1,IOSTAT=nstat,ERR=9001) &
-         'country_id,country_name,region_id', &
+         'global death,ID,region', &
          (date_id_ndate(ndate), &
          ndate=ndate_start_global,ndate_max,ndate_step_global)
     DO ncountry=1,ncountry_max
@@ -355,7 +356,7 @@ CONTAINS
           country_name=country_name_ncountry(ncountry)
        END IF
        WRITE(nfl,format2,IOSTAT=nstat,ERR=9002) &
-            country_id_ncountry(ncountry),TRIM(country_name), &
+            TRIM(country_name),country_id_ncountry(ncountry), &
             region_id_ncountry(ncountry), &
             (ndeaths_total_ndate_ncountry(ndate,ncountry), &
             ndate=ndate_start_global,ndate_max,ndate_step_global)
