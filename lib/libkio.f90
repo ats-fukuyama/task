@@ -1,6 +1,6 @@
 !     ***** INPUT KID or LINE *****
 !                   MODE=0: LINE INPUT
-!                        1: KID INPUT
+!                        1: KID INPUT (first one char: a-z,A-Z,#,?,!)
 !                        2: PARM INPUT
 !                        3: NEW PROMPT
 

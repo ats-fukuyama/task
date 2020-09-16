@@ -36,9 +36,8 @@ CONTAINS
        !compute next E
        call wq_solv
        t=t+dt
-       if(mod(nt,1000).eq.0.OR.nt.EQ.ntmax)then
-          write(6,'(I4)') (ntmax-nt)/1000
 
+       if(mod(nt,1000).eq.0.OR.nt.EQ.ntmax) THEN
           DO ny=1,nymax
              pabs(    1,ny)=0.D0
              pabs(nxmax,ny)=0.D0
@@ -69,12 +68,14 @@ CONTAINS
                 pabs_tot=pabs_tot+pabs(nx,ny)
              end do
           end do
+
+          WRITE(6,'(A,I8,2ES12.4)') '## nt,t,pabs:',nttot+nt,t,pabs_tot
+
        end if
     end do
 
     ttot=t
     nttot=nttot+ntmax
-    WRITE(6,'(A,I6,2ES12.4)') '## nt,t,pabs:',nttot,t,pabs_tot
     RETURN
 
   END SUBROUTINE wq_exec

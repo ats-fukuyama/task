@@ -54,8 +54,6 @@ CONTAINS
   CHARACTER(LEN=80)     :: STR
   REAL(8)               :: FX(nxmax),FY(nymax),FZ(nxmax,nymax)
 
-
-  WRITE(6,'(A,I6)') 'wa_gsub: flag=',flag
   DO nx=1,nxmax
      FX(nx)=RR+dx*DBLE(nx-1-(nxmax-1)/2)
   ENDDO
