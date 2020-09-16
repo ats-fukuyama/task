@@ -15,12 +15,9 @@ CONTAINS
     IMPLICIT NONE
 
     knam_csv_in='WHO-COVID-19-global-data.csv' ! input data
-    knam_csv_global_cases='cv-global-cases.csv'
-    knam_csv_global_deaths='cv-global-deaths.csv'
-    knam_csv_region_cases='cv-region-cases.csv'
-    knam_csv_region_deaths='cv-region-deaths.csv'
-    knam_csv_select_cases='cv-select-cases.csv'
-    knam_csv_select_deaths='cv-select-deaths.csv'
+    knam_csv_out_global='cv-global.csv'
+    knam_csv_out_region='cv-region.csv'
+    knam_csv_out_select='cv-select.csv'
     knam_cv_select='cv-select.data' ! list of country_id for select
     knam_cv_population='cv-population.data' ! list of population and area
     ndate_step_global=1  ! ndate step of global data: 1: all, 7: week interval

@@ -53,9 +53,9 @@ CONTAINS
 
     NAMELIST /cv/ &
          knam_csv_in, &
-         knam_csv_global_cases,knam_csv_global_deaths, &
-         knam_csv_region_cases,knam_csv_region_deaths, &
-         knam_csv_select_cases,knam_csv_select_deaths, &
+         knam_csv_out_global, &
+         knam_csv_out_region, &
+         knam_csv_out_select, &
          knam_cv_select,knam_cv_population, &
          ndate_step_global,ndate_step_region,ndate_step_select, &
          ndate_start_global,ndate_start_region,ndate_start_select, &
@@ -83,9 +83,9 @@ CONTAINS
 
     WRITE(6,'(A)') &
          '# &cv : knam_csv_in,', &
-         '        knam_csv_global_cases,knam_csv_global_deaths', &
-         '        knam_csv_region_cases,knam_csv_region_deaths', &
-         '        knam_csv_select_cases,knam_csv_select_deaths', &
+         '        knam_csv_out_global', &
+         '        knam_csv_out_region', &
+         '        knam_csv_out_select', &
          '        knam_cv_select,knam_cv_population', &
          '        ndate_step_global,ndate_step_region,ndate_step_select', &
          '        ndate_start_global,ndate_star_region,ndate_start_select', &

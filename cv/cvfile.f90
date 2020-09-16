@@ -306,9 +306,10 @@ CONTAINS
     ! --- write cases data ---
     
     nfl=21
-    CALL FWOPEN(nfl,knam_csv_global_cases,1,0,'CV',ierr)
+    CALL FWOPEN(nfl,knam_csv_out_global,1,0,'CV',ierr)
     IF(ierr.NE.0) THEN
-       WRITE(6,*) 'XX CVSAVE: FWOPEN ERROR: IERR=',ierr
+       WRITE(6,*) 'XX cv_global: FWOPEN ERROR: IERR=',ierr
+       WRITE(6,*) '   FILE NAME=',knam_csv_out_global
        RETURN
     END IF
 
@@ -332,24 +333,17 @@ CONTAINS
             (ncases_total_ndate_ncountry(ndate,ncountry), &
             ndate=ndate_start_global,ndate_max,ndate_step_global)
     END DO
-    CLOSE(nfl)
 
     WRITE(6,*) &
          '# CASES DATA WAS SUCCESSFULLY SAVED TO THE FILE: ', &
-         TRIM(knam_csv_global_cases)
+         TRIM(knam_csv_out_global)
 
     ! --- write deaths data ---
     
-    nfl=21
-    CALL FWOPEN(nfl,knam_csv_global_deaths,1,0,'CV',ierr)
-    IF(ierr.NE.0) THEN
-       WRITE(6,*) 'XX CVSAVE: FWOPEN ERROR: IERR=',ierr
-       RETURN
-    END IF
 
     WRITE(format1,'(A,i8,A)') '(A,',ncount,'(",",A10))'
     WRITE(format2,'(A,i8,A)') '(A2,",",A,",",A4,',ncount,'(",",I0))'
-    WRITE(nfl,format1,IOSTAT=nstat,ERR=9003) &
+    WRITE(nfl,format1,IOSTAT=nstat,ERR=9001) &
          'country_id,country_name,region_id', &
          (date_id_ndate(ndate), &
          ndate=ndate_start_global,ndate_max,ndate_step_global)
@@ -360,7 +354,7 @@ CONTAINS
        ELSE
           country_name=country_name_ncountry(ncountry)
        END IF
-       WRITE(nfl,format2,IOSTAT=nstat,ERR=9004) &
+       WRITE(nfl,format2,IOSTAT=nstat,ERR=9002) &
             country_id_ncountry(ncountry),TRIM(country_name), &
             region_id_ncountry(ncountry), &
             (ndeaths_total_ndate_ncountry(ndate,ncountry), &
@@ -370,28 +364,20 @@ CONTAINS
 
     WRITE(6,*) &
          '# DEATHS DATA WAS SUCCESSFULLY SAVED TO THE FILE: ', &
-         TRIM(knam_csv_global_deaths)
+         TRIM(knam_csv_out_global)
 
     RETURN
 
-9001   WRITE(6,'(A,I8,A)') &
-         'XX cv_write: File IO error detected: nstat,KNAMFR= ', &
-         nstat,TRIM(knam_csv_global_cases)
+9001 CONTINUE
+    WRITE(6,'(A/A,I8,A)') &
+         'XX cv_global 9001: File IO error detected: nstat,KNAMFR= ', &
+         nstat,TRIM(knam_csv_out_global)
     ierr=9001
     RETURN
-9002   WRITE(6,'(A,I8,A)') &
-         'XX cv_write: File IO error detected: nstat,KNAMFR= ', &
-         nstat,TRIM(knam_csv_global_cases)
-    ierr=9002
-    RETURN
-9003   WRITE(6,'(A,I8,A)') &
-         'XX cv_write: File IO error detected: nstat,KNAMFR= ', &
-         nstat,TRIM(knam_csv_global_deaths)
-    ierr=9001
-    RETURN
-9004   WRITE(6,'(A,I8,A)') &
-         'XX cv_write: File IO error detected: nstat,KNAMFR= ', &
-         nstat,TRIM(knam_csv_global_deaths)
+9002 CONTINUE
+    WRITE(6,'(A,I8,A)') &
+         'XX cv_write 9002: File IO error detected: nstat,KNAMFR= ', &
+         nstat,TRIM(knam_csv_out_global)
     ierr=9002
     RETURN
   END SUBROUTINE cv_global

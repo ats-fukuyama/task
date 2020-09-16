@@ -3,9 +3,9 @@
 MODULE cvcomm_parm
   INTEGER,PARAMETER :: dp = selected_real_kind(15) !double precision
   CHARACTER(LEN=256):: knam_csv_in
-  CHARACTER(LEN=256):: knam_csv_global_cases,knam_csv_global_deaths
-  CHARACTER(LEN=256):: knam_csv_region_cases,knam_csv_region_deaths
-  CHARACTER(LEN=256):: knam_csv_select_cases,knam_csv_select_deaths
+  CHARACTER(LEN=256):: knam_csv_out_global
+  CHARACTER(LEN=256):: knam_csv_out_region
+  CHARACTER(LEN=256):: knam_csv_out_select
   CHARACTER(LEN=256):: knam_cv_select
   CHARACTER(LEN=256):: knam_cv_population
   INTEGER:: ndays_ave

@@ -143,11 +143,10 @@ CONTAINS
     ! --- write cases data ---
 
     nfl=21
-    CALL FWOPEN(nfl,knam_csv_select_cases,1,0,'CV',ierr)
+    CALL FWOPEN(nfl,knam_csv_out_select,1,0,'CV',ierr)
     IF(ierr.NE.0) THEN
-       WRITE(6,*) 'XX cv_select_save 1: FWOPEN ERROR: IERR=',ierr
-       WRITE(6,*) '   file name=',knam_csv_select_cases
-       RETURN
+       WRITE(6,*) 'XX cv_select_save: FWOPEN ERROR: IERR=',ierr
+       WRITE(6,*) '   FILE NAME=',knam_csv_out_select
     END IF
 
     ncount=(ndate_max-ndate_start_select)/ndate_step_select+1
@@ -165,20 +164,12 @@ CONTAINS
             (ncases_total_ndate_nselect(ndate,nselect), &
              ndate=ndate_start_select,ndate_max,ndate_step_select)
     END DO
-    CLOSE(nfl)
 
     WRITE(6,*) &
          '# CASES DATA WAS SUCCESSFULLY SAVED TO THE FILE: ', &
-         TRIM(knam_csv_select_cases)
+         TRIM(knam_csv_out_select)
 
     ! --- write deaths data ---
-
-    nfl=21
-    CALL FWOPEN(nfl,knam_csv_select_deaths,1,0,'CV',ierr)
-    IF(ierr.NE.0) THEN
-       WRITE(6,*) 'XX cv_select_save 1: FWOPEN ERROR: IERR=',ierr
-       RETURN
-    END IF
 
     WRITE(format1,'(A,i8,A)') '(A,',ncount,'(",",A10))'
     WRITE(format2,'(A,i8,A)') '(A,",",A2,',ncount,'(",",I0))'
@@ -198,28 +189,20 @@ CONTAINS
 
     WRITE(6,*) &
          '# DEATHS DATA WAS SUCCESSFULLY SAVED TO THE FILE: ', &
-         TRIM(knam_csv_select_deaths)
+         TRIM(knam_csv_out_select)
 
     RETURN
 
-9001   WRITE(6,'(A,I8,A)') &
-         'XX cv_write: File IO error detected: nstat,KNAMFR= ', &
-         nstat,TRIM(knam_csv_select_cases)
+9001 CONTINUE
+    WRITE(6,'(A/A,I8,A)') &
+         'XX cv_select_save 9001: File IO error detected:', &
+         '   nstat,KNAMFR= ', nstat,TRIM(knam_csv_out_select)
     ierr=9001
     RETURN
-9002   WRITE(6,'(A,I8,A)') &
-         'XX cv_write: File IO error detected: nstat,KNAMFR= ', &
-         nstat,TRIM(knam_csv_select_cases)
-    ierr=9002
-    RETURN
-9003   WRITE(6,'(A,I8,A)') &
-         'XX cv_write: File IO error detected: nstat,KNAMFR= ', &
-         nstat,TRIM(knam_csv_select_deaths)
-    ierr=9001
-    RETURN
-9004   WRITE(6,'(A,I8,A)') &
-         'XX cv_write: File IO error detected: nstat,KNAMFR= ', &
-         nstat,TRIM(knam_csv_select_deaths)
+9002 CONTINUE
+    WRITE(6,'(A/A,I8,A)') &
+         'XX cv_select_save 9002: File IO error detected:', &
+         '   nstat,KNAMFR= ', nstat,TRIM(knam_csv_out_select)
     ierr=9002
     RETURN
 
