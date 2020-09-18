@@ -18,7 +18,7 @@ CONTAINS
     USE wmcomm
     USE wmsetg
     USE wmexec
-    USE wmfout
+    USE wmfile
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
     INTEGER:: NPH0_SV,NPH,NR,NTH,NS,NHH,IKNWM,NPH1
