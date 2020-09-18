@@ -434,9 +434,9 @@ CONTAINS
     
 
     CPRAD=0.D0
-    DO MDX=1,mdsiz
-       DO NDX=1,ndsiz
-          CPRADK(NDX,MDX)=(0.D0,0.D0)
+    DO NDX=1,ndsiz
+       DO MDX=1,mdsiz
+          CPRADK(MDX,NDX)=(0.D0,0.D0)
        END DO
     END DO
 
@@ -454,16 +454,16 @@ CONTAINS
                 CCE1=CEFLDK(1,MDX,NDX,NR+1)
                 CCE2=CEFLDK(2,MDX,NDX,NR+1)
                 CCE3=CEFLDK(3,MDX,NDX,NR+1)
-                CPRAD_L=DCONJG(CCE1)*CFVP(NDX,MDX,1) &
-                       +DCONJG(CCE2)*CFVP(NDX,MDX,2) &
-                       +DCONJG(CCE3)*CFVP(NDX,MDX,3)
-                CPRADK(NDX,MDX)=CPRADK(NDX,MDX)+CPRAD_L
+                CPRAD_L=DCONJG(CCE1)*CFVP(MDX,NDX,1) &
+                       +DCONJG(CCE2)*CFVP(MDX,NDX,2) &
+                       +DCONJG(CCE3)*CFVP(MDX,NDX,3)
+                CPRADK(MDX,NDX)=CPRADK(MDX,NDX)+CPRAD_L
              ENDDO
           ENDDO
        ENDDO
-       DO MDX=1,mdsiz
-          DO NDX=1,ndsiz
-             CPRAD=CPRAD+CPRADK(NDX,MDX)
+       DO NDX=1,ndsiz
+          DO MDX=1,mdsiz
+             CPRAD=CPRAD+CPRADK(MDX,NDX)
           END DO
        END DO
     ENDIF

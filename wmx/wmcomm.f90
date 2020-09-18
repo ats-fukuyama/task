@@ -123,7 +123,7 @@ MODULE wmcomm_parm
   REAL(rkind):: WAEMIN      ! minimum frequency range in Alfven frequency
   REAL(rkind):: WAEMAX      ! maximum frequency range in Alfven frequency
 
-  INTEGER:: nthgmax         ! number of poloidal mesh for graphics
+  INTEGER:: nthmax_g        ! number of poloidal mesh for graphics
 
 END MODULE wmcomm_parm
 
@@ -370,6 +370,7 @@ CONTAINS
     ALLOCATE(BPR(nthmax_f,nrmax+1),BPZ(nthmax_f,nrmax+1))
     ALLOCATE(BPT(nthmax_f,nrmax+1),BTP(nthmax_f,nrmax+1))
     ALLOCATE(SIOTA(nrmax+1))
+    ALLOCATE(RPSG(nthmax_g,nrmax+1),ZPSG(nthmax_g,nrmax+1))
 
     ALLOCATE(PTSSV(nsmax),PNSSV(nsmax))
     PTSSV(1:nsmax)=0.D0
@@ -391,6 +392,7 @@ CONTAINS
     IMPLICIT NONE
 
     DEALLOCATE(XR,XRHO,XTH,XTHF)
+    DEALLOCATE(NPH_LOOP)
     DEALLOCATE(CJANT)
     DEALLOCATE(CEWALL)
     DEALLOCATE(CFVG)

@@ -73,8 +73,8 @@ CONTAINS
     WRITE(6,601) 'RHOMIN',RHOMIN,'QMIN  ',QMIN  , &
                  'PRFIN ',PRFIN
     WRITE(6,601) 'RF    ',RF    ,'RFI   ',RFI   , &
-                 'RD    ',RD    ,'BETAJ ',BETAJ
-    WRITE(6,603) 'factor_nth  ',factor_nth, &
+         'RD    ',RD
+    WRITE(6,604) 'factor_nth  ',factor_nth, &
                  'factor_nhh  ',factor_nhh, &
                  'factor_nph  ',factor_nph
     WRITE(6,602) 'NRMAX ',NRMAX ,'NTHMAX',NTHMAX, &
@@ -89,7 +89,7 @@ CONTAINS
                  'MDLWMK',MDLWMK
     WRITE(6,604) 'MODEL_PROF  ',MODEL_PROF, &
                  'MODEL_NPROF ',MODEL_NPROF, &
-                 'nthgmax     ',nthgmax
+                 'nthmax_g     ',nthmax_g
 
     WRITE(6,692)
     DO NS=1,NSMAX
@@ -111,7 +111,7 @@ CONTAINS
     DO NA=1,NAMAX
        WRITE(6,610) NA,AJ(NA),APH(NA),THJ1(NA),THJ2(NA), &
                                       PHJ1(NA),PHJ2(NA)
-       WRITE(6,614)    AEWGT(NA),AEWGZ(NA),ANTANG(NA)
+       WRITE(6,614)    BETAJ(NA),AEWGT(NA),AEWGZ(NA),ANTANG(NA)
     ENDDO
     RETURN
 

@@ -38,9 +38,9 @@ CONTAINS
                       -nthmax_f:nthmax_f,-nhhmax_f:nhhmax_f))
     ALLOCATE(CRC(nthmax_f,nhhmax_f,3,3),CFC(nthmax_f,nhhmax_f,3,3))
     ALLOCATE(CMC(nthmax_f,nhhmax_f,3,3),CMF(nthmax_f,nhhmax_f,3,3))
-    ALLOCATE(CSUMA(3,3,nthmax_f,nhhmax_f,nthmax_f,nhhmax_f))
+    ALLOCATE(CSUMA(3,3,nthmax_f,nthmax_f,nhhmax_f,nhhmax_f))
     ALLOCATE(CS(3,3,nthmax_f,nhhmax_f))
-    ALLOCATE(CSUMPF(3,3,nthmax_f,nhhmax_f,nthmax_f,nhhmax_f))
+    ALLOCATE(CSUMPF(3,3,nthmax_f,nthmax_f,nhhmax_f,nhhmax_f))
 
     CW=2.D0*PI*DCMPLX(RF,RFI)*1.D6
     CWC2=CW**2/VC**2

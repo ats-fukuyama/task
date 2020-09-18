@@ -228,9 +228,10 @@ CONTAINS
 
 !    *** graphics ***
 
-!        nthgmax : number of poloidal mesh for graphics
+!        nthmax_g : number of poloidal mesh for graphics
+!                   for modelg=4 or 6, nthmax_g is overwritten by nthmax
 
-      nthgmax = 256
+      nthmax_g = 256
 
     RETURN
   END SUBROUTINE wm_init

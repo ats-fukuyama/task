@@ -459,7 +459,7 @@ CONTAINS
     USE wmcomm
     USE wmprof
     IMPLICIT NONE
-    REAL(4),INTENT(IN):: GGL(nrmax,nthmax)
+    REAL(4),INTENT(IN):: GGL(nrmax+1,nthmax)
     INTEGER,INTENT(IN):: NHH
     CHARACTER(LEN=1):: K2,K3
     REAL(4),ALLOCATABLE:: GBY(:,:),GFL(:,:),GRL(:,:),GZL(:,:),GRS(:),GZS(:)
@@ -468,7 +468,7 @@ CONTAINS
     REAL(rkind):: RN(nsmax),RTPR(nsmax),RTPP(nsmax),RU(nsmax)
     REAL(rkind):: WP(nsmax),WC(nsmax)
     INTEGER:: NS,NR,NTH,NTHF,NHHF,NTHGS,NTHP,NTHL,IRORG,NC,NRLCFS,NSTEP
-    INTEGER:: NTHG,nthmax_g,NSU
+    INTEGER:: NTHG,NSU
     REAL(rkind):: RCOS,RSIN,FACT,VAL,WF,RHOL,DTH,DPH
     REAL(rkind):: BYL,BST,BSP,RKTH,RKPH,RKPR,RNPR
     REAL(rkind):: RNL,AM,AE,FACTORHR,FACTORRC,FACTORLC
@@ -478,25 +478,17 @@ CONTAINS
     REAL(4):: GGRMIN,GGRMAX,GGRSTP,GGZMIN,GGZMAX,GGZSTP
     REAL(4):: GBCF,GFMIN,GFMAX,GGFMIN,GGFMAX,GGFSTP
 
-    ALLOCATE(THR(nrmax,nthmax_f),TCO(nrmax,nthmax_f))
-    ALLOCATE(TRC(nrmax,nthmax_f),TLC(nrmax,nthmax_f))
-    ALLOCATE(GBY(nrmax,nthmax_f))
-    ALLOCATE(GFL(nrmax,nthmax_f),GRL(nrmax,nthmax_f),GZL(nrmax,nthmax_f))
-    ALLOCATE(GTHR(nrmax,nthmax_f),GTCO(nrmax,nthmax_f))
-    ALLOCATE(GTRC(nrmax,nthmax_f),GTLC(nrmax,nthmax_f))
+    ALLOCATE(THR(nrmax+1,nthmax_f),TCO(nrmax+1,nthmax_f))
+    ALLOCATE(TRC(nrmax+1,nthmax_f),TLC(nrmax+1,nthmax_f))
+    ALLOCATE(GBY(nrmax+1,nthmax_f))
+    ALLOCATE(GFL(nrmax+1,nthmax_g))
+    ALLOCATE(GRL(nrmax+1,nthmax_g),GZL(nrmax+1,nthmax_g))
+    ALLOCATE(GTHR(nrmax+1,nthmax_f),GTCO(nrmax+1,nthmax_f))
+    ALLOCATE(GTRC(nrmax+1,nthmax_f),GTLC(nrmax+1,nthmax_f))
     ALLOCATE(GRS(nsumax+1),GZS(nsumax+1))
 
-    IF(MODELG.EQ.4.OR.MODELG.EQ.6) THEN
-       nthmax_g=NTHMAX
-       DO NR=1,NRMAX+1
-          DO NTH=1,nthmax_g
-             NHHF=(NHH-1)*factor_nhh +1
-             NTHF=(NTH-1)*factor_nth +1
-             GRL(NR,NTH)=GUCLIP(RPST(NTHF,NHHF,NR))
-             GZL(NR,NTH)=GUCLIP(ZPST(NTHF,NHHF,NR))
-          ENDDO
-       ENDDO
-    ELSE
+    SELECT CASE(MODELG)
+    CASE(0:2)
        DTHG=2.D0*PI/nthmax_g
        DO NR=1,NRMAX+1
           DO NTH=1,nthmax_g
@@ -510,17 +502,33 @@ CONTAINS
              ZPSG(NTH,NR)  =         XR(NR)*RSIN
           ENDDO
        END DO
-       nthmax_g=nthmax_f
        DO NR=1,NRMAX+1
           DO NTH=1,nthmax_g
              GRL(NR,NTH)=GUCLIP(RPSG(NTH,NR))
              GZL(NR,NTH)=GUCLIP(ZPSG(NTH,NR))
           ENDDO
        ENDDO
-    ENDIF
-
+    CASE(3)
+       ! RPSG and ZPSG loaded in wmsetg_tor
+       DO NR=1,NRMAX+1
+          DO NTH=1,nthmax_g
+             GRL(NR,NTH)=GUCLIP(RPSG(NTH,NR))
+             GZL(NR,NTH)=GUCLIP(ZPSG(NTH,NR))
+          ENDDO
+       ENDDO
+    CASE(4,6)
+       nthmax_g=NTHMAX
+       DO NR=1,NRMAX+1
+          DO NTH=1,nthmax_g
+             NHHF=(NHH-1)*factor_nhh +1
+             NTHF=(NTH-1)*factor_nth +1
+             GRL(NR,NTH)=GUCLIP(RPST(NTHF,NHHF,NR))
+             GZL(NR,NTH)=GUCLIP(ZPST(NTHF,NHHF,NR))
+          ENDDO
+       ENDDO
+    END SELECT
+    
     NTHGS=nthmax_g/NTHMAX
-
     DO NR=1,NRMAX+1
        DO NTH=1,NTHMAX
           NTHP=NTH+1
@@ -764,8 +772,8 @@ CONTAINS
                1.0,0.0,0.0/
     DATA GLA/0.0,0.40,0.5,0.60,1.0/
     INTEGER:: NR,NTH,NHHF,NTHF,NTHGS,NTHP,NTHPF,NTHG,NTHL,NRLCFS
-    INTEGER:: ISTEP,I,ITORG,NNHD,NSW,nthmax_g,IRORG,NSTEP,NSU,NHHD
-    REAL(rkind):: FACT,VAL
+    INTEGER:: ISTEP,I,ITORG,NNHD,NSW,IRORG,NSTEP,NSU,NHHD
+    REAL(rkind):: FACT,VAL,DTHG,RCOS,RSIN
     REAL(4):: GZA,GDZ,GFACT,GRLEN,GZLEN,GPR,GPZ
     REAL(4):: GGRMIN,GGRMAX,GGRSTP,GGZMIN,GGZMAX,GGZSTP,GRORG
     REAL(4):: GFMIN,GFMAX,GGFMIN,GGFMAX,GGFSTP
@@ -777,26 +785,47 @@ CONTAINS
     ALLOCATE(GRS(nsumax+1),GZS(nsumax+1))
     ALLOCATE(GDL(NSTEPM),GRGBL(3,0:NSTEPM))
       
-    IF(MODELG.EQ.4.OR.MODELG.EQ.6) THEN
-       nthmax_g=NTHMAX
+    SELECT CASE(MODELG)
+    CASE(0:2)
+       DTHG=2.D0*PI/nthmax_g
        DO NR=1,NRMAX+1
           DO NTH=1,nthmax_g
-             NHHF=(NHH-1)*factor_nhh+1
-             NTHF=(NTH-1)*factor_nth+1
-             GRL(NR,NTH)=GUCLIP(RPST(NTHF,NHHF,NR))
-             GZL(NR,NTH)=GUCLIP(ZPST(NTHF,NHHF,NR))
+             RCOS=COS(DTHG*(NTH-1))
+             RSIN=SIN(DTHG*(NTH-1))
+             IF(MODELG.EQ.0) THEN
+                RPSG(NTH,NR)  =      XR(NR)*RCOS
+             ELSE
+                RPSG(NTH,NR)  = RR + XR(NR)*RCOS
+             ENDIF
+             ZPSG(NTH,NR)  =         XR(NR)*RSIN
           ENDDO
-       ENDDO
-    ELSE
-       nthmax_g=nthmax_f
+       END DO
        DO NR=1,NRMAX+1
           DO NTH=1,nthmax_g
              GRL(NR,NTH)=GUCLIP(RPSG(NTH,NR))
              GZL(NR,NTH)=GUCLIP(ZPSG(NTH,NR))
           ENDDO
        ENDDO
-    ENDIF
-
+    CASE(3)
+       ! RPSG and ZPSG loaded in wmsetg_tor
+       DO NR=1,NRMAX+1
+          DO NTH=1,nthmax_g
+             GRL(NR,NTH)=GUCLIP(RPSG(NTH,NR))
+             GZL(NR,NTH)=GUCLIP(ZPSG(NTH,NR))
+          ENDDO
+       ENDDO
+    CASE(4,6)
+       nthmax_g=NTHMAX
+       DO NR=1,NRMAX+1
+          DO NTH=1,nthmax_g
+             NHHF=(NHH-1)*factor_nhh +1
+             NTHF=(NTH-1)*factor_nth +1
+             GRL(NR,NTH)=GUCLIP(RPST(NTHF,NHHF,NR))
+             GZL(NR,NTH)=GUCLIP(ZPST(NTHF,NHHF,NR))
+          ENDDO
+       ENDDO
+    END SELECT
+    
     NTHGS=nthmax_g/NTHMAX
     DO NR=1,NRMAX+1
        DO NTH=1,NTHMAX

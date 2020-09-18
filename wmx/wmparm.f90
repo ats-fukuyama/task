@@ -67,7 +67,7 @@ CONTAINS
            NPRINT,NGRAPH,MODELJ,MODELA,MODELM,MDLWMK,PNA,PNAL,PTA,ZEFF, &
            FRMIN,FRMAX,FIMIN,FIMAX,FI0,NGFMAX,NGXMAX,NGYMAX, &
            SCMIN,SCMAX,NSCMAX,LISTEG,FRINI,FIINI,DLTNW,EPSNW,LMAXNW,LISTNW, &
-           MODENW,NCONT,ILN1,IBL1,ICL1,ILN2,IBL2,ICL2,WAEMIN,WAEMAX,nthgmax
+           MODENW,NCONT,ILN1,IBL1,ICL1,ILN2,IBL2,ICL2,WAEMIN,WAEMAX,nthmax_g
 
     ierr=0
 
@@ -112,7 +112,7 @@ CONTAINS
          '       SCMIN,SCMAX,NSCMAX,LISTEG,FRINI,FIINI,', &
          '       DLTNW,EPSNW,LMAXNW,LISTNW,', &
          '       MODENW,NCONT,ILN1,IBL1,ICL1,ILN2,IBL2,ICL2,WAEMIN,WAEMAX', &
-         '       nthgmax'
+         '       nthmax_g'
     RETURN
   END SUBROUTINE wm_plst
 
@@ -242,7 +242,7 @@ CONTAINS
     idata(28)=ILN2
     idata(29)=IBL2
     idata(30)=ICL2
-    idata(31)=NTHGMAX
+    idata(31)=NTHMAX_G
     idata(32)=MDLWMK
     idata(33)=factor_nth
     idata(34)=factor_nhh
@@ -280,7 +280,7 @@ CONTAINS
     ILN2=idata(28)
     IBL2=idata(29)
     ICL2=idata(30)
-    NTHGMAX=idata(31)
+    NTHMAX_G=idata(31)
     MDLWMK=idata(32)
     factor_nth=idata(33)
     factor_nhh=idata(34)

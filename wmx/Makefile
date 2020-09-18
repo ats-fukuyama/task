@@ -11,6 +11,9 @@ LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
+
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
@@ -121,7 +124,6 @@ wmexec.o: wmexec.f90 wmsetg.f90 wmsolv.f90 wmemfp.f90 wmpout.f90 \
 
 wmfile.o: wmfile.f90 wmsetg.f90 wmexec.f90 ../dp/dpparm.f90 wmcomm.f90
 wmloop.o: wmloop.f90 wmsetg.f90 wmexec.f90 wmfile.f90 wmcomm.f90
-wmtest.o: wmtest.f90
 
 wmeign.o: wmeign.f90 wmparm.f90 wmsetg.f90 wmsolv.f90 wmemfp.f90 wmcomm.f90
 wmtaem.o: wmtaem.f90 wmprof.f90 ../pl/plprof.f90 wmsub.f90 wmcomm.f90
