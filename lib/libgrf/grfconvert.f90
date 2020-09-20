@@ -391,6 +391,24 @@ CONTAINS
        A%FORG=GFORG
     ENDIF
 
+!     ---- Adjust origin to be between min and max 
+    
+    IF(A%MODE_LS.EQ.0.OR.A%MODE_LS.EQ.2) THEN
+       IF(A%XORG.LT.A%XMIN) A%XORG=A%XMIN
+       IF(A%XORG.GT.A%XMAX) A%XORG=A%XMAX
+    ELSE
+       IF(A%XORG.LT.A%XMIN) A%XORG=A%XORG+INT(A%XMIN-A%XORG)+1.0
+       IF(A%XORG.GT.A%XMAX) A%XORG=A%XORG-INT(A%XORG-A%XMAX)-1.0
+    END IF
+
+    IF(A%MODE_LS.EQ.0.OR.A%MODE_LS.EQ.1) THEN
+       IF(A%YORG.LT.A%YMIN) A%YORG=A%YMIN
+       IF(A%YORG.GT.A%YMAX) A%YORG=A%YMAX
+    ELSE
+       IF(A%YORG.LT.A%YMIN) A%YORG=A%YORG+INT(A%YMIN-A%YORG)+1.0
+       IF(A%YORG.GT.A%YMAX) A%YORG=A%YORG-INT(A%YORG-A%YMAX)-1.0
+    END IF
+
 !     ----- Adjust min max according to space factor at both ends-----
 
     GL=A%XMAX-A%XMIN

@@ -32,23 +32,26 @@ CONTAINS
     INTEGER,INTENT(INOUT):: NR_prev
     COMPLEX(rkind),INTENT(OUT):: CA(LA),CB
     
-    INTEGER:: ICOMP,IGD1,NR,MLXD,MLXDF,IGD2,NKXD,NKXDF,MB
+    INTEGER:: ICOMP,IGD1,NR,MLXD,IGD2,NKXD,MB
 
-!     ICOMP=1 : R COMPONENT OF MAXWELL EQUATION
-!     ICOMP=2 : THETA COMPONENT OF MAXWELL EQUATION
-!     ICOMP=3 : PHI COMPONENT OF MAXWELL EQUATION
+    ! --- igd is the line number of matrix equation ---
+
+    !     ICOMP=1 : R COMPONENT OF MAXWELL EQUATION
+    !     ICOMP=2 : THETA COMPONENT OF MAXWELL EQUATION
+    !     ICOMP=3 : PHI COMPONENT OF MAXWELL EQUATION
 
       ICOMP=MOD(IGD-1,3)+1
 
       IGD1=(IGD-ICOMP)/3+1
       MLXD=MOD(IGD1-1,MDSIZ)+1
-      MLXDF=MOD(IGD1-1,MDSIZ)+1+MDMIN-MDMIN_F
 
       IGD2=(IGD1-MLXD)/MDSIZ+1
       NKXD=MOD(IGD2-1,NDSIZ)+1
-      NKXDF=MOD(IGD2-1,NDSIZ)+1+NDMIN-NDMIN_F
 
       NR=(IGD2-NKXD)/NDSIZ+1
+
+      ! --- if nr is changed, calculate corresponding part of
+      !     matrix, right-had-side vector, and boudary condition
 
       IF(NR.NE.NR_prev) THEN
          NR_prev=NR
@@ -62,6 +65,8 @@ CONTAINS
          CALL wm_setm_vector(NR)
          CALL wm_setm_boundary(NR)
       END IF
+
+      ! --- the data of the line in matrix and RHS vector is substituted ---
 
       DO MB=1,MBND
          CA(MB)=CEMP(MB,NKXD,MLXD,ICOMP)
@@ -120,7 +125,7 @@ CONTAINS
     RETURN
   END SUBROUTINE wm_setm_allocate
 
-  ! --- allocate wmsetm local data ---
+  ! --- deallocate wmsetm local data ---
 
   SUBROUTINE wm_setm_deallocate
 
@@ -164,10 +169,17 @@ CONTAINS
       REAL(rkind):: FACT1M,FACT1C,FACT1P,FACT2M,FACT2C,FACT2P
       REAL(rkind):: FACT3M,FACT3C,FACT3P
       
+      ! initial setting to set up 2) data for NR,  3) data for NR+1
+
       IF(IND.EQ.1) THEN
 
-         CALL wm_setf(NR,0)
+         CALL wm_setf(NR,0)  !  wm_setf setup 3) data for NR
+                             !     CGD: metric tensor
+                             !     CMA: conversion tensor
+                             !     CGD: dielectric tensor 
 
+         ! shift 3) data to 2) data for NR
+         
          DO KDX=1,KDSIZ_F
             DO LDX=1,LDSIZ_F
                CGF11(LDX,KDX,2)=CGF11(LDX,KDX,3)
@@ -187,7 +199,6 @@ CONTAINS
                      CMAHF(I,J,LDX,KDX,2) = CMAHF(I,J,LDX,KDX,3)
                   ENDDO
                ENDDO
-               
             ENDDO
          ENDDO
 
@@ -199,7 +210,6 @@ CONTAINS
                         DO I=1,3
                            CGD(I,J,LDX,MDX,KDX,NDX,2) &
                                 =CGD(I,J,LDX,MDX,KDX,NDX,3)
-
                            CGDD(I,J,LDX,MDX,KDX,NDX,2) &
                                 =CGDD(I,J,LDX,MDX,KDX,NDX,3)
                            CGDH(I,J,LDX,MDX,KDX,NDX,2) &
@@ -213,9 +223,12 @@ CONTAINS
             ENDDO
          ENDDO
 
-         CALL wm_setf(NR+1,0)
+         CALL wm_setf(NR+1,0) !  wm_setf setup 3) data for NR+1
 
       ENDIF
+
+      ! --- now shift 2) data for NR to 1) data,
+      ! --- and shift 3) data for NR+1 to 2) daata
 
       DO KDX=1,KDSIZ_F
          DO LDX=1,LDSIZ_F
@@ -245,7 +258,6 @@ CONTAINS
                   CMAHF(I,J,LDX,KDX,2) = CMAHF(I,J,LDX,KDX,3)
                ENDDO
             ENDDO
-
          ENDDO
       ENDDO
 
@@ -257,14 +269,18 @@ CONTAINS
                      DO I=1,3
                         CGD(I,J,LDX,MDX,KDX,NDX,1)=CGD(I,J,LDX,MDX,KDX,NDX,2)
                         CGD(I,J,LDX,MDX,KDX,NDX,2)=CGD(I,J,LDX,MDX,KDX,NDX,3)
-                        CGDD(I,J,LDX,MDX,KDX,NDX,1)=CGDD(I,J,LDX,MDX,KDX,NDX,2)
-                        CGDD(I,J,LDX,MDX,KDX,NDX,2)=CGDD(I,J,LDX,MDX,KDX,NDX,3)
-                        CGDH(I,J,LDX,MDX,KDX,NDX,1)=CGDH(I,J,LDX,MDX,KDX,NDX,2)
-                        CGDH(I,J,LDX,MDX,KDX,NDX,2)=CGDH(I,J,LDX,MDX,KDX,NDX,3)
-                        CGDDH(I,J,LDX,MDX,KDX,NDX,1)= &
-                             CGDDH(I,J,LDX,MDX,KDX,NDX,2)
-                        CGDDH(I,J,LDX,MDX,KDX,NDX,2)= &
-                             CGDDH(I,J,LDX,MDX,KDX,NDX,3)
+                        CGDD(I,J,LDX,MDX,KDX,NDX,1) &
+                             =CGDD(I,J,LDX,MDX,KDX,NDX,2)
+                        CGDD(I,J,LDX,MDX,KDX,NDX,2) &
+                             =CGDD(I,J,LDX,MDX,KDX,NDX,3)
+                        CGDH(I,J,LDX,MDX,KDX,NDX,1) &
+                             =CGDH(I,J,LDX,MDX,KDX,NDX,2)
+                        CGDH(I,J,LDX,MDX,KDX,NDX,2) &
+                             =CGDH(I,J,LDX,MDX,KDX,NDX,3)
+                        CGDDH(I,J,LDX,MDX,KDX,NDX,1) &
+                             =CGDDH(I,J,LDX,MDX,KDX,NDX,2)
+                        CGDDH(I,J,LDX,MDX,KDX,NDX,2) &
+                             =CGDDH(I,J,LDX,MDX,KDX,NDX,3)
                      ENDDO
                   ENDDO
                ENDDO
@@ -272,7 +288,7 @@ CONTAINS
          ENDDO
       ENDDO
 
-      IF(NR.LT.NRMAX) CALL wm_setf(NR+2,0)
+      IF(NR.LT.NRMAX) CALL wm_setf(NR+2,0) !  wm_setf setup 3) data for NR+2
 
       IF(NR.EQ.1) THEN
          XRHOM = XRHO(2)/1.D6

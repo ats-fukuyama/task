@@ -5,29 +5,18 @@ MODULE cvgout
   PRIVATE
   PUBLIC cv_gout
 
-  INTEGER,PARAMETER:: nlmax=12
-  REAL(8),PARAMETER:: line_rgb(3,nlmax) &
+  INTEGER,PARAMETER:: nlmax=24
+  REAL(8):: line_rgb(3,nlmax),line_mark_size(nlmax)
+  INTEGER:: line_pat(nlmax),line_mark(nlmax),line_mark_step(nlmax)
+
+  INTEGER,PARAMETER:: nlmax1=6
+  REAL(8),PARAMETER:: line_rgb1(3,nlmax1) &
        =RESHAPE([1.0D0,0.0D0,0.0D0, &
                  1.0D0,0.8D0,0.0D0, &
                  0.0D0,0.8D0,0.0D0, &
                  0.0D0,0.8D0,1.0D0, &
                  0.0D0,0.0D0,1.0D0, &
-                 1.0D0,0.0D0,1.0D0, &
-                 1.0D0,0.0D0,0.0D0, &
-                 1.0D0,0.8D0,0.0D0, &
-                 0.0D0,0.8D0,0.0D0, &
-                 0.0D0,0.8D0,1.0D0, &
-                 0.0D0,0.0D0,1.0D0, &
-                 1.0D0,0.0D0,1.0D0],[3,12])
-  INTEGER,PARAMETER:: line_pat(nlmax) &
-       =[ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
-  REAL(8),PARAMETER:: line_mark_size(nlmax) &
-       =[ 0.3D0, 0.3D0, 0.3D0, 0.3D0, 0.3D0, 0.3D0, &
-          0.3D0, 0.3D0, 0.3D0, 0.3D0, 0.3D0, 0.3D0 ]
-  INTEGER,PARAMETER:: line_mark(nlmax) &
-       =[ -1, -1, -1, -1, -1, -1, -4, -4, -4, -4, -4, -4 ]
-  INTEGER,PARAMETER:: line_mark_step(nlmax) &
-       =[ 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14 ]
+                 1.0D0,0.0D0,1.0D0],[3,6])
     
   INTEGER,PARAMETER:: nlmax2=2
   REAL(8):: line_rgb2(3,nlmax2) &
@@ -47,8 +36,35 @@ CONTAINS
     CHARACTER(LEN=80):: line
     CHARACTER(LEN=2),ALLOCATABLE:: kworda(:)
     INTEGER:: ncountry,ncountry_plot,id,idx,nword,nword_max,nplot,nplot_max
+    INTEGER:: nl
     INTEGER,ALLOCATABLE:: ncountry_nword(:),ncountry_nplot(:)
+    INTEGER,SAVE:: INIT=0
 
+    IF(INIT.EQ.0) THEN
+       DO nl=1,nlmax
+          line_rgb(1,nl)=line_rgb1(1,MOD(nl-1,nlmax1)+1)
+          line_rgb(2,nl)=line_rgb1(2,MOD(nl-1,nlmax1)+1)
+          line_rgb(3,nl)=line_rgb1(3,MOD(nl-1,nlmax1)+1)
+          line_pat(nl)=0
+          SELECT CASE((nl-1)/nlmax1+1)
+          CASE(1)
+             line_mark(nl)=-9
+             line_mark_size(nl)=0.2D0
+          CASE(2)
+             line_mark(nl)=-6
+             line_mark_size(nl)=0.2D0
+          CASE(3)
+             line_mark(nl)=-8
+             line_mark_size(nl)=0.3D0
+          CASE(4)
+             line_mark(nl)=-3
+             line_mark_size(nl)=0.2D0
+          END SELECT
+          line_mark_step(nl)=14
+       END DO
+       INIT=1
+    END IF
+    
     id=0
     nplot_max=0
 
@@ -56,7 +72,7 @@ CONTAINS
     
     WRITE(6,'(A,A)') &
          '## INPUT country ids or graph id, ', &
-         'list of ids:XC,XG, help:XH, end:XX or 9'
+         'list of ids:XC,XN,XG, help:XH, end:XX or 9'
     READ(5,'(A)',ERR=1,END=9000) line
     CALL ksplitn(line,' ,',2,nword_max,kworda)
 
@@ -77,14 +93,22 @@ CONTAINS
        IF(kword.EQ.'XX') GO TO 9000
        IF(kword.EQ.'XC') THEN
           CALL cv_gout_help(1)
+          id=0
+          CYCLE
+       END IF
+       IF(kword.EQ.'XN') THEN
+          CALL cv_gout_help(2)
+          id=0
           CYCLE
        END IF
        IF(kword.EQ.'XG') THEN
-          CALL cv_gout_help(2)
+          CALL cv_gout_help(3)
+          id=0
           CYCLE
        END IF
        IF(kword.EQ.'XH') THEN
-          CALL cv_gout_help(3)
+          CALL cv_gout_help(4)
+          id=0
           CYCLE
        END IF
 
@@ -102,9 +126,9 @@ CONTAINS
           ncountry_nword(nplot)=ncountry_plot
        END IF
     END DO
+
     IF(nplot.GE.1) THEN
        nplot_max=nplot
-
        IF(ALLOCATED(ncountry_nplot)) DEALLOCATE(ncountry_nplot)
        ALLOCATE(ncountry_nplot(nplot_max))
        DO nplot=1,nplot_max
@@ -117,7 +141,6 @@ CONTAINS
     END IF
 
     IF(id.EQ.0) GO TO 1
-    IF(nplot_max.EQ.0) GO TO 1
       
     SELECT CASE(id)
     CASE(1,10:19)
@@ -149,7 +172,13 @@ CONTAINS
        WRITE(6,'(A)') '## List of country id:'
        WRITE(6,'(25(1X,A2))') &
             (country_id_ncountry(ncountry),ncountry=1,ncountry_max)
-    CASE(2) !XG
+    CASE(2) !XN
+       WRITE(6,'(A)') '## List of country name ane id:'
+       WRITE(6,'(4(3X,A14,1X,A2))') &
+            (country_name_ncountry(ncountry)//'              ', &
+            country_id_ncountry(ncountry), &
+            ncountry=1,ncountry_max)
+    CASE(3) !XG
        WRITE(6,'(A)') '## List of graph id:'
        WRITE(6,'((A))') &
             ' 1: 10: 11+12+13+14', &
@@ -182,18 +211,18 @@ CONTAINS
             '    42: new deaths rate vs cases rate (fixed range)', &
             '    43: new deaths number vs cases number (adjusted range)', &
             '    44: new deaths rate vs cases rate (adjusted range)'
-    CASE(3) !XH
-       WRITE(6,'(A)') '## Help: how to input counrty_ids and graph_id'
-       WRITE(6,'(A)') '    - input a list of country_ids or graph_id'
-       WRITE(6,'(A)') '      - two-character country_ids should be separated '
-       WRITE(6,'(A)') '        by space or comma.'
-       WRITE(6,'(A)') '      - the length of list is limited to one line.'
-       WRITE(6,'(A)') '      - the order of country_ids determines'
-       WRITE(6,'(A)') '        the line attribute.'
-       WRITE(6,'(A)') '      - graph_id can be located on the same line'
-       WRITE(6,'(A)') '        with a list of country_ids.'
-       WRITE(6,'(A)') '      - if there are more than two graph_ids,'
-       WRITE(6,'(A)') '        only the last graph_id is effective.'
+    CASE(4) !XH
+       WRITE(6,'(A)')   '## Help: how to input counrty_ids and graph_id'
+       WRITE(6,'(A)')   '      - input a list of country_ids or graph_id'
+       WRITE(6,'(A,A)') '      - two-character country_ids should be ', &
+                        'separated by space or comma.'
+       WRITE(6,'(A)')   '      - the length of list is limited to one line.'
+       WRITE(6,'(A,A)') '      - the order of country_ids determines ', &
+                        'the line attribute.'
+       WRITE(6,'(A,A)') '      - graph_id can be located on the same line ',&
+                        'with a list of country_ids.'
+       WRITE(6,'(A,A)') '      - if there are more than two graph_ids, ', &
+                        'only the last graph_id is effective.'
     END SELECT
     RETURN
   END SUBROUTINE cv_gout_help
