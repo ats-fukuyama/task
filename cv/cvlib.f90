@@ -16,7 +16,8 @@ CONTAINS
     READ(date_id,'(I4,1X,I2,1X,I2)') nyear,nmonth,nday
     SELECT CASE(nyear)
     CASE(2020)
-       ndate=-3    ! shift for 2020-01-04
+!       ndate=-3    ! shift for 2020-01-04
+       ndate=-2    ! shift for 2020-01-03   
        nshift=1
     CASE(2021:2023)
        ndate=365*(nyear-2020)+1-3
@@ -67,7 +68,8 @@ CONTAINS
     CASE(1:366)
        nyear=2020
        nshift=1
-       nday=ndate+3
+!       nday=ndate+3 ! start at 2020-01-04
+       nday=ndate+2 ! start at 2020-01-03
     CASE(367:366+365)
        nyear=2021
        nshift=0
