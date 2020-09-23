@@ -93,8 +93,10 @@ contains
     call eqgetbb(Br,Bz,Bp,Bt,nthpmax,nthpmax,nrmax+1)      ! mag field              , use only Bt and Bp
     call eqgeta(rr_axis,zz_axis,psi0,psit0,qaxis,qsurf)     ! axis and mag parameters, use only psi0
 
+    psi0 = psi0/(2*pi)
     do nr = 1, nrmax+1
       Fpsig(nr) = Fpsig(nr)/(2*pi)
+      psimg(nr) = psimg(nr)/(2*pi)
       do nthp = 1, nthpmax
         Babs(nthp,nr) = sqrt(Bt(nthp,nr)**2+Bp(nthp,nr)**2)
       end do
