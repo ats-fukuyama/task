@@ -65,7 +65,8 @@ contains
     ierr = 0
     write(*,*)"FP------------------------------------"
 
-    call eqload(3,knameq,ierr)
+    modelg=3
+    call eqload(modelg,knameq,ierr)
     if(ierr.ne.0) return
 
     write(line,'(a)') 'mdleqc = 1'   ! set boozer poloidal angle

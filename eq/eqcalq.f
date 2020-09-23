@@ -535,6 +535,7 @@ C
 C
       npmax=abs(MDLEQV)
       IERR=0
+      IF(NRMAX.EQ.NRPMAX) RETURN
 C
 C     +++++ SETUP VACUUM DATA +++++
 C

@@ -166,6 +166,16 @@ CONTAINS
       RNFD0L=PN(NS)
       RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
       PTFD0L=SQRT(RTFD0L*1.D3*AEE*AMFDL)
+      IF(NR.eq.0)THEN
+         RL=0.D0
+         RHON=ABS(RL)
+      ELSEIF(NR.EQ.NRMAX+1) THEN
+         RL=RM(NRMAX)+DELR
+         RHON=MIN(RL,1.D0)
+      ELSE
+         RL=RM(NR)
+         RHON=RL
+      ENDIF
 
       IF(MODEL_EX_READ_Tn.eq.0)THEN
          CALL PL_PROF(RHON,PLF)

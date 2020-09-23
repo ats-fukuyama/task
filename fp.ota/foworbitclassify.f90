@@ -254,6 +254,7 @@ contains
     end select
 
     stagnation_orbit = Gm*xil/(xil**2*dFdpsi/Fpsil-0.5d0*(1.d0+xil**2)*dBmdpsi/Bml)
+    WRITE(6,'(A,2ES12.4)') 'xil,stg_ob:', xil,stagnation_orbit
     stagnation_orbit = (1.d0+stagnation_orbit**(-2))**(-0.5d0)
 
     if ( beta<stagnation_orbit ) then
