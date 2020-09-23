@@ -3,6 +3,7 @@ from scipy.ndimage import map_coordinates
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.colors import Normalize
 import seaborn
 
 
@@ -41,6 +42,18 @@ class plot:
         # type = 1 : 3次元wire
         # type = 2 : 3次元surface
         # type = 3 : 等値線図 color map
+        # type = 4 : color map with trapped and forbitten boundary
+
+
+class fplot(plot):
+    def __init__(self, path, name, type, trapped_path, forbitten_path, raxis_path, zaxis_path, xname=r"$\bar{p}$", yname=r"$\xi=\cos\theta_m$"):
+        super().__init__(path, name, type, xname, yname)
+        self.raxis = 1.0-self.raxis*2
+        self.trapped_val = np.loadtxt(trapped_path, delimiter=',')
+        self.forbitten_val = np.loadtxt(forbitten_path, delimiter=',')
+
+        self.raxis = np.loadtxt(raxis_path, delimiter=',')
+        self.zaxis = np.loadtxt(zaxis_path, delimiter=',')
 
 
 class polar(plot):
@@ -113,8 +126,28 @@ def plot_profile2D(z, option):
                 plt.ylabel(z[i].yname)
                 fig.colorbar(contour)
 
+            elif z[i].type == 4:
+                x1, y1 = np.meshgrid(z[i].raxis, z[i].zaxis)
+                ax.append(fig.add_subplot(m1, m2, i+1))
+                plt.plot(z[i].raxis, z[i].trapped_val,
+                         color='black', linestyle="dashdot")
+                plt.plot(z[i].raxis, z[i].forbitten_val,
+                         color='black', linestyle='dashed')
+
+                # contour = ax[i].contourf(
+                #     x1, y1, z[i].val.T, cmap="bwr", norm=Normalize(vmin=0, vmax=0.032))
+                contour = ax[i].contourf(
+                    x1, y1, z[i].val.T, cmap="bwr")
+                plt.xlabel(z[i].yname)
+                plt.ylabel(z[i].xname)
+                fig.colorbar(contour)
+                # contour.set_clim(0, 0.032)
+                plt.axvline(x=0, color='black')
+                plt.ylim(0, 5)
+
             plt.title(z[i].name)
 
+        plt.tight_layout()
         plt.show()
 
     elif option[0] == 1:
@@ -143,6 +176,7 @@ def plot_profile2D(z, option):
 
         plt.xlabel(z[0].xname)
         plt.ylabel(z[0].yname)
+        plt.tight_layout()
         plt.show()
 
 
@@ -154,7 +188,7 @@ if __name__ == "__main__":
     p = "p"
     xi = r"$\xi=\cos\theta_m$"
     gtypez1 = 2
-    gtypez2 = 3
+    gtypez2 = 4
 
     trapped_ion = plot(CSVDIR+"check_orbit_trapped_ion.csv",
                        r"$trapped_ion$", gtypez1, xi, psi_m)
@@ -165,13 +199,22 @@ if __name__ == "__main__":
     forbitten_ele = plot(CSVDIR+"check_orbit_forbitten_ele.csv",
                          r"$forbitten_ele$", gtypez1, xi, psi_m)
 
-    # fu = plot(CSVDIR+"fu.csv", r"$F_u$", 3, "p", r"$\theta$")
-    fI_center = plot(CSVDIR+"fI_center.csv",
-                     r"$f_I (nr=1)$", gtypez2, p, xi)
-    fI_edge = plot(CSVDIR+"fI_edge.csv", r"$f_I( nr=nrmax)$", gtypez2, p, xi)
-    fI_quarter = plot(CSVDIR+"fI_quarter.csv",
-                      r"$f_I( nr=nrmax/2)$", gtypez2, p, xi)
-    J = plot(CSVDIR+"J.csv", r"$J_I$", 0, "p", r"$\theta$")
+    fu = plot(CSVDIR+"fu.csv", r"$F_u$", 3, "p", r"$\theta$")
+    fI_center = fplot(CSVDIR+"fI_center.csv", r"$f_I (nr=2)$",
+                      gtypez2, CSVDIR+"trapped_boundary_center.csv", CSVDIR+"forbitten_boundary_center.csv", CSVDIR+"xi.csv", CSVDIR+"pm_ion.csv")
+    fI_edge = fplot(CSVDIR+"fI_edge.csv", r"$f_I( nr=nrmax)$",
+                    gtypez2, CSVDIR+"trapped_boundary_edge.csv", CSVDIR+"forbitten_boundary_edge.csv", CSVDIR+"xi.csv", CSVDIR+"pm_ion.csv")
+    fI_quarter = fplot(CSVDIR+"fI_quarter.csv", r"$f_I( nr=nrmax/2)$",
+                       gtypez2, CSVDIR+"trapped_boundary_quarter.csv", CSVDIR+"forbitten_boundary_quarter.csv", CSVDIR+"xi.csv", CSVDIR+"pm_ion.csv")
+
+    mean_r_center = fplot(CSVDIR+"mean_r_center.csv",
+                          r"${r/a_{max}-\langle r/a\rangle}\ \ (nr=2)$", gtypez2, CSVDIR+"trapped_boundary_center.csv", CSVDIR+"forbitten_boundary_center.csv", CSVDIR+"xi.csv", CSVDIR+"pm_ion.csv")
+    mean_r_quarter = fplot(CSVDIR+"mean_r_quarter.csv",
+                           r"${r/a_{max}-\langle r/a\rangle}\ \ (nr=nrmax/2)$", gtypez2, CSVDIR+"trapped_boundary_quarter.csv", CSVDIR+"forbitten_boundary_quarter.csv", CSVDIR+"xi.csv", CSVDIR+"pm_ion.csv")
+    mean_r_edge = fplot(CSVDIR+"mean_r_edge.csv",
+                        r"${r/a_{max}-\langle r/a\rangle}\ \ (nr=nrmax)$", gtypez2, CSVDIR+"trapped_boundary_edge.csv", CSVDIR+"forbitten_boundary_edge.csv", CSVDIR+"xi.csv", CSVDIR+"pm_ion.csv")
+
+    # J = plot(CSVDIR+"J.csv", r"$J_I$", 0, "p", r"$\theta$")
 
     # fI_center_p = polar(CSVDIR+"fI_center.csv",
     #                     r"$f_I (nr=1)$", gtypez2, p, xi)
@@ -180,7 +223,9 @@ if __name__ == "__main__":
 
     z1 = [trapped_ele, forbitten_ele, trapped_ion, forbitten_ion]
     z2 = [fI_center, fI_edge, fI_quarter]
+    z3 = [mean_r_center, mean_r_quarter, mean_r_edge]
     # zp = [fI_center_p]
     option = [0]
     # plot_profile2D(z1, option)
     plot_profile2D(z2, option)
+    plot_profile2D(z3, option)

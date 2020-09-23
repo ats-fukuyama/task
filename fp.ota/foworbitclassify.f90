@@ -1,11 +1,10 @@
 module foworbitclassify
-  use fowcomm
-  use fpcomm
+
   implicit none
 
   private
 
-  public :: trapped, passing, forbitten
+  public :: trapped, passing, forbitten, fow_trapped_boundary, fow_forbitten_boundary
 
 contains
 
@@ -16,6 +15,8 @@ contains
     !           1 : nth is grid point
     ! mode(3) = 0 : nr is mesh point
     !           1 : nr is grid point
+    use fowcomm
+    use fpcomm  
 
     logical :: trapped
     integer,intent(in) :: np, nth, nr,nsa,mode(3)
@@ -140,7 +141,9 @@ contains
     !           1 : nth is grid point
     ! mode(3) = 0 : nr is mesh point
     !           1 : nr is grid point
-
+    use fowcomm
+    use fpcomm
+  
     logical :: passing
     integer,intent(in) :: np,nth,nr,nsa,mode(3)
 
@@ -155,7 +158,9 @@ contains
     !           1 : nth is grid point
     ! mode(3) = 0 : nr is mesh point
     !           1 : nr is grid point
-    
+    use fowcomm
+    use fpcomm
+  
     logical :: forbitten
     integer,intent(in) :: np,nth,nr,nsa,mode(3)
     integer :: ir
@@ -263,5 +268,164 @@ contains
     end if
 
   end function forbitten
+  
+  subroutine fow_trapped_boundary(upper_boundary)
+    ! upper_boundary is maximum momentum of trapped particles for given psi_m, xi and particle species
+    use fowcomm
+    use fpcomm
+  
+    real(rkind) :: upper_boundary(:,:,:)
+    integer :: np, nth, nr, nsa, ir
+    real(rkind) :: dnr_bn, v_D_orbit
+    real(rkind),allocatable :: psin(:,:), B_m(:,:), Gm(:,:,:), Bn(:,:)
+  
+    allocate(psin(nthmax,nrmax),B_m(nthmax,nrmax),Bn(nthmax,nrmax),Gm(nthmax,nrmax,nsamax))
+  
+    do nr = 1, nrmax
+      do nth = 1, nthmax
+        if ( xi(nth) <= 0.d0 ) then
+          B_m(nth,nr) = Bin(nr)
+        else
+          B_m(nth,nr) = Bout(nr)
+        end if
+      end do
+    end do
+  
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do nth = 1, nthmax
+          Gm(nth,nr,nsa) = aefp(nsa)*B_m(nth,nr)*psim(nr)/(amfp(nsa)*vc*Fpsi(nr))
+        end do
+      end do
+    end do
+  
+    do nr = 1, nrmax
+      do nth = 1, nthmax
+        Bn(nth,nr) = B_m(nth,nr)/(1.d0-xi(nth)**2)
+  
+        if( Bn(nth,nr)<=Boutg(1) ) then
+          do ir = 1, nrmax
+            if( Boutg(ir+1)<=Bn(nth,nr) ) then
+              dnr_bn = (Bn(nth,nr)-Boutg(ir))/(Boutg(ir+1)-Boutg(ir))
+              psin(nth,nr) = psimg(ir)+(psimg(ir+1)-psimg(ir))*dnr_bn
+              exit
+            else if ( Bn(nth,nr)<Boutg(nrmax+1) ) then
+              dnr_bn = (Bn(nth,nr)-Boutg(nrmax+1))/(Boutg(nrmax+1)-Boutg(nrmax))
+              psin(nth,nr) = psimg(nrmax+1)+(psimg(nrmax+1)-psimg(nrmax))*dnr_bn
+              exit
+            end if
+          end do
+        else
+          do ir = 1, nrmax
+            if( Bn(nth,nr)<=Bing(ir+1) ) then
+              dnr_bn = (Bn(nth,nr)-Bing(ir))/(Bing(ir+1)-Bing(ir))
+              psin(nth,nr) = psimg(ir)+(psimg(ir+1)-psimg(ir))*dnr_bn
+              exit
+            else if ( Bn(nth,nr)>Bing(nrmax+1) ) then
+              dnr_bn = (Bn(nth,nr)-Bing(nrmax+1))/(Bing(nrmax+1)-Bing(nrmax))
+              psin(nth,nr) = psimg(nrmax+1)+(psimg(nrmax+1)-psimg(nrmax))*dnr_bn
+              exit
+            end if
+          end do
+        end if
+    
+      end do
+    end do
+  
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do nth = 1, nthmax
+          if( Boutg(nrmax+1)<=Bn(nth,nr) .and. Bn(nth,nr)<=Bing(nrmax+1) .and. psin(nth,nr)<=psim(nr) ) then
+            v_D_orbit = vc/sqrt(1.d0+xi(nth)**2/(Gm(nth,nr,nsa)*(1.d0-psin(nth,nr)/psim(nr)))**2)
+            upper_boundary(nth,nr,nsa) = amfp(nsa)*v_D_orbit/sqrt(1.d0-v_D_orbit**2/vc**2)
+            upper_boundary(nth,nr,nsa) = upper_boundary(nth,nr,nsa)/ptfp0(nsa) ! normalize
+          else
+            upper_boundary(nth,nr,nsa) = 0.d0
+          end if
+        end do
+      end do
+    end do
+  
+  
+  end subroutine fow_trapped_boundary
 
+  subroutine fow_forbitten_boundary(upper_boundary)
+    ! upper_boundary is maximum momentum of not-forbitten particles for given psi_m, xi and particle species
+    use fowcomm
+    use fpcomm
+  
+    real(rkind),intent(out) :: upper_boundary(:,:,:)
+    integer :: np,nth,nr,nsa
+    integer :: ir
+    real(rkind) :: v_stagnation_orbit
+    real(rkind),allocatable :: B_m(:,:), Gm(:,:,:), dBmdpsi(:,:), dFdpsi(:,:)
+      
+    allocate(B_m(nthmax,nrmax),Gm(nthmax,nrmax,nsamax),dBmdpsi(nthmax,nrmax), dFdpsi(nthmax,nrmax))
+  
+    do nr = 1, nrmax
+      do nth = 1, nthmax
+        if ( xi(nth) <= 0.d0 ) then
+          B_m(nth,nr) = Bin(nr)
+        else
+          B_m(nth,nr) = Bout(nr)
+        end if
+      end do
+    end do
+  
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do nth = 1, nthmax
+          Gm(nth,nr,nsa) = aefp(nsa)*B_m(nth,nr)*psim(nr)/(amfp(nsa)*vc*Fpsi(nr))
+        end do
+      end do
+    end do
+  
+    do nr = 1, nrmax
+      do nth = 1, nthmax
+        if ( xi(nth)>=0.d0 ) then
+          if ( nr==1 ) then
+            dBmdpsi(nth,nr) = (-3*Bout(1)+4*Bout(2)-Bout(3))/(-3*psim(1)+4*psim(2)-psim(3))
+            dFdpsi(nth,nr) = (-3*Fpsi(1)+4*Fpsi(2)-Fpsi(3))/(-3*psim(1)+4*psim(2)-psim(3))
+          else if ( nr==nrmax ) then
+            dBmdpsi(nth,nr) = (3*Bout(nrmax)-4*Bout(nrmax-1)+Bout(nrmax-2))&
+                    /(3*psim(nrmax)-4*psim(nrmax-1)+psim(nrmax-2))
+            dFdpsi(nth,nr) = (3*Fpsi(nrmax)-4*Fpsi(nrmax-1)+Fpsi(nrmax-2))&
+                    /(3*psim(nrmax)-4*psim(nrmax-1)+psim(nrmax-2))
+          else
+            dBmdpsi(nth,nr) = (Bout(nr+1)-Bout(nr-1))/(psim(nr+1)-psim(nr-1))
+            dFdpsi(nth,nr) = (Fpsi(nr+1)-Fpsi(nr-1))/(psim(nr+1)-psim(nr-1))
+          end if
+      
+        else if ( xi(nth)<0.d0) then
+          if ( nr==1 ) then
+            dBmdpsi(nth,nr) = (-3*Bin(1)+4*Bin(2)-Bin(3))/(-3*psim(1)+4*psim(2)-psim(3))
+            dFdpsi(nth,nr) = (-3*Fpsi(1)+4*Fpsi(2)-Fpsi(3))/(-3*psim(1)+4*psim(2)-psim(3))
+          else if ( nr==nrmax ) then
+            dBmdpsi(nth,nr) = (3*Bin(nrmax)-4*Bin(nrmax-1)+Bin(nrmax-2))&
+                    /(3*psim(nrmax)-4*psim(nrmax-1)+psim(nrmax-2))
+            dFdpsi(nth,nr) = (3*Fpsi(nrmax)-4*Fpsi(nrmax-1)+Fpsi(nrmax-2))&
+                    /(3*psim(nrmax)-4*psim(nrmax-1)+psim(nrmax-2))
+          else
+            dBmdpsi(nth,nr) = (Bin(nr+1)-Bin(nr-1))/(psim(nr+1)-psim(nr-1))
+            dFdpsi(nth,nr) = (Fpsi(nr+1)-Fpsi(nr-1))/(psim(nr+1)-psim(nr-1))
+          end if
+        end if    
+      end do
+    end do
+  
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do nth = 1, nthmax
+          v_stagnation_orbit = Gm(nth,nr,nsa)*xi(nth)/(xi(nth)**2*dFdpsi(nth,nr)/Fpsi(nr)&
+                                        -0.5d0*(1.d0+xi(nth)**2)*dBmdpsi(nth,nr)/B_m(nth,nr)) ! LHS = gamma*beta 
+          v_stagnation_orbit = vc*sqrt(v_stagnation_orbit**2/(1.d0+v_stagnation_orbit**2)) ! LHS = velocity of stagnation orbit
+  
+          upper_boundary(nth,nr,nsa) = amfp(nsa)*v_stagnation_orbit/(1.d0-v_stagnation_orbit**2/vc**2) ! momentum of stagnation orbit
+          upper_boundary(nth,nr,nsa) = upper_boundary(nth,nr,nsa)/ptfp0(nsa) ! normalize
+        end do
+      end do
+    end do
+  
+  end subroutine fow_forbitten_boundary
+  
 end module foworbitclassify

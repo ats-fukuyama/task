@@ -47,6 +47,7 @@ contains
         STOP
       end if
       ns_ob = nsa
+      write(*,*)"nsa=",nsa
       call ob_allocate
       call fow_orbit_initial_value(penergy_in, pcangle_in, zeta_in, psipn_in, theta_in, nobt_in, nsa, mode)
       call ob_calc(ierr)

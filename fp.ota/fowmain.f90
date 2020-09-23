@@ -23,7 +23,7 @@ program fow
 
   integer :: IERR=0,nr,nth,np,nsa,nstp
   integer :: mode(3)
-  real(rkind),allocatable :: check_orbit(:,:),lorentz(:),lorentzg(:),beta(:),betag(:),fu(:,:,:,:),fI(:,:,:,:),J(:,:,:,:)
+  real(rkind),allocatable :: fu(:,:,:,:),fI(:,:,:,:),J(:,:,:,:)
 
   call mtx_initialize
 
@@ -55,15 +55,72 @@ program fow
   end do
   call fpcsv2D(fu(:,:,1,1),"./csv/fu.csv")
 
-  write(*,*)"1"
-  call fow_orbit_jacobian(J,orbit_m)
+    do nr = 1, nrmax
+          write(*,*)"FNS0",FNS0(1,1,NR,2)
+    end do
+
   call fow_distribution_maxwellian_inCOM(fI)
-  write(*,*)"2"
-  call fpcsv2D(J(:,:,1,1),"./csv/J.csv")
-  call fpcsv2D(fI(:,:,1,2),"./csv/fI_center.csv")
+  call fpcsv2D(fI(:,:,2,2),"./csv/fI_center.csv")
   call fpcsv2D(fI(:,:,nrmax,2),"./csv/fI_edge.csv")
   call fpcsv2D(fI(:,:,nrmax/2,2),"./csv/fI_quarter.csv")
+  call fpcsv1D(fI(:,nthmax/4,nrmax/2,2),"./csv/fInth4.csv")
+  call fpcsv1D(fI(:,nthmax/3,nrmax/2,2),"./csv/fInth3.csv")
+  call fpcsv1D(fI(:,1,nrmax/2,2),"./csv/fInth0.csv")
 
+  ! write(*,*)"1"
+  ! call fow_orbit_jacobian(J,orbit_m)
+  ! write(*,*)"2"
+  ! call fpcsv2D(J(:,:,1,1),"./csv/J.csv")
+
+  write(*,*)"debug"
+  call fow_debug
+
+  write(*,*)"end"
+  call fow_deallocate
+
+end program fow
+
+subroutine fow_debug
+
+  use fowcomm
+  use foworbitclassify
+  use fowdistribution
+
+  use fpcomm
+  use fpwrite
+
+  implicit none
+
+  integer :: IERR=0,nr,nth,np,nsa,nstp
+  integer :: mode(3)
+  real(rkind),allocatable :: check_orbit(:,:),lorentz(:),lorentzg(:),beta(:),betag(:),mean_r(:,:,:,:)&
+                            ,trapped_boundary(:,:,:), forbitten_boundary(:,:,:)
+  real(rkind) :: mean_psip
+
+  write(*,*)"mean"
+  allocate(mean_r(npmax,nthmax,nrmax,nsamax))
+  do nsa = 1, nsamax
+    do nr = 1, nrmax
+      do nth = 1, nthmax
+        do np = 1, npmax
+          if ( forbitten(np,nth,nr,nsa,[0,0,0]) ) then
+            mean_r(np,nth,nr,nsa) = 0.d0
+          else
+            write(*,*)1
+            mean_psip = sum(orbit_m(np,nth,nr,nsa)%psip)/size(orbit_m(np,nth,nr,nsa)%psip)
+            call fow_get_ra_from_psip(mean_r(np,nth,nr,nsa), mean_psip)
+            mean_r(np,nth,nr,nsa) = rm(nr)-mean_r(np,nth,nr,nsa)
+          end if
+        end do
+      end do
+    end do
+  end do
+
+  call fpcsv2D(mean_r(:,:,2,2),"./csv/mean_r_center.csv")
+  call fpcsv2D(mean_r(:,:,nrmax/2,2),"./csv/mean_r_quarter.csv")
+  call fpcsv2D(mean_r(:,:,nrmax,2),"./csv/mean_r_edge.csv")
+
+  write(*,*)"trapped_ion"
   nsa=2
   mode=[0,1,0]
   allocate(check_orbit(nthmax+mode(2),nrmax+mode(3)))
@@ -83,6 +140,7 @@ program fow
   call fpcsv2D(check_orbit,"./csv/check_orbit_trapped_ion.csv")
   deallocate(check_orbit)
 
+  write(*,*)"forbitten_ion"
   mode=[0,1,0]
   allocate(check_orbit(nthmax+mode(2),nrmax+mode(3)))
   do nr=1,nrmax+mode(3)
@@ -100,7 +158,7 @@ program fow
   end do
   call fpcsv2D(check_orbit,"./csv/check_orbit_forbitten_ion.csv")
   deallocate(check_orbit)
-
+  write(*,*)"trapped_ele"
   nsa=1
   mode=[0,1,0]
   allocate(check_orbit(nthmax+mode(2),nrmax+mode(3)))
@@ -120,6 +178,7 @@ program fow
   call fpcsv2D(check_orbit,"./csv/check_orbit_trapped_ele.csv")
   deallocate(check_orbit)
 
+  write(*,*)"forbitten_ele"
   mode=[0,1,0]
   allocate(check_orbit(nthmax+mode(2),nrmax+mode(3)))
   do nr=1,nrmax+mode(3)
@@ -137,6 +196,7 @@ program fow
   end do
   call fpcsv2D(check_orbit,"./csv/check_orbit_forbitten_ele.csv")
 
+  write(*,*)"equiv_variable"
   call fpcsv1D(psimg,"./csv/psimg.csv")
   call fpcsv1D(Fpsig,"./csv/Fpsig.csv")
   call fpcsv1D(Boutg,"./csv/Boutg.csv")
@@ -145,10 +205,38 @@ program fow
   call fpcsv1D(Fpsi,"./csv/Fpsi.csv")
   call fpcsv1D(Bout,"./csv/Bout.csv")
   call fpcsv1D(Bin,"./csv/Bin.csv")
+  call fpcsv1D(pm(:,1),"./csv/pm_ele.csv")
+  call fpcsv1D(pg(:,1),"./csv/pg_ele.csv")
+  call fpcsv1D(pm(:,2),"./csv/pm_ion.csv")
+  call fpcsv1D(pg(:,2),"./csv/pg_ion.csv")
+  call fpcsv1D(xi,"./csv/xi.csv")
+  call fpcsv1D(xig,"./csv/xig.csv")
 
-  deallocate(check_orbit)
+  allocate(trapped_boundary(nthmax,nrmax,nsamax),forbitten_boundary(nthmax,nrmax,nsamax))
+  call fow_trapped_boundary(trapped_boundary)
+  call fow_forbitten_boundary(forbitten_boundary)
 
-  write(*,*)"end"
-  call fow_deallocate
+  do nsa = 1, nsamax
+    do nr = 1, nrmax
+      do nth = 1, nthmax
+        if ( trapped_boundary(nth,nr,nsa) >= pm(npmax,nsa) ) then
+          trapped_boundary(nth,nr,nsa) = pm(npmax,nsa)
+        end if
+        if ( forbitten_boundary(nth,nr,nsa) >= pm(npmax,nsa) ) then
+          forbitten_boundary(nth,nr,nsa) = pm(npmax,nsa)
+        end if
+      end do
+    end do  
+  end do
 
-end program fow
+  call fpcsv2D(trapped_boundary(:,:,2),"./csv/trapped_boundary.csv")
+  call fpcsv1D(trapped_boundary(:,2,2),"./csv/trapped_boundary_center.csv")
+  call fpcsv1D(trapped_boundary(:,nrmax/2,2),"./csv/trapped_boundary_quarter.csv")
+  call fpcsv1D(trapped_boundary(:,nrmax,2),"./csv/trapped_boundary_edge.csv")
+
+  call fpcsv2D(forbitten_boundary(:,:,2),"./csv/forbitten_boundary.csv")
+  call fpcsv1D(forbitten_boundary(:,2,2),"./csv/forbitten_boundary_center.csv")
+  call fpcsv1D(forbitten_boundary(:,nrmax/2,2),"./csv/forbitten_boundary_quarter.csv")
+  call fpcsv1D(forbitten_boundary(:,nrmax,2),"./csv/forbitten_boundary_edge.csv")
+
+end subroutine
