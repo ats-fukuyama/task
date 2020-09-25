@@ -27,8 +27,10 @@
          CALL SET_RLAMDA(NR) ! NAVMAX 
 !multiply A_chi0
          A_chi0(NR) = 2.D0*PI*RA**2*RM(NR)*(RR+RA*RM(NR))/(QLM(NR)*RR)
-         FACT = RA**2*RM(NR)*( RR+RA*RM(NR) )*2.D0 ! *2.D0 from oint 
+         FACT = RA**2*RM(NR)*( RR+RA*RM(NR) )*2.D0 ! *2.D0 from oint
+         WRITE(6,'(A,I6:4ES12.4)') 'FACT:',NR,RM(NR),RR,RA,FACT
          DO NTH=1, NTHMAX
+            WRITE(6,'(A,I6:ES12.4)') 'RLAM:',NTH,RLAMDA(NTH,NR)
             RLAMDA(NTH,NR)=RLAMDA(NTH,NR)*FACT
          END DO
          CALL SET_RLAMDA_TPB_FROM_DENS(NR) ! RLAMDA(ITL,NR) is set to satisfy init dens
