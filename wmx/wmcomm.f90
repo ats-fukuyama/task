@@ -322,22 +322,22 @@ CONTAINS
     ALLOCATE(CBN(3,nthmax,nhhmax,nrmax+1))
     ALLOCATE(CBP(3,nthmax,nhhmax,nrmax+1))
 
-    ALLOCATE(CPABS(nthmax_f,nhhmax_f,nrmax,nsmax))
-    ALLOCATE(CPABSK(nthmax_f,nhhmax_f,nrmax,nsmax))
-    ALLOCATE(CPABSR(nhhmax_f,nrmax,nsmax))
+    ALLOCATE(CPABS(nthmax_f,nhhmax_f,nrmax+1,nsmax))
+    ALLOCATE(CPABSK(nthmax_f,nhhmax_f,nrmax+1,nsmax))
+    ALLOCATE(CPABSR(nhhmax_f,nrmax+1,nsmax))
 
-    ALLOCATE(PABS(nthmax_f,nhhmax_f,nrmax,nsmax))
-    ALLOCATE(PABSK(nthmax_f,nhhmax_f,nrmax,nsmax))
-    ALLOCATE(PABSR(nrmax,nsmax))
+    ALLOCATE(PABS(nthmax_f,nhhmax_f,nrmax+1,nsmax))
+    ALLOCATE(PABSK(nthmax_f,nhhmax_f,nrmax+1,nsmax))
+    ALLOCATE(PABSR(nrmax+1,nsmax))
     ALLOCATE(PABST(nsmax))
     
-    ALLOCATE(CPABS3D(nthmax_f,nphmax_f,nrmax,nsmax))
-    ALLOCATE(CPABSK3D(nthmax_f,nphmax_f,nrmax,nsmax))
-    ALLOCATE(CPABSR3D(nphmax_f,nrmax,nsmax))
+    ALLOCATE(CPABS3D(nthmax_f,nphmax_f,nrmax+1,nsmax))
+    ALLOCATE(CPABSK3D(nthmax_f,nphmax_f,nrmax+1,nsmax))
+    ALLOCATE(CPABSR3D(nphmax_f,nrmax+1,nsmax))
 
-    ALLOCATE(PABS3D(nthmax_f,nphmax_f,nrmax,nsmax))
-    ALLOCATE(PABS2D(nthmax_f,nrmax,nsmax))
-    ALLOCATE(PABSR3D(nphmax_f,nrmax,nsmax))
+    ALLOCATE(PABS3D(nthmax_f,nphmax_f,nrmax+1,nsmax))
+    ALLOCATE(PABS2D(nthmax_f,nrmax+1,nsmax))
+    ALLOCATE(PABSR3D(nphmax_f,nrmax+1,nsmax))
     ALLOCATE(PABSKT(nthmax_f,nhhmax_f,nsmax))
     ALLOCATE(PABST3D(nphmax_f,nsmax))
     ALLOCATE(PABSTT3D(nphmax_f))
@@ -418,11 +418,13 @@ CONTAINS
     DEALLOCATE(CPRADK)
     DEALLOCATE(PCUR,PCURR)
 
+    DEALLOCATE(RPST,ZPST,PPST,BPST)
+    DEALLOCATE(BFLD,BTHOBN)
+
     DEALLOCATE(RSU,ZSU)
     DEALLOCATE(RSW,ZSW)
 
     DEALLOCATE(RHOT,PSIP)
-    DEALLOCATE(RPST,ZPST,PPST,BPST,BFLD)
     DEALLOCATE(RPS,ZPS,DRPSI,DZPSI,DRCHI,DZCHI)
     DEALLOCATE(PPS,QPS,RBPS,VPS,RLEN)
     DEALLOCATE(BPR,BPZ,BPT,BTP)
@@ -431,6 +433,7 @@ CONTAINS
     DEALLOCATE(PNSSV,PTSSV)
     DEALLOCATE(PN60,PT60)
     DEALLOCATE(RNPRF,RTPRF)
+    DEALLOCATE(KACONT)
 
   END SUBROUTINE wm_deallocate
 END MODULE wmcomm

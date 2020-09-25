@@ -48,7 +48,6 @@ CONTAINS
        CALL wm_pwrant
     ENDIF
     IF(nrank.EQ.0) THEN
-       CALL wm_pout
        IF(nprint.GE.5) CALL wm_dout(ierr)
     ENDIF
     RETURN

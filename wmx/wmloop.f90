@@ -18,6 +18,7 @@ CONTAINS
     USE wmcomm
     USE wmsetg
     USE wmexec
+    USE wmpout
     USE wmfile
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
@@ -26,17 +27,15 @@ CONTAINS
     CHARACTER(LEN=2):: KNHC
     CHARACTER(LEN=4):: KNPH0
 
-    IF(NPHMAX.EQ.1) THEN
-       NPH_LOOP(1)=NPH0
-       CALL wm_exec(IERR)
-       RETURN
-    ENDIF
-
     NPH0_SV  = NPH0
 
-    DO NPH=1,NPHMAX
-       NPH_LOOP(NPH)=NPH-NPHMAX/2-1
-    END DO
+    IF(NPHMAX.EQ.1) THEN
+       NPH_LOOP(1)=NPH0
+    ELSE
+       DO NPH=1,NPHMAX
+          NPH_LOOP(NPH)=NPH-NPHMAX/2-1
+       END DO
+    END IF
 
     DO NR=1,NRMAX+1
        DO NPH=1,NPHMAX
@@ -68,6 +67,7 @@ CONTAINS
     END DO
       
     CALL wm_setg(IERR)
+    CALL wm_pout_init
       
     DO NPH = 1,NPHMAX
        NPH0 = NPH_LOOP(NPH)
@@ -163,6 +163,8 @@ CONTAINS
        ENDIF
     ENDDO
 
+    CALL wm_pout_sum
+    CALL wm_pout
     NPH0  = NPH0_SV
 
 !      DO NS=1,NSMAX

@@ -465,6 +465,7 @@ CONTAINS
     REAL(4),ALLOCATABLE:: GBY(:,:),GFL(:,:),GRL(:,:),GZL(:,:),GRS(:),GZS(:)
     REAL(4),ALLOCATABLE:: GTHR(:,:),GTCO(:,:),GTRC(:,:),GTLC(:,:)
     REAL(rkind),ALLOCATABLE:: THR(:,:),TCO(:,:),TRC(:,:),TLC(:,:)
+    INTEGER,ALLOCATABLE:: KA(:,:,:)
     REAL(rkind):: RN(nsmax),RTPR(nsmax),RTPP(nsmax),RU(nsmax)
     REAL(rkind):: WP(nsmax),WC(nsmax)
     INTEGER:: NS,NR,NTH,NTHF,NHHF,NTHGS,NTHP,NTHL,IRORG,NC,NRLCFS,NSTEP
@@ -478,14 +479,15 @@ CONTAINS
     REAL(4):: GGRMIN,GGRMAX,GGRSTP,GGZMIN,GGZMAX,GGZSTP
     REAL(4):: GBCF,GFMIN,GFMAX,GGFMIN,GGFMAX,GGFSTP
 
-    ALLOCATE(THR(nrmax+1,nthmax_f),TCO(nrmax+1,nthmax_f))
-    ALLOCATE(TRC(nrmax+1,nthmax_f),TLC(nrmax+1,nthmax_f))
-    ALLOCATE(GBY(nrmax+1,nthmax_f))
+    ALLOCATE(THR(nrmax+1,nthmax_g),TCO(nrmax+1,nthmax_g))
+    ALLOCATE(TRC(nrmax+1,nthmax_g),TLC(nrmax+1,nthmax_g))
+    ALLOCATE(GBY(nrmax+1,nthmax_g))
     ALLOCATE(GFL(nrmax+1,nthmax_g))
     ALLOCATE(GRL(nrmax+1,nthmax_g),GZL(nrmax+1,nthmax_g))
-    ALLOCATE(GTHR(nrmax+1,nthmax_f),GTCO(nrmax+1,nthmax_f))
-    ALLOCATE(GTRC(nrmax+1,nthmax_f),GTLC(nrmax+1,nthmax_f))
+    ALLOCATE(GTHR(nrmax+1,nthmax_g),GTCO(nrmax+1,nthmax_g))
+    ALLOCATE(GTRC(nrmax+1,nthmax_g),GTLC(nrmax+1,nthmax_g))
     ALLOCATE(GRS(nsumax+1),GZS(nsumax+1))
+    ALLOCATE(KA(8,nrmax+1,nthmax_g))
 
     SELECT CASE(MODELG)
     CASE(0:2)
@@ -648,7 +650,7 @@ CONTAINS
              GBCF=GUCLIP(BCF)
              CALL SETRGB(1.0,1.0,(NC-1)*0.1)
              CALL CONTQ5(GBY,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
-                         GBCF,1.0,1,2,4,KACONT)
+                         GBCF,1.0,1,2,4,KA)
           ENDDO
        ENDDO
 
@@ -656,25 +658,25 @@ CONTAINS
 
        CALL SETRGB(0.0,1.0,1.0)
        CALL CONTQ5(GTCO,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
-                   0.0,1000.0,1,2,6,KACONT)
+                   0.0,1000.0,1,2,6,KA)
 
 !     ****** DRAW RIGHT CUT OFF SURFACE (light blue, two-dot-dashed) ******
 
        CALL SETRGB(0.5,1.0,1.0)
        CALL CONTQ5(GTRC,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
-                   0.0,1000.0,1,2,6,KACONT)
+                   0.0,1000.0,1,2,6,KA)
 
 !     ****** DRAW LEFT CUT OFF SURFACE (light purple, two-dots-dashed) ******
 
        CALL SETRGB(1.0,0.5,1.0)
        CALL CONTQ5(GTLC,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
-                   0.0,1000.0,1,2,6,KACONT)
+                   0.0,1000.0,1,2,6,KA)
 
 !     ****** DRAW HYBRID RESONANCE SURFACE (purple, long-dashed) ******
 
        CALL SETRGB(1.0,0.0,1.0)
        CALL CONTQ5(GTHR,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
-                   0.0,1000.0,1,2,3,KACONT)
+                   0.0,1000.0,1,2,3,KA)
 
     ENDIF
 
@@ -702,14 +704,14 @@ CONTAINS
     IF(DBLE(GFMIN)*DBLE(GFMAX).GT.0.d0) THEN ! To avoid floating overflow
        CALL SETLIN(-1,-1,6)
        CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
-                   GGFMIN,GGFSTP,NSTEP,2,0,KACONT)
+                   GGFMIN,GGFSTP,NSTEP,2,0,KA)
     ELSE
        CALL SETLIN(-1,-1,6)
        CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
-                   0.5*GGFSTP, GGFSTP,NSTEP,2,0,KACONT)
+                   0.5*GGFSTP, GGFSTP,NSTEP,2,0,KA)
        CALL SETLIN(-1,-1,5)
        CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
-                  -0.5*GGFSTP,-GGFSTP,NSTEP,2,2,KACONT)
+                  -0.5*GGFSTP,-GGFSTP,NSTEP,2,2,KA)
     ENDIF
 
 !     ****** DRAW PLASMA AND WALL SURFACE ****** 
@@ -764,6 +766,7 @@ CONTAINS
     INTEGER,PARAMETER:: NSTEPM=101
     REAL(4),ALLOCATABLE:: GBY(:,:),GFL(:,:),GRL(:,:),GZL(:,:),GRS(:),GZS(:)
     REAL(4),ALLOCATABLE:: GDL(:),GRGBL(:,:)
+    INTEGER,ALLOCATABLE:: KA(:,:,:)
     REAL(4):: GRGBA(3,NRGBA),GLA(NRGBA)
     DATA GRGBA/0.0,0.0,1.0, &
                0.0,1.0,1.0, &
@@ -780,10 +783,11 @@ CONTAINS
     REAL(rkind):: BICF
     REAL(4):: GBICF
     
-    ALLOCATE(GBY(nrmax,nthmax_f))
-    ALLOCATE(GFL(nrmax,nthmax_f),GRL(nrmax,nthmax_f),GZL(nrmax,nthmax_f))
+    ALLOCATE(GBY(nrmax,nthmax_g))
+    ALLOCATE(GFL(nrmax,nthmax_g),GRL(nrmax,nthmax_g),GZL(nrmax,nthmax_g))
     ALLOCATE(GRS(nsumax+1),GZS(nsumax+1))
     ALLOCATE(GDL(NSTEPM),GRGBL(3,0:NSTEPM))
+    ALLOCATE(KA(8,nrmax+1,nthmax_g))
       
     SELECT CASE(MODELG)
     CASE(0:2)
@@ -914,20 +918,20 @@ CONTAINS
     IF(GFMIN*GFMAX.GT.0.0) THEN
        CALL SETLIN(0,0,6)
        CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
-                   GGFMIN,GGFSTP,NSTEP,2,0,KACONT)
+                   GGFMIN,GGFSTP,NSTEP,2,0,KA)
     ELSE
 !       CALL SETLIN(0,0,6)
 !       CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
-!                   0.25*GGFSTP, GGFSTP,NSTEP,2,0,KACONT)
+!                   0.25*GGFSTP, GGFSTP,NSTEP,2,0,KA)
        CALL SETRGB(0.8,0.8,0.0)
        CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
-                   0.15*GGFSTP, GGFSTP,1,2,0,KACONT)
+                   0.15*GGFSTP, GGFSTP,1,2,0,KA)
 !       CALL SETLIN(0,0,5)
 !       CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
-!                  -0.25*GGFSTP,-GGFSTP,NSTEP,2,2,KACONT)
+!                  -0.25*GGFSTP,-GGFSTP,NSTEP,2,2,KA)
        CALL SETRGB(0.0,0.8,0.8)
        CALL CONTQ5(GFL,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
-                  -0.15*GGFSTP,-GGFSTP,1,2,0,KACONT)
+                  -0.15*GGFSTP,-GGFSTP,1,2,0,KA)
     ENDIF
 
     CALL RGBBAR(2.3+GPR,2.8+GPR,2.0,2.0+GPZ,GRGBL,ISTEP+1,1)
@@ -938,7 +942,7 @@ CONTAINS
        GBICF=GUCLIP(BICF)
        CALL SETRGB(0.0,1.0,0.0)
        CALL CONTQ5(GBY,GRL,GZL,nrmax+1,NRMAX+1,nthmax_g, &
-                   GBICF,1.0,1,2,7,KACONT)
+                   GBICF,1.0,1,2,7,KA)
 
     ENDIF
 

@@ -856,7 +856,8 @@ CONTAINS
              ENDDO !mdx
           ENDDO !ndx
 
-!     +++++ CALCULATE PABS IN REAL SPACE +++++
+
+          !     +++++ CALCULATE PABS IN REAL SPACE +++++
 
           DO NDX=1,NDSIZ
              DO MDX=1,MDSIZ
@@ -883,31 +884,7 @@ CONTAINS
              ENDDO !mdx
           ENDDO !ndx
 
-          DO NDX=1,NDSIZ
-             DO MDX=1,MDSIZ
-                CPF1=0d0
-                CPF2=0d0
-                DO KK=KDMIN,KDMAX
-                   IF (KDMAX /=0 .and. kk==KDMAX)CYCLE
-                   KKX =KK-KDMIN+1
-                   DO LL=LDMIN,LDMAX
-                      IF (LDMAX /= 0 .and. LL==LDMAX)CYCLE
-                      LLX=LL-LDMIN+1
-                      CPF1(LLX,KKX)=CPABSKC(LLX,MDX,KKX,NDX)
-                   ENDDO !ll
-                ENDDO !kk
-                CALL WMSUBE(CPF1,CPF2)
-                DO NHH=1,NHHMAX
-                   DO NTH=1,NTHMAX
-                      CPABS(NTH,NHH,NR+1,NS)=CPABS(NTH,NHH,NR+1,NS) &
-                           +CPF2(NTH,NHH)
-                      CPABS3D(NTH,NHH,NR+1,NS)=CPABS3D(NTH,NHH,NR+1,NS) &
-                           +CPF2(NTH,NHH)
-                   ENDDO !nth
-                ENDDO !nhh
-             ENDDO !mdx
-          ENDDO !ndx
-      
+
 !     +++++ CALCULATE DRIVEN CURRENT IN REAL SPACE +++++
 
           IF (NS .EQ. 1) THEN
@@ -1000,6 +977,21 @@ CONTAINS
           ENDIF !ns=1
        ENDDO !nr
     ENDDO !ns
+
+    DO NS=1,NSMAX
+       DO NR=1,NRMAX
+          DO NHH=1,NHHMAX
+             DO NTH=1,NTHMAX
+                PABS(NTH,NHH,NR,NS)=DBLE(CPABS(NTH,NHH,NR,NS))
+             END DO
+          END DO
+          DO NDX=1,NDSIZ
+             DO MDX=1,MDSIZ
+                PABSK(MDX,NDX,NR,NS)=DBLE(CPABSK(MDX,NDX,NR,NS))
+             END DO
+          END DO
+       END DO
+    END DO
 
     DEALLOCATE(CPABSKM)
     DEALLOCATE(CPABSKC)

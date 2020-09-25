@@ -15,7 +15,7 @@ CONTAINS
     USE wminit,ONLY: wm_init
     USE wmparm,ONLY: wm_parm,wm_broadcast
     USE wmview,ONLY: wm_view
-    USE wmexec,ONLY: wm_exec
+    USE wmloop,ONLY: wm_loop
     USE wmdout,ONLY: wm_dout
     USE wmgout,ONLY: wm_gout
     USE wmfile,ONLY: wm_load,wm_save
@@ -62,7 +62,7 @@ CONTAINS
 
     CASE('R')                                      ! single/multi mode calc
        CALL wm_allocate
-       CALL wm_exec(ierr)
+       CALL wm_loop(ierr)
        init=1
 
     CASE('D')                                      ! amp calc for given source

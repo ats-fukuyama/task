@@ -70,6 +70,15 @@ CONTAINS
     print *,   '  nzeta    = ', nzeta
     print *,   '   nznt    = ',  nznt
 
+    nsd=nsrmax
+    nmnm=mnmax
+    mpol=mpol_in
+    ntor=ntor_in
+    ntheta=ntheta_in
+    nzeta=nzeta_in
+    
+    CALL wm_allocate_vm
+    
     if( nsrmax .GT. nsd ) then
        print 600,' ns_in     = ',   nsrmax,'  > nsd    = ',nsd
        stop

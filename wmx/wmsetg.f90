@@ -682,6 +682,8 @@ CONTAINS
              BSUPPH=BFLD(3,NTH,NHH,NR)
              BABS  =BPST(NTH,NHH,NR)
              BTH=ABS(BSUPTH*RA*RHON)
+!             WRITE(6,'(A,3I6,3ES12.4)') &
+!                  'wmsetg:',NR,NHH,NTH,BTH,BABS,BTHOBN(NR)
              BTHOBN(NR)=BTHOBN(NR) + BTH/BABS
           ENDDO
        ENDDO
