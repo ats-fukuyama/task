@@ -569,8 +569,8 @@ C
             SCMAX=1.D0
          ELSE IF(ISCAN.EQ.12) THEN
             KV='RHOB'
-            RHOITBSAVE=RHOITB
-            SCMIN=RHOITB
+            RHOITBSAVE=RHOITB(1)
+            SCMIN=RHOITB(1)
          ELSE IF(ISCAN.EQ.13) THEN
             KV='PU  '
             DO NS=1,NSMAX

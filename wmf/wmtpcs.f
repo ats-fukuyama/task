@@ -131,6 +131,7 @@ C***********************************************************************
 C
       SUBROUTINE WM_TOPICS_OUT(PABSTS,IERR)
 C
+      USE libfio
       INCLUDE 'wmcomm.inc'
 C
       real(8), dimension(NSMAX,NPHSMAX), intent(in) :: PABSTS

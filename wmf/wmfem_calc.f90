@@ -1105,19 +1105,40 @@ CONTAINS
       SUBROUTINE wmfem_dielectric(rho,th,ph,mm,nn,ns,fml)
 
       use wmfem_comm
-      use pllocal
+      use plprofw
+      use plprof
+      USE dptnsr0
       IMPLICIT NONE
+      TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
+      TYPE(pl_mag_type):: mag
+      TYPE(pl_grd_type),DIMENSION(nsmax):: grd
       REAL(8),INTENT(IN):: rho,th,ph
       INTEGER,INTENT(IN):: mm,nn,ns
       COMPLEX(8),DIMENSION(3,3),INTENT(OUT):: fml
       COMPLEX(8):: cw,ckpara,ckperp
       COMPLEX(8):: ckppf,ckpps
-      REAL(8):: babs,bsuprh,bsupth,bsupph
+      REAL(8):: babs_l,bsuprh,bsupth,bsupph
+      INTEGER:: ns1
+
+      DO ns1=1,nsmax
+         grd(ns1)%grdn=0.D0
+         grd(ns1)%grdtpr=0.D0
+         grd(ns1)%grdtpp=0.D0
+         grd(ns1)%grdu=0.D0
+      END DO
 
       cw=2.d0*pi*crf*1.d6
-      CALL wmfem_magnetic(rho,th,ph,babs,bsuprh,bsupth,bsupph)
-      ckpara=mm*bsupth/babs+nn*bsupph/babs
+
+      CALL pl_profw(rho,plfw)
+
+      CALL wmfem_magnetic(rho,th,ph,babs_l,bsuprh,bsupth,bsupph)
+      ckpara=mm*bsupth/babs_l+nn*bsupph/babs_l
       ckperp=(0.d0,0.d0)
+      mag%babs=babs_l
+      mag%bnx=0.D0
+      mag%bny=0.D0
+      mag%bnz=1.d0
+      mag%rhon=rho
 
 !$$$      if(abs(th).lt.1.d-4) then
 !$$$         CALL DPCOLD_RKPERP(cw,ckpara,ckppf,ckpps)
@@ -1126,10 +1147,9 @@ CONTAINS
 
 !$$$         if(ns.eq.1.and.abs(th).lt.0.1) 
 !$$$     &    write(6,'(a,2i5,1p5e12.4)') 'm,n,kpara:',
-!$$$     &         mm,nn,dble(ckpara),rho,babs,bsupth,bsupph
+!$$$     &         mm,nn,dble(ckpara),rho,babs_l,bsupth,bsupph
 
-      CALL PL_PROF_OLD(RHO)
-      CALL dpcalc(cw,ckpara,ckperp,ns,fml)
+      CALL dp_tnsr0(cw,ckpara,ckperp,ns,mag,plfw,grd,fml)
 
       RETURN
 

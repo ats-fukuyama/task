@@ -276,7 +276,7 @@ C
       NAMELIST /WM/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,
      &              PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,NSMAX,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
-     &              PNA,PNAL,PTA,ZEFF,NDISP1,NDISP2,
+     &              PNA,PNAL,PTA,ZEFF,NCMIN,NCMAX,
      &              RF,RFI,RD,BETAJ,AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,
      &              NRMAX,NTHMAX,NHHMAX,NTH0,NPH0,NHC,
      &              NPRINT,NGRAPH,MODELG,MODELJ,MODELP,MODELN,MODELA,
@@ -543,7 +543,7 @@ C
      &                   PTPR(NS),PTPP(NS),PTS(NS)
       ENDDO
       DO NS=1,NSMAX
-         WRITE(6,612) NS,MODELP(NS),MODELV(NS),NDISP1(NS),NDISP2(NS),
+         WRITE(6,612) NS,MODELP(NS),MODELV(NS),NCMIN(NS),NCMAX(NS),
      &          PZCL(NS),PU(NS),PUS(NS),PNITB(NS),PTITB(NS),PUITB(NS)
       ENDDO
 C
@@ -610,10 +610,10 @@ C
          DPARA(6) =QA
          DPARA(7) =RKAP
          DPARA(8) =RDLT
-         DPARA(9) =PROFN1
-         DPARA(10)=PROFN2
-         DPARA(11)=PROFT1
-         DPARA(12)=PROFT2
+         DPARA(9) =PROFN1(1)
+         DPARA(10)=PROFN2(1)
+         DPARA(11)=PROFT1(1)
+         DPARA(12)=PROFT2(1)
          DPARA(13)=ZEFF
          DPARA(14)=PNA
          DPARA(15)=PNAL
@@ -626,14 +626,14 @@ C
          DPARA(22)=EPSNW
          DPARA(23)=RHOMIN
          DPARA(24)=QMIN
-         DPARA(25)=RHOITB
-         DPARA(26)=PROFU1
-         DPARA(27)=PROFU2
+         DPARA(25)=RHOITB(1)
+         DPARA(26)=PROFU1(1)
+         DPARA(27)=PROFU2(1)
          DPARA(28)=PRFIN
       ENDIF
 C
-      CALL MPBCIN(IPARA,21)
-      CALL MPBCDN(DPARA,28)
+      CALL mtx_broadcast_integer(IPARA,21)
+      CALL mtx_broadcast_real8(DPARA,28)
 C
       IF(NRANK.NE.0) THEN
          NSMAX =IPARA(1) 
@@ -666,10 +666,10 @@ C
          QA    =DPARA(6) 
          RKAP  =DPARA(7) 
          RDLT  =DPARA(8) 
-         PROFN1=DPARA(9) 
-         PROFN2=DPARA(10)
-         PROFT1=DPARA(11)
-         PROFT2=DPARA(12)
+         PROFN1(1)=DPARA(9) 
+         PROFN2(1)=DPARA(10)
+         PROFT1(1)=DPARA(11)
+         PROFT2(1)=DPARA(12)
          ZEFF  =DPARA(13)
          PNA   =DPARA(14)
          PNAL  =DPARA(15)
@@ -682,36 +682,36 @@ C
          EPSNW =DPARA(22)
          RHOMIN=DPARA(23)
          QMIN  =DPARA(24)
-         RHOITB=DPARA(25)
-         PROFU1=DPARA(26)
-         PROFU2=DPARA(27)
+         RHOITB(1)=DPARA(25)
+         PROFU1(1)=DPARA(26)
+         PROFU2(1)=DPARA(27)
          PRFIN =DPARA(28)
          CRF=DCMPLX(RF,RFI)
       ENDIF
 C
-      CALL MPBCDN(PA,NSMAX)
-      CALL MPBCDN(PZ,NSMAX)
-      CALL MPBCDN(PN,NSMAX)
-      CALL MPBCDN(PNS,NSMAX)
-      CALL MPBCDN(PZCL,NSMAX)
-      CALL MPBCDN(PTPR,NSMAX)
-      CALL MPBCDN(PTPP,NSMAX)
-      CALL MPBCDN(PTS,NSMAX)
-      CALL MPBCDN(PU,NSMAX)
-      CALL MPBCDN(PUS,NSMAX)
-      CALL MPBCDN(PNITB,NSMAX)
-      CALL MPBCDN(PTITB,NSMAX)
-      CALL MPBCDN(PUITB,NSMAX)
-      CALL MPBCIN(MODELP,NSMAX)
-      CALL MPBCDN(AJ,NAMAX)
-      CALL MPBCDN(APH,NAMAX)
-      CALL MPBCDN(THJ1,NAMAX)
-      CALL MPBCDN(THJ2,NAMAX)
-      CALL MPBCDN(PHJ1,NAMAX)
-      CALL MPBCDN(PHJ2,NAMAX)
-      CALL MPBCKN(KNAMEQ,80)
-      CALL MPBCKN(KNAMTR,80)
-      CALL MPBCKN(KNAMPF,80)
+      CALL mtx_broadcast_real8(PA,NSMAX)
+      CALL mtx_broadcast_real8(PZ,NSMAX)
+      CALL mtx_broadcast_real8(PN,NSMAX)
+      CALL mtx_broadcast_real8(PNS,NSMAX)
+      CALL mtx_broadcast_real8(PZCL,NSMAX)
+      CALL mtx_broadcast_real8(PTPR,NSMAX)
+      CALL mtx_broadcast_real8(PTPP,NSMAX)
+      CALL mtx_broadcast_real8(PTS,NSMAX)
+      CALL mtx_broadcast_real8(PU,NSMAX)
+      CALL mtx_broadcast_real8(PUS,NSMAX)
+      CALL mtx_broadcast_real8(PNITB,NSMAX)
+      CALL mtx_broadcast_real8(PTITB,NSMAX)
+      CALL mtx_broadcast_real8(PUITB,NSMAX)
+      CALL mtx_broadcast_integer(MODELP,NSMAX)
+      CALL mtx_broadcast_real8(AJ,NAMAX)
+      CALL mtx_broadcast_real8(APH,NAMAX)
+      CALL mtx_broadcast_real8(THJ1,NAMAX)
+      CALL mtx_broadcast_real8(THJ2,NAMAX)
+      CALL mtx_broadcast_real8(PHJ1,NAMAX)
+      CALL mtx_broadcast_real8(PHJ2,NAMAX)
+      CALL mtx_broadcast_character(KNAMEQ,80)
+      CALL mtx_broadcast_character(KNAMTR,80)
+      CALL mtx_broadcast_character(KNAMPF,80)
 C
       RETURN
       END
