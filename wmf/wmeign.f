@@ -18,9 +18,9 @@ C
             IF(MODE.EQ.0)
      &      READ(LINE,*,ERR=2,END=2) FRINI,FIINI
          ENDIF
-         CALL MPBCIA(MODE)
+         CALL mtx_broadcast1_integer(MODE)
          IF(MODE.EQ.1) THEN
-            CALL MPBCKA(KID)
+            CALL mtx_broadcast1_character(KID)
             GOTO 9000
          ENDIF
          IF(MODE.EQ.2) THEN
@@ -70,9 +70,9 @@ C
             IF(MODE.EQ.0)
      &      READ(LINE,*,ERR=2,END=2) FRMIN,FRMAX,NGFMAX,FI0
          ENDIF
-         CALL MPBCIA(MODE)
+         CALL mtx_broadcast1_integer(MODE)
          IF(MODE.EQ.1) THEN
-            CALL MPBCKA(KID)
+            CALL mtx_broadcast1_character(KID)
             GOTO 9000
          ENDIF
          IF(MODE.EQ.2) THEN
@@ -81,7 +81,7 @@ C
          ENDIF
          IF(MODE.EQ.3) GOTO 1
 C
-         CALL MPBCIA(NGFMAX)
+         CALL mtx_broadcast1_integer(NGFMAX)
          CALL MPBCDA(FRMIN)
          CALL MPBCDA(FRMAX)
          CALL MPBCDA(FI0)
@@ -193,9 +193,9 @@ C
      &      READ(LINE,*,ERR=2,END=2)
      &                         FRMIN,FRMAX,NGXMAX,FIMIN,FIMAX,NGYMAX
          ENDIF
-         CALL MPBCIA(MODE)
+         CALL mtx_broadcast1_integer(MODE)
          IF(MODE.EQ.1) THEN
-            CALL MPBCKA(KID)
+            CALL mtx_broadcast1_character(KID)
             GOTO 9000
          ENDIF
          IF(MODE.EQ.2) THEN
@@ -204,10 +204,10 @@ C
          ENDIF
          IF(MODE.EQ.3) GOTO 1
 C
-         CALL MPBCIA(NGXMAX)
+         CALL mtx_broadcast1_integer(NGXMAX)
          CALL MPBCDA(FRMIN)
          CALL MPBCDA(FRMAX)
-         CALL MPBCIA(NGYMAX)
+         CALL mtx_broadcast1_integer(NGYMAX)
          CALL MPBCDA(FIMIN)
          CALL MPBCDA(FIMAX)
 C
@@ -425,9 +425,9 @@ C
             IF(MODE.EQ.0)
      &      READ(LINE,*,ERR=2,END=2) FRINI,FIINI
          ENDIF
-         CALL MPBCIA(MODE)
+         CALL mtx_broadcast1_integer(MODE)
          IF(MODE.EQ.1) THEN
-            CALL MPBCKA(KID)
+            CALL mtx_broadcast1_character(KID)
             GOTO 9000
          ENDIF
          IF(MODE.EQ.2) THEN
@@ -499,9 +499,9 @@ C
             IF(MODE.EQ.0)
      &      READ(LINE,*,ERR=2,END=2) ISCAN
          ENDIF
-         CALL MPBCIA(MODE)
+         CALL mtx_broadcast1_integer(MODE)
          IF(MODE.EQ.1) THEN
-            CALL MPBCKA(KID)
+            CALL mtx_broadcast1_character(KID)
             GOTO 9000
          ENDIF
          IF(MODE.EQ.2) THEN
@@ -510,7 +510,7 @@ C
          ENDIF
          IF(MODE.EQ.3) GOTO 1
 C
-         CALL MPBCIA(ISCAN)
+         CALL mtx_broadcast1_integer(ISCAN)
          IF(ISCAN.EQ.0.OR.ISCAN.EQ.9) GOTO 1
 C
          IF(ISCAN.EQ.1) THEN
@@ -591,9 +591,9 @@ C
             IF(MODE1.EQ.0)
      &       READ(LINE,*,ERR=12,END=12) SCMIN,SCMAX,NSCMAX,FRINI,FIINI
          ENDIF
-         CALL MPBCIA(MODE1)
+         CALL mtx_broadcast1_integer(MODE1)
          IF(MODE1.EQ.1) THEN
-            CALL MPBCKA(KID)
+            CALL mtx_broadcast1_character(KID)
             GOTO 9000
          ENDIF
          IF(MODE1.EQ.2) THEN
@@ -604,7 +604,7 @@ C
 C
          CALL MPBCDA(SCMIN)
          CALL MPBCDA(SCMAX)
-         CALL MPBCIA(NSCMAX)
+         CALL mtx_broadcast1_integer(NSCMAX)
          CALL MPBCDA(FRINI)
          CALL MPBCDA(FIINI)
 C

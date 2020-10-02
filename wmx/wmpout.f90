@@ -167,6 +167,7 @@ CONTAINS
                 PABSR(NR,NS)=PABSR(NR,NS)+PABS(NTH,NHH,NR,NS)*DTH*DHH
              ENDDO
           ENDDO
+!          WRITE(6,'(A,I6,2ES12.4)') 'PABSR:',NR,PABSR(NR,NS)
        ENDDO
     ENDDO
 

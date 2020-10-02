@@ -588,10 +588,11 @@ CONTAINS
           DO NHH=1,NHHMAX
              DO NTH=1,NTHMAX
                 CPABS(NTH,NHH,NR,NS)=(0.D0,0.D0)
+                CPABSK(NTH,NHH,NR,NS)=(0.D0,0.D0)
              ENDDO !nth
           ENDDO ! nhh
        ENDDO !nr
-    END DO !ns
+    ENDDO !ns
     
     DO NR=1,NRMAX
        DO NHH=1,NHHMAX
