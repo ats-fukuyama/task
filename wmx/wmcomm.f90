@@ -147,7 +147,9 @@ MODULE wmcomm
   
   COMPLEX(rkind),ALLOCATABLE:: CJANT(:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CEWALL(:,:,:)
-  INTEGER:: MLEN,MBND
+  INTEGER:: MLEN  ! matrix height
+  INTEGER:: MBND  ! matrix width
+  INTEGER:: MCENT ! matrix center (diagonal position in width)
   INTEGER:: istart,iend,nr_start,nr_end,nblock_size
   INTEGER:: MODELK  ! control wave number spectrum model
   INTEGER:: MODEEG  ! indicate eigen mode calculation
@@ -271,6 +273,7 @@ CONTAINS
        mlen=3*nrmax*nthmax*nhhmax+mwgmax*namax
     END IF
     mbnd=12*nthmax*nhhmax-1
+    mcent=6*nthmax*nhhmax
     IF(nthmax.EQ.1) THEN
        nthmax_f=1
     ELSE

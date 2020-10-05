@@ -1394,7 +1394,8 @@ C
      &             +CPP21
      &             +CPP31
      &             )*DPSIPDRHOC*DRHOPM
-
+               WRITE(6,'(A,2I6,4ES12.4)')
+     &              'CPABSMC:',NS,NR,CPABSM,CPABSC
                CPABSKM(LLX,MDX,KKX,NDX)
      &        =CPABSKM(LLX,MDX,KKX,NDX)
      &        +0.5D0*CPABSM
