@@ -59,7 +59,6 @@ contains
                     exit
                   end if
                 end do
-                write(*,*)nr,ir,fm_u(np,ir-1,nsa),fm_I(np,nth,nr,nsa),fm_u(np,ir,nsa)
               end if
             end do
           end do

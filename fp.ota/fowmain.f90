@@ -94,7 +94,7 @@ subroutine fow_debug
   integer :: IERR=0,nr,nth,np,nsa,nstp
   integer :: mode(3)
   real(rkind),allocatable :: check_orbit(:,:),lorentz(:),lorentzg(:),beta(:),betag(:),mean_r(:,:,:,:)&
-                            ,trapped_boundary(:,:,:), forbitten_boundary(:,:,:)
+                            ,trapped_boundary(:,:,:), forbitten_boundary(:,:,:), X_boundary(:,:,:)
   real(rkind) :: mean_psip
 
   write(*,*)"mean"
@@ -238,5 +238,17 @@ subroutine fow_debug
   call fpcsv1D(forbitten_boundary(:,2,2),"./csv/forbitten_boundary_center.csv")
   call fpcsv1D(forbitten_boundary(:,nrmax/2,2),"./csv/forbitten_boundary_quarter.csv")
   call fpcsv1D(forbitten_boundary(:,nrmax,2),"./csv/forbitten_boundary_edge.csv")
+
+  allocate(X_boundary(nrmax,2,2))
+  call fow_stagnation_type(X_boundary)
+  
+  ! do nr = 1, nrmax
+  !   write(*,*)"-nr",nr,X_boundary(nr,2,1),X_boundary(nr,2,2)
+  ! end do
+  do nr = 1, nrmax
+    write(*,*)"+nr",nr,X_boundary(nr,1,1),X_boundary(nr,1,2)
+  end do
+  write(*,*)"test"
+  call fow_test
 
 end subroutine
