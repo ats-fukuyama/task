@@ -5,6 +5,8 @@
   nzgmax=40
 &end
 
+! beta_toloidal = 2.54e-3 [%]
+! beta_poloidal = 6.02e-2 [%]
 &eq 
   RR=6.2
   RA=2.0
@@ -32,9 +34,9 @@
 &end
 
 &fp
-  npmax=33
-  nthmax=33
-  nrmax=5
+  npmax=10
+  nthmax=10
+  nrmax=100
 
   RR=6.2
   RA=2.0
@@ -58,9 +60,12 @@
   PZ(2)=1.D0
   PN(1)=0.1D2,0.1D2
   PNS(1)=0.05D2,0.05D2
-  PTPR(1)=1.D3,1.D3
-  PTPP(1)=1.D3,1.D3
-  PTS(1)=1.D3,1.D3
+  PTPR(1)=5.D1,5.D1
+  PTPP(1)=5.D1,5.D1
+  PTS(1)=1.D-1,1.D-1
+!  PTPR(1)=1.D3,1.D3
+!  PTPP(1)=1.D3,1.D3
+!  PTS(1)=1.D3,1.D3
   MODELN=1
   ZEFF=2.D0
 
