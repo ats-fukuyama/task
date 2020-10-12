@@ -26,8 +26,9 @@ OBJDIR   = ./obj
 ${OBJDIR}/%.o:%.f90
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-MODINCLUDE= -I./$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
-						-I../mtxp/$(MOD) -I../../bpsd/$(MOD) -I../ob/$(MOD)
+MODINCLUDE= -I./$(MOD) -I../lib/$(MOD) \
+            -I../pl/$(MOD) -I../eq/$(MOD) \
+            -I../mtxp/$(MOD) -I../../bpsd/$(MOD) -I../ob/$(MOD)
 
 SRCS = fpcomm.f90 eg_read.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpsub.f90 \
        fpexec.f90 fpsave.f90 fpwrite.f90 fpdifcoef.f90 fprad.f90\
@@ -35,9 +36,17 @@ SRCS = fpcomm.f90 eg_read.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpsub.f90 \
        fpcalcn.f90 fpcalcnr.f90 fpcalc.f90 fpnfrr.f90 fpnflg.f90 \
        cdbmfp.f90 fpcalr.f90 sv_read.f90 fpcoef.f90 fpcale.f90 \
        fpbounce.f90 fpdisrupt.f90 fpprep.f90 fploop.f90 \
-       fpcont.f90 fpfout.f90 fpgout.f90 fpfile.f90 fpmenu.f90
+       fpcont.f90 fpfout.f90 fpgout.f90 fpfile.f90 \
+       fowcomm.f90 fowprep.f90 \
+       foworbitclassify.f90 foworbit.f90 \
+       fowbounceaverage.f90 fowdistribution.f90 \
+       fowmenu.f90 \
+       fpmenu.f90
 
-SRCSFOW = fowcomm.f90 fowprep.f90  foworbitclassify.f90 foworbit.f90 fowbounceaverage.f90 fowdistribution.f90
+SRCSFOW =fowcomm.f90 fowprep.f90 \
+          foworbitclassify.f90 foworbit.f90 \
+          fowbounceaverage.f90 fowdistribution.f90 \
+          fowmenu.f90
 
 # OBJS = $(SRCS:.f90=.o)
 OBJS = $(addprefix $(OBJDIR)/, $(SRCS:.f90=.o))
@@ -49,8 +58,8 @@ LIBS = fplib.a ../pl/libpl.a ../eq/libeq.a  \
 
 LIBFOW = fowlib.a
 
-# all: libs fp
-all: libs fow
+all: libs fp
+#all: libs fow
 
 fplib.a: $(OBJS)
 	$(LD) $(LDFLAGS) fplib.a $(OBJS)
@@ -139,8 +148,12 @@ fpdifcoef.o: fpdifcoef.f90 fpcomm.f90 fpwrite.f90
 fprad.o: fprad.f90 fpcomm.f90
 fpwrite.o : fpcomm.f90
 
-fowmain.o : fowmain.f90 fowcomm.f90 fowprep.f90 foworbit.f90\
-						fpprep.f90 fpinit.f90 fpcomm.f90 fpwrite.f90 foworbitclassify.f90
+fowmain.o : fowmain.f90 fowcomm.f90 fowprep.f90 foworbit.f90 \
+            fpprep.f90 fpinit.f90 fpcomm.f90 fpwrite.f90 \
+            foworbitclassify.f90
+fowmenu.o : fowmain.f90 fowcomm.f90 fowprep.f90 foworbit.f90 \
+            fpprep.f90 fpcomm.f90 fpwrite.f90 \
+            foworbitclassify.f90
 fowcomm.o : fowcomm.f90
 fowprep.o : fowprep.f90 fowcomm.f90
 foworbit.o : foworbit.f90 fowcomm.f90 fpcomm.f90 foworbitclassify.f90 \

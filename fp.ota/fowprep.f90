@@ -50,6 +50,7 @@ contains
   subroutine fow_eqload(ierr)
     use fowcomm
     use fpcomm,only:rkind,nrmax,nthmax,npmax
+    USE libgrf
     implicit none
     integer,intent(out):: ierr
     character(len = 80) :: line
@@ -93,6 +94,12 @@ contains
     call eqgetbb(Br,Bz,Bp,Bt,nthpmax,nthpmax,nrmax+1)      ! mag field              , use only Bt and Bp
     call eqgeta(rr_axis,zz_axis,psi0,psit0,qaxis,qsurf)     ! axis and mag parameters, use only psi0
 
+    CALL pages
+    CALL grd1d(1,rhot,psimg,nrmax+1,nrmax+1,1,'@psimg@')
+    CALL grd1d(2,rhot,Fpsig,nrmax+1,nrmax+1,1,'@Fpsig@')
+    CALL grd1d(3,rhot,ppsi, nrmax+1,nrmax+1,1,'@ppsi@')
+    CALL grd1d(4,rhot,qpsi, nrmax+1,nrmax+1,1,'@qpsi@')
+    CALL pagee
     psi0 = psi0/(2*pi)
     do nr = 1, nrmax+1
       Fpsig(nr) = Fpsig(nr)/(2*pi)
