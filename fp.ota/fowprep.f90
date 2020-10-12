@@ -57,11 +57,13 @@ contains
     real(rkind) :: rr_axis,zz_axis,psit0,qaxis,qsurf
     real(rkind),allocatable,dimension(:) :: ppsi,qpsi,vpsi,rlen,ritpsi,rhot
     real(rkind),allocatable,dimension(:,:) :: Br,Bz,Bp,Bt
+    real(rkind),allocatable,dimension(:) :: temp,thpa
     integer :: nr,nthp
 
     allocate(ppsi(nrmax+1),qpsi(nrmax+1),vpsi(nrmax+1),rlen(nrmax+1),ritpsi(nrmax+1)&
             ,rhot(nrmax+1))
     allocate(Br(nthpmax,nrmax+1),Bz(nthpmax,nrmax+1),Bp(nthpmax,nrmax+1),Bt(nthpmax,nrmax+1))
+    ALLOCATE(temp(nrmax+1),thpa(nthpmax))
 
     ierr = 0
     write(*,*)"FP------------------------------------"
@@ -100,6 +102,33 @@ contains
     CALL grd1d(3,rhot,ppsi, nrmax+1,nrmax+1,1,'@ppsi@')
     CALL grd1d(4,rhot,qpsi, nrmax+1,nrmax+1,1,'@qpsi@')
     CALL pagee
+
+    CALL pages
+    DO nthp=1,nthpmax
+       thpa(nthp)=2.D0*PI*(nthp-1)/DBLE(nthpmax)
+    END DO
+    CALL grd2d(1,thpa,rhot,Br,nthpmax,nthpmax,nrmax+1,'@Br@')
+    CALL grd2d(2,thpa,rhot,Bz,nthpmax,nthpmax,nrmax+1,'@Bz@')
+    CALL grd2d(3,thpa,rhot,Bp,nthpmax,nthpmax,nrmax+1,'@Bp@')
+    CALL grd2d(4,thpa,rhot,Bt,nthpmax,nthpmax,nrmax+1,'@Bt@')
+    CALL pagee
+
+    CALL pages
+    CALL grd1d(1,rhot,psimg,nrmax+1,nrmax+1,1,'@psimg@')
+    temp(1)=0.D0
+    DO nr=1,nrmax
+       temp(nr+1)=(psimg(nr+1)-psimg(nr))/(rhot(nr+1)-rhot(nr))
+    END DO
+    CALL grd1d(2,rhot,temp,nrmax+1,nrmax+1,1,'@dpsimg@')
+    DO nr=2,nrmax-1
+       temp(nr)=(psimg(nr+1)-2*psimg(nr)+psimg(nr-1)) &
+                  /(rhot(nr+1)-rhot(nr))**2
+    END DO
+    temp(1)=2.D0*temp(2)-temp(3)
+    temp(nrmax+1)=temp(nrmax)
+    CALL grd1d(3,rhot,temp,nrmax+1,nrmax+1,1,'@ddpsimg@')
+    CALL pagee
+    
     psi0 = psi0/(2*pi)
     do nr = 1, nrmax+1
       Fpsig(nr) = Fpsig(nr)/(2*pi)
