@@ -8,18 +8,20 @@ MODULE cvcomm_parm
   CHARACTER(LEN=256):: knam_csv_out_select
   CHARACTER(LEN=256):: knam_cv_select
   CHARACTER(LEN=256):: knam_cv_population
-  INTEGER:: ndays_ave
   INTEGER:: ndate_start_global,ndate_start_region,ndate_start_select
   INTEGER:: ndate_step_global,ndate_step_region,ndate_step_select
+  INTEGER:: ndays_ave,nrank_max
   REAL(dp):: cases_number_log_min,deaths_number_log_min
   REAL(dp):: cases_rate_log_min,deaths_rate_log_min
   REAL(dp):: ratio_new_total_log_min
+  REAL(dp):: population_min_rank
 
 END MODULE cvcomm_parm
 
 MODULE cvcomm
   USE cvcomm_parm
 
+  INTEGER,PARAMETER:: idrank_max=12
   INTEGER:: ncountry_max,ndate_max,nregion_max,nselect_max
   CHARACTER(LEN=2),ALLOCATABLE:: country_id_ncountry(:)
   CHARACTER(LEN=80),ALLOCATABLE:: country_name_ncountry(:)
@@ -44,4 +46,10 @@ MODULE cvcomm
        ncountry_nselect
   REAL(dp),DIMENSION(:),ALLOCATABLE:: &
        population_ncountry(:),area_ncountry(:)
+
+  INTEGER,DIMENSION(:,:),ALLOCATABLE:: &
+       ncountry_nrank_idrank
+  REAL(dp),DIMENSION(:,:),ALLOCATABLE:: &
+       data_nrank_idrank
+       
 END MODULE cvcomm

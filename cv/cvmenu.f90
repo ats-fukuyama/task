@@ -19,6 +19,7 @@ CONTAINS
     USE cvregion,ONLY: cv_region
     USE cvselect,ONLY: cv_select
     USE cvpopulation,ONLY: cv_population_load
+    USE cvrank,ONLY: cv_rank
     USE cvlib
     USE libcharx
     IMPLICIT NONE
@@ -37,8 +38,8 @@ CONTAINS
 1   CONTINUE
     ierr=0
     WRITE(6,'(A,A)') &
-         '## CV MENU: P,V/parm  G/graph  L/load  R/region  A/all  ', &
-         'S/select  Q/quit'
+         '## CV MENU: P,V/parm G/graph L/load R/region A/all ', &
+         'S/select N/rank Q/quit'
     CALL task_klin(line,kid,mode,cv_parm)
     IF(mode.NE.1) GOTO 1
 
@@ -57,6 +58,8 @@ CONTAINS
     ELSEIF(kid.EQ.'L') THEN
        CALL cv_load(ierr)
        CALL cv_population_load(ierr)
+    ELSEIF(kid.EQ.'N') THEN
+       CALL cv_rank
     ELSEIF(kid.EQ.'T') THEN
 7001   CONTINUE
        WRITE(6,'(A)') '## cvtest: input ndate:'

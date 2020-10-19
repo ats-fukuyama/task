@@ -15,7 +15,7 @@ MODINCLUDE= -I./$(MOD) -I../lib/$(MOD)
 
 SRCS = cvcomm.f90 cvlib.f90 libcharx.f90 \
        cvinit.f90 cvparm.f90 cvview.f90 cvfile.f90 \
-       cvpopulation.f90 \
+       cvpopulation.f90 cvrank.f90 \
        cvgout.f90 cvregion.f90 cvselect.f90 \
        cvmenu.f90
 
@@ -50,8 +50,9 @@ cvinit.o: cvinit.f90 $(CVCOMM)
 cvparm.o: cvparm.f90 $(CVCOMM)
 cvview.o: cvview.f90 $(CVCOMM)
 cvfile.o: cvfile.f90 $(CVCOMM)
-cvgout.o: cvgout.f90 $(CVCOMM)
+cvgout.o: cvgout.f90 cvrank.f90 $(CVCOMM)
 cvregion.o: cvregion.f90 $(CVCOMM)
 cvselect.o: cvselect.f90 $(CVCOMM)
 cvpopulation.o: cvpopulation.f90 $(CVCOMM)
+cvrank.o: cvrank.f90 $(CVCOMM)
 cvlib.o:  cvlib.f90

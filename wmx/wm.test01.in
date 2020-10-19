@@ -2,8 +2,8 @@
 f
 wm.test01.gs
 c
-q0=900.D0
-qa=900.D0
+q0=1.D6
+qa=1.D6
 modelp=5,5
 rf=40
 r

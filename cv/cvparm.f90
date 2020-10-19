@@ -62,7 +62,8 @@ CONTAINS
          ndays_ave, &
          cases_number_log_min,deaths_number_log_min, &
          cases_rate_log_min,deaths_rate_log_min, &
-         ratio_new_total_log_min
+         ratio_new_total_log_min, &
+         nrank_max,population_min_rank
     
     READ(nid,cv,IOSTAT=ist,ERR=9800,END=9900)
     
@@ -92,7 +93,8 @@ CONTAINS
          '        ndays_ave', &
          '        cases_number_log_min,deaths_number_log_min', &
          '        cases_rate_log_min,deaths_rate_log_min', &
-         '        ratio_new_total_log_min'
+         '        ratio_new_total_log_min,', &
+         '        nrank_max,population_min_rank'
     RETURN
   END SUBROUTINE cv_plst
 
@@ -112,6 +114,7 @@ CONTAINS
     IF(ndate_start_global.LE.0) ndate_start_global=1
     IF(ndate_start_region.LE.0) ndate_start_region=1
     IF(ndate_start_select.LE.0) ndate_start_select=1
+    IF(nrank_max.LE.0) nrank_max=12
 
     RETURN
   END SUBROUTINE cv_chek

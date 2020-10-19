@@ -27,12 +27,17 @@ CONTAINS
     ndate_start_region=1 ! initial ndate of region data:
     ndate_start_select=7 ! initial ndate of select data:
                          !         1 for 2020-01-04 (Sat), 7 for Friday 
-    ndays_ave=7          ! range of day averageing
-    cases_number_log_min=10.D0     ! minimum number for ncases in log
-    deaths_number_log_min=1.D0     ! minimum number for ndeaths in log
-    cases_rate_log_min=0.1D0        ! minimum rate for ncases in log
-    deaths_rate_log_min=0.01D0     ! minimum rate for ndeaths in log
-    ratio_new_total_log_min=0.1D0  ! ratio of log minimum between new and total
+    ndays_ave=7               ! range of day averageing
+    nrank_max=12              ! number of items in ranking lists
+    population_min_rank=10.D0 ! minimum population per million in ranking lists
+
+    cases_number_log_min=10.D0    ! minimum number for ncases in log
+    deaths_number_log_min=1.D0    ! minimum number for ndeaths in log
+    cases_rate_log_min=0.1D0      ! minimum rate for ncases in log
+    deaths_rate_log_min=0.01D0    ! minimum rate for ndeaths in log
+    ratio_new_total_log_min=0.1D0 ! ratio of log minimum between new and total
+
+    
     RETURN
   END SUBROUTINE cv_init
 END MODULE cvinit

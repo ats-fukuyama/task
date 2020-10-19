@@ -2,15 +2,17 @@
 
 MODULE cvgout
 
+  USE cvcomm,ONLY: dp
+  
   PRIVATE
   PUBLIC cv_gout
 
   INTEGER,PARAMETER:: nlmax=24
-  REAL(8):: line_rgb(3,nlmax),line_mark_size(nlmax)
+  REAL(dp):: line_rgb(3,nlmax),line_mark_size(nlmax)
   INTEGER:: line_pat(nlmax),line_mark(nlmax),line_mark_step(nlmax)
 
   INTEGER,PARAMETER:: nlmax1=6
-  REAL(8),PARAMETER:: line_rgb1(3,nlmax1) &
+  REAL(dp),PARAMETER:: line_rgb1(3,nlmax1) &
        =RESHAPE([1.0D0,0.0D0,0.0D0, &
                  1.0D0,0.8D0,0.0D0, &
                  0.0D0,0.8D0,0.0D0, &
@@ -19,10 +21,10 @@ MODULE cvgout
                  1.0D0,0.0D0,1.0D0],[3,6])
     
   INTEGER,PARAMETER:: nlmax2=2
-  REAL(8):: line_rgb2(3,nlmax2) &
+  REAL(dp):: line_rgb2(3,nlmax2) &
        =RESHAPE( [0.D0,0.D0,1.D0, 1.D0,0.D0,0.D0],[3,2])
   INTEGER,PARAMETER:: line_pat2(nlmax2)=[ 0, 0 ]
-  REAL(8),PARAMETER:: line_mark_size2(nlmax2)=[ 0.3D0, 0.3D0 ]
+  REAL(dp),PARAMETER:: line_mark_size2(nlmax2)=[ 0.3D0, 0.3D0 ]
   INTEGER,PARAMETER:: line_mark2(nlmax2)=[ 0, -1 ]
   INTEGER,PARAMETER:: line_mark_step2(nlmax2)=[ 1, 14 ]
 
@@ -30,14 +32,20 @@ CONTAINS
 
   SUBROUTINE cv_gout
     USE cvcomm
+    USE cvparm,ONLY: cv_parm
+    USE cvrank
     USE libcharx
     IMPLICIT NONE
     CHARACTER(LEN=2):: country_id,kword
     CHARACTER(LEN=80):: line
     CHARACTER(LEN=2),ALLOCATABLE:: kworda(:)
-    INTEGER:: ncountry,ncountry_plot,id,idx,nword,nword_max,nplot,nplot_max
-    INTEGER:: nl
-    INTEGER,ALLOCATABLE:: ncountry_nword(:),ncountry_nplot(:)
+    INTEGER:: mode
+    CHARACTER(LEN=1):: kid
+    INTEGER:: ncountry,ncountry_plot,id,idx,nword,nword_max
+    INTEGER:: nl,nplot,nplot_max,idrank
+    LOGICAL:: nplot_max_clear_logic
+    INTEGER,PARAMETER:: nplot_m=32
+    INTEGER:: ncountry_nplot(nplot_m)
     INTEGER,SAVE:: INIT=0
 
     IF(INIT.EQ.0) THEN
@@ -67,80 +75,162 @@ CONTAINS
     
     id=0
     nplot_max=0
+    nplot_max_clear_logic=.TRUE.
 
 1   CONTINUE
     
     WRITE(6,'(A,A)') &
-         '## INPUT country ids or graph id, ', &
-         'list of ids:XC,XN,XG, help:XH, end:XX or 9'
-    READ(5,'(A)',ERR=1,END=9000) line
+         '## INPUT country id, graph id, ', &
+         'rank:N1-6,R1-6, help:?,XH,XC,XN,XR,XG,XL, end:XX'
+    CALL task_klin(line,kid,mode,cv_parm)
+    IF(mode.EQ.2.OR.mode.EQ.3) GO TO 1  ! 2: parm input, 3:input error
+    
     CALL ksplitn(line,' ,',2,nword_max,kworda)
 
-    IF(ALLOCATED(ncountry_nword)) DEALLOCATE(ncountry_nword)
-    ALLOCATE(ncountry_nword(nword_max))
-
-    nplot=0
+    nplot_max_clear_logic=.TRUE.
+    
     DO nword=1,nword_max
        kword=kworda(nword)
-       READ(kword,'(I2)',ERR=2) idx
+       IF(kword.EQ.'+ ') GO TO 2
+       IF(kword.EQ.'- ') GO TO 2
+       READ(kword,'(I2)',ERR=2) idx ! positive number for graph id
+       WRITE(6,'(A,I6)') 'idx:',idx
        id=idx
-       IF(id.EQ.9) GO TO 9000
+       IF(id.LT.0) GO TO 2          ! negative number for removing country
+       IF(id.EQ.9) GO TO 9000       ! 
        CYCLE
 
 2      CONTINUE
        CALL TOUPPER(kword)
 
-       IF(kword.EQ.'XX') GO TO 9000
-       IF(kword.EQ.'XC') THEN
+       SELECT CASE(kword)
+       CASE('XX')
+          GO TO 9000
+       CASE('XC')
           CALL cv_gout_help(1)
           id=0
-          CYCLE
-       END IF
-       IF(kword.EQ.'XN') THEN
+       CASE('XN')
           CALL cv_gout_help(2)
           id=0
-          CYCLE
-       END IF
-       IF(kword.EQ.'XG') THEN
+       CASE('XG')
           CALL cv_gout_help(3)
           id=0
-          CYCLE
-       END IF
-       IF(kword.EQ.'XH') THEN
+       CASE('XH')
           CALL cv_gout_help(4)
           id=0
-          CYCLE
-       END IF
-
-       ncountry_plot=0
-       DO ncountry=1,ncountry_max
-          IF(kword.EQ.country_id_ncountry(ncountry)) THEN
-             ncountry_plot=ncountry
-             EXIT
+       CASE('XR')
+          CALL cv_gout_help(5)
+          id=0
+       CASE('XL')
+          CALL cv_gout_help(6)
+          id=0
+       CASE('XP','? ')
+          WRITE(6,'(A,A)') &
+               ' ncountry id  population      totC    newC    totD  newD'
+          DO nplot=1,nplot_max
+             ncountry=ncountry_nplot(nplot)
+             WRITE(6,'(I3,I6,1X,A2,F12.3,I10,I8,I8,I6,2X,A20)') &
+                  nplot,ncountry,country_id_ncountry(ncountry), &
+                  population_ncountry(ncountry), &
+                  ncases_total_ndate_ncountry(ndate_max,ncountry), &
+                  ncases_new_ndate_ncountry(ndate_max,ncountry), &
+                  ndeaths_total_ndate_ncountry(ndate_max,ncountry), &
+                  ndeaths_new_ndate_ncountry(ndate_max,ncountry), &
+                  TRIM(country_name_ncountry(ncountry))
+          END DO
+          id=0
+       CASE('+ ')
+          nplot_max_clear_logic=.FALSE.
+       CASE('- ','-1','-2','-3','-4','-5','-6','-7','-8','-9')
+          WRITE(6,'(A,A1,A2,A1,I6)') 'kword:','/',kword,'/', &
+               nplot_max
+          SELECT CASE(kword)
+          CASE('- ','-1')
+             nplot_max=nplot_max-1
+          CASE('-2')
+             nplot_max=nplot_max-2
+          CASE('-3')
+             nplot_max=nplot_max-3
+          CASE('-4')
+             nplot_max=nplot_max-4
+          CASE('-5')
+             nplot_max=nplot_max-5
+          CASE('-6')
+             nplot_max=nplot_max-6
+          CASE('-7')
+             nplot_max=nplot_max-7
+          CASE('-8')
+             nplot_max=nplot_max-8
+          CASE('-9')
+             nplot_max=nplot_max-9
+          END SELECT
+          IF(nplot_max.LT.0) nplot_max=0
+       CASE('N1','N2','N3','N4','N5','N6', &
+            'R1','R2','R3','R4','R5','R6')
+          SELECT CASE(kword)
+          CASE('N1')
+             idrank=1
+          CASE('N2')
+             idrank=2
+          CASE('N3')
+             idrank=3
+          CASE('N4')
+             idrank=4
+          CASE('N5')
+             idrank=5
+          CASE('N6')
+             idrank=6
+          CASE('R1')
+             idrank=7
+          CASE('R2')
+             idrank=8
+          CASE('R3')
+             idrank=9
+          CASE('R4')
+             idrank=10
+          CASE('R5')
+             idrank=11
+          CASE('R6')
+             idrank=12
+          END SELECT
+          CALL cv_rank_exec(idrank)
+             
+          nplot_max=nrank_max
+          DO nplot=1,nplot_max
+             ncountry=ncountry_nrank_idrank(nplot,idrank)
+             ncountry_nplot(nplot)=ncountry
+             WRITE(6,'(I4,2X,A2,2X,A)') &
+                  nplot,country_id_ncountry(ncountry), &
+                  TRIM(country_name_ncountry(ncountry))
+          END DO
+       CASE DEFAULT
+          ncountry_plot=0
+          DO ncountry=1,ncountry_max
+             IF(kword.EQ.country_id_ncountry(ncountry)) THEN
+                ncountry_plot=ncountry
+                EXIT
+             END IF
+          END DO
+          IF(ncountry_plot.EQ.0) THEN
+             WRITE(6,'(A,A2)') 'XX cvgout: unknown country_id:',kword
+          ELSE
+             IF(nplot_max_clear_logic) THEN
+                nplot_max=1
+                nplot_max_clear_logic=.FALSE.
+             ELSE
+                IF(nplot_max.EQ.nplot_m) THEN
+                   WRITE(6,'(A,I6)') &
+                        'XX cvgout: nplot_max exceeds nplot_m:',nplot_m
+                ELSE
+                   nplot_max=nplot_max+1
+                END IF
+             END IF
+             ncountry_nplot(nplot_max)=ncountry_plot
           END IF
-       END DO
-       IF(ncountry_plot.EQ.0) THEN
-          WRITE(6,'(A,A2)') 'XX cvgout: unknown country_id:',kword
-       ELSE
-          nplot=nplot+1
-          ncountry_nword(nplot)=ncountry_plot
-       END IF
+       END SELECT
     END DO
 
-    IF(nplot.GE.1) THEN
-       nplot_max=nplot
-       IF(ALLOCATED(ncountry_nplot)) DEALLOCATE(ncountry_nplot)
-       ALLOCATE(ncountry_nplot(nplot_max))
-       DO nplot=1,nplot_max
-          ncountry=ncountry_nword(nplot)
-          ncountry_nplot(nplot)=ncountry
-          WRITE(6,'(I4,2X,A2,2X,A)') &
-               nplot,country_id_ncountry(ncountry), &
-                     TRIM(country_name_ncountry(ncountry))
-       END DO
-    END IF
-
-    IF(id.EQ.0) GO TO 1
+    IF(id.LE.0) GO TO 1
       
     SELECT CASE(id)
     CASE(1,10:19)
@@ -223,6 +313,60 @@ CONTAINS
                         'with a list of country_ids.'
        WRITE(6,'(A,A)') '      - if there are more than two graph_ids, ', &
                         'only the last graph_id is effective.'
+       WRITE(6,'(A,A)') 'XH: this help'
+       WRITE(6,'(A,A)') 'XC: list of country id'
+       WRITE(6,'(A,A)') 'XN: list of country name'
+       WRITE(6,'(A,A)') 'XG: list of graph ids'
+       WRITE(6,'(A,A)') 'XL: list of line colors'
+       WRITE(6,'(A,A)') 'XP: list of countries to be plotted'
+       WRITE(6,'(A,A)') '+ : addition of countries (before any country id)'
+       WRITE(6,'(A,A)') '-n: removal of countries from the bottom'
+       WRITE(6,'(A,A)') 'ndays_ave=7                   ! ', &
+            'range of day averageing'
+       WRITE(6,'(A,A)') 'nrank_max=12                  ! ', &
+            'number of items in ranking lists'
+       WRITE(6,'(A,A)') 'population_min_rank=10.D0     ! ', &
+            'minimum population per million in ranking lists'
+       WRITE(6,'(A,A)') 'cases_number_log_min=10.D0    ! ', &
+            'minimum number for ncases in log'
+       WRITE(6,'(A,A)') 'deaths_number_log_min=1.D0    ! ', &
+            'minimum number for ndeaths in log'
+       WRITE(6,'(A,A)') 'cases_rate_log_min=0.1D0      ! ', &
+            'minimum rate for ncases in log'
+       WRITE(6,'(A,A)') 'deaths_rate_log_min=0.01D0    ! ', &
+            'minimum rate for ndeaths in log'
+       WRITE(6,'(A,A)') 'ratio_new_total_log_min=0.1D0 ! ', &
+            'ratio of log minimum between new and total'
+       
+    CASE(5) !XR
+       WRITE(6,'(A)')   '## List of Ranking selection'
+       WRITE(6,'(A)')   ' N1: Ranking by number of total cases'
+       WRITE(6,'(A)')   ' N2: Ranking by number of new cases'
+       WRITE(6,'(A)')   ' N3: Ranking by number of new cases 7 days average'
+       WRITE(6,'(A)')   ' N4: Ranking by number of total deaths'
+       WRITE(6,'(A)')   ' N5: Ranking by number of new deaths'
+       WRITE(6,'(A)')   ' N6: Ranking by number of new deaths 7 days average'
+       WRITE(6,'(A)')   ' R1: Ranking by rate of total cases'
+       WRITE(6,'(A)')   ' R2: Ranking by rate of new cases'
+       WRITE(6,'(A)')   ' R3: Ranking by rate of new cases 7 days average'
+       WRITE(6,'(A)')   ' R4: Ranking by rate of total deaths'
+       WRITE(6,'(A)')   ' R5: Ranking by rate of new deaths'
+       WRITE(6,'(A)')   ' R6: Ranking by rate of new deaths 7 days average'
+       WRITE(6,'(A)')   '                rate means per population in million'
+    CASE(6) !XL
+       WRITE(6,'(A)')   '## List of Line attribute'
+       WRITE(6,'(A)')   ' 1: red        circulrar'
+       WRITE(6,'(A)')   ' 2: yellow     circulrar'
+       WRITE(6,'(A)')   ' 3: green      circulrar'
+       WRITE(6,'(A)')   ' 4: light blue circulrar'
+       WRITE(6,'(A)')   ' 5: dark blue  circulrar'
+       WRITE(6,'(A)')   ' 6: purple     circulrar'
+       WRITE(6,'(A)')   ' 7: red        triangle'
+       WRITE(6,'(A)')   ' 8: yellow     triangle'
+       WRITE(6,'(A)')   ' 9: green      triangle'
+       WRITE(6,'(A)')   '10: light blue triangle'
+       WRITE(6,'(A)')   '11: dark blue  triangle'
+       WRITE(6,'(A)')   '12: purple     triangle'
     END SELECT
     RETURN
   END SUBROUTINE cv_gout_help

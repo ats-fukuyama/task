@@ -1354,11 +1354,23 @@ CONTAINS
 
     CALL MOVE(XPOS,YPOS-3*DY)
     CALL TEXT('Q0: ',4)
-    CALL NUMBD(Q0,'(F8.4)',8)
-
+    IF(Q0.LT.1.D4) THEN
+       CALL NUMBD(Q0,'(F8.4)',8)
+    ELSE IF(Q0.LT.1.D6) THEN
+       CALL NUMBD(Q0,'(F8.2)',8)
+    ELSE
+       CALL NUMBD(Q0,'(ES8.1)',8)
+    END IF
+       
     CALL MOVE(XPOS,YPOS-4*DY)
     CALL TEXT('QA: ',4)
-    CALL NUMBD(QA,'(F8.4)',8)
+    IF(QA.LT.1.D4) THEN
+       CALL NUMBD(QA,'(F8.4)',8)
+    ELSE IF(QA.LT.1.D6) THEN
+       CALL NUMBD(QA,'(F8.2)',8)
+    ELSE
+       CALL NUMBD(QA,'(ES8.1)',8)
+    END IF
     YPOS=YPOS-5*DY
 
 !     ****** PLASMA PARAMETERS ******
