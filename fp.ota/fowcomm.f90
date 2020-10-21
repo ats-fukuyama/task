@@ -2,7 +2,7 @@ module fowcomm
 
   USE commpi
   USE plcomm_parm
-  USE fpcomm,only:rkind,nrmax,nthmax,npmax
+  USE fpcomm,ONLY:rkind,nrmax,nthmax,npmax,nsamax
 
   implicit none
 

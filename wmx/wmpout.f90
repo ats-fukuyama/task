@@ -167,9 +167,16 @@ CONTAINS
                 PABSR(NR,NS)=PABSR(NR,NS)+PABS(NTH,NHH,NR,NS)*DTH*DHH
              ENDDO
           ENDDO
-!          WRITE(6,'(A,I6,2ES12.4)') 'PABSR:',NR,PABSR(NR,NS)
        ENDDO
     ENDDO
+!    DO NR=1,NRMAX
+!       WRITE(6,'(A,I6,64ES12.4)') 'P:',NR,PABSR(NR,1),PABSR(NR,2), &
+!            PABS(1,1,NR,1),PABS(1,1,NR,2),PABSK(1,1,NR,1),PABSK(1,1,NR,1)
+!       WRITE(6,'(A,I6,4ES12.4)') 'CPK:',NR, &
+!            CPABSK(1,1,NR,1),CPABSK(1,1,NR,2)
+!       WRITE(6,'(A,I6,4ES12.4)') 'CPR:',NR, &
+!            CPABS(1,1,NR,1),CPABS(1,1,NR,2)
+!    END DO
 
     PCURT=0.D0
     DO NR=1,NRMAX

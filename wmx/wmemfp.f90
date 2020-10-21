@@ -858,7 +858,7 @@ CONTAINS
           ENDDO !ndx
 
 
-          !     +++++ CALCULATE PABS IN REAL SPACE +++++
+          !     +++++ CALCULATE PABS IN REAL SPACE: CPABSM +++++
 
           DO NDX=1,NDSIZ
              DO MDX=1,MDSIZ
@@ -870,7 +870,7 @@ CONTAINS
                    DO LL=LDMIN,LDMAX
                       IF (LDMAX /= 0 .and. LL==LDMAX)CYCLE
                       LLX=LL-LDMIN+1
-                      CPF1(LLX,KKX)= CPABSKM (LLX,MDX,KKX,NDX)
+                      CPF1(LLX,KKX)= CPABSKM(LLX,MDX,KKX,NDX)
                    ENDDO !ll
                 ENDDO !kk
                 CALL WMSUBE(CPF1,CPF2)
@@ -884,6 +884,35 @@ CONTAINS
                 ENDDO !nhh
              ENDDO !mdx
           ENDDO !ndx
+
+          !     +++++ CALCULATE PABS IN REAL SPACE: CPABSM +++++
+
+          DO NDX=1,NDSIZ
+             DO MDX=1,MDSIZ
+                CPF1=0d0
+                CPF2=0d0
+                DO KK=KDMIN,KDMAX
+                   IF (KDMAX /=0 .and. kk==KDMAX)CYCLE
+                   KKX =KK-KDMIN+1
+                   DO LL=LDMIN,LDMAX
+                      IF (LDMAX /= 0 .and. LL==LDMAX)CYCLE
+                      LLX=LL-LDMIN+1
+                      CPF1(LLX,KKX)=CPABSKC(LLX,MDX,KKX,NDX)
+                   ENDDO !LL
+                ENDDO !KK
+                CALL WMSUBE(CPF1,CPF2)
+                DO NHH=1,NHHMAX
+                   DO NTH=1,NTHMAX
+                      NHHF=NHH
+                      NTHF=NTH
+                      CPABS(NTH,NHH,NR+1,NS)=CPABS(NTH,NHH,NR+1,NS) &
+                           +CPF2(NTH,NHH)
+                      CPABS3D(NTH,NHH,NR+1,NS)=CPABS3D(NTH,NHH,NR+1,NS) &
+                           +CPF2(NTH,NHH)
+                   ENDDO ! NTH
+                ENDDO !NHH
+             ENDDO !MDX
+          ENDDO !NDX
 
 
 !     +++++ CALCULATE DRIVEN CURRENT IN REAL SPACE +++++

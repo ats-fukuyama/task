@@ -95,7 +95,11 @@ C
          CALL EQREAD(IERR)
 C         IF(IERR.NE.0) GOTO 10
          CALL EQCALQ(IERR)
-         MSTAT=2
+         IF(modelg.EQ.3) THEN
+            MSTAT=1
+         ELSE
+            MSTAT=2
+         END IF
 C
       ELSEIF(KID.EQ.'K') THEN
          CALL KTRIM(KNAMEQ,KL)

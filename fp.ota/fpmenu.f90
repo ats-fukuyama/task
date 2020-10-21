@@ -20,6 +20,7 @@
       USE fpfile
       USE fpdiffusivity
       USE fprad
+      USE fowmenu
       USE libmpi
       USE libmtx
 
@@ -35,7 +36,7 @@
          ierr=0
          WRITE(6,601)
   601    FORMAT('## FP MENU: R:RUN C:CONT P,V:PARAM G,F:GRAPH', &
-                           ' L,S:FILE Y,Z:COEF W:WRITE Q:QUIT')
+                           ' O:fow L,S:FILE Y,Z:COEF W:WRITE Q:QUIT')
          CALL TASK_KLIN(LINE,KID,MODE(1),fp_parm)
       ENDIF
       CALL mtx_barrier
@@ -119,7 +120,9 @@
          !CALL fp_radiation
        end if
        call mtx_barrier
-      ELSEIF (KID.EQ.'Q') THEN
+    ELSEIF (KID.EQ.'O') THEN
+       CALL fow_menu
+    ELSEIF (KID.EQ.'Q') THEN
          CALL CLOSE_EVOLVE_DATA_OUTPUT
          GO TO 9000
 
