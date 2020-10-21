@@ -3,7 +3,7 @@ module foworbit
   private
   real(8),allocatable :: penergym(:,:),penergyg(:,:)
 
-  public :: fow_orbit_construct, fow_orbit_jacobian
+  public :: fow_orbit_construct, fow_orbit_jacobian, fow_orbit_get_mode
 
 contains
 
@@ -20,7 +20,7 @@ contains
     use obcalc
 
     type(orbit),intent(out) :: orbit_out(:,:,:,:)
-    integer :: ierr,nobt,np,nth,nr,nsa,mode(3), nobt_in_max
+    integer :: ierr,nobt,nth,np,nr,nsa,mode(3), nobt_in_max
     integer,allocatable :: nobt_in(:,:,:)
 
     call fow_orbit_get_mode(mode, orbit_out)
@@ -75,12 +75,19 @@ contains
 
     call fow_orbit_get_mode(mode, orbit_in)
     
-    allocate( lorentz_factor(npmax+mode(1),nsamax) )
-    allocate( xil(nthmax+mode(2)), pl(npmax+mode(1),nsamax) )
+    allocate( lorentz_factor(npmax+mode(2),nsamax) )
+    allocate( xil(nthmax+mode(1)), pl(npmax+mode(2),nsamax) )
     allocate( Bml_in(nrmax+mode(3)), Bml_out(nrmax+mode(3)), gml(nrmax+mode(3))&
     , dBm_indpsi(nrmax+mode(3)), dBm_outdpsi(nrmax+mode(3)), dfdpsi(nrmax+mode(3)))
 
     select case(mode(1))
+    case(0)
+      xil(:) = xi(:)
+    case(1)
+      xil(:) = xig(:)
+    end select
+
+    select case(mode(2))
     case(0)
       do nsa = 1, nsamax
         do np = 1, npmax
@@ -89,10 +96,11 @@ contains
       end do
       
       do nsa = 1, nsamax
-        do np = 1, npmax+mode(1)
+        do np = 1, npmax
           lorentz_factor(np,nsa) = sqrt(1.d0+theta0(nsa)*pm(np,nsa)**2)
         end do
       end do
+
     case(1)
       do nsa = 1, nsamax
         do np = 1, npmax+1
@@ -101,17 +109,10 @@ contains
       end do
 
       do nsa = 1, nsamax
-        do np = 1, npmax+mode(1)
+        do np = 1, npmax+1
           lorentz_factor(np,nsa) = sqrt(1.d0+theta0(nsa)*pg(np,nsa)**2)
         end do
       end do
-    end select
-
-    select case(mode(2))
-    case(0)
-      xil(:) = xi(:)
-    case(1)
-      xil(:) = xig(:)
     end select
 
     select case(mode(3))
@@ -166,11 +167,11 @@ contains
     call fpcsv1D(dFdpsi,"./csv/dFdpsi.csv")
 
     do nsa = 1, nsamax
-      do nr = 1, nrmax+mode(1)
-        do nth = 1, nthmax+mode(2)
-          do np = 1, npmax+mode(3)
-            if ( forbitten(np,nth,nr,nsa,mode) ) then
-              Jacobian_out(np,nth,nr,nsa) = 0.d0
+      do nr = 1, nrmax+mode(3)
+        do np = 1, npmax+mode(2)
+          do nth = 1, nthmax+mode(1)
+            if ( forbitten(nth,np,nr,nsa,mode) ) then
+              Jacobian_out(nth,np,nr,nsa) = 0.d0
             else
               if ( xil(nth)>=0.d0 ) then
                 Bml = Bml_out(nr)
@@ -179,13 +180,13 @@ contains
                 Bml = Bml_in(nr)
                 dBmldpsi = dBm_indpsi(nr)
               end if
-              tau_p = orbit_in(np,nth,nr,nsa)%time(orbit_in(np,nth,nr,nsa)%nstp_max)
+              tau_p = orbit_in(nth,np,nr,nsa)%time(orbit_in(nth,np,nr,nsa)%nstp_max)
               write(*,*)
               J_c = 4.d0*pi**2*tau_p/(amfp(nsa)**2*abs(aefp(nsa)))
               trans_matrix = pl(np,nsa)**3/(amfp(nsa)**2*lorentz_factor(np,nsa)*Bml)&
                             *((-Bml*dFdpsi(nr)*xil(nth)**2+0.5d0*(1.d0+xil(nth)**2)*dBmldpsi*gml(nr))*pl(np,nsa)/Bml**2&
                             +aefp(nsa)*xil(nth))
-              Jacobian_out(np,nth,nr,nsa) = J_c*trans_matrix  
+              Jacobian_out(nth,np,nr,nsa) = J_c*trans_matrix  
             end if
           end do
         end do
@@ -207,7 +208,7 @@ contains
     integer,intent(in) :: mode(3), nsa_in
     integer,intent(out) :: nobt_in_max
     integer,allocatable,intent(out) :: nobt_in(:,:,:)
-    integer :: np,nth,nr,nsa,i
+    integer :: nth,np,nr,nsa,i
     real(rkind) :: PVM,PVG
 
     if ( (.not.allocated(penergym)) .or. (.not.allocated(penergyg)) ) then
@@ -226,15 +227,15 @@ contains
     end if
 
     if ( allocated(nobt_in) ) deallocate(nobt_in)
-    allocate(nobt_in(npmax+mode(1),nthmax+mode(2),nrmax+mode(3)))
+    allocate(nobt_in(nthmax+mode(1),npmax+mode(2),nrmax+mode(3)))
 
     i = 0
     do nr = 1, nrmax+mode(3)
-      do nth = 1, nthmax+mode(2)
-        do np = 1, npmax+mode(1)
-          if ( .not.forbitten(np,nth,nr,nsa_in,mode) ) then
+      do np = 1, npmax+mode(2)
+        do nth = 1, nthmax+mode(1)
+          if ( .not.forbitten(nth,np,nr,nsa_in,mode) ) then
             i = i+1
-            nobt_in(np,nth,nr) = i
+            nobt_in(nth,np,nr) = i
           end if
         end do
       end do
@@ -252,27 +253,27 @@ contains
 
     integer,intent(in) :: mode(3), nobt_in(:,:,:), nsa_in
     real(rkind),intent(inout) :: penergy_in(:), pcangle_in(:), zeta_in(:), psipn_in(:), theta_in(:)
-    integer :: i,np,nth,nr,nsa
+    integer :: i,nth,np,nr,nsa
 
     do nr = 1, nrmax+mode(3)
-      do nth = 1, nthmax+mode(2)
-        do np = 1, npmax+mode(1)
-          if ( .not.forbitten(np,nth,nr,nsa_in,mode) ) then
+      do np = 1, npmax+mode(2)
+        do nth = 1, nthmax+mode(1)
+          if ( .not.forbitten(nth,np,nr,nsa_in,mode) ) then
 
-            i = nobt_in(np,nth,nr)
+            i = nobt_in(nth,np,nr)
 
             select case(mode(1))
-            case(0)
-              penergy_in(i) = penergym(np,nsa_in)
-            case(1)
-              penergy_in(i) = penergyg(np,nsa_in)
-            end select
-
-            select case(mode(2))
             case(0)
               pcangle_in(i) = xi(nth)
             case(1)
               pcangle_in(i) = xig(nth)
+            end select
+
+            select case(mode(2))
+            case(0)
+              penergy_in(i) = penergym(np,nsa_in)
+            case(1)
+              penergy_in(i) = penergyg(np,nsa_in)
             end select
 
             select case(mode(3))
@@ -312,12 +313,12 @@ contains
     allocate(construct_input(12,nstp_max+1))
     ! time_ob(0:nstp_max,nobt_max)
     do nr = 1, nrmax+mode(3)
-      do nth = 1, nthmax+mode(2)
-        do np = 1, npmax+mode(1)
+      do np = 1, npmax+mode(2)
+        do nth = 1, nthmax+mode(1)
 
-          if ( .not.forbitten(np,nth,nr,nsa_in,mode) ) then
+          if ( .not.forbitten(nth,np,nr,nsa_in,mode) ) then
 
-            i = nobt_in(np,nth,nr)
+            i = nobt_in(nth,np,nr)
 
             do j = 1, nstp_max+1
               construct_input(1,j)  = time_ob(j-1,i)
@@ -334,7 +335,7 @@ contains
               construct_input(12,j) = theta_ob(j-1,i)
             end do
 
-            orbit_in(np,nth,nr,nsa_in) = construct_orbit(nstp_max_nobt(i), construct_input)  
+            orbit_in(nth,np,nr,nsa_in) = construct_orbit(nstp_max_nobt(i), construct_input)  
 
           end if
 
@@ -352,24 +353,24 @@ contains
     type(orbit),intent(in) :: orbit_in(:,:,:,:)
     integer :: npm, nthm, nrm
 
-    npm = size(orbit_in,1)
-    nthm = size(orbit_in,2)
+    nthm = size(orbit_in,1)
+    npm = size(orbit_in,2)
     nrm = size(orbit_in,3)
 
-    if ( npm == npmax ) then
+    if ( nthm == nthmax ) then
       mode(1) = 0
-    else if ( npm == npmax+1 )then
+    else if ( nthm == nthmax+1 )then
       mode(1) = 1
     else
-      write(*,*)"ERROR : size(orbit_in,1) is not npm = npmax or npmax+1 in fow_orbit_get_mode"
+      write(*,*)"ERROR : size(orbit_in,1) is not nthm = nthmax or nthmax+1 in fow_orbit_get_mode"
     end if
 
-    if ( nthm == nthmax ) then
+    if ( npm == npmax ) then
       mode(2) = 0
-    else if ( nthm == nthmax+1 )then
+    else if ( npm == npmax+1 )then
       mode(2) = 1
     else
-      write(*,*)"ERROR : size(orbit_in,2) is not nthm = nthmax or nthmax+1 in fow_orbit_get_mode"
+      write(*,*)"ERROR : size(orbit_in,2) is not npm = npmax or npmax+1 in fow_orbit_get_mode"
     end if
 
     if ( nrm == nrmax ) then
@@ -390,7 +391,7 @@ contains
     integer :: i
 
     allocate(ret%time(n+1),ret%psip(n+1),ret%babs(n+1),ret%phi(n+1),ret%vpara(n+1),ret%vperp(n+1)&
-            ,ret%psit(n+1),ret%zeta(n+1),ret%rr(n+1),ret%zz(n+1),ret%rs(n+1),ret%theta(n+1))
+            ,ret%psit(n+1),ret%zeta(n+1),ret%rr(n+1),ret%zz(n+1),ret%rs(n+1),ret%theta(n+1),orbit_in%RB_phi(n+1))
 
     ret%nstp_max=n+1
     do i=1,n+1
@@ -414,7 +415,7 @@ contains
     use fowcomm
     type(orbit) :: orbit_in
     deallocate(orbit_in%time,orbit_in%psip,orbit_in%babs,orbit_in%phi,orbit_in%vpara,orbit_in%vperp&
-            ,orbit_in%psit,orbit_in%zeta,orbit_in%rr,orbit_in%zz,orbit_in%rs,orbit_in%theta)
+            ,orbit_in%psit,orbit_in%zeta,orbit_in%rr,orbit_in%zz,orbit_in%rs,orbit_in%theta,orbit_in%RB_phi)
   end subroutine destruct_orbit
 
 end module foworbit

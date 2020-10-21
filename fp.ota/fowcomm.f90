@@ -38,7 +38,8 @@ module fowcomm
                                             rr, &                ! major radius
                                             zz, &                ! vertical positon
                                             rs, &                ! minor radius
-                                            theta                ! poloidal angle
+                                            theta, &             ! poloidal angle
+                                            RB_phi               ! poloidal current
   end type orbit
 
   type(orbit),allocatable,dimension(:,:,:,:) :: orbit_p,&    ! (np,nth,nr)=(-0.5,  1 ,  1 ) to (npmax+0.5,nthmax,nrmax)
@@ -67,8 +68,8 @@ contains
     allocate(Babs(nthpmax,nrmax+1))
     allocate(Brz(nrgmax,nzgmax),psirz(nrgmax,nzgmax),Frz(nrgmax,nzgmax))
     allocate(UBspl(4,4,nrgmax,nzgmax),UFspl(4,4,nrgmax,nzgmax))
-    allocate(orbit_p(npmax+1,nthmax,nrmax,nsamax),orbit_th(npmax,nthmax+1,nrmax,nsamax)&
-            ,orbit_r(npmax,nthmax,nrmax+1,nsamax),orbit_m(npmax,nthmax,nrmax,nsamax))
+    allocate(orbit_p(nthmax,npmax+1,nrmax,nsamax),orbit_th(nthmax+1,npmax,nrmax,nsamax)&
+            ,orbit_r(nthmax,npmax,nrmax+1,nsamax),orbit_m(nthmax,npmax,nrmax,nsamax))
   end subroutine fow_allocate
 
   subroutine fow_deallocate

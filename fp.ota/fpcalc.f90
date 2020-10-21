@@ -1059,6 +1059,8 @@
       DOUBLE PRECISION:: DELH, sum, etal, psib, pcos, arg, x, PSIN
       INTEGER:: NG, ITLB, ITUB, NSSB
 
+! add FOW module bounce average
+
 ! DCPP, FCPP
       DO NSB=1,NSBMAX
          DO NP=NPSTART,NPENDWG

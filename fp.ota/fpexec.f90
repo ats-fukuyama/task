@@ -1037,6 +1037,8 @@
                 +SPPI(NTH,NP,NR,NSA) &
                 +SPPL_CX(NTH,NP,NR,NSA) )
 
+      ! FOW : modify SPP into COM space
+
       IF(MODELD.GT.0.AND.NR.EQ.NRMAX) THEN
          SPPD(NTH,NP,NSA)= FS2(NTH,NP,NSA) &
               *(DRR(NTH,NP,NR+1,NSA)    *DIVDRR &

@@ -11,7 +11,6 @@ contains
     implicit none
 
     integer :: nth,nr,nrg,nzg,ierr = 0,eps = 1.0d-8
-    real(rkind),allocatable :: fx(:,:),fy(:,:),fxy(:,:),R(:),Z(:)
 
     do nth = 1,nthmax
       xi(nth) = (nth-0.5d0)/nthmax*(-2.d0)+1.d0
@@ -19,37 +18,14 @@ contains
     end do
     xig(nthmax+1) = -1.d0
 
-    ! do nr = 1,nrmax
-    !   do nth = 1,nthmax
-    !     if(xi(nth)<0.d0)then
-    !       BBm(nth,nr) = Bin(nr)
-    !     else
-    !       BBm(nth,nr) = Bout(nr)
-    !     end if
-    !   end do
-    ! end do
-
-    ! allocate(fx(nrgmax,nzgmax),fy(nrgmax,nzgmax),fxy(nrgmax,nzgmax),R(nrgmax),Z(nzgmax))
-
-    ! do nrg = 1,nrgmax
-    !   R(nrg) = nrg*1.d0
-    ! end do
-    ! do nzg = 1,nzgmax
-    !   Z(nzg) = nzg*1.d0
-    ! end do
-
-    ! call SPL2D(R,Z,Brz,fx,fy,fxy,UBspl,nrgmax,nrgmax,nzgmax,0,0,ierr)
-    ! call SPL2D(R,Z,Frz,fx,fy,fxy,UFspl,nrgmax,nrgmax,nzgmax,0,0,ierr)
-
     call fow_eqload(ierr)
-
-    ! deallocate(fx,fy,fxy,R,Z)
 
   end subroutine fow_prep
 
   subroutine fow_eqload(ierr)
     use fowcomm
     use fpcomm,only:rkind,nrmax,nthmax,npmax
+
     implicit none
     integer,intent(out):: ierr
     character(len = 80) :: line
@@ -91,8 +67,9 @@ contains
     call eqgetp(rhot,psimg,nrmax+1)                        ! normalized psit radius , use only psimg
     call eqgetqn(ppsi,qpsi,Fpsig,vpsi,rlen,ritpsi,nrmax+1) ! flux functions         , use only Fpsig
     call eqgetbb(Br,Bz,Bp,Bt,nthpmax,nthpmax,nrmax+1)      ! mag field              , use only Bt and Bp
-    call eqgeta(rr_axis,zz_axis,psi0,psit0,qaxis,qsurf)     ! axis and mag parameters, use only psi0
+    call eqgeta(rr_axis,zz_axis,psi0,psit0,qaxis,qsurf)    ! axis and mag parameters, use only psi0
 
+    
     psi0 = psi0/(2*pi)
     do nr = 1, nrmax+1
       Fpsig(nr) = Fpsig(nr)/(2*pi)
@@ -111,6 +88,7 @@ contains
   subroutine fow_calculate_equator_variable(ierr)
     use fowcomm
     use fpcomm,only:rkind,nrmax,nthmax,npmax
+
     implicit none
     integer,intent(inout) :: ierr
     real(rkind),allocatable,dimension(:) :: x,f,fx,g,gx,h1,h2,h1x,h2x
