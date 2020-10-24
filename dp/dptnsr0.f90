@@ -110,6 +110,7 @@ CONTAINS
     USE dptnsr2
     USE dptnsr3
     USE dptnsr4
+    USE dptnsb1
     USE plprof
     USE plprofw
     IMPLICIT NONE
@@ -145,6 +146,8 @@ CONTAINS
          CALL DPTNFK2(CW,CKPR,CKPP,NS,mag,plfw,CLDISP)
       CASE(21) ! old WM drift kinetic model
          CALL DPTNDK0(CW,CKPR,CKPP,NS,mag,plfw,grd,CLDISP)
+      CASE(31) ! old WM drift kinetic model
+         CALL dp_tnsb1(CW,CKPR,CKPP,NS,mag,plfw,CLDISP)
       CASE DEFAULT
          WRITE(6,*) 'XX WRONG MODELP IN DPTENS: ID1=',ID1
       END SELECT

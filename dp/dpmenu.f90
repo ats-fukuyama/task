@@ -19,6 +19,7 @@ CONTAINS
     USE dpcont,ONLY: dp_cont2,dp_cont3
     USE dpcont4,ONLY: dp_cont4
     USE dptnsr0,ONLY: dp_tnsr0
+    USE dptnsb1,ONLY: test_dpbes
     IMPLICIT NONE
       
     CHARACTER(LEN=1):: KID
@@ -122,6 +123,8 @@ CONTAINS
        RKZ0=RKZ0_SAVE
        RKX0=RKX0_SAVE
        GOTO 1
+    ELSEIF(KID.EQ.'B') THEN
+       CALL test_dpbes
     ELSEIF(KID.EQ.'K') THEN
        CONTINUE
     ELSEIF(KID.EQ.'S') THEN

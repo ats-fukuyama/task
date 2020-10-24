@@ -92,11 +92,10 @@ CONTAINS
     DO nword=1,nword_max
        kword=kworda(nword)
        IF(kword.EQ.'+ ') GO TO 2
-       IF(kword.EQ.'- ') GO TO 2
+       IF(kword(1:1).EQ.'-') GO TO 2
        READ(kword,'(I2)',ERR=2) idx ! positive number for graph id
        WRITE(6,'(A,I6)') 'idx:',idx
        id=idx
-       IF(id.LT.0) GO TO 2          ! negative number for removing country
        IF(id.EQ.9) GO TO 9000       ! 
        CYCLE
 
@@ -108,22 +107,22 @@ CONTAINS
           GO TO 9000
        CASE('XC')
           CALL cv_gout_help(1)
-          id=0
+          id=-id
        CASE('XN')
           CALL cv_gout_help(2)
-          id=0
+          id=-id
        CASE('XG')
           CALL cv_gout_help(3)
-          id=0
+          id=-id
        CASE('XH')
           CALL cv_gout_help(4)
-          id=0
+          id=-id
        CASE('XR')
           CALL cv_gout_help(5)
-          id=0
+          id=-id
        CASE('XL')
           CALL cv_gout_help(6)
-          id=0
+          id=-id
        CASE('XP','? ')
           WRITE(6,'(A,A)') &
                ' ncountry id  population      totC    newC    totD  newD'
@@ -138,12 +137,10 @@ CONTAINS
                   ndeaths_new_ndate_ncountry(ndate_max,ncountry), &
                   TRIM(country_name_ncountry(ncountry))
           END DO
-          id=0
+          id=-id
        CASE('+ ')
           nplot_max_clear_logic=.FALSE.
        CASE('- ','-1','-2','-3','-4','-5','-6','-7','-8','-9')
-          WRITE(6,'(A,A1,A2,A1,I6)') 'kword:','/',kword,'/', &
-               nplot_max
           SELECT CASE(kword)
           CASE('- ','-1')
              nplot_max=nplot_max-1
@@ -230,7 +227,10 @@ CONTAINS
        END SELECT
     END DO
 
-    IF(id.LE.0) GO TO 1
+    IF(id.LE.0) THEN
+       id=-id
+       GO TO 1
+    END IF
       
     SELECT CASE(id)
     CASE(1,10:19)

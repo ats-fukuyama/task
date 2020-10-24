@@ -37,6 +37,7 @@ CONTAINS
 !                16 : (WM) Drift kinetic plasma
 !                21 : DRIFTKINETIC MODEL (coming)
 !                22 : GYROKINETIC MODEL (coming)
+!                31 : Cold beam model (FLR)
 !
 !             0- 99 : PROPAGATION  = GIVEN MODEL
 !                     POLARIZATION = GIVEN MODEL

@@ -1,0 +1,68 @@
+0
+f
+dp.test1.gs
+c
+  RR=3.D0
+  RA=1.D0
+  BB=2.69D0
+  NSMAX=3
+  KID_NS(1)=' e'
+  ID_NS(1)=-1
+  PA(2)=1.D0
+  PZ(2)=1.D0
+  KID_NS(2)=' H'
+  ID_NS(2)=1
+  PA(3)=1.D0
+  PZ(3)=1.D0
+  KID_NS(3)=' H'
+  ID_NS(3)=1
+  PN(1)= 0.016D0,0.0144D0,0.0016D0
+  PNS(1)=0.016D0,0.0144D0,0.0016D0
+  PTPR(1)=15.4D0,3.3D0,0.1D0
+  PTPP(1)=15.4D0,3.3D0,0.1D0
+  PTS(1)= 15.4D0,3.3D0,0.1D0
+  PUPR(1)=0.D0,0.D0,-5.810D6
+  PUPP(1)=0.D0,0.D0,1.026D6
+  MODELP(1)=5,5,31
+  MODELV(1)=0,0,0
+  NCMIN(2)=-10,-10
+  NCMAX(2)= 10, 10
+  RF0=250.D0
+  RFI0=0.D0
+  RKX0=0.D0
+  RKY0=0.D0
+  RKZ0=0.D0
+  RX0 = 3.D0
+  RY0 = 0.D0
+  RZ0 = 0.D0
+  RK0 = 0.D0
+  RKANG0=89.7D0
+  RF1 = 1.D0
+  RF2 = 400.D0
+  RKX1= 0.D0
+  RKX2= 1600.D0
+  RKY1= 0.D0
+  RKY2= 100.D0
+  RK1 = 0.D0
+  RK2 = 4000.D0
+  NGXMAX=201
+  NGYMAX=801
+  NORMF=2
+  NORMK=0
+  NFLOUT=21
+  EPSDP=1.D0
+d5
+7
+/
+/
+,,0
+x
+model_es=1
+d5
+7
+/
+/
+,,0
+x
+q
+
