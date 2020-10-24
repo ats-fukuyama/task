@@ -50,9 +50,9 @@ contains
     jmax=size(f,2)
 
     open(1985,file=filename)
-    do j =1,jmax
-     do i=1,imax
-       if(i==imax)then
+    do i=1,imax
+     do j=1,jmax
+       if(j==jmax)then
         if ( abs(f(i,j))<1.d-99 ) then
           write(1985,'(e18.11)')0.d0
         else if(f(i,j)>0.1d99) then

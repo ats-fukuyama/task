@@ -1,0 +1,24 @@
+&OB
+  RR=6.2
+  RA=2.0
+  RKAP=1.7
+  RDLT=0.33
+  RB=2.1
+  BB=5.3
+  RIP=15
+
+  nobt_max=1
+  ns_ob=2
+
+  penergy_in(1)=   80000.d0
+  pcangle_in(1)=   0.51978d0
+  zeta_in(1)=   0.0000000000000000
+  psipn_in(1)=   0.51223636084968238
+  theta_in(1)=   0.0000000000000000
+  
+  tmax=10.D1
+  delt=0.1D-1
+  mdlobw=2
+  mdlobc=1
+  idebug=0
+&end

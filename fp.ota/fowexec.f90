@@ -20,14 +20,12 @@
       integer:: NTHS, NLL
       integer:: IERR,its,i,j,ll1
       integer:: imtxstart1,imtxend1
-!      integer,optional:: methodKSP, methodPC
       real(8),dimension(nmend-nmstart+1):: BM_L
       real(8),dimension(nthmax):: sendbuf_p, recvbuf_p
       real(8),dimension(nthmax*(npend-npstart+1)):: sendbuf_r, recvbuf_r
 
       NS=NS_NSA(NSA)
 
-!      CALL mtx_set_communicator(comm_nr) !2D
       CALL mtx_set_communicator(comm_nrnp) !3D
 
 !     ----- Set up matrix solver -----
@@ -146,16 +144,6 @@
          ENDIF
       ENDDO
 
-!      DO NR=NRSTART,NREND
-!      DO NP=NPSTART,NPEND
-!      DO NTH=NTHMAX/2+1,ITU(NR)
-!         NM=NMA(NTH,NP,NR)
-!         IF(LL(NM,NL).NE.0) WRITE(6,'(A,5I5,1PE12.4)') &
-!              'NR,NP,NTH,NM.NL,AL=',NR,NP,NTH,NM,NL,AL(NM,NL)
-!      ENDDO
-!      ENDDO
-!      ENDDO
-
 !     ----- Source vector: contribution from off-diagonal term -----
 
       DO NM=NMSTART,NMEND ! RHS
@@ -176,25 +164,9 @@
          ENDIF
       ENDDO
 
-!      DO NM=NMSTART,NMEND ! RHS
-!         DO NL=1,NLMAX(NM)
-!            IF(LL(NM,NL).NE.0) THEN
-!               BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM(LL(NM,NL))
-!            ENDIF
-!         ENDDO
-!         IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
-!            CALL mtx_set_source(nm,BM(NM))
-!         ENDIF
-!      ENDDO
-
 !     ----- Solve matrix equation -----
 
       CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) ! ncom is nessesary for MUMPS not PETSc
-!      IF(MODELD_temp.eq.0)THEN
-!         if(nrank.eq.0) then
-!            write(6,*) 'Number of iterations, NSA    =',its,NSA
-!         endif
-!      END IF
       ierr=0
 
 !     ----- Get solution vector -----
@@ -221,16 +193,6 @@
       CALL mtx_set_communicator(comm_nr)
       CALL shadow_comm_nr(NSA)
       CALL mtx_set_communicator(comm_nrnp) !3D
-
-!      CALL mtx_gather_vector(BMTOT)
-!      DO NR=NRSTARTW,NRENDWM
-!         DO NP=NPSTARTW,NPENDWM
-!            DO NTH=1,NTHMAX
-!               NM=NMA(NTH,NP,NR)
-!               FNS0(NTH,NP,NR,NSA)=BMTOT(NM)
-!            ENDDO
-!         ENDDO
-!      ENDDO
 
 !     ----- Clean up matrix solver -----
       CALL mtx_cleanup
@@ -286,7 +248,7 @@
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX
                NM=NMA(NTH,NP,NR)
-               FM_shadow_p(NM)=func_in(NTH,NP,NR,NSA)
+                FM_shadow_p(NM)=func_in(NTH,NP,NR,NSA)
             ENDDO
          ENDDO
       END IF
@@ -312,7 +274,6 @@
 
       NS=NS_NSA(NSA)
       DO NR=NRSTART,NREND
-!      DO NP=1,NPMAX+1
       DO NP=NPSTART,NPENDWG
       DO NTH=1,NTHMAX
          DFDTH=0.D0
@@ -345,14 +306,11 @@
          ENDIF
          FVEL=FPP(NTH,NP,NR,NSA)-DPT(NTH,NP,NR,NSA)*DFDTH
          WEIGHP(NTH,NP,NR,NSA)=FPWEGH(-DELP(NS)*FVEL,DPP(NTH,NP,NR,NSA))
-!         FVEL=FCPP(NTH,NP,NR,NSA)-DCPT(NTH,NP,NR,NSA)*DFDTH
-!         WEIGHP(NTH,NP,NR,NSA)=FPWEGH(-DELP(NS)*FVEL,DCPP(NTH,NP,NR,NSA))
       ENDDO
       ENDDO
       ENDDO
 
       DO NR=NRSTART,NREND
-!      DO NP=1,NPMAX
       DO NP=NPSTART,NPEND
          DFDP=-PM(NP,NS)*RTFP0(NSA)/RTFP(NR,NSA)
          DFDB=DFDP
@@ -544,22 +502,15 @@
             ENDIF
          ENDIF
          IF(NTH.EQ.ITL(NR)) THEN
-!            FVEL=FTH(NTH,NP,NR,NSA)-DTP(NTH,NP,NR,NSA)*DFDP &
-!                -FTH(NTB,NP,NR,NSA)+DTP(NTB,NP,NR,NSA)*DFDB
-!            DVEL=DTT(NTH,NP,NR,NSA)+DTT(NTB,NP,NR,NSA)
             FVEL=FCTH(NTH,NP,NR,NSA)-DCTP(NTH,NP,NR,NSA)*DFDP &
                 -FCTH(NTB,NP,NR,NSA)+DCTP(NTB,NP,NR,NSA)*DFDB
             DVEL=DCTT(NTH,NP,NR,NSA)+DCTT(NTB,NP,NR,NSA)
          ELSE
-!            FVEL=FTH(NTH,NP,NR,NSA)-DTP(NTH,NP,NR,NSA)*DFDP
-!            DVEL=DTT(NTH,NP,NR,NSA) 
             FVEL=FCTH(NTH,NP,NR,NSA)-DCTP(NTH,NP,NR,NSA)*DFDP
             DVEL=DCTT(NTH,NP,NR,NSA)
          ENDIF
          WEIGHT(NTH,NP,NR,NSA) &
                  =FPWEGH(-DELTH*PM(NP,NS)*FVEL,DVEL)
-!         WEIGHT(NTH,NP,NR,NSA) &
-!                 =0.5D0
       ENDDO
       ENDDO
       ENDDO
@@ -570,12 +521,6 @@
          FVEL=FRR(NTH,NP,NR,NSA)
          DVEL=DRR(NTH,NP,NR,NSA)
          WEIGHR(NTH,NP,NR,NSA)=FPWEGH(-DELR*FVEL,DVEL)
-!         WEIGHR(NTH,NP,NR,NSA)=0.5D0
-!         IF(NR.ne.1)THEN
-!            WEIGHR(NTH,NP,NR,NSA)=(4.D0*RG(NR)+DELR)/(8.D0*RG(NR))
-!         ELSE
-!            WEIGHR(NTH,NP,NR,NSA)=0.5D0
-!         ENDIF
       ENDDO
       ENDDO
       ENDDO
@@ -669,6 +614,10 @@
       real(8):: RL,DRRM,DRRP,WRM,WRP,VRM,VRP,DIVDRR,DIVFRR
       real(8):: PL
       DOUBLE PRECISION:: WPBM, VPBM, WPBP, VPBP
+      
+      ! additional variable for FOW
+      real(8):: divdpr, divdtr, divrp, divtr, divrr, divfr
+      real(8):: dprm, dprp, dtrm, 
 
       NS=NS_NSA(NSA)
 
@@ -676,16 +625,11 @@
       NTBM=0
       NTBP=0
       IF(MODELA.ne.0)THEN
-!         IF(NTH.EQ.ITL(NR)+1) THEN
-!            NTB=ITU(NR)+1
          IF(NTH.EQ.ITL(NR)) THEN
             NTB=ITU(NR)+1
          ENDIF
          IF(NR-1.GE.1) THEN
-!            IF(NTH.GE.ITL(NR)+1.AND.NTH.LE.ITL(NR-1)) THEN 
             IF(NTH.GE.ITL(NR).AND.NTH.LT.ITL(NR-1)) THEN 
-!               NTBM=ITU(NR-1)+ITL(NR-1)-NTH+1
-!               NTBM=ITU(NR)
                NTBM=NTHMAX+1-NTH
             ENDIF
          ENDIF
@@ -755,12 +699,8 @@
       DIVFTH=1.D0/(     PL*SL*DELTH)
       DIVDRR=1.D0/(     RL   *DELR *DELR)
       DIVFRR=1.D0/(     RL   *DELR)
-!      IF(NP.EQ.NPMAX) THEN
-!         DIVDTP=2.D0*DIVDTP
-!      ENDIF
 
       IF(MODELD.GT.0) THEN
-!         IF(NR.NE.1.AND.NP.NE.NPMAX) THEN
          IF(NR.NE.1) THEN
             NL=NL+1
             LL(NM,NL)=NMA(NTH,NP,NR-1)
@@ -785,6 +725,7 @@
          ENDIF
       ENDIF ! MODELD
 
+      ! f_--0 term
       IF(NP.NE.1.AND.NTH.NE.1) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTH-1,NP-1,NR)
@@ -798,6 +739,7 @@
          ENDIF
       ENDIF
 
+      ! f_-00 term
       IF(NP.NE.1) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTH,NP-1,NR)
@@ -811,6 +753,7 @@
          ENDIF
       ENDIF
 
+      ! f_-+0 term
       IF(NP.NE.1.AND.NTH.NE.NTHMAX) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTH+1,NP-1,NR)
@@ -822,6 +765,7 @@
          END IF
       ENDIF
 
+      ! f_-00 term
       IF(NP.NE.1.AND.NTB.NE.0) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTB,NP-1,NR)
@@ -835,6 +779,7 @@
          ENDIF
       ENDIF
 
+      ! f_0-0 term 
       IF(NTH.NE.1) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTH-1,NP,NR)
@@ -842,12 +787,9 @@
                    +DPT(NTH  ,NP  ,NR,NSA)*VPM*DIVDPT*DPTM &
                    +DTT(NTH  ,NP  ,NR,NSA)    *DIVDTT*DTTM &
                    +FTH(NTH  ,NP  ,NR,NSA)*WTM*DIVFTH*DTPM 
-!         IF(NP.EQ.NPMAX) THEN !
-!            AL(NM,NL)=AL(NM,NL) &
-!                   -DTP(NTH  ,NP  ,NR,NSA)*VTM*DIVDTP*DTPM
-!         ENDIF
       ENDIF
 
+      ! f_0+0 term
       IF(NTH.NE.NTHMAX) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTH+1,NP,NR)
@@ -860,10 +802,6 @@
                    +DPT(NTH  ,NP+1,NR,NSA)*WPP*DIVDPT*DPTP &
                    -DPT(NTH  ,NP  ,NR,NSA)*VPM*DIVDPT*DPTM 
          END IF
-!         IF(NP.EQ.NPMAX) THEN !
-!            AL(NM,NL)=AL(NM,NL) &
-!                   +DTP(NTH+1,NP  ,NR,NSA)*WTP*DIVDTP*DTPP
-!         ENDIF
       ENDIF
 
       IF(NTB.NE.0) THEN
@@ -873,12 +811,9 @@
                    +DPT(NTH,NP  ,NR,NSA)*VPBM*DIVDPT*DPTM &
                    +DTT(NTB,NP  ,NR,NSA)    *DIVDTT*DTTM &
                    -FTH(NTB,NP  ,NR,NSA)*VTB*DIVFTH*DTPM
-!         IF(NP.EQ.NPMAX) THEN
-!            AL(NM,NL)=AL(NM,NL) &
-!                   +DTP(NTB,NP  ,NR,NSA)*VTB*DIVDTP*DTPM
-!         ENDIF
       ENDIF
 
+      ! f_+-0 term
       IF(NP.NE.NPMAX.AND.NTH.NE.1) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTH-1,NP+1,NR)
@@ -891,6 +826,7 @@
          ENDIF
       ENDIF
 
+      ! f_+00 term
       IF(NP.NE.NPMAX) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTH,NP+1,NR)
@@ -904,6 +840,7 @@
          ENDIF
       ENDIF
 
+      ! f_++0 term
       IF(NP.NE.NPMAX.AND.NTH.NE.NTHMAX) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTH+1,NP+1,NR)
@@ -920,6 +857,7 @@
          ENDIF
       ENDIF
 
+      ! f_+00 term
       IF(NP.NE.NPMAX.AND.NTB.NE.0) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTB,NP+1,NR)
@@ -934,7 +872,6 @@
       ENDIF
 
       IF(MODELD.GT.0) THEN!
-!         IF(NR.NE.NRMAX.AND.NP.NE.NPMAX) THEN
          IF(NR.NE.NRMAX) THEN
             NL=NL+1
             LL(NM,NL)=NMA(NTH,NP,NR+1)
@@ -945,19 +882,6 @@
                AL(NM,NL)=0.D0
                NL=NL-1
             ENDIF
-!            IF(NTBP.NE.0) THEN
-!               NL=NL+1
-!               LL(NM,NL)=NMA(NTBP,NP,NR+1)
-!               AL(NM,NL)=DRR(NTBP ,NP  ,NR+1,NSA)     *DIVDRR*DRRP &
-!                            *RLAMDAG(NTBP,NR+1) &
-!                        -FRR(NTBP ,NP  ,NR+1,NSA)*VRBP*DIVFRR*DRRP &
-!                            *RLAMDAG(NTBP,NR+1)
-!               IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
-!                  LL(NM,NL)=0
-!                  AL(NM,NL)=0.D0
-!                  NL=NL-1
-!               ENDIF
-!            ENDIF
          ENDIF
       ENDIF
 
@@ -978,16 +902,6 @@
              -FTH(NTB,NP  ,NR  ,NSA)*VTB*DIVFTH*DTPM
       ENDIF
 
-!      IF(NP.EQ.NPMAX) THEN !
-!         DL(NM)=DL(NM) &
-!             +DTP(NTH+1,NP  ,NR  ,NSA)*WTP*DIVDTP*DTPP &
-!             -DTP(NTH  ,NP  ,NR  ,NSA)*VTM*DIVDTP*DTPM
-!         IF(NTB.NE.0) THEN
-!            DL(NM)=DL(NM) &
-!                +DTP(NTB,NP  ,NR  ,NSA)*VTB*DIVDTP*DTPM
-!         ENDIF
-!      ENDIF
-
       IF(MODELD.GT.0) THEN
          DL(NM)= DL(NM) &
               -DRR(NTH  ,NP  ,NR+1,NSA)    *DIVDRR*DRRP&
@@ -999,34 +913,6 @@
                  -DRR(NTBM ,NP  ,NR  ,NSA)    *DIVDRR*DRRM &
                  +FRR(NTBM ,NP  ,NR  ,NSA)*VRM*DIVFRR*DRRM 
          END IF
-!            IF(NR.NE.NRMAX) THEN
-!               DL(NM)= DL(NM) &
-!                 -DRR(NTH  ,NP  ,NR+1,NSA)    *DIVDRR*DRRP &
-!                     *RLAMDAG(NTH,NR) &
-!                 -FRR(NTH  ,NP  ,NR+1,NSA)*WRP*DIVFRR*DRRP &
-!                     *RLAMDAG(NTH,NR)
-!               IF(NTBP.NE.0) THEN
-!                  DL(NM)= DL(NM) &
-!                    -DRR(NTBP ,NP  ,NR+1,NSA)     *DIVDRR*DRRP &
-!                        *RLAMDAG(NTBP,NR) &
-!                    -FRR(NTBP ,NP  ,NR+1,NSA)*WRBP*DIVFRR*DRRP &
-!                        *RLAMDAG(NTBP,NR)
-!               ENDIF
-!            ENDIF
-!            IF(NR.NE.1) THEN
-!               DL(NM)= DL(NM) &
-!                 -DRR(NTH  ,NP  ,NR  ,NSA)    *DIVDRR*DRRM &
-!                     *RLAMDAG(NTH,NR) &
-!                 +FRR(NTH  ,NP  ,NR  ,NSA)*VRM*DIVFRR*DRRM &
-!                     *RLAMDAG(NTH,NR)
-!               IF(NTBM.NE.0) THEN
-!                  DL(NM)= DL(NM) &
-!                    -DRR(NTBM ,NP  ,NR  ,NSA)     *DIVDRR*DRRM &
-!                        *RLAMDAG(NTBM,NR) &
-!                    +FRR(NTBM ,NP  ,NR  ,NSA)*VRBM*DIVFRR*DRRM &
-!                        *RLAMDAG(NTBM,NR)
-!               ENDIF
-!            ENDIF
       ENDIF
 
       SPP(NTH,NP,NR,NSA) &
@@ -1047,18 +933,6 @@
               + SPPD(NTH,NP,NSA)
       ENDIF
 
-!         IF(NP.NE.NPMAX) THEN
-!            SPP(NTH,NP,NR,NSA)=SPP(NTH,NP,NR,NSA) &
-!                 +FS2(NTH,NP,NSA)*(DRR(NTH  ,NP  ,NR+1,NSA)    *DIVDRR &
-!                                  -FRR(NTH  ,NP  ,NR+1,NSA)*VRP*DIVFRR) &
-!                      *DRRP
-!            IF(NTBP.NE.0) THEN
-!               SPP(NTH,NP,NR,NSA)=SPP(NTH,NP,NR,NSA) &
-!                    +FS2(NTH,NP,NSA)*(DRR(NTBP ,NP  ,NR+1,NSA)     *DIVDRR &
-!                                     -FRR(NTBP ,NP  ,NR+1,NSA)*VRBP*DIVFRR) &
-!                      *DRRP
-!            ENDIF
-!         ENDIF
       RETURN
       END SUBROUTINE FPSETM
 

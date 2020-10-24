@@ -35,8 +35,8 @@
 
 &fp
   npmax=10
-  nthmax=10
-  nrmax=100
+  nthmax=55
+  nrmax=50
 
   RR=6.2
   RA=2.0
