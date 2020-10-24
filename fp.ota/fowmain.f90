@@ -42,32 +42,8 @@ program fow
   call fow_prep
 
   call fow_orbit_construct(orbit_m)
-write(*,*)"f"
-  allocate(fu(nthmax,npmax,nrmax,nsamax),fI(nthmax,npmax,nrmax,nsamax),J(nthmax,npmax,nrmax,nsamax))
-  do nsa = 1, nsamax
-    do nr = 1, nrmax
-      do np = 1, npmax
-        do nth = 1, nthmax
-          fu(nth,np,nr,nsa)=FPMXWL(PM(NP,NSA),NR,NSA)
-        end do
-      end do
-    end do
-  end do
+  call fow_orbit_construct(orbit_th)
 
-  ! call fpcsv2D(fu(:,:,1,1),"./csv/fu.csv")
-  ! call fow_distribution_maxwellian_inCOM(fI)
-  write(*,*)"fI"
-  ! call fpcsv2D(fI(:,:,2,2),"./csv/fI_center.csv")
-  ! call fpcsv2D(fI(:,:,nrmax,2),"./csv/fI_edge.csv")
-  ! call fpcsv2D(fI(:,:,nrmax/2,2),"./csv/fI_quarter.csv")
-
-  ! write(*,*)"1"
-  ! call fow_orbit_jacobian(J,orbit_m)
-  ! write(*,*)"2"
-  ! call fpcsv2D(J(:,:,1,1),"./csv/J.csv")
-
-  write(*,*)"debug"
-  call fow_debug
 
   write(*,*)"end"
   call fow_deallocate

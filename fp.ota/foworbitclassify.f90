@@ -10,6 +10,116 @@ module foworbitclassify
 
 contains
 
+  ! function func_p_pnc(theta_in, nr_in, nsa_in) result(p_ret)
+  !   ! return momentum of pinch orbit for given (theta_m = theta_in, psi_m = psim(nr_in)) and species, nsa_in
+  !   use fowcomm
+  !   use fpcomm
+
+  !   implicit none
+  !   real(rkind):: p_ret
+  !   real(rkind),intent(in):: theta_in
+  !   integer,intent(in) :: nr_in, nsa_in
+
+  !   integer :: nrpp&  ! radial grid number for pinch point
+  !             ,nr
+  !   real(rkind),allocatable :: dFdpsi(:), dBdpsi(:) ! normalized by psi_m
+  !   real(rkind) :: G_m, C(3), ps_rasio, BFFB, w, xi_p, beta_p, FB_prime
+  !   complex(rkind) :: z(2)
+
+  !   allocate(dFdpsi(nrmax), dBdpsi(nrmax))
+
+  !   call first_order_derivative(dFdpsi, Fpsi, psim)
+  !   call first_order_derivative(dBdpsi, Bin, psim)
+
+  !   do nr = 1, nrmax
+  !     dFdpsi(nr) = dFdpsi(nr)*psim(nr)
+  !     dBdpsi(nr) = dBdpsi(nr)*psim(nr)
+  !   end do
+
+  !   G_m = aefp(nsa_in)*Bout(nr_in)*psim(nr_in)/(amfp(nsa_in)*vc*Fpsi(nr_in))
+
+  !   do nrpp = 1, nr_in
+  !     ps_rasio = 1.d0-psim(nrpp)/psim(nr_in)
+  !     BFFB = 2.d0*Bin(nrpp)*dFdpsi(nrpp) - Fpsi(nrpp)*dBdpsi(nrpp)
+
+  !     C(3) = -4.d0*Bout(nr_in)*Bin(nrpp)**3*Fpsi(nr_in)**2&
+  !           +Bout(nr_in)**2*(ps_rasio*BFFB+2.d0*Bin(nrpp)*Fpsi(nrpp))**2
+
+  !     C(2) = -4.d0*(Bin(nrpp)-Bout(nr_in))*Bin(nrpp)**3*Fpsi(nr_in)**2&
+  !            -2.d0*Bout(nr_in)**2*dBdpsi(nrpp)*Fpsi(nrpp)*ps_rasio&
+  !            *(ps_rasio*BFFB+2.d0*Bin(nrpp)*Fpsi(nrpp))
+
+  !     C(1) = (Bout(nr_in)*dBdpsi(nrpp)*Fpsi(nrpp)*ps_rasio)**2
+
+  !     call solve_quadratic_equation(z, C)
+
+  !     w = z(1)
+
+  !     xi_pinch(nrpp) = sqrt(1.d0-(1.d0-w)*Bout(nr_in)/Bin(nrpp))
+
+  !     FB_prime = (dFdpsi(nrpp)*Bin(nrpp)-Fpsi(nrpp)*dBdpsi(nrpp))/Bin(nrpp)**2*Bout(nr_in)/Fpsi(nr_in)
+  !     beta_pinch(nrpp) = G_m*sqrt(w)/(w*FB_prime-0.5d0*(1.d0-xi_pinch(nrpp)**2)*Fpsi(nrpp)*dBdpsi(nrpp)/Fpsi(nr_in)/Bin(nrpp)) ! LHS = gamma*beta
+  !     beta_pinch(nrpp) = (1.d0+beta_pinch(nrpp)**(-2))**(-0.5d0) ! LHS = velocity of stagnation orbit
+
+  !     write(*,*)"nrpp, xi, beta",xi_pinch(nrpp), beta_pinch(nrpp)
+  !   end do
+
+  !   return
+
+  ! end function func_p_pnc
+
+  ! function func_p_stg(theta_in, nr_in, nsa_in) result(p_ret)
+  !   ! return momentum of stagnation orbit for given (theta_m = theta_in, psi_m = psim(nr_in)) and species, nsa_in
+  !   use fowcomm
+  !   use fpcomm
+    
+  !   implicit none
+  !   real(rkind):: p_ret
+  !   real(rkind),intent(in):: theta_in
+  !   integer,intent(in) :: nr_in, nsa_in
+
+  !   integer :: nr
+  !   real(rkind) :: xil, B_p, F_p, G_ml
+  !   real(rkind),allocatable :: G_m(:), B_m(:), dFdpsi(:), dBmdpsi(:)
+  !   allocate(G_m(nrmax), B_m(nrmax),  dFdpsi(nrmax), dBmdpsi(nrmax))
+
+  !   xil = cos(theta_in)
+  !   if ( xil == 0.d0 ) then
+  !     p_ret = 0.d0
+  !     return
+
+  !   else if ( xil > 0.d0 ) then
+  !     do nr = 1, nrmax
+  !       B_m(nr) = Bout(nr)
+  !       G_m(nr) = aefp(nsa_in)*B_m(nr)*psim(nr)/(amfp(nsa_in)*vc*Fpsi(nr))
+  !     end do
+
+  !   else if ( xil < 0.d0 ) then
+  !     do nr = 1, nrmax
+  !       B_m(nr) = Bin(nr)
+  !       G_m(nr) = aefp(nsa_in)*B_m(nr)*psim(nr)/(amfp(nsa_in)*vc*Fpsi(nr))
+  !     end do
+  !   end if
+
+  !   call first_order_derivative(dFdpsi, Fpsi, psim)
+  !   call first_order_derivative(dBmdpsi, B_m, psim)
+
+  !   do nr = 1, nrmax
+  !     dFdpsi(nr) = dFdpsi(nr)*psim(nr)/Fpsi(nr)
+  !     dBmdpsi(nr) = dBmdpsi(nr)*psim(nr)/B_m(nr)
+  !   end do
+
+  !   call fow_cal_spl(F_p, psim(nr_in), dFdpsi, psim)
+  !   call fow_cal_spl(B_p, psim(nr_in), dBmdpsi, psim)
+  !   call fow_cal_spl(G_ml, psim(nr_in), G_m, psim)
+
+  !   p_ret = G_ml*xil/(xil**2*F_p-0.5d0*(1.d0+xil**2)*B_p) ! LHS = gamma*beta
+  !   p_ret = vc*sqrt(p_ret**2/(1.d0+p_ret**2))             ! LHS = velocity of stagnation orbit
+  !   p_ret = amfp(nsa_in)*p_ret/(1.d0-p_ret**2/vc**2)      ! momentum of stagnation orbit
+  !   p_ret = p_ret/ptfp0(nsa_in)                           ! normalize
+
+  ! end function func_p_stg
+
   function trapped(nth,np,nr,nsa,mode)
     ! mode(1) = 0 : nth is mesh point
     !           1 : nth is grid point

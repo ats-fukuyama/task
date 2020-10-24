@@ -203,7 +203,6 @@ contains
 
     use fowcomm
     use fpcomm
-    use foworbitclassify
 
     integer,intent(in) :: mode(3), nsa_in
     integer,intent(out) :: nobt_in_max
@@ -233,10 +232,8 @@ contains
     do nr = 1, nrmax+mode(3)
       do np = 1, npmax+mode(2)
         do nth = 1, nthmax+mode(1)
-          if ( .not.forbitten(nth,np,nr,nsa_in,mode) ) then
-            i = i+1
-            nobt_in(nth,np,nr) = i
-          end if
+          i = i+1
+          nobt_in(nth,np,nr) = i
         end do
       end do
     end do
@@ -249,7 +246,6 @@ contains
 
     use fowcomm
     use fpcomm
-    use foworbitclassify  
 
     integer,intent(in) :: mode(3), nobt_in(:,:,:), nsa_in
     real(rkind),intent(inout) :: penergy_in(:), pcangle_in(:), zeta_in(:), psipn_in(:), theta_in(:)
@@ -258,40 +254,38 @@ contains
     do nr = 1, nrmax+mode(3)
       do np = 1, npmax+mode(2)
         do nth = 1, nthmax+mode(1)
-          if ( .not.forbitten(nth,np,nr,nsa_in,mode) ) then
 
-            i = nobt_in(nth,np,nr)
+          i = nobt_in(nth,np,nr)
 
-            select case(mode(1))
-            case(0)
-              pcangle_in(i) = xi(nth)
-            case(1)
-              pcangle_in(i) = xig(nth)
-            end select
+          select case(mode(1))
+          case(0)
+            pcangle_in(i) = cos(thetam(nth,np,nr,nsa_in))
+          case(1)
+            pcangle_in(i) = cos(thetamg(nth,np,nr,nsa_in))
+          end select
 
-            select case(mode(2))
-            case(0)
-              penergy_in(i) = penergym(np,nsa_in)
-            case(1)
-              penergy_in(i) = penergyg(np,nsa_in)
-            end select
+          select case(mode(2))
+          case(0)
+            penergy_in(i) = penergym(np,nsa_in)
+          case(1)
+            penergy_in(i) = penergyg(np,nsa_in)
+          end select
 
-            select case(mode(3))
-            case(0)
-              psipn_in(i) = psim(nr)/psi0
-            case(1)
-              psipn_in(i) = psimg(nr)/psi0
-            end select
+          select case(mode(3))
+          case(0)
+            psipn_in(i) = psim(nr)/psi0
+          case(1)
+            psipn_in(i) = psimg(nr)/psi0
+          end select
 
-            if ( pcangle_in(i)>0.d0 ) then
-              theta_in(i) = 0.d0
-            else
-              theta_in(i) = pi
-            end if
-
-            zeta_in(i) = 0.d0
-
+          if ( pcangle_in(i) >= 0.d0 ) then
+            theta_in(i) = 0.d0
+          else
+            theta_in(i) = pi
           end if
+
+          zeta_in(i) = 0.d0
+
         end do
       end do
     end do
@@ -302,7 +296,6 @@ contains
     use obcomm
     use fowcomm,only : orbit
     use fpcomm, only : npmax, nthmax, nrmax, nsamax, rkind
-    use foworbitclassify
 
     integer,intent(in) :: mode(3), nobt_in(:,:,:), nsa_in
     type(orbit),intent(inout) :: orbit_in(:,:,:,:)
@@ -310,34 +303,22 @@ contains
     integer :: nsa,nr,nth,np
     integer :: i, j
 
-    allocate(construct_input(12,nstp_max+1))
+    allocate(construct_input(4,nstp_max+1))
     ! time_ob(0:nstp_max,nobt_max)
     do nr = 1, nrmax+mode(3)
       do np = 1, npmax+mode(2)
         do nth = 1, nthmax+mode(1)
 
-          if ( .not.forbitten(nth,np,nr,nsa_in,mode) ) then
+          i = nobt_in(nth,np,nr)
 
-            i = nobt_in(nth,np,nr)
+          do j = 1, nstp_max+1
+            construct_input(1,j)  = time_ob(j-1,i)
+            construct_input(2,j)  = psip_ob(j-1,i)
+            construct_input(3,j)  = babs_ob(j-1,i)
+            construct_input(4,j)  = acos(vpara_ob(j-1,i)/sqrt(vperp_ob(j-1,i)**2+vpara_ob(j-1,i)**2))
+          end do
 
-            do j = 1, nstp_max+1
-              construct_input(1,j)  = time_ob(j-1,i)
-              construct_input(2,j)  = psip_ob(j-1,i)
-              construct_input(3,j)  = babs_ob(j-1,i)
-              construct_input(4,j)  = phi_ob(j-1,i)
-              construct_input(5,j)  = vpara_ob(j-1,i)
-              construct_input(6,j)  = vperp_ob(j-1,i)
-              construct_input(7,j)  = psit_ob(j-1,i)
-              construct_input(8,j)  = zeta_ob(j-1,i)
-              construct_input(9,j)  = rr_ob(j-1,i)
-              construct_input(10,j) = zz_ob(j-1,i)
-              construct_input(11,j) = rs_ob(j-1,i)
-              construct_input(12,j) = theta_ob(j-1,i)
-            end do
-
-            orbit_in(nth,np,nr,nsa_in) = construct_orbit(nstp_max_nobt(i), construct_input)  
-
-          end if
+          orbit_in(nth,np,nr,nsa_in) = construct_orbit(nstp_max_nobt(i), construct_input)  
 
         end do
       end do
@@ -383,6 +364,44 @@ contains
 
   end subroutine fow_orbit_get_mode
 
+  function func_orbit_F(orbit_in, nstp_in, nr_in) result(F_ret)
+    use fpcomm
+    use fowcomm
+    implicit none
+    real(rkind) :: F_ret
+    type(orbit),intent(in) :: orbit_in
+    integer,intent(in) :: nstp_in, nr_in
+
+    real(rkind) :: C(3), rr_l
+    integer :: nr_max, nr_min, ierr, nr_l
+
+    nr_max = max(nr_in, 4)
+    nr_min = max(1, nr_in-3)
+
+    call leastSquareMethodForQuadric(psimg,nrmax+1,nr_min,nr_max,C)
+    C(3) = C(3)-orbit_in%psip(nstp_in)
+    
+    rr_l = C(2)**2-4.d0*C(1)*C(3)
+    if ( rr_l < 0.d0 ) then
+      F_ret = Fpsi(nr_in)
+      return
+    else
+      rr_l = (-1.d0*C(2)+sqrt(rr_l))/(2*C(1))
+    end if
+
+    if ( rr_l <= 0.d0 ) then
+      F_ret = Fpsig(1)
+    else if ( rr_l >= (nrmax+1)*1.d0 ) then
+      F_ret = Fpsig(nrmax+1)
+    else 
+      nr_l = int(rr_l)
+      F_ret = Fpsig(nr_l+1)+(Fpsig(nr_l+1)-Fpsig(nr_l))*(rr_l-dble(nr_l+1))
+    end if
+
+    return
+
+  end function func_orbit_F
+
   function construct_orbit(n,input) result(ret)
     use fowcomm
     type(orbit) :: ret
@@ -390,23 +409,14 @@ contains
     real(rkind), intent(in) :: input(:,:)
     integer :: i
 
-    allocate(ret%time(n+1),ret%psip(n+1),ret%babs(n+1),ret%phi(n+1),ret%vpara(n+1),ret%vperp(n+1)&
-            ,ret%psit(n+1),ret%zeta(n+1),ret%rr(n+1),ret%zz(n+1),ret%rs(n+1),ret%theta(n+1),orbit_in%RB_phi(n+1))
+    allocate(ret%time(n+1), ret%psip(n+1), ret%Babs(n+1), ret%theta(n+1))
 
     ret%nstp_max=n+1
     do i=1,n+1
-      ret%time(i)=input(1,i)
-      ret%psip(i)=input(2,i)
-      ret%babs(i)=input(3,i)
-      ret%phi(i)=input(4,i)
-      ret%vpara(i)=input(5,i)
-      ret%vperp(i)=input(6,i)
-      ret%psit(i)=input(7,i)
-      ret%zeta(i)=input(8,i)
-      ret%rr(i)=input(9,i)
-      ret%zz(i)=input(10,i)
-      ret%rs(i)=input(11,i)
-      ret%theta(i)=input(12,i)
+      ret%time(i) = input(1,i) 
+      ret%psip(i) = input(2,i)
+      ret%Babs(i) = input(3,i)
+      ret%theta(i) = input(4,i)
     end do
 
   end function construct_orbit
@@ -414,8 +424,35 @@ contains
   subroutine destruct_orbit(orbit_in)
     use fowcomm
     type(orbit) :: orbit_in
-    deallocate(orbit_in%time,orbit_in%psip,orbit_in%babs,orbit_in%phi,orbit_in%vpara,orbit_in%vperp&
-            ,orbit_in%psit,orbit_in%zeta,orbit_in%rr,orbit_in%zz,orbit_in%rs,orbit_in%theta,orbit_in%RB_phi)
+    deallocate(orbit_in%time, orbit_in%psip, orbit_in%babs, orbit_in%theta)
   end subroutine destruct_orbit
 
+  subroutine leastSquareMethodForQuadric(y,nxmax,nxstart,nxend,reval)
+    ! y=reval(1)*nx^2+reval(2)*nx+reval(3)
+    use fowprep,only:gauss_jordan
+    implicit none
+    integer,intent(in) :: nxmax,nxstart,nxend
+    double precision,intent(in) :: y(nxmax)
+    double precision,intent(out) :: reval(3)
+    double precision :: A(3,3)
+    integer :: i,j,n
+  
+    reval(:)=0
+    A(:,:)=0
+  
+    do i=1,3
+      do n=nxstart,nxend
+        reval(i)=reval(i)+n**(3-i)*y(n)
+      end do
+      do j=1,3
+        do n=nxstart,nxend
+          A(i,j)=A(i,j)+n**(6-i-j)
+        end do
+      end do
+    end do
+  
+    call gauss_jordan(A,reval,3)
+  
+  end subroutine leastSquareMethodForQuadric
+  
 end module foworbit
