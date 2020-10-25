@@ -186,10 +186,10 @@ CONTAINS
     NGPMAX  = 21
 
 !     EPSDP : Convergence torelance for root finding
-!     EPSRF : Torelance for removing duplicate root
+!     EPSRF : Torelance for dumped mode (f_i < EPSRF*ABS(f_r) removed)
 
     EPSDP  = 1.D0
-    EPSRF  = 1.D-3
+    EPSRF  = 3.D-3
 
 !     --- Graphic parameters ---
 !                 WC: absolute value of angular cyclotron frequency

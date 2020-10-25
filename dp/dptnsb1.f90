@@ -34,17 +34,13 @@ CONTAINS
     TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
 
-    REAL(rkind),ALLOCATABLE:: BESJN(:),DBESJN(:),DDBESJN(:),temp(:)
+    REAL(rkind),ALLOCATABLE:: BESJN(:),DBESJN(:),DDBESJN(:)
     COMPLEX(rkind):: cwp2,cwc,crkprprww,crkppprwc,crkprrkpp2
     REAL(rkind):: omegac,rkpr,rkpp,zeta
     REAL(rkind):: bdbz,bdbx
     COMPLEX(rkind):: cfact1,cfact2,cxx,cxy,cxz,cyy,cyz,czz
-    INTEGER:: i,nhmax,nc,nh,ierr
+    INTEGER:: i,nhmax,nh,ierr
       
-    DO i=1,6
-       cldisp(i)=0.D0
-    ENDDO
-
     cwp2=plfw(ns)%rn*1.D20*pz(ns)*pz(ns)*AEE*AEE/(EPS0*AMP*pa(ns)*cw*cw)
     omegac=mag%babs*pz(ns)*AEE/(AMP*pa(ns))
     cwc=omegac/cw
@@ -113,6 +109,7 @@ CONTAINS
     CLDISP(4)=-cwp2*cxz
     CLDISP(5)=-cwp2*cxy
     CLDISP(6)=-cwp2*cyz
+
 !    WRITE(21,'(3ES12.4)') ww,rkpr,rkpp
 !    WRITE(21,'(3ES12.4)') wp2,omegac,zeta
 !    WRITE(21,'(6ES12.4)') cldisp(1),cldisp(2),cldisp(3)

@@ -36,7 +36,7 @@ CONTAINS
 
 1   CONTINUE
     WRITE(6,*) '## DP MENU: P,V/PARM  ', &
-               'D0,D1,D2,D3,D4,D5/DISP  F/ROOT  T,S,K/TEST  Q/QUIT'
+               'D0,D1,D2,D3,D4,D5,D6/DISP  F/ROOT  T,S,K/TEST  Q/QUIT'
 
     CALL TASK_KLIN(LINE,KID,MODE,DP_PARM)
     IF(MODE.NE.1) GOTO 1
@@ -58,7 +58,7 @@ CONTAINS
           CALL DP_CONT2
        CASE(3)
           CALL DP_CONT3
-       CASE(4,5)
+       CASE(4,5,6)
           CALL DP_CONT4(NID)
        CASE DEFAULT
           WRITE(6,*) 'XX DPMENU: unknown NID'
