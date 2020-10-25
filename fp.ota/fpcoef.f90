@@ -14,7 +14,7 @@
       USE fpcalwm
       USE fpcalwr
       USE fpcalr
-      USE libbes,ONLY: BESEKNX
+      USE libbes,ONLY: beseknx
       USE libmtx
       USE FP_READ_FIT
 
@@ -100,6 +100,20 @@
 !     ----- Radial diffusion term -----
 
       IF(MODELD.NE.0) CALL FP_CALR
+      IF(MODELD.NE.0) THEN
+         NTH=2
+         NP=2
+         NR=NRMAX
+         NSA=1
+         WRITE(6,'(A,4I5,1PE12.4)') &
+              'DRR:',NTH,NP,NR,NSA,DRR(NTH,NP,NR,NSA)
+         NTH=2
+         NP=2
+         NR=NRMAX+1
+         NSA=1
+         WRITE(6,'(A,4I5,1PE12.4)') &
+              'DRR:',NTH,NP,NR,NSA,DRR(NTH,NP,NR,NSA)
+      END IF
 
 !     ----- Particle source term -----
 
@@ -110,7 +124,7 @@
          DO NSA=NSASTART, NSAEND
             NS=NS_NSA(NSA)
             IF(PA(NS).eq.1.D0.or.PA(NS).eq.2.D0)THEN
-               CALL CX_LOSS_TERM(NSA)
+               CALL CX_LOSS_TERM(NSA) 
             END IF
          END DO
       END IF
@@ -204,7 +218,7 @@
          ENDDO
          ENDDO
       END IF
-
+      
       RETURN
       END SUBROUTINE FP_CALE
 
@@ -254,7 +268,7 @@
          DO NTH=ITLB+1,ITUB-1
             FETH(NTH,NP,NR,NSA)=0.D0
          END DO
-         DO NTH=ITUB,NTHMAX+1 ! FETH(NTHMAX+1)=0
+         DO NTH=ITUB,NTHMAX+1 ! FETH(NTHMAX+1)=0 
             FETH(NTH,NP,NR,NSA) = -AEFP(NSA)*EP(NR)/PTFP0(NSA)*SING(NTH) &
                                   *Line_Element(NR)*A_chi0(NR)*2.D0*PI
          END DO
@@ -305,7 +319,6 @@
          CALL NBI_SOURCE_FIT3D(NSA)
       END IF
 
-
 !     ----- Fixed fusion source term -----
 
       IF(MODELS.EQ.1) THEN
@@ -343,7 +356,7 @@
 !         IF(MODELA.eq.0)THEN
             CALL FUSION_SOURCE_S2A0(NSA)
 !         ELSE
-!            CALL FUSION_SOURCE_S2A1(NSA)
+!            CALL FUSION_SOURCE_S2A1(NSA)            
 !         END IF
       ENDIF ! MODELS=2 or MODELS=3
 !
@@ -372,7 +385,7 @@
             DO NR=NRSTART,NREND
                DO NP=NPSTART,NPEND
                   IF(PM(NP,NS).le.NP_BULK(NR,NSA))THEN ! for beam benchmark
-                     FL=FPMXWL(PM(NP,NS),NR,NS)
+                     FL=FPMXWL(PM(NP,NS),NR,NS) 
                      DO NTH=1,NTHMAX
                         SUML = SUML &
                              + FL*VOLP(NTH,NP,NS) * VOLR(NR)*RLAMDAG(NTH,NR)*RFSADG(NR)
@@ -388,7 +401,7 @@
             SUML = SUML*RNFP0(NSA)
             DO NR=NRSTART, NREND
                DO NP=NPSTART, NPEND
-                  FL=FPMXWL(PM(NP,NS),NR,NS)
+                  FL=FPMXWL(PM(NP,NS),NR,NS) 
                   IF(PM(NP,NS).le.5.D0)THEN ! for beam benchmark
                      DO NTH=1, NTHMAX
                         SPPL(NTH,NP,NR,NSA)=-SPBTOT(1)*FL/SUML
@@ -437,6 +450,7 @@
          CALL DELTA_B_LOSS_TERM(NSA)
       END IF
       END DO ! NSA
+
       RETURN
     END SUBROUTINE FP_CALS
 
@@ -468,11 +482,11 @@
             DO NR=NRSTART,NREND
                PSI = (1.D0+EPSRM2(NR))/(1.D0+EPSRM2(NR)*COS(PANGSP) )
                TH0B = ASIN( SQRT(SIN(ANGSP)**2/PSI) )
-               SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
+               SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2) 
                DO NP=NPSTART, NPEND
                   IF(PG(NP,NS).LE.PSP.AND.PG(NP+1,NS).GT.PSP) THEN
                      DO NTH=1, NTHMAX
-                        IF(THG(NTH).LE.TH0B.AND.THG(NTH+1).GT.TH0B) THEN
+                        IF(THG(NTH).LE.TH0B.AND.THG(NTH+1).GT.TH0B) THEN 
                            SUML=SUML &
                                +SPL*VOLP(NTH,NP,NS)*VOLR(NR) &
                                    *RLAMDAG(NTH,NR)*RFSADG(NR)
@@ -521,7 +535,7 @@
                DO NR=NRSTART,NREND
                   PSI = (1.D0+EPSRM2(NR))/(1.D0+EPSRM2(NR)*COS(PANGSP) )
                   TH0B = ASIN( SQRT(SIN(ANGSP)**2/PSI) )
-                  SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
+                  SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2) 
                   DO NP=NPSTART,NPEND
                      IF(PG(NP,NS).LE.PSP.AND.PG(NP+1,NS).GT.PSP) THEN
                         DO NTH=1,NTHMAX
@@ -612,12 +626,10 @@
          ENDIF
       ENDDO
 
-
-
 !  ----  FOR ELECTRON (NS=1)
 
       IF(NS_NSA(NSA).EQ.1.and.NSSPB(1).ne.1) THEN
-
+         
          DO NBEAM=1,NBEAMMAX
             NSABEAM=0
             DO NSAX=1,NSAMAX
@@ -769,7 +781,7 @@
             ENDDO
          ENDIF
       ENDDO ! ID
-
+      
       END SUBROUTINE FUSION_SOURCE_S2A0
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       SUBROUTINE FUSION_SOURCE_S2A1(NSA)
@@ -893,31 +905,31 @@
             u=PTFP0(NSA)*PG(NP,NSA)/AMFP(NSA)
             DO NTH=1, NTHMAX
                rgama_para=SQRT(1.D0+THETA0(NS)*PG(NP,NSA)**2*COSM(NTH)**2)
-
+               
                FSPP(NTH,NP,NR,NSA)= -&
                     alpha*BB**2*rgama_para**2*U*SINM(NTH)**2* &
                     (1.D0+ (U/(rgama_para*VC))**2*COSM(NTH)**2 ) &
                     *AMFP(NSA)/PTFP0(NSA)
             END DO
          END DO
-
+         
          DO NP=NPSTARTW, NPENDWM
             rgama=SQRT(1.D0+THETA0(NS)*PM(NP,NSA)**2)
             alpha=(2.D0*AEE**4)/(3*AMFP(NSA)**3*VC**5*RGAMA)*1.e30
             u=PTFP0(NSA)*PM(NP,NSA)/AMFP(NSA)
             DO NTH=1, NTHMAX+1
                rgama_para=SQRT(1.D0+THETA0(NS)*PM(NP,NSA)**2*COSG(NTH)**2)
-
+               
                FSTH(NTH,NP,NR,NSA)= -&
                     alpha*BB**2*rgama_para**2*U*SING(NTH)*COSG(NTH)* &
                     (1.D0-U**2/(rgama_para*VC)**2*SING(NTH)**2 ) &
                     *AMFP(NSA)/PTFP0(NSA)
             END DO
          END DO
-
+         
       END DO
       END DO
-
+      
       END SUBROUTINE synchrotron
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       SUBROUTINE loss_for_CNL
@@ -1000,7 +1012,7 @@
       target_ni=(SPITOT-RNFP0(1))*RNFP(NR,NSA)/RNFP0(NSA)/target_z
 
       RNFPL=target_ni
-
+      
       IF(MODEL_T_IMP.eq.0)THEN
          RTFPL=RT_quench(NR)
       ELSEIF(MODEL_T_IMP.eq.1)THEN
@@ -1115,7 +1127,7 @@
 
       END IF
 
-
+      
 !      DO NR=NRSTART, NREND
 !         DO NP=NPSTART, NPEND
 !            DO NTH=1, NTHMAX
@@ -1126,5 +1138,4 @@
 
       END SUBROUTINE CX_LOSS_TERM
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
       END MODULE fpcoef

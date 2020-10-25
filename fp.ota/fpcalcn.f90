@@ -26,7 +26,7 @@
       real(8),dimension(NTHMAX+3,-1:LNM):: PLM,PLG
       real(8),DIMENSION(NTHMAX+3,-1:LNM):: D1PLM, D1PLG, D2PLG
       real(8),DIMENSION(0:LNM):: PLTEMP
-      real(8),DIMENSION(NPSTART:NPEND):: FPLL
+      real(8),DIMENSION(NPSTART:NPEND):: FPLL 
       real(8),DIMENSION(NPMAX):: FPL_recv
       real(8),DIMENSION(NPMAX+3,-1:LNM):: FPL
       double precision,dimension(-1:LNM):: FPLS1
@@ -92,12 +92,12 @@
       END DO
 
       DO L=LLMIN,LLMAX
-         NTH=1
+         NTH=1 
          D1PLG(NTH,L)=0.D0
          D2PLG(NTH,L)=-0.5D0*L*(L+1)
       END DO
       DO L=LLMIN,LLMAX
-         NTH=NTHMAX+1
+         NTH=NTHMAX+1 
          D1PLG(NTH,L)=0.D0
          D2PLG(NTH,L)=-0.5D0*L*(L+1)*(-1)**L
       END DO
@@ -106,7 +106,7 @@
          DO NTH=2,NTHMAX
             D1PLG(NTH,L)=L/SING(NTH)*(COSG(NTH)*PLG(NTH,L)-PLG(NTH,L-1))
             D2PLG(NTH,L)=-(L/(SING(NTH)**2)+L**2)*PLG(NTH,L) &
-                 +L*COSG(NTH)/(SING(NTH)**2)*PLG(NTH,L-1)
+                 +L*COSG(NTH)/(SING(NTH)**2)*PLG(NTH,L-1) 
          END DO
       END DO
 
@@ -147,7 +147,7 @@
             FPLL(NP)=0.5D0*(2*L+1.D0)*SUM1
          END DO
 !      END DO
-         CALL fpl_comm(FPLL,FPL_recv)
+         CALL fpl_comm(FPLL,FPL_recv) 
          DO NP=1,NPMAX
             FPL(NP,L)=FPL_recv(NP)
          END DO
@@ -338,7 +338,7 @@
       ENDIF
 !
 !     ----- calculation of local diffusion coefficienst -----
-!
+!   
       FACT=-4.D0*PI*RGAMH*1.D20
 
 !      L0MIN=0
@@ -347,10 +347,10 @@
       DO NP=NPSTART,NPENDWG
          RGAMA=SQRT(1.D0+PG(NP,NSSA)**2*THETA0(NSSA))
          DO NTH=1,NTHMAX
-            WA=0
+            WA=0 
             WC=0
             DO L=LLMIN,LLMAX
-               WA=WA+D2PSYG(NP,L)*PLM(NTH,L)
+               WA=WA+D2PSYG(NP,L)*PLM(NTH,L) 
                WC=WC+D1PHYG(NP,L)*PLM(NTH,L)
             END DO
             IF(NP.eq.1)THEN
@@ -370,7 +370,7 @@
       DO NP=NPSTART,NPENDWM
          RGAMA=SQRT(1.D0+PM(NP,NSSA)**2*THETA0(NSSA))
          DO NTH=1,NTHMAX+1
-            WB=0
+            WB=0 
             WD=0
             DO L=LLMIN,LLMAX
                WB=WB &
@@ -694,7 +694,7 @@
 
 !    SET FPL0
       DO L=0,LLMAX
-         FPL0(1,L)=0.5D0*( FPL(1,L)+FPL(2,L) &
+         FPL0(1,L)=0.5D0*( FPL(1,L)+FPL(2,L) & 
               + (FPL(1,L)-FPL(2,L))/( DELP(NSSB)*(PM(1,NSSB)+PM(2,NSSB)) ) &
               *(PM(1,NSSB)**2+PM(2,NSSB)**2) )
 !         FPL0(1,L)=FPLS1(L)
@@ -961,7 +961,7 @@
       FUNCTION FPMXWL_calcn(PML,NR,NS)
 
       USE plprof
-      USE libbes,ONLY: BESEKNX 
+      USE libbes,ONLY: beseknx 
       implicit none
       integer :: NR, NS
       real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
@@ -1027,7 +1027,7 @@
 !           /(RNFP0(NSA)*PTFP0(NSA)*1.D20)*RNFD0(NSB)
 !      vtatb=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))
 !      NSBA=NSB_NSA(NSA)
-!
+!      
 !!
 !!     ----- calculation of \hat{M}_l -----
 !!
@@ -1048,3 +1048,6 @@
 !      END SUBROUTINE integration_background_f_trapezoid
 !-----------------------------------------------------
       END MODULE fpcalcn
+
+
+

@@ -36,8 +36,20 @@
 
 ! =============  CALCULATION OF DWPP AND DWPT  ===============
 
-      ALLOCATE(DLA(0:NITMAXM,NRAYMAX))
+      IF(NRAYS_WR.EQ.0) THEN
+         NRAYS=1
+      ELSE
+         NRAYS=NRAYS_WR
+      END IF
+      IF(NRAYE_WR.EQ.0.OR.NRAYE_WR.GT.NRAYMAX) THEN
+         NRAYE=NRAYMAX
+      ELSE
+         NRAYE=NRAYE_WR
+      END IF
+
       FACT=0.5D0
+
+      ALLOCATE(DLA(0:NITMAXM,NRAYS:NRAYE))
 
       NS=NS_NSA(NSA)
 
@@ -51,7 +63,7 @@
                   ETAL=DELH*(NAV-0.5D0)-2.D0*ETAM(NTH,NR)
                   CALL pl_getRZ(RM(NR),ETAL,RL,ZL)
 
-                  DO NRAY=1,NRAYMAX
+                  DO NRAY=NRAYS,NRAYE
                      NITMX=NITMAX(NRAY)
                      RF_WR=RAYIN(1,NRAY)
 
@@ -109,7 +121,7 @@
                      RKYMN2=  RKYS(MINNB2,NRAY)
                      RKZMN2=  RKZS(MINNB2,NRAY)
                      RBMIN2=RAYRB1(MINNB2,NRAY)
-
+               
                      RRLMN1=SQRT(RXMIN1**2+RYMIN1**2)
                      RZLMN1=RZMIN1
                      RRLMN2=SQRT(RXMIN2**2+RYMIN2**2)
@@ -117,7 +129,7 @@
                      DEL12=SQRT((RRLMN1-RRLMN2)**2+(RZLMN1-RZLMN2)**2)
 
                      XA1=(DLAMN1**2-DLAMN2**2+DEL12**2)/(2.D0*DEL12)
-                     XA2=(DLAMN2**2-DLAMN1**2+DEL12**2)/(2.D0*DEL12)
+                     XA2=(DLAMN2**2-DLAMN1**2+DEL12**2)/(2.D0*DEL12)             
                      XLL2=DLAMN1**2-XA1**2
                      A1=XA1/(XA1+XA2)
                      A2=XA2/(XA1+XA2)
@@ -148,7 +160,7 @@
                      RBB(2,NR,NTH,NAV,NRAY)=RYB
                      RBB(3,NR,NTH,NAV,NRAY)=RZB
 1                    CONTINUE
-
+            
 !            IF(IDEBUG.EQ.1) THEN
 !               WRITE(6,'(5I5)') NR,NTH,NAV,NRAY,NIT
 !               WRITE(6,'(1P4E12.4)') RRLMN1,RRLMN2,RZLMN1,RZLMN2
@@ -219,7 +231,7 @@
                   ETAL=DELH*(NAV-0.5D0)-2.D0*ETAG(NTH,NR)
                   CALL pl_getRZ(RM(NR),ETAL,RL,ZL)
 
-                  DO NRAY=1,NRAYMAX
+                  DO NRAY=NRAYS,NRAYE
                      NITMX=NITMAX(NRAY)
                      RF_WR=RAYIN(1,NRAY)
 
@@ -329,7 +341,7 @@
          DO NTH=1,NTHMAX+1
             IF(NTH.NE.NTHMAX/2+1) THEN
 !               DO NP=1,NPMAX
-               DO NP=NPSTARTW,NPENDWM
+               DO NP=NPSTARTW,NPENDWM 
                   CALL FPDWAV(ETAG(NTH,NR),SING(NTH),COSG(NTH),PM(NP,NS), &
                               NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS,NSA)
                   DWWRTP(NTH,NP,NR,NSA)=DWTPS
@@ -337,7 +349,7 @@
                ENDDO
             ELSE
 !               DO NP=1,NPMAX
-               DO NP=NPSTARTW,NPENDWM
+               DO NP=NPSTARTW,NPENDWM 
                   DWWRTP(NTH,NP,NR,NSA)=0.D0
                   DWWRTT(NTH,NP,NR,NSA)=0.D0
                ENDDO
@@ -346,7 +358,7 @@
 
          IF(MODELA.EQ.1) THEN
             DO NTH=ITL(NR)+1,NTHMAX/2
-               DO NP=NPSTARTW,NPENDWM
+               DO NP=NPSTARTW,NPENDWM 
 !               DO NP=1,NPMAX
                   DWWRTP(NTH,NP,NR,NSA)=(DWWRTP(NTH,NP,NR,NSA) &
                                         -DWWRTP(NTHMAX-NTH+2,NP,NR,NSA))*FACT
@@ -395,7 +407,7 @@
          ETAL=DELH*(NAV-0.5D0)-2.D0*ETA
          CALL pl_getRZ(RM(NR),ETAL,RL,ZL)
 
-         DO NRAY=1,NRAYMAX
+         DO NRAY=NRAYS,NRAYE
             RF_WR=RAYIN(1,NRAY)
 
             IF(MODELW(NS).EQ.1) THEN
@@ -421,6 +433,18 @@
                      CALL FPDWLL(P,PSIN,PCOS,                      &
                                  CEX,CEY,CEZ,RKX,RKY,RKZ,RX,RY,RZ, &
                                  DWPPL,DWPTL,DWTPL,DWTTL,NSA)
+!                     IF(NRAY.EQ.2) &
+!                     WRITE(28,'(A,4I5,1P3E12.4)') &
+!                          'FPDWAV:',NR,NAV,NRAY,NCR,CEX,DWPPL
+!                     IF(NRAY.EQ.2) &
+!                     WRITE(28,'(A,1P6E12.4)') &
+!                          '------:',RX,RY,RZ,RKX,RKY,RKZ
+!                     IF(NRAY.EQ.1) &
+!                     WRITE(29,'(A,4I5,1P3E12.4)') &
+!                          'FPDWAV:',NR,NAV,NRAY,NCR,CEX,DWPPL
+!                     IF(NRAY.EQ.1) &
+!                     WRITE(29,'(A,1P6E12.4)') &
+!                          '------:',RX,RY,RZ,RKX,RKY,RKZ
                      DWPPS=DWPPS+DWPPL*RCOS/PCOS
                      DWPTS=DWPTS+DWPTL          /SQRT(PSI)
                      DWTPS=DWTPS+DWTPL          /SQRT(PSI)
@@ -470,7 +494,7 @@
 !***********************************************************************
 !     calculate local diffusion coefficient
 !***********************************************************************
-
+  
       SUBROUTINE FPDWLL(P,PSIN,PCOS,                      &
                         CEX,CEY,CEZ,RKX,RKY,RKZ,RX,RY,RZ, &
                         DWPPL,DWPTL,DWTPL,DWTTL,NSA)
@@ -538,7 +562,7 @@
       CALL BESSJN(RGZAI,NHMAX,RJ,DRJ)
 
       DO NC=NCMIN(NS),NCMAX(NS)
-
+         
          IF (NC.LT.0) THEN
              RJN=(-1)**(-NC)*RJ(-NC)
          ELSE
@@ -575,13 +599,13 @@
             A12=RTHETA2*RKW*VPERP*(1.D0-RKW*VPARA)
             A21=RTHETA2*RKW*VPERP*(1.D0-RKW*VPARA)
             A22=RTHETA2*RKW**2*VPERP**2
-	 ENDIF
+	 ENDIF        
          IF(VPARA.EQ.0.D0) THEN
-            DWC=0.D0
+            DWC=0.D0  
          ELSE
             EX=-((RGAMMA-RKPARA*PPARA/(RW*AMFP(NSA))-NC*RWC/RW) &
                  /(PPARA*DELNPR_WR/(AMFP(NSA)*VC)))**2
-            IF (EX.LT.-100.D0) THEN
+            IF (EX.LT.-100.D0) THEN 
                 DWC=0.D0
             ELSE
                 DWC=0.5D0*SQRT(PI)*AEFP(NSA)**2*EXP(EX)/PTFP0(NSA)**2 &
@@ -647,3 +671,4 @@
       END SUBROUTINE FPDWRP
 !---------------------------------
       END MODULE fpcalwr
+

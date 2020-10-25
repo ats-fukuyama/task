@@ -15,7 +15,7 @@ CONTAINS
     use fowdistribution
 
     USE fpcomm,ONLY: PM,FNS0
-    USE fpinit,ONLY: fp_parm,fp_broadcast
+    USE fpparm
     USE fpprep,ONLY: fp_prep
     use fpwrite
     USE fpsub,ONLY: FPMXWL

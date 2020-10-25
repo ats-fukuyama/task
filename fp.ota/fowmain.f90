@@ -11,7 +11,7 @@ program fow
   use plinit
   use plparm
   use equnit_mod
-  use fpinit
+  use fpparm
   use fpmenu
   use fpcomm
   use fpprep
@@ -21,9 +21,7 @@ program fow
 
   implicit none
 
-  integer :: IERR=0,nr,nth,np,nsa,nstp
-  integer :: mode(3)
-  real(rkind),allocatable :: fu(:,:,:,:),fI(:,:,:,:),J(:,:,:,:)
+  integer :: IERR=0
 
   call mtx_initialize
 
@@ -43,7 +41,6 @@ program fow
 
   call fow_orbit_construct(orbit_m)
   call fow_orbit_construct(orbit_th)
-
 
   write(*,*)"end"
   call fow_deallocate

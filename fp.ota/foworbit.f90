@@ -3,7 +3,7 @@ module foworbit
   private
   real(8),allocatable :: penergym(:,:),penergyg(:,:)
 
-  public :: fow_orbit_construct, fow_orbit_jacobian, fow_orbit_get_mode
+  public :: fow_orbit_construct, fow_orbit_jacobian, fow_orbit_get_mode, func_orbit_F
 
 contains
 
