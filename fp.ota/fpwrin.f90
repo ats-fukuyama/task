@@ -11,6 +11,7 @@
       INTEGER:: NRAYMAX,NITMAXM
       INTEGER,PARAMETER:: NCRMAXM=5
       INTEGER,DIMENSION(:),POINTER:: NITMAX  !(NRAYMAX)
+      INTEGER:: NRAYS,NRAYE
 
       REAL(rkind),DIMENSION(:,:),POINTER:: RAYIN !(8,NRAYMAX)
       COMPLEX(rkind),DIMENSION(:,:),POINTER:: &  !(0:NITMAXM,NRAYMAX)
@@ -35,9 +36,9 @@
 
       REAL(rkind),DIMENSION(:,:,:,:),POINTER:: ARGB      !(NRM,NTHM,NAVM,NRAYM)
       REAL(rkind),DIMENSION(:,:,:,:),POINTER:: RBCR      !(2,NCRM,NRM,NRAYM)
-      COMPLEX(rkind),DIMENSION(:,:,:,:,:),POINTER:: CEB
+      COMPLEX(rkind),DIMENSION(:,:,:,:,:),POINTER:: CEB 
                                                        !(3,NRM,NTHM,NAVM,NRAYM)
-      REAL(rkind),DIMENSION(:,:,:,:,:),POINTER:: RKB,RBB
+      REAL(rkind),DIMENSION(:,:,:,:,:),POINTER:: RKB,RBB 
                                                        !(3,NRM,NTHM,NAVM,NRAYM)
 
       CONTAINS
@@ -184,11 +185,13 @@
       IF(nrank.EQ.0) THEN
          REWIND(21)
          READ(21) NRAYMAX
+         write(6,*) '--- print 1: nraymax=',nraymax
          ALLOCATE(NITMAX(NRAYMAX))
 
          NITMAXM=1
          DO NRAY=1,NRAYMAX
             READ(21) NITMAX(NRAY)
+            write(6,*) '--- print 2: nray,nitmax=',nray,nitmax(nray)
             NITMAXM=MAX(NITMAX(NRAY),NITMAXM)
          ENDDO
          idata(1)=NRAYMAX
@@ -278,7 +281,7 @@
          NITMX=NITMAX(NRAY)
          DO NIT=0,NITMX
             CALL pl_mag(RXS(NIT,NRAY),RYS(NIT,NRAY),RZS(NIT,NRAY),MAG)
-            PSIX(NIT,NRAY)=RHON**2
+            PSIX(NIT,NRAY)=MAG%RHON**2
             SI(NIT,NRAY)=RAYS(0,NIT,NRAY)
          ENDDO
 
@@ -306,6 +309,7 @@
             NCR=0
             DO NIT=1,NITMX
                PSIL=PSIX(NIT,NRAY)
+!               WRITE(6,'(A,2I5,1P3E12.4)') 'RAY-PSI:',NR,NIT,PSIPRE,PSIL,PSICR
                IF((PSIPRE-PSICR)*(PSIL-PSICR).LT.0.D0.OR. &
                    PSIL-PSICR.EQ.0.D0) THEN
                   CALL FPCROS(PSICR,NIT,NRAY,SICR)
@@ -314,12 +318,12 @@
                   CALL FPCREK(SICR,NRAY,CEX,CEY,CEZ,RKX,RKY,RKZ,RX,RY,RZ)
                   WRITE(6,'(A,1P6E12.4)')     '# CE=',CEX,CEY,CEZ
                   WRITE(6,'(A,1P6E12.4)')     '# KR=',RKX,RKY,RKZ,RX,RY,RZ
-
+                  
                   IF(NCR.LT.NCRMAXM) THEN
                      NCR=NCR+1
-                     CECR(1,NCR,NR,NRAY)=FACT_WR*CEX
-                     CECR(2,NCR,NR,NRAY)=FACT_WR*CEY
-                     CECR(3,NCR,NR,NRAY)=FACT_WR*CEZ
+                     CECR(1,NCR,NR,NRAY)=FACT_WR*SQRT(FACT_NRAY(NRAY))*CEX
+                     CECR(2,NCR,NR,NRAY)=FACT_WR*SQRT(FACT_NRAY(NRAY))*CEY
+                     CECR(3,NCR,NR,NRAY)=FACT_WR*SQRT(FACT_NRAY(NRAY))*CEZ
                      RKCR(1,NCR,NR,NRAY)=RKX
                      RKCR(2,NCR,NR,NRAY)=RKY
                      RKCR(3,NCR,NR,NRAY)=RKZ
@@ -337,7 +341,7 @@
       DO NR=1,NRMAX
          RHOL =RM(NR)
 !         CALL pl_rrmx(RHOL,RRMIN(NR),RRMAX(NR))
-         CALL pl_rrminmax(RHOL,RRMIN(NR),RRMAX(NR))
+         CALL pl_rrminmax(RHOL,RRMIN(NR),RRMAX(NR)) 
 !         WRITE(6,602) NR,RHOL,RRMIN(NR),RRMAX(NR)
 !  602    FORMAT('# NR,RHOL,RRMIN,RRMAX=',I3,1P3E15.7)
       ENDDO

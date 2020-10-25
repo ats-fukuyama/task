@@ -31,7 +31,7 @@
 
       Implicit none
       integer :: ierr,NSA,NS,NR,NP,NTH,id
-!      character(LEN=80)::line
+!      character(LEN=80)::line 
       real(kind8)::rhon,rhol,rhol1,rhol2,A1,epsl,ql,BT
       real(kind8),DIMENSION(:),POINTER:: work,workg
       real(kind8):: Rmass, RRTFP, RPTFP,RVTFP, sumEmax
@@ -76,7 +76,10 @@
          CALL eqcalq(IERR)
          CALL eqgetb(BB,RR,RIP,RA,RKAP,RDLT,RB)
       ENDIF
-!      WRITE(6,*) 'RKAP=',RKAP,' set to 1.0'
+      WRITE(6,*) 'BB  =',BB
+      WRITE(6,*) 'RR  =',RR
+      WRITE(6,*) 'RIP =',RIP
+      WRITE(6,*) 'RA  =',RA
       RKAP=1.D0
 
 !     ----- set radial mesh -----
@@ -241,9 +244,9 @@
             EPSRG2(NR) = EPSRG(NR)
          ENDDO
       ELSE
-! THM(ITL(NR)) is always trapped region
+! THM(ITL(NR)) is always trapped region 
 ! Exact boundary A1 lays on between THM(ITL-1) and THM(ITL)
-         IF(nsize.gt.1.and.NRANK.eq.1) &
+         IF(nsize.gt.1.and.NRANK.eq.1) & 
               WRITE(6,'(A)') '# NR,ITL(NR),EPSRM2,EPSRM,THM(ITL-1)<THC<THM(ITL),THG(ITL) on RM(NR)'
          DO NR=1,NRMAX+1
             A1=ACOS(SQRT(2.D0*EPSRM(NR)/(1.D0+EPSRM(NR))))
@@ -367,7 +370,7 @@
          ENDDO
          RLAMDAG(NTH,NRMAX+1)=RLAMDA_NRMAXP1(NTH)
       ENDDO
-
+      
       DO NTH=1,NTHMAX
          DO NR=NRSTART,NREND
             work(NR)=ETAM_RG(NTH,NR)
@@ -607,7 +610,7 @@
       ELSE
          NPENDWM=NPEND+1
          NPENDWG=NPEND+1
-      END IF
+      END IF 
 !---- OND OF SHADOW
 
 !      nmstart=nthmax*npmax*(nrstart-1)+1 !2D
@@ -812,7 +815,7 @@
          ENDDO
       END DO
 !     ----- set boundary distribution functions -----
-
+      
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
          DO NP=NPSTARTW,NPENDWM
@@ -871,7 +874,7 @@
          RTFP0(NSA)=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
          RTFPS(NSA)=PTS(NS)
 
-         PTFP0(NSA)=SQRT(RTFP0(NSA)*1.D3*AEE*AMFP(NSA))!pts0 in m/s * kg
+         PTFP0(NSA)=SQRT(RTFP0(NSA)*1.D3*AEE*AMFP(NSA))
          VTFP0(NSA)=SQRT(RTFP0(NSA)*1.D3*AEE/AMFP(NSA))
       ENDDO
       RT_E=RTFPS(1)*1.D-2
@@ -953,8 +956,8 @@
                  /(SPITOT-RNFP0(1))
             PZ(N_impu)=zeff_imp
             NS=NS_NSA(N_impu)
-            AEFP(N_impu)=PZ(NS)*AEE
-            AEFD(N_impu)=PZ(NS)*AEE
+            AEFP(N_impu)=PZ(NS)*AEE 
+            AEFD(N_impu)=PZ(NS)*AEE 
          END IF
 
          RNE=PLF(1)%RN
@@ -974,7 +977,7 @@
                RTB=RT_TEMP(NR,NSFD)
                IF(ISW_CLOG.eq.0)THEN
                   IF(PZ(NSFP).eq.-1.and.PZ(NSFD).eq.-1) THEN !e-e
-                     RLNRL=14.9D0-0.5D0*LOG(RNE)+LOG(RTE)
+                     RLNRL=14.9D0-0.5D0*LOG(RNE)+LOG(RTE) 
                   ELSEIF(PZ(NSFP).eq.-1.OR.PZ(NSFD).eq.-1) THEN
                      RLNRL=15.2D0-0.5D0*LOG(RNE)+LOG(RTE) ! e-i T>10eV
                   ELSE
@@ -1048,7 +1051,7 @@
       IF(MODEL_NBI.ne.0.and.MODEL_CX_LOSS.eq.1)THEN ! assuming AMFD(NSA_F1)=D, D beam, ZEFF=1
          NS=NS_NSA(NSA_F1)
          A_D=RN_TEMP(NRSTART,1)*1.D20*AEFD(1)**4*LNLAM(NRSTART,1,NSA_F1)/(2.D0*PI*EPS0**2*AMFP(NSA_F1)**2)
-         tau_se_E0 = (3.D0*sqrt(2.D0*PI)*(RT_TEMP(NRSTART,1)*AEE*1.D3)**1.5)/(sqrt(AMFD(1))*AMFP(NSA_F1)*A_D)
+         tau_se_E0 = (3.D0*sqrt(2.D0*PI)*(RT_TEMP(NRSTART,1)*AEE*1.D3)**1.5)/(sqrt(AMFD(1))*AMFP(NSA_F1)*A_D) 
 
          Ebeam0= 140.D3
          log_energy = dlog10(Ebeam0)
@@ -1099,7 +1102,7 @@
          END IF
       END IF
 ! ----set runaway
-      IF(MODEL_DISRUPT.ne.0.and.nt_init.eq.0)THEN
+      IF(MODEL_DISRUPT.ne.0.and.nt_init.eq.0)THEN 
          IF(MODEL_IMPURITY.eq.1)THEN
             DO NSB=1,NSBMAX
                DO NR=NRSTART,NREND
@@ -1138,13 +1141,13 @@
             DO NSB=1,NSBMAX
                NSFD=NS_NSB(NSB)
                IF(MODEL_disrupt.eq.0)THEN
-                 IF(NSFD.NE.0)THEN
+!                  IF(NSFD.NE.0)THEN
                      RNB=RN_TEMP(NR,NSFD)
                      RTB=RT_TEMP(NR,NSFD)
-                 ELSE
-                    RNB=RNFD(NR,NSB)
-                    RTB=RTFD(NR,NSB)
-                 END IF
+!                  ELSE
+!                     RNB=RNFD(NR,NSB)
+!                     RTB=RTFD(NR,NSB)
+!                  END IF
                ELSE
                   RNB=RNFD(NR,NSB)
                   RTB=RT_quench(NR)
@@ -1155,7 +1158,7 @@
 
                IF(ISW_CLOG.eq.0)THEN
                   IF(PZ(NSFP).eq.-1.and.PZ(NSFD).eq.-1) THEN !e-e
-                     RLNRL=14.9D0-0.5D0*LOG(RNA)+LOG(RTA)
+                     RLNRL=14.9D0-0.5D0*LOG(RNA)+LOG(RTA) 
                   ELSEIF(PZ(NSFP).eq.-1.and.PZ(NSFD).ne.-1) THEN
                      RLNRL=15.2D0-0.5D0*LOG(RNA)+LOG(RTA) ! e-i T>10eV
                   ELSEIF(PZ(NSFP).ne.-1.and.PZ(NSFD).eq.-1) THEN
@@ -1226,7 +1229,7 @@
       ISAVE=0
 
       IERR=0
-
+ 
       RETURN
       END SUBROUTINE fp_continue
 !-------------------------------------------------------------
@@ -1296,8 +1299,8 @@
       allocate(MTXLEN(nsize),MTXPOS(nsize))
 
       CALL mtx_set_communicator(comm_nsanr)
-      allocate(SAVLEN(nsize))
-      allocate(SAVPOS(nsize,NSAEND-NSASTART+1))
+      allocate(SAVLEN(nsize)) 
+      allocate(SAVPOS(nsize,NSAEND-NSASTART+1)) 
       CALL mtx_reset_communicator
       allocate(Rank_Partition_Data(6,0:nsize-1))
 
@@ -1320,7 +1323,7 @@
 
 !     ----- Get mtxlen and mtxpos -----
 !     MTXLEN(NRANK+1): the number of NR grid points for each RANK
-!     MTXPOS(NRANK):
+!     MTXPOS(NRANK): 
 !
       CALL mtx_set_communicator(comm_nr)
       CALL mtx_allgather1_integer(nrend-nrstart+1,mtxlen)
@@ -1338,19 +1341,21 @@
       CALL fp_set_nsa_nsb
 
 !     ----- create meches -----
-!      WRITE(6,*) "START MESH"
       CALL fp_mesh(ierr)
-!      WRITE(6,*) "END MESH"
+
 !     ----- Initialize diffusion coef. -----
       call FPCINI
       RNS_DELF(:,:)=0.D0
+
 !     ----- set parameters for target species -----
       CALL fp_set_normalize_param
+
 !     ----- Initialize velocity distribution function of all species -----
 
-      CALL FNSP_INIT
+      CALL FNSP_INIT     
       CALL FNSP_INIT_EDGE
       IF(NRANK.EQ.0) WRITE(6,*) 'END INIT'
+
 !     ----- set background f
 
       CALL mtx_set_communicator(comm_nsa)
@@ -1425,7 +1430,7 @@
       IF(NRANK.eq.0) WRITE(6,'(A,E14.6)') "---------------PREP_TIME=", gut_prep
 
       IF(OUTPUT_TXT_DELTA_F.eq.1.and.NRANK.eq.0) CALL OUT_TXT_FNS_DEL
-
+ 
       RETURN
       END subroutine fp_prep
 !-----

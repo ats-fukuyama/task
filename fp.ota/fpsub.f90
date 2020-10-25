@@ -40,14 +40,14 @@ CONTAINS
                       *( DPP(ITL(NR)-1,NP,NR,NSA)/RLAMDA(ITL(NR)-1,NR) &
                         +DPP(ITL(NR)+1,NP,NR,NSA)/RLAMDA(ITL(NR)+1,NR) &
                         +DPP(ITU(NR)-1,NP,NR,NSA)/RLAMDA(ITU(NR)-1,NR) &
-                        +DPP(ITU(NR)+1,NP,NR,NSA)/RLAMDA(ITU(NR)+1,NR))
+                        +DPP(ITU(NR)+1,NP,NR,NSA)/RLAMDA(ITU(NR)+1,NR)) 
           DPP(ITU(NR),NP,NR,NSA)=DPP(ITL(NR),NP,NR,NSA)
        ELSE
           DPP(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0 &
                       *( DPP(ITL(NR)-1,NP,NR,NSA)/RLAMDA(ITL(NR)-1,NR) &
                         +DPP(ITL(NR)+1,NP,NR,NSA)/RLAMDA(ITL(NR)+1,NR) &
                         -DPP(ITU(NR)-1,NP,NR,NSA)/RLAMDA(ITU(NR)-1,NR) &
-                        -DPP(ITU(NR)+1,NP,NR,NSA)/RLAMDA(ITU(NR)+1,NR))
+                        -DPP(ITU(NR)+1,NP,NR,NSA)/RLAMDA(ITU(NR)+1,NR)) 
           DPP(ITU(NR),NP,NR,NSA)=-DPP(ITL(NR),NP,NR,NSA)
        END IF
     END DO
@@ -166,7 +166,6 @@ CONTAINS
       RNFD0L=PN(NS)
       RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
       PTFD0L=SQRT(RTFD0L*1.D3*AEE*AMFDL)
-
       IF(NR.eq.0)THEN
          RL=0.D0
          RHON=ABS(RL)
@@ -234,7 +233,7 @@ CONTAINS
 !     F at R=1.0+DELR/2
 !      FL=FL2*1.D-1
 
-      FL=FPMXWL_S(PM(NP,NS),NRMAX,NS)
+      FL=FPMXWL_S(PM(NP,NS),NRMAX,NS) 
 
       RETURN
       END SUBROUTINE FPMXWL_EDGE
@@ -339,7 +338,7 @@ CONTAINS
       USE libbes
       IMPLICIT NONE
       INTEGER,INTENT(IN)::NR,NSA
-      double precision,intent(in):: RNSL_, RWSL_
+      double precision,intent(in):: RNSL_, RWSL_ 
       double precision,intent(out)::rtemp
       integer:: ncount, NS
       real(8):: xeave
@@ -349,7 +348,7 @@ CONTAINS
 !-----Average kinetic energy
 !      EAVE=RWS(NR,NSA)*AMFP(NSA)*THETA0(NS) &
 !           /(RNS(NR,NSA)*1.D20*PTFP0(NSA)**2*1.D-6)
-      EAVE=RWSL_*AMFP(NSA)*THETA0(NS) &
+      EAVE=RWSL_*AMFP(NSA)*THETA0(NS) & 
            /(RNSL_*1.D20*PTFP0(NSA)**2*1.D-6)
 !-----initial value of THETAL
       THETAL=2.d0*EAVE/3.d0
@@ -407,7 +406,7 @@ CONTAINS
       rfuncp= dkbsl1 /dkbsl2 -1.D0+3.D0/Z
       RETURN
       END FUNCTION rfuncp
-
+      
       FUNCTION dfunc(thetal)
       IMPLICIT NONE
       REAL(8):: thetal,dfunc
@@ -433,11 +432,11 @@ CONTAINS
       dkbsl2=1.D0 + 15.D0/8.D0/z + 105.D0/128.D0/z**2
       dkbsl3=1.D0 + 35.D0/8.D0/z + 945.D0/128.D0/z**2
       dfuncp =( (dkbsl0 +dkbsl2 )/dkbsl2                          &
-               -(dkbsl1 +dkbsl3 )*dkbsl1 /dkbsl2 **2)*0.5d0*z**2  &
+               -(dkbsl1 +dkbsl3 )*dkbsl1 /dkbsl2 **2)*0.5d0*z**2  & 
             +3.d0
       RETURN
       END FUNCTION dfuncp
-
+      
       end Subroutine FPNEWTON
 
 END MODULE fpsub

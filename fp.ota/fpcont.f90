@@ -20,13 +20,13 @@
 !
       IMPLICIT NONE
 !
-      real(8),DIMENSION(NXA,NYMAX):: Z
-      real(8),DIMENSION(NXMAX):: R
-      real(8),DIMENSION(NYMAX):: T
+      REAL(4),DIMENSION(NXA,NYMAX):: Z
+      REAL(4),DIMENSION(NXMAX):: R
+      REAL(4),DIMENSION(NYMAX):: T
       INTEGER,INTENT(IN):: NXA,NXMAX,NYMAX,NSTEP,ISPL
-      real(8),DIMENSION(NSTEP):: ZL,WLN
+      REAL(4),DIMENSION(NSTEP):: ZL,WLN
       INTEGER,DIMENSION(NSTEP):: ILN
-      real(8),DIMENSION(3,NSTEP):: RGB
+      REAL(4),DIMENSION(3,NSTEP):: RGB
       INTEGER,DIMENSION(4,NXMAX,NYMAX):: KA
       INTEGER:: N
 !
@@ -50,13 +50,13 @@
       COMMON /GSCTR4/ RMAX,RT,TT,XT,YT
 !
 !      EXTERNAL CONTV2X
-      real(8),DIMENSION(NXA,NYMAX):: Z
-      real(8),dimension(NXMAX):: R
-      real(8),dimension(NYMAX):: T
-      INTEGER,PARAMETER:: NGLM=30
-      real(8),DIMENSION(NGLM):: ZL,WLN
+      real(4),DIMENSION(NXA,NYMAX):: Z
+      real(4),dimension(NXMAX):: R
+      real(4),dimension(NYMAX):: T
+      INTEGER,PARAMETER:: NGLM=30  
+      real(4),DIMENSION(NGLM):: ZL,WLN
       integer,dimension(NGLM):: ILN
-      real(8),dimension(3,NGLM):: RGB
+      real(4),dimension(3,NGLM):: RGB
 !
       RMAX=R(NXMAX)
 !
@@ -74,21 +74,21 @@
 !
       IMPLICIT LOGICAL(L)
       EXTERNAL SUBV
-      real(8),DIMENSION(NXA,NYMAX):: Z
-      real(8),dimension(NXMAX):: X
-      real(8),dimension(NYMAx):: Y
+      real(4),DIMENSION(NXA,NYMAX):: Z
+      real(4),dimension(NXMAX):: X
+      real(4),dimension(NYMAx):: Y
       integer(4),dimension(2,NXMAX*NYMAX):: KA
-      INTEGER,PARAMETER:: NGLM=30
-      real(8),DIMENSION(NGLM):: ZL,WLN
+      INTEGER,PARAMETER:: NGLM=30  
+      real(4),DIMENSION(NGLM):: ZL,WLN
       integer,dimension(NGLM):: ILN
-      real(8),dimension(3,NGLM):: RGB
+      real(4),dimension(3,NGLM):: RGB
       PARAMETER(NH=101)
-      real(8),DIMENSION(NH):: ZLS,ILNS,WLNS
-      real(8),dimension(3,NH):: RGBS
+      real(4),DIMENSION(NH):: ZLS,ILNS,WLNS
+      real(4),dimension(3,NH):: RGBS
 !      PARAMETER (NFMAX=2000,NGMAX=4000)
       PARAMETER (NFMAX=200,NGMAX=400)
-      real(8),DIMENSION(NFMAX):: XF,YF,XP,YP
-      real(8),DIMENSION(NGMAX):: XG,YG
+      real(4),DIMENSION(NFMAX):: XF,YF,XP,YP
+      real(4),DIMENSION(NGMAX):: XG,YG
 !
       IF(ISPL.GE.0) THEN
          CALL INQRGB(RS,GS,BS)
@@ -179,7 +179,7 @@
             N3Y=NY+1
             N4X=NX
             N4Y=NY+1
-!
+!     
             U1=Z(N1X,N1Y)-ZORG
             I2X=N2X
             I2Y=N2Y
@@ -547,7 +547,7 @@
                      J=1
                      XF(1)=XF(NFMAX)
                      YF(1)=YF(NFMAX)
-!c$$$                     WRITE(6,'(A,7I5,1P2E12.4)')
+!c$$$                     WRITE(6,'(A,7I5,1P2E12.4)') 
 !c$$$     &                    '-3-',J,IEL,IE,NAX,NAY,NBX,NBY,XF(J),YF(J)
                   ENDIF
                   J=J+1
@@ -569,7 +569,7 @@
                      J=NFMAX
                      XF(NFMAX)=XF(1)
                      YF(NFMAX)=YF(1)
-!c$$$                     WRITE(6,'(A,7I5,1P2E12.4)')
+!c$$$                     WRITE(6,'(A,7I5,1P2E12.4)') 
 !c$$$     &                    '-2-',J,IEL,IE,NAX,NAY,NBX,NBY,XF(J),YF(J)
                   ENDIF
                   J=J-1
@@ -577,7 +577,7 @@
                RT=(U0-UA)/(UB-UA)
                XF(J)=(XB-XA)*RT+XA
                YF(J)=(YB-YA)*RT+YA
-!c$$$                     WRITE(6,'(A,7I5,1P2E12.4)')
+!c$$$                     WRITE(6,'(A,7I5,1P2E12.4)') 
 !c$$$     &                    '-1-',J,IEL,IE,NAX,NAY,NBX,NBY,XF(J),YF(J)
 
                KA(1,IEL)=KA(1,IEL)+1
@@ -607,7 +607,7 @@
             ENDIF
             CALL SUBV(XP,YP,NP,XG,YG,NGMAX,NN)
             IPAT=ILNS(K)
-!            CALL LINEPTX(XG,YG,NN,ILNS(K))
+!            CALL LINEPTX(XG,YG,NN,ILNS(K))            
             CALL LINEPTX(XG,YG,NN,IPAT)
 !
 !            IF(.NOT.LINV) THEN
@@ -636,8 +636,8 @@
       IMPLICIT LOGICAL(L)
       COMMON /GSGFXY/ DX,DY,PXS,PYS,PXE,PYE,GXS,GYS,GXE,GYE,LGF
       COMMON /GSCTR4/ RMAX,RT,TT,XT,YT
-      real(8),DIMENSION(N):: RA,TA
-      real(8),dimension(M):: XB,YB
+      real(4),DIMENSION(N):: RA,TA
+      real(4),dimension(M):: XB,YB
 !
       RT=RA(1)
       TT=TA(1)
@@ -703,7 +703,7 @@
 !
       SUBROUTINE LINEPTX(XG,YG,N,IPAT)
 !
-      real(8),DIMENSION(N):: XG,YG
+      real(4),DIMENSION(N):: XG,YG
       integer:: IPAT
 !
       CALL MOVEPT(XG(1),YG(1),IPAT)
@@ -719,8 +719,8 @@
 !
       PARAMETER(NPA=2001)
       PARAMETER(M=3)
-      real(8),dimension(N):: XH,YH
-      real(8),dimension(NPM):: XP,YP
+      real(4),dimension(N):: XH,YH
+      real(4),dimension(NPM):: XP,YP
       integer(4),DIMENSION(0-M:NPA+M):: IKN
 !
       IF(ISPL.EQ.0) THEN
@@ -780,9 +780,9 @@
 !
       PARAMETER (M=3)
       integer(4),DIMENSION(0-M:N+M):: IKN
-      real(8),dimension(0-M:M,0:M):: B
-      real(8),DIMENSION(0:N):: X,Y
-      real(8),dimension(NP):: XP,YP
+      real(4),dimension(0-M:M,0:M):: B
+      real(4),DIMENSION(0:N):: X,Y
+      real(4),dimension(NP):: XP,YP
 !
       H=(IKN(N)-IKN(0))/REAL(NP-1)
 !
@@ -814,7 +814,7 @@
       SUBROUTINE GUBSPLX(TP,ITM,N,IKN,M,B)
 !
       integer(4),DIMENSION(0-M:N+M):: IKN
-      real(8),dimension(0-M:M,0:M):: B
+      real(4),dimension(0-M:M,0:M):: B
 !
       DO JT=N-1,0,-1
          IF(TP.GE.REAL(IKN(JT))) THEN

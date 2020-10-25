@@ -46,7 +46,7 @@
       real(8),DIMENSION(-2:LLMAX+2, 0:2):: DERJ, DERY
 
       real(8),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2):: RJABM
-      real(8),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2):: RJABG
+      real(8),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2):: RJABG 
       real(8),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2):: RYABM
       real(8),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2):: RYABG
 
@@ -66,12 +66,12 @@
       real(8):: DKBSL0, DKBSL1, DKBSL2, Z
 !
 !----- DEFINITION OF LOCAL QUANTITIES -------------
-!
+! 
       NSSA=NS_NSA(NSA)
       NSSB=NS_NSB(NSB)
       THETA0L_NLR=THETA0(NSSB)
-      IF(MODEL_DISRUPT.eq.0)THEN
-         THETAL_NLR =(PTFD(NR,NSB)/(AMFD(NSB)*VC))**2
+      IF(MODEL_DISRUPT.eq.0)THEN 
+         THETAL_NLR =(PTFD(NR,NSB)/(AMFD(NSB)*VC))**2 
       ELSE
          THETAL_NLR =THETA0(NSSB)*RT_quench(NR)/RTFD0(NSB)
       END IF
@@ -145,7 +145,7 @@
 !     ----- Legendre expansion of distribution funstion FNS -----
 !
 
-      CALL mtx_set_communicator(comm_np)
+      CALL mtx_set_communicator(comm_np) 
       DO L=LLMIN,LLMAX
          DO NP=NPSTART,NPEND
             TX(1)=0.D0
@@ -264,7 +264,7 @@
       END DO
 
 !
-!----------- END OF MID
+!----------- END OF MID 
 !
 !
 !----------- ON GRID
@@ -369,7 +369,7 @@
                     +FACT2 * AMFP(NSA)/AMFD(NSB)*RGAMA             &
                     *( -SUMF + 2.D0/VC**2*SUMG )
             END DO
-         END DO
+         END DO 
       END DO
 
 
@@ -377,7 +377,7 @@
       IF(NPSTART.eq.1)THEN
          DO NTH=1,NTHMAX
             FCPP2(NTH,1,NR,NSB,NSA) = 0.D0
-
+            
             PNFP_NLR=0.D0
             PCRIT=0.D0
             CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R2)
@@ -436,7 +436,7 @@
                  )
 
             FCTH2(NTH,NP,NR,NSB,NSA) = FCTH2(NTH,NP,NR,NSB,NSA) &
-                 + FACT2 * AMFP(NSA)/AMFD(NSB)/RGAMA/RUFP       &
+                 + FACT2 * AMFP(NSA)/AMFD(NSB)/RGAMA/RUFP       & 
                  *(- SUMG + 2.D0/VC**2*SUMH )
 
          END DO
@@ -495,7 +495,7 @@
 
       RETURN
       END SUBROUTINE FPCALC_NLR
-
+ 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !---- RECURRENCE EQUATION OF FIRST KIND LEGENDRE FUNCTION
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -559,7 +559,7 @@
 !      FKLF_Y(0,2) = sqrt(2.D0*RUFP/PI/VC)*(VC/RUFP+2.D0*RUFP/VC)
 !      FKLF_Y(0,-1) = FKLF_Y(0,1)
 !
-!---- RECURRENCE EQUATION
+!---- RECURRENCE EQUATION 
 !
 !      Do L = 0, LLMAX+1
 !         Do NA = 0, 2
@@ -580,11 +580,11 @@
          RJ_1(0,0) = RSIGMA/RZ
          RJ_1(0,1) = 1.D0
          RJ_1(0,2) = RGAMA
-
+         
          RJ_1(1,0) = (RGAMA*RSIGMA-RZ)/RZ**2
          RJ_1(1,1) = (RZ*RGAMA-RSIGMA)*0.5D0/RZ**2
          RJ_1(1,2) = RZ / 3.D0
-
+         
          IF(RZ.le.2.D-4)THEN
             RJ_1(2,0) = ( (4.D0/15.D0)*RZ**2  &
                  -(15.D0/112.D0+3.D0/80.D0)*RZ**4 )/4.D0
@@ -648,7 +648,7 @@
                RJ_1(4,1) = ( &
                     (-105.D0*ra2-480.D0/105.D0)*RZ**4  &
                     )/720.D0
-               RJ_1(4,2) = (301.D0/128.D0+3675.D0/1152.D0-225.D0/56.D0) &
+               RJ_1(4,2) = (301.D0/128.D0+3675.D0/1152.D0-225.D0/56.D0) & 
                     *RZ**4/1440.D0
             ELSE
                ra1 = 105.D0*(RSIGMA-RGAMA*RZ)
@@ -662,7 +662,7 @@
                     -(60.D0*RZ**2+105.D0)*RGAMA*RSIGMA )/720.D0/RZ**5
                RJ_1(4,2) = ((90.D0*RGAMA**2+15.D0)*RSIGMA +              &
                     (4.D0*RGAMA**2*RZ**2-24.D0*RGAMA**2-81.D0)*RGAMA*RZ) &
-                    /1440.D0/RZ**5
+                    /1440.D0/RZ**5               
             END IF
             RY_1(4,0) = &
                  -3.D0*(8.D0*RGAMA**4+24.D0*RGAMA**2+3.D0)/RZ**5
@@ -743,7 +743,7 @@
 
       real(8),DIMENSION(-2:LLMAX+2, 0:2):: RJ_1, RY_1
       real(8),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2):: RJABM
-      real(8),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2):: RJABG
+      real(8),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2):: RJABG 
       real(8),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2):: RYABM
       real(8),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2):: RYABG
 
@@ -795,7 +795,7 @@
             ENDIF
          END DO
 !         DO NPG=2,NPMAX+1
-         DO NPG=NPSTART,NPENDWG
+         DO NPG=NPSTART,NPENDWG            
             IF(NPG.eq.1)THEN
                RJABG(1,L,NI,NA)=0.D0
             ELSE
@@ -928,7 +928,7 @@
 
       real(8),DIMENSION(-2:LLMAX+2, 0:2):: RJ_1, RY_1
       real(8),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2),INTENT(OUT):: RJABM
-      real(8),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2),INTENT(OUT):: RJABG
+      real(8),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2),INTENT(OUT):: RJABG 
       real(8),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2),INTENT(OUT):: RYABM
       real(8),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2),INTENT(OUT):: RYABG
 
@@ -948,7 +948,7 @@
 !      open(10,file='spl_y_fine.dat')
 
       DO L=0,LLMAX
-         FPL0(1,L)=FPLS1(L)
+         FPL0(1,L)=FPLS1(L) 
          TX1(1)=0.D0
          TY1(1)=FPL0(1,L)
          DO NP=1,NPMAX
@@ -1140,7 +1140,7 @@
       FUNCTION FPMXWL_calcnr(PML,NR,NS)
 
       USE plprof
-      USE libbes,ONLY: BESEKNX 
+      USE libbes,ONLY: beseknx
       implicit none
       integer :: NR, NS
       real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
@@ -1197,3 +1197,4 @@
 
 
       END MODULE fpcalcnr
+

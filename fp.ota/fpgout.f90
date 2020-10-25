@@ -12,11 +12,11 @@
       USE fpcont
       USE fpfout
       interface
-         real(8) function GUCLIP(X)
+         real(4) function GUCLIP(X)
            real(8):: X
          end function GUCLIP
          integer(4) function NGULEN(Y)
-           real(8):: Y
+           real(4):: Y
          end function NGULEN
       end interface
 
@@ -454,12 +454,12 @@
 !
       IMPLICIT NONE
       real(8),dimension(NRMAX,NTG2MAX)::FR
-      real(8),dimension(NRMAX):: GX,GY
+      real(4),dimension(NRMAX):: GX,GY
       CHARACTER(LEN=*),INTENT(IN):: STRING
       integer:: NT2, NR
-      real(8):: GXMIN, GXMAX, GYMAX0, GYMIN0, GYMIN, GYMAX
-      real(8):: GYMIN1, GYMAX1, GYSTEP, GXMIN1, GXMAX1, GXSTEP
-      real(8):: GXORG
+      real(4):: GXMIN, GXMAX, GYMAX0, GYMIN0, GYMIN, GYMAX
+      real(4):: GYMIN1, GYMAX1, GYSTEP, GXMIN1, GXMAX1, GXSTEP
+      real(4):: GXORG
 !
       IF(NGRAPH.EQ.0) THEN
          CALL FPFOTR(STRING,FR)
@@ -561,11 +561,11 @@
 !
       IMPLICIT NONE
       real(8),DIMENSION(NTG1MAX):: FT
-      real(8),DIMENSION(NTG1MAX):: GX,GY
+      real(4),DIMENSION(NTG1MAX):: GX,GY
       CHARACTER(LEN=*),INTENT(IN):: STRING
       integer:: NT1
-      real(8):: GYMIN, GYMAX, GYMIN1, GYMAX1, GYSTEP
-      real(8):: GXMIN, GXMAX, GXSTEP
+      real(4):: GYMIN, GYMAX, GYMIN1, GYMAX1, GYSTEP
+      real(4):: GXMIN, GXMAX, GXSTEP
 
       IF(NGRAPH.EQ.0) THEN
          CALL FPFOTT(STRING,FT)
@@ -654,13 +654,13 @@
 !
       IMPLICIT NONE
       real(8),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
-      real(8),dimension(NPMAX):: GX
-      real(8),dimension(NPMAX,NRMAX):: GY
+      real(4),dimension(NPMAX):: GX
+      real(4),dimension(NPMAX,NRMAX):: GY
       CHARACTER(LEN=*),INTENT(IN):: STRING
       INTEGER,INTENT(IN):: NSA
       CHARACTER(LEN=80):: STRING1
 !      real(8):: PGMAX, RGMAX, RGMIN
-      real(8):: GXMAX, GXMINP, GYMIN, GYMAX, GYMINP, GYSTEP, GXSTEP, GXMAXP, GYMAXP
+      real(4):: GXMAX, GXMINP, GYMIN, GYMAX, GYMINP, GYSTEP, GXSTEP, GXMAXP, GYMAXP
       integer:: NR, NP, NTH, NPM, NS
 
       IF(NGRAPH.EQ.0) THEN
@@ -775,13 +775,13 @@
 !       
       IMPLICIT NONE
       real(8),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
-      real(8),dimension(NPMAX):: GX
-      real(8),dimension(NRMAX):: GY
-      real(8),dimension(NPMAX,NRMAX):: GZ
+      real(4),dimension(NPMAX):: GX
+      real(4),dimension(NRMAX):: GY
+      real(4),dimension(NPMAX,NRMAX):: GZ
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSA, NS, NPGMAX, NPM
-      real(8):: GX1, GX2, GY1, GY2
+      real(4):: GX1, GX2, GY1, GY2
 
       IF(NGRAPH.EQ.0) THEN
          CALL FPFOTP(STRING,FG)
@@ -840,14 +840,14 @@
                         GXMAX1,GYMIN1,GYMAX1,STR)
 
       IMPLICIT NONE
-      real(8),        INTENT(IN):: GX1,GX2,GY1,GY2,GXMAX1,GYMIN1,GYMAX1
+      REAL(4),        INTENT(IN):: GX1,GX2,GY1,GY2,GXMAX1,GYMIN1,GYMAX1
       INTEGER(4),     INTENT(IN):: NXM,NXMAX,NYMAX
-      real(8),DIMENSION(NXMAX),      INTENT(IN):: GX
-      real(8),DIMENSION(NYMAX),      INTENT(IN):: GY
-      real(8),DIMENSION(NXM,NYMAX),  INTENT(IN):: GZ
+      REAL(4),DIMENSION(NXMAX),      INTENT(IN):: GX
+      REAL(4),DIMENSION(NYMAX),      INTENT(IN):: GY
+      REAL(4),DIMENSION(NXM,NYMAX),  INTENT(IN):: GZ
       CHARACTER(LEN=*),             INTENT(IN):: STR
       INTEGER(4) :: I, NGULEN
-      real(8)    :: GOX, GOY, GOZ, GPHI, GRADIUS, GSTEPX, GSTEPY,   &
+      REAL(4)    :: GOX, GOY, GOZ, GPHI, GRADIUS, GSTEPX, GSTEPY,   &
                     GSTEPZ, GSXMAX, GSXMIN, GSYMAX, GSYMIN, GSZMAX, &
                     GSZMIN, GTHETA, GXL, GXMAX, GXMIN, GXORG, GYL,  &
                     GYMAX, GYMIN, GYORG, GZL, GZMAX, GZMIN, GZVAL
@@ -1001,7 +1001,7 @@
        
       IMPLICIT NONE
       REAL(8),DIMENSION(NTHMAX+1,NPMAX+1,NSAMAX):: FGA
-      real(8),dimension(NTHMAX+1,NPMAX+1):: GF
+      REAL(4),dimension(NTHMAX+1,NPMAX+1):: GF
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NPM, NTHM, NRM, NR, NP, NTH, NSA, NS
@@ -1160,18 +1160,18 @@
 !       
       IMPLICIT NONE
       real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
-      real(8),DIMENSION(NPMAX+1,NTHMAX+1):: GF
-      real(8),dimension(NPMAX+1):: GP
-      real(8),dimension(NTHMAX+1):: GTH
+      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
+      real(4),dimension(NPMAX+1):: GP
+      real(4),dimension(NTHMAX+1):: GTH
       real(8),dimension(8,NPMAX+1,NTHMAX+1)::KA
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
-      real(8):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
+      REAL(4):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
       INTEGER:: ILN(NGLM)
-      real(8):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
-      real(8):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
-      real(8):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
+      REAL(4):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
+      real(4):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
+      real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
       integer:: NR, NP, NTH, NSB, NRG, MODE
       integer:: NPG, NTHG, NPM, NTHM, NRM, NM, NGLMAX, NGL
       integer:: I
@@ -1248,17 +1248,17 @@
 !       
       IMPLICIT NONE
 !      real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
-!      real(8),DIMENSION(NPMAX+1,NTHMAX+1):: GF
+!      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
       real(8),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
-      real(8),DIMENSION(NPMAX,NTHMAX):: GF
+      real(4),DIMENSION(NPMAX,NTHMAX):: GF
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
-      real(8):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
+      REAL(4):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
       INTEGER:: ILN(NGLM)
-      real(8):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
-      real(8):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
-      real(8):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
+      REAL(4):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
+      real(4):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
+      real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
       integer:: NR, NP, NTH, NRG, MODE, NSB
       integer:: NPG, NTHG, NPM, NTHM, NRM, NM, NGLMAX, NGL
       integer:: I
@@ -1338,22 +1338,22 @@
       SUBROUTINE FPGRACX_2(STRING,GF,MODE,NSB)
 !       
       IMPLICIT NONE
-      real(8),DIMENSION(NPMAX,NTHMAX):: GF
-      real(8),dimension(NPMAX):: GP
-      real(8),dimension(NTHMAX):: GTH
+      real(4),DIMENSION(NPMAX,NTHMAX):: GF
+      real(4),dimension(NPMAX):: GP
+      real(4),dimension(NTHMAX):: GTH
       real(8),dimension(8,NPMAX,NTHMAX)::KA
-!      real(8),DIMENSION(NPMAX+1,NTHMAX+1):: GF
-!      real(8),dimension(NPMAX+1):: GP
-!      real(8),dimension(NTHMAX+1):: GTH
+!      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
+!      real(4),dimension(NPMAX+1):: GP
+!      real(4),dimension(NTHMAX+1):: GTH
 !      real(8),dimension(8,NPMAX+1,NTHMAX+1)::KA
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
-      real(8):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
+      REAL(4):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
       INTEGER:: ILN(NGLM)
-      real(8):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
-      real(8):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
-      real(8):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
+      REAL(4):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
+      real(4):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
+      real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
       integer:: NR, NP, NTH, NSB, NRG, MODE, LMODE
       integer:: NPG, NTHG, NPM, NTHM, NGLMAX, NGL
       integer:: I, NS
@@ -1414,8 +1414,8 @@
                DO NGL=1,NGLMAX
                   ZL(NGL)=GFMIN1+0.5*GFSTEP*(NGL-1)
                   RGB(1,NGL)=1.D0
-                  RGB(2,NGL)=0.9*dfloat(NGLMAX-NGL)/dfloat(NGLMAX-1)
-                  RGB(3,NGL)=0.9*dfloat(NGLMAX-NGL)/dfloat(NGLMAX-1)
+                  RGB(2,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
+                  RGB(3,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
                   ILN(NGL)=0
                   WLN(NGL)=0.07
                ENDDO
@@ -1427,8 +1427,8 @@
                NGLMAX=INT((GFMAX1-GFMIN1)/(0.5*GFSTEP))
                DO NGL=1,NGLMAX
                   ZL(NGL)=GFMAX1-0.5*GFSTEP*(NGL-1)
-                  RGB(1,NGL)=0.9*dfloat(NGLMAX-NGL)/dfloat(NGLMAX-1)
-                  RGB(2,NGL)=0.9*dfloat(NGLMAX-NGL)/dfloat(NGLMAX-1)
+                  RGB(1,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
+                  RGB(2,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
                   RGB(3,NGL)=1.D0
                   ILN(NGL)=0
                   WLN(NGL)=0.07
@@ -1443,8 +1443,8 @@
                NGLMAX=INT(GFFMAX/(0.5*GFSTEP))
                DO NGL=1,NGLMAX
                   ZL(NGL)=-0.25*GFSTEP-0.5*GFSTEP*(NGL-1)
-                  RGB(1,NGL)=0.9*dfloat(NGLMAX-NGL)/dfloat(NGLMAX-1)
-                  RGB(2,NGL)=0.9*dfloat(NGLMAX-NGL)/dfloat(NGLMAX-1)
+                  RGB(1,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
+                  RGB(2,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
                   RGB(3,NGL)=1.D0
                   ILN(NGL)=0
                   WLN(NGL)=0.07
@@ -1454,8 +1454,8 @@
                DO NGL=1,NGLMAX
                   ZL(NGL)= 0.25*GFSTEP+0.5*GFSTEP*(NGL-1)
                   RGB(1,NGL)=1.D0
-                  RGB(2,NGL)=0.9*dfloat(NGLMAX-NGL)/dfloat(NGLMAX-1)
-                  RGB(3,NGL)=0.9*dfloat(NGLMAX-NGL)/dfloat(NGLMAX-1)
+                  RGB(2,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
+                  RGB(3,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
                   ILN(NGL)=0
                   WLN(NGL)=0.07
                ENDDO
@@ -1469,9 +1469,9 @@
       ELSE
          DO NGL=1,NGLINE
             ZL(NGL)=GFMAX-0.020*(NGL-1)**2
-            CALL SETRGBFP(1.0-dfloat(NGL-1)/dfloat(NGLINE-1),RGB(1,NGL))
+            CALL SETRGBFP(1.0-FLOAT(NGL-1)/FLOAT(NGLINE-1),RGB(1,NGL))
 !            WRITE(6,'(I5,1P5E12.4)') &
-!               NGL,ZL(NGL),1.0-dfloat(NGL-1)/dfloat(NGLINE-1), &
+!               NGL,ZL(NGL),1.0-FLOAT(NGL-1)/FLOAT(NGLINE-1), &
 !               RGB(1,NGL),RGB(2,NGL),RGB(3,NGL)
             ILN(NGL)=0
             WLN(NGL)=0.07
@@ -1515,18 +1515,18 @@
       SUBROUTINE FPGRACX(STRING,GF,MODE,NSB)
 !       
       IMPLICIT NONE
-      real(8),DIMENSION(NPMAX+1,NTHMAX+1):: GF
-      real(8),dimension(NPMAX+1):: GP
-      real(8),dimension(NTHMAX+1):: GTH
+      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
+      real(4),dimension(NPMAX+1):: GP
+      real(4),dimension(NTHMAX+1):: GTH
       real(8),dimension(8,NPMAX+1,NTHMAX+1)::KA
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
-      real(8):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
+      REAL(4):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
       INTEGER:: ILN(NGLM)
-      real(8):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
-      real(8):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
-      real(8):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
+      REAL(4):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
+      real(4):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
+      real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
       integer:: NR, NP, NTH, NSB, NRG, MODE, LMODE
       integer:: NPG, NTHG, NPM, NTHM, NRM, NM, NGLMAX, NGL
       integer:: I, NS
@@ -1587,8 +1587,8 @@
                DO NGL=1,NGLMAX
                   ZL(NGL)=GFMIN1+0.5*GFSTEP*(NGL-1)
                   RGB(1,NGL)=1.D0
-                  RGB(2,NGL)=0.9*dfloat(NGLMAX-NGL)/dfloat(NGLMAX-1)
-                  RGB(3,NGL)=0.9*dfloat(NGLMAX-NGL)/dfloat(NGLMAX-1)
+                  RGB(2,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
+                  RGB(3,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
                   ILN(NGL)=0
                   WLN(NGL)=0.07
                ENDDO
@@ -1600,8 +1600,8 @@
                NGLMAX=INT((GFMAX1-GFMIN1)/(0.5*GFSTEP))
                DO NGL=1,NGLMAX
                   ZL(NGL)=GFMAX1-0.5*GFSTEP*(NGL-1)
-                  RGB(1,NGL)=0.9*dfloat(NGLMAX-NGL)/dfloat(NGLMAX-1)
-                  RGB(2,NGL)=0.9*dfloat(NGLMAX-NGL)/dfloat(NGLMAX-1)
+                  RGB(1,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
+                  RGB(2,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
                   RGB(3,NGL)=1.D0
                   ILN(NGL)=0
                   WLN(NGL)=0.07
@@ -1616,8 +1616,8 @@
                NGLMAX=INT(GFFMAX/(0.5*GFSTEP))
                DO NGL=1,NGLMAX
                   ZL(NGL)=-0.25*GFSTEP-0.5*GFSTEP*(NGL-1)
-                  RGB(1,NGL)=0.9*dfloat(NGLMAX-NGL)/dfloat(NGLMAX-1)
-                  RGB(2,NGL)=0.9*dfloat(NGLMAX-NGL)/dfloat(NGLMAX-1)
+                  RGB(1,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
+                  RGB(2,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
                   RGB(3,NGL)=1.D0
                   ILN(NGL)=0
                   WLN(NGL)=0.07
@@ -1627,8 +1627,8 @@
                DO NGL=1,NGLMAX
                   ZL(NGL)= 0.25*GFSTEP+0.5*GFSTEP*(NGL-1)
                   RGB(1,NGL)=1.D0
-                  RGB(2,NGL)=0.9*dfloat(NGLMAX-NGL)/dfloat(NGLMAX-1)
-                  RGB(3,NGL)=0.9*dfloat(NGLMAX-NGL)/dfloat(NGLMAX-1)
+                  RGB(2,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
+                  RGB(3,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
                   ILN(NGL)=0
                   WLN(NGL)=0.07
                ENDDO
@@ -1642,9 +1642,9 @@
       ELSE
          DO NGL=1,NGLINE
             ZL(NGL)=GFMAX-0.020*(NGL-1)**2
-            CALL SETRGBFP(1.0-dfloat(NGL-1)/dfloat(NGLINE-1),RGB(1,NGL))
+            CALL SETRGBFP(1.0-FLOAT(NGL-1)/FLOAT(NGLINE-1),RGB(1,NGL))
 !            WRITE(6,'(I5,1P5E12.4)') &
-!               NGL,ZL(NGL),1.0-dfloat(NGL-1)/dfloat(NGLINE-1), &
+!               NGL,ZL(NGL),1.0-FLOAT(NGL-1)/FLOAT(NGLINE-1), &
 !               RGB(1,NGL),RGB(2,NGL),RGB(3,NGL)
             ILN(NGL)=0
             WLN(NGL)=0.07
@@ -1682,10 +1682,10 @@
 
       SUBROUTINE SETRGBFP(F,RGB)
         IMPLICIT NONE
-        real(8),INTENT(IN):: F
-        real(8),DIMENSION(3),INTENT(OUT):: RGB
+        REAL(4),INTENT(IN):: F
+        REAL(4),DIMENSION(3),INTENT(OUT):: RGB
         INTEGER,PARAMETER:: NFMAX=8
-        real(8),DIMENSION(3,NFMAX):: RGBC
+        REAL(4),DIMENSION(3,NFMAX):: RGBC
         DATA RGBC/ 0.0,0.0,0.0, &
                    0.0,0.0,1.0, &
                    0.0,0.8,1.0, &
@@ -1817,18 +1817,18 @@
 !
       IMPLICIT NONE
       real(8),DIMENSION((NRMAX+1)*(NPMAX+1)*(NTHMAX+1)):: FG
-      real(8),DIMENSION(NPMAX+1,NTHMAX+1):: GF
-      real(8),dimension(NPMAX+1):: GP
-      real(8),dimension(NTHMAX+1):: GTH
+      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
+      real(4),dimension(NPMAX+1):: GP
+      real(4),dimension(NTHMAX+1):: GTH
       integer(4),dimension(8,NPMAX+1,NTHMAX+1):: KA
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
-      real(8):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
+      REAL(4):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
       INTEGER(4):: ILN(NGLM)
-      real(8):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
-      real(8):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
-      real(8):: GPMIN1, GPMAX1, GPSTEP, GLIN
+      REAL(4):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
+      real(4):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
+      real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN
       integer:: NR, NTH, NP, NSA, MODE, NRG, LMODE, NTHG, NS
       integer:: NPM, NTHM, NRM, NM, NGL, NGLMAX, I, NPG
       NPM=NPMAX+1
@@ -1940,8 +1940,8 @@
                NGLMAX=INT((GFMAX-GFMIN1)/(0.5*GFSTEP))
                DO NGL=1,NGLMAX
                   RGB(1,NGL)=1.D0
-                  RGB(2,NGL)=0.9*dfloat(NGLMAX-NGL)/dfloat(NGLMAX-1)
-                  RGB(3,NGL)=0.9*dfloat(NGLMAX-NGL)/dfloat(NGLMAX-1)
+                  RGB(2,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
+                  RGB(3,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
                   ILN(NGL)=0
                   WLN(NGL)=0.07
                ENDDO

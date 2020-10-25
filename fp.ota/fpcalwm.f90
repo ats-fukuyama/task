@@ -23,7 +23,7 @@
       integer:: NSA, NR, NRDO, NTH, NP, NS
       real(8):: FACT, ETA, DWPPS, DWPTS, DWTPS, DWTTS, RHOL, P
       real(8):: DWPPL, DWPTL, DWTPL, DWTTL
-      real(8):: gut, gut1, gut2
+      real(4):: gut, gut1, gut2
 !
 ! =============  CALCULATION OF DWPP AND DWPT  ===============
 !
@@ -222,7 +222,7 @@
       REAL(8):: DELH, RHOL, ETAL, PSIN, PCOS, BMIN, PSI, BMAX
       REAL(8):: DWPPL, DWPTL, DWTPL, DWTTL
       integer:: N, NS
-      real(8):: gut2, gut1, gut
+      real(4):: gut2, gut1, gut
 
       NS=NS_NSA(NSA)
       IF(NSW_PT.eq.0)THEN

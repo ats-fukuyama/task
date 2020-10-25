@@ -1,12 +1,12 @@
-!     $id: fploop.f90,v 1.40 2013/02/08 07:36:24 nuga exp $
+!     $Id: fploop.f90,v 1.40 2013/02/08 07:36:24 nuga Exp $
 
 ! *****************
-!     main loop
+!     MAIN LOOP
 ! *****************
 
-      module fploop
+      MODULE fploop
 
-      use fpcomm
+      USE fpcomm
       use fpexec
       use fpsave
       use libmpi
@@ -19,613 +19,550 @@
 
 !-----------------------------
 
-      subroutine fp_loop
+      SUBROUTINE FP_LOOP
 
-      use fpcoef
-      use fpsub
-      use libmtx
-      use plprof
-      use fpmpi
-      use fpprep, only: coulomb_log
-      use fpnfrr
-      implicit none
-      real(kind8):: deps,ip_all_fp,deps_e2
+      USE fpcoef
+      USE fpsub
+      USE libmtx
+      USE plprof
+      USE FPMPI
+      USE fpprep, only: Coulomb_log 
+      USE fpnfrr
+      USE fpcaltp
+      IMPLICIT NONE
+      real(kind8):: DEPS,IP_all_FP,DEPS_E2
 
-      integer:: nt, nr, np, nth, nsa, ns, ierr, nsb,i
-      real(8):: gut_exe1, gut_exe2, gut_coef1, gut_coef2, gut_coef3
-      real(8):: gut_loop1, gut_loop2, gut1, gut2, gut_conv3
-      real(8):: sum_gut_ex, sum_gut_coef, gut_1step, sum_gut_conv
-      logical:: flag
+      integer:: NT, NR, NP, NTH, NSA, NS, IERR, NSB
+      real(4):: gut_exe1, gut_exe2, gut_coef1, gut_coef2, gut_coef3
+      real(4):: gut_loop1, gut_loop2, gut1, gut2, gut_conv3
+      real(4):: sum_gut_ex, sum_gut_coef, gut_1step, sum_gut_conv
+      LOGICAL:: flag
 
-!     +++++ time loop +++++
+!     +++++ Time loop +++++
 
-      do nt=1,ntmax
-         n_impl=0
-         deps=1.d0
-
-         do nsa=nsastart,nsaend
-            ns=ns_nsa(nsa)
-!            do nr=nrstart-1,nrend+1 ! local
-            do nr=nrstartw,nrendwm ! local
-!               if(nr.ge.1.and.nr.le.nrmax)then
-                  do np=npstartw,npendwm
-                     if(model_delta_f(ns)==0)then
-                        do nth=1,nthmax
-                           fnsm(nth,np,nr,nsa)=fnsp(nth,np,nr,nsa) ! minus step: invariant during n_impl
-                        end do
-                     ! elseif(model_delta_f(ns)==1)then
-                     !    do nth=1,nthmax
-                     !       fnsm(nth,np,nr,nsa)=fnsp_del(nth,np,nr,nsa) ! minus step: invariant during n_impl
-                     !    end do
-                     end if
-                  end do
-!               end if
-            end do
-         end do
-
-         sum_gut_ex = 0.0
+      DO NT=1,NTMAX
+         N_IMPL=0
+         DEPS=1.D0
+         DO NSA=NSASTART,NSAEND
+            NS=NS_NSA(NSA)
+!            DO NR=NRSTART-1,NREND+1 ! local
+            DO NR=NRSTARTW,NRENDWM ! local
+!               IF(NR.ge.1.and.NR.le.NRMAX)THEN
+                  DO NP=NPSTARTW,NPENDWM
+                     IF(MODEL_DELTA_F(NS).eq.0)THEN
+                        DO NTH=1,NTHMAX
+                           FNSM(NTH,NP,NR,NSA)=FNSP(NTH,NP,NR,NSA) ! minus step: invariant during N_IMPL 
+                        END DO
+                     ELSEIF(MODEL_DELTA_F(NS).eq.1)THEN
+                        DO NTH=1,NTHMAX
+                           FNSM(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) ! minus step: invariant during N_IMPL 
+                        END DO
+                     END IF
+                  END DO
+!               END IF
+            END DO
+         END DO
+ 
+         sum_gut_EX = 0.0
          sum_gut_conv=0.0
-         sum_gut_coef= 0.0
+         sum_gut_COEF= 0.0
          gut_1step= 0.0
-         call gutime(gut_loop1)
+         CALL GUTIME(gut_loop1)
 
-         if(model_disrupt.ne.0)then
-            call top_of_time_loop_disrupt(nt) ! include fpcoef
-         end if
-         call gutime(gut_coef3)
+         IF(MODEL_DISRUPT.ne.0)THEN
+            CALL TOP_OF_TIME_LOOP_DISRUPT(NT) ! include fpcoef
+         END IF
+         CALL GUTIME(gut_coef3)
 
-         do while(n_impl.le.lmaxfp) ! start do while
+         DO WHILE(N_IMPL.le.LMAXFP) ! start do while
 
-            call gutime(gut_exe1)
-            call solve_matrix_update_fns0(ierr)
-            call gutime(gut_exe2)
-            sum_gut_ex = sum_gut_ex + (gut_exe2-gut_exe1)
+            CALL GUTIME(gut_exe1)
+            CALL solve_matrix_update_FNS0(IERR)
+            CALL GUTIME(gut_exe2)
+            SUM_GUT_EX = SUM_GUT_EX + (gut_exe2-gut_exe1)
 
-            call implicit_convergence_update_fnsp(nt,deps)
-            call gutime(gut_conv3)
+            CALL implicit_convergence_update_FNSP(NT,DEPS)
+            CALL GUTIME(gut_conv3)
             sum_gut_conv = sum_gut_conv + (gut_conv3-gut_exe2)
 
-            deps_e2=0.d0
-            if(model_disrupt==1)then ! e field evolution for disrupt
-               call e_field_evolution_disrupt(nt,ip_all_fp,deps_e2)
-            end if
+            DEPS_E2=0.D0
+            IF(MODEL_DISRUPT.eq.1)THEN ! E field evolution for DISRUPT
+               CALL E_FIELD_EVOLUTION_DISRUPT(NT,IP_all_FP,DEPS_E2)
+            END IF
 
-            if(nrank==0.and.deps.le.epsfp.and.deps_e2.le.epsfp)then
-               n_impl=1+lmaxfp ! exit dowhile
-            endif
-            call mtx_broadcast1_integer(n_impl)
+            IF(NRANK.eq.0.and.DEPS.le.EPSFP.and.DEPS_E2.le.EPSFP)THEN
+               N_IMPL=1+LMAXFP ! exit dowhile
+            ENDIF
+            CALL mtx_broadcast1_integer(N_IMPL)
 
 !-- updating diffusion coef
-            call gutime(gut_coef1)
-            call update_rn_rt(fnsp) ! update rn_temp, rt_temp for coulomb ln, fpcalcnr, and fpmxwl_exp
-            if(model_lnl==0) call coulomb_log ! update coulomb log
+            CALL GUTIME(gut_coef1)
+            CALL update_RN_RT(FNSP) ! update RN_TEMP, RT_TEMP for Coulomb Ln, fpcalcnr, and FPMXWL_EXP
+            IF(MODEL_LNL.eq.0) CALL Coulomb_log ! update coulomb log
 
-            call fusion_source_init
-!           update fnsb (fnsb is required by nl collsion and nf reaction)
-            flag=.false.
-            do nsb=1,nsbmax
-               ns=ns_nsb(nsb)
-               if(modelc(ns).ge.4) flag=.true.
-            end do
-            if(flag.or.models.ge.2)then
-               call mtx_set_communicator(comm_nsa)
-               call update_fnsb_maxwell
-               call update_fnsb
-               call mtx_reset_communicator
-            end if
-!           end of update fnsb
+            CALL fusion_source_init
+!           update FNSB (fnsb is required by NL collsion and NF reaction)
+            FLAG=.FALSE.
+            DO NSB=1,NSBMAX
+               NS=NS_NSB(NSB)
+               IF(MODELC(NS).GE.4) FLAG=.TRUE.
+            END DO
+            IF(FLAG.or.MODELS.ge.2)THEN
+               CALL mtx_set_communicator(comm_nsa)
+               CALL update_fnsb_maxwell
+               CALL update_fnsb
+               CALL mtx_reset_communicator
+            END IF
+!           end of update FNSB
 
-! if model_disrupt=1, fp_coef is already called in top_of_time_loop_disrupt
-            if(model_disrupt==0)then
-               if (mod(nt,ntstep_coef)==0) call fp_coef(nt)
-            end if
-!           sum up sppf
-            if(models.ne.0)then
-               call mtx_set_communicator(comm_nsa)
-               call source_allreduce(sppf)
-               call mtx_reset_communicator
-            end if
-!           end of sum up sppf
-            call gutime(gut_coef2)
-            sum_gut_coef = sum_gut_coef + gut_coef2 - gut_coef1
+! IF MODEL_DISRUPT=1, FP_COEF is already called in TOP_OF_TIME_LOOP_DISRUPT
+            IF(MODEL_DISRUPT.eq.0)THEN 
+               IF (MOD(NT,NTSTEP_COEF).EQ.0) CALL FP_COEF(NT)
+            END IF
+!           sum up SPPF
+            IF(MODELS.ne.0)THEN
+               CALL mtx_set_communicator(comm_nsa) 
+               CALL source_allreduce(SPPF)
+               CALL mtx_reset_communicator
+            END IF
+!           end of sum up SPPF
+            CALL GUTIME(gut_coef2)
+            SUM_GUT_COEF = SUM_GUT_COEF + gut_coef2 - gut_coef1
 !-- end of updating diffusion coef
 
-            ! write(6,'(a,1p3e12.4)') '---deps,deps2=', &
-            !      deps,deps_e2,epsfp
+            WRITE(6,'(A,1p3E12.4)') '---DEPS,DEPS2=', &
+                 DEPS,DEPS_E2,EPSFP
 
 
-         end do ! end of dowhile
-         sum_gut_coef= sum_gut_coef + gut_coef3 - gut_loop1
+         END DO ! END OF DOWHILE
+         SUM_GUT_COEF= SUM_GUT_COEF + gut_coef3 - gut_loop1
 
-         call mtx_reset_communicator
-         timefp=timefp+delt
+         CALL mtx_reset_communicator
+         TIMEFP=TIMEFP+DELT
 
-!        bulk f is replaced by maxwellian
-         if(model_bulk_const==1)then
-            if(model_ex_read_tn==0)then
-               call bulk_const1_for_non_exp
-            else
-               call bulk_const1_for_exp
-            end if
-         end if
+!        Bulk f is replaced by Maxwellian
+         IF(MODEL_BULK_CONST.eq.1)THEN
+            IF(MODEL_EX_READ_Tn.eq.0)THEN
+               CALL BULK_CONST1_FOR_NON_EXP
+            ELSE
+               CALL BULK_CONST1_FOR_EXP
+            END IF
+         END IF
 
-         if(model_disrupt==1)then
-            call file_output_disrupt(nt,ip_all_fp)
-         end if
+         IF(MODEL_DISRUPT.eq.1)THEN
+            CALL FILE_OUTPUT_DISRUPT(NT,IP_all_FP) 
+         END IF
 
-         if(models.ge.2)then
-            call allreduce_nf_rate
-            call prof_of_nf_reaction_rate(1)
-         end if
+         IF(MODELS.ge.2)THEN
+            CALL ALLREDUCE_NF_RATE
+            CALL PROF_OF_NF_REACTION_RATE(1)
+         END IF
 
-         do nsa=nsastart,nsaend
-            do nr=nrstart,nrend
-               do np=npstartw,npendwm
-                  do nth=1,nthmax
-                     f(nth,np,nr)=fnsp(nth,np,nr,nsa) ! used at fpweight only!
-                  end do
-               end do
-            end do
-            call fpweight(nsa,ierr) ! set fpweight for fpsave
-         end do
+         DO NSA=NSASTART,NSAEND
+            DO NR=NRSTART,NREND
+               DO NP=NPSTARTW,NPENDWM
+                  DO NTH=1,NTHMAX
+                     F(NTH,NP,NR)=FNSP(NTH,NP,NR,NSA) ! used at fpweight only!
+                  END DO
+               END DO
+            END DO
+            CALL FPWEIGHT(NSA,IERR) ! SET FPWEIGHT FOR FPSAVE
+         END DO
 
-         call gutime(gut_loop2)
-         gut_1step = gut_loop2-gut_loop1
+         CALL GUTIME(gut_loop2)
+         GUT_1step = gut_loop2-gut_loop1
 
-         if (mod(nt,ntg1step)==0) then
-         if(nrank==0) &
-              write(6,'(a,e12.4, a,e12.4, a,e12.4, a,e12.4, a,e12.4)') &
-              " gut_exec= ", sum_gut_ex,   " gut_conv= ",sum_gut_conv, &
-              " gut_coef= ", sum_gut_coef, " gut_1step= ", gut_1step, &
-              " exec_ratio = ", sum_gut_ex/gut_1step
-         end if
+         IF (MOD(NT,NTG1STEP).EQ.0) THEN
+         IF(NRANK.eq.0) &
+              WRITE(6,'(A,E12.4, A,E12.4, A,E12.4, A,E12.4, A,E12.4)') &
+              " GUT_EXEC= ", SUM_GUT_EX,   " GUT_CONV= ",SUM_GUT_conv, &
+              " GUT_COEF= ", SUM_GUT_COEF, " GUT_1step= ", GUT_1step, &
+              " EXEC_RATIO = ", SUM_GUT_EX/GUT_1step
+         END IF
 !     +++++ calculate and save global data +++++
 
-         call gutime(gut1)
+         CALL GUTIME(gut1)
 
-         isave=0
-         call fpssub
-         if (mod(nt,ntg1step)==0) then
-           ! call fp_caltp
-           ! call fp_calte
-           if(nrank==0) then
-               call fpsglb
-               call fpwrtglb
-               ! do nsa=1,nsamax
-               !   write(6,'(a,i2,a,e10.4)') "nsa ",nsa, "   energy confinement time[sec]     ",taue(nsa)
-               !   write(6,'(a,i2,a,e10.4)') "nsa ",nsa,"   particle confinement time[sec]   ",taup(nsa)
-               ! end do
-           endif
-         endif
-         if (mod(nt,ntg2step)==0) then
-            if(nrank==0) then
-               call fpsprf
-               call fpwrtprf
-            endif
-         endif
-!         call mtx_broadcast_real8(rt_t,nrmax*nsamax)
-         call mtx_broadcast_real8(rns,nrmax*nsamax)
-         call mtx_broadcast1_integer(ntg1)
-         call mtx_broadcast1_integer(ntg2)
-         call gutime(gut2)
-         if (mod(nt,ntg1step)==0) then
-            if(nrank==0) write(*,'(a,e14.6)') "--------save_time=",gut2-gut1
-         end if
+         ISAVE=0
+         CALL FPSSUB
+         IF (MOD(NT,NTG1STEP).EQ.0) THEN
+            IF(NRANK.EQ.0) THEN
+               CALL FPSGLB
+               CALL FPWRTGLB
+               CALL fp_caltp
+            ENDIF
+         ENDIF
+         IF (MOD(NT,NTG2STEP).EQ.0) THEN
+            IF(NRANK.EQ.0) THEN
+               CALL FPSPRF
+               CALL FPWRTPRF
+            ENDIF
+         ENDIF
+!         CALL mtx_broadcast_real8(RT_T,NRMAX*NSAMAX)
+         CALL mtx_broadcast_real8(RNS,NRMAX*NSAMAX)
+         CALL mtx_broadcast1_integer(NTG1)
+         CALL mtx_broadcast1_integer(NTG2)
+         CALL GUTIME(gut2)
+         IF (MOD(NT,NTG1STEP).EQ.0) THEN
+            IF(NRANK.eq.0) WRITE(*,'(A,E14.6)') "--------SAVE_TIME=",gut2-gut1
+         END IF
 
-         do nsa=1,nsamax
-            do nr=1,nrmax
-               if(rns(nr,nsa).lt.0)then
+         DO NSA=1,NSAMAX
+            DO NR=1,NRMAX
+               IF(RNS(NR,NSA).lt.0)THEN
                   ierr_g = ierr_g + 1
-                  if(nrank==0)then
-                     write(*,'(a,3i5,e14.6)') "negative dens. at nr= ", nr, nsa, ierr_g, rns(nr,nsa)
-                  end if
-               end if
-            end do
-         end do
+                  IF(NRANK.eq.0)THEN
+                     WRITE(*,'(A,3I5,E14.6)') "NEGATIVE DENS. at NR= ", NR, NSA, ierr_g, RNS(NR,NSA)
+                  END IF
+               END IF
+            END DO
+         END DO
 
-         if(ierr.ne.0)then
+         IF(IERR.NE.0)THEN
             call mtx_abort(ierr)
-         end if
-         if(ierr_g.ne.0)then
+         END IF
+         IF(ierr_g.ne.0)THEN
             call mtx_abort(ierr_g)
-         end if
-         call mtx_reset_communicator
-         if(nrank==0)then
-            if(output_txt_beam_dens==1) call number_of_nonthermal_ions
-            if(output_txt_heat_prof==1) call out_txt_heat_prof
-         end if
+         END IF
+         CALL mtx_reset_communicator 
+         IF(NRANK.eq.0)THEN
+            IF(OUTPUT_TXT_BEAM_DENS.eq.1) CALL NUMBER_OF_NONTHERMAL_IONS
+            IF(OUTPUT_TXT_HEAT_PROF.eq.1) CALL OUT_TXT_HEAT_PROF
+         END IF
 
-      enddo ! end of nt loop
+      Enddo ! END OF NT LOOP
 
 !     +++++ end of time loop +++++
 
-      call gutime(gut1)
-      call update_fns
-      call gutime(gut2)
-!      if(model_disrupt==1) call fluxs_pth
-      if(nrank==0) write(6,'(a,e14.6)') "---------time update fns =",gut2-gut1
+      CALL GUTIME(gut1)
+      CALL update_fns
+      CALL GUTIME(gut2)
+!      IF(MODEL_DISRUPT.eq.1) CALL FLUXS_PTH
+      IF(NRANK.eq.0) WRITE(6,'(A,E14.6)') "---------TIME UPDATE FNS =",gut2-gut1
 
-!  txt format output
-      if(nrank==0)then
-         if(output_txt_f1==1) call out_txt_f1
-         if(output_txt_beam_width==1) call out_txt_beam_width
-         if(output_txt_delta_f==1) call out_txt_fns_del
-      end if
+!  TXT FORMAT OUTPUT
+      IF(NRANK.eq.0)THEN
+         IF(OUTPUT_TXT_F1.eq.1) CALL OUT_TXT_F1
+         IF(OUTPUT_TXT_BEAM_WIDTH.eq.1) CALL OUT_TXT_BEAM_WIDTH
+         IF(OUTPUT_TXT_DELTA_F.eq.1) CALL OUT_TXT_FNS_DEL
+      END IF
 
-      return
-      end subroutine fp_loop
+      RETURN
+      END SUBROUTINE FP_LOOP
 !------------------------------------
 !*************************************************************
 !     included in do while
-      subroutine solve_matrix_update_fns0(ierr)
+      SUBROUTINE solve_matrix_update_FNS0(IERR)
 
-      implicit none
-      integer:: nsa, nr, np, nth, ns, its
-      integer,intent(out):: ierr
-      double precision,dimension(nthmax,npstartw:npendwm,nrstartw:nrendwm,nsastart:nsaend)::&
+      IMPLICIT NONE
+      INTEGER:: NSA, NR, NP, NTH, NS, its
+      INTEGER,intent(OUT):: IERR
+      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND)::&
            send
 
-      n_impl=n_impl+1
-      do nsa=nsastart,nsaend
-         ns=ns_nsa(nsa)
-         do nr=nrstart,nrend
-            do np=npstartw,npendwm
-               do nth=1,nthmax
-                  f(nth,np,nr)=fnsp(nth,np,nr,nsa) ! used at fpweight only!
-               end do
-            end do
-         end do
-         if(model_delta_f(ns)==1)then
-            do nr=nrstart,nrend
-               do np=npstartw,npendwm
-                  do nth=1,nthmax
-                     fnsp(nth,np,nr,nsa)=fnsp_del(nth,np,nr,nsa)
-                  end do
-               end do
-            end do
-         end if
-         if(model_connor_fp==1.or.model_disrupt==0)then ! connor model doesn't require f evolution
-            call fp_exec(nsa,ierr,its) ! f1 and fns0 are changed
-         end if
-         ierr=0
+      N_IMPL=N_IMPL+1
+      DO NSA=NSASTART,NSAEND 
+         NS=NS_NSA(NSA)
+         DO NR=NRSTART,NREND
+            DO NP=NPSTARTW,NPENDWM
+               DO NTH=1,NTHMAX
+                  F(NTH,NP,NR)=FNSP(NTH,NP,NR,NSA) ! used at fpweight only!
+               END DO
+            END DO
+         END DO
+         
+         IF(MODEL_DELTA_F(NS).eq.1)THEN
+            DO NR=NRSTART,NREND
+               DO NP=NPSTARTW,NPENDWM
+                  DO NTH=1,NTHMAX
+                     FNSP(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)
+                  END DO
+               END DO
+            END DO
+         END IF
+         
+         IF(MODEL_connor_fp.eq.1.or.MODEL_DISRUPT.eq.0)THEN ! Connor model doesn't require f evolution
+            CALL fp_exec(NSA,IERR,its) ! F1 and FNS0 are changed
+         END IF
+         IERR=0
          nt_init=1
-      end do
+      END DO
 
-      if(model_delta_f(ns)==1)then
-         do nsa=nsastart,nsaend
-            ns=ns_nsa(nsa)
-            do nr=nrstartw,nrendwm
-               do np=npstartw,npendwm
-                  do nth=1,nthmax
-                     fnsp(nth,np,nr,nsa)=fnsp_del(nth,np,nr,nsa) &
-                                        +fnsp_mxwl(nth,np,nr,nsa) ! at n step
-                     fnsp_del(nth,np,nr,nsa)=fns0(nth,np,nr,nsa)  ! at n+1 step
-                     send(nth,np,nr,nsa)=fnsp_del(nth,np,nr,nsa) &
-                                        +fnsp_mxwl(nth,np,nr,nsa)
-                                                           ! model_ex_read_tn=0
-                  end do
-               end do
-            end do
-         end do
-         call update_rn_rt(send) ! update rn_temp, rt_temp
-         call count_beam_density ! update rns_delf use for fpmxwl_exp
-         do nsa=nsastart,nsaend
-            ns=ns_nsa(nsa)
-            do nr=nrstartw,nrendwm
-               do np=npstartw,npendwm
-                  do nth=1,nthmax
-                     fnsp_mxwl(nth,np,nr,nsa)=fpmxwl_exp(pm(np,ns),nr,ns)
+      IF(MODEL_DELTA_F(NS).eq.1)THEN
+         DO NSA=NSASTART,NSAEND 
+            NS=NS_NSA(NSA)
+            DO NR=NRSTARTW,NRENDWM
+               DO NP=NPSTARTW,NPENDWM
+                  DO NTH=1,NTHMAX
+                     FNSP(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) &
+                                        +FNSP_MXWL(NTH,NP,NR,NSA) ! at n step
+                     FNSP_DEL(NTH,NP,NR,NSA)=FNS0(NTH,NP,NR,NSA)  ! at n+1 step
+                     send(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) &
+                                        +FNSP_MXWL(NTH,NP,NR,NSA)
+                                                           ! MODEL_EX_READ_Tn=0
+                  END DO
+               END DO
+            END DO
+         END DO
+         CALL update_RN_RT(send) ! update RN_TEMP, RT_TEMP
+         CALL COUNT_BEAM_DENSITY ! update RNS_DELF use for FPMXWL_EXP
+         DO NSA=NSASTART,NSAEND 
+            NS=NS_NSA(NSA)
+            DO NR=NRSTARTW,NRENDWM
+               DO NP=NPSTARTW,NPENDWM
+                  DO NTH=1,NTHMAX
+                     FNSP_MXWL(NTH,NP,NR,NSA)=FPMXWL_EXP(PM(NP,NS),NR,NS)
                                                            ! at n+1 step
-                     fns0(nth,np,nr,nsa)=fnsp_del(nth,np,nr,nsa) &
-                                        +fnsp_mxwl(nth,np,nr,nsa)
+                     FNS0(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) &
+                                        +FNSP_MXWL(NTH,NP,NR,NSA)
                                                            ! at n+1 step
-                  end do
-               end do
-            end do
-         end do
-      end if
+                  END DO
+               END DO
+            END DO
+         END DO
+      END IF
 
-      end subroutine solve_matrix_update_fns0
+      END SUBROUTINE solve_matrix_update_FNS0
 !------------------------------------
-      subroutine implicit_convergence_update_fnsp(nt,deps)
+      SUBROUTINE implicit_convergence_update_FNSP(NT,DEPS)
 
-      use libmtx
-      use fpmpi
-      implicit none
-      integer:: nsa, nr, np, nth, iloc1, nsw
-      integer,intent(in):: nt
-      integer,dimension(nsastart:nsaend):: ilocl
-      integer,dimension(nsamax):: iloc
-      real(kind8),intent(out):: deps
-      real(kind8),dimension(nsamax)::rsumf,rsumf0,rsum_ss
-      real(kind8),dimension(nsastart:nsaend):: deps_maxvl, depsv
-      real(kind8),dimension(nsamax):: deps_maxv
-      real(kind8):: rsumf_, rsumf0_, deps_max, deps1
+      USE libmtx
+      USE FPMPI
+      IMPLICIT NONE
+      INTEGER:: NSA, NR, NP, NTH, ILOC1, NSW
+      INTEGER,INTENT(IN):: NT
+      integer,dimension(NSASTART:NSAEND):: ILOCL
+      integer,dimension(NSAMAX):: ILOC
+      real(kind8),intent(out):: DEPS
+      real(kind8),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS
+      real(kind8),dimension(NSASTART:NSAEND):: DEPS_MAXVL, DEPSV
+      real(kind8),dimension(NSAMAX):: DEPS_MAXV
+      real(kind8):: RSUMF_, RSUMF0_, DEPS_MAX, DEPS1
       character:: fmt*40
 
-      nsw = nsaend-nsastart+1
-      do nsa=nsastart,nsaend
-         rsumf(nsa)=0.d0
-         rsumf0(nsa)=0.d0
-         rsum_ss(nsa)=0.d0
-         do nr=nrstart,nrend
-            do np=npstart,npend
-               do nth=1,nthmax
-!                  if(nrank==0) write(6,'(a,4i5,1p4e12.4)') &
-!                       'nsa,nr,np,nth,fnsp,fns0,diff,rsumf=', &
-!                       nsa,nr,np,nth,fnsp(nth,np,nr,nsa),fns0(nth,np,nr,nsa),&
-!                       fnsp(nth,np,nr,nsa)-fns0(nth,np,nr,nsa),rsumf(nsa)
-                  rsumf(nsa)=(fnsp(nth,np,nr,nsa)-fns0(nth,np,nr,nsa) )**2 &
-                       + rsumf(nsa)
-                  rsumf0(nsa)=(fnsp(nth,np,nr,nsa))**2 + rsumf0(nsa)
-               enddo
-            enddo
-         enddo
-         do nr=nrstartw,nrendwm
-            do np=npstartw,npendwm
-               do nth=1,nthmax
-                  fnsp(nth,np,nr,nsa)=fns0(nth,np,nr,nsa)
-               enddo
-            enddo
-         enddo
-         if(modeld_boundary==1.and.nrend==nrmax)then
-            call update_radial_f_boundary(nsa)
-         end if
-      enddo ! end of nsa
+      nsw = NSAEND-NSASTART+1      
+      DO NSA=NSASTART,NSAEND 
+         RSUMF(NSA)=0.D0
+         RSUMF0(NSA)=0.D0
+         RSUM_SS(NSA)=0.D0
+         DO NR=NRSTART,NREND
+            DO NP=NPSTART,NPEND
+               DO NTH=1,NTHMAX
+!                  IF(NRANK.EQ.0) WRITE(6,'(A,4I5,1P4E12.4)') &
+!                       'NSA,NR,NP,NTH,FNSP,FNS0,DIFF,RSUMF=', &
+!                       NSA,NR,NP,NTH,FNSP(NTH,NP,NR,NSA),FNS0(NTH,NP,NR,NSA),&
+!                       FNSP(NTH,NP,NR,NSA)-FNS0(NTH,NP,NR,NSA),RSUMF(NSA)
+                  RSUMF(NSA)=(FNSP(NTH,NP,NR,NSA)-FNS0(NTH,NP,NR,NSA) )**2 &
+                       + RSUMF(NSA)
+                  RSUMF0(NSA)=(FNSP(NTH,NP,NR,NSA))**2 + RSUMF0(NSA)
+               ENDDO
+            ENDDO
+         ENDDO
+         DO NR=NRSTARTW,NRENDWM
+            DO NP=NPSTARTW,NPENDWM
+               DO NTH=1,NTHMAX
+                  FNSP(NTH,NP,NR,NSA)=FNS0(NTH,NP,NR,NSA)
+               ENDDO
+            ENDDO
+         ENDDO
+         IF(MODELD_boundary.eq.1.and.NREND.eq.NRMAX)THEN
+            CALL update_radial_f_boundary(NSA)
+         END IF
+      ENDDO ! END OF NSA
 !!---------- convergence criterion
-      call mtx_set_communicator(comm_np)
-      do nsa=nsastart,nsaend
-         rsumf_=rsumf(nsa)
-         rsumf0_=rsumf0(nsa)
-         call p_theta_integration(rsumf_)
-         call p_theta_integration(rsumf0_)
-         rsumf(nsa)=rsumf_
-         rsumf0(nsa)=rsumf0_
-      end do
+      CALL mtx_set_communicator(comm_np) 
+      DO NSA=NSASTART,NSAEND
+         RSUMF_=RSUMF(NSA)
+         RSUMF0_=RSUMF0(NSA)
+         CALL p_theta_integration(RSUMF_) 
+         CALL p_theta_integration(RSUMF0_) 
+         RSUMF(NSA)=RSUMF_
+         RSUMF0(NSA)=RSUMF0_
+      END DO
 
-      deps=0.d0
-      do nsa=nsastart,nsaend
-         depsv(nsa) = rsumf(nsa)/rsumf0(nsa)
-         deps1 = depsv(nsa)
-         deps=max(deps,deps1)
-      end do
-      deps_max=0.d0
-      call mtx_set_communicator(comm_nsa)
-      call mtx_reduce1_real8(deps,1,deps_max,iloc1) ! max deps among nsa
-      deps = deps_max
-      call mtx_set_communicator(comm_nr)
-      call mtx_reduce1_real8(deps,1,deps_max,iloc1) ! max deps among nr
-      call mtx_reset_communicator
-      deps = deps_max
+      DEPS=0.D0
+      DO NSA=NSASTART,NSAEND
+         DEPSV(NSA) = RSUMF(NSA)/RSUMF0(NSA)
+         DEPS1 = DEPSV(NSA)
+         DEPS=MAX(DEPS,DEPS1)
+      END DO
+      DEPS_MAX=0.D0
+      CALL mtx_set_communicator(comm_nsa) 
+      CALL mtx_reduce1_real8(DEPS,1,DEPS_MAX,ILOC1) ! MAX DEPS among NSA
+      DEPS = DEPS_MAX
+      CALL mtx_set_communicator(comm_nr) 
+      CALL mtx_reduce1_real8(DEPS,1,DEPS_MAX,ILOC1) ! MAX DEPS among NR
+      CALL mtx_reset_communicator
+      DEPS = DEPS_MAX
 
-      call mtx_set_communicator(comm_nr) !3d
-      call mtx_allreduce_real8(depsv,nsw,4,deps_maxvl,ilocl) ! the peak depsv for each nsa
+      CALL mtx_set_communicator(comm_nr) !3D
+      CALL mtx_allreduce_real8(DEPSV,NSW,4,DEPS_MAXVL,ILOCL) ! the peak DEPSV for each NSA
 
-      call mtx_set_communicator(comm_nsa) !3d
-      call mtx_gather_real8(deps_maxvl,nsw,deps_maxv)
-      call mtx_gather_integer(ilocl,nsw,iloc)
-      call mtx_reset_communicator
+      CALL mtx_set_communicator(comm_nsa) !3D
+      CALL mtx_gather_real8(DEPS_MAXVL,nsw,DEPS_MAXV) 
+      CALL mtx_gather_integer(ILOCL,nsw,ILOC) 
+      CALL mtx_reset_communicator
 
-      if (mod(nt,ntg1step)==0) then
-         if(nrank==0) then
-            write(fmt,'(a16,i1,a6,i1,a3)') &
-                 '(a,1pe12.4,i4,1p',nsamax,'e12.4,',nsamax,'i4)'
-            write(6,fmt) 'deps',&
-                 deps,n_impl,(deps_maxv(nsa),nsa=1,nsamax) &
-                 ,(iloc(nsa),nsa=1,nsamax)
-         endif
-      end if
-
-      end subroutine implicit_convergence_update_fnsp
+      IF (MOD(NT,NTG1STEP).EQ.0) THEN
+         IF(nrank.eq.0) THEN
+            WRITE(fmt,'(a16,I1,a6,I1,a3)') &
+                 '(A,1PE12.4,I4,1P',NSAMAX,'E12.4,',NSAMAX,'I4)'
+            WRITE(6,fmt) 'DEPS',&
+                 DEPS,N_IMPL,(DEPS_MAXV(NSA),NSA=1,NSAMAX) &
+                 ,(ILOC(NSA),NSA=1,NSAMAX)
+         ENDIF
+      END IF
+      
+      END SUBROUTINE implicit_convergence_update_FNSP
 !------------------------------------
-      subroutine bulk_const1_for_non_exp ! bulk is const
+!*************************************************************
+      SUBROUTINE BULK_CONST1_FOR_NON_EXP ! bulk is const
 
-      use plprof
-      implicit none
-      integer:: nth, np, nr, nsa, ns
-      real(8),dimension(nrmax,nsmax):: tempt, tempn
-      type(pl_plf_type),dimension(nsmax):: plf
-      real(8):: rhon, fl
+      USE plprof
+      IMPLICIT NONE
+      INTEGER:: NTH, NP, NR, NSA, NS
+      real(8),dimension(NRMAX,NSMAX):: tempt, tempn
+      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+      real(8):: RHON, FL
 
-!     bulk f is replaced by initial maxwellian
-      call define_bulk_np
-      do ns=1, nsmax
-         do nr=1, nrmax
-            tempn(nr,ns)=rn_temp(nr,ns) ! rns
-            tempt(nr,ns)=rt_temp(nr,ns) ! rt_bulk
-         end do
-      end do
+!     Bulk f is replaced by initial Maxwellian
+      CALL Define_Bulk_NP
+      DO NS=1, NSMAX
+         DO NR=1, NRMAX
+            tempn(NR,NS)=RN_TEMP(NR,NS) ! RNS
+            tempt(NR,NS)=RT_TEMP(NR,NS) ! RT_BULK
+         END DO
+      END DO
+      
+      DO NSA=NSASTART, NSAEND
+         NS=NS_NSA(NSA)
+         DO NR=NRSTARTW, NRENDWM
+            RHON=RM(NR)
+            CALL PL_PROF(RHON,PLF) ! bulk values are fixed to initial values
+            RN_TEMP(NR,NS)=PLF(NS)%RN
+            RT_TEMP(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+            IF(MODEL_DELTA_F(NS).eq.0)THEN
+               DO NP=NPSTARTW, NPENDWM
+                  IF(NP.le.NP_BULK(NR,NSA))THEN
+                     DO NTH=1, NTHMAX
+                        FL=FPMXWL_EXP(PM(NP,NS),NR,NS)
+                        FNS0(NTH,NP,NR,NSA)=FL
+                        FNSP(NTH,NP,NR,NSA)=FL
+                     END DO
+                  END IF
+               END DO
+            ELSE ! delta_f mode: update f_M and delta_f
+               IF(NP.le.NP_BULK(NR,NSA))THEN! eliminate delta f in bulk region
+                  DO NP=NPSTARTW, NPENDWM
+                     DO NTH=1, NTHMAX
+                        FNSP_DEL(NTH,NP,NR,NSA)=0.D0
+                     END DO
+                  END DO
+               END IF
+               DO NTH=1, NTHMAX
+                  FL=FPMXWL_EXP(PM(NP,NS),NR,NS)
+                  FNSP_MXWL(NTH,NP,NR,NSA)=FL
+               END DO
+               DO NTH=1, NTHMAX
+                  FNS0(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)+FNSP_MXWL(NTH,NP,NR,NSA)
+                  FNSP(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)+FNSP_MXWL(NTH,NP,NR,NSA)
+               END DO
+            END IF
+         END DO
+      END DO
+      
+      DO NS=1, NSMAX
+         DO NR=1, NRMAX
+            RN_TEMP(NR,NS)=tempn(NR,NS)
+            RT_TEMP(NR,NS)=tempt(NR,NS)
+         END DO
+      END DO
 
-      do nsa=nsastart, nsaend
-         ns=ns_nsa(nsa)
-         do nr=nrstartw, nrendwm
-            rhon=rm(nr)
-            call pl_prof(rhon,plf) ! bulk values are fixed to initial values
-            rn_temp(nr,ns)=plf(ns)%rn
-            rt_temp(nr,ns)=(plf(ns)%rtpr+2.d0*plf(ns)%rtpp)/3.d0
-            if(model_delta_f(ns)==0)then
-               do np=npstartw, npendwm
-                  if(np.le.np_bulk(nr,nsa))then
-                     do nth=1, nthmax
-                        fl=fpmxwl_exp(pm(np,ns),nr,ns)
-                        fns0(nth,np,nr,nsa)=fl
-                        fnsp(nth,np,nr,nsa)=fl
-                     end do
-                  end if
-               end do
-            else ! delta_f mode: update f_m and delta_f
-               if(np.le.np_bulk(nr,nsa))then! eliminate delta f in bulk region
-                  do np=npstartw, npendwm
-                     do nth=1, nthmax
-                        fnsp_del(nth,np,nr,nsa)=0.d0
-                     end do
-                  end do
-               end if
-               do nth=1, nthmax
-                  fl=fpmxwl_exp(pm(np,ns),nr,ns)
-                  fnsp_mxwl(nth,np,nr,nsa)=fl
-               end do
-               do nth=1, nthmax
-                  fns0(nth,np,nr,nsa)=fnsp_del(nth,np,nr,nsa)+fnsp_mxwl(nth,np,nr,nsa)
-                  fnsp(nth,np,nr,nsa)=fnsp_del(nth,np,nr,nsa)+fnsp_mxwl(nth,np,nr,nsa)
-               end do
-            end if
-         end do
-      end do
-
-      do ns=1, nsmax
-         do nr=1, nrmax
-            rn_temp(nr,ns)=tempn(nr,ns)
-            rt_temp(nr,ns)=tempt(nr,ns)
-         end do
-      end do
-
-      end subroutine bulk_const1_for_non_exp
+      END SUBROUTINE BULK_CONST1_FOR_NON_EXP
 !-------------------------------------------------------------
-      subroutine bulk_const1_for_exp ! bulk is updated by exp
+      SUBROUTINE BULK_CONST1_FOR_EXP ! bulk is updated by exp
 
-      implicit none
-      integer:: nth, np, nr, nsa, ns
-      real(8):: fl
+      IMPLICIT NONE
+      INTEGER:: NTH, NP, NR, NSA, NS
+      real(8):: FL
 
-!     bulk f is replaced by maxwellian
-      call define_bulk_np
+!     Bulk f is replaced by Maxwellian
+      CALL Define_Bulk_NP
 
-      if(model_delta_f(ns)==0)then
-        do nsa=nsastart, nsaend
-           ns=ns_nsa(nsa)
-              do nr=nrstart, nrend
-                 do np=npstartw, npendwm
-                    if(np.le.np_bulk(nr,nsa))then
-                       do nth=1, nthmax
-                          fl=fpmxwl_exp(pm(np,ns),nr,ns)
-                          fnsp(nth,np,nr,nsa)=fl
-                       end do
-                    end if
-                 end do
-              end do
-          end do
-      else
-        do nsa=nsastart, nsaend
-           ns=ns_nsa(nsa)
-            do nr=nrstart, nrend
-               do np=npstartw, npendwm
-                  if(np.le.np_bulk(nr,nsa))then
-                     do nth=1, nthmax
-                        fnsp_del(nth,np,nr,nsa)=0.d0
-                     end do
-                  end if
-                  do nth=1, nthmax
-                     fnsp_mxwl(nth,np,nr,nsa)=fpmxwl_exp(pm(np,ns),nr,ns)
-                  end do
-                  do nth=1, nthmax
-                     fns0(nth,np,nr,nsa)=fnsp_del(nth,np,nr,nsa)+fnsp_mxwl(nth,np,nr,nsa)
-                     fnsp(nth,np,nr,nsa)=fnsp_del(nth,np,nr,nsa)+fnsp_mxwl(nth,np,nr,nsa)
-                  end do
-               end do
-            end do
-          end do
-        end if
-      end subroutine bulk_const1_for_exp
+      DO NSA=NSASTART, NSAEND
+         NS=NS_NSA(NSA)
+         IF(MODEL_DELTA_F(NS).eq.0)THEN
+            DO NR=NRSTART, NREND
+               DO NP=NPSTARTW, NPENDWM
+                  IF(NP.le.NP_BULK(NR,NSA))THEN
+                     DO NTH=1, NTHMAX
+                        FL=FPMXWL_EXP(PM(NP,NS),NR,NS)
+                        FNSP(NTH,NP,NR,NSA)=FL
+                     END DO
+                  END IF
+               END DO
+            END DO
+         ELSEIF(MODEL_DELTA_F(NS).eq.1)THEN
+            DO NR=NRSTART, NREND
+               DO NP=NPSTARTW, NPENDWM
+                  IF(NP.le.NP_BULK(NR,NSA))THEN
+                     DO NTH=1, NTHMAX
+                        FNSP_DEL(NTH,NP,NR,NSA)=0.D0
+                     END DO
+                  END IF
+                  DO NTH=1, NTHMAX
+                     FNSP_MXWL(NTH,NP,NR,NSA)=FPMXWL_EXP(PM(NP,NS),NR,NS)
+                  END DO
+                  DO NTH=1, NTHMAX
+                     FNS0(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)+FNSP_MXWL(NTH,NP,NR,NSA)
+                     FNSP(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)+FNSP_MXWL(NTH,NP,NR,NSA)  
+                  END DO
+               END DO
+            END DO
+         END IF
+      END DO
+
+      END SUBROUTINE BULK_CONST1_FOR_EXP
+!*************************************************************
 !-------------------------------------------------------------
-      subroutine update_radial_f_boundary(nsa)
+      SUBROUTINE update_radial_f_boundary(NSA)
 
-      implicit none
-      integer,intent(in):: nsa
-      integer:: nth, np
+      IMPLICIT NONE
+      integer,intent(in):: NSA
+      integer:: NTH, NP
 
-      do np=npstartw, npendwm
-         do nth=1, nthmax
-            fs2(nth,np,nsa) = 2.d0*fs1(nth,np,nsa) - fnsp(nth,np,nrmax,nsa)
-         end do
-      end do
+      DO NP=NPSTARTW, NPENDWM
+         DO NTH=1, NTHMAX
+            FS2(NTH,NP,NSA) = 2.D0*FS1(NTH,NP,NSA) - FNSP(NTH,NP,NRMAX,NSA)
+         END DO
+      END DO
 
-      end subroutine update_radial_f_boundary
-!-------------------------------------------------------------
-!energy confinement time
-      subroutine fp_calte
-        use fpcomm
-        use libmpi
-        implicit none
-        real(rkind),dimension(nsamax)::esum,psum
-        real(rkind)::esuml,psuml
-        integer:: nsa,nr,eloc,ploc
-
-        do nsa=nsastart,nsaend
-          esuml=0.d0
-          psuml=0.d0
-          do nr=nrstart,nrend
-            esuml=esuml+rwsl(nr,nsa)*volr(nr)*rfsadg(nr)
-            psuml=psuml+rspbl(nr,nsa)*volr(nr)*rfsadg(nr)
-          end do
-          call mtx_reduce1_real8(esuml,3,esum(nsa),eloc) !eloc,ploc=0
-          call mtx_reduce1_real8(psuml,3,psum(nsa),ploc)
-        end do
-        if(nrank==0) then
-          do nsa=1,nsamax
-            if(psum(nsa)==0.d0) then
-              taue(nsa)=0.d0
-            else
-              taue(nsa)=esum(nsa)/psum(nsa)
-            end if
-          end do
-        end if
-      end subroutine fp_calte
-!------------------------------------------------------------
-!partcle confinement time
-      subroutine fp_caltp
-        use fpcomm
-        use libmpi
-        implicit none
-        real(rkind),dimension(nsamax)::ssum,nsum
-        real(rkind)::ssuml,nsuml
-        integer:: nsa,nr,nloc,sloc
-
-        do nsa=nsastart,nsaend
-          nsuml=0.d0
-          ssuml=0.d0
-          do nr=nrstart,nrend
-            nsuml=nsuml+volr(nr)*rnsl(nr,nsa)*rfsadg(nr)
-            ssuml=ssuml+volr(nr)*tpsl(nr,nsa)*rfsadg(nr)
-          end do
-          call mtx_reduce1_real8(nsuml,3,nsum(nsa),nloc) !nloc,sloc=0
-          call mtx_reduce1_real8(ssuml,3,ssum(nsa),sloc)
-        end do
-        if(nrank==0) then
-          do nsa=1,nsamax
-            if(ssum(nsa)==0.d0) then
-              taup(nsa)=0.d0
-            else
-              taup(nsa)=nsum(nsa)/ssum(nsa)
-            endif
-          end do
-        end if
-      end subroutine fp_caltp
+      END SUBROUTINE update_radial_f_boundary
 !------------------------------------------------------------
 ! ************************************
-!     prediction of electric field
+!     PREDICTION OF ELECTRIC FIELD
 ! ************************************
 
-!      subroutine fpnewe
+!      SUBROUTINE FPNEWE
 !
-!      implicit none
-!      integer:: nr
+!      IMPLICIT NONE
+!      integer:: NR
 !
-!      do nr=2,nrmax
-!         bp(nr)=bp(nr)+(e1(nr)-e1(nr-1))*delt/(ra*delr)
-!      enddo
+!      DO NR=2,NRMAX
+!         BP(NR)=BP(NR)+(E1(NR)-E1(NR-1))*DELT/(RA*DELR)
+!      ENDDO
 !
-!      do nr=nrstart,nrend
-!         rj2(nr)=(rg(nr+1)*bp(nr+1)-rg(nr)*bp(nr)) &
-!                 /(rmu0*rm(nr)*delr*ra)
-!      enddo
+!      DO NR=NRSTART,NREND
+!         RJ2(NR)=(RG(NR+1)*BP(NR+1)-RG(NR)*BP(NR)) &
+!                 /(RMU0*RM(NR)*DELR*RA)
+!      ENDDO
 !
-!      do nr=nrstart,nrend
-!         e2(nr)=rj2(nr)*e1(nr)/rj1(nr)
-!      enddo
+!      DO NR=NRSTART,NREND
+!         E2(NR)=RJ2(NR)*E1(NR)/RJ1(NR)
+!      ENDDO
 !
-!      return
-!      end subroutine fpnewe
+!      RETURN
+!      END SUBROUTINE FPNEWE
 
 !------------------------------------
-      end module fploop
+      END MODULE fploop

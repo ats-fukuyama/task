@@ -10,7 +10,7 @@
 
       USE fpcomm
       USE fpinit
-!      USE fpparm
+      USE fpparm
       USE fpprep
       USE fploop
       USE fpgout
@@ -18,8 +18,10 @@
       USE plinit
       USE plparm
       USE fpfile
-      USE fpdiffusivity
-      USE fprad
+      USE fpcaltp
+      USE fpcalte
+      USE fpcaldeff
+      USE fpcalchieff
       USE fowmenu
       USE libmpi
       USE libmtx
@@ -29,7 +31,7 @@
       CHARACTER(LEN=80):: LINE
       integer:: ierr,NGRAPH_SAVE
       integer,DIMENSION(1):: mode
-      real(8):: cputime1,cputime2
+      REAL(4):: cputime1,cputime2
 
     1 CONTINUE
       IF(nrank.EQ.0) THEN
@@ -113,17 +115,12 @@
          CALL mtx_barrier
          CALL FP_POST_LOAD
       ELSEIF (KID.EQ.'Z') THEN
-        if(nrank.eq.0)then
-         CALL fp_deff
-         CALL fp_chieff
-
-         !CALL fp_radiation
-       end if
-       call mtx_barrier
-    ELSEIF (KID.EQ.'O') THEN
-       CALL fow_menu
-    ELSEIF (KID.EQ.'Q') THEN
-         CALL CLOSE_EVOLVE_DATA_OUTPUT
+         CALL fp_caldeff
+         CALL fp_calchieff
+      ELSEIF (KID.EQ.'O') THEN
+         CALL fow_menu     
+      ELSEIF (KID.EQ.'Q') THEN
+         CALL CLOSE_EVOLVE_DATA_OUTPUT 
          GO TO 9000
 
       ELSE IF(KID.EQ.'X'.OR.KID.EQ.'#') THEN

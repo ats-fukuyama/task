@@ -30,7 +30,7 @@
 
       USE libmtx
       USE fpcalcn, ONLY: FPCALC_NL
-      USE fpcalcnr, ONLY: FPCALC_NLR
+      USE fpcalcnr, ONLY: FPCALC_NLR 
       IMPLICIT NONE
       integer:: NSA,NSB,NSSB,NR, NP, NTH,NS
       integer:: nsrc,nsend
@@ -54,7 +54,7 @@
                ENDDO
             ENDDO
          ENDDO
-
+         
          DO NSB=1,NSBMAX
             DO NR=NRSTART,NREND
                DO NP=NPSTART,NPENDWG
@@ -73,11 +73,11 @@
                ENDDO
             ENDDO
          ENDDO
-
+         
          DO NR=NRSTART,NREND
             DO NSB=1,NSBMAX
                NSSB=NS_NSB(NSB)
-!            if(nr.eq.1) write(6,'(A,I8,1P2E12.4)')
+!            if(nr.eq.1) write(6,'(A,I8,1P2E12.4)') 
 !     &           ' NSB,RN,RNFD=',NSB,RN(NSB),RNFD(NR,NSB)
 !
                IF(MODELC(NSSB).EQ.0.or. &
@@ -118,7 +118,7 @@
                      CALL FPCALC_L(NR,NSB,NSA)
                      MODELC(NSSB)=-1
                   ENDIF
-               ELSEIF(MODELC(NSSB).EQ.-2) THEN
+               ELSEIF(MODELC(NSSB).EQ.-2) THEN 
                   IF(NS_NSB(NSB).EQ.NS_NSA(NSA)) THEN
                      MODELC(NSSB)=1
                      CALL FPCALC_L(NR,NSB,NSA)
@@ -295,7 +295,7 @@
             work(np,ng)=data(nth,np,nr,NSA)
          enddo
       enddo
-
+            
       CALL GRD1D(ID,p,work,npm,npmaxg,9,TITLE,0)
 
  9999 return
@@ -342,7 +342,7 @@
             work(nth,ng)=data(nth,np,nr,NSA)
          enddo
       enddo
-
+            
       CALL GRD1D(ID,th,work,nthm,nthmaxg,10,TITLE,0)
 
  9999 return
@@ -490,9 +490,9 @@
       RETURN
       END FUNCTION FPFN6R
 !
-! ===============================================================
+! =============================================================== 
       FUNCTION FPFN7R(X,XM,XP)!
-!
+!                            
       real(8):: FPFN7R
       real(8),INTENT(IN):: X, XM, XP
       real(8):: A, PN, B, PMAX2, FACT
@@ -507,7 +507,7 @@
       RETURN
       END FUNCTION FPFN7R
 !
-! ===============================================================
+! =============================================================== 
 !
       FUNCTION FPFN8R(X,XM,XP)!
 
@@ -524,7 +524,7 @@
       RETURN
       END FUNCTION FPFN8R
 !
-! ===============================================================
+! =============================================================== 
 !
       FUNCTION FPFN9R(X,XM,XP)!
 
@@ -542,7 +542,7 @@
       RETURN
       END FUNCTION FPFN9R
 !
-! ===============================================================
+! =============================================================== 
 !
       FUNCTION FPFN10R(X,XM,XP)!
 
@@ -563,7 +563,7 @@
 !
       FUNCTION FPRMXW(PN)
 
-      USE libbes,ONLY: BESEKNX
+      USE libbes,ONLY: beseknx
       USE plprof
       real(8):: FPRMXW
       real(8),INTENT(IN):: PN
@@ -622,7 +622,7 @@
 !      RGAMH=RNUD(NR,NSB,NSA)*SQRT(2.D0)*VTFD(NR,NSB)*AMFP(NSA) &
 !              /(RNFP0(NSA)*PTFP0(NSA)*1.D20)
       RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2) &
-           *AMFP(NSA)/PTFP0(NSA)**3
+           *AMFP(NSA)/PTFP0(NSA)**3 
 !     RGAMH = \hat{\Gamma}/n_b
       NSSA=NS_NSA(NSA)
       NSSB=NS_NSB(NSB)
@@ -632,7 +632,7 @@
 !
 !     ----- Non-Relativistic -----
 !
-      IF(MODELR.EQ.0) THEN
+      IF(MODELR.EQ.0) THEN 
          IF(MODELC(NSSB).eq.0)THEN ! maxwellian
             IF(MODEL_DISRUPT.eq.0)THEN
                RTFDL_C=RTFD(NR,NSB)
@@ -645,7 +645,7 @@
             DO NP=NPSTART,NPENDWG
                IF(NP.EQ.1) THEN
                   DCPPL=RGAMH*RNFD(NR,NSB)*1.D20*(2.D0/(3.D0*SQRT(PI))) &
-                       *(VTFP0(NSA)/(SQRT(2.D0)*VTFD(NR,NSB)))
+                       *(VTFP0(NSA)/(SQRT(2.D0)*VTFD(NR,NSB))) 
                   FCPPL=0.D0
                ELSE
                   PFPL=PG(NP,NSSA)*PTFP0(NSA)
@@ -693,18 +693,18 @@
                RTFD0L_C=RTFD0(NSB)
                RNFDL=RN_TEMP(NR,NSB)
                RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2) &
-                    *AMFP(NSA)/PTFP0(NSA)**3
+                    *AMFP(NSA)/PTFP0(NSA)**3 
             END IF
             IF(MODEL_DISRUPT.eq.1)THEN
                RTFDL_C=RT_quench(NR) ! [keV]
                RTFD0L_C=RTFD0(NSB)
-               IF(MODEL_IMPURITY.eq.0)THEN
+               IF(MODEL_IMPURITY.eq.0)THEN 
                   RNFDL_C=RNFD(NR,NSB)
                ELSE
                   RNFDL=RN_MGI(NR,NSB)
                END IF
                RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*POST_LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2) &
-                    *AMFP(NSA)/PTFP0(NSA)**3
+                    *AMFP(NSA)/PTFP0(NSA)**3 
             END IF
 
             DO NP=NPSTART,NPENDWG
@@ -832,7 +832,7 @@
                        +(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*RINT2 ) &
                        *RNFDL*1.D20
               ENDIF
-
+               
                DO NTH=1,NTHMAX+1
                   DCTT2(NTH,NP,NR,NSB,NSA)=DCTT2(NTH,NP,NR,NSB,NSA)+DCTTL
                ENDDO
@@ -848,20 +848,20 @@
          THETA0L_C=THETA0(NSSB)
          IF(MODEL_DISRUPT.eq.0)THEN
             IF(MODELC(NSSB).eq.1.or.MODELC(NSSB).eq.0)THEN ! constant T
-               RNFDL_C=RNFD(NR,NSB)
+               RNFDL_C=RNFD(NR,NSB) 
                RTFDL_C=RTFD(NR,NSB)
             ELSEIF(MODELC(NSSB).eq.2)THEN ! variable n, T
                RNFDL_C=RN_TEMP(NR,NS_NSB(NSB))
                RTFDL_C=RT_TEMP(NR,NS_NSB(NSB))
             END IF
          ELSEIF(MODEL_DISRUPT.ge.1)THEN
-            IF(MODEL_IMPURITY.eq.0)THEN
+            IF(MODEL_IMPURITY.eq.0)THEN 
                RNFDL_C=RNFD(NR,NSB)
             ELSE
                RNFDL_C=RN_MGI(NR,NSB)
             END IF
             RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*POST_LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2) &
-                 *AMFP(NSA)/PTFP0(NSA)**3
+                 *AMFP(NSA)/PTFP0(NSA)**3 
             RTFDL_C=RT_quench(NR)
          END IF
          THETAL_C =THETA0L_C*RTFDL_C/RTFD0L_C
@@ -883,7 +883,7 @@
                     (AMFD(NSB)*PTFP0(NSA))                     &
                     /(AMFP(NSA)*PTFD0(NSB))*RINT2 )             &
 !                    *RNFD(NR,NSB)*1.D20
-                    *RNFDL_C*1.D20
+                    *RNFDL_C*1.D20 
                FCPPL=0.D0
             ELSE
 !               PNFPL=PG(NP,NSBA)
@@ -960,7 +960,7 @@
                           *RNFDL_C*1.D20
 !                     WRITE(6,'(A,2I5,1P10E14.6)') "low v e-i ", NP, NSB, THETAL_C, RINT0, RINT1, PCRIT, DCPPL, FCPPL
                   ENDIF
-               ELSE! high velocity limit
+               ELSE! high velocity limit 
                   DCPPL = RGAMH*(AMFP(NSA)/PTFP0(NSA))**2*(RGAMA/PG(NP,NSSA))**3 &
                        *v_thermal**2 &
 !                       * RNFD(NR,NSB)*1.D20
@@ -968,8 +968,8 @@
                   FCPPL =-RGAMH*(RGAMA/PG(NP,NSSA))**2 &
                        *(1.D0-2.5D0*THETAL_C+55.D0/8.D0*THETAL_C**2) &
                        *AMFP(NSA)/AMFD(NSB) &
-!                       * RNFD(NR,NSB)*1.D20
-                       * RNFDL_C*1.D20
+!                       * RNFD(NR,NSB)*1.D20 
+                       * RNFDL_C*1.D20 
 
 !                  WRITE(6,'(A,2I5,1P4E14.6)') "high v ", NP, NSB, THETAL_C, v_thermal, DCPPL, FCPPL
                END IF
@@ -1059,8 +1059,6 @@
       DOUBLE PRECISION:: DELH, sum, etal, psib, pcos, arg, x, PSIN
       INTEGER:: NG, ITLB, ITUB, NSSB
 
-! add FOW module bounce average
-
 ! DCPP, FCPP
       DO NSB=1,NSBMAX
          DO NP=NPSTART,NPENDWG
@@ -1093,7 +1091,7 @@
 !                        +FCPP2(ITUB-1,NP,NR,NSB,NSA) &
 !                                    /RLAMDA(ITUB-1,NR) &
 !                        +FCPP2(ITUB+1,NP,NR,NSB,NSA) &
-!                                    /RLAMDA(ITUB+1,NR) )
+!                                    /RLAMDA(ITUB+1,NR) ) 
 !            DCPP2(ITUB,NP,NR,NSB,NSA)=DCPP2(ITLB,NP,NR,NSB,NSA)
 !            FCPP2(ITUB,NP,NR,NSB,NSA)=FCPP2(ITLB,NP,NR,NSB,NSA)
          END DO
@@ -1101,7 +1099,7 @@
 ! DCTT
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX+1
-               IF(NTH.NE.NTHMAX/2+1) THEN
+               IF(NTH.NE.NTHMAX/2+1) THEN 
                   DELH = 2.D0*ETAG(NTH,NR)/NAVMAX
                   SUM=0.D0
                   DO NG=1,NAVMAX
@@ -1110,7 +1108,7 @@
                      PSIB=(1.D0+EPSRM2(NR))/(1.D0+X)
                      ARG=1.D0-PSIB*SING(NTH)**2
                      PCOS = SQRT(ARG)
-                     sum=sum + DCTT2(NTH,NP,NR,NSB,NSA)*PCOS/(PSIB*ABS(COSG(NTH)))
+                     sum=sum + DCTT2(NTH,NP,NR,NSB,NSA)*PCOS/(PSIB*ABS(COSG(NTH))) 
                   END DO
                   DCTT2(NTH,NP,NR,NSB,NSA)=sum*DELH*Line_Element(NR)*A_chi0(NR)*2.D0
                ELSE
@@ -1124,7 +1122,7 @@
 !                    =(DCTT2(NTH,NP,NR,NSB,NSA) &
 !                    +DCTT2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
 !               DCTT2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
-!                    =DCTT2(NTH,NP,NR,NSB,NSA)
+!                    =DCTT2(NTH,NP,NR,NSB,NSA) 
 !            END DO
 
          END DO ! NP
@@ -1185,13 +1183,13 @@
                     =(DCTP2(NTH,NP,NR,NSB,NSA) &
                     +DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
                DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
-                    =DCTP2(NTH,NP,NR,NSB,NSA)
+                    =DCTP2(NTH,NP,NR,NSB,NSA) 
 
                FCTH2(NTH,NP,NR,NSB,NSA)        &
                     =(FCTH2(NTH,NP,NR,NSB,NSA) &
                     +FCTH2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
                FCTH2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
-                    =FCTH2(NTH,NP,NR,NSB,NSA)
+                    =FCTH2(NTH,NP,NR,NSB,NSA) 
             END DO
          END DO ! NP
          END IF
@@ -1209,7 +1207,7 @@
       real(8):: sum1, sum2, sum3, sum4, sum5, sum6, sum7, sum8, sum9
       real(8):: temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9
       INTEGER:: ISW_LAV, INTH
-
+     
       ISW_LAV=0
 ! INTEGRATION OF BOUNCE AVERAGING
       DO NSB = 1,NSBMAX
@@ -1229,8 +1227,8 @@
                      sum1=sum1 + DCPP2(NTH,NP,NR,NSB,NSA)*ABS(COSM(NTH))/PCOS
                      sum2=sum2 + DCPT2(NTH,NP,NR,NSB,NSA)/SQRT(PSIB)
                      sum3=sum3 + FCPP2(NTH,NP,NR,NSB,NSA)*ABS(COSM(NTH))/PCOS
-                  END DO ! END NAVMAX
-
+                  END DO ! END NAVMAX 
+                  
                   DCPP2(NTH,NP,NR,NSB,NSA)=SUM1*DELH
                   DCPT2(NTH,NP,NR,NSB,NSA)=SUM2*DELH
                   FCPP2(NTH,NP,NR,NSB,NSA)=SUM3*DELH
@@ -1244,35 +1242,35 @@
 !                  sum7=0.D0
 !                  sum8=0.D0
 !                  sum9=0.D0
-!
+!                  
 !                  temp7 = DCPP2B(INTH,NP,NR,NSB,NSA)
 !                  temp8 = FCPP2B(INTH,NP,NR,NSB,NSA)
 !                  temp9 = DCPT2B(INTH,NP,NR,NSB,NSA)
-!
+!                  
 !                  IF (COSM(NTH).GE.0.D0) THEN
 !                     DO NG=1,NAVMAX
 !                        ETAL=DELH*(NG-0.5D0)
 !                        X=EPSRM(NR)*COS(ETAL)*RR
 !                        PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
 !                        PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
-!
+!                        
 !                        sum7=sum7 + temp7*COSM(NTH)/PCOS
 !                        sum8=sum8 + temp8*COSM(NTH)/PCOS
 !                        sum9=sum9 + temp9/SQRT(PSIB)
-!                     END DO ! END NAVMAX
+!                     END DO ! END NAVMAX 
 !                  ELSE ! SIGN OF PCOS
 !                     DO NG=1,NAVMAX
 !                        ETAL=DELH*(NG-0.5D0)
 !                        X=EPSRM(NR)*COS(ETAL)*RR
 !                        PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
 !                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
-!
+!                        
 !                        sum7=sum7 + temp7*COSM(NTH)/PCOS
 !                        sum8=sum8 + temp8*COSM(NTH)/PCOS
 !                        sum9=sum9 + temp9/SQRT(PSIB)
 !                     END DO ! END NAVMAX
 !                  END IF
-!
+!                  
 !                  DCPP2B(INTH,NP,NR,NSB,NSA)=SUM7*DELH
 !                  FCPP2B(INTH,NP,NR,NSB,NSA)=SUM8*DELH
 !                  DCPT2B(INTH,NP,NR,NSB,NSA)=SUM9*DELH
@@ -1283,29 +1281,29 @@
 !                  sum7=0.D0
 !                  sum8=0.D0
 !                  sum9=0.D0
-!
+!                  
 !                  temp7 = DCPP2B(INTH,NP,NR,NSB,NSA)
 !                  temp8 = FCPP2B(INTH,NP,NR,NSB,NSA)
 !                  temp9 = DCPT2B(INTH,NP,NR,NSB,NSA)
-!
+!                  
 !                  IF (COSM(NTH).GE.0.D0) THEN
 !                     DO NG=1,NAVMAX
 !                        ETAL=DELH*(NG-0.5D0)
 !                        X=EPSRM(NR)*COS(ETAL)*RR
 !                        PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
 !                        PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
-!
+!                        
 !                        sum7=sum7 + temp7*COSM(NTH)/PCOS
 !                        sum8=sum8 + temp8*COSM(NTH)/PCOS
 !                        sum9=sum9 + temp9/SQRT(PSIB)
-!                     END DO ! END NAVMAX
+!                     END DO ! END NAVMAX 
 !                  ELSE ! SIGN OF PCOS
 !                     DO NG=1,NAVMAX
 !                        ETAL=DELH*(NG-0.5D0)
 !                        X=EPSRM(NR)*COS(ETAL)*RR
 !                        PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
 !                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
-!
+!                        
 !                        sum7=sum7 + temp7*COSM(NTH)/PCOS
 !                        sum8=sum8 + temp8*COSM(NTH)/PCOS
 !                        sum9=sum9 + temp9/SQRT(PSIB)
@@ -1481,7 +1479,7 @@
          END DO
       END DO
 ! END OF BALANCE TRAPPED REGION for THETA direction
-
+      
       RETURN
       END SUBROUTINE FPCALC_NLAV
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

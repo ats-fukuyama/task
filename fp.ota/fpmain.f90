@@ -21,6 +21,7 @@
       use plparm
       use equnit_mod
       use fpinit
+      use fpparm
       use fpmenu
       use fpwrin
       use libmtx
@@ -34,6 +35,7 @@
          CALL GSOPEN
          OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
       ENDIF
+
       ierr_g=0
       N_f1=0
 

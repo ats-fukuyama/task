@@ -18,7 +18,7 @@
       IMPLICIT NONE
       integer:: NR
       integer:: imtxstart1,imtxend1,its
-      real(8):: gut1, gut2
+      real(4):: gut1, gut2
       real(8):: Aij, Aij_m1, Aij_p1, RHS, b_wall, E_e, a_e, coef_ln
       real(8):: factr, factp, DR_coef, RN_runm
       real(8),dimension(NRMAX):: dndt
@@ -163,7 +163,7 @@
 
       IMPLICIT NONE
       integer:: NR
-      real(8):: gut1, gut2
+      real(4):: gut1, gut2
       real(8):: coef, term1, term2, term3, term4
       real(8),dimension(NRSTART:NREND):: EP_local
 
@@ -203,7 +203,7 @@
       integer:: NR
       integer:: imtxstart1,imtxend1,its
       real(8),dimension(NRSTART:NREND),INTENT(IN):: E_SIGMA
-      real(8):: gut1, gut2
+      real(4):: gut1, gut2
       real(8):: Aij, Aij_m1, Aij_p1, RHS, b_wall, E_e, a_e, coef_ln
       real(8):: RJ_P
 
@@ -289,7 +289,7 @@
       IMPLICIT NONE
       integer:: NR
       integer:: imtxstart1,imtxend1,its
-      real(8):: gut1, gut2
+      real(4):: gut1, gut2
       real(8):: Aij, Aij_m1, Aij_p1, RHS, b_wall, E_e, a_e, coef_ln, RJ_P
 
       CALL GUTIME(gut1)

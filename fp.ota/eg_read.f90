@@ -6,7 +6,7 @@
       PUBLIC READ_EXP_DATA
       PUBLIC MAKE_EXP_PROF
       PUBLIC FPMXWL_EXP
-
+      
       PRIVATE
 !      double precision,dimension(:,:),pointer:: read_tms_double, read_cx_double
 !      integer,dimension(:,:),pointer:: read_tms_int
@@ -24,7 +24,7 @@
       IMPLICIT NONE
 
       CALL READ_EXP_TMS
-      CALL READ_EXP_CX
+      CALL READ_EXP_CX 
 
       END SUBROUTINE READ_EXP_DATA
 !-----------------------------------
@@ -50,7 +50,7 @@
             DO NR=1, NRMAX
                RT_READ(NR,NS)=RTE_EXP(NR)
                RN_READ(NR,NS)=RNE_EXP(NR)
-
+               
                RT_TEMP(NR,NS)=RTE_EXP(NR)
                RN_TEMP(NR,NS)=RNE_EXP(NR)
             END DO
@@ -59,7 +59,7 @@
                DO NR=1, NRMAX
                   RT_READ(NR,NS)=RTE_EXP(NR) ! assume to be same to electron
                   RN_READ(NR,NS)=RNE_EXP(NR)*NI_RATIO(NS)
-
+               
                   RT_TEMP(NR,NS)=RTE_EXP(NR)
                   RN_TEMP(NR,NS)=RNE_EXP(NR)*NI_RATIO(NS)
                END DO
@@ -67,7 +67,7 @@
                DO NR=1, NRMAX
                   RT_READ(NR,NS)=RTI_EXP(NR)
                   RN_READ(NR,NS)=RNE_EXP(NR)*NI_RATIO(NS)
-
+               
                   RT_TEMP(NR,NS)=RTI_EXP(NR)
                   RN_TEMP(NR,NS)=RNE_EXP(NR)*NI_RATIO(NS)
                END DO
@@ -105,7 +105,7 @@
       open(22,file=EG_NAME_TMS,status='old')
 
       DO i=1,29
-         READ(22,*)
+         READ(22,*) 
       END DO
 
       nend1=0
@@ -134,7 +134,7 @@
 
 !       DO i=1, 2
 !          WRITE(*,'(1P3E14.6,I8,I3,1P24E12.4)') &
-!               (read_tms_double(j,i),j=1,3), (read_tms_int(k,i),k=1,2), (read_tms_double(m,i),m=4,27)
+!               (read_tms_double(j,i),j=1,3), (read_tms_int(k,i),k=1,2), (read_tms_double(m,i),m=4,27) 
 !       END DO
 
       END SUBROUTINE READ_EXP_TMS
@@ -149,16 +149,16 @@
       open(22,file=EG_NAME_CX,status='old')
 
       DO i=1,21
-         READ(22,*)
+         READ(22,*) 
       END DO
-
+      
       nend2=0
       DO i=1,1000
          READ(22,*,end=200) (read_cx_temp(j,i),j=1,34)
 !         READ(22,*,end=200) (read_cx_double(j,i),j=1,34)
          nend2=nend2+1
       END DO
-
+      
 200   close(22)
       nend_cx=nend2
 
@@ -181,7 +181,7 @@
             read_cx_double(j,i)=read_cx_temp2(j,i)
          END DO
       END DO
-
+      
 !       WRITE(*,*) "END LINE", nend2
 
 !       DO i=nend2-1,nend2
@@ -199,10 +199,10 @@
       integer:: NR
       double precision:: rte_ex, rne_ex, rho
       double precision,dimension(NRMAX,2):: prof_ne_temp, prof_te_temp
-
+      
       DO k=1, 2
          i=k-1+ntime1
-
+         
          DO j=1,5
             cte_fit(j)=read_tms_double(14+j,i)
          END DO
@@ -212,7 +212,7 @@
 
 !          WRITE(*,*) " cte_fit(1)", i, cte_fit(1)
 !          WRITE(*,*) " cne_fit(1)", i, cne_fit(1)
-
+         
          DO NR=1, NRMAX
             rho = RM(NR)
             rte_ex = cte_fit(1)+cte_fit(2)*rho**2+cte_fit(3)*rho**4+cte_fit(4)*rho**6
@@ -225,19 +225,19 @@
             IF(rne_ex.gt.0.D0)THEN
                prof_ne_temp(NR,k)=rne_ex
             ELSE
-               prof_ne_temp(NR,k)=1.D-3
+               prof_ne_temp(NR,k)=1.D-3               
             END IF
          END DO
       END DO
-
+      
 ! time interpolation
       DO NR=1, NRMAX
          RTE_EXP(NR)=(1.D0-weight)*prof_te_temp(NR,1) + weight*prof_te_temp(NR,2)
          RNE_EXP(NR)=( (1.D0-weight)*prof_ne_temp(NR,1) + weight*prof_ne_temp(NR,2) )*1.D-1 ! 10^20
       END DO
-      RTE_EXP_EDGE= read_tms_double(24,i)
+      RTE_EXP_EDGE= read_tms_double(24,i) 
       RNE_EXP_EDGE= read_tms_double(25,i)*1.D-1
-
+       
       open(22,file='prof_tms.dat')
       IF(NRANK.eq.0)THEN
          WRITE(22,'(A,3E14.6)') "# TIME, TE_EDGE, NE_EDGE", TIMEFP, RTE_EXP_EDGE, RNE_EXP_EDGE
@@ -249,10 +249,10 @@
          WRITE(22,*) " "
       END IF
       close(22)
-
+      
       open(22,file='evol_tms.dat')
       IF(NRANK.eq.0)THEN
-         DO i=1, nend_tms
+         DO i=1, nend_tms 
             IF(read_tms_double(15,i).ne.0.and.read_tms_double(19,i).ne.0)THEN ! time, Te, n_e
                WRITE(22,'(3E14.6)') read_tms_double(1,i), read_tms_double(15,i), read_tms_double(19,i)
             END IF
@@ -271,31 +271,31 @@
       integer:: NR
       double precision:: rti_ex, rho
       double precision,dimension(NRMAX,2):: prof_ti_temp
-
+      
       DO k=1, 2
          i=k-1+ntime1
-
+         
          DO j=1,5
             cti_fit(j)=read_cx_double(28+j,i)
          END DO
 
 !          WRITE(*,*) " cte_fit(1)", i, cte_fit(1)
 !          WRITE(*,*) " cne_fit(1)", i, cne_fit(1)
-
+         
          DO NR=1, NRMAX
             rho = RM(NR)
             rti_ex = cti_fit(1)+cti_fit(2)*rho**2+cti_fit(3)*rho**4+cti_fit(4)*rho**6
-
+            
             prof_ti_temp(NR,k)=rti_ex
          END DO
       END DO
-
+      
 ! time interpolation
       DO NR=1, NRMAX
          RTI_EXP(NR)=(1.D0-weight)*prof_ti_temp(NR,1) + weight*prof_ti_temp(NR,2)
       END DO
-      RTI_EXP_EDGE= read_cx_double(34,i)
-
+      RTI_EXP_EDGE= read_cx_double(34,i) 
+       
       open(22,file='prof_cx.dat')
       IF(NRANK.eq.0)THEN
          WRITE(22,'(A,3E14.6)') "# TIME, TI_EDGE ", TIMEFP, RTI_EXP_EDGE
@@ -306,10 +306,10 @@
          WRITE(22,*) " "
       END IF
       close(22)
-
+      
       open(22,file='evol_cx.dat')
       IF(NRANK.eq.0)THEN
-         DO i=1, nend_cx
+         DO i=1, nend_cx 
             IF(read_cx_double(28,i).ne.0)THEN ! time, Ti
                WRITE(22,'(2E14.6)') read_cx_double(1,i), read_cx_double(29,i)
             END IF
@@ -349,7 +349,7 @@
          END DO
          weight=(time_exp-read_cx_double(1,ntime1))/(read_cx_double(1,ntime2)-read_cx_double(1,ntime1))
       END IF
-
+ 
 
 !      IF(NRANK.eq.0)THEN
 !         WRITE(*,'(A,2I5)') "ntime1, 2= ", ntime1, ntime2
@@ -376,7 +376,7 @@
             ntime2=i+1
          END IF
       END DO
-
+      
       weight=(time_exp-read_tms_double(1,ntime1))/(read_tms_double(1,ntime2)-read_tms_double(1,ntime1))
 
 !      IF(NRANK.eq.0)THEN
@@ -394,7 +394,7 @@
       FUNCTION FPMXWL_EXP(PML,NR,NS)
 
       USE plprof
-      USE libbes,ONLY: BESEKNX
+      USE libbes,ONLY: beseknx 
       implicit none
       integer :: NR, NS
       real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon

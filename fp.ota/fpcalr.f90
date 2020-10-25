@@ -1,270 +1,267 @@
-module fpcalr
+MODULE fpcalr
 
 ! ****************************************
 !     Radial transport
 ! ****************************************
 
-contains
+CONTAINS
 
-  subroutine fp_calr
+  SUBROUTINE FP_CALR
 
-      use fpcomm
-      use plprof
-      use cdbmfp_mod
-      use libmpi,only: mtx_set_communicator, mtx_reset_communicator
-      use fpmpi,only: p_theta_integration
-      implicit none
-      integer:: nsa, nsba, ns, nr, nth, np, ng, nsb, nr1, nr2
-      real(kind8):: rhon, rtfpl, factr, factp, sv, ppp, ppm
-      real(kind8):: psib, pcos, x, etal, sumd, sumf, delh
-      real(kind8):: dndr, nedge, fact, dint_d, dint_f, wrl
-      real(kind8):: sum1, temp1, srhodp, srhodm, srhofp, srhofm
-      real(kind8):: wrh, dfdr_d, dfdr_f, f_r2, dfdr_r2, f_r1, dfdr_r1
-      real(kind8):: shear,pnel,rhoni,dpdr,dvexbdr,calf,ckap,cexb,fsz,fez
-      real(kind8),dimension(1:nrmax+1):: chi_cdbm
-      type(pl_plf_type),dimension(nsmax):: plf
+      USE fpcomm
+      USE plprof
+      USE cdbmfp_mod
+      USE libmpi,ONLY: mtx_set_communicator, mtx_reset_communicator
+      USE fpmpi,ONLY: p_theta_integration
+      IMPLICIT NONE
+      integer:: NSA, NSBA, NS, NR, NTH, NP, NG, NSB, NR1, NR2
+      real(kind8):: RHON, RTFPL, FACTR, FACTP, SV, PPP, PPM
+      real(kind8):: PSIB, PCOS, X, ETAL, sumd, sumf, DELH
+      real(kind8):: DNDR, NEDGE, FACT, DINT_D, DINT_F, WRL
+      real(kind8):: sum1, temp1, SRHODP, SRHODM, SRHOFP, SRHOFM
+      real(kind8):: WRH, DFDR_D, DFDR_F, F_R2, DFDR_R2, F_R1, DFDR_R1
+      REAL(kind8):: SHEAR,PNEL,RHONI,DPDR,DVEXBDR,CALF,CKAP,CEXB,FSZ,FEZ
+      REAL(kind8),DIMENSION(1:NRMAX+1):: CHI_CDBM
+      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
       double precision:: densm, densp, rgama
-      integer:: isw_d
+      INTEGER:: ISW_D
 
-!---- calculation of cdbm diffusion coefficient ----
+!---- Calculation of CDBM diffusion coefficient ----
 
-      if(modeld_rdep.eq.2) then
-         if(nrank.eq.0) then
-            nr1=1
-            nr2=nrmax+1
-         else
-            nr1=nrstart
-            nr2=nrendwg
-         end if
-         do nr=nr1,nr2
-            rhon=rg(nr)
+      IF(MODELD_RDEP.EQ.2) THEN
+         IF(nrank.EQ.0) THEN
+            NR1=1
+            NR2=NRMAX+1
+!            write(18,'(A,1PE12.4/A)') 'T =',TIMEFP,&
+!                     'NR,RS/QLM,SHEAR,PNEL,RHONI,DPDR,CHI_CDBM'
+         ELSE
+            NR1=NRSTART
+            NR2=NRENDWG
+         END IF
+         DO NR=NR1,NR2
+            RHON=RG(NR)
 
-            if(nr.eq.1) then        ! magnetic shear s=(r/q)(dq/dr)
-               shear=0.d0
-            else if(nr.eq.nrmax+1) then  !qlm(nrmax+1)=qlg(rhon=1)
-               shear=(rhon/qlm(nr))*(qlm(nr)-qlm(nr-1)) &
-                     *0.5d0/(rg(nr)-rm(nr-1))
-            else
-               shear=(rhon/(rm(nr)-rm(nr-1)))*(qlm(nr)-qlm(nr-1)) &
-                     *2.d0/(qlm(nr)+qlm(nr-1))
-            end if
+            IF(NR.EQ.1) THEN        ! magnetic shear s=(r/q)(dq/dr)
+               SHEAR=0.D0
+            ELSE IF(NR.EQ.NRMAX+1) THEN  !QLM(NRMAX+1)=QLG(rhon=1)
+               SHEAR=(RHON/QLM(NR))*(QLM(NR)-QLM(NR-1)) &
+                     *0.5D0/(RG(NR)-RM(NR-1))
+            ELSE
+               SHEAR=(RHON/(RM(NR)-RM(NR-1)))*(QLM(NR)-QLM(NR-1)) &
+                     *2.D0/(QLM(NR)+QLM(NR-1))
+            END IF
 
-            pnel=0.d0               ! electron density
-            do ns=1,nsmax
-               if(id_ns(ns).eq.-1) then
-                  if(nr.eq.1) then
-                     pnel=pnel+rn_temp(nr,ns)*1.d20
-                  else if(nr.eq.nrmax+1) then
-                     pnel=pnel+rn_temp(nr-1,ns)*1.d20
-                  else
-                     pnel=pnel+0.5d0*(rn_temp(nr-1,ns)+rn_temp(nr,ns))*1.d20
-                  end if
-               end if
-            end do
+            PNEL=0.D0               ! electron density
+            DO NS=1,NSMAX
+               IF(ID_NS(NS).EQ.-1) THEN
+                  IF(NR.EQ.1) THEN
+                     PNEL=PNEL+RN_TEMP(NR,NS)*1.D20
+                  ELSE IF(NR.EQ.NRMAX+1) THEN
+                     PNEL=PNEL+RN_TEMP(NR-1,NS)*1.D20
+                  ELSE
+                     PNEL=PNEL+0.5D0*(RN_TEMP(NR-1,NS)+RN_TEMP(NR,NS))*1.D20
+                  END IF
+               END IF
+            END DO
 
-            rhoni=0.d0              ! ion mass density
-            do ns=1,nsmax
-               if(id_ns(ns).eq.1) then
-                  if(nr.eq.1) then
-                     rhoni=rhoni+pa(ns)*amp*rn_temp(nr,ns)*1.d20
-                  else if(nr.eq.nrmax+1) then
-                     rhoni=rhoni+pa(ns)*amp*rn_temp(nr-1,ns)*1.d20
-                  else
-                     rhoni=rhoni+pa(ns)*amp &
-                                *0.5d0*(rn_temp(nr-1,ns)+rn_temp(nr,ns))*1.d20
-                  end if
-               end if
-            end do
+            RHONI=0.D0              ! ion mass density
+            DO NS=1,NSMAX
+               IF(ID_NS(NS).EQ.1) THEN
+                  IF(NR.EQ.1) THEN
+                     RHONI=RHONI+PA(NS)*AMP*RN_TEMP(NR,NS)*1.D20
+                  ELSE IF(NR.EQ.NRMAX+1) THEN
+                     RHONI=RHONI+PA(NS)*AMP*RN_TEMP(NR-1,NS)*1.D20
+                  ELSE
+                     RHONI=RHONI+PA(NS)*AMP &
+                                *0.5D0*(RN_TEMP(NR-1,NS)+RN_TEMP(NR,NS))*1.D20
+                  END IF
+               END IF
+            END DO
 
-            dpdr=0.d0               ! pressure gradient
-            ppp=0.d0
-            ppm=0.d0
-            do ns=1,nsmax
-               if(id_ns(ns).eq.1.or.id_ns(ns).eq.-1) then
-                  if(nr.eq.1) then
-                     ppp=ppp+rhoni+rn_temp(nr,ns)*1.d20*rt_temp(nr,ns)*rkev
-                     ppm=ppm+rhoni+rn_temp(nr,ns)*1.d20*rt_temp(nr,ns)*rkev
-                  else if(nr.eq.nrmax) then
-                     ppp=ppp+rhoni+rn_temp(nr  ,ns)*1.d20*rt_temp(nr  ,ns)*rkev
-                     ppm=ppm+rhoni+rn_temp(nr-1,ns)*1.d20*rt_temp(nr-1,ns)*rkev
-                  else if(nr.eq.nrmax+1) then
-                     ppp=ppp+rhoni+rn_temp(nr-1,ns)*1.d20*rt_temp(nr-1,ns)*rkev
-                     ppm=ppm+rhoni+rn_temp(nr-2,ns)*1.d20*rt_temp(nr-2,ns)*rkev
-                  else
-                     ppp=ppp+rhoni+rn_temp(nr+1,ns)*1.d20*rt_temp(nr+1,ns)*rkev
-                     ppm=ppm+rhoni+rn_temp(nr-1,ns)*1.d20*rt_temp(nr-1,ns)*rkev
-                  end if
-               end if
-            end do
-            if(nr.eq.1) then
-               dpdr=0.d0
-            else if(nr.eq.nrmax) then
-               dpdr=(ppp-ppm)/(ra*(rm(nr  )-rm(nr-1)))
-            else if(nr.eq.nrmax+1) then
-               dpdr=(ppp-ppm)/(ra*(rm(nr-1)-rm(nr-2)))
-            else
-               dpdr=(ppp-ppm)/(ra*(rm(nr+1)-rm(nr-1)))
-            end if
+            DPDR=0.D0               ! pressure gradient
+            PPP=0.D0
+            PPM=0.D0
+            DO NS=1,NSMAX
+               IF(ID_NS(NS).EQ.1.OR.ID_NS(NS).EQ.-1) THEN
+                  IF(NR.EQ.1) THEN
+                     PPP=PPP+RHONI+RN_TEMP(NR,NS)*1.D20*RT_TEMP(NR,NS)*RKEV
+                     PPM=PPM+RHONI+RN_TEMP(NR,NS)*1.D20*RT_TEMP(NR,NS)*RKEV
+                  ELSE IF(NR.EQ.NRMAX) THEN
+                     PPP=PPP+RHONI+RN_TEMP(NR  ,NS)*1.D20*RT_TEMP(NR  ,NS)*RKEV
+                     PPM=PPM+RHONI+RN_TEMP(NR-1,NS)*1.D20*RT_TEMP(NR-1,NS)*RKEV
+                  ELSE IF(NR.EQ.NRMAX+1) THEN
+                     PPP=PPP+RHONI+RN_TEMP(NR-1,NS)*1.D20*RT_TEMP(NR-1,NS)*RKEV
+                     PPM=PPM+RHONI+RN_TEMP(NR-2,NS)*1.D20*RT_TEMP(NR-2,NS)*RKEV
+                  ELSE
+                     PPP=PPP+RHONI+RN_TEMP(NR+1,NS)*1.D20*RT_TEMP(NR+1,NS)*RKEV
+                     PPM=PPM+RHONI+RN_TEMP(NR-1,NS)*1.D20*RT_TEMP(NR-1,NS)*RKEV
+                  END IF
+               END IF
+            END DO
+            IF(NR.EQ.1) THEN
+               DPDR=0.D0
+            ELSE IF(NR.EQ.NRMAX) THEN
+               DPDR=(PPP-PPM)/(RA*(RM(NR  )-RM(NR-1)))
+            ELSE IF(NR.EQ.NRMAX+1) THEN
+               DPDR=(PPP-PPM)/(RA*(RM(NR-1)-RM(NR-2)))
+            ELSE
+               DPDR=(PPP-PPM)/(RA*(RM(NR+1)-RM(NR-1)))
+            END IF
 
-            dvexbdr=0.d0
-            calf=1.d0
-            ckap=1.d0
-            cexb=0.d0
-!            fsz=1.d0     ! option
-!            curvz=0.d0   ! option
-!            fez=0.d0     ! option
+            dvexbdr=0.D0
+            CALF=1.D0
+            CKAP=1.D0
+            CEXB=0.D0
+!            FSZ=1.D0     ! option
+!            CURVZ=0.D0   ! option
+!            FEZ=0.D0     ! option
 
-            call cdbmfp(bb,rr,ra*rhon,rkap,qlm(nr),shear,pnel,rhoni,dpdr, &
-                      dvexbdr,calf,ckap,cexb,modeld_cdbm,chi_cdbm(nr))
-         end do
-      end if
+            CALL CDBMFP(BB,RR,RA*RHON,RKAP,QLM(NR),SHEAR,PNEL,RHONI,DPDR, &
+                      DVEXBDR,CALF,CKAP,CEXB,MODELD_CDBM,CHI_CDBM(NR))
+!            IF(nrank.EQ.0) THEN
+!               write(18,'(I2,1P7E11.3)') &
+!                 NR,RA*RHON,QLM(NR),SHEAR,PNEL,RHONI,DPDR,CHI_CDBM(NR)
+!            END IF
+         END DO
+      END IF
 
-      do nsa=nsastart,nsaend
-         ns=ns_nsa(nsa)
-         nsba=nsb_nsa(nsa)
+      DO NSA=NSASTART,NSAEND
+         NS=NS_NSA(NSA)
+         NSBA=NSB_NSA(NSA)
 
-      do nr=nrstart,nrendwg
-         rhon=rg(nr)
-         if(nr.eq.1) then
-            nr1=nr
-            nr2=nr
-         else if(nr.eq.nrmax+1) then
-            nr1=nr-1
-            nr2=nr-1
-         else
-            nr1=nr-1
-            nr2=nr
-         endif
+      DO NR=NRSTART,NRENDWG
+         RHON=RG(NR)
+         IF(NR.EQ.1) THEN
+            NR1=NR
+            NR2=NR
+         ELSE IF(NR.EQ.NRMAX+1) THEN
+            NR1=NR-1
+            NR2=NR-1
+         ELSE
+            NR1=NR-1
+            NR2=NR
+         ENDIF
 
-         if(nr.eq.1) then
-            rtfpl= rtfp_g(nr,nsa)/rtfp0(nsa)
-         else
-            rtfpl=rtfps(nsa)/rtfp0(nsa)
-         end if
+         IF(NR.EQ.1) THEN
+            RTFPL= RTFP_G(NR,NSA)/RTFP0(NSA)
+         ELSE
+            RTFPL=RTFPS(NSA)/RTFP0(NSA)
+         END IF
 
-!------------- set r dependence
-         select case(modeld_rdep)
-         case(0)
-            factr=(drr0-drrs)*(1.d0-rhon**2)+drrs
-         case(1)
-            factr=pi*rr*qlm(nr)*deltab_b**2 *ptfp0(ns)/amfp(ns)
-         case(2)
-            factr=factor_cdbm*chi_cdbm(nr)
-         case default
-            write(6,*) 'xx fpcalr: undefined modeld_rdep'
-            stop
-         end select
+!------------- SET R DEPENDENCE
+         SELECT CASE(MODELD_RDEP)
+         CASE(0)
+            FACTR=(DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
+         CASE(1)
+            FACTR=PI*RR*QLM(NR)*deltaB_B**2 *PTFP0(NS)/AMFP(NS)
+         CASE(2)
+            FACTR=FACTOR_CDBM*CHI_CDBM(NR)
+         CASE DEFAULT
+            WRITE(6,*) 'XX FPCALR: Undefined MODELD_RDEP'
+            STOP
+         END SELECT
 
-!------------- set edge value
-         select case(modeld_edge)
-         case(1)
-            if(rhon.gt.rho_edge) factr=drr_edge
-         case(2)
-            if(rhon.gt.rho_edge) factr=factor_drr_edge*factr
-         end select
+!------------- SET EDGE VALUE
+         SELECT CASE(MODELD_EDGE)
+         CASE(1)
+            IF(RHON.GT.RHO_EDGE) FACTR=DRR_EDGE
+         CASE(2)
+            IF(RHON.GT.RHO_EDGE) FACTR=FACTOR_DRR_EDGE*FACTR
+         END SELECT
+            
+         DO NP=NPSTART,NPEND
+            DO NTH=1,NTHMAX
 
-         do np=npstart,npend
-            do nth=1,nthmax
+!------------- SET P DEPENDENCE
+               SELECT CASE(MODELD_PDEP)
+               CASE(0) ! no p dependence
+                  FACTP=1.D0
+               CASE(1) ! proportional to 1/sqrt{p_perp}
+                  FACTP=(RTFPL/(RTFPL+PM(NP,NS)**2*SINM(NTH)**2))**0.25D0
+               CASE(2) ! proportional to 1/p_perp
+                  FACTP=SQRT(RTFPL/(RTFPL+PM(NP,NS)**2*SINM(NTH)**2))
+               CASE(3) ! proportional to 1/p_perp^2
+                  FACTP=RTFPL/(RTFPL+PM(NP,NS)**2*SINM(NTH)**2)
+               CASE(4) ! stochastic delta B /B; relativistic
+                  RGAMA=SQRT(1.D0+THETA0(NS)*PM(NP,NS)**2)
+                  FACTP=PM(NP,NS)*ABS(COSM(NTH))/RGAMA
+               END SELECT
+               DRR(NTH,NP,NR,NSA)= FACTR*FACTP/RA**2*RLAMDA_RG(NTH,NR)   ! normalization for rhon
+            ENDDO
+         ENDDO
 
-!------------- set p dependence
-               select case(modeld_pdep)
-               case(0) ! no p dependence
-                  factp=1.d0
-               case(1) ! proportional to 1/sqrt{p_perp}
-                  factp=(rtfpl/(rtfpl+pm(np,ns)**2*sinm(nth)**2))**0.25d0
-               case(2) ! proportional to 1/p_perp
-                  factp=sqrt(rtfpl/(rtfpl+pm(np,ns)**2*sinm(nth)**2))
-               case(3) ! proportional to 1/p_perp^2
-                  factp=rtfpl/(rtfpl+pm(np,ns)**2*sinm(nth)**2)
-               case(4) ! stochastic delta b /b; relativistic
-                  rgama=sqrt(1.d0+theta0(ns)*pm(np,ns)**2)
-                  factp=pm(np,ns)*abs(cosm(nth))/rgama
-               case(5) ! proportional to  p^pdep_exp
-                  factp=sqrt(pm(np,ns)**2)**pdep_exp &
-                        /sqrt(1.d0+pm(np,ns)**2*sinm(nth)**2)
-               ! case(6) ! proportional to p_perp^pdep_exp
-               !    factp=sqrt(pm(np,ns)**2*sinm(nth)**2)**pdep_exp &
-               !          /sqrt(1.d0+pm(np,ns)**2*sinm(nth)**2)
-               ! case(7) ! proportional to p^pdep_exp
-               !    factp=sqrt(pm(np,ns)**2)**pdep_exp &
-               !          /sqrt(1.d0+pm(np,ns)**2)
-               end select
-               drr(nth,np,nr,nsa)= factr*factp/ra**2*rlamda_rg(nth,nr)   ! normalization for rhon
-            enddo
-         enddo
+! ------ SET PINCH TERM
 
-! ------ set pinch term
+         SELECT CASE(MODELD_PINCH)
+         CASE(0) ! no pinch
+            FACT=0.D0
+         CASE(1) ! no radial particle transport (particle flux = 0)
+            DINT_D=0.D0
+            DINT_F=0.D0
+            DO NP=NPSTART,NPEND
+               DO NTH=1,NTHMAX
+                  IF(TIMEFP.eq.0.and.N_IMPL.eq.0)THEN
+                     IF(NR.eq.1)THEN
+                        WRL=0.25D0 ! not necessary
+                     ELSE
+                        WRL=(4.D0*RG(NR)+DELR)/(8.D0*RG(NR))
+                     END IF
+                  ELSE
+                     WRL=WEIGHR(NTH,NP,NR,NSA)
+                  END IF
 
-         select case(modeld_pinch)
-         case(0) ! no pinch
-            fact=0.d0
-         case(1) ! no radial particle transport (particle flux = 0)
-            dint_d=0.d0
-            dint_f=0.d0
-            do np=npstart,npend
-               do nth=1,nthmax
-                  if(timefp.eq.0.and.n_impl.eq.0)then
-                     if(nr.eq.1)then
-                        wrl=0.25d0 ! not necessary
-                     else
-                        wrl=(4.d0*rg(nr)+delr)/(8.d0*rg(nr))
-                     end if
-                  else
-                     wrl=weighr(nth,np,nr,nsa)
-                  end if
-
-                  if(nr.eq.1)then
-                     dfdr_r1 = ( fnsp(nth,np,nr,nsa)-fs0(nth,np,nsa) ) &
-                               / delr *2.d0*0
-                     f_r1 = fs0(nth,np,nsa)
-                     srhodm=dfdr_r1 * drr(nth,np,nr,nsa)
-                     srhofm=f_r1    * drr(nth,np,nr,nsa)
-                  elseif(nr.eq.nrmax+1)then ! fs2 = f at rho=1+delr/2
-                     dfdr_r1 = ( fs2(nth,np,nsa)-fnsp(nth,np,nr-1,nsa) ) / delr
-                     if(modeld_boundary.eq.0)then
-                        f_r1 = ( (1.d0-wrl)*fs2(nth,np,nsa) &
-                             + wrl*fnsp(nth,np,nr-1,nsa) )
-                     elseif(modeld_boundary.eq.1)then
-                        f_r1 = fs1(nth,np,nsa)
-                     end if
-                     srhodm=dfdr_r1 * drr(nth,np,nr,nsa)
-                     srhofm=f_r1    * drr(nth,np,nr,nsa)
-                  else
-                     dfdr_r1 = ( fnsp(nth,np,nr,nsa)-fnsp(nth,np,nr-1,nsa) ) &
-                               / delr
-                     f_r1 = ( (1.d0-wrl)*fnsp(nth,np,nr,nsa) &
-                            + wrl*fnsp(nth,np,nr-1,nsa) )
-                     srhodm=dfdr_r1 * drr(nth,np,nr,nsa)
-                     srhofm=f_r1    * drr(nth,np,nr,nsa)
-                  end if
-                  dint_d = dint_d + volp(nth,np,ns)*srhodm
-                  dint_f = dint_f + volp(nth,np,ns)*srhofm
-               end do
-            end do
+                  IF(NR.eq.1)THEN
+                     DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)-FS0(NTH,NP,NSA) ) &
+                               / DELR *2.D0*0
+                     F_R1 = FS0(NTH,NP,NSA)
+                     SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
+                     SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
+                  ELSEIF(NR.eq.NRMAX+1)THEN ! FS2 = F at rho=1+delR/2
+                     DFDR_R1 = ( FS2(NTH,NP,NSA)-FNSP(NTH,NP,NR-1,NSA) ) / DELR
+                     IF(MODELD_boundary.eq.0)THEN
+                        F_R1 = ( (1.D0-WRL)*FS2(NTH,NP,NSA) &
+                             + WRL*FNSP(NTH,NP,NR-1,NSA) )
+                     ELSEIF(MODELD_boundary.eq.1)THEN
+                        F_R1 = FS1(NTH,NP,NSA)
+                     END IF
+                     SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
+                     SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
+                  ELSE
+                     DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP,NR-1,NSA) ) &
+                               / DELR
+                     F_R1 = ( (1.D0-WRL)*FNSP(NTH,NP,NR,NSA) &
+                            + WRL*FNSP(NTH,NP,NR-1,NSA) ) 
+                     SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
+                     SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
+                  END IF
+                  DINT_D = DINT_D + VOLP(NTH,NP,NS)*SRHODM
+                  DINT_F = DINT_F + VOLP(NTH,NP,NS)*SRHOFM
+               END DO
+            END DO
 ! integration
-            call mtx_set_communicator(comm_np)
-            call p_theta_integration(dint_d)
-            call p_theta_integration(dint_f)
-            call mtx_reset_communicator
+            CALL mtx_set_communicator(comm_np) 
+            CALL p_theta_integration(DINT_D) 
+            CALL p_theta_integration(DINT_F) 
+            CALL mtx_reset_communicator 
 
-!         write(*,'(a,2i3,2e14.6)') "dint=", nsa,nr,dint_d, dint_f
+!         WRITE(*,'(A,2I3,2E14.6)') "DINT=", NSA,NR,DINT_D, DINT_F
 
-            fact=dint_d/dint_f
+            FACT=DINT_D/DINT_F
 
-         case(2) ! pinch for gaussian profile
-            fact=-2.d0*factor_pinch*rhon/ra
-         end select
+         CASE(2) ! pinch for Gaussian profile
+            FACT=-2.D0*FACTOR_PINCH*RHON/RA
+         END SELECT
 
-         do np=npstart,npend
-            do nth=1,nthmax
-               frr(nth,np,nr,nsa) = fact * drr(nth,np,nr,nsa)
-            end do
-         end do
+         DO NP=NPSTART,NPEND
+            DO NTH=1,NTHMAX
+               FRR(NTH,NP,NR,NSA) = FACT * DRR(NTH,NP,NR,NSA)
+            END DO
+         END DO
 
-      end do ! nr
-      end do ! nsa
+      END DO ! NR
+      END DO ! NSA
 
-      return
-      end subroutine fp_calr
+      RETURN
+      END SUBROUTINE FP_CALR
 
-    end module fpcalr
+    END MODULE fpcalr
