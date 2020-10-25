@@ -107,12 +107,12 @@ CONTAINS
        czz=czz+cfact1*2.D0*crkppprwc**2*bdbz &
               +cfact2     *crkppprwc**2*BESJN(nh)**2
     END DO
-    CLDISP(1)=cwp2*cxx
-    CLDISP(2)=cwp2*(czz-cxx)
-    CLDISP(3)=cwp2*(cyy-cxx)
-    CLDISP(4)=cwp2*cxz
-    CLDISP(5)=cwp2*cxy
-    CLDISP(6)=cwp2*cyz
+    CLDISP(1)=-cwp2*cxx
+    CLDISP(2)=-cwp2*(czz-cxx)
+    CLDISP(3)=-cwp2*(cyy-cxx)
+    CLDISP(4)=-cwp2*cxz
+    CLDISP(5)=-cwp2*cxy
+    CLDISP(6)=-cwp2*cyz
 !    WRITE(21,'(3ES12.4)') ww,rkpr,rkpp
 !    WRITE(21,'(3ES12.4)') wp2,omegac,zeta
 !    WRITE(21,'(6ES12.4)') cldisp(1),cldisp(2),cldisp(3)

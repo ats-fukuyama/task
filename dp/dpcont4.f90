@@ -22,6 +22,8 @@ CONTAINS
     REAL(rkind),ALLOCATABLE:: RFNORM(:),RKNORM(:)
     REAL(rkind),ALLOCATABLE:: Z(:,:)
     INTEGER,ALLOCATABLE:: KA(:,:,:)
+    INTEGER,ALLOCATABLE:: NXA(:)
+    REAL(rkind),ALLOCATABLE:: XA(:),RFA(:),RFIA(:)
     TYPE(pl_mag_type):: mag
     TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
     CHARACTER(LEN=1):: KID
@@ -34,6 +36,8 @@ CONTAINS
     COMPLEX(rkind):: CRF,CKX,CKY,CKZ,CD,CD0,CD1
     REAL(4):: GUCLIP,F
     REAL(4):: GXMIN,GXMAX,GYMIN,GYMAX,GXSMN,GXSMX,GSCALX,GYSMN,GYSMX,GSCALY
+    INTEGER:: ncount,ncount_max
+    REAL(rkind):: vmin,vmax
 
       IF(INIT.EQ.0) THEN
          KID='1'
@@ -263,8 +267,23 @@ CONTAINS
          CALL CONTQ2(GZ,GX,GY,NGXMAX,NGXMAX,NGYMAX,0.0,2.0,1,0,0,KA)
       END IF
 
+      ! --- count fliping points ---
+
+      ncount=0
+      DO NX=1,NGXMAX
+         VAL1=Z(NX,1)
+         DO NY=2,NGYMAX
+            VAL2=Z(NX,NY)
+            IF(VAL1*VAL2.LT.0.D0) ncount=ncount+1
+            VAL1=VAL2
+         END DO
+      END DO
+      ncount_max=ncount
+      ALLOCATE(NXA(ncount_max),XA(ncount_max),RFA(ncount_max),RFIA(ncount_max))
+
       CALL SETMKS(3,0.1)
       RFPREV=0.D0
+      ncount=0
       DO NX=1,NGXMAX
          VAL1=Z(NX,1)
          DO NY=2,NGYMAX
@@ -311,43 +330,65 @@ CONTAINS
                     RF.GE.YMIN.AND.RF.LE.YMAX.AND. &
                     ABS(CD1).LE.EPSDP.AND. &
                     ABS(RF-RFPREV).GT.EPSRF) THEN
-                  V=RFI/RF
-                  IF(V.GT.1.D-12) THEN
-                     VL=MAX(MIN(0.D0,LOG10(V)),-12.D0)+12.D0  ! 0<VL<12
-                     f=GUCLIP(VL/12.D0)
-                     CALL SETRGB(f,1.0-f,0.0)
-                  ELSE IF(V.LT.-1.D-12) THEN
-                     VL=MAX(MIN(0.D0,LOG10(-V)),-12.D0)+12.D0  ! 0<VL<12
-                     f=GUCLIP(VL/12.D0)
-                     CALL SETRGB(0.0,1.0-f,f)
-                  ELSE
-                     VL=0.D0
-                     f=0.0
-                     CALL SETRGB(0.0,1.0,0.0)
-                  END IF
-                  
-                  SELECT CASE(KID)
-                  CASE('1','2','3','7')
-                     XN=X*RKNORM(NX)
-                     YN=RF*RFNORM(NX)
-                     YNI=RFI*RFNORM(NX)
-                  CASE('4','5','6')
-                     XN=X
-                     YN=RF*RFNORM(NX)
-                     YNI=RFI*RFNORM(NX)
-                  END SELECT
-                  
-                  CALL MARK2D(GUCLIP(XN),GUCLIP(YN))
-                  IF(NFLOUT.EQ.21) THEN
-                     WRITE(21,'(1P6E15.7,I5,1P2E15.7)') &
-                          X,RF,RFI,XN,YN,YNI,INFO,CD1
-                    RFPREV=RF
-                 END IF
+                  ncount=ncount+1
+                  NXA(ncount)=NX
+                  XA(ncount)=X
+                  RFA(ncount)=RF
+                  RFIA(ncount)=RFI
+                  IF(RFI.lT.-1.D0) &
+                       WRITE(6,'(A,6ES12.4)') &
+                       'RF-BR:',X,RF,RF*RFNORM(NX),RFI,CD1
                END IF
                RFPREV=RF
             END IF
             VAL1=VAL2
          END DO
+      END DO
+      ncount_max=ncount
+
+      ! --- evaluate min and max of rfi/rf ---
+      
+      vmin=0.D0
+      vmax=0.D0
+      DO ncount=1,ncount_max
+         WRITE(23,'(A,2I6,3ES12.4)') &
+              'RF,RFI:',ncount,NXA(ncount),XA(ncount),RFA(ncount),RFIA(ncount)
+         v=RFIA(ncount)/RFA(ncount)
+         vmin=MIN(v,vmin)
+         vmax=MAX(v,vmax)
+      END DO
+      WRITE(6,'(A,I6,2ES12.4)') 'rfi/rf min/max:',ncount_max,vmin,vmax
+
+      DO ncount=1,ncount_max
+         NX=NXA(ncount)
+         X=XA(ncount)
+         RF=RFA(ncount)
+         RFI=RFIA(ncount)
+         v=RFI/RF
+         IF(v.GT.0.D0) THEN
+            f=GUCLIP(MIN(v/vmax,1.D0))
+            CALL SETRGB(f,1.0-f,0.0)
+         ELSE
+            f=GUCLIP(MIN(-v/vmax,1.D0))
+            CALL SETRGB(0.0,1.0-f,f)
+         END IF
+
+         SELECT CASE(KID)
+         CASE('1','2','3','7')
+            XN=X*RKNORM(NX)
+            YN=RF*RFNORM(NX)
+            YNI=RFI*RFNORM(NX)
+         CASE('4','5','6')
+            XN=X
+            YN=RF*RFNORM(NX)
+            YNI=RFI*RFNORM(NX)
+         END SELECT
+                  
+         CALL MARK2D(GUCLIP(XN),GUCLIP(YN))
+         IF(NFLOUT.EQ.21) THEN
+            WRITE(21,'(1P6E15.7,I5,1P2E15.7)') &
+                 X,RF,RFI,XN,YN,YNI,INFO,CD1
+         END IF
       END DO
       CALL SETRGB(0.0,0.0,0.0)
 
