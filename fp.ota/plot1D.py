@@ -18,9 +18,14 @@ class plot1D:
         else:
             self.xaxis = np.loadtxt(xpath, delimiter=',')
 
-    def polar2cartesian(self):
-        costh = self.xaxis
-        sinth = np.sqrt(1-self.xaxis**2)
+    def polar2cartesian(self, mode=0):
+        if mode == 0:
+            th = self.xaxis
+            costh = np.cos(th)
+            sinth = np.sin(th)
+        else:
+            costh = self.xaxis
+            sinth = np.sqrt(1-self.xaxis**2)
 
         x = self.val*costh
         y = self.val*sinth

@@ -1,6 +1,7 @@
 module fowprep
   PRIVATE
-  PUBLIC :: fow_prep, gauss_jordan, first_order_derivative
+  PUBLIC :: fow_prep
+  public :: gauss_jordan, first_order_derivative, fow_cal_spl
 
 contains
 
@@ -107,13 +108,12 @@ contains
     real(rkind) :: rr_axis,zz_axis,psit0,qaxis,qsurf
     real(rkind),allocatable,dimension(:) :: ppsi,qpsi,vpsi,rlen,ritpsi,rhot
     real(rkind),allocatable,dimension(:,:) :: Br,Bz,Bp,Bt
-    real(rkind),allocatable,dimension(:,:) :: Babs
     real(rkind),allocatable,dimension(:) :: temp,thpa
     integer :: nr,nthp
 
     allocate(ppsi(nrmax+1),qpsi(nrmax+1),vpsi(nrmax+1),rlen(nrmax+1),ritpsi(nrmax+1)&
             ,rhot(nrmax+1))
-    allocate(Br(nthpmax,nrmax+1),Bz(nthpmax,nrmax+1),Bp(nthpmax,nrmax+1),Bt(nthpmax,nrmax+1),Babs(nthpmax,nrmax+1))
+    allocate(Br(nrmax+1,nthpmax),Bz(nrmax+1,nthpmax),Bp(nrmax+1,nthpmax),Bt(nrmax+1,nthpmax))
     ALLOCATE(temp(nrmax+1),thpa(nthpmax))
 
     ierr = 0
@@ -185,22 +185,21 @@ contains
       Fpsig(nr) = Fpsig(nr)/(2*pi)
       psimg(nr) = psimg(nr)/(2*pi)
       do nthp = 1, nthpmax
-        Babs(nthp,nr) = sqrt(Bt(nthp,nr)**2+Bp(nthp,nr)**2)
+        Babs(nr,nthp) = sqrt(Bt(nr,nthp)**2+Bp(nr,nthp)**2)
       end do
     end do
 
     write(*,*)"FP------------------------------------"
 
-    call fow_calculate_equator_variable(Babs, ierr)
+    call fow_calculate_equator_variable(ierr)
 
   end subroutine
 
-  subroutine fow_calculate_equator_variable(Babs,ierr)
+  subroutine fow_calculate_equator_variable(ierr)
     use fowcomm
     use fpcomm,only:rkind,nrmax,nthmax,npmax
 
     implicit none
-    real(rkind),intent(in) :: Babs(:,:)
     integer,intent(inout) :: ierr
     real(rkind),allocatable,dimension(:) :: x,f,fx,g,gx,h1,h2,h1x,h2x
     real(rkind),allocatable,dimension(:,:) :: U,V,W1,W2
@@ -218,8 +217,8 @@ contains
       x(nr) = (nr-1)*1.d0
       f(nr) = psimg(nr)
       g(nr) = Fpsig(nr)
-      h1(nr) = Babs(1,nr)
-      h2(nr) = Babs((nthpmax+1)/2,nr)
+      h1(nr) = Babs(nr,1)
+      h2(nr) = Babs(nr,(nthpmax+1)/2)
     end do
 
     call SPL1D(x,f,fx,U,nrmax+1,0,IERR)

@@ -13,6 +13,7 @@ module fowcomm
             nthm2,&                                          ! number of theta_m grid points for theta_pnc <= theta_m <= theta_co_stg
             nthm3                                            ! number of theta_m grid points for theta_cnt_stg <= theta_m <= pi
 
+  real(rkind),allocatable :: FNSI(:,:,:,:) ! distribution function in I=(p,thetam,psim) space
 ! COM --------------------------------------------------------------------------------------------------          
   real(rkind),allocatable,dimension(:) :: psim,&                ! maximum poloidal magnetic flux in an orbit, value at half integer grid points
                                           psimg                 ! psim at integer grid points
@@ -35,6 +36,7 @@ module fowcomm
                                           Boutg,&                ! Bout for grid points
                                           Bing                   ! Bin for grid points
   
+  real(rkind),allocatable,dimension(:,:) :: Babs                 ! B(psip,thetap)
 
 ! use for boundary conditions --------------------------------------------------------------------------
   real(rkind),allocatable,dimension(:,:,:) :: theta_pnc,&         ! theta_m of pinch orbit for given p and psi_m
@@ -54,7 +56,8 @@ module fowcomm
     real(rkind),allocatable,dimension(:) :: time, &              ! time
                                             psip, &              ! poloidal magnetic flux
                                             Babs, &              ! absolute value of magnetic field
-                                            theta                ! pitch angle
+                                            theta,&              ! pitch angle
+                                            thetap               ! poloidal angle
   end type orbit
 
   type(orbit),allocatable,dimension(:,:,:,:) :: orbit_p,&    ! (np,nth,nr)=(-0.5,  1 ,  1 ) to (npmax+0.5,nthmax,nrmax)
@@ -71,6 +74,7 @@ contains
 
   subroutine fow_allocate
     use fpcomm, only:npmax,nthmax,nrmax,nsamax
+    allocate(FNSI(nthmax,npmax,nrmax,nsamax))
     allocate(psim(nrmax),psimg(nrmax+1))
     allocate(thetam(nthmax,npmax,nrmax,nsamax),thetamg(nthmax+1,npmax,nrmax,nsamax))
     ! 
@@ -79,6 +83,7 @@ contains
     ! 
     allocate(theta_pnc(npmax,nrmax,nsamax),theta_co_stg(npmax,nrmax,nsamax),theta_cnt_stg(npmax,nrmax,nsamax))
     allocate(psip_pnc_point(npmax,nrmax,nsamax),delth1(npmax,nrmax,nsamax),delth2(npmax,nrmax,nsamax),delth3(npmax,nrmax,nsamax))
+    allocate(Babs(nrmax+1,nthpmax))
     ! 
     allocate(orbit_p(nthmax,npmax+1,nrmax,nsamax),orbit_th(nthmax+1,npmax,nrmax,nsamax)&
     ,orbit_r(nthmax,npmax,nrmax+1,nsamax),orbit_m(nthmax,npmax,nrmax,nsamax))

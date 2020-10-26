@@ -54,15 +54,15 @@ OBJSFOW = $(addprefix $(OBJDIR)/, $(SRCSFOW:.f90=.o))
 LIBS = libfp.a ../pl/libpl.a ../eq/libeq.a  \
         ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a ../ob/libob.a
 
-LIBFOW = fowlib.a
+LIBFOW = libfow.a
 
 all: libs fp
 #all: libs fow
 
 libfp.a: $(OBJS)
 	$(LD) $(LDFLAGS) libfp.a $(OBJS)
-fowlib.a: $(OBJSFOW)
-	$(LD) $(LDFLAGS) fowlib.a $(OBJSFOW)
+libfow.a: $(OBJSFOW)
+	$(LD) $(LDFLAGS) libfow.a $(OBJSFOW)
 
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
@@ -86,10 +86,10 @@ libs:
 	(cd ../eq; make libeq.a)
 	(cd ../ob; make libob.a)
 
-fp : $(LIB_MTX) $(LIBS) $(OBJDIR)/fpmain.o $(OBJDIR)
+fp : $(LIB_MTX) $(LIBS) $(OBJDIR)/fpmain.o
 	$(FLINKER) $(OBJDIR)/fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX) $(MODINCLUDE)
 
-fow : $(LIB_MTX) $(LIBS) $(OBJDIR)/fowmain.o $(OBJDIR)
+fow : $(LIB_MTX) $(LIBS) $(LIBFOW) $(OBJDIR)/fowmain.o
 	$(FLINKER) $(OBJDIR)/fowmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX) $(MODINCLUDE)
 
 clean :

@@ -1,17 +1,17 @@
 module fowdistribution
   implicit none
   private
-  public :: fow_distribution_maxwellian_inCOM, fow_get_ra_from_psip
+  public :: fow_distribution_maxwellian_inCOM
 
 contains
 
   subroutine fow_distribution_maxwellian_inCOM(fm_I)
     ! calculate Maxwellian in COM space using the mean psi_p of orbits. fm_I is value on mesh points.
       use fowcomm
-      use foworbitclassify
       use fpcomm
       use fpsub
       use fpwrite
+      use fowprep,only:fow_cal_spl
 
       real(rkind),intent(out) :: fm_I(:,:,:,:)
       real(rkind),allocatable :: U_fm_u(:,:), fm_u(:,:,:), fm_ux(:)
@@ -34,13 +34,13 @@ contains
         do np = 1, npmax
           do nth = 1, nthmax
             do nr = 1, nrmax
-              if ( forbitten(nth,np,nr,nsa,[0,0,0]) ) then
-                fm_I(nth,np,nr,nsa) = 0.d0
-              else
+
                 ! calculate mean psip of an orbit
                 mean_psip = sum(orbit_m(nth,np,nr,nsa)%psip)/size(orbit_m(nth,np,nr,nsa)%psip)
+
                 ! calculate mean minor radius of an orbit
-                call fow_get_ra_from_psip(mean_ra, mean_psip)
+                call fow_cal_spl(mean_ra, mean_psip, rg, psimg)
+
                 ! calculate fm_I using linear interpolartion
                 do ir = 2, nrmax
                   if ( mean_ra <= rm(ir) ) then
@@ -56,7 +56,7 @@ contains
                     exit
                   end if
                 end do
-              end if
+
             end do
           end do
         end do
@@ -114,33 +114,6 @@ contains
       ! end do
 
   end subroutine fow_distribution_maxwellian_inCOM
-
-  subroutine fow_get_ra_from_psip(ra_out, psip_in)
-    use fowcomm
-    use fpcomm
-
-    real(rkind),intent(out) :: ra_out ! [r/a]
-    real(rkind),intent(in) :: psip_in
-    real(rkind),allocatable :: fx(:),U(:,:)
-    real(rkind) :: dr
-    integer :: nr, ierr
-
-    ierr = 0
-    DELR=(RMAX-RMIN)/NRMAX
-
-    allocate(U(4,nrmax+1),fx(nrmax+1))
-
-    call SPL1D(rg,psimg,fx,U,NRMAX+1,0,IERR)
-
-    do nr = 2, nrmax+1
-      if ( psimg(nr) >= psip_in ) then
-        call solve_spl1D(U(:,nr),psip_in,dr)
-        ra_out = rg(nr-1)+dr
-        exit
-      end if
-    end do
-
-  end subroutine fow_get_ra_from_psip
 
   subroutine solve_spl1D(U,a,x)
     ! U4*x**3+U3*x**2+U2*x+U1=a

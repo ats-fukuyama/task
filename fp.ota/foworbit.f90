@@ -303,7 +303,7 @@ contains
     integer :: nsa,nr,nth,np
     integer :: i, j
 
-    allocate(construct_input(4,nstp_max+1))
+    allocate(construct_input(5,nstp_max+1))
     ! time_ob(0:nstp_max,nobt_max)
     do nr = 1, nrmax+mode(3)
       do np = 1, npmax+mode(2)
@@ -316,6 +316,7 @@ contains
             construct_input(2,j)  = psip_ob(j-1,i)
             construct_input(3,j)  = babs_ob(j-1,i)
             construct_input(4,j)  = acos(vpara_ob(j-1,i)/sqrt(vperp_ob(j-1,i)**2+vpara_ob(j-1,i)**2))
+            construct_input(5,j)  = theta_ob(j-1,i)
           end do
 
           orbit_in(nth,np,nr,nsa_in) = construct_orbit(nstp_max_nobt(i), construct_input)  
@@ -409,7 +410,7 @@ contains
     real(rkind), intent(in) :: input(:,:)
     integer :: i
 
-    allocate(ret%time(n+1), ret%psip(n+1), ret%Babs(n+1), ret%theta(n+1))
+    allocate(ret%time(n+1), ret%psip(n+1), ret%Babs(n+1), ret%theta(n+1), ret%thetap(n+1))
 
     ret%nstp_max=n+1
     do i=1,n+1
@@ -417,6 +418,7 @@ contains
       ret%psip(i) = input(2,i)
       ret%Babs(i) = input(3,i)
       ret%theta(i) = input(4,i)
+      ret%thetap(i) = input(5,i)
     end do
 
   end function construct_orbit

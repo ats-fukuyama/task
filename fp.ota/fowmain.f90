@@ -40,8 +40,9 @@ program fow
   call fow_prep
 
   call fow_orbit_construct(orbit_m)
-  call fow_orbit_construct(orbit_th)
+  ! call fow_orbit_construct(orbit_th)
 
+  call fow_debug
   write(*,*)"end"
   call fow_deallocate
 
@@ -52,6 +53,7 @@ subroutine fow_debug
   use fowcomm
   use foworbitclassify
   use fowdistribution
+  use fowcoef
 
   use fpcomm
   use fpwrite
@@ -60,44 +62,25 @@ subroutine fow_debug
 
   integer :: IERR=0,nr,nth,np,nsa,nstp
   integer :: mode(3), nr_out
-  real(rkind),allocatable :: check_orbit(:,:),lorentz(:),lorentzg(:),beta(:),betag(:),mean_r(:,:,:,:)&
+  real(rkind),allocatable :: check_orbit(:,:),lorentz(:),lorentzg(:),beta(:),betag(:),fi(:,:,:,:),fu(:,:,:,:),ful(:,:,:,:,:)&
                             ,trapped_boundary(:,:,:), forbitten_boundary(:,:,:), X_boundary(:,:),dummy(:),dummy2(:)
   real(rkind) :: mean_psip, dummy3, dummy4
 
   if ( nrmax==50 ) then
     nr_out=33
   else
-    nr_out=nrmax/2+3
+    nr_out=nrmax/3
   end if
 
-  write(*,*)"mean"
-  allocate(mean_r(nthmax,npmax,nrmax,nsamax))
-  do nsa = 1, nsamax
-    do nr = 1, nrmax
-      do np = 1, npmax
-        do nth = 1, nthmax
-          if ( forbitten(nth,np,nr,nsa,[0,0,0]) ) then
-            mean_r(nth,np,nr,nsa) = 0.d0
-          else
+  allocate(fI(nthmax,npmax,nrmax,nsamax))
+  allocate(fu(nthmax,npmax,nrmax,nsamax))
+  allocate(ful(nthmax,npmax,nthpmax,nrmax,nsamax))
+  call fow_distribution_maxwellian_inCOM(fI)
+  call convert_f_I2u(ful, fu, fI)
+  call fpcsv2D(fu(:,:,nr_out,2),"./csv/fu.csv")
+  call fpcsv2D(fI(:,:,nr_out,2),"./csv/fI.csv")
+  call fpcsv2D(thetam(:,:,nr_out,2),"./csv/thetam.csv")
 
-            if ( size(orbit_m(nth,np,nr,nsa)%psip)==0 ) then
-              write(*,*)"STOP at fowdebug"
-              write(*,*)nr,"size(orbit_m(nth,np,nr,nsa)%psip)==0"
-              STOP
-            end if
- 
-            mean_psip = sum(orbit_m(nth,np,nr,nsa)%psip)/size(orbit_m(nth,np,nr,nsa)%psip)
-            call fow_get_ra_from_psip(mean_r(nth,np,nr,nsa), mean_psip)
-            mean_r(nth,np,nr,nsa) = rm(nr)-mean_r(nth,np,nr,nsa)
-          end if
-        end do
-      end do
-    end do
-  end do
-
-  call fpcsv2D(mean_r(:,:,2,2),"./csv/mean_r_center.csv")
-  call fpcsv2D(mean_r(:,:,nr_out,2),"./csv/mean_r_quarter.csv")
-  call fpcsv2D(mean_r(:,:,nrmax,2),"./csv/mean_r_edge.csv")
 
   write(*,*)"equiv_variable"
   call fpcsv1D(psimg,"./csv/psimg.csv")

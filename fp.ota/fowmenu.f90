@@ -116,29 +116,6 @@ CONTAINS
                             ,trapped_boundary(:,:,:), forbitten_boundary(:,:,:), X_boundary(:,:,:)
   real(rkind) :: mean_psip
 
-  write(*,*)"mean"
-  allocate(mean_r(npmax,nthmax,nrmax,nsamax))
-  do nsa = 1, nsamax
-    do nr = 1, nrmax
-      do nth = 1, nthmax
-        do np = 1, npmax
-          if ( forbitten(np,nth,nr,nsa,[0,0,0]) ) then
-            mean_r(np,nth,nr,nsa) = 0.d0
-          else
-            write(*,*)1
-            mean_psip = sum(orbit_m(np,nth,nr,nsa)%psip)/size(orbit_m(np,nth,nr,nsa)%psip)
-            call fow_get_ra_from_psip(mean_r(np,nth,nr,nsa), mean_psip)
-            mean_r(np,nth,nr,nsa) = rm(nr)-mean_r(np,nth,nr,nsa)
-          end if
-        end do
-      end do
-    end do
-  end do
-
-  call fpcsv2D(mean_r(:,:,2,2),"./csv/mean_r_center.csv")
-  call fpcsv2D(mean_r(:,:,nrmax/2,2),"./csv/mean_r_quarter.csv")
-  call fpcsv2D(mean_r(:,:,nrmax,2),"./csv/mean_r_edge.csv")
-
   write(*,*)"trapped_ion"
   nsa=2
   mode=[0,1,0]
