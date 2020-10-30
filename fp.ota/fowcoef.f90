@@ -4,7 +4,6 @@ module fowcoef
   private
 
   public :: fow_coef
-  public :: convert_f_I2u
 
   real(rkind),allocatable,dimension(:,:,:,:,:) :: Dppl, Dptl, Fppl,&
                                                   Dtpl, Dttl, Fthl
@@ -22,6 +21,7 @@ contains
 
     use fpcomm
     use fowcomm
+    use fowdistribution,only:convert_fI_to_fu
     use fpcalc
     use fpcoef
     use fpcalw
@@ -30,15 +30,17 @@ contains
 
     integer :: nthp, nth, np, nr, nsa
 
-    allocate(FNSBL(nthmax,npmax,nrmax,nsamax,nthpmax))
-    allocate(Dppl(nthmax,npmax+1,nrmax,nsamax,nthpmax),Dptl(nthmax,npmax+1,nrmax,nsamax,nthpmax))
-    allocate(Dtpl(nthmax+1,npmax,nrmax,nsamax,nthpmax),Dttl(nthmax+1,npmax,nrmax,nsamax,nthpmax))
-    allocate(Fppl(nthmax,npmax+1,nrmax,nsamax,nthpmax),Fthl(nthmax+1,npmax,nrmax,nsamax,nthpmax))
+    if ( .not.allocated(FNSBL) ) then
+      allocate(FNSBL(nthmax,npmax,nrmax,nsamax,nthpmax))
+      allocate(Dppl(nthmax,npmax+1,nrmax,nsamax,nthpmax),Dptl(nthmax,npmax+1,nrmax,nsamax,nthpmax))
+      allocate(Dtpl(nthmax+1,npmax,nrmax,nsamax,nthpmax),Dttl(nthmax+1,npmax,nrmax,nsamax,nthpmax))
+      allocate(Fppl(nthmax,npmax+1,nrmax,nsamax,nthpmax),Fthl(nthmax+1,npmax,nrmax,nsamax,nthpmax))
 
-    allocate(Dppfow(nthmax,npmax+1,nrmax,nsamax),Dptfow(nthmax,npmax+1,nrmax,nsamax),Dprfow(nthmax,npmax+1,nrmax,nsamax))
-    allocate(Dtpfow(nthmax+1,npmax,nrmax,nsamax),Dttfow(nthmax+1,npmax,nrmax,nsamax),Dtrfow(nthmax+1,npmax,nrmax,nsamax))
-    allocate(Drpfow(nthmax,npmax,nrmax+1,nsamax),Drtfow(nthmax,npmax,nrmax+1,nsamax),Drrfow(nthmax,npmax,nrmax+1,nsamax))
-    allocate(Fppfow(nthmax,npmax+1,nrmax,nsamax),Fthfow(nthmax,npmax+1,nrmax,nsamax),Frrfow(nthmax,npmax+1,nrmax,nsamax))
+      allocate(Dppfow(nthmax,npmax+1,nrmax,nsamax),Dptfow(nthmax,npmax+1,nrmax,nsamax),Dprfow(nthmax,npmax+1,nrmax,nsamax))
+      allocate(Dtpfow(nthmax+1,npmax,nrmax,nsamax),Dttfow(nthmax+1,npmax,nrmax,nsamax),Dtrfow(nthmax+1,npmax,nrmax,nsamax))
+      allocate(Drpfow(nthmax,npmax,nrmax+1,nsamax),Drtfow(nthmax,npmax,nrmax+1,nsamax),Drrfow(nthmax,npmax,nrmax+1,nsamax))
+      allocate(Fppfow(nthmax,npmax+1,nrmax,nsamax),Fthfow(nthmax,npmax+1,nrmax,nsamax),Frrfow(nthmax,npmax+1,nrmax,nsamax))
+    end if
 
 
     do nthp = 1, nthpmax
@@ -59,7 +61,7 @@ contains
     end do
 
     ! get local distribution function f(p,theta,r/a,thetap)
-    call convert_f_I2u(FNSBL, FNSI)
+    call convert_fI_to_fu(FNSBL, FNSI)
 
     ! calculate local coefficient Dxxl(nth,np,nr,nsa,nthp)
     do nthp = 1, nthpmax
@@ -170,11 +172,11 @@ contains
 
         if ( np /= npmax+1 ) then
           call SPL3D(cosg,psim,theta_p,Dtpl(:,np,:,nsa,:),FX,FY,FZ,FXY,FYZ,FZX,FXYZ,&
-                    U_Dtp(:,:,:,:,:,:,np,nsa),nthmax,nrmax,nthmax,nrmax,nthpmax,0,0,0,IERR)
+                    U_Dtp(:,:,:,:,:,:,np,nsa),nthmax+1,nrmax,nthmax+1,nrmax,nthpmax,0,0,0,IERR)
           call SPL3D(cosg,psim,theta_p,Dttl(:,np,:,nsa,:),FX,FY,FZ,FXY,FYZ,FZX,FXYZ,&
-                    U_Dtt(:,:,:,:,:,:,np,nsa),nthmax,nrmax,nthmax,nrmax,nthpmax,0,0,0,IERR)
+                    U_Dtt(:,:,:,:,:,:,np,nsa),nthmax+1,nrmax,nthmax+1,nrmax,nthpmax,0,0,0,IERR)
           call SPL3D(cosg,psim,theta_p,Fthl(:,np,:,nsa,:),FX,FY,FZ,FXY,FYZ,FZX,FXYZ,&
-                    U_Fth(:,:,:,:,:,:,np,nsa),nthmax,nrmax,nthmax,nrmax,nthpmax,0,0,0,IERR)
+                    U_Fth(:,:,:,:,:,:,np,nsa),nthmax+1,nrmax,nthmax+1,nrmax,nthpmax,0,0,0,IERR)
         end if
 
       end do
@@ -288,11 +290,11 @@ contains
               Fpp_ob = (D_pls+D_mns)/2.d0
 
               call SPL3DF(cpitch_ob,psip_ob,thetap_ob,Dtp_ob,cosg,psim,theta_p&
-                          ,U_Dtp(:,:,:,:,:,:,np,nsa),nthmax,nrmax,nthmax,nrmax,nthpmax,IERR)
+                          ,U_Dtp(:,:,:,:,:,:,np,nsa),nthmax+1,nrmax,nthmax+1,nrmax,nthpmax,IERR)
               call SPL3DF(cpitch_ob,psip_ob,thetap_ob,Dtt_ob,cosg,psim,theta_p&
-                          ,U_Dtt(:,:,:,:,:,:,np,nsa),nthmax,nrmax,nthmax,nrmax,nthpmax,IERR)
+                          ,U_Dtt(:,:,:,:,:,:,np,nsa),nthmax+1,nrmax,nthmax+1,nrmax,nthpmax,IERR)
               call SPL3DF(cpitch_ob,psip_ob,thetap_ob,Fth_ob,cosg,psim,theta_p&
-                          ,U_Fth(:,:,:,:,:,:,np,nsa),nthmax,nrmax,nthmax,nrmax,nthpmax,IERR)
+                          ,U_Fth(:,:,:,:,:,:,np,nsa),nthmax+1,nrmax,nthmax+1,nrmax,nthpmax,IERR)
 
 
               dt = orbit_th(nth,np,nr,nsa)%time(nstp)-orbit_th(nth,np,nr,nsa)%time(nstp-1)
@@ -326,7 +328,6 @@ contains
       end do
     end do
 
-
     ! calculate Drp, Drt, Drr, Frr
     do nsa = 1, nsamax
       do nr = 1, nrmax+1
@@ -350,9 +351,9 @@ contains
             Frrfow(nth,np,nr,nsa) = 0.d0
 
             do nstp = 2, nstpmax
-              cpitch_ob = cos(orbit_p(nth,np,nr,nsa)%theta(nstp))
-              psip_ob   = orbit_p(nth,np,nr,nsa)%psip(nstp)
-              thetap_ob = orbit_p(nth,np,nr,nsa)%thetap(nstp)
+              cpitch_ob = cos(orbit_r(nth,np,nr,nsa)%theta(nstp))
+              psip_ob   = orbit_r(nth,np,nr,nsa)%psip(nstp)
+              thetap_ob = orbit_r(nth,np,nr,nsa)%thetap(nstp)
 
               ! calucurate local coefficient along orbit Dxx(p_orbit, theta_orbit, psip_orbit, thetap_orbit)
               call SPL3DF(cpitch_ob,psip_ob,thetap_ob,D_pls,cosm,psim,theta_p&
@@ -374,11 +375,11 @@ contains
               Fpp_ob = (D_pls+D_mns)/2.d0
 
               call SPL3DF(cpitch_ob,psip_ob,thetap_ob,Dtp_ob,cosg,psim,theta_p&
-                          ,U_Dtp(:,:,:,:,:,:,np,nsa),nthmax,nrmax,nthmax,nrmax,nthpmax,IERR)
+                          ,U_Dtp(:,:,:,:,:,:,np,nsa),nthmax+1,nrmax,nthmax+1,nrmax,nthpmax,IERR)
               call SPL3DF(cpitch_ob,psip_ob,thetap_ob,Dtt_ob,cosg,psim,theta_p&
-                          ,U_Dtt(:,:,:,:,:,:,np,nsa),nthmax,nrmax,nthmax,nrmax,nthpmax,IERR)
+                          ,U_Dtt(:,:,:,:,:,:,np,nsa),nthmax+1,nrmax,nthmax+1,nrmax,nthpmax,IERR)
               call SPL3DF(cpitch_ob,psip_ob,thetap_ob,Fth_ob,cosg,psim,theta_p&
-                          ,U_Fth(:,:,:,:,:,:,np,nsa),nthmax,nrmax,nthmax,nrmax,nthpmax,IERR)
+                          ,U_Fth(:,:,:,:,:,:,np,nsa),nthmax+1,nrmax,nthmax+1,nrmax,nthpmax,IERR)
 
 
               dt = orbit_r(nth,np,nr,nsa)%time(nstp)-orbit_r(nth,np,nr,nsa)%time(nstp-1)
@@ -400,10 +401,10 @@ contains
 
             end do
 
-            Drpfow(nth,np,nr,nsa) = Dtpfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax)
-            Drtfow(nth,np,nr,nsa) = Dttfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax)
-            Drrfow(nth,np,nr,nsa) = Dtrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax)            
-            Frrfow(nth,np,nr,nsa) = Fthfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax)
+            Drpfow(nth,np,nr,nsa) = Drpfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax)
+            Drtfow(nth,np,nr,nsa) = Drtfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax)
+            Drrfow(nth,np,nr,nsa) = Drrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax)            
+            Frrfow(nth,np,nr,nsa) = Frrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax)
 
             deallocate(dIdu)
 
@@ -504,80 +505,5 @@ contains
     end do
 
   end subroutine transformation_matrix
-
-  subroutine convert_f_I2u(fu_l, fI)
-
-    use fpcomm
-    use fowcomm
-
-    
-    real(rkind),intent(in) :: fI(:,:,:,:)
-    real(rkind),intent(out) :: fu_l(:,:,:,:,:)
-
-    real(rkind),allocatable,dimension(:,:,:,:,:) :: thetam_l,&     ! thetam(p, theta, psi_p, theta_p)
-                                                    psim_l         ! psim(p, theta, psi_p, theta_p)
-
-    integer :: nth,np,nr,nsa,nthp, ir, ir_min, ith,ip,isa, ith_min
-    real(rkind) :: g, gmin, mu_l, Pzeta_l, pl, sign_thetam, difth_min, difth, Babsl
-
-    allocate(thetam_l(nthmax,npmax,nrmax,nsamax,nthpmax))
-    allocate(psim_l(nthmax,npmax,nrmax,nsamax,nthpmax))
-
-
-    do nsa = 1, nsamax
-      do nthp = 1, nthpmax
-        do nr = 1, nrmax
-          do np = 1, npmax
-            do nth = 1, nthmax
-              Babsl = 0.5d0*Babs(nr,nthp)+0.5d0*Babs(nr,nthp+1)
-              pl = pm(np,nsa)*ptfp0(nsa) 
-              mu_l = pl**2*sinm(nth)**2/(2.d0*amfp(nsa)*Babsl)
-              Pzeta_l = Fpsi(nr)/Babsl*pl*cosm(nth)-aefp(nsa)*psim(nr)
-              gmin = 1.0d8
-
-              do ir = 1, nrmax
-                g = mu_l - pl**2/(2.d0*amfp(nsa)*Bout(ir))*(1.d0-(Bout(ir)/Fpsi(ir)*pl)**2*(Pzeta_l+aefp(nsa)*psim(ir))**2)
-                if ( abs(g) <= abs(gmin) ) then
-                  gmin = g
-                  ir_min = ir
-                  sign_thetam = 1.0
-                end if
-
-                g = mu_l - pl**2/(2.d0*amfp(nsa)*Bin(ir))*(1.d0-(Bin(ir)/Fpsi(ir)*pm(np,nsa))**2*(Pzeta_l+aefp(nsa)*psim(ir))**2)
-                if ( abs(g) <= abs(gmin) ) then
-                  gmin = g
-                  ir_min = ir
-                  sign_thetam = -1.0
-                end if
-
-              end do
-
-              psim_l(nth,np,nr,nsa,nthp) = psim(ir_min)
-              if ( sign_thetam >= 0.d0 ) then
-                thetam_l(nth,np,nr,nsa,nthp) = acos((Pzeta_l+aefp(nsa)*psim(ir_min))/(Fpsi(ir_min)/Bout(ir_min)*pl))
-              else
-                thetam_l(nth,np,nr,nsa,nthp) = acos((Pzeta_l+aefp(nsa)*psim(ir_min))/(Fpsi(ir_min)/Bin(ir_min)*pl))
-              end if
-
-              difth_min = 1.0d8
-
-              do ith = 1, nthmax
-                difth = abs(thetam_l(nth,np,nr,nsa,nthp)-thetam(ith,np,ir_min,nsa))
-                if ( ditth <= difth_min ) then
-                  difth_min = difth
-                  ith_min = ith
-                end if
-              end do
-
-              fu_l(nth,np,nr,nsa,nthp) = fI(ith_min, np, ir_min, nsa)
-
-            end do
-          end do
-        end do
-      end do
-    end do
-
-  end subroutine convert_f_I2u
-
 
 end module fowcoef

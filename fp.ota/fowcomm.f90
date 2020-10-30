@@ -13,7 +13,9 @@ module fowcomm
             nthm2,&                                          ! number of theta_m grid points for theta_pnc <= theta_m <= theta_co_stg
             nthm3                                            ! number of theta_m grid points for theta_cnt_stg <= theta_m <= pi
 
-  real(rkind),allocatable :: FNSI(:,:,:,:) ! distribution function in I=(p,thetam,psim) space
+  real(rkind),allocatable :: FNSI(:,:,:,:),&     ! distribution function in I=(p,thetam,psim) space
+                             Jacobian_I(:,:,:,:) ! dxdydzd(px)d(py)d(pz) = Jacobian_I * dpd(thetam)d(psim)
+                             
 ! COM --------------------------------------------------------------------------------------------------          
   real(rkind),allocatable,dimension(:) :: psim,&                ! maximum poloidal magnetic flux in an orbit, value at half integer grid points
                                           psimg                 ! psim at integer grid points
@@ -74,7 +76,7 @@ contains
 
   subroutine fow_allocate
     use fpcomm, only:npmax,nthmax,nrmax,nsamax
-    allocate(FNSI(nthmax,npmax,nrmax,nsamax))
+    allocate(FNSI(nthmax,npmax,nrmax,nsamax),Jacobian_I(nthmax,npmax,nrmax,nsamax))
     allocate(psim(nrmax),psimg(nrmax+1))
     allocate(thetam(nthmax,npmax,nrmax,nsamax),thetamg(nthmax+1,npmax,nrmax,nsamax))
     ! 
@@ -93,6 +95,7 @@ contains
   end subroutine fow_allocate
 
   subroutine fow_deallocate
+    deallocate(FNSI,Jacobian_I)
     deallocate(thetam,thetamg)
     ! 
     deallocate(psim,Fpsi,Bout,Bin)

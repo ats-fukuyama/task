@@ -9,6 +9,7 @@ contains
 
     use fowcomm
     use fpcomm
+    use foworbit,only:fow_orbit_construct
 
     implicit none
 
@@ -24,7 +25,8 @@ contains
     ! load equiliblium variable
     call fow_eqload(ierr)
 
-    ! redifine theta mesh
+
+    ! calculate internal boundary
     do nsa = 1, nsamax
       do nr = 1, nrmax
         do np = 1, npmax
@@ -43,11 +45,11 @@ contains
           call bisection_method_for_ITB(get_p_stg, flag, pm(np,nsa)&
                                       , dummy, theta_cnt_stg(np,nr,nsa), pi/2.d0, pi, nr, nsa)
           if ( flag > 0 ) theta_cnt_stg(np,nr,nsa) = pi
-
         end do
       end do
     end do
 
+    ! redifine theta mesh
     nthm3 = nthmax/2
     nthm2 = (nthmax-nthm3)/2
     nthm1 = nthmax-nthm2-nthm3
@@ -96,6 +98,17 @@ contains
       end do
     end do
 
+
+    ! solve Equation of motion for all integer and half integer grid points
+    call fow_orbit_construct(orbit_m)    ! (nth,np,nr) = (half integer, half integer, half integer)
+    call fow_orbit_construct(orbit_th)   ! (nth,np,nr) = (     integer, half integer, half integer)
+    call fow_orbit_construct(orbit_p)    ! (nth,np,nr) = (half integer,      integer, half integer)
+    call fow_orbit_construct(orbit_r)    ! (nth,np,nr) = (half integer, half integer,      integer)
+
+
+    ! calculate Jacobian
+    call fow_calculate_jacobian
+  write(*,*)11112
   end subroutine fow_prep
 
   subroutine fow_eqload(ierr)
@@ -113,7 +126,7 @@ contains
 
     allocate(ppsi(nrmax+1),qpsi(nrmax+1),vpsi(nrmax+1),rlen(nrmax+1),ritpsi(nrmax+1)&
             ,rhot(nrmax+1))
-    allocate(Br(nrmax+1,nthpmax),Bz(nrmax+1,nthpmax),Bp(nrmax+1,nthpmax),Bt(nrmax+1,nthpmax))
+    allocate(Br(nthpmax,nrmax+1),Bz(nthpmax,nrmax+1),Bp(nthpmax,nrmax+1),Bt(nthpmax,nrmax+1))
     ALLOCATE(temp(nrmax+1),thpa(nthpmax))
 
     ierr = 0
@@ -185,9 +198,10 @@ contains
       Fpsig(nr) = Fpsig(nr)/(2*pi)
       psimg(nr) = psimg(nr)/(2*pi)
       do nthp = 1, nthpmax
-        Babs(nr,nthp) = sqrt(Bt(nr,nthp)**2+Bp(nr,nthp)**2)
+        Babs(nr,nthp) = sqrt(Bt(nthp,nr)**2+Bp(nthp,nr)**2)
       end do
     end do
+    write(*,*)"Babs",Babs(nrmax+1,nthpmax),Babs(nrmax+1,1),Babs(nrmax+1,2)
 
     write(*,*)"FP------------------------------------"
 
@@ -266,87 +280,6 @@ contains
     end do
 
   end subroutine fow_calculate_equator_variable
-
-  function cal_spl1D(U,dx) result(cal)
-    use fpcomm,only:rkind
-    implicit none
-    real(rkind) :: cal
-    real(rkind),intent(in) :: U(4),dx
-    integer :: k
-    cal = 0.d0
-    do k = 1, 4
-      cal = cal+U(k)*dx**(k-1)
-    end do
-    
-  end function
-
-  subroutine newton_spl1D(U,a,x)
-    ! U4*x**3+U3*x**2+U2*x+U1 = a
-    use fpcomm,only:rkind
-    implicit none
-    real(rkind),intent(in) :: U(4),a
-    real(rkind),intent(inout):: x
-    integer :: i = 0,j
-    real(rkind) :: x0,e = 1.d10,eps = 1.d-18,V(4),d
-
-    V = U
-    V(1) = V(1)-a
-
-    do
-      d = (V(4)*x**3+V(3)*x**2+V(2)*x+V(1))/(3.d0*V(4)*x**2+2.d0*V(3)*x+V(2))
-      if(abs(d)<eps)exit
-
-      x0 = x
-      x = x0-d
-
-      if(i>e)then
-        write(*,*)"Do not converge at subroutine solve_spl1D"
-        stop
-      end if
-    end do
-
-  end subroutine newton_spl1D
-
-  subroutine mesh_to_grid1D(f,g)
-    use fpcomm,only:rkind
-    implicit none
-    real(rkind) :: f(:),g(:)
-    real(rkind),allocatable :: x(:),fx(:),U(:,:)
-    integer :: i,j,imax,jmax,IERR = 0,k
-
-    imax = size(f)
-    jmax = size(g)
-
-    if(imax/=jmax-1)then
-      write(*,*)"imax/ = jmax-1 at subroutine mesh_to_grid1D"
-      STOP
-    end if
-
-    allocate(x(imax),fx(imax),U(4,imax))
-
-    do i = 1,imax
-      x(i) = i*1.d0
-    end do
-
-    call SPL1D(x,f,fx,U,imax,0,IERR)
-
-    do j = 2,jmax-1
-      g(j) = 0.d0
-      do k = 1,4
-        g(j) = g(j)+U(k,j)*0.5d0**(k-1)
-      end do
-    end do
-
-    g(1) = 0.d0
-    g(jmax) = 0.d0
-    do k = 1,4
-      g(1) = g(1)+U(k,2)*(-0.5d0)**(k-1)
-      g(jmax) = g(jmax)+U(k,imax)*(1.5d0)**(k-1)
-    end do
-
-    deallocate(x,fx,U)
-
-  end subroutine mesh_to_grid1D
 
   subroutine calculate_pinch_orbit(theta_out, psi_pinch_point, pinch_flag, p_in, nr_in, nsa_in)
     ! return theta_m of pinch orbit with (p = p_in, psi_m = psim(nr_in)) and nsa_in
@@ -455,6 +388,7 @@ contains
 
     convergence_flag = 1
     x = 0
+    ! write(*,*)"do not converge bisection method",nsa_in
     return
 
   end subroutine bisection_method_for_ITB
@@ -571,6 +505,136 @@ contains
     p_ret = p_ret/ptfp0(nsa_in)                           ! normalize
 
   end subroutine get_p_stg
+
+  subroutine fow_calculate_jacobian
+    ! calculate Jacabian_I(nth,np,nr,nsa)
+
+    use fowcomm
+    use fpcomm
+
+    implicit none 
+    integer :: np, nth, nr, nsa, nstpmax
+    real(rkind) :: J_x2z, J_z2I, tau_p, dBdpsil, pv, Bml
+    real(rkind),allocatable :: dFdpsi(:), dBdpsi(:,:)
+
+    allocate(dFdpsi(nrmax), dBdpsi(nrmax,2))
+    call first_order_derivative(dFdpsi,Fpsi,psim)
+    call first_order_derivative(dBdpsi(:,1),Bout,psim)
+    call first_order_derivative(dBdpsi(:,2),Bin,psim)
+
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do np = 1, npmax
+          do nth = 1, nthmax
+
+            if ( thetam(nth,np,nr,nsa) >= 0.d0 ) then
+              dBdpsil = dBdpsi(nr,1)
+              Bml = Bout(nr)
+            else
+              dBdpsil = dBdpsi(nr,2)
+              Bml = Bin(nr)
+            end if
+            pv = SQRT(1.D0+THETA0(NSA)*PM(NP,NSA)**2)
+            nstpmax = orbit_m(nth,np,nr,nsa)%nstp_max
+            tau_p = orbit_m(nth,np,nr,nsa)%time(nstpmax)
+
+            J_x2z = 4.d0*pi**2*tau_p/amfp(nsa)**2/abs(aefp(nsa))
+            J_z2I = pm(np,nsa)**3*ptfp0(nsa)**3*sin(thetam(nth,np,nr,nsa))/(amfp(nsa)**2*pv*Bml)&
+                    *(pm(np,nsa)*ptfp0(nsa)/Bml**2*(Bml*dFdpsi(nr)*cos(thetam(nth,np,nr,nsa)**2)-dBdpsil*Fpsi(nr))&
+                    -aefp(nsa)*cos(thetam(nth,np,nr,nsa)))
+            J_z2I = abs( J_z2I )
+
+            Jacobian_I(nth,np,nr,nsa) = J_x2z * J_z2I
+
+          end do
+        end do
+      end do
+    end do
+
+
+  end subroutine fow_calculate_jacobian
+
+
+  function cal_spl1D(U,dx) result(cal)
+    use fpcomm,only:rkind
+    implicit none
+    real(rkind) :: cal
+    real(rkind),intent(in) :: U(4),dx
+    integer :: k
+    cal = 0.d0
+    do k = 1, 4
+      cal = cal+U(k)*dx**(k-1)
+    end do
+    
+  end function
+
+  subroutine newton_spl1D(U,a,x)
+    ! U4*x**3+U3*x**2+U2*x+U1 = a
+    use fpcomm,only:rkind
+    implicit none
+    real(rkind),intent(in) :: U(4),a
+    real(rkind),intent(inout):: x
+    integer :: i = 0,j
+    real(rkind) :: x0,e = 1.d10,eps = 1.d-18,V(4),d
+
+    V = U
+    V(1) = V(1)-a
+
+    do
+      d = (V(4)*x**3+V(3)*x**2+V(2)*x+V(1))/(3.d0*V(4)*x**2+2.d0*V(3)*x+V(2))
+      if(abs(d)<eps)exit
+
+      x0 = x
+      x = x0-d
+
+      if(i>e)then
+        write(*,*)"Do not converge at subroutine solve_spl1D"
+        stop
+      end if
+    end do
+
+  end subroutine newton_spl1D
+
+  subroutine mesh_to_grid1D(f,g)
+    use fpcomm,only:rkind
+    implicit none
+    real(rkind) :: f(:),g(:)
+    real(rkind),allocatable :: x(:),fx(:),U(:,:)
+    integer :: i,j,imax,jmax,IERR = 0,k
+
+    imax = size(f)
+    jmax = size(g)
+
+    if(imax/=jmax-1)then
+      write(*,*)"imax/ = jmax-1 at subroutine mesh_to_grid1D"
+      STOP
+    end if
+
+    allocate(x(imax),fx(imax),U(4,imax))
+
+    do i = 1,imax
+      x(i) = i*1.d0
+    end do
+
+    call SPL1D(x,f,fx,U,imax,0,IERR)
+
+    do j = 2,jmax-1
+      g(j) = 0.d0
+      do k = 1,4
+        g(j) = g(j)+U(k,j)*0.5d0**(k-1)
+      end do
+    end do
+
+    g(1) = 0.d0
+    g(jmax) = 0.d0
+    do k = 1,4
+      g(1) = g(1)+U(k,2)*(-0.5d0)**(k-1)
+      g(jmax) = g(jmax)+U(k,imax)*(1.5d0)**(k-1)
+    end do
+
+    deallocate(x,fx,U)
+
+  end subroutine mesh_to_grid1D
 
   subroutine solve_quadratic_equation(z,C)
     ! solve C(3)*z**2+C(2)*z+C(1) = 0

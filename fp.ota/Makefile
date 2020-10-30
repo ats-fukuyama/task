@@ -37,16 +37,16 @@ SRCS = fpcomm.f90 eg_read.f90 fpinit.f90 fpparm.f90 \
        cdbmfp.f90 fpcalr.f90 sv_read.f90 fpcoef.f90 fpcale.f90 \
        fpbounce.f90 fpdisrupt.f90 fpprep.f90 fploop.f90 \
        fpcont.f90 fpfout.f90 fpgout.f90 fpfile.f90\
-        fowcomm.f90 foworbitclassify.f90 fowprep.f90 \
-        foworbit.f90 \
-       fowcoef.f90 fowdistribution.f90 \
+        fowcomm.f90 foworbitclassify.f90 foworbit.f90  fowprep.f90 \
+        fowdistribution.f90 \
+       fowcoef.f90 \
        fowmenu.f90 \
        fpmenu.f90
 
-SRCSFOW =fowcomm.f90 foworbitclassify.f90 fowprep.f90 \
-          foworbit.f90 \
-          fowcoef.f90 fowdistribution.f90 \
-          fowmenu.f90
+SRCSFOW =fowcomm.f90 foworbitclassify.f90 foworbit.f90 fowprep.f90 \
+		fowdistribution.f90 \
+		fowcoef.f90 \
+		fowmenu.f90
 
 OBJS = $(addprefix $(OBJDIR)/, $(SRCS:.f90=.o))
 OBJSFOW = $(addprefix $(OBJDIR)/, $(SRCSFOW:.f90=.o))
@@ -56,8 +56,8 @@ LIBS = libfp.a ../pl/libpl.a ../eq/libeq.a  \
 
 LIBFOW = libfow.a
 
-all: libs fp
-#all: libs fow
+# all: libs fp
+all: libs fow
 
 libfp.a: $(OBJS)
 	$(LD) $(LDFLAGS) libfp.a $(OBJS)
@@ -151,10 +151,10 @@ fowmenu.o : fowmain.f90 fowcomm.f90 fowprep.f90 foworbit.f90 \
             fpprep.f90 fpcomm.f90 fpwrite.f90 \
             foworbitclassify.f90
 fowcomm.o : fowcomm.f90
-fowprep.o : fowprep.f90 fowcomm.f90 foworbitclassify.f90
-foworbit.o : foworbit.f90 fowcomm.f90 fpcomm.f90 foworbitclassify.f90 \
+fowprep.o : fowprep.f90 fowcomm.f90 fowdistribution.f90 foworbit.f90
+foworbit.o : foworbit.f90 fowcomm.f90 fpcomm.f90 \
 			../ob/obcomm.f90 ../ob/obcalc.f90 ../ob/obprep.f90 ../obinit.f90 ../ob/obparm.f90
 foworbitclassify.o : foworbitclassify.f90 fowcomm.f90 fpcomm.f90
-fowdistribution.o : fowdistribution.f90 foworbit.f90 foworbitclassify.f90 fowcomm.f90 fpcomm.f90
-fowcoef.o : fowcoef.f90 fowcomm.f90 fpcomm.f90
+fowdistribution.o : fowdistribution.f90 foworbit.f90 fowcomm.f90 fpcomm.f90
+fowcoef.o : fowdistribution.f90 fowcoef.f90 fowcomm.f90 fpcomm.f90
 

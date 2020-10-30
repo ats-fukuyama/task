@@ -3,7 +3,7 @@ module foworbit
   private
   real(8),allocatable :: penergym(:,:),penergyg(:,:)
 
-  public :: fow_orbit_construct, fow_orbit_jacobian, fow_orbit_get_mode, func_orbit_F
+  public :: fow_orbit_construct, func_orbit_F, func_orbit_mean_ra
 
 contains
 
@@ -59,145 +59,6 @@ contains
     deallocate(penergym, penergyg)
 
   end subroutine fow_orbit_construct
-
-  subroutine fow_orbit_jacobian(Jacobian_out, orbit_in)
-    use fowcomm
-    use fpcomm
-    use foworbitclassify
-    use fpwrite
-
-    real(rkind),intent(out) :: Jacobian_out(:,:,:,:)
-    type(orbit),intent(in) :: orbit_in(:,:,:,:)
-    integer :: np, nth, nr, nsa, mode(3)
-    real(rkind) :: tau_p, J_c, trans_matrix, Bml, dBmldpsi
-    real(rkind),allocatable :: Bml_in(:), Bml_out(:), gml(:), dBm_indpsi(:), dBm_outdpsi(:)&
-                            , dBmdpsi(:), dfdpsi(:), lorentz_factor(:,:), xil(:), pl(:,:)
-
-    call fow_orbit_get_mode(mode, orbit_in)
-    
-    allocate( lorentz_factor(npmax+mode(2),nsamax) )
-    allocate( xil(nthmax+mode(1)), pl(npmax+mode(2),nsamax) )
-    allocate( Bml_in(nrmax+mode(3)), Bml_out(nrmax+mode(3)), gml(nrmax+mode(3))&
-    , dBm_indpsi(nrmax+mode(3)), dBm_outdpsi(nrmax+mode(3)), dfdpsi(nrmax+mode(3)))
-
-    select case(mode(1))
-    case(0)
-      xil(:) = xi(:)
-    case(1)
-      xil(:) = xig(:)
-    end select
-
-    select case(mode(2))
-    case(0)
-      do nsa = 1, nsamax
-        do np = 1, npmax
-          pl(np,nsa) = pm(np,nsa)*ptfp0(nsa)
-        end do  
-      end do
-      
-      do nsa = 1, nsamax
-        do np = 1, npmax
-          lorentz_factor(np,nsa) = sqrt(1.d0+theta0(nsa)*pm(np,nsa)**2)
-        end do
-      end do
-
-    case(1)
-      do nsa = 1, nsamax
-        do np = 1, npmax+1
-          pl(np,nsa) = pg(np,nsa)*ptfp0(nsa)
-        end do  
-      end do
-
-      do nsa = 1, nsamax
-        do np = 1, npmax+1
-          lorentz_factor(np,nsa) = sqrt(1.d0+theta0(nsa)*pg(np,nsa)**2)
-        end do
-      end do
-    end select
-
-    select case(mode(3))
-    case(0)
-      Bml_in(:) = Bin(:)
-      Bml_out(:) = Bout(:)
-      gml(:) = Fpsi(:)
-      do nr = 1, nrmax+mode(3)
-        if ( nr==1 ) then
-          dBm_outdpsi(nr) = (-3*Bout(1)+4*Bout(2)-Bout(3))/(-3*psim(1)+4*psim(2)-psim(3))
-          dBm_indpsi(nr) = (-3*Bin(1)+4*Bin(2)-Bin(3))/(-3*psim(1)+4*psim(2)-psim(3))
-          dFdpsi(nr) = (-3*Fpsi(1)+4*Fpsi(2)-Fpsi(3))/(-3*psim(1)+4*psim(2)-psim(3))
-        else if ( nr==nrmax ) then
-          dBm_outdpsi(nr) = (3*Bout(nrmax)-4*Bout(nrmax-1)+Bout(nrmax-2))&
-                            /(3*psim(nrmax)-4*psim(nrmax-1)+psim(nrmax-2))
-          dBm_indpsi(nr) = (3*Bin(nrmax)-4*Bin(nrmax-1)+Bin(nrmax-2))&
-                            /(3*psim(nrmax)-4*psim(nrmax-1)+psim(nrmax-2))
-          dFdpsi(nr) = (3*Fpsi(nrmax)-4*Fpsi(nrmax-1)+Fpsi(nrmax-2))&
-                        /(3*psim(nrmax)-4*psim(nrmax-1)+psim(nrmax-2))
-        else
-          dBm_outdpsi(nr) = (Bout(nr+1)-Bout(nr-1))/(psim(nr+1)-psim(nr-1))
-          dBm_indpsi(nr) = (Bin(nr+1)-Bin(nr-1))/(psim(nr+1)-psim(nr-1))
-          dFdpsi(nr) = (Fpsi(nr+1)-Fpsi(nr-1))/(psim(nr+1)-psim(nr-1))
-        end if
-      end do
-    case(1)
-      Bml_in(:) = Bing(:)
-      Bml_out(:) = Boutg(:)
-      gml(:) = Fpsig(:)
-      do nr = 1, nrmax+mode(3)
-        if ( nr==1 ) then
-          dBm_outdpsi(nr) = (-3*Boutg(1)+4*Boutg(2)-Boutg(3))/(-3*psimg(1)+4*psimg(2)-psimg(3))
-          dBm_indpsi(nr) = (-3*Bing(1)+4*Bing(2)-Bing(3))/(-3*psimg(1)+4*psimg(2)-psimg(3))
-          dFdpsi(nr) = (-3*Fpsig(1)+4*Fpsig(2)-Fpsig(3))/(-3*psimg(1)+4*psimg(2)-psimg(3))
-        else if ( nr==nrmax+1 ) then
-          dBm_outdpsi(nr) = (3*Boutg(nrmax+1)-4*Boutg(nrmax)+Boutg(nrmax-1))&
-                            /(3*psimg(nrmax+1)-4*psimg(nrmax)+psimg(nrmax-1))
-          dBm_indpsi(nr) = (3*Bing(nrmax+1)-4*Bing(nrmax)+Bing(nrmax-1))&
-                            /(3*psimg(nrmax+1)-4*psimg(nrmax)+psimg(nrmax-1))
-          dFdpsi(nr) = (3*Fpsig(nrmax+1)-4*Fpsig(nrmax)+Fpsig(nrmax-1))&
-                        /(3*psimg(nrmax+1)-4*psimg(nrmax)+psimg(nrmax-1))
-        else
-          dBm_outdpsi(nr) = (Boutg(nr+1)-Boutg(nr-1))/(psimg(nr+1)-psimg(nr-1))
-          dBm_indpsi(nr) = (Bing(nr+1)-Bing(nr-1))/(psimg(nr+1)-psimg(nr-1))
-          dFdpsi(nr) = (Fpsig(nr+1)-Fpsig(nr-1))/(psimg(nr+1)-psimg(nr-1))
-        end if
-      end do
-    end select
-
-    call fpcsv1D(dBm_outdpsi,"./csv/dBm_outdpsi.csv")
-    call fpcsv1D(dBm_indpsi,"./csv/dBm_indpsi.csv")
-    call fpcsv1D(dFdpsi,"./csv/dFdpsi.csv")
-
-    do nsa = 1, nsamax
-      do nr = 1, nrmax+mode(3)
-        do np = 1, npmax+mode(2)
-          do nth = 1, nthmax+mode(1)
-            if ( forbitten(nth,np,nr,nsa,mode) ) then
-              Jacobian_out(nth,np,nr,nsa) = 0.d0
-            else
-              if ( xil(nth)>=0.d0 ) then
-                Bml = Bml_out(nr)
-                dBmldpsi = dBm_outdpsi(nr)
-              else
-                Bml = Bml_in(nr)
-                dBmldpsi = dBm_indpsi(nr)
-              end if
-              tau_p = orbit_in(nth,np,nr,nsa)%time(orbit_in(nth,np,nr,nsa)%nstp_max)
-              write(*,*)
-              J_c = 4.d0*pi**2*tau_p/(amfp(nsa)**2*abs(aefp(nsa)))
-              trans_matrix = pl(np,nsa)**3/(amfp(nsa)**2*lorentz_factor(np,nsa)*Bml)&
-                            *((-Bml*dFdpsi(nr)*xil(nth)**2+0.5d0*(1.d0+xil(nth)**2)*dBmldpsi*gml(nr))*pl(np,nsa)/Bml**2&
-                            +aefp(nsa)*xil(nth))
-              Jacobian_out(nth,np,nr,nsa) = J_c*trans_matrix  
-            end if
-          end do
-        end do
-      end do
-    end do
-
-    deallocate( lorentz_factor )
-    deallocate( xil, pl )
-    deallocate( Bml_in, Bml_out, gml, dBm_indpsi, dBm_outdpsi, dfdpsi)
-
-  end subroutine fow_orbit_jacobian
 
   subroutine fow_orbit_prep(nobt_in_max, nobt_in, nsa_in, mode)
 
@@ -403,6 +264,33 @@ contains
 
   end function func_orbit_F
 
+  function func_orbit_mean_ra(orbit_in, U_rm) result(ra_ret)
+    ! calculate mean minor radius along an orbit
+    ! U_rm : spline coefficient,  RM(psim)
+    use fpcomm
+    use fowcomm
+
+    implicit none 
+    real(rkind) :: ra_ret
+    type(orbit),intent(in) :: orbit_in
+    real(rkind),dimension(4,nrmax),intent(in) :: U_rm(:,:)
+    integer :: nstp, nstpmax, ierr = 0
+    real(rkind) :: sum_psip, mean_psip
+ 
+    nstpmax = orbit_in%nstp_max
+
+    sum_psip = 0.d0
+
+    do nstp = 1, nstpmax
+      sum_psip = sum_psip + orbit_in%psip(nstp)
+    end do
+
+    mean_psip = sum_psip/dble(nstpmax)
+
+    call SPL1DF(mean_psip, ra_ret, psim, U_rm, nrmax, ierr)
+
+  end function
+
   function construct_orbit(n,input) result(ret)
     use fowcomm
     type(orbit) :: ret
@@ -431,7 +319,6 @@ contains
 
   subroutine leastSquareMethodForQuadric(y,nxmax,nxstart,nxend,reval)
     ! y=reval(1)*nx^2+reval(2)*nx+reval(3)
-    use fowprep,only:gauss_jordan
     implicit none
     integer,intent(in) :: nxmax,nxstart,nxend
     double precision,intent(in) :: y(nxmax)
@@ -456,5 +343,31 @@ contains
     call gauss_jordan(A,reval,3)
   
   end subroutine leastSquareMethodForQuadric
+
+  subroutine gauss_jordan(A, B, n)
+    use fpcomm,only:rkind
+
+    implicit none
+    real(rkind) :: A(n,n), B(n)
+    integer n,i,j,k
+  
+    do k = 1, n
+      do j = k + 1, n
+        a(k,j) = a(k,j) / a(k,k)
+      end do
+      b(k) = b(k) / a(k,k)
+  
+      do i = 1, n
+        if ( i .ne. k ) then
+          do j = k + 1, n
+            a(i,j) = a(i,j) - a(i,k) * a(k,j)
+          end do
+          b(i) = b(i) - a(i,k) * b(k)
+        end if
+      end do
+  
+    end do
+  
+  end subroutine gauss_jordan
   
 end module foworbit
