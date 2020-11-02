@@ -1,10 +1,9 @@
 &fow
   nthpmax=32
-
-  nrgmax=40
-  nzgmax=40
 &end
 
+!  nrgmax=40
+!  nzgmax=40
 ! beta_toloidal = 2.54e-3 [%]
 ! beta_poloidal = 6.02e-2 [%]
 &eq 

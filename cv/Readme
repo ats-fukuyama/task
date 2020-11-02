@@ -1,11 +1,11 @@
 This program, cv, converts
 WHO-COVID-19-global-data.csv file to
-csv files including date-sequential line for each country (cases and deaths)
-summary cvs files for each region (cases and deaths)
-a date-sequential csv file for selectred countries (cases and deaths)
+csv files including date-sequential lines for each country (cases and deaths)
+summary cvs file for each region (cases and deaths)
+date-sequential csv file for selectred countries (cases and deaths)
 and shows various graphs.
 
-Where yo can get the latest WHO-COVID-19-global-data.csv
+You can get the latest WHO-COVID-19-global-data.csv from
     https://covid19.who.int/table
     download button at the right end of the second line with an input column
 
