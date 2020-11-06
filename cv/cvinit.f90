@@ -27,8 +27,10 @@ CONTAINS
     ndate_start_region=1 ! initial ndate of region data:
     ndate_start_select=7 ! initial ndate of select data:
                          !         1 for 2020-01-04 (Sat), 7 for Friday 
-    ndays_ave=7               ! range of day averageing
-    nrank_max=12              ! number of items in ranking lists
+    ndays_ave=7          ! range of day averageing
+    nrank_max=12         ! number of items in ranking lists
+    ndate_min_g=1        ! minimum ndate for graphics
+    ndate_max_g=1        ! maximum ndate for graphics (be updated after load)
     population_min_rank=10.D0 ! minimum population per million in ranking lists
 
     cases_number_log_min=10.D0    ! minimum number for ncases in log
