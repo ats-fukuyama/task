@@ -255,10 +255,10 @@ CONTAINS
           RETURN
        END IF
     END DO
-    WRITE(6,'(A)') &
-      'XX fem_find_nelm_for_xy: out of range: x,y,xnode_min/max,ynode_min/max'
-    WRITE(6,'(A,1P6E12.4)') &
-         '      ',x,y,xnode_min,xnode_max,ynode_min,ynode_max
+!    WRITE(6,'(A)') &
+!      'XX fem_find_nelm_for_xy: out of range: x,y,xnode_min/max,ynode_min/max'
+!    WRITE(6,'(A,1P6E12.4)') &
+!         '      ',x,y,xnode_min,xnode_max,ynode_min,ynode_max
     nelm=0
   END SUBROUTINE fem_find_nelm_for_xy
 

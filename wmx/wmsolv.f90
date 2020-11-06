@@ -60,7 +60,7 @@ CONTAINS
        X=(0.D0,0.D0)
        A(1:MBND)=(0.D0,0.D0)
        CALL wm_setm(A,X,i,MBND,nr_previous)
-       WRITE(21,'(A,2I6)') 'wmsolv:',nr_previous,i
+       WRITE(21,'(A,2I6,ES12.4)') 'wmsolv:',nr_previous,i,XRHO(nr_previous)
        WRITE(21,'(6ES12.4)') (A(j),j=1,MBND)
        WRITE(21,'(2ES12.4)') X
        DO j=MAX(i-MCENT+1,1),MIN(MLEN,i+MCENT-1)

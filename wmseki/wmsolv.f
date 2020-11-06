@@ -61,7 +61,7 @@ C   ***** CALCULATE MATRIX COEFFICIENTS *****
          X=(0.D0,0.D0)
          A(1:L)=(0.D0,0.D0)
          CALL WMSETM(A,X,i,L,NRP)
-         WRITE(21,'(A,2I6)') 'wmsolv:',NRP,i
+         WRITE(21,'(A,2I6,ES12.4)') 'wmsolv:',NRP,i,XRHO(NRP)
          WRITE(21,'(6ES12.4)') (A(j),j=1,L)
          WRITE(21,'(2ES12.4)') X
          DO j=MAX(i-(L+1)/2+1,1),MIN(N,i+(L+1)/2-1)
