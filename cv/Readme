@@ -13,7 +13,7 @@ Input parameter file (namelist "cv")
     cvparm
 Input file name
     knam_csv_in='WHO-COVID-19-global-data.csv'
-List of selected files
+List of selected countries
     knam_cv_select='cv-select.data'
 Output file name (for all countries)
     knam_csv_out_cases='cv-data-cases.csv'
@@ -48,6 +48,12 @@ To run:
    "s"   to make selected countries cvs files
    "g"   to show graphs (you have to start from xterm on X-window system)
    "q"   to quit cv
+
+In the graph mode,
+"xh" for help for commands
+"xn" for list of country name and ID
+"xc" for list of country ID
+"?"  for information of coutries on the graph
 
 color order:
    red, yellow, green, sky blue, dark blue, purple (repeated)
