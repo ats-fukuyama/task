@@ -94,7 +94,7 @@ CONTAINS
        IF(kword.EQ.'+ ') GO TO 2
        IF(kword(1:1).EQ.'-') GO TO 2
        READ(kword,'(I2)',ERR=2) idx ! positive number for graph id
-       WRITE(6,'(A,I6)') 'idx:',idx
+!       WRITE(6,'(A,I6)') 'idx:',idx
        id=idx
        IF(id.EQ.9) GO TO 9000       ! 
        CYCLE
@@ -281,7 +281,7 @@ CONTAINS
             '    17: total deaths vs time (Log10 scale)', &
             '    18: new cases vs time (Log10 scale)', &
             '    19: new deaths vs time (Log10 scale)', &
-            ' 2: 10: 21+22+23+24 (per million population) ', &
+            ' 2: 20: 21+22+23+24 (per million population) ', &
             '    21: total cases per population vs time', &
             '    22: total deaths per population vs time', &
             '    23: new cases per population vs time', &
@@ -311,8 +311,8 @@ CONTAINS
                         'the line attribute.'
        WRITE(6,'(A,A)') '      - graph_id can be located on the same line ',&
                         'with a list of country_ids.'
-       WRITE(6,'(A,A)') '      - if there are more than two graph_ids, ', &
-                        'only the last graph_id is effective.'
+       WRITE(6,'(A,A)') '      - if more than two graph_ids exist, ', &
+                        'only the last one is effective.'
        WRITE(6,'(A,A)') 'XH: this help'
        WRITE(6,'(A,A)') 'XC: list of country id'
        WRITE(6,'(A,A)') 'XN: list of country name'
@@ -325,8 +325,12 @@ CONTAINS
             'range of day averageing'
        WRITE(6,'(A,A)') 'nrank_max=12                  ! ', &
             'number of items in ranking lists'
+       WRITE(6,'(A,A)') 'ndate_min_g=1                 ! ', &
+            'minimum date number in graph (1=2020-01-03) '
+       WRITE(6,'(A,A)') 'ndate_max_g=ndate_max         ! ', &
+            'maximum date number in graph                '
        WRITE(6,'(A,A)') 'population_min_rank=10.D0     ! ', &
-            'minimum population per million in ranking lists'
+            'minimum population per million in ranking list'
        WRITE(6,'(A,A)') 'cases_number_log_min=10.D0    ! ', &
             'minimum number for ncases in log'
        WRITE(6,'(A,A)') 'deaths_number_log_min=1.D0    ! ', &
@@ -381,15 +385,17 @@ CONTAINS
     INTEGER,INTENT(IN):: id,nplot_max
     INTEGER,INTENT(IN):: ncountry_nplot(nplot_max)
     
-    REAL(dp):: xg(ndate_max)
-    REAL(dp),ALLOCATABLE:: fg(:,:)
+    REAL(dp),ALLOCATABLE:: xg(:),fg(:,:)
     INTEGER:: ndata,ndate,ngid
     CHARACTER(LEN=80):: title
 
-    INTEGER:: mode_ls,id_ls,id_ltype
+    INTEGER:: mode_ls,id_ls,id_ltype,ncount,ncount_max
 
-    DO ndate=1,ndate_max
-       xg(ndate)=DBLE(ndate)
+    ncount_max=ndate_max_g-ndate_min_g+1
+    ALLOCATE(xg(ncount_max))
+    DO ncount=1,ncount_max
+       ndate=ncount+ndate_min_g-1
+       xg(ncount)=DBLE(ndate)
     END DO
 
     SELECT CASE(id)
@@ -409,7 +415,7 @@ CONTAINS
        ngid=1
        IF(id.EQ.11.OR.id.EQ.16) ngid=0
        CALL cv_gsub11(1+id_ls,ncountry_nplot,nplot_max,fg,title,ndata)
-       CALL grd1d(ngid,xg,fg,ndate_max,ndate_max,ndata,title, &
+       CALL grd1d(ngid,xg,fg,ncount_max,ncount_max,ndata,title, &
                   NOINFO=1, &
                   LINE_RGB=line_rgb,LINE_PAT=line_pat,LINE_MARK=line_mark, &
                   LINE_MARK_STEP=line_mark_step, &
@@ -421,7 +427,7 @@ CONTAINS
        ngid=2
        IF(id.EQ.12.OR.id.EQ.17) ngid=0
        CALL cv_gsub11(2+id_ls,ncountry_nplot,nplot_max,fg,title,ndata)
-       CALL grd1d(ngid,xg,fg,ndate_max,ndate_max,ndata,title, &
+       CALL grd1d(ngid,xg,fg,ncount_max,ncount_max,ndata,title, &
                   NOINFO=1, &
                   LINE_RGB=line_rgb,LINE_PAT=line_pat,LINE_MARK=line_mark, &
                   LINE_MARK_STEP=line_mark_step, &
@@ -434,7 +440,7 @@ CONTAINS
        IF(id.EQ.13.OR.id.EQ.18) ngid=0
        CALL cv_gsub11(3+id_ls,ncountry_nplot,nplot_max,fg,title,ndata)
        IF(nplot_max.EQ.1) THEN
-          CALL grd1d(ngid,xg,fg,ndate_max,ndate_max,ndata,title, &
+          CALL grd1d(ngid,xg,fg,ncount_max,ncount_max,ndata,title, &
                      NOINFO=1, &
                      LINE_RGB=line_rgb2,LINE_PAT=line_pat2, &
                      LINE_MARK=line_mark2, &
@@ -442,7 +448,7 @@ CONTAINS
                      LINE_MARK_SIZE=line_mark_size2, &
                      NLMAX=nlmax2,MODE_LS=mode_ls,FGRID_LTYPE=id_ltype)
        ELSE
-          CALL grd1d(ngid,xg,fg,ndate_max,ndate_max,ndata,title, &
+          CALL grd1d(ngid,xg,fg,ncount_max,ncount_max,ndata,title, &
                      NOINFO=1, &
                      LINE_RGB=line_rgb,LINE_PAT=line_pat,LINE_MARK=line_mark, &
                      LINE_MARK_STEP=line_mark_step, &
@@ -456,7 +462,7 @@ CONTAINS
        IF(id.EQ.14.OR.id.EQ.19) ngid=0
        CALL cv_gsub11(4+id_ls,ncountry_nplot,nplot_max,fg,title,ndata)
        IF(nplot_max.EQ.1) THEN
-          CALL grd1d(ngid,xg,fg,ndate_max,ndate_max,ndata,title, &
+          CALL grd1d(ngid,xg,fg,ncount_max,ncount_max,ndata,title, &
                      NOINFO=1, &
                      LINE_RGB=line_rgb2,LINE_PAT=line_pat2, &
                      LINE_MARK=line_mark2, &
@@ -464,7 +470,7 @@ CONTAINS
                      LINE_MARK_SIZE=line_mark_size2, &
                      NLMAX=nlmax2,MODE_LS=mode_ls,FGRID_LTYPE=id_ltype)
        ELSE
-          CALL grd1d(ngid,xg,fg,ndate_max,ndate_max,ndata,title, &
+          CALL grd1d(ngid,xg,fg,ncount_max,ncount_max,ndata,title, &
                      NOINFO=1, &
                      LINE_RGB=line_rgb,LINE_PAT=line_pat,LINE_MARK=line_mark, &
                      LINE_MARK_STEP=line_mark_step, &
@@ -487,25 +493,29 @@ CONTAINS
     REAL(dp),ALLOCATABLE,INTENT(OUT):: fg(:,:)
     CHARACTER(LEN=80),INTENT(OUT):: title
     INTEGER,INTENT(OUT):: ndata
-    INTEGER:: ndate,ndate_ave,nplot,ncountry
+    INTEGER:: ndate,ndate_ave,nplot,ncountry,ncount,ncount_max
     REAL(dp):: rcases,rdeaths
+
+    ncount_max=ndate_max_g-ndate_min_g+1
 
     SELECT CASE(id)
     CASE(1,6)
        ndata=nplot_max
        IF(ALLOCATED(fg)) DEALLOCATE(fg)
-       ALLOCATE(fg(ndate_max,ndata))
+       ALLOCATE(fg(ncount_max,ndata))
        DO nplot=1,nplot_max
           ncountry=ncountry_nplot(nplot)
           SELECT CASE(id)
           CASE(1)
-             DO ndate=1,ndate_max
-                fg(ndate,nplot)=ncases_total_ndate_ncountry(ndate,ncountry)
+             DO ncount=1,ncount_max
+                ndate=ndate_min_g+ncount-1
+                fg(ncount,nplot)=ncases_total_ndate_ncountry(ndate,ncountry)
              END DO
           CASE(6)
-             DO ndate=1,ndate_max
+             DO ncount=1,ncount_max
+                ndate=ndate_min_g+ncount-1
                 rcases=ncases_total_ndate_ncountry(ndate,ncountry)
-                fg(ndate,nplot)=LOG10(MAX(cases_number_log_min,rcases))
+                fg(ncount,nplot)=LOG10(MAX(cases_number_log_min,rcases))
              END DO
           END SELECT
        END DO
@@ -527,18 +537,20 @@ CONTAINS
     CASE(2,7)
        ndata=nplot_max
        IF(ALLOCATED(fg)) DEALLOCATE(fg)
-       ALLOCATE(fg(ndate_max,ndata))
+       ALLOCATE(fg(ncount_max,ndata))
        DO nplot=1,nplot_max
           ncountry=ncountry_nplot(nplot)
           SELECT CASE(id)
           CASE(2)
-             DO ndate=1,ndate_max
-                fg(ndate,nplot)=ndeaths_total_ndate_ncountry(ndate,ncountry)
+             DO ncount=1,ncount_max
+                ndate=ndate_min_g+ncount-1
+                fg(ncount,nplot)=ndeaths_total_ndate_ncountry(ndate,ncountry)
              END DO
           CASE(7)
-             DO ndate=1,ndate_max
+             DO ncount=1,ncount_max
+                ndate=ndate_min_g+ncount-1
                 rdeaths=ndeaths_total_ndate_ncountry(ndate,ncountry)
-                fg(ndate,nplot)=LOG10(MAX(deaths_number_log_min,rdeaths))
+                fg(ncount,nplot)=LOG10(MAX(deaths_number_log_min,rdeaths))
              END DO
           END SELECT
        END DO
@@ -561,42 +573,50 @@ CONTAINS
        IF(nplot_max.EQ.1) THEN
           ndata=2
           IF(ALLOCATED(fg)) DEALLOCATE(fg)
-          ALLOCATE(fg(ndate_max,ndata))
+          ALLOCATE(fg(ncount_max,ndata))
           ncountry=ncountry_nplot(1)
           SELECT CASE(id)
           CASE(3)
-             DO ndate=1,ndays_ave-1
-                fg(ndate,1)=ncases_new_ndate_ncountry(ndate,ncountry)
-                fg(ndate,2)=0.D0
-             END DO
-             DO ndate=ndays_ave,ndate_max
-                fg(ndate,1)=ncases_new_ndate_ncountry(ndate,ncountry)
-                fg(ndate,2)=0.D0
+             IF(ndate_min_g.LE.ndays_ave-1) THEN
+                DO ncount=1,ndays_ave-ndate_min_g
+                   ndate=ncount+ndate_min_g-1
+                   fg(ncount,1)=ncases_new_ndate_ncountry(ndate,ncountry)
+                   fg(ncount,2)=0.D0
+                END DO
+             END IF
+             DO ncount=MAX(1,ndays_ave-ndate_min_g+1),ncount_max
+                ndate=ncount+ndate_min_g-1
+                fg(ncount,1)=ncases_new_ndate_ncountry(ndate,ncountry)
+                fg(ncount,2)=0.D0
                 DO ndate_ave=ndate-ndays_ave+1,ndate
-                   fg(ndate,2)=fg(ndate,2) &
+                   fg(ncount,2)=fg(ncount,2) &
                         +ncases_new_ndate_ncountry(ndate_ave,ncountry)
                 END DO
-                fg(ndate,2)=fg(ndate,2)/ndays_ave
+                fg(ncount,2)=fg(ncount,2)/ndays_ave
              END DO
           CASE(8)
-             DO ndate=1,ndays_ave-1
+             IF(ndate_min_g.LE.ndays_ave-1) THEN
+                DO ncount=1,ndays_ave-ndate_min_g
+                   ndate=ncount+ndate_min_g-1
+                   rcases=ncases_new_ndate_ncountry(ndate,ncountry)
+                   fg(ncount,1)=LOG10(MAX(ratio_new_total_log_min &
+                                         *cases_number_log_min,rcases))
+                   fg(ncount,2)=LOG10(ratio_new_total_log_min &
+                                         *cases_number_log_min)
+                END DO
+             END IF
+             DO ncount=MAX(1,ndays_ave-ndate_min_g+1),ncount_max
+                ndate=ncount+ndate_min_g-1
                 rcases=ncases_new_ndate_ncountry(ndate,ncountry)
-                fg(ndate,1)=LOG10(MAX(ratio_new_total_log_min &
-                                     *cases_number_log_min,rcases))
-                fg(ndate,2)=LOG10(ratio_new_total_log_min &
-                                 *cases_number_log_min)
-             END DO
-             DO ndate=ndays_ave,ndate_max
-                rcases=ncases_new_ndate_ncountry(ndate,ncountry)
-                fg(ndate,1)=LOG10(MAX(ratio_new_total_log_min &
-                                     *cases_number_log_min,rcases))
+                fg(ncount,1)=LOG10(MAX(ratio_new_total_log_min &
+                                      *cases_number_log_min,rcases))
                 rcases=0.D0
                 DO ndate_ave=ndate-ndays_ave+1,ndate
                    rcases=rcases &
                         +ncases_new_ndate_ncountry(ndate_ave,ncountry)
                 END DO
-                fg(ndate,2)=LOG10(MAX(ratio_new_total_log_min &
-                                     *cases_number_log_min,rcases/ndays_ave))
+                fg(ncount,2)=LOG10(MAX(ratio_new_total_log_min &
+                                      *cases_number_log_min,rcases/ndays_ave))
              END DO
           END SELECT
           title='@'//country_id_ncountry(ncountry)//': '// &
@@ -606,39 +626,45 @@ CONTAINS
        ELSE
           ndata=nplot_max
           IF(ALLOCATED(fg)) DEALLOCATE(fg)
-          ALLOCATE(fg(ndate_max,ndata))
+          ALLOCATE(fg(ncount_max,ndata))
           SELECT CASE(id)
           CASE(3)
              DO nplot=1,nplot_max
                 ncountry=ncountry_nplot(nplot)
-                DO ndate=1,ndays_ave-1
-                   fg(ndate,nplot)=0.D0
-                END DO
-                DO ndate=ndays_ave,ndate_max
-                   fg(ndate,nplot)=0.D0
+                IF(ndate_min_g.LE.ndays_ave-1) THEN
+                   DO ncount=1,ndays_ave-ndate_min_g
+                      fg(ncount,nplot)=0.D0
+                   END DO
+                END IF
+                DO ncount=MAX(1,ndays_ave-ndate_min_g+1),ncount_max
+                   ndate=ncount+ndate_min_g-1
+                   fg(ncount,nplot)=0.D0
                    DO ndate_ave=ndate-ndays_ave+1,ndate
-                      fg(ndate,nplot)=fg(ndate,nplot) &
+                      fg(ncount,nplot)=fg(ncount,nplot) &
                            +ncases_new_ndate_ncountry(ndate_ave,ncountry)
                    END DO
-                   fg(ndate,nplot)=fg(ndate,nplot)/ndays_ave
+                   fg(ncount,nplot)=fg(ncount,nplot)/ndays_ave
                 END DO
              END DO
           CASE(8)
              DO nplot=1,nplot_max
                 ncountry=ncountry_nplot(nplot)
-                DO ndate=1,ndays_ave-1
-                   fg(ndate,nplot)=LOG10(ratio_new_total_log_min &
-                                        *cases_number_log_min)
-                END DO
-                DO ndate=ndays_ave,ndate_max
+                IF(ndate_min_g.LE.ndays_ave-1) THEN
+                   DO ncount=1,ndays_ave-ndate_min_g
+                      fg(ncount,nplot)=LOG10(ratio_new_total_log_min &
+                                            *cases_number_log_min)
+                   END DO
+                END IF
+                DO ncount=MAX(1,ndays_ave-ndate_min_g+1),ncount_max
+                   ndate=ncount+ndate_min_g-1
                    rcases=0.D0
                    DO ndate_ave=ndate-ndays_ave+1,ndate
                       rcases=rcases &
                            +ncases_new_ndate_ncountry(ndate_ave,ncountry)
                    END DO
-                   fg(ndate,nplot)=LOG10(MAX(ratio_new_total_log_min &
-                                            *cases_number_log_min,rcases &
-                                            /ndays_ave))
+                   fg(ncount,nplot)=LOG10(MAX(ratio_new_total_log_min &
+                                             *cases_number_log_min,rcases &
+                                             /ndays_ave))
                 END DO
              END DO
           END SELECT
@@ -654,42 +680,50 @@ CONTAINS
        IF(nplot_max.EQ.1) THEN
           ndata=2
           IF(ALLOCATED(fg)) DEALLOCATE(fg)
-          ALLOCATE(fg(ndate_max,ndata))
+          ALLOCATE(fg(ncount_max,ndata))
           ncountry=ncountry_nplot(1)
           SELECT CASE(id)
           CASE(4)
-             DO ndate=1,ndays_ave-1
-                fg(ndate,1)=ndeaths_new_ndate_ncountry(ndate,ncountry)
-                fg(ndate,2)=0.D0
-             END DO
-             DO ndate=ndays_ave,ndate_max
-                fg(ndate,1)=ndeaths_new_ndate_ncountry(ndate,ncountry)
-                fg(ndate,2)=0.D0
+             IF(ndate_min_g.LE.ndays_ave-1) THEN
+                DO ncount=1,ndays_ave-ndate_min_g
+                   ndate=ncount+ndate_min_g-1
+                   fg(ncount,1)=ndeaths_new_ndate_ncountry(ndate,ncountry)
+                   fg(ncount,2)=0.D0
+                END DO
+             END IF
+             DO ncount=MAX(1,ndays_ave-ndate_min_g+1),ncount_max
+                ndate=ncount+ndate_min_g-1
+                fg(ncount,1)=ndeaths_new_ndate_ncountry(ndate,ncountry)
+                fg(ncount,2)=0.D0
                 DO ndate_ave=ndate-ndays_ave+1,ndate
-                   fg(ndate,2)=fg(ndate,2) &
+                   fg(ncount,2)=fg(ncount,2) &
                         +ndeaths_new_ndate_ncountry(ndate_ave,ncountry)
                 END DO
-                fg(ndate,2)=fg(ndate,2)/ndays_ave
+                fg(ncount,2)=fg(ncount,2)/ndays_ave
              END DO
           CASE(9)
-             DO ndate=1,ndays_ave-1
+             IF(ndate_min_g.LE.ndays_ave-1) THEN
+                DO ncount=1,ndays_ave-ndate_min_g
+                   ndate=ncount+ndate_min_g-1
+                   rdeaths=ndeaths_new_ndate_ncountry(ndate,ncountry)
+                   fg(ncount,1)=LOG10(MAX(ratio_new_total_log_min &
+                                         *deaths_number_log_min,rdeaths))
+                   fg(ncount,2)=LOG10(ratio_new_total_log_min &
+                                         *deaths_number_log_min)
+                END DO
+             END IF
+             DO ncount=MAX(1,ndays_ave-ndate_min_g+1),ncount_max
+                ndate=ncount+ndate_min_g-1
                 rdeaths=ndeaths_new_ndate_ncountry(ndate,ncountry)
-                fg(ndate,1)=LOG10(MAX(ratio_new_total_log_min &
-                                     *deaths_number_log_min,rdeaths))
-                fg(ndate,2)=LOG10(deaths_number_log_min)
-             END DO
-             DO ndate=ndays_ave,ndate_max
-                rdeaths=ndeaths_new_ndate_ncountry(ndate,ncountry)
-                fg(ndate,1)=LOG10(MAX(ratio_new_total_log_min &
-                                     *deaths_number_log_min,rdeaths))
+                fg(ncount,1)=LOG10(MAX(ratio_new_total_log_min &
+                                      *deaths_number_log_min,rdeaths))
                 rdeaths=0.D0
                 DO ndate_ave=ndate-ndays_ave+1,ndate
                    rdeaths=rdeaths &
                         +ndeaths_new_ndate_ncountry(ndate_ave,ncountry)
                 END DO
-                fg(ndate,2)=LOG10(MAX(ratio_new_total_log_min &
-                                     *deaths_number_log_min,rdeaths &
-                                     /ndays_ave))
+                fg(ncount,2)=LOG10(MAX(ratio_new_total_log_min &
+                                     *deaths_number_log_min,rdeaths/ndays_ave))
              END DO
           END SELECT
           title='@'//country_id_ncountry(ncountry)//': '// &
@@ -699,37 +733,43 @@ CONTAINS
        ELSE
           ndata=nplot_max
           IF(ALLOCATED(fg)) DEALLOCATE(fg)
-          ALLOCATE(fg(ndate_max,ndata))
+          ALLOCATE(fg(ncount_max,ndata))
           SELECT CASE(id)
           CASE(4)
              DO nplot=1,nplot_max
                 ncountry=ncountry_nplot(nplot)
-                DO ndate=1,ndays_ave-1
-                   fg(ndate,nplot)=0.D0
-                END DO
-                DO ndate=ndays_ave,ndate_max
-                   fg(ndate,nplot)=0.D0
+                IF(ndate_min_g.LE.ndays_ave-1) THEN
+                   DO ncount=1,ndays_ave-ndate_min_g
+                      fg(ncount,nplot)=0.D0
+                   END DO
+                END IF
+                DO ncount=MAX(1,ndays_ave-ndate_min_g+1),ncount_max
+                   ndate=ncount+ndate_min_g-1
+                   fg(ncount,nplot)=0.D0
                    DO ndate_ave=ndate-ndays_ave+1,ndate
-                      fg(ndate,nplot)=fg(ndate,nplot) &
+                      fg(ncount,nplot)=fg(ncount,nplot) &
                            +ndeaths_new_ndate_ncountry(ndate_ave,ncountry)
                    END DO
-                   fg(ndate,nplot)=fg(ndate,nplot)/ndays_ave
+                   fg(ncount,nplot)=fg(ncount,nplot)/ndays_ave
                 END DO
              END DO
           CASE(9)
              DO nplot=1,nplot_max
                 ncountry=ncountry_nplot(nplot)
-                DO ndate=1,ndays_ave-1
-                   fg(ndate,nplot)=LOG10(ratio_new_total_log_min &
-                                        *deaths_number_log_min)
-                END DO
-                DO ndate=ndays_ave,ndate_max
+                IF(ndate_min_g.LE.ndays_ave-1) THEN
+                   DO ncount=1,ndays_ave-ndate_min_g
+                      fg(ncount,nplot)=LOG10(ratio_new_total_log_min &
+                                            *deaths_number_log_min)
+                   END DO
+                END IF
+                DO ncount=MAX(1,ndays_ave-ndate_min_g+1),ncount_max
+                   ndate=ncount+ndate_min_g-1
                    rdeaths=0.D0
                    DO ndate_ave=ndate-ndays_ave+1,ndate
                       rdeaths=rdeaths &
                            +ndeaths_new_ndate_ncountry(ndate_ave,ncountry)
                    END DO
-                   fg(ndate,nplot) &
+                   fg(ncount,nplot) &
                         =LOG10(MAX(ratio_new_total_log_min &
                                   *deaths_number_log_min,rdeaths &
                                   /ndays_ave))
@@ -759,15 +799,17 @@ CONTAINS
     INTEGER,INTENT(IN):: id,nplot_max
     INTEGER,INTENT(IN):: ncountry_nplot(nplot_max)
     
-    REAL(dp):: xg(ndate_max)
-    REAL(dp),ALLOCATABLE:: fg(:,:)
+    REAL(dp),ALLOCATABLE:: xg(:),fg(:,:)
     INTEGER:: ndata,ndate,ngid
     CHARACTER(LEN=80):: title
 
-    INTEGER:: mode_ls,id_ls,id_ltype
+    INTEGER:: mode_ls,id_ls,id_ltype,ncount,ncount_max
 
-    DO ndate=1,ndate_max
-       xg(ndate)=DBLE(ndate)
+    ncount_max=ndate_max_g-ndate_min_g+1
+    ALLOCATE(xg(ncount_max))
+    DO ncount=1,ncount_max
+       ndate=ncount+ndate_min_g-1
+       xg(ncount)=DBLE(ndate)
     END DO
 
     SELECT CASE(id)
@@ -787,7 +829,7 @@ CONTAINS
        ngid=1
        IF(id.EQ.21.OR.id.EQ.26) ngid=0
        CALL cv_gsub21(1+id_ls,ncountry_nplot,nplot_max,fg,title,ndata)
-       CALL grd1d(ngid,xg,fg,ndate_max,ndate_max,ndata,title, &
+       CALL grd1d(ngid,xg,fg,ncount_max,ncount_max,ndata,title, &
                   NOINFO=1, &
                   LINE_RGB=line_rgb,LINE_PAT=line_pat,LINE_MARK=line_mark, &
                   LINE_MARK_STEP=line_mark_step, &
@@ -799,7 +841,7 @@ CONTAINS
        ngid=2
        IF(id.EQ.22.OR.id.EQ.27) ngid=0
        CALL cv_gsub21(2+id_ls,ncountry_nplot,nplot_max,fg,title,ndata)
-       CALL grd1d(ngid,xg,fg,ndate_max,ndate_max,ndata,title, &
+       CALL grd1d(ngid,xg,fg,ncount_max,ncount_max,ndata,title, &
                   NOINFO=1, &
                   LINE_RGB=line_rgb,LINE_PAT=line_pat,LINE_MARK=line_mark, &
                   LINE_MARK_STEP=line_mark_step, &
@@ -812,7 +854,7 @@ CONTAINS
        IF(id.EQ.23.OR.id.EQ.28) ngid=0
        CALL cv_gsub21(3+id_ls,ncountry_nplot,nplot_max,fg,title,ndata)
        IF(nplot_max.EQ.1) THEN
-          CALL grd1d(ngid,xg,fg,ndate_max,ndate_max,ndata,title, &
+          CALL grd1d(ngid,xg,fg,ncount_max,ncount_max,ndata,title, &
                      NOINFO=1, &
                      LINE_RGB=line_rgb2,LINE_PAT=line_pat2, &
                      LINE_MARK=line_mark2, &
@@ -820,7 +862,7 @@ CONTAINS
                      LINE_MARK_SIZE=line_mark_size2, &
                      NLMAX=nlmax2,MODE_LS=mode_ls,FGRID_LTYPE=id_ltype)
        ELSE
-          CALL grd1d(ngid,xg,fg,ndate_max,ndate_max,ndata,title, &
+          CALL grd1d(ngid,xg,fg,ncount_max,ncount_max,ndata,title, &
                      NOINFO=1, &
                      LINE_RGB=line_rgb,LINE_PAT=line_pat,LINE_MARK=line_mark, &
                      LINE_MARK_STEP=line_mark_step, &
@@ -834,7 +876,7 @@ CONTAINS
        IF(id.EQ.24.OR.id.EQ.29) ngid=0
        CALL cv_gsub21(4+id_ls,ncountry_nplot,nplot_max,fg,title,ndata)
        IF(nplot_max.EQ.1) THEN
-          CALL grd1d(ngid,xg,fg,ndate_max,ndate_max,ndata,title, &
+          CALL grd1d(ngid,xg,fg,ncount_max,ncount_max,ndata,title, &
                      NOINFO=1, &
                      LINE_RGB=line_rgb2,LINE_PAT=line_pat2, &
                      LINE_MARK=line_mark2, &
@@ -842,7 +884,7 @@ CONTAINS
                      LINE_MARK_SIZE=line_mark_size2, &
                      NLMAX=nlmax2,MODE_LS=mode_ls,FGRID_LTYPE=id_ltype)
        ELSE
-          CALL grd1d(ngid,xg,fg,ndate_max,ndate_max,ndata,title, &
+          CALL grd1d(ngid,xg,fg,ncount_max,ncount_max,ndata,title, &
                      NOINFO=1, &
                      LINE_RGB=line_rgb,LINE_PAT=line_pat,LINE_MARK=line_mark, &
                      LINE_MARK_STEP=line_mark_step, &
@@ -865,27 +907,31 @@ CONTAINS
     REAL(dp),ALLOCATABLE,INTENT(OUT):: fg(:,:)
     CHARACTER(LEN=80),INTENT(OUT):: title
     INTEGER,INTENT(OUT):: ndata
-    INTEGER:: ndate,ndate_ave,nplot,ncountry
+    INTEGER:: ndate,ndate_ave,nplot,ncountry,ncount,ncount_max
     REAL(dp):: rcases,rdeaths
+
+    ncount_max=ndate_max_g-ndate_min_g+1
 
     SELECT CASE(id)
     CASE(1,6)
        ndata=nplot_max
        IF(ALLOCATED(fg)) DEALLOCATE(fg)
-       ALLOCATE(fg(ndate_max,ndata))
+       ALLOCATE(fg(ncount_max,ndata))
        DO nplot=1,nplot_max
           ncountry=ncountry_nplot(nplot)
           SELECT CASE(id)
           CASE(1)
-             DO ndate=1,ndate_max
-                fg(ndate,nplot)=ncases_total_ndate_ncountry(ndate,ncountry) &
+             DO ncount=1,ncount_max
+                ndate=ndate_min_g+ncount-1
+                fg(ncount,nplot)=ncases_total_ndate_ncountry(ndate,ncountry) &
                      /population_ncountry(ncountry)
              END DO
           CASE(6)
-             DO ndate=1,ndate_max
+             DO ncount=1,ncount_max
+                ndate=ndate_min_g+ncount-1
                 rcases=ncases_total_ndate_ncountry(ndate,ncountry) &
                      /population_ncountry(ncountry)
-                fg(ndate,nplot)=LOG10(MAX(cases_rate_log_min,rcases))
+                fg(ncount,nplot)=LOG10(MAX(cases_rate_log_min,rcases))
              END DO
           END SELECT
        END DO
@@ -907,20 +953,22 @@ CONTAINS
     CASE(2,7)
        ndata=nplot_max
        IF(ALLOCATED(fg)) DEALLOCATE(fg)
-       ALLOCATE(fg(ndate_max,ndata))
+       ALLOCATE(fg(ncount_max,ndata))
        DO nplot=1,nplot_max
           ncountry=ncountry_nplot(nplot)
           SELECT CASE(id)
           CASE(2)
-             DO ndate=1,ndate_max
-                fg(ndate,nplot)=ndeaths_total_ndate_ncountry(ndate,ncountry) &
+             DO ncount=1,ncount_max
+                ndate=ndate_min_g+ncount-1
+                fg(ncount,nplot)=ndeaths_total_ndate_ncountry(ndate,ncountry) &
                      /population_ncountry(ncountry)
              END DO
           CASE(7)
-             DO ndate=1,ndate_max
+             DO ncount=1,ncount_max
+                ndate=ndate_min_g+ncount-1
                 rdeaths=ndeaths_total_ndate_ncountry(ndate,ncountry) &
                      /population_ncountry(ncountry)
-                fg(ndate,nplot)=LOG10(MAX(deaths_rate_log_min,rdeaths))
+                fg(ncount,nplot)=LOG10(MAX(deaths_rate_log_min,rdeaths))
              END DO
           END SELECT
        END DO
@@ -943,48 +991,56 @@ CONTAINS
        IF(nplot_max.EQ.1) THEN
           ndata=2
           IF(ALLOCATED(fg)) DEALLOCATE(fg)
-          ALLOCATE(fg(ndate_max,ndata))
+          ALLOCATE(fg(ncount_max,ndata))
           ncountry=ncountry_nplot(1)
           SELECT CASE(id)
           CASE(3)
-             DO ndate=1,ndays_ave-1
-                fg(ndate,1)=ncases_new_ndate_ncountry(ndate,ncountry) &
+             IF(ndate_min_g.LE.ndays_ave-1) THEN
+                DO ncount=1,ndays_ave-ndate_min_g
+                   ndate=ncount+ndate_min_g-1
+                   fg(ncount,1)=ncases_new_ndate_ncountry(ndate,ncountry) &
                      /population_ncountry(ncountry)
-                fg(ndate,2)=0.D0
-             END DO
-             DO ndate=ndays_ave,ndate_max
-                fg(ndate,1)=ncases_new_ndate_ncountry(ndate,ncountry) &
+                   fg(ncount,2)=0.D0
+                END DO
+             END IF
+             DO ncount=MAX(1,ndays_ave-ndate_min_g+1),ncount_max
+                ndate=ncount+ndate_min_g-1
+                fg(ncount,1)=ncases_new_ndate_ncountry(ndate,ncountry) &
                      /population_ncountry(ncountry)
-                fg(ndate,2)=0.D0
+                fg(ncount,2)=0.D0
                 DO ndate_ave=ndate-ndays_ave+1,ndate
-                   fg(ndate,2)=fg(ndate,2) &
+                   fg(ncount,2)=fg(ncount,2) &
                         +ncases_new_ndate_ncountry(ndate_ave,ncountry)
                 END DO
-                fg(ndate,2)=fg(ndate,2)/ndays_ave &
+                fg(ncount,2)=fg(ncount,2)/ndays_ave &
                      /population_ncountry(ncountry)
              END DO
           CASE(8)
-             DO ndate=1,ndays_ave-1
+             IF(ndate_min_g.LE.ndays_ave-1) THEN
+                DO ncount=1,ndays_ave-ndate_min_g
+                   ndate=ncount+ndate_min_g-1
+                   rcases=ncases_new_ndate_ncountry(ndate,ncountry) &
+                        /population_ncountry(ncountry)
+                   fg(ncount,1)=LOG10(MAX(ratio_new_total_log_min &
+                                         *cases_rate_log_min,rcases))
+                   fg(ncount,2)=LOG10(ratio_new_total_log_min &
+                                         *cases_rate_log_min)
+                END DO
+             END IF
+             DO ncount=MAX(1,ndays_ave-ndate_min_g+1),ncount_max
+                ndate=ncount+ndate_min_g-1
                 rcases=ncases_new_ndate_ncountry(ndate,ncountry) &
                      /population_ncountry(ncountry)
-                fg(ndate,1)=LOG10(MAX(ratio_new_total_log_min &
-                                     *cases_rate_log_min,rcases))
-                fg(ndate,2)=LOG10(ratio_new_total_log_min &
-                                 *cases_rate_log_min)
-             END DO
-             DO ndate=ndays_ave,ndate_max
-                rcases=ncases_new_ndate_ncountry(ndate,ncountry) &
-                     /population_ncountry(ncountry)
-                fg(ndate,1)=LOG10(MAX(ratio_new_total_log_min &
-                                     *cases_rate_log_min,rcases))
+                fg(ncount,1)=LOG10(MAX(ratio_new_total_log_min &
+                                      *cases_rate_log_min,rcases))
                 rcases=0.D0
                 DO ndate_ave=ndate-ndays_ave+1,ndate
                    rcases=rcases &
                         +ncases_new_ndate_ncountry(ndate_ave,ncountry)
                 END DO
                 rcases=rcases/population_ncountry(ncountry)
-                fg(ndate,2)=LOG10(MAX(ratio_new_total_log_min &
-                                     *cases_rate_log_min,rcases/ndays_ave))
+                fg(ncount,2)=LOG10(MAX(ratio_new_total_log_min &
+                                      *cases_rate_log_min,rcases/ndays_ave))
              END DO
           END SELECT
           title='@'//country_id_ncountry(ncountry)//': '// &
@@ -994,41 +1050,47 @@ CONTAINS
        ELSE
           ndata=nplot_max
           IF(ALLOCATED(fg)) DEALLOCATE(fg)
-          ALLOCATE(fg(ndate_max,ndata))
+          ALLOCATE(fg(ncount_max,ndata))
           SELECT CASE(id)
           CASE(3)
              DO nplot=1,nplot_max
                 ncountry=ncountry_nplot(nplot)
-                DO ndate=1,ndays_ave-1
-                   fg(ndate,nplot)=0.D0
-                END DO
-                DO ndate=ndays_ave,ndate_max
-                   fg(ndate,nplot)=0.D0
+                IF(ndate_min_g.LE.ndays_ave-1) THEN
+                   DO ncount=1,ndays_ave-ndate_min_g
+                      fg(ncount,nplot)=0.D0
+                   END DO
+                END IF
+                DO ncount=MAX(1,ndays_ave-ndate_min_g+1),ncount_max
+                   ndate=ncount+ndate_min_g-1
+                   fg(ncount,nplot)=0.D0
                    DO ndate_ave=ndate-ndays_ave+1,ndate
-                      fg(ndate,nplot)=fg(ndate,nplot) &
+                      fg(ncount,nplot)=fg(ncount,nplot) &
                            +ncases_new_ndate_ncountry(ndate_ave,ncountry)
                    END DO
-                   fg(ndate,nplot)=fg(ndate,nplot)/ndays_ave &
+                   fg(ncount,nplot)=fg(ncount,nplot)/ndays_ave &
                         /population_ncountry(ncountry)
                 END DO
              END DO
           CASE(8)
              DO nplot=1,nplot_max
                 ncountry=ncountry_nplot(nplot)
-                DO ndate=1,ndays_ave-1
-                   fg(ndate,nplot)=LOG10(ratio_new_total_log_min &
-                                        *cases_rate_log_min)
-                END DO
-                DO ndate=ndays_ave,ndate_max
+                IF(ndate_min_g.LE.ndays_ave-1) THEN
+                   DO ncount=1,ndays_ave-ndate_min_g
+                      fg(ncount,nplot)=LOG10(ratio_new_total_log_min &
+                                            *cases_rate_log_min)
+                   END DO
+                END IF
+                DO ncount=MAX(1,ndays_ave-ndate_min_g+1),ncount_max
+                   ndate=ncount+ndate_min_g-1
                    rcases=0.D0
                    DO ndate_ave=ndate-ndays_ave+1,ndate
                       rcases=rcases &
                            +ncases_new_ndate_ncountry(ndate_ave,ncountry)
                    END DO
                    rcases=rcases/population_ncountry(ncountry)
-                   fg(ndate,nplot)=LOG10(MAX(ratio_new_total_log_min &
-                                            *cases_rate_log_min,rcases &
-                                            /ndays_ave))
+                   fg(ncount,nplot)=LOG10(MAX(ratio_new_total_log_min &
+                                             *cases_rate_log_min,rcases &
+                                             /ndays_ave))
                 END DO
              END DO
           END SELECT
@@ -1044,49 +1106,56 @@ CONTAINS
        IF(nplot_max.EQ.1) THEN
           ndata=2
           IF(ALLOCATED(fg)) DEALLOCATE(fg)
-          ALLOCATE(fg(ndate_max,ndata))
+          ALLOCATE(fg(ncount_max,ndata))
           ncountry=ncountry_nplot(1)
           SELECT CASE(id)
           CASE(4)
-             DO ndate=1,ndays_ave-1
-                fg(ndate,1)=ndeaths_new_ndate_ncountry(ndate,ncountry) &
+             IF(ndate_min_g.LE.ndays_ave-1) THEN
+                DO ncount=1,ndays_ave-ndate_min_g
+                   ndate=ncount+ndate_min_g-1
+                   fg(ncount,1)=ndeaths_new_ndate_ncountry(ndate,ncountry) &
                      /population_ncountry(ncountry)
-                fg(ndate,2)=0.D0
-             END DO
-             DO ndate=ndays_ave,ndate_max
-                fg(ndate,1)=ndeaths_new_ndate_ncountry(ndate,ncountry) &
+                   fg(ncount,2)=0.D0
+                END DO
+             END IF
+             DO ncount=MAX(1,ndays_ave-ndate_min_g+1),ncount_max
+                ndate=ncount+ndate_min_g-1
+                fg(ncount,1)=ndeaths_new_ndate_ncountry(ndate,ncountry) &
                      /population_ncountry(ncountry)
-                fg(ndate,2)=0.D0
+                fg(ncount,2)=0.D0
                 DO ndate_ave=ndate-ndays_ave+1,ndate
-                   fg(ndate,2)=fg(ndate,2) &
+                   fg(ncount,2)=fg(ncount,2) &
                         +ndeaths_new_ndate_ncountry(ndate_ave,ncountry)
                 END DO
-                fg(ndate,2)=fg(ndate,2)/ndays_ave &
+                fg(ncount,2)=fg(ncount,2)/ndays_ave &
                      /population_ncountry(ncountry)
              END DO
           CASE(9)
-             DO ndate=1,ndays_ave-1
+             IF(ndate_min_g.LE.ndays_ave-1) THEN
+                DO ncount=1,ndays_ave-ndate_min_g
+                   ndate=ncount+ndate_min_g-1
+                   rdeaths=ndeaths_new_ndate_ncountry(ndate,ncountry) &
+                     /population_ncountry(ncountry)
+                   fg(ncount,1)=LOG10(MAX(ratio_new_total_log_min &
+                                         *deaths_rate_log_min,rdeaths))
+                   fg(ncount,2)=LOG10(ratio_new_total_log_min &
+                                         *deaths_rate_log_min)
+                END DO
+             END IF
+             DO ncount=MAX(1,ndays_ave-ndate_min_g+1),ncount_max
+                ndate=ncount+ndate_min_g-1
                 rdeaths=ndeaths_new_ndate_ncountry(ndate,ncountry) &
                      /population_ncountry(ncountry)
-                fg(ndate,1)=LOG10(MAX(ratio_new_total_log_min &
-                                     *deaths_rate_log_min,rdeaths))
-                fg(ndate,2)=LOG10(ratio_new_total_log_min &
-                                 *deaths_rate_log_min)
-             END DO
-             DO ndate=ndays_ave,ndate_max
-                rdeaths=ndeaths_new_ndate_ncountry(ndate,ncountry) &
-                     /population_ncountry(ncountry)
-                fg(ndate,1)=LOG10(MAX(ratio_new_total_log_min &
-                                     *deaths_rate_log_min,rdeaths))
+                fg(ncount,1)=LOG10(MAX(ratio_new_total_log_min &
+                                      *deaths_rate_log_min,rdeaths))
                 rdeaths=0.D0
                 DO ndate_ave=ndate-ndays_ave+1,ndate
                    rdeaths=rdeaths &
                         +ndeaths_new_ndate_ncountry(ndate_ave,ncountry)
                 END DO
                 rdeaths=rdeaths/population_ncountry(ncountry)
-                fg(ndate,2)=LOG10(MAX(ratio_new_total_log_min &
-                                     *deaths_rate_log_min,rdeaths &
-                                     /ndays_ave))
+                fg(ncount,2)=LOG10(MAX(ratio_new_total_log_min &
+                                      *deaths_rate_log_min,rdeaths/ndays_ave))
              END DO
           END SELECT
           title='@'//country_id_ncountry(ncountry)//': '// &
@@ -1096,41 +1165,47 @@ CONTAINS
        ELSE
           ndata=nplot_max
           IF(ALLOCATED(fg)) DEALLOCATE(fg)
-          ALLOCATE(fg(ndate_max,ndata))
+          ALLOCATE(fg(ncount_max,ndata))
           SELECT CASE(id)
           CASE(4)
              DO nplot=1,nplot_max
                 ncountry=ncountry_nplot(nplot)
-                DO ndate=1,ndays_ave-1
-                   fg(ndate,nplot)=0.D0
-                END DO
-                DO ndate=ndays_ave,ndate_max
-                   fg(ndate,nplot)=0.D0
+                IF(ndate_min_g.LE.ndays_ave-1) THEN
+                   DO ncount=1,ndays_ave-ndate_min_g
+                      fg(ncount,nplot)=0.D0
+                   END DO
+                END IF
+                DO ncount=MAX(1,ndays_ave-ndate_min_g+1),ncount_max
+                   ndate=ncount+ndate_min_g-1
+                   fg(ncount,nplot)=0.D0
                    DO ndate_ave=ndate-ndays_ave+1,ndate
-                      fg(ndate,nplot)=fg(ndate,nplot) &
+                      fg(ncount,nplot)=fg(ncount,nplot) &
                            +ndeaths_new_ndate_ncountry(ndate_ave,ncountry)
                    END DO
-                   fg(ndate,nplot)=fg(ndate,nplot)/ndays_ave &
+                   fg(ncount,nplot)=fg(ncount,nplot)/ndays_ave &
                         /population_ncountry(ncountry)
                 END DO
              END DO
           CASE(9)
              DO nplot=1,nplot_max
                 ncountry=ncountry_nplot(nplot)
-                DO ndate=1,ndays_ave-1
-                   fg(ndate,nplot)=LOG10(ratio_new_total_log_min &
-                                         *deaths_rate_log_min)
-                END DO
-                DO ndate=ndays_ave,ndate_max
+                IF(ndate_min_g.LE.ndays_ave-1) THEN
+                   DO ncount=1,ndays_ave-ndate_min_g
+                      fg(ncount,nplot)=LOG10(ratio_new_total_log_min &
+                                            *deaths_rate_log_min)
+                   END DO
+                END IF
+                DO ncount=MAX(1,ndays_ave-ndate_min_g+1),ncount_max
+                   ndate=ncount+ndate_min_g-1
                    rdeaths=0.D0
                    DO ndate_ave=ndate-ndays_ave+1,ndate
                       rdeaths=rdeaths &
                            +ndeaths_new_ndate_ncountry(ndate_ave,ncountry)
                    END DO
                    rdeaths=rdeaths/population_ncountry(ncountry)
-                   fg(ndate,nplot)=LOG10(MAX(ratio_new_total_log_min &
-                                            *deaths_rate_log_min,rdeaths &
-                                            /ndays_ave))
+                   fg(ncount,nplot)=LOG10(MAX(ratio_new_total_log_min &
+                                             *deaths_rate_log_min,rdeaths &
+                                             /ndays_ave))
                 END DO
              END DO
           END SELECT
@@ -1157,15 +1232,16 @@ CONTAINS
     INTEGER,INTENT(IN):: id,nplot_max
     INTEGER,INTENT(IN):: ncountry_nplot(nplot_max)
 
-    REAL(dp):: xg(ndate_max)
     REAL(dp),ALLOCATABLE:: fg(:,:,:)
-    INTEGER,ALLOCATABLE:: ndate_maxa(:)
-    INTEGER:: ndata,ndate,ngid
+    INTEGER,ALLOCATABLE:: ncount_maxa(:)
+    INTEGER:: ndata,ndate,ngid,ncount,ncount_max
     CHARACTER(LEN=80):: title
 
     
-    ALLOCATE(ndate_maxa(nplot_max))
-    ndate_maxa(1:nplot_max)=ndate_max
+    ncount_max=ndate_max_g-ndate_min_g+1
+
+    ALLOCATE(ncount_maxa(nplot_max))
+    ncount_maxa(1:nplot_max)=ncount_max
 
     CALL PAGES
     SELECT CASE(id)
@@ -1173,7 +1249,7 @@ CONTAINS
        ngid=1
        IF(id.EQ.31) ngid=0
        CALL cv_gsub31(1,ncountry_nplot,nplot_max,fg,title,ndata)
-       CALL grdxy(ngid,fg,2,ndate_max,ndate_maxa,ndata,title, &
+       CALL grdxy(ngid,fg,2,ncount_max,ncount_maxa,ndata,title, &
                   XMIN=2.477D0,XMAX=7.D0,YMIN=1.D0,YMAX=5.477D0, &
                   ASPECT=1.D0,XSCALE_ZERO=0,YSCALE_ZERO=0,MODE_LS=3, &
                   XGRID_LTYPE=1,YGRID_LTYPE=1, &
@@ -1187,7 +1263,7 @@ CONTAINS
        ngid=2
        IF(id.EQ.32) ngid=0
        CALL cv_gsub31(2,ncountry_nplot,nplot_max,fg,title,ndata)
-       CALL grdxy(ngid,fg,2,ndate_max,ndate_maxa,ndata,title, &
+       CALL grdxy(ngid,fg,2,ncount_max,ncount_maxa,ndata,title, &
                   XMIN=0.477D0,XMAX=4.477D0,YMIN=-0.523D0,YMAX=3.477D0, &
                   ASPECT=1.D0,XSCALE_ZERO=0,YSCALE_ZERO=0,MODE_LS=3, &
                   XGRID_LTYPE=1,YGRID_LTYPE=1, &
@@ -1201,7 +1277,7 @@ CONTAINS
        ngid=3
        IF(id.EQ.33) ngid=0
        CALL cv_gsub31(3,ncountry_nplot,nplot_max,fg,title,ndata)
-       CALL grdxy(ngid,fg,2,ndate_max,ndate_maxa,ndata,title, &
+       CALL grdxy(ngid,fg,2,ncount_max,ncount_maxa,ndata,title, &
                   XMIN=LOG10(cases_number_log_min), &
                   YMIN=LOG10(deaths_number_log_min), &
                   ASPECT=0.D0,XSCALE_ZERO=0,YSCALE_ZERO=0,MODE_LS=3, &
@@ -1216,7 +1292,7 @@ CONTAINS
        ngid=4
        IF(id.EQ.34) ngid=0
        CALL cv_gsub31(4,ncountry_nplot,nplot_max,fg,title,ndata)
-       CALL grdxy(ngid,fg,2,ndate_max,ndate_maxa,ndata,title, &
+       CALL grdxy(ngid,fg,2,ncount_max,ncount_maxa,ndata,title, &
                   XMIN=LOG10(cases_rate_log_min), &
                   YMIN=LOG10(deaths_rate_log_min), &
                   ASPECT=0.D0,XSCALE_ZERO=0,YSCALE_ZERO=0,MODE_LS=3, &
@@ -1241,21 +1317,24 @@ CONTAINS
     REAL(dp),ALLOCATABLE,INTENT(OUT):: fg(:,:,:)
     CHARACTER(LEN=80),INTENT(OUT):: title
     INTEGER,INTENT(OUT):: ndata
-    INTEGER:: ndate,nplot,ncountry
+    INTEGER:: ndate,nplot,ncountry,ncount,ncount_max
     REAL(dp):: rcases,rdeaths
+
+    ncount_max=ndate_max_g-ndate_min_g+1
 
     SELECT CASE(id)
     CASE(1,3)
        ndata=nplot_max
        IF(ALLOCATED(fg)) DEALLOCATE(fg)
-       ALLOCATE(fg(2,ndate_max,nplot_max))
+       ALLOCATE(fg(2,ncount_max,nplot_max))
        DO nplot=1,nplot_max
           ncountry=ncountry_nplot(nplot)
-          DO ndate=1,ndate_max
+          DO ncount=1,ncount_max
+             ndate=ncount+ndate_min_g-1
              rcases=DBLE(ncases_total_ndate_ncountry(ndate,ncountry))
              rdeaths=DBLE(ndeaths_total_ndate_ncountry(ndate,ncountry))
-             fg(1,ndate,nplot)=LOG10(MAX(cases_number_log_min,rcases))
-             fg(2,ndate,nplot)=LOG10(MAX(deaths_number_log_min,rdeaths))
+             fg(1,ncount,nplot)=LOG10(MAX(cases_number_log_min,rcases))
+             fg(2,ncount,nplot)=LOG10(MAX(deaths_number_log_min,rdeaths))
           END DO
        END DO
        title=''
@@ -1268,16 +1347,17 @@ CONTAINS
     CASE(2,4)
        ndata=nplot_max
        IF(ALLOCATED(fg)) DEALLOCATE(fg)
-       ALLOCATE(fg(2,ndate_max,nplot_max))
+       ALLOCATE(fg(2,ncount_max,nplot_max))
        DO nplot=1,nplot_max
           ncountry=ncountry_nplot(nplot)
-          DO ndate=1,ndate_max
+          DO ncount=1,ncount_max
+             ndate=ncount+ndate_min_g-1
              rcases=DBLE(ncases_total_ndate_ncountry(ndate,ncountry)) &
                   /population_ncountry(ncountry)
              rdeaths=DBLE(ndeaths_total_ndate_ncountry(ndate,ncountry)) &
                   /population_ncountry(ncountry)
-             fg(1,ndate,nplot)=LOG10(MAX(cases_rate_log_min,rcases))
-             fg(2,ndate,nplot)=LOG10(MAX(deaths_rate_log_min,rdeaths))
+             fg(1,ncount,nplot)=LOG10(MAX(cases_rate_log_min,rcases))
+             fg(2,ncount,nplot)=LOG10(MAX(deaths_rate_log_min,rdeaths))
           END DO
        END DO
        title=''
@@ -1302,10 +1382,9 @@ CONTAINS
     INTEGER,INTENT(IN):: id,nplot_max
     INTEGER,INTENT(IN):: ncountry_nplot(nplot_max)
 
-    REAL(dp):: xg(ndate_max)
     REAL(dp),ALLOCATABLE:: fg(:,:,:)
-    INTEGER,ALLOCATABLE:: ndate_maxa(:)
-    INTEGER:: ndata,ndate,ngid,mode_2d
+    INTEGER,ALLOCATABLE:: ncount_maxa(:)
+    INTEGER:: ndata,ndate,ngid,ncount,ncount_max,mode_2d
     CHARACTER(LEN=80):: title
 
     IF(nplot_max.EQ.1) THEN
@@ -1314,8 +1393,10 @@ CONTAINS
        mode_2d=21
     END IF
     
-    ALLOCATE(ndate_maxa(nplot_max))
-    ndate_maxa(1:nplot_max)=ndate_max
+    ncount_max=ndate_max_g-ndate_min_g+1
+
+    ALLOCATE(ncount_maxa(nplot_max))
+    ncount_maxa(1:nplot_max)=ncount_max
 
     CALL PAGES
     SELECT CASE(id)
@@ -1323,7 +1404,7 @@ CONTAINS
        ngid=1
        IF(id.EQ.41) ngid=0
        CALL cv_gsub41(1,ncountry_nplot,nplot_max,fg,title,ndata)
-       CALL grdxy(ngid,fg,2,ndate_max,ndate_maxa,ndata,title, &
+       CALL grdxy(ngid,fg,2,ncount_max,ncount_maxa,ndata,title, &
                   XMIN=0.D0,XMAX=5.D0,YMIN=-1.D0,YMAX=4.D0, &
                   ASPECT=1.D0,XSCALE_ZERO=0,YSCALE_ZERO=0,MODE_LS=3, &
                   XGRID_LTYPE=1,YGRID_LTYPE=1, &
@@ -1337,7 +1418,7 @@ CONTAINS
        ngid=2
        IF(id.EQ.42) ngid=0
        CALL cv_gsub41(2,ncountry_nplot,nplot_max,fg,title,ndata)
-       CALL grdxy(ngid,fg,2,ndate_max,ndate_maxa,ndata,title, &
+       CALL grdxy(ngid,fg,2,ncount_max,ncount_maxa,ndata,title, &
                   XMIN=-2.D0,XMAX=3.D0,YMIN=-3.D0,YMAX=2.D0, &
                   ASPECT=1.D0,XSCALE_ZERO=0,YSCALE_ZERO=0,MODE_LS=3, &
                   XGRID_LTYPE=1,YGRID_LTYPE=1, &
@@ -1351,7 +1432,7 @@ CONTAINS
        ngid=3
        IF(id.EQ.43) ngid=0
        CALL cv_gsub41(3,ncountry_nplot,nplot_max,fg,title,ndata)
-       CALL grdxy(ngid,fg,2,ndate_max,ndate_maxa,ndata,title, &
+       CALL grdxy(ngid,fg,2,ncount_max,ncount_maxa,ndata,title, &
                   XMIN=LOG10(ratio_new_total_log_min*cases_number_log_min), &
                   YMIN=LOG10(ratio_new_total_log_min*deaths_number_log_min), &
                   ASPECT=0.D0,XSCALE_ZERO=0,YSCALE_ZERO=0,MODE_LS=3, &
@@ -1366,7 +1447,7 @@ CONTAINS
        ngid=4
        IF(id.EQ.44) ngid=0
        CALL cv_gsub41(4,ncountry_nplot,nplot_max,fg,title,ndata)
-       CALL grdxy(ngid,fg,2,ndate_max,ndate_maxa,ndata,title, &
+       CALL grdxy(ngid,fg,2,ncount_max,ncount_maxa,ndata,title, &
                   XMIN=LOG10(ratio_new_total_log_min*cases_rate_log_min), &
                   YMIN=LOG10(ratio_new_total_log_min*deaths_rate_log_min), &
                   ASPECT=0.D0,XSCALE_ZERO=0,YSCALE_ZERO=0,MODE_LS=3, &
@@ -1391,23 +1472,29 @@ CONTAINS
     REAL(dp),ALLOCATABLE,INTENT(OUT):: fg(:,:,:)
     CHARACTER(LEN=80),INTENT(OUT):: title
     INTEGER,INTENT(OUT):: ndata
-    INTEGER:: ndate,nplot,ncountry,ndate_ave
+    INTEGER:: ndate,nplot,ncountry,ndate_ave,ncount,ncount_max
     REAL(dp):: rcases,rdeaths
+
+    ncount_max=ndate_max_g-ndate_min_g+1
 
     SELECT CASE(id)
     CASE(1,3)
        ndata=nplot_max
        IF(ALLOCATED(fg)) DEALLOCATE(fg)
-       ALLOCATE(fg(2,ndate_max,nplot_max))
+       ALLOCATE(fg(2,ncount_max,nplot_max))
        DO nplot=1,nplot_max
           ncountry=ncountry_nplot(nplot)
-          DO ndate=1,ndays_ave-1
-             fg(1,ndate,nplot)=LOG10(ratio_new_total_log_min &
-                                    *cases_number_log_min)
-             fg(2,ndate,nplot)=LOG10(ratio_new_total_log_min &
-                                    *deaths_number_log_min)
-          END DO
-          DO ndate=ndays_ave,ndate_max
+          IF(ndate_min_g.LE.ndays_ave-1) THEN
+             DO ncount=1,ndays_ave-ndate_min_g
+                ndate=ncount+ndate_min_g-1
+                fg(1,ncount,nplot)=LOG10(ratio_new_total_log_min &
+                                        *cases_number_log_min)
+                fg(2,ncount,nplot)=LOG10(ratio_new_total_log_min &
+                                       *deaths_number_log_min)
+             END DO
+          END IF
+          DO ncount=MAX(1,ndays_ave-ndate_min_g+1),ncount_max
+             ndate=ncount+ndate_min_g-1
              rcases=0.D0
              rdeaths=0.D0
              DO ndate_ave=ndate-ndays_ave+1,ndate
@@ -1418,10 +1505,10 @@ CONTAINS
              END DO
              rcases=rcases/ndays_ave
              rdeaths=rdeaths/ndays_ave
-             fg(1,ndate,nplot)=LOG10(MAX(ratio_new_total_log_min &
-                                        *cases_number_log_min,rcases))
-             fg(2,ndate,nplot)=LOG10(MAX(ratio_new_total_log_min &
-                                        *deaths_number_log_min,rdeaths))
+             fg(1,ncount,nplot)=LOG10(MAX(ratio_new_total_log_min &
+                                         *cases_number_log_min,rcases))
+             fg(2,ncount,nplot)=LOG10(MAX(ratio_new_total_log_min &
+                                         *deaths_number_log_min,rdeaths))
           END DO
        END DO
        title=''
@@ -1434,16 +1521,20 @@ CONTAINS
     CASE(2,4)
        ndata=nplot_max
        IF(ALLOCATED(fg)) DEALLOCATE(fg)
-       ALLOCATE(fg(2,ndate_max,nplot_max))
+       ALLOCATE(fg(2,ncount_max,nplot_max))
        DO nplot=1,nplot_max
           ncountry=ncountry_nplot(nplot)
-          DO ndate=1,ndays_ave-1
-             fg(1,ndate,nplot)=LOG10(ratio_new_total_log_min &
-                                    *cases_rate_log_min)
-             fg(2,ndate,nplot)=LOG10(ratio_new_total_log_min &
-                                    *deaths_rate_log_min)
-          END DO
-          DO ndate=ndays_ave,ndate_max
+          IF(ndate_min_g.LE.ndays_ave-1) THEN
+             DO ncount=1,ndays_ave-ndate_min_g
+                ndate=ncount+ndate_min_g-1
+                fg(1,ncount,nplot)=LOG10(ratio_new_total_log_min &
+                                        *cases_rate_log_min)
+                fg(2,ncount,nplot)=LOG10(ratio_new_total_log_min &
+                                        *deaths_rate_log_min)
+             END DO
+          END IF
+          DO ncount=MAX(1,ndays_ave-ndate_min_g+1),ncount_max
+             ndate=ncount+ndate_min_g-1
              rcases=0.D0
              rdeaths=0.D0
              DO ndate_ave=ndate-ndays_ave+1,ndate
@@ -1454,10 +1545,10 @@ CONTAINS
              END DO
              rcases=rcases/(population_ncountry(ncountry)*ndays_ave)
              rdeaths=rdeaths/(population_ncountry(ncountry)*ndays_ave)
-             fg(1,ndate,nplot)=LOG10(MAX(ratio_new_total_log_min &
-                                        *cases_rate_log_min,rcases))
-             fg(2,ndate,nplot)=LOG10(MAX(ratio_new_total_log_min &
-                                        *deaths_rate_log_min,rdeaths))
+             fg(1,ncount,nplot)=LOG10(MAX(ratio_new_total_log_min &
+                                         *cases_rate_log_min,rcases))
+             fg(2,ncount,nplot)=LOG10(MAX(ratio_new_total_log_min &
+                                         *deaths_rate_log_min,rdeaths))
           END DO
        END DO
        title=''

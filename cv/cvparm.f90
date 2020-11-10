@@ -59,7 +59,7 @@ CONTAINS
          knam_cv_select,knam_cv_population, &
          ndate_step_global,ndate_step_region,ndate_step_select, &
          ndate_start_global,ndate_start_region,ndate_start_select, &
-         ndays_ave, &
+         ndays_ave,ndate_min_g,ndate_max_g, &
          cases_number_log_min,deaths_number_log_min, &
          cases_rate_log_min,deaths_rate_log_min, &
          ratio_new_total_log_min, &
@@ -90,7 +90,7 @@ CONTAINS
          '        knam_cv_select,knam_cv_population', &
          '        ndate_step_global,ndate_step_region,ndate_step_select', &
          '        ndate_start_global,ndate_star_region,ndate_start_select', &
-         '        ndays_ave', &
+         '        ndays_ave,ndate_min_g,ndate_max_g,', &
          '        cases_number_log_min,deaths_number_log_min', &
          '        cases_rate_log_min,deaths_rate_log_min', &
          '        ratio_new_total_log_min,', &
@@ -102,7 +102,7 @@ CONTAINS
 
   SUBROUTINE cv_chek(ierr)
 
-    USE cvcomm_parm
+    USE cvcomm
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
 
@@ -115,7 +115,8 @@ CONTAINS
     IF(ndate_start_region.LE.0) ndate_start_region=1
     IF(ndate_start_select.LE.0) ndate_start_select=1
     IF(nrank_max.LE.0) nrank_max=12
-
+    IF(ndate_min_g.LE.0) ndate_min_g=1
+    IF(ndate_max_g.GT.MAX(1,ndate_max)) ndate_max_g=MAX(1,ndate_max)
     RETURN
   END SUBROUTINE cv_chek
 END MODULE cvparm

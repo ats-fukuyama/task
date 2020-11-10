@@ -35,7 +35,7 @@ CONTAINS
     REAL(rkind):: RX,RY,RZ,Y1,Y2,VAL1,VAL2,Y0,RF,RFI,V
     REAL(rkind):: RHON,WC,WP2,VA,VT,XN,YN,YNI
     COMPLEX(rkind):: CRF,CKX,CKY,CKZ,CD,CD0,CD1
-    REAL(4):: GUCLIP,F,Gfactor
+    REAL(4):: GUCLIP,F
     REAL(4):: GXMIN,GXMAX,GYMIN,GYMAX,GXSMN,GXSMX,GSCALX,GYSMN,GYSMX,GSCALY
     INTEGER:: ncount,ncount_max
     REAL(rkind):: vmin,vmax
@@ -324,11 +324,11 @@ CONTAINS
                END IF
                RF=DBLE(CRF)
                RFI=AIMAG(CRF)
-               IF(INFO.GE.1.AND.INFO.LE.3.AND. &
-                    RF.GE.YMIN.AND.RF.LE.YMAX.AND. &
-                    ABS(CD1).LE.EPSDP.AND. &
-                    RFI.GT.-EPSRF*ABS(RF)) THEN
-                  ncount=ncount+1
+               IF(INFO.GE.1.AND.INFO.LE.3.AND. &     ! converged
+                    RF.GE.YMIN.AND.RF.LE.YMAX.AND. & ! not out-of-range
+                    ABS(CD1).LE.EPSDP.AND. &         ! small residue
+                    RFI*RFNORM(NX).GT.-EPSRF) THEN   ! not strong damping
+                  ncount=ncount+1                    ! these data are saved
                   NXA(ncount)=NX
                   XA(ncount)=X
                   RFA(ncount)=RF
@@ -376,7 +376,9 @@ CONTAINS
                  X,RF,RFI,XN,YN,YNI,INFO,CD1
          END DO
       END IF
-      
+
+      SELECT CASE(NID)
+      CASE(4,5)
          CALL PAGES
          CALL SETLIN(0,0,7)
          CALL SETCHS(0.3,0.)
@@ -407,9 +409,8 @@ CONTAINS
                f=GUCLIP(MIN(v/vmax,1.D0))
                CALL SETRGB(1.0,0.8*(1.0-f),0.0) ! 0 to 1: yellow to red
             ELSE
-!               f=GUCLIP(MIN(-v/vmax,1.D0))
-               f=GUCLIP(MIN(-v/EPSRF,1.D0))
-               CALL SETRGB(0.0,0.8*(1.0-f),1.0)   ! 0 to -1: green to blue
+               f=GUCLIP(MIN(-v/MIN(vmax,EPSRF),1.D0))
+               CALL SETRGB(0.0,0.5*(1.0-f),1.0)   ! 0 to -1: green to blue
             END IF
 
             SELECT CASE(KID)
@@ -423,17 +424,13 @@ CONTAINS
                YNI=RFI*RFNORM(NX)
             END SELECT
 
-            IF(XN.GT.1900.D0.AND.XN.LT.2000.D0.AND. &
-                 YN.GT.4.5D0.AND.YN.LT.5.5D0) &
-               WRITE(6,'(A,I6,3ES12.4)') 'ncount:',ncount,X,RF,RFI
-                  
             CALL MARK2D(GUCLIP(XN),GUCLIP(YN))
          END DO
       
          CALL DP_CONT4_PARM(KID,vmin,vmax,RFNORM(1),RKNORM(1))
          CALL PAGEE
 
-      IF(NID.EQ.6) THEN
+      CASE(6)
          CALL PAGES
          CALL SETLIN(0,0,7)
          CALL SETCHS(0.3,0.)
@@ -449,7 +446,6 @@ CONTAINS
          CALL GVALUE(GXSMN,2*GSCALX,0.0,0.0,NGULEN(2*GSCALX))
          CALL GVALUE(0.0,0.0,GYSMN,2*GSCALY,NGULEN(2*GSCALY))
 
-         Gfactor=0.05*(GYSMX-GYSMN)
          DO ncount=1,ncount_max
             NX=NXA(ncount)
             X=XA(ncount)
@@ -470,17 +466,17 @@ CONTAINS
             v=RFI/RF
             IF(v.GT.0.D0) THEN
                f=GUCLIP(MIN(v/vmax,1.D0))
-               CALL SETRGB(1.0,0.7*(1.0-f),0.0) ! 0 to 1: yellow to red
+               CALL SETRGB(1.0,0.8*(1.0-f),0.0) ! 0 to 1: yellow to red
             ELSE
-               f=GUCLIP(MIN(-v/EPSRF,1.D0))
-               CALL SETRGB(0.0,0.7*(1.0-f),1.0)   ! 0 to -1: green to blue
+               f=GUCLIP(MIN(-v/MIN(vmax,EPSRF),1.D0))
+               CALL SETRGB(0.0,0.5*(1.0-f),1.0)   ! 0 to -1: green to blue
             END IF
 
-            CALL MARK2D(GUCLIP(XN),GUCLIP(YN+Gfactor*v/vmax))
+            CALL MARK2D(GUCLIP(XN),GUCLIP(YN+RFI*RFNORM(NX)))
          END DO
          CALL DP_CONT4_PARM(KID,vmin,vmax,RFNORM(1),RKNORM(1))
          CALL PAGEE
-      END IF
+      END SELECT
 
       DEALLOCATE(NXA,XA,RFA,RFIA)
       DEALLOCATE(GX,GY,GZ,Z,KA,RFNORM,RKNORM)

@@ -205,10 +205,10 @@ CONTAINS
        END DO
     ENDDO
 
-    WRITE(29,'(A)') 'ncount_max_nxzone_nyzone(nx,ny)'
-    WRITE(29,'(3I5)') &
-         ((nx,ny,ncount_max_nxzone_nyzone(nx,ny), &
-         ny=1,nyzone_max),nx=1,nxzone_max)
+!    WRITE(29,'(A)') 'ncount_max_nxzone_nyzone(nx,ny)'
+!    WRITE(29,'(3I5)') &
+!         ((nx,ny,ncount_max_nxzone_nyzone(nx,ny), &
+!         ny=1,nyzone_max),nx=1,nxzone_max)
 
     ! Set nelm of elements in a zone
 

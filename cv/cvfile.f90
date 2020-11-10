@@ -200,6 +200,7 @@ CONTAINS
           RETURN
        END IF
     END DO
+    ndate_max_g=ndate_max
     IF(ALLOCATED(date_id_ndate)) DEALLOCATE(date_id_ndate)
     ALLOCATE(date_id_ndate(ndate_max))
     CALL convert_ndate_to_date_id(ndate_max,date_id_ndate(ndate_max))

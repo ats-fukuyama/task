@@ -11,6 +11,7 @@ MODULE cvcomm_parm
   INTEGER:: ndate_start_global,ndate_start_region,ndate_start_select
   INTEGER:: ndate_step_global,ndate_step_region,ndate_step_select
   INTEGER:: ndays_ave,nrank_max
+  INTEGER:: ndate_min_g,ndate_max_g
   REAL(dp):: cases_number_log_min,deaths_number_log_min
   REAL(dp):: cases_rate_log_min,deaths_rate_log_min
   REAL(dp):: ratio_new_total_log_min
