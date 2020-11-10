@@ -26,6 +26,8 @@ contains
     use fpcoef
     use fpcalw
 
+    use fpwrite
+
     implicit none
 
     integer :: nthp, nth, np, nr, nsa
@@ -109,6 +111,10 @@ contains
 
     ! execute bounce average
     call fow_bounce_average
+
+    call fpcsv2D(Dppfow(:,:,nrmax/2,2),"Dpp.csv")
+    call fpcsv2D(Dptfow(:,:,nrmax/2,2),"Dpt.csv")
+    call fpcsv2D(Dprfow(:,:,nrmax/2,2),"Dpr.csv")
 
   end subroutine fow_coef
 

@@ -77,10 +77,10 @@ contains
       do nsa=1,nsamax
         do np=1,npmax+1
           PVG = SQRT(1.D0+THETA0(nsa)*PG(np,nsa)**2)
-          penergyg(np,nsa) = (PVG-1.D0)*PTFP0(nsa)**2/(THETA0(nsa)*AMFP(nsa))/(1.d3*aee)
-          if( np/=npmax+1 ) then
+          penergyg(np,nsa) = amfp(nsa)*vc**2*(PVG-1.D0)/(1.d3*aee)
+          if( np /= npmax+1 ) then
             PVM = SQRT(1.D0+THETA0(nsa)*PM(np,nsa)**2)
-            penergym(np,nsa) = (PVM-1.D0)*PTFP0(nsa)**2/(THETA0(nsa)*AMFP(nsa))/(1.d3*aee)
+            penergym(np,nsa) = amfp(nsa)*vc**2*(PVM-1.D0)/(1.d3*aee)
           end if
         end do
       end do  
@@ -93,6 +93,13 @@ contains
     do nr = 1, nrmax+mode(3)
       do np = 1, npmax+mode(2)
         do nth = 1, nthmax+mode(1)
+          ! exclude forbitten region
+          if ( mode(1) == 0 &
+              .and. theta_co_stg(np,nr,nsa_in) < thetam(nth,np,nr,nsa_in) &
+              .and. thetam(nth,np,nr,nsa_in) < theta_cnt_stg(np,nr,nsa_in) ) then
+            cycle
+          end if
+
           i = i+1
           nobt_in(nth,np,nr) = i
         end do
@@ -115,6 +122,12 @@ contains
     do nr = 1, nrmax+mode(3)
       do np = 1, npmax+mode(2)
         do nth = 1, nthmax+mode(1)
+          ! exclude forbitten region
+          if ( mode(1) == 0 &
+              .and. theta_co_stg(np,nr,nsa_in) < thetam(nth,np,nr,nsa_in) &
+              .and. thetam(nth,np,nr,nsa_in) < theta_cnt_stg(np,nr,nsa_in) ) then
+            cycle
+          end if
 
           i = nobt_in(nth,np,nr)
 
@@ -139,7 +152,7 @@ contains
             psipn_in(i) = psimg(nr)/psi0
           end select
 
-          if ( pcangle_in(i) >= 0.d0 ) then
+          if ( pcangle_in(i)*aefp(nsa_in) >= 0.d0 ) then
             theta_in(i) = 0.d0
           else
             theta_in(i) = pi
@@ -155,7 +168,7 @@ contains
 
   subroutine fow_construct_orbit(orbit_in, nobt_in, nsa_in, mode)
     use obcomm
-    use fowcomm,only : orbit
+    use fowcomm
     use fpcomm, only : npmax, nthmax, nrmax, nsamax, rkind
 
     integer,intent(in) :: mode(3), nobt_in(:,:,:), nsa_in
@@ -169,6 +182,12 @@ contains
     do nr = 1, nrmax+mode(3)
       do np = 1, npmax+mode(2)
         do nth = 1, nthmax+mode(1)
+          ! exclude forbitten region
+          if ( mode(1) == 0 &
+              .and. theta_co_stg(np,nr,nsa_in) < thetam(nth,np,nr,nsa_in) &
+              .and. thetam(nth,np,nr,nsa_in) < theta_cnt_stg(np,nr,nsa_in) ) then
+            cycle
+          end if
 
           i = nobt_in(nth,np,nr)
 

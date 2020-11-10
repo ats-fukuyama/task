@@ -1,8 +1,5 @@
 &fow
   nthpmax=32
-
-  nrgmax=40
-  nzgmax=40
 &end
 
 ! beta_toloidal = 2.54e-3 [%]
@@ -27,16 +24,17 @@
   RIP=15
   
   tmax=10.D1
-  delt=0.1D0
+  delt=1.D-1
   mdlobw=2
   mdlobc=1
+  mdlobt=1
   idebug=0
 &end
 
 &fp
-  npmax=10
-  nthmax=55
-  nrmax=50
+  npmax=30
+  nthmax=45
+  nrmax=10
 
   RR=6.2
   RA=2.0
@@ -54,18 +52,18 @@
   NSBMAX=2
   NS_NSA(1)=1,2
   NS_NSB(1)=1,2
-  PMAX(1)=20.D0,20.D0
+  PMAX(1)=10.D0,10.D0
 
   PA(2)=2.D0
   PZ(2)=1.D0
-  PN(1)=0.1D2,0.1D2
-  PNS(1)=0.05D2,0.05D2
-  PTPR(1)=5.D1,5.D1
-  PTPP(1)=5.D1,5.D1
+  PN(1)=1.0D0,1.0D0
+  PNS(1)=0.05D0,0.05D0
+  !PTPR(1)=5.D1,5.D1
+  !PTPP(1)=5.D1,5.D1
+  !PTS(1)=1.D-1,1.D-1
+  PTPR(1)=5.D-1,5.D-1
+  PTPP(1)=5.D-1,5.D-1
   PTS(1)=1.D-1,1.D-1
-!  PTPR(1)=1.D3,1.D3
-!  PTPP(1)=1.D3,1.D3
-!  PTS(1)=1.D3,1.D3
   MODELN=1
   ZEFF=2.D0
 

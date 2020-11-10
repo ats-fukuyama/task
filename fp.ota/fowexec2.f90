@@ -622,9 +622,10 @@
       double precision :: DPRM, DPRP, DTRM, DTRP, DRPM, DRPP, DRTM, DRTP
       double precision :: DIVDPR, DIVDTR, DIVDRP, DIVDRT
       double precision :: deltap, deltath, deltaps
-      double precision :: wp(2,-1:1,0:1,-1:1), wt(2,0:1,-1:1,-1:1), wr(2,-1:1,-1:1,0:1)
-      double precision :: D(2,3,3), DIVD(3,3), DIVF(3), del(3), W(3,-1:1,-1:1,0:1), V(3,-1:1,-1:1,0:1)
-      integer :: i, j, k, sign_to_index(-1:1) 
+      double precision :: wp(-1:1,0:1,-1:1), wt(0:1,-1:1,-1:1), wr(-1:1,-1:1,0:1)
+      double precision :: vp(-1:1,0:1,-1:1), vt(0:1,-1:1,-1:1), vr(-1:1,-1:1,0:1)
+      double precision :: DIJP(3,3), DIJM(3,3), DIVDIJ(3,3), del(3), W(3,-1:1,-1:1,0:1), V(3,-1:1,-1:1,0:1)
+      integer :: i,j,k
 
       NS=NS_NSA(NSA)
 
@@ -649,47 +650,46 @@
 
       ! normalize coefficients
       PL   = PM(NP,NS)
-      D(1,1,1) = PG(NP,NS  )**2
-      D(2,1,1) = PG(NP+1,NS)**2
-      D(1,1,2) = PG(NP,NS  )
-      D(2,1,2) = PG(NP+1,NS)
-      D(1,1,3) = PG(NP,NS  )**2
-      D(2,1,3) = PG(NP+1,NS)**2
+      DPPM = PG(NP,NS  )**2
+      DPPP = PG(NP+1,NS)**2
+      DPTM = PG(NP,NS  )
+      DPTP = PG(NP+1,NS)
+      DPRM = PG(NP,NS  )**2
+      DPRP = PG(NP+1,NS)**2
 
       SL   = sin(thetam(nth,np,nr,nsa))
-      D(1,2,1) = sin(thetamg(nth,np,nr,nsa))
-      D(2,2,1) = sin(thetamg(nth+1,np,nr,nsa))
-      D(1,2,2) = sin(thetamg(nth,np,nr,nsa))/pl
-      D(2,2,2) = sin(thetamg(nth+1,np,nr,nsa))pl
-      D(1,2,3) = sin(thetamg(nth,np,nr,nsa))
-      D(2,2,3) = sin(thetamg(nth+1,np,nr,nsa))
+      DTPM = sin(thetamg(nth,np,nr,nsa))
+      DTPP = sin(thetamg(nth+1,np,nr,nsa))
+      DTTM = sin(thetamg(nth,np,nr,nsa))/pl
+      DTTP = sin(thetamg(nth+1,np,nr,nsa))pl
+      DTRM = sin(thetamg(nth,np,nr,nsa))
+      DTRP = sin(thetamg(nth+1,np,nr,nsa))
 
       RL   = psim(nr)
-      D(1,3,1) = psimg(nr  )
-      D(2,3,1) = psimg(nr+1)
-      D(1,3,2) = psimg(nr  )/pl
-      D(2,3,2) = psimg(nr+1)/pl
-      D(1,3,3) = psimg(nr  )
-      D(2,3,3) = psimg(nr+1)
+      DRPM = psimg(nr  )
+      DRPP = psimg(nr+1)
+      DRTM = psimg(nr  )/pl
+      DRTP = psimg(nr+1)/pl
+      DRRM = psimg(nr  )
+      DRRP = psimg(nr+1)
 
       ! weight function, delta, epsilon
       do i = -1, 1
          do j = -1, 1
             do k = -1, 1
-
                if ( i /= -1 ) then
-                  wp(1,i,j,k) = WEIGHP(NTH+j,NP+i,NR+k,NSA)
-                  wp(2,i,j,k) = 1.d0 - wp(1,i,j,k)   
-               end if
-
-               if ( j /= -1 ) then
-                  wt(1,i,j,k) = WEIGHT(NTH+j,NP+i,NR+k,NSA)
-                  wt(2,i,j,k) = 1.d0 - wt(1,i,j,k)   
+                  wt(i,j,k) = WEIGHT(NTH+i,NP+j,NR+k,NSA)
+                  vt(i,j,k) = 1.d0 - wt(i,j,k)   
                end if
                
+               if ( j /= -1 ) then
+                  wp(i,j,k) = WEIGHP(NTH+i,NP+j,NR+k,NSA)
+                  vp(i,j,k) = 1.d0 - wp(i,j,k)   
+               end if
+
                if ( k /= -1 ) then
-                  wr(1,i,j,k) = WEIGHR(NTH+j,NP+i,NR+k,NSA)
-                  wr(2,i,j,k) = 1.d0 - wr(1,i,j,k)   
+                  wr(i,j,k) = WEIGHR(NTH+i,NP+j,NR+k,NSA)
+                  vr(i,j,k) = 1.d0 - wr(i,j,k)   
                end if
 
             end do
@@ -697,70 +697,57 @@
       end do
 
       ! discretized (div(d/dX))_Y
-      DIVD(1,1) = 1.d0/(pl**2 * deltap**2)
-      DIVD(1,2) = 1.d0/(pl**2 * deltap * deltath * 2.d0)
-      DIVD(1,3) = 1.d0/(pl**2 * deltap * deltaps * 2.d0)
-      DIVD(2,1) = 1.d0/(pl * sl * deltap * deltath * 2.d0)
-      DIVD(2,2) = 1.d0/(pl * sl * deltath**2 )
-      DIVD(2,3) = 1.d0/(pl * sl * deltath * deltaps * 2.d0)
-      DIVD(3,1) = 1.d0/(rl * deltap  * deltaps * 2.d0)
-      DIVD(3,2) = 1.d0/(rl * deltath * deltaps * 2.d0)
-      DIVD(3,3) = 1.d0/(rl * deltaps**2)
-      DIVF(1)   = 1.d0/(pl**2 * deltap)
-      DIVF(2)   = 1.d0/(pl * sl * deltath)
-      DIVF(3)   = 1.d0/(rl * deltaps)
+      DIVDPP = 1.d0/(pl**2 * deltap**2)
+      DIVDPT = 1.d0/(pl**2 * deltap * deltath * 2.d0)
+      DIVDPR = 1.d0/(pl**2 * deltap * deltaps * 2.d0)
+      DIVDTP = 1.d0/(pl * sl * deltap * deltath * 2.d0)
+      DIVDTT = 1.d0/(pl * sl * deltath**2 )
+      DIVDTR = 1.d0/(pl * sl * deltath * deltaps * 2.d0)
+      DIVDRP = 1.d0/(rl * deltap  * deltaps * 2.d0)
+      DIVDRT = 1.d0/(rl * deltath * deltaps * 2.d0)
+      DIVDRR = 1.d0/(rl * deltaps**2)
+      DIVFPP = 1.d0/(pl**2 * deltap)
+      DIVFTH = 1.d0/(pl * sl * deltath)
+      DIVFRR = 1.d0/(rl * deltaps)
 
-      sign_to_index(-1) = 1
-      sign_to_index(1)  = 2
-      sign_to_index(0)  = 0
+      ! f00-
+      IF( nr /= 1 .and. np /= npmax .and. nth /= nthmax ) THEN
+         NL=NL+1
+         LL(NM,NL)=NMA(NTH,NP,NR-1)
+         AL(NM,NL)=DPR(NTH  ,NP+1,NR  ,NSA)*DIVDPR*DPRP*wp( 0, 1,-1)&
+                  +DPR(NTH  ,NP  ,NR  ,NSA)*DIVDPR*DPRM*vp( 0, 0,-1)&
+                  -DTR(NTH+1,NP  ,NR  ,NSA)*DIVDTR*DTRP*wt( 1, 0,-1)&
+                  +DTR(NTH  ,NP  ,NR  ,NSA)*DIVDTR*DTRM*vt( 0, 0,-1)&
+                  +DRR(NTH  ,NP  ,NR  ,NSA)*DIVDRR*DRRM             &
+                  +FRR(NTH  ,NP  ,NR  ,NSA)*DIVFRR*DRRM*wr( 0, 0, 0)
+         IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
+            LL(NM,NL)=0
+            AL(NM,NL)=0.D0
+            NL=NL-1
+         ENDIF
+      ENDIF
+
+      ! f++0
+      IF(NP.NE.1.AND.NTH.NE.1) THEN
+         NL=NL+1
+         LL(NM,NL)=NMA(NTH+1,NP+1,NR)
+         AL(NM,NL)=DPT(nth  ,np+1,nr  ,nsa)*divdpt*dpt*vp(1,1,0)&
+                  +DTP(nth+1,np  ,nr  ,nsa)*divdtp*dtp*vp(1,1,0)
+         IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
+            LL(NM,NL)=0
+            AL(NM,NL)=0.D0
+            NL=NL-1
+         ENDIF
+      ENDIF
+
       do i = -1, 1
          do j = -1, 1
             do k = -1, 1
                if ( i*j*k /= 0 ) then                          ! (p,thetam,psim)->(     integer,     integer,     integer)
                   cycle
-
                else if ( j*k /= 0 .and. i = 0 ) then           ! (p,thetam,psim)->(half integer,     integer,     integer)
-                  nl = nl+1
-                  ll(nm,nl) = nma(nth+j,np+i,nr+k)
-                  al(nm,nl) = (j*k)*( &
-                              D(sign_to_index(j),2,3) * wt(sign_to_index(j),0,sign_to_index(j)-1,sign_to_index(k)-1)/DIVD(2,3) + &
-                              D(sign_to_index(k),2,3) * wr(sign_to_index(k),0,sign_to_index(j)-1,sign_to_index(k)-1)/DIVD(3,2)   &
-                              )
-
-                  if ( abs( al(nm,nl) ) < 1.0d-70 ) then
-                     ll(nm,nl) = 0.d0
-                     al(nm,nl) = 0.d0
-                     nl = nl-1
-                  end if
-         
                else if ( k*i /= 0 .and. j = 0 ) then           ! (p,thetam,psim)->(     integer,half integer,     integer)
-                  nl = nl+1
-                  ll(nm,nl) = nma(nth+j,np+i,nr+k)
-                  al(nm,nl) = (k*i)*( &
-                              D(sign_to_index(k),3,1) * wr(sign_to_index(k),sign_to_index(i)-1,0,sign_to_index(k)-1)/DIVD(3,1) + &
-                              D(sign_to_index(k),3,1) * wp(sign_to_index(k),sign_to_index(i)-1,0,sign_to_index(k)-1)/DIVD(1,3)   &
-                              )
-
-                  if ( abs( al(nm,nl) ) < 1.0d-70 ) then
-                     ll(nm,nl) = 0.d0
-                     al(nm,nl) = 0.d0
-                     nl = nl-1
-                  end if
-
                else if ( i*j /= 0 .and. k = 0 ) then           ! (p,thetam,psim)->(     integer,     integer,half integer)
-                  nl = nl+1
-                  ll(nm,nl) = nma(nth+j,np+i,nr+k)
-                  al(nm,nl) = (i*j)*( &
-                              D(sign_to_index(i),1,2) * wp(sign_to_index(i),sign_to_index(i)-1,sign_to_index(j)-1,0)/DIVD(1,2) + &
-                              D(sign_to_index(j),2,1) * wp(sign_to_index(j),sign_to_index(i)-1,sign_to_index(j)-1,0)/DIVD(2,1)   &
-                              )
-
-                  if ( abs( al(nm,nl) ) < 1.0d-70 ) then
-                     ll(nm,nl) = 0.d0
-                     al(nm,nl) = 0.d0
-                     nl = nl-1
-                  end if
-
                else if ( i = 0 .and. j = 0 .and. k /= 0 ) then ! (p,thetam,psim)->(half integer,half integer,     integer)
                else if ( j = 0 .and. k = 0 .and. i /= 0 ) then ! (p,thetam,psim)->(     integer,half integer,half integer)
                else if ( k = 0 .and. i = 0 .and. j /= 0 ) then ! (p,thetam,psim)->(half integer,     integer,half integer)
