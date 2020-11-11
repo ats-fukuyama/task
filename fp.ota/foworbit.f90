@@ -94,10 +94,22 @@ contains
       do np = 1, npmax+mode(2)
         do nth = 1, nthmax+mode(1)
           ! exclude forbitten region
-          if ( mode(1) == 0 &
-              .and. theta_co_stg(np,nr,nsa_in) < thetam(nth,np,nr,nsa_in) &
-              .and. thetam(nth,np,nr,nsa_in) < theta_cnt_stg(np,nr,nsa_in) ) then
-            cycle
+          if ( mode(1) == 0 ) then
+
+            if ( mode(2) == 1 ) then
+              if ( theta_co_stg_pg(np,nr,nsa_in) < thetam_pg(nth,np,nr,nsa_in) &
+                  .and. thetam_pg(nth,np,nr,nsa_in) < theta_cnt_stg_pg(np,nr,nsa_in) ) then
+                cycle
+              end if
+
+            else if ( mode(3) == 1 ) then
+              if ( theta_co_stg_rg(np,nr,nsa_in) < thetam_rg(nth,np,nr,nsa_in) &
+                  .and. thetam_rg(nth,np,nr,nsa_in) < theta_cnt_stg_rg(np,nr,nsa_in) ) then
+                cycle
+              end if
+
+            end if
+
           end if
 
           i = i+1
@@ -123,17 +135,31 @@ contains
       do np = 1, npmax+mode(2)
         do nth = 1, nthmax+mode(1)
           ! exclude forbitten region
-          if ( mode(1) == 0 &
-              .and. theta_co_stg(np,nr,nsa_in) < thetam(nth,np,nr,nsa_in) &
-              .and. thetam(nth,np,nr,nsa_in) < theta_cnt_stg(np,nr,nsa_in) ) then
-            cycle
+          if ( mode(1) == 0 ) then
+
+            if ( mode(2) == 1 ) then
+              if ( theta_co_stg_pg(np,nr,nsa_in) < thetam_pg(nth,np,nr,nsa_in) &
+                  .and. thetam_pg(nth,np,nr,nsa_in) < theta_cnt_stg_pg(np,nr,nsa_in) ) then
+                cycle
+              end if
+
+            else if ( mode(3) == 1 ) then
+              if ( theta_co_stg_rg(np,nr,nsa_in) < thetam_rg(nth,np,nr,nsa_in) &
+                  .and. thetam_rg(nth,np,nr,nsa_in) < theta_cnt_stg_rg(np,nr,nsa_in) ) then
+                cycle
+              end if
+
+            end if
+
           end if
 
           i = nobt_in(nth,np,nr)
 
           select case(mode(1))
           case(0)
-            pcangle_in(i) = cos(thetam(nth,np,nr,nsa_in))
+            if ( mode(2) == 0 .and. mode(3) == 0 ) pcangle_in(i) = cos(thetam(nth,np,nr,nsa_in))
+            if ( mode(2) == 1 .and. mode(3) == 0 ) pcangle_in(i) = cos(thetam_pg(nth,np,nr,nsa_in))
+            if ( mode(2) == 0 .and. mode(3) == 1 ) pcangle_in(i) = cos(thetam_rg(nth,np,nr,nsa_in))            
           case(1)
             pcangle_in(i) = cos(thetamg(nth,np,nr,nsa_in))
           end select
@@ -183,10 +209,22 @@ contains
       do np = 1, npmax+mode(2)
         do nth = 1, nthmax+mode(1)
           ! exclude forbitten region
-          if ( mode(1) == 0 &
-              .and. theta_co_stg(np,nr,nsa_in) < thetam(nth,np,nr,nsa_in) &
-              .and. thetam(nth,np,nr,nsa_in) < theta_cnt_stg(np,nr,nsa_in) ) then
-            cycle
+          if ( mode(1) == 0 ) then
+
+            if ( mode(2) == 1 ) then
+              if ( theta_co_stg_pg(np,nr,nsa_in) < thetam_pg(nth,np,nr,nsa_in) &
+                  .and. thetam_pg(nth,np,nr,nsa_in) < theta_cnt_stg_pg(np,nr,nsa_in) ) then
+                cycle
+              end if
+
+            else if ( mode(3) == 1 ) then
+              if ( theta_co_stg_rg(np,nr,nsa_in) < thetam_rg(nth,np,nr,nsa_in) &
+                  .and. thetam_rg(nth,np,nr,nsa_in) < theta_cnt_stg_rg(np,nr,nsa_in) ) then
+                cycle
+              end if
+
+            end if
+
           end if
 
           i = nobt_in(nth,np,nr)
@@ -254,10 +292,12 @@ contains
     integer,intent(in) :: nstp_in, nr_in
 
     real(rkind) :: C(3), rr_l
-    integer :: nr_max, nr_min, ierr, nr_l
+    integer :: nr_max, nr_min, ierr, nr_l, mode(3)
 
-    nr_max = max(nr_in, 4)
-    nr_min = max(1, nr_in-3)
+    nr_max = max(nr_in+1,       5)
+    nr_max = min(nr_max , nrmax+1)
+    
+    nr_min = max(      1, nr_in-3)
 
     call leastSquareMethodForQuadric(psimg,nrmax+1,nr_min,nr_max,C)
     C(3) = C(3)-orbit_in%psip(nstp_in)
@@ -270,7 +310,7 @@ contains
       rr_l = (-1.d0*C(2)+sqrt(rr_l))/(2*C(1))
     end if
 
-    if ( rr_l <= 0.d0 ) then
+    if ( rr_l <= 1.d0 ) then
       F_ret = Fpsig(1)
     else if ( rr_l >= (nrmax+1)*1.d0 ) then
       F_ret = Fpsig(nrmax+1)

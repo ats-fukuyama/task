@@ -187,7 +187,6 @@ contains
               end do
 
               fu_l(nth,np,nr,nsa,nthp) = fI(ith_min, np, ir_min, nsa)
-              write(*,*)"fu", fu_l(nth,np,nr,nsa,nthp)
 
             end do
           end do
@@ -279,7 +278,7 @@ contains
     use fowcomm
     implicit none
     real(rkind),dimension(nthmax,npmax,nrmax,nsamax),intent(in) :: fI_in
-    real(rkind),dimension(nrmax,nsamax),intent(out) :: M2 ! [J]
+    real(rkind),dimension(nrmax,nsamax),intent(out) :: M2 
     integer :: nth, np, nr, nsa, nthp
     real(rkind) :: sum_f, dV_r, PV
     real(rkind),allocatable :: fu_l(:,:,:,:,:) 
@@ -304,7 +303,8 @@ contains
 
           end do
         end do
-        M2(nr,nsa) = sum_f*RNFP0(NSA)*1.D20
+        M2(nr,nsa) = sum_f*RNFP0(NSA)*1.D20 ! [J]
+        ! M2(nr,nsa) = sum_f*RNFP0(NSA)*1.D20/(aee*1.d-3) ! [keV]
 
       end do
     end do

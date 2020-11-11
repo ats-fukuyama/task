@@ -39,7 +39,7 @@ program fow
   call fow_allocate
   call fow_prep
 
-  ! call fow_debug
+  call fow_debug
   write(*,*)"end"
   call fow_deallocate
 
@@ -71,7 +71,7 @@ subroutine fow_debug
 
   ! allocate(fI(nthmax,npmax,nrmax,nsamax))
   ! allocate(fu(nthmax,npmax,nrmax,nsamax))
-  ! allocate(ful(nthmax,npmax,nrmax,nsamax,nthpmax))
+  allocate(ful(nthmax,npmax,nrmax,nsamax,nthpmax))
 write(*,*)3333
   call fow_distribution_maxwellian_inCOM(FNSI)
   allocate(D2(nrmax,nsamax))

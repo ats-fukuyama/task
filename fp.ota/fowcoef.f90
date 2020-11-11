@@ -41,7 +41,7 @@ contains
       allocate(Dppfow(nthmax,npmax+1,nrmax,nsamax),Dptfow(nthmax,npmax+1,nrmax,nsamax),Dprfow(nthmax,npmax+1,nrmax,nsamax))
       allocate(Dtpfow(nthmax+1,npmax,nrmax,nsamax),Dttfow(nthmax+1,npmax,nrmax,nsamax),Dtrfow(nthmax+1,npmax,nrmax,nsamax))
       allocate(Drpfow(nthmax,npmax,nrmax+1,nsamax),Drtfow(nthmax,npmax,nrmax+1,nsamax),Drrfow(nthmax,npmax,nrmax+1,nsamax))
-      allocate(Fppfow(nthmax,npmax+1,nrmax,nsamax),Fthfow(nthmax,npmax+1,nrmax,nsamax),Frrfow(nthmax,npmax+1,nrmax,nsamax))
+      allocate(Fppfow(nthmax,npmax+1,nrmax,nsamax),Fthfow(nthmax+1,npmax,nrmax,nsamax),Frrfow(nthmax,npmax,nrmax+1,nsamax))
     end if
 
 
@@ -148,8 +148,8 @@ contains
     call first_order_derivative(dBmdpsi(:,1), Bout, psim)
     call first_order_derivative(dBmdpsi(:,2), Bin, psim)
     call first_order_derivative(dFgdpsi, Fpsig, psimg)
-    call first_order_derivative(dBmdpsi(:,1), Boutg, psimg)
-    call first_order_derivative(dBmdpsi(:,2), Bing, psimg)
+    call first_order_derivative(dBmgdpsi(:,1), Boutg, psimg)
+    call first_order_derivative(dBmgdpsi(:,2), Bing, psimg)
 
     ! set spline variable
     allocate(theta_p(nthpmax))
@@ -194,11 +194,21 @@ contains
         do np = 1, npmax+1
           do nth = 1, nthmax
 
+            ! exclude forbitten region
+            if ( theta_co_stg_pg(np,nr,nsa) < thetam_pg(nth,np,nr,nsa) &
+                .and. thetam_pg(nth,np,nr,nsa) < theta_cnt_stg_pg(np,nr,nsa) ) then
+                  Dppfow(nth,np,nr,nsa) = 0.d0
+                  Dptfow(nth,np,nr,nsa) = 0.d0
+                  Dprfow(nth,np,nr,nsa) = 0.d0
+                  Fppfow(nth,np,nr,nsa) = 0.d0
+              cycle
+            end if
+
             nstpmax = orbit_p(nth,np,nr,nsa)%nstp_max
 
             allocate(dIdu(3,3,nstpmax))
 
-            if ( thetam(nth,np,nr,nsa) <= pi/2.d0 ) then
+            if ( thetam_pg(nth,np,nr,nsa) <= pi/2.d0 ) then
               call transformation_matrix(dIdu, orbit_p(nth,np,nr,nsa), nth, np, nr, nsa, [0,1,0], dBmdpsi(:,1), dFdpsi)
             else
               call transformation_matrix(dIdu, orbit_p(nth,np,nr,nsa), nth, np, nr, nsa, [0,1,0], dBmdpsi(:,2), dFdpsi)
@@ -272,9 +282,9 @@ contains
             Fthfow(nth,np,nr,nsa) = 0.d0
 
             do nstp = 2, nstpmax
-              cpitch_ob = cos(orbit_p(nth,np,nr,nsa)%theta(nstp))
-              psip_ob   = orbit_p(nth,np,nr,nsa)%psip(nstp)
-              thetap_ob = orbit_p(nth,np,nr,nsa)%thetap(nstp)
+              cpitch_ob = cos(orbit_th(nth,np,nr,nsa)%theta(nstp))
+              psip_ob   = orbit_th(nth,np,nr,nsa)%psip(nstp)
+              thetap_ob = orbit_th(nth,np,nr,nsa)%thetap(nstp)
 
               ! calucurate local coefficient along orbit Dxx(p_orbit, theta_orbit, psip_orbit, thetap_orbit)
               call SPL3DF(cpitch_ob,psip_ob,thetap_ob,D_pls,cosm,psim,theta_p&
@@ -339,15 +349,24 @@ contains
       do nr = 1, nrmax+1
         do np = 1, npmax
           do nth = 1, nthmax
+            ! exclude forbitten region
+            if ( theta_co_stg_rg(np,nr,nsa) < thetam_rg(nth,np,nr,nsa) &
+                .and. thetam_rg(nth,np,nr,nsa) < theta_cnt_stg_rg(np,nr,nsa) ) then
+                  Drpfow(nth,np,nr,nsa) = 0.d0
+                  Drtfow(nth,np,nr,nsa) = 0.d0
+                  Drrfow(nth,np,nr,nsa) = 0.d0
+                  Frrfow(nth,np,nr,nsa) = 0.d0
+              cycle
+            end if
 
             nstpmax = orbit_r(nth,np,nr,nsa)%nstp_max
 
             allocate(dIdu(3,3,nstpmax))
 
-            if ( thetam(nth,np,nr,nsa) <= pi/2.d0 ) then
-              call transformation_matrix(dIdu, orbit_r(nth,np,nr,nsa), nth, np, nr, nsa, [0,0,1], dBmdpsi(:,1), dFdpsi)
+            if ( thetam_rg(nth,np,nr,nsa) <= pi/2.d0 ) then
+              call transformation_matrix(dIdu, orbit_r(nth,np,nr,nsa), nth, np, nr, nsa, [0,0,1], dBmgdpsi(:,1), dFgdpsi)
             else
-              call transformation_matrix(dIdu, orbit_r(nth,np,nr,nsa), nth, np, nr, nsa, [0,0,1], dBmdpsi(:,2), dFdpsi)
+              call transformation_matrix(dIdu, orbit_r(nth,np,nr,nsa), nth, np, nr, nsa, [0,0,1], dBmgdpsi(:,2), dFgdpsi)
             end if
 
             ! time-integral over an orbit then divide poloidal period 
@@ -444,7 +463,9 @@ contains
 
     select case(mode(1))
     case(0)
-      xil = cos(thetam(nth_in,np_in,nr_in,nsa_in))
+      if ( mode(2) == 0 .and. mode(3) == 0 ) xil = cos(thetam(nth_in,np_in,nr_in,nsa_in))
+      if ( mode(2) == 1 .and. mode(3) == 0 ) xil = cos(thetam_pg(nth_in,np_in,nr_in,nsa_in))
+      if ( mode(2) == 0 .and. mode(3) == 1 ) xil = cos(thetam_rg(nth_in,np_in,nr_in,nsa_in))
     case(1)
       xil = cos(thetamg(nth_in,np_in,nr_in,nsa_in))
     end select
@@ -472,6 +493,24 @@ contains
         Bl = Bing(nr_in)
       end if
     end select
+
+    ! exclude forbitten region
+    if ( mode(1) == 0 ) then
+
+      if ( mode(2) == 1 ) then
+        if ( theta_co_stg_pg(np_in,nr_in,nsa_in) < thetam_pg(nth_in,np_in,nr_in,nsa_in) &
+            .and. thetam_pg(nth_in,np_in,nr_in,nsa_in) < theta_cnt_stg_pg(np_in,nr_in,nsa_in) ) then
+          return
+        end if
+
+      else if ( mode(3) == 1 ) then
+        if ( theta_co_stg_rg(np_in,nr_in,nsa_in) < thetam_rg(nth_in,np_in,nr_in,nsa_in) &
+            .and. thetam_rg(nth_in,np_in,nr_in,nsa_in) < theta_cnt_stg_rg(np_in,nr_in,nsa_in) ) then
+          return
+        end if
+      end if
+
+    end if
 
     nstpmax = orbit_in%nstp_max
 
