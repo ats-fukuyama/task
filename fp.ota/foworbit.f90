@@ -97,14 +97,12 @@ contains
           if ( mode(1) == 0 ) then
 
             if ( mode(2) == 1 ) then
-              if ( theta_co_stg_pg(np,nr,nsa_in) < thetam_pg(nth,np,nr,nsa_in) &
-                  .and. thetam_pg(nth,np,nr,nsa_in) < theta_cnt_stg_pg(np,nr,nsa_in) ) then
+              if ( nth == nth_forbitten(nsa_in) ) then
                 cycle
               end if
 
             else if ( mode(3) == 1 ) then
-              if ( theta_co_stg_rg(np,nr,nsa_in) < thetam_rg(nth,np,nr,nsa_in) &
-                  .and. thetam_rg(nth,np,nr,nsa_in) < theta_cnt_stg_rg(np,nr,nsa_in) ) then
+              if ( nth == nth_forbitten(nsa_in) ) then
                 cycle
               end if
 
@@ -138,14 +136,12 @@ contains
           if ( mode(1) == 0 ) then
 
             if ( mode(2) == 1 ) then
-              if ( theta_co_stg_pg(np,nr,nsa_in) < thetam_pg(nth,np,nr,nsa_in) &
-                  .and. thetam_pg(nth,np,nr,nsa_in) < theta_cnt_stg_pg(np,nr,nsa_in) ) then
+              if ( nth == nth_forbitten(nsa_in) ) then
                 cycle
               end if
 
             else if ( mode(3) == 1 ) then
-              if ( theta_co_stg_rg(np,nr,nsa_in) < thetam_rg(nth,np,nr,nsa_in) &
-                  .and. thetam_rg(nth,np,nr,nsa_in) < theta_cnt_stg_rg(np,nr,nsa_in) ) then
+              if ( nth == nth_forbitten(nsa_in) ) then
                 cycle
               end if
 
@@ -212,14 +208,12 @@ contains
           if ( mode(1) == 0 ) then
 
             if ( mode(2) == 1 ) then
-              if ( theta_co_stg_pg(np,nr,nsa_in) < thetam_pg(nth,np,nr,nsa_in) &
-                  .and. thetam_pg(nth,np,nr,nsa_in) < theta_cnt_stg_pg(np,nr,nsa_in) ) then
+              if ( nth == nth_forbitten(nsa_in) ) then
                 cycle
               end if
 
             else if ( mode(3) == 1 ) then
-              if ( theta_co_stg_rg(np,nr,nsa_in) < thetam_rg(nth,np,nr,nsa_in) &
-                  .and. thetam_rg(nth,np,nr,nsa_in) < theta_cnt_stg_rg(np,nr,nsa_in) ) then
+              if ( nth == nth_forbitten(nsa_in) ) then
                 cycle
               end if
 
@@ -294,10 +288,10 @@ contains
     real(rkind) :: C(3), rr_l
     integer :: nr_max, nr_min, ierr, nr_l, mode(3)
 
-    nr_max = max(nr_in+1,       5)
-    nr_max = min(nr_max , nrmax+1)
-    
-    nr_min = max(      1, nr_in-3)
+    nr_max = max(nr_in+1, 5)
+    nr_max = min(nr_max, nrmax+1)
+
+    nr_min = max(1, nr_in-3)
 
     call leastSquareMethodForQuadric(psimg,nrmax+1,nr_min,nr_max,C)
     C(3) = C(3)-orbit_in%psip(nstp_in)

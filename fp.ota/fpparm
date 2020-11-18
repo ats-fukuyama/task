@@ -34,8 +34,8 @@
 &end
 
 &fp
-  npmax=30
-  nthmax=45
+  npmax=16
+  nthmax=24
   nrmax=10
 
   RR=6.2
