@@ -14,7 +14,9 @@ contains
     implicit none
 
     integer :: nth, np, nr, nsa, ierr = 0, flag
-    real(rkind) :: dummy
+    real(rkind) :: dummy, begin_time, end_time
+
+    call cpu_time(begin_time)
 
     do nth = 1,nthmax
       xi(nth) = (nth-0.5d0)/nthmax*(-2.d0)+1.d0
@@ -99,88 +101,101 @@ contains
     nthm3 = nthmax/2
     nthm2 = (nthmax-nthm3)/2
     nthm1 = nthmax-nthm2-nthm3
+    nthm3 = nthm3-1
 
     do nsa = 1, nsamax
       do nr = 1, nrmax
         do np = 1, npmax
           if ( aefp(nsa) >= 0.d0 ) then
+
+            ! define mesh width
             if ( theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
-              delth1(np,nr,nsa) = theta_pnc(np,nr,nsa)/dble(nthm1)
-              delth2(np,nr,nsa) = (theta_co_stg(np,nr,nsa)-theta_pnc(np,nr,nsa))/dble(nthm2)
-              delth3(np,nr,nsa) = (pi-theta_cnt_stg(np,nr,nsa))/dble(nthm3)
+              do nth = 1, nthm1
+                delthm(nth,np,nr,nsa) = theta_pnc(np,nr,nsa)/dble(nthm1)
+              end do
+
+              do nth = nthm1+1, nthm1+nthm2
+                delthm(nth,np,nr,nsa) = (theta_co_stg(np,nr,nsa)-theta_pnc(np,nr,nsa))/dble(nthm2)
+              end do
+
+              delthm(nthm1+nthm2+1,np,nr,nsa) = theta_cnt_stg(np,nr,nsa)-theta_co_stg(np,nr,nsa)
+
+              do nth = nthm1+nthm2+2, nthmax
+                delthm(nth,np,nr,nsa) = (pi-theta_cnt_stg(np,nr,nsa))/dble(nthm3)
+              end do
+
             else
-              delth1(np,nr,nsa) = theta_co_stg(np,nr,nsa)/dble(nthm1+nthm2)
-              delth2(np,nr,nsa) = theta_co_stg(np,nr,nsa)/dble(nthm1+nthm2)
-              delth3(np,nr,nsa) = (pi-theta_cnt_stg(np,nr,nsa))/dble(nthm3)
+              do nth = 1, nthm1+nthm2
+                delthm(nth,np,nr,nsa) = theta_co_stg(np,nr,nsa)/dble(nthm1+nthm2)
+              end do
+
+              delthm(nthm1+nthm2+1,np,nr,nsa) = theta_cnt_stg(np,nr,nsa)-theta_co_stg(np,nr,nsa)
+
+              do nth = nthm1+nthm2+2, nthmax
+                delthm(nth,np,nr,nsa) = (pi-theta_cnt_stg(np,nr,nsa))/dble(nthm3)
+              end do
+
             end if
   
-            thetam(1,np,nr,nsa) = 0.5d0*delth1(np,nr,nsa)
-            thetamg(1,np,nr,nsa) = 0.d0
-  
-            do nth = 2, nthm1
-              thetam(nth,np,nr,nsa) = thetam(nth-1,np,nr,nsa)+delth1(np,nr,nsa)
-              thetamg(nth,np,nr,nsa) = thetamg(nth-1,np,nr,nsa)+delth1(np,nr,nsa)
-            end do
-  
-            do nth = nthm1+1, nthm1+nthm2
-              thetam(nth,np,nr,nsa) = thetam(nth-1,np,nr,nsa)+delth2(np,nr,nsa)
-              thetamg(nth,np,nr,nsa) = thetamg(nth-1,np,nr,nsa)+delth2(np,nr,nsa)
-            end do
-  
-            thetamg(nthm1+nthm2+1,np,nr,nsa) = theta_co_stg(np,nr,nsa)
-            thetamg(nthm1+nthm2+2,np,nr,nsa) = theta_cnt_stg(np,nr,nsa)
-  
-            thetam(nthm1+nthm2+1,np,nr,nsa) = (theta_cnt_stg(np,nr,nsa)+theta_co_stg(np,nr,nsa))*0.5d0
-            thetam(nthm1+nthm2+2,np,nr,nsa) = theta_cnt_stg(np,nr,nsa)+0.5d0*delth3(np,nr,nsa)
-  
-            do nth = nthm1+nthm2+3, nthm1+nthm2+nthm3
-              thetam(nth,np,nr,nsa) = thetam(nth-1,np,nr,nsa)+delth3(np,nr,nsa)
-              thetamg(nth,np,nr,nsa) = thetamg(nth-1,np,nr,nsa)+delth3(np,nr,nsa)
-            end do
-  
-            thetamg(nthmax+1,np,nr,nsa) = pi  
-
           else 
 
             if ( theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
-              delth1(np,nr,nsa) = (pi-theta_pnc(np,nr,nsa))/dble(nthm1)
-              delth2(np,nr,nsa) = (theta_pnc(np,nr,nsa)-theta_cnt_stg(np,nr,nsa))/dble(nthm2)
-              delth3(np,nr,nsa) = theta_co_stg(np,nr,nsa)/dble(nthm3)
+              do nth = 1, nthm3
+                delthm(nth,np,nr,nsa) = theta_co_stg(np,nr,nsa)/dble(nthm3)
+              end do
+
+              delthm(nthm3+1,np,nr,nsa) = theta_cnt_stg(np,nr,nsa)-theta_co_stg(np,nr,nsa)
+
+              do nth = nthm3+2, nthm3+1+nthm2
+                delthm(nth,np,nr,nsa) = (theta_pnc(np,nr,nsa)-theta_cnt_stg(np,nr,nsa))/dble(nthm2)
+              end do
+
+              do nth = nthm3+nthm2+2, nthmax
+                delthm(nth,np,nr,nsa) = (pi-theta_pnc(np,nr,nsa))/dble(nthm1)
+              end do
+
             else
-              delth1(np,nr,nsa) = (pi-theta_cnt_stg(np,nr,nsa))/dble(nthm1+nthm2)
-              delth2(np,nr,nsa) = (pi-theta_cnt_stg(np,nr,nsa))/dble(nthm1+nthm2)
-              delth3(np,nr,nsa) = theta_co_stg(np,nr,nsa)/dble(nthm3)
+              do nth = 1, nthm3
+                delthm(nth,np,nr,nsa) = theta_co_stg(np,nr,nsa)/dble(nthm3)
+              end do
+
+              delthm(nthm3+1,np,nr,nsa) = theta_cnt_stg(np,nr,nsa)-theta_co_stg(np,nr,nsa)
+
+              do nth = nthm3+2, nthmax
+                delthm(nth,np,nr,nsa) = (pi-theta_cnt_stg(np,nr,nsa))/dble(nthm1+nthm2)
+              end do
+
             end if
   
-            thetam(1,np,nr,nsa) = 0.5d0*delth3(np,nr,nsa)
-            thetamg(1,np,nr,nsa) = 0.d0
-  
-            do nth = 2, nthm3
-              thetam(nth,np,nr,nsa) = thetam(nth-1,np,nr,nsa)+delth3(np,nr,nsa)
-              thetamg(nth,np,nr,nsa) = thetamg(nth-1,np,nr,nsa)+delth3(np,nr,nsa)
-            end do
-
-            thetamg(nthm3+1,np,nr,nsa) = theta_co_stg(np,nr,nsa)
-            thetamg(nthm3+2,np,nr,nsa) = theta_cnt_stg(np,nr,nsa)
-  
-            thetam(nthm3+1,np,nr,nsa) = theta_cnt_stg(np,nr,nsa)+0.5d0*delth2(np,nr,nsa)
-            thetam(nthm3+2,np,nr,nsa) = thetam(nthm3+1,np,nr,nsa)+delth2(np,nr,nsa)
-  
-            do nth = nthm3+3, nthm3+nthm2
-              thetam(nth,np,nr,nsa) = thetam(nth-1,np,nr,nsa)+delth2(np,nr,nsa)
-              thetamg(nth,np,nr,nsa) = thetamg(nth-1,np,nr,nsa)+delth2(np,nr,nsa)
-            end do
-    
-            do nth = nthm3+nthm2, nthm1+nthm2+nthm3
-              thetam(nth,np,nr,nsa) = thetam(nth-1,np,nr,nsa)+delth1(np,nr,nsa)
-              thetamg(nth,np,nr,nsa) = thetamg(nth-1,np,nr,nsa)+delth1(np,nr,nsa)
-            end do
-  
-            thetamg(nthmax+1,np,nr,nsa) = pi  
-
           end if
+
+          ! difine thetam and thetamg
+          thetam(1,np,nr,nsa) = 0.5d0*delthm(1,np,nr,nsa)
+          thetamg(1,np,nr,nsa) = 0.d0
+
+          do nth = 2, nthmax
+            thetam(nth,np,nr,nsa) = thetam(nth-1,np,nr,nsa) &
+                                  +0.5d0*delthm(nth-1,np,nr,nsa)+0.5d0*delthm(nth,np,nr,nsa)
+            thetamg(nth,np,nr,nsa) = thetamg(nth-1,np,nr,nsa)+delthm(nth-1,np,nr,nsa)
+          end do
+
+          thetamg(nthmax+1,np,nr,nsa) = pi  
+
         end do
       end do
+
+      if ( aefp(nsa) >= 0.d0 ) then
+        nth_pnc(nsa)       = nthm1+1
+        nth_co_stg(nsa)    = nthm1+nthm2+1
+        nth_cnt_stg(nsa)   = nthm1+nthm2+2
+        nth_forbitten(nsa) = nthm1+nthm2+1
+      else
+        nth_pnc(nsa)       = nthm3+nthm2+2
+        nth_co_stg(nsa)    = nthm3+1
+        nth_cnt_stg(nsa)   = nthm3+2
+        nth_forbitten(nsa) = nthm3+1
+      end if
+
     end do
 
     ! calculate thetam_pg
@@ -188,63 +203,76 @@ contains
       do nr = 1, nrmax
         do np = 1, npmax+1
           if ( aefp(nsa) >= 0.d0 ) then
+
+            ! define mesh width
             if ( theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
-              delth1_pg(np,nr,nsa) = theta_pnc_pg(np,nr,nsa)/dble(nthm1)
-              delth2_pg(np,nr,nsa) = (theta_co_stg_pg(np,nr,nsa)-theta_pnc_pg(np,nr,nsa))/dble(nthm2)
-              delth3_pg(np,nr,nsa) = (pi-theta_cnt_stg_pg(np,nr,nsa))/dble(nthm3)
+              do nth = 1, nthm1
+                delthm_pg(nth,np,nr,nsa) = theta_pnc_pg(np,nr,nsa)/dble(nthm1)
+              end do
+
+              do nth = nthm1+1, nthm1+nthm2
+                delthm_pg(nth,np,nr,nsa) = (theta_co_stg_pg(np,nr,nsa)-theta_pnc_pg(np,nr,nsa))/dble(nthm2)
+              end do
+
+              delthm_pg(nthm1+nthm2+1,np,nr,nsa) = theta_cnt_stg_pg(np,nr,nsa)-theta_co_stg_pg(np,nr,nsa)
+
+              do nth = nthm1+nthm2+2, nthmax
+                delthm_pg(nth,np,nr,nsa) = (pi-theta_cnt_stg_pg(np,nr,nsa))/dble(nthm3)
+              end do
+
             else
-              delth1_pg(np,nr,nsa) = theta_co_stg_pg(np,nr,nsa)/dble(nthm1+nthm2)
-              delth2_pg(np,nr,nsa) = theta_co_stg_pg(np,nr,nsa)/dble(nthm1+nthm2)
-              delth3_pg(np,nr,nsa) = (pi-theta_cnt_stg_pg(np,nr,nsa))/dble(nthm3)
+              do nth = 1, nthm1+nthm2
+                delthm_pg(nth,np,nr,nsa) = theta_co_stg_pg(np,nr,nsa)/dble(nthm1+nthm2)
+              end do
+
+              delthm_pg(nthm1+nthm2+1,np,nr,nsa) = theta_cnt_stg_pg(np,nr,nsa)-theta_co_stg_pg(np,nr,nsa)
+
+              do nth = nthm1+nthm2+2, nthmax
+                delthm_pg(nth,np,nr,nsa) = (pi-theta_cnt_stg_pg(np,nr,nsa))/dble(nthm3)
+              end do
+
             end if
-  
-            thetam_pg(1,np,nr,nsa) = 0.5d0*delth1_pg(np,nr,nsa)
-  
-            do nth = 2, nthm1
-              thetam_pg(nth,np,nr,nsa) = thetam_pg(nth-1,np,nr,nsa)+delth1_pg(np,nr,nsa)
-            end do
-  
-            do nth = nthm1+1, nthm1+nthm2
-              thetam_pg(nth,np,nr,nsa) = thetam_pg(nth-1,np,nr,nsa)+delth2_pg(np,nr,nsa)
-            end do
-  
-            thetam_pg(nthm1+nthm2+1,np,nr,nsa) = (theta_cnt_stg_pg(np,nr,nsa)+theta_co_stg_pg(np,nr,nsa))*0.5d0
-            thetam_pg(nthm1+nthm2+2,np,nr,nsa) = theta_cnt_stg_pg(np,nr,nsa)+0.5d0*delth3_pg(np,nr,nsa)
-  
-            do nth = nthm1+nthm2+3, nthm1+nthm2+nthm3
-              thetam_pg(nth,np,nr,nsa) = thetam_pg(nth-1,np,nr,nsa)+delth3_pg(np,nr,nsa)
-            end do
   
           else 
 
             if ( theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
-              delth1_pg(np,nr,nsa) = (pi-theta_pnc_pg(np,nr,nsa))/dble(nthm1)
-              delth2_pg(np,nr,nsa) = (theta_pnc_pg(np,nr,nsa)-theta_cnt_stg_pg(np,nr,nsa))/dble(nthm2)
-              delth3_pg(np,nr,nsa) = theta_co_stg_pg(np,nr,nsa)/dble(nthm3)
+              do nth = 1, nthm3
+                delthm_pg(nth,np,nr,nsa) = theta_co_stg_pg(np,nr,nsa)/dble(nthm3)
+              end do
+
+              delthm_pg(nthm3+1,np,nr,nsa) = theta_cnt_stg_pg(np,nr,nsa)-theta_co_stg_pg(np,nr,nsa)
+
+              do nth = nthm3+2, nthm3+1+nthm2
+                delthm_pg(nth,np,nr,nsa) = (theta_pnc_pg(np,nr,nsa)-theta_cnt_stg_pg(np,nr,nsa))/dble(nthm2)
+              end do
+
+              do nth = nthm3+nthm2+2, nthmax
+                delthm_pg(nth,np,nr,nsa) = (pi-theta_pnc_pg(np,nr,nsa))/dble(nthm1)
+              end do
+
             else
-              delth1_pg(np,nr,nsa) = (pi-theta_cnt_stg_pg(np,nr,nsa))/dble(nthm1+nthm2)
-              delth2_pg(np,nr,nsa) = (pi-theta_cnt_stg_pg(np,nr,nsa))/dble(nthm1+nthm2)
-              delth3_pg(np,nr,nsa) = theta_co_stg_pg(np,nr,nsa)/dble(nthm3)
+              do nth = 1, nthm3
+                delthm_pg(nth,np,nr,nsa) = theta_co_stg_pg(np,nr,nsa)/dble(nthm3)
+              end do
+
+              delthm_pg(nthm3+1,np,nr,nsa) = theta_cnt_stg_pg(np,nr,nsa)-theta_co_stg_pg(np,nr,nsa)
+
+              do nth = nthm3+2, nthmax
+                delthm_pg(nth,np,nr,nsa) = (pi-theta_cnt_stg_pg(np,nr,nsa))/dble(nthm1+nthm2)
+              end do
+
             end if
   
-            thetam_pg(1,np,nr,nsa) = 0.5d0*delth3_pg(np,nr,nsa)
-  
-            do nth = 2, nthm3
-              thetam_pg(nth,np,nr,nsa) = thetam_pg(nth-1,np,nr,nsa)+delth3_pg(np,nr,nsa)
-            end do
-
-            thetam_pg(nthm3+1,np,nr,nsa) = theta_cnt_stg_pg(np,nr,nsa)+0.5d0*delth2_pg(np,nr,nsa)
-            thetam_pg(nthm3+2,np,nr,nsa) = thetam_pg(nthm3+1,np,nr,nsa)+delth2_pg(np,nr,nsa)
-  
-            do nth = nthm3+3, nthm3+nthm2
-              thetam_pg(nth,np,nr,nsa) = thetam_pg(nth-1,np,nr,nsa)+delth2_pg(np,nr,nsa)
-            end do
-    
-            do nth = nthm3+nthm2, nthm1+nthm2+nthm3
-              thetam_pg(nth,np,nr,nsa) = thetam_pg(nth-1,np,nr,nsa)+delth1_pg(np,nr,nsa)
-            end do
-  
           end if
+
+          ! difine thetam and thetamg
+          thetam_pg(1,np,nr,nsa) = 0.5d0*delthm_pg(1,np,nr,nsa)
+
+          do nth = 2, nthmax
+            thetam_pg(nth,np,nr,nsa) = thetam_pg(nth-1,np,nr,nsa) &
+                                  +0.5d0*delthm_pg(nth-1,np,nr,nsa)+0.5d0*delthm_pg(nth,np,nr,nsa)
+          end do
+
         end do
       end do
     end do
@@ -254,67 +282,79 @@ contains
       do nr = 1, nrmax+1
         do np = 1, npmax
           if ( aefp(nsa) >= 0.d0 ) then
+
+            ! define mesh width
             if ( theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
-              delth1_rg(np,nr,nsa) = theta_pnc_rg(np,nr,nsa)/dble(nthm1)
-              delth2_rg(np,nr,nsa) = (theta_co_stg_rg(np,nr,nsa)-theta_pnc_rg(np,nr,nsa))/dble(nthm2)
-              delth3_rg(np,nr,nsa) = (pi-theta_cnt_stg_rg(np,nr,nsa))/dble(nthm3)
+              do nth = 1, nthm1
+                delthm_rg(nth,np,nr,nsa) = theta_pnc_rg(np,nr,nsa)/dble(nthm1)
+              end do
+
+              do nth = nthm1+1, nthm1+nthm2
+                delthm_rg(nth,np,nr,nsa) = (theta_co_stg_rg(np,nr,nsa)-theta_pnc_rg(np,nr,nsa))/dble(nthm2)
+              end do
+
+              delthm_rg(nthm1+nthm2+1,np,nr,nsa) = theta_cnt_stg_rg(np,nr,nsa)-theta_co_stg_rg(np,nr,nsa)
+
+              do nth = nthm1+nthm2+2, nthmax
+                delthm_rg(nth,np,nr,nsa) = (pi-theta_cnt_stg_rg(np,nr,nsa))/dble(nthm3)
+              end do
+
             else
-              delth1_rg(np,nr,nsa) = theta_co_stg_rg(np,nr,nsa)/dble(nthm1+nthm2)
-              delth2_rg(np,nr,nsa) = theta_co_stg_rg(np,nr,nsa)/dble(nthm1+nthm2)
-              delth3_rg(np,nr,nsa) = (pi-theta_cnt_stg_rg(np,nr,nsa))/dble(nthm3)
+              do nth = 1, nthm1+nthm2
+                delthm_rg(nth,np,nr,nsa) = theta_co_stg_rg(np,nr,nsa)/dble(nthm1+nthm2)
+              end do
+
+              delthm_rg(nthm1+nthm2+1,np,nr,nsa) = theta_cnt_stg_rg(np,nr,nsa)-theta_co_stg_rg(np,nr,nsa)
+
+              do nth = nthm1+nthm2+2, nthmax
+                delthm_rg(nth,np,nr,nsa) = (pi-theta_cnt_stg_rg(np,nr,nsa))/dble(nthm3)
+              end do
+
             end if
-  
-            thetam_rg(1,np,nr,nsa) = 0.5d0*delth1_rg(np,nr,nsa)
-  
-            do nth = 2, nthm1
-              thetam_rg(nth,np,nr,nsa) = thetam_rg(nth-1,np,nr,nsa)+delth1_rg(np,nr,nsa)
-            end do
-  
-            do nth = nthm1+1, nthm1+nthm2
-              thetam_rg(nth,np,nr,nsa) = thetam_rg(nth-1,np,nr,nsa)+delth2_rg(np,nr,nsa)
-            end do
-  
-            thetam_rg(nthm1+nthm2+1,np,nr,nsa) = (theta_cnt_stg_rg(np,nr,nsa)+theta_co_stg_rg(np,nr,nsa))*0.5d0
-            thetam_rg(nthm1+nthm2+2,np,nr,nsa) = theta_cnt_stg_rg(np,nr,nsa)+0.5d0*delth3_rg(np,nr,nsa)
-  
-            do nth = nthm1+nthm2+3, nthm1+nthm2+nthm3
-              thetam_rg(nth,np,nr,nsa) = thetam_rg(nth-1,np,nr,nsa)+delth3_rg(np,nr,nsa)
-            end do
   
           else 
 
             if ( theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
-              delth1_rg(np,nr,nsa) = (pi-theta_pnc_rg(np,nr,nsa))/dble(nthm1)
-              delth2_rg(np,nr,nsa) = (theta_pnc_rg(np,nr,nsa)-theta_cnt_stg_rg(np,nr,nsa))/dble(nthm2)
-              delth3_rg(np,nr,nsa) = theta_co_stg_rg(np,nr,nsa)/dble(nthm3)
+              do nth = 1, nthm3
+                delthm_rg(nth,np,nr,nsa) = theta_co_stg_rg(np,nr,nsa)/dble(nthm3)
+              end do
+
+              delthm_rg(nthm3+1,np,nr,nsa) = theta_cnt_stg_rg(np,nr,nsa)-theta_co_stg_rg(np,nr,nsa)
+
+              do nth = nthm3+2, nthm3+1+nthm2
+                delthm_rg(nth,np,nr,nsa) = (theta_pnc_rg(np,nr,nsa)-theta_cnt_stg_rg(np,nr,nsa))/dble(nthm2)
+              end do
+
+              do nth = nthm3+nthm2+2, nthmax
+                delthm_rg(nth,np,nr,nsa) = (pi-theta_pnc_rg(np,nr,nsa))/dble(nthm1)
+              end do
+
             else
-              delth1_rg(np,nr,nsa) = (pi-theta_cnt_stg_rg(np,nr,nsa))/dble(nthm1+nthm2)
-              delth2_rg(np,nr,nsa) = (pi-theta_cnt_stg_rg(np,nr,nsa))/dble(nthm1+nthm2)
-              delth3_rg(np,nr,nsa) = theta_co_stg_rg(np,nr,nsa)/dble(nthm3)
+              do nth = 1, nthm3
+                delthm_rg(nth,np,nr,nsa) = theta_co_stg_rg(np,nr,nsa)/dble(nthm3)
+              end do
+
+              delthm_rg(nthm3+1,np,nr,nsa) = theta_cnt_stg_rg(np,nr,nsa)-theta_co_stg_rg(np,nr,nsa)
+
+              do nth = nthm3+2, nthmax
+                delthm_rg(nth,np,nr,nsa) = (pi-theta_cnt_stg_rg(np,nr,nsa))/dble(nthm1+nthm2)
+              end do
+
             end if
   
-            thetam_rg(1,np,nr,nsa) = 0.5d0*delth3_rg(np,nr,nsa)
-  
-            do nth = 2, nthm3
-              thetam_rg(nth,np,nr,nsa) = thetam_rg(nth-1,np,nr,nsa)+delth3_rg(np,nr,nsa)
-            end do
-
-            thetam_rg(nthm3+1,np,nr,nsa) = theta_cnt_stg_rg(np,nr,nsa)+0.5d0*delth2_rg(np,nr,nsa)
-            thetam_rg(nthm3+2,np,nr,nsa) = thetam_rg(nthm3+1,np,nr,nsa)+delth2_rg(np,nr,nsa)
-  
-            do nth = nthm3+3, nthm3+nthm2
-              thetam_rg(nth,np,nr,nsa) = thetam_rg(nth-1,np,nr,nsa)+delth2_rg(np,nr,nsa)
-            end do
-    
-            do nth = nthm3+nthm2, nthm1+nthm2+nthm3
-              thetam_rg(nth,np,nr,nsa) = thetam_rg(nth-1,np,nr,nsa)+delth1_rg(np,nr,nsa)
-            end do
-  
           end if
+
+          ! difine thetam and thetamg
+          thetam_rg(1,np,nr,nsa) = 0.5d0*delthm_rg(1,np,nr,nsa)
+
+          do nth = 2, nthmax
+            thetam_rg(nth,np,nr,nsa) = thetam_rg(nth-1,np,nr,nsa) &
+                                  +0.5d0*delthm_rg(nth-1,np,nr,nsa)+0.5d0*delthm_rg(nth,np,nr,nsa)
+          end do
+
         end do
       end do
     end do
-
 
     ! solve Equation of motion for all integer and half integer grid points
     call fow_orbit_construct(orbit_m)    ! (nth,np,nr) = (half integer, half integer, half integer)
@@ -325,6 +365,10 @@ contains
 
     ! calculate Jacobian
     call fow_calculate_jacobian
+
+    call cpu_time(end_time)
+
+    write(*,*)"fowprep time:",end_time-begin_time,"[sec]"
 
   end subroutine fow_prep
 
@@ -555,7 +599,7 @@ contains
     end interface
     
     real(rkind) :: x_min, x_max, x_mid, f_min, f_max, f_mid, g_min, g_max, g_mid, eps
-    integer :: i, imax = 10000
+    integer :: i, imax = 1000
 
     convergence_flag = 0
 
@@ -754,8 +798,7 @@ contains
           do nth = 1, nthmax
 
             ! Jacobian_I(nth,np,nr,nsa) = 0.d0 in forbitten region
-            if ( theta_co_stg(np,nr,nsa) < thetam(nth,np,nr,nsa) &
-                .and. thetam(nth,np,nr,nsa) < theta_cnt_stg(np,nr,nsa) ) then
+            if ( nth == nth_forbitten(nsa) ) then
               Jacobian_I(nth,np,nr,nsa) = 0.d0
               cycle
             end if

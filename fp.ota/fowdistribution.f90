@@ -51,8 +51,7 @@ contains
             do nr = 1, nrmax
 
             ! fm_I(nth,np,nr,nsa) = 0.d0 in forbitten region
-              if ( theta_co_stg(np,nr,nsa) < thetam(nth,np,nr,nsa) &
-                  .and. thetam(nth,np,nr,nsa) < theta_cnt_stg(np,nr,nsa) ) then
+              if ( nth == nth_forbitten(nsa) ) then
                 fm_I(nth,np,nr,nsa) = 0.d0
                 cycle
               end if

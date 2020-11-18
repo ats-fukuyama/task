@@ -39,7 +39,7 @@ program fow
   call fow_allocate
   call fow_prep
 
-  call fow_debug
+  ! call fow_debug
   write(*,*)"end"
   call fow_deallocate
 

@@ -7,11 +7,6 @@ module fowcoef
 
   real(rkind),allocatable,dimension(:,:,:,:,:) :: Dppl, Dptl, Fppl,&
                                                   Dtpl, Dttl, Fthl
-
-  real(rkind),allocatable,dimension(:,:,:,:) :: Dppfow, Dptfow, Dprfow,&
-                                                Dtpfow, Dttfow, Dtrfow,&
-                                                Drpfow, Drtfow, Drrfow,&
-                                                Fppfow,  Fthfow,  Frrfow
   
   real(rkind),allocatable :: FNSBL(:,:,:,:,:)
 
@@ -37,11 +32,6 @@ contains
       allocate(Dppl(nthmax,npmax+1,nrmax,nsamax,nthpmax),Dptl(nthmax,npmax+1,nrmax,nsamax,nthpmax))
       allocate(Dtpl(nthmax+1,npmax,nrmax,nsamax,nthpmax),Dttl(nthmax+1,npmax,nrmax,nsamax,nthpmax))
       allocate(Fppl(nthmax,npmax+1,nrmax,nsamax,nthpmax),Fthl(nthmax+1,npmax,nrmax,nsamax,nthpmax))
-
-      allocate(Dppfow(nthmax,npmax+1,nrmax,nsamax),Dptfow(nthmax,npmax+1,nrmax,nsamax),Dprfow(nthmax,npmax+1,nrmax,nsamax))
-      allocate(Dtpfow(nthmax+1,npmax,nrmax,nsamax),Dttfow(nthmax+1,npmax,nrmax,nsamax),Dtrfow(nthmax+1,npmax,nrmax,nsamax))
-      allocate(Drpfow(nthmax,npmax,nrmax+1,nsamax),Drtfow(nthmax,npmax,nrmax+1,nsamax),Drrfow(nthmax,npmax,nrmax+1,nsamax))
-      allocate(Fppfow(nthmax,npmax+1,nrmax,nsamax),Fthfow(nthmax+1,npmax,nrmax,nsamax),Frrfow(nthmax,npmax,nrmax+1,nsamax))
     end if
 
 
@@ -455,8 +445,8 @@ contains
 
     ! elements of transformation matrix, dIdu
     real(rkind) ::  dpdp,  dxidp,  dpsdp,&
-                dpdth, dxidth, dpsdth,&
-                dpdr,  dxidr,  dpsdr
+                    dpdth, dxidth, dpsdth,&
+                    dpdr,  dxidr,  dpsdr
     real(rkind) :: A,B,C,D,E
     real(rkind) :: Fl, Bl, xil, pl, dFoBdpsi, Fob, Bob, thetaob
     integer :: nstp, nstpmax

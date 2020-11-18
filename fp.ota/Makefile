@@ -44,8 +44,7 @@ SRCS = fpcomm.f90 eg_read.f90 fpinit.f90 fpparm.f90 \
        fpmenu.f90
 
 SRCSFOW =fowcomm.f90 foworbitclassify.f90 foworbit.f90 fowprep.f90 \
-		fowdistribution.f90 \
-		fowcoef.f90 \
+		fowdistribution.f90 fowcoef.f90 \
 		fowmenu.f90
 
 OBJS = $(addprefix $(OBJDIR)/, $(SRCS:.f90=.o))

@@ -26,10 +26,10 @@ module fowcomm
                                                 thetam_pg             ! theta_m for given pg(np), psim(nr)
 
 ! Diffsion coefficients extend FP's difference equation ------------------------------------------------
-  real(rkind),allocatable,dimension(:,:,:,:) :: Dpr,&           ! 
-                                                Dtr,&           !
-                                                Drp,&           !
-                                                Drt             !
+  real(rkind),allocatable,dimension(:,:,:,:) :: Dppfow, Dptfow, Dprfow,&
+                                                Dtpfow, Dttfow, Dtrfow,&
+                                                Drpfow, Drtfow, Drrfow,&
+                                                Fppfow,  Fthfow,  Frrfow
 
 ! equilibrium variables --------------------------------------------------------------------------------
   real(rkind):: psi0                                             ! poloidal flux at the plasma edge
@@ -46,26 +46,26 @@ module fowcomm
   real(rkind),allocatable,dimension(:,:,:) :: theta_pnc,&         ! theta_m of pinch orbit for given pm(np) and psim(nr)
                                               theta_co_stg,&      ! theta_m of co-stagnation orbit for pm(np) and psim(nr)
                                               theta_cnt_stg,&     ! theta_m of counter-stagnation orbit for pm(np) and psim(nr)
-                                              psip_pnc_point,&    ! poloidal flux of pinch orbit given by I = (pm(np), theta_pnc(p,psi_m), psim(nr))
-                                              delth1,&            ! grid width of theta_m for 0 <= theta_m <= theta_pnc
-                                              delth2,&            ! grid width of theta_m for theta_pnc <= theta_m <= theta_co_stg
-                                              delth3              ! grid width of theta_m for theta_cnt_stg <= theta_m <= pi
+                                              psip_pnc_point      ! poloidal flux of pinch orbit given by I = (pm(np), theta_pnc(p,psi_m), psim(nr))
+                                              
 
   real(rkind),allocatable,dimension(:,:,:) :: theta_pnc_pg,&         ! theta_m of pinch orbit for given pg(np) and psim(nr)
                                               theta_co_stg_pg,&      ! theta_m of co-stagnation orbit for given pg(np) and psim(nr)
                                               theta_cnt_stg_pg,&     ! theta_m of counter-stagnation orbit for given pg(np) and psim(nr)
-                                              psip_pnc_point_pg,&    ! poloidal flux of pinch orbit given by I = (pg(np), theta_pnc(p,psim), psim(nr))
-                                              delth1_pg,&            ! grid width of theta_m for 0 <= theta_m <= theta_pnc
-                                              delth2_pg,&            ! grid width of theta_m for theta_pnc <= theta_m <= theta_co_stg
-                                              delth3_pg              ! grid width of theta_m for theta_cnt_stg <= theta_m <= pi
+                                              psip_pnc_point_pg      ! poloidal flux of pinch orbit given by I = (pg(np), theta_pnc(p,psim), psim(nr))
+                                              
 
   real(rkind),allocatable,dimension(:,:,:) :: theta_pnc_rg,&         ! theta_m of pinch orbit for given pm(np) and psimg(nr)
                                               theta_co_stg_rg,&      ! theta_m of co-stagnation orbit for given pm(np) and psimg(nr)
                                               theta_cnt_stg_rg,&     ! theta_m of counter-stagnation orbit for given pm(np) and psimg(nr)
-                                              psip_pnc_point_rg,&    ! poloidal flux of pinch orbit given by I = (pm(np), theta_pnc(p,psi_m), psimg(nr))
-                                              delth1_rg,&            ! grid width of theta_m for 0 <= theta_m <= theta_pnc
-                                              delth2_rg,&            ! grid width of theta_m for theta_pnc <= theta_m <= theta_co_stg
-                                              delth3_rg              ! grid width of theta_m for theta_cnt_stg <= theta_m <= pi
+                                              psip_pnc_point_rg      ! poloidal flux of pinch orbit given by I = (pm(np), theta_pnc(p,psi_m), psimg(nr))
+
+  real(rkind),allocatable,dimension(:,:,:,:) :: delthm_rg, delthm_pg, delthm
+
+  integer,allocatable,dimension(:) :: nth_co_stg,&        ! thetamg(nth_co_stg,(nsa),np,nr,nsa) = theta_co_stg
+                                      nth_cnt_stg,&       ! thetamg(nth_cnt_stg,(nsa),np,nr,nsa) = theta_cnt_stg
+                                      nth_pnc,&           ! thetamg(nth_pnc,(nsa),np,nr,nsa) = theta_pnc
+                                      nth_forbitten       ! thetam(nth_forbitten(nsa),np,nr,nsa),thetam_pg(nth_forbitten(nsa),np,nr,nsa) and thetam_rg(nth_forbitten(nsa),np,nr,nsa) are in forbitten region
 
   real(rkind),parameter :: NO_PINCH_ORBIT = 19960610d0 ! if theta_pnc(np,nr,nsa) = NO_PINCH_ORBIT then no pinch orbit exists with pm(np) and psi_m = psim(nr)
 
@@ -103,19 +103,27 @@ contains
     allocate(Fpsig(nrmax+1),Boutg(nrmax+1),Bing(nrmax+1))
     ! 
     allocate(theta_pnc(npmax,nrmax,nsamax),theta_co_stg(npmax,nrmax,nsamax),theta_cnt_stg(npmax,nrmax,nsamax))
-    allocate(psip_pnc_point(npmax,nrmax,nsamax),delth1(npmax,nrmax,nsamax),delth2(npmax,nrmax,nsamax),delth3(npmax,nrmax,nsamax))
+    allocate(psip_pnc_point(npmax,nrmax,nsamax))
 
     allocate(theta_pnc_pg(npmax+1,nrmax,nsamax),theta_co_stg_pg(npmax+1,nrmax,nsamax),theta_cnt_stg_pg(npmax+1,nrmax,nsamax))
-    allocate(psip_pnc_point_pg(npmax+1,nrmax,nsamax),delth1_pg(npmax+1,nrmax,nsamax)&
-            ,delth2_pg(npmax+1,nrmax,nsamax),delth3_pg(npmax+1,nrmax,nsamax))
+    allocate(psip_pnc_point_pg(npmax+1,nrmax,nsamax))
 
     allocate(theta_pnc_rg(npmax,nrmax+1,nsamax),theta_co_stg_rg(npmax,nrmax+1,nsamax),theta_cnt_stg_rg(npmax,nrmax+1,nsamax))
-    allocate(psip_pnc_point_rg(npmax,nrmax+1,nsamax),delth1_rg(npmax,nrmax+1,nsamax)&
-            ,delth2_rg(npmax,nrmax+1,nsamax),delth3_rg(npmax,nrmax+1,nsamax))
+    allocate(psip_pnc_point_rg(npmax,nrmax+1,nsamax))
+
+    allocate(delthm(nthmax,npmax,nrmax,nsamax),delthm_pg(nthmax,npmax+1,nrmax,nsamax),delthm_rg(nthmax,npmax,nrmax+1,nsamax))
+    allocate(nth_co_stg(nsamax),nth_cnt_stg(nsamax),nth_pnc(nsamax))
+    allocate(nth_forbitten(nsamax))
+
     allocate(Babs(nrmax+1,nthpmax))
     ! 
     allocate(orbit_p(nthmax,npmax+1,nrmax,nsamax),orbit_th(nthmax+1,npmax,nrmax,nsamax)&
     ,orbit_r(nthmax,npmax,nrmax+1,nsamax),orbit_m(nthmax,npmax,nrmax,nsamax))
+    !
+    allocate(Dppfow(nthmax,npmax+1,nrmax,nsamax),Dptfow(nthmax,npmax+1,nrmax,nsamax),Dprfow(nthmax,npmax+1,nrmax,nsamax))
+    allocate(Dtpfow(nthmax+1,npmax,nrmax,nsamax),Dttfow(nthmax+1,npmax,nrmax,nsamax),Dtrfow(nthmax+1,npmax,nrmax,nsamax))
+    allocate(Drpfow(nthmax,npmax,nrmax+1,nsamax),Drtfow(nthmax,npmax,nrmax+1,nsamax),Drrfow(nthmax,npmax,nrmax+1,nsamax))
+    allocate(Fppfow(nthmax,npmax+1,nrmax,nsamax),Fthfow(nthmax+1,npmax,nrmax,nsamax),Frrfow(nthmax,npmax,nrmax+1,nsamax))
     !
     allocate(xi(nthmax))
     allocate(xig(nthmax+1))
@@ -132,13 +140,13 @@ contains
     deallocate(psimg,Fpsig,Boutg,Bing)
     ! 
     deallocate(theta_pnc,theta_co_stg,theta_cnt_stg)
-    deallocate(psip_pnc_point,delth1,delth2,delth3)
+    deallocate(psip_pnc_point, delthm)
 
     deallocate(theta_pnc_pg,theta_co_stg_pg,theta_cnt_stg_pg)
-    deallocate(psip_pnc_point_pg,delth1_pg,delth2_pg,delth3_pg)
+    deallocate(psip_pnc_point_pg, delthm_pg)
 
     deallocate(theta_pnc_rg,theta_co_stg_rg,theta_cnt_stg_rg)
-    deallocate(psip_pnc_point_rg,delth1_rg,delth2_rg,delth3_rg)
+    deallocate(psip_pnc_point_rg, delthm_rg)
     ! 
     deallocate(orbit_p,orbit_th,orbit_r,orbit_m)
     !

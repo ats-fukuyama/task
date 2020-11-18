@@ -4,790 +4,796 @@
 !        EXECUTE TIME ADVANCE
 !     **************************
 
-      MODULE fpexec
-
-      use fpcomm
-      use fowcomm
-
-      contains
-
-      SUBROUTINE fp_exec(NSA,IERR,its)
-
-      USE libmpi
-      USE libmtx
-      USE fpmpi
-      IMPLICIT NONE
-      integer:: NSA, NP, NTH, NR, NL, NM, NN, NS
-      integer:: NTHS, NLL
-      integer:: IERR,its,i,j,ll1
-      integer:: imtxstart1,imtxend1
-      real(8),dimension(nmend-nmstart+1):: BM_L
-      real(8),dimension(nthmax):: sendbuf_p, recvbuf_p
-      real(8),dimension(nthmax*(npend-npstart+1)):: sendbuf_r, recvbuf_r
-
-      NS=NS_NSA(NSA)
-
-      CALL mtx_set_communicator(comm_nrnp) !3D
-
-!     ----- Set up matrix solver -----
-      CALL mtx_setup(imtxsize,imtxstart1,imtxend1,imtxwidth)
-      IF(imtxstart1.NE.imtxstart.OR.imtxend1.NE.imtxend) THEN
-         WRITE(6,*) 'XX fp_exec: '
-         WRITE(6,*) '   imtxstart1.NE.imtxstart.OR.imtxend1.NE.imtxend'
-         WRITE(6,*) '   imtxstart1,imtxstart = ',imtxstart1,imtxstart
-         WRITE(6,*) '   imtxend1,imtxend     = ',imtxend1,imtxend
-         STOP
-      ENDIF
-
-!     ----- Set up weight array -----
-
-      CALL FPWEIGHT(NSA,IERR)
-
-!     ----- Set up index array NMA -----
-!               NM: line number of the coefficient matrix
-!               NL: 
-
-      CALL SET_FM_NMA(NSA,FNSM)
-
-      DO NM=NMSTART,NMEND
-         NLMAX(NM)=0
-         BM(NM)=0.D0
-         DO NL=1,NLMAXM
-            LL(NM,NL)=0
-            AL(NM,NL)=0.D0
-         ENDDO
-      ENDDO
-
-!     ----- Calculate matrix coefficients in a row -----
-
-      DO NR=NRSTART,NREND
-         IF(MODELA.EQ.0) THEN
-            DO NP=NPSTART,NPEND
-            DO NTH=1,NTHMAX
-               NM=NMA(NTH,NP,NR)
-               CALL FPSETM(NTH,NP,NR,NSA,NLMAX(NM))
-            ENDDO
-            ENDDO
-         ELSE
-            DO NP=NPSTART,NPEND
-               DO NTH=1,NTHMAX/2
-                  NM=NMA(NTH,NP,NR)
-                  CALL FPSETM(NTH,NP,NR,NSA,NLMAX(NM))
-               ENDDO
-               DO NTH=ITU(NR)+1,NTHMAX
-                  NM=NMA(NTH,NP,NR)
-                  CALL FPSETM(NTH,NP,NR,NSA,NLMAX(NM))
-               ENDDO
-            ENDDO
-         ENDIF
-      ENDDO
-
-!     ----- Diagonal term -----
-
-      DO NR=NRSTART,NREND ! LHS: set_matrix, RHS: BM
-         IF(MODELA.EQ.0) THEN
-            DO NP=NPSTART,NPEND
-            DO NTH=1,NTHMAX
-               NM=NMA(NTH,NP,NR)
-               BM(NM)=(1.D0+(1.D0-RIMPL)*DELT*DL(NM))*FM(NM) &
-                     +DELT*SPP(NTH,NP,NR,NSA)
-               IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
-                  CALL mtx_set_matrix(nm,nm,1.D0-rimpl*delt*dl(nm))
-                  CALL mtx_set_vector(nm,FM(NM))
-               ENDIF
-            ENDDO
-            ENDDO
-         ELSE
-            DO NP=NPSTART,NPEND
-               DO NTH=1,NTHMAX/2
-                  NM=NMA(NTH,NP,NR)
-                  BM(NM)=(RLAMDA(NTH,NR)+(1.D0-RIMPL)*DELT*DL(NM))*FM(NM) &
-                        +DELT*SPP(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)
-                  IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
-                     CALL mtx_set_matrix(nm,nm, &
-                                         RLAMDA(NTH,NR)-RIMPL*DELT*DL(NM))
-                     CALL mtx_set_vector(nm,FM(NM))
-                  ENDIF
-               ENDDO
-               DO NTH=NTHMAX/2+1,ITU(NR)
-                  NTHS=NTHMAX+1-NTH
-                  NM=NMA(NTH,NP,NR)
-                  BM(NM)=0.D0
-                  IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
-                     CALL mtx_set_matrix(nm,nm,1.d0)
-                     CALL mtx_set_matrix(nm,nm+NTHS-NTH,-1.d0)
-                     CALL mtx_set_vector(nm,FM(NM))
-                  ENDIF
-               ENDDO
-               DO NTH=ITU(NR)+1,NTHMAX
-                  NM=NMA(NTH,NP,NR)
-                  BM(NM)=(RLAMDA(NTH,NR)+(1.D0-RIMPL)*DELT*DL(NM))*FM(NM) &
-                        +DELT*SPP(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)
-                  IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
-                     CALL mtx_set_matrix(nm,nm, &
-                                         RLAMDA(NTH,NR)-RIMPL*DELT*DL(NM))
-                     CALL mtx_set_vector(nm,FM(NM))
-                  ENDIF
-               ENDDO
-            ENDDO
-         ENDIF
-      ENDDO
-
-!     ----- Off diagonal term -----
-
-      DO NM=NMSTART,NMEND ! LHS
-         IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
-            DO NL=1,NLMAX(NM)
-               IF(LL(NM,NL).NE.0) THEN
-                  CALL mtx_set_matrix(nm,LL(NM,NL),-RIMPL*DELT*AL(NM,NL))
-               ENDIF
-            ENDDO
-         ENDIF
-      ENDDO
-
-!     ----- Source vector: contribution from off-diagonal term -----
-
-      DO NM=NMSTART,NMEND ! RHS
-         DO NL=1,NLMAX(NM)
-            NN=LL(NM,NL)
-            IF(NN.NE.0) THEN
-               IF(NN.ge.NMSTART-NTHMAX.and.NN.le.NMEND+NTHMAX)THEN
-                  BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM(NN)
-               ELSEIF(NN.lt.NMSTART-NTHMAX)THEN
-                  BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM_shadow_m(NN)
-               ELSE
-                  BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM_shadow_p(NN)
-               END IF
-            ENDIF
-         ENDDO
-         IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
-            CALL mtx_set_source(nm,BM(NM))
-         ENDIF
-      ENDDO
-
-
-!     ----- Solve matrix equation -----
-
-      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) ! ncom is nessesary for MUMPS not PETSc
-      ierr=0
-
-!     ----- Get solution vector -----
-
-      CALL mtx_get_vector(BM_L)
-
-      DO NR=NRSTART, NREND
-         DO NP=NPSTART, NPEND
-            DO NTH=1,NTHMAX
-               NM=NMA(NTH,NP,NR)
-               IF(ABS(BM_L(NM-NMSTART+1)).LT.1.D-100) THEN
-                  FNS0(NTH,NP,NR,NSA)=0.D0
-               ELSE
-                  FNS0(NTH,NP,NR,NSA)=BM_L(NM-NMSTART+1)
-               END IF
-            END DO
-         END DO
-      END DO
-!     shadow requires to communicate
-      CALL mtx_set_communicator(comm_np)
-      DO NR=NRSTART, NREND
-         CALL shadow_comm_np(NR,NSA)
-      END DO
-      CALL mtx_set_communicator(comm_nr)
-      CALL shadow_comm_nr(NSA)
-      CALL mtx_set_communicator(comm_nrnp) !3D
-
-
-!     ----- Clean up matrix solver -----
-      CALL mtx_cleanup
-
-      CALL mtx_reset_communicator
-
-      RETURN
-      END SUBROUTINE FP_EXEC
-
-!     ---------------------------------
-
-      SUBROUTINE SET_FM_NMA(NSA,func_in)
-
-      IMPLICIT NONE
-      integer:: NTH, NP, NR, NSA, NM, NRS, NPS
-      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND), &
-           intent(IN):: func_in
-
-      IF(NRSTART.eq.1)THEN
-         NRS=1
-      ELSE
-         NRS=NRSTART-1
-      END IF
-
-      DO NR=NRSTARTW,NRENDWM
-         DO NP=NPSTARTW,NPENDWM
-            DO NTH=1,NTHMAX
-               NM=NTH+NTHMAX*(NP-1)+NPMAX*NTHMAX*(NR-1)
-               NMA(NTH,NP,NR)=NM
-            END DO
-         END DO
-      END DO
-
-      DO NR=NRSTART,NREND
-         DO NP=NPSTARTW,NPENDWM
-            DO NTH=1,NTHMAX
-               NM=NMA(NTH,NP,NR)
-               FM(NM)=func_in(NTH,NP,NR,NSA)
-            ENDDO
-         ENDDO
-      ENDDO
-      NR=NRSTARTW
-      IF(NR.ne.NRSTART)THEN
-         DO NP=NPSTARTW,NPENDWM
-            DO NTH=1,NTHMAX
-               NM=NMA(NTH,NP,NR)
-               FM_shadow_m(NM)=func_in(NTH,NP,NR,NSA)
-            ENDDO
-         ENDDO
-      END IF
-      NR=NRENDWM
-      IF(NR.ne.NREND)THEN
-         DO NP=NPSTARTW,NPENDWM
-            DO NTH=1,NTHMAX
-               NM=NMA(NTH,NP,NR)
-               FM_shadow_p(NM)=func_in(NTH,NP,NR,NSA)
-            ENDDO
-         ENDDO
-      END IF
-
-      
-      END SUBROUTINE SET_FM_NMA
-
-!
-!     ***************************
-!        CALCULATION OF WEIGHT
-!     ***************************
-!
-      SUBROUTINE FPWEIGHT(NSA,IERR) ! proposed by Chang and Cooper [30] in Karney
-
-      IMPLICIT NONE
-      integer:: NSA, NP, NTH, NR, NL, NM, NTHA, NTHB, NTB, NS
-      integer:: IERR
-      real(8):: DFDTH, FVEL, DVEL, DFDP, DFDB
-
-!     +++++ calculation of weigthing (including off-diagonal terms) +++++
-
-      real(8)::EPSWT=1.D-70
-
-      NS=NS_NSA(NSA)
-      DO NR=NRSTART,NREND
-      DO NP=NPSTART,NPENDWG
-      DO NTH=1,NTHMAX
-         DFDTH=0.D0
-         IF(NP.NE.1) THEN
-            NTHA=MIN(NTH+1,NTHMAX)
-            NTHB=MAX(NTH-1,1)
-            IF(NP.EQ.NPMAX+1) THEN
-               IF(ABS(F(NTH,NP-1,NR)).GT.EPSWT) THEN
-                  DFDTH= (F(NTHA,NP-1,NR)-F(NTHB,NP-1,NR)) &
-                        /(2.D0*PG(NP,NS)*DELTH*F(NTH,NP-1,NR))
-               ENDIF
-            ELSE
-               IF(ABS(F(NTH,NP-1,NR)).GT.EPSWT) THEN
-                  IF(ABS(F(NTH,NP,NR)).GT.EPSWT) THEN
-                     DFDTH= (F(NTHA,NP-1,NR)-F(NTHB,NP-1,NR)) &
-                           /(4.D0*PG(NP,NS)*DELTH*F(NTH,NP-1,NR)) &
-                          + (F(NTHA,NP  ,NR)-F(NTHB,NP  ,NR)) &
-                           /(4.D0*PG(NP,NS)*DELTH*F(NTH,NP  ,NR))
-                  ELSE
-                     DFDTH= (F(NTHA,NP-1,NR)-F(NTHB,NP-1,NR)) &
-                           /(2.D0*PG(NP,NS)*DELTH*F(NTH,NP-1,NR)) 
-                  ENDIF
-               ELSE
-                  IF(ABS(F(NTH,NP,NR)).GT.EPSWT) THEN
-                     DFDTH= (F(NTHA,NP  ,NR)-F(NTHB,NP  ,NR)) &
-                           /(2.D0*PG(NP,NS)*DELTH*F(NTH,NP  ,NR))
-                  ENDIF
-               ENDIF
-            ENDIF
-         ENDIF
-         FVEL=FPP(NTH,NP,NR,NSA)-DPT(NTH,NP,NR,NSA)*DFDTH
-         WEIGHP(NTH,NP,NR,NSA)=FPWEGH(-DELP(NS)*FVEL,DPP(NTH,NP,NR,NSA))
-      ENDDO
-      ENDDO
-      ENDDO
-
-      DO NR=NRSTART,NREND
-!      DO NP=1,NPMAX
-      DO NP=NPSTART,NPEND
-         DFDP=-PM(NP,NS)*RTFP0(NSA)/RTFP(NR,NSA)
-         DFDB=DFDP
-      DO NTH=1,NTHMAX+1
-        IF(NTH.EQ.1) THEN
-            IF(F(NTH,NP,NR).GT.EPSWT) THEN
-               IF(NP.EQ.1) THEN
-                  DFDP= (F(NTH  ,NP+1,NR)-F(NTHMAX-NTH+1,1,NR)) &
-                       /(2.D0*DELP(NS)*F(NTH  ,NP,NR))
-               ELSEIF(NP.EQ.NPMAX) THEN
-                  DFDP= (F(NTH  ,NP,NR)-F(NTH  ,NP-1,NR)) &
-                       /(     DELP(NS)*F(NTH  ,NP,NR))
-               ELSE
-                  DFDP= (F(NTH  ,NP+1,NR)-F(NTH  ,NP-1,NR)) &
-                       /(2.D0*DELP(NS)*F(NTH  ,NP,NR))
-               ENDIF
-            ENDIF
-         ELSEIF(NTH.EQ.NTHMAX+1) THEN
-            IF(F(NTH-1,NP,NR).GT.EPSWT) THEN
-               IF(NP.EQ.1) THEN
-                  DFDP= (F(NTH-1,NP+1,NR)-F(NTHMAX-NTH+2,1,NR)) &
-                       /(2.D0*DELP(NS)*F(NTH-1,NP,NR))
-               ELSEIF(NP.EQ.NPMAX) THEN
-                  DFDP= (F(NTH-1,NP,NR)-F(NTH-1,NP-1,NR)) &
-                       /(     DELP(NS)*F(NTH-1,NP,NR))
-               ELSE
-                  DFDP= (F(NTH-1,NP+1,NR)-F(NTH-1,NP-1,NR)) &
-                       /(2.D0*DELP(NS)*F(NTH-1,NP,NR))
-               ENDIF
-            ENDIF
-         ELSE IF(NTH.EQ.ITL(NR)) THEN
-            NTB=ITU(NR)
-            IF(NP.EQ.1) THEN
-               IF(F(NTH-1,NP,NR).GT.EPSWT) THEN
-                  IF(F(NTH,NP,NR).GT.EPSWT) THEN
-                     DFDP= (F(NTH-1,NP+1,NR)-F(NTHMAX-NTH+2,1,NR)) &
-                          /(4.D0*DELP(NS)*F(NTH-1,NP,NR)) &
-                          +(F(NTH  ,NP+1,NR)-F(NTHMAX-NTH+1,1,NR)) &
-                          /(4.D0*DELP(NS)*F(NTH  ,NP,NR))
-                  ELSE
-                     DFDP= (F(NTH-1,NP+1,NR)-F(NTHMAX-NTH+2,1,NR)) &
-                          /(2.D0*DELP(NS)*F(NTH-1,NP,NR))
-                  ENDIF
-               ELSE
-                  IF(F(NTH,NP,NR).GT.EPSWT) THEN
-                     DFDP= (F(NTH  ,NP+1,NR)-F(NTHMAX-NTH+1,1,NR)) &
-                          /(2.D0*DELP(NS)*F(NTH  ,NP,NR))
-                  ENDIF
-               ENDIF
-            ELSEIF(NP.EQ.NPMAX) THEN
-               IF(F(NTH-1,NP,NR).GT.EPSWT) THEN
-                  IF(ABS(F(NTH,NP,NR)).GT.EPSWT) THEN
-                     DFDP= (F(NTH-1,NP,NR)-F(NTH-1,NP-1,NR)) &
-                          /(2.D0*DELP(NS)*F(NTH-1,NP,NR)) &
-                          +(F(NTH  ,NP,NR)-F(NTH  ,NP-1,NR)) &
-                          /(2.D0*DELP(NS)*F(NTH  ,NP,NR))
-                  ELSE
-                     DFDP= (F(NTH-1,NP,NR)-F(NTH-1,NP-1,NR)) &
-                          /(     DELP(NS)*F(NTH-1,NP,NR))
-                  ENDIF
-               ELSE
-                  IF(F(NTH,NP,NR).GT.EPSWT) THEN
-                     DFDP= (F(NTH  ,NP,NR)-F(NTH  ,NP-1,NR)) &
-                          /(     DELP(NS)*F(NTH  ,NP,NR))
-                  ENDIF
-               ENDIF
-            ELSE
-               IF(F(NTH-1,NP,NR).GT.EPSWT) THEN
-                  IF(F(NTH,NP,NR).GT.EPSWT) THEN
-                     DFDP= (F(NTH-1,NP+1,NR)-F(NTH-1,NP-1,NR)) &
-                          /(4.D0*DELP(NS)*F(NTH-1,NP,NR)) &
-                          +(F(NTH  ,NP+1,NR)-F(NTH  ,NP-1,NR)) &
-                          /(4.D0*DELP(NS)*F(NTH  ,NP,NR))
-                  ELSE
-                     DFDP= (F(NTH-1,NP+1,NR)-F(NTH-1,NP-1,NR)) &
-                          /(2.D0*DELP(NS)*F(NTH-1,NP,NR))
-                  ENDIF
-               ELSE
-                  IF(F(NTH,NP,NR).GT.EPSWT) THEN
-                     DFDP= (F(NTH  ,NP+1,NR)-F(NTH  ,NP-1,NR)) &
-                          /(2.D0*DELP(NS)*F(NTH  ,NP,NR))
-                  ENDIF
-               ENDIF
-            ENDIF
-            IF(NP.EQ.1) THEN
-               IF(F(NTB-1,NP,NR).GT.EPSWT) THEN
-                  IF(F(NTB,NP,NR).GT.EPSWT) THEN
-                     DFDB= (F(NTB-1,NP+1,NR)-F(NTHMAX-NTB+2,1,NR)) &
-                          /(4.D0*DELP(NS)*F(NTB-1,NP,NR)) &
-                          +(F(NTB  ,NP+1,NR)-F(NTHMAX-NTB+1,1,NR)) &
-                          /(4.D0*DELP(NS)*F(NTB  ,NP,NR))
-                  ELSE
-                     DFDB= (F(NTB-1,NP+1,NR)-F(NTHMAX-NTB+2,1,NR)) &
-                          /(2.D0*DELP(NS)*F(NTB-1,NP,NR))
-                  ENDIF
-               ELSE
-                  IF(F(NTB,NP,NR).GT.EPSWT) THEN
-                     DFDB= (F(NTB  ,NP+1,NR)-F(NTHMAX-NTB+1,1,NR)) &
-                          /(2.D0*DELP(NS)*F(NTB  ,NP,NR))
-                  ENDIF
-               ENDIF
-            ELSEIF(NP.EQ.NPMAX) THEN
-               IF(F(NTB-1,NP,NR).GT.EPSWT) THEN
-                  IF(F(NTB,NP,NR).GT.EPSWT) THEN
-                     DFDB= (F(NTB-1,NP,NR)-F(NTB-1,NP-1,NR)) &
-                          /(2.D0*DELP(NS)*F(NTB-1,NP,NR)) &
-                          +(F(NTB  ,NP,NR)-F(NTB  ,NP-1,NR)) &
-                          /(2.D0*DELP(NS)*F(NTB  ,NP,NR))
-                  ELSE
-                     DFDB= (F(NTB-1,NP,NR)-F(NTB-1,NP-1,NR)) &
-                          /(     DELP(NS)*F(NTB-1,NP,NR))
-                  ENDIF
-               ELSE
-                  IF(F(NTB,NP,NR).GT.EPSWT) THEN
-                     DFDB= (F(NTB  ,NP,NR)-F(NTB  ,NP-1,NR)) &
-                          /(     DELP(NS)*F(NTB  ,NP,NR))
-                  ENDIF
-               ENDIF
-            ELSE
-               IF(F(NTB-1,NP,NR).GT.EPSWT) THEN
-                  IF(F(NTB,NP,NR).GT.EPSWT) THEN
-                     DFDB= (F(NTB-1,NP+1,NR)-F(NTB-1,NP-1,NR)) &
-                          /(4.D0*DELP(NS)*F(NTB-1,NP,NR)) &
-                          +(F(NTB  ,NP+1,NR)-F(NTB  ,NP-1,NR)) &
-                          /(4.D0*DELP(NS)*F(NTB  ,NP,NR))
-                  ELSE
-                     DFDB= (F(NTB-1,NP+1,NR)-F(NTB-1,NP-1,NR)) &
-                          /(2.D0*DELP(NS)*F(NTB-1,NP,NR))
-                  ENDIF
-               ELSE
-                  IF(F(NTB,NP,NR).GT.EPSWT) THEN
-                     DFDB= (F(NTB  ,NP+1,NR)-F(NTB  ,NP-1,NR)) &
-                          /(2.D0*DELP(NS)*F(NTB  ,NP,NR))
-                  ENDIF
-               ENDIF
-            ENDIF
-         ELSE
-            IF(NP.EQ.1) THEN
-               IF(F(NTH-1,NP,NR).GT.EPSWT) THEN
-                  IF(F(NTH,NP,NR).GT.EPSWT) THEN
-                     DFDP= (F(NTH-1,NP+1,NR)-F(NTHMAX-NTH+2,1,NR)) &
-                          /(4.D0*DELP(NS)*F(NTH-1,NP,NR)) &
-                          +(F(NTH  ,NP+1,NR)-F(NTHMAX-NTH+1,1,NR)) &
-                          /(4.D0*DELP(NS)*F(NTH  ,NP,NR))
-                  ELSE
-                     DFDP= (F(NTH-1,NP+1,NR)-F(NTHMAX-NTH+2,1,NR)) &
-                          /(2.D0*DELP(NS)*F(NTH-1,NP,NR))
-                  ENDIF
-               ELSE
-                  IF(F(NTH,NP,NR).GT.EPSWT) THEN
-                     DFDP= (F(NTH  ,NP+1,NR)-F(NTHMAX-NTH+1,1,NR)) &
-                          /(2.D0*DELP(NS)*F(NTH  ,NP,NR))
-                  ENDIF
-               ENDIF
-            ELSEIF(NP.EQ.NPMAX) THEN
-               IF(F(NTH-1,NP,NR).GT.EPSWT) THEN
-                  IF(F(NTH,NP,NR).GT.EPSWT) THEN
-                     DFDP= (F(NTH-1,NP,NR)-F(NTH-1,NP-1,NR)) &
-                          /(2.D0*DELP(NS)*F(NTH-1,NP,NR)) &
-                          +(F(NTH  ,NP,NR)-F(NTH  ,NP-1,NR)) &
-                          /(2.D0*DELP(NS)*F(NTH  ,NP,NR))
-                  ELSE
-                     DFDP= (F(NTH-1,NP,NR)-F(NTH-1,NP-1,NR)) &
-                          /(     DELP(NS)*F(NTH-1,NP,NR))
-                  ENDIF
-               ELSE
-                  IF(F(NTH,NP,NR).GT.EPSWT) THEN
-                     DFDP= (F(NTH  ,NP,NR)-F(NTH  ,NP-1,NR)) &
-                          /(     DELP(NS)*F(NTH  ,NP,NR))
-                  ENDIF
-               ENDIF
-            ELSE
-               IF(F(NTH-1,NP,NR).GT.EPSWT) THEN
-                  IF(F(NTH,NP,NR).GT.EPSWT) THEN
-                     DFDP= (F(NTH-1,NP+1,NR)-F(NTH-1,NP-1,NR)) &
-                          /(4.D0*DELP(NS)*F(NTH-1,NP,NR)) &
-                          +(F(NTH  ,NP+1,NR)-F(NTH  ,NP-1,NR)) &
-                          /(4.D0*DELP(NS)*F(NTH  ,NP,NR))
-                  ELSE
-                     DFDP= (F(NTH-1,NP+1,NR)-F(NTH-1,NP-1,NR)) &
-                          /(2.D0*DELP(NS)*F(NTH-1,NP,NR))
-                  ENDIF
-               ELSE
-                  IF(F(NTH,NP,NR).GT.EPSWT) THEN
-                     DFDP= (F(NTH  ,NP+1,NR)-F(NTH  ,NP-1,NR)) &
-                          /(2.D0*DELP(NS)*F(NTH  ,NP,NR))
-                  ENDIF
-               ENDIF
-            ENDIF
-         ENDIF
-         IF(NTH.EQ.ITL(NR)) THEN
-            FVEL=FCTH(NTH,NP,NR,NSA)-DCTP(NTH,NP,NR,NSA)*DFDP &
-                -FCTH(NTB,NP,NR,NSA)+DCTP(NTB,NP,NR,NSA)*DFDB
-            DVEL=DCTT(NTH,NP,NR,NSA)+DCTT(NTB,NP,NR,NSA)
-         ELSE
-            FVEL=FCTH(NTH,NP,NR,NSA)-DCTP(NTH,NP,NR,NSA)*DFDP
-            DVEL=DCTT(NTH,NP,NR,NSA)
-         ENDIF
-         WEIGHT(NTH,NP,NR,NSA) &
-                 =FPWEGH(-DELTH*PM(NP,NS)*FVEL,DVEL)
-      ENDDO
-      ENDDO
-      ENDDO
-
-      DO NR=NRSTART,NRENDWG
-      DO NP=NPSTART,NPEND
-      DO NTH=1,NTHMAX
-         FVEL=FRR(NTH,NP,NR,NSA)
-         DVEL=DRR(NTH,NP,NR,NSA)
-         WEIGHR(NTH,NP,NR,NSA)=FPWEGH(-DELR*FVEL,DVEL)
-      ENDDO
-      ENDDO
-      ENDDO
-
-      RETURN
-      END SUBROUTINE FPWEIGHT
-
-! ************************************************
-!     WEIGHTING FUNCTION FOR CONVECTION EFFECT
-! ************************************************
-
-      FUNCTION FPWEGH(X,Y)
-
-      IMPLICIT NONE
-      real(8):: X, Y, Z
-      real(8):: FPWEGH
-
-      IF(ABS(Y).LT.1.D-70) THEN
-         IF(X.GT.0.D0) THEN
-            FPWEGH=0.D0
-         ELSEIF(X.LT.0.D0) THEN
-            FPWEGH=1.D0
-         ELSE
-            FPWEGH=0.5D0
-         ENDIF
-      ELSE
-         Z=X/Y
-         IF(ABS(Z).LT.1.D-5)THEN
-            FPWEGH=0.5D0-Z/12.D0+Z**3/720.D0
-         ELSE IF(Z.GE.100.D0)THEN
-            FPWEGH=1.D0/Z
-         ELSE IF(Z.LE.-100.D0)THEN
-            FPWEGH=1.D0/Z+1.D0
-         ELSE
-            FPWEGH=1.D0/Z-1.D0/(EXP(Z)-1.D0)
-         END IF
-      ENDIF
-      RETURN
-      END FUNCTION FPWEGH
-
-! ******************************************
-!     Calculation of matrix coefficients
-! ******************************************
-
-      SUBROUTINE FPSETM(NTH,NP,NR,NSA,NL)
-
-      IMPLICIT NONE
-      INTEGER,INTENT(IN):: NTH,NP,NR,NSA
-      INTEGER,INTENT(OUT):: NL
-      INTEGER:: NM, NTHA, NTHB
-                     ! if NTH=ITL(NR)-1 (NTH:untrapped, NTH+1:trapped)
-                     !       flux to NTH-1 as usual
-                     !       flux to NTH+1 as usual
-                     ! if NTH=ITL(NR) (NTH: trapped, NTH-1:untrapped)
-                     !       flux to NTH-1 and ITU(NR)+1
-                     !       flux to NTH+1 as usual
-                     ! if NTH=ITU(NR)+1 (NTH:untrapped, NTH-1:trapped)
-                     !       flux to ITL(NR)
-                     !       flux to NTH+1 as usual
-
-                     ! --- we assume monotonic trapping boundary 
-                     ! if NTH<=ITL(NR)-1 
-                     !    if NTH<=ITL(NR+1)-1 (NR:untrapped, NR+1:untrapped)
-                     !       flux to NR+1 as usual
-                     !    if NTH>=ITL(NR+1)   (NR:untrapped, NR+1:trapped)
-                     !       flux to NR+1 as usual
-                     ! if NTH>=ITL(NR)
-                     !    if NTH<=ITL(NR-1)-1 (NR:trapped, NR-1:untrapped)
-                     !       flux(NR-1) to NTH and ITU(NR-1)+ITL(NR-1)-NTH
-                     !    if NTH>=ITL(NR-1)   (NR:trapped, NR-1:trapped)
-                     !       flux(NR-1) to NTH as usual
-                     ! if NTH>=ITU(NR)+1
-                     !    if NTH<=ITU(NR+1) (NR:untrapped, NR+1:trapped)
-                     !       flux(NR+1) to ITL(NR+1)+ITU(NR+1)-NTH
-                     !    if NTH>=ITU(NR+1)+1 (NR:untrapped, NR+1:untrapped)
-                     !       flux(NR+1) to NTH as usual
-
-      INTEGER:: NTB  ! if NTH=ITL(NR)
-                     !    then NTB=ITU(NR)+1, else NTB=0
-      INTEGER:: NTBM ! if NTH>=ITL(NR) and NTH<=ITL(NR-1)-1, 
-                     !    then NTBM=ITU(NR-1)+ITL(NR-1)-NTH, else NTBM=0
-      INTEGER:: NTBP ! if NTH>=ITU(NR)+1 and NTH<=ITU(NR+1)
-                     !    then NTBP=ITL(NR+1)+ITU(NR+1)-NTH, else NTBP=0
-
-      integer:: IERR, NS
-      real(8):: DFDTH, FVEL, DVEL, DFDP, DFDB
-      real(8):: DPPM, DPPP, DPTM, DPTP, SL, DTPM, DTPP, DTTM, DTTP
-      ! real(8):: WPM, WPP, WTM, WTP, VPM, VPP, VTM, VTP
-      real(8):: WTB, VTB, WRBM, VRBM, WRBP, VRBP
-      real(8):: DIVDPP, DIVDPT, DIVDTP, DIVDTT, DIVFPP, DIVFTH
-      real(8):: RL,DRRM,DRRP,WRM,WRP,VRM,VRP,DIVDRR,DIVFRR
-      real(8):: PL
-      DOUBLE PRECISION:: WPBM, VPBM, WPBP, VPBP
-      ! fow extension
-      double precision :: DPRM, DPRP, DTRM, DTRP, DRPM, DRPP, DRTM, DRTP
-      double precision :: DIVDPR, DIVDTR, DIVDRP, DIVDRT
-      double precision :: deltap, deltath, deltaps
-      double precision :: wp(2,-1:1,0:1,-1:1), wt(2,0:1,-1:1,-1:1), wr(2,-1:1,-1:1,0:1)
-      double precision :: D(2,3,3), DIVD(3,3), DIVF(3), del(3), W(3,-1:1,-1:1,0:1), V(3,-1:1,-1:1,0:1)
-      integer :: i, j, k, sign_to_index(-1:1) 
-
-      NS=NS_NSA(NSA)
-
-      NTB=0
-      NTBM=0
-      NTBP=0
-      IF(MODELA.ne.0)THEN
-!         IF(NTH.EQ.ITL(NR)+1) THEN
-!            NTB=ITU(NR)+1
-         IF(NTH.EQ.ITL(NR)) THEN
-            NTB=ITU(NR)+1
-         ENDIF
-         IF(NR-1.GE.1) THEN
-            IF(NTH.GE.ITL(NR).AND.NTH.LT.ITL(NR-1)) THEN 
-               NTBM=NTHMAX+1-NTH
-            ENDIF
-         ENDIF
-      END IF ! MODELA
-
-      NL=0
-      NM=NMA(NTH,NP,NR)
-
-      ! normalize coefficients
-      PL   = PM(NP,NS)
-      D(1,1,1) = PG(NP,NS  )**2
-      D(2,1,1) = PG(NP+1,NS)**2
-      D(1,1,2) = PG(NP,NS  )
-      D(2,1,2) = PG(NP+1,NS)
-      D(1,1,3) = PG(NP,NS  )**2
-      D(2,1,3) = PG(NP+1,NS)**2
-
-      SL   = sin(thetam(nth,np,nr,nsa))
-      D(1,2,1) = sin(thetamg(nth,np,nr,nsa))
-      D(2,2,1) = sin(thetamg(nth+1,np,nr,nsa))
-      D(1,2,2) = sin(thetamg(nth,np,nr,nsa))/pl
-      D(2,2,2) = sin(thetamg(nth+1,np,nr,nsa))pl
-      D(1,2,3) = sin(thetamg(nth,np,nr,nsa))
-      D(2,2,3) = sin(thetamg(nth+1,np,nr,nsa))
-
-      RL   = psim(nr)
-      D(1,3,1) = psimg(nr  )
-      D(2,3,1) = psimg(nr+1)
-      D(1,3,2) = psimg(nr  )/pl
-      D(2,3,2) = psimg(nr+1)/pl
-      D(1,3,3) = psimg(nr  )
-      D(2,3,3) = psimg(nr+1)
-
-      ! weight function, delta, epsilon
-      do i = -1, 1
-         do j = -1, 1
-            do k = -1, 1
-
-               if ( i /= -1 ) then
-                  wp(1,i,j,k) = WEIGHP(NTH+j,NP+i,NR+k,NSA)
-                  wp(2,i,j,k) = 1.d0 - wp(1,i,j,k)   
-               end if
-
-               if ( j /= -1 ) then
-                  wt(1,i,j,k) = WEIGHT(NTH+j,NP+i,NR+k,NSA)
-                  wt(2,i,j,k) = 1.d0 - wt(1,i,j,k)   
-               end if
-               
-               if ( k /= -1 ) then
-                  wr(1,i,j,k) = WEIGHR(NTH+j,NP+i,NR+k,NSA)
-                  wr(2,i,j,k) = 1.d0 - wr(1,i,j,k)   
-               end if
-
-            end do
-         end do
+MODULE fowexec
+
+  use fpcomm
+  use fowcomm
+
+contains
+
+  subroutine fow_exec(NSA,IERR,its)
+
+    USE libmpi
+    USE libmtx
+    USE fpmpi
+    IMPLICIT NONE
+    integer:: NSA, NP, NTH, NR, NL, NM, NN, NS
+    integer:: NTHS, NLL
+    integer:: IERR,its,i,j,ll1
+    integer:: imtxstart1,imtxend1
+    real(8),dimension(nmend-nmstart+1):: BM_L
+    real(8),dimension(nthmax):: sendbuf_p, recvbuf_p
+    real(8),dimension(nthmax*(npend-npstart+1)):: sendbuf_r, recvbuf_r
+
+    NS=NS_NSA(NSA)
+
+    CALL mtx_set_communicator(comm_nrnp) !3D
+
+    !     ----- Set up matrix solver -----
+    CALL mtx_setup(imtxsize,imtxstart1,imtxend1,imtxwidth)
+    IF(imtxstart1.NE.imtxstart.OR.imtxend1.NE.imtxend) THEN
+        WRITE(6,*) 'XX fp_exec: '
+        WRITE(6,*) '   imtxstart1.NE.imtxstart.OR.imtxend1.NE.imtxend'
+        WRITE(6,*) '   imtxstart1,imtxstart = ',imtxstart1,imtxstart
+        WRITE(6,*) '   imtxend1,imtxend     = ',imtxend1,imtxend
+        STOP
+    ENDIF
+
+    !     ----- Set up weight array -----
+
+    CALL FPWEIGHT(NSA,IERR)
+
+    !     ----- Set up index array NMA -----
+    !               NM: line number of the coefficient matrix
+    !               NL: 
+
+    CALL SET_FM_NMA(NSA,FNSM)
+
+    DO NM=NMSTART,NMEND
+        NLMAX(NM)=0
+        BM(NM)=0.D0
+        DO NL=1,NLMAXM
+          LL(NM,NL)=0
+          AL(NM,NL)=0.D0
+        ENDDO
+    ENDDO
+
+    !     ----- Calculate matrix coefficients in a row -----
+
+    DO NR=NRSTART,NREND
+        IF(MODELA.EQ.0) THEN
+          DO NP=NPSTART,NPEND
+          DO NTH=1,NTHMAX
+              NM=NMA(NTH,NP,NR)
+              CALL fowsetm(NTH,NP,NR,NSA,NLMAX(NM))
+          ENDDO
+          ENDDO
+        ELSE
+          DO NP=NPSTART,NPEND
+              DO NTH=1,NTHMAX/2
+                NM=NMA(NTH,NP,NR)
+                CALL fowsetm(NTH,NP,NR,NSA,NLMAX(NM))
+              ENDDO
+              DO NTH=ITU(NR)+1,NTHMAX
+                NM=NMA(NTH,NP,NR)
+                CALL fowsetm(NTH,NP,NR,NSA,NLMAX(NM))
+              ENDDO
+          ENDDO
+        ENDIF
+    ENDDO
+
+    !     ----- Diagonal term -----
+
+    DO NR=NRSTART,NREND ! LHS: set_matrix, RHS: BM
+        IF(MODELA.EQ.0) THEN
+          DO NP=NPSTART,NPEND
+          DO NTH=1,NTHMAX
+              NM=NMA(NTH,NP,NR)
+              BM(NM)=(1.D0+(1.D0-RIMPL)*DELT*DL(NM))*FM(NM) &
+                    +DELT*SPP(NTH,NP,NR,NSA)
+              IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
+                CALL mtx_set_matrix(nm,nm,1.D0-rimpl*delt*dl(nm))
+                CALL mtx_set_vector(nm,FM(NM))
+              ENDIF
+          ENDDO
+          ENDDO
+        ELSE
+          DO NP=NPSTART,NPEND
+              DO NTH=1,NTHMAX/2
+                NM=NMA(NTH,NP,NR)
+                BM(NM)=(RLAMDA(NTH,NR)+(1.D0-RIMPL)*DELT*DL(NM))*FM(NM) &
+                      +DELT*SPP(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)
+                IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
+                    CALL mtx_set_matrix(nm,nm, &
+                                        RLAMDA(NTH,NR)-RIMPL*DELT*DL(NM))
+                    CALL mtx_set_vector(nm,FM(NM))
+                ENDIF
+              ENDDO
+              DO NTH=NTHMAX/2+1,ITU(NR)
+                NTHS=NTHMAX+1-NTH
+                NM=NMA(NTH,NP,NR)
+                BM(NM)=0.D0
+                IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
+                    CALL mtx_set_matrix(nm,nm,1.d0)
+                    CALL mtx_set_matrix(nm,nm+NTHS-NTH,-1.d0)
+                    CALL mtx_set_vector(nm,FM(NM))
+                ENDIF
+              ENDDO
+              DO NTH=ITU(NR)+1,NTHMAX
+                NM=NMA(NTH,NP,NR)
+                BM(NM)=(RLAMDA(NTH,NR)+(1.D0-RIMPL)*DELT*DL(NM))*FM(NM) &
+                      +DELT*SPP(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)
+                IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
+                    CALL mtx_set_matrix(nm,nm, &
+                                        RLAMDA(NTH,NR)-RIMPL*DELT*DL(NM))
+                    CALL mtx_set_vector(nm,FM(NM))
+                ENDIF
+              ENDDO
+          ENDDO
+        ENDIF
+    ENDDO
+
+    !     ----- Off diagonal term -----
+
+    DO NM=NMSTART,NMEND ! LHS
+        IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
+          DO NL=1,NLMAX(NM)
+              IF(LL(NM,NL).NE.0) THEN
+                CALL mtx_set_matrix(nm,LL(NM,NL),-RIMPL*DELT*AL(NM,NL))
+              ENDIF
+          ENDDO
+        ENDIF
+    ENDDO
+
+    !     ----- Source vector: contribution from off-diagonal term -----
+
+    DO NM=NMSTART,NMEND ! RHS
+        DO NL=1,NLMAX(NM)
+          NN=LL(NM,NL)
+          IF(NN.NE.0) THEN
+              IF(NN.ge.NMSTART-NTHMAX.and.NN.le.NMEND+NTHMAX)THEN
+                BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM(NN)
+              ELSEIF(NN.lt.NMSTART-NTHMAX)THEN
+                BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM_shadow_m(NN)
+              ELSE
+                BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM_shadow_p(NN)
+              END IF
+          ENDIF
+        ENDDO
+        IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
+          CALL mtx_set_source(nm,BM(NM))
+        ENDIF
+    ENDDO
+
+
+    !     ----- Solve matrix equation -----
+
+    CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) ! ncom is nessesary for MUMPS not PETSc
+    ierr=0
+
+    !     ----- Get solution vector -----
+
+    CALL mtx_get_vector(BM_L)
+
+    DO NR=NRSTART, NREND
+        DO NP=NPSTART, NPEND
+          DO NTH=1,NTHMAX
+              NM=NMA(NTH,NP,NR)
+              IF(ABS(BM_L(NM-NMSTART+1)).LT.1.D-100) THEN
+                FNS0(NTH,NP,NR,NSA)=0.D0
+              ELSE
+                FNS0(NTH,NP,NR,NSA)=BM_L(NM-NMSTART+1)
+              END IF
+          END DO
+        END DO
+    END DO
+    !     shadow requires to communicate
+    CALL mtx_set_communicator(comm_np)
+    DO NR=NRSTART, NREND
+        CALL shadow_comm_np(NR,NSA)
+    END DO
+    CALL mtx_set_communicator(comm_nr)
+    CALL shadow_comm_nr(NSA)
+    CALL mtx_set_communicator(comm_nrnp) !3D
+
+
+    !     ----- Clean up matrix solver -----
+    CALL mtx_cleanup
+
+    CALL mtx_reset_communicator
+
+    RETURN
+  END subroutine fow_exec
+
+  !     ---------------------------------
+
+  SUBROUTINE SET_FM_NMA(NSA,func_in)
+
+    IMPLICIT NONE
+    integer:: NTH, NP, NR, NSA, NM, NRS, NPS
+    double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND), &
+          intent(IN):: func_in
+
+    IF(NRSTART.eq.1)THEN
+        NRS=1
+    ELSE
+        NRS=NRSTART-1
+    END IF
+
+    DO NR=NRSTARTW,NRENDWM
+        DO NP=NPSTARTW,NPENDWM
+          DO NTH=1,NTHMAX
+              NM=NTH+NTHMAX*(NP-1)+NPMAX*NTHMAX*(NR-1)
+              NMA(NTH,NP,NR)=NM
+          END DO
+        END DO
+    END DO
+
+    DO NR=NRSTART,NREND
+        DO NP=NPSTARTW,NPENDWM
+          DO NTH=1,NTHMAX
+              NM=NMA(NTH,NP,NR)
+              FM(NM)=func_in(NTH,NP,NR,NSA)
+          ENDDO
+        ENDDO
+    ENDDO
+    NR=NRSTARTW
+    IF(NR.ne.NRSTART)THEN
+        DO NP=NPSTARTW,NPENDWM
+          DO NTH=1,NTHMAX
+              NM=NMA(NTH,NP,NR)
+              FM_shadow_m(NM)=func_in(NTH,NP,NR,NSA)
+          ENDDO
+        ENDDO
+    END IF
+    NR=NRENDWM
+    IF(NR.ne.NREND)THEN
+        DO NP=NPSTARTW,NPENDWM
+          DO NTH=1,NTHMAX
+              NM=NMA(NTH,NP,NR)
+              FM_shadow_p(NM)=func_in(NTH,NP,NR,NSA)
+          ENDDO
+        ENDDO
+    END IF
+
+
+  END SUBROUTINE SET_FM_NMA
+
+  !
+  !     ***************************
+  !        CALCULATION OF WEIGHT
+  !     ***************************
+  !
+  subroutine fowweight(NSA,IERR) ! proposed by Chang and Cooper [30] in Karney
+
+    use fpcomm
+    use fowcomm
+
+    implicit none
+    integer:: nsa, np, nth, nr, ntha, nthb, ns
+    integer:: ierr
+    real(8):: dfdth, fvel, dfdp
+    
+    integer :: nra, nrb, npa, npb
+    double precision :: dfdr, delps, factab_p, factab_r, factab_t
+
+    !     +++++ calculation of weigthing (including off-diagonal terms) +++++
+
+    real(8)::epswt=1.d-70
+
+    ns = ns_nsa(nsa)
+
+    do nr = nrstart, nrend
+      delps = psimg(nr+1)-psimg(nr)
+      do np = npstart, npendwg
+        do nth = 1, nthmax
+            dfdth = 0.d0
+            dfdr  = 0.d0
+            if ( np /= 1 ) then
+              ntha = min(nth+1,nthmax)
+              nthb = max(nth-1,1)
+              nra  = min(nr+1,nrmax)
+              nrb  = max(nr-1,1)
+
+              if ( np == npmax+1 ) then
+                if ( abs(f(nth,np-1,nr)) > epswt ) then
+                  dfdth = (f(ntha,np-1,nr)-f(nthb,np-1,nr)) &
+                          /(2.d0*pg(np,ns)*delthm_pg(nth,np,nr,nsa)*f(nth,np-1,nr))
+
+                  dfdr  = (f(nth,np-1,nra)-f(nth,np-1,nrb)) &
+                          /(2.d0*delps*f(nth,np-1,nr))
+                end if
+              else
+
+                if ( abs(f(nth,np-1,nr)) > epswt ) then
+                  if ( abs(f(nth,np,nr)) > epswt ) then
+                    dfdth = (f(ntha,np-1,nr)-f(nthb,np-1,nr)) &
+                            /(4.d0*pg(np,ns)*delthm(nth,np,nr,nsa)*f(nth,np-1,nr)) &
+                          + (f(ntha,np  ,nr)-f(nthb,np  ,nr)) &
+                            /(4.d0*pg(np,ns)*delthm(nth,np,nr,nsa)*f(nth,np  ,nr))
+
+                    dfdr  = (f(nth,np-1,nra)-f(nthb,np-1,nrb)) &
+                            /(4.d0*delps*f(nth,np-1,nr)) &
+                          + (f(ntha,np  ,nra)-f(nthb,np  ,nrb)) &
+                            /(4.d0*delps*f(nth,np  ,nr))
+                  else
+                    dfdth = (f(ntha,np-1,nr)-f(nthb,np-1,nr)) &
+                          /(2.d0*pg(np,ns)*delthm(nth,np,nr,nsa)*f(nth,np-1,nr)) 
+
+                    dfdr  = (f(nth,np-1,nra)-f(nth,np-1,nrb)) &
+                          /(2.d0*delps*f(nth,np-1,nr)) 
+                  end if
+                else
+                  if ( abs(f(nth,np,nr)) > epswt ) then
+                    dfdth = (f(ntha,np  ,nr)-f(nthb,np  ,nr)) &
+                          /(2.d0*pg(np,ns)*delthm(nth,np,nr,nsa)*f(nth,np  ,nr))
+
+                    dfdr  = (f(nth,np  ,nra)-f(nth,np  ,nrb)) &
+                          /(2.d0*delps*f(nth,np  ,nr))
+                  end if
+                end if
+              end if
+            end if
+            fvel = Fppfow(nth,np,nr,nsa)-Dptfow(nth,np,nr,nsa)*dfdth-Dprfow(nth,np,nr,nsa)*dfdr
+            weighp(nth,np,nr,nsa) = fowwegh(-delp(ns)*fvel,dpp(nth,np,nr,nsa))
+        end do
       end do
+    end do
 
-      ! discretized (div(d/dX))_Y
-      DIVD(1,1) = 1.d0/(pl**2 * deltap**2)
-      DIVD(1,2) = 1.d0/(pl**2 * deltap * deltath * 2.d0)
-      DIVD(1,3) = 1.d0/(pl**2 * deltap * deltaps * 2.d0)
-      DIVD(2,1) = 1.d0/(pl * sl * deltap * deltath * 2.d0)
-      DIVD(2,2) = 1.d0/(pl * sl * deltath**2 )
-      DIVD(2,3) = 1.d0/(pl * sl * deltath * deltaps * 2.d0)
-      DIVD(3,1) = 1.d0/(rl * deltap  * deltaps * 2.d0)
-      DIVD(3,2) = 1.d0/(rl * deltath * deltaps * 2.d0)
-      DIVD(3,3) = 1.d0/(rl * deltaps**2)
-      DIVF(1)   = 1.d0/(pl**2 * deltap)
-      DIVF(2)   = 1.d0/(pl * sl * deltath)
-      DIVF(3)   = 1.d0/(rl * deltaps)
+    do nr = nrstart, nrend
+      delps = psimg(nr+1)-psimg(nr)
+      do np = npstart, npend
+        do nth = 1, nthmax+1
+          dfdp = 0.d0          
+          npa = min(npmax,np+1)
+          npb = max(1, np-1)
+          factab_p = dble(npa-npb)
 
-      sign_to_index(-1) = 1
-      sign_to_index(1)  = 2
-      sign_to_index(0)  = 0
-      do i = -1, 1
-         do j = -1, 1
-            do k = -1, 1
-               if ( i*j*k /= 0 ) then                          ! (p,thetam,psim)->(     integer,     integer,     integer)
-                  cycle
+          dfdr = 0.d0
+          nra = min(nrmax,nr+1)
+          nrb = max(1,nr-1)
+          factab_r = dble(nra-nrb)
+          
+          if ( nth == 1 ) then
+            dfdp = (f(nth,npa,nr)-f(nth,npb,nr))/(factab_p*delp(ns)*f(nth,np,nr))
+          else if ( nth == nthmax+1 ) then
+            dfdp = (f(nthmax,npa,nr)-f(nthmax,npb,nr))/(factab_p*delp(ns)*f(nthmax,np,nr))
+            dfdr = (f(nthmax,np,nra)-f(nthmax,np,nrb))/(factab_r*delps*f(nthmax,np,nr))
+          else
+            dfdp = (
+              (f(nth-1,npa,nr)-f(nth-1,npb,nr))/(factab_p*delp(ns)*f(nth-1,np,nr))+&
+              (f(nth  ,npa,nr)-f(nth  ,npb,nr))/(factab_p*delp(ns)*f(nth  ,np,nr)) &
+            )/2.d0
 
-               else if ( j*k /= 0 .and. i = 0 ) then           ! (p,thetam,psim)->(half integer,     integer,     integer)
-                  nl = nl+1
-                  ll(nm,nl) = nma(nth+j,np+i,nr+k)
-                  al(nm,nl) = (j*k)*( &
-                              D(sign_to_index(j),2,3) * wt(sign_to_index(j),0,sign_to_index(j)-1,sign_to_index(k)-1)/DIVD(2,3) + &
-                              D(sign_to_index(k),2,3) * wr(sign_to_index(k),0,sign_to_index(j)-1,sign_to_index(k)-1)/DIVD(3,2)   &
-                              )
-
-                  if ( abs( al(nm,nl) ) < 1.0d-70 ) then
-                     ll(nm,nl) = 0.d0
-                     al(nm,nl) = 0.d0
-                     nl = nl-1
-                  end if
-         
-               else if ( k*i /= 0 .and. j = 0 ) then           ! (p,thetam,psim)->(     integer,half integer,     integer)
-                  nl = nl+1
-                  ll(nm,nl) = nma(nth+j,np+i,nr+k)
-                  al(nm,nl) = (k*i)*( &
-                              D(sign_to_index(k),3,1) * wr(sign_to_index(k),sign_to_index(i)-1,0,sign_to_index(k)-1)/DIVD(3,1) + &
-                              D(sign_to_index(k),3,1) * wp(sign_to_index(k),sign_to_index(i)-1,0,sign_to_index(k)-1)/DIVD(1,3)   &
-                              )
-
-                  if ( abs( al(nm,nl) ) < 1.0d-70 ) then
-                     ll(nm,nl) = 0.d0
-                     al(nm,nl) = 0.d0
-                     nl = nl-1
-                  end if
-
-               else if ( i*j /= 0 .and. k = 0 ) then           ! (p,thetam,psim)->(     integer,     integer,half integer)
-                  nl = nl+1
-                  ll(nm,nl) = nma(nth+j,np+i,nr+k)
-                  al(nm,nl) = (i*j)*( &
-                              D(sign_to_index(i),1,2) * wp(sign_to_index(i),sign_to_index(i)-1,sign_to_index(j)-1,0)/DIVD(1,2) + &
-                              D(sign_to_index(j),2,1) * wp(sign_to_index(j),sign_to_index(i)-1,sign_to_index(j)-1,0)/DIVD(2,1)   &
-                              )
-
-                  if ( abs( al(nm,nl) ) < 1.0d-70 ) then
-                     ll(nm,nl) = 0.d0
-                     al(nm,nl) = 0.d0
-                     nl = nl-1
-                  end if
-
-               else if ( i = 0 .and. j = 0 .and. k /= 0 ) then ! (p,thetam,psim)->(half integer,half integer,     integer)
-               else if ( j = 0 .and. k = 0 .and. i /= 0 ) then ! (p,thetam,psim)->(     integer,half integer,half integer)
-               else if ( k = 0 .and. i = 0 .and. j /= 0 ) then ! (p,thetam,psim)->(half integer,     integer,half integer)
-               else if ( i = 0 .and. j = 0 .and. k = 0 ) then  ! (p,thetam,psim)->(half integer,half integer,half integer)
-               end if
-            end do
-         end do
+            dfdr = (
+              (f(nth-1,np,nra)-f(nth-1,np,nrb))/(facrab_r*delps*f(nth-1,np,nr))+&
+              (f(nth  ,np,nra)-f(nth  ,np,nrb))/(facrab_r*delps*f(nth  ,np,nr)) &
+            )
+          end if
+          fvel = Ftpfow(nth,np,nr,nsa)-Dtpfow(nth,np,nr,nsa)*dfdp-Dtrfow(nth,np,nr,nsa)*dfdr
+          weight(nth,np,nr,nsa) = fowwegh(-delthm(nth,np,nr,nsa)*fvel,Dttfow(nth,np,nr,nsa))
+        end do
       end do
+    end do
+
+    do nr = nrstart, nrendwg
+      delps = psimg(nr+1)-psimg(nr)
+      do np = npstart, npend
+        do nth = 1, nthmax
+          dfdp = 0.d0          
+          npa = min(npmax,np+1)
+          npb = max(1, np-1)
+          factab_p = dble(npa-npb)
+
+          dfdth = 0.d0
+          ntha = min(nth+1,nthmax)
+          nthb = max(nth-1,1)
+          factab_t = dble(ntha-nthb)
+
+          if ( nr == 1 ) then
+            dfdp = (f(nth,npa,1)-f(nth,npb,1))/(factab_p*delp(ns)*f(nth,np,1))
+            dfdth= (f(ntha,np,1)-f(nthb,np,1))/(factab_t*delthm(nth,np,nr,nsa)*f(nth,np,1))
+          else if ( nr == nrmax+1 ) then
+            dfdp = (f(nth,npa,nrmax)-f(nth,npb,nrmax))/(factab_p*delp(ns)*f(nth,np,nrmax))
+            dfdth= (f(ntha,np,nrmax)-f(nthb,np,nrmax))/(factab_t*delthm(nth,np,nr,nsa)*f(nth,np,nrmax))
+          else
+            dfdp = (
+              (f(nth,npa,nr-1)-f(nth,npb,nr-1))/(factab_p*delp(ns)*f(nth,np,nr-1))+&
+              (f(nth,npa,nr  )-f(nth,npb,nr  ))/(factab_p*delp(ns)*f(nth,np,nr  )) &
+            )/2.d0
+
+            dfdth= (
+              (f(ntha,np,nr-1)-f(nthb,np,nr-1))/(factab_t*delthm(nth,np,nr-1,nsa)*f(nth,np,nr))+&
+              (f(ntha,np,nr  )-f(nthb,np,nr  ))/(factab_t*delthm(nth,np,nr  ,nsa)*f(nth,np,nr)) &
+            )/2.d0
+          end if
+          fvel = Frrfow(nth,np,nr,nsa)-Drpfow(nth,np,nr,nsa)*dfdp-Drtfow(nth,np,nr,nsa)*dfdth
+          weighr(nth,np,nr,nsa) = fowwegh(-delps*fvel,Drrfow(nth,np,nr,nsa))
+        end do
+      end do
+    end do
+
+    return
+  end subroutine fowweight
+
+  ! ************************************************
+  !     WEIGHTING FUNCTION FOR CONVECTION EFFECT
+  ! ************************************************
+
+  FUNCTION fowwegh(X,Y)
+
+    IMPLICIT NONE
+    real(8):: X, Y, Z
+    real(8):: fowwegh
+
+    IF(ABS(Y).LT.1.D-70) THEN
+        IF(X.GT.0.D0) THEN
+          fowwegh=0.D0
+        ELSEIF(X.LT.0.D0) THEN
+          fowwegh=1.D0
+        ELSE
+          fowwegh=0.5D0
+        end if
+    ELSE
+        Z=X/Y
+        IF(ABS(Z).LT.1.D-5)THEN
+          fowwegh=0.5D0-Z/12.D0+Z**3/720.D0
+        ELSE IF(Z.GE.100.D0)THEN
+          fowwegh=1.D0/Z
+        ELSE IF(Z.LE.-100.D0)THEN
+          fowwegh=1.D0/Z+1.D0
+        ELSE
+          fowwegh=1.D0/Z-1.D0/(EXP(Z)-1.D0)
+        END IF
+    ENDIF
+    RETURN
+  END FUNCTION fowwegh
+
+  ! ******************************************
+  !     Calculation of matrix coefficients
+  ! ******************************************
+
+  subroutine fowsetm(NTH,NP,NR,NSA,NL)
+
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: NTH,NP,NR,NSA
+    INTEGER,INTENT(OUT):: NL
+    INTEGER:: NM
+
+    integer:: IERR, NS
+    real(8):: DFDTH, FVEL, DVEL, DFDP, DFDB
+    real(8):: DPPM, DPPP, DPTM, DPTP, DTPM, DTPP, DTTM, DTTP
+    ! real(8):: WPM, WPP, WTM, WTP, VPM, VPP, VTM, VTP
+    real(8):: WTB, VTB, WRBM, VRBM, WRBP, VRBP
+    real(8):: DIVDPP, DIVDPT, DIVDTP, DIVDTT, DIVFPP, DIVFTH
+    real(8):: DRRM,DRRP,WRM,WRP,VRM,VRP,DIVDRR,DIVFRR
+    DOUBLE PRECISION:: WPBM, VPBM, WPBP, VPBP
+    DOUBLE PRECISION:: PL, SL, RL
+    ! fow extension
+    double precision :: DIVDPR, DIVDTR, DIVDRP, DIVDRT
+    double precision :: deltap, deltath, deltaps
+    double precision :: DIVD(3,3), DIVF(3), del(3), Ffow(2,3)
+    double precision :: D_term, F_term
+    integer :: si, sj, sk, sign_to_index(-1:1), alpha, beta, gama, loc(4)
+    integer :: boundary_flag
+              ! out of external boundary -> boundary_flag = 1
 
 
-      SPP(NTH,NP,NR,NSA) &
-              =( SPPB(NTH,NP,NR,NSA) &
-                +SPPF(NTH,NP,NR,NSA) &
-                +SPPS(NTH,NP,NR,NSA) &
-                +SPPL(NTH,NP,NR,NSA) &
-                +SPPI(NTH,NP,NR,NSA) &
-                +SPPL_CX(NTH,NP,NR,NSA) )
+    NS=NS_NSA(NSA)
 
-      IF(MODELD.GT.0.AND.NR.EQ.NRMAX) THEN
-         SPPD(NTH,NP,NSA)= FS2(NTH,NP,NSA) &
-              *(DRR(NTH,NP,NR+1,NSA)    *DIVDRR &
-               -FRR(NTH,NP,NR+1,NSA)*VRP*DIVFRR)*DRRP/RLAMDA_RG(NTH,NRMAX+1)
-         SPP(NTH,NP,NR,NSA) = SPP(NTH,NP,NR,NSA) &
-              + SPPD(NTH,NP,NSA) 
-      ENDIF
+    NTB=0
+    NTBM=0
+    NTBP=0
 
-      RETURN
-      END SUBROUTINE FPSETM
+    NL=0
+    NM=NMA(NTH,NP,NR)
 
-      END MODULE fpexec
+    Ffow(1,1) = Fppfow(nth,np,nr,nsa)*pg(np,nsa)**2
+    Ffow(2,1) = Fppfow(nth,np+1,nr,nsa)*pg(np+1,nsa)**2
+
+    Ffow(1,2) = Fthfow(nth,np,nr,nsa)*sin(thetamg(nth,np,nr,nsa))
+    Ffow(2,2) = Fthfow(nth+1,np,nr,nsa)*sin(thetamg(nth+1,np,nr,nsa))
+
+    Ffow(1,3) = Frrfow(nth,np,nr,nsa)*psimg(nr)
+    Ffow(2,3) = Frrfow(nth,np,nr+1,nsa)*psimg(nr+1)
+
+
+    ! discretized (div(d/dX))_Y
+    PL = pm(np,nsa)
+    SL = sin(thetam(nth,np,nr,nsa))
+    RL = psim(nr)
+    DIVD(1,1) = 1.d0/(pl**2 * deltap**2)
+    DIVD(1,2) = 1.d0/(pl**2 * deltap * deltath * 2.d0)
+    DIVD(1,3) = 1.d0/(pl**2 * deltap * deltaps * 2.d0)
+    DIVD(2,1) = 1.d0/(pl * sl * deltap * deltath * 2.d0)
+    DIVD(2,2) = 1.d0/(pl * sl * deltath**2 )
+    DIVD(2,3) = 1.d0/(pl * sl * deltath * deltaps * 2.d0)
+    DIVD(3,1) = 1.d0/(rl * deltap  * deltaps * 2.d0)
+    DIVD(3,2) = 1.d0/(rl * deltath * deltaps * 2.d0)
+    DIVD(3,3) = 1.d0/(rl * deltaps**2)
+    DIVF(1)   = 1.d0/(pl**2 * deltap)
+    DIVF(2)   = 1.d0/(pl * sl * deltath)
+    DIVF(3)   = 1.d0/(rl * deltaps)
+
+    sign_to_index(-1) = 1
+    sign_to_index(1)  = 2
+    sign_to_index(0)  = 0
+    loc = [nth,np,nr,nsa]
+
+    ! term of f(nth, np, nr)
+    DL(NM) = 0.d0
+    do alpha = 1, 3
+      do si = -1, 1, 2
+        D_term = -1.d0*Dfow(alpha,alpha,sign_to_index(si)-1,0,loc)*DIVD(alpha,alpha)
+        F_term = -1.d0*si*Ffow(sign_to_index(si),alpha)*w(si,alpha,0,sign_to_index(si)-1,loc)*DIVF(alpha)
+        dl(nm) = dl(nm) + D_term + F_term
+      end do
+    end do
+
+    ! terms of f(i+si, j, k) 
+    do alpha = 1, 3
+      do si = -1, 1, 2
+        boundary_flag = check_boundary(alpha,0,si,loc)
+        if ( boundary_flag == 1  ) cycle
+
+        D_term = Dfow(alpha,alpha,sign_to_index(si)-1,0,loc)*DIVD(alpha,alpha)
+        F_term = -1.d0*si*Ffow(sign_to_index(si),alpha)*w(-1*si,alpha,0,sign_to_index(si)-1,loc)*DIVF(alpha)
+
+        do beta = 1, 3
+          if ( alpha == beta ) cycle
+          do sj = -1, 1, 2
+            D_term = D_term + sj*Dfow(beta,alpha,si,sign_to_index(sj)-1,loc) &
+                    *w(sj,alpha,beta,si,sign_to_index(sj)-1,loc)*DIVD(beta,alpha)
+          end do
+        end do
+
+        nl = nl+1
+        ll(nm,nl) = make_nma(alpha,0,si,loc)
+        al(nm,nl) = D_term + F_term
+
+      end do
+    end do
+
+    ! terms of f(i+si, j+sj, k) 
+    do alpha = 1, 3
+      do beta = 1, 3
+        if ( alpha >= beta) cycle
+        do si = -1, 1, 2
+          do sj = -1, 1, 2
+
+            boundary_flag = check_boundary(alpha,beta,si,sj,loc)
+            if ( boundary_flag == 1 ) cycle
+            
+            D_term = si*sj*(
+              Dfow(alpha,beta,sign_to_index(si)-1,sj,loc)*DIVD(alpha,beta)
+              *w(-1*si,alpha,beta,sign_to_index(si)-1,sj,loc)
+              +Dfow(beta,alpha,sign_to_index(sj)-1,si,loc)*DIVD(beta,alpha)
+              *w(-1*sj,beta,alpha,sign_to_index(sj)-1,si,loc)
+            )
+
+            nl = nl+1
+            ll(nm,nl) = make_nma(alpha,beta,si,sj,loc)
+            al(nm,nl) = D_term
+
+          end do
+        end do
+      end do
+    end do
+
+
+
+    SPP(NTH,NP,NR,NSA) &
+            =( SPPB(NTH,NP,NR,NSA) &
+              +SPPF(NTH,NP,NR,NSA) &
+              +SPPS(NTH,NP,NR,NSA) &
+              +SPPL(NTH,NP,NR,NSA) &
+              +SPPI(NTH,NP,NR,NSA) &
+              +SPPL_CX(NTH,NP,NR,NSA) )
+
+    RETURN
+  END subroutine fowsetm
+
+  function Dfow(alpha,beta,si,sj,loc)
+    implicit none
+    double precision :: Dfow
+    integer,intent(in) :: alpha,beta,si,sj,loc(4)
+    integer :: nth, np, nr, nsa
+    
+    nth = loc(1)
+    np  = loc(2)
+    nr  = loc(3)
+    nsa = loc(4)
+
+    if ( alpha == 1 ) then
+      if ( beta == 1 ) then
+        Dfow = Dppfow(nth,np+si,nr,nsa)*pg(np+si,nsa)**2
+      else if ( beta == 2 ) then
+        Dfow = Dptfow(nth+sj,np+si,nr,nsa)*pg(np+si,nsa)
+      else if ( beta == 3 ) then
+        Dfow = Dprfow(nth,np+si,nr+sj,nsa)*pg(np+si,nsa)**2
+      end if
+
+    else if ( alpha == 2 ) then
+      if ( beta == 1 ) then
+        Dfow = Dtpfow(nth+si,np+sj,nr,nsa)*sin(thetamg(nth+si,np+sj,nr,nsa))
+      else if ( beta == 2 ) then
+        Dfow = Dttfow(nth+si,np,nr,nsa)*sin(thetamg(nth+si,np+sj,nr,nsa))/pm(np,nsa)
+      else if ( beta == 3 ) then
+        Dfow = Dtrfow(nth+si,np,nr+sj,nsa)*sin(thetamg(nth+si,np+sj,nr,nsa))
+      end if
+
+    else if ( alpha == 3 ) then
+      if ( beta == 1 ) then
+        Dfow = Drpfow(nth,np+sj,nr+si,nsa)*psimg(nr+si)
+      else if ( beta == 2 ) then
+        Dfow = Drtfow(nth+sj,np,nr+si,nsa)*psimg(nr+si)/pm(np+nsa)
+      else if ( beta == 3 ) then
+        Dfow = Drrfow(nth,np,nr+si,nsa)*psimg(nr+si)
+      end if
+
+    end if
+
+  end function
+
+  function w(sign,alpha,beta,si,sj,loc)
+    ! weight function for alpha, beta, gamma
+    implicit none
+    double precision :: w
+    integer,intent(in) :: sign,alpha,beta,si,sj,loc(4)
+    integer :: nth, np, nr, nsa
+    
+    nth = loc(1)
+    np  = loc(2)
+    nr  = loc(3)
+    nsa = loc(4)
+    
+    if ( alpha == 1 ) then
+      if ( beta == 2 ) then
+        w = WEIGHP(nth+sj, np+si, nr+sk, nsa)
+      else if ( beta == 3 ) then
+        w = WEIGHP(nth+sk, np+si, nr+sj, nsa)
+      else
+        w = WEIGHP(nth, np+si, nr, nsa)
+      end if
+
+    else if ( alpha == 2 ) then
+      if ( beta == 1 ) then
+        w = WEIGHT(nth+si, np+sj, nr+sk, nsa)
+      else if ( beta == 3 ) then
+        w = WEIGHT(nth+si, np+sk, nr+sj, nsa)
+      else 
+        w = WEIGHT(nth+si, np, nr, nsa)
+      end if
+
+    else
+      if ( beta == 1 ) then
+        w = WEIGHR(nth+sk, np+sj, nr+si, nsa)
+      else if ( beta == 2 ) then
+        w = WEIGHR(nth+sj, np+sk, nr+si, nsa)
+      else
+        w = WEIGHR(nth, np, nr+si, nsa)
+      end if
+    end if
+
+    if ( sign < 0 ) w = 1.d0-w
+
+  end function w
+
+  function check_boundary(alpha,beta,si,sj,loc) result(flag)
+    ! flag == 0 -> inside external boundary
+    !         1 -> outside external boundary
+    implicit none
+    integer :: flag
+    integer,intent(in) :: alpha,beta,si,sj,loc(4)
+    integer :: nth, np, nr, nsa
+    
+    nth = loc(1)
+    np  = loc(2)
+    nr  = loc(3)
+    nsa = loc(4)
+
+    flag = 0
+
+    ! check external boundary
+    if ( alpha == 1 ) then
+      if ( beta == 2 ) then
+        if ( (np+si <= 0 .or. npmax+1 <= np+si)&
+            .or. (nth+sj <= 0 .or. nthmax+1 <= nth+sj)&
+            .or. (nr+sk <= 0 .or. nrmax+1 <= nr+sk) )&
+            flag = 1
+
+      else if ( beta == 3 ) then
+        if ( (np+si <= 0 .or. npmax+1 <= np+si)&
+            .or. (nth+sk <= 0 .or. nthmax+1 <= nth+sk)&
+            .or. (nr+sj <= 0 .or. nrmax+1 <= nr+sj) )&
+          flag = 1
+
+      else ! beta == 0
+        if ( np+si <= 0 .or. npmax+1 <= np+si ) flag = 1
+
+      end if
+
+    else if ( alpha == 2 ) then
+      if ( beta == 1 ) then
+        if ( (np+sj <= 0 .or. npmax+1 <= np+sj)&
+            .or. (nth+si <= 0 .or. nthmax+1 <= nth+si)&
+            .or. (nr+sk <= 0 .or. nrmax+1 <= nr+sk) )&
+          flag = 1
+
+      else if ( beta == 3 ) then
+        if ( (np+sk <= 0 .or. npmax+1 <= np+sk)&
+            .or. (nth+si <= 0 .or. nthmax+1 <= nth+si)&
+            .or. (nr+sj <= 0 .or. nrmax+1 <= nr+sj) )&
+          flag = 1
+
+      else ! beta == 0
+        if ( nth+si <= 0 .or. nthmax+1 <= nth+si ) flag = 1
+
+      end if
+
+    else
+      if ( beta == 1 ) then
+        if ( (np+sj <= 0 .or. npmax+1 <= np+sj)&
+            .or. (nth+sk <= 0 .or. nthmax+1 <= nth+sk)&
+            .or. (nr+si <= 0 .or. nrmax+1 <= nr+si) )&
+          flag = 1
+
+      else if ( beta == 2 ) then
+          if ( (np+si <= 0 .or. npmax+1 <= np+si)&
+            .or. (nth+sj <= 0 .or. nthmax+1 <= nth+sj)&
+            .or. (nr+si <= 0 .or. nrmax+1 <= nr+si) )&
+          flag = 1
+
+      else ! beta == 0
+        if ( nr+si <= 0 .or. nrmax+1 <= nr+si ) flag = 1
+
+      end if
+    end if
+
+    ! check internal boundary
+    
+
+  end function check_boundary
+
+  function make_nma(alpha,beta,si,sj,loc) result(n)
+    implicit none
+    integer :: n
+    integer,intent(in) :: alpha,beta,si,sj,loc(4)
+
+    nth = loc(1)
+    np  = loc(2)
+    nr  = loc(3)
+    nsa = loc(4)
+
+    if ( alpha == 1 ) then
+      if ( beta == 2 ) then
+        n = nma(nth+sj,np+si,nr)
+      else if ( beta == 3 ) then
+        n = nma(nth,np+si,nr+sj)
+      else ! beta == 0
+        n = nma(nth,np+si,nr)
+      end if
+    
+    else if ( alpha == 2 ) then
+      if ( beta == 1 ) then
+        n = nma(nth+si,np+sj,nr)
+      else if ( beta == 3 ) then
+        n = nma(nth+si,np,nr+sj)
+      else ! beta == 0
+        n = nma(nth+si,np,nr)
+      end if
+    
+    else if ( alpha == 3 ) then
+      if ( beta == 1 ) then
+        n = nma(nth,np+sj,nr+si)
+      else if ( beta == 2 ) then
+        n = nma(nth+sj,np,nr+si)
+      else ! beta == 0
+        n = nma(nth,np,nr+si)
+      end if
+
+    end if
+
+  end function
+
+END MODULE fowexec
