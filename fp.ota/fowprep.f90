@@ -97,7 +97,6 @@ contains
       end do
     end do
 
-    ! redifine theta mesh 
     nthm3 = nthmax/2
     nthm2 = (nthmax-nthm3)/2
     nthm1 = nthmax-nthm2-nthm3
@@ -108,7 +107,6 @@ contains
         do np = 1, npmax
           if ( aefp(nsa) >= 0.d0 ) then
 
-            ! define mesh width
             if ( theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
               do nth = 1, nthm1
                 delthm(nth,np,nr,nsa) = theta_pnc(np,nr,nsa)/dble(nthm1)
@@ -169,7 +167,6 @@ contains
   
           end if
 
-          ! difine thetam and thetamg
           thetam(1,np,nr,nsa) = 0.5d0*delthm(1,np,nr,nsa)
           thetamg(1,np,nr,nsa) = 0.d0
 
@@ -198,13 +195,11 @@ contains
 
     end do
 
-    ! calculate thetam_pg
     do nsa = 1, nsamax
       do nr = 1, nrmax
         do np = 1, npmax+1
           if ( aefp(nsa) >= 0.d0 ) then
 
-            ! define mesh width
             if ( theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
               do nth = 1, nthm1
                 delthm_pg(nth,np,nr,nsa) = theta_pnc_pg(np,nr,nsa)/dble(nthm1)
@@ -265,7 +260,6 @@ contains
   
           end if
 
-          ! difine thetam and thetamg
           thetam_pg(1,np,nr,nsa) = 0.5d0*delthm_pg(1,np,nr,nsa)
 
           do nth = 2, nthmax
@@ -277,13 +271,11 @@ contains
       end do
     end do
 
-    ! calculate thetam_rg
     do nsa = 1, nsamax
       do nr = 1, nrmax+1
         do np = 1, npmax
           if ( aefp(nsa) >= 0.d0 ) then
 
-            ! define mesh width
             if ( theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
               do nth = 1, nthm1
                 delthm_rg(nth,np,nr,nsa) = theta_pnc_rg(np,nr,nsa)/dble(nthm1)
@@ -344,7 +336,6 @@ contains
   
           end if
 
-          ! difine thetam and thetamg
           thetam_rg(1,np,nr,nsa) = 0.5d0*delthm_rg(1,np,nr,nsa)
 
           do nth = 2, nthmax
@@ -356,14 +347,11 @@ contains
       end do
     end do
 
-    ! solve Equation of motion for all integer and half integer grid points
-    call fow_orbit_construct(orbit_m)    ! (nth,np,nr) = (half integer, half integer, half integer)
-    call fow_orbit_construct(orbit_th)   ! (nth,np,nr) = (     integer, half integer, half integer)
-    call fow_orbit_construct(orbit_p)    ! (nth,np,nr) = (half integer,      integer, half integer)
-    call fow_orbit_construct(orbit_r)    ! (nth,np,nr) = (half integer, half integer,      integer)
+    call fow_orbit_construct(orbit_m) 
+    ! call fow_orbit_construct(orbit_th)
+    ! call fow_orbit_construct(orbit_p) 
+    ! call fow_orbit_construct(orbit_r) 
 
-
-    ! calculate Jacobian
     call fow_calculate_jacobian
 
     call cpu_time(end_time)

@@ -39,7 +39,7 @@ program fow
   call fow_allocate
   call fow_prep
 
-  ! call fow_debug
+  call fow_debug
   write(*,*)"end"
   call fow_deallocate
 
@@ -51,6 +51,7 @@ subroutine fow_debug
   use foworbitclassify
   use fowdistribution
   use fowcoef
+  use fowsource
 
   use fpcomm
   use fpwrite
@@ -71,21 +72,19 @@ subroutine fow_debug
 
   ! allocate(fI(nthmax,npmax,nrmax,nsamax))
   ! allocate(fu(nthmax,npmax,nrmax,nsamax))
-  allocate(ful(nthmax,npmax,nrmax,nsamax,nthpmax))
-write(*,*)3333
-  call fow_distribution_maxwellian_inCOM(FNSI)
-  allocate(D2(nrmax,nsamax))
-  write(*,*)3334
-  call moment_0th_order_inCOM(D2,FNSI)
-  write(*,*)3335
-  do nr = 1, nrmax
-    write(*,*)"M0",D2(nr,2)
-  end do
-  write(*,*)1111
-  call convert_fI_to_fu(ful, FNSI)
-  write(*,*)1111
-  call fow_coef
-  write(*,*)1111
+  ! allocate(ful(nthmax,npmax,nrmax,nsamax,nthpmax))
+  ! call fow_distribution_maxwellian_inCOM(FNSI)
+  ! allocate(D2(nrmax,nsamax))
+  ! call moment_0th_order_inCOM(D2,FNSI)
+  ! do nr = 1, nrmax
+  !   write(*,*)"M0",D2(nr,2)
+  ! end do
+  ! call convert_fI_to_fu(ful, FNSI)
+  ! call fow_coef
+  ! do np = 1, npmax
+  !   write(*,*)"pm",pm(np,1)*ptfp0(1),pm(np,2)*ptfp0(2)
+  ! end do
+  call fow_calculate_source
 
 
   ! ! call fpcsv2D(fu(:,:,nr_out,2),"./csv/fu.csv")

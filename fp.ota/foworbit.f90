@@ -346,6 +346,7 @@ contains
 
   function construct_orbit(n,input) result(ret)
     use fowcomm
+    implicit none
     type(orbit) :: ret
     integer, intent(in) :: n
     real(rkind), intent(in) :: input(:,:)

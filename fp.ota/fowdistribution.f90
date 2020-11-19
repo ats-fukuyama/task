@@ -140,9 +140,9 @@ contains
           do np = 1, npmax
             do nth = 1, nthmax
               if ( nthp == nthpmax ) then
-                Babsl = 0.5d0*Babs(nr,nthpmax)+0.5d0*Babs(nr,1)
+                Babsl = (Babs(nr,nthpmax)+Babs(nr,1)+Babs(nr+1,nthpmax)+Babs(nr+1,1))/4.d0
               else
-                Babsl = 0.5d0*Babs(nr,nthp)+0.5d0*Babs(nr,nthp+1)
+                Babsl = (Babs(nr,nthp)+Babs(nr,nthp+1)+Babs(nr+1,nthp)+Babs(nr+1,nthp+1))/4.d0
               end if
               pl = pm(np,nsa)*ptfp0(nsa) 
               mu_l = pl**2*sinm(nth)**2/(2.d0*amfp(nsa)*Babsl)

@@ -539,13 +539,13 @@ contains
         do beta = 1, 3
           if ( alpha == beta ) cycle
           do sj = -1, 1, 2
-            D_term = D_term + sj*Dfow(beta,alpha,si,sign_to_index(sj)-1,loc) &
+            D_term = D_term + sj*Dfow(beta,alpha,sign_to_index(sj)-1,si,loc) &
                     *w(sj,alpha,beta,si,sign_to_index(sj)-1,loc)*DIVD(beta,alpha)
           end do
         end do
 
         nl = nl+1
-        ll(nm,nl) = make_nma(alpha,0,si,0,loc)
+        ll(nm,nl) = get_nma(alpha,0,si,0,loc)
         al(nm,nl) = D_term + F_term
 
       end do
@@ -569,7 +569,7 @@ contains
             )
 
             nl = nl+1
-            ll(nm,nl) = make_nma(alpha,beta,si,sj,loc)
+            ll(nm,nl) = get_nma(alpha,beta,si,sj,loc)
             al(nm,nl) = D_term
 
           end do
@@ -746,7 +746,7 @@ contains
 
   end function check_boundary
 
-  function make_nma(alpha,beta,si,sj,loc) result(n)
+  function get_nma(alpha,beta,si,sj,loc) result(n)
     implicit none
     integer :: n
     integer,intent(in) :: alpha,beta,si,sj,loc(4)
