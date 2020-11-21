@@ -75,7 +75,7 @@ subroutine fow_debug
   ! allocate(ful(nthmax,npmax,nrmax,nsamax,nthpmax))
   ! call fow_distribution_maxwellian_inCOM(FNSI)
   ! allocate(D2(nrmax,nsamax))
-  ! call moment_0th_order_inCOM(D2,FNSI)
+  ! call moment_0th_order_COM(D2,FNSI)
   ! do nr = 1, nrmax
   !   write(*,*)"M0",D2(nr,2)
   ! end do

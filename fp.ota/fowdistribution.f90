@@ -3,7 +3,7 @@ module fowdistribution
   private
   public :: fow_distribution_maxwellian_inCOM
   public :: convert_fI_to_fu
-  public :: moment_0th_order_inCOM, moment_2nd_order_inCOM
+  public :: moment_0th_order_COM, moment_2nd_order_COM
 
 
 contains
@@ -237,7 +237,7 @@ contains
 
   end subroutine convert_fI_to_fu
 
-  subroutine moment_0th_order_inCOM(M0, fI_in)
+  subroutine moment_0th_order_COM(M0, fI_in)
     use fpcomm
     use fowcomm
     implicit none
@@ -272,7 +272,7 @@ contains
 
   end subroutine
 
-  subroutine moment_2nd_order_inCOM(M2, fI_in)
+  subroutine moment_2nd_order_COM(M2, fI_in)
     use fpcomm
     use fowcomm
     implicit none

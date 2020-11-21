@@ -27,6 +27,14 @@ contains
 
     NS=NS_NSA(NSA)
 
+    do nr = 1, nrmax
+      do np = 1, npmax
+        do nth = 1, nthmax
+          f(nth,np,nr) = fnsp(nth,np,nr,nsa)
+        end do
+      end do
+    end do
+
     CALL mtx_set_communicator(comm_nrnp) !3D
 
     !     ----- Set up matrix solver -----

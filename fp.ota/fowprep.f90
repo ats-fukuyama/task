@@ -1,6 +1,6 @@
 module fowprep
-  PRIVATE
-  PUBLIC :: fow_prep
+  private
+  public :: fow_prep
   public :: gauss_jordan, first_order_derivative, fow_cal_spl
 
 contains

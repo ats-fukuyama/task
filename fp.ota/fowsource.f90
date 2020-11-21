@@ -4,11 +4,9 @@ module fowsource
 
   type beam_quantities
     integer :: id, np_near
-
     double precision :: p, psip, psipw, delps, E, thetap, &
                         costh, sinth, total, B, F
     double precision :: mu, Pzeta, psimw, thetamw, psim, thetam
-
   end type beam_quantities
 
   double precision,allocatable :: dBdpsip(:,:), dBdthp(:,:), dpsipdr(:)
