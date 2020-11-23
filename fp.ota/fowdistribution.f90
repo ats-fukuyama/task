@@ -3,7 +3,7 @@ module fowdistribution
   private
   public :: fow_distribution_maxwellian_inCOM
   public :: convert_fI_to_fu
-  public :: moment_0th_order_inCOM, moment_2nd_order_inCOM
+  public :: moment_0th_order_COM, moment_2nd_order_COM
 
 
 contains
@@ -49,6 +49,12 @@ contains
         do np = 1, npmax
           do nth = 1, nthmax
             do nr = 1, nrmax
+
+            ! fm_I(nth,np,nr,nsa) = 0.d0 in forbitten region
+              if ( nth == nth_forbitten(nsa) ) then
+                fm_I(nth,np,nr,nsa) = 0.d0
+                cycle
+              end if
 
               ! calculate mean minor radius of an orbit
               mean_ra = func_orbit_mean_ra(orbit_m(nth,np,nr,nsa),U_RM)
@@ -123,7 +129,7 @@ contains
     real(rkind),dimension(nthmax,npmax,nrmax,nsamax,nthpmax),intent(out) :: fu_l
 
     integer :: nth,np,nr,nsa,nthp, ir, ir_min, ith,ip,isa, ith_min
-    real(rkind) :: thetam_l, psim_l
+    real(rkind) :: thetam_l, psim_l, xi_l
     real(rkind) :: g, gmin, mu_l, Pzeta_l, pl, sign_thetam, difth_min, difth, Babsl
     real(rkind) :: sumI, sumu, deltap, deltaps, deltath, dV_r
 
@@ -133,10 +139,10 @@ contains
         do nr = 1, nrmax
           do np = 1, npmax
             do nth = 1, nthmax
-              if ( nthp == nthmax ) then
-                Babsl = 0.5d0*Babs(nr,nthpmax)+0.5d0*Babs(nr,1)
+              if ( nthp == nthpmax ) then
+                Babsl = (Babs(nr,nthpmax)+Babs(nr,1)+Babs(nr+1,nthpmax)+Babs(nr+1,1))/4.d0
               else
-                Babsl = 0.5d0*Babs(nr,nthp)+0.5d0*Babs(nr,nthp+1)
+                Babsl = (Babs(nr,nthp)+Babs(nr,nthp+1)+Babs(nr+1,nthp)+Babs(nr+1,nthp+1))/4.d0
               end if
               pl = pm(np,nsa)*ptfp0(nsa) 
               mu_l = pl**2*sinm(nth)**2/(2.d0*amfp(nsa)*Babsl)
@@ -144,28 +150,30 @@ contains
               gmin = 1.0d8
 
               do ir = 1, nrmax
+
                 g = mu_l - pl**2/(2.d0*amfp(nsa)*Bout(ir))*(1.d0-(Bout(ir)/Fpsi(ir)/pl)**2*(Pzeta_l+aefp(nsa)*psim(ir))**2)
                 if ( abs(g) <= abs(gmin) ) then
-                  gmin = g
-                  ir_min = ir
-                  sign_thetam = 1.0
+                  xi_l = (Pzeta_l+aefp(nsa)*psim(ir))/(Fpsi(ir)/Bout(ir)*pl)
+                  if ( -1.d0 <= xi_l .and. xi_l <= 1.d0) then
+                    gmin = g
+                    ir_min = ir
+                    sign_thetam = 1.0
+                    thetam_l = acos( xi_l )
+                  end if
                 end if
 
                 g = mu_l - pl**2/(2.d0*amfp(nsa)*Bin(ir))*(1.d0-(Bin(ir)/Fpsi(ir)/pl)**2*(Pzeta_l+aefp(nsa)*psim(ir))**2)
                 if ( abs(g) <= abs(gmin) ) then
-                  gmin = g
-                  ir_min = ir
-                  sign_thetam = -1.0
+                  xi_l = (Pzeta_l+aefp(nsa)*psim(ir_min))/(Fpsi(ir_min)/Bin(ir_min)*pl)
+                  if ( -1.d0 <= xi_l .and. xi_l <= 1.d0) then
+                    gmin = g
+                    ir_min = ir
+                    sign_thetam = -1.0
+                    thetam_l = acos( xi_l )
+                  end if
                 end if
 
               end do
-
-              psim_l = psim(ir_min)
-              if ( sign_thetam >= 0.d0 ) then
-                thetam_l = acos((Pzeta_l+aefp(nsa)*psim(ir_min))/(Fpsi(ir_min)/Bout(ir_min)*pl))
-              else
-                thetam_l = acos((Pzeta_l+aefp(nsa)*psim(ir_min))/(Fpsi(ir_min)/Bin(ir_min)*pl))
-              end if
 
               difth_min = 1.0d8
 
@@ -204,7 +212,7 @@ contains
       do nthp = 1, nthpmax
         do nr = 1, nrmax
 
-          dV_r = 2.d0*pi*RR*(rg(nr+1)-rg(nr))*rm(nr)*2.d0*pi/dble(nthpmax)
+          dV_r = volr(nr)*2.d0*pi/dble(nthpmax)
           do np = 1, npmax
             do nth = 1, nthmax
               sumu = sumu + fu_l(nth,np,nr,nsa,nthp)*dV_r*VOLP(nth,np,nsa)
@@ -229,7 +237,7 @@ contains
 
   end subroutine convert_fI_to_fu
 
-  subroutine moment_0th_order_inCOM(fI_in, M0)
+  subroutine moment_0th_order_COM(M0, fI_in)
     use fpcomm
     use fowcomm
     implicit none
@@ -242,12 +250,12 @@ contains
     allocate(fu_l(nthmax,npmax,nrmax,nsamax,nthpmax))
 
     call convert_fI_to_fu(fu_l, fI_in)
-
+    write(*,*)11
     do nsa = 1, nsamax
       do nr = 1, nrmax
 
         sum_f = 0.d0
-        dV_r = 2.d0*pi*RR*(rg(nr+1)-rg(nr))*rm(nr)*2.d0*pi/dble(nthpmax)
+        dV_r = 2.d0*pi/dble(nthpmax)
         do nthp = 1, nthpmax
           do np = 1, npmax
             do nth = 1, nthmax
@@ -264,12 +272,12 @@ contains
 
   end subroutine
 
-  subroutine moment_2nd_order_inCOM(fI_in, M2)
+  subroutine moment_2nd_order_COM(M2, fI_in)
     use fpcomm
     use fowcomm
     implicit none
     real(rkind),dimension(nthmax,npmax,nrmax,nsamax),intent(in) :: fI_in
-    real(rkind),dimension(nrmax,nsamax),intent(out) :: M2 ! [J]
+    real(rkind),dimension(nrmax,nsamax),intent(out) :: M2 
     integer :: nth, np, nr, nsa, nthp
     real(rkind) :: sum_f, dV_r, PV
     real(rkind),allocatable :: fu_l(:,:,:,:,:) 
@@ -294,7 +302,8 @@ contains
 
           end do
         end do
-        M2(nr,nsa) = sum_f*RNFP0(NSA)*1.D20
+        M2(nr,nsa) = sum_f*RNFP0(NSA)*1.D20 ! [J]
+        ! M2(nr,nsa) = sum_f*RNFP0(NSA)*1.D20/(aee*1.d-3) ! [keV]
 
       end do
     end do

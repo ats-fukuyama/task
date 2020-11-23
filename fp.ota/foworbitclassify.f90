@@ -615,7 +615,7 @@ contains
         do nth = 1, nthmax
           if ( xi(nth) == 0.d0 ) then
             upper_boundary(nth,nr,nsa) = 0.d0
-            continue
+            cycle
           end if
           
           if( Boutg(nrmax+1)<=Bn(nth,nr) .and. Bn(nth,nr)<=Bing(nrmax+1) .and. psin(nth,nr)<=psim(nr) ) then
@@ -675,7 +675,7 @@ contains
         do nth = 1, nthmax
           if ( xi(nth) == 0.d0 ) then
             upper_boundary(nth,nr,nsa) = 0.d0
-            continue
+            cycle
           end if
 
           F_p = dFdpsi(nr)*psim(nr)/Fpsi(nr)

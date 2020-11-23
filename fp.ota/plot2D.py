@@ -240,9 +240,22 @@ if __name__ == "__main__":
     #                      r"${r/a_{max}-\langle r/a\rangle}\ \ (nr=nrmax)$", gtype, CSVDIR+"xi.csv", CSVDIR+"pm_ion.csv", list_auxiliary_line_path=aux_e)
     # fI = plot2D_x_depende_on_y(CSVDIR+"fI.csv", r"$f_I$", gtype,
     #                            CSVDIR+"thetam.csv", CSVDIR+"pm_ion.csv")
-    # fu = plot2D_x_depende_on_y(CSVDIR+"fu.csv", r"$f_u$", gtype,
-    #                            CSVDIR+"thetam.csv", CSVDIR+"pm_ion.csv", xname2=r"$\theta$")
-    # plot_profile2D([fI, fu], [0])
+    # J_I = plot2D_x_depende_on_y(CSVDIR+"Jacobian.csv", r"$J_I$", gtype,
+    #                             CSVDIR+"thetam.csv", CSVDIR+"pm_ion.csv", xname2=r"$\theta$")
+    # plot_profile2D([J_I], [0])
+
+    beam = plot2D_x_depende_on_y(CSVDIR+"beam.csv", "S", gtype, CSVDIR +
+                                 "thetam_r.csv", CSVDIR+"psim.csv", xname2=r"$\theta_m$", yname2=r"$\psi_m$")
+
+    plot_profile2D([beam], [0])
+
+    # dpp = plot2D_x_depende_on_y(CSVDIR+"Dpp.csv", r"$D_{pp}$", gtype,
+    #                             CSVDIR+"thetam.csv", CSVDIR+"pm_ion.csv", xname2=r"$\theta$")
+    # dpt = plot2D_x_depende_on_y(CSVDIR+"Dpr.csv", r"$D_{pt}$", gtype,
+    #                             CSVDIR+"thetam.csv", CSVDIR+"pm_ion.csv", xname2=r"$\theta$")
+    # dpr = plot2D_x_depende_on_y(CSVDIR+"Dpr.csv", r"$D_{pr}$", gtype,
+    #                             CSVDIR+"thetam.csv", CSVDIR+"pm_ion.csv", xname2=r"$\theta$")
+    # plot_profile2D([dpp, dpt, dpr], [0])
     # mean_r_quarter.polar2cartesian()
     # # J = plot2D_org(CSVDIR+"J.csv", r"$J_I$", 0, "p", r"$\theta$")
 

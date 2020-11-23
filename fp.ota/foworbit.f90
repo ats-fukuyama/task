@@ -77,10 +77,10 @@ contains
       do nsa=1,nsamax
         do np=1,npmax+1
           PVG = SQRT(1.D0+THETA0(nsa)*PG(np,nsa)**2)
-          penergyg(np,nsa) = (PVG-1.D0)*PTFP0(nsa)**2/(THETA0(nsa)*AMFP(nsa))/(1.d3*aee)
-          if( np/=npmax+1 ) then
+          penergyg(np,nsa) = amfp(nsa)*vc**2*(PVG-1.D0)/(1.d3*aee)
+          if( np /= npmax+1 ) then
             PVM = SQRT(1.D0+THETA0(nsa)*PM(np,nsa)**2)
-            penergym(np,nsa) = (PVM-1.D0)*PTFP0(nsa)**2/(THETA0(nsa)*AMFP(nsa))/(1.d3*aee)
+            penergym(np,nsa) = amfp(nsa)*vc**2*(PVM-1.D0)/(1.d3*aee)
           end if
         end do
       end do  
@@ -93,6 +93,23 @@ contains
     do nr = 1, nrmax+mode(3)
       do np = 1, npmax+mode(2)
         do nth = 1, nthmax+mode(1)
+          ! exclude forbitten region
+          if ( mode(1) == 0 ) then
+
+            if ( mode(2) == 1 ) then
+              if ( nth == nth_forbitten(nsa_in) ) then
+                cycle
+              end if
+
+            else if ( mode(3) == 1 ) then
+              if ( nth == nth_forbitten(nsa_in) ) then
+                cycle
+              end if
+
+            end if
+
+          end if
+
           i = i+1
           nobt_in(nth,np,nr) = i
         end do
@@ -115,12 +132,30 @@ contains
     do nr = 1, nrmax+mode(3)
       do np = 1, npmax+mode(2)
         do nth = 1, nthmax+mode(1)
+          ! exclude forbitten region
+          if ( mode(1) == 0 ) then
+
+            if ( mode(2) == 1 ) then
+              if ( nth == nth_forbitten(nsa_in) ) then
+                cycle
+              end if
+
+            else if ( mode(3) == 1 ) then
+              if ( nth == nth_forbitten(nsa_in) ) then
+                cycle
+              end if
+
+            end if
+
+          end if
 
           i = nobt_in(nth,np,nr)
 
           select case(mode(1))
           case(0)
-            pcangle_in(i) = cos(thetam(nth,np,nr,nsa_in))
+            if ( mode(2) == 0 .and. mode(3) == 0 ) pcangle_in(i) = cos(thetam(nth,np,nr,nsa_in))
+            if ( mode(2) == 1 .and. mode(3) == 0 ) pcangle_in(i) = cos(thetam_pg(nth,np,nr,nsa_in))
+            if ( mode(2) == 0 .and. mode(3) == 1 ) pcangle_in(i) = cos(thetam_rg(nth,np,nr,nsa_in))            
           case(1)
             pcangle_in(i) = cos(thetamg(nth,np,nr,nsa_in))
           end select
@@ -139,7 +174,7 @@ contains
             psipn_in(i) = psimg(nr)/psi0
           end select
 
-          if ( pcangle_in(i) >= 0.d0 ) then
+          if ( pcangle_in(i)*aefp(nsa_in) >= 0.d0 ) then
             theta_in(i) = 0.d0
           else
             theta_in(i) = pi
@@ -155,7 +190,7 @@ contains
 
   subroutine fow_construct_orbit(orbit_in, nobt_in, nsa_in, mode)
     use obcomm
-    use fowcomm,only : orbit
+    use fowcomm
     use fpcomm, only : npmax, nthmax, nrmax, nsamax, rkind
 
     integer,intent(in) :: mode(3), nobt_in(:,:,:), nsa_in
@@ -169,6 +204,22 @@ contains
     do nr = 1, nrmax+mode(3)
       do np = 1, npmax+mode(2)
         do nth = 1, nthmax+mode(1)
+          ! exclude forbitten region
+          if ( mode(1) == 0 ) then
+
+            if ( mode(2) == 1 ) then
+              if ( nth == nth_forbitten(nsa_in) ) then
+                cycle
+              end if
+
+            else if ( mode(3) == 1 ) then
+              if ( nth == nth_forbitten(nsa_in) ) then
+                cycle
+              end if
+
+            end if
+
+          end if
 
           i = nobt_in(nth,np,nr)
 
@@ -235,9 +286,11 @@ contains
     integer,intent(in) :: nstp_in, nr_in
 
     real(rkind) :: C(3), rr_l
-    integer :: nr_max, nr_min, ierr, nr_l
+    integer :: nr_max, nr_min, ierr, nr_l, mode(3)
 
-    nr_max = max(nr_in, 4)
+    nr_max = max(nr_in+1, 5)
+    nr_max = min(nr_max, nrmax+1)
+
     nr_min = max(1, nr_in-3)
 
     call leastSquareMethodForQuadric(psimg,nrmax+1,nr_min,nr_max,C)
@@ -251,7 +304,7 @@ contains
       rr_l = (-1.d0*C(2)+sqrt(rr_l))/(2*C(1))
     end if
 
-    if ( rr_l <= 0.d0 ) then
+    if ( rr_l <= 1.d0 ) then
       F_ret = Fpsig(1)
     else if ( rr_l >= (nrmax+1)*1.d0 ) then
       F_ret = Fpsig(nrmax+1)
@@ -293,6 +346,7 @@ contains
 
   function construct_orbit(n,input) result(ret)
     use fowcomm
+    implicit none
     type(orbit) :: ret
     integer, intent(in) :: n
     real(rkind), intent(in) :: input(:,:)

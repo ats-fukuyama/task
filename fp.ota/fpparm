@@ -26,16 +26,17 @@
   RIP=15
   
   tmax=10.D1
-  delt=0.1D0
+  delt=1.D-1
   mdlobw=2
   mdlobc=1
+  mdlobt=1
   idebug=0
 &end
 
 &fp
-  npmax=10
-  nthmax=55
-  nrmax=50
+  npmax=16
+  nthmax=48
+  nrmax=24
 
   RR=6.2
   RA=2.0
@@ -53,37 +54,37 @@
   NSBMAX=2
   NS_NSA(1)=1,2
   NS_NSB(1)=1,2
-  PMAX(1)=20.D0,20.D0
+  PMAX(1)=10.D0,10.D0
 
   PA(2)=2.D0
   PZ(2)=1.D0
-  PN(1)=0.1D2,0.1D2
-  PNS(1)=0.05D2,0.05D2
+  PN(1)=1.0D0,1.0D0
+  PNS(1)=0.05D0,0.05D0
   PTPR(1)=5.D1,5.D1
   PTPP(1)=5.D1,5.D1
   PTS(1)=1.D-1,1.D-1
-!  PTPR(1)=1.D3,1.D3
-!  PTPP(1)=1.D3,1.D3
-!  PTS(1)=1.D3,1.D3
+  !PTPR(1)=5.D-1,5.D-1
+  !PTPP(1)=5.D-1,5.D-1
+  !PTS(1)=1.D-1,1.D-1
   MODELN=1
   ZEFF=2.D0
 
   MODEL_NBI=1
-  NBEAMMAX=2
+  NBEAMMAX=1
   NSSPB(1)=2
-  SPBTOT(1)=50.D0
+  SPBTOT(1)=1.25D0
   SPBR0(1)=0.3D0
   SPBRW(1)=0.1D0
   SPBPANG(1)=0.D0
-  SPBENG(1)=3.D2
+  SPBENG(1)=1.D6
   SPBANG(1)=45.D0
-  NSSPB(2)=2
-  SPBTOT(2)=1.25D0
-  SPBR0(2)=0.3D0
-  SPBRW(2)=0.1D0
-  SPBPANG(2)=0.D0
-  SPBENG(2)=1.D6
-  SPBANG(2)=45.D0
+!  NSSPB(2)=2
+!  SPBTOT(2)=50.D0
+!  SPBR0(2)=0.3D0
+!  SPBRW(2)=0.1D0
+!  SPBPANG(2)=0.D0
+!  SPBENG(2)=3.D2
+!  SPBANG(2)=45.D0
 
   MODELA=1
   MODELC=0
