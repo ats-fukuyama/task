@@ -25,12 +25,13 @@ CONTAINS
     IMPLICIT NONE
     CHARACTER(LEN=1):: kid
     CHARACTER(LEN=80):: line
-    INTEGER:: ierr,mode,nid,ndate,ndate1
+    INTEGER:: ierr,mode,ndate,ndate1
     CHARACTER(LEN=10):: date_id
     CHARACTER(LEN=10):: kidn
     INTEGER,PARAMETER:: lword=10
     INTEGER:: nword,nword_max
     CHARACTER(LEN=lword),ALLOCATABLE:: kworda(:)
+    EXTERNAL TASK_KLIN
 
     CALL cv_load(ierr)
     CALL cv_population_load(ierr)

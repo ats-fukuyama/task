@@ -15,6 +15,8 @@ CONTAINS
 
 !     *** MESH PARAMETERS ***
 
+!     MODEL_WM    ! model id: 0:wm, 1:wm_seki, 2:wmx
+    
 !     NRMAX  : Number of radial mesh points
 !     NTHMAX : Number of poloidal mesh points (power of 2)
 !     NHHMAX : Number of helically coupled toroidal modes (power of 2)
@@ -150,12 +152,20 @@ CONTAINS
 !        MDLWMK: toroidal effect of minimum parallel wave number
 !                   0: OFF            
 !                   1: ON
+!        MDLWMX: model id
+!                   0: wm
+!                   1: wm_seki
+!                   2:wmx
+    
 
       NPRINT = 2
       NGRAPH = 1
       MODELJ = 0
       MODELA = 0
       MODELM = 0
+
+      MDLWMK = 0
+      MDLWMX = 2
 
 !     *** EIGEN VALUE PARAMETERS ***
 

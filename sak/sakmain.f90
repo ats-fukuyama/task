@@ -1,0 +1,17 @@
+! sakmain.f90
+
+PROGRAM sak
+
+  USE sakcomm
+  USE sak1
+  EXTERNAL GSOPEN,GSCLOS
+
+  WRITE(6,*) '## TASK/SAK 2020/11/21'
+  CALL GSOPEN
+
+  CALL sak_1
+
+  CALL GSCLOS
+
+  STOP
+END PROGRAM sak

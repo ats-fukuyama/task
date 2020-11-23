@@ -2,6 +2,9 @@
 
 MODULE cvlib
 
+  PRIVATE
+  PUBLIC convert_date_id_to_ndate,convert_ndate_to_date_id,convert_country_id
+
 CONTAINS
 
   ! --- convert string date_id to integer ndate

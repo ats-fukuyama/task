@@ -36,7 +36,7 @@ CONTAINS
     USE cvrank
     USE libcharx
     IMPLICIT NONE
-    CHARACTER(LEN=2):: country_id,kword
+    CHARACTER(LEN=2):: kword
     CHARACTER(LEN=80):: line
     CHARACTER(LEN=2),ALLOCATABLE:: kworda(:)
     INTEGER:: mode
@@ -47,6 +47,7 @@ CONTAINS
     INTEGER,PARAMETER:: nplot_m=32
     INTEGER:: ncountry_nplot(nplot_m)
     INTEGER,SAVE:: INIT=0
+    EXTERNAL TASK_KLIN,TOUPPER
 
     IF(INIT.EQ.0) THEN
        DO nl=1,nlmax
@@ -81,7 +82,7 @@ CONTAINS
     
     WRITE(6,'(A,A)') &
          '## INPUT country id, graph id, ', &
-         'rank:N1-6,R1-6, help:?,XH,XC,XN,XR,XG,XL, end:XX'
+         'rank:N1-6,R1-6, help:?,XH/C/N/R/G/L/D, end:XX'
     CALL task_klin(line,kid,mode,cv_parm)
     IF(mode.EQ.2.OR.mode.EQ.3) GO TO 1  ! 2: parm input, 3:input error
     
@@ -122,6 +123,9 @@ CONTAINS
           id=-id
        CASE('XL')
           CALL cv_gout_help(6)
+          id=-id
+       CASE('XD')
+          CALL cv_gout_help(7)
           id=-id
        CASE('XP','? ')
           WRITE(6,'(A,A)') &
@@ -253,9 +257,11 @@ CONTAINS
 
   SUBROUTINE cv_gout_help(id)
     USE cvcomm
+    USE cvlib
     IMPLICIT NONE
     INTEGER,INTENT(IN):: id
-    INTEGER:: ncountry
+    INTEGER:: ncountry,ndate
+    CHARACTER(LEN=10):: date_id
 
     SELECT CASE(id)
     CASE(1) !XC
@@ -371,6 +377,16 @@ CONTAINS
        WRITE(6,'(A)')   '10: light blue triangle'
        WRITE(6,'(A)')   '11: dark blue  triangle'
        WRITE(6,'(A)')   '12: purple     triangle'
+    CASE(7) !XD
+1      CONTINUE
+       WRITE(6,'(A,I4,A)') '## input ndate: 1..',ndate_max,'  0: for end'
+       READ(5,*,ERR=1,END=9) ndate
+       IF(ndate.LE.0) GO TO 9
+       IF(ndate.GT.ndate_max) GO TO 1
+       CALL convert_ndate_to_date_id(ndate,date_id)
+       WRITE(6,'(A,I6,A,A)') '  ndate=',ndate,'  date_id=',date_id
+       GO TO 1
+9      CONTINUE
     END SELECT
     RETURN
   END SUBROUTINE cv_gout_help
@@ -388,6 +404,7 @@ CONTAINS
     REAL(dp),ALLOCATABLE:: xg(:),fg(:,:)
     INTEGER:: ndata,ndate,ngid
     CHARACTER(LEN=80):: title
+    EXTERNAL PAGES,PAGEE
 
     INTEGER:: mode_ls,id_ls,id_ltype,ncount,ncount_max
 
@@ -804,6 +821,7 @@ CONTAINS
     CHARACTER(LEN=80):: title
 
     INTEGER:: mode_ls,id_ls,id_ltype,ncount,ncount_max
+    EXTERNAL PAGES,PAGEE
 
     ncount_max=ndate_max_g-ndate_min_g+1
     ALLOCATE(xg(ncount_max))
@@ -1234,8 +1252,9 @@ CONTAINS
 
     REAL(dp),ALLOCATABLE:: fg(:,:,:)
     INTEGER,ALLOCATABLE:: ncount_maxa(:)
-    INTEGER:: ndata,ndate,ngid,ncount,ncount_max
+    INTEGER:: ndata,ngid,ncount_max
     CHARACTER(LEN=80):: title
+    EXTERNAL PAGES,PAGEE
 
     
     ncount_max=ndate_max_g-ndate_min_g+1
@@ -1250,7 +1269,7 @@ CONTAINS
        IF(id.EQ.31) ngid=0
        CALL cv_gsub31(1,ncountry_nplot,nplot_max,fg,title,ndata)
        CALL grdxy(ngid,fg,2,ncount_max,ncount_maxa,ndata,title, &
-                  XMIN=2.477D0,XMAX=7.D0,YMIN=1.D0,YMAX=5.477D0, &
+                  XMIN=3.D0,XMAX=7.477D0,YMIN=1.D0,YMAX=5.477D0, &
                   ASPECT=1.D0,XSCALE_ZERO=0,YSCALE_ZERO=0,MODE_LS=3, &
                   XGRID_LTYPE=1,YGRID_LTYPE=1, &
                   NOINFO=1, &
@@ -1264,7 +1283,7 @@ CONTAINS
        IF(id.EQ.32) ngid=0
        CALL cv_gsub31(2,ncountry_nplot,nplot_max,fg,title,ndata)
        CALL grdxy(ngid,fg,2,ncount_max,ncount_maxa,ndata,title, &
-                  XMIN=0.477D0,XMAX=4.477D0,YMIN=-0.523D0,YMAX=3.477D0, &
+                  XMIN=1.D0,XMAX=5.D0,YMIN=-0.523D0,YMAX=3.477D0, &
                   ASPECT=1.D0,XSCALE_ZERO=0,YSCALE_ZERO=0,MODE_LS=3, &
                   XGRID_LTYPE=1,YGRID_LTYPE=1, &
                   NOINFO=1, &
@@ -1384,8 +1403,9 @@ CONTAINS
 
     REAL(dp),ALLOCATABLE:: fg(:,:,:)
     INTEGER,ALLOCATABLE:: ncount_maxa(:)
-    INTEGER:: ndata,ndate,ngid,ncount,ncount_max,mode_2d
+    INTEGER:: ndata,ngid,ncount_max,mode_2d
     CHARACTER(LEN=80):: title
+    EXTERNAL PAGES,PAGEE
 
     IF(nplot_max.EQ.1) THEN
        mode_2d=22
@@ -1405,7 +1425,7 @@ CONTAINS
        IF(id.EQ.41) ngid=0
        CALL cv_gsub41(1,ncountry_nplot,nplot_max,fg,title,ndata)
        CALL grdxy(ngid,fg,2,ncount_max,ncount_maxa,ndata,title, &
-                  XMIN=0.D0,XMAX=5.D0,YMIN=-1.D0,YMAX=4.D0, &
+                  XMIN=0.477D0,XMAX=5.477D0,YMIN=-1.D0,YMAX=4.D0, &
                   ASPECT=1.D0,XSCALE_ZERO=0,YSCALE_ZERO=0,MODE_LS=3, &
                   XGRID_LTYPE=1,YGRID_LTYPE=1, &
                   NOINFO=1,MODE_2D=mode_2d, &
@@ -1419,7 +1439,7 @@ CONTAINS
        IF(id.EQ.42) ngid=0
        CALL cv_gsub41(2,ncountry_nplot,nplot_max,fg,title,ndata)
        CALL grdxy(ngid,fg,2,ncount_max,ncount_maxa,ndata,title, &
-                  XMIN=-2.D0,XMAX=3.D0,YMIN=-3.D0,YMAX=2.D0, &
+                  XMIN=-1.523D0,XMAX=3.477D0,YMIN=-3.D0,YMAX=2.D0, &
                   ASPECT=1.D0,XSCALE_ZERO=0,YSCALE_ZERO=0,MODE_LS=3, &
                   XGRID_LTYPE=1,YGRID_LTYPE=1, &
                   NOINFO=1,MODE_2D=mode_2d, &

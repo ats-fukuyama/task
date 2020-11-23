@@ -39,6 +39,8 @@ MODULE wmcomm_parm
 
 ! --- wm specific input parameters ---  
 
+  INTEGER:: MODEL_WM    ! model id: 0:wm, 1:wm_seki, 2:wmx
+
   INTEGER:: NRMAX       ! number of radial mesh (element) in plcomm.parm
   INTEGER:: NTHMAX      ! number of poloidal mesh         in plcomm.parm
 
@@ -82,6 +84,8 @@ MODULE wmcomm_parm
   INTEGER:: MODELA          ! Alpha particle contribution model parameter
   INTEGER:: MODELM          ! Matrix solver parameter
   INTEGER:: MDLWMK          ! k_paralle toroidal effect
+  INTEGER:: MDLWMX          ! model id: 0:wm, 1:wm_seki, 2:wmx
+
   
   REAL(rkind):: PNA         ! Alpha denisty [10^20 m^-3]
   REAL(rkind):: PNAL        ! Density scale length [m]
@@ -150,7 +154,9 @@ MODULE wmcomm
   INTEGER:: MLEN  ! matrix height
   INTEGER:: MBND  ! matrix width
   INTEGER:: MCENT ! matrix center (diagonal position in width)
-  INTEGER:: istart,iend,nr_start,nr_end,nblock_size
+  INTEGER:: mblock_size ! matrix block size
+  INTEGER:: istart,iend ! matrix line range
+  INTEGER:: nr_start,nr_end ! radial point range
   INTEGER:: MODELK  ! control wave number spectrum model
   INTEGER:: MODEEG  ! indicate eigen mode calculation
   COMPLEX(rkind),ALLOCATABLE:: CFVG(:)
@@ -267,13 +273,14 @@ CONTAINS
        CALL wm_deallocate
     END IF
 
-    IF(modewg.EQ.0) THEN
-       mlen=3*nrmax*nthmax*nhhmax
-    ELSE
-       mlen=3*nrmax*nthmax*nhhmax+mwgmax*namax
+    mblock_size=3*nthmax*nhhmax
+    mbnd= 4*mblock_size-1
+    mcent=2*mblock_size
+       mlen=mblock_size*nrmax
+    IF(modewg.NE.0) THEN
+       mlen=mlen+mwgmax*namax
     END IF
-    mbnd=12*nthmax*nhhmax-1
-    mcent=6*nthmax*nhhmax
+    
     IF(nthmax.EQ.1) THEN
        nthmax_f=1
     ELSE

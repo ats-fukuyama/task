@@ -1,15 +1,15 @@
-! wmsetf.f90
+! wmsetf2.f90
 
-MODULE wmsetf
+MODULE wmsetf2
 
   PRIVATE
-  PUBLIC wm_setf
+  PUBLIC wm_setf2
 
 CONTAINS
 
 !     ****** CALCULATE LOCAL MATRIX ******
 
-  SUBROUTINE wm_setf(NR,NS0)
+  SUBROUTINE wm_setf2(NR,NS0)
 
     USE wmcomm
     USE wmprof
@@ -436,6 +436,6 @@ CONTAINS
 
 9000 CONTINUE
     RETURN
-  END SUBROUTINE wm_setf
+  END SUBROUTINE wm_setf2
 
-END MODULE wmsetf
+END MODULE wmsetf2

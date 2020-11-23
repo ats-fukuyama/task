@@ -33,7 +33,7 @@ SRCS = wmcomm.f90 vmcomm.f90 wmlib.f90 wmsub.f90 \
        wmgsub.f90 wmgout.f90 \
        wmvmec.f90 wmbooz.f90 wmvout.f90 \
        wmsetg.f90 \
-       wmsetf.f90 wmsetm.f90 wmsolv.f90 \
+       wmsetf0.f90 wmsetf2.f90 wmsetm0.f90 wmsetm2.f90 wmsolv.f90 \
        wmemfp.f90 wmpout.f90 \
        wmexec.f90 \
        wmfile.f90 \
@@ -112,11 +112,13 @@ wmprof.o: wmprof.f90 ../pl/plprof.f90 wmcomm.f90
 wmdisp.o: wmdisp.f90 wmprof.f90 ../dp/dptnsr0.f90 ../pl/plprofw.f90 \
           ../pl/plprof.f90 wmcomm.f90
 
-wmsetf.o: wmsetf.f90 wmprof.f90 wmdisp.f90 wmsub.f90 wmcomm.f90
-wmsetm.o: wmsetm.f90 wmsetf.f90 ../pl/plprof.f90 wmcomm.f90
-wmsolv.o: wmsolv.f90 wmcomm.f90
+wmsetf0.o: wmsetf0.f90 wmprof.f90 wmdisp.f90 wmsub.f90 wmcomm.f90
+wmsetf2.o: wmsetf2.f90 wmprof.f90 wmdisp.f90 wmsub.f90 wmcomm.f90
+wmsetm0.o: wmsetm0.f90 wmsetf0.f90 ../pl/plprof.f90 wmcomm.f90
+wmsetm2.o: wmsetm2.f90 wmsetf2.f90 ../pl/plprof.f90 wmcomm.f90
+wmsolv.o: wmsolv.f90 wmsetm0.f90 wmsetm2.f90 wmcomm.f90
 
-wmemfp.o: wmemfp.f90 wmprof.f90 wmsub.f90 wmsetm.f90 wmsetf.f90 wmcomm.f90
+wmemfp.o: wmemfp.f90 wmprof.f90 wmsub.f90 wmsetf0.f90 wmsetf2.f90 wmcomm.f90
 wmpout.o: wmpout.f90 wmcomm.f90
 
 wmexec.o: wmexec.f90 wmsetg.f90 wmsolv.f90 wmemfp.f90 wmpout.f90 \

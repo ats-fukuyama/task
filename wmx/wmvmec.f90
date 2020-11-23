@@ -208,12 +208,13 @@ CONTAINS
     USE wmcomm
     USE vmcomm
     IMPLICIT NONE
-    INTEGER:: I,NR,NM,NSR,IERR
+    INTEGER:: I,NR,NSR,IERR
     INTEGER,parameter:: np=3
     REAL(rkind):: rnra(np),psipax(np)
     REAL(rkind):: srmnca(np),drmnca(np),szmnsa(np),dzmnsa(np)
     REAL(rkind):: dy
     INTEGER:: mn
+    EXTERNAL SPL1D,SPL1DF,POLINT,SPL1DD
 
 !      ***** SPLINE PSIP *****
 
@@ -413,6 +414,7 @@ CONTAINS
     INTEGER:: i,MN,NSR,NR,NTH,NHH,NS,NSU,NSW,IERR
     REAL(rkind):: BSTHL,BSPHL,dy,DTH,DPH,TH,PH,SBTH,SBPH,RSIN,RCOS
     REAL(rkind):: P0,RHOL,FACTN,FEDGE,PT,FACTT,DTHU,DTHW,RIOTASL
+    EXTERNAL SPL1D,SPL1DF,POLINT
     
     DO MN=1,MNMAX
        DO NSR=1,NSRMAX
@@ -650,6 +652,7 @@ CONTAINS
     REAL(rkind),INTENt(OUT):: BFLD2L,BFLD3L,QPSL
     REAL(rkind):: SBTH,SBPH,BSTHL,BSPHL,RSIN,RCOS,RIOTASL
     INTEGER:: MN,IERR
+    EXTERNAL SPL1DF
 
     SBTH=0.D0
     SBPH=0.D0

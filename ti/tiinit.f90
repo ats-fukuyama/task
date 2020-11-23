@@ -249,9 +249,9 @@ CONTAINS
 !        DN0_NS : PARTICLE DIFFUSION FACTOR for species NS
 !        DT0_NS : THERMAL DIFFUSION FACTOR for species NS
 !        DU0_NS : TOROIDAL VISCOSITY FACTOR for species NS
-!        VDN0_NS: particle pinch factor for species NS
-!        VDT0_NS: thermal pinch factor for species NS
-!        VDU0_NS: toroidal velocity pinch for species NS
+!        VDN0_NS: particle inword pinch factor for species NS
+!        VDT0_NS: thermal inward pinch factor for species NS
+!        VDU0_NS: toroidal velocity inward pinch for species NS
 
       DO NS=1,NSM
          DN0_NS(NS) = 1.0D0

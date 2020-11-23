@@ -15,9 +15,9 @@ CONTAINS
     IMPLICIT NONE
     INTEGER:: ierr
 
-    nblock_size=3*MDSIZ*NDSIZ
-    ! mlen=NRMAX*nblock_size+MWGMAX*NAMAX defined in wm_alloc in wmcomm.f90
-    ! mbnd=4*nblock_size-1 defined in wm_alloc in wmcomm.f90
+    mblock_size=3*MDSIZ*NDSIZ
+    ! mlen=NRMAX*mblock_size+MWGMAX*NAMAX defined in wm_alloc in wmcomm.f90
+    ! mbnd=4*mblock_size-1 defined in wm_alloc in wmcomm.f90
     
     CALL wm_solv_mtxp(CFVG,ierr)
     IF(IERR.NE.0) WRITE(6,*) 'XX wm_solv_mtxp error: ierr=',ierr
@@ -31,7 +31,8 @@ CONTAINS
 
     USE wmcomm
     USE libmtx
-    USE wmsetm
+    USE wmsetm0
+    USE wmsetm2
     USE commpi
     IMPLICIT NONE
     COMPLEX(rkind),DIMENSION(MLEN),INTENT(OUT):: svec
@@ -46,11 +47,11 @@ CONTAINS
 
     CALL mtxc_setup(MLEN,istart,iend,jwidth=MBND)
 
-    nr_start=(istart-1)/nblock_size+1
-    nr_end=(iend-1)/nblock_size+1
-    IF(nrank.EQ.nsize-1) nr_end=NRMAX
-    WRITE(6,'(A,4I8)') 'nrank,nr_start,nr_end,nblock_size=', &
-                        nrank,nr_start,nr_end,nblock_size
+    nr_start=(istart-1)/mblock_size+1
+    nr_end=(iend-1)/mblock_size+1
+    IF(nrank.EQ.nsize-1) nr_end=NRMAX+1
+    WRITE(6,'(A,4I8)') 'nrank,nr_start,nr_end,mblock_size=', &
+                        nrank,nr_start,nr_end,mblock_size
 
 !   ***** CALCULATE MATRIX COEFFICIENTS *****
 
@@ -59,7 +60,12 @@ CONTAINS
     DO i=istart,iend
        X=(0.D0,0.D0)
        A(1:MBND)=(0.D0,0.D0)
-       CALL wm_setm(A,X,i,MBND,nr_previous)
+       IF(MDLWMX.EQ.0) THEN
+          CALL wm_setm0(A,X,i,MBND,nr_previous)
+       ELSE
+          CALL wm_setm2(A,X,i,MBND,nr_previous)
+       END IF
+       IF(nrank.EQ.0)
        WRITE(21,'(A,2I6,ES12.4)') 'wmsolv:',nr_previous,i,XRHO(nr_previous)
        WRITE(21,'(6ES12.4)') (A(j),j=1,MBND)
        WRITE(21,'(2ES12.4)') X

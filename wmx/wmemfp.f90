@@ -70,8 +70,8 @@ CONTAINS
        ENDDO
     ENDDO
 
-    DO NR=1,NRMAX
-       NRP=MIN(NR+1,NRMAX)
+    DO NR=2,NRMAX+1
+       NRP=MIN(NR+1,NRMAX+1)
        DO ND=NDMIN,NDMAX
           NDX=ND-NDMIN+1
           DO MD=MDMIN,MDMAX
@@ -448,7 +448,11 @@ CONTAINS
        ENDDO
 
        DO NR=NRANT-1,NRMAX
-          CALL wm_setv(NR,CFVP)
+          IF(MDLWMX.EQ.0) THEN
+             CALL wm_setv0(NR,CFVP)
+          ELSE
+             CALL wm_setv2(NR,CFVP)
+          END IF
           DO MDX=1,MDSIZ
              DO NDX=1,NDSIZ
                 CCE1=CEFLDK(1,MDX,NDX,NR+1)

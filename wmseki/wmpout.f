@@ -15,7 +15,7 @@ C
       A1= DRHO2/(DRHO2-DRHO1)
       A2=-DRHO1/(DRHO2-DRHO1)
 C
-      DO NR=1,NRMAX
+      DO NR=1,NRMAX+2
       DO ND=NDMIN,NDMAX
          NDX=ND-NDMIN+1
       DO MD=MDMIN,MDMAX

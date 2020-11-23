@@ -29,6 +29,7 @@ CONTAINS
     INTEGER,INTENT(IN):: mode
     CHARACTER(LEN=*),INTENT(IN):: kin
     INTEGER,INTENT(OUT):: ierr
+    EXTERNAL TASK_PARM
     
 1   CALL TASK_PARM(mode,'WM',kin,wm_nlin,wm_plst,ierr)
     IF(ierr.NE.0) RETURN
@@ -60,11 +61,12 @@ CONTAINS
            MODELP,MODELV,NCMIN,NCMAX,PMAX,EMAX, &
            NRMAX,NTHMAX,NHHMAX,NPHMAX,factor_nth,factor_nhh,factor_nph, &
            NRMAX_DP,NTHMAX_DP,NPMAX_DP,NSAMAX_DP,RHON_MIN,RHON_MAX, &
-           MODELP,MODELV,NCMIN,NCMAX,NS_NSA_DP,EPSRT,LMAXRT, &
+           NS_NSA_DP,EPSRT,LMAXRT, &
            NSUMAX,NSWMAX,B0_FACT, &
            RF,RFI,RD,PRFIN,BETAJ,NTH0,NPH0,NHC, &
            NAMAX,AJ,AEWGT,AEWGZ,APH,THJ1,THJ2,PHJ1,PHJ2,ANTANG, &
-           NPRINT,NGRAPH,MODELJ,MODELA,MODELM,MDLWMK,PNA,PNAL,PTA,ZEFF, &
+           NPRINT,NGRAPH,MODELJ,MODELA,MODELM,MDLWMK,MDLWMX, &
+           PNA,PNAL,PTA,ZEFF, &
            FRMIN,FRMAX,FIMIN,FIMAX,FI0,NGFMAX,NGXMAX,NGYMAX, &
            SCMIN,SCMAX,NSCMAX,LISTEG,FRINI,FIINI,DLTNW,EPSNW,LMAXNW,LISTNW, &
            MODENW,NCONT,ILN1,IBL1,ICL1,ILN2,IBL2,ICL2,WAEMIN,WAEMAX,nthmax_g
@@ -106,7 +108,7 @@ CONTAINS
          '       NSUMAX,NSWMAX,B0_FACT,', &
          '       RF,RFI,RD,PRFIN,BETAJ,NTH0,NPH0,NHC,', &
          '       NAMAX,AJ,AEWGT,AEWGZ,APH,THJ1,THJ2,PHJ1,PHJ2,ANTANG,', &
-         '       NPRINT,NGRAPH,MODELJ,MODELA,MODELM,MDLWMK,', &
+         '       NPRINT,NGRAPH,MODELJ,MODELA,MODELM,MDLWMK,MDLWMX,', &
          '       PNA,PNAL,PTA,ZEFF,', &
          '       FRMIN,FRMAX,FIMIN,FIMAX,FI0,NGFMAX,NGXMAX,NGYMAX,', &
          '       SCMIN,SCMAX,NSCMAX,LISTEG,FRINI,FIINI,', &
@@ -200,7 +202,6 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,DIMENSION(99):: idata
     REAL(rkind),DIMENSION(99):: rdata
-    INTEGER:: NS
 
     !----- PL input parameters -----     
 
@@ -244,11 +245,12 @@ CONTAINS
     idata(30)=ICL2
     idata(31)=NTHMAX_G
     idata(32)=MDLWMK
-    idata(33)=factor_nth
-    idata(34)=factor_nhh
-    idata(35)=factor_nph
+    idata(33)=MDLWMX
+    idata(34)=factor_nth
+    idata(35)=factor_nhh
+    idata(36)=factor_nph
 
-    CALL mtx_broadcast_integer(idata,35)
+    CALL mtx_broadcast_integer(idata,36)
 
     NRMAX=idata( 1)
     NTHMAX=idata( 2)
@@ -282,9 +284,10 @@ CONTAINS
     ICL2=idata(30)
     NTHMAX_G=idata(31)
     MDLWMK=idata(32)
-    factor_nth=idata(33)
-    factor_nhh=idata(34)
-    factor_nph=idata(35)
+    MDLWMX=idata(33)
+    factor_nth=idata(34)
+    factor_nhh=idata(35)
+    factor_nph=idata(36)
 
     rdata( 1)=RF
     rdata( 2)=RFI
