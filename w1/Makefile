@@ -23,7 +23,7 @@ SRCSFREE =w1comm.f90 w1lib.f90 w1init.f90 w1parm.f90 \
           w1exec6.f90 w1exec7.f90 w1exec8.f90 \
           w1exec9.f90 w1exec10.f90 w1exec11.f90 \
           w1exec.f90 w1gout.f90 \
-          w1menu.f90 w1main.f90
+          w1menu.f90
 
 
 #OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
