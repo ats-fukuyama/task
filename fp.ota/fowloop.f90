@@ -10,14 +10,21 @@ contains
     use fowsource
     use fowcoef
     use fpcomm
+    use fowdistribution
     
 
     implicit none
-    integer :: nt, nth, np, nr, nsa, n_iterate, ierr = 0
+    integer :: nt, nth, np, nr, nsa, n_iterate, ierr = 0, its
     real(rkind) :: deps, sumF0, sumFd
     logical :: iteration_flag
 
+    call fow_distribution_maxwellian_inCOM(fnsp)
+    call update_quantities
+    call fow_coef
+    call fow_calculate_source  
+
     do nt = 1, ntmax
+      write(*,*)"nt=",nt
 
       do nsa = 1, nsamax
         do nr = 1, nrmax
@@ -36,7 +43,7 @@ contains
         n_iterate = n_iterate + 1
 
         do nsa = 1, nsamax          
-          call fow_exec(nsa, ierr)
+          call fow_exec(nsa, ierr, its)
         end do
 
         deps = 0.d0
@@ -46,6 +53,7 @@ contains
           do nr = 1, nrmax
             do np = 1, npmax
               do nth = 1, nthmax
+                write(*,*)fnsp(nth,np,nr,nsa),fns0(nth,np,nr,nsa)
                 sumFd = sumFd + ( fnsp(nth,np,nr,nsa)-fns0(nth,np,nr,nsa) )**2
                 sumF0 = sumF0 + fnsp(nth,np,nr,nsa)**2
               end do
@@ -53,6 +61,7 @@ contains
           end do
           deps = MAX( deps, sumFd/sumF0 )
         end do
+        write(*,*)"deps,it",deps,n_iterate
 
         if ( deps <= epsfp .or. n_iterate >= lmaxfp ) iteration_flag = .false.
 
@@ -84,7 +93,8 @@ contains
 
     implicit none
     type(pl_plf_type),dimension(nsmax):: plf
-    integer :: nth, np, nr, nsa
+    integer :: nth, np, nr, nsa, ns
+    real(rkind) :: rhon
 
     ! update rn_temp, rt_temp
     do nsa = 1, nsamax
@@ -101,7 +111,7 @@ contains
     call moment_0th_order_COM(RNSL, fnsp)
 
     ! update temperature
-    call moment_2th_order_COM(RWSL, fnsp)
+    call moment_2nd_order_COM(RWSL, fnsp)
 
     ! update bulk temperature
 

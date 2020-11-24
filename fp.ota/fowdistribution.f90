@@ -89,7 +89,8 @@ contains
             deltap = (pg(np+1,nsa)-pg(np,nsa))*ptfp0(nsa)
             do nth = 1, nthmax
               deltath = thetamg(nth+1,np,nr,nsa)-thetamg(nth,np,nr,nsa)
-              sumI = sumI + fm_I(nth,np,nr,nsa)*deltap*deltath*deltaps*Jacobian_I(nth,np,nr,nsa)
+              sumI = sumI + fm_I(nth,np,nr,nsa)*deltap*deltath*deltaps&
+                            *Jacobian_I(nth,np,nr,nsa)*V_phase(nsa)
             end do
           end do
         end do
@@ -203,7 +204,8 @@ contains
           deltap = (pg(np+1,nsa)-pg(np,nsa))*ptfp0(nsa)
           do nth = 1, nthmax
             deltath = thetamg(nth+1,np,nr,nsa)-thetamg(nth,np,nr,nsa)
-            sumI = sumI + fI(nth,np,nr,nsa)*deltap*deltath*deltaps*Jacobian_I(nth,np,nr,nsa)
+            sumI = sumI + fI(nth,np,nr,nsa)*deltap*deltath*deltaps&
+                          *Jacobian_I(nth,np,nr,nsa)*V_phase(nsa)
           end do
         end do
       end do
@@ -264,6 +266,7 @@ contains
           end do
         end do
         M0(nr,nsa) = sum_f*RNFP0(NSA)*1.D20
+        M0(nr,nsa) = M0(nr,nsa)*1.0d-20
 
       end do
     end do
@@ -303,6 +306,7 @@ contains
           end do
         end do
         M2(nr,nsa) = sum_f*RNFP0(NSA)*1.D20 ! [J]
+        M2(nr,nsa) =  M2(nr,nsa)*1.D-6      ! [MJ]
         ! M2(nr,nsa) = sum_f*RNFP0(NSA)*1.D20/(aee*1.d-3) ! [keV]
 
       end do

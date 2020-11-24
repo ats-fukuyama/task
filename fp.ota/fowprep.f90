@@ -1,7 +1,6 @@
 module fowprep
   private
   public :: fow_prep
-  public :: gauss_jordan, first_order_derivative, fow_cal_spl
 
 contains
 
@@ -13,8 +12,11 @@ contains
 
     implicit none
 
-    integer :: nth, np, nr, nsa, ierr = 0, flag
+    type(orbit) :: orbit_pnc
+    integer :: nth, np, nr, nsa, ierr = 0, flag, nstp, nstpmax, ir
     real(rkind) :: dummy, begin_time, end_time
+    real(rkind) :: time_v_co, time_v_cnt, dt
+    logical :: isCo
 
     call cpu_time(begin_time)
 
@@ -27,76 +29,7 @@ contains
     ! load equiliblium variable
     call fow_eqload(ierr)
 
-
-    ! calculate internal boundary
-    do nsa = 1, nsamax
-      do nr = 1, nrmax+1
-        do np = 1, npmax+1
-
-          if ( np /= npmax+1 .and. nr /= nrmax+1 ) then
-
-            ! calculate theta_pnc and psip_pnc_point
-            call calculate_pinch_orbit(theta_pnc(np,nr,nsa), psip_pnc_point(np,nr,nsa), flag, pm(np, nsa), psim(nr), nsa)
-            if ( flag /= 0 ) theta_pnc(np,nr,nsa) = NO_PINCH_ORBIT
-
-            ! calculate theta_co_stg
-            !if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),then theta_co_stg(np,nr,nsa) = 0.d0
-            call bisection_method_for_ITB(get_p_stg, flag, pm(np,nsa)&
-                                        , dummy, theta_co_stg(np,nr,nsa), 0.d0, pi/2.d0, psim(nr), nsa)
-            if ( flag > 0 ) theta_co_stg(np,nr,nsa) = 0.d0
-
-            ! calculate theta_cnt_stg 
-            ! if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),then theta_cnt_stg(np,nr,nsa) = pi
-            call bisection_method_for_ITB(get_p_stg, flag, pm(np,nsa)&
-                                        , dummy, theta_cnt_stg(np,nr,nsa), pi/2.d0, pi, psim(nr), nsa)
-            if ( flag > 0 ) theta_cnt_stg(np,nr,nsa) = pi
-
-          end if
-
-          if ( nr /= nrmax+1 ) then
-
-            ! calculate theta_pnc_pg and psip_pnc_point_pg
-            call calculate_pinch_orbit(theta_pnc_pg(np,nr,nsa), psip_pnc_point_pg(np,nr,nsa), flag, pg(np, nsa), psim(nr), nsa)
-            if ( flag /= 0 ) theta_pnc_pg(np,nr,nsa) = NO_PINCH_ORBIT
-
-            ! calculate theta_co_stg_pg
-            !if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),then theta_co_stg_pg(np,nr,nsa) = 0.d0
-            call bisection_method_for_ITB(get_p_stg, flag, pg(np,nsa)&
-                                        , dummy, theta_co_stg_pg(np,nr,nsa), 0.d0, pi/2.d0, psim(nr), nsa)
-            if ( flag > 0 ) theta_co_stg_pg(np,nr,nsa) = 0.d0
-
-            ! calculate theta_cnt_stg _pg
-            ! if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),then theta_cnt_stg_pg(np,nr,nsa) = pi
-            call bisection_method_for_ITB(get_p_stg, flag, pg(np,nsa)&
-                                        , dummy, theta_cnt_stg_pg(np,nr,nsa), pi/2.d0, pi, psim(nr), nsa)
-            if ( flag > 0 ) theta_cnt_stg_pg(np,nr,nsa) = pi
-
-          end if
-
-          if ( np /= npmax+1 ) then
-
-            ! calculate theta_pnc_rg and psip_pnc_point_rg
-            call calculate_pinch_orbit(theta_pnc_rg(np,nr,nsa), psip_pnc_point_rg(np,nr,nsa), flag, pm(np, nsa), psimg(nr), nsa)
-            if ( flag /= 0 ) theta_pnc_rg(np,nr,nsa) = NO_PINCH_ORBIT
-
-            ! calculate theta_co_stg_rg
-            !if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),then theta_co_stg_rg(np,nr,nsa) = 0.d0
-            call bisection_method_for_ITB(get_p_stg, flag, pm(np,nsa)&
-                                        , dummy, theta_co_stg_rg(np,nr,nsa), 0.d0, pi/2.d0, psimg(nr), nsa)
-            if ( flag > 0 ) theta_co_stg_rg(np,nr,nsa) = 0.d0
-
-            ! calculate theta_cnt_stg_rg 
-            ! if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),then theta_cnt_stg_rg(np,nr,nsa) = pi
-            call bisection_method_for_ITB(get_p_stg, flag, pm(np,nsa)&
-                                        , dummy, theta_cnt_stg_rg(np,nr,nsa), pi/2.d0, pi, psimg(nr), nsa)
-            if ( flag > 0 ) theta_cnt_stg_rg(np,nr,nsa) = pi
-
-          end if
-
-        end do
-      end do
-    end do
-
+    ! calculate thetam
     nthm3 = nthmax/2
     nthm2 = (nthmax-nthm3)/2
     nthm1 = nthmax-nthm2-nthm3
@@ -105,6 +38,34 @@ contains
     do nsa = 1, nsamax
       do nr = 1, nrmax
         do np = 1, npmax
+          ! calculate theta_pnc and psip_pnc_point
+          call calculate_pinch_orbit(theta_pnc(np,nr,nsa), psip_pnc_point(np,nr,nsa), flag, pm(np, nsa), psim(nr), nsa)
+          if ( flag /= 0 ) theta_pnc(np,nr,nsa) = NO_PINCH_ORBIT
+
+          ! calculate theta_co_stg
+          !if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),then theta_co_stg(np,nr,nsa) = 0.d0
+          call bisection_method_for_IBC(get_p_stg, flag, pm(np,nsa)&
+                                      , dummy, theta_co_stg(np,nr,nsa), 0.d0, pi/2.d0, psim(nr), nsa)
+          if ( flag > 0 ) theta_co_stg(np,nr,nsa) = 0.d0
+
+          ! calculate theta_cnt_stg 
+          ! if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),then theta_cnt_stg(np,nr,nsa) = pi
+          call bisection_method_for_IBC(get_p_stg, flag, pm(np,nsa)&
+                                      , dummy, theta_cnt_stg(np,nr,nsa), pi/2.d0, pi, psim(nr), nsa)
+          if ( flag > 0 ) theta_cnt_stg(np,nr,nsa) = pi
+
+          ! calculate nr_pnc_point
+          if ( theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+            do ir = 1, nr
+              if ( psimg(ir) <=  psip_pnc_point(np,nr,nsa) &
+                  .and. psip_pnc_point(np,nr,nsa) <= psimg(ir+1)) then
+                nr_pnc_point(np,nr,nsa) = ir
+                exit
+              end if
+            end do
+          end if
+
+          ! define thetam mesh
           if ( aefp(nsa) >= 0.d0 ) then
 
             if ( theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
@@ -198,6 +159,27 @@ contains
     do nsa = 1, nsamax
       do nr = 1, nrmax
         do np = 1, npmax+1
+          ! calculate theta_pnc_pg and psip_pnc_point_pg
+          if ( np == 1 ) then
+            theta_pnc_pg(np,nr,nsa) = NO_PINCH_ORBIT
+          else
+            call calculate_pinch_orbit(theta_pnc_pg(np,nr,nsa), psip_pnc_point_pg(np,nr,nsa), flag, pg(np, nsa), psim(nr), nsa)
+            if ( flag /= 0 ) theta_pnc_pg(np,nr,nsa) = NO_PINCH_ORBIT  
+          end if
+
+          ! calculate theta_co_stg_pg
+          !if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),then theta_co_stg_pg(np,nr,nsa) = 0.d0
+          call bisection_method_for_IBC(get_p_stg, flag, pg(np,nsa)&
+                                      , dummy, theta_co_stg_pg(np,nr,nsa), 0.d0, pi/2.d0, psim(nr), nsa)
+          if ( flag > 0 ) theta_co_stg_pg(np,nr,nsa) = 0.d0
+
+          ! calculate theta_cnt_stg _pg
+          ! if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),then theta_cnt_stg_pg(np,nr,nsa) = pi
+          call bisection_method_for_IBC(get_p_stg, flag, pg(np,nsa)&
+                                      , dummy, theta_cnt_stg_pg(np,nr,nsa), pi/2.d0, pi, psim(nr), nsa)
+          if ( flag > 0 ) theta_cnt_stg_pg(np,nr,nsa) = pi
+
+          ! define thetam mesh
           if ( aefp(nsa) >= 0.d0 ) then
 
             if ( theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
@@ -274,6 +256,27 @@ contains
     do nsa = 1, nsamax
       do nr = 1, nrmax+1
         do np = 1, npmax
+          ! calculate theta_pnc_rg and psip_pnc_point_rg
+          if ( nr == 1 ) then
+            theta_pnc_rg(np,nr,nsa) = NO_PINCH_ORBIT
+          else
+            call calculate_pinch_orbit(theta_pnc_rg(np,nr,nsa), psip_pnc_point_rg(np,nr,nsa), flag, pm(np, nsa), psimg(nr), nsa)
+            if ( flag /= 0 ) theta_pnc_rg(np,nr,nsa) = NO_PINCH_ORBIT  
+          end if
+
+          ! calculate theta_co_stg_rg
+          !if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),then theta_co_stg_rg(np,nr,nsa) = 0.d0
+          call bisection_method_for_IBC(get_p_stg, flag, pm(np,nsa)&
+                                      , dummy, theta_co_stg_rg(np,nr,nsa), 0.d0, pi/2.d0, psimg(nr), nsa)
+          if ( flag > 0 ) theta_co_stg_rg(np,nr,nsa) = 0.d0
+
+          ! calculate theta_cnt_stg_rg 
+          ! if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),then theta_cnt_stg_rg(np,nr,nsa) = pi
+          call bisection_method_for_IBC(get_p_stg, flag, pm(np,nsa)&
+                                      , dummy, theta_cnt_stg_rg(np,nr,nsa), pi/2.d0, pi, psimg(nr), nsa)
+          if ( flag > 0 ) theta_cnt_stg_rg(np,nr,nsa) = pi
+
+          ! define theta mesh
           if ( aefp(nsa) >= 0.d0 ) then
 
             if ( theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
@@ -348,11 +351,70 @@ contains
     end do
 
     call fow_orbit_construct(orbit_m) 
-    ! call fow_orbit_construct(orbit_th)
-    ! call fow_orbit_construct(orbit_p) 
-    ! call fow_orbit_construct(orbit_r) 
+    call fow_orbit_construct(orbit_th)
+    call fow_orbit_construct(orbit_p) 
+    call fow_orbit_construct(orbit_r) 
 
-    call fow_calculate_jacobian
+    ! calculate the boundary flux partition
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do np = 1, npmax
+          if ( theta_pnc(np,nr,nsa) == NO_PINCH_ORBIT ) cycle
+
+          orbit_pnc = orbit_th(nth_pnc(nsa),np,nr,nsa)
+          nstpmax = orbit_pnc%nstp_max
+
+          if ( 0.d0 <= orbit_pnc%theta(1) .and. orbit_pnc%theta(1) <= pi/2.d0 ) then
+            isCo = .true.
+          else 
+            isCo = .false.
+          end if
+
+          time_v_co = 0.d0
+          time_v_cnt = 0.d0
+          do nstp = 2, nstpmax
+            dt = orbit_pnc%time(nstp)-orbit_pnc%time(nstp-1)
+            if ( isCo ) then
+              if ( 0.d0 <= orbit_pnc%theta(nstp) .and. orbit_pnc%theta(nstp) <= pi/2.d0 ) then
+                time_v_co = time_v_co + dt
+              else
+                time_v_co = time_v_co + dt/2.d0
+                time_v_cnt = time_v_cnt + dt/2.d0
+                isCo = .false.
+              end if
+            else
+              if ( 0.d0 <= orbit_pnc%theta(nstp) .and. orbit_pnc%theta(nstp) <= pi/2.d0 ) then
+                time_v_co = time_v_co + dt/2.d0
+                time_v_cnt = time_v_cnt + dt/2.d0
+                isCo = .true.
+              else
+                time_v_cnt = time_v_cnt + dt
+              end if
+            end if
+          end do
+          IBCflux_ratio(np,nr,nsa) = time_v_cnt/(time_v_co+time_v_cnt)
+        end do
+      end do
+    end do
+
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do np = 1, npmax
+          call construst_Xstg_as_pncp(Xstg_as_pncp(np,nr,nsa))
+
+          do ir = 1, nrmax
+            if ( nr_pnc_point(np,ir,nsa) == nr ) then
+              call add_pnc_orbit(Xstg_as_pncp(np,nr,nsa), ir)
+            end if
+          end do
+
+        end do
+      end do
+    end do
+
+    call calculate_jacobian
+
+    imtxsize = nthmax*npmax*nrmax
 
     call cpu_time(end_time)
 
@@ -453,11 +515,11 @@ contains
 
     write(*,*)"FP------------------------------------"
 
-    call fow_calculate_equator_variable(ierr)
+    call calculate_equator_variable(ierr)
 
   end subroutine
 
-  subroutine fow_calculate_equator_variable(ierr)
+  subroutine calculate_equator_variable(ierr)
     use fowcomm
     use fpcomm,only:rkind,nrmax,nthmax,npmax
 
@@ -527,7 +589,7 @@ contains
       end if
     end do
 
-  end subroutine fow_calculate_equator_variable
+  end subroutine calculate_equator_variable
 
   subroutine calculate_pinch_orbit(theta_out, psi_pinch_point, pinch_flag, p_in, psim_in, nsa_in)
     ! return theta_m of pinch orbit with (p = p_in, psi_m = psim_in) and nsa_in
@@ -543,29 +605,31 @@ contains
     integer,intent(in) :: nsa_in
 
     integer :: convergence_flag
-    real(rkind) :: dummy, p_pnc_max ! p_pnc_max/p_pnc_min is maximum/minimum momentum pinch orbit with psi_m = psim(nr_in)
+    real(rkind) :: dummy, eps, p_pnc_max ! p_pnc_max/p_pnc_min is maximum/minimum momentum pinch orbit with psi_m = psim(nr_in)
 
     ! call get_pinch_point(p_pnc_min, dummy, psim(nr_in), nr_in, nsa_in)
-    call get_pinch_point(p_pnc_max, dummy, psim(1), psim_in, nsa_in)
+    ! call get_pinch_point(p_pnc_max, dummy, 0.d0, psim_in, nsa_in)
 
-    if ( p_pnc_max < p_in ) then
-      pinch_flag = 1
-      theta_out = NO_PINCH_ORBIT
-      psi_pinch_point = NO_PINCH_ORBIT
-      return
-    else
-      pinch_flag = 0
-    end if
+    ! if ( p_pnc_max < p_in ) then
+    !   pinch_flag = 1
+    !   theta_out = NO_PINCH_ORBIT
+    !   psi_pinch_point = NO_PINCH_ORBIT
+    !   return
+    ! else
+    !   pinch_flag = 0
+    ! end if
+    eps = psim(1)*1.d-3
 
     ! search psi_pinch_point which satisfies p_in = p_ret(psi_pinch_point), p_ret() means return-value of "subroutine get_pinch_point"
-    call bisection_method_for_ITB(get_pinch_point, convergence_flag, p_in&
-                                , theta_out, psi_pinch_point, 0.d0, psim_in, psim_in, nsa_in)
+    call bisection_method_for_IBC(get_pinch_point, convergence_flag, p_in&
+                                , theta_out, psi_pinch_point, eps, psim_in-eps, psim_in, nsa_in)
 
-    if ( convergence_flag == 1 ) pinch_flag = 2
+    ! if ( convergence_flag == 1 .or. theta_out == 0.d0) pinch_flag = 1
+    if ( convergence_flag >= 1 ) pinch_flag = 1
 
   end subroutine calculate_pinch_orbit
 
-  subroutine bisection_method_for_ITB(routine, convergence_flag, f, g, x, x1, x2, psim_in, nsa_in)
+  subroutine bisection_method_for_IBC(routine, convergence_flag, f, g, x, x1, x2, psim_in, nsa_in)
     ! resolve f = func(x), x1 < x < x2, where psim_in and nsa_in are constant
     !         func(x) is z1 of "routine".
     ! use bisection method if calculation has converged then return convergence_flag = 0,
@@ -638,10 +702,10 @@ contains
 
     convergence_flag = 1
     x = 0
-    write(*,*)"do not converge bisection method",nsa_in
+    write(*,*)"do not converge bisection method",nsa_in,psim_in
     return
 
-  end subroutine bisection_method_for_ITB
+  end subroutine bisection_method_for_IBC
 
   subroutine get_pinch_point(p_ret, theta_pncp, psip_in, psim_in, nsa_in)
     ! input psip_in that is pinch point of pinch orbit with psi_m = psim_in.
@@ -661,24 +725,32 @@ contains
 
     real(rkind),allocatable :: dFdpsi(:), dBdpsi(:)
 
-    allocate(dFdpsi(nrmax), dBdpsi(nrmax))
+    allocate(dFdpsi(nrmax+1), dBdpsi(nrmax+1))
 
-    call first_order_derivative(dFdpsi, Fpsi, psim)
-    call first_order_derivative(dBdpsi, Bin, psim)
+    call first_order_derivative(dFdpsi, Fpsig, psimg)
+    call first_order_derivative(dBdpsi, Bing, psimg)
 
     call fow_cal_spl(F_pncp, psip_in, Fpsi, psim)
-    call fow_cal_spl(Bin_pncp, psip_in, Bin, psim)
-    call fow_cal_spl(dFdpsi_pncp, psip_in, dFdpsi, psim)
-    call fow_cal_spl(dBdpsi_pncp, psip_in, dBdpsi, psim)
+    call fow_cal_spl(dFdpsi_pncp, psip_in, dFdpsi, psimg)
     call fow_cal_spl(F_m, psim_in, Fpsig, psimg)
     call fow_cal_spl(B_m, psim_in, Boutg, psimg)
+    if ( psip_in == 0.d0 ) then
+      Bin_pncp = Bing(1)
+      dBdpsi_pncp = dBdpsi(1)
+    else
+      call fow_cal_spl(Bin_pncp, psip_in, Bin, psim)
+      call fow_cal_spl(dBdpsi_pncp, psip_in, dBdpsi, psimg)  
+    end if
 
     dFdpsi_pncp = dFdpsi_pncp*psip_in
     dBdpsi_pncp = dBdpsi_pncp*psip_in
+    ! dFdpsi_pncp = dFdpsi_pncp*psim_in
+    ! dBdpsi_pncp = dBdpsi_pncp*psim_in
 
     G_m = aefp(nsa_in)*B_m*psim_in/(amfp(nsa_in)*vc*F_m)
 
     ps_ratio = 1.d0-psip_in/psim_in
+
     BFFB = 2.d0*Bin_pncp*dFdpsi_pncp - F_pncp*dBdpsi_pncp
 
     C(3) = -4.d0*B_m*Bin_pncp**3*F_m**2&
@@ -696,13 +768,18 @@ contains
 
     if ( aefp(nsa_in) >= 0.d0 ) then
       xi_pncp = sqrt(1.d0-(1.d0-w)*B_m/Bin_pncp)
+      if ( xi_pncp >= 1.d0 ) xi_pncp = 1.d0
     else 
       xi_pncp = -sqrt(1.d0-(1.d0-w)*B_m/Bin_pncp)
+      if ( xi_pncp <= 1.d0 ) xi_pncp = -1.d0
     end if
 
     FB_prime = (dFdpsi_pncp*Bin_pncp-F_pncp*dBdpsi_pncp)/Bin_pncp**2*B_m/F_m
     p_ret = G_m*sqrt(w)/(w*FB_prime-0.5d0*(1.d0-xi_pncp**2)*F_pncp*dBdpsi_pncp/F_m/Bin_pncp) ! LHS = gamma*beta
-    p_ret = vc*(1.d0+p_ret**(-2))**(-0.5d0)               ! LHS = velocity of stagnation orbit
+    p_ret = vc*sqrt(p_ret**2/(1.d0+p_ret**2))             ! LHS = velocity of stagnation orbit
+    if ( p_ret >= vc ) then
+      p_ret = vc-1.d-5
+    end if
     p_ret = amfp(nsa_in)*p_ret/(1.d0-p_ret**2/vc**2)      ! momentum of stagnation orbit
     p_ret = p_ret/ptfp0(nsa_in)                           ! normalize
 
@@ -763,7 +840,7 @@ contains
 
   end subroutine get_p_stg
 
-  subroutine fow_calculate_jacobian
+  subroutine calculate_jacobian
     ! calculate Jacabian_I(nth,np,nr,nsa)
 
     use fowcomm
@@ -772,12 +849,25 @@ contains
     implicit none 
     integer :: np, nth, nr, nsa, nstpmax
     real(rkind) :: J_x2z, J_z2I, tau_p, dBdpsil, pv, Bml, pl
+    real(rkind) :: PVmax, Vmax, V_v, V_x
     real(rkind),allocatable :: dFdpsi(:), dBdpsi(:,:)
 
     allocate(dFdpsi(nrmax), dBdpsi(nrmax,2))
     call first_order_derivative(dFdpsi,Fpsi,psim)
     call first_order_derivative(dBdpsi(:,1),Bout,psim)
     call first_order_derivative(dBdpsi(:,2),Bin,psim)
+
+    do nsa = 1, nsamax
+
+      PVmax = SQRT(1.D0+THETA0(NSA)*PM(NPMAX,NSA)**2)
+      Vmax = vc * sqrt(1.d0-1.d0/PVmax**2)
+
+      V_v = 4.d0/3.d0*pi*Vmax**3
+      V_x = (pi*ra**2)*(2.d0*pi*rr)
+      V_phase(nsa) = V_x*V_v
+      ! V_phase(nsa) = 1.d0
+
+    end do
 
     do nsa = 1, nsamax
       do nr = 1, nrmax
@@ -809,13 +899,52 @@ contains
             J_z2I = abs( J_z2I )
 
             Jacobian_I(nth,np,nr,nsa) = J_x2z * J_z2I
+            Jacobian_I(nth,np,nr,nsa) = Jacobian_I(nth,np,nr,nsa) / V_phase(nsa)
 
           end do
         end do
       end do
     end do
 
-  end subroutine fow_calculate_jacobian
+
+
+  end subroutine calculate_jacobian
+
+  subroutine construst_Xstg_as_pncp(xap)
+    use fpcomm
+    use fowcomm
+    type(Xstg_as_pnc_point),intent(out) :: xap
+
+    xap%number = 0
+
+  end subroutine construst_Xstg_as_pncp
+
+  subroutine add_pnc_orbit(xap, nr_in)
+    use fpcomm
+    use fowcomm
+    type(Xstg_as_pnc_point),intent(inout) :: xap
+    integer,intent(in) ::  nr_in
+    type(Xstg_as_pnc_point) :: xap_old
+    integer :: i
+
+    xap_old = xap
+    xap%number = xap%number+1
+
+    if ( xap_old%number >= 1 ) then
+      deallocate(xap%nr)
+    end if
+
+    allocate(xap%nr(xap%number))
+
+    if ( xap_old%number >= 1 ) then
+      do i = 1, xap_old%number
+        xap%nr(i) = xap_old%nr(i)
+      end do  
+    end if
+
+    xap%nr(xap%number) = nr_in
+
+  end subroutine add_pnc_orbit
 
   function cal_spl1D(U,dx) result(cal)
     use fpcomm,only:rkind
@@ -856,249 +985,5 @@ contains
     end do
 
   end subroutine newton_spl1D
-
-  subroutine mesh_to_grid1D(f,g)
-    use fpcomm,only:rkind
-    implicit none
-    real(rkind) :: f(:),g(:)
-    real(rkind),allocatable :: x(:),fx(:),U(:,:)
-    integer :: i,j,imax,jmax,IERR = 0,k
-
-    imax = size(f)
-    jmax = size(g)
-
-    if(imax/=jmax-1)then
-      write(*,*)"imax/ = jmax-1 at subroutine mesh_to_grid1D"
-      STOP
-    end if
-
-    allocate(x(imax),fx(imax),U(4,imax))
-
-    do i = 1,imax
-      x(i) = i*1.d0
-    end do
-
-    call SPL1D(x,f,fx,U,imax,0,IERR)
-
-    do j = 2,jmax-1
-      g(j) = 0.d0
-      do k = 1,4
-        g(j) = g(j)+U(k,j)*0.5d0**(k-1)
-      end do
-    end do
-
-    g(1) = 0.d0
-    g(jmax) = 0.d0
-    do k = 1,4
-      g(1) = g(1)+U(k,2)*(-0.5d0)**(k-1)
-      g(jmax) = g(jmax)+U(k,imax)*(1.5d0)**(k-1)
-    end do
-
-    deallocate(x,fx,U)
-
-  end subroutine mesh_to_grid1D
-
-  subroutine solve_quadratic_equation(z,C)
-    ! solve C(3)*z**2+C(2)*z+C(1) = 0
-    ! z(1) : -sqrt(D)
-    ! z(2) : +sqrt(D)
-    use fpcomm,only:rkind
-
-    implicit none
-    real(rkind),intent(in) :: C(3)
-    complex(rkind),intent(out) :: z(2)
-    real(rkind) :: D
-    complex(rkind) :: ei=(0.d0,1.d0)
-
-    z(1) = (0.d0, 0.d0)
-    z(2) = (0.d0, 0.d0)
-
-    D = C(2)**2-4.d0*C(1)*C(3)
-
-    if ( D >= 0.d0 ) then
-      z(1) = (-C(2)-sqrt(D))/(2.d0*C(3))+0.d0*ei
-      z(2) = (-C(2)+sqrt(D))/(2.d0*C(3))+0.d0*ei
-    else
-      z(1) = (-C(2)-ei*sqrt(-D))/(2.d0*C(3))
-      z(2) = (-C(2)+ei*sqrt(-D))/(2.d0*C(3))
-    end if
-
-  end subroutine solve_quadratic_equation
-
-  subroutine first_order_derivative(dfdx, f, x)
-    ! calcurate dfdx, the first order derivative of f
-    ! error order is O(dx**2)
-    use fpcomm,only:rkind
-
-    implicit none
-    real(rkind),intent(out) :: dfdx(:)
-    real(rkind),intent(in)  :: f(:), x(:)
-    real(rkind) :: s, t
-    integer :: imax, i
-
-    imax = size(f)
-    if ( imax /= size(x) .or. imax /= size(dfdx) ) then
-      write(*,*)"ERROR at subroutine first_order_derivative in fowprep.f90"
-    end if
-
-    do i = 1, imax
-      if ( i /= imax .and. i /= 1) then
-        t = x(i+1)-x(i)
-        s = x(i)-x(i-1)
-        dfdx(i) = (s**2*f(i+1)+(t**2-s**2)*f(i)-t**2*f(i-1))/(s*t*(s+t))
-      else if ( i == 1 ) then
-        s = x(2)-x(1)
-        t = x(3)-x(2)
-        dfdx(1) = ((s**2-(s+t)**2)*f(1)+(s+t)**2*f(2)-s**2*f(3))/(s*t*(s+t))
-      else if ( i == imax ) then
-        t = x(imax)-x(imax-1)
-        s = x(imax-1)-x(imax-2)
-        dfdx(imax) = (((s+t)**2-t**2)*f(imax)-(s+t)**2*f(imax-1)+t**2*f(imax-2))/(s*t*(s+t))
-      end if
-    end do
-
-  end subroutine first_order_derivative
-
-  subroutine second_order_derivative(d2fdx2, f, x)
-    ! calcurate d2fdx2, the second order derivative of f
-    ! error order is O(dx**2)
-
-    use fpcomm,only:rkind
-
-    implicit none
-    real(rkind),intent(out) :: d2fdx2(:)
-    real(rkind),intent(in)  :: f(:), x(:)
-    real(rkind) :: s, t, r, v, w, A(3,3), B(3)
-    integer :: imax, i
-
-    imax = size(f)
-
-    do i = 1, imax
-      if ( i /= imax .and. i /= 1) then
-        t = x(i+1)-x(i)
-        s = x(i)-x(i-1)
-        d2fdx2(i) = (s*f(i+1)-(s+t)*f(i)+t*f(i-1))/(0.5d0*s*t*(s+t))
-      else if ( i == 1 ) then
-        r = x(2)-x(1)
-        s = x(3)-x(2)
-        t = x(4)-x(3)
-        v = r+s
-        w = r+s+t
-
-        A(1,1) = r
-        A(1,2) = r**2/2
-        A(1,3) = r**3/6
-
-        A(2,1) = v
-        A(2,2) = v**2/2
-        A(2,3) = v**3/6
-
-        A(3,1) = w
-        A(3,2) = w**2/2
-        A(3,3) = w**3/6
-
-        B(1) = f(2)-f(1)
-        B(2) = f(3)-f(1)
-        B(3) = f(4)-f(1)
-
-        call gauss_jordan(A, B, 3)
-
-        d2fdx2(1) = B(2)
-
-      else if ( i == imax ) then
-        r = x(imax-2)-x(imax-3)
-        s = x(imax-1)-x(imax-2)
-        t = x(imax)-x(imax-1)
-        v = s+t
-        w = r+s+t
-
-        A(1,1) = -1.d0*t
-        A(1,2) = t**2/2
-        A(1,3) = -1.d0*t**3/6
-
-        A(2,1) = -1.d0*v
-        A(2,2) = v**2/2
-        A(2,3) = -1.d0*v**3/6
-
-        A(3,1) = -1.d0*w
-        A(3,2) = w**2/2
-        A(3,3) = -1.d0*w**3/6
-
-        B(1) = f(imax-1)-f(imax)
-        B(2) = f(imax-2)-f(imax)
-        B(3) = f(imax-3)-f(imax)
-
-        call gauss_jordan(A, B, 3)
-
-        d2fdx2(imax) = B(2)
-        
-      end if
-    end do
-
-  end subroutine second_order_derivative
-
-  subroutine gauss_jordan(A, B, n)
-    use fpcomm,only:rkind
-
-    implicit none
-    real(rkind) :: A(n,n), B(n)
-    integer n,i,j,k
-  
-    do k = 1, n
-      do j = k + 1, n
-        a(k,j) = a(k,j) / a(k,k)
-      end do
-      b(k) = b(k) / a(k,k)
-  
-      do i = 1, n
-        if ( i .ne. k ) then
-          do j = k + 1, n
-            a(i,j) = a(i,j) - a(i,k) * a(k,j)
-          end do
-          b(i) = b(i) - a(i,k) * b(k)
-        end if
-      end do
-  
-    end do
-  
-  end subroutine gauss_jordan
-  
-  recursive function func_kaijou(n) result(m)
-    implicit none
-    integer,intent(in) :: n
-    integer :: m
-
-    if(n == 1) then
-      m = 1
-    else
-      m = n*func_kaijou(n-1)
-    end if
-
-  end function func_kaijou
-
-  subroutine fow_cal_spl(f_out, x_in, f, x)
-    ! Calculate spline coefficient y = f(x),
-    ! then return f_out = f(x_in)
-    use fpcomm,only:rkind
-
-    implicit none
-    real(rkind),intent(out) :: f_out
-    real(rkind),intent(in) :: x_in, f(:), x(:)
-    integer :: i,imax,ierr=0
-    real(rkind),allocatable :: U(:,:), fx(:)
-
-    imax = size(f,1)
-
-    allocate(U(4,imax), fx(imax))
-
-    call first_order_derivative(fx, f, x)
-
-    call SPL1D(x,f,fx,U,imax,3,IERR)
-
-    call SPL1DF(x_in,f_out,x,U,imax,IERR)
-
-    return
-
-  end subroutine fow_cal_spl
 
 end module fowprep

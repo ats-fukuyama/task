@@ -571,9 +571,9 @@ module fpcomm
           allocate(RIPP(NRMAX,NSAMAX))
 !         NLMAXM= 8   ! this is for analysis without bounce average
 !         NLMAXM=11   ! this is for analysis without radial transport
-          NLMAXM=15   ! this is for analysis with a simple radial transport
+          ! NLMAXM=15   ! this is for analysis with a simple radial transport
           NMMAX=NRMAX*NTHMAX*NPMAX
-
+          NLMAXM=NRMAX*NTHMAX*NPMAX
           allocate(NMA(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM))
           allocate(NLMAX(NMSTART:NMEND))
           allocate(LL(NMSTART:NMEND,NLMAXM))

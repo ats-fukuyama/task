@@ -1,5 +1,5 @@
 &fow
-  nthpmax=32
+  nthpmax=24
 &end
 
 !  nrgmax=40
@@ -34,9 +34,9 @@
 &end
 
 &fp
-  npmax=16
-  nthmax=48
-  nrmax=24
+  npmax=9
+  nthmax=16
+  nrmax=8
 
   RR=6.2
   RA=2.0
@@ -95,5 +95,5 @@
   MODELD_PDEP=0
 
   DELT=1.D-2
-  NTMAX=5
+  NTMAX=2
 &end

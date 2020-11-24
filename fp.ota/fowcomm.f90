@@ -14,8 +14,8 @@ module fowcomm
             nthm3                                            ! number of theta_m grid points for theta_cnt_stg <= theta_m <= pi
 
   real(rkind),allocatable :: FNSI(:,:,:,:),&     ! distribution function in I=(p,thetam,psim) space
-                             Jacobian_I(:,:,:,:) ! dxdydzd(vx)d(vy)d(vz) = Jacobian_I * dpd(thetam)d(psim)
-                             
+                             Jacobian_I(:,:,:,:) ! dxdydzd(vx)d(vy)d(vz) = Jacobian_I * dpd(thetam)d(psim) normalized by V_phase
+  real(rkind),allocatable  :: V_phase(:)
 ! COM --------------------------------------------------------------------------------------------------          
   real(rkind),allocatable,dimension(:) :: psim,&                ! maximum poloidal magnetic flux in an orbit, value at half integer grid points
                                           psimg                 ! psim at integer grid points
@@ -67,8 +67,18 @@ module fowcomm
                                       nth_pnc,&           ! thetamg(nth_pnc,(nsa),np,nr,nsa) = theta_pnc
                                       nth_forbitten       ! thetam(nth_forbitten(nsa),np,nr,nsa),thetam_pg(nth_forbitten(nsa),np,nr,nsa) and thetam_rg(nth_forbitten(nsa),np,nr,nsa) are in forbitten region
 
+  real(rkind),allocatable,dimension(:,:,:) :: IBCflux_ratio         ! ration between the flux from thetam(nth_pnc-1) to thetam(nth_pnc) and the flux from thetam(nth_pnc-1) to thetam(nth_co_stg)
+  integer,allocatable,dimension(:,:,:) ::  nr_pnc_point          ! nr of pinch point of theta_pnc(:,:,:)
+
   real(rkind),parameter :: NO_PINCH_ORBIT = 19960610d0 ! if theta_pnc(np,nr,nsa) = NO_PINCH_ORBIT then no pinch orbit exists with pm(np) and psi_m = psim(nr)
 
+  type Xstg_as_pnc_point
+    integer :: number                   ! number of pinch orbits whose pinch point is at psim of this X-type stagnation orbit(nth,np,nr,nsa)
+                                        ! the orbit at (nth,np,nr,nsa) is not X-type stagnation orbit or no pinch orbit has pinch point at psim of X-type stagnation orbit or -> number = 0
+    integer,allocatable :: nr(:) ! np and nr of pinch orbits
+  end type Xstg_as_pnc_point
+
+  type(Xstg_as_pnc_point),allocatable,dimension(:,:,:) :: Xstg_as_pncp
 
 ! use for bounce average -------------------------------------------------------------------------------
   type :: orbit                                                  ! quantities along orbits culcurated by TASK/OB
@@ -95,6 +105,7 @@ contains
   subroutine fow_allocate
     use fpcomm, only:npmax,nthmax,nrmax,nsamax
     allocate(FNSI(nthmax,npmax,nrmax,nsamax),Jacobian_I(nthmax,npmax,nrmax,nsamax))
+    allocate(V_phase(nsamax))
     allocate(psim(nrmax),psimg(nrmax+1))
     allocate(thetam(nthmax,npmax,nrmax,nsamax),thetamg(nthmax+1,npmax,nrmax,nsamax))
     allocate(thetam_pg(nthmax,npmax+1,nrmax,nsamax), thetam_rg(nthmax,npmax,nrmax+1,nsamax))
@@ -114,6 +125,10 @@ contains
     allocate(delthm(nthmax,npmax,nrmax,nsamax),delthm_pg(nthmax,npmax+1,nrmax,nsamax),delthm_rg(nthmax,npmax,nrmax+1,nsamax))
     allocate(nth_co_stg(nsamax),nth_cnt_stg(nsamax),nth_pnc(nsamax))
     allocate(nth_forbitten(nsamax))
+    allocate(IBCflux_ratio(npmax,nrmax,nsamax))
+    allocate(nr_pnc_point(npmax,nrmax,nsamax))
+
+    allocate(Xstg_as_pncp(npmax,nrmax,nsamax))
 
     allocate(Babs(nrmax+1,nthpmax))
     ! 
@@ -162,5 +177,249 @@ contains
     read(11,nml=fow)
     close(11)
   end subroutine fow_read_namelist
+
+  subroutine mesh_to_grid1D(f,g)
+    use fpcomm,only:rkind
+    implicit none
+    real(rkind) :: f(:),g(:)
+    real(rkind),allocatable :: x(:),fx(:),U(:,:)
+    integer :: i,j,imax,jmax,IERR = 0,k
+
+    imax = size(f)
+    jmax = size(g)
+
+    if(imax/=jmax-1)then
+      write(*,*)"imax/ = jmax-1 at subroutine mesh_to_grid1D"
+      STOP
+    end if
+
+    allocate(x(imax),fx(imax),U(4,imax))
+
+    do i = 1,imax
+      x(i) = i*1.d0
+    end do
+
+    call SPL1D(x,f,fx,U,imax,0,IERR)
+
+    do j = 2,jmax-1
+      g(j) = 0.d0
+      do k = 1,4
+        g(j) = g(j)+U(k,j)*0.5d0**(k-1)
+      end do
+    end do
+
+    g(1) = 0.d0
+    g(jmax) = 0.d0
+    do k = 1,4
+      g(1) = g(1)+U(k,2)*(-0.5d0)**(k-1)
+      g(jmax) = g(jmax)+U(k,imax)*(1.5d0)**(k-1)
+    end do
+
+    deallocate(x,fx,U)
+
+  end subroutine mesh_to_grid1D
+
+  subroutine solve_quadratic_equation(z,C)
+    ! solve C(3)*z**2+C(2)*z+C(1) = 0
+    ! z(1) : -sqrt(D)
+    ! z(2) : +sqrt(D)
+    use fpcomm,only:rkind
+
+    implicit none
+    real(rkind),intent(in) :: C(3)
+    complex(rkind),intent(out) :: z(2)
+    real(rkind) :: D
+    complex(rkind) :: ei=(0.d0,1.d0)
+
+    z(1) = (0.d0, 0.d0)
+    z(2) = (0.d0, 0.d0)
+
+    D = C(2)**2-4.d0*C(1)*C(3)
+
+    if ( D >= 0.d0 ) then
+      z(1) = (-C(2)-sqrt(D))/(2.d0*C(3))+0.d0*ei
+      z(2) = (-C(2)+sqrt(D))/(2.d0*C(3))+0.d0*ei
+    else
+      z(1) = (-C(2)-ei*sqrt(-D))/(2.d0*C(3))
+      z(2) = (-C(2)+ei*sqrt(-D))/(2.d0*C(3))
+    end if
+
+  end subroutine solve_quadratic_equation
+
+  subroutine first_order_derivative(dfdx, f, x)
+    ! calcurate dfdx, the first order derivative of f
+    ! error order is O(dx**2)
+    use fpcomm,only:rkind
+
+    implicit none
+    real(rkind),intent(out) :: dfdx(:)
+    real(rkind),intent(in)  :: f(:), x(:)
+    real(rkind) :: s, t
+    integer :: imax, i
+
+    imax = size(f)
+    if ( imax /= size(x) .or. imax /= size(dfdx) ) then
+      write(*,*)"ERROR at subroutine first_order_derivative in fowprep.f90"
+    end if
+
+    do i = 1, imax
+      if ( i /= imax .and. i /= 1) then
+        t = x(i+1)-x(i)
+        s = x(i)-x(i-1)
+        dfdx(i) = (s**2*f(i+1)+(t**2-s**2)*f(i)-t**2*f(i-1))/(s*t*(s+t))
+      else if ( i == 1 ) then
+        s = x(2)-x(1)
+        t = x(3)-x(2)
+        dfdx(1) = ((s**2-(s+t)**2)*f(1)+(s+t)**2*f(2)-s**2*f(3))/(s*t*(s+t))
+      else if ( i == imax ) then
+        t = x(imax)-x(imax-1)
+        s = x(imax-1)-x(imax-2)
+        dfdx(imax) = (((s+t)**2-t**2)*f(imax)-(s+t)**2*f(imax-1)+t**2*f(imax-2))/(s*t*(s+t))
+      end if
+    end do
+
+  end subroutine first_order_derivative
+
+  subroutine second_order_derivative(d2fdx2, f, x)
+    ! calcurate d2fdx2, the second order derivative of f
+    ! error order is O(dx**2)
+
+    use fpcomm,only:rkind
+
+    implicit none
+    real(rkind),intent(out) :: d2fdx2(:)
+    real(rkind),intent(in)  :: f(:), x(:)
+    real(rkind) :: s, t, r, v, w, A(3,3), B(3)
+    integer :: imax, i
+
+    imax = size(f)
+
+    do i = 1, imax
+      if ( i /= imax .and. i /= 1) then
+        t = x(i+1)-x(i)
+        s = x(i)-x(i-1)
+        d2fdx2(i) = (s*f(i+1)-(s+t)*f(i)+t*f(i-1))/(0.5d0*s*t*(s+t))
+      else if ( i == 1 ) then
+        r = x(2)-x(1)
+        s = x(3)-x(2)
+        t = x(4)-x(3)
+        v = r+s
+        w = r+s+t
+
+        A(1,1) = r
+        A(1,2) = r**2/2
+        A(1,3) = r**3/6
+
+        A(2,1) = v
+        A(2,2) = v**2/2
+        A(2,3) = v**3/6
+
+        A(3,1) = w
+        A(3,2) = w**2/2
+        A(3,3) = w**3/6
+
+        B(1) = f(2)-f(1)
+        B(2) = f(3)-f(1)
+        B(3) = f(4)-f(1)
+
+        call gauss_jordan(A, B, 3)
+
+        d2fdx2(1) = B(2)
+
+      else if ( i == imax ) then
+        r = x(imax-2)-x(imax-3)
+        s = x(imax-1)-x(imax-2)
+        t = x(imax)-x(imax-1)
+        v = s+t
+        w = r+s+t
+
+        A(1,1) = -1.d0*t
+        A(1,2) = t**2/2
+        A(1,3) = -1.d0*t**3/6
+
+        A(2,1) = -1.d0*v
+        A(2,2) = v**2/2
+        A(2,3) = -1.d0*v**3/6
+
+        A(3,1) = -1.d0*w
+        A(3,2) = w**2/2
+        A(3,3) = -1.d0*w**3/6
+
+        B(1) = f(imax-1)-f(imax)
+        B(2) = f(imax-2)-f(imax)
+        B(3) = f(imax-3)-f(imax)
+
+        call gauss_jordan(A, B, 3)
+
+        d2fdx2(imax) = B(2)
+        
+      end if
+    end do
+
+  end subroutine second_order_derivative
+
+  subroutine gauss_jordan(A, B, n)
+    use fpcomm,only:rkind
+
+    implicit none
+    real(rkind) :: A(n,n), B(n)
+    integer n,i,j,k
+  
+    do k = 1, n
+      do j = k + 1, n
+        a(k,j) = a(k,j) / a(k,k)
+      end do
+      b(k) = b(k) / a(k,k)
+  
+      do i = 1, n
+        if ( i .ne. k ) then
+          do j = k + 1, n
+            a(i,j) = a(i,j) - a(i,k) * a(k,j)
+          end do
+          b(i) = b(i) - a(i,k) * b(k)
+        end if
+      end do
+  
+    end do
+  
+  end subroutine gauss_jordan
+  
+  recursive function func_kaijou(n) result(m)
+    implicit none
+    integer,intent(in) :: n
+    integer :: m
+
+    if(n == 1) then
+      m = 1
+    else
+      m = n*func_kaijou(n-1)
+    end if
+
+  end function func_kaijou
+
+  subroutine fow_cal_spl(f_out, x_in, f, x)
+    ! Calculate spline coefficient y = f(x),
+    ! then return f_out = f(x_in)
+    use fpcomm,only:rkind
+
+    implicit none
+    real(rkind),intent(out) :: f_out
+    real(rkind),intent(in) :: x_in, f(:), x(:)
+    integer :: i,imax,ierr=0
+    real(rkind),allocatable :: U(:,:), fx(:)
+
+    imax = size(f,1)
+
+    allocate(U(4,imax), fx(imax))
+
+    call first_order_derivative(fx, f, x)
+
+    call SPL1D(x,f,fx,U,imax,3,IERR)
+
+    call SPL1DF(x_in,f_out,x,U,imax,IERR)
+
+    return
+
+  end subroutine fow_cal_spl
 
 end module fowcomm

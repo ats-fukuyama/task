@@ -21,7 +21,6 @@ contains
 
     use fowcomm
     use fpcomm
-    use fowprep
     implicit none
     integer :: nth,np,nr,nsa
 
@@ -45,7 +44,6 @@ contains
 
     use fowcomm
     use fpcomm
-    use fowprep,only:fow_cal_spl, first_order_derivative
 
     use fpwrite
 
@@ -92,16 +90,22 @@ contains
         do np = 1, npmax
           do nth = 1, nthmax
             if ( np == beam%np_near ) then
-              fact_thm = -(thetam(nth,np,nr,beam%id)-beam%thetam)**2/beam%thetamw**2/2.d0
-              fact_thm = EXP( fact_thm ) / SQRT( TWOPI*beam%thetamw**2 )
 
-              fact_psm = -(psim(nr)-beam%psim)**2/beam%psimw**2/2.d0
-              fact_psm = EXP( fact_psm ) / SQRT( TWOPI*beam%psimw**2 )
+              fact_psm = -(psim(nr)-beam%psim)**2/beam%psimw**2
+              fact_psm = EXP( fact_psm ) / SQRT( pi*beam%psimw**2 )
 
+              if ( thetamg(nth,np,nr,beam%id) <= beam%thetam &
+                  .and. beam%thetam <= thetamg(nth+1,np,nr,beam%id) ) then
+                fact_thm = 1.d0
+              else
+                fact_thm = -(thetam(nth,np,nr,beam%id)-beam%thetam)**2/beam%thetamw**2
+                fact_thm = EXP( fact_thm ) / SQRT( pi*beam%thetamw**2 )  
+              end if
               S_beam(nth,np,nr,beam%id,nb) = fact_psm * fact_thm
 
               dV = delthm(nth,np,nr,beam%id)*delp(beam%id)*(psimg(nr+1)-psimg(nr))
-              sum_S_beam = sum_S_beam + Jacobian_I(nth,np,nr,beam%id)*S_beam(nth,np,nr,beam%id,nb)*dV
+              sum_S_beam = sum_S_beam + S_beam(nth,np,nr,beam%id,nb)*dV &
+                                        *Jacobian_I(nth,np,nr,beam%id)*V_phase(beam%id)
             else
               S_beam(nth,np,nr,beam%id,nb) = 0.d0
             end if
@@ -136,23 +140,29 @@ contains
           do np = 1, npmax
             do nth = 1, nthmax
               if ( np == beam%np_near ) then
-                fact_thm = -(thetam(nth,np,nr,beam%id)-beam%thetam)**2/beam%thetamw**2/2.d0
-                fact_thm = EXP( fact_thm ) / SQRT( TWOPI*beam%thetamw**2 )
   
-                fact_psm = -(psim(nr)-beam%psim)**2/beam%psimw**2/2.d0
-                fact_psm = EXP( fact_psm ) / SQRT( TWOPI*beam%psimw**2 )
+                fact_psm = -(psim(nr)-beam%psim)**2/beam%psimw**2
+                fact_psm = EXP( fact_psm ) / SQRT( pi*beam%psimw**2 )
   
+                if ( thetamg(nth,np,nr,beam%id) <= beam%thetam &
+                    .and. beam%thetam <= thetamg(nth+1,np,nr,beam%id) ) then
+                  fact_thm = 1.d0
+                else
+                  fact_thm = -(thetam(nth,np,nr,beam%id)-beam%thetam)**2/beam%thetamw**2
+                  fact_thm = EXP( fact_thm ) / SQRT( pi*beam%thetamw**2 )  
+                end if
                 S_beam(nth,np,nr,beam%id,nb) = fact_psm * fact_thm
-  
+
                 dV = delthm(nth,np,nr,beam%id)*delp(beam%id)*(psimg(nr+1)-psimg(nr))
-                sum_S_beam = sum_S_beam + Jacobian_I(nth,np,nr,beam%id)*S_beam(nth,np,nr,beam%id,nb)*dV
+                sum_S_beam = sum_S_beam + S_beam(nth,np,nr,beam%id,nb)*dV &
+                                          *Jacobian_I(nth,np,nr,beam%id)*V_phase(beam%id)
               else
                 S_beam(nth,np,nr,beam%id,nb) = 0.d0
               end if
             end do
           end do
         end do
-        
+          
         normalize = beam%total / sum_S_beam
         do nr = 1, nrmax
           do np = 1, npmax
@@ -161,7 +171,6 @@ contains
             end do
           end do
         end do
-  
     
       end if
 
@@ -175,7 +184,6 @@ contains
   type(beam_quantities) function construct_beam(NS, TOT, R0, RW, ENG, ANG, PANG)
     use fowcomm
     use fpcomm
-    use fowprep,only:fow_cal_spl
 
     implicit none
 
@@ -218,9 +226,8 @@ contains
     use obprep
     use obcalc
 
-    use fowcomm,only:psi0fp => psi0
+    use fowcomm,only:psi0fp => psi0,fow_cal_spl
     use fpcomm,only:pmfp => pm, ipmax =>npmax, ptfp0, ithmax => nthmax
-    use fowprep,only:fow_cal_spl
 
     implicit none
     type(beam_quantities),intent(inout) :: beam
@@ -299,7 +306,6 @@ contains
     ! calculate derivative of COM in term of poloidal flux and poloidal angle
     use fowcomm
     use fpcomm
-    use fowprep,only:fow_cal_spl
 
     implicit none
     type(beam_quantities),intent(inout) :: beam

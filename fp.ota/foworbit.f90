@@ -94,21 +94,9 @@ contains
       do np = 1, npmax+mode(2)
         do nth = 1, nthmax+mode(1)
           ! exclude forbitten region
-          if ( mode(1) == 0 ) then
-
-            if ( mode(2) == 1 ) then
-              if ( nth == nth_forbitten(nsa_in) ) then
-                cycle
-              end if
-
-            else if ( mode(3) == 1 ) then
-              if ( nth == nth_forbitten(nsa_in) ) then
-                cycle
-              end if
-
-            end if
-
-          end if
+          if ( mode(1) == 0 .and. nth == nth_forbitten(nsa_in) ) cycle
+          if ( mode(2) == 1 .and. np == 1 ) cycle
+          if ( mode(3) == 1 .and. nr == 1 ) cycle
 
           i = i+1
           nobt_in(nth,np,nr) = i
@@ -133,21 +121,9 @@ contains
       do np = 1, npmax+mode(2)
         do nth = 1, nthmax+mode(1)
           ! exclude forbitten region
-          if ( mode(1) == 0 ) then
-
-            if ( mode(2) == 1 ) then
-              if ( nth == nth_forbitten(nsa_in) ) then
-                cycle
-              end if
-
-            else if ( mode(3) == 1 ) then
-              if ( nth == nth_forbitten(nsa_in) ) then
-                cycle
-              end if
-
-            end if
-
-          end if
+          if ( mode(1) == 0 .and. nth == nth_forbitten(nsa_in) ) cycle
+          if ( mode(2) == 1 .and. np == 1 ) cycle
+          if ( mode(3) == 1 .and. nr == 1 ) cycle
 
           i = nobt_in(nth,np,nr)
 
@@ -205,29 +181,17 @@ contains
       do np = 1, npmax+mode(2)
         do nth = 1, nthmax+mode(1)
           ! exclude forbitten region
-          if ( mode(1) == 0 ) then
-
-            if ( mode(2) == 1 ) then
-              if ( nth == nth_forbitten(nsa_in) ) then
-                cycle
-              end if
-
-            else if ( mode(3) == 1 ) then
-              if ( nth == nth_forbitten(nsa_in) ) then
-                cycle
-              end if
-
-            end if
-
-          end if
+          if ( mode(1) == 0 .and. nth == nth_forbitten(nsa_in) ) cycle
+          if ( mode(2) == 1 .and. np == 1 ) cycle
+          if ( mode(3) == 1 .and. nr == 1 ) cycle
 
           i = nobt_in(nth,np,nr)
 
-          do j = 1, nstp_max+1
+          do j = 1, nstp_max_nobt(i)+1
             construct_input(1,j)  = time_ob(j-1,i)
             construct_input(2,j)  = psip_ob(j-1,i)
             construct_input(3,j)  = babs_ob(j-1,i)
-            construct_input(4,j)  = acos(vpara_ob(j-1,i)/sqrt(vperp_ob(j-1,i)**2+vpara_ob(j-1,i)**2))
+            construct_input(4,j)  = acos( vpara_ob(j-1,i)/sqrt( vperp_ob(j-1,i)**2+vpara_ob(j-1,i)**2) )
             construct_input(5,j)  = theta_ob(j-1,i)
           end do
 
