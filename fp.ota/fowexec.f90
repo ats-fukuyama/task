@@ -77,6 +77,7 @@ contains
     end do
 
     !     ----- Diagonal term -----
+
     do nr = 1, nrmax
       do np = 1, npmax
         do nth = 1, nthmax
@@ -97,6 +98,7 @@ contains
       IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
         DO NL=1,NLMAX(NM)
             IF(LL(NM,NL).NE.0) THEN
+              write(*,*)"al",nm,nl,AL(NM,NL)
               CALL mtx_set_matrix(nm,LL(NM,NL),-RIMPL*DELT*AL(NM,NL))
             ENDIF
         ENDDO

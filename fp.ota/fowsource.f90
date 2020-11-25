@@ -140,6 +140,7 @@ contains
           do np = 1, npmax
             do nth = 1, nthmax
               if ( np == beam%np_near ) then
+                write(*,*)"psimw",beam%psimw
   
                 fact_psm = -(psim(nr)-beam%psim)**2/beam%psimw**2
                 fact_psm = EXP( fact_psm ) / SQRT( pi*beam%psimw**2 )

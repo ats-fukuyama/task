@@ -53,7 +53,7 @@ contains
           do nr = 1, nrmax
             do np = 1, npmax
               do nth = 1, nthmax
-                write(*,*)fnsp(nth,np,nr,nsa),fns0(nth,np,nr,nsa)
+                ! write(*,*)fnsp(nth,np,nr,nsa),fns0(nth,np,nr,nsa)
                 sumFd = sumFd + ( fnsp(nth,np,nr,nsa)-fns0(nth,np,nr,nsa) )**2
                 sumF0 = sumF0 + fnsp(nth,np,nr,nsa)**2
               end do

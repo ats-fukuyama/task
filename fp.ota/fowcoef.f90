@@ -98,15 +98,6 @@ contains
       end do
 
     end do
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do np = 1, npmax
-          do nth = 1, nthmax
-            write(*,*)"fpcoef",DCPP(nth,np,nr,nsa),DCTT(nth,np,nr,nsa)
-          end do
-        end do
-      end do
-    end do
 
     call bounce_average
 
@@ -218,8 +209,6 @@ contains
 
               dt = orbit_p(nth,np,nr,nsa)%time(nstp)-orbit_p(nth,np,nr,nsa)%time(nstp-1)
 
-              write(*,*)"fowcoef_pp",Dpp_ob
-
               ! Dxxfow = int_0^tau_p (integrand) dt
               Dppfow(nth,np,nr,nsa) = Dppfow(nth,np,nr,nsa)&
                                     + Dpp_ob * dt
@@ -312,8 +301,6 @@ contains
                           ,U_Dtt(:,:,:,:,:,:,np,nsa),nthmax+1,nrmax,nthmax+1,nrmax,nthpmax,IERR)
               call SPL3DF(cpitch_ob,psip_ob,thetap_ob,Fth_ob,cosg,psim,theta_p&
                           ,U_Fth(:,:,:,:,:,:,np,nsa),nthmax+1,nrmax,nthmax+1,nrmax,nthpmax,IERR)
-
-              write(*,*)"fowcoef_th",Dtt_ob
 
               dt = orbit_th(nth,np,nr,nsa)%time(nstp)-orbit_th(nth,np,nr,nsa)%time(nstp-1)
 

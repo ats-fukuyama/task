@@ -8,7 +8,7 @@ contains
 
     use fowcomm
     use fpcomm
-    use foworbit,only:fow_orbit_construct
+    use foworbit
 
     implicit none
 
@@ -350,10 +350,23 @@ contains
       end do
     end do
 
+    call cpu_time(end_time)
+    write(*,*)"fowprep time:",end_time-begin_time,"[sec]"
+
+    call cpu_time(begin_time)
     call fow_orbit_construct(orbit_m) 
     call fow_orbit_construct(orbit_th)
     call fow_orbit_construct(orbit_p) 
     call fow_orbit_construct(orbit_r) 
+    call cpu_time(end_time)
+    write(*,*)"task/ob time:",end_time-begin_time,"[sec]"
+
+    ! call cpu_time(begin_time)
+    ! call fow_orbit_save
+    ! call cpu_time(end_time)
+    ! write(*,*)"save time:",end_time-begin_time,"[sec]"
+
+    ! STOP
 
     ! calculate the boundary flux partition
     do nsa = 1, nsamax
@@ -414,11 +427,8 @@ contains
 
     call calculate_jacobian
 
-    imtxsize = nthmax*npmax*nrmax
+    imtxwidth = nthmax*npmax*nrmax-(nthm1-2+nthm3-2)
 
-    call cpu_time(end_time)
-
-    write(*,*)"fowprep time:",end_time-begin_time,"[sec]"
 
   end subroutine fow_prep
 
