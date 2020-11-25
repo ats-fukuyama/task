@@ -87,10 +87,10 @@ libs:
 	(cd ../ob; make libob.a)
 
 fp : $(LIB_MTX) $(LIBS) $(OBJDIR)/fpmain.o
-	$(FLINKER) $(OBJDIR)/fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX) $(MODINCLUDE)
+	$(FLINKER) $(OBJDIR)/fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 fow : $(LIB_MTX) $(LIBS) $(LIBFOW) $(OBJDIR)/fowmain.o
-	$(FLINKER) $(OBJDIR)/fowmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX) $(MODINCLUDE)
+	$(FLINKER) $(OBJDIR)/fowmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean :
 	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
@@ -109,55 +109,56 @@ new:
 	cp -f *.f ../fpnew
 	cp -f *.inc ../fpnew
 
-fpmain.o : fpinit.f90 fpparm.f90 fpmain.f90 fpcomm.f90
-fpmenu.o : fpwrin.f90 fpgout.f90 fpfout.f90 fploop.f90 fpprep.f90 fpparm.f90 fpfile.f90 fpmenu.f90 fpcomm.f90
-fpinit.o : fpinit.f90 fpcomm.f90
-fpparm.o : fpparm.f90 fpcomm.f90
-fpprep.o : fpoutdata.f90 fpcale.f90 fpbounce.f90 fpnfrr.f90 fpwmin.f90 fpwrin.f90 fpsave.f90 fpcalw.f90 fpbroadcast.f90 fpparm.f90 fpcoef.f90 fpdisrupt.f90 eg_read.f90 sv_read.f90 fpprep.f90 fpcomm.f90
+$(OBJDIR)/fpmain.o : fpinit.f90 fpparm.f90 fpmain.f90 fpcomm.f90
+$(OBJDIR)/fpmenu.o : fpwrin.f90 fpgout.f90 fpfout.f90 fploop.f90 fpprep.f90 fpparm.f90 fpfile.f90 fpmenu.f90 fpcomm.f90
+$(OBJDIR)/fpinit.o : fpinit.f90 fpcomm.f90
+$(OBJDIR)/fpparm.o : fpparm.f90 fpcomm.f90
+$(OBJDIR)/fpprep.o : fpoutdata.f90 fpcale.f90 fpbounce.f90 fpnfrr.f90 fpwmin.f90 fpwrin.f90 fpsave.f90 fpcalw.f90 fpbroadcast.f90 fpparm.f90 fpcoef.f90 fpdisrupt.f90 eg_read.f90 sv_read.f90 fpprep.f90 fpcomm.f90
 fploop.o : fpoutdata.f90 fpnfrr.f90 fpsave.f90 fpexec.f90 fpprep.f90 fpcoef.f90 fpdisrupt.f90 eg_read.f90 fploop.f90 fpcomm.f90 fpoutdata.f90
-fpexec.o : fpexec.f90 fpcomm.f90
-fpdrexec.o : fpdrexec.f90 fpcomm.f90
-fpbroadcast.o : fpbroadcast.f90 fpcomm.f90
-fpcoef.o : fpcalr.f90 fpnfrr.f90 fpcalwm.f90 fpcalwr.f90 fpcalw.f90 fpcalc.f90 fpcoef.f90 fpcomm.f90
-fpcalc.o : fpcalcnr.f90 fpcalcn.f90 fpcalc.f90 fpcomm.f90
-fpcalcn.o : fpcalcn.f90 fpcomm.f90
-fpcalcnr.o : fpcoef.f90 fpcalcnr.f90 fpcomm.f90
-fpcalw.o : fpcalw.f90 fpcalwr.f90 fpcalwm.f90 fpcomm.f90
-fpcalwr.o : fpwrin.f90 fpcalwr.f90 fpcomm.f90
-fpcalwm.o : fpwmin.f90 fpcalwm.f90 fpcomm.f90
-fpcont.o : fpcont.f90 fpcomm.f90
-fpfout.o : fpfout.f90 fpcomm.f90
-fpgout.o : fpfout.f90 fpcont.f90 fpgout.f90 fpcomm.f90
-fpfile.o : fpprep.f90 eg_read.f90 sv_read.f90 fpfile.f90 fpcomm.f90
-fpsave.o : fpexec.f90 eg_read.f90 fpsave.f90 fpcomm.f90
-fpwrin.o : fpwrin.f90 fpcomm.f90
-fpwmin.o : fpwrin.f90 fpcomm.f90
-fpnfrr.o : fpparm.f90 fpnfrr.f90 fpcomm.f90
-fpbounce.o : fpparm.f90 fpbounce.f90 fpcomm.f90
-fpcale.o: fpcale.f90 fpmpi.f90
-fpdisrupt.o: fpcale.f90 fpcoef.f90 fpdisrupt.f90 fpcomm.f90
-fpcalr.o: fpcalr.f90 fpcomm.f90
-eg_read.o: eg_read.f90 fpcomm.f90
-sv_read.o: sv_read.f90 fpcomm.f90
-fpoutdata.o: fpoutdata.f90 eg_read.f90 fpcomm.f90
-fpcaltp.o: fpcaltp.f90 fpcomm.f90
-fpcaldeff.o: fpcaldeff.f90 fpcomm.f90
-fpwrite.o : fpwrite.f90 fpcomm.f90
+$(OBJDIR)/fpexec.o : fpexec.f90 fpcomm.f90
+$(OBJDIR)/fpdrexec.o : fpdrexec.f90 fpcomm.f90
+$(OBJDIR)/fpbroadcast.o : fpbroadcast.f90 fpcomm.f90
+$(OBJDIR)/fpcoef.o : fpcalr.f90 fpnfrr.f90 fpcalwm.f90 fpcalwr.f90 fpcalw.f90 fpcalc.f90 fpcoef.f90 fpcomm.f90
+$(OBJDIR)/fpcalc.o : fpcalcnr.f90 fpcalcn.f90 fpcalc.f90 fpcomm.f90
+$(OBJDIR)/fpcalcn.o : fpcalcn.f90 fpcomm.f90
+$(OBJDIR)/fpcalcnr.o : fpcoef.f90 fpcalcnr.f90 fpcomm.f90
+$(OBJDIR)/fpcalw.o : fpcalw.f90 fpcalwr.f90 fpcalwm.f90 fpcomm.f90
+$(OBJDIR)/fpcalwr.o : fpwrin.f90 fpcalwr.f90 fpcomm.f90
+$(OBJDIR)/fpcalwm.o : fpwmin.f90 fpcalwm.f90 fpcomm.f90
+$(OBJDIR)/fpcont.o : fpcont.f90 fpcomm.f90
+$(OBJDIR)/fpfout.o : fpfout.f90 fpcomm.f90
+$(OBJDIR)/fpgout.o : fpfout.f90 fpcont.f90 fpgout.f90 fpcomm.f90
+$(OBJDIR)/fpfile.o : fpprep.f90 eg_read.f90 sv_read.f90 fpfile.f90 fpcomm.f90
+$(OBJDIR)/fpsave.o : fpexec.f90 eg_read.f90 fpsave.f90 fpcomm.f90
+$(OBJDIR)/fpwrin.o : fpwrin.f90 fpcomm.f90
+$(OBJDIR)/fpwmin.o : fpwrin.f90 fpcomm.f90
+$(OBJDIR)/fpnfrr.o : fpparm.f90 fpnfrr.f90 fpcomm.f90
+$(OBJDIR)/fpbounce.o : fpparm.f90 fpbounce.f90 fpcomm.f90
+$(OBJDIR)/fpcale.o: fpcale.f90 fpmpi.f90
+$(OBJDIR)/fpdisrupt.o: fpcale.f90 fpcoef.f90 fpdisrupt.f90 fpcomm.f90
+$(OBJDIR)/fpcalr.o: fpcalr.f90 fpcomm.f90
+$(OBJDIR)/eg_read.o: eg_read.f90 fpcomm.f90
+$(OBJDIR)/sv_read.o: sv_read.f90 fpcomm.f90
+$(OBJDIR)/fpoutdata.o: fpoutdata.f90 eg_read.f90 fpcomm.f90
+$(OBJDIR)/fpcaltp.o: fpcaltp.f90 fpcomm.f90
+$(OBJDIR)/fpcaldeff.o: fpcaldeff.f90 fpcomm.f90
+$(OBJDIR)/fpwrite.o : fpwrite.f90 fpcomm.f90
 
-fowmain.o : fowmain.f90 fowcomm.f90 fowprep.f90 foworbit.f90 \
+$(OBJDIR)/fowmain.o : fowmain.f90 fowcomm.f90 fowprep.f90 foworbit.f90 \
             fpprep.f90 fpinit.f90 fpcomm.f90 fpwrite.f90 \
             foworbitclassify.f90
-fowmenu.o : fowmain.f90 fowcomm.f90 fowprep.f90 foworbit.f90 \
+$(OBJDIR)/fowmenu.o : fowmain.f90 fowcomm.f90 fowprep.f90 foworbit.f90 \
             fpprep.f90 fpcomm.f90 fpwrite.f90 \
             foworbitclassify.f90
-fowcomm.o : fowcomm.f90
-fowexec.o : fowexec.f90 fowcomm.f90 fpcomm.f90
-fowprep.o : fowprep.f90 fowcomm.f90 fowdistribution.f90 foworbit.f90
-foworbit.o : foworbit.f90 fowcomm.f90 fpcomm.f90 \
-			../ob/obcomm.f90 ../ob/obcalc.f90 ../ob/obprep.f90 ../obinit.f90 ../ob/obparm.f90
-foworbitclassify.o : foworbitclassify.f90 fowcomm.f90 fpcomm.f90
-fowdistribution.o : fowdistribution.f90 foworbit.f90 fowcomm.f90 fpcomm.f90
-fowcoef.o : fowdistribution.f90 fowcoef.f90 fowcomm.f90 fpcomm.f90
-fowsource.o : fowsource.f90 fowcomm.f90 fpcomm.f90 fowprep.f90
-fowloop..o : fowexec.f90 fowdistribution.f90 fowcoef.f90 fowsource.f90 fowcomm.f90 fpcomm.f90 fowprep.f90
+$(OBJDIR)/fowcomm.o : fowcomm.f90
+$(OBJDIR)/fowexec.o : fowexec.f90 fowcomm.f90 fpcomm.f90
+$(OBJDIR)/fowprep.o : fowprep.f90 fowcomm.f90 fowdistribution.f90 foworbit.f90
+$(OBJDIR)/foworbit.o: foworbit.f90 fowcomm.f90 fpcomm.f90 \
+../ob/obcomm.f90 ../ob/obcalc.f90 ../ob/obprep.f90 ../ob/obinit.f90 \
+../ob/obparm.f90
+$(OBJDIR)/foworbitclassify.o : foworbitclassify.f90 fowcomm.f90 fpcomm.f90
+$(OBJDIR)/fowdistribution.o : fowdistribution.f90 foworbit.f90 fowcomm.f90 fpcomm.f90
+$(OBJDIR)/fowcoef.o : fowdistribution.f90 fowcoef.f90 fowcomm.f90 fpcomm.f90
+$(OBJDIR)/fowsource.o : fowsource.f90 fowcomm.f90 fpcomm.f90 fowprep.f90
+$(OBJDIR)/fowloop..o : fowexec.f90 fowdistribution.f90 fowcoef.f90 fowsource.f90 fowcomm.f90 fpcomm.f90 fowprep.f90
 

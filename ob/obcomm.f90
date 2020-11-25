@@ -7,7 +7,7 @@ MODULE obcomm_parm
   PUBLIC
 
   INTEGER,PARAMETER:: &
-       nobt_m=100             ! maximum number of orbits
+       nobt_m=10000             ! maximum number of orbits
 
 ! --- input parameters ---
 
