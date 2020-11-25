@@ -350,8 +350,10 @@ contains
       end do
     end do
 
-    call cpu_time(end_time)
-    write(*,*)"fowprep time:",end_time-begin_time,"[sec]"
+    ! call cpu_time(begin_time)
+    ! call fow_orbit_load(flag)
+    ! call cpu_time(end_time)
+    ! write(*,*)"load time:",end_time-begin_time,"[sec]"
 
     call cpu_time(begin_time)
     call fow_orbit_construct(orbit_m) 
@@ -361,12 +363,11 @@ contains
     call cpu_time(end_time)
     write(*,*)"task/ob time:",end_time-begin_time,"[sec]"
 
-    ! call cpu_time(begin_time)
-    ! call fow_orbit_save
-    ! call cpu_time(end_time)
-    ! write(*,*)"save time:",end_time-begin_time,"[sec]"
+    call cpu_time(begin_time)
+    call fow_orbit_save
+    call cpu_time(end_time)
+    write(*,*)"save time:",end_time-begin_time,"[sec]"
 
-    ! STOP
 
     ! calculate the boundary flux partition
     do nsa = 1, nsamax

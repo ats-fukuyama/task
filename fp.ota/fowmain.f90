@@ -39,7 +39,7 @@ program fow
   call fow_read_namelist
   call fow_allocate
   call fow_prep
-  call fow_loop
+  ! call fow_loop
 
 
   ! call fow_debug

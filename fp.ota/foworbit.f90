@@ -3,7 +3,7 @@ module foworbit
   private
   real(8),allocatable :: penergym(:,:),penergyg(:,:)
 
-  public :: fow_orbit_construct, fow_orbit_save
+  public :: fow_orbit_construct, fow_orbit_save, fow_orbit_load
   public :: func_orbit_F, func_orbit_mean_ra
 
 contains
@@ -360,7 +360,7 @@ contains
     implicit none
     character(30) :: BIN_DIR, filename
     integer :: nm ,nth, np, nr, nsa, nstp, nstpmax, nmmmax, nmpmax,nmtmax, nmrmax&
-            , nstp_sum_m, nstp_sum_p, nstp_sum_t, nstp_sum_r, i, len
+            , nstp_sum_m, nstp_sum_p, nstp_sum_t, nstp_sum_r, it, ip, ir, im, len
     integer,allocatable,dimension(:,:,:,:) :: nma_m, nma_p, nma_r, nma_t
     real(rkind),allocatable,dimension(:) :: time_m, psip_m, theta_m, thetap_m, Babs_m, nstpmax_m
     real(rkind),allocatable,dimension(:) :: time_p, psip_p, theta_p, thetap_p, Babs_p, nstpmax_p
@@ -404,9 +404,9 @@ contains
               nstp_sum_m = nstp_sum_m + orbit_m(nth,np,nr,nsa)%nstp_max
             end if
             if ( np <= npmax .and. nr <= nrmax ) then
-              nm = (nsa-1)*nthmax*npmax*nrmax&
-                  +(nr-1)*nthmax*npmax&
-                  +(np-1)*nthmax + nth
+              nm = (nsa-1)*(nthmax+1)*npmax*nrmax&
+                  +(nr-1)*(nthmax+1)*npmax&
+                  +(np-1)*(nthmax+1) + nth
               nma_t(nth,np,nr,nsa) = nm
               nstpmax_t(nm) = orbit_th(nth,np,nr,nsa)%nstp_max
               nstp_sum_t = nstp_sum_t + orbit_th(nth,np,nr,nsa)%nstp_max
@@ -469,7 +469,10 @@ contains
     allocate(time_r(nstp_sum_r), psip_r(nstp_sum_r))
     allocate(theta_r(nstp_sum_r), thetap_r(nstp_sum_r), Babs_r(nstp_sum_r))
 
-
+    im = 0
+    ip = 0
+    it = 0
+    ir = 0
     do nsa = 1, nsamax
       do nr = 1, nrmax+1
         do np = 1, npmax+1
@@ -477,57 +480,45 @@ contains
             if ( np <= npmax .and. nth <= nthmax .and. nr <= nrmax ) then
               nstpmax = orbit_m(nth,np,nr,nsa)%nstp_max
               do nstp = 1, nstpmax
-                i = (nsa-1)*nstpmax*nthmax*npmax*nrmax&
-                    +(nr-1)*nstpmax*nthmax*npmax&
-                    +(np-1)*nstpmax*nthmax&
-                    +(nth-1)*nstpmax + nstp
-                time_m(i) = orbit_m(nth,np,nr,nsa)%time(nstp)
-                psip_m(i) = orbit_m(nth,np,nr,nsa)%psip(nstp)
-                Babs_m(i) = orbit_m(nth,np,nr,nsa)%Babs(nstp)
-                theta_m(i) = orbit_m(nth,np,nr,nsa)%theta(nstp)
-                thetap_m(i) = orbit_m(nth,np,nr,nsa)%thetap(nstp)
+                im = im + 1
+                time_m(im) = orbit_m(nth,np,nr,nsa)%time(nstp)
+                psip_m(im) = orbit_m(nth,np,nr,nsa)%psip(nstp)
+                Babs_m(im) = orbit_m(nth,np,nr,nsa)%Babs(nstp)
+                theta_m(im) = orbit_m(nth,np,nr,nsa)%theta(nstp)
+                thetap_m(im) = orbit_m(nth,np,nr,nsa)%thetap(nstp)
               end do  
             end if
             if ( nth <= nthmax .and. nr <= nrmax ) then
               nstpmax = orbit_p(nth,np,nr,nsa)%nstp_max
               do nstp = 1, nstpmax
-                i = (nsa-1)*nstpmax*nthmax*npmax*nrmax&
-                    +(nr-1)*nstpmax*nthmax*npmax&
-                    +(np-1)*nstpmax*nthmax&
-                    +(nth-1)*nstpmax + nstp
-                time_p(i) = orbit_p(nth,np,nr,nsa)%time(nstp)
-                psip_p(i) = orbit_p(nth,np,nr,nsa)%psip(nstp)
-                Babs_p(i) = orbit_p(nth,np,nr,nsa)%Babs(nstp)
-                theta_p(i) = orbit_p(nth,np,nr,nsa)%theta(nstp)
-                thetap_p(i) = orbit_p(nth,np,nr,nsa)%thetap(nstp)
+                ip = ip + 1
+                time_p(ip) = orbit_p(nth,np,nr,nsa)%time(nstp)
+                psip_p(ip) = orbit_p(nth,np,nr,nsa)%psip(nstp)
+                Babs_p(ip) = orbit_p(nth,np,nr,nsa)%Babs(nstp)
+                theta_p(ip) = orbit_p(nth,np,nr,nsa)%theta(nstp)
+                thetap_p(ip) = orbit_p(nth,np,nr,nsa)%thetap(nstp)
               end do
             end if
             if ( np <= npmax .and. nr <= nrmax ) then
               nstpmax = orbit_th(nth,np,nr,nsa)%nstp_max
               do nstp = 1, nstpmax
-                i = (nsa-1)*nstpmax*nthmax*npmax*nrmax&
-                    +(nr-1)*nstpmax*nthmax*npmax&
-                    +(np-1)*nstpmax*nthmax&
-                    +(nth-1)*nstpmax + nstp
-                time_t(i) = orbit_th(nth,np,nr,nsa)%time(nstp)
-                psip_t(i) = orbit_th(nth,np,nr,nsa)%psip(nstp)
-                Babs_t(i) = orbit_th(nth,np,nr,nsa)%Babs(nstp)
-                theta_t(i) = orbit_th(nth,np,nr,nsa)%theta(nstp)
-                thetap_t(i) = orbit_th(nth,np,nr,nsa)%thetap(nstp)
+                it =it + 1
+                time_t(it) = orbit_th(nth,np,nr,nsa)%time(nstp)
+                psip_t(it) = orbit_th(nth,np,nr,nsa)%psip(nstp)
+                Babs_t(it) = orbit_th(nth,np,nr,nsa)%Babs(nstp)
+                theta_t(it) = orbit_th(nth,np,nr,nsa)%theta(nstp)
+                thetap_t(it) = orbit_th(nth,np,nr,nsa)%thetap(nstp)
               end do  
             end if
             if ( np <= npmax .and. nth <= nthmax ) then
               nstpmax = orbit_r(nth,np,nr,nsa)%nstp_max
               do nstp = 1, nstpmax
-                i = (nsa-1)*nstpmax*nthmax*npmax*nrmax&
-                    +(nr-1)*nstpmax*nthmax*npmax&
-                    +(np-1)*nstpmax*nthmax&
-                    +(nth-1)*nstpmax + nstp
-                time_r(i) = orbit_r(nth,np,nr,nsa)%time(nstp)
-                psip_r(i) = orbit_r(nth,np,nr,nsa)%psip(nstp)
-                Babs_r(i) = orbit_r(nth,np,nr,nsa)%Babs(nstp)
-                theta_r(i) = orbit_r(nth,np,nr,nsa)%theta(nstp)
-                thetap_r(i) = orbit_r(nth,np,nr,nsa)%thetap(nstp)
+                ir = ir+1
+                time_r(ir) = orbit_r(nth,np,nr,nsa)%time(nstp)
+                psip_r(ir) = orbit_r(nth,np,nr,nsa)%psip(nstp)
+                Babs_r(ir) = orbit_r(nth,np,nr,nsa)%Babs(nstp)
+                theta_r(ir) = orbit_r(nth,np,nr,nsa)%theta(nstp)
+                thetap_r(ir) = orbit_r(nth,np,nr,nsa)%thetap(nstp)
               end do  
             end if
     
@@ -555,7 +546,7 @@ contains
     integer,intent(out) :: flag
     character(30) :: BIN_DIR, eqin, mesh, filename
     integer :: nm ,nth, np, nr, nsa, nstp, nstpmax, nmmmax, nmpmax,nmtmax, nmrmax&
-            , nstp_sum_m, nstp_sum_p, nstp_sum_t, nstp_sum_r, i
+            , nstp_sum_m, nstp_sum_p, nstp_sum_t, nstp_sum_r, i, len
     integer,allocatable,dimension(:,:,:,:) :: nma_m, nma_p, nma_r, nma_t
     real(rkind),allocatable,dimension(:) :: time_m, psip_m, theta_m, thetap_m, Babs_m, nstpmax_m
     real(rkind),allocatable,dimension(:) :: time_p, psip_p, theta_p, thetap_p, Babs_p, nstpmax_p
@@ -563,17 +554,22 @@ contains
     real(rkind),allocatable,dimension(:) :: time_t, psip_t, theta_t, thetap_t, Babs_t, nstpmax_t
 
     real(rkind) :: RR_,RA_,RKAP_,RDLT_,RB_,BB_,RIP_
-    integer :: nthm_,npm_,nrm_,nsam_
+    integer :: nthm_,npm_,nrm_,nsam_,access
 
     flag = 0
 
-    BIN_DIR = "../fp.ota/bin"
+    BIN_DIR = "../fp.ota/bin/"
+
+    if ( access( TRIM(BIN_DIR)//"fpparm.dat", " ") /= 0 ) then
+      flag = 3
+      return
+    end if
 
     filename = TRIM(BIN_DIR)//"fpparm.dat"
     open(10, file=filename, access='direct', recl=rkind*7+4*4, form='unformatted' )
-    read(10,rec=1) RR_,RR_,RA_,RKAP_,RDLT_,RB_,BB_,RIP_
-    read(10,rec=rkind*7+1)nthm_,npm_,nrm_,nsam_
+    read(10,rec=1) RR_,RA_,RKAP_,RDLT_,RB_,BB_,RIP_,nthm_,npm_,nrm_,nsam_
     close(10)
+    write(*,*)"nmax",nthm_,npm_,nrm_,nsam_
 
     if ( RR /= RR_ .or. RA /= RA_ .or. RKAP /= RKAP_ &
         .or. RDLT /= RDLT_ .or. RB /= RB_ .or. BB /= BB_ .or. RIP /= RIP_) then
@@ -590,6 +586,11 @@ contains
     open(11, file=filename, access='direct', recl=4*8, form='unformatted' )
     read(11,rec=1)nmmmax,nmpmax,nmtmax,nmrmax,nstp_sum_m,nstp_sum_p,nstp_sum_t,nstp_sum_r
     close(11)
+
+    allocate(nstpmax_m(nmmmax))
+    allocate(nstpmax_p(nmpmax))
+    allocate(nstpmax_t(nmtmax))
+    allocate(nstpmax_r(nmrmax))
 
     filename = TRIM(BIN_DIR)//"ob_nstpmax_m.dat"
     open(20, file=filename, access='direct', recl=rkind*nmmmax, form='unformatted' )
@@ -611,6 +612,131 @@ contains
     read(50,rec=1)nstpmax_r
     close(50)
 
+    do nsa = 1, nsamax
+      do nr = 1, nrmax+1
+        do np = 1, npmax+1
+          do nth = 1, nthmax+1
+            if ( nth <= nthmax .and. np <= npmax .and. nr <= nrmax ) then
+              nm = (nsa-1)*nthmax*npmax*nrmax&
+                  +(nr-1)*nthmax*npmax&
+                  +(np-1)*nthmax + nth
+              nstpmax = nstpmax_m(nm)
+              orbit_m(nth,np,nr,nsa)%nstp_max = nstpmax
+              allocate(orbit_m(nth,np,nr,nsa)%time(nstpmax))
+              allocate(orbit_m(nth,np,nr,nsa)%psip(nstpmax))
+              allocate(orbit_m(nth,np,nr,nsa)%Babs(nstpmax))
+              allocate(orbit_m(nth,np,nr,nsa)%theta(nstpmax))
+              allocate(orbit_m(nth,np,nr,nsa)%thetap(nstpmax))
+            end if
+            if ( np <= npmax .and. nr <= nrmax ) then
+              nm = (nsa-1)*(nthmax+1)*npmax*nrmax&
+                  +(nr-1)*(nthmax+1)*npmax&
+                  +(np-1)*(nthmax+1) + nth
+              nstpmax = nstpmax_t(nm)
+              orbit_th(nth,np,nr,nsa)%nstp_max = nstpmax
+              allocate(orbit_th(nth,np,nr,nsa)%time(nstpmax))
+              allocate(orbit_th(nth,np,nr,nsa)%psip(nstpmax))
+              allocate(orbit_th(nth,np,nr,nsa)%Babs(nstpmax))
+              allocate(orbit_th(nth,np,nr,nsa)%theta(nstpmax))
+              allocate(orbit_th(nth,np,nr,nsa)%thetap(nstpmax))
+            end if
+            if ( nth <= nthmax .and. nr <= nrmax ) then
+              nm = (nsa-1)*nthmax*(npmax+1)*nrmax&
+                  +(nr-1)*nthmax*(npmax+1)&
+                  +(np-1)*nthmax + nth
+              nstpmax = nstpmax_p(nm)
+              orbit_p(nth,np,nr,nsa)%nstp_max = nstpmax
+              allocate(orbit_p(nth,np,nr,nsa)%time(nstpmax))
+              allocate(orbit_p(nth,np,nr,nsa)%psip(nstpmax))
+              allocate(orbit_p(nth,np,nr,nsa)%Babs(nstpmax))
+              allocate(orbit_p(nth,np,nr,nsa)%theta(nstpmax))
+              allocate(orbit_p(nth,np,nr,nsa)%thetap(nstpmax))
+            end if
+            if ( nth <= nthmax .and. np <= npmax ) then
+              nm = (nsa-1)*nthmax*npmax*(nrmax+1)&
+                  +(nr-1)*nthmax*npmax&
+                  +(np-1)*nthmax + nth
+              nstpmax = nstpmax_r(nm)
+              orbit_r(nth,np,nr,nsa)%nstp_max = nstpmax
+              allocate(orbit_r(nth,np,nr,nsa)%time(nstpmax))
+              allocate(orbit_r(nth,np,nr,nsa)%psip(nstpmax))
+              allocate(orbit_r(nth,np,nr,nsa)%Babs(nstpmax))
+              allocate(orbit_r(nth,np,nr,nsa)%theta(nstpmax))
+              allocate(orbit_r(nth,np,nr,nsa)%thetap(nstpmax))
+            end if
+          end do
+        end do
+      end do
+    end do
+
+    len = rkind*(nstp_sum_m+nstp_sum_p+nstp_sum_t+nstp_sum_r)*5 
+
+    filename = TRIM(BIN_DIR)//"ob_quantities.dat"
+    open(60, file=filename, access='direct', recl=rkind*nstp_sum_m*5, form='unformatted' )
+
+    i = 1
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do np = 1, npmax
+          do nth = 1, nthmax
+            nstpmax = orbit_m(nth,np,nr,nsa)%nstp_max
+            do nstp = 1, nstpmax
+              read(60,rec=i)orbit_m(nth,np,nr,nsa)%time(nstp),orbit_m(nth,np,nr,nsa)%psip(nstp)&
+                            ,orbit_m(nth,np,nr,nsa)%theta(nstp),orbit_m(nth,np,nr,nsa)%thetap(nstp)&
+                            ,orbit_m(nth,np,nr,nsa)%Babs(nstp)
+              i = i+5
+            end do
+          end do
+        end do
+      end do
+    end do
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do np = 1, npmax+1
+          do nth = 1, nthmax
+            nstpmax = orbit_p(nth,np,nr,nsa)%nstp_max
+            do nstp = 1, nstpmax
+              read(60,rec=i)orbit_p(nth,np,nr,nsa)%time(nstp),orbit_p(nth,np,nr,nsa)%psip(nstp)&
+                            ,orbit_p(nth,np,nr,nsa)%theta(nstp),orbit_p(nth,np,nr,nsa)%thetap(nstp)&
+                            ,orbit_p(nth,np,nr,nsa)%Babs(nstp)
+              i = i+5
+            end do
+          end do
+        end do
+      end do
+    end do
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do np = 1, npmax
+          do nth = 1, nthmax+1
+            nstpmax = orbit_th(nth,np,nr,nsa)%nstp_max
+            do nstp = 1, nstpmax
+              read(60,rec=i)orbit_th(nth,np,nr,nsa)%time(nstp),orbit_th(nth,np,nr,nsa)%psip(nstp)&
+                            ,orbit_th(nth,np,nr,nsa)%theta(nstp),orbit_th(nth,np,nr,nsa)%thetap(nstp)&
+                            ,orbit_th(nth,np,nr,nsa)%Babs(nstp)
+              i = i+5
+            end do
+          end do
+        end do
+      end do
+    end do
+    do nsa = 1, nsamax
+      do nr = 1, nrmax+1
+        do np = 1, npmax
+          do nth = 1, nthmax
+            nstpmax = orbit_r(nth,np,nr,nsa)%nstp_max
+            do nstp = 1, nstpmax
+              read(60,rec=i)orbit_r(nth,np,nr,nsa)%time(nstp),orbit_r(nth,np,nr,nsa)%psip(nstp)&
+                            ,orbit_r(nth,np,nr,nsa)%theta(nstp),orbit_r(nth,np,nr,nsa)%thetap(nstp)&
+                            ,orbit_r(nth,np,nr,nsa)%Babs(nstp)
+              i = i+5
+            end do
+          end do
+        end do
+      end do
+    end do
+
+    close(60)
 
   end subroutine fow_orbit_load
 
