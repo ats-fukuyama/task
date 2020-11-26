@@ -63,7 +63,7 @@ contains
         end do
         write(*,*)"deps,it",deps,n_iterate
 
-        if ( deps <= epsfp .or. n_iterate >= lmaxfp ) iteration_flag = .false.
+        if ( deps <= epsfp .or. n_iterate >= 1 ) iteration_flag = .false.
 
         do nsa = 1, nsamax
           do nr = 1, nrmax

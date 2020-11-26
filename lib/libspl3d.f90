@@ -556,7 +556,7 @@
       ENDDO
 
 !     --- calculate FXYZ ---
-      write(6,*) '--- calculate FXYZ ---'
+!      write(6,*) '--- calculate FXYZ ---'
 
       DO NZ=1,NZMAX
       DO NY=1,NYMAX

@@ -55,7 +55,7 @@ contains
 
     allocate(S_beam(nthmax,npmax,nrmax,nsamax,nbeammax))
     allocate(dBdpsip(nrmax+1,nthpmax),dBdthp(nrmax+1,nthpmax),dpsipdr(nrmax))
-    allocate(dFdpsip(nrmax),dBmdpsim(2,nrmax))
+    allocate(dFdpsip(nrmax),dBmdpsim(nrmax,2))
     allocate(thetap(nthpmax))
 
     do nthp = 1, nthpmax
@@ -63,8 +63,8 @@ contains
     end do 
 
     call first_order_derivative(dFdpsip,Fpsi,psim)
-    call first_order_derivative(dBmdpsim(1,:),Bout,psim)
-    call first_order_derivative(dBmdpsim(2,:),Bin,psim)
+    call first_order_derivative(dBmdpsim(:,1),Bout,psim)
+    call first_order_derivative(dBmdpsim(:,2),Bin,psim)
     call first_order_derivative(dpsipdr,psim,rm)
     do nr = 1, nrmax+1
       call first_order_derivative(dBdthp(nr,:),Babs(nr,:),thetap)
@@ -89,7 +89,7 @@ contains
       do nr = 1, nrmax
         do np = 1, npmax
           do nth = 1, nthmax
-            if ( np == beam%np_near ) then
+            if ( np == beam%np_near .and. nth /= nth_forbitten(beam%id) ) then
 
               fact_psm = -(psim(nr)-beam%psim)**2/beam%psimw**2
               fact_psm = EXP( fact_psm ) / SQRT( pi*beam%psimw**2 )
@@ -139,8 +139,7 @@ contains
         do nr = 1, nrmax
           do np = 1, npmax
             do nth = 1, nthmax
-              if ( np == beam%np_near ) then
-                write(*,*)"psimw",beam%psimw
+              if ( np == beam%np_near .and. nth /= nth_forbitten(beam%id) ) then
   
                 fact_psm = -(psim(nr)-beam%psim)**2/beam%psimw**2
                 fact_psm = EXP( fact_psm ) / SQRT( pi*beam%psimw**2 )
@@ -270,7 +269,7 @@ contains
         theta_ob_tmp(nstp) = theta_ob(nstp,1)
         psip_ob_tmp(nstp)  = psip_ob(nstp,1)
         vpara_ob_tmp(nstp) = vpara_ob(nstp,1)
-        vpara_ob_tmp(nstp) = vpara_ob(nstp,1)
+        vperp_ob_tmp(nstp) = vperp_ob(nstp,1)
       end do
 
       ! search poloidal angle where psip = psim.  (psim occurs on the equater.)
@@ -287,7 +286,7 @@ contains
       call fow_cal_spl(beam%psim, thetap_eq(im), psip_ob_tmp, theta_ob_tmp)
       call fow_cal_spl(vparam, thetap_eq(im), vpara_ob_tmp, theta_ob_tmp)
       call fow_cal_spl(vperpm, thetap_eq(im), vperp_ob_tmp, theta_ob_tmp)
-
+      
       cthm = vparam / SQRT( vparam**2+vperpm**2 )
       beam%thetam = ACOS( cthm )
 
@@ -331,10 +330,10 @@ contains
 
     if ( cthm*aefp(ns_beam) >= 0.d0 ) then
       call fow_cal_spl(Bm_, beam%psim, Bout, psim)
-      call fow_cal_spl(dBm, beam%psim, dBmdpsim(1,:), psim)
+      call fow_cal_spl(dBm, beam%psim, dBmdpsim(:,1), psim)
     else
       call fow_cal_spl(Bm_, beam%psim, Bin, psim)
-      call fow_cal_spl(dBm, beam%psim, dBmdpsim(2,:), psim)
+      call fow_cal_spl(dBm, beam%psim, dBmdpsim(:,2), psim)
     end if
     call fow_cal_spl(Fm_, beam%psim, Fpsi, psim)
     call fow_cal_spl(dFm, beam%psim, dFdpsip, psim)

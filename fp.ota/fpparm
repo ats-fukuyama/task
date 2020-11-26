@@ -1,5 +1,6 @@
 &fow
   nthpmax=24
+  model_obload=1
 &end
 
 !  nrgmax=40
@@ -27,16 +28,16 @@
   
   tmax=10.D1
   delt=1.D-1
-  mdlobw=2
+  mdlobw=0
   mdlobc=1
   mdlobt=1
   idebug=0
 &end
 
 &fp
-  npmax=9
+  npmax=5
   nthmax=16
-  nrmax=8
+  nrmax=4
 
   RR=6.2
   RA=2.0
@@ -95,5 +96,5 @@
   MODELD_PDEP=0
 
   DELT=1.D-2
-  NTMAX=2
+  NTMAX=1
 &end

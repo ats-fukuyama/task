@@ -23,18 +23,22 @@ contains
     type(orbit),intent(out) :: orbit_out(:,:,:,:)
     integer :: ierr,nobt,nth,np,nr,nsa,mode(3), nobt_in_max
     integer,allocatable :: nobt_in(:,:,:)
+    integer,save :: num_call = 0
+    num_call = num_call+1
+    write(*,*)"num_call",num_call
 
     call fow_orbit_get_mode(mode, orbit_out)
 
     ierr = 0
 
     ! prepare to execute OB-----------------------------------
-    call pl_init
-    call EQINIT
-    call ob_init
-    call ob_parm(1,'../fp.ota/fpparm',ierr)
-
-    call ob_prep(ierr)
+    if ( num_call == 1 ) then
+      call pl_init
+      call EQINIT
+      call ob_init
+      call ob_parm(1,'../fp.ota/fpparm',ierr)
+      call ob_prep(ierr)  
+    end if
     ! --------------------------------------------------------
 
     ! execute OB ---------------------------------------------
@@ -359,183 +363,138 @@ contains
     use fowcomm
     implicit none
     character(30) :: BIN_DIR, filename
-    integer :: nm ,nth, np, nr, nsa, nstp, nstpmax, nmmmax, nmpmax,nmtmax, nmrmax&
-            , nstp_sum_m, nstp_sum_p, nstp_sum_t, nstp_sum_r, it, ip, ir, im, len
-    integer,allocatable,dimension(:,:,:,:) :: nma_m, nma_p, nma_r, nma_t
-    real(rkind),allocatable,dimension(:) :: time_m, psip_m, theta_m, thetap_m, Babs_m, nstpmax_m
-    real(rkind),allocatable,dimension(:) :: time_p, psip_p, theta_p, thetap_p, Babs_p, nstpmax_p
-    real(rkind),allocatable,dimension(:) :: time_r, psip_r, theta_r, thetap_r, Babs_r, nstpmax_r
-    real(rkind),allocatable,dimension(:) :: time_t, psip_t, theta_t, thetap_t, Babs_t, nstpmax_t
+    integer :: nm ,nth, np, nr, nsa, nstp, nstpmax, it, ip, ir, im, i
 
     BIN_DIR = "../fp.ota/bin/"
 
-    filename = TRIM(BIN_DIR)//"fpparm.dat"
-    open(10, file=filename, access='direct', recl=rkind*7+4*4, form='unformatted' )
-    write(10, rec=1)RR,RA,RKAP,RDLT,RB,BB,RIP,nthmax,npmax,nrmax,nsamax
+    filename = TRIM(BIN_DIR)//"eqparm.dat"
+    open(10, file=filename, access='direct', recl=rkind, form='unformatted' )
+    write(10,rec=1)RR
+    write(10,rec=2)RA
+    write(10,rec=3)RKAP
+    write(10,rec=4)RDLT
+    write(10,rec=5)RB
+    write(10,rec=6)BB
+    write(10,rec=7)RIP
     close(10)
 
-    allocate(nma_m(nthmax,npmax,nrmax,nsamax))
-    allocate(nma_p(nthmax,npmax+1,nrmax,nsamax))
-    allocate(nma_r(nthmax,npmax,nrmax+1,nsamax))
-    allocate(nma_t(nthmax+1,npmax,nrmax,nsamax))
-    nmmmax = nthmax*npmax*nrmax*nsamax
-    nmpmax = nthmax*(npmax+1)*nrmax*nsamax
-    nmtmax = (nthmax+1)*npmax*nrmax*nsamax
-    nmrmax = nthmax*npmax*(nrmax+1)*nsamax
-    allocate(nstpmax_m(nmmmax))
-    allocate(nstpmax_p(nmpmax))
-    allocate(nstpmax_t(nmtmax))
-    allocate(nstpmax_r(nmrmax))
+    filename = TRIM(BIN_DIR)//"fpparm.dat"
+    open(11, file=filename, access='direct', recl=4, form='unformatted' )
+    write(11,rec=1)nthmax
+    write(11,rec=2)npmax
+    write(11,rec=3)nrmax
+    write(11,rec=4)nsamax
+    close(11)
 
-    nstp_sum_m = 0
-    nstp_sum_p = 0
-    nstp_sum_t = 0
-    nstp_sum_r = 0    
+    filename = TRIM(BIN_DIR)//"ob_nstpmax_m.dat"
+    open(50, file=filename, access='direct', recl=4, form='unformatted' )
+    filename = TRIM(BIN_DIR)//"ob_nstpmax_t.dat"
+    open(51, file=filename, access='direct', recl=4, form='unformatted' )
+    filename = TRIM(BIN_DIR)//"ob_nstpmax_p.dat"
+    open(52, file=filename, access='direct', recl=4, form='unformatted' )
+    filename = TRIM(BIN_DIR)//"ob_nstpmax_r.dat"
+    open(53, file=filename, access='direct', recl=4, form='unformatted' )
+
+    filename = TRIM(BIN_DIR)//"ob_m.dat"
+    open(60, file=filename, access='direct', recl=rkind, form='unformatted' )
+    filename = TRIM(BIN_DIR)//"ob_t.dat"
+    open(61, file=filename, access='direct', recl=rkind, form='unformatted' )
+    filename = TRIM(BIN_DIR)//"ob_p.dat"
+    open(62, file=filename, access='direct', recl=rkind, form='unformatted' )
+    filename = TRIM(BIN_DIR)//"ob_r.dat"
+    open(63, file=filename, access='direct', recl=rkind, form='unformatted' )
+
+    it = 1
+    ip = 1
+    ir = 1
+    im = 1
     do nsa = 1, nsamax
       do nr = 1, nrmax+1
         do np = 1, npmax+1
           do nth = 1, nthmax+1
+
             if ( nth <= nthmax .and. np <= npmax .and. nr <= nrmax ) then
               nm = (nsa-1)*nthmax*npmax*nrmax&
                   +(nr-1)*nthmax*npmax&
                   +(np-1)*nthmax + nth
-              nma_m(nth,np,nr,nsa) = nm
-              nstpmax_m(nm) = orbit_m(nth,np,nr,nsa)%nstp_max
-              nstp_sum_m = nstp_sum_m + orbit_m(nth,np,nr,nsa)%nstp_max
+              write(50,rec=nm)orbit_m(nth,np,nr,nsa)%nstp_max
+              nstpmax = orbit_m(nth,np,nr,nsa)%nstp_max
+
+              do nstp = 1, nstpmax
+                write(60,rec=im)orbit_m(nth,np,nr,nsa)%time(nstp)
+                write(60,rec=im+1)orbit_m(nth,np,nr,nsa)%psip(nstp)
+                write(60,rec=im+2)orbit_m(nth,np,nr,nsa)%theta(nstp)
+                write(60,rec=im+3)orbit_m(nth,np,nr,nsa)%thetap(nstp)
+                write(60,rec=im+4)orbit_m(nth,np,nr,nsa)%Babs(nstp)
+                im = im+5
+              end do
+              
             end if
+
             if ( np <= npmax .and. nr <= nrmax ) then
               nm = (nsa-1)*(nthmax+1)*npmax*nrmax&
                   +(nr-1)*(nthmax+1)*npmax&
                   +(np-1)*(nthmax+1) + nth
-              nma_t(nth,np,nr,nsa) = nm
-              nstpmax_t(nm) = orbit_th(nth,np,nr,nsa)%nstp_max
-              nstp_sum_t = nstp_sum_t + orbit_th(nth,np,nr,nsa)%nstp_max
+
+              write(51,rec=nm)orbit_th(nth,np,nr,nsa)%nstp_max
+              nstpmax = orbit_th(nth,np,nr,nsa)%nstp_max
+
+              do nstp = 1, nstpmax
+                write(61,rec=it)orbit_th(nth,np,nr,nsa)%time(nstp)
+                write(61,rec=it+1)orbit_th(nth,np,nr,nsa)%psip(nstp)
+                write(61,rec=it+2)orbit_th(nth,np,nr,nsa)%theta(nstp)
+                write(61,rec=it+3)orbit_th(nth,np,nr,nsa)%thetap(nstp)
+                write(61,rec=it+4)orbit_th(nth,np,nr,nsa)%Babs(nstp)
+                it = it+5
+              end do
             end if
+    
             if ( nth <= nthmax .and. nr <= nrmax ) then
               nm = (nsa-1)*nthmax*(npmax+1)*nrmax&
                   +(nr-1)*nthmax*(npmax+1)&
                   +(np-1)*nthmax + nth
-              nma_p(nth,np,nr,nsa) = nm
-              nstpmax_p(nm) = orbit_p(nth,np,nr,nsa)%nstp_max
-              nstp_sum_p = nstp_sum_p + orbit_p(nth,np,nr,nsa)%nstp_max
+
+              write(52,rec=nm)orbit_p(nth,np,nr,nsa)%nstp_max
+              nstpmax = orbit_p(nth,np,nr,nsa)%nstp_max
+
+              do nstp = 1, nstpmax
+                write(62,rec=ip)orbit_p(nth,np,nr,nsa)%time(nstp)
+                write(62,rec=ip+1)orbit_p(nth,np,nr,nsa)%psip(nstp)
+                write(62,rec=ip+2)orbit_p(nth,np,nr,nsa)%theta(nstp)
+                write(62,rec=ip+3)orbit_p(nth,np,nr,nsa)%thetap(nstp)
+                write(62,rec=ip+4)orbit_p(nth,np,nr,nsa)%Babs(nstp)
+                ip = ip+5
+              end do
             end if
-            if ( np <= npmax .and. nth <= nthmax ) then
+
+            if ( nth <= nthmax .and. np <= npmax ) then
               nm = (nsa-1)*nthmax*npmax*(nrmax+1)&
                   +(nr-1)*nthmax*npmax&
                   +(np-1)*nthmax + nth
-              nma_r(nth,np,nr,nsa) = nm
-              nstpmax_r(nm) = orbit_r(nth,np,nr,nsa)%nstp_max
-              nstp_sum_r = nstp_sum_r + orbit_r(nth,np,nr,nsa)%nstp_max
-            end if
-          end do
-        end do
-      end do
-    end do
 
-    filename = TRIM(BIN_DIR)//"ob_index.dat"
-    open(12, file=filename, access='direct', recl=4*8, form='unformatted' )
-    write(12,rec=1)nmmmax,nmpmax,nmtmax,nmrmax,nstp_sum_m,nstp_sum_p,nstp_sum_t,nstp_sum_r
-    close(12)
+              write(53,rec=nm)orbit_r(nth,np,nr,nsa)%nstp_max
+              nstpmax = orbit_r(nth,np,nr,nsa)%nstp_max
 
-    filename = TRIM(BIN_DIR)//"ob_nstpmax_m.dat"
-    open(20, file=filename, access='direct', recl=rkind*nmmmax, form='unformatted' )
-    write(20,rec=1)nstpmax_m
-    close(20)
-
-    filename = TRIM(BIN_DIR)//"ob_nstpmax_p.dat"
-    open(30, file=filename, access='direct', recl=rkind*nmpmax, form='unformatted' )
-    write(30,rec=1)nstpmax_p
-    close(30)
-
-    filename = TRIM(BIN_DIR)//"ob_nstpmax_t.dat"
-    open(40, file=filename, access='direct', recl=rkind*nmtmax, form='unformatted' )
-    write(40,rec=1)nstpmax_t
-    close(40)
-
-    filename = TRIM(BIN_DIR)//"ob_nstpmax_r.dat"
-    open(50, file=filename, access='direct', recl=rkind*nmrmax, form='unformatted' )
-    write(50,rec=1)nstpmax_r
-    close(50)
-
-    allocate(time_m(nstp_sum_m), psip_m(nstp_sum_m))
-    allocate(theta_m(nstp_sum_m), thetap_m(nstp_sum_m), Babs_m(nstp_sum_m))
-
-    allocate(time_p(nstp_sum_p), psip_p(nstp_sum_p))
-    allocate(theta_p(nstp_sum_p), thetap_p(nstp_sum_p), Babs_p(nstp_sum_p))
-
-    allocate(time_t(nstp_sum_t), psip_t(nstp_sum_t))
-    allocate(theta_t(nstp_sum_t), thetap_t(nstp_sum_t), Babs_t(nstp_sum_t))
-
-    allocate(time_r(nstp_sum_r), psip_r(nstp_sum_r))
-    allocate(theta_r(nstp_sum_r), thetap_r(nstp_sum_r), Babs_r(nstp_sum_r))
-
-    im = 0
-    ip = 0
-    it = 0
-    ir = 0
-    do nsa = 1, nsamax
-      do nr = 1, nrmax+1
-        do np = 1, npmax+1
-          do nth = 1, nthmax+1
-            if ( np <= npmax .and. nth <= nthmax .and. nr <= nrmax ) then
-              nstpmax = orbit_m(nth,np,nr,nsa)%nstp_max
               do nstp = 1, nstpmax
-                im = im + 1
-                time_m(im) = orbit_m(nth,np,nr,nsa)%time(nstp)
-                psip_m(im) = orbit_m(nth,np,nr,nsa)%psip(nstp)
-                Babs_m(im) = orbit_m(nth,np,nr,nsa)%Babs(nstp)
-                theta_m(im) = orbit_m(nth,np,nr,nsa)%theta(nstp)
-                thetap_m(im) = orbit_m(nth,np,nr,nsa)%thetap(nstp)
-              end do  
-            end if
-            if ( nth <= nthmax .and. nr <= nrmax ) then
-              nstpmax = orbit_p(nth,np,nr,nsa)%nstp_max
-              do nstp = 1, nstpmax
-                ip = ip + 1
-                time_p(ip) = orbit_p(nth,np,nr,nsa)%time(nstp)
-                psip_p(ip) = orbit_p(nth,np,nr,nsa)%psip(nstp)
-                Babs_p(ip) = orbit_p(nth,np,nr,nsa)%Babs(nstp)
-                theta_p(ip) = orbit_p(nth,np,nr,nsa)%theta(nstp)
-                thetap_p(ip) = orbit_p(nth,np,nr,nsa)%thetap(nstp)
+                write(63,rec=ir)orbit_r(nth,np,nr,nsa)%time(nstp)
+                write(63,rec=ir+1)orbit_r(nth,np,nr,nsa)%psip(nstp)
+                write(63,rec=ir+2)orbit_r(nth,np,nr,nsa)%theta(nstp)
+                write(63,rec=ir+3)orbit_r(nth,np,nr,nsa)%thetap(nstp)
+                write(63,rec=ir+4)orbit_r(nth,np,nr,nsa)%Babs(nstp)
+                ir = ir+5
               end do
             end if
-            if ( np <= npmax .and. nr <= nrmax ) then
-              nstpmax = orbit_th(nth,np,nr,nsa)%nstp_max
-              do nstp = 1, nstpmax
-                it =it + 1
-                time_t(it) = orbit_th(nth,np,nr,nsa)%time(nstp)
-                psip_t(it) = orbit_th(nth,np,nr,nsa)%psip(nstp)
-                Babs_t(it) = orbit_th(nth,np,nr,nsa)%Babs(nstp)
-                theta_t(it) = orbit_th(nth,np,nr,nsa)%theta(nstp)
-                thetap_t(it) = orbit_th(nth,np,nr,nsa)%thetap(nstp)
-              end do  
-            end if
-            if ( np <= npmax .and. nth <= nthmax ) then
-              nstpmax = orbit_r(nth,np,nr,nsa)%nstp_max
-              do nstp = 1, nstpmax
-                ir = ir+1
-                time_r(ir) = orbit_r(nth,np,nr,nsa)%time(nstp)
-                psip_r(ir) = orbit_r(nth,np,nr,nsa)%psip(nstp)
-                Babs_r(ir) = orbit_r(nth,np,nr,nsa)%Babs(nstp)
-                theta_r(ir) = orbit_r(nth,np,nr,nsa)%theta(nstp)
-                thetap_r(ir) = orbit_r(nth,np,nr,nsa)%thetap(nstp)
-              end do  
-            end if
-    
+
           end do
         end do
       end do
     end do
 
-    len = rkind*(nstp_sum_m+nstp_sum_p+nstp_sum_t+nstp_sum_r)*5 
+    do i = 0, 3
+      close(50+i)
+      close(60+i)
+    end do
 
-    filename = TRIM(BIN_DIR)//"ob_quantities.dat"
-    open(60, file=filename, access='direct', recl=rkind*nstp_sum_m*5, form='unformatted' )
-    write(60,rec=1)time_m, psip_m, theta_m, thetap_m, Babs_m
-    write(60,rec=rkind*nstp_sum_m*5+1)time_p, psip_p, theta_p, thetap_p, Babs_p
-    write(60,rec=rkind*(nstp_sum_m+nstp_sum_p)*5+1)time_t, psip_t, theta_t, thetap_t, Babs_t
-    write(60,rec=rkind*(nstp_sum_m+nstp_sum_p+nstp_sum_t)*5+1)time_r, psip_r, theta_r, thetap_r, Babs_r
-    close(60)
 
   end subroutine fow_orbit_save
 
@@ -545,13 +504,7 @@ contains
     implicit none
     integer,intent(out) :: flag
     character(30) :: BIN_DIR, eqin, mesh, filename
-    integer :: nm ,nth, np, nr, nsa, nstp, nstpmax, nmmmax, nmpmax,nmtmax, nmrmax&
-            , nstp_sum_m, nstp_sum_p, nstp_sum_t, nstp_sum_r, i, len
-    integer,allocatable,dimension(:,:,:,:) :: nma_m, nma_p, nma_r, nma_t
-    real(rkind),allocatable,dimension(:) :: time_m, psip_m, theta_m, thetap_m, Babs_m, nstpmax_m
-    real(rkind),allocatable,dimension(:) :: time_p, psip_p, theta_p, thetap_p, Babs_p, nstpmax_p
-    real(rkind),allocatable,dimension(:) :: time_r, psip_r, theta_r, thetap_r, Babs_r, nstpmax_r
-    real(rkind),allocatable,dimension(:) :: time_t, psip_t, theta_t, thetap_t, Babs_t, nstpmax_t
+    integer :: nm ,nth, np, nr, nsa, nstp, nstpmax, im, ip, it, ir, i
 
     real(rkind) :: RR_,RA_,RKAP_,RDLT_,RB_,BB_,RIP_
     integer :: nthm_,npm_,nrm_,nsam_,access
@@ -560,16 +513,29 @@ contains
 
     BIN_DIR = "../fp.ota/bin/"
 
-    if ( access( TRIM(BIN_DIR)//"fpparm.dat", " ") /= 0 ) then
+    if ( access( TRIM(BIN_DIR)//"fpparm.dat", " ") /= 0 .and. access( TRIM(BIN_DIR)//"eqparm.dat", " ") ) then
       flag = 3
       return
     end if
 
-    filename = TRIM(BIN_DIR)//"fpparm.dat"
-    open(10, file=filename, access='direct', recl=rkind*7+4*4, form='unformatted' )
-    read(10,rec=1) RR_,RA_,RKAP_,RDLT_,RB_,BB_,RIP_,nthm_,npm_,nrm_,nsam_
+    filename = TRIM(BIN_DIR)//"eqparm.dat"
+    open(10, file=filename, access='direct', recl=rkind, form='unformatted' )
+    read(10,rec=1)RR_
+    read(10,rec=2)RA_
+    read(10,rec=3)RKAP_
+    read(10,rec=4)RDLT_
+    read(10,rec=5)RB_
+    read(10,rec=6)BB_
+    read(10,rec=7)RIP_
     close(10)
-    write(*,*)"nmax",nthm_,npm_,nrm_,nsam_
+
+    filename = TRIM(BIN_DIR)//"fpparm.dat"
+    open(11, file=filename, access='direct', recl=4, form='unformatted' )
+    read(11,rec=1)nthm_ 
+    read(11,rec=2)npm_
+    read(11,rec=3)nrm_ 
+    read(11,rec=4)nsam_
+    close(11)
 
     if ( RR /= RR_ .or. RA /= RA_ .or. RKAP /= RKAP_ &
         .or. RDLT /= RDLT_ .or. RB /= RB_ .or. BB /= BB_ .or. RIP /= RIP_) then
@@ -581,37 +547,29 @@ contains
       flag = 2
       return    
     end if
-    
-    filename = TRIM(BIN_DIR)//"ob_index.dat"
-    open(11, file=filename, access='direct', recl=4*8, form='unformatted' )
-    read(11,rec=1)nmmmax,nmpmax,nmtmax,nmrmax,nstp_sum_m,nstp_sum_p,nstp_sum_t,nstp_sum_r
-    close(11)
-
-    allocate(nstpmax_m(nmmmax))
-    allocate(nstpmax_p(nmpmax))
-    allocate(nstpmax_t(nmtmax))
-    allocate(nstpmax_r(nmrmax))
 
     filename = TRIM(BIN_DIR)//"ob_nstpmax_m.dat"
-    open(20, file=filename, access='direct', recl=rkind*nmmmax, form='unformatted' )
-    read(20,rec=1)nstpmax_m
-    close(20)
-
-    filename = TRIM(BIN_DIR)//"ob_nstpmax_p.dat"
-    open(30, file=filename, access='direct', recl=rkind*nmpmax, form='unformatted' )
-    read(30,rec=1)nstpmax_p
-    close(30)
-
+    open(50, file=filename, access='direct', recl=4, form='unformatted' )
     filename = TRIM(BIN_DIR)//"ob_nstpmax_t.dat"
-    open(40, file=filename, access='direct', recl=rkind*nmtmax, form='unformatted' )
-    read(40,rec=1)nstpmax_t
-    close(40)
-
+    open(51, file=filename, access='direct', recl=4, form='unformatted' )
+    filename = TRIM(BIN_DIR)//"ob_nstpmax_p.dat"
+    open(52, file=filename, access='direct', recl=4, form='unformatted' )
     filename = TRIM(BIN_DIR)//"ob_nstpmax_r.dat"
-    open(50, file=filename, access='direct', recl=rkind*nmrmax, form='unformatted' )
-    read(50,rec=1)nstpmax_r
-    close(50)
+    open(53, file=filename, access='direct', recl=4, form='unformatted' )
 
+    filename = TRIM(BIN_DIR)//"ob_m.dat"
+    open(60, file=filename, access='direct', recl=rkind, form='unformatted' )
+    filename = TRIM(BIN_DIR)//"ob_t.dat"
+    open(61, file=filename, access='direct', recl=rkind, form='unformatted' )
+    filename = TRIM(BIN_DIR)//"ob_p.dat"
+    open(62, file=filename, access='direct', recl=rkind, form='unformatted' )
+    filename = TRIM(BIN_DIR)//"ob_r.dat"
+    open(63, file=filename, access='direct', recl=rkind, form='unformatted' )
+
+    im = 1
+    ip = 1
+    it = 1
+    ir = 1
     do nsa = 1, nsamax
       do nr = 1, nrmax+1
         do np = 1, npmax+1
@@ -620,123 +578,106 @@ contains
               nm = (nsa-1)*nthmax*npmax*nrmax&
                   +(nr-1)*nthmax*npmax&
                   +(np-1)*nthmax + nth
-              nstpmax = nstpmax_m(nm)
+              read(50,rec=nm)nstpmax
               orbit_m(nth,np,nr,nsa)%nstp_max = nstpmax
+
               allocate(orbit_m(nth,np,nr,nsa)%time(nstpmax))
               allocate(orbit_m(nth,np,nr,nsa)%psip(nstpmax))
               allocate(orbit_m(nth,np,nr,nsa)%Babs(nstpmax))
               allocate(orbit_m(nth,np,nr,nsa)%theta(nstpmax))
               allocate(orbit_m(nth,np,nr,nsa)%thetap(nstpmax))
+
+              do nstp = 1, nstpmax
+                read(60,rec=im)orbit_m(nth,np,nr,nsa)%time(nstp)
+                read(60,rec=im+1)orbit_m(nth,np,nr,nsa)%psip(nstp)
+                read(60,rec=im+2)orbit_m(nth,np,nr,nsa)%theta(nstp)
+                read(60,rec=im+3)orbit_m(nth,np,nr,nsa)%thetap(nstp)
+                read(60,rec=im+4)orbit_m(nth,np,nr,nsa)%Babs(nstp)
+                im = im+5
+              end do
+              
             end if
+
             if ( np <= npmax .and. nr <= nrmax ) then
               nm = (nsa-1)*(nthmax+1)*npmax*nrmax&
                   +(nr-1)*(nthmax+1)*npmax&
                   +(np-1)*(nthmax+1) + nth
-              nstpmax = nstpmax_t(nm)
+              read(51,rec=nm)nstpmax
               orbit_th(nth,np,nr,nsa)%nstp_max = nstpmax
+
               allocate(orbit_th(nth,np,nr,nsa)%time(nstpmax))
               allocate(orbit_th(nth,np,nr,nsa)%psip(nstpmax))
               allocate(orbit_th(nth,np,nr,nsa)%Babs(nstpmax))
               allocate(orbit_th(nth,np,nr,nsa)%theta(nstpmax))
               allocate(orbit_th(nth,np,nr,nsa)%thetap(nstpmax))
+
+              do nstp = 1, nstpmax
+                read(61,rec=it)orbit_th(nth,np,nr,nsa)%time(nstp)
+                read(61,rec=it+1)orbit_th(nth,np,nr,nsa)%psip(nstp)
+                read(61,rec=it+2)orbit_th(nth,np,nr,nsa)%theta(nstp)
+                read(61,rec=it+3)orbit_th(nth,np,nr,nsa)%thetap(nstp)
+                read(61,rec=it+4)orbit_th(nth,np,nr,nsa)%Babs(nstp)
+                it = it+5
+              end do
             end if
+    
             if ( nth <= nthmax .and. nr <= nrmax ) then
               nm = (nsa-1)*nthmax*(npmax+1)*nrmax&
                   +(nr-1)*nthmax*(npmax+1)&
                   +(np-1)*nthmax + nth
-              nstpmax = nstpmax_p(nm)
+
+              read(52,rec=nm)nstpmax
               orbit_p(nth,np,nr,nsa)%nstp_max = nstpmax
+
               allocate(orbit_p(nth,np,nr,nsa)%time(nstpmax))
               allocate(orbit_p(nth,np,nr,nsa)%psip(nstpmax))
               allocate(orbit_p(nth,np,nr,nsa)%Babs(nstpmax))
               allocate(orbit_p(nth,np,nr,nsa)%theta(nstpmax))
               allocate(orbit_p(nth,np,nr,nsa)%thetap(nstpmax))
+
+              do nstp = 1, nstpmax
+                read(62,rec=ip)orbit_p(nth,np,nr,nsa)%time(nstp)
+                read(62,rec=ip+1)orbit_p(nth,np,nr,nsa)%psip(nstp)
+                read(62,rec=ip+2)orbit_p(nth,np,nr,nsa)%theta(nstp)
+                read(62,rec=ip+3)orbit_p(nth,np,nr,nsa)%thetap(nstp)
+                read(62,rec=ip+4)orbit_p(nth,np,nr,nsa)%Babs(nstp)
+                ip = ip+5
+              end do
             end if
+
             if ( nth <= nthmax .and. np <= npmax ) then
               nm = (nsa-1)*nthmax*npmax*(nrmax+1)&
                   +(nr-1)*nthmax*npmax&
                   +(np-1)*nthmax + nth
-              nstpmax = nstpmax_r(nm)
+
+              read(53,rec=nm)nstpmax
               orbit_r(nth,np,nr,nsa)%nstp_max = nstpmax
+
               allocate(orbit_r(nth,np,nr,nsa)%time(nstpmax))
               allocate(orbit_r(nth,np,nr,nsa)%psip(nstpmax))
               allocate(orbit_r(nth,np,nr,nsa)%Babs(nstpmax))
               allocate(orbit_r(nth,np,nr,nsa)%theta(nstpmax))
               allocate(orbit_r(nth,np,nr,nsa)%thetap(nstpmax))
+
+              do nstp = 1, nstpmax
+                read(63,rec=ir)orbit_r(nth,np,nr,nsa)%time(nstp)
+                read(63,rec=ir+1)orbit_r(nth,np,nr,nsa)%psip(nstp)
+                read(63,rec=ir+2)orbit_r(nth,np,nr,nsa)%theta(nstp)
+                read(63,rec=ir+3)orbit_r(nth,np,nr,nsa)%thetap(nstp)
+                read(63,rec=ir+4)orbit_r(nth,np,nr,nsa)%Babs(nstp)
+                ir = ir+5
+              end do
             end if
+
           end do
         end do
       end do
     end do
 
-    len = rkind*(nstp_sum_m+nstp_sum_p+nstp_sum_t+nstp_sum_r)*5 
-
-    filename = TRIM(BIN_DIR)//"ob_quantities.dat"
-    open(60, file=filename, access='direct', recl=rkind*nstp_sum_m*5, form='unformatted' )
-
-    i = 1
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do np = 1, npmax
-          do nth = 1, nthmax
-            nstpmax = orbit_m(nth,np,nr,nsa)%nstp_max
-            do nstp = 1, nstpmax
-              read(60,rec=i)orbit_m(nth,np,nr,nsa)%time(nstp),orbit_m(nth,np,nr,nsa)%psip(nstp)&
-                            ,orbit_m(nth,np,nr,nsa)%theta(nstp),orbit_m(nth,np,nr,nsa)%thetap(nstp)&
-                            ,orbit_m(nth,np,nr,nsa)%Babs(nstp)
-              i = i+5
-            end do
-          end do
-        end do
-      end do
+    do i = 0, 3
+      close(50+i)
+      close(60+i)
     end do
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do np = 1, npmax+1
-          do nth = 1, nthmax
-            nstpmax = orbit_p(nth,np,nr,nsa)%nstp_max
-            do nstp = 1, nstpmax
-              read(60,rec=i)orbit_p(nth,np,nr,nsa)%time(nstp),orbit_p(nth,np,nr,nsa)%psip(nstp)&
-                            ,orbit_p(nth,np,nr,nsa)%theta(nstp),orbit_p(nth,np,nr,nsa)%thetap(nstp)&
-                            ,orbit_p(nth,np,nr,nsa)%Babs(nstp)
-              i = i+5
-            end do
-          end do
-        end do
-      end do
-    end do
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do np = 1, npmax
-          do nth = 1, nthmax+1
-            nstpmax = orbit_th(nth,np,nr,nsa)%nstp_max
-            do nstp = 1, nstpmax
-              read(60,rec=i)orbit_th(nth,np,nr,nsa)%time(nstp),orbit_th(nth,np,nr,nsa)%psip(nstp)&
-                            ,orbit_th(nth,np,nr,nsa)%theta(nstp),orbit_th(nth,np,nr,nsa)%thetap(nstp)&
-                            ,orbit_th(nth,np,nr,nsa)%Babs(nstp)
-              i = i+5
-            end do
-          end do
-        end do
-      end do
-    end do
-    do nsa = 1, nsamax
-      do nr = 1, nrmax+1
-        do np = 1, npmax
-          do nth = 1, nthmax
-            nstpmax = orbit_r(nth,np,nr,nsa)%nstp_max
-            do nstp = 1, nstpmax
-              read(60,rec=i)orbit_r(nth,np,nr,nsa)%time(nstp),orbit_r(nth,np,nr,nsa)%psip(nstp)&
-                            ,orbit_r(nth,np,nr,nsa)%theta(nstp),orbit_r(nth,np,nr,nsa)%thetap(nstp)&
-                            ,orbit_r(nth,np,nr,nsa)%Babs(nstp)
-              i = i+5
-            end do
-          end do
-        end do
-      end do
-    end do
-
-    close(60)
 
   end subroutine fow_orbit_load
 

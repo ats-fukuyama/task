@@ -99,12 +99,14 @@ CONTAINS
          '@gamma OAM SAK(klamdad,sigma)@',3, &
          MODE_2d=1,NLMAX=nlmax,ASPECT=1.D0,NOINFO=1, &
          LINE_VALUE=line_value,LINE_RGB=line_rgb, LINE_PAT=line_pat, &
-         SCALE_THICKNESS=0.035D0)
+         SCALE_THICKNESS=0.035D0, &
+         XMIN=rkminl,XMAX=rkmaxl,YMIN=sgminl,YMAX=sgmaxl)
     CALL grd2d(2,rkl,sgl,f4,nrkmax,nrkmax,nsgmax, &
          '@gamma OAM JTM(klamdad,sigma)@',3, &
          MODE_2d=1,NLMAX=nlmax,ASPECT=1.D0,NOINFO=1, &
          LINE_VALUE=line_value,LINE_RGB=line_rgb, LINE_PAT=line_pat, &
-         SCALE_THICKNESS=0.035D0)
+         SCALE_THICKNESS=0.035D0, &
+         XMIN=rkminl,XMAX=rkmaxl,YMIN=sgminl,YMAX=sgmaxl)
 !    line_rgb(1,7)=0.D0
 !    line_rgb(2,7)=1.D0
 !    line_rgb(3,7)=0.D0
@@ -123,13 +125,15 @@ CONTAINS
          MODE_2d=3,NLMAX=nlmax,NPMAX=npmax,ASPECT=1.D0,NOINFO=1, &
          LINE_VALUE=line_value,LINE_RGB=line_rgb, LINE_PAT=line_pat, &
          PAINT_VALUE=paint_value,PAINT_RGB=paint_RGB, &
-         SCALE_THICKNESS=0.035D0)
+         SCALE_THICKNESS=0.035D0, &
+         XMIN=rkminl,XMAX=rkmaxl,YMIN=sgminl,YMAX=sgmaxl)
     CALL grd2d(4,rkl,sgl,f4,nrkmax,nrkmax,nsgmax, &
          '@gamma OAM JTM(klamdad,sigma)@',3, &
          MODE_2d=3,NLMAX=nlmax,NPMAX=npmax,ASPECT=1.D0,NOINFO=1, &
          LINE_VALUE=line_value,LINE_RGB=line_rgb, LINE_PAT=line_pat, &
          PAINT_VALUE=paint_value,PAINT_RGB=paint_RGB, &
-         SCALE_THICKNESS=0.035D0)
+         SCALE_THICKNESS=0.035D0, &
+         XMIN=rkminl,XMAX=rkmaxl,YMIN=sgminl,YMAX=sgmaxl)
     DEALLOCATE(line_value,line_rgb,line_pat)
     DEALLOCATE(paint_value,paint_rgb)
     CALL PAGEE

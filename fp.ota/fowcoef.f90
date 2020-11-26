@@ -27,12 +27,15 @@ contains
 
     integer :: nthp, nth, np, nr, nsa
 
-    if ( .not.allocated(FNSBL) ) then
-      allocate(FNSBL(nthmax,npmax,nrmax,nsamax,nthpmax))
-      allocate(Dppl(nthmax,npmax+1,nrmax,nsamax,nthpmax),Dptl(nthmax,npmax+1,nrmax,nsamax,nthpmax))
-      allocate(Dtpl(nthmax+1,npmax,nrmax,nsamax,nthpmax),Dttl(nthmax+1,npmax,nrmax,nsamax,nthpmax))
-      allocate(Fppl(nthmax,npmax+1,nrmax,nsamax,nthpmax),Fthl(nthmax+1,npmax,nrmax,nsamax,nthpmax))
-    end if
+    allocate(FNSBL(nthmax,npmax,nrmax,nsamax,nthpmax))
+    allocate(Dppl(nthmax,npmax+1,nrmax,nsamax,nthpmax),Dptl(nthmax,npmax+1,nrmax,nsamax,nthpmax))
+    allocate(Dtpl(nthmax+1,npmax,nrmax,nsamax,nthpmax),Dttl(nthmax+1,npmax,nrmax,nsamax,nthpmax))
+    allocate(Fppl(nthmax,npmax+1,nrmax,nsamax,nthpmax),Fthl(nthmax+1,npmax,nrmax,nsamax,nthpmax))
+    allocate(theta_p(nthpmax))
+
+    do nthp = 1, nthpmax
+      theta_p(nthp) = (nthp-1)*2.d0*pi/nthpmax
+    end do
 
 
     do nthp = 1, nthpmax
@@ -101,6 +104,9 @@ contains
 
     call bounce_average
 
+    deallocate(Dppl, Dptl, Fppl,Dtpl, Dttl, Fthl)
+    deallocate(FNSBL, theta_p)
+
   end subroutine fow_coef
 
   subroutine bounce_average
@@ -133,13 +139,6 @@ contains
     call first_order_derivative(dFgdpsi, Fpsig, psimg)
     call first_order_derivative(dBmgdpsi(:,1), Boutg, psimg)
     call first_order_derivative(dBmgdpsi(:,2), Bing, psimg)
-
-    ! set spline variable
-    allocate(theta_p(nthpmax))
-
-    do nthp = 1, nthpmax
-      theta_p(nthp) = (nthp-1)*2.d0*pi/nthpmax
-    end do
 
     allocate(U_Dpp(4,4,4,nthmax,nrmax,nthpmax,npmax+1,nsamax))
     allocate(U_Dpt(4,4,4,nthmax,nrmax,nthpmax,npmax+1,nsamax))
@@ -182,10 +181,11 @@ contains
 
             allocate(dIdu(3,3,nstpmax))
 
+            mode = [0,1,0]
             if ( thetam_pg(nth,np,nr,nsa) <= pi/2.d0 ) then
-              call transformation_matrix(dIdu, orbit_p(nth,np,nr,nsa), nth, np, nr, nsa, [0,1,0], dBmdpsi(:,1), dFdpsi)
+              call transformation_matrix(dIdu, orbit_p(nth,np,nr,nsa), nth, np, nr, nsa, mode, dBmdpsi(:,1), dFdpsi)
             else
-              call transformation_matrix(dIdu, orbit_p(nth,np,nr,nsa), nth, np, nr, nsa, [0,1,0], dBmdpsi(:,2), dFdpsi)
+              call transformation_matrix(dIdu, orbit_p(nth,np,nr,nsa), nth, np, nr, nsa, mode, dBmdpsi(:,2), dFdpsi)
             end if
 
             ! time-integral over an orbit then divide poloidal period 
@@ -198,7 +198,7 @@ contains
               cpitch_ob = cos(orbit_p(nth,np,nr,nsa)%theta(nstp))
               psip_ob   = orbit_p(nth,np,nr,nsa)%psip(nstp)
               thetap_ob = orbit_p(nth,np,nr,nsa)%thetap(nstp)
-
+              
               ! calucurate local coefficient along orbit Dxx(p_orbit, theta_orbit, psip_orbit, thetap_orbit)
               call SPL3DF(cpitch_ob,psip_ob,thetap_ob,Dpp_ob,cosm,psim,theta_p&
                           ,U_Dpp(:,:,:,:,:,:,np,nsa),nthmax,nrmax,nthmax,nrmax,nthpmax,IERR)
@@ -247,22 +247,24 @@ contains
         do np = 1, npmax
           do nth = 1, nthmax+1
 
-            if ( nth == nth_co_stg(nsa) .or. nth == nth_cnt_stg(nsa) ) then
+            if ( nth == nth_co_stg(nsa) .or. nth == nth_cnt_stg(nsa) &
+                .or. nth == 1 .or. nth == nthmax+1) then
               Dtpfow(nth,np,nr,nsa) = 0.d0
               Dttfow(nth,np,nr,nsa) = 0.d0
               Dtrfow(nth,np,nr,nsa) = 0.d0
               Fthfow(nth,np,nr,nsa) = 0.d0
-              cycle  
+              cycle
             end if
 
             nstpmax = orbit_th(nth,np,nr,nsa)%nstp_max
 
             allocate(dIdu(3,3,nstpmax))
 
+            mode = [1,0,0]
             if ( thetamg(nth,np,nr,nsa) <= pi/2.d0 ) then
-              call transformation_matrix(dIdu, orbit_th(nth,np,nr,nsa), nth, np, nr, nsa, [1,0,0], dBmdpsi(:,1), dFdpsi)
+              call transformation_matrix(dIdu, orbit_th(nth,np,nr,nsa), nth, np, nr, nsa, mode, dBmdpsi(:,1), dFdpsi)
             else
-              call transformation_matrix(dIdu, orbit_th(nth,np,nr,nsa), nth, np, nr, nsa, [1,0,0], dBmdpsi(:,2), dFdpsi)
+              call transformation_matrix(dIdu, orbit_th(nth,np,nr,nsa), nth, np, nr, nsa, mode, dBmdpsi(:,2), dFdpsi)
             end if
 
             ! time-integral over an orbit then divide poloidal period 
@@ -373,10 +375,11 @@ contains
 
             allocate(dIdu(3,3,nstpmax))
 
+            mode = [0,0,1]
             if ( thetam_rg(nth,np,nr,nsa) <= pi/2.d0 ) then
-              call transformation_matrix(dIdu, orbit_r(nth,np,nr,nsa), nth, np, nr, nsa, [0,0,1], dBmgdpsi(:,1), dFgdpsi)
+              call transformation_matrix(dIdu, orbit_r(nth,np,nr,nsa), nth, np, nr, nsa, mode, dBmgdpsi(:,1), dFgdpsi)
             else
-              call transformation_matrix(dIdu, orbit_r(nth,np,nr,nsa), nth, np, nr, nsa, [0,0,1], dBmgdpsi(:,2), dFgdpsi)
+              call transformation_matrix(dIdu, orbit_r(nth,np,nr,nsa), nth, np, nr, nsa, mode, dBmgdpsi(:,2), dFgdpsi)
             end if
 
             ! time-integral over an orbit then divide poloidal period 
@@ -423,11 +426,11 @@ contains
               Drpfow(nth,np,nr,nsa) = Drpfow(nth,np,nr,nsa)&
                                     + ( Dpp_ob * dIdu(1,3,nstp) + Dpt_ob * dIdu(2,3,nstp) ) * dt
 
-              Drtfow(nth,np,nr,nsa) = Drrfow(nth,np,nr,nsa)&
+              Drtfow(nth,np,nr,nsa) = Drtfow(nth,np,nr,nsa)&
                                     + ( Dpp_ob * dIdu(1,2,nstp)*dIdu(1,3,nstp) + Dpt_ob * dIdu(1,3,nstp)*dIdu(2,2,nstp) &
                                     + Dtp_ob * dIdu(1,2,nstp)*dIdu(2,3,nstp) + Dtt_ob * dIdu(2,2,nstp)*dIdu(2,3,nstp)) * dt
 
-              Drtfow(nth,np,nr,nsa) = Drtfow(nth,np,nr,nsa)&
+              Drrfow(nth,np,nr,nsa) = Drrfow(nth,np,nr,nsa)&
                                     + ( Dpp_ob * dIdu(1,3,nstp)**2 + Dpt_ob * dIdu(1,3,nstp)*dIdu(2,3,nstp) &
                                     + Dtp_ob * dIdu(2,3,nstp)*dIdu(1,3,nstp) + Dtt_ob * dIdu(2,3,nstp)**2) * dt
 
@@ -448,6 +451,10 @@ contains
             Drtfow(nth,np,nr,nsa) = Drtfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) * J_I
             Drrfow(nth,np,nr,nsa) = Drrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) * J_I
             Frrfow(nth,np,nr,nsa) = Frrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) * J_I
+            write(31,'(A,4I4,ES12.4)')'rp',nth,np,nr,nsa,Drpfow(nth,np,nr,nsa)
+            write(31,'(A,4I4,ES12.4)')'rt',nth,np,nr,nsa,Drtfow(nth,np,nr,nsa)
+            write(31,'(A,4I4,ES12.4)')'rr',nth,np,nr,nsa,Drrfow(nth,np,nr,nsa)
+            write(31,'(A,4I4,ES12.4)')'fr',nth,np,nr,nsa,Frrfow(nth,np,nr,nsa)
 
             deallocate(dIdu)
 

@@ -244,7 +244,7 @@ contains
     use fowcomm
     implicit none
     real(rkind),dimension(nthmax,npmax,nrmax,nsamax),intent(in) :: fI_in
-    real(rkind),dimension(nrmax,nsamax),intent(out) :: M0 ! [/m^3]
+    real(rkind),dimension(nrmax,nsamax),intent(out) :: M0
     integer :: nth, np, nr, nsa, nthp
     real(rkind) :: sum_f, dV_r
     real(rkind),allocatable :: fu_l(:,:,:,:,:) 
@@ -252,7 +252,7 @@ contains
     allocate(fu_l(nthmax,npmax,nrmax,nsamax,nthpmax))
 
     call convert_fI_to_fu(fu_l, fI_in)
-    write(*,*)11
+
     do nsa = 1, nsamax
       do nr = 1, nrmax
 
@@ -315,6 +315,5 @@ contains
     deallocate(fu_l)
 
   end subroutine
-
 
 end module fowdistribution

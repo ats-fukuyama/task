@@ -8,13 +8,16 @@ module fowcomm
 
   public
 
+  integer :: model_obload ! 0          : exec TASK/OB anyway and do not save orbit_x to binary files
+                          ! 1[default] : If binary file of 'type(orbit) orbit_x' exists then load member of orbit_x, else exec TASK/OB
+                          ! 2          : load member of orbit_x and deconstruct while exec matrix solver in fow_loop to save memory
+
   integer:: nthpmax,&                                        ! number of poloidal angle grid points
             nthm1,&                                          ! number of theta_m grid points for 0 <= theta_m <= theta_pnc
             nthm2,&                                          ! number of theta_m grid points for theta_pnc <= theta_m <= theta_co_stg
             nthm3                                            ! number of theta_m grid points for theta_cnt_stg <= theta_m <= pi
 
-  real(rkind),allocatable :: FNSI(:,:,:,:),&     ! distribution function in I=(p,thetam,psim) space
-                             Jacobian_I(:,:,:,:) ! dxdydzd(vx)d(vy)d(vz) = Jacobian_I * dpd(thetam)d(psim) normalized by V_phase
+  real(rkind),allocatable :: Jacobian_I(:,:,:,:) ! dxdydzd(vx)d(vy)d(vz) = Jacobian_I * dpd(thetam)d(psim) normalized by V_phase
   real(rkind),allocatable  :: V_phase(:)
 ! COM --------------------------------------------------------------------------------------------------          
   real(rkind),allocatable,dimension(:) :: psim,&                ! maximum poloidal magnetic flux in an orbit, value at half integer grid points
@@ -104,7 +107,7 @@ contains
 
   subroutine fow_allocate
     use fpcomm, only:npmax,nthmax,nrmax,nsamax
-    allocate(FNSI(nthmax,npmax,nrmax,nsamax),Jacobian_I(nthmax,npmax,nrmax,nsamax))
+    allocate(Jacobian_I(nthmax,npmax,nrmax,nsamax))
     allocate(V_phase(nsamax))
     allocate(psim(nrmax),psimg(nrmax+1))
     allocate(thetam(nthmax,npmax,nrmax,nsamax),thetamg(nthmax+1,npmax,nrmax,nsamax))
@@ -147,7 +150,7 @@ contains
   subroutine fow_deallocate
 
     !
-    deallocate(FNSI,Jacobian_I)
+    deallocate(Jacobian_I)
     deallocate(thetam,thetamg)
     deallocate(thetam_pg, thetam_rg)
     ! 
@@ -171,7 +174,7 @@ contains
   end subroutine fow_deallocate
 
   subroutine fow_read_namelist
-    namelist /fow/nthpmax
+    namelist /fow/nthpmax, model_obload
 
     open(11,file="fpparm",status='old',action='read')
     read(11,nml=fow)

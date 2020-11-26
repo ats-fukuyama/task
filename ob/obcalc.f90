@@ -86,7 +86,7 @@ CONTAINS
           omega_bounce1=SQRT(pmu*bb_pos/(PA(ns_ob)*AMP) &
                *RA*SQRT(psipn_in(nobt))/(qps_pos**2*rr_pos**3))
           omega_bounce2=pcangl*SQRT(2.D0*peng/(PA(ns_ob)*AMP))/(qps_pos*rr_pos)
-          WRITE(6,'(A,2ES12.4)') 'omega_bounce=',omega_bounce1,omega_bounce2
+          ! WRITE(6,'(A,2ES12.4)') 'omega_bounce=',omega_bounce1,omega_bounce2
           omega_bounce=MAX(omega_bounce1,ABS(omega_bounce2))
 
     ! --- calculate initial rhopara

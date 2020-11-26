@@ -24,6 +24,9 @@ contains
     real(8),dimension(nmend-nmstart+1):: BM_L
     real(8),dimension(nthmax):: sendbuf_p, recvbuf_p
     real(8),dimension(nthmax*(npend-npstart+1)):: sendbuf_r, recvbuf_r
+    logical,allocatable :: isNOTforbitten(:)
+
+    allocate(isNOTforbitten(nmmax))
 
     NS=NS_NSA(NSA)
 
@@ -66,6 +69,20 @@ contains
         ENDDO
     ENDDO
 
+    do nr = 1, nrmax
+      do np = 1, npmax
+        do nth = 1, nthmax
+          nm = nma(nth,np,nr)
+          if ( nth /= nth_forbitten(nsa) ) then
+            isNOTforbitten(nm) = .true.
+          else
+            isNOTforbitten(nm) = .false.
+          end if
+        end do
+      end do
+    end do
+
+
     !     ----- Calculate matrix coefficients in a row -----
     do nr = 1, nrmax
       do np = 1, npmax
@@ -81,12 +98,16 @@ contains
     do nr = 1, nrmax
       do np = 1, npmax
         do nth = 1, nthmax
+          if ( nth == nth_forbitten(nsa) ) then
+            cycle
+          end if
           nm = nma(nth,np,nr)
           bm(nm) = (Jacobian_I(nth,np,nr,nsa)+(1.d0-rimpl)*delt*dl(nm))*fm(nm) &
                     +delt*spp(nth,np,nr,nsa)*Jacobian_I(nth,np,nr,nsa)
           if(nm.ge.imtxstart.and.nm.le.imtxend) then
             call mtx_set_matrix(nm, nm, Jacobian_I(nth,np,nr,nsa)-rimpl*delt*dl(nm))
             call mtx_set_vector(nm, fm(nm))
+            if(nsa == 2 )write(21,'(A,2I6,ES12.4)') "bm",nm,nm,Jacobian_I(nth,np,nr,nsa)-rimpl*delt*dl(nm)
           ENDIF
         end do
       end do
@@ -98,7 +119,7 @@ contains
       IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
         DO NL=1,NLMAX(NM)
             IF(LL(NM,NL).NE.0) THEN
-              write(*,*)"al",nm,nl,AL(NM,NL)
+              if(nsa == 2)write(21,'(A,2I6,ES12.4)') "al",nm,nl,AL(NM,NL)
               CALL mtx_set_matrix(nm,LL(NM,NL),-RIMPL*DELT*AL(NM,NL))
             ENDIF
         ENDDO
@@ -121,7 +142,7 @@ contains
         ENDIF
       ENDDO
       IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
-        CALL mtx_set_source(nm,BM(NM))
+        if ( isNOTforbitten(nm) )  CALL mtx_set_source(nm,BM(NM))
       ENDIF
     ENDDO
 
@@ -296,6 +317,7 @@ contains
             end if
             fvel = Fppfow(nth,np,nr,nsa)-Dptfow(nth,np,nr,nsa)*dfdth-Dprfow(nth,np,nr,nsa)*dfdr
             weighp(nth,np,nr,nsa) = fowwegh(-delp(ns)*fvel,dpp(nth,np,nr,nsa))
+            ! write(*,'(A,ES12.4,4I6)')"wp",weighp(nth,np,nr,nsa),nth,np,nr,nsa
         end do
       end do
     end do
@@ -349,6 +371,7 @@ contains
           else
             weight(nth,np,nr,nsa) = fowwegh(-delthm(nth-1,np,nr,nsa)*fvel,Dttfow(nth,np,nr,nsa))
           end if
+          ! write(*,'(A,ES12.4,4I6)')"wt",weight(nth,np,nr,nsa),nth,np,nr,nsa
         end do
       end do
     end do
@@ -372,10 +395,10 @@ contains
           width_t = dble(nthl-nthr)
 
           if ( nr == 1 ) then
-            if ( abs(f(nth,np,nr)) > epswt ) then
-              dfdp = (f(nth,npl,1)-f(nth,npr,1))/(width_p*delp(ns)*f(nth,np,1))
-              dfdth= (f(nthl,np,1)-f(nthr,np,1))/(width_t*delthm_rg(nth,np,nr,nsa)*f(nth,np,1))  
-            end if
+            ! if ( abs(f(nth,np,nr)) > epswt ) then
+            !   dfdp = (f(nth,npl,1)-f(nth,npr,1))/(width_p*delp(ns)*f(nth,np,1))
+            !   dfdth= (f(nthl,np,1)-f(nthr,np,1))/(width_t*delthm_rg(nth,np,nr,nsa)*f(nth,np,1))  
+            ! end if
           else if ( nr == nrmax+1 ) then
             if ( abs(f(nth,np,nrmax)) > epswt ) then
               dfdp = (f(nth,npl,nrmax)-f(nth,npr,nrmax))/(width_p*delp(ns)*f(nth,np,nrmax))
@@ -388,10 +411,15 @@ contains
                 (f(nth,npl,nr  )-f(nth,npr,nr  ))/(width_p*delp(ns)*f(nth,np,nr  )) &
               )/2.d0
 
-              dfdth= ( &
-                (f(nthl,np,nr-1)-f(nthr,np,nr-1))/(width_t*delthm_rg(nth,np,nr-1,nsa)*f(nth,np,nr))+&
-                (f(nthl,np,nr  )-f(nthr,np,nr  ))/(width_t*delthm_rg(nth,np,nr  ,nsa)*f(nth,np,nr)) &
-              )/2.d0
+              if ( nr == 2 ) then
+                dfdth= (f(nthl,np,nr)-f(nthr,np,nr))/(width_t*delthm_rg(nth,np,nr,nsa)*f(nth,np,nr))
+              else
+                dfdth= ( &
+                  (f(nthl,np,nr-1)-f(nthr,np,nr-1))/(width_t*delthm_rg(nth,np,nr-1,nsa)*f(nth,np,nr))+&
+                  (f(nthl,np,nr  )-f(nthr,np,nr  ))/(width_t*delthm_rg(nth,np,nr  ,nsa)*f(nth,np,nr)) &
+                )/2.d0
+              end if
+
             else if ( abs(f(nth,np,nr)) > epswt .and. abs(f(nth,np,nr-1)) <= epswt ) then
               dfdp = (f(nth,npl,nr  )-f(nth,npr,nr  ))/(width_p*delp(ns)*f(nth,np,nr))
 
@@ -421,7 +449,7 @@ contains
     IMPLICIT NONE
     real(8):: X, Y, Z
     real(8):: fowwegh
-
+    
     IF(ABS(Y).LT.1.D-70) THEN
         IF(X.GT.0.D0) THEN
           fowwegh=0.D0

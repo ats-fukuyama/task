@@ -17,6 +17,9 @@ contains
     real(rkind) :: dummy, begin_time, end_time
     real(rkind) :: time_v_co, time_v_cnt, dt
     logical :: isCo
+    type(orbit),allocatable,dimension(:,:,:,:) :: orbit_m_, orbit_p_, orbit_r_, orbit_th_
+    allocate(orbit_m_(nthmax,npmax,nrmax,nsamax), orbit_p_(nthmax,npmax+1,nrmax,nsamax)&
+    , orbit_r_(nthmax,npmax,nrmax+1,nsamax), orbit_th_(nthmax+1,npmax,nrmax,nsamax))
 
     call cpu_time(begin_time)
 
@@ -350,24 +353,41 @@ contains
       end do
     end do
 
-    ! call cpu_time(begin_time)
-    ! call fow_orbit_load(flag)
-    ! call cpu_time(end_time)
-    ! write(*,*)"load time:",end_time-begin_time,"[sec]"
+    if ( model_obload >= 1 ) then
+      call cpu_time(begin_time)
+      call fow_orbit_load(flag)
+      call cpu_time(end_time)
+      write(*,*)"Load orbit_x time :",end_time-begin_time,"[sec]"  
 
-    call cpu_time(begin_time)
-    call fow_orbit_construct(orbit_m) 
-    call fow_orbit_construct(orbit_th)
-    call fow_orbit_construct(orbit_p) 
-    call fow_orbit_construct(orbit_r) 
-    call cpu_time(end_time)
-    write(*,*)"task/ob time:",end_time-begin_time,"[sec]"
+      if ( flag /= 0 ) then
+        if ( flag == 1 ) write(*,*)"Device parameter does not match with bin/eqparm.dat."
+        if ( flag == 2 ) write(*,*)"Numerical grid sizes do not match with bin/fpparm.dat."
+        if ( flag == 3 ) write(*,*)"Binary files for orbit_x do not exist in bin ."
+        write(*,*)"Execute TASK/OB to construct orbit_x"
+        call cpu_time(begin_time)
+        call fow_orbit_construct(orbit_m) 
+        call fow_orbit_construct(orbit_th)
+        call fow_orbit_construct(orbit_p) 
+        call fow_orbit_construct(orbit_r) 
+        call cpu_time(end_time)
+        write(*,*)"TASK/OB time:",end_time-begin_time,"[sec]"
 
-    call cpu_time(begin_time)
-    call fow_orbit_save
-    call cpu_time(end_time)
-    write(*,*)"save time:",end_time-begin_time,"[sec]"
+        call cpu_time(begin_time)
+        call fow_orbit_save
+        call cpu_time(end_time)
+        write(*,*)"Save orbit_x time:",end_time-begin_time,"[sec]"  
+  
+      end if
 
+    else
+      call cpu_time(begin_time)
+      call fow_orbit_construct(orbit_m) 
+      call fow_orbit_construct(orbit_th)
+      call fow_orbit_construct(orbit_p) 
+      call fow_orbit_construct(orbit_r) 
+      call cpu_time(end_time)
+      write(*,*)"TASK/OB time:",end_time-begin_time,"[sec]"  
+    end if
 
     ! calculate the boundary flux partition
     do nsa = 1, nsamax
@@ -427,9 +447,6 @@ contains
     end do
 
     call calculate_jacobian
-
-    imtxwidth = nthmax*npmax*nrmax-(nthm1-2+nthm3-2)
-
 
   end subroutine fow_prep
 
@@ -875,8 +892,8 @@ contains
 
       V_v = 4.d0/3.d0*pi*Vmax**3
       V_x = (pi*ra**2)*(2.d0*pi*rr)
-      V_phase(nsa) = V_x*V_v
-      ! V_phase(nsa) = 1.d0
+      ! V_phase(nsa) = V_x*V_v
+      V_phase(nsa) = 1.d0
 
     end do
 
