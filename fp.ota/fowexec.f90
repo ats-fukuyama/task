@@ -98,14 +98,11 @@ contains
     do nr = 1, nrmax
       do np = 1, npmax
         do nth = 1, nthmax
-          if ( nth == nth_forbitten(nsa) ) then
-            cycle
-          end if
           nm = nma(nth,np,nr)
           bm(nm) = (Jacobian_I(nth,np,nr,nsa)+(1.d0-rimpl)*delt*dl(nm))*fm(nm) &
                     +delt*spp(nth,np,nr,nsa)*Jacobian_I(nth,np,nr,nsa)
           if(nm.ge.imtxstart.and.nm.le.imtxend) then
-            call mtx_set_matrix(nm, nm, Jacobian_I(nth,np,nr,nsa)-rimpl*delt*dl(nm))
+            call mtx_set_matrix(nm, nm, (Jacobian_I(nth,np,nr,nsa)-rimpl*delt*dl(nm))*1.d-15)
             call mtx_set_vector(nm, fm(nm))
             if(nsa == 2 )write(21,'(A,2I6,ES12.4)') "bm",nm,nm,Jacobian_I(nth,np,nr,nsa)-rimpl*delt*dl(nm)
           ENDIF
@@ -119,8 +116,8 @@ contains
       IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
         DO NL=1,NLMAX(NM)
             IF(LL(NM,NL).NE.0) THEN
-              if(nsa == 2)write(21,'(A,2I6,ES12.4)') "al",nm,nl,AL(NM,NL)
-              CALL mtx_set_matrix(nm,LL(NM,NL),-RIMPL*DELT*AL(NM,NL))
+              if(nsa == 2)write(21,'(A,2I6,ES12.4)') "al",nm,LL(NM,NL),AL(NM,NL)
+              CALL mtx_set_matrix(nm,LL(NM,NL),(-RIMPL*DELT*AL(NM,NL))*1.d-15)
             ENDIF
         ENDDO
       ENDIF
@@ -142,7 +139,7 @@ contains
         ENDIF
       ENDDO
       IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
-        if ( isNOTforbitten(nm) )  CALL mtx_set_source(nm,BM(NM))
+         CALL mtx_set_source(nm,BM(NM)*1.d-15)
       ENDIF
     ENDDO
 

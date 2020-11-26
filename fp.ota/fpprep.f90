@@ -569,7 +569,7 @@
       ELSE
          imtxwidth=4*nthmax*npmax-1
       ENDIF
-      imtxwidth=npmax*nthmax*nrmax
+      imtxwidth=npmax*nthmax*nrmax*2-1
 !      CALL mtx_set_communicator(comm_nr)! 2D
       CALL mtx_set_communicator(comm_nrnp)! 3D
       CALL mtx_setup(imtxsize,imtxstart,imtxend,imtxwidth)

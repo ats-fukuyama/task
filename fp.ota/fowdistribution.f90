@@ -316,4 +316,23 @@ contains
 
   end subroutine
 
+  ! subroutine fow_total_prticle(N,nsa)
+  !   use fpcomm
+  !   use fowcomm
+  !   implicit none
+  !   integer,intent(in) :: nsa
+  !   real(rkind),intent(out) :: N
+  !   real(rkind) :: sum, delps
+  !   integer :: nth,np,nr,nsa
+
+  ! !   do nr = 1, nrmax
+  ! !     delps = psimg(nr+1)-psimg(nr)
+  ! !     do np = 1, npmax
+  ! !       do nth = 1, nthmax
+  ! !         sum = sum + delps*delp(nsa)*delthm(nth,np,nr,nsa)*fnsp(nth,np,nr,nsa)*Jacobian_I(nth,np,nr,nsa)*V_p
+  ! !       end do
+  ! !     end do
+  ! !   end do
+  ! end subroutine fow_total_prticle
+
 end module fowdistribution

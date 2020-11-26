@@ -325,10 +325,14 @@ contains
 
             if ( nth == nth_co_stg(nsa) ) then
               J_I = Jacobian_I(nth-1,np,nr,nsa)
+              J_I = J_I*orbit_th(nth,np,nr,nsa)%time(nstpmax)/orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)
             else if ( nth == nth_cnt_stg(nsa) ) then
               J_I = Jacobian_I(nth,np,nr,nsa)
+              J_I = J_I*orbit_th(nth,np,nr,nsa)%time(nstpmax)/orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max)
             else if ( nth == nth_pnc(nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
-              J_I = MAX(Jacobian_I(nth-1,np,nr,nsa),Jacobian_I(nth,np,nr,nsa),Jacobian_I(nth+1,np,nr,nsa))
+              J_I = (Jacobian_I(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
+                    +Jacobian_I(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
+                    *0.5d0*orbit_th(nth,np,nr,nsa)%time(nstpmax)
             else if ( nth == 1 ) then
               J_I = Jacobian_I(nth,np,nr,nsa)
             else if ( nth == nthmax+1 ) then

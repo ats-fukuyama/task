@@ -892,8 +892,8 @@ contains
 
       V_v = 4.d0/3.d0*pi*Vmax**3
       V_x = (pi*ra**2)*(2.d0*pi*rr)
-      ! V_phase(nsa) = V_x*V_v
-      V_phase(nsa) = 1.d0
+      V_phase(nsa) = V_x*V_v
+      ! V_phase(nsa) = 1.d0
 
     end do
 
