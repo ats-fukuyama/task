@@ -247,8 +247,7 @@ contains
         do np = 1, npmax
           do nth = 1, nthmax+1
 
-            if ( nth == nth_co_stg(nsa) .or. nth == nth_cnt_stg(nsa) &
-                .or. nth == 1 .or. nth == nthmax+1) then
+            if ( nth == 1 .or. nth == nthmax+1) then
               Dtpfow(nth,np,nr,nsa) = 0.d0
               Dttfow(nth,np,nr,nsa) = 0.d0
               Dtrfow(nth,np,nr,nsa) = 0.d0
