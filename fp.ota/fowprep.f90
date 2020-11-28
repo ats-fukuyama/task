@@ -13,13 +13,12 @@ contains
     implicit none
 
     type(orbit) :: orbit_pnc
-    integer :: nth, np, nr, nsa, ierr = 0, flag, nstp, nstpmax, ir
+    integer :: nth, np, nr, nsa, ierr = 0, flag, nstp, nstpmax, ir, nthp
     real(rkind) :: dummy, begin_time, end_time
     real(rkind) :: time_v_co, time_v_cnt, dt
     logical :: isCo
-    type(orbit),allocatable,dimension(:,:,:,:) :: orbit_m_, orbit_p_, orbit_r_, orbit_th_
-    allocate(orbit_m_(nthmax,npmax,nrmax,nsamax), orbit_p_(nthmax,npmax+1,nrmax,nsamax)&
-    , orbit_r_(nthmax,npmax,nrmax+1,nsamax), orbit_th_(nthmax+1,npmax,nrmax,nsamax))
+    real(rkind) :: thetaml, psiml, tau_loss, momentum, pitch_angle, theta_pol, psi_pol
+
 
     call cpu_time(begin_time)
 
@@ -31,6 +30,13 @@ contains
 
     ! load equiliblium variable
     call fow_eqload(ierr)
+    do nr = 1, nrmax
+      delps(nr) = psimg(nr+1)-psimg(nr)
+    end do
+
+    do nthp = 1, nthpmax
+      theta_p(nthp) = (nthp-1)*2.d0*pi/nthpmax
+    end do
 
     ! calculate thetam
     nthm3 = nthmax/2
@@ -353,41 +359,7 @@ contains
       end do
     end do
 
-    if ( model_obload >= 1 ) then
-      call cpu_time(begin_time)
-      call fow_orbit_load(flag)
-      call cpu_time(end_time)
-      write(*,*)"Load orbit_x time :",end_time-begin_time,"[sec]"  
-
-      if ( flag /= 0 ) then
-        if ( flag == 1 ) write(*,*)"Device parameter does not match with bin/eqparm.dat."
-        if ( flag == 2 ) write(*,*)"Numerical grid sizes do not match with bin/fpparm.dat."
-        if ( flag == 3 ) write(*,*)"Binary files for orbit_x do not exist in bin ."
-        write(*,*)"Execute TASK/OB to construct orbit_x"
-        call cpu_time(begin_time)
-        call fow_orbit_construct(orbit_m) 
-        call fow_orbit_construct(orbit_th)
-        call fow_orbit_construct(orbit_p) 
-        call fow_orbit_construct(orbit_r) 
-        call cpu_time(end_time)
-        write(*,*)"TASK/OB time:",end_time-begin_time,"[sec]"
-
-        call cpu_time(begin_time)
-        call fow_orbit_save
-        call cpu_time(end_time)
-        write(*,*)"Save orbit_x time:",end_time-begin_time,"[sec]"  
-  
-      end if
-
-    else
-      call cpu_time(begin_time)
-      call fow_orbit_construct(orbit_m) 
-      call fow_orbit_construct(orbit_th)
-      call fow_orbit_construct(orbit_p) 
-      call fow_orbit_construct(orbit_r) 
-      call cpu_time(end_time)
-      write(*,*)"TASK/OB time:",end_time-begin_time,"[sec]"  
-    end if
+    call fow_orbit(ierr)
 
     ! calculate the boundary flux partition
     do nsa = 1, nsamax
@@ -447,6 +419,36 @@ contains
     end do
 
     call calculate_jacobian
+
+    ! calculate local COMs
+    call load_local_COM(ierr)
+    if ( ierr /= 0 ) then
+      call fow_set_obparm(ierr)
+      do nsa = 1, nsamax
+        do nthp = 1, nthpmax
+          do nr = 1, nrmax
+            do np = 1, npmax
+              do nth = 1, nthmax
+                momentum = pm(np,nsa)*ptfp0(nsa)
+                pitch_angle = thm(nth)
+                theta_pol = theta_p(nthp)
+                psi_pol = psim(nr)
+  
+                call fow_cal_local_COMs(thetaml, psiml, tau_loss, momentum, pitch_angle, theta_pol, psi_pol, nsa)
+  
+                thetam_local(nth,np,nr,nthp,nsa) = thetaml
+                psim_local(nth,np,nr,nthp,nsa) = psiml
+                time_loss(nth,np,nr,nthp,nsa) = tau_loss
+  
+              end do
+            end do
+          end do
+        end do
+      end do
+
+      call save_local_COM(ierr)
+  
+    end if
 
   end subroutine fow_prep
 
@@ -868,6 +870,125 @@ contains
 
   end subroutine get_p_stg
 
+  subroutine save_local_COM(ierr)
+    use fpcomm
+    use fowcomm
+    implicit none
+    integer,intent(out) :: ierr
+    character(30) :: BIN_DIR, filename
+    integer :: nm, nth, np, nr, nsa, nthp
+
+    BIN_DIR = "../fp.ota/bin/"
+
+    filename = TRIM(BIN_DIR)//"psim_local.bin"
+    open(20, file=filename,access='direct',recl=rkind,form='unformatted',status='replace',iostat=ierr)
+
+    filename = TRIM(BIN_DIR)//"thetam_local.bin"
+    open(21, file=filename,access='direct',recl=rkind,form='unformatted',status='replace',iostat=ierr)
+
+    filename = TRIM(BIN_DIR)//"time_loss.bin"
+    open(22, file=filename,access='direct',recl=rkind,form='unformatted',status='replace',iostat=ierr)
+
+    do nsa = 1, nsamax
+      do nthp = 1, nthpmax
+        do nr = 1, nrmax
+          do np = 1, npmax
+            do nth = 1, nthmax
+              nm = (nsa-1)*nthpmax*nrmax*npmax*nthmax &
+                  +(nthp-1)*nrmax*npmax*nthmax &
+                  +(nr-1)*npmax*nthmax &
+                  +(np-1)*nthmax * nth
+
+              write(20,rec=nm,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
+              write(21,rec=nm,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
+              write(22,rec=nm,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
+            end do
+          end do
+        end do
+      end do
+    end do
+
+  end subroutine save_local_COM
+
+  subroutine load_local_COM(ierr)
+    use fpcomm
+    use fowcomm
+    implicit none
+    integer,intent(out) :: ierr
+    character(30) :: BIN_DIR, filename
+    integer :: nm, nth, np, nr, nsa, nthp, access
+    integer :: nthm_, npm_, nrm_, nsam_, nthpm_
+    real(rkind) :: RR_, RA_, RKAP_, RDLT_, RB_, BB_, RIP_
+
+    ierr = 0
+
+    BIN_DIR = "./bin/"
+    if ( access( TRIM(BIN_DIR)//"fpparm.dat", " ") /= 0 .and. access( TRIM(BIN_DIR)//"eqparm.dat", " ") ) then
+      ierr = 3
+      return
+    end if
+
+    filename = TRIM(BIN_DIR)//"eqparm.dat"
+    open(10, file=filename,access='direct',recl=rkind,form='unformatted',status='old',iostat=ierr)
+    read(10,rec=1,iostat=ierr)RR_
+    read(10,rec=2,iostat=ierr)RA_
+    read(10,rec=3,iostat=ierr)RKAP_
+    read(10,rec=4,iostat=ierr)RDLT_
+    read(10,rec=5,iostat=ierr)RB_
+    read(10,rec=6,iostat=ierr)BB_
+    read(10,rec=7,iostat=ierr)RIP_
+    close(10)
+
+    filename = TRIM(BIN_DIR)//"fpparm.dat"
+    open(11, file=filename,access='direct',recl=4,form='unformatted',status='old',iostat=ierr)
+    read(11,rec=1,iostat=ierr)nthm_ 
+    read(11,rec=2,iostat=ierr)npm_
+    read(11,rec=3,iostat=ierr)nrm_ 
+    read(11,rec=4,iostat=ierr)nsam_
+    read(11,rec=5,iostat=ierr)nthpm_
+    close(11)
+
+    if ( RR /= RR_ .or. RA /= RA_ .or. RKAP /= RKAP_ &
+        .or. RDLT /= RDLT_ .or. RB /= RB_ .or. BB /= BB_ .or. RIP /= RIP_) then
+      ierr = 1
+    end if
+    if ( nthmax /= nthm_ .or. npmax /= npm_ &
+        .or. nrmax /= nrm_ .or. nsamax /= nsam_ .or. nthpmax /= nthpm_ ) then
+      ierr = 2
+    end if
+
+    filename = TRIM(BIN_DIR)//"psim_local.bin"
+    open(20, file=filename,access='direct',recl=rkind,form='unformatted',status='old',iostat=ierr)
+
+    filename = TRIM(BIN_DIR)//"thetam_local.bin"
+    open(21, file=filename,access='direct',recl=rkind,form='unformatted',status='old',iostat=ierr)
+
+    filename = TRIM(BIN_DIR)//"time_loss.bin"
+    open(22, file=filename,access='direct',recl=rkind,form='unformatted',status='old',iostat=ierr)
+
+    if ( ierr /= 0 ) return
+
+    do nsa = 1, nsamax
+      do nthp = 1, nthpmax
+        do nr = 1, nrmax
+          do np = 1, npmax
+            do nth = 1, nthmax
+              nm = (nsa-1)*nthpmax*nrmax*npmax*nthmax &
+                  +(nthp-1)*nrmax*npmax*nthmax &
+                  +(nr-1)*npmax*nthmax &
+                  +(np-1)*nthmax * nth
+
+              read(20,rec=nm,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
+              read(21,rec=nm,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
+              read(22,rec=nm,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
+            end do
+          end do
+        end do
+      end do
+    end do
+
+  end subroutine load_local_COM
+
   subroutine calculate_jacobian
     ! calculate Jacabian_I(nth,np,nr,nsa)
 
@@ -927,14 +1048,12 @@ contains
             J_z2I = abs( J_z2I )
 
             Jacobian_I(nth,np,nr,nsa) = J_x2z * J_z2I
-            Jacobian_I(nth,np,nr,nsa) = Jacobian_I(nth,np,nr,nsa) / V_phase(nsa)
+            Jacobian_I(nth,np,nr,nsa) = Jacobian_I(nth,np,nr,nsa)
 
           end do
         end do
       end do
     end do
-
-
 
   end subroutine calculate_jacobian
 

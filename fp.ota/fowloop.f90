@@ -18,7 +18,7 @@ contains
     real(rkind) :: deps, sumF0, sumFd
     logical :: iteration_flag
 
-    call fow_distribution_maxwellian_inCOM(fnsp)
+    call fow_Maxwellian_COM(fnsp)
     call update_quantities
     call fow_coef
     call fow_calculate_source  
@@ -69,6 +69,7 @@ contains
           do nr = 1, nrmax
             do np = 1, npmax
               do nth = 1, nthmax
+                write(41,'(A,4I3,2ES12.4)')"F",nth,np,nr,nsa,fnsp(nth,np,nr,nsa),fns0(nth,np,nr,nsa)
                 fnsp(nth,np,nr,nsa) = fns0(nth,np,nr,nsa)
               end do
             end do

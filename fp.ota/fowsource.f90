@@ -3,10 +3,11 @@ module fowsource
   public :: fow_calculate_source
 
   type beam_quantities
+    logical :: isLoss
     integer :: id, np_near
     double precision :: p, psip, psipw, delps, E, thetap, &
                         costh, sinth, total, B, F
-    double precision :: mu, Pzeta, psimw, thetamw, psim, thetam
+    double precision :: psimw, thetamw, psim, thetam
   end type beam_quantities
 
   double precision,allocatable :: dBdpsip(:,:), dBdthp(:,:), dpsipdr(:)
@@ -80,10 +81,20 @@ contains
                             SPBRW(nb), SPBENG(nb), SPBANG(nb), SPBPANG(nb))
 
       call calculate_beam_COMs(beam)
-      write(*,*)"beam_COM",beam%psim,beam%thetam
+
+      if ( PMAX(beam%id) < beam%p ) then
+        write(*,*)"Beam's momentum > PMAX  "
+        cycle
+      end if
+  
+      if ( beam%isLoss ) then
+        write(*,*)"Beam's COM is in the loss region. "
+        write(*,*)"psim",beam%psim
+        write(*,*)"thetam",beam%thetam
+        cycle
+      end if
 
       call calculate_beam_COMs_width(beam)
-      write(*,*)"beam_COM",beam%psim,beam%thetam
 
       sum_S_beam = 0.d0
       do nr = 1, nrmax
@@ -105,7 +116,7 @@ contains
 
               dV = delthm(nth,np,nr,beam%id)*delp(beam%id)*(psimg(nr+1)-psimg(nr))
               sum_S_beam = sum_S_beam + S_beam(nth,np,nr,beam%id,nb)*dV &
-                                        *Jacobian_I(nth,np,nr,beam%id)*V_phase(beam%id)
+                                        *Jacobian_I(nth,np,nr,beam%id)
             else
               S_beam(nth,np,nr,beam%id,nb) = 0.d0
             end if
@@ -113,7 +124,7 @@ contains
         end do
       end do
       
-      normalize = beam%total / sum_S_beam
+      normalize = beam%total / sum_S_beam * ptfp0(beam%id)
       do nr = 1, nrmax
         do np = 1, npmax
           do nth = 1, nthmax
@@ -155,7 +166,7 @@ contains
 
                 dV = delthm(nth,np,nr,beam%id)*delp(beam%id)*(psimg(nr+1)-psimg(nr))
                 sum_S_beam = sum_S_beam + S_beam(nth,np,nr,beam%id,nb)*dV &
-                                          *Jacobian_I(nth,np,nr,beam%id)*V_phase(beam%id)
+                                          *Jacobian_I(nth,np,nr,beam%id)
               else
                 S_beam(nth,np,nr,beam%id,nb) = 0.d0
               end if
@@ -163,7 +174,7 @@ contains
           end do
         end do
           
-        normalize = beam%total / sum_S_beam
+        normalize = beam%total / sum_S_beam * ptfp0(beam%id)
         do nr = 1, nrmax
           do np = 1, npmax
             do nth = 1, nthmax
@@ -210,95 +221,39 @@ contains
     call fow_cal_spl2D(construct_beam%B, construct_beam%psip, construct_beam%thetap, Babs, psimg, thetap)
     call fow_cal_spl(construct_beam%F, construct_beam%psip, Fpsig, psimg)
 
-    construct_beam%mu = construct_beam%E*construct_beam%sinth**2/construct_beam%B
-    construct_beam%Pzeta = construct_beam%F/construct_beam%B*construct_beam%p*construct_beam%costh&
-                          -aefp(NS)*construct_beam%psip
-
     construct_beam%total = TOT
   end function
 
   subroutine calculate_beam_COMs(beam)
-
-    use plinit
-    use obcomm
-    use obinit
-    use obparm
-    use obprep
-    use obcalc
-
-    use fowcomm,only:psi0fp => psi0,fow_cal_spl
-    use fpcomm,only:pmfp => pm, ipmax =>npmax, ptfp0, ithmax => nthmax
+    use fpcomm
+    use fowcomm
+    use foworbit
 
     implicit none
     type(beam_quantities),intent(inout) :: beam
-    integer :: nstp, nmax, i, im, ip, ierr = 0
-    real(rkind),allocatable :: theta_ob_tmp(:), psip_ob_tmp(:), vpara_ob_tmp(:), vperp_ob_tmp(:)
-    real(rkind) :: psimax, n_psim, cthm, vparam, vperpm &
-                  ,diff_thetap_min, diff_thetap, thetap_eq(6)
+    real(rkind) :: thetaml, psiml, tau_loss
+    integer :: ip, ierr
 
-    call ob_init
-    call ob_parm(1,'../fp.ota/fpparm',ierr)
-    call ob_prep(ierr)
-    ns_ob = beam%id
-    nobt_max = 1
-    call ob_allocate
-    pcangle_in(1) = beam%costh
-    penergy_in(1) = beam%E/aee/1.0d3
-    psipn_in(1)   = beam%psip/psi0fp
-    theta_in(1)   = beam%thetap*180.d0/pi
-    zeta_in(1)    = 0.d0
 
-    call ob_calc(ierr)
+    call fow_set_obparm(ierr)
+    call fow_cal_local_COMs(thetaml, psiml, tau_loss, beam%p, ACOS( beam%costh ), beam%thetap, beam%psip, beam%id)
+    beam%thetam = thetaml
+    beam%psim   = psiml
 
-    psimax = -1.d0
-    do nstp = 0, nstp_max_nobt(1)
-      if ( psip_ob(nstp,1) >= psimax ) then
-        psimax = psip_ob(nstp,1)
-        nmax = nstp
-      end if
-    end do
-
-    if ( ABS( theta_ob(nmax,1) ) <= pi/dble(2*ithmax) ) then
-      beam%psim = psip_ob(nmax,1)
-      cthm = vpara_ob(nmax,1)/SQRT( vpara_ob(nmax,1)**2 + vperp_ob(nmax,1)**2 )
-      beam%thetam = ACOS( cthm )
-
+    if ( tau_loss == 0 ) then
+      beam%isLoss = .false.
     else
-      allocate(theta_ob_tmp(0:nmax), psip_ob_tmp(0:nmax), vpara_ob_tmp(0:nmax), vperp_ob_tmp(0:nmax))
-      do nstp = 0, nmax
-        theta_ob_tmp(nstp) = theta_ob(nstp,1)
-        psip_ob_tmp(nstp)  = psip_ob(nstp,1)
-        vpara_ob_tmp(nstp) = vpara_ob(nstp,1)
-        vperp_ob_tmp(nstp) = vperp_ob(nstp,1)
-      end do
-
-      ! search poloidal angle where psip = psim.  (psim occurs on the equater.)
-      thetap_eq = [-2.d0*pi, -1.d0*pi, 0.d0, pi, 2.d0*pi, 3.d0*pi]
-      diff_thetap_min = 1.d8
-      do i = 1, 6
-        diff_thetap = ABS( thetap_eq(i)-theta_ob(nmax,1) )
-        if ( diff_thetap < diff_thetap_min ) then
-          diff_thetap_min = diff_thetap
-          im = i
-        end if
-      end do
-
-      call fow_cal_spl(beam%psim, thetap_eq(im), psip_ob_tmp, theta_ob_tmp)
-      call fow_cal_spl(vparam, thetap_eq(im), vpara_ob_tmp, theta_ob_tmp)
-      call fow_cal_spl(vperpm, thetap_eq(im), vperp_ob_tmp, theta_ob_tmp)
-      
-      cthm = vparam / SQRT( vparam**2+vperpm**2 )
-      beam%thetam = ACOS( cthm )
-
+      beam%isLoss = .true.
     end if
 
     ! search nearest np to the momentum of beam particle
-    do ip = 1, ipmax
-      if ( pmfp(ip,beam%id)*ptfp0(beam%id) >= beam%p ) then
+    do ip = 1, npmax
+      if ( pg(ip,beam%id) <= beam%p/ptfp0(beam%id) .and. beam%p/ptfp0(beam%id) < pg(ip+1,beam%id) ) then
         beam%np_near = ip
         exit
       end if
     end do
+
 
   end subroutine calculate_beam_COMs
 
@@ -315,7 +270,7 @@ contains
     real(rkind) :: cthm, sthm, pl, Bm_, Fm_, dBm, dFm
     real(rkind) :: C(2,2), v_ps(2), v_th(2), det
 
-
+    
     call fow_cal_spl(dFdpsipl,beam%psip,dFdpsip,psim)
     call fow_cal_spl2D(dBdpsipl, beam%psip, beam%thetap, dBdpsip, psimg, thetap)
     call fow_cal_spl2D(dBdthpl, beam%psip, beam%thetap, dBdthp, psimg, thetap)
@@ -372,32 +327,5 @@ contains
     beam%thetamw = ABS( dthmdpsip  * beam%psipw ) ! + dthmdthp*beam%thetapw
 
   end subroutine calculate_beam_COMs_width
-
-  subroutine fow_cal_spl2D(f_out, x_in, y_in, f, x, y)
-    ! 2D-version of fow_cal_spl
-    use fpcomm,only:rkind
-
-    implicit none
-    real(rkind),intent(out) :: f_out
-    real(rkind),intent(in) :: x_in, y_in, f(:,:), x(:), y(:)
-    integer :: i, j, imax, jmax, ierr = 0
-    real(rkind),allocatable :: U(:,:,:,:), fx(:,:), fy(:,:) , fxy(:,:)
-
-    imax = size(x)
-    jmax = size(y)
-
-    allocate(U(4,4,imax,jmax),fx(imax,jmax),fy(imax,jmax),fxy(imax,jmax))
-
-    if ( size(f,1) /= imax &
-        .or. size(f,2) /= jmax ) then
-      write(*,*)"error at fow_cal_spl2D"
-      STOP
-    end if
-
-    call SPL2D(x,y,f,fx,fy,fxy,U,imax,imax,jmax,0,0,IERR)
-
-    call SPL2DF(x_in,y_in,f_out,x,y,U,imax,imax,jmax,ierr)
-
-  end subroutine
 
 end module fowsource

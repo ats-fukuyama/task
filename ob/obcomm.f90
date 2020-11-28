@@ -23,7 +23,8 @@ MODULE obcomm_parm
        mdlobt, &              ! model id of time normalization
        mdlobc, &              ! model id of cycle (0: not cycle, 1: one cycle)
        mdlobw, &              ! model id of output interval
-       mdlobg                 ! model id of graphics
+       mdlobg, &              ! model id of graphics
+       mdlobx                 ! model id of wall  (0: calculate only inside the wall)
   REAL(rkind) &
        tmax, &                ! maximum of orbit following time in omega_bounce
        delt, &                ! time step size in onega_bounce

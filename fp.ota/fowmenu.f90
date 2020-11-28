@@ -13,6 +13,7 @@ CONTAINS
     use foworbit
     use foworbitclassify
     use fowdistribution
+    use fowloop
 
     USE fpcomm,ONLY: PM,FNS0
     USE fpparm
@@ -52,41 +53,7 @@ CONTAINS
        call fow_allocate
        call fow_prep
 
-       call fow_orbit_construct(orbit_m)
-
-       allocate(fu(npmax,nthmax,nrmax,nsamax), &
-            fI(npmax,nthmax,nrmax,nsamax), &
-            J(npmax,nthmax,nrmax,nsamax))
-       do nsa = 1, nsamax
-          do nr = 1, nrmax
-             do nth = 1, nthmax
-                do np = 1, npmax
-                   fu(np,nth,nr,nsa)=FPMXWL(PM(NP,NSA),NR,NSA)
-                end do
-             end do
-          end do
-       end do
-       call fpcsv2D(fu(:,:,1,1),"./csv/fu.csv")
-     
-       do nr = 1, nrmax
-          write(*,*)"FNS0",FNS0(1,1,NR,2)
-       end do
-
-       call fow_distribution_maxwellian_inCOM(fI)
-       call fpcsv2D(fI(:,:,2,2),"./csv/fI_center.csv")
-       call fpcsv2D(fI(:,:,nrmax,2),"./csv/fI_edge.csv")
-       call fpcsv2D(fI(:,:,nrmax/2,2),"./csv/fI_quarter.csv")
-       call fpcsv1D(fI(:,nthmax/4,nrmax/2,2),"./csv/fInth4.csv")
-       call fpcsv1D(fI(:,nthmax/3,nrmax/2,2),"./csv/fInth3.csv")
-       call fpcsv1D(fI(:,1,nrmax/2,2),"./csv/fInth0.csv")
-
-    ! write(*,*)"1"
-    ! call fow_orbit_jacobian(J,orbit_m)
-    ! write(*,*)"2"
-    ! call fpcsv2D(J(:,:,1,1),"./csv/J.csv")
-
-       write(*,*)"debug"
-       call fow_debug
+       call fow_loop
 
        write(*,*)"end"
        call fow_deallocate

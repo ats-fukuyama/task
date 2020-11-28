@@ -27,28 +27,22 @@ contains
 
     integer :: nthp, nth, np, nr, nsa
 
-    allocate(FNSBL(nthmax,npmax,nrmax,nsamax,nthpmax))
-    allocate(Dppl(nthmax,npmax+1,nrmax,nsamax,nthpmax),Dptl(nthmax,npmax+1,nrmax,nsamax,nthpmax))
-    allocate(Dtpl(nthmax+1,npmax,nrmax,nsamax,nthpmax),Dttl(nthmax+1,npmax,nrmax,nsamax,nthpmax))
-    allocate(Fppl(nthmax,npmax+1,nrmax,nsamax,nthpmax),Fthl(nthmax+1,npmax,nrmax,nsamax,nthpmax))
-    allocate(theta_p(nthpmax))
+    allocate(FNSBL(nthmax,npmax,nrmax,nthpmax,nsamax))
+    allocate(Dppl(nthmax,npmax+1,nrmax,nthpmax,nsamax),Dptl(nthmax,npmax+1,nrmax,nthpmax,nsamax))
+    allocate(Dtpl(nthmax+1,npmax,nrmax,nthpmax,nsamax),Dttl(nthmax+1,npmax,nrmax,nthpmax,nsamax))
+    allocate(Fppl(nthmax,npmax+1,nrmax,nthpmax,nsamax),Fthl(nthmax+1,npmax,nrmax,nthpmax,nsamax))
 
-    do nthp = 1, nthpmax
-      theta_p(nthp) = (nthp-1)*2.d0*pi/nthpmax
-    end do
-
-
-    do nthp = 1, nthpmax
-      do nsa = 1, nsamax
+    do nsa = 1, nsamax
+      do nthp = 1, nthpmax
         do nr = 1, nrmax
           do np = 1, npmax
             do nth = 1, nthmax
-              Dppl(nth,np,nr,nsa,nthp) = 0.d0
-              Dptl(nth,np,nr,nsa,nthp) = 0.d0
-              Dtpl(nth,np,nr,nsa,nthp) = 0.d0
-              Dttl(nth,np,nr,nsa,nthp) = 0.d0
-              Fppl(nth,np,nr,nsa,nthp) = 0.d0
-              Fthl(nth,np,nr,nsa,nthp) = 0.d0
+              Dppl(nth,np,nr,nthp,nsa) = 0.d0
+              Dptl(nth,np,nr,nthp,nsa) = 0.d0
+              Dtpl(nth,np,nr,nthp,nsa) = 0.d0
+              Dttl(nth,np,nr,nthp,nsa) = 0.d0
+              Fppl(nth,np,nr,nthp,nsa) = 0.d0
+              Fthl(nth,np,nr,nthp,nsa) = 0.d0
             end do
           end do
         end do
@@ -58,7 +52,7 @@ contains
     ! get local distribution function f(p,theta,r/a,thetap)
     call convert_fI_to_fu(FNSBL, FNSP)
 
-    ! calculate local coefficient Dxxl(nth,np,nr,nsa,nthp)
+    ! calculate local coefficient Dxxl(nth,np,nr,nthp,nsa)
     do nthp = 1, nthpmax
 
       ! calculate back graound distribution FNSB(nth,np,nr,nsa) for each nthp
@@ -66,7 +60,7 @@ contains
         do nr = 1, nrmax
           do np = 1, npmax
             do nth = 1, nthmax
-              FNSB(nth,np,nr,nsa) = FNSBL(nth,np,nr,nsa,nthp)
+              FNSB(nth,np,nr,nsa) = FNSBL(nth,np,nr,nthp,nsa)
             end do
           end do
         end do
@@ -85,14 +79,14 @@ contains
             do nth = 1, nthmax+1
 
               if ( nth /= nthmax+1 ) then 
-                Dppl(nth,np,nr,nsa,nthp) = Dppl(nth,np,nr,nsa,nthp) + DCPP(nth,np,nr,nsa) ! + DWPP(nth,np,nr,nsa)
-                Dptl(nth,np,nr,nsa,nthp) = Dptl(nth,np,nr,nsa,nthp) + DCPT(nth,np,nr,nsa) ! + DWPT(nth,np,nr,nsa)    
-                Fppl(nth,np,nr,nsa,nthp) = Fppl(nth,np,nr,nsa,nthp) + FCPP(nth,np,nr,nsa) ! + FEPP(nth,np,nr,nsa)
+                Dppl(nth,np,nr,nthp,nsa) = Dppl(nth,np,nr,nthp,nsa) + DCPP(nth,np,nr,nsa) ! + DWPP(nth,np,nr,nsa)
+                Dptl(nth,np,nr,nthp,nsa) = Dptl(nth,np,nr,nthp,nsa) + DCPT(nth,np,nr,nsa) ! + DWPT(nth,np,nr,nsa)    
+                Fppl(nth,np,nr,nthp,nsa) = Fppl(nth,np,nr,nthp,nsa) + FCPP(nth,np,nr,nsa) ! + FEPP(nth,np,nr,nsa)
               end if
               if ( np /= npmax+1 ) then
-                Dtpl(nth,np,nr,nsa,nthp) = Dtpl(nth,np,nr,nsa,nthp) + DCTP(nth,np,nr,nsa) ! + DWTP(nth,np,nr,nsa) 
-                Dttl(nth,np,nr,nsa,nthp) = Dttl(nth,np,nr,nsa,nthp) + DCTT(nth,np,nr,nsa) ! + DWTT(nth,np,nr,nsa)
-                Fthl(nth,np,nr,nsa,nthp) = Fthl(nth,np,nr,nsa,nthp) + FCTH(nth,np,nr,nsa) ! + FETH(nth,np,nr,nsa)
+                Dtpl(nth,np,nr,nthp,nsa) = Dtpl(nth,np,nr,nthp,nsa) + DCTP(nth,np,nr,nsa) ! + DWTP(nth,np,nr,nsa) 
+                Dttl(nth,np,nr,nthp,nsa) = Dttl(nth,np,nr,nthp,nsa) + DCTT(nth,np,nr,nsa) ! + DWTT(nth,np,nr,nsa)
+                Fthl(nth,np,nr,nthp,nsa) = Fthl(nth,np,nr,nthp,nsa) + FCTH(nth,np,nr,nsa) ! + FETH(nth,np,nr,nsa)
               end if
 
             end do
@@ -105,7 +99,7 @@ contains
     call bounce_average
 
     deallocate(Dppl, Dptl, Fppl,Dtpl, Dttl, Fthl)
-    deallocate(FNSBL, theta_p)
+    deallocate(FNSBL)
 
   end subroutine fow_coef
 
@@ -258,7 +252,7 @@ contains
             nstpmax = orbit_th(nth,np,nr,nsa)%nstp_max
 
             allocate(dIdu(3,3,nstpmax))
-
+write(*,*)"th",nth,np,nr,nsa,thetamg(nth,np,nr,nsa)
             mode = [1,0,0]
             if ( thetamg(nth,np,nr,nsa) <= pi/2.d0 ) then
               call transformation_matrix(dIdu, orbit_th(nth,np,nr,nsa), nth, np, nr, nsa, mode, dBmdpsi(:,1), dFdpsi)
@@ -472,7 +466,7 @@ contains
 
     use fpcomm
     use fowcomm
-    use foworbit,only:func_orbit_F
+    use foworbit
 
     implicit none
 
@@ -500,9 +494,9 @@ contains
 
     select case(mode(2))
     case(0)
-      pl = pm(np_in,nsa_in)
+      pl = pm(np_in,nsa_in)*ptfp0(nsa_in)
     case(1)
-      pl = pg(np_in,nsa_in)
+      pl = pg(np_in,nsa_in)*ptfp0(nsa_in)
     end select
 
     select case(mode(3))
@@ -528,7 +522,7 @@ contains
     nstpmax = orbit_in%nstp_max
 
     do nstp = 1, nstpmax
-      Fob = func_orbit_F(orbit_in, nstp, nr_in)
+      Fob = get_F_nstp(orbit_in, nstp)
       Bob = orbit_in%Babs(nstp)
       thetaob = orbit_in%theta(nstp)
   
@@ -616,7 +610,7 @@ contains
         do nthp = 1, nthpmax
           do nr = 1, nrmax
             do nth = 1, nthmax+t
-              Dxyl_tmp(nth,nr,nthp) = Dxyl(nth,np,nr,nsa,nthp)
+              Dxyl_tmp(nth,nr,nthp) = Dxyl(nth,np,nr,nthp,nsa)
             end do
           end do
         end do
