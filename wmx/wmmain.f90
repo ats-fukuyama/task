@@ -26,6 +26,7 @@ PROGRAM wm
   IMPLICIT NONE
 
   INTEGER:: ierr
+  EXTERNAL:: gsopen,gsclos,eqinit
 
 ! --- Initialization
 

@@ -38,7 +38,7 @@ contains
     integer,intent(out) :: ierr
     integer :: nth,np,nr,nsa,n,nmax
     real(rkind) :: end_time, begin_time, thetap_in
-    
+
     ierr = 0
 
     if ( model_obload >= 1 ) then
@@ -476,8 +476,8 @@ contains
 
     BIN_DIR = "../fp.ota/bin/"
 
-    if ( access( TRIM(BIN_DIR)//"fpparm.bin", " ") /= 0 .and. access( TRIM(BIN_DIR)//"eqparm.bin", " ") ) then
-      ierr = 3
+    if ( access( TRIM(BIN_DIR)//"fpparm.bin", " ") /= 0 .and. access( TRIM(BIN_DIR)//"eqparm.bin", " ") /= 0) then
+      flag = 3
       return
     end if
 

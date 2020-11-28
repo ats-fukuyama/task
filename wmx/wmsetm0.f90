@@ -4,19 +4,13 @@ MODULE wmsetm0
 
   USE wmcomm,ONLY: rkind
   COMPLEX(rkind),ALLOCATABLE:: CEMP(:,:,:,:),CFVP(:,:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CEMP_TP(:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CGM12(:,:),CGM13(:,:)
   COMPLEX(rkind),ALLOCATABLE:: CGMH12(:,:),CGMH13(:,:)
   COMPLEX(rkind),ALLOCATABLE:: CGMH22(:,:),CGMH23(:,:),CGMH33(:,:)
   COMPLEX(rkind),ALLOCATABLE:: CGC11(:,:),CGC12(:,:),CGC13(:,:)
   COMPLEX(rkind),ALLOCATABLE:: CGPH22(:,:),CGPH23(:,:),CGPH33(:,:)
   COMPLEX(rkind),ALLOCATABLE:: CGP12(:,:),CGP13(:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CMAHF(:,:,:,:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CROT(:,:,:,:,:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CGDD(:,:,:,:,:,:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CGDH(:,:,:,:,:,:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CGDDH(:,:,:,:,:,:,:)
-  
+
   PRIVATE
   PUBLIC wm_setm0,wm_setv0
 
@@ -106,7 +100,6 @@ CONTAINS
     IMPLICIT NONE
     
     ALLOCATE(CEMP(mbnd,nhhmax,nthmax,3),CFVP(nhhmax,nthmax,3))
-    ALLOCATE(CEMP_TP(mbnd,nhhmax,nthmax,3))
     ALLOCATE(CGM12(nthmax_f,nthmax_f),CGM13(nthmax_f,nhhmax_f))
     ALLOCATE(CGMH12(nthmax_f,nhhmax_f),CGMH13(nthmax_f,nhhmax_f))
     ALLOCATE(CGMH22(nthmax_f,nhhmax_f),CGMH23(nthmax_f,nhhmax_f))
@@ -116,11 +109,6 @@ CONTAINS
     ALLOCATE(CGPH22(nthmax_f,nhhmax_f),CGPH23(nthmax_f,nhhmax_f))
     ALLOCATE(CGPH33(nthmax_f,nhhmax_f))
     ALLOCATE(CGP12(nthmax_f,nhhmax_f),CGP13(nthmax_f,nhhmax_f))
-    ALLOCATE(CMAHF(3,3,nthmax_f,nhhmax_f,3))
-    ALLOCATE(CGDD(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
-    ALLOCATE(CGDH(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
-    ALLOCATE(CGDDH(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
-    ALLOCATE(CROT(9,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
 
     RETURN
   END SUBROUTINE wm_setm_allocate
@@ -132,14 +120,12 @@ CONTAINS
     USE wmcomm
     IMPLICIT NONE
     
-    DEALLOCATE(CEMP,CFVP,CEMP_TP)
+    DEALLOCATE(CEMP,CFVP)
     DEALLOCATE(CGM12,CGM13,CGMH12,CGMH13)
     DEALLOCATE(CGMH22,CGMH23,CGMH33)
     DEALLOCATE(CGC11,CGC12)
     DEALLOCATE(CGC13,CGPH22,CGPH23)
     DEALLOCATE(CGPH33,CGP12,CGP13)
-    DEALLOCATE(CMAHF,CGDD,CGDH,CGDDH)
-    DEALLOCATE(CROT)
 
     RETURN
   END SUBROUTINE wm_setm_deallocate
@@ -152,14 +138,10 @@ CONTAINS
     USE wmsetf0
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR,IND
-      COMPLEX(rkind):: CEMP_TMP(9,3)
       COMPLEX(rkind):: CDVM(3,3),CDVC(3,3),CDVP(3,3)
-      COMPLEX(rkind):: CDDVM(3,3),CDDVC(3,3),CDDVP(3,3)
-      COMPLEX(rkind):: CMAC(3,3,3)
-      COMPLEX(rkind):: CMACH(3,3,3)
-      INTEGER:: KDX,LDX,J,I,KDXF,LDXF,LBAND,NKX,MLX,L1,KDDX,LDDX,L3
-      INTEGER:: ND,NDX,NKD,NN,NK,KKD,KKDX,KD,MD,MDX,MLD,MM,ML,LLD,LLDX,LD
-      INTEGER:: ID,KDD,LDD,L2,NKXF,MLXF,LBND
+      INTEGER:: KDX,LDX,J,I,KDXF,LDXF,LBAND,NKX,MLX
+      INTEGER:: ND,NDX,NKD,NN,NK,KKD,KKDX,KD,MD,MDX,MLD,MM,ML,LD
+      INTEGER:: ID,LBND
       REAL(rkind):: XRHOM,XRHOC,XRHOP,XRHOMH,XRHOPH,DRHOM,DRHOP,DRHOPM
       REAL(rkind):: QPMH,QPC,QPPH,DPSIPDRHOMH,DPSIPDRHOPH,DPSIPDRHOC
       REAL(rkind):: FMHM,FMHC,FPHC,FPHP,DFMHM,DFMHC
@@ -189,17 +171,6 @@ CONTAINS
                CGF33(LDX,KDX,2)=CGF33(LDX,KDX,3)
             ENDDO
          ENDDO
-         DO KDX=1,KDSIZ_F
-            DO LDX=1,LDSIZ_F
-               DO J=1,3
-                  DO I=1,3
-                     CMAF(I,J,LDX,KDX,2) = CMAF(I,J,LDX,KDX,3)
-                     CRMAF(I,J,LDX,KDX,2) = CRMAF(I,J,LDX,KDX,3)
-                     CMAHF(I,J,LDX,KDX,2) = CMAHF(I,J,LDX,KDX,3)
-                  ENDDO
-               ENDDO
-            ENDDO
-         ENDDO
 
          DO NDX=1,NDSIZ
             DO KDX=1,KDSIZ_F
@@ -209,12 +180,6 @@ CONTAINS
                         DO I=1,3
                            CGD(I,J,LDX,MDX,KDX,NDX,2) &
                                 =CGD(I,J,LDX,MDX,KDX,NDX,3)
-                           CGDD(I,J,LDX,MDX,KDX,NDX,2) &
-                                =CGDD(I,J,LDX,MDX,KDX,NDX,3)
-                           CGDH(I,J,LDX,MDX,KDX,NDX,2) &
-                                =CGDH(I,J,LDX,MDX,KDX,NDX,3)
-                           CGDDH(I,J,LDX,MDX,KDX,NDX,2) &
-                                =CGDDH(I,J,LDX,MDX,KDX,NDX,3)
                         ENDDO
                      ENDDO
                   ENDDO
@@ -245,20 +210,6 @@ CONTAINS
             CGF33(LDX,KDX,2)=CGF33(LDX,KDX,3)
          ENDDO
       ENDDO
-      DO KDX=1,KDSIZ_F
-         DO LDX=1,LDSIZ_F
-            DO J=1,3
-               DO I=1,3
-                  CMAF(I,J,LDX,KDX,1) = CMAF(I,J,LDX,KDX,2)
-                  CMAF(I,J,LDX,KDX,2) = CMAF(I,J,LDX,KDX,3)
-                  CRMAF(I,J,LDX,KDX,1) = CRMAF(I,J,LDX,KDX,2)
-                  CRMAF(I,J,LDX,KDX,2) = CRMAF(I,J,LDX,KDX,3)
-                  CMAHF(I,J,LDX,KDX,1) = CMAHF(I,J,LDX,KDX,2)
-                  CMAHF(I,J,LDX,KDX,2) = CMAHF(I,J,LDX,KDX,3)
-               ENDDO
-            ENDDO
-         ENDDO
-      ENDDO
 
       DO NDX=1,NDSIZ
          DO KDX=1,KDSIZ_F
@@ -268,18 +219,6 @@ CONTAINS
                      DO I=1,3
                         CGD(I,J,LDX,MDX,KDX,NDX,1)=CGD(I,J,LDX,MDX,KDX,NDX,2)
                         CGD(I,J,LDX,MDX,KDX,NDX,2)=CGD(I,J,LDX,MDX,KDX,NDX,3)
-                        CGDD(I,J,LDX,MDX,KDX,NDX,1) &
-                             =CGDD(I,J,LDX,MDX,KDX,NDX,2)
-                        CGDD(I,J,LDX,MDX,KDX,NDX,2) &
-                             =CGDD(I,J,LDX,MDX,KDX,NDX,3)
-                        CGDH(I,J,LDX,MDX,KDX,NDX,1) &
-                             =CGDH(I,J,LDX,MDX,KDX,NDX,2)
-                        CGDH(I,J,LDX,MDX,KDX,NDX,2) &
-                             =CGDH(I,J,LDX,MDX,KDX,NDX,3)
-                        CGDDH(I,J,LDX,MDX,KDX,NDX,1) &
-                             =CGDDH(I,J,LDX,MDX,KDX,NDX,2)
-                        CGDDH(I,J,LDX,MDX,KDX,NDX,2) &
-                             =CGDDH(I,J,LDX,MDX,KDX,NDX,3)
                      ENDDO
                   ENDDO
                ENDDO
@@ -336,11 +275,11 @@ CONTAINS
       DFMHC= 1.0D0/DRHOM   /DPSIPDRHOMH
 
       DFCM= -(DRHOP*DPSIPDRHOPH)/(DRHOM*DRHOPM) &
-           /(DPSIPDRHOMH*DPSIPDRHOC)
+             /(DPSIPDRHOMH*DPSIPDRHOC)
       DFCC=  (DRHOP*DPSIPDRHOPH)-(DRHOM*DPSIPDRHOMH)/(DRHOP*DRHOM) &
-           /(DPSIPDRHOPH*DPSIPDRHOMH)
+             /(DPSIPDRHOPH*DPSIPDRHOMH)
       DFCP=  (DRHOM*DPSIPDRHOMH)/(DRHOP*DRHOPM) &
-           /(DPSIPDRHOPH*DPSIPDRHOC)   !
+             /(DPSIPDRHOPH*DPSIPDRHOC)   !
       DDFMHM= 2.D0/(DRHOM*DRHOPM)/(DPSIPDRHOC*DPSIPDRHOMH)
       DDFMHC=-2.D0/(DRHOM*DRHOPM)/(DPSIPDRHOC*DPSIPDRHOMH)
       DDFPHC=-2.D0/(DRHOP*DRHOPM)/(DPSIPDRHOC*DPSIPDRHOPH)
@@ -420,20 +359,6 @@ CONTAINS
          ENDDO
       ENDDO
 
-      DO L1=1,3
-         DO NKX=1,NDSIZ
-            DO MLX=1,MDSIZ
-               DO KDDX=1,KDSIZ_F
-                  DO LDDX=1,LDSIZ_F
-                     DO L3=1,9
-                        CROT(L3 ,LDDX,MLX,KDDX,NKX,L1)=0d0
-                     ENDDO
-                  ENDDO
-               ENDDO
-            ENDDO
-         ENDDO
-      ENDDO
-      
       DO ND=NDMIN,NDMAX
          NDX=ND-NDMIN+1
          DO NKD=NDMIN,NDMAX
@@ -456,555 +381,231 @@ CONTAINS
                         MM=NTH0+MD
                         ML=NTH0+MLD
 
-                        LLD=MLD-MD
-                        IF(MODELK.EQ.0.OR. &
-                             (LLD.GE.LDMIN_F.AND. &
-                             (LLD.LE.LDMAX_F.OR.LDMAX_F==0))) THEN
-                           LLDX=LLD-LDMIN_F+1
-
-                           DO LD=LDMIN_F,LDMAX_F
-                              LDX=LD-LDMIN_F+1
-
-                              ID=3*MDSIZ*NDSIZ
-
-!     --- R COMPONENT OF MAXWELL EQUATION ---
-
-                              CEMP_TMP=0.d0
-                              CEMP_TMP(4,1)=( &
-                                   -ML*NN*CGMH23(LDX,KDX) &
-                                   +ML*MM*CGMH33(LDX,KDX) &
-                                   +NK*NN*CGMH22(LDX,KDX) &
-                                   -NK*MM*CGMH23(LDX,KDX) &
-                                   )
-
-                              CEMP_TMP(2,1)=( &
-                                   +ML*NN*CGMH13(LDX,KDX)*FMHM &
-                                   -NK*NN*CGMH12(LDX,KDX)*FMHM &
-                                   +CI*ML*CGMH33(LDX,KDX)*DFMHM &
-                                   -CI*NK*CGMH23(LDX,KDX)*DFMHM &
-                                   )
-
-                              CEMP_TMP(5,1)=( &
-                                   +ML*NN*CGMH13(LDX,KDX)*FMHC &
-                                   -NK*NN*CGMH12(LDX,KDX)*FMHC &
-                                   +CI*ML*CGMH33(LDX,KDX)*DFMHC &
-                                   -CI*NK*CGMH23(LDX,KDX)*DFMHC &
-                                   )
-
-                              CEMP_TMP(8,1)=( &
-                                   +ML*NN*CGMH13(LDX,KDX)*FMHC &
-                                   -NK*NN*CGMH12(LDX,KDX)*FMHC &
-                                   +CI*ML*CGMH33(LDX,KDX)*DFMHC &
-                                   -CI*NK*CGMH23(LDX,KDX)*DFMHC &
-                                   )
-
-                              CEMP_TMP(3,1)=( &
-                                   -ML*MM*CGMH13(LDX,KDX)*FMHM &
-                                   +NK*MM*CGMH12(LDX,KDX)*FMHM &
-                                   -CI*ML*CGMH23(LDX,KDX)*DFMHM &
-                                   +CI*NK*CGMH22(LDX,KDX)*DFMHM &
-                                   )
-
-                              CEMP_TMP(6,1)=( &
-                                   -ML*MM*CGMH13(LDX,KDX)*FMHC &
-                                   +NK*MM*CGMH12(LDX,KDX)*FMHC &
-                                   -CI*ML*CGMH23(LDX,KDX)*DFMHC &
-                                   +CI*NK*CGMH22(LDX,KDX)*DFMHC &
-                                   )
-
-!     --- THETA COMPONENT OF MAXWELL EQUATION ---
-
-                              CEMP_TMP(4,2)=( &
-                                   -NK*NN*CGC12(LDX,KDX)*FCMH &
-                                   +NK*MM*CGC13(LDX,KDX)*FCMH &
-                                   -CI*NN*CGMH23(LDX,KDX)*DFCMH &
-                                   +CI*MM*CGMH33(LDX,KDX)*DFCMH &
-                                   )
-
-                              CEMP_TMP(7,2)=( &
-                                   -NK*NN*CGC12(LDX,KDX)*FCPH &
-                                   +NK*MM*CGC13(LDX,KDX)*FCPH &
-                                   -CI*NN*CGPH23(LDX,KDX)*DFCPH &
-                                   +CI*MM*CGPH33(LDX,KDX)*DFCPH &
-                                   )
-
-                              CEMP_TMP(2,2)=( &
-                                   +CI*NK*CGC13(LDX,KDX)*DFCM &
-                                   +CI*NN*CGM13(LDX,KDX)*DFCM &
-                                   -      CGMH33(LDX,KDX)*DDFMHM &
-                                   )
-
-                              CEMP_TMP(5,2)=( &
-                                   +NK*NN*CGC11(LDX,KDX) &
-                                   +CI*NK*CGC13(LDX,KDX)*DFCC &
-                                   +CI*NN*CGC13(LDX,KDX)*DFCC &
-                                   -      CGMH33(LDX,KDX)*DDFMHC &
-                                   -      CGPH33(LDX,KDX)*DDFPHC &
-                                   )
-
-                              CEMP_TMP(8,2)=( &
-                                   +CI*NK*CGC13(LDX,KDX)*DFCP &
-                                   +CI*NN*CGP13(LDX,KDX)*DFCP &
-                                   -      CGPH33(LDX,KDX)*DDFPHP &
-                                   )
-
-                              CEMP_TMP(3,2)=( &
-                                   -CI*NK*CGC12(LDX,KDX)*DFCM &
-                                   -CI*MM*CGM13(LDX,KDX)*DFCM &
-                                   +      CGMH23(LDX,KDX)*DDFMHM &
-                                   )
-
-                              CEMP_TMP(6,2)=( &
-                                   -NK*MM*CGC11(LDX,KDX) &
-                                   -CI*NK*CGC12(LDX,KDX)*DFCC &
-                                   -CI*MM*CGC13(LDX,KDX)*DFCC &
-                                   +      CGMH23(LDX,KDX)*DDFMHC &
-                                   +      CGPH23(LDX,KDX)*DDFPHC &
-                                   )
-
-                              CEMP_TMP(9,2)=( &
-                                   -CI*NK*CGC12(LDX,KDX)*DFCP &
-                                   -CI*MM*CGP13(LDX,KDX)*DFCP &
-                                   +      CGPH23(LDX,KDX)*DDFPHP &
-                                   )
-                                
-!     --- PHI COMPONENT OF MAXWELL EQUATION ---
-
-                              CEMP_TMP(4,3)=( &
-                                   +ML*NN*CGC12(LDX,KDX)*FCMH &
-                                   -ML*MM*CGC13(LDX,KDX)*FCMH &
-                                   +CI*NN*CGMH22(LDX,KDX)*DFCMH &
-                                   -CI*MM*CGMH23(LDX,KDX)*DFCMH &
-                                   )
-
-                              CEMP_TMP(7,3)=( &
-                                   +ML*NN*CGC12(LDX,KDX)*FCPH &
-                                   -ML*MM*CGC13(LDX,KDX)*FCPH &
-                                   +CI*NN*CGPH22(LDX,KDX)*DFCPH &
-                                   -CI*MM*CGPH23(LDX,KDX)*DFCPH &
-                                   )
-
-                              CEMP_TMP(2,3)=( &
-                                   -CI*ML*CGC13(LDX,KDX)*DFCM &
-                                   -CI*NN*CGM12(LDX,KDX)*DFCM &
-                                   +      CGMH23(LDX,KDX)*DDFMHM &
-                                   )
-
-                              CEMP_TMP(5,3)=( &
-                                   -ML*NN*CGC11(LDX,KDX) &
-                                   -CI*ML*CGC13(LDX,KDX)*DFCC &
-                                   -CI*NN*CGC12(LDX,KDX)*DFCC &
-                                   +      CGMH23(LDX,KDX)*DDFMHC &
-                                   +      CGPH23(LDX,KDX)*DDFPHC &
-                                   )
-
-                              CEMP_TMP(8,3)=( &
-                                   -CI*ML*CGC13(LDX,KDX)*DFCP &
-                                   -CI*NN*CGP12(LDX,KDX)*DFCP &
-                                   +      CGPH23(LDX,KDX)*DDFPHP &
-                                   )
-
-                              CEMP_TMP(3,3)=( &
-                                   +CI*ML*CGC12(LDX,KDX)*DFCM &
-                                   +CI*MM*CGM12(LDX,KDX)*DFCM &
-                                   -      CGMH22(LDX,KDX)*DDFMHM &
-                                   )
-
-                              CEMP_TMP(6,3)=( &
-                                   +ML*MM*CGC11(LDX,KDX) &
-                                   +CI*ML*CGC12(LDX,KDX)*DFCC &
-                                   +CI*MM*CGC12(LDX,KDX)*DFCC &
-                                   -      CGMH22(LDX,KDX)*DDFMHC &
-                                   -      CGPH22(LDX,KDX)*DDFPHC &
-                                   )
-
-                              CEMP_TMP(9,3)=( &
-                                   +CI*ML*CGC12(LDX,KDX)*DFCP &
-                                   +CI*MM*CGP12(LDX,KDX)*DFCP &
-                                   -      CGPH22(LDX,KDX)*DDFPHP &
-                                   )
-
-                              KDD=KKD-KD
-                              IF(MODELK.EQ.0.OR. &
-                                   (KDD.GE.KDMIN_F.AND. &
-                                   (KDD.LE.KDMAX_F.OR.KDMAX_F==0))) THEN
-                                 KDDX = KDD-KDMIN_F + 1
-
-                                 LDD=LLD-LD
-                                 IF(MODELK.EQ.0.OR. &
-                                      (LDD.GE.LDMIN_F.AND. &
-                                      (LDD.LE.LDMAX_F.OR.LDMAX_F==0))) THEN
-                                    LDDX=LDD-LDMIN_F+1
-                                    DO J=1,3
-                                       DO I=1,3
-                                          CMAC(I,J,1) = CMAF(I,J,LDDX,KDDX,1)
-                                          CMAC(I,J,2) = CMAF(I,J,LDDX,KDDX,2)
-                                          CMAC(I,J,3) = CMAF(I,J,LDDX,KDDX,3)
-                                          CMACH(I,J,1)=0.D0
-                                          CMACH(I,J,2) &
-                                               =(CMAF(I,J,LDDX,KDDX,1) &
-                                               +CMAF(I,J,LDDX,KDDX,2))/2.d0
-                                          CMACH(I,J,3) &
-                                               =(CMAF(I,J,LDDX,KDDX,2) &
-                                               +CMAF(I,J,LDDX,KDDX,3))/2.d0
-                                          IF( J==1)THEN
-                                             CMACH(I,J,2) &
-                                                  =((CMAF(I,J,LDDX,KDDX,1) &
-                                                  *XRHOM &
-                                                  +CMAF(I,J,LDDX,KDDX,2) &
-                                                  *XRHOC)/2.d0) &
-                                                  /XRHOMH
-                                             CMACH(I,J,3) &
-                                                  =((CMAF(I,J,LDDX,KDDX,2) &
-                                                  *XRHOC &
-                                                  +CMAF(I,J,LDDX,KDDX,3) &
-                                                  *XRHOP)/2.d0) &
-                                                  /XRHOPH
-                                          ENDIF
-                                          IF( I==2 .and. J==2)THEN
-                                             CMACH(I,J,2) &
-                                                  =((CMAF(I,J,LDDX,KDDX,1) &
-                                                  /XRHOM &
-                                                  +CMAF(I,J,LDDX,KDDX,2) &
-                                                  /XRHOC)/2.d0) &
-                                                  *XRHOMH
-                                             CMACH(I,J,3) &
-                                                  =((CMAF(I,J,LDDX,KDDX,2) &
-                                                  /XRHOC &
-                                                  +CMAF(I,J,LDDX,KDDX,3) &
-                                                  /XRHOP)/2.d0) &
-                                                  *XRHOPH
-                                          ENDIF
-                                       ENDDO
-                                    ENDDO
-                                    DO L1=1,3
-                                       DO L2=1,3
-                                          L3=(L2-1)*3
-                                          CROT(1+L3,LLDX,MLX,KKDX,NKX,L1) &
-                                        = CROT(1+L3,LLDX,MLX,KKDX,NKX,L1) &
-                                        + CEMP_TMP(1+L3,L1)*CMACH(1,1,L2)
-
-                                          CROT(2+L3,LLDX,MLX,KKDX,NKX,L1) &
-                                        = CROT(2+L3,LLDX,MLX,KKDX,NKX,L1) &
-                                        + CEMP_TMP(1+L3,L1)*CMAC(1,2,L2) &
-                                        + CEMP_TMP(2+L3,L1)*CMAC(2,2,L2) &
-                                        + CEMP_TMP(3+L3,L1)*CMAC(3,2,L2)
-
-                                          CROT(3+L3,LLDX,MLX,KKDX,NKX,L1) &
-                                        = CROT(3+L3,LLDX,MLX,KKDX,NKX,L1) &
-                                        + CEMP_TMP(1+L3,L1)*CMAC(1,3,L2) &
-                                        + CEMP_TMP(2+L3,L1)*CMAC(2,3,L2) &
-                                        + CEMP_TMP(3+L3,L1)*CMAC(3,3,L2)
-                                       ENDDO
-                                    ENDDO
-                                 ENDIF
-                              ENDIF
-                           ENDDO
-                        ENDIF
-                     ENDDO
-                  ENDDO
-               ENDDO
-            ENDIF
-         ENDDO
-      ENDDO
-
-
-      DO LBAND=1,MBND
-         DO NKX=1,NDSIZ
-            DO MLX=1,MDSIZ
-               CEMP(LBAND,NKX,MLX,1)=0.D0
-               CEMP(LBAND,NKX,MLX,2)=0.D0
-               CEMP(LBAND,NKX,MLX,3)=0.D0
-               CEMP_TP(LBAND,NKX,MLX,1)=0.D0
-               CEMP_TP(LBAND,NKX,MLX,2)=0.D0
-               CEMP_TP(LBAND,NKX,MLX,3)=0.D0
-            ENDDO
-         ENDDO
-      ENDDO
-
-      DO ND=NDMIN,NDMAX
-         NDX=ND-NDMIN+1
-         DO NKD=NDMIN,NDMAX
-            NKX=NKD-NDMIN+1
-            NKXF=NKD-NDMIN_F+1
-            KD=NKD-ND
-  
-            IF(MODELK.EQ.0.OR. &
-                 (KD.GE.KDMIN_F.AND. &
-                 (KD.LE.KDMAX_F.OR.KDMAX_F==0))) THEN
-               KDX=KD-KDMIN_F + 1
-               KDXF=KDX
-
-               DO MD=MDMIN,MDMAX
-                  MDX=MD-MDMIN+1
-                  DO MLD=MDMIN,MDMAX
-                     MLX=MLD-MDMIN+1
-                     MLXF=MLD-MDMIN_F+1
-                     LD=MLD-MD
-
-                     IF(LD.GE.LDMIN_F.AND. &
-                          (LD.LE.LDMAX_F.OR.LDMAX_F==0))THEN
-                        LDX =LD-LDMIN_F+1
-                        LDXF=LDX
-
                         DO J=1,3
                            DO I=1,3
-                              CDVM(I,J) = CGD(I,J,LDXF,MLX,KDXF,NKX,1)
-                              CDVC(I,J) = CGD(I,J,LDXF,MLX,KDXF,NKX,2)
-                              CDVP(I,J) = CGD(I,J,LDXF,MLX,KDXF,NKX,3)
-                              CDDVM(I,J) = CGD(I,J,LDXF,MLX,KDXF,NKX,1)
-                              CDDVC(I,J) = CGD(I,J,LDXF,MLX,KDXF,NKX,2)
-                              CDDVP(I,J) = CGD(I,J,LDXF,MLX,KDXF,NKX,3)
+                              CDVM(I,J)=CGD(I,J,LDX,MLX,KDX,NKX,1)
+                              CDVC(I,J)=CGD(I,J,LDX,MLX,KDX,NKX,2)
+                              CDVP(I,J)=CGD(I,J,LDX,MLX,KDX,NKX,3)
                            ENDDO
                         ENDDO
 
-                        LBND=MCENT-3*KD*MDSIZ-3*LD-1
-
                         ID=3*MDSIZ*NDSIZ
+
+!     --- R COMPONENT OF MAXWELL EQUATION ---
+
+                        LBND=MBND-3*KD*MDSIZ-3*LD-1
+
                         CEMP(LBND+1    ,NKX,MLX,1) &
                              =CEMP(LBND+1   ,NKX,MLX,1) &
                              +( &
-                             +CROT(4,LDX,MLX,KDX,NKX,1) &
-                             +0.5D0*CDDVM(1,1)*FACT1M &
-                             +0.5D0*CDDVC(1,1)*FACT1C &
-                             )
+                             -ML*NN*CGMH23(LDX,KDX) &
+                             +ML*MM*CGMH33(LDX,KDX) &
+                             +NK*NN*CGMH22(LDX,KDX) &
+                             -NK*MM*CGMH23(LDX,KDX) &
+                             +0.5D0*CDVM(1,1)*FACT1M &
+                             +0.5D0*CDVC(1,1)*FACT1C &
+                             )/XRHOMH
 
                         CEMP(LBND+2-ID,NKX,MLX,1) &
                              =CEMP(LBND+2-ID,NKX,MLX,1) &
                              +( &
-                             +CROT(2,LDX,MLX,KDX,NKX,1) &
+                             +ML*NN*CGMH13(LDX,KDX)*FMHM &
+                             -NK*NN*CGMH12(LDX,KDX)*FMHM &
+                             +CI*ML*CGMH33(LDX,KDX)*DFMHM &
+                             -CI*NK*CGMH23(LDX,KDX)*DFMHM &
                              +CDVM(1,2)*FMHM &
-                             )
+                             )*XRHOM
 
                         CEMP(LBND+2   ,NKX,MLX,1) &
                              =CEMP(LBND+2   ,NKX,MLX,1) &
                              +( &
-                             +CROT(5,LDX,MLX,KDX,NKX,1) &
+                             +ML*NN*CGMH13(LDX,KDX)*FMHC &
+                             -NK*NN*CGMH12(LDX,KDX)*FMHC &
+                             +CI*ML*CGMH33(LDX,KDX)*DFMHC &
+                             -CI*NK*CGMH23(LDX,KDX)*DFMHC &
                              +CDVC(1,2)*FMHC &
-                             )
+                             )*XRHOC
 
                         CEMP(LBND+3-ID,NKX,MLX,1) &
                              =CEMP(LBND+3-ID,NKX,MLX,1) &
                              +( &
-                             +CROT(3,LDX,MLX,KDX,NKX,1) &
+                             -ML*MM*CGMH13(LDX,KDX)*FMHM &
+                             +NK*MM*CGMH12(LDX,KDX)*FMHM &
+                             -CI*ML*CGMH23(LDX,KDX)*DFMHM &
+                             +CI*NK*CGMH22(LDX,KDX)*DFMHM &
                              +CDVM(1,3)*FMHM &
                              )
 
                         CEMP(LBND+3   ,NKX,MLX,1) &
                              =CEMP(LBND+3   ,NKX,MLX,1) &
                              +( &
-                             +CROT(6,LDX,MLX,KDX,NKX,1) &
+                             -ML*MM*CGMH13(LDX,KDX)*FMHC &
+                             +NK*MM*CGMH12(LDX,KDX)*FMHC &
+                             -CI*ML*CGMH23(LDX,KDX)*DFMHC &
+                             +CI*NK*CGMH22(LDX,KDX)*DFMHC &
                              +CDVC(1,3)*FMHC &
                              )
-
 !     --- THETA COMPONENT OF MAXWELL EQUATION ---
 
-                        LBND=MCENT-3*KD*MDSIZ-3*LD-2
+                        LBND=MBND-3*KD*MDSIZ-3*LD-2
 
                         CEMP(LBND+1   ,NKX,MLX,2) &
                              =CEMP(LBND+1   ,NKX,MLX,2) &
                              +( &
-                             +CROT(4,LDX,MLX,KDX,NKX,2) &
+                             -NK*NN*CGC12(LDX,KDX)*FCMH &
+                             +NK*MM*CGC13(LDX,KDX)*FCMH &
+                             -CI*NN*CGMH23(LDX,KDX)*DFCMH &
+                             +CI*MM*CGMH33(LDX,KDX)*DFCMH &
                              +CDVC(2,1)*FCMH*FACT2C &
-                             )
+                             )/XRHOMH
+
                         CEMP(LBND+1+ID,NKX,MLX,2) &
                              =CEMP(LBND+1+ID,NKX,MLX,2) &
                              +( &
-                             +CROT(7,LDX,MLX,KDX,NKX,2) &
+                             -NK*NN*CGC12(LDX,KDX)*FCPH &
+                             +NK*MM*CGC13(LDX,KDX)*FCPH &
+                             -CI*NN*CGPH23(LDX,KDX)*DFCPH &
+                             +CI*MM*CGPH33(LDX,KDX)*DFCPH &
                              +CDVC(2,1)*FCPH*FACT2P &
-                             )
+                             )/XRHOPH
 
                         CEMP(LBND+2-ID,NKX,MLX,2) &
                              =CEMP(LBND+2-ID,NKX,MLX,2) &
                              +( &
-                             +CROT(2,LDX,MLX,KDX,NKX,2) &
-                             )
+                             +CI*NK*CGC13(LDX,KDX)*DFCM &
+                             +CI*NN*CGM13(LDX,KDX)*DFCM &
+                             -      CGMH33(LDX,KDX)*DDFMHM &
+                             )*XRHOM
 
                         CEMP(LBND+2   ,NKX,MLX,2) &
                              =CEMP(LBND+2   ,NKX,MLX,2) &
                              +( &
-                             +CROT(5,LDX,MLX,KDX,NKX,2) &
+                             +NK*NN*CGC11(LDX,KDX) &
+                             +CI*NK*CGC13(LDX,KDX)*DFCC &
+                             +CI*NN*CGC13(LDX,KDX)*DFCC &
+                             -      CGMH33(LDX,KDX)*DDFMHC &
+                             -      CGPH33(LDX,KDX)*DDFPHC &
                              +CDVC(2,2) &
-                             )
+                             )*XRHOC
 
                         CEMP(LBND+2+ID,NKX,MLX,2) &
                              =CEMP(LBND+2+ID,NKX,MLX,2) &
                              +( &
-                             +CROT(8,LDX,MLX,KDX,NKX,2) &
-                             )
+                             +CI*NK*CGC13(LDX,KDX)*DFCP &
+                             +CI*NN*CGP13(LDX,KDX)*DFCP &
+                             -      CGPH33(LDX,KDX)*DDFPHP &
+                             )*XRHOP
 
                         CEMP(LBND+3-ID,NKX,MLX,2) &
                              =CEMP(LBND+3-ID,NKX,MLX,2) &
                              +( &
-                             +CROT(3,LDX,MLX,KDX,NKX,2) &
+                             -CI*NK*CGC12(LDX,KDX)*DFCM &
+                             -CI*MM*CGM13(LDX,KDX)*DFCM &
+                             +      CGMH23(LDX,KDX)*DDFMHM &
                              )
-                        
+
                         CEMP(LBND+3   ,NKX,MLX,2) &
                              =CEMP(LBND+3   ,NKX,MLX,2) &
                              +( &
-                             +CROT(6,LDX,MLX,KDX,NKX,2) &
+                             -NK*MM*CGC11(LDX,KDX) &
+                             -CI*NK*CGC12(LDX,KDX)*DFCC &
+                             -CI*MM*CGC13(LDX,KDX)*DFCC &
+                             +      CGMH23(LDX,KDX)*DDFMHC &
+                             +      CGPH23(LDX,KDX)*DDFPHC &
                              +CDVC(2,3) &
                              )
 
                         CEMP(LBND+3+ID,NKX,MLX,2) &
                              =CEMP(LBND+3+ID,NKX,MLX,2) &
                              +( &
-                             +CROT(9,LDX,MLX,KDX,NKX,2) &
+                             -CI*NK*CGC12(LDX,KDX)*DFCP &
+                             -CI*MM*CGP13(LDX,KDX)*DFCP &
+                             +      CGPH23(LDX,KDX)*DDFPHP &
                              )
 
 !     --- PHI COMPONENT OF MAXWELL EQUATION ---
 
-                        LBND=MCENT-3*KD*MDSIZ-3*LD-3
+                        LBND=MBND-3*KD*MDSIZ-3*LD-3
 
                         CEMP(LBND+1   ,NKX,MLX,3) &
                              =CEMP(LBND+1   ,NKX,MLX,3) &
                              +( &
-                             +CROT(4,LDX,MLX,KDX,NKX,3) &
+                             +ML*NN*CGC12(LDX,KDX)*FCMH &
+                             -ML*MM*CGC13(LDX,KDX)*FCMH &
+                             +CI*NN*CGMH22(LDX,KDX)*DFCMH &
+                             -CI*MM*CGMH23(LDX,KDX)*DFCMH &
                              +CDVC(3,1)*FCMH*FACT3C &
-                             )
+                             )/XRHOMH
 
                         CEMP(LBND+1+ID,NKX,MLX,3) &
                              =CEMP(LBND+1+ID,NKX,MLX,3) &
                              +( &
-                             +CROT(7,LDX,MLX,KDX,NKX,3) &
+                             +ML*NN*CGC12(LDX,KDX)*FCPH &
+                             -ML*MM*CGC13(LDX,KDX)*FCPH &
+                             +CI*NN*CGPH22(LDX,KDX)*DFCPH &
+                             -CI*MM*CGPH23(LDX,KDX)*DFCPH &
                              +CDVC(3,1)*FCPH*FACT3P &
-                             )
+                             )/XRHOPH
 
                         CEMP(LBND+2-ID,NKX,MLX,3) &
                              =CEMP(LBND+2-ID,NKX,MLX,3) &
                              +( &
-                             +CROT(2,LDX,MLX,KDX,NKX,3) &
-                             )
+                             -CI*ML*CGC13(LDX,KDX)*DFCM &
+                             -CI*NN*CGM12(LDX,KDX)*DFCM &
+                             +      CGMH23(LDX,KDX)*DDFMHM &
+                             )*XRHOM
 
                         CEMP(LBND+2   ,NKX,MLX,3) &
                              =CEMP(LBND+2   ,NKX,MLX,3) &
                              +( &
-                             +CROT(5,LDX,MLX,KDX,NKX,3) &
+                             -ML*NN*CGC11(LDX,KDX) &
+                             -CI*ML*CGC13(LDX,KDX)*DFCC &
+                             -CI*NN*CGC12(LDX,KDX)*DFCC &
+                             +      CGMH23(LDX,KDX)*DDFMHC &
+                             +      CGPH23(LDX,KDX)*DDFPHC &
                              +CDVC(3,2) &
-                             )
+                             )*XRHOC
 
                         CEMP(LBND+2+ID,NKX,MLX,3) &
                              =CEMP(LBND+2+ID,NKX,MLX,3) &
                              +( &
-                             +CROT(8,LDX,MLX,KDX,NKX,3) &
-                             )
+                             -CI*ML*CGC13(LDX,KDX)*DFCP &
+                             -CI*NN*CGP12(LDX,KDX)*DFCP &
+                             +      CGPH23(LDX,KDX)*DDFPHP &
+                             )*XRHOP
 
                         CEMP(LBND+3-ID,NKX,MLX,3) &
                              =CEMP(LBND+3-ID,NKX,MLX,3) &
                              +( &
-                             +CROT(3,LDX,MLX,KDX,NKX,3) &
+                             +CI*ML*CGC12(LDX,KDX)*DFCM &
+                             +CI*MM*CGM12(LDX,KDX)*DFCM &
+                             -      CGMH22(LDX,KDX)*DDFMHM &
                              )
 
                         CEMP(LBND+3   ,NKX,MLX,3) &
                              =CEMP(LBND+3   ,NKX,MLX,3) &
                              +( &
-                             +CROT(6,LDX,MLX,KDX,NKX,3) &
+                             +ML*MM*CGC11(LDX,KDX) &
+                             +CI*ML*CGC12(LDX,KDX)*DFCC &
+                             +CI*MM*CGC12(LDX,KDX)*DFCC &
+                             -      CGMH22(LDX,KDX)*DDFMHC &
+                             -      CGPH22(LDX,KDX)*DDFPHC &
                              +CDVC(3,3) &
-                               )
+                             )
 
                         CEMP(LBND+3+ID,NKX,MLX,3) &
                              =CEMP(LBND+3+ID,NKX,MLX,3) &
                              +( &
-                             +CROT(9,LDX,MLX,KDX,NKX,3) &
+                             +CI*ML*CGC12(LDX,KDX)*DFCP &
+                             +CI*MM*CGP12(LDX,KDX)*DFCP &
+                             -      CGPH22(LDX,KDX)*DDFPHP &
                              )
-
-                        LBND=MCENT-3*KD*MDSIZ-3*LD-1
-                        ID=3*MDSIZ*NDSIZ
-                        CEMP_TP(LBND+1    ,NKX,MLX,1) &
-                             =CEMP_TP(LBND+1   ,NKX,MLX,1) &
-                             +( &
-                             +0.5D0*CDDVM(1,1)*FACT1M &
-                             +0.5D0*CDDVC(1,1)*FACT1C &
-                             )
-
-                        CEMP_TP(LBND+2-ID,NKX,MLX,1) &
-                             =CEMP_TP(LBND+2-ID,NKX,MLX,1) &
-                             +( &
-                             +CDVM(1,2)*FMHM &
-                             )
-
-                        CEMP_TP(LBND+2   ,NKX,MLX,1) &
-                             =CEMP_TP(LBND+2   ,NKX,MLX,1) &
-                             +( &
-                             +CDVC(1,2)*FMHC &
-                             )
-
-                        CEMP_TP(LBND+3-ID,NKX,MLX,1) &
-                             =CEMP_TP(LBND+3-ID,NKX,MLX,1) &
-                             +( &
-                             +CDVM(1,3)*FMHM &
-                             )
-
-                        CEMP_TP(LBND+3   ,NKX,MLX,1) &
-                             =CEMP_TP(LBND+3   ,NKX,MLX,1) &
-                             +( &
-                             +CDVC(1,3)*FMHC &
-                             )
-
-!     --- THETA COMPONENT OF MAXWELL EQUATION ---
-
-                        LBND=MCENT-3*KD*MDSIZ-3*LD-2
-
-                        CEMP_TP(LBND+1   ,NKX,MLX,2) &
-                             =CEMP_TP(LBND+1   ,NKX,MLX,2) &
-                             +( &
-                             +CDVC(2,1)*FCMH*FACT2C &
-                             )
-
-                        CEMP_TP(LBND+1+ID,NKX,MLX,2) &
-                             =CEMP_TP(LBND+1+ID,NKX,MLX,2) &
-                             +( &
-                             +CDVC(2,1)*FCPH*FACT2P &
-                             )
-
-                        CEMP_TP(LBND+2   ,NKX,MLX,2) &
-                             =CEMP_TP(LBND+2   ,NKX,MLX,2) &
-                             +( &
-                             +CDVC(2,2) &
-                             )
-
-                        CEMP_TP(LBND+3   ,NKX,MLX,2) &
-                             =CEMP_TP(LBND+3   ,NKX,MLX,2) &
-                             +( &
-                             +CDVC(2,3) &
-                             )
-
-!     --- PHI COMPONENT OF MAXWELL EQUATION ---
-
-                        LBND=MCENT-3*KD*MDSIZ-3*LD-3
-                        
-                        CEMP_TP(LBND+1   ,NKX,MLX,3) &
-                             =CEMP_TP(LBND+1   ,NKX,MLX,3) &
-                             +( &
-                             +CDVC(3,1)*FCMH*FACT3C &
-                             )
-
-                        CEMP_TP(LBND+1+ID,NKX,MLX,3) &
-                             =CEMP_TP(LBND+1+ID,NKX,MLX,3) &
-                             +( &
-                             +CDVC(3,1)*FCPH*FACT3P &
-                             )
-
-                        CEMP_TP(LBND+2   ,NKX,MLX,3) &
-                             =CEMP_TP(LBND+2   ,NKX,MLX,3) &
-                             +( &
-                             +CDVC(3,2) &
-                             )
-
-                        CEMP_TP(LBND+3   ,NKX,MLX,3) &
-                             =CEMP_TP(LBND+3   ,NKX,MLX,3) &
-                             +( &
-                             +CDVC(3,3) &
-                             )
-
-                     ENDIF
-                  ENDDO
-               ENDDO
-            ENDIF
-         ENDDO
-      ENDDO
-
-      RETURN
+                     ENDDO ! MLD
+                  ENDDO ! MD
+               END DO ! KD
+            END IF
+         ENDDO ! NKD
+      ENDDO ! ND
     END SUBROUTINE wm_setm_matrix
 
 !     ****** ASSEMBLE TOTAL ELEMENT FREE VECTOR ******
@@ -1017,7 +618,7 @@ CONTAINS
 
       INTEGER,INTENT(IN):: NR
       REAL(rkind):: RN(NSMAX),RTPR(NSMAX),RTPP(NSMAX),RU(NSMAX)
-      INTEGER:: MDX,NDX,ND,NN,MD,MM,NRI,NRANT,LD,KX
+      INTEGER:: MDX,NDX,ND,NN,MD,MM,NRI,NRANT
       REAL(rkind):: DPH,DTH,XRHO1,XRHO2,DRHO,XRHOC,FACTM,FACTP
       REAL(rkind):: RT,RJFACT,QPC,DPSIPDRHOC
       COMPLEX(rkind):: CW,CC,CJTHM,CJPHM,CJR,CJTHP,CJPHP
@@ -1180,20 +781,11 @@ CONTAINS
       INTEGER,INTENT(IN):: NR
       INTEGER:: ID0,ID,ND,NDX,NKD,NKX,KD,KDX,MD,MDX,MLD,MLX,LDX,MM,LBND,MB,LD
       REAL(rkind):: DRHO1,DRHO2,A1,A2
-      REAL(rkind):: XRHO1,XRHO2,XRHO3,XRHO4,XRHOH1,XRHOH2,XRHOH3
 
       DRHO1=(XRHO(2)-XRHO(1))**2
       DRHO2=(XRHO(3)-XRHO(1))**2
       A1= DRHO2/(DRHO2-DRHO1)
       A2=-DRHO1/(DRHO2-DRHO1)
-
-      XRHO1 = XRHO(2)/1.D6
-      XRHO2 = XRHO(2)
-      XRHO3 = XRHO(3)
-      XRHO4 = XRHO(4)
-      XRHOH1=0.5D0*(XRHO1+XRHO2)
-      XRHOH2=0.5D0*(XRHO2+XRHO3)
-      XRHOH3=0.5D0*(XRHO3+XRHO4)
 
 !        ****** R=0 ******
 
@@ -1220,8 +812,8 @@ CONTAINS
                            LDX=MOD(LD-LDMIN+2*LDSIZ,LDSIZ)+1+LDMIN-LDMIN_F
                            MM=NTH0+MD
 
-
 !        ****** EPH'(0) = 0 FOR MM.EQ.0 ******
+
                            IF(MM.EQ.0 .and. &
                                 CMAF(3,3,-MDMIN+1,-NDMIN+1,1) .NE.0 ) THEN
                       

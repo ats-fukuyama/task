@@ -7,7 +7,8 @@ and shows various graphs.
 
 You can get the latest WHO-COVID-19-global-data.csv from
     https://covid19.who.int/table
-    download button at the right end of the second line with an input column
+by
+    ./download_who
 
 Input parameter file (namelist "cv")
     cvparm
