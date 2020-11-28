@@ -513,7 +513,7 @@ contains
 
     BIN_DIR = "../fp.ota/bin/"
 
-    if ( access( TRIM(BIN_DIR)//"fpparm.dat", " ") /= 0 .and. access( TRIM(BIN_DIR)//"eqparm.dat", " ") ) then
+    if ( access( TRIM(BIN_DIR)//"fpparm.dat", " ") /= 0 .and. access( TRIM(BIN_DIR)//"eqparm.dat", " ") /= 0) then
       flag = 3
       return
     end if

@@ -28,6 +28,7 @@ CONTAINS
     CHARACTER(LEN=1):: kid
     CHARACTER(LEN=80):: line
     INTEGER:: ierr,mode,nid
+    EXTERNAL:: TASK_KLIN
     
 ! --- selecion of action type ----
 
