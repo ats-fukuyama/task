@@ -1,5 +1,6 @@
       subroutine fem_calc_15(nrmax,npow,nth,nph,rf,angl)
 
+      USE task_kinds,ONLY: dp
       use libfem
       use libtestfem
       implicit none
@@ -7,12 +8,12 @@
       integer,intent(in):: npow   ! power of mesh points
       integer,intent(in):: nth    ! poloidal mode number
       integer,intent(in):: nph    ! toroidal mode number
-      real(8),intent(in):: rf     ! wave frequency
-      real(8),intent(in):: angl   ! antenna angle: 0 perm, 1,para
+      real(dp),intent(in):: rf     ! wave frequency
+      real(dp),intent(in):: angl   ! antenna angle: 0 perm, 1,para
       integer:: nr,ml,mw,mc,nvmax,i,j,k,inod,nrd
-      real(8):: drho,rkth,rkph,factor,omega,rkth0,rho0,rd,divj
-      complex(8),dimension(4,4,4,1):: fmd
-      complex(8),parameter:: ci=(0.d0,1.d0)
+      real(dp):: drho,rkth,rkph,factor,omega,rkth0,rho0,rd,divj
+      complex(dp),dimension(4,4,4,1):: fmd
+      complex(dp),parameter:: ci=(0.d0,1.d0)
 
       call mesh_init(nrmax,npow)
 

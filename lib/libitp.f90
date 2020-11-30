@@ -19,16 +19,17 @@
 !        F     : function value for designated time
 !        IERR  : error indicator
 
+      USE task_kinds,ONLY: dp
       implicit none
-      integer(4),              intent(in)  :: NTMAX, NTM
-      real(8),                 intent(in)  :: T
-      real(8), dimension(NTM), intent(in)  :: TA, FA
-      integer(4),              intent(out) :: IERR
-      real(8),                 intent(out) :: F
-      integer(4) :: NT, ID, MODE, SPL, AIT, LAG
-      real(8)    :: DERIV4P
-      real(8), dimension(NTM)   :: FXA
-      real(8), dimension(4,NTM) :: U
+      integer,              intent(in)  :: NTMAX, NTM
+      real(dp),                 intent(in)  :: T
+      real(dp), dimension(NTM), intent(in)  :: TA, FA
+      integer,              intent(out) :: IERR
+      real(dp),                 intent(out) :: F
+      integer :: NT, ID, MODE, SPL, AIT, LAG
+      real(dp)    :: DERIV4P
+      real(dp), dimension(NTM)   :: FXA
+      real(dp), dimension(4,NTM) :: U
 
       SPL=0
       AIT=1
@@ -82,14 +83,15 @@
 
       SUBROUTINE LAGLANGE(SLT,FOUT,T,F1,NTMAX,NTM,IERR)
 
+      USE task_kinds,ONLY: dp
       implicit none
-      integer(4),              intent(in)  :: NTMAX, NTM
-      real(8),                 intent(in)  :: SLT
-      real(8), dimension(NTM), intent(in)  :: T, F1
-      integer(4),              intent(out) :: IERR
-      real(8),                 intent(out) :: FOUT
-      integer(4) :: M, IERRL
-      real(8) :: FITLAG, EPS
+      integer,              intent(in)  :: NTMAX, NTM
+      real(dp),                 intent(in)  :: SLT
+      real(dp), dimension(NTM), intent(in)  :: T, F1
+      integer,              intent(out) :: IERR
+      real(dp),                 intent(out) :: FOUT
+      integer :: M, IERRL
+      real(dp) :: FITLAG, EPS
 !      COMMON /COMEPS/ EPS,IERRL
 
       M = 5
@@ -102,7 +104,7 @@
       RETURN
       END SUBROUTINE LAGLANGE
 
-      real(8) FUNCTION FITLAG(X,A,F,M,N,NTM,EPS,IERR)
+      FUNCTION FITLAG(X,A,F,M,N,NTM,EPS,IERR)
 !****************************************************
 !*                                                  *
 !*     Compute iterated Lagrange interpolation      *
@@ -135,15 +137,17 @@
 !*     V(I,J)...triangular table for interpolation  *
 !*                                                  *
 !****************************************************
+      USE task_kinds,ONLY: dp
       implicit none
-      integer(4),              intent(in) :: M, N, NTM
-      real(8),                 intent(in) :: X, EPS
-      real(8), dimension(NTM), intent(in) :: A, F
-      integer(4), intent(out) :: IERR
-      integer(4) :: I, J, K, M2, IS, IB, IM, IL, IR
-      real(8) :: BV, VV
-      real(8), dimension(10,10) :: V
-      real(8), dimension(10)    :: B
+      integer,              intent(in) :: M, N, NTM
+      real(dp),                 intent(in) :: X, EPS
+      real(dp), dimension(NTM), intent(in) :: A, F
+      integer, intent(out) :: IERR
+      real(dp):: FITLAG
+      integer :: I, J, K, M2, IS, IB, IM, IL, IR
+      real(dp) :: BV, VV
+      real(dp), dimension(10,10) :: V
+      real(dp), dimension(10)    :: B
 
 !      COMMON /COMEPS/ EPS,IERR
 
@@ -236,13 +240,15 @@
 !     **  Aitken-Neville iterated linear interpolations  **
 !     *****************************************************
 
-      real(8) FUNCTION AITKEN2P(X0,F1,F2,F3,X1,X2,X3)
+      FUNCTION AITKEN2P(X0,F1,F2,F3,X1,X2,X3)
 
+      USE task_kinds,ONLY: dp
       implicit none
-      real(8), intent(in) :: X0, F1, F2, F3, X1, X2, X3
-      integer(4) :: I, J, K, M, KPM, NP1MM
-      real(8), dimension(3) :: X, Y
-      real(8), dimension(3,3) :: VAL
+      real(dp), intent(in) :: X0, F1, F2, F3, X1, X2, X3
+      real(dp):: AITKEN2P
+      integer :: I, J, K, M, KPM, NP1MM
+      real(dp), dimension(3) :: X, Y
+      real(dp), dimension(3,3) :: VAL
 
       M=2
       Y(1)=F3
@@ -271,24 +277,26 @@
 
 !     ***
 
-      real(8) FUNCTION AITKEN4P(X0,F1,F2,F3,F4,F5,X1,X2,X3,X4,X5)
+      FUNCTION AITKEN4P(X0,F1,F2,F3,F4,F5,X1,X2,X3,X4,X5)
 
+      USE task_kinds,ONLY: dp
       implicit none
-      real(8), intent(in) :: X0, F1, F2, F3, F4, F5, X1, X2, X3, X4, X5
-      integer(4) :: I, J, K, M, KPM, NP1MM
-      real(8), dimension(5) :: X, Y
-      real(8), dimension(5,5) :: VAL
+      real(dp), intent(in) :: X0, F1, F2, F3, F4, F5, X1, X2, X3, X4, X5
+      real(dp):: AITKEN4P
+      integer :: I, J, K, M, KPM, NP1MM
+      real(dp), dimension(5) :: X, Y
+      real(dp), dimension(5,5) :: VAL
 
       M=4
       Y(1)=F5
       Y(2)=F4
       Y(3)=F3
-      Y(4)=F2
+      Y=F2
       Y(5)=F1
       X(1)=X5
       X(2)=X4
       X(3)=X3
-      X(4)=X2
+      X=X2
       X(5)=X1
 
       DO J = 1, M
@@ -321,15 +329,16 @@
 !     <output>
 !        F0    : interpolated value
 
+      USE task_kinds,ONLY: dp
       implicit none
-      integer(4),            intent(in) :: M, N
-      real(8),               intent(in) :: X0
-      real(8), dimension(N), intent(in) :: XI, F
-      real(8), intent(out) :: F0
-      integer(4) :: I, I1, J, K, KPM, L, M1, M2, NP1MM
-      real(8) :: X1, XMIN, XMAX
-      real(8), dimension(10) :: X, Y
-      real(8), dimension(10,10) :: VAL
+      integer,            intent(in) :: M, N
+      real(dp),               intent(in) :: X0
+      real(dp), dimension(N), intent(in) :: XI, F
+      real(dp), intent(out) :: F0
+      integer :: I, I1, J, K, KPM, L, M1, M2, NP1MM
+      real(dp) :: X1, XMIN, XMAX
+      real(dp), dimension(10) :: X, Y
+      real(dp), dimension(10,10) :: VAL
 
       X1 = XI(1)
       XMIN = X1
@@ -386,11 +395,13 @@
 !     *******************************************
 !     -- This formulation has a third-order accuracy. --
 
-      real(8) FUNCTION DERIV4P(F0,F1,F2,F3,X0,X1,X2,X3)
+      FUNCTION DERIV4P(F0,F1,F2,F3,X0,X1,X2,X3)
 
+      USE task_kinds,ONLY: dp
       implicit none
-      real(8), intent(in) :: F0, F1, F2, F3, X0, X1, X2, X3
-      real(8) :: DX1, DX2, DX3
+      real(dp), intent(in) :: F0, F1, F2, F3, X0, X1, X2, X3
+      real(dp):: DERIV4P
+      real(dp) :: DX1, DX2, DX3
 
       DX1 = X1 - X0
       DX2 = X2 - X0
@@ -409,17 +420,19 @@
 
 !     ** Array input version **
 
-      real(8) FUNCTION DERIV4(NR,R,F,NRMAX,ID)
+      FUNCTION DERIV4(NR,R,F,NRMAX,ID)
 
 !     ID = 0    : NR = 0 to NRMAX  ==> NR = 1 to NRMAX+1
 !          else : NR = 1 to NRMAX
 
+      USE task_kinds,ONLY: dp
       implicit none
-      integer(4),                    intent(in) :: NR, NRMAX,ID
-!      real(8), dimension(1:NRMAX+1), intent(in) :: R, F
-      real(8), dimension(*), intent(in) :: R, F
-      integer(4) :: NRL, NRLMAX, NR0, NR1, NR2, NR3
-      real(8) :: DX1, DX2, DX3
+      integer,                    intent(in) :: NR, NRMAX,ID
+!      real(dp), dimension(1:NRMAX+1), intent(in) :: R, F
+      real(dp), dimension(*), intent(in) :: R, F
+      real(dp):: DERIV4
+      integer :: NRL, NRLMAX, NR0, NR1, NR2, NR3
+      real(dp) :: DX1, DX2, DX3
 
       IF(ID == 0) THEN
          NRL=NR+1
@@ -471,11 +484,13 @@
 !     *******************************************
 !     -- This formulation has a second-order accuracy. --
 
-      real(8) FUNCTION DERIV3P(f0, f1, f2, x10, x11, x12)
+      FUNCTION DERIV3P(f0, f1, f2, x10, x11, x12)
 
+      USE task_kinds,ONLY: dp
       implicit none
-      real(8), intent(in) :: f0, f1, f2, x10, x11, x12
-      real(8) :: dx11, dx12
+      real(dp), intent(in) :: f0, f1, f2, x10, x11, x12
+      real(dp):: DERIV3P
+      real(dp) :: dx11, dx12
 
       dx11 = x11 - x10
       dx12 = x12 - x10
@@ -488,16 +503,18 @@
 
 !     ** Array input version **
 
-      real(8) FUNCTION DERIV3(NR,R,F,NRMAX,ID)
+      FUNCTION DERIV3(NR,R,F,NRMAX,ID)
 
 !     ID = 0    : NR = 0 to NRMAX
 !          else : NR = 1 to NRMAX
 
+      USE task_kinds,ONLY: dp
       implicit none
-      integer(4),                    intent(in) :: NR, NRMAX, ID
-      real(8), dimension(1:NRMAX+1), intent(in) :: R, F
-      integer(4) :: NR0, NR1, NR2
-      real(8) :: DLT, DLT1, DLT2
+      integer,                    intent(in) :: NR, NRMAX, ID
+      real(dp), dimension(1:NRMAX+1), intent(in) :: R, F
+      real(dp):: DERIV3
+      integer :: NR0, NR1, NR2
+      real(dp) :: DLT, DLT1, DLT2
 
       IF(ID == 0) THEN
          IF(NR == 0) THEN
@@ -538,16 +555,17 @@
       RETURN
       END FUNCTION DERIV3
 
-!!$      real(8) FUNCTION DERIV3(NR,R,F,NRMAX,NRM,ID)
+!!$      real(dp) FUNCTION DERIV3(NR,R,F,NRMAX,NRM,ID)
 !!$
 !!$!     ID = 0    : NR = 0 to NRMAX  ==> NR = 1 to NRMAX+1
 !!$!          else : NR = 1 to NRMAX
 !!$
+!!$      USE task_kinds,ONLY: dp
 !!$      implicit none
-!!$      integer(4),              intent(in) :: NR, NRMAX, NRM, ID
-!!$      real(8), dimension(NRM), intent(in) :: R, F
-!!$      integer(4) :: NRL, NRLMAX, NR0, NR1, NR2
-!!$      real(8) :: DLT, DLT1, DLT2
+!!$      integer,              intent(in) :: NR, NRMAX, NRM, ID
+!!$      real(dp), dimension(NRM), intent(in) :: R, F
+!!$      integer :: NRL, NRLMAX, NR0, NR1, NR2
+!!$      real(dp) :: DLT, DLT1, DLT2
 !!$
 !!$      IF(ID == 0) THEN
 !!$         NRL=NR+1
@@ -585,10 +603,12 @@
 !     *    based on a three-point formula.                         *
 !     **************************************************************
 
-      real(8) FUNCTION FCTR(R1,R2,F1,F2)
+      FUNCTION FCTR(R1,R2,F1,F2)
 
+      USE task_kinds,ONLY: dp
       implicit none
-      real(8), intent(in) :: R1, R2, F1, F2
+      real(dp), intent(in) :: R1, R2, F1, F2
+      real(dp):: FCTR
 
       FCTR = (R2**2*F1-R1**2*F2)/(R2**2-R1**2)
 
@@ -602,9 +622,10 @@
 
       FUNCTION FCTR4pt(R1,R2,R3,F1,F2,F3) result(F0)
 
+      USE task_kinds,ONLY: dp
       implicit none
-      real(8), intent(in) :: R1, R2, R3, F1, F2, F3
-      real(8) :: F0, h2, h3, RHSinv, LHS
+      real(dp), intent(in) :: R1, R2, R3, F1, F2, F3
+      real(dp) :: F0, h2, h3, RHSinv, LHS
 
       h2 = R2 - R1 ; h3 = R3 - R2
 
@@ -624,9 +645,10 @@
 
       FUNCTION FCTR2(R1,R2,R3,F1,F2,F3) result(F0)
 
+      USE task_kinds,ONLY: dp
       implicit none
-      real(8), intent(in) :: R1, R2, R3, F1, F2, F3
-      real(8) :: F0, D1, D2, D3
+      real(dp), intent(in) :: R1, R2, R3, F1, F2, F3
+      real(dp) :: F0, D1, D2, D3
 
       D1 = (R2 - R1) * (R3 - R1) * (R1 + R2 + R3)
       D2 = (R2 - R1) * (R3 - R2) * (R1 + R2 + R3)
@@ -645,10 +667,11 @@
 
       subroutine SCTR(R1,R2,R3,R4,F2,F3,F4,F0,F1)
 
+      USE task_kinds,ONLY: dp
       implicit none
-      real(8), intent(in)  :: R1, R2, R3, R4, F2, F3, F4
-      real(8), intent(out) :: F0, F1
-      real(8) :: D2, D3, D4
+      real(dp), intent(in)  :: R1, R2, R3, R4, F2, F3, F4
+      real(dp), intent(out) :: F0, F1
+      real(dp) :: D2, D3, D4
 
       D2 = (R3 - R2) * (R4 - R2) * (R2*R3 + R3*R4 + R4*R2)
       D3 = (R3 - R2) * (R4 - R3) * (R2*R3 + R3*R4 + R4*R2)

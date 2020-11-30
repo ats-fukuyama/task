@@ -14,12 +14,12 @@ CONTAINS
     IMPLICIT NONE
 
     INTEGER,INTENT(IN):: NDIM,NTM,NDMAX,NTMAX(NDMAX)
-    REAL(4),INTENT(IN):: GD(NDIM,NTM,NDMAX)
-    REAL(4):: line_width,x1,x2,x3
+    REAL,INTENT(IN):: GD(NDIM,NTM,NDMAX)
+    REAL:: line_width,x1,x2,x3
     TYPE(grf_attr_type),INTENT(IN):: A
 
-    REAL(4),ALLOCATABLE:: GX(:),GY(:)
-    INTEGER(4):: ND,NT,NL,NTMAX_ALL
+    REAL,ALLOCATABLE:: GX(:),GY(:)
+    INTEGER:: ND,NT,NL,NTMAX_ALL
 
     CALL INQLNW(line_width)
 

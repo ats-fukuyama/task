@@ -2,16 +2,17 @@
 
       SUBROUTINE EQRK4(X,Y,DYDX,YOUT,H,N,DERIVS)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),            INTENT(IN) :: N
-      REAL(8),               INTENT(IN) :: X, H
-      REAL(8), DIMENSION(N), INTENT(IN) :: DYDX, Y
-      REAL(8), DIMENSION(N), INTENT(OUT):: YOUT
+      INTEGER,            INTENT(IN) :: N
+      REAL(dp),               INTENT(IN) :: X, H
+      REAL(dp), DIMENSION(N), INTENT(IN) :: DYDX, Y
+      REAL(dp), DIMENSION(N), INTENT(OUT):: YOUT
       EXTERNAL DERIVS
-      INTEGER(4), PARAMETER    :: NMAX = 50
-      INTEGER(4)               :: I
-      REAL(8)                  :: H6, HH, XH
-      REAL(8), DIMENSION(NMAX) :: DYM, DYT, YT
+      INTEGER, PARAMETER    :: NMAX = 50
+      INTEGER               :: I
+      REAL(dp)                  :: H6, HH, XH
+      REAL(dp), DIMENSION(NMAX) :: DYM, DYT, YT
 
       IF(N.GT.NMAX) THEN
          WRITE(6,*) 'XX EQRK4: N (number of eqs) .GT. NMAX:'
@@ -45,15 +46,16 @@
 
       SUBROUTINE NEWTN(SUB,X,Y,XX,YY,DELT,EPS,ILMAX,LIST,IER)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      REAL(8)   , INTENT(IN)   :: DELT, EPS
-      REAL(8)   , INTENT(INOUT):: X, Y
-      REAL(8)   , INTENT(OUT)  ::XX,YY
-      INTEGER(4), INTENT(IN)   ::ILMAX,LIST
-      INTEGER(4), INTENT(OUT)  ::IER
-      REAL(8)     :: DET, DF, DFN, DX, DY, FXX, FYY, FXY, FXY1, FXY2, G0, GN, GX, GY, &
+      REAL(dp)   , INTENT(IN)   :: DELT, EPS
+      REAL(dp)   , INTENT(INOUT):: X, Y
+      REAL(dp)   , INTENT(OUT)  ::XX,YY
+      INTEGER, INTENT(IN)   ::ILMAX,LIST
+      INTEGER, INTENT(OUT)  ::IER
+      REAL(dp)     :: DET, DF, DFN, DX, DY, FXX, FYY, FXY, FXY1, FXY2, G0, GN, GX, GY, &
      &               H11, H12, H21, H22, HX, HY, S0, SN, SX, SY, TT
-      INTEGER(4)  :: ITER
+      INTEGER  :: ITER
       EXTERNAL SUB
 
       IER=0
@@ -139,10 +141,11 @@
 !   **    0.D0**0.D0 should be 1.D0      **
 !   ***************************************
 
-      REAL(8) FUNCTION FPOW(X,Y)
+      REAL(dp) FUNCTION FPOW(X,Y)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      REAL(8), INTENT(IN)  :: X, Y
+      REAL(dp), INTENT(IN)  :: X, Y
 
       IF(X.EQ.0.D0) THEN
          IF(Y.EQ.0.D0) THEN

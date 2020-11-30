@@ -1,34 +1,35 @@
 MODULE libfem
+  USE task_kinds,ONLY: dp
   IMPLICIT NONE
   PRIVATE
-  real(8), dimension(1:4,1:4), save, public :: table_ll
-  real(8), dimension(1:4,1:4), save, public :: table_lg
-  real(8), dimension(1:8,1:8), save, public :: table_hh
-  real(8), dimension(1:8,1:8), save, public :: table_hg
-  real(8), dimension(1:8,1:8), save, public :: table_gg
-  real(8), dimension(1:4,1:4,1:4), save, public :: table_lll
-  real(8), dimension(1:4,1:4,1:4), save, public :: table_lgl
-  real(8), dimension(1:4,1:4,1:4), save, public :: table_llg
-  real(8), dimension(1:4,1:4,1:4), save, public :: table_lgg
-  real(8), dimension(1:8,1:8,1:8), save, public :: table_hhh
-  real(8), dimension(1:8,1:8,1:8), save, public :: table_hgh
-  real(8), dimension(1:8,1:8,1:8), save, public :: table_hhg
-  real(8), dimension(1:8,1:8,1:8), save, public :: table_hgg
-  real(8), dimension(1:8,1:6), save, public :: table_hq
-  real(8), dimension(1:6,1:6), save, public :: table_qq
-  real(8), dimension(1:8,1:6,1:8), save, public :: table_hqh
-  real(8), dimension(1:8,1:8,1:6), save, public :: table_hhq
-  real(8), dimension(1:8,1:6,1:6), save, public :: table_hqq
-  real(8), dimension(1:4,1:6), save, public :: table_lq
-  real(8), dimension(1:6,1:4), save, public :: table_ql
-  real(8), dimension(1:4,1:6,1:4), save, public :: table_lql
-  real(8), dimension(1:4,1:4,1:6), save, public :: table_llq
-  real(8), dimension(1:4,1:6,1:6), save, public :: table_lqq
-  real(8), dimension(1:4,1:4,1:4), save, public :: table_ppp
-  real(8), dimension(1:4,1:4,1:6), save, public :: table_ppq
-  real(8), dimension(1:4,1:6,1:6), save, public :: table_pqq
-  real(8), dimension(1:6,1:6,1:6), save, public :: table_qqq
-  real(8), dimension(1:4,1:6,1:4), save, public :: table_pqp
+  real(dp), dimension(1:4,1:4), save, public :: table_ll
+  real(dp), dimension(1:4,1:4), save, public :: table_lg
+  real(dp), dimension(1:8,1:8), save, public :: table_hh
+  real(dp), dimension(1:8,1:8), save, public :: table_hg
+  real(dp), dimension(1:8,1:8), save, public :: table_gg
+  real(dp), dimension(1:4,1:4,1:4), save, public :: table_lll
+  real(dp), dimension(1:4,1:4,1:4), save, public :: table_lgl
+  real(dp), dimension(1:4,1:4,1:4), save, public :: table_llg
+  real(dp), dimension(1:4,1:4,1:4), save, public :: table_lgg
+  real(dp), dimension(1:8,1:8,1:8), save, public :: table_hhh
+  real(dp), dimension(1:8,1:8,1:8), save, public :: table_hgh
+  real(dp), dimension(1:8,1:8,1:8), save, public :: table_hhg
+  real(dp), dimension(1:8,1:8,1:8), save, public :: table_hgg
+  real(dp), dimension(1:8,1:6), save, public :: table_hq
+  real(dp), dimension(1:6,1:6), save, public :: table_qq
+  real(dp), dimension(1:8,1:6,1:8), save, public :: table_hqh
+  real(dp), dimension(1:8,1:8,1:6), save, public :: table_hhq
+  real(dp), dimension(1:8,1:6,1:6), save, public :: table_hqq
+  real(dp), dimension(1:4,1:6), save, public :: table_lq
+  real(dp), dimension(1:6,1:4), save, public :: table_ql
+  real(dp), dimension(1:4,1:6,1:4), save, public :: table_lql
+  real(dp), dimension(1:4,1:4,1:6), save, public :: table_llq
+  real(dp), dimension(1:4,1:6,1:6), save, public :: table_lqq
+  real(dp), dimension(1:4,1:4,1:4), save, public :: table_ppp
+  real(dp), dimension(1:4,1:4,1:6), save, public :: table_ppq
+  real(dp), dimension(1:4,1:6,1:6), save, public :: table_pqq
+  real(dp), dimension(1:6,1:6,1:6), save, public :: table_qqq
+  real(dp), dimension(1:4,1:6,1:4), save, public :: table_pqp
   integer, save, public :: table_initialize_flag = 0
   public :: table_initialize, fem_integrate
   public :: fem_func_l, fem_func_p, fem_func_h, fem_func_g
@@ -4258,9 +4259,9 @@ CONTAINS
 !
 !-------------------------------------------------------
     integer, intent(in) :: id
-    real(8), intent(in), dimension(1:2), optional :: a, da, b, db
+    real(dp), intent(in), dimension(1:2), optional :: a, da, b, db
     integer :: i, j
-    real(8) :: x(4,4), a1, a2, da1, da2, b1, b2, db1, db2
+    real(dp) :: x(4,4), a1, a2, da1, da2, b1, b2, db1, db2
 
     if(table_initialize_flag.eq.0) then
        call table_initialize
@@ -4400,9 +4401,9 @@ CONTAINS
     !  fem linear function Id=1,2, mode=0 : function
     !                              mode=1 : derivative
     !                              mode=2 : integral from 0 to x
-    REAL(8),INTENT(IN):: x
+    REAL(dp),INTENT(IN):: x
     INTEGER,INTENT(IN):: id,mode
-    REAL(8):: fem_func_l
+    REAL(dp):: fem_func_l
 
     SELECT CASE(mode)
     CASE(0)
@@ -4441,9 +4442,9 @@ CONTAINS
     !  fem polynomial function Id=1,2, mode=0 : function
     !                                  mode=1 : derivative
     !                                  mode=2 : integral from 0 to x
-    REAL(8),INTENT(IN):: x
+    REAL(dp),INTENT(IN):: x
     INTEGER,INTENT(IN):: id,mode
-    REAL(8):: fem_func_p
+    REAL(dp):: fem_func_p
 
     SELECT CASE(mode)
     CASE(0)
@@ -4482,9 +4483,9 @@ CONTAINS
     !  fem hermite function Id=1:4, mode=0 : function
     !                               mode=1 : derivative
     !                               mode=2 : integral from 0 to x
-    REAL(8),INTENT(IN):: x
+    REAL(dp),INTENT(IN):: x
     INTEGER,INTENT(IN):: id,mode
-    REAL(8):: fem_func_h
+    REAL(dp):: fem_func_h
 
     SELECT CASE(mode)
     CASE(0)
@@ -4535,9 +4536,9 @@ CONTAINS
     !  fem hermite function Id=1:4, mode=0 : function
     !                               mode=1 : derivative
     !                               mode=2 : integral from 0 to x
-    REAL(8),INTENT(IN):: x
+    REAL(dp),INTENT(IN):: x
     INTEGER,INTENT(IN):: id,mode
-    REAL(8):: fem_func_g
+    REAL(dp):: fem_func_g
 
     SELECT CASE(mode)
     CASE(0)

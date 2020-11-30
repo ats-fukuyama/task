@@ -21,14 +21,15 @@
 !              FX(NXMAX) : ESTIMATED DERIVATIVES
 !              IERR      : ERROR INDICATOR
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),                  INTENT(IN) :: NXMAX, ID
-      REAL(8), DIMENSION(NXMAX),   INTENT(IN) :: X, F
-      REAL(8), DIMENSION(NXMAX), INTENT(INOUT):: FX
-      INTEGER(4),                  INTENT(OUT):: IERR
-      REAL(8), DIMENSION(4,NXMAX), INTENT(OUT):: U
-      INTEGER(4)  :: ID1, ID2, NX
-      REAL(8)     :: DX, DX1, DX2, DX3, DXM, DXP, T11, T21, T31, T41, &
+      INTEGER,                  INTENT(IN) :: NXMAX, ID
+      REAL(dp), DIMENSION(NXMAX),   INTENT(IN) :: X, F
+      REAL(dp), DIMENSION(NXMAX), INTENT(INOUT):: FX
+      INTEGER,                  INTENT(OUT):: IERR
+      REAL(dp), DIMENSION(4,NXMAX), INTENT(OUT):: U
+      INTEGER  :: ID1, ID2, NX
+      REAL(dp)     :: DX, DX1, DX2, DX3, DXM, DXP, T11, T21, T31, T41, &
      &               V31, V32, V33, V34, V41, V42, V43, V44
 
       IERR=0
@@ -161,15 +162,16 @@
 
       SUBROUTINE SPL1DF(X0,F0,X,U,NXMAX,IERR)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),                INTENT(IN) :: NXMAX
-      REAL(8),                   INTENT(IN) :: X0
-      REAL(8),DIMENSION(NXMAX),  INTENT(IN) :: X
-      REAL(8),DIMENSION(4,NXMAX),INTENT(IN) :: U
-      REAL(8),                   INTENT(OUT):: F0
-      INTEGER(4),                INTENT(OUT):: IERR
-      REAL(8)     :: FS, DX
-      INTEGER(4)  :: NX
+      INTEGER,                INTENT(IN) :: NXMAX
+      REAL(dp),                   INTENT(IN) :: X0
+      REAL(dp),DIMENSION(NXMAX),  INTENT(IN) :: X
+      REAL(dp),DIMENSION(4,NXMAX),INTENT(IN) :: U
+      REAL(dp),                   INTENT(OUT):: F0
+      INTEGER,                INTENT(OUT):: IERR
+      REAL(dp)     :: FS, DX
+      INTEGER  :: NX
 
 
       IERR=0
@@ -216,15 +218,16 @@
 
       SUBROUTINE SPL1DD(X0,F0,DF0,X,U,NXMAX,IERR)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),                INTENT(IN) :: NXMAX
-      REAL(8),                   INTENT(IN) :: X0
-      REAL(8),DIMENSION(NXMAX),  INTENT(IN) :: X
-      REAL(8),DIMENSION(4,NXMAX),INTENT(IN) :: U
-      REAL(8),                   INTENT(OUT):: F0, DF0
-      INTEGER(4),                INTENT(OUT):: IERR
-      REAL(8)     :: FS, DX
-      INTEGER(4)  :: NX
+      INTEGER,                INTENT(IN) :: NXMAX
+      REAL(dp),                   INTENT(IN) :: X0
+      REAL(dp),DIMENSION(NXMAX),  INTENT(IN) :: X
+      REAL(dp),DIMENSION(4,NXMAX),INTENT(IN) :: U
+      REAL(dp),                   INTENT(OUT):: F0, DF0
+      INTEGER,                INTENT(OUT):: IERR
+      REAL(dp)     :: FS, DX
+      INTEGER  :: NX
 
       IERR=0
       IF(X(NXMAX).EQ.X(1)) THEN
@@ -272,14 +275,15 @@
 
       SUBROUTINE SPL1DI0(X,U,U0,NXMAX,IERR)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),                INTENT(IN) :: NXMAX
-      REAL(8),DIMENSION(NXMAX),  INTENT(IN) :: X
-      REAL(8),DIMENSION(4,NXMAX),INTENT(IN) :: U
-      REAL(8),DIMENSION(NXMAX),  INTENT(OUT):: U0
-      INTEGER(4),                INTENT(OUT):: IERR
-      REAL(8)     :: DX
-      INTEGER(4)  :: NX
+      INTEGER,                INTENT(IN) :: NXMAX
+      REAL(dp),DIMENSION(NXMAX),  INTENT(IN) :: X
+      REAL(dp),DIMENSION(4,NXMAX),INTENT(IN) :: U
+      REAL(dp),DIMENSION(NXMAX),  INTENT(OUT):: U0
+      INTEGER,                INTENT(OUT):: IERR
+      REAL(dp)     :: DX
+      INTEGER  :: NX
 
 
       IERR=0
@@ -309,16 +313,17 @@
 
       SUBROUTINE SPL1DI(X0,FI,X,U,U0,NXMAX,IERR)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),                INTENT(IN) :: NXMAX
-      REAL(8),                   INTENT(IN) :: X0
-      REAL(8),DIMENSION(NXMAX) , INTENT(IN) :: X
-      REAL(8),DIMENSION(4,NXMAX),INTENT(IN) :: U
-      REAL(8),DIMENSION(NXMAX),  INTENT(IN) :: U0
-      REAL(8),                   INTENT(OUT):: FI
-      INTEGER(4),                INTENT(OUT):: IERR
-      REAL(8)     :: DX, FS
-      INTEGER(4)  :: NX
+      INTEGER,                INTENT(IN) :: NXMAX
+      REAL(dp),                   INTENT(IN) :: X0
+      REAL(dp),DIMENSION(NXMAX) , INTENT(IN) :: X
+      REAL(dp),DIMENSION(4,NXMAX),INTENT(IN) :: U
+      REAL(dp),DIMENSION(NXMAX),  INTENT(IN) :: U0
+      REAL(dp),                   INTENT(OUT):: FI
+      INTEGER,                INTENT(OUT):: IERR
+      REAL(dp)     :: DX, FS
+      INTEGER  :: NX
 
 
       IERR=0
@@ -379,17 +384,18 @@
 !              FX(NXMAX) : ESTIMATED DERIVATIVES
 !              IERR      : ERROR INDICATOR
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),                   INTENT(IN)   :: NXMAX, ID
-      REAL(8),    DIMENSION(NXMAX), INTENT(IN)   :: X
-      COMPLEX(8),DIMENSION(NXMAX),  INTENT(IN)   :: F
-      COMPLEX(8),DIMENSION(NXMAX),  INTENT(INOUT):: FX
-      COMPLEX(8),DIMENSION(4,NXMAX),INTENT(INOUT):: U
-      INTEGER(4),                   INTENT(OUT)  :: IERR
-      REAL(8)     :: DXM, DXP, DX, DX1, DX2, DX3, V31, V32, V33, V34, &
+      INTEGER,                   INTENT(IN)   :: NXMAX, ID
+      REAL(dp),    DIMENSION(NXMAX), INTENT(IN)   :: X
+      COMPLEX(dp),DIMENSION(NXMAX),  INTENT(IN)   :: F
+      COMPLEX(dp),DIMENSION(NXMAX),  INTENT(INOUT):: FX
+      COMPLEX(dp),DIMENSION(4,NXMAX),INTENT(INOUT):: U
+      INTEGER,                   INTENT(OUT)  :: IERR
+      REAL(dp)     :: DXM, DXP, DX, DX1, DX2, DX3, V31, V32, V33, V34, &
      &               V41, V42, V43, V44
-      INTEGER(4)  :: ID1, ID2, NX
-      COMPLEX(8) :: T11, T21, T31, T41
+      INTEGER  :: ID1, ID2, NX
+      COMPLEX(dp) :: T11, T21, T31, T41
 
       IERR=0
 
@@ -521,15 +527,16 @@
 
       SUBROUTINE CSPL1DF(X0,F0,X,U,NXMAX,IERR)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),               INTENT(IN) :: NXMAX
-      REAL(8),                  INTENT(IN) :: X0
-      REAL(8),DIMENSION(NXMAX), INTENT(IN) :: X
-      COMPLEX(8),DIMENSION(4,NXMAX),INTENT(IN):: U
-      COMPLEX(8),               INTENT(OUT):: F0
-      INTEGER(4),               INTENT(OUT):: IERR
-      REAL(8)     :: FS, DX
-      INTEGER(4)  :: NX
+      INTEGER,               INTENT(IN) :: NXMAX
+      REAL(dp),                  INTENT(IN) :: X0
+      REAL(dp),DIMENSION(NXMAX), INTENT(IN) :: X
+      COMPLEX(dp),DIMENSION(4,NXMAX),INTENT(IN):: U
+      COMPLEX(dp),               INTENT(OUT):: F0
+      INTEGER,               INTENT(OUT):: IERR
+      REAL(dp)     :: FS, DX
+      INTEGER  :: NX
 
 
       IERR=0
@@ -576,15 +583,16 @@
 
       SUBROUTINE CSPL1DD(X0,F0,DF0,X,U,NXMAX,IERR)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),               INTENT(IN) :: NXMAX
-      REAL(8),                  INTENT(IN) :: X0
-      REAL(8),DIMENSION(NXMAX), INTENT(IN) :: X
-      COMPLEX(8),DIMENSION(4,NXMAX),INTENT(IN):: U
-      COMPLEX(8),               INTENT(OUT):: F0, DF0
-      INTEGER(4),               INTENT(OUT):: IERR
-      REAL(8)     :: FS, DX
-      INTEGER(4)  :: NX
+      INTEGER,               INTENT(IN) :: NXMAX
+      REAL(dp),                  INTENT(IN) :: X0
+      REAL(dp),DIMENSION(NXMAX), INTENT(IN) :: X
+      COMPLEX(dp),DIMENSION(4,NXMAX),INTENT(IN):: U
+      COMPLEX(dp),               INTENT(OUT):: F0, DF0
+      INTEGER,               INTENT(OUT):: IERR
+      REAL(dp)     :: FS, DX
+      INTEGER  :: NX
 
 
       IERR=0
@@ -633,14 +641,15 @@
 
       SUBROUTINE CSPL1DI0(X,U,U0,NXMAX,IERR)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),               INTENT(IN) :: NXMAX
-      REAL(8),DIMENSION(NXMAX), INTENT(IN) :: X
-      COMPLEX(8),DIMENSION(4,NXMAX),INTENT(IN):: U
-      COMPLEX(8),DIMENSION(NXMAX), INTENT(OUT):: U0
-      INTEGER(4),               INTENT(OUT):: IERR
-      REAL(8)     :: DX
-      INTEGER(4)  :: NX
+      INTEGER,               INTENT(IN) :: NXMAX
+      REAL(dp),DIMENSION(NXMAX), INTENT(IN) :: X
+      COMPLEX(dp),DIMENSION(4,NXMAX),INTENT(IN):: U
+      COMPLEX(dp),DIMENSION(NXMAX), INTENT(OUT):: U0
+      INTEGER,               INTENT(OUT):: IERR
+      REAL(dp)     :: DX
+      INTEGER  :: NX
 
 
       IERR=0
@@ -670,16 +679,17 @@
 
       SUBROUTINE CSPL1DI(X0,FI,X,U,U0,NXMAX,IERR)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),                   INTENT(IN) :: NXMAX
-      REAL(8),                      INTENT(IN) :: X0
-      REAL(8),    DIMENSION(NXMAX), INTENT(IN) :: X
-      COMPLEX(8),DIMENSION(4,NXMAX),INTENT(IN) :: U
-      COMPLEX(8),DIMENSION(NXMAX),  INTENT(IN) :: U0
-      COMPLEX(8),                   INTENT(OUT):: FI
-      INTEGER(4),                   INTENT(OUT):: IERR
-      REAL(8)     :: DX, FS
-      INTEGER(4)  :: NX
+      INTEGER,                   INTENT(IN) :: NXMAX
+      REAL(dp),                      INTENT(IN) :: X0
+      REAL(dp),    DIMENSION(NXMAX), INTENT(IN) :: X
+      COMPLEX(dp),DIMENSION(4,NXMAX),INTENT(IN) :: U
+      COMPLEX(dp),DIMENSION(NXMAX),  INTENT(IN) :: U0
+      COMPLEX(dp),                   INTENT(OUT):: FI
+      INTEGER,                   INTENT(OUT):: IERR
+      REAL(dp)     :: DX, FS
+      INTEGER  :: NX
 
 
       IERR=0
@@ -739,13 +749,14 @@
 !         This routine requires A(4,NMAX) rather than A(3,NMAX).
 !     +++++++++++++++++
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),                INTENT(IN)   :: NMAX
-      REAL(8), DIMENSION(4,NMAX),INTENT(INOUT):: A
-      REAL(8), DIMENSION(NMAX),  INTENT(INOUT):: X
-      INTEGER(4),                INTENT(OUT)  :: IERR
-      REAL(8)    :: AAN,BBN,AN,BN,CN,DN,FACT,XN
-      INTEGER(4) :: N
+      INTEGER,                INTENT(IN)   :: NMAX
+      REAL(dp), DIMENSION(4,NMAX),INTENT(INOUT):: A
+      REAL(dp), DIMENSION(NMAX),  INTENT(INOUT):: X
+      INTEGER,                INTENT(OUT)  :: IERR
+      REAL(dp)    :: AAN,BBN,AN,BN,CN,DN,FACT,XN
+      INTEGER :: N
 
       AAN=0.D0
       BBN=0.D0
@@ -796,13 +807,14 @@
 !        This routine requires A(4,NMAX) rather than A(3,NMAX).
 !     +++++++++++++++++
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),                INTENT(IN)   :: NMAX
-      REAL(8), DIMENSION(4,NMAX),INTENT(INOUT):: A
-      REAL(8), DIMENSION(NMAX),  INTENT(INOUT):: X
-      INTEGER(4),                INTENT(OUT)  :: IERR
-      REAL(8) :: AAN, BBN, CCN, DDN, EEN, DDNN, EENN, AN, BN, CN, DN, FACT, X1, XN
-      INTEGER(4) :: N
+      INTEGER,                INTENT(IN)   :: NMAX
+      REAL(dp), DIMENSION(4,NMAX),INTENT(INOUT):: A
+      REAL(dp), DIMENSION(NMAX),  INTENT(INOUT):: X
+      INTEGER,                INTENT(OUT)  :: IERR
+      REAL(dp) :: AAN, BBN, CCN, DDN, EEN, DDNN, EENN, AN, BN, CN, DN, FACT, X1, XN
+      INTEGER :: N
 
       AAN=0.D0
       BBN=0.D0
@@ -871,13 +883,14 @@
 !        IERR      : I : ERROR INDICATOR (0 for naormal)
 !     +++++++++++++++++
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),                    INTENT(IN)   :: NMAX
-      COMPLEX(8), DIMENSION(4,NMAX), INTENT(INOUT):: A
-      COMPLEX(8), DIMENSION(NMAX),   INTENT(INOUT):: X
-      INTEGER(4),                    INTENT(OUT)  :: IERR
-      COMPLEX(8) ::  AAN, BBN, AN, BN, CN, DN, FACT, XN
-      INTEGER(4)  :: N
+      INTEGER,                    INTENT(IN)   :: NMAX
+      COMPLEX(dp), DIMENSION(4,NMAX), INTENT(INOUT):: A
+      COMPLEX(dp), DIMENSION(NMAX),   INTENT(INOUT):: X
+      INTEGER,                    INTENT(OUT)  :: IERR
+      COMPLEX(dp) ::  AAN, BBN, AN, BN, CN, DN, FACT, XN
+      INTEGER  :: N
 
       AAN=0.D0
       BBN=0.D0
@@ -926,13 +939,15 @@
 !        X(N+1)=X(1)
 !     +++++++++++++++++
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),                    INTENT(IN)   :: NMAX
-      COMPLEX(8), DIMENSION(4,NMAX), INTENT(INOUT):: A
-      COMPLEX(8), DIMENSION(NMAX),   INTENT(INOUT):: X
-      INTEGER(4),                    INTENT(OUT)  :: IERR
-      COMPLEX(8) :: AAN, BBN, CCN, DDN, EEN, DDNN, EENN, AN, BN, CN, DN, FACT, X1, XN
-      INTEGER(4)  :: N
+      INTEGER,                    INTENT(IN)   :: NMAX
+      COMPLEX(dp), DIMENSION(4,NMAX), INTENT(INOUT):: A
+      COMPLEX(dp), DIMENSION(NMAX),   INTENT(INOUT):: X
+      INTEGER,                    INTENT(OUT)  :: IERR
+      COMPLEX(dp):: AAN, BBN, CCN, DDN, EEN, DDNN, EENN,  &
+           AN, BN, CN, DN, FACT, X1, XN
+      INTEGER  :: N
 
 
       AAN=0.D0

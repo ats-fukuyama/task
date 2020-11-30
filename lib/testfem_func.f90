@@ -1,5 +1,6 @@
 PROGRAM testfem_func
 
+  USE task_kinds,ONLY: dp
   USE libgrf
   USE libfem
 
@@ -35,14 +36,14 @@ CONTAINS
     INTEGER,INTENT(IN):: idmax
     INTEGER:: id,nx
     INTEGER,PARAMETER:: nxmax=101
-    REAL(8):: x,dx
-    REAL(8),DIMENSION(nxmax):: gx
-    REAL(8),DIMENSION(nxmax,2*idmax):: gy1,gy2,gy3
+    REAL(dp):: x,dx
+    REAL(dp),DIMENSION(nxmax):: gx
+    REAL(dp),DIMENSION(nxmax,2*idmax):: gy1,gy2,gy3
     INTERFACE 
        FUNCTION func(x,id,mode)
-         REAL(8),INTENT(IN):: x
+         REAL(dp),INTENT(IN):: x
          INTEGER,INTENT(IN):: id,mode
-         REAL(8):: func
+         REAL(dp):: func
        END FUNCTION func
     END INTERFACE
 

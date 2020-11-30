@@ -2,7 +2,7 @@
 
 PROGRAM testlamb
 
-  USE bpsd_kinds
+  USE task_kinds,ONLY: dp
   USE libbes
   USE libgrf
   IMPLICIT NONE

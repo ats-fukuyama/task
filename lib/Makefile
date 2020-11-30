@@ -9,9 +9,9 @@ LFLAGS = $(DFLAGS)
 #FFLAGS = $(OFLAGS)
 FFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I $(MOD) -I ../../bpsd/$(MOD)
+MODINCLUDE= -I $(MOD)
 
-SRCSFREE  =  libbrn.f90 libinv.f90 libbnd.f90 \
+SRCSFREE  =  task_kinds.f90 libbrn.f90 libinv.f90 libbnd.f90 \
              libpcgpme.f90 \
              librk.f90 libsympl.f90 \
              libspl.f90 libspl2d.f90 libspl3d.f90 \

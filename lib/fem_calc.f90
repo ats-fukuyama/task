@@ -2,7 +2,8 @@ MODULE fem_calc
 
 !----- calculate coefficint matrix fma and source vector fvb -----
 
-   USE libtestfem
+  USE task_kinds,ONLY: dp
+  USE libtestfem
 
 CONTAINS
    
@@ -13,8 +14,8 @@ CONTAINS
       integer,intent(in):: nrmax  ! number of points including end points
       integer,intent(in):: npow   ! power of mesh points
       integer:: nr,ml,mw,mc,nvmax,i,j,k
-      real(8):: drho,val1,val2,val3,val4,temp
-      real(8),dimension(4):: coef
+      real(dp):: drho,val1,val2,val3,val4,temp
+      real(dp),dimension(4):: coef
 
       call mesh_init(nrmax,npow)
 
@@ -79,8 +80,8 @@ CONTAINS
       integer,intent(in):: nrmax  ! number of points including end points
       integer,intent(in):: npow   ! power of mesh points
       integer:: nr,ml,mw,mc,nvmax,i,j,k
-      real(8):: drho,val1,val2,val3,val4,temp
-      real(8),dimension(4):: coef
+      real(dp):: drho,val1,val2,val3,val4,temp
+      real(dp),dimension(4):: coef
 
       call mesh_init(nrmax,npow)
 
@@ -189,14 +190,14 @@ CONTAINS
       integer,intent(in):: nrmax  ! number of points including end points
       integer,intent(in):: npow   ! power of mesh points
       integer:: nr,ml,mw,mc,nvmax,i,j,k
-      real(8):: drho,val1,val2,val3,val4,temp
-      real(8),dimension(4):: coef
-      real(8):: rho1,rho2,rho3,rho4
-      real(8):: moment0,moment1,moment2,moment3,xi,yi
-      real(8),parameter:: m0=4.D0
-      real(8),parameter:: m2=5.D0/16.D0
-      real(8),parameter:: m4=41.D0/1024.D0
-      real(8),parameter:: m6=365.D0/65536.D0
+      real(dp):: drho,val1,val2,val3,val4,temp
+      real(dp),dimension(4):: coef
+      real(dp):: rho1,rho2,rho3,rho4
+      real(dp):: moment0,moment1,moment2,moment3,xi,yi
+      real(dp),parameter:: m0=4.D0
+      real(dp),parameter:: m2=5.D0/16.D0
+      real(dp),parameter:: m4=41.D0/1024.D0
+      real(dp),parameter:: m6=365.D0/65536.D0
 
       call mesh_init(nrmax,npow)
 
@@ -319,12 +320,12 @@ CONTAINS
       integer,intent(in):: npow   ! power of mesh points
       integer,intent(in):: nth    ! poloidal mode number
       integer,intent(in):: nph    ! toroidal mode number
-      real(8),intent(in):: rf     ! wave frequency
-      real(8),intent(in):: angl   ! antenna angle: 0 perm, 1,para
+      real(dp),intent(in):: rf     ! wave frequency
+      real(dp),intent(in):: angl   ! antenna angle: 0 perm, 1,para
       integer:: nr,ml,mw,mc,nvmax,i,j,k,inod
-      real(8):: drho,rkth,rkph,factor
-      complex(8),dimension(3,3,4,2):: fmc,fmd
-      complex(8),parameter:: ci=(0.d0,1.d0)
+      real(dp):: drho,rkth,rkph,factor
+      complex(dp),dimension(3,3,4,2):: fmc,fmd
+      complex(dp),parameter:: ci=(0.d0,1.d0)
 
       call mesh_init(nrmax,npow)
 
@@ -487,12 +488,12 @@ CONTAINS
       integer,intent(in):: npow   ! power of mesh points
       integer,intent(in):: nth    ! poloidal mode number
       integer,intent(in):: nph    ! toroidal mode number
-      real(8),intent(in):: rf     ! wave frequency
-      real(8),intent(in):: angl   ! antenna angle: 0 perm, 1,para
+      real(dp),intent(in):: rf     ! wave frequency
+      real(dp),intent(in):: angl   ! antenna angle: 0 perm, 1,para
       integer:: nr,ml,mw,mc,nvmax,i,j,k,inod
-      real(8):: drho,rkth,rkph,factor
-      complex(8),dimension(3,3,4,2):: fmc,fmd
-      complex(8),parameter:: ci=(0.d0,1.d0)
+      real(dp):: drho,rkth,rkph,factor
+      complex(dp),dimension(3,3,4,2):: fmc,fmd
+      complex(dp),parameter:: ci=(0.d0,1.d0)
 
       call mesh_init(nrmax,npow)
 
@@ -715,12 +716,12 @@ CONTAINS
       integer,intent(in):: npow   ! power of mesh points
       integer,intent(in):: nth    ! poloidal mode number
       integer,intent(in):: nph    ! toroidal mode number
-      real(8),intent(in):: rf     ! wave frequency
-      real(8),intent(in):: angl   ! antenna angle: 0 perm, 1,para
+      real(dp),intent(in):: rf     ! wave frequency
+      real(dp),intent(in):: angl   ! antenna angle: 0 perm, 1,para
       integer:: nr,ml,mw,mc,nvmax,i,j,k,inod
-      real(8):: drho,rkth,rkph,factor
-      complex(8),dimension(3,3,4,2):: fmc,fmd
-      complex(8),parameter:: ci=(0.d0,1.d0)
+      real(dp):: drho,rkth,rkph,factor
+      complex(dp),dimension(3,3,4,2):: fmc,fmd
+      complex(dp),parameter:: ci=(0.d0,1.d0)
       integer,dimension(3),parameter :: ishift=(/0,2,3/)
 
       call mesh_init(nrmax,npow)
@@ -939,12 +940,12 @@ CONTAINS
       integer,intent(in):: npow   ! power of mesh points
       integer,intent(in):: nth    ! poloidal mode number
       integer,intent(in):: nph    ! toroidal mode number
-      real(8),intent(in):: rf     ! wave frequency
-      real(8),intent(in):: angl   ! antenna angle: 0 perm, 1,para
+      real(dp),intent(in):: rf     ! wave frequency
+      real(dp),intent(in):: angl   ! antenna angle: 0 perm, 1,para
       integer:: nr,ml,mw,mc,nvmax,i,j,k,inod
-      real(8):: drho,rkth,rkph,factor
-      complex(8),dimension(3,3,4,4):: fmc,fmd
-      complex(8),parameter:: ci=(0.d0,1.d0)
+      real(dp):: drho,rkth,rkph,factor
+      complex(dp),dimension(3,3,4,4):: fmc,fmd
+      complex(dp),parameter:: ci=(0.d0,1.d0)
 
       call mesh_init(nrmax,npow)
 
@@ -1215,12 +1216,12 @@ CONTAINS
       integer,intent(in):: npow   ! power of mesh points
       integer,intent(in):: nth    ! poloidal mode number
       integer,intent(in):: nph    ! toroidal mode number
-      real(8),intent(in):: rf     ! wave frequency
-      real(8),intent(in):: angl   ! antenna angle: 0 perm, 1,para
+      real(dp),intent(in):: rf     ! wave frequency
+      real(dp),intent(in):: angl   ! antenna angle: 0 perm, 1,para
       integer:: nr,ml,mw,mc,nvmax,i,j,k,inod
-      real(8):: drho,rkth,rkph,factor,rkth0,rho0
-      complex(8),dimension(3,3,4,2):: fmc,fmd
-      complex(8),parameter:: ci=(0.d0,1.d0)
+      real(dp):: drho,rkth,rkph,factor,rkth0,rho0
+      complex(dp),dimension(3,3,4,2):: fmc,fmd
+      complex(dp),parameter:: ci=(0.d0,1.d0)
 
       call mesh_init(nrmax,npow)
 
@@ -1387,12 +1388,12 @@ CONTAINS
       integer,intent(in):: npow   ! power of mesh points
       integer,intent(in):: nth    ! poloidal mode number
       integer,intent(in):: nph    ! toroidal mode number
-      real(8),intent(in):: rf     ! wave frequency
-      real(8),intent(in):: angl   ! antenna angle: 0 perm, 1,para
+      real(dp),intent(in):: rf     ! wave frequency
+      real(dp),intent(in):: angl   ! antenna angle: 0 perm, 1,para
       integer:: nr,ml,mw,mc,nvmax,i,j,k,inod
-      real(8):: drho,rkth,rkph,factor,rkth0,rho0
-      complex(8),dimension(3,3,4,2):: fmc,fmd
-      complex(8),parameter:: ci=(0.d0,1.d0)
+      real(dp):: drho,rkth,rkph,factor,rkth0,rho0
+      complex(dp),dimension(3,3,4,2):: fmc,fmd
+      complex(dp),parameter:: ci=(0.d0,1.d0)
 
       call mesh_init(nrmax,npow)
 
@@ -1605,12 +1606,12 @@ CONTAINS
       integer,intent(in):: npow   ! power of mesh points
       integer,intent(in):: nth    ! poloidal mode number
       integer,intent(in):: nph    ! toroidal mode number
-      real(8),intent(in):: rf     ! wave frequency
-      real(8),intent(in):: angl   ! antenna angle: 0 perm, 1,para
+      real(dp),intent(in):: rf     ! wave frequency
+      real(dp),intent(in):: angl   ! antenna angle: 0 perm, 1,para
       integer:: nr,ml,mw,mc,nvmax,i,j,k,inod
-      real(8):: drho,rkth,rkph,factor,rkth0,rho0
-      complex(8),dimension(3,3,4,2):: fmc,fmd
-      complex(8),parameter:: ci=(0.d0,1.d0)
+      real(dp):: drho,rkth,rkph,factor,rkth0,rho0
+      complex(dp),dimension(3,3,4,2):: fmc,fmd
+      complex(dp),parameter:: ci=(0.d0,1.d0)
       integer,dimension(3),parameter :: ishift=(/0,2,3/)
 
       call mesh_init(nrmax,npow)
@@ -1865,12 +1866,12 @@ CONTAINS
       integer,intent(in):: npow   ! power of mesh points
       integer,intent(in):: nth    ! poloidal mode number
       integer,intent(in):: nph    ! toroidal mode number
-      real(8),intent(in):: rf     ! wave frequency
-      real(8),intent(in):: angl   ! antenna angle: 0 perm, 1,para
+      real(dp),intent(in):: rf     ! wave frequency
+      real(dp),intent(in):: angl   ! antenna angle: 0 perm, 1,para
       integer:: nr,ml,mw,mc,nvmax,i,j,k,inod
-      real(8):: drho,rkth,rkph,factor,rkth0,rho0
-      complex(8),dimension(3,3,4,4):: fmc,fmd
-      complex(8),parameter:: ci=(0.d0,1.d0)
+      real(dp):: drho,rkth,rkph,factor,rkth0,rho0
+      complex(dp),dimension(3,3,4,4):: fmc,fmd
+      complex(dp),parameter:: ci=(0.d0,1.d0)
 
       call mesh_init(nrmax,npow)
 
@@ -2114,12 +2115,12 @@ CONTAINS
       integer,intent(in):: npow   ! power of mesh points
       integer,intent(in):: nth    ! poloidal mode number
       integer,intent(in):: nph    ! toroidal mode number
-      real(8),intent(in):: rf     ! wave frequency
-      real(8),intent(in):: angl   ! antenna angle: 0 perm, 1,para
+      real(dp),intent(in):: rf     ! wave frequency
+      real(dp),intent(in):: angl   ! antenna angle: 0 perm, 1,para
       integer:: nr,ml,mw,mc,nvmax,i,j,k,inod,mr
-      real(8):: drho,rkth,rkph,factor,rkth0,rho0
-      complex(8),dimension(3,3,4,4):: fmc,fmd
-      complex(8),parameter:: ci=(0.d0,1.d0)
+      real(dp):: drho,rkth,rkph,factor,rkth0,rho0
+      complex(dp),dimension(3,3,4,4):: fmc,fmd
+      complex(dp),parameter:: ci=(0.d0,1.d0)
       integer,dimension(3),parameter :: ishift=(/0,2,4/)
 
       call mesh_init(nrmax,npow)
@@ -2580,12 +2581,12 @@ CONTAINS
       integer,intent(in):: npow   ! power of mesh points
       integer,intent(in):: nth    ! poloidal mode number
       integer,intent(in):: nph    ! toroidal mode number
-      real(8),intent(in):: rf     ! wave frequency
-      real(8),intent(in):: angl   ! antenna angle: 0 perm, 1,para
+      real(dp),intent(in):: rf     ! wave frequency
+      real(dp),intent(in):: angl   ! antenna angle: 0 perm, 1,para
       integer:: nr,ml,mw,mc,nvmax,i,j,k,inod,mr
-      real(8):: drho,rkth,rkph,factor,rkth0,rho0
-      complex(8),dimension(3,3,4,2):: fmc,fmd
-      complex(8),parameter:: ci=(0.d0,1.d0)
+      real(dp):: drho,rkth,rkph,factor,rkth0,rho0
+      complex(dp),dimension(3,3,4,2):: fmc,fmd
+      complex(dp),parameter:: ci=(0.d0,1.d0)
       integer,dimension(3),parameter :: ishift=(/0,1,3/)
 
       call mesh_init(nrmax,npow)
@@ -2883,13 +2884,13 @@ CONTAINS
       integer,intent(in):: npow   ! power of mesh points
       integer,intent(in):: nth    ! poloidal mode number
       integer,intent(in):: nph    ! toroidal mode number
-      real(8),intent(in):: rf     ! wave frequency
-      real(8),intent(in):: angl   ! antenna angle: 0 perm, 1,para
+      real(dp),intent(in):: rf     ! wave frequency
+      real(dp),intent(in):: angl   ! antenna angle: 0 perm, 1,para
       integer:: nr,ml,mw,mc,nvmax,i,j,k,inod,mr,mu1,mu2,ic2,ic1,ip1,ip2
-      real(8):: drho,rkth,rkph,factor,rkth0,rho0
-      complex(8),dimension(3,3,4):: fmd1,fmd2
-      complex(8),dimension(8,8):: fml
-      complex(8),parameter:: ci=(0.d0,1.d0)
+      real(dp):: drho,rkth,rkph,factor,rkth0,rho0
+      complex(dp),dimension(3,3,4):: fmd1,fmd2
+      complex(dp),dimension(8,8):: fml
+      complex(dp),parameter:: ci=(0.d0,1.d0)
       integer,dimension(8):: ica =(/2,3,1,2,3,1,2,3/) ! column number
       integer,dimension(8):: ipa =(/1,1,1,3,3,3,5,5/) ! position number
 
@@ -3097,12 +3098,12 @@ CONTAINS
       integer,intent(in):: npow   ! power of mesh points
       integer,intent(in):: nth    ! poloidal mode number
       integer,intent(in):: nph    ! toroidal mode number
-      real(8),intent(in):: rf     ! wave frequency
-      real(8),intent(in):: angl   ! antenna angle: 0 perm, 1,para
+      real(dp),intent(in):: rf     ! wave frequency
+      real(dp),intent(in):: angl   ! antenna angle: 0 perm, 1,para
       integer:: nr,ml,mw,mc,nvmax,i,j,k,inod
-      real(8):: drho,rkth,rkph,factor,rkth0,rkthp,rkthm,rho0
-      complex(8),dimension(3,3,4,4):: fmc,fmd
-      complex(8),parameter:: ci=(0.d0,1.d0)
+      real(dp):: drho,rkth,rkph,factor,rkth0,rkthp,rkthm,rho0
+      complex(dp),dimension(3,3,4,4):: fmc,fmd
+      complex(dp),parameter:: ci=(0.d0,1.d0)
 
       call mesh_init(nrmax,npow)
 
@@ -3347,12 +3348,12 @@ CONTAINS
       integer,intent(in):: npow   ! power of mesh points
       integer,intent(in):: nth    ! poloidal mode number
       integer,intent(in):: nph    ! toroidal mode number
-      real(8),intent(in):: rf     ! wave frequency
-      real(8),intent(in):: angl   ! antenna angle: 0 perm, 1,para
+      real(dp),intent(in):: rf     ! wave frequency
+      real(dp),intent(in):: angl   ! antenna angle: 0 perm, 1,para
       integer:: nr,ml,mw,mc,nvmax,i,j,k,inod
-      real(8):: drho,rkth,rkph,factor,rkth0,rho0,rd,divj
-      complex(8),dimension(3,3,4,4):: fmd
-      complex(8),parameter:: ci=(0.d0,1.d0)
+      real(dp):: drho,rkth,rkph,factor,rkth0,rho0,rd,divj
+      complex(dp),dimension(3,3,4,4):: fmd
+      complex(dp),parameter:: ci=(0.d0,1.d0)
 
       call mesh_init(nrmax,npow)
 

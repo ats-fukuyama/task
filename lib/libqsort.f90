@@ -8,6 +8,7 @@ MODULE libqsort
 
 ! Made F conformant by Walt Brainerd
 
+  USE task_kinds,ONLY: dp
   IMPLICIT NONE
   PRIVATE
   PUBLIC :: qsort_ic,qsort_lc,qsort_di,qsort_dl
@@ -16,7 +17,7 @@ CONTAINS
 
 RECURSIVE SUBROUTINE qsort_ic(A, B)
   integer, intent(in out), dimension(:) :: A
-  complex(8), intent(in out), dimension(:) :: B
+  complex(dp), intent(in out), dimension(:) :: B
   integer :: iq
 
   if(size(A) > 1) then
@@ -28,11 +29,11 @@ END SUBROUTINE qsort_ic
 
 SUBROUTINE partition_ic(A, marker, B)
   integer, intent(in out), dimension(:) :: A
-  complex(8), intent(in out), dimension(:) :: B
+  complex(dp), intent(in out), dimension(:) :: B
   integer, intent(out) :: marker
   integer :: i, j
   integer :: temp
-  complex(8):: ctemp
+  complex(dp):: ctemp
   integer :: x      ! pivot point
   x = A(1)
   i= 0
@@ -69,9 +70,9 @@ SUBROUTINE partition_ic(A, marker, B)
 END SUBROUTINE partition_ic
 
 RECURSIVE SUBROUTINE qsort_lc(A, B)
-  integer(8), intent(in out), dimension(:) :: A
-  complex(8), intent(in out), dimension(:) :: B
-  integer(8) :: iq
+  integer(dp), intent(in out), dimension(:) :: A
+  complex(dp), intent(in out), dimension(:) :: B
+  integer(dp) :: iq
 
   if(size(A) > 1) then
      call partition_lc(A, iq, B)
@@ -81,13 +82,13 @@ RECURSIVE SUBROUTINE qsort_lc(A, B)
 END SUBROUTINE qsort_lc
 
 SUBROUTINE PARTITION_LC(A, marker, B)
-  integer(8), intent(in out), dimension(:) :: A
-  complex(8), intent(in out), dimension(:) :: B
-  integer(8), intent(out) :: marker
-  integer(8) :: i, j
-  integer(8) :: temp
-  complex(8):: ctemp
-  integer(8) :: x      ! pivot point
+  integer(dp), intent(in out), dimension(:) :: A
+  complex(dp), intent(in out), dimension(:) :: B
+  integer(dp), intent(out) :: marker
+  integer(dp) :: i, j
+  integer(dp) :: temp
+  complex(dp):: ctemp
+  integer(dp) :: x      ! pivot point
   x = A(1)
   i= 0
   j= size(A) + 1
@@ -123,7 +124,7 @@ SUBROUTINE PARTITION_LC(A, marker, B)
 END SUBROUTINE partition_lc
 
 RECURSIVE SUBROUTINE qsort_di(A, B)
-  real(8), intent(in out), dimension(:) :: A
+  real(dp), intent(in out), dimension(:) :: A
   integer, intent(in out), dimension(:) :: B
   integer :: iq
 
@@ -135,13 +136,13 @@ RECURSIVE SUBROUTINE qsort_di(A, B)
 END SUBROUTINE qsort_di
 
 SUBROUTINE partition_di(A, marker, B)
-  real(8), intent(in out), dimension(:) :: A
+  real(dp), intent(in out), dimension(:) :: A
   integer, intent(in out), dimension(:) :: B
   integer, intent(out) :: marker
   integer :: i, j
-  real(8) :: temp
+  real(dp) :: temp
   integer :: ctemp
-  real(8) :: x      ! pivot point
+  real(dp) :: x      ! pivot point
 
   x = A(1)
   i= 0
@@ -178,9 +179,9 @@ SUBROUTINE partition_di(A, marker, B)
 END SUBROUTINE partition_di
 
 RECURSIVE SUBROUTINE qsort_dl(A, B)
-  real(8), intent(in out), dimension(:) :: A
-  integer(8), intent(in out), dimension(:) :: B
-  integer(8) :: iq
+  real(dp), intent(in out), dimension(:) :: A
+  integer(dp), intent(in out), dimension(:) :: B
+  integer(dp) :: iq
 
   if(size(A) > 1) then
      call partition_dl(A, iq, B)
@@ -190,13 +191,13 @@ RECURSIVE SUBROUTINE qsort_dl(A, B)
 END SUBROUTINE qsort_dl
 
 SUBROUTINE partition_dl(A, marker, B)
-  real(8), intent(in out), dimension(:) :: A
-  integer(8), intent(in out), dimension(:) :: B
-  integer(8), intent(out) :: marker
-  integer(8) :: i, j
-  real(8) :: temp
-  integer(8) :: ctemp
-  real(8) :: x      ! pivot point
+  real(dp), intent(in out), dimension(:) :: A
+  integer(dp), intent(in out), dimension(:) :: B
+  integer(dp), intent(out) :: marker
+  integer(dp) :: i, j
+  real(dp) :: temp
+  integer(dp) :: ctemp
+  real(dp) :: x      ! pivot point
 
   x = A(1)
   i= 0

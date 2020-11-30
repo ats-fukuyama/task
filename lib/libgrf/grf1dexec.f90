@@ -13,8 +13,8 @@ CONTAINS
     USE grfutils, ONLY: grf_title, grf_frame1d, grf_info, setrgba
     IMPLICIT NONE
 
-    REAL(4),INTENT(IN):: GX(NXMAX),GF(NXM,NYMAX)
     INTEGER,INTENT(IN):: NXM,NXMAX,NYMAX
+    REAL,INTENT(IN):: GX(NXMAX),GF(NXM,NYMAX)
     TYPE(grf_attr_type),INTENT(IN):: A
     INTEGER:: NY,NL
 

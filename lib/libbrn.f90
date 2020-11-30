@@ -1,10 +1,12 @@
 !     ***** One-variable Brent Method *****
 
-      real(8) function FBRENT(f,ax,bx,tol)
+      function FBRENT(f,ax,bx,tol)
 
+      USE task_kinds,ONLY: dp
       implicit none
-      real(8), intent(in):: ax,bx,tol
-      real(8), external  :: f
+      real(dp), intent(in):: ax,bx,tol
+      real(dp), external  :: f
+      REAL(dp):: FBRENT
 
 !      a zero of the function  f(x)  is computed in the interval ax,bx .
 
@@ -31,10 +33,10 @@
 !  the algol 60 procedure  zero  given in  richard brent, algorithms for
 !  minimization without derivatives, prentice-hall, inc. (1973).
 
-      real(8) :: a,b,c,d,e,fa,fb,fc,tol1,xm,p,q,r,s
-      integer(4) :: it
-      real(8),    parameter :: eps=1.D-15
-      integer(4), parameter :: itmax=100
+      real(dp) :: a,b,c,d,e,fa,fb,fc,tol1,xm,p,q,r,s
+      integer :: it
+      real(dp),    parameter :: eps=1.D-15
+      integer, parameter :: itmax=100
 
       tol1 = eps+1.0d0
 
@@ -138,13 +140,14 @@
 
       SUBROUTINE FBRENTN(FCN,N,X,FVEC,TOL,INFO,WA,LWA)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN) ::  N,LWA
-      INTEGER(4), INTENT(OUT)::  INFO
-      REAL(8), INTENT(IN) :: TOL
-      REAL(8), DIMENSION(N),   INTENT(INOUT) :: X
-      REAL(8), DIMENSION(N),   INTENT(OUT):: FVEC
-      REAL(8), DIMENSION(LWA), INTENT(INOUT):: WA
+      INTEGER, INTENT(IN) ::  N,LWA
+      INTEGER, INTENT(OUT)::  INFO
+      REAL(dp), INTENT(IN) :: TOL
+      REAL(dp), DIMENSION(N),   INTENT(INOUT) :: X
+      REAL(dp), DIMENSION(N),   INTENT(OUT):: FVEC
+      REAL(dp), DIMENSION(LWA), INTENT(INOUT):: WA
       EXTERNAL FCN
 !     **********
 
@@ -235,10 +238,9 @@
 !       FORTRAN-SUPPLIED ... DLOG
 
 !     **********
-      INTEGER(4) :: I,MAXFEV,MOPT,NFEV
-      REAL(8)    :: EMAX,FTOL,TEMP,XTOL
-!      REAL(8)    :: DFLOAT
-      REAL(8)    :: ZERO = 0.D0
+      INTEGER :: I,MAXFEV,MOPT,NFEV
+      REAL(dp)    :: EMAX,FTOL,TEMP,XTOL
+      REAL(dp)    :: ZERO = 0.D0
 
 !     CHECK THE INPUT PARAMETERS FOR ERRORS.
 
@@ -251,7 +253,7 @@
 
       EMAX = ZERO
       DO I = 1, N
-         TEMP = DLOG(DFLOAT(I+1))/DFLOAT(N+2*I+1)
+         TEMP = DLOG(DBLE(I+1))/DBLE(N+2*I+1)
          IF (TEMP .LT. EMAX) GO TO 20
          MOPT = I
          EMAX = TEMP
@@ -275,13 +277,14 @@
       SUBROUTINE FBRENTM(FCN,N,X,FVEC,FTOL,XTOL,MAXFEV,MOPT, &
      &                   INFO,NFEV,Q,LDQ,SIGMA,WA1,WA2)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN) :: N,MAXFEV,MOPT,LDQ
-      INTEGER(4), INTENT(OUT):: INFO, NFEV
-      REAL(8),    INTENT(IN) :: FTOL,XTOL
-      REAL(8),DIMENSION(N),    INTENT(OUT):: FVEC,SIGMA
-      REAL(8),DIMENSION(N),  INTENT(INOUT):: X,WA1,WA2
-      REAL(8),DIMENSION(LDQ,N),INTENT(OUT):: Q
+      INTEGER, INTENT(IN) :: N,MAXFEV,MOPT,LDQ
+      INTEGER, INTENT(OUT):: INFO, NFEV
+      REAL(dp),    INTENT(IN) :: FTOL,XTOL
+      REAL(dp),DIMENSION(N),    INTENT(OUT):: FVEC,SIGMA
+      REAL(dp),DIMENSION(N),  INTENT(INOUT):: X,WA1,WA2
+      REAL(dp),DIMENSION(LDQ,N),INTENT(OUT):: Q
       EXTERNAL :: FCN
 !     **********
 
@@ -401,13 +404,14 @@
 !       FORTRAN-SUPPLIED ... ABS,DMAX1,DSQRT,DSIGN
 
 !     **********
-      INTEGER(4) :: I,IFLAG,J,K,M,NFCALL,NIER6,NIER7,NIER8,NSING
+
+      INTEGER :: I,IFLAG,J,K,M,NFCALL,NIER6,NIER7,NIER8,NSING
       LOGICAL    ::CONV
-      REAL(8)    :: DELTA,DIFIT,DIFIT1,EPS,EPSMCH,ETA,FKY,FKZ, &
-     &              FNORM,FNORM1,H,SKNORM,TEMP,XNORM
-      REAL(8)    :: ZERO = 0.D0
-      REAL(8)    :: P05  = 5.D-2
-      REAL(8)    :: SCALE= 1.D1
+      REAL(dp)    :: DELTA,DIFIT,DIFIT1,EPS,EPSMCH,ETA,FKY,FKZ, &
+           FNORM,FNORM1,H,SKNORM,TEMP,XNORM
+      REAL(dp)    :: ZERO = 0.D0
+      REAL(dp)    :: P05  = 5.D-2
+      REAL(dp)    :: SCALE= 1.D1
 
 
 !     WARNING.

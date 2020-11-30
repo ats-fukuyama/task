@@ -6,14 +6,15 @@
 
       SUBROUTINE ODERK(NEQ,SUB,X0,XE,N,Y0,YN,WORK)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN)   :: NEQ, N
-      REAL(8)   , INTENT(INOUT):: X0
-      REAL(8)   , INTENT(IN)   :: XE
-      REAL(8), INTENT(INOUT), DIMENSION(NEQ) :: Y0, YN
-      REAL(8), INTENT(INOUT), DIMENSION(NEQ,2) :: WORK
-      REAL(8)     :: H
-      INTEGER(4)  :: I,J
+      INTEGER, INTENT(IN)   :: NEQ, N
+      REAL(dp)   , INTENT(INOUT):: X0
+      REAL(dp)   , INTENT(IN)   :: XE
+      REAL(dp), INTENT(INOUT), DIMENSION(NEQ) :: Y0, YN
+      REAL(dp), INTENT(INOUT), DIMENSION(NEQ,2) :: WORK
+      REAL(dp)     :: H
+      INTEGER  :: I,J
 
       EXTERNAL SUB
 
@@ -33,15 +34,16 @@
 
       SUBROUTINE ODERKN(neq_max,sub,xs,xe,nt_max,ys,ye)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN)   :: neq_max,nt_max
-      REAL(8)   , INTENT(IN)   :: xs
-      REAL(8)   , INTENT(IN)   :: xe
-      REAL(8), INTENT(IN), DIMENSION(neq_max) :: ys
-      REAL(8), INTENT(OUT), DIMENSION(neq_max) :: ye
-      REAL(8), ALLOCATABLE:: y(:),work(:,:)
-      REAL(8)     :: xstep,x
-      INTEGER(4)  :: neq,nt
+      INTEGER, INTENT(IN)   :: neq_max,nt_max
+      REAL(dp)   , INTENT(IN)   :: xs
+      REAL(dp)   , INTENT(IN)   :: xe
+      REAL(dp), INTENT(IN), DIMENSION(neq_max) :: ys
+      REAL(dp), INTENT(OUT), DIMENSION(neq_max) :: ye
+      REAL(dp), ALLOCATABLE:: y(:),work(:,:)
+      REAL(dp)     :: xstep,x
+      INTEGER  :: neq,nt
 
       EXTERNAL sub
 
@@ -69,13 +71,14 @@
 
       SUBROUTINE RKSTEP(NEQ,SUB,X,H,Y0,YN,AK,W)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN)   :: NEQ
-      REAL(8)   , INTENT(INOUT):: X, H
-      REAL(8), INTENT(INOUT), DIMENSION(NEQ) :: Y0, YN, AK, W
-      INTEGER(4)  :: I
-      REAL(8), PARAMETER :: A2 = 0.5D0, A3 = A2, B2 = 0.5D0, B3 = B2
-      REAL(8), PARAMETER :: C1 = 1.0D0/6.D0, C2 = 1.0D0/3.D0, C3 = C2, C4 = C1
+      INTEGER, INTENT(IN)   :: NEQ
+      REAL(dp)   , INTENT(INOUT):: X, H
+      REAL(dp), INTENT(INOUT), DIMENSION(NEQ) :: Y0, YN, AK, W
+      INTEGER  :: I
+      REAL(dp), PARAMETER :: A2 = 0.5D0, A3 = A2, B2 = 0.5D0, B3 = B2
+      REAL(dp), PARAMETER :: C1 = 1.0D0/6.D0, C2 = 1.0D0/3.D0, C3 = C2, C4 = C1
       EXTERNAL SUB
 
       CALL SUB(X,Y0,AK)

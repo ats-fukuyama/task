@@ -4,13 +4,14 @@
 
       SUBROUTINE INVMRD(A,N,NA,ILL)
 
+      USE task_kinds,ONLY: dp
       implicit none
-      integer(4),                intent(in)    :: N, NA
-      real(8), dimension(NA,NA), intent(inout) :: A
-      integer(4),                intent(out)   :: ILL
-      integer(4) :: NN, NW, IP, I, J
-      integer(4), dimension(N) :: NM
-      real(8) :: W, P, EPS
+      integer,                intent(in)    :: N, NA
+      real(dp), dimension(NA,NA), intent(inout) :: A
+      integer,                intent(out)   :: ILL
+      integer :: NN, NW, IP, I, J
+      integer, dimension(N) :: NM
+      real(dp) :: W, P, EPS
       logical :: LEX
       DATA EPS/1.D-14/
 
@@ -90,14 +91,15 @@
 
       SUBROUTINE INVMCD(A,N,NA,ILL)
 
+      USE task_kinds,ONLY: dp
       implicit none
-      integer(4),                   intent(in)    :: N, NA
-      complex(8), dimension(NA,NA), intent(inout) :: A
-      integer(4),                   intent(out)   :: ILL
-      integer(4) :: NN, NW, IP, I, J
-      integer(4), dimension(N) :: NM
-      real(8)    :: P, EPS
-      complex(8) :: W
+      integer,                   intent(in)    :: N, NA
+      complex(dp), dimension(NA,NA), intent(inout) :: A
+      integer,                   intent(out)   :: ILL
+      integer :: NN, NW, IP, I, J
+      integer, dimension(N) :: NM
+      real(dp)    :: P, EPS
+      complex(dp) :: W
       logical    :: LEX
       DATA EPS/1.D-14/
 
