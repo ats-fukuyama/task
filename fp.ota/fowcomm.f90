@@ -21,8 +21,13 @@ module fowcomm
   real(rkind),allocatable  :: V_phase(:)
 ! COM --------------------------------------------------------------------------------------------------          
   real(rkind),allocatable,dimension(:) :: psim,&                ! maximum poloidal magnetic flux in an orbit, value at half integer grid points
-                                          psimg                 ! psim at integer grid points
-  
+                                          psimg,&               ! psim at integer grid points
+                                          delps
+
+  real(rkind),allocatable :: psim_local(:,:,:,:,:), &
+                            thetam_local(:,:,:,:,:), &
+                            time_loss(:,:,:,:,:)
+
   real(rkind),allocatable,dimension(:,:,:,:) :: thetam,&              ! pitch angle along orbit in psim, value at half integer grid points
                                                 thetamg,&             ! theta_m at integer grid points
                                                 thetam_rg,&           ! theta_m for given pm(np), psimg(nr)
@@ -44,6 +49,7 @@ module fowcomm
                                           Bing                   ! Bin for grid points
   
   real(rkind),allocatable,dimension(:,:) :: Babs                 ! B(psip,thetap)
+  real(rkind),allocatable,dimension(:) :: theta_p                 ! poloidal angle
 
 ! use for boundary conditions --------------------------------------------------------------------------
   real(rkind),allocatable,dimension(:,:,:) :: theta_pnc,&         ! theta_m of pinch orbit for given pm(np) and psim(nr)
@@ -110,6 +116,10 @@ contains
     allocate(Jacobian_I(nthmax,npmax,nrmax,nsamax))
     allocate(V_phase(nsamax))
     allocate(psim(nrmax),psimg(nrmax+1))
+    allocate(delps(nrmax))
+    allocate(psim_local(nthmax,npmax,nrmax,nthpmax,nsamax), thetam_local(nthmax,npmax,nrmax,nthpmax,nsamax))
+    allocate(time_loss(nthmax,npmax,nrmax,nthpmax,nsamax))
+
     allocate(thetam(nthmax,npmax,nrmax,nsamax),thetamg(nthmax+1,npmax,nrmax,nsamax))
     allocate(thetam_pg(nthmax,npmax+1,nrmax,nsamax), thetam_rg(nthmax,npmax,nrmax+1,nsamax))
     ! 
@@ -134,6 +144,7 @@ contains
     allocate(Xstg_as_pncp(npmax,nrmax,nsamax))
 
     allocate(Babs(nrmax+1,nthpmax))
+    allocate(theta_p(nthpmax))
     ! 
     allocate(orbit_p(nthmax,npmax+1,nrmax,nsamax),orbit_th(nthmax+1,npmax,nrmax,nsamax)&
     ,orbit_r(nthmax,npmax,nrmax+1,nsamax),orbit_m(nthmax,npmax,nrmax,nsamax))
@@ -424,5 +435,32 @@ contains
     return
 
   end subroutine fow_cal_spl
+
+  subroutine fow_cal_spl2D(f_out, x_in, y_in, f, x, y)
+    ! 2D-version of fow_cal_spl
+    use fpcomm,only:rkind
+
+    implicit none
+    real(rkind),intent(out) :: f_out
+    real(rkind),intent(in) :: x_in, y_in, f(:,:), x(:), y(:)
+    integer :: i, j, imax, jmax, ierr = 0
+    real(rkind),allocatable :: U(:,:,:,:), fx(:,:), fy(:,:) , fxy(:,:)
+
+    imax = size(x)
+    jmax = size(y)
+
+    allocate(U(4,4,imax,jmax),fx(imax,jmax),fy(imax,jmax),fxy(imax,jmax))
+
+    if ( size(f,1) /= imax &
+        .or. size(f,2) /= jmax ) then
+      write(*,*)"error at fow_cal_spl2D"
+      STOP
+    end if
+
+    call SPL2D(x,y,f,fx,fy,fxy,U,imax,imax,jmax,0,0,IERR)
+
+    call SPL2DF(x_in,y_in,f_out,x,y,U,imax,imax,jmax,ierr)
+
+  end subroutine
 
 end module fowcomm

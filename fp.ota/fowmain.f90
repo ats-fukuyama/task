@@ -75,8 +75,8 @@ subroutine fow_debug
 
   allocate(fI(nthmax,npmax,nrmax,nsamax))
   allocate(fu(nthmax,npmax,nrmax,nsamax))
-  allocate(ful(nthmax,npmax,nrmax,nsamax,nthpmax))
-  call fow_distribution_maxwellian_inCOM(fnsp)
+  allocate(ful(nthmax,npmax,nrmax,nthpmax,nsamax))
+  call fow_Maxwellian_COM(fnsp)
   allocate(D2(nrmax,nsamax))
   call moment_0th_order_COM(D2,fnsp)
   do nr = 1, nrmax

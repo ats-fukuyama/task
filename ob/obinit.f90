@@ -46,7 +46,9 @@ CONTAINS
                               !     5: every 10000 step
     mdlobg=0                  ! model id of graphics
                               !     0: default
-
+    mdlobx=1                  ! model id of wall
+                              !     0: calculate only inside the wall i.e. psip_ob<=psipa
+                              !     1: continue Runge-Kutta while satifying psip_ob>psipa
     tmax=10.D0                ! maximum of orbit following time in omega_bounce
     delt=0.1d0                ! time step size in omega_bounce
                               ! t_bounce = 2 Pi/ omega_bounce

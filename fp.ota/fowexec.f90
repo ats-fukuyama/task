@@ -99,12 +99,12 @@ contains
       do np = 1, npmax
         do nth = 1, nthmax
           nm = nma(nth,np,nr)
-          bm(nm) = (Jacobian_I(nth,np,nr,nsa)+(1.d0-rimpl)*delt*dl(nm))*fm(nm) &
-                    +delt*spp(nth,np,nr,nsa)*Jacobian_I(nth,np,nr,nsa)
+          bm(nm) = (1.d0+(1.d0-rimpl)*delt*dl(nm)/Jacobian_I(nth,np,nr,nsa))*fm(nm) &
+                    +delt*spp(nth,np,nr,nsa)
           if(nm.ge.imtxstart.and.nm.le.imtxend) then
-            call mtx_set_matrix(nm, nm, (Jacobian_I(nth,np,nr,nsa)-rimpl*delt*dl(nm))*1.d-15)
+            call mtx_set_matrix(nm, nm, 1.d0-rimpl*delt*dl(nm)/Jacobian_I(nth,np,nr,nsa))
             call mtx_set_vector(nm, fm(nm))
-            if(nsa == 2 )write(21,'(A,2I6,ES12.4)') "bm",nm,nm,Jacobian_I(nth,np,nr,nsa)-rimpl*delt*dl(nm)
+            if(nsa == 2 )write(21,'(A,2I6,ES12.4)') "bm",nm,nm,1.d0-rimpl*delt*dl(nm)/Jacobian_I(nth,np,nr,nsa)
           ENDIF
         end do
       end do
@@ -117,7 +117,7 @@ contains
         DO NL=1,NLMAX(NM)
             IF(LL(NM,NL).NE.0) THEN
               if(nsa == 2)write(21,'(A,2I6,ES12.4)') "al",nm,LL(NM,NL),AL(NM,NL)
-              CALL mtx_set_matrix(nm,LL(NM,NL),(-RIMPL*DELT*AL(NM,NL))*1.d-15)
+              CALL mtx_set_matrix(nm,LL(NM,NL),-RIMPL*DELT*AL(NM,NL)/Jacobian_I(nth,np,nr,nsa))
             ENDIF
         ENDDO
       ENDIF
@@ -130,16 +130,16 @@ contains
         NN=LL(NM,NL)
         IF(NN.NE.0) THEN
           IF(NN.ge.NMSTART-NTHMAX.and.NN.le.NMEND+NTHMAX)THEN
-            BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM(NN)
+            BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM(NN)/Jacobian_I(nth,np,nr,nsa)
           ELSEIF(NN.lt.NMSTART-NTHMAX)THEN
-            BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM_shadow_m(NN)
+            BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM_shadow_m(NN)/Jacobian_I(nth,np,nr,nsa)
           ELSE
-            BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM_shadow_p(NN)
+            BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM_shadow_p(NN)/Jacobian_I(nth,np,nr,nsa)
           END IF
         ENDIF
       ENDDO
       IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
-         CALL mtx_set_source(nm,BM(NM)*1.d-15)
+         CALL mtx_set_source(nm,BM(NM))
       ENDIF
     ENDDO
 

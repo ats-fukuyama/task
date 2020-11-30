@@ -31,6 +31,7 @@
   mdlobw=0
   mdlobc=1
   mdlobt=1
+  mdlobx=0
   idebug=0
 &end
 
@@ -38,7 +39,6 @@
   npmax=5
   nthmax=8
   nrmax=3
-
   RR=6.2
   RA=2.0
   RKAP=1.7
