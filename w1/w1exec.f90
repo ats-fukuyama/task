@@ -188,6 +188,6 @@ CONTAINS
   616 FORMAT('## INTEGRO-DIFF EQ. : ', &
                  'NLWMAX NCLMAX NCMAX   NDMAX   XDMAX'/ &
              22X,5I8,1P1D12.4)
-  630 FORMAT(/' (/M) **')
+  630 FORMAT('RF,RKZ=',2ES12.4)
   END SUBROUTINE w1_exec
 END MODULE w1exec
