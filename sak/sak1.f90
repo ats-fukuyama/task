@@ -154,7 +154,7 @@ CONTAINS
     rk=10.D0**rkl
     sg=10.D0**sgl
     f1=SQRT(Pi/8.D0) &
-         *(1.D0/(rk**3*SQRT(1.D0+1.D0/sg**2))) &
+         *(1.D0/(rk**3*SQRT(1.D0+1.D0/sg**2)**3)) &
          *EXP(-1.D0/(2.D0*rk**2*(1.D0+1.D0/sg**2)))
     RETURN
   END SUBROUTINE sub_sak11
@@ -169,7 +169,7 @@ CONTAINS
     rk=10.D0**rkl
     sg=10.D0**sgl
     f2=SQRT(Pi/8.D0) &
-         *(1.D0/(rk**3)) &
+         *(1.D0/((rk**3)*(1.D0+1.D0/sg**2))) &
          *(EXP(-1.D0/rk**2)*EXP(-1.D0/(2.D0*sg**2)) &
          +sg*EXP(-sg**2/rk**2)*EXP(-sg**2/2.D0))
     RETURN
