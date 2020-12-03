@@ -108,7 +108,7 @@ CONTAINS
     END SELECT
        
     CALL GUTIME(time2)
-    WRITE(6,*) '% CPU TIME = ',time2-time1,' sec'
+!     WRITE(6,*) '% CPU TIME = ',time2-time1,' sec'
 
 9000 CONTINUE
     RETURN

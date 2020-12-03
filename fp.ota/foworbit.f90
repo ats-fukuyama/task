@@ -4,7 +4,7 @@ module foworbit
   use obprep
   private
   public :: fow_orbit, fow_cal_local_COMs, fow_set_obparm
-  public :: get_F_nstp, get_mean_ra
+  public :: quantities_at_Bminimum, get_F_nstp, get_mean_ra
 
   double precision,allocatable :: UF(:,:), UR(:,:)
 
@@ -61,19 +61,14 @@ contains
         do np = 1, npmax
           do nth = 1, nthmax
 
-            if ( nth /= nth_forbitten(nsa) ) then
-              if ( aefp(nsa) * COS( thetam(nth,np,nr,nsa) ) >= 0.d0 ) then
-                thetap_in = 0.d0
-              else 
-                thetap_in = pi
-              end if
+            if ( aefp(nsa) * COS( thetam(nth,np,nr,nsa) ) >= 0.d0 ) then
+              thetap_in = 0.d0
+            else 
+              thetap_in = pi
+            end if
 
             call construct_orbit(orbit_m(nth,np,nr,nsa), pm(np,nsa)*ptfp0(nsa)&
               ,thetam(nth,np,nr,nsa), thetap_in, psim(nr), nsa, ierr)
-
-            else 
-              call construct_orbit_zero(orbit_m(nth,np,nr,nsa))
-            end if
 
           end do
         end do
@@ -85,18 +80,19 @@ contains
         do np = 1, npmax+1
           do nth = 1, nthmax
 
-            if ( nth /= nth_forbitten(nsa) .and. np /= 1 ) then
+            if ( np == 1 ) then
+              call construct_orbit_zero(orbit_p(nth,np,nr,nsa))
+
+            else
               if ( aefp(nsa) * COS( thetam_pg(nth,np,nr,nsa) ) >= 0.d0 ) then
                 thetap_in = 0.d0
               else 
                 thetap_in = pi
               end if
+  
+              call construct_orbit(orbit_p(nth,np,nr,nsa), pg(np,nsa)*ptfp0(nsa)&
+                                  ,thetam_pg(nth,np,nr,nsa), thetap_in, psim(nr), nsa, ierr)
 
-            call construct_orbit(orbit_p(nth,np,nr,nsa), pg(np,nsa)*ptfp0(nsa)&
-              ,thetam_pg(nth,np,nr,nsa), thetap_in, psim(nr), nsa, ierr)
-
-            else 
-              call construct_orbit_zero(orbit_p(nth,np,nr,nsa))
             end if
 
           end do
@@ -109,19 +105,14 @@ contains
         do np = 1, npmax
           do nth = 1, nthmax+1
 
-            if ( nth /= nth_forbitten(nsa) ) then
-              if ( aefp(nsa) * COS( thetamg(nth,np,nr,nsa) ) >= 0.d0 ) then
-                thetap_in = 0.d0
-              else 
-                thetap_in = pi
-              end if
+            if ( aefp(nsa) * COS( thetamg(nth,np,nr,nsa) ) >= 0.d0 ) then
+              thetap_in = 0.d0
+            else 
+              thetap_in = pi
+            end if
 
             call construct_orbit(orbit_th(nth,np,nr,nsa), pm(np,nsa)*ptfp0(nsa)&
               ,thetamg(nth,np,nr,nsa), thetap_in, psim(nr), nsa, ierr)
-
-            else 
-              call construct_orbit_zero(orbit_th(nth,np,nr,nsa))
-            end if
 
           end do
         end do
@@ -132,19 +123,19 @@ contains
       do nr = 1, nrmax+1
         do np = 1, npmax
           do nth = 1, nthmax
+            if ( nr == 1 ) then
+              call construct_orbit_zero(orbit_r(nth,np,nr,nsa))
 
-            if ( nth /= nth_forbitten(nsa) .and. nr /= 1 ) then
+            else
               if ( aefp(nsa) * COS( thetam_rg(nth,np,nr,nsa) ) >= 0.d0 ) then
                 thetap_in = 0.d0
               else 
                 thetap_in = pi
               end if
-
-            call construct_orbit(orbit_r(nth,np,nr,nsa), pm(np,nsa)*ptfp0(nsa)&
-              ,thetam_rg(nth,np,nr,nsa), thetap_in, psimg(nr), nsa, ierr)
-
-            else 
-              call construct_orbit_zero(orbit_r(nth,np,nr,nsa))
+  
+              call construct_orbit(orbit_r(nth,np,nr,nsa), pm(np,nsa)*ptfp0(nsa)&
+                                  ,thetam_rg(nth,np,nr,nsa), thetap_in, psimg(nr), nsa, ierr)
+  
             end if
 
           end do
@@ -182,7 +173,7 @@ contains
       tau_loss = orbit_out%time(nstpmax)
       return
     end if
-
+    
     psip_max = -1.d0
     do nstp = 1, nstpmax
       if ( psip_max <= orbit_out%psip(nstp) ) then
@@ -203,39 +194,38 @@ contains
       end if
     end do
 
-    if ( diff_thetap_min <= pi/1.d2 ) then
+    ! if ( diff_thetap_min <= pi/1.d2 ) then
       psiml  = orbit_out%psip(loc_max)
       thetaml= orbit_out%theta(loc_max)
-    end if
-
-
-    if ( loc_max == 1 ) then
-      il = 1
-      ir = 2
-    else if ( loc_max == nstpmax ) then
-      il = nstpmax-1
-      ir = nstpmax
-    else if ( ABS( orbit_out%thetap(loc_max) - orbit_out%thetap(loc_max-1) ) >= pi ) then
-      il = loc_max
-      ir = loc_max+1
-    else
-      il = loc_max-1
-      ir = loc_max
-    end if
-
-    if ( orbit_out%thetap(ir) == orbit_out%thetap(il) ) then
-      psiml = orbit_out%psip(loc_max)
-      thetaml = orbit_out%theta(loc_max)
-    else
-      A = (orbit_out%psip(ir)-orbit_out%psip(il))/(orbit_out%thetap(ir)-orbit_out%thetap(il))
-      psiml = A*(thetap_eq(im)-orbit_out%thetap(il))+orbit_out%psip(il)
+    
+    ! else
+    !   if ( loc_max == 1 ) then
+    !     il = 1
+    !     ir = 2
+    !   else if ( loc_max == nstpmax ) then
+    !     il = nstpmax-1
+    !     ir = nstpmax
+    !   else if ( ABS( orbit_out%thetap(loc_max) - orbit_out%thetap(loc_max-1) ) >= pi ) then
+    !     il = loc_max
+    !     ir = loc_max+1
+    !   else
+    !     il = loc_max-1
+    !     ir = loc_max
+    !   end if
   
-      A = (orbit_out%theta(ir)-orbit_out%theta(il))/(orbit_out%thetap(ir)-orbit_out%thetap(il))
-      psiml = A*(thetap_eq(im)-orbit_out%thetap(il))+orbit_out%theta(il)  
-    end if
+    !   if ( orbit_out%thetap(ir) == orbit_out%thetap(il) ) then
+    !     psiml = orbit_out%psip(loc_max)
+    !     thetaml = orbit_out%theta(loc_max)
+    !   else
+    !     A = (orbit_out%psip(ir)-orbit_out%psip(il))/(orbit_out%thetap(ir)-orbit_out%thetap(il))
+    !     psiml = A*(thetap_eq(im)-orbit_out%thetap(il))+orbit_out%psip(il)
+    
+    !     A = (orbit_out%theta(ir)-orbit_out%theta(il))/(orbit_out%thetap(ir)-orbit_out%thetap(il))
+    !     psiml = A*(thetap_eq(im)-orbit_out%thetap(il))+orbit_out%theta(il)  
+    !   end if
+    
+    ! end if
 
-
-    write(*,'(A,2ES12.4)')"COM",psiml,thetaml
     tau_loss = 0.d0
 
   end subroutine fow_cal_local_COMs
@@ -264,7 +254,7 @@ contains
     penergy_in(1) = mass0*vc**2*(pv-1.d0)/(aee*1.d3)
     pcangle_in(1) = COS( pitch_angle )
     theta_in(1)   = theta_pol
-    psipn_in(1)   = psi_pol / psi0
+    psipn_in(1)   = psi_pol
     zeta_in(1)    = 0.d0
 
     call ob_calc(ierr)
@@ -279,7 +269,7 @@ contains
 
     do nstp = 1, nstp_max_nobt(1)+1
       orbit_out%time(nstp)  = time_ob(nstp-1,1)
-      orbit_out%psip(nstp)  = psip_ob(nstp-1,1)
+      orbit_out%psip(nstp)  = psip_ob(nstp-1,1)/psi0
       orbit_out%Babs(nstp)  = Babs_ob(nstp-1,1)
       orbit_out%thetap(nstp)= theta_ob(nstp-1,1)
 
@@ -290,7 +280,8 @@ contains
           orbit_out%theta(nstp) = pi
         end if
       else
-        orbit_out%theta(nstp) = ACOS( vpara_ob(nstp-1,1)/SQRT( vpara_ob(nstp-1,1)**2+vperp_ob(nstp-1,1)**2 ) )
+        orbit_out%theta(nstp) = ACOS( vpara_ob(nstp-1,1)&
+                                /SQRT( vpara_ob(nstp-1,1)**2+vperp_ob(nstp-1,1)**2 ) )
       end if
 
     end do
@@ -477,7 +468,7 @@ contains
     BIN_DIR = "../fp.ota/bin/"
 
     if ( access( TRIM(BIN_DIR)//"fpparm.bin", " ") /= 0 .and. access( TRIM(BIN_DIR)//"eqparm.bin", " ") /= 0) then
-      flag = 3
+      ierr = 3
       return
     end if
 
@@ -644,6 +635,79 @@ contains
 
   end subroutine load_orbit
 
+  subroutine quantities_at_Bminimum(ra_Bmin, theta_Bmin, orbit_in)
+    use fpcomm
+    use fowcomm
+    real(rkind),intent(out) :: ra_Bmin, theta_Bmin
+    type(orbit),intent(in) :: orbit_in
+    real(rkind),allocatable :: dradpsi(:)
+    integer :: nstp, nstpmax, nstpmin, mm(1)
+    real(rkind) :: B_min, thetap_option(7), thetap_Bmin, psip_Bmin
+    real(rkind) :: nstp_near, diff_thetap(7)
+
+    if ( .not.allocated(UR) ) then
+      allocate(dradpsi(nrmax+1))
+      allocate(UR(4,nrmax+1))
+      call first_order_derivative(dradpsi, rg, psimg)
+      call SPL1D(psimg,rg,dradpsi,UR,nrmax+1,3,ierr)
+    end if
+    
+    nstpmax = orbit_in%nstp_max
+    B_min = 1.0d10
+    do nstp = 1, nstpmax
+      if ( orbit_in%Babs(nstp) < B_min ) then
+        B_min = orbit_in%Babs(nstp)
+        nstpmin = nstp
+      end if
+    end do
+
+    ! assume vertiucally symmmetry system, i.e. MIN(B) is at the equator. 
+    thetap_option = [-3.d0*pi, -2.d0*pi, -1.d0*pi, 0.d0, pi, 2.d0*pi, 3.d0*pi]
+
+    diff_thetap(1) = ABS( thetap_option(1) - orbit_in%thetap(nstpmin) )
+    diff_thetap(2) = ABS( thetap_option(2) - orbit_in%thetap(nstpmin) )
+    diff_thetap(3) = ABS( thetap_option(3) - orbit_in%thetap(nstpmin) )
+    diff_thetap(4) = ABS( thetap_option(4) - orbit_in%thetap(nstpmin) )
+    diff_thetap(5) = ABS( thetap_option(5) - orbit_in%thetap(nstpmin) )
+    diff_thetap(6) = ABS( thetap_option(6) - orbit_in%thetap(nstpmin) )
+    diff_thetap(7) = ABS( thetap_option(7) - orbit_in%thetap(nstpmin) )
+
+    mm(1) = MINLOC(diff_thetap, 1)
+    thetap_Bmin = thetap_option(mm(1))
+
+    if ( diff_thetap(mm(1)) < twopi/dble(nthpmax)*1.0d-2 ) then
+      psip_Bmin  = orbit_in%psip(nstpmin)
+      theta_Bmin = orbit_in%theta(nstpmin)
+
+    else if ( nstpmin == 1 .or. nstpmin == nstpmax ) then
+      psip_Bmin  = orbit_in%psip(nstpmin)
+      theta_Bmin = orbit_in%theta(nstpmin)
+
+    else ! linear interpolate
+      if ( ABS( theta_Bmin - orbit_in%thetap(nstpmin-1) ) &
+          < ABS( theta_Bmin - orbit_in%thetap(nstpmin+1) ) ) then
+        nstp_near = nstpmin-1
+      else
+        nstp_near = nstpmin+1
+      end if
+
+      A = ( orbit_in%psip(nstpmin) - orbit_in%psip(nstp_near) ) &
+        /( orbit_in%thetap(nstpmin) - orbit_in%thetap(nstp_near) )
+
+      psip_Bmin = orbit_in%psip(nstpmin) + A * ( thetap_Bmin - orbit_in%thetap(nstpmin) )
+
+
+      A = ( orbit_in%theta(nstpmin) - orbit_in%theta(nstp_near) ) &
+        /( orbit_in%thetap(nstpmin) - orbit_in%thetap(nstp_near) )
+
+      theta_Bmin = orbit_in%theta(nstpmin) + A * ( thetap_Bmin - orbit_in%thetap(nstpmin) )
+
+    end if
+
+    call SPL1DF(psip_Bmin,ra_Bmin,psimg,UR,nrmax+1,IERR)
+
+  end subroutine
+
   function get_F_nstp(orbit_in, nstp) result(F_out)
     use fpcomm
     use fowcomm
@@ -691,6 +755,6 @@ contains
 
     call SPL1DF(mean_psip,ra_out,psimg,UR,nrmax+1,IERR)
 
-  end function get_mean_ra
+  end function get_mean_ra 
 
 end module foworbit

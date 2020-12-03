@@ -8,17 +8,18 @@ module fowcomm
 
   public
 
-  integer :: model_obload ! 0          : exec TASK/OB anyway and do not save orbit_x to binary files
-                          ! 1[default] : If binary file of 'type(orbit) orbit_x' exists then load member of orbit_x, else exec TASK/OB
-                          ! 2          : load member of orbit_x and deconstruct while exec matrix solver in fow_loop to save memory
+  integer :: model_obload   ! 0          : exec TASK/OB anyway and do not save orbit_x to binary files
+                            ! 1[default] : If binary file of 'type(orbit) orbit_x' exists then load member of orbit_x, else exec TASK/OB
 
+  integer :: model_mkcsv    ! 0[default] : do not output to csv files
+                            ! 1          : output to csv files
   integer:: nthpmax,&                                        ! number of poloidal angle grid points
             nthm1,&                                          ! number of theta_m grid points for 0 <= theta_m <= theta_pnc
             nthm2,&                                          ! number of theta_m grid points for theta_pnc <= theta_m <= theta_co_stg
             nthm3                                            ! number of theta_m grid points for theta_cnt_stg <= theta_m <= pi
 
   real(rkind),allocatable :: Jacobian_I(:,:,:,:) ! dxdydzd(vx)d(vy)d(vz) = Jacobian_I * dpd(thetam)d(psim) normalized by V_phase
-  real(rkind),allocatable  :: V_phase(:)
+  real(rkind),allocatable  :: fnorm(:)
 ! COM --------------------------------------------------------------------------------------------------          
   real(rkind),allocatable,dimension(:) :: psim,&                ! maximum poloidal magnetic flux in an orbit, value at half integer grid points
                                           psimg,&               ! psim at integer grid points
@@ -71,10 +72,8 @@ module fowcomm
 
   real(rkind),allocatable,dimension(:,:,:,:) :: delthm_rg, delthm_pg, delthm
 
-  integer,allocatable,dimension(:) :: nth_co_stg,&        ! thetamg(nth_co_stg,(nsa),np,nr,nsa) = theta_co_stg
-                                      nth_cnt_stg,&       ! thetamg(nth_cnt_stg,(nsa),np,nr,nsa) = theta_cnt_stg
-                                      nth_pnc,&           ! thetamg(nth_pnc,(nsa),np,nr,nsa) = theta_pnc
-                                      nth_forbitten       ! thetam(nth_forbitten(nsa),np,nr,nsa),thetam_pg(nth_forbitten(nsa),np,nr,nsa) and thetam_rg(nth_forbitten(nsa),np,nr,nsa) are in forbitten region
+  integer,allocatable,dimension(:) :: nth_stg,&        ! thetamg(nth_stg,(nsa),np,nr,nsa) = theta_stg
+                                      nth_pnc           ! thetamg(nth_pnc,(nsa),np,nr,nsa) = theta_pnc
 
   real(rkind),allocatable,dimension(:,:,:) :: IBCflux_ratio         ! ration between the flux from thetam(nth_pnc-1) to thetam(nth_pnc) and the flux from thetam(nth_pnc-1) to thetam(nth_co_stg)
   integer,allocatable,dimension(:,:,:) ::  nr_pnc_point          ! nr of pinch point of theta_pnc(:,:,:)
@@ -114,7 +113,7 @@ contains
   subroutine fow_allocate
     use fpcomm, only:npmax,nthmax,nrmax,nsamax
     allocate(Jacobian_I(nthmax,npmax,nrmax,nsamax))
-    allocate(V_phase(nsamax))
+    allocate(fnorm(nsamax))
     allocate(psim(nrmax),psimg(nrmax+1))
     allocate(delps(nrmax))
     allocate(psim_local(nthmax,npmax,nrmax,nthpmax,nsamax), thetam_local(nthmax,npmax,nrmax,nthpmax,nsamax))
@@ -136,8 +135,7 @@ contains
     allocate(psip_pnc_point_rg(npmax,nrmax+1,nsamax))
 
     allocate(delthm(nthmax,npmax,nrmax,nsamax),delthm_pg(nthmax,npmax+1,nrmax,nsamax),delthm_rg(nthmax,npmax,nrmax+1,nsamax))
-    allocate(nth_co_stg(nsamax),nth_cnt_stg(nsamax),nth_pnc(nsamax))
-    allocate(nth_forbitten(nsamax))
+    allocate(nth_stg(nsamax),nth_pnc(nsamax))
     allocate(IBCflux_ratio(npmax,nrmax,nsamax))
     allocate(nr_pnc_point(npmax,nrmax,nsamax))
 
@@ -185,7 +183,7 @@ contains
   end subroutine fow_deallocate
 
   subroutine fow_read_namelist
-    namelist /fow/nthpmax, model_obload
+    namelist /fow/nthpmax, model_obload, model_mkcsv
 
     open(11,file="fpparm",status='old',action='read')
     read(11,nml=fow)

@@ -24,9 +24,7 @@ contains
     real(8),dimension(nmend-nmstart+1):: BM_L
     real(8),dimension(nthmax):: sendbuf_p, recvbuf_p
     real(8),dimension(nthmax*(npend-npstart+1)):: sendbuf_r, recvbuf_r
-    logical,allocatable :: isNOTforbitten(:)
 
-    allocate(isNOTforbitten(nmmax))
 
     NS=NS_NSA(NSA)
 
@@ -69,19 +67,6 @@ contains
         ENDDO
     ENDDO
 
-    do nr = 1, nrmax
-      do np = 1, npmax
-        do nth = 1, nthmax
-          nm = nma(nth,np,nr)
-          if ( nth /= nth_forbitten(nsa) ) then
-            isNOTforbitten(nm) = .true.
-          else
-            isNOTforbitten(nm) = .false.
-          end if
-        end do
-      end do
-    end do
-
 
     !     ----- Calculate matrix coefficients in a row -----
     do nr = 1, nrmax
@@ -94,17 +79,19 @@ contains
     end do
 
     !     ----- Diagonal term -----
-
+open(21,file='txt/fow_A.txt')
+open(901,file='txt/fow_M.txt')
     do nr = 1, nrmax
       do np = 1, npmax
         do nth = 1, nthmax
           nm = nma(nth,np,nr)
-          bm(nm) = (1.d0+(1.d0-rimpl)*delt*dl(nm)/Jacobian_I(nth,np,nr,nsa))*fm(nm) &
+          bm(nm) = (1.d0+(1.d0-rimpl)*delt*dl(nm))*fm(nm) &
                     +delt*spp(nth,np,nr,nsa)
           if(nm.ge.imtxstart.and.nm.le.imtxend) then
-            call mtx_set_matrix(nm, nm, 1.d0-rimpl*delt*dl(nm)/Jacobian_I(nth,np,nr,nsa))
+            call mtx_set_matrix(nm, nm, 1.d0-rimpl*delt*dl(nm))
             call mtx_set_vector(nm, fm(nm))
-            if(nsa == 2 )write(21,'(A,2I6,ES12.4)') "bm",nm,nm,1.d0-rimpl*delt*dl(nm)/Jacobian_I(nth,np,nr,nsa)
+            if(nsa == 2 )write(21,'(A,2I6,ES12.4)') "bm",nm,nm,1.d0-rimpl*delt*dl(nm)
+            if(nsa == 2 )write(901,'(A,2I6,ES12.4)') "bm",nm,nm,dl(nm)
           ENDIF
         end do
       end do
@@ -117,12 +104,14 @@ contains
         DO NL=1,NLMAX(NM)
             IF(LL(NM,NL).NE.0) THEN
               if(nsa == 2)write(21,'(A,2I6,ES12.4)') "al",nm,LL(NM,NL),AL(NM,NL)
-              CALL mtx_set_matrix(nm,LL(NM,NL),-RIMPL*DELT*AL(NM,NL)/Jacobian_I(nth,np,nr,nsa))
+              if(nsa == 2)write(901,'(A,2I6,ES12.4)') "al",nm,LL(NM,NL),AL(NM,NL)
+              CALL mtx_set_matrix(nm,LL(NM,NL),-RIMPL*DELT*AL(NM,NL))
             ENDIF
         ENDDO
       ENDIF
     ENDDO
-
+close(21)
+close(901)
     !     ----- Source vector: contribution from off-diagonal term -----
 
     DO NM=NMSTART,NMEND ! RHS
@@ -130,11 +119,11 @@ contains
         NN=LL(NM,NL)
         IF(NN.NE.0) THEN
           IF(NN.ge.NMSTART-NTHMAX.and.NN.le.NMEND+NTHMAX)THEN
-            BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM(NN)/Jacobian_I(nth,np,nr,nsa)
+            BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM(NN)
           ELSEIF(NN.lt.NMSTART-NTHMAX)THEN
-            BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM_shadow_m(NN)/Jacobian_I(nth,np,nr,nsa)
+            BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM_shadow_m(NN)
           ELSE
-            BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM_shadow_p(NN)/Jacobian_I(nth,np,nr,nsa)
+            BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM_shadow_p(NN)
           END IF
         ENDIF
       ENDDO
@@ -313,8 +302,8 @@ contains
               end if
             end if
             fvel = Fppfow(nth,np,nr,nsa)-Dptfow(nth,np,nr,nsa)*dfdth-Dprfow(nth,np,nr,nsa)*dfdr
-            weighp(nth,np,nr,nsa) = fowwegh(-delp(ns)*fvel,dpp(nth,np,nr,nsa))
-            ! write(*,'(A,ES12.4,4I6)')"wp",weighp(nth,np,nr,nsa),nth,np,nr,nsa
+            weighp(nth,np,nr,nsa) = fowwegh(-delp(ns)*fvel,dppfow(nth,np,nr,nsa))
+
         end do
       end do
     end do
@@ -368,7 +357,6 @@ contains
           else
             weight(nth,np,nr,nsa) = fowwegh(-delthm(nth-1,np,nr,nsa)*fvel,Dttfow(nth,np,nr,nsa))
           end if
-          ! write(*,'(A,ES12.4,4I6)')"wt",weight(nth,np,nr,nsa),nth,np,nr,nsa
         end do
       end do
     end do
@@ -392,10 +380,10 @@ contains
           width_t = dble(nthl-nthr)
 
           if ( nr == 1 ) then
-            ! if ( abs(f(nth,np,nr)) > epswt ) then
-            !   dfdp = (f(nth,npl,1)-f(nth,npr,1))/(width_p*delp(ns)*f(nth,np,1))
-            !   dfdth= (f(nthl,np,1)-f(nthr,np,1))/(width_t*delthm_rg(nth,np,nr,nsa)*f(nth,np,1))  
-            ! end if
+            if ( abs(f(nth,np,nr)) > epswt ) then
+              dfdp = (f(nth,npl,1)-f(nth,npr,1))/(width_p*delp(ns)*f(nth,np,1))
+              dfdth= (f(nthl,np,1)-f(nthr,np,1))/(width_t*delthm_rg(nth,np,nr,nsa)*f(nth,np,1))  
+            end if
           else if ( nr == nrmax+1 ) then
             if ( abs(f(nth,np,nrmax)) > epswt ) then
               dfdp = (f(nth,npl,nrmax)-f(nth,npr,nrmax))/(width_p*delp(ns)*f(nth,np,nrmax))
@@ -425,7 +413,7 @@ contains
             else if ( abs(f(nth,np,nr)) <= epswt .and. abs(f(nth,np,nr-1)) > epswt ) then
               dfdp = (f(nth,npl,nr-1)-f(nth,npr,nr-1))/(width_p*delp(ns)*f(nth,np,nr-1))
 
-              dfdth= (f(nthl,np,nr-1)-f(nthr,np,nr-1))/(width_t*delthm_rg(nth,np,nr-1,nsa)*f(nth,np,nr))
+              dfdth= (f(nthl,np,nr-1)-f(nthr,np,nr-1))/(width_t*delthm_rg(nth,np,nr-1,nsa)*f(nth,np,nr-1))
             end if
           end if
           fvel = Frrfow(nth,np,nr,nsa)-Drpfow(nth,np,nr,nsa)*dfdp-Drtfow(nth,np,nr,nsa)*dfdth
@@ -446,7 +434,7 @@ contains
     IMPLICIT NONE
     real(8):: X, Y, Z
     real(8):: fowwegh
-    
+
     IF(ABS(Y).LT.1.D-70) THEN
         IF(X.GT.0.D0) THEN
           fowwegh=0.D0
@@ -549,13 +537,13 @@ contains
       do si = -1, 1, 2
         D_term = -1.d0*Dfow(alpha,alpha,sign_to_index(si)-1,0,loc)*DIVD(alpha,alpha)
         F_term = -1.d0*si*Ffow(sign_to_index(si),alpha)*w(si,alpha,0,sign_to_index(si)-1,0,loc)*DIVF(alpha)
-        dl(nm) = dl(nm) + D_term + F_term
+        dl(nm) = dl(nm) + (D_term + F_term)/Jacobian_I(nth,np,nr,nsa)
       end do
     end do
     if ( nth == nth_pnc(nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
       D_term = Dfow(2,2,0,0,loc)*DIVD(2,2)*IBCflux_ratio(np,nr,nsa)
       F_term = -1.d0*Ffow(1,2)*w(-1,2,0,0,0,loc)*DIVF(2)*IBCflux_ratio(np,nr,nsa)
-      dl(nm) = dl(nm) + D_term + F_term
+      dl(nm) = dl(nm) + (D_term + F_term)/Jacobian_I(nth,np,nr,nsa)
 
     end if
 
@@ -571,14 +559,14 @@ contains
         do beta = 1, 3
           if ( alpha == beta ) cycle
           do sj = -1, 1, 2
-            D_term = D_term + sj*Dfow(beta,alpha,sign_to_index(sj)-1,si,loc) &
+            D_term = D_term + si * sj*Dfow(beta,alpha,sign_to_index(sj)-1,0,loc) &
                     *w(sj,beta,alpha,sign_to_index(sj)-1,si,loc)*DIVD(beta,alpha)
           end do
         end do
 
         nl = nl+1
         ll(nm,nl) = get_nma(alpha,0,si,0,loc)
-        al(nm,nl) = al(nm,nl) + D_term + F_term
+        al(nm,nl) = al(nm,nl) + (D_term + F_term)/Jacobian_I(nth,np,nr,nsa)
 
         if ( nth == nth_pnc(nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
           if ( alpha == 1 ) then
@@ -603,7 +591,7 @@ contains
               F_term = 0.d0
             end if           
           end if
-          al(nm,nl) = al(nm,nl) + IBCflux_ratio(np,nr,nsa)*( D_term + F_term )
+          al(nm,nl) = al(nm,nl) + IBCflux_ratio(np,nr,nsa)*( D_term + F_term )/Jacobian_I(nth,np,nr,nsa)
         end if
 
         if ( ABS(al(nm,nl)) < 1.d-70 ) then
@@ -626,15 +614,15 @@ contains
             if ( boundary_flag == 1 ) cycle
             
             D_term = si*sj*( &
-              Dfow(alpha,beta,sign_to_index(si)-1,sj,loc)*DIVD(alpha,beta) &
+              Dfow(alpha,beta,sign_to_index(si)-1,0,loc)*DIVD(alpha,beta) &
               *w(-1*si,alpha,beta,sign_to_index(si)-1,sj,loc) &
-              +Dfow(beta,alpha,sign_to_index(sj)-1,si,loc)*DIVD(beta,alpha) &
+              +Dfow(beta,alpha,sign_to_index(sj)-1,0,loc)*DIVD(beta,alpha) &
               *w(-1*sj,beta,alpha,sign_to_index(sj)-1,si,loc) &
             )
 
             nl = nl+1
             ll(nm,nl) = get_nma(alpha,beta,si,sj,loc)
-            al(nm,nl) = al(nm,nl) + D_term
+            al(nm,nl) = al(nm,nl) + D_term/Jacobian_I(nth,np,nr,nsa)
 
             if ( nth == nth_pnc(nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
               if ( alpha == 1 .and. beta == 2) then
@@ -651,7 +639,7 @@ contains
                   D_term = -1.d0*Dfow(2,3,0,0,loc)*w(1,2,3,0,-1,loc)+DIVD(2,3)
                 end if
               end if
-              al(nm,nl) = al(nm,nl) + IBCflux_ratio(np,nr,nsa)*D_term
+              al(nm,nl) = al(nm,nl) + IBCflux_ratio(np,nr,nsa)*D_term/Jacobian_I(nth,np,nr,nsa)
             end if
 
             if ( ABS(al(nm,nl)) < 1.d-70 ) then
@@ -665,7 +653,7 @@ contains
       end do
     end do
 
-    if ( aefp(nsa) > 0.d0 .and. nth == nth_cnt_stg(nsa) .or. aefp(nsa) < 0.d0 .and. nth == nth_co_stg(nsa) ) then
+    if ( aefp(nsa) > 0.d0 .and. nth == nth_stg(nsa) .or. aefp(nsa) < 0.d0 .and. nth == nth_stg(nsa)-1 ) then
       xap = Xstg_as_pncp(np,nr,nsa)
 
       if ( xap%number >= 1 ) then
@@ -701,7 +689,7 @@ contains
 
           D_term = Dfow(2,2,0,0,loc_pnc)*DIVD(2,2)
           F_term = -1.d0*Ffow(1,2)*w(-1,2,0,0,0,loc_pnc)*DIVF(2)
-          dl(nm) = dl(nm) - IBCflux_ratio(np,nrpo,nsa) * ( D_term + F_term )
+          dl(nm) = dl(nm) - IBCflux_ratio(np,nrpo,nsa) * ( D_term + F_term )/Jacobian_I(nth,np,nr,nsa)
 
           boundary_flag = check_external_boundary(1,0,1,0,loc_pnc)
           if ( boundary_flag == 0 ) then
@@ -709,7 +697,7 @@ contains
             F_term = 0.d0
             nl = nl+1
             ll(nm,nl) = nma(nthpo,np+1,nrpo)
-            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*( D_term + F_term )
+            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*( D_term + F_term )/Jacobian_I(nth,np,nr,nsa)
             if ( ABS(al(nm,nl)) < 1.d-70 ) then
               ll(nm,nl) = 0
               al(nm,nl) = 0.d0
@@ -723,7 +711,7 @@ contains
             F_term = 0.d0
             nl = nl+1
             ll(nm,nl) = nma(nthpo,np-1,nrpo)
-            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*( D_term + F_term )
+            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*( D_term + F_term )/Jacobian_I(nth,np,nr,nsa)
             if ( ABS(al(nm,nl)) < 1.d-70 ) then
               ll(nm,nl) = 0
               al(nm,nl) = 0.d0
@@ -737,7 +725,7 @@ contains
             F_term = -1.d0*Ffow(1,2)*DIVF(2)*w(1,2,0,0,0,loc_pnc)
             nl = nl+1
             ll(nm,nl) = nma(nthpo-1,np,nrpo)
-            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*( D_term + F_term )
+            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*( D_term + F_term )/Jacobian_I(nth,np,nr,nsa)
             if ( ABS(al(nm,nl)) < 1.d-70 ) then
               ll(nm,nl) = 0
               al(nm,nl) = 0.d0
@@ -751,7 +739,7 @@ contains
             F_term = 0.d0
             nl = nl+1
             ll(nm,nl) = nma(nthpo,np,nrpo+1)
-            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*( D_term + F_term )
+            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*( D_term + F_term )/Jacobian_I(nth,np,nr,nsa)
             if ( ABS(al(nm,nl)) < 1.d-70 ) then
               ll(nm,nl) = 0
               al(nm,nl) = 0.d0
@@ -765,7 +753,7 @@ contains
             F_term = 0.d0
             nl = nl+1
             ll(nm,nl) = nma(nthpo,np,nrpo-1)
-            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*( D_term + F_term )
+            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*( D_term + F_term )/Jacobian_I(nth,np,nr,nsa)
             if ( ABS(al(nm,nl)) < 1.d-70 ) then
               ll(nm,nl) = 0
               al(nm,nl) = 0.d0
@@ -778,7 +766,7 @@ contains
             D_term = Dfow(2,1,0,0,loc_pnc)*w(1,2,1,0,1,loc_pnc)*DIVD(2,1)
             nl = nl+1
             ll(nm,nl) = nma(nthpo-1,np+1,nrpo)
-            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*( D_term + F_term )
+            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*( D_term + F_term )/Jacobian_I(nth,np,nr,nsa)
             if ( ABS(al(nm,nl)) < 1.d-70 ) then
               ll(nm,nl) = 0
               al(nm,nl) = 0.d0
@@ -791,7 +779,7 @@ contains
             D_term = -1.d0*Dfow(2,1,0,0,loc_pnc)*w(1,2,1,0,-1,loc_pnc)*DIVD(2,1)
             nl = nl+1
             ll(nm,nl) = nma(nthpo-1,np-1,nrpo)
-            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*D_term
+            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*D_term/Jacobian_I(nth,np,nr,nsa)
             if ( ABS(al(nm,nl)) < 1.d-70 ) then
               ll(nm,nl) = 0
               al(nm,nl) = 0.d0
@@ -804,7 +792,7 @@ contains
             D_term = Dfow(2,3,0,0,loc_pnc)*w(1,2,3,0,1,loc_pnc)*DIVD(2,3)
             nl = nl+1
             ll(nm,nl) = nma(nthpo-1,np,nrpo+1)
-            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*D_term
+            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*D_term/Jacobian_I(nth,np,nr,nsa)
             if ( ABS(al(nm,nl)) < 1.d-70 ) then
               ll(nm,nl) = 0
               al(nm,nl) = 0.d0
@@ -817,7 +805,7 @@ contains
             D_term = -1.d0*Dfow(2,3,0,0,loc_pnc)*w(1,2,3,0,-1,loc_pnc)+DIVD(2,3)
             nl = nl+1
             ll(nm,nl) = nma(nthpo-1,np,nrpo-1)
-            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*D_term
+            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*D_term/Jacobian_I(nth,np,nr,nsa)
             if ( ABS(al(nm,nl)) < 1.d-70 ) then
               ll(nm,nl) = 0
               al(nm,nl) = 0.d0
