@@ -791,7 +791,7 @@ module fpcomm
 
         subroutine fp_allocate_ntg1
           implicit none
-          integer,save:: NSAMAX_save=0,NSBMAX_save=0,NTG1M_save=0
+          integer,save:: NSAMAX_save=0,NSBMAX_save=0
           integer,save:: init=0
           
           if((NSAMAX.eq.NSAMAX_save).and. &
@@ -994,7 +994,7 @@ module fpcomm
           implicit none
           real(rkind),dimension(:),POINTER:: data,temp
           integer,intent(in):: NTG1M_NEW
-          integer NTG1,NTG
+          integer NTG
          
           DO NTG=1,NTG1M
              temp(NTG)=data(NTG)
@@ -1010,7 +1010,7 @@ module fpcomm
           implicit none
           real(rkind),dimension(:,:),POINTER:: data,temp
           integer,intent(in):: NTG1M_NEW
-          integer NTG1,NTG,NR,NSA
+          integer NTG,NSA
          
           DO NTG=1,NTG1M
              DO NSA=1,NSAMAX
@@ -1030,7 +1030,7 @@ module fpcomm
           implicit none
           real(rkind),dimension(:,:,:),POINTER:: data,temp
           integer,intent(in):: NTG1M_NEW
-          integer NTG1,NTG,NR,NSA,NSB
+          integer NTG,NSA,NSB
          
           DO NTG=1,NTG1M
              DO NSB=1,NSBMAX
@@ -1230,7 +1230,7 @@ module fpcomm
           implicit none
           real(rkind),dimension(:),POINTER:: data,temp
           integer,intent(in):: NTG2M_NEW
-          integer NTG2,NTG
+          integer NTG
          
           DO NTG=1,NTG2M
              temp(NTG)=data(NTG)
@@ -1246,7 +1246,7 @@ module fpcomm
           implicit none
           real(rkind),dimension(:,:),POINTER:: data,temp
           integer,intent(in):: NTG2M_NEW
-          integer NTG2,NTG,NR
+          integer NTG,NR
          
           DO NTG=1,NTG2M
              DO NR=NRSTART,NREND
@@ -1266,7 +1266,7 @@ module fpcomm
           implicit none
           real(rkind),dimension(:,:,:),POINTER:: data,temp
           integer,intent(in):: NTG2M_NEW
-          integer NTG2,NTG,NR,NSA
+          integer NTG,NR,NSA
          
           DO NTG=1,NTG2M
              DO NSA=1,NSAMAX
@@ -1290,7 +1290,7 @@ module fpcomm
           implicit none
           real(rkind),dimension(:,:,:,:),POINTER:: data,temp
           integer,intent(in):: NTG2M_NEW
-          integer NTG2,NTG,NR,NSA,NSB
+          integer NTG,NR,NSA,NSB
          
           DO NTG=1,NTG2M
              DO NSB=1,NSBMAX

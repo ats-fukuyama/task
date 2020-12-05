@@ -14,8 +14,7 @@ CONTAINS
     INTEGER(ikind),INTENT(IN):: iprint
     REAL(rkind),INTENT(OUT):: ratea
     INTEGER(ikind),INTENT(OUT):: ierr
-    INTEGER(ikind):: ml,mw
-    REAL:: GT1,GT2
+    EXTERNAL INVMCD,BANDCD
 
     mlmax=nxmax*2+3
     mwmax=4*nwmax+3
@@ -63,7 +62,7 @@ CONTAINS
       IMPLICIT NONE
       REAL(rkind):: dx,rky,x
       COMPLEX(rkind):: CS
-      INTEGER(ikind):: J,L,NX,NW
+      INTEGER(ikind):: J,L,NW
 
       DX=(XMAX-XMIN)/NXMAX
       RKY=ANY

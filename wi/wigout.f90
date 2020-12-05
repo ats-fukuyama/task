@@ -5,11 +5,12 @@ Module wigout
   PUBLIC wi_gout,wi_mesh,wi_gra1
  
   interface
-     real(4) function GUCLIP(X)
-       real(8):: X
+     real function GUCLIP(X)
+       USE bpsd_kinds,ONLY: rkind
+       real(rkind):: X
      end function GUCLIP
-     integer(4) function NGULEN(Y)
-       real(4):: Y
+     integer function NGULEN(Y)
+       real:: Y
      end function NGULEN
   end interface
 
@@ -21,9 +22,8 @@ CONTAINS
     USE wiparm
     USE libgrf
     IMPLICIT NONE
-    INTEGER:: ierr,kid,mode,ich
     CHARACTER(LEN=1):: kch
-    CHARACTER(LEN=80):: line
+    INTEGER:: IERR
 
 1   CONTINUE
     ierr=0
@@ -65,6 +65,8 @@ CONTAINS
     REAL(8):: ANB
     REAL(rkind):: R,T,S
     INTEGER:: J,JD
+    EXTERNAL PAGES,SETLIN,SETCHS,SETFNT,GMNMX1,GQSCAL,PAGEE
+    EXTERNAL GDEFIN,GFRAME,GSCALE,GVALUE,GPLOTP,MOVE,TEXT,NUMBI,NUMBD
     
 
     DO J=1,NXMAX+1 
@@ -204,9 +206,10 @@ CONTAINS
   SUBROUTINE wi_mesh
     USE libgrf,ONLY: GRD1D
     USE wicomm,ONLY: ikind,rkind,nxmax,xgrid
-      IMPLICIT NONE
-      INTEGER(ikind):: nx
-      REAL(rkind),DIMENSION(:),ALLOCATABLE:: xid
+    IMPLICIT NONE
+    INTEGER(ikind):: nx
+    REAL(rkind),DIMENSION(:),ALLOCATABLE:: xid
+    EXTERNAL PAGES,PAGEE
 
     CALL PAGES
     ALLOCATE(xid(nxmax))

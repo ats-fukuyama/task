@@ -1,4 +1,4 @@
-!     $Id$
+! wiparm.f90
 
 Module wiparm
 
@@ -30,6 +30,7 @@ CONTAINS
     INTEGER,INTENT(IN):: mode
     CHARACTER(LEN=*),INTENT(IN)::  kin
     INTEGER,INTENT(OUT):: ierr
+    EXTERNAL TASK_PARM
 
 1   CALL TASK_PARM(MODE,'WI',KIN,wi_nlin,wi_plst,IERR)
     IF(IERR.NE.0 .AND. IERR.NE.2) RETURN
@@ -53,7 +54,6 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,INTENT(IN) :: NID
     INTEGER,INTENT(OUT) :: IST,IERR
-    REAL(rkind),SAVE:: pn0_save
 
     NAMELIST /WI/ modelg,xmin,xmax,dx0,xwint,pn0,alfa,any,beta,cfyn, &
                   ntaumax,taumin,taumax,nalfamax,alfamin,alfamax, &

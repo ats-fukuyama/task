@@ -17,8 +17,6 @@ CONTAINS
     COMPLEX(rkind):: CDET11,CDET12,CDET13,CDET21,CDET22,CDET23, &
                      CDET31,CDET32,CDET33
     COMPLEX(rkind):: CDET(3,3),CDTNS(3,3)
-    COMPLEX(rkind):: CKXN,CKYN,CKZN
-    REAL(rkind):: RK
 
     SELECT CASE(MODEL_ES)
     CASE(0)
@@ -260,7 +258,6 @@ CONTAINS
     TYPE(pl_grd_type),DIMENSION(nsmax),OPTIONAL:: grd
     COMPLEX(rkind),INTENT(OUT):: CDTNS(3,3)
     COMPLEX(rkind):: CDISP(6),CLDISP(6)
-    COMPLEX(rkind):: ckpps,ckppf,CKPP1
     INTEGER:: I,NS1
 
     IF(NS.EQ.0) THEN

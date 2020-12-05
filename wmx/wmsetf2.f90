@@ -29,6 +29,7 @@ CONTAINS
     INTEGER:: KA,KAX,KB,KBX,NB1,NB2,LA,LAX,LB,LBX,MB1,MB2,LAB,LABX,KAB,KABX
     INTEGER:: NDN,MDN,LBXK,KBXK
     INTEGER:: ILL
+    EXTERNAL INVMRD
 
     ALLOCATE(CEP0(3,3,nthmax_f,nhhmax_f))
     ALLOCATE(CRA(nthmax_f,nhhmax_f,3,3),CFA(nthmax_f,nhhmax_f,3,3))

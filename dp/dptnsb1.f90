@@ -39,7 +39,7 @@ CONTAINS
     REAL(rkind):: omegac,rkpr,rkpp,zeta
     REAL(rkind):: bdbz,bdbx
     COMPLEX(rkind):: cfact1,cfact2,cxx,cxy,cxz,cyy,cyz,czz
-    INTEGER:: i,nhmax,nh,ierr
+    INTEGER:: nhmax,nh,ierr
       
     cwp2=plfw(ns)%rn*1.D20*pz(ns)*pz(ns)*AEE*AEE/(EPS0*AMP*pa(ns)*cw*cw)
     omegac=mag%babs*pz(ns)*AEE/(AMP*pa(ns))
