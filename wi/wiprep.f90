@@ -59,13 +59,12 @@ CONTAINS
       USE libgrf,ONLY: GRD1D
       USE wicomm,ONLY: &
            ikind,rkind,dxmin,dx0,xwmin,xwint,alfa,pn0,xmin,xmax,nxmax,nwmax, &
-           xgrid,modelp,idebug
+           xgrid,modelp
       IMPLICIT NONE
 
       REAL(rkind):: xres,x,factor,dx1,dx2,range
       INTEGER(ikind):: nx,nx1,nx2
       INTEGER(ikind),SAVE:: nxmax_save=0
-      REAL(rkind),DIMENSION(:),ALLOCATABLE:: xid
 
       IF(dxmin .LE. 0.D0) THEN
          nxmax=(xmax-xmin)/dx0

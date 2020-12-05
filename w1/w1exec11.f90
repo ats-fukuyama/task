@@ -39,11 +39,12 @@ CONTAINS
     REAL(rkind):: X1(4)
     COMPLEX(rkind):: CSB(3,3,4)
     INTEGER:: NLW,NCL,IL,IA,IB,NX,NX1,NS,NCMAXS,NC,NN,NXD
-    REAL(rkind):: RT2,RW,FWP,FWC,FVT,RKPR,WC,UD,AKPR,ARG,RT,XD
+    REAL(rkind):: RT2,RW,FVT,RKPR,UD,AKPR,RT,XD
     REAL(rkind):: VXA,VKA,VXB,VKB,VXC,VKC,VXD,VKD,VX,VK,RLI,DXA,DXB,DELTAX
     COMPLEX(rkind):: CT0A,CT1A,CT2A,CT3A,CT0B,CT1B,CT2B,CT3B
     COMPLEX(rkind):: CT0C,CT1C,CT2C,CT3C,CT0D,CT1D,CT2D,CT3D
     COMPLEX(rkind):: CT0,CT1,CT2,CT3
+    COMPLEX(rkind):: CW,CARG,FWP,FWC,WC
     
 ! Allocation of local data array
 
@@ -116,9 +117,10 @@ CONTAINS
 
     RT2  = SQRT ( 2.D0 )
     RW  = 2.D6*PI*RF
+    CW=RW+CI*PZCL(NS)*RW
 
     DO NS=1,NSMAX
-       FWP = 1.D20*AEE*AEE*PZ(NS)*PZ(NS)/(AMP*PA(NS)*EPS0*RW*RW)
+       FWP = 1.D20*AEE*AEE*PZ(NS)*PZ(NS)/(AMP*PA(NS)*EPS0*RW*CW)
        FWC = AEE*PZ(NS)*BB/(AMP*PA(NS))
        FVT = AEE*1.D3/(AMP*PA(NS))
        DO NX = 1 , NXMAX
@@ -131,8 +133,8 @@ CONTAINS
           NCMAXS=2*ABS(IHARM(NS))+1
           DO NC=1,NCMAXS
              NN=NC-ABS(IHARM(NS))-1
-             ARG=(RW-NN*WC)/AKPR
-             CGZ(NX,NC)= ARG
+             CARG=(CW-NN*WC)/AKPR
+             CGZ(NX,NC)= CARG
           END DO
        END DO
 
@@ -159,12 +161,12 @@ CONTAINS
              RT = PROFTP(NX,NS)/PROFTR(NX,NS)
              XM(NX)=XAM(NX)
 !             XM(NX)=XA(NX)
-             YK(NX)=FWP*PROFPN(NX,NS)*ABS(YX(NX,NS))*RW/AKPR
+             YK(NX)=FWP*PROFPN(NX,NS)*ABS(YX(NX,NS))*CW/AKPR
              CS0(NX)=CGZ(NX,NC)*CDZ(NX,NC)
-             CS1(NX)=CZ(NX,NC)+0.5D0*(1.D0-RT)*AKPR*CDZ(NX,NC)/RW
-             CS2(NX)=(RT+(1.D0-RT)*NN*WC/RW)*CDZ(NX,NC) &
+             CS1(NX)=CZ(NX,NC)+0.5D0*(1.D0-RT)*AKPR*CDZ(NX,NC)/CW
+             CS2(NX)=(RT+(1.D0-RT)*NN*WC/CW)*CDZ(NX,NC) &
                     /SQRT(2.D0*RT)
-             CS3(NX)=(1.D0-1.D0/RT)*CS0(NX)*WC/RW
+             CS3(NX)=(1.D0-1.D0/RT)*CS0(NX)*WC/CW
           END DO
 
           DO NX=1,NXMAX-1
@@ -619,7 +621,7 @@ CONTAINS
                       END DO
                       CPABS0=CPABS0+0.5D0*CONJG(CA(NN+IA))*CAJ0L
                       CPABS1=CPABS1+0.5D0*CONJG(CA(MM+IA))*CAJ1L
-!                      CABSL=CABSL &
+!                      CPABSL=CPABSL &
 !                           +0.5D0*CONJG(CA(NN+IA))*CAJ0L &
 !                           +0.5D0*CONJG(CA(MM+IA))*CAJ1L
 !                      CAJ0(NN+IA)=CAJ0(NN+IA)+CAJ0L

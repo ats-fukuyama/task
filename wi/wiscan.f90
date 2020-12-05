@@ -12,6 +12,7 @@ CONTAINS
     CHARACTER         :: kid
     CHARACTER(LEN=80) :: line
     INTEGER(ikind):: mode
+    EXTERNAL TASK_KLIN
 
 1   CONTINUE
     ierr=0
@@ -38,8 +39,7 @@ CONTAINS
 
   SUBROUTINE wi_scan_tau(ierr)
 
-    USE wicomm,ONLY: rkind,ikind,ntaumax,taumin,taumax,alfa,beta,any, &
-         xmax,pn0,nxmax,nwmax,kfscan
+    USE wicomm,ONLY: rkind,ikind,ntaumax,taumin,taumax,alfa,any,kfscan
     USE wiexec,ONLY: wi_exec
     USE libgrf,ONLY: grd1d
     USE libfio,ONLY: fwopen
@@ -50,6 +50,7 @@ CONTAINS
     INTEGER(ikind),PARAMETER:: nfl=21
     REAL(rkind):: tau,dtau,rk0l,ratea,any_save
     REAL(rkind),DIMENSION(ntaumax):: taua,rateaa
+    EXTERNAL PAGES,PAGEE
 
     any_save=any
     rk0l=1.D0/alfa
@@ -85,7 +86,7 @@ CONTAINS
   SUBROUTINE wi_scan_alfa(ierr)
 
     USE wicomm,ONLY: rkind,ikind,nalfamax,alfamin,alfamax,alfa,beta,any, &
-         xmax,xmin,dx0,pn0,nxmax,nwmax,kfscan,pi,xwint,xgrid
+         xmax,xmin,dx0,nxmax,kfscan,pi,xwint,xgrid
     USE wiexec,ONLY: wi_exec
     USE wiprep,ONLY: wi_prep
     USE wigout,ONLY: wi_gra1
@@ -96,9 +97,10 @@ CONTAINS
     INTEGER(ikind),INTENT(OUT):: ierr
     INTEGER(ikind):: nalfa
     INTEGER(ikind),PARAMETER:: nfl=21
-    REAL(rkind):: dalfa,rk0l,ratea,anb,fact
+    REAL(rkind):: dalfa,rk0l,ratea,anb
     REAL(rkind):: alfa_save,xmax_save,xmin_save,dx0_save,xwint_save
     REAL(rkind),DIMENSION(nalfamax):: rk0la,rateaa
+    EXTERNAL PAGES,PAGEE
 
     alfa_save=alfa
     IF(nalfamax.EQ.1) THEN

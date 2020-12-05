@@ -4,27 +4,29 @@ MODULE libdeab
 ! X =XH*XN+XM:     A < X < B
 
   USE libde
+  USE bpsd_kinds,ONLY: dp
 
-  REAL(8):: XM_  ! mid XM=0.5D0*(A+B)
-  REAL(8):: XH_  ! half len XH=0.5D0*(B-A)
-  REAL(8):: XHI_ ! inverse of half len XHI=1.D0/XH
+  REAL(dp):: XM_  ! mid XM=0.5D0*(A+B)
+  REAL(dp):: XH_  ! half len XH=0.5D0*(B-A)
+  REAL(dp):: XHI_ ! inverse of half len XHI=1.D0/XH
 
 CONTAINS
 
   SUBROUTINE DEFTAB(A,B,FUNC,KID,H0,EPS,ILST,CS,ES)
     IMPLICIT NONE
-    REAL(8),INTENT(IN)::  A           ! Lower boundary of integral
-    REAL(8),INTENT(IN)::  B           ! Upper boundary of integral
+    REAL(dp),INTENT(IN)::  A           ! Lower boundary of integral
+    REAL(dp),INTENT(IN)::  B           ! Upper boundary of integral
     CHARACTER(LEN=*),INTENT(IN):: KID ! function identifier string
-    REAL(8),INTENT(IN)::  H0          ! Initial step size
-    REAL(8),INTENT(IN)::  EPS         ! Convergence thrshold
+    REAL(dp),INTENT(IN)::  H0          ! Initial step size
+    REAL(dp),INTENT(IN)::  EPS         ! Convergence thrshold
     INTEGER,INTENT(IN)::  ILST        ! print out control: 0 for no print out
-    REAL(8),INTENT(OUT):: CS          ! Integral
-    REAL(8),INTENT(OUT):: ES          ! Estimated error 
+    REAL(dp),INTENT(OUT):: CS          ! Integral
+    REAL(dp),INTENT(OUT):: ES          ! Estimated error 
     INTERFACE
        FUNCTION FUNC(X,XM,XP)
-         REAL(8):: FUNC
-         REAL(8),INTENT(IN):: X,XM,XP
+         USE bpsd_kinds,ONLY: dp
+         REAL(dp):: FUNC
+         REAL(dp),INTENT(IN):: X,XM,XP
        END FUNCTION FUNC
     END INTERFACE
 
@@ -43,18 +45,21 @@ END MODULE libdeab
 MODULE libde_wi
 
   USE libdeab
-  REAL(8):: gamma_,b_
+  REAL(dp):: gamma_,b_
 
 CONTAINS
 
   FUNCTION FUNCAB1(X,XA,BX)
     USE libdeab
+    USE bpsd_kinds,ONLY: dp
     IMPLICIT NONE
-    REAL(8),INTENT(IN)::  X  ! Integral variable
-    REAL(8),INTENT(IN)::  XA ! X-A  near X=A
-    REAL(8),INTENT(IN)::  BX ! B-X  near X=B
-    REAL(8):: FUNCAB1
+    REAL(dp),INTENT(IN)::  X  ! Integral variable
+    REAL(dp),INTENT(IN)::  XA ! X-A  near X=A
+    REAL(dp),INTENT(IN)::  BX ! B-X  near X=B
+    REAL(dp):: FUNCAB1,DUMMY
 
+    DUMMY=XA
+    DUMMY=BX
     FUNCAB1=(X-X*X/GAMMA_)*COS(X)
 
     RETURN
@@ -62,11 +67,12 @@ CONTAINS
     
   FUNCTION FUNC1(X,XM,XP)
     USE libdeab
+    USE bpsd_kinds,ONLY: dp
     IMPLICIT NONE
-    REAL(8),INTENT(IN)::  X  ! Integral variable
-    REAL(8),INTENT(IN)::  XM ! 1.D0-X  near x= 1.D0
-    REAL(8),INTENT(IN)::  XP ! 1.D0+X  near X=-1.D0
-    REAL(8):: FUNC1
+    REAL(dp),INTENT(IN)::  X  ! Integral variable
+    REAL(dp),INTENT(IN)::  XM ! 1.D0-X  near x= 1.D0
+    REAL(dp),INTENT(IN)::  XP ! 1.D0+X  near X=-1.D0
+    REAL(dp):: FUNC1
 
     FUNC1=FUNCAB1(XH_*X+XM_,XH_*XP,XH_*XM)
 
@@ -75,12 +81,15 @@ CONTAINS
 
   FUNCTION FUNCAB2(X,XA,BX)
     USE libdeab
+    USE bpsd_kinds,ONLY: dp
     IMPLICIT NONE
-    REAL(8),INTENT(IN)::  X  ! Integral variable
-    REAL(8),INTENT(IN)::  XA ! X-A  near X=A
-    REAL(8),INTENT(IN)::  BX ! B-X  near X=B
-    REAL(8):: FUNCAB2
+    REAL(dp),INTENT(IN)::  X  ! Integral variable
+    REAL(dp),INTENT(IN)::  XA ! X-A  near X=A
+    REAL(dp),INTENT(IN)::  BX ! B-X  near X=B
+    REAL(dp):: FUNCAB2,DUMMY
 
+    DUMMY=XA
+    DUMMY=BX
     FUNCAB2=(X-X*X/GAMMA_)*SIN(X)
 
     RETURN
@@ -88,11 +97,12 @@ CONTAINS
     
   FUNCTION FUNC2(X,XM,XP)
     USE libdeab
+    USE bpsd_kinds,ONLY: dp
     IMPLICIT NONE
-    REAL(8),INTENT(IN)::  X  ! Integral variable
-    REAL(8),INTENT(IN)::  XM ! 1.D0-X  near x= 1.D0
-    REAL(8),INTENT(IN)::  XP ! 1.D0+X  near X=-1.D0
-    REAL(8):: FUNC2
+    REAL(dp),INTENT(IN)::  X  ! Integral variable
+    REAL(dp),INTENT(IN)::  XM ! 1.D0-X  near x= 1.D0
+    REAL(dp),INTENT(IN)::  XP ! 1.D0+X  near X=-1.D0
+    REAL(dp):: FUNC2
 
     FUNC2=FUNCAB2(XH_*X+XM_,XH_*XP,XH_*XM)
 
@@ -100,9 +110,10 @@ CONTAINS
   END FUNCTION FUNC2
 
   FUNCTION FUNCA(X)
+    USE bpsd_kinds,ONLY: dp
     IMPLICIT NONE
-    REAL(8),INTENT(IN):: X
-    REAL(8):: FUNCA,H0,EPS,CS,ES
+    REAL(dp),INTENT(IN):: X
+    REAL(dp):: FUNCA,H0,EPS,CS,ES
     INTEGER:: ILST
 
     H0=0.25D0
@@ -114,9 +125,10 @@ CONTAINS
   END FUNCTION FUNCA
 
   FUNCTION FUNCB(X)
+    USE bpsd_kinds,ONLY: dp
     IMPLICIT NONE
-    REAL(8),INTENT(IN):: X
-    REAL(8):: FUNCB,H0,EPS,CS,ES
+    REAL(dp),INTENT(IN):: X
+    REAL(dp):: FUNCB,H0,EPS,CS,ES
     INTEGER:: ILST
 
     H0=0.25D0
@@ -128,9 +140,10 @@ CONTAINS
   END FUNCTION FUNCB
 
   FUNCTION FUNC0(X)
+    USE bpsd_kinds,ONLY: dp
     IMPLICIT NONE
-    REAL(8),INTENT(IN)::  X  ! Integral variable
-    REAL(8):: FUNC0,v
+    REAL(dp),INTENT(IN)::  X  ! Integral variable
+    REAL(dp):: FUNC0,v
 
     v=SQRT(2.D0*X)
     FUNC0=(FUNCA(b_*v)**2+FUNCB(b_*v))*EXP(-x)
@@ -139,9 +152,10 @@ CONTAINS
   END FUNCTION FUNC0
 
   FUNCTION FUNCF(X)
+    USE bpsd_kinds,ONLY: dp
     IMPLICIT NONE
-    REAL(8),INTENT(IN):: X
-    REAL(8):: FUNCF,H0,EPS,CS,ES
+    REAL(dp),INTENT(IN):: X
+    REAL(dp):: FUNCF,H0,EPS,CS,ES
     INTEGER:: ILST
 
     H0=0.25D0
@@ -160,10 +174,11 @@ PROGRAM plotwi
   USE libgrf
   USE libde_wi
   IMPLICIT NONE
-  REAL(8):: xmin,xmax,x,gamma,dx,ymin,ymax,dy,y
+  REAL(dp):: xmin,xmax,x,dx,ymin,ymax,dy,y
   INTEGER:: nxmax,nx
-  REAL(8),DIMENSION(:),ALLOCATABLE:: xa
-  REAL(8),DIMENSION(:,:),ALLOCATABLE:: fa
+  REAL(dp),DIMENSION(:),ALLOCATABLE:: xa
+  REAL(dp),DIMENSION(:,:),ALLOCATABLE:: fa
+  EXTERNAL GSOPEN,GSCLOS,PAGES,PAGEE
 
   CALL GSOPEN
 

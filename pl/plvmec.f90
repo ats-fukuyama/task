@@ -1,6 +1,6 @@
 !  $Id$
 !
-module pl_vmec_mod
+module plvmec
 use bpsd
 
       type(bpsd_device_type),private,save  :: device
@@ -503,4 +503,4 @@ end subroutine put_equil
       call bpsd_put_data(metric1D,ierr)
       end subroutine put_bpsd
 
-end module pl_vmec_mod
+end module plvmec

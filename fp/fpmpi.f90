@@ -14,7 +14,6 @@
 !      REAL(8),DIMENSION(nrmax*nsamax):: vrecv
       REAL(8),DIMENSION(nrmax*N_partition_s):: vrecv
       REAL(8),DIMENSION(nrmax,nsamax),INTENT(OUT):: vreturn
-      INTEGER,DIMENSION(nsize):: nlen, npos
       INTEGER:: n, nsa, nn, ns, nr, nsw, nse
       integer,dimension(nsize):: idisp
 
@@ -43,7 +42,7 @@
       SUBROUTINE update_fnsb
 
       IMPLICIT NONE
-      integer:: nsend, nth, np, nr, nsa, nsb, NS
+      integer:: nsend, nth, np, nr, nsa, nsb
       double precision,dimension(nthmax,npstart:npend,nrstart:nrend,nsastart:nsaend):: dsend
       double precision,dimension(nthmax,npstart:npend,nrstart:nrend,nsamax):: drecv
 
@@ -81,7 +80,7 @@
 
       USE libmtx
       IMPLICIT NONE
-      integer:: nsend, nth, np, nr, nsa, nsb, nsw, nswi,N
+      integer:: nsend, nth, np, nr, nsa, nsb, nsw, nswi
 !      double precision,dimension(nthmax,npstart:npend,nrstart:nrend):: dsend
 !      double precision,dimension(nthmax,npmax,nrmax,n_partition_s):: drecv
       double precision,dimension(nthmax,npstart:npend,nrstart:nrend):: dsend

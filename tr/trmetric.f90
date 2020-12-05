@@ -18,7 +18,7 @@ CONTAINS
       USE trcomm, ONLY : modelg, nrmax, knameq, knameq2
       USE trbpsd, ONLY: tr_bpsd_init,tr_bpsd_put,tr_bpsd_get
       USE equnit_mod, ONLY: eq_parm,eq_prof,eq_calc,eq_load
-      USE pl_vmec_mod, ONLY: pl_vmec
+      USE plvmec, ONLY: pl_vmec
       implicit none
       integer, intent(out):: ierr
       character(len=80):: line

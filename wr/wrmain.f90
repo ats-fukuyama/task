@@ -31,6 +31,7 @@ PROGRAM wr
   USE libmtx
   IMPLICIT NONE
   INTEGER:: ierr
+  EXTERNAL GSOPEN,GSCLOS,EQINIT
 
       CALL mtx_initialize
 

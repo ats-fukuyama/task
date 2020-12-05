@@ -150,7 +150,6 @@ CONTAINS
     REAL(rkind),ALLOCATABLE:: DS(:),DSS(:,:,:)
     INTEGER:: NR,NHH,NTH,NS,NHHF,NTHF
     REAL(rkind):: DTH,DHH,DPSIPDRHO,DSSS,DRHO
-    COMPLEX(rkind):: CRF
     
     ALLOCATE(DS(nrmax+1),DSS(nthmax,nhhmax,nrmax+1))
 

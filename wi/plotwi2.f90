@@ -53,8 +53,10 @@ CONTAINS
     REAL(8),INTENT(IN)::  X  ! Integral variable
     REAL(8),INTENT(IN)::  XA ! X-A  near X=A
     REAL(8),INTENT(IN)::  BX ! B-X  near X=B
-    REAL(8):: FUNCAB1
+    REAL(8):: FUNCAB1,DUMMY
 
+    DUMMY=XA
+    DUMMY=BX
     FUNCAB1=SIN(alpha_*gamma_*X*(1.D0-X/GAMMA_))*COS(X)
 
     RETURN
@@ -79,8 +81,10 @@ CONTAINS
     REAL(8),INTENT(IN)::  X  ! Integral variable
     REAL(8),INTENT(IN)::  XA ! X-A  near X=A
     REAL(8),INTENT(IN)::  BX ! B-X  near X=B
-    REAL(8):: FUNCAB2
+    REAL(8):: FUNCAB2,DUMMY
 
+    DUMMY=XA
+    DUMMY=BX
     FUNCAB2=SIN(alpha_*gamma_*X*(1.D0-X/GAMMA_))*SIN(X)
 
     RETURN
@@ -160,10 +164,11 @@ PROGRAM plotwi
   USE libgrf
   USE libde_wi
   IMPLICIT NONE
-  REAL(8):: xmin,xmax,x,gamma,dx,ymin,ymax,dy,y,beta,alpha
+  REAL(8):: xmin,xmax,x,dx,ymin,ymax,dy,y,beta,alpha
   INTEGER:: nxmax,nx
   REAL(8),DIMENSION(:),ALLOCATABLE:: xa
   REAL(8),DIMENSION(:,:),ALLOCATABLE:: fa
+  EXTERNAL GSOPEN,GSCLOS,PAGES,PAGEE
 
   CALL GSOPEN
 
