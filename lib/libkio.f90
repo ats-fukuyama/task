@@ -126,7 +126,7 @@
       ELSEIF(MODE.EQ.2) THEN
          CALL KTRIM(KNL,KL1)
          CALL KTRIM(LINE,KL2)
-         KNLINE=' &'//KNL(1:KL1)//' '//LINE(1:KL2)//' &END'
+         KNLINE=' &'//KNL(1:KL1)//' '//LINE(1:KL2)//' /'
          WRITE(7,'(A90)') KNLINE
          REWIND(7)
          CALL XXNLIN(7,IST,IERR)

@@ -3,6 +3,7 @@
 
 PROGRAM testmtxc
 
+  USE task_kinds,ONLY: dp
   USE libmpi
   USE commpi
   USE libmtx
@@ -14,14 +15,14 @@ PROGRAM testmtxc
   integer :: imax,jwidth
   integer :: ndiv,i
   integer :: MODE
-  real(8) :: tolerance,ddata(1)
-  real(8) :: xmin,xmax,dt,dx
-  real(4) :: cputime1,cputime2
-  complex(8),dimension(:),pointer:: x
-  complex(8) :: k
+  real(dp) :: tolerance,ddata(1)
+  real(dp) :: xmin,xmax,dt,dx
+  real :: cputime1,cputime2
+  complex(dp),dimension(:),pointer:: x
+  complex(dp) :: k
   character :: character*1
-  real(8),dimension(:)  ,pointer :: FX
-  real(8),dimension(:,:),pointer :: FY
+  real(dp),dimension(:)  ,pointer :: FX
+  real(dp),dimension(:,:),pointer :: FY
   character ::STR*80
 
   call mtx_initialize

@@ -1,46 +1,47 @@
 module equ_params
-  integer(4), parameter :: irdm=2049, izdm=1025, ivdm=2049
-  integer(4), parameter :: izdm2=2*izdm-1
-  integer(4), parameter :: irzdm=irdm*izdm
-  integer(4), parameter :: irzdm2=irdm*izdm2, isrzdm=2*(irdm+izdm2)
+  USE bpsd_kinds,ONLY: dp
+  integer, parameter :: irdm=2049, izdm=1025, ivdm=2049
+  integer, parameter :: izdm2=2*izdm-1
+  integer, parameter :: irzdm=irdm*izdm
+  integer, parameter :: irzdm2=irdm*izdm2, isrzdm=2*(irdm+izdm2)
 
-!  integer(4), parameter :: icvdm = 15, nsfix = 30, icvdm1 = icvdm + 1
-  integer(4), parameter :: icvdm = 19, nsfix = 19, icvdm1 = icvdm + 1
-  integer(4) :: iudsym
+!  integer, parameter :: icvdm = 15, nsfix = 30, icvdm1 = icvdm + 1
+  integer, parameter :: icvdm = 19, nsfix = 19, icvdm1 = icvdm + 1
+  integer :: iudsym
   character(len=80) :: eqfile = 'eqdb.dat'
 
-!  integer(4) :: ieqrd = 16
-  integer(4) :: ieqrd = 17
-  integer(4) :: jeqrd
-  integer(4), dimension(:), allocatable :: ieqout,ieqerr
+!  integer :: ieqrd = 16
+  integer :: ieqrd = 17
+  integer :: jeqrd
+  integer, dimension(:), allocatable :: ieqout,ieqerr
 
-  integer(4) :: iaxis,iraxis,izaxis,nsu,isep
-  real(8) :: btv,cpl,raxis,zaxis,saxis,qaxis
-  real(8) :: dsep,psep,rspmx,rspmn
-  real(8) :: bets,beta,betj,ccpl,ttcu,qsurf,ttpr,ell,trg,zzlp,zzli
-  real(8) :: zsdw,zaav,zlen,q95,qqj,el95,prfac,sigcu
-  real(8), dimension(:), allocatable :: psi,rbp
-  real(8), dimension(:), allocatable :: csu,rsu,zsu
+  integer :: iaxis,iraxis,izaxis,nsu,isep
+  real(dp) :: btv,cpl,raxis,zaxis,saxis,qaxis
+  real(dp) :: dsep,psep,rspmx,rspmn
+  real(dp) :: bets,beta,betj,ccpl,ttcu,qsurf,ttpr,ell,trg,zzlp,zzli
+  real(dp) :: zsdw,zaav,zlen,q95,qqj,el95,prfac,sigcu
+  real(dp), dimension(:), allocatable :: psi,rbp
+  real(dp), dimension(:), allocatable :: csu,rsu,zsu
 
-  integer(4) :: nv,nvm
-  real(8), dimension(:), allocatable :: pds,fds,vlv,qqv,prv
-  real(8), dimension(:), allocatable :: hiv,siv,siw,sdw,ckv,ssv,aav,rrv, &
+  integer :: nv,nvm
+  real(dp), dimension(:), allocatable :: pds,fds,vlv,qqv,prv
+  real(dp), dimension(:), allocatable :: hiv,siv,siw,sdw,ckv,ssv,aav,rrv, &
        &                      rbv,arv,bbv,biv,r2b2v,shv,grbm2v, &
        &                      rov,aiv,brv,epsv,elipv,trigv,ftv
 
-  integer(4) ::nr,nz,nrm,nsr,nsz,nszm
-  real(8) :: dr,dz,dr2i,dz2i,ddri,ddzi
-  real(8), dimension(:), allocatable :: rg, zg
+  integer ::nr,nz,nrm,nsr,nsz,nszm
+  real(dp) :: dr,dz,dr2i,dz2i,ddri,ddzi
+  real(dp), dimension(:), allocatable :: rg, zg
 
-  integer(4), dimension(:), allocatable :: icp
-  real(8) :: rmaj,rpla,elip,trig,elipup,trigup,elipdw,trigdw,qaxi,qsur
-  real(8), dimension(:), allocatable :: cp
+  integer, dimension(:), allocatable :: icp
+  real(dp) :: rmaj,rpla,elip,trig,elipup,trigup,elipdw,trigdw,qaxi,qsur
+  real(dp), dimension(:), allocatable :: cp
 
-  integer(4) :: ilimt
-  integer(4), dimension(:), allocatable :: ivac,ncoil
-  real(8),    dimension(:), allocatable :: cvac,rvac,zvac
-  real(8), dimension(:,:),  allocatable :: rcoil,zcoil,ccoil
-  real(8), dimension(:),    allocatable :: rlimt,zlimt
+  integer :: ilimt
+  integer, dimension(:), allocatable :: ivac,ncoil
+  real(dp),    dimension(:), allocatable :: cvac,rvac,zvac
+  real(dp), dimension(:,:),  allocatable :: rcoil,zcoil,ccoil
+  real(dp), dimension(:),    allocatable :: rlimt,zlimt
 
 end module equ_params
  
