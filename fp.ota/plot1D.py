@@ -74,7 +74,7 @@ def plot_profile1D(y, option):
             plt.ylim(y[i].ymin, y[i].ymax)
 
         plt.tight_layout()
-        plt.show()
+        plt.savefig("plot.png")
 
     elif option[0] == 1:
         plt.subplot(1, 1, 1)
@@ -113,66 +113,69 @@ def plot_profile1D(y, option):
         plt.fill_between(y[5].xaxis, 0, y[5].val,
                          facecolor='purple', alpha=0.3)
         plt.tight_layout()
-        plt.show()
+        plt.savefig("plot.png")
 
 
 if __name__ == "__main__":
 
-    CSVDIR = "/Users/ota/git/task/fp.ota/csv/"
+    CSVDIR = "/home/keigo/task/fp.ota/csv/"
 
-    # psimg = plot1D(CSVDIR+"psimg.csv", "psimg")
-    # Bing = plot1D(CSVDIR+"Bing.csv", "Bing")
-    # Boutg = plot1D(CSVDIR+"Boutg.csv", "Boutg")
-    # Fpsig = plot1D(CSVDIR+"Fpsig.csv", "Fpsig")
+    psimg = plot1D(CSVDIR+"psimg.csv", "psimg")
+    Bing = plot1D(CSVDIR+"Bing.csv", "Bing")
+    Boutg = plot1D(CSVDIR+"Boutg.csv", "Boutg")
+    Fpsig = plot1D(CSVDIR+"Fpsig.csv", "Fpsig")
 
     psim = plot1D(CSVDIR+"psim.csv", r"$\psi_m$")
     Bin = plot1D(CSVDIR+"Bin.csv", r"$B_{in}$", CSVDIR+"psim.csv", "psim")
     Bout = plot1D(CSVDIR+"Bout.csv", r"$B_{out}$", CSVDIR+"psim.csv", "psim")
     Fpsi = plot1D(CSVDIR+"Fpsi.csv", r"$F_m$", CSVDIR+"psim.csv", "psim")
 
-    dfdpsi = plot1D(CSVDIR+"dFdpsi.csv", r"$df/d\psi_m$",
-                    CSVDIR+"psim.csv", "psim")
-    d2fdpsi = plot1D(CSVDIR+"d2Fdpsi.csv", r"$d^2f/d\psi_m^2$",
-                     CSVDIR+"psim.csv", "psim")
+    y = [psim,Bin,Bout,Fpsi,psimg,Bing,Boutg,Fpsig]
+    plot_profile1D(y, [0])
 
-    dbindpsi = plot1D(CSVDIR+"dBmdpsi_in.csv", r"$dB_{in}/d\psi_m$",
-                      CSVDIR+"psim.csv", "psim")
+    # dfdpsi = plot1D(CSVDIR+"dFdpsi.csv", r"$df/d\psi_m$",
+    #                 CSVDIR+"psim.csv", "psim")
+    # d2fdpsi = plot1D(CSVDIR+"d2Fdpsi.csv", r"$d^2f/d\psi_m^2$",
+    #                  CSVDIR+"psim.csv", "psim")
 
-    dboutdpsi = plot1D(CSVDIR+"dBmdpsi_out.csv",
-                       r"$dB_{out}/d\psi_m$", CSVDIR+"psim.csv", r"$\psi_{m}$", ymin=-0.1, ymax=0)
-    d2boutdpsi = plot1D(CSVDIR+"d2Bmdpsi_out.csv",
-                        r"$d^2B_{out}/d\psi_m^2$", CSVDIR+"psim.csv", r"$\psi_{m}$", ymin=0, ymax=0.1)
+    # dbindpsi = plot1D(CSVDIR+"dBmdpsi_in.csv", r"$dB_{in}/d\psi_m$",
+    #                   CSVDIR+"psim.csv", "psim")
 
-    dboutgdpsi = plot1D(CSVDIR+"dBoutgdpsi.csv",
-                        r"$dB_{out}/d\psi_m$", CSVDIR+"psimg.csv", r"$\psi_{m}$", ymin=-0.1, ymax=0)
-    d2boutgdpsi = plot1D(CSVDIR+"d2Boutgdpsi.csv",
-                         r"$d^2B_{out}/d\psi_m^2$", CSVDIR+"psimg.csv", r"$\psi_{m}$", ymin=0, ymax=0.1)
+    # dboutdpsi = plot1D(CSVDIR+"dBmdpsi_out.csv",
+    #                    r"$dB_{out}/d\psi_m$", CSVDIR+"psim.csv", r"$\psi_{m}$", ymin=-0.1, ymax=0)
+    # d2boutdpsi = plot1D(CSVDIR+"d2Bmdpsi_out.csv",
+    #                     r"$d^2B_{out}/d\psi_m^2$", CSVDIR+"psim.csv", r"$\psi_{m}$", ymin=0, ymax=0.1)
+
+    # dboutgdpsi = plot1D(CSVDIR+"dBoutgdpsi.csv",
+    #                     r"$dB_{out}/d\psi_m$", CSVDIR+"psimg.csv", r"$\psi_{m}$", ymin=-0.1, ymax=0)
+    # d2boutgdpsi = plot1D(CSVDIR+"d2Boutgdpsi.csv",
+    #                      r"$d^2B_{out}/d\psi_m^2$", CSVDIR+"psimg.csv", r"$\psi_{m}$", ymin=0, ymax=0.1)
 
     y = []
 
-    trapped = plot1D(CSVDIR+"trapped_boundary_quarter.csv",
-                     "D orbit", CSVDIR+"xi.csv", r"$\xi=\cos\theta_m$")
-    forbitten = plot1D(CSVDIR+"forbitten_boundary_quarter.csv",
-                       "stagnation orbit", CSVDIR+"xi.csv", r"$\xi$")
+    # trapped = plot1D(CSVDIR+"trapped_boundary_quarter.csv",
+    #                  "D orbit", CSVDIR+"xi.csv", r"$\xi=\cos\theta_m$")
+    # forbitten = plot1D(CSVDIR+"forbitten_boundary_quarter.csv",
+    #                    "stagnation orbit", CSVDIR+"xi.csv", r"$\xi$")
 
-    x_co = plot1D(CSVDIR+"beta_x_stagnation_co.csv",
-                  "X-type stagnation orbit", CSVDIR+"xi_x_stagnation_co.csv", r"$\xi$")
-    o_co = plot1D(CSVDIR+"beta_o_stagnation_co.csv",
-                  "O-type stagnation orbit", CSVDIR+"xi_o_stagnation_co.csv", r"$\xi$")
-    x_cnt = plot1D(CSVDIR+"beta_x_stagnation_cnt.csv",
-                   None, CSVDIR+"xi_x_stagnation_cnt.csv", r"$\xi$")
-    o_cnt = plot1D(CSVDIR+"beta_o_stagnation_cnt.csv",
-                   None, CSVDIR+"xi_o_stagnation_cnt.csv", r"$\xi$")
-    pinch = plot1D(CSVDIR+"beta_pinch.csv",
-                   "Pinch orbit", CSVDIR+"xi_pinch.csv", r"$\xi$")
+    # x_co = plot1D(CSVDIR+"beta_x_stagnation_co.csv",
+    #               "X-type stagnation orbit", CSVDIR+"xi_x_stagnation_co.csv", r"$\xi$")
+    # o_co = plot1D(CSVDIR+"beta_o_stagnation_co.csv",
+    #               "O-type stagnation orbit", CSVDIR+"xi_o_stagnation_co.csv", r"$\xi$")
+    # x_cnt = plot1D(CSVDIR+"beta_x_stagnation_cnt.csv",
+    #                None, CSVDIR+"xi_x_stagnation_cnt.csv", r"$\xi$")
+    # o_cnt = plot1D(CSVDIR+"beta_o_stagnation_cnt.csv",
+    #                None, CSVDIR+"xi_o_stagnation_cnt.csv", r"$\xi$")
+    # pinch = plot1D(CSVDIR+"beta_pinch.csv",
+    #                "Pinch orbit", CSVDIR+"xi_pinch.csv", r"$\xi$")
 
-    y.append(trapped)
-    y.append(pinch)
-    y.append(x_co)
-    y.append(o_co)
-    y.append(x_cnt)
-    y.append(o_cnt)
-    plot_profile1D(y, [1, r"$v/c$"])
+    # y.append(trapped)
+    # y.append(pinch)
+    # y.append(x_co)
+    # y.append(o_co)
+    # y.append(x_cnt)
+    # y.append(o_cnt)
+    # plot_profile1D(y, [1, r"$v/c$"])
 
     # trapped.polar2cartesian()
     # forbitten.polar2cartesian()
