@@ -36,7 +36,7 @@ SRCSX = dpdkdt.f dptestk.f
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = libdp.a ../eq/libeq.a ../pl/libpl.a ../lib/libtask.a \
+LIBS = libdp.a ../eq/libeq.a ../pl/libpl.a ../lib/libgrf.a ../lib/libtask.a \
        ../../bpsd/libbpsd.a 
 
 all : dp

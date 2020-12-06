@@ -153,6 +153,8 @@ CONTAINS
              END DO
              data_nrank_idrank(nrank,id)=rdata
              ncountry_nrank_idrank(nrank,id)=ncountry
+!             WRITE(6,'(A,I8,ES12.4,I8)') 'nrank_exec: nrank,rdata,ncountry', &
+!                  nrank,rdata,ncountry
           END IF
        END DO
     END DO

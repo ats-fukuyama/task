@@ -1496,7 +1496,6 @@ CONTAINS
     REAL(dp):: rcases,rdeaths
 
     ncount_max=ndate_max_g-ndate_min_g+1
-
     SELECT CASE(id)
     CASE(1,3)
        ndata=nplot_max

@@ -20,6 +20,9 @@ CONTAINS
     knam_csv_out_select='cv-select.csv'
     knam_cv_select='cv-select.data' ! list of country_id for select
     knam_cv_population='cv-population.data' ! list of population and area
+    knam_cvj_cases_in='cvj-data-cases.csv' ! Japanese cases data
+    knam_cvj_deaths_in='cvj-data-deaths.csv' ! Japanese deaths data
+    knam_cvj_population_in='cvj-data-prefecture.csv' ! Japanese population data
     ndate_step_global=1  ! ndate step of global data: 1: all, 7: week interval
     ndate_step_region=1  ! ndate step of region data: 1: all, 7: week interval
     ndate_step_select=7  ! ndata step of select data: 1: all, 7: week interval

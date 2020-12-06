@@ -8,6 +8,9 @@ MODULE cvcomm_parm
   CHARACTER(LEN=256):: knam_csv_out_select
   CHARACTER(LEN=256):: knam_cv_select
   CHARACTER(LEN=256):: knam_cv_population
+  CHARACTER(LEN=256):: knam_cvj_cases_in
+  CHARACTER(LEN=256):: knam_cvj_deaths_in
+  CHARACTER(LEN=256):: knam_cvj_population_in
   INTEGER:: ndate_start_global,ndate_start_region,ndate_start_select
   INTEGER:: ndate_step_global,ndate_step_region,ndate_step_select
   INTEGER:: ndays_ave,nrank_max

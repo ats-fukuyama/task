@@ -57,6 +57,7 @@ CONTAINS
          knam_csv_out_region, &
          knam_csv_out_select, &
          knam_cv_select,knam_cv_population, &
+         knam_cvj_cases_in,knam_cvj_deaths_in,knam_cvj_population_in, &
          ndate_step_global,ndate_step_region,ndate_step_select, &
          ndate_start_global,ndate_start_region,ndate_start_select, &
          ndays_ave,ndate_min_g,ndate_max_g, &
@@ -88,6 +89,8 @@ CONTAINS
          '        knam_csv_out_region', &
          '        knam_csv_out_select', &
          '        knam_cv_select,knam_cv_population', &
+         '        knam_cvj_cases_in,knam_cvj_deaths_in', &
+         '        knam_cvj_population_in', &
          '        ndate_step_global,ndate_step_region,ndate_step_select', &
          '        ndate_start_global,ndate_star_region,ndate_start_select', &
          '        ndays_ave,ndate_min_g,ndate_max_g,', &
