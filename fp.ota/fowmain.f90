@@ -56,8 +56,21 @@ subroutine fow_csv(nr_out)
   use fpwrite
 
   integer,intent(in) :: nr_out
-  real(rkind),allocatable :: fImaxwell(:,:,:,:)
+  real(rkind),allocatable :: gamma_r(:), Deff(:), rmg(:)
+  allocate(gamma_r(nrmax))
+  allocate(Deff(nrmax))
+  allocate(rmg(nrmax))
 
+  do nr = 1, nrmax
+    rmg(nr) = rg(nr+1)
+  end do
+  
+
+  call radial_particle_flux(gamma_r,2)
+  call effective_diffusion_cosfficient(Deff, 2)
+
+  call fpcsv1D(gamma_r,"./csv/gamma.csv")
+  call fpcsv1D(Deff,"./csv/Deff.csv")
 
   call fpcsv1D(psimg,"./csv/psimg.csv")
   call fpcsv1D(Fpsig,"./csv/Fpsig.csv")
@@ -71,6 +84,9 @@ subroutine fow_csv(nr_out)
   call fpcsv1D(pg(:,1),"./csv/pg_ele.csv")
   call fpcsv1D(pm(:,2),"./csv/pm_ion.csv")
   call fpcsv1D(pg(:,2),"./csv/pg_ion.csv")
+  call fpcsv1D(rm,"./csv/rm.csv")
+  call fpcsv1D(rg,"./csv/rg.csv")
+  call fpcsv1D(rmg,"./csv/rmg.csv")
 
 
   call fpcsv2D(thetam(:,:,nr_out,2),"./csv/thetam.csv")
@@ -86,12 +102,9 @@ subroutine fow_csv(nr_out)
   call fpcsv2D(theta_cnt_stg(:,:,1),"./csv/theta_cnt_ele.csv")
   call fpcsv2D(theta_cnt_stg(:,:,2),"./csv/theta_cnt_ion.csv")
 
-  allocate(fImaxwell(nthmax,npmax,nrmax,nsamax))
-  call fow_Maxwellian_COM(fImaxwell)
 
-  call fpcsv2D(fImaxwell(:,:,nr_out,1),"./csv/fImaxwell_ele.csv")
-  call fpcsv2D(fImaxwell(:,:,nr_out,2),"./csv/fImaxwell_ion.csv")
-  deallocate(fImaxwell)
+  call fpcsv2D(fnsp(:,:,nr_out,2),"./csv/fsnp.csv")
+  call fpcsv2D(fnsm(:,:,nr_out,2),"./csv/fsnm.csv")
 
 end subroutine
 

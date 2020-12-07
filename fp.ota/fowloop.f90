@@ -12,14 +12,13 @@ contains
     use fpcomm
     use fowdistribution
     use fpsub
-    
 
+    use fpwrite
+    
     implicit none
     integer :: nt, nth, np, nr, nsa, n_iterate, ierr = 0, its
     real(rkind) :: deps, sumF0, sumFd
     logical :: iteration_flag
-    real(rkind),allocatable :: gamma_r(:)
-    allocate(gamma_r(nrmax))
 
     call update_quantities
     call fow_coef
@@ -35,6 +34,8 @@ contains
       end do
     end do
     close(109)
+
+    call fpcsv1D(rnsl(:,2),"./csv/n0.csv")
 
     do nt = 1, ntmax
       write(*,*)"nt=",nt
@@ -94,11 +95,6 @@ contains
         call fow_coef
 
       end do ! end of do while
-
-      call radial_particle_flux(gamma_r,2)
-      do nr = 1, nrmax
-        write(*,*)"gamma",gamma_r(nr)
-      end do
       
     end do
 
@@ -143,11 +139,11 @@ contains
 
     ! -----------------s
 
-    ! do nsa = 1, nsamax
-    !   do nr = 1, nrmax
-    !         write(*,*)"RNSL",RNSL(nr,nsa)*RNFP0(NSA)
-    !   end do
-    ! end do
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+            write(*,*)"RNSL",RNSL(nr,nsa)
+      end do
+    end do
 
     ! do nsa = 1, nsamax
     !   do nr = 1, nrmax

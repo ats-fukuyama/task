@@ -1060,6 +1060,7 @@ contains
 
       sumJ = 0.d0
       do nr = 1, nrmax
+        sumTp = 0.d0
         do np = 1, npmax
           pl = pm(np,nsa)*ptfp0(nsa)
           do nth = 1, nthmax
@@ -1085,9 +1086,11 @@ contains
             Jacobian_I(nth,np,nr,nsa) = Jacobian_I(nth,np,nr,nsa) * ptfp0(nsa)*psi0
 
             sumJ=sumJ+Jacobian_I(nth,np,nr,nsa)*delps(nr)*delthm(nth,np,nr,nsa)*delp(nsa)
+            sumTP = sumtp + tau_p
 
           end do
         end do
+        write(*,*)"taup",nsa,nr,sumtp
       end do
 
       do nr = 1, nrmax

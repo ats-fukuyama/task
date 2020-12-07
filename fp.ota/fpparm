@@ -1,7 +1,7 @@
 &fow
   nthpmax=8
   model_obload=1
-  model_mkcsv=1
+  model_mkcsv=0
 &end
 
 !  nrgmax=40
@@ -27,8 +27,8 @@
   BB=5.3
   RIP=15
   
-  tmax=10.D1
-  delt=1.D-1
+  tmax=1.D2
+  delt=5.D-3
   mdlobw=0
   mdlobc=1
   mdlobt=1
@@ -37,8 +37,8 @@
 &end
 
 &fp
-  npmax=10
-  nthmax=12
+  npmax=8
+  nthmax=16
   nrmax=10
   RR=6.2
   RA=2.0

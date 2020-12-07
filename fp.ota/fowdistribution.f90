@@ -4,7 +4,7 @@ module fowdistribution
   public :: fI_Maxwellian, fow_Maxwellian_COM
   public :: convert_fI_to_fu
   public :: moment_0th_order_COM, moment_2nd_order_COM
-  public :: total_N, radial_particle_flux
+  public :: total_N, radial_particle_flux, effective_diffusion_cosfficient
 
 
 contains
@@ -45,7 +45,7 @@ contains
 
     fact = rnfdl / SQRT(2.d0*pi*rtfdl/rtfd0l)**3
     ex = pm(np,nsa)**2/(2.d0*rtfdl/rtfd0l)
-    fI = fact*EXP( -1.d0*ex ) !/ Jacobian_I(nth,np,nr,nsa)
+    fI = fact*EXP( -1.d0*ex ) / Jacobian_I(nth,np,nr,nsa)
 
   end function
 
@@ -249,15 +249,13 @@ contains
         M0(nr,nsa) = 0.d0
         do np = 1, npmax
           do nth = 1, nthmax
-            dVI = 2.d0*pi*pm(np,nsa)**2*delp(nsa)*delthm(nth,np,nr,nsa)
-            M0(nr,nsa) = M0(nr,nsa) + fI_in(nth,np,nr,nsa) * dVI !* Jacobian_I(nth,np,nr,nsa)
+            dVI = delthm(nth,np,nr,nsa)*delp(nsa) *2.d0*pi*pm(np,nsa)**2
+            M0(nr,nsa) = M0(nr,nsa) + fI_in(nth,np,nr,nsa) * dVI * Jacobian_I(nth,np,nr,nsa)
           end do
         end do
 
       end do
     end do
-
-
 
   end subroutine
 
@@ -326,6 +324,30 @@ contains
 
   end subroutine radial_particle_flux
 
+  subroutine effective_diffusion_cosfficient(Deff, nsa)
+    use fpcomm
+    use fowcomm
+    implicit none
+    real(rkind),intent(out) :: Deff(:)
+    integer,intent(in) :: nsa
+    real(rkind),allocatable :: gamma_r(:), dndr(:)
+    integer :: nr
+
+    allocate(gamma_r(nrmax), dndr(nrmax))
+
+    call radial_particle_flux(gamma_r, nsa)
+
+    do nr = 1, nrmax
+      if ( nr /= nrmax ) then
+        dndr(nr) = (rnsl(nr+1,nsa) - rnsl(nr,nsa))/delr
+      else
+        dndr(nr) = (3.d0*rnsl(nr,nsa)-4.d0*rnsl(nr-1,nsa)+rnsl(nr-2,nsa))/delr/2.d0
+      end if
+      Deff(nr) = -1.d0*gamma_r(nr)/dndr(nr)
+    end do
+
+  end subroutine effective_diffusion_cosfficient
+
   subroutine total_N(N,fI,nsa)
     use fpcomm
     use fowcomm
@@ -341,8 +363,8 @@ contains
     do nr = 1, nrmax
       do np = 1, npmax
         do nth = 1, nthmax
-          dVI = 2.d0*pi*pm(np,nsa)**2*delp(nsa)*delthm(nth,np,nr,nsa)*delps(nr)
-          sumI = sumI+FI(nth,np,nr,nsa)*dVI 
+          dVI = delp(nsa)*delthm(nth,np,nr,nsa)*delps(nr) * 2.d0*pi*pm(np,nsa)**2
+          sumI = sumI+FI(nth,np,nr,nsa)*dVI*Jacobian_I(nth,np,nr,nsa)
         end do
       end do
     end do
