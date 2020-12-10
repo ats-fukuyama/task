@@ -1,7 +1,7 @@
 module fowdistribution
   implicit none
   private
-  public :: fI_Maxwellian, fow_Maxwellian_COM
+  public :: fI_Maxwellian
   public :: convert_fI_to_fu
   public :: moment_0th_order_COM, moment_2nd_order_COM
   public :: total_N, radial_particle_flux, effective_diffusion_cosfficient
@@ -45,86 +45,73 @@ contains
 
     fact = rnfdl / SQRT(2.d0*pi*rtfdl/rtfd0l)**3
     ex = pm(np,nsa)**2/(2.d0*rtfdl/rtfd0l)
-    fI = fact*EXP( -1.d0*ex ) / Jacobian_I(nth,np,nr,nsa)
+    fI = fact*EXP( -1.d0*ex )! / Jacobian_I(nth,np,nr,nsa)
 
   end function
 
-  subroutine fow_Maxwellian_COM(fm_I)
-    ! calculate Maxwellian in COM space using the mean psi_p of orbits. fm_I is value on mesh points.
-      use fowcomm
-      use fpcomm
-      use fpsub
-      use fpwrite
-      use foworbit
+  ! subroutine fI_Maxwellian(fI, nsa)
+  !   use plprof
+  !   use fpcomm
+  !   use fpsub
+  !   use fowcomm
+  !   use foworbit
 
-      real(rkind),intent(out) :: fm_I(:,:,:,:)
-      real(rkind),allocatable :: fm_u(:,:)
-      real(rkind) :: mean_ra, dr, s, t
-      integer :: np, nth, nr, nsa, ierr, ir
-      real(rkind) :: dVp, dVI, sumI, sumu
+  !   implicit none
+  !   real(rkind),intent(out) :: fI(:,:,:)
+  !   integer,intent(in) :: nsa
+  !   real(rkind) :: ra_Bmin, theta_Bmin, rtfd0l, ptfd0l, fact, ex
+  !   real(rkind) :: rnfd0l, rnfdl, rtfdl
+  !   integer :: nth, np, nr, ns
+  !   real(rkind) :: sumI, sumu
+  !   type(pl_plf_type),dimension(nsmax) :: plf
 
-      ierr = 0
+  !   ns = ns_nsa(nsa)
 
-      allocate(fm_u(npmax,nrmax))
+  !   sumI = 0.d0
+  !   sumu = 0.d0
+  !   do nr = 1, nrmax
+  !     do np = 1, npmax
+  !       do nth = 1, nthmax
 
-      ! calculate Maxwellian in (p,r/a) space
-      do nsa = 1, nsamax
+  !         call quantities_at_Bminimum(ra_Bmin, theta_Bmin, orbit_m(nth,np,nr,nsa))
 
-        sumu = 0.d0
-        do nr = 1, nrmax
-          do np = 1, npmax
-            fm_u(np,nr) = FPMXWL(PM(NP,NSA),NR,NSA)*2*pi*pm(np,nsa)**2*delp(nsa)*volr(nr)
-            do nth = 1, nthmax
-              sumu = sumu + fm_u(np,nr)
-            end do
-          end do
-        end do
+  !         rtfd0l = ( ptpr(ns)+2.d0*ptpp(ns) )/3.d0
+  !         ptfd0l = SQRT( rtfd0l*1.d3*aee*amfp(ns) )
+  !         rnfd0l = pn(ns)
+      
+      
+  !         if( model_ex_read_tn == 0 ) then
+  !           call pl_prof(ra_Bmin, plf)
+  !           rnfdl = plf(ns)%rn/rnfd0l
+  !           rtfdl = ( plf(ns)%rtpr+2.d0*plf(ns)%rtpp)/3.d0
+      
+  !         else
+  !           rnfdl=rn_temp(nr,ns)/rnfd0l
+  !           rtfdl=rt_temp(nr,ns)
+      
+  !         end if
+      
+  !         fact = rnfdl / SQRT(2.d0*pi*rtfdl/rtfd0l)**3
+  !         ex = pm(np,nsa)**2/(2.d0*rtfdl/rtfd0l)
+  !         fI(nth, np, nr) = fact*EXP( -1.d0*ex )! / Jacobian_I(nth,np,nr,nsa)
 
-        sumI = 0.d0
-        do np = 1, npmax
-          do nth = 1, nthmax
-            do nr = 1, nrmax
+  !         sumI = sumI + fI(nth, np, nr)*Jacobian_I(nth,np,nr,nsa)&
+  !                     *delp(nsa)*delthm(nth,np,nr,nsa)*delps(nr)*2.d0*pi*pm(np,nsa)**2
+  !         sumu = sumu + fpmxwl(pm(np,nsa),nr,ns)*volp(nth,np,nsa)*volr(nr)
+      
+  !       end do
+  !     end do
+  !   end do
 
-              ! calculate mean minor radius of an orbit
-              mean_ra = get_mean_ra( orbit_m(nth,np,nr,nsa) )
+  !   do nr = 1, nrmax
+  !     do np = 1, npmax
+  !       do nth = 1, nthmax
+  !         fI(nth, np, nr) = fI(nth, np, nr) * sumu/sumI
+  !       end do
+  !     end do
+  !   end do
 
-              ! linear-interpolartion to mean_ra
-              do ir = 2, nrmax
-                  if( mean_ra <= rm(ir) .and. ir == 1 )then
-                    dr = rm(1)-mean_ra
-                    fm_I(nth,np,nr,nsa) = fm_u(np,1)-dr*(fm_u(np,1)-fm_u(np,2))/(rm(1)-rm(2))
-                    exit
-                  else if ( mean_ra <= rm(ir) .and. ir/=1 ) then
-                    dr = rm(ir)-mean_ra
-                    fm_I(nth,np,nr,nsa) = fm_u(np,ir)-dr*(fm_u(np,ir)-fm_u(np,ir-1))/(rm(ir)-rm(ir-1))
-                    exit
-                  else if( mean_ra >= rm(nrmax))then
-                    fm_I(nth,np,nr,nsa) = fm_u(np,nrmax)
-                  exit
-                end if
-              end do
-
-              dVI = Jacobian_I(nth,np,nr,nsa) * delthm(nth,np,nr,nsa) * delp(nsa) * delps(nr)
-
-              fm_I(nth,np,nr,nsa) = fm_I(nth,np,nr,nsa) / dVI
-
-              sumI = sumI + fm_I(nth,np,nr,nsa)*dVI
-
-            end do
-          end do
-        end do
-
-        do nr = 1, nrmax
-          do np = 1, npmax
-            do nth = 1, nthmax
-              fm_I(nth,np,nr,nsa) = fm_I(nth,np,nr,nsa) * sumu/sumI*RNFP0(NSA)*1.0d20/fnorm(nsa)
-            end do
-          end do
-        end do
-        
-      end do ! nsa loop
-
-  end subroutine fow_Maxwellian_COM
+  ! end subroutine
 
   subroutine convert_fI_to_fu(fu_l, fI)
 
@@ -262,41 +249,29 @@ contains
   subroutine moment_2nd_order_COM(M2, fI_in)
     use fpcomm
     use fowcomm
+    use foworbit
     implicit none
     real(rkind),dimension(nthmax,npmax,nrmax,nsamax),intent(in) :: fI_in
-    real(rkind),dimension(nrmax,nsamax),intent(out) :: M2 
-    integer :: nth, np, nr, nsa, nthp
-    real(rkind) :: sum_f, dV_r, PV
-    real(rkind),allocatable :: fu_l(:,:,:,:,:) 
+    real(rkind),dimension(nrmax,nsamax),intent(out) :: M2
+    integer :: nth, np, nr, nsa
+    real(rkind) :: dVI, K, PV
 
-    allocate(fu_l(nthmax,npmax,nrmax,nthpmax,nsamax))
-
-    call convert_fI_to_fu(fu_l, fI_in)
 
     do nsa = 1, nsamax
       do nr = 1, nrmax
 
-        sum_f = 0.d0
-        dV_r = 2.d0*pi*RR*2.d0*pi*rm(nr)
-        do nthp = 1, nthpmax
-          do np = 1, npmax
-
-            PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSA)**2)
-            do nth = 1, nthmax
-              sum_f = sum_f + (amfp(nsa)*vc**2*(PV-1.d0))&
-                              *fu_l(nth,np,nr,nthp,nsa)*dV_r*VOLP(nth,np,nsa)
-            end do
-
+        M2(nr,nsa) = 0.d0
+        do np = 1, npmax
+          PV = sqrt(1.d0+theta0(nsa)*pm(np,nsa)**2)
+          do nth = 1, nthmax
+            K = (PV-1.d0)*amfp(nsa)*vc**2
+            dVI = delthm(nth,np,nr,nsa)*delp(nsa) *2.d0*pi*pm(np,nsa)**2
+            M2(nr,nsa) = M2(nr,nsa) + K*fI_in(nth,np,nr,nsa) * dVI * Jacobian_I(nth,np,nr,nsa)
           end do
         end do
-        M2(nr,nsa) = sum_f*fnorm(nsa) ! [J]
-        M2(nr,nsa) =  M2(nr,nsa)*1.D-6      ! [MJ]
-        ! M2(nr,nsa) = sum_f*RNFP0(NSA)*1.D20/(aee*1.d-3) ! [keV]
 
       end do
     end do
-
-    deallocate(fu_l)
 
   end subroutine
 

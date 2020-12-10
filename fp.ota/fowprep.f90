@@ -495,6 +495,7 @@ contains
         end do
       end do
     end do
+    call fpcsv2D(fnsp(:,:,nrmax/2,2),"./csv/finit.csv")
 
     do nsa = 1, nsamax
       fnorm(nsa) = 1.d0!1.d40*RNFP0(NSA)

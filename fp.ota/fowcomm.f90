@@ -13,6 +13,8 @@ module fowcomm
 
   integer :: model_mkcsv    ! 0[default] : do not output to csv files
                             ! 1          : output to csv files
+  integer :: max_stp        ! maximum step number for bounce average
+
   integer:: nthpmax,&                                        ! number of poloidal angle grid points
             nthm1,&                                          ! number of theta_m grid points for 0 <= theta_m <= theta_pnc
             nthm2,&                                          ! number of theta_m grid points for theta_pnc <= theta_m <= theta_co_stg
@@ -183,7 +185,7 @@ contains
   end subroutine fow_deallocate
 
   subroutine fow_read_namelist
-    namelist /fow/nthpmax, model_obload, model_mkcsv
+    namelist /fow/nthpmax, max_stp, model_obload, model_mkcsv
 
     open(11,file="fpparm",status='old',action='read')
     read(11,nml=fow)
