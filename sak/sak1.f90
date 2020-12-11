@@ -15,7 +15,7 @@ CONTAINS
     REAL(dp):: rkmin,rkmax,sgmin,sgmax
     REAL(dp):: rkminl,rkmaxl,sgminl,sgmaxl,delrkl,delsgl
     REAL(dp),ALLOCATABLE:: rkl(:),sgl(:),f1(:,:),f2(:,:),f3(:,:),f4(:,:)
-    INTEGER:: nrkmax,nsgmax,nrk,nsg
+    INTEGER:: nrkmax,nsgmax,nrk,nsg,model
     INTEGER:: nlmax,npmax,nl,np
     REAL(dp),ALLOCATABLE:: line_value(:),line_rgb(:,:)
     INTEGER,ALLOCATABLE:: line_pat(:)
@@ -28,12 +28,14 @@ CONTAINS
     sgmin=0.01D0
     sgmax=100.D0
     nsgmax=51
+    model=1  ! 0 for sigma=k/lq, 1 for sigma=lq/k
 
 1   CONTINUE
 
-    WRITE(6,'(A)') '## INPUT rkmin,rkmax,sgmin,sgmax?'
-    WRITE(6,'(A,4ES12.4)') '      ',rkmin,rkmax,sgmin,sgmax
-    READ(5,*,ERR=1,END=9000) rkmin,rkmax,sgmin,sgmax
+    WRITE(6,'(A)') '## INPUT rkmin,rkmax,sgmin,sgmax,nrkmax,nsgmax,model?'
+    WRITE(6,'(A,4ES12.4,3I6)') &
+         '      ',rkmin,rkmax,sgmin,sgmax,nrkmax,nsgmax,model
+    READ(5,*,ERR=1,END=9000) rkmin,rkmax,sgmin,sgmax,nrkmax,nsgmax,model
 
     rkminl=LOG10(rkmin)
     rkmaxl=LOG10(rkmax)
@@ -87,8 +89,8 @@ CONTAINS
     END DO
     DO nsg=1,nsgmax
        DO nrk=1,nrkmax
-          CALL sub_sak11(rkl(nrk),sgl(nsg),f1(nrk,nsg))
-          CALL sub_sak12(rkl(nrk),sgl(nsg),f2(nrk,nsg))
+          CALL sub_sak11(model,rkl(nrk),sgl(nsg),f1(nrk,nsg))
+          CALL sub_sak12(model,rkl(nrk),sgl(nsg),f2(nrk,nsg))
           f3(nrk,nsg)=LOG10(MAX(f1(nrk,nsg),1.D-8))
           f4(nrk,nsg)=LOG10(MAX(f2(nrk,nsg),1.D-8))
        END DO
@@ -144,34 +146,51 @@ CONTAINS
     RETURN
   END SUBROUTINE sak_1
 
-  SUBROUTINE sub_sak11(rkl,sgl,f1)
+  SUBROUTINE sub_sak11(model,rkl,sgl,f1)
     USE sakcomm
     IMPLICIT NONE
+    INTEGER,INTENT(IN):: model
     REAL(dp),INTENT(IN):: rkl,sgl
     REAL(dp),INTENT(out):: f1
     REAL(DP):: rk,sg
 
     rk=10.D0**rkl
     sg=10.D0**sgl
-    f1=SQRT(Pi/8.D0) &
-         *(1.D0/(rk**3*SQRT(1.D0+1.D0/sg**2)**3)) &
-         *EXP(-1.D0/(2.D0*rk**2*(1.D0+1.D0/sg**2)))
+    SELECT CASE(model)
+       CASE(0)
+          f1=SQRT(Pi/8.D0) &
+               *(1.D0/(rk**3*SQRT(1.D0+1.D0/sg**2)**3)) &
+               *EXP(-1.D0/(2.D0*rk**2*(1.D0+1.D0/sg**2)))
+       CASE(1)
+          f1=SQRT(Pi/8.D0) &
+               *(1.D0/(rk**3*SQRT(1.D0+sg**2)**3)) &
+               *EXP(-1.D0/(2.D0*rk**2*(1.D0+sg**2)))
+       END SELECT
     RETURN
   END SUBROUTINE sub_sak11
 
-  SUBROUTINE sub_sak12(rkl,sgl,f2)
+  SUBROUTINE sub_sak12(model,rkl,sgl,f2)
     USE sakcomm
     IMPLICIT NONE
+    INTEGER,INTENT(IN):: model
     REAL(dp),INTENT(IN):: rkl,sgl
     REAL(dp),INTENT(out):: f2
     REAL(DP):: rk,sg
 
     rk=10.D0**rkl
     sg=10.D0**sgl
-    f2=SQRT(Pi/8.D0) &
-         *(1.D0/((rk**3)*(1.D0+1.D0/sg**2))) &
-         *(EXP(-1.D0/rk**2)*EXP(-1.D0/(2.D0*sg**2)) &
-         +sg*EXP(-sg**2/rk**2)*EXP(-sg**2/2.D0))
+    SELECT CASE(model)
+    CASE(0)
+       f2=SQRT(Pi/8.D0) &
+            *(1.D0/((rk**3)*(1.D0+1.D0/sg**2))) &
+            *(EXP(-1.D0/rk**2)*EXP(-1.D0/(2.D0*sg**2)) &
+            +sg*EXP(-sg**2/rk**2)*EXP(-sg**2/2.D0))
+    CASE(1)
+       f2=SQRT(Pi/8.D0) &
+            *(1.D0/((rk**3)*(1.D0+sg**2))) &
+            *(EXP(-1.D0/rk**2)*EXP(-0.5D0*sg**2) &
+            +(1.D0/sg)*EXP(-1.D0/(sg**2*rk**2))*EXP(-0.5D0*sg**2))
+    END SELECT
     RETURN
   END SUBROUTINE sub_sak12
 END MODULE sak1
