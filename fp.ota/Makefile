@@ -10,8 +10,8 @@ LIBX_MTX=$(LIBX_MTX_MUMPS)
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-FFLAGS=$(OFLAGS) -assume byterecl
-#FFLAGS=$(DFLAGS) -assume byterecl
+# FFLAGS=$(OFLAGS) -assume byterecl
+FFLAGS=$(DFLAGS) -assume byterecl
 
 OBJDIR   = ./obj
 
