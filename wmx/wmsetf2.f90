@@ -165,7 +165,6 @@ CONTAINS
           RMA(3,3)=TC2*RG23(NTH,NHH,NR)*XRL &
                   +TC3*RG33(NTH,NHH,NR)
         
-
 !        ----- Set metric matrix g=RGA -----
 
           RGA(1,1)=RG11(NTH,NHH,NR)
@@ -215,7 +214,6 @@ CONTAINS
           RGB(3,1)=RGB(3,1)*XRL   
           RGB(3,2)=RGB(3,2)*XRI   
           RGB(3,3)=RGB(3,3)
-
 
 !        ----- Setup Matrix A=CRA, B=CRB, C=CRC -----
 
@@ -406,7 +404,8 @@ CONTAINS
                 LDX=LD-LDMIN_F+1
                 DO J=1,3
                    DO I=1,3
-                      CGD(I,J,LDX,MDX,KDX,NDX,3)=-CWC2*CSUMA(I,J,LDX,MDX,KDX,NDX)
+                      CGD(I,J,LDX,MDX,KDX,NDX,3) &
+                           =-CWC2*CSUMA(I,J,LDX,MDX,KDX,NDX)
                    ENDDO
                 ENDDO
              ENDDO

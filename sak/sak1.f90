@@ -14,7 +14,8 @@ CONTAINS
     IMPLICIT NONE
     REAL(dp):: rkmin,rkmax,sgmin,sgmax
     REAL(dp):: rkminl,rkmaxl,sgminl,sgmaxl,delrkl,delsgl
-    REAL(dp),ALLOCATABLE:: rkl(:),sgl(:),f1(:,:),f2(:,:),f3(:,:),f4(:,:)
+    REAL(dp),ALLOCATABLE:: rkl(:),sgl(:),f1(:,:),f2(:,:),f3(:,:)
+    REAL(dp),ALLOCATABLE:: f1l(:,:),f2l(:,:),f3l(:,:)
     INTEGER:: nrkmax,nsgmax,nrk,nsg,model
     INTEGER:: nlmax,npmax,nl,np
     REAL(dp),ALLOCATABLE:: line_value(:),line_rgb(:,:)
@@ -44,8 +45,8 @@ CONTAINS
     delrkl=(rkmaxl-rkminl)/(nrkmax-1)
     delsgl=(sgmaxl-sgminl)/(nsgmax-1)
     ALLOCATE(rkl(nrkmax),sgl(nsgmax))
-    ALLOCATE(f1(nrkmax,nsgmax),f2(nrkmax,nsgmax))
-    ALLOCATE(f3(nrkmax,nsgmax),f4(nrkmax,nsgmax))
+    ALLOCATE(f1(nrkmax,nsgmax),f2(nrkmax,nsgmax),f3(nrkmax,nsgmax))
+    ALLOCATE(f1l(nrkmax,nsgmax),f2l(nrkmax,nsgmax),f3l(nrkmax,nsgmax))
 
     nlmax=13
     npmax=13
@@ -91,45 +92,35 @@ CONTAINS
        DO nrk=1,nrkmax
           CALL sub_sak11(model,rkl(nrk),sgl(nsg),f1(nrk,nsg))
           CALL sub_sak12(model,rkl(nrk),sgl(nsg),f2(nrk,nsg))
-          f3(nrk,nsg)=LOG10(MAX(f1(nrk,nsg),1.D-8))
-          f4(nrk,nsg)=LOG10(MAX(f2(nrk,nsg),1.D-8))
+          CALL sub_sak13(model,rkl(nrk),sgl(nsg),f3(nrk,nsg))
+          f1l(nrk,nsg)=LOG10(MAX(f1(nrk,nsg),1.D-8))
+          f2l(nrk,nsg)=LOG10(MAX(f2(nrk,nsg),1.D-8))
+          f3l(nrk,nsg)=LOG10(MAX(f3(nrk,nsg),1.D-8))
        END DO
     END DO
 
     CALL PAGES
-    CALL grd2d(1,rkl,sgl,f3,nrkmax,nrkmax,nsgmax, &
+    CALL grd2d(1,rkl,sgl,f1l,nrkmax,nrkmax,nsgmax, &
          '@gamma OAM SAK(klamdad,sigma)@',3, &
          MODE_2d=1,NLMAX=nlmax,ASPECT=1.D0,NOINFO=1, &
          LINE_VALUE=line_value,LINE_RGB=line_rgb, LINE_PAT=line_pat, &
          SCALE_THICKNESS=0.035D0, &
          XMIN=rkminl,XMAX=rkmaxl,YMIN=sgminl,YMAX=sgmaxl)
-    CALL grd2d(2,rkl,sgl,f4,nrkmax,nrkmax,nsgmax, &
-         '@gamma OAM JTM(klamdad,sigma)@',3, &
-         MODE_2d=1,NLMAX=nlmax,ASPECT=1.D0,NOINFO=1, &
+    CALL grd2d(2,rkl,sgl,f1l,nrkmax,nrkmax,nsgmax, &
+         '@gamma OAM SAK(klamdad,sigma)@',3, &
+         MODE_2d=3,NLMAX=nlmax,ASPECT=1.D0,NOINFO=1, &
          LINE_VALUE=line_value,LINE_RGB=line_rgb, LINE_PAT=line_pat, &
+         PAINT_VALUE=paint_value,PAINT_RGB=paint_RGB, &
          SCALE_THICKNESS=0.035D0, &
          XMIN=rkminl,XMAX=rkmaxl,YMIN=sgminl,YMAX=sgmaxl)
-!    line_rgb(1,7)=0.D0
-!    line_rgb(2,7)=1.D0
-!    line_rgb(3,7)=0.D0
-!    CALL grd2d(3,rkl,sgl,f3,nrkmax,nrkmax,nsgmax, &
-!         '@gamma OAM SAK(klamdad,sigma)@',3, &
-!         MODE_2d=3,NLMAX=nlmax,ASPECT=1.D0,NOINFO=1, &
-!         LINE_VALUE=line_value,LINE_RGB=line_rgb, LINE_PAT=line_pat, &
-!         SCALE_THICKNESS=0.035D0)
-!    CALL grd2d(4,rkl,sgl,f4,nrkmax,nrkmax,nsgmax, &
-!         '@gamma OAM JTM(klamdad,sigma)@',3, &
-!         MODE_2d=3,NLMAX=nlmax,ASPECT=1.D0,NOINFO=1, &
-!         LINE_VALUE=line_value,LINE_RGB=line_rgb, LINE_PAT=line_pat, &
-!         SCALE_THICKNESS=0.035D0)
-    CALL grd2d(3,rkl,sgl,f3,nrkmax,nrkmax,nsgmax, &
-         '@gamma OAM SAK(klamdad,sigma)@',3, &
+    CALL grd2d(3,rkl,sgl,f2l,nrkmax,nrkmax,nsgmax, &
+         '@gamma OAM JTM+(klamdad,sigma)@',3, &
          MODE_2d=3,NLMAX=nlmax,NPMAX=npmax,ASPECT=1.D0,NOINFO=1, &
          LINE_VALUE=line_value,LINE_RGB=line_rgb, LINE_PAT=line_pat, &
          PAINT_VALUE=paint_value,PAINT_RGB=paint_RGB, &
          SCALE_THICKNESS=0.035D0, &
          XMIN=rkminl,XMAX=rkmaxl,YMIN=sgminl,YMAX=sgmaxl)
-    CALL grd2d(4,rkl,sgl,f4,nrkmax,nrkmax,nsgmax, &
+    CALL grd2d(4,rkl,sgl,f3l,nrkmax,nrkmax,nsgmax, &
          '@gamma OAM JTM(klamdad,sigma)@',3, &
          MODE_2d=3,NLMAX=nlmax,NPMAX=npmax,ASPECT=1.D0,NOINFO=1, &
          LINE_VALUE=line_value,LINE_RGB=line_rgb, LINE_PAT=line_pat, &
@@ -139,7 +130,7 @@ CONTAINS
     DEALLOCATE(line_value,line_rgb,line_pat)
     DEALLOCATE(paint_value,paint_rgb)
     CALL PAGEE
-    DEALLOCATE(rkl,sgl,f1,f2,f3,f4)
+    DEALLOCATE(rkl,sgl,f1,f2,f3,f1l,f2l,f3l)
     GO TO 1
 
 9000 CONTINUE
@@ -189,8 +180,33 @@ CONTAINS
        f2=SQRT(Pi/8.D0) &
             *(1.D0/((rk**3)*(1.D0+sg**2))) &
             *(EXP(-1.D0/rk**2)*EXP(-0.5D0*sg**2) &
-            +(1.D0/sg)*EXP(-1.D0/(sg**2*rk**2))*EXP(-0.5D0*sg**2))
+            +(1.D0/sg)*EXP(-1.D0/(sg**2*rk**2))*EXP(-0.5D0/sg**2))
     END SELECT
     RETURN
   END SUBROUTINE sub_sak12
+
+  SUBROUTINE sub_sak13(model,rkl,sgl,f2)
+    USE sakcomm
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: model
+    REAL(dp),INTENT(IN):: rkl,sgl
+    REAL(dp),INTENT(out):: f2
+    REAL(DP):: rk,sg
+
+    rk=10.D0**rkl
+    sg=10.D0**sgl
+    SELECT CASE(model)
+    CASE(0)
+       f2=SQRT(Pi/8.D0) &
+            *(1.D0/rk**3) &
+            *(EXP(-1.D0/rk**2)*EXP(-1.D0/(2.D0*sg**2)) &
+            +sg*EXP(-sg**2/rk**2)*EXP(-sg**2/2.D0))
+    CASE(1)
+       f2=SQRT(Pi/8.D0) &
+            *(1.D0/rk**3) &
+            *(EXP(-1.D0/rk**2)*EXP(-0.5D0*sg**2) &
+            +(1.D0/sg)*EXP(-1.D0/(sg**2*rk**2))*EXP(-0.5D0/sg**2))
+    END SELECT
+    RETURN
+  END SUBROUTINE sub_sak13
 END MODULE sak1
