@@ -10,8 +10,8 @@ MODULE libgrf
   USE grf2d_mod,ONLY: grf2d
   USE grd2d_mod,ONLY: grd2d
   USE grdxy_mod,ONLY: grdxy
-  USE grd2dframe,ONLY: grd2d_frame_start,grd2d_frame_end
   USE grd1dframe,ONLY: grd1d_frame_start,grd1d_frame_end
+  USE grd2dframe,ONLY: grd2d_frame_start,grd2d_frame_end
 
 CONTAINS
 
