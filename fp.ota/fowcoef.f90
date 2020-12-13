@@ -23,8 +23,6 @@ contains
     use fpcoef
     use fpcalw
 
-    use fpwrite
-
     implicit none
 
     integer :: nthp, nth, np, nr, nsa, i, j
@@ -105,7 +103,6 @@ contains
                 check_zeroD(1,1,nsa) = check_zeroD(1,1,nsa) + ABS( Dppl(nth,np,nr,nthp,nsa) )
                 check_zeroD(1,2,nsa) = check_zeroD(1,2,nsa) + ABS( Dptl(nth,np,nr,nthp,nsa) )
                 check_zeroF(1,nsa)   = check_zeroF(1,nsa)   + ABS( Fppl(nth,np,nr,nthp,nsa) )
-                ! write(*,*)"check zero",check_zeroD(1,1,nsa),check_zeroD(1,2,nsa)
               end if
               if ( np /= npmax+1 ) then
                 Dtpl(nth,np,nr,nthp,nsa) = Dtpl(nth,np,nr,nthp,nsa) + DCTP(nth,np,nr,nsa) ! + DWTP(nth,np,nr,nsa) 
@@ -125,29 +122,6 @@ contains
       end do
 
     end do
-
-    open(100,file="txt/fow_DPPL.txt")
-    open(101,file="txt/fow_DTTL.txt")
-    open(102,file="txt/fow_DPTL.txt")
-    open(103,file="txt/fow_DTPL.txt")
-    do nsa = 1, nsamax
-      do nthp = 1, nthpmax
-        do nr = 1, nrmax
-          do np = 1, npmax
-            do nth = 1, nthmax
-              write(100,'(A,5I3,ES12.4)')"DPPL",nth,np,nr,nthp,nsa,DPPL(nth,np,nr,nthp,nsa)
-              write(101,'(A,5I3,ES12.4)')"DTTL",nth,np,nr,nthp,nsa,DTTL(nth,np,nr,nthp,nsa)
-              write(102,'(A,5I3,ES12.4)')"DPTL",nth,np,nr,nthp,nsa,DPTL(nth,np,nr,nthp,nsa)
-              write(103,'(A,5I3,ES12.4)')"DTPL",nth,np,nr,nthp,nsa,DTPL(nth,np,nr,nthp,nsa)
-            end do
-          end do
-        end do
-      end do
-    end do
-    close(100)
-    close(101)
-    close(102)
-    close(103)
 
     call bounce_average
 
@@ -171,7 +145,7 @@ contains
                               U_Dtt(:,:,:,:,:,:,:,:),& 
                               U_Fth(:,:,:,:,:,:,:,:)   
     real(rkind) :: Dpp_ob, Dpt_ob, Fpp_ob, Dtp_ob, Dtt_ob, Fth_ob, D_pls, D_mns, dt
-    real(rkind) :: cpitch_ob, thetap_ob, psip_ob, J_I
+    real(rkind) :: cpitch_ob, thetap_ob, psip_ob, JIl
     real(rkind) :: sumt
 
     if ( .not.allocated(psim0) ) then
@@ -264,21 +238,21 @@ contains
             end do
 
             if ( np == npmax+1 ) then
-              J_I = Jacobian_I(nth,np-1,nr,nsa)
+              JIl = JI(nth,np-1,nr,nsa)
             else if ( np == 1 ) then
-              J_I = Jacobian_I(nth,np,nr,nsa)
+              JIl = JI(nth,np,nr,nsa)
             else
-              J_I = (Jacobian_I(nth,np-1,nr,nsa)+Jacobian_I(nth,np,nr,nsa))*0.50
+              JIl = (JI(nth,np-1,nr,nsa)+JI(nth,np,nr,nsa))*0.50
             end if
 
-            Dppfow(nth,np,nr,nsa) = Dppfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * J_I
-            Dptfow(nth,np,nr,nsa) = Dptfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * J_I
-            Dprfow(nth,np,nr,nsa) = Dprfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * J_I
-            Fppfow(nth,np,nr,nsa) = Fppfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * J_I
-            ! Dppfow(nth,np,nr,nsa) = Dppfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * J_I
+            Dppfow(nth,np,nr,nsa) = Dppfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * JIl
+            Dptfow(nth,np,nr,nsa) = Dptfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * JIl
+            Dprfow(nth,np,nr,nsa) = Dprfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * JIl
+            Fppfow(nth,np,nr,nsa) = Fppfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * JIl
+            ! Dppfow(nth,np,nr,nsa) = Dppfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * JIl
             ! Dptfow(nth,np,nr,nsa) = 0.d0
             ! Dprfow(nth,np,nr,nsa) = 0.d0
-            ! Fppfow(nth,np,nr,nsa) = Fppfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * J_I
+            ! Fppfow(nth,np,nr,nsa) = Fppfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * JIl
 
             deallocate(dIdu)
 
@@ -344,8 +318,7 @@ contains
               Dttfow(nth,np,nr,nsa) = Dttfow(nth,np,nr,nsa)&
                                     + ( Dpp_ob * dIdu(1,2,nstp)**2 + Dpt_ob * dIdu(1,2,nstp)*dIdu(2,2,nstp) &
                                     + Dtp_ob * dIdu(1,2,nstp)*dIdu(2,2,nstp) + Dtt_ob * dIdu(2,2,nstp)**2 ) * dt
-              ! write(*,'(A,4ES12.4)')"loop",Dpp_ob,Dpt_ob,Dtp_ob,Dtt_ob
-              ! write(*,'(A,3ES12.4)')"loop2",dIdu(1,2,nstp),dIdu(2,2,nstp),dIdu(1,3,nstp)
+
               Dtrfow(nth,np,nr,nsa) = Dtrfow(nth,np,nr,nsa)&
                                     + ( Dpp_ob * dIdu(1,2,nstp)*dIdu(1,3,nstp) + Dpt_ob * dIdu(1,2,nstp)*dIdu(2,3,nstp) &
                                     + Dtp_ob * dIdu(2,2,nstp)*dIdu(1,3,nstp) + Dtt_ob * dIdu(2,2,nstp)*dIdu(2,3,nstp)) * dt
@@ -355,27 +328,22 @@ contains
             end do
 
             if ( nth == nth_pnc(nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
-              J_I = (Jacobian_I(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
-                    +Jacobian_I(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
+              JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
+                    +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
                     *0.5d0*orbit_th(nth,np,nr,nsa)%time(nstpmax)
 
             else if ( nth == 1 ) then
-              J_I = Jacobian_I(nth,np,nr,nsa)
+              JIl = JI(nth,np,nr,nsa)
             else if ( nth == nthmax+1 ) then
-              J_I = Jacobian_I(nth-1,np,nr,nsa)  
+              JIl = JI(nth-1,np,nr,nsa)  
             else 
-              J_I = (Jacobian_I(nth,np,nr,nsa)+Jacobian_I(nth-1,np,nr,nsa))*0.5d0
+              JIl = (JI(nth,np,nr,nsa)+JI(nth-1,np,nr,nsa))*0.5d0
             end if
 
-            Dtpfow(nth,np,nr,nsa) = Dtpfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax) * J_I
-            Dttfow(nth,np,nr,nsa) = Dttfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax) * J_I
-            Dtrfow(nth,np,nr,nsa) = Dtrfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax) * J_I      
-            Fthfow(nth,np,nr,nsa) = Fthfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax) * J_I
-            ! Dtpfow(nth,np,nr,nsa) = 0.d0
-            ! Dttfow(nth,np,nr,nsa) = Dttfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax) * J_I
-            ! Dtrfow(nth,np,nr,nsa) = 0.d0
-            ! Fthfow(nth,np,nr,nsa) = 0.d0
-            ! write(*,*)"Dttfow 2",Dttfow(nth,np,nr,nsa),orbit_th(nth,np,nr,nsa)%time(nstpmax),J_I
+            Dtpfow(nth,np,nr,nsa) = Dtpfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax) * JIl
+            Dttfow(nth,np,nr,nsa) = Dttfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax) * JIl
+            Dtrfow(nth,np,nr,nsa) = Dtrfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax) * JIl      
+            Fthfow(nth,np,nr,nsa) = Fthfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax) * JIl
 
             deallocate(dIdu)
 
@@ -446,31 +414,21 @@ contains
 
               Frrfow(nth,np,nr,nsa) = Frrfow(nth,np,nr,nsa)&
                                     + ( Fpp_ob*dIdu(1,3,nstp) + Fth_ob*dIdu(2,3,nstp) ) * dt
-              if ( nth == nthmax/4 .and. np == npmax/2 .and. nr == nrmax/2 .and. nsa == 1 ) then
-                write(55,'(5I4,6ES12.4)')nstp,nth,np,nr,nsa,Dpp_ob,Dpt_ob,Fpp_ob,Dtp_ob,Dtt_ob,Fth_ob
-              end if
                       
             end do
 
             if ( nr == 1 ) then
-              J_I = Jacobian_I(nth,np,nr,nsa)
+              JIl = JI(nth,np,nr,nsa)
             else if ( nr == nrmax+1 ) then
-              J_I = Jacobian_I(nth,np,nr-1,nsa)
+              JIl = JI(nth,np,nr-1,nsa)
             else
-              J_I = (Jacobian_I(nth,np,nr,nsa)+Jacobian_I(nth,np,nr-1,nsa))*0.5d0
+              JIl = (JI(nth,np,nr,nsa)+JI(nth,np,nr-1,nsa))*0.5d0
             end if
 
-            Drpfow(nth,np,nr,nsa) = Drpfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) * J_I
-            Drtfow(nth,np,nr,nsa) = Drtfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) * J_I
-            Drrfow(nth,np,nr,nsa) = Drrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) * J_I
-            Frrfow(nth,np,nr,nsa) = Frrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) * J_I
-            ! Drpfow(nth,np,nr,nsa) = 0.d0
-            ! Drtfow(nth,np,nr,nsa) = 0.d0
-            ! Drrfow(nth,np,nr,nsa) = 0.d0
-            ! Frrfow(nth,np,nr,nsa) = 0.d0
-            if ( nth == nthmax/4 .and. np == npmax/2 .and. nr == nrmax/2 .and. nsa == 1 ) then
-              write(55,'(4ES12.4)')Drpfow(nth,np,nr,nsa)/J_I,Drtfow(nth,np,nr,nsa)/J_I,Drrfow(nth,np,nr,nsa)/J_I,Frrfow(nth,np,nr,nsa)/J_I
-            end if
+            Drpfow(nth,np,nr,nsa) = Drpfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) * JIl
+            Drtfow(nth,np,nr,nsa) = Drtfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) * JIl
+            Drrfow(nth,np,nr,nsa) = Drrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) * JIl
+            Frrfow(nth,np,nr,nsa) = Frrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) * JIl
 
             deallocate(dIdu)
 
@@ -479,54 +437,6 @@ contains
       end do
     end do
     
-    open(90,file="./txt/fow_DPP.txt")
-    open(91,file="./txt/fow_DTT.txt")
-    open(92,file="./txt/fow_DPT.txt")
-    open(93,file="./txt/fow_DTP.txt")
-    open(94,file="./txt/fow_DRR.txt")
-
-    open(95,file="./txt/fow_DPR.txt")
-    open(96,file="./txt/fow_DTR.txt")
-    open(97,file="./txt/fow_DRP.txt")
-    open(98,file="./txt/fow_DRT.txt")
-
-    open(100,file="./txt/fow_FPP.txt")
-    open(101,file="./txt/fow_FTH.txt")
-    open(102,file="./txt/fow_FRR.txt")
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do np = 1, npmax
-          do nth = 1, nthmax
-            write(90,'(A,4I4,ES12.4)')"DPP",nth,np,nr,nsa,dppfow(nth,np,nr,nsa)/Jacobian_I(nth,np,nr,nsa)
-            write(91,'(A,4I4,ES12.4)')"DTT",nth,np,nr,nsa,dttfow(nth,np,nr,nsa)/Jacobian_I(nth,np,nr,nsa)
-            write(92,'(A,4I4,ES12.4)')"DPT",nth,np,nr,nsa,dptfow(nth,np,nr,nsa)/Jacobian_I(nth,np,nr,nsa)
-            write(93,'(A,4I4,ES12.4)')"DTP",nth,np,nr,nsa,dtpfow(nth,np,nr,nsa)/Jacobian_I(nth,np,nr,nsa)
-            write(94,'(A,4I4,ES12.4)')"DRR",nth,np,nr,nsa,drrfow(nth,np,nr,nsa)/Jacobian_I(nth,np,nr,nsa)
-
-            write(95,'(A,4I4,ES12.4)')"DPR",nth,np,nr,nsa,dprfow(nth,np,nr,nsa)/Jacobian_I(nth,np,nr,nsa)
-            write(96,'(A,4I4,ES12.4)')"DTR",nth,np,nr,nsa,dttfow(nth,np,nr,nsa)/Jacobian_I(nth,np,nr,nsa)
-            write(97,'(A,4I4,ES12.4)')"DRP",nth,np,nr,nsa,drpfow(nth,np,nr,nsa)/Jacobian_I(nth,np,nr,nsa)
-            write(98,'(A,4I4,ES12.4)')"DRT",nth,np,nr,nsa,drrfow(nth,np,nr,nsa)/Jacobian_I(nth,np,nr,nsa)
-
-            write(100,'(A,4I4,ES12.4)')"FPP",nth,np,nr,nsa,fppfow(nth,np,nr,nsa)/Jacobian_I(nth,np,nr,nsa)
-            write(101,'(A,4I4,ES12.4)')"FTH",nth,np,nr,nsa,fthfow(nth,np,nr,nsa)/Jacobian_I(nth,np,nr,nsa)
-            write(102,'(A,4I4,ES12.4)')"FRR",nth,np,nr,nsa,frrfow(nth,np,nr,nsa)/Jacobian_I(nth,np,nr,nsa)
-          end do
-        end do
-      end do
-    end do
-    close(90)
-    close(91)
-    close(92)
-    close(93)
-    close(94)
-    close(95)
-    close(96)
-    close(97)
-    close(98)
-    close(100)
-    close(101)
-    close(102)
 
   end subroutine bounce_average
 
@@ -631,11 +541,6 @@ contains
       dIdu(3,1,nstp) = dpdr
       dIdu(3,2,nstp) = dxidr
       dIdu(3,3,nstp) = dpsdr 
-
-      write(19,*)"dxidp  ",dIdu(1,2,nstp)
-      write(19,*)"dpsdp  ",dIdu(1,3,nstp)
-      write(19,*)"dthdpth",dIdu(2,2,nstp)
-      write(19,*)"dpsdth ",dIdu(2,3,nstp)
       
     end do
 

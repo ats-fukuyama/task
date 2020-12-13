@@ -4,7 +4,7 @@ module foworbit
   use obprep
   private
   public :: fow_orbit, fow_cal_local_COMs, fow_set_obparm
-  public :: quantities_at_Bminimum, get_F_nstp, get_mean_ra
+  public :: quantities_at_Bminimum, get_F_nstp, get_mean_ra, get_mean_psip
 
   double precision,allocatable :: UF(:,:), UR(:,:)
 
@@ -274,7 +274,7 @@ contains
   
       do nstp = 1, nstpmax
         orbit_out%time(nstp)  = time_ob(nstp-1,1)
-        orbit_out%psip(nstp)  = psip_ob(nstp-1,1)/psi0
+        orbit_out%psip(nstp)  = psip_ob(nstp-1,1)/psipa
         orbit_out%Babs(nstp)  = Babs_ob(nstp-1,1)
         orbit_out%thetap(nstp)= theta_ob(nstp-1,1)
   
@@ -290,7 +290,6 @@ contains
         end if
   
       end do
-      write(*,*)"time_check_oo",orbit_out%time(nstpmax),time_ob(nstpmax-1,1)
 
       return
   
@@ -798,13 +797,13 @@ contains
     integer :: ierr = 0
 
     if ( .not.allocated(UF) ) then
-      allocate(dFdpsi(nrmax+1))
-      allocate(UF(4,nrmax+1))
-      call first_order_derivative(dFdpsi, Fpsig, psimg)
-      call SPL1D(psimg,Fpsig,dFdpsi,UF,nrmax+1,3,ierr)
+      allocate(dFdpsi(nrmax))
+      allocate(UF(4,nrmax))
+      call first_order_derivative(dFdpsi, Fpsi, psim)
+      call SPL1D(psimg,Fpsig,dFdpsi,UF,nrmax,3,ierr)
     end if
 
-    call SPL1DF(orbit_in%psip(nstp),F_out,psimg,UF,nrmax+1,IERR)
+    call SPL1DF(orbit_in%psip(nstp),F_out,psim,UF,nrmax,IERR)
     
   end function get_F_nstp
 
@@ -816,24 +815,46 @@ contains
     type(orbit),intent(in) :: orbit_in
     integer :: nstp, nstpmax, ierr=0
     real(rkind),allocatable :: dradpsi(:)
-    real(rkind) :: mean_psip
+    real(rkind) :: mean_psip, dt, psipl
 
     if ( .not.allocated(UR) ) then
-      allocate(dradpsi(nrmax+1))
-      allocate(UR(4,nrmax+1))
-      call first_order_derivative(dradpsi, rg, psimg)
-      call SPL1D(psimg,rg,dradpsi,UR,nrmax+1,3,ierr)
+      allocate(dradpsi(nrmax))
+      allocate(UR(4,nrmax))
+      call first_order_derivative(dradpsi, rm, psim)
+      call SPL1D(psim,rm,dradpsi,UR,nrmax,3,ierr)
     end if
 
     nstpmax =  orbit_in%nstp_max
     mean_psip = 0.d0
-    do nstp = 1, nstpmax
-      mean_psip = mean_psip + orbit_in%psip(nstp)
+    do nstp = 2, nstpmax
+      dt = orbit_in%time(nstp)-orbit_in%time(nstp-1)
+      psipl = ( orbit_in%psip(nstp) + orbit_in%psip(nstp-1) )*0.5d0
+      mean_psip = mean_psip + psipl*dt
     end do
-    mean_psip = mean_psip/dble(nstpmax)
+    mean_psip = mean_psip/orbit_in%time(nstpmax)
 
-    call SPL1DF(mean_psip,ra_out,psimg,UR,nrmax+1,IERR)
+    call SPL1DF(mean_psip,ra_out,psim,UR,nrmax,IERR)
 
   end function get_mean_ra 
+
+  function get_mean_psip(orbit_in) result(mean_psip)
+    use fpcomm
+    use fowcomm
+    implicit none
+    real(rkind) :: mean_psip
+    type(orbit),intent(in) :: orbit_in
+    integer :: nstp, nstpmax
+    real(rkind) :: dt, psipl
+
+    nstpmax =  orbit_in%nstp_max
+    mean_psip = 0.d0
+    do nstp = 2, nstpmax
+      dt = orbit_in%time(nstp)-orbit_in%time(nstp-1)
+      psipl = ( orbit_in%psip(nstp) + orbit_in%psip(nstp-1) )*0.5d0
+      mean_psip = mean_psip + psipl*dt
+    end do
+    mean_psip = mean_psip/orbit_in%time(nstpmax)
+
+  end function get_mean_psip 
 
 end module foworbit

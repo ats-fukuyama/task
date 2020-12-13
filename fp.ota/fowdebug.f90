@@ -24,7 +24,7 @@ contains
           deltap = (pg(np+1,nsa)-pg(np,nsa))*ptfp0(nsa)
           do nth = 1, nthmax
             deltath = thetamg(nth+1,np,nr,nsa)-thetamg(nth,np,nr,nsa)
-            J_sum = J_sum + deltap*deltath*deltaps*Jacobian_I(nth,np,nr,nsa)
+            J_sum = J_sum + deltap*deltath*deltaps*JI(nth,np,nr,nsa)
           end do
         end do
       end do
@@ -77,7 +77,7 @@ contains
     ! ! call fpcsv2D(fu(:,:,nr_out,2),"./csv/fu.csv")
     ! ! call fpcsv2D(fI(:,:,nr_out,2),"./csv/fI.csv")
     call fpcsv2D(thetam(:,:,nr_out,2),"./csv/thetam.csv")
-    call fpcsv2D(Jacobian_I(:,:,nr_out,2),"./csv/Jacobian.csv")
+    call fpcsv2D(JI(:,:,nr_out,2),"./csv/Jacobian.csv")
   
   
     write(*,*)"equiv_variable"
