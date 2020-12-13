@@ -155,7 +155,7 @@ CONTAINS
 !        MDLWMX: model id
 !                   0: wm
 !                   1: wm_seki
-!                   2:wmx
+!                   2: wmx
     
 
       NPRINT = 2

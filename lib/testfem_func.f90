@@ -33,6 +33,8 @@ PROGRAM testfem_func
 CONTAINS
 
   SUBROUTINE plot_fem_func(func,idmax)
+    USE task_kinds,ONLY: dp
+    IMPLICIT NONE
     INTEGER,INTENT(IN):: idmax
     INTEGER:: id,nx
     INTEGER,PARAMETER:: nxmax=101
@@ -41,6 +43,7 @@ CONTAINS
     REAL(dp),DIMENSION(nxmax,2*idmax):: gy1,gy2,gy3
     INTERFACE 
        FUNCTION func(x,id,mode)
+         USE task_kinds,ONLY: dp
          REAL(dp),INTENT(IN):: x
          INTEGER,INTENT(IN):: id,mode
          REAL(dp):: func
