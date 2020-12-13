@@ -11,12 +11,16 @@ CONTAINS
     USE cvcomm_parm
     IMPLICIT NONE
 
-    WRITE(6,'(A,A)')      'knam_csv_in            =',knam_csv_in
-    WRITE(6,'(A,A)')      'knam_csv_out_global    =',knam_csv_out_global
-    WRITE(6,'(A,A)')      'knam_csv_out_region    =',knam_csv_out_region
-    WRITE(6,'(A,A)')      'knam_csv_out_select    =',knam_csv_out_select
-    WRITE(6,'(A,A)')      'knam_cv_select         =',knam_cv_select
-    WRITE(6,'(A,A)')      'knam_cv_population     =',knam_cv_population
+    WRITE(6,'(A,A)')      'knam_csv_in            =',TRIM(knam_csv_in)
+    WRITE(6,'(A,A)')      'knam_csv_out_global    =',TRIM(knam_csv_out_global)
+    WRITE(6,'(A,A)')      'knam_csv_out_region    =',TRIM(knam_csv_out_region)
+    WRITE(6,'(A,A)')      'knam_csv_out_select    =',TRIM(knam_csv_out_select)
+    WRITE(6,'(A,A)')      'knam_cv_select         =',TRIM(knam_cv_select)
+    WRITE(6,'(A,A)')      'knam_cv_population     =',TRIM(knam_cv_population)
+    WRITE(6,'(A,A)')      'knam_cvj_cases_in      =',TRIM(knam_cvj_cases_in)
+    WRITE(6,'(A,A)')      'knam_cvj_deaths_in     =',TRIM(knam_cvj_deaths_in)
+    WRITE(6,'(A,A)')      'knam_cvj_population_in =', &
+         TRIM(knam_cvj_population_in)
     WRITE(6,'(A,I8)')     'ndate_step_global      =',ndate_step_global
     WRITE(6,'(A,I8)')     'ndate_step_region      =',ndate_step_region
     WRITE(6,'(A,I8)')     'ndate_step_select      =',ndate_step_select

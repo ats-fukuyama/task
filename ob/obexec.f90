@@ -198,6 +198,13 @@ CONTAINS
           END SELECT
        END SELECT
 
+       ! wall check 
+       IF(mdlobx.EQ.1) THEN
+          IF(ye(3).GT.psipa) THEN
+             l_end=.TRUE.
+          END IF
+       END IF
+
        ya(0,nstp)=xe
        DO neq=1,neq_max
           ya(neq,nstp)=ye(neq)

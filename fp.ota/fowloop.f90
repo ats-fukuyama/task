@@ -11,17 +11,31 @@ contains
     use fowcoef
     use fpcomm
     use fowdistribution
-    
+    use fpsub
 
+    use fpwrite
+    
     implicit none
     integer :: nt, nth, np, nr, nsa, n_iterate, ierr = 0, its
     real(rkind) :: deps, sumF0, sumFd
     logical :: iteration_flag
 
-    call fow_distribution_maxwellian_inCOM(fnsp)
     call update_quantities
     call fow_coef
     call fow_calculate_source  
+    open(109,file="./txt/fow_FNSP.txt")
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do np = 1, npmax
+          do nth = 1, nthmax
+            write(109,*)fnsp(nth,np,nr,nsa)
+          end do
+        end do
+      end do
+    end do
+    close(109)
+
+    call fpcsv1D(rnsl(:,2),"./csv/n0.csv")
 
     do nt = 1, ntmax
       write(*,*)"nt=",nt
@@ -55,20 +69,21 @@ contains
               do nth = 1, nthmax
                 ! write(*,*)fnsp(nth,np,nr,nsa),fns0(nth,np,nr,nsa)
                 sumFd = sumFd + ( fnsp(nth,np,nr,nsa)-fns0(nth,np,nr,nsa) )**2
-                sumF0 = sumF0 + fnsp(nth,np,nr,nsa)**2
+                sumF0 = sumF0 + fns0(nth,np,nr,nsa)**2
               end do
             end do
           end do
           deps = MAX( deps, sumFd/sumF0 )
         end do
         write(*,*)"deps,it",deps,n_iterate
-
-        if ( deps <= epsfp .or. n_iterate >= 1 ) iteration_flag = .false.
+        ! lmaxfp = 1
+        if ( deps <= epsfp .or. n_iterate >= lmaxfp ) iteration_flag = .false.
 
         do nsa = 1, nsamax
           do nr = 1, nrmax
             do np = 1, npmax
               do nth = 1, nthmax
+                ! write(*,'(A,4I3,2ES12.4)')"F",nth,np,nr,nsa,fnsp(nth,np,nr,nsa),fns0(nth,np,nr,nsa)
                 fnsp(nth,np,nr,nsa) = fns0(nth,np,nr,nsa)
               end do
             end do
@@ -90,11 +105,16 @@ contains
     use fpcomm
     use fowcomm
     use fowdistribution
+    use foworbit
 
     implicit none
     type(pl_plf_type),dimension(nsmax):: plf
-    integer :: nth, np, nr, nsa, ns
-    real(rkind) :: rhon
+    integer :: nth, np, nr, nsa, ns, nstp,nstpmax
+    real(rkind) :: rhon, Ntot, mean_ra
+
+    ! do nsa = 1, nsamax
+    !   fnorm(nsa) = 1.d-40*RNFP0(NSA)
+    ! end do
 
     ! update rn_temp, rt_temp
     do nsa = 1, nsamax
@@ -107,26 +127,34 @@ contains
       end do
     end do
 
-    ! update density
+    ! ! update density
     call moment_0th_order_COM(RNSL, fnsp)
 
-    ! update temperature
-    call moment_2nd_order_COM(RWSL, fnsp)
+    ! ! update temperature
+    ! call moment_2nd_order_COM(RWSL, fnsp)
 
     ! update bulk temperature
 
     ! update Coulomb logarithm
 
-    ! update distribution function of collision opponents FNSB
+    ! -----------------s
+
     do nsa = 1, nsamax
       do nr = 1, nrmax
-        do np = 1, npmax
-          do nth = 1, nthmax
-            fnsb(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa)
-          end do
-        end do
+            write(*,*)"RNSL",RNSL(nr,nsa)
       end do
     end do
+
+    ! do nsa = 1, nsamax
+    !   do nr = 1, nrmax
+    !         write(*,*)"RWSL",RWSL(nr,nsa)/aee*1.D3
+    !   end do
+    ! end do
+
+    call total_N(Ntot, fnsp, 1)
+    write(*,*)"electron total", Ntot
+    call total_N(Ntot, fnsp, 2)
+    write(*,*)"ion total", Ntot
 
   end subroutine update_quantities
 

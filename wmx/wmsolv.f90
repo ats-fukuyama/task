@@ -65,10 +65,11 @@ CONTAINS
        ELSE
           CALL wm_setm2(A,X,i,MBND,nr_previous)
        END IF
-       IF(nrank.EQ.0)
-       WRITE(21,'(A,2I6,ES12.4)') 'wmsolv:',nr_previous,i,XRHO(nr_previous)
-       WRITE(21,'(6ES12.4)') (A(j),j=1,MBND)
-       WRITE(21,'(2ES12.4)') X
+       IF(nrank.EQ.0) THEN
+          WRITE(21,'(A,2I6,ES12.4)') 'wmsolv:',nr_previous,i,XRHO(nr_previous)
+          WRITE(21,'(6ES12.4)') (A(j),j=1,MBND)
+          WRITE(21,'(2ES12.4)') X
+       END IF
        DO j=MAX(i-MCENT+1,1),MIN(MLEN,i+MCENT-1)
           IF(ABS(A(j-i+MCENT)).GT.0.D0) THEN
              CALL mtxc_set_matrix(i,j,A(j-i+MCENT))

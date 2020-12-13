@@ -7,10 +7,10 @@
       SUBROUTINE TASK_KLIN(LINE,KID,MODE,XXPARM)
 
       IMPLICIT NONE
-      INTEGER(4), INTENT(OUT)  :: MODE
+      INTEGER, INTENT(OUT)  :: MODE
       CHARACTER(LEN=80),INTENT(OUT) :: LINE
       CHARACTER(LEN=1), INTENT(OUT) :: KID
-      INTEGER(4)  :: I, ID, IERR, IKID
+      INTEGER  :: I, ID, IERR, IKID
       EXTERNAL XXPARM
 
       READ(5,'(A80)',ERR=2,END=3) LINE    ! read one line
@@ -82,14 +82,14 @@
 
       IMPLICIT NONE
 
-      INTEGER(4), INTENT(IN)   :: MODE
-      INTEGER(4), INTENT(OUT)  :: IERR
+      INTEGER, INTENT(IN)   :: MODE
+      INTEGER, INTENT(OUT)  :: IERR
       CHARACTER(LEN=*) , INTENT(IN) :: KWD, KIN
       CHARACTER(LEN=80):: LINE
       CHARACTER(LEN=94):: KNLINE
       CHARACTER(LEN=6) :: KNL
       LOGICAL          :: LEX
-      INTEGER(4)       :: IST, KL, KL1, KL2
+      INTEGER       :: IST, KL, KL1, KL2
       EXTERNAL XXNLIN,XXPLST
 
       IERR=0
@@ -126,7 +126,7 @@
       ELSEIF(MODE.EQ.2) THEN
          CALL KTRIM(KNL,KL1)
          CALL KTRIM(LINE,KL2)
-         KNLINE=' &'//KNL(1:KL1)//' '//LINE(1:KL2)//' &END'
+         KNLINE=' &'//KNL(1:KL1)//' '//LINE(1:KL2)//' /'
          WRITE(7,'(A90)') KNLINE
          REWIND(7)
          CALL XXNLIN(7,IST,IERR)

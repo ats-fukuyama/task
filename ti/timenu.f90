@@ -27,7 +27,7 @@ CONTAINS
       TYPE(pl_plf_type),ALLOCATABLE:: plf(:)
       REAL(rkind):: RHON
       INTEGER(ikind), SAVE :: INIT=0
-      REAL(4):: cputime1,cputime2
+      REAL:: cputime1,cputime2
       CHARACTER(LEN=1) :: KID
       CHARACTER(LEN=80):: LINE
 

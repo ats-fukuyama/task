@@ -2,14 +2,14 @@
 !     ===== this routine is no longer necessary =====
 !     ===== use 'INDEX'                         =====
 
-      INTEGER(4) FUNCTION KKINDEX(KKLINEX,KID)
+      INTEGER FUNCTION KKINDEX(KKLINEX,KID)
 
       IMPLICIT NONE
-      INTEGER(4), PARAMETER :: KSLEN=80
+      INTEGER, PARAMETER :: KSLEN=80
       CHARACTER(LEN=*), INTENT(IN) :: KKLINEX
       CHARACTER(LEN=1), INTENT(IN) :: KID
       CHARACTER(LEN=80)            :: KKLINE
-      INTEGER(4) :: I
+      INTEGER :: I
 
       KKLINE=KKLINEX
       DO I=1,KSLEN
@@ -30,7 +30,7 @@
       CHARACTER(LEN=*),  INTENT(IN)  :: KKLINE
       CHARACTER(LEN=1),  INTENT(IN)  :: KID
       CHARACTER(LEN=80), INTENT(OUT) :: KKLINE1, KKLINE2
-      INTEGER(4) :: I
+      INTEGER :: I
 
       I = INDEX(KKLINE,KID)
       IF(I == 0) THEN
@@ -54,10 +54,10 @@
 
       IMPLICIT NONE
       CHARACTER(LEN=*), INTENT(INOUT):: KKLINEX
-      INTEGER(4), INTENT(OUT)        :: KL
-      INTEGER(4), PARAMETER          :: KSLEN=80
+      INTEGER, INTENT(OUT)        :: KL
+      INTEGER, PARAMETER          :: KSLEN=80
       CHARACTER(LEN=80)    :: KKLINE, KKLINE1
-      INTEGER(4)           :: I, ITOP, IBOTTOM
+      INTEGER           :: I, ITOP, IBOTTOM
 
       KKLINE=KKLINEX
       DO I=1,KSLEN
@@ -93,7 +93,7 @@
       CHARACTER(LEN=*), INTENT(INOUT) :: KKLINEX
       CHARACTER(LEN=80) :: KKLINE
       CHARACTER(LEN=1)  :: KID
-      INTEGER(4)        :: INCL
+      INTEGER        :: INCL
 
       KKLINE=KKLINEX
       KID=KKLINE(1:1)
@@ -111,10 +111,10 @@
       LOGICAL FUNCTION KMATCH(KKLINE1X,KKLINE2X)
 
       IMPLICIT NONE
-      INTEGER(4), PARAMETER :: KSLEN=80
+      INTEGER, PARAMETER :: KSLEN=80
       CHARACTER(LEN=*),INTENT(IN) :: KKLINE1X, KKLINE2X
       CHARACTER(LEN=80)           :: KKLINE1,  KKLINE2
-      INTEGER(4)                  :: I
+      INTEGER                  :: I
 
       KKLINE1=KKLINE1X
       KKLINE2=KKLINE2X
@@ -154,7 +154,7 @@ SUBROUTINE TOUPPER(KTEXT)
   implicit none
   character(len=*), INTENT(INOUT) ::  KTEXT
 
-  INTEGER(4) :: NCHAR, I, ID
+  INTEGER :: NCHAR, I, ID
 
   NCHAR = LEN(KTEXT)
   DO I = 1, NCHAR
@@ -177,7 +177,7 @@ SUBROUTINE TOLOWER(KTEXT)
   implicit none
   character(len=*), INTENT(INOUT) ::  KTEXT
 
-  INTEGER(4) :: NCHAR, I, ID
+  INTEGER :: NCHAR, I, ID
 
   NCHAR = LEN(KTEXT)
   DO I = 1, NCHAR

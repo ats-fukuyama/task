@@ -20,7 +20,6 @@ CONTAINS
     USE dpparm,ONLY: dpprep
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
-    INTEGER:: nnr
 
     IERR=0
     

@@ -13,6 +13,7 @@
 
       PROGRAM testmtx
 
+      USE task_kinds,ONLY: dp
       USE libmpi 
       USE commpi
       USE libmtx 
@@ -21,11 +22,11 @@
       INTEGER:: istart,iend,its 
       INTEGER:: imax,jwidth,jsource 
       INTEGER:: i,j,k,l,m,n,iskip
-      REAL(8):: tolerance 
-      REAL(8),DIMENSION(:),POINTER:: x
+      REAL(dp):: tolerance 
+      REAL(dp),DIMENSION(:),POINTER:: x
       INTEGER,DIMENSION(7):: idata 
-      REAL(8),DIMENSION(1):: ddata
-      REAL(4):: cputime1,cputime2
+      REAL(dp),DIMENSION(1):: ddata
+      REAL:: cputime1,cputime2
 
       CALL mtx_initialize
       idimen=1

@@ -2,14 +2,14 @@
 
 PROGRAM testlamb
 
-  USE bpsd_kinds
+  USE task_kinds,ONLY: dp
   USE libbes
   USE libgrf
   IMPLICIT NONE
-  COMPLEX(rkind):: ca
-  COMPLEX(rkind),ALLOCATABLE:: cl(:)
-  REAL(rkind),ALLOCATABLE:: xdata(:),fdata(:,:),f2data(:,:)
-  REAL(rkind):: xmin,xmax,dx,x
+  COMPLEX(dp):: ca
+  COMPLEX(dp),ALLOCATABLE:: cl(:)
+  REAL(dp),ALLOCATABLE:: xdata(:),fdata(:,:),f2data(:,:)
+  REAL(dp):: xmin,xmax,dx,x
   INTEGER:: nmin,nmax,nxmax,n,nx,ierr
 
   CALL GSOPEN

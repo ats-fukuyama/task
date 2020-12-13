@@ -18,7 +18,7 @@ CONTAINS
     USE libgrf
 
     IMPLICIT NONE
-    INTEGER(ikind)    :: ierr,mode,ind
+    INTEGER(ikind)    :: ierr,mode
     CHARACTER         :: kid
     CHARACTER(LEN=80) :: line
     INTEGER(ikind)    :: init=0
@@ -26,6 +26,7 @@ CONTAINS
     REAL(rkind)       :: xwmin_save=0.D0,xmax_save=0.D0,xmin_save=0.D0
     REAL(rkind)       :: xwint_save=0.D0
     REAL(rkind)       :: ratea,rk0l
+    EXTERNAL TASK_KLIN
 
 1   CONTINUE
     ierr=0

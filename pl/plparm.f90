@@ -54,7 +54,7 @@ CONTAINS
       NAMELIST /PL/ &
            RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
            RMIR,ZBB,Hpitch1,Hpitch2,RRCH,RCOIL,ZCOIL,BCOIL,NCOILMAX, &
-           NSMAX,NPA,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PUPR,PUPP,PZCL, &
+           NSMAX,NPA,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PUPR,PUPP,PNUC,PZCL, &
            ID_NS,KID_NS, &
            PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
            RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG, &
@@ -102,7 +102,8 @@ CONTAINS
 
   601 FORMAT(' ','# &PL : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,'/ &
              9X,'RMIR,ZBB,Hpitch1,Hpitch2,RRCH,RCOI,ZCOIL,BCOIL,NCOILMAX,'/ &
-             9X,'NSMAX,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PUPR,PUPP,PZCL,'/ &
+             9X,'NSMAX,PA,PZ,PN,PNS,PTPR,PTPP,PTS,'/ &
+             9X,'PU,PUS,PUPR,PUPP,PNUC,PZCL,'/ &
              9X,'ID_NS,KID_NS,'/ &
              9X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'/ &
              9X,'r_corner,z_corner,br_corner,bz_corner,bt_corner,'/ &
@@ -304,6 +305,7 @@ CONTAINS
     CALL mtx_broadcast_real8(PROFT2,NSMAX)
     CALL mtx_broadcast_real8(PROFU1,NSMAX)
     CALL mtx_broadcast_real8(PROFU2,NSMAX)
+    CALL mtx_broadcast_real8(PNUC,NSMAX)
     CALL mtx_broadcast_real8(PZCL,NSMAX)
     CALL mtx_broadcast_integer(NPA,NSMAX)
     CALL mtx_broadcast_integer(ID_NS,NSMAX)
@@ -384,11 +386,11 @@ CONTAINS
       ENDDO
       WRITE(6,131)
       DO NS=1,NSMAX
-         WRITE(6,132) NS,PUPR(NS),PUPP(NS)
+         WRITE(6,132) NS,PUPR(NS),PUPP(NS),PNUC(NS),PZCL(NS)
       ENDDO
       WRITE(6,140)
       DO NS=1,NSMAX
-         WRITE(6,150) NS,RHOITB(NS),PNITB(NS),PTITB(NS),PUITB(NS),PZCL(NS)
+         WRITE(6,150) NS,RHOITB(NS),PNITB(NS),PTITB(NS),PUITB(NS)
       END DO
 
       WRITE(6,160)
@@ -422,11 +424,10 @@ CONTAINS
   120 FORMAT(' ','NS    PTPR        PTPP        PTS         ', &
                        'PU          PUS')
   130 FORMAT(' ',I2,' ',1P5E12.4)                               
-  131 FORMAT(' ','NS    PUPR        PUPP')
-  132 FORMAT(' ',I2,' ',1P2E12.4)                               
-  140 FORMAT(' ','NS    RHOITB      PNITB       PTITB       ', &
-                       'PUITB       PZCL')
-  150 FORMAT(' ',I2,' ',1P5E12.4)                               
+  131 FORMAT(' ','NS    PUPR        PUPP        PNUC        PZCL')
+  132 FORMAT(' ',I2,' ',1P4E12.4)                               
+  140 FORMAT(' ','NS    RHOITB      PNITB       PTITB       PUITB')
+  150 FORMAT(' ',I2,' ',1P4E12.4)                               
   160 FORMAT(' ','NS    PROFN1      PROFN2      PROFT1      ', &
                        'PROFT2      PROFU1      PROFU2')
   170 FORMAT(' ',I2,' ',1P6E12.4)                               

@@ -1,12 +1,13 @@
 program testfem
 
+      USE task_kinds,ONLY: dp
       USE libgrf
       USE libtestfem
       USE fem_calc
       implicit none
-      complex(8),parameter:: ci=(0.d0,1.d0)
+      complex(dp),parameter:: ci=(0.d0,1.d0)
       integer:: id,nrmax,npow,nth,nph,nr,ngmax
-      real(8):: rf,angl
+      real(dp):: rf,angl
 
       call gsopen
 
@@ -89,8 +90,8 @@ program testfem
 
       implicit none
       integer,intent(in):: id,nrmax,npow,nth,nph
-      real(8),intent(in):: rf,angl
-      real(8):: rho0,rkth,rkph
+      real(dp),intent(in):: rf,angl
+      real(dp):: rho0,rkth,rkph
       integer:: mw,ml,nr,ierr
 
       select case(id)

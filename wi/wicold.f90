@@ -14,7 +14,7 @@ CONTAINS
     INTEGER(ikind),INTENT(IN):: iprint
     REAL(rkind),INTENT(OUT):: ratea
     INTEGER(ikind),INTENT(OUT):: ierr
-    INTEGER(ikind):: ml,mw
+    EXTERNAL BANDCD
     
     mlmax=nxmax*2+3
     mwmax=7
@@ -50,7 +50,7 @@ CONTAINS
       COMPLEX(rkind):: ciky,cbb
       REAL(rkind):: rky,rky2,dx,dky
       INTEGER(ikind):: ML,MW,I,J,NX,ID,JD
-      INTEGER(ikind):: KK,KD,IOB,IO,I2
+      INTEGER(ikind):: IOB,IO,I2
 
       RKY=ANY
       RKY2=RKY**2
@@ -154,8 +154,8 @@ CONTAINS
 
       USE wicomm
       IMPLICIT NONE
-      COMPLEX(ikind):: cp1,cp2,cp3,cp4,cpa
-      INTEGER(ikind):: NX,i,j,id,jd,kk,kd
+      COMPLEX(ikind):: cp1,cp4,cpa
+      INTEGER(ikind):: NX,i,j,id,jd
       REAL(rkind):: rky,rky2,dx,AD,BD
 
       RKY=ANY

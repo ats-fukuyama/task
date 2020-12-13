@@ -3,41 +3,13 @@
 
     REAL(rkind):: XPOS_LOC,YPOS_LOC,ZPOS_LOC,RHON_LOC
     REAL(rkind):: BNX,BNY,BNZ,BABS
-    REAL(rkind),DIMENSION(NSM):: RN,RTPR,RTPP,RU,RUPL,RUPR,RUPP,RNUC,RZCL
+    REAL(rkind),DIMENSION(NSM):: RN,RTPR,RTPP,RU,RUPL,RUPR,RUPP,RNUC
     REAL(rkind),DIMENSION(NSM):: RLN,RLRPT,RLTPP,RLU,RLUPL
   END MODULE pllocal
 
   MODULE plprof
     USE bpsd_kinds
-
-    TYPE pl_mag_type
-       real(rkind):: BABS,BNX,BNY,BNZ,RHON
-                           ! BABS: magnetic field strength [T]
-                           ! BNX:  normalized X component of B (phi=0 deg)
-                           ! BNY:  normalized Y component of B (phi=90 deg)
-                           ! BNZ:  normalized Z component of B (vertical)
-                           ! RHON: normalized minor radius
-    END TYPE pl_mag_type
-
-    TYPE pl_plf_type       ! local plasma parameter
-       real(rkind):: RN,RTPR,RTPP,RU,RUPL,RNUC,RZCL
-                           ! RN:   number density [10^{20}m^{-3}]
-                           ! RTPR: parallel temperature [keV]
-                           ! RTPP: perpendicular temperature [keV]
-                           ! RU:   toroidal fluid velocity [m/s]
-                           ! RUPL: poloidal fluid velocity [m/s]
-                           ! RNUC: collision frequency [1/s]
-                           ! RZCL: collision parameter (RNUC/OMEGA)
-    END TYPE pl_plf_type
-
-    TYPE pl_grd_type
-       real(rkind):: grdn,grdtpr,grdtpp,grdu,grdupl
-                           ! GRDNN:  density gradient [1/m]
-                           ! GRDTPR: parallel temperature gradient [1/m]
-                           ! GRDTPP: perpendicular temperature gradient [1/m]
-                           ! GRDU:   toroidal fluid velocity gradient [1/m]
-                           ! GRDUPL: poloidal fluid velocity gradient [1/m]
-    END TYPE pl_grd_type
+    USE plcomm_type
 
     INTERFACE
        SUBROUTINE GETRZ(RL,Z,PP,BR,BZ,BT,RHON)
@@ -70,15 +42,6 @@
          REAL(rkind),DIMENSION(NSUM),INTENT(OUT):: RSU,ZSU
          INTEGER(ikind),INTENT(OUT):: NSUMAX
        END SUBROUTINE GETRSU
-       SUBROUTINE SPL1DF(X,DATA,XA,UDATA,NXMAX,IERR)
-         USE bpsd_kinds
-         REAL(rkind),INTENT(IN):: X
-         REAL(rkind),INTENT(OUT):: DATA
-         INTEGER(ikind),INTENT(IN):: NXMAX
-         REAL(rkind),DIMENSION(NXMAX),INTENT(IN):: XA
-         REAL(rkind),DIMENSION(4,NXMAX),INTENT(IN):: UDATA
-         INTEGER(ikind),INTENT(OUT):: IERR
-       END SUBROUTINE SPL1DF
        SUBROUTINE GET_BMINMAX(rhon,BBMIN,BBMAX)
          USE bpsd_kinds
          REAL(rkind),INTENT(IN):: rhon
@@ -144,9 +107,9 @@
       TYPE(pl_mag_type),INTENT(OUT):: MAG
       REAL(rkind):: RHON
       INTEGER:: IERR
-      REAL(8):: BABS,AL(3)
+      REAL(rkind):: BABS,AL(3)
 
-      REAL(8) :: RL, BR, BT, BX, BY, BZ, &
+      REAL(rkind) :: RL, BR, BT, BX, BY, BZ, &
                  RSINT, RCOST
 
       SELECT CASE(MODELG)
@@ -310,7 +273,7 @@
     SUBROUTINE pl_prof3d_old(X,Y,Z)
 
       USE plcomm,ONLY: NSMAX
-      USE pllocal,ONLY: RN,RTPR,RTPP,RU,RUPL,RNUC,RZCL
+      USE pllocal,ONLY: RN,RTPR,RTPP,RU,RUPL,RNUC
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: X,Y,Z
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
@@ -324,7 +287,6 @@
          RU(NS)=PLF(NS)%RU
          RUPL(NS)=PLF(NS)%RUPL
          RNUC(NS)=PLF(NS)%RNUC
-         RZCL(NS)=PLF(NS)%RZCL
       END DO
       RETURN
     END SUBROUTINE pl_prof3d_old
@@ -334,7 +296,7 @@
     SUBROUTINE pl_prof_old(RHON)
 
       USE plcomm,ONLY: NSMAX
-      USE pllocal,ONLY: RN,RTPR,RTPP,RU,RUPL,RNUC,RZCL
+      USE pllocal,ONLY: RN,RTPR,RTPP,RU,RUPL,RNUC
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: RHON
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
@@ -348,7 +310,6 @@
          RU(NS)=PLF(NS)%RU
          RUPL(NS)=PLF(NS)%RUPL
          RNUC(NS)=PLF(NS)%RNUC
-         RZCL(NS)=PLF(NS)%RZCL
       END DO
       RETURN
     END SUBROUTINE pl_prof_old
@@ -363,7 +324,6 @@
 !             PLF(NS)%RU   : Toroidal rotation velocity
 !             PLF(NS)%RUPL : Poloidal rotation velocity
 !             PLF(NS)%RNUC : collision frequency
-!             PLF(NS)%RZCL : collision factor (=nu/omega) 
 
 
 !     ****** CALCULATE PLASMA PROFILE in 3D ******
@@ -382,19 +342,19 @@
 
     SUBROUTINE pl_prof3d(X,Y,Z,PLF)
 
-        USE plcomm,ONLY: PZ,PN,PTPR,PTPP,PU,PNS,PTS,PUS,PZCL, &
+        USE plcomm,ONLY: PZ,PN,PTPR,PTPP,PU,PNS,PTS,PUS, &
              NSMAX,MODELN,MODELG, &
              RR,RA
         USE plprof2d
         USE plload
+        USE plcoll
         IMPLICIT NONE
         REAL(rkind),INTENT(IN):: X,Y,Z
-        TYPE(pl_plf_type),DIMENSION(NSMAX),INTENT(OUT):: PLF
+        TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
         REAL(rkind),DIMENSION(NSMAX) :: &
-             RN_PL,RT_PL,RTPR_PL,RTPP_PL,RU_PL,RNUC_PL,RZCL_PL
+             RN_PL,RT_PL,RTPR_PL,RTPP_PL,RU_PL,RNUC_PL
         REAL(rkind):: RHON,FACTX,FACTY,FACTN,FACTT,FACTU
         INTEGER:: NS,NSMAXL,IERR
-
 
         SELECT CASE(MODELG)
         CASE(0)
@@ -417,9 +377,8 @@
               PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
               PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
               PLF(NS)%RUPL=0.D0
-              PLF(NS)%RNUC=0.D0
-              PLF(NS)%RZCL=PZCL(NS)
            END DO
+           CALL pl_set_rnuc(plf)
         CASE(1)
            IF(RA.EQ.0.D0) THEN
               FACTX=1.D0
@@ -440,20 +399,18 @@
               PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
               PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
               PLF(NS)%RUPL=0.D0
-              PLF(NS)%RNUC=0.D0
-              PLF(NS)%RZCL=PZCL(NS)
            END DO
+           CALL pl_set_rnuc(plf)
         CASE(11)
-           CALL PLSDEN11(X,Y,RN_PL,RTPR_PL,RTPP_PL,RZCL_PL)
+           CALL PLSDEN11(X,Y,RN_PL,RTPR_PL,RTPP_PL)
            DO NS=1,NSMAX
               PLF(NS)%RN  =RN_PL(NS)
               PLF(NS)%RTPR=RTPR_PL(NS)
               PLF(NS)%RTPP=RTPP_PL(NS)
               PLF(NS)%RU  =0.D0
               PLF(NS)%RUPL=0.D0
-              PLF(NS)%RNUC=0.D0
-              PLF(NS)%RZCL=PZCL(NS)
            ENDDO
+           CALL pl_set_rnuc(plf)
         CASE(12)
            CALL pl_read_p2D(X,Y,RN_PL,RTPR_PL,RTPP_PL,RU_PL,IERR)
            DO NS=1,NSMAXL
@@ -462,20 +419,18 @@
               PLF(NS)%RTPP=RTPP_PL(NS)
               PLF(NS)%RU  =RU_PL(NS)
               PLF(NS)%RUPL=0.D0
-              PLF(NS)%RNUC=0.D0
-              PLF(NS)%RZCL=PZCL(NS)
            ENDDO
+           CALL pl_set_rnuc(plf)
         CASE(13)
-           CALL PLSDEN13(X,Y,RN_PL,RTPR_PL,RTPP_PL,RZCL_PL)
+           CALL PLSDEN13(X,Y,RN_PL,RTPR_PL,RTPP_PL)
            DO NS=1,NSMAX
               PLF(NS)%RN  =RN_PL(NS)
               PLF(NS)%RTPR=RTPR_PL(NS)
               PLF(NS)%RTPP=RTPP_PL(NS)
               PLF(NS)%RU  =0.D0
               PLF(NS)%RUPL=0.D0
-              PLF(NS)%RNUC=0.D0
-              PLF(NS)%RZCL=PZCL(NS)
            ENDDO
+           CALL pl_set_rnuc(plf)
         CASE DEFAULT
            CALL pl_mag_old(X,Y,Z,RHON)
            CALL pl_prof(RHON,PLF)
@@ -489,11 +444,12 @@
 
     SUBROUTINE pl_prof(RHON,PLF)
 
-        USE plcomm,ONLY: PZ,PN,PTPR,PTPP,PU,PNS,PTS,PUS,PZCL, NSMAX&
+        USE plcomm,ONLY: PZ,PN,PTPR,PTPP,PU,PNS,PTS,PUS,NSMAX&
              &,MODELN,RA,RB, PROFN1,PROFN2,PROFT1,PROFT2, PROFU1&
              &,PROFU2, PNITB,PTITB,PUITB,RHOITB,RHOEDG
         USE plload,ONLY: pl_read_trdata
         USE plprof_travis
+        USE plcoll
         IMPLICIT NONE
         REAL(rkind),INTENT(IN):: RHON
         TYPE(pl_plf_type),DIMENSION(NSMAX),INTENT(OUT):: PLF
@@ -527,8 +483,6 @@
                  PLF(NS)%RTPP=PTS(NS)
                  PLF(NS)%RU  =PUS(NS)
                  PLF(NS)%RUPL=0.D0
-                 PLF(NS)%RNUC=0.D0
-                 PLF(NS)%RZCL=PZCL(NS)
               ENDDO
            ELSE
               DO NS=1,NSMAX
@@ -540,8 +494,6 @@
                  PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
                  PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
                  PLF(NS)%RUPL=0.D0
-                 PLF(NS)%RNUC=0.D0
-                 PLF(NS)%RZCL=PZCL(NS)
                  IF(RHOL.LT.RHOITB(NS)) THEN
                     FACTITB =(1.D0-(RHOL/RHOITB(NS))**4)**2
                     PLF(NS)%RN  =PLF(NS)%RN  +PNITB(NS)*FACTITB
@@ -549,11 +501,10 @@
                     PLF(NS)%RTPP=PLF(NS)%RTPP+PTITB(NS)*FACTITB
                     PLF(NS)%RU  =PLF(NS)%RU  +PUITB(NS)*FACTITB
                     PLF(NS)%RUPL=0.D0
-                    PLF(NS)%RNUC=0.D0
-                    PLF(NS)%RZCL=PZCL(NS)
                  ENDIF
               ENDDO
            ENDIF
+           CALL pl_set_rnuc(plf)
 
         CASE(2)
            IF(RHOL.GE.1.D0) THEN
@@ -563,8 +514,6 @@
                  PLF(NS)%RTPP=PTS(NS)
                  PLF(NS)%RU  =PUS(NS)
                  PLF(NS)%RUPL=0.D0
-                 PLF(NS)%RNUC=0.D0
-                 PLF(NS)%RZCL=PZCL(NS)
               ENDDO
            ELSE
               CALL GETPP(0.D0,PL0)
@@ -577,10 +526,9 @@
                  PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACT+PTS(NS)
                  PLF(NS)%RU  =(PU(NS)-PUS(NS))*FACTU+PUS(NS)
                  PLF(NS)%RUPL=0.D0
-                 PLF(NS)%RNUC=0.D0
-                 PLF(NS)%RZCL=PZCL(NS)
               ENDDO
            ENDIF
+           CALL pl_set_rnuc(plf)
 
         CASE(3)
            IF(RHOL.GE.1.D0) THEN
@@ -590,8 +538,6 @@
                  PLF(NS)%RTPP=PTS(NS)
                  PLF(NS)%RU  =PUS(NS)
                  PLF(NS)%RUPL=0.D0
-                 PLF(NS)%RNUC=0.D0
-                 PLF(NS)%RZCL=PZCL(NS)
               ENDDO
            ELSE
               DO NS=1,NSMAX
@@ -627,8 +573,6 @@
                  PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
                  PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
                  PLF(NS)%RUPL=0.D0
-                 PLF(NS)%RNUC=0.D0
-                 PLF(NS)%RZCL=PZCL(NS)
                  IF(RHOL.LT.RHOITB(NS)) THEN
                     FACTITB =(1.D0-(RHOL/RHOITB(NS))**4)**2
                     PLF(NS)%RN  =PLF(NS)%RN  +PNITB(NS)*FACTITB
@@ -636,11 +580,10 @@
                     PLF(NS)%RTPP=PLF(NS)%RTPP+PTITB(NS)*FACTITB
                     PLF(NS)%RU  =PLF(NS)%RU  +PUITB(NS)*FACTITB
                     PLF(NS)%RUPL=0.D0
-                    PLF(NS)%RNUC=0.D0
-                    PLF(NS)%RZCL=PZCL(NS)
                  ENDIF
               ENDDO
            ENDIF
+           CALL pl_set_rnuc(plf)
 
         CASE(8)
            DO NS=1,NSMAX
@@ -670,8 +613,6 @@
                  ENDIF
                  PLF(NS)%RU  =PUS(NS)
                  PLF(NS)%RUPL=0.D0
-                 PLF(NS)%RNUC=0.D0
-                 PLF(NS)%RZCL=PZCL(NS)
               ENDDO
            ELSE
               DO NS=1,NSMAX
@@ -689,10 +630,9 @@
                  ENDIF
                  PLF(NS)%RU  = (PU(NS)  -PUS(NS))*FACTU+PUS(NS)
                  PLF(NS)%RUPL=0.D0
-                 PLF(NS)%RNUC=0.D0
-                 PLF(NS)%RZCL=PZCL(NS)
               ENDDO
            ENDIF
+           CALL pl_set_rnuc(plf)
 
         CASE(9)
            CALL pl_bpsd_get(RHOL,RN_PL,RTPR_PL,RTPP_PL,RU_PL,RUPL_PL)
@@ -702,9 +642,8 @@
               PLF(NS)%RTPP=RTPP_PL(NS)
               PLF(NS)%RU  =RU_PL(NS)
               PLF(NS)%RUPL=RUPL_PL(NS)
-              PLF(NS)%RNUC=0.D0
-              PLF(NS)%RZCL=PZCL(NS)
            ENDDO
+           CALL pl_set_rnuc(plf)
 
         CASE(21)
            DO NS=1,NSMAX
@@ -714,10 +653,8 @@
               PLF(NS)%RTPP=PTL
               PLF(NS)%RU  =0.D0
               PLF(NS)%RUPL=0.D0
-              PLF(NS)%RNUC=0.D0
-              PLF(NS)%RZCL=PZCL(NS)
-              IF(NS.EQ.1) WRITE(6,'(A,1P3E12.4)') 'rhol,pnl,ptl=',RHOL,PNL,PTL
            ENDDO
+           CALL pl_set_rnuc(plf)
 
         CASE(31)
            profn=plprof_travis_n(rhon)
@@ -728,9 +665,8 @@
               PLF(NS)%RTPP=PTPP(NS)*proft
               PLF(NS)%RU  =0.D0
               PLF(NS)%RUPL=0.D0
-              PLF(NS)%RNUC=0.D0
-              PLF(NS)%RZCL=PZCL(NS)
            END DO
+           CALL pl_set_rnuc(plf)
         END SELECT
 
         RETURN
@@ -822,7 +758,7 @@
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: RHON
       REAL(rkind),INTENT(OUT):: QL
-      REAL(8) :: RHOL, QSA0, QSAA
+      REAL(rkind) :: RHOL, QSA0, QSAA
 
       IF(RHON.LE.0.D0) THEN
          RHOL=0.D0
@@ -909,9 +845,9 @@
 
       USE plcomm,ONLY: MODELG,RR
       IMPLICIT NONE
-      REAL(8),INTENT(IN):: RHON
-      REAL(8),INTENT(OUT):: RRMINL,RRMAXL
-      REAL(8)  :: RS
+      REAL(rkind),INTENT(IN):: RHON
+      REAL(rkind),INTENT(OUT):: RRMINL,RRMAXL
+      REAL(rkind)  :: RS
 
       SELECT CASE(MODELG)
       CASE(0)
@@ -937,8 +873,8 @@
 
       USE plcomm,ONLY: MODELG,TWOPI,RR,RA,RKAP
       IMPLICIT NONE
-      REAL(8),INTENT(IN):: RHON
-      REAL(8),INTENT(OUT):: DVDRHO
+      REAL(rkind),INTENT(IN):: RHON
+      REAL(rkind),INTENT(OUT):: DVDRHO
 
       SELECT CASE(MODELG)
       CASE(0,1,2)
@@ -1008,6 +944,7 @@
       CHARACTER(LEN=80):: TRFILE='topics-data' ! fixed name
       INTEGER(ikind):: ierr,ifno,nr,ns,irc,n,i
       REAL(rkind):: val
+      EXTERNAL SPL1D
 
       ierr = 0
 
@@ -1082,6 +1019,7 @@
       REAL(rkind),INTENT(OUT):: PTL   ! Temperature at Rhol
       REAL(rkind):: PPL
       INTEGER(ikind):: IERR
+      EXTERNAL SPL1DF
 
       IF (Rhol.GT.1.0D0) THEN
          IF(modeln.EQ.1) THEN

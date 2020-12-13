@@ -1,16 +1,16 @@
 ### $Id: Makefile,v 1.69 2012/07/25 07:53:52 nuga Exp $ ###
 include ../make.header
 include ../mtxp/make.mtxp
-LIB_MTX=$(LIB_MTX_BND)
-LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_BND)
+#LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIB_MTX_PCG)
 #LIBX_MTX=$(LIBX_MTX_PCG)
-# LIB_MTX=$(LIB_MTX_MUMPS)
-# LIBX_MTX=$(LIBX_MTX_MUMPS)
+LIB_MTX=$(LIB_MTX_MUMPS)
+LIBX_MTX=$(LIBX_MTX_MUMPS)
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-#FFLAGS=$(OFLAGS) -assume byterecl
+# FFLAGS=$(OFLAGS) -assume byterecl
 FFLAGS=$(DFLAGS) -assume byterecl
 
 OBJDIR   = ./obj
@@ -37,14 +37,14 @@ SRCS = fpcomm.f90 eg_read.f90 fpinit.f90 fpparm.f90 \
 		cdbmfp.f90 fpcalr.f90 sv_read.f90 fpcoef.f90 fpcale.f90 \
 		fpbounce.f90 fpdisrupt.f90 fpprep.f90 fploop.f90 \
 		fpcont.f90 fpfout.f90 fpgout.f90 fpfile.f90\
-		fowcomm.f90 foworbitclassify.f90 foworbit.f90 fowprep.f90 \
-		fowdistribution.f90 fowsource.f90 \
+		fowcomm.f90 foworbitclassify.f90 foworbit.f90 fowdistribution.f90 fowprep.f90 \
+		fowsource.f90 \
 		fowcoef.f90 fowexec.f90 fowloop.f90\
 		fowmenu.f90 \
 		fpmenu.f90
 
-SRCSFOW =fowcomm.f90 foworbitclassify.f90 foworbit.f90 fowprep.f90 \
-		fowdistribution.f90 fowsource.f90 \
+SRCSFOW =fowcomm.f90 foworbitclassify.f90 foworbit.f90 fowdistribution.f90 fowprep.f90 \
+		fowsource.f90 \
 		fowcoef.f90 fowexec.f90 fowloop.f90\
 		fowmenu.f90
 
@@ -152,13 +152,12 @@ $(OBJDIR)/fowmenu.o : fowmain.f90 fowcomm.f90 fowprep.f90 foworbit.f90 \
             foworbitclassify.f90
 $(OBJDIR)/fowcomm.o : fowcomm.f90
 $(OBJDIR)/fowexec.o : fowexec.f90 fowcomm.f90 fpcomm.f90
-$(OBJDIR)/fowprep.o : fowprep.f90 fowcomm.f90 fowdistribution.f90 foworbit.f90
+$(OBJDIR)/fowprep.o : fowprep.f90 fowcomm.f90 fowdistribution.f90 foworbit.f90 fowdistribution.f90
 $(OBJDIR)/foworbit.o: foworbit.f90 fowcomm.f90 fpcomm.f90 \
 											../ob/obcomm.f90 ../ob/obcalc.f90 ../ob/obprep.f90 ../ob/obinit.f90 \
 											../ob/obparm.f90
 $(OBJDIR)/foworbitclassify.o : foworbitclassify.f90 fowcomm.f90 fpcomm.f90
 $(OBJDIR)/fowdistribution.o : fowdistribution.f90 foworbit.f90 fowcomm.f90 fpcomm.f90
 $(OBJDIR)/fowcoef.o : fowdistribution.f90 fowcoef.f90 fowcomm.f90 fpcomm.f90
-$(OBJDIR)/fowsource.o : fowsource.f90 fowcomm.f90 fpcomm.f90 fowprep.f90 foworbit.f90
+$(OBJDIR)/fowsource.o : fowsource.f90 fowcomm.f90 fpcomm.f90 fowprep.f90 foworbit.f90 fowdistribution.f90
 $(OBJDIR)/fowloop.o : fowexec.f90 fowdistribution.f90 fowcoef.f90 fowsource.f90 fowcomm.f90 fpcomm.f90 fowprep.f90
-

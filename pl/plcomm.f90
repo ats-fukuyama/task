@@ -1,3 +1,35 @@
+MODULE plcomm_type
+  USE bpsd_kinds
+
+  TYPE pl_mag_type
+     real(rkind):: BABS,BNX,BNY,BNZ,RHON
+                           ! BABS: magnetic field strength [T]
+                           ! BNX:  normalized X component of B (phi=0 deg)
+                           ! BNY:  normalized Y component of B (phi=90 deg)
+                           ! BNZ:  normalized Z component of B (vertical)
+                           ! RHON: normalized minor radius
+  END TYPE pl_mag_type
+
+  TYPE pl_plf_type       ! local plasma parameter
+     real(rkind):: RN,RTPR,RTPP,RU,RUPL,RNUC
+                           ! RN:   number density [10^{20}m^{-3}]
+                           ! RTPR: parallel temperature [keV]
+                           ! RTPP: perpendicular temperature [keV]
+                           ! RU:   toroidal fluid velocity [m/s]
+                           ! RUPL: poloidal fluid velocity [m/s]
+                           ! RNUC: collision frequency [1/s]
+  END TYPE pl_plf_type
+
+  TYPE pl_grd_type
+     real(rkind):: grdn,grdtpr,grdtpp,grdu,grdupl
+                           ! GRDNN:  density gradient [1/m]
+                           ! GRDTPR: parallel temperature gradient [1/m]
+                           ! GRDTPP: perpendicular temperature gradient [1/m]
+                           ! GRDU:   toroidal fluid velocity gradient [1/m]
+                           ! GRDUPL: poloidal fluid velocity gradient [1/m]
+  END TYPE pl_grd_type
+END MODULE plcomm_type
+
 MODULE plcomm_parm
 
       USE bpsd_kinds
@@ -29,7 +61,7 @@ MODULE plcomm_parm
            PU,PUS,PUPR,PUPP, &
            RHOITB,PNITB,PTITB,PUITB, &
            PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
-           PZCL
+           PZCL,PNUC
       INTEGER,DIMENSION(NSM)::NPA,ID_NS
       CHARACTER(len=2),DIMENSION(NSM)::KID_NS
 

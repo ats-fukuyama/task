@@ -1,10 +1,12 @@
-!     $Id$
-      MODULE libell
+!     libell.f90
 
-      private ELLRF, ELLRD
-      public ELLFC, ELLEC, ELLF, ELLE
+MODULE libell
 
-      contains
+  USE task_kinds,ONLY: dp
+  private ELLRF, ELLRD
+  public ELLFC, ELLEC, ELLF, ELLE
+
+contains
 !
 !     ***** ELLIPTIC INTEGRAL LIBRARY *****
 !
@@ -13,10 +15,10 @@
       DOUBLE PRECISION FUNCTION ELLFC(AK,IERR)
 !
       IMPLICIT NONE
-      REAL(8):: AK
+      REAL(dp):: AK
       INTEGER:: IERR
 !U    USES ELLRF
-      REAL(8):: AAK!, ELLRF
+      REAL(dp):: AAK!, ELLRF
 !
       AAK=ABS(AK)
       IF(AAK.GT.1.D0) THEN
@@ -36,10 +38,10 @@
       DOUBLE PRECISION FUNCTION ELLEC(AK,IERR)
 !
       IMPLICIT NONE
-      REAL(8):: AK
+      REAL(dp):: AK
       INTEGER:: IERR,IERR1,IERR2
 !U    USES ELLRD,ELLRF
-      REAL(8):: Q,AAK!,ELLRD,ELLRF
+      REAL(dp):: Q,AAK!,ELLRD,ELLRF
 !
       AAK=ABS(AK)
       IF(AAK.GT.1.D0) THEN
@@ -60,10 +62,10 @@
       DOUBLE PRECISION FUNCTION ELLF(PHI,AK,IERR)
 !
       IMPLICIT NONE
-      REAL(8):: AK,PHI
+      REAL(dp):: AK,PHI
       INTEGER:: IERR
 !U    USES ELLRF
-      REAL(8):: S,Q!,ELLRF
+      REAL(dp):: S,Q!,ELLRF
 !
       IF(ABS(AK).GT.1.D0) THEN
          ELLF=0.D0
@@ -77,10 +79,10 @@
       END FUNCTION ELLF
 !
       DOUBLE PRECISION FUNCTION ELLE(PHI,AK,IERR)
-      REAL(8):: AK,PHI
+      REAL(dp):: AK,PHI
       INTEGER:: IERR,IERR1,IERR2
 !U    USES ELLRD,ELLRF
-      REAL(8):: CC,Q,S!,ELLRD,ELLRF
+      REAL(dp):: CC,Q,S!,ELLRD,ELLRF
 !
       IF(ABS(AK).GT.1.D0) THEN
          ELLE=0.D0
@@ -740,12 +742,13 @@
 !   920501  Reformatted the REFERENCES section.  (WRB)
 !***END PROLOGUE  DRD
 !
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
       INTEGER IER
-      REAL*8 LOLIM, TUPLIM, UPLIM, EPSLON, ERRTOL
-      REAL*8 C1, C2, C3, C4, EA, EB, EC, ED, EF, LAMDA
-      REAL*8 MU, POWER4, SIGMA, S1, S2, X, XN, XNDEV
-      REAL*8 XNROOT, Y, YN, YNDEV, YNROOT, Z, ZN, ZNDEV, ZNROOT
+      REAL(dp) LOLIM, TUPLIM, UPLIM, EPSLON, ERRTOL
+      REAL(dp) C1, C2, C3, C4, EA, EB, EC, ED, EF, LAMDA
+      REAL(dp) MU, POWER4, SIGMA, S1, S2, X, XN, XNDEV
+      REAL(dp) XNROOT, Y, YN, YNDEV, YNROOT, Z, ZN, ZNDEV, ZNROOT
       LOGICAL FIRST
       SAVE ERRTOL, LOLIM, UPLIM, C1, C2, C3, C4, FIRST
       DATA FIRST /.TRUE./

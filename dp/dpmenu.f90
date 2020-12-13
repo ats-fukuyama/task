@@ -33,6 +33,7 @@ CONTAINS
     TYPE(pl_mag_type):: mag
     TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
     TYPE(pl_grd_type),DIMENSION(nsmax):: grd
+    EXTERNAL TASK_KLIN,GUCPTL
 
 1   CONTINUE
     WRITE(6,*) '## DP MENU: P,V/PARM  ', &

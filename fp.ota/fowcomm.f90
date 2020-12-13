@@ -8,9 +8,12 @@ module fowcomm
 
   public
 
-  integer :: model_obload ! 0          : exec TASK/OB anyway and do not save orbit_x to binary files
-                          ! 1[default] : If binary file of 'type(orbit) orbit_x' exists then load member of orbit_x, else exec TASK/OB
-                          ! 2          : load member of orbit_x and deconstruct while exec matrix solver in fow_loop to save memory
+  integer :: model_obload   ! 0          : exec TASK/OB anyway and do not save orbit_x to binary files
+                            ! 1[default] : If binary file of 'type(orbit) orbit_x' exists then load member of orbit_x, else exec TASK/OB
+
+  integer :: model_mkcsv    ! 0[default] : do not output to csv files
+                            ! 1          : output to csv files
+  integer :: max_stp        ! maximum step number for bounce average
 
   integer:: nthpmax,&                                        ! number of poloidal angle grid points
             nthm1,&                                          ! number of theta_m grid points for 0 <= theta_m <= theta_pnc
@@ -18,11 +21,16 @@ module fowcomm
             nthm3                                            ! number of theta_m grid points for theta_cnt_stg <= theta_m <= pi
 
   real(rkind),allocatable :: Jacobian_I(:,:,:,:) ! dxdydzd(vx)d(vy)d(vz) = Jacobian_I * dpd(thetam)d(psim) normalized by V_phase
-  real(rkind),allocatable  :: V_phase(:)
+  real(rkind),allocatable  :: fnorm(:)
 ! COM --------------------------------------------------------------------------------------------------          
   real(rkind),allocatable,dimension(:) :: psim,&                ! maximum poloidal magnetic flux in an orbit, value at half integer grid points
-                                          psimg                 ! psim at integer grid points
-  
+                                          psimg,&               ! psim at integer grid points
+                                          delps
+
+  real(rkind),allocatable :: psim_local(:,:,:,:,:), &
+                            thetam_local(:,:,:,:,:), &
+                            time_loss(:,:,:,:,:)
+
   real(rkind),allocatable,dimension(:,:,:,:) :: thetam,&              ! pitch angle along orbit in psim, value at half integer grid points
                                                 thetamg,&             ! theta_m at integer grid points
                                                 thetam_rg,&           ! theta_m for given pm(np), psimg(nr)
@@ -44,6 +52,7 @@ module fowcomm
                                           Bing                   ! Bin for grid points
   
   real(rkind),allocatable,dimension(:,:) :: Babs                 ! B(psip,thetap)
+  real(rkind),allocatable,dimension(:) :: theta_p                 ! poloidal angle
 
 ! use for boundary conditions --------------------------------------------------------------------------
   real(rkind),allocatable,dimension(:,:,:) :: theta_pnc,&         ! theta_m of pinch orbit for given pm(np) and psim(nr)
@@ -65,10 +74,8 @@ module fowcomm
 
   real(rkind),allocatable,dimension(:,:,:,:) :: delthm_rg, delthm_pg, delthm
 
-  integer,allocatable,dimension(:) :: nth_co_stg,&        ! thetamg(nth_co_stg,(nsa),np,nr,nsa) = theta_co_stg
-                                      nth_cnt_stg,&       ! thetamg(nth_cnt_stg,(nsa),np,nr,nsa) = theta_cnt_stg
-                                      nth_pnc,&           ! thetamg(nth_pnc,(nsa),np,nr,nsa) = theta_pnc
-                                      nth_forbitten       ! thetam(nth_forbitten(nsa),np,nr,nsa),thetam_pg(nth_forbitten(nsa),np,nr,nsa) and thetam_rg(nth_forbitten(nsa),np,nr,nsa) are in forbitten region
+  integer,allocatable,dimension(:) :: nth_stg,&        ! thetamg(nth_stg,(nsa),np,nr,nsa) = theta_stg
+                                      nth_pnc           ! thetamg(nth_pnc,(nsa),np,nr,nsa) = theta_pnc
 
   real(rkind),allocatable,dimension(:,:,:) :: IBCflux_ratio         ! ration between the flux from thetam(nth_pnc-1) to thetam(nth_pnc) and the flux from thetam(nth_pnc-1) to thetam(nth_co_stg)
   integer,allocatable,dimension(:,:,:) ::  nr_pnc_point          ! nr of pinch point of theta_pnc(:,:,:)
@@ -108,8 +115,12 @@ contains
   subroutine fow_allocate
     use fpcomm, only:npmax,nthmax,nrmax,nsamax
     allocate(Jacobian_I(nthmax,npmax,nrmax,nsamax))
-    allocate(V_phase(nsamax))
+    allocate(fnorm(nsamax))
     allocate(psim(nrmax),psimg(nrmax+1))
+    allocate(delps(nrmax))
+    allocate(psim_local(nthmax,npmax,nrmax,nthpmax,nsamax), thetam_local(nthmax,npmax,nrmax,nthpmax,nsamax))
+    allocate(time_loss(nthmax,npmax,nrmax,nthpmax,nsamax))
+
     allocate(thetam(nthmax,npmax,nrmax,nsamax),thetamg(nthmax+1,npmax,nrmax,nsamax))
     allocate(thetam_pg(nthmax,npmax+1,nrmax,nsamax), thetam_rg(nthmax,npmax,nrmax+1,nsamax))
     ! 
@@ -126,14 +137,14 @@ contains
     allocate(psip_pnc_point_rg(npmax,nrmax+1,nsamax))
 
     allocate(delthm(nthmax,npmax,nrmax,nsamax),delthm_pg(nthmax,npmax+1,nrmax,nsamax),delthm_rg(nthmax,npmax,nrmax+1,nsamax))
-    allocate(nth_co_stg(nsamax),nth_cnt_stg(nsamax),nth_pnc(nsamax))
-    allocate(nth_forbitten(nsamax))
+    allocate(nth_stg(nsamax),nth_pnc(nsamax))
     allocate(IBCflux_ratio(npmax,nrmax,nsamax))
     allocate(nr_pnc_point(npmax,nrmax,nsamax))
 
     allocate(Xstg_as_pncp(npmax,nrmax,nsamax))
 
     allocate(Babs(nrmax+1,nthpmax))
+    allocate(theta_p(nthpmax))
     ! 
     allocate(orbit_p(nthmax,npmax+1,nrmax,nsamax),orbit_th(nthmax+1,npmax,nrmax,nsamax)&
     ,orbit_r(nthmax,npmax,nrmax+1,nsamax),orbit_m(nthmax,npmax,nrmax,nsamax))
@@ -174,7 +185,7 @@ contains
   end subroutine fow_deallocate
 
   subroutine fow_read_namelist
-    namelist /fow/nthpmax, model_obload
+    namelist /fow/nthpmax, max_stp, model_obload, model_mkcsv
 
     open(11,file="fpparm",status='old',action='read')
     read(11,nml=fow)
@@ -424,5 +435,32 @@ contains
     return
 
   end subroutine fow_cal_spl
+
+  subroutine fow_cal_spl2D(f_out, x_in, y_in, f, x, y)
+    ! 2D-version of fow_cal_spl
+    use fpcomm,only:rkind
+
+    implicit none
+    real(rkind),intent(out) :: f_out
+    real(rkind),intent(in) :: x_in, y_in, f(:,:), x(:), y(:)
+    integer :: i, j, imax, jmax, ierr = 0
+    real(rkind),allocatable :: U(:,:,:,:), fx(:,:), fy(:,:) , fxy(:,:)
+
+    imax = size(x)
+    jmax = size(y)
+
+    allocate(U(4,4,imax,jmax),fx(imax,jmax),fy(imax,jmax),fxy(imax,jmax))
+
+    if ( size(f,1) /= imax &
+        .or. size(f,2) /= jmax ) then
+      write(*,*)"error at fow_cal_spl2D"
+      STOP
+    end if
+
+    call SPL2D(x,y,f,fx,fy,fxy,U,imax,imax,jmax,0,0,IERR)
+
+    call SPL2DF(x_in,y_in,f_out,x,y,U,imax,imax,jmax,ierr)
+
+  end subroutine
 
 end module fowcomm

@@ -93,8 +93,10 @@
 !        PNITB : Density increment at ITB              (1.0E20/Mm*3)
 !        PTITB : Temperature increment at ITB                  (keV)
 !        PUITB : Toroidal rotation velocity increment at ITB   (m/s)
-!        PZCL  : normalized collision frequency
-
+!        PNUC  : Factor for collision frequency: 0:collisionless 1:standard
+!        PZCL  : Factor for collisional damping
+!                   positive: nu/omega=PZCL
+!                   0:        nu/omega=RNUC
 !        KID_NS: index of particle species
 !        ID_NS : -1 : electron
 !                 0 : neutral
@@ -124,6 +126,7 @@
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
+         PNUC(NS) = 0.D0
          PZCL(NS) = 0.D0
 
 !     *** deuteron ***
@@ -147,9 +150,11 @@
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
+         PNUC(NS) = 0.D0
          PZCL(NS) = 0.D0
 
 !     *** triton ***
+
          NS = 3
 
          KID_NS(NS)= ' T'
@@ -170,6 +175,7 @@
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
+         PNUC(NS) = 0.D0
          PZCL(NS) = 0.D0
 
 !     *** Helium ion ***
@@ -193,6 +199,7 @@
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
+         PNUC(NS) = 0.D0
          PZCL(NS) = 0.D0
 
          ! *** dummy ***
@@ -215,6 +222,7 @@
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
+         PNUC(NS) = 0.D0
          PZCL(NS) = 0.D0
       ENDDO
 
@@ -367,7 +375,9 @@
 
 !        mdlplw: 0  rupr=pupr, rupp=pupp
 !                1  rupr=ru*bnt+rupl*bnp  rupp=-ru*bnp+rupl*bnt
-         mdlplw=0
+!                        ru:   toroidal velocity, rupl: poloidal velocity 
+!                        rupr: parallel velocity, rupp: perpendicular velocity 
+      mdlplw=0
 
 
 !     ======( IO FILE NAMES )======

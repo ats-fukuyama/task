@@ -26,6 +26,7 @@ CONTAINS
 
     IERR=0
 
+    WRITE(6,*) '@@@ point 20'
     IF(MOD(NXVMAX,2).NE.0) NXVMAX=NXVMAX+1
 !    IF(ABS(RZ).LE.1.D-8) RZ=2.D0*PI*RR
 
@@ -50,6 +51,7 @@ CONTAINS
        CALL W1QTBL
     END SELECT
 
+    WRITE(6,*) '@@@ point 21'
 !     ******* 2-DIMENSIONAL ANALYSIS *******
 
     RFSAVE=RF
@@ -57,6 +59,7 @@ CONTAINS
     DO NL=1,NLOOP
 
        IF(NLOOP.NE.1) WRITE(6,630) RF,RKZ
+       WRITE(6,*) '@@@ point 22'
 
 !     ******* CALCULATION FOR EACH KZ *******
 
@@ -73,8 +76,10 @@ CONTAINS
 !          WRITE(6,'(A,1p4E12.4)') 'CFJY=',CFJY1,CFJY2
 !          WRITE(6,'(A,1p4E12.4)') 'CFJZ=',CFJZ2,CFJZ2
 
+          WRITE(6,*) '@@@ point 23 NMODEL=',NMODEL
           SELECT CASE(NMODEL)
           CASE(0) ! FEM (no FLR)
+             WRITE(6,*) '@@@ point 23'
              CALL W1_BCND
              CALL W1DSPA
              CALL W1BNDA(IERR)
@@ -124,9 +129,13 @@ CONTAINS
              CALL W1CLCD(NZP)
              CALL W1CLPW(NZP)
           CASE(5) ! MLM  (2nd order FLR)
+             WRITE(6,*) '@@@ point 240'
              CALL W1_BCND
+             WRITE(6,*) '@@@ point 241'
              CALL W1DSPA
+             WRITE(6,*) '@@@ point 242'
              CALL W1WKXD
+             WRITE(6,*) '@@@ point 243'
              CALL W1BNDD(IERR)
                 IF(IERR.NE.0) GOTO 2000
              CALL W1EPWD(NZP)
@@ -188,6 +197,6 @@ CONTAINS
   616 FORMAT('## INTEGRO-DIFF EQ. : ', &
                  'NLWMAX NCLMAX NCMAX   NDMAX   XDMAX'/ &
              22X,5I8,1P1D12.4)
-  630 FORMAT(/' (/M) **')
+  630 FORMAT('RF,RKZ=',2ES12.4)
   END SUBROUTINE w1_exec
 END MODULE w1exec

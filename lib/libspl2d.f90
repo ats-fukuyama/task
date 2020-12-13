@@ -32,36 +32,37 @@
 !              FXY(NXM,NYMAX): ESTIMATED DERIVATIVES
 !              IERR          : ERROR INDICATOR
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
 
-      INTEGER(4),                   INTENT(IN) :: NXM, NXMAX, NYMAX, IDX, IDY
-      REAL(8), DIMENSION(NXMAX),        INTENT(IN) :: X
-      REAL(8), DIMENSION(NYMAX),        INTENT(IN) :: Y
-      REAL(8), DIMENSION(NXM,NYMAX),    INTENT(IN) :: F
-      REAL(8), DIMENSION(NXM,NYMAX),  INTENT(INOUT):: FX, FY, FXY
-      INTEGER(4),                       INTENT(OUT):: IERR
-      REAL(8), DIMENSION(4,4,NXM,NYMAX),INTENT(OUT):: U
+      INTEGER,                   INTENT(IN) :: NXM, NXMAX, NYMAX, IDX, IDY
+      REAL(dp), DIMENSION(NXMAX),        INTENT(IN) :: X
+      REAL(dp), DIMENSION(NYMAX),        INTENT(IN) :: Y
+      REAL(dp), DIMENSION(NXM,NYMAX),    INTENT(IN) :: F
+      REAL(dp), DIMENSION(NXM,NYMAX),  INTENT(INOUT):: FX, FY, FXY
+      INTEGER,                       INTENT(OUT):: IERR
+      REAL(dp), DIMENSION(4,4,NXM,NYMAX),INTENT(OUT):: U
 
-      INTEGER(4)            :: NX, NY, IDX1, IDX2, IDY1, IDY2
-      REAL(8)               :: DX, DXM, DXP, DX1, DX2, DX3
-      REAL(8)               :: DY, DYM, DYP, DY1, DY2, DY3
-      REAL(8)               :: T11,T12,T13,T14,T21,T22,T23,T24
-      REAL(8)               :: T31,T32,T33,T34,T41,T42,T43,T44
-      REAL(8)               :: V13,V14,V23,V24,V31,V32,V33,V34,V41,V42,V43,V44
+      INTEGER            :: NX, NY, IDX1, IDX2, IDY1, IDY2
+      REAL(dp)               :: DX, DXM, DXP, DX1, DX2, DX3
+      REAL(dp)               :: DY, DYM, DYP, DY1, DY2, DY3
+      REAL(dp)               :: T11,T12,T13,T14,T21,T22,T23,T24
+      REAL(dp)               :: T31,T32,T33,T34,T41,T42,T43,T44
+      REAL(dp)               :: V13,V14,V23,V24,V31,V32,V33,V34,V41,V42,V43,V44
 
 
-      REAL(8),    DIMENSION(:,:),ALLOCATABLE:: UX, UX0
-      REAL(8),    DIMENSION(:,:),ALLOCATABLE:: UY, UY0
-      REAL(8),    DIMENSION(:)  ,ALLOCATABLE:: BX
-      REAL(8),    DIMENSION(:)  ,ALLOCATABLE:: BY
+      REAL(dp),    DIMENSION(:,:),ALLOCATABLE:: UX, UX0
+      REAL(dp),    DIMENSION(:,:),ALLOCATABLE:: UY, UY0
+      REAL(dp),    DIMENSION(:)  ,ALLOCATABLE:: BX
+      REAL(dp),    DIMENSION(:)  ,ALLOCATABLE:: BY
 
       ALLOCATE(UX(4,NXMAX),UX0(4,NXMAX),BX(NXMAX))
       ALLOCATE(UY(4,NYMAX),UY0(4,NYMAX),BY(NYMAX))
 
-!      REAL(8),    DIMENSION(4,NXMAX):: UX, UX0
-!      REAL(8),    DIMENSION(4,NYMAX):: UY, UY0
-!      REAL(8),    DIMENSION(NXMAX)  :: BX
-!      REAL(8),    DIMENSION(NYMAX)  :: BY
+!      REAL(dp),    DIMENSION(4,NXMAX):: UX, UX0
+!      REAL(dp),    DIMENSION(4,NYMAX):: UY, UY0
+!      REAL(dp),    DIMENSION(NXMAX)  :: BX
+!      REAL(dp),    DIMENSION(NYMAX)  :: BY
 
 !      IF(NXMAX.GT.NMAX) GOTO 9001
 !      IF(NYMAX.GT.NMAX) GOTO 9002
@@ -444,19 +445,20 @@
 
       SUBROUTINE SPL2DF(X0,Y0,F0,X,Y,U,NXM,NXMAX,NYMAX,IERR)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
 
-      INTEGER(4),                       INTENT(IN) :: NXM, NXMAX, NYMAX
-      REAL(8),                          INTENT(IN) :: X0, Y0
-      REAL(8), DIMENSION(NXMAX),        INTENT(IN) :: X
-      REAL(8), DIMENSION(NYMAX),        INTENT(IN) :: Y
-      REAL(8), DIMENSION(4,4,NXM,NYMAX),INTENT(IN) :: U
-      INTEGER(4),                       INTENT(OUT):: IERR
-      REAL(8),                          INTENT(OUT):: F0
+      INTEGER,                       INTENT(IN) :: NXM, NXMAX, NYMAX
+      REAL(dp),                          INTENT(IN) :: X0, Y0
+      REAL(dp), DIMENSION(NXMAX),        INTENT(IN) :: X
+      REAL(dp), DIMENSION(NYMAX),        INTENT(IN) :: Y
+      REAL(dp), DIMENSION(4,4,NXM,NYMAX),INTENT(IN) :: U
+      INTEGER,                       INTENT(OUT):: IERR
+      REAL(dp),                          INTENT(OUT):: F0
 
-      INTEGER(4)            :: NX, NY, I
-      REAL(8)               :: DX, DY, FX, FY
-      REAL(8),DIMENSION(4)  :: UF
+      INTEGER            :: NX, NY, I
+      REAL(dp)               :: DX, DY, FX, FY
+      REAL(dp),DIMENSION(4)  :: UF
 
 
       IERR=0
@@ -531,19 +533,20 @@
 
       SUBROUTINE SPL2DD(X0,Y0,F0,FX0,FY0,X,Y,U,NXM,NXMAX,NYMAX,IERR)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
 
-      INTEGER(4),                       INTENT(IN) :: NXM, NXMAX, NYMAX
-      REAL(8),                          INTENT(IN) :: X0, Y0
-      REAL(8), DIMENSION(NXMAX),        INTENT(IN) :: X
-      REAL(8), DIMENSION(NYMAX),        INTENT(IN) :: Y
-      REAL(8), DIMENSION(4,4,NXM,NYMAX),INTENT(IN) :: U
-      INTEGER(4),                       INTENT(OUT):: IERR
-      REAL(8),                          INTENT(OUT):: F0, FX0, FY0
+      INTEGER,                       INTENT(IN) :: NXM, NXMAX, NYMAX
+      REAL(dp),                          INTENT(IN) :: X0, Y0
+      REAL(dp), DIMENSION(NXMAX),        INTENT(IN) :: X
+      REAL(dp), DIMENSION(NYMAX),        INTENT(IN) :: Y
+      REAL(dp), DIMENSION(4,4,NXM,NYMAX),INTENT(IN) :: U
+      INTEGER,                       INTENT(OUT):: IERR
+      REAL(dp),                          INTENT(OUT):: F0, FX0, FY0
 
-      INTEGER(4)  :: NX, NY, I
-      REAL(8)     :: DX, DY, FX, FY
-      REAL(8),DIMENSION(4):: UF
+      INTEGER  :: NX, NY, I
+      REAL(dp)     :: DX, DY, FX, FY
+      REAL(dp),DIMENSION(4):: UF
 
 
       IERR=0
@@ -650,31 +653,32 @@
 !              FXY(NXM,NYMAX): ESTIMATED DERIVATIVES
 !              IERR          : ERROR INDICATOR
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
 
-      INTEGER(4),                          INTENT(IN) :: NXM, NXMAX, NYMAX, IDX, IDY
-      REAL(8), DIMENSION(NXMAX),           INTENT(IN) :: X
-      REAL(8), DIMENSION(NYMAX),           INTENT(IN) :: Y
-      COMPLEX(8), DIMENSION(NXM,NYMAX),    INTENT(IN) :: F
-      COMPLEX(8), DIMENSION(NXM,NYMAX),    INTENT(INOUT):: FX, FY, FXY
-      INTEGER(4),                          INTENT(OUT):: IERR
-      COMPLEX(8), DIMENSION(4,4,NXM,NYMAX),INTENT(OUT):: U
+      INTEGER,                          INTENT(IN) :: NXM, NXMAX, NYMAX, IDX, IDY
+      REAL(dp), DIMENSION(NXMAX),           INTENT(IN) :: X
+      REAL(dp), DIMENSION(NYMAX),           INTENT(IN) :: Y
+      COMPLEX(dp), DIMENSION(NXM,NYMAX),    INTENT(IN) :: F
+      COMPLEX(dp), DIMENSION(NXM,NYMAX),    INTENT(INOUT):: FX, FY, FXY
+      INTEGER,                          INTENT(OUT):: IERR
+      COMPLEX(dp), DIMENSION(4,4,NXM,NYMAX),INTENT(OUT):: U
 
 
-      INTEGER(4) :: NX, NY
-      REAL(8)    :: DX, DXM, DXP, DX1, DX2, DX3, DY, DYM, DYP, DY1, DY2, DY3
-      INTEGER(4) :: IDX1, IDX2, IDY1, IDY2
-      COMPLEX(8) :: T11, T12, T13, T14, T21, T22, T23, T24
-      COMPLEX(8) :: T31, T32, T33, T34, T41, T42, T43, T44
-      COMPLEX(8) :: V13, V14, V23, V24, V31, V32, V33, V34
-      COMPLEX(8) :: V41, V42, V43, V44
-!      INTEGER(4), PARAMETER :: NMAX = 1001
-!      COMPLEX(8),    DIMENSION(4,NMAX):: UX, UY,UX0, UY0
-!      COMPLEX(8),    DIMENSION(NMAX)  ::  BX
-      COMPLEX(8),    DIMENSION(4,NXMAX):: UX, UX0
-      COMPLEX(8),    DIMENSION(4,NYMAX):: UY, UY0
-      COMPLEX(8),    DIMENSION(NXMAX)  :: BX
-      COMPLEX(8),    DIMENSION(NYMAX)  :: BY
+      INTEGER :: NX, NY
+      REAL(dp)    :: DX, DXM, DXP, DX1, DX2, DX3, DY, DYM, DYP, DY1, DY2, DY3
+      INTEGER :: IDX1, IDX2, IDY1, IDY2
+      COMPLEX(dp) :: T11, T12, T13, T14, T21, T22, T23, T24
+      COMPLEX(dp) :: T31, T32, T33, T34, T41, T42, T43, T44
+      COMPLEX(dp) :: V13, V14, V23, V24, V31, V32, V33, V34
+      COMPLEX(dp) :: V41, V42, V43, V44
+!      INTEGER, PARAMETER :: NMAX = 1001
+!      COMPLEX(dp),    DIMENSION(4,NMAX):: UX, UY,UX0, UY0
+!      COMPLEX(dp),    DIMENSION(NMAX)  ::  BX
+      COMPLEX(dp),    DIMENSION(4,NXMAX):: UX, UX0
+      COMPLEX(dp),    DIMENSION(4,NYMAX):: UY, UY0
+      COMPLEX(dp),    DIMENSION(NXMAX)  :: BX
+      COMPLEX(dp),    DIMENSION(NYMAX)  :: BY
 
 !      IF(NXMAX.GT.NMAX) GOTO 9001
 !      IF(NYMAX.GT.NMAX) GOTO 9002
@@ -1050,19 +1054,20 @@
 
       SUBROUTINE CSPL2DF(X0,Y0,F0,X,Y,U,NXM,NXMAX,NYMAX,IERR)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
 
-      INTEGER(4),                          INTENT(IN) :: NXM, NXMAX, NYMAX
-      REAL(8),                             INTENT(IN) :: X0, Y0
-      REAL(8), DIMENSION(NXMAX),           INTENT(IN) :: X
-      REAL(8), DIMENSION(NYMAX),           INTENT(IN) :: Y
-      COMPLEX(8), DIMENSION(4,4,NXM,NYMAX),INTENT(IN) :: U
-      INTEGER(4),                          INTENT(OUT):: IERR
-      COMPLEX(8),                          INTENT(OUT):: F0
+      INTEGER,                          INTENT(IN) :: NXM, NXMAX, NYMAX
+      REAL(dp),                             INTENT(IN) :: X0, Y0
+      REAL(dp), DIMENSION(NXMAX),           INTENT(IN) :: X
+      REAL(dp), DIMENSION(NYMAX),           INTENT(IN) :: Y
+      COMPLEX(dp), DIMENSION(4,4,NXM,NYMAX),INTENT(IN) :: U
+      INTEGER,                          INTENT(OUT):: IERR
+      COMPLEX(dp),                          INTENT(OUT):: F0
 
-      INTEGER(4)            :: NX, NY
-      REAL(8)               :: DX, DY, FX, FY
-      COMPLEX(8)            :: F1, F2, F3, F4
+      INTEGER            :: NX, NY
+      REAL(dp)               :: DX, DY, FX, FY
+      COMPLEX(dp)            :: F1, F2, F3, F4
 
 
       IERR=0
@@ -1164,19 +1169,20 @@
 
       SUBROUTINE CSPL2DD(X0,Y0,F0,FX0,FY0,X,Y,U,NXM,NXMAX,NYMAX,IERR)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
 
-      INTEGER(4),                          INTENT(IN) :: NXM, NXMAX, NYMAX
-      REAL(8),                             INTENT(IN) :: X0, Y0
-      REAL(8), DIMENSION(NXMAX),           INTENT(IN) :: X
-      REAL(8), DIMENSION(NYMAX),           INTENT(IN) :: Y
-      COMPLEX(8), DIMENSION(4,4,NXM,NYMAX),INTENT(IN) :: U
-      INTEGER(4),                          INTENT(OUT):: IERR
-      COMPLEX(8),                          INTENT(OUT):: F0, FX0, FY0
+      INTEGER,                          INTENT(IN) :: NXM, NXMAX, NYMAX
+      REAL(dp),                             INTENT(IN) :: X0, Y0
+      REAL(dp), DIMENSION(NXMAX),           INTENT(IN) :: X
+      REAL(dp), DIMENSION(NYMAX),           INTENT(IN) :: Y
+      COMPLEX(dp), DIMENSION(4,4,NXM,NYMAX),INTENT(IN) :: U
+      INTEGER,                          INTENT(OUT):: IERR
+      COMPLEX(dp),                          INTENT(OUT):: F0, FX0, FY0
 
-      INTEGER(4)  :: NX, NY
-      REAL(8)     :: DX, DY, FX, FY
-      COMPLEX(8)  :: F1, F2, F3, F4, FY1, FY2, FY3, FY4
+      INTEGER  :: NX, NY
+      REAL(dp)     :: DX, DY, FX, FY
+      COMPLEX(dp)  :: F1, F2, F3, F4, FY1, FY2, FY3, FY4
 
       IERR=0
       IF(X(NXMAX).EQ.X(1)) THEN

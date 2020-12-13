@@ -23,14 +23,15 @@
 !                                         30000 : SINGULAR MATRIX
 !          NOTICE: ARRAY A AND X WILL BE DESTROYED.
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),               INTENT(IN)    :: N, L, LA
-      REAL(8), DIMENSION(LA, N),INTENT(INOUT) :: A
-      REAL(8), DIMENSION(N),    INTENT(INOUT) :: X
-      INTEGER(4),               INTENT(OUT)   :: IERR
-      REAL(8)            :: ABS1, ABS2, TEMP
-      REAL(8), PARAMETER :: EPS = 1.D-70
-      INTEGER(4)         :: I, J, K, LH, LHM, NM, LHMK, NPMK, LPMI, IPIVOT, IP, JJ
+      INTEGER,               INTENT(IN)    :: N, L, LA
+      REAL(dp), DIMENSION(LA, N),INTENT(INOUT) :: A
+      REAL(dp), DIMENSION(N),    INTENT(INOUT) :: X
+      INTEGER,               INTENT(OUT)   :: IERR
+      REAL(dp)            :: ABS1, ABS2, TEMP
+      REAL(dp), PARAMETER :: EPS = 1.D-70
+      INTEGER         :: I, J, K, LH, LHM, NM, LHMK, NPMK, LPMI, IPIVOT, IP, JJ
 
       IF( MOD(L,2) .EQ. 0 ) GO TO 9000
       LH  = (L+1)/2
@@ -133,15 +134,16 @@
 !                                         30000 : SINGULAR MATRIX
 !          NOTICE: ARRAY A AND X WILL BE DESTROYED.
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),               INTENT(IN)    :: N, L, LA
-      COMPLEX(8), DIMENSION(LA, N),INTENT(INOUT) :: A
-      COMPLEX(8), DIMENSION(N),    INTENT(INOUT) :: X
-      INTEGER(4),               INTENT(OUT)   :: IERR
-      REAL(8) :: ABS1, ABS2
-      COMPLEX(8) :: TEMP
-      REAL(8), PARAMETER :: EPS = 1.D-70
-      INTEGER(4) :: I, J, K, LH, LHM, NM, LHMK, NPMK, LPMI, IPIVOT, IP, JJ
+      INTEGER,               INTENT(IN)    :: N, L, LA
+      COMPLEX(dp), DIMENSION(LA, N),INTENT(INOUT) :: A
+      COMPLEX(dp), DIMENSION(N),    INTENT(INOUT) :: X
+      INTEGER,               INTENT(OUT)   :: IERR
+      REAL(dp) :: ABS1, ABS2
+      COMPLEX(dp) :: TEMP
+      REAL(dp), PARAMETER :: EPS = 1.D-70
+      INTEGER :: I, J, K, LH, LHM, NM, LHMK, NPMK, LPMI, IPIVOT, IP, JJ
 
       IF( MOD(L,2) .EQ. 0 ) GO TO 9000
       LH  = (L+1)/2
@@ -243,14 +245,15 @@
 !                                         30000 : SINGULAR MATRIX
 !          NOTICE: ARRAY A AND X WILL BE DESTROYED.
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),               INTENT(IN)    :: N, L, LA
-      REAL(8), DIMENSION(LA, N),INTENT(INOUT) :: A
-      REAL(8), DIMENSION(N),    INTENT(INOUT) :: X
-      INTEGER(4),               INTENT(OUT)   :: IERR
-      REAL(8)            :: ABS1, ABS2, TEMP
-      REAL(8), PARAMETER :: EPS = 1.D-70
-      INTEGER(4)         :: I, J, K, LH, LHM, NM, LHMK, NPMK, LPMI, IPIVOT, IP, JJ
+      INTEGER,               INTENT(IN)    :: N, L, LA
+      REAL(dp), DIMENSION(LA, N),INTENT(INOUT) :: A
+      REAL(dp), DIMENSION(N),    INTENT(INOUT) :: X
+      INTEGER,               INTENT(OUT)   :: IERR
+      REAL(dp)            :: ABS1, ABS2, TEMP
+      REAL(dp), PARAMETER :: EPS = 1.D-70
+      INTEGER         :: I, J, K, LH, LHM, NM, LHMK, NPMK, LPMI, IPIVOT, IP, JJ
 
       IF( MOD(L,2) .EQ. 0 ) GO TO 9000
       LH  = (L+1)/2
@@ -348,15 +351,16 @@
 !                                         30000 : SINGULAR MATRIX
 !          NOTICE: ARRAY A AND X WILL BE DESTROYED.
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),               INTENT(IN)    :: N, L, LA
-      COMPLEX(8), DIMENSION(LA, N),INTENT(INOUT) :: A
-      COMPLEX(8), DIMENSION(N),    INTENT(INOUT) :: X
-      INTEGER(4),               INTENT(OUT)   :: IERR
-      REAL(8) :: ABS1, ABS2
-      COMPLEX(8) :: TEMP
-      REAL(8), PARAMETER :: EPS = 1.D-70
-      INTEGER(4) :: I, J, K, LH, LHM, NM, LHMK, NPMK, LPMI, IPIVOT, IP, JJ
+      INTEGER,               INTENT(IN)    :: N, L, LA
+      COMPLEX(dp), DIMENSION(LA, N),INTENT(INOUT) :: A
+      COMPLEX(dp), DIMENSION(N),    INTENT(INOUT) :: X
+      INTEGER,               INTENT(OUT)   :: IERR
+      REAL(dp) :: ABS1, ABS2
+      COMPLEX(dp) :: TEMP
+      REAL(dp), PARAMETER :: EPS = 1.D-70
+      INTEGER :: I, J, K, LH, LHM, NM, LHMK, NPMK, LPMI, IPIVOT, IP, JJ
 
       IF( MOD(L,2) .EQ. 0 ) GO TO 9000
       LH  = (L+1)/2

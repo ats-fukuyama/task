@@ -2,10 +2,12 @@
 !=======================================================================
       subroutine femgr1d(ngp,x,y,nxmax,ngmax,str)
 
+      USE task_kinds,ONLY: dp
+      USE libgrf  
       implicit none
       INTEGER,INTENT(IN)::  ngp,nxmax,ngmax
-      REAL(8),INTENT(IN),dimension(nxmax) :: x
-      REAL(8),INTENT(IN),dimension(nxmax,3) :: y
+      REAL(dp),INTENT(IN),dimension(nxmax) :: x
+      REAL(dp),INTENT(IN),dimension(nxmax,3) :: y
       integer nx,ng
       real*4, dimension(:), allocatable :: gx
       real*4, dimension(:,:), allocatable :: gy
@@ -30,10 +32,12 @@
 !=======================================================================
       subroutine femgr1dc(ngp,x,y,nxmax,ngmax,str)
 
+      USE task_kinds,ONLY: dp
+      USE libgrf
       implicit none
       INTEGER,INTENT(IN)::  ngp,nxmax,ngmax
-      REAL(8),INTENT(IN),dimension(nxmax) :: x
-      COMPLEX(8),INTENT(IN),dimension(nxmax,3) :: y
+      REAL(dp),INTENT(IN),dimension(nxmax) :: x
+      COMPLEX(dp),INTENT(IN),dimension(nxmax,3) :: y
       integer nx,ng
       real*4, dimension(:), allocatable :: gx
       real*4, dimension(:,:), allocatable :: gy
@@ -60,6 +64,7 @@
 !=======================================================================
       subroutine femgr2d(ngp,x,y,z,nxm,nxmax,nymax,str,ntype)
 
+      USE libgrf  
       implicit none
       integer ngp,nxm,nxmax,nymax,nx,ny,ntype
       real*8, dimension(nxmax) :: x
