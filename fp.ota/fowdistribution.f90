@@ -293,8 +293,9 @@ contains
     call moment_0th_order_COM(rnsl_prev, fnsm)
 
     sumg = 0.d0
-    do nr = 2, nrmax
+    do nr = 1, nrmax
       dndt = ( rnsl(nr,nsa)-rnsl_prev(nr,nsa) )/delt
+      ! write(*,*)"dndt",dndt
       vprimem=4.d0*pi**2*rr*(dble(nr)-0.5d0)/dble(nrmax)*ra
       vprimeg=4.d0*pi**2*rr*dble(nr)/dble(nrmax)*ra
       sumg = sumg + (-1.d0*dndt)*vprimem*delr*ra

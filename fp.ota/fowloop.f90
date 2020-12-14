@@ -19,6 +19,7 @@ contains
     integer :: nt, nth, np, nr, nsa, n_iterate, ierr = 0, its
     real(rkind) :: deps, sumF0, sumFd
     logical :: iteration_flag
+    real(rkind) :: begin_time, end_time, begin_time_loop, end_time_loop
 
     call update_quantities
     call fow_coef
@@ -26,6 +27,7 @@ contains
 
     do nt = 1, ntmax
       write(*,*)"nt=",nt
+      call cpu_time(begin_time_loop)
 
       do nsa = 1, nsamax
         do nr = 1, nrmax
@@ -83,6 +85,9 @@ contains
       end do ! end of do while
 
       if ( model_mkcsv /= 0 ) call save_csv(nt)
+
+      call cpu_time(end_time_loop)
+      write(6,'(A,I0,A,ES10.3,A)'),'time to loop(nt=',nt,'):',end_time_loop-begin_time_loop,'[sec]'
       
     end do
 
@@ -139,10 +144,10 @@ contains
     !   end do
     ! end do
 
-    call total_N(Ntot, fnsp, 1)
-    write(*,*)"electron total", Ntot
-    call total_N(Ntot, fnsp, 2)
-    write(*,*)"ion total", Ntot
+    ! call total_N(Ntot, fnsp, 1)
+    ! write(*,*)"electron total", Ntot
+    ! call total_N(Ntot, fnsp, 2)
+    ! write(*,*)"ion total", Ntot
 
   end subroutine update_quantities
 
@@ -163,6 +168,8 @@ contains
     nr_out=nrmax/2
 
     if ( nt == 1 ) then
+
+      call system('mkdir -p csv')
   
       do nr = 1, nrmax
         rmg(nr) = rg(nr+1)
