@@ -545,13 +545,15 @@ contains
 
     BIN_DIR = "../fp.ota/bin/"
 
-    if ( access( TRIM(BIN_DIR)//"fpparm.bin", " ") /= 0 .and. access( TRIM(BIN_DIR)//"eqparm.bin", " ") /= 0) then
+    if ( access( TRIM(BIN_DIR)//"fpparm.bin", " ") /= 0 .OR. &
+         access( TRIM(BIN_DIR)//"eqparm.bin", " ") /= 0) then
       ierr = 3
       return
     end if
 
     filename = TRIM(BIN_DIR)//"eqparm.bin"
-    open(10,file=filename,access='direct',recl=rkind,form='unformatted',status='old',iostat=ierr)
+    open(10,file=filename,access='direct',recl=rkind,form='unformatted', &
+         status='old',iostat=ierr)
     read(10,rec=1,iostat=ierr)RR_
     read(10,rec=2,iostat=ierr)RA_
     read(10,rec=3,iostat=ierr)RKAP_
@@ -562,7 +564,8 @@ contains
     close(10)
 
     filename = TRIM(BIN_DIR)//"fpparm.bin"
-    open(11,file=filename,access='direct',recl=4,form='unformatted',status='old',iostat=ierr)
+    open(11,file=filename,access='direct',recl=4,form='unformatted', &
+         status='old',iostat=ierr)
     read(11,rec=1,iostat=ierr)nthm_ 
     read(11,rec=2,iostat=ierr)npm_
     read(11,rec=3,iostat=ierr)nrm_ 

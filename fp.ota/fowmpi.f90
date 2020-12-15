@@ -320,7 +320,7 @@ subroutine fow_load_orbit_mpi(ierr)
   BIN_DIR = "./bin/"
 
   if ( access( TRIM(BIN_DIR)//"fpparm.bin", " ") /= 0 &
-      .and. access( TRIM(BIN_DIR)//"eqparm.bin", " ") /= 0 ) then
+      .OR. access( TRIM(BIN_DIR)//"eqparm.bin", " ") /= 0 ) then
     ierr = 1
     return
   end if

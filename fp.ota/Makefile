@@ -11,7 +11,9 @@ LIBX_MTX=$(LIBX_MTX_MUMPS)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
 # FFLAGS=$(OFLAGS) -assume byterecl
-FFLAGS=$(DFLAGS) -assume byterecl
+#FFLAGS=$(DFLAGS) -assume byterecl
+# FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 OBJDIR   = ./obj
 

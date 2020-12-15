@@ -67,7 +67,7 @@ CONTAINS
                '11','12','13','14','15','16','17','18','19','20', &
                '21','22','23','24','25','26','27','28','29','30','31' /)
     
-    SELECT CASE(ndate+20)
+    SELECT CASE(ndate+2)
     CASE(1:366)
        nyear=2020
        nshift=1
@@ -76,15 +76,15 @@ CONTAINS
     CASE(367:366+365)
        nyear=2021
        nshift=0
-       nday=ndate+3-366
+       nday=ndate+2-366
     CASE(367+365:366+2*365)
        nyear=2022
        nshift=0
-       nday=ndate+3-366-365
+       nday=ndate+2-366-365
     CASE(367+2*365:366+3*365)
        nyear=2023
        nshift=0
-       nday=ndate+3-366-2*365
+       nday=ndate+2-366-2*365
     CASE DEFAULT
        date_id='????-??-??'
        RETURN

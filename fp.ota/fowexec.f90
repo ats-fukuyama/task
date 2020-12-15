@@ -236,7 +236,7 @@ close(901)
     real(8):: dfdth, fvel, dfdp
     
     integer :: nrl, nrr, npl, npr
-    double precision :: dfdr, delps, width_p, width_r, width_t
+    double precision :: dfdr, delps_l, width_p, width_r, width_t
 
     !     +++++ calculation of weigthing (including off-diagonal terms) +++++
 
@@ -245,7 +245,7 @@ close(901)
     ns = ns_nsa(nsa)
 
     do nr = nrstart, nrend
-      delps = psimg(nr+1)-psimg(nr)
+      delps_l = psimg(nr+1)-psimg(nr)
       do np = npstart, npendwg
         do nth = 1, nthmax
             dfdth = 0.d0
@@ -262,7 +262,7 @@ close(901)
                           /(2.d0*pg(np,ns)*delthm_pg(nth,np,nr,nsa)*f(nth,np-1,nr))
 
                   dfdr  = (f(nth,np-1,nrl)-f(nth,np-1,nrr)) &
-                          /(2.d0*delps*f(nth,np-1,nr))
+                          /(2.d0*delps_l*f(nth,np-1,nr))
                 end if
               else
 
@@ -274,15 +274,15 @@ close(901)
                             /(4.d0*pg(np,ns)*delthm_pg(nth,np,nr,nsa)*f(nth,np  ,nr))
 
                     dfdr  = (f(nth,np-1,nrl)-f(nthr,np-1,nrr)) &
-                            /(4.d0*delps*f(nth,np-1,nr)) &
+                            /(4.d0*delps_l*f(nth,np-1,nr)) &
                           + (f(nthl,np  ,nrl)-f(nthr,np  ,nrr)) &
-                            /(4.d0*delps*f(nth,np  ,nr))
+                            /(4.d0*delps_l*f(nth,np  ,nr))
                   else
                     dfdth = (f(nthl,np-1,nr)-f(nthr,np-1,nr)) &
                           /(2.d0*pg(np,ns)*delthm_pg(nth,np,nr,nsa)*f(nth,np-1,nr)) 
 
                     dfdr  = (f(nth,np-1,nrl)-f(nth,np-1,nrr)) &
-                          /(2.d0*delps*f(nth,np-1,nr)) 
+                          /(2.d0*delps_l*f(nth,np-1,nr)) 
                   end if
                 else
                   if ( abs(f(nth,np,nr)) > epswt ) then
@@ -290,7 +290,7 @@ close(901)
                           /(2.d0*pg(np,ns)*delthm_pg(nth,np,nr,nsa)*f(nth,np  ,nr))
 
                     dfdr  = (f(nth,np  ,nrl)-f(nth,np  ,nrr)) &
-                          /(2.d0*delps*f(nth,np  ,nr))
+                          /(2.d0*delps_l*f(nth,np  ,nr))
                   end if
                 end if
               end if
@@ -303,7 +303,7 @@ close(901)
     end do
 
     do nr = nrstart, nrend
-      delps = psimg(nr+1)-psimg(nr)
+      delps_l = psimg(nr+1)-psimg(nr)
       do np = npstart, npend
         do nth = 1, nthmax+1
           dfdp = 0.d0          
@@ -319,12 +319,12 @@ close(901)
           if ( nth == 1 ) then
             if ( abs(f(nth,np,nr)) > epswt ) then
               dfdp = (f(nth,npl,nr)-f(nth,npr,nr))/(width_p*delp(ns)*f(nth,np,nr))
-              dfdr = (f(nth,np,nrl)-f(nth,np,nrr))/(width_r*delps   *f(nth,np,nr))  
+              dfdr = (f(nth,np,nrl)-f(nth,np,nrr))/(width_r*delps_l   *f(nth,np,nr))  
             end if
           else if ( nth == nthmax+1 ) then
             if ( abs(f(nthmax,np,nr)) > epswt ) then
               dfdp = (f(nthmax,npl,nr)-f(nthmax,npr,nr))/(width_p*delp(ns)*f(nthmax,np,nr))
-              dfdr = (f(nthmax,np,nrl)-f(nthmax,np,nrr))/(width_r*delps*f(nthmax,np,nr))  
+              dfdr = (f(nthmax,np,nrl)-f(nthmax,np,nrr))/(width_r*delps_l*f(nthmax,np,nr))  
             end if
           else
             if ( abs(f(nth,np,nr)) > epswt .and. abs(f(nth-1,np,nr)) > epswt ) then
@@ -334,15 +334,15 @@ close(901)
               )/2.d0
 
               dfdr = ( &
-                (f(nth-1,np,nrl)-f(nth-1,np,nrr))/(width_r*delps*f(nth-1,np,nr))+&
-                (f(nth  ,np,nrl)-f(nth  ,np,nrr))/(width_r*delps*f(nth  ,np,nr)) &
+                (f(nth-1,np,nrl)-f(nth-1,np,nrr))/(width_r*delps_l*f(nth-1,np,nr))+&
+                (f(nth  ,np,nrl)-f(nth  ,np,nrr))/(width_r*delps_l*f(nth  ,np,nr)) &
               )
             else if ( abs(f(nth,np,nr)) > epswt .and. abs(f(nth-1,np,nr)) <= epswt ) then
               dfdp = (f(nth  ,npl,nr)-f(nth  ,npr,nr))/(width_p*delp(ns)*f(nth  ,np,nr))
-              dfdr = (f(nth  ,np,nrl)-f(nth  ,np,nrr))/(width_r*delps*f(nth  ,np,nr))
+              dfdr = (f(nth  ,np,nrl)-f(nth  ,np,nrr))/(width_r*delps_l*f(nth  ,np,nr))
             else if ( abs(f(nth,np,nr)) <= epswt .and. abs(f(nth-1,np,nr)) > epswt ) then
               dfdp = (f(nth-1,npl,nr)-f(nth-1,npr,nr))/(width_p*delp(ns)*f(nth-1,np,nr))
-              dfdr = (f(nth-1,np,nrl)-f(nth-1,np,nrr))/(width_r*delps*f(nth-1,np,nr))
+              dfdr = (f(nth-1,np,nrl)-f(nth-1,np,nrr))/(width_r*delps_l*f(nth-1,np,nr))
             end if
           end if
           fvel = Fthfow(nth,np,nr,nsa)-Dtpfow(nth,np,nr,nsa)*dfdp-Dtrfow(nth,np,nr,nsa)*dfdr
@@ -357,9 +357,9 @@ close(901)
 
     do nr = nrstart, nrendwg
       if ( nr == nrmax+1 ) then
-        delps = psimg(nr)-psimg(nr-1)
+        delps_l = psimg(nr)-psimg(nr-1)
       else
-        delps = psimg(nr+1)-psimg(nr)
+        delps_l = psimg(nr+1)-psimg(nr)
       end if
       do np = npstart, npend
         do nth = 1, nthmax
@@ -411,7 +411,7 @@ close(901)
             end if
           end if
           fvel = Frrfow(nth,np,nr,nsa)-Drpfow(nth,np,nr,nsa)*dfdp-Drtfow(nth,np,nr,nsa)*dfdth
-          weighr(nth,np,nr,nsa) = fowwegh(-delps*fvel,Drrfow(nth,np,nr,nsa))
+          weighr(nth,np,nr,nsa) = fowwegh(-delps_l*fvel,Drrfow(nth,np,nr,nsa))
         end do
       end do
     end do

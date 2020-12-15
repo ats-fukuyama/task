@@ -30,7 +30,7 @@
   
   tmax=1.D2
   delt=5.D-2
-  mdlobw=2
+  mdlobw=0
   mdlobc=1
   mdlobt=1
   mdlobx=0

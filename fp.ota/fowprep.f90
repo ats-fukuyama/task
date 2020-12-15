@@ -56,8 +56,9 @@ contains
       do nr = 1, nrmax
         do np = 1, npmax
           ! calculate theta_pnc and psip_pnc_point
-          call bisection_method_for_IBC(get_pinch_point, flag, pm(np,nsa)&
-                    , theta_pnc(np,nr,nsa), psip_pnc_point(np,nr,nsa), epspsi, psim(nr)*psi0-epspsi, psim(nr)*psi0, nsa)
+          call bisection_method_for_IBC(get_pinch_point, flag, pm(np,nsa), &
+               theta_pnc(np,nr,nsa), psip_pnc_point(np,nr,nsa), &
+               epspsi, psim(nr)*psi0-epspsi, psim(nr)*psi0, nsa)
 
           psip_pnc_point(np,nr,nsa) = psip_pnc_point(np,nr,nsa) / psi0
           if ( flag /= 0 ) theta_pnc(np,nr,nsa) = NO_PINCH_ORBIT
@@ -976,13 +977,15 @@ contains
     ierr = 0
 
     BIN_DIR = "./bin/"
-    if ( access( TRIM(BIN_DIR)//"fpparm.dat", " ") /= 0 .and. access( TRIM(BIN_DIR)//"eqparm.dat", " ") ) then
+    if ( access( TRIM(BIN_DIR)//"fpparm.dat", " ") /= 0 .OR. &
+         access( TRIM(BIN_DIR)//"eqparm.dat", " ") /= 0) then
       ierr = 3
       return
     end if
 
     filename = TRIM(BIN_DIR)//"eqparm.dat"
-    open(10, file=filename,access='direct',recl=rkind,form='unformatted',status='old',iostat=ierr)
+    open(10, file=filename,access='direct',recl=rkind,form='unformatted', &
+         status='old',iostat=ierr)
     read(10,rec=1,iostat=ierr)RR_
     read(10,rec=2,iostat=ierr)RA_
     read(10,rec=3,iostat=ierr)RKAP_
