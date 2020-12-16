@@ -25,6 +25,9 @@ contains
     real(8),dimension(nthmax):: sendbuf_p, recvbuf_p
     real(8),dimension(nthmax*(npend-npstart+1)):: sendbuf_r, recvbuf_r
 
+    double precision :: begin_time, end_time
+
+    call cpu_time(begin_time)
 
     NS=NS_NSA(NSA)
 
@@ -162,6 +165,9 @@ close(901)
     CALL mtx_cleanup
 
     CALL mtx_reset_communicator
+
+    call cpu_time(end_time)
+    write(6,'(A,I0,A,ES10.3,A)')'fowexec time (nsa=',nsa,') : ',end_time-begin_time,'[sec]'
 
     RETURN
   END subroutine fow_exec

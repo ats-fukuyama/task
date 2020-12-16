@@ -26,8 +26,6 @@ contains
     real(rkind) :: summ
 
 
-    call cpu_time(begin_time)
-
     do nth = 1,nthmax
       xi(nth) = (nth-0.5d0)/nthmax*(-2.d0)+1.d0
       xig(nth) = (nth-1.d0)/nthmax*(-2.d0)+1.d0
@@ -438,34 +436,15 @@ contains
 
     ! calculate local COMs
     if ( model_obload >= 1 ) then
+      call cpu_time(begin_time)
       call load_local_COM(ierr)
-      if ( ierr /= 0 ) then
-        call fow_set_obparm(ierr)
-        do nsa = 1, nsamax
-          do nthp = 1, nthpmax
-            do nr = 1, nrmax
-              do np = 1, npmax
-                do nth = 1, nthmax
-                  momentum = pm(np,nsa)*ptfp0(nsa)
-                  pitch_angle = thm(nth)
-                  theta_pol = theta_p(nthp)
-                  psi_pol = psim(nr)
-    
-                  call fow_cal_local_COMs(thetaml, psiml, tau_loss, momentum, pitch_angle, theta_pol, psi_pol, nsa)
-    
-                  thetam_local(nth,np,nr,nthp,nsa) = thetaml
-                  psim_local(nth,np,nr,nthp,nsa) = psiml
-                  time_loss(nth,np,nr,nthp,nsa) = tau_loss
-    
-                end do
-              end do
-            end do
-          end do
-        end do
-        call save_local_COM(ierr)  
-      end if
-  
-    else 
+      call cpu_time(end_time)
+      write(6,'("Load local COMs time :",ES10.3,"[sec]")')end_time-begin_time
+    end if
+
+    if ( model_obload == 0 .or. ierr /= 0) then
+      write(6,'(A)')"TASK/OB is runnnig for local COMs ..."
+      call cpu_time(begin_time)
       do nsa = 1, nsamax
         do nthp = 1, nthpmax
           do nr = 1, nrmax
@@ -487,18 +466,10 @@ contains
           end do
         end do
       end do
-
+      call cpu_time(end_time)
+      write(6,'("TASK/OB time:",ES10.3,"[sec]")')end_time-begin_time
+      if ( model_obload >= 0 ) call save_local_COM(ierr)
     end if
-
-    ! do nsa = 1, nsamax
-    !   do nr = 1, nrmax
-    !     do np = 1, npmax
-    !       do nth = 1, nthmax
-    !         fnsp(nth,np,nr,nsa) = fI_Maxwellian(nth,np,nr,nsa)
-    !       end do
-    !     end do
-    !   end do
-    ! end do
     
     do nsa = 1, nsamax
       call fI_Maxwellian_sub(fnsp(:,:,:,nsa), nsa)
@@ -529,7 +500,6 @@ contains
     ALLOCATE(temp(nrmax+1),thpa(nthpmax))
 
     ierr = 0
-    write(*,*)"FP------------------------------------"
 
     modelg=3
     call eqload(modelg,knameq,ierr)
@@ -600,8 +570,6 @@ contains
         Babs(nr,nthp) = sqrt(Bt(nthp,nr)**2+Bp(nthp,nr)**2)
       end do
     end do
-
-    write(*,*)"FP------------------------------------"
 
     call calculate_equator_variable(ierr)
 
@@ -928,30 +896,27 @@ contains
     character(30) :: BIN_DIR, filename
     integer :: nm, nth, np, nr, nsa, nthp
 
-    BIN_DIR = "../fp.ota/bin/"
+    ierr = 0
+
+    BIN_DIR = "bin/"
 
     filename = TRIM(BIN_DIR)//"psim_local.bin"
-    open(20, file=filename,access='direct',recl=rkind,form='unformatted',status='replace',iostat=ierr)
+    open(20, file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
 
     filename = TRIM(BIN_DIR)//"thetam_local.bin"
-    open(21, file=filename,access='direct',recl=rkind,form='unformatted',status='replace',iostat=ierr)
+    open(21, file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
 
     filename = TRIM(BIN_DIR)//"time_loss.bin"
-    open(22, file=filename,access='direct',recl=rkind,form='unformatted',status='replace',iostat=ierr)
+    open(22, file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
 
     do nsa = 1, nsamax
       do nthp = 1, nthpmax
         do nr = 1, nrmax
           do np = 1, npmax
             do nth = 1, nthmax
-              nm = (nsa-1)*nthpmax*nrmax*npmax*nthmax &
-                  +(nthp-1)*nrmax*npmax*nthmax &
-                  +(nr-1)*npmax*nthmax &
-                  +(np-1)*nthmax * nth
-
-              write(20,rec=nm,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
-              write(21,rec=nm,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
-              write(22,rec=nm,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
+              write(20,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
+              write(21,iostat=ierr)thetam_local(nth,np,nr,nthp,nsa)
+              write(22,iostat=ierr)time_loss(nth,np,nr,nthp,nsa)
             end do
           end do
         end do
@@ -970,57 +935,65 @@ contains
     implicit none
     integer,intent(out) :: ierr
     character(30) :: BIN_DIR, filename
-    integer :: nm, nth, np, nr, nsa, nthp, access
+    integer :: nth, np, nr, nsa, nthp, access
     integer :: nthm_, npm_, nrm_, nsam_, nthpm_
     real(rkind) :: RR_, RA_, RKAP_, RDLT_, RB_, BB_, RIP_
 
     ierr = 0
 
-    BIN_DIR = "./bin/"
-    if ( access( TRIM(BIN_DIR)//"fpparm.dat", " ") /= 0 .OR. &
-         access( TRIM(BIN_DIR)//"eqparm.dat", " ") /= 0) then
-      ierr = 3
+    call system('mkdir -p bin')
+
+    BIN_DIR = "bin/"
+    if ( access( TRIM(BIN_DIR)//"fpparm.bin"      , " ") /= 0 &
+    .or. access( TRIM(BIN_DIR)//"eqparm.bin"      , " ") /= 0 &
+    .or. access( TRIM(BIN_DIR)//"psim_local.bin"  , " ") /= 0 &
+    .or. access( TRIM(BIN_DIR)//"thetam_local.bin", " ") /= 0 &
+    .or. access( TRIM(BIN_DIR)//"time_loss.bin"   , " ") /= 0 &
+    ) then
+      ierr = 1000
       return
     end if
 
-    filename = TRIM(BIN_DIR)//"eqparm.dat"
-    open(10, file=filename,access='direct',recl=rkind,form='unformatted', &
-         status='old',iostat=ierr)
-    read(10,rec=1,iostat=ierr)RR_
-    read(10,rec=2,iostat=ierr)RA_
-    read(10,rec=3,iostat=ierr)RKAP_
-    read(10,rec=4,iostat=ierr)RDLT_
-    read(10,rec=5,iostat=ierr)RB_
-    read(10,rec=6,iostat=ierr)BB_
-    read(10,rec=7,iostat=ierr)RIP_
+    filename = TRIM(BIN_DIR)//"eqparm.bin"
+    open(10,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    read(10,iostat=ierr)RR_,RA_,RKAP_,RDLT_,RB_,BB_,RIP_
     close(10)
 
-    filename = TRIM(BIN_DIR)//"fpparm.dat"
-    open(11, file=filename,access='direct',recl=4,form='unformatted',status='old',iostat=ierr)
-    read(11,rec=1,iostat=ierr)nthm_ 
-    read(11,rec=2,iostat=ierr)npm_
-    read(11,rec=3,iostat=ierr)nrm_ 
-    read(11,rec=4,iostat=ierr)nsam_
-    read(11,rec=5,iostat=ierr)nthpm_
+    filename = TRIM(BIN_DIR)//"fpparm.bin"
+    open(11,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    read(11,iostat=ierr)nthm_,npm_,nrm_,nsam_,nthpm_
     close(11)
 
-    if ( RR /= RR_ .or. RA /= RA_ .or. RKAP /= RKAP_ &
-        .or. RDLT /= RDLT_ .or. RB /= RB_ .or. BB /= BB_ .or. RIP /= RIP_) then
-      ierr = 1
+    if ( RR   /= RR_   &
+    .or. RA   /= RA_   &
+    .or. RKAP /= RKAP_ &
+    .or. RDLT /= RDLT_ &
+    .or. RB   /= RB_   &
+    .or. BB   /= BB_   &
+    .or. RIP  /= RIP_  &
+    ) then
+      ierr = 1001
+      return
     end if
-    if ( nthmax /= nthm_ .or. npmax /= npm_ &
-        .or. nrmax /= nrm_ .or. nsamax /= nsam_ .or. nthpmax /= nthpm_ ) then
-      ierr = 2
+
+    if ( nthmax  /= nthm_  &
+    .or. npmax   /= npm_   &
+    .or. nrmax   /= nrm_   &
+    .or. nsamax  /= nsam_  &
+    .or. nthpmax /= nthpm_ &
+    ) then
+      ierr = 1002
+      return
     end if
 
     filename = TRIM(BIN_DIR)//"psim_local.bin"
-    open(20, file=filename,access='direct',recl=rkind,form='unformatted',status='old',iostat=ierr)
+    open(20, file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
 
     filename = TRIM(BIN_DIR)//"thetam_local.bin"
-    open(21, file=filename,access='direct',recl=rkind,form='unformatted',status='old',iostat=ierr)
+    open(21, file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
 
     filename = TRIM(BIN_DIR)//"time_loss.bin"
-    open(22, file=filename,access='direct',recl=rkind,form='unformatted',status='old',iostat=ierr)
+    open(22, file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
 
     if ( ierr /= 0 ) return
 
@@ -1029,14 +1002,9 @@ contains
         do nr = 1, nrmax
           do np = 1, npmax
             do nth = 1, nthmax
-              nm = (nsa-1)*nthpmax*nrmax*npmax*nthmax &
-                  +(nthp-1)*nrmax*npmax*nthmax &
-                  +(nr-1)*npmax*nthmax &
-                  +(np-1)*nthmax * nth
-
-              read(20,rec=nm,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
-              read(21,rec=nm,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
-              read(22,rec=nm,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
+              read(20,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
+              read(21,iostat=ierr)thetam_local(nth,np,nr,nthp,nsa)
+              read(22,iostat=ierr)time_loss(nth,np,nr,nthp,nsa)
             end do
           end do
         end do

@@ -26,7 +26,9 @@ contains
     implicit none
 
     integer :: nthp, nth, np, nr, nsa, i, j
+    double precision :: begin_time, end_time
 
+    call cpu_time(begin_time)
 
     allocate(check_zeroD(3,3,nsamax), check_zeroF(3,nsamax))
 
@@ -127,6 +129,9 @@ contains
 
     deallocate(Dppl, Dptl, Fppl,Dtpl, Dttl, Fthl)
     deallocate(FNSBL, check_zeroD, check_zeroF)
+
+    call cpu_time(end_time)
+    write(6,'(A,ES10.3,A)')'fowcoef time : ',end_time-begin_time,'[sec]'
 
   end subroutine fow_coef
 

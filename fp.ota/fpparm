@@ -102,6 +102,6 @@
   MODELD_RDEP=2
   MODELD_PDEP=0
 
-  DELT=1.0d-6
+  DELT=1.0d-5
   NTMAX=2
 &end
