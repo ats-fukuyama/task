@@ -62,7 +62,7 @@ contains
     real(rkind) :: ra_Bmin, theta_Bmin, rtfd0l, ptfd0l, fact, ex
     real(rkind) :: rnfd0l, rnfdl, rtfdl
     integer :: nth, np, nr, ns
-    real(rkind) :: sumI, sumu
+    real(rkind) :: sumI, sumu, r0, psip0, thetap0, th0, B0, F0
     type(pl_plf_type),dimension(nsmax) :: plf
 
     ns = ns_nsa(nsa)
@@ -73,7 +73,7 @@ contains
       do np = 1, npmax
         do nth = 1, nthmax
 
-          call quantities_at_Bminimum(ra_Bmin, theta_Bmin, orbit_m(nth,np,nr,nsa))
+          call mean_ra_quantities(orbit_m(nth,np,nr,nsa), r0, psip0, thetap0, th0, B0, F0)
 
           rtfd0l = ( ptpr(ns)+2.d0*ptpp(ns) )/3.d0
           ptfd0l = SQRT( rtfd0l*1.d3*aee*amfp(ns) )
@@ -81,19 +81,25 @@ contains
       
       
           if( model_ex_read_tn == 0 ) then
-            call pl_prof(ra_Bmin, plf)
+            call pl_prof(r0, plf)
             rnfdl = plf(ns)%rn/rnfd0l
             rtfdl = ( plf(ns)%rtpr+2.d0*plf(ns)%rtpp)/3.d0
       
           else
-            rnfdl=rn_temp(nr,ns)/rnfd0l
-            rtfdl=rt_temp(nr,ns)
+            ! rnfdl=rn_temp(nr,ns)/rnfd0l
+            ! rtfdl=rt_temp(nr,ns)
+            if ( nr == 1 ) then
+              rnfdl = rn_temp(nr,ns)/rnfd0l+(rn_temp(nr+1,ns)/rnfd0l-rn_temp(nr,ns)/rnfd0l)/delr*(r0-rm(nr))
+              rtfdl = rt_temp(nr,ns)+(rt_temp(nr+1,ns)-rt_temp(nr,ns))/delr*(r0-rm(nr))
+            else
+              rnfdl = rn_temp(nr,ns)/rnfd0l+(rn_temp(nr,ns)/rnfd0l-rn_temp(nr-1,ns)/rnfd0l)/delr*(r0-rm(nr))
+              rtfdl = rt_temp(nr,ns)+(rt_temp(nr,ns)-rt_temp(nr-1,ns))/delr*(r0-rm(nr))
+            end if
       
           end if
       
-          fact = rnfdl / SQRT(2.d0*pi*rtfdl/rtfd0l)**3
           ex = pm(np,nsa)**2/(2.d0*rtfdl/rtfd0l)
-          fI(nth, np, nr) = fact*EXP( -1.d0*ex )! / JI(nth,np,nr,nsa)
+          fI(nth, np, nr) = EXP( -1.d0*ex )! / JI(nth,np,nr,nsa)
       
         end do
       end do

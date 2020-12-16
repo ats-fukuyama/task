@@ -1031,15 +1031,25 @@ contains
     real(rkind) :: sumJ
     real(rkind),allocatable :: dFdpsi(:), dBdpsi(:,:)
     ! for JIR
-    integer :: nr0, nstp, ierr, sumi
-    real(rkind) :: Vtube, dpsmdr0, psip0, dth0dr0, dFB0dr0, dBinvdr0, dps0dr0
-    real(rkind) :: r0pls, r0mns, F0pls, F0mns, dr0, dpsmsr0, r0
-    real(rkind) :: F0, B0, cth0, sth0, dPzdr0, dmudr0, fact1, fact2, fact, normalize
     type(orbit) :: ob
-    real(rkind),allocatable :: UR(:,:), UPS(:,:)
-    real(rkind),allocatable :: dradpsi(:), dpsdra(:)
+    integer :: nr0, nstp, ierr, sumi
+    real(rkind) :: Vtube, dpsmdr0, dth0dr0, dFB0dr0, dBinvdr0, dps0dr0
+    real(rkind) :: r0,F0,B0,psip0,th0,thetap0,dF0,dB0
+    real(rkind) :: cth0, sth0, dPzdr0, dmudr0, fact1, fact2, fact, normalize
+    real(rkind),allocatable :: UR(:,:), UdF(:,:), Udps(:,:), UdB(:,:,:,:)
+    real(rkind),allocatable :: dradpsi(:), dpsdra(:), d2Fdpsi(:), fx(:,:), fy(:,:), fxy(:,:)
 
     ierr = 0
+
+    allocate(UR(4,nrmax))
+    allocate(UdF(4,nrmax))
+    allocate(Udps(4,nrmax))
+    allocate(UdB(4,4,nrmax+1,nthpmax))
+    allocate(dpsdra(nrmax))
+    allocate(d2Fdpsi(nrmax))
+    allocate(fx(nrmax+1,nthpmax))
+    allocate(fy(nrmax+1,nthpmax))
+    allocate(fxy(nrmax+1,nthpmax))
 
     allocate(dFdpsi(nrmax), dBdpsi(nrmax,2))
     call first_order_derivative(dFdpsi,Fpsi,psim)
@@ -1086,13 +1096,11 @@ contains
 
 
     ! calculate JIR
-    allocate(UR(4,nrmax))
-    allocate(dradpsi(nrmax))
-    call first_order_derivative(dradpsi, rm, psim)
-    call SPL1D(psim,rm,dradpsi,UR,nrmax,3,ierr)
-
-    allocate(dpsdra(nrmax))
     call first_order_derivative(dpsdra, psim, rm)
+    call SPL1D(rm,psim,dpsdra,Udps,nrmax,0,ierr)
+
+    call SPL1D(psim,dFdpsi,d2Fdpsi,UdF,nrmax,0,ierr)
+    call SPL2D(psimg,theta_p,dBdpsi,fx,fy,fxy,UdB,nrmax+1,nrmax+1,nthpmax,0,0,ierr)
 
     do nsa = 1, nsamax
       sumi = 0.d0
@@ -1101,53 +1109,38 @@ contains
         do np = 1, npmax
           pl = pm(np,nsa)*ptfp0(nsa)
           do nth = 1, nthmax
+            cthm = COS( thetam(nth,np,nr,nsa) )
+            sthm = SIN( thetam(nth,np,nr,nsa) )
+            if ( cthm*aefp(nsa) >= 0.d0 ) then
+              dBdpsil = dBdpsi(nr,1)
+              Bml = Bout(nr)
+            else
+              dBdpsil = dBdpsi(nr,2)
+              Bml = Bin(nr)
+            end if
+
             ob = orbit_m(nth,np,nr,nsa)
-            r0 = get_mean_ra(ob)
-            call fow_cal_spl(dpsmsr0, r0, dpsdra, rm)
-            ! psip0 = get_mean_psip(ob)
-            ! nstpmax = ob%nstp_max
 
-            ! do nstp = 1, nstpmax-1
-            !   if ( ob%psip(nstp) <= psip0 .and. psip0 < ob%psip(nstp+1) ) then
-            !     call SPL1DF(ob%psip(nstp),r0mns,psim,UR,nrmax,IERR)
-            !     call SPL1DF(ob%psip(nstp+1),r0pls,psim,UR,nrmax,IERR)
-            !     dr0 = r0pls-r0mns
-            !     F0mns = get_F_nstp(ob, nstp)
-            !     F0pls = get_F_nstp(ob, nstp+1)
-          
-            !     dth0dr0  = (ob%theta(nstp+1)-ob%theta(nstp))/dr0
-            !     dFB0dr0  = (F0pls/ob%Babs(nstp+1)-F0mns/ob%Babs(nstp))/dr0
-            !     dBinvdr0 = (1.d0/ob%Babs(nstp+1)-1.d0/ob%Babs(nstp))/dr0
-            !     dps0dr0  = (ob%psip(nstp+1)-ob%psip(nstp))/dr0
+            call mean_ra_quantities(ob, r0, psip0, thetap0, th0, B0, F0)
 
-            !     F0 = 0.5d0*F0pls + 0.5d0*F0mns
-            !     B0 = 0.5d0*ob%Babs(nstp+1) + 0.5d0*ob%Babs(nstp)
-            !     sth0 = 0.5d0*SIN( ob%theta(nstp+1) ) + 0.5d0*SIN( ob%theta(nstp) )
-            !     cth0 = 0.5d0*COS( ob%theta(nstp+1) ) + 0.5d0*COS( ob%theta(nstp) )
-            !     exit
-            !   end if
-            ! end do
+            call SPL1DF(r0,dps0dr0,psim,Udps,nrmax,ierr)
+            call SPL1DF(psip0,dF0,psim,UdF,nrmax,ierr)
+            call SPL2DF(psip0,thetap0,dB0,psimg,theta_p,UdB,nrmax+1,nrmax+1,nthpmax,ierr)
+            cth0 = COS( th0 )
+            sth0 = SIN( th0 )
+            dFB0dr0 = ( dF0*B0-F0*dB0 )/B0**2 * dps0dr0
+            dBinvdr0= -1.d0*dB0/B0**2 * dps0dr0
 
-            ! cthm = COS( thetam(nth,np,nr,nsa) )
-            ! sthm = SIN( thetam(nth,np,nr,nsa) )
-            ! if ( cthm*aefp(nsa) >= 0.d0 ) then
-            !   dBdpsil = dBdpsi(nr,1)
-            !   Bml = Bout(nr)
-            ! else
-            !   dBdpsil = dBdpsi(nr,2)
-            !   Bml = Bin(nr)
-            ! end if
-            ! dPzdr0 = dFB0dr0*pl*cth0-F0/B0*pl*sth0*dth0dr0-aefp(nsa)*dps0dr0
-            ! dmudr0 = dBinvdr0*sth0**2+dth0dr0*sth0*cth0/B0
+            dPzdr0 = dFB0dr0*pl*cth0-aefp(nsa)*dps0dr0
+            dmudr0 = dBinvdr0*sth0**2*dps0dr0
 
-            ! fact1 = 2.d0*cthm*( (Bml*dFdpsi(nr)-dBdpsil*Fpsi(nr))/Bml**2*pl*cthm-aefp(nsa) )
-            ! fact2 = -1.d0*pl*Fpsi(nr)*dBdpsil/Bml**2*sthm**2
+            fact1 = 2.d0*cthm*( (Bml*dFdpsi(nr)-dBdpsil*Fpsi(nr))/Bml**2*pl*cthm-aefp(nsa) )
+            fact2 = -1.d0*pl*Fpsi(nr)*dBdpsil/Bml**2*sthm**2
 
-            ! fact = fact1+fact2
-            ! dpsmsr0 = ( 2.d0*dPzdr0*cthm + dmudr0*pl*Fpsi(nr) )/fact
-            ! write(*,*)dpsmsr0
+            fact = fact1+fact2
+            dpsmdr0 = ( 2.d0*dPzdr0*cthm + dmudr0*pl*Fpsi(nr) )/fact
             Vtube = 2.d0*pi*RR*2.d0*pi*RA*RA*r0
-            JIR(nth,np,nr,nsa) = JI(nth,np,nr,nsa)*ABS( dpsmsr0 )*2.d0*pi/Vtube
+            JIR(nth,np,nr,nsa) = JI(nth,np,nr,nsa)*ABS( dpsmdr0 )*2.d0*pi/Vtube
             sumJ = sumJ+JIR(nth,np,nr,nsa)*delp(nsa)*delthm(nth,np,nr,nsa)
             sumi = sumi + 1
           end do
@@ -1158,7 +1151,7 @@ contains
       do nr = 1, nrmax
         do np = 1, npmax
           do nth = 1, nthmax
-            JI(nth,np,nr,nsa) = JI(nth,np,nr,nsa) * normalize
+            JI(nth,np,nr,nsa)  = JI(nth,np,nr,nsa)  * normalize
             JIR(nth,np,nr,nsa) = JIR(nth,np,nr,nsa) * normalize
           end do
         end do
