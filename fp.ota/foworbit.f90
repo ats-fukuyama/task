@@ -4,7 +4,7 @@ module foworbit
   use obprep
   private
   public :: fow_orbit, fow_cal_local_COMs, fow_set_obparm
-  public :: quantities_at_Bminimum, get_F_nstp, get_mean_ra, get_mean_psip
+  public :: quantities_at_Bminimum, get_F_nstp, get_mean_ra, mean_ra_quantities
 
   double precision,allocatable :: UF(:,:), UR(:,:)
 
@@ -785,6 +785,47 @@ contains
     
   end function get_F_nstp
 
+  subroutine mean_ra_quantities(ob, r0, psip0, thetap0, th0, B0, F0)
+    use fpcomm
+    use fowcomm
+    implicit none
+    type(orbit),intent(in) :: ob
+    real(rkind),intent(out) :: r0, psip0, thetap0, th0, B0, F0
+    real(rkind) :: Flp, Flm, dt, psipl
+    integer :: nstp, nstpmax, ierr
+    real(rkind),allocatable :: dradpsi(:)
+
+    if ( .not.allocated(UR) ) then
+      allocate(dradpsi(nrmax))
+      allocate(UR(4,nrmax))
+      call first_order_derivative(dradpsi, rm, psim)
+      call SPL1D(psim,rm,dradpsi,UR,nrmax,3,ierr)
+    end if
+
+    nstpmax =  ob%nstp_max
+    psip0 = 0.d0
+    do nstp = 2, nstpmax
+      dt = ob%time(nstp)-ob%time(nstp-1)
+      psipl = ( ob%psip(nstp) + ob%psip(nstp-1) )*0.5d0
+      psip0 = psip0 + psipl*dt
+    end do
+    psip0 = psip0/ob%time(nstpmax)
+
+    call SPL1DF(psip0,r0,psim,UR,nrmax,ierr)
+
+    do nstp = 1, nstpmax-1
+      if ( ob%psip(nstp) <= psip0 .and. psip0 <= ob%psip(nstp+1) ) then
+        Flm = get_F_nstp(ob, nstp)
+        Flp = get_F_nstp(ob, nstp+1)
+        F0      = Flm + (Flp-Flm)/(ob%psip(nstp+1)-ob%psip(nstp))*(psip0-ob%psip(nstp))
+        B0      = ob%Babs(nstp) + (ob%Babs(nstp+1)-ob%Babs(nstp))/(ob%psip(nstp+1)-ob%psip(nstp))*(psip0-ob%psip(nstp))
+        th0     = ob%theta(nstp) + (ob%theta(nstp+1)-ob%theta(nstp))/(ob%psip(nstp+1)-ob%psip(nstp))*(psip0-ob%psip(nstp))
+        thetap0 = ob%thetap(nstp) + (ob%thetap(nstp+1)-ob%thetap(nstp))/(ob%psip(nstp+1)-ob%psip(nstp))*(psip0-ob%psip(nstp))
+      end if
+    end do
+
+  end subroutine mean_ra_quantities
+  
   function get_mean_ra(ob) result(ra_out)
     use fpcomm
     use fowcomm
@@ -814,25 +855,5 @@ contains
     call SPL1DF(mean_psip,ra_out,psim,UR,nrmax,IERR)
 
   end function get_mean_ra 
-
-  function get_mean_psip(ob) result(mean_psip)
-    use fpcomm
-    use fowcomm
-    implicit none
-    real(rkind) :: mean_psip
-    type(orbit),intent(in) :: ob
-    integer :: nstp, nstpmax
-    real(rkind) :: dt, psipl
-
-    nstpmax =  ob%nstp_max
-    mean_psip = 0.d0
-    do nstp = 2, nstpmax
-      dt = ob%time(nstp)-ob%time(nstp-1)
-      psipl = ( ob%psip(nstp) + ob%psip(nstp-1) )*0.5d0
-      mean_psip = mean_psip + psipl*dt
-    end do
-    mean_psip = mean_psip/ob%time(nstpmax)
-
-  end function get_mean_psip 
 
 end module foworbit
