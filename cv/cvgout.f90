@@ -82,7 +82,7 @@ CONTAINS
     
     WRITE(6,'(A,A)') &
          '## INPUT country id, graph id, ', &
-         'rank:N1-6,R1-6, help:?,XH/C/N/R/G/L/D, end:XX'
+         'rank:N1-6,R1-6, help:?,?H/C/N/R/G/L/D/P, end:XX'
     CALL task_klin(line,kid,mode,cv_parm)
     IF(mode.EQ.2.OR.mode.EQ.3) GO TO 1  ! 2: parm input, 3:input error
     
@@ -106,28 +106,28 @@ CONTAINS
        SELECT CASE(kword)
        CASE('XX')
           GO TO 9000
-       CASE('XC')
+       CASE('?C')
           CALL cv_gout_help(1)
           id=-id
-       CASE('XN')
+       CASE('?N')
           CALL cv_gout_help(2)
           id=-id
-       CASE('XG')
+       CASE('?G')
           CALL cv_gout_help(3)
           id=-id
-       CASE('XH')
+       CASE('?H')
           CALL cv_gout_help(4)
           id=-id
-       CASE('XR')
+       CASE('?R')
           CALL cv_gout_help(5)
           id=-id
-       CASE('XL')
+       CASE('?L')
           CALL cv_gout_help(6)
           id=-id
-       CASE('XD')
+       CASE('?D')
           CALL cv_gout_help(7)
           id=-id
-       CASE('XP','? ')
+       CASE('?P','? ')
           WRITE(6,'(A,A)') &
                ' ncountry id  population      totC    newC    totD  newD'
           DO nplot=1,nplot_max
@@ -235,6 +235,7 @@ CONTAINS
        id=-id
        GO TO 1
     END IF
+    IF(nplot_max.EQ.0) GO TO 1
       
     SELECT CASE(id)
     CASE(1,10:19)
@@ -319,14 +320,16 @@ CONTAINS
                         'with a list of country_ids.'
        WRITE(6,'(A,A)') '      - if more than two graph_ids exist, ', &
                         'only the last one is effective.'
-       WRITE(6,'(A,A)') 'XH: this help'
-       WRITE(6,'(A,A)') 'XC: list of country id'
-       WRITE(6,'(A,A)') 'XN: list of country name'
-       WRITE(6,'(A,A)') 'XG: list of graph ids'
-       WRITE(6,'(A,A)') 'XL: list of line colors'
-       WRITE(6,'(A,A)') 'XP: list of countries to be plotted'
-       WRITE(6,'(A,A)') '+ : addition of countries (before any country id)'
-       WRITE(6,'(A,A)') '-n: removal of countries from the bottom'
+       WRITE(6,'(A,A)') '?H: this help'
+       WRITE(6,'(A,A)') '?C: list of country id'
+       WRITE(6,'(A,A)') '?N: list of country name'
+       WRITE(6,'(A,A)') '?G: list of graph ids'
+       WRITE(6,'(A,A)') '?R: list of ranking ids'
+       WRITE(6,'(A,A)') '?L: list of line colors'
+       WRITE(6,'(A,A)') '?D: convert ndate to data-id'
+       WRITE(6,'(A,A)') '?P: list of countries to be plotted'
+       WRITE(6,'(A,A)') '+ : addition of country (before any country id)'
+       WRITE(6,'(A,A)') '-n: removal of countries from the last'
        WRITE(6,'(A,A)') 'ndays_ave=7                   ! ', &
             'range of day averageing'
        WRITE(6,'(A,A)') 'nrank_max=12                  ! ', &

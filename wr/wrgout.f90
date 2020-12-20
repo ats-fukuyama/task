@@ -123,7 +123,7 @@ CONTAINS
     CALL GVALUE(GRORG,2*GRSTEP,0.0,0.0,NGULEN(2*GRSTEP))
     CALL GVALUE(0.0,0.0,0.0,2*GZSTEP,NGULEN(2*GZSTEP))
     CALL SETLIN(0,2,4)
-    CALL GPLOTP(GRS,GZS,1,NSUMAX,1,0,0,0)
+    CALL GPLOTP(GRS,GZS,1,NSUMAX+1,1,0,0,0)
 
 !     ----- magnetic surface -----
 
@@ -208,7 +208,7 @@ CONTAINS
 
     CALL GQSCAL(GUCLIP(RHOGMN),GUCLIP(RHOGMX),GXMIN,GXMAX,GXSTEP)
 
-    CALL GMNMX2(GPY,NSTPMAX+1,1,nrsmax,1,1,NRAYMAX,1,GYMIN,GYMAX)
+    CALL GMNMX2(GPY,nrsmax,1,nrsmax,1,1,NRAYMAX,1,GYMIN,GYMAX)
     CALL GQSCAL(GYMIN,GYMAX,GYSMIN,GYSMAX1,GYSCAL1)
     GYSMIN=0.0
     GYSMAX2=0.1 
@@ -873,12 +873,12 @@ CONTAINS
     INTEGER,PARAMETER:: nloop_max=4
     TYPE(pl_mag_type):: mag
     TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
-    INTEGER:: nray,nloop,nstp,nc,nang
+    INTEGER:: nray,nloop,nstp,nc,nang,line_pat,ngid
     INTEGER:: nstp_plmax,nstpa(nloop_max)
     REAL(rkind):: pvtmax,dang,pl,plmax,omega,xl,yl,zl,rhon,babs,omegace
     REAL(rkind):: ptpr_e,ptpp_e,rkpara,rkperp,rnpara,pc_org,temp
     REAL(rkind):: pc_para,pc_perp,pte,vte,pvt_org,pvt_para,pvt_perp,ang
-    
+    CHARACTER(LEN=46):: title
     REAL:: LINE_RGB(3,4)
     DATA LINE_RGB/0.0,0.0,0.0, 0.0,1.0,0.0, 1.0,0.0,0.0, 0.0,0.0,1.0/
     EXTERNAL GMNMX1,GQSCAL,PAGES,SETCHS,SETFNT,SETLIN,SETRGB,PAGEE
@@ -886,16 +886,31 @@ CONTAINS
     EXTERNAL MOVE,TEXT,MOVE2D,DRAW2D
     REAL:: GUCLIP
 
-    pvtmax=5.D0
+    pvtmax=6.D0
     dang=PI/nang_max
     
     CALL pages
-    CALL grd2d_frame_start(0,-pvtmax,pvtmax,0.D0,pvtmax, &
-         '@resonance condition in momentum space@', &
-         ASPECT=0.5D0)
+    DO NRAY=1,MIN(NRAYMAX,25)
+       SELECT CASE(nraymax)
+       CASE(1)
+          ngid=0
+       CASE(2:4)
+          ngid=nray
+       CASE(5:9)
+          ngid=nray+4
+       CASE(10:16)
+          ngid=nray+13
+       CASE(17:25)
+          ngid=nray+29
+       END SELECT
+       WRITE(title,'(A,ES12.4,A,F8.4,A,F8.4,A)') &
+            '@RF:',RAYIN(1,nray), &
+            ' angPH:',RAYIN(7,nray),' angZ:',RAYIN(6,nray),'@'
+       CALL grd2d_frame_start(ngid,-pvtmax,pvtmax,0.D0,pvtmax, &
+            title,ASPECT=0.5D0,NOINFO=1)
+    
 
-    DO NRAY=1,NRAYMAX
-       NSTP_PLMAX=0
+    NSTP_PLMAX=0
        PLMAX=RAYS(8,0,NRAY)
        DO NSTP=1,NSTPMAX_NRAY(NRAY)
           PL=RAYS(8,NSTP,NRAY)
@@ -916,12 +931,14 @@ CONTAINS
        omega=2*PI*RAYIN(1,NRAY)*1.D6
 
        DO nloop=1,nloop_max
+          CALL SETRGB(line_rgb(1,nloop),line_rgb(2,nloop), &
+                      line_rgb(3,nloop))
           nstp=nstpa(nloop)
           xl=rays(1,nstp,nray)
           yl=rays(2,nstp,nray)
           zl=rays(3,nstp,nray)
-          WRITE(6,'(A,3I8,3ES12.4)') &
-               'nray,nstp,nloop,xl,yl,zl=',nray,nstp,nloop,xl,yl,zl 
+          WRITE(6,'(A,2I4,I8,3ES12.4)') &
+               'nray,nloop,nstp,x,y,z=',nray,nloop,nstp,xl,yl,zl 
           CALL pl_mag(xl,yl,zl,mag)
           rhon=mag%rhon
           babs=mag%babs
@@ -934,9 +951,20 @@ CONTAINS
           CALL wrcalk(nstp,nray,rkpara,rkperp)
           rnpara=rkpara*VC/omega
           IF(ABS(rnpara).LT.1.D0) THEN
-             DO nc=ncmin(1),ncmax(1)
+!             DO nc=ncmin(1),ncmax(1)
+             DO nc=0,ncmax(1)
+                SELECT CASE(ABS(nc))
+                CASE(1)
+                   line_pat=0
+                CASE(2)
+                   line_pat=2
+                CASE(3)
+                   line_pat=4
+                CASE DEFAULT
+                   line_pat=6
+                END SELECT
                 pc_org=rnpara/(1.D0-rnpara**2)*nc*omegace/omega
-                temp=(nc*omegace/omega)**2-(1.D0-rnpara**2)
+                temp=((nc*omegace/omega)**2-(1.D0-rnpara**2))/(1-rnpara**2)**2
                 IF(temp.GT.0.D0) THEN
                    pc_para= SQRT(temp)
                    pc_perp=pc_para*SQRT(1.D0-rnpara**2)
@@ -944,30 +972,28 @@ CONTAINS
                    pvt_para=pc_para/vte
                    pvt_perp=pc_perp/vte
                    ang=0.D0
-                   WRITE(6,'(A,3ES12.4)') 'pc:',pc_org,pc_para,pc_perp
-                   WRITE(6,'(A,2ES12.4)') 'vc,vte:',vc,vte
-                   WRITE(6,'(A,2ES12.4)') 'omega: ',omega,omegace
-                   WRITE(6,'(A,4I5,2ES12.4)') 'pvt:',nray,nloop,nc,1, &
-                        pvt_org+pvt_para*cos(ang),pvt_perp*sin(ang)
-                   CALL SETRGB(line_rgb(1,nloop),line_rgb(2,nloop), &
-                               line_rgb(3,nloop))
-                   CALL MOVE2D(GUCLIP(pvt_org+pvt_para*cos(ang)), &
-                               GUCLIP(pvt_perp*sin(ang)))
+!                   WRITE(6,'(A,3ES12.4)') 'pc:',pc_org,pc_para,pc_perp
+!                   WRITE(6,'(A,2ES12.4)') 'vc,vte:',vc,vte
+!                   WRITE(6,'(A,2ES12.4)') 'omega: ',omega,omegace
+!                   WRITE(6,'(A,4I5,2ES12.4)') 'pvt:',nray,nloop,nc,1, &
+!                        pvt_org+pvt_para*cos(ang),pvt_perp*sin(ang)
+                   CALL MOVEPT2D(GUCLIP(pvt_org+pvt_para*cos(ang)), &
+                                 GUCLIP(pvt_perp*sin(ang)),line_pat)
                    DO nang=2,nang_max
                       ang=(nang-1)*dang
-                      WRITE(6,'(A,4I5,2ES12.4)') 'pvt:',nray,nloop,nc,nang, &
-                           pvt_org+pvt_para*cos(ang),pvt_perp*sin(ang)
-                      IF(nc*omegace/omega+rnpara*pvt_para.GE.0.D0) &
-                      CALL DRAW2D(GUCLIP(pvt_org+pvt_para*cos(ang)), &
-                                  GUCLIP(pvt_perp*sin(ang)))
+!                      WRITE(6,'(A,4I5,2ES12.4)') 'pvt:',nray,nloop,nc,nang, &
+!                           pvt_org+pvt_para*cos(ang),pvt_perp*sin(ang)
+!                      IF(nc*omegace/omega+rnpara*pvt_para.GE.0.D0) &
+                      CALL DRAWPT2D(GUCLIP(pvt_org+pvt_para*cos(ang)), &
+                                    GUCLIP(pvt_perp*sin(ang)))
                    END DO
                 END IF
              END DO
           END IF
        END DO
+       CALL grd2d_frame_end
     END DO
 
-    CALL grd2d_frame_end
     CALL pagee
   END SUBROUTINE WRGRF5R
     
