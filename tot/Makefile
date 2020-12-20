@@ -35,11 +35,11 @@ SRCS = totmenu.f90
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = ../lib/libmds.a ../lib/libtask.a ../../bpsd/libbpsd.a \
+LIBS = ../lib/libmds.a ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a \
        ../adpost/lib-adpost.a ../open-adas/adf11/adf11-lib/lib-adf11.a \
        ../pl/libpl.a \
        $(EQLIBS) \
-       ../tr/libtr2.a ../dp/libdp.a ../wr/libwr.a ../wm/libwm.a \
+       ../tr/libtr.a ../dp/libdp.a ../wr/libwr.a ../wm/libwm.a \
        ../fp/libfp.a ../ti/libti.a
 
 
@@ -65,8 +65,8 @@ $(LIB_MTX):
 	(cd ../pl; make noequlib.o)
 ../eq/libeq.a:
 	(cd ../eq; make libeq.a)
-../tr/libtr2.a:
-	(cd ../tr; make libtr2.a)
+../tr/libtr.a:
+	(cd ../tr; make libtr.a)
 ../dp/libdp.a:
 	(cd ../dp; make libdp.a)
 ../wr/libwr.a:
@@ -89,7 +89,7 @@ libs:
 	(cd ../pl; make noeqlib.o)
 	(cd ../pl; make noequlib.o)
 	(cd ../eq; make libeq.a)
-	(cd ../tr; make libtr2.a)
+	(cd ../tr; make libtr.a)
 	(cd ../dp; make libdp.a)
 	(cd ../wr; make libwr.a)
 	(cd ../wm; make libwm.a)
