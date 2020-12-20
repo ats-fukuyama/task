@@ -2,7 +2,7 @@
   nthpmax=8
   max_stp=30
   model_obload=1
-  model_mkcsv=0
+  model_mkcsv=1
 &end
 
 !  nrgmax=40
@@ -103,5 +103,5 @@
   MODELD_PDEP=0
 
   DELT=1.0d-5
-  NTMAX=2
+  NTMAX=5
 &end
