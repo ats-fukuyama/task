@@ -768,8 +768,8 @@ SUBROUTINE CMCALCS(NE)
               CM(I,J)=CM(I,J) &
                       -2.D0*BW(J)*(ZN*(AW(I)-BW(I)*Z(K)) &
                                   +RN*(CW(I)-BW(I)*R(K)))*RR*L(ISD)*AIE1(K)
-                    WRITE(21,'(A,I10,3I5,1P4E12.4)') &
-                         'CM:',NE,I,J,K,CM(I,J),CM(I,J)-CTEMP
+!                    WRITE(21,'(A,I10,3I5,1P4E12.4)') &
+!                         'CM:',NE,I,J,K,CM(I,J),CM(I,J)-CTEMP
 !                    WRITE(21,'(5X,1P5E12.4)') &
 !                         BW(J),ZN,AW(I),BW(I),Z(K)
 !                    WRITE(21,'(5X,1P5E12.4)') &

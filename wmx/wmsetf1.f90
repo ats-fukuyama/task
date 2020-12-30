@@ -16,27 +16,26 @@ CONTAINS
     USE wmdisp
     USE wmsub
     IMPLICIT NONE
-    INTEGER,INTENT(IN):: NR,NS0
+    INTEGER,INTENT(IN):: NR1,NS0
     COMPLEX(rkind),ALLOCATABLE:: &
-         CEP0(:,:,:,:),CRA(:,:,:,:),CFA(:,:,:,:),CRB(:,:,:,:),CFB(:,:,:,:), &
+         CEP0(:,:,:,:),CRA(:,:,:,:),CFA(:,:,:,:),CRB(:,:,:,:), &
+         CFB(:,:,:,:,:,:), &
          CRC(:,:,:,:),CFC(:,:,:,:),CMC(:,:,:,:),CMF(:,:,:,:), &
-         CS(:,:,:,:),CSUMA(:,:,:,:,:,:),CFB_MDND(:,:,:,:,:,:), &
+         CS(:,:,:,:),CSUMA(:,:,:,:,:,:), &
          CSUMPF(:,:,:,:,:,:)
     REAL(rkind):: RMA(3,3),RMB(3,3),RGA(3,3),RGB(3,3)
     COMPLEX(rkind):: CW,CWC2,CSUM
     REAL(rkind):: XRI,XRL,BABS,BSUPTH,BSUPPH,TC2,TC3,RF11
     INTEGER:: ND,MD,NS1,NS2,NS,NHH,NTH,I,J,K,L,KD,LD,KDX,LDX,NDX,MDX
     INTEGER:: KA,KAX,KB,KBX,NB1,NB2,LA,LAX,LB,LBX,MB1,MB2,LAB,LABX,KAB,KABX
-    INTEGER:: NDN,MDN,LBXK,KBXK
+    INTEGER:: NDN,MDN,LBXK,KBXK,NR
     INTEGER:: ILL
     EXTERNAL INVMRD
 
     ALLOCATE(CEP0(3,3,nthmax_f,nhhmax_f))
     ALLOCATE(CRA(nthmax_f,nhhmax_f,3,3),CFA(nthmax_f,nhhmax_f,3,3))
     ALLOCATE(CRB(nthmax_f,nhhmax_f,3,3))
-    ALLOCATE(CFB(nthmax_f,nhhmax_f,3,3))
-    ALLOCATE(CFB_MDND(nthmax_f,nhhmax_f,3,3, &
-                      -nthmax_f:nthmax_f,-nhhmax_f:nhhmax_f))
+    ALLOCATE(CFB(nthmax_f,nhhmax_f,3,3,-nthmax_f:nthmax_f,-nhhmax_f:nhhmax_f))
     ALLOCATE(CRC(nthmax_f,nhhmax_f,3,3),CFC(nthmax_f,nhhmax_f,3,3))
     ALLOCATE(CMC(nthmax_f,nhhmax_f,3,3),CMF(nthmax_f,nhhmax_f,3,3))
     ALLOCATE(CSUMA(3,3,nthmax_f,nthmax_f,nhhmax_f,nhhmax_f))
@@ -94,6 +93,7 @@ CONTAINS
 
           DO NS=NS1,NS2
              CALL WM_TNSR(NR,NS,MD,ND)
+
              DO NHH=1,NHHMAX_F
                 DO NTH=1,NTHMAX_F
                    DO J=1,3
@@ -102,34 +102,16 @@ CONTAINS
                               =CEP0(I,J,NTH,NHH) &
                               +CTNSR(I,J,NTH,NHH)
                       ENDDO
-                   ENDDO
-                ENDDO
+                   END DO
+                END DO
              ENDDO
-          ENDDO
-
-
-          IF(NR .EQ. NR_S)THEN
-             DO NHH=1,NHHMAX_F
-                DO NTH=1,NTHMAX_F
-                   DO J=1,3
-                      DO I=1,3
-                         CEP0(I,J,NTH,NHH)=0.D0
-                      ENDDO
-                   ENDDO
-                   IF(NS0.EQ.0) THEN
-                      CEP0(1,1,NTH,NHH)=1.D0
-                      CEP0(2,2,NTH,NHH)=1.D0
-                      CEP0(3,3,NTH,NHH)=1.D0
-                   ENDIF
-                ENDDO
-             ENDDO
-          ENDIF
-
+          END DO
+          
           DO NHH=1,NHHMAX_F
              DO NTH=1,NTHMAX_F
                 DO J=1,3
                    DO I=1,3
-                      CRB(NTHF,NHHF,I,J)=CEP0(I,J,NTHF,NHHF)
+                      CRB(NTH,NHH,I,J)=CEP0(I,J,NTH,NHH)
                    ENDDO
                 ENDDO
              ENDDO
@@ -137,21 +119,10 @@ CONTAINS
           
           DO J=1,3
              DO I=1,3
-                CALL WMSUBF_F(CRB(1,1,I,J),CFB(1,1,I,J))
+                CALL WMSUBF_F(CRB(1,1,I,J),CFB(1,1,I,J,MD,ND))
              ENDDO
           ENDDO
           
-          DO J=1,3
-             DO I=1,3
-                DO KD=KDMIN_F,KDMAX_TMP
-                   KDX=KD-KDMIN_F+1
-                   DO LD=LDMIN_F,LDMAX_TMP
-                      LDX=LD-LDMIN_F+1
-                      CFB_MDND(LDX,KDX,I,J,MD,ND) =CFB(LDX_1,KDX_1,I,J)
-                   ENDDO
-                ENDDO
-             ENDDO
-          ENDDO
        ENDDO
     ENDDO
 
@@ -217,15 +188,15 @@ CONTAINS
 
 !        ----- RGB = g^(-1)
 
-          RGB(1,1)=RGI11(NTHF,NHHF,NR)
-          RGB(1,2)=RGI12(NTHF,NHHF,NR)
-          RGB(1,3)=RGI13(NTHF,NHHF,NR)
-          RGB(2,1)=RGI12(NTHF,NHHF,NR)
-          RGB(2,2)=RGI22(NTHF,NHHF,NR)
-          RGB(2,3)=RGI23(NTHF,NHHF,NR)
-          RGB(3,1)=RGI13(NTHF,NHHF,NR)
-          RGB(3,2)=RGI23(NTHF,NHHF,NR)
-          RGB(3,3)=RGI33(NTHF,NHHF,NR)
+          RGB(1,1)=RGI11(NTH,NHH,NR)
+          RGB(1,2)=RGI12(NTH,NHH,NR)
+          RGB(1,3)=RGI13(NTH,NHH,NR)
+          RGB(2,1)=RGI12(NTH,NHH,NR)
+          RGB(2,2)=RGI22(NTH,NHH,NR)
+          RGB(2,3)=RGI23(NTH,NHH,NR)
+          RGB(3,1)=RGI13(NTH,NHH,NR)
+          RGB(3,2)=RGI23(NTH,NHH,NR)
+          RGB(3,3)=RGI33(NTH,NHH,NR)
 
 
           RGB(1,1)=RGB(1,1)*XRL**2
@@ -246,14 +217,14 @@ CONTAINS
                 DO K=1,3
                    CSUM=CSUM+RGB(I,K)*RMA(K,J)
                 ENDDO
-                CRA(NTHF,NHHF,I,J)=CSUM*RJ(NTHF,NHHF,NR)
+                CRA(NTH,NHH,I,J)=CSUM*RJ(NTH,NHH,NR)
              ENDDO
           ENDDO
 
           DO J=1,3
              DO I=1,3
-                CRC(NTHF,NHHF,I,J)=RMB(I,J)
-                CMC(NTHF,NHHF,I,J)=RMA(I,J)
+                CRC(NTH,NHH,I,J)=RMB(I,J)
+                CMC(NTH,NHH,I,J)=RMA(I,J)
              ENDDO
           ENDDO
 
@@ -470,31 +441,33 @@ CONTAINS
     USE wmdisp
     USE wmsub
     IMPLICIT NONE
-    INTEGER,INTENT(IN):: NR,NS0
+    INTEGER,INTENT(IN):: NR1,NS0
     COMPLEX(rkind),ALLOCATABLE:: &
          CEP0(:,:,:,:,:,:), &
          CRA(:,:,:,:),CFA(:,:,:,:),CRB(:,:,:,:,:,:),CFB(:,:,:,:,:,:), &
          CRC(:,:,:,:),CFC(:,:,:,:),CMC(:,:,:,:),CMF(:,:,:,:), &
-         CS(:,:,:,:),CSUMA(:,:,:,:,:,:),CFB_MDND(:,:,:,:,:,:), &
-         CSUMPF(:,:,:,:,:,:)
+         CS(:,:,:,:),CSUMA(:,:,:,:,:,:), &
+         CSUMPF(:,:,:,:,:,:),CPF(:,:,:,:),CSUMAD(:,:,:,:,:,:)
     REAL(rkind):: RMA(3,3),RMB(3,3),RGA(3,3),RGB(3,3)
     COMPLEX(rkind):: CW,CWC2,CSUM
     REAL(rkind):: XRI,XRL,BABS,BSUPTH,BSUPPH,TC2,TC3,RF11
     INTEGER:: ND,MD,NS1,NS2,NS,NHH,NTH,I,J,K,L,KD,LD,KDX,LDX,NDX,MDX
     INTEGER:: KA,KAX,KB,KBX,NB1,NB2,LA,LAX,LB,LBX,MB1,MB2,LAB,LABX,KAB,KABX
-    INTEGER:: NDN,MDN,LBXK,KBXK
+    INTEGER:: NDN,MDN,LBXK,KBXK,KC,KCX,LC,LCX,NR
     INTEGER:: ILL
     EXTERNAL INVMRD
 
-    ALLOCATE(CEP0(3,3,nthmax_f,nhhmax_f))
+    ALLOCATE(CEP0(3,3,nthmax_f,nhhmax_f,-nthmax_f:nthmax_f,-nhhmax_f:nhhmax_f))
     ALLOCATE(CRA(nthmax_f,nhhmax_f,3,3),CFA(nthmax_f,nhhmax_f,3,3))
     ALLOCATE(CRB(nthmax_f,nhhmax_f,nthmax_f,nhhmax_f,3,3))
-    ALLOCATE(CFB(nthmax_f,nhhmax_f,nthmax_f,nhhmax_f,3,3))
+    ALLOCATE(CFB(nthmax_f,nhhmax_f,3,3,-nthmax_f:nthmax_f,-nhhmax_f:nhhmax_f))
     ALLOCATE(CRC(nthmax_f,nhhmax_f,3,3),CFC(nthmax_f,nhhmax_f,3,3))
     ALLOCATE(CMC(nthmax_f,nhhmax_f,3,3),CMF(nthmax_f,nhhmax_f,3,3))
     ALLOCATE(CSUMA(3,3,nthmax_f,nthmax_f,nhhmax_f,nhhmax_f))
+    ALLOCATE(CSUMAD(3,3,nthmax_f,nthmax_f,nhhmax_f,nhhmax_f))
     ALLOCATE(CS(3,3,nthmax_f,nhhmax_f))
     ALLOCATE(CSUMPF(3,3,nthmax_f,nthmax_f,nhhmax_f,nhhmax_f))
+    ALLOCATE(CPF(3,3,nthmax_f,nhhmax_f))
 
     CW=2.D0*PI*DCMPLX(RF,RFI)*1.D6
     CWC2=CW**2/VC**2
@@ -525,13 +498,13 @@ CONTAINS
              DO MD=MDMIN_F,MDMAX_F
                 DO J=1,3
                    DO I=1,3
-                      CEP0 (I,J,MD,ND,NTH,NHH)=0.D0
+                      CEP0 (I,J,NTH,NHH,MD,ND)=0.D0
                    ENDDO
                 ENDDO
                 IF(NS0.EQ.0) THEN
-                   CEP0 (1,1,MD,ND,NTH,NHH)=1.D0
-                   CEP0 (2,2,MD,ND,NTH,NHH)=1.D0
-                   CEP0 (3,3,MD,ND,NTH,NHH)=1.D0
+                   CEP0 (1,1,NTH,NHH,MD,ND)=1.D0
+                   CEP0 (2,2,NTH,NHH,MD,ND)=1.D0
+                   CEP0 (3,3,NTH,NHH,MD,ND)=1.D0
                 ENDIF
              ENDDO
           ENDDO
@@ -546,18 +519,18 @@ CONTAINS
        NS2=NS0
     ENDIF
 
-    IF (NR .LE. NR_S )THEN
+    IF (NR .LE. NR_S ) THEN ! inside of plasma
        DO NS=NS1,NS2
-          CALL WMTNSR(NR,NS)
-
-          DO NHH=1,NHHMAX_F
-             DO NTH=1,NTHMAX_F
-                DO ND=NDMIN_F,NDMAX_F
-                   DO MD=MDMIN_F,MDMAX_F
+          DO ND=NDMIN_F,NDMAX_F
+             DO MD=MDMIN_F,MDMAX_F
+                CALL WMTNSR(NR,NS,MD,ND)
+                DO NHH=1,NHHMAX_F
+                   DO NTH=1,NTHMAX_F
                       DO J=1,3
                          DO I=1,3
-                            CEP0(I,J,MD,ND,NTH,NHH)=CEP0(I,J,MD,ND,NTH,NHH) &
-                                 +CTNSR(I,J,MD,ND,NTH,NHH)
+                            CEP0(I,J,NTH,NHH,MD,ND) &
+                                 =CEP0(I,J,NTH,NHH,MD,ND) &
+                                 +CTNSR(I,J,NTH,NHH)
                          ENDDO
                       ENDDO
                    ENDDO
@@ -565,23 +538,22 @@ CONTAINS
              ENDDO
           ENDDO
        ENDDO
-    ENDIF
 
+    ELSE ! outside of plasma
 
-    IF(NR .GE. NR_S)THEN
        DO NHH=1,NHHMAX_F
           DO NTH=1,NTHMAX_F
              DO ND=NDMIN_F,NDMAX_F
                 DO MD=MDMIN_F,MDMAX_F
                    DO J=1,3
                       DO I=1,3
-                         CEP0 (I,J,MD,ND,NTH,NHH)=0.D0
+                         CEP0 (I,J,NTH,NHH,MD,ND)=0.D0
                       ENDDO
                    ENDDO
                    IF(NS0.EQ.0) THEN
-                      CEP0 (1,1,MD,ND,NTH,NHH)=1.D0
-                      CEP0 (2,2,MD,ND,NTH,NHH)=1.D0
-                      CEP0 (3,3,MD,ND,NTH,NHH)=1.D0
+                      CEP0 (1,1,NTH,NHH,MD,ND)=1.D0
+                      CEP0 (2,2,NTH,NHH,MD,ND)=1.D0
+                      CEP0 (3,3,NTH,NHH,MD,ND)=1.D0
                    ENDIF
                 ENDDO
              ENDDO
@@ -591,50 +563,47 @@ CONTAINS
 
 !     ----- Calculate A, B, C -----
 
-    TCH2=0d0
-    TCH3=0d0
-
-    DO NHHF=1,NHHMAX_F
-       DO NTHF=1,NTHMAX_F
+    DO NHH=1,NHHMAX_F
+       DO NTH=1,NTHMAX_F
 
 !        ----- Calculate rotation matrix mu=RMA -----
 
-          CALL WMCMAG_F(NR,NTHF,NHHF,BABS,BSUPTH,BSUPPH)
+          CALL WMCMAG_F(NR,NTH,NHH,BABS,BSUPTH,BSUPPH)
           TC2=BSUPTH/BABS
           TC3=BSUPPH/BABS
 
 !        ***** RF11=RJ*SQRT(G^11)/XR *****
 
-          RF11=SQRT(RG22(NTHF,NHHF,NR)*RG33(NTHF,NHHF,NR) &
-                   -RG23(NTHF,NHHF,NR)*RG23(NTHF,NHHF,NR))
-          RMA(1,1)= RJ(NTHF,NHHF,NR)/RF11*XRI
+          RF11=SQRT(RG22(NTH,NHH,NR)*RG33(NTH,NHH,NR) &
+                   -RG23(NTH,NHH,NR)*RG23(NTH,NHH,NR))
+          RMA(1,1)= RJ(NTH,NHH,NR)/RF11*XRI
           RMA(2,1)= 0.D0
           RMA(3,1)= 0.D0
-          RMA(1,2)= (TC2*(RG23(NTHF,NHHF,NR)*RG12(NTHF,NHHF,NR) &
-                         -RG22(NTHF,NHHF,NR)*RG13(NTHF,NHHF,NR)) &
-                    +TC3*(RG33(NTHF,NHHF,NR)*RG12(NTHF,NHHF,NR) &
-                         -RG23(NTHF,NHHF,NR)*RG13(NTHF,NHHF,NR))*XRI) &
+          RMA(1,2)= (TC2*(RG23(NTH,NHH,NR)*RG12(NTH,NHH,NR) &
+                         -RG22(NTH,NHH,NR)*RG13(NTH,NHH,NR)) &
+                    +TC3*(RG33(NTH,NHH,NR)*RG12(NTH,NHH,NR) &
+                         -RG23(NTH,NHH,NR)*RG13(NTH,NHH,NR))*XRI) &
                     /RF11
           RMA(2,2)= TC3*RF11*XRL
           RMA(3,2)=-TC2*RF11*XRL
-          RMA(1,3)=TC2*RG12(NTHF,NHHF,NR) &
-                  +TC3*RG13(NTHF,NHHF,NR)*XRI
-          RMA(2,3)=TC2*RG22(NTHF,NHHF,NR)*XRL*XRL &
-                  +TC3*RG23(NTHF,NHHF,NR)*XRL
-          RMA(3,3)=TC2*RG23(NTHF,NHHF,NR)*XRL &
-                  +TC3*RG33(NTHF,NHHF,NR)
+          RMA(1,3)=TC2*RG12(NTH,NHH,NR) &
+                  +TC3*RG13(NTH,NHH,NR)*XRI
+          RMA(2,3)=TC2*RG22(NTH,NHH,NR)*XRL*XRL &
+                  +TC3*RG23(NTH,NHH,NR)*XRL
+          RMA(3,3)=TC2*RG23(NTH,NHH,NR)*XRL &
+                  +TC3*RG33(NTH,NHH,NR)
         
 !        ----- Set metric matrix g=RGA -----
 
-          RGA(1,1)=RG11(NTHF,NHHF,NR)
-          RGA(1,2)=RG12(NTHF,NHHF,NR)
-          RGA(1,3)=RG13(NTHF,NHHF,NR)
-          RGA(2,1)=RG12(NTHF,NHHF,NR)
-          RGA(2,2)=RG22(NTHF,NHHF,NR)
-          RGA(2,3)=RG23(NTHF,NHHF,NR)
-          RGA(3,1)=RG13(NTHF,NHHF,NR)
-          RGA(3,2)=RG23(NTHF,NHHF,NR)
-          RGA(3,3)=RG33(NTHF,NHHF,NR)
+          RGA(1,1)=RG11(NTH,NHH,NR)
+          RGA(1,2)=RG12(NTH,NHH,NR)
+          RGA(1,3)=RG13(NTH,NHH,NR)
+          RGA(2,1)=RG12(NTH,NHH,NR)
+          RGA(2,2)=RG22(NTH,NHH,NR)
+          RGA(2,3)=RG23(NTH,NHH,NR)
+          RGA(3,1)=RG13(NTH,NHH,NR)
+          RGA(3,2)=RG23(NTH,NHH,NR)
+          RGA(3,3)=RG33(NTH,NHH,NR)
 
 !        ----- Invert matrix to obtain mu^(-1)=RMB and g^(-1)=RGB -----
 
@@ -653,15 +622,15 @@ CONTAINS
 
 !        ----- RGB = g^(-1)
 
-          RGB(1,1)=RGI11(NTHF,NHHF,NR)
-          RGB(1,2)=RGI12(NTHF,NHHF,NR)
-          RGB(1,3)=RGI13(NTHF,NHHF,NR)
-          RGB(2,1)=RGI12(NTHF,NHHF,NR)
-          RGB(2,2)=RGI22(NTHF,NHHF,NR)
-          RGB(2,3)=RGI23(NTHF,NHHF,NR)
-          RGB(3,1)=RGI13(NTHF,NHHF,NR)
-          RGB(3,2)=RGI23(NTHF,NHHF,NR)
-          RGB(3,3)=RGI33(NTHF,NHHF,NR)
+          RGB(1,1)=RGI11(NTH,NHH,NR)
+          RGB(1,2)=RGI12(NTH,NHH,NR)
+          RGB(1,3)=RGI13(NTH,NHH,NR)
+          RGB(2,1)=RGI12(NTH,NHH,NR)
+          RGB(2,2)=RGI22(NTH,NHH,NR)
+          RGB(2,3)=RGI23(NTH,NHH,NR)
+          RGB(3,1)=RGI13(NTH,NHH,NR)
+          RGB(3,2)=RGI23(NTH,NHH,NR)
+          RGB(3,3)=RGI33(NTH,NHH,NR)
 
           RGB(1,1)=RGB(1,1)*XRL**2
           RGB(1,2)=RGB(1,2)
@@ -675,25 +644,13 @@ CONTAINS
 
 !        ----- Setup Matrix A=CRA, B=CRB, C=CRC -----
 
-          NHH=NHHF
-          NTH=NTHF
           DO J=1,3
              DO I=1,3
                 CSUM=0.D0
                 DO K=1,3
                    CSUM=CSUM+RGB(I,K)*RMA(K,J)
                 ENDDO
-                CRA(NTH,NHH,I,J)=CSUM*RJ(NTHF,NHHF,NR)
-             ENDDO
-          ENDDO
-
-          DO J=1,3
-             DO I=1,3
-                CSUM=0.D0
-                DO K=1,3
-                   CSUM=CSUM+RGHB(I,K)*RMHA(K,J)
-                ENDDO
-                CRHA(NTH,NHH,I,J)=CSUM*RJH(NTHF,NHHF,NR)
+                CRA(NTH,NHH,I,J)=CSUM*RJ(NTH,NHH,NR)
              ENDDO
           ENDDO
 
@@ -701,7 +658,7 @@ CONTAINS
              DO MD=MDMIN_F,MDMAX_F
                 DO J=1,3
                    DO I=1,3
-                      CRB(NTHF,NHHF,I,J,MD,ND)=CEP0(I,J,MD,ND,NTHF,NHHF)
+                      CRB(NTH,NHH,I,J,MD,ND)=CEP0(I,J,NTH,NHH,MD,ND)
                    ENDDO
                 ENDDO
              ENDDO
@@ -711,8 +668,6 @@ CONTAINS
              DO I=1,3
                 CRC(NTH,NHH,I,J)=RMB(I,J)
                 CMC(NTH,NHH,I,J)=RMA(I,J)
-                CRHC(NTH,NHH,I,J)=RMHB(I,J)
-                CMHC(NTH,NHH,I,J)=RMHA(I,J)
              ENDDO
           ENDDO
 
@@ -741,8 +696,8 @@ CONTAINS
        DO I=1,3
           CALL WMSUBF_F(CRC(1,1,I,J),CFC(1,1,I,J))
           CALL WMSUBF_F(CMC(1,1,I,J),CMF(1,1,I,J))
-          DO NDX=1,NDMF
-             DO MDX=1,MDMF
+          DO NDX=1,nhhmax_f
+             DO MDX=1,nthmax_f
                 CMAF(I,J,MDX,NDX,3)=CMF(MDX,NDX,I,J)
                 CRMAF(I,J,MDX,NDX,3)=CFC(MDX,NDX,I,J)
              ENDDO
@@ -761,9 +716,7 @@ CONTAINS
                 DO J=1,3
                    DO I=1,3
                       CSUMA(I,J,LDX,MDX,KDX,NDX)=0.D0
-                      CSUMAH(I,J,LDX,MDX,KDX,NDX)=0.D0
                       CSUMAD(I,J,LDX,MDX,KDX,NDX)=0.D0
-                      CSUMADH(I,J,LDX,MDX,KDX,NDX)=0.D0
                    ENDDO
                 ENDDO
              ENDDO
@@ -782,7 +735,6 @@ CONTAINS
                 DO J=1,3
                    DO I=1,3
                       CSUMPF(I,J,LDX,MDX,KDX,NDX)=0.d0
-                      CSUMPHF(I,J,LDX,MDX,KDX,NDX)=0.d0
                    ENDDO
                 ENDDO
              ENDDO
@@ -802,9 +754,7 @@ CONTAINS
                 DO K=1,3
                    DO I=1,3
                       CS(I,K,LABX,KABX)=0.D0
-                      CSH(I,K,LABX,KABX)=0.D0
                       CPF(I,K,LABX,KABX)=0.D0
-                      CPHF(I,K,LABX,KABX)=0.D0
                    ENDDO
                 ENDDO
              ENDDO

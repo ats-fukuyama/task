@@ -82,7 +82,7 @@ CONTAINS
     
     WRITE(6,'(A,A)') &
          '## INPUT country id, graph id, ', &
-         'rank:N1-6,R1-6, help:?,?H/C/N/R/G/L/D/P, end:XX'
+         'rank:N1-6,R1-6, help:?,?H/C/N/R/G/L/D/P, end:X'
     CALL task_klin(line,kid,mode,cv_parm)
     IF(mode.EQ.2.OR.mode.EQ.3) GO TO 1  ! 2: parm input, 3:input error
     
@@ -104,7 +104,7 @@ CONTAINS
        CALL TOUPPER(kword)
 
        SELECT CASE(kword)
-       CASE('XX')
+       CASE('X ','XX')
           GO TO 9000
        CASE('?C')
           CALL cv_gout_help(1)

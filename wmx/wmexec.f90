@@ -20,6 +20,7 @@ CONTAINS
     USE dpparm,ONLY: dpprep
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
+    INTEGER:: nr
 
     IERR=0
     
@@ -36,6 +37,16 @@ CONTAINS
     IF(IERR.NE.0) RETURN
 
     CALL wm_setew
+
+    IF(mldwmx.EQ.1) THEN
+       DO nr=1,nrmax
+          IF(xrho(nr).GT.1.D0) EXIT
+       END DO
+       NR_S=nr-1
+       NBMODE=0
+    ELSE
+       NR_S=nrmax
+    END IF
      
     CALL wm_solv
     

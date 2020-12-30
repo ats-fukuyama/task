@@ -146,6 +146,7 @@ MODULE wmcomm
   INTEGER:: NDSIZ,NDMIN,NDMAX,KDSIZ,KDMIN,KDMAX
   INTEGER:: NDSIZ_F,NDMIN_F,NDMAX_F,KDSIZ_F,KDMIN_F,KDMAX_F
   INTEGER:: MODEWG,MWGMAX
+  INTEGER:: NR_S,NBMODE  ! for mdlwmx=1
 
   INTEGER,ALLOCATABLE:: NPH_LOOP(:)
   
@@ -162,6 +163,7 @@ MODULE wmcomm
   COMPLEX(rkind),ALLOCATABLE:: CFVG(:)
   COMPLEX(rkind),ALLOCATABLE:: CTNSR(:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CGD(:,:,:,:,:,:,:)
+  COMPLEX(rkind),ALLOCATABLE:: CGDD(:,:,:,:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CPSF(:,:,:,:,:,:,:)
 
   REAL(rkind),ALLOCATABLE:: RG11(:,:,:),RG12(:,:,:),RG13(:,:,:)
@@ -304,6 +306,7 @@ CONTAINS
     ALLOCATE(CFVG(mlen))
     ALLOCATE(CTNSR(3,3,nthmax_f,nhhmax_f))
     ALLOCATE(CGD(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
+    ALLOCATE(CGDD(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
     ALLOCATE(CPSF(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
     ALLOCATE(RG11(nthmax_f,nhhmax_f,nrmax+1),RG12(nthmax_f,nhhmax_f,nrmax+1))
     ALLOCATE(RG13(nthmax_f,nhhmax_f,nrmax+1),RG22(nthmax_f,nhhmax_f,nrmax+1))

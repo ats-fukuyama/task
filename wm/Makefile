@@ -7,8 +7,8 @@ include ../mtxp/make.mtxp
 LIB_MTX=$(LIB_MTX_MUMPS)
 LIBX_MTX=$(LIBX_MTX_MUMPS)
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
@@ -65,7 +65,7 @@ wm : libs libwm.a wmmain.o
 	$(FLINKER) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean:
-	rm -f core *.o ./*~ ../mtx/*.o *.a $(MOD)/*.mod
+	rm -f core *.o ./*~ *.a $(MOD)/*.mod
 
 veryclean: clean
 	rm -f wm
