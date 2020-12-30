@@ -70,7 +70,7 @@ contains
 !     DELNPR_WM: width of toroidal mode number for WM
 !     LMAX_WR: max loop count in newton method to find ray position
 !     EPS_WR: convergence criterion in newton method to find ray position
-!     DELY_WR: vertical half-width of ray [r/a]
+!     DELY_WR: vertical half-width of ray [m]
 !     Y0_WM: vertical position of wave beam [r/a]
 !     DELY_WM: vertical half-width of wave beam [r/a]
 !     NRAYS_WR: start of NRAY (IF 0, NRAYS_WR=1)

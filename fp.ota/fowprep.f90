@@ -13,17 +13,18 @@ contains
     use foworbit
     use fowdistribution
 
+    use fpwrite
+
     implicit none
 
     type(orbit) :: orbit_pnc
     integer :: nth, np, nr, nsa, ierr = 0, flag, nstp, nstpmax, ir, nthp
     real(rkind) :: dummy, begin_time, end_time
     real(rkind) :: time_v_co, time_v_cnt, dt, epspsi
-    logical :: isCo
     real(rkind) :: thetaml, psiml, tau_loss, momentum, pitch_angle, theta_pol, psi_pol
+    logical :: isCo
+    real(rkind) :: summ
 
-
-    call cpu_time(begin_time)
 
     do nth = 1,nthmax
       xi(nth) = (nth-0.5d0)/nthmax*(-2.d0)+1.d0
@@ -53,8 +54,9 @@ contains
       do nr = 1, nrmax
         do np = 1, npmax
           ! calculate theta_pnc and psip_pnc_point
-          call bisection_method_for_IBC(get_pinch_point, flag, pm(np,nsa)&
-                    , theta_pnc(np,nr,nsa), psip_pnc_point(np,nr,nsa), epspsi, psim(nr)*psi0-epspsi, psim(nr)*psi0, nsa)
+          call bisection_method_for_IBC(get_pinch_point, flag, pm(np,nsa), &
+               theta_pnc(np,nr,nsa), psip_pnc_point(np,nr,nsa), &
+               epspsi, psim(nr)*psi0-epspsi, psim(nr)*psi0, nsa)
 
           psip_pnc_point(np,nr,nsa) = psip_pnc_point(np,nr,nsa) / psi0
           if ( flag /= 0 ) theta_pnc(np,nr,nsa) = NO_PINCH_ORBIT
@@ -434,34 +436,15 @@ contains
 
     ! calculate local COMs
     if ( model_obload >= 1 ) then
+      call cpu_time(begin_time)
       call load_local_COM(ierr)
-      if ( ierr /= 0 ) then
-        call fow_set_obparm(ierr)
-        do nsa = 1, nsamax
-          do nthp = 1, nthpmax
-            do nr = 1, nrmax
-              do np = 1, npmax
-                do nth = 1, nthmax
-                  momentum = pm(np,nsa)*ptfp0(nsa)
-                  pitch_angle = thm(nth)
-                  theta_pol = theta_p(nthp)
-                  psi_pol = psim(nr)
-    
-                  call fow_cal_local_COMs(thetaml, psiml, tau_loss, momentum, pitch_angle, theta_pol, psi_pol, nsa)
-    
-                  thetam_local(nth,np,nr,nthp,nsa) = thetaml
-                  psim_local(nth,np,nr,nthp,nsa) = psiml
-                  time_loss(nth,np,nr,nthp,nsa) = tau_loss
-    
-                end do
-              end do
-            end do
-          end do
-        end do
-        call save_local_COM(ierr)  
-      end if
-  
-    else 
+      call cpu_time(end_time)
+      write(6,'("Load local COMs time :",ES10.3,"[sec]")')end_time-begin_time
+    end if
+
+    if ( model_obload == 0 .or. ierr /= 0) then
+      write(6,'(A)')"TASK/OB is runnnig for local COMs ..."
+      call cpu_time(begin_time)
       do nsa = 1, nsamax
         do nthp = 1, nthpmax
           do nr = 1, nrmax
@@ -483,19 +466,14 @@ contains
           end do
         end do
       end do
-
+      call cpu_time(end_time)
+      write(6,'("TASK/OB time:",ES10.3,"[sec]")')end_time-begin_time
+      if ( model_obload >= 0 ) call save_local_COM(ierr)
     end if
-
+    
     do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do np = 1, npmax
-          do nth = 1, nthmax
-            fnsp(nth,np,nr,nsa) = fI_Maxwellian(nth,np,nr,nsa)
-          end do
-        end do
-      end do
+      call fI_Maxwellian_sub(fnsp(:,:,:,nsa), nsa)
     end do
-    call fpcsv2D(fnsp(:,:,nrmax/2,2),"./csv/finit.csv")
 
     do nsa = 1, nsamax
       fnorm(nsa) = 1.d0!1.d40*RNFP0(NSA)
@@ -522,7 +500,6 @@ contains
     ALLOCATE(temp(nrmax+1),thpa(nthpmax))
 
     ierr = 0
-    write(*,*)"FP------------------------------------"
 
     modelg=3
     call eqload(modelg,knameq,ierr)
@@ -593,8 +570,6 @@ contains
         Babs(nr,nthp) = sqrt(Bt(nthp,nr)**2+Bp(nthp,nr)**2)
       end do
     end do
-
-    write(*,*)"FP------------------------------------"
 
     call calculate_equator_variable(ierr)
 
@@ -921,30 +896,27 @@ contains
     character(30) :: BIN_DIR, filename
     integer :: nm, nth, np, nr, nsa, nthp
 
-    BIN_DIR = "../fp.ota/bin/"
+    ierr = 0
+
+    BIN_DIR = "bin/"
 
     filename = TRIM(BIN_DIR)//"psim_local.bin"
-    open(20, file=filename,access='direct',recl=rkind,form='unformatted',status='replace',iostat=ierr)
+    open(20, file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
 
     filename = TRIM(BIN_DIR)//"thetam_local.bin"
-    open(21, file=filename,access='direct',recl=rkind,form='unformatted',status='replace',iostat=ierr)
+    open(21, file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
 
     filename = TRIM(BIN_DIR)//"time_loss.bin"
-    open(22, file=filename,access='direct',recl=rkind,form='unformatted',status='replace',iostat=ierr)
+    open(22, file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
 
     do nsa = 1, nsamax
       do nthp = 1, nthpmax
         do nr = 1, nrmax
           do np = 1, npmax
             do nth = 1, nthmax
-              nm = (nsa-1)*nthpmax*nrmax*npmax*nthmax &
-                  +(nthp-1)*nrmax*npmax*nthmax &
-                  +(nr-1)*npmax*nthmax &
-                  +(np-1)*nthmax * nth
-
-              write(20,rec=nm,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
-              write(21,rec=nm,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
-              write(22,rec=nm,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
+              write(20,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
+              write(21,iostat=ierr)thetam_local(nth,np,nr,nthp,nsa)
+              write(22,iostat=ierr)time_loss(nth,np,nr,nthp,nsa)
             end do
           end do
         end do
@@ -963,55 +935,65 @@ contains
     implicit none
     integer,intent(out) :: ierr
     character(30) :: BIN_DIR, filename
-    integer :: nm, nth, np, nr, nsa, nthp, access
+    integer :: nth, np, nr, nsa, nthp, access
     integer :: nthm_, npm_, nrm_, nsam_, nthpm_
     real(rkind) :: RR_, RA_, RKAP_, RDLT_, RB_, BB_, RIP_
 
     ierr = 0
 
-    BIN_DIR = "./bin/"
-    if ( access( TRIM(BIN_DIR)//"fpparm.dat", " ") /= 0 .and. access( TRIM(BIN_DIR)//"eqparm.dat", " ") ) then
-      ierr = 3
+    call system('mkdir -p bin')
+
+    BIN_DIR = "bin/"
+    if ( access( TRIM(BIN_DIR)//"fpparm.bin"      , " ") /= 0 &
+    .or. access( TRIM(BIN_DIR)//"eqparm.bin"      , " ") /= 0 &
+    .or. access( TRIM(BIN_DIR)//"psim_local.bin"  , " ") /= 0 &
+    .or. access( TRIM(BIN_DIR)//"thetam_local.bin", " ") /= 0 &
+    .or. access( TRIM(BIN_DIR)//"time_loss.bin"   , " ") /= 0 &
+    ) then
+      ierr = 1000
       return
     end if
 
-    filename = TRIM(BIN_DIR)//"eqparm.dat"
-    open(10, file=filename,access='direct',recl=rkind,form='unformatted',status='old',iostat=ierr)
-    read(10,rec=1,iostat=ierr)RR_
-    read(10,rec=2,iostat=ierr)RA_
-    read(10,rec=3,iostat=ierr)RKAP_
-    read(10,rec=4,iostat=ierr)RDLT_
-    read(10,rec=5,iostat=ierr)RB_
-    read(10,rec=6,iostat=ierr)BB_
-    read(10,rec=7,iostat=ierr)RIP_
+    filename = TRIM(BIN_DIR)//"eqparm.bin"
+    open(10,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    read(10,iostat=ierr)RR_,RA_,RKAP_,RDLT_,RB_,BB_,RIP_
     close(10)
 
-    filename = TRIM(BIN_DIR)//"fpparm.dat"
-    open(11, file=filename,access='direct',recl=4,form='unformatted',status='old',iostat=ierr)
-    read(11,rec=1,iostat=ierr)nthm_ 
-    read(11,rec=2,iostat=ierr)npm_
-    read(11,rec=3,iostat=ierr)nrm_ 
-    read(11,rec=4,iostat=ierr)nsam_
-    read(11,rec=5,iostat=ierr)nthpm_
+    filename = TRIM(BIN_DIR)//"fpparm.bin"
+    open(11,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    read(11,iostat=ierr)nthm_,npm_,nrm_,nsam_,nthpm_
     close(11)
 
-    if ( RR /= RR_ .or. RA /= RA_ .or. RKAP /= RKAP_ &
-        .or. RDLT /= RDLT_ .or. RB /= RB_ .or. BB /= BB_ .or. RIP /= RIP_) then
-      ierr = 1
+    if ( RR   /= RR_   &
+    .or. RA   /= RA_   &
+    .or. RKAP /= RKAP_ &
+    .or. RDLT /= RDLT_ &
+    .or. RB   /= RB_   &
+    .or. BB   /= BB_   &
+    .or. RIP  /= RIP_  &
+    ) then
+      ierr = 1001
+      return
     end if
-    if ( nthmax /= nthm_ .or. npmax /= npm_ &
-        .or. nrmax /= nrm_ .or. nsamax /= nsam_ .or. nthpmax /= nthpm_ ) then
-      ierr = 2
+
+    if ( nthmax  /= nthm_  &
+    .or. npmax   /= npm_   &
+    .or. nrmax   /= nrm_   &
+    .or. nsamax  /= nsam_  &
+    .or. nthpmax /= nthpm_ &
+    ) then
+      ierr = 1002
+      return
     end if
 
     filename = TRIM(BIN_DIR)//"psim_local.bin"
-    open(20, file=filename,access='direct',recl=rkind,form='unformatted',status='old',iostat=ierr)
+    open(20, file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
 
     filename = TRIM(BIN_DIR)//"thetam_local.bin"
-    open(21, file=filename,access='direct',recl=rkind,form='unformatted',status='old',iostat=ierr)
+    open(21, file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
 
     filename = TRIM(BIN_DIR)//"time_loss.bin"
-    open(22, file=filename,access='direct',recl=rkind,form='unformatted',status='old',iostat=ierr)
+    open(22, file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
 
     if ( ierr /= 0 ) return
 
@@ -1020,14 +1002,9 @@ contains
         do nr = 1, nrmax
           do np = 1, npmax
             do nth = 1, nthmax
-              nm = (nsa-1)*nthpmax*nrmax*npmax*nthmax &
-                  +(nthp-1)*nrmax*npmax*nthmax &
-                  +(nr-1)*npmax*nthmax &
-                  +(np-1)*nthmax * nth
-
-              read(20,rec=nm,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
-              read(21,rec=nm,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
-              read(22,rec=nm,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
+              read(20,iostat=ierr)psim_local(nth,np,nr,nthp,nsa)
+              read(21,iostat=ierr)thetam_local(nth,np,nr,nthp,nsa)
+              read(22,iostat=ierr)time_loss(nth,np,nr,nthp,nsa)
             end do
           end do
         end do
@@ -1045,28 +1022,52 @@ contains
 
     use fowcomm
     use fpcomm
+    use foworbit
 
     implicit none 
     integer :: np, nth, nr, nsa, nstpmax
-    real(rkind) :: J_x2z, J_z2I, tau_p, dBdpsil, pv, Bml, pl
-    real(rkind) ::  sumJ, sumTp
+    ! for JI
+    real(rkind) :: J_x2z, J_z2I, tau_p, dBdpsil, pv, Bml, pl, m0, sthm, cthm
+    real(rkind) :: dedp, dmudthm, dmudpsm, dPzdthm, dPzdpsm
+    real(rkind) :: sumJ
     real(rkind),allocatable :: dFdpsi(:), dBdpsi(:,:)
+    ! for JIR
+    type(orbit) :: ob
+    integer :: nr0, nstp, ierr, sumi
+    real(rkind) :: Vtube, dpsmdr0, dth0dr0, dFB0dr0, dBinvdr0, dps0dr0
+    real(rkind) :: r0,F0,B0,psip0,th0,thetap0,dF0,dB0
+    real(rkind) :: cth0, sth0, dPzdr0, dmudr0, fact1, fact2, fact, normalize
+    real(rkind),allocatable :: UR(:,:), UdF(:,:), Udps(:,:), UdB(:,:,:,:)
+    real(rkind),allocatable :: dradpsi(:), dpsdra(:), d2Fdpsi(:), fx(:,:), fy(:,:), fxy(:,:)
+
+    ierr = 0
+
+    allocate(UR(4,nrmax))
+    allocate(UdF(4,nrmax))
+    allocate(Udps(4,nrmax))
+    allocate(UdB(4,4,nrmax+1,nthpmax))
+    allocate(dpsdra(nrmax))
+    allocate(d2Fdpsi(nrmax))
+    allocate(fx(nrmax+1,nthpmax))
+    allocate(fy(nrmax+1,nthpmax))
+    allocate(fxy(nrmax+1,nthpmax))
 
     allocate(dFdpsi(nrmax), dBdpsi(nrmax,2))
     call first_order_derivative(dFdpsi,Fpsi,psim)
     call first_order_derivative(dBdpsi(:,1),Bout,psim)
     call first_order_derivative(dBdpsi(:,2),Bin,psim)
 
+    ! calculate JI 
     do nsa = 1, nsamax
-
+      m0 = amfp(nsa)
       sumJ = 0.d0
       do nr = 1, nrmax
-        sumTp = 0.d0
         do np = 1, npmax
           pl = pm(np,nsa)*ptfp0(nsa)
           do nth = 1, nthmax
-
-            if ( cos(thetam(nth,np,nr,nsa))*aefp(nsa) >= 0.d0 ) then
+            cthm = COS( thetam(nth,np,nr,nsa) )
+            sthm = SIN( thetam(nth,np,nr,nsa) )
+            if ( cthm*aefp(nsa) >= 0.d0 ) then
               dBdpsil = dBdpsi(nr,1)
               Bml = Bout(nr)
             else
@@ -1077,40 +1078,85 @@ contains
             nstpmax = orbit_m(nth,np,nr,nsa)%nstp_max
             tau_p = orbit_m(nth,np,nr,nsa)%time(nstpmax)
 
-            J_x2z = 4.d0*pi**2*tau_p/(amfp(nsa)**2*abs(aefp(nsa)))
-            J_z2I = pl**3*sin(thetam(nth,np,nr,nsa))/(amfp(nsa)**2*pv*Bml)&
-                    *(pl/Bml**2*(Bml*dFdpsi(nr)*psi0*cos(thetam(nth,np,nr,nsa))**2-dBdpsil*psi0*Fpsi(nr))&
-                    -aefp(nsa)*cos(thetam(nth,np,nr,nsa)))
-            J_z2I = abs( J_z2I )
+            J_x2z = 4.d0*pi**2*tau_p/(m0**2*abs(aefp(nsa)))
 
-            Jacobian_I(nth,np,nr,nsa) = J_x2z * J_z2I
-            Jacobian_I(nth,np,nr,nsa) = Jacobian_I(nth,np,nr,nsa) * ptfp0(nsa)*psi0
+            dedp    = pl/(m0*pv)
+            dmudthm = pl**2*cthm*sthm/(m0*Bml)
+            dmudpsm = -1.d0*pl**2*sthm**2/(2.d0*m0)*dBdpsil/Bml**2
+            dPzdthm = -1.d0*Fpsi(nr)/Bml*pl*sthm
+            dPzdpsm = (Bml*dFdpsi(nr)-dBdpsil*Fpsi(nr))/Bml**2*pl*cthm-aefp(nsa)
+            J_z2I = ABS( dedp * (dmudthm*dPzdpsm - dmudpsm*dPzdthm) )
 
-            sumJ=sumJ+Jacobian_I(nth,np,nr,nsa)*delps(nr)*delthm(nth,np,nr,nsa)*delp(nsa)
-            sumTP = sumtp + tau_p
-
+            JI(nth,np,nr,nsa) = J_x2z * J_z2I * ptfp0(nsa)*psi0
+            sumJ = sumJ + JI(nth,np,nr,nsa)*delps(nr)*delthm(nth,np,nr,nsa)*delp(nsa)
+            
           end do
         end do
-        write(*,*)"taup",nsa,nr,sumtp
+      end do      
+    end do
+
+
+    ! calculate JIR
+    call first_order_derivative(dpsdra, psim, rm)
+    call SPL1D(rm,psim,dpsdra,Udps,nrmax,0,ierr)
+
+    call SPL1D(psim,dFdpsi,d2Fdpsi,UdF,nrmax,0,ierr)
+    call SPL2D(psimg,theta_p,dBdpsi,fx,fy,fxy,UdB,nrmax+1,nrmax+1,nthpmax,0,0,ierr)
+
+    do nsa = 1, nsamax
+      sumi = 0.d0
+      sumJ = 0.d0
+      do nr = 1, nrmax
+        do np = 1, npmax
+          pl = pm(np,nsa)*ptfp0(nsa)
+          do nth = 1, nthmax
+            cthm = COS( thetam(nth,np,nr,nsa) )
+            sthm = SIN( thetam(nth,np,nr,nsa) )
+            if ( cthm*aefp(nsa) >= 0.d0 ) then
+              dBdpsil = dBdpsi(nr,1)
+              Bml = Bout(nr)
+            else
+              dBdpsil = dBdpsi(nr,2)
+              Bml = Bin(nr)
+            end if
+
+            ob = orbit_m(nth,np,nr,nsa)
+
+            call mean_ra_quantities(ob, r0, psip0, thetap0, th0, B0, F0)
+
+            call SPL1DF(r0,dps0dr0,psim,Udps,nrmax,ierr)
+            call SPL1DF(psip0,dF0,psim,UdF,nrmax,ierr)
+            call SPL2DF(psip0,thetap0,dB0,psimg,theta_p,UdB,nrmax+1,nrmax+1,nthpmax,ierr)
+            cth0 = COS( th0 )
+            sth0 = SIN( th0 )
+            dFB0dr0 = ( dF0*B0-F0*dB0 )/B0**2 * dps0dr0
+            dBinvdr0= -1.d0*dB0/B0**2 * dps0dr0
+
+            dPzdr0 = dFB0dr0*pl*cth0-aefp(nsa)*dps0dr0
+            dmudr0 = dBinvdr0*sth0**2*dps0dr0
+
+            fact1 = 2.d0*cthm*( (Bml*dFdpsi(nr)-dBdpsil*Fpsi(nr))/Bml**2*pl*cthm-aefp(nsa) )
+            fact2 = -1.d0*pl*Fpsi(nr)*dBdpsil/Bml**2*sthm**2
+
+            fact = fact1+fact2
+            dpsmdr0 = ( 2.d0*dPzdr0*cthm + dmudr0*pl*Fpsi(nr) )/fact
+            Vtube = 2.d0*pi*RR*2.d0*pi*RA*RA*r0
+            JIR(nth,np,nr,nsa) = JI(nth,np,nr,nsa)*ABS( dpsmdr0 )*2.d0*pi/Vtube
+            sumJ = sumJ+JIR(nth,np,nr,nsa)*delp(nsa)*delthm(nth,np,nr,nsa)
+            sumi = sumi + 1
+          end do
+        end do
       end do
 
+      normalize = dble(sumi)/sumj
       do nr = 1, nrmax
         do np = 1, npmax
           do nth = 1, nthmax
-            Jacobian_I(nth,np,nr,nsa) = Jacobian_I(nth,np,nr,nsa) / sumJ
+            JI(nth,np,nr,nsa)  = JI(nth,np,nr,nsa)  * normalize
+            JIR(nth,np,nr,nsa) = JIR(nth,np,nr,nsa) * normalize
           end do
         end do
       end do
-
-      ! do nr = 1, nrmax
-      !   sumJ = 0.d0
-      !   do np = 1, npmax
-      !     do nth = 1, nthmax
-      !       sumJ=sumJ+Jacobian_I(nth,np,nr,nsa)*delps(nr)*delthm(nth,np,nr,nsa)*delp(nsa)
-      !     end do
-      !   end do
-      !   write(*,*)"sumJ",nr,sumJ
-      ! end do
 
     end do
 

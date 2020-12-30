@@ -115,6 +115,12 @@ CONTAINS
 !              4 : Write data every 1000 step
 !              5 : Write data every 10000 step
 
+!     nres_type : plot type of resonance curves
+!              0 : power abs density (max, 50% for nres_max=3)
+!              1 : power flux        (25%, 50%, 75% for nres_max=3)
+!              2 : ray length        (25%, 50%, 75% for nres_max=3)
+!     nres_max : number of resonance curves
+
       SMAX   = 1.0D0
       DELS   = 0.05D0
       UUMIN  = 1.D-4
@@ -137,6 +143,9 @@ CONTAINS
       MDLWRP = 1
       MDLWRQ = 1
       MDLWRW = 0
+
+      nres_max = 3
+      nres_type = 0
 
 ! --- defined in dp ---
 

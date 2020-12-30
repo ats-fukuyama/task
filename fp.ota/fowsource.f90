@@ -130,7 +130,7 @@ contains
               end if
               S_beam(nth,np,nr,beam%id,nb) = fact_psm * fact_thm
 
-              dV = delthm(nth,np,nr,beam%id)*delp(beam%id)*delps(nr)*Jacobian_I(nth,np,nr,beam%id)
+              dV = delthm(nth,np,nr,beam%id)*delp(beam%id)*delps(nr)*JI(nth,np,nr,beam%id)
               sum_S_beam = sum_S_beam + S_beam(nth,np,nr,beam%id,nb)*dV
 
             else
@@ -195,7 +195,7 @@ contains
                 end if
                 S_beam(nth,np,nr,beam%id,nb) = fact_psm * fact_thm
 
-                dV = delthm(nth,np,nr,beam%id)*delp(beam%id)*delps(nr)*Jacobian_I(nth,np,nr,beam%id)
+                dV = delthm(nth,np,nr,beam%id)*delp(beam%id)*delps(nr)*JI(nth,np,nr,beam%id)
                 sum_S_beam = sum_S_beam + S_beam(nth,np,nr,beam%id,nb)*dV
                                           
                 write(*,*)"beam",sum_S_beam,S_beam(nth,np,nr,beam%id,nb)

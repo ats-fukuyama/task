@@ -42,10 +42,10 @@ program fow
   call fow_loop
 
 
-  if ( model_mkcsv /= 0 ) call fow_csv(nrmax/2)
+  ! if ( model_mkcsv /= 0 ) call fow_csv(nrmax/2)
 
   write(*,*)"end"
-  call fow_deallocate
+  ! call fow_deallocate
 
 end program fow
 
@@ -90,10 +90,10 @@ subroutine fow_csv(nr_out)
 
 
   call fpcsv2D(thetam(:,:,nr_out,2),"./csv/thetam.csv")
-  call fpcsv2D(Jacobian_I(:,:,nr_out,2),"./csv/Jacobian.csv")
+  call fpcsv2D(JI(:,:,nr_out,2),"./csv/Jacobian.csv")
 
   call fpcsv2D(thetam(:,:,nr_out,1),"./csv/thetam_ele.csv")
-  call fpcsv2D(Jacobian_I(:,:,nr_out,1),"./csv/Jacobian_ele.csv")
+  call fpcsv2D(JI(:,:,nr_out,1),"./csv/Jacobian_ele.csv")
 
   call fpcsv2D(theta_pnc(:,:,1),"./csv/theta_pnc_ele.csv")
   call fpcsv2D(theta_pnc(:,:,2),"./csv/theta_pnc_ion.csv")
@@ -103,8 +103,15 @@ subroutine fow_csv(nr_out)
   call fpcsv2D(theta_cnt_stg(:,:,2),"./csv/theta_cnt_ion.csv")
 
 
-  call fpcsv2D(fnsp(:,:,nr_out,2),"./csv/fsnp.csv")
-  call fpcsv2D(fnsm(:,:,nr_out,2),"./csv/fsnm.csv")
+  call fpcsv2D(fnsp(:,:,nr_out,2),"./csv/fnsp.csv")
+  call fpcsv1D(fnsp(npmax/2,nthmax/4,:,2),"./csv/fnsp_radial_th4.csv")
+  call fpcsv1D(fnsp(npmax/2,nthmax/3,:,2),"./csv/fnsp_radial_th3.csv")
+  call fpcsv1D(fnsp(npmax/2,nthmax/2,:,2),"./csv/fnsp_radial_th2.csv")
+
+  call fpcsv2D(fnsm(:,:,nr_out,2),"./csv/fnsm.csv")
+  call fpcsv1D(fnsm(npmax/2,nthmax/4,:,2),"./csv/fnsm_radial_th4.csv")
+  call fpcsv1D(fnsm(npmax/2,nthmax/3,:,2),"./csv/fnsm_radial_th3.csv")
+  call fpcsv1D(fnsm(npmax/2,nthmax/2,:,2),"./csv/fnsm_radial_th2.csv")
 
 end subroutine
 

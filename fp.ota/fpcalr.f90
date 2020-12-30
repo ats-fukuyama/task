@@ -23,7 +23,7 @@ CONTAINS
       REAL(kind8):: SHEAR,PNEL,RHONI,DPDR,DVEXBDR,CALF,CKAP,CEXB,FSZ,FEZ
       REAL(kind8),DIMENSION(1:NRMAX+1):: CHI_CDBM
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
-      double precision:: densm, densp, rgama
+      double precision:: densm, densp, rgama, alpha
       INTEGER:: ISW_D
 
 !---- Calculation of CDBM diffusion coefficient ----
@@ -185,6 +185,9 @@ CONTAINS
                CASE(4) ! stochastic delta B /B; relativistic
                   RGAMA=SQRT(1.D0+THETA0(NS)*PM(NP,NS)**2)
                   FACTP=PM(NP,NS)*ABS(COSM(NTH))/RGAMA
+               CASE(5)
+                  alpha=1.2d0 
+                  FACTP=PM(NP,NS)**alpha/SQRT(1.d0*PM(NP,NS)**2*SINM(NTH)**2)
                END SELECT
                DRR(NTH,NP,NR,NSA)= FACTR*FACTP/RA**2*RLAMDA_RG(NTH,NR)   ! normalization for rhon
             ENDDO

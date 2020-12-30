@@ -1,7 +1,7 @@
 module fowdistribution
   implicit none
   private
-  public :: fI_Maxwellian
+  public :: fI_Maxwellian,fI_Maxwellian_sub
   public :: convert_fI_to_fu
   public :: moment_0th_order_COM, moment_2nd_order_COM
   public :: total_N, radial_particle_flux, effective_diffusion_cosfficient
@@ -45,73 +45,83 @@ contains
 
     fact = rnfdl / SQRT(2.d0*pi*rtfdl/rtfd0l)**3
     ex = pm(np,nsa)**2/(2.d0*rtfdl/rtfd0l)
-    fI = fact*EXP( -1.d0*ex )! / Jacobian_I(nth,np,nr,nsa)
+    fI = fact*EXP( -1.d0*ex )! / JI(nth,np,nr,nsa)
 
   end function
 
-  ! subroutine fI_Maxwellian(fI, nsa)
-  !   use plprof
-  !   use fpcomm
-  !   use fpsub
-  !   use fowcomm
-  !   use foworbit
+  subroutine fI_Maxwellian_sub(fI, nsa)
+    use plprof
+    use fpcomm
+    use fpsub
+    use fowcomm
+    use foworbit
 
-  !   implicit none
-  !   real(rkind),intent(out) :: fI(:,:,:)
-  !   integer,intent(in) :: nsa
-  !   real(rkind) :: ra_Bmin, theta_Bmin, rtfd0l, ptfd0l, fact, ex
-  !   real(rkind) :: rnfd0l, rnfdl, rtfdl
-  !   integer :: nth, np, nr, ns
-  !   real(rkind) :: sumI, sumu
-  !   type(pl_plf_type),dimension(nsmax) :: plf
+    implicit none
+    real(rkind),intent(out) :: fI(:,:,:)
+    integer,intent(in) :: nsa
+    real(rkind) :: ra_Bmin, theta_Bmin, rtfd0l, ptfd0l, fact, ex
+    real(rkind) :: rnfd0l, rnfdl, rtfdl
+    integer :: nth, np, nr, ns
+    real(rkind) :: sumI, sumu, r0, psip0, thetap0, th0, B0, F0
+    type(pl_plf_type),dimension(nsmax) :: plf
 
-  !   ns = ns_nsa(nsa)
+    ns = ns_nsa(nsa)
 
-  !   sumI = 0.d0
-  !   sumu = 0.d0
-  !   do nr = 1, nrmax
-  !     do np = 1, npmax
-  !       do nth = 1, nthmax
+    sumI = 0.d0
+    sumu = 0.d0
+    do nr = 1, nrmax
+      do np = 1, npmax
+        do nth = 1, nthmax
 
-  !         call quantities_at_Bminimum(ra_Bmin, theta_Bmin, orbit_m(nth,np,nr,nsa))
+          call mean_ra_quantities(orbit_m(nth,np,nr,nsa), r0, psip0, thetap0, th0, B0, F0)
 
-  !         rtfd0l = ( ptpr(ns)+2.d0*ptpp(ns) )/3.d0
-  !         ptfd0l = SQRT( rtfd0l*1.d3*aee*amfp(ns) )
-  !         rnfd0l = pn(ns)
+          rtfd0l = ( ptpr(ns)+2.d0*ptpp(ns) )/3.d0
+          ptfd0l = SQRT( rtfd0l*1.d3*aee*amfp(ns) )
+          rnfd0l = pn(ns)
       
       
-  !         if( model_ex_read_tn == 0 ) then
-  !           call pl_prof(ra_Bmin, plf)
-  !           rnfdl = plf(ns)%rn/rnfd0l
-  !           rtfdl = ( plf(ns)%rtpr+2.d0*plf(ns)%rtpp)/3.d0
+          if( model_ex_read_tn == 0 ) then
+            call pl_prof(r0, plf)
+            rnfdl = plf(ns)%rn/rnfd0l
+            rtfdl = ( plf(ns)%rtpr+2.d0*plf(ns)%rtpp)/3.d0
       
-  !         else
-  !           rnfdl=rn_temp(nr,ns)/rnfd0l
-  !           rtfdl=rt_temp(nr,ns)
+          else
+            ! rnfdl=rn_temp(nr,ns)/rnfd0l
+            ! rtfdl=rt_temp(nr,ns)
+            if ( nr == 1 ) then
+              rnfdl = rn_temp(nr,ns)/rnfd0l+(rn_temp(nr+1,ns)/rnfd0l-rn_temp(nr,ns)/rnfd0l)/delr*(r0-rm(nr))
+              rtfdl = rt_temp(nr,ns)+(rt_temp(nr+1,ns)-rt_temp(nr,ns))/delr*(r0-rm(nr))
+            else
+              rnfdl = rn_temp(nr,ns)/rnfd0l+(rn_temp(nr,ns)/rnfd0l-rn_temp(nr-1,ns)/rnfd0l)/delr*(r0-rm(nr))
+              rtfdl = rt_temp(nr,ns)+(rt_temp(nr,ns)-rt_temp(nr-1,ns))/delr*(r0-rm(nr))
+            end if
       
-  !         end if
+          end if
       
-  !         fact = rnfdl / SQRT(2.d0*pi*rtfdl/rtfd0l)**3
-  !         ex = pm(np,nsa)**2/(2.d0*rtfdl/rtfd0l)
-  !         fI(nth, np, nr) = fact*EXP( -1.d0*ex )! / Jacobian_I(nth,np,nr,nsa)
+          ex = pm(np,nsa)**2/(2.d0*rtfdl/rtfd0l)
+          fI(nth, np, nr) = EXP( -1.d0*ex )! / JI(nth,np,nr,nsa)
+      
+        end do
+      end do
+    end do
 
-  !         sumI = sumI + fI(nth, np, nr)*Jacobian_I(nth,np,nr,nsa)&
-  !                     *delp(nsa)*delthm(nth,np,nr,nsa)*delps(nr)*2.d0*pi*pm(np,nsa)**2
-  !         sumu = sumu + fpmxwl(pm(np,nsa),nr,ns)*volp(nth,np,nsa)*volr(nr)
-      
-  !       end do
-  !     end do
-  !   end do
+    do nr = 1, nrmax
+      sumI = 0.d0
+      do np = 1, npmax
+        do nth = 1, nthmax
+          sumI = sumI + fI(nth,np,nr)*JIR(nth,np,nr,nsa)*delp(nsa)*delthm(nth,np,nr,nsa)
+        end do
+      end do
 
-  !   do nr = 1, nrmax
-  !     do np = 1, npmax
-  !       do nth = 1, nthmax
-  !         fI(nth, np, nr) = fI(nth, np, nr) * sumu/sumI
-  !       end do
-  !     end do
-  !   end do
+      do np = 1, npmax
+        do nth = 1, nthmax
+          fI(nth,np,nr) = fI(nth,np,nr)*rn_temp(nr,ns)/rnfd0l/sumI
+        end do
+      end do
 
-  ! end subroutine
+    end do
+
+  end subroutine
 
   subroutine convert_fI_to_fu(fu_l, fI)
 
@@ -161,16 +171,16 @@ contains
                 irr  = min( ir+1, nrmax )
                 irl  = irr-1
 
-                f11 = fI(ithl,np,irl,nsa)*Jacobian_I(ithl,np,irl,nsa) &
+                f11 = fI(ithl,np,irl,nsa)*JI(ithl,np,irl,nsa) &
                       *delthm(ithl,np,irl,nsa)*delp(nsa)*delps(irl)
 
-                f12 = fI(ithl,np,irr,nsa)*Jacobian_I(ithl,np,irr,nsa) &
+                f12 = fI(ithl,np,irr,nsa)*JI(ithl,np,irr,nsa) &
                       *delthm(ithl,np,irr,nsa)*delp(nsa)*delps(irr)
 
-                f21 = fI(ithr,np,irl,nsa)*Jacobian_I(ithr,np,irl,nsa) &
+                f21 = fI(ithr,np,irl,nsa)*JI(ithr,np,irl,nsa) &
                       *delthm(ithr,np,irl,nsa)*delp(nsa)*delps(irl)
 
-                f22 = fI(ithr,np,irr,nsa)*Jacobian_I(ithr,np,irr,nsa) &
+                f22 = fI(ithr,np,irr,nsa)*JI(ithr,np,irr,nsa) &
                       *delthm(ithr,np,irr,nsa)*delp(nsa)*delps(irr)
 
                 dxm = thetaml - thetam(ithl,np,irl,nsa)
@@ -199,21 +209,21 @@ contains
         do np = 1, npmax
           do nth = 1, nthmax
             sumI = sumI + delps(nr)*delp(nsa)*delthm(nth,np,nr,nsa) &
-                            *Jacobian_I(nth,np,nr,nsa)*fI(nth,np,nr,nsa)
+                            *JI(nth,np,nr,nsa)*fI(nth,np,nr,nsa)
           end do
         end do
       end do
 
-      ! do nthp = 1, nthpmax
-      !   do nr = 1, nrmax
-      !     do np = 1, npmax
-      !       do nth = 1, nthmax
-      !         vr = twopi*rr*(rg(nr+1)-rg(nr))*rm(nr)*twopi/dble(nthpmax)
-      !         fu_l(nth,np,nr,nthp,nsa) = fu_l(nth,np,nr,nthp,nsa) * sumI / suml 
-      !       end do
-      !     end do
-      !   end do
-      ! end do
+      do nthp = 1, nthpmax
+        do nr = 1, nrmax
+          do np = 1, npmax
+            do nth = 1, nthmax
+              vr = twopi*rr*(rg(nr+1)-rg(nr))*rm(nr)*twopi/dble(nthpmax)
+              fu_l(nth,np,nr,nthp,nsa) = fu_l(nth,np,nr,nthp,nsa) * sumI / suml 
+            end do
+          end do
+        end do
+      end do
 
     end do
 
@@ -236,8 +246,8 @@ contains
         M0(nr,nsa) = 0.d0
         do np = 1, npmax
           do nth = 1, nthmax
-            dVI = delthm(nth,np,nr,nsa)*delp(nsa) *2.d0*pi*pm(np,nsa)**2
-            M0(nr,nsa) = M0(nr,nsa) + fI_in(nth,np,nr,nsa) * dVI * Jacobian_I(nth,np,nr,nsa)
+            dVI = delthm(nth,np,nr,nsa)*delp(nsa)
+            M0(nr,nsa) = M0(nr,nsa) + fI_in(nth,np,nr,nsa) * dVI * JIR(nth,np,nr,nsa)
           end do
         end do
 
@@ -265,8 +275,8 @@ contains
           PV = sqrt(1.d0+theta0(nsa)*pm(np,nsa)**2)
           do nth = 1, nthmax
             K = (PV-1.d0)*amfp(nsa)*vc**2
-            dVI = delthm(nth,np,nr,nsa)*delp(nsa) *2.d0*pi*pm(np,nsa)**2
-            M2(nr,nsa) = M2(nr,nsa) + K*fI_in(nth,np,nr,nsa) * dVI * Jacobian_I(nth,np,nr,nsa)
+            dVI = delthm(nth,np,nr,nsa)*delp(nsa)
+            M2(nr,nsa) = M2(nr,nsa) + K*fI_in(nth,np,nr,nsa) * dVI * JIR(nth,np,nr,nsa)
           end do
         end do
 
@@ -289,8 +299,9 @@ contains
     call moment_0th_order_COM(rnsl_prev, fnsm)
 
     sumg = 0.d0
-    do nr = 2, nrmax
+    do nr = 1, nrmax
       dndt = ( rnsl(nr,nsa)-rnsl_prev(nr,nsa) )/delt
+      ! write(*,*)"dndt",dndt
       vprimem=4.d0*pi**2*rr*(dble(nr)-0.5d0)/dble(nrmax)*ra
       vprimeg=4.d0*pi**2*rr*dble(nr)/dble(nrmax)*ra
       sumg = sumg + (-1.d0*dndt)*vprimem*delr*ra
@@ -305,12 +316,11 @@ contains
     implicit none
     real(rkind),intent(out) :: Deff(:)
     integer,intent(in) :: nsa
-    real(rkind),allocatable :: gamma_r(:), dndr(:)
+    real(rkind),dimension(nrmax) :: g_r, dndr
     integer :: nr
 
-    allocate(gamma_r(nrmax), dndr(nrmax))
 
-    call radial_particle_flux(gamma_r, nsa)
+    call radial_particle_flux(g_r, nsa)
 
     do nr = 1, nrmax
       if ( nr /= nrmax ) then
@@ -318,8 +328,9 @@ contains
       else
         dndr(nr) = (3.d0*rnsl(nr,nsa)-4.d0*rnsl(nr-1,nsa)+rnsl(nr-2,nsa))/delr/2.d0
       end if
-      Deff(nr) = -1.d0*gamma_r(nr)/dndr(nr)
+      Deff(nr) = -1.d0*g_r(nr)/dndr(nr)
     end do
+
 
   end subroutine effective_diffusion_cosfficient
 
@@ -338,8 +349,8 @@ contains
     do nr = 1, nrmax
       do np = 1, npmax
         do nth = 1, nthmax
-          dVI = delp(nsa)*delthm(nth,np,nr,nsa)*delps(nr) * 2.d0*pi*pm(np,nsa)**2
-          sumI = sumI+FI(nth,np,nr,nsa)*dVI*Jacobian_I(nth,np,nr,nsa)
+          dVI = delp(nsa)*delthm(nth,np,nr,nsa)*delps(nr)! * 2.d0*pi*pm(np,nsa)**2
+          sumI = sumI+FI(nth,np,nr,nsa)*dVI*JI(nth,np,nr,nsa)
         end do
       end do
     end do
@@ -348,7 +359,7 @@ contains
     
   end subroutine total_N
 
-  subroutine moment_0th_order_COM_org(M0, fI_in)
+  subroutine moment_0th_order_COMl(M0, fI_in)
     use fpcomm
     use fowcomm
     use foworbit
@@ -376,8 +387,8 @@ contains
             
             do ir = 1, nrmax
               if ( rg(nr) <= mean_ra .and. mean_ra <= rg(nr+1) ) then
-                dVI = Jacobian_I(nth,np,nr,nsa)*delp(nsa)*delthm(nth,np,nr,nsa)*delps(nr) * fnorm(nsa)
-                dVu = volp(nth,np,nsa)*twopi*rr*(rg(ir+1)-rg(ir))*rm(ir)*twopi/dble(nthpmax) * RNFP0(NSA)*1.0d20
+                dVI = JI(nth,np,nr,nsa)*delp(nsa)*delthm(nth,np,nr,nsa)*delps(nr) * fnorm(nsa)
+                dVu = volp(nth,np,nsa)*twopi*rr*(rg(ir+1)-rg(ir))*rm(ir)*twopi/dble(nthpmax)! * RNFP0(NSA)*1.0d20
 
                 dVr = twopi*RR*twopi*rm(nr)
                 M0(ir,nsa) = M0(ir,nsa) + fI_in(nth,np,nr,nsa)*dVI/dVu * dVr * volp(nth,np,nsa)
@@ -394,7 +405,7 @@ contains
 
   end subroutine
 
-  subroutine moment_2nd_order_COM_org(M2, fI_in)
+  subroutine moment_2nd_order_COMl(M2, fI_in)
     use fpcomm
     use fowcomm
     implicit none

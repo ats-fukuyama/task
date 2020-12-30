@@ -25,7 +25,7 @@ CONTAINS
     END IF
 
 1   WRITE(6,*) &
-         '## INPUT GRAPH TYPE : ray:1,2,3,4,5, beam:6,7,8,9  P:prof  end:X'
+         '## INPUT GRAPH TYPE : ray:1,2,3,4,5,6 beam:7,8,9,0  P:prof  end:X'
     READ(5,'(A1)',ERR=1,END=9000) KID
     CALL GUCPTL(KID)
 
@@ -33,11 +33,12 @@ CONTAINS
     IF(KID.EQ.'2'.AND.NSTAT.GE.1) CALL WRGRF2
     IF(KID.EQ.'3'.AND.NSTAT.GE.1) CALL WRGRF3
     IF(KID.EQ.'4'.AND.NSTAT.GE.1) CALL WRGRF4
-    IF(KID.EQ.'5'.AND.NSTAT.GE.1) CALL WRGRF5R
-    IF(KID.EQ.'6'.AND.NSTAT.GE.2) CALL WRGRF6
+    IF(KID.EQ.'5'.AND.NSTAT.GE.1) CALL WRGRF5
+    IF(KID.EQ.'6'.AND.NSTAT.GE.1) CALL WRGRF6
     IF(KID.EQ.'7'.AND.NSTAT.GE.2) CALL WRGRF7
     IF(KID.EQ.'8'.AND.NSTAT.GE.2) CALL WRGRF8
     IF(KID.EQ.'9'.AND.NSTAT.GE.2) CALL WRGRF9
+    IF(KID.EQ.'0'.AND.NSTAT.GE.2) CALL WRGRF0
     IF(KID.EQ.'P') CALL pl_gout
     IF(KID.EQ.'X') GOTO 9000
 
@@ -123,7 +124,7 @@ CONTAINS
     CALL GVALUE(GRORG,2*GRSTEP,0.0,0.0,NGULEN(2*GRSTEP))
     CALL GVALUE(0.0,0.0,0.0,2*GZSTEP,NGULEN(2*GZSTEP))
     CALL SETLIN(0,2,4)
-    CALL GPLOTP(GRS,GZS,1,NSUMAX,1,0,0,0)
+    CALL GPLOTP(GRS,GZS,1,NSUMAX+1,1,0,0,0)
 
 !     ----- magnetic surface -----
 
@@ -208,7 +209,7 @@ CONTAINS
 
     CALL GQSCAL(GUCLIP(RHOGMN),GUCLIP(RHOGMX),GXMIN,GXMAX,GXSTEP)
 
-    CALL GMNMX2(GPY,NSTPMAX+1,1,nrsmax,1,1,NRAYMAX,1,GYMIN,GYMAX)
+    CALL GMNMX2(GPY,nrsmax,1,nrsmax,1,1,NRAYMAX,1,GYMIN,GYMAX)
     CALL GQSCAL(GYMIN,GYMAX,GYSMIN,GYSMAX1,GYSCAL1)
     GYSMIN=0.0
     GYSMAX2=0.1 
@@ -862,7 +863,7 @@ CONTAINS
     
 !     ***** relativistic cyclotron resonance condition *****
 
-  SUBROUTINE WRGRF5R
+  SUBROUTINE WRGRF6
 
     USE wrcomm
     USE wrsub,ONLY: wrcalk
@@ -870,58 +871,54 @@ CONTAINS
     USE libgrf
     IMPLICIT NONE
     INTEGER,PARAMETER:: nang_max=100
-    INTEGER,PARAMETER:: nloop_max=4
     TYPE(pl_mag_type):: mag
     TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
-    INTEGER:: nray,nloop,nstp,nc,nang
-    INTEGER:: nstp_plmax,nstpa(nloop_max)
+    INTEGER:: nray,nres,nstp,nc,nang,line_pat,ngid,ierr,nres_ncount
+    INTEGER:: nstp_nres(nres_max)
+    REAL:: rgb_nres(3,nres_max)
     REAL(rkind):: pvtmax,dang,pl,plmax,omega,xl,yl,zl,rhon,babs,omegace
     REAL(rkind):: ptpr_e,ptpp_e,rkpara,rkperp,rnpara,pc_org,temp
     REAL(rkind):: pc_para,pc_perp,pte,vte,pvt_org,pvt_para,pvt_perp,ang
-    
-    REAL:: LINE_RGB(3,4)
-    DATA LINE_RGB/0.0,0.0,0.0, 0.0,1.0,0.0, 1.0,0.0,0.0, 0.0,0.0,1.0/
+    CHARACTER(LEN=46):: title
     EXTERNAL GMNMX1,GQSCAL,PAGES,SETCHS,SETFNT,SETLIN,SETRGB,PAGEE
     EXTERNAL GDEFIN,GFRAME,GSCALE,GVALUE,GPLOTP,CONTP2
     EXTERNAL MOVE,TEXT,MOVE2D,DRAW2D
     REAL:: GUCLIP
 
-    pvtmax=5.D0
+    pvtmax=6.D0
     dang=PI/nang_max
     
     CALL pages
-    CALL grd2d_frame_start(0,-pvtmax,pvtmax,0.D0,pvtmax, &
-         '@resonance condition in momentum space@', &
-         ASPECT=0.5D0)
+    DO nray=1,MIN(nraymax,25)
+       SELECT CASE(nraymax)
+       CASE(1)
+          ngid=0
+       CASE(2:4)
+          ngid=nray    ! ngid=1:4
+       CASE(5:9)
+          ngid=nray+4  ! ngid=9:13  (5:13)
+       CASE(10:16)
+          ngid=nray+13 ! ngid=23:29 (14:29)
+       CASE(17:25)
+          ngid=nray+29 ! ngid=46:54 (30:54)
+       END SELECT
 
-    DO NRAY=1,NRAYMAX
-       NSTP_PLMAX=0
-       PLMAX=RAYS(8,0,NRAY)
-       DO NSTP=1,NSTPMAX_NRAY(NRAY)
-          PL=RAYS(8,NSTP,NRAY)
-          IF(PL.GT.PLMAX) THEN
-             PLMAX=PL
-             NSTP_PLMAX=NSTP
-          END IF
-       END DO
-!       NSTPA(1)=0
-!       NSTPA(2)=NSTP_PLMAX/2
-!       NSTPA(3)=NSTP_PLMAX
-!       NSTPA(4)=NSTPMAX_NRAY(NRAY)
-       NSTPA(1)=NSTP_PLMAX/2
-       NSTPA(2)=MAX(NSTP_PLMAX-100,NSTP_PLMAX/2)
-       NSTPA(3)=NSTP_PLMAX
-       NSTPA(4)=MIN(NSTP_PLMAX+100,NSTPMAX_NRAY(nray))
+       CALL setup_nres(nray,nstp_nres,rgb_nres,ierr)
+       WRITE(title,'(A,ES12.4,A,F8.4,A,F8.4,A)') &
+            '@RF:',RAYIN(1,nray), &
+            ' angPH:',RAYIN(7,nray),' angZ:',RAYIN(6,nray),'@'
+       CALL grd2d_frame_start(ngid,-pvtmax,pvtmax,0.D0,pvtmax, &
+            title,ASPECT=0.5D0,NOINFO=1)
+    
 
        omega=2*PI*RAYIN(1,NRAY)*1.D6
 
-       DO nloop=1,nloop_max
-          nstp=nstpa(nloop)
+       DO nres=1,nres_max
+          CALL SETRGB(rgb_nres(1,nres),rgb_nres(2,nres),rgb_nres(3,nres))
+          nstp=nstp_nres(nres)
           xl=rays(1,nstp,nray)
           yl=rays(2,nstp,nray)
           zl=rays(3,nstp,nray)
-          WRITE(6,'(A,3I8,3ES12.4)') &
-               'nray,nstp,nloop,xl,yl,zl=',nray,nstp,nloop,xl,yl,zl 
           CALL pl_mag(xl,yl,zl,mag)
           rhon=mag%rhon
           babs=mag%babs
@@ -934,9 +931,19 @@ CONTAINS
           CALL wrcalk(nstp,nray,rkpara,rkperp)
           rnpara=rkpara*VC/omega
           IF(ABS(rnpara).LT.1.D0) THEN
-             DO nc=ncmin(1),ncmax(1)
+             DO nc=0,ncmax(1)  ! for electron only
+                SELECT CASE(ABS(nc))
+                CASE(1)
+                   line_pat=0
+                CASE(2)
+                   line_pat=2
+                CASE(3)
+                   line_pat=4
+                CASE DEFAULT
+                   line_pat=6
+                END SELECT
                 pc_org=rnpara/(1.D0-rnpara**2)*nc*omegace/omega
-                temp=(nc*omegace/omega)**2-(1.D0-rnpara**2)
+                temp=((nc*omegace/omega)**2-(1.D0-rnpara**2))/(1-rnpara**2)**2
                 IF(temp.GT.0.D0) THEN
                    pc_para= SQRT(temp)
                    pc_perp=pc_para*SQRT(1.D0-rnpara**2)
@@ -944,36 +951,167 @@ CONTAINS
                    pvt_para=pc_para/vte
                    pvt_perp=pc_perp/vte
                    ang=0.D0
-                   WRITE(6,'(A,3ES12.4)') 'pc:',pc_org,pc_para,pc_perp
-                   WRITE(6,'(A,2ES12.4)') 'vc,vte:',vc,vte
-                   WRITE(6,'(A,2ES12.4)') 'omega: ',omega,omegace
-                   WRITE(6,'(A,4I5,2ES12.4)') 'pvt:',nray,nloop,nc,1, &
-                        pvt_org+pvt_para*cos(ang),pvt_perp*sin(ang)
-                   CALL SETRGB(line_rgb(1,nloop),line_rgb(2,nloop), &
-                               line_rgb(3,nloop))
-                   CALL MOVE2D(GUCLIP(pvt_org+pvt_para*cos(ang)), &
-                               GUCLIP(pvt_perp*sin(ang)))
+                   CALL MOVEPT2D(GUCLIP(pvt_org+pvt_para*cos(ang)), &
+                                 GUCLIP(pvt_perp*sin(ang)),line_pat)
                    DO nang=2,nang_max
                       ang=(nang-1)*dang
-                      WRITE(6,'(A,4I5,2ES12.4)') 'pvt:',nray,nloop,nc,nang, &
-                           pvt_org+pvt_para*cos(ang),pvt_perp*sin(ang)
-                      IF(nc*omegace/omega+rnpara*pvt_para.GE.0.D0) &
-                      CALL DRAW2D(GUCLIP(pvt_org+pvt_para*cos(ang)), &
-                                  GUCLIP(pvt_perp*sin(ang)))
+                      CALL DRAWPT2D(GUCLIP(pvt_org+pvt_para*cos(ang)), &
+                                    GUCLIP(pvt_perp*sin(ang)))
                    END DO
                 END IF
              END DO
           END IF
        END DO
+       CALL grd2d_frame_end
     END DO
 
-    CALL grd2d_frame_end
     CALL pagee
-  END SUBROUTINE WRGRF5R
-    
+  END SUBROUTINE WRGRF6
+
+  SUBROUTINE setup_nres(nray,nstp_nres,rgb_nres,ierr)
+    USE wrcomm
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: nray
+    INTEGER,INTENT(OUT):: ierr
+    INTEGER:: nstp_nres(nres_max)
+    REAL:: rgb_nres(3,nres_max)
+    REAL(rkind):: level_nres(nres_max),level_nstp(nstpmax)
+    REAL(rkind):: pwmax,pw,pf,rlen,del_nres,pf_init,pf_last,pf_abs
+    INTEGER:: nstp_pwmax,nstp,nres
+    REAL:: level,factor,GUCLIP
+
+    ierr=0
+
+    ! --- range of power flux ---
+
+    pf_init=rays(7,0,nray)
+    pf_last=rays(7,nstpmax_nray(nray),nray)
+    pf_abs=pf_init-pf_last
+    IF(pf_abs.LE.0.D0) THEN
+       ierr=1
+       RETURN
+    END IF
+
+    ! --- power abs density ---
+
+    SELECT CASE(nres_type)
+    CASE(0)
+
+       ! --- find pabs max ---
+       
+       pwmax=rays(8,0,nray)
+       nstp_pwmax=0
+       DO nstp=0,nstpmax_nray(nray)
+          pw=rays(8,nstp,nray)
+          IF(pw.GT.pwmax) THEN
+             pwmax=pw
+             nstp_pwmax=nstp
+          END IF
+       END DO
+
+       ! --- set level for nstp
+
+       DO nstp=1,nstpmax_nray(nray)
+          IF(nstp.LT.nstp_pwmax) THEN
+             level_nstp(nstp)=0.5D0*rays(8,nstp,nray)/pwmax
+          ELSE IF(nstp.GT.nstp_pwmax) THEN
+             level_nstp(nstp)=1.D0-0.5D0*rays(8,nstp,nray)/pwmax
+          ELSE
+             level_nstp(nstp)=0.5D0
+          END IF
+       END DO
+       
+       ! --- set levels for nres points ---
+       
+       del_nres=1.D0/(nres_max+1)
+       DO nres=1,nres_max
+          DO nstp=1,nstpmax_nray(nray)
+             IF(level_nstp(nstp).GT.del_nres*nres) THEN
+                nstp_nres(nres)=nstp
+                level_nres(nres)=level_nstp(nstp)
+                EXIT
+             END IF
+          END DO
+       END DO
+
+    ! --- power flux level ---
+
+    CASE(1)
+
+       del_nres=rays(7,0,nray)/DBLE(nres_max+1)
+       DO nres=1,nres_max
+          DO nstp=1,nstpmax_nray(nray)
+             level=rays(7,0,nray)-rays(7,nstp,nray)
+             IF(level.GT.del_nres*nres) THEN
+                nstp_nres(nres)=nstp
+                level_nres(nres)=level
+                EXIT
+             END IF
+          END DO
+       END DO
+
+    ! --- trajectory length ---
+
+    CASE(2)   
+
+       rlen=0.D0
+       DO nstp=1,nstpmax_nray(nray)
+          rlen=rlen+SQRT((rays(1,nstp,nray)-rays(1,nstp-1,nray))**2 &
+                        +(rays(2,nstp,nray)-rays(2,nstp-1,nray))**2 &
+                        +(rays(3,nstp,nray)-rays(3,nstp-1,nray))**2)
+          level_nstp(nstp)=rlen
+       END DO
+       DO nstp=1,nstpmax_nray(nray)
+          level_nstp(nstp)=level_nstp(nstp)/rlen
+       END DO
+       
+       del_nres=1.D0/(nres_max+1)
+       DO nres=1,nres_max
+          DO nstp=1,nstpmax_nray(nray)
+             IF(level_nstp(nstp).GT.del_nres*nres) THEN
+                nstp_nres(nres)=nstp
+                level_nres(nres)=level_nstp(nstp)
+                EXIT
+             END IF
+          END DO
+       END DO
+    END SELECT
+
+    DO nres=1,nres_max
+       level=GUCLIP(level_nres(nres))
+       
+       WRITE(6,'(A,2I4,I8,3ES12.4)') &
+            'nray,nres,nstp,level,pf,pw=',nray,nres,nstp,level, &
+            rays(7,nstp,nray),rays(8,nstp,nray)
+       
+       IF(level.LT.0.1) THEN
+          factor=level/0.1
+          rgb_nres(1,nres)=0.0
+          rgb_nres(2,nres)=0.0
+          rgb_nres(3,nres)=factor
+       ELSE IF(level.LT.0.5) THEN
+          factor=(level-0.1)/0.4
+          rgb_nres(1,nres)=factor
+          rgb_nres(2,nres)=0.0
+          rgb_nres(3,nres)=1.0-factor
+       ELSE IF(level.LE.0.9D0) THEN
+          factor=(level-0.5)/0.4
+          rgb_nres(1,nres)=1.0-factor
+          rgb_nres(2,nres)=factor
+          rgb_nres(3,nres)=0.0
+       ELSE
+          factor=(level-0.9)/0.1
+          rgb_nres(1,nres)=0.0
+          rgb_nres(2,nres)=1.0-factor
+          rgb_nres(3,nres)=0.0
+       END IF
+    END DO
+    RETURN
+  END SUBROUTINE setup_nres
+       
 !     ***** BEAM AND POWER *****
 
-  SUBROUTINE WRGRF6
+  SUBROUTINE WRGRF7
 
     USE wrcomm
     USE libspf,ONLY: erf0
@@ -1464,11 +1602,11 @@ CONTAINS
       CALL WRGPRM
       CALL PAGEE
       RETURN
-    END SUBROUTINE WRGRF6
+    END SUBROUTINE WRGRF7
 
     !     ***** Rays ***********
     
-      SUBROUTINE WRGRF7
+      SUBROUTINE WRGRF8
 
       USE wrcomm
       USE plprof,ONLY:PL_MAG_OLD
@@ -1605,11 +1743,11 @@ CONTAINS
 
       CALL PAGEE
       RETURN
-    END SUBROUTINE WRGRF7
+    END SUBROUTINE WRGRF8
 
 !     ***** ANGLE AND WS(I,J) *****
 
-      SUBROUTINE WRGRF8
+      SUBROUTINE WRGRF9
 
       USE wrcomm
       USE plprof,ONLY:PL_MAG_OLD
@@ -1806,11 +1944,11 @@ CONTAINS
       CALL WRGPRM
       CALL PAGEE
       RETURN
-    END SUBROUTINE WRGRF8
+    END SUBROUTINE WRGRF9
 
 !     ***** K,(K*B),K*(K*B),VG *****
 
-      SUBROUTINE WRGRF9
+      SUBROUTINE WRGRF0
 
       USE wrcomm
       IMPLICIT NONE
@@ -1998,7 +2136,7 @@ CONTAINS
       CALL WRGPRM
       CALL PAGEE 
       RETURN
-    END SUBROUTINE WRGRF9
+    END SUBROUTINE WRGRF0
 
 !     ***** DRAW PARAMETERS *****
 

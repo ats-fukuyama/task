@@ -20,7 +20,8 @@ module fowcomm
             nthm2,&                                          ! number of theta_m grid points for theta_pnc <= theta_m <= theta_co_stg
             nthm3                                            ! number of theta_m grid points for theta_cnt_stg <= theta_m <= pi
 
-  real(rkind),allocatable :: Jacobian_I(:,:,:,:) ! dxdydzd(vx)d(vy)d(vz) = Jacobian_I * dpd(thetam)d(psim) normalized by V_phase
+  real(rkind),allocatable :: JI(:,:,:,:),& ! dxdydzd(vx)d(vy)d(vz) = JI * dpd(thetam)d(psim)
+                             JIR(:,:,:,:)  ! for integrate over velocity space
   real(rkind),allocatable  :: fnorm(:)
 ! COM --------------------------------------------------------------------------------------------------          
   real(rkind),allocatable,dimension(:) :: psim,&                ! maximum poloidal magnetic flux in an orbit, value at half integer grid points
@@ -114,7 +115,7 @@ contains
 
   subroutine fow_allocate
     use fpcomm, only:npmax,nthmax,nrmax,nsamax
-    allocate(Jacobian_I(nthmax,npmax,nrmax,nsamax))
+    allocate(JI(nthmax,npmax,nrmax,nsamax),JIR(nthmax,npmax,nrmax,nsamax))
     allocate(fnorm(nsamax))
     allocate(psim(nrmax),psimg(nrmax+1))
     allocate(delps(nrmax))
@@ -161,7 +162,7 @@ contains
   subroutine fow_deallocate
 
     !
-    deallocate(Jacobian_I)
+    deallocate(JI)
     deallocate(thetam,thetamg)
     deallocate(thetam_pg, thetam_rg)
     ! 

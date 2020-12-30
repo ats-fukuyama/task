@@ -221,7 +221,7 @@ PROGRAM plotwi
   DO nx=1,nxmax
      y=ymin+dy*(nx-1)
      xa(nx)=y
-     x=DEXP10(y)
+     x=10.D0**y
      fa(nx,4)=funcf(x)
      write(6,'(1P3E12.4)') xa(nx),x,fa(nx,4)
   END DO

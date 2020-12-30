@@ -146,6 +146,7 @@
                      RADB=A1*RBMIN2+A2*RBMIN1
                      IF(RADB.NE.0.D0) DELYEC=RADB
                      DELCR2=XLL2
+!  DELY_WR                     
                      DELRB2=DELYEC**2
                      ARG=DELCR2/DELRB2
 
