@@ -11,11 +11,18 @@ C
       PARAMETER (NBSIZM=3*MDM*NDM)
 C
       NBSIZ=3*MDSIZ*NDSIZ
-      IF(MODEWG.EQ.0) THEN
-         MSIZ=NRMAX*NBSIZ
-      ELSE
-         MSIZ=NRMAX*NBSIZ+MWGMAX*NAMAX
+      MODEWG=0
+      DO NA=1,NAMAX
+         IF(ABS(AEWGT(NA)).GT.0.D0.OR.ABS(AEWGZ(NA)).GT.0.D0) MODEWG=1
+      END DO
+      IF(MODEWG.NE.0) THEN
+         MWGMAX=1
       ENDIF
+!      IF(MODEWG.EQ.0) THEN
+         MSIZ=NRMAX*NBSIZ
+!      ELSE
+!         MSIZ=NRMAX*NBSIZ+MWGMAX*NAMAX
+!      END IF
       MBND=2*NBSIZ
 
       IF(MODEEG.EQ.0) THEN
@@ -54,18 +61,21 @@ C   ***** CALCULATE MATRIX COEFFICIENTS *****
          X=(0.D0,0.D0)
          A(1:L)=(0.D0,0.D0)
          CALL WMSETM(A,X,i,L,NRP)
-         WRITE(21,'(A,2I6)') 'wmsolv:',NRP,i
-         WRITE(21,'(6ES12.4)') (A(j),j=1,L)
-         WRITE(21,'(2ES12.4)') X
+!         WRITE(21,'(A,2I6)') 'wmsolv:',NRP,i
+!         WRITE(21,'(6ES12.4)') (A(j),j=1,L)
+!         WRITE(21,'(2ES12.4)') X
          DO j=MAX(i-(L+1)/2+1,1),MIN(N,i+(L+1)/2-1)
             IF(ABS(A(j-i+(L+1)/2)).GT.0.D0) THEN
                CALL mtxc_set_matrix(i,j,A(j-i+(L+1)/2))
             END IF
          END DO
-         CALL mtxc_set_source(i,X)
+         IF(ABS(X).GT.0.D0) THEN
+            CALL mtxc_set_source(i,X)
+            WRITE(23,'(A,2I6,2ES12.4)') 'wmsolv:',NRP,i,X
+         END IF
       END DO
 
-      itype=0
+      itype=1
       tolerance=1.D-12
       CALL mtxc_solve(itype,tolerance,its)
 

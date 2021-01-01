@@ -210,46 +210,53 @@ C
          PH2=PHJ2(NA)*PI/180.D0
          ANG=ANTANG(NA)*PI/180.D0
 
-         CAJ=EXP(DCMPLX(0.D0,APH(NA)*PI/180.D0))
+         CAJ=EXP(CI*APH(NA)*PI/180.D0)
 
          RWPH=RR+RB
-         WTH=ABS(TH2-TH1)
-         TH0=0.5D0*(TH1+TH2)
-         DTH=2.D0*PI/NTHMAX
-      DO ND=NDMIN,NDMAX
-         NHH=ND-NDMIN+1
-         NN=NPH0+NHC*ND
-         CJA=EXP(-CI*NN*PH1)/(2.D0*PI)
-         COEF=-RWPH*CW*SIN(ANG)/VC-NN
-         IF(ABS(COEF).EQ.0.D0) THEN
-            CJB=PH2-PH1
-         ELSE
-            CJB=-CI*(EXP(CI*COEF*(PH2-PH1))-1.D0)/COEF
-         ENDIF
-         DO NTH=1,NTHMAX
-            TH=DTH*(NTH-1)
-            IF(TH >= TH1              .AND. TH <= TH2        )THEN
-               CETH=CJA*CJB*AEWGT(NA)
-               CEPH=CJA*CJB*AEWGZ(NA)*COS((TH-TH0)/WTH*PI)
-               DO NHH=1,NHHMAX
-                  CEWALL(NTH,NHH,2)=CEWALL(NTH,NHH,2)+CETH
-                  CEWALL(NTH,NHH,3)=CEWALL(NTH,NHH,3)+CEPH
-               END DO
-            ELSE IF(TH >= TH1+2.D0*PI .AND. TH <= TH2+2.D0*PI) THEN
-               CETH=CJA*CJB*CAJ*AEWGT(NA)
-               CEPH=CJA*CJB*CAJ*AEWGZ(NA)*COS((TH-TH0-2.D0*PI)/WTH*PI)
-               DO NHH=1,NHHMAX
-                  CEWALL(NTH,NHH,2)=CEWALL(NTH,NHH,2)+CETH
-                  CEWALL(NTH,NHH,3)=CEWALL(NTH,NHH,3)+CEPH
-               END DO
+         DO ND=NDMIN,NDMAX
+            NDX=ND-NDMIN+1
+            NN=NPH0+NHC*ND
+            IF(NHHMAX.EQ.1) THEN
+               CEPHPH=1.D0
+            ELSE IF(NN.EQ.0) THEN
+               CEPHPH=(PH2-PH1)/(2.D0*Pi)
+            ELSE
+               CEPHPH=(EXP(CI*NN*PH2)-EXP(CI*NN*PH1))/(2.D0*Pi*CI*NN)
             END IF
+            F=(NN*(PH2-PH1))**2-PI**2
+            IF(ABS(F).LE.1.D-15) THEN
+               CETHPH=EXP(CI*NN*PH1)/(4.D0*NN*CI)
+            ELSE
+               CETHPH=(EXP(CI*NN*PH1)+EXP(CI*NN*PH2))*(PH2-PH1)
+     &               /(2.D0*F)
+            END IF
+               
+            DO MD=MDMIN,MDMAX
+               MDX=MD-MDMIN+1
+               IF(NTHMAX.EQ.1) THEN
+                  CETHTH=1.D0
+               ELSE IF(MD.EQ.0) THEN
+                  CETHTH=(TH2-TH1)/(2.D0*Pi)
+               ELSE
+                  CETHTH=(EXP(CI*MD*TH2)-EXP(CI*MD*TH1))/(2.D0*Pi*CI*MD)
+               END IF
+               F=(MD*(TH2-TH1))**2-PI**2
+               IF(ABS(F).LE.1.D-15) THEN
+                  CEPHTH=EXP(CI*MD*TH1)/(4.D0*MD*CI)
+               ELSE
+                  CEPHTH=(EXP(CI*MD*TH1)+EXP(CI*MD*TH2))*(TH2-TH1)
+     &                  /(2.D0*F)
+               END IF
+
+               CETH=CETHPH*CETHTH*CAJ*AEWGT(NA)
+               CEPH=CEPHPH*CEPHTH*CAJ*AEWGZ(NA)
+               CEWALL(MDX,NDX,2)=CEWALL(MDX,NDX,2)+CETH
+               CEWALL(MDX,NDX,3)=CEWALL(MDX,NDX,3)+CEPH
+
+               WRITE(22,'(A,2I4,4ES12.4)') 
+     &           'CEWALL:',ND,MD,CEWALL(MDX,NDX,2),CEWALL(MDX,NDX,3)
+            END DO
          END DO
       END DO
-      END DO
-      DO NHH=1,NHHMAX
-         CALL WMSUBC(CEWALL(1,NHH,2))
-         CALL WMSUBC(CEWALL(1,NHH,3))
-      ENDDO
-C
       RETURN
       END

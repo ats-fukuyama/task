@@ -7,8 +7,8 @@ include ../mtxp/make.mtxp
 LIB_MTX=$(LIB_MTX_MUMPS)
 LIBX_MTX=$(LIBX_MTX_MUMPS)
 
-#FFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS)
+FFLAGS = $(OFLAGS)
+#FFLAGS = $(DFLAGS)
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
