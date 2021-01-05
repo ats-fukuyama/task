@@ -51,6 +51,8 @@ all : libs tot
 	(cd ../adpost; make lib-adpost.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 ../lib/libmds.a:
 	(cd ../lib; make libmds.a)
 $(LIB_MTX):
@@ -81,6 +83,7 @@ $(LIB_MTX):
 libs:
 	(cd ../../bpsd; make libbpsd.a)
 	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../lib; make libmds.a)
 	(cd ../mtxp; make)
 	(cd ../adpost; make lib-adpost.a)
