@@ -13,7 +13,6 @@ MODULE wmsetm2
   COMPLEX(rkind),ALLOCATABLE:: CGP12(:,:),CGP13(:,:)
   COMPLEX(rkind),ALLOCATABLE:: CMAHF(:,:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CROT(:,:,:,:,:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CGDD(:,:,:,:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CGDH(:,:,:,:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CGDDH(:,:,:,:,:,:,:)
   
@@ -117,7 +116,6 @@ CONTAINS
     ALLOCATE(CGPH33(nthmax_f,nhhmax_f))
     ALLOCATE(CGP12(nthmax_f,nhhmax_f),CGP13(nthmax_f,nhhmax_f))
     ALLOCATE(CMAHF(3,3,nthmax_f,nhhmax_f,3))
-    ALLOCATE(CGDD(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
     ALLOCATE(CGDH(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
     ALLOCATE(CGDDH(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
     ALLOCATE(CROT(9,nthmax_f,nthmax,nhhmax_f,nhhmax,3))

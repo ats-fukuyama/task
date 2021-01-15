@@ -363,14 +363,21 @@ CONTAINS
          NDX=ND-NDMIN+1
          DO NKD=NDMIN,NDMAX
             NKX=NKD-NDMIN+1
-            NN=NPH0+NHC*ND
-            NK=NPH0+NHC*NKD
-
-            KKD=NKD-ND
-
+            KD=NKD-ND
             IF(MODELK.EQ.0.OR. &
-                 (KKD.GE.KDMIN_F.AND.(KKD.LE.KDMAX_F.OR.KDMAX_F==0))) THEN
-               KKDX=KKD-KDMIN_F + 1
+                 (KD.GE.KDMIN_F.AND. &
+                 (KD.LE.KDMAX_F))) THEN
+               KDX=KD-KDMIN_F + 1
+               KDXF=KDX
+
+               NN=NPH0+NHC*ND
+               NK=NPH0+NHC*NKD
+
+               KKD=NKD-ND
+
+               IF(MODELK.EQ.0.OR. &
+                    (KKD.GE.KDMIN_F.AND.(KKD.LE.KDMAX_F.OR.KDMAX_F==0))) THEN
+                  KKDX=KKD-KDMIN_F + 1
 
                DO KD=KDMIN_F,KDMAX_F
                   KDX=KD-KDMIN_F+1
@@ -378,9 +385,13 @@ CONTAINS
                      MDX=MD-MDMIN+1
                      DO MLD=MDMIN,MDMAX
                         MLX=MLD-MDMIN+1
+                        LD=MLD-MD
+                        IF(LD.GE.LDMIN_F.AND. &
+                          (LD.LE.LDMAX_F.OR.LDMAX_F==0))THEN
+                        LDX =LD-LDMIN_F+1
                         MM=NTH0+MD
                         ML=NTH0+MLD
-
+                        WRITE(6,'(A,4I8)') 'CGD:',LDX,MLX,KDX,NKX
                         DO J=1,3
                            DO I=1,3
                               CDVM(I,J)=CGD(I,J,LDX,MLX,KDX,NKX,1)

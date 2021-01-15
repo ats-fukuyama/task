@@ -38,7 +38,7 @@ CONTAINS
 
     CALL wm_setew
 
-    IF(mldwmx.EQ.1) THEN
+    IF(mdlwmx.EQ.1) THEN
        DO nr=1,nrmax
           IF(xrho(nr).GT.1.D0) EXIT
        END DO

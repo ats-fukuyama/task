@@ -23,7 +23,7 @@ CONTAINS
        ndate=-2    ! shift for 2020-01-03   
        nshift=1
     CASE(2021:2023)
-       ndate=365*(nyear-2020)+1-3
+       ndate=365*(nyear-2020)+1-2
        nshift=0
     END SELECT
     SELECT CASE(nmonth)

@@ -3,7 +3,7 @@
 MODULE wmsetf1
 
   PRIVATE
-  PUBLIC wm_setf1
+  PUBLIC wm_setf1,wm_setf1_out
 
 CONTAINS
 
@@ -434,7 +434,7 @@ CONTAINS
 
 !     ****** CALCULATE LOCAL MATRIX ******
 
-  SUBROUTINE wmsetf1_out(NR1,NS0)
+  SUBROUTINE wm_setf1_out(NR1,NS0)
 
     USE wmcomm
     USE wmprof
@@ -523,7 +523,7 @@ CONTAINS
        DO NS=NS1,NS2
           DO ND=NDMIN_F,NDMAX_F
              DO MD=MDMIN_F,MDMAX_F
-                CALL WMTNSR(NR,NS,MD,ND)
+                CALL WM_TNSR(NR,NS,MD,ND)
                 DO NHH=1,NHHMAX_F
                    DO NTH=1,NTHMAX_F
                       DO J=1,3
@@ -568,7 +568,7 @@ CONTAINS
 
 !        ----- Calculate rotation matrix mu=RMA -----
 
-          CALL WMCMAG_F(NR,NTH,NHH,BABS,BSUPTH,BSUPPH)
+          CALL WMCMAG(NR,NTH,NHH,BABS,BSUPTH,BSUPPH)
           TC2=BSUPTH/BABS
           TC3=BSUPPH/BABS
 
@@ -926,5 +926,5 @@ CONTAINS
 
  9000 CONTINUE
      RETURN
-   END SUBROUTINE wmsetf1_out
+   END SUBROUTINE wm_setf1_out
  END MODULE wmsetf1
