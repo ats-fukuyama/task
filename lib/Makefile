@@ -60,7 +60,7 @@ check :
 
 clean:
 	-rm -f core* a.out *.o libgrf/*.o libufile/*.o *.mod *.a ./*~ ./#* $(MOD)/*.mod
-	-rm testbes testell testfem testfem_func testgrd testgrf testlamb testqsort testspl testspl3d
+	-rm -f testbes testell testfem testfem_func testgrd testgrf testlamb testqsort testspl testspl3d
 
 veryclean: clean
 

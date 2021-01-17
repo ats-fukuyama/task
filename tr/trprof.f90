@@ -289,11 +289,15 @@ CONTAINS
 
       IF(MDLUF.NE.3) THEN
          DO NR=1,NRMAX
-            ANI = SUM(PZ(2:NSM)*RN(NR,2:NSM))
+            ANI = SUM(PZ(2:NSMAX)*RN(NR,2:NSMAX))
             ANZ = PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
             DILUTE = 1.D0-ANZ/ANI
             RN(NR,2:NSM) = RN(NR,2:NSM)*DILUTE
+            IF(NR.EQ.1) THEN
+               WRITE(6,'(A,5ES12.4)') 'prof:',ANI,ANZ,DILUTE,RN(1,1),RN(1,2)
+            END IF
          ENDDO
+         PAUSE
          PNSS(1)=PNS(1)
          PNSS(2:NSM)=PNS(2:NSM)*DILUTE
          PNSS(7)=PNS(7)

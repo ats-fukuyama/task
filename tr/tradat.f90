@@ -22,13 +22,17 @@
       IF(MDLUF.EQ.0) THEN
          DO NR=1,NRMAX
             ZEFF(NR) =0.D0
-            DO NS=1,NSMAX
+            DO NS=2,NSMAX
                ZEFF(NR)=ZEFF(NR) + PZ(NS)**2*RN(NR,NS)
             END DO
             ZEFF(NR)=ZEFF(NR) &
                     +PZC(NR)**2 *ANC (NR) &
                     +PZFE(NR)**2*ANFE(NR)
             ZEFF(NR)=ZEFF(NR)/RN(NR,1)
+            IF(NR.EQ.1) THEN
+               WRITE(6,'(A,5ES12.4)') 'zeff:',rn(nr,1),rn(nr,2), &
+                    pzc(nr),anc(nr),zeff(nr)
+            END IF
          ENDDO
       ELSE
          IF(MDLEQN.EQ.0) THEN ! fixed density

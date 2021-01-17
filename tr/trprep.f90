@@ -89,6 +89,14 @@ CONTAINS
 
       CALL tr_prof_current
 
+!     *** Initialize bpsd data ***
+
+      CALL tr_bpsd_put(ierr)
+      IF(ierr.NE.0) THEN
+         write(6,'(A,I5)') 'XX tr_bpsd_put in tr_prof: ierr=',ierr
+         STOP
+      END IF
+
 !     *** initilize graphic data ***
 
       GRG(1)=0.0
