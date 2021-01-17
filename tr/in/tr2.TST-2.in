@@ -34,7 +34,6 @@ r
    NTSTEP=10
    NGTSTP=10
    NGRSTP=100
-q
 c
 g
 r1
