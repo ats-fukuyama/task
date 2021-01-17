@@ -69,46 +69,46 @@ CONTAINS
 
       PA(2)   = 2.D0
       PZ(2)   = 1.D0
-      PN(2)   = 0.5D0-2.D-7
+      PN(2)   = 0.5D0
       PT(2)   = 1.5D0
       PTS(2)  = 0.05D0
-      PNS(2)  = 0.05D0-2.D-8
+      PNS(2)  = 0.05D0
       PU(2)   = 0.D0
       PUS(2)  = 0.D0
 
       PA(3)   = 3.D0
       PZ(3)   = 1.D0
-      PN(3)   = 1.D-7
+      PN(3)   = 0.D0
       PT(3)   = 1.5D0
       PTS(3)  = 0.05D0
-      PNS(3)  = 1.D-8
+      PNS(3)  = 0.D0
       PU(3)   = 0.D0
       PUS(3)  = 0.D0
 
       PA(4)   = 4.D0
       PZ(4)   = 2.D0
-      PN(4)   = 1.D-7
+      PN(4)   = 0.D0
       PT(4)   = 1.5D0
       PTS(4)  = 0.05D0
-      PNS(4)  = 1.D-8
+      PNS(4)  = 0.D0
       PU(4)   = 0.D0
       PUS(4)  = 0.D0
 
       PA(5)   = 12.D0
       PZ(5)   = 2.D0
-      PN(5)   = VOID
+      PN(5)   = 0.D0
       PT(5)   = 0.D0
       PTS(5)  = 0.D0
-      PNS(5)  = VOID
+      PNS(5)  = 0.D0
       PU(5)   = 0.D0
       PUS(5)  = 0.D0
 
       PA(6)   = 12.D0
       PZ(6)   = 4.D0
-      PN(6)   = VOID
+      PN(6)   = 0.D0
       PT(6)   = 0.D0
       PTS(6)  = 0.D0
-      PNS(6)  = VOID
+      PNS(6)  = 0.D0
       PU(6)   = 0.D0
       PUS(6)  = 0.D0
 
