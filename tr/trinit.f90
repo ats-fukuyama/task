@@ -125,11 +125,20 @@ CONTAINS
 
 !     ==== IMPURITY PARAMETERS ====
 
-!        PNC    : CARBON DENSITY FACTOR
-!        PNFE   : IRON DENSITY FACTOR
+!     MDLIMP : MODEL IMPURITY TREATMENT with PNC and PNFE
+!              0 : PNC and PNFE are not used
+!              1 : Initial Impurity density according to ITER PHYS GD for 1.D0
+!              2 : Initial Impurity density factor: ANC=PNC*ANE
+!              3 : Electron density changes with Te through PZC/PZFE for case 1
+!              4 : Electron density changes with Te through PZC/PZFE for case 2
+
+      MDLIMP=0
+
+!        PNC    : CARBON DENSITY FACTOR (1.D0 for Guideline, reduce for low PN)
+!        PNFE   : IRON DENSITY FACTOR   (1.D0 for Guideline, reduce for low PN)
 !                      COMPARED WITH ITER PHYSICS DESIGN GUIDELINE
-!        PNNU   : NEUTRAL NUMBER DENSITY ON AXIS (1.E20 M**-3)
-!        PNNUS  :                        ON SURFACE (1.E20 M**-3)
+!        PNNU   : NEUTRAL NUMBER DENSITY ON AXIS (1.E20 M**-3)    : not used
+!        PNNUS  :                        ON SURFACE (1.E20 M**-3) : not used
 
       PNC     = 0.D0
       PNFE    = 0.D0

@@ -269,55 +269,70 @@ CONTAINS
 
       USE trcomm
       IMPLICIT NONE
-      REAL(8)   :: ANEAVE, ANI, ANZ, DILUTE
+      REAL(8)   :: ANEAVE, ANI, ANZ, DILUTE, TE, TRZEC,TRZEFE
       INTEGER NR
+      EXTERNAL TRZEC,TRZEFE
       
 !     *** CALCULATE ANEAVE and ANC, ANFE ***
 
       ANEAVE=SUM(RN(1:NRMAX,1)*RM(1:NRMAX))*2.D0*DR
-      DO NR=1,NRMAX
-         ANC (NR)= (0.9D0+0.60D0*(0.7D0/ANEAVE)**2.6D0)*PNC *1.D-2*RN(NR,1)
-         ANFE(NR)= (0.0D0+0.05D0*(0.7D0/ANEAVE)**2.3D0)*PNFE*1.D-2*RN(NR,1)
-      END DO
+      SELECT CASE(MDLIMP)
+      CASE(0)
+         ANC (1:NRMAX)=0.D0
+         ANFE(1:NRMAX)=0.D0
+      CASE(1,3)
+         DO NR=1,NRMAX
+            ANC (NR)= (0.9D0+0.60D0*(0.7D0/ANEAVE)**2.6D0)*PNC *1.D-2*RN(NR,1)
+            ANFE(NR)= (0.0D0+0.05D0*(0.7D0/ANEAVE)**2.3D0)*PNFE*1.D-2*RN(NR,1)
+         END DO
+      CASE(2,4)
+         ANC (1:NRMAX)=PNC *RN(1:NRMAX,1)
+         ANFE(1:NRMAX)=PNFE*RN(1:NRMAX,1)
+      END SELECT
 
 !     *** CALCULATE PZC,PZFE ***
 
-      CALL TRZEFF
+      DO NR=1,NRMAX
+         TE=RT(NR,1)
+         PZC(NR)=TRZEC(TE)
+         PZFE(NR)=TRZEFE(TE)
+      ENDDO
 
-!     *** CALCULATE IMPURITY DENSITY
-!                ACCORDING TO ITER PHYSICS DESIGN GUIDELINE ***
+!     *** Dilution of ION due to IMPURITY DENSITY ***
 
       IF(MDLUF.NE.3) THEN
          DO NR=1,NRMAX
-            ANI = SUM(PZ(2:NSMAX)*RN(NR,2:NSMAX))
-            ANZ = PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
-            DILUTE = 1.D0-ANZ/ANI
-            RN(NR,2:NSM) = RN(NR,2:NSM)*DILUTE
-            IF(NR.EQ.1) THEN
-               WRITE(6,'(A,5ES12.4)') 'prof:',ANI,ANZ,DILUTE,RN(1,1),RN(1,2)
+            ANI = SUM(PZ(2:NSMAX)*RN(NR,2:NSMAX))     ! main ion charge density
+            ANZ = PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)   ! imputity ion charge den
+            DILUTE = 1.D0-ANZ/ANI                     ! dilution factor
+            IF(DILUTE.LT.0.D0) THEN
+               WRITE(6,*) 'XX trprof: negative DILUTE: reduce PNC/PNFE'
+               STOP
             END IF
+            RN(NR,2:NSMAX) = RN(NR,2:NSMAX)*DILUTE    ! main ions diluted
          ENDDO
-         PAUSE
          PNSS(1)=PNS(1)
-         PNSS(2:NSM)=PNS(2:NSM)*DILUTE
+         PNSS(2:NSMAX)=PNS(2:NSMAX)*DILUTE
          PNSS(7)=PNS(7)
          PNSS(8)=PNS(8)
          IF(RHOA.NE.1.D0) THEN
             PNSSA(1)=PNSA(1)
-            PNSSA(2:NSM)=PNSA(2:NSM)*DILUTE
+            PNSSA(2:NSMAX)=PNSA(2:NSMAX)*DILUTE
             PNSSA(7)=PNSA(7)
             PNSSA(8)=PNSA(8)
          ENDIF
       ELSE
-         PNSS(1:NSM)=PNS(1:NSM)
+         PNSS(1:NSMAX)=PNS(1:NSMAX)
          PNSS(7)=PNS(7)
          PNSS(8)=PNS(8)
          IF(RHOA.NE.1.D0) THEN
-            PNSSA(1:NSM)=PNSA(1:NSM)
+            PNSSA(1:NSMAX)=PNSA(1:NSMAX)
             PNSSA(7)=PNSA(7)
             PNSSA(8)=PNSA(8)
          ENDIF
       ENDIF
+      CALL TRZEFF
+
     END SUBROUTINE tr_prof_impurity
 
 !     *** CALCULATE PROFILE OF AJ(R) ***
