@@ -27,13 +27,6 @@
                DO NS=2,NSMAX
                   RNE=RNE+PZ(NS)*RN(NR,NS)
                END DO
-               IF(ABS(RNE-RN(NR,1)).GT.1.D-8) THEN
-                  IF(NR.EQ.1) WRITE(6,'(A,I6,3ES12.4)') 'RN:',NR, &
-                       RN(NR,1),RN(NR,2),RNE
-                  WRITE(6,'(A,I6,3ES12.4)') &
-                       'RNE-diff:',NR,RNE,RN(NR,1),RNE-RN(NR,1)
-                  RN(NR,1)=RNE
-               END IF
             END DO
          END SELECT
          DO NR=1,NRMAX
@@ -45,10 +38,6 @@
                     +PZC(NR)**2 *ANC (NR) &
                     +PZFE(NR)**2*ANFE(NR)
             ZEFF(NR)=ZEFF(NR)/RN(NR,1)
-            IF(NR.EQ.1) THEN
-               WRITE(6,'(A,5ES12.4)') 'zeff:',rn(nr,1),rn(nr,2), &
-                    pzc(nr),anc(nr),zeff(nr)
-            END IF
          ENDDO
       ELSE
          IF(MDLEQN.EQ.0) THEN ! fixed density

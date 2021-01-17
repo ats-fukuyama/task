@@ -305,7 +305,15 @@
 !$$$         DPPP=(RPIP-2*RPI0+RPIM)*DRL*DRL
 
 !     safety factor and its gradient on grid
-         DQ = DERIV3(NR,RHOG,QP,NRMAX,1)
+!         DQ = DERIV3(NR,RHOG,QP,NRMAX,1)
+         IF(NR.EQ.1) THEN
+            DQ=(4.D0*QP(2)-3.D0*QP(1)-QP(3))/(2.D0*DR)
+         ELSE IF(NR.EQ.NRMAX) THEN
+            DQ=(3.D0*QP(NRMAX)-4.D0*QP(NRMAX-1)+QP(NRMAX-2))/(2.D0*DR)
+         ELSE
+            DQ=(QP(NR+1)-QP(NR-1))/(2.D0*DR)
+         ENDIF
+         
          QL = QP(NR)
 
 !     sound speed for electron
@@ -614,6 +622,11 @@
 !               write(6,'(1P3E12.4)') alpha(nr),DPP*1.D20*RKEV,dpp
                AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
+!               WRITE(6,'(A,I6,4ES12.4)') &
+!                    'AKDWEL:',NR,S(NR),ALPHAL,RKCV(NR),FS
+!               WRITE(6,'(A,I6,4ES12.4)') &
+!                    '      :',NR,CALF,DELTA2*VA/(QL*RR), &
+!                              SQRT(ABS(ALPHA(NR)))**3,AKDWEL
             case(32)
                ALPHAL=ALPHA(NR)*CALF
                FS=TRCOFS(S(NR),ALPHAL,RKCV(NR))
@@ -1070,7 +1083,7 @@
 
       USE TRCOMM, ONLY : AEE, AK, AKDW, AKDWD, AKDWP, AKLD, AKLP, AKNC, AKNCP, AKNCT, AME, AMM, BB, BP, CDH, CNH, CSPRS,  &
      &                   EPSRHO, MDDIAG, MDEDGE, MDLKNC, MDLUF, NREDGE, NRMAX, NSLMAX, NSM, PA, PNSS, PTS, PZ, QP, RA, RG,&
-     &                   RKEV, RN, RR, RT, ZEFF
+     &                   RKEV, RN, RR, RT, ZEFF, NSMAX
       IMPLICIT NONE
       INTEGER(4):: NR, NS, NS1
       REAL(8)   :: AMA, AMD, AMT, ANA, ANDX, ANE, ANT, CHECK, DELDA, EPS, EPSS, F1, F2, FTAUE, FTAUI, QL, RALPHA, RHOA2, RHOD2, &
@@ -1089,29 +1102,39 @@
 !!      DATA RK2 ,RA2 ,RB2 ,RC2 /0.66D0,1.03D0,0.31D0,0.74D0/
 
       AMD=PA(2)*AMM
-      AMT=PA(3)*AMM
-      AMA=PA(4)*AMM
+      AMT=AMD
+      AMA=AMD
+      IF(NSMAX.GE.3) AMT=PA(3)*AMM
+      IF(NSMAX.GE.4) AMA=PA(4)*AMM
 
       DO NR=1,NRMAX
          IF(NR.EQ.NRMAX) THEN
             ANE =PNSS(1)
             ANDX=PNSS(2)
-            ANT =PNSS(3)
-            ANA =PNSS(4)
+            ANT=0.D0
+            ANA=0.D0
+            IF(NSMAX.GE.3) ANT =PNSS(3)
+            IF(NSMAX.GE.4) ANA =PNSS(4)
             TE=PTS(1)
             TD=PTS(2)
-            TT=PTS(3)
-            TA=PTS(4)
+            TT=TD
+            TA=TD
+            IF(NSMAX.GE.3) TT=PTS(3)
+            IF(NSMAX.GE.4) TA=PTS(4)
             ZEFFL=ZEFF(NR)
          ELSE
             ANE    = 0.5D0*(RN(NR+1,1)+RN(NR  ,1))
             ANDX   = 0.5D0*(RN(NR+1,2)+RN(NR  ,2))
-            ANT    = 0.5D0*(RN(NR+1,3)+RN(NR  ,3))
-            ANA    = 0.5D0*(RN(NR+1,4)+RN(NR  ,4))
+            ANT=0.D0
+            ANA=0.D0
+            IF(NSMAX.GE.3) ANT    = 0.5D0*(RN(NR+1,3)+RN(NR  ,3))
+            IF(NSMAX.GE.4) ANA    = 0.5D0*(RN(NR+1,4)+RN(NR  ,4))
             TE     = 0.5D0*(RT(NR+1,1)+RT(NR  ,1))
             TD     = 0.5D0*(RT(NR+1,2)+RT(NR  ,2))
-            TT     = 0.5D0*(RT(NR+1,3)+RT(NR  ,3))
-            TA     = 0.5D0*(RT(NR+1,4)+RT(NR  ,4))
+            TT=TD
+            TA=TD
+            IF(NSMAX.GE.3) TT     = 0.5D0*(RT(NR+1,3)+RT(NR  ,3))
+            IF(NSMAX.GE.4) TA     = 0.5D0*(RT(NR+1,4)+RT(NR  ,4))
             ZEFFL  = 0.5D0*(ZEFF(NR+1)+ZEFF(NR))
          ENDIF
 
@@ -1126,8 +1149,10 @@
 
          RHOE2=2.D0*AME*ABS(TE)*RKEV/(PZ(1)*AEE*BP(NR))**2
          RHOD2=2.D0*AMD*ABS(TD)*RKEV/(PZ(2)*AEE*BP(NR))**2
-         RHOT2=2.D0*AMT*ABS(TT)*RKEV/(PZ(3)*AEE*BP(NR))**2
-         RHOA2=2.D0*AMA*ABS(TA)*RKEV/(PZ(4)*AEE*BP(NR))**2
+         RHOT2=RHOD2
+         RHOA2=RHOD2
+         IF(NSMAX.GE.3) RHOT2=2.D0*AMT*ABS(TT)*RKEV/(PZ(3)*AEE*BP(NR))**2
+         IF(NSMAX.GE.4) RHOA2=2.D0*AMA*ABS(TA)*RKEV/(PZ(4)*AEE*BP(NR))**2
 
 !$$$         TAUE = FTAUE(ANE,ANDX,TE,1.D0)
 !$$$         TAUD = FTAUI(ANE,ANDX,TD,1.D0,PA(2))
@@ -1135,8 +1160,10 @@
 !$$$         TAUA = FTAUI(ANE,ANA ,TA,2.D0,PA(4))
          TAUE = FTAUE(ANE,ANDX,TE,ZEFFL)
          TAUD = FTAUI(ANE,ANDX,TD,PZ(2),PA(2))
-         TAUT = FTAUI(ANE,ANT ,TT,PZ(3),PA(3))
-         TAUA = FTAUI(ANE,ANA ,TA,PZ(4),PA(4))
+         TAUT=TAUD
+         TAUA=TAUD
+         IF(NSMAX.GE.3) TAUT = FTAUI(ANE,ANT ,TT,PZ(3),PA(3))
+         IF(NSMAX.GE.4) TAUA = FTAUI(ANE,ANA ,TA,PZ(4),PA(4))
 
          RNUE=ABS(QL)*RR/(TAUE*VTE*EPSS)
          RNUD=ABS(QL)*RR/(TAUD*VTD*EPSS)
@@ -1210,7 +1237,7 @@
       ENDIF
 
 !     Limit of neoclassical diffusivity
-         DO NS=1,4
+         DO NS=1,NSMAX
             CHECK=ABS(RT(NR,NS)*RKEV/(2.D0*PZ(NS)*AEE*RR*BB))*RG(NR)*RA
             IF(AKNC(NR,NS).GT.CHECK) AKNC(NR,NS)=CHECK
          ENDDO

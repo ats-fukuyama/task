@@ -589,7 +589,8 @@ CONTAINS
 !      write(6,'(1P5E12.4)') (qp(nr),nr=1,nrmax)
 !      pause
 !     *** calculate q_axis ***
-      Q0=FCTR(RG(1),RG(2),QP(1),QP(2))
+!      Q0=FCTR(RG(1),RG(2),QP(1),QP(2))
+      Q0=(20.D0*QP(1)-23.D0*QP(2)+8.D0*QP(3))/5.D0
 
 !     calculate plasma current inside the calucated region (rho <= rhoa)
 !     necessary for MDLEQB = 1 and MDLUF /= 0
