@@ -11,7 +11,7 @@ CONTAINS
 
     USE wmcomm_parm
     IMPLICIT NONE
-    INTEGER:: NA
+    INTEGER:: NA,i
 
 !     *** MESH PARAMETERS ***
 
@@ -243,6 +243,11 @@ CONTAINS
 
       nthmax_g = 256
 
+!     *** dedub_info ***
+!                61: matrix sover info       
+      DO i=1,idebug_max
+         idebuga(i)=0
+      END DO
     RETURN
   END SUBROUTINE wm_init
 END MODULE wminit

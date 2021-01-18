@@ -35,7 +35,8 @@ MODULE wmcomm_parm
 
 ! --- fixed parameter necessary for parameter input
   
-  INTEGER,PARAMETER:: NAM=8       ! maximum number of antenna
+  INTEGER,PARAMETER:: NAM=8         ! maximum number of antenna
+  INTEGER,PARAMETER:: idebug_max=99 ! maximum number of idebuga
 
 ! --- wm specific input parameters ---  
 
@@ -85,7 +86,6 @@ MODULE wmcomm_parm
   INTEGER:: MODELM          ! Matrix solver parameter
   INTEGER:: MDLWMK          ! k_paralle toroidal effect
   INTEGER:: MDLWMX          ! model id: 0:wm, 1:wm_seki, 2:wmx
-
   
   REAL(rkind):: PNA         ! Alpha denisty [10^20 m^-3]
   REAL(rkind):: PNAL        ! Density scale length [m]
@@ -128,6 +128,8 @@ MODULE wmcomm_parm
   REAL(rkind):: WAEMAX      ! maximum frequency range in Alfven frequency
 
   INTEGER:: nthmax_g        ! number of poloidal mesh for graphics
+
+  INTEGER:: idebuga(idebug_max)! control of debug info
 
 END MODULE wmcomm_parm
 
@@ -278,10 +280,15 @@ CONTAINS
     mblock_size=3*nthmax*nhhmax
     mbnd= 4*mblock_size-1
     mcent=2*mblock_size
+    SELECT CASE(mdlwmx)
+    CASE(0,2)
        mlen=mblock_size*nrmax
-    IF(modewg.NE.0) THEN
-       mlen=mlen+mwgmax*namax
-    END IF
+    CASE(1)
+       mlen=mblock_size*(nrmax+2)
+    END SELECT
+!    IF(modewg.NE.0) THEN
+!       mlen=mlen+mwgmax*namax
+!    END IF
     
     IF(nthmax.EQ.1) THEN
        nthmax_f=1

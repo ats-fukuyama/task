@@ -69,7 +69,8 @@ CONTAINS
            PNA,PNAL,PTA,ZEFF, &
            FRMIN,FRMAX,FIMIN,FIMAX,FI0,NGFMAX,NGXMAX,NGYMAX, &
            SCMIN,SCMAX,NSCMAX,LISTEG,FRINI,FIINI,DLTNW,EPSNW,LMAXNW,LISTNW, &
-           MODENW,NCONT,ILN1,IBL1,ICL1,ILN2,IBL2,ICL2,WAEMIN,WAEMAX,nthmax_g
+           MODENW,NCONT,ILN1,IBL1,ICL1,ILN2,IBL2,ICL2,WAEMIN,WAEMAX, &
+           nthmax_g,idebuga
 
     ierr=0
 
@@ -114,7 +115,7 @@ CONTAINS
          '       SCMIN,SCMAX,NSCMAX,LISTEG,FRINI,FIINI,', &
          '       DLTNW,EPSNW,LMAXNW,LISTNW,', &
          '       MODENW,NCONT,ILN1,IBL1,ICL1,ILN2,IBL2,ICL2,WAEMIN,WAEMAX', &
-         '       nthmax_g'
+         '       nthmax_g,idebuga'
     RETURN
   END SUBROUTINE wm_plst
 
@@ -351,6 +352,7 @@ CONTAINS
     CALL mtx_broadcast_real8(PHJ2,NAMAX)
     CALL mtx_broadcast_real8(ANTANG,NAMAX)
     CALL mtx_broadcast_real8(BETAJ,NAMAX)
+    CALL mtx_broadcast_integer(idebuga,idebug_max)
 
   END SUBROUTINE wm_broadcast
 END MODULE wmparm

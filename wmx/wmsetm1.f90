@@ -2321,8 +2321,8 @@ CONTAINS
              ENDDO
              CEMP(MBND,NDX,MDX,2)= 1.D0
              CEMP(MBND,NDX,MDX,3)= 1.D0
-             CFVP(NDX,MDX,2)= CEWALL(MDX,NDX,2)
-             CFVP(NDX,MDX,3)= CEWALL(MDX,NDX,3)
+             CFVP(NDX,MDX,2)= CEWALL(2,MDX,NDX)
+             CFVP(NDX,MDX,3)= CEWALL(3,MDX,NDX)
           ENDDO
        ENDDO
 
