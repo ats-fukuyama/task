@@ -40,7 +40,17 @@ CONTAINS
           NDX=ND-NDMIN+1
           DO MD=MDMIN,MDMAX
              MDX=MD-MDMIN+1
-             IG=3*MDSIZ*NDSIZ*(NR-1)+3*MDSIZ*(NDX-1)+3*(MDX-1)
+             SELECT CASE(mdlwmx)
+             CASE(0,2)
+                IG=3*MDSIZ*NDSIZ*(NR-1)+3*MDSIZ*(NDX-1)+3*(MDX-1)
+             CASE(1)
+                IF(NR.LT.NR_S-1) THEN
+                   IG=3*MDSIZ*NDSIZ*(NR-1)+3*MDSIZ*(NDX-1)+3*(MDX-1)
+                ELSE
+                   IG=3*MDSIZ*NDSIZ*(NR+1)+3*MDSIZ*(NDX-1)+3*(MDX-1)
+                END IF
+             END SELECT
+                   
              CEFLDK(1,MDX,NDX,NR+1)=CFVG(IG+1)
              CEFLDK(2,MDX,NDX,NR+1)=CFVG(IG+2)
              CEFLDK(3,MDX,NDX,NR+1)=CFVG(IG+3)

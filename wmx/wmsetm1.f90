@@ -52,7 +52,8 @@ CONTAINS
       IF (NB <= NR_S -2)THEN
          NR=NB
          IF(NR.NE.NRP.OR.NBMODE.EQ.0) THEN
-            print *,'IN ',NR,NRP,NB,NBMODE
+            IF(idebuga(51).NE.0.AND.nrank.EQ.0) &
+                 WRITE(6,*) 'IN ',NR,NRP,NB,NBMODE
             NRP=NR
             NBMODE=1
             IF(NB.EQ.nr_start) THEN
@@ -68,7 +69,8 @@ CONTAINS
       ELSEIF (NB  >= NR_S + 1) THEN
          NR=NB-2
          IF(NR.NE.NRP.OR.NBMODE.EQ.2) THEN
-            print *,'OUT',NR,NRP,NB,NBMODE
+            IF(idebuga(51).NE.0.AND.nrank.EQ.0) &
+                 WRITE(6,*) 'OUT',NR,NRP,NB,NBMODE
             NRP=NR
             NBMODE=3
             IF(NB.EQ.nr_start.OR.NB.EQ.NR_S+1) THEN
@@ -82,7 +84,8 @@ CONTAINS
       ELSEIF (NB == NR_S-1.OR.NB == NR_S)THEN
          NR=NB-1
          IF(NR.NE.NRP.OR.NBMODE.EQ.1) THEN
-            print *,'SUR',NR,NRP,NB,NBMODE
+            IF(idebuga(51).NE.0.AND.nrank.EQ.0) &
+                 WRITE(6,*) 'SUR',NR,NRP,NB,NBMODE
             NRP=NR
             NBMODE=2
             IF(NB.EQ.nr_start) THEN
@@ -111,9 +114,9 @@ CONTAINS
     INTEGER,INTENT(IN):: NR
     COMPLEX(rkind),INTENT(OUT):: CFVP_(nhhmax,nthmax,3)
     INTEGER:: ndx,mdx,i
-    
-    CALL wmsetm_V(NR)
 
+    CALL wmsetm_V(NR)
+    
     DO i=1,3
        DO mdx=1,mdsiz
           DO ndx=1,ndsiz
