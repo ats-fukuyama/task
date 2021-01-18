@@ -64,14 +64,16 @@ C   ***** CALCULATE MATRIX COEFFICIENTS *****
 !         WRITE(21,'(A,2I6)') 'wmsolv:',NRP,i
 !         WRITE(21,'(6ES12.4)') (A(j),j=1,L)
 !         WRITE(21,'(2ES12.4)') X
+         WRITE(21,'(A,2I6)') 'wmsolv:',NRP,i
          DO j=MAX(i-(L+1)/2+1,1),MIN(N,i+(L+1)/2-1)
             IF(ABS(A(j-i+(L+1)/2)).GT.0.D0) THEN
                CALL mtxc_set_matrix(i,j,A(j-i+(L+1)/2))
+               WRITE(21,'(A,2I6,2ES12.4)') 'A:',i,j,A(j-i+(L+1)/2)
             END IF
          END DO
          IF(ABS(X).GT.0.D0) THEN
             CALL mtxc_set_source(i,X)
-            WRITE(23,'(A,2I6,2ES12.4)') 'wmsolv:',NRP,i,X
+            WRITE(21,'(A,2I6,2ES12.4)') 'X:',i,0,X
          END IF
       END DO
 

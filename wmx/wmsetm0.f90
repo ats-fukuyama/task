@@ -906,8 +906,8 @@ CONTAINS
                   CEMP(MB,NDX,MDX,2)= 0.D0
                   CEMP(MB,NDX,MDX,3)= 0.D0
                ENDDO
-               CEMP(MBND,NDX,MDX,1)= 1.D0
-               CEMP(MBND-3*MDSIZ*NDSIZ,NDX,MDX,1)= -1.D0
+               CEMP(MCENT,NDX,MDX,1)= 1.D0
+               CEMP(MCENT-3*MDSIZ*NDSIZ,NDX,MDX,1)= -1.D0
                CEMP(MCENT,NDX,MDX,2)= 1.D0
                CEMP(MCENT,NDX,MDX,3)= 1.D0
                CFVP(NDX,MDX,1)= 0.D0

@@ -428,6 +428,7 @@ CONTAINS
 
     USE wmcomm
     USE wmsetm0
+    USE wmsetm1
     USE wmsetm2
     IMPLICIT NONE
     COMPLEX(rkind),ALLOCATABLE:: CFVP(:,:,:)
@@ -450,11 +451,14 @@ CONTAINS
        ENDDO
 
        DO NR=NRANT-1,NRMAX
-          IF(MDLWMX.EQ.0) THEN
+          SELECT CASE(mdlwmx)
+          CASE(0)
              CALL wm_setv0(NR,CFVP)
-          ELSE
+          CASE(1)
+             CALL wm_setv1(NR,CFVP)
+          CASE(2)
              CALL wm_setv2(NR,CFVP)
-          END IF
+          END SELECT
           DO MDX=1,MDSIZ
              DO NDX=1,NDSIZ
                 CCE1=CEFLDK(1,MDX,NDX,NR+1)
