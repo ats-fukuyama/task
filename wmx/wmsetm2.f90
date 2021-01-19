@@ -136,7 +136,7 @@ CONTAINS
     DEALLOCATE(CGC11,CGC12)
     DEALLOCATE(CGC13,CGPH22,CGPH23)
     DEALLOCATE(CGPH33,CGP12,CGP13)
-    DEALLOCATE(CMAHF,CGDD,CGDH,CGDDH)
+    DEALLOCATE(CMAHF,CGDH,CGDDH)
     DEALLOCATE(CROT)
 
     RETURN
@@ -1306,11 +1306,15 @@ CONTAINS
             DO MD=MDMIN,MDMAX
                MDX=MD-MDMIN+1
                DO MB=1,MBND
+!                  CEMP(MB,NDX,MDX,1)= 0.D0
                   CEMP(MB,NDX,MDX,2)= 0.D0
                   CEMP(MB,NDX,MDX,3)= 0.D0
                ENDDO
+!               CEMP(MCENT,NDX,MDX,1)= 1.D0
+!               CEMP(MCENT-3*MDSIZ*NDSIZ,NDX,MDX,1)= -1.D0
                CEMP(MCENT,NDX,MDX,2)= 1.D0
                CEMP(MCENT,NDX,MDX,3)= 1.D0
+!               CFVP(NDX,MDX,1)= 0.D0
                CFVP(NDX,MDX,2)= CEWALL(2,MDX,NDX)
                CFVP(NDX,MDX,3)= CEWALL(3,MDX,NDX)
 

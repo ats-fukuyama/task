@@ -65,8 +65,7 @@ C   ***** CALCULATE MATRIX COEFFICIENTS *****
 !         WRITE(21,'(A,2I6)') 'wmsolv:',NRP,i
 !         WRITE(21,'(6ES12.4)') (A(j),j=1,L)
 !         WRITE(21,'(2ES12.4)') X
-         WRITE(21,'(A,2I6,ES12.4)')
-     &        'wmsolv:',NRP,i,XRHO(NRP)
+         WRITE(21,'(A,2I6)') 'wmsolv:',NRP,i
          DO j=MAX(i-(L+1)/2+1,1),MIN(N,i+(L+1)/2-1)
             IF(ABS(A(j-i+(L+1)/2)).GT.0.D0) THEN
                CALL mtxc_set_matrix(i,j,A(j-i+(L+1)/2))

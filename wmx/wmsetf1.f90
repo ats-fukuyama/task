@@ -459,7 +459,7 @@ CONTAINS
 
     ALLOCATE(CEP0(3,3,nthmax_f,nhhmax_f,-nthmax_f:nthmax_f,-nhhmax_f:nhhmax_f))
     ALLOCATE(CRA(nthmax_f,nhhmax_f,3,3),CFA(nthmax_f,nhhmax_f,3,3))
-    ALLOCATE(CRB(nthmax_f,nhhmax_f,nthmax_f,nhhmax_f,3,3))
+    ALLOCATE(CRB(nthmax_f,nhhmax_f,3,3,-nthmax_f:nthmax_f,-nhhmax_f:nhhmax_f))
     ALLOCATE(CFB(nthmax_f,nhhmax_f,3,3,-nthmax_f:nthmax_f,-nhhmax_f:nhhmax_f))
     ALLOCATE(CRC(nthmax_f,nhhmax_f,3,3),CFC(nthmax_f,nhhmax_f,3,3))
     ALLOCATE(CMC(nthmax_f,nhhmax_f,3,3),CMF(nthmax_f,nhhmax_f,3,3))
