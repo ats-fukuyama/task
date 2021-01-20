@@ -13,7 +13,6 @@ MODULE wmsetm2
   COMPLEX(rkind),ALLOCATABLE:: CGP12(:,:),CGP13(:,:)
   COMPLEX(rkind),ALLOCATABLE:: CMAHF(:,:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CROT(:,:,:,:,:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CGDD(:,:,:,:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CGDH(:,:,:,:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CGDDH(:,:,:,:,:,:,:)
   
@@ -117,7 +116,6 @@ CONTAINS
     ALLOCATE(CGPH33(nthmax_f,nhhmax_f))
     ALLOCATE(CGP12(nthmax_f,nhhmax_f),CGP13(nthmax_f,nhhmax_f))
     ALLOCATE(CMAHF(3,3,nthmax_f,nhhmax_f,3))
-    ALLOCATE(CGDD(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
     ALLOCATE(CGDH(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
     ALLOCATE(CGDDH(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
     ALLOCATE(CROT(9,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
@@ -138,7 +136,7 @@ CONTAINS
     DEALLOCATE(CGC11,CGC12)
     DEALLOCATE(CGC13,CGPH22,CGPH23)
     DEALLOCATE(CGPH33,CGP12,CGP13)
-    DEALLOCATE(CMAHF,CGDD,CGDH,CGDDH)
+    DEALLOCATE(CMAHF,CGDH,CGDDH)
     DEALLOCATE(CROT)
 
     RETURN
@@ -1308,11 +1306,15 @@ CONTAINS
             DO MD=MDMIN,MDMAX
                MDX=MD-MDMIN+1
                DO MB=1,MBND
+!                  CEMP(MB,NDX,MDX,1)= 0.D0
                   CEMP(MB,NDX,MDX,2)= 0.D0
                   CEMP(MB,NDX,MDX,3)= 0.D0
                ENDDO
+!               CEMP(MCENT,NDX,MDX,1)= 1.D0
+!               CEMP(MCENT-3*MDSIZ*NDSIZ,NDX,MDX,1)= -1.D0
                CEMP(MCENT,NDX,MDX,2)= 1.D0
                CEMP(MCENT,NDX,MDX,3)= 1.D0
+!               CFVP(NDX,MDX,1)= 0.D0
                CFVP(NDX,MDX,2)= CEWALL(2,MDX,NDX)
                CFVP(NDX,MDX,3)= CEWALL(3,MDX,NDX)
 

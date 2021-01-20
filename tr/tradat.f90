@@ -8,10 +8,10 @@
       SUBROUTINE TRZEFF
 
       USE TRCOMM, ONLY : &
-           ANC,ANFE,MDLEQN,MDLUF,NRMAX,PZ,PZC,PZFE,RN,RT,ZEFF,NSMAX
+           ANC,ANFE,MDLEQN,MDLUF,NRMAX,PZ,PZC,PZFE,RN,RT,ZEFF,NSMAX,MDLIMP
       IMPLICIT NONE
       INTEGER(4):: NR,NS
-      REAL(8)   :: TE, TRZEC, TRZEFE
+      REAL(8)   :: TE,TRZEC,TRZEFE,RNE
 
       DO NR=1,NRMAX
          TE=RT(NR,1)
@@ -20,9 +20,18 @@
       ENDDO
 
       IF(MDLUF.EQ.0) THEN
+         SELECT CASE(MDLIMP)
+         CASE(3,4)
+            DO NR=1,NRMAX
+               RNE=PZC(NR)*ANC (NR)+PZFE(NR)*ANFE(NR)
+               DO NS=2,NSMAX
+                  RNE=RNE+PZ(NS)*RN(NR,NS)
+               END DO
+            END DO
+         END SELECT
          DO NR=1,NRMAX
             ZEFF(NR) =0.D0
-            DO NS=1,NSMAX
+            DO NS=2,NSMAX
                ZEFF(NR)=ZEFF(NR) + PZ(NS)**2*RN(NR,NS)
             END DO
             ZEFF(NR)=ZEFF(NR) &
@@ -33,7 +42,7 @@
       ELSE
          IF(MDLEQN.EQ.0) THEN ! fixed density
             ZEFF(NR) =0.D0
-            DO NS=1,NSMAX
+            DO NS=2,NSMAX
                ZEFF(NR)=ZEFF(NR) + PZ(NS)**2*RN(NR,NS)
             END DO
             ZEFF(NR)=ZEFF(NR)/RN(NR,1)

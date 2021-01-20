@@ -442,10 +442,12 @@ CONTAINS
 
 !      *** POWER : species 3 ***
 
-       DO NR=1,NX2
-          GYS(NR,1)=GUCLIP(POWER(NR,3))
-       ENDDO
-       CALL wm_gsub(NX2,GX2,GXMIN,GXMAX,GYS,  1,GP(1,4),KTITL(4))
+       IF(NRMAX.GE.3) THEN
+          DO NR=1,NX2
+             GYS(NR,1)=GUCLIP(POWER(NR,3))
+          ENDDO
+          CALL wm_gsub(NX2,GX2,GXMIN,GXMAX,GYS,  1,GP(1,4),KTITL(4))
+       END IF
     ELSE
 
 !      *** E/B(R) ****

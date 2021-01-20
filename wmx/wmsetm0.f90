@@ -363,24 +363,26 @@ CONTAINS
          NDX=ND-NDMIN+1
          DO NKD=NDMIN,NDMAX
             NKX=NKD-NDMIN+1
-            NN=NPH0+NHC*ND
-            NK=NPH0+NHC*NKD
-
-            KKD=NKD-ND
-
+            KD=NKD-ND
             IF(MODELK.EQ.0.OR. &
-                 (KKD.GE.KDMIN_F.AND.(KKD.LE.KDMAX_F.OR.KDMAX_F==0))) THEN
-               KKDX=KKD-KDMIN_F + 1
+                 (KD.GE.KDMIN_F.AND. &
+                 (KD.LE.KDMAX_F))) THEN
+               KDX=KD-KDMIN_F + 1
+               KDXF=KDX
 
-               DO KD=KDMIN_F,KDMAX_F
-                  KDX=KD-KDMIN_F+1
-                  DO MD=MDMIN,MDMAX
-                     MDX=MD-MDMIN+1
-                     DO MLD=MDMIN,MDMAX
-                        MLX=MLD-MDMIN+1
+               NN=NPH0+NHC*ND
+               NK=NPH0+NHC*NKD
+
+               DO MD=MDMIN,MDMAX
+                  MDX=MD-MDMIN+1
+                  DO MLD=MDMIN,MDMAX
+                     MLX=MLD-MDMIN+1
+                     LD=MLD-MD
+                     IF(LD.GE.LDMIN_F.AND. &
+                       (LD.LE.LDMAX_F.OR.LDMAX_F==0))THEN
+                        LDX =LD-LDMIN_F+1
                         MM=NTH0+MD
                         ML=NTH0+MLD
-
                         DO J=1,3
                            DO I=1,3
                               CDVM(I,J)=CGD(I,J,LDX,MLX,KDX,NKX,1)
@@ -393,7 +395,7 @@ CONTAINS
 
 !     --- R COMPONENT OF MAXWELL EQUATION ---
 
-                        LBND=MBND-3*KD*MDSIZ-3*LD-1
+                        LBND=MCENT-3*KD*MDSIZ-3*LD-1
 
                         CEMP(LBND+1    ,NKX,MLX,1) &
                              =CEMP(LBND+1   ,NKX,MLX,1) &
@@ -447,7 +449,7 @@ CONTAINS
                              )
 !     --- THETA COMPONENT OF MAXWELL EQUATION ---
 
-                        LBND=MBND-3*KD*MDSIZ-3*LD-2
+                        LBND=MCENT-3*KD*MDSIZ-3*LD-2
 
                         CEMP(LBND+1   ,NKX,MLX,2) &
                              =CEMP(LBND+1   ,NKX,MLX,2) &
@@ -525,7 +527,7 @@ CONTAINS
 
 !     --- PHI COMPONENT OF MAXWELL EQUATION ---
 
-                        LBND=MBND-3*KD*MDSIZ-3*LD-3
+                        LBND=MCENT-3*KD*MDSIZ-3*LD-3
 
                         CEMP(LBND+1   ,NKX,MLX,3) &
                              =CEMP(LBND+1   ,NKX,MLX,3) &
@@ -600,9 +602,9 @@ CONTAINS
                              +CI*MM*CGP12(LDX,KDX)*DFCP &
                              -      CGPH22(LDX,KDX)*DDFPHP &
                              )
-                     ENDDO ! MLD
-                  ENDDO ! MD
-               END DO ! KD
+                     END IF
+                  ENDDO ! MLD
+               ENDDO ! MD
             END IF
          ENDDO ! NKD
       ENDDO ! ND
@@ -900,14 +902,19 @@ CONTAINS
             DO MD=MDMIN,MDMAX
                MDX=MD-MDMIN+1
                DO MB=1,MBND
+                  CEMP(MB,NDX,MDX,1)= 0.D0
                   CEMP(MB,NDX,MDX,2)= 0.D0
                   CEMP(MB,NDX,MDX,3)= 0.D0
                ENDDO
+               CEMP(MCENT,NDX,MDX,1)= 1.D0
+               CEMP(MCENT-3*MDSIZ*NDSIZ,NDX,MDX,1)= -1.D0
                CEMP(MCENT,NDX,MDX,2)= 1.D0
                CEMP(MCENT,NDX,MDX,3)= 1.D0
+               CFVP(NDX,MDX,1)= 0.D0
                CFVP(NDX,MDX,2)= CEWALL(2,MDX,NDX)
                CFVP(NDX,MDX,3)= CEWALL(3,MDX,NDX)
-
+               WRITE(22,'(A,2I8,4ES12.4)') &
+                    'CFVP:',MDX,NDX,CEWALL(2,MDX,NDX),CEWALL(3,MDX,NDX)
             ENDDO
          ENDDO
 

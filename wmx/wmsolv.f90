@@ -32,6 +32,7 @@ CONTAINS
     USE wmcomm
     USE libmtx
     USE wmsetm0
+    USE wmsetm1
     USE wmsetm2
     USE commpi
     IMPLICIT NONE
@@ -60,31 +61,44 @@ CONTAINS
     DO i=istart,iend
        X=(0.D0,0.D0)
        A(1:MBND)=(0.D0,0.D0)
-       IF(MDLWMX.EQ.0) THEN
+       SELECT CASE(MDLWMX)
+       CASE(0)
           CALL wm_setm0(A,X,i,MBND,nr_previous)
-       ELSE
+       CASE(1)
+          CALL wm_setm1(A,X,i,MBND,nr_previous)
+       CASE(2)
           CALL wm_setm2(A,X,i,MBND,nr_previous)
-       END IF
-       IF(nrank.EQ.0) THEN
-          WRITE(21,'(A,2I6,ES12.4)') 'wmsolv:',nr_previous,i,XRHO(nr_previous)
-          WRITE(21,'(6ES12.4)') (A(j),j=1,MBND)
-          WRITE(21,'(2ES12.4)') X
-       END IF
+       END SELECT
+       IF(idebuga(61).NE.0.AND.nrank.EQ.0) &
+            WRITE(31,'(A,2I6,ES12.4)') &
+            'wmsolv:',nr_previous,i,XRHO(nr_previous)
        DO j=MAX(i-MCENT+1,1),MIN(MLEN,i+MCENT-1)
           IF(ABS(A(j-i+MCENT)).GT.0.D0) THEN
              CALL mtxc_set_matrix(i,j,A(j-i+MCENT))
+             IF(idebuga(61).NE.0.AND.nrank.EQ.0) &
+                  WRITE(31,'(A,2I6,2ES12.4)') 'A:',i,j,A(j-i+MCENT)
           END IF
        END DO
-       CALL mtxc_set_source(i,X)
+       IF(ABS(X).GT.0.D0) THEN
+          CALL mtxc_set_source(i,X)
+          IF(idebuga(61).NE.0.AND.nrank.EQ.0) &
+               WRITE(31,'(A,2I6,2ES12.4)') 'X:',i,0,X
+       END IF
     END DO
 
-    itype=0
+    itype=1  ! infolevel for MUMPS
     tolerance=1.D-12
     CALL mtxc_solve(itype,tolerance,its)
     WRITE(6,'(A,I8)') '## wm_solv: iteration=',its
       
     CALL mtxc_gather_vector(svec)
 
+    IF(idebuga(62).NE.0.AND.nrank.EQ.0) THEN
+       DO i=1,MLEN,3
+          WRITE(32,'(I6,6ES12.4)') &
+               i,svec(i),svec(i+1),svec(i+2)
+       END DO
+    END IF
     CALL mtxc_cleanup
 
     DEALLOCATE(A)

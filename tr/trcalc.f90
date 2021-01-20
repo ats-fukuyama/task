@@ -304,7 +304,7 @@
 
       SUBROUTINE TRAJBSSAUTER
 
-      USE TRCOMM, ONLY : AJBS, BB, DR, EPSRHO, MDLTPF, NRMAX, NSM, PADD, PBSCD, PNSS, PTS, PZ, QP, RDP, RHOG, RHOM, RKEV, &
+      USE TRCOMM, ONLY : AJBS, BB, DR, EPSRHO, MDLTPF, NRMAX, NSMAX, PADD, PBSCD, PNSS, PTS, PZ, QP, RDP, RHOG, RHOM, RKEV, &
      &                   RN, RPE, RR, RT, RW, TTRHOG, ZEFF
       IMPLICIT NONE
       INTEGER(4):: NR, NS
@@ -328,7 +328,7 @@
          RNP =0.D0
          RNTM=0.D0
          RNM =0.D0
-         DO NS=2,NSM
+         DO NS=2,NSMAX
             RNTP=RNTP+RN(NR+1,NS)*RT(NR+1,NS)
             RNP =RNP +RN(NR+1,NS)
             RNTM=RNTM+RN(NR  ,NS)*RT(NR  ,NS)
@@ -348,7 +348,7 @@
 !     *** DPI  is the derivative of ion pressure (dPi/dr) ***
 
          ANI(NR)=0.D0
-         DO NS=2,NSM
+         DO NS=2,NSMAX
             ANI(NR)=ANI(NR)+0.5D0*PZ(NS)*(RN(NR+1,NS)+RN(NR,NS))
          ENDDO
          PPI=0.5D0*(RPIP+RPIM)
@@ -416,7 +416,7 @@
          RNP =0.D0
          RNTM=0.D0
          RNM =0.D0
-         DO NS=2,NSM
+         DO NS=2,NSMAX
             RNTP=RNTP+PNSS(NS)*PTS(NS)
             RNP =RNP +PNSS(NS)
             RNTM=RNTM+RN(NR-1,NS)*RT(NR-1,NS)+RN(NR  ,NS)*RT(NR  ,NS)
@@ -438,7 +438,7 @@
 !     *** DPI  is the derivative of ion pressure (dPi/dr) ***
 
          ANI(NR)=0.D0
-         DO NS=2,NSM
+         DO NS=2,NSMAX
             ANI(NR)=ANI(NR)+PZ(NS)*PNSS(NS)
          ENDDO
          PPI=RPIP
@@ -446,6 +446,8 @@
          TI =RNTP/RNP
          DTI=(RNTP/RNP-RNTM/RNM)*DRL
 
+!         WRITE(6,'(A,I6,4ES12.4)') 'rLnLamii:',NR,PZ(2),ANI(NR),TI,QL
+!         WRITE(6,'(A,I6,4ES12.4)') 'RNUI:    ',NR,RR,ANI(NR),rLnLamii,EPSS
          rLnLamii=30.D0-LOG(PZ(2)**3*SQRT(ANI(NR)*1.D20)/(ABS(TI*1.D3)**1.5D0))
          RNUI=4.90D-18*QL*RR*ANI(NR)*1.D20*PZ(2)**4*rLnLamii /(ABS(TI*1.D3)**2*EPSS)
 !
@@ -476,6 +478,9 @@
          F34TEFF=FT/(1.D0+(1.D0-0.1D0*FT)*SQRT(RNUE)   +0.5D0*(1.D0-0.5D0*FT)*RNUE/ZEFFL)
 
          SALFA0=-1.17D0*(1.D0-FT)/(1.D0-0.22D0*FT-0.19D0*FT**2)
+
+!         WRITE(6,*) '@@@ point 3'
+!         WRITE(6,'(A,I6,3ES12.4)') 'SALFA:',NR,SALFA0,FT,RNUI
          SALFA=((SALFA0+0.25D0*(1.D0-FT**2)*SQRT(RNUI)) /(1.D0+0.5D0*SQRT(RNUI))+0.315D0*RNUI**2*FT**6) &
      &        /(1.D0+0.15D0*RNUI**2*FT**6)
 
@@ -552,7 +557,7 @@
 
       SUBROUTINE TRAJBSNEW
 
-      USE TRCOMM, ONLY : AJBS, BB, DR, EPSRHO, NRMAX, NSM, PADD, PBSCD, PNSS, PTS, PZ, RDP, RHOG, RHOM, RKEV, RN, RT, &
+      USE TRCOMM, ONLY : AJBS, BB, DR, EPSRHO, NRMAX, NSMAX, PADD, PBSCD, PNSS, PTS, PZ, RDP, RHOG, RHOM, RKEV, RN, RT, &
      &                   RW, TTRHOG
       IMPLICIT NONE
       INTEGER(4):: NR, NS
@@ -575,7 +580,7 @@
          RNP= 0.D0
          RNTM=0.D0
          RNM =0.D0
-         DO NS=2,NSM
+         DO NS=2,NSMAX
             RNTP=RNTP+RN(NR+1,NS)*RT(NR+1,NS)
             RNP =RNP +RN(NR+1,NS)
             RNTM=RNTM+RN(NR  ,NS)*RT(NR  ,NS)
@@ -596,7 +601,7 @@
 !     ***** VTI  is the ion velocity (VTi) *****
 
          ANI(NR)=0.D0
-         DO NS=2,NSM
+         DO NS=2,NSMAX
             ANI(NR)=ANI(NR)+0.5D0*PZ(NS)*(RN(NR+1,NS)+RN(NR,NS))
          ENDDO
          PPI=0.5D0*(RPIP+RPIM)
@@ -675,7 +680,7 @@
          RNP= 0.D0
          RNTM=0.D0
          RNM =0.D0
-         DO NS=2,NSM
+         DO NS=2,NSMAX
             RNTP=RNTP+PNSS(NS)*PTS(NS)
             RNP =RNP +PNSS(NS)
             RNTM=RNTM+RN(NR-1,NS)*RT(NR-1,NS)+RN(NR  ,NS)*RT(NR  ,NS)
@@ -698,7 +703,7 @@
 !     ***** VTI  is the ion velocity (VTi) *****
 
          ANI(NR)=0.D0
-         DO NS=2,NSM
+         DO NS=2,NSMAX
             ANI(NR)=ANI(NR)+PZ(NS)*PNSS(NS)
          ENDDO
          PPI=0.5D0*(RPIP+RPIM)
@@ -1044,7 +1049,7 @@
 
       SUBROUTINE TRSAWT
 
-      USE TRCOMM, ONLY : AR1RHOG, ARRHOG, BP, DR, DVRHO, DVRHOG, MDLST, NRMAX, NSM, PI, QP, RDP, RG, RM, RN, RR, RT, &
+      USE TRCOMM, ONLY : AR1RHOG, ARRHOG, BP, DR, DVRHO, DVRHOG, MDLST, NRMAX, NSMAX, PI, QP, RDP, RG, RM, RN, RR, RT, &
      &                   T, TTRHOG, RDPVRHOG
       IMPLICIT NONE
       INTEGER(4):: IONE, IZEROX, LN, LQ, LT, NR, NS
@@ -1094,7 +1099,7 @@
       QONE(1:IZEROX) = 1.D0+SUML*4.D0*RG(1:IZEROX)**2/RG(IZEROX)**4
 
       IF(LT.EQ.1) THEN
-         DO NS=1,NSM
+         DO NS=1,NSMAX
             SUML1 = SUM(RN(1:IZEROX,NS)                *DVRHO(1:IZEROX))
             SUML2 = SUM(RN(1:IZEROX,NS)*RT(1:IZEROX,NS)*DVRHO(1:IZEROX))
             RTN = SUML2/SUML1
@@ -1103,7 +1108,7 @@
       ENDIF
 
       IF(LN.EQ.1) THEN
-         DO NS=1,NSM
+         DO NS=1,NSMAX
             SUML1 = SUM(                DVRHO(1:IZEROX))
             SUML2 = SUM(RN(1:IZEROX,NS)*DVRHO(1:IZEROX))
             RNN = SUML2/SUML1

@@ -40,7 +40,17 @@ CONTAINS
           NDX=ND-NDMIN+1
           DO MD=MDMIN,MDMAX
              MDX=MD-MDMIN+1
-             IG=3*MDSIZ*NDSIZ*(NR-1)+3*MDSIZ*(NDX-1)+3*(MDX-1)
+             SELECT CASE(mdlwmx)
+             CASE(0,2)
+                IG=3*MDSIZ*NDSIZ*(NR-1)+3*MDSIZ*(NDX-1)+3*(MDX-1)
+             CASE(1)
+                IF(NR.LT.NR_S-1) THEN
+                   IG=3*MDSIZ*NDSIZ*(NR-1)+3*MDSIZ*(NDX-1)+3*(MDX-1)
+                ELSE
+                   IG=3*MDSIZ*NDSIZ*(NR+1)+3*MDSIZ*(NDX-1)+3*(MDX-1)
+                END IF
+             END SELECT
+                   
              CEFLDK(1,MDX,NDX,NR+1)=CFVG(IG+1)
              CEFLDK(2,MDX,NDX,NR+1)=CFVG(IG+2)
              CEFLDK(3,MDX,NDX,NR+1)=CFVG(IG+3)
@@ -428,6 +438,7 @@ CONTAINS
 
     USE wmcomm
     USE wmsetm0
+    USE wmsetm1
     USE wmsetm2
     IMPLICIT NONE
     COMPLEX(rkind),ALLOCATABLE:: CFVP(:,:,:)
@@ -450,11 +461,14 @@ CONTAINS
        ENDDO
 
        DO NR=NRANT-1,NRMAX
-          IF(MDLWMX.EQ.0) THEN
+          SELECT CASE(mdlwmx)
+          CASE(0)
              CALL wm_setv0(NR,CFVP)
-          ELSE
+          CASE(1)
+             CALL wm_setv1(NR,CFVP)
+          CASE(2)
              CALL wm_setv2(NR,CFVP)
-          END IF
+          END SELECT
           DO MDX=1,MDSIZ
              DO NDX=1,NDSIZ
                 CCE1=CEFLDK(1,MDX,NDX,NR+1)

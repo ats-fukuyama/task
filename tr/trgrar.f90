@@ -858,25 +858,29 @@
       ENDDO
 !      CALL TRGR1D( 3.0,12.0,11.0,17.0,GYR(1,1),GYR(1,2),NRMP,NRMAX,1,
 !     &            '@s  vs alpha@',2+INQ)
-      CALL TRGR1D( 3.0,12.0,11.0,17.0,GYR(1,1),GYR(1,2),NRMP,NRMAX,1,'@s  vs alpha@',2+4)
+      CALL TRGR1D( 3.0,12.0,11.0,17.0,GYR(1:NRMAX,1),GYR(1:NRMAX,2), &
+                   NRMP,NRMAX,1,'@s  vs alpha@',2+4)
 
       DO NR=1,NRMAX
          GYR(NR,1) = GUCLIP(AK(NR,1))
          GYR(NR,2) = GUCLIP(AK(NR,2))
       ENDDO
-      CALL TRGR1D(15.5,24.5,11.0,17.0,GYR(1,1),GYR(1,2),NRMP,NRMAX,1,'@AKD vs AKE@',2+INQ)
+      CALL TRGR1D(15.5,24.5,11.0,17.0,GYR(1:NRMAX,1),GYR(1:NRMAX,2), &
+                  NRMP,NRMAX,1,'@AKD vs AKE@',2+INQ)
 
       DO NR=1,NRMAX
          GYR(NR,1) = GUCLIP(QP(NR))
          GYR(NR,2) = GUCLIP(AK(NR,1))
       ENDDO
-      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GYR(1,1),GYR(1,2),NRMP,NRMAX,1,'@AKD vs q@',2+INQ)
+      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GYR(1:NRMAX,1),GYR(1:NRMAX,2), &
+                   NRMP,NRMAX,1,'@AKD vs q@',2+INQ)
 
       DO NR=1,NRMAX-1
          GYR(NR,1) = GUCLIP(QP(NR))
          GYR(NR,2) = GUCLIP(RT(NR,1))
       ENDDO
-      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GYR(1,1),GYR(1,2),NRMP,NRMAX-1,1,'@Te vs q@',2+INQ)
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GYR(1:NRMAX-1,1),GYR(1:NRMAX-1,2), &
+                  NRMP,NRMAX-1,1,'@Te vs q@',2+INQ)
 
       CALL TRGRTM
       CALL PAGEE

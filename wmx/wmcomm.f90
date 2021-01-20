@@ -35,7 +35,8 @@ MODULE wmcomm_parm
 
 ! --- fixed parameter necessary for parameter input
   
-  INTEGER,PARAMETER:: NAM=8       ! maximum number of antenna
+  INTEGER,PARAMETER:: NAM=8         ! maximum number of antenna
+  INTEGER,PARAMETER:: idebug_max=99 ! maximum number of idebuga
 
 ! --- wm specific input parameters ---  
 
@@ -85,7 +86,6 @@ MODULE wmcomm_parm
   INTEGER:: MODELM          ! Matrix solver parameter
   INTEGER:: MDLWMK          ! k_paralle toroidal effect
   INTEGER:: MDLWMX          ! model id: 0:wm, 1:wm_seki, 2:wmx
-
   
   REAL(rkind):: PNA         ! Alpha denisty [10^20 m^-3]
   REAL(rkind):: PNAL        ! Density scale length [m]
@@ -129,6 +129,8 @@ MODULE wmcomm_parm
 
   INTEGER:: nthmax_g        ! number of poloidal mesh for graphics
 
+  INTEGER:: idebuga(idebug_max)! control of debug info
+
 END MODULE wmcomm_parm
 
 MODULE wmcomm
@@ -146,6 +148,7 @@ MODULE wmcomm
   INTEGER:: NDSIZ,NDMIN,NDMAX,KDSIZ,KDMIN,KDMAX
   INTEGER:: NDSIZ_F,NDMIN_F,NDMAX_F,KDSIZ_F,KDMIN_F,KDMAX_F
   INTEGER:: MODEWG,MWGMAX
+  INTEGER:: NR_S,NBST,NBED,NBMODE  ! for mdlwmx=1
 
   INTEGER,ALLOCATABLE:: NPH_LOOP(:)
   
@@ -162,6 +165,7 @@ MODULE wmcomm
   COMPLEX(rkind),ALLOCATABLE:: CFVG(:)
   COMPLEX(rkind),ALLOCATABLE:: CTNSR(:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CGD(:,:,:,:,:,:,:)
+  COMPLEX(rkind),ALLOCATABLE:: CGDD(:,:,:,:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CPSF(:,:,:,:,:,:,:)
 
   REAL(rkind),ALLOCATABLE:: RG11(:,:,:),RG12(:,:,:),RG13(:,:,:)
@@ -276,10 +280,15 @@ CONTAINS
     mblock_size=3*nthmax*nhhmax
     mbnd= 4*mblock_size-1
     mcent=2*mblock_size
+    SELECT CASE(mdlwmx)
+    CASE(0,2)
        mlen=mblock_size*nrmax
-    IF(modewg.NE.0) THEN
-       mlen=mlen+mwgmax*namax
-    END IF
+    CASE(1)
+       mlen=mblock_size*(nrmax+2)
+    END SELECT
+!    IF(modewg.NE.0) THEN
+!       mlen=mlen+mwgmax*namax
+!    END IF
     
     IF(nthmax.EQ.1) THEN
        nthmax_f=1
@@ -304,6 +313,7 @@ CONTAINS
     ALLOCATE(CFVG(mlen))
     ALLOCATE(CTNSR(3,3,nthmax_f,nhhmax_f))
     ALLOCATE(CGD(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
+    ALLOCATE(CGDD(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
     ALLOCATE(CPSF(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
     ALLOCATE(RG11(nthmax_f,nhhmax_f,nrmax+1),RG12(nthmax_f,nhhmax_f,nrmax+1))
     ALLOCATE(RG13(nthmax_f,nhhmax_f,nrmax+1),RG22(nthmax_f,nhhmax_f,nrmax+1))
@@ -407,7 +417,7 @@ CONTAINS
     DEALLOCATE(CEWALL)
     DEALLOCATE(CFVG)
     DEALLOCATE(CTNSR)
-    DEALLOCATE(CGD)
+    DEALLOCATE(CGD,CGDD)
     DEALLOCATE(CPSF)
     DEALLOCATE(RG11,RG12,RG13,RG22,RG23,RG33)
     DEALLOCATE(RGI11,RGI12,RGI13,RGI22,RGI23,RGI33)

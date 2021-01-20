@@ -12,7 +12,7 @@ CONTAINS
   SUBROUTINE wm_view
     USE wmcomm_parm
     IMPLICIT NONE
-    INTEGER:: NS,NA
+    INTEGER:: NS,NA,i
 
     SELECT CASE(MODELG)
     CASE(0)
@@ -114,6 +114,10 @@ CONTAINS
                                       PHJ1(NA),PHJ2(NA)
        WRITE(6,614)    BETAJ(NA),AEWGT(NA),AEWGZ(NA),ANTANG(NA)
     ENDDO
+
+    DO i=1,idebug_max
+       IF(idebuga(i).NE.0) WRITE(6,'(A,I2,A,I6)') 'idebuga(',i,'):',idebuga(i)
+    END DO
     RETURN
 
   601 FORMAT(A6,'=',1PE12.4:1X,A6,'=',1PE12.4:1X, &

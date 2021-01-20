@@ -13,7 +13,6 @@
 *.log
 *.dvi
 *.toc
-*.in
 *.out
 .DS_Store
 fort.*
@@ -94,3 +93,5 @@ wr/wr
 wr/wrparm
 adpost/test-adpost
 ti/ti
+cv/cv
+cv/cvj

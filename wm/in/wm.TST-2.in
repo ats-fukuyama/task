@@ -1,0 +1,53 @@
+0
+f
+wm.TST-2.gs
+c
+p
+ &wm
+   modelg=3
+   KNAMEQ='eqdata.TST-2'
+   KNAMWM='wmdata.TST-2'
+   modelp=5,5,5
+   NSMAX=3
+   PA(2)=5.4462E-4
+   PZ(2)=-1.0
+   PA(3)=1.0
+   PZ(3)=1.0
+   PN= 0.005,0.0005,0.00055
+   PNS=0.0,0.0,0.0
+   PROFN2=1.0
+   PTPR=0.010,1.000,0.010
+   PTPP=0.010,1.000,0.010
+   PTS= 0.010,1.000,0.010
+   PZCL=0.000,0.000,0.000
+   PROFT2=1.0
+   RF=200.0
+   AJ(1)=0.D0
+   THJ1(1)=-45.D0
+   THJ2(1)= 45.D0
+   ANTANG(1)=0.D0
+   AEWGZ(1)=1.D0
+   NTHMAX=64
+   NTH0=0
+   NPH0=16
+   nrmax=200
+ &end
+v
+r
+s
+g
+rea
+1
+ren
+/
+peti
+petr
+peri
+perr
+pezi
+pezr
+mezr
+mezi
+pp1
+x
+q

@@ -935,7 +935,7 @@ contains
 
       ! calcurate momentum of X point
       call get_pinch_point(p_pnc, dummy, psix, psim_pinch, ns_x)
-      
+
       if ( p_left <= p_pnc .and. p_pnc <= p_right ) then
         return
 
