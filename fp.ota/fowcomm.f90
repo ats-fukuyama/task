@@ -22,15 +22,13 @@ module fowcomm
 
   real(rkind),allocatable :: JI(:,:,:,:),& ! dxdydzd(vx)d(vy)d(vz) = JI * dpd(thetam)d(psim)
                              JIR(:,:,:,:)  ! for integrate over velocity space
-  real(rkind),allocatable  :: fnorm(:)
 ! COM --------------------------------------------------------------------------------------------------          
   real(rkind),allocatable,dimension(:) :: psim,&                ! maximum poloidal magnetic flux in an orbit, value at half integer grid points
-                                          psimg,&               ! psim at integer grid points
-                                          delps
+                                          psimg                 ! psim at integer grid points
 
-  real(rkind),allocatable :: psim_local(:,:,:,:,:), &
-                            thetam_local(:,:,:,:,:), &
-                            time_loss(:,:,:,:,:)
+  real(rkind),allocatable :: rhom_local(:,:,:,:,:), &
+                             thetam_local(:,:,:,:,:), &
+                             time_loss(:,:,:,:,:)
 
   real(rkind),allocatable,dimension(:,:,:,:) :: thetam,&              ! pitch angle along orbit in psim, value at half integer grid points
                                                 thetamg,&             ! theta_m at integer grid points
@@ -50,9 +48,19 @@ module fowcomm
                                           Bin,&                  ! abs(magnetic field) at psim when psim is inside the axis
                                           Fpsig,&                ! Fpsi for grid points
                                           Boutg,&                ! Bout for grid points
-                                          Bing                   ! Bin for grid points
-  
-  real(rkind),allocatable,dimension(:,:) :: Babs                 ! B(psip,thetap)
+                                          Bing,&                 ! Bin for grid points
+                                          dFdr,&                 ! dFpsi/drhom
+                                          dBoutdr,&              ! dBout/drhom
+                                          dBindr,&               ! dBin/drhom
+                                          dpsimdr,&              ! dpsim/drhom
+                                          dFgdr,&                ! dFpsig/drhom
+                                          dBoutgdr,&             ! dBoutg/drhom
+                                          dBingdr,&              ! dBing/drhom
+                                          dpsimgdr               ! dpsimg/drhom
+
+  real(rkind),allocatable,dimension(:,:) :: Babs,&                 ! B(psip,thetap)
+                                            dBdr,&                 ! dBabs/rhot
+                                            dBdthp                 ! dBabs/dtheta_p
   real(rkind),allocatable,dimension(:) :: theta_p                 ! poloidal angle
 
 ! use for boundary conditions --------------------------------------------------------------------------
@@ -60,36 +68,30 @@ module fowcomm
                                               theta_co_stg,&      ! theta_m of co-stagnation orbit for pm(np) and psim(nr)
                                               theta_cnt_stg,&     ! theta_m of counter-stagnation orbit for pm(np) and psim(nr)
                                               psip_pnc_point      ! poloidal flux of pinch orbit given by I = (pm(np), theta_pnc(p,psi_m), psim(nr))
-                                              
 
-  real(rkind),allocatable,dimension(:,:,:) :: theta_pnc_pg,&         ! theta_m of pinch orbit for given pg(np) and psim(nr)
-                                              theta_co_stg_pg,&      ! theta_m of co-stagnation orbit for given pg(np) and psim(nr)
-                                              theta_cnt_stg_pg,&     ! theta_m of counter-stagnation orbit for given pg(np) and psim(nr)
-                                              psip_pnc_point_pg      ! poloidal flux of pinch orbit given by I = (pg(np), theta_pnc(p,psim), psim(nr))
+  real(rkind),allocatable,dimension(:,:,:) :: theta_pnc_pg,&
+                                              theta_co_stg_pg,&
+                                              theta_cnt_stg_pg,&
+                                              psip_pnc_point_pg
                                               
-
-  real(rkind),allocatable,dimension(:,:,:) :: theta_pnc_rg,&         ! theta_m of pinch orbit for given pm(np) and psimg(nr)
-                                              theta_co_stg_rg,&      ! theta_m of co-stagnation orbit for given pm(np) and psimg(nr)
-                                              theta_cnt_stg_rg,&     ! theta_m of counter-stagnation orbit for given pm(np) and psimg(nr)
-                                              psip_pnc_point_rg      ! poloidal flux of pinch orbit given by I = (pm(np), theta_pnc(p,psi_m), psimg(nr))
+  real(rkind),allocatable,dimension(:,:,:) :: theta_pnc_rg,&
+                                              theta_co_stg_rg,&
+                                              theta_cnt_stg_rg,&
+                                              psip_pnc_point_rg
 
   real(rkind),allocatable,dimension(:,:,:,:) :: delthm_rg, delthm_pg, delthm
 
   integer,allocatable,dimension(:) :: nth_stg,&        ! thetamg(nth_stg,(nsa),np,nr,nsa) = theta_stg
-                                      nth_pnc           ! thetamg(nth_pnc,(nsa),np,nr,nsa) = theta_pnc
+                                      nth_pnc          ! thetamg(nth_pnc,(nsa),np,nr,nsa) = theta_pnc
 
   real(rkind),allocatable,dimension(:,:,:) :: IBCflux_ratio         ! ration between the flux from thetam(nth_pnc-1) to thetam(nth_pnc) and the flux from thetam(nth_pnc-1) to thetam(nth_co_stg)
-  integer,allocatable,dimension(:,:,:) ::  nr_pnc_point          ! nr of pinch point of theta_pnc(:,:,:)
+  integer,allocatable,dimension(:,:,:) ::  nr_pnc_point             ! nr of pinch point of theta_pnc(:,:,:)
 
-  real(rkind),parameter :: NO_PINCH_ORBIT = 19960610d0 ! if theta_pnc(np,nr,nsa) = NO_PINCH_ORBIT then no pinch orbit exists with pm(np) and psi_m = psim(nr)
+  real(rkind),allocatable,dimension(:,:,:) :: rhom_pinch      ! psim of pnc orbit whose pinch point is X stg orbit with np, nr, nsa
+  integer,allocatable,dimension(:,:,:) ::  nr_rhom_pinch
 
-  type Xstg_as_pnc_point
-    integer :: number                   ! number of pinch orbits whose pinch point is at psim of this X-type stagnation orbit(nth,np,nr,nsa)
-                                        ! the orbit at (nth,np,nr,nsa) is not X-type stagnation orbit or no pinch orbit has pinch point at psim of X-type stagnation orbit or -> number = 0
-    integer,allocatable :: nr(:) ! np and nr of pinch orbits
-  end type Xstg_as_pnc_point
-
-  type(Xstg_as_pnc_point),allocatable,dimension(:,:,:) :: Xstg_as_pncp
+  real(rkind),parameter :: NO_PINCH_ORBIT = 19960610d0
+  real(rkind),allocatable,dimension(:,:,:,:) :: orbital_loss
 
 ! use for bounce average -------------------------------------------------------------------------------
   type :: orbit                                                  ! quantities along orbits culcurated by TASK/OB
@@ -97,8 +99,15 @@ module fowcomm
     real(rkind),allocatable,dimension(:) :: time, &              ! time
                                             psip, &              ! poloidal magnetic flux
                                             Babs, &              ! absolute value of magnetic field
-                                            theta,&              ! pitch angle
-                                            thetap               ! poloidal angle
+                                            costh,&              ! COS( pitch angle )
+                                            sinth,&              ! SIN( pitch angle )
+                                            thetap,&             ! poloidal angle
+                                            F,&                  ! poloidal current
+                                            r,&                  ! minor radius
+                                            dpsipdr,&            ! dpsip/drho
+                                            dFdr,&               ! dF/drho
+                                            dBdr,&
+                                            dBdthp
   end type orbit
 
   type(orbit),allocatable,dimension(:,:,:,:) :: orbit_p,&    ! (np,nth,nr)=(-0.5,  1 ,  1 ) to (npmax+0.5,nthmax,nrmax)
@@ -108,80 +117,162 @@ module fowcomm
 
 ! ------------------------------------------------------------------------------------------------------
 
-  real(rkind),allocatable,dimension(:) :: xi,&                 ! cos(pitch angle) at psim
-                                          xig                  ! xi for grid points
-
 contains
 
   subroutine fow_allocate
     use fpcomm, only:npmax,nthmax,nrmax,nsamax
-    allocate(JI(nthmax,npmax,nrmax,nsamax),JIR(nthmax,npmax,nrmax,nsamax))
-    allocate(fnorm(nsamax))
-    allocate(psim(nrmax),psimg(nrmax+1))
-    allocate(delps(nrmax))
-    allocate(psim_local(nthmax,npmax,nrmax,nthpmax,nsamax), thetam_local(nthmax,npmax,nrmax,nthpmax,nsamax))
-    allocate(time_loss(nthmax,npmax,nrmax,nthpmax,nsamax))
 
-    allocate(thetam(nthmax,npmax,nrmax,nsamax),thetamg(nthmax+1,npmax,nrmax,nsamax))
-    allocate(thetam_pg(nthmax,npmax+1,nrmax,nsamax), thetam_rg(nthmax,npmax,nrmax+1,nsamax))
-    ! 
-    allocate(Fpsi(nrmax),Bout(nrmax),Bin(nrmax))
-    allocate(Fpsig(nrmax+1),Boutg(nrmax+1),Bing(nrmax+1))
-    ! 
-    allocate(theta_pnc(npmax,nrmax,nsamax),theta_co_stg(npmax,nrmax,nsamax),theta_cnt_stg(npmax,nrmax,nsamax))
-    allocate(psip_pnc_point(npmax,nrmax,nsamax))
+    allocate(JI          (nthmax  ,npmax  ,nrmax          ,nsamax))
+    allocate(JIR         (nthmax  ,npmax  ,nrmax          ,nsamax))
+    allocate(rhom_local  (nthmax  ,npmax  ,nrmax  ,nthpmax,nsamax))
+    allocate(thetam_local(nthmax  ,npmax  ,nrmax  ,nthpmax,nsamax))
+    allocate(time_loss   (nthmax  ,npmax  ,nrmax  ,nthpmax,nsamax))
+    allocate(thetam      (nthmax  ,npmax  ,nrmax          ,nsamax))
+    allocate(thetamg     (nthmax+1,npmax  ,nrmax          ,nsamax))
+    allocate(thetam_pg   (nthmax  ,npmax+1,nrmax          ,nsamax))
+    allocate(thetam_rg   (nthmax  ,npmax  ,nrmax+1        ,nsamax))
 
-    allocate(theta_pnc_pg(npmax+1,nrmax,nsamax),theta_co_stg_pg(npmax+1,nrmax,nsamax),theta_cnt_stg_pg(npmax+1,nrmax,nsamax))
-    allocate(psip_pnc_point_pg(npmax+1,nrmax,nsamax))
+    allocate(psim    (nrmax  ))
+    allocate(Fpsi    (nrmax  ))
+    allocate(Bout    (nrmax  ))
+    allocate(Bin     (nrmax  ))
+    allocate(psimg   (nrmax+1))
+    allocate(Fpsig   (nrmax+1))
+    allocate(Boutg   (nrmax+1))
+    allocate(Bing    (nrmax+1))
+    allocate(dFdr    (nrmax  ))
+    allocate(dBoutdr (nrmax  ))
+    allocate(dBindr  (nrmax  ))
+    allocate(dpsimdr (nrmax  ))
+    allocate(dFgdr   (nrmax+1))
+    allocate(dBoutgdr(nrmax+1))
+    allocate(dBingdr (nrmax+1))
+    allocate(dpsimgdr(nrmax+1))
 
-    allocate(theta_pnc_rg(npmax,nrmax+1,nsamax),theta_co_stg_rg(npmax,nrmax+1,nsamax),theta_cnt_stg_rg(npmax,nrmax+1,nsamax))
-    allocate(psip_pnc_point_rg(npmax,nrmax+1,nsamax))
+    allocate(Babs    (nrmax  ,nthpmax))
+    allocate(dBdr    (nrmax  ,nthpmax))
+    allocate(dBdthp  (nrmax  ,nthpmax))
+    allocate(theta_p (        nthpmax))
 
-    allocate(delthm(nthmax,npmax,nrmax,nsamax),delthm_pg(nthmax,npmax+1,nrmax,nsamax),delthm_rg(nthmax,npmax,nrmax+1,nsamax))
-    allocate(nth_stg(nsamax),nth_pnc(nsamax))
-    allocate(IBCflux_ratio(npmax,nrmax,nsamax))
-    allocate(nr_pnc_point(npmax,nrmax,nsamax))
+    allocate(theta_pnc        (npmax  ,nrmax  ,nsamax))
+    allocate(theta_co_stg     (npmax  ,nrmax  ,nsamax))
+    allocate(theta_cnt_stg    (npmax  ,nrmax  ,nsamax))
+    allocate(psip_pnc_point   (npmax  ,nrmax  ,nsamax))
+    allocate(theta_pnc_pg     (npmax+1,nrmax  ,nsamax))
+    allocate(theta_co_stg_pg  (npmax+1,nrmax  ,nsamax))
+    allocate(theta_cnt_stg_pg (npmax+1,nrmax  ,nsamax))
+    allocate(psip_pnc_point_pg(npmax+1,nrmax  ,nsamax))
+    allocate(theta_pnc_rg     (npmax  ,nrmax+1,nsamax))
+    allocate(theta_co_stg_rg  (npmax  ,nrmax+1,nsamax))
+    allocate(theta_cnt_stg_rg (npmax  ,nrmax+1,nsamax))
+    allocate(psip_pnc_point_rg(npmax  ,nrmax+1,nsamax))
 
-    allocate(Xstg_as_pncp(npmax,nrmax,nsamax))
+    allocate(delthm       (nthmax  ,npmax  ,nrmax  ,nsamax))
+    allocate(delthm_pg    (nthmax  ,npmax+1,nrmax  ,nsamax))
+    allocate(delthm_rg    (nthmax  ,npmax  ,nrmax+1,nsamax))
+    allocate(IBCflux_ratio(         npmax  ,nrmax  ,nsamax))
+    allocate(nr_pnc_point (         npmax  ,nrmax  ,nsamax))
+    allocate(nr_rhom_pinch(         npmax  ,nrmax  ,nsamax))
+    allocate(orbital_loss (nthmax  ,npmax  ,nrmax  ,nsamax))
 
-    allocate(Babs(nrmax+1,nthpmax))
-    allocate(theta_p(nthpmax))
-    ! 
-    allocate(orbit_p(nthmax,npmax+1,nrmax,nsamax),orbit_th(nthmax+1,npmax,nrmax,nsamax)&
-    ,orbit_r(nthmax,npmax,nrmax+1,nsamax),orbit_m(nthmax,npmax,nrmax,nsamax))
-    !
-    allocate(Dppfow(nthmax,npmax+1,nrmax,nsamax),Dptfow(nthmax,npmax+1,nrmax,nsamax),Dprfow(nthmax,npmax+1,nrmax,nsamax))
-    allocate(Dtpfow(nthmax+1,npmax,nrmax,nsamax),Dttfow(nthmax+1,npmax,nrmax,nsamax),Dtrfow(nthmax+1,npmax,nrmax,nsamax))
-    allocate(Drpfow(nthmax,npmax,nrmax+1,nsamax),Drtfow(nthmax,npmax,nrmax+1,nsamax),Drrfow(nthmax,npmax,nrmax+1,nsamax))
-    allocate(Fppfow(nthmax,npmax+1,nrmax,nsamax),Fthfow(nthmax+1,npmax,nrmax,nsamax),Frrfow(nthmax,npmax,nrmax+1,nsamax))
-    !
-    allocate(xi(nthmax))
-    allocate(xig(nthmax+1))
+    allocate(nth_stg(nsamax))
+    allocate(nth_pnc(nsamax))
+
+    allocate(orbit_th(nthmax+1,npmax  ,nrmax  ,nsamax))
+    allocate(orbit_p (nthmax  ,npmax+1,nrmax  ,nsamax))
+    allocate(orbit_r (nthmax  ,npmax  ,nrmax+1,nsamax))
+    allocate(orbit_m (nthmax  ,npmax  ,nrmax  ,nsamax))
+
+    allocate(Dppfow(nthmax  ,npmax+1,nrmax  ,nsamax))
+    allocate(Dptfow(nthmax  ,npmax+1,nrmax  ,nsamax))
+    allocate(Dprfow(nthmax  ,npmax+1,nrmax  ,nsamax))
+    allocate(Dtpfow(nthmax+1,npmax  ,nrmax  ,nsamax))
+    allocate(Dttfow(nthmax+1,npmax  ,nrmax  ,nsamax))
+    allocate(Dtrfow(nthmax+1,npmax  ,nrmax  ,nsamax))
+    allocate(Drpfow(nthmax  ,npmax  ,nrmax+1,nsamax))
+    allocate(Drtfow(nthmax  ,npmax  ,nrmax+1,nsamax))
+    allocate(Drrfow(nthmax  ,npmax  ,nrmax+1,nsamax))
+    allocate(Fppfow(nthmax  ,npmax+1,nrmax  ,nsamax))
+    allocate(Fthfow(nthmax+1,npmax  ,nrmax  ,nsamax))
+    allocate(Frrfow(nthmax  ,npmax  ,nrmax+1,nsamax))
+
   end subroutine fow_allocate
 
   subroutine fow_deallocate
 
-    !
     deallocate(JI)
-    deallocate(thetam,thetamg)
-    deallocate(thetam_pg, thetam_rg)
-    ! 
-    deallocate(psim,Fpsi,Bout,Bin)
-    deallocate(psimg,Fpsig,Boutg,Bing)
-    ! 
-    deallocate(theta_pnc,theta_co_stg,theta_cnt_stg)
-    deallocate(psip_pnc_point, delthm)
+    deallocate(JIR)
+    deallocate(rhom_local)
+    deallocate(thetam_local)
+    deallocate(time_loss)
+    deallocate(thetam)
+    deallocate(thetamg)
+    deallocate(thetam_pg)
+    deallocate(thetam_rg)
 
-    deallocate(theta_pnc_pg,theta_co_stg_pg,theta_cnt_stg_pg)
-    deallocate(psip_pnc_point_pg, delthm_pg)
+    deallocate(psim)
+    deallocate(Fpsi)
+    deallocate(Bout)
+    deallocate(Bin)
+    deallocate(psimg)
+    deallocate(Fpsig)
+    deallocate(Boutg)
+    deallocate(Bing)
+    deallocate(dFdr)
+    deallocate(dBoutdr)
+    deallocate(dBindr)
+    deallocate(dpsimdr)
+    deallocate(dFgdr)
+    deallocate(dBoutgdr)
+    deallocate(dBingdr)
+    deallocate(dpsimgdr)
 
-    deallocate(theta_pnc_rg,theta_co_stg_rg,theta_cnt_stg_rg)
-    deallocate(psip_pnc_point_rg, delthm_rg)
-    ! 
-    deallocate(orbit_p,orbit_th,orbit_r,orbit_m)
-    !
-    deallocate(xi)
-    deallocate(xig)
+    deallocate(Babs)
+    deallocate(dBdr)
+    deallocate(dBdthp)
+    deallocate(theta_p)
+
+    deallocate(theta_pnc)
+    deallocate(theta_co_stg)
+    deallocate(theta_cnt_stg)
+    deallocate(psip_pnc_point)
+    deallocate(theta_pnc_pg)
+    deallocate(theta_co_stg_pg)
+    deallocate(theta_cnt_stg_pg)
+    deallocate(psip_pnc_point_pg)
+    deallocate(theta_pnc_rg)
+    deallocate(theta_co_stg_rg)
+    deallocate(theta_cnt_stg_rg)
+    deallocate(psip_pnc_point_rg)
+
+    deallocate(delthm)
+    deallocate(delthm_pg)
+    deallocate(delthm_rg)
+    deallocate(IBCflux_ratio)
+    deallocate(nr_pnc_point)
+    deallocate(nr_rhom_pinch)
+    deallocate(orbital_loss)
+
+    deallocate(nth_stg)
+    deallocate(nth_pnc)
+
+    deallocate(orbit_th)
+    deallocate(orbit_p)
+    deallocate(orbit_r)
+    deallocate(orbit_m)
+
+    deallocate(Dppfow)
+    deallocate(Dptfow)
+    deallocate(Dprfow)
+    deallocate(Dtpfow)
+    deallocate(Dttfow)
+    deallocate(Dtrfow)
+    deallocate(Drpfow)
+    deallocate(Drtfow)
+    deallocate(Drrfow)
+    deallocate(Fppfow)
+    deallocate(Fthfow)
+    deallocate(Frrfow)
 
   end subroutine fow_deallocate
 
@@ -192,47 +283,6 @@ contains
     read(11,nml=fow)
     close(11)
   end subroutine fow_read_namelist
-
-  subroutine mesh_to_grid1D(f,g)
-    use fpcomm,only:rkind
-    implicit none
-    real(rkind) :: f(:),g(:)
-    real(rkind),allocatable :: x(:),fx(:),U(:,:)
-    integer :: i,j,imax,jmax,IERR = 0,k
-
-    imax = size(f)
-    jmax = size(g)
-
-    if(imax/=jmax-1)then
-      write(*,*)"imax/ = jmax-1 at subroutine mesh_to_grid1D"
-      STOP
-    end if
-
-    allocate(x(imax),fx(imax),U(4,imax))
-
-    do i = 1,imax
-      x(i) = i*1.d0
-    end do
-
-    call SPL1D(x,f,fx,U,imax,0,IERR)
-
-    do j = 2,jmax-1
-      g(j) = 0.d0
-      do k = 1,4
-        g(j) = g(j)+U(k,j)*0.5d0**(k-1)
-      end do
-    end do
-
-    g(1) = 0.d0
-    g(jmax) = 0.d0
-    do k = 1,4
-      g(1) = g(1)+U(k,2)*(-0.5d0)**(k-1)
-      g(jmax) = g(jmax)+U(k,imax)*(1.5d0)**(k-1)
-    end do
-
-    deallocate(x,fx,U)
-
-  end subroutine mesh_to_grid1D
 
   subroutine solve_quadratic_equation(z,C)
     ! solve C(3)*z**2+C(2)*z+C(1) = 0
@@ -399,19 +449,6 @@ contains
   
   end subroutine gauss_jordan
   
-  recursive function func_kaijou(n) result(m)
-    implicit none
-    integer,intent(in) :: n
-    integer :: m
-
-    if(n == 1) then
-      m = 1
-    else
-      m = n*func_kaijou(n-1)
-    end if
-
-  end function func_kaijou
-
   subroutine fow_cal_spl(f_out, x_in, f, x)
     ! Calculate spline coefficient y = f(x),
     ! then return f_out = f(x_in)

@@ -2,6 +2,13 @@ module fowloop
   private
   public :: fow_loop 
 
+  double precision,allocatable,dimension(:,:,:)     :: density, p_flux, Deff, temp
+  double precision,allocatable,dimension(:,:,:)     :: Sr, Sr_Dp, Sr_Dth, Sr_Dr, Sr_F
+  double precision,allocatable,dimension(:,:,:,:,:) :: fI, source
+
+  double precision,allocatable,dimension(:,:)       :: BMT, DLT, FMT
+  double precision,allocatable,dimension(:,:,:)     :: ALT
+
 contains
 
   subroutine fow_loop
@@ -12,6 +19,7 @@ contains
     use fpcomm
     use fowdistribution
     use fpsub
+    use fpprep
 
     use fpwrite
     
@@ -21,9 +29,8 @@ contains
     logical :: iteration_flag
     real(rkind) :: begin_time, end_time, begin_time_loop, end_time_loop
 
-    call update_quantities
     call fow_coef
-    call fow_calculate_source  
+    call fow_calculate_source(0)
 
     do nt = 1, ntmax
       write(*,*)"nt=",nt
@@ -65,7 +72,7 @@ contains
           deps = MAX( deps, sumFd/sumF0 )
         end do
         write(*,*)"deps,it",deps,n_iterate
-        ! lmaxfp = 1
+
         if ( deps <= epsfp .or. n_iterate >= lmaxfp ) iteration_flag = .false.
 
         do nsa = 1, nsamax
@@ -78,13 +85,18 @@ contains
           end do
         end do
 
-        call update_quantities
-
+        call update_bulk_temperature
+        call coulomb_log
         call fow_coef
+        call fow_calculate_source(nt)
 
       end do ! end of do while
 
-      if ( model_mkcsv /= 0 ) call save_csv(nt)
+      ! ! update density and temperature
+      call moment_0th_order_COM(rnsl, fnsp)
+      call moment_2nd_order_COM(rwsl, fnsp)
+
+      call output_data(nt)
 
       call cpu_time(end_time_loop)
       write(6,'(A,I0,A,ES10.3,A)'),'time to loop(nt=',nt,'):',end_time_loop-begin_time_loop,'[sec]'
@@ -93,131 +105,202 @@ contains
 
   end subroutine fow_loop
 
-  subroutine update_quantities
-    use plprof
+  subroutine update_bulk_temperature
     use fpcomm
     use fowcomm
-    use fowdistribution
-    use foworbit
-
     implicit none
-    type(pl_plf_type),dimension(nsmax):: plf
-    integer :: nth, np, nr, nsa, ns, nstp,nstpmax
-    real(rkind) :: rhon, Ntot, mean_ra
+    integer :: nth, np, nr, nsa, ns
+    real(rkind) :: dVI, energy, pv, rns_bulk, rws_bulk, J2keV
 
-    ! do nsa = 1, nsamax
-    !   fnorm(nsa) = 1.d-40*RNFP0(NSA)
-    ! end do
-
-    ! update rn_temp, rt_temp
+    J2keV = 1.d-3/aee
     do nsa = 1, nsamax
       ns = ns_nsa(nsa)
       do nr = 1, nrmax
-        rhon = rm(nr)
-        call pl_prof(rhon,plf)
-        rn_temp(nr,ns) = plf(ns)%rn
-        rt_temp(nr,ns) = (plf(ns)%rtpr+2.d0*plf(ns)%rtpp)/3.d0
+
+        rns_bulk = 0.d0
+        rws_bulk = 0.d0
+
+        do np = 1, npmax
+          if ( pm(np,ns) > fact_bulk ) exit
+          pv = sqrt(1.d0+theta0(ns)*pm(np,ns)**2)
+          do nth = 1, nthmax
+            energy = amfp(ns)*vc**2*(pv-1.d0)
+            dVI = JIR(nth,np,nr,nsa)*delp(ns)*delthm(nth,np,nr,nsa)
+            rns_bulk = rns_bulk + fnsp(nth,np,nr,nsa)*dVI
+            rws_bulk = rws_bulk + energy*fnsp(nth,np,nr,nsa)*dVI
+          end do
+        end do
+
+        rt_bulk(nr,ns) = rws_bulk*J2keV / (1.5d0*rns_bulk)
+
       end do
     end do
-
-    ! ! update density
-    call moment_0th_order_COM(RNSL, fnsp)
-
-    ! ! update temperature
-    ! call moment_2nd_order_COM(RWSL, fnsp)
-
-    ! update bulk temperature
-
-    ! update Coulomb logarithm
-
-    ! -----------------s
 
     do nsa = 1, nsamax
+      ns = ns_nsa(nsa)
       do nr = 1, nrmax
-            write(*,*)"RNSL",RNSL(nr,nsa)
+        rn_temp(nr,ns) = rnsl(nr,ns)
+        rt_temp(nr,ns) = rt_bulk(nr,ns)
       end do
     end do
 
-    ! do nsa = 1, nsamax
-    !   do nr = 1, nrmax
-    !         write(*,*)"RWSL",RWSL(nr,nsa)/aee*1.D3
-    !   end do
-    ! end do
+  end subroutine update_bulk_temperature
 
-    ! call total_N(Ntot, fnsp, 1)
-    ! write(*,*)"electron total", Ntot
-    ! call total_N(Ntot, fnsp, 2)
-    ! write(*,*)"ion total", Ntot
-
-  end subroutine update_quantities
-
-  subroutine save_csv(nt)
+  subroutine output_data(nt)
     use fowcomm
     use fpcomm
     use fpwrite
+    use foworbit
     use fowdistribution
-
     implicit none
-
     integer,intent(in) :: nt
-    character(len=30) :: filef, filen, filegamma, filedeff, filefrad4, filefrad2, filefrad34
-    real(rkind),dimension(nrmax) :: gamma_r, Deff, rmg
-    real(rkind),dimension(nrmax,nsamax) :: N_prev
-    integer :: nr, nr_out
+    double precision :: r_, psip0, costh0, sinth0, B0, F0, dBdr0, dFdr0, dpsipdr0, J2keV
+    double precision,dimension(nrmax) :: rmg
+    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: taup, r0, gammaI
+    integer :: nth,np,nr,nsa,nm,nm2
 
-    nr_out=nrmax/2
+    if ( .not.allocated(density) ) allocate(density(             nrmax,nsamax,ntmax))
+    if ( .not.allocated(p_flux ) ) allocate(p_flux (             nrmax,nsamax,ntmax))
+    if ( .not.allocated(Sr     ) ) allocate(Sr     (             nrmax,nsamax,ntmax))
+    if ( .not.allocated(Sr_Dp  ) ) allocate(Sr_Dp  (             nrmax,nsamax,ntmax))
+    if ( .not.allocated(Sr_Dth ) ) allocate(Sr_Dth (             nrmax,nsamax,ntmax))
+    if ( .not.allocated(Sr_Dr  ) ) allocate(Sr_Dr  (             nrmax,nsamax,ntmax))
+    if ( .not.allocated(Sr_F   ) ) allocate(Sr_F   (             nrmax,nsamax,ntmax))
+    if ( .not.allocated(Deff   ) ) allocate(Deff   (             nrmax,nsamax,ntmax))
+    if ( .not.allocated(temp   ) ) allocate(temp   (             nrmax,nsamax,ntmax))
+    if ( .not.allocated(fI     ) ) allocate(fI     (nthmax,npmax,nrmax,nsamax,ntmax))
+    if ( .not.allocated(source ) ) allocate(source (nthmax,npmax,nrmax,nsamax,ntmax))
+    if ( .not.allocated(BMT    ) ) allocate(BMT    (nmmax,ntmax                    ))
+    if ( .not.allocated(DLT    ) ) allocate(DLT    (nmmax,ntmax                    ))
+    if ( .not.allocated(FMT    ) ) allocate(FMT    (nmmax,ntmax                    ))
+    if ( .not.allocated(ALT    ) ) allocate(ALT    (nmmax,nlmaxm,ntmax             ))
+
+    J2keV = 1.d-3/aee
 
     if ( nt == 1 ) then
-
-      call system('mkdir -p csv')
-  
       do nr = 1, nrmax
         rmg(nr) = rg(nr+1)
       end do
-  
-      call moment_0th_order_COM(N_prev, fnsm)
-      
-      call fpcsv2D(fnsm(:,:,nr_out,2),"csv/fnsp0.csv")
-      call fpcsv1D(fnsm(npmax/2,nthmax/2,:,2),"csv/frad20.csv")
-      call fpcsv1D(fnsm(npmax/2,nthmax/4,:,2),"csv/frad40.csv")
-      call fpcsv1D(fnsm(npmax/2,nthmax/4*3,:,2),"csv/frad340.csv")    
-      call fpcsv1D(N_prev(:,2),"csv/n0.csv")
-
-      call fpcsv1D(rm,"./csv/rm.csv")
-      call fpcsv1D(rg,"./csv/rg.csv")
-      call fpcsv1D(rmg,"./csv/rmg.csv")
-      call fpcsv2D(thetam(:,:,nr_out,2),"./csv/thetam.csv")
-      call fpcsv2D(JI(:,:,nr_out,2),"./csv/Jacobian.csv")
     
-      call fpcsv2D(thetam(:,:,nr_out,1),"./csv/thetam_ele.csv")
-      call fpcsv2D(JI(:,:,nr_out,1),"./csv/Jacobian_ele.csv")
-      call fpcsv1D(pm(:,1),"./csv/pm_ele.csv")
-      call fpcsv1D(pg(:,1),"./csv/pg_ele.csv")
-      call fpcsv1D(pm(:,2),"./csv/pm_ion.csv")
-      call fpcsv1D(pg(:,2),"./csv/pg_ion.csv")
+      do nsa = 1, nsamax
+        do nr = 1, nrmax
+          do np = 1, npmax
+            do nth = 1, nthmax
+              call mean_ra_quantities(orbit_m(nth,np,nr,nsa), r_, psip0, costh0, sinth0, B0, F0, dBdr0, dFdr0, dpsipdr0)
+              r0(nth,np,nr,nsa) = r_
+              taup(nth,np,nr,nsa) = orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max)
+            end do
+          end do
+        end do
+      end do
+
+      call system('mkdir -p dat')
+    
+      call fptxt1D(psimg,"dat/psimg.txt")
+      call fptxt1D(Fpsig,"dat/Fpsig.txt")
+      call fptxt1D(Boutg,"dat/Boutg.txt")
+      call fptxt1D(Bing,"dat/Bing.txt")
+      call fptxt1D(psim,"dat/psim.txt")
+      call fptxt1D(Fpsi,"dat/Fpsi.txt")
+      call fptxt1D(Bout,"dat/Bout.txt")
+      call fptxt1D(Bin,"dat/Bin.txt")
+      call fptxt1D(rm,"dat/rm.txt")
+      call fptxt1D(rg,"dat/rg.txt")
+      call fptxt1D(rmg,"dat/rmg.txt")
+    
+      call fptxt2D(pm,"dat/pm.txt")
+      call fptxt2D(pg,"dat/pg.txt")
+    
+      call fptxt4D(thetam,"dat/thetam.txt")
+      call fptxt4D(thetamg,"dat/thetamg.txt")
+      call fptxt4D(thetam_pg,"dat/thetam_pg.txt")
+      call fptxt4D(thetam_rg,"dat/thetam_rg.txt")
+      call fptxt4D(JI,"dat/Jacobian.txt")
+      call fptxt4D(JIR,"dat/JIR.txt")
+      call fptxt4D(taup,"dat/taup.txt")
+      call fptxt4D(r0,"dat/r_mean.txt")
+    
+      call fptxt4D(Dppfow,"dat/Dpp.txt")
+      call fptxt4D(Dptfow,"dat/Dpt.txt")
+      call fptxt4D(Dprfow,"dat/Dpr.txt")
+    
+      call fptxt4D(Dtpfow,"dat/Dtp.txt")
+      call fptxt4D(Dttfow,"dat/Dtt.txt")
+      call fptxt4D(Dtrfow,"dat/Dtr.txt")
+    
+      call fptxt4D(Drpfow,"dat/Drp.txt")
+      call fptxt4D(Drtfow,"dat/Drt.txt")
+      call fptxt4D(Drrfow,"dat/Drr.txt") 
+      
+      call fptxt4D(Fppfow,"dat/Fpp.txt")
+      call fptxt4D(Fthfow,"dat/Fth.txt")
+      call fptxt4D(Frrfow,"dat/Frr.txt")
+
+      call fptxt4D(Dcpp,"dat/Dpp_fp.txt")
+      call fptxt4D(Dcpt,"dat/Dpt_fp.txt")
+    
+      call fptxt4D(Dctp,"dat/Dtp_fp.txt")
+      call fptxt4D(Dctt,"dat/Dtt_fp.txt")
+
+      call fptxt4D(Fcpp,"dat/Fpp_fp.txt")
+      call fptxt4D(Fcth,"dat/Fth_fp.txt")
 
     end if
 
-    call radial_particle_flux(gamma_r,2)
-    call effective_diffusion_cosfficient(Deff,2)  
+    do nm = 1, nmmax
+      BMT(nm,nt) = BM(nm)
+      DLT(nm,nt) = DL(nm)
+      FMT(nm,nt) = FM(nm)
+      do nm2 = 1, nlmaxm
+        ALT(nm,nm2,nt) = AL(nm,nm2)
+      end do
+    end do
 
-    write(filef,'(A,I1,A)')"csv/fnsp",nt,".csv"
-    write(filen,'(A,I1,A)')"csv/n",nt,".csv"
-    write(filefrad2,'(A,I1,A)')"csv/frad2",nt,".csv"
-    write(filefrad4,'(A,I1,A)')"csv/frad4",nt,".csv"
-    write(filefrad34,'(A,I1,A)')"csv/frad34",nt,".csv"
-    write(filegamma,'(A,I1,A)')"csv/gamma",nt,".csv"
-    write(filedeff,'(A,I1,A)')"csv/Deff",nt,".csv"
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do np = 1, npmax
+          do nth = 1, nthmax
+            fI(nth,np,nr,nsa,nt)     = fnsp(nth,np,nr,nsa)
+            source(nth,np,nr,nsa,nt) = SPP(nth,np,nr,nsa)
+            if ( fnsp(nth,np,nr,nsa) /= fnsp(nth,np,nr,nsa) ) then
+              write(6,*)"ERROR",nth,np,nr,nsa
+              STOP
+            end if
+          end do
+        end do
+      end do
+    end do
 
-    call fpcsv2D(fnsp(:,:,nr_out,2),filef)
-    call fpcsv1D(fnsp(npmax/2,nthmax/2,:,2),filefrad2)
-    call fpcsv1D(fnsp(npmax/2,nthmax/4,:,2),filefrad4)
-    call fpcsv1D(fnsp(npmax/2,nthmax/4*3,:,2),filefrad34)    
-    call fpcsv1D(rnsl(:,2),filen)
+    call moment_0th_order_COM(density(:,:,nt), fnsp)
+    call moment_2nd_order_COM(temp(:,:,nt), fnsp)
 
-    call fpcsv1D(gamma_r,filegamma)
-    call fpcsv1D(Deff,filedeff)
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        temp(nr,nsa,nt) = temp(nr,nsa,nt)*J2keV/(1.5d0*density(nr,nsa,nt))
+      end do
+    end do
 
-  end subroutine 
+    call particle_flux_element(Sr(:,:,nt), Sr_Dp(:,:,nt), Sr_Dth(:,:,nt), Sr_Dr(:,:,nt), Sr_F(:,:,nt))
+    call effective_diffusion_cosfficient(Deff(:,:,nt))
 
+    if ( nt == ntmax ) then
+      call fptxt5D(fI,"dat/f.txt")
+      call fptxt5D(source,"dat/source.txt")
+      call fptxt3D(density,"dat/density.txt")
+      call fptxt3D(Deff,"dat/Deff.txt")
+      call fptxt3D(p_flux,"dat/p_flux.txt")
+      call fptxt3D(Sr,"dat/Sr.txt")
+      call fptxt3D(Sr_Dp,"dat/Sr_Dp.txt")
+      call fptxt3D(Sr_Dth,"dat/Sr_Dth.txt")
+      call fptxt3D(Sr_Dr,"dat/Sr_Dr.txt")
+      call fptxt3D(Sr_F,"dat/Sr_F.txt")
+      call fptxt3D(temp,"dat/temperature.txt")
+      call fptxt2D(BMT, "dat/bm.txt")
+      call fptxt2D(DLT, "dat/dl.txt")
+      call fptxt3D(ALT, "dat/al.txt")
+      call fptxt2D(FMT, "dat/fm.txt")
+    end if
+
+  end subroutine output_data
+  
 end module fowloop
