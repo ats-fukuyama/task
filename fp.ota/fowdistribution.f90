@@ -279,6 +279,8 @@ contains
           end do
         end do
 
+        M2(nr,nsa) = M2(nr,nsa)*rnfp0(nsa)*1.d20*1.d-6 ! [*1.e-20 MJ]
+
       end do
     end do
 

@@ -2,9 +2,10 @@ module fowloop
   private
   public :: fow_loop 
 
-  double precision,allocatable,dimension(:,:,:)     :: density, p_flux, Deff, temp
+  double precision,allocatable,dimension(:,:,:)     :: density, p_flux, Deff, temperature
   double precision,allocatable,dimension(:,:,:)     :: Sr, Sr_Dp, Sr_Dth, Sr_Dr, Sr_F
   double precision,allocatable,dimension(:,:,:,:,:) :: fI, source
+  double precision,allocatable,dimension(:,:,:,:) :: nu_collision
 
   double precision,allocatable,dimension(:,:)       :: BMT, DLT, FMT
   double precision,allocatable,dimension(:,:,:)     :: ALT
@@ -26,8 +27,10 @@ contains
     implicit none
     integer :: nt, nth, np, nr, nsa, n_iterate, ierr = 0, its
     real(rkind) :: deps, sumF0, sumFd
-    logical :: iteration_flag
+    logical :: iteration_flag, coef_is_updated
     real(rkind) :: begin_time, end_time, begin_time_loop, end_time_loop
+
+    coef_is_updated = .false.
 
     call fow_coef
     call fow_calculate_source(0)
@@ -85,12 +88,26 @@ contains
           end do
         end do
 
+        do nsa = 1, nsamax
+          if ( modelc(nsa) >= 2 ) then
+            call update_bulk_temperature
+            call coulomb_log
+            call fow_coef
+            call fow_calculate_source(nt)
+            coef_is_updated = .true.
+            exit
+          end if
+        end do
+
+      end do ! end of do while
+
+      if ( .not.coef_is_updated ) then
         call update_bulk_temperature
         call coulomb_log
         call fow_coef
         call fow_calculate_source(nt)
-
-      end do ! end of do while
+        coef_is_updated = .false.
+      end if
 
       ! ! update density and temperature
       call moment_0th_order_COM(rnsl, fnsp)
@@ -154,7 +171,7 @@ contains
     use fowdistribution
     implicit none
     integer,intent(in) :: nt
-    double precision :: r_, psip0, costh0, sinth0, B0, F0, dBdr0, dFdr0, dpsipdr0, J2keV
+    double precision :: r_, psip0, costh0, sinth0, B0, F0, dBdr0, dFdr0, dpsipdr0, MJ2keV
     double precision,dimension(nrmax) :: rmg
     double precision,dimension(nthmax,npmax,nrmax,nsamax) :: taup, r0, gammaI
     integer :: nth,np,nr,nsa,nm,nm2
@@ -167,7 +184,6 @@ contains
     if ( .not.allocated(Sr_Dr  ) ) allocate(Sr_Dr  (             nrmax,nsamax,ntmax))
     if ( .not.allocated(Sr_F   ) ) allocate(Sr_F   (             nrmax,nsamax,ntmax))
     if ( .not.allocated(Deff   ) ) allocate(Deff   (             nrmax,nsamax,ntmax))
-    if ( .not.allocated(temp   ) ) allocate(temp   (             nrmax,nsamax,ntmax))
     if ( .not.allocated(fI     ) ) allocate(fI     (nthmax,npmax,nrmax,nsamax,ntmax))
     if ( .not.allocated(source ) ) allocate(source (nthmax,npmax,nrmax,nsamax,ntmax))
     if ( .not.allocated(BMT    ) ) allocate(BMT    (nmmax,ntmax                    ))
@@ -175,7 +191,11 @@ contains
     if ( .not.allocated(FMT    ) ) allocate(FMT    (nmmax,ntmax                    ))
     if ( .not.allocated(ALT    ) ) allocate(ALT    (nmmax,nlmaxm,ntmax             ))
 
-    J2keV = 1.d-3/aee
+    if ( .not.allocated(temperature) ) allocate(temperature(nrmax,nsamax,ntmax))
+    if ( .not.allocated(nu_collision) ) allocate(nu_collision(nrmax,nsbmax,nsamax,ntmax))
+    
+
+    MJ2keV = 1.d-3/aee*1.d6
 
     if ( nt == 1 ) then
       do nr = 1, nrmax
@@ -272,16 +292,17 @@ contains
     end do
 
     call moment_0th_order_COM(density(:,:,nt), fnsp)
-    call moment_2nd_order_COM(temp(:,:,nt), fnsp)
+    call moment_2nd_order_COM(temperature(:,:,nt), fnsp)
 
     do nsa = 1, nsamax
       do nr = 1, nrmax
-        temp(nr,nsa,nt) = temp(nr,nsa,nt)*J2keV/(1.5d0*density(nr,nsa,nt))
+        temperature(nr,nsa,nt) = temperature(nr,nsa,nt)*MJ2keV/(1.5d0*density(nr,nsa,nt)*1.d20)
       end do
     end do
 
     call particle_flux_element(Sr(:,:,nt), Sr_Dp(:,:,nt), Sr_Dth(:,:,nt), Sr_Dr(:,:,nt), Sr_F(:,:,nt))
     call effective_diffusion_cosfficient(Deff(:,:,nt))
+    call collision_frequency(nu_collision(:,:,:,nt),.false.)
 
     if ( nt == ntmax ) then
       call fptxt5D(fI,"dat/f.txt")
@@ -294,7 +315,8 @@ contains
       call fptxt3D(Sr_Dth,"dat/Sr_Dth.txt")
       call fptxt3D(Sr_Dr,"dat/Sr_Dr.txt")
       call fptxt3D(Sr_F,"dat/Sr_F.txt")
-      call fptxt3D(temp,"dat/temperature.txt")
+      call fptxt3D(temperature,"dat/temperature.txt")
+      call fptxt4D(nu_collision,"dat/nu_coll.txt")
       call fptxt2D(BMT, "dat/bm.txt")
       call fptxt2D(DLT, "dat/dl.txt")
       call fptxt3D(ALT, "dat/al.txt")
@@ -302,5 +324,71 @@ contains
     end if
 
   end subroutine output_data
+
+  subroutine collision_frequency(nu_coll, normalize_)
+    use fpcomm
+    use fowcomm
+
+    implicit none
+    real(rkind),dimension(nrmax,nsbmax,nsamax),intent(out) :: nu_coll
+    logical,intent(in),optional :: normalize_
+
+    logical :: normalize
+    integer :: nth, np, nr, nsa, nsb, nssa, nssb
+    real(rkind) :: mu, numerator, denominator, v0, temp, dens
+    real(rkind) :: taup, taup_mean, dVI
+
+    if ( present(normalize_) ) then
+      normalize = normalize_
+    else
+      normalize = .true.
+    end if
+
+    do nsa = 1, nsamax
+      nssa = ns_nsb(nsa)
+      do nsb = 1, nsbmax
+        nssb = ns_nsa(nsb)
+        mu = pa(nssa)*pa(nssb)/(pa(nssa)+pa(nssb))*amp
+        do nr = 1, nrmax
+          dens = rnsl(nr,nsb)*1.d20
+          temp = rwsl(nr,nsa)/( 1.5d0*rnsl(nr,nsa)*1.d20 ) ! [MJ]
+          temp = temp * 1.d6                               ! [J]
+          v0 = SQRT( 3.d0*temp/(pa(nssa)*amp) )            ! [m/s]
+
+          numerator   = dens*(pz(nssa)*pz(nssb))**2*aee**4
+          denominator = 2.d0*pi*eps0**2*mu**2*v0**3
+
+          nu_coll(nr,nsb,nsa) = numerator/denominator * lnlam(nr,nsb,nsa)
+        end do
+      end do
+    end do
+
+    ! normalize by tau_orbit
+    if ( normalize ) then
+
+      do nsa = 1, nsamax
+        nssa = ns_nsa(nsa)
+        do nr = 1, nrmax
+          taup_mean = 0.d0
+          do np = 1, npmax
+            do nth = 1, nthmax
+              dVI = delp(nssa)*delthm(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)
+              taup = orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max)
+              taup_mean = taup_mean + taup*fnsp(nth,np,nr,nsa)*dVI
+            end do
+          end do
+          taup_mean = taup_mean*rnfp0(nsa)/rnsl(nr,nsa)
+
+          do nsb = 1, nsbmax
+            nu_coll(nr,nsb,nsa) = nu_coll(nr,nsb,nsa)*taup_mean
+          end do
+
+        end do
+      end do
+      
+    end if
+    
+
+  end subroutine collision_frequency
   
 end module fowloop

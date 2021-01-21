@@ -286,7 +286,7 @@ contains
     real(8):: dfdth, fvel, dfdp
     
     integer :: nrl, nrr, npl, npr
-    double precision :: dfdr, width_p, width_r, width_t
+    double precision :: dfdrm, width_p, width_r, width_t
 
     !     +++++ calculation of weigthing (including off-diagonal terms) +++++
 
@@ -298,7 +298,7 @@ contains
       do np = npstart, npendwg
         do nth = 1, nthmax
             dfdth = 0.d0
-            dfdr  = 0.d0
+            dfdrm  = 0.d0
             if ( np /= 1 ) then
               nthl = min(nth+1,nthmax)
               nthr = max(nth-1,1)
@@ -310,7 +310,7 @@ contains
                   dfdth = (f(nthl,np-1,nr)-f(nthr,np-1,nr)) &
                           /(2.d0*pg(np,ns)*delthm_pg(nth,np,nr,nsa)*f(nth,np-1,nr))
 
-                  dfdr  = (f(nth,np-1,nrl)-f(nth,np-1,nrr)) &
+                  dfdrm  = (f(nth,np-1,nrl)-f(nth,np-1,nrr)) &
                           /(2.d0*delr*f(nth,np-1,nr))
                 end if
               else
@@ -322,7 +322,7 @@ contains
                           + (f(nthl,np  ,nr)-f(nthr,np  ,nr)) &
                             /(4.d0*pg(np,ns)*delthm_pg(nth,np,nr,nsa)*f(nth,np  ,nr))
 
-                    dfdr  = (f(nth,np-1,nrl)-f(nthr,np-1,nrr)) &
+                    dfdrm  = (f(nth,np-1,nrl)-f(nthr,np-1,nrr)) &
                             /(4.d0*delr*f(nth,np-1,nr)) &
                           + (f(nthl,np  ,nrl)-f(nthr,np  ,nrr)) &
                             /(4.d0*delr*f(nth,np  ,nr))
@@ -330,7 +330,7 @@ contains
                     dfdth = (f(nthl,np-1,nr)-f(nthr,np-1,nr)) &
                           /(2.d0*pg(np,ns)*delthm_pg(nth,np,nr,nsa)*f(nth,np-1,nr)) 
 
-                    dfdr  = (f(nth,np-1,nrl)-f(nth,np-1,nrr)) &
+                    dfdrm  = (f(nth,np-1,nrl)-f(nth,np-1,nrr)) &
                           /(2.d0*delr*f(nth,np-1,nr)) 
                   end if
                 else
@@ -338,13 +338,13 @@ contains
                     dfdth = (f(nthl,np  ,nr)-f(nthr,np  ,nr)) &
                           /(2.d0*pg(np,ns)*delthm_pg(nth,np,nr,nsa)*f(nth,np  ,nr))
 
-                    dfdr  = (f(nth,np  ,nrl)-f(nth,np  ,nrr)) &
+                    dfdrm  = (f(nth,np  ,nrl)-f(nth,np  ,nrr)) &
                           /(2.d0*delr*f(nth,np  ,nr))
                   end if
                 end if
               end if
             end if
-            fvel = Fppfow(nth,np,nr,nsa)-Dptfow(nth,np,nr,nsa)*dfdth-Dprfow(nth,np,nr,nsa)*dfdr
+            fvel = Fppfow(nth,np,nr,nsa)-Dptfow(nth,np,nr,nsa)*dfdth-Dprfow(nth,np,nr,nsa)*dfdrm
             weighp(nth,np,nr,nsa) = fowwegh(-delp(ns)*fvel,dppfow(nth,np,nr,nsa))
 
         end do
@@ -359,7 +359,7 @@ contains
           npr = max(1, np-1)
           width_p = dble(npl-npr)
 
-          dfdr = 0.d0
+          dfdrm = 0.d0
           nrl = min(nrmax,nr+1)
           nrr = max(1,nr-1)
           width_r = dble(nrl-nrr)
@@ -367,12 +367,12 @@ contains
           if ( nth == 1 ) then
             if ( abs(f(nth,np,nr)) > epswt ) then
               dfdp = (f(nth,npl,nr)-f(nth,npr,nr))/(width_p*delp(ns)*f(nth,np,nr))
-              dfdr = (f(nth,np,nrl)-f(nth,np,nrr))/(width_r*delr   *f(nth,np,nr))  
+              dfdrm = (f(nth,np,nrl)-f(nth,np,nrr))/(width_r*delr   *f(nth,np,nr))  
             end if
           else if ( nth == nthmax+1 ) then
             if ( abs(f(nthmax,np,nr)) > epswt ) then
               dfdp = (f(nthmax,npl,nr)-f(nthmax,npr,nr))/(width_p*delp(ns)*f(nthmax,np,nr))
-              dfdr = (f(nthmax,np,nrl)-f(nthmax,np,nrr))/(width_r*delr*f(nthmax,np,nr))  
+              dfdrm = (f(nthmax,np,nrl)-f(nthmax,np,nrr))/(width_r*delr*f(nthmax,np,nr))  
             end if
           else
             if ( abs(f(nth,np,nr)) > epswt .and. abs(f(nth-1,np,nr)) > epswt ) then
@@ -381,19 +381,19 @@ contains
                 (f(nth  ,npl,nr)-f(nth  ,npr,nr))/(width_p*delp(ns)*f(nth  ,np,nr)) &
               )/2.d0
 
-              dfdr = ( &
+              dfdrm = ( &
                 (f(nth-1,np,nrl)-f(nth-1,np,nrr))/(width_r*delr*f(nth-1,np,nr))+&
                 (f(nth  ,np,nrl)-f(nth  ,np,nrr))/(width_r*delr*f(nth  ,np,nr)) &
               )
             else if ( abs(f(nth,np,nr)) > epswt .and. abs(f(nth-1,np,nr)) <= epswt ) then
               dfdp = (f(nth  ,npl,nr)-f(nth  ,npr,nr))/(width_p*delp(ns)*f(nth  ,np,nr))
-              dfdr = (f(nth  ,np,nrl)-f(nth  ,np,nrr))/(width_r*delr*f(nth  ,np,nr))
+              dfdrm = (f(nth  ,np,nrl)-f(nth  ,np,nrr))/(width_r*delr*f(nth  ,np,nr))
             else if ( abs(f(nth,np,nr)) <= epswt .and. abs(f(nth-1,np,nr)) > epswt ) then
               dfdp = (f(nth-1,npl,nr)-f(nth-1,npr,nr))/(width_p*delp(ns)*f(nth-1,np,nr))
-              dfdr = (f(nth-1,np,nrl)-f(nth-1,np,nrr))/(width_r*delr*f(nth-1,np,nr))
+              dfdrm = (f(nth-1,np,nrl)-f(nth-1,np,nrr))/(width_r*delr*f(nth-1,np,nr))
             end if
           end if
-          fvel = Fthfow(nth,np,nr,nsa)-Dtpfow(nth,np,nr,nsa)*dfdp-Dtrfow(nth,np,nr,nsa)*dfdr
+          fvel = Fthfow(nth,np,nr,nsa)-Dtpfow(nth,np,nr,nsa)*dfdp-Dtrfow(nth,np,nr,nsa)*dfdrm
           if ( nth <= nthmax ) then
             weight(nth,np,nr,nsa) = fowwegh(-delthm(nth,np,nr,nsa)*fvel,Dttfow(nth,np,nr,nsa))
           else
