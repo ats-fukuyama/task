@@ -27,7 +27,7 @@ SRCS = 	wfcomm.f90 wfinit.f90 wfparm.f90 wfload.f90 wfprof.f90 \
 OBJS = $(SRCS:.f90=.o)
 
 LIBS = libwf.a ../pl/libpl.a ../eq/libeq.a   \
-        ../lib/libtask.a ../../bpsd/libbpsd.a $(LIB_MTX)
+        ../lib/libtask.a ../../bpsd/libbpsd.a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
