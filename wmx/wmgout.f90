@@ -101,7 +101,7 @@ CONTAINS
     ALLOCATE(CF(nrmax+1,3),CF1(nrmax+1,nthmax*nhhmax))
     ALLOCATE(CF2(nrmax+1,nthmax*nhhmax),CF3(nrmax+1,nthmax*nhhmax))
     ALLOCATE(POWER(nrmax+1,nsmax))
-    ALLOCATE(PF1(nrmax+1,nsmax),PF2(nrmax+1,nthmax*nhhmax))
+    ALLOCATE(PF1(nrmax+1,nthmax*nhhmax),PF2(nrmax+1,nthmax*nhhmax))
 
     GXMIN=GUCLIP(XR(1))
     GXMAX=GUCLIP(XR(NRMAX+1))
