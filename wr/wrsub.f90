@@ -445,10 +445,11 @@ CONTAINS
   FUNCTION DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP,OMG)
 
     USE wrcomm
-    USE pllocal
+    USE plprof
     USE dpdisp,ONLY: cfdispr
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: XP,YP,ZP,RKXP,RKYP,RKZP,OMG
+    TYPE(pl_mag_type):: MAG
     REAL(rkind):: DISPXR
     INTEGER:: MODELPS(NSMAX),MODELVS(NSMAX)
     INTEGER:: NS
@@ -462,6 +463,7 @@ CONTAINS
       X=XP
       Y=YP
       Z=ZP
+      CALL pl_mag(X,Y,Z,MAG)
 !            
       DO NS=1,NSMAX
          MODELPS(NS)=MODELP(NS)
@@ -479,7 +481,7 @@ CONTAINS
       CWW=2.D0*PI*1.D6*CRF
       DO NS=1,NSMAX
          IF(NSDP(NS).EQ.1) THEN
-            CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS))
+            CWC=MAG%BABS*PZ(NS)*AEE/(AMP*PA(NS))
             CF=CF*(CWW-ABS(CWC))/(CWW+ABS(CWC))
          ENDIF
       ENDDO
@@ -498,10 +500,11 @@ CONTAINS
   FUNCTION DISPXI(XP,YP,ZP,RKXP,RKYP,RKZP,OMG)
 
     USE wrcomm
-    USE pllocal
+    USE plprof
     USE dpdisp,ONLY: cfdisp
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: XP,YP,ZP,RKXP,RKYP,RKZP,OMG
+    TYPE(pl_mag_type):: MAG
     REAL(rkind):: DISPXI
     INTEGER:: NS
     REAL(rkind):: X,Y,Z
@@ -514,13 +517,14 @@ CONTAINS
       X=XP
       Y=YP
       Z=ZP
+      CALL pl_mag(X,Y,Z,MAG)
             
       CF=CFDISP(CRF,CKX,CKY,CKZ,X,Y,Z)
 
       CWW=2.D0*PI*1.D6*CRF
       DO NS=1,NSMAX
          IF(NSDP(NS).EQ.1) THEN
-            CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS))
+            CWC=MAG%BABS*PZ(NS)*AEE/(AMP*PA(NS))
             CF=CF*(CWW-ABS(CWC))/(CWW+ABS(CWC))
          ENDIF
       ENDDO
