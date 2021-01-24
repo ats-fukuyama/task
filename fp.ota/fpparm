@@ -1,6 +1,6 @@
 &fow
   nthpmax=8
-  max_stp=30
+  max_stp=16
   model_obload=1
   model_mkcsv=1
 &end
@@ -27,10 +27,12 @@
   RB=2.1
   BB=5.3
   RIP=15
+  nobt_max=1
   
   tmax=1.D2
   delt=5.D-2
   mdlobw=0
+  mdlobi=0
   mdlobc=1
   mdlobt=1
   mdlobx=0
@@ -38,9 +40,9 @@
 &end
 
 &fp
-  npmax=8
-  nthmax=16
-  nrmax=10
+  npmax=10
+  nthmax=20
+  nrmax=8
   RR=6.2
   RA=2.0
   RKAP=1.7
@@ -64,13 +66,17 @@
   PN(1)=1.0D0,1.0D0
   PNS(1)=0.05D0,0.05D0
 
-  !PTPR(1)=5.D1,5.D1
-  !PTPP(1)=5.D1,5.D1
-  !PTS(1)=1.D-1,1.D-1
+!  PTPR(1)=5.D1,5.D1
+!  PTPP(1)=5.D1,5.D1
+!  PTS(1)=1.D-1,1.D-1
 
-  PTPR(1)=5.D-1,5.D-1
-  PTPP(1)=5.D-1,5.D-1
-  PTS(1)=1.D-1,1.D-1
+  PTPR(1)=2.5D0,2.5D0
+  PTPP(1)=2.5D0,2.5D0
+  PTS(1)=2.5D0,2.5D0
+
+!  PTPR(1)=1.D1,1.D1
+!  PTPP(1)=1.D1,1.D1
+!  PTS(1)=2.D0,2.D0
 
   MODELN=1
   ZEFF=2.D0
@@ -83,7 +89,7 @@
 !  SPBR0(1)=0.3D0
 !  SPBRW(1)=0.5D0
 !  SPBPANG(1)=0.D0
-!  SPBENG(1)=1.D6
+!  SPBENG(1)=1.D5
 !  SPBANG(1)=45.D0
 
 !  NSSPB(2)=2
@@ -94,14 +100,14 @@
 !  SPBENG(2)=3.D2
 !  SPBANG(2)=45.D0
 
-  MODELA=1
-  MODELC=0,0
+  MODELA=0
+  MODELC=1,1
   MODELR=1
   MODEL_WAVE=0
   MODELD=1
   MODELD_RDEP=2
   MODELD_PDEP=0
 
-  DELT=1.0d-5
-  NTMAX=5
+  DELT=1.d-5
+  NTMAX=3
 &end

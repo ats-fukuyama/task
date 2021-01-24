@@ -79,6 +79,158 @@ contains
 
   end subroutine fpcsv2D
 
+  subroutine fptxt1D(f,filename)
+    implicit none
+    double precision,intent(in) :: f(:)
+    character(*),intent(in) :: filename
+    integer :: i, imax
+
+    imax = size(f)
+
+    open(100,file=filename)
+    write(100,'(I5)')imax
+    do i = 1, imax-1
+      write(100,'(e18.11,",")',advance='no')write_for_python(f(i))
+    end do
+      write(100,'(e18.11)')write_for_python(f(imax))
+    close(100)
+
+  end subroutine fptxt1D
+
+  subroutine fptxt2D(f,filename)
+    implicit none
+    double precision,intent(in) :: f(:,:)
+    character(*),intent(in) :: filename
+    integer :: i1,i2,imax(2)
+
+    imax(1) = size(f,1)
+    imax(2) = size(f,2)
+
+    open(100,file=filename)
+    write(100,'(I5,",")',advance='no')imax(1)
+    write(100,'(I5)')imax(2)
+    do i2 = 1, imax(2)
+      do i1 = 1, imax(1)-1
+        write(100,'(e18.11,",")',advance='no')write_for_python(f(i1,i2))
+      end do
+      write(100,'(e18.11)')write_for_python(f(imax(1),i2))
+    end do
+    close(100)
+
+  end subroutine fptxt2D
+
+  subroutine fptxt3D(f,filename)
+    implicit none
+    double precision,intent(in) :: f(:,:,:)
+    character(*),intent(in) :: filename
+    integer :: i1, i2, i3, imax(3)
+
+    imax(1) = size(f,1) 
+    imax(2) = size(f,2) 
+    imax(3) = size(f,3) 
+
+    open(100,file=filename)
+    write(100,'(I5,",")',advance='no')imax(1)
+    write(100,'(I5,",")',advance='no')imax(2)
+    write(100,'(I5)')imax(3)
+    do i3 = 1, imax(3)
+      do i2 = 1, imax(2)
+        do i1 = 1, imax(1)-1
+          write(100,'(e18.11,",")',advance='no')write_for_python(f(i1,i2,i3))
+        end do
+        write(100,'(e18.11)')write_for_python(f(imax(1),i2,i3))
+      end do
+    end do
+    close(100)
+
+  end subroutine fptxt3D
+
+  subroutine fptxt4D(f,filename)
+    implicit none
+    double precision,intent(in) :: f(:,:,:,:)
+    character(*),intent(in) :: filename
+    integer :: i1, i2, i3, i4, imax(4)
+
+    imax(1) = size(f,1) 
+    imax(2) = size(f,2) 
+    imax(3) = size(f,3) 
+    imax(4) = size(f,4) 
+
+    open(100,file=filename)
+    write(100,'(I5,",")',advance='no')imax(1)
+    write(100,'(I5,",")',advance='no')imax(2)
+    write(100,'(I5,",")',advance='no')imax(3)
+    write(100,'(I5)')imax(4)
+    do i4 = 1, imax(4)
+      do i3 = 1, imax(3)
+        do i2 = 1, imax(2)
+          do i1 = 1, imax(1)-1
+            write(100,'(e18.11,",")',advance='no')write_for_python(f(i1,i2,i3,i4))
+          end do
+          write(100,'(e18.11)')write_for_python(f(imax(1),i2,i3,i4))
+        end do
+      end do
+    end do
+    close(100)
+
+  end subroutine fptxt4D
+
+  subroutine fptxt5D(f,filename)
+    implicit none
+    double precision,intent(in) :: f(:,:,:,:,:)
+    character(*),intent(in) :: filename
+    integer :: i1, i2, i3, i4, i5, imax(5)
+
+    imax(1) = size(f,1) 
+    imax(2) = size(f,2) 
+    imax(3) = size(f,3) 
+    imax(4) = size(f,4) 
+    imax(5) = size(f,5) 
+
+    open(100,file=filename)
+    write(100,'(I5,",")',advance='no')imax(1)
+    write(100,'(I5,",")',advance='no')imax(2)
+    write(100,'(I5,",")',advance='no')imax(3)
+    write(100,'(I5,",")',advance='no')imax(4)
+    write(100,'(I5)')imax(5)
+    do i5 = 1, imax(5)
+      do i4 = 1, imax(4)
+        do i3 = 1, imax(3)
+          do i2 = 1, imax(2)
+
+            do i1 = 1, imax(1)-1
+              write(100,'(e18.11,",")',advance='no')write_for_python(f(i1,i2,i3,i4,i5))
+            end do
+
+            write(100,'(e18.11)')write_for_python(f(imax(1),i2,i3,i4,i5))
+
+          end do
+        end do
+      end do
+    end do
+    close(100)
+
+  end subroutine fptxt5D
+
+  function write_for_python(f) result(g)
+    implicit none
+    double precision,intent(in) :: f
+    double precision :: g
+
+    if ( f /= f ) then
+      g = 0.d0
+    else if ( f /= 0.d0 .and. ABS(f) < 1.d-99 ) then
+      g = 1.d-99
+    else if ( f > 1.d99 ) then
+      g = 1.d99
+    else if ( f < -1.d99 ) then
+      g = 1.d-99
+    else 
+      g = f
+    end if
+
+  end function write_for_python
+
 !-----------------------------------------------------------------------------------------------------------
 ! subroutine fpwrite_diffusi(recv_d,recv_chi,recv_k,recv_gamma,recv_hf,recv_temps,recv_ps)
 ! use fpcomm

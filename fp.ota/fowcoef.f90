@@ -9,7 +9,6 @@ module fowcoef
                                                   Dtpl, Dttl, Fthl
   
   real(rkind),allocatable :: FNSBL(:,:,:,:,:)
-  real(rkind),allocatable :: dBmdpsi(:,:), dFdpsi(:), dBmgdpsi(:,:), dFgdpsi(:), psim0(:), psimg0(:)
   real(rkind),allocatable :: check_zeroD(:,:,:), check_zeroF(:,:)
 
 contains
@@ -116,7 +115,6 @@ contains
                 check_zeroF(2,nsa)   = check_zeroF(2,nsa)   + ABS( Fthl(nth,np,nr,nthp,nsa) )
 
               end if
-              
 
             end do
           end do
@@ -153,27 +151,6 @@ contains
     real(rkind) :: cpitch_ob, thetap_ob, psip_ob, JIl
     real(rkind) :: sumt
 
-    if ( .not.allocated(psim0) ) then
-      allocate(psim0(nrmax), psimg0(nrmax+1))
-      do nr = 1, nrmax
-        psim0(nr) = psim(nr)*psi0
-        psimg0(nr) = psimg(nr)*psi0
-      end do
-      psimg0(nrmax+1) = psimg(nrmax+1)*psi0
-    end if
-
-    if ( .not.allocated(dBmdpsi) ) then
-      allocate(dBmdpsi(nrmax,2), dFdpsi(nrmax))
-      allocate(dBmgdpsi(nrmax+1,2), dFgdpsi(nrmax+1))
-      
-      call first_order_derivative(dFdpsi, Fpsi, psim0)
-      call first_order_derivative(dBmdpsi(:,1), Bout, psim0)
-      call first_order_derivative(dBmdpsi(:,2), Bin, psim0)
-      call first_order_derivative(dFgdpsi, Fpsig, psimg0)
-      call first_order_derivative(dBmgdpsi(:,1), Boutg, psimg0)
-      call first_order_derivative(dBmgdpsi(:,2), Bing, psimg0)
-  
-    end if
 
     allocate(U_Dpp(4,4,4,nthmax,nrmax,nthpmax,npmax+1,nsamax))
     allocate(U_Dpt(4,4,4,nthmax,nrmax,nthpmax,npmax+1,nsamax))
@@ -217,7 +194,7 @@ contains
             ! time-integral over an orbit then divide poloidal period 
             sumt = 0.d0
             do nstp = 2, nstpmax
-              cpitch_ob = cos(orbit_p(nth,np,nr,nsa)%theta(nstp))
+              cpitch_ob = orbit_p(nth,np,nr,nsa)%costh(nstp)
               psip_ob   = orbit_p(nth,np,nr,nsa)%psip(nstp)
               thetap_ob = orbit_p(nth,np,nr,nsa)%thetap(nstp)
               
@@ -291,7 +268,7 @@ contains
             ! time-integral over an orbit then divide poloidal period 
 
             do nstp = 2, nstpmax
-              cpitch_ob = cos(orbit_th(nth,np,nr,nsa)%theta(nstp))
+              cpitch_ob = orbit_th(nth,np,nr,nsa)%costh(nstp)
               psip_ob   = orbit_th(nth,np,nr,nsa)%psip(nstp)
               thetap_ob = orbit_th(nth,np,nr,nsa)%thetap(nstp)
 
@@ -381,7 +358,7 @@ contains
             ! time-integral over an orbit then divide poloidal period 
 
             do nstp = 2, nstpmax
-              cpitch_ob = cos(orbit_r(nth,np,nr,nsa)%theta(nstp))
+              cpitch_ob = orbit_r(nth,np,nr,nsa)%costh(nstp)
               psip_ob   = orbit_r(nth,np,nr,nsa)%psip(nstp)
               thetap_ob = orbit_r(nth,np,nr,nsa)%thetap(nstp)
 
@@ -445,8 +422,7 @@ contains
 
   end subroutine bounce_average
 
-  subroutine transformation_matrix(dIdu, orbit_in, nth_in, np_in, nr_in, nsa_in, mode)
-
+  subroutine transformation_matrix(dIdu, ob, nth, np, nr, nsa, mode)
     use fpcomm
     use fowcomm
     use foworbit
@@ -454,100 +430,132 @@ contains
     implicit none
 
     real(rkind),intent(out) :: dIdu(:,:,:)
-    type(orbit),intent(in) :: orbit_in
-    integer,intent(in) :: nth_in, np_in, nr_in, nsa_in, mode(3)
+    type(orbit),intent(in) :: ob
+    integer,intent(in) :: nth, np, nr, nsa, mode(3)
 
     ! elements of transformation matrix, dIdu
-    real(rkind) ::  dpdp,  dxidp,  dpsdp,&
-                    dpdth, dxidth, dpsdth,&
-                    dpdr,  dxidr,  dpsdr
-    real(rkind) :: A,B,C,D,E
-    real(rkind) :: Fl, Bl, xil, pl, dFoBdpsi, Fob, Bob, thetaob, eps
-    real(rkind) :: dFl, dBl, sinob, cosob
+    real(rkind) :: dpdp,  dthmdp,  drmdp,&
+                   dpdth, dthmdth, drmdth,&
+                   dpdr,  dthmdr,  drmdr
+    real(rkind) :: pl, Bml, dBmdrl, Fml, dFmdrl, cthm, sthm, dpsimdrl
+    real(rkind) :: Bob, Fob, cthob, sthob, dBobdr, dpsiobdr, dFobdr
+    real(rkind) :: A(2,2), b(2), detA
     integer :: nstp, nstpmax
 
     select case(mode(1))
     case(0)
-      if ( mode(2) == 0 .and. mode(3) == 0 ) xil = cos(thetam(nth_in,np_in,nr_in,nsa_in))
-      if ( mode(2) == 1 .and. mode(3) == 0 ) xil = cos(thetam_pg(nth_in,np_in,nr_in,nsa_in))
-      if ( mode(2) == 0 .and. mode(3) == 1 ) xil = cos(thetam_rg(nth_in,np_in,nr_in,nsa_in))
+      if ( mode(2) == 0 .and. mode(3) == 0 ) cthm = COS( thetam(nth,np,nr,nsa) )
+      if ( mode(2) == 1 .and. mode(3) == 0 ) cthm = COS( thetam_pg(nth,np,nr,nsa) )
+      if ( mode(2) == 0 .and. mode(3) == 1 ) cthm = COS( thetam_rg(nth,np,nr,nsa) )
     case(1)
-      xil = cos(thetamg(nth_in,np_in,nr_in,nsa_in))
+      cthm = COS( thetamg(nth,np,nr,nsa) )
     end select
+    sthm = SQRT( 1.d0-cthm**2 )
 
     select case(mode(2))
     case(0)
-      pl = pm(np_in,nsa_in)*ptfp0(nsa_in)
+      pl = pm(np,nsa)*ptfp0(nsa)
     case(1)
-      pl = pg(np_in,nsa_in)*ptfp0(nsa_in)
+      pl = pg(np,nsa)*ptfp0(nsa)
     end select
 
     select case(mode(3))
     case(0)
-      Fl = Fpsi(nr_in)
-      dFl = dFdpsi(nr_in)
-      if ( xil * aefp(nsa_in) >= 0.d0 ) then
-        Bl = Bout(nr_in)
-        dBl = dBmdpsi(nr_in,1)
+      if ( cthm*aefp(nsa) >= 0.d0 ) then
+        Bml = Bout(nr)
+        dBmdrl = dBoutdr(nr)
       else
-        Bl = Bin(nr_in)
-        dBl = dBmdpsi(nr_in,2)
+        Bml = Bin(nr)
+        dBmdrl = dBindr(nr)
       end if
+      dpsimdrl = dpsimdr(nr)
+      Fml = Fpsi(nr)
+      dFmdrl = dFdr(nr)
     case(1)
-      Fl = Fpsig(nr_in)
-      dFl = dFgdpsi(nr_in)
-      if ( xil * aefp(nsa_in) >= 0.d0 ) then
-        Bl = Boutg(nr_in)
-        dBl = dBmgdpsi(nr_in,1)
+      if ( cthm*aefp(nsa) >= 0.d0 ) then
+        Bml = Boutg(nr)
+        dBmdrl = dBoutgdr(nr)
       else
-        Bl = Bing(nr_in)
-        dBl = dBmgdpsi(nr_in,2)
+        Bml = Bing(nr)
+        dBmdrl = dBingdr(nr)
       end if
+      dpsimdrl = dpsimgdr(nr)
+      Fml = Fpsig(nr)
+      dFmdrl = dFgdr(nr)
     end select
 
-    nstpmax = orbit_in%nstp_max
+    A(1,1) = 2.d0*sthm*cthm/Bml
+    A(1,2) = -1.d0*sthm**2*dBmdrl/Bml**2
+    A(2,1) = Fml/Bml*pl*sthm
+    A(2,2) = aefp(nsa)*dpsimdrl-(dFmdrl*Bml-Fml*dBmdrl)/Bml**2*pl*cthm
+    detA = A(1,1)*A(2,2)-A(1,2)*A(2,1)
 
-    dFoBdpsi = (dFl*Bl-Fl*dBl)/Bl**2
+    nstpmax = ob%nstp_max
 
-    do nstp = 1, nstpmax
-      Fob = get_F_nstp(orbit_in, nstp)
-      Bob = orbit_in%Babs(nstp)
-      sinob = SIN( orbit_in%theta(nstp) )
-      cosob = COS( orbit_in%theta(nstp) )
-    
-      A = Fob/Bob*cosob-Fl/Bl*xil
-      B = -(1.d0-xil**2)/(2.d0*xil)*dBl/Bl
-      C = dFoBdpsi*pl*xil-AEFP(nsa_in)
-      D = pl*sinob/Bob*(Fl*cosob/xil-Fob)
-      E = Bl/Bob*sinob*cosob/xil
-  
-      dpdp =1.d0
-      dpdth=0.d0
-      dpdr =0.d0
-      dxidr=0.d0
-      dpsdr=0.d0
-      dpsdp = A/(B*Fl/Bl*pl+C)    *ptfp0(nsa_in)/psi0
-      dxidp = A/(B*Fl/Bl*pl+C)*B  *ptfp0(nsa_in)
-      dpsdth= D/(B*Fl/Bl*pl+C)    /psi0
-      dxidth= D/(B*Fl/Bl*pl+C)*B-E
+    if ( detA /= 0.d0 ) then
+      do nstp = 1, nstpmax
+        Bob = ob%Babs(nstp)
+        Fob = ob%F(nstp)
+        cthob = ob%costh(nstp)
+        sthob = ob%sinth(nstp)
+        dBobdr = ob%dBdr(nstp)
+        dpsiobdr = ob%dpsipdr(nstp)
+        dFobdr = ob%dFdr(nstp)
 
-      if ( abs(xil) >= 1.d0 ) then
-        eps = 1.d-3/dble(nthmax) 
-      else
-        eps = 0.d0
-      end if
-  
-      dIdu(1,1,nstp) = dpdp
-      dIdu(1,2,nstp) = dxidp  / sqrt(1.d0-(xil**2-eps))*(-1.d0) ! convert dxi/dp  to dthetam/dp, avoid 1.d0-xil**2 = 0 by eps
-      dIdu(1,3,nstp) = dpsdp
-      dIdu(2,1,nstp) = dpdth
-      dIdu(2,2,nstp) = dxidth / sqrt(1.d0-(xil**2-eps))*(-1.d0) ! convert dxi/dth to dthetam/dth
-      dIdu(2,3,nstp) = dpsdth
-      dIdu(3,1,nstp) = dpdr
-      dIdu(3,2,nstp) = dxidr
-      dIdu(3,3,nstp) = dpsdr 
-      
-    end do
+        ! dX/dp
+        b(1) = 0.d0
+        b(2) = Fml/Bml*cthm-Fob/Bob*cthob
+        dpdp   = 1.d0
+        dthmdp = (A(2,2)*b(1)-A(1,2)*b(2))/detA
+        drmdp  = (A(1,1)*b(2)-A(2,1)*b(1))/detA
+
+        ! dX/dtheta
+        b(1) = 2.d0*sthob*cthob/Bob
+        b(2) = Fob/Bob*pl*sthob
+        dpdth   = 0.d0
+        dthmdth = (A(2,2)*b(1)-A(1,2)*b(2))/detA
+        drmdth  = (A(1,1)*b(2)-A(2,1)*b(1))/detA
+
+        ! dX/drho
+        b(1) = -1.d0*sthob**2/Bob**2*dBobdr
+        b(2) = aefp(nsa)*dpsiobdr - ( dFobdr*Bob-Fob*dBobdr )/Bob**2*pl*cthob
+        dpdr   = 0.d0
+        dthmdr = (A(2,2)*b(1)-A(1,2)*b(2))/detA
+        drmdr  = (A(1,1)*b(2)-A(2,1)*b(1))/detA
+
+        dIdu(1,1,nstp) = dpdp
+        dIdu(1,2,nstp) = dthmdp*ptfp0(nsa)
+        dIdu(1,3,nstp) = drmdp*ptfp0(nsa)
+        dIdu(2,1,nstp) = dpdth
+        dIdu(2,2,nstp) = dthmdth
+        dIdu(2,3,nstp) = drmdth
+        dIdu(3,1,nstp) = dpdr
+        dIdu(3,2,nstp) = dthmdr
+        dIdu(3,3,nstp) = drmdr
+
+      end do
+
+    else
+      do nstp = 1, nstpmax
+        dIdu(1,1,nstp) = 1.d0
+        dIdu(1,2,nstp) = 0.d0
+        dIdu(1,3,nstp) = 0.d0
+        dIdu(2,1,nstp) = 0.d0
+        dIdu(2,2,nstp) = 1.d0
+        dIdu(2,3,nstp) = 0.d0
+        dIdu(3,1,nstp) = 0.d0
+        dIdu(3,2,nstp) = 0.d0
+        dIdu(3,3,nstp) = 1.d0
+      end do
+
+    end if
+
+    ! do nstp = 1, nstpmax
+    !   write(6,'(I4)')nstp
+    !   write(6,'(3ES12.4)')dIdu(1,1,nstp),dIdu(1,2,nstp),dIdu(1,3,nstp)
+    !   write(6,'(3ES12.4)')dIdu(2,1,nstp),dIdu(2,2,nstp),dIdu(2,3,nstp)
+    !   write(6,'(3ES12.4)')dIdu(3,1,nstp),dIdu(3,2,nstp),dIdu(3,3,nstp)
+    ! end do
 
   end subroutine transformation_matrix
 
@@ -660,6 +668,5 @@ contains
 
 
   end subroutine interpolate_D_unlessZero
-
 
 end module fowcoef

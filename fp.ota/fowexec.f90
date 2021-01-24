@@ -25,6 +25,7 @@ contains
     real(8),dimension(nthmax):: sendbuf_p, recvbuf_p
     real(8),dimension(nthmax*(npend-npstart+1)):: sendbuf_r, recvbuf_r
 
+    integer :: nm_pnc, nm_D, nm_Xstg, nl_lost, nm_Ostg
     double precision :: begin_time, end_time
 
     call cpu_time(begin_time)
@@ -56,8 +57,6 @@ contains
     CALL fowweight(NSA,IERR)
 
     !     ----- Set up index array NMA -----
-    !               NM: line number of the coefficient matrix
-    !               NL: 
 
     CALL SET_FM_NMA(NSA,FNSM)
 
@@ -81,6 +80,53 @@ contains
       end do
     end do
 
+    !     ----- internal boundary condition-----
+    do nr = 1, nrmax
+      do np = 1, npmax
+
+        if ( pz(ns) >= 0.d0 ) then
+          nm_D = nma(nth_pnc(nsa)-1,np,nr)
+          nm_Xstg = nma(nth_stg(nsa),np,nr_pnc_point(np,nr,nsa))
+        else
+          nm_D = nma(nth_pnc(nsa),np,nr)
+          nm_Xstg = nma(nth_stg(nsa)-1,np,nr_pnc_point(np,nr,nsa))
+        end if
+        call IBC_pinch(np,nr,nsa,nlmax(nm_D),nlmax(nm_Xstg))
+
+
+        if ( pz(ns) >= 0.d0 ) then
+          nm_Xstg = nma(nth_stg(nsa),np,nr)
+          if ( nr_rhom_pinch(np,nr,nsa) <= nrmax ) then
+            nm_pnc = nma(nth_pnc(nsa)-1,np,nr_rhom_pinch(np,nr,nsa))
+            call IBC_X_stagnation(np,nr,nsa,nlmax(nm_Xstg),nlmax(nm_pnc))
+          else
+            nl_lost = -1
+            call IBC_X_stagnation(np,nr,nsa,nlmax(nm_Xstg),nl_lost)
+          end if
+
+        else
+          nm_Xstg = nma(nth_stg(nsa)-1,np,nr)
+          if ( nr_rhom_pinch(np,nr,nsa) <= nrmax ) then
+            nm_pnc = nma(nth_pnc(nsa),np,nr_rhom_pinch(np,nr,nsa))
+            call IBC_X_stagnation(np,nr,nsa,nlmax(nm_Xstg),nlmax(nm_pnc))
+          else
+            nl_lost = -1
+            call IBC_X_stagnation(np,nr,nsa,nlmax(nm_Xstg),nl_lost)
+          end if
+
+        end if
+
+        if ( pz(ns) >= 0.d0 ) then
+          nm_Ostg = nma(nth_pnc(nsa)-1,np,nr)
+        else
+          nm_Ostg = nma(nth_pnc(nsa),np,nr)
+        end if
+        call IBC_O_stagnation(np,nr,nsa,nlmax(nm_Ostg))
+
+      end do
+    end do
+
+
     !     ----- Diagonal term -----
     do nr = 1, nrmax
       do np = 1, npmax
@@ -88,10 +134,10 @@ contains
           nm = nma(nth,np,nr)
           bm(nm) = (1.d0+(1.d0-rimpl)*delt*dl(nm))*fm(nm) &
                     +delt*spp(nth,np,nr,nsa)
-          if(nm.ge.imtxstart.and.nm.le.imtxend) then
+          if ( nm.ge.imtxstart.and.nm.le.imtxend ) then
             call mtx_set_matrix(nm, nm, 1.d0-rimpl*delt*dl(nm))
             call mtx_set_vector(nm, fm(nm))
-          ENDIF
+          end if
         end do
       end do
     end do
@@ -107,8 +153,6 @@ contains
         ENDDO
       ENDIF
     ENDDO
-close(21)
-close(901)
     !     ----- Source vector: contribution from off-diagonal term -----
 
     DO NM=NMSTART,NMEND ! RHS
@@ -242,7 +286,7 @@ close(901)
     real(8):: dfdth, fvel, dfdp
     
     integer :: nrl, nrr, npl, npr
-    double precision :: dfdr, delps_l, width_p, width_r, width_t
+    double precision :: dfdrm, width_p, width_r, width_t
 
     !     +++++ calculation of weigthing (including off-diagonal terms) +++++
 
@@ -251,11 +295,10 @@ close(901)
     ns = ns_nsa(nsa)
 
     do nr = nrstart, nrend
-      delps_l = psimg(nr+1)-psimg(nr)
       do np = npstart, npendwg
         do nth = 1, nthmax
             dfdth = 0.d0
-            dfdr  = 0.d0
+            dfdrm  = 0.d0
             if ( np /= 1 ) then
               nthl = min(nth+1,nthmax)
               nthr = max(nth-1,1)
@@ -267,8 +310,8 @@ close(901)
                   dfdth = (f(nthl,np-1,nr)-f(nthr,np-1,nr)) &
                           /(2.d0*pg(np,ns)*delthm_pg(nth,np,nr,nsa)*f(nth,np-1,nr))
 
-                  dfdr  = (f(nth,np-1,nrl)-f(nth,np-1,nrr)) &
-                          /(2.d0*delps_l*f(nth,np-1,nr))
+                  dfdrm  = (f(nth,np-1,nrl)-f(nth,np-1,nrr)) &
+                          /(2.d0*delr*f(nth,np-1,nr))
                 end if
               else
 
@@ -279,29 +322,29 @@ close(901)
                           + (f(nthl,np  ,nr)-f(nthr,np  ,nr)) &
                             /(4.d0*pg(np,ns)*delthm_pg(nth,np,nr,nsa)*f(nth,np  ,nr))
 
-                    dfdr  = (f(nth,np-1,nrl)-f(nthr,np-1,nrr)) &
-                            /(4.d0*delps_l*f(nth,np-1,nr)) &
+                    dfdrm  = (f(nth,np-1,nrl)-f(nthr,np-1,nrr)) &
+                            /(4.d0*delr*f(nth,np-1,nr)) &
                           + (f(nthl,np  ,nrl)-f(nthr,np  ,nrr)) &
-                            /(4.d0*delps_l*f(nth,np  ,nr))
+                            /(4.d0*delr*f(nth,np  ,nr))
                   else
                     dfdth = (f(nthl,np-1,nr)-f(nthr,np-1,nr)) &
                           /(2.d0*pg(np,ns)*delthm_pg(nth,np,nr,nsa)*f(nth,np-1,nr)) 
 
-                    dfdr  = (f(nth,np-1,nrl)-f(nth,np-1,nrr)) &
-                          /(2.d0*delps_l*f(nth,np-1,nr)) 
+                    dfdrm  = (f(nth,np-1,nrl)-f(nth,np-1,nrr)) &
+                          /(2.d0*delr*f(nth,np-1,nr)) 
                   end if
                 else
                   if ( abs(f(nth,np,nr)) > epswt ) then
                     dfdth = (f(nthl,np  ,nr)-f(nthr,np  ,nr)) &
                           /(2.d0*pg(np,ns)*delthm_pg(nth,np,nr,nsa)*f(nth,np  ,nr))
 
-                    dfdr  = (f(nth,np  ,nrl)-f(nth,np  ,nrr)) &
-                          /(2.d0*delps_l*f(nth,np  ,nr))
+                    dfdrm  = (f(nth,np  ,nrl)-f(nth,np  ,nrr)) &
+                          /(2.d0*delr*f(nth,np  ,nr))
                   end if
                 end if
               end if
             end if
-            fvel = Fppfow(nth,np,nr,nsa)-Dptfow(nth,np,nr,nsa)*dfdth-Dprfow(nth,np,nr,nsa)*dfdr
+            fvel = Fppfow(nth,np,nr,nsa)-Dptfow(nth,np,nr,nsa)*dfdth-Dprfow(nth,np,nr,nsa)*dfdrm
             weighp(nth,np,nr,nsa) = fowwegh(-delp(ns)*fvel,dppfow(nth,np,nr,nsa))
 
         end do
@@ -309,7 +352,6 @@ close(901)
     end do
 
     do nr = nrstart, nrend
-      delps_l = psimg(nr+1)-psimg(nr)
       do np = npstart, npend
         do nth = 1, nthmax+1
           dfdp = 0.d0          
@@ -317,7 +359,7 @@ close(901)
           npr = max(1, np-1)
           width_p = dble(npl-npr)
 
-          dfdr = 0.d0
+          dfdrm = 0.d0
           nrl = min(nrmax,nr+1)
           nrr = max(1,nr-1)
           width_r = dble(nrl-nrr)
@@ -325,12 +367,12 @@ close(901)
           if ( nth == 1 ) then
             if ( abs(f(nth,np,nr)) > epswt ) then
               dfdp = (f(nth,npl,nr)-f(nth,npr,nr))/(width_p*delp(ns)*f(nth,np,nr))
-              dfdr = (f(nth,np,nrl)-f(nth,np,nrr))/(width_r*delps_l   *f(nth,np,nr))  
+              dfdrm = (f(nth,np,nrl)-f(nth,np,nrr))/(width_r*delr   *f(nth,np,nr))  
             end if
           else if ( nth == nthmax+1 ) then
             if ( abs(f(nthmax,np,nr)) > epswt ) then
               dfdp = (f(nthmax,npl,nr)-f(nthmax,npr,nr))/(width_p*delp(ns)*f(nthmax,np,nr))
-              dfdr = (f(nthmax,np,nrl)-f(nthmax,np,nrr))/(width_r*delps_l*f(nthmax,np,nr))  
+              dfdrm = (f(nthmax,np,nrl)-f(nthmax,np,nrr))/(width_r*delr*f(nthmax,np,nr))  
             end if
           else
             if ( abs(f(nth,np,nr)) > epswt .and. abs(f(nth-1,np,nr)) > epswt ) then
@@ -339,19 +381,19 @@ close(901)
                 (f(nth  ,npl,nr)-f(nth  ,npr,nr))/(width_p*delp(ns)*f(nth  ,np,nr)) &
               )/2.d0
 
-              dfdr = ( &
-                (f(nth-1,np,nrl)-f(nth-1,np,nrr))/(width_r*delps_l*f(nth-1,np,nr))+&
-                (f(nth  ,np,nrl)-f(nth  ,np,nrr))/(width_r*delps_l*f(nth  ,np,nr)) &
+              dfdrm = ( &
+                (f(nth-1,np,nrl)-f(nth-1,np,nrr))/(width_r*delr*f(nth-1,np,nr))+&
+                (f(nth  ,np,nrl)-f(nth  ,np,nrr))/(width_r*delr*f(nth  ,np,nr)) &
               )
             else if ( abs(f(nth,np,nr)) > epswt .and. abs(f(nth-1,np,nr)) <= epswt ) then
               dfdp = (f(nth  ,npl,nr)-f(nth  ,npr,nr))/(width_p*delp(ns)*f(nth  ,np,nr))
-              dfdr = (f(nth  ,np,nrl)-f(nth  ,np,nrr))/(width_r*delps_l*f(nth  ,np,nr))
+              dfdrm = (f(nth  ,np,nrl)-f(nth  ,np,nrr))/(width_r*delr*f(nth  ,np,nr))
             else if ( abs(f(nth,np,nr)) <= epswt .and. abs(f(nth-1,np,nr)) > epswt ) then
               dfdp = (f(nth-1,npl,nr)-f(nth-1,npr,nr))/(width_p*delp(ns)*f(nth-1,np,nr))
-              dfdr = (f(nth-1,np,nrl)-f(nth-1,np,nrr))/(width_r*delps_l*f(nth-1,np,nr))
+              dfdrm = (f(nth-1,np,nrl)-f(nth-1,np,nrr))/(width_r*delr*f(nth-1,np,nr))
             end if
           end if
-          fvel = Fthfow(nth,np,nr,nsa)-Dtpfow(nth,np,nr,nsa)*dfdp-Dtrfow(nth,np,nr,nsa)*dfdr
+          fvel = Fthfow(nth,np,nr,nsa)-Dtpfow(nth,np,nr,nsa)*dfdp-Dtrfow(nth,np,nr,nsa)*dfdrm
           if ( nth <= nthmax ) then
             weight(nth,np,nr,nsa) = fowwegh(-delthm(nth,np,nr,nsa)*fvel,Dttfow(nth,np,nr,nsa))
           else
@@ -362,11 +404,6 @@ close(901)
     end do
 
     do nr = nrstart, nrendwg
-      if ( nr == nrmax+1 ) then
-        delps_l = psimg(nr)-psimg(nr-1)
-      else
-        delps_l = psimg(nr+1)-psimg(nr)
-      end if
       do np = npstart, npend
         do nth = 1, nthmax
           dfdp = 0.d0          
@@ -380,9 +417,13 @@ close(901)
           width_t = dble(nthl-nthr)
 
           if ( nr == 1 ) then
-            if ( abs(f(nth,np,nr)) > epswt ) then
+            if ( abs(f(nth,np,1)) > epswt ) then
               dfdp = (f(nth,npl,1)-f(nth,npr,1))/(width_p*delp(ns)*f(nth,np,1))
-              dfdth= (f(nthl,np,1)-f(nthr,np,1))/(width_t*delthm_rg(nth,np,nr,nsa)*f(nth,np,1))  
+              if ( delthm_rg(nth,np,nr,nsa) /= 0.d0 ) then
+                dfdth = (f(nthl,np,1)-f(nthr,np,1))/(width_t*delthm_rg(nth,np,nr,nsa)*f(nth,np,1))
+              else
+                dfdth = 0.d0
+              end if
             end if
           else if ( nr == nrmax+1 ) then
             if ( abs(f(nth,np,nrmax)) > epswt ) then
@@ -397,27 +438,36 @@ close(901)
               )/2.d0
 
               if ( nr == 2 ) then
-                dfdth= (f(nthl,np,nr)-f(nthr,np,nr))/(width_t*delthm_rg(nth,np,nr,nsa)*f(nth,np,nr))
+                if ( delthm_rg(nth,np,nr,nsa) > 0.d0 ) then
+                  dfdth= (f(nthl,np,nr)-f(nthr,np,nr))/(width_t*delthm_rg(nth,np,nr,nsa)*f(nth,np,nr))                  
+                end if
               else
-                dfdth= ( &
-                  (f(nthl,np,nr-1)-f(nthr,np,nr-1))/(width_t*delthm_rg(nth,np,nr-1,nsa)*f(nth,np,nr))+&
-                  (f(nthl,np,nr  )-f(nthr,np,nr  ))/(width_t*delthm_rg(nth,np,nr  ,nsa)*f(nth,np,nr)) &
-                )/2.d0
+                if ( delthm_rg(nth,np,nr-1,nsa) > 0.d0 .and. delthm_rg(nth,np,nr  ,nsa) > 0.d0 ) then
+                  if ( delthm_rg(nth,np,nr-1,nsa) > 0.d0 .and. delthm_rg(nth,np,nr  ,nsa) > 0.d0 ) then
+                    dfdth= ( &
+                      (f(nthl,np,nr-1)-f(nthr,np,nr-1))/(width_t*delthm_rg(nth,np,nr-1,nsa)*f(nth,np,nr))+&
+                      (f(nthl,np,nr  )-f(nthr,np,nr  ))/(width_t*delthm_rg(nth,np,nr  ,nsa)*f(nth,np,nr)) &
+                    )/2.d0                  
+                  end if
+                end if
               end if
 
             else if ( abs(f(nth,np,nr)) > epswt .and. abs(f(nth,np,nr-1)) <= epswt ) then
               dfdp = (f(nth,npl,nr  )-f(nth,npr,nr  ))/(width_p*delp(ns)*f(nth,np,nr))
-
-              dfdth= (f(nthl,np,nr  )-f(nthr,np,nr  ))/(width_t*delthm_rg(nth,np,nr,nsa)*f(nth,np,nr))
+              if ( delthm_rg(nth,np,nr,nsa) > 0.d0 ) then
+                dfdth= (f(nthl,np,nr  )-f(nthr,np,nr  ))/(width_t*delthm_rg(nth,np,nr,nsa)*f(nth,np,nr))                
+              end if
 
             else if ( abs(f(nth,np,nr)) <= epswt .and. abs(f(nth,np,nr-1)) > epswt ) then
               dfdp = (f(nth,npl,nr-1)-f(nth,npr,nr-1))/(width_p*delp(ns)*f(nth,np,nr-1))
+              if ( delthm_rg(nth,np,nr-1,nsa) > 0.d0  ) then
+                dfdth= (f(nthl,np,nr-1)-f(nthr,np,nr-1))/(width_t*delthm_rg(nth,np,nr-1,nsa)*f(nth,np,nr-1))
+              end if
 
-              dfdth= (f(nthl,np,nr-1)-f(nthr,np,nr-1))/(width_t*delthm_rg(nth,np,nr-1,nsa)*f(nth,np,nr-1))
             end if
           end if
           fvel = Frrfow(nth,np,nr,nsa)-Drpfow(nth,np,nr,nsa)*dfdp-Drtfow(nth,np,nr,nsa)*dfdth
-          weighr(nth,np,nr,nsa) = fowwegh(-delps_l*fvel,Drrfow(nth,np,nr,nsa))
+          weighr(nth,np,nr,nsa) = fowwegh(-delr*fvel,Drrfow(nth,np,nr,nsa))
         end do
       end do
     end do
@@ -469,25 +519,13 @@ close(901)
     INTEGER,INTENT(OUT):: NL
     INTEGER:: NM
 
-    integer:: IERR, NS
-    real(8):: DFDTH, FVEL, DVEL, DFDP, DFDB
-    real(8):: DPPM, DPPP, DPTM, DPTP, DTPM, DTPP, DTTM, DTTP
-    ! real(8):: WPM, WPP, WTM, WTP, VPM, VPP, VTM, VTP
-    real(8):: WTB, VTB, WRBM, VRBM, WRBP, VRBP
-    real(8):: DIVDPP, DIVDPT, DIVDTP, DIVDTT, DIVFPP, DIVFTH
-    real(8):: DRRM,DRRP,WRM,WRP,VRM,VRP,DIVDRR,DIVFRR
-    DOUBLE PRECISION:: WPBM, VPBM, WPBP, VPBP
-    DOUBLE PRECISION:: PL, SL, RL
-    ! fow extension
-    double precision :: DIVDPR, DIVDTR, DIVDRP, DIVDRT
-    double precision :: deltap, deltath, deltaps
+    integer:: ierr, ns
+    double precision:: pl, sl, rl
+    double precision :: deltath
     double precision :: DIVD(3,3), DIVF(3), del(3), Ffow(2,3)
     double precision :: D_term, F_term
     integer :: si, sj, sk, sign_to_index(-1:1), alpha, beta, gama, loc(4), loc_pnc(4)
     integer :: boundary_flag
-              ! out of external boundary -> boundary_flag = 1
-    type(Xstg_as_pnc_point) :: xap
-    integer :: i, nrpo, nthpo
 
 
     NS=NS_NSA(NSA)
@@ -501,30 +539,28 @@ close(901)
     Ffow(1,2) = Fthfow(nth,np,nr,nsa)*sin(thetamg(nth,np,nr,nsa))
     Ffow(2,2) = Fthfow(nth+1,np,nr,nsa)*sin(thetamg(nth+1,np,nr,nsa))
 
-    Ffow(1,3) = Frrfow(nth,np,nr,nsa)*psimg(nr)
-    Ffow(2,3) = Frrfow(nth,np,nr+1,nsa)*psimg(nr+1)
+    Ffow(1,3) = Frrfow(nth,np,nr,nsa)*rg(nr)
+    Ffow(2,3) = Frrfow(nth,np,nr+1,nsa)*rg(nr+1)
 
 
     ! discretized (div(d/dX))_Y
-    PL = pm(np,nsa)
-    SL = sin(thetam(nth,np,nr,nsa))
-    RL = psim(nr)
-    deltap = delp(nsa)
-    deltath= thetamg(nth+1,np,nr,nsa)-thetamg(nth,np,nr,nsa)
-    deltaps=psimg(nr+1)-psimg(nr)
+    pl = pm(np,nsa)
+    sl = SIN( thetam(nth,np,nr,nsa) )
+    rl = rm(nr)
+    deltath= delthm(nth,np,nr,nsa)
 
-    DIVD(1,1) = 1.d0/(pl**2 * deltap**2)
-    DIVD(1,2) = 1.d0/(pl**2 * deltap * deltath * 2.d0)
-    DIVD(1,3) = 1.d0/(pl**2 * deltap * deltaps * 2.d0)
-    DIVD(2,1) = 1.d0/(pl * sl * deltap * deltath * 2.d0)
+    DIVD(1,1) = 1.d0/(pl**2 * delp(nsa)**2)
+    DIVD(1,2) = 1.d0/(pl**2 * delp(nsa) * deltath * 2.d0)
+    DIVD(1,3) = 1.d0/(pl**2 * delp(nsa) * delr * 2.d0)
+    DIVD(2,1) = 1.d0/(pl * sl * delp(nsa) * deltath * 2.d0)
     DIVD(2,2) = 1.d0/(pl * sl * deltath**2 )
-    DIVD(2,3) = 1.d0/(pl * sl * deltath * deltaps * 2.d0)
-    DIVD(3,1) = 1.d0/(rl * deltap  * deltaps * 2.d0)
-    DIVD(3,2) = 1.d0/(rl * deltath * deltaps * 2.d0)
-    DIVD(3,3) = 1.d0/(rl * deltaps**2)
-    DIVF(1)   = 1.d0/(pl**2 * deltap)
+    DIVD(2,3) = 1.d0/(pl * sl * deltath * delr * 2.d0)
+    DIVD(3,1) = 1.d0/(rl * delp(nsa)  * delr * 2.d0)
+    DIVD(3,2) = 1.d0/(rl * deltath * delr * 2.d0)
+    DIVD(3,3) = 1.d0/(rl * delr**2)
+    DIVF(1)   = 1.d0/(pl**2 * delp(nsa))
     DIVF(2)   = 1.d0/(pl * sl * deltath)
-    DIVF(3)   = 1.d0/(rl * deltaps)
+    DIVF(3)   = 1.d0/(rl * delr)
 
     sign_to_index(-1) = 1
     sign_to_index(1)  = 2
@@ -568,32 +604,6 @@ close(901)
         ll(nm,nl) = get_nma(alpha,0,si,0,loc)
         al(nm,nl) = al(nm,nl) + (D_term + F_term)/JI(nth,np,nr,nsa)
 
-        if ( nth == nth_pnc(nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
-          if ( alpha == 1 ) then
-            if ( si == 1 ) then
-              D_term = Dfow(2,1,0,0,loc)*w(-1,2,1,0,1,loc)*DIVD(2,1)
-              F_term = 0.d0
-            else
-              D_term = -1.d0*Dfow(2,1,0,0,loc)*w(-1,2,1,0,-1,loc)*DIVD(2,1)
-              F_term = 0.d0
-            end if
-          else if ( alpha == 2 ) then
-            if ( si == -1 ) then
-              D_term = -1.d0*Dfow(2,2,0,0,loc)*DIVD(2,2)
-              F_term = -1.d0*Ffow(1,2)*DIVF(2)*w(1,2,0,0,0,loc)
-            end if
-          else
-            if ( si == 1 ) then
-              D_term = Dfow(2,3,0,0,loc)*w(-1,2,3,0,1,loc)*DIVD(2,3)
-              F_term = 0.d0
-            else
-              D_term = Dfow(2,3,0,0,loc)*w(-1,2,3,0,-1,loc)*DIVD(2,3)
-              F_term = 0.d0
-            end if           
-          end if
-          al(nm,nl) = al(nm,nl) + IBCflux_ratio(np,nr,nsa)*( D_term + F_term )/JI(nth,np,nr,nsa)
-        end if
-
         if ( ABS(al(nm,nl)) < 1.d-70 ) then
           ll(nm,nl) = 0
           al(nm,nl) = 0.d0
@@ -624,24 +634,6 @@ close(901)
             ll(nm,nl) = get_nma(alpha,beta,si,sj,loc)
             al(nm,nl) = al(nm,nl) + D_term/JI(nth,np,nr,nsa)
 
-            if ( nth == nth_pnc(nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
-              if ( alpha == 1 .and. beta == 2) then
-                if ( si == 1 .and. sj == -1 ) then
-                  D_term = Dfow(2,1,0,0,loc)*w(1,2,1,0,1,loc)*DIVD(2,1)
-                else if ( si == -1 .and. sj == -1 ) then
-                  D_term = -1.d0*Dfow(2,1,0,0,loc)*w(1,2,1,0,-1,loc)*DIVD(2,1)
-                end if
-
-              else if ( alpha == 2 .and. beta == 3 ) then
-                if ( si == -1 .and. sj == 1 ) then
-                  D_term = Dfow(2,3,0,0,loc)*w(1,2,3,0,1,loc)*DIVD(2,3)
-                else if ( si == -1 .and. sj == -1 ) then
-                  D_term = -1.d0*Dfow(2,3,0,0,loc)*w(1,2,3,0,-1,loc)+DIVD(2,3)
-                end if
-              end if
-              al(nm,nl) = al(nm,nl) + IBCflux_ratio(np,nr,nsa)*D_term/JI(nth,np,nr,nsa)
-            end if
-
             if ( ABS(al(nm,nl)) < 1.d-70 ) then
               ll(nm,nl) = 0
               al(nm,nl) = 0.d0
@@ -653,175 +645,7 @@ close(901)
       end do
     end do
 
-    if ( aefp(nsa) > 0.d0 .and. nth == nth_stg(nsa) .or. aefp(nsa) < 0.d0 .and. nth == nth_stg(nsa)-1 ) then
-      xap = Xstg_as_pncp(np,nr,nsa)
-
-      if ( xap%number >= 1 ) then
-        do i = 1, xap%number
-          nthpo = nth_pnc(nsa)
-          nrpo  = xap%nr(i)
-          loc_pnc = [nthpo, np, nrpo, nsa]
-
-          Ffow(1,1) = Fppfow(nthpo,np,nrpo,nsa)*pg(np,nsa)**2
-          Ffow(2,1) = Fppfow(nthpo,np+1,nrpo,nsa)*pg(np+1,nsa)**2      
-          Ffow(1,2) = Fthfow(nthpo,np,nrpo,nsa)*sin(thetamg(nthpo,np,nrpo,nsa))
-          Ffow(2,2) = Fthfow(nthpo+1,np,nrpo,nsa)*sin(thetamg(nthpo+1,np,nrpo,nsa))
-          Ffow(1,3) = Frrfow(nthpo,np,nrpo,nsa)*psimg(nrpo)
-          Ffow(2,3) = Frrfow(nthpo,np,nrpo+1,nsa)*psimg(nrpo+1)
-          PL = pm(np,nsa)
-          SL = sin(thetam(nthpo,np,nrpo,nsa))
-          RL = psim(nrpo)
-          deltap = delp(nsa)
-          deltath= thetamg(nthpo+1,np,nrpo,nsa)-thetamg(nthpo,np,nrpo,nsa)
-          deltaps=psimg(nrpo+1)-psimg(nrpo)      
-          DIVD(1,1) = 1.d0/(pl**2 * deltap**2)
-          DIVD(1,2) = 1.d0/(pl**2 * deltap * deltath * 2.d0)
-          DIVD(1,3) = 1.d0/(pl**2 * deltap * deltaps * 2.d0)
-          DIVD(2,1) = 1.d0/(pl * sl * deltap * deltath * 2.d0)
-          DIVD(2,2) = 1.d0/(pl * sl * deltath**2 )
-          DIVD(2,3) = 1.d0/(pl * sl * deltath * deltaps * 2.d0)
-          DIVD(3,1) = 1.d0/(rl * deltap  * deltaps * 2.d0)
-          DIVD(3,2) = 1.d0/(rl * deltath * deltaps * 2.d0)
-          DIVD(3,3) = 1.d0/(rl * deltaps**2)
-          DIVF(1)   = 1.d0/(pl**2 * deltap)
-          DIVF(2)   = 1.d0/(pl * sl * deltath)
-          DIVF(3)   = 1.d0/(rl * deltaps)      
-
-          D_term = Dfow(2,2,0,0,loc_pnc)*DIVD(2,2)
-          F_term = -1.d0*Ffow(1,2)*w(-1,2,0,0,0,loc_pnc)*DIVF(2)
-          dl(nm) = dl(nm) - IBCflux_ratio(np,nrpo,nsa) * ( D_term + F_term )/JI(nth,np,nr,nsa)
-
-          boundary_flag = check_external_boundary(1,0,1,0,loc_pnc)
-          if ( boundary_flag == 0 ) then
-            D_term = Dfow(2,1,0,0,loc_pnc)*w(-1,2,1,0,1,loc_pnc)*DIVD(2,1)
-            F_term = 0.d0
-            nl = nl+1
-            ll(nm,nl) = nma(nthpo,np+1,nrpo)
-            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*( D_term + F_term )/JI(nth,np,nr,nsa)
-            if ( ABS(al(nm,nl)) < 1.d-70 ) then
-              ll(nm,nl) = 0
-              al(nm,nl) = 0.d0
-              nl = nl-1
-            end if    
-          end if
-
-          boundary_flag = check_external_boundary(1,0,-1,0,loc_pnc)
-          if ( boundary_flag == 0 ) then
-            D_term = -1.d0*Dfow(2,1,0,0,loc_pnc)*w(-1,2,1,0,-1,loc_pnc)*DIVD(2,1)
-            F_term = 0.d0
-            nl = nl+1
-            ll(nm,nl) = nma(nthpo,np-1,nrpo)
-            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*( D_term + F_term )/JI(nth,np,nr,nsa)
-            if ( ABS(al(nm,nl)) < 1.d-70 ) then
-              ll(nm,nl) = 0
-              al(nm,nl) = 0.d0
-              nl = nl-1
-            end if    
-          end if
-
-          boundary_flag = check_external_boundary(2,0,-1,0,loc_pnc)
-          if ( boundary_flag == 0 ) then
-            D_term = -1.d0*Dfow(2,2,0,0,loc_pnc)*DIVD(2,2)
-            F_term = -1.d0*Ffow(1,2)*DIVF(2)*w(1,2,0,0,0,loc_pnc)
-            nl = nl+1
-            ll(nm,nl) = nma(nthpo-1,np,nrpo)
-            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*( D_term + F_term )/JI(nth,np,nr,nsa)
-            if ( ABS(al(nm,nl)) < 1.d-70 ) then
-              ll(nm,nl) = 0
-              al(nm,nl) = 0.d0
-              nl = nl-1
-            end if    
-          end if
-
-          boundary_flag = check_external_boundary(3,0,1,0,loc_pnc)
-          if ( boundary_flag == 0 ) then
-            D_term = Dfow(2,3,0,0,loc_pnc)*w(-1,2,3,0,1,loc_pnc)*DIVD(2,3)
-            F_term = 0.d0
-            nl = nl+1
-            ll(nm,nl) = nma(nthpo,np,nrpo+1)
-            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*( D_term + F_term )/JI(nth,np,nr,nsa)
-            if ( ABS(al(nm,nl)) < 1.d-70 ) then
-              ll(nm,nl) = 0
-              al(nm,nl) = 0.d0
-              nl = nl-1
-            end if    
-          end if
-
-          boundary_flag = check_external_boundary(3,0,-1,0,loc_pnc)
-          if ( boundary_flag == 0 ) then
-            D_term = Dfow(2,3,0,0,loc_pnc)*w(-1,2,3,0,-1,loc_pnc)*DIVD(2,3)
-            F_term = 0.d0
-            nl = nl+1
-            ll(nm,nl) = nma(nthpo,np,nrpo-1)
-            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*( D_term + F_term )/JI(nth,np,nr,nsa)
-            if ( ABS(al(nm,nl)) < 1.d-70 ) then
-              ll(nm,nl) = 0
-              al(nm,nl) = 0.d0
-              nl = nl-1
-            end if    
-          end if
-
-          boundary_flag = check_external_boundary(1,2,1,-1,loc_pnc)
-          if ( boundary_flag == 0 ) then
-            D_term = Dfow(2,1,0,0,loc_pnc)*w(1,2,1,0,1,loc_pnc)*DIVD(2,1)
-            nl = nl+1
-            ll(nm,nl) = nma(nthpo-1,np+1,nrpo)
-            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*( D_term + F_term )/JI(nth,np,nr,nsa)
-            if ( ABS(al(nm,nl)) < 1.d-70 ) then
-              ll(nm,nl) = 0
-              al(nm,nl) = 0.d0
-              nl = nl-1
-            end if    
-          end if
-
-          boundary_flag = check_external_boundary(1,2,-1,-1,loc_pnc)
-          if ( boundary_flag == 0 ) then
-            D_term = -1.d0*Dfow(2,1,0,0,loc_pnc)*w(1,2,1,0,-1,loc_pnc)*DIVD(2,1)
-            nl = nl+1
-            ll(nm,nl) = nma(nthpo-1,np-1,nrpo)
-            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*D_term/JI(nth,np,nr,nsa)
-            if ( ABS(al(nm,nl)) < 1.d-70 ) then
-              ll(nm,nl) = 0
-              al(nm,nl) = 0.d0
-              nl = nl-1
-            end if    
-          end if
-
-          boundary_flag = check_external_boundary(2,3,-1,1,loc_pnc)
-          if ( boundary_flag == 0 ) then
-            D_term = Dfow(2,3,0,0,loc_pnc)*w(1,2,3,0,1,loc_pnc)*DIVD(2,3)
-            nl = nl+1
-            ll(nm,nl) = nma(nthpo-1,np,nrpo+1)
-            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*D_term/JI(nth,np,nr,nsa)
-            if ( ABS(al(nm,nl)) < 1.d-70 ) then
-              ll(nm,nl) = 0
-              al(nm,nl) = 0.d0
-              nl = nl-1
-            end if    
-          end if
-
-          boundary_flag = check_external_boundary(2,3,-1,-1,loc_pnc)
-          if ( boundary_flag == 0 ) then
-            D_term = -1.d0*Dfow(2,3,0,0,loc_pnc)*w(1,2,3,0,-1,loc_pnc)+DIVD(2,3)
-            nl = nl+1
-            ll(nm,nl) = nma(nthpo-1,np,nrpo-1)
-            al(nm,nl) = al(nm,nl) - IBCflux_ratio(np,nrpo,nsa)*D_term/JI(nth,np,nr,nsa)
-            if ( ABS(al(nm,nl)) < 1.d-70 ) then
-              ll(nm,nl) = 0
-              al(nm,nl) = 0.d0
-              nl = nl-1
-            end if    
-          end if
-
-        end do  
-      end if
-      
-    end if
-
-
-
-    SPP(NTH,NP,NR,NSA) &
-            =( SPPB(NTH,NP,NR,NSA) )
+    spp(nth,np,nr,nsa) = sppb(nth,np,nr,nsa)
 
     RETURN
   END subroutine fowsetm
@@ -857,16 +681,16 @@ close(901)
 
     else if ( alpha == 3 ) then
       if ( beta == 1 ) then
-        Dfow = Drpfow(nth,np+sj,nr+si,nsa)*psimg(nr+si)
+        Dfow = Drpfow(nth,np+sj,nr+si,nsa)*rg(nr+si)
       else if ( beta == 2 ) then
-        Dfow = Drtfow(nth+sj,np,nr+si,nsa)*psimg(nr+si)/pm(np,nsa)
+        Dfow = Drtfow(nth+sj,np,nr+si,nsa)*rg(nr+si)/pm(np,nsa)
       else if ( beta == 3 ) then
-        Dfow = Drrfow(nth,np,nr+si,nsa)*psimg(nr+si)
+        Dfow = Drrfow(nth,np,nr+si,nsa)*rg(nr+si)
       end if
 
     end if
 
-  end function
+  end function Dfow
 
   function w(sign,alpha,beta,si,sj,loc)
     ! weight function for alpha, beta, gamma
@@ -1022,6 +846,809 @@ close(901)
 
     end if
 
-  end function
+  end function get_nma
+
+  subroutine IBC_pinch(np,nr,nsa,nl_D,nl_Xstg)
+    implicit none
+    integer,intent(in) :: np,nr,nsa
+    integer,intent(inout) :: nl_D, nl_Xstg
+    double precision :: S_pnc_to_trp, S_pnc_to_pas
+
+    integer:: ierr, ns, nth, nm_D, nm_Xstg, nl
+    double precision:: pl, sl, rl
+    double precision :: deltath, ratio, fact1, fact2
+    double precision :: DIVD(3), DIVF, Fthm, Fthp, Dtx(3)
+    double precision :: D_term, F_term, D_tp, D_tt, D_tr, dfnspdp, dfnspdth, dfnspdr, fnspg
+    integer :: loc_pnc(4), loc_Xstg(4), loc_D(4), loc(4)
+
+    if ( theta_pnc(np,nr,nsa) == NO_PINCH_ORBIT ) then
+      return
+    end if
+
+    ns = ns_nsa(nsa)
+
+    nth = nth_pnc(nsa)
+
+    pl = pm(np,nsa)
+    sl = SIN( thetam(nth-1,np,nr,nsa) )
+    rl = rm(nr)
+    deltath= delthm(nth-1,np,nr,nsa)
+
+    Dtx(1)  = Dtpfow(nth,np,nr,nsa)*sl/(pl*sl*delp(nsa)*deltath*2.d0)
+    Dtx(2)  = Dttfow(nth,np,nr,nsa)*sl/(pl**2*sl*deltath**2)
+    Dtx(3)  = Dtrfow(nth,np,nr,nsa)*sl/(pl*sl*deltath*delr*2.d0)
+    Fthp    = Fthfow(nth,np,nr,nsa)*sl
+
+    loc_pnc = [nth,np,nr,nsa]
+    loc_D   = [nth,np,nr,nsa]
+    loc_Xstg= [nth_stg(nsa),np,nr_pnc_point(np,nr,nsa),nsa]
+
+    if ( pz(ns) >= 0.d0 ) then
+      ! calcurate sign of S_pnc_to_trp
+      if ( np == npmax ) then
+        dfnspdp = ( f_grid(loc_pnc, 0.d0, 0.5d0, 0.5d0)-f_grid(loc_pnc, 0.d0, -0.5d0, 0.5d0) )&
+                / ( delp(ns) )
+      else if ( np == 1 ) then
+        dfnspdp = ( f_grid(loc_pnc, 0.d0, 1.5d0, 0.5d0)-f_grid(loc_pnc, 0.d0, 0.5d0, 0.5d0) )&
+                / ( delp(ns) )
+      else
+        dfnspdp = ( f_grid(loc_pnc, 0.d0, 1.5d0, 0.5d0)-f_grid(loc_pnc, 0.d0, -0.5d0, 0.5d0) )&
+                / ( 2.d0*delp(ns) )
+      end if
+
+      if ( nr == nrmax ) then
+        dfnspdr = ( f_grid(loc_pnc, 0.d0, 0.5d0, 0.5d0)-f_grid(loc_pnc, 0.d0, 0.5d0, -0.5d0) )&
+                / ( delr )  
+      else if ( nr == 1 ) then
+        dfnspdr = ( f_grid(loc_pnc, 0.d0, 0.5d0, 1.5d0)-f_grid(loc_pnc, 0.d0, 0.5d0, 0.5d0) )&
+                / ( delr )
+      else
+        dfnspdr = ( f_grid(loc_pnc, 0.d0, 0.5d0, 1.5d0)-f_grid(loc_pnc, 0.d0, 0.5d0, -0.5d0) )&
+                / ( 2.d0*delr )
+      end if
+
+      dfnspdth= ( fnsp(nth,np,nr,nsa)-fnsp(nth-1,np,nr,nsa) )&
+              / ( 0.5d0*pl*(delthm(nth,np,nr,nsa)+delthm(nth-1,np,nr,nsa)) )
+
+
+      fnspg   = f_grid(loc_pnc, 0.d0, 0.5d0, 0.5d0)
+
+      S_pnc_to_trp = -1.d0*( &
+          Dtpfow(nth,np,nr,nsa)*dfnspdp  &
+        + Dttfow(nth,np,nr,nsa)*dfnspdth &
+        + Dtrfow(nth,np,nr,nsa)*dfnspdr  &
+      ) + Fthfow(nth,np,nr,nsa)*fnspg
+
+      if ( S_pnc_to_trp >= 0.d0 ) then
+        return
+      end if
+
+
+      fact1 = (1.d0-IBCflux_ratio(np,nr,nsa))/JI(nth-1,np,nr,nsa)
+      fact2 = IBCflux_ratio(np,nr,nsa)/JI(nth_stg(nsa),np,nr_pnc_point(np,nr,nsa),nsa)
+      nm_D    = nma(nth-1,np,nr)
+      nm_Xstg = nma(nth_stg(nsa), np, nr_pnc_point(np,nr,nsa))
+      dl(nm_D) = dl(nm_D) + fact1*( Dtx(2)+Fthp*weight(nth,np,nr,nsa) )
+
+      do nl = 1, nl_D
+        if ( ll(nm_D,nl) == nma_boundary(nth,np+1,nr) ) then
+          al(nm_D,nl) = al(nm_D,nl) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact1
+  
+        else if ( ll(nm_D,nl) == nma_boundary(nth-1,np+1,nr) ) then
+          al(nm_D,nl) = al(nm_D,nl) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact1
+  
+        else if ( ll(nm_D,nl) == nma_boundary(nth,np-1,nr) ) then
+          al(nm_D,nl) = al(nm_D,nl) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact1
+  
+        else if ( ll(nm_D,nl) == nma_boundary(nth-1,np-1,nr) ) then
+          al(nm_D,nl) = al(nm_D,nl) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact1
+  
+        else if ( ll(nm_D,nl) == nma_boundary(nth,np,nr) ) then
+          al(nm_D,nl) = al(nm_D,nl) -( Dtx(2) &
+                                      - Fthp*(1.d0-weight(nth,np,nr,nsa)) )*fact1
+  
+        else if ( ll(nm_D,nl) == nma_boundary(nth,np,nr+1) ) then
+          al(nm_D,nl) = al(nm_D,nl) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact1
+          
+        else if ( ll(nm_D,nl) == nma_boundary(nth-1,np,nr+1) ) then
+          al(nm_D,nl) = al(nm_D,nl) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact1
+  
+        else if ( ll(nm_D,nl) == nma_boundary(nth,np,nr-1) ) then
+          al(nm_D,nl) = al(nm_D,nl) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact1
+  
+        else if ( ll(nm_D,nl) == nma_boundary(nth-1,np,nr-1) ) then
+          al(nm_D,nl) = al(nm_D,nl) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact1
+  
+        end if
+      end do
+  
+      nl_Xstg = nl_Xstg+1 
+      ll(nm_Xstg,nl_Xstg) = nma(nth-1,np,nr)
+      al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) + fact2*( Dtx(2)+Fthp*weight(nth,np,nr,nsa) )
+  
+      if ( nma_boundary(nth,np+1,nr) /= -1 ) then
+        nl_Xstg = nl_Xstg+1
+        ll(nm_Xstg,nl_Xstg) = nma(nth,np+1,nr)
+        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact2  
+      end if
+  
+      if ( nma_boundary(nth-1,np+1,nr) /= -1 ) then
+        nl_Xstg = nl_Xstg+1
+        ll(nm_Xstg,nl_Xstg) = nma(nth-1,np+1,nr)
+        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact2  
+      end if
+  
+      if ( nma_boundary(nth,np-1,nr) /= -1 ) then
+        nl_Xstg = nl_Xstg+1
+        ll(nm_Xstg,nl_Xstg) = nma(nth,np-1,nr)
+        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact2  
+      end if
+  
+      if (  nma_boundary(nth-1,np-1,nr) /= -1 ) then
+        nl_Xstg = nl_Xstg+1
+        ll(nm_Xstg,nl_Xstg) = nma(nth-1,np-1,nr)
+        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact2  
+      end if
+  
+      if ( nma_boundary(nth,np,nr) /= -1 ) then
+        nl_Xstg = nl_Xstg+1
+        ll(nm_Xstg,nl_Xstg) = nma(nth,np,nr)
+        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) -( Dtx(2) &
+                                    + Fthp*(1.d0-weight(nth,np,nr,nsa)) )*fact2  
+      end if
+  
+      if ( nma_boundary(nth,np,nr+1) /= -1 ) then
+        nl_Xstg = nl_Xstg+1
+        ll(nm_Xstg,nl_Xstg) = nma(nth,np,nr+1)
+        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact2  
+      end if
+  
+      if ( nma_boundary(nth-1,np,nr+1) /= -1 ) then
+        nl_Xstg = nl_Xstg+1
+        ll(nm_Xstg,nl_Xstg) = nma(nth-1,np,nr+1)
+        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact2  
+      end if
+  
+      if ( nma_boundary(nth,np,nr-1) /= -1 ) then
+        nl_Xstg = nl_Xstg+1
+        ll(nm_Xstg,nl_Xstg) = nma(nth,np,nr-1)
+        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact2  
+      end if
+  
+      if ( nma_boundary(nth-1,np,nr-1)  /= -1 ) then
+        nl_Xstg = nl_Xstg+1
+        ll(nm_Xstg,nl_Xstg) = nma(nth-1,np,nr-1)
+        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact2  
+      end if
+  
+    else ! PZ(ns) < 0
+      if ( np == npmax ) then
+        dfnspdp = ( f_grid(loc_pnc, 0.d0, 0.5d0, 0.5d0)-f_grid(loc_pnc, 0.d0, -0.5d0, 0.5d0) )&
+                / ( delp(ns) )
+      else if ( np == 1 ) then
+        dfnspdp = ( f_grid(loc_pnc, 0.d0, 1.5d0, 0.5d0)-f_grid(loc_pnc, 0.d0, 0.5d0, 0.5d0) )&
+                / ( delp(ns) )
+      else
+        dfnspdp = ( f_grid(loc_pnc, 0.d0, 1.5d0, 0.5d0)-f_grid(loc_pnc, 0.d0, -0.5d0, 0.5d0) )&
+                / ( 2.d0*delp(ns) )
+      end if
+
+      if ( nr == nrmax ) then
+        dfnspdr = ( f_grid(loc_pnc, 0.d0, 0.5d0, 0.5d0)-f_grid(loc_pnc, 0.d0, 0.5d0, -0.5d0) )&
+                / ( delr )  
+      else if ( nr == 1 ) then
+        dfnspdr = ( f_grid(loc_pnc, 0.d0, 0.5d0, 1.5d0)-f_grid(loc_pnc, 0.d0, 0.5d0, 0.5d0) )&
+                / ( delr )
+      else
+        dfnspdr = ( f_grid(loc_pnc, 0.d0, 0.5d0, 1.5d0)-f_grid(loc_pnc, 0.d0, 0.5d0, -0.5d0) )&
+                / ( 2.d0*delr )
+      end if
+
+      dfnspdth= ( fnsp(nth,np,nr,nsa)-fnsp(nth-1,np,nr,nsa) )&
+            / ( 0.5d0*pl*(delthm(nth,np,nr,nsa)+delthm(nth-1,np,nr,nsa)) )
+
+      fnspg   = f_grid(loc_pnc, 0.d0, 0.5d0, 0.5d0)
+
+      S_pnc_to_pas = -1.d0*( &
+        Dtpfow(nth,np,nr,nsa)*dfnspdp  &
+      + Dttfow(nth,np,nr,nsa)*dfnspdth &
+      + Dtrfow(nth,np,nr,nsa)*dfnspdr  &
+      ) + Fthfow(nth,np,nr,nsa)*fnspg
+
+      if ( S_pnc_to_pas <= 0.d0 ) then
+        return
+      end if
+
+      fact1 = -1.d0*IBCflux_ratio(np,nr,nsa)/JI(nth,np,nr,nsa)
+      fact2 = -1.d0*(1.d0-IBCflux_ratio(np,nr,nsa))/JI(nth_stg(nsa)-1,np,nr_pnc_point(np,nr,nsa),nsa)
+      nm_D    = nma(nth,np,nr)
+      nm_Xstg = nma(nth_stg(nsa)-1, np, nr_pnc_point(np,nr,nsa))
+
+      dl(nm_D) = dl(nm_D) + fact1*( -1.d0*Dtx(2)+Fthp*(1.d0-weight(nth,np,nr,nsa)) )
+
+      do nl = 1, nl_D
+        if ( ll(nm_D,nl) == nma_boundary(nth,np+1,nr) ) then
+          al(nm_D,nl) = al(nm_D,nl) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact1
+  
+        else if ( ll(nm_D,nl) == nma_boundary(nth-1,np+1,nr) ) then
+          al(nm_D,nl) = al(nm_D,nl) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact1
+  
+        else if ( ll(nm_D,nl) == nma_boundary(nth,np-1,nr) ) then
+          al(nm_D,nl) = al(nm_D,nl) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact1
+  
+        else if ( ll(nm_D,nl) == nma_boundary(nth-1,np-1,nr) ) then
+          al(nm_D,nl) = al(nm_D,nl) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact1
+  
+        else if ( ll(nm_D,nl) == nma_boundary(nth,np,nr) ) then
+          al(nm_D,nl) = al(nm_D,nl) +( Dtx(2) &
+                                      + Fthp*weight(nth,np,nr,nsa) )*fact1
+  
+        else if ( ll(nm_D,nl) == nma_boundary(nth,np,nr+1) ) then
+          al(nm_D,nl) = al(nm_D,nl) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact1
+          
+        else if ( ll(nm_D,nl) == nma_boundary(nth-1,np,nr+1) ) then
+          al(nm_D,nl) = al(nm_D,nl) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact1
+  
+        else if ( ll(nm_D,nl) == nma_boundary(nth,np,nr-1) ) then
+          al(nm_D,nl) = al(nm_D,nl) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact1
+  
+        else if ( ll(nm_D,nl) == nma_boundary(nth-1,np,nr-1) ) then
+          al(nm_D,nl) = al(nm_D,nl) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact1
+  
+        end if
+      end do
+  
+      nl_Xstg = nl_Xstg+1 
+      ll(nm_Xstg,nl_Xstg) = nm_D
+      al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) + fact2*( -1.d0*Dtx(2)+Fthp*(1.d0-weight(nth,np,nr,nsa)) )
+  
+      if ( nma_boundary(nth,np+1,nr) /= -1 ) then
+        nl_Xstg = nl_Xstg+1
+        ll(nm_Xstg,nl_Xstg) = nma(nth,np+1,nr)
+        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact2  
+      end if
+  
+      if ( nma_boundary(nth-1,np+1,nr) /= -1 ) then
+        nl_Xstg = nl_Xstg+1
+        ll(nm_Xstg,nl_Xstg) = nma(nth-1,np+1,nr)
+        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact2  
+      end if
+  
+      if ( nma_boundary(nth,np-1,nr) /= -1 ) then
+        nl_Xstg = nl_Xstg+1
+        ll(nm_Xstg,nl_Xstg) = nma(nth,np-1,nr)
+        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact2  
+      end if
+  
+      if (  nma_boundary(nth-1,np-1,nr) /= -1 ) then
+        nl_Xstg = nl_Xstg+1
+        ll(nm_Xstg,nl_Xstg) = nma(nth-1,np-1,nr)
+        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact2  
+      end if
+  
+      if ( nma_boundary(nth,np,nr) /= -1 ) then
+        nl_Xstg = nl_Xstg+1
+        ll(nm_Xstg,nl_Xstg) = nma(nth,np,nr)
+        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) -( Dtx(2) &
+                                    - Fthp*weight(nth,np,nr,nsa) )*fact2  
+      end if
+  
+      if ( nma_boundary(nth,np,nr+1) /= -1 ) then
+        nl_Xstg = nl_Xstg+1
+        ll(nm_Xstg,nl_Xstg) = nma(nth,np,nr+1)
+        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact2  
+      end if
+  
+      if ( nma_boundary(nth-1,np,nr+1) /= -1 ) then
+        nl_Xstg = nl_Xstg+1
+        ll(nm_Xstg,nl_Xstg) = nma(nth-1,np,nr+1)
+        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact2  
+      end if
+  
+      if ( nma_boundary(nth,np,nr-1) /= -1 ) then
+        nl_Xstg = nl_Xstg+1
+        ll(nm_Xstg,nl_Xstg) = nma(nth,np,nr-1)
+        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact2  
+      end if
+  
+      if ( nma_boundary(nth-1,np,nr-1) /= -1 ) then
+        nl_Xstg = nl_Xstg+1
+        ll(nm_Xstg,nl_Xstg) = nma(nth-1,np,nr-1)
+        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact2  
+      end if  
+
+    end if
+
+  end subroutine IBC_pinch
+
+  subroutine IBC_X_stagnation(np,nr,nsa,nl_Xstg,nl_pnc)
+    implicit none
+    integer,intent(in) :: np,nr,nsa
+    integer,intent(inout) :: nl_Xstg, nl_pnc
+
+    integer:: ierr, ns, nth, nm_Xstg, nm_pnc, nl
+    double precision:: pl, sl, rl
+    double precision :: deltath, S_x, fact1, fact2
+    double precision :: DIVD(3), DIVF, Fthm, Fthp, Dtx(3)
+    double precision :: D_tp, D_tt, D_tr, dfnspdp, dfnspdth, dfnspdr, fnspg
+    integer :: loc_Xstg(4), loc_pnc(4), loc(4)
+
+    ns = ns_nsa(nsa)
+
+    if ( pz(ns) >= 0.d0 ) then
+      
+      nth = nth_stg(nsa)
+      loc_Xstg = [nth,np,nr,nsa]
+      if ( nl_pnc /= -1 ) then
+        loc_pnc = [nth_pnc(nsa),np,nr_rhom_pinch(np,nr,nsa),nsa]
+      end if
+
+      pl = pm(np,nsa)
+      sl = SIN( thetam(nth,np,nr,nsa) )
+      rl = rm(nr)
+      deltath= delthm(nth,np,nr,nsa)
+  
+      Dtx(1)  = Dtpfow(nth,np,nr,nsa)*sl/(pl*sl*delp(nsa)*deltath*2.d0)
+      Dtx(2)  = Dttfow(nth,np,nr,nsa)*sl/(pl**2*sl*deltath**2)
+      Dtx(3)  = Dtrfow(nth,np,nr,nsa)*sl/(pl*sl*deltath*delr*2.d0)
+      Fthp    = Fthfow(nth,np,nr,nsa)*sl  
+
+      if ( np == npmax ) then
+        dfnspdp = ( f_grid(loc_Xstg, 0.d0, 0.5d0, 0.5d0)-f_grid(loc_Xstg, 0.d0, -0.5d0, 0.5d0) )&
+                / ( delp(ns) )
+      else if ( np == 1 ) then
+        dfnspdp = ( f_grid(loc_Xstg, 0.d0, 1.5d0, 0.5d0)-f_grid(loc_Xstg, 0.d0, 0.5d0, 0.5d0) )&
+                / ( delp(ns) )
+      else
+        dfnspdp = ( f_grid(loc_Xstg, 0.d0, 1.5d0, 0.5d0)-f_grid(loc_Xstg, 0.d0, -0.5d0, 0.5d0) )&
+                / ( 2.d0*delp(ns) )
+      end if
+
+      if ( nr == nrmax ) then
+        dfnspdr = ( f_grid(loc_Xstg, 0.d0, 0.5d0, 0.5d0)-f_grid(loc_Xstg, 0.d0, 0.5d0, -0.5d0) )&
+                / ( delr )  
+      else if ( nr == 1 ) then
+        dfnspdr = ( f_grid(loc_Xstg, 0.d0, 0.5d0, 1.5d0)-f_grid(loc_Xstg, 0.d0, 0.5d0, 0.5d0) )&
+                / ( delr )
+      else
+        dfnspdr = ( f_grid(loc_Xstg, 0.d0, 0.5d0, 1.5d0)-f_grid(loc_Xstg, 0.d0, 0.5d0, -0.5d0) )&
+                / ( 2.d0*delr )
+      end if
+
+      dfnspdth= ( fnsp(nth,np,nr,nsa)-fnsp(nth-1,np,nr,nsa) )&
+              / ( 0.5d0*pl*(delthm(nth,np,nr,nsa)+delthm(nth-1,np,nr,nsa)) )
+
+      fnspg   = f_grid(loc_Xstg, 0.d0, 0.5d0, 0.5d0)
+
+      S_x = -1.d0*( &
+          Dtpfow(nth,np,nr,nsa)*dfnspdp  &
+        + Dttfow(nth,np,nr,nsa)*dfnspdth &
+        + Dtrfow(nth,np,nr,nsa)*dfnspdr  &
+      ) + Fthfow(nth,np,nr,nsa)*fnspg
+
+      nm_Xstg = nma(nth, np, nr)
+
+      if ( S_x <= 0.d0 .and. nl_pnc == -1 ) then ! orbital loss
+        return
+
+      else if ( S_x > 0.d0 .and. nl_pnc == -1 ) then
+
+        fact1 = -1.d0/JI(nth,np,nr,nsa)
+
+        dl(nm_Xstg) = dl(nm_Xstg) + fact1*( -1.d0*Dtx(2)+Fthp*(1.d0-weight(nth,np,nr,nsa)) )
+
+        do nl = 1, nl_Xstg
+          if ( ll(nm_Xstg,nl) == nma_boundary(nth,np+1,nr) ) then
+            al(nm_Xstg,nl) = al(nm_Xstg,nl) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact1
+    
+          else if ( ll(nm_Xstg,nl) == nma_boundary(nth-1,np+1,nr) ) then
+            al(nm_Xstg,nl) = al(nm_Xstg,nl) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact1
+    
+          else if ( ll(nm_Xstg,nl) == nma_boundary(nth,np-1,nr) ) then
+            al(nm_Xstg,nl) = al(nm_Xstg,nl) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact1
+    
+          else if ( ll(nm_Xstg,nl) == nma_boundary(nth-1,np-1,nr) ) then
+            al(nm_Xstg,nl) = al(nm_Xstg,nl) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact1
+    
+          else if ( ll(nm_Xstg,nl) == nma_boundary(nth,np,nr) ) then
+            al(nm_Xstg,nl) = al(nm_Xstg,nl) +( Dtx(2) &
+                                        + Fthp*weight(nth,np,nr,nsa) )*fact1
+    
+          else if ( ll(nm_Xstg,nl) == nma_boundary(nth,np,nr+1) ) then
+            al(nm_Xstg,nl) = al(nm_Xstg,nl) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact1
+            
+          else if ( ll(nm_Xstg,nl) == nma_boundary(nth-1,np,nr+1) ) then
+            al(nm_Xstg,nl) = al(nm_Xstg,nl) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact1
+    
+          else if ( ll(nm_Xstg,nl) == nma_boundary(nth,np,nr-1) ) then
+            al(nm_Xstg,nl) = al(nm_Xstg,nl) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact1
+    
+          else if ( ll(nm_Xstg,nl) == nma_boundary(nth-1,np,nr-1) ) then
+            al(nm_Xstg,nl) = al(nm_Xstg,nl) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact1
+    
+          end if
+        end do
+    
+        return
+
+      else
+
+        nm_pnc=nma(loc_pnc(1),loc_pnc(2),loc_pnc(3))
+
+        fact2 = 1.d0/JI(loc_pnc(1),loc_pnc(2),loc_pnc(3),loc_pnc(4))
+        nl_pnc = nl_pnc+1 
+        ll(nm_pnc,nl_pnc) = nm_Xstg
+        al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + fact2*( -1.d0*Dtx(2)+Fthp*(1.d0-weight(nth,np,nr,nsa)) )
+    
+        if ( nma_boundary(nth,np+1,nr) /= -1 ) then
+          nl_pnc = nl_pnc+1
+          ll(nm_pnc,nl_pnc) = nma(nth,np+1,nr)
+          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact2  
+        end if
+    
+        if ( nma_boundary(nth-1,np+1,nr) /= -1 ) then
+          nl_pnc = nl_pnc+1
+          ll(nm_pnc,nl_pnc) = nma(nth-1,np+1,nr)
+          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact2  
+        end if
+    
+        if ( nma_boundary(nth,np-1,nr) /= -1 ) then
+          nl_pnc = nl_pnc+1
+          ll(nm_pnc,nl_pnc) = nma(nth,np-1,nr)
+          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact2  
+        end if
+    
+        if (  nma_boundary(nth-1,np-1,nr) /= -1 ) then
+          nl_pnc = nl_pnc+1
+          ll(nm_pnc,nl_pnc) = nma(nth-1,np-1,nr)
+          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact2  
+        end if
+    
+        if ( nma_boundary(nth,np,nr) /= -1 ) then
+          nl_pnc = nl_pnc+1
+          ll(nm_pnc,nl_pnc) = nma(nth,np,nr)
+          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) -( Dtx(2) &
+                                      - Fthp*weight(nth,np,nr,nsa) )*fact2  
+        end if
+    
+        if ( nma_boundary(nth,np,nr+1) /= -1 ) then
+          nl_pnc = nl_pnc+1
+          ll(nm_pnc,nl_pnc) = nma(nth,np,nr+1)
+          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact2  
+        end if
+    
+        if ( nma_boundary(nth-1,np,nr+1) /= -1 ) then
+          nl_pnc = nl_pnc+1
+          ll(nm_pnc,nl_pnc) = nma(nth-1,np,nr+1)
+          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact2  
+        end if
+    
+        if ( nma_boundary(nth,np,nr-1) /= -1 ) then
+          nl_pnc = nl_pnc+1
+          ll(nm_pnc,nl_pnc) = nma(nth,np,nr-1)
+          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact2  
+        end if
+    
+        if ( nma_boundary(nth-1,np,nr-1) /= -1 ) then
+          nl_pnc = nl_pnc+1
+          ll(nm_pnc,nl_pnc) = nma(nth-1,np,nr-1)
+          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact2  
+        end if  
+  
+      end if
+
+    else ! pz(ns) < 0.d0
+       
+      nth = nth_stg(nsa)-1
+      loc_Xstg = [nth,np,nr,nsa]
+      if ( nl_pnc /= -1 ) then
+        loc_pnc = [nth_pnc(nsa)-1,np,nr_rhom_pinch(np,nr,nsa),nsa]
+      end if
+
+      nm_Xstg = nma(nth, np, nr)
+
+      pl = pm(np,nsa)
+      sl = SIN( thetam(nth,np,nr,nsa) )
+      rl = rm(nr)
+      deltath= delthm(nth,np,nr,nsa)
+  
+      Dtx(1)  = Dtpfow(nth+1,np,nr,nsa)*sl/(pl*sl*delp(nsa)*deltath*2.d0)
+      Dtx(2)  = Dttfow(nth+1,np,nr,nsa)*sl/(pl**2*sl*deltath**2)
+      Dtx(3)  = Dtrfow(nth+1,np,nr,nsa)*sl/(pl*sl*deltath*delr*2.d0)
+      Fthp    = Fthfow(nth+1,np,nr,nsa)*sl  
+
+      if ( np == npmax ) then
+        dfnspdp = ( f_grid(loc_Xstg, 1.d0, 0.5d0, 0.5d0)-f_grid(loc_Xstg, 1.d0, -0.5d0, 0.5d0) )&
+                / ( delp(ns) )
+      else if ( np == 1 ) then
+        dfnspdp = ( f_grid(loc_Xstg, 1.d0, 1.5d0, 0.5d0)-f_grid(loc_Xstg, 1.d0, 0.5d0, 0.5d0) )&
+                / ( delp(ns) )
+      else
+        dfnspdp = ( f_grid(loc_Xstg, 1.d0, 1.5d0, 0.5d0)-f_grid(loc_Xstg, 1.d0, -0.5d0, 0.5d0) )&
+                / ( 2.d0*delp(ns) )
+      end if
+
+      if ( nr == nrmax ) then
+        dfnspdr = ( f_grid(loc_Xstg, 1.d0, 0.5d0, 0.5d0)-f_grid(loc_Xstg, 1.d0, 0.5d0, -0.5d0) )&
+                / ( delr )  
+      else if ( nr == 1 ) then
+        dfnspdr = ( f_grid(loc_Xstg, 1.d0, 0.5d0, 1.5d0)-f_grid(loc_Xstg, 1.d0, 0.5d0, 0.5d0) )&
+                / ( delr )
+      else
+        dfnspdr = ( f_grid(loc_Xstg, 1.d0, 0.5d0, 1.5d0)-f_grid(loc_Xstg, 1.d0, 0.5d0, -0.5d0) )&
+                / ( 2.d0*delr )
+      end if
+
+      dfnspdth= ( fnsp(nth+1,np,nr,nsa)-fnsp(nth,np,nr,nsa) )&
+              / ( 0.5d0*pl*(delthm(nth+1,np,nr,nsa)+delthm(nth,np,nr,nsa)) )
+
+      fnspg   = f_grid(loc_Xstg, 1.d0, 0.5d0, 0.5d0)
+
+      S_x = -1.d0*( &
+          Dtpfow(nth+1,np,nr,nsa)*dfnspdp  &
+        + Dttfow(nth+1,np,nr,nsa)*dfnspdth &
+        + Dtrfow(nth+1,np,nr,nsa)*dfnspdr  &
+      ) + Fthfow(nth+1,np,nr,nsa)*fnspg
+
+      if ( S_x >= 0.d0 .and. nl_pnc == -1 ) then ! orbital loss
+        return
+
+      else if ( S_x < 0.d0 .and. nl_pnc == -1 ) then
+
+        fact1 = 1.d0/JI(nth,np,nr,nsa)
+        nm_Xstg = nma(nth, np, nr)
+
+        dl(nm_Xstg) = dl(nm_Xstg) + fact1*( Dtx(2)+Fthp*weight(nth+1,np,nr,nsa) )
+        do nl = 1, nl_Xstg
+          if ( ll(nm_Xstg,nl) == nma_boundary(nth+1,np+1,nr) ) then
+            al(nm_Xstg,nl) = al(nm_Xstg,nl) - Dtx(1)*(1.d0-weight(nth+1,np+1,nr,nsa))*fact1
+    
+          else if ( ll(nm_Xstg,nl) == nma_boundary(nth,np+1,nr) ) then
+            al(nm_Xstg,nl) = al(nm_Xstg,nl) - Dtx(1)*weight(nth+1,np+1,nr,nsa)*fact1
+    
+          else if ( ll(nm_Xstg,nl) == nma_boundary(nth+1,np-1,nr) ) then
+            al(nm_Xstg,nl) = al(nm_Xstg,nl) + Dtx(1)*(1.d0-weight(nth+1,np-1,nr,nsa))*fact1
+    
+          else if ( ll(nm_Xstg,nl) == nma_boundary(nth,np-1,nr) ) then
+            al(nm_Xstg,nl) = al(nm_Xstg,nl) + Dtx(1)*weight(nth+1,np-1,nr,nsa)*fact1
+    
+          else if ( ll(nm_Xstg,nl) == nma_boundary(nth+1,np,nr) ) then
+            al(nm_Xstg,nl) = al(nm_Xstg,nl) -( Dtx(2) &
+                                        - Fthp*(1.d0-weight(nth+1,np,nr,nsa)) )*fact1
+    
+          else if ( ll(nm_Xstg,nl) == nma_boundary(nth+1,np,nr+1) ) then
+            al(nm_Xstg,nl) = al(nm_Xstg,nl) - Dtx(3)*(1.d0-weight(nth+1,np,nr+1,nsa))*fact1
+            
+          else if ( ll(nm_Xstg,nl) == nma_boundary(nth,np,nr+1) ) then
+            al(nm_Xstg,nl) = al(nm_Xstg,nl) - Dtx(3)*weight(nth+1,np,nr+1,nsa)*fact1
+    
+          else if ( ll(nm_Xstg,nl) == nma_boundary(nth+1,np,nr-1) ) then
+            al(nm_Xstg,nl) = al(nm_Xstg,nl) + Dtx(3)*(1.d0-weight(nth+1,np,nr-1,nsa))*fact1
+    
+          else if ( ll(nm_Xstg,nl) == nma_boundary(nth,np,nr-1) ) then
+            al(nm_Xstg,nl) = al(nm_Xstg,nl) + Dtx(3)*weight(nth+1,np,nr-1,nsa)*fact1
+    
+          end if
+        end do
+      
+        return
+
+      else
+
+        nm_pnc = nma(loc_pnc(1),loc_pnc(2),loc_pnc(3))
+
+        fact1 = 1.d0/JI(loc_pnc(1),loc_pnc(2),loc_pnc(3),loc_pnc(4))
+
+        nl_pnc = nl_pnc+1 
+        ll(nm_pnc,nl_pnc) = nm_Xstg
+        al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + fact1*( Dtx(2)+Fthp*weight(nth+1,np,nr,nsa) )
+
+        if ( nma_boundary(nth+1,np+1,nr) /= -1 ) then
+          nl_pnc = nl_pnc+1 
+          ll(nm_pnc,nl_pnc) = nma(nth+1,np+1,nr)
+          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) - Dtx(1)*(1.d0-weight(nth+1,np+1,nr,nsa))*fact1
+  
+        else if ( nma_boundary(nth,np+1,nr) /= -1 ) then
+          nl_pnc = nl_pnc+1 
+          ll(nm_pnc,nl_pnc) = nma(nth,np+1,nr)
+          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) - Dtx(1)*weight(nth+1,np+1,nr,nsa)*fact1
+  
+        else if ( nma_boundary(nth+1,np-1,nr) /= -1 ) then
+          nl_pnc = nl_pnc+1 
+          ll(nm_pnc,nl_pnc) = nma(nth+1,np-1,nr)
+          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + Dtx(1)*(1.d0-weight(nth+1,np-1,nr,nsa))*fact1
+  
+        else if ( nma_boundary(nth,np-1,nr) /= -1 ) then
+          nl_pnc = nl_pnc+1 
+          ll(nm_pnc,nl_pnc) = nma(nth,np-1,nr)
+          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + Dtx(1)*weight(nth+1,np-1,nr,nsa)*fact1
+  
+        else if ( nma_boundary(nth+1,np,nr) /= -1 ) then
+          nl_pnc = nl_pnc+1 
+          ll(nm_pnc,nl_pnc) = nma(nth+1,np,nr)
+          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) -( Dtx(2) &
+                                      - Fthp*(1.d0-weight(nth+1,np,nr,nsa)) )*fact1
+  
+        else if ( nma_boundary(nth+1,np,nr+1) /= -1 ) then
+          nl_pnc = nl_pnc+1 
+          ll(nm_pnc,nl_pnc) = nma(nth+1,np,nr+1)
+          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) - Dtx(3)*(1.d0-weight(nth+1,np,nr+1,nsa))*fact1
+          
+        else if ( nma_boundary(nth,np,nr+1) /= -1 ) then
+          nl_pnc = nl_pnc+1 
+          ll(nm_pnc,nl_pnc) = nma(nth,np,nr+1)
+          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) - Dtx(3)*weight(nth+1,np,nr+1,nsa)*fact1
+  
+        else if ( nma_boundary(nth+1,np,nr-1) /= -1 ) then
+          nl_pnc = nl_pnc+1 
+          ll(nm_pnc,nl_pnc) = nma(nth+1,np,nr-1)
+          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + Dtx(3)*(1.d0-weight(nth+1,np,nr-1,nsa))*fact1
+  
+        else if ( nma_boundary(nth,np,nr-1) /= -1 ) then
+          nl_pnc = nl_pnc+1 
+          ll(nm_pnc,nl_pnc) = nma(nth,np,nr-1)
+          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + Dtx(3)*weight(nth+1,np,nr-1,nsa)*fact1
+  
+        end if
+      
+      end if
+
+    end if
+
+  end subroutine IBC_X_stagnation
+
+  subroutine IBC_O_stagnation(np,nr,nsa,nl_Ostg)
+    implicit none
+    integer,intent(in) :: np,nr,nsa
+    integer,intent(inout) :: nl_Ostg
+    integer :: ns, nl, nm_Ostg,nth
+    real(rkind) :: fact
+    double precision :: DIVF, Fthm, Fthp, Dtx(3),pl,sl,deltath,rl
+
+    ns = ns_nsa(nsa)
+
+    if ( pz(ns) >= 0.d0 ) then
+      nth = nth_stg(nsa)-1
+      pl = pm(np,nsa)
+      sl = SIN( thetam(nth,np,nr,nsa) )
+      rl = rm(nr)
+      deltath= delthm(nth,np,nr,nsa)
+      nm_Ostg = nma(nth,np,nr)
+  
+      Dtx(1)  = Dtpfow(nth+1,np,nr,nsa)*sl/(pl*sl*delp(nsa)*deltath*2.d0)
+      Dtx(2)  = Dttfow(nth+1,np,nr,nsa)*sl/(pl**2*sl*deltath**2)
+      Dtx(3)  = Dtrfow(nth+1,np,nr,nsa)*sl/(pl*sl*deltath*delr*2.d0)
+      Fthp    = Fthfow(nth+1,np,nr,nsa)*sl
+
+      fact = 1.d0/JI(nth,np,nr,nsa)
+
+      dl(nm_Ostg) = dl(nm_Ostg) + (Dtx(2)+Fthp*weight(nth+1,np,nr,nsa))*fact
+      do nl = 1, nl_Ostg
+        if ( ll(nm_Ostg,nl) == nma_boundary(nth+1,np+1,nr) ) then
+          al(nm_Ostg,nl) = al(nm_Ostg,nl) - Dtx(1)*(1-weight(nth+1,np+1,nr,nsa))*fact
+        else if ( ll(nm_Ostg,nl) == nma_boundary(nth,np+1,nr) ) then
+          al(nm_Ostg,nl) = al(nm_Ostg,nl) - Dtx(1)*weight(nth+1,np+1,nr,nsa)*fact
+        else if ( ll(nm_Ostg,nl) == nma_boundary(nth+1,np-1,nr) ) then
+          al(nm_Ostg,nl) = al(nm_Ostg,nl) + Dtx(1)*(1.d0-weight(nth+1,np-1,nr,nsa))*fact
+        else if ( ll(nm_Ostg,nl) == nma_boundary(nth,np+1,nr) ) then
+          al(nm_Ostg,nl) = al(nm_Ostg,nl) + Dtx(1)*weight(nth+1,np-1,nr,nsa)*fact
+        else if ( ll(nm_Ostg,nl) == nma_boundary(nth+1,np,nr) ) then
+          al(nm_Ostg,nl) = al(nm_Ostg,nl) - (Dtx(2)+Fthp*(1.d0-weight(nth+1,np,nr,nsa)))*fact
+        else if ( ll(nm_Ostg,nl) == nma_boundary(nth+1,np,nr+1) ) then
+          al(nm_Ostg,nl) = al(nm_Ostg,nl) - Dtx(3)*(1.d0-weight(nth+1,np,nr+1,nsa))*fact
+        else if ( ll(nm_Ostg,nl) == nma_boundary(nth,np,nr+1) ) then
+          al(nm_Ostg,nl) = al(nm_Ostg,nl) - Dtx(3)*weight(nth+1,np,nr+1,nsa)*fact
+        else if ( ll(nm_Ostg,nl) == nma_boundary(nth+1,np,nr-1) ) then
+          al(nm_Ostg,nl) = al(nm_Ostg,nl) + Dtx(3)*(1.d0-weight(nth+1,np,nr-1,nsa))*fact
+        else if ( ll(nm_Ostg,nl) == nma_boundary(nth,np,nr-1) ) then
+          al(nm_Ostg,nl) = al(nm_Ostg,nl) + Dtx(3)*weight(nth+1,np,nr-1,nsa)*fact
+        end if
+      end do
+
+    else ! pz(ns) < 0.d0
+      nth = nth_stg(nsa)
+      pl = pm(np,nsa)
+      sl = SIN( thetam(nth,np,nr,nsa) )
+      rl = rm(nr)
+      deltath= delthm(nth,np,nr,nsa)
+      nm_Ostg = nma(nth,np,nr)
+  
+      Dtx(1)  = Dtpfow(nth,np,nr,nsa)*sl/(pl*sl*delp(nsa)*deltath*2.d0)
+      Dtx(2)  = Dttfow(nth,np,nr,nsa)*sl/(pl**2*sl*deltath**2)
+      Dtx(3)  = Dtrfow(nth,np,nr,nsa)*sl/(pl*sl*deltath*delr*2.d0)
+      Fthp    = Fthfow(nth,np,nr,nsa)*sl
+
+      fact = -1.d0/JI(nth,np,nr,nsa)
+
+      dl(nm_Ostg) = dl(nm_Ostg) + fact*( -1.d0*Dtx(2)+Fthp*(1.d0-weight(nth,np,nr,nsa)) )
+      do nl = 1, nl_Ostg
+        if ( ll(nm_Ostg,nl) == nma_boundary(nth,np+1,nr) ) then
+          al(nm_Ostg,nl) = al(nm_Ostg,nl) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact
+        else if ( ll(nm_Ostg,nl) == nma_boundary(nth-1,np+1,nr) ) then
+          al(nm_Ostg,nl) = al(nm_Ostg,nl) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact
+        else if ( ll(nm_Ostg,nl) == nma_boundary(nth,np-1,nr) ) then
+          al(nm_Ostg,nl) = al(nm_Ostg,nl) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact
+        else if ( ll(nm_Ostg,nl) == nma_boundary(nth-1,np-1,nr) ) then
+          al(nm_Ostg,nl) = al(nm_Ostg,nl) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact
+        else if ( ll(nm_Ostg,nl) == nma_boundary(nth,np,nr) ) then
+          al(nm_Ostg,nl) = al(nm_Ostg,nl) +( Dtx(2)+Fthp*weight(nth,np,nr,nsa) )*fact
+        else if ( ll(nm_Ostg,nl) == nma_boundary(nth,np,nr+1) ) then
+          al(nm_Ostg,nl) = al(nm_Ostg,nl) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact
+        else if ( ll(nm_Ostg,nl) == nma_boundary(nth-1,np,nr+1) ) then
+          al(nm_Ostg,nl) = al(nm_Ostg,nl) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact
+        else if ( ll(nm_Ostg,nl) == nma_boundary(nth,np,nr-1) ) then
+          al(nm_Ostg,nl) = al(nm_Ostg,nl) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact
+        else if ( ll(nm_Ostg,nl) == nma_boundary(nth-1,np,nr-1) ) then
+          al(nm_Ostg,nl) = al(nm_Ostg,nl) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact
+        end if
+      end do
+
+    end if
+
+  end subroutine IBC_O_stagnation
+
+  function f_grid(loc,dth,dp,dr)
+    ! dx = -1/2, 1/2, 3/2    -> half integer grid point
+    ! dx = 0, 1              -> integer grid point
+    implicit none
+    real(rkind) :: f_grid
+    integer,intent(in) :: loc(4)
+    real(rkind),intent(in) :: dth, dp, dr
+    integer :: nth, np, nr, nsa
+    integer :: ith, ip, ir
+    real(rkind) :: f_plus, f_minus
+
+    nth = loc(1)
+    np  = loc(2)
+    nr  = loc(3)
+    nsa = loc(4)
+
+    if ( INT(2.d0*dth) == 2*INT(dth) ) then
+      ith = nth+ INT(dth)
+      ip  = np + INT(dp-0.5d0)
+      ir  = nr + INT(dr-0.5d0)
+
+      f_plus  = (1.d0-WEIGHT(ith, ip, ir, nsa)) * fnsp(ith,ip,ir,nsa)
+      f_minus = WEIGHT(ith, ip, ir, nsa) * fnsp(ith-1,ip,ir,nsa)
+
+    else if ( INT(2.d0*dp) == 2*INT(dp) ) then
+      ith = nth + INT(dth-0.5d0)
+      ip  = np  + INT(dp)
+      ir  = nr  + INT(dr -0.5d0)
+
+      f_plus  = (1.d0-WEIGHP(ith, ip, ir, nsa)) * fnsp(ith,ip,ir,nsa)
+      f_minus = WEIGHP(ith, ip, ir, nsa) * fnsp(ith,ip-1,ir,nsa)
+
+    else if ( INT(2.d0*dr) == 2*INT(dr) ) then
+      ith = nth + INT(dth-0.5d0)
+      ip  = np  + INT(dp -0.5d0)
+      ir  = nr  + INT(dr)
+
+      f_plus  = (1.d0-WEIGHR(ith, ip, ir, nsa)) * fnsp(ith,ip,ir,nsa)
+      f_minus = WEIGHR(ith, ip, ir, nsa) * fnsp(ith,ip,ir-1,nsa)
+
+    end if
+
+    f_grid = f_plus + f_minus
+
+  end function f_grid
+
+  function nma_boundary(nth,np,nr) result(n)
+    implicit none
+    integer :: n
+    integer,intent(in) :: nth,np,nr
+    logical :: nth_,np_,nr_
+
+    nth_ = 1 <= nth .and. nth <= nthmax 
+    np_  = 1 <= np  .and. np  <= npmax 
+    nr_  = 1 <= nr  .and. nr  <= nrmax 
+
+    if ( nth_ .and. np_ .and. nr_ ) then
+      n = nma(nth,np,nr)
+    else
+      n = -1
+    end if
+
+  end function nma_boundary
 
 END MODULE fowexec

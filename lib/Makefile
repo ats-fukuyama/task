@@ -12,6 +12,7 @@ FFLAGS = $(DFLAGS)
 MODINCLUDE= -I $(MOD)
 
 SRCSFREE  =  task_kinds.f90 \
+             libderiv.f90 \
              libbnd.f90 libbrn.f90 libde.f90 libdsp.f90 \
              libell.f90 libeq.f90  libfem.f90 libfft.f90 \
              libgut.f90 libinv.f90 libitp.f90 libpcgpme.f90 \
@@ -73,6 +74,10 @@ fem_calc.o:    $(TASKCOMM) libtestfem.f90 fem_calc.f90
 fem_calc_15.o: $(TASKCOMM) libtestfem.f90 fem_calc_15.f90
 fem_calc_16.o: $(TASKCOMM) libtestfem.f90 fem_calc_16.f90
 
+testtri: libtask.a testtri.o 
+	$(FCFREE) testtri.o libtask.a $(FFLAGS) -o $@ $(FLIBS) $(MODINCLUDE)
+testduo: libtask.a testduo.o 
+	$(FCFREE) testduo.o libtask.a $(FFLAGS) -o $@ $(FLIBS) $(MODINCLUDE)
 
 testfem_func: libgrf.a libtask.a testfem_func.o 
 	$(FCFREE) testfem_func.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS) $(MODINCLUDE)
@@ -101,6 +106,7 @@ testqsort: libtask.a testqsort.o
 
 TASKCOMM=task_kinds.f90
 
+libderiv.o: $(TASKCOMM) libderiv.f90
 libbnd.o: $(TASKCOMM) libbnd.f90
 libbrn.o: $(TASKCOMM) libbrn.f90
 libde.o: $(TASKCOMM) libde.f90

@@ -345,7 +345,8 @@ CONTAINS
        ptheta_pos=rhopara*omega_c
        pzeta_pos= pze*(rhopara*fg_pos-psip)
 
-       vpara_pos=SQRT(2.D0*(peng-pze*phi_pos)/(PA(ns_ob)*AMP))*pcangl
+      !  vpara_pos=SQRT(2.D0*(peng-pze*phi_pos)/(PA(ns_ob)*AMP))*pcangl
+       vpara_pos=rhopara*omega_c
        vperp_pos=SQRT(2.D0*pmu*bb_pos/(PA(ns_ob)*AMP))
 
        time_ob(nstp,nobt)   = obts(0,nstp,nobt)!*omega_bounce
@@ -365,6 +366,7 @@ CONTAINS
        zz_ob(nstp,nobt)     = zz_pos
        rs_ob(nstp,nobt)     = SQRT((rr_pos-rr_axis)**2+(zz_pos-zz_axis)**2)
        theta_ob(nstp,nobt)  = ATAN2(zz_pos-zz_axis,rr_pos-rr_axis)
+
     END DO
     RETURN
   END SUBROUTINE ob_convert
