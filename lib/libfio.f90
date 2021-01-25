@@ -46,6 +46,7 @@ CONTAINS
       INTEGER        :: IST
       CHARACTER(LEN=256) :: KNAM
       LOGICAL           :: LEX
+      CHARACTER(LEN=80) :: KMSG
 
       IF(PRESENT(CONVERT)) THEN
          CONVERT_=CONVERT
@@ -71,10 +72,10 @@ CONTAINS
       IF(LEX) THEN
          IF(MODEF.EQ.0) THEN
             OPEN(NFL,FILE=KNAM,IOSTAT=IST,STATUS='OLD',ERR=20, &
-     &           FORM='UNFORMATTED',CONVERT=CONVERT_)
+     &           IOMSG=KMSG,FORM='UNFORMATTED',CONVERT=CONVERT_)
          ELSEIF(MODEF.EQ.1) THEN
             OPEN(NFL,FILE=KNAM,IOSTAT=IST,STATUS='OLD',ERR=20, &
-     &           FORM='FORMATTED')
+     &           IOMSG=KMSG,FORM='FORMATTED')
          ELSE
             WRITE(6,*) 'XX FROPEN: UNKNOWN MODEF : MODEF=',MODEF
             GOTO 9005
@@ -83,6 +84,7 @@ CONTAINS
          GOTO 9000
 
    20    WRITE(6,*) 'XX OLD FILE OPEN ERROR : IOSTAT = ',IST
+         WRITE(6,*) 'IOMSG=',TRIM(KMSG)
          GOTO 9006
       ELSE
          WRITE(6,*) 'XX FILE (',TRIM(KNAM),') NOT FOUND'
@@ -164,6 +166,7 @@ CONTAINS
       CHARACTER(LEN=256) :: KNAM
       CHARACTER(LEN=1)  :: KID
       LOGICAL           :: LEX
+      CHARACTER(LEN=80) :: KMSG
 
       MODEPI=MODEP
       IF(PRESENT(DELIM)) THEN
@@ -178,7 +181,7 @@ CONTAINS
          IF(LEN_TRIM(KNAM).EQ.0) GOTO 9008
       ELSE
     1    WRITE(6,*) '#',KPR,'> INPUT : SAVE FILE NAME : ',TRIM(KNAM)
-         READ(5,'(A80)',ERR=1,END=9001) KNAM
+         READ(5,*,ERR=1,END=9001) KNAM
          IF(KNAM(1:2).EQ.'  ') GOTO 9002
       ENDIF
 
@@ -209,10 +212,10 @@ CONTAINS
 
          IF(MODEF.EQ.0) THEN
             OPEN(NFL,FILE=KNAM,IOSTAT=IST,STATUS='OLD',ERR=10, &
-     &           FORM='UNFORMATTED')
+     &           IOMSG=KMSG,FORM='UNFORMATTED')
          ELSEIF(MODEF.EQ.1) THEN
             OPEN(NFL,FILE=KNAM,IOSTAT=IST,STATUS='OLD',ERR=10, &
-     &           FORM='FORMATTED',DELIM=DELIM_)
+     &           IOMSG=KMSG,FORM='FORMATTED',DELIM=DELIM_)
          ELSE
             WRITE(6,*) 'XX FWOPEN: UNKNOWN MODEF : MODEF=',MODEF
             GOTO 9005
@@ -222,14 +225,15 @@ CONTAINS
          GOTO 9000
 
    10    WRITE(6,*) 'XX OLD FILE OPEN ERROR : IOSTAT = ',IST
+         WRITE(6,*) 'IOMSG=',TRIM(KMSG)
          GOTO 9006
       ELSE
          IF(MODEF.EQ.0) THEN
             OPEN(NFL,FILE=KNAM,IOSTAT=IST,STATUS='NEW',ERR=20, &
-     &           FORM='UNFORMATTED')
+     &           IOMSG=KMSG,FORM='UNFORMATTED')
          ELSEIF(MODEF.EQ.1) THEN
             OPEN(NFL,FILE=KNAM,IOSTAT=IST,STATUS='NEW',ERR=20, &
-     &           FORM='FORMATTED')
+     &           IOMSG=KMSG,FORM='FORMATTED')
          ELSE
             WRITE(6,*) 'XX FEOPEN: UNKNOWN MODEF : MODEF=',MODEF
             GOTO 9005
@@ -238,6 +242,7 @@ CONTAINS
          GOTO 9000
 
    20    WRITE(6,*) 'XX NEW FILE OPEN ERROR : IOSTAT = ',IST
+         WRITE(6,*) 'IOMSG=',TRIM(KMSG)
          GOTO 9006
       ENDIF
 

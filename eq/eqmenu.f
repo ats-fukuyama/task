@@ -84,17 +84,11 @@ C
          CALL EQSAVE
 C
       ELSEIF(KID.EQ.'L') THEN
-      write(6,'(A)') KNAMEQ
-      write(6,'(A)') KNAMEQ2
-         CALL KTRIM(KNAMEQ,KL)
-   10    WRITE(6,*) '#EQ> INPUT : EQDATA FILE NAME : ',KNAMEQ(1:KL)
-         READ(5,'(A80)',ERR=10,END=9000) KNAM
-         IF(KNAM(1:2).NE.'/ ') KNAMEQ=KNAM
-C
          IF(MODELG.EQ.2) MODELG=3
          CALL EQREAD(IERR)
-C         IF(IERR.NE.0) GOTO 10
+         IF(IERR.NE.0) GO TO 1
          CALL EQCALQ(IERR)
+         IF(IERR.NE.0) GO TO 1
          IF(modelg.EQ.3) THEN
             MSTAT=1
          ELSE
