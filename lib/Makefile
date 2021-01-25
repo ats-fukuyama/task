@@ -104,8 +104,8 @@ testgrd: libtask.a testgrd.o
 testqsort: libtask.a testqsort.o 
 	$(FCFREE) testqsort.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS)
 
-testrk: libtask.a testrk_local.o testrk.o
-	$(FCFREE) testrk.o testrk_local.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS)
+testrk: libtask.a testrk.o
+	$(FCFREE) testrk.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS)
 
 TASKCOMM=task_kinds.f90
 

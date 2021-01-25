@@ -43,7 +43,7 @@ CONTAINS
     ELSEIF(MDLWRQ.EQ.2) THEN
        CALL WRRKFT_WITHMC(Y,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
     ELSEIF(MDLWRQ.EQ.3) THEN
-       CALL WRRKFT_ODE(Y,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT_RKF(Y,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
     ELSEIF(MDLWRQ.EQ.4) THEN
        CALL WRSYMP(Y,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
     ELSE
@@ -535,9 +535,97 @@ CONTAINS
       RETURN
   END SUBROUTINE WRRKFT_WITHMC
 
+! --- Auto-step-size Runge-Kutta-F method ---
+
+  SUBROUTINE WRRKFT_RKF(Y,YN,NNSTP)
+
+    USE wrcomm
+    USE librkf
+    USE plprof
+    IMPLICIT NONE
+    REAL(rkind),INTENT(INOUT):: Y(NEQ)
+    REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
+    INTEGER,INTENT(OUT):: NNSTP
+    INTEGER:: INIT,NSTPLIM,NSTP,NDE,IER,I,ID
+    REAL(rkind):: RELERR,ABSERR,X0,XE,WORK0,Y7,YM(NEQ),RHON
+    REAL(rkind):: ESTERR(NEQ),WORK1(NEQ),WORK2(NEQ),WORK3(NEQ),WORK4(NEQ,11)
+
+    RELERR = EPSRAY
+    ABSERR = EPSRAY
+    X0 = 0.D0
+    XE = DELS     
+    INIT = 1
+    NSTPLIM=INT(SMAX/DELS)
+
+    NSTP=0
+    YN(0,NSTP)=X0
+    DO I=1,7
+       YN(I,NSTP)=Y(I)
+    ENDDO
+    YN(8,NSTP)=0.D0
+
+    DO NSTP = 1,NSTPLIM
+       Y7=Y(7)
+       CALL RKF(7,WRFDRV,X0,XE,Y,INIT,RELERR,ABSERR,YM, &
+                ESTERR,NDE,IER,WORK0,WORK1,WORK2,WORK3,WORK4)
+       IF (IER .NE. 0) THEN
+          WRITE(6,'(A,2I6)') 'XX wrrkft_rkf: NSTP,IER=',NSTP,IER
+          RETURN
+       ENDIF
+       YN(0,NSTP)=XE
+       DO I=1,7
+          YN(I,NSTP)=YM(I)
+       ENDDO
+       YN(8,NSTP)=Y7-YM(7)
+
+       IF(MDLWRW.GE.1) THEN
+          ID=0
+          SELECT CASE(MDLWRW)
+          CASE(1)
+             ID=1
+          CASE(2)
+             IF(MOD(NSTP-1,10).EQ.0) ID=1
+          CASE(3)
+             IF(MOD(NSTP-1,100).EQ.0) ID=1
+          CASE(4)
+             IF(MOD(NSTP-1,1000).EQ.0) ID=1
+          CASE(5)
+             IF(MOD(NSTP-1,10000).EQ.0) ID=1
+          END SELECT
+          IF(ID.EQ.1) &
+               WRITE(6,'(7ES11.3)') & 
+               X0,YN(1,NSTP),YN(2,NSTP),YN(3,NSTP),YN(4,NSTP), &
+               YN(7,NSTP),YN(8,NSTP)
+       END IF
+
+       DO I=1,7
+          Y(I)=YN(I,NSTP)
+       ENDDO
+       X0=XE
+       XE=X0+DELS
+       IF(Y(7).LT.UUMIN) THEN
+          NNSTP = NSTP
+          GOTO 8000
+       ENDIF
+       CALL pl_mag_old(Y(1),Y(2),Y(3),RHON)
+       IF(RHON.GT.RB/RA) THEN
+          NNSTP = NSTP
+          GOTO 8000
+       ENDIF
+    END DO
+    NNSTP=NSTPLIM
+     
+8000 CONTINUE
+    IF(YN(7,NNSTP).LT.0.D0) THEN
+       YN(7,NNSTP)=0.D0
+    ENDIF
+
+    RETURN
+  END SUBROUTINE WRRKFT_RKF
+
 ! --- Symplectic method (not completed) ---
 
-  SUBROUTINE WRSYMP(Y,YN,NNSTP)
+    SUBROUTINE WRSYMP(Y,YN,NNSTP)
 
     USE wrcomm
     USE wrsub,ONLY: DISPXR
