@@ -414,7 +414,8 @@
 !                 7 : WITH FILE NAME INPUT, ERROR, IF FILE EXISTS
 
 !     ======( Default values )======
-
+!             eq_init sets MODEFR=0 and MODEFW=0 due to histrical reason
+      
       MODEFR = 1
       MODEFW = 5
 

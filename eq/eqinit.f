@@ -438,6 +438,9 @@ C
          WPFC(NPFC)  = 0.75D0
       ENDDO
 
+      MODEFW=0 ! dangerous setting
+      MODEFR=0 ! dangerous setting
+
       RETURN
       END
 C

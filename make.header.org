@@ -69,7 +69,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 ## for macos gfortran (64bit) lib
 #GFLIBS=-L/usr/local/lib -lg3d-gfc64 -lgsp-gfc64 -lgdp-gfc64  -L/opt/X11/lib -lX11
 #OFLAGS = -g -O3 -m64 -std=legacy
-#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow,underflow -fbacktrace -fcheck=all -std=legacy
+#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow -fbacktrace -fcheck=all -std=legacy
 #FCFIXED = gfortran -ffixed-form
 #FCFREE = gfortran -ffree-form
 #MOD = mod
@@ -80,7 +80,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 ## for macos gfortran (arm64) lib
 #GFLIBS=-L/usr/local/lib -lg3d-garm64 -lgsp-garm64 -lgdp-garm64  -L/opt/local/lib -lX11
 #OFLAGS = -g -O3 -std=legacy
-#DFLAGS = -g -fbounds-check -ffpe-trap=invalid,zero,overflow,underflow -fbacktrace -fcheck=all -std=legacy
+#DFLAGS = -g -fbounds-check -ffpe-trap=invalid,zero,overflow -fbacktrace -fcheck=all -std=legacy
 #FCFIXED = gfortran -ffixed-form
 #FCFREE = gfortran -ffree-form
 #MOD = mod
@@ -91,7 +91,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 ## for linux gfortran (64bit) lib
 #GFLIBS=-L/usr/local/lib -lg3d-gfc64 -lgsp-gfc64 -lgdp-gfc64  -L/usr/X11R6/lib -lX11
 #OFLAGS = -g -O3 -m64 -std=legacy
-#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow,underflow -fbacktrace -fcheck=all -std=legacy
+#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow -fbacktrace -fcheck=all -std=legacy
 #FCFIXED = gfortran -ffixed-form
 #FCFREE = gfortran -ffree-form
 #MOD = mod
@@ -102,7 +102,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 ## for linux gfortran (64bit) lib64
 #GFLIBS=-L/usr/local/lib64 -lg3d-gfc64 -lgsp-gfc64 -lgdp-gfc64  -L/usr/X11R6/lib -lX11
 #OFLAGS = -g -O3 -m64 -mcmodel=medium -std=legacy
-#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow,underflow -fbacktrace -fcheck=all -mcmodel=medium -std=legacy
+#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow -fbacktrace -fcheck=all -mcmodel=medium -std=legacy
 #FCFIXED = gfortran -ffixed-form
 #FCFREE = gfortran -ffree-form
 #MOD = mod
