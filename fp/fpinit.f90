@@ -19,7 +19,7 @@ contains
 
 !-----PARTICLE SPECIES--------------------------------------------------
 !     nsamax: number of test particle species
-!     nsbmax: number of field particle species (0 for nsbmax=nsmax: default)
+!     nsbmax: number of field particle species
 !     ns_nsa(nsa): mapping from NSA to NS in pl 
 !     ns_nsb(nsb): mapping from NSB to NS in pl
 !     pmax(nsb)  : maximum momentum (normailzed by central thermal momentum)

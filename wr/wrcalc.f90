@@ -3,7 +3,7 @@
 MODULE wrcalc
 
   PRIVATE
-  PUBLIC wr_calc
+  PUBLIC wr_calc,wr_calc_pwr
 
 CONTAINS
 

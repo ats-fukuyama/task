@@ -41,13 +41,9 @@ PROGRAM wr
       END IF
 
       CALL pl_init
-      WRITE(6,*) 'pl:',modefw
       CALL EQINIT
-      WRITE(6,*) 'eq:',modefw
       CALL dp_init
-      WRITE(6,*) 'dp:',modefw
       CALL wr_init
-      WRITE(6,*) 'wr:',modefw
       IF(NRANK.EQ.0) THEN
          OPEN(7,STATUS='SCRATCH')
          CALL wr_parm(1,'wrparm',IERR)

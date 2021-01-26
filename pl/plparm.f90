@@ -373,8 +373,8 @@ CONTAINS
                    'MODELN',MODELN,'MODELQ',MODELQ
       WRITE(6,604) 'MODEFR',MODEFR,'MODEFW',MODEFW, &
                    'mdlplw',mdlplw
-      WRITE(6,'(A,I5)') 'MODEL_PROF  =',MODEL_PROF
-      WRITE(6,'(A,I5)') 'MODEL_NPROF =',MODEL_NPROF
+      WRITE(6,'(A,I5)') ' MODEL_PROF  =',MODEL_PROF
+      WRITE(6,'(A,I5)') ' MODEL_NPROF =',MODEL_NPROF
 
       WRITE(6,100)
       DO NS=1,NSMAX

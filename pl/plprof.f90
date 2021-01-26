@@ -210,7 +210,12 @@
             BR   = 0.D0
             BZ   = 0.D0
          ELSE
-            CALL pl_qprf(RHON,QL)
+            IF(RHON.LE.1.D0) THEN
+               CALL pl_qprf(RHON,QL)
+            ELSE
+               CALL pl_qprf(1.D0,QL)
+               QL=RHON**2*QL
+            END IF
             RSINP= Z/RS
             RCOSP= (RL-RR)/RS
             BT   = BB*RR/RL

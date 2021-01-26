@@ -185,13 +185,11 @@
       IF(nrank.EQ.0) THEN
          REWIND(21)
          READ(21) NRAYMAX
-         write(6,*) '--- print 1: nraymax=',nraymax
          ALLOCATE(NITMAX(NRAYMAX))
 
          NITMAXM=1
          DO NRAY=1,NRAYMAX
             READ(21) NITMAX(NRAY)
-            write(6,*) '--- print 2: nray,nitmax=',nray,nitmax(nray)
             NITMAXM=MAX(NITMAX(NRAY),NITMAXM)
          ENDDO
          idata(1)=NRAYMAX
