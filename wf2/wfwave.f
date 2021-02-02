@@ -472,8 +472,8 @@ C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
                FACTOR=-XJ0(1,NA)*(RTJ0(2,NA)-RTJ0(1,NA))*PI/180.D0
      &                  /(YJ0(2,NA)-YJ0(1,NA))
                CVJ=-CNST*CFACT*CAJ(1)/PI
-               WRITE(6,'(A,I5,1P7E10.2)') 'CJ;',IJ,YM,ARG*PI/180.D0,
-     &                                          CFACT,FACTOR,CVJ
+!               WRITE(6,'(A,I5,1P7E10.2)') 'CJ;',IJ,YM,ARG*PI/180.D0,
+!     &                                          CFACT,FACTOR,CVJ
                CJ(1)= (0.D0,0.D0)
                CJ(2)= CVJ*(Y2-Y1)
                CJ(3)= CVJ*FACTOR*(Y2-Y1)
@@ -1817,8 +1817,8 @@ C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
                CJ(1)= (0.D0,0.D0)
                CJ(2)= CVJ*(Y2-Y1)
                CJ(3)= CVJ*FACTOR*(Y2-Y1)
-               WRITE(6,'(A,I5,1P7E10.2)') 'CJ;',IJ,YM,ARG*PI/180.D0,
-     &                                          CFACT,FACTOR,CVJ
+!               WRITE(6,'(A,I5,1P7E10.2)') 'CJ;',IJ,YM,ARG*PI/180.D0,
+!     &                                          CFACT,FACTOR,CVJ
             CASE(4)
                IF(IJ.EQ.1) GO TO 50
                X1=XJ(IJ-1,NA)
