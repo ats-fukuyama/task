@@ -42,7 +42,8 @@ MODULE fpcomm_parm
       real(rkind):: PMAX(NSM),PMAX_BB(NSM),EMAX(NSM)
       real(rkind):: R1,DELR1,RMIN,RMAX
       real(rkind):: E0,ZEFF
-      real(rkind):: PABS_EC,PABS_LH,PABS_FW,PABS_WR,PABS_WM
+      real(rkind):: PABS_EC,PABS_LH,PABS_FW,PIN_WR,PABS_WM
+      real(rkind):: PIN_WR_NRAY(NRAYM)
       real(rkind):: FACT_WR,FACT_WM,DELNPR_WR,DELNPR_WM
       real(rkind):: RF_WM,EPS_WR,DELY_WR,DELY_WM,Y0_WM
       real(rkind):: DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC
@@ -62,7 +63,6 @@ MODULE fpcomm_parm
       real(rkind):: v_RE,target_zeff,SPITOT,FACT_BULK
       real(rkind):: RN_NEU0, RN_NEUS ! temporal 
       real(rkind):: NI_RATIO(NSM)
-      real(rkind):: FACT_NRAY(NRAYM)
 
 !     for read experiment data
       CHARACTER(len=80):: EG_NAME_TMS, EG_NAME_CX, EG_NAME_HA3
@@ -197,8 +197,6 @@ module fpcomm
            DWECPP,DWECPT,DWLHPP,DWLHPT,DWFWPP,DWFWPT, &
            DWWRPP,DWWRPT,DWWMPP,DWWMPT, &
            SPPB,SPPF,SPPS,SPPI, &
-           DWPP_P,DWPT_P,DWTP_P,DWTT_P, &
-           DWWRPP_P,DWWRPT_P,DWWMPP_P,DWWMPT_P, &
            DWECTP,DWECTT,DWWRTP,DWWRTT,DWWMTP,DWWMTT, &
            DCPPB,DCPTB,FCPPB, &
            FSPP,FSTH,DLPP,FLPP,SPPL,SPPL_CX
@@ -472,12 +470,6 @@ module fpcomm
           allocate(DWWMPT(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
           allocate(DWWMTP(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
           allocate(DWWMTT(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
-          IF(MODEL_WAVE.ne.0)THEN
-             allocate(DWPP_P(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
-             allocate(DWPT_P(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
-             allocate(DWTP_P(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
-             allocate(DWTT_P(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
-          END IF
           IF(MODEL_DISRUPT.ne.0)THEN
              allocate(ER_drei(NRMAX),ER_crit(NRMAX),Rconnor(NRMAX), lnl_gl(NRMAX),RP_crit(NRMAX))
              allocate(RN_disrupt(NRMAX),RN_runaway(NRMAX), RN_drei(NRMAX),RN_runaway_M(NRMAX))
@@ -702,8 +694,6 @@ module fpcomm
           IF(MODEL_WAVE.ne.0)THEN
              deallocate(DWPP,DWPT)
              deallocate(DWTP,DWTT)
-             deallocate(DWPP_P,DWPT_P)
-             deallocate(DWTP_P,DWTT_P)
 
              deallocate(DWLHPP,DWLHPT)
              deallocate(DWFWPP,DWFWPT)

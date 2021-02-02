@@ -319,9 +319,9 @@
                   
                   IF(NCR.LT.NCRMAXM) THEN
                      NCR=NCR+1
-                     CECR(1,NCR,NR,NRAY)=FACT_WR*SQRT(FACT_NRAY(NRAY))*CEX
-                     CECR(2,NCR,NR,NRAY)=FACT_WR*SQRT(FACT_NRAY(NRAY))*CEY
-                     CECR(3,NCR,NR,NRAY)=FACT_WR*SQRT(FACT_NRAY(NRAY))*CEZ
+                     CECR(1,NCR,NR,NRAY)=FACT_WR*CEX
+                     CECR(2,NCR,NR,NRAY)=FACT_WR*CEY
+                     CECR(3,NCR,NR,NRAY)=FACT_WR*CEZ
                      RKCR(1,NCR,NR,NRAY)=RKX
                      RKCR(2,NCR,NR,NRAY)=RKY
                      RKCR(3,NCR,NR,NRAY)=RKZ

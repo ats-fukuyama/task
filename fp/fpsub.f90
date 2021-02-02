@@ -9,6 +9,7 @@ MODULE fpsub
   PUBLIC FPMXWL_LT
   PUBLIC update_fnsb_maxwell
   PUBLIC FPNEWTON
+  PUBLIC fp_calpabs
 
 CONTAINS
 
@@ -439,4 +440,108 @@ CONTAINS
       
       end Subroutine FPNEWTON
 
+!-------------------------------------------------------------
+
+      SUBROUTINE FP_CALPABS(DQPP,DQPT,PABSX)
+!
+      USE fpmpi
+      IMPLICIT NONE
+      REAL(rkind),INTENT(IN):: &
+           DQPP(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX), &
+           DQPT(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX)
+      REAL(rkind),INTENT(OUT):: PABSX
+      integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NPS, N, NSW
+      integer:: IERR
+      real(rkind):: RSUML,RSUM(NRSTART:NREND,NSAMAX),RSUMG(NRMAX,NSAMAX)
+      real(rkind):: PV, WPL, WPM, WPP
+      real(rkind):: DFP, DFT, FFP, FACTOR
+
+!----- sum up over NTH and NP
+
+      CALL mtx_set_communicator(comm_np) 
+      DO NR=NRSTART,NREND
+         DO NSA=NSASTART,NSAEND
+            NS=NS_NSA(NSA)
+
+            RSUML=0.D0
+
+            IF(NPSTART.eq.1)THEN
+               NPS=2
+            ELSE
+               NPS=NPSTART
+            END IF
+            DO NP=NPS,NPEND
+               PV=SQRT(1.D0+THETA0(NS)*PG(NP,NS)**2)
+               DO NTH=1,NTHMAX
+                  WPL=WEIGHP(NTH  ,NP,NR,NSA)
+                  IF(NTH.EQ.1) THEN
+                     WPM=0.D0
+                  ELSE
+                     WPM=WEIGHP(NTH-1,NP,NR,NSA)
+                  ENDIF
+                  IF(NTH.EQ.NTHMAX) THEN
+                     WPP=0.D0
+                  ELSE
+                     WPP=WEIGHP(NTH+1,NP,NR,NSA)
+                  ENDIF
+                  DFP=(FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)) &
+                      *PG(NP,NS)/DELP(NS)
+                  IF(NTH.EQ.1) THEN
+                     DFT= 1.D0/DELTH                              &
+                         *( ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSA)  &
+                                  +WPP *FNSP(NTH+1,NP-1,NR,NSA)) &
+                           -((1.D0-WPM)*FNSP(NTH  ,NP  ,NR,NSA)    &
+                                  +WPM *FNSP(NTH  ,NP-1,NR,NSA)))  
+                  ELSE IF(NTH.EQ.NTHMAX) THEN
+                     DFT= 1.D0/DELTH                               & 
+                         *(-((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSA)   &
+                                  +WPM *FNSP(NTH-1,NP-1,NR,NSA))  &
+                          + ((1.D0-WPP)*FNSP(NTH  ,NP  ,NR,NSA)   &
+                                  +WPP *FNSP(NTH  ,NP-1,NR,NSA)))
+                  ELSE
+                     DFT= 1.D0/(2.D0*DELTH)                        &
+                         *( ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSA)   &
+                                  +WPP *FNSP(NTH+1,NP-1,NR,NSA))  &
+                           -((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSA)   &
+                                  +WPM *FNSP(NTH-1,NP-1,NR,NSA)))
+                  ENDIF
+
+                  RSUML = RSUML+PG(NP,NS)**2*SINM(NTH)/PV &
+                                *(DQPP(NTH,NP,NR,NSA)*DFP    &
+                                 +DQPT(NTH,NP,NR,NSA)*DFT)
+               ENDDO
+            ENDDO
+            CALL p_theta_integration(RSUML)
+               
+            FACTOR=-RNFP0(NSA)*1.D20*PTFP0(NSA)**2*RFSADG(NR) &
+                   *2.D0*PI*DELP(NS)*DELTH*1.D-6/AMFP(NSA)
+            RSUM(NR,NSA)=RSUML*FACTOR
+         ENDDO
+      ENDDO
+      CALL mtx_reset_communicator
+
+!----- sum up over NR and NSA
+
+      CALL mtx_set_communicator(comm_nsanr) 
+      NSW=NSAEND-NSASTART+1
+      DO N=1,NSW
+         NSA=N+NSASTART-1
+         CALL fp_gatherv_real8_sav(RSUM,SAVLEN(NRANK+1),RSUMG,N,NSA)
+      END DO
+      IF(nrank.EQ.0) THEN
+         PABSX=0.D0
+         DO NSA=1,NSAMAX
+            DO NR=1,NRMAX
+               PABSX=PABSX+RSUMG(NR,NSA)*VOLR(NR)
+            END DO
+         END DO
+      END IF
+      CALL mtx_reset_communicator 
+
+!----- broadcast over world
+
+      CALL mtx_broadcast1_real8(PABSX)
+
+      RETURN
+      END SUBROUTINE FP_CALPABS
 END MODULE fpsub

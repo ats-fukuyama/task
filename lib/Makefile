@@ -23,7 +23,7 @@ SRCSFREE  =  task_kinds.f90 \
              libufile/ufinit.f90 libufile/uflist.f90 libufile/ufread.f90 \
              ufile.f90
 
-SRCSGRF   =  libgrf/grftype.f90 libgrf/grfutils.f90 \
+SRCSGRF   =  libgrf/grftype.f90 libgrf/grfutils.f90 libgrf/grdutils.f90 \
 	     libgrf/grf1dexec.f90 libgrf/grf2dexec.f90 \
 	     libgrf/grfxyexec.f90 \
 	     libgrf/grfconvert.f90 libgrf/grdconvert.f90 \
@@ -145,6 +145,7 @@ ufile.o: ufile.f90
 
 libgrf/grftype.o: libgrf/grftype.f90
 libgrf/grfutils.o: libgrf/grftype.f90 libgrf/grfutils.f90
+libgrf/grdutils.o: libgrf/grftype.f90 libgrf/grdutils.f90
 libgrf/grfconvert.o: libgrf/grftype.f90  libgrf/grfutils.f90 \
                      libgrf/grfconvert.f90
 libgrf/grdconvert.o: $(TASKCOMM) libgrf/grftype.f90  libgrf/grfutils.f90 \
