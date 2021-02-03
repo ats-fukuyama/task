@@ -29,7 +29,7 @@
   RIP=15
   nobt_max=1
   
-  tmax=1.D2
+  tmax=5.D1
   delt=5.D-2
   mdlobw=0
   mdlobi=0
@@ -42,7 +42,7 @@
 &fp
   npmax=10
   nthmax=20
-  nrmax=8
+  nrmax=12
   RR=6.2
   RA=2.0
   RKAP=1.7
@@ -63,20 +63,12 @@
 
   PA(2)=2.D0
   PZ(2)=1.D0
-  PN(1)=1.0D0,1.0D0
-  PNS(1)=0.05D0,0.05D0
+  PN(1)=1.0D-1,1.0D-1
+  PNS(1)=0.05D-1,0.05D-1
 
-!  PTPR(1)=5.D1,5.D1
-!  PTPP(1)=5.D1,5.D1
-!  PTS(1)=1.D-1,1.D-1
-
-  PTPR(1)=2.5D0,2.5D0
-  PTPP(1)=2.5D0,2.5D0
+  PTPR(1)=8.D0,8.D0
+  PTPP(1)=8.D0,8.D0
   PTS(1)=2.5D0,2.5D0
-
-!  PTPR(1)=1.D1,1.D1
-!  PTPP(1)=1.D1,1.D1
-!  PTS(1)=2.D0,2.D0
 
   MODELN=1
   ZEFF=2.D0
@@ -109,5 +101,5 @@
   MODELD_PDEP=0
 
   DELT=1.d-5
-  NTMAX=3
+  NTMAX=1
 &end

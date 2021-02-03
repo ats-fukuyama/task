@@ -1,7 +1,7 @@
 module fowdistribution
   implicit none
   private
-  public :: fI_Maxwellian,fI_Maxwellian_sub
+  public :: fI_Maxwellian
   public :: convert_fI_to_fu
   public :: moment_0th_order_COM, moment_2nd_order_COM
   public :: particle_flux, particle_flux_element
@@ -9,83 +9,35 @@ module fowdistribution
 
 contains
 
-  function fI_Maxwellian(nth,np,nr,nsa) result(fI)
-    use plprof
-    use fpcomm
-    use fowcomm
-    use foworbit
-
-    implicit none
-    real(rkind) :: fI
-    integer,intent(in) :: nth, np, nr, nsa
-    real(rkind) :: ra_Bmin, theta_Bmin, rtfd0l, ptfd0l, fact, ex
-    real(rkind) :: rnfd0l, rnfdl, rtfdl
-    integer :: ns
-    type(pl_plf_type),dimension(nsmax) :: plf
-
-    ns = ns_nsa(nsa)
-
-    call quantities_at_Bminimum(ra_Bmin, theta_Bmin, orbit_m(nth,np,nr,nsa))
-
-    rtfd0l = ( ptpr(ns)+2.d0*ptpp(ns) )/3.d0
-    ptfd0l = SQRT( rtfd0l*1.d3*aee*amfp(ns) )
-    rnfd0l = pn(ns)
-
-
-    if( model_ex_read_tn == 0 ) then
-      call pl_prof(ra_Bmin, plf)
-      rnfdl = plf(ns)%rn/rnfd0l
-      rtfdl = ( plf(ns)%rtpr+2.d0*plf(ns)%rtpp)/3.d0
-
-    else
-      rnfdl=rn_temp(nr,ns)/rnfd0l
-      rtfdl=rt_temp(nr,ns)
-
-    end if
-
-    fact = rnfdl / SQRT(2.d0*pi*rtfdl/rtfd0l)**3
-    ex = pm(np,nsa)**2/(2.d0*rtfdl/rtfd0l)
-    fI = fact*EXP( -1.d0*ex )! / JI(nth,np,nr,nsa)
-
-  end function
-
-  subroutine fI_Maxwellian_sub(fI, nsa)
-    use plprof
+  subroutine fI_Maxwellian(fI)
     use fpcomm
     use fpsub
     use fowcomm
     use foworbit
 
     implicit none
-    real(rkind),intent(out) :: fI(:,:,:)
-    integer,intent(in) :: nsa
+    real(rkind),dimension(nthmax,npmax,nrmax,nsamax),intent(out) :: fI
+
     real(rkind) :: ra_Bmin, theta_Bmin, rtfd0l, ptfd0l, fact, ex
     real(rkind) :: rnfd0l, rnfdl, rtfdl, normalize
-    integer :: nth, np, nr, ns
+    integer :: nth, np, nr, ns, nsa
     real(rkind) :: sumI, sumu, r0, psip0, costh0, sinth0, B0, F0, dBdr0, dFdr0, dpsipdr0
-    type(pl_plf_type),dimension(nsmax) :: plf
 
-    ns = ns_nsa(nsa)
+    do nsa = 1, nsamax
+      ns = ns_nsa(nsa)
 
-    sumI = 0.d0
-    sumu = 0.d0
-    do nr = 1, nrmax
-      do np = 1, npmax
-        do nth = 1, nthmax
-
-          call mean_ra_quantities(orbit_m(nth,np,nr,nsa), r0, psip0, costh0, sinth0, B0, F0, dBdr0, dFdr0, dpsipdr0)
-
-          rtfd0l = ( ptpr(ns)+2.d0*ptpp(ns) )/3.d0
-          ptfd0l = SQRT( rtfd0l*1.d3*aee*amfp(ns) )
-          rnfd0l = pn(ns)
-      
-      
-          if( model_ex_read_tn == 0 ) then
-            call pl_prof(r0, plf)
-            rnfdl = plf(ns)%rn/rnfd0l
-            rtfdl = ( plf(ns)%rtpr+2.d0*plf(ns)%rtpp)/3.d0
-      
-          else
+      sumI = 0.d0
+      sumu = 0.d0
+      do nr = 1, nrmax
+        do np = 1, npmax
+          do nth = 1, nthmax
+  
+            call mean_ra_quantities(orbit_m(nth,np,nr,nsa), r0, psip0, costh0, sinth0, B0, F0, dBdr0, dFdr0, dpsipdr0)
+  
+            rtfd0l = ( ptpr(ns)+2.d0*ptpp(ns) )/3.d0
+            ptfd0l = SQRT( rtfd0l*1.d3*aee*amfp(ns) )
+            rnfd0l = pn(ns)
+              
             ! rnfdl=rn_temp(nr,ns)/rnfd0l
             ! rtfdl=rt_temp(nr,ns)
             if ( nr == 1 ) then
@@ -95,31 +47,31 @@ contains
               rnfdl = rn_temp(nr,ns)/rnfd0l+(rn_temp(nr,ns)/rnfd0l-rn_temp(nr-1,ns)/rnfd0l)/delr*(r0-rm(nr))
               rtfdl = rt_temp(nr,ns)+(rt_temp(nr,ns)-rt_temp(nr-1,ns))/delr*(r0-rm(nr))
             end if
-      
-          end if
-      
-          ex = pm(np,nsa)**2/(2.d0*rtfdl/rtfd0l)
-          fI(nth, np, nr) = EXP( -1.d0*ex )! / JI(nth,np,nr,nsa)
-      
+            
+            ex = pm(np,nsa)**2/(2.d0*rtfdl/rtfd0l)
+            fI(nth,np,nr,nsa) = EXP( -1.d0*ex )! / JI(nth,np,nr,nsa)
+        
+          end do
         end do
       end do
-    end do
-
-    do nr = 1, nrmax
-      sumI = 0.d0
-      do np = 1, npmax
-        do nth = 1, nthmax
-          sumI = sumI + fI(nth,np,nr)*JIR(nth,np,nr,nsa)*delp(nsa)*delthm(nth,np,nr,nsa)
+  
+      do nr = 1, nrmax
+        sumI = 0.d0
+        do np = 1, npmax
+          do nth = 1, nthmax
+            sumI = sumI + fI(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)*delp(nsa)*delthm(nth,np,nr,nsa)
+          end do
         end do
-      end do
-
-      normalize = rn_temp(nr,ns)/rnfd0l/sumI
-      do np = 1, npmax
-        do nth = 1, nthmax
-          fI(nth,np,nr) = fI(nth,np,nr)*normalize
+  
+        normalize = rn_temp(nr,ns)/(rnfd0l*sumI)
+        do np = 1, npmax
+          do nth = 1, nthmax
+            fI(nth,np,nr,nsa) = fI(nth,np,nr,nsa)*normalize
+          end do
         end do
+  
       end do
-
+  
     end do
 
   end subroutine
@@ -250,6 +202,7 @@ contains
             M0(nr,nsa) = M0(nr,nsa) + fI_in(nth,np,nr,nsa) * dVI * JIR(nth,np,nr,nsa)
           end do
         end do
+        M0(nr,nsa) = M0(nr,nsa)*rnfp0(nsa)
       end do
     end do
 
@@ -341,7 +294,7 @@ contains
           end do
         end do
 
-        Sr(nr,nsa) = sum_gammaI
+        Sr(nr,nsa) = rnfp0(nsa)*sum_gammaI
 
       end do
     end do
@@ -395,10 +348,10 @@ contains
             Drx(3) = ( Drrfow(nth,np,nr+1,nsa) + Drrfow(nth,np,nr,nsa) )*0.5d0
             Fr     = ( Frrfow(nth,np,nr+1,nsa) + Frrfow(nth,np,nr,nsa) )*0.5d0
 
-            Sr_Dp (nr,nsa) = Sr_Dp (nr,nsa) - Drx(1)*dfdp (nth,np,nr,nsa)/JI(nth,np,nr,nsa)*dVI
-            Sr_Dth(nr,nsa) = Sr_Dth(nr,nsa) - Drx(2)*dfdth(nth,np,nr,nsa)/JI(nth,np,nr,nsa)*dVI
-            Sr_Dr (nr,nsa) = Sr_Dr (nr,nsa) - Drx(3)*dfdrm(nth,np,nr,nsa)/JI(nth,np,nr,nsa)*dVI
-            Sr_F  (nr,nsa) = Sr_F  (nr,nsa) + Fr    *fnsp (nth,np,nr,nsa)/JI(nth,np,nr,nsa)*dVI
+            Sr_Dp (nr,nsa) = Sr_Dp (nr,nsa) - rnfp0(nsa)*Drx(1)*dfdp (nth,np,nr,nsa)/JI(nth,np,nr,nsa)*dVI
+            Sr_Dth(nr,nsa) = Sr_Dth(nr,nsa) - rnfp0(nsa)*Drx(2)*dfdth(nth,np,nr,nsa)/JI(nth,np,nr,nsa)*dVI
+            Sr_Dr (nr,nsa) = Sr_Dr (nr,nsa) - rnfp0(nsa)*Drx(3)*dfdrm(nth,np,nr,nsa)/JI(nth,np,nr,nsa)*dVI
+            Sr_F  (nr,nsa) = Sr_F  (nr,nsa) + rnfp0(nsa)*Fr    *fnsp (nth,np,nr,nsa)/JI(nth,np,nr,nsa)*dVI
           end do
         end do
         Sr(nr,nsa) = Sr_Dp(nr,nsa)+Sr_Dth(nr,nsa)+Sr_Dr(nr,nsa)+Sr_F(nr,nsa)

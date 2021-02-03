@@ -85,6 +85,8 @@ contains
 
     end if
 
+    call cpu_time(begin_time)
+
     ierr = 0
     call fow_set_obparm(ierr)
 
@@ -175,11 +177,14 @@ contains
       end do
     end do
 
+    call cpu_time(end_time)
+    write(6,'("TASK/OB time:",ES10.3,"[sec]")')end_time-begin_time
+
     if ( model_obload /= 0 ) then
       call cpu_time(begin_time)
       call save_orbit(ierr)
       call cpu_time(end_time)
-      write(6,'("TASK/OB time:",ES10.3,"[sec]")')end_time-begin_time
+      write(6,'("Save orbit time:",ES10.3,"[sec]")')end_time-begin_time
       if ( ierr /= 0 ) then
         write(6,'("IOSTAT = ",I4," in save_orbit")'),ierr
       end if
@@ -307,7 +312,7 @@ contains
         end if
       end if
 
-      ob%time(nstp)  = time_ob(i,1)
+      ob%time(nstp)  = time_ob(i,1)*2.d0*pi
       ob%psip(nstp)  = psip_ob(i,1)
       ob%Babs(nstp)  = Babs_ob(i,1)
       ob%thetap(nstp)= theta_ob(i,1)

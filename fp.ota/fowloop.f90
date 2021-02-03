@@ -5,10 +5,6 @@ module fowloop
   double precision,allocatable,dimension(:,:,:)     :: density, p_flux, Deff, temperature
   double precision,allocatable,dimension(:,:,:)     :: Sr, Sr_Dp, Sr_Dth, Sr_Dr, Sr_F
   double precision,allocatable,dimension(:,:,:,:,:) :: fI, source
-  double precision,allocatable,dimension(:,:,:,:) :: nu_collision
-
-  double precision,allocatable,dimension(:,:)       :: BMT, DLT, FMT
-  double precision,allocatable,dimension(:,:,:)     :: ALT
 
 contains
 
@@ -32,7 +28,11 @@ contains
 
     coef_is_updated = .false.
 
+    ! initial distribution
+    call fI_Maxwellian(fnsp)
+    ! initial coefficient
     call fow_coef
+    
     call fow_calculate_source(0)
 
     do nt = 1, ntmax
@@ -118,7 +118,7 @@ contains
       call cpu_time(end_time_loop)
       write(6,'(A,I0,A,ES10.3,A)'),'time to loop(nt=',nt,'):',end_time_loop-begin_time_loop,'[sec]'
       
-    end do
+    end do ! time loop
 
   end subroutine fow_loop
 
@@ -169,12 +169,13 @@ contains
     use fpwrite
     use foworbit
     use fowdistribution
+    use check_neoclass
     implicit none
     integer,intent(in) :: nt
     double precision :: r_, psip0, costh0, sinth0, B0, F0, dBdr0, dFdr0, dpsipdr0, MJ2keV
     double precision,dimension(nrmax) :: rmg
     double precision,dimension(nthmax,npmax,nrmax,nsamax) :: taup, r0, gammaI
-    integer :: nth,np,nr,nsa,nm,nm2
+    integer :: nth,np,nr,nsa
 
     if ( .not.allocated(density) ) allocate(density(             nrmax,nsamax,ntmax))
     if ( .not.allocated(p_flux ) ) allocate(p_flux (             nrmax,nsamax,ntmax))
@@ -186,13 +187,8 @@ contains
     if ( .not.allocated(Deff   ) ) allocate(Deff   (             nrmax,nsamax,ntmax))
     if ( .not.allocated(fI     ) ) allocate(fI     (nthmax,npmax,nrmax,nsamax,ntmax))
     if ( .not.allocated(source ) ) allocate(source (nthmax,npmax,nrmax,nsamax,ntmax))
-    if ( .not.allocated(BMT    ) ) allocate(BMT    (nmmax,ntmax                    ))
-    if ( .not.allocated(DLT    ) ) allocate(DLT    (nmmax,ntmax                    ))
-    if ( .not.allocated(FMT    ) ) allocate(FMT    (nmmax,ntmax                    ))
-    if ( .not.allocated(ALT    ) ) allocate(ALT    (nmmax,nlmaxm,ntmax             ))
 
-    if ( .not.allocated(temperature) ) allocate(temperature(nrmax,nsamax,ntmax))
-    if ( .not.allocated(nu_collision) ) allocate(nu_collision(nrmax,nsbmax,nsamax,ntmax))
+    if ( .not.allocated(temperature)        ) allocate(temperature(nrmax,nsamax,ntmax))
     
 
     MJ2keV = 1.d-3/aee*1.d6
@@ -227,6 +223,8 @@ contains
       call fptxt1D(rm,"dat/rm.txt")
       call fptxt1D(rg,"dat/rg.txt")
       call fptxt1D(rmg,"dat/rmg.txt")
+
+      call fptxt1D(safety_factor,"dat/safety_factor.txt")
     
       call fptxt2D(pm,"dat/pm.txt")
       call fptxt2D(pg,"dat/pg.txt")
@@ -265,16 +263,9 @@ contains
       call fptxt4D(Fcpp,"dat/Fpp_fp.txt")
       call fptxt4D(Fcth,"dat/Fth_fp.txt")
 
-    end if
+      call output_neoclass
 
-    do nm = 1, nmmax
-      BMT(nm,nt) = BM(nm)
-      DLT(nm,nt) = DL(nm)
-      FMT(nm,nt) = FM(nm)
-      do nm2 = 1, nlmaxm
-        ALT(nm,nm2,nt) = AL(nm,nm2)
-      end do
-    end do
+    end if
 
     do nsa = 1, nsamax
       do nr = 1, nrmax
@@ -302,7 +293,6 @@ contains
 
     call particle_flux_element(Sr(:,:,nt), Sr_Dp(:,:,nt), Sr_Dth(:,:,nt), Sr_Dr(:,:,nt), Sr_F(:,:,nt))
     call effective_diffusion_cosfficient(Deff(:,:,nt))
-    call collision_frequency(nu_collision(:,:,:,nt),.false.)
 
     if ( nt == ntmax ) then
       call fptxt5D(fI,"dat/f.txt")
@@ -316,79 +306,8 @@ contains
       call fptxt3D(Sr_Dr,"dat/Sr_Dr.txt")
       call fptxt3D(Sr_F,"dat/Sr_F.txt")
       call fptxt3D(temperature,"dat/temperature.txt")
-      call fptxt4D(nu_collision,"dat/nu_coll.txt")
-      call fptxt2D(BMT, "dat/bm.txt")
-      call fptxt2D(DLT, "dat/dl.txt")
-      call fptxt3D(ALT, "dat/al.txt")
-      call fptxt2D(FMT, "dat/fm.txt")
     end if
 
   end subroutine output_data
 
-  subroutine collision_frequency(nu_coll, normalize_)
-    use fpcomm
-    use fowcomm
-
-    implicit none
-    real(rkind),dimension(nrmax,nsbmax,nsamax),intent(out) :: nu_coll
-    logical,intent(in),optional :: normalize_
-
-    logical :: normalize
-    integer :: nth, np, nr, nsa, nsb, nssa, nssb
-    real(rkind) :: mu, numerator, denominator, v0, temp, dens
-    real(rkind) :: taup, taup_mean, dVI
-
-    if ( present(normalize_) ) then
-      normalize = normalize_
-    else
-      normalize = .true.
-    end if
-
-    do nsa = 1, nsamax
-      nssa = ns_nsb(nsa)
-      do nsb = 1, nsbmax
-        nssb = ns_nsa(nsb)
-        mu = pa(nssa)*pa(nssb)/(pa(nssa)+pa(nssb))*amp
-        do nr = 1, nrmax
-          dens = rnsl(nr,nsb)*1.d20
-          temp = rwsl(nr,nsa)/( 1.5d0*rnsl(nr,nsa)*1.d20 ) ! [MJ]
-          temp = temp * 1.d6                               ! [J]
-          v0 = SQRT( 3.d0*temp/(pa(nssa)*amp) )            ! [m/s]
-
-          numerator   = dens*(pz(nssa)*pz(nssb))**2*aee**4
-          denominator = 2.d0*pi*eps0**2*mu**2*v0**3
-
-          nu_coll(nr,nsb,nsa) = numerator/denominator * lnlam(nr,nsb,nsa)
-        end do
-      end do
-    end do
-
-    ! normalize by tau_orbit
-    if ( normalize ) then
-
-      do nsa = 1, nsamax
-        nssa = ns_nsa(nsa)
-        do nr = 1, nrmax
-          taup_mean = 0.d0
-          do np = 1, npmax
-            do nth = 1, nthmax
-              dVI = delp(nssa)*delthm(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)
-              taup = orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max)
-              taup_mean = taup_mean + taup*fnsp(nth,np,nr,nsa)*dVI
-            end do
-          end do
-          taup_mean = taup_mean*rnfp0(nsa)/rnsl(nr,nsa)
-
-          do nsb = 1, nsbmax
-            nu_coll(nr,nsb,nsa) = nu_coll(nr,nsb,nsa)*taup_mean
-          end do
-
-        end do
-      end do
-      
-    end if
-    
-
-  end subroutine collision_frequency
-  
 end module fowloop
