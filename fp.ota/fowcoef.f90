@@ -1,15 +1,11 @@
 module fowcoef
   use fpcomm,only:rkind
 
-  private
-
-  public :: fow_coef
-
-  real(rkind),allocatable,dimension(:,:,:,:,:) :: Dppl, Dptl, Fppl,&
+  real(rkind),allocatable,dimension(:,:,:,:,:),private :: Dppl, Dptl, Fppl,&
                                                   Dtpl, Dttl, Fthl
   
-  real(rkind),allocatable :: FNSBL(:,:,:,:,:)
-  real(rkind),allocatable :: check_zeroD(:,:,:), check_zeroF(:,:)
+  real(rkind),allocatable,private :: FNSBL(:,:,:,:,:)
+  real(rkind),allocatable,private :: check_zeroD(:,:,:), check_zeroF(:,:)
 
 contains
 
@@ -60,6 +56,11 @@ contains
     ! get local distribution function f(p,theta,r/a,thetap)
     call convert_fI_to_fu(FNSBL, FNSP)
 
+    ! calculate coefficients
+    MODELA = 0      ! bounce average is not executed in FP_CALX
+    ! call FP_CALE    ! FEXX
+    ! call FP_CALW    ! DWXX
+    call FP_CALC    ! DCXX, FCXX
 
     ! calculate local coefficient Dxxl(nth,np,nr,nthp,nsa)
     do nthp = 1, nthpmax
@@ -74,12 +75,6 @@ contains
           end do
         end do
       end do
-
-      ! calculate coefficients
-      MODELA = 0      ! bounce average is not executed in FP_CALX
-      ! call FP_CALE    ! FEXX
-      ! call FP_CALW    ! DWXX
-      call FP_CALC    ! DCXX, FCXX
 
       ! substitute Dxx at nthp to Dxxl
       do nsa = 1, nsamax
@@ -140,7 +135,7 @@ contains
 
     implicit none
     integer :: nth, np, nr, nsa, nthp, mode(3), nstp, nstpmax, ierr = 0
-    real(rkind),allocatable :: dIdu(:,:,:)
+    real(rkind),dimension(3,3,max_stp) :: dIdu
     real(rkind),allocatable:: U_Dpp(:,:,:,:,:,:,:,:),& ! spline coefficient of Dppl in (\theta, \psi_p, \theta_p) plane
                               U_Dpt(:,:,:,:,:,:,:,:),& 
                               U_Fpp(:,:,:,:,:,:,:,:),& 
@@ -161,12 +156,12 @@ contains
 
 
     do nsa = 1, nsamax
-      if ( check_zeroD(1,1,nsa) >= 1.d-50 ) call make_U_Dxy(U_Dpp, Dppl, 'p', nsa)
-      if ( check_zeroD(1,2,nsa) >= 1.d-50 ) call make_U_Dxy(U_Dpt, Dptl, 'p', nsa)
-      if ( check_zeroD(2,1,nsa) >= 1.d-50 ) call make_U_Dxy(U_Dtp, Dtpl, 't', nsa)
-      if ( check_zeroD(2,2,nsa) >= 1.d-50 ) call make_U_Dxy(U_Dtt, Dttl, 't', nsa)
-      if ( check_zeroF(1,nsa) >= 1.d-50 )   call make_U_Dxy(U_Fpp, Fppl, 'p', nsa)
-      if ( check_zeroF(2,nsa) >= 1.d-50 )   call make_U_Dxy(U_Fth, Fthl, 't', nsa)  
+      if ( check_zeroD(1,1,nsa) >= 1.d-70 ) call make_U_Dxy(U_Dpp, Dppl, 'p', nsa)
+      if ( check_zeroD(1,2,nsa) >= 1.d-70 ) call make_U_Dxy(U_Dpt, Dptl, 'p', nsa)
+      if ( check_zeroD(2,1,nsa) >= 1.d-70 ) call make_U_Dxy(U_Dtp, Dtpl, 't', nsa)
+      if ( check_zeroD(2,2,nsa) >= 1.d-70 ) call make_U_Dxy(U_Dtt, Dttl, 't', nsa)
+      if ( check_zeroF(1,nsa) >= 1.d-70 )   call make_U_Dxy(U_Fpp, Fppl, 'p', nsa)
+      if ( check_zeroF(2,nsa) >= 1.d-70 )   call make_U_Dxy(U_Fth, Fthl, 't', nsa)  
     end do
 
     ! calculate Dpp, Dpt, Dpr, Fp
@@ -186,8 +181,6 @@ contains
 
             nstpmax = orbit_p(nth,np,nr,nsa)%nstp_max
 
-            allocate(dIdu(3,3,nstpmax))
-
             mode = [0,1,0]
             call transformation_matrix(dIdu, orbit_p(nth,np,nr,nsa), nth, np, nr, nsa, mode)
 
@@ -205,7 +198,6 @@ contains
 
 
               dt = orbit_p(nth,np,nr,nsa)%time(nstp)-orbit_p(nth,np,nr,nsa)%time(nstp-1)
-              sumt = sumt + dt
 
               ! Dxxfow = int_0^tau_p (integrand) dt
               Dppfow(nth,np,nr,nsa) = Dppfow(nth,np,nr,nsa)&
@@ -231,12 +223,6 @@ contains
             Dptfow(nth,np,nr,nsa) = Dptfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * JIl
             Dprfow(nth,np,nr,nsa) = Dprfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * JIl
             Fppfow(nth,np,nr,nsa) = Fppfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * JIl
-            ! Dppfow(nth,np,nr,nsa) = Dppfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * JIl
-            ! Dptfow(nth,np,nr,nsa) = 0.d0
-            ! Dprfow(nth,np,nr,nsa) = 0.d0
-            ! Fppfow(nth,np,nr,nsa) = Fppfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * JIl
-
-            deallocate(dIdu)
 
           end do
         end do
@@ -259,8 +245,6 @@ contains
             end if
 
             nstpmax = orbit_th(nth,np,nr,nsa)%nstp_max
-
-            allocate(dIdu(3,3,nstpmax))
 
             mode = [1,0,0]
             call transformation_matrix(dIdu, orbit_th(nth,np,nr,nsa), nth, np, nr, nsa, mode)
@@ -327,8 +311,6 @@ contains
             Dtrfow(nth,np,nr,nsa) = Dtrfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax) * JIl      
             Fthfow(nth,np,nr,nsa) = Fthfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax) * JIl
 
-            deallocate(dIdu)
-
           end do
         end do
       end do
@@ -349,8 +331,6 @@ contains
             end if
 
             nstpmax = orbit_r(nth,np,nr,nsa)%nstp_max
-
-            allocate(dIdu(3,3,nstpmax))
 
             mode = [0,0,1]
             call transformation_matrix(dIdu, orbit_r(nth,np,nr,nsa), nth, np, nr, nsa, mode)
@@ -412,8 +392,6 @@ contains
             Drrfow(nth,np,nr,nsa) = Drrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) * JIl
             Frrfow(nth,np,nr,nsa) = Frrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) * JIl
 
-            deallocate(dIdu)
-
           end do
         end do
       end do
@@ -429,7 +407,7 @@ contains
 
     implicit none
 
-    real(rkind),intent(out) :: dIdu(:,:,:)
+    real(rkind),dimension(3,3,max_stp),intent(out) :: dIdu
     type(orbit),intent(in) :: ob
     integer,intent(in) :: nth, np, nr, nsa, mode(3)
 
@@ -594,6 +572,15 @@ contains
         Xtmp(nth) = cosg(nth)
       end do
 
+    else if ( x == 'm' ) then
+      p = 0
+      t = 0
+
+      allocate(Xtmp(nthmax))
+      do nth = 1, nthmax
+        Xtmp(nth) = cosm(nth)
+      end do
+
     end if
 
     allocate( Dxyl_tmp(nthmax+t,nrmax,nthpmax), U_Dxy_tmp(4,4,4,nthmax+t,nrmax,nthpmax) )
@@ -647,7 +634,7 @@ contains
     nymax = size(U,5)
     nzmax = size(U,6)
 
-    if ( check0 < 1.d-80 ) then
+    if ( check0 < 1.d-70 ) then
       C_out = 0.d0
       return
     end if

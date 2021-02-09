@@ -56,7 +56,8 @@ module fowcomm
                                           dFgdr,&                ! dFpsig/drhom
                                           dBoutgdr,&             ! dBoutg/drhom
                                           dBingdr,&              ! dBing/drhom
-                                          dpsimgdr               ! dpsimg/drhom
+                                          dpsimgdr,&             ! dpsimg/drhom
+                                          safety_factor          ! dpsimg/drhom
 
   real(rkind),allocatable,dimension(:,:) :: Babs,&                 ! B(psip,thetap)
                                             dBdr,&                 ! dBabs/rhot
@@ -148,6 +149,8 @@ contains
     allocate(dBoutgdr(nrmax+1))
     allocate(dBingdr (nrmax+1))
     allocate(dpsimgdr(nrmax+1))
+
+    allocate(safety_factor(nrmax))
 
     allocate(Babs    (nrmax  ,nthpmax))
     allocate(dBdr    (nrmax  ,nthpmax))

@@ -9,7 +9,7 @@ contains
     use fowcomm
     use fpcomm
     use foworbit
-    use fowdistribution
+    use orbit_classify
 
     implicit none
 
@@ -23,6 +23,8 @@ contains
 
     ! load equiliblium variable
     call fow_eqload(ierr)
+
+    ! call output_orbit_classify
 
     ! calculate thetam
     nthm3 = nthmax/2
@@ -408,46 +410,44 @@ contains
     call calculate_jacobian
 
     ! calculate local COMs
-    if ( model_obload >= 1 .and. flag == 0) then
-      call cpu_time(begin_time)
-      call load_local_COM(ierr)
-      call cpu_time(end_time)
-      write(6,'("Load local COMs time :",ES10.3,"[sec]")')end_time-begin_time
-    end if
-
-    if ( model_obload == 0 .or. ierr /= 0 .or. flag /= 0) then
-      write(6,'(A)')"TASK/OB is runnnig for local COMs ..."
-      call cpu_time(begin_time)
-      do nsa = 1, nsamax
-        do nthp = 1, nthpmax
-          do nr = 1, nrmax
-            do np = 1, npmax
-              do nth = 1, nthmax
-                momentum = pm(np,nsa)*ptfp0(nsa)
-                pitch_angle = thm(nth)
-                theta_pol = theta_p(nthp)
-                psi_pol = psim(nr)
+    if ( SUM( modelc ) >= 2*nsamax ) then
+      if ( model_obload >= 1 .and. flag == 0) then
+        call cpu_time(begin_time)
+        call load_local_COM(ierr)
+        call cpu_time(end_time)
+        write(6,'("Load local COMs time :",ES10.3,"[sec]")')end_time-begin_time
+      end if
   
-                call fow_cal_local_COMs(thetaml, rhoml, tau_loss, momentum, pitch_angle, theta_pol, psi_pol, nsa)
-  
-                thetam_local(nth,np,nr,nthp,nsa) = thetaml
-                rhom_local(nth,np,nr,nthp,nsa) = rhoml
-                time_loss(nth,np,nr,nthp,nsa) = tau_loss
-  
+      if ( model_obload == 0 .or. ierr /= 0 .or. flag /= 0) then
+        write(6,'(A)')"TASK/OB is runnnig for local COMs ..."
+        call cpu_time(begin_time)
+        do nsa = 1, nsamax
+          do nthp = 1, nthpmax
+            do nr = 1, nrmax
+              do np = 1, npmax
+                do nth = 1, nthmax
+                  momentum = pm(np,nsa)*ptfp0(nsa)
+                  pitch_angle = thm(nth)
+                  theta_pol = theta_p(nthp)
+                  psi_pol = psim(nr)
+    
+                  call fow_cal_local_COMs(thetaml, rhoml, tau_loss, momentum, pitch_angle, theta_pol, psi_pol, nsa)
+    
+                  thetam_local(nth,np,nr,nthp,nsa) = thetaml
+                  rhom_local(nth,np,nr,nthp,nsa) = rhoml
+                  time_loss(nth,np,nr,nthp,nsa) = tau_loss
+    
+                end do
               end do
             end do
           end do
         end do
-      end do
-      call cpu_time(end_time)
-      write(6,'("TASK/OB time:",ES10.3,"[sec]")')end_time-begin_time
-      if ( model_obload >= 0 ) call save_local_COM(ierr)
+        call cpu_time(end_time)
+        write(6,'("TASK/OB time:",ES10.3,"[sec]")')end_time-begin_time
+        if ( model_obload > 0 ) call save_local_COM(ierr)
+      end if  
     end if
     
-    do nsa = 1, nsamax
-      call fI_Maxwellian_sub(fnsp(:,:,:,nsa), nsa)
-    end do
-
   end subroutine fow_prep
 
   subroutine fow_eqload(ierr)
@@ -463,8 +463,8 @@ contains
     real(rkind),allocatable,dimension(:) :: temp,thpa
     integer :: nr,nthp
 
-    real(rkind),allocatable,dimension(:,:) :: Cps, CF
-    real(rkind),allocatable,dimension(:)   :: dpsim, dFpsi
+    real(rkind),allocatable,dimension(:,:) :: Cps, CF, Cq
+    real(rkind),allocatable,dimension(:)   :: dpsim, dFpsi, dqdpsi
     real(rkind),allocatable :: dBdrho(:,:), dBdth(:,:), dBdrt(:,:), CB(:,:,:,:)
 
     allocate(ppsi(nrmax+1),qpsi(nrmax+1),vpsi(nrmax+1),rlen(nrmax+1),ritpsi(nrmax+1)&
@@ -472,8 +472,8 @@ contains
     allocate(Br(nthpmax,nrmax+1),Bz(nthpmax,nrmax+1),Bp(nthpmax,nrmax+1),Bt(nthpmax,nrmax+1))
     allocate(temp(nrmax+1),thpa(nthpmax))
 
-    allocate(Cps(4,nrmax), CF(4,nrmax), CB(4,4,nrmax,nthpmax))
-    allocate(dpsim(nrmax), dFpsi(nrmax))
+    allocate(Cps(4,nrmax), CF(4,nrmax), Cq(4,nrmax), CB(4,4,nrmax,nthpmax))
+    allocate(dpsim(nrmax), dFpsi(nrmax), dqdpsi(nrmax))
     allocate(dBdrho(nrmax,nthpmax), dBdth(nrmax,nthpmax), dBdrt(nrmax,nthpmax))
 
     ierr = 0
@@ -501,7 +501,7 @@ contains
     call eqcalq(ierr)
     if(ierr.ne.0) return
 
-    call eqgetp(rhotg,psimg,nrmax+1)                        ! normalized psit radius , use only psimg
+    call eqgetp(rhotg,psimg,nrmax+1)                       ! normalized psit radius , use only psimg
     call eqgetqn(ppsi,qpsi,Fpsig,vpsi,rlen,ritpsi,nrmax+1) ! flux functions         , use only Fpsig
     call eqgetbb(Br,Bz,Bp,Bt,nthpmax,nthpmax,nrmax+1)      ! mag field              , use only Bt and Bp
     call eqgeta(rr_axis,zz_axis,psi0,psit0,qaxis,qsurf)    ! axis and mag parameters, use only psi0
@@ -518,6 +518,7 @@ contains
         rhot(nr) = rhotg(nr)
         Fpsi(nr) = Fpsig(nr)
         psim(nr) = psimg(nr)
+        safety_factor(nr) = qpsi(nr)
         do nthp = 1, nthpmax
           Babs(nr,nthp) = sqrt(Bt(nthp,nr)**2+Bp(nthp,nr)**2)
         end do  
@@ -526,9 +527,11 @@ contains
 
     call first_order_derivative(dpsim,psim,rhot)
     call first_order_derivative(dFpsi,Fpsi,rhot)
+    call first_order_derivative(dqdpsi,safety_factor,rhot)
 
     call spl1D(rhot,psim,dpsim,Cps,nrmax,3,ierr)
     call spl1D(rhot,Fpsi,dFpsi,CF,nrmax,3,ierr)
+    call spl1D(rhot,safety_factor,dqdpsi,Cq,nrmax,3,ierr)
 
     call spl2D(rhot,theta_p,Babs,dBdrho,dBdth,dBdrt,CB,nrmax,nrmax,nthpmax,0,0,ierr)
     
@@ -537,6 +540,7 @@ contains
       if ( nr <= nrmax ) then
         call spl1DF(rm(nr),psim(nr),rhot,Cps,nrmax,ierr)
         call spl1DF(rm(nr),Fpsi(nr),rhot,CF,nrmax,ierr)
+        call spl1DF(rm(nr),safety_factor(nr),rhot,Cq,nrmax,ierr)
         call spl2DF(rm(nr),0.d0,Bout(nr),rhot,theta_p,CB,nrmax,nrmax,nthpmax,ierr)
         call spl2DF(rm(nr),pi,Bin(nr),rhot,theta_p,CB,nrmax,nrmax,nthpmax,ierr)
       end if
@@ -563,7 +567,7 @@ contains
     do nr = 1, nrmax
       call first_order_derivative(dBdthp(nr,:),Babs(nr,:),theta_p)
     end do
-    
+
   end subroutine fow_eqload
 
   subroutine bisection_method(routine, convergence_flag, f, g, x, x1, x2, psim_in, nsa_in)
@@ -639,7 +643,7 @@ contains
 
     convergence_flag = 1
     x = 0
-    write(*,*)"do not converge bisection method",nsa_in,psim_in,f_mid
+    ! write(*,*)"do not converge bisection method",nsa_in,psim_in,f_mid
     return
 
   end subroutine bisection_method
@@ -968,7 +972,7 @@ contains
     ! for JIR
     real(rkind) :: r0, psip0, costh0, sinth0, B0, F0, dBdr0, dFdr0, dpsipdr0, drmdr0
     real(rkind) :: A(2,2), b(2), detA
-    real(rkind) :: sumI, sumJ, normalize
+    real(rkind) :: sumU, sumI, normalize
 
     ierr = 0
 
@@ -1012,8 +1016,6 @@ contains
 
     ! calculate JIR
     do nsa = 1, nsamax
-      sumI = 0.d0
-      sumJ = 0.d0
       do nr = 1, nrmax
         do np = 1, npmax
           pl = pm(np,nsa)*ptfp0(nsa)
@@ -1045,14 +1047,23 @@ contains
             end if
 
             JIR(nth,np,nr,nsa) = JI(nth,np,nr,nsa)*ABS( drmdr0 )/r0
-
-            sumI = sumI + 1.d0
-            sumJ = sumJ + JI(nth,np,nr,nsa)
           end do
         end do
       end do
 
-      normalize = sumI/sumj
+      sumU = 0.d0
+      sumI = 0.d0
+      do nr = 1, nrmax
+        do np = 1, npmax
+          do nth = 1, nthmax
+            sumI = sumI + delp(nsa)*delthm(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)
+            sumU = sumU + volp(nth,np,nsa)
+          end do
+        end do
+      end do
+
+      normalize = sumU/sumI
+
       do nr = 1, nrmax
         do np = 1, npmax
           do nth = 1, nthmax

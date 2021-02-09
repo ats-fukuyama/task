@@ -84,14 +84,16 @@ contains
     do nr = 1, nrmax
       do np = 1, npmax
 
-        if ( pz(ns) >= 0.d0 ) then
-          nm_D = nma(nth_pnc(nsa)-1,np,nr)
-          nm_Xstg = nma(nth_stg(nsa),np,nr_pnc_point(np,nr,nsa))
-        else
-          nm_D = nma(nth_pnc(nsa),np,nr)
-          nm_Xstg = nma(nth_stg(nsa)-1,np,nr_pnc_point(np,nr,nsa))
+        if ( theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+          if ( pz(ns) >= 0.d0 ) then
+            nm_D = nma(nth_pnc(nsa)-1,np,nr)
+            nm_Xstg = nma(nth_stg(nsa),np,nr_pnc_point(np,nr,nsa))
+          else
+            nm_D = nma(nth_pnc(nsa),np,nr)
+            nm_Xstg = nma(nth_stg(nsa)-1,np,nr_pnc_point(np,nr,nsa))
+          end if
+          call IBC_pinch(np,nr,nsa,nlmax(nm_D),nlmax(nm_Xstg))  
         end if
-        call IBC_pinch(np,nr,nsa,nlmax(nm_D),nlmax(nm_Xstg))
 
 
         if ( pz(ns) >= 0.d0 ) then
@@ -286,7 +288,7 @@ contains
     real(8):: dfdth, fvel, dfdp
     
     integer :: nrl, nrr, npl, npr
-    double precision :: dfdrm, width_p, width_r, width_t
+    double precision :: dfdrm, width_p, width_r, width_t, dth
 
     !     +++++ calculation of weigthing (including off-diagonal terms) +++++
 
@@ -308,7 +310,7 @@ contains
               if ( np == npmax+1 ) then
                 if ( abs(f(nth,np-1,nr)) > epswt ) then
                   dfdth = (f(nthl,np-1,nr)-f(nthr,np-1,nr)) &
-                          /(2.d0*pg(np,ns)*delthm_pg(nth,np,nr,nsa)*f(nth,np-1,nr))
+                          /(2.d0*pg(np,ns)*delthm(nth,np-1,nr,nsa)*f(nth,np-1,nr))
 
                   dfdrm  = (f(nth,np-1,nrl)-f(nth,np-1,nrr)) &
                           /(2.d0*delr*f(nth,np-1,nr))
@@ -317,26 +319,37 @@ contains
 
                 if ( abs(f(nth,np-1,nr)) > epswt ) then
                   if ( abs(f(nth,np,nr)) > epswt ) then
-                    dfdth = (f(nthl,np-1,nr)-f(nthr,np-1,nr)) &
-                            /(4.d0*pg(np,ns)*delthm_pg(nth,np,nr,nsa)*f(nth,np-1,nr)) &
-                          + (f(nthl,np  ,nr)-f(nthr,np  ,nr)) &
-                            /(4.d0*pg(np,ns)*delthm_pg(nth,np,nr,nsa)*f(nth,np  ,nr))
+                  
+                    dth = ( delthm(nth,np,nr,nsa)+delthm(nth,np-1,nr,nsa) )*0.5d0
+                    if ( dth > 0.d0 ) then
+                      dfdth = (f(nthl,np-1,nr)-f(nthr,np-1,nr)) &
+                              /(4.d0*pg(np,ns)*dth*f(nth,np-1,nr)) &
+                            + (f(nthl,np  ,nr)-f(nthr,np  ,nr)) &
+                              /(4.d0*pg(np,ns)*dth*f(nth,np  ,nr))
+                    end if
 
                     dfdrm  = (f(nth,np-1,nrl)-f(nthr,np-1,nrr)) &
                             /(4.d0*delr*f(nth,np-1,nr)) &
                           + (f(nthl,np  ,nrl)-f(nthr,np  ,nrr)) &
                             /(4.d0*delr*f(nth,np  ,nr))
-                  else
-                    dfdth = (f(nthl,np-1,nr)-f(nthr,np-1,nr)) &
-                          /(2.d0*pg(np,ns)*delthm_pg(nth,np,nr,nsa)*f(nth,np-1,nr)) 
 
+                  else
+                    dth = ( delthm(nth,np,nr,nsa)+delthm(nth,np-1,nr,nsa) )*0.5d0
+                    if ( dth > 0.d0 ) then
+                      dfdth = (f(nthl,np-1,nr)-f(nthr,np-1,nr)) &
+                            /(2.d0*pg(np,ns)*delthm_pg(nth,np,nr,nsa)*f(nth,np-1,nr)) 
+                    end if
+                    
                     dfdrm  = (f(nth,np-1,nrl)-f(nth,np-1,nrr)) &
                           /(2.d0*delr*f(nth,np-1,nr)) 
                   end if
                 else
                   if ( abs(f(nth,np,nr)) > epswt ) then
-                    dfdth = (f(nthl,np  ,nr)-f(nthr,np  ,nr)) &
-                          /(2.d0*pg(np,ns)*delthm_pg(nth,np,nr,nsa)*f(nth,np  ,nr))
+                    dth = (delthm(nth,np,nr,nsa)+delthm(nth,np-1,nr,nsa))*0.5d0
+                    if ( dth >= 0.d0 ) then
+                      dfdth = (f(nthl,np,nr)-f(nthr,np,nr)) &
+                            /(2.d0*pg(np,ns)*dth*f(nth,np  ,nr))
+                    end if
 
                     dfdrm  = (f(nth,np  ,nrl)-f(nth,np  ,nrr)) &
                           /(2.d0*delr*f(nth,np  ,nr))
@@ -428,7 +441,9 @@ contains
           else if ( nr == nrmax+1 ) then
             if ( abs(f(nth,np,nrmax)) > epswt ) then
               dfdp = (f(nth,npl,nrmax)-f(nth,npr,nrmax))/(width_p*delp(ns)*f(nth,np,nrmax))
-              dfdth= (f(nthl,np,nrmax)-f(nthr,np,nrmax))/(width_t*delthm_rg(nth,np,nr,nsa)*f(nth,np,nrmax))
+              if ( delthm_rg(nth,np,nr,nsa) /= 0.d0 ) then
+                dfdth= (f(nthl,np,nrmax)-f(nthr,np,nrmax))/(width_t*delthm_rg(nth,np,nr,nsa)*f(nth,np,nrmax))                
+              end if
             end if
           else
             if ( abs(f(nth,np,nr)) > epswt .and. abs(f(nth,np,nr-1)) > epswt ) then
