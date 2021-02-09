@@ -1,15 +1,11 @@
 module fowcoef
   use fpcomm,only:rkind
 
-  private
-
-  public :: fow_coef, transformation_matrix
-
-  real(rkind),allocatable,dimension(:,:,:,:,:) :: Dppl, Dptl, Fppl,&
+  real(rkind),allocatable,dimension(:,:,:,:,:),private :: Dppl, Dptl, Fppl,&
                                                   Dtpl, Dttl, Fthl
   
-  real(rkind),allocatable :: FNSBL(:,:,:,:,:)
-  real(rkind),allocatable :: check_zeroD(:,:,:), check_zeroF(:,:)
+  real(rkind),allocatable,private :: FNSBL(:,:,:,:,:)
+  real(rkind),allocatable,private :: check_zeroD(:,:,:), check_zeroF(:,:)
 
 contains
 
@@ -574,6 +570,15 @@ contains
       allocate(Xtmp(nthmax+1))
       do nth = 1, nthmax+1
         Xtmp(nth) = cosg(nth)
+      end do
+
+    else if ( x == 'm' ) then
+      p = 0
+      t = 0
+
+      allocate(Xtmp(nthmax))
+      do nth = 1, nthmax
+        Xtmp(nth) = cosm(nth)
       end do
 
     end if

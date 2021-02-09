@@ -1,6 +1,6 @@
 &fow
   nthpmax=8
-  max_stp=16
+  max_stp=20
   model_obload=1
   model_mkcsv=1
 &end
@@ -40,9 +40,9 @@
 &end
 
 &fp
-  npmax=10
-  nthmax=20
-  nrmax=12
+  npmax=14
+  nthmax=24
+  nrmax=32
   RR=6.2
   RA=2.0
   RKAP=1.7
@@ -64,11 +64,11 @@
   PA(2)=2.D0
   PZ(2)=1.D0
   PN(1)=1.0D-1,1.0D-1
-  PNS(1)=0.05D-1,0.05D-1
+  PNS(1)=1.0D-1,1.0D-1
 
-  PTPR(1)=8.D0,8.D0
-  PTPP(1)=8.D0,8.D0
-  PTS(1)=2.5D0,2.5D0
+  PTPR(1)=5.D0,5.D0
+  PTPP(1)=5.D0,5.D0
+  PTS(1)=5.D0,5.D0
 
   MODELN=1
   ZEFF=2.D0

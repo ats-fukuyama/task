@@ -37,13 +37,13 @@ SRCS = fpcomm.f90 eg_read.f90 fpinit.f90 fpparm.f90 \
 		cdbmfp.f90 fpcalr.f90 sv_read.f90 fpcoef.f90 fpcale.f90 \
 		fpbounce.f90 fpdisrupt.f90 fpprep.f90 fploop.f90 \
 		fpcont.f90 fpfout.f90 fpgout.f90 fpfile.f90\
-		fowcomm.f90 foworbit.f90 fowdistribution.f90 fowprep.f90 \
+		fowcomm.f90 foworbit.f90 fowdistribution.f90 orbit_classify.f90 fowprep.f90 \
 		fowsource.f90 \
 		fowcoef.f90 fowexec.f90 check_neoclass.f90 fowloop.f90\
 		fowmenu.f90 \
 		fpmenu.f90
 
-SRCSFOW =fowcomm.f90 foworbit.f90 fowdistribution.f90 fowprep.f90 \
+SRCSFOW =fowcomm.f90 foworbit.f90 fowdistribution.f90 orbit_classify.f90 fowprep.f90 \
 		fowsource.f90 \
 		fowcoef.f90 fowexec.f90 check_neoclass.f90 fowloop.f90\
 		fowmenu.f90
@@ -150,7 +150,7 @@ $(OBJDIR)/fowmenu.o : fowmain.f90 fowcomm.f90 fowprep.f90 foworbit.f90 \
             fpprep.f90 fpcomm.f90 fpwrite.f90
 $(OBJDIR)/fowcomm.o : fowcomm.f90
 $(OBJDIR)/fowexec.o : fowexec.f90 fowcomm.f90 fpcomm.f90
-$(OBJDIR)/fowprep.o : fowprep.f90 fowcomm.f90 fowdistribution.f90 foworbit.f90 fowdistribution.f90
+$(OBJDIR)/fowprep.o : fowprep.f90 fowcomm.f90 fowdistribution.f90 foworbit.f90 fowdistribution.f90 orbit_classify.f90
 $(OBJDIR)/foworbit.o: foworbit.f90 fowcomm.f90 fpcomm.f90 \
 											../ob/obcomm.f90 ../ob/obcalc.f90 ../ob/obprep.f90 ../ob/obinit.f90 \
 											../ob/obparm.f90
@@ -158,5 +158,6 @@ $(OBJDIR)/fowdistribution.o : fowdistribution.f90 foworbit.f90 fowcomm.f90 fpcom
 $(OBJDIR)/fowcoef.o : fowdistribution.f90 fowcoef.f90 fowcomm.f90 fpcomm.f90
 $(OBJDIR)/fowsource.o : fowsource.f90 fowcomm.f90 fpcomm.f90 fowprep.f90 foworbit.f90 fowdistribution.f90
 $(OBJDIR)/fowloop.o : fowexec.f90 fowdistribution.f90 fowcoef.f90 fowsource.f90 \
-											fowcomm.f90 fpcomm.f90 fowprep.f90 fpwrite.f90 check_neoclass.f90
-$(OBJDIR)/check_neoclass.o : check_neoclass.f90 fowcomm.f90 fpcomm.f90 fpwrite.f90 fowcoef.f90
+											fowcomm.f90 fpcomm.f90 fowprep.f90 fpwrite.f90 check_neoclass.f90 orbit_classify.f90
+$(OBJDIR)/check_neoclass.o : check_neoclass.f90 fowcomm.f90 fpcomm.f90 fpwrite.f90 fowcoef.f90 fowexec.f90
+$(OBJDIR)/orbit_classify.o : orbit_classify.f90 fowcomm.f90 fpcomm.f90 fpwrite.f90

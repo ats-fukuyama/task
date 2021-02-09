@@ -170,10 +170,13 @@ contains
     use foworbit
     use fowdistribution
     use check_neoclass
+    use orbit_classify
     implicit none
     integer,intent(in) :: nt
     double precision :: r_, psip0, costh0, sinth0, B0, F0, dBdr0, dFdr0, dpsipdr0, MJ2keV
     double precision,dimension(nrmax) :: rmg
+    double precision,dimension(npmax,nsamax) :: momm
+    double precision,dimension(npmax+1,nsamax) :: momg
     double precision,dimension(nthmax,npmax,nrmax,nsamax) :: taup, r0, gammaI
     integer :: nth,np,nr,nsa
 
@@ -196,6 +199,14 @@ contains
     if ( nt == 1 ) then
       do nr = 1, nrmax
         rmg(nr) = rg(nr+1)
+      end do
+
+      do nsa = 1, nsamax
+        do np = 1, npmax
+          momm(np,nsa) = pm(np,nsa)*ptfp0(nsa)
+          momg(np,nsa) = pg(np,nsa)*ptfp0(nsa)
+        end do
+        momg(npmax+1,nsa) = pg(npmax+1,nsa)*ptfp0(nsa)
       end do
     
       do nsa = 1, nsamax
@@ -228,6 +239,8 @@ contains
     
       call fptxt2D(pm,"dat/pm.txt")
       call fptxt2D(pg,"dat/pg.txt")
+      call fptxt2D(momm,"dat/momentum.txt")
+      call fptxt2D(momg,"dat/momentumg.txt")
     
       call fptxt4D(thetam,"dat/thetam.txt")
       call fptxt4D(thetamg,"dat/thetamg.txt")
@@ -264,6 +277,7 @@ contains
       call fptxt4D(Fcth,"dat/Fth_fp.txt")
 
       call output_neoclass
+      call output_orbit_classify
 
     end if
 

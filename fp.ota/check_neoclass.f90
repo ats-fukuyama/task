@@ -16,23 +16,22 @@ contains
                                                  
     double precision,dimension(nthmax,npmax,nrmax,nsamax) :: wb, wb_model, omega_b, omega_b_model
     double precision,dimension(nrmax) :: nu_ei, nu_p, nu_b, q_ion, q_neo
-    double precision,dimension(nrmax,nsamax) :: D_p, D_b
+    double precision,dimension(nrmax,nsamax) :: D_p, D_b, Drw
     double precision,dimension(nrmax,nsbmax,nsamax) :: nu_D
     double precision,dimension(3,3,nthmax,npmax,nrmax,nsamax) :: dIdu_m
     double precision,dimension(3,3,nthmax+1,npmax,nrmax,nsamax) :: dIdu_th
     double precision,dimension(3,3,nthmax,npmax+1,nrmax,nsamax) :: dIdu_p
     double precision,dimension(3,3,nthmax,npmax,nrmax+1,nsamax) :: dIdu_r
-    integer :: nth, np, nr, nsa, nsb, mode(3)
+    integer nth, np, nr, nsa, nsb, mode(3)
 
     call system('mkdir -p dat')
 
     call integral_Drr(Drhmrhm)
-    call D_neoclass(D_b, D_p, nu_ei, nu_p, nu_b)
+    ! call D_neoclass(D_b, D_p, nu_ei, nu_p, nu_b)
+    call D_random_walk_baverage(Drw)
 
     call banana_width_and_omega_bounce(wb, omega_b)
     call banana_width_and_omega_bounce_model(wb_model, omega_b_model)
-    call ionHeatFlux(q_ion)
-    call ionHeatFlux_neoclass(q_neo)
 
     do nsa = 1, nsamax
       do nr = 1, nrmax
@@ -51,11 +50,12 @@ contains
     call fptxt4D(omega_b,"dat/omega_bounce.txt")
     call fptxt4D(omega_b_model,"dat/omega_bounce_model.txt")
 
-    call fptxt2D(D_p,"dat/D_plateau.txt")
-    call fptxt2D(D_b,"dat/D_banana.txt")
-    call fptxt1D(nu_ei,"dat/nu_Spitz.txt")
-    call fptxt1D(nu_p,"dat/nu_p.txt")
-    call fptxt1D(nu_b,"dat/nu_b.txt")
+    ! call fptxt2D(D_p,"dat/D_plateau.txt")
+    ! call fptxt2D(D_b,"dat/D_banana.txt")
+    call fptxt2D(Drw,"dat/D_random_walk.txt")
+    ! call fptxt1D(nu_ei,"dat/nu_Spitz.txt")
+    ! call fptxt1D(nu_p,"dat/nu_p.txt")
+    ! call fptxt1D(nu_b,"dat/nu_b.txt")
 
     mode = [0,0,0]
     call mean_transmatrix(dIdu_m,mode)
@@ -108,10 +108,10 @@ contains
     use fpcomm
     use fowcomm
     implicit none
-    real(rkind),dimension(nrmax,nsamax),intent(out) :: Drr_out
-    real(rkind),dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom
-    real(rkind) :: Drr_, dVI, sumVI
-    integer :: nth,np,nr,nsa,ns
+    double precision,dimension(nrmax,nsamax),intent(out) :: Drr_out
+    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom
+    double precision Drr_, dVI, sumVI, JIl_p, JIl_m
+    integer nth,np,nr,nsa,ns
 
     do nsa = 1, nsamax
       do np = 1, npmax
@@ -129,8 +129,20 @@ contains
         do np = 1, npmax
           if ( pm(np,ns) > fact_bulk ) exit
           do nth = 1, nthmax
+
+            if ( nr == 1 ) then
+              JIl_m = JI(nth,np,1,nsa)
+              JIl_p = ( JI(nth,np,2,nsa)+JI(nth,np,1,nsa) )*0.5d0
+            else if ( nr == nrmax ) then
+              JIl_m = ( JI(nth,np,nrmax,nsa)+JI(nth,np,nrmax-1,nsa) )*0.5d0
+              JIl_p = JI(nth,np,nrmax,nsa)
+            else
+              JIl_m = ( JI(nth,np,nr,nsa)+JI(nth,np,nr-1,nsa) )*0.5d0
+              JIl_p = ( JI(nth,np,nr,nsa)+JI(nth,np,nr+1,nsa) )*0.5d0
+            end if
+
             dVI = delp(ns)*delthm(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)
-            Drr_ = ( Drrfow(nth,np,nr+1,nsa)+Drrfow(nth,np,nr,nsa) )*0.5d0/JI(nth,np,nr,nsa)
+            Drr_ = ( Drrfow(nth,np,nr+1,nsa)/JIl_p+Drrfow(nth,np,nr,nsa)/JIl_m )*0.5d0
 
             Drr_out(nr,nsa) = Drr_out(nr,nsa) + Drr_*dfdrhom(nth,np,nr,nsa)*dVI
             sumVI = sumVI + dfdrhom(nth,np,nr,nsa)*dVI
@@ -146,9 +158,9 @@ contains
     use fpcomm
     use fowcomm
     implicit none
-    real(rkind),dimension(nrmax),intent(out) :: q_ion
-    real(rkind),dimension(nthmax,npmax,nrmax) :: dfdrhom
-    real(rkind) :: Drr_, dVI, K, pv
+    double precision,dimension(nrmax),intent(out) :: q_ion
+    double precision,dimension(nthmax,npmax,nrmax) :: dfdrhom
+    double precision :: Drr_, dVI, K, pv
     integer :: nth,np,nr,nsa,ns
 
     do np = 1, npmax
@@ -200,7 +212,6 @@ contains
         dens = rnsl(nr,nsb)*1.d20
         nu_ei(nr) = nu_ei(nr) + pz(nssb)**2*dens*lnlam(nr,nsb,1)
       end do
-      write(*,*)"Spitz",lnlam(nr,2,1),SQRT(ame)*Te**1.5d0,dens
       nu_ei(nr) = nu_ei(nr)*factSpitz/Te**1.5d0
       ! nu_ei = rnud(nr,2,1)
 
@@ -216,48 +227,253 @@ contains
 
   end subroutine D_neoclass
 
-  subroutine ionHeatFlux_neoclass(q_banana)
+  subroutine D_random_walk(Drw)
     use fpcomm
     use fowcomm
     implicit none
-    double precision,dimension(nrmax),intent(out) :: q_banana
-    double precision,dimension(nrmax) :: Ti, dTidr
-    double precision :: omega_ci, ni, eps, fact
-    double precision :: taui, tauii, fact_tauii
-    integer :: nth, np, nr, nsa
+    double precision,dimension(nrmax,nsamax),intent(out)  :: Drw
+    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: w_b, omega_b, dfdrhom
+    double precision,dimension(npmax,nrmax,nsamax)        :: nud
+    double precision step_len, step_time, Drwlocal
+    double precision dVI, sumVI
+    integer nth, np, nr, nsa
 
-    do nr = 1, nrmax
-      Ti(nr) = rwsl(nr,2)*1.d6/( 1.5d0*rnsl(nr,2)*1.d20 )
+    call banana_width_and_omega_bounce(w_b, omega_b)
+    call nu_deflection(nud)
+
+    do nsa = 1, nsamax
+      do np = 1, npmax
+        do nth = 1, nthmax
+          call first_order_derivative(dfdrhom(nth,np,:,nsa), fnsp(nth,np,:,nsa), rm)
+        end do
+      end do
     end do
 
-    call first_order_derivative(dTidr,Ti,rm)
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        Drw(nr,nsa) = 0.d0
+        sumVI = 0.d0
 
-    omega_ci = aefp(2)*Bing(1)/amfp(2)
-    fact = -1.35d0/( omega_ci**2*amfp(2) )
-    fact_tauii = 12.d0*pi**1.5d0*SQRT(amfp(2)/2.d0)*eps0**2/aefp(2)**4
+        do np = 1, npmax
+          step_time = 1.d0/nud(np,nr,nsa)
+          do nth = 1, nthmax
+            step_len = w_b(nth,np,nr,nsa)/RA
+            Drwlocal = step_len**2/step_time
+            
+            dVI = delp(nsa)*delthm(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)
+            sumVI = sumVI + dfdrhom(nth,np,nr,nsa)*dVI
+            Drw(nr,nsa) = Drw(nr,nsa) + Drwlocal*dfdrhom(nth,np,nr,nsa)*dVI
 
-    do nr = 1, nrmax
-      dTidr(nr) = dTidr(nr)/RA
-      ni = rnsl(nr,2)*1.d20
-      eps = rm(nr)*RA/RR
-      tauii = fact_tauii*Ti(nr)**1.5d0/( ni*lnlam(nr,2,2) )
-      taui = SQRT(2.d0)*tauii
-      q_banana(nr) = fact*SQRT(eps)*ni*Ti(nr)*dTidr(nr)/taui
+          end do
+        end do
 
-      write(*,*)"ban",q_banana(nr)
+        Drw(nr,nsa) = Drw(nr,nsa)/sumVI
+
+      end do
     end do
 
-  end subroutine ionHeatFlux_neoclass
+  end subroutine D_random_walk
+
+  subroutine D_random_walk_baverage(Drw)
+    use fpcomm
+    use fowcomm
+    implicit none
+    double precision,dimension(nrmax,nsamax),intent(out)  :: Drw
+    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: w_b, omega_b, dfdrhom
+    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: Drwlocal, Drwba
+    double precision,dimension(npmax,nrmax,nsamax) :: nud
+    double precision step_len, step_time
+    double precision dVI, sumVI
+    integer nth, np, nr, nsa
+
+    call banana_width_and_omega_bounce(w_b, omega_b)
+    call nu_deflection(nud)
+
+    do nsa = 1, nsamax
+      do np = 1, npmax
+        do nth = 1, nthmax
+          call first_order_derivative(dfdrhom(nth,np,:,nsa), fnsp(nth,np,:,nsa), rm)
+        end do
+      end do
+    end do
+
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do np = 1, npmax
+          step_time = 1.d0/nud(np,nr,nsa)
+          do nth = 1, nthmax
+            step_len = w_b(nth,np,nr,nsa)
+            Drwlocal(nth,np,nr,nsa) = step_len**2/step_time
+          end do
+        end do
+      end do
+    end do
+
+    call bounce_average_for_Drw(Drwba, Drwlocal)
+
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        Drw(nr,nsa) = 0.d0
+        sumVI = 0.d0
+        do np = 1, npmax
+          do nth = 1, nthmax
+            dVI = delp(nsa)*delthm(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)
+
+            Drw(nr,nsa) = Drw(nr,nsa)&
+                          + Drwba(nth,np,nr,nsa)*dfdrhom(nth,np,nr,nsa)*dVI
+            sumVI = sumVI + dfdrhom(nth,np,nr,nsa)*dVI
+          end do
+        end do
+        Drw(nr,nsa) = Drw(nr,nsa)/sumVI
+      end do
+    end do
+
+  end subroutine D_random_walk_baverage
+
+  subroutine nu_deflection(nud)
+    use fpcomm
+    use fowcomm
+    
+    implicit none
+    double precision,dimension(npmax,nrmax,nsamax),intent(out) :: nud
+    double precision x, fx, gx
+    double precision nudb, fact, vthb, Tb, va, Ta, pv
+    double precision nuBra, factBra, numerator, denominator
+    integer nth,np,nr,nsa,nsb,nssa,nssb
+
+    fact = 3.d0/2.d0*SQRT( pi/2.d0 )
+    factBra = 1.d0/( 12.d0*pi**1.5d0*eps0**2 )
+
+    do nsa = 1, nsamax
+      nssa = ns_nsa(nsa)
+      do nr = 1, nrmax
+        do np = 1, npmax
+          nud(np,nr,nsa) = 0.d0
+          pv = SQRT(1.d0+theta0(nsa)*pm(np,nsa)**2)
+          va = vc * SQRT( 1.d0-pv**(-2) )
+          do nsb = 1, nsbmax
+            nssb = ns_nsb(nsa)
+            Tb = rwsl(nr,nsb)*1.d6/( 1.5d0*rnsl(nr,nsb)*1.d20 )
+            vthb = SQRT( 2.d0*Tb/amfp(nsb) )
+
+            numerator  = rnsl(nr,nsb)*1.d20*( aefp(nsa)*aefp(nsb) )**2 * lnlam(nr,nsb,nsa)
+            denominator= SQRT( amfp(nsb) )*Tb**1.5d0*( amfp(nsa)/amfp(nsb) )**2
+            nuBra = factBra*numerator/denominator
+
+            x = va/vthb
+            call gosakn(x,fx,gx)
+
+            nudb = fact*nuBra*(fx-gx)/x**3
+
+            nud(np,nr,nsa) = nud(np,nr,nsa)+nudb
+
+          end do
+        end do
+      end do
+    end do
+
+  end subroutine
+
+  subroutine gosakn(x,fx,gx)
+    use fpcomm,only:pi
+    implicit none
+    real(8),intent(in)  :: x
+    real(8),intent(out) :: fx,gx
+    real(8) :: f,fx1,fx2
+    real(8) :: rh
+    DATA RH / 0.70710678118654752440D+00/
+
+    f= DERF(X)*0.5D0
+    fx=2.d0*f
+    fx1=2.d0/sqrt(pi)*exp(-x**2)
+    fx2=-2.d0*x*fx1
+    gx=0.d0
+    if(abs(x).gt.1.e-10) then
+        gx=(fx-x*fx1)/(2.d0*x**2)
+    end if
+
+    return
+
+  end subroutine gosakn
+
+  subroutine bounce_average_for_Drw(Dout, Din)
+    use fpcomm
+    use fowcomm
+    use fowcoef
+    implicit none
+    double precision,dimension(nthmax,npmax,nrmax,nsamax),intent(out) :: Dout
+    double precision,dimension(nthmax,npmax,nrmax,nsamax),intent(in)  :: Din
+    double precision,dimension(3,3,max_stp) :: dIdul
+    double precision,allocatable :: U(:,:,:,:,:,:,:,:), Drwl(:,:,:,:,:)
+    double precision dt, taup, cpitch_ob, psip_ob, thetap_ob, Drw_ob
+    type(orbit) ob
+    integer nth, np, nr, nsa, nstp, nstpmax, nthp, mode(3)
+    write(*,*)"b"
+
+    allocate(U(4,4,4,nthmax,nrmax,nthpmax,npmax,nsamax))
+    allocate(Drwl(nthmax,npmax,nrmax,nthpmax,nsamax))
+
+    mode = [0,0,0]
+
+    do nsa = 1, nsamax
+      do nthp = 1, nthpmax
+        do nr = 1, nrmax
+          do np = 1, npmax
+            do nth = 1, nthmax
+              Drwl(nth,np,nr,nthp,nsa) = Din(nth,np,nr,nsa)
+            end do
+          end do
+        end do
+      end do
+    end do
+
+    do nsa = 1, nsamax
+      call make_U_Dxy(U, Drwl, 'm', nsa)
+    end do
+
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do np = 1, npmax
+          do nth = 1, nthmax
+            ob = orbit_m(nth,np,nr,nsa)
+            nstpmax = ob%nstp_max
+            taup = ob%time(nstpmax)
+        
+            call transformation_matrix(dIdul, ob, nth, np, nr, nsa, mode)
+
+            Dout(nth,np,nr,nsa) = 0.d0
+
+            do nstp = 2, nstpmax
+              dt = ob%time(nstp)-ob%time(nstp-1)
+              cpitch_ob = ob%costh(nstp)
+              psip_ob   = ob%psip(nstp)
+              thetap_ob = ob%thetap(nstp)
+              call interpolate_D_unlessZero(Drw_ob, U(:,:,:,:,:,:,np,nsa), &
+                    1.d0, cpitch_ob, psip_ob, thetap_ob)
+              
+              Dout(nth,np,nr,nsa) = Dout(nth,np,nr,nsa)&
+                                  + Drw_ob*dIdul(3,3,nstp)**2*dt
+            end do
+
+            Dout(nth,np,nr,nsa) = Dout(nth,np,nr,nsa)/taup
+        
+          end do
+        end do
+      end do
+    end do
+
+
+  end subroutine
 
   subroutine banana_width_and_omega_bounce(w_b, omega_b)
     use fpcomm
     use fowcomm
     implicit none
-    real(rkind),dimension(nthmax,npmax,nrmax,nsamax),intent(out) :: w_b, omega_b
-    real(rkind),allocatable :: drdt(:), U(:,:)
-    type(orbit) :: ob
-    integer :: nth, np, nr, nsa, nstp, nstpmax, ierr
-    real(rkind) :: r_min
+    double precision,dimension(nthmax,npmax,nrmax,nsamax),intent(out) :: w_b, omega_b
+    double precision,allocatable :: drdt(:), U(:,:)
+    type(orbit) ob
+    integer nth, np, nr, nsa, nstp, nstpmax, ierr
+    double precision r_min
 
     ierr = 0
 
@@ -286,8 +502,8 @@ contains
     use fpcomm
     use fowcomm
     implicit none
-    real(rkind),dimension(nthmax,npmax,nrmax,nsamax),intent(out) :: w_b, omega_b
-    real(rkind) :: rho, eps,sign_prev,sign,Baxis,vl,pv,B_theta,thetapl
+    double precision,dimension(nthmax,npmax,nrmax,nsamax),intent(out) :: w_b, omega_b
+    double precision :: rho, eps,sign_prev,sign,Baxis,vl,pv,B_theta,thetapl
     type(orbit) :: ob
     logical :: isTrapped
     integer :: nth,np,nr,nsa,ns,nstp,nstpmax

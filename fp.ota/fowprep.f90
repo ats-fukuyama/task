@@ -9,6 +9,7 @@ contains
     use fowcomm
     use fpcomm
     use foworbit
+    use orbit_classify
 
     implicit none
 
@@ -22,6 +23,8 @@ contains
 
     ! load equiliblium variable
     call fow_eqload(ierr)
+
+    ! call output_orbit_classify
 
     ! calculate thetam
     nthm3 = nthmax/2
