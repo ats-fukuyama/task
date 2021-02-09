@@ -129,7 +129,8 @@ MODULE wmcomm_parm
 
   INTEGER:: nthmax_g        ! number of poloidal mesh for graphics
 
-  INTEGER:: idebuga(idebug_max)! control of debug info
+  INTEGER:: idebuga(idebug_max) ! control of debug info
+  CHARACTER(LEN=80):: knam_dump ! matrix and vector dump :idebuga(61)
 
 END MODULE wmcomm_parm
 
@@ -265,18 +266,6 @@ CONTAINS
     INTEGER,SAVE:: nsumax_save,nswmax_save
     INTEGER,SAVE:: INIT=0
     
-    IF(INIT.EQ.0) THEN
-       INIT=1
-    ELSE
-       IF(nrmax.EQ.nrmax_save.AND. &
-          nthmax.EQ.nthmax_save.AND. &
-          nhhmax.EQ.nhhmax_save.AND. &
-          nphmax.EQ.nphmax_save.AND. &
-          nsumax.EQ.nsumax_save.AND. &
-          nswmax.EQ.nswmax_save) RETURN
-       CALL wm_deallocate
-    END IF
-
     mblock_size=3*nthmax*nhhmax
     mbnd= 4*mblock_size-1
     mcent=2*mblock_size
@@ -286,10 +275,7 @@ CONTAINS
     CASE(1)
        mlen=mblock_size*(nrmax+2)
     END SELECT
-!    IF(modewg.NE.0) THEN
-!       mlen=mlen+mwgmax*namax
-!    END IF
-    
+
     IF(nthmax.EQ.1) THEN
        nthmax_f=1
     ELSE
@@ -304,6 +290,18 @@ CONTAINS
        nphmax_f=1
     ELSE
        nphmax_f=nphmax*factor_nph
+    END IF
+
+    IF(INIT.EQ.0) THEN
+       INIT=1
+    ELSE
+       IF(nrmax.EQ.nrmax_save.AND. &
+          nthmax.EQ.nthmax_save.AND. &
+          nhhmax.EQ.nhhmax_save.AND. &
+          nphmax.EQ.nphmax_save.AND. &
+          nsumax.EQ.nsumax_save.AND. &
+          nswmax.EQ.nswmax_save) RETURN
+       CALL wm_deallocate
     END IF
 
     ALLOCATE(XR(nrmax+1),XRHO(nrmax+1),XTH(nthmax+1),XTHF(nthmax_f+1))

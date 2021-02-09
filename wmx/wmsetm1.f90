@@ -2052,7 +2052,8 @@ CONTAINS
        IF(NR+1.GE.NRANT) THEN
           CW=2.D0*PI*CMPLX(RF,RFI)*1.D6
           CC=CI*CW*RMU0
-          DPH=2.D0*PI/NHHMAX/NHC
+!          DPH=2.D0*PI/NHHMAX/NHC   ! for NHC antenn in each section
+          DPH=2.D0*PI/NHHMAX
           DTH=2.D0*PI/NTHMAX
 
           IF(NR+1.EQ.NRANT.OR.NR+1.EQ.NRANT+1) THEN

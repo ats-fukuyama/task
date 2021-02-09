@@ -13,7 +13,7 @@ FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I./$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD)
 
-SRCS = sakcomm.f90 sak1.f90
+SRCS = sakcomm.f90 saksub.f90 sak1.f90 sak2.f90 sak3.f90
 
 OBJS = $(SRCS:.f90=.o)
 FLINKER=$(FCFREE)
@@ -39,5 +39,8 @@ veryclean: clean
 	-rm -f sak
 
 SAKCOMM=sakcomm.f90
+saksub.o: $(SAKCOMM) saksub.f90
 sak1.o: $(SAKCOMM) sak1.f90
-sakmain.o: $(SAKCOMM) sak1.f90 sakmain.f90
+sak2.o: $(SAKCOMM) saksub.f90 sak2.f90
+sak3.o: $(SAKCOMM) saksub.f90 sak3.f90
+sakmain.o: $(SAKCOMM) sak1.f90 sak2.f90 sak3.f90 sakmain.f90

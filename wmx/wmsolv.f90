@@ -34,15 +34,22 @@ CONTAINS
     USE wmsetm0
     USE wmsetm1
     USE wmsetm2
+    USE libfio
     USE commpi
     IMPLICIT NONE
     COMPLEX(rkind),DIMENSION(MLEN),INTENT(OUT):: svec
     INTEGER,INTENT(OUT)::ierr 
     COMPLEX(rkind),DIMENSION(:),ALLOCATABLE:: A
     COMPLEX(rkind):: X
-    INTEGER:: i,j,nr_previous
+    INTEGER:: i,j,nr_previous,nfl
     INTEGER:: itype,its
     REAL(rkind):: tolerance
+
+    nfl=30
+    IF(idebuga(61).NE.0.AND.nrank.EQ.0) THEN
+       CALL FWOPEN(nfl,knam_dump,1,0,'wm',ierr)
+       IF(ierr.NE.0) STOP
+    END IF
 
     ALLOCATE(A(MBND))        ! local coefficient matrix
 
@@ -70,19 +77,19 @@ CONTAINS
           CALL wm_setm2(A,X,i,MBND,nr_previous)
        END SELECT
        IF(idebuga(61).NE.0.AND.nrank.EQ.0) &
-            WRITE(31,'(A,2I6,ES12.4)') &
+            WRITE(nfl,'(A,2I6,ES12.4)') &
             'wmsolv:',nr_previous,i,XRHO(nr_previous)
        DO j=MAX(i-MCENT+1,1),MIN(MLEN,i+MCENT-1)
           IF(ABS(A(j-i+MCENT)).GT.0.D0) THEN
              CALL mtxc_set_matrix(i,j,A(j-i+MCENT))
              IF(idebuga(61).NE.0.AND.nrank.EQ.0) &
-                  WRITE(31,'(A,2I6,2ES12.4)') 'A:',i,j,A(j-i+MCENT)
+                  WRITE(nfl,'(A,2I6,2ES12.4)') 'A:',i,j,A(j-i+MCENT)
           END IF
        END DO
        IF(ABS(X).GT.0.D0) THEN
           CALL mtxc_set_source(i,X)
           IF(idebuga(61).NE.0.AND.nrank.EQ.0) &
-               WRITE(31,'(A,2I6,2ES12.4)') 'X:',i,0,X
+               WRITE(nfl,'(A,2I6,2ES12.4)') 'X:',i,0,X
        END IF
     END DO
 
@@ -93,9 +100,9 @@ CONTAINS
       
     CALL mtxc_gather_vector(svec)
 
-    IF(idebuga(62).NE.0.AND.nrank.EQ.0) THEN
+    IF(idebuga(61).NE.0.AND.nrank.EQ.0) THEN
        DO i=1,MLEN,3
-          WRITE(32,'(I6,6ES12.4)') &
+          WRITE(nfl,'(I6,6ES12.4)') &
                i,svec(i),svec(i+1),svec(i+2)
        END DO
     END IF

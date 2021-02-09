@@ -245,11 +245,12 @@ CONTAINS
 
 !     *** dedub_info ***
 !                51: wmsetm1: IN/OUT mesh info
-!                61: matrix coefficiewnts  fort.31
-!                62: RHS vector value      fort.32
+!                61: matrix coefficiewnts  knam_dump
       DO i=1,idebug_max
          idebuga(i)=0
       END DO
+      knam_dump='wm.dump'
+      
     RETURN
   END SUBROUTINE wm_init
 END MODULE wminit

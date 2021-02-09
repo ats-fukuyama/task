@@ -118,6 +118,7 @@ CONTAINS
     DO i=1,idebug_max
        IF(idebuga(i).NE.0) WRITE(6,'(A,I2,A,I6)') 'idebuga(',i,'):',idebuga(i)
     END DO
+    IF(idebuga(61).NE.0) WRITE(6,'(A,A)') 'knam_dump=',TRIM(knam_dump)
     RETURN
 
   601 FORMAT(A6,'=',1PE12.4:1X,A6,'=',1PE12.4:1X, &
