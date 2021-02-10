@@ -64,8 +64,8 @@ gfortran.py
 # Build PETSc with gfortran
 
 configure_options = [
-  '--with-cc=clang',
-  '--with-cxx=clang++',
+  '--with-cc=gcc-mp-10',
+  '--with-cxx=g++-mp-10',
   '--with-fc=gfortran-mp-10',
   '--with-shared-libraries=0',
   '--with-cxx-dialect=C++11',

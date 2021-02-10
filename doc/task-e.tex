@@ -5,7 +5,7 @@
 
 \begin{document}
 \begin{flushright}
-2016/04/21
+2021/02/10
 \end{flushright}
 
 \begin{center}
@@ -67,7 +67,7 @@ Unified user interface:
 \texttt{WI} & {1D Full wave} & FEM, Landau/Cyclotron damping integral \\
 \texttt{DP} & {Dispersion} & Dielectric tensor \\[2mm]
 \texttt{FIT3D} & {NBI} & Birth, orbit, deposition \\[2mm]
-\texttt{FP} & {Velocity distributuion fn} & 3D Fokker-Planck equation \\[2mm]
+\texttt{FP} & {Velocity distribution fn} & 3D Fokker-Planck equation \\[2mm]
 \texttt{PLX} & {Profile data} & Initial profile, file interface \\
 \texttt{LIB} & {Common library} & Matrix solver, FFT, spline,  \\
 \texttt{MTXP} & {Matrix solver} & MPI, Direct, Iterative, parallelize \\
@@ -255,12 +255,12 @@ Go back to the git directory
   There are several branches.
   \begin{itemize}
   \item
-    master: default standard branch (updated not frequencyl, t present
+    master: default standard branch (updated not frequently, at present
     less than once a year)
   \item
     develop: development branch (updated frequently, sometimes broken
     in some directories)
-    \tline{git checkpout -t -b develop origin/develop}
+    \tline{git checkout -t -b develop origin/develop}
   \end{itemize}
 \end{itemize}
 
@@ -289,8 +289,12 @@ Compile the common library
 \tline{cd ..}
 
 \item
-If you would like to compile FP, WM, WF2D or WF3D directory, copy
-mtxp/make.mtxp from mtxp/make.mtxp.org.
+Some modules, such as FP, WMXX, WFXX, TI, utilize parallel matrix
+solver to reduce computation time.  For compatibility, now most of
+modules are coupled with parallel matrix solver library, mtxp.
+Therefore mtxp library has to be compiled in given environment. 
+\item
+The first step is to copy mtxp/make.mtxp from mtxp/make.mtxp.org.
 \item[\qquad]
 \tline{cd mtxp}
 \item[\qquad]
@@ -299,8 +303,19 @@ mtxp/make.mtxp from mtxp/make.mtxp.org.
 Adjust the content of make.mtxp
 \begin{itemize}
 \item
-Remove the comment mark \# in appropriate lines: without MPI, with
-MUMPS, or with PETSC.
+Remove the comment mark \# in appropriate lines:
+\begin{itemize}
+\item
+without MPI: no MPI library, band-matrix direct solver or simple
+iterative solver are available
+\item
+with MPI: MPI library exits, but no parallel solver is available.
+\item
+with MUMPS: MPI library and parallel direct matrix solver MUMPS are available.
+\item
+with PETSc: MPI and parallel iterative   matrix solver library PETSc
+are available.  PETSc may include MUMPS as well.
+\end{itemize}
 \item
 compile the mtxp libraries
 \item[\qquad]
