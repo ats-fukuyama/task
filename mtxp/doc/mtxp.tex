@@ -5,7 +5,7 @@
 
 \begin{document}
 \begin{flushright}
-2021-02-10
+2021-02-11
 \end{flushright}
 
 \begin{center}
@@ -25,6 +25,13 @@ updates of the software.
 \end{itemize}
 \bigskip
 
+\section{Preparation}
+
+Fortran and C compilers are required to compile 
+
+\subsection{macOS}
+
+
 \section{Parallel matrix solver library: PETSc}
 
 \subsection{Download by git}
@@ -37,8 +44,7 @@ Make a directory (if already /opt directory exists, skip first two lines)
 sudo mkdir /opt
 cd /opt
 sudo mkdir PETSc
-sudo chown username:username petsc \qquad ("username" should be
-                replaced by your user name)
+sudo chown username:username PETSc ("username" should be replaced by your user name)
 cd PETSC
 \end{verbatim}
 \end{quote}
@@ -47,6 +53,7 @@ cd PETSC
 \begin{quote}
 \begin{verbatim}
 git clone -b release https://gitlab.com/petsc/petsc.git petsc
+cd petsc
 \end{verbatim}
 \end{quote}
 \end{enumerate}
@@ -54,7 +61,18 @@ git clone -b release https://gitlab.com/petsc/petsc.git petsc
 \subsection{Configure}
 \begin{enumerate}
 \item
-Create a configure script ``gfortran.py'' by your favarite editor
+  Create a configure script ``gfortran.py'' by your favarite editor
+\item
+  Compiler names, ``gcc-mp-10'', ``g++-mp-10'', ``gfortran-mp-10'',
+  should be modified according your configuration.  The suffix shown
+  as an example ``-mp-10'' is for gnu compiler version 10 installed by
+  MacPorts
+\item
+  If you have already installed MPI libraries, such as MPICH or OpenMP, use
+  ``  '--with-mpi-dir=/usr/local/bin','' for the installed directory instead
+  of ``  '--download-mpich=1',''.
+
+  
 \begin{quote}
 gfortran.py
 \hrule
@@ -149,13 +167,13 @@ Edit the setup file ``make.mtxp''
 \begin{itemize}
 \item
 If MPI is not available, 
-remove comment mark ``\#'' on lines 4--10
+remove comment mark ``\#'' on lines 4--9
 \item
 If MPI is available but PETs not, 
-remove comment mark ``\#'' on lines 13--19
+remove comment mark ``\#'' on lines 12--17
 \item
 If MPI and PETSc are available, 
-remove comment mark ``\#'' on lines 24, 32,33, 35--40
+remove comment mark ``\#'' on lines 20--27
 \end{itemize}
 \end{enumerate}
 
@@ -214,7 +232,7 @@ make
 \subsection{Test mtxp}
 \begin{enumerate}
 \item
-Test programs solving 1d, 2D and 3D diffusion equation are generated
+Test programs solving 1d, 2D and 3D Poisson equation are generated
 \begin{itemize}
 \item
 \verb|testbnd|: Direct band matrix solver (non-parallel)
@@ -249,7 +267,7 @@ Example input For parallel processing
 \begin{verbatim}
 mpirun -np 4 ./testdmumps
 # INPUT: idimen,isiz,isource,itype,m1,m2,tolerance,idebug= 
-1,11,6,0,4,5,1.D-7
+1,11,6,0,4,5,1.D-7/
 3/
 0/
 \end{verbatim}

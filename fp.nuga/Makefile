@@ -22,7 +22,7 @@ FFLAGS=$(OFLAGS)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-MODINCLUDE= -I.$(MOD) -I../lib/$(MOD) \
+MODINCLUDE= -I$(MOD) -I../lib/$(MOD) \
             -I../pl/$(MOD) \
             -I../eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../mtxp/$(MOD)

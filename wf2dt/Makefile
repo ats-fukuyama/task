@@ -10,10 +10,8 @@ LIBX_MTX=$(LIBX_MTX_MUMPS)
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
-LFLAGS = $(OFLAGS)
-#LFLAGS = $(DFLAGS)
+#FLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../mtxp/$(MOD) \
@@ -87,12 +85,12 @@ wfgout.o: wfgout.f90 wfcomm.f90
 wfgsub.o: wfgsub.f90 wfcomm.f90
 wfefwg.o: wfefwg.f90 wfcomm.f90
 wfgdum.o: wfgdum.f90
-	$(FCFREE) $(LFLAGS) -c $< 
+	$(FCFREE) $(FFLAGS) -c $< 
 wfgutl.o: wfgutl.f90
-	$(FCFREE) $(LFLAGS) -c $< 
+	$(FCFREE) $(FFLAGS) -c $< 
 wflib.o: wflib.f90 wfcomm.f90
-	$(FCFREE) $(LFLAGS) -c $< $(MODDIR) $(MODINCLUDE)
+	$(FCFREE) $(FFLAGS) -c $< $(MODDIR) $(MODINCLUDE)
 wfbes.o: wfbes.f90
-	$(FCFREE) $(LFLAGS) -c $< 
+	$(FCFREE) $(FFLAGS) -c $< 
 feminterpolate.o: feminterpolate.f90 wfcomm.f90
 femmeshprep.o: femmeshprep.f90 wfcomm.f90

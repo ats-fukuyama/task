@@ -106,7 +106,7 @@ contains
            PGMAX,RGMAX,RGMIN, &
            T0_quench,tau_quench,tau_mgi, &
            time_quench_start,RJPROF1,RJPROF2, &
-           v_RE,target_zeff,SPITOT, MODEL_EX_READ_Tn, MODEL_DELTA_F_NI_RATIO, MODEL_DELTA_F_CN,
+           v_RE,target_zeff,SPITOT, MODEL_EX_READ_Tn, MODEL_DELTA_F_NI_RATIO, MODEL_DELTA_F_CN, &
            FACT_BULK, time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS, RN_NEUS, &
            EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, SV_FILE_NAME_D, NSA_F1, NTH_F1, NR_F1, &
            OUTPUT_TXT_F1, OUTPUT_TXT_DELTA_F, OUTPUT_TXT_HEAT_PROF, OUTPUT_TXT_BEAM_WIDTH, &
