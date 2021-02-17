@@ -228,7 +228,7 @@
   900 RETURN
       END SUBROUTINE FP_LOAD2
 !------------------------------------------      
-      SUBROUTINE FP_PRE_LOAD
+      SUBROUTINE FP_PRE_LOAD(ierr)
 
       USE fpprep
       USE libmpi
@@ -239,8 +239,11 @@
       integer,dimension(1:6):: idata
       integer,dimension(6*nsize):: idata2
 
+      ierr=0
 !      CALL GUTIME(gut1) 
-      CALL fp_comm_setup
+      CALL fp_comm_setup(ierr)
+      IF(ierr.NE.0) RETURN
+
       CALL fp_allocate
       call fp_allocate_ntg1
       call fp_allocate_ntg2
@@ -287,9 +290,10 @@
       CALL mtx_reset_communicator
 
       CALL fp_set_nsa_nsb
-!     ----- create meches -----
+!     ----- create meshes -----
 !      WRITE(6,*) "START MESH"
       CALL fp_mesh(ierr)
+      IF(ierr.NE.0) RETURN
 !      WRITE(6,*) "END MESH"
 !     ----- Initialize diffusion coef. -----
       call FPCINI

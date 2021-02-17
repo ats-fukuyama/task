@@ -109,7 +109,8 @@
          CALL mtx_barrier
       ELSEIF (KID.EQ.'L') THEN
          CALL OPEN_EVOLVE_DATA_OUTPUT
-         CALL FP_PRE_LOAD
+         CALL FP_PRE_LOAD(ierr)
+         IF(ierr.NE.0) GO TO 1
          if(nrank.eq.0) CALL fp_load2
          CALL mtx_barrier
          CALL FP_POST_LOAD
