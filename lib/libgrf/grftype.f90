@@ -31,6 +31,11 @@ MODULE grftype
      REAL:: BEV_DISTANCE ! Bird's eye view : distance from origin [100 cm]
 
      INTEGER:: BEV_TYPE     ! Bird's eye view : type of distance from origin
+!                               0: no grid
+!                               1: with x grid
+!                               2: with y grid
+!                               3: with x and y grid
+!                              +4: shading (smooth painting)
      CHARACTER(LEN=80):: TITLE,XTITLE,YTITLE       ! Title contents
      INTEGER:: TITLE_LEN,XTITLE_LEN,YTITLE_LEN     ! Number of chars in title
      REAL:: TITLE_SIZE,XTITLE_SIZE,YTITLE_SIZE       ! Title font size
@@ -68,22 +73,20 @@ MODULE grftype
      INTEGER:: XVALUE_POS,YVALUE_POS,FVALUE_POS    ! Value pos for 3D
      INTEGER:: XVALUE_TYPE,YVALUE_TYPE,FVALUE_TYPE ! Value type
      INTEGER:: XVALUE_LTYPE,YVALUE_LTYPE,FVALUE_LTYPE ! Value type for log plot
-     INTEGER:: MODE_2D   ! Graph tupe
+     INTEGER:: MODE_2D   ! Graph tupe (*: not implemented yet)
 !                           0 : 1D plot (multi lines)  GRF1D
 !                           1 : 2D contour lines       CONTG
 !                           2 : 2D equi-value paint    CONTP
 !                           3 : 2D contour lines and equi-value paint
 !                           4 : 2D contour lines       CONTQ fixed line prop.
-!                          11 : Bird's eye view contour lines    GRF2DC
-!                          12 : Bird's eye view equi-value paint GRF2DD
-!                          13 : Bird's eye view contour and paint
-!                          14 : Bird's eye view contour on Z=0 plane
-!                          15 : Bird's eye view contour on X=0 plane
-!                          16 : Bird's eye view contour on Y=0 plane
-!                          17 : Bird's eye view X mesh
-!                          18 : Bird's eye view Y mesh
-!                          19 : Bird's eye view X and Y mesh
+!                          11 : Bird's eye view paint
+!                          12 : Bird's eye view paint and contour on Z=0
+!                          13*: Bird's eye view contour and paint
+!                          14*: Bird's eye view contour on Z=0 plane
+!                          15*: Bird's eye view contour on X=0 plane
+!                          16*: Bird's eye view contour on Y=0 plane
 !                          21 : X-Y plot
+!                          22 : X-Y plot (with gradation)
      INTEGER:: MODE_XY   ! Coordinate tupe
 !                           0 : Rectangular coordinates
 !                           1 : Circle
