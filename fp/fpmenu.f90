@@ -115,8 +115,8 @@
          CALL mtx_barrier
          CALL FP_POST_LOAD
       ELSEIF (KID.EQ.'Z') THEN
-         CALL fp_caldeff
-         CALL fp_calchieff
+         IF(nsize.EQ.1) CALL fp_caldeff      ! not for parallel
+         IF(nsize.EQ.1) CALL fp_calchieff    ! not for parallel
       ELSEIF (KID.EQ.'Q') THEN
          CALL CLOSE_EVOLVE_DATA_OUTPUT 
          GO TO 9000

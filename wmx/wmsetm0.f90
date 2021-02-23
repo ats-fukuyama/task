@@ -366,21 +366,19 @@ CONTAINS
             KD=NKD-ND
             IF(MODELK.EQ.0.OR. &
                  (KD.GE.KDMIN_F.AND. &
-                 (KD.LE.KDMAX_F))) THEN
-               KDX=KD-KDMIN_F + 1
-               KDXF=KDX
-
+                  KD.LE.KDMAX_F)) THEN
+               KDX=MOD(KD-KDMIN_F+2*KDSIZ_F,KDSIZ_F) + 1
                NN=NPH0+NHC*ND
                NK=NPH0+NHC*NKD
-
                DO MD=MDMIN,MDMAX
                   MDX=MD-MDMIN+1
                   DO MLD=MDMIN,MDMAX
                      MLX=MLD-MDMIN+1
                      LD=MLD-MD
-                     IF(LD.GE.LDMIN_F.AND. &
-                       (LD.LE.LDMAX_F.OR.LDMAX_F==0))THEN
-                        LDX =LD-LDMIN_F+1
+                     IF(MODELK.EQ.0.OR. &
+                        (LD.GE.LDMIN_F.AND. &
+                         LD.LE.LDMAX_F))THEN
+                        LDX=MOD(LD-LDMIN_F+2*LDSIZ_F,LDSIZ_F)+1
                         MM=NTH0+MD
                         ML=NTH0+MLD
                         DO J=1,3

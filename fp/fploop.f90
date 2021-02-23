@@ -189,7 +189,7 @@
             IF(NRANK.EQ.0) THEN
                CALL FPSGLB
                CALL FPWRTGLB
-               CALL fp_caltp
+               IF(nsize.EQ.1) CALL fp_caltp  ! not for parallel
             ENDIF
          ENDIF
          IF (MOD(NT,NTG2STEP).EQ.0) THEN

@@ -76,10 +76,6 @@
          CALL eqcalq(IERR)
          CALL eqgetb(BB,RR,RIP,RA,RKAP,RDLT,RB)
       ENDIF
-      WRITE(6,*) 'BB  =',BB
-      WRITE(6,*) 'RR  =',RR
-      WRITE(6,*) 'RIP =',RIP
-      WRITE(6,*) 'RA  =',RA
       RKAP=1.D0
 
 !     ----- set radial mesh -----
