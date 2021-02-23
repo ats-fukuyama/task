@@ -18,11 +18,9 @@ CONTAINS
     REAL(dp):: sg       ! sigma = l q_theta/k
     COMPLEX(dp):: cf    ! 
     INTEGER:: nxmax,nymax,nx,ny
-    REAL(dp):: delta_nw,eps_nw,wwr,wwi,wra,wia,rd
+    REAL(dp):: delta_nw,eps_nw,wr1,wi1,wi2,rd
     INTEGER:: lmax_nw,list_nw,mode_nw,ierr
 
-    wr=1.D0
-    wi=0.D0
     rk=0.1D0
     sg=0.D0
 
@@ -38,18 +36,16 @@ CONTAINS
     mode_nw= 0
 
 1   CONTINUE
-    WRITE(6,'(A/6ES12.4,2I4)') &
-         '## INPUT: wr,wi,rk,sg,delta_nw,eps_nw,lmax_nw,list_nw?', &
-         wr,wi,rk,sg,delta_nw,eps_nw,lmax_nw,list_nw
-    READ(5,*,ERR=1,END=9000) wr,wi,rk,sg,delta_nw,eps_nw,lmax_nw,list_nw
+    WRITE(6,'(A/4ES12.4,2I4)') &
+         '## INPUT: rk,sg,delta_nw,eps_nw,lmax_nw,list_nw?', &
+         rk,sg,delta_nw,eps_nw,lmax_nw,list_nw
+    READ(5,*,ERR=1,END=9000) rk,sg,delta_nw,eps_nw,lmax_nw,list_nw
 
+    CALL cwaprx(rk,sg,wr1,wi1,wi2)
     CALL set_rksg(rk,sg)
-    CALL newtn0(subeps,wr,wi,wwr,wwi,rd,delta_nw,eps_nw,lmax_nw,list_nw,ierr)
-    wra=SQRT((1.D0+sg**2)*(1.D0+3.D0*rk**2))
-    wia=-SQRT(0.125D0*Pi)*SQRT(1.D0+sg**2)*(1.D0+3.D0*rk**2)**2/rk**3 &
-         *EXP(-0.5D0/rk**2*(1.D0+3.D0*rk**2))
+    CALL newtn0(subeps,wr1,wi2,wr,wi,rd,delta_nw,eps_nw,lmax_nw,list_nw,ierr)
     WRITE(6,'(A,2F6.3,5ES12.4)') &
-         'rk,sg:',rk,sg,wra,wia,wwr,wwi,rd
+         'rk,sg:',rk,sg,wr1,wi2,wr,wi,rd
     GO TO 1
 
 9000 CONTINUE

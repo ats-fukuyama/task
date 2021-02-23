@@ -5,7 +5,7 @@ MODULE saksub
   REAL(dp):: rk_local,sg_local
 
   PRIVATE
-  PUBLIC set_rksg,cfeps,subeps,newtn0
+  PUBLIC set_rksg,cfeps,subeps,newtn0,cwaprx
 
 CONTAINS
 
@@ -40,10 +40,15 @@ CONTAINS
     cw2=cw**2
     rk2=rk**2
     sg2=sg**2
-    cfeps= 1.D0 &
-         -(1.D0+sg2+3.D0*(1.D0+sg2)**2*rk2/cw2)/cw2 &
-         +CI*SQRT(0.5D0*Pi)*cw/(rk**3*SQRT(1.D0+sg2)) &
+    IF(ABS(rk).LE.1.D-8) THEN
+       cfeps=1.D0 &
+            -(1.D0+sg2+3.D0*(1.D0+sg2)**2*rk2/cw2)/cw2
+    ELSE
+       cfeps= 1.D0 &
+            -(1.D0+sg2+3.D0*(1.D0+sg2)**2*rk2/cw2)/cw2 &
+            +CI*SQRT(0.5D0*Pi)*cw/(rk**3*SQRT(1.D0+sg2)) &
             *EXP(-0.5D0*cw2/(rk2*(1.D0+sg2)))
+    END IF
     RETURN
   END FUNCTION cfeps
 
@@ -185,4 +190,21 @@ CONTAINS
     RETURN
   END SUBROUTINE newtn0
 
+  SUBROUTINE cwaprx(rk,sg,wr1,wi1,wi2)
+    IMPLICIT NONE
+    REAL(dp),INTENT(IN):: rk,sg
+    REAL(dp),INTENT(OUT):: wr1,wi1,wi2
+    
+    wr1=SQRT((1.D0+sg**2)*(1.D0+3.D0*rk**2))
+    IF(ABS(rk).LE.1.D-6) THEN
+       wi1=0.D0
+       wi2=0.D0
+    ELSE
+       wi1=-SQRT(0.125D0*Pi)*SQRT(1.D0+sg**2)/rk**3 &
+            *EXP(-0.5D0/rk**2)
+       wi2=-SQRT(0.125D0*Pi)*SQRT(1.D0+sg**2)*(1.D0+3.D0*rk**2)**2/rk**3 &
+            *EXP(-0.5D0/rk**2*(1.D0+3.D0*rk**2))
+    END IF
+    RETURN
+  END SUBROUTINE cwaprx
 END MODULE saksub
