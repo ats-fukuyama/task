@@ -5,35 +5,35 @@ MODULE grdutils
   IMPLICIT NONE
   
   PRIVATE
-  PUBLIC gsclip,ngslen,setrgbd,setrgbda
+  PUBLIC gdclip,ngdlen,setrgbd,setrgbda
 
 CONTAINS
 
   !     ****** AVOID REAL*4 UNDERFLOW ******
   
-  FUNCTION gsclip(d)
+  FUNCTION gdclip(d)
 
     REAL(dp),INTENT(IN):: d
-    REAL:: gsclip
+    REAL:: gdclip
 
     IF(ABS(d).LT.1.D-30) then
-       gsclip=0.0
+       gdclip=0.0
     ELSEIF(d.GT. 1.D30) THEN
-       gsclip= 1.E30
+       gdclip= 1.E30
     ELSEIF(d.LT.-1.D30) THEN
-       gsclip=-1.E30
+       gdclip=-1.E30
     ELSE
-       gsclip=SNGL(d)
+       gdclip=SNGL(d)
     ENDIF
     RETURN
-  END FUNCTION gsclip
+  END FUNCTION gdclip
 
   !   ***** OPTIMUM NUM LENGTH FOR GVALUE *****
 
-  FUNCTION ngslen(step)
+  FUNCTION ngdlen(step)
 
     REAL(dp),INTENT(IN):: step
-    INTEGER:: ngslen
+    INTEGER:: ngdlen
     REAL(dp):: gxl,gx
     INTEGER:: ngx
     
@@ -54,16 +54,16 @@ CONTAINS
     ELSEIF(ngx.GE.0) THEN
        ngx=0
     ENDIF
-    ngslen=-ngx
+    ngdlen=-ngx
     RETURN
-  END FUNCTION ngslen
+  END FUNCTION ngdlen
 
   !   ***** setup rgb in dp *****
 
   SUBROUTINE setrgbd(r,g,b)
     REAL(dp),INTENT(IN):: r,g,b
 
-    CALL setrgb(gsclip(r),gsclip(g),gsclip(b))
+    CALL setrgb(gdclip(r),gdclip(g),gdclip(b))
     RETURN
   END SUBROUTINE setrgbd
 
@@ -73,9 +73,9 @@ CONTAINS
     REAL(dp),INTENT(IN):: rgb(3)
     REAL:: grgb(3)
 
-    grgb(1)=gsclip(rgb(1))
-    grgb(2)=gsclip(rgb(2))
-    grgb(3)=gsclip(rgb(3))
+    grgb(1)=gdclip(rgb(1))
+    grgb(2)=gdclip(rgb(2))
+    grgb(3)=gdclip(rgb(3))
     CALL setrgba(grgb)
     RETURN
   END SUBROUTINE setrgbda

@@ -74,8 +74,7 @@
             CALL fp_view
          endif
       ELSEIF (KID.EQ.'G') THEN
-         IF(nrank.EQ.0) CALL fp_gout
-         CALL mtx_barrier
+         CALL fp_gout
       ELSEIF (KID.EQ.'F') THEN
          IF(nrank.EQ.0) THEN
             NGRAPH_SAVE=NGRAPH

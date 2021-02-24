@@ -31,7 +31,7 @@ SRCS = fpcomm.f90 eg_read.f90 fpinit.f90 fpparm.f90 \
        fpcalcn.f90 fpcalcnr.f90 fpcalc.f90 fpnfrr.f90 fpnflg.f90 \
        cdbmfp.f90 fpcalr.f90 sv_read.f90 fpcoef.f90 fpcale.f90 \
        fpbounce.f90 fpdisrupt.f90 fpprep.f90 fploop.f90 \
-       fpcont.f90 fpfout.f90 fpgout.f90 fpfile.f90 fpmenu.f90
+       fpcont.f90 fpfout.f90 fpgsub.f90 fpgout.f90 fpfile.f90 fpmenu.f90
 
 OBJS = $(SRCS:.f90=.o)
 
@@ -95,7 +95,8 @@ fpcalwr.o : fpwrin.f90 fpcalwr.f90 fpcomm.f90
 fpcalwm.o : fpwmin.f90 fpcalwm.f90 fpcomm.f90
 fpcont.o : fpcont.f90 fpcomm.f90
 fpfout.o : fpfout.f90 fpcomm.f90
-fpgout.o : fpfout.f90 fpcont.f90 fpgout.f90 fpcomm.f90
+fpgsub.o : fpgsub.f90 fpcomm.f90
+fpgout.o : fpfout.f90 fpcont.f90 fpgsub.f90 fpgout.f90 fpcomm.f90
 fpfile.o : fpprep.f90 eg_read.f90 sv_read.f90 fpfile.f90 fpcomm.f90
 fpsave.o : fpexec.f90 eg_read.f90 fpsave.f90 fpcomm.f90
 fpwrin.o : fpwrin.f90 fpcomm.f90

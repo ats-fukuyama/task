@@ -1231,12 +1231,12 @@ CONTAINS
                             ang=0.D0
                             x=pv_org+                     pv_rad*cos(ang)
                             y=       SQRT(1.D0-rnpara**2)*pv_rad*sin(ang)
-                            CALL MOVEPT2D(gsclip(x),gsclip(y),line_pat)
+                            CALL MOVEPT2D(gdclip(x),gdclip(y),line_pat)
                             DO nang=2,nang_max+1
                                ang=(nang-1)*dang
                                x=pv_org+                     pv_rad*cos(ang)
                                y=       SQRT(1.D0-rnpara**2)*pv_rad*sin(ang)
-                               CALL DRAWPT2D(gsclip(x),gsclip(y))
+                               CALL DRAWPT2D(gdclip(x),gdclip(y))
                             END DO
                          END IF ! pc_rad2>0
                       END IF ! cyclotron resonance condition
