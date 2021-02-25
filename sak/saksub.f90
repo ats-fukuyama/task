@@ -36,14 +36,13 @@ CONTAINS
     COMPLEX(dp),INTENT(IN):: cw
     REAL(dp),INTENT(IN):: rk,sg
     COMPLEX(dp):: cfeps,czeta,cz,cdz
-    REAL(dp):: rk2,sg2
 
     IF(rk.EQ.0.D0) THEN
-       cfeps=-(1.D0+sg**2)/cw**2
+       cfeps=1.D0-(1.D0+sg**2)/cw**2
     ELSE
        czeta=cw/(SQRT(2.D0)*SQRT(1.D0+sg**2)*rk)
        CALL DSPFN(czeta,cz,cdz)
-       cfeps=(1.D0+czeta*cz)/rk**2
+       cfeps=1.D0+(1.D0+czeta*cz)/rk**2
     END IF
     RETURN
   END FUNCTION cfeps
