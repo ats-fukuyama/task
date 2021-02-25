@@ -21,7 +21,8 @@ CONTAINS
     INTEGER:: mode,nrkmax,nsgmax,nrk,nsg
     REAL(dp),ALLOCATABLE:: xa(:),ya(:),fa(:,:)
     REAL(dp),ALLOCATABLE:: rka(:),sga(:)
-    REAL(dp),ALLOCATABLE:: wr1a(:,:),wi1a(:,:),wi2a(:,:),wra(:,:),wia(:,:)
+    REAL(dp),ALLOCATABLE:: wr1a(:,:),wi1a(:,:),wi2a(:,:),wim1a(:,:),wim2a(:,:)
+    REAL(dp),ALLOCATABLE:: wra(:,:),wia(:,:)
     CHARACTER(LEN=80):: title
 
     mode=1  ! 1: rk 1dplot, 2: sg 1dplot, 3: rk-sg 2Dplot
@@ -68,7 +69,8 @@ CONTAINS
     DO nsg=1,nsgmax
        DO nrk=1,nrkmax
           CALL cwaprx(rka(nrk),sga(nsg), &
-               wr1a(nrk,nsg),wi1a(nrk,nsg),wi2a(nrk,nsg))
+               wr1a(nrk,nsg),wi1a(nrk,nsg),wi2a(nrk,nsg), &
+               wim1a(nrk,nsg),wim2a(nrk,nsg))
           CALL set_rksg(rka(nrk),sga(nsg))
           CALL newtn0(subeps1,wr1a(nrk,nsg),wi2a(nrk,nsg), &
                wra(nrk,nsg),wia(nrk,nsg),rd, &

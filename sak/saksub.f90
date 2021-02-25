@@ -219,20 +219,37 @@ CONTAINS
     RETURN
   END SUBROUTINE newtn0
 
-  SUBROUTINE cwaprx(rk,sg,wr1,wi1,wi2)
+  SUBROUTINE cwaprx(rk,sg,wr1,wi1,wi2,wim1,wim2)
     IMPLICIT NONE
     REAL(dp),INTENT(IN):: rk,sg
-    REAL(dp),INTENT(OUT):: wr1,wi1,wi2
+    REAL(dp),INTENT(OUT):: wr1,wi1,wi2,wim1,wim2
     
     wr1=SQRT((1.D0+sg**2)*(1.D0+3.D0*rk**2))
     IF(ABS(rk).LE.1.D-6) THEN
        wi1=0.D0
        wi2=0.D0
+       wim1=0.D0
+       wim2=0.D0
+    ELSE IF(ABS(sg).LE.1.D-6) THEN
+       wi1=-SQRT(0.125D0*Pi)*SQRT(1.D0+sg**2)/rk**3 &
+            *EXP(-0.5D0/rk**2)
+       wi2=-SQRT(0.125D0*Pi)*SQRT(1.D0+sg**2)*(1.D0+3.D0*rk**2)**2/rk**3 &
+            *EXP(-0.5D0/rk**2*(1.D0+3.D0*rk**2))
+       wim1=-SQRT(0.125D0*Pi)/((1.D0+sg**2)**1.5D0*rk**3) &
+            *EXP(-0.5D0/rk**2)*EXP(-0.5D0*sg**2)
+       wim2=-SQRT(0.125D0*Pi)*(1.D0+sg**2)/rk**3 &
+            *EXP(-0.5D0*(1.D0+sg**2)/rk**2)*EXP(-0.5D0*sg**2)
     ELSE
        wi1=-SQRT(0.125D0*Pi)*SQRT(1.D0+sg**2)/rk**3 &
             *EXP(-0.5D0/rk**2)
        wi2=-SQRT(0.125D0*Pi)*SQRT(1.D0+sg**2)*(1.D0+3.D0*rk**2)**2/rk**3 &
             *EXP(-0.5D0/rk**2*(1.D0+3.D0*rk**2))
+       wim1=-SQRT(0.125D0*Pi)/((1.D0+sg**2)**1.5D0*rk**3) &
+            *(EXP(-0.5D0/rk**2)*EXP(-0.5D0*sg**2) &
+             +EXP(-0.5D0/rk**2/sg**2)*EXP(-0.5D0/sg**2)/sg)
+       wim2=-SQRT(0.125D0*Pi)*(1.D0+sg**2)/rk**3 &
+            *(EXP(-0.5D0*(1.D0+sg**2)/rk**2)*EXP(-0.5D0*sg**2) &
+             +EXP(-0.5D0*(1.D0+sg**2)/rk**2/sg**2)*EXP(-0.5D0/sg**2)/sg)
     END IF
     RETURN
   END SUBROUTINE cwaprx

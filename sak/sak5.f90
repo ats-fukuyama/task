@@ -22,6 +22,7 @@ CONTAINS
     REAL(dp),ALLOCATABLE:: xa(:),ya(:),fa(:,:)
     REAL(dp),ALLOCATABLE:: rka(:),sga(:)
     REAL(dp),ALLOCATABLE:: wr1a(:,:),wi1a(:,:),wi2a(:,:),wra(:,:),wia(:,:)
+    REAL(dp),ALLOCATABLE:: wim1a(:,:),wim2a(:,:)
     CHARACTER(LEN=80):: title
 
     mode=1  ! 1: rk 1dplot, 2: sg 1dplot, 3: rk-sg 2Dplot
@@ -46,6 +47,7 @@ CONTAINS
 
     ALLOCATE(rka(nrkmax),sga(nsgmax))
     ALLOCATE(wr1a(nrkmax,nsgmax),wi1a(nrkmax,nsgmax),wi2a(nrkmax,nsgmax))
+    ALLOCATE(wim1a(nrkmax,nsgmax),wim2a(nrkmax,nsgmax))
     ALLOCATE(wra(nrkmax,nsgmax),wia(nrkmax,nsgmax))
 
     IF(nrkmax.EQ.1) THEN
@@ -68,7 +70,8 @@ CONTAINS
     DO nsg=1,nsgmax
        DO nrk=1,nrkmax
           CALL cwaprx(rka(nrk),sga(nsg), &
-               wr1a(nrk,nsg),wi1a(nrk,nsg),wi2a(nrk,nsg))
+               wr1a(nrk,nsg),wi1a(nrk,nsg),wi2a(nrk,nsg), &
+               wim1a(nrk,nsg),wim2a(nrk,nsg))
           CALL set_rksg(rka(nrk),sga(nsg))
           CALL newtn0(subeps,wr1a(nrk,nsg),wi2a(nrk,nsg), &
                wra(nrk,nsg),wia(nrk,nsg),rd, &
@@ -79,7 +82,7 @@ CONTAINS
     CALL PAGES
     SELECT CASE(mode)
     CASE(1)
-       ALLOCATE(xa(nrkmax),fa(nrkmax,3))
+       ALLOCATE(xa(nrkmax),fa(nrkmax,5))
        xa(1:nrkmax)=rka(1:nrkmax)
        fa(1:nrkmax,1)=wra(1:nrkmax,1)
        fa(1:nrkmax,2)=wr1a(1:nrkmax,1)
@@ -88,21 +91,23 @@ CONTAINS
        fa(1:nrkmax,1)=wia(1:nrkmax,1)
        fa(1:nrkmax,2)=wi2a(1:nrkmax,1)
        fa(1:nrkmax,3)=wi1a(1:nrkmax,1)
+       fa(1:nrkmax,4)=wim2a(1:nrkmax,1)
        title='@wi vs rk: exact,approx1,approx2@'
-       CALL grd1d(2,xa,fa,nrkmax,nrkmax,3,title)
+       CALL grd1d(2,xa,fa,nrkmax,nrkmax,4,title)
        DEALLOCATE(xa,fa)
     CASE(2)
-       ALLOCATE(xa(nsgmax),fa(nsgmax,3))
+       ALLOCATE(xa(nsgmax),fa(nsgmax,5))
        xa(1:nsgmax)=sga(1:nsgmax)
        fa(1:nsgmax,1)=wra(1,1:nsgmax)
        fa(1:nsgmax,2)=wr1a(1,1:nsgmax)
        title='@wr vs sg: exact,approx@'
-       CALL grd1d(1,xa,fa,nsgmax,nsgmax,2,title)
+       CALL grd1d(1,xa,fa,nsgmax,nsgmax,2,title,FMIN=0.D0)
        fa(1:nsgmax,1)=wia(1,1:nsgmax)
        fa(1:nsgmax,2)=wi2a(1,1:nsgmax)
        fa(1:nsgmax,3)=wi1a(1,1:nsgmax)
+       fa(1:nsgmax,4)=wim2a(1,1:nsgmax)
        title='@wi vs sg: exact,approx1,approx2@'
-       CALL grd1d(2,xa,fa,nsgmax,nsgmax,3,title)
+       CALL grd1d(2,xa,fa,nsgmax,nsgmax,4,title)
        DEALLOCATE(xa,fa)
     CASE(3)
        ALLOCATE(xa(nrkmax),fa(nrkmax,nsgmax))
@@ -111,7 +116,7 @@ CONTAINS
           fa(1:nrkmax,nsg)=wra(1:nrkmax,nsg)
        END DO
        title='@wr vs rk: for various sg@'
-       CALL grd1d(1,xa,fa,nrkmax,nrkmax,nsgmax,title)
+       CALL grd1d(1,xa,fa,nrkmax,nrkmax,nsgmax,title,FMIN=0.D0)
        DO nsg=1,nsgmax
           fa(1:nrkmax,nsg)=wia(1:nrkmax,nsg)
        END DO
@@ -125,7 +130,7 @@ CONTAINS
           fa(1:nsgmax,nrk)=wra(nrk,1:nsgmax)
        END DO
        title='@wr vs sg: for various rk@'
-       CALL grd1d(1,xa,fa,nsgmax,nsgmax,nrkmax,title)
+       CALL grd1d(1,xa,fa,nsgmax,nsgmax,nrkmax,title,FMIN=0.D0)
        DO nrk=1,nrkmax
           fa(1:nsgmax,nrk)=wia(nrk,1:nsgmax)
        END DO
@@ -141,19 +146,19 @@ CONTAINS
        END DO
        title='@wr(rk,sg)@'
        CALL grd2d(1,xa,ya,fa,nrkmax,nrkmax,nsgmax,title, &
-                  ASPECT=1.D0)
+                  ASPECT=1.D0,NLMAX=15)
        DO nsg=1,nsgmax
           fa(1:nrkmax,nsg)=wia(1:nrkmax,nsg)
        END DO
        title='@wi(rk,sg)@'
        CALL grd2d(2,xa,ya,fa,nrkmax,nrkmax,nsgmax,title, &
-                  ASPECT=1.D0)
+                  ASPECT=1.D0,NLMAX=15)
        DEALLOCATE(xa,ya,fa)
     END SELECT
     CALL PAGEE
 
     DEALLOCATE(rka,sga)
-    DEALLOCATE(wr1a,wi1a,wi2a)
+    DEALLOCATE(wr1a,wi1a,wi2a,wim1a,wim2a)
     DEALLOCATE(wra,wia)
 
     GOTO 1

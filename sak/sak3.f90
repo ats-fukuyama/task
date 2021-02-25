@@ -18,7 +18,7 @@ CONTAINS
     REAL(dp):: sg       ! sigma = l q_theta/k
     COMPLEX(dp):: cf    ! 
     INTEGER:: nxmax,nymax,nx,ny
-    REAL(dp):: delta_nw,eps_nw,wr1,wi1,wi2,rd
+    REAL(dp):: delta_nw,eps_nw,wr1,wi1,wi2,wim1,wim2,rd
     INTEGER:: lmax_nw,list_nw,mode_nw,ierr
 
     rk=0.1D0
@@ -41,7 +41,7 @@ CONTAINS
          rk,sg,delta_nw,eps_nw,lmax_nw,list_nw
     READ(5,*,ERR=1,END=9000) rk,sg,delta_nw,eps_nw,lmax_nw,list_nw
 
-    CALL cwaprx(rk,sg,wr1,wi1,wi2)
+    CALL cwaprx(rk,sg,wr1,wi1,wi2,wim1,wim2)
     CALL set_rksg(rk,sg)
     CALL newtn0(subeps,wr1,wi2,wr,wi,rd,delta_nw,eps_nw,lmax_nw,list_nw,ierr)
     WRITE(6,'(A,2F6.3,5ES12.4)') &
