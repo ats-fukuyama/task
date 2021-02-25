@@ -5,7 +5,7 @@ MODULE saksub
   REAL(dp):: rk_local,sg_local
 
   PRIVATE
-  PUBLIC set_rksg,cfeps,subeps,newtn0,cwaprx
+  PUBLIC set_rksg,cfeps,subeps,cfeps1,subeps1,newtn0,cwaprx
 
 CONTAINS
 
@@ -31,26 +31,56 @@ CONTAINS
   END SUBROUTINE subeps
     
   FUNCTION cfeps(cw,rk,sg)
+    USE libdsp
     IMPLICIT NONE
     COMPLEX(dp),INTENT(IN):: cw
     REAL(dp),INTENT(IN):: rk,sg
-    COMPLEX(dp):: cfeps,cw2
+    COMPLEX(dp):: cfeps,czeta,cz,cdz
+    REAL(dp):: rk2,sg2
+
+    IF(rk.EQ.0.D0) THEN
+       cfeps=-(1.D0+sg**2)/cw**2
+    ELSE
+       czeta=cw/(SQRT(2.D0)*SQRT(1.D0+sg**2)*rk)
+       CALL DSPFN(czeta,cz,cdz)
+       cfeps=(1.D0+czeta*cz)/rk**2
+    END IF
+    RETURN
+  END FUNCTION cfeps
+
+  SUBROUTINE subeps1(x,y,f)
+    IMPLICIT NONE
+    REAL(dp),INTENT(IN):: x,y
+    REAL(dp),INTENT(OUT):: f
+    COMPLEX(dp):: cw,cf
+
+    cw=DCMPLX(x,y)
+    cf=cfeps1(cw,rk_local,sg_local)
+    f=REAL(cf)**2+AIMAG(cf)**2
+    RETURN
+  END SUBROUTINE subeps1
+    
+  FUNCTION cfeps1(cw,rk,sg)
+    IMPLICIT NONE
+    COMPLEX(dp),INTENT(IN):: cw
+    REAL(dp),INTENT(IN):: rk,sg
+    COMPLEX(dp):: cfeps1,cw2
     REAL(dp):: rk2,sg2
 
     cw2=cw**2
     rk2=rk**2
     sg2=sg**2
     IF(ABS(rk).LE.1.D-8) THEN
-       cfeps=1.D0 &
-            -(1.D0+sg2+3.D0*(1.D0+sg2)**2*rk2/cw2)/cw2
+       cfeps1=1.D0 &
+             -(1.D0+sg2+3.D0*(1.D0+sg2)**2*rk2/cw2)/cw2
     ELSE
-       cfeps= 1.D0 &
-            -(1.D0+sg2+3.D0*(1.D0+sg2)**2*rk2/cw2)/cw2 &
-            +CI*SQRT(0.5D0*Pi)*cw/(rk**3*SQRT(1.D0+sg2)) &
-            *EXP(-0.5D0*cw2/(rk2*(1.D0+sg2)))
+       cfeps1= 1.D0 &
+             -(1.D0+sg2+3.D0*(1.D0+sg2)**2*rk2/cw2)/cw2 &
+             +CI*SQRT(0.5D0*Pi)*cw/(rk**3*SQRT(1.D0+sg2)) &
+             *EXP(-0.5D0*cw2/(rk2*(1.D0+sg2)))
     END IF
     RETURN
-  END FUNCTION cfeps
+  END FUNCTION cfeps1
 
 !     ****** TWO-DIMENSIONAL NEWTON METHOD (minimum grad f) ****** 
 

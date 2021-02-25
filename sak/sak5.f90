@@ -1,12 +1,12 @@
-  ! sak4.f90
+! sak5.f90
 
-MODULE sak4
+MODULE sak5
   PRIVATE
-  PUBLIC sak_4
+  PUBLIC sak_5
 
 CONTAINS
 
-  SUBROUTINE sak_4
+  SUBROUTINE sak_5
 
     USE sakcomm
     USE saksub
@@ -70,7 +70,7 @@ CONTAINS
           CALL cwaprx(rka(nrk),sga(nsg), &
                wr1a(nrk,nsg),wi1a(nrk,nsg),wi2a(nrk,nsg))
           CALL set_rksg(rka(nrk),sga(nsg))
-          CALL newtn0(subeps1,wr1a(nrk,nsg),wi2a(nrk,nsg), &
+          CALL newtn0(subeps,wr1a(nrk,nsg),wi2a(nrk,nsg), &
                wra(nrk,nsg),wia(nrk,nsg),rd, &
                delta_nw,eps_nw,lmax_nw,list_nw,ierr)
        END DO
@@ -160,8 +160,8 @@ CONTAINS
 
 9000 CONTINUE
     RETURN
-  END SUBROUTINE sak_4
-END MODULE sak4
+  END SUBROUTINE sak_5
+END MODULE sak5
 
        
        
