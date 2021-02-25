@@ -499,7 +499,7 @@ C
       ELSE
          YT=(1.D0-Y2)*WT*WT/Y2
       ENDIF
-      IF(YT.GE.0.D0.AND.RC*YT.LT.40.D0) THEN
+      IF(YT.GE.0.D0.AND.RCX*YT.LT.40.D0) THEN
          ARG=(RCX*YT)**RMX
          IF(ARG.LE.100.D0) THEN
             EFF3=1.D0-MIN(EXP(-ARG),1.D0)

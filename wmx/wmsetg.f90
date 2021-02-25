@@ -668,8 +668,10 @@ CONTAINS
 
   SUBROUTINE BTHOB
     USE wmcomm
+    IMPLICIT NONE
     REAL(rkind):: RGA(3,3),RGB(3,3)
     INTEGER:: nr,nth,nhh
+    REAL(rkind):: BSUPTH,BSUPPH,BABS,BTH,RHON
     
     ! ----- Invert matrix to obtain mu^(-1)=RMB and g^(-1)=RGB ----
     
