@@ -3,7 +3,8 @@ MODULE grfutils
   USE task_kinds,ONLY: dp
   PRIVATE
   PUBLIC grf_title,grf_frame1d,grf_frame2d,grf_frame3d, &
-         grf_info,grfut1,grfut2,grfut3,grfut4,setrgba
+         grf_info,grfut1,grfut2,grfut3,grfut4,setrgba, &
+         gsclip,ngslen
 
 CONTAINS
 
@@ -441,5 +442,54 @@ CONTAINS
     CALL SETRGB(RGB(1),RGB(2),RGB(3))
     RETURN
   END SUBROUTINE SETRGBA
+
+!     ****** AVOID REAL*4 UNDERFLOW ******
+  
+  FUNCTION gsclip(s)
+
+    REAL,INTENT(IN):: s
+    REAL:: gsclip
+
+    IF(ABS(s).LT.1.E-30) then
+       gsclip=0.0
+    ELSEIF(s.GT. 1.E30) THEN
+       gsclip= 1.E30
+    ELSEIF(s.LT.-1.D30) THEN
+       gsclip=-1.E30
+    ELSE
+       gsclip=s
+    ENDIF
+    RETURN
+  END FUNCTION gsclip
+
+  !   ***** OPTIMUM NUM LENGTH FOR GVALUE *****
+
+  FUNCTION ngslen(step)
+
+    REAL,INTENT(IN):: step
+    INTEGER:: ngslen
+    REAL:: gxl,gx
+    INTEGER:: ngx
+    
+    gxl=LOG10(step*0.11)
+    IF(gxl.LT.0.0) THEN
+       ngx = -INT(-gxl)
+    ELSE
+       ngx =  INT( gxl)
+    ENDIF
+    IF(ngx.LT.-4.OR.ngx.GT.4)THEN
+       gx = gxl-ngx
+       IF(gx.LT.0.D0) gx=gx+1.0
+       IF(gx.LE.0.15) THEN
+          ngx=100
+       ELSE
+          ngx=101
+       ENDIF
+    ELSEIF(ngx.GE.0) THEN
+       ngx=0
+    ENDIF
+    ngslen=-ngx
+    RETURN
+  END FUNCTION ngslen
 
 END MODULE grfutils

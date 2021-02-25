@@ -74,8 +74,7 @@
             CALL fp_view
          endif
       ELSEIF (KID.EQ.'G') THEN
-         IF(nrank.EQ.0) CALL fp_gout
-         CALL mtx_barrier
+         CALL fp_gout
       ELSEIF (KID.EQ.'F') THEN
          IF(nrank.EQ.0) THEN
             NGRAPH_SAVE=NGRAPH
@@ -115,8 +114,8 @@
          CALL mtx_barrier
          CALL FP_POST_LOAD
       ELSEIF (KID.EQ.'Z') THEN
-         CALL fp_caldeff
-         CALL fp_calchieff
+         IF(nsize.EQ.1) CALL fp_caldeff      ! not for parallel
+         IF(nsize.EQ.1) CALL fp_calchieff    ! not for parallel
       ELSEIF (KID.EQ.'Q') THEN
          CALL CLOSE_EVOLVE_DATA_OUTPUT 
          GO TO 9000

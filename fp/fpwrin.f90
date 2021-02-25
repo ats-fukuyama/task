@@ -300,7 +300,8 @@
 !
       DO NRAY=1,NRAYMAX
          NITMX=NITMAX(NRAY)
-         WRITE(6,'(A,I5,1PE12.4)') 'NRAY,RF_WR=',NRAY,RAYIN(1,NRAY)
+         IF(nrank.EQ.0) &
+              WRITE(6,'(A,I5,1PE12.4)') 'NRAY,RF_WR=',NRAY,RAYIN(1,NRAY)
          DO NR=1,NRMAX
             PSICR =RM(NR)**2
             PSIPRE=PSIX(0,NRAY)
@@ -311,11 +312,15 @@
                IF((PSIPRE-PSICR)*(PSIL-PSICR).LT.0.D0.OR. &
                    PSIL-PSICR.EQ.0.D0) THEN
                   CALL FPCROS(PSICR,NIT,NRAY,SICR)
-                  WRITE(6,'(A,3I6,1P2E12.4)') '# NR,NRAY,NIT,PSICR,SICR=', &
-                                                 NR,NRAY,NIT,PSICR,SICR
+                  IF(nrank.EQ.0) &
+                       WRITE(6,'(A,3I6,1P2E12.4)') &
+                       '# NR,NRAY,NIT,PSICR,SICR=', &
+                       NR,NRAY,NIT,PSICR,SICR
                   CALL FPCREK(SICR,NRAY,CEX,CEY,CEZ,RKX,RKY,RKZ,RX,RY,RZ)
-                  WRITE(6,'(A,1P6E12.4)')     '# CE=',CEX,CEY,CEZ
-                  WRITE(6,'(A,1P6E12.4)')     '# KR=',RKX,RKY,RKZ,RX,RY,RZ
+                  IF(nrank.EQ.0) &
+                       WRITE(6,'(A,1P6E12.4)')     '# CE=',CEX,CEY,CEZ
+                  IF(nrank.EQ.0) &
+                       WRITE(6,'(A,1P6E12.4)')     '# KR=',RKX,RKY,RKZ,RX,RY,RZ
                   
                   IF(NCR.LT.NCRMAXM) THEN
                      NCR=NCR+1
@@ -346,17 +351,17 @@
 
   900 IERR=0
       RETURN
-9001  write(6,*) '9001:NIT=',NIT
+9001  write(6,*) 'XX fp_wr_read: 9001:NIT=',NIT
       stop
-9002  write(6,*) '9002:NIT=',NIT
+9002  write(6,*) 'XX fp_wr_read: 9002:NIT=',NIT
       stop
-9003  write(6,*) '9003:NIT=',NIT
+9003  write(6,*) 'XX fp_wr_read: 9003:NIT=',NIT
       stop
-9101  write(6,*) '9101:NIT=',NIT
+9101  write(6,*) 'XX fp_wr_read: 9101:NIT=',NIT
       stop
-9102  write(6,*) '9102:NIT=',NIT
+9102  write(6,*) 'XX fp_wr_read: 9102:NIT=',NIT
       stop
-9103  write(6,*) '9103:NIT=',NIT
+9103  write(6,*) 'XX fp_wr_read: 9103:NIT=',NIT
       stop
       RETURN
       END SUBROUTINE fp_wr_read
