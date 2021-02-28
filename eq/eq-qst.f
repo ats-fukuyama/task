@@ -4,6 +4,7 @@ C
       SUBROUTINE EQJAEAR(IERR)
 C
       USE libfio
+      USE libbrent
       USE libgrf
       INCLUDE '../eq/eqcomq.inc'
 C

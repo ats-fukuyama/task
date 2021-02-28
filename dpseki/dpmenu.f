@@ -9,6 +9,7 @@ C
       USE plprof,ONLY: pl_mag_old,pl_prof_old
       USE plinit,ONLY: pl_init
       USE plparm,ONLY: pl_view
+      USE libkio
       INCLUDE 'dpcomm.inc'
 C
       PARAMETER (NXGM=101)

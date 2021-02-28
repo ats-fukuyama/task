@@ -892,6 +892,7 @@ C     ****** CALCULATE INVERT MATRIX ******
 C
       SUBROUTINE WMRGINVERT
 C
+      USE libinv
       INCLUDE 'wmcomm.inc'
       DIMENSION RGA(3,3),RGB(3,3)
 C        ----- Invert matrix to obtain mu^(-1)=RMB and g^(-1)=RGB ----

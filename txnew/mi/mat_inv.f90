@@ -398,6 +398,7 @@ contains
 !
 !=======================================================================
     use tx_commons, only : cnpi => Pi, cnmp => AMP, cnec => AEE
+    USE libinv
     implicit none
 
 !:: argument
@@ -1524,7 +1525,8 @@ contains
 !        for boothx only
 !
 !=======================================================================
-  use tx_commons, only : cnpi => Pi
+    use tx_commons, only : cnpi => Pi
+    USE libinv
 !LAPACK  use lapack95, only : getrf, getri
   integer(4), intent(in) :: ispc, ibeam, imodel(:)
   real(8), intent(in)  :: den(:), tem(:), mas(:), zz(:) &

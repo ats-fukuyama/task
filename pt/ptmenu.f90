@@ -16,6 +16,7 @@ CONTAINS
     USE ptparm
     USE ptview
     USE ptexec1
+    USE libkio
     USE libmpi
       
     IMPLICIT NONE

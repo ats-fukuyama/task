@@ -1,10 +1,11 @@
 subroutine wfmenu
 
-  use libmpi
   use wfcomm
   USE wfparm
   USE plload, ONLY: pl_load
   USE wfload, ONLY: wf_load_wg
+  USE libkio
+  use libmpi
   implicit none
   
   integer  :: MODE

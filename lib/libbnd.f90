@@ -1,3 +1,12 @@
+! libbnd.f90
+
+MODULE libbnd
+
+  PRIVATE
+  PUBLIC bandrd,bandcd,bandrdu,bandcdu
+
+CONTAINS
+
 !     *****************************************************
 !     **     numerical solution of band matrix (SUB)     **
 !     **          Gaussian Elimination Method            **
@@ -443,3 +452,4 @@
  9002 IERR = 30000+I
       RETURN
       END SUBROUTINE BANDCDU
+    END MODULE libbnd

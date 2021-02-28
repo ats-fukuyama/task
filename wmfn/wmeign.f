@@ -4,6 +4,7 @@ C     ***** SINGLE CALCULATION *****
 C
       SUBROUTINE WMAM0D(KID,LINE)
 C
+      USE libkio
       INCLUDE 'wmcomm.inc'
       EXTERNAL WMPARM
       CHARACTER LINE*80,KID*1
@@ -55,6 +56,7 @@ C     ***** 1D PLOT OF AMPLITUDE *****
 C
       SUBROUTINE WMAM1D(KID,LINE)
 C
+      USE libkio
       INCLUDE 'wmcomm.inc'
       DIMENSION GX(NGZM),GZ(NGZM,1)
       CHARACTER LINE*80,KID*1
@@ -169,6 +171,7 @@ C     ***** 2D PLOT OF AMPLITUDE *****
 C
       SUBROUTINE WMAM2D(KID,LINE)
 C
+      USE libkio
       INCLUDE 'wmcomm.inc'
       DIMENSION GX(NGZM),GY(NGZM)
       DIMENSION GZ(NGZM,NGZM)
@@ -410,6 +413,7 @@ C     ***** FIND EIGEN VALUE *****
 C
       SUBROUTINE WMEIGN(KID,LINE)
 C
+      USE libkio
       INCLUDE 'wmcomm.inc'
       CHARACTER LINE*80,KID*1
       DIMENSION XA(2),WORK(2,2)
@@ -475,10 +479,11 @@ C     ***** PARAMETER SCAN *****
 C
       SUBROUTINE WMSCAN(KID,LINE)
 C
+      USE libkio
       INCLUDE 'wmcomm.inc'
       DIMENSION PNSAVE(NSM),PTPRSAVE(NSM),PTPPSAVE(NSM)
       DIMENSION PNITBSAVE(NSM),PTITBSAVE(NSM),PUITBSAVE(NSM)
-      DIMENSION PUSAVE(NSM)
+      DIMENSION PUSAVE(NSM),RHOITBSAVE(NSM)
       DIMENSION GX(NGZM),GY(NGZM,3)
       DIMENSION XA(2),WORK(2,2)
       CHARACTER LINE*80,KID*1,KV*4
@@ -569,8 +574,10 @@ C
             SCMAX=1.D0
          ELSE IF(ISCAN.EQ.12) THEN
             KV='RHOB'
-            RHOITBSAVE=RHOITB
-            SCMIN=RHOITB
+            DO NS=1,NSMAX
+               RHOITBSAVE(NS)=RHOITB(NS)
+            ENDDO
+            SCMIN=RHOITB(1)
          ELSE IF(ISCAN.EQ.13) THEN
             KV='PU  '
             DO NS=1,NSMAX
@@ -653,7 +660,7 @@ C
                   PUITB(NS)=PUITBSAVE(NS)*SC
                ENDDO
             ELSE IF(ISCAN.EQ.12) THEN
-               RHOITB=SC
+               RHOITB(1)=SC
             ELSE IF(ISCAN.EQ.13) THEN
                IF(PUSAVE(1).EQ.0.D0) THEN
                   DO NS=1,NSMAX
@@ -735,7 +742,9 @@ C
                PUITB(NS)=PUITBSAVE(NS)
             ENDDO
          ELSE IF(ISCAN.EQ.12) THEN
-            RHOITB=RHOITBSAVE
+            DO NS=1,NSMAX
+               RHOITB(NS)=RHOITBSAVE(NS)
+            END DO
          ELSE IF(ISCAN.EQ.13) THEN
             DO NS=1,NSMAX
                PU(NS)=PUSAVE(NS)

@@ -20,6 +20,7 @@ CONTAINS
       USE tigout
       USE plload,ONLY: pl_load_trdata
       USE plprof,ONLY: pl_plf_type,pl_prof
+      USE libkio
       USE libmpi
       
       IMPLICIT NONE

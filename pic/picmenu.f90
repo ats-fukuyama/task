@@ -14,6 +14,7 @@ CONTAINS
     USE picprep,ONLY: pic_prep
     USE picexec,ONLY: pic_exec
     USE picgout,ONLY: pic_gout
+    USE libkio
     USE libmpi
 
     IMPLICIT NONE

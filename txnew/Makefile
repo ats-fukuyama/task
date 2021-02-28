@@ -13,7 +13,8 @@ FFLAGS_NCLASS = $(OFLAGS)
 
 #PREPRO = -fpp -Ddebug # debug option
 #PREPRO = -fpp -Dlaself # when using self-compiled LAPACK
-PREPRO = -fpp
+#PREPRO = -fpp  # for ifort
+PREPRO = -cpp   # for gfortran
 
 SRCMI= mi/mat_inv.f90 mi/eqneo.f90
 SRCEQ= equ/eq_mod.f90 equ/eqread.f90

@@ -17,6 +17,7 @@ CONTAINS
     USE wqprep,ONLY: wq_prep
     USE wqexec,ONLY: wq_exec
     USE wqgout,ONLY: wq_gout
+    USE libkio
     IMPLICIT NONE
     CHARACTER(LEN=1):: kid
     CHARACTER(LEN=80):: line

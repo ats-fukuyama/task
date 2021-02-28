@@ -843,6 +843,7 @@ CONTAINS
 !       1 Plot PNZ(PZ) 
 !       2 Plot DRI(PZ),DRR(PZ),PNZ(PZ) 
 
+    USE libbnd
     USE libgrf
     use, intrinsic :: ieee_arithmetic, only : IEEE_SELECTED_REAL_KIND
     use, intrinsic :: ieee_exceptions

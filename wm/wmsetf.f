@@ -4,6 +4,7 @@ C     ****** CALCULATE LOCAL MATRIX ******
 C
       SUBROUTINE WMSETF(NR,NS0)
 C
+      USE libinv
       INCLUDE 'wmcomm.inc'
       DIMENSION RMA(3,3),RMB(3,3),RGA(3,3),RGB(3,3)
       DIMENSION CEP0(3,3,-MDMX:MDMX,-NDMX:NDMX,MDM,NDM)

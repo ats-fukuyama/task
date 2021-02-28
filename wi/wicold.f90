@@ -10,11 +10,11 @@ CONTAINS
   SUBROUTINE wi_cold(iprint,ratea,ierr)
 
     USE wicomm
+    USE libbnd
     IMPLICIT NONE
     INTEGER(ikind),INTENT(IN):: iprint
     REAL(rkind),INTENT(OUT):: ratea
     INTEGER(ikind),INTENT(OUT):: ierr
-    EXTERNAL BANDCD
     
     mlmax=nxmax*2+3
     mwmax=7

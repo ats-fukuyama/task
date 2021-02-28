@@ -1,4 +1,13 @@
 include ../make.header
+include ../mtxp/make.mtxp
+LIB_MTX=$(LIB_MTX_BND)
+LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_PCG)
+#LIB_MTX=$(LIB_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIB_MTX=$(LIBXMTX_KSP)
+#LIBX_MTX=$(LIBX_MTX_KSP)
 
 #FFLAGS = $(OFLAGS)
 FFLAGS = $(DFLAGS)
@@ -21,7 +30,7 @@ SRCS2 = eqmenu.f
 BPSDLIB= ../../bpsd/libbpsd.a
 OBJCOM = $(SRCCOM:.f=.o)
 OBJS = $(SRCS1:.f=.o) $(SRCSX:.f90=.o) $(SRCS2:.f=.o)
-LIBS = libequ.a ../pl/libpl.a ../lib/libtask.a $(BPSDLIB) 
+LIBS = libequ.a ../pl/libpl.a ../eq/libeq.a ../lib/libtask.a ../lib/libgrf.a $(BPSDLIB) 
 
 MODINCLUDE= -I../../bpsd/$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I$(MOD)
 
@@ -42,7 +51,7 @@ libs:
 	(cd ../pl/; make libpl.a)
 
 equ: $(OBJCOM) libs libequ.a eqmain.o
-	$(FCFIXED) eqmain.o $(OBJCOM) $(LIBS) -o $@ $(FFLAGS) $(FLIBS) 
+	$(FLINKER) eqmain.o $(OBJCOM) $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 clean:
 	-rm -f *.a *.o $(MOD)/*.mod *~
 veryclean: clean

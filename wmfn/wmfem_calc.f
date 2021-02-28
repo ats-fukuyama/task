@@ -1164,30 +1164,31 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       SUBROUTINE wmfem_dielectric(rho,th,ph,mm,nn,ns,fml)
 
       use wmfem_comm
+      USE dpcomm,ONLY: ra,rr
+      USE dpdisp,ONLY: dp_dtns_pzp
+      USE plprofw
+      USE plprof
       IMPLICIT NONE
       real(8),intent(in):: rho,th,ph
       integer,intent(in):: mm,nn,ns
       complex(8),dimension(3,3),intent(out):: fml
       complex(8):: cw,ckpara,ckperp
+      TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
+      TYPE(pl_mag_type):: mag
       complex(8):: ckppf,ckpps
       real(8):: babs,bsupth,bsupph
 
       cw=2.d0*pi*crf*1.d6
       CALL wmfem_magnetic(rho,th,ph,babs,bsupth,bsupph)
+      mag%babs=babs
+      mag%bnx=-bsupph*RR*SIN(ph)+bsupth*RA*rho*SIN(th)*COS(ph)
+      mag%bny= bsupph*RR*COS(ph)+bsupth*RA*rho*SIN(th)*SIN(ph)
+      mag%bnz=                   bsupth*RA*rho*COS(th)
       ckpara=mm*bsupth/babs+nn*bsupph/babs
       ckperp=(0.d0,0.d0)
 
-c$$$      if(abs(th).lt.1.d-4) then
-c$$$         CALL DPCOLD_RKPERP(cw,ckpara,ckppf,ckpps)
-c$$$         write(6,'(1P6E12.4)') rho,real(ckpara),ckppf,ckpps 
-c$$$      endif
-
-c$$$         if(ns.eq.1.and.abs(th).lt.0.1) 
-c$$$     &    write(6,'(a,2i5,1p5e12.4)') 'm,n,kpara:',
-c$$$     &         mm,nn,dble(ckpara),rho,babs,bsupth,bsupph
-
-      CALL pl_prof_old(rho)
-      CALL dpcalc(cw,ckpara,ckperp,rho,babs,ns,fml)
+      CALL pl_profw(rho,plfw)
+      CALL DP_DTNS_PZP(cw,ckpara,ckperp,ns,mag,plfw,fml)
 
       return
 

@@ -20,6 +20,7 @@ CONTAINS
   SUBROUTINE T2_GOUT
 
     USE T2PARM,ONLY: T2_PARM
+    USE libkio
     USE libgrf
     IMPLICIT NONE
     INTEGER(ikind)    :: ierr,mode,ind

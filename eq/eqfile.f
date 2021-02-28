@@ -93,6 +93,7 @@ C
       SUBROUTINE EQRTSK(IERR)
 C
       USE libfio
+      USE libbrent
       INCLUDE '../eq/eqcomc.inc'
       DIMENSION DERIV(NRVM)
       EXTERNAL EQFBND

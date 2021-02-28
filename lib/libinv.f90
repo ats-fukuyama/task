@@ -1,3 +1,12 @@
+! libinv.f90
+
+MODULE libinv
+
+  PRIVATE
+  PUBLIC invmrd,invmcd
+
+CONTAINS
+
 !     $Id$
 
 !     ****** REAL MATRIX INVERSION ******
@@ -167,3 +176,4 @@
       RETURN
 
       END SUBROUTINE INVMCD
+    END MODULE libinv

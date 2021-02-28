@@ -166,7 +166,8 @@ C   **          Boundary Definition               **
 C   ************************************************
 C
       SUBROUTINE EQDEFB
-C      
+C
+      USE libbrent
       INCLUDE '../eq/eqcomc.inc'
 C
       DIMENSION DRHOM(NTGM),DRHOG(NTGMP)
@@ -721,6 +722,7 @@ C   ************************************************
 C
       SUBROUTINE EQSOLV
 C
+      USE libbnd
       INCLUDE '../eq/eqcomc.inc'
 C
       DIMENSION FJT(MLM),PSIOLD(NTGM,NSGM)
@@ -782,6 +784,7 @@ C   ************************************************
 C
       SUBROUTINE EQTORZ
 C
+      USE libbrent
       INCLUDE '../eq/eqcomc.inc'
       EXTERNAL EQFBND
 C

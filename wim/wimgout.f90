@@ -17,9 +17,10 @@ CONTAINS
 
     USE wimcomm,ONLY: rkind
     USE wimparm,ONLY: wim_parm
+    USE libkio
     USE libgrf
     IMPLICIT NONE
-    INTEGER           :: ierr,mode,kid,ich
+    INTEGER           :: ierr,mode,kid
     CHARACTER         :: kch
     CHARACTER(LEN=80) :: line
 
@@ -27,12 +28,8 @@ CONTAINS
     ierr=0
     WRITE(6,'(A)') &
          '#### WIM GOUT: 1,2,3,4 X/exit'
-    CALL TASK_KLIN(line,kid,mode,wim_parm)
+    CALL TASK_KLIN(line,kch,mode,wim_parm)
     IF(mode == 2 .OR. mode == 3) GOTO 1
-
-    ICH=ICHAR(LINE(1:1))
-    IF(ICH.GE.97.AND.ICH.LE.122) ICH=ICH-32
-    KCH=CHAR(ICH)
 
     SELECT CASE(kch)
     CASE('1') ! ER,EL,EZ: scaled

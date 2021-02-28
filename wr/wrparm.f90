@@ -26,11 +26,12 @@ CONTAINS
 !     IERR=10X : input parameter out of range
 
     USE dpparm,ONLY: dp_chek
+    USE libkio
     IMPLICIT NONE
     INTEGER,INTENT(IN):: MODE
     CHARACTER(LEN=*),INTENT(IN):: KIN
     INTEGER,INTENT(OUT):: IERR
-    EXTERNAL TASK_PARM,EQCHEK
+    EXTERNAL EQCHEK
 
     IERR=0
 

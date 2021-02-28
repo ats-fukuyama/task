@@ -359,6 +359,7 @@ c     ierr=10x : input parameter out of range
 c
       use aaa_mod
       use vac_mod
+      USE libkio
       implicit none
       character kin*(*)
       integer mode,ierr

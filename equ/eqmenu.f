@@ -6,6 +6,7 @@ C
       use equunit_mod
       use trunit_mod
       use equ_eqdsk
+      USE libkio
       public
       contains
 c

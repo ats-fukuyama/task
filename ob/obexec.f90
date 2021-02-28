@@ -65,6 +65,7 @@ CONTAINS
     USE obcomm
     USE obprep
     USE oblocal
+    USE librk
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: y_in(neq_max)
     REAL(rkind),INTENT(OUT):: ya(0:neq_max,0:nstp_max)

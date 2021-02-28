@@ -10,11 +10,12 @@ CONTAINS
   SUBROUTINE wi_hot(iprint,ratea,ierr)
 
     USE wicomm
+    USE libinv
+    USE libbnd
     IMPLICIT NONE
     INTEGER(ikind),INTENT(IN):: iprint
     REAL(rkind),INTENT(OUT):: ratea
     INTEGER(ikind),INTENT(OUT):: ierr
-    EXTERNAL INVMCD,BANDCD
 
     mlmax=nxmax*2+3
     mwmax=4*nwmax+3
@@ -23,7 +24,7 @@ CONTAINS
     CALL SUBCK2   ! calculate coefficient matrix
     CALL SUBINI   ! calculate right-hand-side vector
     IF(NWMAX.EQ.NXMAX) THEN
-       CALL INVMCD(CK,MLEN,IERR)   ! full matrix solver
+       CALL INVMCD(CK,mlmax,MLEN,IERR)   ! full matrix solver
        IF(IERR.NE.0) GOTO 9900
        CALL SUBFY                  ! calculate field vector
     ELSE

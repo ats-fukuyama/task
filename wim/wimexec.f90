@@ -13,7 +13,8 @@ CONTAINS
   SUBROUTINE wim_exec(ierr)
 
     USE wimcomm
-    
+    USE libbnd
+    USE libinv
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
     REAL(4):: RNT1,RNT2

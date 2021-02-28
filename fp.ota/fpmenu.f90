@@ -23,6 +23,7 @@
       USE fpcaldeff
       USE fpcalchieff
       USE fowmenu
+      USE libkio
       USE libmpi
       USE libmtx
 

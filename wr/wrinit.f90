@@ -21,6 +21,12 @@ CONTAINS
 !     RNZI   : INITIAL VERTICAL REFRACTIVE INDEX
 !     RNPHII : INITIAL TOROIDAL REFRACTIVE INDEX
 !     RKR0   : SPECULATED INITIAL RADIAL WAVE NUMBER [1/M]
+!     MODEW  : Selection of initial k_r
+!              0: found RKR near RKR0
+!              1: larger  RKR (negative, inward for forward wave)    
+!              2: smaller RKR (negative, inward for forward wave)    
+!             -1: larger RKR  (positive, inward for backward wave)    
+!             -2: smaller RKR (positive, inward for backward wave)    
 !     UUI    : INITIAL WAVE ENERGY
 
 !     RCURVA : INITIAL WAVE-FRONT CURVATURE RADIUS (0 for Plane wave)
@@ -39,6 +45,7 @@ CONTAINS
       RNZI   = 0.D0
       RNPHII = 0.5D0
       RKR0   = -1000.D0
+      MODEW  = 0
       UUI    = 1.D0
       RCURVA = 0.D0
       RCURVB = 0.D0

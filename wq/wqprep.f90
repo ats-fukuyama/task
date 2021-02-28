@@ -10,6 +10,7 @@ CONTAINS
   SUBROUTINE wq_prep
     USE wqcomm
     USE wqtens
+    USE libinv
     IMPLICIT NONE
     INTEGER:: nx,ny,k,i,j,nt,N,NA,ILL
    

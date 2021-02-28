@@ -11,6 +11,7 @@ CONTAINS
     USE xxparm,ONLY: xx_parm,xx_view
     USE xxexec,ONLY: xx_exec
     USE xxgout,ONLY: xx_gout
+    USE libkio
 
     IMPLICIT NONE
     INTEGER(ikind)    :: ierr,mode,ind

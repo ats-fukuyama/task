@@ -1,3 +1,13 @@
+! libspl3d.f90
+
+MODULE libspl3d
+
+  PRIVATE
+  PUBLIC spl3d,spl3df,spl3dd
+  PUBLIC cspl3d,cspl3df,cspl3dd
+
+CONTAINS
+
 !     $Id$
 !
 !     ****** Three-Dimensional Spline Interpolation ******
@@ -2207,3 +2217,4 @@
       IERR=0
       RETURN
       END SUBROUTINE CSPL3DD
+END MODULE libspl3d

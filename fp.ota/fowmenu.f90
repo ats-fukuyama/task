@@ -20,6 +20,7 @@ CONTAINS
     use fpwrite
     USE fpsub,ONLY: FPMXWL
     use equnit_mod
+    USE libkio
     use libmpi
 
     implicit none

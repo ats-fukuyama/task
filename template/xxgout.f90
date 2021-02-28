@@ -7,9 +7,10 @@ CONTAINS
   SUBROUTINE xx_gout
 
     USE xxparm,ONLY: xx_parm
+    USE libkio
     USE libgrf
     IMPLICIT NONE
-    INTEGER:: kid,mode,ierr,ich
+    INTEGER:: mode,ierr,ich
     CHARACTER(LEN=1):: kch
     CHARACTER(LEN=80):: line
     INTEGER,PARAMETER:: nxmax=100
@@ -19,7 +20,7 @@ CONTAINS
     ierr=0
     WRITE(6,'(A)') &
          '#### XX GOUT: A X/exit'
-    CALL TASK_KLIN(line,kid,mode,xx_parm)
+    CALL TASK_KLIN(line,kch,mode,xx_parm)
     IF(mode == 2 .OR. mode == 3) GOTO 1
 
     ICH=ICHAR(LINE(1:1))

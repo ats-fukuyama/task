@@ -1,5 +1,13 @@
 ! librk.f90
 
+MODULE librk
+
+  PRIVATE
+  PUBLIC oderk
+  PUBLIC oderkn
+
+CONTAINS
+
 ! *** Ordinary differential equation ***
 
 ! --- old version ---
@@ -111,3 +119,4 @@
       ENDDO
       RETURN
       END SUBROUTINE RKSTEP
+END MODULE librk

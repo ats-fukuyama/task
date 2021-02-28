@@ -19,6 +19,7 @@ CONTAINS
       USE trgout
       USE trfout
       USE libfio
+      USE libkio
       IMPLICIT NONE
       INTEGER(4)       :: IERR, MODE, NTMOLD
       INTEGER(4), SAVE :: INIT=0

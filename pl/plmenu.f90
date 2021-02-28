@@ -12,6 +12,7 @@
       USE plparm,ONLY: pl_parm,pl_view
       USE plgout,ONLY: pl_gout
       USE plload,ONLY: pl_load
+      USE libkio
 
       IMPLICIT NONE
       INTEGER(ikind)    :: IERR, MODE

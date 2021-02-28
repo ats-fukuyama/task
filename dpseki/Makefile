@@ -1,5 +1,14 @@
 ### $Id: Makefile,v 1.48 2013/01/24 03:52:13 fukuyama Exp $ ###
 include ../make.header
+include ../mtxp/make.mtxp
+LIB_MTX=$(LIB_MTX_BND)
+LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_PCG)
+#LIB_MTX=$(LIB_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIB_MTX=$(LIBXMTX_KSP)
+#LIBX_MTX=$(LIBX_MTX_KSP)
 
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
@@ -12,7 +21,7 @@ SRCS = dpmenu.f dpinit.f dproot.f dpcont.f dpdisp.f \
 
 OBJS = $(SRCS:.f=.o) 
 
-LIBS = ../lib/libtask.a ../../bpsd/libbpsd.a ../pl/libpl.a \
+LIBS = ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a ../pl/libpl.a \
        ../eq/libeq.a libdp.a 
 
 .f.o :
@@ -40,7 +49,7 @@ libs:
 	(cd ../eq; make libeq.a)
 
 dp : $(LIBS) dpmain.o
-	$(FCFIXED) dpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FLINKER) dpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 check :
 	ftnchek $(FCKFLAGS) $(SRCS) | less

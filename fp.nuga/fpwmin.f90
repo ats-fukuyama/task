@@ -34,6 +34,7 @@
 
       SUBROUTINE fp_wm_read(IERR)
 
+      USE libspl3d
       USE libmpi
       USE libmtx
       IMPLICIT NONE

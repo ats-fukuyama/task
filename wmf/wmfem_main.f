@@ -647,6 +647,7 @@
 
       subroutine wmfem_boundary_condition_axis1
 
+      USE libinv
       complex(8),dimension(3,3,nthmax2,nhhmax2):: mtxcl
 !      complex(8),dimension(3*nfcmax,3*nfcmax):: mtxclx
       complex(8),dimension(:,:),ALLOCATABLE:: mtxclx
@@ -1433,6 +1434,7 @@
 
       subroutine wmfem_solve
 
+      USE libbnd
       integer:: ml,mw,ierr
       integer:: i,j,k
 

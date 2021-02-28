@@ -400,6 +400,7 @@ CONTAINS
          nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
          xnode=>rnode,ynode=>znode
     USE femmeshprep
+    USE libinv
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: x,y,f_nelm(nelm_max)
     INTEGER,INTENT(IN):: nelm

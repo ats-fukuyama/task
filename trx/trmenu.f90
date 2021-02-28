@@ -6,6 +6,7 @@
            NT, NTMAX, NTMAX_SAVE, ALLOCATE_TRCOMM, &
            RA,RM,RG,RN,RT,RW,RNF,RTF,NRMAX,NSMAX,NFM
       USE trunit
+      USE libkio
       USE libfio
       IMPLICIT NONE
       INTEGER(4)       :: IERR, MODE, NFL, NFLMAX, NTMOLD

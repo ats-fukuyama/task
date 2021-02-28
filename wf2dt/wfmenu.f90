@@ -5,6 +5,7 @@ subroutine wfmenu
   USE wfparm
   USE plload, ONLY: pl_load
   USE wfload, ONLY: wf_load_wg
+  USE libkio
   implicit none
   
   integer  :: MODE

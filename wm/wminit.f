@@ -237,6 +237,7 @@ C     IERR=6 : namelist line input error
 C     IERR=7 : unknown MODE
 C     IERR=10X : input parameter out of range
 C
+      USE libkio
       INCLUDE 'wmcomm.inc'
 C
       EXTERNAL WMNLIN,WMPLST

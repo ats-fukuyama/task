@@ -35,6 +35,7 @@ CONTAINS
     USE cvparm,ONLY: cv_parm
     USE cvrank
     USE libcharx
+    USE libkio
     IMPLICIT NONE
     CHARACTER(LEN=2):: kword
     CHARACTER(LEN=80):: line
@@ -47,7 +48,7 @@ CONTAINS
     INTEGER,PARAMETER:: nplot_m=32
     INTEGER:: ncountry_nplot(nplot_m)
     INTEGER,SAVE:: INIT=0
-    EXTERNAL TASK_KLIN,TOUPPER
+    EXTERNAL TOUPPER
 
     IF(INIT.EQ.0) THEN
        DO nl=1,nlmax

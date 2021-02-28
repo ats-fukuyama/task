@@ -4,6 +4,7 @@ C   ***** TASK/EQ MENU *****
 C
       SUBROUTINE EQMENU
 C
+      USE libkio
       INCLUDE 'eqcomc.inc'
 C
       EXTERNAL EQPARM

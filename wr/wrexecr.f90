@@ -69,6 +69,7 @@ CONTAINS
     USE wrsub,ONLY: DISPXR
     USE pllocal
     USE plprof,ONLY: PL_MAG_OLD
+    USE librk
     IMPLICIT NONE
     REAL(rkind),INTENT(INOUT):: Y(NEQ)
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
@@ -76,7 +77,6 @@ CONTAINS
     REAL(rkind):: YM(NEQ),WORK(2,NEQ)
     INTEGER:: NSTPLIM,NSTP,I
     REAL(rkind):: X0,XE,RHON,PW
-    EXTERNAL ODERK
 
     X0 = 0.D0
     XE = DELS
@@ -137,6 +137,7 @@ CONTAINS
     USE wrsub,ONLY: DISPXR,WRMODNWTN
     USE pllocal
     USE plprof,ONLY:PL_MAG_OLD
+    USE librk
     IMPLICIT NONE
     REAL(rkind),INTENT(INOUT):: Y(NEQ)
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
@@ -144,7 +145,6 @@ CONTAINS
     REAL(rkind):: YM(NEQ),WORK(2,NEQ),YK(3)
     INTEGER:: NSTPLIM,NSTP,I
     REAL(rkind):: X0,XE,OMG,PW,DELTA,RHON
-    EXTERNAL ODERK
 
     OMG=2.D6*PI*RF
 
@@ -213,6 +213,7 @@ CONTAINS
     USE wrcomm
     USE pllocal
     USE plprof,ONLY:PL_MAG_OLD
+    USE librk
     IMPLICIT NONE
     REAL(rkind),INTENT(INOUT):: Y(NEQ)
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
@@ -220,7 +221,6 @@ CONTAINS
     REAL(rkind):: YM(NEQ),WORK(2,NEQ)
     INTEGER:: NSTPLIM,NSTP,I
     REAL(rkind):: X0,XE,PW,RHON
-    EXTERNAL ODERK
 
     X0 = 0.D0
     XE = DELS     
@@ -281,6 +281,7 @@ CONTAINS
     USE wrsub,ONLY: DISPXR,WRMODCONV,WRMODNWTN
     USE pllocal
     USE plprof,ONLY:PL_MAG_OLD
+    USE librk
     IMPLICIT NONE
     REAL(rkind),INTENT(INOUT):: Y(NEQ)
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
@@ -288,7 +289,6 @@ CONTAINS
     REAL(rkind):: YM(NEQ),WORK(2,NEQ),YK(3),F(NEQ)
     REAL(rkind):: X0,XE,OMG,OXEFF,RHON,PW,RL,RKRL,DELTA
     INTEGER:: NSTPLIM,NSTP,I,IOX
-    EXTERNAL ODERK
 
     OMG=2.D6*PI*RF
     

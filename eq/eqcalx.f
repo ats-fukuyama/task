@@ -119,6 +119,7 @@ C     ****** CORE SOLVER ******
 C
       SUBROUTINE EQCALX_SUB(PSIBL,RSLT,NEQ,IERR)
 C
+      USE libbnd
       INCLUDE '../eq/eqcomx.inc'
       DIMENSION PSIBL(NEQ),RSLT(NEQ)
       DIMENSION FMAX(MWM,MLM)

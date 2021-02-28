@@ -15,6 +15,7 @@ CONTAINS
     USE wiexec,ONLY: wi_exec
     USE wiscan,ONLY: wi_scan
     USE wigout,ONLY: wi_gout,wi_mesh
+    USE libkio
     USE libgrf
 
     IMPLICIT NONE
@@ -26,7 +27,6 @@ CONTAINS
     REAL(rkind)       :: xwmin_save=0.D0,xmax_save=0.D0,xmin_save=0.D0
     REAL(rkind)       :: xwint_save=0.D0
     REAL(rkind)       :: ratea,rk0l
-    EXTERNAL TASK_KLIN
 
 1   CONTINUE
     ierr=0

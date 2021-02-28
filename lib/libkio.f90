@@ -1,3 +1,13 @@
+! libkio.f90
+
+MODULE libkio
+
+  PRIVATE
+  PUBLIC TASK_KLIN
+  PUBLIC TASK_PARM
+
+CONTAINS
+
 !     ***** INPUT KID or LINE *****
 !                   MODE=0: LINE INPUT
 !                        1: KID INPUT (first one char: a-z,A-Z,#,?,!)
@@ -156,3 +166,5 @@
       IERR=5
       RETURN
       END SUBROUTINE TASK_PARM
+
+END MODULE libkio

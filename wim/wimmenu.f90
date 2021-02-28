@@ -10,6 +10,7 @@ CONTAINS
     USE wimparm,ONLY: wim_parm,wim_view
     USE wimexec,ONLY: wim_exec
     USE wimgout,ONLY: wim_gout
+    USE libkio
 
     IMPLICIT NONE
     INTEGER(ikind)    :: ierr,mode,ind

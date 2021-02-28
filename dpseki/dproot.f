@@ -161,6 +161,7 @@ C
       SUBROUTINE DPROOT
 C
       USE plcomm
+      USE libbrent
       INCLUDE 'dpcomm.inc'
 C
       PARAMETER (IGM=100)
@@ -358,6 +359,7 @@ C
       SUBROUTINE DPBRENT1(CX)
 C
       USE plcomm
+      USE libbrent
       INCLUDE 'dpcomm.inc'
 C
       EXTERNAL DPFUNC1
@@ -409,6 +411,7 @@ C
       SUBROUTINE DPBRENT2(CX)
 C
       USE plcomm
+      USE libbrent
       INCLUDE 'dpcomm.inc'
 C
       EXTERNAL DPFUNC2
@@ -461,6 +464,7 @@ C
       SUBROUTINE DPBRENT3(CX)
 C
       USE plcomm
+      USE libbrent
       INCLUDE 'dpcomm.inc'
 C
       EXTERNAL DPFUNC3

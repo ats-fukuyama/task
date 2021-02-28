@@ -1,3 +1,12 @@
+! libbrn.f90
+
+MODULE libbrent
+  PRIVATE
+  PUBLIC fbrent,fbrentn,fbrentm
+
+CONTAINS
+  
+
 !     ***** One-variable Brent Method *****
 
       function FBRENT(f,ax,bx,tol)
@@ -669,3 +678,4 @@
 !     LAST CARD OF SUBROUTINE BRENTM.
 
       END SUBROUTINE FBRENTM
+    END MODULE libbrent

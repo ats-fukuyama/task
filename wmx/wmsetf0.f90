@@ -15,6 +15,7 @@ CONTAINS
     USE wmprof
     USE wmdisp
     USE wmsub
+    USE libinv
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NR,NS0
     COMPLEX(rkind),ALLOCATABLE:: &
@@ -30,7 +31,6 @@ CONTAINS
     INTEGER:: KA,KAX,KB,KBX,NB1,NB2,LA,LAX,LB,LBX,MB1,MB2,LAB,LABX,KAB,KABX
     INTEGER:: KC,KCX,LC,LCX
     INTEGER:: ILL
-    EXTERNAL:: INVMRD
 
     ALLOCATE(CEP0(3,3,-nthmax_f:nthmax_f,-nhhmax_f:nhhmax_f,nthmax_f,nhhmax_f))
     ALLOCATE(CRA(nthmax_f,nhhmax_f,3,3),CFA(nthmax_f,nhhmax_f,3,3))

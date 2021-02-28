@@ -10,7 +10,7 @@ MODULE libqsort
 
 ! According the order of A, B is sorted.  
 
-  USE task_kinds,ONLY: dp,ikind
+  USE task_kinds
   IMPLICIT NONE
   PRIVATE
   PUBLIC :: qsort_ic,qsort_lc,qsort_di,qsort_dl,qsort_ii,qsort_li
@@ -18,205 +18,207 @@ MODULE libqsort
 CONTAINS
 
 RECURSIVE SUBROUTINE qsort_ic(A, B)
-  integer, intent(in out), dimension(:) :: A
-  complex(dp), intent(in out), dimension(:) :: B
-  integer :: iq
+  INTEGER, INTENT(IN OUT), DIMENSION(:) :: A
+  COMPLEX(dp), INTENT(IN OUT), DIMENSION(:) :: B
+  INTEGER :: iq
 
-  if(size(A) > 1) then
-     call partition_ic(A, iq, B)
-     call qsort_ic(A(:iq-1),B(:iq-1))
-     call qsort_ic(A(iq:),B(iq:))
-  endif
+  IF(SIZE(A) > 1) then
+     CALL partition_ic(A, iq, B)
+     CALL qsort_ic(A(:iq-1),B(:iq-1))
+     CALL qsort_ic(A(iq:),B(iq:))
+  ENDIF
 END SUBROUTINE qsort_ic
 
 SUBROUTINE partition_ic(A, marker, B)
-  integer, intent(in out), dimension(:) :: A
-  complex(dp), intent(in out), dimension(:) :: B
-  integer, intent(out) :: marker
-  integer :: i, j
-  integer :: temp
-  complex(dp):: ctemp
-  integer :: x      ! pivot point
+  INTEGER, INTENT(IN OUT), DIMENSION(:) :: A
+  INTEGER :: atemp
+  INTEGER :: x      ! pivot point
+  COMPLEX(dp), INTENT(IN OUT), DIMENSION(:) :: B
+  COMPLEX(dp):: btemp
+  INTEGER, INTENT(out) :: marker
+  INTEGER :: i, j
+
   x = A(1)
   i= 0
-  j= size(A) + 1
+  j= SIZE(A) + 1
 
-  do
+  DO
      j = j-1
-     do
-        if (A(j) <= x) exit
+     DO
+        IF (A(j) <= x) EXIT
         j = j-1
-     end do
+     END DO
      i = i+1
-     do
-        if (A(i) >= x) exit
+     DO
+        IF (A(i) >= x) EXIT
         i = i+1
-     end do
-     if (i < j) then
+     END DO
+     IF (i < j) THEN
         ! exchange A(i) and A(j)
-        temp = A(i)
+        atemp = A(i)
         A(i) = A(j)
-        A(j) = temp
-        ctemp = B(i)
+        A(j) = atemp
+        btemp = B(i)
         B(i) = B(j)
-        B(j) = ctemp
-     elseif (i == j) then
+        B(j) = btemp
+     ELSEIF (i == j) THEN
         marker = i+1
-        return
-     else
+        RETURN
+     ELSE
         marker = i
-        return
-     endif
-  end do
+        RETURN
+     ENDIF
+  END do
 
 END SUBROUTINE partition_ic
 
 RECURSIVE SUBROUTINE qsort_lc(A, B)
-  INTEGER(ikind), intent(in out), dimension(:) :: A
-  complex(dp), intent(in out), dimension(:) :: B
-  INTEGER(ikind) :: iq
+  INTEGER(long), INTENT(IN OUT), DIMENSION(:) :: A
+  COMPLEX(dp), INTENT(IN OUT), DIMENSION(:) :: B
+  INTEGER(long) :: iq
 
-  if(size(A) > 1) then
-     call partition_lc(A, iq, B)
-     call qsort_lc(A(:iq-1),B(:iq-1))
-     call qsort_lc(A(iq:),B(iq:))
-  endif
+  IF(SIZE(A) > 1) THEN
+     CALL partition_lc(A, iq, B)
+     CALL qsort_lc(A(:iq-1),B(:iq-1))
+     CALL qsort_lc(A(iq:),B(iq:))
+  ENDIF
 END SUBROUTINE qsort_lc
 
-SUBROUTINE PARTITION_LC(A, marker, B)
-  INTEGER(ikind), intent(in out), dimension(:) :: A
-  complex(dp), intent(in out), dimension(:) :: B
-  INTEGER(ikind), intent(out) :: marker
-  INTEGER(ikind) :: i, j
-  INTEGER(ikind) :: temp
-  complex(dp):: ctemp
-  INTEGER(ikind) :: x      ! pivot point
+SUBROUTINE partition_lc(A, marker, B)
+  INTEGER(long), INTENT(IN OUT), DIMENSION(:) :: A
+  INTEGER(long) :: atemp
+  INTEGER(long) :: x      ! pivot point
+  COMPLEX(dp), INTENT(IN OUT), DIMENSION(:) :: B
+  COMPLEX(dp):: btemp
+  INTEGER(long), INTENT(OUT) :: marker
+  INTEGER(long) :: i, j
+  
   x = A(1)
   i= 0
-  j= size(A) + 1
+  j= SIZE(A) + 1
 
-  do
+  DO
      j = j-1
-     do
-        if (A(j) <= x) exit
+     DO
+        IF (A(j) <= x) EXIT
         j = j-1
-     end do
+     END DO
      i = i+1
-     do
-        if (A(i) >= x) exit
+     DO
+        IF (A(i) >= x) EXIT
         i = i+1
-     end do
-     if (i < j) then
+     END DO
+     IF (i < j) THEN
         ! exchange A(i) and A(j)
-        temp = A(i)
+        atemp = A(i)
         A(i) = A(j)
-        A(j) = temp
-        ctemp = B(i)
+        A(j) = atemp
+        btemp = B(i)
         B(i) = B(j)
-        B(j) = ctemp
-     elseif (i == j) then
+        B(j) = btemp
+     ELSEIF (i == j) THEN
         marker = i+1
-        return
-     else
+        RETURN
+     ELSE
         marker = i
-        return
-     endif
-  end do
+        RETURN
+     ENDIF
+  END DO
 
 END SUBROUTINE partition_lc
 
 RECURSIVE SUBROUTINE qsort_di(A, B)
-  real(dp), intent(in out), dimension(:) :: A
-  integer, intent(in out), dimension(:) :: B
-  integer :: iq
+  REAL(dp), INTENT(IN OUT), DIMENSION(:) :: A
+  INTEGER, INTENT(IN OUT), DIMENSION(:) :: B
+  INTEGER :: iq
 
-  if(size(A) > 1) then
-     call partition_di(A, iq, B)
-     call qsort_di(A(:iq-1),B(:iq-1))
-     call qsort_di(A(iq:),B(iq:))
-  endif
+  IF(SIZE(A) > 1) then
+     CALL partition_di(A, iq, B)
+     CALL qsort_di(A(:iq-1),B(:iq-1))
+     CALL qsort_di(A(iq:),B(iq:))
+  ENDIF
 END SUBROUTINE qsort_di
 
 SUBROUTINE partition_di(A, marker, B)
-  real(dp), intent(in out), dimension(:) :: A
-  integer, intent(in out), dimension(:) :: B
-  integer, intent(out) :: marker
-  integer :: i, j
-  real(dp) :: temp
-  integer :: ctemp
-  real(dp) :: x      ! pivot point
+  REAL(dp), INTENT(IN OUT), DIMENSION(:) :: A
+  REAL(dp) :: atemp
+  REAL(dp) :: x      ! pivot point
+  INTEGER, INTENT(IN OUT), DIMENSION(:) :: B
+  INTEGER :: btemp
+  INTEGER, INTENT(OUT) :: marker
+  INTEGER :: i, j
 
   x = A(1)
   i= 0
-  j= size(A) + 1
+  j= SIZE(A) + 1
 
-  do
+  DO
      j = j-1
-     do
-        if (A(j) <= x) exit
+     DO
+        IF (A(j) <= x) EXIT
         j = j-1
-     end do
+     END DO
      i = i+1
-     do
-        if (A(i) >= x) exit
+     DO
+        IF (A(i) >= x) EXIT
         i = i+1
-     end do
-     if (i < j) then
+     END DO
+     IF (i < j) THEN
         ! exchange A(i) and A(j)
-        temp = A(i)
+        atemp = A(i)
         A(i) = A(j)
-        A(j) = temp
-        ctemp = B(i)
+        A(j) = atemp
+        btemp = B(i)
         B(i) = B(j)
-        B(j) = ctemp
-     elseif (i == j) then
+        B(j) = btemp
+     ELSEIF (i == j) THEN
         marker = i+1
-        return
-     else
+        RETURN
+     ELSE
         marker = i
-        return
-     endif
-  end do
+        RETURN
+     ENDIF
+  END DO
 
 END SUBROUTINE partition_di
 
 RECURSIVE SUBROUTINE qsort_dl(A, B)
-  real(dp), intent(in out), dimension(:) :: A
-  INTEGER(ikind), intent(in out), dimension(:) :: B
-  INTEGER(ikind) :: iq
+  REAL(dp), INTENT(IN OUT), DIMENSION(:) :: A
+  INTEGER(long), INTENT(IN OUT), DIMENSION(:) :: B
+  INTEGER(long) :: iq
 
-  if(size(A) > 1) then
-     call partition_dl(A, iq, B)
-     call qsort_dl(A(:iq-1),B(:iq-1))
-     call qsort_dl(A(iq:),B(iq:))
-  endif
+  IF(SIZE(A) > 1) THEN
+     CALL partition_dl(A, iq, B)
+     CALL qsort_dl(A(:iq-1),B(:iq-1))
+     CALL qsort_dl(A(iq:),B(iq:))
+  ENDIF
 END SUBROUTINE qsort_dl
 
 SUBROUTINE partition_dl(A, marker, B)
-  real(dp), intent(in out), dimension(:) :: A
-  INTEGER(ikind), intent(in out), dimension(:) :: B
-  INTEGER(ikind), intent(out) :: marker
-  INTEGER(ikind) :: i, j
-  real(dp) :: temp
-  INTEGER(ikind) :: ctemp
-  real(dp) :: x      ! pivot point
+  REAL(dp), INTENT(IN OUT), DIMENSION(:) :: A
+  REAL(dp) :: temp
+  REAL(dp) :: x      ! pivot point
+  INTEGER(long), INTENT(IN OUT), DIMENSION(:) :: B
+  INTEGER(long) :: ctemp
+  INTEGER(long), INTENT(OUT) :: marker
+  INTEGER(long) :: i, j
 
   x = A(1)
   i= 0
-  j= size(A) + 1
+  j= SIZE(A) + 1
 
-  do
+  DO
      j = j-1
-     do
-        if (A(j) <= x) exit
+     DO
+        IF (A(j) <= x) EXIT
         j = j-1
-     end do
+     END DO
      i = i+1
-     do
-        if (A(i) >= x) exit
+     DO
+        IF (A(i) >= x) EXIT
         i = i+1
-     end do
-     if (i < j) then
+     END DO
+     IF (i < j) THEN
         ! exchange A(i) and A(j)
         temp = A(i)
         A(i) = A(j)
@@ -224,55 +226,55 @@ SUBROUTINE partition_dl(A, marker, B)
         ctemp = B(i)
         B(i) = B(j)
         B(j) = ctemp
-     elseif (i == j) then
+     ELSEIF (i == j) THEN
         marker = i+1
-        return
-     else
+        RETURN
+     ELSE
         marker = i
-        return
-     endif
-  end do
+        RETURN
+     ENDIF
+  END DO
 
 END SUBROUTINE partition_dl
 
 RECURSIVE SUBROUTINE qsort_li(A, B)
-  INTEGER(ikind), intent(in out), dimension(:) :: A
-  INTEGER, intent(in out), dimension(:) :: B
+  INTEGER(long), INTENT(IN OUT), DIMENSION(:) :: A
+  INTEGER, INTENT(IN OUT), DIMENSION(:) :: B
   INTEGER :: iq
 
-  if(size(A) > 1) then
-     call partition_li(A, iq, B)
-     call qsort_li(A(:iq-1),B(:iq-1))
-     call qsort_li(A(iq:),B(iq:))
-  endif
+  IF(SIZE(A) > 1) THEN
+     CALL partition_li(A, iq, B)
+     CALL qsort_li(A(:iq-1),B(:iq-1))
+     CALL qsort_li(A(iq:),B(iq:))
+  ENDIF
   RETURN
 END SUBROUTINE qsort_li
 
 SUBROUTINE partition_li(A, marker, B)
-  INTEGER(ikind), intent(in out), dimension(:) :: A
-  INTEGER, intent(in out), dimension(:) :: B
-  INTEGER, intent(out) :: marker
-  INTEGER :: i, j
-  INTEGER(ikind) :: atemp
+  INTEGER(long), INTENT(IN OUT), DIMENSION(:) :: A
+  INTEGER(long) :: atemp
+  INTEGER(long) :: x      ! pivot point
+  INTEGER, INTENT(IN OUT), DIMENSION(:) :: B
   INTEGER :: btemp
-  INTEGER(ikind) :: x      ! pivot point
+  INTEGER, INTENT(OUT) :: marker
+  INTEGER :: i, j
 
   x = A(1)
   i= 0
-  j= size(A) + 1
+  j= SIZE(A) + 1
 
-  do
+  DO
      j = j-1
-     do
-        if (A(j) <= x) exit
+     DO
+        IF (A(j) <= x) EXIT
         j = j-1
-     end do
+     END DO
      i = i+1
-     do
-        if (A(i) >= x) exit
+     DO
+        IF (A(i) >= x) EXIT
         i = i+1
-     end do
-     if (i < j) then
+     END DO
+     IF (i < j) THEN
         ! exchange A(i) and A(j)
         atemp = A(i)
         A(i) = A(j)
@@ -280,55 +282,55 @@ SUBROUTINE partition_li(A, marker, B)
         btemp = B(i)
         B(i) = B(j)
         B(j) = btemp
-     elseif (i == j) then
+     ELSEIF (i == j) THEN
         marker = i+1
-        return
-     else
+        RETURN
+     ELSE
         marker = i
-        return
-     endif
-  end do
+        RETURN
+     ENDIF
+  END DO
   RETURN
 END SUBROUTINE partition_li
 
 RECURSIVE SUBROUTINE qsort_ii(A, B)
-  INTEGER, intent(in out), dimension(:) :: A
-  INTEGER, intent(in out), dimension(:) :: B
+  INTEGER, INTENT(IN OUT), DIMENSION(:) :: A
+  INTEGER, INTENT(IN OUT), DIMENSION(:) :: B
   INTEGER :: iq
 
-  if(size(A) > 1) then
-     call partition_ii(A, iq, B)
-     call qsort_ii(A(:iq-1),B(:iq-1))
-     call qsort_ii(A(iq:),B(iq:))
-  endif
+  IF(SIZE(A) > 1) THEN
+     CALL partition_ii(A, iq, B)
+     CALL qsort_ii(A(:iq-1),B(:iq-1))
+     CALL qsort_ii(A(iq:),B(iq:))
+  ENDIF
   RETURN
 END SUBROUTINE qsort_ii
 
 SUBROUTINE partition_ii(A, marker, B)
-  INTEGER(ikind), intent(in out), dimension(:) :: A
-  INTEGER, intent(in out), dimension(:) :: B
-  INTEGER, intent(out) :: marker
-  INTEGER :: i, j
+  INTEGER, INTENT(IN OUT), DIMENSION(:) :: A
   INTEGER :: atemp
-  INTEGER :: btemp
   INTEGER :: x      ! pivot point
+  INTEGER, INTENT(IN OUT), DIMENSION(:) :: B
+  INTEGER :: btemp
+  INTEGER, INTENT(OUT) :: marker
+  INTEGER :: i, j
 
   x = A(1)
   i= 0
-  j= size(A) + 1
+  j= SIZE(A) + 1
 
-  do
+  DO
      j = j-1
-     do
-        if (A(j) <= x) exit
+     DO
+        IF (A(j) <= x) EXIT
         j = j-1
-     end do
+     END DO
      i = i+1
-     do
-        if (A(i) >= x) exit
+     DO
+        IF (A(i) >= x) EXIT
         i = i+1
-     end do
-     if (i < j) then
+     END DO
+     IF (i < j) THEN
         ! exchange A(i) and A(j)
         atemp = A(i)
         A(i) = A(j)
@@ -336,14 +338,14 @@ SUBROUTINE partition_ii(A, marker, B)
         btemp = B(i)
         B(i) = B(j)
         B(j) = btemp
-     elseif (i == j) then
+     ELSEIF (i == j) THEN
         marker = i+1
-        return
-     else
+        RETURN
+     ELSE
         marker = i
-        return
-     endif
-  end do
+        RETURN
+     ENDIF
+  END DO
   RETURN
 END SUBROUTINE partition_ii
 

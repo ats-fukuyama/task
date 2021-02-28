@@ -12,7 +12,10 @@ C                    Email: fukuyama@nucleng.kyoto-u.ac.jp
 C                  URL: http://p-grp.nucleng.kyoto-u.ac.jp/wm/
 C***********************************************************************
 C
-      USE plinit,ONLY:pl_init,pl_parm
+      USE plinit,ONLY:pl_init
+      USE plparm,ONLY:pl_parm
+      USE dpinit,ONLY:dp_init
+      USE dpparm,ONLY:dp_parm
       INCLUDE 'wmcomm.inc'
 C
       CALL mtx_initialize
@@ -25,13 +28,13 @@ C
 C
       CALL PL_INIT
       CALL EQINIT
-      CALL DPINIT
+      CALL DP_INIT
       CALL WMINIT
       IF(NRANK.EQ.0) THEN
          OPEN(7,STATUS='SCRATCH')
          CALL PL_PARM(1,'plparm',IERR)
          CALL EQPARM(1,'eqparm',IERR)
-         CALL DPPARM(1,'dpparm',IERR)
+         CALL DP_PARM(1,'dpparm',IERR)
          CALL WMPARM(1,'wmparm',IERR)
       ENDIF
       CALL mtx_barrier

@@ -540,6 +540,7 @@ contains
   subroutine make_U_Dxy(U_Dxy, Dxyl, x, nsa)
     use fpcomm
     use fowcomm
+    USE libspl3d
 
     implicit none
 
@@ -623,6 +624,7 @@ contains
   subroutine interpolate_D_unlessZero(C_out, U, check0, cpitch_in, psip_in, thetap_in)
     use fpcomm
     use fowcomm
+    USE libspl3d
     implicit none
 
     real(rkind),intent(out) :: C_out

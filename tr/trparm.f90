@@ -30,6 +30,7 @@ CONTAINS
 !     IERR=10X : input parameter out of range
 
       USE TRCOMM
+      USE libkio
       IMPLICIT NONE
       INTEGER(4),INTENT(IN) :: MODE
       CHARACTER(LEN=*),INTENT(IN)::  KIN

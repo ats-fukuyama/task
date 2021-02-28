@@ -26,6 +26,7 @@ CONTAINS
      &   VLOOP, VSEC, X, XV, Y, YV, Z, ZV ,NEQMAXM, DIPDT, &
          RDPVRHOG, abvrhog
       USE TRCOM1, ONLY : TMU, TMU1, NTXMAX, NTXMAX1
+      USE libbnd
       IMPLICIT NONE
       REAL(8),INTENT(IN) :: DT
       INTEGER(4),INTENT(OUT) :: IERR

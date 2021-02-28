@@ -29,6 +29,7 @@ contains
 
       USE plcomm,ONLY: MODEL_PROF,NSMAX, &
            PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2
+      USE libkio
       IMPLICIT NONE
       INTEGER,INTENT(IN):: mode
       CHARACTER(LEN=*),INTENT(IN)::  kin

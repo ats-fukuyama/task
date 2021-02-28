@@ -1,5 +1,6 @@
 C     $Id$
 C
+      USE libspl3d
       USE libgrf
       IMPLICIT NONE
       INTEGER,PARAMETER:: NXM=101,NYM=101,NZM=101,NGM=1001

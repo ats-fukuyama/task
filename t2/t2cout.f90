@@ -167,6 +167,7 @@ CONTAINS
 
     USE T2PARM,ONLY: T2_PARM
     USE T2COMM,ONLY: NMMAX,NVMAX,NXMAX,i2crt
+    USE libkio
     USE libgrf
     IMPLICIT NONE
     

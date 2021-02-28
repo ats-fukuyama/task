@@ -25,11 +25,11 @@ CONTAINS
 !     IERR=7 : unknown MODE
 !     IERR=10X : input parameter out of range
 
+    USE libkio
     IMPLICIT NONE
     INTEGER,INTENT(IN):: mode
     CHARACTER(LEN=*),INTENT(IN):: kin
     INTEGER,INTENT(OUT):: ierr
-    EXTERNAL TASK_PARM
     
 1   CALL TASK_PARM(mode,'WM',kin,wm_nlin,wm_plst,ierr)
     IF(ierr.NE.0) RETURN

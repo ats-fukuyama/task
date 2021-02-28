@@ -21,6 +21,7 @@ CONTAINS
     USE wmfile,ONLY: wm_load,wm_save
     USE wmeign,ONLY: wm_am0d,wm_am1d,wm_am2d,wm_scan,wm_eign,wm_wout
     USE wmtaem,ONLY: wm_taem
+    USE libkio
     USE libmpi
 
     IMPLICIT NONE
@@ -28,7 +29,6 @@ CONTAINS
     CHARACTER(LEN=1):: kid
     CHARACTER(LEN=80):: line
     INTEGER:: ierr,mode,nid
-    EXTERNAL:: TASK_KLIN
     
 ! --- selecion of action type ----
 

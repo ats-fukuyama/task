@@ -13,7 +13,7 @@ MODINCLUDE= -I $(MOD)
 
 SRCSFREE  =  task_kinds.f90 \
              libderiv.f90 \
-             libbnd.f90 libbrn.f90 libde.f90 libdsp.f90 \
+             libbnd.f90 libbrent.f90 libde.f90 libdsp.f90 \
              libell.f90 libeq.f90  libfem.f90 libfft.f90 \
              libgut.f90 libinv.f90 libitp.f90 libpcgpme.f90 \
              libqsort.f90 librk.f90 librkf.f90 libspf.f90 libsympl.f90 \
@@ -111,7 +111,7 @@ TASKCOMM=task_kinds.f90
 
 libderiv.o: $(TASKCOMM) libderiv.f90
 libbnd.o: $(TASKCOMM) libbnd.f90
-libbrn.o: $(TASKCOMM) libbrn.f90
+libbrent.o: $(TASKCOMM) libbrent.f90
 libde.o: $(TASKCOMM) libde.f90
 libdsp.o: $(TASKCOMM) libdsp.f90
 libell.o: $(TASKCOMM) libell.f90

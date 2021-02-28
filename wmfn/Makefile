@@ -30,7 +30,7 @@ LIBMUMPSX=.
 #LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lblacs -lparmetis -lmetis -llapack -lblas
 
 MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
-            -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
+            -I../dp/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
 SRCFIXED = wmfem_comm.f wmf_hhg.f ../eq/wmeqin.f wmmenu.f wminit.f wmeign.f \
        wmexec.f wmloop.f \
@@ -48,8 +48,8 @@ SRCS = $(SRC0)
 
 OBJS = $(SRCFIXED:.f=.o) $(SRCFREE:.f90=.o)
 
-LIBS = libwm.a ../dp/libdp.a ../eq/libeq.a ../pl/libpl.a \
-       $(LIBMTXP) ../lib/libtask.a ../../bpsd/libbpsd.a 
+LIBS = libwm.a ../dp/libdp.a ../eq/libeq.a ../pl/libpl.a ../dp/libdp.a \
+       $(LIBMTXP) ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a 
 
 .f.o :
 	$(FCFIXED)  $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -98,7 +98,7 @@ clean:
 veryclean: clean
 	rm -f wm
 
-WMCOMM = wmcomm.inc wmcom0.inc wmcom1.inc ../pl/plcomm.f90 ../dp/dpcom1.inc
+WMCOMM = wmcomm.inc wmcom0.inc wmcom1.inc ../pl/plcomm.f90 ../dp/dpcomm.f90
 
 wmmain.o : wmmain.f $(WMCOMM)
 

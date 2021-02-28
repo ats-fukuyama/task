@@ -28,7 +28,7 @@ SRCS = fpcomm.f90 fpinit.f90 fpparm.f90 \
        fpexec.f90 fpsave.f90 \
        fpwmin.f90 fpwrin.f90 fpcalwm.f90 fpcalwr.f90 fpcalw.f90 \
        fpcalcn.f90 fpcalcnr.f90 fpcalc.f90 fpnfrr.f90 fpnflg.f90 \
-       cdbmfp.f90 fpcalr.f90 fpcoef.f90 fpcale.f90 \
+       cdbmfp.f90 fpcalr.f90 sv_read.f90 fpcoef.f90 fpcale.f90 \
        fpbounce.f90 fpprep.f90 fploop.f90 \
        fpfout.f90 fpcont.f90 fpgout.f90 fpfile.f90 fpmenu.f90
 #       fpdisrupt.f90 

@@ -22,6 +22,7 @@
 !     IERR=10X : input parameter out of range
 
       USE TRCOMM, ONLY : NTMAX, NTMAX_SAVE
+      USE libkio  
       IMPLICIT NONE
       INTEGER(4),INTENT(IN) :: MODE
       CHARACTER(LEN=*),INTENT(IN)::  KIN

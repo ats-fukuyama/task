@@ -108,6 +108,7 @@ C     ***** CONVERSION (R,Z) to (Alpha,Beta) *****
 C
       SUBROUTINE RZTOAB(R,Z,ALPHA,BETA)
 C
+      USE libbrent
       INCLUDE '../eq/eqcomq.inc'
       COMMON /EQAKF1/ ALPHAF1,RF1,ZF1
       EXTERNAL FNBETA

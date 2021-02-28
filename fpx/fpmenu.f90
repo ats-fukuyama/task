@@ -18,6 +18,7 @@
       USE plinit
       USE plparm
       USE fpfile
+      USE libkio
       USE libmpi
       USE libmtx
 

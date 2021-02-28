@@ -21,11 +21,11 @@ CONTAINS
     USE wrbeam,ONLY: wr_beam
     USE wrgout,ONLY: wr_gout
     USE wrfile,ONLY: wrsave,wrload
+    USE libkio
     IMPLICIT NONE
     CHARACTER(LEN=1):: KID
     CHARACTER(LEN=80):: LINE
     INTEGER:: NSTAT,IERR,MODE,NID
-    EXTERNAL TASK_KLIN
 
       NSTAT=0
 

@@ -848,7 +848,7 @@ SUBROUTINE TXPROF
   use tx_variables
   use tx_interface, only : INTG_P, INTDERIV3, detect_datatype, INTG_F, dfdx, &
        &                   initprof_input, moving_average, CORR, coulog
-
+  USE libinv
   implicit none
   INTEGER(4) :: NR, IER, ifile, NHFM, NR_smt, NR_smt_start = 10
   REAL(8) :: RL, PROF, PROFN, PROFT, PTePROF, PTiPROF!, QL, dRIP

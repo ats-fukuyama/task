@@ -30,12 +30,12 @@ CONTAINS
 !     IERR=10X : input parameter out of range
 
       USE ticomm,ONLY: NSMAX,PT,PTPR,PTPP
+      USE libkio
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: MODE
       CHARACTER(LEN=*),INTENT(IN)::  KIN
       INTEGER,INTENT(OUT):: IERR
       INTEGER:: NS
-      EXTERNAL TASK_PARM
 
       DO NS=1,NSMAX
          PT(NS)=0.D0

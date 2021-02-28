@@ -24,6 +24,7 @@
       USE fpcalchieff
       USE libmpi
       USE libmtx
+      USE libkio
 
       IMPLICIT NONE
       CHARACTER(LEN=1)::  KID

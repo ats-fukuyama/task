@@ -14,6 +14,7 @@ CONTAINS
     USE wmcomm
     USE wmprof
     USE wmsub
+    USE libinv
     IMPLICIT NONE
     COMPLEX(rkind),ALLOCATABLE:: CEF1(:,:),CEF2(:,:),CEFM1(:,:),CEFM2(:,:)
     COMPLEX(rkind),ALLOCATABLE:: CEFLDR(:,:),CRMARHF(:,:),CEFLDM(:,:,:,:)
@@ -23,7 +24,6 @@ CONTAINS
     REAL(rkind):: TC2,TC3,RF11,RF22,RF33,RG011,RG022,RG033
     INTEGER:: NR,ND,MD,NDX,MDX,IG,NRP,I,NTH,NHH,NTHF,NHHF
     INTEGER:: ILL,MM
-    EXTERNAL:: INVMRD
 
     ALLOCATE(CEF1(nthmax,nhhmax),CEF2(nthmax,nhhmax))
     ALLOCATE(CEFM1(nthmax,nhhmax),CEFM2(nthmax,nhhmax))

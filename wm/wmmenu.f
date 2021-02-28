@@ -7,6 +7,7 @@ C
 C      use plfile_prof_mod
       use wmtest
       USE dpparm,ONLY: dpprep
+      USE libkio
       INCLUDE 'wmcomm.inc'
 C
       EXTERNAL WMPARM

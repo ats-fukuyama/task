@@ -44,8 +44,7 @@ libw1.a: $(OBJS)
 libs: ../../bpsd/libbpsd.a ../lib/libgrf.a ../lib/libtask.a libw1.a
  
 w1 : libs w1main.o
-	$(FCFREE) w1main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) \
-           $(MODDIR) $(MODINCLUDE)
+	$(FCFREE) w1main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 clean:
 	-rm -f core ./*.o *.mod ./*~ ./\#* *.a $(MOD)/*.mod

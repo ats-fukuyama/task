@@ -18,6 +18,7 @@
      &   VLOOP, VSEC, X, XV, Y, YV, Z, ZV ,NEQMAXM, DIPDT, akdw, nt, &
      &   ABVRHOG, RDPVRHOG
       USE TRCOM1, ONLY : TMU, TMU1, NTAMAX, NTXMAX, NTXMAX1
+      USE libbnd
       IMPLICIT NONE
       REAL(8),INTENT(IN) :: DT
       INTEGER(4),INTENT(OUT) :: IERR

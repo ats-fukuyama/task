@@ -964,6 +964,7 @@ SUBROUTINE TXPROF
   use tx_ntv, only : perturb_mag, Wnm_spline
   use eqread_mod, only : AJphVRL
   use mod_eqneo, only : wrap_eqneo
+  USE libinv
 #ifdef flapack95
 #ifdef laself
   ! for self-compiled lapack

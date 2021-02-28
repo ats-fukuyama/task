@@ -25,6 +25,7 @@ CONTAINS
 !     ierr=7 : unknown MODE
 !     ierr=10X : input parameter out of range
 
+    USE libkio
     IMPLICIT NONE
     INTEGER,INTENT(IN):: mode
     CHARACTER(LEN=*),INTENT(IN):: kin

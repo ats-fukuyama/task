@@ -8,11 +8,11 @@ CONTAINS
 
     USE wicomm,ONLY: ikind
     USE wiparm,ONLY: wi_parm
+    USE libkio
     INTEGER(ikind),INTENT(OUT):: ierr
     CHARACTER         :: kid
     CHARACTER(LEN=80) :: line
     INTEGER(ikind):: mode
-    EXTERNAL TASK_KLIN
 
 1   CONTINUE
     ierr=0

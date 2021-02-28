@@ -85,6 +85,7 @@ contains
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ, &
          &                 NGR, NGRM, NGRSTP, NGTSTP, NGVSTP, GY, GT
     use tx_ntv, only : Wnm_spline
+    USE libbnd
 #ifdef lapack95
 #ifdef laself
     ! for self-compiled lapack

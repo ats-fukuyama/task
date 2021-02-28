@@ -630,6 +630,7 @@ CONTAINS
   SUBROUTINE wm_invert_rg
 
     USE wmcomm
+    USE libinv
     IMPLICIT NONE
     REAL(rkind):: RGA(3,3),RGB(3,3)
     INTEGER:: NR,NHH,NTH,I,J,ILL

@@ -4,6 +4,7 @@ C     ***** SINGLE CALCULATION *****
 C
       SUBROUTINE WMAM0D(KID,LINE)
 C
+      USE libkio
       INCLUDE 'wmcomm.inc'
       EXTERNAL WMPARM
       CHARACTER LINE*80,KID*1
@@ -50,6 +51,7 @@ C     ***** 1D PLOT OF AMPLITUDE *****
 C
       SUBROUTINE WMAM1D(KID,LINE)
 C
+      USE libkio
       INCLUDE 'wmcomm.inc'
       REAL(8),DIMENSION(:),ALLOCATABLE :: FRA,FIA,AMPA,FRAG,FIAG,AMPAG
       REAL(8):: DELTFR,AMPMIN
@@ -193,6 +195,7 @@ C     ***** 2D PLOT OF AMPLITUDE *****
 C
       SUBROUTINE WMAM2D(KID,LINE)
 C
+      USE libkio
       INCLUDE 'wmcomm.inc'
 
       REAL(8),DIMENSION(:),ALLOCATABLE :: FRA,FIA,AMPA,FRAG,FIAG,AMPAG
@@ -498,6 +501,7 @@ C     ***** FIND EIGEN VALUE *****
 C
       SUBROUTINE WMEIGN(KID,LINE)
 C
+      USE libkio
       INCLUDE 'wmcomm.inc'
       CHARACTER LINE*80,KID*1
       DIMENSION XA(2),WORK(2,2)
@@ -554,6 +558,7 @@ C     ***** PARAMETER SCAN *****
 C
       SUBROUTINE WMSCAN(KID,LINE)
 C
+      USE libkio
       INCLUDE 'wmcomm.inc'
       DIMENSION PNSAVE(NSM),PTPRSAVE(NSM),PTPPSAVE(NSM)
       DIMENSION PNITBSAVE(NSM),PTITBSAVE(NSM),PUITBSAVE(NSM)

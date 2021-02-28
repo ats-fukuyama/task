@@ -9,6 +9,7 @@ CONTAINS
     USE w1exec,ONLY: w1_exec
     USE w1gdsp,ONLY: w1_gdsp
     USE w1gout,ONLY: w1_gout
+    USE libkio
 
     IMPLICIT NONE
     INTEGER(ikind)    :: ierr,mode,ind

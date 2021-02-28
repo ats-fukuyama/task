@@ -129,7 +129,7 @@ C
          ENDDO
 
          IF(NRANK.EQ.0) THEN
-            CALL WMPOUT(NPH0)
+            CALL WMPOUT
             IF(MODELW.EQ.1) CALL WMDOUT(IERR)
          ENDIF
 

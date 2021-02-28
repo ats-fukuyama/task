@@ -14,13 +14,14 @@ CONTAINS
     USE wmcomm
     USE wmparm,ONLY: wm_parm,wm_broadcast
     USE wmemfp,ONLY: wm_bfield
+    USE libkio
     USE libmpi
     IMPLICIT NONE
     CHARACTER(LEN=80):: LINE
     CHARACTER(LEN=1):: KID
     INTEGER:: MODE
     REAL(rkind):: AMPL
-    EXTERNAL:: TASK_KLIN,GUFLSH
+    EXTERNAL:: GUFLSH
 
     MODE=0
 1   CONTINUE
@@ -63,6 +64,7 @@ CONTAINS
 
     USE wmcomm
     USE wmparm,ONLY: wm_parm,wm_broadcast
+    USE libkio
     USE libmpi
     IMPLICIT NONE
     REAL(4),ALLOCATABLE::  GX(:),GF(:,:)
@@ -70,7 +72,7 @@ CONTAINS
     CHARACTER(LEN=1):: KID
     INTEGER:: MODE,NGF
     REAL(rkind):: DELTFR,AMPMIN,FR,FI,AMPL
-    EXTERNAL TASK_KLIN,GUFLSH
+    EXTERNAL GUFLSH
 
     MODE=0
 1   CONTINUE
@@ -202,6 +204,7 @@ CONTAINS
 
     USE wmcomm
     USE wmparm,ONLY: wm_parm,wm_broadcast
+    USE libkio
     USE libmpi
     IMPLICIT NONE
     REAL(4),ALLOCATABLE:: GX(:),GY(:),GZ(:,:)
@@ -214,7 +217,7 @@ CONTAINS
     INTEGER:: NGXN,NGXP,NGYN,NGYP
     REAL(rkind):: DELTFR,DELTFI,FR,FI,AMPL,AMPMIN
     REAL(4):: GAMPL
-    EXTERNAL:: TASK_KLIN,GUFLSH
+    EXTERNAL:: GUFLSH
 
     MODE=0
 1   CONTINUE
@@ -464,13 +467,13 @@ CONTAINS
     USE wmcomm
     USE wmparm,ONLY: wm_parm,wm_broadcast
     USE wmemfp,ONLY: wm_bfield
+    USE libkio
     USE libmpi
     IMPLICIT NONE
     CHARACTER(LEN=80),INTENT(OUT):: LINE
     CHARACTER(LEN=1),INTENT(OUT):: KID
     INTEGER:: MODE,IERR
     REAL(rkind):: X,Y,XX,YY
-    EXTERNAL:: TASK_KLIN
 
     MODE=0
 1   CONTINUE
@@ -524,6 +527,7 @@ CONTAINS
     USE wmcomm
     USE wmparm,ONLY: wm_parm,wm_broadcast
     USE wmemfp,ONLY: wm_bfield
+    USE libkio
     USE libmpi
     IMPLICIT NONE
     CHARACTER(LEN=80),INTENT(OUT):: LINE
@@ -539,7 +543,7 @@ CONTAINS
     REAL(rkind):: RR_SAVE,QA_SAVE,BB_SAVE,PNA_SAVE,PNAL_SAVE
     REAL(rkind):: QMIN_SAVE,RHOMIN_SAVE
     EXTERNAL:: GUFLSH,GMNMX1,GQSCAL,PAGES,SETCHS,SETLIN,PAGEE
-    EXTERNAL:: GDEFIN,GFRAME,GSCALE,GVALUE,GPLOTP,MOVE,TEXT,TASK_KLIN
+    EXTERNAL:: GDEFIN,GFRAME,GSCALE,GVALUE,GPLOTP,MOVE,TEXT
 
     ALLOCATE(PN_SAVE(nsmax),PTPR_SAVE(nsmax),PTPP_SAVE(nsmax),PU_SAVE(nsmax))
     ALLOCATE(PNITB_SAVE(nsmax),PTITB_SAVE(nsmax),PUITB_SAVE(nsmax))

@@ -4,6 +4,7 @@ C     ***** CALCULATE MAGNETIC AXIS AND EDGE *****
 C
       SUBROUTINE EQAXIS(IERR)
 C
+      USE libbrent
       INCLUDE '../eq/eqcomc.inc'
 C
       REAL(8),DIMENSION(:,:),ALLOCATABLE::  PSIRG,PSIZG,PSIRZG

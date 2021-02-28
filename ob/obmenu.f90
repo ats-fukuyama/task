@@ -18,7 +18,8 @@ CONTAINS
     USE obprep,ONLY: ob_prep
     USE obcalc,ONLY: ob_calc
     USE obgout,ONLY: ob_gout
-!    USE obfile,ONLY: ob_save,ob_load
+    !    USE obfile,ONLY: ob_save,ob_load
+    USE libkio
     IMPLICIT NONE
     CHARACTER(LEN=1):: kid
     CHARACTER(LEN=80):: line
