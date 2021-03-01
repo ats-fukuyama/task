@@ -128,6 +128,7 @@
       SUBROUTINE NF_REACTION_COEF
 
       USE fpcomm
+      USE libspl2d
       IMPLICIT NONE
       INTEGER,PARAMETER:: NEMAX=101 ! Number of energy mesh
       REAL(8),DIMENSION(NEMAX):: E0A,E1A

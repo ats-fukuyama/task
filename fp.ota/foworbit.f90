@@ -16,6 +16,7 @@ contains
     use obinit
     use fowcomm
     use fpcomm
+    USE libspl2d
 
     implicit none
     integer,intent(out) :: ierr
@@ -249,7 +250,7 @@ contains
   subroutine construct_orbit(ob, momentum, pitch_angle, theta_pol, psi_pol, ns, ierr)
     use fpcomm
     use fowcomm
-
+    USE libspl2d
     use obcalc
 
     implicit none

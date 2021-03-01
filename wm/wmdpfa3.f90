@@ -25,6 +25,7 @@ SUBROUTINE WMDPFA3(CW,RHOWM,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
   USE pllocal
   USE bpsd_constants,ONLY : CI,PI,AMP,AEE
   USE wmfa
+  USE libspl2d
   USE libgrf, ONLY : grd1d,grd2d
   INCLUDE '../dp/dpcomm.inc'
 
@@ -319,6 +320,7 @@ SUBROUTINE PVINT3(j,l,CINT)
   USE plcomm
   USE pllocal
   USE wmfa
+  USE libspl2d
   INCLUDE '../dp/dpcomm.inc'
   REAL(8),INTENT(IN) :: x,xm,xp
   COMPLEX(8) :: CFUNCdp3
@@ -336,6 +338,7 @@ SUBROUTINE PVINT3(j,l,CINT)
   USE plcomm
   USE pllocal
   USE wmfa
+  USE libspl2d
   INCLUDE '../dp/dpcomm.inc'
   REAL(8),INTENT(IN) :: x,xm,xp
   COMPLEX(8) :: CFUNCdr
@@ -356,6 +359,7 @@ SUBROUTINE PVINT3(j,l,CINT)
   USE plcomm
   USE pllocal
   USE wmfa
+  USE libspl2d
   INCLUDE '../dp/dpcomm.inc'
   REAL(8),INTENT(IN) :: x,xm,xp
   REAL(8) :: FL,FR
@@ -383,6 +387,7 @@ SUBROUTINE PVINT3(j,l,CINT)
   USE plcomm
   USE pllocal
   USE wmfa
+  USE libspl2d
   INCLUDE '../dp/dpcomm.inc'
   REAL(8),INTENT(IN) :: x,xm,xp
   REAL(8) :: FL,FR

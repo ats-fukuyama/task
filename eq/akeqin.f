@@ -73,6 +73,7 @@ C     ***** INITIALIZE RZ-AB CONVERSION *****
 C
       SUBROUTINE EQCALA(IERR)
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
       COMMON /EQAKV1/ SALPHG(NRM),BETAG(NTHMP)
       COMMON /EQAKV2/ UABR(4,4,NTHMP,NRM),UABZ(4,4,NTHMP,NRM)
@@ -155,6 +156,7 @@ C     ***** CONVERSION (Alpha,Beta) TO (R,Z) *****
 C
       SUBROUTINE ABTORZ(ALPHA,BETA,R,Z,IERR)
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
       COMMON /EQAKV1/ SALPHG(NRM),BETAG(NTHMP)
       COMMON /EQAKV2/ UABR(4,4,NTHMP,NRM),UABZ(4,4,NTHMP,NRM)
@@ -187,6 +189,7 @@ C     ***** CALCULATE dR/dalpha, dR/dbeta *****
 C
       SUBROUTINE DRDAB_EQ (ALPHA, BETA, DRDA, DRDB)
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
       COMMON /EQAKV1/ SALPHG(NRM),BETAG(NTHMP)
       COMMON /EQAKV2/ UABR(4,4,NTHMP,NRM),UABZ(4,4,NTHMP,NRM)
@@ -204,6 +207,7 @@ C     ***** CALCULATE dZ/dalpha, dZ/dbeta *****
 C
       SUBROUTINE DZDAB_EQ (ALPHA, BETA, DZDA, DZDB)
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
       COMMON /EQAKV1/ SALPHG(NRM),BETAG(NTHMP)
       COMMON /EQAKV2/ UABR(4,4,NTHMP,NRM),UABZ(4,4,NTHMP,NRM)
@@ -308,6 +312,7 @@ C     ***** CALCULATE MAGNETIC FIELD *****
 C
       SUBROUTINE SUBMAG(ALPHA,BETA,BR,BZ,BT,BTOT,AJR,AJZ,AJT)
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL ABTORZ(ALPHA,BETA,RP,ZP,IERR)

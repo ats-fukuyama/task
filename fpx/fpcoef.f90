@@ -27,10 +27,11 @@
 
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NT
-      integer:: NSA, NR, NTH, NP, NS
+      integer:: NSA, NR, NTH, NP, NS, NSB
       real(kind8):: FPMAX
       integer:: NCONST_RF
       real(kind8):: DWTTEC, DWTTIC, DWTPEC, DWTPIC
+      LOGICAL:: FLAG
 
       ISAVE=0
 

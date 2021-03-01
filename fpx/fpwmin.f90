@@ -34,6 +34,7 @@
 
       SUBROUTINE fp_wm_read(IERR)
 
+      USE libspl2d  
       USE libfio
       USE libmpi
       USE libmtx
@@ -141,7 +142,7 @@
                   CEWL2(NWTHMAX+1,NWR)=CEWV(I,1,NWPH,NWR)
             ENDDO
             CALL CSPL2D(THWSPL,RWSPL,CEWL2,CEWX2,CEWY2,CEWXY2, &
-                        UCEW2(1,1,1,1,I), &
+                        UCEW2(:,:,:,:,I), &
                         NWTHMAX+1,NWTHMAX+1,NWRMAX,4,0,IERR)
             IF(IERR.NE.0) THEN
                WRITE(6,*) 'XX FPWMREAD: CSPL2D: IERR=',IERR
@@ -165,12 +166,11 @@
             ENDDO
             CALL CSPL3D(THWSPL,PHWSPL,RWSPL,CEWL3, &
                         CEWX3,CEWY3,CEWZ3,CEWXY3,CEWYZ3,CEWZX3,CEWXYZ3, &
-                        UCEW3(1:4,1:4,1:4, &
-                              1:NWTHMAX+1,1:NWPHMAX+1,1:NWRMAX,I), &
+                        UCEW3(:,:,:,:,:,:,I), &
                         NWTHMAX+1,NWPHMAX+1,NWTHMAX+1,NWPHMAX+1,NWRMAX, &
                         4,4,0,IERR)
             IF(IERR.NE.0) THEN
-               WRITE(6,*) 'XX FPWMREAD: CSPL2D: IERR=',IERR
+               WRITE(6,*) 'XX FPWMREAD: CSPL3D: IERR=',IERR
                IERR=201
                RETURN
             ENDIF
@@ -284,6 +284,7 @@
       SUBROUTINE FPWMGET(RL,THL,PHL,RFWM,CEWR1,CEWTH1,CEWPH1, &
                                          CKWR1,CKWTH1,CKWPH1,IERR)
 
+      USE libspl2d
       IMPLICIT NONE
       REAL(8),INTENT(IN):: RL,THL,PHL
       REAL(8),INTENT(OUT):: RFWM
@@ -296,12 +297,11 @@
 
       IF(NWPHMAX.EQ.1) THEN
          CALL CSPL2DD(THL,RL,CEWR1,CEWDTH,CEWDR,THWSPL,RWSPL, &
-                      UCEW2(1,1,1,1,1),NWTHMAX+1,NWTHMAX+1,NWRMAX,IERR)
+                      UCEW2(:,:,:,:,1),NWTHMAX+1,NWTHMAX+1,NWRMAX,IERR)
       ELSE
          CALL CSPL3DD(THL,PHL,RL,CEWR1,CEWDTH,CEWDPH,CEWDR, &
                       THWSPL,PHWSPL,RWSPL, &
-                      UCEW3(1:4,1:4,1:4, &
-                            1:NWTHMAX+1,1:NWPHMAX+1,1:NWRMAX,1), &
+                      UCEW3(:,:,:,:,:,:,1), &
                       NWTHMAX+1,NWPHMAX+1,NWTHMAX+1,NWPHMAX+1,NWRMAX,IERR)
       ENDIF
       IF(IERR.NE.0) THEN
@@ -314,12 +314,11 @@
 
       IF(NWPHMAX.EQ.1) THEN
          CALL CSPL2DD(THL,RL,CEWTH1,CEWDTH,CEWDR,THWSPL,RWSPL, &
-                      UCEW2(1,1,1,1,2),NWTHMAX+1,NWTHMAX+1,NWRMAX,IERR)
+                      UCEW2(:,:,:,:,2),NWTHMAX+1,NWTHMAX+1,NWRMAX,IERR)
       ELSE
          CALL CSPL3DD(THL,PHL,RL,CEWTH1,CEWDTH,CEWDPH,CEWDR, &
                       THWSPL,PHWSPL,RWSPL, &
-                      UCEW3(1:4,1:4,1:4, &
-                            1:NWTHMAX+1,1:NWPHMAX+1,1:NWRMAX,2), &
+                      UCEW3(:,:,:,:,:,:,2), &
                       NWTHMAX+1,NWPHMAX+1,NWTHMAX+1,NWPHMAX+1,NWRMAX,IERR)
       ENDIF
       IF(IERR.NE.0) THEN
@@ -337,13 +336,12 @@
 
       IF(NWPHMAX.EQ.1) THEN
          CALL CSPL2DD(THL,RL,CEWPH1,CEWDTH,CEWDR,THWSPL,RWSPL, &
-                      UCEW2(1,1,1,1,3),NWTHMAX+1,NWTHMAX+1,NWRMAX,IERR)
+                      UCEW2(:,:,:,:,3),NWTHMAX+1,NWTHMAX+1,NWRMAX,IERR)
          CKWPH1=NPH0W/RRW
       ELSE
          CALL CSPL3DD(THL,PHL,RL,CEWPH1,CEWDTH,CEWDPH,CEWDR, &
                       THWSPL,PHWSPL,RWSPL, &
-                      UCEW3(1:4,1:4,1:4, &
-                            1:NWTHMAX+1,1:NWPHMAX+1,1:NWRMAX,3), &
+                      UCEW3(:,:,:,:,:,:,3), &
                       NWTHMAX+1,NWPHMAX+1,NWTHMAX+1,NWPHMAX+1,NWRMAX,IERR)
          CKWPH1=-CI*CEWDPH/(CEWPH1*RRW)
       ENDIF

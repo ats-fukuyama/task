@@ -183,6 +183,7 @@ C     ***** SETUP PSIG *****
 C
       SUBROUTINE setup_psig
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomc.inc'
 C
       REAL(8),DIMENSION(:,:),ALLOCATABLE:: PSIRG,PSIZG,PSIRZG
@@ -399,6 +400,7 @@ C     ***** INTERPOLATE FUNCTION OF PSI(R,Z) *****
 C
       FUNCTION PSIG(R,Z)
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomc.inc'
 C
       CALL SPL2DF(R,Z,PSIL,RG,ZG,UPSIRZ,NRGM,NRGMAX,NZGMAX,IERR)
@@ -414,6 +416,7 @@ C     ***** INTERPOLATE SUBROUTINE DPSIDR,DPSIDZ(R,Z) *****
 C
       SUBROUTINE PSIGD(R,Z,DPSIDR,DPSIDZ)
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomc.inc'
 C
       CALL SPL2DD(R,Z,PSIL,DPSIDR,DPSIDZ,

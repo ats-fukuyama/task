@@ -27,6 +27,7 @@ CONTAINS
 
   SUBROUTINE  READ_ADF11(adas_adf11_filename,IERR)
 
+    USE libspl2d
     USE libfio
     IMPLICIT NONE
     CHARACTER(LEN=*),INTENT(IN):: adas_adf11_filename
@@ -242,6 +243,7 @@ CONTAINS
 
   SUBROUTINE CALC_ADF11(ND,NZ,PN,PT,DR,IERR)
 
+    USE libspl2d
     USE commpi
     IMPLICIT NONE
     INTEGER,INTENT(IN):: ND,NZ   ! 1 <= NZ <=NZMAX

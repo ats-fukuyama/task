@@ -480,7 +480,7 @@ contains
   subroutine fow_cal_spl2D(f_out, x_in, y_in, f, x, y)
     ! 2D-version of fow_cal_spl
     use fpcomm,only:rkind
-
+    USE libspl2d
     implicit none
     real(rkind),intent(out) :: f_out
     real(rkind),intent(in) :: x_in, y_in, f(:,:), x(:), y(:)

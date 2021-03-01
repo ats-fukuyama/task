@@ -453,7 +453,7 @@ contains
   subroutine fow_eqload(ierr)
     use fowcomm
     use fpcomm,only:rkind,nrmax,nthmax,npmax,rm,rg
-
+    USE libspl2d
     implicit none
     integer,intent(out):: ierr
     character(len = 80) :: line

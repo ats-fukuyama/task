@@ -4,6 +4,7 @@ C     ***** LOAD JFT2M EQ DATA *****
 C
       SUBROUTINE EQRJFT(KNAMEQ)
 C
+      USE libspl2d
       INCLUDE 'eqrcom.inc'
 C
       DIMENSION PSI(NRGM,NZGM),RCU(NRGM,NZGM)

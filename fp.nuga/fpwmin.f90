@@ -34,6 +34,7 @@
 
       SUBROUTINE fp_wm_read(IERR)
 
+      USE libspl2d
       USE libspl3d
       USE libmpi
       USE libmtx
@@ -296,6 +297,7 @@
       SUBROUTINE FPWMGET(RL,THL,PHL,RFWM,CEWR1,CEWTH1,CEWPH1, &
                                          CKWR1,CKWTH1,CKWPH1,IERR)
 
+      USE libspl2d
       IMPLICIT NONE
       REAL(8),INTENT(IN):: RL,THL,PHL
       REAL(8),INTENT(OUT):: RFWM

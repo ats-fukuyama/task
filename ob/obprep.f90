@@ -189,6 +189,7 @@ CONTAINS
 
   SUBROUTINE ob_eqspline(ierr)
     USE obcomm
+    USE libspl2d
     USE libgrf
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
@@ -299,6 +300,7 @@ CONTAINS
   
   SUBROUTINE cal_rr_pos(chi_pos,psip_pos,rr_pos,ierr)
     USE obcomm
+    USE libspl2d
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: chi_pos,psip_pos
     REAL(rkind),INTENT(OUT):: rr_pos
@@ -323,6 +325,7 @@ CONTAINS
   
   SUBROUTINE cal_zz_pos(chi_pos,psip_pos,zz_pos,ierr)
     USE obcomm
+    USE libspl2d
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: chi_pos,psip_pos
     REAL(rkind),INTENT(OUT):: zz_pos
@@ -347,6 +350,7 @@ CONTAINS
   
   SUBROUTINE cal_bb_pos(chi_pos,psip_pos,bb_pos,ierr)
     USE obcomm
+    USE libspl2d
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: chi_pos,psip_pos
     REAL(rkind),INTENT(OUT):: bb_pos
@@ -369,6 +373,7 @@ CONTAINS
     
   SUBROUTINE cal_bdb_pos(chi_pos,psip_pos,b_pos,db_dchi,db_dpsip,ierr)
     USE obcomm
+    USE libspl2d
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: chi_pos,psip_pos
     REAL(rkind),INTENT(OUT):: b_pos,db_dchi,db_dpsip

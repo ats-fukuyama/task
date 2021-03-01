@@ -270,6 +270,7 @@ CONTAINS
 
       USE plcomm,ONLY: ikind,rkind,idebug,KNAMPF
       USE plp2D
+      USE libspl2d
       USE libfio
       USE libgrf
       USE libmpi
@@ -428,6 +429,7 @@ CONTAINS
 
       USE plcomm,ONLY: rkind,ikind,NSMAX
       USE plp2d
+      USE libspl2d
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: X,Y       ! Position
       REAL(rkind),INTENT(OUT):: BX,BY,BZ ! magnetic field
@@ -459,6 +461,7 @@ CONTAINS
 
       USE plcomm,ONLY: rkind,ikind,NSMAX,PN,PTPP,PTPR
       USE plp2d
+      USE libspl2d
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: X,Y    ! Position
       REAL(rkind),DIMENSION(NSMAX),INTENT(OUT):: &

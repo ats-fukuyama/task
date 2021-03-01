@@ -173,14 +173,15 @@ c$$$      end subroutine wmfem_plasma
       subroutine wmeq_get_posrz(rho,th,rrl,zzl,
      &                          drrrho,dzzrho,drrchi,dzzchi)
 
+      USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
       real(8),intent(in):: rho,th
       real(8),intent(out):: rrl,zzl,drrrho,dzzrho,drrchi,dzzchi
 
       CALL spl2dd(th,rho,rrl,drrchi,drrrho,
-     &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+     &                  CHIP,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
       CALL spl2dd(th,rho,zzl,dzzchi,dzzrho,
-     &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+     &                  CHIP,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
       return
       end subroutine wmeq_get_posrz
 
@@ -188,6 +189,7 @@ c$$$      end subroutine wmfem_plasma
 
       subroutine wmeq_get_magnetic(rho,th,babs,bsupth,bsupph)
 
+      USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
       real(8),intent(in):: rho,th
       real(8),intent(out):: babs,bsupth,bsupph
@@ -203,9 +205,9 @@ c$$$      end subroutine wmfem_plasma
 
       psipl=fnpsip(rhol)
       CALL spl2dd(th,rhol,rrl,drrchi,drrrho,
-     &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+     &                  CHIP,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
       CALL spl2dd(th,rhol,zzl,dzzchi,dzzrho,
-     &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+     &                  CHIP,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
       gm(2,2)= drrchi**2+dzzchi**2
       gm(2,3)= 0.d0
       gm(3,3)= rrl**2
@@ -238,6 +240,7 @@ c$$$      endif
 
       subroutine wmeq_get_mtxCL(nthmax2,nhhmax2,mtxcl)
 
+      USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
       INTEGER,INTENT(IN):: nthmax2,nhhmax2
       COMPLEX(8),DIMENSION(3,3,nthmax2,nhhmax2),INTENT(OUT):: mtxcl
@@ -263,9 +266,9 @@ c$$$      endif
             case(3,5)
                psipl=fnpsip(rho)
                CALL spl2dd(th,rho,rrl,drrchi,drrrho,
-     &                     THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+     &                     CHIP,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
                CALL spl2dd(th,rho,zzl,dzzchi,dzzrho,
-     &                     THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+     &                     CHIP,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
             end select
             absdrho=sqrt(drrrho**2+dzzrho**2)
             em(1,1)=drrrho/absdrho

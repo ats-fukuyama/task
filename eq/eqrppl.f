@@ -3,6 +3,7 @@ C     ***** CALCULATE RIPPLE WELL REGION INSIDE THE PLASMA *****
 C
       SUBROUTINE EQRPPL(IERR)
 C
+      USE libspl2d
       USE libfio
       INCLUDE '../eq/eqcomq.inc'
 C
@@ -192,6 +193,7 @@ C     ***** Spline coefficient matrix for ripple amplitude *****
 C
       subroutine eq_set_rppl(IERR)
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
 C
       DIMENSION RpplRG(NRrpM,NZrpM),RpplZG(NRrpM,NZrpM),

@@ -825,6 +825,7 @@ C     ****** DRAW BIRD-EYE VIEW IN MAGNETIC SURFACE COORDINATES ******
 C
       SUBROUTINE WMG3DA(GFL,NHH,K2,K3,IND)
 C
+      USE libspl2d
       INCLUDE 'wmcomm.inc'
 C
       COMMON /WMSPL1/ TH(NTHM+1)
@@ -1188,6 +1189,7 @@ C     ****** CALCULATE THE VALUE OF MESH POINTS BY SPLINE ******
 C
       SUBROUTINE MESHVL(RHO,THETA,U,F,DFX,DFY,IERR)
 C
+      USE libspl2d
       INCLUDE 'wmcomm.inc'
 C
       COMMON /WMSPL1/ TH(NTHM+1)
@@ -1203,6 +1205,7 @@ C     ****** EXCEED THE MAX POINT ******
 C
       SUBROUTINE SUBSPL1(X,Y,Z,DZX,DZY,U,IERR)
 C
+      USE libspl2d
       INCLUDE 'wmcomm.inc'
 C
       COMMON /WMSPL1/ TH(NTHM+1)

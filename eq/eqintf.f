@@ -19,6 +19,7 @@ C       BZ     : vertical component of the magnetic field
 C       BT     : toroidal magnetic field
 C       RHON   : normalized radial coordinate corresponding to (R,Z)
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL2DD(RP,ZP,PSI,DPSIR,DPSIZ,
@@ -127,6 +128,7 @@ C     ***** GET R and Z for rhot and th *****
 C
       SUBROUTINE GET_RZ(rhon_,rchip_,R_,Z_)
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
       REAL(8):: chip_
 C

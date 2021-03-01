@@ -56,6 +56,7 @@ C     ***** SETUP DATA (spline PSIRZ and find axis) *****
 C
       SUBROUTINE EQSETP(IERR)
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
 C
       REAL(8),DIMENSION(:,:),ALLOCATABLE:: PSIRG,PSIZG,PSIRZG
@@ -930,10 +931,12 @@ C     ***** CALCULATE SPLINES AND INTEGRAL QUANTITIES *****
 C
       SUBROUTINE EQSETS(IERR)
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
 C
       DIMENSION DERIV(NRM)
       DIMENSION D01(NTHMP,NRM),D10(NTHMP,NRM),D11(NTHMP,NRM)
+      REAL(8) CHIPL
 C
 C      DO NR=1,NRMAX
 C         WRITE(6,'(A,I5,1P5E12.4)')

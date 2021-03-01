@@ -509,7 +509,8 @@
 !---- Calculation of NF reaction rate coefficient ----
       SUBROUTINE NF_REACTION_COEF ! SIGMAV_NF is defined
 
-      USE fpcomm
+        USE fpcomm
+        USE libspl2d
       IMPLICIT NONE
 !      INTEGER,PARAMETER:: NEMAX=101 ! Number of energy mesh
       REAL(8),DIMENSION(NEMAX):: E0A,E1A

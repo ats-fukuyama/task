@@ -249,7 +249,7 @@ CONTAINS
           KNUM(NW)=KW(ICH0+1:LEN(KW))
        END IF
        INUM(NW)=0
-       READ(KNUM(NW),'(I)',ERR=901,END=901) INUM(NW)
+       READ(KNUM(NW),*,ERR=901,END=901) INUM(NW)
 901    CONTINUE
 
     END DO
@@ -396,11 +396,12 @@ CONTAINS
   END SUBROUTINE T2_GRELEASE
 
   SUBROUTINE T2_CC(INUM,ID,NGP,D2CX)
-    USE libgrf,ONLY: GRD2D
     USE T2COMM, ONLY: & ! changed by 2014-02-05 H.Seto 
          twopi,NXMAX,NVMAX, &
          NLMAX,NPMIN,i1mlvl,i1rdn2,d1rec, &
          nrhomax,nchimax,d0rw
+    USE libspl2d
+    USE libgrf,ONLY: GRD2D
     IMPLICIT NONE
     INTEGER,PARAMETER:: nxmax_c=41,nymax_c=41
     INTEGER(ikind),INTENT(IN):: inum,id,ngp

@@ -845,6 +845,7 @@ C   ******************************************
 C
       SUBROUTINE EQSETF
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomc.inc'
 C
       DIMENSION PSISX(NTGPM,NSGPM),PSITX(NTGPM,NSGPM)
@@ -917,6 +918,7 @@ C   *******************************************
 C
       FUNCTION PSIF(RSIG,RTHG)
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomc.inc'
 C
       CALL SPL2DF(RTHG,RSIG,PSIL,THGMX,SIGMX,UPSIST,
@@ -932,6 +934,7 @@ C   *******************************************
 C
       FUNCTION HJTF(RSIG,RTHG)
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomc.inc'
 C
       CALL SPL2DF(RTHG,RSIG,HJTL,THGMX,SIGMX,UHJTST,

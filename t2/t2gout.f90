@@ -92,7 +92,7 @@ CONTAINS
           KNUM(NW)=KW(ICH0+1:LEN(KW))
        END IF
        INUM(NW)=0
-       READ(KNUM(NW),'(I)',ERR=901,END=901) INUM(NW)
+       READ(KNUM(NW),*,ERR=901,END=901) INUM(NW)
 901    CONTINUE
 
     END DO
@@ -251,6 +251,8 @@ CONTAINS
          ikind,rkind,twopi,NXMAX,d2xout,NVMAX, &
          NLMAX,NPMIN,i1mlvl,i1rdn2,d1rec, &
          nrhomax,nchimax,d0rw
+    USE libgrf,ONLY: GRD2D
+    USE libspl2d
     IMPLICIT NONE
     INTEGER,PARAMETER:: nxmax_g=41,nymax_g=41
     INTEGER(ikind),INTENT(IN):: inum,id,ngp

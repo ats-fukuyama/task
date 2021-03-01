@@ -1,4 +1,17 @@
-!     $Id$
+! libspl2d.f90
+
+MODULE libspl2d
+
+  PRIVATE
+  PUBLIC spl2d     ! calculate real spline coefficient in 2D
+  PUBLIC spl2df    ! interporate real function by 2D spline
+  PUBLIC spl2dd    ! interporate real function and derivatives by 2D spline
+  PUBLIC cspl2d    ! calculate complex spline coefficient in 2D
+  PUBLIC cspl2df   ! interporate complex function by 2D spline
+  PUBLIC cspl2dd   ! interporate complex function and derivatives by 2D spline
+
+CONTAINS  
+  
 !   ************************************************
 !   **           Spline Interpolation             **
 !   ************************************************
@@ -1265,3 +1278,5 @@
       IERR=0
       RETURN
       END SUBROUTINE CSPL2DD
+
+END MODULE libspl2d
