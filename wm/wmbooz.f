@@ -280,11 +280,13 @@ C    ****** CALCULATE R AND Z ******
 C
       SUBROUTINE WMHBRZ
 C
+      USE libspl1d
+      USE libpol
       INCLUDE 'wmcomm.inc'
       INCLUDE 'vmcomm.inc'
 C
       INTEGER I,NP
-      REAL*8 NRA,SBMNCA,SRMNCA,SZMNSA,SPMNSA,DBMNCA,DRMNCA,DZMNSA,DPMNSA
+      REAL*8 SBMNCA,SRMNCA,SZMNSA,SPMNSA,DBMNCA,DRMNCA,DZMNSA,DPMNSA
       PARAMETER (NP=3)
       DIMENSION BSPL(NSRMP),RSPL(NSRMP),ZSPL(NSRMP),PSPL(NSRMP)
       DIMENSION NRA(NP),SBMNCA(NP),SRMNCA(NP),SZMNSA(NP),SPMNSA(NP)
@@ -363,48 +365,42 @@ C
          DO NR=NSRMAX+1,NRMAX+1
             DO I=1,NP
                NRA(I)=NR-2*NP-1+2*I
+            ENDDO     
+            DO I=1,NP
                SBMNCA(I)=SBMNC(MN,NR-2*NP-1+2*I)
             ENDDO     
-            CALL POLINT(NRA,SBMNCA,NP,NR,SBMNC(MN,NR),DY) 
+            CALL POLINTN(NRA,SBMNCA,NP,NR,SBMNC(MN,NR)) 
             DO I=1,NP
-               NRA(I)=NR-2*NP-1+2*I
                DBMNCA(I)=DBMNC(MN,NR-2*NP-1+2*I)
             ENDDO     
-            CALL POLINT(NRA,DBMNCA,NP,NR,DBMNC(MN,NR),DY) 
+            CALL POLINTN(NRA,DBMNCA,NP,NR,DBMNC(MN,NR)) 
 C     
             DO I=1,NP
-               NRA(I)=NR-2*NP-1+2*I
                SRMNCA(I)=SRMNC(MN,NR-2*NP-1+2*I)
             ENDDO
-            CALL POLINT(NRA,SRMNCA,NP,NR,SRMNC(MN,NR),DY) 
+            CALL POLINTN(NRA,SRMNCA,NP,NR,SRMNC(MN,NR)) 
             DO I=1,NP
-               NRA(I)=NR-2*NP-1+2*I
                DRMNCA(I)=DRMNC(MN,NR-2*NP-1+2*I)
             ENDDO     
-            CALL POLINT(NRA,DRMNCA,NP,NR,DRMNC(MN,NR),DY) 
+            CALL POLINTN(NRA,DRMNCA,NP,NR,DRMNC(MN,NR)) 
 C     
             DO I=1,NP
-               NRA(I)=NR-2*NP-1+2*I
                SZMNSA(I)=SZMNS(MN,NR-2*NP-1+2*I)
             ENDDO
-            CALL POLINT(NRA,SZMNSA,NP,NR,SZMNS(MN,NR),DY) 
+            CALL POLINTN(NRA,SZMNSA,NP,NR,SZMNS(MN,NR)) 
             DO I=1,NP
-               NRA(I)=NR-2*NP-1+2*I
                DZMNSA(I)=DZMNS(MN,NR-2*NP-1+2*I)
             ENDDO     
-            CALL POLINT(NRA,DZMNSA,NP,NR,DZMNS(MN,NR),DY) 
+            CALL POLINTN(NRA,DZMNSA,NP,NR,DZMNS(MN,NR)) 
 C     
             DO I=1,NP
-               NRA(I)=NR-2*NP-1+2*I
                SPMNSA(I)=SPMNS(MN,NR-2*NP-1+2*I)
             ENDDO
-C     
-            CALL POLINT(NRA,SPMNSA,NP,NR,SPMNS(MN,NR),DY) 
+            CALL POLINTN(NRA,SPMNSA,NP,NR,SPMNS(MN,NR)) 
             DO I=1,NP
-               NRA(I)=NR-2*NP-1+2*I
                DPMNSA(I)=DPMNS(MN,NR-2*NP-1+2*I)
             ENDDO     
-            CALL POLINT(NRA,DPMNSA,NP,NR,DPMNS(MN,NR),DY) 
+            CALL POLINTN(NRA,DPMNSA,NP,NR,DPMNS(MN,NR)) 
          ENDDO
       ENDDO
 C
@@ -524,6 +520,7 @@ C    ***** SPLINE POLOIDAL AND TOROIDAL MAGNETIC FIELD *****
 C
       SUBROUTINE WMHBBB
 C
+      USE libspl1d
       INCLUDE 'wmcomm.inc'
       INCLUDE 'vmcomm.inc'
       DIMENSION SRMNCL(NMNM),SZMNSL(NMNM)

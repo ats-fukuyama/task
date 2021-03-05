@@ -84,7 +84,8 @@ C   ***************************************************************
 C
       SUBROUTINE TREQEX(NTRMAX1,RHOTR1,PRHO,HJRHO,VTRHO,TRHO,RIP1,ICONT,
      &                  RSA,DPSIPDRHOA,IERR)
-C              
+C
+      USE libspl1d
       INCLUDE 'eqcomq.inc'
       INCLUDE 'eqcom4.inc'
 C
@@ -260,7 +261,8 @@ C
      &                  ARH1RHO,ARH2RHO,ABB2RHO,AIB2RHO,ARHBRHO,
      &                  EPSRHO,RMJRHO,RMNRHO,RKAPRHO,
      &                  IERR)
-C              
+C
+      USE libspl1d
       INCLUDE 'eqcomq.inc'
       INCLUDE 'eqcom4.inc'
 C

@@ -1,5 +1,7 @@
 C     $Id$
 C
+      USE libspl1d
+      USE libspl2d
       USE libgrf
       IMPLICIT REAL*8 (A-F,H,O-Z)
       PARAMETER (NXM=101)

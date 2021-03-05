@@ -465,6 +465,7 @@ contains
 
     use tx_commons, only : NRA, Rho, rip_rat, DltRP, DltRP_mid, DltRPn, NRMAX
 
+    USE libspl1d
     integer(4) :: nr, ier, N
     real(8), dimension(:), allocatable :: DERIV
     real(8), dimension(:,:), allocatable :: U

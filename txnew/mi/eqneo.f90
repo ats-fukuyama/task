@@ -152,6 +152,7 @@ contains
 !=======================================================================
     use tx_commons, only : cnpi => PI, q, rr
     use equ_params
+    USE libspl1d
     real(8),    intent(in)  :: psix
     integer(4), intent(out) :: mxneo
     real(8),    intent(out) :: tpf,eps,bbav,bbnavr,gamneo,fmnerr

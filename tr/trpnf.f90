@@ -250,6 +250,7 @@
 
       REAL(8) FUNCTION SIGMADHe3(TD,THe3)
 
+      USE libspl1d
       IMPLICIT NONE
       REAL(8) TD,THe3,TI,TIL,XRATEL
       REAL(8),DIMENSION(10),save:: RENG,RRATE

@@ -685,6 +685,12 @@ CONTAINS
                         CFVP(NDX,MDX,2)=CJTHP
                         CFVP(NDX,MDX,3)=CJPHP
                      ENDIF
+                     WRITE(6,'(A,4I4,2ES12.4)') &
+                          'CFVP:',NR,ND,MD,1,CFVP(NDX,MDX,1)
+                     WRITE(6,'(A,4I4,2ES12.4)') &
+                          'CFVP:',NR,ND,MD,2,CFVP(NDX,MDX,2)
+                     WRITE(6,'(A,4I4,2ES12.4)') &
+                          'CFVP:',NR,ND,MD,3,CFVP(NDX,MDX,3)
                   ENDDO
                ENDDO
             ELSE
@@ -721,6 +727,12 @@ CONTAINS
                      CJR  =-(CI*MM*CJTHM+CI*NN*CJPHM)*DPSIPDRHOC*DRHO &
                           /XRHOC
                      CFVP(NDX,MDX,1)=CJR
+                     WRITE(6,'(A,4I4,2ES12.4)') &
+                          'CFVP:',NR,ND,MD,1,CFVP(NDX,MDX,1)
+                     WRITE(6,'(A,4I4,2ES12.4)') &
+                          'CFVP:',NR,ND,MD,2,CFVP(NDX,MDX,2)
+                     WRITE(6,'(A,4I4,2ES12.4)') &
+                          'CFVP:',NR,ND,MD,3,CFVP(NDX,MDX,3)
                   ENDDO
                ENDDO
             ENDIF
@@ -764,6 +776,7 @@ CONTAINS
                CFVP(NDX,MDX,1)=0.D0
                CFVP(NDX,MDX,2)=CJTHM
                CFVP(NDX,MDX,3)=CJPHM
+               WRITE(6,'(A,2I6,4ES12.4)') 'CJTH/PH:',ND,MD,CJTHM,CJPHM
             ENDDO
          ENDDO
       ENDIF
@@ -801,7 +814,7 @@ CONTAINS
                KD=NKD-ND
                IF(MODELK.EQ.0.OR. &
                     (KD.GE.KDMIN.AND.KD.LE.KDMAX)) THEN
-                  KDX=MOD(KD-KDMIN+2*KDSIZ,KDSIZ)+1+KDMIN-KDMIN_F
+!                  KDX=MOD(KD-KDMIN+2*KDSIZ,KDSIZ)+1+KDMIN-KDMIN_F
                   DO MD=MDMIN,MDMAX
                      MDX=MD-MDMIN+1
                      DO MLD=MDMIN,MDMAX
@@ -809,7 +822,7 @@ CONTAINS
                         LD=MLD-MD
                         IF(MODELK.EQ.0.OR. &
                              (LD.GE.LDMIN.AND.LD.LE.LDMAX)) THEN
-                           LDX=MOD(LD-LDMIN+2*LDSIZ,LDSIZ)+1+LDMIN-LDMIN_F
+!                           LDX=MOD(LD-LDMIN+2*LDSIZ,LDSIZ)+1+LDMIN-LDMIN_F
                            MM=NTH0+MD
 
 !        ****** EPH'(0) = 0 FOR MM.EQ.0 ******
@@ -912,7 +925,7 @@ CONTAINS
                CFVP(NDX,MDX,2)= CEWALL(2,MDX,NDX)
                CFVP(NDX,MDX,3)= CEWALL(3,MDX,NDX)
                WRITE(22,'(A,2I8,4ES12.4)') &
-                    'CFVP:',MDX,NDX,CEWALL(2,MDX,NDX),CEWALL(3,MDX,NDX)
+                    'CEWALL:',MD,ND,CEWALL(2,MDX,NDX),CEWALL(3,MDX,NDX)
             ENDDO
          ENDDO
 

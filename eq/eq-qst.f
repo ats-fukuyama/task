@@ -5,6 +5,7 @@ C
 C
       USE libfio
       USE libbrent
+      USE libspl1d
       USE libgrf
       INCLUDE '../eq/eqcomq.inc'
 C

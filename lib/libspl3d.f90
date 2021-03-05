@@ -56,6 +56,7 @@ CONTAINS
 !              IERR          : ERROR INDICATOR
 
       USE task_kinds,ONLY: dp
+      USE libspl1d  
       IMPLICIT NONE
 
       INTEGER,INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX,IDX,IDY,IDZ
@@ -1160,6 +1161,7 @@ CONTAINS
 !              IERR          : ERROR INDICATOR
 
       USE task_kinds,ONLY: dp
+      USE libspl1d  
       IMPLICIT NONE
 
       INTEGER,INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX,IDX,IDY,IDZ

@@ -12,6 +12,7 @@ MODULE fpcomm_parm
 
       integer,parameter:: kind8=rkind
       integer,parameter:: NBEAMM=20
+      integer,parameter:: NRAYM=20
       real(rkind),parameter:: rkev=aee*1.D3
 
       integer:: NSAMAX,NSBMAX,NS_NSA(NSM),NS_NSB(NSM)
@@ -22,7 +23,7 @@ MODULE fpcomm_parm
       integer:: NTMAX,NTSTEP_COEF,NTSTEP_COLL
       integer:: NTG1STEP,NTG1MIN,NTG1MAX
       integer:: NTG2STEP,NTG2MIN,NTG2MAX
-      integer:: MODELE,MODELA,MODELC,MODELR,MODELD,MODELS,MODELW(NSM)
+      integer:: MODELE,MODELA,MODELC(NSM),MODELR,MODELD,MODELS,MODELW(NSM)
       integer:: MODELS_full, MODELS_bt, MODELS_tt
       integer:: MODEL_DELTA_F(NSM)
       integer:: MODEL_ne_D,MODELD_RDEP,MODELD_PDEP,MODELD_EDGE,MODELD_PINCH
@@ -37,11 +38,13 @@ MODULE fpcomm_parm
       integer:: N_partition_r,N_partition_s,N_partition_p
       integer:: OUTPUT_TXT_DELTA_F, OUTPUT_TXT_F1, OUTPUT_TXT_BEAM_WIDTH, OUTPUT_TXT_HEAT_PROF
       integer:: OUTPUT_TXT_BEAM_DENS, OUTPUT_NFID
+      integer:: NRAYS_WR,NRAYE_WR
 
       real(rkind):: PMAX(NSM),PMAX_BB(NSM),PMAX_TT(NSM),EMAX(NSM)
       real(rkind):: R1,DELR1,RMIN,RMAX
       real(rkind):: E0,ZEFF
       real(rkind):: PABS_EC,PABS_LH,PABS_FW,PABS_WR,PABS_WM
+      REAL(rkind):: PIN_WR_NRAY(NRAYM),FACT_NRAY
       real(rkind):: FACT_WR,FACT_WM,DELNPR_WR,DELNPR_WM
       real(rkind):: RF_WM,EPS_WR,DELY_WR,DELY_WM,Y0_WM
       real(rkind):: DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC

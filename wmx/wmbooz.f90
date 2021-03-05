@@ -284,15 +284,17 @@ CONTAINS
 
     USE wmcomm
     USE vmcomm
+    USE libspl1d
+    USE libpol
     IMPLICIT NONE
     REAL(rkind),ALLOCATABLE:: BSPL(:),RSPL(:),ZSPL(:),PSPL(:)
     INTEGER,PARAMETER:: NP=3
+    INTEGER:: NRA(NP)
     REAL(rkind):: &
-         RNRA(NP),SBMNCA(NP),SRMNCA(NP),SZMNSA(NP),SPMNSA(NP), &
+         SBMNCA(NP),SRMNCA(NP),SZMNSA(NP),SPMNSA(NP), &
          DBMNCA(NP),DRMNCA(NP),DZMNSA(NP),DPMNSA(NP)
     INTEGER:: NR,MN,NSR,I,IERR
     REAL(rkind):: RHOB,DRHO,DY
-    EXTERNAL:: SPL1D,SPL1DD,POLINT
 
 !     ***** DEFINE XRHO, XR AND XSHRHO *****
 
@@ -367,49 +369,44 @@ CONTAINS
        ENDDO
        DO NR=NSRMAX+1,NRMAX+1
           DO I=1,NP
-             RNRA(I)=NR-2*NP-1+2*I
+             NRA(I)=NR-2*NP-1+2*I
+          ENDDO
+          DO I=1,NP
              SBMNCA(I)=SBMNC(MN,NR-2*NP-1+2*I)
           ENDDO
-          CALL POLINT(RNRA,SBMNCA,NP,NR,SBMNC(MN,NR),DY) 
+          CALL POLINTN(NRA,SBMNCA,NP,NR,SBMNC(MN,NR)) 
           DO I=1,NP
-             RNRA(I)=NR-2*NP-1+2*I
              DBMNCA(I)=DBMNC(MN,NR-2*NP-1+2*I)
           ENDDO
-          CALL POLINT(RNRA,DBMNCA,NP,NR,DBMNC(MN,NR),DY) 
+          CALL POLINTN(NRA,DBMNCA,NP,NR,DBMNC(MN,NR)) 
 
           DO I=1,NP
-             RNRA(I)=NR-2*NP-1+2*I
              SRMNCA(I)=SRMNC(MN,NR-2*NP-1+2*I)
           ENDDO
-          CALL POLINT(RNRA,SRMNCA,NP,NR,SRMNC(MN,NR),DY) 
+          CALL POLINTN(NRA,SRMNCA,NP,NR,SRMNC(MN,NR)) 
           DO I=1,NP
-             RNRA(I)=NR-2*NP-1+2*I
              DRMNCA(I)=DRMNC(MN,NR-2*NP-1+2*I)
           ENDDO
-          CALL POLINT(RNRA,DRMNCA,NP,NR,DRMNC(MN,NR),DY)
+          CALL POLINTN(NRA,DRMNCA,NP,NR,DRMNC(MN,NR))
 
           DO I=1,NP
-             RNRA(I)=NR-2*NP-1+2*I
              SZMNSA(I)=SZMNS(MN,NR-2*NP-1+2*I)
           ENDDO
-          CALL POLINT(RNRA,SZMNSA,NP,NR,SZMNS(MN,NR),DY) 
+          CALL POLINTN(NRA,SZMNSA,NP,NR,SZMNS(MN,NR)) 
           DO I=1,NP
-             RNRA(I)=NR-2*NP-1+2*I
              DZMNSA(I)=DZMNS(MN,NR-2*NP-1+2*I)
           ENDDO
-          CALL POLINT(RNRA,DZMNSA,NP,NR,DZMNS(MN,NR),DY) 
+          CALL POLINTN(NRA,DZMNSA,NP,NR,DZMNS(MN,NR)) 
 
           DO I=1,NP
-             RNRA(I)=NR-2*NP-1+2*I
              SPMNSA(I)=SPMNS(MN,NR-2*NP-1+2*I)
           ENDDO
-          CALL POLINT(RNRA,SPMNSA,NP,NR,SPMNS(MN,NR),DY) 
+          CALL POLINTN(NRA,SPMNSA,NP,NR,SPMNS(MN,NR)) 
 
           DO I=1,NP
-             RNRA(I)=NR-2*NP-1+2*I
              DPMNSA(I)=DPMNS(MN,NR-2*NP-1+2*I)
           ENDDO
-          CALL POLINT(RNRA,DPMNSA,NP,NR,DPMNS(MN,NR),DY) 
+          CALL POLINTN(NRA,DPMNSA,NP,NR,DPMNS(MN,NR)) 
        ENDDO
     ENDDO
 
@@ -534,12 +531,12 @@ CONTAINS
 
     USE wmcomm
     USE vmcomm
+    USE libspl1d
     IMPLICIT NONE
     REAL(rkind),ALLOCATABLE:: SRMNCL(:),SZMNSL(:)
     INTEGER:: NR,NTH,NHH,NS,MN,IERR,NSU,NSW
     REAL(rkind):: FACT,P0,RHOL,FACTN,FEDGE,PT,FACTT,DTHU,DPH,DTHW
     REAL(rkind):: TH,PH,RSIN,RCOS
-    EXTERNAL:: SPL1D,SPL1DF
 
     ALLOCATE(SRMNCL(NMNM),SZMNSL(NMNM))
     

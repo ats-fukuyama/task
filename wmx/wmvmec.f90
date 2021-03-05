@@ -207,14 +207,16 @@ CONTAINS
 
     USE wmcomm
     USE vmcomm
+    USE libspl1d
+    USE libpol
     IMPLICIT NONE
     INTEGER:: I,NR,NSR,IERR
     INTEGER,parameter:: np=3
-    REAL(rkind):: rnra(np),psipax(np)
+    INTEGER:: nra(np)
+    REAL(rkind):: psipax(np)
     REAL(rkind):: srmnca(np),drmnca(np),szmnsa(np),dzmnsa(np)
     REAL(rkind):: dy
     INTEGER:: mn
-    EXTERNAL SPL1D,SPL1DF,POLINT,SPL1DD
 
 !      ***** SPLINE PSIP *****
 
@@ -224,11 +226,11 @@ CONTAINS
     DO NR=1,NRMAX+1
        IF(XRHO(NR).GT.1.D0) THEN
           do i=1,np
-             rnra(i)=nr-np-1+i
+             nra(i)=nr-np-1+i
              psipax(i)=psip(nr-np-1+i)
           enddo
      
-          call polint(rnra,psipax,np,nr,psip(nr),dy) 
+          call polintn(nra,psipax,np,nr,psip(nr)) 
 
        ELSE
           CALL SPL1DF(XRHO(NR),PSIP(NR),XS,U6,NSRMAX,IERR)
@@ -262,18 +264,20 @@ CONTAINS
        DO NR=1,NRMAX+1
           IF(XRHO(NR).GT.1.D0) THEN
              do i=1,np
-                rnra(i)=nr-np-1+i
+                nra(i)=nr-np-1+i
+             enddo
+
+             do i=1,np
                 drmnca(i)=drmnc(mn,nr-np-1+i)
              enddo
 
-             call polint(rnra,drmnca,np,nr,drmnc(mn,nr),dy) 
+             call polintn(nra,drmnca,np,nr,drmnc(mn,nr)) 
 
              do i=1,np
-                rnra(i)=nr-np-1+i
                 srmnca(i)=srmnc(mn,nr-np-1+i)
              enddo
 
-             call polint(rnra,srmnca,np,nr,srmnc(mn,nr),dy) 
+             call polintn(nra,srmnca,np,nr,srmnc(mn,nr)) 
 
           ELSE
              CALL SPL1DD(XRHO(NR),SRMNC(MN,NR),DRMNC(MN,NR), &
@@ -285,18 +289,20 @@ CONTAINS
 
           IF(XRHO(NR).GT.1.D0) THEN
              do i=1,np
-                rnra(i)=nr-np-1+i
+                nra(i)=nr-np-1+i
+             enddo
+
+             do i=1,np
                 dzmnsa(i)=dzmns(mn,nr-np-1+i)
              enddo
 
-             call polint(rnra,dzmnsa,np,nr,dzmns(mn,nr),dy) 
+             call polintn(nra,dzmnsa,np,nr,dzmns(mn,nr)) 
 
              do i=1,np
-                rnra(i)=nr-np-1+i
                 szmnsa(i)=szmns(mn,nr-np-1+i)
              enddo
 
-             call polint(rnra,szmnsa,np,nr,szmns(mn,nr),dy) 
+             call polintn(nra,szmnsa,np,nr,szmns(mn,nr)) 
 
           ELSE
              CALL SPL1DD(XRHO(NR),SZMNS(MN,NR),DZMNS(MN,NR), &
@@ -407,14 +413,16 @@ CONTAINS
 
     USE wmcomm
     USE vmcomm
+    USE libspl1d
+    USE libpol
     IMPLICIT NONE
     INTEGER,PARAMETER:: np=3
-    REAL(rkind):: rnra(np),bstha(np),bspha(np),qpsa(np)
+    INTEGER:: nra(np)
+    REAL(rkind):: bstha(np),bspha(np),qpsa(np)
     REAL(rkind):: BSUS(NSRM),BSVS(NSRM)
     INTEGER:: i,MN,NSR,NR,NTH,NHH,NS,NSU,NSW,IERR
     REAL(rkind):: BSTHL,BSPHL,dy,DTH,DPH,TH,PH,SBTH,SBPH,RSIN,RCOS
     REAL(rkind):: P0,RHOL,FACTN,FEDGE,PT,FACTT,DTHU,DTHW,RIOTASL
-    EXTERNAL SPL1D,SPL1DF,POLINT
     
     DO MN=1,MNMAX
        DO NSR=1,NSRMAX
@@ -476,18 +484,20 @@ CONTAINS
        do nr=1,nrmax+1
           if((xrho(nr)-xs(nsrmax).gt.0.d0).or.(nr.eq.84)) then
              do i=1,np
-                rnra(i)=nr-np-1+i
+                nra(i)=nr-np-1+i
+             enddo
+
+             do i=1,np
                 bstha(i)=bsth(mn,nr-np-1+i)
              enddo
 
-             call polint(rnra,bstha,np,nr,bsth(mn,nr),dy) 
+             call polintn(nra,bstha,np,nr,bsth(mn,nr)) 
 
              do i=1,np
-                rnra(i)=nr-np-1+i
                 bspha(i)=bsph(mn,nr-np-1+i)
              enddo
 
-             call polint(rnra,bspha,np,nr,bsph(mn,nr),dy) 
+             call polintn(nra,bspha,np,nr,bsph(mn,nr)) 
           endif
        enddo
     enddo
@@ -613,11 +623,11 @@ CONTAINS
           QPS(NR)=1.D0/RIOTASL
        else
           do i=1,np
-             rnra(i)=nr-np-1+i
+             nra(i)=nr-np-1+i
              qpsa(i)=qps(nr-np-1+i)
           enddo
 
-          call polint(rnra,qpsa,np,nr,qps(nr),dy) 
+          call polintn(nra,qpsa,np,nr,qps(nr)) 
 
        endif
     ENDDO
@@ -647,12 +657,12 @@ CONTAINS
 
     USE wmcomm
     USE vmcomm
+    USE libspl1d
     IMPLICIT NONE
     REAL(rkind),INTENt(IN):: XRHOL,THL,PHL
     REAL(rkind),INTENt(OUT):: BFLD2L,BFLD3L,QPSL
     REAL(rkind):: SBTH,SBPH,BSTHL,BSPHL,RSIN,RCOS,RIOTASL
     INTEGER:: MN,IERR
-    EXTERNAL SPL1DF
 
     SBTH=0.D0
     SBPH=0.D0

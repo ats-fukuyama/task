@@ -415,6 +415,7 @@ C   ************************************************
 C
       SUBROUTINE EQPSIX_INIT
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomx.inc'
       DIMENSION DERIV(NRVM)
 C
@@ -688,6 +689,7 @@ C     **********************************
 C
       SUBROUTINE EQCALFVB(IERR)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomx.inc'
 C
       DIMENSION FACTM(4),FACTH(4)
@@ -1141,6 +1143,7 @@ C     **********************************
 C
       SUBROUTINE EQRJPX(IERR)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomx.inc'
 C
       REAL(8),DIMENSION(:,:),ALLOCATABLE:: HJ0,HJ1,HJ2

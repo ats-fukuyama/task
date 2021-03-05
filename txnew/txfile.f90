@@ -1286,6 +1286,7 @@ end subroutine for_ntmain
 
 subroutine for_ofmc
   use tx_commons, only : NRMAX, NRA, RR, RA, BB, rIp, psiV, Var
+  USE libspl1d
   USE libfio
   implicit none
 
@@ -1391,6 +1392,7 @@ end subroutine for_ofmc
 subroutine initprof_input(nr, idx, out)
 
   use tx_commons, only : Rho, AEE
+  USE libspl1d
   USE libfio
 
   integer(4), optional, intent(in) :: nr, idx

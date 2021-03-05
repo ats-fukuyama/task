@@ -265,9 +265,12 @@
                      RYB =A1*RYMIN2+A2*RYMIN1
                      RZB =A1*RZMIN2+A2*RZMIN1
                      RADB=A1*RBMIN2+A2*RBMIN1
-                     IF(RADB.NE.0.D0) DELYEC=RADB
+                     IF(RADB.EQ.0.D0) THEN
+                        DELRB2=DELYEC**2 ! for ray tracing
+                     ELSE
+                        DELRB2=RADB**2   ! for beam tracin
+                     END IF
                      DELCR2=XLL2
-!  DELY_WR                     
                      DELRB2=DELYEC**2
                      ARG=DELCR2/DELRB2
 
@@ -426,11 +429,15 @@
                      RYB =A1*RYMIN2+A2*RYMIN1
                      RZB =A1*RZMIN2+A2*RZMIN1
                      RADB=A1*RBMIN2+A2*RBMIN1
-                     IF(RADB.NE.0.D0) DELYEC=RADB
-
+                     IF(RADB.EQ.0.D0) THEN
+                        DELRB2=DELYEC**2 ! for ray tracing
+                     ELSE
+                        DELRB2=RADB**2   ! for beam tracin
+                     END IF
                      DELCR2=XLL2
                      DELRB2=DELYEC**2
                      ARG=DELCR2/DELRB2
+
                      ARGB (NR,NTH,NAV,NRAY)=ARG
                      CEB(1,NR,NTH,NAV,NRAY)=CEX
                      CEB(2,NR,NTH,NAV,NRAY)=CEY

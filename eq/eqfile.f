@@ -94,6 +94,7 @@ C
 C
       USE libfio
       USE libbrent
+      USE libspl1d
       INCLUDE '../eq/eqcomc.inc'
       DIMENSION DERIV(NRVM)
       EXTERNAL EQFBND
@@ -190,6 +191,7 @@ C     ***** SAVE METRICS *****
 C
       SUBROUTINE EQMETRIC(IERR)
 C
+      USE libspl1d
       USE libfio
       INCLUDE '../eq/eqcomq.inc'
 C

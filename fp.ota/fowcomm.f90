@@ -456,7 +456,7 @@ contains
     ! Calculate spline coefficient y = f(x),
     ! then return f_out = f(x_in)
     use fpcomm,only:rkind
-
+    USE libspl1d
     implicit none
     real(rkind),intent(out) :: f_out
     real(rkind),intent(in) :: x_in, f(:), x(:)

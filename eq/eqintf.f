@@ -176,6 +176,7 @@ C
       SUBROUTINE GET_BMINMAX(rhon_,BBMIN_,BBMAX_)
 C
       USE bpsd,ONLY: rkind
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
       REAL(rkind),INTENT(IN):: rhon_
       REAL(rkind),INTENT(OUT):: BBMIN_,BBMAX_
@@ -190,6 +191,7 @@ C
       SUBROUTINE GET_DVDRHO(rhon_,DVDRHO_)
 C
       USE bpsd,ONLY: rkind
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
       REAL(rkind),INTENT(IN):: rhon_
       REAL(rkind),INTENT(OUT):: DVDRHO_

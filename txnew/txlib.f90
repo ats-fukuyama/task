@@ -1495,7 +1495,7 @@ END SUBROUTINE APRTOS
 !
 !***************************************************************
 
-SUBROUTINE TOUPPER(KTEXT)
+SUBROUTINE TOUPPERX(KTEXT)
 
   implicit none
   character(len=*), INTENT(INOUT) ::  KTEXT
@@ -1509,7 +1509,7 @@ SUBROUTINE TOUPPER(KTEXT)
   end do
 
   RETURN
-END SUBROUTINE TOUPPER
+END SUBROUTINE TOUPPERX
 
 !***************************************************************
 !
@@ -1591,6 +1591,7 @@ END FUNCTION DERIVF
 
 function dfdx(x,f,nmax,mode,daxs,dbnd)
 
+  USE libspl1d
   implicit none
   integer(4), intent(in) :: nmax, mode
   real(8), dimension(0:nmax), intent(in) :: x, f
@@ -1984,6 +1985,7 @@ end function moving_average
 
 subroutine replace_interpolate_value(val,index,xarray,varray)
   use mod_spln
+  USE libspl1d
   implicit none
   integer(4), intent(in) :: index
   real(8), dimension(:), intent(in) :: xarray, varray ! 0:NRMAX

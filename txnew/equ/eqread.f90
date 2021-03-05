@@ -59,6 +59,7 @@ contains
     use equ_params, only : hiv, aav, rrv, ckv, shv, ssv, vlv, arv, aiv, biv, brv, epsv, elipv, &
          & trigv, qqv, siv, nv, rmaj, rpla, raxis, zaxis, pds, fds, sdw, ftv
 !    use tx_core_module, only : intg_area
+    USE libspl1d
     integer(4) :: n, nr, ierr, nrmaxx, nrax, nrs
     real(8), parameter :: fourPisq = 4.d0 * Pi * Pi
     real(8) :: rhonrs, asdt, bsdt, sdtvac

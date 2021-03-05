@@ -948,6 +948,7 @@ C     ****** DRAW BIRD-EYE VIEW IN MAGNETIC SURFACE COORDINATES ******
 C
       SUBROUTINE WMG3DA(GFL,NHH,K2,K3,IND)
 C
+      USE libspl1d
       USE libspl2d
       INCLUDE 'wmcomm.inc'
 C

@@ -345,6 +345,7 @@ C     ****** DRAW SPLINED EQ1D GRAPH ******
 C
       SUBROUTINE EQGS1D(MODE)
 C
+      USE libspl1d
       INCLUDE 'eqcomq.inc'
 C
       DIMENSION GX(NRM),GY(NRM,6)
@@ -1571,6 +1572,7 @@ C     ****** DRAW 1D METRIC PROFILES FOR TRANSPORT CODES ******
 C
       SUBROUTINE EQGTR1
 C
+      USE libspl1d
       include 'eqcomq.inc'
 C
       dimension gx(nrm),gy(nrm)

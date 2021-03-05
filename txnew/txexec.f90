@@ -196,14 +196,14 @@ contains
              ldBX = NQMAX*(NRMAX+1)
              ALLOCATE(ipiv(n))
              CALL LAPACK_DGBSV(n,kl,ku,nrhs,BL,ldBL,ipiv,BX,ldBX,ierr_la) 
-             CALL DGBTRF(m,n,kl,ku,BL,ldBL,ipiv,ierr_la)
-             CALL DGBTRS('N',n,kl,ku,nrhs,BL,ldBL,ipiv,BX,ldBX,ierr_la)
+             CALL LAPACK_DGBTRF(m,n,kl,ku,BL,ldBL,ipiv,ierr_la)
+             CALL LAPACK_DGBTRS('N',n,kl,ku,nrhs,BL,ldBL,ipiv,BX,ldBX,ierr_la)
              DEALLOCATE(ipiv)
 #ifdef lapack95
           ELSE
 !           +++ F95 +++
 !             CALL LA_GBSV(BL,BX,INFO=ierr_la) ! for self-compiled LAPACK95
-             CALL GBSV(BL,BX,INFO=ierr_la) ! for intel mkl LAPACK95
+             CALL LAPACK_GBSV(BL,BX,INFO=ierr_la) ! for intel mkl LAPACK95
 !             CALL GBTRF(BL,kl,m,ipiv,ierr_la)
 !             CALL GBTRS(BL,BX,ipiv,kl,'N',ierr_la)
              IF(ierr_la /= 0) THEN

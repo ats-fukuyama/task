@@ -21,6 +21,7 @@
       SUBROUTINE FPCALC_NLR(NR,NSB,NSA)
 
       USE libde,ONLY: DEHIFT
+      USE libspl1d
       USE libgrf,ONLY: grd1d
       USE fpmpi
       Implicit none
@@ -729,6 +730,7 @@
 
       SUBROUTINE INTEGRATION_RJAB_RYAB(NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM)
 
+      USE libspl1d
       IMPLICIT NONE
 
       integer,parameter::LNM=5
@@ -914,6 +916,7 @@
 
       SUBROUTINE INTEGRATION_RJAB_RYAB_FINE(NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM,FPLS1)
 
+      USE libspl1d
       IMPLICIT NONE
 
       integer,parameter::LNM=5

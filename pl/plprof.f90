@@ -944,12 +944,12 @@
 
       USE plcomm,ONLY: NSMAX,PZ
       USE plxprf
+      USE libspl1d
       IMPLICIT NONE
       REAL(rkind),DIMENSION(NXPRF,NXSPC):: PRFN,PRFT
       CHARACTER(LEN=80):: TRFILE='topics-data' ! fixed name
       INTEGER(ikind):: ierr,ifno,nr,ns,irc,n,i
       REAL(rkind):: val
-      EXTERNAL SPL1D
 
       ierr = 0
 
@@ -1017,6 +1017,7 @@
 
       USE plcomm,ONLY: PNS,PTS,modeln
       USE plxprf
+      USE libspl1d
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: rhol   ! Normalized radius
       INTEGER(ikind),INTENT(IN):: NS  ! Particle species
@@ -1024,7 +1025,6 @@
       REAL(rkind),INTENT(OUT):: PTL   ! Temperature at Rhol
       REAL(rkind):: PPL
       INTEGER(ikind):: IERR
-      EXTERNAL SPL1DF
 
       IF (Rhol.GT.1.0D0) THEN
          IF(modeln.EQ.1) THEN

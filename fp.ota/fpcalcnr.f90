@@ -22,6 +22,7 @@
 
       USE libde,ONLY: DEHIFT
       USE libgrf,ONLY: grd1d
+      USE libspl1d
       USE fpmpi
       Implicit none
 !      PARAMETER (N=NPM+2,M=NTHM+2,LNM=5)
@@ -729,6 +730,7 @@
 
       SUBROUTINE INTEGRATION_RJAB_RYAB(NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM)
 
+      USE libspl1d
       IMPLICIT NONE
 
       integer,parameter::LNM=5
@@ -914,6 +916,7 @@
 
       SUBROUTINE INTEGRATION_RJAB_RYAB_FINE(NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM,FPLS1)
 
+      USE libspl1d
       IMPLICIT NONE
 
       integer,parameter::LNM=5

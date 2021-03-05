@@ -1,4 +1,23 @@
-!     $Id$
+! libspl1d.f90
+
+MODULE libspl1d
+
+  PRIVATE
+  PUBLIC spl1d      ! calculate real spline coefficients
+  PUBLIC spl1df     ! interpolate real function by spline 
+  PUBLIC spl1dd     ! interpolate real function and derivataive by spline 
+  PUBLIC spl1di0    ! calculate real integral for spline
+  PUBLIC spl1di     ! integrate real function by spline
+  PUBLIC cspl1d     ! calculate complex spline coefficients
+  PUBLIC cspl1df    ! interpolate complex function by spline 
+  PUBLIC cspl1dd    ! interpolate complex function and derivataive by spline 
+  PUBLIC cspl1di0   ! calculate complex integral for spline
+  PUBLIC cspl1di    ! integrate compled function by spline
+
+  PUBLIC tdmsrdx,tdmprdx,tdmscdx,tdmpcdx ! tri-diagonal matrix solver
+  
+CONTAINS
+
 !   ************************************************
 !   **           Spline Interpolation             **
 !   ************************************************
@@ -1002,3 +1021,4 @@
  9003 IERR=9003
       RETURN
       END SUBROUTINE TDMPCDX
+END MODULE libspl1d

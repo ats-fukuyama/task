@@ -18,7 +18,7 @@ FFLAGS= $(OFLAGS)
 
 #### ####
 
-MODINCLUDE= -I.$(MOD) -I../mtxp/$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD) \
+MODINCLUDE= -I$(MOD) -I../mtxp/$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD) \
               -I../t2x/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD)
 
 SRCS = libt2.f90  t2cnst.f90 t2comm.f90 t2intg.f90 t2ngra.f90 t2vgra.f90\

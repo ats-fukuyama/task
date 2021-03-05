@@ -18,6 +18,7 @@
 !
       USE libgrf,ONLY: grd1d
       USE libspf, ONLY: dpleg
+      USE libspl1d
       USE fpmpi
       IMPLICIT NONE
 !
@@ -432,6 +433,7 @@
 
       SUBROUTINE INTEGRATION_BACKGROUND_F(FPL,NR,NSB,NSA,RM1M,RM2M,RM3M,RM4M,RM1G,RM2G,RM3G,RM4G)
 
+      USE libspl1d
       IMPLICIT NONE
 
       integer,parameter::LNM=5
@@ -658,6 +660,7 @@
 
       SUBROUTINE INTEGRATION_BACKGROUND_F_FINE(FPL,NR,NSB,NSA,RM1M,RM2M,RM3M,RM4M,RM1G,RM2G,RM3G,RM4G)
 
+      USE libspl1d
       IMPLICIT NONE
 
       integer,parameter::LNM=5

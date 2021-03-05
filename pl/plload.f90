@@ -54,6 +54,7 @@ CONTAINS
 
       USE plcomm,ONLY: NSMAX,PZ,KNAMPF
       USE plxprf
+      USE libspl1d
       IMPLICIT NONE
       INTEGER,INTENT(OUT):: ierr
       REAL(rkind),DIMENSION(NXPRF,NXSPC):: PRFN,PRFT
@@ -121,6 +122,7 @@ CONTAINS
 
       USE plcomm,ONLY: PNS,PTS,modeln
       USE plxprf
+      USE libspl1d
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: rhol   ! Normalized radius
       INTEGER(ikind),INTENT(IN):: NS  ! Particle species
@@ -151,6 +153,7 @@ CONTAINS
     SUBROUTINE pl_load_trdata(nid,ierr)
 
       USE pl_trdata
+      USE libspl1d
       USE libfio
       IMPLICIT NONE
       INTEGER,INTENT(IN):: nid
@@ -243,6 +246,7 @@ CONTAINS
     SUBROUTINE pl_read_trdata(rho,NS,PNL,PTL)
 
       USE pl_trdata
+      USE libspl1d
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: rho    ! Normalized radius
       INTEGER(ikind),INTENT(IN):: NS  ! Particle species

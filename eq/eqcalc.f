@@ -55,6 +55,7 @@ C   ************************************************
 C
       SUBROUTINE EQPSIN
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomc.inc'
       DIMENSION DERIV(NRVM)
 C
@@ -111,6 +112,7 @@ C   ************************************************
 C
       SUBROUTINE EQPSIR
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomc.inc'
       DIMENSION DERIV(NRVM)
 C
@@ -420,6 +422,7 @@ C   ************************************************
 C
       SUBROUTINE EQRHSV(IERR)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomc.inc'
       DIMENSION DERIV(NRVM)
 C

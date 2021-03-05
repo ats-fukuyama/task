@@ -56,6 +56,7 @@ C     ***** SETUP DATA (spline PSIRZ and find axis) *****
 C
       SUBROUTINE EQSETP(IERR)
 C
+      USE libspl1d
       USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
 C
@@ -135,6 +136,7 @@ C     ***** CALCULATE FLUX VARIABLES IN PLASMA *****
 C
       SUBROUTINE EQCALQP(IERR)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       EXTERNAL EQDERV
@@ -524,6 +526,7 @@ C     ***** CALCULATE FLUX VARIABLES IN VACUUM *****
 C
       SUBROUTINE EQCALQV(IERR)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
       EXTERNAL EQDERV
       DIMENSION XA(NTVM),YA(2,NTVM)
@@ -540,23 +543,10 @@ C
 C
 C     +++++ SETUP VACUUM DATA +++++
 C
-C      write(6,'(A,1P6E12.4)') 'RR,RB,RA,REDGE-RAXIS:',
-C     &     RR,RB,RA,REDGE-RAXIS,REDGE,RAXIS
-C      NR=NRPMAX-1
-C            write(6,'(A,I5,1P3E12.4)') 
-C     &           'NR,PSIP,PSIT,QPS=',NR,PSIP(NR),PSIT(NR),QPS(NR)
-C      NR=NRPMAX
-C            write(6,'(A,I5,1P3E12.4)') 
-C     &           'NR,PSIP,PSIT,QPS=',NR,PSIP(NR),PSIT(NR),QPS(NR)
-
 
       DR_OUT=(RR+RB-REDGE)/(NRMAX-NRPMAX)
       DR_IN =FRBIN*(RR+RB-REDGE)/(NRMAX-NRPMAX)
       DTH=2.d0*PI/NTHMAX
-
-C            write(6,'(A,1P5E12.4)') 
-C     &           'DR_IN,DR_OUT,RR,RB,REDGE=',
-C     &            DR_IN,DR_OUT,RR,RB,REDGE
 
       IF(MDLEQF.LT.10) THEN
          DO NR=NRPMAX+1,NRMAX
@@ -564,76 +554,40 @@ C     &            DR_IN,DR_OUT,RR,RB,REDGE
             RL_IN =REDGE+DR_IN *(NR-NRPMAX)
             ZL=ZAXIS
             Sratio=(RL_OUT-RR)**2/(REDGE-RR)**2
-!            write(6,'(A,I5,1P3E12.4)') 
-!     &           'NR,RL_OUT,ratio,Sratio=',
-!     &            NR,RL_OUT,RL_OUT/REDGE,Sratio
             PSIP(NR)=PSIG(RL_OUT,ZL)-PSI0
-!            write(6,'(A,I5,1P3E12.4)') 
-!     &           'NR,PSIP,PSIG,PSI0=',NR,PSIP(NR),PSIG(RL_OUT,ZL),PSI0
             PPS(NR)=0.D0
             TTS(NR)=2.D0*PI*BB*RR
 C
-!            call polintx(nr,npmax,nrm,qps)
-!            call polintx(nr,npmax,nrm,dvdpsip)
-!            call polintx(nr,npmax,nrm,dvdpsit)
             DVDPSIP(NR)=DVDPSIP(NRPMAX)*Sratio
             DVDPSIT(NR)=DVDPSIT(NRPMAX)
-C            call polintx(nr,npmax,nrm,dsdpsit)
-!            call polintx(nr,npmax,nrm,rlen)
             RLEN(NR)=RLEN(NRPMAX)*SQRT(Sratio)
-!            call polintx(nr,npmax,nrm,averr)
             AVERR(NR)=AVERR(NRPMAX)
-!            call polintx(nr,npmax,nrm,averr2)
             AVERR2(NR)=AVERR2(NRPMAX)
-!            call polintx(nr,npmax,nrm,aveir2)
             AVEIR2(NR)=AVEIR2(NRPMAX)
-!            call polintx(nr,npmax,nrm,avebb)
             AVEBB(NR)=AVEBB(NRPMAX)
-!            call polintx(nr,npmax,nrm,avebb2)
             AVEBB2(NR)=AVEBB2(NRPMAX)
-!            call polintx(nr,npmax,nrm,aveib2)
             AVEIB2(NR)=AVEIB2(NRPMAX)
-!            call polintx(nr,npmax,nrm,avegv)
             AVEGV(NR)=AVEGV(NRPMAX)
-!            call polintx(nr,npmax,nrm,avegv2)
             AVEGV2(NR)=AVEGV2(NRPMAX)
-!            call polintx(nr,npmax,nrm,avegvr2)
             AVEGVR2(NR)=AVEGVR2(NRPMAX)
-!            call polintx(nr,npmax,nrm,avegp2)
             AVEGP2(NR)=AVEGP2(NRPMAX)
-!            call polintx(nr,npmax,nrm,psit)
-!            call polintx(nr,npmax,nrm,vps)
-!            call polintx(nr,npmax,nrm,sps)
             SPS(NR)=SPS(NRPMAX)*SQRT(Sratio)
-!            call polintx(nr,npmax,nrm,aveir)
             AVEIR(NR)=AVEIR(NRPMAX)
 
-!            PSIT(NR)=PSIT(NR-1)
-!     &              +2.0D0*QPS(NR)*QPS(NR-1)/(QPS(NR)+QPS(NR-1))
-!     &                 *(PSIP(NR)-PSIP(NR-1))
             VPS(NR)=VPS(NRPMAX)*Sratio
             PSIT(NR)=PSIT(NRPMAX)*Sratio
-!            QPS(NR)=(PSIT(NR)-PSIT(NR-1))/(PSIP(NR)-PSIP(NR-1))
             QPS(NR)=QPS(NRPMAX)*Sratio
             RITOR(NR)=RITOR(NRPMAX)
 
-C            write(6,'(A,I5,1P3E12.4)') 
-C     &           'NR,PSIP,PSIT,QPS=',NR,PSIP(NR),PSIT(NR),QPS(NR)
-
-            IF(MDLEQV.GT.0) THEN
-               F_OUT=(RL_OUT-RR)/(REDGE-RR)
-               F_IN =(RL_IN -RR)/(REDGE-RR)
-               DTHL=2.D0*PI/NTHMAX
-               DO nth=1,nthmax+1
-                  FACTOR=0.5D0*(F_OUT+F_IN)
-     &                  +0.5D0*(F_OUT-F_IN)*COS(DTHL*(NTH-1))
-                  rps(NTH,NR)=RAXIS+(RPS(NTH,NRPMAX)-RAXIS)*FACTOR
-                  zps(NTH,NR)=       ZPS(NTH,NRPMAX)       *FACTOR
-               END DO
-            ELSE
-               call polintxx(nr,nthmax+1,npmax,nthmp,nrm,rps)
-               call polintxx(nr,nthmax+1,npmax,nthmp,nrm,zps)
-            ENDIF
+            F_OUT=(RL_OUT-RR)/(REDGE-RR)
+            F_IN =(RL_IN -RR)/(REDGE-RR)
+            DTHL=2.D0*PI/NTHMAX
+            DO nth=1,nthmax+1
+               FACTOR=0.5D0*(F_OUT+F_IN)
+     &               +0.5D0*(F_OUT-F_IN)*COS(DTHL*(NTH-1))
+               rps(NTH,NR)=RAXIS+(RPS(NTH,NRPMAX)-RAXIS)*FACTOR
+               zps(NTH,NR)=       ZPS(NTH,NRPMAX)       *FACTOR
+            END DO
             
             RMIN=RAXIS
             RMAX=RAXIS
@@ -657,7 +611,6 @@ C     &           'NR,PSIP,PSIT,QPS=',NR,PSIP(NR),PSIT(NR),QPS(NR)
 
             call zminmax(YA,NZMINR,ZMIN,ZMINR)
             call zminmax(YA,NZMAXR,ZMAX,ZMAXR)
-C            write(6,'(I3,5F15.7)') NR,PSIP(NR),ZMIN,ZMINR,ZMAX,ZMAXR 
 
             RRMIN(NR)=RMIN
             RRMAX(NR)=RMAX
@@ -774,7 +727,6 @@ C
             DVDPSIP(NR)=SUMV
             DVDPSIT(NR)=SUMV/QPS(NR)
             SPS(NR)=SUMS*2.D0*PI
-C            DSDPSIT(NR)=SUMS/QPS(NR)/(2.D0*PI)
             RLEN(NR)=XA(NA)
             AVERR  (NR)=SUMAVRR /SUMV
             AVERR2 (NR)=SUMAVRR2/SUMV
@@ -931,6 +883,7 @@ C     ***** CALCULATE SPLINES AND INTEGRAL QUANTITIES *****
 C
       SUBROUTINE EQSETS(IERR)
 C
+      USE libspl1d
       USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
 C
@@ -1176,6 +1129,7 @@ C             to those with grad rho *****
 C
       SUBROUTINE EQSETS_RHO(IERR)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       dimension DERIV(NRM)
@@ -1209,6 +1163,7 @@ C     ***** CALCULATE FLUX SURFACE *****
 C
       SUBROUTINE EQCALF(RINIT,ZINIT,NTHUMAX,RU,ZU,IERR)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       DIMENSION RU(NTHUMAX+1),ZU(NTHUMAX+1)
@@ -1265,6 +1220,7 @@ C     ***** INTERPOLATE FUNCTION OF PP(PSIP) *****
 C
       FUNCTION PPFUNC(PSIPL)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       IF(PSIPL.GT.PSIPS(NPSMAX)) THEN
@@ -1284,6 +1240,7 @@ C     ***** INTERPOLATE FUNCTION OF TT(PSIP) *****
 C
       FUNCTION TTFUNC(PSIPL)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       IF(PSIPL.GT.PSIPS(NPSMAX)) THEN
@@ -1301,6 +1258,7 @@ C     ***** INTERPOLATE FUNCTION OF PP(PSIP) *****
 C
       FUNCTION DPPFUNC(PSIPL)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       IF(PSIPL.GT.PSIPS(NPSMAX)) THEN
@@ -1331,6 +1289,7 @@ C     ***** INTERPOLATE FUNCTION OF TT(PSIP) *****
 C
       FUNCTION DTTFUNC(PSIPL)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       IF(PSIPL.GT.PSIPS(NPSMAX)) THEN
@@ -1354,98 +1313,6 @@ C
       RETURN
       END
 
-C **********************************************
-
-      SUBROUTINE polintx(nr,npmax,nrm,data)
-
-      implicit none
-      integer,intent(in):: nr,npmax,nrm
-      real(8),dimension(nrm),intent(inout):: data
-      real(8),dimension(npmax):: nra,datapa
-      integer:: np
-      real(8):: dy
-c
-      do np=1,npmax
-         nra(np)=nr-npmax-1+np
-         datapa(np)=data(nr-npmax-1+np)
-      enddo
-c     
-      call polint(nra,datapa,npmax,nr,data(nr),dy) 
-      return
-      end
-
-C **********************************************
-
-      SUBROUTINE polintxx(nr,nthmax,npmax,nthm,nrm,data)
-
-      implicit none
-      integer,intent(in):: nr,nthmax,npmax,nthm,nrm
-      real(8),dimension(nthm,nrm),intent(inout):: data
-      real(8),dimension(npmax):: nra,datapa
-      integer:: nth,np
-      real(8):: dy
-c
-      do nth=1,nthmax
-         do np=1,npmax
-            nra(np)=nr-npmax-1+np
-            datapa(np)=data(nth,nr-npmax-1+np)
-         enddo
-c     
-         call polint(nra,datapa,npmax,nr,data(nth,nr),dy) 
-      enddo
-      return
-      end
-C
-C **********************************************
-      SUBROUTINE polint(nra,psa,n,nr,ps,dy)
-      implicit none
-      INTEGER n,NMAX,nr
-      REAL*8 dy,nra(n),ps,psa(n)
-      PARAMETER (NMAX=10)
-      INTEGER i,m,ns
-      REAL*8 den,dif,dift,ho,hp,w,c(NMAX),d(NMAX)
-c
-c      do i=1,n
-c         print*, i,nra(i),psa(i)
-c      enddo
-c
-      ns=1
-      dif=abs(nr-nra(1))
-      do 11 i=1,n
-        dift=abs(nr-nra(i))
-        if (dift.lt.dif) then
-          ns=i
-          dif=dift
-        endif
-        c(i)=psa(i)
-        d(i)=psa(i)
-11    continue
-      ps=psa(ns)
-      ns=ns-1
-      do 13 m=1,n-1
-        do 12 i=1,n-m
-          ho=nra(i)-nr
-          hp=nra(i+m)-nr
-          w=c(i+1)-d(i)
-          den=ho-hp
-          IF(den.eq.0.) THEN
-             WRITE(6,*) 'failure in polint'
-             STOP
-          ENDIF
-          den=w/den
-          d(i)=hp*den
-          c(i)=ho*den
-12      continue
-        if (2*ns.lt.n-m)then
-          dy=c(ns+1)
-       else
-          dy=d(ns)
-          ns=ns-1
-        endif
-        ps=ps+dy
-13    continue
-      return
-      END
 
 c     ------ calculate zmin and zmax -----
 c                assume: z=a(r-r0)^2+z0

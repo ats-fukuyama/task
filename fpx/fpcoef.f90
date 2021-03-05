@@ -432,7 +432,7 @@
          ELSE
             DO NR=NRSTART,NREND
                DO NP=NPSTART,NPEND
-                  FL=FPMXWL_LT(PM(NP,NS),NR,NS)
+! not defined     FL=FPMXWL_LT(PM(NP,NS),NR,NS)
                   DO NTH=1,NTHMAX
                      PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS(NS)
                      SPPS(NTH,NP,NR,NSA)=FL/TLOSS(NS)

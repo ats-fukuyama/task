@@ -1241,6 +1241,7 @@ END FUNCTION DERIVF
 
 function dfdx(x,f,nmax,mode)
 
+  USE libspl1d
   implicit none
   integer(4), intent(in) :: nmax, mode
   real(8), dimension(0:nmax), intent(in) :: x, f

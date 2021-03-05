@@ -78,6 +78,7 @@ C   ************************************************
 C
       SUBROUTINE EQPPSI(PSIPNL,PPSI,DPPSI)
 C
+      USE libspl1d
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
@@ -110,6 +111,7 @@ C   ************************************************
 C
       SUBROUTINE EQFPSI(PSIPNL,FPSI,DFPSI)
 C
+      USE libspl1d
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
@@ -140,6 +142,7 @@ C   ************************************************
 C
       SUBROUTINE EQQPSI(PSIPNL,QPSI)
 C
+      USE libspl1d
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
@@ -163,6 +166,7 @@ C   ************************************************
 C
       SUBROUTINE EQJPSI(PSIPNL,HJPSID,HJPSI)
 C
+      USE libspl1d
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
@@ -210,6 +214,7 @@ C   ************************************************
 C
       SUBROUTINE EQTPSI(PSIPNL,TPSI,DTPSI)
 C
+      USE libspl1d
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
@@ -239,6 +244,7 @@ C   ************************************************
 C
       SUBROUTINE EQOPSI(PSIPNL,OMGPSI,DOMGPSI)
 C
+      USE libspl1d
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C

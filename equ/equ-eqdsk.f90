@@ -16,6 +16,7 @@ CONTAINS
     USE eqv_mod
     USE par_mod
     USE vac_mod
+    USE libspl1d
     USE libfio
     IMPLICIT NONE
 

@@ -83,13 +83,13 @@ CONTAINS
 
   SUBROUTINE rgbf_a(f,rgb)
     USE dpcomm,ONLY: rkind
+    USE libspl1d
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: f
     REAL(rkind),INTENT(OUT):: rgb(3)
     REAL(rkind),ALLOCATABLE:: rgb_a(:,:),dummy(:)
     INTEGER,SAVE:: init=0
     INTEGER:: ierr1,ierr2,ierr3
-    EXTERNAL SPL1D,SPL1DF
 
     IF(init.EQ.0) THEN
        nmax_a=11
@@ -133,13 +133,13 @@ CONTAINS
 
   SUBROUTINE rgbf_b(f,rgb)
     USE dpcomm,ONLY: rkind
+    USE libspl1d
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: f
     REAL(rkind),INTENT(OUT):: rgb(3)
     REAL(rkind),ALLOCATABLE:: rgb_b(:,:),dummy(:)
     INTEGER,SAVE:: init=0
     INTEGER:: ierr1,ierr2,ierr3
-    EXTERNAL SPL1D,SPL1DF
 
     IF(init.EQ.0) THEN
        nmax_b=11
@@ -183,13 +183,13 @@ CONTAINS
 
   SUBROUTINE rgbf_c(f,rgb)
     USE dpcomm,ONLY: rkind
+    USE libspl1d
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: f
     REAL(rkind),INTENT(OUT):: rgb(3)
     REAL(rkind),ALLOCATABLE:: rgb_c(:,:),dummy(:)
     INTEGER,SAVE:: init=0
     INTEGER:: ierr1,ierr2,ierr3
-    EXTERNAL SPL1D,SPL1DF
 
     IF(init.EQ.0) THEN
        nmax_c=21

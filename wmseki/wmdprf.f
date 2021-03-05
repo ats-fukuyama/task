@@ -9,6 +9,7 @@ C       RHO, NE, TE, TI
 C
 C       number of data is number of lines
 C
+      USE libspl1d
       USE libfio
       INCLUDE 'wmcomm.inc'
 C

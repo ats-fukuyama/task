@@ -400,6 +400,7 @@ CONTAINS
          twopi,NXMAX,NVMAX, &
          NLMAX,NPMIN,i1mlvl,i1rdn2,d1rec, &
          nrhomax,nchimax,d0rw
+    USE libspl1d
     USE libspl2d
     USE libgrf,ONLY: GRD2D
     IMPLICIT NONE
@@ -523,13 +524,14 @@ CONTAINS
   END SUBROUTINE T2_CC
 
   SUBROUTINE T2_CR(INUM,ID,NGP,D2CX)
-    USE libgrf,ONLY: GRD1D
     
     USE T2COMM, ONLY: &! changed by 2014-02-05 H.SETO
          twopi,NXMAX,NVMAX, &
          NLMAX,NPMIN,i1mlvl,i1rdn2,d1rec, &
          nrhomax,nchimax
-
+    USE libspl1d
+    USE libgrf,ONLY: GRD1D
+    
     IMPLICIT NONE
     INTEGER(ikind),INTENT(IN):: inum,id,ngp
     REAL(rkind),DIMENSION(1:NVMAX,1:NXMAX),INTENT(IN):: d2cx

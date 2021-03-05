@@ -12,12 +12,12 @@ FFLAGS = $(DFLAGS)
 MODINCLUDE= -I $(MOD)
 
 SRCSFREE  =  task_kinds.f90 \
-             libderiv.f90 \
+             libspl1d.f90 libspl2d.f90 libspl3d.f90 \
+             libderiv.f90 libpol.f90 \
              libbnd.f90 libbrent.f90 libde.f90 libdsp.f90 \
              libell.f90 libeq.f90  libfem.f90 libfft.f90 \
              libgut.f90 libinv.f90 libitp.f90 libpcgpme.f90 \
              libqsort.f90 librk.f90 librkf.f90 libspf.f90 libsympl.f90 \
-             libspl.f90 libspl2d.f90 libspl3d.f90 \
              netlib-bes.f90 libbes.f90 \
              libchar.f90 libkio.f90 libfio.f90 \
              libufile/ufinit.f90 libufile/uflist.f90 libufile/ufread.f90 \
@@ -61,7 +61,7 @@ check :
 
 clean:
 	-rm -f core* a.out *.o libgrf/*.o libufile/*.o *.mod *.a ./*~ ./#* $(MOD)/*.mod
-	-rm -f testbes testell testfem testfem_func testgrd testgrf testlamb testqsort testspl testspl3d
+	-rm -f testbes testell testfem testfem_func testgrd testgrf testlamb testqsort testspl testspl3d testpol
 
 veryclean: clean
 
@@ -106,10 +106,13 @@ testqsort: libtask.a testqsort.o
 
 testrk: libtask.a testrk.o
 	$(FCFREE) testrk.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS)
+testpol: libtask.a testpol.o 
+	$(FCFREE) testpol.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS)
 
 TASKCOMM=task_kinds.f90
 
 libderiv.o: $(TASKCOMM) libderiv.f90
+libpol.o: $(TASKCOMM) libpol.f90
 libbnd.o: $(TASKCOMM) libbnd.f90
 libbrent.o: $(TASKCOMM) libbrent.f90
 libde.o: $(TASKCOMM) libde.f90
@@ -120,13 +123,13 @@ libfem.o: $(TASKCOMM) libfem.f90
 libfft.o: $(TASKCOMM) libfft.f90
 libgut.o: $(TASKCOMM) libgut.f90
 libinv.o: $(TASKCOMM) libinv.f90
-libitp.o: $(TASKCOMM) libitp.f90
+libitp.o: $(TASKCOMM) libspl1d.f90 libitp.f90
 libpcgpme.o: $(TASKCOMM) libpcgpme.f90
 libqsort.o: $(TASKCOMM) libqsort.f90
 librk.o: $(TASKCOMM) librk.f90
 librkf.o: $(TASKCOMM) librkf.f90
 libspf.o: $(TASKCOMM) libspf.f90
-libspl.o: $(TASKCOMM) libspl.f90
+libspl1d.o: $(TASKCOMM) libspl1d.f90
 libspl2d.o: $(TASKCOMM) libspl2d.f90
 libspl3d.o: $(TASKCOMM) libspl3d.f90
 libsympl.o: $(TASKCOMM) libsympl.f90

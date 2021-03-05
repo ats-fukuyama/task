@@ -820,7 +820,7 @@ C
                CFVP(NDX,MDX,1)= 0.D0
                CFVP(NDX,MDX,2)= CEWALL(MDX,NDX,2)
                CFVP(NDX,MDX,3)= CEWALL(MDX,NDX,3)
-               WRITE(21,'(A,2I8,4ES12.4)') 
+               WRITE(22,'(A,2I8,4ES12.4)') 
      &               'CFVP:',MDX,NDX,CEWALL(MDX,NDX,2),CEWALL(MDX,NDX,3)
             ENDDO
             ENDDO

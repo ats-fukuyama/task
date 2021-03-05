@@ -99,6 +99,7 @@ contains
   !***************************************************************
 
   subroutine Wnm_spline
+    USE libspl1d
     implicit none
     integer(4) :: ist, nmnq, ierr
     real(8), dimension(:), allocatable :: deriv
@@ -134,6 +135,7 @@ contains
   subroutine NTVcalc
     use tx_commons, only : m_pol, n_tor, q, nrmax, rho, r, &
          &                 epst, RR, rKeV, amas, amp, rNuii, achg, AEE, BB, Var
+    USE libspl1d
     implicit none
 
     integer(4) :: nr, m, ierr

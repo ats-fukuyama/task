@@ -20,6 +20,7 @@
 !        IERR  : error indicator
 
       USE task_kinds,ONLY: dp
+      USE libspl1d  
       implicit none
       integer,              intent(in)  :: NTMAX, NTM
       real(dp),                 intent(in)  :: T

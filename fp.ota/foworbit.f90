@@ -16,6 +16,7 @@ contains
     use obinit
     use fowcomm
     use fpcomm
+    USE libspl1d
     USE libspl2d
 
     implicit none
@@ -250,6 +251,7 @@ contains
   subroutine construct_orbit(ob, momentum, pitch_angle, theta_pol, psi_pol, ns, ierr)
     use fpcomm
     use fowcomm
+    USE libspl1d
     USE libspl2d
     use obcalc
 
@@ -755,10 +757,12 @@ contains
   subroutine quantities_at_Bminimum(ra_Bmin, theta_Bmin, ob)
     use fpcomm
     use fowcomm
+    USE libspl1d
+    IMPLICIT NONE
     real(rkind),intent(out) :: ra_Bmin, theta_Bmin
     type(orbit),intent(in) :: ob
-    integer :: nstp, nstpmax, nstpmin, mm(1)
-    real(rkind) :: B_min, thetap_option(7), thetap_Bmin, psip_Bmin
+    integer :: nstp, nstpmax, nstpmin, mm(1), ierr
+    real(rkind) :: B_min, thetap_option(7), thetap_Bmin, psip_Bmin, A
     real(rkind) :: nstp_near, diff_thetap(7)
     real(rkind),allocatable :: dradpsi(:)
 

@@ -110,6 +110,7 @@ C
       SUBROUTINE RZTOAB(R,Z,ALPHA,BETA)
 C
       USE libbrent
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
       COMMON /EQAKF1/ ALPHAF1,RF1,ZF1
       EXTERNAL FNBETA
@@ -226,6 +227,7 @@ C     ***** INTERPOLATE FUNCTIONS *****
 C
       FUNCTION PSIP_EQ(ALPHA)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       PSITL=ALPHA
@@ -239,6 +241,7 @@ C     ***** CALCULATE q AND dq/dalpha, p *****
 C
       SUBROUTINE SUBQPA(ALPHA,Q,DQDA,P)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
       real*8 ppl
 C
@@ -270,6 +273,7 @@ C     ***** CALCULATE Bmax AND dBmax/dalpha *****
 C
       SUBROUTINE SUBBMX(ALPHA,BMX,DBMXDA)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       PSITL=ALPHA
@@ -291,6 +295,7 @@ C     ***** CALCULATE Bmin AND dBmin/dalpha *****
 C
       SUBROUTINE SUBBMN(ALPHA,BMN,DBMNDA)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       PSITL=ALPHA
@@ -312,6 +317,7 @@ C     ***** CALCULATE MAGNETIC FIELD *****
 C
       SUBROUTINE SUBMAG(ALPHA,BETA,BR,BZ,BT,BTOT,AJR,AJZ,AJT)
 C
+      USE libspl1d
       USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
 C

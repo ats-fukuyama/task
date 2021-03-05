@@ -189,6 +189,7 @@ CONTAINS
 
   SUBROUTINE ob_eqspline(ierr)
     USE obcomm
+    USE libspl1d
     USE libspl2d
     USE libgrf
     IMPLICIT NONE
@@ -398,6 +399,7 @@ CONTAINS
   
   SUBROUTINE cal_qps_pos(psip_pos,qps_pos,dqps_dpsip,ierr)
     USE obcomm
+    USE libspl1d
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: psip_pos
     REAL(rkind),INTENT(OUT):: qps_pos,dqps_dpsip
@@ -412,6 +414,7 @@ CONTAINS
   
   SUBROUTINE cal_rbps_pos(psip_pos,rbps_pos,drbps_dpsip,ierr)
     USE obcomm
+    USE libspl1d
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: psip_pos
     REAL(rkind),INTENT(OUT):: rbps_pos,drbps_dpsip
@@ -426,6 +429,7 @@ CONTAINS
   
   SUBROUTINE cal_ritps_pos(psip_pos,ritps_pos,dritps_dpsip,ierr)
     USE obcomm
+    USE libspl1d
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: psip_pos
     REAL(rkind),INTENT(OUT):: ritps_pos,dritps_dpsip
@@ -440,6 +444,7 @@ CONTAINS
   
   SUBROUTINE cal_psit_pos(psip_pos,psit_pos,dpsit_dpsip,ierr)
     USE obcomm
+    USE libspl1d
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: psip_pos
     REAL(rkind),INTENT(OUT):: psit_pos,dpsit_dpsip

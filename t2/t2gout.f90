@@ -252,6 +252,7 @@ CONTAINS
          NLMAX,NPMIN,i1mlvl,i1rdn2,d1rec, &
          nrhomax,nchimax,d0rw
     USE libgrf,ONLY: GRD2D
+    USE libspl1d
     USE libspl2d
     IMPLICIT NONE
     INTEGER,PARAMETER:: nxmax_g=41,nymax_g=41
@@ -386,6 +387,7 @@ CONTAINS
          ikind,rkind,twopi,NXMAX,d2xout,NVMAX,&
          NLMAX,NPMIN,i1mlvl,i1rdn2,d1rec,     &
          nrhomax,nchimax
+    USE libspl1d
 
     IMPLICIT NONE
     INTEGER(ikind),INTENT(IN):: inum,id,ngp

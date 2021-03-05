@@ -144,6 +144,7 @@
       SUBROUTINE fp_wr_read(IERR)
 
       USE plprof
+      USE libspl1d
       USE libmpi
       USE libmtx
       IMPLICIT NONE
@@ -341,6 +342,7 @@
 !
       SUBROUTINE FPCROS(PSICR,NIT,NRAY,SICR)
 
+      USE libspl1d
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: PSICR
       INTEGER,INTENT(IN):: NIT,NRAY
@@ -393,6 +395,7 @@
 !
       SUBROUTINE FPCREK(SICR,NRAY,CEX,CEY,CEZ,RKX,RKY,RKZ,RX,RY,RZ)
 
+      USE libspl1d
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: SICR
       INTEGER,INTENT(IN):: NRAY

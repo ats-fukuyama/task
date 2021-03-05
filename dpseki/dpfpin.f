@@ -95,6 +95,7 @@ C
       USE plcomm
       USE pllocal
       USE plprof,ONLY: pl_bminmax
+      USE libspl1d
       INCLUDE 'dpcomm.inc'
 C
       DIMENSION THT(NTHM+2),FPT(NTHM+2),FPTX(NTHM+2)

@@ -35,7 +35,7 @@ OBJNC= $(SRCNC:.f=.o)
 OBJMM= $(SRCMM:.f=.o)
 PROG2= tx2
 PROG3= tx
-LIBS2= libtx2.a ../lib/libtask.a
+LIBS2= libtx2.a ../lib/libtask.a ../lib/libgrf.a
 LIBS3= libtx3.a ../lib/loibtask.a
 MODLIB= -I../lib/mod
 
@@ -58,6 +58,9 @@ libtx3.a: $(OBJS) $(OBJ3D) $(OBJNC) $(INCNC) $(OBJMM)
 	$(LD) $(LDFLAGS) libtx3.a $(OBJS) $(OBJ3D) $(OBJNC) $(OBJMM)
 
 ../lib/libtask.a:
+	(cd ../lib; make)
+
+../lib/liblibgrf.a:
 	(cd ../lib; make)
 
 libs:

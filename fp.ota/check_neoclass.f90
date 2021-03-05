@@ -468,6 +468,7 @@ contains
   subroutine banana_width_and_omega_bounce(w_b, omega_b)
     use fpcomm
     use fowcomm
+    USE libspl1d
     implicit none
     double precision,dimension(nthmax,npmax,nrmax,nsamax),intent(out) :: w_b, omega_b
     double precision,allocatable :: drdt(:), U(:,:)

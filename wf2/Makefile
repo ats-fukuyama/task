@@ -31,9 +31,9 @@ libwf.a: $(OBJS)
 	$(LD) $(LDFLAGS) libwf.a $(OBJS)
 
 ../lib/libtask.a:
-	(cd ../lib; make loibtask.a)
+	(cd ../lib; make libtask.a)
 ../lib/libgrf.a:
-	(cd ../lib; make loibgrf.a)
+	(cd ../lib; make libgrf.a)
 
 wf : wfcomm.inc $(LIBS) wfmain.o
 	$(FCFIXED) wfmain.o -o $@ $(FFLAGS) $(LIBS) $(FLIBS)

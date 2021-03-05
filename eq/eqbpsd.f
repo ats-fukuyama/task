@@ -117,6 +117,7 @@
 !=======================================================================
 !     interface transport => equilibrium
 !=======================================================================
+      USE libspl1d
       INCLUDE '../eq/eqcomm.inc'
       INCLUDE '../eq/eqcom4.inc'
       real(8),DIMENSION(NTRM):: ptrrho,qtrrho,deriv

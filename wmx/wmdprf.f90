@@ -17,6 +17,7 @@ CONTAINS
 !       number of data is number of lines
 
     USE wmcomm
+    USE libspl1d
     USE libfio
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
@@ -25,7 +26,6 @@ CONTAINS
          URNEFL(:,:),URTEFL(:,:),URTIFL(:,:)
     INTEGER:: NR,IST,NPFDSK,NS,NRFLMAX
     REAL(rkind):: D1,D2,D3,D4,PNI,XRHOL,RNEL,RTEL,RTIL
-    EXTERNAL SPL1D,SPL1DF
 
     ALLOCATE(RHOFL(nrmax+1),RNEFL(nrmax+1),RTEFL(nrmax+1),RTIFL(nrmax+1))
     ALLOCATE(URNEFL(4,nrmax+1),URTEFL(4,nrmax+1),URTIFL(4,nrmax+1))

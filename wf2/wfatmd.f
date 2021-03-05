@@ -10,6 +10,7 @@ C     ***** INITIALIZE ROUTINE *****
 C
       SUBROUTINE ATINIT(KID,NN)
 C
+      USE libspl1d
       IMPLICIT REAL*8(A-B,D-F,H,O-Z)
       PARAMETER (NNM=3)
       PARAMETER (NENM=45)
@@ -45,8 +46,8 @@ C
          FX1(NEN)=0.D0
       ENDDO
 C
-      CAll SPL1D(ENLA(1,NN),SIGM(1,NN),FX1,
-     &           UEN(1,1,NN),NENMAX(NN),IERR)
+      CAll SPL1D(ENLA(:,NN),SIGM(:,NN),FX1,
+     &           UEN(:,:,NN),NENMAX(NN),0,IERR)
       IF(IERR.NE.0) THEN
          WRITE(6,*) 'XX ATINIT: SPLINE 1 FAILED: IERR=',IERR
          GOTO 9000
@@ -84,7 +85,7 @@ C
       ENDDO
 C
       CAll SPL1D(TELA(1,NN),SIGV(1,NN),FX2,
-     &           UTE(1,1,NN),NTEMAX,IERR)
+     &           UTE(:,:,NN),NTEMAX,0,IERR)
 C
  9000 RETURN
 C
@@ -111,6 +112,7 @@ C     ***** INETRPOLATE <SIGMA V> *****
 C
       SUBROUTINE ATSIGV(TE,SIGVA,NN)
 C
+      USE libspl1d
       IMPLICIT REAL*8(A-B,D-F,H,O-Z)
       PARAMETER (NNM=3)
       PARAMETER (NTEM=101)
@@ -123,7 +125,7 @@ C
       ELSEIF(TEL.GT.TELA(NTEMAX,NN)) THEN
          SIGVAL=SIGV(NTEMAX,NN)
       ELSE
-         CALL SPL1DX(TEL,SIGVAL,TELA(1,NN),UTE(1,1,NN),NTEMAX,IERR)
+         CALL SPL1DX(TEL,SIGVAL,TELA(:,NN),UTE(:,:,NN),NTEMAX,IERR)
          IF(IERR.NE.0) THEN
             WRITE(6,*) 'XX ATSIGM: IERR=',IERR
          ENDIF
@@ -137,6 +139,7 @@ C     ***** INTERPOLATE SIGMA *****
 C
       SUBROUTINE ATSIGM(EN,SIGMA,NN)
 C
+      USE libspl1d
       IMPLICIT REAL*8(A-B,D-F,H,O-Z)
       PARAMETER (NNM=3)
       PARAMETER (NENM=45)
@@ -149,8 +152,8 @@ C
       ELSEIF(ENL.GT.ENLA(NENMAX(NN),NN)) THEN
          SIGMAL=SIGM(NENMAX(NN),NN)
       ELSE
-         CALL SPL1DX(ENL,SIGMAL,ENLA(1,NN),
-     &               UEN(1,1,NN),NENMAX(NN),IERR)
+         CALL SPL1DX(ENL,SIGMAL,ENLA(:,NN),
+     &               UEN(:,:,NN),NENMAX(NN),IERR)
          IF(IERR.NE.0) THEN
             WRITE(6,*) 'XX ATSIGM: IERR=',IERR
          ENDIF
