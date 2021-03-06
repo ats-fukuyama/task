@@ -84,6 +84,7 @@ C                        3: NEW PROMPT
 C
       SUBROUTINE WFKLIN(LINE,KID,MODE)
 C
+      USE libchar
       CHARACTER LINE*80,KID*1
 C
       READ(5,'(A80)',ERR=2,END=3) LINE
@@ -99,7 +100,7 @@ C
       ENDIF
 C
       KID=LINE(1:1)
-      CALL GUCPTL(KID)
+      CALL toupper(KID)
       IF(KID.EQ.'P'.OR.
      &   KID.EQ.'V'.OR.
      &   KID.EQ.'D'.OR.
@@ -132,6 +133,7 @@ C     ***** DEBUG INFORMATION ROUTINE *****
 C
       SUBROUTINE WFINFO
 C
+      USE libchar
       INCLUDE 'wfcomm.inc'
       CHARACTER KID*1
 C
@@ -139,7 +141,7 @@ C
          WRITE(6,*) '## INPUT: E:element  N:node  B:boundary  '//
      &              'A,M:ant  F:FEP  D:EFINDK  X:end'
          READ(5,'(A1)',ERR=8001,END=9000) KID
-         CALL GUCPTL(KID)
+         CALL toupper(KID)
 C
          IF(KID.EQ.'E') THEN
  8002       WRITE(6,*) '## INPUT: Element number '

@@ -1,5 +1,6 @@
 C     $Id$
 C
+      USE libchar
       INCLUDE '../eq/eqcomc.inc'
 C      IMPLICIT COMPLEX*16(C),REAL*8(A,B,D-F,H,O-Z)
       PARAMETER (NTRM=51)
@@ -49,7 +50,7 @@ C
 C
  1    WRITE(6,*) '## TRTEST MENU: R/RUN L/LOAD&RUN Q/QUIT'
       READ(5,'(A1)') KIN
-      CALL GUCPTL(KIN)
+      CALL toupper(KIN)
       IF(KIN.EQ.'Q') THEN
          GOTO 9000
       ELSEIF(KIN.EQ.'R'.OR.KIN.EQ.'L') THEN

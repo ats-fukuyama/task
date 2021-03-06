@@ -15,6 +15,7 @@ c=======================================================================
       use eqv_mod
       use eqt_mod
       use trn_mod
+      USE libchar
       implicit none
 c
       integer id,i,idx
@@ -30,7 +31,7 @@ C      END DO
       write(6,*) '## input graph kid: Ann,Bnn,Cnn,Dn,Pn,X'
       read(5,'(A4)',ERR=1,END=9000) kid
       kid1=kid(1:1)      
-      call gucptl(kid1)
+      call toupper(kid1)
 C
       if(kid1.eq.'A') then
          read(kid(2:4),'(I3)',ERR=1,END=9000) id

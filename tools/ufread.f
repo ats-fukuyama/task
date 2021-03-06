@@ -1,4 +1,5 @@
       PROGRAM UFILE_READER_WITH_GSAF
+      USE libchar
       IMPLICIT REAL*8(A-F,H,O-Z)
       PARAMETER (NRM=100,NTM=2001)
       DIMENSION T(NTM),R(NRM),F1(NTM),F2(NRM,NTM)
@@ -50,7 +51,7 @@ C
       READ(5,'(A80)',ERR=6,END=5) KFID
 C     converting lower case characters to upper case ones
       DO I=1,IKFID
-         CALL GUCPTL(KFID(I:I))
+         CALL toupper(KFID(I:I))
       ENDDO
 C
       IF(NDIM.EQ.1) THEN

@@ -4,6 +4,7 @@ C     ********** F.E.M. DIVIDER ( FIRST ORDER ) **********
 C
       SUBROUTINE WFDIV
 C
+      USE libchar
       INCLUDE 'wfcomm.inc'
       CHARACTER KID*1
 C
@@ -11,7 +12,7 @@ C
   601 FORMAT(1H ,'## INPUT: D/DIV  G/DRAW  P,V/PARM  S/SAVE  L/LOAD  ',
      &           'W/LIST  X/EXIT')
       READ(5,'(A1)',ERR=1,END=9000) KID
-      CALL GUCPTL(KID)
+      CALL toupper(KID)
 C
       IF(KID.EQ.'D') THEN
 C
@@ -19,7 +20,7 @@ C
   602    FORMAT(1H ,'## TYPE:  X,R,P/POLY  M,V/MIRROR  ',
      &              'C/CIRCLE  T/TOKAMAK  H/HELICAL')
          READ(5,'(A1)',ERR=2,END=1) KID
-         CALL GUCPTL(KID)
+         CALL toupper(KID)
 C
     3    CONTINUE
          IF(KID.EQ.'X') THEN

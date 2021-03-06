@@ -276,7 +276,7 @@ C
       NDIM1=NDIM
       CALL KTRIM(KFID,IKFID)
       DO I=1,IKFID
-         CALL GUCPTL(KFID(I:I))
+         CALL toupper(KFID(I:I))
       ENDDO
       KFID1=KFID
       STIME1=STIME

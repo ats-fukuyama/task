@@ -13,6 +13,7 @@ C                        3: NEW PROMPT
 C
       SUBROUTINE TASK_KLIN(LINE,KID,MODE,XXPARM)
 C
+      USE libchar
       EXTERNAL XXPARM
       CHARACTER LINE*80,KID*1
 C
@@ -29,7 +30,7 @@ C
       ENDIF
 C
       KID=LINE(1:1)
-      CALL GUCPTL(KID)
+      CALL toupper(KID)
       IF((KID.GE.'A'.AND.KID.LE.'Z').OR.
      &    KID.EQ.'?'.OR.KID.EQ.'#') THEN
          MODE=1

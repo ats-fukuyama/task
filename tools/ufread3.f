@@ -61,7 +61,7 @@ C
       CALL KTRIM(KFID,IKFID)
 C     converting lower case to upper case
       DO I=1,IKFID
-         CALL GUCPTL(KFID(I:I))
+         CALL toupper(KFID(I:I))
       ENDDO
 C
       IF(NDIM.EQ.1) THEN

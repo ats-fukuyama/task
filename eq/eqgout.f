@@ -6,6 +6,7 @@ C   ************************************************
 C
       SUBROUTINE EQGOUT(MODE)
 C
+      USE libchar
       INCLUDE 'eqcomc.inc'
 C
       CHARACTER KSTR*2,K1*1,K2*1
@@ -26,8 +27,8 @@ C
       READ(5,'(A2)',ERR=1,END=9000) KSTR
       K1=KSTR(1:1)
       K2=KSTR(2:2)
-      CALL GUCPTL(K1)
-      CALL GUCPTL(K2)
+      CALL toupper(K1)
+      CALL toupper(K2)
       IF(K1.EQ.'C') THEN
          IF(MODE.EQ.1) THEN
             IF(K2.EQ.' ') THEN

@@ -4,6 +4,7 @@ C     ****** CONTROL GRAPHICS ******
 C
       SUBROUTINE WMGOUT
 C
+      USE libchar
       USE equnit_mod
       INCLUDE 'wmcomm.inc'
 C
@@ -16,11 +17,11 @@ C
       READ(5,'(A5)',ERR=1,END=900) KSTR
       K1=KSTR(1:1)
 C
-      CALL GUCPTL(K1)
+      CALL toupper(K1)
       IF (K1.EQ.'X') GOTO 900
       IF (K1.EQ.'G') THEN
 	 K2=KSTR(2:2)
-	 CALL GUCPTL(K2)
+	 CALL toupper(K2)
          IF(K2.EQ.'0') NGRAPH=0
          IF(K2.EQ.'1') NGRAPH=1
          IF(K2.EQ.'2') NGRAPH=2
@@ -36,11 +37,11 @@ C
       IF((K1.EQ.'R').OR.(K1.EQ.'C').OR.(K1.EQ.'M').OR.
      &   (K1.EQ.'P').OR.(K1.EQ.'S').OR.(K1.EQ.'E')) THEN
 	 K2=KSTR(2:2)
-	 CALL GUCPTL(K2)
+	 CALL toupper(K2)
          K3=KSTR(3:3)
-	 CALL GUCPTL(K3)
+	 CALL toupper(K3)
          K4=KSTR(4:4)
-	 CALL GUCPTL(K4)
+	 CALL toupper(K4)
          IF(K1.EQ.'R') THEN
             IF(K2.EQ.'G') THEN
                CALL WMGREQG(K2,K3,K4)

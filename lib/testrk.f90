@@ -32,9 +32,9 @@ PROGRAM testrk
 
   USE task_kinds,ONLY: dp
   USE testrk_local
+  USE librk
   USE librkf
   IMPLICIT NONE
-  EXTERNAL ODERK,ODERKN
 
   INTEGER:: method,ntmax
   REAL(dp):: abserr,relerr

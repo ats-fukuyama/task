@@ -7,6 +7,7 @@ C
       USE plcomm
       USE pllocal
       USE plparm,ONLY: pl_parm,pl_view
+      USE libchar
       INCLUDE 'dpcomm.inc'
       DIMENSION GX(NGXM),GY(NGYM),GZ(NGXM,NGYM)
       DIMENSION Z(NGXM,NGYM)
@@ -31,8 +32,8 @@ C
       READ(5,'(A2)',ERR=1,END=9000) KID
       KID1=KID(1:1)
       KID2=KID(2:2)
-      CALL GUCPTL(KID1)
-      CALL GUCPTL(KID2)
+      CALL toupper(KID1)
+      CALL toupper(KID2)
       IF(KID1.EQ.'X') THEN
          GOTO 9000
       ELSEIF(KID1.EQ.'P') THEN
@@ -234,6 +235,7 @@ C
 C
       USE plcomm
       USE pllocal
+      USE libchar
       INCLUDE 'dpcomm.inc'
       PARAMETER (NGPM=21)
       DIMENSION GX(NGXM),GY(NGYM),GZ(NGXM,NGYM,NGPM)
@@ -259,8 +261,8 @@ C
       READ(5,'(A2)',ERR=1,END=9000) KID
       KID1=KID(1:1)
       KID2=KID(2:2)
-      CALL GUCPTL(KID1)
-      CALL GUCPTL(KID2)
+      CALL toupper(KID1)
+      CALL toupper(KID2)
       IF(KID1.EQ.'Q') THEN
          GOTO 9000
       ELSEIF(KID1.EQ.'P') THEN
