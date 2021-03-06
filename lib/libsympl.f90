@@ -1,26 +1,28 @@
+! libsympl.f90
+
+MODULE libsympl
+
+  PRIVATE
+  PUBLIC symplectic
+
+CONTAINS
+
 !     ***** SYMPLECTIC METHOD FOR ODE DERIVED FROM HAMILTONIAN *****
 
       SUBROUTINE SYMPLECTIC(Y,H,SUB,NEQMAX, NLPMAX,EPS,NLPX,ERROR,IERR)
 
       USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER, PARAMETER    :: NEQM = 12
       INTEGER, INTENT(IN)   :: NEQMAX,NLPMAX
       INTEGER, INTENT(OUT)  :: IERR
-      REAL(dp), INTENT(INOUT), DIMENSION(NEQM) ::  Y
+      REAL(dp), INTENT(INOUT), DIMENSION(NEQMAX) ::  Y
       REAL(dp), INTENT(IN)      :: H, EPS
       REAL(dp), INTENT(OUT)     :: ERROR
       INTEGER, INTENT(OUT)  :: NLPX
-      REAL(dp), DIMENSION(NEQM) :: YA, Y1, Y2, Y1N, Y2N, F1, F2
+      REAL(dp), DIMENSION(NEQMAX) :: YA, Y1, Y2, Y1N, Y2N, F1, F2
       REAL(dp)    :: A11, A12, A21, A22, DY1, DY2
       INTEGER :: NEQ, NLP
       EXTERNAL SUB
-
-      IF(NEQMAX.GT.NEQM) THEN
-         WRITE(6,*) 'XX SYMPLECTIC: NEQMAX > NEQM'
-         IERR=2
-         RETURN
-      ENDIF
 
       A11=0.25D0
       A12=0.25D0-SQRT(3.D0)/6.D0
@@ -70,3 +72,4 @@
       IERR=0
       RETURN
       END SUBROUTINE SYMPLECTIC
+END MODULE libsympl

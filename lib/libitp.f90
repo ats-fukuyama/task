@@ -1,4 +1,4 @@
-! trlib.f90
+! libitp.f90
 
 MODULE libitp
 

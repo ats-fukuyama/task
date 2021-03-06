@@ -1,4 +1,4 @@
-!     $Id$
+! libgrf.f90
 
 MODULE libgrf
 

@@ -1,4 +1,4 @@
-!     $Id$
+! libpcgme.f90
 
 MODULE libpcgpme
 
