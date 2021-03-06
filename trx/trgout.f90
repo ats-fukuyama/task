@@ -3,6 +3,7 @@
       SUBROUTINE TRGOUT
 
       USE TRCOMM, ONLY : NGR, NGT
+      USE libchar
       IMPLICIT NONE
       INTEGER(4), SAVE :: INIT =0, INQG
       CHARACTER(LEN=5) :: KIG
@@ -29,11 +30,11 @@
          K3=KIG(3:3)
          K4=KIG(4:4)
          K5=KIG(5:5)
-         CALL GUCPTL(K1)
-         CALL GUCPTL(K2)
-         CALL GUCPTL(K3)
-         CALL GUCPTL(K4)
-         CALL GUCPTL(K5)
+         CALL toupper(K1)
+         CALL toupper(K2)
+         CALL toupper(K3)
+         CALL toupper(K4)
+         CALL toupper(K5)
          KK=K3//K4//K5
 
          select case(K1)

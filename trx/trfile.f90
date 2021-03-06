@@ -200,11 +200,6 @@
       IF(TRFLNM.EQ.'                                ') GOTO 900
       INQUIRE (FILE=TRFLNM,EXIST=LEX)
       IF(LEX) THEN
-!         WRITE(6,*) '# OLD FILE IS GOING TO BE OVERWRITTEN.  ',
-!     &              'ARE YOU SURE {Y/N}?'
-!         READ(5,'(A1)',ERR=1,END=900) KID
-!         CALL GUCPTL(KID)
-!         IF(KID.NE.'Y') GOTO 1
          OPEN(22,FILE=TRFLNM,IOSTAT=IST,STATUS='OLD',ERR=10,FORM='UNFORMATTED')
          WRITE(6,*) '# OLD FILE (',TRFLNM,') IS ASSIGNED FOR OUTPUT.'
          GOTO 30

@@ -10,11 +10,11 @@ CONTAINS
   SUBROUTINE ti_gout
 
     USE ticomm
+    USE libchar
     IMPLICIT NONE
     CHARACTER(LEN=2):: KIG
     CHARACTER(LEN=1):: K1,K2
     INTEGER:: IST
-    EXTERNAL GUCPTL
 
     DO
        WRITE(6,'(A)') '# SELECT : R1-5, P1-6, T1-5, G1-5, ?/HELP X/EXIT'
@@ -23,8 +23,8 @@ CONTAINS
        IF(IST.LT.0) EXIT
        K1=KIG(1:1)
        K2=KIG(2:2)
-       CALL GUCPTL(K1)
-       CALL GUCPTL(K2)
+       CALL toupper(K1)
+       CALL toupper(K2)
 
        SELECT CASE(K1)
        CASE('R')

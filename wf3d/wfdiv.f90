@@ -6,6 +6,7 @@ subroutine WFDIV
 
   use libmpi
   use libmtx
+  USE libchar
   use wfcomm
   implicit none
   integer :: IERR,NE,NN,ID
@@ -18,7 +19,7 @@ subroutine WFDIV
 601  format('## INPUT: D/DIV  G/DRAW  P,V/PARM'&
                     '  S/SAVE  L/LOAD  W/LIST  X/EXIT')
      read(5,'(A1)',ERR=1,END=9000) KID
-     call GUCPTL(KID)
+     call toupper(KID)
   end if
   call mtx_barrier
   call mtx_broadcast_character(KID,1)
@@ -33,7 +34,7 @@ subroutine WFDIV
         write(6,602) 
 602     format('## TYPE:  X/RECT  C/CIRCLE  A/COAXIAL')
         read(5,'(A1)',ERR=2,END=1) KID
-        call GUCPTL(KID)
+        call toupper(KID)
         
         if(KID.eq.'X') then
 3          write(6,603) BXMIN,BXMAX,BYMIN,BYMAX,BZMIN,BZMAX

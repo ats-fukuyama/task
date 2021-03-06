@@ -26,6 +26,7 @@ CONTAINS
   SUBROUTINE wf_hout(xd,yd,nnod,nsmax,nzmax)
 
     USE libgrf
+    USE libchar
     IMPLICIT NONE
     INTEGER,INTENT(IN):: nnod,nsmax,nzmax
     REAL(dp),INTENT(IN):: xd(nnod),yd(nnod)
@@ -105,7 +106,7 @@ CONTAINS
 10  IF(NL.GE.80) GOTO 20
     NL=NL+1
     KID=KLINE(NL:NL)
-    CALL GUCPTL(KID)
+    CALL toupper(KID)
     IF(KID.NE.','.AND.KID.NE.' ') THEN
        IF(NCH.LT.NCHMAX) NCH=NCH+1
        KWD(NCH:NCH)=KID

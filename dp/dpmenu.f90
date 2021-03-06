@@ -21,6 +21,7 @@ CONTAINS
     USE dptnsr0,ONLY: dp_tnsr0
     USE dptnsb1,ONLY: test_dpbes
     USE libkio
+    USE libchar
     IMPLICIT NONE
       
     CHARACTER(LEN=1):: KID
@@ -34,7 +35,6 @@ CONTAINS
     TYPE(pl_mag_type):: mag
     TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
     TYPE(pl_grd_type),DIMENSION(nsmax):: grd
-    EXTERNAL GUCPTL
 
 1   CONTINUE
     WRITE(6,*) '## DP MENU: P,V/PARM  ', &
@@ -42,7 +42,7 @@ CONTAINS
 
     CALL TASK_KLIN(LINE,KID,MODE,DP_PARM)
     IF(MODE.NE.1) GOTO 1
-    CALL GUCPTL(KID)
+    CALL toupper(KID)
 
     IF(KID.EQ.'P') THEN
        CALL DP_PARM(0,'DP',IERR)

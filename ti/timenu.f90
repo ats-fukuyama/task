@@ -21,6 +21,7 @@ CONTAINS
       USE plload,ONLY: pl_load_trdata
       USE plprof,ONLY: pl_plf_type,pl_prof
       USE libkio
+      USE libchar
       USE libmpi
       
       IMPLICIT NONE
@@ -110,7 +111,7 @@ CONTAINS
          IF(INIT.EQ.2.and.nrank.EQ.0) THEN
 102         WRITE(6,*) '# SELECT ',  ': PRINT TYPE (1..9)  N/NAMELIST X/EXIT'
             READ(5,'(A1)',ERR=102,END=1) KID
-            CALL GUCPTL(KID)
+            CALL toupper(KID)
             IF(KID.EQ.'H') THEN
                !            CALL ti_help('W')
             ELSEIF(KID.EQ.'X') THEN

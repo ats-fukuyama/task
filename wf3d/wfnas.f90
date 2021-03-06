@@ -6,6 +6,7 @@ SUBROUTINE WFNAS
 
   use libmpi
   use libmtx
+  USE libchar
   use wfcomm
   implicit none
   INTEGER,PARAMETER:: NNM=86200
@@ -21,7 +22,7 @@ SUBROUTINE WFNAS
   if (nrank.eq.0) then
      WRITE(6,*) '## INPUT: L/LOAD  G,N/DRAW  P,V/PARM  X/EXIT'
      READ(5,'(A1)',ERR=1,END=9000) KID
-     CALL GUCPTL(KID)
+     CALL toupper(KID)
   end if
 
   call mtx_barrier

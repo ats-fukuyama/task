@@ -24,13 +24,14 @@ CONTAINS
 
     USE obcomm
     USE plgout
+    USE libchar
     IMPLICIT NONE
     CHARACTER(LEN=1)::  kid
 
 1   WRITE(6,*) &
          '## INPUT GRAPH TYPE : 1,2   L,E:equilibrium P:profile X:end'
     READ(5,'(A1)',ERR=1,END=9000) kid
-    CALL GUCPTL(kid)
+    CALL toupper(kid)
 
     IF(KID.EQ.'1') CALL ob_grf1
     IF(KID.EQ.'2') CALL ob_grf2

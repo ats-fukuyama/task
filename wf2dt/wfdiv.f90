@@ -6,6 +6,7 @@
 subroutine WFDIV
 
   use libmpi
+  USE libchar
   use wfcomm
   use wfparm
   implicit none
@@ -18,7 +19,7 @@ subroutine WFDIV
      write(6,*) '## INPUT: D/DIV  G/DRAW  P,V/PARM ',&
                           'S/SAVE  L/LOAD  W/LIST  X/EXIT'
      read(5,'(A1)',ERR=1,END=9000) KID
-     call GUCPTL(KID)
+     call toupper(KID)
   end if
   call mtx_barrier
   call mtx_broadcast_character(KID,1)
@@ -32,7 +33,7 @@ subroutine WFDIV
      if (nrank.eq.0) then
         write(6,'(A24)') '## TYPE: X/RECT C/CIRCLE'
         read(5,'(A1)') KID
-        call GUCPTL(KID)
+        call toupper(KID)
         if (KID.ne."X".and.KID.ne."C") goto 2
      end if
      call mtx_barrier

@@ -8,6 +8,7 @@
       USE trunit
       USE libkio
       USE libfio
+      USE libchar
       IMPLICIT NONE
       INTEGER(4)       :: IERR, MODE, NFL, NFLMAX, NTMOLD
       INTEGER(4), SAVE :: INIT=0
@@ -77,7 +78,7 @@
 !         write(6,*)  "J0=",AJ(1)*1.D-6
   102    WRITE(6,*) '# SELECT ',  ': PRINT TYPE (1..9)  N/NAMELIST H/HELP  X/EXIT'
          READ(5,'(A1)',ERR=102,END=1) KID
-         CALL GUCPTL(KID)
+         CALL toupper(KID)
          IF(KID.EQ.'H') THEN
             CALL TRHELP('W')
          ELSEIF(KID.EQ.'X') THEN

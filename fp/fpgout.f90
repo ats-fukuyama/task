@@ -63,6 +63,7 @@
 !     FPGRACAX           -> FPGRACX
 !     FPGRACPA,FPGRACPAB -> FPGRACP
 
+      USE libchar
       IMPLICIT NONE
       integer,SAVE:: NSA=1,NSB=0
       DATA NSA,NSB/1,0/
@@ -84,13 +85,13 @@
       CALL mtx_broadcast_character(KID,4)
 
       KID1=KID(1:1)
-      CALL GUCPTL(KID1)
+      CALL toupper(KID1)
          
       IF(KID1.NE.'P') THEN
          KID2=KID(2:4)
-         CALL GUCPTL(KID2(1:1))
-         CALL GUCPTL(KID2(2:2))
-         CALL GUCPTL(KID2(3:3))
+         CALL toupper(KID2(1:1))
+         CALL toupper(KID2(2:2))
+         CALL toupper(KID2(3:3))
 !
       NS=NS_NSA(NSA)
       IF (KID1.EQ.'F') THEN
@@ -321,11 +322,11 @@
 !
       ELSE
          KID1=KID(2:2)
-         CALL GUCPTL(KID1)
+         CALL toupper(KID1)
          KID2=KID(3:5)
-         CALL GUCPTL(KID2(1:1))
-         CALL GUCPTL(KID2(2:2))
-         CALL GUCPTL(KID2(3:3))
+         CALL toupper(KID2(1:1))
+         CALL toupper(KID2(2:2))
+         CALL toupper(KID2(3:3))
 !
       IF (KID1.EQ.'F') THEN
          IF(KID2.EQ.'P  ') THEN

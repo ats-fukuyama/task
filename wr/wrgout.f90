@@ -30,10 +30,10 @@ CONTAINS
 
     USE wrcomm
     USE plgout
+    USE libchar
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NSTAT
     CHARACTER(LEN=1)::  KID
-    EXTERNAL GUCPTL
     INTEGER:: ns,nmax,nmax_save,n
     REAL(rkind),ALLOCATABLE:: rhona(:)
 
@@ -49,7 +49,7 @@ CONTAINS
 1   WRITE(6,*) &
          '## INPUT GRAPH TYPE : ray:1,2,3,4,5,6,7 beam:A,B,C,D  P:prof  end:X'
     READ(5,'(A1)',ERR=1,END=9000) KID
-    CALL GUCPTL(KID)
+    CALL toupper(KID)
 
     IF(KID.EQ.'1'.AND.NSTAT.GE.1) CALL WRGRF1
     IF(KID.EQ.'2'.AND.NSTAT.GE.1) CALL WRGRF2

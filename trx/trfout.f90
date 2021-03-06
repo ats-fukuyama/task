@@ -34,8 +34,8 @@
                    'A:all,CP,CN:csv,F:filename,?:help,X:exit'
       READ(5,'(A80)',END=9000,ERR=1) LINE
       KID=LINE(1:2)
-      CALL GUCPTL(KID(1:1))
-      CALL GUCPTL(KID(2:2))
+      CALL toupper(KID(1:1))
+      CALL toupper(KID(2:2))
       IF(KID(1:1).EQ.'X') GOTO 9000
       IF(KID(1:1).EQ.'F') THEN
 3        WRITE(6,'(A)') '# output file name?'

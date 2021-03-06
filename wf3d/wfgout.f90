@@ -9,6 +9,7 @@
 SUBROUTINE WFGOUT
 
   use wfcomm
+  USE libchar
   implicit none
 
   integer :: NL,NWD,NCH,NWMAX,I,NID,NW,ID
@@ -38,7 +39,7 @@ SUBROUTINE WFGOUT
 10 IF(NL.GE.80) GOTO 20
   NL=NL+1
   KID=KLINE(NL:NL)
-  CALL GUCPTL(KID)
+  CALL toupper(KID)
   IF(KID.NE.' ') THEN
      IF(NCH.LT.NCHM) NCH=NCH+1
      KWD(NCH:NCH)=KID
@@ -313,9 +314,9 @@ END SUBROUTINE WFGOUT
 SUBROUTINE WFCTOG(CZ,IDM,ID,KWD)
 
   use wfcomm
+  USE libgrf
   implicit none
   integer    :: IE,NGX,NGY,I,ID,NGV,IDM
-  real(4)    :: GCLIP
   real(8)    :: XPOS,DZ,DY,Z,Y,ZR,ZI,YPOS,DX,X,ZPOS
   real(8)    :: X1,X2,X3,Y1,Y2,Y3,Z1,Z2,Z3,DX2,DY2,DZ2,DX3,DY3,DZ3
   real(8)    :: X0,Y0,Z0,W1,DW
@@ -336,10 +337,10 @@ SUBROUTINE WFCTOG(CZ,IDM,ID,KWD)
         DZ=(ZNDMAX-ZNDMIN)/(NGYMAX-1)
         DY=(YNDMAX-YNDMIN)/(NGXMAX-1)
         DO NGX=1,NGXMAX
-           G2X(NGX)=GCLIP(YNDMIN+DY*(NGX-1))
+           G2X(NGX)=gdclip(YNDMIN+DY*(NGX-1))
         ENDDO
         DO NGY=1,NGYMAX
-           G2Y(NGY)=GCLIP(ZNDMIN+DZ*(NGY-1))
+           G2Y(NGY)=gdclip(ZNDMIN+DZ*(NGY-1))
         ENDDO
         DO NGY=1,NGYMAX
            Z=ZNDMIN+DZ*(NGY-1)
@@ -358,11 +359,11 @@ SUBROUTINE WFCTOG(CZ,IDM,ID,KWD)
                     CALL FIELDC(IE,XPOS,Y,Z,CZ,IDM,ID,ZR,ZI)
                  ENDIF
                  IF(KID.EQ.'R') THEN
-                    GZ(NGX,NGY)=GCLIP(ZR)
+                    GZ(NGX,NGY)=gdclip(ZR)
                  ELSE IF(KID.EQ.'I') THEN
-                    GZ(NGX,NGY)=GCLIP(ZI)
+                    GZ(NGX,NGY)=gdclip(ZI)
                  ELSE IF(KID.EQ.'A') THEN
-                    GZ(NGX,NGY)=GCLIP(SQRT(ZR**2+ZI**2))
+                    GZ(NGX,NGY)=gdclip(SQRT(ZR**2+ZI**2))
                  ENDIF
               ENDIF
            ENDDO
@@ -372,10 +373,10 @@ SUBROUTINE WFCTOG(CZ,IDM,ID,KWD)
         DZ=(ZNDMAX-ZNDMIN)/(NGYMAX-1)
         DX=(XNDMAX-XNDMIN)/(NGXMAX-1)
         DO NGX=1,NGXMAX
-           G2X(NGX)=GCLIP(XNDMIN+DX*(NGX-1))
+           G2X(NGX)=gdclip(XNDMIN+DX*(NGX-1))
         ENDDO
         DO NGY=1,NGYMAX
-           G2Y(NGY)=GCLIP(ZNDMIN+DZ*(NGY-1))
+           G2Y(NGY)=gdclip(ZNDMIN+DZ*(NGY-1))
         ENDDO
         DO NGY=1,NGYMAX
            Z=ZNDMIN+DZ*(NGY-1)
@@ -394,11 +395,11 @@ SUBROUTINE WFCTOG(CZ,IDM,ID,KWD)
                     CALL FIELDC(IE,X,YPOS,Z,CZ,IDM,ID,ZR,ZI)
                  ENDIF
                  IF(KID.EQ.'R') THEN
-                    GZ(NGX,NGY)=GCLIP(ZR)
+                    GZ(NGX,NGY)=gdclip(ZR)
                  ELSE IF(KID.EQ.'I') THEN
-                    GZ(NGX,NGY)=GCLIP(ZI)
+                    GZ(NGX,NGY)=gdclip(ZI)
                  ELSE IF(KID.EQ.'A') THEN
-                    GZ(NGX,NGY)=GCLIP(SQRT(ZR**2+ZI**2))
+                    GZ(NGX,NGY)=gdclip(SQRT(ZR**2+ZI**2))
                  ENDIF
               ENDIF
            ENDDO
@@ -408,10 +409,10 @@ SUBROUTINE WFCTOG(CZ,IDM,ID,KWD)
         DY=(YNDMAX-YNDMIN)/(NGYMAX-1)
         DX=(XNDMAX-XNDMIN)/(NGXMAX-1)
         DO NGX=1,NGXMAX
-           G2X(NGX)=GCLIP(XNDMIN+DX*(NGX-1))
+           G2X(NGX)=gdclip(XNDMIN+DX*(NGX-1))
         ENDDO
         DO NGY=1,NGYMAX
-           G2Y(NGY)=GCLIP(YNDMIN+DY*(NGY-1))
+           G2Y(NGY)=gdclip(YNDMIN+DY*(NGY-1))
         ENDDO
         DO NGY=1,NGYMAX
            Y=YNDMIN+DY*(NGY-1)
@@ -433,11 +434,11 @@ SUBROUTINE WFCTOG(CZ,IDM,ID,KWD)
                        CALL FIELDC(IE,XC,YC,ZC,CZ,IDM,ID,ZR,ZI)
                     ENDIF
                     IF(KID.EQ.'R') THEN
-                       GZ(NGX,NGY)=GCLIP(ZR)
+                       GZ(NGX,NGY)=gdclip(ZR)
                     ELSE IF(KID.EQ.'I') THEN
-                       GZ(NGX,NGY)=GCLIP(ZI)
+                       GZ(NGX,NGY)=gdclip(ZI)
                     ELSE IF(KID.EQ.'A') THEN
-                       GZ(NGX,NGY)=GCLIP(SQRT(ZR**2+ZI**2))
+                       GZ(NGX,NGY)=gdclip(SQRT(ZR**2+ZI**2))
                     ENDIF
                  ENDIF
                  
@@ -456,11 +457,11 @@ SUBROUTINE WFCTOG(CZ,IDM,ID,KWD)
                        CALL FIELDC(IE,X,Y,ZPOS,CZ,IDM,ID,ZR,ZI)
                     ENDIF
                     IF(KID.EQ.'R') THEN
-                       GZ(NGX,NGY)=GCLIP(ZR)
+                       GZ(NGX,NGY)=gdclip(ZR)
                     ELSE IF(KID.EQ.'I') THEN
-                       GZ(NGX,NGY)=GCLIP(ZI)
+                       GZ(NGX,NGY)=gdclip(ZI)
                     ELSE IF(KID.EQ.'A') THEN
-                       GZ(NGX,NGY)=GCLIP(SQRT(ZR**2+ZI**2))
+                       GZ(NGX,NGY)=gdclip(SQRT(ZR**2+ZI**2))
                     ENDIF
                  ENDIF
               END if
@@ -478,42 +479,42 @@ SUBROUTINE WFCTOG(CZ,IDM,ID,KWD)
         IF(ABS(DX2).GE.ABS(DY2)) THEN
            IF(ABS(DX2).GE.ABS(DZ2)) THEN
               DO NGX=1,NGXMAX
-                 G2X(NGX)=GCLIP(X1+DX2*(NGX-1))
+                 G2X(NGX)=gdclip(X1+DX2*(NGX-1))
               ENDDO
            ELSE
               DO NGX=1,NGXMAX
-                 G2X(NGX)=GCLIP(Z1+DZ2*(NGX-1))
+                 G2X(NGX)=gdclip(Z1+DZ2*(NGX-1))
               ENDDO
            ENDIF
         ELSE
            IF(ABS(DY2).GE.ABS(DZ2)) THEN
               DO NGX=1,NGXMAX
-                 G2X(NGX)=GCLIP(Y1+DY2*(NGX-1))
+                 G2X(NGX)=gdclip(Y1+DY2*(NGX-1))
               ENDDO
            ELSE
               DO NGX=1,NGXMAX
-                 G2X(NGX)=GCLIP(Z1+DZ2*(NGX-1))
+                 G2X(NGX)=gdclip(Z1+DZ2*(NGX-1))
               ENDDO
            ENDIF
         ENDIF
         IF(ABS(DX3).GE.ABS(DY3)) THEN
            IF(ABS(DX3).GE.ABS(DZ3)) THEN
               DO NGY=1,NGYMAX
-                 G2Y(NGY)=GCLIP(X1+DX3*(NGY-1))
+                 G2Y(NGY)=gdclip(X1+DX3*(NGY-1))
               ENDDO
            ELSE
               DO NGY=1,NGYMAX
-                 G2Y(NGY)=GCLIP(Z1+DZ3*(NGY-1))
+                 G2Y(NGY)=gdclip(Z1+DZ3*(NGY-1))
               ENDDO
            ENDIF
         ELSE
            IF(ABS(DY3).GE.ABS(DZ3)) THEN
               DO NGY=1,NGYMAX
-                 G2Y(NGY)=GCLIP(Y1+DY2*(NGY-1))
+                 G2Y(NGY)=gdclip(Y1+DY2*(NGY-1))
               ENDDO
            ELSE
               DO NGY=1,NGYMAX
-                 G2Y(NGY)=GCLIP(Z1+DZ2*(NGY-1))
+                 G2Y(NGY)=gdclip(Z1+DZ2*(NGY-1))
               ENDDO
            ENDIF
         ENDIF
@@ -541,11 +542,11 @@ SUBROUTINE WFCTOG(CZ,IDM,ID,KWD)
                     !                        WRITE(6,'(2I5,1P,5E12.4)') NGX,NGY,X,Y,Z,ZR,ZI
                  ENDIF
                  IF(KID.EQ.'R') THEN
-                    GZ(NGX,NGY)=GCLIP(ZR)
+                    GZ(NGX,NGY)=gdclip(ZR)
                  ELSE IF(KID.EQ.'I') THEN
-                    GZ(NGX,NGY)=GCLIP(ZI)
+                    GZ(NGX,NGY)=gdclip(ZI)
                  ELSE IF(KID.EQ.'A') THEN
-                    GZ(NGX,NGY)=GCLIP(SQRT(ZR**2+ZI**2))
+                    GZ(NGX,NGY)=gdclip(SQRT(ZR**2+ZI**2))
                  ENDIF
               ENDIF
            ENDDO
@@ -558,7 +559,7 @@ SUBROUTINE WFCTOG(CZ,IDM,ID,KWD)
         X=XNDMIN+DX*(NGV-1)
         CALL FEP(X,YPOS,ZPOS,IE)
         IF(IE.EQ.0) THEN
-           GX(NGV)=GCLIP(X)
+           GX(NGV)=gdclip(X)
            GV(NGV,1)=0.0
            GV(NGV,2)=0.0
            GV(NGV,3)=0.0
@@ -571,10 +572,10 @@ SUBROUTINE WFCTOG(CZ,IDM,ID,KWD)
            ELSE
               CALL FIELDC(IE,X,YPOS,ZPOS,CZ,IDM,ID,ZR,ZI)
            ENDIF
-           GX(NGV)=GCLIP(X)
-           GV(NGV,1)=GCLIP(ZR)
-           GV(NGV,2)=GCLIP(ZI)
-           GV(NGV,3)=GCLIP(SQRT(ZR**2+ZI**2))
+           GX(NGV)=gdclip(X)
+           GV(NGV,1)=gdclip(ZR)
+           GV(NGV,2)=gdclip(ZI)
+           GV(NGV,3)=gdclip(SQRT(ZR**2+ZI**2))
         ENDIF
      ENDDO
   ELSEIF(KID.EQ.'Y') THEN
@@ -584,7 +585,7 @@ SUBROUTINE WFCTOG(CZ,IDM,ID,KWD)
         Y=YNDMIN+DY*(NGV-1)
         CALL FEP(XPOS,Y,ZPOS,IE)
         IF(IE.EQ.0) THEN
-           GX(NGV)=GCLIP(Y)
+           GX(NGV)=gdclip(Y)
            GV(NGV,1)=0.0
            GV(NGV,2)=0.0
            GV(NGV,3)=0.0
@@ -597,10 +598,10 @@ SUBROUTINE WFCTOG(CZ,IDM,ID,KWD)
            ELSE
               CALL FIELDC(IE,XPOS,Y,ZPOS,CZ,IDM,ID,ZR,ZI)
            ENDIF
-           GX(NGV)=GCLIP(Y)
-           GV(NGV,1)=GCLIP(ZR)
-           GV(NGV,2)=GCLIP(ZI)
-           GV(NGV,3)=GCLIP(SQRT(ZR**2+ZI**2))
+           GX(NGV)=gdclip(Y)
+           GV(NGV,1)=gdclip(ZR)
+           GV(NGV,2)=gdclip(ZI)
+           GV(NGV,3)=gdclip(SQRT(ZR**2+ZI**2))
         ENDIF
      ENDDO
   ELSEIF(KID.EQ.'Z') THEN
@@ -610,7 +611,7 @@ SUBROUTINE WFCTOG(CZ,IDM,ID,KWD)
         Z=ZNDMIN+DZ*(NGV-1)
         CALL FEP(XPOS,YPOS,Z,IE)
         IF(IE.EQ.0) THEN
-           GX(NGV)=GCLIP(Z)
+           GX(NGV)=gdclip(Z)
            GV(NGV,1)=0.0
            GV(NGV,2)=0.0
            GV(NGV,3)=0.0
@@ -623,10 +624,10 @@ SUBROUTINE WFCTOG(CZ,IDM,ID,KWD)
            ELSE
               CALL FIELDC(IE,XPOS,YPOS,Z,CZ,IDM,ID,ZR,ZI)
            ENDIF
-           GX(NGV)=GCLIP(Z)
-           GV(NGV,1)=GCLIP(ZR)
-           GV(NGV,2)=GCLIP(ZI)
-           GV(NGV,3)=GCLIP(SQRT(ZR**2+ZI**2))
+           GX(NGV)=gdclip(Z)
+           GV(NGV,1)=gdclip(ZR)
+           GV(NGV,2)=gdclip(ZI)
+           GV(NGV,3)=gdclip(SQRT(ZR**2+ZI**2))
         ENDIF
      ENDDO
   ELSEIF(KID.EQ.'B') THEN
@@ -657,7 +658,7 @@ SUBROUTINE WFCTOG(CZ,IDM,ID,KWD)
         X=X1+DX*(NGV-1)
         Y=Y1+DY*(NGV-1)
         Z=Z1+DZ*(NGV-1)
-        GX(NGV)=GCLIP(W1+DW*(NGV-1))
+        GX(NGV)=gdclip(W1+DW*(NGV-1))
         CALL FEP(X,Y,Z,IE)
         IF(IE.EQ.0) THEN
            GV(NGV,1)=0.0
@@ -672,9 +673,9 @@ SUBROUTINE WFCTOG(CZ,IDM,ID,KWD)
            ELSE
               CALL FIELDC(IE,X,Y,Z,CZ,IDM,ID,ZR,ZI)
            ENDIF
-           GV(NGV,1)=GCLIP(ZR)
-           GV(NGV,2)=GCLIP(ZI)
-           GV(NGV,3)=GCLIP(SQRT(ZR**2+ZI**2))
+           GV(NGV,1)=gdclip(ZR)
+           GV(NGV,2)=gdclip(ZI)
+           GV(NGV,3)=gdclip(SQRT(ZR**2+ZI**2))
         ENDIF
      ENDDO
   ELSE
@@ -688,9 +689,9 @@ END SUBROUTINE WFCTOG
 SUBROUTINE WFDTOG(DV,ID,KWD)
 
   use wfcomm
+  USE libgrf
   implicit none
   integer :: IE,NGX,NGY,NGV,ID
-  real(4) :: GCLIP
   real(8) :: DV(NNMAX,ID),XPOS,DZ,DY,Z,Y,X,V,YPOS,DX
   real(8) :: X1,X2,X3,Y1,Y2,Y3,Z1,Z2,Z3,DX2,DY2,DZ2,DX3,DY3,DZ3
   real(8) :: X0,Y0,Z0,W1,DW,ZPOS
@@ -708,10 +709,10 @@ SUBROUTINE WFDTOG(DV,ID,KWD)
         DZ=(ZNDMAX-ZNDMIN)/(NGYMAX-1)
         DY=(YNDMAX-YNDMIN)/(NGXMAX-1)
         DO NGX=1,NGXMAX
-           G2X(NGX)=GCLIP(YNDMIN+DY*(NGX-1))
+           G2X(NGX)=gdclip(YNDMIN+DY*(NGX-1))
         ENDDO
         DO NGY=1,NGYMAX
-           G2Y(NGY)=GCLIP(ZNDMIN+DZ*(NGY-1))
+           G2Y(NGY)=gdclip(ZNDMIN+DZ*(NGY-1))
         ENDDO
         DO NGY=1,NGYMAX
            Z=ZNDMIN+DZ*(NGY-1)
@@ -724,7 +725,7 @@ SUBROUTINE WFDTOG(DV,ID,KWD)
                  !     &                    'XX DTOG: X,Y,Z,IE=',XPOS,Y,Z,IE
               ELSE
                  CALL FIELDD(IE,XPOS,Y,Z,DV,ID,V)
-                 GZ(NGX,NGY)=GCLIP(V)
+                 GZ(NGX,NGY)=gdclip(V)
               ENDIF
            ENDDO
         ENDDO
@@ -733,10 +734,10 @@ SUBROUTINE WFDTOG(DV,ID,KWD)
         DZ=(ZNDMAX-ZNDMIN)/(NGYMAX-1)
         DX=(XNDMAX-XNDMIN)/(NGXMAX-1)
         DO NGX=1,NGXMAX
-           G2X(NGX)=GCLIP(XNDMIN+DX*(NGX-1))
+           G2X(NGX)=gdclip(XNDMIN+DX*(NGX-1))
         ENDDO
         DO NGY=1,NGYMAX
-           G2Y(NGY)=GCLIP(ZNDMIN+DZ*(NGY-1))
+           G2Y(NGY)=gdclip(ZNDMIN+DZ*(NGY-1))
         ENDDO
         DO NGY=1,NGYMAX
            Z=ZNDMIN+DZ*(NGY-1)
@@ -749,7 +750,7 @@ SUBROUTINE WFDTOG(DV,ID,KWD)
                  GZ(NGX,NGY)=0.0
               ELSE
                  CALL FIELDD(IE,X,YPOS,Z,DV,ID,V)
-                 GZ(NGX,NGY)=GCLIP(V)
+                 GZ(NGX,NGY)=gdclip(V)
               ENDIF
            ENDDO
         ENDDO
@@ -758,10 +759,10 @@ SUBROUTINE WFDTOG(DV,ID,KWD)
         DY=(YNDMAX-YNDMIN)/(NGYMAX-1)
         DX=(XNDMAX-XNDMIN)/(NGXMAX-1)
         DO NGX=1,NGXMAX
-           G2X(NGX)=GCLIP(XNDMIN+DX*(NGX-1))
+           G2X(NGX)=gdclip(XNDMIN+DX*(NGX-1))
         ENDDO
         DO NGY=1,NGYMAX
-           G2Y(NGY)=GCLIP(YNDMIN+DY*(NGY-1))
+           G2Y(NGY)=gdclip(YNDMIN+DY*(NGY-1))
         ENDDO
         DO NGY=1,NGYMAX
            Y=YNDMIN+DY*(NGY-1)
@@ -777,7 +778,7 @@ SUBROUTINE WFDTOG(DV,ID,KWD)
                     !      & 'XX DTOG: X,Y,Z,IE=',X,Y,ZPOS,IE
                  ELSE
                     CALL FIELDD(IE,XC,YC,ZC,DV,ID,V)
-                    GZ(NGX,NGY)=GCLIP(V)
+                    GZ(NGX,NGY)=gdclip(V)
                  ENDIF
               ELSE
                  CALL FEP(X,Y,ZPOS,IE)
@@ -787,7 +788,7 @@ SUBROUTINE WFDTOG(DV,ID,KWD)
                     !      & 'XX DTOG: X,Y,Z,IE=',X,Y,ZPOS,IE
                  ELSE
                     CALL FIELDD(IE,X,Y,ZPOS,DV,ID,V)
-                    GZ(NGX,NGY)=GCLIP(V)
+                    GZ(NGX,NGY)=gdclip(V)
                  ENDIF
               END IF
            ENDDO
@@ -804,42 +805,42 @@ SUBROUTINE WFDTOG(DV,ID,KWD)
         IF(ABS(DX2).GE.ABS(DY2)) THEN
            IF(ABS(DX2).GE.ABS(DZ2)) THEN
               DO NGX=1,NGXMAX
-                 G2X(NGX)=GCLIP(X1+DX2*(NGX-1))
+                 G2X(NGX)=gdclip(X1+DX2*(NGX-1))
               ENDDO
            ELSE
               DO NGX=1,NGXMAX
-                 G2X(NGX)=GCLIP(Z1+DZ2*(NGX-1))
+                 G2X(NGX)=gdclip(Z1+DZ2*(NGX-1))
               ENDDO
            ENDIF
         ELSE
            IF(ABS(DY2).GE.ABS(DZ2)) THEN
               DO NGX=1,NGXMAX
-                 G2X(NGX)=GCLIP(Y1+DY2*(NGX-1))
+                 G2X(NGX)=gdclip(Y1+DY2*(NGX-1))
               ENDDO
            ELSE
               DO NGX=1,NGXMAX
-                 G2X(NGX)=GCLIP(Z1+DZ2*(NGX-1))
+                 G2X(NGX)=gdclip(Z1+DZ2*(NGX-1))
               ENDDO
            ENDIF
         ENDIF
         IF(ABS(DX3).GE.ABS(DY3)) THEN
            IF(ABS(DX3).GE.ABS(DZ3)) THEN
               DO NGY=1,NGYMAX
-                 G2Y(NGY)=GCLIP(X1+DX3*(NGY-1))
+                 G2Y(NGY)=gdclip(X1+DX3*(NGY-1))
               ENDDO
            ELSE
               DO NGY=1,NGYMAX
-                 G2Y(NGY)=GCLIP(Z1+DZ3*(NGY-1))
+                 G2Y(NGY)=gdclip(Z1+DZ3*(NGY-1))
               ENDDO
            ENDIF
         ELSE
            IF(ABS(DY3).GE.ABS(DZ3)) THEN
               DO NGY=1,NGYMAX
-                 G2Y(NGY)=GCLIP(Y1+DY2*(NGY-1))
+                 G2Y(NGY)=gdclip(Y1+DY2*(NGY-1))
               ENDDO
            ELSE
               DO NGY=1,NGYMAX
-                 G2Y(NGY)=GCLIP(Z1+DZ2*(NGY-1))
+                 G2Y(NGY)=gdclip(Z1+DZ2*(NGY-1))
               ENDDO
            ENDIF
         ENDIF
@@ -857,7 +858,7 @@ SUBROUTINE WFDTOG(DV,ID,KWD)
                  GZ(NGX,NGY)=0.0
               ELSE
                  CALL FIELDD(IE,X,Y,Z,DV,ID,V)
-                 GZ(NGX,NGY)=GCLIP(V)
+                 GZ(NGX,NGY)=gdclip(V)
               ENDIF
            ENDDO
         ENDDO
@@ -869,14 +870,14 @@ SUBROUTINE WFDTOG(DV,ID,KWD)
         X=XNDMIN+DX*(NGV-1)
         CALL FEP(X,YPOS,ZPOS,IE)
         IF(IE.EQ.0) THEN
-           GX(NGV)=GCLIP(X)
+           GX(NGV)=gdclip(X)
            GV(NGV,1)=0.0
            GV(NGV,2)=0.0
            GV(NGV,3)=0.0
         ELSE
            CALL FIELDD(IE,X,YPOS,ZPOS,DV,ID,V)
-           GX(NGV)=GCLIP(X)
-           GV(NGV,1)=GCLIP(Z)
+           GX(NGV)=gdclip(X)
+           GV(NGV,1)=gdclip(Z)
         ENDIF
      ENDDO
   ELSEIF(KID.EQ.'Y') THEN
@@ -886,14 +887,14 @@ SUBROUTINE WFDTOG(DV,ID,KWD)
         Y=YNDMIN+DY*(NGV-1)
         CALL FEP(XPOS,Y,ZPOS,IE)
         IF(IE.EQ.0) THEN
-           GX(NGV)=GCLIP(Y)
+           GX(NGV)=gdclip(Y)
            GV(NGV,1)=0.0
            GV(NGV,2)=0.0
            GV(NGV,3)=0.0
         ELSE
            CALL FIELDD(IE,XPOS,Y,ZPOS,DV,ID,V)
-           GX(NGV)=GCLIP(Y)
-           GV(NGV,1)=GCLIP(V)
+           GX(NGV)=gdclip(Y)
+           GV(NGV,1)=gdclip(V)
         ENDIF
      ENDDO
   ELSEIF(KID.EQ.'Z') THEN
@@ -903,14 +904,14 @@ SUBROUTINE WFDTOG(DV,ID,KWD)
         Z=ZNDMIN+DZ*(NGV-1)
         CALL FEP(XPOS,YPOS,Z,IE)
         IF(IE.EQ.0) THEN
-           GX(NGV)=GCLIP(Z)
+           GX(NGV)=gdclip(Z)
            GV(NGV,1)=0.0
            GV(NGV,2)=0.0
            GV(NGV,3)=0.0
         ELSE
            CALL FIELDD(IE,XPOS,YPOS,Z,DV,ID,V)
-           GX(NGV)=GCLIP(Z)
-           GV(NGV,1)=GCLIP(V)
+           GX(NGV)=gdclip(Z)
+           GV(NGV,1)=gdclip(V)
         ENDIF
      ENDDO
   ELSEIF(KID.EQ.'B') THEN
@@ -941,13 +942,13 @@ SUBROUTINE WFDTOG(DV,ID,KWD)
         X=X1+DX*(NGV-1)
         Y=Y1+DY*(NGV-1)
         Z=Z1+DZ*(NGV-1)
-        GX(NGV)=GCLIP(W1+DW*(NGV-1))
+        GX(NGV)=gdclip(W1+DW*(NGV-1))
         CALL FEP(X,Y,Z,IE)
         IF(IE.EQ.0) THEN
            GV(NGV,1)=0.0
         ELSE
            CALL FIELDD(IE,X,Y,Z,DV,ID,V)
-           GV(NGV,1)=GCLIP(V)
+           GV(NGV,1)=gdclip(V)
         ENDIF
      ENDDO
   ELSE

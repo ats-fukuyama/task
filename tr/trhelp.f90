@@ -24,6 +24,7 @@
 
       SUBROUTINE TRHLPM
 
+      USE libchar
       IMPLICIT NONE
       INTEGER(4)      :: IEND
       CHARACTER(LEN=1):: KID
@@ -52,7 +53,7 @@
      &    '&TR, INPUT P.'/                                             &
      &' ','   ANY OTHER CHARACTER BRINGS YOU BACK TO INITIAL MENU.')
       READ(5,'(A1)',ERR=1,END=900) KID
-      CALL GUCPTL(KID)
+      CALL toupper(KID)
       IF(KID.EQ.'P') CALL TRHLPP
   900 RETURN
       END SUBROUTINE TRHLPM
@@ -290,6 +291,7 @@
 
       SUBROUTINE TRHLPQ(IEND)
 
+      USE libchar
       IMPLICIT NONE
       INTEGER(4), INTENT(OUT):: IEND
       CHARACTER(LEN=1) :: KID
@@ -297,7 +299,7 @@
       IEND=0
     1 WRITE(6,*) '# INPUT "E" KEY TO GO BACK TO MENU, OTHERWISE CONTINUE HELP.'
       READ(5,'(A1)',ERR=1,END=900) KID
-      CALL GUCPTL(KID)
+      CALL toupper(KID)
       IF(KID.EQ.'E') IEND=1
   900 RETURN
       END SUBROUTINE TRHLPQ
