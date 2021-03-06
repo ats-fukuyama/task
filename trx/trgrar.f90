@@ -442,13 +442,13 @@
       USE TRCOMM, ONLY : &
            AK, AKDW, AKLP, AKNC, DR, GRG, GYR, MDNCLS, NRMAX, NRMP, &
            NSM, NSMAX, PNSS, PTS, RHOG, RHOM, RJCB, RKEV, RN, RQFLS, RT, VGR1
+      USE libitp
       IMPLICIT NONE
       INTEGER(4),INTENT(IN) :: INQ
       INTEGER(4) :: NR, NS
       REAL(8), DIMENSION(NRMP,NSMAX) :: RQFLSUM
       REAL(8), DIMENSION(NRMAX,NSMAX)  :: AKNCG, DTN, RNN
       REAL(4)    :: GUCLIP, GLOG
-      REAL(8)  :: DERIV3P
 
       CALL PAGES
 
@@ -635,13 +635,13 @@
 
       USE TRCOMM, ONLY : AD, ADDW, ADNCG, AV, AVK, AVNCG, CDP, CNP, DR, GRG, GRM, GYR, MDNCLS, NRMAX, NRMP, NSM, &
      &                   NSMAX, PNSS, RGFLS, RHOG, RHOM, RJCB, RN, TAUB, TAUF
+      USE libitp
       IMPLICIT NONE
       INTEGER(4),INTENT(IN) :: INQ
       INTEGER(4) :: MODE, NR, NS
       REAL(8), DIMENSION(NRMP,NSMAX):: RGFLSUM
       REAL(8), DIMENSION(NRMAX,NSMAX) :: DNN
       REAL(4)  :: GUCLIP
-      REAL(8)  :: DERIV3P
 
       CALL PAGES
 
@@ -811,28 +811,28 @@
          GYR(NR,1) = GUCLIP(VGR1(NR,3))
          GYR(NR,2) = GUCLIP(VGR1(NR,2))
       ENDDO
-      CALL TRGR1D( 3.0,12.0,11.0,17.0,GYR(1,1),GYR(1,2),NRMP,NRMAX,1, &
+      CALL TRGR1D( 3.0,12.0,11.0,17.0,GYR(:,1),GYR(:,2),NRMP,NRMAX,1, &
                   '@s  vs alpha@',2+4)
 
       DO NR=1,NRMAX
          GYR(NR,1) = GUCLIP(AK(NR,1))
          GYR(NR,2) = GUCLIP(AK(NR,2))
       ENDDO
-      CALL TRGR1D(15.5,24.5,11.0,17.0,GYR(1,1),GYR(1,2),NRMP,NRMAX,1, &
+      CALL TRGR1D(15.5,24.5,11.0,17.0,GYR(:,1),GYR(:,2),NRMP,NRMAX,1, &
                   '@AKD vs AKE@',2+INQ)
 
       DO NR=1,NRMAX
          GYR(NR,1) = GUCLIP(QP(NR))
          GYR(NR,2) = GUCLIP(AK(NR,1))
       ENDDO
-      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GYR(1,1),GYR(1,2),NRMP,NRMAX,1, &
+      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GYR(:,1),GYR(:,2),NRMP,NRMAX,1, &
                   '@AKD vs q@',2+INQ)
 
       DO NR=1,NRMAX-1
          GYR(NR,1) = GUCLIP(QP(NR))
          GYR(NR,2) = GUCLIP(RT(NR,1))
       ENDDO
-      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GYR(1,1),GYR(1,2),NRMP,NRMAX-1,1, &
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GYR(:,1),GYR(:,2),NRMP,NRMAX-1,1, &
                   '@Te vs q@',2+INQ)
 
       CALL TRGRTM

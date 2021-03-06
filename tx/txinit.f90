@@ -849,6 +849,7 @@ SUBROUTINE TXPROF
   use tx_interface, only : INTG_P, INTDERIV3, detect_datatype, INTG_F, dfdx, &
        &                   initprof_input, moving_average, CORR, coulog
   USE libinv
+  USE libitp
   implicit none
   INTEGER(4) :: NR, IER, ifile, NHFM, NR_smt, NR_smt_start = 10
   REAL(8) :: RL, PROF, PROFN, PROFT, PTePROF, PTiPROF!, QL, dRIP
@@ -858,7 +859,6 @@ SUBROUTINE TXPROF
   real(8) :: FACT, PBA, dPN, CfN1, CfN2, pea, pia, pediv, pidiv, dpea, dpia, &
        &     Cfpe1, Cfpe2, Cfpi1, Cfpi2, sigma, fexp, PN0L, PNaL, PNeDIVL, &
        &     PTe0L, PTi0L, PTeaL, PTiaL, PTeDIVL, PTiDIVL
-  REAL(8) :: FCTR!, DERIV4
   real(8), dimension(:), allocatable :: AJPHL, TMP, RHSV, dPedr, dPidr, Prof1, Prof2
   real(8), dimension(:,:), allocatable :: CMTX
 
@@ -1494,9 +1494,8 @@ contains
        WRITE(6,*) 'XX PARM FILE EOF ERROR'
        RETURN
     END IF
-    CALL KTRIM(KPNAME,KL)
     WRITE(6,*) &
-         &     '## FILE (',KPNAME(1:KL),') IS ASSIGNED FOR PARM INPUT'
+         &     '## FILE (',TRIM(KPNAME),') IS ASSIGNED FOR PARM INPUT'
     IERR=0
 
   END SUBROUTINE TXPARF

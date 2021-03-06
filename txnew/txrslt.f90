@@ -10,6 +10,7 @@ SUBROUTINE TXGLOB
   use tx_commons
   use tx_interface, only : dfdx
   use tx_core_module, only : intg_vol, intg_area, intg_vol_p, sub_intg_vol
+  USE libitp
   implicit none
 
   INTEGER(4) :: I, NR!, NS, NF
@@ -21,7 +22,6 @@ SUBROUTINE TXGLOB
   real(8), dimension(0:NRMAX) :: BthV2, PNdiff
   real(8), dimension(:), allocatable :: denom, dPNV, RSmb
   real(8) :: suml, sum1, sum2
-  real(8) :: DERIV4, FCTR
 
   !     Volume-Averaged Density and Temperature
   !     Core Density and Temperature

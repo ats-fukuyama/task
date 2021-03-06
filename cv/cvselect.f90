@@ -7,6 +7,7 @@ CONTAINS
 
   SUBROUTINE cv_select
     USE cvcomm
+    USE libchar
     IMPLICIT NONE
     CHARACTER(LEN=1):: KID
     INTEGER:: ierr

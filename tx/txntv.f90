@@ -90,11 +90,11 @@ subroutine NTVcalc
        &                 DltRP, R, RR, PTiV, rKeV, AMI, rNuii, PTiV, RA, PZ, AEE, BB, &
        &                 deltam, m_pol
   USE libspl1d
+  USE libitp
   implicit none
 
   integer(4) :: nr, m, ierr
   real(8) :: suml, f, wnm_plus, wnm_minus, EpsL, Vti2, dPTiV, B_lambda
-  real(8) :: deriv4, aitken2p ! external function
 
   do nr = 0, nrmax
      suml = 0.d0

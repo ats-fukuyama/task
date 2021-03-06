@@ -137,6 +137,7 @@ C
       SUBROUTINE EQCALQP(IERR)
 C
       USE libspl1d
+      USE libitp
       INCLUDE '../eq/eqcomq.inc'
 C
       EXTERNAL EQDERV
@@ -1130,6 +1131,7 @@ C
       SUBROUTINE EQSETS_RHO(IERR)
 C
       USE libspl1d
+      USE libitp
       INCLUDE '../eq/eqcomq.inc'
 C
       dimension DERIV(NRM)

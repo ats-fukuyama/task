@@ -85,6 +85,7 @@
      &         RA,        RDP,          RG,           RGFLS,        RHOG,         RKAP,         RM,           RN,          &
      &         RQFLS,     RR,           RT,           TTRHOG,       VPAR,         VPOL,         VPRP,         VTOR
       USE trcomm,ONLY: rkind
+      USE libitp
       IMPLICIT NONE
       INCLUDE 'nclass/pamx_mi.inc'
       INCLUDE 'nclass/pamx_ms.inc'
@@ -113,7 +114,7 @@
       INTEGER(4),INTENT(OUT):: IERR
       INTEGER(4)::  i,k_out,k_v,na,nm,nr,ns,ns1,nsn,nsz
       REAL(rkind)   ::  a0,bt0,e0,p_eps,p_q,q0l,r0
-      REAL(rkind)   ::  aitken2p,bpol,btor,btot,deriv3p,eps,ftpf,pzmax,uthai
+      REAL(rkind)   ::  btor,btot,bpol,eps,ftpf,pzmax,uthai
 
 
       REAL(rkind),DIMENSION(NRMAX):: EROPSI

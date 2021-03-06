@@ -16,10 +16,11 @@ SUBROUTINE TXMENU
        &                 NGR, NGRM, GT, GY, gDIV
   use tx_variables, only : TXCALV
   use tx_parameter_control, only : TXPARM_CHECK, TXPARM, TXVIEW
-  use tx_interface, only : TXKLIN, TOUPPER, TXLOAD
+  use tx_interface, only : TXLOAD
   use tx_ripple, only : ripple_input, ripple_spl, deallocate_ripple
   use tx_ntv, only : dealloc_ntv
   use eqread_mod, only : alloc_equ
+  USE libchar,ONLY: TOUPPER
   implicit none
   INTEGER(4) :: MODE, I, IST, ier, NR, IER_RP
   character(len=80) :: LINE
@@ -206,7 +207,7 @@ END SUBROUTINE TXMENU
 SUBROUTINE TXKLIN(LINE,KID,MODE)
 
   use tx_parameter_control, only : TXPARL
-  use tx_interface, only : TOUPPER
+  use libchar, only : TOUPPER
   implicit none
 
   integer(4), intent(out) :: MODE

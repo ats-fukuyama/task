@@ -1,5 +1,5 @@
-!     $Id: wfgout.f90,v 1.24 2012/02/11 01:23:26 maruyama Exp $
 !     *********  /TASKX/WFT/GOUT  *********
+!     $Id: wfgout.f90,v 1.24 2012/02/11 01:23:26 maruyama Exp $
 !
 !       GRAPHIC DATA PROCESSING PROGRAM
 !             FOR FEM COMPUTATION
@@ -170,10 +170,10 @@ SUBROUTINE WFCTOGSD(ID,KWD)
 
   use wfcomm
   use feminterpolate
+  USE libgrf
   implicit none
   integer,intent(in) :: ID
   integer :: IE,NGX,NGY,NGV
-  real(4) :: GCLIP
   real(8) :: DX,DY,X,Y
   real(8) :: XPOS,YPOS
   complex(8) :: CE
@@ -252,11 +252,11 @@ SUBROUTINE WFCTOGSD(ID,KWD)
                  
               ! -----------
               IF(KID.EQ.'R') THEN
-                 GZ(NGX,NGY)=GCLIP(REAL(CE))
+                 GZ(NGX,NGY)=gdclip(REAL(CE))
               ELSE IF(KID.EQ.'I') THEN
-                 GZ(NGX,NGY)=GCLIP(AIMAG(CE))
+                 GZ(NGX,NGY)=gdclip(AIMAG(CE))
               ELSE IF(KID.EQ.'A') THEN
-                 GZ(NGX,NGY)=GCLIP(ABS(CE))
+                 GZ(NGX,NGY)=gdclip(ABS(CE))
               ENDIF
            ENDIF
         END DO
@@ -273,7 +273,7 @@ SUBROUTINE WFCTOGSD(ID,KWD)
 !        CALL FEP(X,YPOS,IE)
         WRITE(6,*) '@@@:',NGV,X,ypos,ie
         IF(IE.EQ.0) THEN
-           GX(NGV)=GCLIP(X)
+           GX(NGV)=gdclip(X)
            GV(NGV,1)=0.0
            GV(NGV,2)=0.0
            GV(NGV,3)=0.0
@@ -295,10 +295,10 @@ SUBROUTINE WFCTOGSD(ID,KWD)
               end if
            ENDIF
            IF(ABS(CE).LT.1.D-12) CE=(0.D0,0.D0)
-           GX(NGV)=GCLIP(X)
-           GV(NGV,1)=GCLIP(REAL(CE))
-           GV(NGV,2)=GCLIP(AIMAG(CE))
-           GV(NGV,3)=GCLIP(ABS(CE))
+           GX(NGV)=gdclip(X)
+           GV(NGV,1)=gdclip(REAL(CE))
+           GV(NGV,2)=gdclip(AIMAG(CE))
+           GV(NGV,3)=gdclip(ABS(CE))
         ENDIF
 !        IF(ABS(CE).NE.0.D0) THEN
 !           WRITE(6,'(A,I12,1P5E12.4)') 'CESD:',IE,X,YPOS,CE
@@ -327,7 +327,7 @@ SUBROUTINE WFCTOGSD(ID,KWD)
         CALL fem_find_nelm_for_xy(xpos,y,ie)
 !        CALL FEP(XPOS,Y,IE)
         IF(IE.EQ.0) THEN
-           GX(NGV)=GCLIP(Y)
+           GX(NGV)=gdclip(Y)
            GV(NGV,1)=0.0
            GV(NGV,2)=0.0
            GV(NGV,3)=0.0
@@ -378,10 +378,10 @@ SUBROUTINE WFCTOGSD(ID,KWD)
 !              END IF
 !           END IF
            IF(ABS(CE).LT.1.D-12) CE=(0.D0,0.D0)
-           GX(NGV)=GCLIP(Y)
-           GV(NGV,1)=GCLIP(REAL(CE))
-           GV(NGV,2)=GCLIP(AIMAG(CE))
-           GV(NGV,3)=GCLIP(ABS(CE))
+           GX(NGV)=gdclip(Y)
+           GV(NGV,1)=gdclip(REAL(CE))
+           GV(NGV,2)=gdclip(AIMAG(CE))
+           GV(NGV,3)=gdclip(ABS(CE))
         ENDIF
      ENDDO
   end if
@@ -395,11 +395,11 @@ END SUBROUTINE WFCTOGSD
 SUBROUTINE WFCTOGND(ID,KWD)
 
   use wfcomm
+  USE libgrf
   use feminterpolate
   implicit none
   integer,intent(in) :: ID
   integer :: IE,NGX,NGY,NGV
-  real(4) :: GCLIP
   real(8) :: DX,DY,X,Y
   real(8) :: XPOS,YPOS
   complex(8) :: CE
@@ -447,11 +447,11 @@ SUBROUTINE WFCTOGND(ID,KWD)
                  
               ! -----------
               IF(KID.EQ.'R') THEN
-                 GZ(NGX,NGY)=GCLIP(REAL(CE))
+                 GZ(NGX,NGY)=gdclip(REAL(CE))
               ELSE IF(KID.EQ.'I') THEN
-                 GZ(NGX,NGY)=GCLIP(AIMAG(CE))
+                 GZ(NGX,NGY)=gdclip(AIMAG(CE))
               ELSE IF(KID.EQ.'A') THEN
-                 GZ(NGX,NGY)=GCLIP(ABS(CE))
+                 GZ(NGX,NGY)=gdclip(ABS(CE))
               ENDIF
            ENDIF
         END DO
@@ -467,7 +467,7 @@ SUBROUTINE WFCTOGND(ID,KWD)
         CALL fem_find_nelm_for_xy(x,ypos,ie)
 !        CALL FEP(X,YPOS,IE)
         IF(IE.EQ.0) THEN
-           GX(NGV)=GCLIP(X)
+           GX(NGV)=gdclip(X)
            GV(NGV,1)=0.0
            GV(NGV,2)=0.0
            GV(NGV,3)=0.0
@@ -479,10 +479,10 @@ SUBROUTINE WFCTOGND(ID,KWD)
               CE=-CE
            ENDIF
            IF(ABS(CE).LT.1.D-12) CE=(0.D0,0.D0)
-           GX(NGV)=GCLIP(X)
-           GV(NGV,1)=GCLIP(REAL(CE))
-           GV(NGV,2)=GCLIP(AIMAG(CE))
-           GV(NGV,3)=GCLIP(ABS(CE))
+           GX(NGV)=gdclip(X)
+           GV(NGV,1)=gdclip(REAL(CE))
+           GV(NGV,2)=gdclip(AIMAG(CE))
+           GV(NGV,3)=gdclip(ABS(CE))
         ENDIF
 !        IF(ABS(CE).NE.0.D0) THEN
 !           WRITE(6,'(A,I12,1P5E12.4)') 'CEND:',IE,X,Y,CE
@@ -502,7 +502,7 @@ SUBROUTINE WFCTOGND(ID,KWD)
         CALL fem_find_nelm_for_xy(xpos,y,ie)
 !        CALL FEP(XPOS,Y,IE)
         IF(IE.EQ.0) THEN
-           GX(NGV)=GCLIP(Y)
+           GX(NGV)=gdclip(Y)
            GV(NGV,1)=0.0
            GV(NGV,2)=0.0
            GV(NGV,3)=0.0
@@ -514,10 +514,10 @@ SUBROUTINE WFCTOGND(ID,KWD)
               CE=-CE
            ENDIF
            IF(ABS(CE).LT.1.D-12) CE=(0.D0,0.D0)
-           GX(NGV)=GCLIP(Y)
-           GV(NGV,1)=GCLIP(REAL(CE))
-           GV(NGV,2)=GCLIP(AIMAG(CE))
-           GV(NGV,3)=GCLIP(ABS(CE))
+           GX(NGV)=gdclip(Y)
+           GV(NGV,1)=gdclip(REAL(CE))
+           GV(NGV,2)=gdclip(AIMAG(CE))
+           GV(NGV,3)=gdclip(ABS(CE))
         ENDIF
 !        IF(ABS(CE).NE.0.D0) THEN
 !           WRITE(6,'(A,I12,1P5E12.4)') 'CEND:',IE,X,Y,CE
@@ -590,12 +590,12 @@ END SUBROUTINE WFGWFR
 subroutine wfgout_2d_vector
 
   use wfcomm
+  USE libgrf
   implicit none
 
   integer :: IE,NGX,NGY
   complex(8):: CE
   real(8):: DX,DY,X,Y
-  REAL(4):: GCLIP
   real(8),dimension(:,:),ALLOCATABLE::GZ_r,GZ_z
 
   allocate(GZ_r(NGXMAX,NGYMAX),GZ_z(NGXMAX,NGYMAX))
@@ -604,10 +604,10 @@ subroutine wfgout_2d_vector
   DY=(ZNDMAX-ZNDMIN)/(NGYMAX-1)
   DX=(RNDMAX-RNDMIN)/(NGXMAX-1)
   DO NGX=1,NGXMAX
-     G2X(NGX)=GCLIP(RNDMIN+DX*(NGX-1))
+     G2X(NGX)=gdclip(RNDMIN+DX*(NGX-1))
   ENDDO
   DO NGY=1,NGYMAX
-     G2Y(NGY)=GCLIP(ZNDMIN+DY*(NGY-1))
+     G2Y(NGY)=gdclip(ZNDMIN+DY*(NGY-1))
   ENDDO
   DO NGY=1,NGYMAX
      Y=ZNDMIN+DY*(NGY-1)
@@ -619,9 +619,9 @@ subroutine wfgout_2d_vector
            GZ_z(NGX,NGY)=0.0
         ELSE
            CALL FIELDCR(IE,X,Y,CESD,CE)
-           GZ_r(NGX,NGY)=GCLIP(AIMAG(CE))
+           GZ_r(NGX,NGY)=gdclip(AIMAG(CE))
            CALL FIELDCZ(IE,X,Y,CESD,CE)
-           GZ_z(NGX,NGY)=GCLIP(AIMAG(CE))
+           GZ_z(NGX,NGY)=gdclip(AIMAG(CE))
        ENDIF
      END DO
   ENDDO

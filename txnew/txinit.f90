@@ -964,6 +964,7 @@ SUBROUTINE TXPROF
   use tx_ntv, only : perturb_mag, Wnm_spline
   use eqread_mod, only : AJphVRL
   use mod_eqneo, only : wrap_eqneo
+  USE libitp
   USE libinv
 #ifdef flapack95
 #ifdef laself
@@ -977,6 +978,7 @@ SUBROUTINE TXPROF
 #endif
 #endif
 
+  USE libitp
   implicit none
   INTEGER(4) :: NR, IER, ifile, NHFM, NR_smt, NR_smt_start = 10
   REAL(8) :: rhol, PROFN, PROFT, PTePROF, PTiPROF!, RL, QL, dRIP
@@ -985,7 +987,6 @@ SUBROUTINE TXPROF
        &     Cfpe1, Cfpe2, Cfpi1, Cfpi2, sigma, fexp, PN0L, PNaL, PNeDIVL, &
        &     PTe0L, PTi0L, PTeaL, PTiaL, PTeDIVL, PTiDIVL
   real(8) :: BCLQm3, etanc, etaspz, dum=0.d0, tmp
-  REAL(8) :: aitken2p!, DERIV4
   real(8), dimension(:), allocatable :: AJPHL, tmpa, RHSV, Prof1, Prof2, &
        & Profsdt, dProfsdt
   real(8), dimension(:,:), allocatable :: CMTX!, dPsV
@@ -1659,9 +1660,8 @@ contains
        WRITE(6,*) 'XX PARM FILE EOF ERROR'
        RETURN
     END IF
-    CALL KTRIM(KPNAME,KL)
     WRITE(6,*) &
-         &     '## FILE (',KPNAME(1:KL),') IS ASSIGNED FOR PARM INPUT'
+         &     '## FILE (',TRIM(KPNAME),') IS ASSIGNED FOR PARM INPUT'
     IERR=0
 
   END SUBROUTINE TXPARF

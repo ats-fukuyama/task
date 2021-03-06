@@ -13,9 +13,9 @@
       use tr_bpsd,only: tr_bpsd_put, tr_bpsd_get
       use trunit
       use equnit_mod
+      USE libitp
       IMPLICIT NONE
       INTEGER(4):: IERR
-      REAL(8)   :: FCTR
 
       IF(NT.GE.NTMAX) GOTO 9000
 

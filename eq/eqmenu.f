@@ -97,8 +97,7 @@ C
          END IF
 C
       ELSEIF(KID.EQ.'K') THEN
-         CALL KTRIM(KNAMEQ,KL)
-   11    WRITE(6,*) '#EQ> INPUT : EQDSK FILE NAME : ',KNAMEQ(1:KL)
+   11    WRITE(6,*) '#EQ> INPUT : EQDSK FILE NAME : ',TRIM(KNAMEQ)
          READ(5,'(A80)',ERR=11,END=9000) KNAM
          IF(KNAM(1:2).NE.'/ ') KNAMEQ=KNAM
 C

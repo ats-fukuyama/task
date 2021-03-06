@@ -27,6 +27,7 @@
            NGLF, NRMAX, NSM, NSMAX, PA, PHIA, PI, PZ, Q0, QP, RA, RG, RKAP, &
            RKPRHO, RM, RMJRHO, RMNRHO, RN, RNF, RR, RT, VPAR, VPRP, VTOR, &
            WEXB, WROT, ZEFF, ALPHA
+      USE libitp
       IMPLICIT NONE
       INCLUDE 'trglf.inc'
       REAL(8),DIMENSION(NRMAX), INTENT(IN):: S_HM
@@ -36,7 +37,7 @@
       REAL(8)   :: &
            alpha_e, amassgas_exp, amassimp_exp, arho_exp, bt_exp, chietem, &
            chiitim, deltat, diffnem, etaparm, etaperm, etaphim, exchm, &
-           fctr, qe, qi, qn, rmajor_exp, x_alpha, zimp_exp, zpne_in, &
+           qe, qi, qn, rmajor_exp, x_alpha, zimp_exp, zpne_in, &
            zpni_in, zpte_in, zpti_in
 
       MDDW=1
@@ -458,6 +459,7 @@
            AR1RHOG, AR2RHOG, BB, DR, EPSRHO, MDDW, MDLKAI, MDLTPF, &
            NRMAX, NT, PA, PNSS, PTS, PZ, QP, RA, RHOG, RHOM, RJCB, RKAP, &
            RKEV, RMU0, RN, RR, RT, WEXB, S
+      USE libitp
       IMPLICIT NONE
       INTEGER(4):: ist, nr
       REAL(8)   :: &
@@ -466,7 +468,6 @@
            rlist, rneql, rnl, rotl, sche, schi, schq, sd, sdq, search, &
            shat, sl, slbl, slnel, slnil, slnql, sltel, sltil, sltql, taul, &
            tauzl, tel, wexbl, zl
-      REAL(8)   :: deriv3p
       REAL(8),DIMENSION(5):: CHEL, CHIL, CHQL, DL, DQL
 
       MDDW=1
@@ -1019,6 +1020,7 @@
            S,EPSRHO,RKPRHOG,RT,BB,AMM,AME,PNSS,PTS,RNFL,RBEEDG,MDLUF,NSMAX, &
            AR1RHOG,AR2RHOG,AKDW)
 
+      USE libitp
       IMPLICIT NONE
 
       INTEGER(4),INTENT(IN):: NSTM,NRMAX,MDLUF,NSMAX
@@ -1036,7 +1038,6 @@
            rmajor, tekev, tikev, zchie1, zchie2, zchii1, zchii2, zchiicyc, &
            zeps, zkappa, znbne, zncne, znine, zq, zrln, zrlt, zrlt1, zrlt2, &
            zshat
-      REAL(8)   :: DERIV3P
 
 
       ierr=0

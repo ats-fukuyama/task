@@ -76,6 +76,7 @@ C       YA    : Coordinate of the current position
 C       N     : Number of partitions along the magnetic surface
 C       IERR  : Error indicator
 C
+      USE eqlib
       INCLUDE '../eq/eqcomc.inc'
 C
       EXTERNAL EQDERV
@@ -206,6 +207,7 @@ C     ***** calculate position of magnetic axis *****
 C
       SUBROUTINE find_axis
 C
+      USE eqlib
       INCLUDE '../eq/eqcomc.inc'
       EXTERNAL PSIGD
 C
@@ -233,6 +235,7 @@ C     ***** calculate position of xpoint1 *****
 C
       SUBROUTINE find_xpoint1
 C
+      USE eqlib
       INCLUDE '../eq/eqcomc.inc'
       EXTERNAL PSIGD
 C
@@ -260,6 +263,7 @@ C     ***** calculate position of xpoint2 *****
 C
       SUBROUTINE find_xpoint2
 C
+      USE eqlib
       INCLUDE '../eq/eqcomc.inc'
       EXTERNAL PSIGD
 C
@@ -303,6 +307,7 @@ C       IERR  : Error indicator
 C
 C      INCLUDE '../eq/eqcomc.inc'
 C
+      USE eqlib
       IMPLICIT NONE
       REAL(8),INTENT(IN):: RINIT,ZINIT,RXP,ZXP,H
       INTEGER,INTENT(IN):: NMAX

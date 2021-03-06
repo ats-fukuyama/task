@@ -19,10 +19,10 @@ CONTAINS
       USE TRCOM1, ONLY : NTAMAX
       USE trbpsd, ONLY: tr_bpsd_put, tr_bpsd_get
       USE trexec
+      USE libitp
       USE equnit_mod
       IMPLICIT NONE
       INTEGER(4):: IERR,nr
-      REAL(8)   :: FCTR
 
       IF(NT.GE.NTMAX) GOTO 9000
       CALL tr_eval(NT,IERR)

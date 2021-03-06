@@ -358,8 +358,10 @@ END SUBROUTINE WFRFLD
       SUBROUTINE G10BFL
 !
       use wfcomm
+      IMPLICIT NONE  
 !      CHARACTER KGFN*15, KLINE1*30, KLINE2*30
       CHARACTER KGFN*15, KLINE1*9, KLINE2*30
+      INTEGER:: IST,J
 
       KGFN = 'G10BFLD_ZXY.txt'
 !
@@ -399,8 +401,11 @@ END SUBROUTINE G10BFL
       SUBROUTINE XYPROF
 !
       use wfcomm
+      IMPLICIT NONE  
       CHARACTER KFNCEP*10
-      DIMENSION ZPOINT(NNMAX),ESUM(2),BSUM(2)
+      REAL(rkind):: ZPOINT(NNMAX),ESUM(2),BSUM(2)
+      REAL(rkind):: BNEG,BPOS,DFZ,DFZMIN,ELLIPL,ENEG,EPOS,REF,XPT,YPT,ZPT
+      INTEGER:: IST,J,NCOUNT,NN,NUMNOD,NUMZND,NZ
 
 !     格納用のファイルを開く
 !     open files for saving
@@ -495,8 +500,11 @@ END SUBROUTINE XYPROF
       SUBROUTINE AXPROF
 !
       use wfcomm
+      IMPLICIT NONE  
       CHARACTER KFNCEP*10
-      DIMENSION RNAX(2),AEP(2),ABP(2)
+      REAL(rkind)::  RNAX(2),AEP(2),ABP(2)
+      REAL(rkind):: BABSAX,DFZ,DFZMIN,REF,XPT,YPT,ZPT
+      INTEGER:: IST,J,NN
 
 !     格納用のファイルを開く
 !     opening file for saving
@@ -572,8 +580,10 @@ END SUBROUTINE AXPROF
       SUBROUTINE ANTIMP
 !
       use wfcomm
+      IMPLICIT NONE  
       CHARACTER KFNCEP*10
-      DIMENSION RNAX(2),AEP(2),ABP(2)
+      REAL(rkind):: RNAX(2),AEP(2),ABP(2)
+      INTEGER:: IST
 
 !     格納用のファイルを開く
 !     opening file for saving
@@ -608,9 +618,12 @@ END SUBROUTINE ANTIMP
       SUBROUTINE FLDOUT
 !
       use wfcomm
+      IMPLICIT NONE  
       CHARACTER KFNCEP*10
-      DIMENSION ZPOINT(NNMAX),ESUM(2),BSUM(2),RZCL(NSM),WC(NSM)
-      DIMENSION CDUMMY(3,3,NSM)
+      REAL(rkind):: ZPOINT(NNMAX),ESUM(2),BSUM(2),RZCL(NSM),WC(NSM)
+      REAL(rkind):: CDUMMY(3,3,NSM)
+      REAL(rkind):: BFIELD
+      INTEGER:: IST,NN
 
 !     格納用のファイルを開く
 !     opening file for saving

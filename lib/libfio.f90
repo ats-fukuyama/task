@@ -153,6 +153,7 @@ CONTAINS
 !                 8 : EMPTY FILE NAME
 !        KNAMFL_OUT: OPTIONAL: opened filename
 
+      USE libchar
       IMPLICIT NONE
 
       INTEGER,       INTENT(IN)   :: NFL, MODEF, MODEP

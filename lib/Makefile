@@ -15,11 +15,12 @@ SRCSFREE  =  task_kinds.f90 \
              libspl1d.f90 libspl2d.f90 libspl3d.f90 \
              libderiv.f90 libpol.f90 \
              libbnd.f90 libbrent.f90 libde.f90 libdsp.f90 \
-             libell.f90 libeq.f90  libfem.f90 libfft.f90 \
-             libgut.f90 libinv.f90 libitp.f90 libpcgpme.f90 \
+             libell.f90 libfem.f90 libfft.f90 \
+             libinv.f90 libpcgpme.f90 \
              libqsort.f90 librk.f90 librkf.f90 libspf.f90 libsympl.f90 \
              netlib-bes.f90 libbes.f90 \
              libchar.f90 libkio.f90 libfio.f90 \
+             libitp.f90 \
              libufile/ufinit.f90 libufile/uflist.f90 libufile/ufread.f90 \
              ufile.f90
 
@@ -118,12 +119,9 @@ libbrent.o: $(TASKCOMM) libbrent.f90
 libde.o: $(TASKCOMM) libde.f90
 libdsp.o: $(TASKCOMM) libdsp.f90
 libell.o: $(TASKCOMM) libell.f90
-libeq.o: $(TASKCOMM) libeq.f90
 libfem.o: $(TASKCOMM) libfem.f90
 libfft.o: $(TASKCOMM) libfft.f90
-libgut.o: $(TASKCOMM) libgut.f90
 libinv.o: $(TASKCOMM) libinv.f90
-libitp.o: $(TASKCOMM) libspl1d.f90 libitp.f90
 libpcgpme.o: $(TASKCOMM) libpcgpme.f90
 libqsort.o: $(TASKCOMM) libqsort.f90
 librk.o: $(TASKCOMM) librk.f90
@@ -133,6 +131,7 @@ libspl1d.o: $(TASKCOMM) libspl1d.f90
 libspl2d.o: $(TASKCOMM) libspl2d.f90
 libspl3d.o: $(TASKCOMM) libspl3d.f90
 libsympl.o: $(TASKCOMM) libsympl.f90
+libitp.o: $(TASKCOMM) libitp.f90 
 
 netlib-bes.o: libspf.f90 netlib-bes.f90
 libbes.o: $(TASKCOMM) netlib-bes.f90 libbes.f90

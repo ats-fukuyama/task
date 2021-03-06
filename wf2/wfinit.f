@@ -564,8 +564,7 @@ C
       ENTRY WFPARL(KLINE)
 C
       MODE=1
-      CALL KTRIM(KLINE,KL)
-      KNAME=' &WF '//KLINE(1:KL)//' &END'
+      KNAME=' &WF '//TRIM(KLINE)//' &END'
 C      KNAME=' &WF '//KLINE//' /'
 C
 C     --- when internal file does not accept namelist ---

@@ -915,14 +915,14 @@
 
       REAL(4) FUNCTION GLOG(X,XMIN,XMAX)
 
-      IMPLICIT NONE
-      REAL(8), intent(in) :: X, XMIN, XMAX
-      REAL(8) :: PLOG
-      REAL(4) :: GUCLIP
+        USE libgrf
+        IMPLICIT NONE
+        REAL(8), intent(in) :: X, XMIN, XMAX
+        REAL(4) :: GUCLIP
 
-      GLOG=GUCLIP(PLOG(X,XMIN,XMAX))
+        GLOG=GUCLIP(PLOG(X,XMIN,XMAX))
 
-      RETURN
+        RETURN
       END FUNCTION GLOG
 
 !     *****************************

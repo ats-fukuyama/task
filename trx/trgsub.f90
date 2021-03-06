@@ -914,9 +914,9 @@
 
       REAL(4) FUNCTION GLOG(X,XMIN,XMAX)
 
+      USE libgrf
       IMPLICIT NONE
       REAL(8), intent(in) :: X, XMIN, XMAX
-      REAL(8) :: PLOG
       REAL(4) :: GUCLIP
 
       GLOG=GUCLIP(PLOG(X,XMIN,XMAX))

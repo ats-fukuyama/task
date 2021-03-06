@@ -27,10 +27,11 @@ contains
                            MODEG, RB, RA, PI, RR, NRA, Q, R, thrp, kappa, &
                            gDIV, IRPIN, DltRPn, NTCOIL, DltRP_mid, DltRP, &
                            GRMIN,GRMAX
-    use tx_interface, only : TXGRUR, TOUPPER, TXGLOD!, INTG_F
+    use tx_interface, only : TXGRUR, TXGLOD!, INTG_F
     use tx_ripple, only : ripple
     use libgrf, only : grd1d
     use libbes, only : besinx
+    USE libchar, ONLY: toupper
 
     INTEGER(4) :: MODE, NGPR, NGPT, NGPV, NGYR, NQ, NQL, NGF, NGFMAX, I, IST, NGRT, NG, IER, J, NGTL
 !    real(4), dimension(0:NRMAX,0:5,1:NGYRM) :: GYL
@@ -4132,10 +4133,10 @@ contains
 
   REAL(4) FUNCTION GLOG(X,XMIN,XMAX)
 
+    USE libgrf
     implicit none
     real(4) :: GUCLIP
     real(8), intent(in) :: X, XMIN, XMAX
-    real(8) :: PLOG
 
     GLOG = GUCLIP(PLOG(X,XMIN,XMAX))
 

@@ -136,11 +136,11 @@ contains
     use tx_commons, only : m_pol, n_tor, q, nrmax, rho, r, &
          &                 epst, RR, rKeV, amas, amp, rNuii, achg, AEE, BB, Var
     USE libspl1d
+    USE libitp
     implicit none
 
     integer(4) :: nr, m, ierr
     real(8) :: suml, f, wnm_plus, wnm_minus, Vti2, dPTiV, B_lambda
-    real(8) :: deriv4, aitken2p ! external function
 
     do nr = 0, nrmax
        suml = 0.d0

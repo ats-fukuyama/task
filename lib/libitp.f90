@@ -1,3 +1,25 @@
+! trlib.f90
+
+MODULE libitp
+
+  PRIVATE
+  PUBLIC TIMESPL
+  PUBLIC LAGLANGE
+  PUBLIC FITLAG
+  PUBLIC AITKEN2P
+  PUBLIC AITKEN4P
+  PUBLIC AITKEN
+  PUBLIC DERIV4P
+  PUBLIC DERIV4
+  PUBLIC DERIV3P
+  PUBLIC DERIV3
+  PUBLIC FCTR
+  PUBLIC FCTR4pt
+  PUBLIC FCTR2
+  PUBLIC SCTR
+
+CONTAINS
+
 !     ********************************************
 !     **  Time splitting through interpolation  **
 !     ********************************************
@@ -92,7 +114,7 @@
       integer,              intent(out) :: IERR
       real(dp),                 intent(out) :: FOUT
       integer :: M, IERRL
-      real(dp) :: FITLAG, EPS
+      real(dp) :: EPS
 !      COMMON /COMEPS/ EPS,IERRL
 
       M = 5
@@ -688,3 +710,4 @@
 
       RETURN
       end subroutine SCTR
+END MODULE libitp

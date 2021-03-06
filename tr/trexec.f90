@@ -27,6 +27,7 @@ CONTAINS
          RDPVRHOG, abvrhog
       USE TRCOM1, ONLY : TMU, TMU1, NTXMAX, NTXMAX1
       USE libbnd
+      USE libitp
       IMPLICIT NONE
       REAL(8),INTENT(IN) :: DT
       INTEGER(4),INTENT(OUT) :: IERR
@@ -1142,7 +1143,7 @@ CONTAINS
 
       USE trcomm
       USE TRCOM1, ONLY : D, RD
-      
+      USE libitp
       IMPLICIT NONE
       INTEGER(4),INTENT(IN) :: NR, NSW
       REAL(8)   , INTENT(OUT)::DV53
@@ -1150,7 +1151,7 @@ CONTAINS
            IND, NEQ, NEQ1, NEQLMAX, NF, NI, NJ, NMK, NMKL, NO, NRF, NRJ, &
            NSSN, NSSN1, NSVN, NSVN1, NV, NW
       REAL(8)   :: &
-           AITKEN2P, C83, CC, DISUMN, DISUMT1, DISUMT2, DV11, DV23, VISUMN, &
+           C83, CC, DISUMN, DISUMT1, DISUMT2, DV11, DV23, VISUMN, &
            VISUMT1, VISUMT2
       REAL(8),DIMENSION(2) :: F2C
       REAL(8),DIMENSION(4) :: SIG, FCB

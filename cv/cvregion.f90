@@ -7,6 +7,7 @@ CONTAINS
 
   SUBROUTINE cv_region
     USE cvcomm
+    USE libchar
     IMPLICIT NONE
     CHARACTER(LEN=1):: KID
     INTEGER:: ierr

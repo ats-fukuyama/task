@@ -213,7 +213,7 @@ module wfcomm
 !     (wfgout.f) Magnetic Field and Plasma density Profile
    real(rkind),dimension(:),ALLOCATABLE:: YBABS,YDEN,YDENI,YPSI
    real(rkind):: DUMMY1
-   real(rkind):: DUMMY2,DUMMY3,DUMMY4
+   real(rkind):: DUMMY2(NSM),DUMMY3(NSM),DUMMY4(NSM)
 !
 !     (wfdiv.f) Elements
 !     /YAMA03/YAMA04/

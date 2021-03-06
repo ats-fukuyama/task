@@ -1592,6 +1592,7 @@ END FUNCTION DERIVF
 function dfdx(x,f,nmax,mode,daxs,dbnd)
 
   USE libspl1d
+  USE libitp
   implicit none
   integer(4), intent(in) :: nmax, mode
   real(8), dimension(0:nmax), intent(in) :: x, f
@@ -1601,7 +1602,6 @@ function dfdx(x,f,nmax,mode,daxs,dbnd)
   integer(4) :: n, ierr
   real(8), dimension(0:nmax) :: deriv
   real(8), dimension(1:4,0:nmax) :: u
-  real(8) :: deriv4
 
   if(present(daxs)) then
      dfdx(0)    = daxs
@@ -1797,6 +1797,7 @@ END SUBROUTINE BISECTION
 !************************************************************************************
 
 subroutine inexpolate(nmax_in,rho_in,dat_in,nmax_std,rho_std,imode,dat_out,ideriv,nrbound,idx)
+  USE libitp
   implicit none
   integer(4), intent(in) :: nmax_in, nmax_std, imode
   integer(4), intent(in),  optional :: ideriv, idx
@@ -1807,7 +1808,6 @@ subroutine inexpolate(nmax_in,rho_in,dat_in,nmax_std,rho_std,imode,dat_out,ideri
   integer(4) :: i, iaxis, iedge, nmax, isep
   real(8) :: rhoa
   real(8), dimension(:), allocatable :: rho_tmp, dat_tmp
-  real(8) :: aitken2p, fctr
 
   isep = 0
 

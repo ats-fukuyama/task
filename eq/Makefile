@@ -15,7 +15,7 @@ FFLAGS=$(DFLAGS)
 
 MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD) -I../lib/$(MOD)
 
-SRCX = equcom.f90 equread.f90
+SRCX = equcom.f90 equread.f90 eqlib.f90
 SRCS = eqbpsd.f eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f \
        eqsub.f eqfunc.f eqintf.f eqsplf.f equintf.f \
        eq-eqdsk.f eq-qst.f eqfile.f \
@@ -109,6 +109,7 @@ eqintf.o: eqintf.f $(EQCOMM) eqcom2.inc
 eqgout.o: eqgout.f $(EQCOMM) eqcom2.inc eqcom3.inc
 eqbpsd.o: eqbpsd.f $(EQCOMM) eqcom3.inc
 eqjft2m.o: eqjft2m.f $(EQCOMM) eqcom3.inc
+eqlib.o : eqlib.f90
 equnit.o: equnit.f eqbpsd.f
 eqgsub.o: eqgsub.f
 eqg2d.o: eqg2d.f $(EQCOMM) eqcom3.inc

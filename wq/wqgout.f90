@@ -11,6 +11,7 @@ CONTAINS
     USE wqcomm
     USE wqparm,ONLY: wq_parm,wq_broadcast
     USE wqview,ONLY: wq_view
+    USE libchar
     USE libkio
     USE libmpi
     IMPLICIT NONE

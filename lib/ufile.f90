@@ -132,6 +132,7 @@ end module ufile_integer
 
     use ufile_integer
     USE task_kinds,ONLY: dp
+    USE libitp
     implicit none
 !    COMMON /UFMODE/ MODEL
     integer, intent(in)  :: NRMU, NTUM
@@ -142,7 +143,6 @@ end module ufile_integer
     real(dp), dimension(NTUM),      intent(out) :: TMU
     real(dp), dimension(NTUM,NRMU), intent(out) :: F2
     integer :: IKNDEV, IKNDCG, IKDIRX, KL2, NRFMAX, NTXMAX, NTX, NRF, MD, IST
-    real(dp) :: FCTR, AITKEN2P
     real(dp), dimension(NTUM) :: F2CTR, F2EDG
     real(dp), dimension(NRMU,NTUM) :: F2I
     character(len=100) :: KDIRR2, KFILE
@@ -251,6 +251,7 @@ end module ufile_integer
   SUBROUTINE DATA_ERROR_CORRECT(KUFDEV,KUFDCG,KFID,RUF,F2,NTXMAX,NRMU,NTUM)
 
     USE task_kinds,ONLY: dp
+    USE libitp
     implicit none
     integer :: NTXMAX, NRMU, NTUM
     character(len=80), intent(in) :: KUFDEV, KUFDCG
@@ -258,7 +259,6 @@ end module ufile_integer
     real(dp), dimension(NRMU) :: RUF
     real(dp), dimension(NTUM,NRMU) :: F2
     integer :: NTX
-    real(dp) :: FCTR
 
     IF(KUFDEV == 'jet' .AND. KFID == 'GRHO1') THEN
        IF(KUFDCG == '57987' .OR. KUFDCG == '58159' .OR. KUFDCG == '58323') THEN
@@ -428,6 +428,7 @@ end module ufile_integer
   SUBROUTINE TRXR1D(KDIRR1,KFID,T,F1,NTM,NTXMAX,MODEL)
 
     USE task_kinds,ONLY: dp
+    USE libchar
     implicit none
     integer,              intent(in)  :: NTM, MODEL
     character(len=80),       intent(in)  :: KDIRR1
@@ -437,7 +438,7 @@ end module ufile_integer
     integer :: KL1, KL2, MODE, IST, IMATCH, NTX, KL, INCL, NDPOS, IERR, NT
     character(len=80) :: KFILE, KFILEB, KMATCH1, KMATCH2, KMATCH3, KKLINE, KKLINE1, KKLINE2
     character(len=15) :: KFIDB
-    LOGICAL :: KMATCH, LEX
+    LOGICAL :: LEX
 
     MODE=MODEL
     IMATCH=0
@@ -541,6 +542,7 @@ end module ufile_integer
   SUBROUTINE TRXR2D(KDIRR2,KFID,T,R,F2,NRM,NTM,NRXMAX,NTXMAX,MODEL)
 
     USE task_kinds,ONLY: dp
+    USE libchar
     implicit none
     integer,                  intent(in)  :: NRM, NTM, MODEL
     character(len=80),           intent(in)  :: KDIRR2
@@ -552,7 +554,7 @@ end module ufile_integer
     integer :: KL2, MODE, IST, IMATCH, NRX, NTX, KL, INCL, NDPOS, IERR, NT
     character(len=80) :: KFILE, KFILEB, KMATCH1, KMATCH2, KMATCH3, KKLINE, KKLINE1, KKLINE2
     character(len=15) :: KFIDB
-    LOGICAL :: KMATCH, LEX
+    LOGICAL :: LEX
 
     MODE=MODEL
     IMATCH=0

@@ -168,10 +168,10 @@ CONTAINS
      &                   RIPS, RJCB, RKAP, RKPRHO, RKPRHOG, RM, RMJRHO, RMNRHO, RN, RNF, RPSI, RR, RT, RTF, RU, RW, T, TIME_INT,&
      &                   TPRE, TPRST, TSST, TST, TTRHO, TTRHOG, VPOL, VSEC, VTOR, WPPRE, &
      &                   ALLOCATE_TRCOMM, ABVRHO, ABVRHOG, RDPVRHOG
+      USE libitp
       USE libfio
       IMPLICIT NONE
       INTEGER(4):: IERR
-      REAL(8)   :: FCTR
 
 
       CALL FROPEN(21,KNAMTR,0,1,'TR',IERR)

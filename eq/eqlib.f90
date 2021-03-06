@@ -1,3 +1,14 @@
+! eqlib.f90
+  
+MODULE eqlib
+
+  PRIVATE
+  PUBLIC eqrk4
+  PUBLIC newtn
+  PUBLIC fpow
+
+CONTAINS
+
 !     ****** SIMPLE RUNGE-KUTTA METHOD ******
 
       SUBROUTINE EQRK4(X,Y,DYDX,YOUT,H,N,DERIVS)
@@ -158,3 +169,5 @@
       ENDIF
       RETURN
       END FUNCTION FPOW
+
+END MODULE eqlib

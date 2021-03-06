@@ -420,7 +420,7 @@
 
       SUBROUTINE mtxc_solve(itype,tolerance,its, &
            methodKSP,methodPC,damping_factor,emax,emin,max_steps)
-        USE libbnd
+      USE libbnd
       IMPLICIT NONE
       INTEGER,INTENT(IN):: itype     ! not used
       REAL(dp),INTENT(IN):: tolerance ! not used

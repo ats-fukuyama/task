@@ -493,6 +493,7 @@ contains
     use tx_commons, only : NRMAX, NRA, FSRP, R, RA, RB, PI, RR, &
          &                 AMb, Vb, PZ, AEE, BthV, Q, BphV
     use tx_interface, only : INTG_F
+    USE libitp
     real(8), intent(in)  :: R0, RW
     real(8), intent(in), optional :: PNBCD
     character(len=*), intent(in) :: CHR
@@ -500,7 +501,6 @@ contains
     real(8), intent(out) :: SINT
     integer(4) :: nr
     real(8) :: EpsL, Rshift, Rpotato, rhop
-!!    real(8) :: AITKEN2P
 
     if(CHR == 'Additional') then
        S(0:NRA) = 1.D0 - (R(0:NRA) / RA)**2
@@ -572,6 +572,7 @@ contains
 
   subroutine shift_prof(f,kchar,direct)
     use tx_commons, only : NRMAX, R, RR, AMb, Vb, PZ, AEE, BthV, Q, BphV, PNBCD
+    USE libitp
     real(8), dimension(0:NRMAX), intent(inout) :: f
     character(len=4), intent(in) :: kchar
     real(8), intent(in) :: direct

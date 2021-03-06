@@ -108,8 +108,7 @@ CONTAINS
 
       IF(MODE.EQ.0) THEN
     1    CONTINUE
-         CALL KTRIM(KNL,KL)
-         WRITE(6,'(A,A,A)') '## INPUT ',KNL(1:KL),' :'
+         WRITE(6,'(A,A,A)') '## INPUT ',TRIM(KNL),' :'
          CALL XXNLIN(5,IST,IERR)
          IF(IERR.EQ.8) THEN
             CALL XXPLST
@@ -129,14 +128,11 @@ CONTAINS
          IF(IERR.EQ.8) GOTO 9800
          IF(IERR.EQ.9) GOTO 9900
          CLOSE(25)
-         CALL KTRIM(LINE,KL)
          WRITE(6,'(A,A,A)')  &
-     &        '## FILE (',LINE(1:KL),') IS ASSIGNED FOR PARM INPUT'
+     &        '## FILE (',TRIM(LINE),') IS ASSIGNED FOR PARM INPUT'
 
       ELSEIF(MODE.EQ.2) THEN
-         CALL KTRIM(KNL,KL1)
-         CALL KTRIM(LINE,KL2)
-         KNLINE=' &'//KNL(1:KL1)//' '//LINE(1:KL2)//' /'
+         KNLINE=' &'//TRIM(KNL)//' '//TRIM(LINE)//' /'
          WRITE(7,'(A90)') KNLINE
          REWIND(7)
          CALL XXNLIN(7,IST,IERR)

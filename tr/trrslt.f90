@@ -8,9 +8,10 @@
 
       USE trcomm
       USE trexec
+      USE libitp
       IMPLICIT NONE
       INTEGER(4):: NEQ, NF, NMK, NR, NRL, NS, NSSN, NSSN1, NSVN, NSVN1, NSW, NW
-      REAL(8)   :: ANFSUM, C83, DRH, DV53, FCTR, PAI, PLST, RNSUM, RNTSUM, &
+      REAL(8)   :: ANFSUM, C83, DRH, DV53, PAI, PLST, RNSUM, RNTSUM, &
            & RTSUM, RWSUM, SLST, SUMM, SUML, SUMP, VOL, WPOL
       REAL(8),DIMENSION(NRMAX):: DSRHO
 
@@ -1436,6 +1437,7 @@
       SUBROUTINE TR_UFILE2D_CREATE(KFID,NUM,AMP,ID,IERR)
 
       USE TRCOMM, ONLY : GVRT, GRG, GRM, GT, NGT, NRMAX, NRMP, NTM
+      USE libitp  
       USE libspl1d
       IMPLICIT NONE
       CHARACTER(LEN=80),INTENT(IN) :: KFID
@@ -1443,7 +1445,7 @@
       REAL(8)          ,INTENT(IN) :: AMP
       INTEGER(4)       ,INTENT(OUT):: IERR
       INTEGER(4)::NTL, NRLMAX, NTLMAX, NRL
-      REAL(8)   ::DTL, TIN, F0, R1, R2, F1, F2, FCTR
+      REAL(8)   ::DTL, TIN, F0, R1, R2, F1, F2
       REAL(4),DIMENSION(NRMP)    :: GRL
       REAL(4),DIMENSION(NTM)     :: GTL
       REAL(4),DIMENSION(NRMP,NTM):: GF2

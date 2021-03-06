@@ -70,10 +70,10 @@ subroutine TXSTAT
        &                 BETAPA, BETAN, Q, ANSAV, rIp, PI, RA, NRA, NRMAX, &
        &                 rMui, Chii, TSAV, Gamma_a, TAUPA, achg, &
        &                 rKeV, amas, amp, RR, rNuei, rho, Var, vlt
+  USE libitp
   implicit none
   integer(4) :: NR, NRL1, NRL2
   real(8) :: rhol1, rhol2, rmuil, chiil, uiphl, PTeVL, WDe, rNueiL
-  real(8) :: aitken2p
 
   rhol1 = 0.3d0 ; rhol2 = 0.5d0
   DO NR = 0, NRMAX-1
@@ -132,13 +132,12 @@ end subroutine TXSTAT
 
 subroutine steady_check
   use tx_commons, only : NRMAX, Var, T_TX, rho
-
+  USE libitp
   implicit none
   integer(4) :: nr
   integer(4), save :: nrl = 0
   real(8) :: rhol, uiphl, pnevl, pevl
   real(8), save :: uiphl_old = 0.d0, pnevl_old = 0.d0, pevl_old = 0.d0
-  real(8) :: aitken2p
 
   ! Seel a grid number "nrl" nearest rho=0.3
   if(nrl == 0) then
@@ -223,8 +222,7 @@ SUBROUTINE TXSAVE
        & IGBDF,MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDANOM, &
        & MDLNBD,PNBMPD,PNBPTC,thrp,kappa
   use tx_graphic, only : NGYTM,NGYVM,MODEG,MODEGL,NGT,NGVV,NGRSTP,NGTSTP,NGVSTP,GTY,GVY,GQY,GTX,GVX
-  use tx_interface, only : TOUPPER
-
+  USE libchar,ONLY: TOUPPER
   implicit none
   INTEGER(4) :: IST, NQ, NR, NC, I, IGYT, IGYV
   character(len=100) :: TXFNAM, RCSId
@@ -1194,10 +1192,10 @@ end subroutine ascii_input
 integer(4) function detect_datatype(kchar)
 
   use tx_commons, only : infiles, n_infiles
+  USE libchar,ONLY: kmatch
   implicit none
   character(len=*), intent(in) :: kchar
   integer(4) :: i
-  logical :: kmatch
 
   do i = 1, n_infiles
      if(kmatch(infiles(i)%name,kchar)) then
@@ -1392,6 +1390,7 @@ end subroutine for_ofmc
 subroutine initprof_input(nr, idx, out)
 
   use tx_commons, only : Rho, AEE
+  USE libitp
   USE libspl1d
   USE libfio
 
@@ -1401,7 +1400,6 @@ subroutine initprof_input(nr, idx, out)
   integer(4), save :: nrinmax
   real(8), dimension(:), allocatable, save :: rho_in, deriv
   real(8), dimension(:,:), allocatable, save :: prof_in, u1, u2, u3, u4
-  real(8) :: FCTR4pt, AITKEN2P
 
   type unit
      integer(4)          :: l_p

@@ -85,6 +85,7 @@
 
       USE TRCOMM, ONLY : GT, GVRT, GRM, RTU, NGT, NTM, NRMAX, MDLUF
       USE TRCOM1, ONLY : TMU, NTXMAX, NTUM
+      USE libitp
       IMPLICIT NONE
       INTEGER(4) :: I, NR, IERR
       REAL(4),DIMENSION(NTM,NRMAX) :: GYL
@@ -116,7 +117,7 @@
          DO I=1,NGT
             TSL = DBLE(GT(I))
             DO NR=1,NRMAX
-               CALL TIMESPL(TSL,RTEL,TMU,RTU(1,NR,1),NTXMAX,NTUM,IERR)
+               CALL TIMESPL(TSL,RTEL,TMU,RTU(:,NR,1),NTXMAX,NTUM,IERR)
                GYL(I,NR) = GUCLIP(RTEL)
             ENDDO
          ENDDO
@@ -125,7 +126,7 @@
          DO I=1,NGT
             TSL = DBLE(GT(I))
             DO NR=1,NRMAX
-               CALL TIMESPL(TSL,RTDL,TMU,RTU(1,NR,2),NTXMAX,NTUM,IERR)
+               CALL TIMESPL(TSL,RTDL,TMU,RTU(:,NR,2),NTXMAX,NTUM,IERR)
                GYL(I,NR) = GUCLIP(RTDL)
             ENDDO
          ENDDO

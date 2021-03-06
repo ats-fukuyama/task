@@ -3,7 +3,7 @@ C
 C
       INCLUDE 'wmcomm.inc'
       integer(4), intent(inout) :: IERR
-      integer(4), intent(in), optional :: IFLG
+      integer(4), intent(in) :: IFLG
       COMPLEX(8),DIMENSION(:),ALLOCATABLE:: CRADTTS
       REAL(8),DIMENSION(:),ALLOCATABLE:: PABSTTS,PCURTS
       REAL(8),DIMENSION(:,:),ALLOCATABLE:: PABSTS,PCURRS
@@ -378,7 +378,7 @@ C
 
 !     ----- Output P_abs(r,s) and J_CD(r) for TOPICS/ACCOME -----
 
-      IF(present(IFLG)) CALL WM_TOPICS_OUT(PABSTS,IERR)
+      IF(IFLG.EQ.1) CALL WM_TOPICS_OUT(PABSTS,IERR)
 
 !     -----------------------------------------------------------
 

@@ -17,13 +17,13 @@ contains
     use tx_interface, only : dfdx, replace_interpolate_value
     use tx_core_module, only : intg_vol_p
 !    use aux_system, only : Vbabsmax
+    USE libitp
     REAL(8), DIMENSION(0:NRMAX,1:NQMAX), INTENT(IN) :: XL
     integer(4), intent(in), optional :: ID
     INTEGER(4) :: NR, i, JSMTHD, n1, n2
     real(8), parameter :: fourPisq = 4.d0 * Pi * Pi
     real(8) :: sdtvac, dPsitVdVvac, sum_int!, BBL
     real(8), dimension(:), allocatable :: dPhidpsiL
-    real(8) :: AITKEN2P ! function
 
     JSMTHD = ISMTHD / 10
 
@@ -281,6 +281,7 @@ contains
     use matrix_inversion, only : tx_matrix_inversion
     use tx_ripple
     use cdbm_mod
+    USE libitp
 !    use tx_ntv, only : NTVcalc, rNuNTV, UastNC
 
     integer(4), intent(in) :: IC
@@ -306,7 +307,6 @@ contains
     real(8) :: EFT, CR
     real(8) :: rhoni, dvexbdr, dvexbdr2 ! CDBM
     real(8) :: xb, fp, fdp, gfun
-    real(8) :: AITKEN2P ! function
     real(8), dimension(0:NRMAX) :: pres, ddPhidpsi, tmp
     ! Mainly for derivatives
     real(8), dimension(:), allocatable :: dErdr, dpdr, dErdrS, ErVlc

@@ -26,7 +26,7 @@ contains
     use tx_commons
     use tx_interface, only : fgaussian
     use libell,only : ellfc, ellec
-
+    USE libitp
     real(8), dimension(0:NRMAX), intent(in) :: dQdr
 
     integer(4) :: NR, IER, i, imax, irip, nr_potato
@@ -34,7 +34,6 @@ contains
          &     width0, width1, dltwidth, ARC, diff_min, theta_min, &
          &     rhob, rNueff, rNubnc, DRP, Dltcr, DltR, Vdrift, Rpotato
 !!    real(8) :: sum_rp, DltRP_ave, DCB, Dlteff
-    real(8) :: AITKEN2P
     real(8), dimension(0:NRMAX) :: th1, th2
 !!rp_conv         &                         ,PNbrpL, DERIV
 !!rp_conv    real(8), dimension(1:4,0:NRMAX) :: U
@@ -466,10 +465,10 @@ contains
     use tx_commons, only : NRA, Rho, rip_rat, DltRP, DltRP_mid, DltRPn, NRMAX
 
     USE libspl1d
+    USE libitp
     integer(4) :: nr, ier, N
     real(8), dimension(:), allocatable :: DERIV
     real(8), dimension(:,:), allocatable :: U
-    real(8) :: deriv4
 
     N = N_RPIN
 

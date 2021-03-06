@@ -243,6 +243,7 @@
            RT, SCX, SIE, TSCX, TSIE,NSMAX
       USE TRCOM1, ONLY : NTAMAX, NTXMAX, PNBI, TMU
       USE tr_cytran_mod, ONLY: tr_cytran
+      USE libitp
       IMPLICIT NONE
       INTEGER(4):: IERR, NR
       REAL(8):: ANDX, ANE, ANHE, ANT, EION, PLC, PLD, PLFE, PLHE, PLTT, &
@@ -258,7 +259,7 @@
             TSL=DT*DBLE(NT)
             IF(KUFDEV.EQ.'X') THEN
                DO NR=1,NRMAX
-                  CALL TIMESPL(TSL,PRLL,TMU,PRLU(1,NR),NTXMAX,NTUM,IERR)
+                  CALL TIMESPL(TSL,PRLL,TMU,PRLU(:,NR),NTXMAX,NTUM,IERR)
                   PRSUM(NR)=PRLL
                ENDDO
             ELSE

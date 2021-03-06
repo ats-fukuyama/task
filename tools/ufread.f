@@ -25,15 +25,11 @@ C
     2 WRITE(6,*) '# DISCHARGE NUMBER ?'
       READ(5,'(A40)',ERR=2,END=1) KXNDCG
 C
-      CALL KTRIM(KXNDEV,IKNDEV)
-      CALL KTRIM(KXNDCG,IKNDCG)
-      CALL KTRIM(KDIR  ,IKDIR )
       CALL TOLOWER(KXNDEV)
 C
-      KDIRX=KDIR(1:IKDIR)//'/'//KXNDEV(1:IKNDEV)//'/'
-     &    //KXNDCG(1:IKNDCG)//'/in/'
-      CALL KTRIM(KDIRX,IKDIRX)
-      KFILE=KDIRX(1:IKDIRX)//KXNDEV(1:IKNDEV)//'2d'//KXNDCG(1:IKNDCG)//
+      KDIRX=TRIM(KDIR)//'/'//TRIM(KXNDEV)//'/'
+     &    //TRIM(KXNDCG)//'/in/'
+      KFILE=TRIM(KDIRX)//TRIM(KXNDEV)//'2d'//TRIM(KXNDCG)//
      &     '.NE'
       INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
       IF(LEX.EQV..FALSE.) THEN
@@ -52,18 +48,15 @@ C
       IF(NDIM.LE.0) GOTO 9000
     6 WRITE(6,*) 'INPUT FILEID'
       READ(5,'(A80)',ERR=6,END=5) KFID
-      CALL KTRIM(KDIRR1,IKDIRR1)
-      CALL KTRIM(KDIRR2,IKDIRR2)
-      CALL KTRIM(KFID,IKFID)
 C     converting lower case characters to upper case ones
       DO I=1,IKFID
          CALL GUCPTL(KFID(I:I))
       ENDDO
 C
       IF(NDIM.EQ.1) THEN
-         KFIDCK=KDIRR1(1:IKDIRR1)//KFID(1:IKFID)
+         KFIDCK=TRIM(KDIRR1)//TRIM(KFID)
       ELSEIF(NDIM.EQ.2) THEN
-         KFIDCK=KDIRR2(1:IKDIRR2)//KFID(1:IKFID)
+         KFIDCK=TRIM(KDIRR2)//TRIM(KFID)
       ELSE
          GOTO 100
       ENDIF
@@ -107,9 +100,8 @@ C
             GT(NTX)=T(NTX)
             GF1(NTX)=F1(NTX)
  5000    CONTINUE
-         CALL KTRIM(KFID,KL)
-         KFIDX='@'//KXNDEV(1:IKNDEV)//'/'//KXNDCG(1:IKNDCG)//'/'
-     &            //KFID(1:KL)//'@'
+         KFIDX='@'//TRIM(KXNDEV)//'/'//TRIM(KXNDCG)//'/'
+     &            //TRIM(KFID)//'@'
          CALL TRGR1D(GX1,GX2,GY1,GY2,
      &               GT,GF1,NTM,NTXMAX,1,KFIDX,2)
       ELSE
@@ -129,14 +121,13 @@ C
             GF2(NRX,NTX)=GUCLIP(F2(NRX,NTX)*FACT)
  6000    CONTINUE
 C
-         CALL KTRIM(KFID,KL)
-         KFIDX='@'//KXNDEV(1:IKNDEV)//'/'//KXNDCG(1:IKNDCG)//'/'
-     &            //KFID(1:KL)//'@'
+         KFIDX='@'//TRIM(KXNDEV)//'/'//TRIM(KXNDCG)//'/'
+     &            //TRIM(KFID)//'@'
          IF (NTXMAX.EQ.1) THEN
             CALL TRGR1D(GX1,GX2,GY1,GY2,
      &           GR,GF2,NRM,NRXMAX,NTXMAX,KFIDX,2)
          ELSE
-            KVAR='@'//KFID(1:KL)//'@'
+            KVAR='@'//TRIM(KFID)//'@'
             CALL GRAPH3(GX1,GX2,GY1,GY2,GR,GT,GF2,
      &                  NRM,NRXMAX,NTXMAX,KFIDX,KVAR,2)
          ENDIF
@@ -171,9 +162,8 @@ C
       READ(IDOPEN,UFPARM,IOSTAT=IST2,ERR=9200,END=9900)
       CLOSE(IDOPEN)
 C
-      CALL KTRIM(LINE,KL)
       WRITE(6,'(A,A,A)') 
-     &     '## FILE (',LINE(1:KL),') IS ASSIGNED FOR PARM INPUT'
+     &     '## FILE (',TRIM(LINE),') IS ASSIGNED FOR PARM INPUT'
       GOTO 9900
 C
  9100 WRITE(6,'(A,I6)') 'XX: FAILED TO OPEN PARM FILE : IOSTAT = ', IST1

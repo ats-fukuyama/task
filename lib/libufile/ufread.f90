@@ -456,6 +456,7 @@ CONTAINS
 !   2D UFILE reader (Time Evolution UFILE)
 ! ----------------------------------------------------------------------
     USE ufinit, ONLY: ufile_inquire
+    USE libitp
     IMPLICIT NONE
 
     CHARACTER(LEN=10),                 INTENT(IN)    :: KFID
@@ -466,7 +467,6 @@ CONTAINS
     REAL(rkind), DIMENSION(NTUM,NRUM), INTENT(OUT)   :: F2
 
     INTEGER(ikind)                    :: IDBIN, NTX, NRF, IST
-    REAL(rkind)                       :: FCTR, AITKEN2P
     REAL(rkind), DIMENSION(NTUM)      :: F2CTR, F2EDG
     REAL(rkind), DIMENSION(NRUM,NTUM) :: F2I
     CHARACTER(LEN=100)                :: KFILE,KFILEB
@@ -868,6 +868,7 @@ CONTAINS
 ! ----------------------------------------------------------------------
 !     WRONG DATA CORRECT
 ! ----------------------------------------------------------------------
+    USE libitp
     IMPLICIT NONE
 
     CHARACTER(LEN=10),     INTENT(IN) :: KFID
@@ -876,7 +877,6 @@ CONTAINS
     REAL(rkind), DIMENSION(NTUM,NRUM) :: F2
 
     INTEGER(ikind) :: NTX
-    REAL(rkind)    :: FCTR
 
     IF(KUFDEV == 'jet' .AND. KFID == 'GRHO1') THEN
        IF(KUFDCG=='57987' .OR. KUFDCG=='58159' .OR. KUFDCG=='58323') THEN
@@ -914,6 +914,7 @@ CONTAINS
 !
 !   IERR    : error identifier
 ! -------------------------------------------------------------------------
+    USE libchar
     IMPLICIT NONE
 
     INTEGER(ikind),INTENT(IN)  :: UNIT
@@ -921,7 +922,6 @@ CONTAINS
     
     CHARACTER(LEN=80) :: KMATCH1,KMATCH2,KMATCH3, KKLINE,KKLINE1,KKLINE2
     INTEGER(ikind)    :: IMATCH,KL,INCL,IST,LINES
-    LOGICAL           :: KMATCH ! TASK/lib/libchar.f90
 
     IERR    = 0
     LINES   = 0

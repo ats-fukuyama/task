@@ -708,6 +708,7 @@
            NSM, PZ, PZFE, PZC, PNSS, PNSSA, ABVRHOG, RDPVRHOG
       USE TRCOM1, ONLY : INS, NTAMAX, NTXMAX, NTXMAX1, PNBI, TMU, TMU1
       USE trmetric
+      USE libitp
       IMPLICIT NONE
       INTEGER(4):: IERR, NR, NS, NTL, NTLL
       REAL(8)   :: &

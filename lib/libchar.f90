@@ -1,3 +1,21 @@
+! libchar.f90
+
+MODULE libchar
+
+  PRIVATE
+  PUBLIC kkindex
+  PUBLIC ksplit
+  PUBLIC ktrim
+  PUBLIC kextr
+  PUBLIC kmatch
+  PUBLIC kkint
+  PUBLIC toupper
+  PUBLIC tolower
+  PUBLIC linsep
+  PUBLIC lenx
+  
+CONTAINS
+  
 !     ***** FIND CHARACTER POSITION *****
 !     ===== this routine is no longer necessary =====
 !     ===== use 'INDEX'                         =====
@@ -191,7 +209,7 @@ END SUBROUTINE TOLOWER
 
   ! *** separate line string by separator and space ***
 
-  SUBROUTINE linsep(ckey,csep,nk,mjs,mje,ndm)
+SUBROUTINE linsep(ckey,csep,nk,mjs,mje,ndm)
 
     IMPLICIT NONE
 !
@@ -258,7 +276,7 @@ END SUBROUTINE TOLOWER
 910 CONTINUE
     WRITE(6,'(/2x,"*** linsep ***  too many word  ",2i5)') ii,ndm
     STOP
-  END SUBROUTINE linsep
+END SUBROUTINE linsep
 
   ! *** almost equal to TRIM ***
   
@@ -279,3 +297,4 @@ END SUBROUTINE TOLOWER
 
     RETURN
   END FUNCTION lenx
+END MODULE libchar

@@ -82,9 +82,10 @@ contains
   SUBROUTINE TXGOUT
     use libbes, only : BESINX
     use libgrf, only : GRD1D
+    USE libchar,ONLY : TOUPPER
     use tx_commons, only : T_TX, TPRE, NQMAX, NRMAX, rhob, RA, PI, RR, NRA, thrp, kappa, &
          &                 IRPIN, DltRPn, NTCOIL, DltRP_mid, DltRP, epst, rho, ieqread
-    use tx_interface, only : TXGRUR, TOUPPER, TXGLOD
+    use tx_interface, only : TXGRUR,TXGLOD
     use tx_ripple, only : ripple
 
     INTEGER(4) :: MODE, NGPR, NGPT, NGPV, NGYR, NQ, NQL, NGF, NGFMAX, I, IST, NGRT, NG, IER, J, NGTL
@@ -5027,10 +5028,10 @@ contains
 
   REAL(4) FUNCTION GLOG(X,XMIN,XMAX)
 
+    USE libgrf
     implicit none
     real(4) :: GUCLIP
     real(8), intent(in) :: X, XMIN, XMAX
-    real(8) :: PLOG
 
     GLOG = GUCLIP(PLOG(X,XMIN,XMAX))
 

@@ -16,6 +16,7 @@ CONTAINS
       SUBROUTINE tr_fout
 
       USE TRCOMM
+      USE libchar
       USE libfio
       IMPLICIT NONE
       CHARACTER(LEN=80):: LINE

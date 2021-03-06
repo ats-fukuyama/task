@@ -14,10 +14,10 @@ CONTAINS
     USE wmcomm
     USE wmgsub
     USE equnit_mod
+    USE libchar
     IMPLICIT NONE
     CHARACTER(LEN=5):: KSTR
     CHARACTER(LEN=1):: K1,K2,K3,K4
-    EXTERNAL ToUpper
 
 1   WRITE(6,*) ' ## INPUT GSTR : R/AEB/ATMN  CPM/P/123  CP/J', &
                '  P/F/SBQ23J   R/GZ  S'

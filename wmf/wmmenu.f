@@ -44,7 +44,7 @@ C
 C        *** WAVE CALCULATION ***
 C
          ELSEIF (KID.EQ.'R') THEN
-            CALL WMLOOP(IERR)
+            CALL WMLOOP(IERR,0)
             CALL mtx_barrier
             IF(IERR.NE.0) GOTO 1
             KID=' '
@@ -111,7 +111,7 @@ C
 C        *** Pabs(r,s) output for TOPICS ***
 C
          ELSE IF (KID.EQ.'O') THEN
-            CALL WMLOOP(IERR,0)
+            CALL WMLOOP(IERR,1)
             CALL mtx_barrier
             IF(IERR.NE.0) GOTO 1
             KID=' '

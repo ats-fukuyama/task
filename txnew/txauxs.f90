@@ -490,6 +490,7 @@ contains
     use tx_commons, only : NRMAX, NRA, FSRP, RA, PI, RR, &
          &                 amb, amqp, Vb, achgb, BthV, Q, BphV, rho, epst
     use tx_core_module, only : intg_vol
+    USE libitp
     real(8), intent(in)  :: R0, RW
     real(8), intent(in), optional :: PNBCD
     character(len=*), intent(in) :: CHR
@@ -497,7 +498,6 @@ contains
     real(8), intent(out) :: SINT
     integer(4) :: nr
     real(8) :: Rshift, Rpotato, rhop
-!!    real(8) :: AITKEN2P
 
     if(CHR == 'Additional') then
 !       S(0:NRA) = 1.D0 - rho(0:NRA)**2
@@ -569,6 +569,7 @@ contains
 
   subroutine shift_prof(f,kchar,direct)
     use tx_commons, only : NRMAX, RR, amb, amqp, Vb, achgb, BthV, Q, BphV, epst, r
+    USE libitp
     real(8), dimension(0:NRMAX), intent(inout) :: f
     character(len=4), intent(in) :: kchar
     real(8), intent(in) :: direct

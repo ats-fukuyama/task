@@ -40,9 +40,8 @@ contains
        WRITE(6,*) 'XX PARM FILE EOF ERROR'
        RETURN
     END IF
-    CALL KTRIM(KPNAME,KL)
     WRITE(6,*) &
-         &     '## FILE (',KPNAME(1:KL),') IS ASSIGNED FOR TXEQU PARM INPUT'
+         &     '## FILE (',TRIM(KPNAME),') IS ASSIGNED FOR TXEQU PARM INPUT'
     IERR=0
 
   END SUBROUTINE TXEQUPARF
@@ -59,13 +58,13 @@ contains
     use equ_params, only : hiv, aav, rrv, ckv, shv, ssv, vlv, arv, aiv, biv, brv, epsv, elipv, &
          & trigv, qqv, siv, nv, rmaj, rpla, raxis, zaxis, pds, fds, sdw, ftv
 !    use tx_core_module, only : intg_area
+    USE libitp
     USE libspl1d
     integer(4) :: n, nr, ierr, nrmaxx, nrax, nrs
     real(8), parameter :: fourPisq = 4.d0 * Pi * Pi
     real(8) :: rhonrs, asdt, bsdt, sdtvac
     real(8), allocatable :: U(:,:), U0(:), deriv(:), rho_v(:), fipolv(:), hdv(:), zzv(:), &
          &                  pdst(:), fdst(:), qqt(:), zz(:), zzfunc(:)
-    real(8) :: aitken2p
 
     nrmaxx = nrmax + 1
     nrax   = nra   + 1

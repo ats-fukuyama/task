@@ -121,10 +121,11 @@
       SUBROUTINE TRLOAD
 
       USE TRCOMM
+      USE libitp
       USE libfio
       IMPLICIT NONE
       INTEGER(4):: IERR
-      REAL(8)   :: FCTR,MDLUF,MDLXP
+      REAL(8)   :: MDLUF,MDLXP
 
 
       CALL FROPEN(21,KNAMTR,0,1,'TR',IERR)

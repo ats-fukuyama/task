@@ -84,6 +84,7 @@
      &         NSZMAX,    PA,           PADD,         PNSS,         PTS,          PZ,           Q0,           QP,          &
      &         RA,        RDP,          RG,           RGFLS,        RHOG,         RKAP,         RM,           RN,          &
      &         RQFLS,     RR,           RT,           TTRHOG,       VPAR,         VPOL,         VPRP,         VTOR
+      USE libitp
       IMPLICIT NONE
       INCLUDE 'nclass/pamx_mi.inc'
       INCLUDE 'nclass/pamx_ms.inc'
@@ -112,7 +113,7 @@
       INTEGER(4),INTENT(OUT):: IERR
       INTEGER(4)::  i,iz,k_out,k_v,na,nm,nr,ns,ns1,nsn,nsz
       REAL(4)   ::  a0,bt0,e0,p_eps,p_q,q0l,r0
-      REAL(8)   ::  aitken2p,bpol,btor,btot,deriv3p,eps,ftpf,pzmax,uthai
+      REAL(8)   ::  bpol,btor,btot,eps,ftpf,pzmax,uthai
 
 
       REAL(8),DIMENSION(NRMAX):: EROPSI

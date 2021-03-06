@@ -16,11 +16,11 @@ contains
     use tx_commons
     use tx_interface, only : dfdx
     use aux_system, only : Vbabsmax
+    USE libitp
     REAL(8), DIMENSION(1:NQM,0:NRMAX), INTENT(IN) :: XL
     integer(4), intent(in), optional :: ID
     INTEGER(4) :: NR
     real(8) :: BBL
-    real(8) :: FCTR
 
     IF(present(ID)) THEN
        ! The pres0 and ErV0 are the values evaluated at the previous time step
@@ -159,7 +159,7 @@ contains
     use sauter_mod
     use aux_system
     use tx_ripple
-
+    USE libitp
     integer(4) :: IC
     integer(4), save :: NRB = 1
     INTEGER(4) :: NR, NR1, IER, i, MDANOMabs
@@ -184,7 +184,6 @@ contains
     real(8) :: Frdc, Dcoef
     real(8) :: omegaer, omegaere, omegaeri
     real(8) :: EFT, CR
-    real(8) :: AITKEN2P
     real(4), dimension(0:NRMAX) :: p_gr2phi
     real(8), dimension(0:NRMAX) :: pres, Ubpara, ETA_coef, JBS_coef
 !!    real(8), dimension(0:NRMAX) :: Vexbr
