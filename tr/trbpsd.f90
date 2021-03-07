@@ -19,7 +19,7 @@ CONTAINS
 !=======================================================================
     USE trcomm
 ! local variables
-      integer(4) :: ns,nr,ierr
+      integer :: ns,nr,ierr
 !=======================================================================
 
       if(tr_bpsd_init_flag) then
@@ -30,7 +30,7 @@ CONTAINS
       endif
 
       if(species%nsmax.ne.nsmax) then
-         if(associated(species%data)) then
+         if(ALLOCATED(species%data)) then
             deallocate(species%data)
          endif
          species%nsmax=nsmax
@@ -45,10 +45,10 @@ CONTAINS
       call bpsd_put_data(species,ierr)
 
       if((equ1D%nrmax.ne.nrmax+1)) then
-         if(associated(equ1D%rho)) then
+         if(ALLOCATED(equ1D%rho)) then
             deallocate(equ1D%rho)
          endif
-         if(associated(equ1D%data)) then
+         if(ALLOCATED(equ1D%data)) then
             deallocate(equ1D%data)
          endif
          equ1D%nrmax=nrmax+1
@@ -62,10 +62,10 @@ CONTAINS
       enddo
 
       if((metric1D%nrmax.ne.nrmax+1)) then
-         if(associated(metric1D%rho)) then
+         if(ALLOCATED(metric1D%rho)) then
             deallocate(metric1D%rho)
          endif
-         if(associated(metric1D%data)) then
+         if(ALLOCATED(metric1D%data)) then
             deallocate(metric1D%data)
          endif
          metric1D%nrmax=nrmax+1
@@ -81,13 +81,13 @@ CONTAINS
 
       if((plasmaf%nsmax.ne.nsmax).or. &
      &   (plasmaf%nrmax.ne.nrmax+1)) then
-         if(associated(plasmaf%rho)) then
+         if(ALLOCATED(plasmaf%rho)) then
             deallocate(plasmaf%rho)
          endif
-         if(associated(plasmaf%data)) then
+         if(ALLOCATED(plasmaf%data)) then
             deallocate(plasmaf%data)
          endif
-         if(associated(plasmaf%qinv)) then
+         if(ALLOCATED(plasmaf%qinv)) then
             deallocate(plasmaf%qinv)
          endif
          plasmaf%nsmax=nsmax
@@ -109,10 +109,10 @@ CONTAINS
   SUBROUTINE tr_bpsd_put(ierr)
 !=======================================================================
       USE trcomm
-      INTEGER(4) :: ierr
+      INTEGER :: ierr
 ! local variables
-      INTEGER(4) :: ns,nr
-      REAL(8)    :: temp(nrmp,nsm,3)
+      INTEGER :: ns,nr
+      REAL(rkind)    :: temp(nrmp,nsm,3)
 !=======================================================================
 
       device%rr=RR
@@ -160,12 +160,12 @@ CONTAINS
   SUBROUTINE tr_bpsd_get(ierr)
 !=======================================================================
       USE trcomm
-      integer(4),intent(out) :: ierr
+      integer,intent(out) :: ierr
 ! local variables
-      integer(4) :: ns,nr
-      real(8)    :: temp(nrmp,nsm,3)
-      real(8)    :: tempx(nrmp,17),psita,dpsitdrho,dvdrho,rgl
-      REAL(8)    :: FACTOR0, FACTORM, FACTORP
+      integer :: ns,nr
+      real(rkind)    :: temp(nrmp,nsm,3)
+      real(rkind)    :: tempx(nrmp,17),psita,dpsitdrho,dvdrho,rgl
+      REAL(rkind)    :: FACTOR0, FACTORM, FACTORP
 !=======================================================================
 
       call bpsd_get_data(device,ierr)
@@ -388,9 +388,9 @@ CONTAINS
       subroutine mesh_convert_mtog(datam,datag,nrmax)
 
       implicit none
-      integer(4), intent(in)  :: nrmax
-      real(8),    intent(in)  :: datam(nrmax)
-      real(8),    intent(out) :: datag(nrmax+1)
+      integer, intent(in)  :: nrmax
+      real(rkind),    intent(in)  :: datam(nrmax)
+      real(rkind),    intent(out) :: datag(nrmax+1)
 
       datag(1)       = (9.d0*datam(1)-datam(2))/8.d0
       datag(2:nrmax) = 0.5d0 * (datam(1:nrmax-1) + datam(2:nrmax))
@@ -411,11 +411,11 @@ CONTAINS
       subroutine mesh_convert_gtom(datag,datam,nrmax)
 
       implicit none
-      integer(4), intent(in)  :: nrmax
-      real(8),    intent(in)  :: datag(nrmax+1)
-      real(8),    intent(out) :: datam(nrmax)
-      real(8) :: c11=9.d0/8.d0,c12=-1.d0/8.d0,c21=0.5d0,c22=0.5d0
-      real(8) :: det,a11,a12,a21,a22
+      integer, intent(in)  :: nrmax
+      real(rkind),    intent(in)  :: datag(nrmax+1)
+      real(rkind),    intent(out) :: datam(nrmax)
+      real(rkind) :: c11=9.d0/8.d0,c12=-1.d0/8.d0,c21=0.5d0,c22=0.5d0
+      real(rkind) :: det,a11,a12,a21,a22
 
       det=c11*c22-c12*c21
       a11= c22/det
@@ -436,9 +436,9 @@ CONTAINS
       subroutine mesh_convert_mtog0(datam,datag,nrmax)
 
       implicit none
-      integer(4), intent(in)  :: nrmax
-      real(8),    intent(in)  :: datam(nrmax)
-      real(8),    intent(out) :: datag(nrmax+1)
+      integer, intent(in)  :: nrmax
+      real(rkind),    intent(in)  :: datam(nrmax)
+      real(rkind),    intent(out) :: datag(nrmax+1)
 
       datag(1)       = 0.d0
       datag(2:nrmax) = 0.5d0 * (datam(1:nrmax-1) + datam(2:nrmax))
@@ -459,11 +459,11 @@ CONTAINS
       subroutine mesh_convert_gtom0(datag,datam,nrmax)
 
       implicit none
-      integer(4), intent(in)  :: nrmax
-      real(8),    intent(in)  :: datag(nrmax+1)
-      real(8),    intent(out) :: datam(nrmax)
-      real(8) :: c11=9.d0/8.d0,c12=-1.d0/8.d0,c21=0.5d0,c22=0.5d0
-      real(8) :: det,a11,a12,a21,a22
+      integer, intent(in)  :: nrmax
+      real(rkind),    intent(in)  :: datag(nrmax+1)
+      real(rkind),    intent(out) :: datam(nrmax)
+      real(rkind) :: c11=9.d0/8.d0,c12=-1.d0/8.d0,c21=0.5d0,c22=0.5d0
+      real(rkind) :: det,a11,a12,a21,a22
 
       det=c11*c22-c12*c21
       a11= c22/det
@@ -480,9 +480,9 @@ CONTAINS
       subroutine data_interpolate_gtom_full(datag,datam,nrmax)
 
       implicit none
-      integer(4), intent(in)  :: nrmax
-      real(8),    intent(in)  :: datag(nrmax+1)
-      real(8),    intent(out) :: datam(nrmax)
+      integer, intent(in)  :: nrmax
+      real(rkind),    intent(in)  :: datag(nrmax+1)
+      real(rkind),    intent(out) :: datam(nrmax)
 
       datam(1:nrmax) = 0.5d0 * (datag(1:nrmax) + datag(2:nrmax+1))
 
@@ -495,9 +495,9 @@ CONTAINS
       subroutine data_interpolate_gtom(datag,datam,nrmax)
 
       implicit none
-      integer(4), intent(in)  :: nrmax
-      real(8),    intent(in)  :: datag(nrmax+1)
-      real(8),    intent(out) :: datam(nrmax)
+      integer, intent(in)  :: nrmax
+      real(rkind),    intent(in)  :: datag(nrmax+1)
+      real(rkind),    intent(out) :: datam(nrmax)
 
       ! linear extrapolation
       datam(1) = 1.5d0 * datag(2) - 0.5d0 * datag(3)

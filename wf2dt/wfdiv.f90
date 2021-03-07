@@ -149,7 +149,7 @@ subroutine SETNODX
   integer :: NN1,NN2,NN3,NN4
   integer :: NR,NZ
   integer :: NRMAX,NZMAX
-  real(8) :: DR,DZ,BDRLEN,BDZLEN
+  real(rkind) :: DR,DZ,BDRLEN,BDZLEN
 
   BDRLEN=BDRMAX-BDRMIN
   BDZLEN=BDZMAX-BDZMIN
@@ -244,7 +244,7 @@ subroutine SETNODC
   integer :: NR,NTH,NTH1
   integer :: NRMAX,INNODE
   integer,dimension(:),pointer :: NTHMAX
-  real(8) :: RRING,THETA,DR
+  real(rkind) :: RRING,THETA,DR
 
   ! --- set the number of rings ---
                                 
@@ -465,7 +465,7 @@ subroutine wfdiv_broadcast
   use libmpi
   implicit none
 
-  real(8),dimension(7) :: rdata
+  real(rkind),dimension(7) :: rdata
 
   if (nrank.eq.0) then
      rdata(1)=BDRMIN

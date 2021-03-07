@@ -7,7 +7,7 @@ subroutine WFWAVE
   use wfcomm
   implicit none
   integer :: IERR
-  real(4) :: GTMAIN,GTSOLV,GCPUT0,GCPUT1,GCPUT2,GCPUT3
+  real :: GTMAIN,GTSOLV,GCPUT0,GCPUT1,GCPUT2,GCPUT3
 
   GTMAIN=0.0
   GTSOLV=0.0
@@ -131,12 +131,12 @@ subroutine DTENSR(NE,DTENS)
   implicit none
   integer,intent(in) :: NE
   integer :: IN,I,J,ID
-  complex(8),intent(out):: DTENS(NSM,3,3,3)
+  complex(rkind),intent(out):: DTENS(NSM,3,3,3)
   integer    :: NS,NN
-  real(8)    :: R,Z,WW,WP(NSM),WC(NSM),BABS,AL(3),RN(NSM),RTPR(NSM)
-  real(8)    :: RTPP(NSM),RZCL(NSM),FP,FR,FZ,DR,DZ,F
-  complex(8) :: CWP,CWC,CDT0,CDX0,CDP0,CDT,CDP,CDX,CDAMP
-  complex(8) :: CRR,CRP,CRZ,CPR,CPP,CPZ,CZR,CZP,CZZ
+  real(rkind)    :: R,Z,WW,WP(NSM),WC(NSM),BABS,AL(3),RN(NSM),RTPR(NSM)
+  real(rkind)    :: RTPP(NSM),RZCL(NSM),FP,FR,FZ,DR,DZ,F
+  complex(rkind) :: CWP,CWC,CDT0,CDX0,CDP0,CDT,CDP,CDX,CDAMP
+  complex(rkind) :: CRR,CRP,CRZ,CPR,CPP,CPZ,CZR,CZP,CZZ
 
   ! ----- initialize -----  
 
@@ -269,8 +269,8 @@ subroutine MUTENSR(NE,MU)
   implicit none
   integer,intent(in) :: NE
   integer :: ISD,NSD,I,J,K
-  real(8),intent(out)::MU(3,3,6)
-  real(8) :: A(3),B(3),C(3),L(3)
+  real(rkind),intent(out)::MU(3,3,6)
+  real(rkind) :: A(3),B(3),C(3),L(3)
 
   do ISD=1,3
      NSD=ABS(NSDELM(ISD,NE))
@@ -323,9 +323,9 @@ SUBROUTINE CVCALC
   use wfcomm
   implicit none
   integer    :: NE,NA,IJ,IV,I
-  real(8)    :: RW,PHASE,MU(3,3,6),A(3),B(3),C(3)
-  real(8)    :: R1,Z1,R2,Z2,LIF(3),R21,Z21
-  complex(8) :: CJ(3),CVJ
+  real(rkind)    :: RW,PHASE,MU(3,3,6),A(3),B(3),C(3)
+  real(rkind)    :: R1,Z1,R2,Z2,LIF(3),R21,Z21
+  complex(rkind) :: CJ(3),CVJ
 
   RW=2.D0*PI*RF*1.D6
 
@@ -473,10 +473,10 @@ SUBROUTINE CMCALCV(NE)
   implicit none
   integer,intent(in) :: NE 
   integer :: I,J,K,M,N,ISD,NSD
-  complex(8) :: CM1(3,3)
-  real(8) :: S,L(3)
-  real(8) :: A(3),B(3),C(3),AW(3),BW(3),CW(3)
-  real(8) :: R(3),Z(3)
+  complex(rkind) :: CM1(3,3)
+  real(rkind) :: S,L(3)
+  real(rkind) :: A(3),B(3),C(3),AW(3),BW(3),CW(3)
+  real(rkind) :: R(3),Z(3)
 
   ! --- initialize ---
 
@@ -702,10 +702,10 @@ SUBROUTINE CMCALCS(NE)
   implicit none
   integer,intent(in) :: NE 
   integer :: I,J,K,I1,J1,K1,ID,ISD,NSD,IND(2),ND1,ND2
-  real(8) :: S,L(3),RN,ZN
-  real(8) :: A(3),B(3),C(3),AW(3),BW(3),CW(3)
-  real(8) :: R(3),Z(3)
-  COMPLEX(8):: CTEMP
+  real(rkind) :: S,L(3),RN,ZN
+  real(rkind) :: A(3),B(3),C(3),AW(3),BW(3),CW(3)
+  real(rkind) :: R(3),Z(3)
+  COMPLEX(rkind):: CTEMP
 
   ! --- if no boundary side, return ---
 
@@ -854,13 +854,13 @@ SUBROUTINE CMCALCP(NE)
   implicit none
   integer,intent(in) :: NE 
   integer :: I,J,K,NS,IN,JJ,II
-  real(8) :: RW,WC,WC2
-  real(8) :: S
-  real(8) :: A(3),B(3),C(3)
-  real(8) :: R(3),Z(3),MU(3,3,6)
-  COMPLEX(8):: CM2(6,6)
-  complex(8) :: DTENS(NSM,3,3,3)
-  complex(8) :: DTENST(3,3,3)
+  real(rkind) :: RW,WC,WC2
+  real(rkind) :: S
+  real(rkind) :: A(3),B(3),C(3)
+  real(rkind) :: R(3),Z(3),MU(3,3,6)
+  COMPLEX(rkind):: CM2(6,6)
+  complex(rkind) :: DTENS(NSM,3,3,3)
+  complex(rkind) :: DTENST(3,3,3)
 
   ! --- initialize ---
 
@@ -1034,10 +1034,10 @@ SUBROUTINE PWRABS
 
   integer    :: NE,IN,NN,NSD,NS
   integer    :: I,J,K,II,JJ
-  real(8),dimension(:,:),ALLOCATABLE:: PABS
-  real(8)    :: RW,S,MU(3,3,6),R(3),Z(3)
-  complex(8) :: DTENS(NSM,3,3,3),CTENS(NSM,3,3,3)
-  complex(8) :: CIWE,CINT(NSM,6,6),CE(6)
+  real(rkind),dimension(:,:),ALLOCATABLE:: PABS
+  real(rkind)    :: RW,S,MU(3,3,6),R(3),Z(3)
+  complex(rkind) :: DTENS(NSM,3,3,3),CTENS(NSM,3,3,3)
+  complex(rkind) :: CIWE,CINT(NSM,6,6),CE(6)
 
   ! --- initialize ---
   
@@ -1174,9 +1174,9 @@ SUBROUTINE PWRRAD
 
   integer    :: NE,NA,I,NN,IV
   integer    :: IJ,NSD
-  real(8)    :: PHASE,RW,LIF(3),A(3),B(3),C(3)
-  real(8)    :: R1,R2,Z1,Z2,R21,Z21,MU(3,3,6)
-  complex(8) :: CE(6),CJ(3),CVJ
+  real(rkind)    :: PHASE,RW,LIF(3),A(3),B(3),C(3)
+  real(rkind)    :: R1,R2,Z1,Z2,R21,Z21,MU(3,3,6)
+  complex(rkind) :: CE(6),CJ(3),CVJ
 
   ! --- initialize ---
 

@@ -16,8 +16,8 @@ LIBX_MTX=$(LIBX_MTX_BND)
 #FFLAGS = -g $(OFLAGS)
 FFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I../../bpsd/$(MOD) -I../lib/$(MOD) -I../eq/$(MOD) \
-	    -I../pl/$(MOD) -I$(MOD)
+MODINCLUDE= -I../../bpsd/$(MOD) -I../lib/$(MOD) -I../mtxp/$(MOD) \
+            -I../eq/$(MOD) -I../pl/$(MOD) -I$(MOD)
 EQLIBS=../eq/libeq.a
 PLLIBS=../../bpsd/libbpsd.a ../pl/libpl.a 
 
@@ -161,16 +161,18 @@ tritg.o  : tritg.f90  trcomm.f90
 trmodels.o : trmodels.f90  trcomm.f90 
 trmdlt.o : trmdlt.f90 trcomm.f90 
 glf/callglf2d.o : glf/callglf2d.f glf/glf.m
+	$(FCFIXED) $(FFLAGS) -c -o glf/callglf2d.o -Iglf glf/callglf2d.f
 glf/glf2d.o  : glf/glf2d.F glf/glf.m glf/f77_dcomplx.h
-	$(FCFIXED) $(FFLAGS) -c -o glf/glf2d.o -Iglf glf/glf2d.F
+	$(FCFIXED) $(FFLAGS) -fpp -c -o glf/glf2d.o -Iglf glf/glf2d.F
 glf/r8tomsqz.o : glf/r8tomsqz.F glf/f77_dcomplx.h
-	$(FCFIXED) $(FFLAGS) -c -o glf/r8tomsqz.o glf/r8tomsqz.F
+	$(FCFIXED) $(FFLAGS) -fpp -c -o glf/r8tomsqz.o glf/r8tomsqz.F
 glf/zgeev.o  : glf/zgeev.f
 glf/blas_zgeev.o : glf/blas_zgeev.f
 trncls.o : trncls.f90 trncls.inc trcomm.f90 nclass/pamx_mi.inc \
            nclass/pamx_ms.inc nclass/pamx_mz.inc
 nclass/nclass_mod.o : nclass/nclass_mod.f nclass/pamx_mi.inc \
                       nclass/pamx_ms.inc nclass/pamx_mz.inc
+	$(FCFIXED) $(FFLAGS) -c -o nclass/nclass_mod.o -Inclass nclass/nclass_mod.f $(MODDIR) $(MODINCLUDE)
 itg/ifspppl_model.o : itg/ifspppl_model.f
 itg/weiland.o: itg/weiland.f
 ../eq/treqin.o: ../eq/treqin.f90 ../eq/eqcom1.f90 ../eq/eqcom3.f90 \

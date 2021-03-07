@@ -22,8 +22,8 @@ CONTAINS
       USE libkio
       USE libchar
       IMPLICIT NONE
-      INTEGER(4)       :: IERR, MODE, NTMOLD
-      INTEGER(4), SAVE :: INIT=0
+      INTEGER       :: IERR, MODE, NTMOLD
+      INTEGER, SAVE :: INIT=0
       CHARACTER(LEN=1) :: KID
       CHARACTER(LEN=80):: LINE
       INTEGER:: NR,NS,NF,NTYPE

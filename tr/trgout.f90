@@ -15,11 +15,11 @@ CONTAINS
       USE trfile
       USE libchar
       IMPLICIT NONE
-      INTEGER(4), SAVE :: INIT =0, INQG
+      INTEGER, SAVE :: INIT =0, INQG
       CHARACTER(LEN=5) :: KIG
       CHARACTER(LEN=3) :: KK
       CHARACTER(LEN=1) :: K1, K2, K3, K4, K5
-      integer(4)       :: ist
+      integer       :: ist
 
       IF(INIT.EQ.0) THEN
          INQG=0

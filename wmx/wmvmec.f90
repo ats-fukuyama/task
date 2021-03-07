@@ -708,14 +708,14 @@ CONTAINS
     INTEGER,INTENT(IN):: NXGMAX,NGD
     REAL(rkind),INTENT(IN):: XG(NXGMAX),YG(NXGMAX)
     CHARACTER(LEN=6),INTENT(IN)::  KTITL
-    REAL(4),ALLOCATABLE:: GX(:),GY(:)
-    REAL(4):: GP(4,4)
+    REAL,ALLOCATABLE:: GX(:),GY(:)
+    REAL:: GP(4,4)
     DATA GP/ 3.0, 10.8,  9.5, 16.5, &
              3.0, 10.8,  1.0,  8.0, &
             13.8, 21.6,  9.5, 16.5, &
             13.8, 21.6,  1.0,  8.0/
     INTEGER:: NXG
-    REAL(4):: GXMIN,GXMAX
+    REAL:: GXMIN,GXMAX
 
     ALLOCATE(GX(NXGMAX),GY(NXGMAX))
     

@@ -31,7 +31,7 @@
       CHARACTER(LEN=80):: LINE
       integer:: ierr,NGRAPH_SAVE
       integer,DIMENSION(1):: mode
-      REAL(4):: cputime1,cputime2
+      REAL:: cputime1,cputime2
 
     1 CONTINUE
       IF(nrank.EQ.0) THEN

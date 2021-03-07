@@ -5,11 +5,11 @@
 SUBROUTINE WFBPSI(R,Z,PSI)
 
   USE wfcomm,ONLY: rkind,PI,ZBB,RMIR,BB,MODELG,MODELB,NCOILMAX, &
-       RCOIL,ZCOIL,BCOIL,Hpitch1,HA1
+       RCOIL,ZCOIL,BCOIL,Hpitch1,HA1,rkind
   USE libbes,ONLY: BESINX
   IMPLICIT NONE
-  REAL(8),INTENT(IN) :: R,Z
-  REAL(8),INTENT(OUT):: PSI
+  REAL(rkind),INTENT(IN) :: R,Z
+  REAL(rkind),INTENT(OUT):: PSI
   INTEGER:: NCOIL
   REAL(rkind):: A0,A1,RL,ZL,WFPSIC,XH1,YH1,PSIG
 
@@ -84,12 +84,12 @@ END SUBROUTINE WFBPSI
 
 SUBROUTINE WFSMAG(R,Z,BABS,AL)
 
-  USE wfcomm,ONLY: MODELG
+  USE wfcomm,ONLY: MODELG,rkind
   USE plload
   implicit none
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: BABS,AL(3)
-  REAL(8):: BR,BZ,BT
+  real(rkind),intent(in) :: R,Z
+  real(rkind),intent(out):: BABS,AL(3)
+  REAL(rkind):: BR,BZ,BT
   integer:: IERR
 
   SELECT CASE(MODELG)
@@ -112,9 +112,9 @@ SUBROUTINE WFSMAG0(R,Z,BABS,AL)
   use wfcomm
   USE plload
   implicit none
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: BABS,AL(3)
-  real(8) :: rfactor,zfactor,br,bz,bt
+  real(rkind),intent(in) :: R,Z
+  real(rkind),intent(out):: BABS,AL(3)
+  real(rkind) :: rfactor,zfactor,br,bz,bt
 
   rfactor=(r-r_corner(1))/(r_corner(2)-r_corner(1))
   zfactor=(z-z_corner(1))/(z_corner(3)-z_corner(1))
@@ -137,10 +137,10 @@ SUBROUTINE WFSMAG2(R,Z,BABS,AL)
   use wfcomm
   implicit none
   integer :: I
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: BABS,AL(3)
-  real(8) :: BLO(3),LR,LZ
-  real(8) :: L,Q
+  real(rkind),intent(in) :: R,Z
+  real(rkind),intent(out):: BABS,AL(3)
+  real(rkind) :: BLO(3),LR,LZ
+  real(rkind) :: L,Q
 
 ! L : distance from the center of plasma
 ! Q : safety factor
@@ -184,12 +184,12 @@ END SUBROUTINE WFSMAG2
 
 SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
 
-  use wfcomm,ONLY: modelg,nsm,nsmax,mdamp
+  use wfcomm,ONLY: modelg,nsm,nsmax,mdamp,rkind
   use plload
   implicit none
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
-  REAL(8):: RU(NSM)
+  real(rkind),intent(in) :: R,Z
+  real(rkind),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
+  REAL(rkind):: RU(NSM)
   INTEGER:: NSMAXL,IERR,NS
 
   SELECT CASE(MODELG)
@@ -214,9 +214,9 @@ SUBROUTINE WFSDEN0(R,Z,RN,RTPR,RTPP,RZCL)
 
   use wfcomm
   implicit none
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
-  real(8) :: rfactor,zfactor
+  real(rkind),intent(in) :: R,Z
+  real(rkind),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
+  real(rkind) :: rfactor,zfactor
   INTEGER :: ns
 
   ! --- set FACT ---
@@ -263,10 +263,10 @@ SUBROUTINE WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
   use plprof2d
   implicit none
   integer :: NS
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
-  real(8) :: LR,LZ
-  real(8) :: FACT,PSI
+  real(rkind),intent(in) :: R,Z
+  real(rkind),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
+  real(rkind) :: LR,LZ
+  real(rkind) :: FACT,PSI
 
   ! --- set FACT ---
 
@@ -315,12 +315,12 @@ END SUBROUTINE WFSDEN2
 SUBROUTINE WFCOLL(rn,rtpr,rtpp,rzcl,id)
   USE wfcomm
   IMPLICIT NONE
-  REAL(8),INTENT(IN):: rn(NSM),rtpr(NSM),rtpp(NSM)
-  REAL(8),INTENT(OUT):: rzcl(NSM)
+  REAL(rkind),INTENT(IN):: rn(NSM),rtpr(NSM),rtpp(NSM)
+  REAL(rkind),INTENT(OUT):: rzcl(NSM)
   INTEGER,INTENT(IN):: id  ! id=0 without output, id=1 with output
-  REAL(8):: TE,TI,RNTI,RNZI,RLAMEE,RLAMEI,RLAMII,SN,PNN0
-  REAL(8):: VTE,RNUEE,RNUEI,RNUEN,RNUE
-  REAL(8):: VTI,RNUIE,RNUII,RNUIN,RNUI
+  REAL(rkind):: TE,TI,RNTI,RNZI,RLAMEE,RLAMEI,RLAMII,SN,PNN0
+  REAL(rkind):: VTE,RNUEE,RNUEI,RNUEN,RNUE
+  REAL(rkind):: VTI,RNUIE,RNUII,RNUIN,RNUI
   INTEGER:: ns
 
   ! --- set collision frequency ---

@@ -70,11 +70,12 @@ END SUBROUTINE WFSRTX
 
 SUBROUTINE WFSORT(N,ARR,SUB,SUBX)
 
+  USE bpsd_kinds,ONLY: rkind
   implicit none
   integer,parameter :: M=7
   integer,parameter :: NSTACK=50
   integer :: N,I,IR,J,JSTACK,K,L,ISTACK(NSTACK)
-  real(8) :: ARR(N),A,TEMP
+  real(rkind) :: ARR(N),A,TEMP
   EXTERNAL SUB,SUBX
 
   JSTACK=0
@@ -162,9 +163,10 @@ END SUBROUTINE WFSORT
 
 SUBROUTINE WFLCAT(XX,N,X,J)
 
+  USE bpsd_kinds,ONLY: rkind
   implicit none
   integer :: J,N,JL,JM,JU
-  real(8) :: X,XX(N)
+  real(rkind) :: X,XX(N)
   
   JL=0
   JU=N+1
@@ -185,9 +187,10 @@ END SUBROUTINE WFLCAT
 
 SUBROUTINE WFLCAT_MAX(XX,N,X,J)
 
+  USE bpsd_kinds,ONLY: rkind
   implicit none
   integer :: J,N,JL,JM,JU
-  real(8) :: X,XX(N)
+  real(rkind) :: X,XX(N)
 
   JL=0
   JU=N+1
@@ -218,9 +221,10 @@ END SUBROUTINE WFLCAT_MAX
 
 SUBROUTINE WFLCAT_MIN(XX,N,X,J)
 
+  USE bpsd_kinds,ONLY: rkind
   implicit none
   integer :: J,N,JL,JM,JU
-  real(8) :: X,XX(N)
+  real(rkind) :: X,XX(N)
   
   JL=0
   JU=N+1

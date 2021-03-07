@@ -27,10 +27,10 @@
       SUBROUTINE TRPSCA
 
       USE TRCOMM, ONLY : DR, RA, RM, DVRHO, NRMAX, PZ, &
-           NPSCMAX, PSCTOT, PSCR0, PSCRW, NSPSC, SPSC
+           NPSCMAX, PSCTOT, PSCR0, PSCRW, NSPSC, SPSC, rkind
       IMPLICIT NONE
-      REAL(8)    :: SSUM, S0, SPSCL
-      INTEGER(4) :: NR, NS, NPSC
+      REAL(rkind)    :: SSUM, S0, SPSCL
+      INTEGER :: NR, NS, NPSC
 
       DO NPSC=1,NPSCMAX
          SSUM = 0.D0

@@ -22,7 +22,7 @@ CONTAINS
       USE libitp
       USE equnit_mod
       IMPLICIT NONE
-      INTEGER(4):: IERR,nr
+      INTEGER:: IERR,nr
 
       IF(NT.GE.NTMAX) GOTO 9000
       CALL tr_eval(NT,IERR)

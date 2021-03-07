@@ -7,7 +7,7 @@ C
       USE libbrent
       INCLUDE '../eq/eqcomc.inc'
 C
-      REAL(8),DIMENSION(:,:),ALLOCATABLE::  PSIRG,PSIZG,PSIRZG
+      REAL(rkind),DIMENSION(:,:),ALLOCATABLE::  PSIRG,PSIZG,PSIRZG
       EXTERNAL PSIGD,PSIGZ0
 C
       ALLOCATE(PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM))
@@ -187,7 +187,7 @@ C
       USE libspl2d
       INCLUDE '../eq/eqcomc.inc'
 C
-      REAL(8),DIMENSION(:,:),ALLOCATABLE:: PSIRG,PSIZG,PSIRZG
+      REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: PSIRG,PSIZG,PSIRZG
 C
 C     ----- calculate spline coef for psi(R,Z) -----
 C
@@ -307,17 +307,18 @@ C       IERR  : Error indicator
 C
 C      INCLUDE '../eq/eqcomc.inc'
 C
+      USE bpsd_kinds,ONLY: rkind
       USE eqlib
       IMPLICIT NONE
-      REAL(8),INTENT(IN):: RINIT,ZINIT,RXP,ZXP,H
+      REAL(rkind),INTENT(IN):: RINIT,ZINIT,RXP,ZXP,H
       INTEGER,INTENT(IN):: NMAX
-      REAL(8),INTENT(OUT)::XA(NMAX),RA(NMAX),ZA(NMAX)
+      REAL(rkind),INTENT(OUT)::XA(NMAX),RA(NMAX),ZA(NMAX)
       INTEGER,INTENT(OUT):: NTOT,IERR
 
       INTEGER,PARAMETER:: NEQ=2
-      REAL(8):: XA1(NMAX),YA1(2,NMAX)
-      REAL(8):: XA2(NMAX),YA2(2,NMAX)
-      REAL(8):: X,Y(2),DYDX(2),YOUT(2),DISTANCE
+      REAL(rkind):: XA1(NMAX),YA1(2,NMAX)
+      REAL(rkind):: XA2(NMAX),YA2(2,NMAX)
+      REAL(rkind):: X,Y(2),DYDX(2),YOUT(2),DISTANCE
       INTEGER:: N,I,N1,N2
       EXTERNAL EQDERV
 
@@ -437,7 +438,7 @@ C     ***** INTERPOLATE FUNCTION OF PSI on ZAXIS *****
 C
       FUNCTION PSIGZ0(R)
       INCLUDE '../eq/eqcomc.inc'
-      REAL(8) R,PSIGZ0
+      REAL(rkind) R,PSIGZ0
       PSIGZ0=PSIG(R,ZAXIS)
       RETURN
       END

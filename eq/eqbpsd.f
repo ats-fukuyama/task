@@ -16,9 +16,9 @@
 !=======================================================================
       INCLUDE '../eq/eqcomq.inc'
 !      implicit none
-      integer(4) :: ierr
+      integer :: ierr
 ! local variables
-      integer(4) :: ns
+      integer :: ns
 !=======================================================================
       if(eq_bpsd_init_flag) then
          equ1D%nrmax=0
@@ -55,7 +55,7 @@
 !=======================================================================
       INCLUDE '../eq/eqcomq.inc'
       INCLUDE '../eq/eqcom4.inc'
-      integer(4) :: nr, ierr
+      integer :: nr, ierr
       
 ! local variables
 !=======================================================================
@@ -120,8 +120,8 @@
       USE libspl1d
       INCLUDE '../eq/eqcomm.inc'
       INCLUDE '../eq/eqcom4.inc'
-      real(8),DIMENSION(NTRM):: ptrrho,qtrrho,deriv
-      integer(4) :: ierr,ntr
+      real(rkind),DIMENSION(NTRM):: ptrrho,qtrrho,deriv
+      integer :: ierr,ntr
 
       ! --- device data ---
       CALL bpsd_get_data(device,ierr)

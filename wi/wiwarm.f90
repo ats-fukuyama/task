@@ -164,7 +164,7 @@ CONTAINS
 
       USE wicomm
       IMPLICIT NONE
-      COMPLEX(ikind):: cp1,cp2,cp3,cp4,cpa
+      COMPLEX(rkind):: cp1,cp2,cp3,cp4,cpa
       INTEGER(ikind):: NX,i,j,id,jd
       REAL(rkind):: rky,rky2,dx,AD,BD
       REAL(rkind):: gamma=3.D0

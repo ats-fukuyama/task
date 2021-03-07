@@ -4,12 +4,13 @@
 
 SUBROUTINE FRGFLS(XS,XE,DX,XR,FUNC,EPS,ILL)
 
+  USE bpsd_kinds,ONLY: rkind
   implicit none
   integer,intent(out) :: ILL
   integer :: ILMAX
-  real(8),intent(in) :: XS,XE,DX,EPS
-  real(8),intent(out):: XR
-  real(8) :: D,X,Y,XX,YY,YYY,DD,FUNC
+  real(rkind),intent(in) :: XS,XE,DX,EPS
+  real(rkind),intent(out):: XR
+  real(rkind) :: D,X,Y,XX,YY,YYY,DD,FUNC
   EXTERNAL FUNC
 
   ILMAX=-ILL
@@ -85,10 +86,10 @@ FUNCTION DKBES(N,X)
   use wfcomm
   implicit none
   integer :: NABS,N,IABS,L,K
-  real(8) :: X,DKBES
-  real(8) :: XABS,RECX,HALFX,W,Y,SUM,EXPX,D75,D65
-  real(8) :: AI0,AI1,AI2,AK0,AK1,AK2,NUMER,DENOM,Z
-  real(8) :: XS,YS,FK,C69,C173
+  real(rkind) :: X,DKBES
+  real(rkind) :: XABS,RECX,HALFX,W,Y,SUM,EXPX,D75,D65
+  real(rkind) :: AI0,AI1,AI2,AK0,AK1,AK2,NUMER,DENOM,Z
+  real(rkind) :: XS,YS,FK,C69,C173
   EQUIVALENCE (XABS,XS),(Y,YS)
   DATA D65,D75,C69,C173 / 1.0D65,1.0D75,69.0,173.0 /
   
@@ -329,12 +330,13 @@ SUBROUTINE ZETA(X,Z,DZ,DDZ)
 
 !                  ORIGINAL PROGRAM BY T. WATANABE
 !                          MODIFIED BY A. FUKUYAMA (1984.1.24)
+  USE bpsd_kinds,ONLY: rkind
   implicit none
   integer    :: I,M,M2,L,LL,J
-  complex(8) :: X,Z,DZ,DDZ
-  real(8)    :: EN(25),FN(25),QN(25),HN(25),H,H4,HS,HS4,PAI,PAI2,PI
-  real(8)    :: PH,SPAI,RPH2,RPH4,RPH5,XRE,AXR,XIM,AXI,XXR,XXI,SXR2,SXI2,SXI,RR
-  real(8)    :: XIMPH,AR,SI,SR,D,DZR,FI,FR,DZI,XRI,XRH,EPZIH,WA,WR,WI
+  complex(rkind) :: X,Z,DZ,DDZ
+  real(rkind)    :: EN(25),FN(25),QN(25),HN(25),H,H4,HS,HS4,PAI,PAI2,PI
+  real(rkind)    :: PH,SPAI,RPH2,RPH4,RPH5,XRE,AXR,XIM,AXI,XXR,XXI,SXR2,SXI2,SXI,RR
+  real(rkind)    :: XIMPH,AR,SI,SR,D,DZR,FI,FR,DZI,XRI,XRH,EPZIH,WA,WR,WI
   SAVE   I
   DATA   I /0/
   
@@ -368,7 +370,7 @@ SUBROUTINE ZETA(X,Z,DZ,DDZ)
      
   XRE=DBLE(X)
   AXR=ABS(XRE)
-  XIM=IMAG(X)
+  XIM=AIMAG(X)
   AXI=ABS(XIM)
   XXR=(XRE-XIM)*(XRE+XIM)
   XXI=XRE*XIM*2.D0
@@ -580,9 +582,10 @@ END SUBROUTINE ZETA
 
 SUBROUTINE FFTSUB (A,B,T,LIST,L,N2)
   
+  USE bpsd_kinds,ONLY: rkind
   implicit none
   integer    :: I,L,N2,LIST(N2)
-  complex(8) :: A(N2*2),B(N2,2),T(N2)
+  complex(rkind) :: A(N2*2),B(N2,2),T(N2)
 
   DO I=1,N2
      B(I,1)=A(LIST(I))+A(LIST(I)+L)*T(I)
@@ -599,10 +602,11 @@ END SUBROUTINE FFTSUB
 
 SUBROUTINE SETTBL (N2,T,B,LP)
 
+  USE bpsd_kinds,ONLY: rkind
   implicit none
   integer :: I,J,K,L,NN,N2,LP
-  complex(8) :: T(N2,LP,2),B(N2,2)
-  real(8)    :: TR,TI,PAI
+  complex(rkind) :: T(N2,LP,2),B(N2,2)
+  real(rkind)    :: TR,TI,PAI
   DATA PAI / 3.1415926535898D0 /
   
   DO I=1,N2

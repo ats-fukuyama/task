@@ -45,15 +45,15 @@ SUBROUTINE CVSOLV
   integer :: NNZ,NNZMAX,NNZME      !Number of Non-Zero Matrix Element
   integer,dimension(:),ALLOCATABLE :: NEFLAG
   integer :: ORIENTJ,ORIENTI
-  real(4) :: cputime1,cputime2
-  real(8) :: x,y,val
-  complex(8):: CEB
-  complex(8),dimension(:),ALLOCATABLE :: CRVP,CEQP
-  integer(8),dimension(:),ALLOCATABLE :: NSEQ
-  REAL(8),DIMENSION(:),ALLOCATABLE:: VAL_SORT
-  INTEGER(8),DIMENSION(:),ALLOCATABLE:: NV_SORT
+  real :: cputime1,cputime2
+  real(rkind) :: x,y,val
+  complex(rkind):: CEB
+  complex(rkind),dimension(:),ALLOCATABLE :: CRVP,CEQP
+  integer(long),dimension(:),ALLOCATABLE :: NSEQ
+  REAL(rkind),DIMENSION(:),ALLOCATABLE:: VAL_SORT
+  INTEGER(long),DIMENSION(:),ALLOCATABLE:: NV_SORT
   INTEGER,DIMENSION(:),ALLOCATABLE:: ntyp_nv,nnsd_nv
-  INTEGER(8):: IX,IY
+  INTEGER(rkind):: IX,IY
 
   ! ----- initialize ------
   

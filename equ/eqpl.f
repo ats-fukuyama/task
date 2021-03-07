@@ -27,8 +27,8 @@ c=======================================================================
       implicit none
       integer ierr
 ! local variables
-      integer(4)    ns
-      real(8) pretot,dentot,temave
+      integer    ns
+      real(rkind) pretot,dentot,temave
 c=======================================================================
       if(eqpl_init_flag) then
          equ1D%nrmax=0
@@ -49,8 +49,8 @@ c
 c
       equ1D%time=0.D0
       if(equ1D%nrmax.ne.nv) then
-         if(associated(equ1D%rho)) deallocate(equ1D%rho)
-         if(associated(equ1D%data)) deallocate(equ1D%data)
+         if(ALLOCATED(equ1D%rho)) deallocate(equ1D%rho)
+         if(ALLOCATED(equ1D%data)) deallocate(equ1D%data)
          equ1D%nrmax=nv
          allocate(equ1D%rho(nv))
          allocate(equ1D%data(nv))
@@ -58,8 +58,8 @@ c
 c
       metric1D%time=0.D0
       if(metric1D%nrmax.ne.nv) then
-         if(associated(metric1D%rho)) deallocate(metric1d%rho)
-         if(associated(metric1D%data)) deallocate(metric1d%data)
+         if(ALLOCATED(metric1D%rho)) deallocate(metric1d%rho)
+         if(ALLOCATED(metric1D%data)) deallocate(metric1d%data)
          metric1D%nrmax=nv
          allocate(metric1D%rho(nv))
          allocate(metric1D%data(nv))
@@ -83,7 +83,7 @@ c=======================================================================
       integer ierr
 ! local variables
       integer(4)    ns,n
-      real(8) pretot,dentot,temave
+      real(rkind) pretot,dentot,temave
 c=======================================================================
 
 !----- adjust pressure profile -----
@@ -413,7 +413,7 @@ c-----------------------------------------------------------------------
       do iz=1,nz
       do ir=1,nr
       i=(iz-1)*nr+ir
-      rho2d(i)=dfloat(nro+1)
+      rho2d(i)=DBLE(nro+1)
       if(iz.ge.izs.and.iz.le.ize)then
       if(ir.ge.irs.and.ir.le.ire)then
       if(psi(i).le.sit(nro))then

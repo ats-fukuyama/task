@@ -71,7 +71,7 @@ subroutine WFINFO
   USE libchar
   implicit none
   integer   :: IE,IN,NN,NE,IA,IS,NSD
-  real(8)   :: R,Z
+  real(rkind)   :: R,Z
   character :: KID*1
   
 8001 continue

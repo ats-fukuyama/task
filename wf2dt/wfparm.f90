@@ -155,7 +155,7 @@ CONTAINS
     use wfcomm
     implicit none
     integer :: NA,NS,NC,ID
-    REAL(8):: RZCL(NSMAX)
+    REAL(rkind):: RZCL(NSMAX)
 
     write(6,*) '*** USED PARAMETERS ***'
     write(6,'(A8,1PE11.3:2X,A7,1PE11.3:2X,A7,1PE11.3)') &
@@ -279,7 +279,7 @@ SUBROUTINE wfparm_broadcast
   IMPLICIT NONE
 
   INTEGER,DIMENSION(23) :: idata
-  REAL(8),DIMENSION(35) :: ddata
+  REAL(rkind),DIMENSION(35) :: ddata
   
 ! ---  broadcast integer data -----
 

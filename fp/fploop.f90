@@ -33,9 +33,9 @@
       real(kind8):: DEPS,IP_all_FP,DEPS_E2
 
       integer:: NT, NR, NP, NTH, NSA, NS, IERR, NSB
-      real(4):: gut_exe1, gut_exe2, gut_coef1, gut_coef2, gut_coef3
-      real(4):: gut_loop1, gut_loop2, gut1, gut2, gut_conv3
-      real(4):: sum_gut_ex, sum_gut_coef, gut_1step, sum_gut_conv
+      real:: gut_exe1, gut_exe2, gut_coef1, gut_coef2, gut_coef3
+      real:: gut_loop1, gut_loop2, gut1, gut2, gut_conv3
+      real:: sum_gut_ex, sum_gut_coef, gut_1step, sum_gut_conv
       LOGICAL:: flag
 
 !     +++++ Time loop +++++
@@ -421,9 +421,9 @@
       USE plprof
       IMPLICIT NONE
       INTEGER:: NTH, NP, NR, NSA, NS
-      real(8),dimension(NRMAX,NSMAX):: tempt, tempn
+      real(rkind),dimension(NRMAX,NSMAX):: tempt, tempn
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
-      real(8):: RHON, FL
+      real(rkind):: RHON, FL
 
 !     Bulk f is replaced by initial Maxwellian
       CALL Define_Bulk_NP
@@ -484,7 +484,7 @@
 
       IMPLICIT NONE
       INTEGER:: NTH, NP, NR, NSA, NS
-      real(8):: FL
+      real(rkind):: FL
 
 !     Bulk f is replaced by Maxwellian
       CALL Define_Bulk_NP

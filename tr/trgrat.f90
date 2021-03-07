@@ -9,7 +9,7 @@
       USE TRCOMM, ONLY : NRAMAX, NRMAX, NROMAX, RHOA, NT, NGTSTP
       IMPLICIT NONE
       CHARACTER(LEN=1), INTENT(IN):: K2
-      INTEGER(4),       INTENT(IN):: INQ
+      INTEGER,       INTENT(IN):: INQ
 
       IF(NT.LT.NGTSTP) RETURN
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
@@ -36,7 +36,7 @@
 
       IMPLICIT NONE
       CHARACTER(LEN=1), INTENT(IN):: K2
-      INTEGER(4),       INTENT(IN):: INQ
+      INTEGER,       INTENT(IN):: INQ
 
       IF(K2.EQ.'1') CALL TRGRX1(INQ)
       RETURN
@@ -52,7 +52,7 @@
 
       IMPLICIT NONE
       CHARACTER(LEN=1), INTENT(IN):: K2
-      INTEGER(4),       INTENT(IN):: INQ
+      INTEGER,       INTENT(IN):: INQ
 
       IF(K2.EQ.'1') THEN
          CALL TRGRT6(INQ)
@@ -83,14 +83,14 @@
 
       SUBROUTINE TRGRT1
 
-      USE TRCOMM, ONLY : GT, GVRT, GRM, RTU, NGT, NTM, NRMAX, MDLUF
+      USE TRCOMM, ONLY : GT, GVRT, GRM, RTU, NGT, NTM, NRMAX, MDLUF, rkind
       USE TRCOM1, ONLY : TMU, NTXMAX, NTUM
       USE libitp
       IMPLICIT NONE
-      INTEGER(4) :: I, NR, IERR
-      REAL(4),DIMENSION(NTM,NRMAX) :: GYL
-      REAL(8) :: TSL, RTEL, RTDL
-      REAL(4) :: GUCLIP
+      INTEGER :: I, NR, IERR
+      REAL,DIMENSION(NTM,NRMAX) :: GYL
+      REAL(rkind) :: TSL, RTEL, RTDL
+      REAL :: GUCLIP
       CALL PAGES
 
       DO I=1,NGT
@@ -159,8 +159,8 @@
 
       USE TRCOMM, ONLY : GT, GRG, GRM, GVRT, NGT, NTM, NRMAX
       IMPLICIT NONE
-      INTEGER(4) :: I
-      REAL(4),DIMENSION(NTM,NRMAX) :: GYL
+      INTEGER :: I
+      REAL,DIMENSION(NTM,NRMAX) :: GYL
 
       CALL PAGES
 
@@ -200,9 +200,9 @@
 
       USE TRCOMM, ONLY : DR, GT, GTS, GVT, GYT, IZERO, NGPST, NGST, NGT, NRMAX, NTM
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN):: INQ
-      INTEGER(4) :: I, IX, K, M, N, NGPSTH
-      REAL(4)    :: GD, GW
+      INTEGER, INTENT(IN):: INQ
+      INTEGER :: I, IX, K, M, N, NGPSTH
+      REAL    :: GD, GW
 
       IF(NGST.EQ.0) THEN
 
@@ -303,7 +303,7 @@
 
       USE TRCOMM, ONLY : GT, GVT, GYT, MDLNF, NGT, NTM
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN):: INQ
+      INTEGER, INTENT(IN):: INQ
 
       CALL PAGES
 
@@ -381,7 +381,7 @@
 
       USE TRCOMM, ONLY : GT, GVT, GYT, NGT, NTM, RA, BB
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN):: INQ
+      INTEGER, INTENT(IN):: INQ
 
       CALL PAGES
 
@@ -433,9 +433,9 @@
       USE TRCOMM, ONLY : &
            DR, GTS, GYT, GVT, NGST, NGPST, NRMAX, NTM, IZERO
       IMPLICIT NONE
-      INTEGER(4),INTENT(IN):: INQ
-      INTEGER(4) :: M, IX, N, K, NGPSTH
-      REAL(4)    :: GW, GD
+      INTEGER,INTENT(IN):: INQ
+      INTEGER :: M, IX, N, K, NGPSTH
+      REAL    :: GW, GD
 
       IF(NGST.EQ.0) RETURN
 
@@ -503,7 +503,7 @@
 
       USE TRCOMM, ONLY : GVT, GYT, NGT, NTM, RA, RR
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN):: INQ
+      INTEGER, INTENT(IN):: INQ
 
       CALL PAGES
 

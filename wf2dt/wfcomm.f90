@@ -202,12 +202,12 @@ module wfcomm
   real(rkind):: LNDMIN,LNDMAX
   integer(ikind):: NFOPEN
   integer(ikind):: NWXMAX
-  real(4),dimension(:,:),ALLOCATABLE :: GZ,GZ_temp !(NGXM,NGYM)
+  real,dimension(:,:),ALLOCATABLE :: GZ,GZ_temp !(NGXM,NGYM)
   INTEGER,dimension(:,:),ALLOCATABLE :: IEGZ !(NXVM,NGYM)
-  real(4),dimension(:)  ,ALLOCATABLE :: G2X!(NGXM)
-  real(4),dimension(:)  ,ALLOCATABLE :: G2Y!(NGYM)
-  real(4),dimension(:,:),ALLOCATABLE :: GV !(NGVM,NGM)
-  real(4),dimension(:)  ,ALLOCATABLE :: GX !(NGVM)
+  real,dimension(:)  ,ALLOCATABLE :: G2X!(NGXM)
+  real,dimension(:)  ,ALLOCATABLE :: G2Y!(NGYM)
+  real,dimension(:,:),ALLOCATABLE :: GV !(NGVM,NGM)
+  real,dimension(:)  ,ALLOCATABLE :: GX !(NGVM)
   integer(ikind):: NGXMAX,NGYMAX,NGVMAX
         
 !       /WFDBG/

@@ -92,7 +92,7 @@
       INCLUDE 'nclass/pamx_mz.inc'
 !      INCLUDE 'trncls.inc'
 !Declaration of input to NCLASS
-      INTEGER(4)::                        k_order,  k_potato, m_i,      m_z
+      INTEGER::                        k_order,  k_potato, m_i,      m_z
       REAL(rkind)::                       c_den,    c_potb,   c_potl,   p_b2,     p_bm2,    p_eb,   &
      &                                    p_fhat,   p_ft,     p_grbm2,  p_ngrth,  p_grphi,  p_gr2phi
       REAL(rkind),DIMENSION(3)            ::  p_fm
@@ -101,8 +101,8 @@
       REAL(rkind),DIMENSION(3,mx_mi,mx_mz)::  fex_iz
 
 !Declaration of output from NCLASS
-      INTEGER(4)::                        iflag,    m_s
-      INTEGER(4),DIMENSION(mx_ms)::       jm_s,     jz_s
+      INTEGER::                        iflag,    m_s
+      INTEGER,DIMENSION(mx_ms)::       jm_s,     jz_s
       REAL(rkind)::                           p_bsjb,   p_etap,    p_exjb
       REAL(rkind),DIMENSION(3,3,mx_mi)::      calm_i
       REAL(rkind),DIMENSION(3,3,mx_mi,mx_mi)::caln_ii,  capm_ii,  capn_ii
@@ -111,8 +111,8 @@
       REAL(rkind),DIMENSION(3,3,mx_ms)::      upar_s,   utheta_s, ymu_s
       REAL(rkind),DIMENSION(mx_ms,mx_ms)::    chip_ss,  chit_ss,  dp_ss,    dt_ss
 
-      INTEGER(4),INTENT(OUT):: IERR
-      INTEGER(4)::  i,k_out,k_v,na,nm,nr,ns,ns1,nsn,nsz
+      INTEGER,INTENT(OUT):: IERR
+      INTEGER::  i,k_out,k_v,na,nm,nr,ns,ns1,nsn,nsz
       REAL(rkind)   ::  a0,bt0,e0,p_eps,p_q,q0l,r0
       REAL(rkind)   ::  btor,btot,bpol,eps,ftpf,pzmax,uthai
 
@@ -387,14 +387,14 @@
       INCLUDE 'nclass/pamx_mz.inc'
 !      INCLUDE 'trncls.inc'
 !Declaration of input to NCLASS
-      INTEGER(4)::                        k_order,  m_i,      m_z
+      INTEGER::                        k_order,  m_i,      m_z
       REAL(rkind)::                           p_fhat,   p_grphi
       REAL(rkind),DIMENSION(mx_mi)        ::  amu_i,    grt_i,    temp_i
       REAL(rkind),DIMENSION(mx_mi,mx_mz)  ::  den_iz,   grp_iz
 
 !Declaration of output from NCLASS
-      INTEGER(4)::                        iflag,    m_s
-      INTEGER(4),DIMENSION(mx_ms)::       jm_s,     jz_s
+      INTEGER::                        iflag,    m_s
+      INTEGER,DIMENSION(mx_ms)::       jm_s,     jz_s
       REAL(rkind)::                           p_bsjb,   p_etap,    p_exjb
       REAL(rkind),DIMENSION(3,3,mx_mi)::      calm_i
       REAL(rkind),DIMENSION(3,3,mx_mi,mx_mi)::caln_ii,  capm_ii,  capn_ii

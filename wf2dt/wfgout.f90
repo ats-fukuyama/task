@@ -175,16 +175,16 @@ SUBROUTINE WFCTOGSD(ID,KWD)
   implicit none
   integer,intent(in) :: ID
   integer :: IE,NGX,NGY,NGV
-  real(8) :: DX,DY,X,Y
-  real(8) :: XPOS,YPOS
-  complex(8) :: CE
+  real(rkind) :: DX,DY,X,Y
+  real(rkind) :: XPOS,YPOS
+  complex(rkind) :: CE
   character,intent(in) :: KWD*(NCHM)
   CHARACTER  :: KID*1
   INTEGER:: N1,N2,N3
-  COMPLEX(8) :: CE1,CE2,CE3
+  COMPLEX(rkind) :: CE1,CE2,CE3
 
-  real(8) :: theta
-  complex(8)::CE_R,CE_Z
+  real(rkind) :: theta
+  complex(rkind)::CE_R,CE_Z
 
   KID=KWD(3:3)
   IE=0
@@ -401,14 +401,14 @@ SUBROUTINE WFCTOGND(ID,KWD)
   implicit none
   integer,intent(in) :: ID
   integer :: IE,NGX,NGY,NGV
-  real(8) :: DX,DY,X,Y
-  real(8) :: XPOS,YPOS
-  complex(8) :: CE
+  real(rkind) :: DX,DY,X,Y
+  real(rkind) :: XPOS,YPOS
+  complex(rkind) :: CE
   character,intent(in) :: KWD*(NCHM)
   CHARACTER  :: KID*1
 
-  real(8) :: theta
-  complex(8)::CE_R,CE_Z
+  real(rkind) :: theta
+  complex(rkind)::CE_R,CE_Z
 
   KID=KWD(3:3)
   IE=0
@@ -595,9 +595,9 @@ subroutine wfgout_2d_vector
   implicit none
 
   integer :: IE,NGX,NGY
-  complex(8):: CE
-  real(8):: DX,DY,X,Y
-  real(8),dimension(:,:),ALLOCATABLE::GZ_r,GZ_z
+  complex(rkind):: CE
+  real(rkind):: DX,DY,X,Y
+  real(rkind),dimension(:,:),ALLOCATABLE::GZ_r,GZ_z
 
   allocate(GZ_r(NGXMAX,NGYMAX),GZ_z(NGXMAX,NGYMAX))
   IE=0

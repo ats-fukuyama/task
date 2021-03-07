@@ -9,18 +9,18 @@ C
       USE libgrf
       INCLUDE '../eq/eqcomq.inc'
 C
-      integer(4):: ir,iz
-      REAL(8),DIMENSION(:,:),ALLOCATABLE:: psi_temp
+      integer:: ir,iz
+      REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: psi_temp
       DIMENSION PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM)
       DIMENSION PSIx1(NRGM,NZGM),psix2(NRGM,NZGM),PSIx3(NRGM,NZGM)
-      REAL(8):: DERIV(NPSM)
-      REAL(8),DIMENSION(1)::  THIN=(/0.035/)
-      REAL(8),DIMENSION(:),ALLOCATABLE:: rc_xp,zc_xp,psic_xp
-      REAL(8),DIMENSION(NSUM):: XA
+      REAL(rkind):: DERIV(NPSM)
+      REAL(rkind),DIMENSION(1)::  THIN=(/0.035/)
+      REAL(rkind),DIMENSION(:),ALLOCATABLE:: rc_xp,zc_xp,psic_xp
+      REAL(rkind),DIMENSION(NSUM):: XA
       INTEGER:: icount,icountmax
       INTEGER,PARAMETER:: icountm=10
       INTEGER:: ic_min1,ic_min2,ic_min3
-      REAL(8):: psic_max,psic_min
+      REAL(rkind):: psic_max,psic_min
       EXTERNAL RBB,PSIGZ0
 C
       neqdsk=21
@@ -302,8 +302,8 @@ C
       END
 
       SUBROUTINE RBB(X,RGB)
-      REAL(4),INTENT(IN):: X
-      REAL(4),INTENT(OUT):: RGB(3)
+      REAL,INTENT(IN):: X
+      REAL,INTENT(OUT):: RGB(3)
 
       RGB(1)=0.0
       RGB(2)=0.0

@@ -60,8 +60,8 @@ C
       USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
 C
-      REAL(8),DIMENSION(:,:),ALLOCATABLE:: PSIRG,PSIZG,PSIRZG
-      REAL(8),DIMENSION(:,:),ALLOCATABLE:: HJTRG,HJTZG,HJTRZG
+      REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: PSIRG,PSIZG,PSIRZG
+      REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: HJTRG,HJTZG,HJTRZG
 
       DIMENSION DERIV(NPSM)
       EXTERNAL PSIGD
@@ -890,7 +890,7 @@ C
 C
       DIMENSION DERIV(NRM)
       DIMENSION D01(NTHMP,NRM),D10(NTHMP,NRM),D11(NTHMP,NRM)
-      REAL(8) CHIPL
+      REAL(rkind) CHIPL
 C
 C      DO NR=1,NRMAX
 C         WRITE(6,'(A,I5,1P5E12.4)')
@@ -1325,11 +1325,12 @@ c       Output: z0, r0
       
       subroutine zminmax(ya,n,z0,r0)
 
+      USE bpsd_kinds,ONLY: rkind
       implicit none
-      real(8),dimension(2,*),intent(in):: ya
+      real(rkind),dimension(2,*),intent(in):: ya
       integer,intent(in):: n
-      real(8),intent(out):: z0,r0
-      real(8):: r1,r2,r3,z1,z2,z3,dz1,dz2,ra1,ra2,a
+      real(rkind),intent(out):: z0,r0
+      real(rkind):: r1,r2,r3,z1,z2,z3,dz1,dz2,ra1,ra2,a
 
       r1=ya(1,n-1)
       z1=ya(2,n-1)

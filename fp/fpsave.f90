@@ -66,7 +66,7 @@
         USE fpsub
       IMPLICIT NONE
       integer:: NSA, NSB, NR
-      real(8):: rtemp, rtemp2
+      real(rkind):: rtemp, rtemp2
 
       NTG1=NTG1+1
       call fp_adjust_ntg1
@@ -170,7 +170,7 @@
         USE fpsub
       IMPLICIT NONE
       integer:: NR, NSA, NSB
-      real(8):: RS, rtemp
+      real(rkind):: RS, rtemp
 
       NTG2=NTG2+1
       call fp_adjust_ntg2
@@ -236,8 +236,8 @@
 !
       IMPLICIT NONE
       integer:: NSA, NSB
-      real(8):: rtotalPW, rtotalPC,rtotalSP,rtotalPC2
-      real(8):: rtotalDR,rtotalLH,rtotalFW,rtotalEC,rtotalWR,rtotalWM,rtotalIP
+      real(rkind):: rtotalPW, rtotalPC,rtotalSP,rtotalPC2
+      real(rkind):: rtotalDR,rtotalLH,rtotalFW,rtotalEC,rtotalWR,rtotalWM,rtotalIP
       character:: fmt0*50
 !
       WRITE(6,*)"--------------------------------------------"
@@ -322,7 +322,7 @@
         USE fpsub
       IMPLICIT NONE
       integer:: NSA, NR, NS
-      real(8):: rtemp
+      real(rkind):: rtemp
       character:: fmt0*50
 !
 !      WRITE(fmt0,'(a15)') '(2I3,1P20E13.4)'
@@ -390,9 +390,9 @@
 !
       IMPLICIT NONE
       integer:: NR, NSA, NSB, NS
-      real(8):: rnute, resist
-      real(8):: taue_col, sigma_sp, FACT
-      real(8):: taue_col2, sigma_sp2
+      real(rkind):: rnute, resist
+      real(rkind):: taue_col, sigma_sp, FACT
+      real(rkind):: taue_col2, sigma_sp2
 
 !-----check of conductivity--------
       IF(NTG1.ne.1.and.NRANK.eq.0)then
@@ -686,7 +686,7 @@
       USE plprof
       IMPLICIT NONE
       integer:: NR, NSA, NS
-      real(8):: rhon
+      real(rkind):: rhon
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
       double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in):: recv
 
@@ -740,13 +740,13 @@
       USE fpmpi
       IMPLICIT NONE
       INTEGER,intent(in):: NPB, NR, NSA
-!      REAL(8),INTENT(OUT):: RTL
+!      REAL(rkind),INTENT(OUT):: RTL
       integer:: ISW_BULK, NP, NTH, NS
-      real(8):: RSUM_T, RSUM_V, PV, DFDP, WPL, FFP, RSUMN, RSUMW, FACT
-      real(8),dimension(NTHMAX,NPMAX):: T_BULK
-      real(8),dimension(NPSTART:NPEND):: RPL_BULK_send 
-      real(8),dimension(NPMAX):: RPL_BULK_recv
-      real(8):: RNL_BULK, RWL_BULK, rtemp
+      real(rkind):: RSUM_T, RSUM_V, PV, DFDP, WPL, FFP, RSUMN, RSUMW, FACT
+      real(rkind),dimension(NTHMAX,NPMAX):: T_BULK
+      real(rkind),dimension(NPSTART:NPEND):: RPL_BULK_send 
+      real(rkind),dimension(NPMAX):: RPL_BULK_recv
+      real(rkind):: RNL_BULK, RWL_BULK, rtemp
 
 !      ISW_BULK=0 ! sometimes DFDP becomes 0 and 
 !                   then it makes density NaN. (for FACT_BULK < 4)
@@ -1455,10 +1455,10 @@
       USE libmpi
       IMPLICIT NONE
       INTEGER:: NTH, NP, NR, NSA, NS
-      real(8):: WRL, WRH, DINT_DFDT_R1, DINT_DFDT_R2
-      real(8):: DFDR_R1, DFDR_R2, DFDT_R1, DFDT_R2, DINT_DR, RSUM_DR,RGAMA,F_R1,F_R2, RSUMN_DR
-      real(8):: SRHOR1, SRHOR2, RSUM_DRS, RSUMN_DRS
-      real(8)::DRRM, DRRP, RL
+      real(rkind):: WRL, WRH, DINT_DFDT_R1, DINT_DFDT_R2
+      real(rkind):: DFDR_R1, DFDR_R2, DFDT_R1, DFDT_R2, DINT_DR, RSUM_DR,RGAMA,F_R1,F_R2, RSUMN_DR
+      real(rkind):: SRHOR1, SRHOR2, RSUM_DRS, RSUMN_DRS
+      real(rkind)::DRRM, DRRP, RL
 
       IF(MODELD.ne.0)THEN
          CALL mtx_set_communicator(comm_np)

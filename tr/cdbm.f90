@@ -176,7 +176,7 @@ CONTAINS
     REAL(rkind),intent(in):: wexb  ! omega ExB
     REAL(rkind),intent(in):: shear ! Magnetic shear
     REAL(rkind),intent(in):: alpha ! Normalized pressure gradient
-    REAL(8):: alpha1,alpha2,beta,gamma,arg
+    REAL(rkind):: alpha1,alpha2,beta,gamma,arg
 
     IF(ABS(alpha).LT.1.D-3) THEN
        alpha1=1.D-3

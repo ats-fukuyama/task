@@ -17,8 +17,8 @@
       USE tr_cytran_mod
       USE libitp
       IMPLICIT NONE
-      INTEGER(4),INTENT(OUT)    :: IERR
-      INTEGER(4)                :: NR,NS
+      INTEGER,INTENT(OUT)    :: IERR
+      INTEGER                :: NR,NS
 
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       IERR=0
@@ -185,11 +185,11 @@
 
       USE TRCOMM, ONLY : AEE, AMM, BB, BP, DR, EPSRHO, ER, MDLER, NRMAX, &
            & PA, PADD, PBM, PNSS, PTS, PZ, QP, RHOG, RHOM, &
-           & RJCB, RKEV, RN, RNF, RT, SUMPBM, VPOL, VTOR
+           & RJCB, RKEV, RN, RNF, RT, SUMPBM, VPOL, VTOR, rkind
       USE libitp
       IMPLICIT NONE
-      INTEGER(4):: NR
-      REAL(8)   :: ALPHA_NEO, CS, DPD, DRL, EPS, F_UNTRAP, RHO_S, RLNI, &
+      INTEGER:: NR
+      REAL(rkind)   :: ALPHA_NEO, CS, DPD, DRL, EPS, F_UNTRAP, RHO_S, RLNI, &
            & RLTI, TEL, TERM_DP, TIL
 
       IF(SUMPBM.EQ.0.D0) THEN
@@ -249,12 +249,12 @@
 
       SUBROUTINE TRAJBS_NCLASS
 
-      USE TRCOMM, ONLY : AJBS, AJBSNC, BB, CJBSP, CJBST, DR, NRMAX, NSMAX, PBSCD, PNSS, PTS, RG, RM, RN, RT
+      USE TRCOMM, ONLY : AJBS, AJBSNC, BB, CJBSP, CJBST, DR, NRMAX, NSMAX, PBSCD, PNSS, PTS, RG, RM, RN, RT, rkind
       USE libitp  
       IMPLICIT NONE
-      INTEGER(4):: NR, NS, NSW
-      REAL(8)   :: DRPNW, DRTNW, RPNW, RTNW, SUML
-      REAL(8),DIMENSION(NRMAX)::  AJBSL
+      INTEGER:: NR, NS, NSW
+      REAL(rkind)   :: DRPNW, DRTNW, RPNW, RTNW, SUML
+      REAL(rkind),DIMENSION(NRMAX)::  AJBSL
 
 
       IF(PBSCD.LE.0.D0) RETURN
@@ -305,14 +305,14 @@
       SUBROUTINE TRAJBSSAUTER
 
       USE TRCOMM, ONLY : AJBS, BB, DR, EPSRHO, MDLTPF, NRMAX, NSMAX, PADD, PBSCD, PNSS, PTS, PZ, QP, RDP, RHOG, RHOM, RKEV, &
-     &                   RN, RPE, RR, RT, RW, TTRHOG, ZEFF
+     &                   RN, RPE, RR, RT, RW, TTRHOG, ZEFF, rkind
       USE libitp
       IMPLICIT NONE
-      INTEGER(4):: NR, NS
-      REAL(8)   :: ANE, DPE, DPI, DRL, DTE, DTI, EPS, EPSS, F31TEFF, F32EETEFF, F32EITEFF, F34TEFF, FT, FTPF, PE, PPI, QL, RL31,&
+      INTEGER:: NR, NS
+      REAL(rkind)   :: ANE, DPE, DPI, DRL, DTE, DTI, EPS, EPSS, F31TEFF, F32EETEFF, F32EITEFF, F34TEFF, FT, FTPF, PE, PPI, QL, RL31,&
      &             RL32, RL34, RLNLAME, RLNLAMII, RNM, RNP, RNTM, RNTP, RNUE, RNUI, RPIM, RPIP, SALFA, SALFA0, TE, TI, ZEFFL
-      REAL(8),DIMENSION(NRMAX):: AJBSL, ANI
-      REAL(8)   :: F31, F32EE, F32EI
+      REAL(rkind),DIMENSION(NRMAX):: AJBSL, ANI
+      REAL(rkind)   :: F31, F32EE, F32EI
 
 
       IF(PBSCD.LE.0.D0) RETURN
@@ -508,30 +508,33 @@
 !     *  Fitting Function *
 !     *********************
 
-      REAL(8) FUNCTION F33(X,Z)
+      FUNCTION F33(X,Z)
 
+      USE TRCOMM,ONLY: rkind
       IMPLICIT NONE
-      REAL(8) X,Z
+      REAL(rkind):: X,Z,F33
 
       F33 = 1.D0-(1.D0+0.36D0/Z)*X+0.59D0/Z*X**2-0.23D0/Z*X**3
 
       RETURN
       END FUNCTION F33
 
-      REAL(8) FUNCTION F31(X,Z)
+      FUNCTION F31(X,Z)
 
+      USE TRCOMM,ONLY: rkind
       IMPLICIT NONE
-      REAL(8) X,Z
+      REAL(rkind) X,Z,F31
 
       F31 = (1.D0+1.4D0/(Z+1.D0))*X-1.9D0/(Z+1.D0)*X**2 +0.3D0/(Z+1.D0)*X**3+0.2D0/(Z+1.D0)*X**4
 
       RETURN
       END FUNCTION F31
 
-      REAL(8) FUNCTION F32EE(X,Z)
+      FUNCTION F32EE(X,Z)
 
+      USE TRCOMM,ONLY: rkind
       IMPLICIT NONE
-      REAL(8) X,Z
+      REAL(rkind) X,Z,F32EE
 
       F32EE = (0.05D0+0.62D0*Z)/(Z*(1.D0+0.44D0*Z))*(X-X**4)&
      &       +1.D0/(1.D0+0.22D0*Z)*(X**2-X**4-1.2D0*(X**3-X**4))+1.2D0/(1.D0+0.5D0*Z)*X**4
@@ -539,10 +542,11 @@
       RETURN
       END FUNCTION F32EE
 
-      REAL(8) FUNCTION F32EI(X,Z)
+      FUNCTION F32EI(X,Z)
 
+      USE TRCOMM,ONLY: rkind
       IMPLICIT NONE
-      REAL(8) X,Z
+      REAL(rkind) X,Z,F32EI
 
       F32EI =-(0.56D0+1.93D0*Z)/(Z*(1.D0+0.44D0*Z))*(X-X**4) &
      &       +4.95D0/(1.D0+2.48D0*Z)*(X**2-X**4-0.55D0*(X**3-X**4))-1.2D0/(1.D0+0.5D0*Z)*X**4
@@ -559,12 +563,12 @@
       SUBROUTINE TRAJBSNEW
 
       USE TRCOMM, ONLY : AJBS, BB, DR, EPSRHO, NRMAX, NSMAX, PADD, PBSCD, PNSS, PTS, PZ, RDP, RHOG, RHOM, RKEV, RN, RT, &
-     &                   RW, TTRHOG
+     &                   RW, TTRHOG, rkind
       USE libitp
       IMPLICIT NONE
-      INTEGER(4):: NR, NS
-      REAL(8) :: DDD, DDX, DPE, DPI, DRL, DTE, DTI, EPS, FT, PE, PPI, RL31, RL32, RNM, RNP, RNTM, RNTP, RPIM, RPIP, TE, TI
-      REAL(8),DIMENSION(NRMAX)::  AJBSL, ANI
+      INTEGER:: NR, NS
+      REAL(rkind) :: DDD, DDX, DPE, DPI, DRL, DTE, DTI, EPS, FT, PE, PPI, RL31, RL32, RNM, RNP, RNTM, RNTP, RPIM, RPIP, TE, TI
+      REAL(rkind),DIMENSION(NRMAX)::  AJBSL, ANI
 
 
       IF(PBSCD.LE.0.D0) RETURN
@@ -787,16 +791,16 @@
       SUBROUTINE TRAJBS
 
       USE TRCOMM, ONLY : AJBS, AME, AMM, BB, BP, DR, EPSRHO, NRMAX, NSMAX, PA, PBSCD, PNSS, PTS, PZ, QP, RHOG, RHOM, &
-     &                   RJCB, RKEV, RN, RR, RT, ZEFF
+     &                   RJCB, RKEV, RN, RR, RT, ZEFF, rkind
       USE libitp
       IMPLICIT NONE
-      INTEGER(4):: NR
-      REAL(8)   :: A, AMA, AMD, AMT, ANA, ANDX, ANE, ANT, BPL, DPA, DPD, DPE, DPT, DRL, DTA, DTD, DTE, DTT, EPS, EPSS, FACT, &
+      INTEGER:: NR
+      REAL(rkind)   :: A, AMA, AMD, AMT, ANA, ANDX, ANE, ANT, BPL, DPA, DPD, DPE, DPT, DRL, DTA, DTD, DTE, DTT, EPS, EPSS, FACT, &
      &             FTAUE, FTAUI, H, PAL, PDL, PEL, PTL, RK13E, RK23E, RK3A, RK3D, RK3T, RNUA, RNUD, RNUE, RNUT, TAL, TAUA,   &
      &             TAUD, TAUE, TAUT, TDL, TEL, TTL, VTA, VTD, VTE, VTT, ZEFFL
-      REAL(8),DIMENSION(NRMAX):: AJBSL
+      REAL(rkind),DIMENSION(NRMAX):: AJBSL
 
-      REAL(8):: RK13=2.30D0, RA13=1.02D0, RB13=1.07D0, RC13=1.07D0, RK23=4.19D0, RA23=0.57D0, RB23=0.61D0, RC23=0.61D0
+      REAL(rkind):: RK13=2.30D0, RA13=1.02D0, RB13=1.07D0, RC13=1.07D0, RK23=4.19D0, RA23=0.57D0, RB23=0.61D0, RC23=0.61D0
 
 !     ZEFF=1
 
@@ -1003,10 +1007,10 @@
       USE TRCOMM, ONLY : &
            AJ, AJBS, AJNB, AJOH, AJRF, AJTOR, BB, DR, DVRHO, ETA, EZOH, &
            MDLEQB, MDLJQ, MDLUF, NRMAX, POH, RMU0, RR, TTRHO, TTRHOG, &
-           RDPVRHOG, PI,abvrhog
+           RDPVRHOG, PI,abvrhog, rkind
       IMPLICIT NONE
-      INTEGER(4):: NR
-      REAL(8)   :: FACTOR0, FACTORM, FACTORP
+      INTEGER:: NR
+      REAL(rkind)   :: FACTOR0, FACTORM, FACTORP
 
       IF(MDLEQB.EQ.1.OR.MDLJQ.EQ.1.OR.(MDLUF.EQ.0.OR.MDLUF.EQ.3)) THEN
       NR=1
@@ -1051,11 +1055,11 @@
       SUBROUTINE TRSAWT
 
       USE TRCOMM, ONLY : AR1RHOG, ARRHOG, BP, DR, DVRHO, DVRHOG, MDLST, NRMAX, NSMAX, PI, QP, RDP, RG, RM, RN, RR, RT, &
-     &                   T, TTRHOG, RDPVRHOG
+     &                   T, TTRHOG, RDPVRHOG, rkind
       IMPLICIT NONE
-      INTEGER(4):: IONE, IZEROX, LN, LQ, LT, NR, NS
-      REAL(8)   :: RNN, RTN, SUML, SUML1, SUML2
-      REAL(8),DIMENSION(NRMAX):: QONE
+      INTEGER:: IONE, IZEROX, LN, LQ, LT, NR, NS
+      REAL(rkind)   :: RNN, RTN, SUML, SUML1, SUML2
+      REAL(rkind),DIMENSION(NRMAX):: QONE
 
 
       IF(MDLST.EQ.0) RETURN
@@ -1141,14 +1145,16 @@
 
 !     ***********************************************************
 
-      REAL(8) FUNCTION FTPF(ID,EPS)
+      FUNCTION FTPF(ID,EPS)
 
+      USE TRCOMM,ONLY: rkind
       IMPLICIT NONE
-      INTEGER(4)                  :: ID, IERR, N, I
-      INTEGER(4),PARAMETER        :: IMAX=20
-      REAL(8)                     :: EPS, EPSC, FTLL, FTUL, OMEGA, PI, S
-      REAL(8),DIMENSION(IMAX,IMAX):: TABLE
-      REAL(8)                     :: FTL, FTU
+      INTEGER                  :: ID, IERR, N, I
+      INTEGER,PARAMETER        :: IMAX=20
+      REAL(rkind)                     :: EPS, EPSC, FTLL, FTUL, OMEGA, PI, S
+      REAL(rkind),DIMENSION(IMAX,IMAX):: TABLE
+      REAL(rkind)                     :: FTPF
+      REAL(rkind)                     :: FTL, FTU
       EXTERNAL FTL, FTU
 
       IF(ID.EQ.1) THEN
@@ -1187,21 +1193,23 @@
 
 !     *********************************************
 
-      REAL(8) FUNCTION FTU(X,EPS)
+      FUNCTION FTU(X,EPS)
 
+      USE TRCOMM,ONLY: rkind
       IMPLICIT NONE
-      REAL(8):: EPS, X
+      REAL(rkind):: EPS, X, FTU
 
       FTU = X/SQRT(1.D0-X*(1.D0-EPS))
 
       RETURN
       END FUNCTION FTU
 
-      REAL(8) FUNCTION FTL(X,EPS)
+      FUNCTION FTL(X,EPS)
 !
+      USE TRCOMM,ONLY: rkind
       IMPLICIT NONE
-      REAL(8):: X, EPS
-      REAL(8):: H
+      REAL(rkind):: X, EPS,FTL
+      REAL(rkind):: H
 
       H = (1.D0 - EPS) / (1.D0 + EPS * COS(X))
       FTL = (1.D0 - SQRT(1.D0 - H) * (1.D0 + 0.5D0 * H)) / H**2
@@ -1229,14 +1237,15 @@
 !        IERR  : error indicator
 !        T     : Romberg T table
 
+      USE TRCOMM,ONLY: rkind
       IMPLICIT NONE
-      REAL(8),INTENT(IN)      ::  A, B, ARG, EPS
-      REAL(8),INTENT(OUT)     ::  S
-      INTEGER(4),INTENT(INOUT):: IMAX
-      INTEGER(4),INTENT(OUT)  :: IERR, N
-      REAL(8),DIMENSION(IMAX,IMAX),INTENT(OUT)::  T
-      INTEGER(4)::  I, J, K, N2
-      REAL(8)   ::  F, X, H, S1, Y1, Y2
+      REAL(rkind),INTENT(IN)      ::  A, B, ARG, EPS
+      REAL(rkind),INTENT(OUT)     ::  S
+      INTEGER,INTENT(INOUT):: IMAX
+      INTEGER,INTENT(OUT)  :: IERR, N
+      REAL(rkind),DIMENSION(IMAX,IMAX),INTENT(OUT)::  T
+      INTEGER::  I, J, K, N2
+      REAL(rkind)   ::  F, X, H, S1, Y1, Y2
 
       EXTERNAL F
 
@@ -1281,15 +1290,16 @@
 
 !     ***********************************************************
 
-      REAL(8) FUNCTION COULOG(NS1,NS2,ANEL,TL)
+      FUNCTION COULOG(NS1,NS2,ANEL,TL)
 
 !     ANEL : electron density [10^20 /m^3]
 !     TL   : electron or ion temperature [keV]
 !            in case of ion-ion collision, TL becomes ion temp.
 
+      USE TRCOMM,ONLY: rkind
       IMPLICIT NONE
-      INTEGER(4):: NS1,NS2
-      REAL(8)   :: ANEL,TL
+      INTEGER:: NS1,NS2
+      REAL(rkind)   :: ANEL,TL,COULOG
 
       IF(NS1.EQ.1.AND.NS2.EQ.1) THEN
          COULOG=14.9D0-0.5D0*LOG(ANEL)+LOG(TL)
@@ -1312,17 +1322,17 @@
 
 !     between electrons and ions
 
-      REAL(8) FUNCTION FTAUE(ANEL,ANIL,TEL,ZL)
+      FUNCTION FTAUE(ANEL,ANIL,TEL,ZL)
 
 !     ANEL : electron density [10^20 /m^3]
 !     ANIL : ion density [10^20 /m^3]
 !     TEL  : electron temperature [kev]
 !     ZL   : ion charge number
 
-      USE TRCOMM, ONLY : AEE, AME, EPS0, PI, PZ, RKEV
+      USE TRCOMM, ONLY : AEE, AME, EPS0, PI, PZ, RKEV, rkind
       IMPLICIT NONE
-      REAL(8) :: ANEL, ANIL, TEL, ZL
-      REAL(8) :: COEF, COULOG
+      REAL(rkind) :: ANEL, ANIL, TEL, ZL, FTAUE
+      REAL(rkind) :: COEF, COULOG
 
       COEF = 6.D0*PI*SQRT(2.D0*PI)*EPS0**2*SQRT(AME)/(AEE**4*1.D20)
       IF(ZL-PZ(2).LE.1.D-7) THEN
@@ -1340,7 +1350,7 @@
 
 !     between ions and ions
 
-      REAL(8) FUNCTION FTAUI(ANEL,ANIL,TIL,ZL,PAL)
+      FUNCTION FTAUI(ANEL,ANIL,TIL,ZL,PAL)
 
 !     ANEL : electron density [10^20 /m^3]
 !     ANIL : ion density [10^20 /m^3]
@@ -1348,10 +1358,10 @@
 !     ZL   : ion charge number
 !     PAL  : ion atomic number
 
-      USE TRCOMM, ONLY : AEE, AMM, EPS0, PI, RKEV
+      USE TRCOMM, ONLY : AEE, AMM, EPS0, PI, RKEV, rkind
       IMPLICIT NONE
-      REAL(8):: ANEL, ANIL, PAL, TIL, ZL
-      REAL(8):: COEF, COULOG
+      REAL(rkind):: ANEL, ANIL, PAL, TIL, ZL, FTAUI
+      REAL(rkind):: COEF, COULOG
 
       COEF = 12.D0*PI*SQRT(PI)*EPS0**2*SQRT(PAL*AMM)/(AEE**4*1.D20)
       FTAUI = COEF*(TIL*RKEV)**1.5D0/(ANIL*ZL**4*COULOG(2,2,ANEL,TIL))

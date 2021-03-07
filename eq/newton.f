@@ -92,7 +92,7 @@ C
             DO I=1,M
                SUML=SUML+(DX(I)/MAX(ABS(OLDX(I)),1.D0))**2
             END DO
-            SUML=SQRT(SUML/DFLOAT(M))
+            SUML=SQRT(SUML/DBLE(M))
             WRITE(6,'(A,1PE12.4)') '** NEWTON4: SUML=',SUML
             IF (SUML.LE.TOL) STATUS=SOLVED
          END IF

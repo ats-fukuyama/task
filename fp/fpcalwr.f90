@@ -772,9 +772,9 @@
 !
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR,NSA
-      REAL(8),INTENT(IN):: ETAL,RSIN,RCOS
-      REAL(8),INTENT(OUT):: PSIN,PCOS,PSI
-      REAL(8):: ARG
+      REAL(rkind),INTENT(IN):: ETAL,RSIN,RCOS
+      REAL(rkind),INTENT(OUT):: PSIN,PCOS,PSI
+      REAL(rkind):: ARG
 
       IF(MODELA.EQ.0) THEN
          PSI=1.D0

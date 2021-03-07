@@ -26,15 +26,15 @@
            AVKDW, BB, CDH, DR, MDDW, MDLEOI, MDLEQN, MDLEQT, MDLKAI, MDLUF, &
            NGLF, NRMAX, NSM, NSMAX, PA, PHIA, PI, PZ, Q0, QP, RA, RG, RKAP, &
            RKPRHO, RM, RMJRHO, RMNRHO, RN, RNF, RR, RT, VPAR, VPRP, VTOR, &
-           WEXB, WROT, ZEFF, ALPHA
+           WEXB, WROT, ZEFF, ALPHA, rkind
       USE libitp
       IMPLICIT NONE
       INCLUDE 'trglf.inc'
-      REAL(8),DIMENSION(NRMAX), INTENT(IN):: S_HM
-      INTEGER(4):: &
+      REAL(rkind),DIMENSION(NRMAX), INTENT(IN):: S_HM
+      INTEGER:: &
            i_delay, idengrad, iglf, igrad, irotstab, j, jm, jmaxm, jmm, &
            jshoot, leigen, mode, nbt_flag, nr, nroot, ns, ns1
-      REAL(8)   :: &
+      REAL(rkind)   :: &
            alpha_e, amassgas_exp, amassimp_exp, arho_exp, bt_exp, chietem, &
            chiitim, deltat, diffnem, etaparm, etaperm, etaphim, exchm, &
            qe, qi, qn, rmajor_exp, x_alpha, zimp_exp, zpne_in, &
@@ -458,17 +458,17 @@
       USE TRCOMM, ONLY : &
            AR1RHOG, AR2RHOG, BB, DR, EPSRHO, MDDW, MDLKAI, MDLTPF, &
            NRMAX, NT, PA, PNSS, PTS, PZ, QP, RA, RHOG, RHOM, RJCB, RKAP, &
-           RKEV, RMU0, RN, RR, RT, WEXB, S
+           RKEV, RMU0, RN, RR, RT, WEXB, S, rkind
       USE libitp
       IMPLICIT NONE
-      INTEGER(4):: ist, nr
-      REAL(8)   :: &
+      INTEGER:: ist, nr
+      REAL(rkind)   :: &
            azl, betael, bql, coll, drl, eel, eil, ell, enl, enql, eps, &
            epsa, eql, fll, fls, ftl, ftpf, pma, ql, rgkl, risbl, riwl, &
            rlist, rneql, rnl, rotl, sche, schi, schq, sd, sdq, search, &
            shat, sl, slbl, slnel, slnil, slnql, sltel, sltil, sltql, taul, &
            tauzl, tel, wexbl, zl
-      REAL(8),DIMENSION(5):: CHEL, CHIL, CHQL, DL, DQL
+      REAL(rkind),DIMENSION(5):: CHEL, CHIL, CHQL, DL, DQL
 
       MDDW=1
       IF(NT.EQ.0) THEN
@@ -598,12 +598,12 @@
       SUBROUTINE WEILAND_COEF(NR,CHIL,CHEL,DL,CHQL,DQL) !,SCHI,SCHE,SD,SCHQ,SDQ)
 
       USE TRCOMM, ONLY : &
-           ADDW, ADDWD, ADDWP, AKDW, AKDWD, AKDWP, MDLWLD, NSM, PA
+           ADDW, ADDWD, ADDWP, AKDW, AKDWD, AKDWP, MDLWLD, NSM, PA, rkind
       IMPLICIT NONE
-      INTEGER(4)  :: NR
-!      REAL(8)     :: SCHE, SCHI, SCHQ, SD, SDQ
-      REAL(8),DIMENSION(5):: CHEL, CHIL, CHQL, DL, DQL
-      INTEGER(4):: ns, ns1
+      INTEGER  :: NR
+!      REAL(rkind)     :: SCHE, SCHI, SCHQ, SD, SDQ
+      REAL(rkind),DIMENSION(5):: CHEL, CHIL, CHQL, DL, DQL
+      INTEGER:: ns, ns1
 
 
 !     The diagonal value of the transport coefficient matrix
@@ -730,35 +730,36 @@
            SEARCH,MA,GKL,WEXBL,ROTL,IKL,ISTL,CHI,CHE,D,CHQ,DQ,SCHIL,SCHEL, &
            SDL,SCHQL,SDQL)
 
+      USE TRCOMM,ONLY: rkind
       IMPLICIT NONE
-      REAL(8),   INTENT(IN):: &
+      REAL(rkind),   INTENT(IN):: &
            TE,BTOR,RIW,RISB,EI,TAU,FL,EN,FT,EE,BQ,EQ,ENQ,Z,TAUZ,BETAE,MA,E, &
            Q,S,KAPPA,PR,N,RNEQ,EPSR,AZ,COL,EL,LIST,SEARCH,GKL,WEXBL,ROTL
-      INTEGER(4),INTENT(IN):: IKL,ISTL
-      REAL(8),DIMENSION(5),INTENT(INOUT):: CHI,CHE,D,CHQ,DQ
-      REAL(8),INTENT(OUT)  :: SCHIL,SCHEL,SDL,SCHQL,SDQL
-      INTEGER(4):: ICP, IR, NDISP
-      REAL(8)   :: &
+      INTEGER,INTENT(IN):: IKL,ISTL
+      REAL(rkind),DIMENSION(5),INTENT(INOUT):: CHI,CHE,D,CHQ,DQ
+      REAL(rkind),INTENT(OUT)  :: SCHIL,SCHEL,SDL,SCHQL,SDQL
+      INTEGER:: ICP, IR, NDISP
+      REAL(rkind)   :: &
            A, B, C, DS, DTOT, ENN, G, H, LAMB, LNH, NI, NQ, R, TAUI, TVR, &
            VEI, WI, WIS, WR, WRS, WST, ZEFF, ZX
-      REAL(8),DIMENSION(5,100):: U
-      COMPLEX(8):: W
-      COMPLEX(8),DIMENSION(10):: RP
+      REAL(rkind),DIMENSION(5,100):: U
+      COMPLEX(rkind):: W
+      COMPLEX(rkind),DIMENSION(10):: RP
 
-      INTEGER(4):: &
+      INTEGER:: &
            I,IW,IX,IK,IST,ITS,ITL,ITERA,ITC,ISB,LPRINTIN,NDIM,NEQ,IRET, &
            SEARCHMODE
-      REAL(8)   :: &
+      REAL(rkind)   :: &
            THRD,STR,XIH,RFL,H1,FTR,GQ,BF,ZE,CS,KPPA,RAV,ALP,ALF,KPC,D1,SI, &
            KIQ,KXQ,WDE,EPS,SCHI,SCHE,SD,SCHQ,SDQ,EA,GK,ETE,ETI,ETQ,AZL,ALAF, &
            GAV,VEF,BTA,EM,EIC,EEC,ENC,TAUC,FLC,FTC,EQC,ENQC,BETAEC,TAUZC,QC, &
            SC,ENHC,ZFS,KPS,CHIC,WEXB,ROT,WZIMAX,TOL,SHPE,SCHEF,DEF,LTH,LTE, &
            LN,LTQ,LNQ
-      REAL(8),DIMENSION(5):: HPT
-      REAL(8),DIMENSION(32):: CETAIN
-      REAL(8),DIMENSION(10,10):: ZVR,ZVI
-      COMPLEX(8):: HQ,WZ,WZP
-      COMPLEX(8),DIMENSION(10):: ZZ
+      REAL(rkind),DIMENSION(5):: HPT
+      REAL(rkind),DIMENSION(32):: CETAIN
+      REAL(rkind),DIMENSION(10,10):: ZVR,ZVI
+      COMPLEX(rkind):: HQ,WZ,WZP
+      COMPLEX(rkind),DIMENSION(10):: ZZ
       COMMON/IRET/ IRET
       COMMON/PAR/ THRD,FTR,STR,RFL,D1,XIH,IX,IW
       COMMON/EFFDIFF/ SCHI,SCHE,SD,SCHQ,SDQ
@@ -1020,20 +1021,21 @@
            S,EPSRHO,RKPRHOG,RT,BB,AMM,AME,PNSS,PTS,RNFL,RBEEDG,MDLUF,NSMAX, &
            AR1RHOG,AR2RHOG,AKDW)
 
+      USE trcomm,ONLY: rkind
       USE libitp
       IMPLICIT NONE
 
-      INTEGER(4),INTENT(IN):: NSTM,NRMAX,MDLUF,NSMAX
-      REAL(8)   ,INTENT(IN):: RR,DR,BB,AMM,AME,RBEEDG
-      REAL(8),DIMENSION(NRMAX,NSMAX),INTENT(IN):: RN, RT
-      REAL(8),DIMENSION(NRMAX),INTENT(IN):: &
+      INTEGER,INTENT(IN):: NSTM,NRMAX,MDLUF,NSMAX
+      REAL(rkind)   ,INTENT(IN):: RR,DR,BB,AMM,AME,RBEEDG
+      REAL(rkind),DIMENSION(NRMAX,NSMAX),INTENT(IN):: RN, RT
+      REAL(rkind),DIMENSION(NRMAX),INTENT(IN):: &
            RJCB,RHOG,RHOM,QP,S,EPSRHO,RKPRHOG,RNFL,AR1RHOG,AR2RHOG
-      REAL(8),DIMENSION(NSMAX)    ,INTENT(IN):: PNSS,PTS
-      REAL(8),DIMENSION(NRMAX,NSTM),INTENT(OUT)::AKDW
-      integer(4) :: ii, ierr, nr
-      integer(4),parameter :: ipin=7,iptmp=8,ipout=9,screen=6
-      integer(4),dimension(32):: switches
-      real(4) :: &
+      REAL(rkind),DIMENSION(NSMAX)    ,INTENT(IN):: PNSS,PTS
+      REAL(rkind),DIMENSION(NRMAX,NSTM),INTENT(OUT)::AKDW
+      integer :: ii, ierr, nr
+      integer,parameter :: ipin=7,iptmp=8,ipout=9,screen=6
+      integer,dimension(32):: switches
+      real :: &
            btesla, chie, chii, gnu, grhoi, gtau, gvti, ne19, omegaexb, &
            rmajor, tekev, tikev, zchie1, zchie2, zchii1, zchii2, zchiicyc, &
            zeps, zkappa, znbne, zncne, znine, zq, zrln, zrlt, zrlt1, zrlt2, &

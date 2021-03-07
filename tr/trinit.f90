@@ -17,7 +17,7 @@ CONTAINS
 
       USE trcomm
       IMPLICIT NONE
-      INTEGER(4) NS, NPSC
+      INTEGER NS, NPSC
 
 !     ==== DEVICE PARAMETERS ====
 

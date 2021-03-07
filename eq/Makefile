@@ -13,7 +13,7 @@ LIBX_MTX=$(LIBX_MTX_BND)
 #FFLAGS=-g $(OFLAGS)
 FFLAGS=$(DFLAGS)
 
-MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD) -I../lib/$(MOD)
+MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I../pl/$(MOD) -I../lib/$(MOD)
 
 SRCX = equcom.f90 equread.f90 eqlib.f90
 SRCS = eqbpsd.f eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f \

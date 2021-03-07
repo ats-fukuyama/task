@@ -38,18 +38,19 @@ C
 
       SUBROUTINE WMSOLV_MTXP(XX , N , L , WMSETM, IERR )
 
+      USE bpsd_kinds,ONLY: rkind
       USE libmtx
       INCLUDE 'wmcomm.inc'
 !      IMPLICIT NONE
-      COMPLEX(8),DIMENSION(N),INTENT(OUT):: XX
+      COMPLEX(rkind),DIMENSION(N),INTENT(OUT):: XX
       INTEGER,INTENT(IN):: N,L
       INTEGER,INTENT(OUT)::IERR 
       EXTERNAL WMSETM
-      COMPLEX(8),DIMENSION(:),ALLOCATABLE:: A
-      COMPLEX(8):: X
+      COMPLEX(rkind),DIMENSION(:),ALLOCATABLE:: A
+      COMPLEX(rkind):: X
       INTEGER:: istart,iend,i,j,NRP
       INTEGER:: itype,its
-      REAL(8):: tolerance
+      REAL(rkind):: tolerance
 
       ALLOCATE(A(L))        ! local coefficient matrix
 
@@ -96,13 +97,15 @@ C     ****** SOLUTION OF BAND MATRIX (GAUSSIAN ELIMINATION) ******
 C
       SUBROUTINE WMSOLV_BAND(XX , N , L , WMSETM, IERR )
 C
+      USE bpsd_kinds,ONLY: rkind
       IMPLICIT NONE
-      COMPLEX(8),DIMENSION(:,:),ALLOCATABLE:: A
-      COMPLEX(8),DIMENSION(:),ALLOCATABLE:: X
-      COMPLEX(8),DIMENSION(N):: XX
-      COMPLEX(8):: TEMP
-      REAL(8):: EPS , ABS1 , ABS2
-      INTEGER:: N,L,NRP,NR,MS,MB,LH,LHM,NM,K,LHMK,NPMK,I,LPMI,J
+      INTEGER:: N,L
+      COMPLEX(rkind),DIMENSION(:,:),ALLOCATABLE:: A
+      COMPLEX(rkind),DIMENSION(:),ALLOCATABLE:: X
+      COMPLEX(rkind),DIMENSION(N):: XX
+      COMPLEX(rkind):: TEMP
+      REAL(rkind):: EPS , ABS1 , ABS2
+      INTEGER:: NRP,NR,MS,MB,LH,LHM,NM,K,LHMK,NPMK,I,LPMI,J
       INTEGER:: IPIVOT,IP,JJ,IERR
       EXTERNAL WMSETM
       DATA EPS/ 1.D-70 /

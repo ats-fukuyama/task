@@ -8,7 +8,7 @@ SUBROUTINE WFSLIM
   implicit none
 
   integer :: IN
-  real(8) :: LNODE
+  real(rkind) :: LNODE
 
   RNDMIN=RNODE(1)
   RNDMAX=RNODE(1)
@@ -50,7 +50,7 @@ SUBROUTINE WFSELM
   implicit none
 
   integer :: NE
-  real(8) :: RE(3),ZE(3),S
+  real(rkind) :: RE(3),ZE(3),S
 
   do NE=1,NEMAX
 
@@ -138,9 +138,9 @@ SUBROUTINE WFWGT(NE,R,Z,WGT)
   implicit none
   integer,intent(in) :: NE
   integer :: IN
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: WGT(3)
-  real(8) :: A(3),B(3),C(3)
+  real(rkind),intent(in) :: R,Z
+  real(rkind),intent(out):: WGT(3)
+  real(rkind) :: A(3),B(3),C(3)
   
   call WFABC(NE,A,B,C)
 
@@ -160,8 +160,8 @@ SUBROUTINE WFABC(NE,A,B,C)
   implicit none
   integer,intent(in):: NE
   integer :: I,J,K
-  real(8),intent(out)::A(3),B(3),C(3) 
-  real(8) :: RE(3),ZE(3),S
+  real(rkind),intent(out)::A(3),B(3),C(3) 
+  real(rkind) :: RE(3),ZE(3),S
   
   CALL WFNODE(NE,RE,ZE)
   S=SELM(NE)
@@ -188,7 +188,7 @@ SUBROUTINE WFNODE(NE,RE,ZE)
   implicit none
   integer,intent(in) :: NE
   integer :: IN,NN
-  real(8),intent(out):: RE(3),ZE(3)
+  real(rkind),intent(out):: RE(3),ZE(3)
   
   DO IN=1,3
      NN=NDELM(IN,NE)
@@ -206,7 +206,7 @@ SUBROUTINE SETAIF
   use wfcomm
   implicit none
   integer :: ID(3,3),I,L1,L2,L3,J,K
-  real(8) :: AIF
+  real(rkind) :: AIF
 
   DATA ID/1,3*0,1,3*0,1/
   
@@ -238,9 +238,10 @@ END SUBROUTINE SETAIF
 
 FUNCTION AIF(L1,L2,L3)
 
+  USE bpsd_kinds,ONLY: rkind
   implicit none
   integer :: KAI(0:10),L1,L2,L3
-  real(8) :: AIF
+  real(rkind) :: AIF
   DATA KAI/1,1,2,6,24,120,720,5040,40320,362880,3628800/
   
   AIF=DBLE(2*KAI(L1)*KAI(L2)*KAI(L3))/DBLE(KAI(L1+L2+L3+2))
@@ -255,7 +256,7 @@ SUBROUTINE SETAIE
   use wfcomm
   implicit none
   integer :: ID(3,3),I,L1,L2,L3,J,K
-  real(8) :: AIE
+  real(rkind) :: AIE
 
   DATA ID/1,0,0,0,1,0,0,0,1/
   
@@ -287,9 +288,10 @@ END SUBROUTINE SETAIE
 
 FUNCTION AIE(L1,L2,L3)
 
+  USE bpsd_kinds,ONLY: rkind
   implicit none
   integer :: KAI(0:10),L1,L2,L3
-  real(8) :: AIE
+  real(rkind) :: AIE
   DATA KAI/1,1,2,6,24,120,720,5040,40320,362880,3628800/
   
   AIE=DBLE(KAI(L1)*KAI(L2)*KAI(L3))/DBLE(KAI(L1+L2+L3+1))
@@ -662,7 +664,7 @@ SUBROUTINE SETLSD
   implicit none
 
   integer :: NSD,ND1,ND2
-  real(8) :: R1,R2,Z1,Z2,L
+  real(rkind) :: R1,R2,Z1,Z2,L
 
   do NSD=1,NSDMAX
      LSID(NSD)=0.d0
@@ -691,7 +693,7 @@ SUBROUTINE MODANT(IERR)
 
   integer,intent(out) :: IERR
   integer :: NE,NA,NSD,L,KN,LS,N,ID,NENEXT,NENEW
-  real(8) :: RC,ZC
+  real(rkind) :: RC,ZC
 
   NE=0
   DO NA=1,NAMAX
@@ -850,11 +852,11 @@ SUBROUTINE CROS(R1,Z1,R2,Z2,IE,L,RC,ZC,IERR)
   integer,intent(in) :: IE,L
   integer,intent(out):: IERR
   integer :: M,N1,N2
-  real(8),intent(in) :: R1,R2,Z1,Z2
-  real(8),intent(out):: RC,ZC
-  real(8),parameter :: EPS = 1.d-12
-  real(8) :: R3,R4,Z3,Z4
-  real(8) :: DELT,R12,R34,Z12,Z34,AD,RK,RT
+  real(rkind),intent(in) :: R1,R2,Z1,Z2
+  real(rkind),intent(out):: RC,ZC
+  real(rkind),parameter :: EPS = 1.d-12
+  real(rkind) :: R3,R4,Z3,Z4
+  real(rkind) :: DELT,R12,R34,Z12,Z34,AD,RK,RT
   
   M=L+1
   if(M.gt.3) M=M-3
@@ -898,12 +900,12 @@ SUBROUTINE FIELDCR(NE,R,Z,CVALUE,CE)
   implicit none
   integer,intent(in) :: NE
   integer :: ISD,M,N,NSD
-  real(8),intent(in) :: R,Z
-  real(8) :: A(3),B(3),C(3),AW(3),BW(3),WEIGHT,L
-  complex(8),intent(in) :: CVALUE(NSDMAX)
-  complex(8):: CF
-  complex(8),intent(out) :: CE
-  REAL(8):: DR,DZ,DL
+  real(rkind),intent(in) :: R,Z
+  real(rkind) :: A(3),B(3),C(3),AW(3),BW(3),WEIGHT,L
+  complex(rkind),intent(in) :: CVALUE(NSDMAX)
+  complex(rkind):: CF
+  complex(rkind),intent(out) :: CE
+  REAL(rkind):: DR,DZ,DL
 
   CALL WFABC(NE,A,B,C)
   do ISD=1,3
@@ -951,11 +953,11 @@ SUBROUTINE FIELDCZ(NE,R,Z,CVALUE,CE)
   implicit none
   integer,intent(in) :: NE
   integer :: ISD,M,N,NSD
-  real(8),intent(in) :: R,Z
-  real(8) :: A(3),B(3),C(3),BW(3),CW(3),WEIGHT,L
-  complex(8),intent(in) :: CVALUE(NSDMAX)
-  complex(8):: CF
-  complex(8),intent(out) :: CE
+  real(rkind),intent(in) :: R,Z
+  real(rkind) :: A(3),B(3),C(3),BW(3),CW(3),WEIGHT,L
+  complex(rkind),intent(in) :: CVALUE(NSDMAX)
+  complex(rkind):: CF
+  complex(rkind),intent(out) :: CE
 
   CALL WFABC(NE,A,B,C)
   do ISD=1,3
@@ -1001,11 +1003,11 @@ SUBROUTINE FIELDCP(NE,R,Z,CVALUE,CE)
   implicit none
   integer,intent(in) :: NE
   integer :: NN,IN
-  real(8),intent(in) :: R,Z
-  real(8) :: A(3),B(3),C(3),WEIGHT(3)
-  complex(8),intent(in) :: CVALUE(NNMAX)
-  complex(8):: CF
-  complex(8),intent(out) :: CE
+  real(rkind),intent(in) :: R,Z
+  real(rkind) :: A(3),B(3),C(3),WEIGHT(3)
+  complex(rkind),intent(in) :: CVALUE(NNMAX)
+  complex(rkind):: CF
+  complex(rkind),intent(out) :: CE
 
   CALL WFABC(NE,A,B,C)
   CALL WFWGT(NE,R,Z,WEIGHT)

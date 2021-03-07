@@ -9,14 +9,14 @@
       USE TRCOMM, ONLY : &
            AME, AMM, ANC, ANFE, MDLNF, NRMAX, PA, PBIN, PFCL, &
            PFIN, PI, PNBENG, PNF, PZ, PZC, PZFE, RKEV, &
-           RN, RNF, RT, RTF, RW, SNF, TAUF
+           RN, RNF, RT, RTF, RW, SNF, TAUF, rkind
       IMPLICIT NONE
 !      INCLUDE 'trcomm.inc'
-      REAL(8)   :: &
+      REAL(rkind)   :: &
            AMA, AMD, AMT, ANE, EC, HYF, P1, PTNT, SS, SSB, TAUS, &
            TD, TE, TT, VC3, VCA3, VCD3, VCR, VCT3, VF, WF, ZEFFM
-      INTEGER(4):: NR
-      REAL(8)   :: SIGMAM, COULOG, SIGMAB, HY   !FUNCTION
+      INTEGER:: NR
+      REAL(rkind)   :: SIGMAM, COULOG, SIGMAB, HY   !FUNCTION
 
 
       AMD=PA(2)*AMM
@@ -84,11 +84,12 @@
 
 !     ***********************************************************
 
-      REAL(8) FUNCTION SIGMAM(TD,TT)
+      FUNCTION SIGMAM(TD,TT)
 
+      USE trcomm,ONLY: rkind
       IMPLICIT NONE
-      REAL(8) TD,TT
-      REAL(8) TI,H,ARG
+      REAL(rkind) TD,TT,SIGMAM
+      REAL(rkind) TI,H,ARG
 
       TI = (3.D0*ABS(TD)+2.D0*ABS(TT))/5.D0
       H  = TI/37.D0 + 5.45D0/(3.D0+TI*(1.D0+(TI/37.5D0)**2.8D0))
@@ -108,7 +109,7 @@
 
 !     ***********************************************************
 
-      REAL(8) FUNCTION SIGMAB(EB,EC,TI,PTNT)
+      FUNCTION SIGMAB(EB,EC,TI,PTNT)
 
 !      APPROXIMATE FORMULA OF FUSION REACTION RATE
 !         FOR SLOWING DOWN ION DISTRIBUTION
@@ -119,10 +120,11 @@
 !      TI   : TRITIUM TEMPERATURE (KEV)
 !      PTNT : PB * TAUS / (ND * EB)
 
+      USE trcomm,ONLY: rkind
       IMPLICIT NONE
-      REAL(8) EB,EC,TI,PTNT
-      REAL(8) SIGMBS
-      REAL(8) XB,XC,AG1,AG2,AG3,AL1,AL2,AL3,X1,X2,X3,X4,SA
+      REAL(rkind) EB,EC,TI,PTNT,SIGMAB
+      REAL(rkind) SIGMBS
+      REAL(rkind) XB,XC,AG1,AG2,AG3,AL1,AL2,AL3,X1,X2,X3,X4,SA
 
       XB=SQRT(EB/127.D0)
       XC=SQRT(EC/127.D0)
@@ -162,11 +164,12 @@
       RETURN
       END FUNCTION SIGMAB
 
-      REAL(8) FUNCTION SIGMBS(XX,RGG,RGL,XC)
+      FUNCTION SIGMBS(XX,RGG,RGL,XC)
 
+      USE trcomm,ONLY: rkind
       IMPLICIT NONE
-      REAL(8) :: XX,RGG,RGL,XC
-      REAL(8) :: X
+      REAL(rkind) :: XX,RGG,RGL,XC,SIGMBS
+      REAL(rkind) :: X
 
       X=XX/XC
       SIGMBS=((RGG-0.97D0*RGL)/3.D0+XC*RGL/6.D0)*LOG(X*X*X+1.D0) &
@@ -185,13 +188,13 @@
       USE TRCOMM, ONLY : &
            AME, AMM, MDLNF, NRMAX, PA, PFCL, &
            PFIN, PI, PNF, PZ, RKEV, &
-           RN, RNF, RT, RTF, RW, SNF, TAUF
+           RN, RNF, RT, RTF, RW, SNF, TAUF, rkind
       IMPLICIT NONE
-      REAL(8)   :: &
+      REAL(rkind)   :: &
            AMA, AMD, AMHe3, ANE, HYF, P1, SS, TAUS, &
            TD, TE, THe3, VC3, VCA3, VCD3, VCR, VCHe3, VF, WF
-      INTEGER(4):: NR
-      REAL(8)   :: SIGMADHe3, COULOG, HY   !FUNCTION
+      INTEGER:: NR
+      REAL(rkind)   :: SIGMADHe3, COULOG, HY   !FUNCTION
 
       AMD=  PA(2)*AMM
       AMHe3=PA(3)*AMM
@@ -248,14 +251,15 @@
 
 !     ***********************************************************
 
-      REAL(8) FUNCTION SIGMADHe3(TD,THe3)
+      FUNCTION SIGMADHe3(TD,THe3)
 
+      USE trcomm,ONLY: rkind
       USE libspl1d
       IMPLICIT NONE
-      REAL(8) TD,THe3,TI,TIL,XRATEL
-      REAL(8),DIMENSION(10),save:: RENG,RRATE
-      REAL(8),DIMENSION(10),save:: RENGL,RRATEL,DIFF
-      REAL(8),DIMENSION(4,10),save:: URRATE
+      REAL(rkind) TD,THe3,TI,TIL,XRATEL,SIGMADHe3
+      REAL(rkind),DIMENSION(10),save:: RENG,RRATE
+      REAL(rkind),DIMENSION(10),save:: RENGL,RRATEL,DIFF
+      REAL(rkind),DIMENSION(4,10),save:: URRATE
       INTEGER:: NX,IERR
       INTEGER,save:: INIT=0
       DATA RENG/1.D0, 2.D0, 5.D0, 10.D0, 20.D0, &

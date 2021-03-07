@@ -203,8 +203,8 @@ contains
       USE libmtx
       IMPLICIT NONE
       INTEGER,DIMENSION(99):: idata
-      real(8),DIMENSION(99):: rdata
-      complex(8),DIMENSION(3):: cdata
+      real(rkind),DIMENSION(99):: rdata
+      complex(rkind),DIMENSION(3):: cdata
       INTEGER:: NS
 
 !----- PL input parameters -----     

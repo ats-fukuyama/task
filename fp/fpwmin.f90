@@ -190,8 +190,8 @@
       USE fpcomm
       IMPLICIT NONE
       INTEGER,DIMENSION(5):: idata
-      REAL(8),DIMENSION(5):: ddata
-      COMPLEX(8),DIMENSION(:),POINTER:: temp
+      REAL(rkind),DIMENSION(5):: ddata
+      COMPLEX(rkind),DIMENSION(:),POINTER:: temp
       INTEGER:: nr1,md1,nd1,n
 
       IF(nrank.eq.0) THEN
@@ -262,8 +262,8 @@
 
       IMPLICIT NONE
       integer:: IERR
-      COMPLEX(8):: CEWR1,CEWTH1,CEWPH1,CKWR1,CKWTH1,CKWPH1
-      real(8):: RL, THL, PHL, RFWM
+      COMPLEX(rkind):: CEWR1,CEWTH1,CEWPH1,CKWR1,CKWTH1,CKWPH1
+      real(rkind):: RL, THL, PHL, RFWM
       DATA RL,THL,PHL/0.D0,0.D0,0.D0/
 
  1010 CONTINUE
@@ -288,11 +288,11 @@
       USE libspl2d
       USE libspl3d
       IMPLICIT NONE
-      REAL(8),INTENT(IN):: RL,THL,PHL
-      REAL(8),INTENT(OUT):: RFWM
-      COMPLEX(8),INTENT(OUT):: CEWR1,CEWTH1,CEWPH1,CKWR1,CKWTH1,CKWPH1
+      REAL(rkind),INTENT(IN):: RL,THL,PHL
+      REAL(rkind),INTENT(OUT):: RFWM
+      COMPLEX(rkind),INTENT(OUT):: CEWR1,CEWTH1,CEWPH1,CKWR1,CKWTH1,CKWPH1
       INTEGER,INTENT(OUT):: IERR
-      COMPLEX(8):: CEWDTH,CEWDPH,CEWDR
+      COMPLEX(rkind):: CEWDTH,CEWDPH,CEWDR
 
       IERR=0
       RFWM=RFWR
@@ -364,9 +364,9 @@
       IMPLICIT NONE
       integer:: N, KEY, IND, IX, I
       integer,save:: NS=0
-      COMPLEX(8),DIMENSION(N):: CA
-!      complex(8),dimension(N):: CFFT ! (NWTHM) 
-!      real(8),dimension(N):: RFFT ! (NWTHM) 
+      COMPLEX(rkind),DIMENSION(N):: CA
+!      complex(rkind),dimension(N):: CFFT ! (NWTHM) 
+!      real(rkind),dimension(N):: RFFT ! (NWTHM) 
 !      integer,dimension(N):: LFFT ! (NWTHM)
 
       IF(N.NE.1) THEN

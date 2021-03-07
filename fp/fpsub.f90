@@ -1,5 +1,6 @@
 MODULE fpsub
 
+  USE fpcomm,ONLY: rkind
   PRIVATE
 !  PUBLIC fpbave_dpp
 !  PUBLIC fpbave_dth
@@ -17,7 +18,7 @@ CONTAINS
     USE fpcomm,ONLY: NTHMAX,NPSTART,NPENDWG,NRSTART,NRENDWM,NSAMAX, &
                      RLAMDA,ITL,ITU
     IMPLICIT NONE
-    REAL(8),INTENT(INOUT):: &
+    REAL(rkind),INTENT(INOUT):: &
          DPP(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX)
     INTEGER,INTENT(IN):: NR,NSA,ID  ! ID=0 for DPP,FPP, ID=1 for DPT
     INTEGER:: NP,NTH
@@ -59,7 +60,7 @@ CONTAINS
     USE fpcomm,ONLY: NTHMAX,NPSTARTW,NPENDWM,NRSTART,NRENDWM,NSAMAX, &
                      RLAMDA,ITL,ITU
     IMPLICIT NONE
-    REAL(8),INTENT(INOUT):: &
+    REAL(rkind),INTENT(INOUT):: &
          DTH(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX)
     INTEGER,INTENT(IN):: NR,NSA,ID  ! ID=0 for DTT, ID=1 for DTP,FTH
     INTEGER:: NP,NTH
@@ -342,8 +343,8 @@ CONTAINS
       double precision,intent(in):: RNSL_, RWSL_ 
       double precision,intent(out)::rtemp
       integer:: ncount, NS
-      real(8):: xeave
-      real(8):: xtemp, thetal, EAVE
+      real(rkind):: xeave
+      real(rkind):: xtemp, thetal, EAVE
 
       NS=NS_NSA(NSA)
 !-----Average kinetic energy
@@ -366,11 +367,11 @@ CONTAINS
 
       SUBROUTINE xnewton(eave,thetal,ncount)
       IMPLICIT NONE
-      REAL(8),intent(in):: eave
-      REAL(8),intent(inout):: thetal
+      REAL(rkind),intent(in):: eave
+      REAL(rkind),intent(inout):: thetal
       INTEGer,intent(out):: ncount
-      REAL(8),parameter:: eps=1.d-10
-      REAL(8):: delthetal,thetalnew,epsthetal
+      REAL(rkind),parameter:: eps=1.d-10
+      REAL(rkind):: delthetal,thetalnew,epsthetal
 
 !--------iteration start
       ncount=0
@@ -388,8 +389,8 @@ CONTAINS
 
       FUNCTION rfunc(thetal)
       IMPLICIT NONE
-      REAL(8):: thetal,rfunc
-      REAL(8):: z,dkbsl1,dkbsl2
+      REAL(rkind):: thetal,rfunc
+      REAL(rkind):: z,dkbsl1,dkbsl2
       z=1.D0/thetal
       dkbsl1=BESEKNX(1,Z)
       dkbsl2=BESEKNX(2,Z)
@@ -399,8 +400,8 @@ CONTAINS
 
       FUNCTION rfuncp(thetal)
       IMPLICIT NONE
-      REAL(8):: thetal,rfuncp
-      REAL(8):: z,dkbsl1,dkbsl2
+      REAL(rkind):: thetal,rfuncp
+      REAL(rkind):: z,dkbsl1,dkbsl2
       z=1.D0/thetal
       dkbsl1=1.D0 +  3.D0/8.D0/z -  15.D0/128.D0/z**2
       dkbsl2=1.D0 + 15.D0/8.D0/z + 105.D0/128.D0/z**2
@@ -410,8 +411,8 @@ CONTAINS
       
       FUNCTION dfunc(thetal)
       IMPLICIT NONE
-      REAL(8):: thetal,dfunc
-      REAL(8):: z,dkbsl0,dkbsl1,dkbsl2,dkbsl3
+      REAL(rkind):: thetal,dfunc
+      REAL(rkind):: z,dkbsl0,dkbsl1,dkbsl2,dkbsl3
       z=1.D0/thetal
       dkbsl0=BESEKNX(0,z)
       dkbsl1=BESEKNX(1,z)
@@ -425,8 +426,8 @@ CONTAINS
 
       FUNCTION dfuncp(thetal)
       IMPLICIT NONE
-      REAL(8):: thetal,dfuncp
-      REAL(8):: z,dkbsl0,dkbsl1,dkbsl2,dkbsl3
+      REAL(rkind):: thetal,dfuncp
+      REAL(rkind):: z,dkbsl0,dkbsl1,dkbsl2,dkbsl3
       z=1.D0/thetal
       dkbsl0=1.D0 -  1.D0/8.D0/z +   9.D0/128.D0/z**2
       dkbsl1=1.D0 +  3.D0/8.D0/z -  15.D0/128.D0/z**2

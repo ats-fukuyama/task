@@ -743,7 +743,7 @@
         USE fpsub
       IMPLICIT NONE
       INTEGER:: NTH,NP,NR,NSA,NS,NSB
-      REAL(8):: FL
+      REAL(rkind):: FL
 
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
@@ -799,7 +799,7 @@
       USE fpsub
       IMPLICIT NONE
       INTEGER:: NTH,NP,NR,NSA,NS
-      REAL(8):: FL
+      REAL(rkind):: FL
 
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
@@ -1269,8 +1269,8 @@
 
       integer :: ierr,NSA,NS,NR,N,NSW,i,NSFP,NSB
       real:: gut1, gut2, gut_prep
-      real(8):: SIGMA
-      real(8),dimension(:),allocatable:: conduct_temp, E1_temp
+      real(rkind):: SIGMA
+      real(rkind),dimension(:),allocatable:: conduct_temp, E1_temp
       integer,dimension(6):: idata
       integer,dimension(6*nsize):: idata2
 

@@ -1,6 +1,7 @@
 module eqread_mod
 
-!F_UFMTENDIAN=big:17
+  USE bpsd_kinds,ONLY: rkind
+  !F_UFMTENDIAN=big:17
 
 contains
 
@@ -11,7 +12,7 @@ contains
   subroutine alloc_equ(mode)
     use equ_params
     IMPLICIT NONE
-    integer(4), intent(in) :: mode
+    integer, intent(in) :: mode
 
     select case(mode)
     case(1)
@@ -60,11 +61,11 @@ contains
     use libgrf
 
     logical :: lex
-    integer(4) :: i, j, n, ir, iz, ist
-    real(8) :: rsep, zsep, rrmax, rrmin, zzmax, zzmin, rzmax, rzmin, rpmax, rpmin, betp, zzlam
-    real(8) :: dpsi, btv2, dsr, dsz, dxx, dl
-    real(8):: xxx(ivdm),dummy(1000)
-    integer(4):: idummy(200)
+    integer :: i, j, n, ir, iz, ist
+    real(rkind) :: rsep, zsep, rrmax, rrmin, zzmax, zzmin, rzmax, rzmin, rpmax, rpmin, betp, zzlam
+    real(rkind) :: dpsi, btv2, dsr, dsz, dxx, dl
+    real(rkind):: xxx(ivdm),dummy(1000)
+    integer:: idummy(200)
     CHARACTER(LEN=3):: K3
     CHARACTER(LEN=110):: K110
 !=======================================================================
@@ -168,8 +169,8 @@ contains
 !=======================================================================
     use equ_params
     implicit none
-    integer(4) :: i, ir, iz
-    real(8) :: x, y
+    integer :: i, ir, iz
+    real(rkind) :: x, y
 !-----------------------------------------------------------------------
     i=nrm
     do iz=2,nszm
@@ -194,27 +195,27 @@ contains
     use equ_params
     implicit none
     ! intf: num. of division in the direction of lambda for trapped particle fraction
-    integer(4), parameter :: intf = 100
-    integer(4) :: i,i1,i2,i3,i4,ir,iz,istep,irst,ist,jr,k,ll,lm,lp,n,j
-    real(8) :: dpsi,psi0,x,r0,z0,r1,z1,s1,s2,s3,s4,dl &
+    integer, parameter :: intf = 100
+    integer :: i,i1,i2,i3,i4,ir,iz,istep,irst,ist,jr,k,ll,lm,lp,n,j
+    real(rkind) :: dpsi,psi0,x,r0,z0,r1,z1,s1,s2,s3,s4,dl &
          &     ,bp0,bl0,ds0,ck0,ss0,vl0,aa0,rr0,bb0,bi0,sh0 &
          &     ,bp1,bl1,ds1,ck1,ss1,vl1,aa1,rr1,bb1,bi1,sh1 &
          &     ,ai0,ai1,br0,br1,bm0,bm1,zzmax,zzmin,rzmax,rzmin &
          &     ,rrmax,rrmin,rmajl,rplal,sdw2
-    real(8) :: fintx, hsq, h
-    integer(4), dimension(:), allocatable :: nsul
-    real(8), dimension(:), allocatable :: bmax,fint,flam,dll,zbl
+    real(rkind) :: fintx, hsq, h
+    integer, dimension(:), allocatable :: nsul
+    real(rkind), dimension(:), allocatable :: bmax,fint,flam,dll,zbl
 !=======================================================================
     ieqerr(1)=0
     allocate(bmax(ivdm),fint(0:intf),flam(0:intf))
     allocate(nsul(isrzdm),dll(isrzdm),zbl(isrzdm))
     do j = 0, intf
-       flam(j)  = real( j, 8 ) / real( intf, 8 )
+       flam(j)  = DBLE(j) / DBLE(intf)
     end do
 !-----------------------------------------------------------------------
     istep=0
 999 nsu=0
-    dpsi=saxis/float(nvm)
+    dpsi=saxis/DBLE(nvm)
     do jr=iraxis,nrm
        irst=jr
        ist= (izaxis-1)*nr + jr
@@ -227,7 +228,7 @@ contains
        nsul(n)=0
        fint(:) = 0.d0
 !-----------------------------------------------------------------------
-       psi0=dpsi*dfloat(nv-n)
+       psi0=dpsi*DBLE(nv-n)
 5      siw(n)=psi0
 !-----------------------------------------------------------------------
 !..search starting point
@@ -495,10 +496,10 @@ contains
     arv(1)=0.d0
     vlv(1)=0.d0
 !    sdw(1)=-dpsi*(vlv(3)**2-2.d0*vlv(2)**2)/(vlv(3)*vlv(2)*(vlv(3)-vlv(2)))
-    sdw2   = 0.5_8 * ( ( siw(2) - siw(1) ) / vlv(2) &
+    sdw2   = 0.5D0 * ( ( siw(2) - siw(1) ) / vlv(2) &
          &           + ( siw(3) - siw(2) ) / ( vlv(3) - vlv(2) ) )
-    sdw(1) = ( vlv(3) * sdw2 - 2.0_8 * vlv(2) / vlv(3) &
-         &           * ( siw(3) - siw(1) ) ) / ( vlv(3) - 2.0_8 * vlv(2) )
+    sdw(1) = ( vlv(3) * sdw2 - 2.0D0 * vlv(2) / vlv(3) &
+         &           * ( siw(3) - siw(1) ) ) / ( vlv(3) - 2.0D0 * vlv(2) )
     ckv(1)=0.d0
     r2b2v(1)=0.d0
     ssv(1)=0.d0

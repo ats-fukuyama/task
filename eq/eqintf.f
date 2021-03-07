@@ -130,7 +130,7 @@ C
 C
       USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
-      REAL(8):: chip_
+      REAL(rkind):: chip_
 C
       CALL SPL2DF(rchip_,rhon_,R_,
      &                  CHIP,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)

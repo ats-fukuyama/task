@@ -298,12 +298,14 @@ c
       end
 
       SUBROUTINE draw_cross(x,y,len)
+      USE bpsd_kinds,ONLY: rkind
       IMPLICIT NONE
-      REAL(8),INTENT(IN):: x,y,len
+      REAL(rkind),INTENT(IN):: x,y,len
       INTERFACE
          FUNCTION GUCLIP(x)
-            REAL(8),INTENT(IN):: x
-            REAL(4):: GUCLIP
+            USE bpsd_kinds,ONLY: rkind
+            REAL(rkind),INTENT(IN):: x
+            REAL:: GUCLIP
          END FUNCTION GUCLIP
       END INTERFACE
 

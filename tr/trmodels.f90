@@ -16,15 +16,15 @@ CONTAINS
          rkind,RT,NRMAX,MDLKAI,RKEV,AMM
     USE mixed_Bohm_gyro_Bohm, ONLY: mixed_model
     IMPLICIT NONE
-    REAL(8),INTENT(IN) :: &
+    REAL(rkind),INTENT(IN) :: &
          RSL,RRL,ANEL,TEL,TIL,DTEL,DNEL,PAL,PZL,QPL,BBL,WEXBL,SL
-    REAL(8),INTENT(OUT) :: ADFFI,ACHIE,ACHII,ACHIEB,ACHIIB,ACHIEGB,ACHIIGB
+    REAL(rkind),INTENT(OUT) :: ADFFI,ACHIE,ACHII,ACHIEB,ACHIIB,ACHIEGB,ACHIIGB
     INTEGER,INTENT(OUT):: ierr
-    REAL(8),DIMENSION(1):: &
+    REAL(rkind),DIMENSION(1):: &
             rminor,rmajor,tekev,tikev,q,btor,aimass,charge,wexbs, &
             grdte,grdne,shear, &
             chi_i_mix,themix,thdmix,thigb,thegb,thibohm,thebohm
-    REAL(8):: zte_p8,zte_edge,VTI,GAMMA0,EXBfactor,SHRfactor,factor
+    REAL(rkind):: zte_p8,zte_edge,VTI,GAMMA0,EXBfactor,SHRfactor,factor
     INTEGER:: NR8,NPOINTS,lflowshear
 
     rminor(1)=RSL             ! minor radius [m]
@@ -101,9 +101,9 @@ CONTAINS
     USE modmmm95
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NR
-    REAL(8),INTENT(OUT):: CHIIW,DIFHW,CHIEW,DIFZW
-    REAL(8),INTENT(OUT):: CHIIRB,DIFHRB,CHIERB,DIFZRB
-    REAL(8),INTENT(OUT):: CHIIKB,DIFHKB,CHIEKB,DIFZKB
+    REAL(rkind),INTENT(OUT):: CHIIW,DIFHW,CHIEW,DIFZW
+    REAL(rkind),INTENT(OUT):: CHIIRB,DIFHRB,CHIERB,DIFZRB
+    REAL(rkind),INTENT(OUT):: CHIIKB,DIFHKB,CHIEKB,DIFZKB
     INTEGER,INTENT(OUT):: IERR
     INTEGER,PARAMETER:: matdim=5  ! dimension of transport matricies
     INTEGER,PARAMETER:: npoints=1 ! number of radial points
@@ -336,29 +336,29 @@ CONTAINS
     USE modmmm7_1
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NR
-    REAL(8),INTENT(OUT):: CHII,DIFH,CHIE,DIFZ,VIST,VISP
-    REAL(8),INTENT(OUT):: CHIIW,DIFHW,CHIEW,CHIIB,DIFHB,CHIEB,CHIEG
+    REAL(rkind),INTENT(OUT):: CHII,DIFH,CHIE,DIFZ,VIST,VISP
+    REAL(rkind),INTENT(OUT):: CHIIW,DIFHW,CHIEW,CHIIB,DIFHB,CHIEB,CHIEG
     INTEGER,INTENT(OUT):: IERR
 
     INTEGER,PARAMETER:: npoints=1  ! Number of values in all of the 1-D arrays
 !    INTEGER,PARAMETER:: MMM_NCH=6  ! Maximum number of transport channels
-    Real(8), Dimension(npoints) :: &
+    Real(rkind), Dimension(npoints) :: &
          rmin, rmaj, elong, ne, nh, nz, nf, zeff, &
          te, ti, q, btor, zimp, aimp, ahyd, aimass, wexbs, &
          gne, gni, gnh, gnz, gte, gti, gq, &
          gvtor, vtor, gvpol, vpol, gvpar, vpar
-    Real(8), Dimension(npoints) :: & ![m^2/s]
+    Real(rkind), Dimension(npoints) :: & ![m^2/s]
          xti, xdi, xte, xdz, xvt, xvp
-    Real(8), Dimension(npoints) :: & ![m^2/s]
+    Real(rkind), Dimension(npoints) :: & ![m^2/s]
          xtiW20, xdiW20, xteW20, xtiDBM, xdiDBM, xteDBM, xteETG
-    Real(8), Dimension(4,npoints) :: &
+    Real(rkind), Dimension(4,npoints) :: &
          gammaW20, omegaW20
-    Real(8), Dimension(npoints) :: &
+    Real(rkind), Dimension(npoints) :: &
          gammaDBM, omegaDBM
-    Real(8), Dimension(MMM_NCH,npoints) :: &
+    Real(rkind), Dimension(MMM_NCH,npoints) :: &
          vconv, vflux
     Integer:: lprint,nprout,nerr
-    Real(8):: cmodel(3),cswitch(MAXNOPT,4)
+    Real(rkind):: cmodel(3),cswitch(MAXNOPT,4)
     INTEGER:: lswitch(MAXNOPT,4)
 
     INTEGER:: NS,NFL,jz

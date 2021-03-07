@@ -314,7 +314,7 @@
       IMPLICIT NONE
       integer:: NSA, ierr, NR, NS, NP, NTH, NBEAM
       double precision:: FL, RHON
-      real(8),dimension(NRMAX,NSMAX):: tempt, tempn 
+      real(rkind),dimension(NRMAX,NSMAX):: tempt, tempn 
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
 
 !     ----- set parameters for target species -----
@@ -428,7 +428,7 @@
       USE fpoutdata
       IMPLICIT NONE
       INTEGER,DIMENSION(99):: idata
-      real(8),DIMENSION(99):: rdata
+      real(rkind),DIMENSION(99):: rdata
       integer:: NR, NSB, NSA, NTH, NP
 
       idata(1)=NT_init

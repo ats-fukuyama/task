@@ -44,8 +44,8 @@
       USE trmenu
 
       IMPLICIT NONE
-      REAL(4)   :: GTCPU2
-      INTEGER(4):: IERR
+      REAL   :: GTCPU2
+      INTEGER:: IERR
 
 !     ------ INITIALIZATION ------
 

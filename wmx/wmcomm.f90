@@ -249,11 +249,11 @@ MODULE wmcomm
      FUNCTION GUCLIP(X)
        USE bpsd_kinds
        REAL(rkind):: X
-       REAL(4):: GUCLIP
+       REAL:: GUCLIP
      END FUNCTION GUCLIP
      FUNCTION NGULEN(X)
        USE bpsd_kinds
-       REAL(4):: X
+       REAL:: X
        INTEGER:: NGULEN
      END FUNCTION NGULEN
   END INTERFACE

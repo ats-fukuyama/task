@@ -892,7 +892,7 @@
       SUBROUTINE synchrotron
 
       IMPLICIT NONE
-      real(8):: alpha, rgama_para, u, rgama
+      real(rkind):: alpha, rgama_para, u, rgama
       integer:: NSA, NTH, NP, NR, NS
 
       DO NSA=NSASTART,NSAEND
@@ -935,7 +935,7 @@
       SUBROUTINE loss_for_CNL
 
       IMPLICIT NONE
-      real(8):: rgama
+      real(rkind):: rgama
       INTEGER:: NSA,NTH, NP, NR, NS
 
       DO NSA=NSASTART, NSAEND

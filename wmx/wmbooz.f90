@@ -663,7 +663,7 @@ CONTAINS
     USE wmcomm
     USE vmcomm
     IMPLICIT NONE
-    REAL(4),ALLOCATABLE:: GX(:),GY(:,:),GXR(:),GYR(:,:)
+    REAL,ALLOCATABLE:: GX(:),GY(:,:),GXR(:),GYR(:,:)
     INTEGER:: NSR,MN,NR
     EXTERNAL:: PAGES,PAGEE
 

@@ -282,7 +282,7 @@ CONTAINS
 
       USE wicomm
       IMPLICIT NONE
-      COMPLEX(ikind):: cp1,cp2,cp3,cp4,cpa,cpb
+      COMPLEX(rkind):: cp1,cp2,cp3,cp4,cpa,cpb
       INTEGER(ikind):: NX,ns,ne,nn,i,j,id,jd,kk,kd
       REAL(rkind):: rky,rky2,dx,dx2,AD,BD,BETA0
 

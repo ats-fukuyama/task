@@ -9,11 +9,11 @@
 
       IMPLICIT NONE
       INTEGER,INTENT(IN):: nscnt
-      REAL(8),DIMENSION(nrstart:nrend,NSAMAX),INTENT(IN):: vsend
+      REAL(rkind),DIMENSION(nrstart:nrend,NSAMAX),INTENT(IN):: vsend
       double precision,dimension(nrstart:nrend):: vtemp
-!      REAL(8),DIMENSION(nrmax*nsamax):: vrecv
-      REAL(8),DIMENSION(nrmax*N_partition_s):: vrecv
-      REAL(8),DIMENSION(nrmax,nsamax),INTENT(OUT):: vreturn
+!      REAL(rkind),DIMENSION(nrmax*nsamax):: vrecv
+      REAL(rkind),DIMENSION(nrmax*N_partition_s):: vrecv
+      REAL(rkind),DIMENSION(nrmax,nsamax),INTENT(OUT):: vreturn
       INTEGER:: n, nsa, nn, ns, nr, nsw, nse
       integer,dimension(nsize):: idisp
 

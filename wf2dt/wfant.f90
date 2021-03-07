@@ -79,7 +79,7 @@ SUBROUTINE WFDEFA
   use wfcomm
   implicit none
   integer   :: NA,NJ,IERR
-  real(8)   :: DEGN,DTHETA,THETA,R,Z
+  real(rkind)   :: DEGN,DTHETA,THETA,R,Z
   character KID*1
 
   DEGN=PI/180.D0
@@ -192,7 +192,7 @@ subroutine wfant_broadcast
   implicit none
   
   integer :: NA,NJ
-  real(8),dimension(NJM)::ddatar,ddataz
+  real(rkind),dimension(NJM)::ddatar,ddataz
 
   call mtx_broadcast1_integer(NAMAX)
 

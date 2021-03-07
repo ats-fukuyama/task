@@ -23,7 +23,7 @@ c=======================================================================
       endif
 c
       if(species%nsmax.ne.mion+1) then
-         if(associated(species%data)) then
+         if(ALLOCATED(species%data)) then
             deallocate(species%data)
          endif
          species%nsmax=mion+1
@@ -38,13 +38,13 @@ c
 c
       if((plasmaf%nsmax.ne.mion+1).or.
      &   (plasmaf%nrmax.ne.nro)) then
-         if(associated(plasmaf%rho)) then
+         if(ALLOCATED(plasmaf%rho)) then
             deallocate(plasmaf%rho)
          endif
-         if(associated(plasmaf%data)) then
+         if(ALLOCATED(plasmaf%data)) then
             deallocate(plasmaf%data)
          endif
-         if(associated(plasmaf%qinv)) then
+         if(ALLOCATED(plasmaf%qinv)) then
             deallocate(plasmaf%qinv)
          endif
          plasmaf%nsmax=mion+1

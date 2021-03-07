@@ -144,8 +144,8 @@ contains
       USE plprof, only: rsrhon
       IMPLICIT NONE
       integer:: NSA, NR, NP, NTH, NS
-      real(8):: DLHA, DFWA, DECA, DECB, DECC, DLHL, DFWL, DECL
-      real(8):: FACT
+      real(rkind):: DLHA, DFWA, DECA, DECB, DECC, DLHL, DFWL, DECL
+      real(rkind):: FACT
 !
 ! =============  CALCULATION OF DWPP AND DWPT  ===============
 !
@@ -320,9 +320,9 @@ contains
       USE plprof, only: rsrhon
       IMPLICIT NONE
       integer:: NR, NSA, N
-      real(8):: ETA, RSIN, RCOS, P, SUM1, SUM2, SUM3, SUM4, SUM5
-      real(8):: DELH, ETAL, X, Y, PSI, PSIN, PCOS, PPERP, PPARA
-      real(8):: DLHL, DFWL, DECL, XM
+      real(rkind):: ETA, RSIN, RCOS, P, SUM1, SUM2, SUM3, SUM4, SUM5
+      real(rkind):: DELH, ETAL, X, Y, PSI, PSIN, PCOS, PPERP, PPARA
+      real(rkind):: DLHL, DFWL, DECL, XM
 !
       DELH=2.D0*ETA/NAVMAX
 !
@@ -392,10 +392,10 @@ contains
 !
       IMPLICIT NONE
       integer:: NR, NSA, NSB, NS
-      real(8):: PPARA, PPERP, X, Y, DLHL, DFWL, DECL
-      real(8):: P2, PVPARA, RNUDL, RNUFL, AMI, AEI, WPI2, FACT, FACT2
-      real(8):: DFWL1, DFWL2, ARG, ARG1, FACT1, W, PARAN, FN, DELF, ARG2
-      real(8):: WFW2, ARG3, FACT3
+      real(rkind):: PPARA, PPERP, X, Y, DLHL, DFWL, DECL
+      real(rkind):: P2, PVPARA, RNUDL, RNUFL, AMI, AEI, WPI2, FACT, FACT2
+      real(rkind):: DFWL1, DFWL2, ARG, ARG1, FACT1, W, PARAN, FN, DELF, ARG2
+      real(rkind):: WFW2, ARG3, FACT3
 !
       NS=NS_NSA(NSA)
 

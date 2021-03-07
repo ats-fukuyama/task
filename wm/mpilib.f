@@ -9,10 +9,11 @@ C
       END
 C
       SUBROUTINE MPBCDN(vdata,ndata)
+      USE bpsd_kinds,ONLY: rkind
       USE libmpi
       IMPLICIT NONE
       INTEGER,INTENT(IN):: ndata
-      REAL(8),DIMENSION(ndata),INTENT(INOUT):: vdata
+      REAL(rkind),DIMENSION(ndata),INTENT(INOUT):: vdata
 C
       call mtx_broadcast_real8(vdata,ndata)
 C
@@ -23,7 +24,7 @@ C
       USE libmpi
       IMPLICIT NONE
       INTEGER,INTENT(IN):: ndata
-      REAL(4),DIMENSION(ndata),INTENT(INOUT):: vdata
+      REAL,DIMENSION(ndata),INTENT(INOUT):: vdata
 C
       call mtx_broadcast_real4(vdata,ndata)
 C
@@ -54,9 +55,10 @@ C
 C
       SUBROUTINE MPBCCN(vdata,ndata)
       USE libmpi
+      USE bpsd_kinds,ONLY: rkind
       IMPLICIT NONE
       INTEGER,INTENT(IN):: ndata
-      COMPLEX(8),DIMENSION(ndata),INTENT(INOUT):: vdata
+      COMPLEX(rkind),DIMENSION(ndata),INTENT(INOUT):: vdata
 C
       call mtx_broadcast_complex8(vdata,ndata)
 C
@@ -64,9 +66,10 @@ C
       END
 C
       SUBROUTINE MPBCDA(v)
+      USE bpsd_kinds,ONLY: rkind
       USE libmpi
       IMPLICIT NONE
-      REAL(8),INTENT(INOUT):: v
+      REAL(rkind),INTENT(INOUT):: v
 C
       call mtx_broadcast1_real8(v)
 C
@@ -76,7 +79,7 @@ C
       SUBROUTINE MPBCRA(v)
       USE libmpi
       IMPLICIT NONE
-      REAL(4),INTENT(INOUT):: v
+      REAL,INTENT(INOUT):: v
 C
       call mtx_broadcast1_real4(v)
 C
@@ -114,9 +117,10 @@ C
       END
 C
       SUBROUTINE MPBCCA(v)
+      USE bpsd_kinds,ONLY: rkind
       USE libmpi
       IMPLICIT NONE
-      COMPLEX(8),INTENT(INOUT):: v
+      COMPLEX(rkind),INTENT(INOUT):: v
 C
       call mtx_broadcast1_complex8(v)
 C

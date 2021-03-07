@@ -50,7 +50,6 @@ CONTAINS
       integer,              intent(out) :: IERR
       real(dp),                 intent(out) :: F
       integer :: NT, ID, MODE, SPL, AIT, LAG
-      real(dp)    :: DERIV4P
       real(dp), dimension(NTM)   :: FXA
       real(dp), dimension(4,NTM) :: U
 
