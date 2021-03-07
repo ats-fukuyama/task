@@ -559,7 +559,7 @@
          vtot(i)=vdata(i)
       END DO
       ilena(1)=ndata
-      iposa(1)=1
+      iposa(1)=0
       RETURN
       END SUBROUTINE mtx_gatherv_integer
 
@@ -577,7 +577,7 @@
          vtot(i)=vdata(i)
       END DO
       ilena(1)=ndata
-      iposa(1)=1
+      iposa(1)=0
       RETURN
       END SUBROUTINE mtx_gatherv_real4
 
@@ -595,7 +595,7 @@
          vtot(i)=vdata(i)
       END DO
       ilena(1)=ndata
-      iposa(1)=1
+      iposa(1)=0
       RETURN
       END SUBROUTINE mtx_gatherv_real8
 
@@ -613,7 +613,7 @@
          vtot(i)=vdata(i)
       END DO
       ilena(1)=ndata
-      iposa(1)=1
+      iposa(1)=0
       RETURN
       END SUBROUTINE mtx_gatherv_complex8
 
@@ -735,7 +735,7 @@
          vtot(i)=vdata(i)
       END DO
       ilena(1)=ndata
-      iposa(1)=1
+      iposa(1)=0
       RETURN
       END SUBROUTINE mtx_allgatherv_integer
 
@@ -753,7 +753,7 @@
          vtot(i)=vdata(i)
       END DO
       ilena(1)=ndata
-      iposa(1)=1
+      iposa(1)=0
       RETURN
       END SUBROUTINE mtx_allgatherv_real4
 
@@ -771,7 +771,7 @@
          vtot(i)=vdata(i)
       END DO
       ilena(1)=ndata
-      iposa(1)=1
+      iposa(1)=0
       RETURN
       END SUBROUTINE mtx_allgatherv_real8
 
@@ -789,7 +789,7 @@
          vtot(i)=vdata(i)
       END DO
       ilena(1)=ndata
-      iposa(1)=1
+      iposa(1)=0
       RETURN
       END SUBROUTINE mtx_allgatherv_complex8
 

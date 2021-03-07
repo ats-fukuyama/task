@@ -454,7 +454,6 @@ CONTAINS
        END IF
     END IF
 
-
 !     ----- LINE SECTION -----
 
     SELECT CASE(A%MODE_2D)
