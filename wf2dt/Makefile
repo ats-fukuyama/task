@@ -2,8 +2,8 @@
 include ../make.header
 include ../mtxp/make.mtxp
 
-LIB_MTX=$(LIB_MTX_BND)
-LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_BND)
+#LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIB_MTX_MUMPS)
 #LIBX_MTX=$(LIBX_MTX_MUMPS)
 

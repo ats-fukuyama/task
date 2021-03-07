@@ -269,7 +269,6 @@ MODULE TRCOMM
 
   SUBROUTINE ALLOCATE_TRCOMM(ierr)
 
-    USE f90_stat
     use trcom1, ONLY : ALLOCATE_TRCOM1
     integer, intent(out):: ierr
 
@@ -497,9 +496,6 @@ MODULE TRCOMM
 
  900 continue
     write(6,*) "XX  TRCOMM ALLOCATION ERROR IERR=",ierr
-    IF (ierr==STAT_NO_MEMORY) PRINT *,'Out of memory'
-    IF (ierr==STAT_ALREADY_ALLOCATED) PRINT *,'Already allocated'
-    IF (ierr==STAT_MEMORY_LIMIT_EXCEEDED) PRINT *,'Memory limit exceeded'
     call DEALLOCATE_ERR_TRCOMM
     return
 

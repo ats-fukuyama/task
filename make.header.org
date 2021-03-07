@@ -41,6 +41,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MODDIR = -M mod
 #LD=ar
 #LDFLAGS=crs
+#FPP=
 
 ## for Linux Intel fortran compiler EM64T lib64
 #GFLIBS=-L/usr/local/lib64 -lg3d-ifc64 -lgsp-ifc64 -lgdp-ifc64 -L/usr/X11R6/lib64 -lX11
@@ -53,6 +54,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MODDIR = -module mod
 #LD=ld
 #LDFLAGS=-r -o
+#FPP=
 
 ## for macos Intel fortran compiler EM64T lib
 #GFLIBS=-L/usr/local/lib -lg3d-ifc64 -lgsp-ifc64 -lgdp-ifc64 -L/opt/X11/lib -lX11
@@ -65,6 +67,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MODDIR = -module mod
 #LD=libtool
 #LDFLAGS=-static -o
+#FPP=
 
 ## for macos gfortran (64bit) lib
 #GFLIBS=-L/usr/local/lib -lg3d-gfc64 -lgsp-gfc64 -lgdp-gfc64  -L/opt/X11/lib -lX11
@@ -87,6 +90,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MODDIR = -Jmod
 #LD=ld
 #LDFLAGS=-r -o
+#FPP=
 
 ## for linux gfortran (64bit) lib
 #GFLIBS=-L/usr/local/lib -lg3d-gfc64 -lgsp-gfc64 -lgdp-gfc64  -L/usr/X11R6/lib -lX11
@@ -98,6 +102,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MODDIR = -Jmod
 #LD=ld
 #LDFLAGS=-r -o
+#FPP=
 
 ## for linux gfortran (64bit) lib64
 #GFLIBS=-L/usr/local/lib64 -lg3d-gfc64 -lgsp-gfc64 -lgdp-gfc64  -L/usr/X11R6/lib -lX11
@@ -121,6 +126,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MODDIR = -module mod
 #LD=ld
 #LDFLAGS=-r -o
+#FPP=
 
 ## for Cray fortran (JFRS-1)
 #GFLIBS=-L$(HOME)/lib -lg3d -lgsp -lgdum
@@ -133,6 +139,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #LD=ld
 #LDFLAGS=-r -o
 #MFC = ftn
+#FPP=
 
 ## for NAG Fortran Compiler
 #GFLIBS=-L/usr/local/lib -lg3d-nag -lgsp-nag -lgdp-nag  -L/opt/local/lib -lX11
@@ -144,6 +151,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MODDIR = -mdir mod
 #LD=ld
 #LDFLAGS=-r -o
+#FPP=-fpp
 
 FLIBS = $(GFLIBS) $(MDSLIB) $(LIBLA)
 #FLIBS = $(GLLIBS) $(MDSLIB) $(LIBLA)

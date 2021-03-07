@@ -28,8 +28,8 @@
 
       equ1D%time=0.D0
       if(equ1D%nrmax.ne.nrmax) then
-         if(associated(equ1D%rho)) deallocate(equ1D%rho)
-         if(associated(equ1D%data)) deallocate(equ1D%data)
+         if(allocated(equ1D%rho)) deallocate(equ1D%rho)
+         if(allocated(equ1D%data)) deallocate(equ1D%data)
          equ1D%nrmax=NRMAX
          allocate(equ1D%rho(NRMAX))
          allocate(equ1D%data(NRMAX))
@@ -37,8 +37,8 @@
 
       metric1D%time=0.D0
       if(metric1D%nrmax.ne.nrmax) then
-         if(associated(metric1D%rho)) deallocate(metric1d%rho)
-         if(associated(metric1D%data)) deallocate(metric1d%data)
+         if(allocated(metric1D%rho)) deallocate(metric1d%rho)
+         if(allocated(metric1D%data)) deallocate(metric1d%data)
          metric1D%nrmax=NRMAX
          allocate(metric1D%rho(NRMAX))
          allocate(metric1D%data(NRMAX))

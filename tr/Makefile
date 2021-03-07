@@ -1,8 +1,8 @@
 ### Makefile
 include ../make.header
 include ../mtxp/make.mtxp
-LIB_MTX=$(LIB_MTX_BND)
-LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_BND)
+#LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIB_MTX_PCG)
 #LIBX_MTX=$(LIBX_MTX_PCG)
 #LIB_MTX=$(LIB_MTX_MUMPS)
@@ -163,9 +163,9 @@ trmdlt.o : trmdlt.f90 trcomm.f90
 glf/callglf2d.o : glf/callglf2d.f glf/glf.m
 	$(FCFIXED) $(FFLAGS) -c -o glf/callglf2d.o -Iglf glf/callglf2d.f
 glf/glf2d.o  : glf/glf2d.F glf/glf.m glf/f77_dcomplx.h
-	$(FCFIXED) $(FFLAGS) -fpp -c -o glf/glf2d.o -Iglf glf/glf2d.F
+	$(FCFIXED) $(FFLAGS) $(FPP) -c -o glf/glf2d.o -Iglf glf/glf2d.F
 glf/r8tomsqz.o : glf/r8tomsqz.F glf/f77_dcomplx.h
-	$(FCFIXED) $(FFLAGS) -fpp -c -o glf/r8tomsqz.o glf/r8tomsqz.F
+	$(FCFIXED) $(FFLAGS) $(FPP) -c -o glf/r8tomsqz.o glf/r8tomsqz.F
 glf/zgeev.o  : glf/zgeev.f
 glf/blas_zgeev.o : glf/blas_zgeev.f
 trncls.o : trncls.f90 trncls.inc trcomm.f90 nclass/pamx_mi.inc \
