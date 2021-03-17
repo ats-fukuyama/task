@@ -394,7 +394,7 @@ CONTAINS
             ELSE
 !               WRITE(6,'(A,5I4,3ES12.4)') &
 !                    'wmdisp:',NR,NS,MM,NN,NTH,XR(NR),RPS(NTH,NR),RKPR
-               RKPP2=(MM/XR(NR))**2+(NN/RPS(NTH,NR))**2-RKPR**2
+               RKPP2=(MM/XR(NR))**2+(NN/RPST(NTH,NHH,NR))**2-RKPR**2
                IF(RKPP2.GT.0.D0) THEN
                   CKPP=SQRT(DCMPLX(RKPP2,0.D0))
                ELSEIF(RKPP2.LT.0.D0) THEN

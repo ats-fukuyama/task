@@ -755,7 +755,8 @@ C
      &   KWD(1:1).EQ.'A') THEN
          IGMAX=3
       ELSE
-         IGMAX=4
+C         IGMAX=4
+         IGMAX=3
       ENDIF
       DO NR=1,NRMAX
          GX(NR)  =GZ1(      NR)

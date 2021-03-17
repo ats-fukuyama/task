@@ -140,7 +140,7 @@ CONTAINS
       INTEGER,INTENT(IN):: NR,IND
       COMPLEX(rkind):: CDVM(3,3),CDVC(3,3),CDVP(3,3)
       INTEGER:: KDX,LDX,J,I,KDXF,LDXF,LBAND,NKX,MLX
-      INTEGER:: ND,NDX,NKD,NN,NK,KKD,KKDX,KD,MD,MDX,MLD,MM,ML,LD
+      INTEGER:: ND,NDX,NKD,NN,NK,KD,MD,MDX,MLD,MM,ML,LD
       INTEGER:: ID,LBND
       REAL(rkind):: XRHOM,XRHOC,XRHOP,XRHOMH,XRHOPH,DRHOM,DRHOP,DRHOPM
       REAL(rkind):: QPMH,QPC,QPPH,DPSIPDRHOMH,DPSIPDRHOPH,DPSIPDRHOC
@@ -792,7 +792,7 @@ CONTAINS
       IMPLICIT NONE
       
       INTEGER,INTENT(IN):: NR
-      INTEGER:: ID0,ID,ND,NDX,NKD,NKX,KD,KDX,MD,MDX,MLD,MLX,LDX,MM,LBND,MB,LD
+      INTEGER:: ID0,ID,ND,NDX,NKD,NKX,KD,MD,MDX,MLD,MLX,MM,LBND,MB,LD
       REAL(rkind):: DRHO1,DRHO2,A1,A2
 
       DRHO1=(XRHO(2)-XRHO(1))**2
@@ -827,8 +827,9 @@ CONTAINS
 
 !        ****** EPH'(0) = 0 FOR MM.EQ.0 ******
 
-                           IF(MM.EQ.0 .and. &
-                                CMAF(3,3,-MDMIN+1,-NDMIN+1,1) .NE.0 ) THEN
+!                           IF(MM.EQ.0 .and. &
+!                                CMAF(3,3,-MDMIN+1,-NDMIN+1,1) .NE.0 ) THEN
+                           IF(MM.EQ.0) THEN
                       
                               LBND=MCENT-3*KD*MDSIZ-3*LD-1
                               CEMP(LBND   +3,NKX,MLX,1) &

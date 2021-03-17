@@ -1,4 +1,4 @@
-C wmeqin.f90
+! wmeqin.f
 
       MODULE wmeqin
 
