@@ -25,7 +25,7 @@ CONTAINS
     IF(NPRINT.LT.2) RETURN
 
     IF(NRANK.EQ.0) THEN
-       WRITE(6,*) '   MD   IMP                        PABSKT'
+       WRITE(6,*) '   NN   MM   IMP                        PABSKT'
        DO ND=NDMIN,NDMAX
           NDX=ND-NDMIN+1
           NN=NPH0+NHC*ND
@@ -181,6 +181,10 @@ CONTAINS
        PCURT=PCURT+PCURR(NR)
     ENDDO
 
+    DO NR=1,NRMAX
+       WRITE(6,'(A,I8,3ES12.4)') 'PABST:',NR,(PABSR(NR,NS),NS=1,3)
+    END DO
+    
     DO NS=1,NSMAX
        PABST(NS)=0.D0
        DO NR=1,NRMAX
@@ -193,7 +197,21 @@ CONTAINS
        PABSTT=PABSTT+PABST(NS)
     ENDDO
 
-! --- evaluate factor for given RF power PRFIN ---
+    DO ND=NDMIN,NDMAX
+       NDX=ND-NDMIN+1
+          DO MD=MDMIN,MDMAX
+             MDX=MD-MDMIN+1
+             DO NS=1,NSMAX
+                PABSKT(MDX,NDX,NS)=0.D0
+                DO NR=1,NRMAX
+                PABSKT(MDX,NDX,NS)=PABSKT(MDX,NDX,NS) &
+                     +PABSK(MDX,NDX,NR,NS)
+             END DO
+          END DO
+       END DO
+    END DO
+
+       ! --- evaluate factor for given RF power PRFIN ---
     
     FACT=1.D0
     IF(PRFIN.GT.0.D0.AND.PABSTT.GT.0.D0) THEN

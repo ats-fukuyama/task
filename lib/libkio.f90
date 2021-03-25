@@ -12,10 +12,11 @@ CONTAINS
 !                   MODE=0: LINE INPUT
 !                        1: KID INPUT (first one char: a-z,A-Z,#,?,!)
 !                        2: PARM INPUT
-!                        3: NEW PROMPT
+!                        3: ERROR INPUT
 
       SUBROUTINE TASK_KLIN(LINE,KID,MODE,XXPARM)
 
+      USE libchar
       IMPLICIT NONE
       INTEGER, INTENT(OUT)  :: MODE
       CHARACTER(LEN=80),INTENT(OUT) :: LINE
@@ -42,9 +43,7 @@ CONTAINS
       ENDIF
 
       KID=LINE(1:1)                  ! if first char is lower-case, captalized
-      IKID=ICHAR(KID)
-      IF(IKID.GE.97.AND.IKID.LE.122) IKID=IKID-32
-      KID=CHAR(IKID)
+      CALL toupper(KID)
 
       IF((KID.GE.'A'.AND.KID.LE.'Z').OR. &
      &    KID.EQ.'?'.OR.KID.EQ.'#'.OR.KID.EQ.'!') THEN  ! one char input
@@ -52,7 +51,7 @@ CONTAINS
          RETURN
       ENDIF
 
-      KID=' '                                           ! line char
+      KID=' '                                           ! line input
       MODE=0
       RETURN
 

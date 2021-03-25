@@ -47,7 +47,7 @@ CONTAINS
     ELSE
        NR_S=nrmax
     END IF
-     
+
     CALL wm_solv
     
     CALL wm_efield

@@ -685,12 +685,9 @@ CONTAINS
                         CFVP(NDX,MDX,2)=CJTHP
                         CFVP(NDX,MDX,3)=CJPHP
                      ENDIF
-                     WRITE(6,'(A,4I4,2ES12.4)') &
-                          'CFVP:',NR,ND,MD,1,CFVP(NDX,MDX,1)
-                     WRITE(6,'(A,4I4,2ES12.4)') &
-                          'CFVP:',NR,ND,MD,2,CFVP(NDX,MDX,2)
-                     WRITE(6,'(A,4I4,2ES12.4)') &
-                          'CFVP:',NR,ND,MD,3,CFVP(NDX,MDX,3)
+!                     WRITE(6,'(A,4I3,6ES10.2)') &
+!                          'CFVP:',NR,ND,MD,1, &
+!                           CFVP(NDX,MDX,1),CFVP(NDX,MDX,2),CFVP(NDX,MDX,3)
                   ENDDO
                ENDDO
             ELSE
@@ -727,12 +724,12 @@ CONTAINS
                      CJR  =-(CI*MM*CJTHM+CI*NN*CJPHM)*DPSIPDRHOC*DRHO &
                           /XRHOC
                      CFVP(NDX,MDX,1)=CJR
-                     WRITE(6,'(A,4I4,2ES12.4)') &
-                          'CFVP:',NR,ND,MD,1,CFVP(NDX,MDX,1)
-                     WRITE(6,'(A,4I4,2ES12.4)') &
-                          'CFVP:',NR,ND,MD,2,CFVP(NDX,MDX,2)
-                     WRITE(6,'(A,4I4,2ES12.4)') &
-                          'CFVP:',NR,ND,MD,3,CFVP(NDX,MDX,3)
+!                     WRITE(6,'(A,4I4,2ES12.4)') &
+!                          'CFVP:',NR,ND,MD,1,CFVP(NDX,MDX,1)
+!                     WRITE(6,'(A,4I4,2ES12.4)') &
+!                          'CFVP:',NR,ND,MD,2,CFVP(NDX,MDX,2)
+!                     WRITE(6,'(A,4I4,2ES12.4)') &
+!                          'CFVP:',NR,ND,MD,3,CFVP(NDX,MDX,3)
                   ENDDO
                ENDDO
             ENDIF
@@ -925,8 +922,8 @@ CONTAINS
                CFVP(NDX,MDX,1)= 0.D0
                CFVP(NDX,MDX,2)= CEWALL(2,MDX,NDX)
                CFVP(NDX,MDX,3)= CEWALL(3,MDX,NDX)
-               WRITE(22,'(A,2I8,4ES12.4)') &
-                    'CEWALL:',MD,ND,CEWALL(2,MDX,NDX),CEWALL(3,MDX,NDX)
+!               WRITE(22,'(A,2I8,4ES12.4)') &
+!                    'CEWALL:',MD,ND,CEWALL(2,MDX,NDX),CEWALL(3,MDX,NDX)
             ENDDO
          ENDDO
 

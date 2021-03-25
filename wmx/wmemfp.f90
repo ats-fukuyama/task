@@ -623,6 +623,7 @@ CONTAINS
     ENDDO !nr
 
     DO NS=1,NSMAX
+       WRITE(6,'(A,I4)') 'NS=',NS
        NR=nr_start
        IF(MDLWMX.EQ.0) THEN
           CALL wm_setf0(NR,NS)
@@ -789,28 +790,57 @@ CONTAINS
                                   CDV32C=CDV(3,2,2)
                                   CDV33C=CDV(3,3,2)
 
+                                  SELECT CASE(mdlwmx)
+                                  CASE(0)
+                                     
 !     --- R COMPONENT OF MAXWELL EQUATION ---
 
-                                  CEMM11=0.5D0*CDV11M*FACT1M ! /XRHOMH/XRHOMH 
-                                  CEMC11=0.5D0*CDV11C*FACT1C ! /XRHOMH/XRHOMH
-                                  CEMM12= FMHM*CDV12M        !       /XRHOMH
-                                  CEMC12= FMHC*CDV12C        !       /XRHOMH
-                                  CEMM13= FMHM*CDV13M        !       /XRHOMH
-                                  CEMC13= FMHC*CDV13C        !       /XRHOMH
+                                     CEMM11=0.5D0*CDV11M*FACT1M/XRHOMH/XRHOMH
+                                     CEMC11=0.5D0*CDV11C*FACT1C/XRHOMH/XRHOMH
+                                     CEMM12= FMHM*CDV12M       *XRHOM /XRHOMH
+                                     CEMC12= FMHC*CDV12C       *XRHOC /XRHOMH
+                                     CEMM13= FMHM*CDV13M              /XRHOMH
+                                     CEMC13= FMHC*CDV13C              /XRHOMH
 
 !     --- THETA COMPONENT OF MAXWELL EQUATION ---
 
-                                  CEMC21= FCMH*CDV21C*FACT2C  !      /XRHOMH
-                                  CEMP21= FCPH*CDV21C*FACT2P  !      /XRHOPH
-                                  CEMC22=      CDV22C       
-                                  CEMC23=      CDV23C        
+                                     CEMC21= FCMH*CDV21C*FACT2C/XRHOMH*XRHOC
+                                     CEMP21= FCPH*CDV21C*FACT2P/XRHOPH*XRHOC
+                                     CEMC22=      CDV22C       *XRHOC *XRHOC
+                                     CEMC23=      CDV23C              *XRHOC
 
 !     --- PHI COMPONENT OF MAXWELL EQUATION ---
 
-                                  CEMC31= FCMH*CDV31C*FACT3C !       /XRHOMH
-                                  CEMP31= FCPH*CDV31C*FACT3P !       /XRHOPH
-                                  CEMC32=      CDV32C       
-                                  CEMC33=      CDV33C
+                                     CEMC31= FCMH*CDV31C*FACT3C /XRHOMH
+                                     CEMP31= FCPH*CDV31C*FACT3P /XRHOPH
+                                     CEMC32=      CDV32C        *XRHOC
+                                     CEMC33=      CDV33C
+
+                                  CASE(1,2)
+                                     
+!     --- R COMPONENT OF MAXWELL EQUATION ---
+
+                                     CEMM11=0.5D0*CDV11M*FACT1M !/XRHOMH/XRHOMH
+                                     CEMC11=0.5D0*CDV11C*FACT1C !/XRHOMH/XRHOMH
+                                     CEMM12= FMHM*CDV12M        !       /XRHOMH
+                                     CEMC12= FMHC*CDV12C        !       /XRHOMH
+                                     CEMM13= FMHM*CDV13M        !       /XRHOMH
+                                     CEMC13= FMHC*CDV13C        !       /XRHOMH
+
+!     --- THETA COMPONENT OF MAXWELL EQUATION ---
+
+                                     CEMC21= FCMH*CDV21C*FACT2C !      /XRHOMH
+                                     CEMP21= FCPH*CDV21C*FACT2P !      /XRHOPH
+                                     CEMC22=      CDV22C       
+                                     CEMC23=      CDV23C        
+
+!     --- PHI COMPONENT OF MAXWELL EQUATION ---
+
+                                     CEMC31= FCMH*CDV31C*FACT3C !       /XRHOMH
+                                     CEMP31= FCPH*CDV31C*FACT3P !       /XRHOPH
+                                     CEMC32=      CDV32C       
+                                     CEMC33=      CDV33C
+                                  END SELECT
 
                                   CCE1=DCONJG(CEFLDK(1,MLX,NKX,NR+1))
                                   CCE2=DCONJG(CEFLDK(2,MLX,NKX,NR+1))
@@ -851,7 +881,6 @@ CONTAINS
                                         +CPP21 &
                                         +CPP31 &
                                         )*DPSIPDRHOC*DRHOPM
-
                                   CPABSKM(LLX,MDX,KKX,NDX) &
                                        =CPABSKM(LLX,MDX,KKX,NDX) &
                                        +0.5D0*CPABSM

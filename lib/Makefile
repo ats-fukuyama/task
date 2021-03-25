@@ -137,7 +137,7 @@ netlib-bes.o: libspf.f90 netlib-bes.f90
 libbes.o: $(TASKCOMM) netlib-bes.f90 libbes.f90
 
 libchar.o: libchar.f90
-libkio.o: libkio.f90
+libkio.o: libkio.f90 libchar.f90
 libfio.o: libfio.f90
 
 libufile/ufinit.o: libufile/ufinit.f90
