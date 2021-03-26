@@ -10,8 +10,8 @@ include ../mtxp/make.mtxp
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-#FLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS)
+FFLAGS = $(OFLAGS)
+#FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../mtxp/$(MOD) \
