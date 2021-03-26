@@ -507,7 +507,11 @@ C
         CALL TEXT('md:',3)
         CALL NUMBI(NTH0+MD1,'(I3)',3)
         DO I=1,IMAX
-           GXL=GP(2,4)-4.0+2.0*(I-1)/REAL(IMAX-1)
+           IF(IMAX.EQ.1) THEN
+              GXL=GP(2,4)-4.0
+           ELSE
+              GXL=GP(2,4)-4.0+2.0*(I-1)/REAL(IMAX-1)
+           END IF
            CALL SETLIN(0,2,7-MOD(I-1,5))
            CALL MOVE(GXL,GP(4,4)+0.4)
            CALL DRAW(GXL,GP(4,4)+0.2)

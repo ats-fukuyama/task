@@ -140,7 +140,7 @@ CONTAINS
       INTEGER,INTENT(IN):: NR,IND
       COMPLEX(rkind):: CDVM(3,3),CDVC(3,3),CDVP(3,3)
       INTEGER:: KDX,LDX,J,I,KDXF,LDXF,LBAND,NKX,MLX
-      INTEGER:: ND,NDX,NKD,NN,NK,KKD,KKDX,KD,MD,MDX,MLD,MM,ML,LD
+      INTEGER:: ND,NDX,NKD,NN,NK,KD,MD,MDX,MLD,MM,ML,LD
       INTEGER:: ID,LBND
       REAL(rkind):: XRHOM,XRHOC,XRHOP,XRHOMH,XRHOPH,DRHOM,DRHOP,DRHOPM
       REAL(rkind):: QPMH,QPC,QPPH,DPSIPDRHOMH,DPSIPDRHOPH,DPSIPDRHOC
@@ -685,12 +685,9 @@ CONTAINS
                         CFVP(NDX,MDX,2)=CJTHP
                         CFVP(NDX,MDX,3)=CJPHP
                      ENDIF
-                     WRITE(6,'(A,4I4,2ES12.4)') &
-                          'CFVP:',NR,ND,MD,1,CFVP(NDX,MDX,1)
-                     WRITE(6,'(A,4I4,2ES12.4)') &
-                          'CFVP:',NR,ND,MD,2,CFVP(NDX,MDX,2)
-                     WRITE(6,'(A,4I4,2ES12.4)') &
-                          'CFVP:',NR,ND,MD,3,CFVP(NDX,MDX,3)
+!                     WRITE(6,'(A,4I3,6ES10.2)') &
+!                          'CFVP:',NR,ND,MD,1, &
+!                           CFVP(NDX,MDX,1),CFVP(NDX,MDX,2),CFVP(NDX,MDX,3)
                   ENDDO
                ENDDO
             ELSE
@@ -727,12 +724,12 @@ CONTAINS
                      CJR  =-(CI*MM*CJTHM+CI*NN*CJPHM)*DPSIPDRHOC*DRHO &
                           /XRHOC
                      CFVP(NDX,MDX,1)=CJR
-                     WRITE(6,'(A,4I4,2ES12.4)') &
-                          'CFVP:',NR,ND,MD,1,CFVP(NDX,MDX,1)
-                     WRITE(6,'(A,4I4,2ES12.4)') &
-                          'CFVP:',NR,ND,MD,2,CFVP(NDX,MDX,2)
-                     WRITE(6,'(A,4I4,2ES12.4)') &
-                          'CFVP:',NR,ND,MD,3,CFVP(NDX,MDX,3)
+!                     WRITE(6,'(A,4I4,2ES12.4)') &
+!                          'CFVP:',NR,ND,MD,1,CFVP(NDX,MDX,1)
+!                     WRITE(6,'(A,4I4,2ES12.4)') &
+!                          'CFVP:',NR,ND,MD,2,CFVP(NDX,MDX,2)
+!                     WRITE(6,'(A,4I4,2ES12.4)') &
+!                          'CFVP:',NR,ND,MD,3,CFVP(NDX,MDX,3)
                   ENDDO
                ENDDO
             ENDIF
@@ -792,7 +789,7 @@ CONTAINS
       IMPLICIT NONE
       
       INTEGER,INTENT(IN):: NR
-      INTEGER:: ID0,ID,ND,NDX,NKD,NKX,KD,KDX,MD,MDX,MLD,MLX,LDX,MM,LBND,MB,LD
+      INTEGER:: ID0,ID,ND,NDX,NKD,NKX,KD,MD,MDX,MLD,MLX,MM,LBND,MB,LD
       REAL(rkind):: DRHO1,DRHO2,A1,A2
 
       DRHO1=(XRHO(2)-XRHO(1))**2
@@ -827,8 +824,9 @@ CONTAINS
 
 !        ****** EPH'(0) = 0 FOR MM.EQ.0 ******
 
-                           IF(MM.EQ.0 .and. &
-                                CMAF(3,3,-MDMIN+1,-NDMIN+1,1) .NE.0 ) THEN
+!                           IF(MM.EQ.0 .and. &
+!                                CMAF(3,3,-MDMIN+1,-NDMIN+1,1) .NE.0 ) THEN
+                           IF(MM.EQ.0) THEN
                       
                               LBND=MCENT-3*KD*MDSIZ-3*LD-1
                               CEMP(LBND   +3,NKX,MLX,1) &
@@ -924,8 +922,8 @@ CONTAINS
                CFVP(NDX,MDX,1)= 0.D0
                CFVP(NDX,MDX,2)= CEWALL(2,MDX,NDX)
                CFVP(NDX,MDX,3)= CEWALL(3,MDX,NDX)
-               WRITE(22,'(A,2I8,4ES12.4)') &
-                    'CEWALL:',MD,ND,CEWALL(2,MDX,NDX),CEWALL(3,MDX,NDX)
+!               WRITE(22,'(A,2I8,4ES12.4)') &
+!                    'CEWALL:',MD,ND,CEWALL(2,MDX,NDX),CEWALL(3,MDX,NDX)
             ENDDO
          ENDDO
 

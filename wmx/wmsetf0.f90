@@ -53,12 +53,12 @@ CONTAINS
 
 !     ----- Fourier decompose metric tensor g -----
 
-    CALL WMSUBG_F(RG11(1,1,NR),RJ(1,1,NR),CGF11(1,1,3))
-    CALL WMSUBG_F(RG12(1,1,NR),RJ(1,1,NR),CGF12(1,1,3))
-    CALL WMSUBG_F(RG13(1,1,NR),RJ(1,1,NR),CGF13(1,1,3))
-    CALL WMSUBG_F(RG22(1,1,NR),RJ(1,1,NR),CGF22(1,1,3))
-    CALL WMSUBG_F(RG23(1,1,NR),RJ(1,1,NR),CGF23(1,1,3))
-    CALL WMSUBG_F(RG33(1,1,NR),RJ(1,1,NR),CGF33(1,1,3))
+    CALL WMSUBG_F(RG11(:,:,NR),RJ(:,:,NR),CGF11(:,:,3))
+    CALL WMSUBG_F(RG12(:,:,NR),RJ(:,:,NR),CGF12(:,:,3))
+    CALL WMSUBG_F(RG13(:,:,NR),RJ(:,:,NR),CGF13(:,:,3))
+    CALL WMSUBG_F(RG22(:,:,NR),RJ(:,:,NR),CGF22(:,:,3))
+    CALL WMSUBG_F(RG23(:,:,NR),RJ(:,:,NR),CGF23(:,:,3))
+    CALL WMSUBG_F(RG33(:,:,NR),RJ(:,:,NR),CGF33(:,:,3))
 
 !     ----- Calculate dielectric tensor -----
 
@@ -97,7 +97,7 @@ CONTAINS
                 DO NTH=1,NTHMAX_F
                    DO J=1,3
                       DO I=1,3
-                         CEP0(I,J,Md,ND,NTH,NHH) &
+                         CEP0(I,J,MD,ND,NTH,NHH) &
                               =CEP0(I,J,MD,ND,NTH,NHH) &
                               +CTNSR(I,J,NTH,NHH)
                       ENDDO
@@ -220,8 +220,8 @@ CONTAINS
 
     DO J=1,3
        DO I=1,3
-          CALL WMSUBF_F(CRA(1,1,I,J),CFA(1,1,I,J))
-          CALL WMSUBF_F(CRC(1,1,I,J),CFC(1,1,I,J))
+          CALL WMSUBF_F(CRA(:,:,I,J),CFA(:,:,I,J))
+          CALL WMSUBF_F(CRC(:,:,I,J),CFC(:,:,I,J))
        ENDDO
     ENDDO
 
@@ -229,7 +229,7 @@ CONTAINS
        DO MD=MDMIN_F,MDMAX_F
           DO J=1,3
              DO I=1,3
-                CALL WMSUBF_F(CRB(1,1,I,J,MD,ND),CFB(1,1,I,J,MD,ND))
+                CALL WMSUBF_F(CRB(:,:,I,J,MD,ND),CFB(:,:,I,J,MD,ND))
              ENDDO
           ENDDO
        ENDDO
@@ -239,7 +239,7 @@ CONTAINS
 
     DO ND=NDMIN,NDMAX
        NDX=ND-NDMIN+1
-       DO MD=NDMIN,NDMAX
+       DO MD=MDMIN,MDMAX
           MDX=MD-MDMIN+1
           DO KDX=1,nhhmax_f
              DO LDX=1,nthmax_f
@@ -368,10 +368,13 @@ CONTAINS
                    DO I=1,3
                       CGD(I,J,LDX,MDX,KDX,NDX,3) &
                            =-CWC2*CSUMA(I,J,LDX,MDX,KDX,NDX)
+                      CPSF(I,J,LDX,MDX,KDX,NDX,3) &
+                           =-CWC2*CSUMA(I,J,LDX,MDX,KDX,NDX)
                    ENDDO
                 ENDDO
              ENDDO
           ENDDO
+
        ENDDO
     ENDDO
 

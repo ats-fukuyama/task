@@ -271,28 +271,30 @@ CONTAINS
 
 !     ----- Normalize CEFLD -----
 
-    DO NR=1,NRMAX+1
-       DO NHH=1,NHHMAX
-          DO NTH=1,NTHMAX
-             NHHF=(NHH-1)*FACTOR_NHH+1
-             NTHF=(NTH-1)*FACTOR_NTH +1
+    IF(mdlwmx.EQ.0) THEN
+       DO NR=1,NRMAX+1
+          DO NHH=1,NHHMAX
+             DO NTH=1,NTHMAX
+                NHHF=(NHH-1)*FACTOR_NHH+1
+                NTHF=(NTH-1)*FACTOR_NTH+1
  
-             RF11=(RG22(NTHF,NHHF,NR)*RG33(NTHF,NHHF,NR) &
-                  -RG23(NTHF,NHHF,NR)**2)/RJ(NTHF,NHHF,NR)**2
-             RF22=(RG33(NTHF,NHHF,NR)*RG11(NTHF,NHHF,NR) &
-                  -RG13(NTHF,NHHF,NR)**2)/RJ(NTHF,NHHF,NR)**2
-             RF33=(RG11(NTHF,NHHF,NR)*RG22(NTHF,NHHF,NR) &
-                  -RG12(NTHF,NHHF,NR)**2)/RJ(NTHF,NHHF,NR)**2
-             RG011=SQRT(RF11)
-             RG022=SQRT(RF22)
-             RG033=SQRT(RF33)
+                RF11=(RG22(NTHF,NHHF,NR)*RG33(NTHF,NHHF,NR) &
+                     -RG23(NTHF,NHHF,NR)**2)/RJ(NTHF,NHHF,NR)**2
+                RF22=(RG33(NTHF,NHHF,NR)*RG11(NTHF,NHHF,NR) &
+                     -RG13(NTHF,NHHF,NR)**2)/RJ(NTHF,NHHF,NR)**2
+                RF33=(RG11(NTHF,NHHF,NR)*RG22(NTHF,NHHF,NR) &
+                     -RG12(NTHF,NHHF,NR)**2)/RJ(NTHF,NHHF,NR)**2
+                RG011=SQRT(RF11)
+                RG022=SQRT(RF22)
+                RG033=SQRT(RF33)
 
-             CEFLD(1,NTH,NHH,NR) =CEFLD(1,NTH,NHH,NR)
-             CEFLD(2,NTH,NHH,NR) =CEFLD(2,NTH,NHH,NR)
-             CEFLD(3,NTH,NHH,NR) =CEFLD(3,NTH,NHH,NR)
-          ENDDO
-       ENDDO
-    ENDDO
+                CEFLD(1,NTH,NHH,NR) =CEFLD(1,NTH,NHH,NR)*RG011
+                CEFLD(2,NTH,NHH,NR) =CEFLD(2,NTH,NHH,NR)*RG022
+                CEFLD(3,NTH,NHH,NR) =CEFLD(3,NTH,NHH,NR)*RG033
+             ENDDO
+          END DO
+       END DO
+    END IF
 
     RETURN
   END SUBROUTINE wm_efield
@@ -311,7 +313,7 @@ CONTAINS
 
     ALLOCATE(CBF1(nthmax,nhhmax),CBF2(nthmax,nhhmax))
 
-    CW=2.D0*PI*CMPLX(RF,RFI)*1.D6
+    CW=2.D0*PI*DCMPLX(RF,RFI)*1.D6
 
     DRHO1=(XRHO(2)-XRHO(1))**2
     DRHO2=(XRHO(3)-XRHO(1))**2
@@ -597,7 +599,7 @@ CONTAINS
     ALLOCATE(CPABSKM(nthmax,nthmax,nhhmax,nhhmax))
     ALLOCATE(CPABSKC(nthmax,nthmax,nhhmax,nhhmax))
 
-    CW=2.D0*PI*CMPLX(RF,RFI)*1.D6
+    CW=2.D0*PI*DCMPLX(RF,RFI)*1.D6
 
     NM=nrmax*nsmax*nthmax*nhhmax
 
@@ -620,8 +622,9 @@ CONTAINS
        ENDDO !nhh
     ENDDO !nr
 
-    NR=nr_start
     DO NS=1,NSMAX
+       WRITE(6,'(A,I4)') 'NS=',NS
+       NR=nr_start
        IF(MDLWMX.EQ.0) THEN
           CALL wm_setf0(NR,NS)
        ELSE
@@ -630,7 +633,7 @@ CONTAINS
        DO NDX=1,NDSIZ
           DO KDX=1,KDSIZ_F
              DO MDX=1,MDSIZ
-                DO LDX=1,LDSIZ_F
+                 DO LDX=1,LDSIZ_F
                    DO J=1,3
                       DO I=1,3
                          CPSF(I,J,LDX,MDX,KDX,NDX,2) &
@@ -787,28 +790,57 @@ CONTAINS
                                   CDV32C=CDV(3,2,2)
                                   CDV33C=CDV(3,3,2)
 
+                                  SELECT CASE(mdlwmx)
+                                  CASE(0)
+                                     
 !     --- R COMPONENT OF MAXWELL EQUATION ---
 
-                                  CEMM11=0.5D0*CDV11M*FACT1M ! /XRHOMH/XRHOMH 
-                                  CEMC11=0.5D0*CDV11C*FACT1C ! /XRHOMH/XRHOMH
-                                  CEMM12= FMHM*CDV12M        !       /XRHOMH
-                                  CEMC12= FMHC*CDV12C        !       /XRHOMH
-                                  CEMM13= FMHM*CDV13M        !       /XRHOMH
-                                  CEMC13= FMHC*CDV13C        !       /XRHOMH
+                                     CEMM11=0.5D0*CDV11M*FACT1M/XRHOMH/XRHOMH
+                                     CEMC11=0.5D0*CDV11C*FACT1C/XRHOMH/XRHOMH
+                                     CEMM12= FMHM*CDV12M       *XRHOM /XRHOMH
+                                     CEMC12= FMHC*CDV12C       *XRHOC /XRHOMH
+                                     CEMM13= FMHM*CDV13M              /XRHOMH
+                                     CEMC13= FMHC*CDV13C              /XRHOMH
 
 !     --- THETA COMPONENT OF MAXWELL EQUATION ---
 
-                                  CEMC21= FCMH*CDV21C*FACT2C  !      /XRHOMH
-                                  CEMP21= FCPH*CDV21C*FACT2P  !      /XRHOPH
-                                  CEMC22=      CDV22C       
-                                  CEMC23=      CDV23C        
+                                     CEMC21= FCMH*CDV21C*FACT2C/XRHOMH*XRHOC
+                                     CEMP21= FCPH*CDV21C*FACT2P/XRHOPH*XRHOC
+                                     CEMC22=      CDV22C       *XRHOC *XRHOC
+                                     CEMC23=      CDV23C              *XRHOC
 
 !     --- PHI COMPONENT OF MAXWELL EQUATION ---
 
-                                  CEMC31= FCMH*CDV31C*FACT3C !       /XRHOMH
-                                  CEMP31= FCPH*CDV31C*FACT3P !       /XRHOPH
-                                  CEMC32=      CDV32C       
-                                  CEMC33=      CDV33C
+                                     CEMC31= FCMH*CDV31C*FACT3C /XRHOMH
+                                     CEMP31= FCPH*CDV31C*FACT3P /XRHOPH
+                                     CEMC32=      CDV32C        *XRHOC
+                                     CEMC33=      CDV33C
+
+                                  CASE(1,2)
+                                     
+!     --- R COMPONENT OF MAXWELL EQUATION ---
+
+                                     CEMM11=0.5D0*CDV11M*FACT1M !/XRHOMH/XRHOMH
+                                     CEMC11=0.5D0*CDV11C*FACT1C !/XRHOMH/XRHOMH
+                                     CEMM12= FMHM*CDV12M        !       /XRHOMH
+                                     CEMC12= FMHC*CDV12C        !       /XRHOMH
+                                     CEMM13= FMHM*CDV13M        !       /XRHOMH
+                                     CEMC13= FMHC*CDV13C        !       /XRHOMH
+
+!     --- THETA COMPONENT OF MAXWELL EQUATION ---
+
+                                     CEMC21= FCMH*CDV21C*FACT2C !      /XRHOMH
+                                     CEMP21= FCPH*CDV21C*FACT2P !      /XRHOPH
+                                     CEMC22=      CDV22C       
+                                     CEMC23=      CDV23C        
+
+!     --- PHI COMPONENT OF MAXWELL EQUATION ---
+
+                                     CEMC31= FCMH*CDV31C*FACT3C !       /XRHOMH
+                                     CEMP31= FCPH*CDV31C*FACT3P !       /XRHOPH
+                                     CEMC32=      CDV32C       
+                                     CEMC33=      CDV33C
+                                  END SELECT
 
                                   CCE1=DCONJG(CEFLDK(1,MLX,NKX,NR+1))
                                   CCE2=DCONJG(CEFLDK(2,MLX,NKX,NR+1))
@@ -849,7 +881,6 @@ CONTAINS
                                         +CPP21 &
                                         +CPP31 &
                                         )*DPSIPDRHOC*DRHOPM
-
                                   CPABSKM(LLX,MDX,KKX,NDX) &
                                        =CPABSKM(LLX,MDX,KKX,NDX) &
                                        +0.5D0*CPABSM

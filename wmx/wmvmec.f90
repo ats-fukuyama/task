@@ -55,9 +55,9 @@ CONTAINS
              mpol_in,ntor_in,n4,n5
  711  format(5e20.13,11i6)
 
-    ntheta1 = 2*(ntheta/2)
+    ntheta1 = 2*(ntheta_in/2)
     ntheta2 = 1 + ntheta1/2
-    nznt = nzeta*ntheta2
+    nznt = nzeta_in*ntheta2
     mpol1 = mpol_in - 1
     ntor0 = ntor_in + 1 ! or ntor_in not definite
     mn0   = 1           ! not definite
@@ -66,8 +66,8 @@ CONTAINS
     print *,   '  mnmax    = ', mnmax
     print *,   '   mpol_in = ',  mpol_in
     print *,   '   ntor_in = ',  ntor_in
-    print *,   ' ntheta    = ',ntheta
-    print *,   '  nzeta    = ', nzeta
+    print *,   ' ntheta    = ',ntheta_in
+    print *,   '  nzeta    = ', nzeta_in
     print *,   '   nznt    = ',  nznt
 
     nsd=nsrmax
@@ -195,8 +195,8 @@ CONTAINS
     write(6,*) 'RA,RB,DRHO=',RA,RB,DRHO
 
 !     seki
-    bsu=bsu*B0_FACT
-    bsv=bsv*B0_FACT
+!    bsu=bsu*B0_FACT
+!    bsv=bsv*B0_FACT
 
     RETURN
   END SUBROUTINE WMHGRD
@@ -215,7 +215,6 @@ CONTAINS
     INTEGER:: nra(np)
     REAL(rkind):: psipax(np)
     REAL(rkind):: srmnca(np),drmnca(np),szmnsa(np),dzmnsa(np)
-    REAL(rkind):: dy
     INTEGER:: mn
 
 !      ***** SPLINE PSIP *****
@@ -421,7 +420,7 @@ CONTAINS
     REAL(rkind):: bstha(np),bspha(np),qpsa(np)
     REAL(rkind):: BSUS(NSRM),BSVS(NSRM)
     INTEGER:: i,MN,NSR,NR,NTH,NHH,NS,NSU,NSW,IERR
-    REAL(rkind):: BSTHL,BSPHL,dy,DTH,DPH,TH,PH,SBTH,SBPH,RSIN,RCOS
+    REAL(rkind):: BSTHL,BSPHL,DTH,DPH,TH,PH,SBTH,SBPH,RSIN,RCOS
     REAL(rkind):: P0,RHOL,FACTN,FEDGE,PT,FACTT,DTHU,DTHW,RIOTASL
     
     DO MN=1,MNMAX

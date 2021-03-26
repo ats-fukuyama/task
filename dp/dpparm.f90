@@ -54,23 +54,33 @@ CONTAINS
     INTEGER,INTENT(OUT):: IST,IERR
     INTEGER:: NS
 
-    NAMELIST /DP/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
-                  NSMAX,NPA,PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,PUPR,PUPP, &
-                  ID_NS,KID_NS, &
-                  PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
-                  RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB, &
-                  MODELG,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF, &
-                  RHOGMN,RHOGMX, &
-                  KNAMEQ,KNAMWR,KNAMFP,MODEFR,MODEFW,IDEBUG, &
-                  MODELP,MODELV,NCMIN,NCMAX, &
-                  RF0,RFI0,RKX0,RKY0,RKZ0,RX0,RY0,RZ0,RK0,RKANG0, &
-                  MODEL_ES,EPSRT,LMAXRT, &
-                  NS_NSA_DP,PMAX,EMAX,RHON_MIN,RHON_MAX, &
-                  NPMAX_DP,NTHMAX_DP,NRMAX_DP,NSAMAX_DP, &
-                  RF1,RFI1,RKX1,RKY1,RKZ1,RX1,RY1,RZ1,RK1, &
-                  RF2,RFI2,RKX2,RKY2,RKZ2,RX2,RY2,RZ2,RK2, &
-                  NGXMAX,NGYMAX,NGPMAX, &
-                  EPSDP,EPSRF,NORMF,NORMK,NFLOUT
+    NAMELIST /DP/ &
+           RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
+           RMIR,ZBB,Hpitch1,Hpitch2,RRCH,RCOIL,ZCOIL,BCOIL,NCOILMAX, &
+           NSMAX,NPA,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PUPR,PUPP,PNUC,PZCL, &
+           ID_NS,KID_NS, &
+           PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
+           RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG, &
+           PPN0,PTN0,RF_PL,BAXIS_SCALED, &
+           r_corner,z_corner, &
+           br_corner,bz_corner,bt_corner, &
+           pn_corner,ptpr_corner,ptpp_corner, &
+           profn_travis_g,profn_travis_h,profn_travis_p,profn_travis_q, &
+           profn_travis_w,proft_travis_g,proft_travis_h,proft_travis_p, &
+           proft_travis_q,proft_travis_w, &
+           MODELG,MODELB,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF, &
+           RHOGMN,RHOGMX, &
+           KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
+           MODEFR,MODEFW,IDEBUG,mdlplw, &
+           MODELP,MODELV,NCMIN,NCMAX, &
+           RF0,RFI0,RKX0,RKY0,RKZ0,RX0,RY0,RZ0,RK0,RKANG0, &
+           MODEL_ES,EPSRT,LMAXRT, &
+           NS_NSA_DP,PMAX,EMAX,RHON_MIN,RHON_MAX, &
+           NPMAX_DP,NTHMAX_DP,NRMAX_DP,NSAMAX_DP, &
+           RF1,RFI1,RKX1,RKY1,RKZ1,RX1,RY1,RZ1,RK1, &
+           RF2,RFI2,RKX2,RKY2,RKZ2,RX2,RY2,RZ2,RK2, &
+           NGXMAX,NGYMAX,NGPMAX, &
+           EPSDP,EPSRF,NORMF,NORMK,NFLOUT
 
     READ(NID,DP,IOSTAT=IST,ERR=9800,END=9900)
     IF(MODEL_PROF.EQ.0) THEN
@@ -99,22 +109,33 @@ CONTAINS
     WRITE(6,601)
     RETURN
 
-601 FORMAT(' ','# &DP : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,'/ &
-            9X,'NSMAX,PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,PUPR,PUPP'/ &
-            9X,'ID_NS,KID_NS,'/ &
-            9X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'/ &
-            9X,'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,'/ &
-            9X,'MODELG,MODELN,MODELQ,MODEFA,'/ &
-            9X,'KNAMEQ,KNAMWR,KNAMFP,MODEFR,MODEFW,IDEBUG,'/ &
-            9X,'MODELP,MODELV,NCMIN,NCMAX,'/ &
-            9X,'RF0,RFI0,RKX0,RKY0,RKZ0,RX0,RY0,RZ0,RK0,RKANG0,'/ &
-            9X,'MODEL_ES,EPSRT,LMAXRT,'/ &
-            9X,'NS_NSA_DP,PMAX,EMAX,ROHN_MIN,ROHN_MAX,'/ &
-            9X,'NPMAX_DP,NTHMAX_DP,NRMAX_DP,NSAMAX_DP,'/ &
-            9X,'RF1,RFI1,RKX1,RKY1,RKZ1,RX1,RY1,RZ1,RK1,'/ &
-            9X,'RF2,RFI2,RKX2,RKY2,RKZ2,RX2,RY2,RZ2,RK2,'/ &
-            9X,'NGXMAX,NGYMAX,NGPMAX,'/ &
-            9X,'EPSDP,EPSRF,NORMF,NORMK,NFLOUT')
+  601 FORMAT(' ','# &DP : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,'/ &
+             9X,'RMIR,ZBB,Hpitch1,Hpitch2,RRCH,RCOI,ZCOIL,BCOIL,NCOILMAX,'/ &
+             9X,'NSMAX,PA,PZ,PN,PNS,PTPR,PTPP,PTS,'/ &
+             9X,'PU,PUS,PUPR,PUPP,PNUC,PZCL,'/ &
+             9X,'ID_NS,KID_NS,'/ &
+             9X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'/ &
+             9X,'r_corner,z_corner,br_corner,bz_corner,bt_corner,'/ &
+             9X,'pn_corner,ptpr_corner,ptpp_corner,'/ &
+             9X,'profn_travis_g,profn_travis_h,profn_travis_p,'/ &
+             9X,'profn_travis_q,profn_travis_w,proft_travis_g,'/ &
+             9X,'proft_travis_h,proft_travis_p,proft_travis_q,'/ &
+             9X,'proft_travis_w,'/ &
+             9X,'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,'/ &
+             9X,'PPN0,PTN0,RFCL,BAXIS_SCALED,'/ &
+             9X,'MODELG,MODELB,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF,'/ &
+             9X,'RHOGMN,RHOGMX,'/ &
+             9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2'/ &
+             9X,'MODEFW,MODEFR,IDEBUG,mdlplw'/ &
+             9X,'MODELP,MODELV,NCMIN,NCMAX,'/ &
+             9X,'RF0,RFI0,RKX0,RKY0,RKZ0,RX0,RY0,RZ0,RK0,RKANG0,'/ &
+             9X,'MODEL_ES,EPSRT,LMAXRT,'/ &
+             9X,'NS_NSA_DP,PMAX,EMAX,ROHN_MIN,ROHN_MAX,'/ &
+             9X,'NPMAX_DP,NTHMAX_DP,NRMAX_DP,NSAMAX_DP,'/ &
+             9X,'RF1,RFI1,RKX1,RKY1,RKZ1,RX1,RY1,RZ1,RK1,'/ &
+             9X,'RF2,RFI2,RKX2,RKY2,RKZ2,RX2,RY2,RZ2,RK2,'/ &
+             9X,'NGXMAX,NGYMAX,NGPMAX,'/ &
+             9X,'EPSDP,EPSRF,NORMF,NORMK,NFLOUT')
   END SUBROUTINE DPPLST
 
 !     ***** CHECK INPUT PARAMETERS *****

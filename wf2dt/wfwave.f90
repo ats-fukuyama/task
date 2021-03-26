@@ -1030,6 +1030,7 @@ END SUBROUTINE CALFLD
 SUBROUTINE PWRABS
 
   use wfcomm
+  USE libmpi
   implicit none
 
   integer    :: NE,IN,NN,NSD,NS
@@ -1038,6 +1039,29 @@ SUBROUTINE PWRABS
   real(rkind)    :: RW,S,MU(3,3,6),R(3),Z(3)
   complex(rkind) :: DTENS(NSM,3,3,3),CTENS(NSM,3,3,3)
   complex(rkind) :: CIWE,CINT(NSM,6,6),CE(6)
+  INTEGER,ALLOCATABLE:: nelm_len_nrank(:),nelm_pos_nrank(:)
+  REAL(rkind),ALLOCATABLE:: rdata(:),rdata_tot(:)
+  INTEGER:: ipos,n,nblk,ndata,nelm1,nelm2,nsize_high,nsize_low
+
+  ALLOCATE(nelm_len_nrank(0:nsize-1),nelm_pos_nrank(0:nsize-1))
+  nblk=nemax/nsize
+  nsize_high=nemax-nblk*nsize
+  nsize_low=nsize-nsize_high
+  ipos=0
+  DO n=0,nsize_high-1
+     nelm_len_nrank(n)=nblk+1
+     nelm_pos_nrank(n)=ipos
+     ipos=ipos+nelm_len_nrank(n)
+  END DO
+  DO n=nsize_high,nsize-1
+     nelm_len_nrank(n)=nblk
+     nelm_pos_nrank(n)=ipos
+     ipos=ipos+nelm_len_nrank(n)
+  END DO
+  IF(ipos.NE.nemax) THEN
+     WRITE(6,'(A,2I8)') 'XX ne parallel error: nemax,ipos=',nemax,ipos
+     STOP
+  END IF
 
   ! --- initialize ---
   
@@ -1046,7 +1070,7 @@ SUBROUTINE PWRABS
   RW=2.D0*PI*RF*1.D6
   CIWE=CII*RW*EPS0
 
-  do NE=1,NEMAX
+  do NE=nelm_pos_nrank(nrank)+1,nelm_pos_nrank(nrank)+nelm_len_nrank(nrank)
      S=SELM(NE)
 
      ! --- calculate conductivity tensor ---
@@ -1147,6 +1171,17 @@ SUBROUTINE PWRABS
      end do
 
   end do
+
+  nelm1=nelm_pos_nrank(nrank)+1
+  nelm2=nelm_pos_nrank(nrank)+nelm_len_nrank(nrank)
+  ndata=nelm_len_nrank(nrank)
+  ALLOCATE(rdata(ndata),rdata_tot(nemax))
+  DO ns=1,nsmax
+     rdata(1:ndata)=pabs(ns,nelm1:nelm2)
+     CALL mtx_gatherv_real8(rdata,ndata,rdata_tot,nemax, &
+          nelm_len_nrank,nelm_pos_nrank)
+     pabs(ns,1:nemax)=rdata_tot(1:nemax)
+  END DO
 
   do NS=1,NSMAX
      PABST(NS)=0.d0

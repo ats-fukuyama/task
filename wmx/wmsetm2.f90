@@ -1148,7 +1148,7 @@ CONTAINS
       IMPLICIT NONE
       
       INTEGER,INTENT(IN):: NR
-      INTEGER:: ID0,ID,ND,NDX,NKD,NKX,KD,KDX,MD,MDX,MLD,MLX,LDX,MM,LBND,MB,LD
+      INTEGER:: ID0,ID,ND,NDX,NKD,NKX,KD,MD,MDX,MLD,MLX,MM,LBND,MB,LD
       REAL(rkind):: DRHO1,DRHO2,A1,A2
       REAL(rkind):: XRHO1,XRHO2,XRHO3,XRHO4,XRHOH1,XRHOH2,XRHOH3
 
@@ -1179,7 +1179,7 @@ CONTAINS
                KD=NKD-ND
                IF(MODELK.EQ.0.OR. &
                     (KD.GE.KDMIN.AND.KD.LE.KDMAX)) THEN
-                  KDX=MOD(KD-KDMIN+2*KDSIZ,KDSIZ)+1+KDMIN-KDMIN_F
+!                  KDX=MOD(KD-KDMIN+2*KDSIZ,KDSIZ)+1+KDMIN-KDMIN_F
                   DO MD=MDMIN,MDMAX
                      MDX=MD-MDMIN+1
                      DO MLD=MDMIN,MDMAX
@@ -1187,13 +1187,14 @@ CONTAINS
                         LD=MLD-MD
                         IF(MODELK.EQ.0.OR. &
                              (LD.GE.LDMIN.AND.LD.LE.LDMAX)) THEN
-                           LDX=MOD(LD-LDMIN+2*LDSIZ,LDSIZ)+1+LDMIN-LDMIN_F
+!                           LDX=MOD(LD-LDMIN+2*LDSIZ,LDSIZ)+1+LDMIN-LDMIN_F
                            MM=NTH0+MD
 
 
 !        ****** EPH'(0) = 0 FOR MM.EQ.0 ******
-                           IF(MM.EQ.0 .and. &
-                                CMAF(3,3,-MDMIN+1,-NDMIN+1,1) .NE.0 ) THEN
+!                           IF(MM.EQ.0 .and. &
+!                                CMAF(3,3,-MDMIN+1,-NDMIN+1,1) .NE.0 ) THEN
+                           IF(MM.EQ.0) THEN
                       
                               LBND=MCENT-3*KD*MDSIZ-3*LD-1
                               CEMP(LBND   +3,NKX,MLX,1) &
@@ -1283,6 +1284,7 @@ CONTAINS
                ENDDO
                CEMP(MCENT,NDX,MDX,2)= 1.D0
                CEMP(MCENT,NDX,MDX,3)= 1.D0
+               CFVP(NDX,MDX,1)= 0.D0
                CFVP(NDX,MDX,2)= CEWALL(2,MDX,NDX)
                CFVP(NDX,MDX,3)= CEWALL(3,MDX,NDX)
 

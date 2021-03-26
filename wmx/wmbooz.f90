@@ -71,7 +71,6 @@ CONTAINS
     rewind(NFL)
     
     read(NFL,9997) MNMAX, NSRMAX, nfp
-7001 format(3i4)
 
     CALL wm_allocate_vm
 
@@ -93,17 +92,17 @@ CONTAINS
 
     DO MN=1,MNMAX
        read(NFL,9995) M,N
-       read(NFL,9996,ERR=8001) (rbozh(MN,i),i=2,nsrmax+1)
+       read(NFL,9996,ERR=8002) (rbozh(MN,i),i=2,nsrmax+1)
     ENDDO
 
     DO MN=1,MNMAX
        read(NFL,9995) M,N
-       read(NFL,9996,ERR=8001) (zbozh(MN,i),i=2,nsrmax+1)
+       read(NFL,9996,ERR=8003) (zbozh(MN,i),i=2,nsrmax+1)
     ENDDO
 
     DO MN=1,MNMAX
        read(NFL,9995) M,N
-       read(NFL,9996,ERR=8001) (pbozh(MN,i),i=2,nsrmax+1)
+       read(NFL,9996,ERR=8004) (pbozh(MN,i),i=2,nsrmax+1)
     ENDDO
 
     CLOSE(NFL)
@@ -294,7 +293,7 @@ CONTAINS
          SBMNCA(NP),SRMNCA(NP),SZMNSA(NP),SPMNSA(NP), &
          DBMNCA(NP),DRMNCA(NP),DZMNSA(NP),DPMNSA(NP)
     INTEGER:: NR,MN,NSR,I,IERR
-    REAL(rkind):: RHOB,DRHO,DY
+    REAL(rkind):: RHOB,DRHO
 
 !     ***** DEFINE XRHO, XR AND XSHRHO *****
 

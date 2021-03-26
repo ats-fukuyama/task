@@ -2,19 +2,25 @@
 include ../make.header
 include ../mtxp/make.mtxp
 
-LIB_MTX=$(LIB_MTX_BND)
-LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_BND)
+#LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIB_MTX_MUMPS)
 #LIBX_MTX=$(LIBX_MTX_MUMPS)
 
-#FFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS)
+FFLAGS = $(OFLAGS)
+#FFLAGS = $(DFLAGS)
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-MODINCLUDE= -I./$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
-            -I../dp/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
+.f.o :
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+.f90.o :
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+
+MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) -I../tr/$(MODE) \
+            -I../dp/$(MOD) -I../lib/$(MOD) -I../mtxp/$(MOD) \
+            -I../../bpsd/$(MOD)
 
 SRCS = mpilib.f wmmenu.f wminit.f wmeign.f wmsetg.f \
        ../eq/wmeqin.f wmprof.f wmdisp.f \
@@ -30,11 +36,6 @@ OBJS = $(SRCX:.f90=.o) $(SRCS:.f=.o)
 
 LIBS = libwm.a ../dp/libdp.a ../pl/libpl.a  ../eq/libeq.a \
        ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a
-
-.f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
-.f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 all: wm
 
@@ -54,8 +55,8 @@ libwm.a: $(OBJS)
 ../dp/libdp.a:
 	(cd ../dp; make libdp.a)
 libs:
-	(cd ../lib; make libgrf.a)
 	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)

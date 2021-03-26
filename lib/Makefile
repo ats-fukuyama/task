@@ -11,7 +11,7 @@ FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I $(MOD)
 
-SRCSFREE  =  task_kinds.f90 \
+SRCSFREE  =  task_kinds.f90 task_constants.f90 \
              libspl1d.f90 libspl2d.f90 libspl3d.f90 \
              libderiv.f90 libpol.f90 \
              libbnd.f90 libbrent.f90 libde.f90 libdsp.f90 \
@@ -64,7 +64,7 @@ check :
 
 clean:
 	-rm -f core* a.out *.o libgrf/*.o libufile/*.o *.mod *.a ./*~ ./#* $(MOD)/*.mod
-	-rm -f testbes testell testfem testfem_func testgrd testgrf testlamb testqsort testspl testspl3d testpol
+	-rm -f testbes testell testfem testfem_func testgrd testgrf testqsort testspl testspl3d testpol
 
 veryclean: clean
 
@@ -85,10 +85,8 @@ testduo: libtask.a testduo.o
 testfem_func: libgrf.a libtask.a testfem_func.o 
 	$(FCFREE) testfem_func.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS) $(MODINCLUDE)
 
-testbes: libgrf.a libtask.a testbes.o 
-	$(FCFIXED) testbes.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS)
-testlamb: libgrf.a libtask.a testlamb.o 
-	$(FCFREE) testlamb.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS)
+testbes: libgrf.a libtask.a testbes.o
+	$(FCFREE) testbes.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS)
 
 testell: libgrf.a libtask.a testell.o 
 	$(FCFIXED) testell.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS)
@@ -114,6 +112,8 @@ testpol: libtask.a testpol.o
 
 TASKCOMM=task_kinds.f90
 
+task_kinds.o: task_kinds.f90
+task_constants.o: $(TASKCOMM) task_constants.f90
 libderiv.o: $(TASKCOMM) libderiv.f90
 libpol.o: $(TASKCOMM) libpol.f90
 libbnd.o: $(TASKCOMM) libbnd.f90
@@ -139,7 +139,7 @@ netlib-bes.o: libspf.f90 netlib-bes.f90
 libbes.o: $(TASKCOMM) netlib-bes.f90 libbes.f90
 
 libchar.o: libchar.f90
-libkio.o: libkio.f90
+libkio.o: libkio.f90 libchar.f90
 libfio.o: libfio.f90
 
 libufile/ufinit.o: libufile/ufinit.f90
