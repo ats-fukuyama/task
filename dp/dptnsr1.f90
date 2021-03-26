@@ -30,16 +30,19 @@ CONTAINS
       TYPE(pl_mag_type),INTENT(IN):: mag
       TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
-      COMPLEX(rkind):: CWP,CWC
+      COMPLEX(rkind):: CWP,CWC,CYY,CZZ
 
       CWP=plfw(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
+      CYY=1.D0/(1.D0-CWC*CWC)
 
-      CLDISP(1)=-CWP/(1.D0-CWC*CWC)
+!      CLDISP(1)=-CWP/(1.D0-CWC*CWC)   XXX Nag Fortran compiler bug XXX
+      CLDISP(1)=-CWP*CYY
       CLDISP(2)=-CWP-CLDISP(1)
       CLDISP(3)= 0.D0
       CLDISP(4)= 0.D0
-      CLDISP(5)=(0.D0,-1.D0)*CWP*CWC/(1.D0-CWC*CWC)
+!      CLDISP(5)=(0.D0,-1.D0)*CWP*CWC/(1.D0-CWC*CWC)
+      CLDISP(5)=(0.D0,-1.D0)*CWP*CWC*CYY
       CLDISP(6)= 0.D0
 
       RETURN

@@ -87,7 +87,7 @@ CONTAINS
                  'MODEFR',MODEFR,'MODEFW',MODEFW
     WRITE(6,602) 'MODELM',MODELM, & 
                  'MDLWMK',MDLWMK, &
-                 'MDLWMX',MDLWMK
+                 'MDLWMX',MDLWMX
     WRITE(6,604) 'MODEL_PROF  ',MODEL_PROF, &
                  'MODEL_NPROF ',MODEL_NPROF, &
                  'nthmax_g     ',nthmax_g

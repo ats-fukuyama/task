@@ -294,6 +294,14 @@ CONTAINS
 !     *** INITIALIZATION PARAMETERS (DO NOT MODIFY) ***
 
     NNMAX  = 0
+    nemax=0
+    nsdmax=0
+    mlen=0
+    rdamp_min=0.D0
+    rdamp_max=0.D0
+    zdamp_min=0.D0
+    zdamp_max=0.D0
+
     NFOPEN = 0
     RNDMIN = 0.D0
     RNDMAX = 0.D0

@@ -356,7 +356,7 @@ CONTAINS
        grd(ns1)%grdu=0.D0
     END DO
 
-    CW=2.D0*PI*DCMPLX(RF,RFI)*1.D6
+      CW=2.D0*PI*DCMPLX(RF,RFI)*1.D6
       WW=DBLE(CW)
 
       RHON=XRHO(NR)

@@ -226,6 +226,13 @@ CONTAINS
       LISTNW= 1
       MODENW= 0
 
+      ILN1=0
+      IBL1=2
+      ICL1=7
+      ILN2=0
+      IBL2=2
+      ICL2=7
+
       NCONT=30
 
 !     *** ALFVEN FREQUENCY PARAMETERS ***

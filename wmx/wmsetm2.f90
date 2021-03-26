@@ -11,10 +11,7 @@ MODULE wmsetm2
   COMPLEX(rkind),ALLOCATABLE:: CGC11(:,:),CGC12(:,:),CGC13(:,:)
   COMPLEX(rkind),ALLOCATABLE:: CGPH22(:,:),CGPH23(:,:),CGPH33(:,:)
   COMPLEX(rkind),ALLOCATABLE:: CGP12(:,:),CGP13(:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CMAHF(:,:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CROT(:,:,:,:,:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CGDH(:,:,:,:,:,:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CGDDH(:,:,:,:,:,:,:)
   
   PRIVATE
   PUBLIC wm_setm2,wm_setv2
@@ -115,9 +112,6 @@ CONTAINS
     ALLOCATE(CGPH22(nthmax_f,nhhmax_f),CGPH23(nthmax_f,nhhmax_f))
     ALLOCATE(CGPH33(nthmax_f,nhhmax_f))
     ALLOCATE(CGP12(nthmax_f,nhhmax_f),CGP13(nthmax_f,nhhmax_f))
-    ALLOCATE(CMAHF(3,3,nthmax_f,nhhmax_f,3))
-    ALLOCATE(CGDH(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
-    ALLOCATE(CGDDH(3,3,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
     ALLOCATE(CROT(9,nthmax_f,nthmax,nhhmax_f,nhhmax,3))
 
     RETURN
@@ -136,7 +130,6 @@ CONTAINS
     DEALLOCATE(CGC11,CGC12)
     DEALLOCATE(CGC13,CGPH22,CGPH23)
     DEALLOCATE(CGPH33,CGP12,CGP13)
-    DEALLOCATE(CMAHF,CGDH,CGDDH)
     DEALLOCATE(CROT)
 
     RETURN
@@ -193,7 +186,6 @@ CONTAINS
                   DO I=1,3
                      CMAF(I,J,LDX,KDX,2) = CMAF(I,J,LDX,KDX,3)
                      CRMAF(I,J,LDX,KDX,2) = CRMAF(I,J,LDX,KDX,3)
-                     CMAHF(I,J,LDX,KDX,2) = CMAHF(I,J,LDX,KDX,3)
                   ENDDO
                ENDDO
             ENDDO
@@ -207,12 +199,6 @@ CONTAINS
                         DO I=1,3
                            CGD(I,J,LDX,MDX,KDX,NDX,2) &
                                 =CGD(I,J,LDX,MDX,KDX,NDX,3)
-                           CGDD(I,J,LDX,MDX,KDX,NDX,2) &
-                                =CGDD(I,J,LDX,MDX,KDX,NDX,3)
-                           CGDH(I,J,LDX,MDX,KDX,NDX,2) &
-                                =CGDH(I,J,LDX,MDX,KDX,NDX,3)
-                           CGDDH(I,J,LDX,MDX,KDX,NDX,2) &
-                                =CGDDH(I,J,LDX,MDX,KDX,NDX,3)
                         ENDDO
                      ENDDO
                   ENDDO
@@ -251,8 +237,6 @@ CONTAINS
                   CMAF(I,J,LDX,KDX,2) = CMAF(I,J,LDX,KDX,3)
                   CRMAF(I,J,LDX,KDX,1) = CRMAF(I,J,LDX,KDX,2)
                   CRMAF(I,J,LDX,KDX,2) = CRMAF(I,J,LDX,KDX,3)
-                  CMAHF(I,J,LDX,KDX,1) = CMAHF(I,J,LDX,KDX,2)
-                  CMAHF(I,J,LDX,KDX,2) = CMAHF(I,J,LDX,KDX,3)
                ENDDO
             ENDDO
          ENDDO
@@ -266,18 +250,6 @@ CONTAINS
                      DO I=1,3
                         CGD(I,J,LDX,MDX,KDX,NDX,1)=CGD(I,J,LDX,MDX,KDX,NDX,2)
                         CGD(I,J,LDX,MDX,KDX,NDX,2)=CGD(I,J,LDX,MDX,KDX,NDX,3)
-                        CGDD(I,J,LDX,MDX,KDX,NDX,1) &
-                             =CGDD(I,J,LDX,MDX,KDX,NDX,2)
-                        CGDD(I,J,LDX,MDX,KDX,NDX,2) &
-                             =CGDD(I,J,LDX,MDX,KDX,NDX,3)
-                        CGDH(I,J,LDX,MDX,KDX,NDX,1) &
-                             =CGDH(I,J,LDX,MDX,KDX,NDX,2)
-                        CGDH(I,J,LDX,MDX,KDX,NDX,2) &
-                             =CGDH(I,J,LDX,MDX,KDX,NDX,3)
-                        CGDDH(I,J,LDX,MDX,KDX,NDX,1) &
-                             =CGDDH(I,J,LDX,MDX,KDX,NDX,2)
-                        CGDDH(I,J,LDX,MDX,KDX,NDX,2) &
-                             =CGDDH(I,J,LDX,MDX,KDX,NDX,3)
                      ENDDO
                   ENDDO
                ENDDO

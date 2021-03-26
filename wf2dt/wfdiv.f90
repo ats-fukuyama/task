@@ -111,6 +111,7 @@ subroutine WFDIV
     
   elseif(KID.eq.'G') then
      if (nrank.eq.0) then
+        NWXMAX=0
         call WFGDIV
      end if
      

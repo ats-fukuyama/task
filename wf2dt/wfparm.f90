@@ -72,7 +72,8 @@ CONTAINS
                   mdamp,rdamp_min,rdamp_max,zdamp_min,zdamp_max, &
                   NCOILMAX,RCOIL,ZCOIL,BCOIL, &
                   nxzone_max,nyzone_max
-
+    IERR=0
+    
     READ(NID,WF,IOSTAT=IST,ERR=9800,END=9900)
     IF(IST.NE.0) GO TO 9100
      
@@ -95,6 +96,8 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
 
+    IERR=0
+    
     IF(NSMAX.GT.NSM) THEN
        WRITE(6,*) '## NSMAX .GT. NSM : NSMAX =',NSMAX,'  NSM = ',NSM
        NSMAX=NSM

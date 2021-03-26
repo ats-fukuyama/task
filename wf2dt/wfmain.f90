@@ -44,6 +44,7 @@ program wfmain
   call setaif
   call setaie
   CALL pl_init
+  CALL eqinit
   call wf_init
 
   if (nrank.eq.0) call wf_parm(1,'wfparm',IERR)

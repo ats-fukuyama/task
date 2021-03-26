@@ -4,8 +4,8 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-LFLAGS = $(OFLAGS)
-#LFLAGS = $(DFLAGS)
+#LFLAGS = $(OFLAGS)
+LFLAGS = $(DFLAGS)
 #FFLAGS = $(OFLAGS)
 FFLAGS = $(DFLAGS)
 
@@ -15,7 +15,7 @@ SRCSFREE  =  task_kinds.f90 \
              libspl1d.f90 libspl2d.f90 libspl3d.f90 \
              libderiv.f90 libpol.f90 \
              libbnd.f90 libbrent.f90 libde.f90 libdsp.f90 \
-             libell.f90 libfem.f90 libfft.f90 \
+             libell.f90 libfft.f90 \
              libinv.f90 libpcgpme.f90 \
              libqsort.f90 librk.f90 librkf.f90 libspf.f90 libsympl.f90 \
              netlib-bes.f90 libbes.f90 \
@@ -23,6 +23,8 @@ SRCSFREE  =  task_kinds.f90 \
              libitp.f90 \
              libufile/ufinit.f90 libufile/uflist.f90 libufile/ufread.f90 \
              ufile.f90
+
+#             libell.f90 libfem.f90 libfft.f90 \
 
 SRCSGRF   =  libgrf/grftype.f90 libgrf/grfutils.f90 libgrf/grdutils.f90 \
 	     libgrf/grf1dexec.f90 libgrf/grf2dexec.f90 \
