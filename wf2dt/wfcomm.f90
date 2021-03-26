@@ -29,7 +29,7 @@ module wfcomm
   integer,parameter::   NKM = 100  ! Maximum number of material type
   integer,parameter::   NMM = 100  ! Maximum number of medium type
   integer,parameter::   NAM =   8  ! Maximum number of antenna
-  integer,parameter::   NJM = 800  ! Maximum number of antenna current position
+  integer,parameter::   NJM =2000  ! Maximum number of antenna current position
   integer,parameter::   NCM =  30  ! Maximum number of magnectic coil position
   
 !  integer,parameter::  NGXM = 301  ! resolution in x direction
@@ -214,11 +214,11 @@ module wfcomm
   integer(ikind):: NDFILE
 
 ! --- allocation flag ---
-  integer(rkind):: divinit,elminit,sidinit,srtinit,medinit
-  integer(rkind):: srfinit,slvinit,fldinit,pwrinit,nasinit,wininit
+  integer(ikind):: divinit,elminit,sidinit,srtinit,medinit
+  integer(ikind):: srfinit,slvinit,fldinit,pwrinit,nasinit,wininit
 
 ! --- fem module variables ---
-  INTEGER(rkind):: nxzone_max,nyzone_max
+  INTEGER(ikind):: nxzone_max,nyzone_max
 
 ! -----------------------------------------------------------------
 
@@ -462,7 +462,6 @@ contains
           call wffld_deallocate
        end if
     end if
-    
     allocate(CESD(NSDMAX),CEND(NNMAX))!,CEP(3,NNMAX))
     allocate(CBF(3,NNMAX),CBP(3,NNMAX),EMAX(4),CRFL(NMDMAX,NBMAX))
 
