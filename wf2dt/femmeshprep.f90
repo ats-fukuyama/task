@@ -2,21 +2,21 @@
 
 MODULE femmeshprep
 
-  USE wfcomm,ONLY: rkind
+  USE wfcomm,ONLY: rkind,long
   LOGICAL:: fem_mesh_allocated=.FALSE.
-  INTEGER:: nseg_max,nside_max
-  INTEGER:: nelm_node_max
+  INTEGER(long):: nseg_max,nside_max
+  INTEGER(long):: nelm_node_max
   REAL(rkind):: xnode_min,xnode_max,ynode_min,ynode_max
   REAL(rkind):: vol_tot
-  INTEGER,ALLOCATABLE:: nside_max_nelm(:)
+  INTEGER(long),ALLOCATABLE:: nside_max_nelm(:)
   REAL(rkind),ALLOCATABLE:: xcenter_nelm(:),ycenter_nelm(:)
   REAL(rkind),ALLOCATABLE:: vol_nelm(:)
   REAL(rkind),ALLOCATABLE:: xcenter_nseg(:),ycenter_nseg(:)
-  INTEGER,ALLOCATABLE:: node_nseg(:,:),nelm_nseg(:,:)
-  INTEGER,ALLOCATABLE:: idir_nside_nelm(:,:),idseg_nseg(:)
-  INTEGER,ALLOCATABLE:: nseg_nside_nelm(:,:)
-  INTEGER,ALLOCATABLE:: nelm1_nside_nelm(:,:),nside1_nside_nelm(:,:)
-  INTEGER,ALLOCATABLE:: nelm_nangle_node(:,:),nelm_max_node(:)
+  INTEGER(long),ALLOCATABLE:: node_nseg(:,:),nelm_nseg(:,:)
+  INTEGER(long),ALLOCATABLE:: idir_nside_nelm(:,:),idseg_nseg(:)
+  INTEGER(long),ALLOCATABLE:: nseg_nside_nelm(:,:)
+  INTEGER(long),ALLOCATABLE:: nelm1_nside_nelm(:,:),nside1_nside_nelm(:,:)
+  INTEGER(long),ALLOCATABLE:: nelm_nangle_node(:,:),nelm_max_node(:)
 
 ! --- prepartion of mesh related variables ---
 

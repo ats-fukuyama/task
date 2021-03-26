@@ -1178,7 +1178,7 @@ SUBROUTINE PWRABS
   ALLOCATE(rdata(ndata),rdata_tot(nemax))
   DO ns=1,nsmax
      rdata(1:ndata)=pabs(ns,nelm1:nelm2)
-     CALL mtx_gatherv_real8(rdata,ndata,rdata_tot,nemax, &
+     CALL mtx_allgatherv_real8(rdata,ndata,rdata_tot,nemax, &
           nelm_len_nrank,nelm_pos_nrank)
      pabs(ns,1:nemax)=rdata_tot(1:nemax)
   END DO

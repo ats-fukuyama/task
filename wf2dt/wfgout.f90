@@ -134,22 +134,22 @@ SUBROUTINE WFGOUT
        &    KID.EQ.'A'.OR.&
        &    KID.EQ.'C') THEN
         IF(NGRAPH.EQ.0) THEN
-!           CALL WFGWFC(KWD)
+           CALL WFGWFC(KWD)
         ELSEIF(NGRAPH.EQ.1) THEN
            CALL WFGPPC(NW,NWMAX,KWD)
         ELSEIF(NGRAPH.EQ.2) THEN
            CALL WFGPFC(NW,NWMAX,KWD)
-!        ELSEIF(NGRAPH.GE.3) THEN
-!           CALL WFGPBC(NW,NWMAX,KWD)
+        ELSEIF(NGRAPH.GE.3) THEN
+           CALL WFGPBC(NW,NWMAX,KWD)
         ENDIF
      ELSEIF(KID.EQ.'X'.OR.&
           & KID.EQ.'Y') THEN!.OR.&
 !     & KID.EQ.'B') THEN
-!        IF(NGRAPH.EQ.0) THEN
-!           CALL WFGWFR(KWD)
-!        ELSE
+        IF(NGRAPH.EQ.0) THEN
+           CALL WFGWFR(KWD)
+        ELSE
            CALL WFGPFR(NW,NWMAX,KWD)
-!        ENDIF
+        ENDIF
      ELSE
         WRITE(6,*) 'XX UNKNOWN KID3:',KID
      ENDIF
