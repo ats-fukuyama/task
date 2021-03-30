@@ -11,8 +11,8 @@ LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
@@ -52,10 +52,12 @@ all: libs wm
 
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
-../lib/libgrf.a:
-	(cd ../lib; make libgrf.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
+../lib/libmds.a:
+	(cd ../lib; make libmds.a)
 ../pl/libpl.a:
 	(cd ../pl; make libpl.a)
 ../eq/libeq.a:
@@ -71,8 +73,9 @@ libwm.a: $(OBJS)
 
 libs:
 	(cd ../../bpsd; make libbpsd.a)
-	(cd ../lib; make libgrf.a)
 	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
+	(cd ../lib; make libmds.a)
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
