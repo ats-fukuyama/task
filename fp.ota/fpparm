@@ -40,9 +40,9 @@
 &end
 
 &fp
-  npmax=14
-  nthmax=24
-  nrmax=32
+  npmax=10
+  nthmax=10
+  nrmax=10
   RR=6.2
   RA=2.0
   RKAP=1.7
