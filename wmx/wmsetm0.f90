@@ -153,7 +153,6 @@ CONTAINS
       ! initial setting to set up 2) data for NR,  3) data for NR+1
 
       IF(IND.EQ.1) THEN
-
          CALL wm_setf0(NR,0) !  wm_setf0 setup 3) data for NR
                              !     CGD: metric tensor
                              !     CMA: conversion tensor

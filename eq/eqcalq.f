@@ -372,6 +372,21 @@ C
          ENDIF
       ENDDO
 C
+C     ----- current profile evaluation -----
+C
+      DO NR=2,NRPMAX
+         DPPSL=DPPFUNC(PSIP(NR))
+         DTTSL=DTTFUNC(PSIP(NR))
+         TTSL =TTFUNC(PSIP(NR))
+         AVEJTR(NR)=-RR*DPPSL-TTSL*DTTSL/(4.d0*PI**2*RMU0*RR)
+         AVEJPR(NR)=(-TTSL*DPPSL-DTTSL*AVEBB2(NR)/RMU0)
+     &              /(2.d0*PI*ABS(BB))
+C         WRITE(6,'(A,1P6E12.4)') 'AVEJ=',
+C     &        TTSL*DPPSL/BB,AVEBB2(NR)*BB*DTTSL/RMU0,
+C     &        2.D0*PI*RR*DPPSL,AVEIR2(NR)*TTSL*DTTSL/(2.D0*PI*RMU0*RR),
+C     &        AVEJPR(NR),AVEJTR(NR)
+      ENDDO
+C
 C     +++++ SETUP AXIS DATA +++++
 C
       PS2 = PSIP(2)
@@ -480,21 +495,6 @@ C
       SPSA=SPS(NRPMAX)
       VPSA=VPS(NRPMAX)
       QPSA=QPS(NRPMAX)
-C
-C     ----- current profile evaluation -----
-C
-      DO NR=1,NRPMAX
-         DPPSL=DPPFUNC(PSIP(NR))
-         DTTSL=DTTFUNC(PSIP(NR))
-         TTSL =TTFUNC(PSIP(NR))
-         AVEJTR(NR)=-RR*DPPSL-TTSL*DTTSL/(4.d0*PI**2*RMU0*RR)
-         AVEJPR(NR)=(-TTSL*DPPSL-DTTSL*AVEBB2(NR)/RMU0)
-     &              /(2.d0*PI*ABS(BB))
-C         WRITE(6,'(A,1P6E12.4)') 'AVEJ=',
-C     &        TTSL*DPPSL/BB,AVEBB2(NR)*BB*DTTSL/RMU0,
-C     &        2.D0*PI*RR*DPPSL,AVEIR2(NR)*TTSL*DTTSL/(2.D0*PI*RMU0*RR),
-C     &        AVEJPR(NR),AVEJTR(NR)
-      ENDDO
 C
 C     ----- CALCULATE PLASMA SURFACE -----
 C

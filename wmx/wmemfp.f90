@@ -310,6 +310,7 @@ CONTAINS
     REAL(rkind):: DRHO1,DRHO2,A1,A2,XRHOM,XRHOMH,XRHOC,QPMH,DPSIPDRHOMH
     REAL(rkind):: DRHOM
     INTEGER:: NR,ND,NDX,NN,MD,MDX,MM,I,NTH,NHH,NTHF,NHHF
+    COMPLEX(rkind):: C1,C2
 
     ALLOCATE(CBF1(nthmax,nhhmax),CBF2(nthmax,nhhmax))
 
@@ -339,15 +340,20 @@ CONTAINS
           DO MD=MDMIN,MDMAX
              MDX=MD-MDMIN+1
              MM=NTH0+MD
-             CBFLD1=-(CI/CW) &
+             C1=1.D0/CW
+             C2=CI*C1
+!             CBFLD1=-(CI/CW) &
+             CBFLD1=-C2 &
                    *(CI*MM*CEFLDK(3,MDX,NDX,NR) &
                     -CI*NN*CEFLDK(2,MDX,NDX,NR))/XRHOC
-             CBFLD2=-(CI/CW) &
+!             CBFLD2=-(CI/CW) &
+             CBFLD2=-C2 &
                    *(CI*NN*CEFLDK(1,MDX,NDX,NR) &
                     -(CEFLDK(3,MDX,NDX,NR  ) &
                     -CEFLDK(3,MDX,NDX,NR-1))/(DPSIPDRHOMH*DRHOM) &
                     )*XRHOM
-             CBFLD3=-(CI/CW) &
+!             CBFLD3=-(CI/CW) &
+             CBFLD3=-C2 &
                    *((CEFLDK(2,MDX,NDX,NR  ) &
                      -CEFLDK(2,MDX,NDX,NR-1))/(DPSIPDRHOMH*DRHOM) &
                     -CI*MM*CEFLDK(1,MDX,NDX,NR))
@@ -508,7 +514,7 @@ CONTAINS
     REAL(rkind),INTENT(IN):: WT,Z,XL,YL
     INTEGER,INTENT(IN):: ID
     REAL(rkind):: W1CDEF
-    REAL(rkind):: R,D,QC,A,RM,RC,W,EFF0,EFF1,Y2,Y1,EFF2,YT,ARG,EFF3
+    REAL(rkind):: R,D,QC,A,RM,RC,W,EFF0,EFF1,Y2,Y1,EFF2,YT,ARG,EFF3,R1
 
     R=SQRT(XL*XL+YL*YL)
     IF(ID.EQ.0) THEN
@@ -530,7 +536,12 @@ CONTAINS
        W=WT
     ENDIF
     EFF0=D/W+QC/Z**0.707D0+4.D0*W*W/(5.D0+Z)
-    EFF1=1.D0-R**0.77D0*SQRT(3.5D0**2+W*W)/(3.5D0*R**0.77D0+W)
+    IF(R.LE.0.D0) THEN
+       R1=0.D0
+    ELSE
+       R1=R**0.77D0
+    END IF
+    EFF1=1.D0-R1*SQRT(3.5D0**2+W*W)/(3.5D0*R1+W)
 
     Y2=(R+XL)/(1.D0+R)
     IF(Y2.LT.0.D0) Y2=0.D0
@@ -679,8 +690,6 @@ CONTAINS
              ENDDO !kdx
           ENDDO !ndx
          
-
-
           IF(NR.EQ.1) THEN
              XRHOM=XRHO(2)/1.D6
           ELSE
@@ -914,7 +923,6 @@ CONTAINS
              ENDDO !mdx
           ENDDO !ndx
 
-
           !     +++++ CALCULATE PABS IN REAL SPACE: CPABSM +++++
 
           DO NDX=1,NDSIZ
@@ -935,14 +943,12 @@ CONTAINS
                    DO NTH=1,NTHMAX
                       CPABS(NTH,NHH,NR,NS)=CPABS(NTH,NHH,NR,NS) &
                            +CPF2(NTH,NHH)
-                      CPABS3D(NTH,NHH,NR,NS)=CPABS3D(NTH,NHH,NR,NS) &
-                           +CPF2(NTH,NHH)
                    ENDDO !nth
                 ENDDO !nhh
              ENDDO !mdx
           ENDDO !ndx
 
-          !     +++++ CALCULATE PABS IN REAL SPACE: CPABSM +++++
+          !     +++++ CALCULATE PABS IN REAL SPACE: CPABSC +++++
 
           DO NDX=1,NDSIZ
              DO MDX=1,MDSIZ
@@ -959,18 +965,28 @@ CONTAINS
                 ENDDO !KK
                 CALL WMSUBE(CPF1,CPF2)
                 DO NHH=1,NHHMAX
+                   CPABSR(NHH,NR,NS)=0.D0
                    DO NTH=1,NTHMAX
                       NHHF=NHH
                       NTHF=NTH
                       CPABS(NTH,NHH,NR+1,NS)=CPABS(NTH,NHH,NR+1,NS) &
-                           +CPF2(NTH,NHH)
-                      CPABS3D(NTH,NHH,NR+1,NS)=CPABS3D(NTH,NHH,NR+1,NS) &
                            +CPF2(NTH,NHH)
                    ENDDO ! NTH
                 ENDDO !NHH
              ENDDO !MDX
           ENDDO !NDX
 
+          DO NS=1,NSMAX
+             DO NR=1,NRMAX
+                DO NHH=1,NHHMAX
+                   CPABSR(NHH,NR,NS)=0.D0
+                   DO NTH=1,NTHMAX
+                      CPABSR(NHH,NR,NS)=CPABSR(NHH,NR,NS) &
+                           +CPABS(NTH,NHH,NR,NS)
+                   END DO
+                END DO
+             END DO
+          END DO
 
 !     +++++ CALCULATE DRIVEN CURRENT IN REAL SPACE +++++
 
@@ -1082,16 +1098,19 @@ CONTAINS
 
     DO NS=1,NSMAX
        DO NR=1,NRMAX
+          PABSR(NR,NS)=0.D0
           DO NHH=1,NHHMAX
              DO NTH=1,NTHMAX
-                PABS(NTH,NHH,NR,NS)=DBLE(CPABS(NTH,NHH,NR,NS))
+                PABSR(NR,NS)=PABSR(NR,NS)+PABS(NTH,NHH,NR,NS)
              END DO
           END DO
-          DO NDX=1,NDSIZ
-             DO MDX=1,MDSIZ
-                PABSK(MDX,NDX,NR,NS)=DBLE(CPABSK(MDX,NDX,NR,NS))
-             END DO
-          END DO
+       END DO
+    END DO
+
+    DO NS=1,NSMAX
+       PABST(NS)=0.D0
+       DO NR=1,NRMAX
+          PABST(NS)=PABST(NS)+PABSR(NR,NS)
        END DO
     END DO
 

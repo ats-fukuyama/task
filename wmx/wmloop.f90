@@ -65,6 +65,26 @@ CONTAINS
           END DO
        END DO
     END DO
+    DO NS=1,NSMAX
+       DO NR=1,NRMAX
+          DO NPH=1,NPHMAX
+             CPABSR3D(NPH,NR,NS)=0.D0
+          END DO
+       END DO
+    END DO
+    DO NS=1,NSMAX
+       DO NR=1,NRMAX
+          DO NPH=1,NPHMAX
+             PABSR3D(NPH,NR,NS)=0.D0
+          END DO
+       END DO
+    END DO
+
+    DO NS=1,NSMAX
+       DO NPH=1,NPHMAX
+          PABST3D(NPH,NS)=0.D0
+       END DO
+    END DO
       
     CALL wm_setg(IERR)
     CALL wm_pout_init
@@ -115,8 +135,14 @@ CONTAINS
                 DO NTH=1,NTHMAX
                    CPABS3D(NTH,NPH1,NR,NS)=CPABS3D(NTH,NPH1,NR,NS) &
                         +CPABS(NTH,NHH,NR,NS)
+                END DO
+             END DO
+             DO ND=NDMIN,NDMAX
+                NDX=NX-NDMIN+1
+                ND1=NPH0+ND*NHC
+                DO MDX=1,MDSIZ
                    CPABSK3D(NTH,NPH1,NR,NS)=CPABSK3D(NTH,NPH1,NR,NS) &
-                        +CPABSK(NTH,NHH,NR,NS)
+                        +CPABSK(MDX,NDX,NR,NS)
                 END DO
              END DO
           END DO
@@ -128,13 +154,9 @@ CONTAINS
                 NPH1=NPH + NHC*(NHH-1)
                 CPABSR3D(NPH1,NR,NS)=CPABSR3D(NPH1,NR,NS) &
                      +CPABSR(NHH,NR,NS)
+                PABSR3D(NPH1,NR,NS)=PABSR3D(NPH1,NR,NS) &
+                     +PABSR(NHH,NR,NS)
              END DO
-          END DO
-       END DO
-
-       DO NS=1,NSMAX
-          DO NR=1,NRMAX
-             PABSR3D(NPH,NR,NS)=PABSR3D(NPH,NR,NS)+PABSR(NR,NS)
           END DO
        END DO
 

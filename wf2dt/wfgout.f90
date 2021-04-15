@@ -272,7 +272,7 @@ SUBROUTINE WFCTOGSD(ID,KWD)
         X=RNDMIN+DX*(NGV-1)
         CALL fem_find_nelm_for_xy(x,ypos,ie)
 !        CALL FEP(X,YPOS,IE)
-        WRITE(6,*) '@@@:',NGV,X,ypos,ie
+!        WRITE(6,*) '@@@:',NGV,X,ypos,ie
         IF(IE.EQ.0) THEN
            GX(NGV)=gdclip(X)
            GV(NGV,1)=0.0
