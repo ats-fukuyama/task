@@ -1086,21 +1086,6 @@ CONTAINS
        END DO
     END DO
 
-    DO NS=1,NSMAX
-       DO NR=1,NRMAX
-          DO NHH=1,NHHMAX
-             DO NTH=1,NTHMAX
-                PABS(NTH,NHH,NR,NS)=DBLE(CPABS(NTH,NHH,NR,NS))
-             END DO
-          END DO
-          DO NDX=1,NDSIZ
-             DO MDX=1,MDSIZ
-                PABSK(MDX,NDX,NR,NS)=DBLE(CPABSK(MDX,NDX,NR,NS))
-             END DO
-          END DO
-       END DO
-    END DO
-
     DEALLOCATE(CPABSKM)
     DEALLOCATE(CPABSKC)
 

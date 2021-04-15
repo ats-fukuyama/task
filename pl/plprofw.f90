@@ -27,7 +27,6 @@ CONTAINS
     REAL(rkind),INTENT(IN):: rhon
     TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(OUT):: plfw
     TYPE(pl_plf_type),DIMENSION(nsmax):: plf
-    TYPE(pl_mag_type):: mag
     REAL(rkind):: ql,bpbt,bnt,bnp
     INTEGER:: ns
 

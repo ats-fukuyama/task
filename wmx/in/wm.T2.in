@@ -1,0 +1,52 @@
+0
+f
+wm.T2.gs
+c
+p
+ &wm
+   mdlwmx=2
+   NSMAX=3
+   MODELG=1
+   MODELJ=0
+   MODELP=5,5,5
+   BB=3.0
+   RR=3.0
+   RA=1.0
+   RB=1.2
+   RD=1.1
+   Q0=1.0
+   QA=3.0
+   NRMAX=100
+!   NRMAX=50
+   NTHMAX=32
+!   NTHMAX=256
+   RF=50,NPH0=7,THJ1(1)=-45,THJ2(1)=45,
+   PA(2)=2,PZ(2)=1,
+   PA(3)=1,PZ(3)=1,
+   PN=0.5,0.45,0.05
+   PNS=0.1,0.09,0.01
+   PTPP=5.0,5.0,5.0
+   PTPR=5.0,5.0,5.0
+   PTS=0.05,0.05,0.05
+   PZCL=0.003,0.003,0.003
+   PROFN1=2.0
+   PROFN2=0.5
+   PROFT1=2.0
+   PROFT2=1.0
+ &end
+v
+r
+g
+rea
+1
+ren
+/
+cerr
+ceri
+cetr
+ceti
+cp1
+cp2
+cp3
+x
+q

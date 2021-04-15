@@ -124,16 +124,6 @@ CONTAINS
 
        DO NS=1,NSMAX
           DO NR=1,NRMAX
-             DO NHH=1,NHHMAX
-                NPH1=NPH + NHC*(NHH-1)
-                CPABSR3D(NPH1,NR,NS)=CPABSR3D(NPH1,NR,NS) &
-                     +CPABSR(NHH,NR,NS)
-             END DO
-          END DO
-       END DO
-
-       DO NS=1,NSMAX
-          DO NR=1,NRMAX
              PABSR3D(NPH,NR,NS)=PABSR3D(NPH,NR,NS)+PABSR(NR,NS)
           END DO
        END DO

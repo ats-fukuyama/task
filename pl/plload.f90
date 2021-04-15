@@ -98,12 +98,6 @@ CONTAINS
          IF (IRC.NE.0) GO TO 9997
       ENDDO
 
-!----  Debug write
-
- 8000 FORMAT(' N ',3X,'PRFRHO',6X,'PRFNE',6X,'PRFNI1',5X,'PRFNI2', &
-                   5X,'PRFNI3',5X,'PRFNI4')
- 8010 FORMAT(' N ',3X,'PRFRHO',6X,'PRFTE',6X,'PRFTI1',5X,'PRFTI2', &
-                   5X,'PRFTI3',5X,'PRFTI4')
       GO TO 9999
 
  9995 WRITE(6,*) '==========  pl_load_xprf FILE OPEN ERROR  =========='
@@ -272,7 +266,7 @@ CONTAINS
 
     SUBROUTINE pl_load_p2D(ierr)
 
-      USE plcomm,ONLY: ikind,rkind,idebug,KNAMPF
+      USE plcomm,ONLY: ikind,rkind,KNAMPF
       USE plp2D
       USE libspl2d
       USE libfio
@@ -281,7 +275,7 @@ CONTAINS
       USE commpi
       IMPLICIT NONE
       INTEGER,INTENT(OUT):: ierr
-      INTEGER:: NFL,NX,NY,NV,IX,IY,IERSPL
+      INTEGER:: NFL,NX,NY,NV,IERSPL
       REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: FX,FY,FXY
       REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: VATEMP
       CHARACTER(LEN=80),SAVE:: KNAMPF_SAVE=' '
@@ -431,7 +425,7 @@ CONTAINS
 
     SUBROUTINE pl_read_p2Dmag(X,Y,BX,BY,BZ,IERR)
 
-      USE plcomm,ONLY: rkind,ikind,NSMAX
+      USE plcomm,ONLY: rkind,ikind
       USE plp2d
       USE libspl2d
       IMPLICIT NONE
@@ -463,7 +457,7 @@ CONTAINS
 
     SUBROUTINE pl_read_p2D(X,Y,RN,RTPR,RTPP,RU,IERR)
 
-      USE plcomm,ONLY: rkind,ikind,NSMAX,PN,PTPP,PTPR
+      USE plcomm,ONLY: rkind,ikind,NSMAX
       USE plp2d
       USE libspl2d
       IMPLICIT NONE
@@ -476,7 +470,7 @@ CONTAINS
       INTEGER(ikind),INTENT(OUT):: &
            IERR    ! ERROR Indicator 
       REAL(rkind):: XL,YL,RN_PL,RT_PL
-      INTEGER(ikind):: IERL,NS
+      INTEGER(ikind):: IERL
 
       XL=X
       IF(XL.LT.XD(1))     XL=XD(1)

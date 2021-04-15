@@ -99,7 +99,7 @@
 
     SUBROUTINE pl_mag(X,Y,Z,MAG)
 
-      USE plcomm, ONLY: RA,RR,BB,MODELG
+      USE plcomm, ONLY: MODELG
       USE plprof2d
       USE plload
       IMPLICIT NONE
@@ -347,8 +347,8 @@
 
     SUBROUTINE pl_prof3d(X,Y,Z,PLF)
 
-        USE plcomm,ONLY: PZ,PN,PTPR,PTPP,PU,PNS,PTS,PUS, &
-             NSMAX,MODELN,MODELG, &
+        USE plcomm,ONLY: PN,PTPR,PTPP,PU,PNS,PTS,PUS, &
+             NSMAX,MODELG, &
              RR,RA
         USE plprof2d
         USE plload
@@ -357,9 +357,9 @@
         REAL(rkind),INTENT(IN):: X,Y,Z
         TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
         REAL(rkind),DIMENSION(NSMAX) :: &
-             RN_PL,RT_PL,RTPR_PL,RTPP_PL,RU_PL,RNUC_PL
+             RN_PL,RTPR_PL,RTPP_PL,RU_PL
         REAL(rkind):: RHON,FACTX,FACTY,FACTN,FACTT,FACTU
-        INTEGER:: NS,NSMAXL,IERR
+        INTEGER:: NS,IERR
 
         SELECT CASE(MODELG)
         CASE(0)
@@ -418,7 +418,7 @@
            CALL pl_set_rnuc(plf)
         CASE(12)
            CALL pl_read_p2D(X,Y,RN_PL,RTPR_PL,RTPP_PL,RU_PL,IERR)
-           DO NS=1,NSMAXL
+           DO NS=1,NSMAX
               PLF(NS)%RN  =RN_PL(NS)
               PLF(NS)%RTPR=RTPR_PL(NS)
               PLF(NS)%RTPP=RTPP_PL(NS)
@@ -993,12 +993,6 @@
          IF (IRC.NE.0) GO TO 9997
       ENDDO
 
-!----  Debug write
-
- 8000 FORMAT(' N ',3X,'PRFRHO',6X,'PRFNE',6X,'PRFNI1',5X,'PRFNI2', &
-                   5X,'PRFNI3',5X,'PRFNI4')
- 8010 FORMAT(' N ',3X,'PRFRHO',6X,'PRFTE',6X,'PRFTI1',5X,'PRFTI2', &
-                   5X,'PRFTI3',5X,'PRFTI4')
       GO TO 9999
 
  9995 WRITE(6,*) '==========  PLWMXPRF FILE OPEN ERROR  =========='
@@ -1098,8 +1092,6 @@
 !     ****** calculate magnetci field ******
 
     SUBROUTINE pl_getB(rhon,chip,B)
-
-      USE plcomm, ONLY: RA,RR,MODELG,TWOPI
 
       IMPLICIT NONE
       REAL(rkind),INTENT(in):: rhon,chip
