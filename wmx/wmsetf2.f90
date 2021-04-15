@@ -313,6 +313,8 @@ CONTAINS
                       NB1=ND-(KA+(KB-1)/2)
                       NB2=ND-(KA+(KB+1)/2)
                    ENDIF
+                   IF(NB1.GT.NDMAX_F.OR.NB2.LT.NDMIN_F) EXIT
+
                    DO LA=LDMIN_F,LDMAX_F
                       LAX=LA-LDMIN_F+1
                       DO LB=LDMIN_F,LDMAX_F
@@ -329,6 +331,8 @@ CONTAINS
                                MB1=MD-(LA+(LB-1)/2)
                                MB2=MD-(LA+(LB+1)/2)
                             ENDIF
+                            IF(MB1.GT.MDMAX_F.OR.MB2.LT.MDMIN_F) EXIT
+
                             DO K=1,3
                                DO I=1,3
                                   DO L=1,3

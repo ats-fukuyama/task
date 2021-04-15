@@ -1,4 +1,4 @@
-!     $Id: wfsub.f90,v 1.16 2011/11/16 09:18:22 maruyama Exp $
+x!     $Id: wfsub.f90,v 1.16 2011/11/16 09:18:22 maruyama Exp $
 
 !     ****** SETUP NODE RANGE ******
 
@@ -317,6 +317,7 @@ SUBROUTINE SETBDY(IERR)
 
   if(nrank.eq.0) WRITE(6,*) '------- SETBDY set NSDMAX & KNELM start ---'
 
+!  WRITE(6,'(A,2I8)') 'NEMAX,NNMAX=',NEMAX,NNMAX
   NBSID=0
   DO NE=1,NEMAX
      NN1=NDELM(1,NE)
@@ -328,8 +329,9 @@ SUBROUTINE SETBDY(IERR)
      IF(KNELM(1,NE).EQ.0) NBSID=NBSID+1
      IF(KNELM(2,NE).EQ.0) NBSID=NBSID+1
      IF(KNELM(3,NE).EQ.0) NBSID=NBSID+1
-!     WRITE(6,'(A,4I5)') 'SETBDY NE,NE1,NE2,NE3:', &
-!                        NE,KNELM(1,NE),KNELM(2,NE),KNELM(3,NE)
+!     IF(nrank.EQ.0.AND.MOD(NE-1,100).EQ.0) &
+!          WRITE(6,'(A,7I8)') 'SETBDY NE,NNs,NEs:', &
+!          NE,NN1,NN2,NN3,KNELM(1,NE),KNELM(2,NE),KNELM(3,NE)
   ENDDO
   NSDMAX=(3*NEMAX-NBSID)/2+NBSID
 

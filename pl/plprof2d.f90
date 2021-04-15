@@ -25,7 +25,6 @@ SUBROUTINE PLSMAG11(R,Z,BABS,AL)
   use plcomm
   USE plload
   implicit none
-  integer :: I
   real(rkind),intent(in) :: R,Z
   real(rkind),intent(out):: BABS,AL(3)
   real(rkind) :: rfactor,zfactor,br,bz,bt
@@ -142,7 +141,7 @@ SUBROUTINE PLSDEN13(R,Z,RN,RTPR,RTPP)
   USE plcomm
   USE plcomm_type
   implicit none
-  integer :: NS,NSI
+  integer :: NS
   real(rkind),intent(in) :: R,Z
   real(rkind),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM)
   real(rkind) :: LR,LZ,FACT,PSI

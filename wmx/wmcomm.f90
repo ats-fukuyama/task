@@ -183,23 +183,21 @@ MODULE wmcomm
   COMPLEX(rkind),ALLOCATABLE:: CBFLD(:,:,:,:),CBFLDK(:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CBFLD3D(:,:,:,:),CBFLDK3D(:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CEN(:,:,:,:),CEP(:,:,:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CBN(:,:,:,:),CBP(:,:,:,:)
 
-  COMPLEX(rkind),ALLOCATABLE:: CPABS(:,:,:,:),CPABSK(:,:,:,:),CPABSR(:,:,:)
+  COMPLEX(rkind),ALLOCATABLE:: CPABS(:,:,:,:),CPABSK(:,:,:,:)
   REAL(rkind),ALLOCATABLE:: PABS(:,:,:,:),PABSK(:,:,:,:),PABSR(:,:)
   REAL(rkind),ALLOCATABLE:: PABST(:)
 
   COMPLEX(rkind),ALLOCATABLE:: CPABS3D(:,:,:,:),CPABSK3D(:,:,:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CPABSR3D(:,:,:)
   
   REAL(rkind),ALLOCATABLE:: PABS3D(:,:,:,:),PABS2D(:,:,:)
   REAL(rkind),ALLOCATABLE:: PABSR3D(:,:,:),PABSKT(:,:,:)
   REAL(rkind),ALLOCATABLE:: PABST3D(:,:),PABSTT3D(:)
   REAL(rkind):: PABSTT
 
-  REAL(rkind),ALLOCATABLE:: FLUX3DR(:,:,:),FLUX3DTH(:,:,:),FLUX3DPH(:,:,:)
-  REAL(rkind),ALLOCATABLE:: FLUX2DR(:,:),FLUX2DTH(:,:),FLUXR(:)
-  REAL(rkind):: FLUXT
+!  REAL(rkind),ALLOCATABLE:: FLUX3DR(:,:,:),FLUX3DTH(:,:,:),FLUX3DPH(:,:,:)
+!  REAL(rkind),ALLOCATABLE:: FLUX2DR(:,:),FLUX2DTH(:,:),FLUXR(:)
+!  REAL(rkind):: FLUXT
   
   COMPLEX(rkind),ALLOCATABLE:: CPRADK(:,:)
   COMPLEX(rkind):: CPRAD
@@ -327,48 +325,47 @@ CONTAINS
     ALLOCATE(CMAF(3,3,nthmax_f,nhhmax_f,3))
     ALLOCATE(CRMAF(3,3,nthmax_f,nhhmax_f,3))
 
-    ALLOCATE(CEFLD(3,nthmax,nhhmax,nrmax+1))
-    ALLOCATE(CEFLDK(3,nthmax,nhhmax,nrmax+1))
-    ALLOCATE(CEFLD3D(3,nthmax,nphmax,nrmax+1))
-    ALLOCATE(CEFLDK3D(3,nthmax,nphmax,nrmax+1))
-    ALLOCATE(CBFLD(3,nthmax,nhhmax,nrmax+1))
-    ALLOCATE(CBFLDK(3,nthmax,nhhmax,nrmax+1))
-    ALLOCATE(CBFLD3D(3,nthmax,nphmax,nrmax+1))
-    ALLOCATE(CBFLDK3D(3,nthmax,nphmax,nrmax+1))
-    ALLOCATE(CEN(3,nthmax,nhhmax,nrmax+1))
-    ALLOCATE(CEP(3,nthmax,nhhmax,nrmax+1))
-    ALLOCATE(CBN(3,nthmax,nhhmax,nrmax+1))
-    ALLOCATE(CBP(3,nthmax,nhhmax,nrmax+1))
+    ALLOCATE(CEFLDK(3,nthmax,nhhmax,nrmax+1))   ! wm_efield E_rpppr(m,nh,rho)
+    ALLOCATE(CEFLD(3,nthmax,nhhmax,nrmax+1))    ! wm_efield E_rpppr(th,hh,rho)
+    ALLOCATE(CEN(3,nthmax,nhhmax,nrmax+1))      ! wm_efield E_rpppr(th,hh,rho)
+    ALLOCATE(CEP(3,nthmax,nhhmax,nrmax+1))      ! wm_efield E_+-pr(th,hh,rho)
+    ALLOCATE(CBFLDK(3,nthmax,nhhmax,nrmax+1))   ! wm_bfield B_rpppr(m,nh,rho)
+    ALLOCATE(CBFLD(3,nthmax,nhhmax,nrmax+1))    ! wm_bfield B_rpppr(th,hh,rho)
 
-    ALLOCATE(CPABS(nthmax_f,nhhmax_f,nrmax+1,nsmax))
-    ALLOCATE(CPABSK(nthmax_f,nhhmax_f,nrmax+1,nsmax))
-    ALLOCATE(CPABSR(nhhmax_f,nrmax+1,nsmax))
+    ALLOCATE(CPABSK(nthmax_f,nhhmax_f,nrmax+1,nsmax)) ! wm_pabs P(m,nh,rho,ns)
+    ALLOCATE(CPABS(nthmax_f,nhhmax_f,nrmax+1,nsmax))  ! wm_pabs P(th,hh,rho,ns)
+    ALLOCATE(PCUR(nthmax,nhhmax,nrmax))               ! wm_pabs J(th,hh,rho)
 
-    ALLOCATE(PABS(nthmax_f,nhhmax_f,nrmax+1,nsmax))
-    ALLOCATE(PABSK(nthmax_f,nhhmax_f,nrmax+1,nsmax))
-    ALLOCATE(PABSR(nrmax+1,nsmax))
-    ALLOCATE(PABST(nsmax))
+    ALLOCATE(PABS(nthmax_f,nhhmax_f,nrmax+1,nsmax))   ! wm_pabs P(th,hh,rho,ns)
+    ALLOCATE(PABSK(nthmax_f,nhhmax_f,nrmax+1,nsmax))  ! wm_pabs P(m,nh,rho,ns)
     
-    ALLOCATE(CPABS3D(nthmax_f,nphmax_f,nrmax+1,nsmax))
-    ALLOCATE(CPABSK3D(nthmax_f,nphmax_f,nrmax+1,nsmax))
-    ALLOCATE(CPABSR3D(nphmax_f,nrmax+1,nsmax))
+    ALLOCATE(PABSR(nrmax+1,nsmax))                    ! wm_pout_sum P(rho,ns)
+    ALLOCATE(PABST(nsmax))                            ! wm_pout_sum P(ns)
+    ALLOCATE(PCURR(nrmax))                            ! wm_pout_sum J(rho)
+    
+    ALLOCATE(CEFLD3D(3,nthmax,nphmax,nrmax+1))  ! wm_loop E_rpppr(th,ph,rho)
+    ALLOCATE(CEFLDK3D(3,nthmax,nphmax,nrmax+1)) ! wm_loop E_rpppr(m,n,,rho)
+    ALLOCATE(CBFLD3D(3,nthmax,nphmax,nrmax+1))  ! wm_loop B_rpppr(th,ph,rho)
+    ALLOCATE(CBFLDK3D(3,nthmax,nphmax,nrmax+1)) ! wm_loop B_rpppr(m,n,rho)
 
-    ALLOCATE(PABS3D(nthmax_f,nphmax_f,nrmax+1,nsmax))
-    ALLOCATE(PABS2D(nthmax_f,nrmax+1,nsmax))
-    ALLOCATE(PABSR3D(nphmax_f,nrmax+1,nsmax))
-    ALLOCATE(PABSKT(nthmax_f,nhhmax_f,nsmax))
-    ALLOCATE(PABST3D(nphmax_f,nsmax))
-    ALLOCATE(PABSTT3D(nphmax_f))
+    ALLOCATE(CPABS3D(nthmax_f,nphmax_f,nrmax+1,nsmax))  ! wm_loop P(th,ph,r,ns)
+    ALLOCATE(CPABSK3D(nthmax_f,nphmax_f,nrmax+1,nsmax)) ! wm_loop P(m,n,rho,ns)
 
-    ALLOCATE(FLUX3DR(nthmax_f,nphmax_f,nrmax+1))
-    ALLOCATE(FLUX3DTH(nthmax_f,nphmax_f,nrmax+1))
-    ALLOCATE(FLUX3DPH(nthmax_f,nphmax_f,nrmax+1))
-    ALLOCATE(FLUX2DR(nthmax_f,nrmax+1))
-    ALLOCATE(FLUX2DTH(nthmax_f,nrmax+1))
-    ALLOCATE(FLUXR(nrmax+1))
+    ALLOCATE(PABS3D(nthmax_f,nphmax_f,nrmax+1,nsmax)) ! wm_loop P(th,ph,rho,ns)
+    ALLOCATE(PABS2D(nthmax_f,nrmax+1,nsmax))          ! wm_loop P(th,rho,ns)
+    ALLOCATE(PABSR3D(nphmax_f,nrmax+1,nsmax))         ! wm_loop P(n,rho,ns)
+    ALLOCATE(PABSKT(nthmax_f,nhhmax_f,nsmax))         ! wm_loop P(m,nh,rho,ns)
+    ALLOCATE(PABST3D(nphmax_f,nsmax))                 ! wm_loop P(n,ns)
+    ALLOCATE(PABSTT3D(nphmax_f))                      ! wm_loop P(n)
 
-    ALLOCATE(CPRADK(nthmax,nhhmax))
-    ALLOCATE(PCUR(nthmax,nhhmax,nrmax),PCURR(nrmax))
+!    ALLOCATE(FLUX3DR(nthmax_f,nphmax_f,nrmax+1))
+!    ALLOCATE(FLUX3DTH(nthmax_f,nphmax_f,nrmax+1))
+!    ALLOCATE(FLUX3DPH(nthmax_f,nphmax_f,nrmax+1))
+!    ALLOCATE(FLUX2DR(nthmax_f,nrmax+1))
+!    ALLOCATE(FLUX2DTH(nthmax_f,nrmax+1))
+!    ALLOCATE(FLUXR(nrmax+1))
+
+    ALLOCATE(CPRADK(nthmax,nhhmax))                  ! wm_pwrant
 
     ALLOCATE(RPST(nthmax_f,nhhmax_f,nrmax+1))
     ALLOCATE(ZPST(nthmax_f,nhhmax_f,nrmax+1))
@@ -425,14 +422,14 @@ CONTAINS
 
     DEALLOCATE(CEFLD,CEFLDK,CEFLD3D,CEFLDK3D)
     DEALLOCATE(CBFLD,CBFLDK,CBFLD3D,CBFLDK3D)
-    DEALLOCATE(CEN,CEP,CBN,CBP)
+    DEALLOCATE(CEN,CEP)
 
-    DEALLOCATE(CPABS,CPABSK,CPABSR)
+    DEALLOCATE(CPABS,CPABSK)
     DEALLOCATE(PABS,PABSK,PABSR,PABST)
 
-    DEALLOCATE(CPABS3D,CPABSK3D,CPABSR3D)
+    DEALLOCATE(CPABS3D,CPABSK3D)
     DEALLOCATE(PABS3D,PABS2D,PABSR3D,PABSKT,PABST3D,PABSTT3D)
-    DEALLOCATE(FLUX3DR,FLUX3DTH,FLUX3DPH,FLUX2DR,FLUX2DTH,FLUXR)
+!    DEALLOCATE(FLUX3DR,FLUX3DTH,FLUX3DPH,FLUX2DR,FLUX2DTH,FLUXR)
     DEALLOCATE(CPRADK)
     DEALLOCATE(PCUR,PCURR)
 

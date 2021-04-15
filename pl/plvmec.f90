@@ -198,9 +198,9 @@ subroutine put_equil(file_name,ierr)
      do k = 1, nzeta
         do mn = 1, mnmax
            arg  = xm(mn)*xtheta(l)-xn(mn)*xzeta(k)
-           iarg = arg                                                     
-           arg  = twopi * ( arg - iarg )                                  
-           tsin(mn,k,l) = sin(arg)                                         
+           iarg = INT(arg)
+           arg  = twopi * ( arg - iarg )
+           tsin(mn,k,l) = sin(arg)
            tcos(mn,k,l) = cos(arg)
         enddo
      enddo
@@ -210,9 +210,9 @@ subroutine put_equil(file_name,ierr)
      do k = 1, nzeta
         do mn = 1, mnmax2
            arg  = xm2(mn)*xtheta(l)-xn2(mn)*xzeta(k)
-           iarg = arg                                                     
-           arg  = twopi * ( arg - iarg )                                  
-           tsin2(mn,k,l) = sin(arg)                                         
+           iarg = INT(arg)
+           arg  = twopi * ( arg - iarg )
+           tsin2(mn,k,l) = sin(arg)
            tcos2(mn,k,l) = cos(arg)
         enddo
      enddo

@@ -48,6 +48,8 @@ CONTAINS
     LOGICAL:: nplot_max_clear_logic
     INTEGER,PARAMETER:: nplot_m=32
     INTEGER:: ncountry_nplot(nplot_m)
+    INTEGER:: ndate_ave
+    REAL(dp):: fav1,fav2,f
     INTEGER,SAVE:: INIT=0
 
     IF(INIT.EQ.0) THEN
@@ -130,17 +132,23 @@ CONTAINS
           id=-id
        CASE('?P','? ')
           WRITE(6,'(A,A)') &
-               ' ncountry id  population      totC    newC    totD  newD'
+               ' ncountry id  population      totC   newC_av    totD newD_av'
           DO nplot=1,nplot_max
              ncountry=ncountry_nplot(nplot)
-             WRITE(6,'(I3,I6,1X,A2,F12.3,I10,I8,I8,I6,2X,A20)') &
+             fav1=0.D0
+             fav2=0.D0
+             DO ndate_ave=MAX(1,ndate_max-ndays_ave+1),ndate_max
+                fav1=fav1+ncases_new_ndate_ncountry(ndate_ave,ncountry)
+                fav2=fav2+ndeaths_new_ndate_ncountry(ndate_ave,ncountry)
+             END DO
+             fav1=fav1/ndays_ave
+             fav2=fav2/ndays_ave
+             WRITE(6,'(I3,I6,1X,A2,F12.3,I10,F10.2,I8,F8.2,2X,A)') &
                   nplot,ncountry,country_id_ncountry(ncountry), &
                   population_ncountry(ncountry), &
-                  ncases_total_ndate_ncountry(ndate_max,ncountry), &
-                  ncases_new_ndate_ncountry(ndate_max,ncountry), &
-                  ndeaths_total_ndate_ncountry(ndate_max,ncountry), &
-                  ndeaths_new_ndate_ncountry(ndate_max,ncountry), &
-                  TRIM(country_name_ncountry(ncountry))
+                  ncases_total_ndate_ncountry(ndate_max,ncountry),fav1, &
+                  ndeaths_total_ndate_ncountry(ndate_max,ncountry),fav2, &
+                  TRIM(country_name_ncountry(ncountry)(1:16))
           END DO
           id=-id
        CASE('+ ')
@@ -172,28 +180,40 @@ CONTAINS
           SELECT CASE(kword)
           CASE('N1')
              idrank=1
+             WRITE(6,'(A)') ' N1: Ranking by number of total cases'
           CASE('N2')
              idrank=2
+             WRITE(6,'(A)') ' N2: Ranking by number of new cases'
           CASE('N3')
              idrank=3
+             WRITE(6,'(A)') ' N3: Ranking by number of new cases 7 days ave'
           CASE('N4')
              idrank=4
+             WRITE(6,'(A)') ' N4: Ranking by number of total deaths'
           CASE('N5')
              idrank=5
+             WRITE(6,'(A)') ' N5: Ranking by number of new deaths'
           CASE('N6')
              idrank=6
+             WRITE(6,'(A)') ' N6: Ranking by number of new deaths 7 days ave'
           CASE('R1')
              idrank=7
+             WRITE(6,'(A)') ' R1: Ranking by rate of total cases'
           CASE('R2')
              idrank=8
+             WRITE(6,'(A)') ' R2: Ranking by rate of new cases'
           CASE('R3')
              idrank=9
+             WRITE(6,'(A)') ' R3: Ranking by rate of new cases 7 days ave'
           CASE('R4')
              idrank=10
-          CASE('R5')
+             WRITE(6,'(A)') ' R4: Ranking by rate of total deaths'
+         CASE('R5')
              idrank=11
+             WRITE(6,'(A)') ' R5: Ranking by rate of new deaths'
           CASE('R6')
              idrank=12
+             WRITE(6,'(A)') ' R6: Ranking by rate of new deaths 7 days ave'
           END SELECT
           CALL cv_rank_exec(idrank)
              
@@ -201,9 +221,35 @@ CONTAINS
           DO nplot=1,nplot_max
              ncountry=ncountry_nrank_idrank(nplot,idrank)
              ncountry_nplot(nplot)=ncountry
-             WRITE(6,'(I4,2X,A2,2X,A)') &
-                  nplot,country_id_ncountry(ncountry), &
-                  TRIM(country_name_ncountry(ncountry))
+             SELECT CASE(idrank)
+             CASE(1,7)
+                f=ncases_total_ndate_ncountry(ndate_max,ncountry)
+             CASE(2,8)
+                f=ncases_new_ndate_ncountry(ndate_max,ncountry)
+             CASE(3,9)
+                f=0.D0
+                DO ndate_ave=MAX(1,ndate_max-ndays_ave+1),ndate_max
+                   f=f+ncases_new_ndate_ncountry(ndate_ave,ncountry)
+                END DO
+                f=f/ndays_ave
+             CASE(4,10)
+                f=ndeaths_total_ndate_ncountry(ndate_max,ncountry)
+             CASE(5,11)
+                f=ndeaths_new_ndate_ncountry(ndate_max,ncountry)
+             CASE(6,12)
+                f=0.D0
+                DO ndate_ave=MAX(1,ndate_max-ndays_ave+1),ndate_max
+                   f=f+ndeaths_new_ndate_ncountry(ndate_ave,ncountry)
+                END DO
+                f=f/ndays_ave
+             END SELECT
+             SELECT CASE(idrank)
+             CASE(7:12)
+                f=f/population_ncountry(ncountry)
+             END SELECT
+             WRITE(6,'(I4,2X,A2,2X,F12.2,2X,A)') &
+                  nplot,country_id_ncountry(ncountry),f, &
+                  TRIM(country_name_ncountry(ncountry)(1:54))
           END DO
        CASE DEFAULT
           ncountry_plot=0

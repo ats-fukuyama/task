@@ -1096,6 +1096,7 @@ CONTAINS
        END DO
     END DO
 
+<<<<<<< HEAD
     DO NS=1,NSMAX
        DO NR=1,NRMAX
           PABSR(NR,NS)=0.D0
@@ -1114,6 +1115,8 @@ CONTAINS
        END DO
     END DO
 
+=======
+>>>>>>> e962da21f7c713417ff91b7d52e18256e364b5cd
     DEALLOCATE(CPABSKM)
     DEALLOCATE(CPABSKC)
 

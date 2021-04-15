@@ -305,6 +305,7 @@ CONTAINS
                                MB1=MD-(LA+(LB-1)/2)
                                MB2=MD-(LA+(LB+1)/2)
                             ENDIF
+                            IF(MB1.GT.MDMAX_F.OR.MB2.LT.MDMIN_F) EXIT
 
                             IF(MB1.GT.MDMAX_F.OR.MB2.LT.MDMIN_F) EXIT
 

@@ -253,6 +253,7 @@ CONTAINS
 !     *** dedub_info ***
 !                51: wmsetm1: IN/OUT mesh info
 !                61: matrix coefficiewnts  knam_dump
+!                71: mode dependence of p_abs
       DO i=1,idebug_max
          idebuga(i)=0
       END DO

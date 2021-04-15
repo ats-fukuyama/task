@@ -150,13 +150,7 @@ CONTAINS
 
        DO NS=1,NSMAX
           DO NR=1,NRMAX
-             DO NHH=1,NHHMAX
-                NPH1=NPH + NHC*(NHH-1)
-                CPABSR3D(NPH1,NR,NS)=CPABSR3D(NPH1,NR,NS) &
-                     +CPABSR(NHH,NR,NS)
-                PABSR3D(NPH1,NR,NS)=PABSR3D(NPH1,NR,NS) &
-                     +PABSR(NHH,NR,NS)
-             END DO
+             PABSR3D(NPH,NR,NS)=PABSR3D(NPH,NR,NS)+PABSR(NR,NS)
           END DO
        END DO
 
