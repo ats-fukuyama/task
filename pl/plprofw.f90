@@ -30,10 +30,12 @@ CONTAINS
     REAL(rkind):: ql,bpbt,bnt,bnp
     INTEGER:: ns
 
-    CALL pl_qprf(rhon,ql)
-    bpbt=rhon*ra/(rr*ql)
-    bnt=1.D0/SQRT(1.D0+bpbt**2)
-    bnp=bnt*bpbt
+    IF(mdlplw.EQ.1) THEN
+       CALL pl_qprf(rhon,ql)
+       bpbt=rhon*ra/(rr*ql)
+       bnt=1.D0/SQRT(1.D0+bpbt**2)
+       bnp=bnt*bpbt
+    END IF
 
     CALL pl_prof(rhon,plf)
     DO ns=1,nsmax
