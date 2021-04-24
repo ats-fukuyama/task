@@ -1,4 +1,4 @@
-x!     $Id: wfsub.f90,v 1.16 2011/11/16 09:18:22 maruyama Exp $
+!     $Id: wfsub.f90,v 1.16 2011/11/16 09:18:22 maruyama Exp $
 
 !     ****** SETUP NODE RANGE ******
 
