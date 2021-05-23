@@ -22,7 +22,7 @@ MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) -I../tr/$(MODE) \
             -I../dp/$(MOD) -I../lib/$(MOD) -I../mtxp/$(MOD) \
             -I../../bpsd/$(MOD)
 
-SRCS = mpilib.f wmmenu.f wminit.f wmeign.f wmsetg.f \
+SRCS = wmmenu.f wminit.f wmeign.f wmsetg.f \
        ../eq/wmeqin.f wmprof.f wmdisp.f \
        wmsetm.f wmsetf.f wmxprf.f wmdprf.f wmsolv.f \
        wmpout.f wmgout.f wmgsub.f wmdout.f wmfout.f \

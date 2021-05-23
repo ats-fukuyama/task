@@ -345,16 +345,21 @@ CONTAINS
             '    27: total deaths per population vs time (Log10 scale)', &
             '    28: new cases per population vs time (Log10 scale)', &
             '    29: new deaths per population vs time (Log10 scale)', &
-            ' 3: 30: 31+32+33+34 ', &
+            ' 3: 30: 31+32+33+34', &
             '    31: total deaths number vs cases number (fixed range)', &
             '    32: total deaths rate vs cases rate (fixed range)', &
             '    33: total deaths number vs cases number (adjusted range)', &
             '    34: total deaths rate vs cases rate (adjusted range)', &
-            ' 4  40: 41+42+43+44 ', &
+            ' 4  40: 41+42+43+44 : gradual color brightness', &
             '    41: new deaths number vs cases number (fixed range)', &
             '    42: new deaths rate vs cases rate (fixed range)', &
             '    43: new deaths number vs cases number (adjusted range)', &
-            '    44: new deaths rate vs cases rate (adjusted range)'
+            '    44: new deaths rate vs cases rate (adjusted range)', &
+            '    45: 46+47+48+49 : flat color brightness', &
+            '    46: new deaths number vs cases number (fixed range)', &
+            '    47: new deaths rate vs cases rate (fixed range)', &
+            '    48: new deaths number vs cases number (adjusted range)', &
+            '    49: new deaths rate vs cases rate (adjusted range)'
     CASE(4) !XH
        WRITE(6,'(A)')   '## Help: how to input counrty_ids and graph_id'
        WRITE(6,'(A)')   '      - input a list of country_ids or graph_id'
@@ -1306,7 +1311,6 @@ CONTAINS
     CHARACTER(LEN=80):: title
     EXTERNAL PAGES,PAGEE
 
-    
     ncount_max=ndate_max_g-ndate_min_g+1
 
     ALLOCATE(ncount_maxa(nplot_max))
@@ -1457,11 +1461,12 @@ CONTAINS
     CHARACTER(LEN=80):: title
     EXTERNAL PAGES,PAGEE
 
-    IF(nplot_max.EQ.1) THEN
-       mode_2d=22
-    ELSE
-       mode_2d=21
-    END IF
+    SELECT CASE(id)
+    CASE(4,40,41,42,43,44)
+       mode_2d=22  ! gradual color
+    CASE(45,46,47,48,49)
+       mode_2d=21  ! flat color
+    END SELECT
     
     ncount_max=ndate_max_g-ndate_min_g+1
 
@@ -1470,9 +1475,9 @@ CONTAINS
 
     CALL PAGES
     SELECT CASE(id)
-    CASE(4,40,41)
+    CASE(4,40,41,45,46)
        ngid=1
-       IF(id.EQ.41) ngid=0
+       IF(id.EQ.41.OR.id.EQ.46) ngid=0
        CALL cv_gsub41(1,ncountry_nplot,nplot_max,fg,title,ndata)
        CALL grdxy(ngid,fg,2,ncount_max,ncount_maxa,ndata,title, &
                   XMIN=0.477D0,XMAX=5.477D0,YMIN=-1.D0,YMAX=4.D0, &
@@ -1484,9 +1489,9 @@ CONTAINS
                   LINE_MARK_SIZE=line_mark_size,NLMAX=nlmax)
     END SELECT
     SELECT CASE(id)
-    CASE(4,40,42)
+    CASE(4,40,42,45,47)
        ngid=2
-       IF(id.EQ.42) ngid=0
+       IF(id.EQ.42.OR.id.EQ.47) ngid=0
        CALL cv_gsub41(2,ncountry_nplot,nplot_max,fg,title,ndata)
        CALL grdxy(ngid,fg,2,ncount_max,ncount_maxa,ndata,title, &
                   XMIN=-1.523D0,XMAX=3.477D0,YMIN=-3.D0,YMAX=2.D0, &
@@ -1498,9 +1503,9 @@ CONTAINS
                   LINE_MARK_SIZE=line_mark_size,NLMAX=nlmax)
     END SELECT
     SELECT CASE(id)
-    CASE(4,40,43)
+    CASE(4,40,43,45,48)
        ngid=3
-       IF(id.EQ.43) ngid=0
+       IF(id.EQ.43.or.id.EQ.48) ngid=0
        CALL cv_gsub41(3,ncountry_nplot,nplot_max,fg,title,ndata)
        CALL grdxy(ngid,fg,2,ncount_max,ncount_maxa,ndata,title, &
                   XMIN=LOG10(ratio_new_total_log_min*cases_number_log_min), &
@@ -1513,9 +1518,9 @@ CONTAINS
                   LINE_MARK_SIZE=line_mark_size,NLMAX=nlmax)
     END SELECT
     SELECT CASE(id)
-    CASE(4,40,44)
+    CASE(4,40,44,45,49)
        ngid=4
-       IF(id.EQ.44) ngid=0
+       IF(id.EQ.44.OR.id.EQ.49) ngid=0
        CALL cv_gsub41(4,ncountry_nplot,nplot_max,fg,title,ndata)
        CALL grdxy(ngid,fg,2,ncount_max,ncount_maxa,ndata,title, &
                   XMIN=LOG10(ratio_new_total_log_min*cases_rate_log_min), &

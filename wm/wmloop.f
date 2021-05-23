@@ -48,7 +48,7 @@ C
          WRITE(6,'(A,I4)') "== Toroidal mode number : ",NPH0
 C
          CALL WMEXEC(IERR)
-         CALL MPSYNC
+         CALL mtx_barrier
          IF(IERR.NE.0) EXIT
 
          DO NR=1,NRMAX+1
