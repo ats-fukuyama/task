@@ -35,13 +35,14 @@ CONTAINS
     USE wmsetm1
     USE wmsetm2
     USE libfio
+    USE libmpi
     USE commpi
     IMPLICIT NONE
     COMPLEX(rkind),DIMENSION(MLEN),INTENT(OUT):: svec
     INTEGER,INTENT(OUT)::ierr 
     COMPLEX(rkind),DIMENSION(:),ALLOCATABLE:: A
     COMPLEX(rkind):: X
-    INTEGER:: i,j,nr_previous,nfl
+    INTEGER:: i,j,nr_previous,nfl,n
     INTEGER:: itype,its
     REAL(rkind):: tolerance
 
@@ -58,8 +59,18 @@ CONTAINS
     nr_start=(istart-1)/mblock_size+1
     nr_end=(iend-1)/mblock_size+1
     IF(nrank.EQ.nsize-1) nr_end=NRMAX+1
-    WRITE(6,'(A,4I8)') 'nrank,nr_start,nr_end,mblock_size=', &
-                        nrank,nr_start,nr_end,mblock_size
+    IF(ALLOCATED(nr_start_nrank)) DEALLOCATE(nr_start_nrank,nr_end_nrank)
+    ALLOCATE(nr_start_nrank(0:nsize-1),nr_end_nrank(0:nsize-1))
+    CALL mtx_allgather1_integer(nr_start,nr_start_nrank)
+    CALL mtx_allgather1_integer(nr_end,nr_end_nrank)
+
+    IF(nrank.EQ.0) THEN
+       DO n=0,nsize-1
+          WRITE(6,'(A,4I8)') 'nrank,nr_start,nr_end,nr_len=', &
+               n,nr_start_nrank(n),nr_end_nrank(n), &
+               nr_end_nrank(n)-nr_start_nrank(n)+1
+       END DO
+    END IF
 
 !   ***** CALCULATE MATRIX COEFFICIENTS *****
 
@@ -96,7 +107,7 @@ CONTAINS
     itype=1  ! infolevel for MUMPS
     tolerance=1.D-12
     CALL mtxc_solve(itype,tolerance,its)
-    WRITE(6,'(A,I8)') '## wm_solv: iteration=',its
+    IF(nrank.EQ.0) WRITE(6,'(A,I8)') '## wm_solv: iteration=',its
       
     CALL mtxc_gather_vector(svec)
 

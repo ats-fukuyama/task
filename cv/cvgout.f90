@@ -46,8 +46,7 @@ CONTAINS
     INTEGER:: ncountry,ncountry_plot,id,idx,nword,nword_max
     INTEGER:: nl,nplot,nplot_max,idrank
     LOGICAL:: nplot_max_clear_logic
-    INTEGER,PARAMETER:: nplot_m=32
-    INTEGER:: ncountry_nplot(nplot_m)
+    INTEGER,ALLOCATABLE:: ncountry_nplot(:),ncountry_nplot_temp(:)
     INTEGER:: ndate_ave
     REAL(dp):: fav1,fav2,f
     INTEGER,SAVE:: INIT=0
@@ -216,8 +215,10 @@ CONTAINS
              WRITE(6,'(A)') ' R6: Ranking by rate of new deaths 7 days ave'
           END SELECT
           CALL cv_rank_exec(idrank)
-             
+
           nplot_max=nrank_max
+          IF(ALLOCATED(ncountry_nplot)) DEALLOCATE(ncountry_nplot)
+          ALLOCATE(ncountry_nplot(nplot_max))
           DO nplot=1,nplot_max
              ncountry=ncountry_nrank_idrank(nplot,idrank)
              ncountry_nplot(nplot)=ncountry
@@ -266,14 +267,15 @@ CONTAINS
                 nplot_max=1
                 nplot_max_clear_logic=.FALSE.
              ELSE
-                IF(nplot_max.EQ.nplot_m) THEN
-                   WRITE(6,'(A,I6)') &
-                        'XX cvgout: nplot_max exceeds nplot_m:',nplot_m
-                ELSE
-                   nplot_max=nplot_max+1
-                END IF
+                nplot_max=nplot_max+1
              END IF
-             ncountry_nplot(nplot_max)=ncountry_plot
+             ALLOCATE(ncountry_nplot_temp(nplot_max))
+             ncountry_nplot_temp(1:nplot_max-1)=ncountry_nplot(1:nplot_max-1)
+             ncountry_nplot_temp(nplot_max)=ncountry_plot
+             IF(ALLOCATED(ncountry_nplot)) DEALLOCATE(ncountry_nplot)
+             ALLOCATE(ncountry_nplot(nplot_max))
+             ncountry_nplot(1:nplot_max)=ncountry_nplot_temp(1:nplot_max)
+             DEALLOCATE(ncountry_nplot_temp)
           END IF
        END SELECT
     END DO
