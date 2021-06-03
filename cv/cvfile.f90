@@ -19,7 +19,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
     INTEGER:: nfl,nstat,ndata,ncountry,i,ndata_max,id1,id2,ipos,iactive
-    INTEGER:: ndate,nyear,nmonth,nday,nshift
+    INTEGER:: ndate
     CHARACTER(LEN=256):: line
     INTEGER:: ipos_comma(7)
     CHARACTER(LEN=256):: column_name(8)

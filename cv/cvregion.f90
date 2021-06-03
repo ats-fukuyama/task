@@ -129,7 +129,6 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
     INTEGER:: nfl,nregion,ncountry,ndate,nstat,ncount
-    CHARACTER(LEN=4):: region_id
     CHARACTER(LEN=256):: region_name
     CHARACTER(LEN=80):: format1,format2
     

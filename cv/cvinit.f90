@@ -34,7 +34,7 @@ CONTAINS
     nrank_max=12         ! number of items in ranking lists
     ndate_min_g=1        ! minimum ndate for graphics
     ndate_max_g=1        ! maximum ndate for graphics (be updated after load)
-    population_min_rank=10.D0 ! minimum population per million in ranking lists
+    population_min_rank=1.D0 ! minimum population per million in ranking lists
 
     cases_number_log_min=10.D0    ! minimum number for ncases in log
     deaths_number_log_min=1.D0    ! minimum number for ndeaths in log

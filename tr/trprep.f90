@@ -77,7 +77,7 @@ CONTAINS
 
       CALL tr_set_metric(ierr)
       IF(ierr.NE.0) THEN
-         write(6,'(A,I5)') 'XX tr_set_metric in tr_prof: ierr=',ierr
+         write(6,'(A,I5)') 'XX tr_set_metric in tr_metric: ierr=',ierr
          STOP
       END IF
       
@@ -87,7 +87,7 @@ CONTAINS
 
 !     *** CALCULATE AJ, QP, BP, EZ ***
 
-      CALL tr_prof_current
+      IF(MODELG.EQ.2) CALL tr_prof_current
 
 !     *** Initialize bpsd data ***
 

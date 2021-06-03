@@ -11,7 +11,7 @@ CONTAINS
     USE cvcomm
     IMPLICIT none
     INTEGER:: id,id1,id2
-    INTEGER:: nrank,ncountry,ndate
+    INTEGER:: nrank,ncountry
     REAL(dp):: rdata
 
 1   CONTINUE
@@ -82,10 +82,9 @@ CONTAINS
     IMPLICIT none
     INTEGER,INTENT(IN):: id_
     INTEGER:: id1,id2,id
-    INTEGER:: nrank,ncountry,nrank1,nvalue1,ncountry1,ndate
+    INTEGER:: nrank,ncountry,nrank1,ndate
     INTEGER,SAVE:: nrank_max_save=0
     REAL(dp):: rdata
-    REAL(dp):: data_nrank(nrank_max)
 
     IF(id_.EQ.0) THEN
        id1=1

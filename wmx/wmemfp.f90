@@ -600,7 +600,7 @@ CONTAINS
     INTEGER:: NM,NR,NS,NHH,NTH,NDX,KDX,MDX,LDX,I,J,MLX,NKX
     INTEGER:: ND,NK,KDMAX_TMP,LL,KD,KK,KKX,KX1,NX1,MD,NRPP,ML,LDMAX_TMP,LLX
     INTEGER:: LD,LX1,MX1,K,NHHF,NTHF,NN,MM
-    INTEGER:: n,nr1,nr2,ndata,ntot
+    INTEGER:: n,nr1,nr2,ndata,ntot,nrr1,nrr2
     REAL(rkind),ALLOCATABLE:: rdata(:),rtot(:)
     COMPLEX(rkind),ALLOCATABLE:: cdata(:),ctot(:)
 
@@ -1114,16 +1114,20 @@ CONTAINS
     DO NS=1,NSMAX
        DO NDX=1,NDSIZ
           DO MDX=1,MDSIZ
-             cdata(1:ndata)=CPABSK(MDX,NDX,nr1:nr2,NS)
+             DO nr=1,nr_len_nrank(nrank)
+                nrr2=nr_start_nrank(nrank)+nr-1
+                cdata(nr)=CPABSK(MDX,NDX,nrr2,NS)
+             END DO
              CALL mtx_gatherv_complex8(cdata,ndata,ctot,ntot, &
                   nr_len_nrank,nr_pos_nrank)
              IF(nrank.EQ.0) THEN
                 CPABSK(MDX,NDX,1:nrmax+1,NS)=(0.D0,0.D0)
                 DO n=0,nsize-1
                    DO nr=0,nr_len_nrank(n)-1
-                      nr1=nr_pos_nrank(n)+nr
-                      nr2=nr_start_nrank(n)+nr
-                      CPABSK(MDX,NDX,nr2,NS)=CPABSK(MDX,NDX,nr2,NS)+ctot(nr1)
+                      nrr1=nr_pos_nrank(n)+nr
+                      nrr2=nr_start_nrank(n)+nr
+                      CPABSK(MDX,NDX,nrr2,NS)=CPABSK(MDX,NDX,nrr2,NS) &
+                           +ctot(nrr1)
                    END DO
                 END DO
              END IF
@@ -1132,29 +1136,36 @@ CONTAINS
 
        DO NHH=1,NHHMAX
           DO NTH=1,NTHMAX
-             cdata(1:ndata)=CPABS(NTH,NHH,nr1:nr2,NS)
+             DO nr=1,nr_len_nrank(nrank)
+                nrr2=nr_start_nrank(nrank)+nr-1
+                cdata(nr)=CPABS(NTH,NHH,nrr2,NS)
+             END DO
              CALL mtx_gatherv_complex8(cdata,ndata,ctot,ntot, &
                   nr_len_nrank,nr_pos_nrank)
              IF(nrank.EQ.0) THEN
                 CPABS(NTH,NHH,1:nrmax+1,NS)=(0.D0,0.D0)
                 DO n=0,nsize-1
                    DO nr=0,nr_len_nrank(n)-1
-                      nr1=nr_pos_nrank(n)+nr
-                      nr2=nr_start_nrank(n)+nr
-                      CPABS(NTH,NHH,nr2,NS)=CPABS(NTH,NHH,nr2,NS)+ctot(nr1)
+                      nrr1=nr_pos_nrank(n)+nr
+                      nrr2=nr_start_nrank(n)+nr
+                      CPABS(NTH,NHH,nrr2,NS)=CPABS(NTH,NHH,nrr2,NS)+ctot(nrr1)
                    END DO
                 END DO
              END IF
-             cdata(1:ndata)=CPABS3D(NTH,NHH,nr1:nr2,NS)
+             DO nr=1,nr_len_nrank(nrank)
+                nrr2=nr_start_nrank(nrank)+nr-1
+                cdata(nr)=CPABS3D(NTH,NHH,nrr2,NS)
+             END DO
              CALL mtx_gatherv_complex8(cdata,ndata,ctot,ntot, &
                   nr_len_nrank,nr_pos_nrank)
              IF(nrank.EQ.0) THEN
                 CPABS3D(NTH,NHH,1:nrmax+1,NS)=(0.D0,0.D0)
                 DO n=0,nsize-1
                    DO nr=0,nr_len_nrank(n)-1
-                      nr1=nr_pos_nrank(n)+nr
-                      nr2=nr_start_nrank(n)+nr
-                      CPABS3D(NTH,NHH,nr2,NS)=CPABS3D(NTH,NHH,nr2,NS)+ctot(nr1)
+                      nrr1=nr_pos_nrank(n)+nr
+                      nrr2=nr_start_nrank(n)+nr
+                      CPABS3D(NTH,NHH,nrr2,NS)=CPABS3D(NTH,NHH,nrr2,NS) &
+                           +ctot(nrr1)
                    END DO
                 END DO
              END IF
@@ -1164,16 +1175,19 @@ CONTAINS
     
     DO NHH=1,NHHMAX
        DO NTH=1,NTHMAX
-          rdata(1:ndata)=PCUR(NTH,NHH,nr1:nr2)
+          DO nr=1,nr_len_nrank(nrank)
+             nrr2=nr_start_nrank(nrank)+nr-1
+             rdata(nr)=PCUR(NTH,NHH,nrr2)
+          END DO
           CALL mtx_gatherv_real8(rdata,ndata,rtot,ntot, &
                   nr_len_nrank,nr_pos_nrank)
           IF(nrank.EQ.0) THEN
              PCUR(NTH,NHH,1:nrmax+1)=(0.D0,0.D0)
              DO n=0,nsize-1
                 DO nr=0,nr_len_nrank(n)-1
-                   nr1=nr_pos_nrank(n)+nr
-                   nr2=nr_start_nrank(n)+nr
-                   PCUR(NTH,NHH,nr2)=PCUR(NTH,NHH,nr2)+rtot(nr1)
+                   nrr1=nr_pos_nrank(n)+nr
+                   nrr2=nr_start_nrank(n)+nr
+                   PCUR(NTH,NHH,nrr2)=PCUR(NTH,NHH,nrr2)+rtot(nrr1)
                 END DO
              END DO
           END IF

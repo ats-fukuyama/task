@@ -50,7 +50,6 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,INTENT(IN):: nid
     INTEGER,INTENT(OUT):: ist,ierr
-    INTEGER:: NS
 
     NAMELIST /cv/ &
          knam_csv_in, &

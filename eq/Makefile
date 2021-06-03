@@ -10,8 +10,8 @@ include ../mtxp/make.mtxp
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-FFLAGS=-g $(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=-g $(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I../pl/$(MOD) -I../lib/$(MOD)
 
@@ -108,6 +108,8 @@ eq-qst.o: eq-qst.f $(EQCOMM) eqcom2.inc
 eqintf.o: eqintf.f $(EQCOMM) eqcom2.inc
 eqgout.o: eqgout.f $(EQCOMM) eqcom2.inc eqcom3.inc
 eqbpsd.o: eqbpsd.f $(EQCOMM) eqcom3.inc
+#eqtrbpsd.o: eqtrbpsd.f $(EQCOMM)
+#eqtrbpsdlib.o: eqtrbpsdlib.f90
 eqjft2m.o: eqjft2m.f $(EQCOMM) eqcom3.inc
 eqlib.o : eqlib.f90
 equnit.o: equnit.f eqbpsd.f

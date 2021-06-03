@@ -18,7 +18,6 @@ C        BB    : Magnetic field at center                        (T)
 C        Q0    : Safety factor at center
 C        QA    : Safety factor on plasma surface
 C        RIP   : Plasma current                                 (MA)
-C        PROFJ : Curren density profile parameter (power of (1 - rho^2))
 C        FRBIN : (RB_inside-RA)/(RB_outside-RA)
 C
       RR    = 3.D0
@@ -31,7 +30,6 @@ C
       Q0    = 1.D0
       QA    = 3.D0
       RIP   = 3.D0
-      PROFJ = 2.D0
 C
       FRBIN = 1.D0
       RBRA  = RB/RA
@@ -138,7 +136,7 @@ C                   8: Read from file by means of WMXPRF routine (JT-60)
 C                   9: Read from file KNAMTR (TASK/TR)
 C        MODELQ: Control safety factor profile (for MODELG=0,1,2)
 C                   0: Parabolic q profile (Q0,QA,RHOMIN,RHOITB)
-C                   1: Given current profile (RIP,PROFJ)
+C                   1: Given current profile (RIP,PROFJ0,PROFJ1,PROFJ2)
 C
       MODELG= 2
       MODELN= 0
@@ -482,7 +480,7 @@ C
 C
       INCLUDE 'eqcomm.inc'
 C
-      NAMELIST /EQ/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,
+      NAMELIST /EQ/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,
      &              RHOMIN,QMIN,MODELG,MODELQ,RHOITB,
      &              IDEBUG,KNAMEQ,KNAMEQ2,
      &              PP0,PP1,PP2,PROFP0,PROFP1,PROFP2,
@@ -517,10 +515,9 @@ C
       WRITE(6,601)
       RETURN
 C
-  601 FORMAT(' ','# &EQ : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ'/
+  601 FORMAT(' ','# &EQ : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP'/
      &       9X,'RHOMIN,QMIN,MODELG,MODELQ,RHOITB,'/
      &       9X,'IDEBUG,KNAMEQ,KNAMEQ2,'/
-     &       9X,'PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2'/
      &       9X,'PP0,PP1,PP2,PROFP0,PROFP1,PROFP2'/
      &       9X,'FF0,FF1,FF2,PROFF0,PROFF1,PROFF2'/
      &       9X,'PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2'/
@@ -616,8 +613,7 @@ C
      &             'QA    ',QA
       WRITE(6,601) 'RHOMIN',RHOMIN,
      &             'QMIN  ',QMIN,
-     &             'RB    ',RB,
-     &             'PROFJ ',PROFJ
+     &             'RB    ',RB
       WRITE(6,601) 'RGMIN ',RGMIN,
      &             'RGMAX ',RGMAX,
      &             'ZGMIN ',ZGMIN,

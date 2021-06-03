@@ -381,10 +381,8 @@ C
          AVEJTR(NR)=-RR*DPPSL-TTSL*DTTSL/(4.d0*PI**2*RMU0*RR)
          AVEJPR(NR)=(-TTSL*DPPSL-DTTSL*AVEBB2(NR)/RMU0)
      &              /(2.d0*PI*ABS(BB))
-C         WRITE(6,'(A,1P6E12.4)') 'AVEJ=',
-C     &        TTSL*DPPSL/BB,AVEBB2(NR)*BB*DTTSL/RMU0,
-C     &        2.D0*PI*RR*DPPSL,AVEIR2(NR)*TTSL*DTTSL/(2.D0*PI*RMU0*RR),
-C     &        AVEJPR(NR),AVEJTR(NR)
+C         WRITE(6,'(A,I6,4ES12.4)') 'AVEJ=',NR,
+C     &        AVEJTR(NR),AVEJPR(NR),AVEGP2(NR),AVEGVR2(NR)
       ENDDO
 C
 C     +++++ SETUP AXIS DATA +++++
@@ -637,7 +635,7 @@ C
 C     ----- CALCULATE PSI,PPS,TTS,PSIT and RPS, ZPS on mag surfaces -----
 C
          DO NR=NRPMAX+1,NRMAX
-            RINIT=REDGE+DR*(NR-NRPMAX)
+            RINIT=REDGE+DR_OUT*(NR-NRPMAX)
             ZINIT=ZAXIS
             PSIP(NR)=PSIG(RINIT,ZINIT)-PSI0
             PPS(NR)=0.D0
