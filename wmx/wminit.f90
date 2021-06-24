@@ -251,6 +251,7 @@ CONTAINS
       nthmax_g = 256
 
 !     *** dedub_info ***
+!                41: wmemfp,wmsolv: nr1 and nr2 check
 !                51: wmsetm1: IN/OUT mesh info
 !                61: matrix coefficiewnts  knam_dump
 !                71: mode dependence of p_abs

@@ -339,6 +339,7 @@ CONTAINS
     USE plprof
     USE wmprof
     USE dptnsr0
+    USE dpdisp
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NR,NS,MD,ND
     TYPE(pl_plfw_type),DIMENSION(NSMAX):: plfw
@@ -346,6 +347,8 @@ CONTAINS
     TYPE(pl_grd_type),DIMENSION(NSMAX):: grd
     INTEGER:: NHH,NTH,MM,NN,NS1
     COMPLEX(rkind):: CLDISP(6),CDTNS(3,3),CW,CKPR,CKPP
+    COMPLEX(rkind):: CKPPF,CKPPS
+    REAL(rkind):: RKX2,RKPPF2
     REAL(rkind):: WW,RHON,RKPR_EFF,RKPR,RNPR,RKPP2
     REAL(rkind):: BABS,BSUPTH,BSUPPH,BTH,WTPR,RKTH,RKPH
 
@@ -356,7 +359,7 @@ CONTAINS
        grd(ns1)%grdu=0.D0
     END DO
 
-      CW=2.D0*PI*DCMPLX(RF,RFI)*1.D6
+     CW=2.D0*PI*DCMPLX(RF,RFI)*1.D6
       WW=DBLE(CW)
 
       RHON=XRHO(NR)
@@ -389,22 +392,42 @@ CONTAINS
             IF(ABS(RKPR).LT.1.D-5) RKPR=1.D-5
             RNPR=VC*RKPR/WW
             
+            CKPR=RKPR
+            CALL DPCOLD_RKPERP(CW,CKPR,mag,plfw,CKPPF,CKPPS)
             IF(NR.EQ.1) THEN
                CKPP=(0.D0,0.D0)
+               IF (MM .eq. 0)THEN
+                 RKPPF2=real(CKPPF**2)
+                 IF (RKPPF2 .gt. 0 )THEN
+                   CKPP=CKPPF
+                 ELSE
+                   CKPP=(0.D0,0.D0)
+                 ENDIF
+               ENDIF
             ELSE
 !               WRITE(6,'(A,5I4,3ES12.4)') &
 !                    'wmdisp:',NR,NS,MM,NN,NTH,XR(NR),RPS(NTH,NR),RKPR
-               RKPP2=(MM/XR(NR))**2+(NN/RPST(NTH,NHH,NR))**2-RKPR**2
-               IF(RKPP2.GT.0.D0) THEN
-                  CKPP=SQRT(DCMPLX(RKPP2,0.D0))
-               ELSEIF(RKPP2.LT.0.D0) THEN
-                  CKPP=CI*SQRT(DCMPLX(-RKPP2,0.D0))
+               RKX2=     MM*MM*RGI22(NTH,NHH,NR)/XRHO(NR)**2 &
+                  + 2.D0*MM*NN*RGI23(NTH,NHH,NR)/XRHO(NR)    &
+                  +      NN*NN*RGI33(NTH,NHH,NR)
+               RKPP2=RKX2-RKPR**2
+               RKPPF2=real(CKPPF**2)
+               IF(RKPPF2.GT.0.D0.AND.RKPPF2.GE.RKPP2) THEN
+                  CKPP=CKPPF
                ELSE
                   CKPP=(0.D0,0.D0)
                END IF
+!               CKPP=CKPPF
+!               IF (RKPPF2 .gt. 0 )THEN
+!                 IF (RKPPF2 .lt. RKPP2)THEN
+!                    CKPP=(0.D0,0.D0)
+!                 END IF
+!               ELSE
+!                 CKPP=(0.D0,0.D0)
+!               END IF
             END IF
                
-            CKPR=RKPR
+!            CKPR=RKPR
             CALL dp_tnsr0(CW,CKPR,CKPP,ns,mag,plfw,grd,CLDISP)
             CDTNS(1,1)= CLDISP(1)
             CDTNS(1,2)= CLDISP(5)
