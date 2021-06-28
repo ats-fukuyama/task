@@ -49,7 +49,7 @@ CONTAINS
       ENDIF
       NID=NID_
 
-    1 WRITE(6,*)'## SELECT : X-var : 1/KX 2/KY 3/KZ 4/X 5/Y 6/Z 7/K: ', &
+    1 WRITE(6,*)'## SELECT: X-var: 1/KX 2/KY 3/KZ 4/X 5/Y 6/Z 7/K: ', &
                 'P,D,V/parm A,B/C/type X/EXIT'
       READ(5,*,ERR=1,END=9000) KID
       CALL toupper(KID)
@@ -353,8 +353,8 @@ CONTAINS
          vmax=MAX(v,vmax)
       END DO
       WRITE(6,'(A,I6,2ES12.4)') 'rfi/rf min/max:',ncount_max,vmin,vmax
-      IF(vmax.LT. 1.D-12) vmax= 1.D-12
-      IF(vmin.GT.-1.D-12) vmin=-1.D-12
+      IF(vmax.LT. 1.D-8) vmax= 1.D-8
+      IF(vmin.GT.-1.D-8) vmin=-1.D-8
 
       ! --- File output ---
       
@@ -407,15 +407,6 @@ CONTAINS
             RF=RFA(ncount)
             RFI=RFIA(ncount)
 !            IF(RFI.LE.-0.01D0*ABS(RF)) CYCLE
-            v=RFI/RF
-            IF(v.GT.0.D0) THEN
-               f=GUCLIP(MIN(v/vmax,1.D0))
-               CALL SETRGB(1.0,0.8*(1.0-f),0.0) ! 0 to 1: yellow to red
-            ELSE
-               f=GUCLIP(MIN(-v/MIN(vmax,EPSRF),1.D0))
-               CALL SETRGB(0.0,0.5*(1.0-f),1.0)   ! 0 to -1: green to blue
-            END IF
-
             SELECT CASE(KID)
             CASE('1','2','3','7')
                XN=X*RKNORM(NX)
@@ -426,6 +417,17 @@ CONTAINS
                YN=RF*RFNORM(NX)
                YNI=RFI*RFNORM(NX)
             END SELECT
+
+            v=RFI/RF
+            IF(v.GT.1.D-8) THEN
+               f=GUCLIP(MIN(v/vmax,1.D0))
+               CALL SETRGB(1.0,0.8*(1.0-f),0.0) ! 0 to 1: yellow to red
+            ELSE IF(v.LT.-1.D-8) THEN
+               f=GUCLIP(MIN(-v/MIN(vmax,EPSRF),1.D0))
+               CALL SETRGB(0.0,0.5*(1.0-f),1.0)   ! 0 to -1: green to blue
+            ELSE
+               CALL SETRGB(0.8,0.8,0.8)
+            END IF
 
             CALL MARK2D(GUCLIP(XN),GUCLIP(YN))
          END DO
@@ -467,15 +469,16 @@ CONTAINS
             CALL MARK2D(GUCLIP(XN),GUCLIP(YN))
 
             v=RFI/RF
-            IF(v.GT.0.D0) THEN
+            IF(v.GT.1.D-8) THEN
                f=GUCLIP(MIN(v/vmax,1.D0))
                CALL SETRGB(1.0,0.8*(1.0-f),0.0) ! 0 to 1: yellow to red
-            ELSE
+               CALL MARK2D(GUCLIP(XN),GUCLIP(YN+RFI*RFNORM(NX)))
+            ELSE IF(v.LT.-1.D-8) THEN
                f=GUCLIP(MIN(-v/MIN(vmax,EPSRF),1.D0))
                CALL SETRGB(0.0,0.5*(1.0-f),1.0)   ! 0 to -1: green to blue
+               CALL MARK2D(GUCLIP(XN),GUCLIP(YN+RFI*RFNORM(NX)))
             END IF
 
-            CALL MARK2D(GUCLIP(XN),GUCLIP(YN+RFI*RFNORM(NX)))
          END DO
          CALL DP_CONT4_PARM(KID,vmin,vmax,RFNORM(1),RKNORM(1))
          CALL PAGEE
