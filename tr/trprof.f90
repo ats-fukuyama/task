@@ -541,7 +541,7 @@ CONTAINS
          AJ(1:NRMAX)  =AJOH(1:NRMAX)
          BP(1:NRMAX)  =FACT*BP(1:NRMAX)
          QP(1:NRMAX)  =TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)/(4.D0*PI**2*RDPVRHOG(1:NRMAX))
-      ELSE
+      ELSE ! MDLUF=0
          DO NR=1,NRMAX
             IF((1.D0-RM(NR)**ABS(PROFJ1)).LE.0.D0) THEN
                PROF=0.D0
@@ -584,7 +584,8 @@ CONTAINS
          AJOH(1:NRMAX)=FACT*AJOH(1:NRMAX)
          AJ(1:NRMAX)  =AJOH(1:NRMAX)
          BP(1:NRMAX)  =FACT*BP(1:NRMAX)
-         QP(1:NRMAX)  =TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)/(4.D0*PI**2*RDPVRHOG(1:NRMAX))
+         QP(1:NRMAX)  =TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX) &
+                      /(4.D0*PI**2*RDPVRHOG(1:NRMAX))
       ENDIF
 !      write(6,*) 'in trprof'
 !      write(6,'(1P5E12.4)') (qp(nr),nr=1,nrmax)

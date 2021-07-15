@@ -241,7 +241,12 @@ MODULE wmcomm
 
   INTEGER,ALLOCATABLE:: KACONT(:,:,:)
 
-! --- Inerface
+! --- MPI
+
+  INTEGER,ALLOCATABLE:: nr_start_nrank(:),nr_end_nrank(:)
+  INTEGER,ALLOCATABLE:: nr_pos_nrank(:),nr_len_nrank(:)
+
+! --- Interface
 
   INTERFACE
      FUNCTION GUCLIP(X)
@@ -334,7 +339,7 @@ CONTAINS
 
     ALLOCATE(CPABSK(nthmax_f,nhhmax_f,nrmax+1,nsmax)) ! wm_pabs P(m,nh,rho,ns)
     ALLOCATE(CPABS(nthmax_f,nhhmax_f,nrmax+1,nsmax))  ! wm_pabs P(th,hh,rho,ns)
-    ALLOCATE(PCUR(nthmax,nhhmax,nrmax))               ! wm_pabs J(th,hh,rho)
+    ALLOCATE(PCUR(nthmax,nhhmax,nrmax+1))             ! wm_pabs J(th,hh,rho)
 
     ALLOCATE(PABS(nthmax_f,nhhmax_f,nrmax+1,nsmax))   ! wm_pabs P(th,hh,rho,ns)
     ALLOCATE(PABSK(nthmax_f,nhhmax_f,nrmax+1,nsmax))  ! wm_pabs P(m,nh,rho,ns)

@@ -91,7 +91,7 @@ CONTAINS
       
     DO NPH = 1,NPHMAX
        NPH0 = NPH_LOOP(NPH)
-       WRITE(6,'(A,I4)') "== Toroidal mode number : ",NPH0
+       IF(nrank.EQ.0) WRITE(6,'(A,I4)') "== Toroidal mode number : ",NPH0
 
        CALL wm_exec(IERR)
        IF(IERR.NE.0) EXIT

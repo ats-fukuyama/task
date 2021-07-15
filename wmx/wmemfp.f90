@@ -310,7 +310,6 @@ CONTAINS
     REAL(rkind):: DRHO1,DRHO2,A1,A2,XRHOM,XRHOMH,XRHOC,QPMH,DPSIPDRHOMH
     REAL(rkind):: DRHOM
     INTEGER:: NR,ND,NDX,NN,MD,MDX,MM,I,NTH,NHH,NTHF,NHHF
-    COMPLEX(rkind):: C1,C2
 
     ALLOCATE(CBF1(nthmax,nhhmax),CBF2(nthmax,nhhmax))
 
@@ -340,20 +339,15 @@ CONTAINS
           DO MD=MDMIN,MDMAX
              MDX=MD-MDMIN+1
              MM=NTH0+MD
-             C1=1.D0/CW
-             C2=CI*C1
-!             CBFLD1=-(CI/CW) &
-             CBFLD1=-C2 &
+             CBFLD1=-(CI/CW) &
                    *(CI*MM*CEFLDK(3,MDX,NDX,NR) &
                     -CI*NN*CEFLDK(2,MDX,NDX,NR))/XRHOC
-!             CBFLD2=-(CI/CW) &
-             CBFLD2=-C2 &
+             CBFLD2=-(CI/CW) &
                    *(CI*NN*CEFLDK(1,MDX,NDX,NR) &
                     -(CEFLDK(3,MDX,NDX,NR  ) &
                     -CEFLDK(3,MDX,NDX,NR-1))/(DPSIPDRHOMH*DRHOM) &
                     )*XRHOM
-!             CBFLD3=-(CI/CW) &
-             CBFLD3=-C2 &
+             CBFLD3=-(CI/CW) &
                    *((CEFLDK(2,MDX,NDX,NR  ) &
                      -CEFLDK(2,MDX,NDX,NR-1))/(DPSIPDRHOMH*DRHOM) &
                     -CI*MM*CEFLDK(1,MDX,NDX,NR))
@@ -541,6 +535,7 @@ CONTAINS
     ELSE
        R1=R**0.77D0
     END IF
+!    EFF1=1.D0-R**0.77D0*SQRT(3.5D0**2+W*W)/(3.5D0*R**0.77D0+W)
     EFF1=1.D0-R1*SQRT(3.5D0**2+W*W)/(3.5D0*R1+W)
 
     Y2=(R+XL)/(1.D0+R)
@@ -577,6 +572,7 @@ CONTAINS
     USE wmsetf2
     USE wmprof
     USE wmsub
+    USE libmpi
     IMPLICIT NONE
     REAL(rkind),ALLOCATABLE:: DS(:),DSS(:,:,:)
     COMPLEX(rkind),ALLOCATABLE:: CPF1(:,:),CPF2(:,:)
@@ -604,6 +600,9 @@ CONTAINS
     INTEGER:: NM,NR,NS,NHH,NTH,NDX,KDX,MDX,LDX,I,J,MLX,NKX
     INTEGER:: ND,NK,KDMAX_TMP,LL,KD,KK,KKX,KX1,NX1,MD,NRPP,ML,LDMAX_TMP,LLX
     INTEGER:: LD,LX1,MX1,K,NHHF,NTHF,NN,MM
+    INTEGER:: n,nr1,nr2,ndata,ntot,nrr1,nrr2
+    REAL(rkind),ALLOCATABLE:: rdata(:),rtot(:)
+    COMPLEX(rkind),ALLOCATABLE:: cdata(:),ctot(:)
 
     ALLOCATE(DS(nrmax),DSS(nthmax,nhhmax,nrmax))
     ALLOCATE(CPF1(nthmax,nhhmax),CPF2(nthmax,nhhmax))
@@ -634,7 +633,7 @@ CONTAINS
     ENDDO !nr
 
     DO NS=1,NSMAX
-       WRITE(6,'(A,I4)') 'NS=',NS
+       IF(nrank.EQ.0) WRITE(6,'(A,I4)') 'Pabs: NS=',NS
        NR=nr_start
        IF(MDLWMX.EQ.0) THEN
           CALL wm_setf0(NR,NS)
@@ -690,6 +689,8 @@ CONTAINS
              ENDDO !kdx
           ENDDO !ndx
          
+
+
           IF(NR.EQ.1) THEN
              XRHOM=XRHO(2)/1.D6
           ELSE
@@ -923,6 +924,7 @@ CONTAINS
              ENDDO !mdx
           ENDDO !ndx
 
+
           !     +++++ CALCULATE PABS IN REAL SPACE: CPABSM +++++
 
           DO NDX=1,NDSIZ
@@ -943,12 +945,14 @@ CONTAINS
                    DO NTH=1,NTHMAX
                       CPABS(NTH,NHH,NR,NS)=CPABS(NTH,NHH,NR,NS) &
                            +CPF2(NTH,NHH)
+                      CPABS3D(NTH,NHH,NR,NS)=CPABS3D(NTH,NHH,NR,NS) &
+                           +CPF2(NTH,NHH)
                    ENDDO !nth
                 ENDDO !nhh
              ENDDO !mdx
           ENDDO !ndx
 
-          !     +++++ CALCULATE PABS IN REAL SPACE: CPABSC +++++
+          !     +++++ CALCULATE PABS IN REAL SPACE: CPABSM +++++
 
           DO NDX=1,NDSIZ
              DO MDX=1,MDSIZ
@@ -965,28 +969,18 @@ CONTAINS
                 ENDDO !KK
                 CALL WMSUBE(CPF1,CPF2)
                 DO NHH=1,NHHMAX
-                   CPABSR(NHH,NR,NS)=0.D0
                    DO NTH=1,NTHMAX
                       NHHF=NHH
                       NTHF=NTH
                       CPABS(NTH,NHH,NR+1,NS)=CPABS(NTH,NHH,NR+1,NS) &
+                           +CPF2(NTH,NHH)
+                      CPABS3D(NTH,NHH,NR+1,NS)=CPABS3D(NTH,NHH,NR+1,NS) &
                            +CPF2(NTH,NHH)
                    ENDDO ! NTH
                 ENDDO !NHH
              ENDDO !MDX
           ENDDO !NDX
 
-          DO NS=1,NSMAX
-             DO NR=1,NRMAX
-                DO NHH=1,NHHMAX
-                   CPABSR(NHH,NR,NS)=0.D0
-                   DO NTH=1,NTHMAX
-                      CPABSR(NHH,NR,NS)=CPABSR(NHH,NR,NS) &
-                           +CPABS(NTH,NHH,NR,NS)
-                   END DO
-                END DO
-             END DO
-          END DO
 
 !     +++++ CALCULATE DRIVEN CURRENT IN REAL SPACE +++++
 
@@ -1081,42 +1075,148 @@ CONTAINS
        ENDDO !nr
     ENDDO !ns
 
+    IF(ALLOCATED(nr_pos_nrank)) DEALLOCATE(nr_pos_nrank,nr_len_nrank)
+    ALLOCATE(nr_pos_nrank(0:nsize-1),nr_len_nrank(0:nsize-1))
+    DO n=0,nsize-1
+       nr1=nr_start_nrank(n)
+       nr2=MIN(nr_end_nrank(n),nrmax-1)+2
+       nr_len_nrank(n)=nr2-nr1+1
+    END DO
+    nr_pos_nrank(0)=0
+    DO n=1,nsize-1
+       nr_pos_nrank(n)=nr_pos_nrank(n-1)+nr_len_nrank(n)
+    END DO
+    IF(nrank.EQ.0) THEN
+       DO n=0,nsize-1
+          WRITE(6,'(A,5I8)') 'nrank,nr_start,nr_end,nr_pos,nr_len=', &
+               n,nr_start_nrank(n),nr_end_nrank(n), &
+               nr_pos_nrank(n),nr_len_nrank(n)
+       END DO
+    END IF
+
+    nr1=nr_pos_nrank(nrank)+1
+    nr2=nr_pos_nrank(nrank)+nr_len_nrank(nrank)
+    ndata=nr_len_nrank(nrank)
+    IF(ALLOCATED(cdata)) DEALLOCATE(cdata)
+    ALLOCATE(cdata(ndata))
+    IF(ALLOCATED(rdata)) DEALLOCATE(rdata)
+    ALLOCATE(rdata(ndata))
+    
+    ntot=0
+    DO n=0,nsize-1
+       ntot=ntot+nr_len_nrank(n)
+    END DO
+    IF(ALLOCATED(ctot)) DEALLOCATE(ctot)
+    ALLOCATE(ctot(ntot))
+    IF(ALLOCATED(rtot)) DEALLOCATE(rtot)
+    ALLOCATE(rtot(ntot))
+    
     DO NS=1,NSMAX
-       DO NR=1,NRMAX
-          DO NHH=1,NHHMAX
-             DO NTH=1,NTHMAX
-                PABS(NTH,NHH,NR,NS)=DBLE(CPABS(NTH,NHH,NR,NS))
+       DO NDX=1,NDSIZ
+          DO MDX=1,MDSIZ
+             WRITE(6,'(A,5I8)') 'nrank,nr_start,nr_end,nr_pos,nr_len=', &
+                  nrank,nr_start_nrank(nrank),nr_end_nrank(nrank), &
+                  nr_pos_nrank(nrank),nr_len_nrank(nrank)
+             DO nr=1,nr_len_nrank(nrank)
+                nrr2=nr_start_nrank(nrank)+nr-1
+                cdata(nr)=CPABSK(MDX,NDX,nrr2,NS)
              END DO
+             WRITE(6,'(A,I8)') 'nr_pos_nrank:1:',nr_pos_nrank(0)
+             CALL mtx_gatherv_complex8(cdata,ndata,ctot,ntot, &
+                  nr_len_nrank,nr_pos_nrank)
+             WRITE(6,'(A,I8)') 'nr_pos_nrank:2:',nr_pos_nrank(0)
+             IF(nrank.EQ.0) THEN
+                CPABSK(MDX,NDX,1:nrmax+1,NS)=(0.D0,0.D0)
+                DO n=0,nsize-1
+                   DO nr=1,nr_len_nrank(n)
+                      nrr1=nr_pos_nrank(n)+nr
+                      WRITE(6,'(A,5I8)') 'nrr1:',n,nr_len_nrank(n),nr_pos_nrank(n),nr,nrr1
+                      nrr2=nr_start_nrank(n)+nr-1
+                      CPABSK(MDX,NDX,nrr2,NS)=CPABSK(MDX,NDX,nrr2,NS) &
+                           +ctot(nrr1)
+                   END DO
+                END DO
+             END IF
           END DO
-          DO NDX=1,NDSIZ
-             DO MDX=1,MDSIZ
-                PABSK(MDX,NDX,NR,NS)=DBLE(CPABSK(MDX,NDX,NR,NS))
+       END DO
+
+       DO NHH=1,NHHMAX
+          DO NTH=1,NTHMAX
+             DO nr=1,nr_len_nrank(nrank)
+                nrr2=nr_start_nrank(nrank)+nr-1
+                cdata(nr)=CPABS(NTH,NHH,nrr2,NS)
              END DO
+             CALL mtx_gatherv_complex8(cdata,ndata,ctot,ntot, &
+                  nr_len_nrank,nr_pos_nrank)
+             IF(nrank.EQ.0) THEN
+                CPABS(NTH,NHH,1:nrmax+1,NS)=(0.D0,0.D0)
+                DO n=0,nsize-1
+                   DO nr=1,nr_len_nrank(n)
+                      nrr1=nr_pos_nrank(n)+nr
+                      nrr2=nr_start_nrank(n)+nr-1
+                      CPABS(NTH,NHH,nrr2,NS)=CPABS(NTH,NHH,nrr2,NS)+ctot(nrr1)
+                   END DO
+                END DO
+             END IF
+             DO nr=1,nr_len_nrank(nrank)
+                nrr2=nr_start_nrank(nrank)+nr-1
+                cdata(nr)=CPABS3D(NTH,NHH,nrr2,NS)
+             END DO
+             CALL mtx_gatherv_complex8(cdata,ndata,ctot,ntot, &
+                  nr_len_nrank,nr_pos_nrank)
+             IF(nrank.EQ.0) THEN
+                CPABS3D(NTH,NHH,1:nrmax+1,NS)=(0.D0,0.D0)
+                DO n=0,nsize-1
+                   DO nr=1,nr_len_nrank(n)
+                      nrr1=nr_pos_nrank(n)+nr
+                      nrr2=nr_start_nrank(n)+nr-1
+                      CPABS3D(NTH,NHH,nrr2,NS)=CPABS3D(NTH,NHH,nrr2,NS) &
+                           +ctot(nrr1)
+                   END DO
+                END DO
+             END IF
+          END DO ! NTH
+       END DO ! NHH
+    END DO ! NS
+    
+    DO NHH=1,NHHMAX
+       DO NTH=1,NTHMAX
+          DO nr=1,nr_len_nrank(nrank)
+             nrr2=nr_start_nrank(nrank)+nr-1
+             rdata(nr)=PCUR(NTH,NHH,nrr2)
           END DO
+          CALL mtx_gatherv_real8(rdata,ndata,rtot,ntot, &
+                  nr_len_nrank,nr_pos_nrank)
+          IF(nrank.EQ.0) THEN
+             PCUR(NTH,NHH,1:nrmax+1)=(0.D0,0.D0)
+             DO n=0,nsize-1
+                DO nr=1,nr_len_nrank(n)
+                   nrr1=nr_pos_nrank(n)+nr
+                   nrr2=nr_start_nrank(n)+nr-1
+                   PCUR(NTH,NHH,nrr2)=PCUR(NTH,NHH,nrr2)+rtot(nrr1)
+                END DO
+             END DO
+          END IF
        END DO
     END DO
 
-<<<<<<< HEAD
-    DO NS=1,NSMAX
-       DO NR=1,NRMAX
-          PABSR(NR,NS)=0.D0
-          DO NHH=1,NHHMAX
-             DO NTH=1,NTHMAX
-                PABSR(NR,NS)=PABSR(NR,NS)+PABS(NTH,NHH,NR,NS)
+    IF(nrank.EQ.0) THEN
+       DO NS=1,NSMAX
+          DO NR=1,NRMAX
+             DO NHH=1,NHHMAX
+                DO NTH=1,NTHMAX
+                   PABS(NTH,NHH,NR,NS)=DBLE(CPABS(NTH,NHH,NR,NS))
+                END DO
+             END DO
+             DO NDX=1,NDSIZ
+                DO MDX=1,MDSIZ
+                   PABSK(MDX,NDX,NR,NS)=DBLE(CPABSK(MDX,NDX,NR,NS))
+                END DO
              END DO
           END DO
        END DO
-    END DO
+    END IF
 
-    DO NS=1,NSMAX
-       PABST(NS)=0.D0
-       DO NR=1,NRMAX
-          PABST(NS)=PABST(NS)+PABSR(NR,NS)
-       END DO
-    END DO
-
-=======
->>>>>>> e962da21f7c713417ff91b7d52e18256e364b5cd
     DEALLOCATE(CPABSKM)
     DEALLOCATE(CPABSKC)
 
