@@ -211,7 +211,7 @@ CONTAINS
 
          CALL wm_setf2(NR+1,0) !  wm_setf2 setup 3) data for NR+1
 
-      ENDIF
+      ENDIF ! end of IND=1
 
       ! --- now shift 2) data for NR to 1) data,
       ! --- and shift 3) data for NR+1 to 2) daata
@@ -230,6 +230,20 @@ CONTAINS
             CGF22(LDX,KDX,2)=CGF22(LDX,KDX,3)
             CGF23(LDX,KDX,2)=CGF23(LDX,KDX,3)
             CGF33(LDX,KDX,2)=CGF33(LDX,KDX,3)
+            IF(NR.EQ.51) THEN
+               WRITE(41,'(A,I8,4ES12.4)'), &
+                    '## CGF11: ',NR,CGF11(LDX,KDX,1),CGF11(LDX,KDX,2)
+               WRITE(41,'(A,I8,4ES12.4)'), &
+                    '## CGF12: ',NR,CGF12(LDX,KDX,1),CGF12(LDX,KDX,2)
+               WRITE(41,'(A,I8,4ES12.4)'), &
+                    '## CGF13: ',NR,CGF13(LDX,KDX,1),CGF13(LDX,KDX,2)
+               WRITE(41,'(A,I8,4ES12.4)'), &
+                    '## CGF22: ',NR,CGF22(LDX,KDX,1),CGF22(LDX,KDX,2)
+               WRITE(41,'(A,I8,4ES12.4)'), &
+                    '## CGF23: ',NR,CGF23(LDX,KDX,1),CGF23(LDX,KDX,2)
+               WRITE(41,'(A,I8,4ES12.4)'), &
+                    '## CGF33: ',NR,CGF33(LDX,KDX,1),CGF33(LDX,KDX,2)
+            END IF
          ENDDO
       ENDDO
       DO KDX=1,KDSIZ_F
@@ -240,6 +254,14 @@ CONTAINS
                   CMAF(I,J,LDX,KDX,2) = CMAF(I,J,LDX,KDX,3)
                   CRMAF(I,J,LDX,KDX,1) = CRMAF(I,J,LDX,KDX,2)
                   CRMAF(I,J,LDX,KDX,2) = CRMAF(I,J,LDX,KDX,3)
+                  IF(NR.EQ.51) THEN
+                     WRITE(42,'(A,3I4,4ES12.4)'), &
+                          '## CMAF, I,J: ',NR,I,J,CMAF(I,J,LDX,KDX,1), &
+                          CMAF(I,J,LDX,KDX,2)
+                     WRITE(42,'(A,3I4,4ES12.4)'), &
+                          '## CRMAF,I,J: ',NR,I,J,CRMAF(I,J,LDX,KDX,1), &
+                          CRMAF(I,J,LDX,KDX,2)
+                  END IF
                ENDDO
             ENDDO
          ENDDO
@@ -253,6 +275,12 @@ CONTAINS
                      DO I=1,3
                         CGD(I,J,LDX,MDX,KDX,NDX,1)=CGD(I,J,LDX,MDX,KDX,NDX,2)
                         CGD(I,J,LDX,MDX,KDX,NDX,2)=CGD(I,J,LDX,MDX,KDX,NDX,3)
+                        IF(NR.EQ.51) THEN
+                           WRITE(43,'(A,3I4,4ES12.4)'), &
+                                '## CGD,I,J: ',NR,I,J, &
+                                CGD(I,J,LDX,MDX,KDX,NDX,1), &
+                                CGD(I,J,LDX,MDX,KDX,NDX,2)
+                        END IF
                      ENDDO
                   ENDDO
                ENDDO

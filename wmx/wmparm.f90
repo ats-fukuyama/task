@@ -203,6 +203,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,DIMENSION(99):: idata
     REAL(rkind),DIMENSION(99):: rdata
+    INTEGER:: nsa
 
     !----- PL input parameters -----     
 
@@ -210,6 +211,11 @@ CONTAINS
 
 !----- DP input parameters -----
 
+    nsamax_dp=nsmax
+    DO nsa=1,nsamax_dp
+       ns_nsa_dp(nsa)=nsa
+    END DO
+       
     CALL dp_broadcast
 
 ! --- WM specific input parameters ---
@@ -356,6 +362,12 @@ CONTAINS
     CALL mtx_broadcast_real8(BETAJ,NAMAX)
     CALL mtx_broadcast_integer(idebuga,idebug_max)
     CALL mtx_broadcast_character(knam_dump,80)
+
+    WRITE(6,'(A,I8)') 'wm: nrank    =',nrank
+    WRITE(6,'(A,I8)') 'wm: nsmax    =',nsmax
+    WRITE(6,'(A,I8)') 'wm: modelp(1)=',modelp(1)
+    WRITE(6,'(A,I8)') 'wm: modelp(2)=',modelp(2)
+    WRITE(6,'(A,I8)') 'wm: modelp(3)=',modelp(3)
 
   END SUBROUTINE wm_broadcast
 END MODULE wmparm

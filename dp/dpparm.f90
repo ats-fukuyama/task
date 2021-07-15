@@ -291,6 +291,12 @@ CONTAINS
     CALL mtx_broadcast_real8(RHON_MIN,NSAMAX_DP)
     CALL mtx_broadcast_real8(RHON_MAX,NSAMAX_DP)
 
+    WRITE(6,'(A,I8)') 'dp: nrank    =',nrank
+    WRITE(6,'(A,I8)') 'dp: nsmax    =',nsmax
+    WRITE(6,'(A,I8)') 'dp: modelp(1)=',modelp(1)
+    WRITE(6,'(A,I8)') 'dp: modelp(2)=',modelp(2)
+    WRITE(6,'(A,I8)') 'dp: modelp(3)=',modelp(3)
+
     RETURN
   END SUBROUTINE dp_broadcast
 
@@ -401,16 +407,6 @@ CONTAINS
     rdata(1)=EPSRT
     CALL mtx_broadcast_real8(rdata,1)
     EPSRT=rdata(1)
-
-    CALL mtx_broadcast_integer(modelp,nsmax)
-    CALL mtx_broadcast_integer(modelv,nsmax)
-    CALL mtx_broadcast_integer(ncmin,nsmax)
-    CALL mtx_broadcast_integer(ncmax,nsmax)
-    CALL mtx_broadcast_integer(ns_nsa_dp,nsmax)
-    CALL mtx_broadcast_real8(pmax,nsmax)
-    CALL mtx_broadcast_real8(emax,nsmax)
-    CALL mtx_broadcast_real8(rhon_min,nsmax)
-    CALL mtx_broadcast_real8(rhon_max,nsmax)
 
     RETURN
   END SUBROUTINE dp_broadcas_localt
