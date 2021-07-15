@@ -291,12 +291,6 @@ CONTAINS
     CALL mtx_broadcast_real8(RHON_MIN,NSAMAX_DP)
     CALL mtx_broadcast_real8(RHON_MAX,NSAMAX_DP)
 
-    WRITE(6,'(A,I8)') 'dp: nrank    =',nrank
-    WRITE(6,'(A,I8)') 'dp: nsmax    =',nsmax
-    WRITE(6,'(A,I8)') 'dp: modelp(1)=',modelp(1)
-    WRITE(6,'(A,I8)') 'dp: modelp(2)=',modelp(2)
-    WRITE(6,'(A,I8)') 'dp: modelp(3)=',modelp(3)
-
     RETURN
   END SUBROUTINE dp_broadcast
 

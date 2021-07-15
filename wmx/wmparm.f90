@@ -363,11 +363,5 @@ CONTAINS
     CALL mtx_broadcast_integer(idebuga,idebug_max)
     CALL mtx_broadcast_character(knam_dump,80)
 
-    WRITE(6,'(A,I8)') 'wm: nrank    =',nrank
-    WRITE(6,'(A,I8)') 'wm: nsmax    =',nsmax
-    WRITE(6,'(A,I8)') 'wm: modelp(1)=',modelp(1)
-    WRITE(6,'(A,I8)') 'wm: modelp(2)=',modelp(2)
-    WRITE(6,'(A,I8)') 'wm: modelp(3)=',modelp(3)
-
   END SUBROUTINE wm_broadcast
 END MODULE wmparm

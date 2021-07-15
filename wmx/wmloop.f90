@@ -153,11 +153,8 @@ CONTAINS
        ENDIF
     ENDDO
 
-    WRITE(6,*) '@@@ point 1'
     CALL wm_pout_sum
-    WRITE(6,*) '@@@ point 2'
     CALL wm_pout
-    WRITE(6,*) '@@@ point 3'
 
     NPH0  = NPH0_SV
 
