@@ -1084,7 +1084,7 @@ CONTAINS
     END DO
     nr_pos_nrank(0)=0
     DO n=1,nsize-1
-       nr_pos_nrank(n)=nr_pos_nrank(n-1)+nr_len_nrank(n)
+       nr_pos_nrank(n)=nr_pos_nrank(n-1)+nr_len_nrank(n-1)
     END DO
     IF(idebuga(41).NE.0.AND.nrank.EQ.0) THEN
        DO n=0,nsize-1

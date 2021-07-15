@@ -56,18 +56,24 @@ CONTAINS
 
     CALL mtxc_setup(MLEN,istart,iend,jwidth=MBND)
 
-    nr_start=(istart-1)/mblock_size+1
-    nr_end=(iend-1)/mblock_size+2
+    nr_start=(istart-1)/mblock_size+1    ! nr_start is nr including istart
+    nr_end=(iend-1)/mblock_size+1        ! nr_end is nr including iend
     IF(nrank.EQ.nsize-1) nr_end=NRMAX+1
-    IF(ALLOCATED(nr_start_nrank)) DEALLOCATE(nr_start_nrank,nr_end_nrank)
+
+    IF(ALLOCATED(istart_nrank)) &
+         DEALLOCATE(istart_nrank,iend_nrank,nr_start_nrank,nr_end_nrank)
+    ALLOCATE(istart_nrank(0:nsize-1),iend_nrank(0:nsize-1))
     ALLOCATE(nr_start_nrank(0:nsize-1),nr_end_nrank(0:nsize-1))
+    CALL mtx_allgather1_integer(istart,istart_nrank)
+    CALL mtx_allgather1_integer(iend,iend_nrank)
     CALL mtx_allgather1_integer(nr_start,nr_start_nrank)
     CALL mtx_allgather1_integer(nr_end,nr_end_nrank)
 
     IF(idebuga(41).NE.0.AND.nrank.EQ.0) THEN
        DO n=0,nsize-1
-          WRITE(6,'(A,4I8)') 'nrank,nr_start,nr_end,nr_len=', &
-               n,nr_start_nrank(n),nr_end_nrank(n), &
+          WRITE(6,'(A,6I8)') 'nrank,is,ie,nrs,nre,nrl=', &
+               n,istart_nrank(n),iend_nrank(n), &
+               nr_start_nrank(n),nr_end_nrank(n), &
                nr_end_nrank(n)-nr_start_nrank(n)+1
        END DO
     END IF
@@ -96,8 +102,8 @@ CONTAINS
        IF(idebuga(61).NE.0.AND.nrank.EQ.2) &
             WRITE(nfl+2,'(A,2I6,ES12.4)') &
             'wmsolv:',nr_previous,i,XRHO(nr_previous)
-       IF(idebuga(61+3).NE.0.AND.nrank.EQ.3) &
-            WRITE(nfl,'(A,2I6,ES12.4)') &
+       IF(idebuga(61).NE.0.AND.nrank.EQ.3) &
+            WRITE(nfl+3,'(A,2I6,ES12.4)') &
             'wmsolv:',nr_previous,i,XRHO(nr_previous)
        DO j=MAX(i-MCENT+1,1),MIN(MLEN,i+MCENT-1)
           IF(ABS(A(j-i+MCENT)).GT.0.D0) THEN

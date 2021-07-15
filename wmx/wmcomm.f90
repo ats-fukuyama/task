@@ -40,8 +40,6 @@ MODULE wmcomm_parm
 
 ! --- wm specific input parameters ---  
 
-  INTEGER:: MODEL_WM    ! model id: 0:wm, 1:wm_seki, 2:wmx
-
   INTEGER:: NRMAX       ! number of radial mesh (element) in plcomm.parm
   INTEGER:: NTHMAX      ! number of poloidal mesh         in plcomm.parm
 
@@ -86,6 +84,7 @@ MODULE wmcomm_parm
   INTEGER:: MODELM          ! Matrix solver parameter
   INTEGER:: MDLWMK          ! k_paralle toroidal effect
   INTEGER:: MDLWMX          ! model id: 0:wm, 1:wm_seki, 2:wmx
+
   
   REAL(rkind):: PNA         ! Alpha denisty [10^20 m^-3]
   REAL(rkind):: PNAL        ! Density scale length [m]
@@ -245,6 +244,7 @@ MODULE wmcomm
 
   INTEGER,ALLOCATABLE:: nr_start_nrank(:),nr_end_nrank(:)
   INTEGER,ALLOCATABLE:: nr_pos_nrank(:),nr_len_nrank(:)
+  INTEGER,ALLOCATABLE:: istart_nrank(:),iend_nrank(:)
 
 ! --- Interface
 
