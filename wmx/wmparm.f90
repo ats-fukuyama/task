@@ -312,10 +312,11 @@ CONTAINS
     rdata(20)=FRINI
     rdata(21)=FIINI
     rdata(22)=DLTNW
-    rdata(23)=WAEMIN
-    rdata(24)=WAEMAX
+    rdata(23)=EPSNW
+    rdata(24)=WAEMIN
+    rdata(25)=WAEMAX
 
-    CALL mtx_broadcast_real8(rdata,24)
+    CALL mtx_broadcast_real8(rdata,25)
 
     RF=rdata( 1)
     RFI=rdata( 2)
@@ -339,8 +340,9 @@ CONTAINS
     FRINI=rdata(20)
     FIINI=rdata(21)
     DLTNW=rdata(22)
-    WAEMIN=rdata(23)
-    WAEMAX=rdata(24)
+    EPSNW=rdata(23)
+    WAEMIN=rdata(24)
+    WAEMAX=rdata(25)
 
     CALL mtx_broadcast_real8(AJ,NAMAX)
     CALL mtx_broadcast_real8(AEWGT,NAMAX)

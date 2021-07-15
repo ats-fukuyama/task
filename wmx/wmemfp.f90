@@ -1079,14 +1079,14 @@ CONTAINS
     ALLOCATE(nr_pos_nrank(0:nsize-1),nr_len_nrank(0:nsize-1))
     DO n=0,nsize-1
        nr1=nr_start_nrank(n)
-       nr2=MIN(nr_end_nrank(n),nrmax-1)+2
+       nr2=MIN(nr_end_nrank(n),nrmax-1)+1
        nr_len_nrank(n)=nr2-nr1+1
     END DO
     nr_pos_nrank(0)=0
     DO n=1,nsize-1
-       nr_pos_nrank(n)=nr_pos_nrank(n-1)+nr_len_nrank(n)
+       nr_pos_nrank(n)=nr_pos_nrank(n-1)+nr_len_nrank(n-1)
     END DO
-    IF(nrank.EQ.0) THEN
+    IF(idebuga(41).NE.0.AND.nrank.EQ.0) THEN
        DO n=0,nsize-1
           WRITE(6,'(A,5I8)') 'nrank,nr_start,nr_end,nr_pos,nr_len=', &
                n,nr_start_nrank(n),nr_end_nrank(n), &
@@ -1114,23 +1114,22 @@ CONTAINS
     DO NS=1,NSMAX
        DO NDX=1,NDSIZ
           DO MDX=1,MDSIZ
-             WRITE(6,'(A,5I8)') 'nrank,nr_start,nr_end,nr_pos,nr_len=', &
-                  nrank,nr_start_nrank(nrank),nr_end_nrank(nrank), &
-                  nr_pos_nrank(nrank),nr_len_nrank(nrank)
+             IF(idebuga(41).NE.0.AND.nrank.EQ.0) THEN
+                WRITE(6,'(A,5I8)') 'nrank,nr_start,nr_end,nr_pos,nr_len=', &
+                     nrank,nr_start_nrank(nrank),nr_end_nrank(nrank), &
+                     nr_pos_nrank(nrank),nr_len_nrank(nrank)
+             END IF
              DO nr=1,nr_len_nrank(nrank)
                 nrr2=nr_start_nrank(nrank)+nr-1
                 cdata(nr)=CPABSK(MDX,NDX,nrr2,NS)
              END DO
-             WRITE(6,'(A,I8)') 'nr_pos_nrank:1:',nr_pos_nrank(0)
              CALL mtx_gatherv_complex8(cdata,ndata,ctot,ntot, &
                   nr_len_nrank,nr_pos_nrank)
-             WRITE(6,'(A,I8)') 'nr_pos_nrank:2:',nr_pos_nrank(0)
              IF(nrank.EQ.0) THEN
                 CPABSK(MDX,NDX,1:nrmax+1,NS)=(0.D0,0.D0)
                 DO n=0,nsize-1
                    DO nr=1,nr_len_nrank(n)
                       nrr1=nr_pos_nrank(n)+nr
-                      WRITE(6,'(A,5I8)') 'nrr1:',n,nr_len_nrank(n),nr_pos_nrank(n),nr,nrr1
                       nrr2=nr_start_nrank(n)+nr-1
                       CPABSK(MDX,NDX,nrr2,NS)=CPABSK(MDX,NDX,nrr2,NS) &
                            +ctot(nrr1)
@@ -1139,6 +1138,13 @@ CONTAINS
              END IF
           END DO
        END DO
+
+!       IF(NS.EQ.1) THEN
+!       DO nr=1,nrmax
+!          WRITE(21+nrank,'(A,2I8,4ES12.4)') &
+!               'CPABS:',nrank,nr,CPABSK(1,1,nr,1),CEFLDK(1,1,1,NR)
+!       END DO
+!       END IF
 
        DO NHH=1,NHHMAX
           DO NTH=1,NTHMAX

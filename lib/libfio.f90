@@ -64,7 +64,7 @@ CONTAINS
          READ(5,*,ERR=1,END=9001) KNAM
          IF(KNAM(1:2).EQ.'  ') GOTO 9002
       ELSE
-         WRITE(6,*) 'XX FROPEN: UNKNOWN MODEP : MODEP=',MODEP
+         WRITE(6,*) 'XX FROPEN (',KPR,'): UNKNOWN MODEP : MODEP=',MODEP
          GOTO 9003
       ENDIF
 
@@ -77,17 +77,17 @@ CONTAINS
             OPEN(NFL,FILE=KNAM,IOSTAT=IST,STATUS='OLD',ERR=20, &
      &           IOMSG=KMSG,FORM='FORMATTED')
          ELSE
-            WRITE(6,*) 'XX FROPEN: UNKNOWN MODEF : MODEF=',MODEF
+            WRITE(6,*) 'XX FROPEN (',KPR,'): UNKNOWN MODEF : MODEF=',MODEF
             GOTO 9005
          ENDIF
          WRITE(6,*) '# OLD FILE (',TRIM(KNAM),') IS ASSIGNED FOR INPUT.'
          GOTO 9000
 
-   20    WRITE(6,*) 'XX OLD FILE OPEN ERROR : IOSTAT = ',IST
+   20    WRITE(6,*) 'XX FROPEN (',KPR,'): OLD FILE OPEN ERROR: IOSTAT = ',IST
          WRITE(6,*) 'IOMSG=',TRIM(KMSG)
          GOTO 9006
       ELSE
-         WRITE(6,*) 'XX FILE (',TRIM(KNAM),') NOT FOUND'
+         WRITE(6,*) 'XX FROPEN (',KPR,'): FILE NOT FOUND: ',TRIM(KNAM)
          GOTO 9007
       ENDIF
 
@@ -204,10 +204,10 @@ CONTAINS
             MODEPI=1
             GOTO 1000
          ELSEIF(MODEPII.EQ.3) THEN
-            WRITE(6,*) 'XX FWOPEN: FILE ALREADY EXISTS.'
+            WRITE(6,*) 'XX FWOPEN (',KPR,'): FILE ALREADY EXISTS.'
             GOTO 9007
          ELSE
-            WRITE(6,*) 'XX FWOPEN: UNKNOWN MODEP : MODEP=',MODEP
+            WRITE(6,*) 'XX FWOPEN (',KPR,'): UNKNOWN MODEP : MODEP=',MODEP
             GOTO 9003
          ENDIF
 
@@ -218,14 +218,14 @@ CONTAINS
             OPEN(NFL,FILE=KNAM,IOSTAT=IST,STATUS='OLD',ERR=10, &
      &           IOMSG=KMSG,FORM='FORMATTED',DELIM=DELIM_)
          ELSE
-            WRITE(6,*) 'XX FWOPEN: UNKNOWN MODEF : MODEF=',MODEF
+            WRITE(6,*) 'XX FWOPEN (',KPR,'): UNKNOWN MODEF : MODEF=',MODEF
             GOTO 9005
          ENDIF
          WRITE(6,*) '# OLD FILE (',TRIM(KNAM), &
      &                 ') IS ASSIGNED FOR OUTPUT.'
          GOTO 9000
 
-   10    WRITE(6,*) 'XX OLD FILE OPEN ERROR : IOSTAT = ',IST
+   10    WRITE(6,*) 'XX FWOPEN (',KPR,'): OLD FILE OPEN ERROR : IOSTAT = ',IST
          WRITE(6,*) 'IOMSG=',TRIM(KMSG)
          GOTO 9006
       ELSE
@@ -236,13 +236,13 @@ CONTAINS
             OPEN(NFL,FILE=KNAM,IOSTAT=IST,STATUS='NEW',ERR=20, &
      &           IOMSG=KMSG,FORM='FORMATTED')
          ELSE
-            WRITE(6,*) 'XX FEOPEN: UNKNOWN MODEF : MODEF=',MODEF
+            WRITE(6,*) 'XX FWOPEN (',KPR,'): UNKNOWN MODEF : MODEF=',MODEF
             GOTO 9005
          ENDIF
          WRITE(6,*) '# NEW FILE (',TRIM(KNAM),') IS CREATED FOR OUTPUT.'
          GOTO 9000
 
-   20    WRITE(6,*) 'XX NEW FILE OPEN ERROR : IOSTAT = ',IST
+   20    WRITE(6,*) 'XX FWOPEN (',KPR,'): NEW FILE OPEN ERROR : IOSTAT = ',IST
          WRITE(6,*) 'IOMSG=',TRIM(KMSG)
          GOTO 9006
       ENDIF
