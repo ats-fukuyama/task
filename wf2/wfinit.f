@@ -220,7 +220,10 @@ C                1 : Density gradient model
 C                2 : Pressure gradient model
 C
 C        MODELN: 0 : Fixed crosssection for electron collision with neutrals
-C                1 : Mometum transder collision data
+C                1 : Mometum transfer collision data for Ar, H2, CF4
+C                                H2  for PA(2)~1
+C                                Ar  for PA(2)~40
+C                                CF4 for PA(2)~88
 C
 C        MODELV:   : Type of divide model
 C

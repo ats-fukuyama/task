@@ -31,9 +31,6 @@ CONTAINS
     INTEGER:: NDN,MDN,LBXK,KBXK
     INTEGER:: ILL
 
-    IF(nrank.EQ.0) WRITE(24,'(A,3I6)') '@@ setf2:   ',nrank,nr
-    IF(nrank.EQ.1) WRITE(25,'(A,3I6)') '@@ setf2:   ',nrank,nr
-
     ALLOCATE(CEP0(3,3,nthmax_f,nhhmax_f))
     ALLOCATE(CRA(nthmax_f,nhhmax_f,3,3),CFA(nthmax_f,nhhmax_f,3,3))
     ALLOCATE(CRB(nthmax_f,nhhmax_f,3,3))

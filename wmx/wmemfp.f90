@@ -1114,11 +1114,6 @@ CONTAINS
     DO NS=1,NSMAX
        DO NDX=1,NDSIZ
           DO MDX=1,MDSIZ
-             IF(idebuga(41).NE.0.AND.nrank.EQ.0) THEN
-                WRITE(6,'(A,5I8)') 'nrank,nr_start,nr_end,nr_pos,nr_len=', &
-                     nrank,nr_start_nrank(nrank),nr_end_nrank(nrank), &
-                     nr_pos_nrank(nrank),nr_len_nrank(nrank)
-             END IF
              DO nr=1,nr_len_nrank(nrank)
                 nrr2=nr_start_nrank(nrank)+nr-1
                 cdata(nr)=CPABSK(MDX,NDX,nrr2,NS)

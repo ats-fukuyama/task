@@ -46,7 +46,7 @@ CONTAINS
     INTEGER:: itype,its
     REAL(rkind):: tolerance
 
-    nfl=30
+    nfl=61
     IF(idebuga(61).NE.0.AND.nrank.EQ.0) THEN
        CALL FWOPEN(nfl,knam_dump,1,0,'wm',ierr)
        IF(ierr.NE.0) STOP
@@ -144,7 +144,7 @@ CONTAINS
     WRITE(6,*) '@@@ point 23'
     IF(idebuga(61).NE.0.AND.nrank.EQ.0) THEN
        DO i=1,MLEN,3
-          WRITE(61,'(I6,6ES12.4)') &
+          WRITE(nfl,'(I6,6ES12.4)') &
                i,svec(i),svec(i+1),svec(i+2)
        END DO
     END IF

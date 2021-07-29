@@ -203,6 +203,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,DIMENSION(99):: idata
     REAL(rkind),DIMENSION(99):: rdata
+    INTEGER:: nsa
 
     !----- PL input parameters -----     
 
@@ -210,6 +211,11 @@ CONTAINS
 
 !----- DP input parameters -----
 
+    nsamax_dp=nsmax
+    DO nsa=1,nsamax_dp
+       ns_nsa_dp(nsa)=nsa
+    END DO
+       
     CALL dp_broadcast
 
 ! --- WM specific input parameters ---

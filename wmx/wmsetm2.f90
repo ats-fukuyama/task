@@ -159,9 +159,6 @@ CONTAINS
       REAL(rkind):: FACT1M,FACT1C,FACT1P,FACT2M,FACT2C,FACT2P
       REAL(rkind):: FACT3M,FACT3C,FACT3P
 
-      IF(nrank.EQ.0) WRITE(24,'(A,3I6)') '@@ setm_mtx:',nrank,nr,nr_start
-      IF(nrank.EQ.1) WRITE(25,'(A,3I6)') '@@ setm_mtx:',nrank,nr,nr_start
-      
       ! initial setting to set up 2) data for NR,  3) data for NR+1
 
       IF(IND.EQ.1) THEN
@@ -211,7 +208,7 @@ CONTAINS
 
          CALL wm_setf2(NR+1,0) !  wm_setf2 setup 3) data for NR+1
 
-      ENDIF
+      ENDIF ! end of IND=1
 
       ! --- now shift 2) data for NR to 1) data,
       ! --- and shift 3) data for NR+1 to 2) daata
