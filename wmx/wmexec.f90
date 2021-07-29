@@ -36,9 +36,7 @@ CONTAINS
     CALL wm_setj(IERR)
     IF(IERR.NE.0) RETURN
 
-    WRITE(6,*) '@@@ point 13'
     CALL wm_setew
-    WRITE(6,*) '@@@ point 14'
 
     IF(mdlwmx.EQ.1) THEN
        DO nr=1,nrmax
@@ -50,16 +48,11 @@ CONTAINS
        NR_S=nrmax
     END IF
 
-    WRITE(6,*) '@@@ point 15'
     CALL wm_solv
-    WRITE(6,*) '@@@ point 16'
     
     CALL wm_efield
-    WRITE(6,*) '@@@ point 17'
     CALL wm_bfield
-    WRITE(6,*) '@@@ point 18'
     CALL wm_pabs
-    WRITE(6,*) '@@@ point 19'
     IF(nrank.EQ.0) THEN
        CALL wm_pwrflux
        CALL wm_pwrant
@@ -210,7 +203,6 @@ CONTAINS
     INTEGER:: NHH,NTH,NA,ND,NN,MD,MDX,NDX
     REAL(rkind):: TH1,TH2,PH1,PH2,ANG,RWPH,F
     COMPLEX(rkind):: CW,CAJ,CEPH,CETH,CEPHPH,CEPHTH,CETHPH,CETHTH
-    COMPLEX(rkind):: C1,C2,C3
 
     DO NHH=1,NHHMAX
        DO NTH=1,NTHMAX
@@ -255,24 +247,13 @@ CONTAINS
              ELSE IF(MD.EQ.0) THEN
                 CETHTH=(TH2-TH1)/(2.D0*Pi)
              ELSE
-                C1=EXP(CI*MD*TH2)-EXP(CI*MD*TH1)
-                C2=2.D0*Pi*CI*MD
-                C3=1.D0/C2
-!                CETHTH=(EXP(CI*MD*TH2)-EXP(CI*MD*TH1))/(2.D0*Pi*CI*MD)
-                CETHTH=C1*C3
+                CETHTH=(EXP(CI*MD*TH2)-EXP(CI*MD*TH1))/(2.D0*Pi*CI*MD)
              END IF
              F=(MD*(TH2-TH1))**2-PI**2
              IF(ABS(F).LE.1.D-15) THEN
-                C1=EXP(CI*MD*TH1)
-                C2=4.D0*MD*CI
-                C3=1.D0/C2
-                CEPHTH=C1*C3
-!                CEPHTH=EXP(CI*MD*TH1)/(4.D0*MD*CI)
+                CEPHTH=EXP(CI*MD*TH1)/(4.D0*MD*CI)
              ELSE
-                C1=EXP(CI*MD*TH1)+EXP(CI*MD*TH2)
-                C2=(TH2-TH1)/(2.D0*F)
-                CEPHTH=C1*C2
-!                CEPHTH=(EXP(CI*MD*TH1)+EXP(CI*MD*TH2))*(TH2-TH1)/(2.D0*F)
+                CEPHTH=(EXP(CI*MD*TH1)+EXP(CI*MD*TH2))*(TH2-TH1)/(2.D0*F)
              END IF
 
              CETH=CETHPH*CETHTH*CAJ*AEWGT(NA)

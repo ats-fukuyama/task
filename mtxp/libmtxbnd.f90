@@ -429,6 +429,7 @@
       REAL(dp),OPTIONAL:: damping_factor,emax,emin
       INTEGER:: i,j
 
+      WRITE(6,*) '@@@ point 31'
       DO i=1,imax
          xc(i)=bc(i)
       ENDDO
@@ -437,6 +438,7 @@
 !         write(21,'(i5/(1P5E12.4))') i,(A(j,i),j=1,jmax)
 !      enddo
          
+      WRITE(6,*) '@@@ point 32'
       IF(MODE.EQ.2) THEN
          jmax=2*max(-icmin,icmax)+1
          joffset=(jmax+1)/2
@@ -456,7 +458,9 @@
 !                                         irmax,icmin,icmax,irc
       END IF
          
+      WRITE(6,*) '@@@ point 33'
       CALL BANDCD(Ac,xc,imax,jmax,jmax,ierr)
+      WRITE(6,*) '@@@ point 34'
       IF(ierr.ne.0) then
          WRITE(6,'(A,I5)') 'XX BANDCD in mtxc_solve: ierr=',ierr
          its=-1
