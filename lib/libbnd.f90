@@ -107,6 +107,7 @@ CONTAINS
          I=N
          GO TO 9002
       END IF
+      
       X( N ) = X( N ) / A( 1 , N )
       JJ = 2
       DO I = 1 , NM
@@ -153,6 +154,7 @@ CONTAINS
       COMPLEX(dp) :: TEMP
       REAL(dp), PARAMETER :: EPS = 1.D-70
       INTEGER :: I, J, K, LH, LHM, NM, LHMK, NPMK, LPMI, IPIVOT, IP, JJ
+      COMPLEX(dp) :: C1
 
       IF( MOD(L,2) .EQ. 0 ) GO TO 9000
       LH  = (L+1)/2
@@ -220,7 +222,9 @@ CONTAINS
          GOTO 9002
       ENDIF
 
-      X( N ) = X( N ) / A( 1 , N )
+      C1=1.D0 / A( 1 , N )
+      X( N ) = X( N ) * C1
+!      X( N ) = X( N ) / A( 1 , N )
       JJ = 2
       DO I = 1 , NM
          K = N-I

@@ -82,6 +82,7 @@ CONTAINS
 
     nr_previous=0
 
+    WRITE(6,*) '@@@ point 20'
     DO i=istart,iend
        X=(0.D0,0.D0)
        A(1:MBND)=(0.D0,0.D0)
@@ -131,13 +132,16 @@ CONTAINS
        END IF
     END DO
 
+    WRITE(6,*) '@@@ point 21'
     itype=1  ! infolevel for MUMPS
     tolerance=1.D-12
     CALL mtxc_solve(itype,tolerance,its)
     IF(nrank.EQ.0) WRITE(6,'(A,I8)') '## wm_solv: iteration=',its
       
+    WRITE(6,*) '@@@ point 22'
     CALL mtxc_gather_vector(svec)
 
+    WRITE(6,*) '@@@ point 23'
     IF(idebuga(61).NE.0.AND.nrank.EQ.0) THEN
        DO i=1,MLEN,3
           WRITE(nfl,'(I6,6ES12.4)') &

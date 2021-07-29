@@ -307,6 +307,8 @@ CONTAINS
                             ENDIF
                             IF(MB1.GT.MDMAX_F.OR.MB2.LT.MDMIN_F) EXIT
 
+                            IF(MB1.GT.MDMAX_F.OR.MB2.LT.MDMIN_F) EXIT
+
                             DO K=1,3
                                DO I=1,3
                                   DO L=1,3
