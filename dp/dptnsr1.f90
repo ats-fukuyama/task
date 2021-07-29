@@ -398,7 +398,6 @@ CONTAINS
       COMPLEX(rkind):: CLAM,CLAMM,CLAMP,CDLAM,CBLAM,CWNU
       REAL(rkind):: WTPR,WTPP,WTPX
       INTEGER:: I,NHMAX,NC,NH
-      COMPLEX(rkind):: C1,C2,C3
 
       DO I=1,6
          CLDISP(I)=0.D0
@@ -419,11 +418,7 @@ CONTAINS
       WTPR=plfw(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))
       WTPP=plfw(NS)%RTPP*1.D3*AEE/(AMP*PA(NS))
       WTPX=SQRT(WTPR/WTPP)
-      C1=CKPP*CKPP*WTPP
-      C2=CWC*CWC*CW*CW
-      C3=1.D0/C2
-      CBETA=C1*C3
-!      CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
+      CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
       DO NH=0,NHMAX
          CALAM(NH)=BESEINX(NH,REAL(CBETA))
       END DO
@@ -433,14 +428,8 @@ CONTAINS
             CPR=CW/SQRT(2.D0*1.D-4**2*WTPR)
             CK=CKPP/1.D-4
          ELSE
-            C1=2.D0*CKPR**2*WTPR
-            C2=SQRT(C1)
-            C3=1.D0/C2
-            CPR=CW*C3
-!            CPR=CW/SQRT(2.D0*CKPR**2*WTPR)
-            C3=1.D0/CKPR
-            CK=CKPP*C3
-!            CK=CKPP/CKPR
+            CPR=CW/SQRT(2.D0*CKPR**2*WTPR)
+            CK=CKPP/CKPR
         ENDIF
          CGZ= (CWNU-NC*CWC)*CPR
          CALL DSPFN(CGZ,CZ,CDZ)
