@@ -251,8 +251,9 @@ CONTAINS
 !     *** dedub_info ***
 !                41: wmemfp,wmsolv: nr1 and nr2 check
 !                51: wmsetm1: IN/OUT mesh info
-!                61: matrix coefficiewnts  knam_dump
-!                71: mode dependence of p_abs
+!                61: matrix coefficiewnts  knam_dump: 61+nrank
+!                71: nph0 mode dump
+!                81: mode dependence of p_abs
       DO i=1,idebug_max
          idebuga(i)=0
       END DO

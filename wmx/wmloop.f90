@@ -137,21 +137,23 @@ CONTAINS
 !         write(6,'(A,1P2E12.4)') 
 !     &        'CEFLD3D(1,5,NPH,5)=',CEFLD3D(1,5,NPH,5)
 
-       IF(KNAMWM /=' ')THEN
-          IF(NRANK.EQ.0) THEN
-             KNAMWM_SAVE=KNAMWM
-             WRITE(KNHC,"(i2.2)") NHC
-             IF (NPH0 .ge. 0)THEN
-                WRITE(KNPH0,"(A1,i3.3)")"p",NPH0
-             ELSE
-                WRITE(KNPH0,"(A1,i3.3)")"m",-NPH0
+       IF(idebuga(71).NE.0) THEN
+          IF(KNAMWM /=' ')THEN
+             IF(NRANK.EQ.0) THEN
+                KNAMWM_SAVE=KNAMWM
+                WRITE(KNHC,"(i2.2)") NHC
+                IF (NPH0 .ge. 0)THEN
+                   WRITE(KNPH0,"(A1,i3.3)")"p",NPH0
+                ELSE
+                   WRITE(KNPH0,"(A1,i3.3)")"m",-NPH0
+                ENDIF
+                KNAMWM=''//TRIM(KNAMWM_SAVE)//'_'//KNPH0//''
+                CALL wm_save(ierr)
+                KNAMWM=KNAMWM_SAVE
              ENDIF
-             KNAMWM=''//TRIM(KNAMWM_SAVE)//'_'//KNPH0//''
-             CALL wm_save(ierr)
-             KNAMWM=KNAMWM_SAVE
           ENDIF
-       ENDIF
-    ENDDO
+       END IF
+    END DO
 
     CALL wm_pout_sum
     CALL wm_pout

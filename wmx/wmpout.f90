@@ -24,7 +24,7 @@ CONTAINS
 
     IF(NPRINT.LT.2) RETURN
 
-    IF(idebuga(71).NE.0.AND.NRANK.EQ.0) THEN
+    IF(idebuga(81).NE.0.AND.NRANK.EQ.0) THEN
        WRITE(6,*) '   NN   MM   IMP                        PABSKT'
        DO ND=NDMIN,NDMAX
           NDX=ND-NDMIN+1
