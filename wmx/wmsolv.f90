@@ -138,9 +138,9 @@ CONTAINS
       
     CALL mtxc_gather_vector(svec)
 
-    IF(idebuga(61).NE.0.AND.nrank.EQ.0) THEN
+    IF(idebuga(69).NE.0.AND.nrank.EQ.0) THEN
        DO i=1,MLEN,3
-          WRITE(nfl,'(I6,6ES12.4)') &
+          WRITE(69,'(I6,6ES12.4)') &
                i,svec(i),svec(i+1),svec(i+2)
        END DO
     END IF

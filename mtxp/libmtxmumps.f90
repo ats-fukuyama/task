@@ -166,6 +166,7 @@
       ALLOCATE(istartx(0:nsize-1),iendx(0:nsize-1),isizex(0:nsize-1))
       ALLOCATE(nz_tot(0:nsize-1))
       ALLOCATE(b(imax),b_loc(iend-istart+1))
+      b_loc(1:iend-istart+1)=0.D0
       RETURN
       END SUBROUTINE mtx_setup
       
@@ -461,6 +462,7 @@
       ALLOCATE(istartx(0:nsize-1),iendx(0:nsize-1),isizex(0:nsize-1))
       ALLOCATE(nz_tot(0:nsize-1))
       ALLOCATE(bc(imax),bc_loc(iend-istart+1))
+      bc_loc(1:iend-istart+1)=0.D0
       RETURN
       END SUBROUTINE mtxc_setup
       
