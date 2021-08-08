@@ -435,7 +435,7 @@ CONTAINS
       INTEGER,INTENT(IN):: ns
       COMPLEX(8),DIMENSION(4,4,4,nfcmax,nfcmax),INTENT(OUT):: fmd
 !      COMPLEX(8),DIMENSION(3,3,4,nfcmax2,nfcmax):: fmc
-      COMPLEX(8),DIMENSION(:,:,:,:,:),pointer:: fmc
+      COMPLEX(8),DIMENSION(:,:,:,:,:),ALLOCATABLE:: fmc
       COMPLEX(8),DIMENSION(nthmax2,nhhmax2):: fv1,fv1f
 
       COMPLEX(8),DIMENSION(3,3,nfcmax2,nfcmax):: &
@@ -737,7 +737,7 @@ CONTAINS
                                          fmc42,fmc43,fmc4a2,fmca43
       COMPLEX(8),DIMENSION(nfcmax2,nfcmax),INTENT(OUT):: fmc44
 !      COMPLEX(8),DIMENSION(3,3,4,nfcmax2,nfcmax):: fmc
-      COMPLEX(8),DIMENSION(:,:,:,:,:),pointer:: fmc
+      COMPLEX(8),DIMENSION(:,:,:,:,:),ALLOCATABLE:: fmc
       REAL(8),DIMENSION(3,3,nthmax2,nhhmax2) :: gma,muma,dmuma
       REAL(8),DIMENSION(3,3,nthmax2,nhhmax2) :: gpa,gmuma
       REAL(8),DIMENSION(3,nthmax2,nhhmax2) :: dgjgmuma

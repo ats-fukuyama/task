@@ -15,7 +15,7 @@
 
       PRIVATE
 
-      REAL(8),dimension(1:5,1:6):: Duane_Coef
+      REAL(RKIND),dimension(1:5,1:6):: Duane_Coef
       DATA Duane_Coef/ &
              46.097D0,  372.D0,4.360D-4,1.220D0,  0.D0, & ! D-D reaction 1 ID=1
              47.880D0,  482.D0,3.080D-4,1.177D0,  0.D0, & ! D-D reaction 2 ID=2
@@ -32,8 +32,8 @@
 
       FUNCTION SIGMA_E(E,ID)
       IMPLICIT NONE
-      REAL(8):: SIGMA_E      ! [m^2] (1 barn = 10^{-28} m^2)
-      REAL(8),INTENT(IN):: E ! Energy in [keV]
+      REAL(RKIND):: SIGMA_E      ! [m^2] (1 barn = 10^{-28} m^2)
+      REAL(RKIND),INTENT(IN):: E ! Energy in [keV]
       INTEGER,INTENT(IN):: ID
 
 !      write(6,'(1P3E12.4)') E, &
@@ -57,10 +57,10 @@
 
       FUNCTION SIGMAV_PHI(E0L,E1L,PHI,ID)
       IMPLICIT NONE
-      REAL(8):: SIGMAV_PHI
-      REAL(8),INTENT(IN):: E0L,E1L,PHI
+      REAL(RKIND):: SIGMAV_PHI
+      REAL(RKIND),INTENT(IN):: E0L,E1L,PHI
       INTEGER,INTENT(IN):: ID
-      REAL(8):: E
+      REAL(RKIND):: E
 
       E=E0L-E1L*COS(PHI)
 !      write(*,*) "E0L",E0L
@@ -76,12 +76,12 @@
 
       FUNCTION SIGMAV_E(E0L,E1L,ID)
       IMPLICIT NONE
-      REAL(8):: SIGMAV_E
-      REAL(8),INTENT(IN):: E0L,E1L
+      REAL(RKIND):: SIGMAV_E
+      REAL(RKIND),INTENT(IN):: E0L,E1L
       INTEGER,INTENT(IN):: ID
       INTEGER,PARAMETER:: NPHIMAX=50 ! Number of phi mesh
       INTEGER:: NPHI
-      REAL(8):: PHI,E,RSUM,DPHI
+      REAL(RKIND):: PHI,RSUM,DPHI
 
       DPHI=PI/NPHIMAX
       RSUM=0.D0
@@ -100,9 +100,9 @@
       USE fpcomm
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NP1, NTH1, NP2, NTH2, NSB1, NSB2
-      REAL(8),INTENT(OUT):: E0L, E1L ! Energy in keV
-      REAL(8):: VPARA1, VPARA2, VPERP1, VPERP2, V_MS
-      REAL(8):: RED_MASS
+      REAL(RKIND),INTENT(OUT):: E0L, E1L ! Energy in keV
+      REAL(RKIND):: VPARA1, VPARA2, VPERP1, VPERP2, V_MS
+      REAL(RKIND):: RED_MASS
       INTEGER:: NS1, NS2
 
       NS1=NS_NSB(NSB1)
@@ -128,15 +128,18 @@
       SUBROUTINE NF_REACTION_COEF
 
       USE fpcomm
-      USE libspl2d  
+      USE libspl2d
       IMPLICIT NONE
       INTEGER,PARAMETER:: NEMAX=101 ! Number of energy mesh
-      REAL(8),DIMENSION(NEMAX):: E0A,E1A
-      REAL(8),DIMENSION(NEMAX,NEMAX):: SIGMAVA,FX,FY,FXY
-      REAL(8),DIMENSION(4,4,NEMAX,NEMAX):: USV
+      REAL(RKIND),DIMENSION(NEMAX):: E0A,E1A
+      REAL(RKIND),ALLOCATABLE:: SIGMAVA(:,:),FX(:,:),FY(:,:),FXY(:,:)
+      REAL(RKIND),ALLOCATABLE:: USV(:,:,:,:)
       INTEGER:: NSA,NSB,NS,NSB1,NSB2,ID,NE0,NE1,NTH1,NTH2,NP1,NP2,IERR,L,K,NS1,NS2
-      REAL(8):: RED_MASS,V1MAX,V2MAX,E0MAX,E1MAX,DELE0,DELE1,SUM,E0L,E1L,F0
-      REAL(8):: E3
+      REAL(RKIND):: RED_MASS,V1MAX,V2MAX,E0MAX,E1MAX,DELE0,DELE1,E0L,E1L,F0
+
+      ALLOCATE(SIGMAVA(NEMAX,NEMAX))
+      ALLOCATE(FX(NEMAX,NEMAX),FY(NEMAX,NEMAX),FXY(NEMAX,NEMAX))
+      ALLOCATE(USV(4,4,NEMAX,NEMAX))
 
 !---- identify possible fusion reactions ----
 !     ---- identify related particle species ----
@@ -349,11 +352,11 @@
       USE libmpi
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR,ID
-      INTEGER:: NSB1, NSB2, NSA1, NSA2, NP1, NP2, NTH1, NTH2, VLOC, i, NSA, NS1, NS2
-      REAL(8):: RSUM, FACT, RSUM2, FACT1, FACT2, FACT3
-      real(8):: double_count, RSUM3, RSUM_B2, RSUM_sum, RSUM_B1
-      real(8),dimension(NTHMAX,NPMAX):: FNSB_B2_VOLP
-      real(8),dimension(NTHMAX,NPSTART:NPEND):: FNSB_temp
+      INTEGER:: NSB1, NSB2, NSA1, NSA2, NP1, NP2, NTH1, NTH2, VLOC, NS1, NS2
+      REAL(rkind):: FACT, RSUM2, FACT1, FACT2, FACT3
+      REAL(rkind):: double_count, RSUM3, RSUM_B2, RSUM_sum
+      REAL(rkind),dimension(NTHMAX,NPMAX):: FNSB_B2_VOLP
+      REAL(rkind),dimension(NTHMAX,NPSTART:NPEND):: FNSB_temp
 
       NSB1=NSB1_NF(ID)
       NSB2=NSB2_NF(ID)
@@ -472,8 +475,8 @@
       USE fpcomm
       USE libmpi
       IMPLICIT NONE
-      double precision,dimension((NREND-NRSTART+1)*6):: RATE_NF_SEND, RATE_NF_BB_SEND
-      double precision,dimension((NREND-NRSTART+1)*6):: RATE_NF_RECV, RATE_NF_BB_RECV
+      REAL(rkind),dimension((NREND-NRSTART+1)*6):: RATE_NF_SEND, RATE_NF_BB_SEND
+      REAL(rkind),dimension((NREND-NRSTART+1)*6):: RATE_NF_RECV, RATE_NF_BB_RECV
       integer,dimension(6*(NREND-NRSTART+1)):: vloc ! empty
       INTEGER:: NR,ID,ndata,NSA1,NSA2,i,j
 

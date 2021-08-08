@@ -18,10 +18,10 @@
       IMPLICIT NONE
       integer:: NR
       integer:: imtxstart1,imtxend1,its
-      real(4):: gut1, gut2
-      real(8):: Aij, Aij_m1, Aij_p1, RHS, b_wall, E_e, a_e, coef_ln
-      real(8):: factr, factp, DR_coef, RN_runm
-      real(8),dimension(NRMAX):: dndt
+      REAL:: gut1, gut2
+      REAL(rkind):: Aij, Aij_m1, Aij_p1, RHS, b_wall, E_e, a_e, coef_ln
+      REAL(rkind):: factr, factp, DR_coef, RN_runm
+      REAL(rkind),dimension(NRMAX):: dndt
 
       CALL GUTIME(gut1)
 
@@ -163,9 +163,9 @@
 
       IMPLICIT NONE
       integer:: NR
-      real(4):: gut1, gut2
-      real(8):: coef, term1, term2, term3, term4
-      real(8),dimension(NRSTART:NREND):: EP_local
+      REAL:: gut1, gut2
+      REAL(rkind):: coef, term1, term2, term3, term4
+      REAL(rkind),dimension(NRSTART:NREND):: EP_local
 
       CALL GUTIME(gut1)
 
@@ -202,10 +202,10 @@
       IMPLICIT NONE
       integer:: NR
       integer:: imtxstart1,imtxend1,its
-      real(8),dimension(NRSTART:NREND),INTENT(IN):: E_SIGMA
-      real(4):: gut1, gut2
-      real(8):: Aij, Aij_m1, Aij_p1, RHS, b_wall, E_e, a_e, coef_ln
-      real(8):: RJ_P
+      REAL(rkind),dimension(NRSTART:NREND),INTENT(IN):: E_SIGMA
+      REAL:: gut1, gut2
+      REAL(rkind):: Aij, Aij_m1, Aij_p1, RHS, b_wall, E_e, a_e, coef_ln
+      REAL(rkind):: RJ_P
 
       CALL GUTIME(gut1)
       CALL mtx_set_communicator(comm_nr) !3D
@@ -289,8 +289,8 @@
       IMPLICIT NONE
       integer:: NR
       integer:: imtxstart1,imtxend1,its
-      real(4):: gut1, gut2
-      real(8):: Aij, Aij_m1, Aij_p1, RHS, b_wall, E_e, a_e, coef_ln, RJ_P
+      REAL:: gut1, gut2
+      REAL(rkind):: Aij, Aij_m1, Aij_p1, RHS, b_wall, E_e, a_e, coef_ln, RJ_P
 
       CALL GUTIME(gut1)
       CALL mtx_set_communicator(comm_nr) !3D
@@ -381,10 +381,10 @@
       IMPLICIT NONE
       integer:: NR
       integer:: imtxstart1,imtxend1,its
-      real(8):: Aij, Aij_m1, Aij_p1, RHS, b_wall, E_e, a_e, coef_ln
-      real(8):: RJ_P, SUMB_pol_p, SUMB_POL_M, SUM_PSI_P, SUM_PSI_M 
-      real(8),dimension(NRMAX):: RB_pol_P, RB_pol_M
-      real(8):: RPSI_POL_P, RPSI_POL_M
+      REAL(rkind):: Aij, Aij_p1, RHS, b_wall, E_e, a_e, coef_ln
+      REAL(rkind):: SUMB_pol_p, SUMB_POL_M, SUM_PSI_P, SUM_PSI_M 
+      REAL(rkind),dimension(NRMAX):: RB_pol_P, RB_pol_M
+      REAL(rkind):: RPSI_POL_P, RPSI_POL_M
 
       SUMB_pol_P=0.D0
       SUMB_pol_M=0.D0
@@ -460,12 +460,12 @@
       USE libmtx
       IMPLICIT NONE
       INTEGER:: NR
-      real(8),dimension(NRMAX),intent(out):: dndt
+      REAL(rkind),dimension(NRMAX),intent(out):: dndt
       integer:: imtxstart1,imtxend1,its
-      real(8):: Dr_coef, factp, factr
-      real(8):: Aij, Aij_m1, Aij_p1, RHS, b_wall, E_e, a_e, coef_ln
-      real(8),dimension(NRMAX):: RN_new
-      real(8):: sum1, sum2
+      REAL(rkind):: Dr_coef, factp, factr
+      REAL(rkind):: Aij, Aij_m1, Aij_p1, RHS
+      REAL(rkind),dimension(NRMAX):: RN_new
+      REAL(rkind):: sum1, sum2
 
       CALL mtx_set_communicator(comm_nr) 
       FACTP=PI*RR*VC/SQRT(2.D0)
@@ -528,8 +528,8 @@
       USE libmpi
       IMPLICIT NONE
       INTEGER:: i,j
-      double precision:: time_read
-      double precision,dimension(NRMAX):: read_E
+      REAL(rkind):: time_read
+      REAL(rkind),dimension(NRMAX):: read_E
 
       CALL mtx_reset_communicator
 

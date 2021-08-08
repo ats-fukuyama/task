@@ -12,8 +12,8 @@ CONTAINS
       USE libmtx
       INCLUDE '../eq/eqcomc.inc'
       INTEGER,DIMENSION(3):: idata
-      REAL(8),DIMENSION(11):: ddata
-      REAL(8),DIMENSION(:),POINTER:: temp
+      REAL(RKIND),DIMENSION(11):: ddata
+      REAL(RKIND),DIMENSION(:),POINTER:: temp
       INTEGER:: nrg,nzg
 
       idata( 1)=NRGMAX

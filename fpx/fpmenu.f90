@@ -18,6 +18,11 @@
       USE plinit
       USE plparm
       USE fpfile
+      USE fpcaltp
+      USE fpcalte
+      USE fpcaldeff
+      USE fpcalchieff
+      USE fowmenu
       USE libkio
       USE libmpi
       USE libmtx
@@ -27,14 +32,14 @@
       CHARACTER(LEN=80):: LINE
       integer:: ierr,NGRAPH_SAVE
       integer,DIMENSION(1):: mode
-      REAL(4):: cputime1,cputime2
+      REAL:: cputime1,cputime2
 
     1 CONTINUE
       IF(nrank.EQ.0) THEN
          ierr=0
          WRITE(6,601)
   601    FORMAT('## FP MENU: R:RUN C:CONT P,V:PARAM G,F:GRAPH', &
-                           ' L,S:FILE Y,Z:COEF W:WRITE Q:QUIT')
+                           ' O:fow L,S:FILE Y,Z:COEF W:WRITE Q:QUIT')
          CALL TASK_KLIN(LINE,KID,MODE(1),fp_parm)
       ENDIF
       CALL mtx_barrier
@@ -110,6 +115,11 @@
          if(nrank.eq.0) CALL fp_load2
          CALL mtx_barrier
          CALL FP_POST_LOAD
+      ELSEIF (KID.EQ.'Z') THEN
+         CALL fp_caldeff
+         CALL fp_calchieff
+      ELSEIF (KID.EQ.'O') THEN
+         CALL fow_menu     
       ELSEIF (KID.EQ.'Q') THEN
          CALL CLOSE_EVOLVE_DATA_OUTPUT 
          GO TO 9000

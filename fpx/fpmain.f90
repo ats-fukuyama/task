@@ -8,10 +8,10 @@
 !                           V2.1  1993/09/16
 !                           V2.2  1997/03/18
 !                           V3.0  1997/08/05
-!                           V4.0  2019/12/01
 
 !                        PROGRAMMED BY
 !                         A. FUKUYAMA
+!                      OKAYAMA UNIVERSITY
 
 !     ********************************************************
       program fp
@@ -31,7 +31,7 @@
 
       CALL mtx_initialize
       IF(nrank.EQ.0) THEN
-         WRITE(6,*) '***** TASK/FP 2019/12/01 *****'
+         WRITE(6,*) '***** TASK/FP 2009/09/18 *****'
          CALL GSOPEN
          OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
       ENDIF

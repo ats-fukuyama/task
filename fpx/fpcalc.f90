@@ -13,11 +13,11 @@
       USE fpmpi
       USE libmpi
       USE libspf, ONLY: ERF0,ERF1
-      real(8):: PMAXC
+      REAL(rkind):: PMAXC
       integer:: NSB_ISO
-      real(8):: THETA0L_C, THETAL_C
-      real(8):: RTFD0L_C, RTFDL_C, PNFP_C
-      real(8):: RNFD0L_C, RNFDL_C
+      REAL(rkind):: THETA0L_C, THETAL_C
+      REAL(rkind):: RTFD0L_C, RTFDL_C, PNFP_C
+      REAL(rkind):: RNFD0L_C, RNFDL_C
 
       integer,parameter:: ISW_NOTAIL=0
       integer,parameter:: MODEL_DE=1
@@ -33,8 +33,7 @@
       USE fpcalcnr, ONLY: FPCALC_NLR 
       IMPLICIT NONE
       integer:: NSA,NSB,NSSB,NR, NP, NTH,NS
-      integer:: nsrc,nsend
-      real(8):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL, RGAMA, DFDP, DFDTH
+      REAL(rkind):: RGAMH, RGAMH2, RZI, PFPL, VFPL, DCTTL, RGAMA
 
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
@@ -242,10 +241,10 @@
       USE libgrf,ONLY: grd1d
       implicit none
       integer, intent(IN)::  ID,IND,NTHM,NPM,NRM,NTHMAX,NPMAX,NRMAX,NSA
-      real(8), dimension(NTHM,NPM,NRM,NSA), intent(IN):: DATA
-      real(8), dimension(NPM), intent(IN):: P
+      REAL(rkind), dimension(NTHM,NPM,NRM,NSA), intent(IN):: DATA
+      REAL(rkind), dimension(NPM), intent(IN):: P
       character(len=*):: title
-      real(8), dimension(NPM,9):: WORK
+      REAL(rkind), dimension(NPM,9):: WORK
       integer, dimension(9):: NTHG
       integer:: nth,np,nr,ng,npmaxg
 
@@ -307,10 +306,10 @@
       USE libgrf,ONLY: grd1d
       implicit none
       integer, intent(IN)::  ID,IND,NTHM,NPM,NRM,NTHMAX,NPMAX,NRMAX,NSA
-      real(8), dimension(NTHM,NPM,NRM,NSA), intent(IN):: DATA
-      real(8), dimension(NTHM), intent(IN):: TH
+      REAL(rkind), dimension(NTHM,NPM,NRM,NSA), intent(IN):: DATA
+      REAL(rkind), dimension(NTHM), intent(IN):: TH
       character(len=*):: title
-      real(8), dimension(NTHM,10):: WORK
+      REAL(rkind), dimension(NTHM,10):: WORK
       integer, dimension(10):: NPG
       integer:: nth,np,nr,ng,nthmaxg
 
@@ -358,9 +357,9 @@
       FUNCTION FPFN0R(X)
 !
       IMPLICIT NONE
-      real(8)::FPFN0R
-      real(8),INTENT(IN):: X
-      real(8)::PN, FACT
+      REAL(rkind)::FPFN0R
+      REAL(rkind),INTENT(IN):: X
+      REAL(rkind)::PN, FACT
 !
       IF(MODEL_DE.eq.0)THEN
          FACT=1.D0
@@ -378,16 +377,13 @@
       FUNCTION FPFN1R(X,XM,XP)
 
       IMPLICIT NONE
-      real(8)::FPFN1R
-      real(8),INTENT(IN)::X, XM, XP
-      real(8)::PN, A, B, FACT
+      REAL(rkind)::FPFN1R
+      REAL(rkind),INTENT(IN)::X, XM, XP
+      REAL(rkind)::PN, A, B
+      REAL(RKIND):: DUMMY
 
-!      IF(MODEL_DE.eq.0)THEN
-!         FACT=1.D0
-!      ELSE
-!         FACT=SQRT(RTFDL_C/RTFD0L_C)
-!      END IF
-
+      DUMMY=X
+      DUMMY=XM
       A=0.5D0*PNFP_C
       PN=A*XP
       B=PN**4/(1.D0+PN**2*THETA0L_C)
@@ -400,9 +396,9 @@
 !
       FUNCTION FPFN2R(X)
 
-      real(8):: FPFN2R
-      real(8),INTENT(IN):: X
-      real(8):: A, PN, B, FACT
+      REAL(rkind):: FPFN2R
+      REAL(rkind),INTENT(IN):: X
+      REAL(rkind):: A, PN, B, FACT
 
       IF(MODEL_DE.eq.0)THEN
          FACT=1.D0
@@ -426,10 +422,13 @@
 !
       FUNCTION FPFN3R(X,XM,XP)
 
-      real(8):: FPFN3R
-      real(8),INTENT(IN):: X, XM, XP
-      real(8):: A, PN, FACT
+      REAL(rkind):: FPFN3R
+      REAL(rkind),INTENT(IN):: X, XM, XP
+      REAL(rkind):: A, PN
+      REAL(RKIND):: DUMMY
 
+      DUMMY=X
+      DUMMY=XM
       A=0.5D0*PNFP_C
       PN=A*XP
       FPFN3R=A*PN**2*FPRMXW(PN)
@@ -441,10 +440,13 @@
 !
       FUNCTION FPFN4R(X,XM,XP)
 
-      real(8):: FPFN4R
-      real(8),INTENT(IN):: X, XM, XP
-      real(8):: A, PN, B, FACT
+      REAL(rkind):: FPFN4R
+      REAL(rkind),INTENT(IN):: X, XM, XP
+      REAL(rkind):: A, PN, B
+      REAL(RKIND):: DUMMY
 
+      DUMMY=X
+      DUMMY=XM
       A=0.5D0*PNFP_C
       PN=A*XP
       B=PN**2/SQRT(1.D0+PN**2*THETA0L_C)
@@ -457,10 +459,13 @@
 !
       FUNCTION FPFN5R(X,XM,XP)
 
-      real(8):: FPFN5R
-      real(8),INTENT(IN):: X, XM, XP
-      real(8):: A, PN, B, FACT
+      REAL(rkind):: FPFN5R
+      REAL(rkind),INTENT(IN):: X, XM, XP
+      REAL(rkind):: A, PN, B
+      REAL(RKIND):: DUMMY
 
+      DUMMY=X
+      DUMMY=XM
       A=0.5D0*PNFP_C
       PN=A*XP
       B=PN**4/(SQRT(1.D0+PN**2*THETA0L_C))**3
@@ -473,9 +478,9 @@
 !
       FUNCTION FPFN6R(X)
 
-      real(8):: FPFN6R
-      real(8),INTENT(IN):: X
-      real(8):: A, PN, FACT
+      REAL(rkind):: FPFN6R
+      REAL(rkind),INTENT(IN):: X
+      REAL(rkind):: A, PN, FACT
 
       IF(MODEL_DE.eq.0)THEN
          FACT=1.D0
@@ -493,11 +498,14 @@
 ! =============================================================== 
       FUNCTION FPFN7R(X,XM,XP)!
 !                            
-      real(8):: FPFN7R
-      real(8),INTENT(IN):: X, XM, XP
-      real(8):: A, PN, B, PMAX2, FACT
+      REAL(rkind):: FPFN7R
+      REAL(rkind),INTENT(IN):: X, XM, XP
+      REAL(rkind):: A, PN, B, PMAX2
+      REAL(RKIND):: DUMMY
 
 
+      DUMMY=X
+      DUMMY=XM
       PMAX2=PMAXC
       A=0.5D0*(PNFP_C-PMAX2)
       PN=( A*XP+0.5D0*(PNFP_C+PMAX2) )
@@ -511,11 +519,13 @@
 !
       FUNCTION FPFN8R(X,XM,XP)!
 
-      real(8):: FPFN8R
-      real(8),INTENT(IN):: X, XM, XP
-      real(8):: A, PN, B, PMAX2, FACT
+      REAL(rkind):: FPFN8R
+      REAL(rkind),INTENT(IN):: X, XM, XP
+      REAL(rkind):: A, PN, PMAX2
+      REAL(RKIND):: DUMMY
 
-
+      DUMMY=X
+      DUMMY=XM
       PMAX2=PMAXC
       A=0.5D0*(PNFP_C-PMAX2)
       PN=( A*XP+0.5D0*(PNFP_C+PMAX2) )
@@ -528,11 +538,13 @@
 !
       FUNCTION FPFN9R(X,XM,XP)!
 
-      real(8):: FPFN9R
-      real(8),INTENT(IN):: X, XM, XP
-      real(8):: A, PN, B, PMAX2, FACT
+      REAL(rkind):: FPFN9R
+      REAL(rkind),INTENT(IN):: X, XM, XP
+      REAL(rkind):: A, PN, B, PMAX2
+      REAL(RKIND):: DUMMY
 
-
+      DUMMY=X
+      DUMMY=XM
       PMAX2=PMAXC
       A=0.5D0*(PNFP_C-PMAX2)
       PN=( A*XP+0.5D0*(PNFP_C+PMAX2) )
@@ -546,10 +558,13 @@
 !
       FUNCTION FPFN10R(X,XM,XP)!
 
-      real(8):: FPFN10R
-      real(8),INTENT(IN):: X, XM, XP
-      real(8):: A, PN, B, PMAX2, FACT
+      REAL(rkind):: FPFN10R
+      REAL(rkind),INTENT(IN):: X, XM, XP
+      REAL(rkind):: A, PN, B, PMAX2
+      REAL(rkind):: DUMMY
 
+      DUMMY=X
+      DUMMY=XM
       PMAX2=PMAXC
       A=0.5D0*(PNFP_C-PMAX2)
       PN=( A*XP+0.5D0*(PNFP_C+PMAX2) )
@@ -565,10 +580,10 @@
 
       USE libbes,ONLY: beseknx
       USE plprof
-      real(8):: FPRMXW
-      real(8),INTENT(IN):: PN
-      real(8):: EX
-      real(8):: FACT, DKBSL, Z
+      REAL(rkind):: FPRMXW
+      REAL(rkind),INTENT(IN):: PN
+      REAL(rkind):: EX
+      REAL(rkind):: FACT, DKBSL, Z
 
       IF(MODELR.eq.1)THEN
          Z=1.D0/THETAL_C
@@ -607,12 +622,12 @@
       IMPLICIT NONE
 
       integer:: NSA, NSB, NR, NP, NTH, NSSA, NSSB
-      real(8):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL
-      real(8):: RNNL, RNUFL, RNUDL, DCPPL, FCPPL, V
-      real(8):: PNFPL, RGAMA, vtatb, ptatb, PCRIT
-      real(8):: RINT0, ES0, RINT1, ES1, RINT2, ES2, RINT4, ES4, RINT5, ES5
-      real(8):: RINT6, ES6, RINT7, ES7, RINT8, ES8, RINT9, ES9
-      real(8):: RINT3, ES3, p_thermal, v_thermal, pe_thermal, EX, RNFDL
+      REAL(rkind):: RGAMH, PFPL, VFPL, U, DCTTL
+      REAL(rkind):: RNNL, RNUFL, RNUDL, DCPPL, FCPPL, V
+      REAL(rkind):: PNFPL, RGAMA, vtatb, ptatb, PCRIT
+      REAL(rkind):: RINT0, ES0, RINT1, ES1, RINT2, ES2, RINT4, ES4, RINT5, ES5
+      REAL(rkind):: RINT6, ES6, RINT7, ES7, RINT8, ES8, RINT9, ES9
+      REAL(rkind):: RINT3, ES3, p_thermal, v_thermal, RNFDL
 
 !     ------ define --------
       RNNL=RNFD(NR,NSB)/RNFP0(NSA)
@@ -634,9 +649,14 @@
 !
       IF(MODELR.EQ.0) THEN 
          IF(MODELC(NSSB).eq.0)THEN ! maxwellian
-            RTFDL_C=RTFD(NR,NSB)
-            RTFD0L_C=RTFD0(NSB)
-            v_thermal=VTFD(NR,NSB)
+            IF(MODEL_DISRUPT.eq.0)THEN
+               RTFDL_C=RTFD(NR,NSB)
+               RTFD0L_C=RTFD0(NSB)
+               v_thermal=VTFD(NR,NSB)
+            ELSEIF(MODEL_DISRUPT.ge.1)THEN
+               RTFDL_C=RT_quench(NR) ! [keV]
+               v_thermal=SQRT( RTFDL_C*1.D3*AEE/AMFD(NSB))
+            END IF
             DO NP=NPSTART,NPENDWG
                IF(NP.EQ.1) THEN
                   DCPPL=RGAMH*RNFD(NR,NSB)*1.D20*(2.D0/(3.D0*SQRT(PI))) &
@@ -688,6 +708,17 @@
                RTFD0L_C=RTFD0(NSB)
                RNFDL=RN_TEMP(NR,NSB)
                RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2) &
+                    *AMFP(NSA)/PTFP0(NSA)**3 
+            END IF
+            IF(MODEL_DISRUPT.eq.1)THEN
+               RTFDL_C=RT_quench(NR) ! [keV]
+               RTFD0L_C=RTFD0(NSB)
+               IF(MODEL_IMPURITY.eq.0)THEN 
+                  RNFDL_C=RNFD(NR,NSB)
+               ELSE
+                  RNFDL=RN_MGI(NR,NSB)
+               END IF
+               RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*POST_LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2) &
                     *AMFP(NSA)/PTFP0(NSA)**3 
             END IF
 
@@ -830,12 +861,23 @@
          RTFD0L_C=RTFD0(NSB)
          RNFD0L_C=RNFD0(NSB)
          THETA0L_C=THETA0(NSSB)
-         IF(MODELC(NSSB).eq.1.or.MODELC(NSSB).eq.0)THEN ! constant T
-            RNFDL_C=RNFD(NR,NSB) 
-            RTFDL_C=RTFD(NR,NSB)
-         ELSEIF(MODELC(NSSB).eq.2)THEN ! variable n, T
-            RNFDL_C=RN_TEMP(NR,NS_NSB(NSB))
-            RTFDL_C=RT_TEMP(NR,NS_NSB(NSB))
+         IF(MODEL_DISRUPT.eq.0)THEN
+            IF(MODELC(NSSB).eq.1.or.MODELC(NSSB).eq.0)THEN ! constant T
+               RNFDL_C=RNFD(NR,NSB) 
+               RTFDL_C=RTFD(NR,NSB)
+            ELSEIF(MODELC(NSSB).eq.2)THEN ! variable n, T
+               RNFDL_C=RN_TEMP(NR,NS_NSB(NSB))
+               RTFDL_C=RT_TEMP(NR,NS_NSB(NSB))
+            END IF
+         ELSEIF(MODEL_DISRUPT.ge.1)THEN
+            IF(MODEL_IMPURITY.eq.0)THEN 
+               RNFDL_C=RNFD(NR,NSB)
+            ELSE
+               RNFDL_C=RN_MGI(NR,NSB)
+            END IF
+            RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*POST_LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2) &
+                 *AMFP(NSA)/PTFP0(NSA)**3 
+            RTFDL_C=RT_quench(NR)
          END IF
          THETAL_C =THETA0L_C*RTFDL_C/RTFD0L_C
          P_thermal=SQRT(RTFDL_C*1.D3*AEE*AMFD(NSB))
@@ -1027,9 +1069,8 @@
       IMPLICIT NONE
 
       integer:: NSA, NSB,NR, NP, NTH
-      real(8):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL
-      real(8):: FACT
-      DOUBLE PRECISION:: DELH, sum, etal, psib, pcos, arg, x, PSIN
+      REAL(rkind):: FACT
+      REAL(RKIND):: DELH, sum, etal, psib, pcos, arg, x
       INTEGER:: NG, ITLB, ITUB, NSSB
 
 ! DCPP, FCPP
@@ -1176,10 +1217,9 @@
       IMPLICIT NONE
       integer,intent(in):: NR, NSA
       integer:: NSB, NTH, NP, NG
-      real(8):: DELH, ETAL, X, PSIB, PCOS, ARG
-      real(8):: sum1, sum2, sum3, sum4, sum5, sum6, sum7, sum8, sum9
-      real(8):: temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9
-      INTEGER:: ISW_LAV, INTH
+      REAL(rkind):: DELH, ETAL, X, PSIB, PCOS, ARG
+      REAL(rkind):: sum1, sum2, sum3, sum4, sum5, sum6
+      INTEGER:: ISW_LAV
      
       ISW_LAV=0
 ! INTEGRATION OF BOUNCE AVERAGING

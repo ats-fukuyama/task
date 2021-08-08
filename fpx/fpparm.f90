@@ -76,7 +76,7 @@ contains
            KNAMEQ,KNAMWR,KNAMFP,KNAMWM,KNAMPF, &
            KNAMFO,KNAMTR,KNAMEQ2,KID_NS,ID_NS, &
            NSAMAX,NSBMAX,NS_NSA,NS_NSB, &
-           LMAX_WR,NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF, &
+           LMAX_WR,NRAYS_WR,NRAYE_WR,NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF, &
            NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX, &
            NTMAX,NTSTEP_COEF,NTSTEP_COLL, &
            NTG1STEP,NTG1MIN,NTG1MAX, &
@@ -94,7 +94,7 @@ contains
            PMAX,PMAX_BB,EMAX, &
            R1,DELR1,RMIN,RMAX,E0,ZEFF, &
            PABS_LH,PABS_FW,PABS_EC,PABS_wr,PABS_WM,RF_WM, &
-           FACT_WM,FACT_WR,DELNPR_WR,DELNPR_WM,EPS_WR,DELY_WR, &
+           FACT_WM,FACT_WR,FACT_NRAY,DELNPR_WR,DELNPR_WM,EPS_WR,DELY_WR, &
            DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC, &
            DLH,PLH1,PLH2,RLH,DFW,PFW1,PFW2,RFW, &
            CEWR,CEWTH,CEWPH,RKWR,RKWTH,RKWPH, &
@@ -136,7 +136,8 @@ contains
       WRITE(6,*) '      KNAMEQ,KNAMWR,KNAMFP,KNAMWM,KNAMPF,'
       WRITE(6,*) '      KNAMFO,KNAMTR,KNAMEQ2,KID_NS,ID_NS,'
       WRITE(6,*) '      NSAMAX,NSBMAX,NS_NSA,NS_NSB,'
-      WRITE(6,*) '      LMAX_WR,NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF,'
+      WRITE(6,*) '      LMAX_WR,NRAYS_WR,NRAYE_WR,'
+      WRITE(6,*) '      NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF,'
       WRITE(6,*) '      NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX,'
       WRITE(6,*) '      NTMAX,NTSTEP_COEF,NTSTEP_COLL,'
       WRITE(6,*) '      NTG1STEP,NTG1MIN,NTG1MAX,'
@@ -155,7 +156,7 @@ contains
       WRITE(6,*) '      R1,DELR1,RMIN,RMAX,E0,ZEFF,'
       WRITE(6,*) '      PABS_LH,PABS_FW,PABS_EC,PABS_WR,PABS_WM,RF_WM,'
       WRITE(6,*) '      FACT_WM,FACT_WR,DELNPR_WR,DELNPR_WM,EPS_WR,DELY_WR,'
-      WRITE(6,*) '      Y0_WM,DELY_WM,'
+      WRITE(6,*) '      FACT_NRAY,Y0_WM,DELY_WM,'
       WRITE(6,*) '      DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC,'
       WRITE(6,*) '      DLH,PLH1,PLH2,RLH,DFW,PFW1,PFW2,RFW,'
       WRITE(6,*) '      CEWR,CEWTH,CEWPH,RKWR,RKWTH,RKWPH,'
@@ -198,7 +199,7 @@ contains
       USE libmtx
       IMPLICIT NONE
       INTEGER,DIMENSION(99):: idata
-      real(8),DIMENSION(99):: rdata
+      REAL(rkind),DIMENSION(99):: rdata
       complex(8),DIMENSION(3):: cdata
       INTEGER:: NS
 
@@ -373,8 +374,10 @@ contains
       idata(68)=OUTPUT_TXT_HEAT_PROF
       idata(69)=OUTPUT_TXT_BEAM_WIDTH
       idata(70)=OUTPUT_TXT_BEAM_DENS
+      idata(71)=NRAYS_WR
+      idata(72)=NRAYE_WR
 
-      CALL mtx_broadcast_integer(idata,70)
+      CALL mtx_broadcast_integer(idata,72)
       NSAMAX         =idata( 1)
       NSBMAX         =idata( 2)
       LMAX_WR        =idata( 3)
@@ -448,6 +451,8 @@ contains
       OUTPUT_TXT_HEAT_PROF=idata(68)
       OUTPUT_TXT_BEAM_WIDTH=idata(69)
       OUTPUT_TXT_BEAM_DENS=idata(70)
+      NRAYS_WR=idata(71)
+      NRAYE_WR=idata(72)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -634,6 +639,8 @@ contains
       CALL mtx_broadcast_real8(SPBANG,NBEAMMAX)
       CALL mtx_broadcast_real8(SPBPANG,NBEAMMAX)
 
+      CALL mtx_broadcast_real8(FACT_NRAY,NRAYM)
+
       cdata (1)=CEWR
       cdata (2)=CEWTH
       cdata (3)=CEWPH
@@ -700,6 +707,7 @@ contains
             WRITE(6,600) 'PABS_WR ',PABS_WR ,'DELNPR_R',DELNPR_WR, &
                          'DELY_WR ',DELY_WR
             WRITE(6,602) 'EPS_WR  ',EPS_WR  ,'LMAX_WR ',LMAX_WR
+            WRITE(6,603) 'NRAYS_WR',NRAYS_WR,'NRAYE_WR',NRAYE_WR
 
          ELSEIF(MODELW(NS).EQ.2) THEN
             WRITE(6,600) 'PABS_WR ',PABS_WR ,'DELNPR_R',DELNPR_WR, &
@@ -930,7 +938,7 @@ contains
   602 FORMAT(' ',A8,'=',1PE12.4:3X,A8,'=',I8,4X  :3X,A8,'=',I8)
   603 FORMAT(' ',A8,'=',I8,4X  :3X,A8,'=',I8,4X  :3X,A8,'=',I8)
   604 FORMAT(' ',A16,'=',1PE12.4:3X,A16,'=',1PE12.4)
-  605 FORMAT(' ',A16,'=',1PE12.4:3X,A16,'=',I8)
+!  605 FORMAT(' ',A16,'=',1PE12.4:3X,A16,'=',I8)
   606 FORMAT(' ',A16,'=',I8,4X  :3X,A16,'=',I8)
   END SUBROUTINE fp_view
 

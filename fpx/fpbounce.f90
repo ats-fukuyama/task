@@ -19,7 +19,7 @@
       USE libmtx 
       IMPLICIT NONE
       INTEGER:: NR, NTH
-      double precision:: FACT
+      REAL(rkind):: FACT
 
 !     ON RM(NR)
       DO NR=NRSTART, NREND
@@ -76,7 +76,7 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR
       INTEGER:: NTH
-      DOUBLE PRECISION:: EPSL, FACT, A1, pitch
+      REAL(RKIND):: EPSL, FACT, A1, pitch
 
       EPSL=EPSRM2(NR)
       FACT=(1.D0+EPSL)/(2.D0*EPSL)
@@ -120,7 +120,7 @@
 
       IMPLICIT NONE
       INTEGER:: NTH
-      DOUBLE PRECISION:: EPSL, FACT, A1, pitch
+      REAL(RKIND):: EPSL, FACT, A1, pitch
 
       EPSL=EPSRM2(NRMAX+1)
       FACT=(1.D0+EPSL)/(2.D0*EPSL)
@@ -168,7 +168,7 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR
       INTEGER:: NTH
-      DOUBLE PRECISION:: EPSL, FACT, A1, pitch
+      REAL(RKIND):: EPSL, FACT, A1, pitch
 
       EPSL=EPSRG2(NR)
       FACT=(1.D0+EPSL)/(2.D0*EPSL)
@@ -215,11 +215,11 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR
       INTEGER,parameter:: m=mmax
-      INTEGER:: NTH, i
-      DOUBLE PRECISION:: DEL2T1, DEL2T2, DEL2T, mub,sinb
-      DOUBLE PRECISION:: k1, k2, sum, K_1_x
-      DOUBLE PRECISION,dimension(0:m):: alpha, beta
-      DOUBLE PRECISION,DIMENSION(0:4):: ell_a, ell_b
+      INTEGER:: i
+      REAL(RKIND):: DEL2T1, DEL2T2, DEL2T, mub,sinb
+      REAL(RKIND):: k1, k2, sum, K_1_x
+      REAL(RKIND),dimension(0:m):: alpha, beta
+      REAL(RKIND),DIMENSION(0:4):: ell_a, ell_b
 
       DATA ell_a/ 1.38629436112D0, 0.09666344259D0, 0.03590092383D0, &
            0.03742563713D0, 0.01451196212D0/
@@ -262,11 +262,11 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR
       INTEGER,parameter:: m=mmax
-      INTEGER:: NTH, i
-      DOUBLE PRECISION:: DEL2T1, DEL2T2, DEL2T, mub
-      DOUBLE PRECISION:: k1, k2, sum, K_1_x
-      DOUBLE PRECISION,dimension(0:m):: alpha, beta
-      DOUBLE PRECISION,DIMENSION(0:4):: ell_a, ell_b
+      INTEGER:: i
+      REAL(RKIND):: DEL2T1, DEL2T2, DEL2T, mub
+      REAL(RKIND):: k1, k2, sum, K_1_x
+      REAL(RKIND),dimension(0:m):: alpha, beta
+      REAL(RKIND),DIMENSION(0:4):: ell_a, ell_b
       DATA ell_a/ 1.38629436112D0, 0.09666344259D0, 0.03590092383D0, &
            0.03742563713D0, 0.01451196212D0/
       DATA ell_b/ 0.5D0, 0.12498593597D0, 0.06880248576D0, &
@@ -305,9 +305,9 @@
 
       IMPLICIT NONE
       INTEGER,INTENT(IN):: m
-      DOUBLE PRECISION,dimension(0:mmax),INTENT(OUT):: alpha
+      REAL(RKIND),dimension(0:mmax),INTENT(OUT):: alpha
       INTEGER:: i
-      DOUBLE PRECISION,parameter:: a0=1.D0, a1=-0.5D0
+      REAL(RKIND),parameter:: a0=1.D0, a1=-0.5D0
       
       alpha(0)=a0
       alpha(1)=a1
@@ -322,9 +322,9 @@
 
       IMPLICIT NONE
       INTEGER,INTENT(IN):: m
-      DOUBLE PRECISION,dimension(0:m),INTENT(OUT):: beta
+      REAL(RKIND),dimension(0:m),INTENT(OUT):: beta
       INTEGER:: i
-      DOUBLE PRECISION,parameter:: b0=0.D0, b1=1.D0
+      REAL(RKIND),parameter:: b0=0.D0, b1=1.D0
       
       beta(0)=b0
       beta(1)=b1
@@ -345,8 +345,8 @@
       INTEGER,INTENT(IN):: NR
       INTEGER,parameter:: m=mmax
       INTEGER:: NTH, i
-      DOUBLE PRECISION:: z, sum, temp, mub, a1,a2, diff, pre_sum
-      DOUBLE PRECISION,dimension(0:m):: alpha, j2m
+      REAL(RKIND):: z, sum, mub, diff, pre_sum
+      REAL(RKIND),dimension(0:m):: alpha, j2m
 
       mub=SQRT(2.D0*EPSRM2(NR)/(1.D0+EPSRM2(NR)))
          DO NTH = 1, NTHMAX/2
@@ -387,8 +387,8 @@
       INTEGER,INTENT(IN):: NR
       INTEGER,parameter:: m=mmax
       INTEGER:: NTH, i
-      DOUBLE PRECISION:: z, sum, mub, a1, a2
-      DOUBLE PRECISION,dimension(0:m):: alpha, j2m
+      REAL(RKIND):: z, sum, mub
+      REAL(RKIND),dimension(0:m):: alpha, j2m
 
       mub=SQRT(2.D0*EPSRG2(NR)/(1.D0+EPSRG2(NR)))
 !      mub = COSM(ITLG(NR))
@@ -420,9 +420,9 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: m
       INTEGER:: IERR, i
-      DOUBLE PRECISION,INTENT(IN):: z
-      DOUBLE PRECISION,dimension(0:mmax),INTENT(OUT):: j2m
-      DOUBLE PRECISION:: J0, J2, ellK, ellE
+      REAL(RKIND),INTENT(IN):: z
+      REAL(RKIND),dimension(0:mmax),INTENT(OUT):: j2m
+      REAL(RKIND):: J0, J2, ellK, ellE
 
       IF(z.ge.1.D0)THEN ! passing
 !         WRITE(*,*) "ELL1", 1/z**2
@@ -485,8 +485,8 @@
 
       IMPLICIT NONE
       integer:: NR, NTH, NG
-      real(kind8):: EPSL, FACT, A1, RINT0, ES, DELH
-      real(kind8):: SUML, ETAL, X, PSIB, PCOS, RINT2, SUML2, RINTL
+      real(kind8):: RINT0, DELH
+      real(kind8):: SUML, ETAL, PSIB, PCOS
 
       DO NTH=1,NTHMAX/2
             DELH=2.D0*ETAM(NTH,NR)/NAVMAX
@@ -512,9 +512,9 @@
       USE plprof
 
       IMPLICIT NONE
-      integer:: NR, NTH, NG
-      real(kind8):: EPSL, FACT, A1, RINT0, ES, DELH
-      real(kind8):: SUML, ETAL, X, PSIB, PCOS, RINT2, SUML2, RINTL
+      integer:: NTH, NG
+      real(kind8):: RINT0, DELH
+      real(kind8):: SUML, ETAL, PSIB, PCOS
 
       DO NTH=1,NTHMAX/2
             DELH=2.D0*ETAM_NRMAXP1(NTH)/NAVMAX
@@ -538,7 +538,7 @@
 
       IMPLICIT NONE
       integer:: NR, NTH, NG
-      real(kind8):: EPSL, FACT, A1, RINT0, ES, DELH
+      real(kind8):: RINT0, DELH
       real(kind8):: SUML, ETAL, X, PSIB, PCOS
 
       DO NTH=1,NTHMAX/2
@@ -566,7 +566,7 @@
 
       IMPLICIT NONE
       integer:: NR, NTH, NG
-      real(kind8):: EPSL, FACT, A1, RINT0, ES, DELH
+      real(kind8):: RINT0, DELH
       real(kind8):: SUML, ETAL, X, PSIB, PCOS
 
       DO NTH=1,NTHMAX/2
@@ -592,7 +592,7 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR
       INTEGER:: NTH
-      DOUBLE PRECISION:: EPSL, FACT, A1
+      REAL(RKIND):: EPSL, FACT, A1
 
       EPSL=EPSRG2(NR)
       FACT=(1.D0+EPSL)/(2.D0*EPSL)
@@ -615,11 +615,11 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR
       INTEGER,parameter:: m=mmax
-      INTEGER:: NTH, i
-      DOUBLE PRECISION:: DEL2T1, DEL2T2, DEL2T, mub
-      DOUBLE PRECISION:: k1, k2, sum, K_1_x
-      DOUBLE PRECISION,dimension(0:m):: alpha, beta
-      DOUBLE PRECISION,DIMENSION(0:4):: ell_a, ell_b
+      INTEGER:: i
+      REAL(RKIND):: DEL2T1, DEL2T2, DEL2T, mub
+      REAL(RKIND):: k1, k2, sum, K_1_x
+      REAL(RKIND),dimension(0:m):: alpha, beta
+      REAL(RKIND),DIMENSION(0:4):: ell_a, ell_b
       DATA ell_a/ 1.38629436112D0, 0.09666344259D0, 0.03590092383D0, &
            0.03742563713D0, 0.01451196212D0/
       DATA ell_b/ 0.5D0, 0.12498593597D0, 0.06880248576D0, &
@@ -661,8 +661,8 @@
       INTEGER,INTENT(IN):: NR
       INTEGER,parameter:: m=mmax
       INTEGER:: NTH, i
-      DOUBLE PRECISION:: z, sum, mub, a1, a2
-      DOUBLE PRECISION,dimension(0:m):: alpha, j2m
+      REAL(RKIND):: z, sum, mub
+      REAL(RKIND),dimension(0:m):: alpha, j2m
 
       mub=SQRT(2.D0*EPSRG2(NR)/(1.D0+EPSRG2(NR)))
       IF(ITLG(NR).ne.NTHMAX/2)THEN
@@ -691,12 +691,12 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR
       INTEGER,parameter:: m=mmax
-      INTEGER:: NTH, i
-      DOUBLE PRECISION:: DEL2T1, DEL2T2, DEL2T, mub,sinb, DELTHB, z, RINT0, ES, ram_bl
-      DOUBLE PRECISION:: k1, k2, sum_bl, sum_ex, K_1_x, L_bl, L_ex, L_b, THEX, DELTHEX
-      DOUBLE PRECISION:: diff, PRE_SUM
-      DOUBLE PRECISION,dimension(0:m):: alpha, beta, j2m
-      DOUBLE PRECISION,DIMENSION(0:4):: ell_a, ell_b
+      INTEGER:: i
+      REAL(RKIND):: DEL2T, mub,sinb, DELTHB, z
+      REAL(RKIND):: k1, k2, sum_bl, sum_ex, K_1_x, L_ex, L_b, THEX, DELTHEX
+      REAL(RKIND):: diff, PRE_SUM
+      REAL(RKIND),dimension(0:m):: alpha, beta, j2m
+      REAL(RKIND),DIMENSION(0:4):: ell_a, ell_b
 
       DATA ell_a/ 1.38629436112D0, 0.09666344259D0, 0.03590092383D0, &
            0.03742563713D0, 0.01451196212D0/
@@ -784,12 +784,12 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR
       INTEGER,parameter:: m=mmax
-      INTEGER:: NTH, i, NG
-      DOUBLE PRECISION:: DEL2T1, DEL2T2, DEL2T, mub,sinb, DELTHB, z, RINT0, ES, ram_bl
-      DOUBLE PRECISION:: k1, k2, sum_bl, sum_ex, K_1_x, L_bl, L_ex, L_b, THEX, DELTHEX
-      DOUBLE PRECISION,dimension(0:m):: alpha, beta, j2m
-      DOUBLE PRECISION,DIMENSION(0:4):: ell_a, ell_b
-      DOUBLE PRECISION:: chib, DELH, suml, ETAL, PSIB, X, PCOS, FACT
+      INTEGER:: i, NG
+      REAL(RKIND):: DEL2T1, DEL2T2, DEL2T, mub,sinb, DELTHB, RINT0
+      REAL(RKIND):: k1, k2, sum_bl, K_1_x, L_ex, L_b, THEX, DELTHEX
+      REAL(RKIND),dimension(0:m):: alpha, beta
+      REAL(RKIND),DIMENSION(0:4):: ell_a, ell_b
+      REAL(RKIND):: chib, DELH, suml, ETAL, PSIB, X, PCOS, FACT
 
       DATA ell_a/ 1.38629436112D0, 0.09666344259D0, 0.03590092383D0, &
            0.03742563713D0, 0.01451196212D0/
@@ -881,12 +881,12 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR
       INTEGER,parameter:: m=mmax
-      INTEGER:: NTH, i, NG
-      DOUBLE PRECISION:: DEL2T1, DEL2T2, DEL2T, mub,sinb, DELTHB, z, RINT0, ES, ram_bl
-      DOUBLE PRECISION:: k1, k2, sum_bl, sum_ex, K_1_x, L_bl, L_ex, L_b, THEX, DELTHEX
-      DOUBLE PRECISION,dimension(0:m):: alpha, beta, j2m
-      DOUBLE PRECISION,DIMENSION(0:4):: ell_a, ell_b
-      DOUBLE PRECISION:: chib, DELH, suml, ETAL, PSIB, X, PCOS, FACT
+      INTEGER:: i, NG
+      REAL(RKIND):: DEL2T1, DEL2T2, DEL2T, mub,sinb, DELTHB, RINT0
+      REAL(RKIND):: k1, k2, sum_bl, K_1_x, L_ex, L_b, THEX, DELTHEX
+      REAL(RKIND),dimension(0:m):: alpha, beta
+      REAL(RKIND),DIMENSION(0:4):: ell_a, ell_b
+      REAL(RKIND):: chib, DELH, suml, ETAL, PSIB, X, PCOS, FACT
 
       DATA ell_a/ 1.38629436112D0, 0.09666344259D0, 0.03590092383D0, &
            0.03742563713D0, 0.01451196212D0/
@@ -981,7 +981,7 @@
       IMPLICIT NONE
       INTEGER:: NTH, ITLB, NS
       INTEGER,intent(in):: NR
-      double precision:: RSUM1, RSUM2, RSUM3
+      REAL(rkind):: RSUM1, RSUM2, RSUM3
 
 !      NS=NS_NSA(NSASTART)
       NS=1
@@ -1014,7 +1014,7 @@
 
       IMPLICIT NONE
       INTEGER:: NTH, ITLB, NS
-      double precision:: RSUM1, RSUM2, RSUM3, ratio
+      REAL(rkind):: RSUM1, RSUM2, RSUM3
       
 !      NS=NS_NSA(NSASTART)
       NS=1
@@ -1042,7 +1042,7 @@
       IMPLICIT NONE
       INTEGER:: NTH, ITLB, NS
       INTEGER,intent(in):: NR
-      double precision:: RSUM1, RSUM2, RSUM3
+      REAL(rkind):: RSUM1, RSUM2, RSUM3
 
 !      NS=NS_NSA(NSASTART)
       NS=1

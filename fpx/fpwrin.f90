@@ -11,6 +11,7 @@
       INTEGER:: NRAYMAX,NITMAXM
       INTEGER,PARAMETER:: NCRMAXM=5
       INTEGER,DIMENSION(:),POINTER:: NITMAX  !(NRAYMAX)
+      INTEGER:: NRAYS,NRAYE
 
       REAL(rkind),DIMENSION(:,:),POINTER:: RAYIN !(8,NRAYMAX)
       COMPLEX(rkind),DIMENSION(:,:),POINTER:: &  !(0:NITMAXM,NRAYMAX)
@@ -165,7 +166,7 @@
       REAL(rkind),DIMENSION(:),POINTER:: rdata
       tYPE(pl_mag_type):: MAG
       INTEGER:: NRAY,NIT,I,NITMX,NR,NCR
-      REAL(rkind):: RHON,RHOL,PSICR,PSIPRE,PSIL,SICR
+      REAL(rkind):: RHOL,PSICR,PSIPRE,PSIL,SICR
       COMPLEX(rkind):: CEX,CEY,CEZ
       REAL(rkind):: RKX,RKY,RKZ,RX,RY,RZ
 
@@ -185,11 +186,13 @@
       IF(nrank.EQ.0) THEN
          REWIND(21)
          READ(21) NRAYMAX
+         write(6,*) '--- print 1: nraymax=',nraymax
          ALLOCATE(NITMAX(NRAYMAX))
 
          NITMAXM=1
          DO NRAY=1,NRAYMAX
             READ(21) NITMAX(NRAY)
+            write(6,*) '--- print 2: nray,nitmax=',nray,nitmax(nray)
             NITMAXM=MAX(NITMAX(NRAY),NITMAXM)
          ENDDO
          idata(1)=NRAYMAX
@@ -319,9 +322,9 @@
                   
                   IF(NCR.LT.NCRMAXM) THEN
                      NCR=NCR+1
-                     CECR(1,NCR,NR,NRAY)=FACT_WR*CEX
-                     CECR(2,NCR,NR,NRAY)=FACT_WR*CEY
-                     CECR(3,NCR,NR,NRAY)=FACT_WR*CEZ
+                     CECR(1,NCR,NR,NRAY)=FACT_WR*SQRT(FACT_NRAY(NRAY))*CEX
+                     CECR(2,NCR,NR,NRAY)=FACT_WR*SQRT(FACT_NRAY(NRAY))*CEY
+                     CECR(3,NCR,NR,NRAY)=FACT_WR*SQRT(FACT_NRAY(NRAY))*CEZ
                      RKCR(1,NCR,NR,NRAY)=RKX
                      RKCR(2,NCR,NR,NRAY)=RKY
                      RKCR(3,NCR,NR,NRAY)=RKZ
@@ -344,7 +347,7 @@
 !  602    FORMAT('# NR,RHOL,RRMIN,RRMAX=',I3,1P3E15.7)
       ENDDO
 
-  900 IERR=0
+      IERR=0
       RETURN
 9001  write(6,*) '9001:NIT=',NIT
       stop
@@ -373,7 +376,7 @@
       INTEGER,INTENT(IN):: NIT,NRAY
       REAL(rkind),INTENT(OUT):: SICR
       REAL(rkind):: Y,YNEW,X,DX,DYDX,PSIL
-      INTEGER:: ICOUNT,IERR,NITMX
+      INTEGER:: ICOUNT,IERR
 
       Y   =PSIX(NIT-1,NRAY)-PSICR
       YNEW=PSIX(NIT  ,NRAY)-PSICR

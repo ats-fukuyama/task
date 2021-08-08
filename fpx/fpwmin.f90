@@ -22,7 +22,7 @@
       complex(rkind),dimension(:,:,:,:,:),POINTER :: UCEW2 
                                                   ! (4,4,NWTHM,NWRM,3)
       complex(rkind),dimension(:,:,:,:,:,:,:),POINTER :: UCEW3
-                                                  ! (4,4,NWTHM,NEPHM,NWRM,3)
+                                                  ! (4,4,4,NWTHM,NEPHM,NWRM,3)
 
       complex(rkind),dimension(:),POINTER:: CFFT  ! (NWTHM)
       real(rkind),dimension(:),POINTER:: RFFT     ! (NWTHM)
@@ -34,8 +34,9 @@
 
       SUBROUTINE fp_wm_read(IERR)
 
-      USE libspl2d  
       USE libfio
+      USE libspl2d  
+      USE libspl3d
       USE libmpi
       USE libmtx
       IMPLICIT NONE
@@ -142,7 +143,7 @@
                   CEWL2(NWTHMAX+1,NWR)=CEWV(I,1,NWPH,NWR)
             ENDDO
             CALL CSPL2D(THWSPL,RWSPL,CEWL2,CEWX2,CEWY2,CEWXY2, &
-                        UCEW2(:,:,:,:,I), &
+                        UCEW2(1:4,1:4,1:NWTHMAX+1,1:NWRMAX,I), &
                         NWTHMAX+1,NWTHMAX+1,NWRMAX,4,0,IERR)
             IF(IERR.NE.0) THEN
                WRITE(6,*) 'XX FPWMREAD: CSPL2D: IERR=',IERR
@@ -166,11 +167,12 @@
             ENDDO
             CALL CSPL3D(THWSPL,PHWSPL,RWSPL,CEWL3, &
                         CEWX3,CEWY3,CEWZ3,CEWXY3,CEWYZ3,CEWZX3,CEWXYZ3, &
-                        UCEW3(:,:,:,:,:,:,I), &
+                        UCEW3(1:4,1:4,1:4, &
+                              1:NWTHMAX+1,1:NWPHMAX+1,1:NWRMAX,I), &
                         NWTHMAX+1,NWPHMAX+1,NWTHMAX+1,NWPHMAX+1,NWRMAX, &
                         4,4,0,IERR)
             IF(IERR.NE.0) THEN
-               WRITE(6,*) 'XX FPWMREAD: CSPL3D: IERR=',IERR
+               WRITE(6,*) 'XX FPWMREAD: CSPL2D: IERR=',IERR
                IERR=201
                RETURN
             ENDIF
@@ -189,7 +191,7 @@
       USE fpcomm
       IMPLICIT NONE
       INTEGER,DIMENSION(5):: idata
-      REAL(8),DIMENSION(5):: ddata
+      REAL(RKIND),DIMENSION(5):: ddata
       COMPLEX(8),DIMENSION(:),POINTER:: temp
       INTEGER:: nr1,md1,nd1,n
 
@@ -262,7 +264,7 @@
       IMPLICIT NONE
       integer:: IERR
       COMPLEX(8):: CEWR1,CEWTH1,CEWPH1,CKWR1,CKWTH1,CKWPH1
-      real(8):: RL, THL, PHL, RFWM
+      REAL(rkind):: RL, THL, PHL, RFWM
       DATA RL,THL,PHL/0.D0,0.D0,0.D0/
 
  1010 CONTINUE
@@ -283,11 +285,11 @@
 !
       SUBROUTINE FPWMGET(RL,THL,PHL,RFWM,CEWR1,CEWTH1,CEWPH1, &
                                          CKWR1,CKWTH1,CKWPH1,IERR)
-
       USE libspl2d
+      USE libspl3d
       IMPLICIT NONE
-      REAL(8),INTENT(IN):: RL,THL,PHL
-      REAL(8),INTENT(OUT):: RFWM
+      REAL(RKIND),INTENT(IN):: RL,THL,PHL
+      REAL(RKIND),INTENT(OUT):: RFWM
       COMPLEX(8),INTENT(OUT):: CEWR1,CEWTH1,CEWPH1,CKWR1,CKWTH1,CKWPH1
       INTEGER,INTENT(OUT):: IERR
       COMPLEX(8):: CEWDTH,CEWDPH,CEWDR
@@ -297,11 +299,12 @@
 
       IF(NWPHMAX.EQ.1) THEN
          CALL CSPL2DD(THL,RL,CEWR1,CEWDTH,CEWDR,THWSPL,RWSPL, &
-                      UCEW2(:,:,:,:,1),NWTHMAX+1,NWTHMAX+1,NWRMAX,IERR)
+              UCEW2(1:4,1:4,1:NWTHMAX+1,1:NWRMAX,1), &
+              NWTHMAX+1,NWTHMAX+1,NWRMAX,IERR)
       ELSE
          CALL CSPL3DD(THL,PHL,RL,CEWR1,CEWDTH,CEWDPH,CEWDR, &
                       THWSPL,PHWSPL,RWSPL, &
-                      UCEW3(:,:,:,:,:,:,1), &
+                      UCEW3(1:4,1:4,1:4,1:NWTHMAX+1,1:NWPHMAX+1,1:NWRMAX,1), &
                       NWTHMAX+1,NWPHMAX+1,NWTHMAX+1,NWPHMAX+1,NWRMAX,IERR)
       ENDIF
       IF(IERR.NE.0) THEN
@@ -314,11 +317,12 @@
 
       IF(NWPHMAX.EQ.1) THEN
          CALL CSPL2DD(THL,RL,CEWTH1,CEWDTH,CEWDR,THWSPL,RWSPL, &
-                      UCEW2(:,:,:,:,2),NWTHMAX+1,NWTHMAX+1,NWRMAX,IERR)
+              UCEW2(1:4,1:4,1:NWTHMAX+1,1:NWRMAX,2), &
+              NWTHMAX+1,NWTHMAX+1,NWRMAX,IERR)
       ELSE
          CALL CSPL3DD(THL,PHL,RL,CEWTH1,CEWDTH,CEWDPH,CEWDR, &
                       THWSPL,PHWSPL,RWSPL, &
-                      UCEW3(:,:,:,:,:,:,2), &
+                      UCEW3(1:4,1:4,1:4,1:NWTHMAX+1,1:NWPHMAX+1,1:NWRMAX,2), &
                       NWTHMAX+1,NWPHMAX+1,NWTHMAX+1,NWPHMAX+1,NWRMAX,IERR)
       ENDIF
       IF(IERR.NE.0) THEN
@@ -336,12 +340,13 @@
 
       IF(NWPHMAX.EQ.1) THEN
          CALL CSPL2DD(THL,RL,CEWPH1,CEWDTH,CEWDR,THWSPL,RWSPL, &
-                      UCEW2(:,:,:,:,3),NWTHMAX+1,NWTHMAX+1,NWRMAX,IERR)
+              UCEW2(1:4,1:4,1:NWTHMAX+1,1:NWRMAX,3), &
+              NWTHMAX+1,NWTHMAX+1,NWRMAX,IERR)
          CKWPH1=NPH0W/RRW
       ELSE
          CALL CSPL3DD(THL,PHL,RL,CEWPH1,CEWDTH,CEWDPH,CEWDR, &
                       THWSPL,PHWSPL,RWSPL, &
-                      UCEW3(:,:,:,:,:,:,3), &
+                      UCEW3(1:4,1:4,1:4,1:NWTHMAX+1,1:NWPHMAX+1,1:NWRMAX,3), &
                       NWTHMAX+1,NWPHMAX+1,NWTHMAX+1,NWPHMAX+1,NWRMAX,IERR)
          CKWPH1=-CI*CEWDPH/(CEWPH1*RRW)
       ENDIF
@@ -363,7 +368,7 @@
       integer,save:: NS=0
       COMPLEX(8),DIMENSION(N):: CA
 !      complex(8),dimension(N):: CFFT ! (NWTHM) 
-!      real(8),dimension(N):: RFFT ! (NWTHM) 
+!      REAL(rkind),dimension(N):: RFFT ! (NWTHM) 
 !      integer,dimension(N):: LFFT ! (NWTHM)
 
       IF(N.NE.1) THEN

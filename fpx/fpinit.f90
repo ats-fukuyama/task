@@ -15,7 +15,7 @@ contains
 
       use fpcomm_parm
       IMPLICIT NONE
-      integer:: ns,nsa,nsb,nbeam
+      integer:: ns,nsa,nsb,nbeam,nray
 
 !-----PARTICLE SPECIES--------------------------------------------------
 !     nsamax: number of test particle species
@@ -63,8 +63,9 @@ contains
 !     PABS_WM : input power of WM [MW] (0 for given E) MODELW=3 or 4
 !     RF_WM   : wave frequency [MHz] used for MODELW=3
 
-!     FACT_WM: Numerical factor for wave amplitude for WR
-!     FACT_WR: Numerical factor for wave amplitude for WM
+!     FACT_WM: Numerical factor for wave amplitude for WM
+!     FACT_WR: Numerical factor for wave amplitude for WR
+!     FACT_NRAY(NRAYM): Numerical factor for input power of ray
 !     DELNPR_WR: width of toroidal mode number for WR
 !     DELNPR_WM: width of toroidal mode number for WM
 !     LMAX_WR: max loop count in newton method to find ray position
@@ -72,6 +73,8 @@ contains
 !     DELY_WR: vertical half-width of ray [r/a]
 !     Y0_WM: vertical position of wave beam [r/a]
 !     DELY_WM: vertical half-width of wave beam [r/a]
+!     NRAYS_WR: start of NRAY (IF 0, NRAYS_WR=1)
+!     NRAYE_WR: end of NRAY (IF 0, NRAYE_WR=NRAYMAX)
 !     NCMIN(NS): minimum order of cyclotron harmonics for species NS
 !     NCMAX(NS): maximum order of cyclotron harmonics for species NS
 
@@ -84,6 +87,9 @@ contains
 
       FACT_WR  = 1.D0
       FACT_WM  = 1.D0
+      DO NRAY=1,NRAYM
+         FACT_NRAY(NRAY)=1.D0
+      END DO
       DELNPR_WR= 0.05D0
       DELNPR_WM= 0.05D0
       LMAX_WR = 100
@@ -91,6 +97,8 @@ contains
       DELY_WR = 0.1D0
       Y0_WM   = 0.D0
       DELY_WM =0.1D0
+      NRAYS_WR=0
+      NRAYE_WR=0
       DO NS=1,NSM
          NCMIN(NS) = -3
          NCMAX(NS) = 3
@@ -431,6 +439,7 @@ contains
 !     T0_quench        : temperature after thermal quench [keV] at r=0
 !     tau_quench       : thermal quench time [sec]
 !     tau_mgi          : MGI duration [sec]
+!     MODEL_DISRUPT    : 0=no disruption, 1=disruption calc.
 !     MODEL_Connor_FP  : runaway rate 0= Connor, 1=FP
 !     MODEL_BS         : bootstrap current 0= off, 1=simple model
 !     MODEL_jfp        : current evaluation 
