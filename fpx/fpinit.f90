@@ -331,6 +331,9 @@ contains
 !     MODEL_DELTA_F(NSA): 0 ordinary mode
 !                       : 1 f is described as f=f_M + delta f
 !                         Evolution of f_M is not solved.
+!
+!     MODEL_FOW: 0 : without FOW (finite orbit width effects)
+!                1 : with FOW : fow_prep and fow_loop
 
       MODELE= 0
       MODELA= 0
@@ -365,6 +368,19 @@ contains
       DO NS=1,NSM
          MODEL_DELTA_F(NS)=0
       END DO
+
+      model_fow=0    ! control parameter for finite orbit width effects
+                     !    0 : without FOW effects
+                     !    1 : with FOW effects
+      model_obload=1 ! control parameter for loading orbit_x
+                     !    0 : do not load orbit_x, instead calculate by ob
+                     !    1 : load orbit_x if exits, otherwise calculate by ob
+      model_mkcsv=0  ! contral parameter for generating csv files
+                     !    0 : do not generate csv files
+                     !    1 : generate csv files
+      nthpmax=8      ! number of poloidal angle grid points
+      max_stp=20     ! maximum step number for bounce average
+      
 !-----TXT TYPE OUTPUT COMMAND------------------------------------------
 !     OUTPUT_TXT_DELTA_F: OUTPUT DELTA f
 !     OUTPUT_TXT_F1: OUTPUT E-f1 on NR_F1 DIRECT TO NTH_F1

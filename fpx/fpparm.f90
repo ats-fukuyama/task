@@ -90,6 +90,7 @@ contains
            MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp, &
            MODEL_LNL,MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY, &
            MODEL_SINK,N_IMPU,MODEL_DELTA_F, &
+           MODEL_FOW, &
            N_partition_r,N_partition_s,N_partition_p, &
            PMAX,PMAX_BB,EMAX, &
            R1,DELR1,RMIN,RMAX,E0,ZEFF, &
@@ -151,6 +152,7 @@ contains
       WRITE(6,*) '      MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp,'
       WRITE(6,*) '      MODEL_LNL,MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY,'
       WRITE(6,*) '      MODEL_SINK,N_IMPU,MODEL_DELTA_F'
+      WRITE(6,*) '      MODEL_FOW'
       WRITE(6,*) '      N_partition_r,N_partition_s,N_partition_p,'
       WRITE(6,*) '      PMAX,PMAX_BB,EMAX'
       WRITE(6,*) '      R1,DELR1,RMIN,RMAX,E0,ZEFF,'
@@ -376,8 +378,10 @@ contains
       idata(70)=OUTPUT_TXT_BEAM_DENS
       idata(71)=NRAYS_WR
       idata(72)=NRAYE_WR
+      idata(73)=MODEL_FOW
 
       CALL mtx_broadcast_integer(idata,72)
+
       NSAMAX         =idata( 1)
       NSBMAX         =idata( 2)
       LMAX_WR        =idata( 3)
@@ -453,6 +457,7 @@ contains
       OUTPUT_TXT_BEAM_DENS=idata(70)
       NRAYS_WR=idata(71)
       NRAYE_WR=idata(72)
+      MODEL_FOW=idata(73)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -843,6 +848,10 @@ contains
                    'v_RE    ',v_RE
       WRITE(6,604) 'target_zeff     ',target_zeff     , &
                    'SPITOT          ',SPITOT
+
+      WRITE(6,*) "-------- Finite Oorbit Width effects --------"
+
+      WRITE(6,606) 'MODEL_FOW       ',MODEL_FOW
 
       WRITE(6,*) "-------- PLASMA MODELS --------"
 

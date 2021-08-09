@@ -1432,6 +1432,9 @@
 
       IF(OUTPUT_TXT_DELTA_F.eq.1.and.NRANK.eq.0) CALL OUT_TXT_FNS_DEL
  
+      ierr_g=0  ! negative density check
+      N_f1=0    ! nt/ntg1step
+
       RETURN
       END subroutine fp_prep
 !-----
