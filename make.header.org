@@ -4,8 +4,7 @@
 #LAPACK = lapack.f
 #LIBLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
 #LIBLA = -L/opt/intel/mkl/lib -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm
-#LIBLA=-L /opt/petsc/petsc/ifort/lib -lflapack -lfblas
-#LIBLA=-L /opt/PETSc/petsc/gfortran/lib -lflapack -lfblas
+#LIBLA=-L$(PETSC_DIR)/$(PETSC_ARCH)/lib -lflapack -lfblas
 #MODLA95 = -I/usr/local/lib/lapack95_modules
 #MODLA95 = -lmkl_lapack95
 #MODLA95 =

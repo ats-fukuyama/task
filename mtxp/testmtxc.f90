@@ -69,6 +69,7 @@ PROGRAM testmtxc
 
   imax = isize
   jwidth = 3
+  IF(ALLOCATED(x)) DEALLOCATE(x)
   allocate(x(imax))
 
   do i=1,imax
@@ -118,7 +119,7 @@ PROGRAM testmtxc
      write(6,*) "#INPUT: (C)CONTINUE,(Q)QUIT"
      read (5,*,ERR=3) character
   endif
-  CALL mtx_broadcast_character(character,1)
+  CALL mtx_broadcast1_character(character)
 
   call mtxc_cleanup
   if (character.eq."c")then
