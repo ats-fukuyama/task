@@ -281,7 +281,7 @@
       IMPLICIT NONE
       integer:: NSA, NR, NTH, NP, NS
       integer:: ISW_LOSS
-      real(kind8):: PSP, SUML, SPL, FL, const_inv_tau
+      REAL(rkind):: PSP, SUML, SPL, FL, const_inv_tau
 
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
@@ -959,7 +959,7 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NSA
       INTEGER:: NS,NTH,NP,NR
-      real(kind8):: tau_imp
+      REAL(rkind):: tau_imp
 
       tau_imp=tau_mgi
 
@@ -984,10 +984,10 @@
       implicit none
       integer,intent(in):: NR,NSA
       integer:: NS
-      real(kind8),intent(in):: PML
-      real(kind8):: rnfp0l,rtfp0l,ptfp0l,RTFD0L
-      real(kind8):: amfpl,rnfpl,rtfpl,fact,ex,theta0l,thetal,z,dkbsl
-      real(kind8):: FPMXWL_IMP, target_Z, target_ni
+      REAL(rkind),intent(in):: PML
+      REAL(rkind):: rnfp0l,rtfp0l,ptfp0l,RTFD0L
+      REAL(rkind):: amfpl,rnfpl,rtfpl,fact,ex,theta0l,thetal,z,dkbsl
+      REAL(rkind):: FPMXWL_IMP, target_Z, target_ni
 
       NS=NS_NSA(NSA)
       AMFPL=PA(NS)*AMP

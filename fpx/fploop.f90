@@ -12,7 +12,7 @@
       use libmpi
       use fpmpi
       use fpdisrupt
-      use eg_read
+      use fpreadeg
       use fpoutdata
 
       contains
@@ -30,7 +30,7 @@
       USE fpnfrr
       USE fpcaltp
       IMPLICIT NONE
-      real(kind8):: DEPS,IP_all_FP,DEPS_E2
+      REAL(rkind):: DEPS,IP_all_FP,DEPS_E2
 
       integer:: NT, NR, NP, NTH, NSA, NS, IERR, NSB
       REAL:: gut_exe1, gut_exe2, gut_coef1, gut_coef2, gut_coef3
@@ -333,11 +333,11 @@
       INTEGER,INTENT(IN):: NT
       integer,dimension(NSASTART:NSAEND):: ILOCL
       integer,dimension(NSAMAX):: ILOC
-      real(kind8),intent(out):: DEPS
-      real(kind8),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS
-      real(kind8),dimension(NSASTART:NSAEND):: DEPS_MAXVL, DEPSV
-      real(kind8),dimension(NSAMAX):: DEPS_MAXV
-      real(kind8):: RSUMF_, RSUMF0_, DEPS_MAX, DEPS1
+      REAL(rkind),intent(out):: DEPS
+      REAL(rkind),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS
+      REAL(rkind),dimension(NSASTART:NSAEND):: DEPS_MAXVL, DEPSV
+      REAL(rkind),dimension(NSAMAX):: DEPS_MAXV
+      REAL(rkind):: RSUMF_, RSUMF0_, DEPS_MAX, DEPS1
       character:: fmt*40
 
       nsw = NSAEND-NSASTART+1      

@@ -23,6 +23,7 @@ MODULE cvgout
   INTEGER,PARAMETER:: nlmax2=2
   REAL(dp):: line_rgb2(3,nlmax2) &
        =RESHAPE( [0.D0,0.D0,1.D0, 1.D0,0.D0,0.D0],[3,2])
+
   INTEGER,PARAMETER:: line_pat2(nlmax2)=[ 0, 0 ]
   REAL(dp),PARAMETER:: line_mark_size2(nlmax2)=[ 0.3D0, 0.3D0 ]
   INTEGER,PARAMETER:: line_mark2(nlmax2)=[ 0, -1 ]
@@ -1459,15 +1460,22 @@ CONTAINS
 
     REAL(dp),ALLOCATABLE:: fg(:,:,:)
     INTEGER,ALLOCATABLE:: ncount_maxa(:)
-    INTEGER:: ndata,ngid,ncount_max,mode_2d
+    INTEGER:: ndata,ngid,ncount_max,mode_2d,nlmax_local
     CHARACTER(LEN=80):: title
     EXTERNAL PAGES,PAGEE
 
     SELECT CASE(id)
     CASE(4,40,41,42,43,44)
-       mode_2d=22  ! gradual color
+       IF(nplot_max.EQ.1) THEN
+          mode_2d=23  ! varying color
+          nlmax_local=nlmax1
+       ELSE
+          mode_2d=21  ! flat color
+          nlmax_local=nlmax
+       END IF
     CASE(45,46,47,48,49)
-       mode_2d=21  ! flat color
+       mode_2d=22  ! gradual color
+       nlmax_local=nlmax
     END SELECT
     
     ncount_max=ndate_max_g-ndate_min_g+1
@@ -1488,7 +1496,7 @@ CONTAINS
                   NOINFO=1,MODE_2D=mode_2d, &
                   LINE_RGB=line_rgb,LINE_PAT=line_pat,LINE_MARK=line_mark, &
                   LINE_MARK_STEP=line_mark_step, &
-                  LINE_MARK_SIZE=line_mark_size,NLMAX=nlmax)
+                  LINE_MARK_SIZE=line_mark_size,NLMAX=nlmax_local)
     END SELECT
     SELECT CASE(id)
     CASE(4,40,42,45,47)
@@ -1502,7 +1510,7 @@ CONTAINS
                   NOINFO=1,MODE_2D=mode_2d, &
                   LINE_RGB=line_rgb,LINE_PAT=line_pat,LINE_MARK=line_mark, &
                   LINE_MARK_STEP=line_mark_step, &
-                  LINE_MARK_SIZE=line_mark_size,NLMAX=nlmax)
+                  LINE_MARK_SIZE=line_mark_size,NLMAX=nlmax_local)
     END SELECT
     SELECT CASE(id)
     CASE(4,40,43,45,48)
@@ -1517,7 +1525,7 @@ CONTAINS
                   NOINFO=1,MODE_2D=mode_2d, &
                   LINE_RGB=line_rgb,LINE_PAT=line_pat,LINE_MARK=line_mark, &
                   LINE_MARK_STEP=line_mark_step, &
-                  LINE_MARK_SIZE=line_mark_size,NLMAX=nlmax)
+                  LINE_MARK_SIZE=line_mark_size,NLMAX=nlmax_local)
     END SELECT
     SELECT CASE(id)
     CASE(4,40,44,45,49)
@@ -1532,7 +1540,7 @@ CONTAINS
                   NOINFO=1,MODE_2D=mode_2d, &
                   LINE_RGB=line_rgb,LINE_PAT=line_pat,LINE_MARK=line_mark, &
                   LINE_MARK_STEP=line_mark_step, &
-                  LINE_MARK_SIZE=line_mark_size,NLMAX=nlmax)
+                  LINE_MARK_SIZE=line_mark_size,NLMAX=nlmax_local)
     END SELECT
     CALL PAGEE
 

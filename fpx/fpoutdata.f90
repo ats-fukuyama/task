@@ -15,7 +15,7 @@
 !----------------------------------------------------------------
       SUBROUTINE OUT_TXT_FNS_DEL
 
-      USE eg_read
+      USE fpreadeg
       IMPLICIT NONE
       INTEGER:: NSA, NR, NP, NTH, NS
       REAL(rkind):: FL

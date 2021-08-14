@@ -1,4 +1,6 @@
-module check_neoclass
+! fpchecknc
+
+module fpchecknc
   private
 
   public :: output_neoclass
@@ -724,4 +726,4 @@ contains
 
   ! end subroutine D_random_walk
 
-end module check_neoclass
+end module fpchecknc

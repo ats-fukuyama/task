@@ -171,8 +171,8 @@ contains
     use fpwrite
     use foworbit
     use fowdistribution
-    use check_neoclass
-    use orbit_classify
+    use fpchecknc
+    use fpobclassify
     implicit none
     integer,intent(in) :: nt
     REAL(rkind) :: r_, psip0, costh0, sinth0, B0, F0, dBdr0, dFdr0, dpsipdr0, MJ2keV

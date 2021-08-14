@@ -9,7 +9,7 @@ contains
     use fowcomm
     use fpcomm
     use foworbit
-    use orbit_classify
+    use fpobclassify
 
     implicit none
 
@@ -667,7 +667,7 @@ contains
 
     real(rkind) :: F_pncp, Bin_pncp, BFFB, ps_ratio, dFdpsi_pncp, dBdpsi_pncp, G_m, C(3), w, FB_prime, xi_pncp, xi2
     real(rkind) :: F_m, B_m
-    complex(rkind) :: z(2)
+    COMPLEX(rkind) :: z(2)
     real(rkind),allocatable :: dFdpsi(:), dBdpsi(:)
 
     allocate(dFdpsi(nrmax+1), dBdpsi(nrmax+1))

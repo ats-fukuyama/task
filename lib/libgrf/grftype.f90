@@ -87,6 +87,7 @@ MODULE grftype
 !                          16*: Bird's eye view contour on Y=0 plane
 !                          21 : X-Y plot
 !                          22 : X-Y plot (with gradation)
+!                          23 : X-Y plot (varying color nlmax)
      INTEGER:: MODE_XY   ! Coordinate tupe
 !                           0 : Rectangular coordinates
 !                           1 : Circle

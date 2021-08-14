@@ -1139,10 +1139,10 @@
       USE libbes,ONLY: beseknx
       implicit none
       integer :: NR, NS
-      real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+      REAL(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      REAL(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
       TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
-      real(kind8):: FPMXWL_calcnr
+      REAL(rkind):: FPMXWL_calcnr
 
       AMFDL=PA(NS)*AMP
       AEFDL=PZ(NS)*AEE

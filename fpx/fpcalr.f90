@@ -10,17 +10,17 @@ CONTAINS
 
       USE fpcomm
       USE plprof
-      USE cdbmfp_mod
+      USE fpcdbm
       USE libmpi,ONLY: mtx_set_communicator, mtx_reset_communicator
       USE fpmpi,ONLY: p_theta_integration
       IMPLICIT NONE
       integer:: NSA, NSBA, NS, NR, NTH, NP, NR1, NR2
-      real(kind8):: RHON, RTFPL, FACTR, FACTP, PPP, PPM
-      real(kind8):: FACT, DINT_D, DINT_F, WRL
-      real(kind8):: SRHODM, SRHOFM
-      real(kind8):: F_R1, DFDR_R1
-      REAL(kind8):: SHEAR,PNEL,RHONI,DPDR,DVEXBDR,CALF,CKAP,CEXB
-      REAL(kind8),DIMENSION(1:NRMAX+1):: CHI_CDBM
+      REAL(rkind):: RHON, RTFPL, FACTR, FACTP, PPP, PPM
+      REAL(rkind):: FACT, DINT_D, DINT_F, WRL
+      REAL(rkind):: SRHODM, SRHOFM
+      REAL(rkind):: F_R1, DFDR_R1
+      REAL(rkind):: SHEAR,PNEL,RHONI,DPDR,DVEXBDR,CALF,CKAP,CEXB
+      REAL(rkind),DIMENSION(1:NRMAX+1):: CHI_CDBM
       REAL(rkind):: rgama, alpha
 
 !---- Calculation of CDBM diffusion coefficient ----
@@ -113,7 +113,7 @@ CONTAINS
 !            CURVZ=0.D0   ! option
 !            FEZ=0.D0     ! option
 
-            CALL CDBMFP(BB,RR,RA*RHON,RKAP,QLM(NR),SHEAR,PNEL,RHONI,DPDR, &
+            CALL fp_cdbm(BB,RR,RA*RHON,RKAP,QLM(NR),SHEAR,PNEL,RHONI,DPDR, &
                       DVEXBDR,CALF,CKAP,CEXB,MODELD_CDBM,CHI_CDBM(NR))
 !            IF(nrank.EQ.0) THEN
 !               write(18,'(I2,1P7E11.3)') &

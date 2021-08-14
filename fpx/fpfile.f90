@@ -301,7 +301,7 @@
       USE fpprep
       USE libmpi
       USE fpmpi
-      USE eg_read
+      USE fpreadeg
       USE plprof
       USE fpnfrr
       USE fpnflg

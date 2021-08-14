@@ -202,7 +202,7 @@ contains
       IMPLICIT NONE
       INTEGER,DIMENSION(99):: idata
       REAL(rkind),DIMENSION(99):: rdata
-      complex(8),DIMENSION(3):: cdata
+      COMPLEX(8),DIMENSION(3):: cdata
       INTEGER:: NS
 
 !----- PL input parameters -----     

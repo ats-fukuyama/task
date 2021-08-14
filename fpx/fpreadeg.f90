@@ -1,5 +1,6 @@
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      MODULE EG_READ
+! fpreadeg
+
+MODULE fpreadeg
 
       USE fpcomm
 
@@ -8,8 +9,8 @@
       PUBLIC FPMXWL_EXP
       
       PRIVATE
-!      REAL(rkind),dimension(:,:),pointer:: read_tms_double, read_cx_double
-!      integer,dimension(:,:),pointer:: read_tms_int
+!      REAL(rkind),dimension(:,:),ALLOCATABLE:: read_tms_double, read_cx_double
+!      integer,dimension(:,:),ALLOCATABLE:: read_tms_int
 !      REAL(rkind),dimension(5):: cte_fit
 !      REAL(rkind),dimension(6):: cne_fit
 !      integer:: nend_tms, nend_cx
@@ -403,10 +404,10 @@
       USE libbes,ONLY: beseknx 
       implicit none
       integer :: NR, NS
-      real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+      REAL(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      REAL(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
       TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
-      real(kind8):: FPMXWL_EXP
+      REAL(rkind):: FPMXWL_EXP
 
       AMFDL=PA(NS)*AMP
       AEFDL=PZ(NS)*AEE
@@ -449,7 +450,7 @@
       END IF
 
       RETURN
-      END FUNCTION FPMXWL_EXP
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      END MODULE EG_READ
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    END FUNCTION FPMXWL_EXP
+
+  END MODULE fpreadeg
+    

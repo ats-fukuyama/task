@@ -21,7 +21,7 @@
 
       integer,parameter:: ISW_Z=1 !0=Z_ef, 1=ZEFF
 
-      REAL(rkind),dimension(:),pointer:: rt_init
+      REAL(rkind),dimension(:),ALLOCATABLE:: rt_init
 !      REAL(rkind),parameter:: lnL_ED=10.D0
       REAL(rkind),parameter:: lnL_ED=18.D0
       integer,parameter:: ISW_Q=2 ! 2=exponential, 3=2step quench, 0=linear

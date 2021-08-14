@@ -3,11 +3,11 @@
 
       USE fpcomm      
 
-       integer,dimension(:,:),pointer:: I_FIT_temp
-       REAL(rkind),dimension(:),pointer:: D_FIT_temp
+       integer,dimension(:,:),ALLOCATABLE:: I_FIT_temp
+       REAL(rkind),dimension(:),ALLOCATABLE:: D_FIT_temp
        integer:: npm_fit, nthm_fit, nrm_fit
-       REAL(rkind),dimension(:),pointer:: rm_fit
-       REAL(rkind),dimension(:),pointer:: weight_r
+       REAL(rkind),dimension(:),ALLOCATABLE:: rm_fit
+       REAL(rkind),dimension(:),ALLOCATABLE:: weight_r
        REAL(rkind):: rho_del_fit
 
        contains
@@ -218,7 +218,7 @@
        integer:: i,j,k
        integer:: NTH, NP, NR, NS
 !       REAL(rkind),dimension(NTHMAX,NPMAX,NRMAX):: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
-       REAL(rkind),dimension(:,:,:),pointer:: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
+       REAL(rkind),dimension(:,:,:),ALLOCATABLE:: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
        REAL(rkind):: FACT
 !       REAL(rkind),dimension(NRMAX):: power1, power2, power3
 
@@ -313,7 +313,7 @@
        integer:: i,j,k
        integer:: NTH, NP, NR, NS
 !       REAL(rkind),dimension(NTHMAX,NPMAX,NRMAX):: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
-       REAL(rkind),dimension(:,:,:),pointer:: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
+       REAL(rkind),dimension(:,:,:),ALLOCATABLE:: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
        REAL(rkind):: FACT
 !       REAL(rkind),dimension(NRMAX):: power1, power2, power3
 

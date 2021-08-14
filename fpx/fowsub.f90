@@ -20,9 +20,9 @@ CONTAINS
 
     implicit none
     real(rkind),intent(in) :: C(3)
-    complex(rkind),intent(out) :: z(2)
+    COMPLEX(rkind),intent(out) :: z(2)
     real(rkind) :: D
-    complex(rkind) :: ei=(0.d0,1.d0)
+    COMPLEX(rkind) :: ei=(0.d0,1.d0)
 
     z(1) = (0.d0, 0.d0)
     z(2) = (0.d0, 0.d0)

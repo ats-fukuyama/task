@@ -485,8 +485,8 @@
 
       IMPLICIT NONE
       integer:: NR, NTH, NG
-      real(kind8):: RINT0, DELH
-      real(kind8):: SUML, ETAL, PSIB, PCOS
+      REAL(rkind):: RINT0, DELH
+      REAL(rkind):: SUML, ETAL, PSIB, PCOS
 
       DO NTH=1,NTHMAX/2
             DELH=2.D0*ETAM(NTH,NR)/NAVMAX
@@ -513,8 +513,8 @@
 
       IMPLICIT NONE
       integer:: NTH, NG
-      real(kind8):: RINT0, DELH
-      real(kind8):: SUML, ETAL, PSIB, PCOS
+      REAL(rkind):: RINT0, DELH
+      REAL(rkind):: SUML, ETAL, PSIB, PCOS
 
       DO NTH=1,NTHMAX/2
             DELH=2.D0*ETAM_NRMAXP1(NTH)/NAVMAX
@@ -538,8 +538,8 @@
 
       IMPLICIT NONE
       integer:: NR, NTH, NG
-      real(kind8):: RINT0, DELH
-      real(kind8):: SUML, ETAL, X, PSIB, PCOS
+      REAL(rkind):: RINT0, DELH
+      REAL(rkind):: SUML, ETAL, X, PSIB, PCOS
 
       DO NTH=1,NTHMAX/2
 !         IF(NTH.ne.ITLG(NR)) THEN
@@ -566,8 +566,8 @@
 
       IMPLICIT NONE
       integer:: NR, NTH, NG
-      real(kind8):: RINT0, DELH
-      real(kind8):: SUML, ETAL, X, PSIB, PCOS
+      REAL(rkind):: RINT0, DELH
+      REAL(rkind):: SUML, ETAL, X, PSIB, PCOS
 
       DO NTH=1,NTHMAX/2
             DELH=2.D0*ETAMG_RG(NTH,NR)/NAVMAX

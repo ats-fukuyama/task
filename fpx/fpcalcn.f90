@@ -958,10 +958,10 @@
       USE libbes,ONLY: beseknx 
       implicit none
       integer :: NR, NS
-      real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      real(kind8) :: rnfdl,rtfdl,fact,ex
+      REAL(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      REAL(rkind) :: rnfdl,rtfdl,fact,ex
       TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
-      real(kind8):: FPMXWL_calcn
+      REAL(rkind):: FPMXWL_calcn
 
       AMFDL=PA(NS)*AMP
       AEFDL=PZ(NS)*AEE

@@ -92,10 +92,10 @@ CONTAINS
       USE libbes
       implicit none
       integer :: NR, NS
-      real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+      REAL(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      REAL(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
       TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
-      real(kind8):: FPMXWL
+      REAL(rkind):: FPMXWL
 
       AMFDL=PA(NS)*AMP
       AEFDL=PZ(NS)*AEE
@@ -156,10 +156,10 @@ CONTAINS
       USE libbes
       implicit none
       integer :: NR, NS
-      real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+      REAL(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      REAL(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
       TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
-      real(kind8):: FPMXWL_S
+      REAL(rkind):: FPMXWL_S
 
       AMFDL=PA(NS)*AMP
       AEFDL=PZ(NS)*AEE
@@ -221,7 +221,7 @@ CONTAINS
 !      integer,intent(in):: NP, NSA
       integer:: NP, NSA
       integer:: NS
-      real(kind8):: FL
+      REAL(rkind):: FL
 
       NS=NS_NSA(NSA)
 
@@ -243,10 +243,10 @@ CONTAINS
       USE libbes
       implicit none
       integer :: NR, NS
-      real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+      REAL(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      REAL(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
       TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
-      real(kind8):: FPMXWL_LT
+      REAL(rkind):: FPMXWL_LT
 
       AMFDL=PA(NS)*AMP
       AEFDL=PZ(NS)*AEE
@@ -295,7 +295,7 @@ CONTAINS
   SUBROUTINE update_fnsb_maxwell
 
     USE fpcomm
-    USE EG_READ
+    USE fpreadeg
     IMPLICIT NONE
     INTEGER:: NS, NR, NP, NTH, NSB
     REAL(rkind):: FL

@@ -32,9 +32,9 @@
       Implicit none
       integer :: ierr,NSA,NS,NR,NP,NTH,id
 !      character(LEN=80)::line 
-      real(kind8)::rhon,rhol,rhol1,rhol2,A1,epsl,ql,BT
-      real(kind8),DIMENSION(:),POINTER:: work,workg
-      real(kind8):: Rmass, RRTFP, RPTFP,RVTFP, sumEmax
+      REAL(rkind)::rhon,rhol,rhol1,rhol2,A1,epsl,ql,BT
+      REAL(rkind),DIMENSION(:),POINTER:: work,workg
+      REAL(rkind):: Rmass, RRTFP, RPTFP,RVTFP, sumEmax
 
 !     ----- define upper boundary of p from Emax-----
       sumEmax=0.D0
@@ -858,13 +858,13 @@
       SUBROUTINE fp_set_normalize_param
 
       USE plprof
-      USE EG_READ
+      USE fpreadeg
       IMPLICIT NONE
       INTEGER:: NSA, NSB, NS, NSFP, NSFD, NR, ISW_CLOG, i, j
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
-      real(kind8):: RTFD0L, RHON, RNE, RTE, RLNRL, FACT, RNA, RTA, RNB, RTB, SUM, AMFDL
-      real(kind8):: A_D, tau_se_E0, log_energy, sigma_cx0, sigma_cx, tau_cx_E1
-      real(kind8):: tau_se_E0E1, log10_neu0, log10_neus, alpha, beta, N_NEUT, E_CR
+      REAL(rkind):: RTFD0L, RHON, RNE, RTE, RLNRL, FACT, RNA, RTA, RNB, RTB, SUM, AMFDL
+      REAL(rkind):: A_D, tau_se_E0, log_energy, sigma_cx0, sigma_cx, tau_cx_E1
+      REAL(rkind):: tau_se_E0E1, log10_neu0, log10_neus, alpha, beta, N_NEUT, E_CR
 
       DO NSA=1,NSAMAX
          NS=NS_NSA(NSA)

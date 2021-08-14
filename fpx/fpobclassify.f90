@@ -1,4 +1,4 @@
-module orbit_classify
+module fpobclassify
 
   USE fpcomm,ONLY: rkind
   private
@@ -86,7 +86,7 @@ contains
 
     real(rkind) :: F_pncp, Bin_pncp, BFFB, ps_ratio, dFdpsi_pncp, dBdpsi_pncp, G_m, C(3), w, FB_prime, xi_pncp, xi2
     real(rkind) :: F_m, B_m, p_ret
-    complex(rkind) :: z(2)
+    COMPLEX(rkind) :: z(2)
     real(rkind),allocatable :: dFdpsi(:), dBdpsi(:)
 
     allocate(dFdpsi(nrmax+1), dBdpsi(nrmax+1))
@@ -319,7 +319,7 @@ contains
     real(rkind),dimension(nrmax,2),intent(out) :: xi_Xtype_boundary(:,:)
     integer :: nr
     real(rkind) :: C(3), F_p, F_pp, B_p, B_pp
-    complex(rkind) :: z(2)
+    COMPLEX(rkind) :: z(2)
     real(rkind),dimension(nrmax,2) :: dBmdpsi, d2Bmdpsi, B_, B__
     real(rkind),dimension(nrmax) :: dFdpsi, d2Fdpsi, F_, F__
 
@@ -407,4 +407,4 @@ contains
 
   end function func_kaijou
 
-end module orbit_classify
+end module fpobclassify

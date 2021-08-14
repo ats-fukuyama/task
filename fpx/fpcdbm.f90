@@ -1,3 +1,5 @@
+! fpcdbm.f90
+
 !     ********************************************
 
 !           CDBM Transport model (2009/03/06)
@@ -5,13 +7,13 @@
 
 !     ********************************************
 
-MODULE cdbmfp_mod
+MODULE fpcdbm
 
   USE bpsd_kinds
   USE bpsd_constants
   IMPLICIT NONE
   PRIVATE
-  PUBLIC:: cdbmfp
+  PUBLIC:: fp_cdbm
 
 !  integer,parameter :: rkind=selected_real_kind(12,100)
 !  integer,parameter :: ikind=selected_int_kind(8)
@@ -35,7 +37,7 @@ MODULE cdbmfp_mod
 
 CONTAINS
 
-  SUBROUTINE cdbmfp(bb,rr,rs,rkap,qp,shear,pne,rhoni,dpdr,dvexbdr, &
+  SUBROUTINE fp_cdbm(bb,rr,rs,rkap,qp,shear,pne,rhoni,dpdr,dvexbdr, &
        &             calf,ckap,cexb,model,chi_cdbm,fsz,curvz,fez)
 
     real(rkind),intent(in):: bb      ! Magnetic field strength [T]
@@ -119,7 +121,7 @@ CONTAINS
     IF(PRESENT(fez))   fez=fe
     
     RETURN
-  END SUBROUTINE cdbmfp
+  END SUBROUTINE fp_cdbm
 
 ! *** Form factor in CDBM model ***
 
@@ -202,4 +204,4 @@ CONTAINS
     ENDIF
     RETURN
   END FUNCTION FEXBfp
-END MODULE cdbmfp_mod
+END MODULE fpcdbm
