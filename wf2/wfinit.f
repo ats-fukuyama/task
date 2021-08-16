@@ -523,7 +523,7 @@ C
      &              GA,GB,GC,GD,GE,GXN,GYN,GZN,GXN1,GXN2,GYN1,GYN2,
      &              IXY,IDN,MODIFY,PNPROFY0,PNPROFYW
       CHARACTER KSNAME*32,KSNAMZ*32,KSNAMA*32,KSNAMF*32
-      CHARACTER KPNAME*32,KLINE*70,KNAME*80,KID*1
+      CHARACTER KPNAME*32,KLINE*80,KNAME*87,KID*1
       LOGICAL LEX
 C
       MODE=0
@@ -567,8 +567,7 @@ C
       ENTRY WFPARL(KLINE)
 C
       MODE=1
-      KNAME=' &WF '//TRIM(KLINE)//' &END'
-C      KNAME=' &WF '//KLINE//' /'
+      KNAME=' &WF '//TRIM(KLINE)//' /'
 C
 C     --- when internal file does not accept namelist ---
 C
