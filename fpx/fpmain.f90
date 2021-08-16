@@ -44,8 +44,6 @@ PROGRAM fp
   CALL eq_init
   CALL fp_init
   IF(nrank.EQ.0) THEN
-     CALL pl_parm(1,'plparm',IERR)
-     CALL eqparm(1,'eqparm',IERR)
      CALL fp_parm(1,'fpparm',IERR)
   ENDIF
   CALL fp_menu

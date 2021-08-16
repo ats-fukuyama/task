@@ -1588,8 +1588,10 @@ C
       DIMENSION CJ(3),CE(3),CIMPK(NAM)
       REAL(8),ALLOCATABLE:: EANT(:,:),FANT(:,:),PANT(:,:),YMA(:)
       REAL*8 A(3),B(3),C(3)
+      INTEGER ntemp
 C
       CNST=1.D0
+      ntemp=NZ
 C
       DO 100 NA=1,NAMAX
          SELECT CASE(NTYPJ0(NA))
@@ -1881,7 +1883,7 @@ C
                PANT(IJ-1,1)=REAL(CONJG(CE(1))*CJ(1))
                PANT(IJ-1,2)=REAL(CONJG(CE(2))*CJ(2))
                PANT(IJ-1,3)=REAL(CONJG(CE(3))*CJ(3))
-               PANT(IJ-1,4)=PANT(IJ,1)+PANT(IJ,2)+PANT(IJ,3)
+               PANT(IJ-1,4)=PANT(IJ-1,1)+PANT(IJ-1,2)+PANT(IJ-1,3)
             END IF
 !            WRITE(6,'(A,2I4,1P6E11.3)') 'CE:',NA,IJ,CE(1),CE(2),CE(3)
             DO I=1,3
@@ -1895,7 +1897,7 @@ C
             CALL PAGES
             CALL GRD1D(1,YMA,EANT,IJMAX,IJMAX-1,6,'@EANT@')
             CALL GRD1D(2,YMA,FANT,IJMAX,IJMAX-1,6,'@JANT@')
-!            CALL GRD1D(3,YMA,PANT,IJMAX,IJMAX-1,4,'@PANT@')
+            CALL GRD1D(3,YMA,PANT,IJMAX,IJMAX-1,4,'@PANT@')
             CALL PAGEE
             DEALLOCATE(YMA,EANT,FANT,PANT)
          END IF

@@ -26,10 +26,10 @@ MODULE obcomm_parm
        mdlobg, &              ! model id of graphics
        mdlobx                 ! model id of wall  (0: calculate only inside the wall)
   REAL(rkind) &
-       tmax, &                ! maximum of orbit following time in omega_bounce
-       delt, &                ! time step size in onega_bounce
-       eps_obt, &             ! convergence criterion of orbit solution
-       del_obt, &             ! step size of iteration (initial condition)
+       tmax_ob, &             ! maximum of orbit following time in omega_bounce
+       delt_ob, &             ! time step size in onega_bounce
+       eps_ob, &              ! convergence criterion of orbit solution
+       del_ob, &              ! step size of iteration (initial condition)
        eps_nw                 ! convergence criterion of iteration (initial c.)
 
   REAL(rkind),DIMENSION(nobt_m):: &

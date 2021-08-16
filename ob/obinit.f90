@@ -35,7 +35,7 @@ CONTAINS
                               !     0: real time
                               !     1: normalized by approximate bounce time
     mdlobc=0                  ! model id of one cycle calculation
-                              !     0: independent of cycle, until tmax
+                              !     0: independent of cycle, until tmax_ob
                               !     1: one cycle for trapped and untrapped
     mdlobw=3                  ! model id of output interval
                               !     0: no output
@@ -47,15 +47,17 @@ CONTAINS
     mdlobg=0                  ! model id of graphics
                               !     0: default
     mdlobx=1                  ! model id of wall
-                              !     0: calculate only inside the wall i.e. psip_ob<=psipa
-                              !     1: continue Runge-Kutta while satifying psip_ob>psipa
-    tmax=10.D0                ! maximum of orbit following time in omega_bounce
-    delt=0.1d0                ! time step size in omega_bounce
+                              !     0: calculate only inside the wall
+                              !            i.e. psip_ob<=psipa
+                              !     1: continue Runge-Kutta
+                              !            while satifying psip_ob>psipa
+    tmax_ob=10.D0             ! maximum of orbit following time in omega_bounce
+    delt_ob=0.1d0             ! time step size in omega_bounce
                               ! t_bounce = 2 Pi/ omega_bounce
                               ! omega bounce = (v_perp/qR) SQRT(r/2R)
                               ! omega_bounce^2 = (mu B /m)*(r/q^2 R^3)
-    eps_obt=1.D-6             ! convergence criterion of orbit solution
-    del_obt=1.D-4             ! step size of iteration (initial condition)
+    eps_ob=1.D-6              ! convergence criterion of orbit solution
+    del_ob=1.D-4              ! step size of iteration (initial condition)
     eps_nw=1.D-6              ! convergence criterion of iteration (initial c.)
 
     penergy_in(1)=1.D0        ! initial particle energy (mdlobi=0,1) [keV]

@@ -580,7 +580,7 @@ C     --- when internal file accepts namelist ---
 C
 C      READ(KNAME,IN,ERR=8,END=8)
 C
-      WRITE(6,*) '#### PARM INPUT ACCEPTED: ',KLINE(1:KL)
+      WRITE(6,*) '#### PARM INPUT ACCEPTED: ',TRIM(KLINE)
       GOTO 9
     8 WRITE(6,*) 'XX IO ERROR: IOSTAT=',IST
       CALL WFPLST
@@ -691,6 +691,18 @@ C
          ELSE
             WRITE(6,605) 'RF    ',RF    ,'NZMAX ',NZMAX ,
      &                   'RZ    ',RZ    ,'PHIW  ',PHIW
+         ENDIF
+      ELSEIF(MODELB.EQ.7) THEN
+         WRITE(6,*) '      RC          ZC          BC'
+         DO NC=1,NCMAX
+            WRITE(6,610) NC,RC(NC),ZC(NC),BC(NC)
+         ENDDO
+         IF(NZMAX.EQ.1) THEN
+            WRITE(6,603) 'RF    ',RF    ,'NPHI  ',NPHI,
+     &                   'PHIW  ',PHIW
+         ELSE
+            WRITE(6,603) 'RF    ',RF    ,'NZMAX ',NZMAX,
+     &                   'PHIW  ',PHIW
          ENDIF
       ENDIF
 C

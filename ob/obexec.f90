@@ -80,16 +80,16 @@ CONTAINS
 
     SELECT CASE(mdlobt)
     CASE(0)
-       dx=delt
+       dx=delt_ob
        xs=0.D0
        xe=dx
-       xmax=tmax
+       xmax=tmax_ob
        nstp_lim=MIN(INT(xmax/dx),nstp_max)
     CASE(1)
-       dx=delt/omega_bounce
+       dx=delt_ob/omega_bounce
        xs=0.D0
        xe=dx
-       xmax=tmax/omega_bounce
+       xmax=tmax_ob/omega_bounce
        nstp_lim=MIN(INT(xmax/dx),nstp_max)
     END SELECT
     

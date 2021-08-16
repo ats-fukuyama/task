@@ -28,11 +28,11 @@ CONTAINS
          'mdlobw      ',mdlobw, &
          'mdlobg      ',mdlobg
     WRITE(6,604) &
-         'tmax        ',tmax, &
-         'delt        ',delt
+         'tmax_ob     ',tmax_ob, &
+         'delt_ob     ',delt_ob
     WRITE(6,604) &
-         'eps_obt     ',eps_obt, &
-         'del_obt     ',del_obt, &
+         'eps_ob      ',eps_ob, &
+         'del_ob      ',del_ob, &
          'eps_nw      ',eps_nw
     SELECT CASE(mdlobi)
     CASE(0)
