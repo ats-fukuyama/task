@@ -4,7 +4,7 @@ MODULE fpcomm_parm
   USE bpsd_constants
   USE commpi
   USE plcomm
-  USE obcomm_parm,delt_obt=>delt,tmax_obt=>tmax
+  USE obcomm_parm
   IMPLICIT NONE
 
   PUBLIC

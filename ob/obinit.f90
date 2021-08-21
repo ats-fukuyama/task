@@ -60,13 +60,13 @@ CONTAINS
     del_ob=1.D-4              ! step size of iteration (initial condition)
     eps_nw=1.D-6              ! convergence criterion of iteration (initial c.)
 
-    penergy_in(1)=1.D0        ! initial particle energy (mdlobi=0,1) [keV]
-    pcangle_in(1)=0.5D0       ! initial cosine of pitch angle (mdlobi=0,1)
-    zeta_in(1)=0.D0           ! initial toroidal angle (mdlobi=0,1) [degree]
-    psipn_in(1)=0.5D0         ! initial normalized poloidal flux (mdlobi=0)
-    theta_in(1)=0.D0          ! initial poloidal angle (mdlobi=0) [deg]
-    rr_in(1)=4.D0             ! initial major radius (mdlobi=1) [m]
-    zz_in(1)=0.D0             ! initial vertical position (mdlobi=1) [m]
+    penergy_ob_in(1)=1.D0        ! initial particle energy (mdlobi=0,1) [keV]
+    pcangle_ob_in(1)=0.5D0       ! initial cosine of pitch angle (mdlobi=0,1)
+    zeta_ob_in(1)=0.D0           ! initial toroidal angle (mdlobi=0,1) [degree]
+    psipn_ob_in(1)=0.5D0         ! initial normalized poloidal flux (mdlobi=0)
+    theta_ob_in(1)=0.D0          ! initial poloidal angle (mdlobi=0) [deg]
+    rr_ob_in(1)=4.D0             ! initial major radius (mdlobi=1) [m]
+    zz_ob_in(1)=0.D0             ! initial vertical position (mdlobi=1) [m]
 
 ! --- equilibirum parameters ---
 

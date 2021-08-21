@@ -271,11 +271,11 @@ contains
     pv = SQRT( 1.d0+momentum**2/(mass0*vc)**2 )
     ns_ob = ns
 
-    penergy_in(1) = mass0*vc**2*(pv-1.d0)/(aee*1.d3)
-    pcangle_in(1) = COS( pitch_angle )
-    theta_in(1)   = theta_pol!*180.d0/pi
-    psipn_in(1)   = psi_pol/psi0
-    zeta_in(1)    = 0.d0
+    penergy_ob_in(1) = mass0*vc**2*(pv-1.d0)/(aee*1.d3)
+    pcangle_ob_in(1) = COS( pitch_angle )
+    theta_ob_in(1)   = theta_pol!*180.d0/pi
+    psipn_ob_in(1)   = psi_pol/psi0
+    zeta_ob_in(1)    = 0.d0
 
     call ob_calc(ierr)
 
