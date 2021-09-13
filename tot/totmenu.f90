@@ -17,6 +17,7 @@ CONTAINS
     USE trmenu,ONLY:tr_menu
     USE timenu,ONLY:ti_menu
     USE wrmenu,ONLY:wr_menu
+    USE wmmenu,ONLY:wm_menu
     USE libchar
     USE commpi
     USE libmpi
@@ -48,7 +49,7 @@ CONTAINS
     CASE('WR')
        CALL wr_menu
     CASE('WM')
-       CALL wmmenu
+       CALL wm_menu
     CASE('FP')
        CALL fp_menu
     CASE('DP')

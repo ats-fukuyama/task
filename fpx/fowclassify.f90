@@ -1,4 +1,4 @@
-module fpobclassify
+module fowclassify
 
   USE fpcomm,ONLY: rkind
   private
@@ -407,4 +407,4 @@ contains
 
   end function func_kaijou
 
-end module fpobclassify
+end module fowclassify

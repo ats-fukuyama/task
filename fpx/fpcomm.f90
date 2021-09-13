@@ -90,6 +90,8 @@ MODULE fpcomm_parm
   INTEGER,DIMENSION(:,:),ALLOCATABLE:: number_of_lines_fit_H
   INTEGER,DIMENSION(:,:),ALLOCATABLE:: number_of_lines_fit_D
 
+! for fow   
+
 CONTAINS
 
   SUBROUTINE open_fpcomm_parm ! some compilor requires action in module

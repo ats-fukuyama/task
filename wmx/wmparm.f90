@@ -135,7 +135,7 @@ CONTAINS
        IF(nphmax.EQ.1) THEN ! tokamak single mode
           WRITE(6,'(A,2I6)') &
                '# axisymmetric single mode: nhhmax,nphmax=',nhhmax,nphmax
-       ELSE ! toakamk multi mode
+       ELSE ! takamk multi mode
           CALL adjust_power2(nphmax,nphmax_mod)
           IF(nphmax.NE.nphmax_mod) THEN
              WRITE(6,'(A,2I6)') &

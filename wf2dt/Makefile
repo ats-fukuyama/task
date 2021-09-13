@@ -10,8 +10,8 @@ include ../mtxp/make.mtxp
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../mtxp/$(MOD) \
@@ -21,7 +21,7 @@ SRCS = 	wfcomm.f90 femmeshprep.f90 feminterpolate.f90 \
         wfinit.f90 wfparm.f90 wfload.f90 wfprof.f90 \
         wfdiv.f90 wflib.f90 wfsub.f90 \
         wfindx.f90 wfsort.f90 wfgsub.f90 wfant.f90 wfwave.f90 \
-	wfsolv.f90 wfgout.f90 wfmenu.f90
+	wfsolv.f90 wfgout.f90 wftest.f90 wfmenu.f90
 
 OBJS = $(SRCS:.f90=.o)
 
@@ -60,6 +60,9 @@ libs:
 wf : libs $(LIBS) wfmain.o
 	$(FLINKER) wfmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
+femtest : libs $(LIBS) femtest.o
+	$(FLINKER) femtest.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
+
 clean:
 	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
 
@@ -69,6 +72,7 @@ veryclean: clean
 wfcomm.o: wfcomm.f90 ../pl/plcomm.f90
 wfmain.o: wfmain.f90 wfcomm.f90
 wfmenu.o: wfmenu.f90 wfcomm.f90
+wftest.o: wftest.f90 wfcomm.f90
 wfinit.o: wfinit.f90 wfcomm.f90
 wfdiv.o: wfdiv.f90 wfcomm.f90
 wfant.o: wfant.f90 wfcomm.f90

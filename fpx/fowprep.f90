@@ -9,7 +9,7 @@ contains
     use fowcomm
     use fpcomm
     use foworbit
-    use fpobclassify
+    use fowclassify
 
     implicit none
 

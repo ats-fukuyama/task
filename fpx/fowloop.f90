@@ -172,7 +172,7 @@ contains
     use foworbit
     use fowdistribution
     use fpchecknc
-    use fpobclassify
+    use fowclassify
     implicit none
     integer,intent(in) :: nt
     REAL(rkind) :: r_, psip0, costh0, sinth0, B0, F0, dBdr0, dFdr0, dpsipdr0, MJ2keV
