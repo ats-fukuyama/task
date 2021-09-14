@@ -146,7 +146,7 @@ contains
     use fowcomm
     use fpcomm
     use foworbit
-    USE fowsub
+    USE fowlib
 
     implicit none
     integer,intent(in) :: NS

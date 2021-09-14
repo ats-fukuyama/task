@@ -45,7 +45,7 @@ SRCS = fpcomm.f90 fpreadeg.f90 fpinit.f90 fpparm.f90 fpmpi.f90		\
 	fpnflg.f90 fpcdbm.f90 fpcalr.f90 fpread.f90 fpcoef.f90		\
 	fpcale.f90 fpbounce.f90 fpdisrupt.f90 fpprep.f90 fploop.f90	\
 	fpcont.f90 fpfout.f90 fpgout.f90 fpfile.f90 \
-	fowcomm.f90 fowsub.f90	\
+	fowcomm.f90 fowlib.f90	\
 	foworbit.f90 fowdistribution.f90 fowclassify.f90		\
 	fowprep.f90 fowsource.f90 fowcoef.f90 fowexec.f90		\
 	fpchecknc.f90 fowloop.f90 \
@@ -142,9 +142,9 @@ $(OBJDIR)/fpwrite.o : fpwrite.f90 fpcomm.f90
 #            foworbit.f90 fpprep.f90 fpcomm.f90 fpwrite.f90
 $(OBJDIR)/fowcomm.o : fowcomm.f90
 $(OBJDIR)/fowexec.o : fowexec.f90 fowcomm.f90 fpcomm.f90
-$(OBJDIR)/fowprep.o : fowprep.f90 fowsub.f90 fowcomm.f90 fowdistribution.f90	\
+$(OBJDIR)/fowprep.o : fowprep.f90 fowlib.f90 fowcomm.f90 fowdistribution.f90	\
 	foworbit.f90 fowdistribution.f90 fowclassify.f90
-$(OBJDIR)/foworbit.o: foworbit.f90 fowsub.f90 fowcomm.f90 fpcomm.f90 \
+$(OBJDIR)/foworbit.o: foworbit.f90 fowlib.f90 fowcomm.f90 fpcomm.f90 \
 	../ob/obcomm.f90 ../ob/obcalc.f90 ../ob/obprep.f90 ../ob/obinit.f90 \
 	../ob/obparm.f90
 $(OBJDIR)/fowdistribution.o : fowdistribution.f90 foworbit.f90 \
@@ -155,7 +155,8 @@ $(OBJDIR)/fowsource.o : fowsource.f90 fowcomm.f90 fpcomm.f90 fowprep.f90 \
 $(OBJDIR)/fowloop.o : fowexec.f90 fowdistribution.f90 fowcoef.f90 \
 	fowsource.f90 fowcomm.f90 fpcomm.f90 fowprep.f90 fpwrite.f90 \
 	fpchecknc.f90 fowclassify.f90
-$(OBJDIR)/fpchecknc.o : fpchecknc.f90 fowsub.f90		\
+$(OBJDIR)/fpchecknc.o : fpchecknc.f90 fowlib.f90		\
 	fowcomm.f90 fpcomm.f90 fpwrite.f90 fowcoef.f90 fowexec.f90
 $(OBJDIR)/fowclassify.o : fowclassify.f90 fowcomm.f90 fpcomm.f90 \
 	fpwrite.f90
+$(OBJDIR)/fowlib.o : fowlib.f90 fowcomm.f90

@@ -457,7 +457,7 @@ contains
     use fpcomm,only:rkind,nrmax,nthmax,npmax,rm,rg
     USE libspl1d
     USE libspl2d
-    USE fowsub
+    USE fowlib
     implicit none
     integer,intent(out):: ierr
     character(len = 80) :: line
@@ -659,7 +659,7 @@ contains
     ! return momentum of pinch orbit with psi_m = psim(nr_in), psi_pnc = psip_in
     use fowcomm
     use fpcomm
-    USE fowsub
+    USE fowlib
     implicit none
     real(rkind),intent(out) :: p_ret, theta_pncp
     real(rkind),intent(in):: psip_in, psim_in
@@ -743,7 +743,7 @@ contains
     ! return momentum of stagnation orbit for given (theta_m = theta_in, psi_m = psim(nr_in)) and species, nsa_in
     use fowcomm
     use fpcomm
-    USE fowsub
+    USE fowlib
     implicit none
     real(rkind),intent(out):: p_ret, dummy
     real(rkind),intent(in):: theta_in, psim_in

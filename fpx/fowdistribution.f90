@@ -242,7 +242,7 @@ contains
   subroutine particle_flux(Sr)
     use fpcomm
     use fowcomm
-    USE fowsub
+    USE fowlib
     implicit none
     real(rkind),dimension(nrmax,nsamax),intent(out) :: Sr
     real(rkind),dimension(nthmax,npmax,nrmax,nsamax) :: dfdp, dfdth, dfdrm
@@ -305,7 +305,7 @@ contains
   subroutine particle_flux_element(Sr, Sr_Dp, Sr_Dth, Sr_Dr, Sr_F)
     use fpcomm
     use fowcomm
-    USE fowsub
+    USE fowlib
     implicit none
     real(rkind),dimension(nrmax,nsamax),intent(out) :: Sr, Sr_Dp, Sr_Dth, Sr_Dr, Sr_F
     real(rkind),dimension(nthmax,npmax,nrmax,nsamax) :: dfdp, dfdth, dfdrm
@@ -365,7 +365,7 @@ contains
   subroutine effective_diffusion_cosfficient(Deff)
     use fpcomm
     use fowcomm
-    USE fowsub
+    USE fowlib
     implicit none
     real(rkind),dimension(nrmax,nsamax),intent(out) :: Deff
     real(rkind),dimension(nrmax,nsamax) :: Sr, dndr

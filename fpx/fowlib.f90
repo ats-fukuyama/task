@@ -1,6 +1,6 @@
-! fowsub.f90
+! fowlib.f90
 
-MODULE fowsub
+MODULE fowlib
 
   PRIVATE
   PUBLIC solve_quadratic_equation
@@ -231,4 +231,4 @@ CONTAINS
 
   end subroutine fow_cal_spl2D
 
-END MODULE fowsub
+END MODULE fowlib

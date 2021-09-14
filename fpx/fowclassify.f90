@@ -78,7 +78,7 @@ contains
     ! return momentum of pinch orbit with psi_m = psim(nr_in), psi_pnc = psip_in
     use fowcomm
     use fpcomm
-    USE fowsub
+    USE fowlib
     implicit none
     real(rkind),intent(out) :: beta_pinch, theta_pncp
     real(rkind),intent(in):: psip_in, psim_in
@@ -253,7 +253,7 @@ contains
     ! beta_stag is maximum momentum of not-forbitten particles for given psi_m, xi and particle species
     use fowcomm
     use fpcomm
-    USE fowsub
+    USE fowlib
     implicit none
     real(rkind),dimension(ithmax,nrmax,nsamax),intent(out) :: beta_stag
     integer :: nth,nr,nsa
@@ -312,7 +312,7 @@ contains
     use fpcomm
     use fowcomm
     use fpwrite
-    USE fowsub
+    USE fowlib
     implicit none
     ! F_p : ( dF / d(psi_p/psi_m) )/F 
     ! F_pp : ( d^2F / d(psi_p/psi_m)^2 )/F

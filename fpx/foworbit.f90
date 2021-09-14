@@ -16,7 +16,7 @@ contains
     use obinit
     use fowcomm
     use fpcomm
-    USE fowsub
+    USE fowlib
     USE libspl1d
     USE libspl2d
 
@@ -757,7 +757,7 @@ contains
   subroutine quantities_at_Bminimum(ra_Bmin, theta_Bmin, ob)
     use fpcomm
     use fowcomm
-    USE fowsub
+    USE fowlib
     USE libspl1d
     IMPLICIT NONE
     real(rkind),intent(out) :: ra_Bmin, theta_Bmin

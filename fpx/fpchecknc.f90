@@ -37,7 +37,7 @@ contains
   subroutine integral_Drr(Drr_out)
     use fpcomm
     use fowcomm
-    USE fowsub
+    USE fowlib
     implicit none
     REAL(rkind),dimension(nrmax,nsamax),intent(out) :: Drr_out
     REAL(rkind),dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom
@@ -88,7 +88,7 @@ contains
   subroutine D_banana(Dbanana)
     use fpcomm
     use fowcomm
-    USE fowsub
+    USE fowlib
     implicit none
     REAL(rkind),dimension(nrmax,nsamax),intent(out)  :: Dbanana
     REAL(rkind),dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom
@@ -143,7 +143,7 @@ contains
   subroutine D_random_walk_baverage(Drwav, Drw)
     use fpcomm
     use fowcomm
-    USE fowsub
+    USE fowlib
     implicit none
     REAL(rkind),dimension(nrmax,nsamax),intent(out)  :: Drw, Drwav
     REAL(rkind),dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom
