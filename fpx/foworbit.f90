@@ -402,7 +402,7 @@ contains
     open(42,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
 
     filename = TRIM(BIN_DIR)//"ob_nstpmax_r.bin"
-    open(53,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
+    open(43,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
 
     filename = TRIM(BIN_DIR)//"ob_m.bin"
     open(60,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)

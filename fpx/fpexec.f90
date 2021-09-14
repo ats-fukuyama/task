@@ -92,7 +92,7 @@
                      +DELT*SPP(NTH,NP,NR,NSA)
                IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
                   CALL mtx_set_matrix(nm,nm,1.D0-rimpl*delt*dl(nm))
-                  write(50,*)nm,dl(nm)
+!                  write(50,*)nm,dl(nm)
                   CALL mtx_set_vector(nm,FM(NM))
                ENDIF
             ENDDO
