@@ -393,13 +393,13 @@ contains
     close(11)
 
     filename = TRIM(BIN_DIR)//"ob_nstpmax_m.bin"
-    open(50,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
+    open(40,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
 
     filename = TRIM(BIN_DIR)//"ob_nstpmax_t.bin"
-    open(51,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
+    open(41,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
 
     filename = TRIM(BIN_DIR)//"ob_nstpmax_p.bin"
-    open(52,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
+    open(42,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
 
     filename = TRIM(BIN_DIR)//"ob_nstpmax_r.bin"
     open(53,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
@@ -422,7 +422,7 @@ contains
           do nth = 1, nthmax+1
 
             if ( nth <= nthmax .and. np <= npmax .and. nr <= nrmax ) then
-              write(50,iostat=ierr)orbit_m(nth,np,nr,nsa)%nstp_max
+              write(40,iostat=ierr)orbit_m(nth,np,nr,nsa)%nstp_max
               nstpmax = orbit_m(nth,np,nr,nsa)%nstp_max
 
               do nstp = 1, nstpmax
@@ -443,7 +443,7 @@ contains
             end if
 
             if ( np <= npmax .and. nr <= nrmax ) then
-              write(51,iostat=ierr)orbit_th(nth,np,nr,nsa)%nstp_max
+              write(41,iostat=ierr)orbit_th(nth,np,nr,nsa)%nstp_max
               nstpmax = orbit_th(nth,np,nr,nsa)%nstp_max
 
               do nstp = 1, nstpmax
@@ -463,7 +463,7 @@ contains
             end if
     
             if ( nth <= nthmax .and. nr <= nrmax ) then
-              write(52,iostat=ierr)orbit_p(nth,np,nr,nsa)%nstp_max
+              write(42,iostat=ierr)orbit_p(nth,np,nr,nsa)%nstp_max
               nstpmax = orbit_p(nth,np,nr,nsa)%nstp_max
 
               do nstp = 1, nstpmax
@@ -483,7 +483,7 @@ contains
             end if
 
             if ( nth <= nthmax .and. np <= npmax ) then
-              write(53,iostat=ierr)orbit_r(nth,np,nr,nsa)%nstp_max
+              write(43,iostat=ierr)orbit_r(nth,np,nr,nsa)%nstp_max
               nstpmax = orbit_r(nth,np,nr,nsa)%nstp_max
 
               do nstp = 1, nstpmax
@@ -508,7 +508,7 @@ contains
     end do
 
     do i = 0, 3
-      close(50+i)
+      close(40+i)
       close(60+i)
     end do
 
@@ -579,16 +579,16 @@ contains
     if ( ierr /= 0 ) return
 
     filename = TRIM(BIN_DIR)//"ob_nstpmax_m.bin"
-    open(50,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    open(40,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
 
     filename = TRIM(BIN_DIR)//"ob_nstpmax_t.bin"
-    open(51,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    open(41,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
 
     filename = TRIM(BIN_DIR)//"ob_nstpmax_p.bin"
-    open(52,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    open(42,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
 
     filename = TRIM(BIN_DIR)//"ob_nstpmax_r.bin"
-    open(53,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    open(43,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
 
     filename = TRIM(BIN_DIR)//"ob_m.bin"
     open(60,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
@@ -607,7 +607,7 @@ contains
         do np = 1, npmax+1
           do nth = 1, nthmax+1
             if ( nth <= nthmax .and. np <= npmax .and. nr <= nrmax ) then
-              read(50,iostat=ierr)nstpmax
+              read(40,iostat=ierr)nstpmax
               orbit_m(nth,np,nr,nsa)%nstp_max = nstpmax
 
               allocate(orbit_m(nth,np,nr,nsa)%time(nstpmax))
@@ -641,7 +641,7 @@ contains
             end if
 
             if ( np <= npmax .and. nr <= nrmax ) then
-              read(51,iostat=ierr)nstpmax
+              read(41,iostat=ierr)nstpmax
               orbit_th(nth,np,nr,nsa)%nstp_max = nstpmax
 
               allocate(orbit_th(nth,np,nr,nsa)%time(nstpmax))
@@ -748,7 +748,7 @@ contains
     end do
 
     do i = 0, 3
-      close(50+i)
+      close(40+i)
       close(60+i)
     end do
 
