@@ -22,13 +22,8 @@ CONTAINS
     DO NSA=1,NSAMAX
       SUMS(NSA)=0.D0
       DO NR=1,NRMAX
-        S=0.D0
-        DO NTH=1,NTHMAX
-          DO NP=1,NPMAX
-            S=S+SPPB(NTH,NP,NR,NSA)*VOLP(NTH,NP,NSA)*RLAMDAG(NTH,NR)
-          END DO
         ENDDO
-        SUMS(NSA)=SUMS(NSA)+VOLR(NR)*RFSADG(NR)*S
+        SUMS(NSA)=SUMS(NSA)+VOLR(NR)*RSPB(NR)
       ENDDO
       IF(SUMS(NSA).EQ.0.D0) THEN
          TAUP(NSA)=0.D0
