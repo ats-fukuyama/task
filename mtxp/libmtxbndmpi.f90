@@ -42,13 +42,13 @@
 
       INTEGER:: imax,jmax,nzzmax
       INTEGER:: joffset,ierr,mode,irmax,icmin,icmax,irc,idebug_save
-      REAL(dp),DIMENSION(:),POINTER:: x,b
-      REAL(dp),DIMENSION(:,:),POINTER:: A
-      INTEGER,DIMENSION(:),POINTER:: ir,ic
-      REAL(dp),DIMENSION(:),POINTER:: drc
-      COMPLEX(dp),DIMENSION(:),POINTER:: xc,bc
-      COMPLEX(dp),DIMENSION(:,:),POINTER:: Ac
-      COMPLEX(dp),DIMENSION(:),POINTER:: drcc
+      REAL(dp),DIMENSION(:),ALLOCATABLE:: x,b
+      REAL(dp),DIMENSION(:,:),ALLOCATABLE:: A
+      INTEGER,DIMENSION(:),ALLOCATABLE:: ir,ic
+      REAL(dp),DIMENSION(:),ALLOCATABLE:: drc
+      COMPLEX(dp),DIMENSION(:),ALLOCATABLE:: xc,bc
+      COMPLEX(dp),DIMENSION(:,:),ALLOCATABLE:: Ac
+      COMPLEX(dp),DIMENSION(:),ALLOCATABLE:: drcc
 
       CONTAINS
 

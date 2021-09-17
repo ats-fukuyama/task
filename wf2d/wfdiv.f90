@@ -243,7 +243,7 @@ subroutine SETNODC
   integer :: NN1,NN2,NN3,NN4
   integer :: NR,NTH,NTH1
   integer :: NRMAX,INNODE
-  integer,dimension(:),pointer :: NTHMAX
+  integer,dimension(:),ALLOCATABLE :: NTHMAX
   real(8) :: RRING,THETA,DR
 
   ! --- set the number of rings ---

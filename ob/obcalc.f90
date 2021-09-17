@@ -37,28 +37,28 @@ CONTAINS
     CASE(100)
        WRITE(6,'(A,I5)') '## Initial parameters: nobt_max=',nobt_max
        WRITE(6,'(A)') &
-            'nobt  penergy_in  pcangle_in  zeta_in     psipn_in    theta_in'
+            'nobt  penergy     pcangle     zeta        psipn       theta'
        DO nobt=1,nobt_max
 100       CONTINUE
           WRITE(6,'(I4,1P5E12.4)') &
-               nobt,penergy_in(nobt),pcangle_in(nobt),zeta_in(nobt), &
-               psipn_in(nobt),theta_in(nobt)
+               nobt,penergy_ob_in(nobt),pcangle_ob_in(nobt),zeta_ob_in(nobt), &
+               psipn_ob_in(nobt),theta_ob_in(nobt)
           READ(5,*,ERR=100,END=9000) &
-               penergy_in(nobt),pcangle_in(nobt),zeta_in(nobt), &
-               psipn_in(nobt),theta_in(nobt)
+               penergy_ob_in(nobt),pcangle_ob_in(nobt),zeta_ob_in(nobt), &
+               psipn_ob_in(nobt),theta_ob_in(nobt)
        END DO
     CASE(101)
        WRITE(6,'(A,I5)') '## Initial parameters: nobt_max=',nobt_max
        WRITE(6,'(A)') &
-            'nobt  penergy_in  pcangle_in  zeta_in     rr_in       zz_in'
+            'nobt  penergy     pcangle     zeta        rr          zz'
        DO nobt=1,nobt_max
 200       CONTINUE
           WRITE(6,'(I4,1P5E12.4)') &
-               nobt,penergy_in(nobt),pcangle_in(nobt),zeta_in(nobt), &
-               rr_in(nobt),zz_in(nobt)
+               nobt,penergy_ob_in(nobt),pcangle_ob_in(nobt),zeta_ob_in(nobt), &
+               rr_ob_in(nobt),zz_ob_in(nobt)
           READ(5,*,ERR=200,END=9000) &
-               penergy_in(nobt),pcangle_in(nobt),zeta_in(nobt), &
-               rr_in(nobt),zz_in(nobt)
+               penergy_ob_in(nobt),pcangle_ob_in(nobt),zeta_ob_in(nobt), &
+               rr_ob_in(nobt),zz_ob_in(nobt)
        END DO
     END SELECT
 
@@ -67,11 +67,11 @@ CONTAINS
     SELECT CASE(mdlobi)
     CASE(0,100)
        DO nobt=1,nobt_max
-          penergy_pos=penergy_in(nobt)
-          pcangle_pos=pcangle_in(nobt)
-          zetab_pos=zeta_in(nobt)
-          psip_pos=psipa*psipn_in(nobt)
-          thetab_pos=theta_in(nobt)
+          penergy_pos=penergy_ob_in(nobt)
+          pcangle_pos=pcangle_ob_in(nobt)
+          zetab_pos=zeta_ob_in(nobt)
+          psip_pos=psipa*psipn_ob_in(nobt)
+          thetab_pos=theta_ob_in(nobt)
 
     ! --- calculate constant quantities: peng, pmu, pcangl
 
@@ -79,12 +79,12 @@ CONTAINS
           CALL cal_bb_pos(thetab_pos,psip_pos,bb_pos,ierr)
           CALL cal_qps_pos(psip_pos,qps_pos,dummy,ierr)
           phi_pos=0.d0
-          peng=AEE*1.D3*penergy_in(nobt)
-          pcangl=pcangle_in(nobt)
+          peng=AEE*1.D3*penergy_ob_in(nobt)
+          pcangl=pcangle_ob_in(nobt)
           pze=PZ(ns_ob)*AEE
           pmu=(peng-pze*phi_pos)*(1.D0-pcangl**2)/bb_pos
           omega_bounce1=SQRT(pmu*bb_pos/(PA(ns_ob)*AMP) &
-               *RA*SQRT(psipn_in(nobt))/(qps_pos**2*rr_pos**3))
+               *RA*SQRT(psipn_ob_in(nobt))/(qps_pos**2*rr_pos**3))
           omega_bounce2=pcangl*SQRT(2.D0*peng/(PA(ns_ob)*AMP))/(qps_pos*rr_pos)
           ! WRITE(6,'(A,2ES12.4)') 'omega_bounce=',omega_bounce1,omega_bounce2
           omega_bounce=MAX(omega_bounce1,ABS(omega_bounce2))

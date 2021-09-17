@@ -457,7 +457,7 @@ CONTAINS
 !     ----- LINE SECTION -----
 
     SELECT CASE(A%MODE_2D)
-    CASE(0,21,22) ! 1D data and X-Y plot
+    CASE(0,21,22,23) ! 1D data and X-Y plot
        IF(PRESENT(NLMAX)) THEN
           A%NLMAX=NLMAX
        ELSE

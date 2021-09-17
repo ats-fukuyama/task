@@ -93,7 +93,9 @@ CONTAINS
        IF(nrank.EQ.0) CALL wm_save(ierr)
 
     CASE('L')
+       CALL wm_allocate
        IF(nrank.EQ.0) CALL wm_load(ierr)
+       init=1
 
     CASE('W')
        IF(nrank.EQ.0) CALL wm_wout

@@ -26,24 +26,25 @@ MODULE obcomm_parm
        mdlobg, &              ! model id of graphics
        mdlobx                 ! model id of wall  (0: calculate only inside the wall)
   REAL(rkind) &
-       tmax, &                ! maximum of orbit following time in omega_bounce
-       delt, &                ! time step size in onega_bounce
-       eps_obt, &             ! convergence criterion of orbit solution
-       del_obt, &             ! step size of iteration (initial condition)
+       tmax_ob, &             ! maximum of orbit following time in omega_bounce
+       delt_ob, &             ! time step size in onega_bounce
+       eps_ob, &              ! convergence criterion of orbit solution
+       del_ob, &              ! step size of iteration (initial condition)
        eps_nw                 ! convergence criterion of iteration (initial c.)
 
   REAL(rkind),DIMENSION(nobt_m):: &
-       penergy_in, &          ! initial particle energy (mdlobi=0,1) [keV]
-       pcangle_in, &          ! initial cosine of pitch angle (mdlobi=0,1)
-       zeta_in, &             ! initial toroidal angle (mdlobi=0,1) [deg]
-       psipn_in, &            ! initial normalized flux (mdlobi=0)
-       theta_in, &            ! initial poloidal angle (mdlobi=0) [deg]
-       rr_in, &               ! initial major radius (mdlobi=1) [m]
-       zz_in                  ! initial vertical position (mdlobi=1) [m]
+       penergy_ob_in, &          ! initial particle energy (mdlobi=0,1) [keV]
+       pcangle_ob_in, &          ! initial cosine of pitch angle (mdlobi=0,1)
+       zeta_ob_in, &             ! initial toroidal angle (mdlobi=0,1) [deg]
+       psipn_ob_in, &            ! initial normalized flux (mdlobi=0)
+       theta_ob_in, &            ! initial poloidal angle (mdlobi=0) [deg]
+       rr_ob_in, &               ! initial major radius (mdlobi=1) [m]
+       zz_ob_in                  ! initial vertical position (mdlobi=1) [m]
 
-  INTEGER:: nrmax_ob, &       ! number of radial mesh
-            nthmax_ob, &      ! number of pooidal mesh
-            nsumax_ob         ! number plasma surface points (same as wall)
+  INTEGER:: &
+       nrmax_ob, &            ! number of radial mesh
+       nthmax_ob, &           ! number of pooidal mesh
+       nsumax_ob              ! number plasma surface points (same as wall)
 
 CONTAINS
 

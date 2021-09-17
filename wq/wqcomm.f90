@@ -26,6 +26,17 @@ MODULE wqcomm_parm
   INTEGER:: nymax
   INTEGER:: INMODE
 
+  INTEGER:: model_pulse
+  INTEGER:: model_dielectric
+  INTEGER:: model_plot
+  REAL(rkind):: pulse_cycle
+  REAL(rkind):: dielectric_2
+  REAL(rkind):: dielectric_3
+  REAL(rkind):: freq_resonance
+  REAL(rkind):: freq_collision
+  INTEGER:: ntplot_interval
+  INTEGER:: ntplot_max
+
 END MODULE wqcomm_parm
 
 MODULE wqcomm
@@ -41,9 +52,13 @@ MODULE wqcomm
   REAL(rkind):: &
        omega,period,wavelength,dt,dx,dy,nu,omegaplus,omegaminus,domega
   INTEGER:: &
-       nttot
+       nttot,ntplot
   REAL(rkind):: &
        ttot
+  REAL(rkind),ALLOCATABLE:: &
+       tplot(:)
+  COMPLEX(rkind),ALLOCATABLE :: &
+       EX_save(:,:,:),EY_save(:,:,:),EZ_save(:,:,:)
 CONTAINS
 
   SUBROUTINE wq_allocate
@@ -67,6 +82,12 @@ CONTAINS
     ALLOCATE(ne(nxmax,nymax),OCE(nxmax,nymax))
     ALLOCATE(OPE(nxmax,nymax),OUH(nxmax,nymax))
     ALLOCATE(pabs(nxmax,nymax),OR(nxmax,nymax),OL(nxmax,nymax))
+    IF(ntplot_max.GT.0) THEN
+       ALLOCATE(tplot(ntplot_max))
+       ALLOCATE(EX_save(nxmax,nymax,ntplot_max))
+       ALLOCATE(EY_save(nxmax,nymax,ntplot_max))
+       ALLOCATE(EZ_save(nxmax,nymax,ntplot_max))
+    END IF
 
     nxmax_save=nxmax
     nymax_save=nymax
@@ -80,6 +101,7 @@ CONTAINS
     DEALLOCATE(A,AA,B)
     DEALLOCATE(CD,CDplus,CDminus)
     DEALLOCATE(ne,OCE,OPE,OUH,pabs,OR,OL)
+    IF(ALLOCATED(EX_save)) DEALLOCATE(EX_save,EY_save,EZ_save,tplot)
 
   END SUBROUTINE wq_deallocate
 END MODULE wqcomm

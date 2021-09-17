@@ -52,7 +52,10 @@ CONTAINS
 
     NAMELIST /WQ/ &
          FREQ,dtfactor,dxfactor,dyfactor,nufactor, &
-         B0,RR,RA,q0,qa,n0,ntmax,nxmax,nymax,INMODE,TMN
+         B0,RR,RA,q0,qa,n0,ntmax,nxmax,nymax,INMODE,TMN, &
+         model_pulse,model_dielectric,model_plot,pulse_cycle, &
+         dielectric_2,dielectric_3,freq_resonance,freq_collision, &
+         ntplot_interval,ntplot_max
 
     ierr=0
 
@@ -78,7 +81,10 @@ CONTAINS
 
     WRITE(6,'(A)') &
          '# &WQ: FREQ,dtfactor,dxfactor,dyfactor,nufactor,', &
-         '       B0,RR,RA,q0,qa,n0,ntmax,nxmax,nymax,INMODE,TMN'
+         '       B0,RR,RA,q0,qa,n0,ntmax,nxmax,nymax,INMODE,TMN', &
+         '       model_pulse,model_dielectric,model_plot,pulse_cycle,', &
+         '       dielectric_2,dielectric_3,freq_resonance,freq_collision,', &
+         '       ntplot_interval,ntplot_max'
     RETURN
   END SUBROUTINE wq_plst
 
@@ -111,13 +117,23 @@ CONTAINS
     idata( 2)=nxmax
     idata( 3)=nymax
     idata( 4)=INMODE
+    idata( 5)=model_pulse
+    idata( 6)=model_dielectric
+    idata( 7)=model_plot
+    idata( 8)=ntplot_interval
+    idata( 9)=ntplot_max
 
-    CALL mtx_broadcast_integer(idata,4)
+    CALL mtx_broadcast_integer(idata,9)
 
     ntmax=idata( 1)
     nxmax=idata( 2)
     nymax=idata( 3)
     INMODE=idata( 4)
+    model_pulse=idata( 5)
+    model_dielectric=idata( 6)
+    model_plot=idata( 7)
+    ntplot_interval=idata( 8)
+    ntplot_max=idata( 9)
 
     rdata( 1)=FREQ
     rdata( 2)=dtfactor
@@ -131,8 +147,13 @@ CONTAINS
     rdata(10)=qa
     rdata(11)=n0
     rdata(12)=TMN
-    
-    CALL mtx_broadcast_real8(rdata,12)
+    rdata(13)=pulse_cycle
+    rdata(14)=dielectric_2
+    rdata(15)=dielectric_3
+    rdata(16)=freq_resonance
+    rdata(17)=freq_collision
+
+    CALL mtx_broadcast_real8(rdata,17)
 
     FREQ=rdata( 1)
     dtfactor=rdata( 2)
@@ -146,6 +167,11 @@ CONTAINS
     qa=rdata(10)
     n0=rdata(11)
     TMN=rdata(12)
+    pulse_cycle=rdata(13)
+    dielectric_2=rdata(14)
+    dielectric_3=rdata(15)
+    freq_resonance=rdata(16)
+    freq_collision=rdata(17)
 
   END SUBROUTINE wq_broadcast
 END MODULE wqparm

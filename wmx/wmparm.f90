@@ -135,7 +135,7 @@ CONTAINS
        IF(nphmax.EQ.1) THEN ! tokamak single mode
           WRITE(6,'(A,2I6)') &
                '# axisymmetric single mode: nhhmax,nphmax=',nhhmax,nphmax
-       ELSE ! toakamk multi mode
+       ELSE ! takamk multi mode
           CALL adjust_power2(nphmax,nphmax_mod)
           IF(nphmax.NE.nphmax_mod) THEN
              WRITE(6,'(A,2I6)') &
@@ -203,6 +203,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,DIMENSION(99):: idata
     REAL(rkind),DIMENSION(99):: rdata
+    INTEGER:: nsa
 
     !----- PL input parameters -----     
 
@@ -210,6 +211,11 @@ CONTAINS
 
 !----- DP input parameters -----
 
+    nsamax_dp=nsmax
+    DO nsa=1,nsamax_dp
+       ns_nsa_dp(nsa)=nsa
+    END DO
+       
     CALL dp_broadcast
 
 ! --- WM specific input parameters ---
@@ -312,10 +318,11 @@ CONTAINS
     rdata(20)=FRINI
     rdata(21)=FIINI
     rdata(22)=DLTNW
-    rdata(23)=WAEMIN
-    rdata(24)=WAEMAX
+    rdata(23)=EPSNW
+    rdata(24)=WAEMIN
+    rdata(25)=WAEMAX
 
-    CALL mtx_broadcast_real8(rdata,24)
+    CALL mtx_broadcast_real8(rdata,25)
 
     RF=rdata( 1)
     RFI=rdata( 2)
@@ -339,8 +346,9 @@ CONTAINS
     FRINI=rdata(20)
     FIINI=rdata(21)
     DLTNW=rdata(22)
-    WAEMIN=rdata(23)
-    WAEMAX=rdata(24)
+    EPSNW=rdata(23)
+    WAEMIN=rdata(24)
+    WAEMAX=rdata(25)
 
     CALL mtx_broadcast_real8(AJ,NAMAX)
     CALL mtx_broadcast_real8(AEWGT,NAMAX)

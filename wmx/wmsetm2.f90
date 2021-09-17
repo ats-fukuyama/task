@@ -46,20 +46,20 @@ CONTAINS
 
       NR=(IGD2-NKXD)/NDSIZ+1
 
-      ! --- if nr is changed, calculate corresponding part of
-      !     matrix, right-had-side vector, and boudary condition
+      ! we need coefficients for NR,NR+1,NR+2
 
-      IF(NR.NE.NR_prev) THEN
-         NR_prev=NR
-         IF(NR.EQ.nr_start) THEN
-            IF(ALLOCATED(CEMP)) CALL wm_setm_deallocate
-            CALL wm_setm_allocate
-            CALL wm_setm_matrix(NR,1)   ! with initial setup
-         ELSE
-            CALL wm_setm_matrix(NR,0)
-         END IF
+      IF(NR_prev.EQ.0) THEN
+         IF(ALLOCATED(CEMP)) CALL wm_setm_deallocate
+         CALL wm_setm_allocate
+         CALL wm_setm_matrix(NR,1)   ! with initial setup
          CALL wm_setm_vector(NR)
          CALL wm_setm_boundary(NR)
+         NR_prev=NR
+      ELSE IF(NR.NE.NR_prev) THEN ! This NR is new
+         CALL wm_setm_matrix(NR,0)
+         CALL wm_setm_vector(NR)
+         CALL wm_setm_boundary(NR)
+         NR_prev=NR
       END IF
 
       ! --- the data of the line in matrix and RHS vector is substituted ---
@@ -158,7 +158,7 @@ CONTAINS
       REAL(rkind):: FCMH,FCPH,DFCMH,DFCPH
       REAL(rkind):: FACT1M,FACT1C,FACT1P,FACT2M,FACT2C,FACT2P
       REAL(rkind):: FACT3M,FACT3C,FACT3P
-      
+
       ! initial setting to set up 2) data for NR,  3) data for NR+1
 
       IF(IND.EQ.1) THEN
@@ -208,7 +208,7 @@ CONTAINS
 
          CALL wm_setf2(NR+1,0) !  wm_setf2 setup 3) data for NR+1
 
-      ENDIF
+      ENDIF ! end of IND=1
 
       ! --- now shift 2) data for NR to 1) data,
       ! --- and shift 3) data for NR+1 to 2) daata

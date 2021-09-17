@@ -46,7 +46,7 @@ CONTAINS
     INTEGER:: itype,its
     REAL(rkind):: tolerance
 
-    nfl=30
+    nfl=61
     IF(idebuga(61).NE.0.AND.nrank.EQ.0) THEN
        CALL FWOPEN(nfl,knam_dump,1,0,'wm',ierr)
        IF(ierr.NE.0) STOP
@@ -68,21 +68,21 @@ CONTAINS
 
     CALL mtxc_setup(MLEN,istart,iend,jwidth=MBND)
 
-    nr_start=(istart-1)/mblock_size+1
-    nr_end=(iend-1)/mblock_size+2
+    nr_start=(istart-1)/mblock_size+1    ! nr_start is nr including istart
+    nr_end=(iend-1)/mblock_size+1        ! nr_end is nr including iend
     IF(nrank.EQ.nsize-1) nr_end=NRMAX+1
 
-    WRITE(6,'(A,5I8)') 'nrank:',nrank,istart,iend,nr_start,nr_end
-    
-    IF(ALLOCATED(nr_start_nrank)) DEALLOCATE(nr_start_nrank,nr_end_nrank)
     ALLOCATE(nr_start_nrank(0:nsize-1),nr_end_nrank(0:nsize-1))
+    CALL mtx_allgather1_integer(istart,istart_nrank)
+    CALL mtx_allgather1_integer(iend,iend_nrank)
     CALL mtx_allgather1_integer(nr_start,nr_start_nrank)
     CALL mtx_allgather1_integer(nr_end,nr_end_nrank)
 
     IF(idebuga(41).NE.0.AND.nrank.EQ.0) THEN
        DO n=0,nsize-1
-          WRITE(6,'(A,4I8)') 'nrank,nr_start,nr_end,nr_len=', &
-               n,nr_start_nrank(n),nr_end_nrank(n), &
+          WRITE(6,'(A,6I8)') 'nrank,is,ie,nrs,nre,nrl=', &
+               n,istart_nrank(n),iend_nrank(n), &
+               nr_start_nrank(n),nr_end_nrank(n), &
                nr_end_nrank(n)-nr_start_nrank(n)+1
        END DO
     END IF
@@ -147,9 +147,9 @@ CONTAINS
       
     CALL mtxc_gather_vector(svec)
 
-    IF(idebuga(61).NE.0.AND.nrank.EQ.0) THEN
+    IF(idebuga(69).NE.0.AND.nrank.EQ.0) THEN
        DO i=1,MLEN,3
-          WRITE(nfl,'(I6,6ES12.4)') &
+          WRITE(69,'(I6,6ES12.4)') &
                i,svec(i),svec(i+1),svec(i+2)
        END DO
     END IF

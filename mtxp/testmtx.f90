@@ -23,7 +23,7 @@
       INTEGER:: imax,jwidth,jsource 
       INTEGER:: i,j,k,l,m,n,iskip
       REAL(dp):: tolerance 
-      REAL(dp),DIMENSION(:),POINTER:: x
+      REAL(dp),DIMENSION(:),ALLOCATABLE:: x
       INTEGER,DIMENSION(7):: idata 
       REAL(dp),DIMENSION(1):: ddata
       REAL:: cputime1,cputime2

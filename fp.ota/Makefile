@@ -79,8 +79,8 @@ libfow.a: $(OBJSFOW)
 
 libs:
 	(cd ../../bpsd; make libbpsd.a)
-	(cd ../lib; make libgrf.a)
 	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)

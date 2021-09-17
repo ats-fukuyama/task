@@ -341,7 +341,7 @@ C
       IF(MODELN.EQ.0) THEN
          TE=RT(1)
          VTE=SQRT(2.D0*TE*AEE/AME)
-         SNE=1.D-20
+         SNE=0.88D-20
          SVE=SNE*VTE
       ELSE
          CALL ATSIGV(RT(1),SVE,1)

@@ -220,7 +220,10 @@ C                1 : Density gradient model
 C                2 : Pressure gradient model
 C
 C        MODELN: 0 : Fixed crosssection for electron collision with neutrals
-C                1 : Mometum transder collision data
+C                1 : Mometum transfer collision data for Ar, H2, CF4
+C                                H2  for PA(2)~1
+C                                Ar  for PA(2)~40
+C                                CF4 for PA(2)~88
 C
 C        MODELV:   : Type of divide model
 C
@@ -520,7 +523,7 @@ C
      &              GA,GB,GC,GD,GE,GXN,GYN,GZN,GXN1,GXN2,GYN1,GYN2,
      &              IXY,IDN,MODIFY,PNPROFY0,PNPROFYW
       CHARACTER KSNAME*32,KSNAMZ*32,KSNAMA*32,KSNAMF*32
-      CHARACTER KPNAME*32,KLINE*70,KNAME*80,KID*1
+      CHARACTER KPNAME*32,KLINE*80,KNAME*87,KID*1
       LOGICAL LEX
 C
       MODE=0
@@ -564,8 +567,7 @@ C
       ENTRY WFPARL(KLINE)
 C
       MODE=1
-      KNAME=' &WF '//TRIM(KLINE)//' &END'
-C      KNAME=' &WF '//KLINE//' /'
+      KNAME=' &WF '//TRIM(KLINE)//' /'
 C
 C     --- when internal file does not accept namelist ---
 C
@@ -577,7 +579,7 @@ C     --- when internal file accepts namelist ---
 C
 C      READ(KNAME,IN,ERR=8,END=8)
 C
-      WRITE(6,*) '#### PARM INPUT ACCEPTED: ',KLINE(1:KL)
+      WRITE(6,*) '#### PARM INPUT ACCEPTED: ',TRIM(KLINE)
       GOTO 9
     8 WRITE(6,*) 'XX IO ERROR: IOSTAT=',IST
       CALL WFPLST
@@ -688,6 +690,18 @@ C
          ELSE
             WRITE(6,605) 'RF    ',RF    ,'NZMAX ',NZMAX ,
      &                   'RZ    ',RZ    ,'PHIW  ',PHIW
+         ENDIF
+      ELSEIF(MODELB.EQ.7) THEN
+         WRITE(6,*) '      RC          ZC          BC'
+         DO NC=1,NCMAX
+            WRITE(6,610) NC,RC(NC),ZC(NC),BC(NC)
+         ENDDO
+         IF(NZMAX.EQ.1) THEN
+            WRITE(6,603) 'RF    ',RF    ,'NPHI  ',NPHI,
+     &                   'PHIW  ',PHIW
+         ELSE
+            WRITE(6,603) 'RF    ',RF    ,'NZMAX ',NZMAX,
+     &                   'PHIW  ',PHIW
          ENDIF
       ENDIF
 C

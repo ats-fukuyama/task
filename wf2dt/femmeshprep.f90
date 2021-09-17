@@ -47,7 +47,7 @@ CONTAINS
     ALLOCATE(idir_nside_nelm(nside_max,nelm_max))
     ALLOCATE(nelm1_nside_nelm(nside_max,nelm_max))
     ALLOCATE(nside1_nside_nelm(nside_max,nelm_max))
-    ALLOCATE(nelm_max_node(nelm_max))
+    ALLOCATE(nelm_max_node(node_max))
 
     IF(nrank.eq.0) WRITE(6,'(A)') '## fem_mesh_allocated'
     IF(nrank.eq.0) WRITE(6,'(A,3I8)') '   nelm_max,nseg_max,nside_max=', &

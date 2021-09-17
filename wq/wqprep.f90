@@ -86,6 +86,7 @@ CONTAINS
 
     ttot=0.d0
     nttot=0
+    ntplot=0
 
     DO ny=1,nymax
        DO nx=1,nxmax

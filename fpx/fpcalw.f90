@@ -19,8 +19,7 @@ contains
 
     IMPLICIT NONE
     integer:: NSA, NR, NTH, NP, NS
-    integer:: NCONST_RF
-    real(kind8):: FACTOR,PABSX_LH,PABSX_FW,PABSX_EC,PABSX_WR,PABSX_WM
+    REAL(rkind):: FACTOR,PABSX_LH,PABSX_FW,PABSX_EC,PABSX_WR,PABSX_WM
 
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
@@ -162,8 +161,8 @@ contains
       USE plprof, only: rsrhon
       IMPLICIT NONE
       integer:: NSA, NR, NP, NTH, NS
-      real(8):: DLHA, DFWA, DECA, DECB, DECC, DLHL, DFWL, DECL
-      real(8):: FACT
+      REAL(rkind):: DLHA, DFWA, DECA, DECB, DECC, DLHL, DFWL, DECL
+      REAL(rkind):: FACT
 !
 ! =============  CALCULATION OF DWPP AND DWPT  ===============
 !
@@ -339,11 +338,10 @@ contains
            DQPP(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX), &
            DQPT(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX)
       REAL(rkind),INTENT(OUT):: PABSX
-      integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NPS, N, NSW
-      integer:: IERR
+      integer:: NR, NSA, NP, NTH, NS, NPS, N, NSW
       real(rkind):: RSUML,RSUM(NRSTART:NREND,NSAMAX),RSUMG(NRMAX,NSAMAX)
       real(rkind):: PV, WPL, WPM, WPP
-      real(rkind):: DFP, DFT, FFP, FACTOR
+      real(rkind):: DFP, DFT, FACTOR
 
 !----- sum up over NTH and NP
 
@@ -442,9 +440,9 @@ contains
       USE plprof, only: rsrhon
       IMPLICIT NONE
       integer:: NR, NSA, N
-      real(8):: ETA, RSIN, RCOS, P, SUM1, SUM2, SUM3, SUM4, SUM5
-      real(8):: DELH, ETAL, X, Y, PSI, PSIN, PCOS, PPERP, PPARA
-      real(8):: DLHL, DFWL, DECL, XM
+      REAL(rkind):: ETA, RSIN, RCOS, P, SUM1, SUM2, SUM3, SUM4, SUM5
+      REAL(rkind):: DELH, ETAL, X, Y, PSI, PSIN, PCOS, PPERP, PPARA
+      REAL(rkind):: DLHL, DFWL, DECL, XM
 !
       DELH=2.D0*ETA/NAVMAX
 !
@@ -514,10 +512,10 @@ contains
 !
       IMPLICIT NONE
       integer:: NR, NSA, NSB, NS
-      real(8):: PPARA, PPERP, X, Y, DLHL, DFWL, DECL
-      real(8):: P2, PVPARA, RNUDL, RNUFL, AMI, AEI, WPI2, FACT, FACT2
-      real(8):: DFWL1, DFWL2, ARG, ARG1, FACT1, W, PARAN, FN, DELF, ARG2
-      real(8):: WFW2, ARG3, FACT3
+      REAL(rkind):: PPARA, PPERP, X, Y, DLHL, DFWL, DECL
+      REAL(rkind):: P2, PVPARA, RNUDL, RNUFL, AMI, AEI, WPI2, FACT, FACT2
+      REAL(rkind):: DFWL1, DFWL2, ARG, ARG1, FACT1, W, PARAN, FN, DELF, ARG2
+      REAL(rkind):: WFW2, ARG3, FACT3
 !
       NS=NS_NSA(NSA)
 

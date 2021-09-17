@@ -17,13 +17,11 @@
       USE fpmpi
       IMPLICIT NONE
       integer:: NSA, NP, NTH, NR, NL, NM, NN, NS
-      integer:: NTHS, NLL
-      integer:: IERR,its,i,j,ll1
+      integer:: NTHS
+      integer:: IERR,its
       integer:: imtxstart1,imtxend1
 !      integer,optional:: methodKSP, methodPC
-      real(8),dimension(nmend-nmstart+1):: BM_L
-      real(8),dimension(nthmax):: sendbuf_p, recvbuf_p
-      real(8),dimension(nthmax*(npend-npstart+1)):: sendbuf_r, recvbuf_r
+      REAL(rkind),dimension(nmend-nmstart+1):: BM_L
 
       NS=NS_NSA(NSA)
 
@@ -94,6 +92,7 @@
                      +DELT*SPP(NTH,NP,NR,NSA)
                IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
                   CALL mtx_set_matrix(nm,nm,1.D0-rimpl*delt*dl(nm))
+!                  write(50,*)nm,dl(nm)
                   CALL mtx_set_vector(nm,FM(NM))
                ENDIF
             ENDDO
@@ -245,8 +244,8 @@
       SUBROUTINE SET_FM_NMA(NSA,func_in)
 
       IMPLICIT NONE
-      integer:: NTH, NP, NR, NSA, NM, NRS, NPS
-      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND), &
+      integer:: NTH, NP, NR, NSA, NM, NRS
+      REAL(rkind),dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND), &
            intent(IN):: func_in
 
       IF(NRSTART.eq.1)THEN
@@ -302,14 +301,15 @@
       SUBROUTINE FPWEIGHT(NSA,IERR) ! proposed by Chang and Cooper [30] in Karney
 
       IMPLICIT NONE
-      integer:: NSA, NP, NTH, NR, NL, NM, NTHA, NTHB, NTB, NS
+      integer:: NSA, NP, NTH, NR, NTHA, NTHB, NTB, NS
       integer:: IERR
-      real(8):: DFDTH, FVEL, DVEL, DFDP, DFDB
+      REAL(rkind):: DFDTH, FVEL, DVEL, DFDP, DFDB
+      REAL(rkind)::EPSWT=1.D-70
 
 !     +++++ calculation of weigthing (including off-diagonal terms) +++++
 
-      real(8)::EPSWT=1.D-70
-
+      IERR=0
+      
       NS=NS_NSA(NSA)
       DO NR=NRSTART,NREND
 !      DO NP=1,NPMAX+1
@@ -544,17 +544,17 @@
             ENDIF
          ENDIF
          IF(NTH.EQ.ITL(NR)) THEN
-!            FVEL=FTH(NTH,NP,NR,NSA)-DTP(NTH,NP,NR,NSA)*DFDP &
-!                -FTH(NTB,NP,NR,NSA)+DTP(NTB,NP,NR,NSA)*DFDB
-!            DVEL=DTT(NTH,NP,NR,NSA)+DTT(NTB,NP,NR,NSA)
-            FVEL=FCTH(NTH,NP,NR,NSA)-DCTP(NTH,NP,NR,NSA)*DFDP &
-                -FCTH(NTB,NP,NR,NSA)+DCTP(NTB,NP,NR,NSA)*DFDB
-            DVEL=DCTT(NTH,NP,NR,NSA)+DCTT(NTB,NP,NR,NSA)
+           FVEL=FTH(NTH,NP,NR,NSA)-DTP(NTH,NP,NR,NSA)*DFDP &
+               -FTH(NTB,NP,NR,NSA)+DTP(NTB,NP,NR,NSA)*DFDB
+           DVEL=DTT(NTH,NP,NR,NSA)+DTT(NTB,NP,NR,NSA)
+            ! FVEL=FCTH(NTH,NP,NR,NSA)-DCTP(NTH,NP,NR,NSA)*DFDP &
+            !     -FCTH(NTB,NP,NR,NSA)+DCTP(NTB,NP,NR,NSA)*DFDB
+            ! DVEL=DCTT(NTH,NP,NR,NSA)+DCTT(NTB,NP,NR,NSA)
          ELSE
-!            FVEL=FTH(NTH,NP,NR,NSA)-DTP(NTH,NP,NR,NSA)*DFDP
-!            DVEL=DTT(NTH,NP,NR,NSA) 
-            FVEL=FCTH(NTH,NP,NR,NSA)-DCTP(NTH,NP,NR,NSA)*DFDP
-            DVEL=DCTT(NTH,NP,NR,NSA)
+           FVEL=FTH(NTH,NP,NR,NSA)-DTP(NTH,NP,NR,NSA)*DFDP
+           DVEL=DTT(NTH,NP,NR,NSA) 
+            ! FVEL=FCTH(NTH,NP,NR,NSA)-DCTP(NTH,NP,NR,NSA)*DFDP
+            ! DVEL=DCTT(NTH,NP,NR,NSA)
          ENDIF
          WEIGHT(NTH,NP,NR,NSA) &
                  =FPWEGH(-DELTH*PM(NP,NS)*FVEL,DVEL)
@@ -590,8 +590,8 @@
       FUNCTION FPWEGH(X,Y)
 
       IMPLICIT NONE
-      real(8):: X, Y, Z
-      real(8):: FPWEGH
+      REAL(rkind):: X, Y, Z
+      REAL(rkind):: FPWEGH
 
       IF(ABS(Y).LT.1.D-70) THEN
          IF(X.GT.0.D0) THEN
@@ -625,7 +625,7 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NTH,NP,NR,NSA
       INTEGER,INTENT(OUT):: NL
-      INTEGER:: NM, NTHA, NTHB
+      INTEGER:: NM
                      ! if NTH=ITL(NR)-1 (NTH:untrapped, NTH+1:trapped)
                      !       flux to NTH-1 as usual
                      !       flux to NTH+1 as usual
@@ -660,15 +660,14 @@
       INTEGER:: NTBP ! if NTH>=ITU(NR)+1 and NTH<=ITU(NR+1)
                      !    then NTBP=ITL(NR+1)+ITU(NR+1)-NTH, else NTBP=0
 
-      integer:: IERR, NS
-      real(8):: DFDTH, FVEL, DVEL, DFDP, DFDB
-      real(8):: DPPM, DPPP, DPTM, DPTP, SL, DTPM, DTPP, DTTM, DTTP
-      real(8):: WPM, WPP, WTM, WTP, VPM, VPP, VTM, VTP
-      real(8):: WTB, VTB, WRBM, VRBM, WRBP, VRBP
-      real(8):: DIVDPP, DIVDPT, DIVDTP, DIVDTT, DIVFPP, DIVFTH
-      real(8):: RL,DRRM,DRRP,WRM,WRP,VRM,VRP,DIVDRR,DIVFRR
-      real(8):: PL
-      DOUBLE PRECISION:: WPBM, VPBM, WPBP, VPBP
+      integer:: NS
+      REAL(rkind):: DPPM, DPPP, DPTM, DPTP, SL, DTPM, DTPP, DTTM, DTTP
+      REAL(rkind):: WPM, WPP, WTM, WTP, VPM, VPP, VTM, VTP
+      REAL(rkind):: WTB, VTB, WRBM, VRBM
+      REAL(rkind):: DIVDPP, DIVDPT, DIVDTP, DIVDTT, DIVFPP, DIVFTH
+      REAL(rkind):: RL,DRRM,DRRP,WRM,WRP,VRM,VRP,DIVDRR,DIVFRR
+      REAL(rkind):: PL
+      REAL(rkind):: WPBM, VPBM, WPBP, VPBP
 
       NS=NS_NSA(NSA)
 

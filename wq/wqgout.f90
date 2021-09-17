@@ -23,7 +23,7 @@ CONTAINS
     
     IF(nrank.EQ.0) THEN
        WRITE(6,'(A)') &
-            '## wqgout menu: A,B  parm  X/end'
+            '## wqgout menu: A,B,C  parm  X/end'
        CALL TASK_KLIN(line,kid,mode,wq_parm)
     END IF
     CALL ToUpper(kid)
@@ -38,6 +38,8 @@ CONTAINS
        CALL wq_gsub(0)
     CASE('B')
        CALL wq_gsub(1)
+    CASE('C')
+       CALL wq_gsub_plot
     CASE('X')
        GO TO 9000
     END SELECT
@@ -205,4 +207,88 @@ CONTAINS
   
   RETURN
   END SUBROUTINE wq_gsub
+
+  SUBROUTINE wq_gsub_plot
+
+    use wqcomm
+    USE libgrf
+    IMPLICIT NONE
+    INTEGER            :: nx,ny,nt,NGP
+    CHARACTER(LEN=80)  :: title
+    REAL(rkind)        :: FX(nxmax),FY(nymax),FZ(nxmax,nymax)
+
+    IF(ntplot.LE.0) THEN
+       WRITE(6,*) 'XX wq_gsub_plot: ntplot.LE.0'
+       RETURN
+    END IF
+  
+    DO nx=1,nxmax
+!        FX(nx)=RR+dx*DBLE(nx-1-(nxmax-1)/2)
+       FX(nx)=dx*DBLE(nx-1)
+    ENDDO
+    DO ny=1,nymax
+!      FY(ny)=dy*DBLE(ny-1-(nymax-1)/2)
+       FY(ny)=dy*DBLE(ny-1)
+    ENDDO
+
+    CALL PAGES
+
+    NGP=1
+    title='/EX plot/'
+    DO ny=1,nymax
+       DO nx=1,nxmax
+          FZ(nx,ny)=EX_save(nx,ny,1)
+       END DO
+    END DO
+    CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title,ASPECT=0.D0)
+    DO nt=2,ntplot
+       DO ny=1,nymax
+          DO nx=1,nxmax
+             FZ(nx,ny)=EX_save(nx,ny,nt)
+          END DO
+       END DO
+       CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title,ASPECT=0.D0, &
+            NOFRAME=1,NOTITLE=1,NOINFO=1)
+    END DO
+    
+    NGP=2
+    title='/EY plot/'
+    DO ny=1,nymax
+       DO nx=1,nxmax
+          FZ(nx,ny)=EY_save(nx,ny,1)
+       END DO
+    END DO
+    CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title,ASPECT=0.D0)
+    DO nt=2,ntplot
+       DO ny=1,nymax
+          DO nx=1,nxmax
+             FZ(nx,ny)=EY_save(nx,ny,nt)
+          END DO
+       END DO
+       CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title,ASPECT=0.D0, &
+            NOFRAME=1,NOTITLE=1,NOINFO=1)
+    END DO
+
+    NGP=3
+    title='/EZ plot/'
+    DO ny=1,nymax
+       DO nx=1,nxmax
+          FZ(nx,ny)=EZ_save(nx,ny,1)
+       END DO
+    END DO
+    CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title,ASPECT=0.D0)
+    DO nt=2,ntplot
+       DO ny=1,nymax
+          DO nx=1,nxmax
+             FZ(nx,ny)=EZ_save(nx,ny,nt)
+          END DO
+       END DO
+       CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title,ASPECT=0.D0, &
+            NOFRAME=1,NOTITLE=1,NOINFO=1)
+    END DO
+
+    CALL PAGEE
+
+    RETURN
+  END SUBROUTINE wq_gsub_plot
 END MODULE wqgout

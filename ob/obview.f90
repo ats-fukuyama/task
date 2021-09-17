@@ -28,25 +28,25 @@ CONTAINS
          'mdlobw      ',mdlobw, &
          'mdlobg      ',mdlobg
     WRITE(6,604) &
-         'tmax        ',tmax, &
-         'delt        ',delt
+         'tmax_ob     ',tmax_ob, &
+         'delt_ob     ',delt_ob
     WRITE(6,604) &
-         'eps_obt     ',eps_obt, &
-         'del_obt     ',del_obt, &
+         'eps_ob      ',eps_ob, &
+         'del_ob      ',del_ob, &
          'eps_nw      ',eps_nw
     SELECT CASE(mdlobi)
     CASE(0)
        WRITE(6,'(A)') &
-            'nobt  penergy_in  pcangle_in  zeta_in     psipn_in    theta_in'
+            'nobt  penergy    s pcangle     zeta        psipn       theta'
        WRITE(6,'(I4,1P5E12.4)') &
-            (nobt,penergy_in(nobt),pcangle_in(nobt),zeta_in(nobt), &
-             psipn_in(nobt),theta_in(nobt),nobt=1,nobt_max)
+            (nobt,penergy_ob_in(nobt),pcangle_ob_in(nobt),zeta_ob_in(nobt), &
+             psipn_ob_in(nobt),theta_ob_in(nobt),nobt=1,nobt_max)
     CASE(1)
        WRITE(6,'(A)') &
-            'nobt  penergy_in  pcangle_in  zeta_in     rr_in       zz_in'
+            'nobt  penergy     pcangle     zeta        rr          zz'
        WRITE(6,'(I4,1P5E12.4)') &
-            (nobt,penergy_in(nobt),pcangle_in(nobt),zeta_in(nobt), &
-             rr_in(nobt),zz_in(nobt),nobt=1,nobt_max)
+            (nobt,penergy_ob_in(nobt),pcangle_ob_in(nobt),zeta_ob_in(nobt), &
+             rr_ob_in(nobt),zz_ob_in(nobt),nobt=1,nobt_max)
     CASE DEFAULT
        WRITE(6,*) 'XX obview: undefined mdlobi: mdlobi=',mdlobi
     END SELECT

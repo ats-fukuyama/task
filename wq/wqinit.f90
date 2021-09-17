@@ -29,6 +29,17 @@ CONTAINS
     INMODE   = 1         !
     TMN      = 1.0d0     !
 
+    model_pulse = 0      ! 0:constant, 1:square pulse, 2:gaussian pulse
+    model_dielectric = 1 ! 0:vacuum, 1:plasma, 2:de const, 3:de resonance
+    model_plot=0         ! 0:no plot save, 1:plot save
+    pulse_cycle=1.D0/FREQ      ! length of pulse
+    dielectric_2=1.D0          ! dielectric constant in a layer for model_de=2
+    dielectric_3=1.D0          ! dielectric constant in a layer for model_de=3
+    freq_resonance=FREQ        ! resonance frequency for model_de=3
+    freq_collision=0.003*FREQ  ! collision frequency for model_de=3
+    ntplot_interval=1000       ! nt interval for plot save
+    ntplot_max=5               ! total number of plot save 
+    
     RETURN
   END SUBROUTINE wq_init
 END MODULE wqinit

@@ -12,7 +12,7 @@
       use libmpi
       use fpmpi
       use fpdisrupt
-      use eg_read
+      use fpreadeg
       use fpoutdata
 
       contains
@@ -30,72 +30,95 @@
       USE fpnfrr
       USE fpcaltp
       IMPLICIT NONE
-      real(kind8):: DEPS,IP_all_FP,DEPS_E2
+      REAL(rkind):: DEPS,IP_all_FP,DEPS_E2
 
       integer:: NT, NR, NP, NTH, NSA, NS, IERR, NSB
-      real(4):: gut_exe1, gut_exe2, gut_coef1, gut_coef2, gut_coef3
-      real(4):: gut_loop1, gut_loop2, gut1, gut2, gut_conv3
-      real(4):: sum_gut_ex, sum_gut_coef, gut_1step, sum_gut_conv
+      REAL:: gut_exe1, gut_exe2, gut_coef1, gut_coef2, gut_coef3
+      REAL:: gut_loop1, gut_loop2, gut1, gut2, gut_conv3
+      REAL:: sum_gut_ex, sum_gut_coef, gut_1step, sum_gut_conv
       LOGICAL:: flag
 
 !     +++++ Time loop +++++
 
       DO NT=1,NTMAX
-
-! --- save distribution function at previous time step ---
-
+         N_IMPL=0
+         DEPS=1.D0
          DO NSA=NSASTART,NSAEND
             NS=NS_NSA(NSA)
-            DO NR=NRSTARTW,NRENDWM
-               DO NP=NPSTARTW,NPENDWM
-                  DO NTH=1,NTHMAX
-                     FNSM(NTH,NP,NR,NSA)=FNSP(NTH,NP,NR,NSA)
+!            DO NR=NRSTART-1,NREND+1 ! local
+            DO NR=NRSTARTW,NRENDWM ! local
+!               IF(NR.ge.1.and.NR.le.NRMAX)THEN
+                  DO NP=NPSTARTW,NPENDWM
+                     IF(MODEL_DELTA_F(NS).eq.0)THEN
+                        DO NTH=1,NTHMAX
+                           FNSM(NTH,NP,NR,NSA)=FNSP(NTH,NP,NR,NSA) ! minus step: invariant during N_IMPL 
+                        END DO
+                     ELSEIF(MODEL_DELTA_F(NS).eq.1)THEN
+                        DO NTH=1,NTHMAX
+                           FNSM(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) ! minus step: invariant during N_IMPL 
+                        END DO
+                     END IF
                   END DO
-               END DO
+!               END IF
             END DO
          END DO
  
-! --- iteration loop starts for implicit scheme --- 
+         sum_gut_EX = 0.0
+         sum_gut_conv=0.0
+         sum_gut_COEF= 0.0
+         gut_1step= 0.0
+         CALL GUTIME(gut_loop1)
 
-         N_IMPL=0
+         IF(MODEL_DISRUPT.ne.0)THEN
+            CALL TOP_OF_TIME_LOOP_DISRUPT(NT) ! include fpcoef
+         END IF
+         CALL GUTIME(gut_coef3)
 
-         DO WHILE(N_IMPL.le.LMAXFP)
+         DO WHILE(N_IMPL.le.LMAXFP) ! start do while
 
-            N_IMPL=N_IMPL+1
+            CALL GUTIME(gut_exe1)
+            CALL solve_matrix_update_FNS0(IERR)
+            CALL GUTIME(gut_exe2)
+            SUM_GUT_EX = SUM_GUT_EX + (gut_exe2-gut_exe1)
 
-
-            DO NSA=NSASTART,NSAEND 
-               NS=NS_NSA(NSA)
-
-! --- save distribution function at previous iteration loop ---
-
-               DO NR=NRSTART,NREND
-                  DO NP=NPSTARTW,NPENDWM
-                     DO NTH=1,NTHMAX
-                        F(NTH,NP,NR)=FNSP(NTH,NP,NR,NSA)
-                     END DO
-                  END DO
-               END DO
-         
-! --- advance distribution function  ---
-
-               CALL fp_exec(NSA,IERR,its) ! update F1 and FNS0
-               IF(IERR.NE.0) CALL mtx_abort(9001)
-
-            END DO
-
-! --- evaluate_convergence_error ---
-            
             CALL implicit_convergence_update_FNSP(NT,DEPS)
+            CALL GUTIME(gut_conv3)
+            sum_gut_conv = sum_gut_conv + (gut_conv3-gut_exe2)
+
+            DEPS_E2=0.D0
+            IF(MODEL_DISRUPT.eq.1)THEN ! E field evolution for DISRUPT
+               CALL E_FIELD_EVOLUTION_DISRUPT(NT,IP_all_FP,DEPS_E2)
+            END IF
 
             IF(NRANK.eq.0.and.DEPS.le.EPSFP.and.DEPS_E2.le.EPSFP)THEN
                N_IMPL=1+LMAXFP ! exit dowhile
             ENDIF
             CALL mtx_broadcast1_integer(N_IMPL)
 
-!   --- calculate FP coefficients ---
-            
-            IF (MOD(NT,NTSTEP_COEF).EQ.0) CALL FP_COEF(NT)
+!-- updating diffusion coef
+            CALL GUTIME(gut_coef1)
+            CALL update_RN_RT(FNSP) ! update RN_TEMP, RT_TEMP for Coulomb Ln, fpcalcnr, and FPMXWL_EXP
+            IF(MODEL_LNL.eq.0) CALL Coulomb_log ! update coulomb log
+
+            CALL fusion_source_init
+!           update FNSB (fnsb is required by NL collsion and NF reaction)
+            FLAG=.FALSE.
+            DO NSB=1,NSBMAX
+               NS=NS_NSB(NSB)
+               IF(MODELC(NS).GE.4) FLAG=.TRUE.
+            END DO
+            IF(FLAG.or.MODELS.ge.2)THEN
+               CALL mtx_set_communicator(comm_nsa)
+               CALL update_fnsb_maxwell
+               CALL update_fnsb
+               CALL mtx_reset_communicator
+            END IF
+!           end of update FNSB
+
+! IF MODEL_DISRUPT=1, FP_COEF is already called in TOP_OF_TIME_LOOP_DISRUPT
+            IF(MODEL_DISRUPT.eq.0)THEN 
+               IF (MOD(NT,NTSTEP_COEF).EQ.0) CALL FP_COEF(NT)
+            END IF
 !           sum up SPPF
             IF(MODELS.ne.0)THEN
                CALL mtx_set_communicator(comm_nsa) 
@@ -225,11 +248,83 @@
       END IF
 
       RETURN
-    END SUBROUTINE FP_LOOP
-
+      END SUBROUTINE FP_LOOP
 !------------------------------------
+!*************************************************************
+!     included in do while
+      SUBROUTINE solve_matrix_update_FNS0(IERR)
 
-    SUBROUTINE evaluate_convergence_error(NT,DEPS)
+      IMPLICIT NONE
+      INTEGER:: NSA, NR, NP, NTH, NS, its
+      INTEGER,intent(OUT):: IERR
+      REAL(rkind),dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND)::&
+           send
+
+      N_IMPL=N_IMPL+1
+      DO NSA=NSASTART,NSAEND 
+         NS=NS_NSA(NSA)
+         DO NR=NRSTART,NREND
+            DO NP=NPSTARTW,NPENDWM
+               DO NTH=1,NTHMAX
+                  F(NTH,NP,NR)=FNSP(NTH,NP,NR,NSA) ! used at fpweight only!
+               END DO
+            END DO
+         END DO
+         
+         IF(MODEL_DELTA_F(NS).eq.1)THEN
+            DO NR=NRSTART,NREND
+               DO NP=NPSTARTW,NPENDWM
+                  DO NTH=1,NTHMAX
+                     FNSP(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)
+                  END DO
+               END DO
+            END DO
+         END IF
+         
+         IF(MODEL_connor_fp.eq.1.or.MODEL_DISRUPT.eq.0)THEN ! Connor model doesn't require f evolution
+            CALL fp_exec(NSA,IERR,its) ! F1 and FNS0 are changed
+         END IF
+         IERR=0
+         nt_init=1
+      END DO
+
+      IF(MODEL_DELTA_F(NS).eq.1)THEN
+         DO NSA=NSASTART,NSAEND 
+            NS=NS_NSA(NSA)
+            DO NR=NRSTARTW,NRENDWM
+               DO NP=NPSTARTW,NPENDWM
+                  DO NTH=1,NTHMAX
+                     FNSP(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) &
+                                        +FNSP_MXWL(NTH,NP,NR,NSA) ! at n step
+                     FNSP_DEL(NTH,NP,NR,NSA)=FNS0(NTH,NP,NR,NSA)  ! at n+1 step
+                     send(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) &
+                                        +FNSP_MXWL(NTH,NP,NR,NSA)
+                                                           ! MODEL_EX_READ_Tn=0
+                  END DO
+               END DO
+            END DO
+         END DO
+         CALL update_RN_RT(send) ! update RN_TEMP, RT_TEMP
+         CALL COUNT_BEAM_DENSITY ! update RNS_DELF use for FPMXWL_EXP
+         DO NSA=NSASTART,NSAEND 
+            NS=NS_NSA(NSA)
+            DO NR=NRSTARTW,NRENDWM
+               DO NP=NPSTARTW,NPENDWM
+                  DO NTH=1,NTHMAX
+                     FNSP_MXWL(NTH,NP,NR,NSA)=FPMXWL_EXP(PM(NP,NS),NR,NS)
+                                                           ! at n+1 step
+                     FNS0(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) &
+                                        +FNSP_MXWL(NTH,NP,NR,NSA)
+                                                           ! at n+1 step
+                  END DO
+               END DO
+            END DO
+         END DO
+      END IF
+
+      END SUBROUTINE solve_matrix_update_FNS0
+!------------------------------------
+      SUBROUTINE implicit_convergence_update_FNSP(NT,DEPS)
 
       USE libmtx
       USE FPMPI
@@ -238,11 +333,11 @@
       INTEGER,INTENT(IN):: NT
       integer,dimension(NSASTART:NSAEND):: ILOCL
       integer,dimension(NSAMAX):: ILOC
-      real(kind8),intent(out):: DEPS
-      real(kind8),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS
-      real(kind8),dimension(NSASTART:NSAEND):: DEPS_MAXVL, DEPSV
-      real(kind8),dimension(NSAMAX):: DEPS_MAXV
-      real(kind8):: RSUMF_, RSUMF0_, DEPS_MAX, DEPS1
+      REAL(rkind),intent(out):: DEPS
+      REAL(rkind),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS
+      REAL(rkind),dimension(NSASTART:NSAEND):: DEPS_MAXVL, DEPSV
+      REAL(rkind),dimension(NSAMAX):: DEPS_MAXV
+      REAL(rkind):: RSUMF_, RSUMF0_, DEPS_MAX, DEPS1
       character:: fmt*40
 
       nsw = NSAEND-NSASTART+1      
@@ -253,6 +348,10 @@
          DO NR=NRSTART,NREND
             DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX
+!                  IF(NRANK.EQ.0) WRITE(6,'(A,4I5,1P4E12.4)') &
+!                       'NSA,NR,NP,NTH,FNSP,FNS0,DIFF,RSUMF=', &
+!                       NSA,NR,NP,NTH,FNSP(NTH,NP,NR,NSA),FNS0(NTH,NP,NR,NSA),&
+!                       FNSP(NTH,NP,NR,NSA)-FNS0(NTH,NP,NR,NSA),RSUMF(NSA)
                   RSUMF(NSA)=(FNSP(NTH,NP,NR,NSA)-FNS0(NTH,NP,NR,NSA) )**2 &
                        + RSUMF(NSA)
                   RSUMF0(NSA)=(FNSP(NTH,NP,NR,NSA))**2 + RSUMF0(NSA)
@@ -269,10 +368,8 @@
          IF(MODELD_boundary.eq.1.and.NREND.eq.NRMAX)THEN
             CALL update_radial_f_boundary(NSA)
          END IF
-      ENDDO ! NSA
-
-! --- calculate convergence error ---
-      
+      ENDDO ! END OF NSA
+!!---------- convergence criterion
       CALL mtx_set_communicator(comm_np) 
       DO NSA=NSASTART,NSAEND
          RSUMF_=RSUMF(NSA)
@@ -289,9 +386,6 @@
          DEPS1 = DEPSV(NSA)
          DEPS=MAX(DEPS,DEPS1)
       END DO
-
-! --- calculate maximum DEPS
-
       DEPS_MAX=0.D0
       CALL mtx_set_communicator(comm_nsa) 
       CALL mtx_reduce1_real8(DEPS,1,DEPS_MAX,ILOC1) ! MAX DEPS among NSA
@@ -301,10 +395,8 @@
       CALL mtx_reset_communicator
       DEPS = DEPS_MAX
 
-! --- calculate maximum DEPSV for each NSA
-
       CALL mtx_set_communicator(comm_nr) !3D
-      CALL mtx_allreduce_real8(DEPSV,NSW,4,DEPS_MAXVL,ILOCL)
+      CALL mtx_allreduce_real8(DEPSV,NSW,4,DEPS_MAXVL,ILOCL) ! the peak DEPSV for each NSA
 
       CALL mtx_set_communicator(comm_nsa) !3D
       CALL mtx_gather_real8(DEPS_MAXVL,nsw,DEPS_MAXV) 
@@ -329,9 +421,9 @@
       USE plprof
       IMPLICIT NONE
       INTEGER:: NTH, NP, NR, NSA, NS
-      real(8),dimension(NRMAX,NSMAX):: tempt, tempn
+      REAL(rkind),dimension(NRMAX,NSMAX):: tempt, tempn
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
-      real(8):: RHON, FL
+      REAL(rkind):: RHON, FL
 
 !     Bulk f is replaced by initial Maxwellian
       CALL Define_Bulk_NP
@@ -392,7 +484,7 @@
 
       IMPLICIT NONE
       INTEGER:: NTH, NP, NR, NSA, NS
-      real(8):: FL
+      REAL(rkind):: FL
 
 !     Bulk f is replaced by Maxwellian
       CALL Define_Bulk_NP

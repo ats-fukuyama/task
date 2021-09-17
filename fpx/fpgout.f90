@@ -11,16 +11,6 @@
       USE fpcomm
       USE fpcont
       USE fpfout
-      USE libchar
-      interface
-         real(4) function GUCLIP(X)
-           real(8):: X
-         end function GUCLIP
-         integer(4) function NGULEN(Y)
-           real(4):: Y
-         end function NGULEN
-      end interface
-
       contains
 !---------------------------------------
       SUBROUTINE FP_GOUT
@@ -69,12 +59,13 @@
 !     FPGRACAX           -> FPGRACX
 !     FPGRACPA,FPGRACPAB -> FPGRACP
 
+      USE libchar
       IMPLICIT NONE
       integer,SAVE:: NSA=1,NSB=0
       DATA NSA,NSB/1,0/
       integer:: NR, NP, NTH, NSA1, NS
 !
-      real(8),DIMENSION(NTHMAX,NPMAX,NRMAX)::TEMP
+      REAL(rkind),DIMENSION(NTHMAX,NPMAX,NRMAX)::TEMP
       CHARACTER KID*5,KID1*1,KID2*3
       CHARACTER(LEN=80):: STRING1
 !
@@ -416,8 +407,8 @@
       SUBROUTINE FPGRARA(STRING,FRA,NSA)
 
       IMPLICIT NONE
-      real(8),DIMENSION(NRMAX,NSAMAX,NTG2MAX):: FRA
-      real(8),dimension(NRMAX,NTG2MAX):: TEMP
+      REAL(rkind),DIMENSION(NRMAX,NSAMAX,NTG2MAX):: FRA
+      REAL(rkind),dimension(NRMAX,NTG2MAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NT2, NR, NSA
@@ -435,8 +426,8 @@
       SUBROUTINE FPGRARAB(STRING,FRAB,NSA,NSB)
 
       IMPLICIT NONE
-      real(8),DIMENSION(NRMAX,NSBMAX,NSAMAX,NTG2MAX):: FRAB
-      real(8),dimension(NRMAX,NTG2MAX):: TEMP
+      REAL(rkind),DIMENSION(NRMAX,NSBMAX,NSAMAX,NTG2MAX):: FRAB
+      REAL(rkind),dimension(NRMAX,NTG2MAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NT2, NR, NSA, NSB
@@ -452,15 +443,16 @@
       END SUBROUTINE FPGRARAB
 !--------------------------------------------------
       SUBROUTINE FPGRAR(STRING,FR)
-!
+
+      USE libgrf
       IMPLICIT NONE
-      real(8),dimension(NRMAX,NTG2MAX)::FR
-      real(4),dimension(NRMAX):: GX,GY
+      REAL(rkind),dimension(NRMAX,NTG2MAX)::FR
+      REAL,dimension(NRMAX):: GX,GY
       CHARACTER(LEN=*),INTENT(IN):: STRING
       integer:: NT2, NR
-      real(4):: GXMIN, GXMAX, GYMAX0, GYMIN0, GYMIN, GYMAX
-      real(4):: GYMIN1, GYMAX1, GYSTEP, GXMIN1, GXMAX1, GXSTEP
-      real(4):: GXORG
+      REAL:: GXMIN, GXMAX, GYMAX0, GYMIN0, GYMIN, GYMAX
+      REAL:: GYMIN1, GYMAX1, GYSTEP, GXMIN1, GXMAX1, GXSTEP
+      REAL:: GXORG
 !
       IF(NGRAPH.EQ.0) THEN
          CALL FPFOTR(STRING,FR)
@@ -473,17 +465,17 @@
       CALL SETFNT(32)
 
       DO NR=1,NRMAX
-          GX(NR)=GUCLIP(RM(NR))
+          GX(NR)=gdclip(RM(NR))
       ENDDO
       CALL GMNMX1(GX,1,NRMAX,1,GXMIN,GXMAX)
-      IF(RGMIN.NE.0.0) GXMIN=GUCLIP(RGMIN)
-      IF(RGMAX.NE.1.0) GXMIN=GUCLIP(RGMAX)
+      IF(RGMIN.NE.0.0) GXMIN=gdclip(RGMIN)
+      IF(RGMAX.NE.1.0) GXMIN=gdclip(RGMAX)
 
       GYMAX0=-1.E30
       GYMIN0= 1.E30
       DO NT2=1,NTG2
          DO NR=1,NRMAX
-            GY(NR)=GUCLIP(FR(NR,NT2))
+            GY(NR)=gdclip(FR(NR,NT2))
          END DO
          CALL GMNMX1(GY,1,NRMAX,1,GYMIN,GYMAX)
          GYMAX0=MAX(GYMAX0,GYMAX)
@@ -498,12 +490,12 @@
       CALL GFRAME
       GXORG=(INT(GXMIN1/(2*GXSTEP)+1))*2*GXSTEP
       CALL GSCALE(GXORG,GXSTEP,0.0,GYSTEP,0.1,9)    
-      CALL GVALUE(GXORG,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
-      CALL GVALUE(0.,0.0,0.0,2*GYSTEP,NGULEN(2*GYSTEP))
+      CALL GVALUE(GXORG,2*GXSTEP,0.0,0.0,NGSLEN(2*GXSTEP))
+      CALL GVALUE(0.,0.0,0.0,2*GYSTEP,NGSLEN(2*GYSTEP))
       DO NT2=1,NTG2
          DO NR=1,NRMAX
-            GY(NR)=GUCLIP(FR(NR,NT2))
-            GX(NR)=GUCLIP(RM(NR))
+            GY(NR)=gdclip(FR(NR,NT2))
+            GX(NR)=gdclip(RM(NR))
          END DO
          CALL SETLIN(0,2,7-MOD(NT2-1,5))
          CALL GPLOTP(GX,GY,1,NRMAX,1,0,0,0)
@@ -527,8 +519,8 @@
       SUBROUTINE FPGRATA(STRING,FTA,NSA)
 
       IMPLICIT NONE
-      real(8),DIMENSION(NSAMAX,NTG1MAX):: FTA
-      real(8),dimension(NTG1MAX):: TEMP
+      REAL(rkind),DIMENSION(NSAMAX,NTG1MAX):: FTA
+      REAL(rkind),dimension(NTG1MAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NT1, NSA
@@ -544,8 +536,8 @@
       SUBROUTINE FPGRATAB(STRING,FTAB,NSA,NSB)
 
       IMPLICIT NONE
-      real(8),DIMENSION(NSBMAX,NSAMAX,NTG1MAX):: FTAB
-      real(8),dimension(NTG1MAX):: TEMP
+      REAL(rkind),DIMENSION(NSBMAX,NSAMAX,NTG1MAX):: FTAB
+      REAL(rkind),dimension(NTG1MAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NT1, NSA, NSB
@@ -560,13 +552,14 @@
 !---------------------------------------------------
       SUBROUTINE FPGRAT(STRING,FT)
 !
+      USE libgrf
       IMPLICIT NONE
-      real(8),DIMENSION(NTG1MAX):: FT
-      real(4),DIMENSION(NTG1MAX):: GX,GY
+      REAL(rkind),DIMENSION(NTG1MAX):: FT
+      REAL,DIMENSION(NTG1MAX):: GX,GY
       CHARACTER(LEN=*),INTENT(IN):: STRING
       integer:: NT1
-      real(4):: GYMIN, GYMAX, GYMIN1, GYMAX1, GYSTEP
-      real(4):: GXMIN, GXMAX, GXSTEP
+      REAL:: GYMIN, GYMAX, GYMIN1, GYMAX1, GYSTEP
+      REAL:: GXMIN, GXMAX, GXSTEP
 
       IF(NGRAPH.EQ.0) THEN
          CALL FPFOTT(STRING,FT)
@@ -579,8 +572,8 @@
       CALL SETFNT(32)
 !
       DO  NT1=1,NTG1
-         GX(NT1)=GUCLIP(PTG(NT1))
-         GY(NT1)=GUCLIP(FT(NT1))
+         GX(NT1)=gdclip(PTG(NT1))
+         GY(NT1)=gdclip(FT(NT1))
       END DO
       CALL GMNMX1(GY,1,NTG1,1,GYMIN,GYMAX)
       IF(GYMIN.GT.0.) GYMIN=0.0
@@ -592,8 +585,8 @@
       CALL GSCALE(0.,GXSTEP,0.,GYSTEP,1.0,0)
       CALL SETLNW(0.07)
       CALL GFRAME
-      CALL GVALUE(0.,GXSTEP*2,0.,0.,NGULEN(2*GXSTEP))
-      CALL GVALUE(0.,0.,0.,GYSTEP*2,NGULEN(2*GYSTEP))
+      CALL GVALUE(0.,GXSTEP*2,0.,0.,NGSLEN(2*GXSTEP))
+      CALL GVALUE(0.,0.,0.,GYSTEP*2,NGSLEN(2*GYSTEP))
       CALL GPLOTP(GX,GY,1,NTG1,1,0,0,0)
       CALL MOVE(1.0,17.5)
       CALL TEXT(STRING,LEN(STRING))
@@ -612,8 +605,8 @@
       SUBROUTINE FPGRAPA(STRING,FGA,NSA)
 
       IMPLICIT NONE
-      real(8),DIMENSION(NTHMAX,NPMAX,NRMAX,NSAMAX):: FGA
-      real(8),dimension(NTHMAX,NPMAX,NRMAX)::TEMP
+      REAL(rkind),DIMENSION(NTHMAX,NPMAX,NRMAX,NSAMAX):: FGA
+      REAL(rkind),dimension(NTHMAX,NPMAX,NRMAX)::TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSA
@@ -633,8 +626,8 @@
       SUBROUTINE FPGRAPAB(STRING,FGAB,NSA,NSB)
 
       IMPLICIT NONE
-      real(8),DIMENSION(NTHMAX,NPMAX,NRMAX,NSBMAX,NSAMAX):: FGAB
-      real(8),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
+      REAL(rkind),DIMENSION(NTHMAX,NPMAX,NRMAX,NSBMAX,NSAMAX):: FGAB
+      REAL(rkind),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSA, NSB
@@ -653,15 +646,16 @@
 !---------------------------------------------------------------
       SUBROUTINE FPGRAP(STRING,FG,NSA)
 !
+      USE libgrf        
       IMPLICIT NONE
-      real(8),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
-      real(4),dimension(NPMAX):: GX
-      real(4),dimension(NPMAX,NRMAX):: GY
+      REAL(rkind),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
+      REAL,dimension(NPMAX):: GX
+      REAL,dimension(NPMAX,NRMAX):: GY
       CHARACTER(LEN=*),INTENT(IN):: STRING
       INTEGER,INTENT(IN):: NSA
       CHARACTER(LEN=80):: STRING1
-!      real(8):: PGMAX, RGMAX, RGMIN
-      real(4):: GXMAX, GXMINP, GYMIN, GYMAX, GYMINP, GYSTEP, GXSTEP, GXMAXP, GYMAXP
+!      REAL(rkind):: PGMAX, RGMAX, RGMIN
+      REAL:: GXMAX, GXMINP, GYMIN, GYMAX, GYMINP, GYSTEP, GXSTEP, GXMAXP, GYMAXP
       integer:: NR, NP, NTH, NPM, NS
 
       IF(NGRAPH.EQ.0) THEN
@@ -685,15 +679,15 @@
             IF(FG(NTH,NP,NR).LT.1.D-14) THEN
                GY(NP,NR)=-14.0
             ELSE
-               GY(NP,NR)=GUCLIP(LOG10(FG(NTH,NP,NR)))
+               GY(NP,NR)=gdclip(LOG10(FG(NTH,NP,NR)))
             ENDIF
          END DO
       END DO
       DO NP=1,NPMAX
-         GX(NP)=GUCLIP(PM(NP,NS)**2)
+         GX(NP)=gdclip(PM(NP,NS)**2)
       ENDDO
-      GXMAX=GUCLIP(PMAX(NS)**2)
-      IF(PGMAX.NE.0.0) GXMAX=GUCLIP(PGMAX**2)
+      GXMAX=gdclip(PMAX(NS)**2)
+      IF(PGMAX.NE.0.0) GXMAX=gdclip(PGMAX**2)
 
       CALL GMNMX2(GY,NPM,1,NPMAX,1,1,NRMAX,1,GYMIN,GYMAX)
       CALL GQSCAL(GYMIN,GYMAX,GYMINP,GYMAXP,GYSTEP)
@@ -708,7 +702,7 @@
       CALL GSCALL(0.,0,0.0,1,1.0,0)
       CALL GSCALL(0.,0,0.0,2,0.2,9)
       CALL GFRAME
-      CALL GVALUE(0.,GXSTEP*2,0.0,0.0,NGULEN(2*GXSTEP))
+      CALL GVALUE(0.,GXSTEP*2,0.0,0.0,NGSLEN(2*GXSTEP))
       CALL GVALUL(0.,0.0,0.0,1,0)
       DO NR=1,NRMAX
          CALL SETLIN(0,0,7-MOD(NR-1,5))
@@ -733,8 +727,8 @@
       SUBROUTINE FPGRAPRA(STRING,FGA,NSA)
 
       IMPLICIT NONE
-      REAL(8),DIMENSION(NTHMAX,NPMAX,NRMAX,NSAMAX):: FGA
-      REAL(8),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
+      REAL(RKIND),DIMENSION(NTHMAX,NPMAX,NRMAX,NSAMAX):: FGA
+      REAL(RKIND),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSA
@@ -754,8 +748,8 @@
       SUBROUTINE FPGRAPRAB(STRING,FGAB,NSA,NSB)
 
       IMPLICIT NONE
-      real(8),DIMENSION(NTHMAX,NPMAX,NRMAX,NSBMAX,NSAMAX):: FGAB
-      real(8),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
+      REAL(rkind),DIMENSION(NTHMAX,NPMAX,NRMAX,NSBMAX,NSAMAX):: FGAB
+      REAL(rkind),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSA, NSB
@@ -774,15 +768,16 @@
 !-------------------------------------------------------
       SUBROUTINE FPGRAPR(STRING,FG,NSA)
 !       
+      USE libgrf
       IMPLICIT NONE
-      real(8),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
-      real(4),dimension(NPMAX):: GX
-      real(4),dimension(NRMAX):: GY
-      real(4),dimension(NPMAX,NRMAX):: GZ
+      REAL(rkind),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
+      REAL,dimension(NPMAX):: GX
+      REAL,dimension(NRMAX):: GY
+      REAL,dimension(NPMAX,NRMAX):: GZ
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSA, NS, NPGMAX, NPM
-      real(4):: GX1, GX2, GY1, GY2
+      REAL:: GX1, GX2, GY1, GY2
 
       IF(NGRAPH.EQ.0) THEN
          CALL FPFOTP(STRING,FG)
@@ -802,18 +797,18 @@
             IF(PM(NP,NS).GT.PGMAX) GOTO 10
          ENDIF
          NPGMAX=NP
-         GX(NP)=GUCLIP(PM(NP,NS)**2)
+         GX(NP)=gdclip(PM(NP,NS)**2)
       ENDDO
    10 CONTINUE
       DO NR=1,NRMAX
-         GY(NR)=GUCLIP(RM(NR))
+         GY(NR)=gdclip(RM(NR))
       ENDDO
       DO NR=1,NRMAX
       DO NP=1,NPMAX
          IF(FG(NTH,NP,NR).LT.1.D-14) THEN
             GZ(NP,NR)=-14.0
          ELSE
-            GZ(NP,NR)=GUCLIP(LOG10(FG(NTH,NP,NR)))
+            GZ(NP,NR)=gdclip(LOG10(FG(NTH,NP,NR)))
          ENDIF
       ENDDO
       ENDDO
@@ -825,7 +820,7 @@
 
       CALL PAGES
       CALL FPGR3D(GX1,GX2,GY1,GY2,GX,GY,GZ,NPM,NPGMAX,NRMAX,  &
-           GUCLIP(PGMAX**2),GUCLIP(RGMIN),GUCLIP(RGMAX),TRIM(STRING1))
+           gdclip(PGMAX**2),gdclip(RGMIN),gdclip(RGMAX),TRIM(STRING1))
       CALL PAGEE
 
  9000 RETURN
@@ -840,15 +835,15 @@
       SUBROUTINE FPGR3D(GX1,GX2,GY1,GY2,GX,GY,GZ,NXM,NXMAX,NYMAX, &
                         GXMAX1,GYMIN1,GYMAX1,STR)
 
+      USE libgrf
       IMPLICIT NONE
-      REAL(4),        INTENT(IN):: GX1,GX2,GY1,GY2,GXMAX1,GYMIN1,GYMAX1
-      INTEGER(4),     INTENT(IN):: NXM,NXMAX,NYMAX
-      REAL(4),DIMENSION(NXMAX),      INTENT(IN):: GX
-      REAL(4),DIMENSION(NYMAX),      INTENT(IN):: GY
-      REAL(4),DIMENSION(NXM,NYMAX),  INTENT(IN):: GZ
+      REAL,        INTENT(IN):: GX1,GX2,GY1,GY2,GXMAX1,GYMIN1,GYMAX1
+      INTEGER,     INTENT(IN):: NXM,NXMAX,NYMAX
+      REAL,DIMENSION(NXMAX),      INTENT(IN):: GX
+      REAL,DIMENSION(NYMAX),      INTENT(IN):: GY
+      REAL,DIMENSION(NXM,NYMAX),  INTENT(IN):: GZ
       CHARACTER(LEN=*),             INTENT(IN):: STR
-      INTEGER(4) :: I, NGULEN
-      REAL(4)    :: GOX, GOY, GOZ, GPHI, GRADIUS, GSTEPX, GSTEPY,   &
+      REAL    :: GOX, GOY, GOZ, GPHI, GRADIUS, GSTEPX, GSTEPY,   &
                     GSTEPZ, GSXMAX, GSXMIN, GSYMAX, GSYMIN, GSZMAX, &
                     GSZMIN, GTHETA, GXL, GXMAX, GXMIN, GXORG, GYL,  &
                     GYMAX, GYMIN, GYORG, GZL, GZMAX, GZMIN, GZVAL
@@ -924,9 +919,9 @@
       CALL GSCALE3DX(GSXMIN,GSTEPX,0.3,0)
       CALL GSCALE3DY(GSYMIN,GSTEPY,0.3,0)
       CALL GSCALE3DZ(GSZMIN,GSTEPZ,0.3,0)
-      CALL GVALUE3DX(GSXMIN,GSTEPX,1,NGULEN(GSTEPX))
-      CALL GVALUE3DY(GSYMIN,GSTEPY,1,NGULEN(GSTEPY))
-      CALL GVALUE3DZ(GSZMIN,GSTEPZ,2,NGULEN(GSTEPZ))
+      CALL GVALUE3DX(GSXMIN,GSTEPX,1,NGSLEN(GSTEPX))
+      CALL GVALUE3DY(GSYMIN,GSTEPY,1,NGSLEN(GSTEPY))
+      CALL GVALUE3DZ(GSZMIN,GSTEPZ,2,NGSLEN(GSTEPZ))
 
       IF(GZMIN*GZMAX.LT.0.0) THEN
          CALL CPLOT3D1(7,R2W2B)
@@ -952,8 +947,8 @@
       SUBROUTINE FPGRACA(STRING,FGA,MODE,NSA)
        
       IMPLICIT NONE
-      REAL(8),DIMENSION(:,:,:,:):: FGA
-      REAL(8),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
+      REAL(RKIND),DIMENSION(:,:,:,:):: FGA
+      REAL(RKIND),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSA, NS
@@ -1000,13 +995,14 @@
 !---------------------------------------------------
       SUBROUTINE FPGRACXA(STRING,FGA,MODE,NSA)
        
+      USE libgrf
       IMPLICIT NONE
-      REAL(8),DIMENSION(NTHMAX+1,NPMAX+1,NSAMAX):: FGA
-      REAL(4),dimension(NTHMAX+1,NPMAX+1):: GF
+      REAL(RKIND),DIMENSION(NTHMAX+1,NPMAX+1,NSAMAX):: FGA
+      REAL,dimension(NTHMAX+1,NPMAX+1):: GF
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
-      integer:: NPM, NTHM, NRM, NR, NP, NTH, NSA, NS
-      integer:: NM, NM1, MODE
+      integer:: NPM, NTHM, NRM, NP, NTH, NSA, NS
+      integer:: MODE
       NPM=NPMAX+1
       NTHM=NTHMAX+1
       NRM=NRMAX+1
@@ -1015,25 +1011,25 @@
       IF(MODE.EQ.0) THEN
          DO NP=1,NPMAX
          DO NTH=1,NTHMAX
-            GF(NP,NTH)=GUCLIP(FGA(NTH,NP,NSA))
+            GF(NP,NTH)=gdclip(FGA(NTH,NP,NSA))
          ENDDO
          ENDDO
       ELSEIF(MODE.EQ.1) THEN
          DO NP=1,NPMAX+1
          DO NTH=1,NTHMAX
-            GF(NP,NTH)=GUCLIP(FGA(NTH,NP,NSA))
+            GF(NP,NTH)=gdclip(FGA(NTH,NP,NSA))
          ENDDO
          ENDDO
       ELSEIF(MODE.EQ.2) THEN
          DO NP=1,NPMAX
          DO NTH=1,NTHMAX+1
-            GF(NP,NTH)=GUCLIP(FGA(NTH,NP,NSA))
+            GF(NP,NTH)=gdclip(FGA(NTH,NP,NSA))
          ENDDO
          ENDDO
       ELSEIF(MODE.EQ.3) THEN
          DO NP=1,NPMAX
          DO NTH=1,NTHMAX
-            GF(NP,NTH)=GUCLIP(FGA(NTH,NP,NSA))
+            GF(NP,NTH)=gdclip(FGA(NTH,NP,NSA))
          ENDDO
          ENDDO
       ELSEIF(MODE.EQ.4) THEN
@@ -1042,7 +1038,7 @@
                IF(FGA(NTH,NP,NSA).LT.1.D-70) THEN
                   GF(NP,NTH)=-70.0
                ELSE
-                  GF(NP,NTH)=GUCLIP(LOG10(ABS(FGA(NTH,NP,NSA))))
+                  GF(NP,NTH)=gdclip(LOG10(ABS(FGA(NTH,NP,NSA))))
                ENDIF
             END DO
          END DO
@@ -1055,13 +1051,13 @@
       SUBROUTINE FPGRACB(STRING,FGA,MODE,NSB)
        
       IMPLICIT NONE
-      REAL(8),DIMENSION(:,:,:,:):: FGA
-!      REAL(8),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
-      REAL(8),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
+      REAL(RKIND),DIMENSION(:,:,:,:):: FGA
+!      REAL(RKIND),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
+      REAL(RKIND),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSB
-      integer:: NM, NM1, MODE
+      integer:: MODE
 !
       IF(MODE.EQ.0.OR.MODE.EQ.4) THEN
          DO NR=1,NRMAX
@@ -1104,11 +1100,11 @@
       SUBROUTINE FPGRACAB(STRING,FGAB,MODE,NSA,NSB)
        
       IMPLICIT NONE
-      real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1,NSBMAX,NSAMAX):: FGAB
-      real(8),dimension((NRMAX+1)*(NTHMAX+1)*(NPMAX+1)):: TEMP
+      REAL(rkind),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1,NSBMAX,NSAMAX):: FGAB
+      REAL(rkind),dimension((NRMAX+1)*(NTHMAX+1)*(NPMAX+1)):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
-      integer:: NR, NP, NTH, NSA,NSB,NS,NM, NM1, NPM, NTHM, NRM, NSBM, MODE
+      integer:: NR, NP, NTH, NSA,NSB,NS,NM, NPM, NTHM, NRM, NSBM, MODE
       NPM=NPMAX+1
       NTHM=NTHMAX+1
       NRM=NRMAX+1
@@ -1159,23 +1155,16 @@
 !--------------------------------------------------
       SUBROUTINE FPGRAC(STRING,FG,MODE,NSB)
 !       
+      USE libgrf
       IMPLICIT NONE
-      real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
-      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
-      real(4),dimension(NPMAX+1):: GP
-      real(4),dimension(NTHMAX+1):: GTH
-      real(8),dimension(8,NPMAX+1,NTHMAX+1)::KA
+      REAL(rkind),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
+      REAL,DIMENSION(NPMAX+1,NTHMAX+1):: GF
       CHARACTER(LEN=*),INTENT(IN):: STRING
+      INTEGER,INTENT(IN):: MODE,NSB
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
-      REAL(4):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
-      INTEGER:: ILN(NGLM)
-      REAL(4):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
-      real(4):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
-      real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
-      integer:: NR, NP, NTH, NSB, NRG, MODE
-      integer:: NPG, NTHG, NPM, NTHM, NRM, NM, NGLMAX, NGL
-      integer:: I
+      INTEGER:: NP,NR,NRG,NTH
+      integer:: NPM, NTHM, NRM
 
       NPM=NPMAX+1
       NTHM=NTHMAX+1
@@ -1205,25 +1194,25 @@
       IF(MODE.EQ.0) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
-               GF(NP,NTH)=GUCLIP(FG(NTH,NP,NR))
+               GF(NP,NTH)=gdclip(FG(NTH,NP,NR))
             END DO
          END DO
       ELSEIF(MODE.EQ.1) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX+1
-               GF(NP,NTH)=GUCLIP(FG(NTH,NP,NR))
+               GF(NP,NTH)=gdclip(FG(NTH,NP,NR))
             END DO
          END DO
       ELSEIF(MODE.EQ.2) THEN
          DO NTH=1,NTHMAX+1
             DO NP=1,NPMAX
-               GF(NP,NTH)=GUCLIP(FG(NTH,NP,NR))
+               GF(NP,NTH)=gdclip(FG(NTH,NP,NR))
             END DO
          END DO
       ELSEIF(MODE.EQ.3) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
-               GF(NP,NTH)=GUCLIP(FG(NTH,NP,NR))
+               GF(NP,NTH)=gdclip(FG(NTH,NP,NR))
             END DO
          END DO
       ELSEIF(MODE.EQ.4) THEN
@@ -1232,7 +1221,7 @@
                IF(FG(NTH,NP,NR).LT.1.D-70) THEN
                   GF(NP,NTH)=-70.0
                ELSE
-                  GF(NP,NTH)=GUCLIP(LOG10(ABS(FG(NTH,NP,NR))))
+                  GF(NP,NTH)=gdclip(LOG10(ABS(FG(NTH,NP,NR))))
                ENDIF
             END DO
          END DO
@@ -1247,22 +1236,17 @@
 !--------------------------------------------------
       SUBROUTINE FPGRAC_2(STRING,FG,MODE,NSB)
 !       
+      USE libgrf
       IMPLICIT NONE
-!      real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
-!      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
-      real(8),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
-      real(4),DIMENSION(NPMAX,NTHMAX):: GF
+!      REAL(rkind),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
+!      REAL,DIMENSION(NPMAX+1,NTHMAX+1):: GF
+      REAL(rkind),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
+      REAL,DIMENSION(NPMAX,NTHMAX):: GF
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
-      REAL(4):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
-      INTEGER:: ILN(NGLM)
-      REAL(4):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
-      real(4):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
-      real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
       integer:: NR, NP, NTH, NRG, MODE, NSB
-      integer:: NPG, NTHG, NPM, NTHM, NRM, NM, NGLMAX, NGL
-      integer:: I
+      integer:: NPM, NTHM, NRM
 
       NPM=NPMAX+1
       NTHM=NTHMAX+1
@@ -1292,25 +1276,25 @@
       IF(MODE.EQ.0) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
-               GF(NP,NTH)=GUCLIP(FG(NTH,NP,NR))
+               GF(NP,NTH)=gdclip(FG(NTH,NP,NR))
             END DO
          END DO
       ELSEIF(MODE.EQ.1) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX+1
-               GF(NP,NTH)=GUCLIP(FG(NTH,NP,NR))
+               GF(NP,NTH)=gdclip(FG(NTH,NP,NR))
             END DO
          END DO
       ELSEIF(MODE.EQ.2) THEN
          DO NTH=1,NTHMAX+1
             DO NP=1,NPMAX
-               GF(NP,NTH)=GUCLIP(FG(NTH,NP,NR))
+               GF(NP,NTH)=gdclip(FG(NTH,NP,NR))
             END DO
          END DO
       ELSEIF(MODE.EQ.3) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
-               GF(NP,NTH)=GUCLIP(FG(NTH,NP,NR))
+               GF(NP,NTH)=gdclip(FG(NTH,NP,NR))
             END DO
          END DO
       ELSEIF(MODE.EQ.4) THEN
@@ -1323,7 +1307,7 @@
 !               IF(FG(NTH,NP,NR).LT.1.D-12) THEN 
 !                  GF(NP,NTH)=-12.0
                ELSE
-                  GF(NP,NTH)=GUCLIP(LOG10(ABS(FG(NTH,NP,NR))))
+                  GF(NP,NTH)=gdclip(LOG10(ABS(FG(NTH,NP,NR))))
                ENDIF
             END DO
          END DO
@@ -1338,27 +1322,27 @@
 !--------------------------------------------------
       SUBROUTINE FPGRACX_2(STRING,GF,MODE,NSB)
 !       
+      USE libgrf
       IMPLICIT NONE
-      real(4),DIMENSION(NPMAX,NTHMAX):: GF
-      real(4),dimension(NPMAX):: GP
-      real(4),dimension(NTHMAX):: GTH
-      real(8),dimension(8,NPMAX,NTHMAX)::KA
-!      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
-!      real(4),dimension(NPMAX+1):: GP
-!      real(4),dimension(NTHMAX+1):: GTH
-!      real(8),dimension(8,NPMAX+1,NTHMAX+1)::KA
+      REAL,DIMENSION(NPMAX,NTHMAX):: GF
+      REAL,dimension(NPMAX):: GP
+      REAL,dimension(NTHMAX):: GTH
+!      REAL,DIMENSION(NPMAX+1,NTHMAX+1):: GF
+!      REAL,dimension(NPMAX+1):: GP
+!      REAL,dimension(NTHMAX+1):: GTH
+!      REAL(rkind),dimension(8,NPMAX+1,NTHMAX+1)::KA
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
-      REAL(4):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
+      REAL:: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
       INTEGER:: ILN(NGLM)
-      REAL(4):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
-      real(4):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
-      real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
-      integer:: NR, NP, NTH, NSB, NRG, MODE, LMODE
+      REAL:: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
+      REAL:: GPMIN1, GPMAX1, GPSTEP, GFFMAX
+      integer:: NP, NTH, NSB, MODE, LMODE
       integer:: NPG, NTHG, NPM, NTHM, NGLMAX, NGL
-      integer:: I, NS
+      integer:: NS
 
+      STRING1=STRING
       NPM=NPMAX+1
       NTHM=NTHMAX+1
 
@@ -1367,29 +1351,29 @@
 !
       IF(MODE.EQ.1) THEN
          DO NP=1,NPMAX+1
-            GP(NP)=GUCLIP(PG(NP,NS))
+            GP(NP)=gdclip(PG(NP,NS))
          END DO
          NPG=NPMAX+1
       ELSE
          DO NP=1,NPMAX
-            GP(NP)=GUCLIP(PM(NP,NS))
+            GP(NP)=gdclip(PM(NP,NS))
          END DO
          NPG=NPMAX
       ENDIF
 
       IF(MODE.EQ.2) THEN
          DO NTH=1,NTHMAX+1
-            GTH(NTH)=GUCLIP(THG(NTH))
+            GTH(NTH)=gdclip(THG(NTH))
          END DO
          NTHG=NTHMAX+1
       ELSE
          DO NTH=1,NTHMAX
-            GTH(NTH)=GUCLIP(THM(NTH))
+            GTH(NTH)=gdclip(THM(NTH))
          END DO
          NTHG=NTHMAX
       ENDIF
 !
-      GPMAX=GUCLIP(PMAX(NS))
+      GPMAX=gdclip(PMAX(NS))
 !
       CALL PAGES
       CALL SETLNW(0.07)
@@ -1406,7 +1390,7 @@
       CALL SETLNW(0.035)
       CALL GSCALE(0.,GPSTEP,0.,GPSTEP,1.0,0)
       CALL SETLNW(0.07)
-      CALL GVALUE(0.,GPSTEP*2,0.,GPSTEP*2,NGULEN(2*GPSTEP))
+      CALL GVALUE(0.,GPSTEP*2,0.,GPSTEP*2,NGSLEN(2*GPSTEP))
 !
       IF(LMODE.EQ.0) THEN
          IF(GFMIN*GFMAX.GE.0.0) THEN
@@ -1515,23 +1499,23 @@
 !--------------------------------------------------
       SUBROUTINE FPGRACX(STRING,GF,MODE,NSB)
 !       
+      USE libgrf
       IMPLICIT NONE
-      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
-      real(4),dimension(NPMAX+1):: GP
-      real(4),dimension(NTHMAX+1):: GTH
-      real(8),dimension(8,NPMAX+1,NTHMAX+1)::KA
+      REAL,DIMENSION(NPMAX+1,NTHMAX+1):: GF
+      REAL,dimension(NPMAX+1):: GP
+      REAL,dimension(NTHMAX+1):: GTH
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
-      REAL(4):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
+      REAL:: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
       INTEGER:: ILN(NGLM)
-      REAL(4):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
-      real(4):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
-      real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
-      integer:: NR, NP, NTH, NSB, NRG, MODE, LMODE
-      integer:: NPG, NTHG, NPM, NTHM, NRM, NM, NGLMAX, NGL
-      integer:: I, NS
+      REAL:: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
+      REAL:: GPMIN1, GPMAX1, GPSTEP, GFFMAX
+      integer:: NP, NTH, NSB, MODE, LMODE
+      integer:: NPG, NTHG, NPM, NTHM, NRM, NGLMAX, NGL
+      integer:: NS
 
+      STRING1=STRING
       NPM=NPMAX+1
       NTHM=NTHMAX+1
       NRM=NRMAX+1
@@ -1541,29 +1525,29 @@
 !
       IF(MODE.EQ.1) THEN
          DO NP=1,NPMAX+1
-            GP(NP)=GUCLIP(PG(NP,NS))
+            GP(NP)=gdclip(PG(NP,NS))
          END DO
          NPG=NPMAX+1
       ELSE
          DO NP=1,NPMAX
-            GP(NP)=GUCLIP(PM(NP,NS))
+            GP(NP)=gdclip(PM(NP,NS))
          END DO
          NPG=NPMAX
       ENDIF
 
       IF(MODE.EQ.2) THEN
          DO NTH=1,NTHMAX+1
-            GTH(NTH)=GUCLIP(THG(NTH))
+            GTH(NTH)=gdclip(THG(NTH))
          END DO
          NTHG=NTHMAX+1
       ELSE
          DO NTH=1,NTHMAX
-            GTH(NTH)=GUCLIP(THM(NTH))
+            GTH(NTH)=gdclip(THM(NTH))
          END DO
          NTHG=NTHMAX
       ENDIF
 !
-      GPMAX=GUCLIP(PMAX(NS))
+      GPMAX=gdclip(PMAX(NS))
 !
       CALL PAGES
       CALL SETLNW(0.07)
@@ -1579,7 +1563,7 @@
       CALL SETLNW(0.035)
       CALL GSCALE(0.,GPSTEP,0.,GPSTEP,1.0,0)
       CALL SETLNW(0.07)
-      CALL GVALUE(0.,GPSTEP*2,0.,GPSTEP*2,NGULEN(2*GPSTEP))
+      CALL GVALUE(0.,GPSTEP*2,0.,GPSTEP*2,NGSLEN(2*GPSTEP))
 !
       IF(LMODE.EQ.0) THEN
          IF(GFMIN*GFMAX.GE.0.0) THEN
@@ -1682,11 +1666,12 @@
       END SUBROUTINE FPGRACX
 
       SUBROUTINE SETRGBFP(F,RGB)
+        USE grdutils
         IMPLICIT NONE
-        REAL(4),INTENT(IN):: F
-        REAL(4),DIMENSION(3),INTENT(OUT):: RGB
+        REAL,INTENT(IN):: F
+        REAL,DIMENSION(3),INTENT(OUT):: RGB
         INTEGER,PARAMETER:: NFMAX=8
-        REAL(4),DIMENSION(3,NFMAX):: RGBC
+        REAL,DIMENSION(3,NFMAX):: RGBC
         DATA RGBC/ 0.0,0.0,0.0, &
                    0.0,0.0,1.0, &
                    0.0,0.8,1.0, &
@@ -1695,15 +1680,15 @@
                    1.0,0.4,0.0, &
                    1.0,0.0,0.0, &
                    1.0,1.0,1.0/
-        REAL(8):: GF,DF
-        INTEGER(4):: IM
+        REAL(RKIND):: GF,DF
+        INTEGER:: IM
 !
         GF=F*DBLE(NFMAX-1)+1
         IM=MIN(INT(GF),NFMAX-1)
         DF=GF-IM
-        RGB(1)=RGBC(1,IM)*(1.D0-DF)+RGBC(1,IM+1)*DF
-        RGB(2)=RGBC(2,IM)*(1.D0-DF)+RGBC(2,IM+1)*DF
-        RGB(3)=RGBC(3,IM)*(1.D0-DF)+RGBC(3,IM+1)*DF
+        RGB(1)=gdclip(RGBC(1,IM)*(1.D0-DF)+RGBC(1,IM+1)*DF)
+        RGB(2)=gdclip(RGBC(2,IM)*(1.D0-DF)+RGBC(2,IM+1)*DF)
+        RGB(3)=gdclip(RGBC(3,IM)*(1.D0-DF)+RGBC(3,IM+1)*DF)
         RETURN
         END SUBROUTINE SETRGBFP
           
@@ -1717,11 +1702,13 @@
       SUBROUTINE FPGRACPA(STRING,FGA,MODE,NSA)
        
       IMPLICIT NONE
-      real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1,NSAMAX):: FGA
-      real(8),dimension((NRMAX+1)*(NPMAX+1)*(NTHMAX+1)):: TEMP
+      REAL(rkind),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1,NSAMAX):: FGA
+      REAL(rkind),dimension((NRMAX+1)*(NPMAX+1)*(NTHMAX+1)):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSA, MODE, NPM, NTHM, NRM, NM, NM1
+
+      STRING1=STRING
       NPM=NPMAX+1
       NTHM=NTHMAX+1
       NRM=NRMAX+1
@@ -1765,8 +1752,8 @@
       SUBROUTINE FPGRACPAB(STRING,FGAB,MODE,NSA,NSB)
        
       IMPLICIT NONE
-      real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1,NSBMAX,NSAMAX):: FGAB
-      real(8),dimension((NRMAX+1)*(NPMAX+1)*(NTHMAX+1)):: TEMP
+      REAL(rkind),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1,NSBMAX,NSAMAX):: FGAB
+      REAL(rkind),dimension((NRMAX+1)*(NPMAX+1)*(NTHMAX+1)):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NTH, NP, NSA, NSB, MODE, NPM, NTHM, NRM, NM, NM1, NSBM
@@ -1816,20 +1803,20 @@
 !-------------------------------------------------
       SUBROUTINE FPGRACP(STRING,FG,MODE,NSA)
 !
+      USE libgrf
       IMPLICIT NONE
-      real(8),DIMENSION((NRMAX+1)*(NPMAX+1)*(NTHMAX+1)):: FG
-      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
-      real(4),dimension(NPMAX+1):: GP
-      real(4),dimension(NTHMAX+1):: GTH
-      integer(4),dimension(8,NPMAX+1,NTHMAX+1):: KA
+      REAL(rkind),DIMENSION((NRMAX+1)*(NPMAX+1)*(NTHMAX+1)):: FG
+      REAL,DIMENSION(NPMAX+1,NTHMAX+1):: GF
+      REAL,dimension(NPMAX+1):: GP
+      REAL,dimension(NTHMAX+1):: GTH
+      INTEGER,dimension(8,NPMAX+1,NTHMAX+1):: KA
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
-      REAL(4):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
-      INTEGER(4):: ILN(NGLM)
-      REAL(4):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
-      real(4):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
-      real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN
+      REAL:: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
+      INTEGER:: ILN(NGLM)
+      REAL:: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
+      REAL:: GPMIN1, GPMAX1, GPSTEP, GLIN
       integer:: NR, NTH, NP, NSA, MODE, NRG, LMODE, NTHG, NS
       integer:: NPM, NTHM, NRM, NM, NGL, NGLMAX, I, NPG
       NPM=NPMAX+1
@@ -1862,24 +1849,24 @@
 !
       IF(MOD(MODE,2).EQ.0) THEN
          DO NP=1,NPMAX
-            GP(NP)=GUCLIP(PM(NP,NS))
+            GP(NP)=gdclip(PM(NP,NS))
          END DO
          NPG=NPMAX
       ELSE
          DO NP=1,NPMAX+1
-            GP(NP)=GUCLIP(PG(NP,NS))
+            GP(NP)=gdclip(PG(NP,NS))
          END DO
          NPG=NPMAX+1
       ENDIF
 !
       IF(MOD(MODE/2,2).EQ.0) THEN
          DO NTH=1,NTHMAX
-            GTH(NTH)=GUCLIP(THM(NTH))
+            GTH(NTH)=gdclip(THM(NTH))
          END DO
          NTHG=NTHMAX
       ELSE
          DO NTH=1,NTHMAX+1
-            GTH(NTH)=GUCLIP(THG(NTH))
+            GTH(NTH)=gdclip(THG(NTH))
          END DO
          NTHG=NTHMAX+1
       ENDIF
@@ -1888,21 +1875,21 @@
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
                NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-               GF(NP,NTH)=GUCLIP(FG(NM)*PM(NP,NS))
+               GF(NP,NTH)=gdclip(FG(NM)*PM(NP,NS))
             END DO
          END DO
       ELSEIF(MODE.EQ.1) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX+1
                NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-               GF(NP,NTH)=GUCLIP(FG(NM)*PG(NP,NS))
+               GF(NP,NTH)=gdclip(FG(NM)*PG(NP,NS))
             END DO
          END DO
       ELSEIF(MODE.EQ.2) THEN
          DO NTH=1,NTHMAX+1
             DO NP=1,NPMAX
                NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-               GF(NP,NTH)=GUCLIP(FG(NM)*PM(NP,NS))
+               GF(NP,NTH)=gdclip(FG(NM)*PM(NP,NS))
             END DO
          END DO
       ELSEIF(MODE.EQ.4) THEN
@@ -1912,12 +1899,12 @@
                IF(FG(NM)*PM(NP,NS).LT.1.D-70) THEN
                   GF(NP,NTH)=-70.0
                ELSE
-                  GF(NP,NTH)=GUCLIP(LOG10(ABS(FG(NM)*PM(NP,NS))))
+                  GF(NP,NTH)=gdclip(LOG10(ABS(FG(NM)*PM(NP,NS))))
                ENDIF
             END DO
          END DO
       ENDIF
-      GPMAX=GUCLIP(PMAX(NS))
+      GPMAX=gdclip(PMAX(NS))
 
       CALL PAGES
       CALL SETLNW(0.07)
@@ -1933,7 +1920,7 @@
       CALL SETLNW(0.035)
       CALL GSCALE(0.,GPSTEP,0.,GPSTEP,1.0,0)
       CALL SETLNW(0.07)
-      CALL GVALUE(0.,GPSTEP*2,0.,GPSTEP*2,NGULEN(2*GPSTEP))
+      CALL GVALUE(0.,GPSTEP*2,0.,GPSTEP*2,NGSLEN(2*GPSTEP))
 !
       IF(LMODE.EQ.0) THEN
          IF(GFMIN*GFMAX.GE.0.0) THEN

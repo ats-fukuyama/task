@@ -24,7 +24,7 @@ FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I$(MOD) -I../open-adas/adf11/adf11-lib/$(MOD) \
             -I../adpost/$(MOD) -I../eq/$(MOD) -I../pl/$(MOD) \
-            -I../dp/$(MOD) -I../wr/$(MOD) -I../wm/$(MOD) \
+            -I../dp/$(MOD) -I../wr/$(MOD) -I../wmx/$(MOD) \
             -I../fp/$(MOD) -I../tr/$(MOD) -I../ti/$(MOD) \
             -I../mtxp/$(MOD) -I../lib/$(MOD) \
             -I../../bpsd/$(MOD) 
@@ -39,7 +39,7 @@ LIBS = ../lib/libmds.a ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a \
        ../adpost/lib-adpost.a ../open-adas/adf11/adf11-lib/lib-adf11.a \
        ../pl/libpl.a \
        $(EQLIBS) \
-       ../tr/libtr.a ../dp/libdp.a ../wr/libwr.a ../wm/libwm.a \
+       ../tr/libtr.a ../dp/libdp.a ../wr/libwr.a ../wmx/libwm.a \
        ../fp/libfp.a ../ti/libti.a
 
 
@@ -73,8 +73,8 @@ $(LIB_MTX):
 	(cd ../dp; make libdp.a)
 ../wr/libwr.a:
 	(cd ../wr; make libwr.a)
-../wm/libwm.a:
-	(cd ../wm; make libwm.a)
+../wmx/libwm.a:
+	(cd ../wmx; make libwm.a)
 ../fp/libfp.a:
 	(cd ../fp; make libfp.a)
 ../ti/libti.a:
@@ -95,7 +95,7 @@ libs:
 	(cd ../tr; make libtr.a)
 	(cd ../dp; make libdp.a)
 	(cd ../wr; make libwr.a)
-	(cd ../wm; make libwm.a)
+	(cd ../wmx; make libwm.a)
 	(cd ../fp; make libfp.a)
 	(cd ../ti; make libti.a)
 	make totmenu.o

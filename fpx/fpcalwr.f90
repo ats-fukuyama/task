@@ -20,9 +20,9 @@
       USE fpwrin
       USE plprof,ONLY: pl_getRZ
       IMPLICIT NONE
-      INTEGER:: NSA, NSBA, NITM, NP, NTH, NRDO, NR, NAV, NS
-      REAL(rkind):: FACT, DELH, ETAL, THETAL, RRAVE, RSAVE
-      REAL(rkind):: X,Y,Z,RL,ZL,RXB,RYB,RZB,RRLB,RZLB
+      INTEGER:: NSA, NP, NTH, NRDO, NR, NAV, NS
+      REAL(rkind):: FACT, DELH, ETAL
+      REAL(rkind):: RL,ZL,RXB,RYB,RZB,RRLB,RZLB
       INTEGER:: NRAY,NIT,NITMX,MINNB1,MINNB2
       REAL(rkind):: DLAMN1,RXMIN1,RYMIN1,RZMIN1,RKXMN1,RKYMN1,RKZMN1,RBMIN1
       REAL(rkind):: DLAMN2,RXMIN2,RYMIN2,RZMIN2,RKXMN2,RKYMN2,RKZMN2,RBMIN2
@@ -32,12 +32,24 @@
       REAL(rkind):: RKX,RKY,RKZ,RADB,DELCR2,DELRB2,ARG
       REAL(rkind):: DWPPS,DWPTS,DWTPS,DWTTS
 
-      REAL(rkind),DIMENSION(:,:),POINTER:: DLA !(0:NITMAXM,NRAYMAX)
+      REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: DLA !(0:NITMAXM,NRAYMAX)
 
 ! =============  CALCULATION OF DWPP AND DWPT  ===============
 
-      ALLOCATE(DLA(0:NITMAXM,NRAYMAX))
+      IF(NRAYS_WR.EQ.0) THEN
+         NRAYS=1
+      ELSE
+         NRAYS=NRAYS_WR
+      END IF
+      IF(NRAYE_WR.EQ.0.OR.NRAYE_WR.GT.NRAYMAX) THEN
+         NRAYE=NRAYMAX
+      ELSE
+         NRAYE=NRAYE_WR
+      END IF
+
       FACT=0.5D0
+
+      ALLOCATE(DLA(0:NITMAXM,NRAYS:NRAYE))
 
       NS=NS_NSA(NSA)
 
@@ -51,7 +63,7 @@
                   ETAL=DELH*(NAV-0.5D0)-2.D0*ETAM(NTH,NR)
                   CALL pl_getRZ(RM(NR),ETAL,RL,ZL)
 
-                  DO NRAY=1,NRAYMAX
+                  DO NRAY=NRAYS,NRAYE
                      NITMX=NITMAX(NRAY)
                      RF_WR=RAYIN(1,NRAY)
 
@@ -219,7 +231,7 @@
                   ETAL=DELH*(NAV-0.5D0)-2.D0*ETAG(NTH,NR)
                   CALL pl_getRZ(RM(NR),ETAL,RL,ZL)
 
-                  DO NRAY=1,NRAYMAX
+                  DO NRAY=NRAYS,NRAYE
                      NITMX=NITMAX(NRAY)
                      RF_WR=RAYIN(1,NRAY)
 
@@ -376,7 +388,7 @@
       REAL(rkind),INTENT(IN):: ETA,RSIN,RCOS,P
       INTEGER,INTENT(IN):: NR,NTH,NSA
       REAL(rkind),INTENT(OUT):: DWPPS,DWPTS,DWTPS,DWTTS
-      REAL(rkind):: DELH,ETAL,THETAL,RRAVE,RSAVE,X,Y,Z,RL,ZL
+      REAL(rkind):: DELH,ETAL,RL,ZL
       REAL(rkind):: RX,RY,RZ,RLCR,ZLCR,DELR2,DELCR2,ARG,FACTOR
       REAL(rkind):: RKX,RKY,RKZ,DWPPL,DWPTL,DWTPL,DWTTL
       REAL(rkind):: PSIN,PCOS,PSI
@@ -395,7 +407,7 @@
          ETAL=DELH*(NAV-0.5D0)-2.D0*ETA
          CALL pl_getRZ(RM(NR),ETAL,RL,ZL)
 
-         DO NRAY=1,NRAYMAX
+         DO NRAY=NRAYS,NRAYE
             RF_WR=RAYIN(1,NRAY)
 
             IF(MODELW(NS).EQ.1) THEN
@@ -411,7 +423,7 @@
 
                   IF(ARG.LT.15.D0) THEN
                      FACTOR=EXP(-ARG)
-                     CALL FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI,NSA)
+                     CALL FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI)
                      CEX=CECR(1,NCR,NR,NRAY)*FACTOR
                      CEY=CECR(2,NCR,NR,NRAY)*FACTOR
                      CEZ=CECR(3,NCR,NR,NRAY)*FACTOR
@@ -452,7 +464,7 @@
                ARG=ARGB(NR,NTH,NAV,NRAY)
                IF(ARG.GT.0.D0.AND.ARG.LT.15.D0) THEN
                   FACTOR= EXP(-ARG)
-                  CALL FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI,NSA)
+                  CALL FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI)
                   CEX=CEB(1,NR,NTH,NAV,NRAY)*FACTOR
                   CEY=CEB(2,NR,NTH,NAV,NRAY)*FACTOR
                   CEZ=CEB(3,NR,NTH,NAV,NRAY)*FACTOR
@@ -494,13 +506,13 @@
       REAL(rkind),INTENT(OUT):: DWPPL,DWPTL,DWTPL,DWTTL
       INTEGER,INTENT(IN):: NSA
       INTEGER:: NS,NHMAX,NC,NMI,NPI
-      REAL(rkind):: RHON,RW,RWC,RKPARA,RKPERP
+      REAL(rkind):: RW,RWC,RKPARA,RKPERP
       REAL(rkind):: U1X,U1Y,U1Z,U2X,U2Y,U2Z
       REAL(rkind):: RGAMMA,PPARA,PPERP,VPARA,VPERP
       REAL(rkind):: DWC11,DWC12,DWC21,DWC22,RKW,RGZAI
       REAL(rkind):: RJN,RJNM,RJNP,RTHETA2,A11,A12,A21,A22,DWC,EX
-      COMPLEX(rkind):: CE1,CE2,CE3,CEPARA,CEPLUS,CEMINUS,CTHETA
-      REAL(rkind),DIMENSION(:),POINTER::  RJ,DRJ
+      COMPLEX(rkind):: CE1,CE2,CEPARA,CEPLUS,CEMINUS,CTHETA
+      REAL(rkind),DIMENSION(:),ALLOCATABLE::  RJ,DRJ
       TYPE(pl_mag_type):: mag
 
       NS=NS_NSA(NSA)
@@ -582,12 +594,12 @@
             A12=0
             A21=0
             A22=RTHETA2*RKW**2/(AMFP(NSA)**2*RGAMMA**2)
-	 ELSE
+         ELSE
             A11=RTHETA2*(1.D0-RKW*VPARA)**2
             A12=RTHETA2*RKW*VPERP*(1.D0-RKW*VPARA)
             A21=RTHETA2*RKW*VPERP*(1.D0-RKW*VPARA)
             A22=RTHETA2*RKW**2*VPERP**2
-	 ENDIF        
+         ENDIF
          IF(VPARA.EQ.0.D0) THEN
             DWC=0.D0  
          ELSE
@@ -632,13 +644,13 @@
 !     Calculate PSIN, PCOS, PSI
 !***********************************************************************
 !
-      SUBROUTINE FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI,NSA)
+      SUBROUTINE FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI)
 !
       IMPLICIT NONE
-      INTEGER,INTENT(IN):: NR,NSA
-      REAL(8),INTENT(IN):: ETAL,RSIN,RCOS
-      REAL(8),INTENT(OUT):: PSIN,PCOS,PSI
-      REAL(8):: ARG
+      INTEGER,INTENT(IN):: NR
+      REAL(RKIND),INTENT(IN):: ETAL,RSIN,RCOS
+      REAL(RKIND),INTENT(OUT):: PSIN,PCOS,PSI
+      REAL(RKIND):: ARG
 
       IF(MODELA.EQ.0) THEN
          PSI=1.D0
