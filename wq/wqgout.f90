@@ -59,10 +59,12 @@ CONTAINS
   REAL(8)               :: FX(nxmax),FY(nymax),FZ(nxmax,nymax)
 
   DO nx=1,nxmax
-     FX(nx)=RR+dx*DBLE(nx-1-(nxmax-1)/2)
+!        FX(nx)=RR+dx*DBLE(nx-1-(nxmax-1)/2)
+       FX(nx)=dx*DBLE(nx-1)
   ENDDO
   DO ny=1,nymax
-     FY(ny)=dy*DBLE(ny-1-(nymax-1)/2)
+!      FY(ny)=dy*DBLE(ny-1-(nymax-1)/2)
+       FY(ny)=dy*DBLE(ny-1)
   ENDDO
 
   SELECT CASE(flag)

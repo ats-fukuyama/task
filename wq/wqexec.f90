@@ -14,7 +14,7 @@ CONTAINS
     INTEGER:: nx,ny,k,i,j,nt,N,NA,ILL
     REAL(rkind):: t,pabs_tot,factor
     REAL(rkind):: sys_len,y0,y,pulse_width
-   
+
     t=ttot
     do nt=1,ntmax
        nttot=nttot+1
@@ -38,9 +38,9 @@ CONTAINS
        END SELECT
 
        nx=nxmax
-       sys_len=wavelength/dyfactor
+       sys_len=dy*(nymax-1)
        y0=0.5D0*sys_len
-       pulse_width=2*wavelength
+       pulse_width=2.D0*wavelength
        do ny=1,nymax
           y=dy*(ny-1)
           if(INMODE.eq.1) then
@@ -56,7 +56,9 @@ CONTAINS
        end do
 
        !compute next E
+
        call wq_solv
+
        t=t+dt
        ttot=ttot+dt
 
