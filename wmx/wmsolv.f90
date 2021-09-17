@@ -51,6 +51,18 @@ CONTAINS
        CALL FWOPEN(nfl,knam_dump,1,0,'wm',ierr)
        IF(ierr.NE.0) STOP
     END IF
+    IF(idebuga(61).NE.0.AND.nrank.EQ.1) THEN
+       CALL FWOPEN(nfl+1,TRIM(knam_dump)//'-1',1,0,'wm',ierr)
+       IF(ierr.NE.0) STOP
+    END IF
+    IF(idebuga(61).NE.0.AND.nrank.EQ.2) THEN
+       CALL FWOPEN(nfl+2,TRIM(knam_dump)//'-2',1,0,'wm',ierr)
+       IF(ierr.NE.0) STOP
+    END IF
+    IF(idebuga(61).NE.0.AND.nrank.EQ.3) THEN
+       CALL FWOPEN(nfl+3,TRIM(knam_dump)//'-3',1,0,'wm',ierr)
+       IF(ierr.NE.0) STOP
+    END IF
 
     ALLOCATE(A(MBND))        ! local coefficient matrix
 
@@ -59,6 +71,9 @@ CONTAINS
     nr_start=(istart-1)/mblock_size+1
     nr_end=(iend-1)/mblock_size+2
     IF(nrank.EQ.nsize-1) nr_end=NRMAX+1
+
+    WRITE(6,'(A,5I8)') 'nrank:',nrank,istart,iend,nr_start,nr_end
+    
     IF(ALLOCATED(nr_start_nrank)) DEALLOCATE(nr_start_nrank,nr_end_nrank)
     ALLOCATE(nr_start_nrank(0:nsize-1),nr_end_nrank(0:nsize-1))
     CALL mtx_allgather1_integer(nr_start,nr_start_nrank)
@@ -96,8 +111,8 @@ CONTAINS
        IF(idebuga(61).NE.0.AND.nrank.EQ.2) &
             WRITE(nfl+2,'(A,2I6,ES12.4)') &
             'wmsolv:',nr_previous,i,XRHO(nr_previous)
-       IF(idebuga(61+3).NE.0.AND.nrank.EQ.3) &
-            WRITE(nfl,'(A,2I6,ES12.4)') &
+       IF(idebuga(61).NE.0.AND.nrank.EQ.3) &
+            WRITE(nfl+3,'(A,2I6,ES12.4)') &
             'wmsolv:',nr_previous,i,XRHO(nr_previous)
        DO j=MAX(i-MCENT+1,1),MIN(MLEN,i+MCENT-1)
           IF(ABS(A(j-i+MCENT)).GT.0.D0) THEN
@@ -134,7 +149,7 @@ CONTAINS
 
     IF(idebuga(61).NE.0.AND.nrank.EQ.0) THEN
        DO i=1,MLEN,3
-          WRITE(61,'(I6,6ES12.4)') &
+          WRITE(nfl,'(I6,6ES12.4)') &
                i,svec(i),svec(i+1),svec(i+2)
        END DO
     END IF
