@@ -20,7 +20,7 @@ SRCSFREE  =  task_kinds.f90 task_constants.f90 \
              libqsort.f90 librk.f90 librkf.f90 libspf.f90 libsympl.f90 \
              netlib-bes.f90 libbes.f90 \
              libchar.f90 libkio.f90 libfio.f90 \
-             libitp.f90 \
+             libitp.f90 libsmooth.f90 \
              libufile/ufinit.f90 libufile/uflist.f90 libufile/ufread.f90 \
              ufile.f90
 
@@ -132,6 +132,7 @@ libspl2d.o: $(TASKCOMM) libspl2d.f90
 libspl3d.o: $(TASKCOMM) libspl3d.f90
 libsympl.o: $(TASKCOMM) libsympl.f90
 libitp.o: $(TASKCOMM) libitp.f90 
+libsmooth.o: $(TASKCOMM) libsmooth.f90 
 
 netlib-bes.o: libspf.f90 netlib-bes.f90
 libbes.o: $(TASKCOMM) netlib-bes.f90 libbes.f90

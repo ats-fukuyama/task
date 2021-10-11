@@ -94,7 +94,7 @@ MODULE fpcomm_parm
 
 CONTAINS
 
-  SUBROUTINE open_fpcomm_parm ! some compilor requires action in module
+  SUBROUTINE open_fpcomm_parm ! some compiler requires action in module
     RETURN
   END SUBROUTINE open_fpcomm_parm
 

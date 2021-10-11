@@ -48,6 +48,17 @@ subroutine wq_solv
               -Q    *(CD(1,1,nx,ny)*EX(nx,ny) &
                      +CD(1,2,nx,ny)*EY(nx,ny) &
                      +CD(1,3,nx,ny)*EZ(nx,ny))
+        CM1(2,nx+1,ny+1)= R1xy
+        CM1(2,nx+1,ny-1)=-R1xy
+        CM1(2,nx-1,ny+1)=-R1xy
+        CM1(2,nx-1,ny-1)= R1xy
+        CM1(3,nx+1,ny  )= R3x
+        CM1(3,nx-1,ny  )=-R3x
+        CM1(1,nx  ,ny+1)=-     R2yy
+        CM1(1,nx  ,ny  )=+2.D0*R2yy+kz**2-P-Q*CD(1,1,nx,ny)
+        CM1(1,nx  ,ny+1)=-     R2yy
+        CM1(2,nx  ,ny  )=                  -Q*CD(1,2,nx,ny)
+        CM1(3,nx  ,ny  )=                  -Q*CD(1,3,nx,ny)
         
         BV(2)= R3y  *(EZ(nx  ,ny+1)-     EZ(nx  ,ny-1)) &
               +R1xy *(EX(nx+1,ny+1)-     EX(nx+1,ny-1)  &
@@ -59,6 +70,18 @@ subroutine wq_solv
                      +CD(2,2,nx,ny)*EY(nx,ny) &
                      +CD(2,3,nx,ny)*EZ(nx,ny))
 
+        CM2(3,nx  ,ny+1)= R3y
+        CM2(3,nx  ,ny-1)=-R3y
+        CM2(1,nx+1,ny+1)= R1xy
+        CM2(1,nx+1,ny-1)=-R1xy
+        CM2(1,nx-1,ny+1)=-R1xy
+        CM2(1,nx-1,ny-1)= R1xy
+        CM2(2,nx+1,ny  )=-     R2xx
+        CM2(2,nx  ,ny  )=+2.D0*R2xx+kz**2-P-Q*CD(2,2,nx,ny)
+        CM2(2,nx-1  ,ny)=-     R2xx
+        CM2(1,nx  ,ny  )=                  -Q*CD(2,1,nx,ny)
+        CM2(3,nx  ,ny  )=                  -Q*CD(2,3,nx,ny)
+        
         BV(3)= R3x  *(EX(nx+1,ny  )-     EX(nx-1,ny  )) &
               +R3y  *(EY(nx  ,ny+1)-     EY(nx  ,ny-1)) &
               -R2xx *(EZ(nx+1,ny  )-2.d0*EZ(nx  ,ny  )+EZ(nx-1,ny  )) &
@@ -67,6 +90,18 @@ subroutine wq_solv
               -Q    *(CD(3,1,nx,ny)*EX(nx,ny) &
                      +CD(3,2,nx,ny)*EY(nx,ny) &
                      +CD(3,3,nx,ny)*EZ(nx,ny))
+
+        CM3(1,nx+1,ny  )= R3x
+        CM3(1,nx-1,ny  )=-R3x
+        CM3(2,nx  ,ny+1)= R3y
+        CM3(2,nx  ,ny-1)=-R3y
+        CM3(3,nx+1,ny  )=-     R2xx
+        CM3(3,nx  ,ny+1)=-               R2yy
+        CM3(3,nx  ,ny  )=+2.D0*R2xx+2.D0*R2yy-P-Q*CD(3,3,nx,ny)
+        CM3(3,nx-1,ny  )=-     R2xx
+        CM3(3,nx  ,ny-1)=-               R2yy
+        CM3(1,nx  ,ny  )=                      -Q*CD(3,1,nx,ny)
+        CM3(2,nx  ,ny  )=                      -Q*CD(3,2,nx,ny)
 
         EXNEXT(nx,ny)=dt*(A(1,1,nx,ny)*BV(1) &
                          +A(1,2,nx,ny)*BV(2) &

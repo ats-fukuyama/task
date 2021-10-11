@@ -389,7 +389,7 @@ CONTAINS
 
     CF(MCEN+3,2)=1.D0
     CF(MCEN  ,2)=-1.D0
-    CA(1)=CFWG3
+    CA(2)=CFWG3
 
     CF(MCEN-3,4)=-CKKV
     CA(4)=-CKKV*CFWG4
@@ -569,6 +569,11 @@ CONTAINS
     WRITE(6,'(A,F7.2,F7.3,1P5E12.4)') &
          'REFL:',AKZ(NZ),RNZ, &
                  POUT1/PIN,POUT2/PIN,POUT3/PIN,POUT4/PIN,PCONV/PIN
+    WRITE(28,'(ES15.7,6(A1,ES15.7))') &
+         RNZ,',',  &
+         POUT1/PIN,',',POUT2/PIN,',', &
+         POUT3/PIN,',',POUT4/PIN,',',PCONV/PIN,',', &
+         (POUT1+POUT2+POUT3+POUT4+PCONV)/PIN
 
     DO NS=1,NSMAX
        DO NX=1,NXMAX

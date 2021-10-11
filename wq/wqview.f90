@@ -29,6 +29,20 @@ CONTAINS
     WRITE(6,'(A,I8)')     'nxmax     =',nxmax
     WRITE(6,'(A,I8)')     'nymax     =',nymax
     WRITE(6,'(A,I8)')     'INMODE    =',INMODE
+
+    WRITE(6,'(A,I8)')     'model_pulse      =',model_pulse
+    WRITE(6,'(A,I8)')     'model_ramp       =',model_ramp
+    WRITE(6,'(A,I8)')     'model_dielectric =',model_dielectric
+    WRITE(6,'(A,I8)')     'model_plot       =',model_plot
+    WRITE(6,'(A,ES12.4)') 'source_width     =',source_width
+    WRITE(6,'(A,ES12.4)') 'pulse_length     =',pulse_length
+    WRITE(6,'(A,ES12.4)') 'ramp_length      =',ramp_length
+    WRITE(6,'(A,ES12.4)') 'dielectric_2     =',dielectric_2
+    WRITE(6,'(A,ES12.4)') 'dielectric_3     =',dielectric_3
+    WRITE(6,'(A,ES12.4)') 'freq_resonance   =',freq_resonance
+    WRITE(6,'(A,ES12.4)') 'freq_collision   =',freq_collision
+    WRITE(6,'(A,I8)')     'ntplot_interval  =',ntplot_interval
+    WRITE(6,'(A,I8)')     'ntplot_max       =',ntplot_max
     RETURN
   END SUBROUTINE wq_view
 END MODULE wqview

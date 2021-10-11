@@ -10,10 +10,11 @@ CONTAINS
   SUBROUTINE wq_exec
     USE wqcomm
     USE wqsolv
+    USE libsmooth
     IMPLICIT NONE
     INTEGER:: nx,ny,k,i,j,nt,N,NA,ILL
     REAL(rkind):: t,pabs_tot,factor
-    REAL(rkind):: sys_len,y0,y,pulse_width
+    REAL(rkind):: sys_len,y0,y,ramp_length_temp
 
     t=ttot
     do nt=1,ntmax
@@ -21,17 +22,53 @@ CONTAINS
        ! give Boundary Condition
        SELECT CASE(model_pulse)
        CASE(0)
-          factor=1.D0
-       CASE(1)
-          IF(ttot.LE.pulse_cycle) THEN
-             WRITE(21,'(A,2I8,3ES12.4)') 'tot:',nt,nttot,t,ttot,pulse_cycle
+          SELECT CASE(model_ramp)
+          CASE(0)
              factor=1.D0
-          ELSE
-             factor=0.D0
-          END IF
-       CASE(2)
-          IF(ttot.LE.6.D0*pulse_cycle) THEN
-             factor=EXP(-(t-3.D0*pulse_cycle)**2)
+          CASE(1)
+             IF(ttot.LE.ramp_length*period) THEN
+                factor=ttot/(ramp_length*period)
+             ELSE
+                factor=1.D0
+             END IF
+          CASE(2)
+             IF(ttot.LE.ramp_length*period) THEN
+                factor=smooth_1(ttot/(ramp_length*period))
+             ELSE
+                factor=1.D0
+             END IF
+          END SELECT
+       CASE(1)
+          IF(ttot.LE.pulse_length*period) THEN
+             SELECT CASE(model_ramp)
+             CASE(0)
+                factor=1.D0
+             CASE(1,2)
+                IF(ramp_length.LE.0.5D0*pulse_length) then
+                   ramp_length_temp=0.5D0*pulse_length
+                ELSE
+                   ramp_length_temp=ramp_length
+                END IF
+                IF(ttot.LE.ramp_length*period) THEN
+                   SELECT CASE(model_ramp)
+                   CASE(1)
+                      factor=ttot/(ramp_length_temp*period)
+                   CASE(2)
+                      factor=smooth_1(ttot/(ramp_length_temp*period))
+                   END SELECT
+                ELSE IF(ttot.LE.(pulse_length-ramp_length_temp)*period) THEN
+                   factor=1.D0
+                ELSE
+                   SELECT CASE(model_ramp)
+                   CASE(1)
+                      factor=(pulse_length*period-ttot) &
+                            /(ramp_length_temp*period)
+                   CASE(2)
+                      factor=smooth_1((pulse_length*period-ttot) &
+                                    /(ramp_length_temp*period))
+                   END SELECT
+                END IF
+             END SELECT
           ELSE
              factor=0.D0
           END IF
@@ -40,19 +77,23 @@ CONTAINS
        nx=nxmax
        sys_len=dy*(nymax-1)
        y0=0.5D0*sys_len
-       pulse_width=2.D0*wavelength
        do ny=1,nymax
           y=dy*(ny-1)
-          if(INMODE.eq.1) then
-             EY(nx,ny) = factor/sqrt(2.d0)*exp(-(y-y0)**2/pulse_width**2)
-             EZ(nx,ny) = factor/sqrt(2.d0)*exp(-(y-y0)**2/pulse_width**2)
-          else if(INMODE.eq.2) then
-             EY(nx,ny) = factor*exp(-(y-y0)**2/pulse_width**2)
-          else if(INMODE.eq.3) then
-             EZ(nx,ny) = factor*exp(-(y-y0)**2/pulse_width**2)
-          else
+          SELECT CASE(INMODE)
+          CASE(1)
+             EY(nx,ny) = factor/sqrt(2.d0) &
+                  *exp(-(y-y0)**2/(source_width*wavelength)**2)
+             EZ(nx,ny) = factor/sqrt(2.d0) &
+                  *exp(-(y-y0)**2/(source_width*wavelength)**2)
+          CASE(2)
+             EY(nx,ny) = factor &
+                  *exp(-(y-y0)**2/(source_width*wavelength)**2)
+          CASE(3)
+             EZ(nx,ny) = factor &
+                  *exp(-(y-y0)**2/(source_width*wavelength)**2)
+          CASE DEFAULT
              write(*,*) "ERROR:INMODE needs to be 1or2or3"
-          end if
+          END SELECT
        end do
 
        !compute next E

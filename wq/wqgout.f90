@@ -215,10 +215,23 @@ CONTAINS
     use wqcomm
     USE libgrf
     IMPLICIT NONE
-    INTEGER            :: nx,ny,nt,NGP
+    INTEGER            :: nx,ny,nt,NGP,np
     CHARACTER(LEN=80)  :: title
+    REAL(rkind)        :: Emax,Eabs
     REAL(rkind)        :: FX(nxmax),FY(nymax),FZ(nxmax,nymax)
 
+    Emax=0.D0
+    DO np=1,ntplot
+       DO ny=1,nymax
+          DO nx=1,nxmax
+             Eabs=ABS(EX_save(nx,ny,np))**2 &
+                 +ABS(EY_save(nx,ny,np))**2 &
+                 +ABS(EZ_save(nx,ny,np))**2
+             Emax=MAX(Emax,SQRT(Eabs))
+          END DO
+       END DO
+    END DO
+    
     IF(ntplot.LE.0) THEN
        WRITE(6,*) 'XX wq_gsub_plot: ntplot.LE.0'
        RETURN
@@ -242,15 +255,17 @@ CONTAINS
           FZ(nx,ny)=EX_save(nx,ny,1)
        END DO
     END DO
-    CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title,ASPECT=0.D0)
+    CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title, &
+               ASPECT=0.D0,FMIN=-Emax,FMAX=Emax)
     DO nt=2,ntplot
        DO ny=1,nymax
           DO nx=1,nxmax
              FZ(nx,ny)=EX_save(nx,ny,nt)
           END DO
        END DO
-       CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title,ASPECT=0.D0, &
-            NOFRAME=1,NOTITLE=1,NOINFO=1)
+       CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title, &
+            NOFRAME=1,NOTITLE=1,NOINFO=1, &
+            ASPECT=0.D0,FMIN=-Emax,FMAX=Emax)
     END DO
     
     NGP=2
@@ -260,15 +275,17 @@ CONTAINS
           FZ(nx,ny)=EY_save(nx,ny,1)
        END DO
     END DO
-    CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title,ASPECT=0.D0)
+    CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title, &
+               ASPECT=0.D0,FMIN=-Emax,FMAX=Emax)
     DO nt=2,ntplot
        DO ny=1,nymax
           DO nx=1,nxmax
              FZ(nx,ny)=EY_save(nx,ny,nt)
           END DO
        END DO
-       CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title,ASPECT=0.D0, &
-            NOFRAME=1,NOTITLE=1,NOINFO=1)
+       CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title, &
+            NOFRAME=1,NOTITLE=1,NOINFO=1, &
+            ASPECT=0.D0,FMIN=-Emax,FMAX=Emax)
     END DO
 
     NGP=3
@@ -278,15 +295,17 @@ CONTAINS
           FZ(nx,ny)=EZ_save(nx,ny,1)
        END DO
     END DO
-    CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title,ASPECT=0.D0)
+    CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title, &
+               ASPECT=0.D0,FMIN=-Emax,FMAX=Emax)
     DO nt=2,ntplot
        DO ny=1,nymax
           DO nx=1,nxmax
              FZ(nx,ny)=EZ_save(nx,ny,nt)
           END DO
        END DO
-       CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title,ASPECT=0.D0, &
-            NOFRAME=1,NOTITLE=1,NOINFO=1)
+       CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title, &
+            NOFRAME=1,NOTITLE=1,NOINFO=1, &
+            ASPECT=0.D0,FMIN=-Emax,FMAX=Emax)
     END DO
 
     CALL PAGEE

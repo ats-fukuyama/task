@@ -27,9 +27,12 @@ MODULE wqcomm_parm
   INTEGER:: INMODE
 
   INTEGER:: model_pulse
+  INTEGER:: model_ramp
   INTEGER:: model_dielectric
   INTEGER:: model_plot
-  REAL(rkind):: pulse_cycle
+  REAL(rkind):: source_width
+  REAL(rkind):: pulse_length
+  REAL(rkind):: ramp_length
   REAL(rkind):: dielectric_2
   REAL(rkind):: dielectric_3
   REAL(rkind):: freq_resonance

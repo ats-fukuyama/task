@@ -294,7 +294,7 @@ CONTAINS
 
     CF(MCEN+3,2)=1.D0
     CF(MCEN  ,2)=-1.D0
-    CA(1)=CFWG3
+    CA(2)=CFWG3
 
     CF(MCEN-3,4)=-CKKV
     CA(4)=-CKKV*CFWG4
@@ -350,6 +350,7 @@ CONTAINS
     REAL(rkind):: RW,RKV,RCE,DX,PABSL,RNZ
     REAL(rkind):: PIN1,PIN2,PIN3,PIN4,PIN,POUT1,POUT2,POUT3,POUT4,POUT,PCONV
     COMPLEX(rkind):: CABSL,CDEY,CDEZ,CBY,CBZ
+    REAL(rkind):: pabs_ns(nsmax)
 
     RW=2.D6*PI*RF
     RKV=2.D6*PI*RF/VC
@@ -407,8 +408,14 @@ CONTAINS
     WRITE(6,'(A,F7.2,F7.3,1P5E12.4)') &
          'REFL:',AKZ(NZ),RNZ,  &
                  POUT1/PIN,POUT2/PIN,POUT3/PIN,POUT4/PIN,PCONV/PIN
+    WRITE(28,'(ES15.7,6(A1,ES15.7))') &
+         RNZ,',',  &
+         POUT1/PIN,',',POUT2/PIN,',', &
+         POUT3/PIN,',',POUT4/PIN,',',PCONV/PIN,',', &
+         (POUT1+POUT2+POUT3+POUT4+PCONV)/PIN
 
     DO NS=1,NSMAX
+       pabs_ns(ns)=0.D0
        DO NX=1,NXMAX-1
           DX=RKV*(XA(NX+1)-XA(NX))
           DO NX1=MAX(1,NX-1),MIN(NX+1,NXMAX-1)
@@ -428,9 +435,11 @@ CONTAINS
 !                        'PABS:',NS,NX,RCE,CABSL,RKV,PABSL
              PABS(NX,   NS)=PABS(NX,   NS)+0.5D0*PABSL
              PABS(NX1,  NS)=PABS(NX1,  NS)+0.5D0*PABSL
+             pabs_ns(ns)=pabs_ns(ns)+pabsl
           END DO
        END DO
     END DO
+    WRITE(6,'(A,3ES12.4)') 'pasb_ns:',(pabs_ns(ns),ns=1,nsmax)
 
     DO NX=1,NXMAX
        IF(NX.EQ.1) THEN

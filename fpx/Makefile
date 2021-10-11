@@ -59,7 +59,7 @@ LIBS = libfp.a ../ob/libob.a ../pl/libpl.a ../eq/libeq.a	\
 all: libs fp
 
 libfp.a: $(OBJS)
-	$(LD) $(LDFLAGS) libfp.a $(OBJS)
+	$(LD) $(LDFLAGS) $@ $(OBJS)
 
 ../ob/libob.a:
 	(cd ../ob; make libob.a)

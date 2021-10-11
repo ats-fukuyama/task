@@ -1,0 +1,203 @@
+\documentclass[11pt]{article}
+\usepackage{../../doc/af}
+\usepackage{../../doc/sym}
+\usepackage{../../doc/doc}
+
+\begin{document}
+\begin{flushright}
+2021/09/13
+\end{flushright}
+
+\begin{center}
+\textbf{\Large User Manual of the TASK/FP Code}
+\end{center}
+
+\tableofcontents
+
+\section{Structure}
+
+\subsection{Source File}
+
+\begin{itemize}
+\item
+  Environment routines
+  \begin{itemize}
+
+  \item \ttype{fpcomm.f90}: Definition of variable module, allocation of
+    arrays
+    \begin{itemize}
+    \item Module \ttype{fpcomm\_parm}: Definition of constants and
+      input parameters (USE bpsd\_kinds, bpsd\_constants, commpi,
+      plcomm, obcomm\_parm)
+    \item Module \ttype{fpcomm}: Definition of common variables
+    \item Subroutine \ttype{fp\_allocate}: Allocation of common arrays
+    \item Subroutine \ttype{fp\_deallocate}: Deallocation of common arrays
+    \item Subroutine \ttype{fp\_allocate\_ntg1}: Allocation of time
+      history \ttype{ntg1} array
+    \item Subroutine \ttype{fp\_deallocate\_ntg1}: Deallocation of time
+      history \ttype{ntg1} array
+    \item Subroutine \ttype{fp\_adjust\_ntg1}: Adjust (save,
+      deallocate, allocate larger, recover) time
+      history \ttype{ntg1} array
+    \item Subroutine \ttype{fp\_allocate\_ntg2}: Allocation of
+      profile time history \ttype{ntg2} array
+    \item Subroutine \ttype{fp\_deallocate\_ntg2}: Deallocation of
+      profile time history \ttype{ntg2} array
+    \item Subroutine \ttype{fp\_adjust\_ntg2}: Adjust (save,
+      deallocate, allocate larger, recover) profile time history
+      \ttype{ntg2} array
+    \end{itemize}
+
+  \item \ttype{fpmain.f90}: Main routine
+    \begin{itemize}
+    \item
+      Initialization of MPI and graphics
+    \item
+      Initialization of input parameters of module, pl, eq, and fp
+    \item
+      Read input namelist file \ttype{fpparm}
+    \item
+      Start menu input loop \ttype{fpmenu}
+    \item
+      Termination of graphics and MPI
+    \end{itemize}
+
+  \item \ttype{fpinit.f90}: Initialization of input parameters
+    \begin{itemize}
+    \item
+      Module \ttype{fp\_init}: Set default values of input parameters
+    \end{itemize}
+    
+  \item \ttype{fpmenu.f90}: Process control
+    \begin{itemize}
+    \item
+      Module \ttype{fp\_menu}: menu command input and execute
+      \begin{itemize}
+      \item
+        \ttype{P} or with \ttype{=}: namelist read of input parameters
+      \item
+        \ttype{V}: view all input parameters
+      \item
+        \ttype{R}: start new calculation (set initial condition and
+        go)
+      \item
+        \ttype{C}: continue previous calculation (just go)
+      \item
+        \ttype{G}: graphic output of calculated results
+      \item
+        \ttype{F}: file output of calculated results
+      \item
+        \ttype{S}: save present status of calculation into a file
+      \item
+        \ttype{L}: load a file to continue previous calculation
+      \item
+        \ttype{W}: print out interesting quantities
+      \item
+        \ttype{Y}: debug output [temporal]
+      \item
+        \ttype{Z}: debug output [transport coefficients]
+      \item
+        \ttype{Q}: quit menu input and stop
+      \end{itemize}
+    \end{itemize}
+    
+  \item \ttype{fpparm.f90}: Read and check input parameters
+    \begin{itemize}
+    \item
+      Subroutine \ttype{fp\_parm}: analyze parameter input
+      \begin{itemize}
+      \item
+        read one line from standard input and analyze command or
+        namelist
+      \item
+        read namelist input from a file
+      \item
+        read one phrase and analyze as a namelist
+      \end{itemize}
+    \end{itemize}
+  \item \ttype{fpbroadcast.f90}: Broadcast input parameters
+  \item \ttype{fpview.f90}: Show input parameters
+  \end{itemize}
+
+\item
+    Execution routines
+    \begin{itemize}
+    \item[] \ttype{fpprep.f90}: Preparation of run (mesh, initial profile,
+      initialization)
+    \item[] \ttype{fpbounc.f90}: Preparation of bounce parameters
+    \item[] \ttype{fploop.f90}: Time loop for execution
+    \item[] \ttype{fpexec.f90}: Execution of one time step
+\end{itemize}
+\item
+  Calculation of coefficients of equations
+  \begin{itemize}
+  \item[] \ttype{fpcoef.f90}: Calculation of various coefficients
+  \item[] \ttype{fpcalc.f90}: Calculation of collisional term (linear operator)
+  \item[] \ttype{fpcalcn.f90}: Calculation of collisional term (nonlinear operator)
+  \item[] \ttype{fpcalcnr.f90}: Calculation of collisional term (relativistic nonlinear operator)
+  \item[] \ttype{fpcale.f90}: Calculation of static electric field term
+  \item[] \ttype{fpcalr.f90}: Calculation of radial diffusion term
+  \item[] \ttype{fpcalw.f90}: Calculation of quasi-linear term (given wave field)
+  \item[] \ttype{fpcalwm.f90}: Calculation of quasi-linear term (using wm results)
+  \item[] \ttype{fpcalwr.f90}: Calculation of quasi-linear term (using wr results)
+  \item[] \ttype{fpcdbm.f90}: Calculation of CDBM radial diffusion coefficients
+  \item[] \ttype{fpnfrr.f90}: Calculation of fusion reaction term (isotropic distribution)
+  \item[] \ttype{fpnflg.f90}:  Calculation of fusion reaction term (anisotropic distribution)
+  \item[] \ttype{fpdisrupt.f90}: Calculation of disruption-related tems
+  \end{itemize}
+\item
+  Calculation of transport coefficients (by Ota)
+  \begin{itemize}
+  \item[] \ttype{fpcaldeff.f90}: Effective particle diffusion coefficients
+  \item[] \ttype{fpcalchieff.f90}: Effectiv thermal diffusion coefficients
+  \item[] \ttype{fpcaltp.f90}: Particle confinement time, tauP
+  \item[] \ttype{fpcalte.f90}: Energy confinement time, tauE
+  \item[] \ttype{fpchecknc.f90}: Radial diffusion coefficients (neoclassical diffusion)
+  \end{itemize}
+\item
+  File IO routines
+  \begin{itemize}
+  \item[] \ttype{fpfile.f90}: Save and load restart data
+  \item[] \ttype{fpfout.f90}: File output of graphic data
+  \item[] \ttype{fpoutdata.f90}: File output of intermediate data (by Ota)
+  \item[] \ttype{fpread.f90}: Read FIT3D data from file
+  \item[] \ttype{fpreadeg.f90}: Read Experimental data from file (by Nuga)
+  \item[] \ttype{fpsave.f90}: File output of various data (by Nuga)
+  \item[] \ttype{fpwmin.f90}: File input of full-wave analysis (wm) results
+  \item[] \ttype{fpwrin.f90}: File input of ray/beam tracing analysis
+    (wr) results
+  \item[] \ttype{fpwrite.f90}: File output of trcoef data (by Ota)
+  \end{itemize}
+\item
+  Graphic routines
+  \begin{itemize}
+  \item[] \ttype{fpgout.f90}: Graphic output for gsaf
+  \item[] \ttype{fpcont.f90}: Graphic subroutines
+  \end{itemize}
+\item
+  Library routines
+  \begin{itemize}
+  \item[] \ttype{fpmpi.f90}: MPI interface for fp
+  \item[] \ttype{fpsub.f90}: Subroutine library (FPMXWL, FPNEWTON) 
+  \end{itemize}
+
+\item
+  Orbit-averaging routines (by Ota)
+  \begin{itemize}
+  \item[] \ttype{fowcomm.f90}: Definition of fow variables and
+    allocation 
+  \item[] \ttype{fowprep.f90}: Preparation of fow, initialization of variables
+  \item[] \ttype{foworbit.f90}: Interface to ob
+  \item[] \ttype{fowclassify.f90}: Orbit classification and data output to file
+  \item[] \ttype{fowdistribution.f90}: Distribution conversion and
+    integrated quantities
+  \item[] \ttype{fowloop.f90}: Time loop for execution
+  \item[] \ttype{fowexec.f90}: Execution of one time step
+  \item[] \ttype{fowcoef.f90}: Calculation of various coefficients
+  \item[] \ttype{fowsource.f90}: Calculation of source terms
+  \item[] \ttype{fowlib.f90}: Library for fow
+  \end{itemize}
+\end{itemize}
+
+\end{document}
+

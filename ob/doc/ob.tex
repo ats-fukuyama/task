@@ -1,0 +1,195 @@
+\documentclass[11pt]{article}
+\usepackage{../../doc/af}
+\usepackage{../../doc/sym}
+\usepackage{../../doc/doc}
+
+\begin{document}
+\begin{flushright}
+2021/10/11
+\end{flushright}
+
+\begin{center}
+\textbf{\Large User Manual of orbit following code TASK/OB}
+\end{center}
+
+\tableofcontents
+
+\section{Outline of TASK/OB}
+
+\subsection{Purpose of TASK/OB}
+
+The purpose of TASK/OB is to describe charged particle orbits in a
+given magnetic configuration.  At present, gyro orbits in the Boozer
+coordinates are described based on the textbook by R. White.  More
+general coordinates including vacuum regions and full orbit
+description will be included in future.  
+
+\subsection{Modules included}
+
+\begin{center}
+  \begin{tabular}{ll}
+	obcomm\_parm & Deficnition of input parameters \\
+	obcomm & Definition of common variables \\
+	obinit & Initialization of input parameters \\
+	obparm & Procedures of input parameters (read, check,
+        broadcast) \\
+	obview & Print out input parameters \\
+	obmenu & Command menu \\
+	obprep & Preparation for calculation (equilibrium,
+        interpolation) \\
+	obcalc & Calculation of coefficients \\
+	obexec & Solving equation of motion \\
+	obgout & Visualization of orbits \\
+	obfile & File output of orbits \\
+	obsub & Common subroutines using obcomm \\
+	oblib & Common subroutines independent of obcomm
+  \end{tabular}
+\end{center}
+
+\section{Parameters}
+
+\subsection{Adjustable parameters, but fixed at compilation time}
+
+\begin{center}
+  \begin{tabular}{lrl}
+    nobt\_m & 100 & maximum number of orbits
+  \end{tabular}
+\end{center}
+
+\subsection{Input parameters and their default values}
+
+\begin{center}
+  \begin{tabular}{lrl}
+    modelg & 3 & geometry model (parameter of plparm) \\
+    \\
+    nobt\_max &     1 & number of orbits \\
+    nstp\_max & 10000 & maximum number of orbit step \\
+    ns\_ob    &     2 & id of particle species \\
+    lmax\_nw  &    20 & maximum number of iteration (initial
+    condition)
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{lrl}
+    mdlobp   &     0 & model id of equation of motion \\
+                    && \quad 0: Eq of Motion  with Boozer coordinates \\
+                    && \quad 1: Eq of Motion  with Cylindrical coord. \\
+    mdlobi   &     0 & model id of input scheme of initial parameters \\
+                    && \quad 0: penergy,pcangle,zeta,psipn,theta \\
+                    && \quad 1: penergy,pcangle,zeta,rr,zz (TBI)\\
+                    && \quad 100: line input with psipn,theta \\
+                    && \quad 101: line input with rr,zz (TBI)\\
+    mdlobq   &     0 & model id of ODE solver \\
+                    && \quad 0: 4th-order Runge-Kutta-Gill \\
+                    && \quad 1: universal ODE solver (TBI) \\
+                    && \quad 2: symplectic solver (TBI) \\
+    mdlobt   &     1 & model id of time normalization \\
+                    && \quad 0: real time \\
+                    && \quad 1: normalized by approximate bounce time \\
+    mdlobc   &     0 & model id of one cycle calculation \\
+                    && \quad 0: independent of cycle, until tmax\_ob \\
+                    && \quad 1: one cycle for trapped and untrapped \\
+    mdlobw   &     3 & model id of output interval \\
+                    && \quad 0: no output \\
+                    && \quad 1: every step \\
+                    && \quad 2: every 10 step \\
+                    && \quad 3: every 100 step \\
+                    && \quad 4: every 1000 step \\
+                    && \quad 5: every 10000 step \\
+    mdlobg   &     0 & model id of graphics \\
+                    && \quad 0: default \\
+    mdlobx   &     1 & model id of wall \\
+                    && \quad 0: calculate only inside the wall
+                                (psip\_ob<=psipa) \\
+                    && \quad 1: continue Runge-Kutta
+                                (psip\_ob>psipa) \\
+    \\
+    tmax\_ob  & 10.D0 & maximum of orbit following time in omega\_bounce \\
+    delt\_ob  & 0.1D0 & time step size in omega\_bounce \\
+                    && \quad t\_bounce = 2 Pi/ omega\_bounce \\
+                    && \quad omega bounce = (v\_perp/qR) SQRT(r/2R) \\
+                    && \quad omega\_bounce$^2$ = (mu B /m)*(r/q$^2$ R$^3$) \\
+    eps\_ob   & 1.D-6 & convergence criterion of orbit solution \\
+    del\_ob   & 1.D-4 & step size of iteration (initial condition) \\
+    eps\_nw   & 1.D-6 & convergence criterion of iteration (initial c.) \\
+    \\
+    penergy\_ob\_in(1) & 1.D0  & initial particle energy (mdlobi=0,1)
+    [keV]: conserved \\
+    pcangle\_ob\_in(1) & 0.5D0 & initial cosine of pitch angle
+    (mdlobi=0,1) \\
+    zeta\_ob\_in(1)    & 0.D0  & initial toroidal angle (mdlobi=0,1)
+    [degree] \\
+    psipn\_ob\_in(1)   & 0.5D0 & initial normalized poloidal flux
+    (mdlobi=0) \\
+    theta\_ob\_in(1)   & 0.D0  & initial poloidal angle (mdlobi=0) [deg] \\
+    rr\_ob\_in(1)      & 4.D0  & initial major radius (mdlobi=1) [m] \\
+    zz\_ob\_in(1)      & 0.D0  & initial vertical position (mdlobi=1)
+    [m] \\
+    \\
+    nrmax\_ob   & 100  & number of equilibrium radial meshes \\
+    nthmax\_ob  &  64  & number of equilibrium poloidal meshes \\
+    nsumax\_ob  & 100  & number of equilibrium plasma boundary meshes
+  \end{tabular}
+\end{center}
+
+\subsection{Initial orbit parameters and results}
+
+\begin{itemize}
+\item
+  Initial orbit parameters: (nobt)
+  \begin{center}
+    \begin{tabular}{ll}
+    penergy\_ob\_in(1) & initial particle energy (mdlobi=0,1)
+    [keV] \\
+    pcangle\_ob\_in(1) & initial cosine of pitch angle
+    (mdlobi=0,1) \\
+    zeta\_ob\_in(1)    & initial toroidal angle (mdlobi=0,1)
+    [degree] \\
+    psipn\_ob\_in(1)   & initial normalized poloidal flux
+    (mdlobi=0) \\
+    theta\_ob\_in(1)   & initial poloidal angle (mdlobi=0)
+    [deg] \\
+    nthmax\_ob\_in(1)   & number of equilibrium poloidal meshes \\
+    nsumax\_ob\_in(1)   & number of equilibrium plasma boundary meshes
+    \end{tabular}
+  \end{center}
+
+\item
+  Initial variables:  (nobt)
+  \begin{center}
+    \begin{tabular}{ll}
+       zetab\_pos     & toroidal boozer angle zeta translated from obts \\
+       thetab\_pos    & poloidal boozer angle theta \\
+       psip\_pos      & poloidal magnetic flux \\
+       rhopara\_pos   & parallel velocity devidede by cyclotron freq.
+    \end{tabular}
+  \end{center}
+
+\item
+  Orbit results: (nstp,nobt)
+  \begin{center}
+    \begin{tabular}{ll}
+       nstp\_max\_nobt & number of steps for nobt \\
+       time\_ob       & time \\
+       zetab\_ob      & toroidal boozer angle zeta translated from obts \\
+       thetab\_ob     & poloidal boozer angle theta \\
+       psip\_ob       & poloidal magnetic flux \\
+       rhopara\_ob    & parallel velocity devidede by cyclotron freq. \\
+       pzeta\_ob      & toroidal momentum pzeta \\
+       ptheta\_ob     & poloidal momentum ptheta \\
+       babs\_ob       & absolute value of magnetic field \\
+       phi\_ob        & electrostatic potential \\
+       vpara\_ob      & parallel velocity \\
+       vperp\_ob      & perpendicular velocity \\
+       psit\_ob       & toroidal magnetic flux \\
+       zeta\_ob       & toroidal angle \\
+       rr\_ob         & major radius \\
+       zz\_ob         & vertical positon \\
+       rs\_ob         & minor radius \\
+       theta\_ob      & poloidal angle
+    \end{tabular}
+  \end{center}
+\end{itemize}
+
+\end{document}
