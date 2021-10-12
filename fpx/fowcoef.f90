@@ -7,6 +7,12 @@ module fowcoef
   real(rkind),allocatable,private :: FNSBL(:,:,:,:,:)
   real(rkind),allocatable,private :: check_zeroD(:,:,:), check_zeroF(:,:)
 
+  PRIVATE
+  PUBLIC fow_coef
+  PUBLIC interpolate_D_unlessZero
+  PUBLIC make_U_Dxy
+  PUBLIC transformation_matrix
+  
 contains
 
   subroutine fow_coef
