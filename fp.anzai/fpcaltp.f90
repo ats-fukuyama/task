@@ -1,0 +1,39 @@
+MODULE fpcaltp
+
+CONTAINS
+  SUBROUTINE fp_caltp
+    USE fpcomm
+    USE fpsave
+    IMPLICIT NONE
+    INTEGER:: NSA,NR,NP,NTH
+    REAL(rkind),DIMENSION(:),ALLOCATABLE::TAUP,SUMS,SUMN
+    REAL(rkind):: S
+
+    CALL MOMENT_0TH_ORDER(FNSP,RNSL) ! calculate local density RNSL
+    ALLOCATE(SUMN(NSAMAX))           ! Total particle number SUMN
+    DO NSA=1,NSAMAX
+      SUMN(NSA)=0.D0
+      DO NR=1,NRMAX
+         SUMN(NSA)=SUMN(NSA)+VOLR(NR)*RNS(NR,NSA)
+      END DO
+    END DO
+    ALLOCATE(SUMS(NSAMAX))
+    ALLOCATE(TAUP(NSAMAX))
+    DO NSA=1,NSAMAX
+      SUMS(NSA)=0.D0
+      DO NR=1,NRMAX
+        SUMS(NSA)=SUMS(NSA)+VOLR(NR)*RSPB(NR,NSA)
+      ENDDO
+      IF(SUMS(NSA).EQ.0.D0) THEN
+         TAUP(NSA)=0.D0
+      ELSE 
+         TAUP(NSA)=SUMN(NSA)/SUMS(NSA)
+      ENDIF
+    END DO
+    DO NSA=1,NSAMAX
+       WRITE(6,'(A,I5,1P3E12.4)') 'NSA,SUMN,SUMS,TAUP=', &
+            NSA,SUMN(NSA),SUMS(NSA),TAUP(NSA)
+    END DO
+    DEALLOCATE(SUMN,SUMS,TAUP)
+  END SUBROUTINE fp_caltp
+END MODULE fpcaltp
