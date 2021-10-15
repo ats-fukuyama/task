@@ -27,7 +27,7 @@ MODINCLUDE= -I./$(MOD) -I../lib/$(MOD) -I../mtxp/$(MOD) \
 
 SRCS = wqcomm.f90 \
        wqinit.f90 wqparm.f90 wqview.f90 \
-       wqtens.f90 wqprep.f90 wqsolv0.f90 wqexec.f90 \
+       wqtens.f90 wqprep.f90 wqsolv0.f90 wqsolv1.f90 wqsolv2.f90 wqexec.f90 \
        wqgout.f90 \
        wqmenu.f90
 
@@ -69,8 +69,10 @@ wqinit.o: wqinit.f90 wqcomm.f90
 wqparm.o: wqparm.f90 wqcomm.f90
 wqview.o: wqview.f90 wqcomm.f90
 wqtens.o: wqtens.f90 wqcomm.f90
-wqsolv0.o: wqsolv0.f90 wqcomm.f90
 wqprep.o: wqprep.f90 wqtens.f90 wqcomm.f90
+wqsolv0.o: wqsolv0.f90 wqcomm.f90
+wqsolv1.o: wqsolv1.f90 wqcomm.f90
+wqsolv2.o: wqsolv2.f90 wqcomm.f90
 wqexec.o: wqexec.f90 wqsolv0.f90 wqcomm.f90
 wqgout.o: wqgout.f90 wqcomm.f90
 wqmenu.o: wqmenu.f90 wqparm.f90 wqview.f90 wqexec.f90 wqgout.f90 wqcomm.f90

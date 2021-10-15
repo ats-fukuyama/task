@@ -10,6 +10,8 @@ CONTAINS
   SUBROUTINE wq_exec
     USE wqcomm
     USE wqsolv0
+    USE wqsolv1
+    USE wqsolv2
     USE libsmooth
     IMPLICIT NONE
     INTEGER:: nx,ny,k,i,j,nt,N,NA,ILL
@@ -101,6 +103,10 @@ CONTAINS
        SELECT CASE(model_solver)
        CASE(0)
           call wq_solv0
+       CASE(1)
+          call wq_solv1
+       CASE(2)
+          call wq_solv2
        CASE DEFAULT
           WRITE(6,*) 'XX wq_exec: unknown model_solver:',model_solver
        END SELECT
