@@ -53,7 +53,7 @@ CONTAINS
     NAMELIST /WQ/ &
          FREQ,dtfactor,dxfactor,dyfactor,nufactor, &
          B0,RR,RA,q0,qa,n0,ntmax,nxmax,nymax,INMODE,TMN, &
-         model_pulse,model_ramp,model_dielectric,model_plot, &
+         model_pulse,model_ramp,model_dielectric,model_solver,model_plot, &
          source_width,pulse_length,ramp_length, &
          dielectric_2,dielectric_3,freq_resonance,freq_collision, &
          ntplot_interval,ntplot_max
@@ -83,7 +83,8 @@ CONTAINS
     WRITE(6,'(A)') &
          '# &WQ: FREQ,dtfactor,dxfactor,dyfactor,nufactor,', &
          '       B0,RR,RA,q0,qa,n0,ntmax,nxmax,nymax,INMODE,TMN', &
-         '       model_pulse,model_ramp,model_dielectric,model_plot,', &
+         '       model_pulse,model_ramp,model_dielectric,model_solver', &
+         '       model_plot,', &
          '       source_width,pulse_lenght,ramp_length,', &
          '       dielectric_2,dielectric_3,freq_resonance,freq_collision,', &
          '       ntplot_interval,ntplot_max'
@@ -122,11 +123,12 @@ CONTAINS
     idata( 5)=model_pulse
     idata( 6)=model_ramp
     idata( 7)=model_dielectric
-    idata( 8)=model_plot
-    idata( 9)=ntplot_interval
-    idata(10)=ntplot_max
+    idata( 8)=model_solver
+    idata( 9)=model_plot
+    idata(10)=ntplot_interval
+    idata(11)=ntplot_max
 
-    CALL mtx_broadcast_integer(idata,10)
+    CALL mtx_broadcast_integer(idata,11)
 
     ntmax=idata( 1)
     nxmax=idata( 2)
@@ -135,9 +137,10 @@ CONTAINS
     model_pulse=idata( 5)
     model_ramp=idata( 6)
     model_dielectric=idata( 7)
-    model_plot=idata( 8)
-    ntplot_interval=idata( 9)
-    ntplot_max=idata(10)
+    model_solver=idata( 8)
+    model_plot=idata( 9)
+    ntplot_interval=idata(10)
+    ntplot_max=idata(11)
 
     rdata( 1)=FREQ
     rdata( 2)=dtfactor

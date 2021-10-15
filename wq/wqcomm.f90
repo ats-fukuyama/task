@@ -29,6 +29,7 @@ MODULE wqcomm_parm
   INTEGER:: model_pulse
   INTEGER:: model_ramp
   INTEGER:: model_dielectric
+  INTEGER:: model_solver
   INTEGER:: model_plot
   REAL(rkind):: source_width
   REAL(rkind):: pulse_length
@@ -50,7 +51,7 @@ MODULE wqcomm
   REAL(rkind),ALLOCATABLE :: &
        ne(:,:),OCE(:,:),OPE(:,:),OUH(:,:),pabs(:,:),OR(:,:),OL(:,:)
   COMPLEX(rkind),ALLOCATABLE :: &
-       EX(:,:),EY(:,:),EZ(:,:),A(:,:,:,:),AA(:,:),B(:,:), &
+       EX(:,:),EY(:,:),EZ(:,:),A(:,:,:,:),Ainv(:,:,:,:),AA(:,:),B(:,:), &
        CD(:,:,:,:),CDplus(:,:,:,:),CDminus(:,:,:,:)
   REAL(rkind):: &
        omega,period,wavelength,dt,dx,dy,nu,omegaplus,omegaminus,domega
@@ -78,7 +79,7 @@ CONTAINS
     END IF
 
     ALLOCATE(EX(nxmax,nymax),EY(nxmax,nymax),EZ(nxmax,nymax))
-    ALLOCATE(A(3,3,nxmax,nymax),AA(3,3),B(3,3))
+    ALLOCATE(A(3,3,nxmax,nymax),Ainv(3,3,nxmax,nymax),AA(3,3),B(3,3))
     ALLOCATE(CD(3,3,nxmax,nymax))
     ALLOCATE(CDplus(3,3,nxmax,nymax))
     ALLOCATE(CDminus(3,3,nxmax,nymax))

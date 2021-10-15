@@ -9,7 +9,7 @@ CONTAINS
 
   SUBROUTINE wq_exec
     USE wqcomm
-    USE wqsolv
+    USE wqsolv0
     USE libsmooth
     IMPLICIT NONE
     INTEGER:: nx,ny,k,i,j,nt,N,NA,ILL
@@ -98,7 +98,12 @@ CONTAINS
 
        !compute next E
 
-       call wq_solv
+       SELECT CASE(model_solver)
+       CASE(0)
+          call wq_solv0
+       CASE DEFAULT
+          WRITE(6,*) 'XX wq_exec: unknown model_solver:',model_solver
+       END SELECT
 
        t=t+dt
        ttot=ttot+dt

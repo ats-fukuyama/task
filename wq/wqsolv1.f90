@@ -16,6 +16,7 @@ subroutine wq_solv
   real(8)    :: kz
   complex(8) :: EXNEXT(nxmax,nymax),EYNEXT(nxmax,nymax),EZNEXT(nxmax,nymax)
   complex(8) :: BV(3),P,Q,R1xy,R2xx,R2yy,R3x,R3y
+  COMPLEX(rkind):: CM(3,3,-1:1,-1,1)
 
   kz = TMN/RR
 
@@ -48,17 +49,17 @@ subroutine wq_solv
               -Q    *(CD(1,1,nx,ny)*EX(nx,ny) &
                      +CD(1,2,nx,ny)*EY(nx,ny) &
                      +CD(1,3,nx,ny)*EZ(nx,ny))
-        CM1(2,nx+1,ny+1)= R1xy
-        CM1(2,nx+1,ny-1)=-R1xy
-        CM1(2,nx-1,ny+1)=-R1xy
-        CM1(2,nx-1,ny-1)= R1xy
-        CM1(3,nx+1,ny  )= R3x
-        CM1(3,nx-1,ny  )=-R3x
-        CM1(1,nx  ,ny+1)=-     R2yy
-        CM1(1,nx  ,ny  )=+2.D0*R2yy+kz**2-P-Q*CD(1,1,nx,ny)
-        CM1(1,nx  ,ny+1)=-     R2yy
-        CM1(2,nx  ,ny  )=                  -Q*CD(1,2,nx,ny)
-        CM1(3,nx  ,ny  )=                  -Q*CD(1,3,nx,ny)
+        CM(1,2,+1,+1)= R1xy
+        CM(1,2,+1,-1)=-R1xy
+        CM(1,2,-1,+1)=-R1xy
+        CM(1,2,-1,-1)= R1xy
+        CM(1,3,+1, 0)= R3x
+        CM(1,3,-1, 0)=-R3x
+        CM(1,1, 0,+1)=-     R2yy
+        CM(1,1, 0, 0)=+2.D0*R2yy+kz**2-P-Q*CD(1,1,nx,ny)
+        CM(1,1, 0,+1)=-     R2yy
+        CM(1,2, 0, 0)=                  -Q*CD(1,2,nx,ny)
+        CM(1,3, 0, 0)=                  -Q*CD(1,3,nx,ny)
         
         BV(2)= R3y  *(EZ(nx  ,ny+1)-     EZ(nx  ,ny-1)) &
               +R1xy *(EX(nx+1,ny+1)-     EX(nx+1,ny-1)  &
@@ -103,15 +104,15 @@ subroutine wq_solv
         CM3(1,nx  ,ny  )=                      -Q*CD(3,1,nx,ny)
         CM3(2,nx  ,ny  )=                      -Q*CD(3,2,nx,ny)
 
-        EXNEXT(nx,ny)=dt*(A(1,1,nx,ny)*BV(1) &
-                         +A(1,2,nx,ny)*BV(2) &
-                         +A(1,3,nx,ny)*BV(3))+EX(nx,ny)
-        EYNEXT(nx,ny)=dt*(A(2,1,nx,ny)*BV(1) &
-                         +A(2,2,nx,ny)*BV(2) &
-                         +A(2,3,nx,ny)*BV(3))+EY(nx,ny)
-        EZNEXT(nx,ny)=dt*(A(3,1,nx,ny)*BV(1) &
-                         +A(3,2,nx,ny)*BV(2) &
-                         +A(3,3,nx,ny)*BV(3))+EZ(nx,ny)
+        EXNEXT(nx,ny)=dt*(Ainv(1,1,nx,ny)*BV(1) &
+                         +Ainv(1,2,nx,ny)*BV(2) &
+                         +Ainv(1,3,nx,ny)*BV(3))+EX(nx,ny)
+        EYNEXT(nx,ny)=dt*(Ainv(2,1,nx,ny)*BV(1) &
+                         +Ainv(2,2,nx,ny)*BV(2) &
+                         +Ainv(2,3,nx,ny)*BV(3))+EY(nx,ny)
+        EZNEXT(nx,ny)=dt*(Ainv(3,1,nx,ny)*BV(1) &
+                         +Ainv(3,2,nx,ny)*BV(2) &
+                         +Ainv(3,3,nx,ny)*BV(3))+EZ(nx,ny)
 
      end do
   end do

@@ -35,6 +35,7 @@ CONTAINS
     model_ramp       = 0      ! 0:step function, 1:linear, 2:smooth
     ramp_length      = 1.D0   ! length of pulse  [period=1/freq]
     model_dielectric = 1      ! 0:vacuum, 1:plasma, 2:de const, 3:de resonance
+    model_solver     = 0      ! 0:original, 1:explicit, 2:implicit
     model_plot       = 0      ! 0:no plot save, 1:plot save
     dielectric_2     = 1.D0   ! dielectric constant in a layer for model_de=2
     dielectric_3     = 1.D0   ! dielectric constant in a layer for model_de=3

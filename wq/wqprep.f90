@@ -77,7 +77,7 @@ CONTAINS
 
           DO j=1,3
              DO i=1,3
-                A(i,j,nx,ny)=AA(i,j)
+                Ainv(i,j,nx,ny)=AA(i,j)
              END DO
           END DO
 
