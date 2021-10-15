@@ -524,10 +524,12 @@ Data is saved in \$HOME/.gitconfig
 \title{Install TASK (5)}
 \begin{itemize}
 \item
-\emA{Setup make.header file}
+\emA{Use the latest develop branch and setup make.header file}
 \begin{itemize}
 \item
 \emBs{cd task}
+\item
+\emBs{git checkout -t -b develop origin/develop}
 \item
 \emBs{cp make.header.org make.header}
 \item
@@ -685,7 +687,7 @@ Data is saved in \$HOME/.gitconfig
 \item
 \ttype{XXinit.f90}: Default values
 \item
-\ttype{XXparm.f90}: Raad input parameters
+\ttype{XXparm.f90}: Read input parameters
 \item
 \ttype{XXview.f90}: Show input parameters
 \item

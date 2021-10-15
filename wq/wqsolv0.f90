@@ -1,13 +1,13 @@
-! wqsolv.f90
+! wqsolv0.f90
 
-MODULE wqsolv
+MODULE wqsolv0
 
   PRIVATE
-  PUBLIC wq_solv
+  PUBLIC wq_solv0
 
 CONTAINS
   
-subroutine wq_solv
+subroutine wq_solv0
 
   use wqcomm
   implicit none
@@ -68,15 +68,15 @@ subroutine wq_solv
                      +CD(3,2,nx,ny)*EY(nx,ny) &
                      +CD(3,3,nx,ny)*EZ(nx,ny))
 
-        EXNEXT(nx,ny)=dt*(A(1,1,nx,ny)*BV(1) &
-                         +A(1,2,nx,ny)*BV(2) &
-                         +A(1,3,nx,ny)*BV(3))+EX(nx,ny)
-        EYNEXT(nx,ny)=dt*(A(2,1,nx,ny)*BV(1) &
-                         +A(2,2,nx,ny)*BV(2) &
-                         +A(2,3,nx,ny)*BV(3))+EY(nx,ny)
-        EZNEXT(nx,ny)=dt*(A(3,1,nx,ny)*BV(1) &
-                         +A(3,2,nx,ny)*BV(2) &
-                         +A(3,3,nx,ny)*BV(3))+EZ(nx,ny)
+        EXNEXT(nx,ny)=dt*(Ainv(1,1,nx,ny)*BV(1) &
+                         +Ainv(1,2,nx,ny)*BV(2) &
+                         +Ainv(1,3,nx,ny)*BV(3))+EX(nx,ny)
+        EYNEXT(nx,ny)=dt*(Ainv(2,1,nx,ny)*BV(1) &
+                         +Ainv(2,2,nx,ny)*BV(2) &
+                         +Ainv(2,3,nx,ny)*BV(3))+EY(nx,ny)
+        EZNEXT(nx,ny)=dt*(Ainv(3,1,nx,ny)*BV(1) &
+                         +Ainv(3,2,nx,ny)*BV(2) &
+                         +Ainv(3,3,nx,ny)*BV(3))+EZ(nx,ny)
 
      end do
   end do
@@ -102,5 +102,5 @@ subroutine wq_solv
   end do
 
   return
-end subroutine wq_solv
-END MODULE wqsolv
+end subroutine wq_solv0
+END MODULE wqsolv0

@@ -9,6 +9,9 @@ MODULE fowexec
   use fpcomm
   use fowcomm
 
+  PRIVATE
+  PUBLIC fow_exec
+
 contains
 
   subroutine fow_exec(NSA,IERR,its)

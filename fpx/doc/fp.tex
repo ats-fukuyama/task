@@ -1,0 +1,517 @@
+\documentclass[11pt]{article}
+\usepackage{geometry}
+\geometry{a4paper}
+\usepackage[dvips]{graphicx,color}
+\usepackage{../../doc/af}
+\usepackage{../../doc/sym}
+\usepackage{../../doc/emt}
+\usepackage{../../doc/doc}
+
+\newcommand{\hfile}[1]{\emAs{\ttype{#1}}}
+\newcommand{\hprog}[1]{\emC{Program \ttype{#1}}}
+\newcommand{\hmod}[1]{\emC{Module \ttype{#1}}}
+\newcommand{\hsub}[1]{\emB{Subroutine \ttype{#1}}}
+\newcommand{\hsubx}[1]{\emBs{Subroutine \ttype{#1}}}
+\newcommand{\hfunc}[1]{\emB{Function \ttype{#1}}}
+\newcommand{\hfuncx}[1]{\emBs{Function \ttype{#1}}}
+
+\begin{document}
+\begin{flushright}
+2021/09/13
+\end{flushright}
+
+\begin{center}
+\textbf{\Large User Manual of the TASK/FP Code}
+\end{center}
+
+\tableofcontents
+
+\section{Structure}
+
+\subsection{\emA{Environment routines}}
+
+\begin{itemize}
+
+  \item \hfile{fpcomm.f90}: Definition of variable module, allocation of
+  arrays
+  \begin{itemize}
+    \item \hmod{fpcomm\_parm}: Definition of constants and input
+      parameters including
+      \begin{itemize}
+      \item
+        bpsd\_kinds
+      \item
+        bpsd\_constants
+      \item
+        commpi
+      \item
+        plcomm
+      \item
+        obcomm\_parm
+      \end{itemize}
+    \item \hmod{fpcomm}: Definition of common variables
+    \item \hsub{fp\_allocate}: Allocation of common arrays
+    \item \hsub{fp\_deallocate}: Deallocation of common arrays
+    \item \hsub{fp\_allocate\_ntg1}: Allocation of time history
+      \ttype{ntg1} array
+    \item \hsub{fp\_deallocate\_ntg1}: Deallocation of time history
+      \ttype{ntg1} array
+    \item \hsub{fp\_adjust\_ntg1}: Adjust (save, deallocate,
+      allocate larger, recover) time history \ttype{ntg1} array
+    \item \hsub{fp\_allocate\_ntg2}: Allocation of profile time
+      history \ttype{ntg2} array
+    \item \hsub{fp\_deallocate\_ntg2}: Deallocation of profile time
+      history \ttype{ntg2} array
+    \item \hsub{fp\_adjust\_ntg2}: Adjust (save, deallocate,
+      allocate larger, recover) profile time history \ttype{ntg2}
+      array
+  \end{itemize}
+
+  \item \hfile{fpmain.f90}: Main routine
+    \begin{itemize}
+    \item \hprog{fp}
+      \begin{itemize}
+      \item
+        Initialization of MPI and graphics
+      \item
+        Initialization of input parameters of module, pl, eq, and fp
+      \item
+        Read input namelist file \ttype{fpparm}
+      \item
+        Start menu input loop \ttype{fpmenu}
+      \item
+        Termination of graphics and MPI
+      \end{itemize}
+    \end{itemize}
+    
+  \item \hfile{fpinit.f90}: \hmod{fpinit}:
+    Initialization of input parameters
+    \begin{itemize}
+    \item
+      \hsub{fp\_init}: Set default values of input parameters
+    \end{itemize}
+    
+  \item \hfile{fpmenu.f90}: \hmod{fpmenu}: Process control
+    \begin{itemize}
+    \item
+      \hsub{fp\_menu}: menu command input and execute
+      \begin{itemize}
+      \item
+        \ttype{P} or with \ttype{=}: namelist read of input parameters
+      \item
+        \ttype{V}: view all input parameters
+      \item
+        \ttype{R}: start new calculation (set initial condition and
+        go)
+      \item
+        \ttype{C}: continue previous calculation (just go)
+      \item
+        \ttype{G}: graphic output of calculated results
+      \item
+        \ttype{F}: file output of calculated results
+      \item
+        \ttype{S}: save present status of calculation into a file
+      \item
+        \ttype{L}: load a file to continue previous calculation
+      \item
+        \ttype{W}: print out interesting quantities
+      \item
+        \ttype{Y}: debug output [temporal]
+      \item
+        \ttype{Z}: debug output [transport coefficients]
+      \item
+        \ttype{Q}: quit menu input and stop
+      \end{itemize}
+    \end{itemize}
+    
+  \item \hfile{fpparm.f90}: \hmod{fpparm}:
+    Read and check input parameters
+    \begin{itemize}
+    \item
+      \hsub{fp\_parm}: analyze parameter input
+      \begin{itemize}
+      \item
+        read one line from standard input and analyze command or
+        namelist
+      \item
+        read namelist input from a file
+      \item
+        read one phrase and analyze as a namelist
+      \end{itemize}
+    \item \hsubx{fp\_nlin}: namelist input slave routine
+    \item \hsubx{fp\_plst}: input parameter list slave routine
+    \item \hsubx{fp\_check}: input parameter check
+    \item \hsub{fp\_broadcast}: Broadcast input parameters
+    \item \hsub{fp\_view}: Show input parameters
+    \end{itemize}
+\end{itemize}
+
+\subsection{\emA{Execution routines}}
+\begin{itemize}
+\item
+  \hfile{fpprep.f90}: \hmod{fpprep}:
+  Preparation of run (mesh, initial profile, initialization)
+  \begin{itemize}
+  \item \hsub{fp\_mesh}: create mesh quantities
+    \begin{itemize}
+    \item
+      set \ttype{pmax}
+    \item
+      read EQ data \emAs{(RKAP=1.0 should be removed)}
+    \item
+      set radial mesh
+    \item
+      read WR data
+    \item
+      read WM data
+    \item
+      set approximate poloidal magnetci field
+      \emAs{(exact poloidal magnetic field should be used)}
+    \item
+      set momentum space mesh
+    \item
+      set element volume in real space
+    \item
+      set bounce-average parameters
+    \end{itemize}
+  \item
+    \hsub{FPCINI}: clear friction and diffusion coefficients
+  \item
+    \hsub{fp\_comm\_setup}: check partitions and setup shadow and commucicators
+  \item
+    \hsub{fp\_set\_nsa\_nsb}: set table on nsa and nsb
+  \item
+    \hsubx{FNSP\_INIT}: initialize distribution functions FNSP and delta f
+  \item
+    \hsub{FNSP\_INIT\_EDGE}: initialize edge distribution functions FS1, FS2
+  \item
+    \hsub{fp\_set\_normalize\_param}: set normalized density,
+    temprature and other quantities
+  \item
+    \hsub{Coulomb\_log}: calculate Coulomb logarithm
+  \item
+    \hsub{fp\_continue}: setup for continuation
+  \item
+    \hsub{fp\_set\_intial\_value\_from\_f}: record initial values
+  \item
+    \hsub{fp\_prep}:
+    \begin{itemize}
+    \item
+      initialize time counter
+    \item
+      allocate variables
+    \item
+      setup matrix parameters for MPI
+    \item
+      setup particle species table (fp\_set\_nsa\_nsa)
+    \item
+      create mesh (fp\_mesh)
+    \item
+      initialize diffusion coefficients (FPCINI)
+    \item
+      set parameters (fp\_set\_normalize\_param)
+    \item
+      initialize distribution functions (FNSP\_INIT, FNSP\_INIT\_EDGE)
+    \item
+      set background distribution functions (update\_fnsb)
+    \item
+      read FIT3D rsults for NBI (READ\_FIT3D, SV\_WEIGHT\_R)
+    \item
+      set parallel electric field
+    \item
+      setup for Legendre expansion and fusion reaction rate (NF\_*)
+    \item
+      record initial values (fp\_set\_initial\_value\_from\_f)
+    \end{itemize}
+  \end{itemize}
+
+\item
+    \hfile{fpbounce.f90}: Preparation of bounce parameters
+    
+\item
+  \hfile{fploop.f90}: Time loop for execution
+\item
+  \hfile{fpexec.f90}: Execution of one time step
+\end{itemize}
+
+\subsection{\emA{Calculation of coefficients of equations}}
+  \begin{itemize}
+  \item \hfile{fpcoef.f90}: Calculation of various coefficients
+  \item \hfile{fpcalc.f90}: Calculation of collisional term (linear operator)
+  \item \hfile{fpcalcn.f90}: Calculation of collisional term (nonlinear operator)
+  \item \hfile{fpcalcnr.f90}: Calculation of collisional term (relativistic nonlinear operator)
+  \item \hfile{fpcale.f90}: Calculation of static electric field term
+  \item \hfile{fpcalr.f90}: Calculation of radial diffusion term
+  \item \hfile{fpcalw.f90}: Calculation of quasi-linear term (given wave field)
+  \item \hfile{fpcalwm.f90}: Calculation of quasi-linear term (using wm results)
+  \item \hfile{fpcalwr.f90}: Calculation of quasi-linear term (using wr results)
+  \item \hfile{fpcdbm.f90}: Calculation of CDBM radial diffusion coefficients
+  \item \hfile{fpnfrr.f90}: Calculation of fusion reaction term (isotropic distribution)
+  \item \hfile{fpnflg.f90}:  Calculation of fusion reaction term (anisotropic distribution)
+  \item \hfile{fpdisrupt.f90}: Calculation of disruption-related tems
+  \end{itemize}
+
+\subsection{\emA{Calculation of transport coefficients (by Ota)}}
+  \begin{itemize}
+  \item \hfile{fpcaldeff.f90}: Effective particle diffusion coefficients
+  \item \hfile{fpcalchieff.f90}: Effectiv thermal diffusion coefficients
+  \item \hfile{fpcaltp.f90}: Particle confinement time, tauP
+  \item \hfile{fpcalte.f90}: Energy confinement time, tauE
+  \item \hfile{fpchecknc.f90}: Radial diffusion coefficients (neoclassical diffusion)
+  \end{itemize}
+
+\subsection{\emA{File IO routines}}
+  \begin{itemize}
+  \item \hfile{fpfile.f90}: Save and load restart data
+  \item \hfile{fpfout.f90}: File output of graphic data
+  \item \hfile{fpoutdata.f90}: File output of intermediate data (by Ota)
+  \item \hfile{fpread.f90}: Read FIT3D data from file
+  \item \hfile{fpreadeg.f90}: Read Experimental data from file (by Nuga)
+  \item \hfile{fpsave.f90}: File output of various data (by Nuga)
+  \item \hfile{fpwmin.f90}: File input of full-wave analysis (wm) results
+  \item \hfile{fpwrin.f90}: File input of ray/beam tracing analysis
+    (wr) results
+  \item \hfile{fpwrite.f90}: File output of trcoef data (by Ota)
+  \end{itemize}
+
+\subsection{\emA{Graphic routines}}
+  \begin{itemize}
+  \item \hfile{fpgout.f90}: Graphic output for gsaf
+  \item \hfile{fpcont.f90}: Graphic subroutines
+  \end{itemize}
+
+\subsection{\emA{Library routines}}
+  \begin{itemize}
+  \item \hfile{fpmpi.f90}: MPI interface for fp
+  \item \hfile{fpsub.f90}: Subroutine library (FPMXWL, FPNEWTON) 
+  \end{itemize}
+
+\subsection{\emA{Orbit-averaging routines (by Ota)}}
+  \begin{itemize}
+  \item \hfile{fowcomm.f90}: Definition of fow variables and
+    allocation
+    \begin{itemize}
+    \item
+      \hmod{fowcomm}: define quantities related to orbit-averaging
+    \item
+      \hsub{fow\_allocate}: allocate adjustable arrays
+    \item
+      \hsub{fow\_deallocate}: deallocate adjustable arrays
+    \end{itemize}
+
+  \item \hfile{fowprep.f90}: \hmod{fowprep}: Preparation of fow,
+    initialization of variables
+    \begin{itemize}
+    \item
+      \hsub{search\_pinch\_orbit}: calculate pinch orbit
+    \item
+      \hsub{calculate\_jacobian}: calculation of jacobians
+    \end{itemize}
+  \item \hfile{foworbit.f90}: \hmod{foworbit}: Interface to ob
+    \begin{itemize}
+    \item
+      \hsub{fow\_set\_obparm}
+      \begin{itemize}
+      \item
+        ob\_init, ob\_parm, ob\_prep, ob\_allocate, and spline psim,
+        Fpsi, B, dradpsi
+      \end{itemize}
+    \item
+      \hsub{fow\_orbit}
+      \begin{itemize}
+      \item
+        calculated orbits
+      \end{itemize}
+    \item
+      \hsub{fow\_cal\_local\_COMs}
+      \begin{itemize}
+      \item
+        calculate thetaml, rhoml, tau\_loss
+      \end{itemize}
+    \item
+      \hsubx{construct\_orbit}
+      \begin{itemize}
+      \item
+        call ob\_calc to calculate ob structure
+      \end{itemize}
+    \item
+      \hsubx{construct\_orbit\_zero}
+      \begin{itemize}
+      \item
+        set zero into ob structure
+      \end{itemize}
+    \item
+      \hsubx{save\_orbit}
+      \begin{itemize}
+      \item
+        save orbit data into file
+      \end{itemize}
+    \item
+      \hsubx{load\_orbit}
+      \begin{itemize}
+      \item
+        load orbit data from file
+      \end{itemize}
+    \item
+      \hsub{quantities\_at\_Bminimum}
+      \begin{itemize}
+      \item
+        calculate quantities at B\_min
+      \end{itemize}
+    \item
+      \hsub{mean\_ra\_quantities}
+      \begin{itemize}
+      \item
+        calculate quantities at average radius
+      \end{itemize}
+    \end{itemize}
+
+      
+  \item \hfile{fowclassify.f90}: \hmod{fowcllasify}: Orbit
+    classification and data output to file
+    \begin{itemize}
+    \item
+      \hsub{output\_orbit\_cllasify}:
+      \begin{itemize}
+      \item
+        prep\_orbit\_classify
+      \item
+        pinch\_orbit
+      \item
+        D\_orbit(beta\_D)
+      \item
+        stagnation\_orbit(beta\_stag)
+      \item
+        stagnation\_type(xi\_Xtype\_boundary\_ion)
+      \item
+        output to file dat/*\_obclass.txt
+      \end{itemize}
+    \item
+      \hsubx{prep\_orbit\_classify}: calculate \ttype{theta\_m} and
+      \ttype{xi}
+    \item
+      \hsubx{pinch\_orbit}: calculate all pinch points
+    \item
+      \hsubx{get\_pinch\_point}: calculate momentum of one pinch orbit
+    \item
+      \hsubx{D\_orbit}: calculate maximum momentum of trapped particle
+    \item
+      \hsubx{stagnation\_orbit}: calculate maximum momentum of
+      not-forbidden orbit
+    \item
+      \hsubx{stagnation\_type}: 
+    \end{itemize}
+    
+  \item \hfile{fowdistribution.f90}: Distribution conversion and
+    integrated quantities
+    \begin{itemize}
+    \item \hsub{fI\_Maxwellian}: calculate Maxwellian distribution
+    \item \hsub{convert\_fI\_to\_fu}: convert f(I) to f(local)
+    \item \hsub{moment\_0th\_order\_COM}: calculate 0th order momentum
+      from f(I)
+    \item \hsub{moment\_2nd\_order\_COM}: calculate 2nd order momentum
+      from f(I)
+    \item \hsub{particle\_flux}: calculate total particle flux
+    \item \hsub{particle\_flux\_element}: calculate particle flux from
+      each component
+    \item \hsub{total\_N}: calculate total density
+    \item \hsub{effective\_diffusion\_cosfficient}: calculate particle
+      diffusion coefficint from particle flux and density gradient
+    \end{itemize}
+
+  \item \hfile{fowloop.f90}: fmod{fowloop}: Time loop for execution
+    \begin{itemize}
+    \item
+      \hsub{fow\_loop}:
+      \begin{itemize}
+      \item fI\_Maxwellian: calculate initial distribution function
+      \item fow\_coef: calculate transport coefficients
+      \item fow\_calculate\_source: calculate source
+      \item loop: call fow\_exec, update coef
+      \item calculate density and temperature
+      \item output data
+      \end{itemize}
+    \item
+      \hsubx{update\_bulk\_temperature}: calculate temperature
+    \item
+      \hsubx{output\_data}: output data to file dat/*.txt
+    \end{itemize}
+        
+  \item \hfile{fowexec.f90}: \hmod{fowexec}:  Execution of one time step
+    \begin{itemize}
+    \item
+      \hsub{fow\_exec}: Execution of one time step
+      \begin{itemize}
+      \item \ttype{mtx\_setup}: initialization of matrix solver
+      \item \ttype{fowweight}: setup weight array
+      \item \ttype{SET\_FM\_NMA}: setup index array
+      \item \ttype{fowsetm}: calculate matrix coefficients in a row
+      \item \ttype{IBC\_pinch, IBC\_X\_stagnation,
+        IBC\_O\_stagnation}: set internal boundary
+        conditions
+      \item \ttype{mtx\_set\_matrix, mtx\_set\_vector,
+        mtx\_set\_source}: set matrix coefficients, initial solution
+        vector, and right-hand-side vector
+      \item \ttype{mtx\_solve, mtx\_get\_vector}: solve matrix
+        equation and obtain solution vector
+      \item \ttype{shadow\_comm\_np, shadow\_comm\_nr}: gather
+        solution vector
+      \end{itemize}
+    \item \hsubx{SET\_FM\_NMA}: setup index array
+    \item \hsubx{fowweight}: setup weight array
+    \item \hfuncx{fowwegh}: elementary weight function
+    \item \hsubx{fowsetm}: calculate matrix coefficients in a row
+    \item \hfuncx{Dfow}: matrix coefficients
+    \item \hfuncx{w}: weighting 
+    \item \hfuncx{check\_external\_boundary}: check within external boundary
+    \item \hfuncx{get\_nma}: calculate matrix position
+    \item \hsubx{IBC\_pinch}: set pinch boundary condition
+    \item \hsubx{IBC\_X\_stagnation}: set X stagnation boundary condition
+    \item \hsubx{IBC\_O\_stagnation}  set O stagnation boundary condition
+    \item \hfuncx{f\_grid}: evaluate weight on boundary grid point
+    \item \hfuncx{nma\_boundary}: check \ttype{nth}, \ttype{np},
+      \ttype{nr} within range \emAs{(update the evaluation)}
+  \end{itemize}
+
+  \item \hfile{fowcoef.f90}: \hmod{hfowccoef}: Calculation of various
+    coefficients
+    \begin{itemize}
+    \item \hsub{fow\_coef}:
+      \begin{itemize}
+      \item allocate arrays and initialize
+      \item \ttype{convert\_fI\_to\_fu}: set local distribution function
+      \item \ttype{fp\_calc}: calculate local coefficients
+      \item \ttype{bounce\_average}: bounce average local coefficients
+      \end{itemize}
+    \item \hsubx{bounce\_average}: bounce average local coefficients
+    \item \hsub{transformation\_matrix}: calculation of transformation matrix
+    \item \hsub{make\_U\_Dxy}: calculation diffusion coefficints in U frame
+    \item \hsub{interpolate\_D\_unlessZero}: calculate interporation
+      coefficients
+    \end{itemize}
+        
+  \item \hfile{fowsource.f90}: \hmod{fowsource}: Calculation of source
+    terms
+    \begin{itemize}
+    \item \hsub{fow\_calculate\_source}:
+      \begin{itemize}
+      \item \ttype{beam\_source}: calculate beam source
+      \item set \ttype{sppb}
+      \end{itemize}
+      \item \hsubx{beam\_source}: calculate and normalize beam source
+      \item \hfuncx{construct\_beam}: evaluate \ttype{construct\_beam}
+    \end{itemize}
+    
+  \item \hfile{fowlib.f90}: \hmod{fowlib}: Library for fow
+    \begin{itemize}
+    \item \hsub{solve\_quadratic\_equation}: quadratic equation solver
+    \item \hsub{first\_order\_derivative}: evaluate first-order derivative
+    \item \hsub{second\_order\_derivative}: evaluate second-order derivative
+    \item \hsub{gauss\_jordan}: matrix solver
+    \item \hsub{fow\_cal\_spl}: 1D spline for fow
+    \item \hsub{fow\_cal\_spl2D}: 2D spline for fow
+    \end{itemize}
+  \end{itemize}
+
+\end{document}
+
