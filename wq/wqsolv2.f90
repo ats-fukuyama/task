@@ -1,13 +1,13 @@
-! wqsolv1.f90
+! wqsolv2.f90
 
-MODULE wqsolv1
+MODULE wqsolv2
 
   PRIVATE
-  PUBLIC wq_solv1
+  PUBLIC wq_solv2
 
 CONTAINS
   
-subroutine wq_solv1
+subroutine wq_solv2
 
   use wqcomm
   implicit none
@@ -199,5 +199,5 @@ subroutine wq_solv1
   end do
 
   return
-end subroutine wq_solv1
-END MODULE wqsolv1
+end subroutine wq_solv2
+END MODULE wqsolv2

@@ -837,7 +837,7 @@
 !            VGR4(NR,3)=1.D0/(1.D0+RG1*WE1*WE1)
             VGR4(NR,3)=RG1
 
-          CASE(65)
+          CASE(60:65)
 
             WPE2=ANE*1.D20*AEE*AEE/(AME*EPS0)
             DELTA2=VC**2/WPE2
