@@ -51,6 +51,18 @@ CONTAINS
        CALL FWOPEN(nfl,knam_dump,1,0,'wm',ierr)
        IF(ierr.NE.0) STOP
     END IF
+    IF(idebuga(61).NE.0.AND.nrank.EQ.1) THEN
+       CALL FWOPEN(nfl+1,TRIM(knam_dump)//'-1',1,0,'wm',ierr)
+       IF(ierr.NE.0) STOP
+    END IF
+    IF(idebuga(61).NE.0.AND.nrank.EQ.2) THEN
+       CALL FWOPEN(nfl+2,TRIM(knam_dump)//'-2',1,0,'wm',ierr)
+       IF(ierr.NE.0) STOP
+    END IF
+    IF(idebuga(61).NE.0.AND.nrank.EQ.3) THEN
+       CALL FWOPEN(nfl+3,TRIM(knam_dump)//'-3',1,0,'wm',ierr)
+       IF(ierr.NE.0) STOP
+    END IF
 
     ALLOCATE(A(MBND))        ! local coefficient matrix
 
@@ -60,9 +72,6 @@ CONTAINS
     nr_end=(iend-1)/mblock_size+1        ! nr_end is nr including iend
     IF(nrank.EQ.nsize-1) nr_end=NRMAX+1
 
-    IF(ALLOCATED(istart_nrank)) &
-         DEALLOCATE(istart_nrank,iend_nrank,nr_start_nrank,nr_end_nrank)
-    ALLOCATE(istart_nrank(0:nsize-1),iend_nrank(0:nsize-1))
     ALLOCATE(nr_start_nrank(0:nsize-1),nr_end_nrank(0:nsize-1))
     CALL mtx_allgather1_integer(istart,istart_nrank)
     CALL mtx_allgather1_integer(iend,iend_nrank)

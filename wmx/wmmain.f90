@@ -53,9 +53,16 @@ PROGRAM wm
 
   IF(nrank.EQ.0) THEN
      CALL GSCLOS
+     WRITE(6,*) '@@@ point 99'
      CLOSE(7)
   END IF
+  IF(nrank.EQ.0) CLOSE(30)
+  IF(nrank.EQ.1) CLOSE(31)
+  IF(nrank.EQ.2) CLOSE(32)
+  IF(nrank.EQ.3) CLOSE(33)
+  IF(nrank.EQ.0) WRITE(6,*) '@@@ point 999'
   CALL mtx_finalize
+  IF(nrank.EQ.0) WRITE(6,*) '@@@ point 9999'
 
   STOP
 END PROGRAM wm

@@ -1438,8 +1438,10 @@ ctemp
          endif
         enddo
 c
-        freq = AREAL( zomega(jmax) )
-        gamma = aimag( zomega(jmax) )
+        IF(jmax.ne.0) THEN
+           freq = AREAL( zomega(jmax) )
+           gamma = aimag( zomega(jmax) )
+        END IF
 c
 c skip stable modes
 c        if(gamma.lt.0.D0)go to 775
