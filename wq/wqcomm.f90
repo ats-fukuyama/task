@@ -9,37 +9,68 @@ MODULE wqcomm_parm
   IMPLICIT NONE
   PUBLIC
 
-  REAL(rkind):: FREQ
-  REAL(rkind):: dtfactor
-  REAL(rkind):: dxfactor
-  REAL(rkind):: dyfactor
-  REAL(rkind):: nufactor
+  INTEGER,PARAMETER:: medium_m=10   ! maximum number of medium
+  INTEGER,PARAMETER:: idebug_m=99   ! size of array idebuga
+  INTEGER,PARAMETER:: ngt_m=10001   ! maximum number of global value storage
+  INTEGER,PARAMETER:: ngr_m=101     ! maximum number of profile storage
+
+  INTEGER:: model_geometry
+  REAL(rkind):: xnmin
+  REAL(rkind):: xnmax
+  REAL(rkind):: ynmin
+  REAL(rkind):: ynmax
+
   REAL(rkind):: B0
   REAL(rkind):: RR
   REAL(rkind):: RA
   REAL(rkind):: q0
   REAL(rkind):: qa
-  REAL(rkind):: n0
-  REAL(rkind):: TMN
-  INTEGER:: ntmax
-  INTEGER:: nxmax
-  INTEGER:: nymax
-  INTEGER:: INMODE
+
+  REAL(rkind):: freq
+  REAL(rkind):: rkz
+  INTEGER:: nph
+
+  INTEGER:: model_source
+  REAL(rkind):: source_position_xn
+  REAL(rkind):: source_position_yn
+  REAL(rkind):: source_width
+  REAL(rkind):: source_thickness
+  REAL(rkind):: source_angle
 
   INTEGER:: model_pulse
   INTEGER:: model_ramp
-  INTEGER:: model_dielectric
-  INTEGER:: model_solver
-  INTEGER:: model_plot
-  REAL(rkind):: source_width
   REAL(rkind):: pulse_length
   REAL(rkind):: ramp_length
-  REAL(rkind):: dielectric_2
-  REAL(rkind):: dielectric_3
-  REAL(rkind):: freq_resonance
-  REAL(rkind):: freq_collision
-  INTEGER:: ntplot_interval
-  INTEGER:: ntplot_max
+
+  INTEGER:: medium_max
+  INTEGER:: id_medium(medium_m)
+  REAL(rkind):: xnmin_medium(medium_m)
+  REAL(rkind):: xnmax_medium(medium_m)
+  REAL(rkind):: ynmin_medium(medium_m)
+  REAL(rkind):: ynmax_medium(medium_m)
+  REAL(rkind):: dielectric_medium(medium_m)
+  REAL(rkind):: res_freq_medium(medium_m)
+  REAL(rkind):: res_coll_medium(medium_m)
+  REAL(rkind):: density_medium(medium_m)
+  REAL(rkind):: collision_medium(medium_m)
+
+  INTEGER:: model_solver
+  INTEGER:: model_plot
+
+  REAL(rkind):: fimplicit
+  INTEGER:: ntype_mat
+  REAL(rkind):: eps_mat
+
+  REAL(rkind):: dtfactor
+  REAL(rkind):: dxfactor
+  REAL(rkind):: dyfactor
+
+  INTEGER:: ntmax
+  INTEGER:: ntstep
+  INTEGER:: ngtstep
+  INTEGER:: ngrstep
+
+  INTEGER:: idebuga(idebug_m)
 
 END MODULE wqcomm_parm
 
@@ -48,21 +79,32 @@ MODULE wqcomm
   USE wqcomm_parm
   IMPLICIT NONE
 
-  REAL(rkind),ALLOCATABLE :: &
-       ne(:,:),OCE(:,:),OPE(:,:),OUH(:,:),pabs(:,:),OR(:,:),OL(:,:)
-  COMPLEX(rkind),ALLOCATABLE :: &
-       EX(:,:),EY(:,:),EZ(:,:),A(:,:,:,:),Ainv(:,:,:,:),AA(:,:),B(:,:), &
-       CD(:,:,:,:),CDplus(:,:,:,:),CDminus(:,:,:,:)
-  REAL(rkind):: &
-       omega,period,wavelength,dt,dx,dy,nu,omegaplus,omegaminus,domega
-  INTEGER:: &
-       nttot,ntplot
-  REAL(rkind):: &
-       ttot
-  REAL(rkind),ALLOCATABLE:: &
-       tplot(:)
-  COMPLEX(rkind),ALLOCATABLE :: &
-       EX_save(:,:,:),EY_save(:,:,:),EZ_save(:,:,:)
+  INTEGER:: nxmax
+  INTEGER:: nymax
+
+  INTEGER:: ngt_max,ngr_max
+  REAL(rkind):: omega,period,wave_length,wave_number,dt
+  REAL(rkind):: omegaplus,omegaminus,domega
+  INTEGER:: icount_mat,icount_mat_max
+  REAL(rkind):: t_tot
+  INTEGER:: nt_tot
+
+  INTEGER,DIMENSION(:,:),ALLOCATABLE :: &
+       medium_nx_ny(:,:)
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &
+       xg(:),yg(:),xgn(:),ygn(:)
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &
+       ne,OCE,OPE,OUH,pabs,OR,OL
+  COMPLEX(rkind),DIMENSION(:,:),ALLOCATABLE :: &
+       EX,EY,EZ
+  COMPLEX(rkind),DIMENSION(:,:,:,:),ALLOCATABLE :: &
+       A,Ainv, CD,CDplus,CDminus
+  COMPLEX(rkind),DIMENSION(:,:,:),ALLOCATABLE :: &
+       EX_save,EY_save,EZ_save
+  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE :: &
+       pabs_save
+  REAL(rkind),DIMENSION(:),ALLOCATABLE :: &
+       t_ngt,t_ngr,pabs_tot_ngt,EX_max_ngt,EY_max_ngt,EZ_max_ngt
 CONTAINS
 
   SUBROUTINE wq_allocate
@@ -78,20 +120,24 @@ CONTAINS
        CALL wq_deallocate
     END IF
 
+    ALLOCATE(medium_nx_ny(nxmax,nymax))
+    ALLOCATE(xg(nxmax),yg(nymax))
+    ALLOCATE(xgn(nxmax),ygn(nymax))
     ALLOCATE(EX(nxmax,nymax),EY(nxmax,nymax),EZ(nxmax,nymax))
-    ALLOCATE(A(3,3,nxmax,nymax),Ainv(3,3,nxmax,nymax),AA(3,3),B(3,3))
+    ALLOCATE(A(3,3,nxmax,nymax),Ainv(3,3,nxmax,nymax))
     ALLOCATE(CD(3,3,nxmax,nymax))
     ALLOCATE(CDplus(3,3,nxmax,nymax))
     ALLOCATE(CDminus(3,3,nxmax,nymax))
     ALLOCATE(ne(nxmax,nymax),OCE(nxmax,nymax))
     ALLOCATE(OPE(nxmax,nymax),OUH(nxmax,nymax))
     ALLOCATE(pabs(nxmax,nymax),OR(nxmax,nymax),OL(nxmax,nymax))
-    IF(ntplot_max.GT.0) THEN
-       ALLOCATE(tplot(ntplot_max))
-       ALLOCATE(EX_save(nxmax,nymax,ntplot_max))
-       ALLOCATE(EY_save(nxmax,nymax,ntplot_max))
-       ALLOCATE(EZ_save(nxmax,nymax,ntplot_max))
-    END IF
+    ALLOCATE(t_ngt(ngt_m),pabs_tot_ngt(ngt_m))
+    ALLOCATE(EX_max_ngt(ngt_m),EY_max_ngt(ngt_m),EZ_max_ngt(ngt_m))
+    ALLOCATE(t_ngr(ngr_m))
+    ALLOCATE(EX_save(nxmax,nymax,ngr_m))
+    ALLOCATE(EY_save(nxmax,nymax,ngr_m))
+    ALLOCATE(EZ_save(nxmax,nymax,ngr_m))
+    ALLOCATE(pabs_save(nxmax,nymax,ngr_m))
 
     nxmax_save=nxmax
     nymax_save=nymax
@@ -101,11 +147,16 @@ CONTAINS
   SUBROUTINE wq_deallocate
     IMPLICIT NONE
    
+    DEALLOCATE(medium_nx_ny)
+    DEALLOCATE(xg,yg)
+    DEALLOCATE(xgn,ygn)
     DEALLOCATE(EX,EY,EZ)
-    DEALLOCATE(A,AA,B)
+    DEALLOCATE(A,Ainv)
     DEALLOCATE(CD,CDplus,CDminus)
     DEALLOCATE(ne,OCE,OPE,OUH,pabs,OR,OL)
-    IF(ALLOCATED(EX_save)) DEALLOCATE(EX_save,EY_save,EZ_save,tplot)
+    DEALLOCATE(t_ngt,EX_max_ngt,EY_max_ngt,EZ_max_ngt,pabs_tot_ngt)
+    DEALLOCATE(t_ngr,EX_save,EY_save,EZ_save,pabs_save)
+
 
   END SUBROUTINE wq_deallocate
 END MODULE wqcomm

@@ -226,10 +226,91 @@
   \end{itemize}
 
 \item
-    \hfile{fpbounce.f90}: Preparation of bounce parameters
-    
+  \hfile{fpbounce.f90}: Preparation of bounce parameters
+  \begin{itemize}
+  \item
+    \hsub{set\_bounce\_parm}: calculate bounce parameters
+    \begin{itemize}
+    \item
+      set\_etamg, set\_rlambda, set\_rlambda\_tpb\_from\_dens,
+      set\_etamg\_nrmaxp1, set\_rlambda\_nrmaxp1,
+      set\_rlambda\_tpb\_from\_den\_nrmaxp1, set\_etamg\_rg,
+      set\_rlambda\_rg
+    \end{itemize}
+  \item
+    \hsubx{set\_etamg}: set bounce point, \ttype{etam} on \ttype{thm},
+    \ttype{etag} on \ttype{thg}, on \ttype{rm}
+  \item
+    \hsubx{set\_etamg\_nrmaxp1}: set \ttype{etam} and \ttype{etag} at
+    \ttype{rm(nrmax+1)}
+  \item
+    \hsubx{set\_etamg\_rg}: set bounce point, \ttype{etam} on
+    \ttype{thm}, \ttype{etag} on \ttype{thg}, on \ttype{rg}
+  \item
+    \hsubx{set\_rlambda\_tpb}: set \ttype{rlambda} on boundary layer
+    on \ttype{rm}
+  \item
+    \hsubx{set\_rlambda\_tpb\_g}: set \ttype{rlambda} on boundary layer
+    on \ttype{rg}
+  \item
+    \hsubx{recurrence\_alpha}: \ttype{alpha(i)=alpha(i-1)*(2*i-3)/(20*i)}
+  \item
+    \hsubx{recurrence\_beta}:  \ttype{beta(i)=(2*(2*i-2)*beta(i-1)
+                                         -(2*i-3)*beta(i-2))/(2*i-1)}
+  \item
+    \hsubx{set\_rlambda\_ell}: \ttype{rlamda} on \ttype{rm}
+  \item
+    \hsubx{set\_rlambda\_ell\_g}: \ttype{rlamda} on \ttype{rg}
+  \item
+    \hsubx{recurrence\_j}:  \ttype{j2m(i)=((2*i-2)*(1+z**2)*j2m(i-1)
+                                         -(2*i-3)*z**2*j2m(i-2))/(2*i-1)}
+  \item
+    \hsub{set\_rfsad}: calculate flux surface average of oint 1/psi ds
+  \item
+    \hsubx{set\_rlambda}: set \ttype{rlambda} on \ttype{rm}
+  \item
+    \hsubx{set\_rlambda\_nrmaxp1}: \ttype{rlamda} on \ttype{rm(nrmax+1)}
+  \item
+    \hsubx{set\_rlambda\_rg}: set \ttype{rlambda} for \ttype{etam\_rg}
+  \item
+    \hsubx{set\_rlambda\_rgmax}: set \ttype{rlambda} for \ttype{etamg\_rg}
+  \item
+    \hsubx{set\_etamg\_rgmax}: set \ttype{etama\_rg} for \ttype{eps\_rg2}
+  \item
+    \hsubx{set\_rlambda\_tpb\_gmax}: set \ttype{rlambda} on boundary layer
+    on \ttype{rg2}
+  \item
+    \hsubx{set\_rlambda\_ell\_gmax}: set \ttype{rlambda} on \ttype{rg2}
+  \item
+    \hsubx{set\_rlambda\_tpb4}:
+  \item
+    \hsubx{set\_rlambda\_tpb3}:
+  \item
+    \hsubx{set\_rlambda\_tpb3\_g}:
+  \item
+    \hsubx{set\_rlambda\_tpb\_from\_dens}:
+  \item
+    \hsubx{set\_rlambda\_tpb\_from\_dens\_nrmaxp1}:
+  \item
+    \hsubx{set\_rlambda\_rg\_tpb\_from\_dens}:
+  \end{itemize}
+      
 \item
   \hfile{fploop.f90}: Time loop for execution
+  \begin{itemize}
+  \item
+    \hsub{fp\_loop}
+  \item
+    \hsubx{solve\_matrix\_update\_FNS0}
+  \item
+    \hsubx{implicit\_convergence\_update\_FNSP}
+  \item
+    \hsubx{bulk\_const1\_for\_non\_exp}
+  \item
+    \hsubx{bulk\_const1\_for\_exp}
+  \item
+    \hsubx{update\_radial\_f\_boundary}
+  \end{itemize}
 \item
   \hfile{fpexec.f90}: Execution of one time step
 \end{itemize}

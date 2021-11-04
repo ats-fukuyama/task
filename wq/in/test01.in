@@ -1,43 +1,33 @@
 0
 f
-test01.gs
+gs/test01.gs
 c
-p
-&wq
-    FREQ     = 1.0d12
-    dtfactor = 5.0d-5
-    dxfactor = 1.0d-1
-    dyfactor = 1.0d-1
-    nufactor = 0.0d-4
-    B0       = 0.072D0
-    RR       = 0.22D0
-    RA       = 0.16D0
-    n0       = 0.D17
-    ntmax    = 120000
-    nxmax    = 101
-    nymax    = 101
-    INMODE   = 1
-    TMN      = 1.0d0
-
+    freq     = 1.0d12
+    model_source=1
     source_width=2.0
-    model_ramp=2
     model_pulse =1
+    model_ramp=2
     ramp_length=1.D0
     pulse_length=2.D0
-    model_dielectric = 1
-    dielectric_2=1.D0
-    dielectric_3=1.D0
-    freq_resonance=1.D0
-    freq_collision=0.003D0
-    model_solver=0
+    medium_max=0
+    model_solver=1
     model_plot=1
-    ntplot_interval=60000
-    ntplot_max=10
-/
+    dtfactor = 1.0d-3
+    ntmax     = 1000
+    ntstep=100
+    ngtstep=10
+    ngrstep=1000
 r
+c
+c
+c
 g
-A
-B
-C
-X
+g
+p
+t
+4
+5
+6
+0
+x
 q

@@ -36,7 +36,6 @@ CONTAINS
     ELSEIF(kid.EQ.'V') THEN
        CALL wq_view
     ELSEIF(kid.EQ.'R') THEN
-       CALL wq_allocate
        CALL wq_prep
        istatus=1
        CALL wq_exec

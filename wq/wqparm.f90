@@ -51,12 +51,32 @@ CONTAINS
     INTEGER,INTENT(OUT):: ist,ierr
 
     NAMELIST /WQ/ &
-         FREQ,dtfactor,dxfactor,dyfactor,nufactor, &
-         B0,RR,RA,q0,qa,n0,ntmax,nxmax,nymax,INMODE,TMN, &
-         model_pulse,model_ramp,model_dielectric,model_solver,model_plot, &
-         source_width,pulse_length,ramp_length, &
-         dielectric_2,dielectric_3,freq_resonance,freq_collision, &
-         ntplot_interval,ntplot_max
+         model_geometry,xnmin,xnmax,ynmin,ynmax, &
+         B0,RR,RA,q0,qa, &
+         freq,rkz,nph, &
+         model_source,source_position_xn,source_position_yn, &
+         source_width,source_thickness,source_angle, &
+         model_pulse,pulse_length,model_ramp,ramp_length, &
+         medium_max,id_medium,xnmin_medium,xnmax_medium,ynmin_medium, &
+         ynmax_medium,dielectric_medium,res_freq_medium,res_coll_medium, &
+         density_medium,collision_medium, &
+         model_solver,model_plot, &
+         fimplicit,ntype_mat,eps_mat, &
+         dtfactor,dxfactor,dyfactor, &
+         ntmax,ntstep,ngtstep,ngrstep,idebuga, &
+         model_geometry,xnmin,xnmax,ynmin,ynmax, &
+         B0,RR,RA,q0,qa, &
+         freq,rkz,nph, &
+         model_source,source_position_xn,source_position_yn, &
+         source_width,source_thickness,source_angle, &
+         model_pulse,pulse_length,model_ramp,ramp_length, &
+         medium_max,id_medium,xnmin_medium,xnmax_medium,ynmin_medium, &
+         ynmax_medium,dielectric_medium,res_freq_medium,res_coll_medium, &
+         density_medium,collision_medium, &
+         model_solver,model_plot, &
+         fimplicit,ntype_mat,eps_mat, &
+         dtfactor,dxfactor,dyfactor, &
+         ntmax,ntstep,ngtstep,ngrstep,idebuga
 
     ierr=0
 
@@ -81,13 +101,20 @@ CONTAINS
   SUBROUTINE wq_plst
 
     WRITE(6,'(A)') &
-         '# &WQ: FREQ,dtfactor,dxfactor,dyfactor,nufactor,', &
-         '       B0,RR,RA,q0,qa,n0,ntmax,nxmax,nymax,INMODE,TMN', &
-         '       model_pulse,model_ramp,model_dielectric,model_solver', &
-         '       model_plot,', &
-         '       source_width,pulse_lenght,ramp_length,', &
-         '       dielectric_2,dielectric_3,freq_resonance,freq_collision,', &
-         '       ntplot_interval,ntplot_max'
+         '# &WQ: model_geometry,xnmin,xnmax,ynmin,ynmax,', &
+         '       B0,RR,RA,q0,qa,', &
+         '       freq,rkz,nph,', &
+         '       model_source,source_position_xn,source_position_yn,', &
+         '       source_width,source_thickness,source_angle,', &
+         '       model_pulse,pulse_length,model_ramp,ramp_length,', &
+         '       medium_max,id_medium,', &
+         '       xnmin_medium,xnmax_medium,ynmin_medium,ynmax_medium,', &
+         '       dielectric_medium,res_freq_medium,res_coll_medium,', &
+         '       density_medium,collision_medium,', &
+         '       model_solver,model_plot,', &
+         '       fimplicit,ntype_mat,eps_mat,', &
+         '       dtfactor,dxfactor,dyfactor,', &
+         '       ntmax,ntstep,ngtstep,ngrstep,idebuga'
     RETURN
   END SUBROUTINE wq_plst
 
@@ -116,73 +143,92 @@ CONTAINS
 
 ! --- WQ specific input parameters ---
 
-    idata( 1)=ntmax
-    idata( 2)=nxmax
-    idata( 3)=nymax
-    idata( 4)=INMODE
-    idata( 5)=model_pulse
-    idata( 6)=model_ramp
-    idata( 7)=model_dielectric
-    idata( 8)=model_solver
-    idata( 9)=model_plot
-    idata(10)=ntplot_interval
-    idata(11)=ntplot_max
+    idata( 1)=model_geometry
+    idata( 2)=nph
+    idata( 3)=model_source
+    idata( 4)=model_pulse
+    idata( 5)=model_ramp
+    idata( 6)=medium_max
+    idata( 7)=model_solver
+    idata( 8)=model_plot
+    idata( 9)=ntype_mat
+    idata(10)=ntmax
+    idata(11)=ntstep
+    idata(12)=ngtstep
+    idata(13)=ngrstep
+    CALL mtx_broadcast_integer(idata,13)
+    model_geometry=idata( 1)
+    nph=idata( 2)
+    model_source=idata( 3)
+    model_pulse=idata( 4)
+    model_ramp=idata( 5)
+    medium_max=idata( 6)
+    model_solver=idata( 7)
+    model_plot=idata( 8)
+    ntype_mat=idata( 9)
+    ntmax=idata(10)
+    ntstep=idata(11)
+    ngtstep=idata(12)
+    ngrstep=idata(13)
 
-    CALL mtx_broadcast_integer(idata,11)
+    rdata( 1)=xnmin
+    rdata( 2)=xnmax
+    rdata( 3)=ynmin
+    rdata( 4)=ynmax
+    rdata( 5)=B0
+    rdata( 6)=RR
+    rdata( 7)=RA
+    rdata( 8)=q0
+    rdata( 9)=qa
+    rdata(10)=freq
+    rdata(11)=rkz
+    rdata(12)=source_position_xn
+    rdata(13)=source_position_yn
+    rdata(14)=source_width
+    rdata(15)=source_thickness
+    rdata(16)=source_angle
+    rdata(17)=pulse_length
+    rdata(18)=ramp_length
+    rdata(19)=dtfactor
+    rdata(20)=dxfactor
+    rdata(21)=dyfactor
+    rdata(22)=fimplicit
+    rdata(23)=eps_mat
+    CALL mtx_broadcast_real8(rdata,23)
+    xnmin=rdata( 1)
+    xnmax=rdata( 2)
+    ynmin=rdata( 3)
+    ynmax=rdata( 4)
+    B0=rdata( 5)
+    RR=rdata( 6)
+    RA=rdata( 7)
+    q0=rdata( 8)
+    qa=rdata( 9)
+    freq=rdata(10)
+    rkz=rdata(11)
+    source_position_xn=rdata(12)
+    source_position_yn=rdata(13)
+    source_width=rdata(14)
+    source_thickness=rdata(15)
+    source_angle=rdata(16)
+    pulse_length=rdata(17)
+    ramp_length=rdata(18)
+    dtfactor=rdata(19)
+    dxfactor=rdata(20)
+    dyfactor=rdata(21)
+    fimplicit=rdata(22)
+    eps_mat=rdata(23)
 
-    ntmax=idata( 1)
-    nxmax=idata( 2)
-    nymax=idata( 3)
-    INMODE=idata( 4)
-    model_pulse=idata( 5)
-    model_ramp=idata( 6)
-    model_dielectric=idata( 7)
-    model_solver=idata( 8)
-    model_plot=idata( 9)
-    ntplot_interval=idata(10)
-    ntplot_max=idata(11)
-
-    rdata( 1)=FREQ
-    rdata( 2)=dtfactor
-    rdata( 3)=dxfactor
-    rdata( 4)=dyfactor
-    rdata( 5)=nufactor
-    rdata( 6)=B0
-    rdata( 7)=RR
-    rdata( 8)=RA
-    rdata( 9)=q0
-    rdata(10)=qa
-    rdata(11)=n0
-    rdata(12)=TMN
-    rdata(13)=source_width
-    rdata(14)=pulse_length
-    rdata(15)=ramp_length
-    rdata(16)=dielectric_2
-    rdata(17)=dielectric_3
-    rdata(18)=freq_resonance
-    rdata(19)=freq_collision
-
-    CALL mtx_broadcast_real8(rdata,19)
-
-    FREQ=rdata( 1)
-    dtfactor=rdata( 2)
-    dxfactor=rdata( 3)
-    dyfactor=rdata( 4)
-    nufactor=rdata( 5)
-    B0=rdata( 6)
-    RR=rdata( 7)
-    RA=rdata( 8)
-    q0=rdata( 9)
-    qa=rdata(10)
-    n0=rdata(11)
-    TMN=rdata(12)
-    source_width=rdata(13)
-    pulse_length=rdata(14)
-    ramp_length=rdata(15)
-    dielectric_2=rdata(16)
-    dielectric_3=rdata(17)
-    freq_resonance=rdata(18)
-    freq_collision=rdata(19)
-
+    CALL mtx_broadcast_integer(id_medium,medium_max)
+    CALL mtx_broadcast_real8(xnmin_medium,medium_max)
+    CALL mtx_broadcast_real8(xnmax_medium,medium_max)
+    CALL mtx_broadcast_real8(ynmin_medium,medium_max)
+    CALL mtx_broadcast_real8(ynmax_medium,medium_max)
+    CALL mtx_broadcast_real8(dielectric_medium,medium_max)
+    CALL mtx_broadcast_real8(res_freq_medium,medium_max)
+    CALL mtx_broadcast_real8(res_coll_medium,medium_max)
+    CALL mtx_broadcast_real8(density_medium,medium_max)
+    CALL mtx_broadcast_real8(collision_medium,medium_max)
+    CALL mtx_broadcast_integer(idebuga,99)
   END SUBROUTINE wq_broadcast
 END MODULE wqparm

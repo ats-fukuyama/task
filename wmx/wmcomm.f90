@@ -43,9 +43,13 @@ MODULE wmcomm_parm
   INTEGER:: NRMAX       ! number of radial mesh (element) in plcomm.parm
   INTEGER:: NTHMAX      ! number of poloidal mesh         in plcomm.parm
 
-  INTEGER:: NHHMAX      ! number of helical mesh (0 for axisymmetric)
-  INTEGER:: NPHMAX      ! number of toroidal mesh (0 for single toroidal mode)
-                        !   NPHMAX should be >= NHHMAX*NHC for helical sym.
+  INTEGER:: NHHMAX      ! number of helical mode (1 for tokamak)
+  INTEGER:: NPHMAX      ! number of toroidal mode (valid for tokamak)
+                        !                          1: for single mode
+  INTEGER:: NPPMAX      ! number of toroidal mode group (valid for helical)
+                        !                          1: for single mode group
+                        !                        nhc: for full helical modes
+                        !    (nphmax will be to set to nhc*nhhmax for helical)
 
   INTEGER:: NSUMAX          ! Number of plasma surface plot points
   INTEGER:: NSWMAX          ! Number of wall surface plot points
@@ -143,6 +147,7 @@ MODULE wmcomm
   INTEGER:: NTHMAX_F    ! number of extended poloidal mesh =NTHMAX*factor_nth
   INTEGER:: NHHMAX_F    ! number of extended helical mesh  =NHHMAX*factor_nhh
   INTEGER:: NPHMAX_F    ! number of extended toroidal mesh =NPHMAX*factor_nph
+  INTEGER:: NPHTOT      ! number of toroidal mode number for FFT 2**n
   INTEGER:: MDSIZ,MDMIN,MDMAX,LDSIZ,LDMIN,LDMAX
   INTEGER:: MDSIZ_F,MDMIN_F,MDMAX_F,LDSIZ_F,LDMIN_F,LDMAX_F
   INTEGER:: NDSIZ,NDMIN,NDMAX,KDSIZ,KDMIN,KDMAX

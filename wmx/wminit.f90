@@ -13,6 +13,34 @@ CONTAINS
     IMPLICIT NONE
     INTEGER:: NA,i
 
+! *** mode setting parameters ***
+
+!  tokamak: 	nhhmax=0
+!		nphmax=1 
+!		nph=nph0
+!		nphtot=1
+!		L=2PiR
+
+!  helical:	nhhmax: given >1
+!		nppmax=1
+!		nph=nph0+nhc*(nhh-1)
+!		nphtot=nhhmax
+!		L=2PiR/nhc
+
+! tokamak 3D	nhhmax=0
+!		nphmax: given > 1
+!		nph=1..nphmax
+!		nppmax=nphmax
+!		nphtot=Max(nphmax,2**n)
+!		L=2PiR
+
+! helical 3D	nhhmax: given >1
+!		nppmax=nhc > 1
+!		nphmax=nhhmax*nhc
+!		nph=(nhh-1)*nhc+(npp-1)
+!		nphtot=Max(nhhmax*nhc,2**n)
+!		L=2PiR
+    
 !     *** MESH PARAMETERS ***
 
 !     NRMAX  : Number of radial mesh points
@@ -23,7 +51,9 @@ CONTAINS
 !     NPHMAX : Number of toroidal modes (power of 2)
 !                 =1 : single toroidal mode calculation
 !                 >1 : multi toroidal mode calculation (-NPHMAX/2+1..NPHMAX/2)
-!                      NPHMAX >= NHHMAX*NHC
+!     NPPMAX : Number of toroidal mode group for helical
+!                 =1 : single toroidal mode groupe
+!                 >1 : toroidal mode group (NHC for full mode group)
 !     factor_nth : ratio of nthmax_f and nthmax [INTEGER]    
 !     factor_nhh : ratio of nhhmax_f and nhhmax [INTEGER]    
 !     factor_nph : ratio of nphmax_f and nphmax [INTEGER]    
@@ -32,6 +62,7 @@ CONTAINS
       NTHMAX  = 1
       NHHMAX  = 1
       NPHMAX  = 1
+      NPPMAX  = 1
       factor_nth = 2 
       factor_nhh = 2
       factor_nph = 2

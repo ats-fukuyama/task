@@ -1,0 +1,1 @@
+./wq <in/$1.in | tee out/$1.out

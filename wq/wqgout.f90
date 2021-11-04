@@ -7,6 +7,8 @@ MODULE wqgout
 
 CONTAINS
 
+  ! *** graphic menu ***
+  
   SUBROUTINE wq_gout
     USE wqcomm
     USE wqparm,ONLY: wq_parm,wq_broadcast
@@ -23,10 +25,10 @@ CONTAINS
     
     IF(nrank.EQ.0) THEN
        WRITE(6,'(A)') &
-            '## wqgout menu: A,B,C  parm  X/end'
+            '## wqgout menu: g:global p:profile t:time  parm  x/end'
        CALL TASK_KLIN(line,kid,mode,wq_parm)
+       CALL ToUpper(kid)
     END IF
-    CALL ToUpper(kid)
     CALL mtx_broadcast1_character(kid)
     CALL mtx_broadcast1_integer(mode)
 
@@ -34,12 +36,12 @@ CONTAINS
     IF(mode.NE.1) GO TO 1
 
     SELECT CASE(kid)
-    CASE('A')
-       CALL wq_gsub(0)
-    CASE('B')
-       CALL wq_gsub(1)
-    CASE('C')
-       CALL wq_gsub_plot
+    CASE('G')
+       CALL wq_gsub_global
+    CASE('P')
+       CALL wq_gsub_profile
+    CASE('T')
+       CALL wq_gsub_time
     CASE('X')
        GO TO 9000
     END SELECT
@@ -49,267 +51,190 @@ CONTAINS
     RETURN
   END SUBROUTINE wq_gout
 
-  SUBROUTINE wq_gsub(flag)
-
-  use wqcomm
-  USE libgrf
-  IMPLICIT NONE
-  INTEGER(4)            :: nx,ny,k,NGP,MODE,IPRD,IG2D,flag
-  CHARACTER(LEN=80)     :: STR
-  REAL(8)               :: FX(nxmax),FY(nymax),FZ(nxmax,nymax)
-
-  DO nx=1,nxmax
-!        FX(nx)=RR+dx*DBLE(nx-1-(nxmax-1)/2)
-       FX(nx)=dx*DBLE(nx-1)
-  ENDDO
-  DO ny=1,nymax
-!      FY(ny)=dy*DBLE(ny-1-(nymax-1)/2)
-       FY(ny)=dy*DBLE(ny-1)
-  ENDDO
-
-  SELECT CASE(flag)
-  CASE(0)
-
-  call PAGES
+  ! *** time history of global quantities ***
   
-  MODE=0
-  IPRD=0
-  IG2D=1
+  SUBROUTINE wq_gsub_global
 
-  NGP=5
-  STR='/AP/'
-  DO ny=1,nymax
-     DO nx=1,nxmax
-        FZ(nx,ny)=pabs(nx,ny)
-     END DO
-  END DO
-  CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,STR,MODE,IPRD,IG2D,ASPECT=0.D0)
-
-  NGP=6
-  STR='/OUH/'
-  DO ny=1,nymax
-     DO nx=1,nxmax
-        FZ(nx,ny)=OUH(nx,ny)**2/omega**2-1.d0
-     END DO
-  END DO
-  CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,STR,MODE,IPRD,IG2D,ASPECT=0.D0)
-
-  NGP=7
-  STR='/R/'
-  DO ny=1,nymax
-     DO nx=1,nxmax
-        FZ(nx,ny)=OR(nx,ny)**2/omega**2-1.d0
-     END DO
-  END DO
-  CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,STR,MODE,IPRD,IG2D,ASPECT=0.D0)
-
-  NGP=8
-  STR='/L/'
-  DO ny=1,nymax
-     DO nx=1,nxmax
-        FZ(nx,ny)=OL(nx,ny)**2/omega**2-1.d0
-     END DO
-  END DO
-  CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,STR,MODE,IPRD,IG2D,ASPECT=0.D0)
-
-  NGP=9
-  STR='/OCE/'
-  DO ny=1,nymax
-     DO nx=1,nxmax
-        FZ(nx,ny)=OCE(nx,ny)**2/omega**2-1.d0
-     END DO
-  END DO
-  CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,STR,MODE,IPRD,IG2D,ASPECT=0.D0)
-
-  NGP=10
-  STR='/OPE/'
-  DO ny=1,nymax
-     DO nx=1,nxmax
-        FZ(nx,ny)=OPE(nx,ny)**2/omega**2-1.d0
-     END DO
-  END DO
-  CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,STR,MODE,IPRD,IG2D,ASPECT=0.D0)
-
-  NGP=11
-  STR='/ne/'
-  DO ny=1,nymax
-     DO nx=1,nxmax
-        FZ(nx,ny)=ne(nx,ny)
-     END DO
-  END DO
-  CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,STR,MODE,IPRD,IG2D,ASPECT=0.D0)
-
-  call PAGEE
-
-  CASE(1)
-
-  call PAGES
-
-  MODE=0
-  IPRD=0
-  IG2D=1
-
-  NGP=5
-  STR='/Real(EX)/'
-  DO ny=1,nymax
-     DO nx=1,nxmax
-        FZ(nx,ny)=REAL(EX(nx,ny))
-     END DO
-  END DO
-  CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,STR,MODE,IPRD,IG2D)
-
-  NGP=8
-  STR='/Image(EX)/'
-  DO ny=1,nymax
-     DO nx=1,nxmax
-        FZ(nx,ny)=IMAG(EX(nx,ny))
-     END DO
-  END DO
-  CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,STR,MODE,IPRD,IG2D)
-  
-  NGP=6
-  STR='/Real(EY)/'
-  DO ny=1,nymax
-     DO nx=1,nxmax
-        FZ(nx,ny)=Real(EY(nx,ny))
-     END DO
-  END DO
-  CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,STR,MODE,IPRD,IG2D)
-
-  NGP=9
-  STR='/Image(EY)/'
-  DO ny=1,nymax
-     DO nx=1,nxmax
-        FZ(nx,ny)=IMAG(EY(nx,ny))
-     END DO
-  END DO
-  CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,STR,MODE,IPRD,IG2D)
-  
-  NGP=7
-  STR='/Real(EZ)/'
-  DO ny=1,nymax
-     DO nx=1,nxmax
-        FZ(nx,ny)=Real(EZ(nx,ny))
-     END DO
-  END DO
-  CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,STR,MODE,IPRD,IG2D)
-
-  NGP=10
-  STR='/Image(EZ)/'
-  DO ny=1,nymax
-     DO nx=1,nxmax
-        FZ(nx,ny)=IMAG(EZ(nx,ny))
-     END DO
-  END DO
-  CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,STR,MODE,IPRD,IG2D)
-  
-  CALL PAGEE
-
-   END SELECT
-  
-  RETURN
-  END SUBROUTINE wq_gsub
-
-  SUBROUTINE wq_gsub_plot
-
-    use wqcomm
+    USE wqcomm
     USE libgrf
     IMPLICIT NONE
-    INTEGER            :: nx,ny,nt,NGP,np
-    CHARACTER(LEN=80)  :: title
-    REAL(rkind)        :: Emax,Eabs
-    REAL(rkind)        :: FX(nxmax),FY(nymax),FZ(nxmax,nymax)
+    INTEGER:: ngt
+    REAL(rkind):: tn(ngt_m)
 
-    Emax=0.D0
-    DO np=1,ntplot
-       DO ny=1,nymax
-          DO nx=1,nxmax
-             Eabs=ABS(EX_save(nx,ny,np))**2 &
-                 +ABS(EY_save(nx,ny,np))**2 &
-                 +ABS(EZ_save(nx,ny,np))**2
-             Emax=MAX(Emax,SQRT(Eabs))
-          END DO
-       END DO
+    DO ngt=1,ngt_max
+       tn(ngt)=t_ngt(ngt)/period
     END DO
-    
-    IF(ntplot.LE.0) THEN
-       WRITE(6,*) 'XX wq_gsub_plot: ntplot.LE.0'
-       RETURN
-    END IF
+
+    CALL PAGES
+    WRITE(6,'(A,I8,2ES12.4)') 'ngt_max,t,EX:',ngt_max,t_ngt(1),EX_max_ngt(1)
+    CALL grd1d(1,tn,EX_max_ngt,ngt_m,ngt_max,1,'@Ex_max vs tn@')
+    CALL grd1d(2,tn,EY_max_ngt,ngt_m,ngt_max,1,'@EY_max vs tn@')
+    CALL grd1d(3,tn,EZ_max_ngt,ngt_m,ngt_max,1,'@EY_max vs tn@')
+    CALL grd1d(4,tn,pabs_tot_ngt,ngt_m,ngt_max,1,'@Pabs_tot vs tn@')
+
+    CALL PAGEE
+    RETURN
+  END SUBROUTINE wq_gsub_global
+
+  ! *** profile of elecric field and pabs ***
   
-    DO nx=1,nxmax
-!        FX(nx)=RR+dx*DBLE(nx-1-(nxmax-1)/2)
-       FX(nx)=dx*DBLE(nx-1)
-    ENDDO
-    DO ny=1,nymax
-!      FY(ny)=dy*DBLE(ny-1-(nymax-1)/2)
-       FY(ny)=dy*DBLE(ny-1)
-    ENDDO
+  SUBROUTINE wq_gsub_profile
+  
+    USE wqcomm
+    USE libgrf
+    IMPLICIT NONE
+    INTEGER:: nx,ny
+    REAL(rkind):: fr(nxmax,nymax),fi(nxmax,nymax),fa(nxmax,nymax)
 
     CALL PAGES
 
-    NGP=1
-    title='/EX plot/'
     DO ny=1,nymax
        DO nx=1,nxmax
-          FZ(nx,ny)=EX_save(nx,ny,1)
+          fr(nx,ny)=REAL(EX(nx,ny))
+          fi(nx,ny)=AIMAG(EX(nx,ny))
+          fa(nx,ny)=ABS(EX(nx,ny))
        END DO
     END DO
-    CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title, &
-               ASPECT=0.D0,FMIN=-Emax,FMAX=Emax)
-    DO nt=2,ntplot
-       DO ny=1,nymax
-          DO nx=1,nxmax
-             FZ(nx,ny)=EX_save(nx,ny,nt)
-          END DO
-       END DO
-       CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title, &
-            NOFRAME=1,NOTITLE=1,NOINFO=1, &
-            ASPECT=0.D0,FMIN=-Emax,FMAX=Emax)
-    END DO
+    CALL grd2d(5,xg,yg,fr,nxmax,nxmax,nymax,'@Real Ex@',ASPECT=0.D0)
+    CALL grd2d(6,xg,yg,fi,nxmax,nxmax,nymax,'@Imag Ex@',ASPECT=0.D0)
+    CALL grd2d(7,xg,yg,fa,nxmax,nxmax,nymax,'@Abs  Ex@',ASPECT=0.D0)
     
-    NGP=2
-    title='/EY plot/'
     DO ny=1,nymax
        DO nx=1,nxmax
-          FZ(nx,ny)=EY_save(nx,ny,1)
+          fr(nx,ny)=REAL(EY(nx,ny))
+          fi(nx,ny)=AIMAG(EY(nx,ny))
+          fa(nx,ny)=ABS(EY(nx,ny))
        END DO
     END DO
-    CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title, &
-               ASPECT=0.D0,FMIN=-Emax,FMAX=Emax)
-    DO nt=2,ntplot
-       DO ny=1,nymax
-          DO nx=1,nxmax
-             FZ(nx,ny)=EY_save(nx,ny,nt)
-          END DO
-       END DO
-       CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title, &
-            NOFRAME=1,NOTITLE=1,NOINFO=1, &
-            ASPECT=0.D0,FMIN=-Emax,FMAX=Emax)
-    END DO
-
-    NGP=3
-    title='/EZ plot/'
+    CALL grd2d( 8,xg,yg,fr,nxmax,nxmax,nymax,'@Real Ey@',ASPECT=0.D0)
+    CALL grd2d( 9,xg,yg,fi,nxmax,nxmax,nymax,'@Imag Ey@',ASPECT=0.D0)
+    CALL grd2d(10,xg,yg,fa,nxmax,nxmax,nymax,'@Abs  Ey@',ASPECT=0.D0)
+    
     DO ny=1,nymax
        DO nx=1,nxmax
-          FZ(nx,ny)=EZ_save(nx,ny,1)
+          fr(nx,ny)=REAL(EZ(nx,ny))
+          fi(nx,ny)=AIMAG(EZ(nx,ny))
+          fa(nx,ny)=ABS(EZ(nx,ny))
        END DO
     END DO
-    CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title, &
-               ASPECT=0.D0,FMIN=-Emax,FMAX=Emax)
-    DO nt=2,ntplot
-       DO ny=1,nymax
-          DO nx=1,nxmax
-             FZ(nx,ny)=EZ_save(nx,ny,nt)
-          END DO
-       END DO
-       CALL GRD2D(NGP,FX,FY,FZ,nxmax,nxmax,nymax,title, &
-            NOFRAME=1,NOTITLE=1,NOINFO=1, &
-            ASPECT=0.D0,FMIN=-Emax,FMAX=Emax)
-    END DO
+    CALL grd2d(11,xg,yg,fr,nxmax,nxmax,nymax,'@Real Ez@',ASPECT=0.D0)
+    CALL grd2d(12,xg,yg,fi,nxmax,nxmax,nymax,'@Imag Ez@',ASPECT=0.D0)
+    CALL grd2d(13,xg,yg,fa,nxmax,nxmax,nymax,'@Abs  Ez@',ASPECT=0.D0)
 
     CALL PAGEE
 
+    IF(pabs_tot_ngt(ngt_max).LE.0.D0) RETURN
+
+    CALL PAGES
+    
+    DO ny=1,nymax
+       DO nx=1,nxmax
+          fr(nx,ny)=REAL(pabs(nx,ny))
+       END DO
+    END DO
+    CALL grd2d(5,xg,yg,fr,nxmax,nxmax,nymax,'@Pabs@',ASPECT=0.D0)
+
+    CALL PAGEE
     RETURN
-  END SUBROUTINE wq_gsub_plot
+  END SUBROUTINE wq_gsub_profile
+
+  ! *** time history of elecric field and pabs ***
+  
+  SUBROUTINE wq_gsub_time
+  
+    USE wqcomm
+    USE libgrf
+    IMPLICIT NONE
+    INTEGER:: id,ngr,nx,ny,npage,npage_max,ng_id,ng
+    CHARACTER(LEN=9):: title
+    CHARACTER(LEN=16):: title_t
+    REAL(rkind):: f(nxmax,nymax)
+
+1   CONTINUE
+    WRITE(6,'(A)') '## Input : 1:Exr 2:Exi 3:Exa 4:Eyr 5:Eyi 6:Eya'
+    WRITE(6,'(A)') '           7:Ezr 8:Ezi 9:Eza 10:Pabs     0:end'
+    READ(5,*,END=9000,ERR=1) id
+    IF(id.EQ.0) GO TO 9000
+
+    SELECT CASE(id)
+    CASE(1)
+       title='@Real Ex:'
+    CASE(2)
+       title='@Imag Ex:'
+    CASE(3)
+       title='@Abs  Ex:'
+    CASE(4)
+       title='@Real Ey:'
+    CASE(5)
+       title='@Imag Ey:'
+    CASE(6)
+       title='@Abs  Ey:'
+    CASE(7)
+       title='@Real Ez:'
+    CASE(8)
+       title='@Imag Ez:'
+    CASE(9)
+       title='@Abs  Ez:'
+    CASE(10)
+       title='@Pabs   :'
+    END SELECT
+
+    npage_max=(ngr_max-1)/16+1
+    IF(npage_max.EQ.1) THEN
+       SELECT CASE(ngr_max)
+       CASE(1)
+          ng_id=0
+       CASE(2:4)
+          ng_id=1
+       CASE(5:9)
+          ng_id=5
+       CASE(10:16)
+          ng_id=14
+       END SELECT
+    ELSE
+       ng_id=14
+    END IF
+
+    DO npage=1,npage_max
+       CALL PAGES
+       DO ng=1,MIN(ngr_max-16*(npage-1),16)
+          ngr=16*(npage-1)+ng
+          WRITE(title_t,'(A,ES12.4,A)') ' t=',t_ngr(ngr),'@'
+          DO ny=1,nymax
+             DO nx=1,nxmax
+                SELECT CASE(id)
+                CASE(1)
+                   f(nx,ny)=REAL(EX_save(nx,ny,ngr))
+                CASE(2)
+                   f(nx,ny)=AIMAG(EX_save(nx,ny,ngr))
+                CASE(3)
+                   f(nx,ny)=ABS(EX_save(nx,ny,ngr))
+                CASE(4)
+                   f(nx,ny)=REAL(EY_save(nx,ny,ngr))
+                CASE(5)
+                   f(nx,ny)=AIMAG(EY_save(nx,ny,ngr))
+                CASE(6)
+                   f(nx,ny)=ABS(EY_save(nx,ny,ngr))
+                CASE(7)
+                   f(nx,ny)=REAL(EZ_save(nx,ny,ngr))
+                CASE(8)
+                   f(nx,ny)=AIMAG(EZ_save(nx,ny,ngr))
+                CASE(9)
+                   f(nx,ny)=ABS(EZ_save(nx,ny,ngr))
+                CASE(10)
+                   f(nx,ny)=pabs_save(nx,ny,ngr)
+                END SELECT
+             END DO ! nx
+          END DO !ny
+
+          CALL grd2d(ng-1+ng_id,xg,yg,f,nxmax,nxmax,nymax,title//title_t, &
+                     ASPECT=0.D0)
+       END DO
+       CALL PAGEE
+    END DO
+    GOTO 1
+
+9000 CONTINUE
+    RETURN
+  END SUBROUTINE wq_gsub_time
 END MODULE wqgout

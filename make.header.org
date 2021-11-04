@@ -78,6 +78,19 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MODDIR = -Jmod
 #LD=ld
 #LDFLAGS=-r -o
+#FPP=
+
+## for macos gfortran (64bit) lib
+#GFLIBS=-L/usr/local/lib -lg3d-gfc64 -lgsp-gfc64 -lgdp-gfc64  -L/opt/X11/lib -lX11
+#OFLAGS = -g -O3 -m64 -std=legacy
+#DFLAGS = -g -fbounds-check -ffpe-trap=invalid,zero,overflow -fbacktrace -fcheck=all -std=legacy
+#FCFIXED = gfortran -ffixed-form
+#FCFREE = gfortran -ffree-form
+#MOD = mod
+#MODDIR = -Jmod
+#LD=ld
+#LDFLAGS=-r -o
+#FPP=
 
 ## for linux gfortran (64bit) lib
 #GFLIBS=-L/usr/local/lib -lg3d-gfc64 -lgsp-gfc64 -lgdp-gfc64  -L/usr/X11R6/lib -lX11
@@ -101,6 +114,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MODDIR = -Jmod
 #LD=ld
 #LDFLAGS=-r -o
+#FPP=
 
 ## for macos pgf95 EM64T lib
 #GFLIBS=-L/usr/local/lib -lg3d-pgf64 -lgsp-pgf64 -lgdp-pgf64 -L/opt/X11/lib -lX11

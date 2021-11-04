@@ -29,14 +29,32 @@ CONTAINS
 
     NPH0_SV  = NPH0
 
-    IF(NPHMAX.EQ.1) THEN
-       NPH_LOOP(1)=NPH0
+    IF(NHHMAX.EQ.1) THEN
+       IF(NPHMAX.EQ.1) THEN
+          NPPMAX=1
+          NPH_LOOP(1)=NPH0
+       ELSE
+          NPPMAX=NPHMAX
+          DO NPP=1,NPPMAX
+             NPH_LOOP(NPP)=NPP-NPHMAX/2-1
+          END DO
+       END IF
     ELSE
-       DO NPH=1,NPHMAX
-          NPH_LOOP(NPH)=NPH-NPHMAX/2-1
-       END DO
+       IF(NPPMAX.EQ.1) THEN
+          NPH_LOOP(1)=NPH0
+          NPHMAX=NHHMAX
+       ELSE
+          IF(NPPMAX.GT.NHC) NPPMAX=NHC
+          DO NPP=1,NPPMAX
+             NPH_LOOP(NPP)=NPP-NPPMAX/2-1
+          END DO
+          NPHMAX=NPPMAX*NPPMAX
+       END IF
+       NPOW=NINT(LOG(DBLE(NPHMAX))/LOG(2.D0))
+       IF(NPHMAX.GT.2**NPOW) NPOW=NPOW+1
+       NPHTOT=2**NPOW
     END IF
-
+          
     DO NR=1,NRMAX+1
        DO NPH=1,NPHMAX
           DO NTH=1,NTHMAX

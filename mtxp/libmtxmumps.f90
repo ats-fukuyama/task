@@ -224,7 +224,7 @@
 
       SUBROUTINE mtx_solve(itype,tolerance,its, &
            methodKSP,methodPC,damping_factor,emax,emin,max_steps)
-      INTEGER,INTENT(IN):: itype     ! info level
+      INTEGER,INTENT(IN):: itype     ! info level: 0..3
       REAL(dp),INTENT(IN):: tolerance
       INTEGER,INTENT(OUT):: its
       INTEGER,OPTIONAL:: methodKSP,methodPC,max_steps
@@ -511,7 +511,7 @@
 
       SUBROUTINE mtxc_set_vector(j,v)
       INTEGER,INTENT(IN):: j ! vector positon j=row
-      REAL(dp),INTENT(IN):: v ! value to be inserted
+      COMPLEX(dp),INTENT(IN):: v ! value to be inserted
 
       return
       END SUBROUTINE mtxc_set_vector
@@ -520,7 +520,7 @@
 
       SUBROUTINE mtxc_solve(itype,tolerance,its, &
            methodKSP,methodPC,damping_factor,emax,emin,max_steps)
-      INTEGER,INTENT(IN):: itype     ! info level
+      INTEGER,INTENT(IN):: itype     ! info level: 0..3
       REAL(dp),INTENT(IN):: tolerance
       INTEGER,INTENT(OUT):: its
       INTEGER,OPTIONAL:: methodKSP,methodPC,max_steps

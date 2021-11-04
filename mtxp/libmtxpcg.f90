@@ -329,7 +329,7 @@
 
       SUBROUTINE mtxc_set_vector(j,v)
       INTEGER,INTENT(IN):: j ! vector positon j=row
-      REAL(dp),INTENT(IN):: v ! value to be inserted
+      COMPLEX(dp),INTENT(IN):: v ! value to be inserted
 
       RETURN
       END SUBROUTINE mtxc_set_vector
