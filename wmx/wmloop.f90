@@ -22,38 +22,61 @@ CONTAINS
     USE wmfile
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
-    INTEGER:: NPH0_SV,NPH,NR,NTH,NS,NHH,NPH1
+    INTEGER:: NPH0_save,NPH,NR,NTH,NS,NHH,NPH1,NPOW,NPP
     CHARACTER(LEN=80):: KNAMWM_SAVE
     CHARACTER(LEN=2):: KNHC
     CHARACTER(LEN=4):: KNPH0
 
-    NPH0_SV  = NPH0
+    NPH0_save  = NPH0
 
-    IF(NHHMAX.EQ.1) THEN
-       IF(NPHMAX.EQ.1) THEN
+    IF(NHHMAX.EQ.1) THEN ! tokamak
+       IF(NPHMAX.EQ.1) THEN ! single mode
           NPPMAX=1
-          NPH_LOOP(1)=NPH0
-       ELSE
+       ELSE                 ! multi mode
           NPPMAX=NPHMAX
-          DO NPP=1,NPPMAX
-             NPH_LOOP(NPP)=NPP-NPHMAX/2-1
-          END DO
        END IF
-    ELSE
-       IF(NPPMAX.EQ.1) THEN
-          NPH_LOOP(1)=NPH0
+    ELSE                 ! helical
+       IF(NPPMAX.EQ.1) THEN ! single mode-group
           NPHMAX=NHHMAX
-       ELSE
+       ELSE                 ! multi mode-group
           IF(NPPMAX.GT.NHC) NPPMAX=NHC
-          DO NPP=1,NPPMAX
-             NPH_LOOP(NPP)=NPP-NPPMAX/2-1
-          END DO
-          NPHMAX=NPPMAX*NPPMAX
+          NPHMAX=NPPMAX*NHHMAX
        END IF
-       NPOW=NINT(LOG(DBLE(NPHMAX))/LOG(2.D0))
-       IF(NPHMAX.GT.2**NPOW) NPOW=NPOW+1
-       NPHTOT=2**NPOW
     END IF
+    
+    NPOW=NINT(LOG(DBLE(NPHMAX))/LOG(2.D0))
+    IF(NPHMAX.GT.2**NPOW) NPOW=NPOW+1
+    NPHTOT=2**NPOW
+
+    IF(NHHMAX.EQ.1) THEN ! tokamak
+       IF(NPHMAX.EQ.1) THEN ! single mode
+          NPH_NPP(1)=NPH0
+          NPH_NHH_NPP(1,1)=NPH0
+       ELSE                 ! multi mode
+          DO NPP=1,NPPMAX
+             NPH_NPP(NPP)=NPP-NPPMAX/2-1         ! -NPHMAX/2:NPHMAX/2-1
+             NPH_NHH_NPP(1,NPP)=NPP-NPPMAX/2-1   ! -NPHMAX/2:NPHMAX/2-1
+          END DO
+       END IF
+    ELSE                 ! helical
+       IF(NPPMAX.EQ.1) THEN ! single mode-group
+          NPH_NPP(1)=NPH0
+          DO NHH=1,NHHMAX
+             NPH_NHH_NPP(NHH,1)=NPH0+NHC*(NHH-NHHMAX/2-1)
+          END DO
+       ELSE                 ! multi mode-group
+          DO NPP=1,NPPMAX
+             NPH_NPP(NPP)=NPP-NPPMAX/2-1
+             DO NHH=1,NHHMAX
+                NPH_NHH_NPP(NHH,NPP)=NPP-NPPMAX/2-1+NHC*(NHH-NHHMAX/2-1)
+             END DO
+          END DO
+       END IF
+    END IF
+
+    IF(nrank.EQ.0) WRITE(6,'(A,4I8)') &
+         '== nhhmax,nppmax,nphmax,nphtot=', &
+             nhhmax,nppmax,nphmax,nphtot
           
     DO NR=1,NRMAX+1
        DO NPH=1,NPHMAX
@@ -87,16 +110,17 @@ CONTAINS
     CALL wm_setg(IERR)
     CALL wm_pout_init
       
-    DO NPH = 1,NPHMAX
-       NPH0 = NPH_LOOP(NPH)
-       IF(nrank.EQ.0) WRITE(6,'(A,I4)') "== Toroidal mode number : ",NPH0
+    DO NPP = 1,NPPMAX
+       NPH0 = NPH_LOOP(NPP)
+       IF(nrank.EQ.0) WRITE(6,'(A,I4)') &
+            "== Toroidal mode number : ",NPH0
 
        CALL wm_exec(IERR)
        IF(IERR.NE.0) EXIT
 
        DO NR=1,NRMAX+1
           DO NHH=1,NHHMAX
-             NPH1=NPH+NHC*(NHH-1)
+             NPH1=NPH0+NHC*(NHH-1)
              DO NTH=1,NTHMAX
                 CEFLD3D(1,NTH,NPH1,NR)=CEFLD3D(1,NTH,NPH1,NR) &
                      +CEFLD(1,NTH,NHH,NR)
@@ -176,7 +200,7 @@ CONTAINS
     CALL wm_pout_sum
     CALL wm_pout
 
-    NPH0  = NPH0_SV
+    NPH0  = NPH0_save
 
 !      DO NS=1,NSMAX
 !         DO NR=1,NRMAX+1

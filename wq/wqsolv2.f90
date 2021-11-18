@@ -76,6 +76,7 @@ CONTAINS
 
     CM(1:3,1:3,-1:1,-1:1)=(0.D0,0.D0)
     ALLOCATE(cvec_r(mlen),cvec_l(mlen),cvec_s(mlen))
+    cvec_r(1:mlen)=0.D0
 
     do nx=1,nxmax
        do ny=1,nymax
@@ -163,6 +164,42 @@ CONTAINS
                 END DO
              END DO
           END DO
+       ELSE  ! boundary (nx=1 or nxmax: Ex'=0,Ey=Ez=0)
+             !          (ny=1 or nymax: Ey'=0,Ex=Ez=0)
+          i=i0
+          j=i0
+          cmat_l=1.D0
+          CALL mtxc_set_matrix(j,i,cmat_l)
+          IF(idebuga(61).EQ.1.AND.nrank.EQ.0) &
+               WRITE(61,'(A,2I6,2ES12.4)') 'cmat_l:',i,j,cmat_l
+          jl=il
+          nxl=0
+          nyl=0
+          cmat_r=0.D0
+          SELECT CASE(il)
+          CASE(1) ! Ex
+             IF(nx.EQ.1) THEN
+                nxl=1
+                cmat_l=-1.D0
+             ELSE IF(nx.EQ.nxmax) THEN
+                nxl=-1
+                cmat_l=-1.D0
+             END IF
+          CASE(2) ! Ey
+             IF(ny.EQ.1) THEN
+                nyl=1
+                cmat_l=-1.D0
+             ELSE IF(ny.EQ.nymax) THEN
+                nyl=-1
+                cmat_l=-1.D0
+             END IF
+          END SELECT
+          IF(ABS(cmat_l).GT.0.D0) THEN
+             j=3*(nymax*(nx-1+nxl)+ny-1+nyl)+jl
+             CALL mtxc_set_matrix(j,i,cmat_l)
+             IF(idebuga(61).EQ.1.AND.nrank.EQ.0) &
+                  WRITE(61,'(A,2I6,2ES12.4)') 'cmat_l:',i,j,cmat_l
+          END IF
        END IF
     END DO
 
@@ -170,6 +207,7 @@ CONTAINS
 
     DO i=istart,iend
        IF(ABS(cvec_r(i)).GT.0.D0) CALL mtxc_set_source(i,cvec_r(i))
+!       CALL mtxc_set_source(i,cvec_r(i))
     END DO
 
 !   --- setup initial solution vector for iterative scheme of matrix solver ---

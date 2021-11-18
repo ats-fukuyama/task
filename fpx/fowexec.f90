@@ -20,20 +20,20 @@ contains
     USE libmtx
     USE fpmpi
     IMPLICIT NONE
-    integer:: NSA, NP, NTH, NR, NL, NM, NN, NS
+    integer:: NSA, NP, NTH, NR, NL, NN, NS, imtx
     integer:: IERR,its
     integer:: imtxstart1,imtxend1
-    REAL(rkind),dimension(nmend-nmstart+1):: BM_L
+    REAL(rkind),dimension(imtxend-imtxstart+1):: BM_L
 
-    integer :: nm_pnc, nm_D, nm_Xstg, nl_lost, nm_Ostg
+    integer :: imtx_pnc, imtx_D, imtx_Xstg, nl_lost, imtx_Ostg
     REAL(rkind) :: begin_time, end_time
 
     call cpu_time(begin_time)
 
     NS=NS_NSA(NSA)
 
-    do nr = 1, nrmax
-      do np = 1, npmax
+    do nr = nrstart, nrend
+      do np = npstart, npend
         do nth = 1, nthmax
           f(nth,np,nr) = fnsp(nth,np,nr,nsa)
         end do
@@ -56,129 +56,127 @@ contains
 
     CALL fowweight(NSA,IERR)
 
-    !     ----- Set up index array NMA -----
+    !     ----- Set up index array IMTXA -----
 
-    CALL SET_FM_NMA(NSA,FNSM)
+    CALL SET_FM_IMTXA(NSA,FNSM)
 
-    DO NM=NMSTART,NMEND
-        NLMAX(NM)=0
-        BM(NM)=0.D0
+    DO imtx=imtxstart,imtxend
+        NLMAX(imtx)=0
+        BM(imtx)=0.D0
         DO NL=1,NLMAXM
-          LL(NM,NL)=0
-          AL(NM,NL)=0.D0
+          LL(imtx,NL)=0
+          AL(imtx,NL)=0.D0
         ENDDO
     ENDDO
 
 
     !     ----- Calculate matrix coefficients in a row -----
-    do nr = 1, nrmax
-      do np = 1, npmax
-        do nth = 1, nthmax
-          nm = nma(nth,np,nr)
-          call fowsetm(nth, np, nr, nsa, nlmax(nm))
-        end do
-      end do
+    do nr = nrstaar, nrend
+       do np = npstar, npend
+          do nth = 1, nthmax
+             imtx = imtxa(nth,np,nr)
+             call fowsetm(nth, np, nr, nsa, nlmax(imtx))
+          end do
+       end do
     end do
 
     !     ----- internal boundary condition-----
-    do nr = 1, nrmax
-      do np = 1, npmax
+    do nr = nrstart, nrend
+       do np = npstart, npend
+          
+          if ( theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+             if ( pz(ns) >= 0.d0 ) then
+                imtx_D = imtxa(nth_pnc(nsa)-1,np,nr)
+                imtx_Xstg = imtxa(nth_stg(nsa),np,nr_pnc_point(np,nr,nsa))
+             else
+                imtx_D = imtxa(nth_pnc(nsa),np,nr)
+                imtx_Xstg = imtxa(nth_stg(nsa)-1,np,nr_pnc_point(np,nr,nsa))
+             end if
+             call IBC_pinch(np,nr,nsa,nlmax(imtx_D),nlmax(imtx_Xstg))  
+          end if
 
-        if ( theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+
           if ( pz(ns) >= 0.d0 ) then
-            nm_D = nma(nth_pnc(nsa)-1,np,nr)
-            nm_Xstg = nma(nth_stg(nsa),np,nr_pnc_point(np,nr,nsa))
-          else
-            nm_D = nma(nth_pnc(nsa),np,nr)
-            nm_Xstg = nma(nth_stg(nsa)-1,np,nr_pnc_point(np,nr,nsa))
-          end if
-          call IBC_pinch(np,nr,nsa,nlmax(nm_D),nlmax(nm_Xstg))  
-        end if
+             imtx_Xstg = imtxa(nth_stg(nsa),np,nr)
+             if ( nr_rhom_pinch(np,nr,nsa) <= nrmax ) then
+                imtx_pnc = imtxa(nth_pnc(nsa)-1,np,nr_rhom_pinch(np,nr,nsa))
+                call IBC_X_stagnation(np,nr,nsa,nlmax(imtx_Xstg),nlmax(imtx_pnc))
+             else
+                nl_lost = -1
+                call IBC_X_stagnation(np,nr,nsa,nlmax(imtx_Xstg),nl_lost)
+             end if
 
-
-        if ( pz(ns) >= 0.d0 ) then
-          nm_Xstg = nma(nth_stg(nsa),np,nr)
-          if ( nr_rhom_pinch(np,nr,nsa) <= nrmax ) then
-            nm_pnc = nma(nth_pnc(nsa)-1,np,nr_rhom_pinch(np,nr,nsa))
-            call IBC_X_stagnation(np,nr,nsa,nlmax(nm_Xstg),nlmax(nm_pnc))
           else
-            nl_lost = -1
-            call IBC_X_stagnation(np,nr,nsa,nlmax(nm_Xstg),nl_lost)
-          end if
+             imtx_Xstg = imtxa(nth_stg(nsa)-1,np,nr)
+             if ( nr_rhom_pinch(np,nr,nsa) <= nrmax ) then
+                imtx_pnc = imtxa(nth_pnc(nsa),np,nr_rhom_pinch(np,nr,nsa))
+                call IBC_X_stagnation(np,nr,nsa,nlmax(imtx_Xstg),nlmax(imtx_pnc))
+             else
+                nl_lost = -1
+                call IBC_X_stagnation(np,nr,nsa,nlmax(imtx_Xstg),nl_lost)
+             end if
 
-        else
-          nm_Xstg = nma(nth_stg(nsa)-1,np,nr)
-          if ( nr_rhom_pinch(np,nr,nsa) <= nrmax ) then
-            nm_pnc = nma(nth_pnc(nsa),np,nr_rhom_pinch(np,nr,nsa))
-            call IBC_X_stagnation(np,nr,nsa,nlmax(nm_Xstg),nlmax(nm_pnc))
-          else
-            nl_lost = -1
-            call IBC_X_stagnation(np,nr,nsa,nlmax(nm_Xstg),nl_lost)
           end if
 
-        end if
+          if ( pz(ns) >= 0.d0 ) then
+             imtx_Ostg = imtxa(nth_pnc(nsa)-1,np,nr)
+          else
+             imtx_Ostg = imtxa(nth_pnc(nsa),np,nr)
+          end if
+          call IBC_O_stagnation(np,nr,nsa,nlmax(imtx_Ostg))
 
-        if ( pz(ns) >= 0.d0 ) then
-          nm_Ostg = nma(nth_pnc(nsa)-1,np,nr)
-        else
-          nm_Ostg = nma(nth_pnc(nsa),np,nr)
-        end if
-        call IBC_O_stagnation(np,nr,nsa,nlmax(nm_Ostg))
-
-      end do
+       end do
     end do
 
 
     !     ----- Diagonal term -----
-    do nr = 1, nrmax
-      do np = 1, npmax
-        do nth = 1, nthmax
-          nm = nma(nth,np,nr)
-          bm(nm) = (1.d0+(1.d0-rimpl)*delt*dl(nm))*fm(nm) &
-                    +delt*spp(nth,np,nr,nsa)
-          if ( nm.ge.imtxstart.and.nm.le.imtxend ) then
-            call mtx_set_matrix(nm, nm, 1.d0-rimpl*delt*dl(nm))
-            call mtx_set_vector(nm, fm(nm))
-          end if
-        end do
-      end do
+    
+    do nr = nrstart, nrend
+       do np = npstart, npend
+          do nth = 1, nthmax
+             imtx = imtxa(nth,np,nr)
+             bm(imtx) = (1.d0+(1.d0-rimpl)*delt*dl(imtx))*fm(imtx) &
+                      +delt*spp(nth,np,nr,nsa)
+             if ( imtx.ge.imtxstart.and.imtx.le.imtxend ) then
+                call mtx_set_matrix(imtx, imtx, 1.d0-rimpl*delt*dl(imtx))
+                call mtx_set_vector(imtx, fm(imtx))
+             end if
+          end do
+       end do
     end do
 
     !     ----- Off diagonal term -----
 
-    DO NM=NMSTART,NMEND ! LHS
-      IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
-        DO NL=1,NLMAX(NM)
-            IF(LL(NM,NL).NE.0) THEN
-              CALL mtx_set_matrix(nm,LL(NM,NL),-RIMPL*DELT*AL(NM,NL))
-            ENDIF
-        ENDDO
-      ENDIF
+    DO imtx=imtxstart,imtxend ! LHS
+       DO NL=1,NLMAX(imtx)
+             IF(LL(imtx,NL).NE.0) THEN
+                CALL mtx_set_matrix(imtx,LL(IMTX,NL),-RIMPL*DELT*AL(imtx,NL))
+             ENDIF
+          ENDDO
+       ENDIF
     ENDDO
     !     ----- Source vector: contribution from off-diagonal term -----
 
-    DO NM=NMSTART,NMEND ! RHS
-      DO NL=1,NLMAX(NM)
-        NN=LL(NM,NL)
-        IF(NN.NE.0) THEN
-          IF(NN.ge.NMSTART-NTHMAX.and.NN.le.NMEND+NTHMAX)THEN
-            BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM(NN)
-          ELSEIF(NN.lt.NMSTART-NTHMAX)THEN
-            BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM_shadow_m(NN)
-          ELSE
-            BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM_shadow_p(NN)
-          END IF
-        ENDIF
-      ENDDO
-      IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
-         CALL mtx_set_source(nm,BM(NM))
-      ENDIF
+    DO imtx=imtxstart,imtxend ! RHS
+       DO NL=1,NLMAX(imtx)
+          NN=LL(imtx,NL)
+          IF(NN.NE.0) THEN
+             IF(NN.ge.imtxstart-NTHMAX.and.NN.le.imtxend+NTHMAX)THEN
+                BM(imtx)=BM(imtx)+(1.D0-RIMPL)*DELT*AL(imtx,NL)*FM(NN)
+             ELSEIF(NN.lt.imtxstart-NTHMAX)THEN
+                BM(imtx)=BM(imtx)+(1.D0-RIMPL)*DELT*AL(imtx,NL)*FM_shadow_m(NN)
+             ELSE
+                BM(imtx)=BM(imtx)+(1.D0-RIMPL)*DELT*AL(imtx,NL)*FM_shadow_p(NN)
+             END IF
+          ENDIF
+       ENDDO
+       CALL mtx_set_source(imtx,BM(imtx))
     ENDDO
 
 
     !     ----- Solve matrix equation -----
 
-    CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) ! ncom is nessesary for MUMPS not PETSc
+    CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC)
     ierr=0
 
     !     ----- Get solution vector -----
@@ -186,17 +184,14 @@ contains
     CALL mtx_get_vector(BM_L)
 
     DO NR=NRSTART, NREND
-        DO NP=NPSTART, NPEND
+       DO NP=NPSTART, NPEND
           DO NTH=1,NTHMAX
-              NM=NMA(NTH,NP,NR)
-              IF(ABS(BM_L(NM-NMSTART+1)).LT.1.D-100) THEN
-                FNS0(NTH,NP,NR,NSA)=0.D0
-              ELSE
-                FNS0(NTH,NP,NR,NSA)=BM_L(NM-NMSTART+1)
-              END IF
+             imtx=IMTXA(NTH,NP,NR)
+             FNS0(NTH,NP,NR,NSA)=BM_L(imtx-imtxstart+1)
           END DO
-        END DO
+       END DO
     END DO
+    
     !     shadow requires to communicate
     CALL mtx_set_communicator(comm_np)
     DO NR=NRSTART, NREND
@@ -213,19 +208,20 @@ contains
     CALL mtx_reset_communicator
 
     call cpu_time(end_time)
-    write(6,'(A,I0,A,ES10.3,A)')'fowexec time (nsa=',nsa,') : ',end_time-begin_time,'[sec]'
+    write(6,'(A,I0,A,ES10.3,A)') 'fowexec time (nsa=',nsa,') : ', &
+         end_time-begin_time,'[sec]'
 
     RETURN
   END subroutine fow_exec
 
   !     ---------------------------------
 
-  SUBROUTINE SET_FM_NMA(NSA,func_in)
+  SUBROUTINE SET_FM_IMTXA(NSA,func_in)
 
     IMPLICIT NONE
-    integer:: NTH, NP, NR, NSA, NM, NRS
-    REAL(rkind),dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND), &
-          intent(IN):: func_in
+    integer:: NTH, NP, NR, NSA, imtx, NRS
+    REAL(rkind),intent(IN):: &
+         func_in(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND)
 
     IF(NRSTART.eq.1)THEN
         NRS=1
@@ -236,8 +232,8 @@ contains
     DO NR=NRSTARTW,NRENDWM
         DO NP=NPSTARTW,NPENDWM
           DO NTH=1,NTHMAX
-              NM=NTH+NTHMAX*(NP-1)+NPMAX*NTHMAX*(NR-1)
-              NMA(NTH,NP,NR)=NM
+              imtx=NTH+NTHMAX*(NP-1)+NPMAX*NTHMAX*(NR-1)
+              IMTXA(NTH,NP,NR)=imtx
           END DO
         END DO
     END DO
@@ -245,8 +241,8 @@ contains
     DO NR=NRSTART,NREND
         DO NP=NPSTARTW,NPENDWM
           DO NTH=1,NTHMAX
-              NM=NMA(NTH,NP,NR)
-              FM(NM)=func_in(NTH,NP,NR,NSA)
+              IMTX=IMTXA(NTH,NP,NR)
+              FM(IMTX)=func_in(NTH,NP,NR,NSA)
           ENDDO
         ENDDO
     ENDDO
@@ -254,8 +250,8 @@ contains
     IF(NR.ne.NRSTART)THEN
         DO NP=NPSTARTW,NPENDWM
           DO NTH=1,NTHMAX
-              NM=NMA(NTH,NP,NR)
-              FM_shadow_m(NM)=func_in(NTH,NP,NR,NSA)
+              IMTX=IMTXA(NTH,NP,NR)
+              FM_shadow_m(IMTX)=func_in(NTH,NP,NR,NSA)
           ENDDO
         ENDDO
     END IF
@@ -263,14 +259,14 @@ contains
     IF(NR.ne.NREND)THEN
         DO NP=NPSTARTW,NPENDWM
           DO NTH=1,NTHMAX
-              NM=NMA(NTH,NP,NR)
-              FM_shadow_p(NM)=func_in(NTH,NP,NR,NSA)
+              IMTX=IMTXA(NTH,NP,NR)
+              FM_shadow_p(IMTX)=func_in(NTH,NP,NR,NSA)
           ENDDO
         ENDDO
     END IF
 
 
-  END SUBROUTINE SET_FM_NMA
+  END SUBROUTINE SET_FM_IMTXA
 
   !
   !     ***************************
@@ -534,7 +530,7 @@ contains
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NTH,NP,NR,NSA
     INTEGER,INTENT(OUT):: NL
-    INTEGER:: NM
+    INTEGER:: IMTX
 
     integer:: ns
     REAL(rkind):: pl, sl, rl
@@ -548,7 +544,7 @@ contains
     NS=NS_NSA(NSA)
 
     NL=0
-    NM=NMA(NTH,NP,NR)
+    IMTX=IMTXA(NTH,NP,NR)
 
     Ffow(1,1) = Fppfow(nth,np,nr,nsa)*pg(np,nsa)**2
     Ffow(2,1) = Fppfow(nth,np+1,nr,nsa)*pg(np+1,nsa)**2
@@ -585,18 +581,18 @@ contains
     loc = [nth,np,nr,nsa]
 
     ! term of f(nth, np, nr)
-    DL(NM) = 0.d0
+    DL(IMTX) = 0.d0
     do alpha = 1, 3
       do si = -1, 1, 2
         D_term = -1.d0*Dfow(alpha,alpha,sign_to_index(si)-1,0,loc)*DIVD(alpha,alpha)
         F_term = -1.d0*si*Ffow(sign_to_index(si),alpha)*w(si,alpha,0,sign_to_index(si)-1,0,loc)*DIVF(alpha)
-        dl(nm) = dl(nm) + (D_term + F_term)/JI(nth,np,nr,nsa)
+        dl(imtx) = dl(imtx) + (D_term + F_term)/JI(nth,np,nr,nsa)
       end do
     end do
     if ( nth == nth_pnc(nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
       D_term = Dfow(2,2,0,0,loc)*DIVD(2,2)*IBCflux_ratio(np,nr,nsa)
       F_term = -1.d0*Ffow(1,2)*w(-1,2,0,0,0,loc)*DIVF(2)*IBCflux_ratio(np,nr,nsa)
-      dl(nm) = dl(nm) + (D_term + F_term)/JI(nth,np,nr,nsa)
+      dl(imtx) = dl(imtx) + (D_term + F_term)/JI(nth,np,nr,nsa)
 
     end if
 
@@ -618,12 +614,12 @@ contains
         end do
 
         nl = nl+1
-        ll(nm,nl) = get_nma(alpha,0,si,0,loc)
-        al(nm,nl) = al(nm,nl) + (D_term + F_term)/JI(nth,np,nr,nsa)
+        ll(imtx,nl) = get_imtxa(alpha,0,si,0,loc)
+        al(imtx,nl) = al(imtx,nl) + (D_term + F_term)/JI(nth,np,nr,nsa)
 
-        if ( ABS(al(nm,nl)) < 1.d-70 ) then
-          ll(nm,nl) = 0
-          al(nm,nl) = 0.d0
+        if ( ABS(al(imtx,nl)) < 1.d-70 ) then
+          ll(imtx,nl) = 0
+          al(imtx,nl) = 0.d0
           nl = nl-1
         end if
 
@@ -648,12 +644,12 @@ contains
             )
 
             nl = nl+1
-            ll(nm,nl) = get_nma(alpha,beta,si,sj,loc)
-            al(nm,nl) = al(nm,nl) + D_term/JI(nth,np,nr,nsa)
+            ll(imtx,nl) = get_imtxa(alpha,beta,si,sj,loc)
+            al(imtx,nl) = al(imtx,nl) + D_term/JI(nth,np,nr,nsa)
 
-            if ( ABS(al(nm,nl)) < 1.d-70 ) then
-              ll(nm,nl) = 0
-              al(nm,nl) = 0.d0
+            if ( ABS(al(imtx,nl)) < 1.d-70 ) then
+              ll(imtx,nl) = 0
+              al(imtx,nl) = 0.d0
               nl = nl-1
             end if    
 
@@ -823,7 +819,7 @@ contains
 
   end function check_external_boundary
 
-  function get_nma(alpha,beta,si,sj,loc) result(n)
+  function get_imtxa(alpha,beta,si,sj,loc) result(n)
     implicit none
     integer :: n
     integer,intent(in) :: alpha,beta,si,sj,loc(4)
@@ -836,34 +832,34 @@ contains
 
     if ( alpha == 1 ) then
       if ( beta == 2 ) then
-        n = nma(nth+sj,np+si,nr)
+        n = imtxa(nth+sj,np+si,nr)
       else if ( beta == 3 ) then
-        n = nma(nth,np+si,nr+sj)
+        n = imtxa(nth,np+si,nr+sj)
       else ! beta == 0
-        n = nma(nth,np+si,nr)
+        n = imtxa(nth,np+si,nr)
       end if
     
     else if ( alpha == 2 ) then
       if ( beta == 1 ) then
-        n = nma(nth+si,np+sj,nr)
+        n = imtxa(nth+si,np+sj,nr)
       else if ( beta == 3 ) then
-        n = nma(nth+si,np,nr+sj)
+        n = imtxa(nth+si,np,nr+sj)
       else ! beta == 0
-        n = nma(nth+si,np,nr)
+        n = imtxa(nth+si,np,nr)
       end if
     
     else if ( alpha == 3 ) then
       if ( beta == 1 ) then
-        n = nma(nth,np+sj,nr+si)
+        n = imtxa(nth,np+sj,nr+si)
       else if ( beta == 2 ) then
-        n = nma(nth+sj,np,nr+si)
+        n = imtxa(nth+sj,np,nr+si)
       else ! beta == 0
-        n = nma(nth,np,nr+si)
+        n = imtxa(nth,np,nr+si)
       end if
 
     end if
 
-  end function get_nma
+  end function get_imtxa
 
   subroutine IBC_pinch(np,nr,nsa,nl_D,nl_Xstg)
     implicit none
@@ -871,7 +867,7 @@ contains
     integer,intent(inout) :: nl_D, nl_Xstg
     REAL(rkind) :: S_pnc_to_trp, S_pnc_to_pas
 
-    integer:: ns, nth, nm_D, nm_Xstg, nl
+    integer:: ns, nth, imtx_D, imtx_Xstg, nl
     REAL(rkind):: pl, sl, rl
     REAL(rkind) :: deltath, fact1, fact2
     REAL(rkind) :: Fthp, Dtx(3)
@@ -943,99 +939,99 @@ contains
 
       fact1 = (1.d0-IBCflux_ratio(np,nr,nsa))/JI(nth-1,np,nr,nsa)
       fact2 = IBCflux_ratio(np,nr,nsa)/JI(nth_stg(nsa),np,nr_pnc_point(np,nr,nsa),nsa)
-      nm_D    = nma(nth-1,np,nr)
-      nm_Xstg = nma(nth_stg(nsa), np, nr_pnc_point(np,nr,nsa))
-      dl(nm_D) = dl(nm_D) + fact1*( Dtx(2)+Fthp*weight(nth,np,nr,nsa) )
+      imtx_D    = imtxa(nth-1,np,nr)
+      imtx_Xstg = imtxa(nth_stg(nsa), np, nr_pnc_point(np,nr,nsa))
+      dl(imtx_D) = dl(imtx_D) + fact1*( Dtx(2)+Fthp*weight(nth,np,nr,nsa) )
 
       do nl = 1, nl_D
-        if ( ll(nm_D,nl) == nma_boundary(nth,np+1,nr) ) then
-          al(nm_D,nl) = al(nm_D,nl) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact1
+        if ( ll(imtx_D,nl) == imtxa_boundary(nth,np+1,nr) ) then
+          al(imtx_D,nl) = al(imtx_D,nl) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact1
   
-        else if ( ll(nm_D,nl) == nma_boundary(nth-1,np+1,nr) ) then
-          al(nm_D,nl) = al(nm_D,nl) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact1
+        else if ( ll(imtx_D,nl) == imtxa_boundary(nth-1,np+1,nr) ) then
+          al(imtx_D,nl) = al(imtx_D,nl) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact1
   
-        else if ( ll(nm_D,nl) == nma_boundary(nth,np-1,nr) ) then
-          al(nm_D,nl) = al(nm_D,nl) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact1
+        else if ( ll(imtx_D,nl) == imtxa_boundary(nth,np-1,nr) ) then
+          al(imtx_D,nl) = al(imtx_D,nl) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact1
   
-        else if ( ll(nm_D,nl) == nma_boundary(nth-1,np-1,nr) ) then
-          al(nm_D,nl) = al(nm_D,nl) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact1
+        else if ( ll(imtx_D,nl) == imtxa_boundary(nth-1,np-1,nr) ) then
+          al(imtx_D,nl) = al(imtx_D,nl) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact1
   
-        else if ( ll(nm_D,nl) == nma_boundary(nth,np,nr) ) then
-          al(nm_D,nl) = al(nm_D,nl) -( Dtx(2) &
+        else if ( ll(imtx_D,nl) == imtxa_boundary(nth,np,nr) ) then
+          al(imtx_D,nl) = al(imtx_D,nl) -( Dtx(2) &
                                       - Fthp*(1.d0-weight(nth,np,nr,nsa)) )*fact1
   
-        else if ( ll(nm_D,nl) == nma_boundary(nth,np,nr+1) ) then
-          al(nm_D,nl) = al(nm_D,nl) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact1
+        else if ( ll(imtx_D,nl) == imtxa_boundary(nth,np,nr+1) ) then
+          al(imtx_D,nl) = al(imtx_D,nl) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact1
           
-        else if ( ll(nm_D,nl) == nma_boundary(nth-1,np,nr+1) ) then
-          al(nm_D,nl) = al(nm_D,nl) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact1
+        else if ( ll(imtx_D,nl) == imtxa_boundary(nth-1,np,nr+1) ) then
+          al(imtx_D,nl) = al(imtx_D,nl) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact1
   
-        else if ( ll(nm_D,nl) == nma_boundary(nth,np,nr-1) ) then
-          al(nm_D,nl) = al(nm_D,nl) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact1
+        else if ( ll(imtx_D,nl) == imtxa_boundary(nth,np,nr-1) ) then
+          al(imtx_D,nl) = al(imtx_D,nl) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact1
   
-        else if ( ll(nm_D,nl) == nma_boundary(nth-1,np,nr-1) ) then
-          al(nm_D,nl) = al(nm_D,nl) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact1
+        else if ( ll(imtx_D,nl) == imtxa_boundary(nth-1,np,nr-1) ) then
+          al(imtx_D,nl) = al(imtx_D,nl) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact1
   
         end if
       end do
   
       nl_Xstg = nl_Xstg+1 
-      ll(nm_Xstg,nl_Xstg) = nma(nth-1,np,nr)
-      al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) + fact2*( Dtx(2)+Fthp*weight(nth,np,nr,nsa) )
+      ll(imtx_Xstg,nl_Xstg) = imtxa(nth-1,np,nr)
+      al(imtx_Xstg,nl_Xstg) = al(imtx_Xstg,nl_Xstg) + fact2*( Dtx(2)+Fthp*weight(nth,np,nr,nsa) )
   
-      if ( nma_boundary(nth,np+1,nr) /= -1 ) then
+      if ( imtxa_boundary(nth,np+1,nr) /= -1 ) then
         nl_Xstg = nl_Xstg+1
-        ll(nm_Xstg,nl_Xstg) = nma(nth,np+1,nr)
-        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact2  
+        ll(imtx_Xstg,nl_Xstg) = imtxa(nth,np+1,nr)
+        al(imtx_Xstg,nl_Xstg) = al(imtx_Xstg,nl_Xstg) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact2  
       end if
   
-      if ( nma_boundary(nth-1,np+1,nr) /= -1 ) then
+      if ( imtxa_boundary(nth-1,np+1,nr) /= -1 ) then
         nl_Xstg = nl_Xstg+1
-        ll(nm_Xstg,nl_Xstg) = nma(nth-1,np+1,nr)
-        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact2  
+        ll(imtx_Xstg,nl_Xstg) = imtxa(nth-1,np+1,nr)
+        al(imtx_Xstg,nl_Xstg) = al(imtx_Xstg,nl_Xstg) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact2  
       end if
   
-      if ( nma_boundary(nth,np-1,nr) /= -1 ) then
+      if ( imtxa_boundary(nth,np-1,nr) /= -1 ) then
         nl_Xstg = nl_Xstg+1
-        ll(nm_Xstg,nl_Xstg) = nma(nth,np-1,nr)
-        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact2  
+        ll(imtx_Xstg,nl_Xstg) = imtxa(nth,np-1,nr)
+        al(imtx_Xstg,nl_Xstg) = al(imtx_Xstg,nl_Xstg) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact2  
       end if
   
-      if (  nma_boundary(nth-1,np-1,nr) /= -1 ) then
+      if (  imtxa_boundary(nth-1,np-1,nr) /= -1 ) then
         nl_Xstg = nl_Xstg+1
-        ll(nm_Xstg,nl_Xstg) = nma(nth-1,np-1,nr)
-        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact2  
+        ll(imtx_Xstg,nl_Xstg) = imtxa(nth-1,np-1,nr)
+        al(imtx_Xstg,nl_Xstg) = al(imtx_Xstg,nl_Xstg) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact2  
       end if
   
-      if ( nma_boundary(nth,np,nr) /= -1 ) then
+      if ( imtxa_boundary(nth,np,nr) /= -1 ) then
         nl_Xstg = nl_Xstg+1
-        ll(nm_Xstg,nl_Xstg) = nma(nth,np,nr)
-        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) -( Dtx(2) &
+        ll(imtx_Xstg,nl_Xstg) = imtxa(nth,np,nr)
+        al(imtx_Xstg,nl_Xstg) = al(imtx_Xstg,nl_Xstg) -( Dtx(2) &
                                     + Fthp*(1.d0-weight(nth,np,nr,nsa)) )*fact2  
       end if
   
-      if ( nma_boundary(nth,np,nr+1) /= -1 ) then
+      if ( imtxa_boundary(nth,np,nr+1) /= -1 ) then
         nl_Xstg = nl_Xstg+1
-        ll(nm_Xstg,nl_Xstg) = nma(nth,np,nr+1)
-        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact2  
+        ll(imtx_Xstg,nl_Xstg) = imtxa(nth,np,nr+1)
+        al(imtx_Xstg,nl_Xstg) = al(imtx_Xstg,nl_Xstg) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact2  
       end if
   
-      if ( nma_boundary(nth-1,np,nr+1) /= -1 ) then
+      if ( imtxa_boundary(nth-1,np,nr+1) /= -1 ) then
         nl_Xstg = nl_Xstg+1
-        ll(nm_Xstg,nl_Xstg) = nma(nth-1,np,nr+1)
-        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact2  
+        ll(imtx_Xstg,nl_Xstg) = imtxa(nth-1,np,nr+1)
+        al(imtx_Xstg,nl_Xstg) = al(imtx_Xstg,nl_Xstg) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact2  
       end if
   
-      if ( nma_boundary(nth,np,nr-1) /= -1 ) then
+      if ( imtxa_boundary(nth,np,nr-1) /= -1 ) then
         nl_Xstg = nl_Xstg+1
-        ll(nm_Xstg,nl_Xstg) = nma(nth,np,nr-1)
-        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact2  
+        ll(imtx_Xstg,nl_Xstg) = imtxa(nth,np,nr-1)
+        al(imtx_Xstg,nl_Xstg) = al(imtx_Xstg,nl_Xstg) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact2  
       end if
   
-      if ( nma_boundary(nth-1,np,nr-1)  /= -1 ) then
+      if ( imtxa_boundary(nth-1,np,nr-1)  /= -1 ) then
         nl_Xstg = nl_Xstg+1
-        ll(nm_Xstg,nl_Xstg) = nma(nth-1,np,nr-1)
-        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact2  
+        ll(imtx_Xstg,nl_Xstg) = imtxa(nth-1,np,nr-1)
+        al(imtx_Xstg,nl_Xstg) = al(imtx_Xstg,nl_Xstg) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact2  
       end if
   
     else ! PZ(ns) < 0
@@ -1078,100 +1074,100 @@ contains
 
       fact1 = -1.d0*IBCflux_ratio(np,nr,nsa)/JI(nth,np,nr,nsa)
       fact2 = -1.d0*(1.d0-IBCflux_ratio(np,nr,nsa))/JI(nth_stg(nsa)-1,np,nr_pnc_point(np,nr,nsa),nsa)
-      nm_D    = nma(nth,np,nr)
-      nm_Xstg = nma(nth_stg(nsa)-1, np, nr_pnc_point(np,nr,nsa))
+      imtx_D    = imtxa(nth,np,nr)
+      imtx_Xstg = imtxa(nth_stg(nsa)-1, np, nr_pnc_point(np,nr,nsa))
 
-      dl(nm_D) = dl(nm_D) + fact1*( -1.d0*Dtx(2)+Fthp*(1.d0-weight(nth,np,nr,nsa)) )
+      dl(imtx_D) = dl(imtx_D) + fact1*( -1.d0*Dtx(2)+Fthp*(1.d0-weight(nth,np,nr,nsa)) )
 
       do nl = 1, nl_D
-        if ( ll(nm_D,nl) == nma_boundary(nth,np+1,nr) ) then
-          al(nm_D,nl) = al(nm_D,nl) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact1
+        if ( ll(imtx_D,nl) == imtxa_boundary(nth,np+1,nr) ) then
+          al(imtx_D,nl) = al(imtx_D,nl) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact1
   
-        else if ( ll(nm_D,nl) == nma_boundary(nth-1,np+1,nr) ) then
-          al(nm_D,nl) = al(nm_D,nl) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact1
+        else if ( ll(imtx_D,nl) == imtxa_boundary(nth-1,np+1,nr) ) then
+          al(imtx_D,nl) = al(imtx_D,nl) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact1
   
-        else if ( ll(nm_D,nl) == nma_boundary(nth,np-1,nr) ) then
-          al(nm_D,nl) = al(nm_D,nl) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact1
+        else if ( ll(imtx_D,nl) == imtxa_boundary(nth,np-1,nr) ) then
+          al(imtx_D,nl) = al(imtx_D,nl) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact1
   
-        else if ( ll(nm_D,nl) == nma_boundary(nth-1,np-1,nr) ) then
-          al(nm_D,nl) = al(nm_D,nl) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact1
+        else if ( ll(imtx_D,nl) == imtxa_boundary(nth-1,np-1,nr) ) then
+          al(imtx_D,nl) = al(imtx_D,nl) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact1
   
-        else if ( ll(nm_D,nl) == nma_boundary(nth,np,nr) ) then
-          al(nm_D,nl) = al(nm_D,nl) +( Dtx(2) &
+        else if ( ll(imtx_D,nl) == imtxa_boundary(nth,np,nr) ) then
+          al(imtx_D,nl) = al(imtx_D,nl) +( Dtx(2) &
                                       + Fthp*weight(nth,np,nr,nsa) )*fact1
   
-        else if ( ll(nm_D,nl) == nma_boundary(nth,np,nr+1) ) then
-          al(nm_D,nl) = al(nm_D,nl) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact1
+        else if ( ll(imtx_D,nl) == imtxa_boundary(nth,np,nr+1) ) then
+          al(imtx_D,nl) = al(imtx_D,nl) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact1
           
-        else if ( ll(nm_D,nl) == nma_boundary(nth-1,np,nr+1) ) then
-          al(nm_D,nl) = al(nm_D,nl) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact1
+        else if ( ll(imtx_D,nl) == imtxa_boundary(nth-1,np,nr+1) ) then
+          al(imtx_D,nl) = al(imtx_D,nl) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact1
   
-        else if ( ll(nm_D,nl) == nma_boundary(nth,np,nr-1) ) then
-          al(nm_D,nl) = al(nm_D,nl) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact1
+        else if ( ll(imtx_D,nl) == imtxa_boundary(nth,np,nr-1) ) then
+          al(imtx_D,nl) = al(imtx_D,nl) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact1
   
-        else if ( ll(nm_D,nl) == nma_boundary(nth-1,np,nr-1) ) then
-          al(nm_D,nl) = al(nm_D,nl) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact1
+        else if ( ll(imtx_D,nl) == imtxa_boundary(nth-1,np,nr-1) ) then
+          al(imtx_D,nl) = al(imtx_D,nl) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact1
   
         end if
       end do
   
       nl_Xstg = nl_Xstg+1 
-      ll(nm_Xstg,nl_Xstg) = nm_D
-      al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) + fact2*( -1.d0*Dtx(2)+Fthp*(1.d0-weight(nth,np,nr,nsa)) )
+      ll(imtx_Xstg,nl_Xstg) = imtx_D
+      al(imtx_Xstg,nl_Xstg) = al(imtx_Xstg,nl_Xstg) + fact2*( -1.d0*Dtx(2)+Fthp*(1.d0-weight(nth,np,nr,nsa)) )
   
-      if ( nma_boundary(nth,np+1,nr) /= -1 ) then
+      if ( imtxa_boundary(nth,np+1,nr) /= -1 ) then
         nl_Xstg = nl_Xstg+1
-        ll(nm_Xstg,nl_Xstg) = nma(nth,np+1,nr)
-        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact2  
+        ll(imtx_Xstg,nl_Xstg) = imtxa(nth,np+1,nr)
+        al(imtx_Xstg,nl_Xstg) = al(imtx_Xstg,nl_Xstg) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact2  
       end if
   
-      if ( nma_boundary(nth-1,np+1,nr) /= -1 ) then
+      if ( imtxa_boundary(nth-1,np+1,nr) /= -1 ) then
         nl_Xstg = nl_Xstg+1
-        ll(nm_Xstg,nl_Xstg) = nma(nth-1,np+1,nr)
-        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact2  
+        ll(imtx_Xstg,nl_Xstg) = imtxa(nth-1,np+1,nr)
+        al(imtx_Xstg,nl_Xstg) = al(imtx_Xstg,nl_Xstg) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact2  
       end if
   
-      if ( nma_boundary(nth,np-1,nr) /= -1 ) then
+      if ( imtxa_boundary(nth,np-1,nr) /= -1 ) then
         nl_Xstg = nl_Xstg+1
-        ll(nm_Xstg,nl_Xstg) = nma(nth,np-1,nr)
-        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact2  
+        ll(imtx_Xstg,nl_Xstg) = imtxa(nth,np-1,nr)
+        al(imtx_Xstg,nl_Xstg) = al(imtx_Xstg,nl_Xstg) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact2  
       end if
   
-      if (  nma_boundary(nth-1,np-1,nr) /= -1 ) then
+      if (  imtxa_boundary(nth-1,np-1,nr) /= -1 ) then
         nl_Xstg = nl_Xstg+1
-        ll(nm_Xstg,nl_Xstg) = nma(nth-1,np-1,nr)
-        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact2  
+        ll(imtx_Xstg,nl_Xstg) = imtxa(nth-1,np-1,nr)
+        al(imtx_Xstg,nl_Xstg) = al(imtx_Xstg,nl_Xstg) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact2  
       end if
   
-      if ( nma_boundary(nth,np,nr) /= -1 ) then
+      if ( imtxa_boundary(nth,np,nr) /= -1 ) then
         nl_Xstg = nl_Xstg+1
-        ll(nm_Xstg,nl_Xstg) = nma(nth,np,nr)
-        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) -( Dtx(2) &
+        ll(imtx_Xstg,nl_Xstg) = imtxa(nth,np,nr)
+        al(imtx_Xstg,nl_Xstg) = al(imtx_Xstg,nl_Xstg) -( Dtx(2) &
                                     - Fthp*weight(nth,np,nr,nsa) )*fact2  
       end if
   
-      if ( nma_boundary(nth,np,nr+1) /= -1 ) then
+      if ( imtxa_boundary(nth,np,nr+1) /= -1 ) then
         nl_Xstg = nl_Xstg+1
-        ll(nm_Xstg,nl_Xstg) = nma(nth,np,nr+1)
-        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact2  
+        ll(imtx_Xstg,nl_Xstg) = imtxa(nth,np,nr+1)
+        al(imtx_Xstg,nl_Xstg) = al(imtx_Xstg,nl_Xstg) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact2  
       end if
   
-      if ( nma_boundary(nth-1,np,nr+1) /= -1 ) then
+      if ( imtxa_boundary(nth-1,np,nr+1) /= -1 ) then
         nl_Xstg = nl_Xstg+1
-        ll(nm_Xstg,nl_Xstg) = nma(nth-1,np,nr+1)
-        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact2  
+        ll(imtx_Xstg,nl_Xstg) = imtxa(nth-1,np,nr+1)
+        al(imtx_Xstg,nl_Xstg) = al(imtx_Xstg,nl_Xstg) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact2  
       end if
   
-      if ( nma_boundary(nth,np,nr-1) /= -1 ) then
+      if ( imtxa_boundary(nth,np,nr-1) /= -1 ) then
         nl_Xstg = nl_Xstg+1
-        ll(nm_Xstg,nl_Xstg) = nma(nth,np,nr-1)
-        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact2  
+        ll(imtx_Xstg,nl_Xstg) = imtxa(nth,np,nr-1)
+        al(imtx_Xstg,nl_Xstg) = al(imtx_Xstg,nl_Xstg) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact2  
       end if
   
-      if ( nma_boundary(nth-1,np,nr-1) /= -1 ) then
+      if ( imtxa_boundary(nth-1,np,nr-1) /= -1 ) then
         nl_Xstg = nl_Xstg+1
-        ll(nm_Xstg,nl_Xstg) = nma(nth-1,np,nr-1)
-        al(nm_Xstg,nl_Xstg) = al(nm_Xstg,nl_Xstg) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact2  
+        ll(imtx_Xstg,nl_Xstg) = imtxa(nth-1,np,nr-1)
+        al(imtx_Xstg,nl_Xstg) = al(imtx_Xstg,nl_Xstg) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact2  
       end if  
 
     end if
@@ -1183,7 +1179,7 @@ contains
     integer,intent(in) :: np,nr,nsa
     integer,intent(inout) :: nl_Xstg, nl_pnc
 
-    integer:: ns, nth, nm_Xstg, nm_pnc, nl
+    integer:: ns, nth, imtx_Xstg, imtx_pnc, nl
     REAL(rkind):: pl, sl, rl
     REAL(rkind) :: deltath, S_x, fact1, fact2
     REAL(rkind) :: Fthp, Dtx(3)
@@ -1243,7 +1239,7 @@ contains
         + Dtrfow(nth,np,nr,nsa)*dfnspdr  &
       ) + Fthfow(nth,np,nr,nsa)*fnspg
 
-      nm_Xstg = nma(nth, np, nr)
+      imtx_Xstg = imtxa(nth, np, nr)
 
       if ( S_x <= 0.d0 .and. nl_pnc == -1 ) then ! orbital loss
         return
@@ -1252,36 +1248,36 @@ contains
 
         fact1 = -1.d0/JI(nth,np,nr,nsa)
 
-        dl(nm_Xstg) = dl(nm_Xstg) + fact1*( -1.d0*Dtx(2)+Fthp*(1.d0-weight(nth,np,nr,nsa)) )
+        dl(imtx_Xstg) = dl(imtx_Xstg) + fact1*( -1.d0*Dtx(2)+Fthp*(1.d0-weight(nth,np,nr,nsa)) )
 
         do nl = 1, nl_Xstg
-          if ( ll(nm_Xstg,nl) == nma_boundary(nth,np+1,nr) ) then
-            al(nm_Xstg,nl) = al(nm_Xstg,nl) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact1
+          if ( ll(imtx_Xstg,nl) == imtxa_boundary(nth,np+1,nr) ) then
+            al(imtx_Xstg,nl) = al(imtx_Xstg,nl) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact1
     
-          else if ( ll(nm_Xstg,nl) == nma_boundary(nth-1,np+1,nr) ) then
-            al(nm_Xstg,nl) = al(nm_Xstg,nl) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact1
+          else if ( ll(imtx_Xstg,nl) == imtxa_boundary(nth-1,np+1,nr) ) then
+            al(imtx_Xstg,nl) = al(imtx_Xstg,nl) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact1
     
-          else if ( ll(nm_Xstg,nl) == nma_boundary(nth,np-1,nr) ) then
-            al(nm_Xstg,nl) = al(nm_Xstg,nl) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact1
+          else if ( ll(imtx_Xstg,nl) == imtxa_boundary(nth,np-1,nr) ) then
+            al(imtx_Xstg,nl) = al(imtx_Xstg,nl) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact1
     
-          else if ( ll(nm_Xstg,nl) == nma_boundary(nth-1,np-1,nr) ) then
-            al(nm_Xstg,nl) = al(nm_Xstg,nl) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact1
+          else if ( ll(imtx_Xstg,nl) == imtxa_boundary(nth-1,np-1,nr) ) then
+            al(imtx_Xstg,nl) = al(imtx_Xstg,nl) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact1
     
-          else if ( ll(nm_Xstg,nl) == nma_boundary(nth,np,nr) ) then
-            al(nm_Xstg,nl) = al(nm_Xstg,nl) +( Dtx(2) &
+          else if ( ll(imtx_Xstg,nl) == imtxa_boundary(nth,np,nr) ) then
+            al(imtx_Xstg,nl) = al(imtx_Xstg,nl) +( Dtx(2) &
                                         + Fthp*weight(nth,np,nr,nsa) )*fact1
     
-          else if ( ll(nm_Xstg,nl) == nma_boundary(nth,np,nr+1) ) then
-            al(nm_Xstg,nl) = al(nm_Xstg,nl) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact1
+          else if ( ll(imtx_Xstg,nl) == imtxa_boundary(nth,np,nr+1) ) then
+            al(imtx_Xstg,nl) = al(imtx_Xstg,nl) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact1
             
-          else if ( ll(nm_Xstg,nl) == nma_boundary(nth-1,np,nr+1) ) then
-            al(nm_Xstg,nl) = al(nm_Xstg,nl) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact1
+          else if ( ll(imtx_Xstg,nl) == imtxa_boundary(nth-1,np,nr+1) ) then
+            al(imtx_Xstg,nl) = al(imtx_Xstg,nl) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact1
     
-          else if ( ll(nm_Xstg,nl) == nma_boundary(nth,np,nr-1) ) then
-            al(nm_Xstg,nl) = al(nm_Xstg,nl) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact1
+          else if ( ll(imtx_Xstg,nl) == imtxa_boundary(nth,np,nr-1) ) then
+            al(imtx_Xstg,nl) = al(imtx_Xstg,nl) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact1
     
-          else if ( ll(nm_Xstg,nl) == nma_boundary(nth-1,np,nr-1) ) then
-            al(nm_Xstg,nl) = al(nm_Xstg,nl) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact1
+          else if ( ll(imtx_Xstg,nl) == imtxa_boundary(nth-1,np,nr-1) ) then
+            al(imtx_Xstg,nl) = al(imtx_Xstg,nl) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact1
     
           end if
         end do
@@ -1290,66 +1286,66 @@ contains
 
       else
 
-        nm_pnc=nma(loc_pnc(1),loc_pnc(2),loc_pnc(3))
+        imtx_pnc=imtxa(loc_pnc(1),loc_pnc(2),loc_pnc(3))
 
         fact2 = 1.d0/JI(loc_pnc(1),loc_pnc(2),loc_pnc(3),loc_pnc(4))
         nl_pnc = nl_pnc+1 
-        ll(nm_pnc,nl_pnc) = nm_Xstg
-        al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + fact2*( -1.d0*Dtx(2)+Fthp*(1.d0-weight(nth,np,nr,nsa)) )
+        ll(imtx_pnc,nl_pnc) = imtx_Xstg
+        al(imtx_pnc,nl_pnc) = al(imtx_pnc,nl_pnc) + fact2*( -1.d0*Dtx(2)+Fthp*(1.d0-weight(nth,np,nr,nsa)) )
     
-        if ( nma_boundary(nth,np+1,nr) /= -1 ) then
+        if ( imtxa_boundary(nth,np+1,nr) /= -1 ) then
           nl_pnc = nl_pnc+1
-          ll(nm_pnc,nl_pnc) = nma(nth,np+1,nr)
-          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact2  
+          ll(imtx_pnc,nl_pnc) = imtxa(nth,np+1,nr)
+          al(imtx_pnc,nl_pnc) = al(imtx_pnc,nl_pnc) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact2  
         end if
     
-        if ( nma_boundary(nth-1,np+1,nr) /= -1 ) then
+        if ( imtxa_boundary(nth-1,np+1,nr) /= -1 ) then
           nl_pnc = nl_pnc+1
-          ll(nm_pnc,nl_pnc) = nma(nth-1,np+1,nr)
-          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact2  
+          ll(imtx_pnc,nl_pnc) = imtxa(nth-1,np+1,nr)
+          al(imtx_pnc,nl_pnc) = al(imtx_pnc,nl_pnc) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact2  
         end if
     
-        if ( nma_boundary(nth,np-1,nr) /= -1 ) then
+        if ( imtxa_boundary(nth,np-1,nr) /= -1 ) then
           nl_pnc = nl_pnc+1
-          ll(nm_pnc,nl_pnc) = nma(nth,np-1,nr)
-          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact2  
+          ll(imtx_pnc,nl_pnc) = imtxa(nth,np-1,nr)
+          al(imtx_pnc,nl_pnc) = al(imtx_pnc,nl_pnc) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact2  
         end if
     
-        if (  nma_boundary(nth-1,np-1,nr) /= -1 ) then
+        if (  imtxa_boundary(nth-1,np-1,nr) /= -1 ) then
           nl_pnc = nl_pnc+1
-          ll(nm_pnc,nl_pnc) = nma(nth-1,np-1,nr)
-          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact2  
+          ll(imtx_pnc,nl_pnc) = imtxa(nth-1,np-1,nr)
+          al(imtx_pnc,nl_pnc) = al(imtx_pnc,nl_pnc) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact2  
         end if
     
-        if ( nma_boundary(nth,np,nr) /= -1 ) then
+        if ( imtxa_boundary(nth,np,nr) /= -1 ) then
           nl_pnc = nl_pnc+1
-          ll(nm_pnc,nl_pnc) = nma(nth,np,nr)
-          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) -( Dtx(2) &
+          ll(imtx_pnc,nl_pnc) = imtxa(nth,np,nr)
+          al(imtx_pnc,nl_pnc) = al(imtx_pnc,nl_pnc) -( Dtx(2) &
                                       - Fthp*weight(nth,np,nr,nsa) )*fact2  
         end if
     
-        if ( nma_boundary(nth,np,nr+1) /= -1 ) then
+        if ( imtxa_boundary(nth,np,nr+1) /= -1 ) then
           nl_pnc = nl_pnc+1
-          ll(nm_pnc,nl_pnc) = nma(nth,np,nr+1)
-          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact2  
+          ll(imtx_pnc,nl_pnc) = imtxa(nth,np,nr+1)
+          al(imtx_pnc,nl_pnc) = al(imtx_pnc,nl_pnc) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact2  
         end if
     
-        if ( nma_boundary(nth-1,np,nr+1) /= -1 ) then
+        if ( imtxa_boundary(nth-1,np,nr+1) /= -1 ) then
           nl_pnc = nl_pnc+1
-          ll(nm_pnc,nl_pnc) = nma(nth-1,np,nr+1)
-          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact2  
+          ll(imtx_pnc,nl_pnc) = imtxa(nth-1,np,nr+1)
+          al(imtx_pnc,nl_pnc) = al(imtx_pnc,nl_pnc) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact2  
         end if
     
-        if ( nma_boundary(nth,np,nr-1) /= -1 ) then
+        if ( imtxa_boundary(nth,np,nr-1) /= -1 ) then
           nl_pnc = nl_pnc+1
-          ll(nm_pnc,nl_pnc) = nma(nth,np,nr-1)
-          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact2  
+          ll(imtx_pnc,nl_pnc) = imtxa(nth,np,nr-1)
+          al(imtx_pnc,nl_pnc) = al(imtx_pnc,nl_pnc) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact2  
         end if
     
-        if ( nma_boundary(nth-1,np,nr-1) /= -1 ) then
+        if ( imtxa_boundary(nth-1,np,nr-1) /= -1 ) then
           nl_pnc = nl_pnc+1
-          ll(nm_pnc,nl_pnc) = nma(nth-1,np,nr-1)
-          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact2  
+          ll(imtx_pnc,nl_pnc) = imtxa(nth-1,np,nr-1)
+          al(imtx_pnc,nl_pnc) = al(imtx_pnc,nl_pnc) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact2  
         end if  
   
       end if
@@ -1362,7 +1358,7 @@ contains
         loc_pnc = [nth_pnc(nsa)-1,np,nr_rhom_pinch(np,nr,nsa),nsa]
       end if
 
-      nm_Xstg = nma(nth, np, nr)
+      imtx_Xstg = imtxa(nth, np, nr)
 
       pl = pm(np,nsa)
       sl = SIN( thetam(nth,np,nr,nsa) )
@@ -1413,37 +1409,37 @@ contains
       else if ( S_x < 0.d0 .and. nl_pnc == -1 ) then
 
         fact1 = 1.d0/JI(nth,np,nr,nsa)
-        nm_Xstg = nma(nth, np, nr)
+        imtx_Xstg = imtxa(nth, np, nr)
 
-        dl(nm_Xstg) = dl(nm_Xstg) + fact1*( Dtx(2)+Fthp*weight(nth+1,np,nr,nsa) )
+        dl(imtx_Xstg) = dl(imtx_Xstg) + fact1*( Dtx(2)+Fthp*weight(nth+1,np,nr,nsa) )
         do nl = 1, nl_Xstg
-          if ( ll(nm_Xstg,nl) == nma_boundary(nth+1,np+1,nr) ) then
-            al(nm_Xstg,nl) = al(nm_Xstg,nl) - Dtx(1)*(1.d0-weight(nth+1,np+1,nr,nsa))*fact1
+          if ( ll(imtx_Xstg,nl) == imtxa_boundary(nth+1,np+1,nr) ) then
+            al(imtx_Xstg,nl) = al(imtx_Xstg,nl) - Dtx(1)*(1.d0-weight(nth+1,np+1,nr,nsa))*fact1
     
-          else if ( ll(nm_Xstg,nl) == nma_boundary(nth,np+1,nr) ) then
-            al(nm_Xstg,nl) = al(nm_Xstg,nl) - Dtx(1)*weight(nth+1,np+1,nr,nsa)*fact1
+          else if ( ll(imtx_Xstg,nl) == imtxa_boundary(nth,np+1,nr) ) then
+            al(imtx_Xstg,nl) = al(imtx_Xstg,nl) - Dtx(1)*weight(nth+1,np+1,nr,nsa)*fact1
     
-          else if ( ll(nm_Xstg,nl) == nma_boundary(nth+1,np-1,nr) ) then
-            al(nm_Xstg,nl) = al(nm_Xstg,nl) + Dtx(1)*(1.d0-weight(nth+1,np-1,nr,nsa))*fact1
+          else if ( ll(imtx_Xstg,nl) == imtxa_boundary(nth+1,np-1,nr) ) then
+            al(imtx_Xstg,nl) = al(imtx_Xstg,nl) + Dtx(1)*(1.d0-weight(nth+1,np-1,nr,nsa))*fact1
     
-          else if ( ll(nm_Xstg,nl) == nma_boundary(nth,np-1,nr) ) then
-            al(nm_Xstg,nl) = al(nm_Xstg,nl) + Dtx(1)*weight(nth+1,np-1,nr,nsa)*fact1
+          else if ( ll(imtx_Xstg,nl) == imtxa_boundary(nth,np-1,nr) ) then
+            al(imtx_Xstg,nl) = al(imtx_Xstg,nl) + Dtx(1)*weight(nth+1,np-1,nr,nsa)*fact1
     
-          else if ( ll(nm_Xstg,nl) == nma_boundary(nth+1,np,nr) ) then
-            al(nm_Xstg,nl) = al(nm_Xstg,nl) -( Dtx(2) &
+          else if ( ll(imtx_Xstg,nl) == imtxa_boundary(nth+1,np,nr) ) then
+            al(imtx_Xstg,nl) = al(imtx_Xstg,nl) -( Dtx(2) &
                                         - Fthp*(1.d0-weight(nth+1,np,nr,nsa)) )*fact1
     
-          else if ( ll(nm_Xstg,nl) == nma_boundary(nth+1,np,nr+1) ) then
-            al(nm_Xstg,nl) = al(nm_Xstg,nl) - Dtx(3)*(1.d0-weight(nth+1,np,nr+1,nsa))*fact1
+          else if ( ll(imtx_Xstg,nl) == imtxa_boundary(nth+1,np,nr+1) ) then
+            al(imtx_Xstg,nl) = al(imtx_Xstg,nl) - Dtx(3)*(1.d0-weight(nth+1,np,nr+1,nsa))*fact1
             
-          else if ( ll(nm_Xstg,nl) == nma_boundary(nth,np,nr+1) ) then
-            al(nm_Xstg,nl) = al(nm_Xstg,nl) - Dtx(3)*weight(nth+1,np,nr+1,nsa)*fact1
+          else if ( ll(imtx_Xstg,nl) == imtxa_boundary(nth,np,nr+1) ) then
+            al(imtx_Xstg,nl) = al(imtx_Xstg,nl) - Dtx(3)*weight(nth+1,np,nr+1,nsa)*fact1
     
-          else if ( ll(nm_Xstg,nl) == nma_boundary(nth+1,np,nr-1) ) then
-            al(nm_Xstg,nl) = al(nm_Xstg,nl) + Dtx(3)*(1.d0-weight(nth+1,np,nr-1,nsa))*fact1
+          else if ( ll(imtx_Xstg,nl) == imtxa_boundary(nth+1,np,nr-1) ) then
+            al(imtx_Xstg,nl) = al(imtx_Xstg,nl) + Dtx(3)*(1.d0-weight(nth+1,np,nr-1,nsa))*fact1
     
-          else if ( ll(nm_Xstg,nl) == nma_boundary(nth,np,nr-1) ) then
-            al(nm_Xstg,nl) = al(nm_Xstg,nl) + Dtx(3)*weight(nth+1,np,nr-1,nsa)*fact1
+          else if ( ll(imtx_Xstg,nl) == imtxa_boundary(nth,np,nr-1) ) then
+            al(imtx_Xstg,nl) = al(imtx_Xstg,nl) + Dtx(3)*weight(nth+1,np,nr-1,nsa)*fact1
     
           end if
         end do
@@ -1452,59 +1448,59 @@ contains
 
       else
 
-        nm_pnc = nma(loc_pnc(1),loc_pnc(2),loc_pnc(3))
+        imtx_pnc = imtxa(loc_pnc(1),loc_pnc(2),loc_pnc(3))
 
         fact1 = 1.d0/JI(loc_pnc(1),loc_pnc(2),loc_pnc(3),loc_pnc(4))
 
         nl_pnc = nl_pnc+1 
-        ll(nm_pnc,nl_pnc) = nm_Xstg
-        al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + fact1*( Dtx(2)+Fthp*weight(nth+1,np,nr,nsa) )
+        ll(imtx_pnc,nl_pnc) = imtx_Xstg
+        al(imtx_pnc,nl_pnc) = al(imtx_pnc,nl_pnc) + fact1*( Dtx(2)+Fthp*weight(nth+1,np,nr,nsa) )
 
-        if ( nma_boundary(nth+1,np+1,nr) /= -1 ) then
+        if ( imtxa_boundary(nth+1,np+1,nr) /= -1 ) then
           nl_pnc = nl_pnc+1 
-          ll(nm_pnc,nl_pnc) = nma(nth+1,np+1,nr)
-          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) - Dtx(1)*(1.d0-weight(nth+1,np+1,nr,nsa))*fact1
+          ll(imtx_pnc,nl_pnc) = imtxa(nth+1,np+1,nr)
+          al(imtx_pnc,nl_pnc) = al(imtx_pnc,nl_pnc) - Dtx(1)*(1.d0-weight(nth+1,np+1,nr,nsa))*fact1
   
-        else if ( nma_boundary(nth,np+1,nr) /= -1 ) then
+        else if ( imtxa_boundary(nth,np+1,nr) /= -1 ) then
           nl_pnc = nl_pnc+1 
-          ll(nm_pnc,nl_pnc) = nma(nth,np+1,nr)
-          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) - Dtx(1)*weight(nth+1,np+1,nr,nsa)*fact1
+          ll(imtx_pnc,nl_pnc) = imtxa(nth,np+1,nr)
+          al(imtx_pnc,nl_pnc) = al(imtx_pnc,nl_pnc) - Dtx(1)*weight(nth+1,np+1,nr,nsa)*fact1
   
-        else if ( nma_boundary(nth+1,np-1,nr) /= -1 ) then
+        else if ( imtxa_boundary(nth+1,np-1,nr) /= -1 ) then
           nl_pnc = nl_pnc+1 
-          ll(nm_pnc,nl_pnc) = nma(nth+1,np-1,nr)
-          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + Dtx(1)*(1.d0-weight(nth+1,np-1,nr,nsa))*fact1
+          ll(imtx_pnc,nl_pnc) = imtxa(nth+1,np-1,nr)
+          al(imtx_pnc,nl_pnc) = al(imtx_pnc,nl_pnc) + Dtx(1)*(1.d0-weight(nth+1,np-1,nr,nsa))*fact1
   
-        else if ( nma_boundary(nth,np-1,nr) /= -1 ) then
+        else if ( imtxa_boundary(nth,np-1,nr) /= -1 ) then
           nl_pnc = nl_pnc+1 
-          ll(nm_pnc,nl_pnc) = nma(nth,np-1,nr)
-          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + Dtx(1)*weight(nth+1,np-1,nr,nsa)*fact1
+          ll(imtx_pnc,nl_pnc) = imtxa(nth,np-1,nr)
+          al(imtx_pnc,nl_pnc) = al(imtx_pnc,nl_pnc) + Dtx(1)*weight(nth+1,np-1,nr,nsa)*fact1
   
-        else if ( nma_boundary(nth+1,np,nr) /= -1 ) then
+        else if ( imtxa_boundary(nth+1,np,nr) /= -1 ) then
           nl_pnc = nl_pnc+1 
-          ll(nm_pnc,nl_pnc) = nma(nth+1,np,nr)
-          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) -( Dtx(2) &
+          ll(imtx_pnc,nl_pnc) = imtxa(nth+1,np,nr)
+          al(imtx_pnc,nl_pnc) = al(imtx_pnc,nl_pnc) -( Dtx(2) &
                                       - Fthp*(1.d0-weight(nth+1,np,nr,nsa)) )*fact1
   
-        else if ( nma_boundary(nth+1,np,nr+1) /= -1 ) then
+        else if ( imtxa_boundary(nth+1,np,nr+1) /= -1 ) then
           nl_pnc = nl_pnc+1 
-          ll(nm_pnc,nl_pnc) = nma(nth+1,np,nr+1)
-          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) - Dtx(3)*(1.d0-weight(nth+1,np,nr+1,nsa))*fact1
+          ll(imtx_pnc,nl_pnc) = imtxa(nth+1,np,nr+1)
+          al(imtx_pnc,nl_pnc) = al(imtx_pnc,nl_pnc) - Dtx(3)*(1.d0-weight(nth+1,np,nr+1,nsa))*fact1
           
-        else if ( nma_boundary(nth,np,nr+1) /= -1 ) then
+        else if ( imtxa_boundary(nth,np,nr+1) /= -1 ) then
           nl_pnc = nl_pnc+1 
-          ll(nm_pnc,nl_pnc) = nma(nth,np,nr+1)
-          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) - Dtx(3)*weight(nth+1,np,nr+1,nsa)*fact1
+          ll(imtx_pnc,nl_pnc) = imtxa(nth,np,nr+1)
+          al(imtx_pnc,nl_pnc) = al(imtx_pnc,nl_pnc) - Dtx(3)*weight(nth+1,np,nr+1,nsa)*fact1
   
-        else if ( nma_boundary(nth+1,np,nr-1) /= -1 ) then
+        else if ( imtxa_boundary(nth+1,np,nr-1) /= -1 ) then
           nl_pnc = nl_pnc+1 
-          ll(nm_pnc,nl_pnc) = nma(nth+1,np,nr-1)
-          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + Dtx(3)*(1.d0-weight(nth+1,np,nr-1,nsa))*fact1
+          ll(imtx_pnc,nl_pnc) = imtxa(nth+1,np,nr-1)
+          al(imtx_pnc,nl_pnc) = al(imtx_pnc,nl_pnc) + Dtx(3)*(1.d0-weight(nth+1,np,nr-1,nsa))*fact1
   
-        else if ( nma_boundary(nth,np,nr-1) /= -1 ) then
+        else if ( imtxa_boundary(nth,np,nr-1) /= -1 ) then
           nl_pnc = nl_pnc+1 
-          ll(nm_pnc,nl_pnc) = nma(nth,np,nr-1)
-          al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + Dtx(3)*weight(nth+1,np,nr-1,nsa)*fact1
+          ll(imtx_pnc,nl_pnc) = imtxa(nth,np,nr-1)
+          al(imtx_pnc,nl_pnc) = al(imtx_pnc,nl_pnc) + Dtx(3)*weight(nth+1,np,nr-1,nsa)*fact1
   
         end if
       
@@ -1518,7 +1514,7 @@ contains
     implicit none
     integer,intent(in) :: np,nr,nsa
     integer,intent(inout) :: nl_Ostg
-    integer :: ns, nl, nm_Ostg,nth
+    integer :: ns, nl, imtx_Ostg,nth
     real(rkind) :: fact
     REAL(rkind) :: Fthp, Dtx(3),pl,sl,deltath,rl
 
@@ -1530,7 +1526,7 @@ contains
       sl = SIN( thetam(nth,np,nr,nsa) )
       rl = rm(nr)
       deltath= delthm(nth,np,nr,nsa)
-      nm_Ostg = nma(nth,np,nr)
+      imtx_Ostg = imtxa(nth,np,nr)
   
       Dtx(1)  = Dtpfow(nth+1,np,nr,nsa)*sl/(pl*sl*delp(nsa)*deltath*2.d0)
       Dtx(2)  = Dttfow(nth+1,np,nr,nsa)*sl/(pl**2*sl*deltath**2)
@@ -1539,26 +1535,26 @@ contains
 
       fact = 1.d0/JI(nth,np,nr,nsa)
 
-      dl(nm_Ostg) = dl(nm_Ostg) + (Dtx(2)+Fthp*weight(nth+1,np,nr,nsa))*fact
+      dl(imtx_Ostg) = dl(imtx_Ostg) + (Dtx(2)+Fthp*weight(nth+1,np,nr,nsa))*fact
       do nl = 1, nl_Ostg
-        if ( ll(nm_Ostg,nl) == nma_boundary(nth+1,np+1,nr) ) then
-          al(nm_Ostg,nl) = al(nm_Ostg,nl) - Dtx(1)*(1-weight(nth+1,np+1,nr,nsa))*fact
-        else if ( ll(nm_Ostg,nl) == nma_boundary(nth,np+1,nr) ) then
-          al(nm_Ostg,nl) = al(nm_Ostg,nl) - Dtx(1)*weight(nth+1,np+1,nr,nsa)*fact
-        else if ( ll(nm_Ostg,nl) == nma_boundary(nth+1,np-1,nr) ) then
-          al(nm_Ostg,nl) = al(nm_Ostg,nl) + Dtx(1)*(1.d0-weight(nth+1,np-1,nr,nsa))*fact
-        else if ( ll(nm_Ostg,nl) == nma_boundary(nth,np+1,nr) ) then
-          al(nm_Ostg,nl) = al(nm_Ostg,nl) + Dtx(1)*weight(nth+1,np-1,nr,nsa)*fact
-        else if ( ll(nm_Ostg,nl) == nma_boundary(nth+1,np,nr) ) then
-          al(nm_Ostg,nl) = al(nm_Ostg,nl) - (Dtx(2)+Fthp*(1.d0-weight(nth+1,np,nr,nsa)))*fact
-        else if ( ll(nm_Ostg,nl) == nma_boundary(nth+1,np,nr+1) ) then
-          al(nm_Ostg,nl) = al(nm_Ostg,nl) - Dtx(3)*(1.d0-weight(nth+1,np,nr+1,nsa))*fact
-        else if ( ll(nm_Ostg,nl) == nma_boundary(nth,np,nr+1) ) then
-          al(nm_Ostg,nl) = al(nm_Ostg,nl) - Dtx(3)*weight(nth+1,np,nr+1,nsa)*fact
-        else if ( ll(nm_Ostg,nl) == nma_boundary(nth+1,np,nr-1) ) then
-          al(nm_Ostg,nl) = al(nm_Ostg,nl) + Dtx(3)*(1.d0-weight(nth+1,np,nr-1,nsa))*fact
-        else if ( ll(nm_Ostg,nl) == nma_boundary(nth,np,nr-1) ) then
-          al(nm_Ostg,nl) = al(nm_Ostg,nl) + Dtx(3)*weight(nth+1,np,nr-1,nsa)*fact
+        if ( ll(imtx_Ostg,nl) == imtxa_boundary(nth+1,np+1,nr) ) then
+          al(imtx_Ostg,nl) = al(imtx_Ostg,nl) - Dtx(1)*(1-weight(nth+1,np+1,nr,nsa))*fact
+        else if ( ll(imtx_Ostg,nl) == imtxa_boundary(nth,np+1,nr) ) then
+          al(imtx_Ostg,nl) = al(imtx_Ostg,nl) - Dtx(1)*weight(nth+1,np+1,nr,nsa)*fact
+        else if ( ll(imtx_Ostg,nl) == imtxa_boundary(nth+1,np-1,nr) ) then
+          al(imtx_Ostg,nl) = al(imtx_Ostg,nl) + Dtx(1)*(1.d0-weight(nth+1,np-1,nr,nsa))*fact
+        else if ( ll(imtx_Ostg,nl) == imtxa_boundary(nth,np+1,nr) ) then
+          al(imtx_Ostg,nl) = al(imtx_Ostg,nl) + Dtx(1)*weight(nth+1,np-1,nr,nsa)*fact
+        else if ( ll(imtx_Ostg,nl) == imtxa_boundary(nth+1,np,nr) ) then
+          al(imtx_Ostg,nl) = al(imtx_Ostg,nl) - (Dtx(2)+Fthp*(1.d0-weight(nth+1,np,nr,nsa)))*fact
+        else if ( ll(imtx_Ostg,nl) == imtxa_boundary(nth+1,np,nr+1) ) then
+          al(imtx_Ostg,nl) = al(imtx_Ostg,nl) - Dtx(3)*(1.d0-weight(nth+1,np,nr+1,nsa))*fact
+        else if ( ll(imtx_Ostg,nl) == imtxa_boundary(nth,np,nr+1) ) then
+          al(imtx_Ostg,nl) = al(imtx_Ostg,nl) - Dtx(3)*weight(nth+1,np,nr+1,nsa)*fact
+        else if ( ll(imtx_Ostg,nl) == imtxa_boundary(nth+1,np,nr-1) ) then
+          al(imtx_Ostg,nl) = al(imtx_Ostg,nl) + Dtx(3)*(1.d0-weight(nth+1,np,nr-1,nsa))*fact
+        else if ( ll(imtx_Ostg,nl) == imtxa_boundary(nth,np,nr-1) ) then
+          al(imtx_Ostg,nl) = al(imtx_Ostg,nl) + Dtx(3)*weight(nth+1,np,nr-1,nsa)*fact
         end if
       end do
 
@@ -1568,7 +1564,7 @@ contains
       sl = SIN( thetam(nth,np,nr,nsa) )
       rl = rm(nr)
       deltath= delthm(nth,np,nr,nsa)
-      nm_Ostg = nma(nth,np,nr)
+      imtx_Ostg = imtxa(nth,np,nr)
   
       Dtx(1)  = Dtpfow(nth,np,nr,nsa)*sl/(pl*sl*delp(nsa)*deltath*2.d0)
       Dtx(2)  = Dttfow(nth,np,nr,nsa)*sl/(pl**2*sl*deltath**2)
@@ -1577,26 +1573,26 @@ contains
 
       fact = -1.d0/JI(nth,np,nr,nsa)
 
-      dl(nm_Ostg) = dl(nm_Ostg) + fact*( -1.d0*Dtx(2)+Fthp*(1.d0-weight(nth,np,nr,nsa)) )
+      dl(imtx_Ostg) = dl(imtx_Ostg) + fact*( -1.d0*Dtx(2)+Fthp*(1.d0-weight(nth,np,nr,nsa)) )
       do nl = 1, nl_Ostg
-        if ( ll(nm_Ostg,nl) == nma_boundary(nth,np+1,nr) ) then
-          al(nm_Ostg,nl) = al(nm_Ostg,nl) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact
-        else if ( ll(nm_Ostg,nl) == nma_boundary(nth-1,np+1,nr) ) then
-          al(nm_Ostg,nl) = al(nm_Ostg,nl) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact
-        else if ( ll(nm_Ostg,nl) == nma_boundary(nth,np-1,nr) ) then
-          al(nm_Ostg,nl) = al(nm_Ostg,nl) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact
-        else if ( ll(nm_Ostg,nl) == nma_boundary(nth-1,np-1,nr) ) then
-          al(nm_Ostg,nl) = al(nm_Ostg,nl) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact
-        else if ( ll(nm_Ostg,nl) == nma_boundary(nth,np,nr) ) then
-          al(nm_Ostg,nl) = al(nm_Ostg,nl) +( Dtx(2)+Fthp*weight(nth,np,nr,nsa) )*fact
-        else if ( ll(nm_Ostg,nl) == nma_boundary(nth,np,nr+1) ) then
-          al(nm_Ostg,nl) = al(nm_Ostg,nl) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact
-        else if ( ll(nm_Ostg,nl) == nma_boundary(nth-1,np,nr+1) ) then
-          al(nm_Ostg,nl) = al(nm_Ostg,nl) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact
-        else if ( ll(nm_Ostg,nl) == nma_boundary(nth,np,nr-1) ) then
-          al(nm_Ostg,nl) = al(nm_Ostg,nl) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact
-        else if ( ll(nm_Ostg,nl) == nma_boundary(nth-1,np,nr-1) ) then
-          al(nm_Ostg,nl) = al(nm_Ostg,nl) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact
+        if ( ll(imtx_Ostg,nl) == imtxa_boundary(nth,np+1,nr) ) then
+          al(imtx_Ostg,nl) = al(imtx_Ostg,nl) - Dtx(1)*(1.d0-weight(nth,np+1,nr,nsa))*fact
+        else if ( ll(imtx_Ostg,nl) == imtxa_boundary(nth-1,np+1,nr) ) then
+          al(imtx_Ostg,nl) = al(imtx_Ostg,nl) - Dtx(1)*weight(nth,np+1,nr,nsa)*fact
+        else if ( ll(imtx_Ostg,nl) == imtxa_boundary(nth,np-1,nr) ) then
+          al(imtx_Ostg,nl) = al(imtx_Ostg,nl) + Dtx(1)*(1.d0-weight(nth,np-1,nr,nsa))*fact
+        else if ( ll(imtx_Ostg,nl) == imtxa_boundary(nth-1,np-1,nr) ) then
+          al(imtx_Ostg,nl) = al(imtx_Ostg,nl) + Dtx(1)*weight(nth,np-1,nr,nsa)*fact
+        else if ( ll(imtx_Ostg,nl) == imtxa_boundary(nth,np,nr) ) then
+          al(imtx_Ostg,nl) = al(imtx_Ostg,nl) +( Dtx(2)+Fthp*weight(nth,np,nr,nsa) )*fact
+        else if ( ll(imtx_Ostg,nl) == imtxa_boundary(nth,np,nr+1) ) then
+          al(imtx_Ostg,nl) = al(imtx_Ostg,nl) - Dtx(3)*(1.d0-weight(nth,np,nr+1,nsa))*fact
+        else if ( ll(imtx_Ostg,nl) == imtxa_boundary(nth-1,np,nr+1) ) then
+          al(imtx_Ostg,nl) = al(imtx_Ostg,nl) - Dtx(3)*weight(nth,np,nr+1,nsa)*fact
+        else if ( ll(imtx_Ostg,nl) == imtxa_boundary(nth,np,nr-1) ) then
+          al(imtx_Ostg,nl) = al(imtx_Ostg,nl) + Dtx(3)*(1.d0-weight(nth,np,nr-1,nsa))*fact
+        else if ( ll(imtx_Ostg,nl) == imtxa_boundary(nth-1,np,nr-1) ) then
+          al(imtx_Ostg,nl) = al(imtx_Ostg,nl) + Dtx(3)*weight(nth,np,nr-1,nsa)*fact
         end if
       end do
 
@@ -1650,7 +1646,7 @@ contains
 
   end function f_grid
 
-  function nma_boundary(nth,np,nr) result(n)
+  function imtxa_boundary(nth,np,nr) result(n)
     implicit none
     integer :: n
     integer,intent(in) :: nth,np,nr
@@ -1661,11 +1657,11 @@ contains
     nr_  = 1 <= nr  .and. nr  <= nrmax 
 
     if ( nth_ .and. np_ .and. nr_ ) then
-      n = nma(nth,np,nr)
+      n = imtxa(nth,np,nr)
     else
       n = -1
     end if
 
-  end function nma_boundary
+  end function imtxa_boundary
 
 END MODULE fowexec

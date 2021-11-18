@@ -185,9 +185,9 @@ CONTAINS
                 EZ_max_ngt(ngt)=MAX(EZ_max_ngt(ngt),ABS(EZ(nx,ny)))
              END DO
           END DO
-          WRITE(6,'(A,2I6,4ES12.4)') &
-               'nt,ngt,Ex/y/z,pabs=',nt,ngt,EX_max_ngt(ngt), &
-               EY_max_ngt(ngt),EZ_max_ngt(ngt),pabs_tot_ngt(ngt)
+!          WRITE(6,'(A,2I6,4ES12.4)') &
+!               'nt,ngt,Ex/y/z,pabs=',nt,ngt,EX_max_ngt(ngt), &
+!               EY_max_ngt(ngt),EZ_max_ngt(ngt),pabs_tot_ngt(ngt)
        END IF
 
        IF(MOD(nt,ngrstep).EQ.0.AND.ngr.LT.ngr_m) THEN

@@ -85,6 +85,9 @@ libs:
 wm : $(LIB_MTX) $(LIBS) wmmain.o 
 	$(FLINKER) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
+test_nph : test_nph.o
+	$(FLINKER) test_nph.o -o $@ $(FFLAGS) $(FLIBS)
+
 clean :
 	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
 

@@ -308,7 +308,7 @@ contains
     end do
 
     call particle_flux_element(Sr(:,:,nt), Sr_Dp(:,:,nt), Sr_Dth(:,:,nt), Sr_Dr(:,:,nt), Sr_F(:,:,nt))
-    call effective_diffusion_cosfficient(Deff(:,:,nt))
+    call effective_diffusion_coefficient(Deff(:,:,nt))
 
     if ( nt == ntmax ) then
       call fptxt5D(fI,"dat/f.txt")

@@ -49,6 +49,12 @@ CONTAINS
        ygn(ny)=yg(ny)/wave_length
     END DO
 
+    DO ny=1,nymax
+       DO nx=1,nxmax
+          medium_nx_ny(nx,ny)=0
+       END DO
+    END DO
+
     ! calculate matrix CD
 
     CALL wq_tens(omegaplus, CDplus)

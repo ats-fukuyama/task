@@ -123,6 +123,7 @@ CONTAINS
 
     CALL PAGEE
 
+    IF(ngt_max.EQ.0) RETURN
     IF(pabs_tot_ngt(ngt_max).LE.0.D0) RETURN
 
     CALL PAGES

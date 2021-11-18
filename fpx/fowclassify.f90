@@ -255,16 +255,16 @@ contains
     use fpcomm
     USE fowlib
     implicit none
-    real(rkind),dimension(ithmax,nrmax,nsamax),intent(out) :: beta_stag
+    real(rkind),intent(out)::beta_stag(ithmax,nrstartw:nrendwm,nsastart:nsaend)
     integer :: nth,nr,nsa
     real(rkind) :: v_stagnation_orbit, F_p, B_p
-    real(rkind),dimension(ithmax,nrmax,nsamax) :: Gm
-    real(rkind),dimension(ithmax,nrmax) :: B_m, dBmdpsi
-    real(rkind),dimension(nrmax) :: dFdpsi
+    real(rkind),dimension(ithmax,nrstartw:nrendwm,nsastart:nsaend) :: Gm
+    real(rkind),dimension(ithmax,nrstartw:nrendwm) :: B_m, dBmdpsi
+    real(rkind),dimension(nrstartw:nrendwm) :: dFdpsi
 
-    do nsa = 1, nsamax
+    do nsa = nsastart, nsaend
 
-      do nr = 1, nrmax
+      do nr = nrstartw, nrendwm
         do nth = 1, ithmax
           if ( aefp(nsa)*xi(nth) <= 0.d0 ) then
             B_m(nth,nr) = Bin(nr)
@@ -274,7 +274,7 @@ contains
         end do
       end do
   
-        do nr = 1, nrmax
+        do nr = nrstartw, nrendwm
           do nth = 1, ithmax
             Gm(nth,nr,nsa) = aefp(nsa)*B_m(nth,nr)*psim(nr)/(amfp(nsa)*vc*Fpsi(nr))
           end do
@@ -286,7 +286,7 @@ contains
         call first_order_derivative(dBmdpsi(nth,:), B_m(nth,:), psim)
       end do
     
-      do nr = 1, nrmax
+      do nr = nrstartw, nrendwm
         do nth = 1, ithmax
           if ( xi(nth) == 0.d0 ) then
             beta_stag(nth,nr,nsa) = 0.d0
@@ -296,11 +296,21 @@ contains
           F_p = dFdpsi(nr)*psim(nr)/Fpsi(nr)
           B_p = dBmdpsi(nth,nr)*psim(nr)/B_m(nth,nr)
 
-          v_stagnation_orbit = Gm(nth,nr,nsa)*xi(nth)/(xi(nth)**2*F_p-0.5d0*(1.d0+xi(nth)**2)*B_p) ! LHS = gamma*beta 
-          v_stagnation_orbit = vc*sqrt(v_stagnation_orbit**2/(1.d0+v_stagnation_orbit**2)) ! LHS = velocity of stagnation orbit
+          v_stagnation_orbit &
+               = Gm(nth,nr,nsa)*xi(nth) &
+               /(xi(nth)**2*F_p-0.5d0*(1.d0+xi(nth)**2)*B_p) ! LHS=gamma*beta 
+          v_stagnation_orbit &
+               = vc*sqrt(v_stagnation_orbit**2/(1.d0+v_stagnation_orbit**2))
+                                         ! LHS = velocity of stagnation orbit
   
-          ! beta_stag(nth,nr,nsa) = amfp(nsa)*v_stagnation_orbit/(1.d0-v_stagnation_orbit**2/vc**2) ! momentum of stagnation orbit
-          ! beta_stag(nth,nr,nsa) = beta_stag(nth,nr,nsa)/ptfp0(nsa) ! normalize
+          ! beta_stag(nth,nr,nsa) &
+          !  = amfp(nsa)*v_stagnation_orbit &
+          !    /(1.d0-v_stagnation_orbit**2/vc**2)
+          !                          momentum of stagnation orbit
+          ! beta_stag(nth,nr,nsa) &
+          !  = beta_stag(nth,nr,nsa)/ptfp0(nsa) &
+          !                           normalize
+          
           beta_stag(nth,nr,nsa) = v_stagnation_orbit/vc
         end do
       end do
@@ -316,12 +326,13 @@ contains
     implicit none
     ! F_p : ( dF / d(psi_p/psi_m) )/F 
     ! F_pp : ( d^2F / d(psi_p/psi_m)^2 )/F
-    real(rkind),dimension(nrmax,2),intent(out) :: xi_Xtype_boundary(:,:)
+    real(rkind),dimension(nrstartw:nrendwm,2),intent(out) :: &
+         xi_Xtype_boundary(:,:)
     integer :: nr
     real(rkind) :: C(3), F_p, F_pp, B_p, B_pp
     COMPLEX(rkind) :: z(2)
-    real(rkind),dimension(nrmax,2) :: dBmdpsi, d2Bmdpsi, B_, B__
-    real(rkind),dimension(nrmax) :: dFdpsi, d2Fdpsi, F_, F__
+    real(rkind),dimension(nrstartw:nrendwm,2) :: dBmdpsi, d2Bmdpsi, B_, B__
+    real(rkind),dimension(nrstartw:nrendwm) :: dFdpsi, d2Fdpsi, F_, F__
 
     call first_order_derivative(dFdpsi, Fpsi, psim)
     call second_order_derivative(d2Fdpsi, Fpsi, psim)
@@ -332,7 +343,7 @@ contains
     call second_order_derivative(d2Bmdpsi(:,1), Bout, psim)
     call second_order_derivative(d2Bmdpsi(:,2), Bin, psim)
 
-    do nr = 1, nrmax
+    do nr = nrstartw, nrendwm
       F_(nr)=dFdpsi(nr)*psim(nr)/Fpsi(nr)
       F__(nr)=d2Fdpsi(nr)*psim(nr)**2/Fpsi(nr)
       B_(nr,1) = dBmdpsi(nr,1)*psim(nr)/Bout(nr)
@@ -341,7 +352,7 @@ contains
       B__(nr,2) = d2Bmdpsi(nr,2)*psim(nr)**2/Bin(nr)
     end do
 
-    do nr = 1, nrmax
+    do nr = nrstartw, nrendwm
       F_p = dFdpsi(nr)*psim(nr)/Fpsi(nr)
       F_pp = d2Fdpsi(nr)*psim(nr)**2/Fpsi(nr)
 

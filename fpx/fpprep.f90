@@ -500,8 +500,9 @@
 
       USE libmtx
       IMPLICIT NONE
-      INTEGER:: ierr, NREND1, keys,N
-      INTEGER,DIMENSION(nsize):: ima1,ima2,npa1,npa2,nra1,nra2,nma1,nma2,insa1,insa2
+      INTEGER:: ierr,keys,N
+      INTEGER,DIMENSION(nsize):: &
+           ima1,ima2,npa1,npa2,nra1,nra2,nma1,nma2,insa1,insa2
 
 !     ----- Check nsize -----
       IF(N_partition_s*N_partition_r*N_partition_p.ne.nsize)THEN
@@ -576,12 +577,6 @@
 
       nrstart=(imtxstart-1)/(nthmax*npmax)+1
       nrend=  (imtxend  -1)/(nthmax*npmax)+1
-      nrend1= (imtxend    )/(nthmax*npmax)+1
-!      IF(nrend1.EQ.nrend) THEN
-!         NRENDX=NREND-1
-!      ELSE
-!         NRENDX=NREND
-!      ENDIF
 
       NPSTART=( imtxstart-1- (nrstart-1)*nthmax*npmax )/nthmax +1
       NPEND  =( imtxend - (nrend-1)*nthmax*npmax )/nthmax

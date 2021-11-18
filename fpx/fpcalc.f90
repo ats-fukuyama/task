@@ -1,4 +1,4 @@
-!     $Id: fpcalc.f90,v 1.25 2013/02/08 07:36:24 nuga Exp $
+! fpcalc.f90
 !
 ! ******************************************************************
 !
@@ -144,13 +144,15 @@
                IF(NS_NSA(NSA).EQ.1) THEN
                   DO NSB=1,NSBMAX
                      IF(NS_NSB(NSB).EQ.2) THEN
-                        RGAMH=RNUD(NR,NSA,NSA)*SQRT(2.D0)*VTFD(NR,NSA)*AMFP(NSA) &
+                        RGAMH=RNUD(NR,NSA,NSA)*SQRT(2.D0)*VTFD(NR,NSA) &
+                             *AMFP(NSA) &
                              /(RNFP0(NSA)*PTFP0(NSA)*1.D20)*RNFD0(NSA)
-                        RGAMH2=RGAMH*RNFP(NR,NSA)*1.D20*PTFP0(NSA)/AMFP(NSA)/RNFD0(NSA)
+                        RGAMH2=RGAMH*RNFP(NR,NSA)*1.D20*PTFP0(NSA) &
+                             /AMFP(NSA)/RNFD0(NSA)
                         rZI = -PZ(2)/PZ(1) &
 !                     rZI = ( PZ(2)/PZ(1) )**2 * RNFD(NR,NSB)/RNFP(NR,NSA) &
-                             /(14.9D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))* &
-                             (15.2D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))
+                          /(14.9D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA))) &
+                          *(15.2D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))
                         DO NP=NPSTARTW,NPENDWM
                            RGAMA =SQRT(1.D0+PM(NP,NS)**2*THETA0(NS))
                            PFPL=PM(NP,NS)*PTFP0(NSA)
@@ -678,12 +680,10 @@
 !            WRITE(*,'(3I4,3E16.8)') NP, NSA,NSB,PG(NP,NSBA), DCPPL, FCPPL
             ENDDO
 
-!         DO NP=1,NPMAX
             DO NP=NPSTARTW,NPENDWM
                PFPL=PM(NP,NSSA)*PTFP0(NSA)
                VFPL=PFPL/AMFP(NSA)
                V=VFPL/VTFP0(NSA)
-!            U=VFPL/(SQRT(2.D0)*VTFD(NR,NSB))
                U=VFPL/(SQRT(2.D0)*v_thermal)
                DCTTL= 0.25D0*RNUDL/U &
                     *((2.D0-1.D0/U**2)*ERF0(U)+ERF1(U)/U)
@@ -692,7 +692,6 @@
                   DCTT2(NTH,NP,NR,NSB,NSA)=DCTT2(NTH,NP,NR,NSB,NSA)+DCTTL
                ENDDO
             ENDDO
-!         ELSEIF(MODELC(NS).eq.1)THEN ! isotoropic
          ELSEIF(MODELC(NSSB).ge.2)THEN ! isotoropic
             PMAXC=PMAX(NSSB)
             THETAL_C =0.D0
@@ -707,7 +706,8 @@
                RTFDL_C=RT_TEMP(NR,NSB)
                RTFD0L_C=RTFD0(NSB)
                RNFDL=RN_TEMP(NR,NSB)
-               RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2) &
+               RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*LNLAM(NR,NSB,NSA) &
+                    /(4.D0*PI*EPS0**2) &
                     *AMFP(NSA)/PTFP0(NSA)**3 
             END IF
             IF(MODEL_DISRUPT.eq.1)THEN
@@ -718,7 +718,8 @@
                ELSE
                   RNFDL=RN_MGI(NR,NSB)
                END IF
-               RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*POST_LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2) &
+               RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*POST_LNLAM(NR,NSB,NSA) &
+                    /(4.D0*PI*EPS0**2) &
                     *AMFP(NSA)/PTFP0(NSA)**3 
             END IF
 
@@ -744,7 +745,8 @@
                   ptatb=PG(NP,NSSA)/RGAMA
 !                  PCRIT=SQRT(vtatb**2/(1.D0-THETA0L_C*vtatb**2*ptatb**2)) &
 !                       *ptatb
-                  PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PG(NP,NSSA)
+                  PCRIT=(AMFD(NSB)*PTFP0(NSA)) &
+                       /(AMFP(NSA)*PTFD0(NSB))*PG(NP,NSSA)
                   IF(PCRIT.le.PMAX(NSSB))THEN
                      CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"N0R_DCPP")
                      PNFP_C=PCRIT
@@ -786,11 +788,11 @@
                           *RNFDL*1.D20
 !                     PNFP_C=PMAX(NSBA)
                      PNFP_C=PMAX(NSSB)
-                     CALL DEFT  (RINT4,ES4,H0DE,EPSDE,0,FPFN4R,"N4R_PMAX_FCPP")
-                     CALL DEFT  (RINT5,ES5,H0DE,EPSDE,0,FPFN5R,"N5R_PMAX_FCPP")
+                     CALL DEFT(RINT4,ES4,H0DE,EPSDE,0,FPFN4R,"N4R_PMAX_FCPP")
+                     CALL DEFT(RINT5,ES5,H0DE,EPSDE,0,FPFN5R,"N5R_PMAX_FCPP")
                      PNFP_C=PCRIT
-                     CALL DEFT  (RINT8,ES8,H0DE,EPSDE,0,FPFN9R,"N9R_PMAX_FCPP")
-                     CALL DEFT  (RINT9,ES9,H0DE,EPSDE,0,FPFN10R,"N10R_PMAX_FCPP")
+                     CALL DEFT(RINT8,ES8,H0DE,EPSDE,0,FPFN9R,"N9R_PMAX_FCPP")
+                     CALL DEFT(RINT9,ES9,H0DE,EPSDE,0,FPFN10R,"N10R_PMAX_FCPP")
                      CALL DEHIFT(RINT6,ES6,H0DE,EPSDE,0,FPFN6R,"N6R_PMAX_FCPP")
                      PNFP_C=PNFPL
                      FCPPL=-RGAMH/(3.D0*RINT0)*(                &
