@@ -13,7 +13,7 @@ CONTAINS
     USE libinv
     IMPLICIT NONE
     INTEGER:: nx,ny,i,j,N,NA,ILL,ngr,nt
-    REAL(rkind):: dx,dy,factor,cos_ang,sin_ang,phase,xs,ys,xn,yn,t
+    REAL(rkind):: dx,dy,factor,cos_ang,sin_ang,phase,xs,ys,xn,yn
     COMPLEX(rkind):: AA(3,3)
    
     omega       = 2.d0*PI*freq
@@ -168,7 +168,7 @@ CONTAINS
           END DO
        END DO
        ngr_max=ngr
-       WRITE(6,'(A,I8,ES12.4,I8)') '## nt,t,ngr:',nt,t,ngr
+       WRITE(6,'(A,I8,ES12.4,I8)') '## nt,t,ngr:',nt,t_tot,ngr
     END SELECT
   END SUBROUTINE wq_prep
 END MODULE wqprep

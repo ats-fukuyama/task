@@ -72,6 +72,7 @@ CONTAINS
     nr_end=(iend-1)/mblock_size+1        ! nr_end is nr including iend
     IF(nrank.EQ.nsize-1) nr_end=NRMAX+1
 
+    ALLOCATE(istart_nrank(0:nsize-1),iend_nrank(0:nsize-1))
     ALLOCATE(nr_start_nrank(0:nsize-1),nr_end_nrank(0:nsize-1))
     CALL mtx_allgather1_integer(istart,istart_nrank)
     CALL mtx_allgather1_integer(iend,iend_nrank)

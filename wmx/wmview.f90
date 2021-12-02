@@ -78,7 +78,7 @@ CONTAINS
                  'factor_nhh  ',factor_nhh, &
                  'factor_nph  ',factor_nph
     WRITE(6,602) 'NRMAX ',NRMAX ,'NTHMAX',NTHMAX, &
-                 'NHHMAX',NHHMAX,'NPHMAX',NPHMAX
+                 'NHHMAX',NHHMAX,'NPPMAX',NPPMAX
     WRITE(6,602) 'NTH0  ',NTH0  ,'NPH0  ',NPH0  , &
                  'NHC   ',NHC   
     WRITE(6,602) 'MODELG',MODELG,'MODELB',MODELB, &

@@ -44,12 +44,9 @@ MODULE wmcomm_parm
   INTEGER:: NTHMAX      ! number of poloidal mesh         in plcomm.parm
 
   INTEGER:: NHHMAX      ! number of helical mode (1 for tokamak)
-  INTEGER:: NPHMAX      ! number of toroidal mode (valid for tokamak)
-                        !                          1: for single mode
   INTEGER:: NPPMAX      ! number of toroidal mode group (valid for helical)
                         !                          1: for single mode group
                         !                        nhc: for full helical modes
-                        !    (nphmax will be to set to nhc*nhhmax for helical)
 
   INTEGER:: NSUMAX          ! Number of plasma surface plot points
   INTEGER:: NSWMAX          ! Number of wall surface plot points
@@ -147,7 +144,9 @@ MODULE wmcomm
   INTEGER:: NTHMAX_F    ! number of extended poloidal mesh =NTHMAX*factor_nth
   INTEGER:: NHHMAX_F    ! number of extended helical mesh  =NHHMAX*factor_nhh
   INTEGER:: NPHMAX_F    ! number of extended toroidal mesh =NPHMAX*factor_nph
-  INTEGER:: NPHTOT      ! number of toroidal mode number for FFT 2**n
+  INTEGER:: NPHMAX      ! number of toroidal mode
+                        !      calculated from NHHMAX and NPPMAX
+  INTEGER:: NPHTOT      ! number of toroidal mode for FFT: 2**n >= NPHMAX
   INTEGER:: MDSIZ,MDMIN,MDMAX,LDSIZ,LDMIN,LDMAX
   INTEGER:: MDSIZ_F,MDMIN_F,MDMAX_F,LDSIZ_F,LDMIN_F,LDMAX_F
   INTEGER:: NDSIZ,NDMIN,NDMAX,KDSIZ,KDMIN,KDMAX
@@ -155,7 +154,7 @@ MODULE wmcomm
   INTEGER:: MODEWG,MWGMAX
   INTEGER:: NR_S,NBST,NBED,NBMODE  ! for mdlwmx=1
 
-  INTEGER,ALLOCATABLE:: NPH_LOOP(:)
+  INTEGER,ALLOCATABLE:: nph0_npp(:),nph_nhh_npp(:,:)
   
   COMPLEX(rkind),ALLOCATABLE:: CJANT(:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CEWALL(:,:,:)
@@ -270,11 +269,31 @@ CONTAINS
 
   SUBROUTINE wm_allocate
     IMPLICIT NONE
-    INTEGER,SAVE:: nrmax_save,nthmax_save,nhhmax_save,nphmax_save
+    INTEGER,SAVE:: nrmax_save,nthmax_save,nhhmax_save,nppmax_save
     INTEGER,SAVE:: nsumax_save,nswmax_save
     INTEGER,SAVE:: INIT=0
-    
-    mblock_size=3*nthmax*nhhmax
+    INTEGER:: npow
+
+    IF(nhhmax.EQ.1) THEN
+       IF(nppmax.EQ.1) THEN
+          nphmax=1
+       ELSE
+          nphmax=nppmax
+       END IF
+    ELSE
+       IF(nppmax.EQ.1) THEN
+          nphmax=nhhmax
+       ELSE
+          IF(nppmax.GT.nhc) nppmax=nhc
+          nphmax=nppmax*nhhmax
+       END IF
+    END IF
+
+    npow=NINT(LOG(DBLE(nphmax))/LOG(2.D0))
+    IF(nphmax.GT.2**npow) npow=npow+1
+    nphtot=2**npow
+             
+    mblock_size=3*nthmax*nppmax
     mbnd= 4*mblock_size-1
     mcent=2*mblock_size
     SELECT CASE(mdlwmx)
@@ -306,14 +325,14 @@ CONTAINS
        IF(nrmax.EQ.nrmax_save.AND. &
           nthmax.EQ.nthmax_save.AND. &
           nhhmax.EQ.nhhmax_save.AND. &
-          nphmax.EQ.nphmax_save.AND. &
+          nppmax.EQ.nppmax_save.AND. &
           nsumax.EQ.nsumax_save.AND. &
           nswmax.EQ.nswmax_save) RETURN
        CALL wm_deallocate
     END IF
 
     ALLOCATE(XR(nrmax+1),XRHO(nrmax+1),XTH(nthmax+1),XTHF(nthmax_f+1))
-    ALLOCATE(NPH_LOOP(nphmax))
+    ALLOCATE(nph0_npp(nppmax),nph_nhh_npp(nhhmax,nppmax))
     ALLOCATE(CJANT(3,nthmax,nhhmax))
     ALLOCATE(CEWALL(3,nthmax,nhhmax))
     ALLOCATE(CFVG(mlen))
@@ -408,7 +427,7 @@ CONTAINS
     nrmax_save=nrmax
     nthmax_save=nthmax
     nhhmax_save=nhhmax
-    nphmax_save=nphmax
+    nppmax_save=nppmax
     nsumax_save=nsumax
     nswmax_save=nswmax
   END SUBROUTINE wm_allocate
@@ -417,7 +436,7 @@ CONTAINS
     IMPLICIT NONE
 
     DEALLOCATE(XR,XRHO,XTH,XTHF)
-    DEALLOCATE(NPH_LOOP)
+    DEALLOCATE(nph0_npp,nph_nhh_npp)
     DEALLOCATE(CJANT)
     DEALLOCATE(CEWALL)
     DEALLOCATE(CFVG)

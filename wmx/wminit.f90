@@ -15,31 +15,33 @@ CONTAINS
 
 ! *** mode setting parameters ***
 
-!  tokamak: 	nhhmax=0
-!		nphmax=1 
-!		nph=nph0
-!		nphtot=1
-!		L=2PiR
+    !  tokamak:	nhhmax=1
+    !		nppmax=1 
+    !		nph=nph0
+    !           nphmax=1
+    !		nphtot=1
+    !		L=2PiR
 
-!  helical:	nhhmax: given >1
-!		nppmax=1
-!		nph=nph0+nhc*(nhh-1)
-!		nphtot=nhhmax
-!		L=2PiR/nhc
+    !  helical:	nhhmax: given >1
+    !		nppmax=1
+    !		nph=nph0+nhc*(nhh-1)
+    !           nphmax=nhhmax
+    !		nphtot>=nhhmax
+    !		L=2PiR/nhc
 
-! tokamak 3D	nhhmax=0
-!		nphmax: given > 1
-!		nph=1..nphmax
-!		nppmax=nphmax
-!		nphtot=Max(nphmax,2**n)
-!		L=2PiR
+    ! tokamak3D nhhmax=1
+    !		nppmax: given > 1
+    !		nph=1..nphmax
+    !		nphmax=nppmax
+    !		nphtot=Max(nphmax,2**n)
+    !		L=2PiR
 
-! helical 3D	nhhmax: given >1
-!		nppmax=nhc > 1
-!		nphmax=nhhmax*nhc
-!		nph=(nhh-1)*nhc+(npp-1)
-!		nphtot=Max(nhhmax*nhc,2**n)
-!		L=2PiR
+    ! helical3D	nhhmax: given >1
+    !		nppmax=nhc
+    !		nphmax=nhhmax*nhc
+    !		nph=(nhh-1)*nhc+(npp-1)
+    !		nphtot=Max(nhhmax*nhc,2**n)
+    !		L=2PiR
     
 !     *** MESH PARAMETERS ***
 
@@ -48,11 +50,8 @@ CONTAINS
 !     NHHMAX : Number of helically coupled toroidal modes (power of 2)
 !                 =1 : axisymmetric calculation
 !                 >1 : helical calculation
-!     NPHMAX : Number of toroidal modes (power of 2)
-!                 =1 : single toroidal mode calculation
-!                 >1 : multi toroidal mode calculation (-NPHMAX/2+1..NPHMAX/2)
-!     NPPMAX : Number of toroidal mode group for helical
-!                 =1 : single toroidal mode groupe
+!     NPPMAX : Number of toroidal mode number for tokamak, group for helical
+!                 =1 : single toroidal mode group
 !                 >1 : toroidal mode group (NHC for full mode group)
 !     factor_nth : ratio of nthmax_f and nthmax [INTEGER]    
 !     factor_nhh : ratio of nhhmax_f and nhhmax [INTEGER]    
@@ -61,7 +60,6 @@ CONTAINS
       NRMAX   = 50
       NTHMAX  = 1
       NHHMAX  = 1
-      NPHMAX  = 1
       NPPMAX  = 1
       factor_nth = 2 
       factor_nhh = 2

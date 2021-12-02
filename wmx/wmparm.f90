@@ -59,7 +59,7 @@ CONTAINS
            RHOGMN,RHOGMX,MODEFR,MODEFW,IDEBUG, &
            KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,KNAMTR,KNAMEQ2, &
            MODELP,MODELV,NCMIN,NCMAX,PMAX,EMAX, &
-           NRMAX,NTHMAX,NHHMAX,NPHMAX,NPPMAX, &
+           NRMAX,NTHMAX,NHHMAX,NPPMAX, &
            factor_nth,factor_nhh,factor_nph, &
            NRMAX_DP,NTHMAX_DP,NPMAX_DP,NSAMAX_DP,RHON_MIN,RHON_MAX, &
            NS_NSA_DP,EPSRT,LMAXRT, &
@@ -106,7 +106,7 @@ CONTAINS
          '       KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,', &
          '       MODELP,MODELV,NCMIN,NCMAX,PMAX,EMAX,', &
          '       NPMAX,NTHMAX,NRMAX,NSAMAX,RHON_MIN,RHON_MAX,', &
-         '       NHHMAX,NPHMAX,NPPMAX,factor_nth,factor_nhh,factor_nph,', &
+         '       NHHMAX,NPPMAX,factor_nth,factor_nhh,factor_nph,', &
          '       NSUMAX,NSWMAX,B0_FACT,', &
          '       RF,RFI,RD,PRFIN,BETAJ,NTH0,NPH0,NHC,', &
          '       NAMAX,AJ,AEWGT,AEWGZ,APH,THJ1,THJ2,PHJ1,PHJ2,ANTANG,', &
@@ -129,49 +129,20 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
     INTEGER:: nphmax_mod,nhhmax_mod
+    CHARACTER(LEN=80):: title
 
     ierr=0
 
-    IF(nhhmax.EQ.1) THEN ! axisymmetric (Tokamak)
-       IF(nphmax.EQ.1) THEN ! tokamak single mode
-          WRITE(6,'(A,2I6)') &
-               '# axisymmetric single mode: nhhmax,nphmax=',nhhmax,nphmax
-       ELSE ! takamk multi mode
-          CALL adjust_power2(nphmax,nphmax_mod)
-          IF(nphmax.NE.nphmax_mod) THEN
-             WRITE(6,'(A,2I6)') &
-                  '# NPHMAX adjusted to power of two: original, adjusted:', &
-                  nphmax,nphmax_mod
-             nphmax=nphmax_mod
-          END IF
-          WRITE(6,'(A,2I6)') &
-               '# axisymmetric multi mode : nhhmax,nphmax=',nhhmax,nphmax
-       END IF
-    ELSE ! non-axisymmetric (Helical)
-       CALL adjust_power2(nhhmax,nhhmax_mod)
-       IF(nhhmax.NE.nhhmax_mod) THEN
-          WRITE(6,'(A,2I6)') &
-               '# NHHMAX adjusted to power of two: original, adjusted:', &
-               nhhmax,nhhmax_mod
-          nhhmax=nhhmax_mod
-       END IF
-       IF(nphmax.LE.nhhmax) THEN ! helical single mode
-          nphmax=nhhmax
-          WRITE(6,'(A,2I6)') &
-               '# helical single mode: nhhmax,nphmax=',nhhmax,nphmax
-       ELSE ! helical multi mode
-          CALL adjust_power2(nphmax,nphmax_mod)
-          IF(nphmax.NE.nphmax_mod) THEN
-             WRITE(6,'(A,2I6)') &
-                  '# NPHMAX adjusted to power of two: original, adjusted:', &
-                  nphmax,nphmax_mod
-             nphmax=nphmax_mod
-          END IF
-          WRITE(6,'(A,2I6)') &
-               '# helical multi mode: NHHMAX,NPHMAX=',nhhmax,nphmax
-       END IF
+    IF(nhhmax.LT.1) THEN
+       WRITE(6,'(A,I8)') 'XX nhhmax.LT.1: nhhmax=',nhhmax
+       ierr=1
     END IF
-          
+
+    IF(nppmax.LT.1) THEN
+       WRITE(6,'(A,I8)') 'XX nppmax.LT.1: nppmax=',nppmax
+       ierr=1
+    END IF
+
     IF(NSMAX.LT.0.OR.NSMAX.GT.NSM) THEN
        WRITE(6,*) 'XXX INPUT ERROR : ILLEGAL NSMAX'
        WRITE(6,*) '                  NSMAX,NSM =',NSMAX,NSM
@@ -224,7 +195,7 @@ CONTAINS
     idata( 1)=NRMAX
     idata( 2)=NTHMAX
     idata( 3)=NHHMAX
-    idata( 4)=NPHMAX
+    idata( 4)=NPPMAX
     idata( 5)=NSUMAX
     idata( 6)=NSWMAX
     idata( 7)=NTH0
@@ -257,14 +228,13 @@ CONTAINS
     idata(34)=factor_nth
     idata(35)=factor_nhh
     idata(36)=factor_nph
-    idata(37)=NPPMAX
 
     CALL mtx_broadcast_integer(idata,37)
 
     NRMAX=idata( 1)
     NTHMAX=idata( 2)
     NHHMAX=idata( 3)
-    NPHMAX=idata( 4)
+    NPPMAX=idata( 4)
     NSUMAX=idata( 5)
     NSWMAX=idata( 6)
     NTH0=idata( 7)
@@ -297,7 +267,6 @@ CONTAINS
     factor_nth=idata(34)
     factor_nhh=idata(35)
     factor_nph=idata(36)
-    NPPMAX=idata(36)
 
     rdata( 1)=RF
     rdata( 2)=RFI
