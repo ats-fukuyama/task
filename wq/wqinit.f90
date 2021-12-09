@@ -35,7 +35,7 @@ CONTAINS
                               !   1-4: source on wall (-x,-y,+x,+y) S (Ez=0)
                               !   5-8: source on wall (-x,-y,+x,+y) P (Ex=Ey=0)
                               !   10:  initial source profile S (Ez=0)
-                              !   10:  initial source profile P (Ex=Ey=0)
+                              !   11:  initial source profile P (Ex=Ey=0)
     source_position_xn = 0.5D0*(xnmin+xnmax) ! [unit=vacuum wave length]
     source_position_yn = 0.5D0*(ynmin+ynmax) ! [unit=vacuum wave length]
     source_width       = 4.D0   ! length of pulse [unit=vacuum wave length]
