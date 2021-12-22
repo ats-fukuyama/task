@@ -185,7 +185,8 @@ MODULE wmcomm
   COMPLEX(rkind),ALLOCATABLE:: CEFLD3D(:,:,:,:),CEFLDK3D(:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CBFLD(:,:,:,:),CBFLDK(:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CBFLD3D(:,:,:,:),CBFLDK3D(:,:,:,:)
-  COMPLEX(rkind),ALLOCATABLE:: CEN(:,:,:,:),CEP(:,:,:,:)
+  COMPLEX(rkind),ALLOCATABLE:: CEN(:,:,:,:),CES(:,:,:,:),CEP(:,:,:,:)
+  COMPLEX(rkind),ALLOCATABLE:: CEN3D(:,:,:,:),CES3D(:,:,:,:),CEP3D(:,:,:,:)
 
   COMPLEX(rkind),ALLOCATABLE:: CPABS(:,:,:,:),CPABSK(:,:,:,:)
   REAL(rkind),ALLOCATABLE:: PABS(:,:,:,:),PABSK(:,:,:,:),PABSR(:,:)
@@ -354,28 +355,33 @@ CONTAINS
     ALLOCATE(CMAF(3,3,nthmax_f,nhhmax_f,3))
     ALLOCATE(CRMAF(3,3,nthmax_f,nhhmax_f,3))
 
-    ALLOCATE(CEFLDK(3,nthmax,nhhmax,nrmax+1))   ! wm_efield E_rpppr(m,nh,rho)
-    ALLOCATE(CEFLD(3,nthmax,nhhmax,nrmax+1))    ! wm_efield E_rpppr(th,hh,rho)
-    ALLOCATE(CEN(3,nthmax,nhhmax,nrmax+1))      ! wm_efield E_rpppr(th,hh,rho)
-    ALLOCATE(CEP(3,nthmax,nhhmax,nrmax+1))      ! wm_efield E_+-pr(th,hh,rho)
-    ALLOCATE(CBFLDK(3,nthmax,nhhmax,nrmax+1))   ! wm_bfield B_rpppr(m,nh,rho)
-    ALLOCATE(CBFLD(3,nthmax,nhhmax,nrmax+1))    ! wm_bfield B_rpppr(th,hh,rho)
+    ALLOCATE(CEFLDK(3,nthmax,nhhmax,nrmax+1))   ! wm_efield E(m,nh,rho)
+    ALLOCATE(CEFLD(3,nthmax,nhhmax,nrmax+1))    ! wm_efield E(th,hh,rho)
+    ALLOCATE(CBFLDK(3,nthmax,nhhmax,nrmax+1))   ! wm_bfield B(m,nh,rho)
+    ALLOCATE(CBFLD(3,nthmax,nhhmax,nrmax+1))    ! wm_bfield B(th,hh,rho)
+    ALLOCATE(CEN(3,nthmax,nhhmax,nrmax+1))      ! wm_efield E_rtp(th,hh,rho)
+    ALLOCATE(CES(3,nthmax,nhhmax,nrmax+1))      ! wm_efield E_sbh(th,hh,rho)
+    ALLOCATE(CEP(3,nthmax,nhhmax,nrmax+1))      ! wm_efield E_+-p(th,hh,rho)
 
     ALLOCATE(CPABSK(nthmax_f,nhhmax_f,nrmax+1,nsmax)) ! wm_pabs P(m,nh,rho,ns)
     ALLOCATE(CPABS(nthmax_f,nhhmax_f,nrmax+1,nsmax))  ! wm_pabs P(th,hh,rho,ns)
-    ALLOCATE(PCUR(nthmax,nhhmax,nrmax+1))             ! wm_pabs J(th,hh,rho)
+    ALLOCATE(PCUR(nthmax_f,nhhmax_f,nrmax+1))         ! wm_pabs J(th,hh,rho)
 
     ALLOCATE(PABS(nthmax_f,nhhmax_f,nrmax+1,nsmax))   ! wm_pabs P(th,hh,rho,ns)
     ALLOCATE(PABSK(nthmax_f,nhhmax_f,nrmax+1,nsmax))  ! wm_pabs P(m,nh,rho,ns)
     
     ALLOCATE(PABSR(nrmax+1,nsmax))                    ! wm_pout_sum P(rho,ns)
+
     ALLOCATE(PABST(nsmax))                            ! wm_pout_sum P(ns)
     ALLOCATE(PCURR(nrmax))                            ! wm_pout_sum J(rho)
     
-    ALLOCATE(CEFLD3D(3,nthmax,nphmax,nrmax+1))  ! wm_loop E_rpppr(th,ph,rho)
-    ALLOCATE(CEFLDK3D(3,nthmax,nphmax,nrmax+1)) ! wm_loop E_rpppr(m,n,,rho)
-    ALLOCATE(CBFLD3D(3,nthmax,nphmax,nrmax+1))  ! wm_loop B_rpppr(th,ph,rho)
-    ALLOCATE(CBFLDK3D(3,nthmax,nphmax,nrmax+1)) ! wm_loop B_rpppr(m,n,rho)
+    ALLOCATE(CEFLD3D(3,nthmax,nphmax,nrmax+1))  ! wm_loop E(th,ph,rho)
+    ALLOCATE(CEFLDK3D(3,nthmax,nphmax,nrmax+1)) ! wm_loop E(m,n,,rho)
+    ALLOCATE(CBFLD3D(3,nthmax,nphmax,nrmax+1))  ! wm_loop B(th,ph,rho)
+    ALLOCATE(CBFLDK3D(3,nthmax,nphmax,nrmax+1)) ! wm_loop B(m,n,rho)
+    ALLOCATE(CEN3D(3,nthmax,nphmax,nrmax+1)) ! wm_loop E_rtp(th,hh,rho)
+    ALLOCATE(CES3D(3,nthmax,nphmax,nrmax+1)) ! wm_loop E_sbh(th,hh,rho)
+    ALLOCATE(CEP3D(3,nthmax,nphmax,nrmax+1)) ! wm_loop E_+-p(th,hh,rho)
 
     ALLOCATE(CPABS3D(nthmax_f,nphmax_f,nrmax+1,nsmax))  ! wm_loop P(th,ph,r,ns)
     ALLOCATE(CPABSK3D(nthmax_f,nphmax_f,nrmax+1,nsmax)) ! wm_loop P(m,n,rho,ns)
@@ -451,7 +457,7 @@ CONTAINS
 
     DEALLOCATE(CEFLD,CEFLDK,CEFLD3D,CEFLDK3D)
     DEALLOCATE(CBFLD,CBFLDK,CBFLD3D,CBFLDK3D)
-    DEALLOCATE(CEN,CEP)
+    DEALLOCATE(CEN,CES,CEP,CEN3D,CES3D,CEP3D)
 
     DEALLOCATE(CPABS,CPABSK)
     DEALLOCATE(PABS,PABSK,PABSR,PABST)

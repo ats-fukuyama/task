@@ -19,7 +19,7 @@ CONTAINS
     CHARACTER(LEN=5):: KSTR
     CHARACTER(LEN=1):: K1,K2,K3,K4
 
-1   WRITE(6,*) ' ## INPUT GSTR : R/AEB/ATMN  CPM/P/123  CP/J', &
+1   WRITE(6,*) ' ## INPUT GSTR : R/EANSPB/ATMN  CPM/P/123  CP/J', &
                '  P/F/SBQ23J   R/GZ  S'
     WRITE(6,*) '                 CMP/EB/RTZsbh+-P/RIA', &
                '  G/01234  EQ  ?/HELP  X/EXIT'
@@ -106,7 +106,8 @@ CONTAINS
     GXMIN=GUCLIP(XR(1))
     GXMAX=GUCLIP(XR(NRMAX+1))
 
-    IF(K2.EQ.'E') THEN
+    SELECT CASE(K2)
+    CASE('E','A','N','S','P') THEN
        NR=1
           GX1(NR)=GUCLIP(       XR(NR))
           GX2(NR)=GUCLIP(       XR(NR))
@@ -121,7 +122,7 @@ CONTAINS
        KTITL(2)='Etheta'
        KTITL(3)='Ez    '
        KTITL(4)='Pabs  '
-    ELSEIF(K2.EQ.'A') THEN
+    CASE('A')
        NR=1
           GX1(NR)=GUCLIP(       XR(NR))
           GX2(NR)=GUCLIP(       XR(NR))
@@ -136,7 +137,7 @@ CONTAINS
        KTITL(2)='Pabs 1'
        KTITL(3)='Pabs 2'
        KTITL(4)='Pabs 3'
-    ELSE
+    CASE('B')
        NR=1
           GX2(NR)=GUCLIP(       XR(NR))
           GX1(NR)=GUCLIP(       XR(NR))
@@ -153,7 +154,9 @@ CONTAINS
        KTITL(4)='Jrf   '
     ENDIF
 
-    IF(K3.EQ.'T'.OR.K3.EQ.'A') THEN
+
+    SELECT CASE(K3)
+    CASE('T','A')
 1      IF(NTHMAX.EQ.1) THEN
           NTH=1
        ELSE
@@ -175,88 +178,55 @@ CONTAINS
           GOTO 2
        ENDIF
 
-       IF(K2.EQ.'E') THEN
+       SELECT CASE(K2)
+       CASE('E')
           DO I=1,3
              DO NR=1,NRMAX+1
                 CF(NR,I)=CEFLD(I,NTH,NHH,NR)
              ENDDO
           ENDDO
-          IF(K3.EQ.'A') THEN
-             DO NS=1,NSMAX
-                DO NR=1,NRMAX
-                   POWER(NR,NS)=PABSR(NR,NS)
-                ENDDO
-                POWER(NRMAX+1,NS)=0.D0
-             ENDDO
-          ELSE
-             DO NS=1,NSMAX
-                DO NR=1,NRMAX
-                   POWER(NR,NS)=PABS(NTH,NHH,NR,NS)
-                ENDDO
-                POWER(NRMAX+1,NS)=0.D0
-             ENDDO
-          ENDIF
-       ELSE IF(K2.EQ.'N') THEN
+       CASE('N')
           DO I=1,3
              DO NR=1,NRMAX+1
                 CF(NR,I)=CEN(I,NTH,NHH,NR)
              ENDDO
           ENDDO
-          IF(K3.EQ.'A') THEN
-             DO NS=1,NSMAX
-                DO NR=1,NRMAX
-                   POWER(NR,NS)=PABSR(NR,NS)
-                ENDDO
-                POWER(NRMAX+1,NS)=0.D0
+       CASE('S')
+          DO I=1,3
+             DO NR=1,NRMAX+1
+                CF(NR,I)=CES(I,NTH,NHH,NR)
              ENDDO
-          ELSE
-             DO NS=1,NSMAX
-                DO NR=1,NRMAX
-                   POWER(NR,NS)=PABS(NTH,NHH,NR,NS)
-                ENDDO
-                POWER(NRMAX+1,NS)=0.D0
-             ENDDO
-          ENDIF
-       ELSE IF(K2.EQ.'P') THEN
+          ENDDO
+       CASE('P')
           DO I=1,3
              DO NR=1,NRMAX+1
                 CF(NR,I)=CEP(I,NTH,NHH,NR)
              ENDDO
           ENDDO
-          IF(K3.EQ.'A') THEN
-             DO NS=1,NSMAX
-                DO NR=1,NRMAX
-                   POWER(NR,NS)=PABSR(NR,NS)
-                ENDDO
-                POWER(NRMAX+1,NS)=0.D0
-             ENDDO
-          ELSE
-             DO NS=1,NSMAX
-                DO NR=1,NRMAX
-                   POWER(NR,NS)=PABS(NTH,NHH,NR,NS)
-                ENDDO
-                POWER(NRMAX+1,NS)=0.D0
-             ENDDO
-          ENDIF
-       ELSE
+       CASE('B')
           DO I=1,3
              DO NR=1,NRMAX+1
                 CF(NR,I)=CBFLD(I,NTH,NHH,NR)
              ENDDO
           ENDDO
-          IF(K3.EQ.'A') THEN
+       END SELECT
+
+       SELECT CASE(K3)
+       CASE('A')
+          DO NS=1,NSMAX
              DO NR=1,NRMAX
-!                POWER(NR,1)=PCURR(NR)
-                POWER(NR,1)=QPS(NR)
+                POWER(NR,NS)=PABSR(NR,NS)
              ENDDO
-             POWER(NRMAX+1,1)=0.D0
-          ELSE
+             POWER(NRMAX+1,NS)=0.D0
+          ENDDO
+       CASE('T','M','N')
+          DO NS=1,NSMAX
              DO NR=1,NRMAX
-                POWER(NR,1)=PCUR(NTH,NHH,NR)
+                POWER(NR,NS)=PABS(NTH,NHH,NR,NS)
              ENDDO
-             POWER(NRMAX+1,1)=0.D0
-          ENDIF
-       ENDIF
+             POWER(NRMAX+1,NS)=0.D0
+          ENDDO
+       END SELECT
     ELSEIF(K3.EQ.'M') THEN
 3      IF(NTHMAX.EQ.1) THEN
           MD=0
@@ -678,9 +648,9 @@ CONTAINS
           IF(K2.EQ.'E'.OR.K2.EQ.'B') THEN
              IF(K2.EQ.'E') THEN
                 IF(NA3.EQ.1) THEN
-                   CFL=CEFLD(NG3,NTH,NHH,NR)
-                ELSEIF(NA3.EQ.2) THEN
                    CFL=CEN(NG3,NTH,NHH,NR)
+                ELSEIF(NA3.EQ.2) THEN
+                   CFL=CEB(NG3,NTH,NHH,NR)
                 ELSEIF(NA3.EQ.3) THEN
                    CFL=CEP(NG3,NTH,NHH,NR)
                 ENDIF

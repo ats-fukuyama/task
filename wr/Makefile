@@ -84,16 +84,19 @@ veryclean: clean
 
 WRCOMM=wrcomm.f90 ../dp/dpcomm.f90 ../pl/plcomm.f90
 $(OBJDIR)/wrcomm.o: $(WRCOMM)
-$(OBJDIR)/wrmain.o: wrmain.f90 $(WRCOMM)
-$(OBJDIR)/wrmenu.o: wrmenu.f90 $(WRCOMM)
+$(OBJDIR)/wrmain.o: wrmain.f90 $(WRCOMM) ../pl/plinit.f90 ../pl/plparm.f90 \
+../dp/dpinit.f90 ../dp/dpparm.f90 wrinit.f90 wrparm.f90 wrmenu.f90
+$(OBJDIR)/wrmenu.o: wrmenu.f90 $(WRCOMM) ../pl/plparm.f90 ../dp/dpparm.f90 \
+../dp/dpcont.f90 wrparm.f90 wrcalc.f90 wrbeam.f90 wrgout.f90 wrfile.f90 
 $(OBJDIR)/wrinit.o: wrinit.f90 $(WRCOMM)
-$(OBJDIR)/wrparm.o: wrparm.f90 $(WRCOMM)
-$(OBJDIR)/wrcalc.o: wrcalc.f90 $(WRCOMM) ../pl/plprof.f90 \
-wrexecr.f90 wrsub.f90
-$(OBJDIR)/wrexecr.o:wrexecr.f90 $(WRCOMM) ../pl/plprof.f90
-$(OBJDIR)/wrbeam.o: wrbeam.f90 $(WRCOMM) ../pl/plprof.f90 \
-wrsub.f90 ../dp/dpdisp.f90
-$(OBJDIR)/wrsub.o:  wrsub.f90 $(WRCOMM)
-$(OBJDIR)/wrgout.o: wrgout.f90 ../lib/libgrf/grdxy.f90 $(WRCOMM)
+$(OBJDIR)/wrparm.o: wrparm.f90 $(WRCOMM) ../dp/dpparm.f90 
+$(OBJDIR)/wrcalc.o: wrcalc.f90 $(WRCOMM) ../pl/plprof.f90 wrexecr.f90 wrsub.f90
+$(OBJDIR)/wrexecr.o:wrexecr.f90 $(WRCOMM) ../pl/plprof.f90 wrsub.f90 
+$(OBJDIR)/wrbeam.o: wrbeam.f90 $(WRCOMM) ../pl/plprof.f90 ../dp/dpdisp.f90 \
+wrsub.f90
+$(OBJDIR)/wrsub.o:  wrsub.f90 $(WRCOMM) ../pl/plprof.f90 ../dp/dppola.f90 \
+../dp/dpdisp.f90
+$(OBJDIR)/wrgout.o: wrgout.f90 $(WRCOMM) ../pl/plprof.f90 ../pl/plgout.f90 \
+wrsub.f90 
 $(OBJDIR)/wrfile.o: wrfile.f90 $(WRCOMM)
 $(OBJDIR)/test.o: test.f90 $(WRCOMM)

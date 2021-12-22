@@ -151,8 +151,8 @@ CONTAINS
       MDLWRQ = 1
       MDLWRW = 0
 
-      nres_max = 3
       nres_type = 0
+      nres_max = 3
 
 ! --- defined in dp ---
 

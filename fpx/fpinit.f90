@@ -394,7 +394,7 @@ contains
 !-----COMPUTATION PARAMETERS------------------------------------------
 !     DELT  : time step size (s)
 !     RIMPL : implicit computation parameter
-!     imtx  : type of matrix solver 
+!     MODEL_MTXP: type of matrix solver 
 !                    0: petsc ksp (GMRES ILU(0) no initial guess)
 !                    1: petsc ksp (GMRES ILU(0)    initial guess) *default
 !     MODEL_KSP : type of KSP solver
@@ -409,7 +409,7 @@ contains
 
       DELT  = 1.D-2
       RIMPL = 1.D0
-      IMTX  = 1
+      MODEL_MTX=1
       MODEL_KSP=5
       MODEL_PC =1
       EPSFP = 1.D-9

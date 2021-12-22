@@ -22,7 +22,7 @@ CONTAINS
     USE wmfile
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
-    INTEGER:: NPH0_save,NPH,NR,NTH,NS,NHH,NPH1,NPOW,NPP
+    INTEGER:: NPH0_save,NPH,NR,NTH,NS,NHH,NPOW,NPP
     CHARACTER(LEN=80):: KNAMWM_SAVE
     CHARACTER(LEN=2):: KNHC
     CHARACTER(LEN=4):: KNPH0
@@ -35,7 +35,7 @@ CONTAINS
           nph_nhh_npp(1,1)=nph0
        ELSE                 ! multi mode
           DO npp=1,nppmax
-             nph0_npp(npp)=npp-nppmax/2-1         ! -NPHMAX/2:NPHMAX/2-1
+             nph0_npp(npp)=npp-nppmax/2-1        ! -NPHMAX/2:NPHMAX/2-1
              nph_nhh_npp(1,npp)=npp-nppmax/2-1   ! -NPHMAX/2:NPHMAX/2-1
           END DO
        END IF
@@ -107,25 +107,25 @@ CONTAINS
                      +CEFLD(1,NTH,NHH,NR)
                 CEFLD3D(2,NTH,NPH,NR)=CEFLD3D(2,NTH,NPH,NR) &
                      +CEFLD(2,NTH,NHH,NR) 
-                CEFLD3D(3,NTH,NPH,NR)=CEFLD3D(3,NTH,NPH1,NR) &
+                CEFLD3D(3,NTH,NPH,NR)=CEFLD3D(3,NTH,NPH,NR) &
                      +CEFLD(3,NTH,NHH,NR)
-                CBFLD3D(1,NTH,NPH,NR)=CBFLD3D(1,NTH,NPH1,NR) &
+                CBFLD3D(1,NTH,NPH,NR)=CBFLD3D(1,NTH,NPH,NR) &
                      +CBFLD(1,NTH,NHH,NR)
-                CBFLD3D(2,NTH,NPH,NR)=CBFLD3D(2,NTH,NPH1,NR) &
+                CBFLD3D(2,NTH,NPH,NR)=CBFLD3D(2,NTH,NPH,NR) &
                      +CBFLD(2,NTH,NHH,NR)
-                CBFLD3D(3,NTH,NPH,NR)=CBFLD3D(3,NTH,NPH1,NR) &
+                CBFLD3D(3,NTH,NPH,NR)=CBFLD3D(3,NTH,NPH,NR) &
                      +CBFLD(3,NTH,NHH,NR)
-                CEFLDK3D(1,NTH,NPH1,NR)=CEFLDK3D(1,NTH,NPH1,NR) &
+                CEFLDK3D(1,NTH,NPH,NR)=CEFLDK3D(1,NTH,NPH,NR) &
                      +CEFLDK(1,NTH,NHH,NR)
-                CEFLDK3D(2,NTH,NPH1,NR)=CEFLDK3D(2,NTH,NPH1,NR) &
+                CEFLDK3D(2,NTH,NPH,NR)=CEFLDK3D(2,NTH,NPH,NR) &
                      +CEFLDK(2,NTH,NHH,NR)
-                CEFLDK3D(3,NTH,NPH1,NR)=CEFLDK3D(3,NTH,NPH1,NR) &
+                CEFLDK3D(3,NTH,NPH,NR)=CEFLDK3D(3,NTH,NPH,NR) &
                      +CEFLDK(3,NTH,NHH,NR)
-                CBFLDK3D(1,NTH,NPH1,NR)=CBFLDK3D(1,NTH,NPH1,NR) &
+                CBFLDK3D(1,NTH,NPH,NR)=CBFLDK3D(1,NTH,NPH,NR) &
                      +CBFLDK(1,NTH,NHH,NR)
-                CBFLDK3D(2,NTH,NPH1,NR)=CBFLDK3D(2,NTH,NPH1,NR) &
+                CBFLDK3D(2,NTH,NPH,NR)=CBFLDK3D(2,NTH,NPH,NR) &
                      +CBFLDK(2,NTH,NHH,NR)
-                CBFLDK3D(3,NTH,NPH1,NR)=CBFLDK3D(3,NTH,NPH1,NR) &
+                CBFLDK3D(3,NTH,NPH,NR)=CBFLDK3D(3,NTH,NPH,NR) &
                      +CBFLDK(3,NTH,NHH,NR)
              END DO
           END DO
@@ -134,11 +134,11 @@ CONTAINS
        DO NS=1,NSMAX
           DO NR=1,NRMAX
              DO NHH=1,NHHMAX
-                NPH1=NPH + NHC*(NHH-1)
+                NPH=nph_nhh_npp(nhh,npp)
                 DO NTH=1,NTHMAX
-                   CPABS3D(NTH,NPH1,NR,NS)=CPABS3D(NTH,NPH1,NR,NS) &
+                   CPABS3D(NTH,NPH,NR,NS)=CPABS3D(NTH,NPH,NR,NS) &
                         +CPABS(NTH,NHH,NR,NS)
-                   CPABSK3D(NTH,NPH1,NR,NS)=CPABSK3D(NTH,NPH1,NR,NS) &
+                   CPABSK3D(NTH,NPH,NR,NS)=CPABSK3D(NTH,NPH,NR,NS) &
                         +CPABSK(NTH,NHH,NR,NS)
                 END DO
              END DO
@@ -157,9 +157,6 @@ CONTAINS
 
        PABSTT3D(NPH)=PABSTT
 
-!         write(6,'(A,1P2E12.4)') 
-!     &        'CEFLD3D(1,5,NPH,5)=',CEFLD3D(1,5,NPH,5)
-
        IF(idebuga(71).NE.0) THEN
           IF(KNAMWM /=' ')THEN
              IF(NRANK.EQ.0) THEN
@@ -176,31 +173,12 @@ CONTAINS
              ENDIF
           ENDIF
        END IF
-    END DO
+    END DO ! npp
 
     CALL wm_pout_sum
     CALL wm_pout
 
     NPH0  = NPH0_save
-
-!      DO NS=1,NSMAX
-!         DO NR=1,NRMAX+1
-!         PABSR(NR,NS) = PABSR_SV(NR,NS)
-!         ENDDO
-!         PABST(NS)=PABST_SV(NS)
-!      ENDDO
-!      DO NR=1,NRMAX+1
-!         write(3133,*)"#",NR
-!         DO NHH=1,NHHMAX
-!            DO NTH=1,NTHMAX
-!              write(3133,"(2(i6,1x),3(es15.8,1x))")NTH,NHH,
-!     &                                PABS3D(NTH,NHH,NR,1:3)
-!            ENDDO
-!            write(3133,*)
-!         ENDDO
-!         write(3133,*)
-!         write(3133,*)
-!      ENDDO
 
     RETURN
   END SUBROUTINE WM_LOOP

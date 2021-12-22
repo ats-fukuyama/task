@@ -193,7 +193,8 @@ contains
 
 !     ----- Solve matrix equation -----
 
-      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) ! ncom is nessesary for MUMPS not PETSc
+      CALL mtx_solve(MODEL_MTX,epsm,its,MODEL_KSP,MODEL_PC)
+      ! ncom is nessesary for MUMPS not PETSc
 !      IF(MODELD_temp.eq.0)THEN
 !         if(nrank.eq.0) then
 !            write(6,*) 'Number of iterations, NSA    =',its,NSA

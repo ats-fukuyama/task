@@ -85,7 +85,7 @@ contains
            MODELD,MODELD_RDEP,MODELD_PDEP,MODELD_EDGE, &
            MODELD_PINCH,MODELD_BOUNDARY,MODELD_CDBM, &
            MODEL_LOSS,MODEL_SYNCH,MODEL_NBI,MODEL_WAVE, &
-           IMTX,MODEL_KSP,MODEL_PC,LMAXFP,LMAXE, &
+           MODEL_MTX,MODEL_KSP,MODEL_PC,LMAXFP,LMAXE, &
            NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP, &
            MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp, &
            MODEL_LNL,MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY, &
@@ -156,7 +156,7 @@ contains
       WRITE(6,*) '      MODELD,MODELD_RDEP,MODELD_PDEP,MODELD_EDGE,'
       WRITE(6,*) '      MODELD_BOUNDARY,MODELD_CDBM,MODELD_PINCH,'
       WRITE(6,*) '      MODEL_LOSS,MODEL_SYNCH,MODEL_NBI,MODEL_WAVE,'
-      WRITE(6,*) '      IMTX,MODEL_KSP,MODEL_PC,LMAXFP,LMAXE,'
+      WRITE(6,*) '      MODEL_MTX,MODEL_KSP,MODEL_PC,LMAXFP,LMAXE,'
       WRITE(6,*) '      NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP,'
       WRITE(6,*) '      MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp,'
       WRITE(6,*) '      MODEL_LNL,MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY,'
@@ -357,7 +357,7 @@ contains
       idata(33)=MODEL_SYNCH
       idata(34)=MODEL_NBI
       idata(35)=MODEL_WAVE
-      idata(36)=IMTX
+      idata(36)=MODEL_MTX
       idata(37)=MODEL_KSP
       idata(38)=MODEL_PC
 
@@ -441,7 +441,7 @@ contains
       MODEL_SYNCH    =idata(33)
       MODEL_NBI      =idata(34)
       MODEL_WAVE     =idata(35)
-      IMTX           =idata(36)
+      MODEL_MTX      =idata(36)
       MODEL_KSP      =idata(37)
       MODEL_PC       =idata(38)
 
@@ -843,11 +843,11 @@ contains
                    'MODEL_SYNCH     ',MODEL_SYNCH
       WRITE(6,606) 'MODEL_NBI       ',MODEL_NBI      , &
                    'MODEL_WAVE      ',MODEL_WAVE
-      WRITE(6,603) 'IMTX    ',IMTX    , &
-                   'LMAXFP  ',LMAXFP  , &
-                   'LMAXE   ',LMAXE
-      WRITE(6,606) 'MODEL_KSP       ',MODEL_KSP      , &
+      WRITE(6,603) 'MODEL_MTX       ',MODEL_MTX    , &
+                   'MODEL_KSP       ',MODEL_KSP      , &
                    'MODEL_PC        ',MODEL_PC
+      WRITE(6,603) 'LMAXFP  ',LMAXFP  , &
+                   'LMAXE   ',LMAXE
       WRITE(6,603) 'NGLINE  ',NGLINE  , &
                    'NGRAPH  ',NGRAPH
       WRITE(6,603) 'LLMAX   ',LLMAX   , &

@@ -71,8 +71,8 @@ contains
 
 
     !     ----- Calculate matrix coefficients in a row -----
-    do nr = nrstaar, nrend
-       do np = npstar, npend
+    do nr = nrstart, nrend
+       do np = npstart, npend
           do nth = 1, nthmax
              imtx = imtxa(nth,np,nr)
              call fowsetm(nth, np, nr, nsa, nlmax(imtx))
@@ -149,11 +149,10 @@ contains
 
     DO imtx=imtxstart,imtxend ! LHS
        DO NL=1,NLMAX(imtx)
-             IF(LL(imtx,NL).NE.0) THEN
-                CALL mtx_set_matrix(imtx,LL(IMTX,NL),-RIMPL*DELT*AL(imtx,NL))
-             ENDIF
-          ENDDO
-       ENDIF
+          IF(LL(imtx,NL).NE.0) THEN
+             CALL mtx_set_matrix(imtx,LL(IMTX,NL),-RIMPL*DELT*AL(imtx,NL))
+          ENDIF
+       ENDDO
     ENDDO
     !     ----- Source vector: contribution from off-diagonal term -----
 

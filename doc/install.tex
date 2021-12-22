@@ -81,13 +81,13 @@ Professor Emeritus, Kyoto University
     \item
       Preparation for Ubuntu
     \item
-      Install PETSc
-    \item
       Introduction to git
     \item
       Install task and related libraries
     \item
       Introduction to the task code
+    \item
+      Install PETSc
     \end{enumerate}
   \end{minipage}
 \end{center}
@@ -185,91 +185,6 @@ sudo apt-get install python
 sudo apt-get install mpich
 \end{verbatim}
 \end{enumerate}
-
-\title{Install PETSc (1)}
-
-\begin{itemize}
-\item
-  \emA{PETSc}: Parallel matrix solver library
-  \begin{itemize}
-  \item
-    blas,lapack: matrix solver tolls
-  \item
-    scalapack, metis, parmetis, blacs, superlu: parallel solver tools
-  \item
-    MUMPS: Direct matrix solver for real and complex
-  \item
-    PETSc: Iterative matrix solver for real or complex
-  \end{itemize}
-\item
-  \emA{Make PETSc directory and change its owner}
-  \begin{itemize}
-  \item
-    \ttype{sudo mkdir /opt/PETSc}
-  \item
-    \ttype{sudo chown /opt/petsc \$USERNAME}
-  \item
-    \ttype{cd /opt/PETSc}
-  \end{itemize}
-\item
-  \emA{Download latest PETSc library package by git}
-  \begin{itemize}
-  \item
-    \emB{First download of PETSc source}
-    \begin{itemize}
-    \item
-      \ttype{git clone -b release https://gitlab.com/petsc/petsc.git
-        petsc}
-    \end{itemize}
-  \item
-    \emB{In order to update PETSc source}
-    \begin{itemize}
-    \item
-      \ttype{git pull}
-    \end{itemize}
-  \end{itemize}
-\end{itemize}
-
-\title{Install PETSc (2)}
-\begin{itemize}
-\item
-  \emA{Provide environment variables for PETSC in $\sim$/.profile or .zprofile}
-  \begin{itemize}
-  \item
-    \ttype{export PETSC\_DIR=/opt/PETSc/petsc}
-  \item
-    \ttype{export PETSC\_ARCH=default}
-  \end{itemize}
-  
-\item
-  \emA{Configure script in python }
-  \begin{itemize}
-  \item
-    \emB{Copy \ttype{default.py} to \ttype{/opt/PETSc/petsc}}
-  \item
-    \emB{Provide exec attribute to \ttype{default.py}}
-    \begin{itemize}
-    \item
-      \ttype{chmod 755 default.py}
-    \end{itemize}
-  \item
-    \emB{Execute configuration script} \qquad \emCs{(It may take half an hour.)}
-    \begin{itemize}
-    \item
-      \ttype{./default.py}
-    \end{itemize}
-  \item
-    \emB{Additional libraries are created in default/externalpackages}
-  \end{itemize}
-\item
-  \emA{Make and check PETSc library}
-  \begin{itemize}
-  \item
-    \ttype{make} \qquad \emCs{(It may take half an hour.)}
-  \item
-    \ttype{make check}
-  \end{itemize}
-\end{itemize}
 
 \title{How to use git (1)}
 \begin{itemize}
@@ -735,6 +650,91 @@ Read a namelist file \ttype{XXparm} at the beginning of the program
 \item
 Setting by the input line
 \end{itemize}
+\end{itemize}
+
+\title{Install PETSc (1)}
+
+\begin{itemize}
+\item
+  \emA{PETSc}: Parallel matrix solver library
+  \begin{itemize}
+  \item
+    blas,lapack: matrix solver tolls
+  \item
+    scalapack, metis, parmetis, blacs, superlu: parallel solver tools
+  \item
+    MUMPS: Direct matrix solver for real and complex
+  \item
+    PETSc: Iterative matrix solver for real or complex
+  \end{itemize}
+\item
+  \emA{Make PETSc directory and change its owner}
+  \begin{itemize}
+  \item
+    \ttype{sudo mkdir /opt/PETSc}
+  \item
+    \ttype{sudo chown /opt/PETSc \$USERNAME}
+  \item
+    \ttype{cd /opt/PETSc}
+  \end{itemize}
+\item
+  \emA{Download latest PETSc library package by git}
+  \begin{itemize}
+  \item
+    \emB{First download of PETSc source}
+    \begin{itemize}
+    \item
+      \ttype{git clone -b release https://gitlab.com/petsc/petsc.git
+        petsc}
+    \end{itemize}
+  \item
+    \emB{In order to update PETSc source}
+    \begin{itemize}
+    \item
+      \ttype{git pull}
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\title{Install PETSc (2)}
+\begin{itemize}
+\item
+  \emA{Provide environment variables for PETSC in $\sim$/.profile or .zprofile}
+  \begin{itemize}
+  \item
+    \ttype{export PETSC\_DIR=/opt/PETSc/petsc}
+  \item
+    \ttype{export PETSC\_ARCH=default}
+  \end{itemize}
+  
+\item
+  \emA{Configure script in python }
+  \begin{itemize}
+  \item
+    \emB{Copy \ttype{default.py} to \ttype{/opt/PETSc/petsc}}
+  \item
+    \emB{Provide exec attribute to \ttype{default.py}}
+    \begin{itemize}
+    \item
+      \ttype{chmod 755 default.py}
+    \end{itemize}
+  \item
+    \emB{Execute configuration script} \qquad \emCs{(It may take half an hour.)}
+    \begin{itemize}
+    \item
+      \ttype{./default.py}
+    \end{itemize}
+  \item
+    \emB{Additional libraries are created in default/externalpackages}
+  \end{itemize}
+\item
+  \emA{Make and check PETSc library}
+  \begin{itemize}
+  \item
+    \ttype{make} \qquad \emCs{(It may take half an hour.)}
+  \item
+    \ttype{make check}
+  \end{itemize}
 \end{itemize}
 
 \end{document}

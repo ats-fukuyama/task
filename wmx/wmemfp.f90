@@ -35,6 +35,8 @@ CONTAINS
     A1= DRHO2/(DRHO2-DRHO1)
     A2=-DRHO1/(DRHO2-DRHO1)
 
+    ! --- convert solution to CEFLDK ---
+    
     DO NR=1,NRMAX
        DO ND=NDMIN,NDMAX
           NDX=ND-NDMIN+1
@@ -58,6 +60,8 @@ CONTAINS
        ENDDO
     ENDDO
 
+    ! --- convert solution to CEFLDK on magnetic axis ---
+    
     NR=1
     DO ND=NDMIN,NDMAX
        NDX=ND-NDMIN+1
@@ -95,6 +99,8 @@ CONTAINS
        ENDDO
     END DO
 
+    ! --- prepare for Fourier inverse transformation ---
+    
     NR=1
     DO ND=NDMIN,NDMAX
        NDX=ND-NDMIN+1
@@ -103,9 +109,9 @@ CONTAINS
           MM=NTH0+MD
           IF(ABS(MM).EQ.1) THEN
              CEFLD(1,MDX,NDX,NR)=A1*CEFLD(1,MDX,NDX,NR+1) &
-                                 +A2*CEFLD(1,MDX,NDX,NR+2)
+                                +A2*CEFLD(1,MDX,NDX,NR+2)
              CEFLD(2,MDX,NDX,NR)=A1*CEFLD(2,MDX,NDX,NR+1) &
-                                 +A2*CEFLD(2,MDX,NDX,NR+2)
+                                +A2*CEFLD(2,MDX,NDX,NR+2)
           ELSE
              CEFLD(1,MDX,NDX,NR)=0.D0
              CEFLD(2,MDX,NDX,NR)=0.D0
@@ -138,6 +144,8 @@ CONTAINS
           ENDDO
        ENDDO
     ENDDO
+
+    
 
     DO NR=1,NRMAX+1
        DO I=1,3
@@ -211,27 +219,75 @@ CONTAINS
              RMA(2,3)=TC2*RG22(NTHF,NHHF,NR)*XRL*XRL &
                      +TC3*RG23(NTHF,NHHF,NR)*XRL
              RMA(3,3)=TC2*RG23(NTHF,NHHF,NR)*XRL &
-                     +TC3*RG33(NTHF,NHHF,NR)
+                  +TC3*RG33(NTHF,NHHF,NR)
 
-             CALL INVMRD(RMA,3,3,ILL)
-             IF(ILL.NE.0) THEN
-                WRITE(6,*) 'XX WEFLD: INVMRD(RMA) : SINGULAR MATRIX'
-                WRITE(6,'(3I5,1P2E12.4)') NR,NTH,NHH,TC3,TC2
-                WRITE(6,'(15X,3ES12.4)') (RMA(1,I),I=1,3)
-                WRITE(6,'(15X,3ES12.4)') (RMA(2,I),I=1,3)
-                WRITE(6,'(15X,3ES12.4)') (RMA(3,I),I=1,3)
-                STOP
-             ENDIF
+             IF(mdlwmx.EQ.0) THEN
+                CALL INVMRD(RMA,3,3,ILL)
+                IF(ILL.NE.0) THEN
+                   WRITE(6,*) 'XX WEFLD: INVMRD(RMA) : SINGULAR MATRIX'
+                   WRITE(6,'(3I5,1P2E12.4)') NR,NTH,NHH,TC3,TC2
+                   WRITE(6,'(15X,3ES12.4)') (RMA(1,I),I=1,3)
+                   WRITE(6,'(15X,3ES12.4)') (RMA(2,I),I=1,3)
+                   WRITE(6,'(15X,3ES12.4)') (RMA(3,I),I=1,3)
+                   STOP
+                ENDIF
+             END IF
 
-             CEN(1,NTH,NHH,NR) =CEFLD(1,NTH,NHH,NR)
-             CEN(2,NTH,NHH,NR) =CEFLD(2,NTH,NHH,NR)
-             CEN(3,NTH,NHH,NR) =CEFLD(3,NTH,NHH,NR)
+!     ----- Normalize CEFLD -----
 
-             CEP(1,NTH,NHH,NR) =(   CEN(1,NTH,NHH,NR) &
-                               + CI*CEN(2,NTH,NHH,NR))/SQRT(2.D0)
-             CEP(2,NTH,NHH,NR) =(   CEN(1,NTH,NHH,NR) &
-                               - CI*CEN(2,NTH,NHH,NR))/SQRT(2.D0)
-             CEP(3,NTH,NHH,NR) =    CEN(3,NTH,NHH,NR)
+             IF(mdlwmx.EQ.0) THEN
+                NHHF=(NHH-1)*FACTOR_NHH+1
+                NTHF=(NTH-1)*FACTOR_NTH+1
+ 
+                RF11=(RG22(NTHF,NHHF,NR)*RG33(NTHF,NHHF,NR) &
+                     -RG23(NTHF,NHHF,NR)**2)/RJ(NTHF,NHHF,NR)**2
+                RF22=(RG33(NTHF,NHHF,NR)*RG11(NTHF,NHHF,NR) &
+                     -RG13(NTHF,NHHF,NR)**2)/RJ(NTHF,NHHF,NR)**2
+                RF33=(RG11(NTHF,NHHF,NR)*RG22(NTHF,NHHF,NR) &
+                     -RG12(NTHF,NHHF,NR)**2)/RJ(NTHF,NHHF,NR)**2
+                RG011=SQRT(RF11)
+                RG022=SQRT(RF22)
+                RG033=SQRT(RF33)
+
+                CEFLD(1,NTH,NHH,NR) =CEFLD(1,NTH,NHH,NR)*RG011
+                CEFLD(2,NTH,NHH,NR) =CEFLD(2,NTH,NHH,NR)*RG022
+                CEFLD(3,NTH,NHH,NR) =CEFLD(3,NTH,NHH,NR)*RG033
+             END IF
+
+             SELECT CASE(mdlwmx)
+             CASE(0)
+                CEN(1,NTH,NHH,NR) =CEFLD(1,NTH,NHH,NR)
+                CEN(2,NTH,NHH,NR) =CEFLD(2,NTH,NHH,NR)
+                CEN(3,NTH,NHH,NR) =CEFLD(3,NTH,NHH,NR)
+                CEB(1,NTH,NHH,NR) =RMA(1,1)*CEFLD(1,NTH,NHH,NR)*XRI &
+                                  +RMA(1,2)*CEFLD(2,NTH,NHH,NR)*XRL &
+                                  +RMA(1,3)*CEFLD(3,NTH,NHH,NR)
+                CEB(2,NTH,NHH,NR) =RMA(2,1)*CEFLD(1,NTH,NHH,NR)*XRI &
+                                  +RMA(2,2)*CEFLD(2,NTH,NHH,NR)*XRL &
+                                  +RMA(2,3)*CEFLD(3,NTH,NHH,NR)
+                CEB(3,NTH,NHH,NR) =RMA(3,1)*CEFLD(1,NTH,NHH,NR)*XRI &
+                                  +RMA(3,2)*CEFLD(2,NTH,NHH,NR)*XRL &
+                                  +RMA(3,3)*CEFLD(3,NTH,NHH,NR)
+             CASE(1,2)
+                CEN(1,NTH,NHH,NR) =RMA(1,1)*CEFLD(1,NTH,NHH,NR)*XRL &
+                                  +RMA(1,2)*CEFLD(2,NTH,NHH,NR)*XRI &
+                                  +RMA(1,3)*CEFLD(3,NTH,NHH,NR)
+                CEN(2,NTH,NHH,NR) =RMA(2,1)*CEFLD(1,NTH,NHH,NR)*XRL &
+                                  +RMA(2,2)*CEFLD(2,NTH,NHH,NR)*XRI &
+                                  +RMA(2,3)*CEFLD(3,NTH,NHH,NR)
+                CEN(3,NTH,NHH,NR) =RMA(3,1)*CEFLD(1,NTH,NHH,NR)*XRL &
+                                  +RMA(3,2)*CEFLD(2,NTH,NHH,NR)*XRI &
+                                  +RMA(3,3)*CEFLD(3,NTH,NHH,NR)
+                CEB(1,NTH,NHH,NR) =CEFLD(1,NTH,NHH,NR)
+                CEB(2,NTH,NHH,NR) =CEFLD(2,NTH,NHH,NR)
+                CEB(3,NTH,NHH,NR) =CEFLD(3,NTH,NHH,NR)
+             END SELECT
+
+             CEP(1,NTH,NHH,NR) =(   CEB(1,NTH,NHH,NR) &
+                               + CI*CEB(2,NTH,NHH,NR))/SQRT(2.D0)
+             CEP(2,NTH,NHH,NR) =(   CEB(1,NTH,NHH,NR) &
+                               - CI*CEB(2,NTH,NHH,NR))/SQRT(2.D0)
+             CEP(3,NTH,NHH,NR) =    CEB(3,NTH,NHH,NR)
           ENDDO
        ENDDO
     ENDDO
@@ -268,33 +324,6 @@ CONTAINS
           CEP(3,NTH,NHH,1) =CEP3
        ENDDO
     ENDDO
-
-!     ----- Normalize CEFLD -----
-
-    IF(mdlwmx.EQ.0) THEN
-       DO NR=1,NRMAX+1
-          DO NHH=1,NHHMAX
-             DO NTH=1,NTHMAX
-                NHHF=(NHH-1)*FACTOR_NHH+1
-                NTHF=(NTH-1)*FACTOR_NTH+1
- 
-                RF11=(RG22(NTHF,NHHF,NR)*RG33(NTHF,NHHF,NR) &
-                     -RG23(NTHF,NHHF,NR)**2)/RJ(NTHF,NHHF,NR)**2
-                RF22=(RG33(NTHF,NHHF,NR)*RG11(NTHF,NHHF,NR) &
-                     -RG13(NTHF,NHHF,NR)**2)/RJ(NTHF,NHHF,NR)**2
-                RF33=(RG11(NTHF,NHHF,NR)*RG22(NTHF,NHHF,NR) &
-                     -RG12(NTHF,NHHF,NR)**2)/RJ(NTHF,NHHF,NR)**2
-                RG011=SQRT(RF11)
-                RG022=SQRT(RF22)
-                RG033=SQRT(RF33)
-
-                CEFLD(1,NTH,NHH,NR) =CEFLD(1,NTH,NHH,NR)*RG011
-                CEFLD(2,NTH,NHH,NR) =CEFLD(2,NTH,NHH,NR)*RG022
-                CEFLD(3,NTH,NHH,NR) =CEFLD(3,NTH,NHH,NR)*RG033
-             ENDDO
-          END DO
-       END DO
-    END IF
 
     RETURN
   END SUBROUTINE wm_efield

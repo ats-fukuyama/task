@@ -1332,7 +1332,7 @@
          CALL mtx_set_source(NR,RHS)
       END DO
 !---- SOLVE
-      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) 
+      CALL mtx_solve(MODEL_MTX,epsm,its,MODEL_KSP,MODEL_PC) 
       CALL mtx_gather_vector(RN_runaway)
       CALL mtx_cleanup
       CALL mtx_reset_communicator
@@ -1371,7 +1371,7 @@
          CALL mtx_set_source(NR,RHS)
       END DO
 !---- SOLVE
-      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) 
+      CALL mtx_solve(MODEL_MTX,epsm,its,MODEL_KSP,MODEL_PC) 
       CALL mtx_gather_vector(RN_drei)
       CALL mtx_cleanup
       CALL mtx_reset_communicator

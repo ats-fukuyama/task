@@ -95,7 +95,7 @@
       END SELECT
       ALLOCATE(x(imax))
 
-      CALL mtx_setup(imax,istart,iend,idebug=idebug)
+      CALL mtx_setup(imax,istart,iend,idebug=idebug,jwidth=jwidth)
 
       SELECT CASE(idimen)
       CASE(1)

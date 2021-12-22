@@ -880,6 +880,7 @@ CONTAINS
        NTMAX(3*(nray-1)+1)=NSTPMAX_NRAY(NRAY)+1
        NTMAX(3*(nray-1)+2)=NSTPMAX_NRAY(NRAY)+1
        NTMAX(3*(nray-1)+3)=NSTPMAX_NRAY(NRAY)+1
+       WRITE(6,'(A,3I8)') '## nray,ntmax:',nray,nstpmax+1,NSTPMAX_NRAY(NRAY)+1
        DO NSTP=0,NSTPMAX_NRAY(NRAY)
           CALL wrcalep(nstp,nray,cepola,cenorm,err)
           gepola(1,nstp+1,3*(nray-1)+1)= REAL(cenorm(1))
@@ -890,12 +891,12 @@ CONTAINS
           gepola(2,nstp+1,3*(nray-1)+3)=AIMAG(cenorm(3))
           errmax=MAX(err,errmax)
        END DO
+    END DO
        WRITE(6,'(A,I5,1PE12.4)') 'nray,errmax=',nray,errmax
 
        CALL grdxy(0,gepola,2,nstpmax+1,ntmax,3*nraymax, &
             '@Polarization@',NLMAX=3,XSCALE_ZERO=0,YSCALE_ZERO=0, &
             LINE_RGB=LINE_RGB)
-    END DO
     CALL PAGEE
   END SUBROUTINE WRGRF5
     
@@ -1167,7 +1168,13 @@ CONTAINS
     INTEGER:: nstp_nray(2,nraymax)
     EXTERNAL PAGES,PAGEE,MOVE2D,DRAW2D
 
-    WRITE(6,'(A,2I6,4ES12.4)') 'ns,nmax,rhona=',ns,nmax,rhona
+    IF(nmax.LE.4) THEN
+       WRITE(6,'(A,2I6,4ES12.4)') 'ns,nmax,rhona=',ns,nmax,(rhona(n),n=1,nmax)
+    ELSE
+       WRITE(6,'(A,2I6,4ES12.4)') 'ns,nmax,rhona=',ns,nmax,(rhona(n),n=1,4)
+       WRITE(6,'(14X   5ES12.4)')                          (rhona(n),n=5,nmax)
+    END IF
+       
     dang=PI/nang_max
     CALL pages
 
