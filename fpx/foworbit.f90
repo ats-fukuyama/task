@@ -34,8 +34,8 @@ contains
       called = .true.
     end if
 
-    call ob_init
-    call ob_parm(1,'../fp.ota/fpparm',ierr)
+!    call ob_init
+!    call ob_parm(1,'../fp.ota/fpparm',ierr)
     nobt_max = 1
     call ob_prep(ierr)
     call ob_allocate
@@ -94,8 +94,8 @@ contains
     call fow_set_obparm(ierr)
 
     do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do np = 1, npmax
+      do nr = nrstart, nrend
+        do np = npstart, npend
           do nth = 1, nthmax
 
             if ( aefp(nsa) * COS( thetam(nth,np,nr,nsa) ) >= 0.d0 ) then

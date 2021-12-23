@@ -22,11 +22,14 @@ contains
     logical :: isCo
 
     ierr=0
-    
-    ! load equiliblium variable
-    call fow_eqload(ierr)
 
-    ! call output_orbit_classify
+    ! --- allocate fow common variables
+
+    CALL fow_allocate
+    
+    ! --- load equiliblium variable
+    
+    call fow_eqload(ierr)
 
     ! calculate thetam
     nthm3 = nthmax/2

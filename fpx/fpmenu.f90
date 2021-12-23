@@ -22,7 +22,6 @@ CONTAINS
     USE fpcalte
     USE fpcaldeff
     USE fpcalchieff
-    USE fowcomm,ONLY: fow_allocate
     USE fowprep
     USE fowloop
     USE libkio
@@ -68,7 +67,6 @@ CONTAINS
           IF(KID.EQ.'R') THEN
              CALL fp_prep(IERR)
              IF(ierr.NE.0) GO TO 1
-             CALL fow_allocate
              CALL fow_prep(ierr)
              IF(ierr.NE.0) GO TO 1
           ELSEIF(KID.EQ.'C')THEN
@@ -96,12 +94,7 @@ CONTAINS
        IF(nrank.EQ.0) CALL fp_gout
        CALL mtx_barrier
     ELSEIF (KID.EQ.'F') THEN
-       IF(nrank.EQ.0) THEN
-          NGRAPH_SAVE=NGRAPH
-          NGRAPH=0
-          CALL fp_gout
-          NGRAPH=NGRAPH_SAVE
-       ENDIF
+       CALL fp_fout
        CALL mtx_barrier
     ELSEIF (KID.EQ.'W') THEN
        CALL FPWRTSNAP

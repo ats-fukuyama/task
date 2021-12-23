@@ -114,6 +114,7 @@ contains
            SV_FILE_NAME_D, NSA_F1, NTH_F1, NR_F1, OUTPUT_TXT_F1, &
            OUTPUT_TXT_DELTA_F, OUTPUT_TXT_HEAT_PROF, OUTPUT_TXT_BEAM_WIDTH, &
            OUTPUT_TXT_BEAM_DENS, NI_RATIO, &
+           model_fow_fout, &
     !
          nobt_max,nstp_max,ns_ob,lmax_nw, &
          mdlobp,mdlobi,mdlobq,mdlobt,mdlobc,mdlobw,mdlobg,mdlobx, &
@@ -193,6 +194,7 @@ contains
       WRITE(6,*) '      SV_FILE_NAME_D,NSA_F1,NTH_F1,NR_F1'
       WRITE(6,*) '      OUTPUT_TXT_F1,OUTPUT_TXT_DELTA_F,OUTPUT_TXT_HEAT_PROF,'
       WRITE(6,*) '      OUTPUT_TXT_BEAM_WIDTH,OUTPUT_TXT_BEAM_DENS,NI_RATIO'
+      WRITE(6,*) '      mode_fow_fout'
 
       RETURN
   END SUBROUTINE fp_plst
@@ -401,8 +403,9 @@ contains
       idata(75)=max_stp
       idata(76)=model_obload
       idata(77)=model_mkcsv
+      idata(78)=model_fow_fout
       
-      CALL mtx_broadcast_integer(idata,77)
+      CALL mtx_broadcast_integer(idata,78)
 
       NSAMAX         =idata( 1)
       NSBMAX         =idata( 2)
@@ -484,6 +487,7 @@ contains
       max_stp=idata(75)
       model_obload=idata(76)
       model_mkcsv=idata(77)
+      model_fow_fout=idata(78)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -689,7 +693,8 @@ contains
 
   SUBROUTINE fp_view
 
-      use fpcomm_parm
+    use fpcomm_parm
+    USE obview
       IMPLICIT NONE
       integer:: nsa,nsb,ns,NBEAM
 
@@ -882,6 +887,7 @@ contains
                    'max_stp         ',max_stp
       WRITE(6,606) 'model_obload    ',model_obload, &
                    'model_mkcsv     ',model_mkcsv
+      WRITE(6,606) 'model_fow_fout  ',model_fow_fout
       
       WRITE(6,*) "-------- PLASMA MODELS --------"
 
@@ -969,6 +975,8 @@ contains
       WRITE(6,'(A,I4)') "PARTITION NUMBER FOR NSA =", N_partition_s
       WRITE(6,'(A,I4)') "PARTITION NUMBER FOR NR  =", N_partition_r
       WRITE(6,'(A,I4)') "PARTITION NUMBER FOR NP  =", N_partition_p
+
+      CALL ob_view
 
       RETURN
 

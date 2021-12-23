@@ -380,7 +380,12 @@ contains
                      !    1 : generate csv files
       nthpmax=8      ! number of poloidal angle grid points
       max_stp=20     ! maximum step number for bounce average
-      
+
+      ! --- control fout parameter ---
+
+      model_fow_fout=0      ! control fow_fout_tot: 0=no tot, 1=with tot
+
+
 !-----TXT TYPE OUTPUT COMMAND------------------------------------------
 !     OUTPUT_TXT_DELTA_F: OUTPUT DELTA f
 !     OUTPUT_TXT_F1: OUTPUT E-f1 on NR_F1 DIRECT TO NTH_F1

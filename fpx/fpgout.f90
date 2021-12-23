@@ -10,7 +10,7 @@
 
       USE fpcomm
       USE fpcont
-      USE fpfout
+      USE fpgfout
       contains
 !---------------------------------------
       SUBROUTINE FP_GOUT
@@ -455,7 +455,7 @@
       REAL:: GXORG
 !
       IF(NGRAPH.EQ.0) THEN
-         CALL FPFOTR(STRING,FR)
+         CALL fp_gf_r1d(STRING,FR)
          RETURN
       ENDIF
 
@@ -562,7 +562,7 @@
       REAL:: GXMIN, GXMAX, GXSTEP
 
       IF(NGRAPH.EQ.0) THEN
-         CALL FPFOTT(STRING,FT)
+         CALL fp_gf_time(STRING,FT)
          RETURN
       ENDIF
 
@@ -659,7 +659,7 @@
       integer:: NR, NP, NTH, NPM, NS
 
       IF(NGRAPH.EQ.0) THEN
-         CALL FPFOTP(STRING,FG)
+         CALL fp_gf_pr2d(STRING,FG)
          RETURN
       ENDIF
 
@@ -780,7 +780,7 @@
       REAL:: GX1, GX2, GY1, GY2
 
       IF(NGRAPH.EQ.0) THEN
-         CALL FPFOTP(STRING,FG)
+         CALL fp_gf_pr2d(STRING,FG)
          RETURN
       ENDIF
       NS=NS_NSA(NSA)
@@ -1171,7 +1171,7 @@
       NRM=NRMAX+1
 
       IF(NGRAPH.EQ.0) THEN
-         CALL FPFOTC(STRING,FG,MODE)
+         CALL fp_gf_pp2d(STRING,FG,MODE)
          RETURN
       ENDIF
 
@@ -1253,7 +1253,7 @@
       NRM=NRMAX+1
 
       IF(NGRAPH.EQ.0) THEN
-         CALL FPFOTC_2(STRING,FG,MODE)
+         CALL fp_gf_pp2da(STRING,FG,MODE)
          RETURN
       ENDIF
 
@@ -1825,7 +1825,7 @@
 
       NS=NS_NSA(NSA)
       IF(NGRAPH.EQ.0) THEN
-         CALL FPFOTC(STRING,FG,MODE)
+         CALL fp_gf_pp2d(STRING,FG,MODE)
          RETURN
       ENDIF
 

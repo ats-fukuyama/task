@@ -24,6 +24,7 @@ PROGRAM fp
   USE plinit
   USE plparm
   USE equnit_mod
+  USE obinit
   USE fpinit
   USE fpparm
   USE fpmenu
@@ -43,6 +44,7 @@ PROGRAM fp
   CALL pl_init
   CALL eq_init
   CALL fp_init
+  CALL ob_init
   IF(nrank.EQ.0) THEN
      CALL fp_parm(1,'fpparm',IERR)
   ENDIF

@@ -1,0 +1,331 @@
+\documentclass[11pt]{article}
+\usepackage{geometry}
+\geometry{a4paper}
+\usepackage[dvips]{graphicx,color}
+\usepackage{../../doc/af}
+\usepackage{../../doc/sym}
+\usepackage{../../doc/emt}
+\usepackage{../../doc/doc}
+
+\newcommand{\hfile}[1]{\emAs{\ttype{#1}}}
+\newcommand{\hprog}[1]{\emC{Program \ttype{#1}}}
+\newcommand{\hmod}[1]{\emC{Module \ttype{#1}}}
+\newcommand{\hsub}[1]{\emB{Subroutine \ttype{#1}}}
+\newcommand{\hsubx}[1]{\emBs{Subroutine \ttype{#1}}}
+\newcommand{\hfunc}[1]{\emB{Function \ttype{#1}}}
+\newcommand{\hfuncx}[1]{\emBs{Function \ttype{#1}}}
+
+\begin{document}
+\begin{flushright}
+2021/12/22
+\end{flushright}
+
+\begin{center}
+\textbf{\Large \ttype{fow}-sequence routine dependence}
+\end{center}
+
+\section{Code structure}
+\subsection{fp\_menu}
+\begin{itemize}
+\item
+  fp\_prep
+\item
+  fow\_prep
+\item
+  fow\_loop
+\item
+  fp\_fout\_tot
+\end{itemize}
+
+\subsection{fp\_prep}
+  \begin{itemize}
+  \item
+    fp\_allocate
+  \item
+    fp\_allocate\_ntg1
+  \item
+    fp\_allocate\_ntg2
+  \item
+    fp\_set\_nsa\_nsb
+  \item
+    fp\_mesh
+    \begin{itemize}
+    \item
+      eq\_load
+    \item
+      fp\_eq\_broadcast
+    \item
+      eqcalq
+    \item
+      eqgetb
+    \item
+      fp\_wr\_read
+    \item
+      fp\_wm\_read
+    \item
+      pl\_qprf
+    \item
+      set\_rfsad
+    \item
+      set\_bounce\_param
+    \end{itemize}
+  \item
+    fp\_set\_normalize\_parm
+    \begin{itemize}
+    \item
+      pl\_prof
+    \item
+      read\_exp\_data
+    \item
+      make\_exp\_prof
+    \item
+      set\_initial\_disrupt\_parm
+    \item
+      set\_post\_disrupt\_Clog\_f
+    \item
+      set\_post\_disrupt\_Clog
+    \end{itemize}
+  \item
+    fnsp\_init
+    \begin{itemize}
+    \item
+      update\_fnsb\_maxwell
+    \end{itemize}
+  \item
+    fnsp\_init\_edge
+    \begin{itemize}
+    \item
+      fpmxwl\_edge
+    \end{itemize}
+  \item
+    update\_fnsb
+  \item
+    read\_fit3d\_h
+  \item
+    read\_fit3d\_d
+  \item
+    sv\_weight\_r
+  \item
+    spitzer\_sigma
+  \item
+    nf\_lg\_function
+  \item
+    nf\_reaction\_coef
+  \item
+    fp\_continue
+    \begin{itemize}
+    \item
+      fusion\_source\_init
+    \item
+      define\_bulk\_np
+    \item
+      fp\_coef
+    \item
+      fpweight
+    \item
+      source\_allreduce
+    \end{itemize}
+  \item
+   allreduce\_nf\_rate
+  \item
+   prof\_of\_nf\_reaction\_rate
+  \item
+    fp\_set\_initial\_value\_from\_f
+    \begin{itemize}
+      \item
+        display\_disrupt\_initials
+      \item
+        fpssub
+      \item
+        fpsglb
+      \item
+        fpsprf
+      \item
+        fpwrtglb
+      \item
+        fpwrtprf
+    \end{itemize}
+  \end{itemize}
+\subsection{fow\_prep}
+  \begin{itemize}
+  \item
+    fow\_allocate
+  \item
+    fow\_eqload
+    \begin{itemize}
+    \item
+      eqload
+    \item
+      eqparm
+    \item
+      eqfetp
+    \item
+      eqgeqn
+    \item
+      eqgetbb
+    \item
+      eqgeta
+    \item
+      first\_order\_derivative
+    \end{itemize}
+  \item
+    bisection\_method
+  \item
+    fow\_orbit
+    \begin{itemize}
+    \item
+      load\_orbit
+    \item
+      fow\_set\_obparm
+    \item
+      construct\_orbit\_zero
+    \item
+      construct\_orbit
+      \begin{itemize}
+      \item
+        ob\_calc
+      \end{itemize}
+    \item
+      save\_orbit
+    \end{itemize}
+  \item
+    search\_pinch\_orbit
+    \begin{itemize}
+    \item
+      first\_order\_derivative
+    \item
+      fow\_cal\_spl
+    \item
+      solve\_quadratic\_equation
+    \item
+      get\_pinch\_point
+    \end{itemize}
+  \item
+    calculate\_jacobian
+    \begin{itemize}
+    \item
+      mean\_ra\_quantities
+    \end{itemize}
+  \item
+    load\_local\_com
+  \item
+    fow\_cal\_local\_coms
+    \begin{itemize}
+    \item
+      construct\_orbit
+      \begin{itemize}
+      \item
+        ob\_calc
+      \end{itemize}
+    \end{itemize}
+  \item
+    save\_local\_com
+  \end{itemize}
+\subsection{fow\_loop}
+  \begin{itemize}
+  \item
+    fI\_Maxwellian
+    \begin{itemize}
+    \item
+      mean\_ra\_quantities
+    \end{itemize}
+  \item
+    fow\_coef
+    \begin{itemize}
+    \item
+      convert\_fI\_to\_fu
+    \item
+      fpcale
+    \item
+      fpcalw
+    \item
+      fp\_calc
+    \item
+      bounce\_average
+      \begin{itemize}
+      \item
+        make\_U\_Dxy
+      \item
+        transformation\_matrix
+      \item
+	interpolate\_D\_unlessZero
+      \end{itemize}
+    \end{itemize}
+  \item
+    fow\_calculate\_source
+    \begin{itemize}
+    \item
+      fow\_set\_obparm
+    \item
+      beam\_source
+    \item
+      fow\_cal\_local\_coms
+    \end{itemize}
+  \item
+    fow\_exec
+    \begin{itemize}
+    \item
+      fowweight
+    \item
+      set\_fm\_imxta
+    \item
+      fowsetm
+    \item
+      IBC\_pinch
+    \item
+      IBC\_X\_stagnation
+    \item
+      IBC\_O\_stagnation
+    \end{itemize}
+  \item
+    update\_bulk\_temperature
+  \item
+    coulomb\_log
+  \item
+    fow\_coef
+  \item
+    fow\_calculate\_source
+  \item
+    moment\_0th\_order\_COM
+  \item
+    moment\_2nd\_order\_COM
+  \item
+    fp\_fout\_tot
+  \end{itemize}
+\subsection{fp\_fout\_tot}
+  \begin{itemize}
+  \item
+    mean\_ra\_quantities
+  \item
+    fptxt1D/2D/4D
+  \item
+    output\_neoclass
+  \item
+    output\_orbit\_classify
+    \begin{itemize}
+    \item
+      prep\_orbit\_classify
+    \item
+      pinch\_orbit
+      \begin{itemize}
+      \item
+        get\_pinch\_orbit
+      \end{itemize}
+    \item
+      D\_orbit
+    \item
+      stagnation\_orbit
+    \item
+      stagnation\_type
+    \item
+      fptxt1D/2D/3D
+    \end{itemize}
+  \item
+    moment\_0th\_order\_COM
+  \item
+    moment\_2nd\_order\_COM
+  \item
+    fptxt1D/3D/5D
+  \end{itemize}
+\end{document}
+

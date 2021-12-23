@@ -2,7 +2,7 @@
 f
 fp.gs
 c
-  model_fow=0
+  model_fow=1
   nthpmax=8
   max_stp=20
   model_obload=1

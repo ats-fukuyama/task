@@ -1,38 +1,27 @@
-! fpchecknc
+! fowevalnc
 
-module fpchecknc
+module fowevalnc
   private
 
-  public :: output_neoclass
+  public :: fow_evaluate_nc
 
 contains
 
-  subroutine output_neoclass
+  subroutine fow_evaluate_nc(Drhmrhm,Drw,Drwav,Dbanana,nud_mono)
     use fpcomm
     use fowcomm
     use fpwrite
 
     implicit none
-    REAL(rkind),dimension(nrmax,nsamax) :: Drhmrhm
-                                                 
-    REAL(rkind),dimension(nrmax,nsamax) :: Drw, Drwav, nud_mono, Dbanana
-
-    call system('mkdir -p dat')
+    REAL(rkind),INTENT(OUT),dimension(nrmax,nsamax) :: &
+         Drhmrhm,Drw,Drwav,nud_mono,Dbanana
 
     call integral_Drr(Drhmrhm)
     call D_random_walk_baverage(Drwav, Drw)
     call nu_deflection_monoenergy(nud_mono)
     call D_banana(Dbanana)
 
-    call fptxt2D(Drhmrhm,"dat/Drhmrhm.txt")
-
-    call fptxt2D(Drw,"dat/Drw.txt")
-    call fptxt2D(Drwav,"dat/Drwav.txt")
-    call fptxt2D(Dbanana,"dat/Dbanana.txt")
-
-    call fptxt2D(nud_mono,"dat/nud_mono.txt")
-
-  end subroutine output_neoclass
+  end subroutine fow_evaluate_nc
 
   subroutine integral_Drr(Drr_out)
     use fpcomm
@@ -726,4 +715,4 @@ contains
 
   ! end subroutine D_random_walk
 
-end module fpchecknc
+end module fowevalnc

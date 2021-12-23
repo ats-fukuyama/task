@@ -44,11 +44,11 @@ SRCS = fpcomm.f90 fpreadeg.f90 fpinit.f90 fpparm.f90 fpmpi.f90		\
 	fpcalw.f90 fpcalcn.f90 fpcalcnr.f90 fpcalc.f90 fpnfrr.f90	\
 	fpnflg.f90 fpcdbm.f90 fpcalr.f90 fpread.f90 fpcoef.f90		\
 	fpcale.f90 fpbounce.f90 fpdisrupt.f90 fpprep.f90 fploop.f90	\
-	fpcont.f90 fpfout.f90 fpgout.f90 fpfile.f90 \
+	fpcont.f90 fpgfout.f90 fpgout.f90 fpfile.f90 \
 	fowcomm.f90 fowlib.f90	\
-	foworbit.f90 fowdistribution.f90 fowclassify.f90		\
-	fowprep.f90 fowsource.f90 fowcoef.f90 fowexec.f90		\
-	fpchecknc.f90 fowloop.f90 \
+	foworbit.f90 fowdistribution.f90 fowobclassify.f90 \
+	fowprep.f90 fowsource.f90 fowcoef.f90 fowexec.f90 \
+	fowevalNC.f90 fpfout.f90 fowloop.f90 \
 	fpmenu.f90
 
 OBJS = $(addprefix $(OBJDIR)/, $(SRCS:.f90=.o))
@@ -96,7 +96,8 @@ veryclean: clean
 	-rm -f fp
 
 $(OBJDIR)/fpmain.o : fpinit.f90 fpparm.f90 fpmain.f90 fpcomm.f90
-$(OBJDIR)/fpmenu.o : fpwrin.f90 fpgout.f90 fpfout.f90 fploop.f90 fpprep.f90 fpparm.f90 fpfile.f90 fpmenu.f90 fpcomm.f90
+$(OBJDIR)/fpmenu.o : fpwrin.f90 fpgout.f90 fpfout.f90 fploop.f90 \
+fpprep.f90 fpparm.f90 fpfile.f90 fpmenu.f90 fpcomm.f90
 $(OBJDIR)/fpinit.o : fpinit.f90 fpcomm.f90
 $(OBJDIR)/fpparm.o : fpparm.f90 fpcomm.f90
 $(OBJDIR)/fpprep.o : fpoutdata.f90 fpcale.f90 fpbounce.f90 fpnfrr.f90 \
@@ -118,8 +119,9 @@ $(OBJDIR)/fpcalw.o : fpcalw.f90 fpcalwr.f90 fpcalwm.f90 fpcomm.f90
 $(OBJDIR)/fpcalwr.o : fpwrin.f90 fpcalwr.f90 fpcomm.f90
 $(OBJDIR)/fpcalwm.o : fpwmin.f90 fpcalwm.f90 fpcomm.f90
 $(OBJDIR)/fpcont.o : fpcont.f90 fpcomm.f90
-$(OBJDIR)/fpfout.o : fpfout.f90 fpcomm.f90
-$(OBJDIR)/fpgout.o : fpfout.f90 fpcont.f90 fpgout.f90 fpcomm.f90
+$(OBJDIR)/fpfout.o : fpfout.f90 fowobclassify.f90 fpcomm.f90
+$(OBJDIR)/fpgfout.o : fpgfout.f90 fpcomm.f90
+$(OBJDIR)/fpgout.o : fpgfout.f90 fpcont.f90 fpgout.f90 fpcomm.f90
 $(OBJDIR)/fpfile.o : fpprep.f90 fpreadeg.f90 fpread.f90 fpfile.f90 fpcomm.f90
 $(OBJDIR)/fpsave.o : fpexec.f90 fpreadeg.f90 fpsave.f90 fpcomm.f90
 $(OBJDIR)/fpwrin.o : fpwrin.f90 fpcomm.f90
@@ -143,7 +145,7 @@ $(OBJDIR)/fpwrite.o : fpwrite.f90 fpcomm.f90
 $(OBJDIR)/fowcomm.o : fowcomm.f90
 $(OBJDIR)/fowexec.o : fowexec.f90 fowcomm.f90 fpcomm.f90
 $(OBJDIR)/fowprep.o : fowprep.f90 fowlib.f90 fowcomm.f90 fowdistribution.f90	\
-	foworbit.f90 fowdistribution.f90 fowclassify.f90
+	foworbit.f90 fowdistribution.f90 fowobclassify.f90
 $(OBJDIR)/foworbit.o: foworbit.f90 fowlib.f90 fowcomm.f90 fpcomm.f90 \
 	../ob/obcomm.f90 ../ob/obcalc.f90 ../ob/obprep.f90 ../ob/obinit.f90 \
 	../ob/obparm.f90
@@ -154,9 +156,9 @@ $(OBJDIR)/fowsource.o : fowsource.f90 fowcomm.f90 fpcomm.f90 fowprep.f90 \
 	foworbit.f90 fowdistribution.f90
 $(OBJDIR)/fowloop.o : fowexec.f90 fowdistribution.f90 fowcoef.f90 \
 	fowsource.f90 fowcomm.f90 fpcomm.f90 fowprep.f90 fpwrite.f90 \
-	fpchecknc.f90 fowclassify.f90
-$(OBJDIR)/fpchecknc.o : fpchecknc.f90 fowlib.f90		\
+	fowevalNC.f90 fowobclassify.f90
+$(OBJDIR)/fowevalNC.o : fowevalNC.f90 fowlib.f90		\
 	fowcomm.f90 fpcomm.f90 fpwrite.f90 fowcoef.f90 fowexec.f90
-$(OBJDIR)/fowclassify.o : fowclassify.f90 fowcomm.f90 fpcomm.f90 \
+$(OBJDIR)/fowobclassify.o : fowobclassify.f90 fowcomm.f90 fpcomm.f90 \
 	fpwrite.f90
 $(OBJDIR)/fowlib.o : fowlib.f90 fowcomm.f90

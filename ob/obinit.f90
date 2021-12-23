@@ -37,7 +37,7 @@ CONTAINS
     mdlobc=0                  ! model id of one cycle calculation
                               !     0: independent of cycle, until tmax_ob
                               !     1: one cycle for trapped and untrapped
-    mdlobw=3                  ! model id of output interval
+    mdlobw=0                  ! model id of output interval
                               !     0: no output
                               !     1: every step
                               !     2: every 10 step

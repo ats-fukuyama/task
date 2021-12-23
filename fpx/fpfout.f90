@@ -1,231 +1,213 @@
-!     $Id: fpfout.f90,v 1.7 2013/01/11 07:06:52 nuga Exp $
-!
-! ***********************************************************
-!
-!                FILE OUTPUT of GRAPH DATA
-!
-! ***********************************************************
+! fpfout.f90
 
-      MODULE FPFOUT
+MODULE fpfout
 
-      USE fpcomm
+  USE fpcomm,ONLY: rkind
+  
+  PRIVATE
+  PUBLIC fp_fout,fp_fout_tot
 
-      contains
+  REAL(rkind),allocatable,dimension(:,:,:) :: &
+       density, p_flux, Deff, temperature, Sr, Sr_Dp, Sr_Dth, Sr_Dr, Sr_F
+  REAL(rkind),allocatable,dimension(:,:,:,:,:) :: &
+       fI, source
 
-! ***********************************************************
-!
-!                        TIME EVOLUTION
-!
-! ***********************************************************
+CONTAINS
 
-      SUBROUTINE FPFOTT(STRING,FT)
+  SUBROUTINE fp_fout
+    use fpcomm
+    RETURN
+  END SUBROUTINE fp_fout
+    
+  SUBROUTINE fp_fout_tot(nt)
+    use fowcomm
+    use fpcomm
+    use fpwrite
+    use foworbit
+    use fowdistribution
+    use fowevalNC
+    use fowobclassify
+    implicit none
+    integer,intent(in) :: nt
+    INTEGER,SAVE:: nthmax_save=0
+    INTEGER,SAVE:: npmax_save=0
+    INTEGER,SAVE:: nrmax_save=0
+    INTEGER,SAVE:: nsamax_save=0
+    INTEGER,SAVE:: ntmax_save=0
+   
+    REAL(rkind) :: r_, psip0, costh0, sinth0, B0, F0, dBdr0, dFdr0
+    REAL(rkind) :: dpsipdr0, MJ2keV
+    REAL(rkind),dimension(nrmax) :: rmg
+    REAL(rkind),dimension(npmax,nsamax) :: momm
+    REAL(rkind),dimension(npmax+1,nsamax) :: momg
+    REAL(rkind),dimension(nthmax,npmax,nrmax,nsamax) :: taup, r0
+    REAL(rkind),dimension(nrmax,nsamax) :: Drhmrhm,Drw,Drwav,nud_mono,Dbanana
+    integer :: nth,np,nr,nsa
 
-      REAL(rkind),DIMENSION(NTG1M):: FT
-      CHARACTER(LEN=*),INTENT(IN):: STRING
+    IF(nthmax.NE.nthmax_save.OR. &
+       npmax.NE.npmax_save.OR. &
+       nrmax.NE.nrmax_save.OR. &
+       nsamax.NE.nsamax_save.OR. &
+       ntmax.NE.ntmax_save) THEN
+       IF(ALLOCATED(density)) THEN
+          DEALLOCATE(density,p_flux,Sr,Sr_Dp,Sr_Dth,Sr_Dr,Sr_F,Deff)
+          DEALLOCATE(fI,source,temperature)
+       END IF
+       ALLOCATE(p_flux (             nrmax,nsamax,ntmax))
+       ALLOCATE(Sr     (             nrmax,nsamax,ntmax))
+       ALLOCATE(Sr_Dp  (             nrmax,nsamax,ntmax))
+       ALLOCATE(Sr_Dth (             nrmax,nsamax,ntmax))
+       ALLOCATE(Sr_Dr  (             nrmax,nsamax,ntmax))
+       ALLOCATE(Sr_F   (             nrmax,nsamax,ntmax))
+       ALLOCATE(Deff   (             nrmax,nsamax,ntmax))
+       ALLOCATE(fI     (nthmax,npmax,nrmax,nsamax,ntmax))
+       ALLOCATE(source (nthmax,npmax,nrmax,nsamax,ntmax))
+       ALLOCATE(temperature(         nrmax,nsamax,ntmax))
+    END IF
 
-      CALL FPFOUX1(STRING,NTG1,1,FT,NTG1M)
-      RETURN
-      END SUBROUTINE FPFOTT
+    MJ2keV = 1.d-3/aee*1.d6
 
-! ***********************************************************
-!
-!                        RADIAL PROFILE
-!
-! ***********************************************************
+    if ( nt == 1 ) then
+       do nr = 1, nrmax
+          rmg(nr) = rg(nr+1)
+       end do
 
-      SUBROUTINE FPFOTR(STRING,FR)
+       do nsa = 1, nsamax
+          do np = 1, npmax
+             momm(np,nsa) = pm(np,nsa)*ptfp0(nsa)
+             momg(np,nsa) = pg(np,nsa)*ptfp0(nsa)
+          end do
+          momg(npmax+1,nsa) = pg(npmax+1,nsa)*ptfp0(nsa)
+       end do
+    
+       do nsa = 1, nsamax
+          do nr = 1, nrmax
+             do np = 1, npmax
+                do nth = 1, nthmax
+                   call mean_ra_quantities(orbit_m(nth,np,nr,nsa), &
+                        r_, psip0, costh0, sinth0, B0, F0, &
+                        dBdr0, dFdr0, dpsipdr0)
+                   r0(nth,np,nr,nsa) = r_
+                   taup(nth,np,nr,nsa) &
+                        =orbit_m(nth,np,nr,nsa) &
+                        %time(orbit_m(nth,np,nr,nsa)%nstp_max)
+                end do
+             end do
+          end do
+       end do
 
-      REAL(rkind),DIMENSION(NRMAX+1,NTG2M):: FR
-      CHARACTER(LEN=*),INTENT(IN):: STRING
+       call fptxt1D(psimg,"dat/psimg.txt")
+       call fptxt1D(Fpsig,"dat/Fpsig.txt")
+       call fptxt1D(Boutg,"dat/Boutg.txt")
+       call fptxt1D(Bing,"dat/Bing.txt")
+       call fptxt1D(psim,"dat/psim.txt")
+       call fptxt1D(Fpsi,"dat/Fpsi.txt")
+       call fptxt1D(Bout,"dat/Bout.txt")
+       call fptxt1D(Bin,"dat/Bin.txt")
+       call fptxt1D(rm,"dat/rm.txt")
+       call fptxt1D(rg,"dat/rg.txt")
+       call fptxt1D(rmg,"dat/rmg.txt")
 
-      CALL FPFOUX2(STRING,NRMAX,NTG2,FR,NRMAX+1)
+       call fptxt1D(safety_factor,"dat/safety_factor.txt")
+    
+       call fptxt2D(pm,"dat/pm.txt")
+       call fptxt2D(pg,"dat/pg.txt")
+       call fptxt2D(momm,"dat/momentum.txt")
+       call fptxt2D(momg,"dat/momentumg.txt")
+    
+       call fptxt4D(thetam,"dat/thetam.txt")
+       call fptxt4D(thetamg,"dat/thetamg.txt")
+       call fptxt4D(thetam_pg,"dat/thetam_pg.txt")
+       call fptxt4D(thetam_rg,"dat/thetam_rg.txt")
+       call fptxt4D(JI,"dat/Jacobian.txt")
+       call fptxt4D(JIR,"dat/JIR.txt")
+       call fptxt4D(taup,"dat/taup.txt")
+       call fptxt4D(r0,"dat/r_mean.txt")
+    
+       call fptxt4D(Dppfow,"dat/Dpp.txt")
+       call fptxt4D(Dptfow,"dat/Dpt.txt")
+       call fptxt4D(Dprfow,"dat/Dpr.txt")
+    
+       call fptxt4D(Dtpfow,"dat/Dtp.txt")
+       call fptxt4D(Dttfow,"dat/Dtt.txt")
+       call fptxt4D(Dtrfow,"dat/Dtr.txt")
+    
+       call fptxt4D(Drpfow,"dat/Drp.txt")
+       call fptxt4D(Drtfow,"dat/Drt.txt")
+       call fptxt4D(Drrfow,"dat/Drr.txt") 
+      
+       call fptxt4D(Fppfow,"dat/Fpp.txt")
+       call fptxt4D(Fthfow,"dat/Fth.txt")
+       call fptxt4D(Frrfow,"dat/Frr.txt")
 
-      RETURN
-      END SUBROUTINE FPFOTR
+       call fptxt4D(Dcpp,"dat/Dpp_fp.txt")
+       call fptxt4D(Dcpt,"dat/Dpt_fp.txt")
 
-! ***********************************************************
-!
-!                        Momentum Dependence
-!
-! ***********************************************************
+       call fptxt4D(Dctp,"dat/Dtp_fp.txt")
+       call fptxt4D(Dctt,"dat/Dtt_fp.txt")
 
-      SUBROUTINE FPFOTP(STRING,FG)
+       call fptxt4D(Fcpp,"dat/Fpp_fp.txt")
+       call fptxt4D(Fcth,"dat/Fth_fp.txt")
 
-      REAL(rkind),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
-      REAL(rkind),dimension(NPMAX+1,NRMAX+1):: FL
-      CHARACTER(LEN=*),INTENT(IN):: STRING
+       call fow_evaluate_NC(Drhmrhm,Drw,Drwav,Dbanana,nud_mono)
+       
+       call fptxt2D(Drhmrhm,"dat/Drhmrhm.txt")
+       call fptxt2D(Drw,"dat/Drw.txt")
+       call fptxt2D(Drwav,"dat/Drwav.txt")
+       call fptxt2D(Dbanana,"dat/Dbanana.txt")
+       call fptxt2D(nud_mono,"dat/nud_mono.txt")
 
-   1  WRITE(6,'(A,I4,A)') '# INPUT NTH (1..',NTHMAX,' or 0) :'
-      READ(5,*,ERR=1,END=9000) NTH
-      IF(NTH.LT.1) GOTO 9000
-      IF(NTH.GT.NTHMAX) GOTO 1
+       CALL fow_ob_classify
 
-      DO NR=1,NRMAX
-         DO NP=1,NPMAX
-            FL(NP,NR)=FG(NTH,NP,NR)
-         ENDDO
-      ENDDO
+       call fptxt1D(theta_m,"dat/thetam_obclass.txt")
+       call fptxt1D(xi,"dat/xi_obclass.txt")
+       call fptxt1D(rm,"dat/rm.txt")
+       call fptxt3D(beta_D,"dat/beta_D_obclass.txt")
+       call fptxt3D(beta_stag,"dat/beta_stag_obclass.txt")
+       call fptxt3D(beta_pinch,"dat/beta_pinch_obclass.txt")
+       call fptxt3D(theta_pinch,"dat/thetam_pinch_obclass.txt")
+       call fptxt2D(xi_Xtype_boundary, &
+            "dat/xi_Xtype_boundary_obclass.txt")
+    end if
 
-      CALL FPFOUX3(STRING,NPMAX,NRMAX,FL,NPMAX+1)
-      GOTO 1
+    do nsa = 1, nsamax
+       do nr = 1, nrmax
+          do np = 1, npmax
+             do nth = 1, nthmax
+                fI(nth,np,nr,nsa,nt)     = fnsp(nth,np,nr,nsa)
+                source(nth,np,nr,nsa,nt) = SPP(nth,np,nr,nsa)
+             end do
+          end do
+       end do
+    end do
 
- 9000 RETURN
-      END SUBROUTINE FPFOTP
+    call moment_0th_order_COM(density(:,:,nt), fnsp)
+    call moment_2nd_order_COM(temperature(:,:,nt), fnsp)
 
-! ***********************************************************
-!
-!                Two-dimensional data (np,nth)
-!
-! ***********************************************************
+    do nsa = 1, nsamax
+       do nr = 1, nrmax
+          temperature(nr,nsa,nt) &
+               = temperature(nr,nsa,nt)*MJ2keV/(1.5d0*density(nr,nsa,nt)*1.d20)
+       end do
+    end do
 
-      SUBROUTINE FPFOTC(STRING,FG,MODE)
-!
-      REAL(rkind),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
-      REAL(rkind),DIMENSION(NPMAX+1,NTHMAX+1):: FL
-      CHARACTER(LEN=*),INTENT(IN):: STRING
-!
-    1 CONTINUE
-      IF(NRMAX.GT.1) THEN
-         IF(MODE.EQ.0) THEN
-            NRG=NRMAX+1
-         ELSE
-            NRG=NRMAX
-         ENDIF
-         WRITE(6,'(A,I4,A)') '# INPUT NR (1..',NRG,' or 0) :'
-         READ(5,*,ERR=1,END=9000) NR
-         IF(NR.LT.1) GOTO 9000
-         IF(NR.GT.NRG) GOTO 1
-      ELSE
-         NR=1
-      END IF
+    call particle_flux_element(Sr(:,:,nt), Sr_Dp(:,:,nt), Sr_Dth(:,:,nt), &
+         Sr_Dr(:,:,nt), Sr_F(:,:,nt))
+    call effective_diffusion_coefficient(Deff(:,:,nt))
 
-      IF(MOD(MODE,2).EQ.0) THEN
-         NPG=NPMAX
-      ELSE
-         NPG=NPMAX+1
-      ENDIF
+    if ( nt == ntmax ) then
+       call fptxt5D(fI,"dat/f.txt")
+       call fptxt5D(source,"dat/source.txt")
+       call fptxt3D(density,"dat/density.txt")
+       call fptxt3D(Deff,"dat/Deff.txt")
+       call fptxt3D(p_flux,"dat/p_flux.txt")
+       call fptxt3D(Sr,"dat/Sr.txt")
+       call fptxt3D(Sr_Dp,"dat/Sr_Dp.txt")
+       call fptxt3D(Sr_Dth,"dat/Sr_Dth.txt")
+       call fptxt3D(Sr_Dr,"dat/Sr_Dr.txt")
+       call fptxt3D(Sr_F,"dat/Sr_F.txt")
+       call fptxt3D(temperature,"dat/temperature.txt")
+    end if
 
-      IF(MOD(MODE/2,2).EQ.0) THEN
-         NTHG=NTHMAX
-      ELSE
-         NTHG=NTHMAX+1
-      ENDIF
-
-      DO NTH=1,NTHG
-         DO NP=1,NPG
-            FL(NP,NTH)=FG(NTH,NP,NR)
-         ENDDO
-      ENDDO
-
-      CALL FPFOUX4(STRING,NPG,NTHG,FL,NPMAX+1)
-      IF(NRMAX.GT.1) GOTO 1
-
- 9000 RETURN
-      END SUBROUTINE FPFOTC
-!-------------------------------------
-      SUBROUTINE FPFOTC_2(STRING,FG,MODE)
-!
-      REAL(rkind),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
-      REAL(rkind),DIMENSION(NPMAX,NTHMAX):: FL
-      CHARACTER(LEN=*),INTENT(IN):: STRING
-!
-    1 CONTINUE
-      IF(NRMAX.GT.1) THEN
-         IF(MODE.EQ.0) THEN
-            NRG=NRMAX+1
-         ELSE
-            NRG=NRMAX
-         ENDIF
-         WRITE(6,'(A,I4,A)') '# INPUT NR (1..',NRG,' or 0) :'
-         READ(5,*,ERR=1,END=9000) NR
-         IF(NR.LT.1) GOTO 9000
-         IF(NR.GT.NRG) GOTO 1
-      ELSE
-         NR=1
-      END IF
-
-      IF(MOD(MODE,2).EQ.0) THEN
-         NPG=NPMAX
-      ELSE
-         NPG=NPMAX+1
-      ENDIF
-
-      IF(MOD(MODE/2,2).EQ.0) THEN
-         NTHG=NTHMAX
-      ELSE
-         NTHG=NTHMAX+1
-      ENDIF
-
-      DO NTH=1,NTHG
-         DO NP=1,NPG
-            FL(NP,NTH)=FG(NTH,NP,NR)
-         ENDDO
-      ENDDO
-
-      CALL FPFOUX4(STRING,NPG,NTHG,FL,NPMAX+1)
-      IF(NRMAX.GT.1) GOTO 1
-
- 9000 RETURN
-      END SUBROUTINE FPFOTC_2
-
-!-------------------------------------
-      SUBROUTINE FPFOUX1(STRING,N1MAX,N2MAX,FL,N1M)
-
-      REAL(rkind),DIMENSION(N1M):: FL
-      CHARACTER(LEN=*),INTENT(IN):: STRING
-
-      WRITE(22,'(A)') 'PTG'
-      WRITE(22,'(2I10)') N1MAX,1
-      WRITE(22,'(1P5E15.7)') (PTG(N1),N1=1,N1MAX)
-      WRITE(22,'(A)') STRING
-      WRITE(22,'(2I10)') N1MAX,1
-      DO N2=1,N2MAX
-         WRITE(22,'(1P5E15.7)') (FL(N1),N1=1,N1MAX)
-      ENDDO
-      RETURN
-      END SUBROUTINE FPFOUX1
-!----------------------------------------
-      SUBROUTINE FPFOUX2(STRING,N1MAX,N2MAX,FL,N1M)
-
-      REAL(rkind),DIMENSION(N1M,N2MAX):: FL
-      CHARACTER(LEN=*),INTENT(IN):: STRING
-
-      WRITE(22,'(A)') 'RTG'
-      WRITE(22,'(2I10)') 1,N2MAX
-      WRITE(22,'(1P5E15.7)') (RTG(N2),N2=1,N2MAX)
-      WRITE(22,'(A)') STRING
-      WRITE(22,'(2I10)') N1MAX,N2MAX
-      DO N2=1,N2MAX
-         WRITE(22,'(1P5E15.7)') (FL(N1,N2),N1=1,N1MAX)
-      ENDDO
-      RETURN
-      END SUBROUTINE FPFOUX2
-!----------------------------------------
-      SUBROUTINE FPFOUX3(STRING,N1MAX,N2MAX,FL,N1M)
-
-      REAL(rkind),DIMENSION(N1M,N2MAX):: FL
-      CHARACTER(LEN=*),INTENT(IN):: STRING
-
-      WRITE(22,'(A)') STRING
-      WRITE(22,'(2I10)') N1MAX,N2MAX
-      DO N2=1,N2MAX
-         WRITE(22,'(1P5E15.7)') (FL(N1,N2),N1=1,N1MAX)
-      ENDDO
-      RETURN
-      END SUBROUTINE FPFOUX3
-!----------------------------------------
-      SUBROUTINE FPFOUX4(STRING,N1MAX,N2MAX,FL,N1M)
-
-      REAL(rkind),DIMENSION(N1M,N2MAX):: FL
-      CHARACTER(LEN=*),INTENT(IN):: STRING
-
-      WRITE(22,'(A)') STRING
-      WRITE(22,'(2I10)') N1MAX,N2MAX
-      DO N2=1,N2MAX
-         WRITE(22,'(1P5E15.7)') (FL(N1,N2),N1=1,N1MAX)
-      ENDDO
-      RETURN
-      END SUBROUTINE FPFOUX4
-
-!-----------------------------------------------
-      END MODULE FPFOUT
+  end subroutine fp_fout_tot
+END MODULE fpfout

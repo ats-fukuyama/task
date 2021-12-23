@@ -1,61 +1,77 @@
-module fowclassify
+! fowobclassify.f90
+
+MODULE fowobclassify
 
   USE fpcomm,ONLY: rkind
-  private
+  PRIVATE
 
-  public :: output_orbit_classify
+  PUBLIC :: fow_ob_classify
 
-  integer,parameter :: ithmax = 47
-  REAL(rkind),dimension(ithmax) :: theta_m, xi
+  REAL(rkind),ALLOCATABLE,dimension(:) :: theta_m,xi
+  REAL(rkind),ALLOCATABLE,dimension(:,:,:) :: beta_D,beta_stag
+  REAL(rkind),ALLOCATABLE,dimension(:,:,:) :: beta_pinch,theta_pinch
+  REAL(rkind),ALLOCATABLE,dimension(:,:) :: xi_Xtype_boundary
+  PUBLIC:: theta_m,xi,beta_D,beta_stag,beta_pinch,theta_pinch,xi_Xtype_boundary
 
-contains
+CONTAINS
 
-  subroutine output_orbit_classify
-    use fpcomm
-    use fowcomm
-    use fpwrite
-    implicit none
-    REAL(rkind),dimension(ithmax,nrmax,nsamax) :: beta_D, beta_stag
-    REAL(rkind),dimension(ithmax,nrmax,nsamax) :: beta_pinch, theta_pinch
-    REAL(rkind),dimension(nrmax,2) :: xi_Xtype_boundary_ion
+  SUBROUTINE fow_ob_classify
+    USE fpcomm
+    USE fowcomm
+    USE fpwrite
+    IMPLICIT NONE
 
     call prep_orbit_classify
-    call pinch_orbit(beta_pinch, theta_pinch)
-    call D_orbit(beta_D)
-    call stagnation_orbit(beta_stag)
-    call stagnation_type(xi_Xtype_boundary_ion)
+    call pinch_orbit
+    call D_orbit
+    call stagnation_orbit
+    call stagnation_type
 
-    call fptxt1D(theta_m,"dat/thetam_obclass.txt")
-    call fptxt1D(xi,"dat/xi_obclass.txt")
-    call fptxt1D(rm,"dat/rm.txt")
-    call fptxt3D(beta_D,"dat/beta_D_obclass.txt")
-    call fptxt3D(beta_stag,"dat/beta_stag_obclass.txt")
-    call fptxt3D(beta_pinch,"dat/beta_pinch_obclass.txt")
-    call fptxt3D(theta_pinch,"dat/thetam_pinch_obclass.txt")
-    call fptxt2D(xi_Xtype_boundary_ion,"dat/xi_Xtype_boundary_ion_obclass.txt")
+  end subroutine fow_ob_classify
 
-  end subroutine output_orbit_classify
+  SUBROUTINE prep_orbit_classify
+    USE fpcomm
+    USE fowcomm
+    IMPLICIT NONE
+    INTEGER,SAVE:: nthmax_ob_save=0
+    INTEGER,SAVE:: nrmax_save=0
+    INTEGER,SAVE:: nsamax_save=0
+    INTEGER:: nth
 
-  subroutine prep_orbit_classify
-    use fpcomm
-    use fowcomm
-    implicit none
-    integer :: nth
+    IF(nthmax_ob_save.NE.nthmax_ob.OR. &
+       nrmax.NE.nrmax_save.OR. &
+       nsamax.NE.nsamax_save) THEN
+       IF(ALLOCATED(theta_m)) THEN
+          DEALLOCATE(theta_m,xi,beta_D,beta_stag,beta_pinch,theta_pinch)
+          DEALLOCATE(xi_Xtype_boundary)
+       END IF
+
+       ALLOCATE(theta_m(nthmax_ob))
+       ALLOCATE(xi(nthmax_ob))
+       ALLOCATE(beta_D(nthmax_ob,nrmax,nsamax))
+       ALLOCATE(beta_stag(nthmax_ob,nrmax,nsamax))
+       ALLOCATE(beta_pinch(nthmax_ob,nrmax,nsamax))
+       ALLOCATE(theta_pinch(nthmax_ob,nrmax,nsamax))
+       ALLOCATE(xi_Xtype_boundary(nrmax,2))
+
+       nthmax_ob_save=nthmax_ob
+       nrmax_save=nrmax
+       nsamax_save=nsamax
+    END IF
 
     theta_m(1) = 0.d0
     xi(1) = 1.d0
-    do nth = 2, ithmax
-      theta_m(nth) = theta_m(nth-1)+pi/dble(ithmax-1)
-      xi(nth) = COS( theta_m(nth) )
-    end do
+    DO nth = 2, nthmax_ob
+       theta_m(nth) = theta_m(nth-1)+pi/dble(nthmax_ob-1)
+       xi(nth) = COS( theta_m(nth) )
+    END do
 
-  end subroutine prep_orbit_classify
+  END SUBROUTINE prep_orbit_classify
 
-  subroutine pinch_orbit(beta_pinch, theta_pinch)
+  subroutine pinch_orbit
     use fpcomm
     use fowcomm
     implicit none
-    REAL(rkind),dimension(ithmax,nrmax,nsamax),intent(out) :: beta_pinch, theta_pinch
     REAL(rkind) :: psipin
     integer :: nr,nsa,ierr,nth
 
@@ -63,28 +79,31 @@ contains
 
     do nsa = 1, nsamax
       do nr = 1, nrmax
-          do nth = 1, ithmax
-            psipin = ( psim(nr)-1.d-8 )/(ithmax+1)*dble(nth+1)
-            call get_pinch_point(beta_pinch(nth,nr,nsa), theta_pinch(nth,nr,nsa), psipin, psim(nr), nsa)
+          do nth = 1, nthmax_ob
+            psipin = ( psim(nr)-1.d-8 )/(nthmax_ob+1)*dble(nth+1)
+            call get_pinch_point(beta_pinch(nth,nr,nsa), &
+                 theta_pinch(nth,nr,nsa), psipin, psim(nr), nsa)
           end do
       end do
     end do
 
   end subroutine pinch_orbit
 
-  subroutine get_pinch_point(beta_pinch, theta_pncp, psip_in, psim_in, nsa_in)
+  subroutine get_pinch_point(beta_pich,theta_pncp,psip_in, psim_in, nsa_in)
     ! input psip_in that is pinch point of pinch orbit with psi_m = psim_in.
     ! psi_p must be less than psim(nr_in)
-    ! return momentum of pinch orbit with psi_m = psim(nr_in), psi_pnc = psip_in
+    ! return momentum of pinch orbit with psi_m = psim(nr_in), psi_pnc=psip_in
     use fowcomm
     use fpcomm
     USE fowlib
     implicit none
-    real(rkind),intent(out) :: beta_pinch, theta_pncp
+    REAL(rkind),INTENT(OUT):: beta_pich,theta_pncp
     real(rkind),intent(in):: psip_in, psim_in
     integer,intent(in) :: nsa_in
 
-    real(rkind) :: F_pncp, Bin_pncp, BFFB, ps_ratio, dFdpsi_pncp, dBdpsi_pncp, G_m, C(3), w, FB_prime, xi_pncp, xi2
+    real(rkind) :: F_pncp, Bin_pncp, BFFB, ps_ratio
+    REAL(rkind):: dFdpsi_pncp, dBdpsi_pncp, G_m, C(3)
+    REAL(rkind):: w, FB_prime, xi_pncp, xi2
     real(rkind) :: F_m, B_m, p_ret
     COMPLEX(rkind) :: z(2)
     real(rkind),allocatable :: dFdpsi(:), dBdpsi(:)
@@ -147,29 +166,32 @@ contains
     end if
 
     FB_prime = (dFdpsi_pncp*Bin_pncp-F_pncp*dBdpsi_pncp)/Bin_pncp**2*B_m/F_m
-    p_ret = G_m*sqrt(w)/(w*FB_prime-0.5d0*(1.d0-xi_pncp**2)*F_pncp*dBdpsi_pncp/F_m/Bin_pncp) ! LHS = gamma*beta
-    p_ret = vc*sqrt(p_ret**2/(1.d0+p_ret**2))             ! LHS = velocity of stagnation orbit
+    p_ret = G_m*sqrt(w) &
+         /(w*FB_prime-0.5d0*(1.d0-xi_pncp**2)*F_pncp*dBdpsi_pncp/F_m/Bin_pncp)
+                ! LHS = gamma*beta
+    p_ret = vc*sqrt(p_ret**2/(1.d0+p_ret**2))
+                ! LHS = velocity of stagnation orbit
     beta_pinch = MIN( p_ret, vc ) / vc
     theta_pncp = ACOS(xi_pncp)
 
   end subroutine get_pinch_point
   
-  subroutine D_orbit(beta_D) 
+  subroutine D_orbit
     ! Used for visualization
-    ! beta_D is maximum momentum of trapped particles for given psi_m, xi and particle species
+    ! beta_D is maximum momentum of trapped particles
+    ! for given psi_m, xi and particle species
     use fowcomm
     use fpcomm
     implicit none
-    real(rkind),dimension(ithmax,nrmax,nsamax),intent(out) :: beta_D
     integer :: nth, nr, nsa, ir
     real(rkind) :: dnr_bn, v_D_orbit
-    real(rkind),dimension(ithmax,nrmax,nsamax) :: Gm
-    real(rkind),dimension(ithmax,nrmax) :: psin, B_m, Bn
+    real(rkind),dimension(nthmax_ob,nrmax,nsamax) :: Gm
+    real(rkind),dimension(nthmax_ob,nrmax) :: psin, B_m, Bn
 
     do nsa = 1, nsamax
 
       do nr = 1, nrmax
-        do nth = 1, ithmax
+        do nth = 1, nthmax_ob
           if ( aefp(nsa)*xi(nth) < 0.d0 ) then
             B_m(nth,nr) = Bin(nr)
           else if ( aefp(nsa)*xi(nth) > 0.d0 ) then
@@ -179,13 +201,14 @@ contains
       end do
   
       do nr = 1, nrmax
-        do nth = 1, ithmax
-          Gm(nth,nr,nsa) = aefp(nsa)*B_m(nth,nr)*psim(nr)/(amfp(nsa)*vc*Fpsi(nr))
+        do nth = 1, nthmax_ob
+           Gm(nth,nr,nsa) = aefp(nsa)*B_m(nth,nr)*psim(nr) &
+                /(amfp(nsa)*vc*Fpsi(nr))
         end do
       end do
   
       do nr = 1, nrmax
-        do nth = 1, ithmax
+        do nth = 1, nthmax_ob
           if ( xi(nth) == 0.d0 ) continue
 
           if ( ABS(xi(nth)) == 1.d0 ) then
@@ -201,8 +224,10 @@ contains
                 psin(nth,nr) = psimg(ir)+(psimg(ir+1)-psimg(ir))*dnr_bn
                 exit
               else if ( Bn(nth,nr)<Boutg(nrmax+1) ) then
-                dnr_bn = (Bn(nth,nr)-Boutg(nrmax+1))/(Boutg(nrmax+1)-Boutg(nrmax))
-                psin(nth,nr) = psimg(nrmax+1)+(psimg(nrmax+1)-psimg(nrmax))*dnr_bn
+                 dnr_bn = (Bn(nth,nr)-Boutg(nrmax+1)) &
+                      /(Boutg(nrmax+1)-Boutg(nrmax))
+                 psin(nth,nr) = psimg(nrmax+1) &
+                      +(psimg(nrmax+1)-psimg(nrmax))*dnr_bn
                 exit
               end if
             end do
@@ -214,7 +239,8 @@ contains
                 exit
               else if ( Bn(nth,nr)>Bing(nrmax+1) ) then
                 dnr_bn = (Bn(nth,nr)-Bing(nrmax+1))/(Bing(nrmax+1)-Bing(nrmax))
-                psin(nth,nr) = psimg(nrmax+1)+(psimg(nrmax+1)-psimg(nrmax))*dnr_bn
+                psin(nth,nr) = psimg(nrmax+1) &
+                     +(psimg(nrmax+1)-psimg(nrmax))*dnr_bn
                 exit
               end if
             end do
@@ -224,7 +250,7 @@ contains
       end do
   
       do nr = 1, nrmax
-        do nth = 1, ithmax
+        do nth = 1, nthmax_ob
           if ( xi(nth) == 0.d0 ) then
             beta_D(nth,nr,nsa) = 0.d0
             cycle
@@ -233,13 +259,17 @@ contains
             beta_D(nth,nr,nsa) = 0.d0
           end if
           
-          if( Boutg(nrmax+1)<=Bn(nth,nr) .and. Bn(nth,nr)<=Bing(nrmax+1) .and. psin(nth,nr)<=psim(nr) ) then
-            v_D_orbit = vc/sqrt(1.d0+xi(nth)**2/(Gm(nth,nr,nsa)*(1.d0-psin(nth,nr)/psim(nr)))**2)
-            ! beta_D(nth,nr,nsa) = amfp(nsa)*v_D_orbit/sqrt(1.d0-v_D_orbit**2/vc**2)
-            ! beta_D(nth,nr,nsa) = beta_D(nth,nr,nsa)/ptfp0(nsa) ! normalize
-            beta_D(nth,nr,nsa) = v_D_orbit/vc
+          if( Boutg(nrmax+1)<=Bn(nth,nr) .and. &
+               Bn(nth,nr)<=Bing(nrmax+1) .and. psin(nth,nr)<=psim(nr) ) then
+             v_D_orbit = vc/sqrt(1.d0 &
+                  +xi(nth)**2/(Gm(nth,nr,nsa)*(1.d0-psin(nth,nr)/psim(nr)))**2)
+             ! beta_D(nth,nr,nsa) &
+             !     = amfp(nsa)*v_D_orbit/sqrt(1.d0-v_D_orbit**2/vc**2)
+             ! beta_D(nth,nr,nsa) &
+             !     = beta_D(nth,nr,nsa)/ptfp0(nsa) ! normalize
+             beta_D(nth,nr,nsa) = v_D_orbit/vc
           else
-            beta_D(nth,nr,nsa) = 0.d0
+             beta_D(nth,nr,nsa) = 0.d0
           end if
         end do
       end do
@@ -248,24 +278,24 @@ contains
   
   end subroutine D_orbit
 
-  subroutine stagnation_orbit(beta_stag)
+  subroutine stagnation_orbit
     ! Used for visualization
-    ! beta_stag is maximum momentum of not-forbitten particles for given psi_m, xi and particle species
+    ! beta_stag is maximum momentum of not-forbitten particles &
+    !   for given psi_m, xi and particle species
     use fowcomm
     use fpcomm
     USE fowlib
     implicit none
-    real(rkind),intent(out)::beta_stag(ithmax,nrstartw:nrendwm,nsastart:nsaend)
     integer :: nth,nr,nsa
     real(rkind) :: v_stagnation_orbit, F_p, B_p
-    real(rkind),dimension(ithmax,nrstartw:nrendwm,nsastart:nsaend) :: Gm
-    real(rkind),dimension(ithmax,nrstartw:nrendwm) :: B_m, dBmdpsi
-    real(rkind),dimension(nrstartw:nrendwm) :: dFdpsi
+    real(rkind),dimension(nthmax_ob,nrmax,nsamax) :: Gm
+    real(rkind),dimension(nthmax_ob,nrmax) :: B_m, dBmdpsi
+    real(rkind),dimension(nrmax) :: dFdpsi
 
-    do nsa = nsastart, nsaend
+    do nsa = 1,nsamax
 
-      do nr = nrstartw, nrendwm
-        do nth = 1, ithmax
+      do nr = 1,nrmax
+        do nth = 1, nthmax_ob
           if ( aefp(nsa)*xi(nth) <= 0.d0 ) then
             B_m(nth,nr) = Bin(nr)
           else
@@ -274,20 +304,21 @@ contains
         end do
       end do
   
-        do nr = nrstartw, nrendwm
-          do nth = 1, ithmax
-            Gm(nth,nr,nsa) = aefp(nsa)*B_m(nth,nr)*psim(nr)/(amfp(nsa)*vc*Fpsi(nr))
+        do nr = 1,nrmax
+          do nth = 1, nthmax_ob
+             Gm(nth,nr,nsa) = aefp(nsa)*B_m(nth,nr)*psim(nr) &
+                  /(amfp(nsa)*vc*Fpsi(nr))
           end do
         end do
 
       call first_order_derivative(dFdpsi, Fpsi, psim)
 
-      do nth = 1, ithmax
+      do nth = 1, nthmax_ob
         call first_order_derivative(dBmdpsi(nth,:), B_m(nth,:), psim)
       end do
     
-      do nr = nrstartw, nrendwm
-        do nth = 1, ithmax
+      do nr = 1,nrmax
+        do nth = 1, nthmax_ob
           if ( xi(nth) == 0.d0 ) then
             beta_stag(nth,nr,nsa) = 0.d0
             cycle
@@ -318,7 +349,7 @@ contains
   
   end subroutine stagnation_orbit
 
-  subroutine stagnation_type(xi_Xtype_boundary)
+  subroutine stagnation_type
     use fpcomm
     use fowcomm
     use fpwrite
@@ -326,13 +357,11 @@ contains
     implicit none
     ! F_p : ( dF / d(psi_p/psi_m) )/F 
     ! F_pp : ( d^2F / d(psi_p/psi_m)^2 )/F
-    real(rkind),dimension(nrstartw:nrendwm,2),intent(out) :: &
-         xi_Xtype_boundary(:,:)
     integer :: nr
     real(rkind) :: C(3), F_p, F_pp, B_p, B_pp
     COMPLEX(rkind) :: z(2)
-    real(rkind),dimension(nrstartw:nrendwm,2) :: dBmdpsi, d2Bmdpsi, B_, B__
-    real(rkind),dimension(nrstartw:nrendwm) :: dFdpsi, d2Fdpsi, F_, F__
+    real(rkind),dimension(nrmax,2) :: dBmdpsi, d2Bmdpsi, B_, B__
+    real(rkind),dimension(nrmax) :: dFdpsi, d2Fdpsi, F_, F__
 
     call first_order_derivative(dFdpsi, Fpsi, psim)
     call second_order_derivative(d2Fdpsi, Fpsi, psim)
@@ -343,7 +372,7 @@ contains
     call second_order_derivative(d2Bmdpsi(:,1), Bout, psim)
     call second_order_derivative(d2Bmdpsi(:,2), Bin, psim)
 
-    do nr = nrstartw, nrendwm
+    do nr = 1,nrmax
       F_(nr)=dFdpsi(nr)*psim(nr)/Fpsi(nr)
       F__(nr)=d2Fdpsi(nr)*psim(nr)**2/Fpsi(nr)
       B_(nr,1) = dBmdpsi(nr,1)*psim(nr)/Bout(nr)
@@ -352,7 +381,7 @@ contains
       B__(nr,2) = d2Bmdpsi(nr,2)*psim(nr)**2/Bin(nr)
     end do
 
-    do nr = nrstartw, nrendwm
+    do nr = 1,nrmax
       F_p = dFdpsi(nr)*psim(nr)/Fpsi(nr)
       F_pp = d2Fdpsi(nr)*psim(nr)**2/Fpsi(nr)
 
@@ -418,4 +447,4 @@ contains
 
   end function func_kaijou
 
-end module fowclassify
+end module fowobclassify

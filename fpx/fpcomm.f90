@@ -41,6 +41,7 @@ MODULE fpcomm_parm
   INTEGER:: OUTPUT_TXT_BEAM_DENS
   INTEGER:: NRAYS_WR,NRAYE_WR
   INTEGER:: model_fow,model_obload,model_mkcsv,nthpmax,max_stp
+  INTEGER:: model_fow_fout
 
   REAL(rkind):: PMAX(NSM),PMAX_BB(NSM),EMAX(NSM)
   REAL(rkind):: R1,DELR1,RMIN,RMAX
