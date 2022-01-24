@@ -389,10 +389,10 @@ C
                   CALL SETLIN(0,0,6)
                   IF(IDP.EQ.0) THEN
                      CALL CONTPF(GV,GXD,GYD,NNOD,IELM,NELM,
-     &                           GZL,GZDEL,1,0,KAF)
+     &                           GVL,GZDEL,1,0,KAF)
                   ELSE
                      CALL CONTPF(GV,GXD,GYD,NNOD,IELMP,NELMP,
-     &                           GZL,GZDEL,1,0,KAF)
+     &                           GVL,GZDEL,1,0,KAF)
                   ENDIF
                ELSEIF(GVL.LT.0.D0) THEN
                   CALL SETLIN(0,0,5)

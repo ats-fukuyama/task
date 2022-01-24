@@ -56,11 +56,21 @@ C
 C
 C     *** Density Profile Parameters ***
 C
-C        PNPROFY0 : center position of dennsity profile in Z   (m)
-C        PNPROFYW : effective width of density profile in Z    (m)
+C        PNPROFY0  : center position of density profile in Z   (m)
+C        PNPROFYW  : effective width of desity profile in Z    (m)
+C        PNPROFY01 : 1st center position of density profile in Z   (m)
+C        PNPROFYW1 : 1st effective width of desity profile in Z    (m)
+C        PNPROFY02 : 2nd center position of density profile in Z   (m)
+C        PNPROFYW2 : 2nd effective width of desity profile in Z    (m)
+C        PNRATIO12 : Ratio of peak desities of profile in Z
 C
       PNPROFY0 = 0.0D0
       PNPROFYW = 0.15D0
+      PNPROFY01 = 0.0D0
+      PNPROFYW1 = 0.15D0
+      PNPROFY02 = 0.0D0
+      PNPROFYW2 = 0.15D0
+      PNRATIO12 = 0.0D0
 C
 C     *** CONFIGURATION PARAMETERS (TOKAMAK: MODELB=5) ***
 C
@@ -211,6 +221,7 @@ C                4 : Temporal use
 C                5 : Radially parabolic and axially quartic profile
 C                6 : Radially offset-parabolic and axially parabolic profile
 C                7 : Radially parabolic and axially Gaussian profile
+C                8 : Radially parabolic and axially two-peak Gaussian profile
 C
 C        MODELW: 0 : Fixed density and fixed temperature on boundary
 C                1 : Free density and fixed temperature on boundary
@@ -493,7 +504,8 @@ C
       WRITE(6,*) '     DC,PGIVEN,SGIVEN,XGIVEN,YGIVEN,RGIVEN'
       WRITE(6,*) '     NGRAPH,FRATIO,NGXORG,GA,GB,GC,GD,GE,GXN,GYN,GZN,'
       WRITE(6,*) '     GXN1,GXN2,GYN1,GYN2,IXY,IDN'
-      WRITE(6,*) '     PNPROFY0,PNPROFYW'
+      WRITE(6,*) '     PNPROFY0,PNPROFYW,PNRATIO12'
+      WRITE(6,*) '     PNPROFY01,PNPROFYW1,PNPROFY02,PNPROFYW2'
       RETURN
       END
 C
@@ -521,7 +533,8 @@ C
      &              MODELS,MODELB,MODELD,MODELP,MODELW,MODELT,MODELN,
      &              KGINX,KGINV,NGRAPH,FRATIO,NGXORG,
      &              GA,GB,GC,GD,GE,GXN,GYN,GZN,GXN1,GXN2,GYN1,GYN2,
-     &              IXY,IDN,MODIFY,PNPROFY0,PNPROFYW
+     &              IXY,IDN,MODIFY,PNPROFY0,PNPROFYW,
+     &              PNPROFY01,PNPROFYW1,PNPROFY02,PNPROFYW2,PNRATIO12
       CHARACTER KSNAME*32,KSNAMZ*32,KSNAMA*32,KSNAMF*32
       CHARACTER KPNAME*32,KLINE*80,KNAME*87,KID*1
       LOGICAL LEX
@@ -747,6 +760,9 @@ C
       WRITE(6,601) 'RGIVEN',RGIVEN,'RFES  ',RFES  ,
      &             'PHIES ',PHIES ,'FACIMP',FACIMP
       WRITE(6,611) 'PNPROFY0  ',PNPROFY0  ,'PNPROFYW  ',PNPROFYW
+      WRITE(6,611) 'PNPROFY01 ',PNPROFY01 ,'PNPROFYW1 ',PNPROFYW1
+      WRITE(6,611) 'PNPROFY02 ',PNPROFY01 ,'PNPROFYW2 ',PNPROFYW1
+      WRITE(6,611) 'PNRATIO12 ',PNRATIO12
       WRITE(6,*)
       RETURN
 C
