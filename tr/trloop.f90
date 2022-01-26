@@ -48,9 +48,6 @@ CONTAINS
       DO nr=1,nrmax
          QPINV(nr)=(4.D0*PI**2*RDPVRHOG(nr))/(TTRHOG(nr)*ARRHOG(nr))
       END DO
-      call tr_bpsd_put(IERR)
-      if(ierr.ne.0) GOTO 9000
-      NT=NT+1
 
 !     /* Sawtooth Oscillation */
       Q0=FCTR(RG(1),RG(2),QP(1),QP(2))
@@ -60,6 +57,10 @@ CONTAINS
          CALL TRSAWT
          TST=0.D0
       ENDIF
+
+      call tr_bpsd_put(IERR)
+      if(ierr.ne.0) GOTO 9000
+      NT=NT+1
 
 !     *** SET GEOMETRY VIA TASK/EQ ***
 
