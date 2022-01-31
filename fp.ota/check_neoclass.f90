@@ -15,6 +15,7 @@ contains
                                                 Drhmrhm, nu_star
                                                  
     double precision,dimension(nrmax,nsamax) :: Drw, Drwav, nud_mono, D_mono, Dbanana
+    double precision,dimension(nrmax,nsamax) :: Dnewba, Dnewpla
     integer nth, np, nr, nsa, nsb, mode(3)
 
     call system('mkdir -p dat')
@@ -23,12 +24,16 @@ contains
     call D_random_walk_baverage(Drwav, Drw)
     call nu_deflection_monoenergy(nud_mono)
     call D_banana(Dbanana)
+    call newneoclass_ba(Dnewba) ![2022/1/31] editted by anzai
+    call newneoclass_pla(Dnewpla) ![2022/1/31] editted by anzai
 
     call fptxt2D(Drhmrhm,"dat/Drhmrhm.txt")
 
     call fptxt2D(Drw,"dat/Drw.txt")
     call fptxt2D(Drwav,"dat/Drwav.txt")
     call fptxt2D(Dbanana,"dat/Dbanana.txt")
+    call fptxt2D(Dnewba, "dat/Dnewba.txt") ![2022/1/31] edited by anzai
+    call fptxt2D(Dnewpla, "dat/Dnewpla.txt") ![2022/1/31] editted by anzai
 
     call fptxt2D(nud_mono,"dat/nud_mono.txt")
 
@@ -379,6 +384,110 @@ contains
 
 
   end subroutine
+!**********************[2022/1/31] added by anzai***************
+  subroutine newneoclass_ba(Dnewba)
+    !----------------------------------
+    !subroutine for neoclassical particle flux in banana region
+    !calculate particle flux and diffusion coefficient
+    !----------------------------------
+    
+    use fpcomm
+    use fowcomm
+    
+    implicit none
+    double precision,dimension(nrmax,nsamax),intent(out)  :: Dnewba
+    double precision,dimension(nrmax,nsamax) :: Sr_nba, Ta, dTadr, dndr
+    !double precision,dimension(nrmax) :: B_r
+    double precision fact, fact_s, tau_ele, rho_e, eps_t, Baxis, B_p
+    integer nr, nsa
+
+    fact = 12.d0*pi**1.5d0*EPS0**2/sqrt(2.d0)
+    Baxis = Bing(1) ! approximation on B by Baxis
+ 
+    !****temperature make
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)
+      end do
+    end do
+
+    !****first order derivation
+    do nsa = 1, nsamax
+      call first_order_derivative(dTadr(:,nsa), Ta(:,nsa), rm)
+      call first_order_derivative(dndr(:,nsa), rnsl(:, nsa)*1.d20, rm)
+    end do
+    
+    !****calculate flux and diffusion coefficient
+    do nsa = 1, nsamax
+      do nr = 1, nrmax  
+        tau_ele = fact*sqrt(AMFP(1))*(Ta(nr,1)**1.5d0)/ &
+(rnsl(nr,2)*1.d20*ABS(AEFP(2))*lnlam(nr,2,1)*AEE**4)
+        rho_e = sqrt(2*Ta(nr,1)/AMFP(1))*AmFP(2)/(AEE*Baxis)
+        eps_t = rm(nr)*RA/RR
+        !B_p = dpsimdr(nr)*RA/(safety_factor(nr)*RR) ! careful
+        fact_s = (safety_factor(nr)**2)*(rho_e**2)*(rnsl(nr,nsa)*1.d20)/((eps_t**1.5)*tau_ele)
+        Sr_nba(nr,nsa) = fact_s*(-1.22d0*(1+Ta(nr, 1)/Ta(nr,2))*dndr(nr, nsa)/&
+(rnsl(nr, nsa)*1.d20) + 4.3d-1*dTadr(nr,1)/Ta(nr,1) + 1.9d-1*dTadr(nr,2)/Ta(nr,1) ) 
+        ! neglect B_p term
+        
+        Dnewba(nr,nsa) = - Sr_nba(nr, nsa)/dndr(nr, nsa)
+      end do 
+    end do
+
+  end subroutine newneoclass_ba	
+
+  subroutine newneoclass_pla(Dnewpla)
+    !---------------------------------
+    !subroutine for neoclassical particle flux in plateau region
+    !calculate particle flux and diffusion coefficient
+    !---------------------------------
+    
+    use fpcomm
+    use fowcomm
+    
+    implicit none
+    double precision,dimension(nrmax,nsamax),intent(out)  :: Dnewpla
+    double precision,dimension(nrmax,nsamax) :: Sr_npla, Ta, dTadr, dndr
+    !double precision,dimension(nrmax) :: B_r
+    double precision fact, fact_s, tau_ele, rho_e, eps_t, Baxis, B_p
+    integer nr, nsa
+
+    fact = 12.d0*pi**1.5d0*EPS0**2/sqrt(2.d0)
+    Baxis = Bing(1) ! approximation on B by Baxis
+
+    !****temperature make
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)
+      end do
+    end do
+
+    !****first order derivation
+    do nsa = 1, nsamax
+      call first_order_derivative(dTadr(:,nsa), Ta(:,nsa), rm)
+      call first_order_derivative(dndr(:,nsa), rnsl(:, nsa)*1.d20, rm)
+    end do
+
+    !****calculate flux and diffusion coefficient
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        tau_ele = fact*sqrt(AMFP(1))*Ta(nr,1)**1.5d0/ &
+(rnsl(nr,2)*1.d20*ABS(AEFP(2))*lnlam(nr,2,1)*AEE**4)
+        rho_e = sqrt(2*Ta(nr,1)/AMFP(1))*AmFP(2)/(AEE*Baxis)
+        eps_t = rm(nr)*RA/RR
+        B_p = dpsimdr(nr)*RA/(safety_factor(nr)*RR) ! careful
+        fact_s = -sqrt(pi)*(eps_t**2)*Ta(nr,1)*rho_e*(rnsl(nr,nsa)*1.d20)/(2*AEE*B_p*rm(nr))        
+        
+        Sr_npla(nr,nsa) = fact_s*((1+Ta(nr, 1)/Ta(nr,2))*dndr(nr,nsa)/(rnsl(nr, nsa)*1.d20) &
+ + 1.5d0*dTadr(nr,1)/Ta(nr,1) + 1.5d0*dTadr(nr,2)/Ta(nr,1) )
+        !neglect B term
+   
+        Dnewpla(nr,nsa) = - Sr_npla(nr, nsa)/dndr(nr, nsa)
+      end do 
+    end do
+
+  end subroutine newneoclass_pla
+
 
   ! subroutine banana_width_and_omega_bounce(w_b, omega_b)
   !   use fpcomm
@@ -641,7 +750,8 @@ contains
 
   ! end subroutine ionHeatFlux
 
-  ! subroutine D_neoclass(D_banana, D_plateau, nu_ei, nu_p, nu_b)
+  ! subroutine D_neoclass()
+  !   !delete D_banana, D_plateau, nu_ei, nu_p, nu_b as variables [2022/1/17]
   !   use fowcomm
   !   use fpcomm
 
@@ -672,7 +782,7 @@ contains
   !     nu_p(nr) = Vt/( safety_factor(nr)*RR )
   !     nu_b(nr) = epst**1.5d0*nu_p(nr)
 
-  !     D_banana (nr) = ( safety_factor(nr)*rho_e )**2 * nu_ei(nr) / epst**1.5d0
+  !     !D_banana (nr) = ( safety_factor(nr)*rho_e )**2 * nu_ei(nr) / epst**1.5d0
   !     D_plateau(nr) = ( safety_factor(nr)*rho_e )**2 * nu_p(nr)
   !   end do
 
