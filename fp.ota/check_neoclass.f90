@@ -164,7 +164,8 @@ contains
     do nsa = 1, nsamax
       do np = 1, npmax
         do nth = 1, nthmax
-          call first_order_derivative(dfdrhom(nth,np,:,nsa), fnsp(nth,np,:,nsa), rm)
+           call first_order_derivative(dfdrhom(nth,np,:,nsa), &
+                fnsp(nth,np,:,nsa), rm)
         end do
       end do
     end do
