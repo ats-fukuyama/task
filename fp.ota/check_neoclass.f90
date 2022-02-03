@@ -118,9 +118,9 @@ contains
         eps_t = rm(nr)*RA/RR
         Ta = rwsl(nr,nsa)*1.d6/( 1.5d0*rnsl(nr,nsa)*1.d20 )
         vtha = SQRT( 2.d0*Ta/amfp(nsa) )
-        rho = amfp(nsa)*vtha/(aefp(nsa)*Baxis)
+        rho = amfp(nsa)*vtha/(ABS(aefp(nsa))*Baxis)
         Dbanana(nr,nsa) = safety_factor(nr)**2*rho**2*nud(nr,nsa)/eps_t**1.5d0
-        write(*,*)vtha,nud(nr,nsa)
+!        WRITE(6,'(A,I4,6ES12.4)') 'nr:',nr,eps_t,Ta,vtha,rho,nud(nr,nsa)
       end do
     end do
 
@@ -140,6 +140,7 @@ contains
         Te = rwsl(nr,1)*1.d6/( 1.5d0*rnsl(nr,1)*1.d20 )
         tau = fact*Te**1.5d0/( lnlam(nr,2,1)*rnsl(nr,2)*1.d20*ABS(aefp(2)) )
         nu(nr,nsa) = 1.d0/tau
+!        WRITE(6,'(A,I6,6ES12.4)') 'nu:',nr,Te,lnlam(nr,2,1),tau,nu(nr,nsa)
       end do
     end do
     
@@ -236,8 +237,9 @@ contains
             Tb = rwsl(nr,nsb)*1.d6/( 1.5d0*rnsl(nr,nsb)*1.d20 )
             vthb = SQRT( 2.d0*Tb/amfp(nsb) )
 
-            numerator  = rnsl(nr,nsb)*1.d20*( aefp(nsa)*aefp(nsb) )**2 * lnlam(nr,nsb,nsa)
-            denominator= SQRT( amfp(nsb) )*Tb**1.5d0*( amfp(nsa)/amfp(nsb) )**2
+            numerator  = rnsl(nr,nsb)*1.d20 &
+                 *aefp(nsa)**2*aefp(nsb)**2 * lnlam(nr,nsb,nsa)
+            denominator= SQRT( amfp(nsb) )*Tb**1.5d0*SQRT(amfp(nsa)/amfp(nsb))
             nuBra = factBra*numerator/denominator
 
             x = va/vthb
@@ -422,20 +424,24 @@ contains
     do nsa = 1, nsamax
       do nr = 1, nrmax  
         tau_ele = fact*sqrt(AMFP(1))*((Ta(nr,1))**1.5d0)/ &
-             (rnsl(nr,2)*1.d20*AEFP(2)**2*lnlam(nr,2,1)*AEE**4)
+             (rnsl(nr,2)*1.d20*AEFP(2)**2*lnlam(nr,2,1)*AEE**2)
         rho_e = sqrt(2*Ta(nr,1)/AMFP(1))*AMFP(1)/(AEE*Baxis)
         eps_t = rm(nr)*RA/RR
         !B_p = dpsimdr(nr)*RA/(safety_factor(nr)*RR) ! careful
         fact_s = (safety_factor(nr)**2) &
-             *(rho_e**2)*(rnsl(nr,nsa)*1.d20)/((eps_t**1.5)*tau_ele)
+             *(rho_e**2)/((eps_t**1.5)*tau_ele)
         Sr_nba(nr,nsa) = fact_s*(-1.22d0*(1+Ta(nr,2)/Ta(nr,1))*dndr(nr, nsa) &
-             /(rnsl(nr, nsa)) &
-             + 4.3d-1*dTadr(nr,1)/Ta(nr,1) &
-             + 1.9d-1*dTadr(nr,2)/Ta(nr,1) ) 
+             + 4.3d-1*rnsl(nr, nsa)*1.D20*dTadr(nr,1)/Ta(nr,1) &
+             + 1.9d-1*rnsl(nr, nsa)*1.D20*dTadr(nr,2)/Ta(nr,1) ) 
 
         ! neglect E_para term
         
-        Dnewba(nr,nsa) = - Sr_nba(nr, nsa)/dndr(nr, nsa)
+!        Dnewba(nr,nsa) = - Sr_nba(nr, nsa)/dndr(nr, nsa)
+        Dnewba(nr,nsa) = fact_s*1.22d0*(1+Ta(nr,2)/Ta(nr,1))
+
+        WRITE(6,'(A,I4,6ES12.4)') 'Dn:',nr, &
+             TA(nr,1)/AEE,safety_factor(nr),tau_ele,rho_e, &
+             rho_e**2/tau_ele,Dnewba(nr,nsa)
       end do 
     end do
 
