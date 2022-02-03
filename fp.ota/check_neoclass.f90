@@ -420,15 +420,19 @@ contains
     !****calculate flux and diffusion coefficient
     do nsa = 1, nsamax
       do nr = 1, nrmax  
-        tau_ele = fact*sqrt(AMFP(1))*(Ta(nr,1)**1.5d0)/ &
-(rnsl(nr,2)*1.d20*ABS(AEFP(2))*lnlam(nr,2,1)*AEE**4)
-        rho_e = sqrt(2*Ta(nr,1)/AMFP(1))*AmFP(2)/(AEE*Baxis)
+        tau_ele = fact*sqrt(AMFP(1))*((Ta(nr,1))**1.5d0)/ &
+             (rnsl(nr,2)*1.d20*AEFP(2)**2*lnlam(nr,2,1)*AEE**4)
+        rho_e = sqrt(2*Ta(nr,1)/AMFP(1))*AMFP(1)/(AEE*Baxis)
         eps_t = rm(nr)*RA/RR
         !B_p = dpsimdr(nr)*RA/(safety_factor(nr)*RR) ! careful
-        fact_s = (safety_factor(nr)**2)*(rho_e**2)*(rnsl(nr,nsa)*1.d20)/((eps_t**1.5)*tau_ele)
-        Sr_nba(nr,nsa) = fact_s*(-1.22d0*(1+Ta(nr, 1)/Ta(nr,2))*dndr(nr, nsa)/&
-(rnsl(nr, nsa)*1.d20) + 4.3d-1*dTadr(nr,1)/Ta(nr,1) + 1.9d-1*dTadr(nr,2)/Ta(nr,1) ) 
-        ! neglect B_p term
+        fact_s = (safety_factor(nr)**2) &
+             *(rho_e**2)*(rnsl(nr,nsa)*1.d20)/((eps_t**1.5)*tau_ele)
+        Sr_nba(nr,nsa) = fact_s*(-1.22d0*(1+Ta(nr,2)/Ta(nr,1))*dndr(nr, nsa) &
+             /(rnsl(nr, nsa)) &
+             + 4.3d-1*dTadr(nr,1)/Ta(nr,1) &
+             + 1.9d-1*dTadr(nr,2)/Ta(nr,1) ) 
+
+        ! neglect E_para term
         
         Dnewba(nr,nsa) = - Sr_nba(nr, nsa)/dndr(nr, nsa)
       end do 
@@ -472,14 +476,16 @@ contains
     do nsa = 1, nsamax
       do nr = 1, nrmax
         tau_ele = fact*sqrt(AMFP(1))*Ta(nr,1)**1.5d0/ &
-(rnsl(nr,2)*1.d20*ABS(AEFP(2))*lnlam(nr,2,1)*AEE**4)
+             (rnsl(nr,2)*1.d20*ABS(AEFP(2))*lnlam(nr,2,1)*AEE**4)
         rho_e = sqrt(2*Ta(nr,1)/AMFP(1))*AmFP(2)/(AEE*Baxis)
         eps_t = rm(nr)*RA/RR
         B_p = dpsimdr(nr)*RA/(safety_factor(nr)*RR) ! careful
-        fact_s = -sqrt(pi)*(eps_t**2)*Ta(nr,1)*rho_e*(rnsl(nr,nsa)*1.d20)/(2*AEE*B_p*rm(nr))        
+        fact_s = -sqrt(pi)*(eps_t**2)*Ta(nr,1) &
+             *rho_e*(rnsl(nr,nsa)*1.d20)/(2*AEE*B_p*rm(nr))        
         
-        Sr_npla(nr,nsa) = fact_s*((1+Ta(nr, 1)/Ta(nr,2))*dndr(nr,nsa)/(rnsl(nr, nsa)*1.d20) &
- + 1.5d0*dTadr(nr,1)/Ta(nr,1) + 1.5d0*dTadr(nr,2)/Ta(nr,1) )
+        Sr_npla(nr,nsa) = fact_s*((1+Ta(nr, 1)/Ta(nr,2))*dndr(nr,nsa) &
+             /(rnsl(nr, nsa)*1.d20) &
+             + 1.5d0*dTadr(nr,1)/Ta(nr,1) + 1.5d0*dTadr(nr,2)/Ta(nr,1) )
         !neglect B term
    
         Dnewpla(nr,nsa) = - Sr_npla(nr, nsa)/dndr(nr, nsa)
