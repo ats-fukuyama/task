@@ -378,9 +378,7 @@ contains
 !-----COMPUTATION PARAMETERS------------------------------------------
 !     DELT  : time step size (s)
 !     RIMPL : implicit computation parameter
-!     imtx  : type of matrix solver 
-!                    0: petsc ksp (GMRES ILU(0) no initial guess)
-!                    1: petsc ksp (GMRES ILU(0)    initial guess) *default
+!     IMTX  : info level of KSP solver
 !     MODEL_KSP : type of KSP solver
 !     MODEL_PC  : type of pre-conditioning
 !     EPSFP : convergence limit in nonlinear effects

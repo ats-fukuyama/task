@@ -816,10 +816,10 @@ contains
                    'MODEL_SYNCH     ',MODEL_SYNCH
       WRITE(6,606) 'MODEL_NBI       ',MODEL_NBI      , &
                    'MODEL_WAVE      ',MODEL_WAVE
-      WRITE(6,603) 'IMTX    ',IMTX    , &
-                   'LMAXFP  ',LMAXFP  , &
+      WRITE(6,603) 'LMAXFP  ',LMAXFP  , &
                    'LMAXE   ',LMAXE
-      WRITE(6,606) 'MODEL_KSP       ',MODEL_KSP      , &
+      WRITE(6,606) 'IMTX            ',IMTX           , &
+                   'MODEL_KSP       ',MODEL_KSP      , &
                    'MODEL_PC        ',MODEL_PC
       WRITE(6,603) 'NGLINE  ',NGLINE  , &
                    'NGRAPH  ',NGRAPH
