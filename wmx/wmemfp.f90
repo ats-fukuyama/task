@@ -256,38 +256,38 @@ CONTAINS
 
              SELECT CASE(mdlwmx)
              CASE(0)
-                CEN(1,NTH,NHH,NR) =CEFLD(1,NTH,NHH,NR)
-                CEN(2,NTH,NHH,NR) =CEFLD(2,NTH,NHH,NR)
-                CEN(3,NTH,NHH,NR) =CEFLD(3,NTH,NHH,NR)
-                CEB(1,NTH,NHH,NR) =RMA(1,1)*CEFLD(1,NTH,NHH,NR)*XRI &
+                CEN(1,NTH,NHH,NR) =RMA(1,1)*CEFLD(1,NTH,NHH,NR)*XRI &
                                   +RMA(1,2)*CEFLD(2,NTH,NHH,NR)*XRL &
                                   +RMA(1,3)*CEFLD(3,NTH,NHH,NR)
-                CEB(2,NTH,NHH,NR) =RMA(2,1)*CEFLD(1,NTH,NHH,NR)*XRI &
+                CEN(2,NTH,NHH,NR) =RMA(2,1)*CEFLD(1,NTH,NHH,NR)*XRI &
                                   +RMA(2,2)*CEFLD(2,NTH,NHH,NR)*XRL &
                                   +RMA(2,3)*CEFLD(3,NTH,NHH,NR)
-                CEB(3,NTH,NHH,NR) =RMA(3,1)*CEFLD(1,NTH,NHH,NR)*XRI &
+                CEN(3,NTH,NHH,NR) =RMA(3,1)*CEFLD(1,NTH,NHH,NR)*XRI &
                                   +RMA(3,2)*CEFLD(2,NTH,NHH,NR)*XRL &
                                   +RMA(3,3)*CEFLD(3,NTH,NHH,NR)
              CASE(1,2)
-                CEN(1,NTH,NHH,NR) =RMA(1,1)*CEFLD(1,NTH,NHH,NR)*XRL &
-                                  +RMA(1,2)*CEFLD(2,NTH,NHH,NR)*XRI &
-                                  +RMA(1,3)*CEFLD(3,NTH,NHH,NR)
-                CEN(2,NTH,NHH,NR) =RMA(2,1)*CEFLD(1,NTH,NHH,NR)*XRL &
-                                  +RMA(2,2)*CEFLD(2,NTH,NHH,NR)*XRI &
-                                  +RMA(2,3)*CEFLD(3,NTH,NHH,NR)
-                CEN(3,NTH,NHH,NR) =RMA(3,1)*CEFLD(1,NTH,NHH,NR)*XRL &
-                                  +RMA(3,2)*CEFLD(2,NTH,NHH,NR)*XRI &
-                                  +RMA(3,3)*CEFLD(3,NTH,NHH,NR)
-                CEB(1,NTH,NHH,NR) =CEFLD(1,NTH,NHH,NR)
-                CEB(2,NTH,NHH,NR) =CEFLD(2,NTH,NHH,NR)
-                CEB(3,NTH,NHH,NR) =CEFLD(3,NTH,NHH,NR)
+                CEN(1,NTH,NHH,NR) =CEFLD(1,NTH,NHH,NR)
+                CEN(2,NTH,NHH,NR) =CEFLD(2,NTH,NHH,NR)
+                CEN(3,NTH,NHH,NR) =CEFLD(3,NTH,NHH,NR)
+                CEB(1,NTH,NHH,NR) =RMA(1,1)*CEN(1,NTH,NHH,NR)*XRL &
+                                  +RMA(1,2)*CEN(2,NTH,NHH,NR)*XRI &
+                                  +RMA(1,3)*CEN(3,NTH,NHH,NR)
+                CEB(2,NTH,NHH,NR) =RMA(2,1)*CEN(1,NTH,NHH,NR)*XRL &
+                                  +RMA(2,2)*CEN(2,NTH,NHH,NR)*XRI &
+                                  +RMA(2,3)*CEN(3,NTH,NHH,NR)
+                CEB(3,NTH,NHH,NR) =RMA(3,1)*CEN(1,NTH,NHH,NR)*XRL &
+                                  +RMA(3,2)*CEN(2,NTH,NHH,NR)*XRI &
+                                  +RMA(3,3)*CEN(3,NTH,NHH,NR)
+                CEFLD(1,NTH,NHH,NR) =CEB(1,NTH,NHH,NR)
+                CEFLD(2,NTH,NHH,NR) =CEB(2,NTH,NHH,NR)
+                CEFLD(3,NTH,NHH,NR) =CEB(3,NTH,NHH,NR)
              END SELECT
 
-             CEP(1,NTH,NHH,NR) =(   CEB(1,NTH,NHH,NR) &
-                               + CI*CEB(2,NTH,NHH,NR))/SQRT(2.D0)
-             CEP(2,NTH,NHH,NR) =(   CEB(1,NTH,NHH,NR) &
-                               - CI*CEB(2,NTH,NHH,NR))/SQRT(2.D0)
-             CEP(3,NTH,NHH,NR) =    CEB(3,NTH,NHH,NR)
+             CEP(1,NTH,NHH,NR) =(   CEN(1,NTH,NHH,NR) &
+                               + CI*CEN(2,NTH,NHH,NR))/SQRT(2.D0)
+             CEP(2,NTH,NHH,NR) =(   CEN(1,NTH,NHH,NR) &
+                               - CI*CEN(2,NTH,NHH,NR))/SQRT(2.D0)
+             CEP(3,NTH,NHH,NR) =    CEN(3,NTH,NHH,NR)
           ENDDO
        ENDDO
     ENDDO
@@ -1009,6 +1009,14 @@ CONTAINS
                 ENDDO !NHH
              ENDDO !MDX
           ENDDO !NDX
+          IF(NS.EQ.1) THEN
+             DO NHH=1,NHHMAX
+                DO NTH=1,NTHMAX
+                   WRITE(75,'(A,3I6,2ES12.4)') &
+                        'NR,NHH,NTH,CPABS=',NR,NHH,NTH,CPABS(NTH,NHH,NR+1,NS)
+                END DO
+             END DO
+          END IF
 
 
 !     +++++ CALCULATE DRIVEN CURRENT IN REAL SPACE +++++
@@ -1236,6 +1244,10 @@ CONTAINS
              DO NHH=1,NHHMAX
                 DO NTH=1,NTHMAX
                    PABS(NTH,NHH,NR,NS)=DBLE(CPABS(NTH,NHH,NR,NS))
+                   IF(NS.EQ.1) THEN
+                      WRITE(75,'(A,3I6,ES12.4)') &
+                           'NR,NHH,NTH,PABS=',NR,NHH,NTH,PABS(NTH,NHH,NR,NS)
+                   END IF
                 END DO
              END DO
              DO NDX=1,NDSIZ
@@ -1245,6 +1257,7 @@ CONTAINS
              END DO
           END DO
        END DO
+       FLUSH(75)
     END IF
 
     DEALLOCATE(CPABSKM)

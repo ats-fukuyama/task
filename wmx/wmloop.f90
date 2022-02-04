@@ -22,7 +22,7 @@ CONTAINS
     USE wmfile
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
-    INTEGER:: NPH0_save,NPH,NR,NTH,NS,NHH,NPOW,NPP
+    INTEGER:: NPH0_save,NPH,NR,NTH,NS,NHH,NPOW,NPP,NPHA
     CHARACTER(LEN=80):: KNAMWM_SAVE
     CHARACTER(LEN=2):: KNHC
     CHARACTER(LEN=4):: KNPH0
@@ -101,31 +101,31 @@ CONTAINS
 
        DO NR=1,NRMAX+1
           DO NHH=1,NHHMAX
-             NPH=nph_nhh_npp(nhh,npp)
+             NPHA=nhhmax*(npp-1)+nhh
              DO NTH=1,NTHMAX
-                CEFLD3D(1,NTH,NPH,NR)=CEFLD3D(1,NTH,NPH,NR) &
+                CEFLD3D(1,NTH,NPHA,NR)=CEFLD3D(1,NTH,NPHA,NR) &
                      +CEFLD(1,NTH,NHH,NR)
-                CEFLD3D(2,NTH,NPH,NR)=CEFLD3D(2,NTH,NPH,NR) &
+                CEFLD3D(2,NTH,NPHA,NR)=CEFLD3D(2,NTH,NPHA,NR) &
                      +CEFLD(2,NTH,NHH,NR) 
-                CEFLD3D(3,NTH,NPH,NR)=CEFLD3D(3,NTH,NPH,NR) &
+                CEFLD3D(3,NTH,NPHA,NR)=CEFLD3D(3,NTH,NPHA,NR) &
                      +CEFLD(3,NTH,NHH,NR)
-                CBFLD3D(1,NTH,NPH,NR)=CBFLD3D(1,NTH,NPH,NR) &
+                CBFLD3D(1,NTH,NPHA,NR)=CBFLD3D(1,NTH,NPHA,NR) &
                      +CBFLD(1,NTH,NHH,NR)
-                CBFLD3D(2,NTH,NPH,NR)=CBFLD3D(2,NTH,NPH,NR) &
+                CBFLD3D(2,NTH,NPHA,NR)=CBFLD3D(2,NTH,NPHA,NR) &
                      +CBFLD(2,NTH,NHH,NR)
-                CBFLD3D(3,NTH,NPH,NR)=CBFLD3D(3,NTH,NPH,NR) &
+                CBFLD3D(3,NTH,NPHA,NR)=CBFLD3D(3,NTH,NPHA,NR) &
                      +CBFLD(3,NTH,NHH,NR)
-                CEFLDK3D(1,NTH,NPH,NR)=CEFLDK3D(1,NTH,NPH,NR) &
+                CEFLDK3D(1,NTH,NPHA,NR)=CEFLDK3D(1,NTH,NPHA,NR) &
                      +CEFLDK(1,NTH,NHH,NR)
-                CEFLDK3D(2,NTH,NPH,NR)=CEFLDK3D(2,NTH,NPH,NR) &
+                CEFLDK3D(2,NTH,NPHA,NR)=CEFLDK3D(2,NTH,NPHA,NR) &
                      +CEFLDK(2,NTH,NHH,NR)
-                CEFLDK3D(3,NTH,NPH,NR)=CEFLDK3D(3,NTH,NPH,NR) &
+                CEFLDK3D(3,NTH,NPHA,NR)=CEFLDK3D(3,NTH,NPHA,NR) &
                      +CEFLDK(3,NTH,NHH,NR)
-                CBFLDK3D(1,NTH,NPH,NR)=CBFLDK3D(1,NTH,NPH,NR) &
+                CBFLDK3D(1,NTH,NPHA,NR)=CBFLDK3D(1,NTH,NPHA,NR) &
                      +CBFLDK(1,NTH,NHH,NR)
-                CBFLDK3D(2,NTH,NPH,NR)=CBFLDK3D(2,NTH,NPH,NR) &
+                CBFLDK3D(2,NTH,NPHA,NR)=CBFLDK3D(2,NTH,NPHA,NR) &
                      +CBFLDK(2,NTH,NHH,NR)
-                CBFLDK3D(3,NTH,NPH,NR)=CBFLDK3D(3,NTH,NPH,NR) &
+                CBFLDK3D(3,NTH,NPHA,NR)=CBFLDK3D(3,NTH,NPHA,NR) &
                      +CBFLDK(3,NTH,NHH,NR)
              END DO
           END DO
@@ -134,11 +134,11 @@ CONTAINS
        DO NS=1,NSMAX
           DO NR=1,NRMAX
              DO NHH=1,NHHMAX
-                NPH=nph_nhh_npp(nhh,npp)
+                NPHA=nhhmax*(npp-1)+nhh
                 DO NTH=1,NTHMAX
-                   CPABS3D(NTH,NPH,NR,NS)=CPABS3D(NTH,NPH,NR,NS) &
+                   CPABS3D(NTH,NPHA,NR,NS)=CPABS3D(NTH,NPHA,NR,NS) &
                         +CPABS(NTH,NHH,NR,NS)
-                   CPABSK3D(NTH,NPH,NR,NS)=CPABSK3D(NTH,NPH,NR,NS) &
+                   CPABSK3D(NTH,NPHA,NR,NS)=CPABSK3D(NTH,NPHA,NR,NS) &
                         +CPABSK(NTH,NHH,NR,NS)
                 END DO
              END DO
@@ -147,15 +147,15 @@ CONTAINS
 
        DO NS=1,NSMAX
           DO NR=1,NRMAX
-             PABSR3D(NPH,NR,NS)=PABSR3D(NPH,NR,NS)+PABSR(NR,NS)
+             PABSR3D(npp,NR,NS)=PABSR3D(npp,NR,NS)+PABSR(NR,NS)
           END DO
        END DO
 
        DO NS=1,NSMAX
-          PABST3D(NPH,NS)=PABST3D(NPH,NS)+PABST(NS)
+          PABST3D(npp,NS)=PABST3D(npp,NS)+PABST(NS)
        END DO
 
-       PABSTT3D(NPH)=PABSTT
+       PABSTT3D(npp)=PABSTT
 
        IF(idebuga(71).NE.0) THEN
           IF(KNAMWM /=' ')THEN

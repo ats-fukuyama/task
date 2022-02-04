@@ -186,6 +186,7 @@ MODULE wmcomm
   COMPLEX(rkind),ALLOCATABLE:: CBFLD(:,:,:,:),CBFLDK(:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CBFLD3D(:,:,:,:),CBFLDK3D(:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CEN(:,:,:,:),CES(:,:,:,:),CEP(:,:,:,:)
+  COMPLEX(rkind),ALLOCATABLE:: CEB(:,:,:,:)
   COMPLEX(rkind),ALLOCATABLE:: CEN3D(:,:,:,:),CES3D(:,:,:,:),CEP3D(:,:,:,:)
 
   COMPLEX(rkind),ALLOCATABLE:: CPABS(:,:,:,:),CPABSK(:,:,:,:)
@@ -362,6 +363,7 @@ CONTAINS
     ALLOCATE(CEN(3,nthmax,nhhmax,nrmax+1))      ! wm_efield E_rtp(th,hh,rho)
     ALLOCATE(CES(3,nthmax,nhhmax,nrmax+1))      ! wm_efield E_sbh(th,hh,rho)
     ALLOCATE(CEP(3,nthmax,nhhmax,nrmax+1))      ! wm_efield E_+-p(th,hh,rho)
+    ALLOCATE(CEB(3,nthmax,nhhmax,nrmax+1))      ! wm_efield temporal
 
     ALLOCATE(CPABSK(nthmax_f,nhhmax_f,nrmax+1,nsmax)) ! wm_pabs P(m,nh,rho,ns)
     ALLOCATE(CPABS(nthmax_f,nhhmax_f,nrmax+1,nsmax))  ! wm_pabs P(th,hh,rho,ns)
