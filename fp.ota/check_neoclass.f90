@@ -15,7 +15,7 @@ contains
                                                 Drhmrhm, nu_star
                                                  
     double precision,dimension(nrmax,nsamax) :: Drw, Drwav, nud_mono, D_mono, Dbanana
-    double precision,dimension(nrmax,nsamax) :: Dnewba, Dnewpla
+    double precision,dimension(nrmax,nsamax) :: Dnewba, Dnewpla, jaceffect
     integer nth, np, nr, nsa, nsb, mode(3)
 
     call system('mkdir -p dat')
@@ -26,6 +26,7 @@ contains
     call D_banana(Dbanana)
     call newneoclass_ba(Dnewba) ![2022/1/31] editted by anzai
     call newneoclass_pla(Dnewpla) ![2022/1/31] editted by anzai
+    call check_jeffect(jaceffect) ![2022/2/5] editted by anzai
 
     call fptxt2D(Drhmrhm,"dat/Drhmrhm.txt")
 
@@ -34,7 +35,7 @@ contains
     call fptxt2D(Dbanana,"dat/Dbanana.txt")
     call fptxt2D(Dnewba, "dat/Dnewba.txt") ![2022/1/31] edited by anzai
     call fptxt2D(Dnewpla, "dat/Dnewpla.txt") ![2022/1/31] editted by anzai
-
+    call fptxt2D(jaceffect, "dat/jaceffect.txt")![2022/2/5] editted by anzai
     call fptxt2D(nud_mono,"dat/nud_mono.txt")
 
   end subroutine output_neoclass
@@ -127,6 +128,9 @@ contains
   end subroutine
 
   subroutine cal_nu_ei(nu)
+  !**************************************
+  ![2022/2/8] Modified by anzai
+  !**************************************
     use fpcomm
     use fowcomm
     implicit none
@@ -134,11 +138,11 @@ contains
     double precision fact, Te, tau
     integer nsa, nr
 
-    fact = 12.d0*pi**1.5d0/sqrt(2.d0)*eps0**2/aee**2*SQRT(ame)
+    fact = 12.d0*pi**1.5d0/sqrt(2.d0)*eps0**2/aee**2*SQRT(AME)
     do nsa = 1, nsamax
       do nr = 1, nrmax
         Te = rwsl(nr,1)*1.d6/( 1.5d0*rnsl(nr,1)*1.d20 )
-        tau = fact*Te**1.5d0/( lnlam(nr,2,1)*rnsl(nr,2)*1.d20*ABS(aefp(2)) )
+        tau = fact*Te**1.5d0/( lnlam(nr,2,1)*rnsl(nr,2)*1.d20*aefp(2)**2 )
         nu(nr,nsa) = 1.d0/tau
 !        WRITE(6,'(A,I6,6ES12.4)') 'nu:',nr,Te,lnlam(nr,2,1),tau,nu(nr,nsa)
       end do
@@ -430,18 +434,18 @@ contains
         !B_p = dpsimdr(nr)*RA/(safety_factor(nr)*RR) ! careful
         fact_s = (safety_factor(nr)**2) &
              *(rho_e**2)/((eps_t**1.5)*tau_ele)
-        Sr_nba(nr,nsa) = fact_s*(-1.22d0*(1+Ta(nr,2)/Ta(nr,1))*dndr(nr, nsa) &
-             + 4.3d-1*rnsl(nr, nsa)*1.D20*dTadr(nr,1)/Ta(nr,1) &
-             + 1.9d-1*rnsl(nr, nsa)*1.D20*dTadr(nr,2)/Ta(nr,1) ) 
+        Sr_nba(nr,nsa) = fact_s*(-1.22d0*(1+Ta(nr,2)/Ta(nr,1))*dndr(nr, nsa))! &
+            ! + 4.3d-1*rnsl(nr, nsa)*1.D20*dTadr(nr,1)/Ta(nr,1) &
+            ! + 1.9d-1*rnsl(nr, nsa)*1.D20*dTadr(nr,2)/Ta(nr,1) ) 
 
         ! neglect E_para term
         
-!        Dnewba(nr,nsa) = - Sr_nba(nr, nsa)/dndr(nr, nsa)
-        Dnewba(nr,nsa) = fact_s*1.22d0*(1+Ta(nr,2)/Ta(nr,1))
+        Dnewba(nr,nsa) = - Sr_nba(nr, nsa)/dndr(nr, nsa)
+!        Dnewba(nr,nsa) = fact_s*1.22d0*(1+Ta(nr,2)/Ta(nr,1))
 
-        WRITE(6,'(A,I4,6ES12.4)') 'Dn:',nr, &
-             TA(nr,1)/AEE,safety_factor(nr),tau_ele,rho_e, &
-             rho_e**2/tau_ele,Dnewba(nr,nsa)
+       ! WRITE(6,'(A,I4,6ES12.4)') 'Dn:',nr, &
+            ! TA(nr,1)/AEE,safety_factor(nr),tau_ele,rho_e, &
+            ! rho_e**2/tau_ele,Dnewba(nr,nsa)
       end do 
     end do
 
@@ -483,16 +487,16 @@ contains
     do nsa = 1, nsamax
       do nr = 1, nrmax
         tau_ele = fact*sqrt(AMFP(1))*Ta(nr,1)**1.5d0/ &
-             (rnsl(nr,2)*1.d20*ABS(AEFP(2))*lnlam(nr,2,1)*AEE**4)
-        rho_e = sqrt(2*Ta(nr,1)/AMFP(1))*AmFP(2)/(AEE*Baxis)
+             (rnsl(nr,2)*1.d20*AEFP(2)**2*lnlam(nr,2,1)*AEE**2)
+        rho_e = sqrt(2*Ta(nr,1)/AMFP(1))*AMFP(1)/(AEE*Baxis)
         eps_t = rm(nr)*RA/RR
         B_p = dpsimdr(nr)*RA/(safety_factor(nr)*RR) ! careful
         fact_s = -sqrt(pi)*(eps_t**2)*Ta(nr,1) &
              *rho_e*(rnsl(nr,nsa)*1.d20)/(2*AEE*B_p*rm(nr))        
         
-        Sr_npla(nr,nsa) = fact_s*((1+Ta(nr, 1)/Ta(nr,2))*dndr(nr,nsa) &
-             /(rnsl(nr, nsa)*1.d20) &
-             + 1.5d0*dTadr(nr,1)/Ta(nr,1) + 1.5d0*dTadr(nr,2)/Ta(nr,1) )
+        Sr_npla(nr,nsa) = fact_s*((1+Ta(nr,2)/Ta(nr,1))*dndr(nr,nsa) &
+             /(rnsl(nr,nsa)*1.d20))! &
+            ! + 1.5d0*dTadr(nr,1)/Ta(nr,1) + 1.5d0*dTadr(nr,2)/Ta(nr,1) )
         !neglect B term
    
         Dnewpla(nr,nsa) = - Sr_npla(nr, nsa)/dndr(nr, nsa)
@@ -500,6 +504,66 @@ contains
     end do
 
   end subroutine newneoclass_pla
+
+  subroutine check_jeffect(jaceffect)
+  !-------------------------------------
+  !Integrrate jacobian over theta_m and p
+  !--------------------------------------
+  
+    use fpcomm
+    use fowcomm
+
+    implicit none
+    double precision,dimension(nrmax,nsamax),intent(out)  :: jaceffect
+     double precision,dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom
+    double precision dVI, sumVI, JIl_p, JIl_m
+    integer nth,np,nr,nsa,ns
+
+     !****make dfdrhom
+     do nsa = 1, nsamax
+      do np = 1, npmax
+        do nth = 1, nthmax
+          call first_order_derivative(dfdrhom(nth,np,:,nsa), fnsp(nth,np,:,nsa), rm)
+        end do
+      end do
+    end do
+   
+    !****integrate
+    do nsa = 1, nsamax
+      ns = ns_nsa(nsa)
+      do nr = 1, nrmax
+        jaceffect(nr,nsa) = 0.d0
+        sumVI = 0.d0
+        do np = 1, npmax
+          if ( pm(np,ns) > fact_bulk ) exit
+          do nth = 1, nthmax
+          !-------------------------------------
+          !p means plus, m means minus
+          !-------------------------------------
+            if ( nr == 1 ) then
+              JIl_m = JI(nth,np,1,nsa)
+              JIl_p = ( JI(nth,np,2,nsa)+JI(nth,np,1,nsa) )*0.5d0
+            else if ( nr == nrmax ) then
+              JIl_m = ( JI(nth,np,nrmax,nsa)+JI(nth,np,nrmax-1,nsa) )*0.5d0
+              JIl_p = JI(nth,np,nrmax,nsa)
+            else
+              JIl_m = ( JI(nth,np,nr,nsa)+JI(nth,np,nr-1,nsa) )*0.5d0
+              JIl_p = ( JI(nth,np,nr,nsa)+JI(nth,np,nr+1,nsa) )*0.5d0
+            end if
+
+            dVI = delp(ns)*delthm(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)
+
+            jaceffect(nr,nsa) = jaceffect(nr,nsa) + dfdrhom(nth,np,nr,nsa)*dVI
+            sumVI = sumVI + dfdrhom(nth,np,nr,nsa)*dVI
+            
+           ! WRITE(*,*) "jacobian:", jaceffect(nr,nsa), sumVI, dfdrhom(nth,np,nr,nsa)
+          end do
+        end do
+        jaceffect(nr,nsa) = jaceffect(nr,nsa)/sumVI
+      end do
+    end do
+
+  end subroutine check_jeffect
 
 
   ! subroutine banana_width_and_omega_bounce(w_b, omega_b)
