@@ -23,7 +23,7 @@ contains
     call integral_Drr(Drhmrhm)
     call D_random_walk_baverage(Drwav, Drw)
     call nu_deflection_monoenergy(nud_mono)
-    call D_banana(Dbanana)
+!    call D_banana(Dbanana)
     call newneoclass_ba(Dnewba) ![2022/1/31] editted by anzai
     call newneoclass_pla(Dnewpla) ![2022/1/31] editted by anzai
     call check_jeffect(jaceffect) ![2022/2/5] editted by anzai
@@ -32,7 +32,7 @@ contains
 
     call fptxt2D(Drw,"dat/Drw.txt")
     call fptxt2D(Drwav,"dat/Drwav.txt")
-    call fptxt2D(Dbanana,"dat/Dbanana.txt")
+!    call fptxt2D(Dbanana,"dat/Dbanana.txt")
     call fptxt2D(Dnewba, "dat/Dnewba.txt") ![2022/1/31] edited by anzai
     call fptxt2D(Dnewpla, "dat/Dnewpla.txt") ![2022/1/31] editted by anzai
     call fptxt2D(jaceffect, "dat/jaceffect.txt")![2022/2/5] editted by anzai
@@ -90,42 +90,42 @@ contains
 
   end subroutine integral_Drr
 
-  subroutine D_banana(Dbanana)
-    use fpcomm
-    use fowcomm
-    implicit none
-    double precision,dimension(nrmax,nsamax),intent(out)  :: Dbanana
-    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom
-    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: Drwlocal, Drwba
-    double precision,dimension(nrmax,nsamax) :: nud
-    double precision step_len, step_time, eps_t, rho, Baxis, pv, Ta, vtha
-    double precision dVI, sumVI
-    integer nth, np, nr, nsa
-
-    Baxis = Bing(1)
-
-    call cal_nu_ei(nud)
-
-    do nsa = 1, nsamax
-      do np = 1, npmax
-        do nth = 1, nthmax
-          call first_order_derivative(dfdrhom(nth,np,:,nsa), fnsp(nth,np,:,nsa), rm)
-        end do
-      end do
-    end do
-
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        eps_t = rm(nr)*RA/RR
-        Ta = rwsl(nr,nsa)*1.d6/( 1.5d0*rnsl(nr,nsa)*1.d20 )
-        vtha = SQRT( 2.d0*Ta/amfp(nsa) )
-        rho = amfp(nsa)*vtha/(ABS(aefp(nsa))*Baxis)
-        Dbanana(nr,nsa) = safety_factor(nr)**2*rho**2*nud(nr,nsa)/eps_t**1.5d0
+!  subroutine D_banana(Dbanana)
+!    use fpcomm
+!    use fowcomm
+!    implicit none
+!    double precision,dimension(nrmax,nsamax),intent(out)  :: Dbanana
+!    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom
+!    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: Drwlocal, Drwba
+!    double precision,dimension(nrmax,nsamax) :: nud
+!    double precision step_len, step_time, eps_t, rho, Baxis, pv, Ta, vtha
+!    double precision dVI, sumVI
+!    integer nth, np, nr, nsa
+!
+!    Baxis = Bing(1)
+!
+!    call cal_nu_ei(nud)
+!
+!    do nsa = 1, nsamax
+!      do np = 1, npmax
+!        do nth = 1, nthmax
+!          call first_order_derivative(dfdrhom(nth,np,:,nsa), fnsp(nth,np,:,nsa), rm)
+!        end do
+!      end do
+!    end do
+!
+!    do nsa = 1, nsamax
+!      do nr = 1, nrmax
+!        eps_t = rm(nr)*RA/RR
+!        Ta = rwsl(nr,nsa)*1.d6/( 1.5d0*rnsl(nr,nsa)*1.d20 )
+!        vtha = SQRT( 2.d0*Ta/amfp(nsa) )
+!        rho = amfp(nsa)*vtha/(ABS(aefp(nsa))*Baxis)
+!        Dbanana(nr,nsa) = safety_factor(nr)**2*rho**2*nud(nr,nsa)/eps_t**1.5d0
 !        WRITE(6,'(A,I4,6ES12.4)') 'nr:',nr,eps_t,Ta,vtha,rho,nud(nr,nsa)
-      end do
-    end do
-
-  end subroutine
+!      end do
+!    end do
+!
+!  end subroutine
 
   subroutine cal_nu_ei(nu)
   !**************************************
@@ -157,14 +157,16 @@ contains
     double precision,dimension(nrmax,nsamax),intent(out)  :: Drw, Drwav
     double precision,dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom
     double precision,dimension(nthmax,npmax,nrmax,nsamax) :: Drwlocal, Drwba
-    double precision,dimension(npmax,nrmax,nsamax) :: nud
+!    double precision,dimension(npmax,nrmax,nsamax) :: nud
+    double precision,dimension(nrmax,nsamax) :: nu, Ta
     double precision step_len, step_time, eps_t, rho_theta, Baxis, pv, B_theta, rho
     double precision dVI, sumVI
     integer nth, np, nr, nsa
 
     Baxis = Bing(1)
 
-    call nu_deflection(nud)
+    !call nu_deflection(nud)
+ !   call ca_nu_ei(nu)
 
     do nsa = 1, nsamax
       do np = 1, npmax
@@ -174,17 +176,30 @@ contains
         end do
       end do
     end do
-
+    
+    !************************by anzai[2022/2/15]
     do nsa = 1, nsamax
+      do nr = 1, nrmax
+        Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/( 1.5d0*rnsl(nr,nsa)*1.d20)  / AEE/1.D3
+        !Ta(temperature)[keV]
+        nu(nr,nsa) = (1.D0/6.4D14)*rnsl(nr,nsa)*1.D20/(Ta(nr,nsa)**1.5D0)
+        nu(nr,nsa) = nu(nr, nsa)/(rm(nr)*RA/RR)*(AMFP(1)/AMFP(nsa)) !Effective nu
+      end do
+    end do
+    
+    do nsa = 1, nsamax 
       do nr = 1, nrmax
         eps_t = rm(nr)*RA/RR
         ! B_theta = safety_factor(nr)/RR*dpsimdr(nr)/RA
         do np = 1, npmax
-          step_time = 1.d0/nud(np,nr,nsa)
+          !step_time = 1.d0/nud(np,nr,nsa)
+          step_time = 1.d0/nu(nr,nsa)
           rho = pm(np,nsa)*ptfp0(nsa)/(aefp(nsa)*Baxis)
           do nth = 1, nthmax
-            step_len = rho
-            Drwlocal(nth,np,nr,nsa) = step_len**2/step_time*1.46d0*sqrt(eps_t)
+            !step_len = rho
+            step_len = rho * safety_factor(nr)/sqrt(eps_t)
+            !Drwlocal(nth,np,nr,nsa) = step_len**2/step_time*1.46d0*sqrt(eps_t)
+            Drwlocal(nth,np,nr,nsa) = step_len**2/step_time*sqrt(eps_t)
           end do
         end do
       end do
