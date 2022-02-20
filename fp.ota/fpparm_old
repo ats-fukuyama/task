@@ -67,8 +67,13 @@
   PNS(1)=9.0D-2,9.0D-2       !8.0D-2,8.0D-2 [2022/2/8] editted by anzai
 
   PTPR(1)=7.D0,7.D0            !7.D0,7.D0   [2022/2/19] editted by anzai
+<<<<<<< HEAD
+  PTPP(1)=6.D0,6.D0            !7.D0,7.D0   [2022/2/19] editted by anzai
+  PTS(1)=5.D0,5.D0             !7.D0,7.D0   [2022/2/19] editted by anzai
+=======
   PTPP(1)=7.D0,7.D0            !7.D0,7.D0   [2022/2/19] editted by anzai
   PTS(1)=1.D0,1.D0             !7.D0,7.D0   [2022/2/19] editted by anzai
+>>>>>>> 5580d1b3110ae88e27faa5fb17f11ef949660008
 
   MODELN=1
   ZEFF=2.D0

@@ -440,7 +440,7 @@ contains
     !****first order derivation
     do nsa = 1, nsamax
       call first_order_derivative(dTadr(:,nsa), Ta(:,nsa), rm)
-      call first_order_derivative(dndr(:,nsa), rnsl(:, nsa)*1.d20, rm)
+      call first_order_derivative(dndr(:,nsa), rnsl(:, nsa), rm)
     end do
     
     !****calculate flux and diffusion coefficient
@@ -453,9 +453,9 @@ contains
         !B_p = dpsimdr(nr)*RA/(safety_factor(nr)*RR) ! careful
         fact_s = (safety_factor(nr)**2) &
              *(rho_e**2)/((eps_t**1.5)*tau_ele)
-        Sr_nba(nr,nsa) = fact_s*(-1.22d0*(1+Ta(nr,2)/Ta(nr,1))*dndr(nr, nsa))! &
-            ! + 4.3d-1*rnsl(nr, nsa)*1.D20*dTadr(nr,1)/Ta(nr,1) &
-            ! + 1.9d-1*rnsl(nr, nsa)*1.D20*dTadr(nr,2)/Ta(nr,1) ) 
+        Sr_nba(nr,nsa) = fact_s*(-1.22d0*(1+Ta(nr,2)/Ta(nr,1))*dndr(nr, nsa)) 
+            ! + 4.3d-1*rnsl(nr, nsa)*dTadr(nr,1)/Ta(nr,1) &
+            ! + 1.9d-1*rnsl(nr, nsa)*dTadr(nr,2)/Ta(nr,1) ) 
 
         ! neglect E_para term
         
@@ -465,10 +465,10 @@ contains
        ! WRITE(6,'(A,I4,6ES12.4)') 'Dn:',nr, &
             ! TA(nr,1)/AEE,safety_factor(nr),tau_ele,rho_e, &
             ! rho_e**2/tau_ele,Dnewba(nr,nsa)
-      end do 
-    end do
+     end do
+   end do
 
-  end subroutine newneoclass_ba	
+  end subroutine newneoclass_ba
 
   subroutine newneoclass_pla(Dnewpla)
     !---------------------------------
@@ -499,22 +499,23 @@ contains
     !****first order derivation
     do nsa = 1, nsamax
       call first_order_derivative(dTadr(:,nsa), Ta(:,nsa), rm)
-      call first_order_derivative(dndr(:,nsa), rnsl(:, nsa)*1.d20, rm)
+      call first_order_derivative(dndr(:,nsa), rnsl(:, nsa), rm)
     end do
 
     !****calculate flux and diffusion coefficient
     do nsa = 1, nsamax
       do nr = 1, nrmax
-        tau_ele = fact*sqrt(AMFP(1))*Ta(nr,1)**1.5d0/ &
-             (rnsl(nr,2)*1.d20*AEFP(2)**2*lnlam(nr,2,1)*AEE**2)
-        rho_e = sqrt(2*Ta(nr,1)/AMFP(1))*AMFP(1)/(AEE*Baxis)
+        tau_ele = fact*sqrt(AMFP(1))*(Ta(nr,1)*RKEV)**1.5d0/ &
+             (rnsl(nr,2)*1.d20*AEFP(2)**2*AEE**2*lnlam(nr,2,1))
+        rho_e = sqrt(Ta(nr,1)*RKEV/AMFP(1))*AMFP(1)/(AEE*Baxis)
         eps_t = rm(nr)*RA/RR
-        B_p = dpsimdr(nr)*RA/(safety_factor(nr)*RR) ! careful
-        fact_s = -sqrt(pi)*(eps_t**2)*Ta(nr,1) &
-             *rho_e*(rnsl(nr,nsa)*1.d20)/(2*AEE*B_p*rm(nr))        
+!        B_p = dpsimdr(nr)*RA/(safety_factor(nr)*RR) ! careful
+        B_p = rm(nr)*RA*BB/(safety_factor(nr)*RR) ! careful
+        fact_s = -sqrt(pi)*(eps_t**2)*(Ta(nr,1)*RKEV) &
+             *rho_e*rnsl(nr,nsa)/(2*AEE*B_p*rm(nr)*RA)        
         
         Sr_npla(nr,nsa) = fact_s*((1+Ta(nr,2)/Ta(nr,1))*dndr(nr,nsa) &
-             /(rnsl(nr,nsa)*1.d20))! &
+             /(rnsl(nr,nsa)))! &
             ! + 1.5d0*dTadr(nr,1)/Ta(nr,1) + 1.5d0*dTadr(nr,2)/Ta(nr,1) )
         !neglect B term
    
@@ -643,7 +644,8 @@ contains
                                 * Drr_*dfdrhom(nth,np,nr,nsa)*dVI &
                                 / (AEE*1.D3)  !****unit convert to [keV]
 
-            sumVI = sumVI + dfdrhom(nth,np,nr,nsa)*dVI
+            sumVI = sumVI + dfdrhom(nth,np,nr,nsa)*dVI &
+                 *(pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)*AEE*1.D3) ! AF220220
           end do
         end do
         heatfow_out(nr,nsa) = heatfow_out(nr,nsa)/sumVI
@@ -683,46 +685,40 @@ contains
     !****first order derivation
     do nsa = 1, nsamax
       call first_order_derivative(dTadr(:,nsa), Ta(:,nsa), rm)
-      call first_order_derivative(dndr(:,nsa), rnsl(:, nsa)*1.d20, rm)
+      call first_order_derivative(dndr(:,nsa), rnsl(:, nsa), rm)
     end do
 
     !****calculate flux and diffusion coefficient
     do nsa = 1, nsamax
       do nr = 1, nrmax
 
-        tau_ele = fact*sqrt(AMFP(1))*((Ta(nr,1))**1.5d0)/ &
-             (rnsl(nr,2)*1.d20*AEFP(2)**2*lnlam(nr,2,1)*AEE**2)
-        tau_i   = fact*sqrt(2.d0)*sqrt(AMFP(2))*((Ta(nr,2))**1.5d0)/ &
-             (rnsl(nr,2)*1.d20*AEFP(2)**2*1.1*AEE**2) !****lnlam_i = 1.1
+        tau_ele = fact*sqrt(AMFP(1))*((Ta(nr,1)*RKEV)**1.5d0)/ &
+             (rnsl(nr,2)*1.d20*AEFP(2)**2*AEE**2*lnlam(nr,2,1))
+        tau_i   = fact*sqrt(2.d0)*sqrt(AMFP(2))*((Ta(nr,2)*RKEV)**1.5d0)/ &
+             (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2))
 
-        rho_a(nsa) = sqrt(2*Ta(nr,nsa)/AMFP(nsa))*AMFP(nsa)/(AEE*Baxis)
+        rho_a(nsa) = sqrt(Ta(nr,nsa)*RKEV/AMFP(nsa))*AMFP(nsa)/(AEE*Baxis)
         eps_t = rm(nr)*RA/RR
 
         !****calculate fulux
         if (nsa == 1) then
          fact_s = (safety_factor(nr)**2) &
              *(rho_a(nsa)**2)/((eps_t**1.5)*tau_ele)
-         Sr_nba(nr,nsa) = fact_s*Ta(nr,1)*(rnsl(nr,nsa)*1.D20) & 
-            * ((1.53d0*(1+Ta(nr,2)/Ta(nr,1)) & 
-               * dndr(nr, nsa))/(rnsl(nr,nsa)*1.d20) &
-            - 1.81d0*dTadr(nr,1)/Ta(nr,1) &
-            - 2.7d-1*dTadr(nr,2)/Ta(nr,1))&
-            / (AEE*1.D3)  !****unit convert to [keV]
-
+         Sr_nba(nr,nsa) = fact_s*rnsl(nr,nsa)*1.D20*Ta(nr,1)*RKEV & 
+            * ((1.53d0*(1+Ta(nr,2)/Ta(nr,1))*dndr(nr, nsa))/rnsl(nr,nsa) &
+              - 1.81d0*dTadr(nr,1)/Ta(nr,1) &
+              - 0.27d0*dTadr(nr,2)/Ta(nr,1))
         ! neglect E_para term
 
         else
          fact_s = (safety_factor(nr)**2) &
-             *(rho_a(nsa)**2)/((eps_t**1.5)*tau_i)
-         Sr_nba(nr,nsa) = - 6.8d-1*fact_s*(1 + 4.8d-1*sqrt(eps_t)) &
-                        * rnsl(nr,nsa)*1.d20*dTadr(nr,2)! &
-                        !/ (AEE*1.D3)  !****unit convert to [keV]
+              *(rho_a(nsa)**2)/((eps_t**1.5)*tau_i)
+         Sr_nba(nr,nsa) = - 0.68d0*fact_s*(1 + 0.48d0*sqrt(eps_t)) &
+              *rnsl(nr,nsa)*1.d20*dTadr(nr,2)*RKEV
         end if  
 
-        heatnewba(nr,nsa) = - Sr_nba(nr, nsa)/dndr(nr, nsa)
-       ! WRITE(6,'(A,I4,6ES12.4)') 'Dn:',nr, &
-            ! TA(nr,1)/AEE,safety_factor(nr),tau_ele,rho_e, &
-            ! rho_e**2/tau_ele,Dnewba(nr,nsa)
+        heatnewba(nr,nsa) = - Sr_nba(nr, nsa) &
+             /(rnsl(nr,nsa)*1.d20*dTadr(nr, nsa)*RKEV)
       end do
     end do
 
