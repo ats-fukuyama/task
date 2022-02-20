@@ -465,10 +465,10 @@ contains
        ! WRITE(6,'(A,I4,6ES12.4)') 'Dn:',nr, &
             ! TA(nr,1)/AEE,safety_factor(nr),tau_ele,rho_e, &
             ! rho_e**2/tau_ele,Dnewba(nr,nsa)
-      end do 
-    end do
+     end do
+   end do
 
-  end subroutine newneoclass_ba	
+  end subroutine newneoclass_ba
 
   subroutine newneoclass_pla(Dnewpla)
     !---------------------------------
@@ -643,7 +643,8 @@ contains
                                 * Drr_*dfdrhom(nth,np,nr,nsa)*dVI &
                                 / (AEE*1.D3)  !****unit convert to [keV]
 
-            sumVI = sumVI + dfdrhom(nth,np,nr,nsa)*dVI
+            sumVI = sumVI + dfdrhom(nth,np,nr,nsa)*dVI &
+                 *(pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)*AEE*1.D3) ! AF220220
           end do
         end do
         heatfow_out(nr,nsa) = heatfow_out(nr,nsa)/sumVI
