@@ -15,7 +15,9 @@ contains
                                                 Drhmrhm, nu_star
                                                  
     double precision,dimension(nrmax,nsamax) :: Drw, Drwav, nud_mono, D_mono, Dbanana
-    double precision,dimension(nrmax,nsamax) :: Dnewba, Dnewpla, jaceffect, heatfow, heatnewba, heatrw, heatrwav
+    double precision,dimension(nrmax,nsamax) :: Drweff, Drweffav, Dnewba, Dnewpla
+    double precision,dimension(nrmax,nsamax) :: heatfow, heatnewba, heatrw, heatrwav, cyclo_rho, dTadr, Ta
+    double precision,dimension(nrmax) :: eps_t,tau_ele,tau_i
     integer nth, np, nr, nsa, nsb, mode(3)
    
     !**** make data folder
@@ -24,15 +26,15 @@ contains
     !**** calculation of physical values
     call integral_Drr(Drhmrhm)
     call integral_Heatdiff(heatfow)
-    call D_random_walk_baverage(Drwav, Drw)
+    call D_random_walk_baverage(Drwav, Drw, Drweff, Drweffav)
 !    call nu_deflection_monoenergy(nud_mono)
 !    call D_banana(Dbanana)
     call newneoclass_ba(Dnewba) ![2022/1/31] editted by anzai
     call newneoclass_pla(Dnewpla) ![2022/1/31] editted by anzai
-!    call check_jeffect(jaceffect) ![2022/2/5] editted by anzai
     call newneo_heat_ba(heatnewba) ![2022/2/19] editted by anzai
     call Heat_rw_baverage(heatrwav, heatrw) ![2022/2/23] editted by anzai
-    
+    call check_factorneo(eps_t, cyclo_rho, dTadr,Ta,tau_ele,tau_i) ![2022/2/27] editted by anzai
+
     !**** write txt file
     call fptxt2D(Drhmrhm,"dat/Drhmrhm.txt")
     call fptxt2D(Drw,"dat/Drw.txt")
@@ -40,11 +42,18 @@ contains
 !    call fptxt2D(Dbanana,"dat/Dbanana.txt")
     call fptxt2D(Dnewba, "dat/Dnewba.txt") ![2022/1/31] edited by anzai
     call fptxt2D(Dnewpla, "dat/Dnewpla.txt") ![2022/1/31] editted by anzai
-!    call fptxt2D(jaceffect, "dat/jaceffect.txt")![2022/2/5] editted by anzai
     call fptxt2D(heatfow, "dat/heatfow.txt")![2022/2/19] editted by anzai
     call fptxt2D(heatnewba, "dat/heatnewba.txt")![2022/2/19] editted by anzai
     call fptxt2D(heatrw, "dat/heatrw.txt")![2022/2/23] editted by anzai
     call fptxt2D(heatrwav, "dat/heatrwav.txt")![2022/2/23] editted by anzai
+    call fptxt1D(eps_t, "dat/eps_t.txt") ![2022/2/27] editted by anzai
+    call fptxt2D(cyclo_rho, "dat/cyclo_rho.txt") ![2022/2/27] editted by anzai
+    call fptxt2D(dTadr, "dat/dTadr.txt") ![2022/2/27] editted by anzai
+    call fptxt2D(Ta, "dat/Ta.txt") ![2022/2/27] editted by anzai
+    call fptxt1D(tau_ele, "dat/tau_ele.txt") ![2022/2/27] editted by anzai
+    call fptxt1D(tau_i, "dat/tau_i.txt") ![2022/2/27] editted by anzai
+    call fptxt2D(Drweff,"dat/Drweff.txt") ![2022/3/2] editted by anzai
+    call fptxt2D(Drweffav,"dat/Drweffav.txt") ![2022/3/2] editted by anzai
 !    call fptxt2D(nud_mono,"dat/nud_mono.txt")
 
   end subroutine output_neoclass
@@ -159,22 +168,29 @@ contains
     
   end subroutine
 
-  subroutine D_random_walk_baverage(Drwav, Drw)
+  subroutine D_random_walk_baverage(Drwav, Drw, Drweff, Drweffav)
+  !-----------------------------------------------------
+  ! For particle diffusion
+  !modified and added by anzai [2022/3/2]
+  !-----------------------------------------------------
     use fpcomm
     use fowcomm
     implicit none
     double precision,dimension(nrmax,nsamax),intent(out)  :: Drw, Drwav
+    double precision,dimension(nrmax,nsamax),intent(out)  :: Drweff, Drweffav
     double precision,dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom
     double precision,dimension(nthmax,npmax,nrmax,nsamax) :: Drwlocal, Drwba
-!    double precision,dimension(npmax,nrmax,nsamax) :: nud
-    double precision,dimension(nrmax,nsamax) :: nu, Ta
-    double precision step_len, step_time, eps_t, rho_theta, Baxis, pv, B_theta, rho
+    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: Drweff_l, Drweff_ba
+    double precision,dimension(npmax,nrmax,nsamax) :: nu
+    double precision,dimension(nrmax,nsamax) :: Ta
+    double precision,dimension(nrmax,nsamax) :: nu_eff
+    double precision step_len, step_time, step_time_eff, eps_t, rho_theta, Baxis, pv, B_theta, rho
     double precision dVI, sumVI
     integer nth, np, nr, nsa
 
     Baxis = Bing(1)
 
-    !call nu_deflection(nud)
+    call nu_deflection(nu)
  !   call ca_nu_ei(nu)
 
     do nsa = 1, nsamax
@@ -190,9 +206,10 @@ contains
     do nsa = 1, nsamax
       do nr = 1, nrmax
         Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/( 1.5d0*rnsl(nr,nsa)*1.d20)  / AEE/1.D3
-        !Ta(temperature)[keV]
-        nu(nr,nsa) = (1.D0/6.4D14)*rnsl(nr,nsa)*1.D20/(Ta(nr,nsa)**1.5D0)
-        nu(nr,nsa) = nu(nr, nsa)/(rm(nr)*RA/RR)*(AMFP(1)/AMFP(nsa)) !Effective nu
+        !** Ta(temperature)[keV]
+        nu_eff(nr,nsa) = (1.D0/6.4D14)*rnsl(nr,nsa)*1.D20/(Ta(nr,nsa)**1.5D0)
+        nu_eff(nr,nsa) = nu_eff(nr, nsa)/(rm(nr)*RA/RR)*(AMFP(1)/AMFP(nsa)) 
+        !** Effective nu
       end do
     end do
     
@@ -201,20 +218,25 @@ contains
         eps_t = rm(nr)*RA/RR
         ! B_theta = safety_factor(nr)/RR*dpsimdr(nr)/RA
         do np = 1, npmax
-          !step_time = 1.d0/nud(np,nr,nsa)
-          step_time = 1.d0/nu(nr,nsa)
-          rho = pm(np,nsa)*ptfp0(nsa)/(aefp(nsa)*Baxis)
+          
+          step_time = 1.d0/nu(np, nr, nsa)
+          step_time_eff = 1.d0/nu_eff(nr, nsa)
+          rho = pm(np,nsa)*ptfp0(nsa)/(aefp(nsa)*Baxis) 
+          !** [keV]verocity's length
+
           do nth = 1, nthmax
             !step_len = rho
             step_len = rho * safety_factor(nr)/sqrt(eps_t)
             !Drwlocal(nth,np,nr,nsa) = step_len**2/step_time*1.46d0*sqrt(eps_t)
             Drwlocal(nth,np,nr,nsa) = step_len**2/step_time*sqrt(eps_t)
+            Drweff_l(nth,np,nr,nsa) = step_len**2/step_time_eff*sqrt(eps_t)
           end do
         end do
       end do
     end do
 
     call bounce_average_for_Drw(Drwba, Drwlocal)
+    call bounce_average_for_Drw(Drweff_ba, Drweff_l)
 
     do nsa = 1, nsamax
       do nr = 1, nrmax
@@ -229,17 +251,26 @@ contains
                           + Drwlocal(nth,np,nr,nsa)*dfdrhom(nth,np,nr,nsa)*dVI
             Drwav(nr,nsa) = Drwav(nr,nsa)&
                           + Drwba(nth,np,nr,nsa)*dfdrhom(nth,np,nr,nsa)*dVI
+            Drweff(nr,nsa) = Drweff(nr,nsa)&
+                          + Drweff_l(nth,np,nr,nsa)*dfdrhom(nth,np,nr,nsa)*dVI
+            Drweffav(nr,nsa) = Drweffav(nr,nsa)&
+                          + Drweff_ba(nth,np,nr,nsa)*dfdrhom(nth,np,nr,nsa)*dVI
             sumVI = sumVI + dfdrhom(nth,np,nr,nsa)*dVI
           end do
         end do
         Drw(nr,nsa) = Drw(nr,nsa)/sumVI
         Drwav(nr,nsa) = Drwav(nr,nsa)/sumVI
+        Drweff(nr,nsa) = Drweff(nr,nsa)/sumVI
+        Drweffav(nr,nsa) = Drweffav(nr,nsa)/sumVI
       end do
     end do
 
   end subroutine D_random_walk_baverage
 
   subroutine nu_deflection(nud)
+  !----------------------------------
+  ! modified by anzai [2022/3/2]
+  !----------------------------------
     use fpcomm
     use fowcomm
     
@@ -258,15 +289,20 @@ contains
       do nr = 1, nrmax
         do np = 1, npmax
           nud(np,nr,nsa) = 0.d0
-          pv = SQRT(1.d0+theta0(nsa)*pm(np,nsa)**2)
+          pv = SQRT(1.d0+theta0(nsa)*pm(np,nsa)**2 *RKEV)
+          !** particle verocity [ms] *RKEV converts [keV] to [J]
+
           va = vc * SQRT( 1.d0-pv**(-2) )
+          !** vc is speed of light[m/s]
+
           do nsb = 1, nsbmax
             nssb = ns_nsb(nsa)
             Tb = rwsl(nr,nsb)*1.d6/( 1.5d0*rnsl(nr,nsb)*1.d20 )
+            !** Tb[J]
             vthb = SQRT( 2.d0*Tb/amfp(nsb) )
 
             numerator  = rnsl(nr,nsb)*1.d20 &
-                 *aefp(nsa)**2*aefp(nsb)**2 * lnlam(nr,nsb,nsa)
+                 *AEFP(nsa)**2*AEFP(nsb)**2 * lnlam(nr,nsb,nsa)
             denominator= SQRT( amfp(nsb) )*Tb**1.5d0*SQRT(amfp(nsa)/amfp(nsb))
             nuBra = factBra*numerator/denominator
 
@@ -284,47 +320,47 @@ contains
 
   end subroutine nu_deflection
 
-  subroutine nu_deflection_monoenergy(nud_mono)
-    use fpcomm
-    use fowcomm
-    implicit none
-    double precision,dimension(nrmax,nsamax),intent(out) :: nud_mono
-    double precision x, fx, gx
-    double precision nudb, fact, vthb, Tb, vtha, Ta
-    double precision nuBra, factBra, numerator, denominator
-    integer nr,nsa,nsb,nssa,nssb
-
-    fact = 3.d0/2.d0*SQRT( pi/2.d0 )
-    factBra = 1.d0/( 12.d0*pi**1.5d0*eps0**2 )
-
-    do nsa = 1, nsamax
-      nssa = ns_nsa(nsa)
-      do nr = 1, nrmax
-        nud_mono(nr,nsa) = 0.d0
-        Ta = rwsl(nr,nsa)*1.d6/( 1.5d0*rnsl(nr,nsa)*1.d20 )
-        vtha = SQRT( 2.d0*Ta/amfp(nsa) )
-        do nsb = 1, nsbmax
-          nssb = ns_nsb(nsa)
-          Tb = rwsl(nr,nsb)*1.d6/( 1.5d0*rnsl(nr,nsb)*1.d20 )
-          vthb = SQRT( 2.d0*Tb/amfp(nsb) )
-
-          numerator  = rnsl(nr,nsb)*1.d20 * ( aefp(nsa)*aefp(nsb) )**2 * lnlam(nr,nsb,nsa)
-          denominator= SQRT( amfp(nsb) ) * Tb**1.5d0 * ( amfp(nsa)/amfp(nsb) )**2
-          nuBra = factBra*numerator/denominator
-
-          x = vtha/vthb
-          call gosakn(x,fx,gx)
-
-          nudb = fact*nuBra*(fx-gx)/x**3
-
-          nud_mono(nr,nsa) = nud_mono(nr,nsa)+nudb
-
-        end do
-
-      end do
-    end do
-
-  end subroutine nu_deflection_monoenergy
+!  subroutine nu_deflection_monoenergy(nud_mono)
+!    use fpcomm
+!    use fowcomm
+!    implicit none
+!    double precision,dimension(nrmax,nsamax),intent(out) :: nud_mono
+!    double precision x, fx, gx
+!    double precision nudb, fact, vthb, Tb, vtha, Ta
+!    double precision nuBra, factBra, numerator, denominator
+!    integer nr,nsa,nsb,nssa,nssb
+!
+!    fact = 3.d0/2.d0*SQRT( pi/2.d0 )
+!    factBra = 1.d0/( 12.d0*pi**1.5d0*eps0**2 )
+!
+!    do nsa = 1, nsamax
+!      nssa = ns_nsa(nsa)
+!      do nr = 1, nrmax
+!        nud_mono(nr,nsa) = 0.d0
+!        Ta = rwsl(nr,nsa)*1.d6/( 1.5d0*rnsl(nr,nsa)*1.d20 )
+!        vtha = SQRT( 2.d0*Ta/amfp(nsa) )
+!        do nsb = 1, nsbmax
+!          nssb = ns_nsb(nsa)
+!          Tb = rwsl(nr,nsb)*1.d6/( 1.5d0*rnsl(nr,nsb)*1.d20 )
+!          vthb = SQRT( 2.d0*Tb/amfp(nsb) )
+!
+!          numerator  = rnsl(nr,nsb)*1.d20 * ( aefp(nsa)*aefp(nsb) )**2 * lnlam(nr,nsb,nsa)
+!          denominator= SQRT( amfp(nsb) ) * Tb**1.5d0 * ( amfp(nsa)/amfp(nsb) )**2
+!          nuBra = factBra*numerator/denominator
+!
+!          x = vtha/vthb
+!          call gosakn(x,fx,gx)
+!
+!          nudb = fact*nuBra*(fx-gx)/x**3
+!
+!          nud_mono(nr,nsa) = nud_mono(nr,nsa)+nudb
+!
+!        end do
+!
+!      end do
+!    end do
+!
+!  end subroutine nu_deflection_monoenergy
 
   subroutine gosakn(x,fx,gx)
     use fpcomm,only:pi
@@ -533,66 +569,53 @@ contains
 
   end subroutine newneoclass_pla
 
-  subroutine check_jeffect(jaceffect)
+  subroutine check_factorneo(eps_t,cyclo_rho, dTadr,Ta,tau_ele,tau_i)
   !-------------------------------------
-  !Integrrate jacobian over theta_m and p
+  ! calculate main factors in neoclassical theory
   !--------------------------------------
   
     use fpcomm
     use fowcomm
 
     implicit none
-    double precision,dimension(nrmax,nsamax),intent(out)  :: jaceffect
-     double precision,dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom
-    double precision dVI, sumVI, JIl_p, JIl_m
-    integer nth,np,nr,nsa,ns
+    double precision,dimension(nrmax,nsamax),intent(out)  :: cyclo_rho, dTadr
+    double precision,dimension(nrmax,nsamax),intent(out) :: Ta
+    double precision,dimension(nrmax),intent(out) :: eps_t, tau_ele, tau_i
+    double precision Baxis, fact
+    integer nsa, nr
 
-     !****make dfdrhom
-     do nsa = 1, nsamax
-      do np = 1, npmax
-        do nth = 1, nthmax
-          call first_order_derivative(dfdrhom(nth,np,:,nsa), fnsp(nth,np,:,nsa), rm)
-        end do
-      end do
-    end do
-   
-    !****integrate
+    Baxis = Bing(1)
+    fact = 12.d0*pi**1.5d0*EPS0**2/sqrt(2.d0)
+    !****temperature make
     do nsa = 1, nsamax
-      ns = ns_nsa(nsa)
       do nr = 1, nrmax
-        jaceffect(nr,nsa) = 0.d0
-        sumVI = 0.d0
-        do np = 1, npmax
-          if ( pm(np,ns) > fact_bulk ) exit
-          do nth = 1, nthmax
-          !-------------------------------------
-          !p means plus, m means minus
-          !-------------------------------------
-            if ( nr == 1 ) then
-              JIl_m = JI(nth,np,1,nsa)
-              JIl_p = ( JI(nth,np,2,nsa)+JI(nth,np,1,nsa) )*0.5d0
-            else if ( nr == nrmax ) then
-              JIl_m = ( JI(nth,np,nrmax,nsa)+JI(nth,np,nrmax-1,nsa) )*0.5d0
-              JIl_p = JI(nth,np,nrmax,nsa)
-            else
-              JIl_m = ( JI(nth,np,nr,nsa)+JI(nth,np,nr-1,nsa) )*0.5d0
-              JIl_p = ( JI(nth,np,nr,nsa)+JI(nth,np,nr+1,nsa) )*0.5d0
-            end if
-
-            dVI = delp(ns)*delthm(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)
-
-            jaceffect(nr,nsa) = jaceffect(nr,nsa) + dfdrhom(nth,np,nr,nsa)*dVI
-            sumVI = sumVI + dfdrhom(nth,np,nr,nsa)*dVI
-            
-           ! WRITE(*,*) "jacobian:", jaceffect(nr,nsa), sumVI, dfdrhom(nth,np,nr,nsa)
-          end do
-        end do
-        jaceffect(nr,nsa) = jaceffect(nr,nsa)/sumVI
+        Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)/AEE/1.D3
+        !Ta(temperature)[keV]
+        cyclo_rho(nr,nsa) = sqrt(Ta(nr,nsa)*RKEV/AMFP(nsa)) &
+                          * AMFP(nsa)/(AEFP(nsa)*Baxis)
+        !****Unit [J]
       end do
     end do
 
-  end subroutine check_jeffect
+    !****first order derivation
+    do nsa = 1, nsamax
+      call first_order_derivative(dTadr(:,nsa), Ta(:,nsa), rm)
+    !  call first_order_derivative(dndr(:,nsa), rnsl(:, nsa), rm)
+    end do
 
+
+    !**** Calculation of fators
+    do nr = 1, nrmax
+        eps_t(nr) = rm(nr)*RA/RR
+        tau_ele(nr) = fact*sqrt(AMFP(1))*((Ta(nr,1)*RKEV)**1.5d0)/ &
+             (rnsl(nr,2)*1.d20*AEFP(2)**2*AEE**2*lnlam(nr,2,1))
+        tau_i(nr)   = fact*sqrt(2.d0)*sqrt(AMFP(2))*((Ta(nr,2)*RKEV)**1.5d0)/ &
+             (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2))
+        !**** *RKEV converts [keV] to [J]
+    end do
+
+  end subroutine check_factorneo 
+  
 !======================================================================
 !subroutines for heat fluxes
 !======================================================================
@@ -707,7 +730,7 @@ contains
              (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2))
         !**** *RKEV converts [keV] to [J] 
       
-        rho_a(nsa) = sqrt(Ta(nr,nsa)*RKEV/AMFP(nsa))*AMFP(nsa)/(AEE*Baxis)
+        rho_a(nsa) = sqrt(Ta(nr,nsa)*RKEV/AMFP(nsa))*AMFP(nsa)/(AEFP(nsa)*Baxis)
         !**** *RKEV converts [keV] to [J] 
         eps_t = rm(nr)*RA/RR
 
