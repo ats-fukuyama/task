@@ -1,3 +1,11 @@
+! check_neoclass.f90
+! [2022/3/7]
+! ***************************************
+!  Calculation of diffusion coefficients
+! ***************************************
+! made by ota / modified by anzai
+!
+
 module check_neoclass
   private
 
@@ -5,20 +13,25 @@ module check_neoclass
 
 contains
 
+!===================================================
+! COMMON modules
+!===================================================
   subroutine output_neoclass
+  !----------------------------------------
+  ! module for file out put as *.txt
+  !----------------------------------------
     use fpcomm
     use fowcomm
     use fpwrite
 
     implicit none
-    double precision,dimension(nrmax,nsamax) :: nu_D_theory, nu_star_theory, &
-                                                Drhmrhm, nu_star
-                                                 
-    double precision,dimension(nrmax,nsamax) :: Drw, Drwav, nud_mono, D_mono, Dbanana
-    double precision,dimension(nrmax,nsamax) :: Drweff, Drweffav, Dnewba, Dnewpla
+    double precision,dimension(nrmax,nsamax) :: Drhmrhm
+    double precision,dimension(nrmax,nsamax) :: Drw,Drwav,Drweff,Drweffav
+    double precision,dimension(nrmax,nsamax) :: Dnba,Dnpla
     double precision,dimension(nrmax,nsamax) :: heatfow, heatrw, heatrwav
-    double precision,dimension(nrmax,nsamax) :: heatba, heatpla
-    double precision,dimension(nrmax,nsamax) :: cyclo_rho, dTadr, Ta, sumVI
+    double precision,dimension(nrmax,nsamax) :: heatba,heatpla
+    double precision,dimension(nrmax,nsamax) :: cyclo_rho, dTadr
+    double precision,dimension(nrmax,nsamax) :: Ta, sumVI, sumdf
     double precision,dimension(nrmax) :: eps_t,tau_ele,tau_i
     integer nth, np, nr, nsa, nsb, mode(3)
    
@@ -28,9 +41,8 @@ contains
     !**** calculation of physical values
     call integral_Drr(Drhmrhm)
     call integral_Heatdiff(heatfow,sumVI) ![2022/3/4] editted by anzai
-    call D_random_walk_baverage(Drwav, Drw, Drweff, Drweffav)
-    call newneoclass_ba(Dnewba) ![2022/1/31] editted by anzai
-    call newneoclass_pla(Dnewpla) ![2022/1/31] editted by anzai
+    call D_random_walk_baverage(Drwav, Drw, Drweff, Drweffav) ![2022/3/7] editted by anzai
+    call Particleneoclass(Dnba,Dnpla) ![2022/3/7] editted by anzai
     call Heatneoclass(heatba,heatpla) ![2022/3/14] editted by anzai
     call Heat_rw_baverage(heatrwav, heatrw) ![2022/2/23] editted by anzai
     call check_factorneo(eps_t, cyclo_rho, dTadr,Ta,tau_ele,tau_i) ![2022/2/27] editted by anzai
@@ -39,8 +51,8 @@ contains
     call fptxt2D(Drhmrhm,"dat/Drhmrhm.txt")
     call fptxt2D(Drw,"dat/Drw.txt")
     call fptxt2D(Drwav,"dat/Drwav.txt")
-    call fptxt2D(Dnewba, "dat/Dnewba.txt") ![2022/1/31] edited by anzai
-    call fptxt2D(Dnewpla, "dat/Dnewpla.txt") ![2022/1/31] editted by anzai
+    call fptxt2D(Dnba, "dat/Dnba.txt") ![2022/1/31] edited by anzai
+    call fptxt2D(Dnpla, "dat/Dnpla.txt") ![2022/1/31] editted by anzai
     call fptxt2D(Drweff,"dat/Drweff.txt") ![2022/3/2] editted by anzai
     call fptxt2D(Drweffav,"dat/Drweffav.txt") ![2022/3/2] editted by anzai
     call fptxt2D(heatfow, "dat/heatfow.txt")![2022/2/19] editted by anzai
@@ -48,9 +60,12 @@ contains
     call fptxt2D(heatpla, "dat/heatpla.txt")![2022/3/4] editted by anzai
     call fptxt2D(heatrw, "dat/heatrw.txt")![2022/2/23] editted by anzai
     call fptxt2D(heatrwav, "dat/heatrwav.txt")![2022/2/23] editted by anzai
+
+    !***** For factor check
     call fptxt1D(eps_t, "dat/eps_t.txt") ![2022/2/27] editted by anzai
     call fptxt2D(cyclo_rho, "dat/cyclo_rho.txt") ![2022/2/27] editted by anzai
     call fptxt2D(sumVI, "dat/sumVI.txt") ![2022/3/4] editted by anzai
+    call fptxt2D(sumdf, "dat/sumdf.txt") ![2022/3/4] editted by anzai
     call fptxt2D(dTadr, "dat/dTadr.txt") ![2022/2/27] editted by anzai
     call fptxt2D(Ta, "dat/Ta.txt") ![2022/2/27] editted by anzai
     call fptxt1D(tau_ele, "dat/tau_ele.txt") ![2022/2/27] editted by anzai
@@ -58,63 +73,10 @@ contains
 
   end subroutine output_neoclass
 
-  subroutine integral_Drr(Drr_out)
-    use fpcomm
-    use fowcomm
-    implicit none
-    double precision,dimension(nrmax,nsamax),intent(out) :: Drr_out
-    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom
-    double precision Drr_, dVI, sumVI, JIl_p, JIl_m
-    integer nth,np,nr,nsa,ns
-    
-    !**** initialization ****
-    Drr_out(:,:) = 0.d0
-    sumVI = 0.d0
-  
-    !**** first order derivatives
-    do nsa = 1, nsamax
-      do np = 1, npmax
-        do nth = 1, nthmax
-          call first_order_derivative(dfdrhom(nth,np,:,nsa), fnsp(nth,np,:,nsa), rm)
-        end do
-      end do
-    end do
-
-    do nsa = 1, nsamax
-      ns = ns_nsa(nsa)
-      do nr = 1, nrmax
-        do np = 1, npmax
-          if ( pm(np,ns) > fact_bulk ) exit
-          do nth = 1, nthmax
-
-            if ( nr == 1 ) then
-              JIl_m = JI(nth,np,1,nsa)
-              JIl_p = ( JI(nth,np,2,nsa)+JI(nth,np,1,nsa) )*0.5d0
-            else if ( nr == nrmax ) then
-              JIl_m = ( JI(nth,np,nrmax,nsa)+JI(nth,np,nrmax-1,nsa) )*0.5d0
-              JIl_p = JI(nth,np,nrmax,nsa)
-            else
-              JIl_m = ( JI(nth,np,nr,nsa)+JI(nth,np,nr-1,nsa) )*0.5d0
-              JIl_p = ( JI(nth,np,nr,nsa)+JI(nth,np,nr+1,nsa) )*0.5d0
-            end if
-
-            dVI = delp(ns)*delthm(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)
-            Drr_ = ( Drrfow(nth,np,nr+1,nsa)/JIl_p+Drrfow(nth,np,nr,nsa)/JIl_m )*0.5d0
-
-            Drr_out(nr,nsa) = Drr_out(nr,nsa) + Drr_*dfdrhom(nth,np,nr,nsa)*dVI
-            sumVI = sumVI + dfdrhom(nth,np,nr,nsa)*dVI
-          end do
-        end do
-        Drr_out(nr,nsa) = Drr_out(nr,nsa)/sumVI
-      end do
-    end do
-
-  end subroutine integral_Drr
-
   subroutine cal_nu_ei(nu)
-  !**************************************
+  !--------------------------------------
   ![2022/2/8] Modified by anzai
-  !**************************************
+  !--------------------------------------
     use fpcomm
     use fowcomm
     implicit none
@@ -133,106 +95,6 @@ contains
     end do
     
   end subroutine
-
-  subroutine D_random_walk_baverage(Drwav, Drw, Drweff, Drweffav)
-  !-----------------------------------------------------
-  ! For particle diffusion
-  !modified and added by anzai [2022/3/2]
-  !-----------------------------------------------------
-    use fpcomm
-    use fowcomm
-    implicit none
-    double precision,dimension(nrmax,nsamax),intent(out)  :: Drw, Drwav
-    double precision,dimension(nrmax,nsamax),intent(out)  :: Drweff, Drweffav
-    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom
-    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: Drwlocal, Drwba
-    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: Drweff_l, Drweff_ba
-    double precision,dimension(npmax,nrmax,nsamax) :: nu
-    double precision,dimension(nrmax,nsamax) :: Ta
-    double precision,dimension(nrmax,nsamax) :: nu_eff
-    double precision step_len, step_time, step_time_eff, eps_t, rho_theta, Baxis, pv, B_theta, rho
-    double precision dVI, sumVI
-    integer nth, np, nr, nsa
-
-    !**** initialization ****
-    Baxis = Bing(1)
-    Drw(:,:) = 0.d0
-    Drwav(:,:) = 0.d0
-    sumVI = 0.d0
-
-    call nu_deflection(nu)
- !   call ca_nu_ei(nu)
-
-    do nsa = 1, nsamax
-      do np = 1, npmax
-        do nth = 1, nthmax
-           call first_order_derivative(dfdrhom(nth,np,:,nsa), &
-                fnsp(nth,np,:,nsa), rm)
-        end do
-      end do
-    end do
-    
-    !************************by anzai[2022/2/15]
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/( 1.5d0*rnsl(nr,nsa)*1.d20)  / AEE/1.D3
-        !** Ta(temperature)[keV]
-        nu_eff(nr,nsa) = (1.D0/6.4D14)*rnsl(nr,nsa)*1.D20/(Ta(nr,nsa)**1.5D0)
-        nu_eff(nr,nsa) = nu_eff(nr, nsa)/(rm(nr)*RA/RR)*(AMFP(1)/AMFP(nsa)) 
-        !** Effective nu
-      end do
-    end do
-    
-    do nsa = 1, nsamax 
-      do nr = 1, nrmax
-        eps_t = rm(nr)*RA/RR
-        ! B_theta = safety_factor(nr)/RR*dpsimdr(nr)/RA
-        do np = 1, npmax
-          
-          step_time = 1.d0/nu(np, nr, nsa)
-          step_time_eff = 1.d0/nu_eff(nr, nsa)
-          rho = pm(np,nsa)*ptfp0(nsa)/(aefp(nsa)*Baxis) 
-          !** [keV]verocity's length
-
-          do nth = 1, nthmax
-            !step_len = rho
-            step_len = rho * safety_factor(nr)/sqrt(eps_t)
-            !Drwlocal(nth,np,nr,nsa) = step_len**2/step_time*1.46d0*sqrt(eps_t)
-            Drwlocal(nth,np,nr,nsa) = step_len**2/step_time*sqrt(eps_t)
-            Drweff_l(nth,np,nr,nsa) = step_len**2/step_time_eff*sqrt(eps_t)
-          end do
-        end do
-      end do
-    end do
-
-    call bounce_average_for_Drw(Drwba, Drwlocal)
-    call bounce_average_for_Drw(Drweff_ba, Drweff_l)
-
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do np = 1, npmax
-          do nth = 1, nthmax
-            dVI = delp(nsa)*delthm(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)
-
-            Drw(nr,nsa) = Drw(nr,nsa)&
-                          + Drwlocal(nth,np,nr,nsa)*dfdrhom(nth,np,nr,nsa)*dVI
-            Drwav(nr,nsa) = Drwav(nr,nsa)&
-                          + Drwba(nth,np,nr,nsa)*dfdrhom(nth,np,nr,nsa)*dVI
-            Drweff(nr,nsa) = Drweff(nr,nsa)&
-                          + Drweff_l(nth,np,nr,nsa)*dfdrhom(nth,np,nr,nsa)*dVI
-            Drweffav(nr,nsa) = Drweffav(nr,nsa)&
-                          + Drweff_ba(nth,np,nr,nsa)*dfdrhom(nth,np,nr,nsa)*dVI
-            sumVI = sumVI + dfdrhom(nth,np,nr,nsa)*dVI
-          end do
-        end do
-        Drw(nr,nsa) = Drw(nr,nsa)/sumVI
-        Drwav(nr,nsa) = Drwav(nr,nsa)/sumVI
-        Drweff(nr,nsa) = Drweff(nr,nsa)/sumVI
-        Drweffav(nr,nsa) = Drweffav(nr,nsa)/sumVI
-      end do
-    end do
-
-  end subroutine D_random_walk_baverage
 
   subroutine nu_deflection(nud)
   !----------------------------------
@@ -382,8 +244,167 @@ contains
 
 
   end subroutine
-!**********************[2022/1/31] added by anzai***************
-  subroutine newneoclass_ba(Dnewba)
+
+!===================================================
+! Subroutines for particle diffusion coef
+!===================================================
+  subroutine integral_Drr(Drr_out)
+  !---------------------------------------------
+  ! calculation of FOW diff coef
+  !---------------------------------------------
+    use fpcomm
+    use fowcomm
+    implicit none
+    double precision,dimension(nrmax,nsamax),intent(out) :: Drr_out
+    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom
+    double precision Drr_, dVI, sumVI, JIl_p, JIl_m
+    integer nth,np,nr,nsa,ns
+    
+    !**** initialization ****
+    Drr_out(:,:) = 0.d0
+    sumVI = 0.d0
+  
+    !**** first order derivatives
+    do nsa = 1, nsamax
+      do np = 1, npmax
+        do nth = 1, nthmax
+          call first_order_derivative(dfdrhom(nth,np,:,nsa), fnsp(nth,np,:,nsa), rm)
+        end do
+      end do
+    end do
+
+    do nsa = 1, nsamax
+      ns = ns_nsa(nsa)
+      do nr = 1, nrmax
+        do np = 1, npmax
+          if ( pm(np,ns) > fact_bulk ) exit
+          do nth = 1, nthmax
+
+            if ( nr == 1 ) then
+              JIl_m = JI(nth,np,1,nsa)
+              JIl_p = ( JI(nth,np,2,nsa)+JI(nth,np,1,nsa) )*0.5d0
+            else if ( nr == nrmax ) then
+              JIl_m = ( JI(nth,np,nrmax,nsa)+JI(nth,np,nrmax-1,nsa) )*0.5d0
+              JIl_p = JI(nth,np,nrmax,nsa)
+            else
+              JIl_m = ( JI(nth,np,nr,nsa)+JI(nth,np,nr-1,nsa) )*0.5d0
+              JIl_p = ( JI(nth,np,nr,nsa)+JI(nth,np,nr+1,nsa) )*0.5d0
+            end if
+
+            dVI = delp(ns)*delthm(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)
+            Drr_ = ( Drrfow(nth,np,nr+1,nsa)/JIl_p+Drrfow(nth,np,nr,nsa)/JIl_m )*0.5d0
+
+            Drr_out(nr,nsa) = Drr_out(nr,nsa) + Drr_*dfdrhom(nth,np,nr,nsa)*dVI
+            sumVI = sumVI + dfdrhom(nth,np,nr,nsa)*dVI
+          end do
+        end do
+        Drr_out(nr,nsa) = Drr_out(nr,nsa)/sumVI
+      end do
+    end do
+
+  end subroutine integral_Drr
+
+  subroutine D_random_walk_baverage(Drwav, Drw, Drweff, Drweffav)
+  !-----------------------------------------------------
+  ! For particle diffusion in banana region
+  !modified and added by anzai [2022/3/2]
+  !-----------------------------------------------------
+    use fpcomm
+    use fowcomm
+    implicit none
+    double precision,dimension(nrmax,nsamax),intent(out)  :: Drw, Drwav
+    double precision,dimension(nrmax,nsamax),intent(out)  :: Drweff, Drweffav
+    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom
+    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: Drwlocal, Drwba
+    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: Drweff_l, Drweff_ba
+    double precision,dimension(npmax,nrmax,nsamax) :: nu
+    double precision,dimension(nrmax,nsamax) :: Ta
+    double precision,dimension(nrmax,nsamax) :: nu_eff
+    double precision step_len, step_time, step_time_eff, eps_t, rho_theta, Baxis, pv, B_theta, rho
+    double precision dVI, sumVI
+    integer nth, np, nr, nsa
+
+    !**** initialization ****
+    Baxis = Bing(1)
+    Drw(:,:) = 0.d0
+    Drwav(:,:) = 0.d0
+    sumVI = 0.d0
+
+    call nu_deflection(nu)
+ !   call ca_nu_ei(nu)
+
+    do nsa = 1, nsamax
+      do np = 1, npmax
+        do nth = 1, nthmax
+           call first_order_derivative(dfdrhom(nth,np,:,nsa), &
+                fnsp(nth,np,:,nsa), rm)
+        end do
+      end do
+    end do
+    
+    !************************by anzai[2022/2/15]
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/( 1.5d0*rnsl(nr,nsa)*1.d20)  / AEE/1.D3
+        !** Ta(temperature)[keV]
+        nu_eff(nr,nsa) = (1.D0/6.4D14)*rnsl(nr,nsa)*1.D20/(Ta(nr,nsa)**1.5D0)
+        nu_eff(nr,nsa) = nu_eff(nr, nsa)/(rm(nr)*RA/RR)*sqrt(AMFP(1)/AMFP(nsa)) 
+        !** Effective nu
+      end do
+    end do
+    
+    do nsa = 1, nsamax 
+      do nr = 1, nrmax
+        eps_t = rm(nr)*RA/RR
+        ! B_theta = safety_factor(nr)/RR*dpsimdr(nr)/RA
+        do np = 1, npmax
+          
+          step_time = 1.d0/nu(np, nr, nsa)
+          step_time_eff = 1.d0/nu_eff(nr, nsa)
+          rho = pm(np,nsa)*ptfp0(nsa)/(aefp(nsa)*Baxis) 
+          !** [keV]verocity's length
+
+          do nth = 1, nthmax
+            !step_len = rho
+            step_len = rho * safety_factor(nr)/sqrt(eps_t)
+            !Drwlocal(nth,np,nr,nsa) = step_len**2/step_time*1.46d0*sqrt(eps_t)
+            Drwlocal(nth,np,nr,nsa) = step_len**2/step_time*sqrt(eps_t)
+            Drweff_l(nth,np,nr,nsa) = step_len**2/step_time_eff*sqrt(eps_t)
+          end do
+        end do
+      end do
+    end do
+
+    call bounce_average_for_Drw(Drwba, Drwlocal)
+    call bounce_average_for_Drw(Drweff_ba, Drweff_l)
+
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do np = 1, npmax
+          do nth = 1, nthmax
+            dVI = delp(nsa)*delthm(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)
+
+            Drw(nr,nsa) = Drw(nr,nsa)&
+                          + Drwlocal(nth,np,nr,nsa)*dfdrhom(nth,np,nr,nsa)*dVI
+            Drwav(nr,nsa) = Drwav(nr,nsa)&
+                          + Drwba(nth,np,nr,nsa)*dfdrhom(nth,np,nr,nsa)*dVI
+            Drweff(nr,nsa) = Drweff(nr,nsa)&
+                          + Drweff_l(nth,np,nr,nsa)*dfdrhom(nth,np,nr,nsa)*dVI
+            Drweffav(nr,nsa) = Drweffav(nr,nsa)&
+                          + Drweff_ba(nth,np,nr,nsa)*dfdrhom(nth,np,nr,nsa)*dVI
+            sumVI = sumVI + dfdrhom(nth,np,nr,nsa)*dVI
+          end do
+        end do
+        Drw(nr,nsa) = Drw(nr,nsa)/sumVI
+        Drwav(nr,nsa) = Drwav(nr,nsa)/sumVI
+        Drweff(nr,nsa) = Drweff(nr,nsa)/sumVI
+        Drweffav(nr,nsa) = Drweffav(nr,nsa)/sumVI
+      end do
+    end do
+
+  end subroutine D_random_walk_baverage
+
+  subroutine Particleneoclass(Dnba,Dnpla)
     !----------------------------------
     !subroutine for neoclassical particle flux in banana region
     !calculate particle flux and diffusion coefficient
@@ -393,10 +414,9 @@ contains
     use fowcomm
     
     implicit none
-    double precision,dimension(nrmax,nsamax),intent(out)  :: Dnewba
-    double precision,dimension(nrmax,nsamax) :: Sr_nba, Ta, dTadr, dndr
-    !double precision,dimension(nrmax) :: B_r
-    double precision fact, fact_s, tau_ele, rho_e, eps_t, Baxis, B_p
+    double precision,dimension(nrmax,nsamax),intent(out)  :: Dnba, Dnpla 
+    double precision,dimension(nrmax,nsamax) :: Sr_ba, Sr_pla,Ta,dTadr,dndr
+    double precision fact,fact_ba,fact_pla,tau_ele,rho_e,eps_t,Baxis,B_p
     integer nr, nsa
 
     fact = 12.d0*pi**1.5d0*EPS0**2/sqrt(2.d0)
@@ -405,8 +425,8 @@ contains
     !****temperature make
     do nsa = 1, nsamax
       do nr = 1, nrmax
-        Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)
-        !**** Ta [J]
+        Ta(nr,nsa) = rwsl(nr,nsa)*1.d6*RKEV/(1.5d0*rnsl(nr,nsa)*1.d20)
+        !**** Ta [keV]
       end do
     end do
 
@@ -424,128 +444,29 @@ contains
         rho_e = sqrt(2*Ta(nr,1)/AMFP(1))*AMFP(1)/(AEE*Baxis)
         eps_t = rm(nr)*RA/RR
         !B_p = dpsimdr(nr)*RA/(safety_factor(nr)*RR) ! careful
-        fact_s = (safety_factor(nr)**2) &
+        B_p = rm(nr)*RA*BB/(safety_factor(nr)*RR) 
+        fact_ba = (safety_factor(nr)**2)*1.d20*rnsl(nr,nsa) &
              *(rho_e**2)/((eps_t**1.5)*tau_ele)
-        Sr_nba(nr,nsa) = fact_s*(-1.22d0*(1+Ta(nr,2)/Ta(nr,1))*dndr(nr, nsa)) 
-            ! + 4.3d-1*rnsl(nr, nsa)*dTadr(nr,1)/Ta(nr,1) &
-            ! + 1.9d-1*rnsl(nr, nsa)*dTadr(nr,2)/Ta(nr,1) ) 
-
-        ! neglect E_para term
-        
-        Dnewba(nr,nsa) = - Sr_nba(nr, nsa)/dndr(nr, nsa)
-!        Dnewba(nr,nsa) = fact_s*1.22d0*(1+Ta(nr,2)/Ta(nr,1))
-
-       ! WRITE(6,'(A,I4,6ES12.4)') 'Dn:',nr, &
-            ! TA(nr,1)/AEE,safety_factor(nr),tau_ele,rho_e, &
-            ! rho_e**2/tau_ele,Dnewba(nr,nsa)
+        fact_pla = -sqrt(pi)*(eps_t**2)*Ta(nr,1) &
+             *rho_e*1.d20*rnsl(nr,nsa)/(2*AEE*B_p*rm(nr)*RA)        
+       
+        Sr_ba(nr,nsa) = fact_ba*(-1.22d0*(1+Ta(nr,2)/Ta(nr,1)) &
+                      * 1.d20 * dndr(nr, nsa)) 
+            ! + 4.3d-1*dTadr(nr,1)/Ta(nr,1) &
+            ! + 1.9d-1*dTadr(nr,2)/Ta(nr,1) ) 
+        !**** neglect E_para term
+        Sr_pla(nr,nsa) = fact_pla*((1+Ta(nr,2)/Ta(nr,1)) & 
+                       * 1.d20 * dndr(nr,nsa) &
+                       / (1.d20*rnsl(nr,nsa)))! &
+            ! + 1.5d0*dTadr(nr,1)/Ta(nr,1) + 1.5d0*dTadr(nr,2)/Ta(nr,1) )
+        !**** neglect B term
+   
+        Dnba(nr,nsa) = - Sr_ba(nr, nsa)/(1.d20*dndr(nr, nsa))
+        Dnpla(nr,nsa) = - Sr_pla(nr, nsa)/(1.d20*dndr(nr, nsa))
      end do
    end do
 
-  end subroutine newneoclass_ba
-
-  subroutine newneoclass_pla(Dnewpla)
-    !---------------------------------
-    !subroutine for neoclassical particle flux in plateau region
-    !calculate particle flux and diffusion coefficient
-    !---------------------------------
-    
-    use fpcomm
-    use fowcomm
-    
-    implicit none
-    double precision,dimension(nrmax,nsamax),intent(out)  :: Dnewpla
-    double precision,dimension(nrmax,nsamax) :: Sr_npla, Ta, dTadr, dndr
-    !double precision,dimension(nrmax) :: B_r
-    double precision fact, fact_s, tau_ele, rho_e, eps_t, Baxis, B_p
-    integer nr, nsa
-
-    fact = 12.d0*pi**1.5d0*EPS0**2/sqrt(2.d0)
-    Baxis = Bing(1) ! approximation on B by Baxis
-
-    !****temperature make
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)
-        !**** Ta [J]
-      end do
-    end do
-
-    !****first order derivation
-    do nsa = 1, nsamax
-      call first_order_derivative(dTadr(:,nsa), Ta(:,nsa), rm)
-      call first_order_derivative(dndr(:,nsa), rnsl(:, nsa), rm)
-    end do
-
-    !****calculate flux and diffusion coefficient
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        tau_ele = fact*sqrt(AMFP(1))*(Ta(nr,1)*RKEV)**1.5d0/ &
-             (rnsl(nr,2)*1.d20*AEFP(2)**2*AEE**2*lnlam(nr,2,1))
-        rho_e = sqrt(Ta(nr,1)*RKEV/AMFP(1))*AMFP(1)/(AEE*Baxis)
-        !**** unit [J]
-        eps_t = rm(nr)*RA/RR
-!        B_p = dpsimdr(nr)*RA/(safety_factor(nr)*RR) ! careful
-        B_p = rm(nr)*RA*BB/(safety_factor(nr)*RR) ! careful
-        fact_s = -sqrt(pi)*(eps_t**2)*(Ta(nr,1)*RKEV) &
-             *rho_e*rnsl(nr,nsa)/(2*AEE*B_p*rm(nr)*RA)        
-        
-        Sr_npla(nr,nsa) = fact_s*((1+Ta(nr,2)/Ta(nr,1))*dndr(nr,nsa) &
-             /(rnsl(nr,nsa)))! &
-            ! + 1.5d0*dTadr(nr,1)/Ta(nr,1) + 1.5d0*dTadr(nr,2)/Ta(nr,1) )
-        !neglect B term
-   
-        Dnewpla(nr,nsa) = - Sr_npla(nr, nsa)/dndr(nr, nsa)
-      end do 
-    end do
-
-  end subroutine newneoclass_pla
-
-  subroutine check_factorneo(eps_t,cyclo_rho, dTadr,Ta,tau_ele,tau_i)
-  !-------------------------------------
-  ! calculate main factors in neoclassical theory
-  !--------------------------------------
-  
-    use fpcomm
-    use fowcomm
-
-    implicit none
-    double precision,dimension(nrmax,nsamax),intent(out)  :: cyclo_rho, dTadr
-    double precision,dimension(nrmax,nsamax),intent(out) :: Ta
-    double precision,dimension(nrmax),intent(out) :: eps_t, tau_ele, tau_i
-    double precision Baxis, fact
-    integer nsa, nr
-
-    Baxis = Bing(1)
-    fact = 12.d0*pi**1.5d0*EPS0**2/sqrt(2.d0)
-    !****temperature make
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)/AEE/1.D3
-        !Ta(temperature)[keV]
-        cyclo_rho(nr,nsa) = sqrt(Ta(nr,nsa)*RKEV/AMFP(nsa)) &
-                          * AMFP(nsa)/(AEFP(nsa)*Baxis)
-        !****Unit [J]
-      end do
-    end do
-
-    !****first order derivation
-    do nsa = 1, nsamax
-      call first_order_derivative(dTadr(:,nsa), Ta(:,nsa), rm)
-    !  call first_order_derivative(dndr(:,nsa), rnsl(:, nsa), rm)
-    end do
-
-
-    !**** Calculation of fators
-    do nr = 1, nrmax
-        eps_t(nr) = rm(nr)*RA/RR
-        tau_ele(nr) = fact*sqrt(AMFP(1))*((Ta(nr,1)*RKEV)**1.5d0)/ &
-             (rnsl(nr,2)*1.d20*AEFP(2)**2*AEE**2*lnlam(nr,2,1))
-        tau_i(nr)   = fact*sqrt(2.d0)*sqrt(AMFP(2))*((Ta(nr,2)*RKEV)**1.5d0)/ &
-             (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2))
-        !**** *RKEV converts [keV] to [J]
-    end do
-
-  end subroutine check_factorneo 
+  end subroutine Particleneoclass
   
 !======================================================================
 !subroutines for heat fluxes
@@ -562,7 +483,7 @@ contains
     
     implicit none
     double precision,dimension(nrmax,nsamax),intent(out) :: heatfow_out, sumVI
-    double precision,dimension(nrmax,nsamax) :: heatfow_l,sumVI_l
+    double precision,dimension(nrmax,nsamax) :: heatfow_l,sumVI_l, sumdf
     double precision,dimension(nthmax,npmax,nrmax,nsamax) ::fnsp_l, dfdrhom
     double precision Drr_, dVI, JIl_p, JIl_m
 !    double precision sumVI
@@ -571,6 +492,7 @@ contains
     !**** initialization ****
     heatfow_out(:,:) = 0.d0
     sumVI_l(:,:) = 0.d0
+    sumdf(:,:) = 0.d0
 
 !********** for new dfdrhom module [2022/3/4]
     fnsp_l(:,:,:,:)=0.d0
@@ -595,7 +517,7 @@ contains
         end do
       end do
     end do
-!**** end of new dfdrhom module
+!!**** end of new dfdrhom module
 
 
 !************ original derivative
@@ -604,7 +526,7 @@ contains
 !      do np = 1, npmax
 !        do nth = 1, nthmax
 !          call first_order_derivative(dfdrhom(nth,np,:,nsa), fnsp(nth,np,:,nsa), rm)
-!        end do
+!       end do
 !      end do
 !    end do
 
@@ -613,7 +535,7 @@ contains
       ns = ns_nsa(nsa)
       do nr = 1, nrmax
         do np = 1, npmax
-          if ( pm(np,ns) > fact_bulk ) exit
+          if ( pm(np,ns) > fact_bulk ) exit ! fact_balk=5
           do nth = 1, nthmax
 
             if ( nr == 1 ) then
@@ -627,19 +549,19 @@ contains
               JIl_p = ( JI(nth,np,nr,nsa)+JI(nth,np,nr+1,nsa) )*0.5d0
             end if
 
-!            dVI = delp(ns)*delthm(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)
+            dVI = delp(ns)*delthm(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)
             Drr_ = ( Drrfow(nth,np,nr+1,nsa)/JIl_p & 
                  + Drrfow(nth,np,nr,nsa)/JIl_m )*0.5d0
-            
-!            !**** calculation of heat diffusion coef[keV*m^2/s]
-!            heatfow_l(nr,nsa) = heatfow_l(nr,nsa) &
+           
+!******** original heatfow                        
+!            heatfow_out(nr,nsa) = heatfow_out(nr,nsa) &
 !                                + (pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)) &  
-!                                * Drr_* 2.d0/3.d0*fnsp(nth,np,nr,nsa)*dVI &
+!                                * Drr_*dfdrhom(nth,np,nr,nsa)*dVI &
 !                                / (AEE*1.D3)  !****unit convert [J] to [keV]
-
-            heatfow_out(nr,nsa) = heatfow_out(nr,nsa) &
+!******* for dfdrhom is made of fnsp*dVI 
+           heatfow_out(nr,nsa) = heatfow_out(nr,nsa) &
                                 + (pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)) &  
-                                * Drr_*dfdrhom(nth,np,nr,nsa)*dVI &
+                                * Drr_* 2.d0/3.d0*dfdrhom(nth,np,nr,nsa) &
                                 / (AEE*1.D3)  !****unit convert [J] to [keV]
 
 !**** fnsp sumVI_l
@@ -647,12 +569,13 @@ contains
 !                 *(pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)*AEE*1.D3) ! AF220220
 
 !**** dfdrhom is made of fnsp*dVI
-            sumVI(nr,nsa) = sumVI(nr,nsa) + dfdrhom(nth,np,nr,nsa) &
+            sumVI(nr,nsa) = sumVI(nr,nsa) + 2.d0/3.d0*dfdrhom(nth,np,nr,nsa) &
                  *(pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)*AEE*1.D3) ! anzai[2022/3/4]
 
 !**** original sumVI
 !            sumVI(nr,nsa) = sumVI(nr,nsa) + dfdrhom(nth,np,nr,nsa)*dVI &
 !                 *(pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)*AEE*1.D3) ! AF220220
+         sumdf(nr,nsa)=sumdf(nr,nsa) + dfdrhom(nth,np,nr,nsa)
           end do
         end do
       end do
@@ -668,7 +591,115 @@ contains
     end do
 
   end subroutine integral_Heatdiff
+  
+  subroutine Heat_rw_baverage(heatrwav, heatrw)
+  !---------------------------------------------
+  ! heat diffusion coef calcul module
+  ! This module corresponds to integral_Heatdiff
+  !--------------------------------------------- 
+    
+    use fpcomm
+    use fowcomm
+    
+    implicit none
+    double precision,dimension(nrmax,nsamax),intent(out)  :: heatrw, heatrwav
+    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom, fnsp_l
+    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: Drwlocal, Drwba
+    double precision,dimension(nrmax,nsamax) :: nu, Ta, Drw
+    double precision step_len, step_time, eps_t, rho_theta, Baxis, pv, rho
+    double precision dVI, sumVI
+    integer nth, np, nr, nsa, ns
 
+    !**** initialization ****
+    Baxis = Bing(1)
+    heatrw(:,:) = 0.d0
+    heatrwav(:,:) = 0.d0
+    sumVI = 0.d0
+ !********** for new dfdrhom module [2022/3/4]
+     fnsp_l(:,:,:,:)=0.d0
+     do nsa = 1, nsamax
+       ns = ns_nsa(nsa)
+       do nr= 1, nrmax
+         do np = 1, npmax
+           if ( pm(np,ns) > fact_bulk ) exit
+           do nth = 1, nthmax
+           dVI = delp(ns)*delthm(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)
+           fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa) * dVI
+           end do
+         end do
+       end do
+     end do
+ 
+     !**** first order derivative
+     do nsa = 1, nsamax
+       do np = 1, npmax
+         do nth = 1, nthmax
+           call first_order_derivative(dfdrhom(nth,np,:,nsa), fnsp_l(nth,np,:    ,nsa), rm)
+         end do
+       end do
+     end do
+ !**** end of new dfdrhom module
+    !**** Temperature and flecency make
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/( 1.5d0*rnsl(nr,nsa)*1.d20) / AEE/1.D3
+        !**** Ta(temperature)[keV] RKEV = AEE*1.D3
+
+        nu(nr,nsa) = (1.D0/6.4D14)*rnsl(nr,nsa)*1.D20/(Ta(nr,nsa)**1.5D0)
+        nu(nr,nsa) = nu(nr, nsa)/(rm(nr)*RA/RR)*sqrt(AMFP(1)/AMFP(nsa)) 
+        !**** Effective collisional flecuency nu
+      end do
+    end do
+   
+    !**** Calculation of particle diff coef
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        eps_t = rm(nr)*RA/RR
+        do np = 1, npmax
+          step_time = 1.d0/nu(nr,nsa)
+
+          rho = pm(np,nsa)*ptfp0(nsa)/(aefp(nsa)*Baxis)
+          !****Unit [keV]
+
+          do nth = 1, nthmax
+            step_len = rho * safety_factor(nr)/sqrt(eps_t)
+            Drwlocal(nth,np,nr,nsa) = step_len**2/step_time*sqrt(eps_t)
+          end do
+        end do
+      end do
+    end do
+
+    call bounce_average_for_Drw(Drwba, Drwlocal)
+
+    !**** Heat diffusion coef calcul
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do np = 1, npmax
+          do nth = 1, nthmax
+            dVI = delp(nsa)*delthm(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)
+
+            heatrw(nr,nsa) = heatrw(nr,nsa)&
+                           + (pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)) &
+                           * Drwlocal(nth,np,nr,nsa) & 
+                           * 2.d0/3.d0*dfdrhom(nth,np,nr,nsa) &
+                           / (AEE*1.D3)  !**** Unit convert [J] to [keV]
+            heatrwav(nr,nsa) = heatrwav(nr,nsa) &
+                             + (pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)) &
+                             * Drwba(nth,np,nr,nsa) & 
+                             * 2.d0/3.d0*dfdrhom(nth,np,nr,nsa) &
+                             / (AEE*1.D3)  !****Unit convert [J] to [keV]
+
+            sumVI = sumVI + dfdrhom(nth,np,nr,nsa)&
+                  * (pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)*AEE*1.D3)
+          end do
+        end do
+        heatrw(nr, nsa)  = heatrw(nr, nsa)/sumVI
+        heatrwav(nr,nsa) = heatrwav(nr,nsa)/sumVI
+      end do
+    end do
+
+  end subroutine Heat_rw_baverage
+  
   subroutine Heatneoclass(heatba,heatpla)
     !---------------------------------------------------------------
     !subroutine for neoclassical heat flux in banana, plateau region
@@ -756,97 +787,54 @@ contains
 
   end subroutine Heatneoclass
 
-  subroutine Heat_rw_baverage(heatrwav, heatrw)
-  !---------------------------------------------
-  ! heat diffusion coef calcul module
-  ! This module corresponds to integral_Heatdiff
-  !--------------------------------------------- 
-    
+!===============================================
+! Subroutine for factor check
+!===============================================
+  subroutine check_factorneo(eps_t,cyclo_rho, dTadr,Ta,tau_ele,tau_i)
+  !-------------------------------------
+  ! calculate main factors in neoclassical theory
+  !--------------------------------------
+  
     use fpcomm
     use fowcomm
-    
+
     implicit none
-    double precision,dimension(nrmax,nsamax),intent(out)  :: heatrw, heatrwav
-    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom
-    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: Drwlocal, Drwba
-    double precision,dimension(nrmax,nsamax) :: nu, Ta, Drw
-    double precision step_len, step_time, eps_t, rho_theta, Baxis, pv, rho
-    double precision dVI, sumVI
-    integer nth, np, nr, nsa
+    double precision,dimension(nrmax,nsamax),intent(out)  :: cyclo_rho, dTadr
+    double precision,dimension(nrmax,nsamax),intent(out) :: Ta
+    double precision,dimension(nrmax),intent(out) :: eps_t, tau_ele, tau_i
+    double precision Baxis, fact
+    integer nsa, nr
 
-    !**** initialization ****
     Baxis = Bing(1)
-    heatrw(:,:) = 0.d0
-    heatrwav(:,:) = 0.d0
-    sumVI = 0.d0
-
-    do nsa = 1, nsamax
-      do np = 1, npmax
-        do nth = 1, nthmax
-           call first_order_derivative(dfdrhom(nth,np,:,nsa), &
-                fnsp(nth,np,:,nsa), rm)
-        end do
-      end do
-    end do
-
-    !**** Temperature and flecency make
+    fact = 12.d0*pi**1.5d0*EPS0**2/sqrt(2.d0)
+    !****temperature make
     do nsa = 1, nsamax
       do nr = 1, nrmax
-        Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/( 1.5d0*rnsl(nr,nsa)*1.d20) / AEE/1.D3
-        !**** Ta(temperature)[keV] RKEV = AEE*1.D3
-
-        nu(nr,nsa) = (1.D0/6.4D14)*rnsl(nr,nsa)*1.D20/(Ta(nr,nsa)**1.5D0)
-        nu(nr,nsa) = nu(nr, nsa)/(rm(nr)*RA/RR)*(AMFP(1)/AMFP(nsa)) 
-        !**** Effective collisional flecuency nu
+        Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)/AEE/1.D3
+        !Ta(temperature)[keV]
+        cyclo_rho(nr,nsa) = sqrt(Ta(nr,nsa)*RKEV/AMFP(nsa)) &
+                          * AMFP(nsa)/(AEFP(nsa)*Baxis)
+        !****Unit [J]
       end do
     end do
-   
-    !**** Calculation of particle diff coef
+
+    !****first order derivation
     do nsa = 1, nsamax
-      do nr = 1, nrmax
-        eps_t = rm(nr)*RA/RR
-        do np = 1, npmax
-          step_time = 1.d0/nu(nr,nsa)
-
-          rho = pm(np,nsa)*ptfp0(nsa)/(aefp(nsa)*Baxis)
-          !****Unit [keV]
-
-          do nth = 1, nthmax
-            step_len = rho * safety_factor(nr)/sqrt(eps_t)
-            Drwlocal(nth,np,nr,nsa) = step_len**2/step_time*sqrt(eps_t)
-          end do
-        end do
-      end do
+      call first_order_derivative(dTadr(:,nsa), Ta(:,nsa), rm)
+    !  call first_order_derivative(dndr(:,nsa), rnsl(:, nsa), rm)
     end do
 
-    call bounce_average_for_Drw(Drwba, Drwlocal)
 
-    !**** Heat diffusion coef calcul
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do np = 1, npmax
-          do nth = 1, nthmax
-            dVI = delp(nsa)*delthm(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)
-
-            heatrw(nr,nsa) = heatrw(nr,nsa)&
-                           + (pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)) &
-                           * Drwlocal(nth,np,nr,nsa) & 
-                           * dfdrhom(nth,np,nr,nsa)*dVI &
-                           / (AEE*1.D3)  !**** Unit convert [J] to [keV]
-            heatrwav(nr,nsa) = heatrwav(nr,nsa) &
-                             + (pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)) &
-                             * Drwba(nth,np,nr,nsa) & 
-                             * dfdrhom(nth,np,nr,nsa)*dVI &
-                             / (AEE*1.D3)  !****Unit convert [J] to [keV]
-
-            sumVI = sumVI + dfdrhom(nth,np,nr,nsa)*dVI &
-                  * (pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)*AEE*1.D3)
-          end do
-        end do
-        heatrw(nr, nsa)  = heatrw(nr, nsa)/sumVI
-        heatrwav(nr,nsa) = heatrwav(nr,nsa)/sumVI
-      end do
+    !**** Calculation of fators
+    do nr = 1, nrmax
+        eps_t(nr) = rm(nr)*RA/RR
+        tau_ele(nr) = fact*sqrt(AMFP(1))*((Ta(nr,1)*RKEV)**1.5d0)/ &
+             (rnsl(nr,2)*1.d20*AEFP(2)**2*AEE**2*lnlam(nr,2,1))
+        tau_i(nr)   = fact*sqrt(2.d0)*sqrt(AMFP(2))*((Ta(nr,2)*RKEV)**1.5d0)/ &
+             (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2))
+        !**** *RKEV converts [keV] to [J]
     end do
 
-  end subroutine Heat_rw_baverage
+  end subroutine check_factorneo 
+
 end module check_neoclass
