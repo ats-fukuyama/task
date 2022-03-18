@@ -397,15 +397,19 @@ CONTAINS
           yl=rays(2,nstp,nray)
           zl=rays(3,nstp,nray)
           CALL pl_mag_old(xl,yl,zl,rs1)
+          xl=rays(1,nstp+1,nray)
+          yl=rays(2,nstp+1,nray)
+          zl=rays(3,nstp+1,nray)
+          CALL pl_mag_old(xl,yl,zl,rs2)
           IF(rs1.LE.1.D0) THEN
              nrs1=INT(rs1/drs)+1
-             IF(nrs1.GT.nrsmax) nrs1=nrsmax
-             xl=rays(1,nstp+1,nray)
-             yl=rays(2,nstp+1,nray)
-             zl=rays(3,nstp+1,nray)
-             CALL PL_MAG_OLD(xl,yl,zl,rs2)
-             nrs2=int(rs2/drs)+1
+             nrs2=INT(rs2/drs)+1
+             IF(nrs1.GT.nrsmax) THEN
+                nrs1=nrsmax
+                IF(nrs2.GT.nrsmax) EXIT
+             ENDIF
              IF(nrs2.GT.nrsmax) nrs2=nrsmax
+                   
              ndrs=ABS(nrs2-nrs1)
              IF(ndrs.EQ.0) THEN
                 pwr_nrs_nray(nrs1,nray)=pwr_nrs_nray(nrs1,nray) &
