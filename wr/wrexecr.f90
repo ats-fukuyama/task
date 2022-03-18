@@ -77,12 +77,13 @@ CONTAINS
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
     INTEGER,INTENT(OUT):: NNSTP
     REAL(rkind):: YM(NEQ),WORK(2,NEQ)
-    INTEGER:: NSTPLIM,NSTP,I
-    REAL(rkind):: X0,XE,RHON,PW
+    INTEGER:: NSTPLIM,NSTPMIN,NSTP,I
+    REAL(rkind):: X0,XE,RHON,PW,R
 
     X0 = 0.D0
     XE = DELS
     NSTPLIM=INT(SMAX/DELS)
+    NSTPMIN=INT(0.1D0*SMAX/DELS)
 
     NSTP=0
     YN(0,NSTP)=X0
@@ -111,7 +112,13 @@ CONTAINS
        X0=XE
        XE=X0+DELS
 
-       IF(Y(7).LT.UUMIN) THEN
+       R=SQRT(Y(1)**2+Y(2)**2)
+       IF(Y(7).LT.UUMIN.OR. &
+         (NSTP.GT.NSTPMIN.AND. &
+         (R.GT.RR+1.1D0*RB.OR. &
+          R.LT.RR-1.1D0*RB.OR. &
+          Y(3).GT. RKAP*1.1D0*RB.OR. &
+          Y(3).LT.-RKAP*1.1D0*RB))) THEN
           NNSTP = NSTP
           GOTO 11
        ENDIF
@@ -145,14 +152,15 @@ CONTAINS
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
     INTEGER,INTENT(OUT):: NNSTP
     REAL(rkind):: YM(NEQ),WORK(2,NEQ),YK(3)
-    INTEGER:: NSTPLIM,NSTP,I
-    REAL(rkind):: X0,XE,OMG,PW,DELTA,RHON
+    INTEGER:: NSTPLIM,NSTPMIN,NSTP,I
+    REAL(rkind):: X0,XE,OMG,PW,DELTA,RHON,R
 
     OMG=2.D6*PI*RF
 
     X0 = 0.D0
     XE = DELS
     NSTPLIM=MIN(INT(SMAX/DELS),NSTPMAX)
+    NSTPMIN=INT(0.1D0*SMAX/DELS)
 
     NSTP=0
     YN(0,NSTP)=X0
@@ -188,7 +196,13 @@ CONTAINS
        ENDDO
        X0=XE
        XE=X0+DELS
-       IF(Y(7).LT.UUMIN) THEN
+       R=SQRT(Y(1)**2+Y(2)**2)
+       IF(Y(7).LT.UUMIN.OR. &
+         (NSTP.GT.NSTPMIN.AND. &
+         (R.GT.RR+1.1D0*RB.OR. &
+          R.LT.RR-1.1D0*RB.OR. &
+          Y(3).GT. RKAP*1.1D0*RB.OR. &
+          Y(3).LT.-RKAP*1.1D0*RB))) THEN
           NNSTP = NSTP
           GOTO 11
        ENDIF
@@ -221,12 +235,13 @@ CONTAINS
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
     INTEGER,INTENT(OUT):: NNSTP
     REAL(rkind):: YM(NEQ),WORK(2,NEQ)
-    INTEGER:: NSTPLIM,NSTP,I
-    REAL(rkind):: X0,XE,PW,RHON
+    INTEGER:: NSTPLIM,NSTPMIN,NSTP,I
+    REAL(rkind):: X0,XE,PW,RHON,R
 
     X0 = 0.D0
     XE = DELS     
     NSTPLIM=INT(SMAX/DELS)
+    NSTPMIN=INT(0.1D0*SMAX/DELS)
     
     NSTP=0
     YN(0,NSTP)=X0
@@ -255,7 +270,13 @@ CONTAINS
        X0=XE
        XE=X0+DELS
 
-       IF(Y(7).LT.UUMIN) THEN
+       R=SQRT(Y(1)**2+Y(2)**2)
+       IF(Y(7).LT.UUMIN.OR. &
+         (NSTP.GT.NSTPMIN.AND. &
+         (R.GT.RR+1.1D0*RB.OR. &
+          R.LT.RR-1.1D0*RB.OR. &
+          Y(3).GT. RKAP*1.1D0*RB.OR. &
+          Y(3).LT.-RKAP*1.1D0*RB))) THEN
           NNSTP = NSTP
           GOTO 11
        ENDIF
@@ -289,14 +310,15 @@ CONTAINS
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
     INTEGER,INTENT(OUT):: NNSTP
     REAL(rkind):: YM(NEQ),WORK(2,NEQ),YK(3),F(NEQ)
-    REAL(rkind):: X0,XE,OMG,OXEFF,RHON,PW,RL,RKRL,DELTA
-    INTEGER:: NSTPLIM,NSTP,I,IOX
+    REAL(rkind):: X0,XE,OMG,OXEFF,RHON,PW,RL,RKRL,DELTA,R
+    INTEGER:: NSTPLIM,NSTPMIN,NSTP,I,IOX
 
     OMG=2.D6*PI*RF
     
     X0 = 0.D0
     XE = DELS
     NSTPLIM=INT(SMAX/DELS)
+    NSTPMIN=INT(0.1D0*SMAX/DELS)
     
     NSTP=0
     YN(0,NSTP)=X0
@@ -350,7 +372,13 @@ CONTAINS
        X0=XE
        XE=X0+DELS
        
-       IF(Y(7).LT.UUMIN) THEN
+       R=SQRT(Y(1)**2+Y(2)**2)
+       IF(Y(7).LT.UUMIN.OR. &
+         (NSTP.GT.NSTPMIN.AND. &
+         (R.GT.RR+1.1D0*RB.OR. &
+          R.LT.RR-1.1D0*RB.OR. &
+          Y(3).GT. RKAP*1.1D0*RB.OR. &
+          Y(3).LT.-RKAP*1.1D0*RB))) THEN
           NNSTP = NSTP
           GOTO 11
        ENDIF
@@ -379,8 +407,8 @@ CONTAINS
     REAL(rkind),INTENT(INOUT):: Y(NEQ)
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
     INTEGER,INTENT(OUT):: NNSTP
-    INTEGER:: NSTPLIM,NSTP,INIT,NDE,IER,I
-    REAL(rkind):: RELERR,ABSERR,X0,XE,WORK0,PW,YM(NEQ),RHON
+    INTEGER:: NSTPLIM,NSTPMIN,NSTP,INIT,NDE,IER,I
+    REAL(rkind):: RELERR,ABSERR,X0,XE,WORK0,PW,YM(NEQ),RHON,R
     REAL(rkind):: ESTERR(NEQ),WORK1(NEQ),WORK2(NEQ),WORK3(NEQ),WORK4(NEQ,11)
 
     RELERR = EPSRAY
@@ -390,6 +418,7 @@ CONTAINS
     X0 = 0.D0
     XE = DELS     
     NSTPLIM=INT(SMAX/DELS)
+    NSTPMIN=INT(0.1D0*SMAX/DELS)
 
     NSTP=0
     YN(0,NSTP)=X0
@@ -423,7 +452,13 @@ CONTAINS
        X0=XE
        XE=X0+DELS
        
-       IF(Y(7).LT.UUMIN) THEN
+       R=SQRT(Y(1)**2+Y(2)**2)
+       IF(Y(7).LT.UUMIN.OR. &
+         (NSTP.GT.NSTPMIN.AND. &
+         (R.GT.RR+1.1D0*RB.OR. &
+          R.LT.RR-1.1D0*RB.OR. &
+          Y(3).GT. RKAP*1.1D0*RB.OR. &
+          Y(3).LT.-RKAP*1.1D0*RB))) THEN
           NNSTP = NSTP
           GOTO 8000
        ENDIF
@@ -458,10 +493,11 @@ CONTAINS
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
     INTEGER,INTENT(OUT):: NNSTP
     REAL(rkind):: X,F(NEQ)
-    INTEGER:: NSTPLIM,NLPMAX,NSTP,I,NLP,IERR
-    REAL(rkind):: EPS,PW,ERROR,RHON
+    INTEGER:: NSTPLIM,NSTPMIN,NLPMAX,NSTP,I,NLP,IERR
+    REAL(rkind):: EPS,PW,ERROR,RHON,R
 
     NSTPLIM=INT(SMAX/DELS)
+    NSTPMIN=INT(0.1D0*SMAX/DELS)
     NLPMAX=10
     EPS=1.D-6
 
@@ -496,7 +532,13 @@ CONTAINS
 
        CALL wr_write_line(NSTP,X,Y,YN(8,NSTP))
 
-       IF(Y(7).LT.UUMIN) THEN
+       R=SQRT(Y(1)**2+Y(2)**2)
+       IF(Y(7).LT.UUMIN.OR. &
+         (NSTP.GT.NSTPMIN.AND. &
+         (R.GT.RR+1.1D0*RB.OR. &
+          R.LT.RR-1.1D0*RB.OR. &
+          Y(3).GT. RKAP*1.1D0*RB.OR. &
+          Y(3).LT.-RKAP*1.1D0*RB))) THEN
           NNSTP = NSTP
           GOTO 11
        ENDIF
