@@ -401,7 +401,7 @@ CONTAINS
           yl=rays(2,nstp+1,nray)
           zl=rays(3,nstp+1,nray)
           CALL pl_mag_old(xl,yl,zl,rs2)
-          IF(rs1.LE.1.D0) THEN
+          IF(rs1.LE.1.D0.OR.rs1.LE.1.D0) THEN
              nrs1=INT(rs1/drs)+1
              nrs2=INT(rs2/drs)+1
              IF(nrs1.GT.nrsmax) THEN
