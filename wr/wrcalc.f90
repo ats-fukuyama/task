@@ -116,16 +116,13 @@ CONTAINS
           ELSE IF(MODEW.EQ.-2) THEN
              RKR0=RKR0_22
           END IF
-          WRITE(6,'(A,I6,ES12.4)') 'MODEW,RKR0=',modew,rkr0
        END IF
-       WRITE(6,'(A,I6,ES12.4)') 'MODEW,RKR0=',modew,rkr0
 
        RKRI  = RKR0
        RKZI  = 2.D6*PI*RF*RNZI  /VC
        RKPHII= 2.D6*PI*RF*RNPHII/VC
        CALL WRNWTN(IERR)  ! input RKR0,RKZI,RKPHII; output RKRI
        IF(IERR.NE.0) cycle
-       WRITE(6,'(A,I6,ES12.4)') 'IERR,RKRI=',ierr,rkri
 
        CALL wr_execr(NRAY,IERR)
        IF(IERR.NE.0) cycle
