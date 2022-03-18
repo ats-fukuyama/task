@@ -4,11 +4,12 @@ MODULE femmeshprep
 
   USE wfcomm,ONLY: rkind,long
   LOGICAL:: fem_mesh_allocated=.FALSE.
-  INTEGER(long):: nseg_max,nside_max
-  INTEGER(long):: nelm_node_max
+  INTEGER(long):: nseg_max
+  INTEGER:: nside_max
+  INTEGER:: nelm_node_max
   REAL(rkind):: xnode_min,xnode_max,ynode_min,ynode_max
   REAL(rkind):: vol_tot
-  INTEGER(long),ALLOCATABLE:: nside_max_nelm(:)
+  INTEGER,ALLOCATABLE:: nside_max_nelm(:)
   REAL(rkind),ALLOCATABLE:: xcenter_nelm(:),ycenter_nelm(:)
   REAL(rkind),ALLOCATABLE:: vol_nelm(:)
   REAL(rkind),ALLOCATABLE:: xcenter_nseg(:),ycenter_nseg(:)
@@ -16,7 +17,7 @@ MODULE femmeshprep
   INTEGER(long),ALLOCATABLE:: idir_nside_nelm(:,:),idseg_nseg(:)
   INTEGER(long),ALLOCATABLE:: nseg_nside_nelm(:,:)
   INTEGER(long),ALLOCATABLE:: nelm1_nside_nelm(:,:),nside1_nside_nelm(:,:)
-  INTEGER(long),ALLOCATABLE:: nelm_nangle_node(:,:),nelm_max_node(:)
+  INTEGER,ALLOCATABLE:: nelm_nangle_node(:,:),nelm_max_node(:)
 
 ! --- prepartion of mesh related variables ---
 
@@ -29,7 +30,8 @@ CONTAINS
          nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
          xnode=>rnode,ynode=>znode
     IMPLICIT NONE
-    INTEGER,SAVE:: nseg_max_save=0,nside_max_save=0,nelm_max_save=0
+    INTEGER(long),SAVE:: nseg_max_save=0
+    INTEGER,SAVE:: nside_max_save=0,nelm_max_save=0
 
     IF(fem_mesh_allocated) THEN
        IF((nseg_max .EQ.nseg_max_save ).AND. &
@@ -90,20 +92,20 @@ CONTAINS
          nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
          xnode=>rnode,ynode=>znode
     IMPLICIT NONE
-    INTEGER,ALLOCATABLE:: node_nsega(:,:),nsega_nside_nelm(:,:)
-    INTEGER,ALLOCATABLE:: nsega_pair(:),nsega_nseg(:),nseg_nsega(:)
+    INTEGER(LONG),ALLOCATABLE:: node_nsega(:,:),nsega_nside_nelm(:,:)
+    INTEGER(LONG),ALLOCATABLE:: nsega_pair(:),nsega_nseg(:),nseg_nsega(:)
     INTEGER,ALLOCATABLE:: ncount_max_nxzone_nyzone(:,:)
-    INTEGER,ALLOCATABLE:: nsega_ncount_nxzone_nyzone(:,:,:)
+    INTEGER(LONG),ALLOCATABLE:: nsega_ncount_nxzone_nyzone(:,:,:)
     INTEGER,ALLOCATABLE:: nelm_nsega(:),nside_nsega(:)
     REAL(rkind),ALLOCATABLE:: xcenter_nsega(:),ycenter_nsega(:)
-    INTEGER:: nseg_all
-    INTEGER:: nelm,nseg,nside,n1,n2,n3
-    INTEGER:: nseg1,nsega,nelm1,nelm2,nside1,k
+    INTEGER(long):: nseg_all,nseg,nsega,nsega1
+    INTEGER:: nelm,nside,n1,n2,n3
+    INTEGER:: nelm1,nside1
     INTEGER:: node,ncount,ncount_zone_max
-    INTEGER:: nsega1,nx,ny
+    INTEGER:: nx,ny
     REAL(rkind):: x,y,xc,yc,xc1,yc1,xlen_zone,ylen_zone
     REAL(rkind):: x1,y1,x2,y2,x3,y3,xg,yg,s,v,xgsum,ygsum,vsum
-    REAL(rkind):: sfactor,vfactor,weight,xce,yce,xcs,ycs,dl,ds,xn,yn
+    REAL(rkind):: sfactor,vfactor
 
     nxzone_max=100
     nyzone_max=100

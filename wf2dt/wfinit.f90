@@ -269,9 +269,9 @@ CONTAINS
 
 !     *** GRAPHICS PARAMETER ***
 
-    NGXMAX = 31
-    NGYMAX = 31
-    NGVMAX = 31  
+    NGXMAX = 101
+    NGYMAX = 101
+    NGVMAX = 101  
 
     GFACTOR= 0.5
 

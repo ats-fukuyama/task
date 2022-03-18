@@ -42,6 +42,8 @@ CONTAINS
     REAL(rkind),dimension(npmax+1,nsamax) :: momg
     REAL(rkind),dimension(nthmax,npmax,nrmax,nsamax) :: taup, r0
     REAL(rkind),dimension(nrmax,nsamax) :: Drhmrhm,Drw,Drwav,nud_mono,Dbanana
+    REAL(rkind),dimension(nrmax,nsamax) :: Dnewba,Dnewpla
+    REAL(rkind),dimension(nrmax,nsamax) :: jaceffect,heatfow,heatnewba,heatrw
     integer :: nth,np,nr,nsa
 
     IF(nthmax.NE.nthmax_save.OR. &
@@ -149,13 +151,22 @@ CONTAINS
        call fptxt4D(Fcpp,"dat/Fpp_fp.txt")
        call fptxt4D(Fcth,"dat/Fth_fp.txt")
 
-       call fow_evaluate_NC(Drhmrhm,Drw,Drwav,Dbanana,nud_mono)
+       CALL fow_evaluate_NC(Drhmrhm,Drw,Drwav,Dbanana,nud_mono, &
+                            heatrw,heatrwav)
        
-       call fptxt2D(Drhmrhm,"dat/Drhmrhm.txt")
-       call fptxt2D(Drw,"dat/Drw.txt")
-       call fptxt2D(Drwav,"dat/Drwav.txt")
-       call fptxt2D(Dbanana,"dat/Dbanana.txt")
-       call fptxt2D(nud_mono,"dat/nud_mono.txt")
+       CALL fptxt2D(Drhmrhm,"dat/Drhmrhm.txt")
+       CALL fptxt2D(heatfow, "dat/heatfow.txt")![2022/2/19] edited by anzai
+
+       CALL fptxt2D(Drw,"dat/Drw.txt")
+       CALL fptxt2D(Drwav,"dat/Drwav.txt")
+!       CALL fptxt2D(nud_mono,"dat/nud_mono.txt")
+!       CALL fptxt2D(Dbanana,"dat/Dbanana.txt")
+       CALL fptxt2D(Dnewba, "dat/Dnewba.txt") ![2022/1/31] edited by anzai
+       CALL fptxt2D(Dnewpla, "dat/Dnewpla.txt") ![2022/1/31] edited by anzai
+!       CALL fptxt2D(jaceffect, "dat/jaceffect.txt")![2022/2/5] edited by anzai
+       CALL fptxt2D(heatnewba, "dat/heatnewba.txt")![2022/2/19] edited by anzai
+       CALL fptxt2D(heatrw, "dat/heatrw.txt")![2022/2/23] edited by anzai
+       CALL fptxt2D(heatrwav, "dat/heatrwav.txt")![2022/2/23] edited by anzai
 
        CALL fow_ob_classify
 

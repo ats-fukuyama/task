@@ -34,7 +34,7 @@ SUBROUTINE CVSOLV
   use libmtx
   use libqsort
   implicit none
-  integer :: ISD,NSD,nnd,nnd1,nnd2,nv_old
+  integer :: ISD,NSD,nnd,nnd1,nnd2
   integer :: NE,NN,nv,nvmax
   integer :: I,J,KK,LL
   integer :: JNSD,JNN,INSD,INN
@@ -48,6 +48,7 @@ SUBROUTINE CVSOLV
   real :: cputime1,cputime2
   real(rkind) :: x,y,val
   complex(rkind):: CEB
+  INTEGER:: nv_old
   complex(rkind),dimension(:),ALLOCATABLE :: CRVP,CEQP
   integer(long),dimension(:),ALLOCATABLE :: NSEQ
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: VAL_SORT
@@ -349,6 +350,7 @@ SUBROUTINE CVSOLV
      LL=0
      DO J=1,6
         ORIENTJ=1
+        CEB=(0.D0,0.D0)
         if(J.ge.1.and.J.le.3) then
            JNSD=NSDELM(J,NE)
            if(JNSD.lt.0) then

@@ -8,18 +8,18 @@ MODULE WRGOUT
   PUBLIC wr_gout
 
   INTEGER,PARAMETER:: nlmax_p=10
-  REAL(rkind),PARAMETER:: line_rgb_nlmax(3,nlmax_p) &
-       =RESHAPE([1.0D0,0.0D0,0.0D0, &
-                 1.0D0,0.5D0,0.0D0, &
-                 1.0D0,0.8D0,0.0D0, &
-                 0.5D0,0.8D0,0.0D0, &
-                 0.2D0,0.8D0,0.0D0, &
-                 0.0D0,0.8D0,0.2D0, &
-                 0.0D0,0.8D0,0.5D0, &
-                 0.0D0,0.8D0,1.0D0, &
-                 0.0D0,0.5D0,1.0D0, &
-                 0.0D0,0.0D0,1.0D0],[3,10])
-  INTEGER,PARAMETER:: line_pat_nlmax(nlmax_p)=[ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+!  REAL(rkind),PARAMETER:: line_rgb_nlmax(3,nlmax_p) &
+!       =RESHAPE([1.0D0,0.0D0,0.0D0, &
+!                 1.0D0,0.5D0,0.0D0, &
+!                 1.0D0,0.8D0,0.0D0, &
+!                 0.5D0,0.8D0,0.0D0, &
+!                 0.2D0,0.8D0,0.0D0, &
+!                 0.0D0,0.8D0,0.2D0, &
+!                 0.0D0,0.8D0,0.5D0, &
+!                 0.0D0,0.8D0,1.0D0, &
+!                 0.0D0,0.5D0,1.0D0, &
+!                 0.0D0,0.0D0,1.0D0],[3,10])
+!  INTEGER,PARAMETER:: line_pat_nlmax(nlmax_p)=[ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
     
   
 CONTAINS
@@ -43,6 +43,7 @@ CONTAINS
     
     IF(MODELG.EQ.11) THEN
        CALL WRGRF11A
+       CALL WRGRF11B
        RETURN
     END IF
 
@@ -103,14 +104,14 @@ CONTAINS
     REAL:: GUX(NSTPMAX+1),GUY(NSTPMAX+1)
     REAL:: GPX(nrsmax),GPY(nrsmax,NRAYMAX)
     REAL:: GCF(NGXL,NGYL),GCX(NGXL),GCY(NGYL)
-    INTEGER:: KA(4,NGXL,NGYL)
+    INTEGER,ALLOCATABLE:: KA(:,:,:)
     TYPE(pl_mag_type):: MAG
     INTEGER:: NSU,NSUMAX,NGX,NGY,NRAY,NSTP
     INTEGER:: ID,NRS
     REAL:: GRSMIN,GRSMAX,GRMIN,GRMAX,GRSTEP,GRORG,GRLEN
     REAL:: GZSMIN,GZSMAX,GZMIN,GZMAX,GZSTEP,GZLEN
     REAL:: GRMID,GZMID
-    REAL:: GYSMIN,GYSMAX1,GYSCAL1,GYSMAX2,GYSCAL2,GYSMAX,GYSCAL
+    REAL:: GYSMIN,GYSMAX,GYSCAL
     REAL:: GXMIN,GXMAX,GXSTEP,GYMIN,GYMAX,GXORG,GZSCAL
     REAL(rkind):: DGX,DGY,ZL,RL,RHON,XL,YL
     REAL(rkind):: RFL,wwl,wce
@@ -120,7 +121,9 @@ CONTAINS
     INTEGER:: NGULEN
     REAL:: GUCLIP
 
-!  ----- PLASMA BOUNDARY -----
+    ALLOCATE(KA(4,NGXL,NGYL))
+
+    !  ----- PLASMA BOUNDARY -----
 
     ALLOCATE(RSU(NSUM),ZSU(NSUM))
     CALL PL_RZSU(RSU,ZSU,NSUM,NSUMAX)
@@ -210,7 +213,7 @@ CONTAINS
              wce=AEE*mag%BABS/AME
              wwl=2.D0*PI*RFL*1.D6
              GCF(NGX,NGY)=GUCLIP(wwl/wce)
-             IF(NGX.EQ.NGXL/2.AND.NGY.EQ.NGYL) THEN
+             IF(NGX.EQ.(NGXL+1)/2.AND.NGY.EQ.NGYL) THEN
                 WRITE(6,'(A,1P5E12.4)') 'www/wce:',RL,ZL,wwl,wce,wwl/wce
              END IF
           ENDDO
@@ -912,10 +915,10 @@ CONTAINS
     INTEGER,PARAMETER:: nang_max=100
     TYPE(pl_mag_type):: mag
     TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
-    INTEGER:: nray,nres,nstp,nc,nang,line_pat,ngid,ierr,nres_ncount
+    INTEGER:: nray,nres,nstp,nc,nang,line_pat,ngid,ierr
     INTEGER:: nstp_nres(nres_max)
     REAL:: rgb_nres(3,nres_max)
-    REAL(rkind):: pvtmax,dang,pl,plmax,omega,xl,yl,zl,rhon,babs,omegace
+    REAL(rkind):: pvtmax,dang,omega,xl,yl,zl,rhon,babs,omegace
     REAL(rkind):: ptpr_e,ptpp_e,rkpara,rkperp,rnpara,pc_org,temp
     REAL(rkind):: pc_para,pc_perp,pte,vte,pvt_org,pvt_para,pvt_perp,ang
     CHARACTER(LEN=46):: title
@@ -1014,9 +1017,10 @@ CONTAINS
     INTEGER:: nstp_nres(nres_max)
     REAL:: rgb_nres(3,nres_max)
     REAL(rkind):: level_nres(nres_max),level_nstp(nstpmax)
-    REAL(rkind):: pwmax,pw,pf,rlen,del_nres,pf_init,pf_last,pf_abs
+    REAL(rkind):: pwmax,pw,rlen,del_nres,pf_init,pf_last,pf_abs
     INTEGER:: nstp_pwmax,nstp,nres
-    REAL:: level,factor,GUCLIP
+    REAL(rkind):: level,factor
+    REAL:: GUCLIP
 
     ierr=0
 
@@ -1126,21 +1130,21 @@ CONTAINS
           factor=level/0.1
           rgb_nres(1,nres)=0.0
           rgb_nres(2,nres)=0.0
-          rgb_nres(3,nres)=factor
+          rgb_nres(3,nres)=GUCLIP(factor)
        ELSE IF(level.LT.0.5) THEN
           factor=(level-0.1)/0.4
-          rgb_nres(1,nres)=factor
+          rgb_nres(1,nres)=GUCLIP(factor)
           rgb_nres(2,nres)=0.0
-          rgb_nres(3,nres)=1.0-factor
+          rgb_nres(3,nres)=1.0-GUCLIP(factor)
        ELSE IF(level.LE.0.9D0) THEN
           factor=(level-0.5)/0.4
-          rgb_nres(1,nres)=1.0-factor
-          rgb_nres(2,nres)=factor
+          rgb_nres(1,nres)=1.0-GUCLIP(factor)
+          rgb_nres(2,nres)=GUCLIP(factor)
           rgb_nres(3,nres)=0.0
        ELSE
-          factor=(level-0.9)/0.1
+          factor=(GUCLIP(level)-0.9)/0.1
           rgb_nres(1,nres)=0.0
-          rgb_nres(2,nres)=1.0-factor
+          rgb_nres(2,nres)=1.0-GUCLIP(factor)
           rgb_nres(3,nres)=0.0
        END IF
     END DO
@@ -1162,7 +1166,7 @@ CONTAINS
     CHARACTER(LEN=20):: title
     INTEGER,parameter:: nang_max=50
     INTEGER:: n,ngid,nray,i,nstp,nc,line_pat,nang,ierr
-    REAL(rkind):: dang,rhon,pt0,vt0c,omega,xl,yl,zl,omegac,pt
+    REAL(rkind):: dang,rhon,pt0,vt0c,omega,xl,yl,zl,omegac
     REAL(rkind):: rkpara,rkperp,rnpara,pc_org,pc_rad2,pc_rad,pv_org,pv_rad
     REAL(rkind):: ang,x,y
     INTEGER:: nstp_nray(2,nraymax)

@@ -1192,8 +1192,7 @@ CONTAINS
 
 
 !        ****** EPH'(0) = 0 FOR MM.EQ.0 ******
-!                           IF(MM.EQ.0 .and. &
-!                                CMAF(3,3,-MDMIN+1,-NDMIN+1,1) .NE.0 ) THEN
+
                            IF(MM.EQ.0) THEN
                       
                               LBND=MCENT-3*KD*MDSIZ-3*LD-1
@@ -1253,6 +1252,7 @@ CONTAINS
                               CEMP(LBND+ID+2,NKX,MLX,2) &
                                    =CEMP(LBND+ID+2,NKX,MLX,2) &
                                    +CEMP(LBND-ID+2,NKX,MLX,2)*A2
+
                               LBND=MCENT-3*KD*MDSIZ-3*LD-3
 
                               CEMP(LBND   +2,NKX,MLX,3) &
@@ -1270,7 +1270,7 @@ CONTAINS
          ENDDO
       ENDIF
 
-!        ****** ETH = 0, EPH =0 AT R=RA ******
+!        ****** ETH = 0, EPH =0 AT R=RB ******
 
       IF(NR.EQ.NRMAX) THEN
 
@@ -1284,7 +1284,7 @@ CONTAINS
                ENDDO
                CEMP(MCENT,NDX,MDX,2)= 1.D0
                CEMP(MCENT,NDX,MDX,3)= 1.D0
-               CFVP(NDX,MDX,1)= 0.D0
+!               CFVP(NDX,MDX,1)= 0.D0 ! corrected on 2022-03-08
                CFVP(NDX,MDX,2)= CEWALL(2,MDX,NDX)
                CFVP(NDX,MDX,3)= CEWALL(3,MDX,NDX)
 

@@ -798,8 +798,6 @@ SUBROUTINE CMCALCS(NE)
                           +CII*RKZ*RR &
                            *(-ZN*(-CW(J)+BW(J)*R(K)) &
                              -RN*( AW(J)-BW(J)*Z(K)))*L(ISD)*AIE2(J,K)
-                    WRITE(21,'(A,I10,3I5,1P4E12.4)') &
-                         'CM:',NE,I,J+3,K,CM(I,J+3),CM(I,J+3)-CTEMP
               END DO
            CASE(1:10,13)
               DO K1=1,2
@@ -826,8 +824,6 @@ SUBROUTINE CMCALCS(NE)
                     CM(I+3,J+3)=CM(I+3,J+3) &
                                +(RN*B(J)+ZN*C(J))*RR &
                                 *L(ISD)*AIE3(I,J,K)
-                    WRITE(21,'(A,I10,3I5,1P4E12.4)') &
-                         'CM:',NE,I+3,J+3,K,CM(I+3,J+3),CM(I+3,J+3)-CTEMP
                  END DO
               CASE(1:10,13)
                  DO K1=1,2
@@ -980,13 +976,19 @@ SUBROUTINE CMCALCP(NE)
   return
 END SUBROUTINE CMCALCP
 
-!     ******* ELECTRIC FIELD CALCULATION *******
+!     ******* ELECTRIC AND MAGNETIC FIELD CALCULATION *******
 
 SUBROUTINE CALFLD
 
   use wfcomm
   implicit none
-  integer :: NN,NSD,NV
+  integer :: NN,NSD,NV,NE,NSIDE,ND1,ND2,NBSD,I
+  REAL(rkind):: RW,DX,DY,PF1,PF2,PFLUX,S
+  INTEGER:: NSDA(3)
+  REAL(rkind):: LSD(3),A(3),B(3),C(3)
+  COMPLEX(rkind):: CESUM,CEN(3)
+
+  RW=2.D0*PI*RF*1.D6
 
   DO NSD=1,NSDMAX
      CESD(NSD)=(0.d0,0.d0)
@@ -1019,9 +1021,136 @@ SUBROUTINE CALFLD
      else
         CEND(NN)=CSV(NV)
      end if
-!     if(nrank.eq.0) write(6,*) NN,CEND(NN),KANOD(NN)
   END DO
- 
+
+  ! --- calculate B-field in a element ---
+
+  DO NE=1,NEMAX
+     CESUM=(0.D0,0.D0)
+     DO NSIDE=1,3
+        NSD=ABS(NSDELM(NSIDE,NE))
+        IF(NSDELM(NSIDE,NE).GT.0) THEN
+           CESUM=CESUM+CESD(NSD)*LSID(NSD)
+        ELSE
+           CESUM=CESUM-CESD(NSD)*LSID(NSD)
+        END IF
+     END DO
+     CBELM(NE)=CESUM/(-CI*RW*SELM(NE))
+  END DO
+
+  ! --- calculate B-field parallel to a side ---
+  
+  DO NE=1,NEMAX
+     CALL WFABC(NE,A,B,C)
+     S=SELM(NE)
+     DO I=1,3
+        NSDA(I)=ABS(NSDELM(I,NE))
+        LSD(I)=LSID(NSDA(I))
+        CEN(I)=CEND(NDELM(I,NE))
+     END DO
+     DO I=1,3
+        CBSD(NSDA(I))=-2.D0*S/(CI*RW*LSD(I)) &
+             *(CEN(1)*(B(1)*B(I)+C(1)*C(I)) &
+              +CEN(2)*(B(2)*B(I)+C(2)*C(I)) &
+              +CEN(3)*(B(3)*B(I)+C(3)*C(I)))
+        IF(NSDELM(I,NE).NE.0) CBSD(NSDA(I))=-CBSD(NSDA(I))
+     END DO
+  END DO
+
+  ! --- calculate power flux across a side (CESD*CBELM) ---
+  
+  PFLUXSD(1:NSDMAX)=0.D0
+  PFLUXSDX(1:NSDMAX)=0.D0
+  PFLUXSDY(1:NSDMAX)=0.D0
+  DO NE=1,NEMAX
+     DO NSIDE=1,3
+        NSD=ABS(NSDELM(NSIDE,NE))
+        ND1=NDSID(1,NSD)
+        ND2=NDSID(2,NSD)
+        DX=RNODE(ND2)-RNODE(ND1)
+        DY=ZNODE(ND2)-ZNODE(ND1)
+        DX=DX/SQRT(DX**2+DY**2)
+        DY=DY/SQRT(DX**2+DY**2)
+        IF(NSDELM(NSIDE,NE).GT.0) THEN ! positive direction
+           IF(KASID(NSD).EQ.1) THEN ! boundary side
+              PFLUX=REAL(DCONJG(CESD(NSD))*CBELM(NE))*LSID(NSD)/RMU0
+           ELSE
+              PFLUX=0.5D0*REAL(DCONJG(CESD(NSD))*CBELM(NE))*LSID(NSD)/RMU0
+           END IF
+        ELSE                           ! negative direction
+           IF(KASID(NSD).EQ.1) THEN ! boundary side
+              PFLUX=-REAL(DCONJG(CESD(NSD))*CBELM(NE))*LSID(NSD)/RMU0
+           ELSE
+              PFLUX=-0.5D0*REAL(DCONJG(CESD(NSD))*CBELM(NE))*LSID(NSD)/RMU0
+           END IF
+        END IF
+        PFLUXSDX(NSD)=PFLUXSDX(NSD)-PFLUX*DY
+        PFLUXSDY(NSD)=PFLUXSDX(NSD)+PFLUX*DX
+        PFLUXSD(NSD)=PFLUXSD(NSD)+PFLUX
+        IF(KASID(NSD).NE.0) PFLUXBDY(KBSID(NSD))=PFLUXBDY(KBSID(NSD))+PFLUX
+     END DO
+  END DO
+
+  ! --- calculate power flux across a side (CEND*CBSD) ---
+
+  PFLUXND(1:NSDMAX)=0.D0
+  PFLUXNDX(1:NNMAX)=0.D0
+  PFLUXNDY(1:NNMAX)=0.D0
+  DO NE=1,NEMAX
+     DO NSIDE=1,3
+        NSD=ABS(NSDELM(NSIDE,NE))
+        ND1=NDSID(1,NSD)
+        ND2=NDSID(2,NSD)
+        DX=RNODE(ND2)-RNODE(ND1)
+        DY=ZNODE(ND2)-ZNODE(ND1)
+        DX=DX/SQRT(DX**2+DY**2)
+        DY=DY/SQRT(DX**2+DY**2)
+        IF(NSDELM(NSIDE,NE).GT.0) THEN ! positive direction
+           PF1=0.5D0*REAL(DCONJG(CEND(ND1))*CBSD(NSD))*LSID(NSD)/RMU0
+           PF2=0.5D0*REAL(DCONJG(CEND(ND2))*CBSD(NSD))*LSID(NSD)/RMU0
+        ELSE
+           PF1=-0.5D0*REAL(DCONJG(CEND(ND1))*CBSD(NSD))*LSID(NSD)/RMU0
+           PF2=-0.5D0*REAL(DCONJG(CEND(ND2))*CBSD(NSD))*LSID(NSD)/RMU0
+        END IF
+        PFLUXNDX(ND1)=PFLUXNDX(ND1)-PF1*DY
+        PFLUXNDY(ND1)=PFLUXNDY(ND1)+PF1*DX
+        PF2=0.5D0*REAL(DCONJG(CEND(ND2))*CBSD(NSD))*LSID(NSD)/RMU0
+        PFLUXNDX(ND2)=PFLUXNDX(ND2)-PF2*DY
+        PFLUXNDY(ND2)=PFLUXNDY(ND2)+PF2*DX
+        PFLUXND(NSD)=PFLUXND(NSD)+PF1+PF2
+     END DO
+  END DO
+
+  PFLUXX(1:NNMAX)=PFLUXNDX(1:NNMAX)
+  PFLUXY(1:NNMAX)=PFLUXNDY(1:NNMAX)
+  DO NSD=1,NSDMAX
+     ND1=NDSID(1,NSD)
+     ND2=NDSID(2,NSD)
+     PFLUXX(ND1)=PFLUXX(ND1)+PFLUXSDX(NSD)
+     PFLUXY(ND1)=PFLUXY(ND1)+PFLUXSDY(NSD)
+  END DO
+
+  WRITE(6,'(A)') 'PFLUXBDY:'
+
+  PFLUXBDY(1:NBSID)=0.D0
+  PFLUX=0.D0
+  DO NSD=1,NSDMAX
+     IF(KASID(NSD).NE.0) THEN
+        NBSD=KBSID(NSD)
+        PFLUXBDY(NBSD)=PFLUXBDY(NBSD) &
+             +PFLUXSD(NSD)+PFLUXND(NSD)
+        PFLUX=PFLUX+PFLUXBDY(NBSD)
+        IF(PFLUXBDY(NBSD).NE.0.D0) THEN
+           WRITE(6,'(A,5ES12.4)') 'PFLUX XY:', &
+             0.5D0*(RNODE(NDSID(1,NSD))+RNODE(NDSID(2,NSD))), &
+             0.5D0*(ZNODE(NDSID(1,NSD))+ZNODE(NDSID(2,NSD))), &
+             PFLUXBDY(NBSD),PFLUXSD(NSD),PFLUXND(NSD)
+        END IF
+     END IF
+  END DO
+     
+  WRITE(6,'(A,1ES12.4)') 'PFLUX_IN=',PFLUX
+
   RETURN
 END SUBROUTINE CALFLD
 
@@ -1035,7 +1164,6 @@ SUBROUTINE PWRABS
 
   integer    :: NE,IN,NN,NSD,NS
   integer    :: I,J,K,II,JJ
-  real(rkind),dimension(:,:),ALLOCATABLE:: PABS
   real(rkind)    :: RW,S,MU(3,3,6),R(3),Z(3)
   complex(rkind) :: DTENS(NSM,3,3,3),CTENS(NSM,3,3,3)
   complex(rkind) :: CIWE,CINT(NSM,6,6),CE(6)
@@ -1064,8 +1192,6 @@ SUBROUTINE PWRABS
   END IF
 
   ! --- initialize ---
-  
-  allocate(PABS(NSMAX,NEMAX))
   
   RW=2.D0*PI*RF*1.D6
   CIWE=CII*RW*EPS0
@@ -1161,10 +1287,10 @@ SUBROUTINE PWRABS
      end do
 
      do NS=1,NSMAX
-        PABS(NS,NE)=0.d0
+        PABS_ns_nelm(NS,NE)=0.d0
         do JJ=1,6
            do II=1,6
-              PABS(NS,NE)=PABS(NS,NE)&
+              PABS_ns_nelm(NS,NE)=PABS_ns_nelm(NS,NE)&
                             +0.5d0*real(CONJG(CE(II))*CINT(NS,II,JJ)*CE(JJ))
            end do
         end do
@@ -1177,16 +1303,16 @@ SUBROUTINE PWRABS
   ndata=nelm_len_nrank(nrank)
   ALLOCATE(rdata(ndata),rdata_tot(nemax))
   DO ns=1,nsmax
-     rdata(1:ndata)=pabs(ns,nelm1:nelm2)
-     CALL mtx_allgatherv_real8(rdata,ndata,rdata_tot,nemax, &
-          nelm_len_nrank,nelm_pos_nrank)
-     pabs(ns,1:nemax)=rdata_tot(1:nemax)
+     rdata(1:ndata)=pabs_ns_nelm(ns,nelm1:nelm2)
+     CALL mtx_allgatherv_real8(rdata,ndata,rdata_tot,nemax,&
+          & nelm_len_nrank,nelm_pos_nrank)
+     pabs_ns_nelm(ns,1:nemax)=rdata_tot(1:nemax)
   END DO
 
   do NS=1,NSMAX
      PABST(NS)=0.d0
      do NE=1,NEMAX
-        PABST(NS)=PABST(NS)+PABS(NS,NE)
+        PABST(NS)=PABST(NS)+PABS_ns_nelm(NS,NE)
      end do
   end do
 
@@ -1194,8 +1320,6 @@ SUBROUTINE PWRABS
   DO NS=1,NSMAX
      PABSTT=PABSTT+PABST(NS)
   END DO
-
-  deallocate(PABS)
 
   RETURN
 END SUBROUTINE PWRABS
@@ -1293,23 +1417,14 @@ END SUBROUTINE PWRRAD
 
     USE wfcomm
     IMPLICIT NONE
-    INTEGER:: I,NR1,NR2,NR3,NR4,NS,NR,NA,NZ,J
-    REAL(rkind):: P
-    REAL(rkind):: P1(NSM),P2(NSM),P3(NSM),P4(NSM)
+    INTEGER:: NS,NA
 
     IF(NPRINT.LT.1) RETURN
     IF(nrank.NE.0) RETURN
     
-!    WRITE(6,110) (EMAX(I),I=1,3),ETMAX,PNMAX
-!110 FORMAT(1H ,'EXMAX  =',1PE12.4 &
-!         ,3X ,'EYMAX  =',1PE12.4 &
-!         ,3X ,'EZMAX  =',1PE12.4/ &
-!         1H ,'EMAX   =',1PE12.4 &
-!         ,3X ,'PNMAX  =',1PE12.4)
-
     WRITE(6,120) DBLE(CTIMP),PABSTT
 120 FORMAT(1H ,'RADIATED POWER =',1PE12.4/ &
-         1H ,'ABSORBED POWER =',1PE12.4)
+          1H ,'ABSORBED POWER =',1PE12.4)
 
     DO NS=1,NSMAX
        WRITE(6,126) NS,PABST(NS)

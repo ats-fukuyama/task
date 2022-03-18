@@ -49,6 +49,7 @@ SRCS = fpcomm.f90 fpreadeg.f90 fpinit.f90 fpparm.f90 fpmpi.f90		\
 	foworbit.f90 fowdistribution.f90 fowobclassify.f90 \
 	fowprep.f90 fowsource.f90 fowcoef.f90 fowexec.f90 \
 	fowevalNC.f90 fpfout.f90 fowloop.f90 \
+	fowfgoutNC.f90 \
 	fpmenu.f90
 
 OBJS = $(addprefix $(OBJDIR)/, $(SRCS:.f90=.o))
@@ -159,6 +160,8 @@ $(OBJDIR)/fowloop.o : fowexec.f90 fowdistribution.f90 fowcoef.f90 \
 	fowevalNC.f90 fowobclassify.f90
 $(OBJDIR)/fowevalNC.o : fowevalNC.f90 fowlib.f90		\
 	fowcomm.f90 fpcomm.f90 fpwrite.f90 fowcoef.f90 fowexec.f90
+$(OBJDIR)/fowfgout.o : fowfgoutNC.f90 fowevalNC.f90		\
+	fowcomm.f90 fpcomm.f90
 $(OBJDIR)/fowobclassify.o : fowobclassify.f90 fowcomm.f90 fpcomm.f90 \
 	fpwrite.f90
 $(OBJDIR)/fowlib.o : fowlib.f90 fowcomm.f90

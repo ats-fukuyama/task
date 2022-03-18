@@ -109,20 +109,19 @@ CONTAINS
        S_O_X = 5.0D-5
 
        DELTAB =1.0D0
+       DELTAB=DISPXR( Y(1), Y(2), Y(3), Y(4), Y(5), Y(6), OMG )
+       Y10 = (Rr_IDEI/RL0)*Y(1)
+       Y20 = (Rr_IDEI/RL0)*Y(2)
+       Y30 = Y(3)
+       Y10 = Y10 / SQRT(Y10**2+Y20**2+Y30**2)
+       Y20 = Y20 / SQRT(Y10**2+Y20**2+Y30**2)
+       Y30 = Y30 / SQRT(Y10**2+Y20**2+Y30**2)
+       OX_KC = (Y(4)*Y10 + Y(5)*Y20 + Y(6)*Y30)
+       Y4_OX = Y(4) - OX_KC * Y10 
+       Y5_OX = Y(5) - OX_KC * Y20 
+       Y6_OX = Y(6) - OX_KC * Y30
+       
        DO I=1,1000000
-          IF(I.EQ.1) THEN 
-             DELTAB=DISPXR( Y(1), Y(2), Y(3), Y(4), Y(5), Y(6), OMG )
-             Y10 = (Rr_IDEI/RL0)*Y(1)
-             Y20 = (Rr_IDEI/RL0)*Y(2)
-             Y30 = Y(3)
-             Y10 = Y10 / SQRT(Y10**2+Y20**2+Y30**2)
-             Y20 = Y20 / SQRT(Y10**2+Y20**2+Y30**2)
-             Y30 = Y30 / SQRT(Y10**2+Y20**2+Y30**2)
-             OX_KC = (Y(4)*Y10 + Y(5)*Y20 + Y(6)*Y30)
-             Y4_OX = Y(4) - OX_KC * Y10 
-             Y5_OX = Y(5) - OX_KC * Y20 
-             Y6_OX = Y(6) - OX_KC * Y30
-          END IF
           Y1_OX = Y(1) - IOX * S_O_X * Y10*Y(1)
           Y2_OX = Y(2) - IOX * S_O_X * Y20*Y(2)
           Y3_OX = Y(3) - IOX * S_O_X * Y30*Y(3)
