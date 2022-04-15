@@ -173,7 +173,8 @@ CONTAINS
     INTEGER:: nside,node1,node2,nside1
     INTEGER:: nxzone,nyzone,ncount
     INTEGER:: nelm_ncount
-    REAL(rkind):: xc,yc,x1,y1,x2,y2,xc1,yc1,xmin,xmax,ymin,ymax
+    REAL(rkind):: xc,yc,x1,y1,x2,y2,xc1,yc1
+!    REAL(rkind):: xmin,xmax,ymin,ymax
 
     IF(nelm.NE.0) THEN   ! If nelm is given, look for arround
     
@@ -273,7 +274,7 @@ CONTAINS
     IMPLICIT NONE
     LOGICAL:: xy_in_nelm
     REAL(rkind),INTENT(IN):: x,y
-    INTEGER(LONG),INTENT(IN):: nelm
+    INTEGER,INTENT(IN):: nelm
     INTEGER:: node,nside
     REAL(rkind):: x1,y1,x2,y2,f
 !    REAL(rkind):: x3,y3
@@ -362,7 +363,7 @@ CONTAINS
     INTEGER,SAVE:: nelm_save=0
     INTEGER,INTENT(IN):: id  ! 0 for new search, 1: use nelm previous search
     INTEGER:: nelm
-    REAL(rkind):: dfx,dfy
+!    REAL(rkind):: dfx,dfy
 
     IF(id.EQ.0) THEN
        nelm=0
@@ -406,7 +407,7 @@ CONTAINS
     REAL(rkind),INTENT(IN):: x,y,f_nelm(nelm_max)
     INTEGER,INTENT(IN):: nelm
     REAL(rkind),INTENT(OUT):: f
-    INTEGER(LONG):: nelm1
+    INTEGER:: nelm1
     INTEGER:: nside,nangl,node1,node2,nelm0,nelm2,ierr
     REAL(rkind):: x0,y0,f0,x1,y1,f1,x2,y2,f2
     REAL(rkind):: weight,sum_of_weight,sum_of_f_weight

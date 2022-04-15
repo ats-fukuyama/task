@@ -104,9 +104,9 @@
      &' ',' (C)     : CLEAR GRAPHIC DATA GVR AND GVT.'/             &
      &' ',' (S)     : SAVE GRAPHIC DATA.'/                          &
      &' ',' (L)     : LOAD GRAPHIC DATA.'/                          &
-     &' ',' (Q)     : CHANGE GRAPH SCALE INQUIRE MODE.'/            &
+     &' ',' (I)     : CHANGE GRAPH SCALE INQUIRE MODE.'/            &
      &' ',' (H)ELP  : SHOW HELP MESSAGE WHICH YOU ARE READING.'/    &
-     &' ',' (E)ND   : GO BACK TO MAIN MENU.')
+     &' ',' (X)IT   : EXIT TO MAIN MENU.')
 
       RETURN
       END SUBROUTINE TRHLPG
