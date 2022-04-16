@@ -12,11 +12,8 @@
       use libmpi
       use fpmpi
       use fpdisrupt
-      use fpreadeg
+      use eg_read
       use fpoutdata
-
-      PRIVATE
-      PUBLIC fp_loop
 
       contains
 
@@ -33,12 +30,12 @@
       USE fpnfrr
       USE fpcaltp
       IMPLICIT NONE
-      REAL(rkind):: DEPS,IP_all_FP,DEPS_E2
+      real(kind8):: DEPS,IP_all_FP,DEPS_E2
 
       integer:: NT, NR, NP, NTH, NSA, NS, IERR, NSB
-      REAL:: gut_exe1, gut_exe2, gut_coef1, gut_coef2, gut_coef3
-      REAL:: gut_loop1, gut_loop2, gut1, gut2, gut_conv3
-      REAL:: sum_gut_ex, sum_gut_coef, gut_1step, sum_gut_conv
+      real(4):: gut_exe1, gut_exe2, gut_coef1, gut_coef2, gut_coef3
+      real(4):: gut_loop1, gut_loop2, gut1, gut2, gut_conv3
+      real(4):: sum_gut_ex, sum_gut_coef, gut_1step, sum_gut_conv
       LOGICAL:: flag
 
 !     +++++ Time loop +++++
@@ -260,7 +257,7 @@
       IMPLICIT NONE
       INTEGER:: NSA, NR, NP, NTH, NS, its
       INTEGER,intent(OUT):: IERR
-      REAL(rkind),dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND)::&
+      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND)::&
            send
 
       N_IMPL=N_IMPL+1
@@ -336,11 +333,11 @@
       INTEGER,INTENT(IN):: NT
       integer,dimension(NSASTART:NSAEND):: ILOCL
       integer,dimension(NSAMAX):: ILOC
-      REAL(rkind),intent(out):: DEPS
-      REAL(rkind),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS
-      REAL(rkind),dimension(NSASTART:NSAEND):: DEPS_MAXVL, DEPSV
-      REAL(rkind),dimension(NSAMAX):: DEPS_MAXV
-      REAL(rkind):: RSUMF_, RSUMF0_, DEPS_MAX, DEPS1
+      real(kind8),intent(out):: DEPS
+      real(kind8),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS
+      real(kind8),dimension(NSASTART:NSAEND):: DEPS_MAXVL, DEPSV
+      real(kind8),dimension(NSAMAX):: DEPS_MAXV
+      real(kind8):: RSUMF_, RSUMF0_, DEPS_MAX, DEPS1
       character:: fmt*40
 
       nsw = NSAEND-NSASTART+1      
@@ -424,9 +421,9 @@
       USE plprof
       IMPLICIT NONE
       INTEGER:: NTH, NP, NR, NSA, NS
-      REAL(rkind),dimension(NRMAX,NSMAX):: tempt, tempn
+      real(8),dimension(NRMAX,NSMAX):: tempt, tempn
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
-      REAL(rkind):: RHON, FL
+      real(8):: RHON, FL
 
 !     Bulk f is replaced by initial Maxwellian
       CALL Define_Bulk_NP
@@ -487,7 +484,7 @@
 
       IMPLICIT NONE
       INTEGER:: NTH, NP, NR, NSA, NS
-      REAL(rkind):: FL
+      real(8):: FL
 
 !     Bulk f is replaced by Maxwellian
       CALL Define_Bulk_NP

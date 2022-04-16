@@ -1,3 +1,11 @@
+! fowmain.f90
+! [2022/3/9]
+! *********************************
+!  Main program of FOW
+! *********************************
+!  made by ota / modified by anzai
+!
+
 program fow
 
   use fowcomm
@@ -36,14 +44,11 @@ program fow
   call fow_allocate
   call fow_prep
 
-  ! call fptxt3D(theta_pnc,"dat/pinch.txt")
-  ! call fptxt3D(theta_co_stg,"dat/co-stg.txt")
-  ! call fptxt3D(theta_cnt_stg,"dat/cnt-stg.txt")
-
   call fow_loop
 
-  write(*,*)"end"
-  ! call fow_deallocate
+  write(*,*)"END of Program"
+
+  call fow_deallocate
 
 end program fow
 

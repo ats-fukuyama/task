@@ -21,7 +21,7 @@ contains
     implicit none
 
     integer :: nthp, nth, np, nr, nsa, i, j
-    REAL(rkind) :: begin_time, end_time
+    double precision :: begin_time, end_time
 
     call cpu_time(begin_time)
 
@@ -134,7 +134,7 @@ contains
     use fowcomm
 
     implicit none
-    integer :: nth, np, nr, nsa, mode(3), nstp, nstpmax
+    integer :: nth, np, nr, nsa, nthp, mode(3), nstp, nstpmax, ierr = 0
     real(rkind),dimension(3,3,max_stp) :: dIdu
     real(rkind),allocatable:: U_Dpp(:,:,:,:,:,:,:,:),& ! spline coefficient of Dppl in (\theta, \psi_p, \theta_p) plane
                               U_Dpt(:,:,:,:,:,:,:,:),& 
@@ -553,7 +553,7 @@ contains
                               , FZX(:,:,:), FXYZ(:,:,:), Xtmp(:)
 
     integer :: nth, np, nr, nsa, nthp, i, j ,k 
-    integer :: p, t, ierr = 0
+    integer :: nxmax, nymax, nzmax, p, t, ierr = 0
 
     if ( x == 'p' ) then
       p = 1

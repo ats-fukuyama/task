@@ -1,4 +1,4 @@
-! fpmain.f90
+!     $Id: fpmain.f90,v 1.9 2013/01/22 16:21:46 fukuyama Exp $
 
 !     *******************************************************
 
@@ -8,48 +8,49 @@
 !                           V2.1  1993/09/16
 !                           V2.2  1997/03/18
 !                           V3.0  1997/08/05
-!                           V4.0  2021/08/08
 
-!                         PROGRAMMED BY
-!                      FUKUYAMA Atsushi
-!                      NUGA Hideo (Relativistic effects, runaway electrons)
-!                      OTA Keigo (Finite orbit width effects)
-!                         Kyoto University
+!                        PROGRAMMED BY
+!                         A. FUKUYAMA
+!                      OKAYAMA UNIVERSITY
 
 !     ********************************************************
+      program fp
 
-PROGRAM fp
+      use fpcomm
+      use plinit
+      use plparm
+      use equnit_mod
+      use fpinit
+      use fpparm
+      use fpmenu
+      use fpwrin
+      use libmtx
 
-  USE fpcomm
-  USE plinit
-  USE plparm
-  USE equnit_mod
-  USE fpinit
-  USE fpparm
-  USE fpmenu
-  USE fpwrin
-  USE libmtx
+      implicit none
+      integer:: IERR
 
-  IMPLICIT NONE
-  INTEGER:: ierr
+      CALL mtx_initialize
+      IF(nrank.EQ.0) THEN
+         WRITE(6,*) '***** TASK/FP 2009/09/18 *****'
+         CALL GSOPEN
+         OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
+      ENDIF
 
-  CALL mtx_initialize
-  IF(nrank.EQ.0) THEN
-     WRITE(6,*) '***** TASK/FP V4.0 2021/08/08 *****'
-     CALL GSOPEN
-     OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
-  ENDIF
+      ierr_g=0
+      N_f1=0
 
-  CALL pl_init
-  CALL eq_init
-  CALL fp_init
-  IF(nrank.EQ.0) THEN
-     CALL fp_parm(1,'fpparm',IERR)
-  ENDIF
-  CALL fp_menu
+      CALL pl_init
+      CALL eq_init
+      CALL fp_init
+      IF(nrank.EQ.0) THEN
+         CALL pl_parm(1,'plparm',IERR)
+         CALL eqparm(1,'eqparm',IERR)
+         CALL fp_parm(1,'fpparm',IERR)
+      ENDIF
+      CALL fp_menu
 
-  IF(nrank.EQ.0) CALL GSCLOS
-  CALL mtx_finalize
-  CALL fp_wr_deallocate
-  STOP
-END PROGRAM fp
+      IF(nrank.EQ.0) CALL GSCLOS
+      CALL mtx_finalize
+      CALL fp_wr_deallocate
+      STOP
+      END PROGRAM fp

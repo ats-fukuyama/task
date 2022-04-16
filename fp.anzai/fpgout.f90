@@ -65,7 +65,7 @@
       DATA NSA,NSB/1,0/
       integer:: NR, NP, NTH, NSA1, NS
 !
-      REAL(rkind),DIMENSION(NTHMAX,NPMAX,NRMAX)::TEMP
+      real(8),DIMENSION(NTHMAX,NPMAX,NRMAX)::TEMP
       CHARACTER KID*5,KID1*1,KID2*3
       CHARACTER(LEN=80):: STRING1
 !
@@ -407,8 +407,8 @@
       SUBROUTINE FPGRARA(STRING,FRA,NSA)
 
       IMPLICIT NONE
-      REAL(rkind),DIMENSION(NRMAX,NSAMAX,NTG2MAX):: FRA
-      REAL(rkind),dimension(NRMAX,NTG2MAX):: TEMP
+      real(8),DIMENSION(NRMAX,NSAMAX,NTG2MAX):: FRA
+      real(8),dimension(NRMAX,NTG2MAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NT2, NR, NSA
@@ -426,8 +426,8 @@
       SUBROUTINE FPGRARAB(STRING,FRAB,NSA,NSB)
 
       IMPLICIT NONE
-      REAL(rkind),DIMENSION(NRMAX,NSBMAX,NSAMAX,NTG2MAX):: FRAB
-      REAL(rkind),dimension(NRMAX,NTG2MAX):: TEMP
+      real(8),DIMENSION(NRMAX,NSBMAX,NSAMAX,NTG2MAX):: FRAB
+      real(8),dimension(NRMAX,NTG2MAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NT2, NR, NSA, NSB
@@ -446,13 +446,13 @@
 
       USE libgrf
       IMPLICIT NONE
-      REAL(rkind),dimension(NRMAX,NTG2MAX)::FR
-      REAL,dimension(NRMAX):: GX,GY
+      real(8),dimension(NRMAX,NTG2MAX)::FR
+      real(4),dimension(NRMAX):: GX,GY
       CHARACTER(LEN=*),INTENT(IN):: STRING
       integer:: NT2, NR
-      REAL:: GXMIN, GXMAX, GYMAX0, GYMIN0, GYMIN, GYMAX
-      REAL:: GYMIN1, GYMAX1, GYSTEP, GXMIN1, GXMAX1, GXSTEP
-      REAL:: GXORG
+      real(4):: GXMIN, GXMAX, GYMAX0, GYMIN0, GYMIN, GYMAX
+      real(4):: GYMIN1, GYMAX1, GYSTEP, GXMIN1, GXMAX1, GXSTEP
+      real(4):: GXORG
 !
       IF(NGRAPH.EQ.0) THEN
          CALL FPFOTR(STRING,FR)
@@ -519,8 +519,8 @@
       SUBROUTINE FPGRATA(STRING,FTA,NSA)
 
       IMPLICIT NONE
-      REAL(rkind),DIMENSION(NSAMAX,NTG1MAX):: FTA
-      REAL(rkind),dimension(NTG1MAX):: TEMP
+      real(8),DIMENSION(NSAMAX,NTG1MAX):: FTA
+      real(8),dimension(NTG1MAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NT1, NSA
@@ -536,8 +536,8 @@
       SUBROUTINE FPGRATAB(STRING,FTAB,NSA,NSB)
 
       IMPLICIT NONE
-      REAL(rkind),DIMENSION(NSBMAX,NSAMAX,NTG1MAX):: FTAB
-      REAL(rkind),dimension(NTG1MAX):: TEMP
+      real(8),DIMENSION(NSBMAX,NSAMAX,NTG1MAX):: FTAB
+      real(8),dimension(NTG1MAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NT1, NSA, NSB
@@ -554,12 +554,12 @@
 !
       USE libgrf
       IMPLICIT NONE
-      REAL(rkind),DIMENSION(NTG1MAX):: FT
-      REAL,DIMENSION(NTG1MAX):: GX,GY
+      real(8),DIMENSION(NTG1MAX):: FT
+      real(4),DIMENSION(NTG1MAX):: GX,GY
       CHARACTER(LEN=*),INTENT(IN):: STRING
       integer:: NT1
-      REAL:: GYMIN, GYMAX, GYMIN1, GYMAX1, GYSTEP
-      REAL:: GXMIN, GXMAX, GXSTEP
+      real(4):: GYMIN, GYMAX, GYMIN1, GYMAX1, GYSTEP
+      real(4):: GXMIN, GXMAX, GXSTEP
 
       IF(NGRAPH.EQ.0) THEN
          CALL FPFOTT(STRING,FT)
@@ -605,8 +605,8 @@
       SUBROUTINE FPGRAPA(STRING,FGA,NSA)
 
       IMPLICIT NONE
-      REAL(rkind),DIMENSION(NTHMAX,NPMAX,NRMAX,NSAMAX):: FGA
-      REAL(rkind),dimension(NTHMAX,NPMAX,NRMAX)::TEMP
+      real(8),DIMENSION(NTHMAX,NPMAX,NRMAX,NSAMAX):: FGA
+      real(8),dimension(NTHMAX,NPMAX,NRMAX)::TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSA
@@ -626,8 +626,8 @@
       SUBROUTINE FPGRAPAB(STRING,FGAB,NSA,NSB)
 
       IMPLICIT NONE
-      REAL(rkind),DIMENSION(NTHMAX,NPMAX,NRMAX,NSBMAX,NSAMAX):: FGAB
-      REAL(rkind),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
+      real(8),DIMENSION(NTHMAX,NPMAX,NRMAX,NSBMAX,NSAMAX):: FGAB
+      real(8),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSA, NSB
@@ -648,14 +648,14 @@
 !
       USE libgrf        
       IMPLICIT NONE
-      REAL(rkind),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
-      REAL,dimension(NPMAX):: GX
-      REAL,dimension(NPMAX,NRMAX):: GY
+      real(8),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
+      real(4),dimension(NPMAX):: GX
+      real(4),dimension(NPMAX,NRMAX):: GY
       CHARACTER(LEN=*),INTENT(IN):: STRING
       INTEGER,INTENT(IN):: NSA
       CHARACTER(LEN=80):: STRING1
-!      REAL(rkind):: PGMAX, RGMAX, RGMIN
-      REAL:: GXMAX, GXMINP, GYMIN, GYMAX, GYMINP, GYSTEP, GXSTEP, GXMAXP, GYMAXP
+!      real(8):: PGMAX, RGMAX, RGMIN
+      real(4):: GXMAX, GXMINP, GYMIN, GYMAX, GYMINP, GYSTEP, GXSTEP, GXMAXP, GYMAXP
       integer:: NR, NP, NTH, NPM, NS
 
       IF(NGRAPH.EQ.0) THEN
@@ -727,8 +727,8 @@
       SUBROUTINE FPGRAPRA(STRING,FGA,NSA)
 
       IMPLICIT NONE
-      REAL(RKIND),DIMENSION(NTHMAX,NPMAX,NRMAX,NSAMAX):: FGA
-      REAL(RKIND),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
+      REAL(8),DIMENSION(NTHMAX,NPMAX,NRMAX,NSAMAX):: FGA
+      REAL(8),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSA
@@ -748,8 +748,8 @@
       SUBROUTINE FPGRAPRAB(STRING,FGAB,NSA,NSB)
 
       IMPLICIT NONE
-      REAL(rkind),DIMENSION(NTHMAX,NPMAX,NRMAX,NSBMAX,NSAMAX):: FGAB
-      REAL(rkind),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
+      real(8),DIMENSION(NTHMAX,NPMAX,NRMAX,NSBMAX,NSAMAX):: FGAB
+      real(8),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSA, NSB
@@ -770,14 +770,14 @@
 !       
       USE libgrf
       IMPLICIT NONE
-      REAL(rkind),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
-      REAL,dimension(NPMAX):: GX
-      REAL,dimension(NRMAX):: GY
-      REAL,dimension(NPMAX,NRMAX):: GZ
+      real(8),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
+      real(4),dimension(NPMAX):: GX
+      real(4),dimension(NRMAX):: GY
+      real(4),dimension(NPMAX,NRMAX):: GZ
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSA, NS, NPGMAX, NPM
-      REAL:: GX1, GX2, GY1, GY2
+      real(4):: GX1, GX2, GY1, GY2
 
       IF(NGRAPH.EQ.0) THEN
          CALL FPFOTP(STRING,FG)
@@ -837,13 +837,14 @@
 
       USE libgrf
       IMPLICIT NONE
-      REAL,        INTENT(IN):: GX1,GX2,GY1,GY2,GXMAX1,GYMIN1,GYMAX1
-      INTEGER,     INTENT(IN):: NXM,NXMAX,NYMAX
-      REAL,DIMENSION(NXMAX),      INTENT(IN):: GX
-      REAL,DIMENSION(NYMAX),      INTENT(IN):: GY
-      REAL,DIMENSION(NXM,NYMAX),  INTENT(IN):: GZ
+      REAL(4),        INTENT(IN):: GX1,GX2,GY1,GY2,GXMAX1,GYMIN1,GYMAX1
+      INTEGER(4),     INTENT(IN):: NXM,NXMAX,NYMAX
+      REAL(4),DIMENSION(NXMAX),      INTENT(IN):: GX
+      REAL(4),DIMENSION(NYMAX),      INTENT(IN):: GY
+      REAL(4),DIMENSION(NXM,NYMAX),  INTENT(IN):: GZ
       CHARACTER(LEN=*),             INTENT(IN):: STR
-      REAL    :: GOX, GOY, GOZ, GPHI, GRADIUS, GSTEPX, GSTEPY,   &
+      INTEGER(4) :: I
+      REAL(4)    :: GOX, GOY, GOZ, GPHI, GRADIUS, GSTEPX, GSTEPY,   &
                     GSTEPZ, GSXMAX, GSXMIN, GSYMAX, GSYMIN, GSZMAX, &
                     GSZMIN, GTHETA, GXL, GXMAX, GXMIN, GXORG, GYL,  &
                     GYMAX, GYMIN, GYORG, GZL, GZMAX, GZMIN, GZVAL
@@ -947,8 +948,8 @@
       SUBROUTINE FPGRACA(STRING,FGA,MODE,NSA)
        
       IMPLICIT NONE
-      REAL(RKIND),DIMENSION(:,:,:,:):: FGA
-      REAL(RKIND),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
+      REAL(8),DIMENSION(:,:,:,:):: FGA
+      REAL(8),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSA, NS
@@ -997,12 +998,12 @@
        
       USE libgrf
       IMPLICIT NONE
-      REAL(RKIND),DIMENSION(NTHMAX+1,NPMAX+1,NSAMAX):: FGA
-      REAL,dimension(NTHMAX+1,NPMAX+1):: GF
+      REAL(8),DIMENSION(NTHMAX+1,NPMAX+1,NSAMAX):: FGA
+      REAL(4),dimension(NTHMAX+1,NPMAX+1):: GF
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
-      integer:: NPM, NTHM, NRM, NP, NTH, NSA, NS
-      integer:: MODE
+      integer:: NPM, NTHM, NRM, NR, NP, NTH, NSA, NS
+      integer:: NM, NM1, MODE
       NPM=NPMAX+1
       NTHM=NTHMAX+1
       NRM=NRMAX+1
@@ -1051,13 +1052,13 @@
       SUBROUTINE FPGRACB(STRING,FGA,MODE,NSB)
        
       IMPLICIT NONE
-      REAL(RKIND),DIMENSION(:,:,:,:):: FGA
-!      REAL(RKIND),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
-      REAL(RKIND),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
+      REAL(8),DIMENSION(:,:,:,:):: FGA
+!      REAL(8),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
+      REAL(8),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSB
-      integer:: MODE
+      integer:: NM, NM1, MODE
 !
       IF(MODE.EQ.0.OR.MODE.EQ.4) THEN
          DO NR=1,NRMAX
@@ -1100,11 +1101,11 @@
       SUBROUTINE FPGRACAB(STRING,FGAB,MODE,NSA,NSB)
        
       IMPLICIT NONE
-      REAL(rkind),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1,NSBMAX,NSAMAX):: FGAB
-      REAL(rkind),dimension((NRMAX+1)*(NTHMAX+1)*(NPMAX+1)):: TEMP
+      real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1,NSBMAX,NSAMAX):: FGAB
+      real(8),dimension((NRMAX+1)*(NTHMAX+1)*(NPMAX+1)):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
-      integer:: NR, NP, NTH, NSA,NSB,NS,NM, NPM, NTHM, NRM, NSBM, MODE
+      integer:: NR, NP, NTH, NSA,NSB,NS,NM, NM1, NPM, NTHM, NRM, NSBM, MODE
       NPM=NPMAX+1
       NTHM=NTHMAX+1
       NRM=NRMAX+1
@@ -1157,14 +1158,22 @@
 !       
       USE libgrf
       IMPLICIT NONE
-      REAL(rkind),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
-      REAL,DIMENSION(NPMAX+1,NTHMAX+1):: GF
+      real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
+      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
+      real(4),dimension(NPMAX+1):: GP
+      real(4),dimension(NTHMAX+1):: GTH
+      real(8),dimension(8,NPMAX+1,NTHMAX+1)::KA
       CHARACTER(LEN=*),INTENT(IN):: STRING
-      INTEGER,INTENT(IN):: MODE,NSB
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
-      INTEGER:: NP,NR,NRG,NTH
-      integer:: NPM, NTHM, NRM
+      REAL(4):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
+      INTEGER:: ILN(NGLM)
+      REAL(4):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
+      real(4):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
+      real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
+      integer:: NR, NP, NTH, NSB, NRG, MODE
+      integer:: NPG, NTHG, NPM, NTHM, NRM, NM, NGLMAX, NGL
+      integer:: I
 
       NPM=NPMAX+1
       NTHM=NTHMAX+1
@@ -1238,15 +1247,21 @@
 !       
       USE libgrf
       IMPLICIT NONE
-!      REAL(rkind),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
-!      REAL,DIMENSION(NPMAX+1,NTHMAX+1):: GF
-      REAL(rkind),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
-      REAL,DIMENSION(NPMAX,NTHMAX):: GF
+!      real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
+!      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
+      real(8),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
+      real(4),DIMENSION(NPMAX,NTHMAX):: GF
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
+      REAL(4):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
+      INTEGER:: ILN(NGLM)
+      REAL(4):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
+      real(4):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
+      real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
       integer:: NR, NP, NTH, NRG, MODE, NSB
-      integer:: NPM, NTHM, NRM
+      integer:: NPG, NTHG, NPM, NTHM, NRM, NM, NGLMAX, NGL
+      integer:: I
 
       NPM=NPMAX+1
       NTHM=NTHMAX+1
@@ -1324,25 +1339,26 @@
 !       
       USE libgrf
       IMPLICIT NONE
-      REAL,DIMENSION(NPMAX,NTHMAX):: GF
-      REAL,dimension(NPMAX):: GP
-      REAL,dimension(NTHMAX):: GTH
-!      REAL,DIMENSION(NPMAX+1,NTHMAX+1):: GF
-!      REAL,dimension(NPMAX+1):: GP
-!      REAL,dimension(NTHMAX+1):: GTH
-!      REAL(rkind),dimension(8,NPMAX+1,NTHMAX+1)::KA
+      real(4),DIMENSION(NPMAX,NTHMAX):: GF
+      real(4),dimension(NPMAX):: GP
+      real(4),dimension(NTHMAX):: GTH
+      real(8),dimension(8,NPMAX,NTHMAX)::KA
+!      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
+!      real(4),dimension(NPMAX+1):: GP
+!      real(4),dimension(NTHMAX+1):: GTH
+!      real(8),dimension(8,NPMAX+1,NTHMAX+1)::KA
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
-      REAL:: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
+      REAL(4):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
       INTEGER:: ILN(NGLM)
-      REAL:: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
-      REAL:: GPMIN1, GPMAX1, GPSTEP, GFFMAX
-      integer:: NP, NTH, NSB, MODE, LMODE
+      REAL(4):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
+      real(4):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
+      real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
+      integer:: NR, NP, NTH, NSB, NRG, MODE, LMODE
       integer:: NPG, NTHG, NPM, NTHM, NGLMAX, NGL
-      integer:: NS
+      integer:: I, NS
 
-      STRING1=STRING
       NPM=NPMAX+1
       NTHM=NTHMAX+1
 
@@ -1501,21 +1517,22 @@
 !       
       USE libgrf
       IMPLICIT NONE
-      REAL,DIMENSION(NPMAX+1,NTHMAX+1):: GF
-      REAL,dimension(NPMAX+1):: GP
-      REAL,dimension(NTHMAX+1):: GTH
+      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
+      real(4),dimension(NPMAX+1):: GP
+      real(4),dimension(NTHMAX+1):: GTH
+      real(8),dimension(8,NPMAX+1,NTHMAX+1)::KA
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
-      REAL:: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
+      REAL(4):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
       INTEGER:: ILN(NGLM)
-      REAL:: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
-      REAL:: GPMIN1, GPMAX1, GPSTEP, GFFMAX
-      integer:: NP, NTH, NSB, MODE, LMODE
-      integer:: NPG, NTHG, NPM, NTHM, NRM, NGLMAX, NGL
-      integer:: NS
+      REAL(4):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
+      real(4):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
+      real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
+      integer:: NR, NP, NTH, NSB, NRG, MODE, LMODE
+      integer:: NPG, NTHG, NPM, NTHM, NRM, NM, NGLMAX, NGL
+      integer:: I, NS
 
-      STRING1=STRING
       NPM=NPMAX+1
       NTHM=NTHMAX+1
       NRM=NRMAX+1
@@ -1666,12 +1683,11 @@
       END SUBROUTINE FPGRACX
 
       SUBROUTINE SETRGBFP(F,RGB)
-        USE grdutils
         IMPLICIT NONE
-        REAL,INTENT(IN):: F
-        REAL,DIMENSION(3),INTENT(OUT):: RGB
+        REAL(4),INTENT(IN):: F
+        REAL(4),DIMENSION(3),INTENT(OUT):: RGB
         INTEGER,PARAMETER:: NFMAX=8
-        REAL,DIMENSION(3,NFMAX):: RGBC
+        REAL(4),DIMENSION(3,NFMAX):: RGBC
         DATA RGBC/ 0.0,0.0,0.0, &
                    0.0,0.0,1.0, &
                    0.0,0.8,1.0, &
@@ -1680,15 +1696,15 @@
                    1.0,0.4,0.0, &
                    1.0,0.0,0.0, &
                    1.0,1.0,1.0/
-        REAL(RKIND):: GF,DF
-        INTEGER:: IM
+        REAL(8):: GF,DF
+        INTEGER(4):: IM
 !
         GF=F*DBLE(NFMAX-1)+1
         IM=MIN(INT(GF),NFMAX-1)
         DF=GF-IM
-        RGB(1)=gdclip(RGBC(1,IM)*(1.D0-DF)+RGBC(1,IM+1)*DF)
-        RGB(2)=gdclip(RGBC(2,IM)*(1.D0-DF)+RGBC(2,IM+1)*DF)
-        RGB(3)=gdclip(RGBC(3,IM)*(1.D0-DF)+RGBC(3,IM+1)*DF)
+        RGB(1)=RGBC(1,IM)*(1.D0-DF)+RGBC(1,IM+1)*DF
+        RGB(2)=RGBC(2,IM)*(1.D0-DF)+RGBC(2,IM+1)*DF
+        RGB(3)=RGBC(3,IM)*(1.D0-DF)+RGBC(3,IM+1)*DF
         RETURN
         END SUBROUTINE SETRGBFP
           
@@ -1702,13 +1718,11 @@
       SUBROUTINE FPGRACPA(STRING,FGA,MODE,NSA)
        
       IMPLICIT NONE
-      REAL(rkind),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1,NSAMAX):: FGA
-      REAL(rkind),dimension((NRMAX+1)*(NPMAX+1)*(NTHMAX+1)):: TEMP
+      real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1,NSAMAX):: FGA
+      real(8),dimension((NRMAX+1)*(NPMAX+1)*(NTHMAX+1)):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSA, MODE, NPM, NTHM, NRM, NM, NM1
-
-      STRING1=STRING
       NPM=NPMAX+1
       NTHM=NTHMAX+1
       NRM=NRMAX+1
@@ -1752,8 +1766,8 @@
       SUBROUTINE FPGRACPAB(STRING,FGAB,MODE,NSA,NSB)
        
       IMPLICIT NONE
-      REAL(rkind),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1,NSBMAX,NSAMAX):: FGAB
-      REAL(rkind),dimension((NRMAX+1)*(NPMAX+1)*(NTHMAX+1)):: TEMP
+      real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1,NSBMAX,NSAMAX):: FGAB
+      real(8),dimension((NRMAX+1)*(NPMAX+1)*(NTHMAX+1)):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NTH, NP, NSA, NSB, MODE, NPM, NTHM, NRM, NM, NM1, NSBM
@@ -1805,18 +1819,19 @@
 !
       USE libgrf
       IMPLICIT NONE
-      REAL(rkind),DIMENSION((NRMAX+1)*(NPMAX+1)*(NTHMAX+1)):: FG
-      REAL,DIMENSION(NPMAX+1,NTHMAX+1):: GF
-      REAL,dimension(NPMAX+1):: GP
-      REAL,dimension(NTHMAX+1):: GTH
-      INTEGER,dimension(8,NPMAX+1,NTHMAX+1):: KA
+      real(8),DIMENSION((NRMAX+1)*(NPMAX+1)*(NTHMAX+1)):: FG
+      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
+      real(4),dimension(NPMAX+1):: GP
+      real(4),dimension(NTHMAX+1):: GTH
+      integer(4),dimension(8,NPMAX+1,NTHMAX+1):: KA
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
-      REAL:: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
-      INTEGER:: ILN(NGLM)
-      REAL:: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
-      REAL:: GPMIN1, GPMAX1, GPSTEP, GLIN
+      REAL(4):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
+      INTEGER(4):: ILN(NGLM)
+      REAL(4):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
+      real(4):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
+      real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN
       integer:: NR, NTH, NP, NSA, MODE, NRG, LMODE, NTHG, NS
       integer:: NPM, NTHM, NRM, NM, NGL, NGLMAX, I, NPG
       NPM=NPMAX+1

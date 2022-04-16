@@ -16,10 +16,10 @@
       USE fpcalr
       USE libbes,ONLY: beseknx
       USE libmtx
-      USE fpread
+      USE FP_READ_FIT
 
       INTEGER,parameter:: MODEL_T_IMP=2
-!      REAL(rkind),parameter::deltaB_B=1.D-4
+!      double precision,parameter::deltaB_B=1.D-4
 
       contains
 !-------------------------------------------------------------
@@ -28,6 +28,9 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NT
       integer:: NSA, NR, NTH, NP, NS
+      real(kind8):: FPMAX
+      integer:: NCONST_RF
+      real(kind8):: DWTTEC, DWTTIC, DWTPEC, DWTPIC
 
       ISAVE=0
 
@@ -187,7 +190,9 @@
       SUBROUTINE FP_CALE
 
       IMPLICIT NONE
-      integer:: NSA, NR, NTH, NP
+      integer:: NSA, NSB, NR, NTH, NP
+!      real(kind8):: PSP, SUML, ANGSP, SPL, FPMAX
+      integer:: NG
 
       IF(MODELA.eq.0)THEN
       DO NSA=NSASTART,NSAEND
@@ -225,7 +230,8 @@
 
       IMPLICIT NONE
       integer,intent(in):: NR, NSA
-      integer:: NTH, NP, ITLB, ITUB
+      integer:: NTH, NP, NG, ITLB, ITUB
+      double precision:: DELH, SUM, ETAL, X, PSIB, PSIN
 
 !     BOUNCE AVERAGE FEPP
       DO NP=NPSTART,NPENDWG
@@ -279,9 +285,9 @@
       USE fpsub
       USE fpnfrr
       IMPLICIT NONE
-      integer:: NSA, NR, NTH, NP, NS
-      integer:: ISW_LOSS
-      REAL(rkind):: PSP, SUML, SPL, FL, const_inv_tau
+      integer:: NSA, NSB, NR, NTH, NP, NS, ID
+      integer:: NBEAM, NSABEAM, NSAX, ISW_LOSS
+      real(kind8):: PSP, SUML, ANGSP, SPL, FL, const_inv_tau
 
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
@@ -456,8 +462,8 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NSA
       INTEGER:: NTH, NP, NR, NS, NBEAM, NSABEAM, NSAX
-      REAL(RKIND):: PSP, ANGSP, SUML, SPL
-      REAL(RKIND):: PSI, TH0B, PANGSP
+      DOUBLE PRECISION:: PSP, ANGSP, SUML, SPL
+      DOUBLE PRECISION:: SPFS, PSI, PCOS, TH0B, PANGSP
 
 !     NBI distribute Gaussian in rho space
 !     and distribute as delta function in p, theta, poloidal angle
@@ -576,7 +582,7 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NSA
       integer:: NTH, NP, NR, NS, NBEAM, NSABEAM, NSAX
-      REAL(RKIND):: PSP, ANGSP, SUML, SPL
+      DOUBLE PRECISION:: PSP, ANGSP, SUML, SPL
 
       NS=NS_NSA(NSA)
 
@@ -677,8 +683,9 @@
       USE fpnflg
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NSA
-      integer::NR, NTH, NP, NS, ID, NSA1, NSA2
-      REAL(RKIND):: PSP, SUML
+      integer:: NSB, NR, NTH, NP, NS, ID, NSA1, NSA2
+      integer:: NBEAM, NSABEAM, NSAX
+      DOUBLE PRECISION:: PSP, SUML, ANGSP, SPL
 
       NS=NS_NSA(NSA)
 
@@ -783,8 +790,9 @@
       USE fpnflg
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NSA
-      integer:: NR, NTH, NP, NS, ID, NSA1, NSA2
-      REAL(RKIND):: PSP, SUML
+      integer:: NSB, NR, NTH, NP, NS, ID, NSA1, NSA2
+      integer:: NBEAM, NSABEAM, NSAX
+      DOUBLE PRECISION:: PSP, SUML, ANGSP, SPL
 
       NS=NS_NSA(NSA)
 
@@ -884,7 +892,7 @@
       SUBROUTINE synchrotron
 
       IMPLICIT NONE
-      REAL(rkind):: alpha, rgama_para, u, rgama
+      real(8):: alpha, rgama_para, u, rgama
       integer:: NSA, NTH, NP, NR, NS
 
       DO NSA=NSASTART,NSAEND
@@ -927,7 +935,7 @@
       SUBROUTINE loss_for_CNL
 
       IMPLICIT NONE
-      REAL(rkind):: rgama
+      real(8):: rgama
       INTEGER:: NSA,NTH, NP, NR, NS
 
       DO NSA=NSASTART, NSAEND
@@ -958,10 +966,14 @@
 
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NSA
-      INTEGER:: NS,NTH,NP,NR
-      REAL(rkind):: tau_imp
+      INTEGER:: NS,NTH,NP,NR,NSB
+      real(kind8):: tau_imp, FACTZ, imp_charge, SUM_MGI
 
+!      tau_imp=5.D0*tau_quench
       tau_imp=tau_mgi
+!      N_impu=3
+!      target_zeff_mgi=3.D0
+!      SPITOT=0.5D0 ! m^-3 on axis ! desired value of e dens.
 
       NS=NS_NSA(NSA)
 
@@ -971,7 +983,7 @@
             DO NP=NPSTART, NPEND
                DO NTH=1, NTHMAX
                   SPPI(NTH,NP,NR,NSA)= &!SPPI(NTH,NP,NR,NSA) &
-                       FPMXWL_IMP(PM(NP,NS),NR,NS)/tau_imp
+                       FPMXWL_IMP(PM(NP,NS),NR,NS,n_impu)/tau_imp
                END DO
             END DO
          END DO
@@ -979,15 +991,15 @@
 
       END SUBROUTINE IMPURITY_SOURCE
 !-------------------------------------------------------------
-      FUNCTION FPMXWL_IMP(PML,NR,NSA)
+      FUNCTION FPMXWL_IMP(PML,NR,NSA,N_ion)
 
       implicit none
-      integer,intent(in):: NR,NSA
+      integer,intent(in):: NR,NSA,N_ion
       integer:: NS
-      REAL(rkind),intent(in):: PML
-      REAL(rkind):: rnfp0l,rtfp0l,ptfp0l,RTFD0L
-      REAL(rkind):: amfpl,rnfpl,rtfpl,fact,ex,theta0l,thetal,z,dkbsl
-      REAL(rkind):: FPMXWL_IMP, target_Z, target_ni
+      real(kind8),intent(in):: PML
+      real(kind8):: rnfp0l,rtfp0l,ptfp0l,RTFD0L
+      real(kind8):: amfpl,rnfpl,rtfpl,fact,ex,theta0l,thetal,z,dkbsl
+      real(kind8):: FPMXWL_IMP, target_Z, target_ne, target_ni
 
       NS=NS_NSA(NSA)
       AMFPL=PA(NS)*AMP
@@ -1036,7 +1048,7 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NSA
       INTEGER:: NS,NTH,NP,NR
-      REAL(rkind):: tau_dB, rgama, factp, factr, diff_c
+      double precision:: tau_dB, rgama, factp, factr, diff_c
 
       NS=NS_NSA(NSA)
 
@@ -1061,10 +1073,10 @@
 
       IMPLICIT NONE
       integer,intent(in):: NSA
-      REAL(rkind):: sigma_cx, k_energy, log_energy
-      REAL(rkind):: log10_neu0, log10_neus, alpha, beta
+      double precision:: sigma_cx, k_energy, log_energy
+      double precision:: log10_neu0, log10_neus, alpha, beta
       integer:: NP, NTH, NR, NS
-      REAL(rkind),dimension(NRSTART:NREND):: RN_NEU
+      double precision,dimension(NRSTART:NREND):: RN_NEU
 
       NS=NS_NSA(NSA)
 

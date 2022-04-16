@@ -1,13 +1,11 @@
 module fowsource
-  USE fpcomm,ONLY: rkind
-  
   private
   public :: fow_calculate_source
 
   type beam_quantities
     logical :: isLoss
     integer :: ns, np_near
-    REAL(rkind) :: p, rhomw, thetamw, rhom, thetam, total
+    double precision :: p, rhomw, thetamw, rhom, thetam, total
   end type beam_quantities
 
 contains
@@ -76,7 +74,7 @@ contains
     type(beam_quantities),intent(in) :: beam
     real(rkind) :: ex_thm, ex_rm, fact_thm, fact_rm
     real(rkind) :: n_total, normalize, dV
-    integer :: nth, np, nr
+    integer :: nth, np, nr, nsa
 
 
     if ( PMAX(beam%ns) < beam%p ) then
@@ -146,7 +144,6 @@ contains
     use fowcomm
     use fpcomm
     use foworbit
-    USE fowlib
 
     implicit none
     integer,intent(in) :: NS
@@ -155,7 +152,7 @@ contains
     real(rkind) :: dBdr_b, dBdthp_b, dFdr_b, dpsipdr_b, B_b, F_b, psip_b
     real(rkind) :: thetam_b, rhom_b, cthm, sthm, dBmdrl, dFmdrl, Bml, Fml, dpsimdrl, pl
     real(rkind) :: dthmdr, dthmdthp, drmdr, drmdthp
-    real(rkind) :: A(2,2), b(2), detA
+    real(rkind) :: A(2,2), b(2), detA, THPW
     integer :: np, ierr
 
     ierr = 0

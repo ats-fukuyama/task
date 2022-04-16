@@ -6,7 +6,7 @@ CONTAINS
     USE fpsave
     IMPLICIT NONE
     REAL(rkind),DIMENSION(:,:),ALLOCATABLE::rhot,rhot_prev,drhotdt,hf,hfr,dtdr,chieff!,ps
-    INTEGER::nr,nsa
+    INTEGER::nr,nsa,np,nth
 
     ALLOCATE(rhot(nrmax,nsamax))
     ALLOCATE(rhot_prev(nrmax,nsamax))

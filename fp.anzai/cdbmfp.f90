@@ -1,5 +1,3 @@
-! fpcdbm.f90
-
 !     ********************************************
 
 !           CDBM Transport model (2009/03/06)
@@ -7,13 +5,13 @@
 
 !     ********************************************
 
-MODULE fpcdbm
+MODULE cdbmfp_mod
 
   USE bpsd_kinds
   USE bpsd_constants
   IMPLICIT NONE
   PRIVATE
-  PUBLIC:: fp_cdbm
+  PUBLIC:: cdbmfp
 
 !  integer,parameter :: rkind=selected_real_kind(12,100)
 !  integer,parameter :: ikind=selected_int_kind(8)
@@ -37,7 +35,7 @@ MODULE fpcdbm
 
 CONTAINS
 
-  SUBROUTINE fp_cdbm(bb,rr,rs,rkap,qp,shear,pne,rhoni,dpdr,dvexbdr, &
+  SUBROUTINE cdbmfp(bb,rr,rs,rkap,qp,shear,pne,rhoni,dpdr,dvexbdr, &
        &             calf,ckap,cexb,model,chi_cdbm,fsz,curvz,fez)
 
     real(rkind),intent(in):: bb      ! Magnetic field strength [T]
@@ -121,7 +119,7 @@ CONTAINS
     IF(PRESENT(fez))   fez=fe
     
     RETURN
-  END SUBROUTINE fp_cdbm
+  END SUBROUTINE cdbmfp
 
 ! *** Form factor in CDBM model ***
 
@@ -177,7 +175,7 @@ CONTAINS
     REAL(rkind),intent(in):: wexb  ! omega ExB
     REAL(rkind),intent(in):: shear ! Magnetic shear
     REAL(rkind),intent(in):: alpha ! Normalized pressure gradient
-    REAL(rkind):: alpha1,alpha2,beta,gamma,arg
+    REAL(8):: alpha1,alpha2,beta,gamma,arg
 
     IF(ABS(alpha).LT.1.D-3) THEN
        alpha1=1.D-3
@@ -204,4 +202,4 @@ CONTAINS
     ENDIF
     RETURN
   END FUNCTION FEXBfp
-END MODULE fpcdbm
+END MODULE cdbmfp_mod

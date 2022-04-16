@@ -4,25 +4,23 @@ module fowprep
 
 contains
 
-  subroutine fow_prep(ierr)
+  subroutine fow_prep
 
     use fowcomm
     use fpcomm
     use foworbit
-    use fowclassify
+    use orbit_classify
 
     implicit none
 
-    INTEGER,INTENT(OUT):: ierr
-    type(orbit) :: orbit_pnc
-    integer :: ns, nth, np, nr, nsa, flag, nstp, nstpmax, ir, nthp
+    type(orbit) :: orbit_pnc,ob
+    integer :: ns, nth, np, nr, nsa, ierr = 0, flag, nstp, nstpmax, ir, nthp
     real(rkind) :: dummy, begin_time, end_time
     real(rkind) :: time_v_co, time_v_cnt, dt, epspsi
     real(rkind) :: thetaml, rhoml, tau_loss, momentum, pitch_angle, theta_pol, psi_pol
     logical :: isCo
+    real(rkind) :: summ
 
-    ierr=0
-    
     ! load equiliblium variable
     call fow_eqload(ierr)
 
@@ -457,7 +455,6 @@ contains
     use fpcomm,only:rkind,nrmax,nthmax,npmax,rm,rg
     USE libspl1d
     USE libspl2d
-    USE fowlib
     implicit none
     integer,intent(out):: ierr
     character(len = 80) :: line
@@ -589,9 +586,8 @@ contains
 
     interface
       subroutine routine(z1, z2, y1, y2, m)
-        USE fpcomm,ONLY: rkind
-        REAL(rkind) , intent(out) :: z1, z2
-        REAL(rkind), intent(in) :: y1, y2
+        double precision , intent(out) :: z1, z2
+        double precision, intent(in) :: y1, y2
         integer, intent(in) :: m
       end subroutine
     end interface
@@ -659,7 +655,7 @@ contains
     ! return momentum of pinch orbit with psi_m = psim(nr_in), psi_pnc = psip_in
     use fowcomm
     use fpcomm
-    USE fowlib
+    
     implicit none
     real(rkind),intent(out) :: p_ret, theta_pncp
     real(rkind),intent(in):: psip_in, psim_in
@@ -667,8 +663,9 @@ contains
 
     real(rkind) :: F_pncp, Bin_pncp, BFFB, ps_ratio, dFdpsi_pncp, dBdpsi_pncp, G_m, C(3), w, FB_prime, xi_pncp, xi2
     real(rkind) :: F_m, B_m
-    COMPLEX(rkind) :: z(2)
+    complex(rkind) :: z(2)
     real(rkind),allocatable :: dFdpsi(:), dBdpsi(:)
+    integer :: nr
 
     allocate(dFdpsi(nrmax+1), dBdpsi(nrmax+1))
 
@@ -743,7 +740,7 @@ contains
     ! return momentum of stagnation orbit for given (theta_m = theta_in, psi_m = psim(nr_in)) and species, nsa_in
     use fowcomm
     use fpcomm
-    USE fowlib
+    
     implicit none
     real(rkind),intent(out):: p_ret, dummy
     real(rkind),intent(in):: theta_in, psim_in
@@ -800,7 +797,7 @@ contains
     implicit none
     integer,intent(out) :: ierr
     character(30) :: BIN_DIR, filename
-    integer :: nth, np, nr, nsa, nthp
+    integer :: nm, nth, np, nr, nsa, nthp
 
     ierr = 0
 

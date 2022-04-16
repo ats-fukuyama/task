@@ -90,7 +90,6 @@ contains
            MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp, &
            MODEL_LNL,MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY, &
            MODEL_SINK,N_IMPU,MODEL_DELTA_F, &
-           MODEL_FOW, &
            N_partition_r,N_partition_s,N_partition_p, &
            PMAX,PMAX_BB,EMAX, &
            R1,DELR1,RMIN,RMAX,E0,ZEFF, &
@@ -105,22 +104,13 @@ contains
            FACTOR_DRR_EDGE,FACTOR_PINCH,deltaB_B,TLOSS, &
            DELT,RIMPL,EPSFP,EPSM,EPSE,EPSDE,H0DE, &
            PGMAX,RGMAX,RGMIN, &
-           nthpmax, max_stp, model_obload, model_mkcsv, &
            T0_quench,tau_quench,tau_mgi, &
            time_quench_start,RJPROF1,RJPROF2, &
-           v_RE,target_zeff,SPITOT, MODEL_EX_READ_Tn, MODEL_EX_READ_DH_RATIO, &
-           FACT_BULK, time_exp_offset, MODEL_BULK_CONST, RN_NEU0, &
-           MODEL_CX_LOSS, RN_NEUS, EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, &
-           SV_FILE_NAME_D, NSA_F1, NTH_F1, NR_F1, OUTPUT_TXT_F1, &
-           OUTPUT_TXT_DELTA_F, OUTPUT_TXT_HEAT_PROF, OUTPUT_TXT_BEAM_WIDTH, &
-           OUTPUT_TXT_BEAM_DENS, NI_RATIO, &
-    !
-         nobt_max,nstp_max,ns_ob,lmax_nw, &
-         mdlobp,mdlobi,mdlobq,mdlobt,mdlobc,mdlobw,mdlobg,mdlobx, &
-         tmax_ob,delt_ob,eps_ob,del_ob,eps_nw, &
-         penergy_ob_in,pcangle_ob_in,zeta_ob_in,psipn_ob_in, &
-         theta_ob_in,rr_ob_in,zz_ob_in, &
-         nrmax_ob,nthmax_ob,nsumax_ob
+           v_RE,target_zeff,SPITOT, MODEL_EX_READ_Tn, MODEL_EX_READ_DH_RATIO,  &
+           FACT_BULK, time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS, RN_NEUS, &
+           EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, SV_FILE_NAME_D, NSA_F1, NTH_F1, NR_F1, &
+           OUTPUT_TXT_F1, OUTPUT_TXT_DELTA_F, OUTPUT_TXT_HEAT_PROF, OUTPUT_TXT_BEAM_WIDTH, &
+           OUTPUT_TXT_BEAM_DENS, NI_RATIO
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
@@ -160,9 +150,7 @@ contains
       WRITE(6,*) '      NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP,'
       WRITE(6,*) '      MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp,'
       WRITE(6,*) '      MODEL_LNL,MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY,'
-      WRITE(6,*) '      MODEL_SINK,N_IMPU,MODEL_DELTA_F,'
-      WRITE(6,*) '      MODEL_FOW,'
-      WRITE(6,*) '      nthpmax, max_stp, model_obload, model_mkcsv,'
+      WRITE(6,*) '      MODEL_SINK,N_IMPU,MODEL_DELTA_F'
       WRITE(6,*) '      N_partition_r,N_partition_s,N_partition_p,'
       WRITE(6,*) '      PMAX,PMAX_BB,EMAX'
       WRITE(6,*) '      R1,DELR1,RMIN,RMAX,E0,ZEFF,'
@@ -178,21 +166,13 @@ contains
       WRITE(6,*) '      FACTOR_DRR_EDGE,FACTOR_PINCH,deltaB_B,TLOSS,'
       WRITE(6,*) '      DELT,RIMPL,EPSFP,EPSM,EPSE,EPSDE,H0DE,'
       WRITE(6,*) '      PGMAX,RGMAX,RGMIN,'
-      WRITE(6,*) '      nobt_max,nstp_max,ns_ob,lmax_nw,'
-      WRITE(6,*) '      eps_ob,del_ob,eps_nw,tmax_ob,delt_ob,'
-      WRITE(6,*) '      mdlobp,mdlobi,mdlobq,mdlobt,mdlobc,'
-      WRITE(6,*) '      mdlobw,mdlobg,mdlobx,max,'
-      WRITE(6,*) '      penergy_ob_in,spcangle_ob_in,zeta_ob_in,psipn_ob_in,'
-      WRITE(6,*) '      heta_ob_in,rr_ob_in,zz_ob_in,nrmax_ob,nthmax_ob,'
-      WRITE(6,*) '      nsumax_obT0_quench,tau_quench,tau_mgi,'
+      WRITE(6,*) '      T0_quench,tau_quench,tau_mgi,'
       WRITE(6,*) '      time_quench_start,RJPROF1,RJPROF2,'
-      WRITE(6,*) '      v_RE,target_zeff,SPITOT,MODEL_EX_READ_Tn,'
-      WRITE(6,*) '      MODEL_EX_READ_DH_RATIO,FACT_BULK,time_exp_offset,'
-      WRITE(6,*) '      MODEL_BULK_CONST,RN_NEU0,MODEL_CX_LOSS,RN_NEUS'
-      WRITE(6,*) '      EG_NAME_TMS,EG_NAME_CX,SV_FILE_NAME_H,'
-      WRITE(6,*) '      SV_FILE_NAME_D,NSA_F1,NTH_F1,NR_F1'
-      WRITE(6,*) '      OUTPUT_TXT_F1,OUTPUT_TXT_DELTA_F,OUTPUT_TXT_HEAT_PROF,'
-      WRITE(6,*) '      OUTPUT_TXT_BEAM_WIDTH,OUTPUT_TXT_BEAM_DENS,NI_RATIO'
+      WRITE(6,*) '      v_RE,target_zeff,SPITOT,MODEL_EX_READ_Tn, MODEL_EX_READ_DH_RATIO, FACT_BULK'
+      WRITE(6,*) '      time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS, RN_NEUS'
+      WRITE(6,*) '      EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, SV_FILE_NAME_D, NSA_F1, NTH_F1, NR_F1'
+      WRITE(6,*) '      OUTPUT_TXT_F1, OUTPUT_TXT_DELTA_F, OUTPUT_TXT_HEAT_PROF, OUTPUT_TXT_BEAM_WIDTH'
+      WRITE(6,*) '      OUTPUT_TXT_BEAM_DENS, NI_RATIO'
 
       RETURN
   END SUBROUTINE fp_plst
@@ -219,8 +199,8 @@ contains
       USE libmtx
       IMPLICIT NONE
       INTEGER,DIMENSION(99):: idata
-      REAL(rkind),DIMENSION(99):: rdata
-      COMPLEX(8),DIMENSION(3):: cdata
+      real(8),DIMENSION(99):: rdata
+      complex(8),DIMENSION(3):: cdata
       INTEGER:: NS
 
 !----- PL input parameters -----     
@@ -396,14 +376,8 @@ contains
       idata(70)=OUTPUT_TXT_BEAM_DENS
       idata(71)=NRAYS_WR
       idata(72)=NRAYE_WR
-      idata(73)=MODEL_FOW
-      idata(74)=nthpmax
-      idata(75)=max_stp
-      idata(76)=model_obload
-      idata(77)=model_mkcsv
-      
-      CALL mtx_broadcast_integer(idata,77)
 
+      CALL mtx_broadcast_integer(idata,72)
       NSAMAX         =idata( 1)
       NSBMAX         =idata( 2)
       LMAX_WR        =idata( 3)
@@ -479,11 +453,6 @@ contains
       OUTPUT_TXT_BEAM_DENS=idata(70)
       NRAYS_WR=idata(71)
       NRAYE_WR=idata(72)
-      MODEL_FOW=idata(73)
-      nthpmax=idata(74)
-      max_stp=idata(75)
-      model_obload=idata(76)
-      model_mkcsv=idata(77)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -875,14 +844,6 @@ contains
       WRITE(6,604) 'target_zeff     ',target_zeff     , &
                    'SPITOT          ',SPITOT
 
-      WRITE(6,*) "-------- Finite Oorbit Width effects --------"
-
-      WRITE(6,606) 'MODEL_FOW       ',MODEL_FOW
-      WRITE(6,606) 'nthpmax         ',nthpmax, &
-                   'max_stp         ',max_stp
-      WRITE(6,606) 'model_obload    ',model_obload, &
-                   'model_mkcsv     ',model_mkcsv
-      
       WRITE(6,*) "-------- PLASMA MODELS --------"
 
       IF(MODELE.EQ.0)THEN
@@ -977,7 +938,7 @@ contains
   602 FORMAT(' ',A8,'=',1PE12.4:3X,A8,'=',I8,4X  :3X,A8,'=',I8)
   603 FORMAT(' ',A8,'=',I8,4X  :3X,A8,'=',I8,4X  :3X,A8,'=',I8)
   604 FORMAT(' ',A16,'=',1PE12.4:3X,A16,'=',1PE12.4)
-!  605 FORMAT(' ',A16,'=',1PE12.4:3X,A16,'=',I8)
+  605 FORMAT(' ',A16,'=',1PE12.4:3X,A16,'=',I8)
   606 FORMAT(' ',A16,'=',I8,4X  :3X,A16,'=',I8)
   END SUBROUTINE fp_view
 

@@ -18,7 +18,7 @@ contains
     implicit none
     real(rkind),dimension(nthmax,npmax,nrmax,nsamax),intent(out) :: fI
 
-    real(rkind) :: rtfd0l, ptfd0l, ex
+    real(rkind) :: ra_Bmin, theta_Bmin, rtfd0l, ptfd0l, fact, ex
     real(rkind) :: rnfd0l, rnfdl, rtfdl, normalize
     integer :: nth, np, nr, ns, nsa
     real(rkind) :: sumI, sumu, r0, psip0, costh0, sinth0, B0, F0, dBdr0, dFdr0, dpsipdr0
@@ -87,8 +87,8 @@ contains
 
     integer :: nth,np,nr,nthp,nsa
     integer :: ir, ith, irr, irl, ithr, ithl
-    real(rkind) :: rhoml, thetaml, suml, sumI
-    real(rkind) :: dxm, dxp, dym, dyp, f11, f12, f21, f22, dd, vr
+    real(rkind) :: rhoml, thetaml, suml, sumI, volI
+    real(rkind) :: dxm, dxp, dym, dyp, f11, f12, f21, f22, dd, vr, vp
 
     do nsa = 1, nsamax
 
@@ -189,8 +189,8 @@ contains
     implicit none
     real(rkind),dimension(nthmax,npmax,nrmax,nsamax),intent(in) :: fI_in
     real(rkind),dimension(nrmax,nsamax),intent(out) :: M0
-    integer :: nth, np, nr, nsa
-    real(rkind) :: dVI
+    integer :: nth, np, nr, nsa, nthp, ir
+    real(rkind) :: sum_f, dVr, mean_ra, dVu, dVI
 
 
     do nsa = 1, nsamax
@@ -242,7 +242,6 @@ contains
   subroutine particle_flux(Sr)
     use fpcomm
     use fowcomm
-    USE fowlib
     implicit none
     real(rkind),dimension(nrmax,nsamax),intent(out) :: Sr
     real(rkind),dimension(nthmax,npmax,nrmax,nsamax) :: dfdp, dfdth, dfdrm
@@ -305,7 +304,6 @@ contains
   subroutine particle_flux_element(Sr, Sr_Dp, Sr_Dth, Sr_Dr, Sr_F)
     use fpcomm
     use fowcomm
-    USE fowlib
     implicit none
     real(rkind),dimension(nrmax,nsamax),intent(out) :: Sr, Sr_Dp, Sr_Dth, Sr_Dr, Sr_F
     real(rkind),dimension(nthmax,npmax,nrmax,nsamax) :: dfdp, dfdth, dfdrm
@@ -365,7 +363,6 @@ contains
   subroutine effective_diffusion_cosfficient(Deff)
     use fpcomm
     use fowcomm
-    USE fowlib
     implicit none
     real(rkind),dimension(nrmax,nsamax),intent(out) :: Deff
     real(rkind),dimension(nrmax,nsamax) :: Sr, dndr

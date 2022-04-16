@@ -9,11 +9,12 @@
 
       IMPLICIT NONE
       INTEGER,INTENT(IN):: nscnt
-      REAL(RKIND),DIMENSION(nrstart:nrend,NSAMAX),INTENT(IN):: vsend
-      REAL(rkind),dimension(nrstart:nrend):: vtemp
-!      REAL(RKIND),DIMENSION(nrmax*nsamax):: vrecv
-      REAL(RKIND),DIMENSION(nrmax*N_partition_s):: vrecv
-      REAL(RKIND),DIMENSION(nrmax,nsamax),INTENT(OUT):: vreturn
+      REAL(8),DIMENSION(nrstart:nrend,NSAMAX),INTENT(IN):: vsend
+      double precision,dimension(nrstart:nrend):: vtemp
+!      REAL(8),DIMENSION(nrmax*nsamax):: vrecv
+      REAL(8),DIMENSION(nrmax*N_partition_s):: vrecv
+      REAL(8),DIMENSION(nrmax,nsamax),INTENT(OUT):: vreturn
+      INTEGER,DIMENSION(nsize):: nlen, npos
       INTEGER:: n, nsa, nn, ns, nr, nsw, nse
       integer,dimension(nsize):: idisp
 
@@ -42,9 +43,9 @@
       SUBROUTINE update_fnsb
 
       IMPLICIT NONE
-      integer:: nsend, nth, np, nr, nsa, nsb
-      REAL(rkind),dimension(nthmax,npstart:npend,nrstart:nrend,nsastart:nsaend):: dsend
-      REAL(rkind),dimension(nthmax,npstart:npend,nrstart:nrend,nsamax):: drecv
+      integer:: nsend, nth, np, nr, nsa, nsb, NS
+      double precision,dimension(nthmax,npstart:npend,nrstart:nrend,nsastart:nsaend):: dsend
+      double precision,dimension(nthmax,npstart:npend,nrstart:nrend,nsamax):: drecv
 
       DO NSA=NSASTART,NSAEND
          DO NR=NRSTART,NREND
@@ -80,12 +81,12 @@
 
       USE libmtx
       IMPLICIT NONE
-      integer:: nsend, nth, np, nr, nsa
-!      REAL(rkind),dimension(nthmax,npstart:npend,nrstart:nrend):: dsend
-!      REAL(rkind),dimension(nthmax,npmax,nrmax,n_partition_s):: drecv
-      REAL(rkind),dimension(nthmax,npstart:npend,nrstart:nrend):: dsend
-      REAL(rkind),dimension(nthmax,npmax,nrmax):: drecv
-      REAL(rkind),dimension(nthmax,npmax,nrmax,nsastart:nsaend):: dsend2
+      integer:: nsend, nth, np, nr, nsa, nsb, nsw, nswi,N
+!      double precision,dimension(nthmax,npstart:npend,nrstart:nrend):: dsend
+!      double precision,dimension(nthmax,npmax,nrmax,n_partition_s):: drecv
+      double precision,dimension(nthmax,npstart:npend,nrstart:nrend):: dsend
+      double precision,dimension(nthmax,npmax,nrmax):: drecv
+      double precision,dimension(nthmax,npmax,nrmax,nsastart:nsaend):: dsend2
 
       CALL mtx_set_communicator(comm_nrnp)
       DO NSA=NSASTART,NSAEND
@@ -117,13 +118,13 @@
       SUBROUTINE source_allreduce(array)
 
       IMPLICIT NONE
-      REAL(RKIND),dimension(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX), &
+      DOUBLE PRECISION,dimension(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX), &
            INTENT(INOUT):: array
-      REAL(RKIND),dimension(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX):: &
+      DOUBLE PRECISION,dimension(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX):: &
            sendbuf, recvbuf
       INTEGER,dimension(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX):: &
            lloc
-      INTEGER:: ncount
+      INTEGER:: ierr, ncount
 
          ncount = NTHMAX*(NPEND-NPSTART+1)*(NREND-NRSTART+1)*NSAMAX
          sendbuf(:,:,:,:)=0.D0
@@ -140,8 +141,8 @@
       SUBROUTINE p_theta_integration(vdata)
 
       IMPLICIT NONE
-      REAL(rkind),intent(inout):: vdata
-      REAL(rkind):: vrecv
+      double precision,intent(inout):: vdata
+      double precision:: vrecv
       integer::vloc
 
       CALL mtx_allreduce1_real8(vdata,3,vrecv,vloc) 
@@ -152,8 +153,8 @@
       SUBROUTINE fpl_comm(vdata,vrecv)
 
       IMPLICIT NONE
-      REAL(rkind),dimension(NPSTART:NPEND),intent(in)::vdata
-      REAL(rkind),dimension(NPMAX),intent(out)::vrecv
+      double precision,dimension(NPSTART:NPEND),intent(in)::vdata
+      double precision,dimension(NPMAX),intent(out)::vrecv
       integer:: ndata
 
       ndata = (NPEND-NPSTART+1)
@@ -164,8 +165,8 @@
       SUBROUTINE shadow_comm_np(NR,NSA)
 
       IMPLICIT NONE
-      REAL(rkind),dimension(nthmax)::sendbuf
-      REAL(rkind),dimension(nthmax)::recvbuf
+      double precision,dimension(nthmax)::sendbuf
+      double precision,dimension(nthmax)::recvbuf
       integer,intent(in):: NR,NSA
       integer:: sendcount, recvcount, dest, source, nth
 
@@ -209,8 +210,8 @@
       SUBROUTINE shadow_comm_nr(NSA)
 
       IMPLICIT NONE
-      REAL(rkind),dimension(nthmax*(npendwm-npstartw+1))::sendbuf
-      REAL(rkind),dimension(nthmax*(npendwm-npstartw+1))::recvbuf
+      double precision,dimension(nthmax*(npendwm-npstartw+1))::sendbuf
+      double precision,dimension(nthmax*(npendwm-npstartw+1))::recvbuf
       integer,intent(in):: NSA
       integer:: sendcount, recvcount, dest, source, nth, np, NM
 
@@ -269,11 +270,11 @@
       SUBROUTINE scatter_fns_to_fns0
 
       IMPLICIT NONE
-      integer:: NTH,NP,NR,NSA, I
+      integer:: NTH,NP,NR,NSA, I, J
       integer:: NPS, NPE, NRS, NRE, NSAS, NSAE
       integer:: sendcount, recvcount
       integer:: dest, source, tag
-      REAL(rkind),dimension(:,:,:,:),allocatable:: sendbuf, recvbuf
+      double precision,dimension(:,:,:,:),allocatable:: sendbuf, recvbuf
 
       CALL mtx_reset_communicator 
 

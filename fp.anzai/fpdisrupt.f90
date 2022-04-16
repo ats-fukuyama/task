@@ -2,28 +2,28 @@
 
      USE fpcomm
 
-      REAL(rkind),parameter:: Z_ef=3.D0
-!      REAL(rkind),parameter:: Z_ef=5.D0
-!      REAL(rkind),parameter:: Z_ef=1.D0
-!      REAL(rkind),parameter:: Z_ef=3.D0
+      real(8),parameter:: Z_ef=3.D0
+!      real(8),parameter:: Z_ef=5.D0
+!      real(8),parameter:: Z_ef=1.D0
+!      real(8),parameter:: Z_ef=3.D0
 
-!      REAL(rkind),parameter:: IP_init=1.8D6 ! [A] ! JET
-!      REAL(rkind),parameter:: IP_init=1.9D6 ! [A] ! JET 2008
-!     REAL(rkind),parameter:: IP_init=1.052D6 ! [A] !60 ITB
-!     REAL(rkind),parameter:: IP_init=1.5D6 ! [A] !60
-!     REAL(rkind),parameter:: IP_init=0.8D6 ! [A] !60 ITB
-!     REAL(rkind),parameter:: IP_init=0.5D6 ! [A] !60 ITB
-!     REAL(rkind),parameter:: IP_init=1.04D6 ! [A] !60 49255
-!      REAL(rkind),parameter:: IP_init=2.D6 ! [A] ! 60 typical
-!      REAL(rkind),parameter:: IP_init=15.D6 ! [A] ! ITER
-!     REAL(rkind),parameter:: IP_init=1.0D3 ! [A] !test
-!     REAL(rkind):: IP_init=RIP*1.D6 ! [A] !60 ITB
+!      real(8),parameter:: IP_init=1.8D6 ! [A] ! JET
+!      real(8),parameter:: IP_init=1.9D6 ! [A] ! JET 2008
+!     real(8),parameter:: IP_init=1.052D6 ! [A] !60 ITB
+!     real(8),parameter:: IP_init=1.5D6 ! [A] !60
+!     real(8),parameter:: IP_init=0.8D6 ! [A] !60 ITB
+!     real(8),parameter:: IP_init=0.5D6 ! [A] !60 ITB
+!     real(8),parameter:: IP_init=1.04D6 ! [A] !60 49255
+!      real(8),parameter:: IP_init=2.D6 ! [A] ! 60 typical
+!      real(8),parameter:: IP_init=15.D6 ! [A] ! ITER
+!     real(8),parameter:: IP_init=1.0D3 ! [A] !test
+!     real(8):: IP_init=RIP*1.D6 ! [A] !60 ITB
 
       integer,parameter:: ISW_Z=1 !0=Z_ef, 1=ZEFF
 
-      REAL(rkind),dimension(:),ALLOCATABLE:: rt_init
-!      REAL(rkind),parameter:: lnL_ED=10.D0
-      REAL(rkind),parameter:: lnL_ED=18.D0
+      real(8),dimension(:),pointer:: rt_init
+!      real(8),parameter:: lnL_ED=10.D0
+      real(8),parameter:: lnL_ED=18.D0
       integer,parameter:: ISW_Q=2 ! 2=exponential, 3=2step quench, 0=linear
       contains
 
@@ -36,14 +36,14 @@
       USE libmpi
       IMPLICIT NONE
 
-      INTEGER:: NR, NSA, NP, NTH, NPC
+      INTEGER:: NR, NSA, NSB, NS, NP, NSW, N, NTH
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
-      REAL(RKIND),dimension(NRSTART:NREND):: &
+      REAL(8),dimension(NRSTART:NREND):: &
            RN1_temp, RN2_temp, RJ1_temp, RJ2_temp
-      REAL(RKIND),dimension(NRSTART:NREND):: RT1_temp, RT2_temp
-      REAL(rkind):: RHON, SUMIP, IP_norm, jbs, SUMIP_BS, sumip_ohm, T0_init
+      REAL(8),dimension(NRSTART:NREND):: RT1_temp, RT2_temp
+      real(8):: RHON, SUMIP, IP_norm, jbs, SUMIP_BS, sumip_ohm, T0_init
       INTEGER:: VLOC, n_ite
-      REAL(rkind):: Erunm, Erunp, minimum_RE_E
+      real(8):: Erunm, Erunp, minimum_RE_E
 
       allocate(rt_init(NRSTART:NREND))
 !------critical momentum
@@ -73,8 +73,7 @@
                END IF
             END IF
          END DO
-         CALL mtx_allreduce1_integer(NPC_runaway,3,npc,vloc)
-         NPC_runaway=npc
+         CALL mtx_allreduce1_integer(NPC_runaway,3,NPC_runaway,vloc)
          CALL mtx_reset_communicator
          IF(NRANK.eq.0) &
               WRITE(6,'(A,I5,A,E14.6)') "RE boundary NP=",NPC_runaway, " PM(NP,1)=",PM(NPC_runaway,1)
@@ -182,9 +181,9 @@
       SUBROUTINE set_post_disrupt_Clog_f
 
       IMPLICIT NONE
-      INTEGER:: NR, NSA, NSB, NSFP, NSFD, ISW_CLOG
-      REAL(rkind):: RNA,RNB,RTA,RTB,RLNRL
-      REAL(rkind),dimension(NSAMAX):: PTFP0_f
+      INTEGER:: NR, NSA, NSB, NS, NSFP, NSFD, ISW_CLOG
+      real(8):: RNA,RNB,RTA,RTB,RLNRL
+      real(8),dimension(NSAMAX):: PTFP0_f
 
       DO NR=NRSTART, NRENDWM
 !      DO NR=1, NRMAX
@@ -256,10 +255,11 @@
       USE fpmpi
       USE libmpi
       IMPLICIT NONE
-      INTEGER:: NR, NSA, NSB, NSFP, NSFD, ISW_CLOG, N, NSW
-      REAL(rkind):: RNA,RNB,RTA,RTB,RLNRL,P_thermal
-      REAL(rkind),dimension(NRSTART:NREND,NSAMAX):: tau_ta
-      REAL(rkind),dimension(NRSTART:NREND):: LNL_l
+      INTEGER:: NR, NSA, NSB, NS, NSFP, NSFD, ISW_CLOG, N, NSW
+      real(8):: RNA,RNB,RTA,RTB,RLNRL,P_thermal, rtheta
+      real(8),dimension(NSAMAX):: PTFP0_f
+      real(8),dimension(NRSTART:NREND,NSAMAX):: tau_ta
+      real(8),dimension(NRSTART:NREND):: LNL_l
 
       IF(MODEL_LNL.eq.0)THEN ! update Coulomb Log with changing T
       DO NR=NRSTART, NREND
@@ -368,8 +368,8 @@
       SUBROUTINE display_disrupt_initials
 
       IMPLICIT NONE
-      REAL(rkind):: alp, z_i, h_alpha_z, lambda_alpha, gamma_alpha_z, G_connor
-      REAL(rkind):: G_connor_nr, G_connor_lm, tau_rela
+      real(8):: alp, z_i, h_alpha_z, lambda_alpha, gamma_alpha_z, G_connor
+      real(8):: G_connor_nr, G_connor_lm, tau_th, v_thermal, tau_rela
       integer:: j
 
       WRITE(6,*)" ---- DISRUPTION PARAM ------"
@@ -458,10 +458,10 @@
 
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR
-      REAL(RKIND),INTENT(OUT):: Sigma
+      REAL(8),INTENT(OUT):: Sigma
       INTEGER:: NSA, NSB
-      REAL(rkind):: fact, taue_col, RTE, RNE, Z_i
-      REAL(rkind):: neoc,  phi, f_T, C_, tau_rela, theta_l, C_log
+      real(8):: fact, taue_col, RTE, RNE, RTI, RNI, Z_i
+      real(8):: neoc,  phi, f_T, C_, tau_rela, theta_l, C_log
 
       NSA=1
       NSB=2
@@ -548,10 +548,10 @@
       USE fpmpi
       USE libmpi
       IMPLICIT NONE
-      INTEGER:: NR
-      REAL(rkind):: k, T0, Ts, Tf, r_tauq
-      REAL(rkind),dimension(NRSTART:NREND):: RT1_temp
-      REAL(rkind),save:: T_switch, time_switch
+      INTEGER:: NR, NSA, N, NSW
+      real(8):: k, T0, Ts, Tf, r_tauq
+      real(8),dimension(NRSTART:NREND):: RT1_temp
+      real(8),save:: T_switch, time_switch
 
       IF(ISW_Q.eq.0)THEN ! linear 
          IF(TIMEFP+DELT.le.5.D0*tau_quench)THEN
@@ -635,11 +635,11 @@
       USE libmpi
       IMPLICIT NONE
       integer:: NTH, NP, NR, NSA, N, NSW, NS, NSB
-      integer:: npe, nite
-      REAL(rkind):: FLUXS_PMAX, RSUM1, FACT, SUMZ, RSUM2, PV
-      REAL(rkind),intent(out):: IP_all_FP
-      REAL(rkind):: RSUMP1, RSUMP2
-      REAL(rkind),dimension(NRSTART:NREND):: temp_r
+      integer:: nps, npe, nite
+      real(8):: FLUXS_PMAX, FFP, RSUM1, FACT, SUMZ, RSUM2, PV
+      real(8),intent(out):: IP_all_FP
+      real(8):: RSUMP1, RSUMP2, zeff_imp2
+      real(8),dimension(NRSTART:NREND):: temp_r
       
       CALL mtx_set_communicator(comm_np)
       DO NR=NRSTART, NREND
@@ -796,11 +796,11 @@
       USE fpmpi
       USE libmpi
       IMPLICIT NONE
-      integer:: NTH, NR, NSA, NS
-      REAL(rkind):: FLUXS_PMAX, FFP, RSUM1, FACT, PITCH, v_thermal, tau_th
-      REAL(rkind),dimension(NRSTART:NREND):: Rconnor_l
-      REAL(rkind):: alp, z_i, h_alpha_z, lambda_alpha, gamma_alpha_z, theta_l, E00, tau_rela
-      REAL(rkind),dimension(NTHMAX):: RE_PITCH_L
+      integer:: NTH, NP, NR, NSA, N, NSW, NS, NSB
+      real(8):: FLUXS_PMAX, FFP, RSUM1, FACT, SUMZ, RSUM2, PV, PITCH, v_thermal, tau_th
+      real(8),dimension(NRSTART:NREND):: Rconnor_l
+      real(8):: alp, z_i, h_alpha_z, lambda_alpha, gamma_alpha_z, theta_l, E00, tau_rela
+      real(8),dimension(NTHMAX):: RE_PITCH_L
       
       CALL mtx_set_communicator(comm_np)
       DO NR=NRSTART, NREND
@@ -920,13 +920,13 @@
       USE libmpi
       USE plprof
       IMPLICIT NONE
-      INTEGER:: NR
-      REAL(rkind),intent(out):: IP_all, IP_ohm, IP_run, IP_BS, l_ind, IP_prim
-      REAL(RKIND),dimension(NRSTART:NREND):: &
-           RN1_temp, RN2_temp, RJ1_temp, RN2P_temp
-      REAL(rkind),dimension(NRMAX):: SUMIP4
-      REAL(RKIND):: SUMIP, SUMIP_ohm, SUMIP_run, SUMIP_BS, rhon, BP_a, SUMIP_prim, sumip_integ
-      REAL(rkind),save:: integ
+      INTEGER:: NR, NSA
+      real(8),intent(out):: IP_all, IP_ohm, IP_run, IP_BS, l_ind, IP_prim
+      REAL(8),dimension(NRSTART:NREND):: &
+           RN1_temp, RN2_temp, RJ1_temp, QLM_L, RN2P_temp
+      real(8),dimension(NRMAX):: SUMIP4
+      REAL(8):: SUMIP, SUMIP_ohm, SUMIP_run, SUMIP_BS, rhon, BP_a, SUMIP_prim, sumip_integ
+      real(8),save:: integ
 
       IF(TIMEFP.eq.DELT) integ=0.D0
       IF(TIMEFP.eq.DELT) previous_rate(:)=0.D0
@@ -1017,8 +1017,8 @@
       USE libmpi
       IMPLICIT NONE
       integer:: NR
-      REAL(rkind),dimension(NRSTART:NREND):: rate_ava_l
-      REAL(rkind):: E_hat, tau_rela, phi, Z_i
+      real(8),dimension(NRSTART:NREND):: rate_ava_l
+      real(8):: E_hat, tau_rela, phi, theta_l, Z_i
 
       IF(ISW_Z.eq.0)THEN
          Z_i=Z_ef
@@ -1107,8 +1107,8 @@
       USE plprof
       IMPLICIT NONE
       INTEGER,intent(in):: NR
-      REAL(rkind),intent(out):: jbs
-      REAL(rkind):: BP, RNE, RTE, RTI, dndr, dtedr, dtidr, rhon
+      real(8),intent(out):: jbs
+      real(8):: BP, RNE, RNI, RTE, RTI, dndr, dtedr, dtidr, rhon
 
       RTE=RT_quench(NR)*1.D3*AEE
       RTI=RT_quench(NR)*1.D3*AEE
@@ -1157,9 +1157,9 @@
       USE fpmpi
       IMPLICIT NONE
       INTEGER:: NSA, NR, NP, NTH, NPS, NS
-      REAL(RKIND):: PV, WPL, WPM, WPP, DFP, DFT, FFP
-      REAL(RKIND):: P2_S_P, P2_S_T, RSUMP, RSUMT, FACT
-      REAL(RKIND),DIMENSION(NRSTART:NREND):: R_djdtl
+      REAL(8):: PV, WPL, WPM, WPP, DFP, DFT, FFP
+      REAL(8):: P2_S_P, P2_S_T, RSUMP, RSUMT, FACT
+      REAL(8),DIMENSION(NRSTART:NREND):: R_djdtl
 
       CALL mtx_set_communicator(comm_np)
       DO NSA=NSASTART, NSAEND
@@ -1293,8 +1293,8 @@
       IMPLICIT NONE
       INTEGER:: NR
       integer:: imtxstart1,imtxend1,its
-      REAL(rkind):: Dr_coef, factp, factr
-      REAL(rkind):: Aij, Aij_m1, Aij_p1, RHS
+      real(8):: Dr_coef, factp, factr
+      real(8):: Aij, Aij_m1, Aij_p1, RHS, b_wall, E_e, a_e, coef_ln
 
       CALL mtx_set_communicator(comm_nr) 
       FACTP=PI*RR*VC/SQRT(2.D0)
@@ -1382,7 +1382,7 @@
 !       
 !      IMPLICIT NONE
 !      integer:: NR
-!      REAL(rkind):: factr, factp, dr_coef
+!      real(8):: factr, factp, dr_coef
 !
 !      DO NR=1,NRMAX
 !         FACTP=PI*RR*VC/SQRT(2.D0)
@@ -1404,11 +1404,11 @@
       USE libmpi
       IMPLICIT NONE
       INTEGER:: NTH, NP, NR, NSA, NPS, NPE, NS, NTHSTEP
-      REAL(RKIND):: WPL, WTP, DFT, DFP, FFP, FFT
-      REAL(RKIND), dimension(NTHMAX,NPSTART:NPEND+1):: FLUXS_PL_L
-      REAL(RKIND), dimension(NTHMAX+1,NPSTART:NPEND):: FLUXS_TL_L
-      REAL(RKIND), dimension(NTHMAX,NPSTART:NPEND):: FLUXS_PL, FLUXS_TL!, dfdt_l
-      REAL(RKIND), dimension(NTHMAX,NPMAX):: FLUXS_P, FLUXS_T!, dfdt
+      DOUBLE PRECISION:: WPL, WPM, WPP, WTP, DFT, DFP, FFP, FFT
+      DOUBLE PRECISION, dimension(NTHMAX,NPSTART:NPEND+1):: FLUXS_PL_L
+      DOUBLE PRECISION, dimension(NTHMAX+1,NPSTART:NPEND):: FLUXS_TL_L
+      DOUBLE PRECISION, dimension(NTHMAX,NPSTART:NPEND):: FLUXS_PL, FLUXS_TL!, dfdt_l
+      DOUBLE PRECISION, dimension(NTHMAX,NPMAX):: FLUXS_P, FLUXS_T!, dfdt
 
       IF(NPSTART.eq.1)THEN
          NPS=2
@@ -1526,9 +1526,9 @@
       USE fpcoef
       use fpcaleind
       IMPLICIT NONE
-      INTEGER:: NR, NSA
+      INTEGER:: NTH, NP, NR, NSA
       INTEGER,intent(in):: NT
-      REAL(rkind):: sigma
+      double precision:: sigma
 
       DO NR=NRSTART,NREND
          EM(NR)=E1(NR)
@@ -1586,11 +1586,11 @@
       use fpcaleind
       IMPLICIT NONE
       INTEGER,intent(in):: NT
-      INTEGER:: NR
+      INTEGER:: NR, NSA
       INTEGER:: NDIMPL, ILOC1
-      REAL(rkind):: DEPS_E, DEPS_MAX
-      REAL(rkind),intent(out):: IP_all_FP, DEPS_E2
-      REAL(rkind),dimension(NRSTART:NREND):: E_SIGMA 
+      double precision:: DEPS_E, DEPS_MAX
+      double precision,intent(out):: IP_all_FP, DEPS_E2
+      double precision,dimension(NRSTART:NREND):: E_SIGMA 
 
       NDIMPL=0
       DEPS_E=0.D0
@@ -1662,10 +1662,10 @@
 
       IMPLICIT NONE
       INTEGER,intent(in):: NT
-      INTEGER:: NR, NTH
+      INTEGER:: NR, NSA, NP, NTH
 
-      REAL(rkind):: ip_all, ip_ohm, ip_run, IP_bs
-      REAL(rkind):: IP_all_FP, l_ind, IP_prim, Z_i
+      double precision:: ip_all, ip_ohm, ip_run, jbs, IP_bs
+      double precision:: IP_all_FP, l_ind, IP_prim, Z_i
 
       CALL update_disruption_quantities(IP_all, IP_ohm, IP_run, IP_prim, IP_bs, l_ind)
 
@@ -1767,7 +1767,7 @@
 
       IMPLICIT NONE
       INTEGER:: NR, NSB
-      REAL(RKIND):: FACTZ, tau_imp, imp_charge
+      DOUBLE PRECISION:: FACTZ, tau_imp, imp_charge
       
 !      tau_imp=3.D0*tau_quench
       tau_imp=tau_mgi

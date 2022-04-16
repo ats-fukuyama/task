@@ -1,8 +1,8 @@
 MODULE fpsub
 
   PRIVATE
-  PUBLIC fpbave_dpp   ! not used
-  PUBLIC fpbave_dth   ! not used
+!  PUBLIC fpbave_dpp
+!  PUBLIC fpbave_dth
   PUBLIC FPMXWL
   PUBLIC FPMXWL_S
   PUBLIC FPMXWL_EDGE
@@ -14,9 +14,9 @@ CONTAINS
 
   SUBROUTINE fpbave_dpp(DPP,NR,NSA,ID)
     USE fpcomm,ONLY: NTHMAX,NPSTART,NPENDWG,NRSTART,NRENDWM,NSAMAX, &
-                     RLAMDA,ITL,ITU,rkind
+                     RLAMDA,ITL,ITU
     IMPLICIT NONE
-    REAL(RKIND),INTENT(INOUT):: &
+    REAL(8),INTENT(INOUT):: &
          DPP(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX)
     INTEGER,INTENT(IN):: NR,NSA,ID  ! ID=0 for DPP,FPP, ID=1 for DPT
     INTEGER:: NP,NTH
@@ -56,9 +56,9 @@ CONTAINS
 
   SUBROUTINE fpbave_dth(DTH,NR,NSA,ID)
     USE fpcomm,ONLY: NTHMAX,NPSTARTW,NPENDWM,NRSTART,NRENDWM,NSAMAX, &
-                     ITL,rkind
+                     RLAMDA,ITL,ITU
     IMPLICIT NONE
-    REAL(RKIND),INTENT(INOUT):: &
+    REAL(8),INTENT(INOUT):: &
          DTH(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX)
     INTEGER,INTENT(IN):: NR,NSA,ID  ! ID=0 for DTT, ID=1 for DTP,FTH
     INTEGER:: NP,NTH
@@ -92,10 +92,10 @@ CONTAINS
       USE libbes
       implicit none
       integer :: NR, NS
-      REAL(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      REAL(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+      real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
       TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
-      REAL(rkind):: FPMXWL
+      real(kind8):: FPMXWL
 
       AMFDL=PA(NS)*AMP
       AEFDL=PZ(NS)*AEE
@@ -156,10 +156,10 @@ CONTAINS
       USE libbes
       implicit none
       integer :: NR, NS
-      REAL(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      REAL(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+      real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
       TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
-      REAL(rkind):: FPMXWL_S
+      real(kind8):: FPMXWL_S
 
       AMFDL=PA(NS)*AMP
       AEFDL=PZ(NS)*AEE
@@ -221,7 +221,9 @@ CONTAINS
 !      integer,intent(in):: NP, NSA
       integer:: NP, NSA
       integer:: NS
-      REAL(rkind):: FL
+      real(kind8):: FL1, FL2
+!      real(kind8),intent(out):: FL
+      real(kind8):: FL
 
       NS=NS_NSA(NSA)
 
@@ -243,10 +245,10 @@ CONTAINS
       USE libbes
       implicit none
       integer :: NR, NS
-      REAL(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      REAL(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+      real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
       TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
-      REAL(rkind):: FPMXWL_LT
+      real(kind8):: FPMXWL_LT
 
       AMFDL=PA(NS)*AMP
       AEFDL=PZ(NS)*AEE
@@ -295,10 +297,10 @@ CONTAINS
   SUBROUTINE update_fnsb_maxwell
 
     USE fpcomm
-    USE fpreadeg
+    USE EG_READ
     IMPLICIT NONE
     INTEGER:: NS, NR, NP, NTH, NSB
-    REAL(rkind):: FL
+    double precision:: FL
 
       IF(MODEL_EX_READ_Tn.eq.0)THEN
          DO NSB=1, NSBMAX
@@ -330,17 +332,17 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      Subroutine FPNEWTON(NSA,RNSL_,RWSL_,rtemp)
+      Subroutine FPNEWTON(NR,NSA,RNSL_,RWSL_,rtemp)
 
-      USE fpcomm,ONLY: NS_NSA,AMFP,THETA0,PTFP0,VC,AEE,rkind
+      USE fpcomm,ONLY: NS_NSA,AMFP,THETA0,PTFP0,VC,AEE
       USE libbes
       IMPLICIT NONE
-      INTEGER,INTENT(IN)::NSA
-      REAL(rkind),intent(in):: RNSL_, RWSL_ 
-      REAL(rkind),intent(out)::rtemp
+      INTEGER,INTENT(IN)::NR,NSA
+      double precision,intent(in):: RNSL_, RWSL_ 
+      double precision,intent(out)::rtemp
       integer:: ncount, NS
-      REAL(rkind):: xeave
-      REAL(rkind):: xtemp, thetal, EAVE
+      real(8):: xeave
+      real(8):: xtemp, thetal, EAVE
 
       NS=NS_NSA(NSA)
 !-----Average kinetic energy
@@ -361,14 +363,13 @@ CONTAINS
 
       CONTAINS
 
-        SUBROUTINE xnewton(eave,thetal,ncount)
-          USE fpcomm,ONLY: rkind
+      SUBROUTINE xnewton(eave,thetal,ncount)
       IMPLICIT NONE
-      REAL(rkind),intent(in):: eave
-      REAL(rkind),intent(inout):: thetal
+      REAL(8),intent(in):: eave
+      REAL(8),intent(inout):: thetal
       INTEGer,intent(out):: ncount
-      REAL(rkind),parameter:: eps=1.d-10
-      REAL(rkind):: delthetal,thetalnew,epsthetal
+      REAL(8),parameter:: eps=1.d-10
+      REAL(8):: delthetal,thetalnew,epsthetal
 
 !--------iteration start
       ncount=0
@@ -385,10 +386,9 @@ CONTAINS
       END SUBROUTINE xnewton
 
       FUNCTION rfunc(thetal)
-        USE fpcomm,ONLY: rkind
       IMPLICIT NONE
-      REAL(rkind):: thetal,rfunc
-      REAL(rkind):: z,dkbsl1,dkbsl2
+      REAL(8):: thetal,rfunc
+      REAL(8):: z,dkbsl1,dkbsl2
       z=1.D0/thetal
       dkbsl1=BESEKNX(1,Z)
       dkbsl2=BESEKNX(2,Z)
@@ -397,10 +397,9 @@ CONTAINS
       END FUNCTION rfunc
 
       FUNCTION rfuncp(thetal)
-          USE fpcomm,ONLY: rkind
       IMPLICIT NONE
-      REAL(rkind):: thetal,rfuncp
-      REAL(rkind):: z,dkbsl1,dkbsl2
+      REAL(8):: thetal,rfuncp
+      REAL(8):: z,dkbsl1,dkbsl2
       z=1.D0/thetal
       dkbsl1=1.D0 +  3.D0/8.D0/z -  15.D0/128.D0/z**2
       dkbsl2=1.D0 + 15.D0/8.D0/z + 105.D0/128.D0/z**2
@@ -409,10 +408,9 @@ CONTAINS
       END FUNCTION rfuncp
       
       FUNCTION dfunc(thetal)
-          USE fpcomm,ONLY: rkind
       IMPLICIT NONE
-      REAL(rkind):: thetal,dfunc
-      REAL(rkind):: z,dkbsl0,dkbsl1,dkbsl2,dkbsl3
+      REAL(8):: thetal,dfunc
+      REAL(8):: z,dkbsl0,dkbsl1,dkbsl2,dkbsl3
       z=1.D0/thetal
       dkbsl0=BESEKNX(0,z)
       dkbsl1=BESEKNX(1,z)
@@ -425,10 +423,9 @@ CONTAINS
       END FUNCTION dfunc
 
       FUNCTION dfuncp(thetal)
-          USE fpcomm,ONLY: rkind
       IMPLICIT NONE
-      REAL(rkind):: thetal,dfuncp
-      REAL(rkind):: z,dkbsl0,dkbsl1,dkbsl2,dkbsl3
+      REAL(8):: thetal,dfuncp
+      REAL(8):: z,dkbsl0,dkbsl1,dkbsl2,dkbsl3
       z=1.D0/thetal
       dkbsl0=1.D0 -  1.D0/8.D0/z +   9.D0/128.D0/z**2
       dkbsl1=1.D0 +  3.D0/8.D0/z -  15.D0/128.D0/z**2

@@ -10,18 +10,21 @@ CONTAINS
 
       USE fpcomm
       USE plprof
-      USE fpcdbm
+      USE cdbmfp_mod
       USE libmpi,ONLY: mtx_set_communicator, mtx_reset_communicator
       USE fpmpi,ONLY: p_theta_integration
       IMPLICIT NONE
-      integer:: NSA, NSBA, NS, NR, NTH, NP, NR1, NR2
-      REAL(rkind):: RHON, RTFPL, FACTR, FACTP, PPP, PPM
-      REAL(rkind):: FACT, DINT_D, DINT_F, WRL
-      REAL(rkind):: SRHODM, SRHOFM
-      REAL(rkind):: F_R1, DFDR_R1
-      REAL(rkind):: SHEAR,PNEL,RHONI,DPDR,DVEXBDR,CALF,CKAP,CEXB
-      REAL(rkind),DIMENSION(1:NRMAX+1):: CHI_CDBM
-      REAL(rkind):: rgama, alpha
+      integer:: NSA, NSBA, NS, NR, NTH, NP, NG, NSB, NR1, NR2
+      real(kind8):: RHON, RTFPL, FACTR, FACTP, SV, PPP, PPM
+      real(kind8):: PSIB, PCOS, X, ETAL, sumd, sumf, DELH
+      real(kind8):: DNDR, NEDGE, FACT, DINT_D, DINT_F, WRL
+      real(kind8):: sum1, temp1, SRHODP, SRHODM, SRHOFP, SRHOFM
+      real(kind8):: WRH, DFDR_D, DFDR_F, F_R2, DFDR_R2, F_R1, DFDR_R1
+      REAL(kind8):: SHEAR,PNEL,RHONI,DPDR,DVEXBDR,CALF,CKAP,CEXB,FSZ,FEZ
+      REAL(kind8),DIMENSION(1:NRMAX+1):: CHI_CDBM
+      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+      double precision:: densm, densp, rgama, alpha
+      INTEGER:: ISW_D
 
 !---- Calculation of CDBM diffusion coefficient ----
 
@@ -113,7 +116,7 @@ CONTAINS
 !            CURVZ=0.D0   ! option
 !            FEZ=0.D0     ! option
 
-            CALL fp_cdbm(BB,RR,RA*RHON,RKAP,QLM(NR),SHEAR,PNEL,RHONI,DPDR, &
+            CALL CDBMFP(BB,RR,RA*RHON,RKAP,QLM(NR),SHEAR,PNEL,RHONI,DPDR, &
                       DVEXBDR,CALF,CKAP,CEXB,MODELD_CDBM,CHI_CDBM(NR))
 !            IF(nrank.EQ.0) THEN
 !               write(18,'(I2,1P7E11.3)') &

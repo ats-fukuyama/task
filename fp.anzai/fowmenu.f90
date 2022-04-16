@@ -14,6 +14,7 @@ CONTAINS
     use fowdistribution
     use fowloop
 
+    USE fpcomm,ONLY: PM,FNS0
     USE fpparm
     USE fpprep,ONLY: fp_prep
     use fpwrite
@@ -27,6 +28,8 @@ CONTAINS
     CHARACTER(LEN=1)::  KID
     CHARACTER(LEN=80):: LINE
     INTEGER:: MODE,IERR
+    integer :: nr,nth,np,nsa
+    real(rkind),allocatable :: fu(:,:,:,:),fI(:,:,:,:),J(:,:,:,:)
 
 1   CONTINUE
     IF(nrank.EQ.0) THEN
@@ -46,8 +49,9 @@ CONTAINS
        call fp_broadcast
        call fp_prep(IERR)
 
+       call fow_read_namelist
        call fow_allocate
-       call fow_prep(ierr)
+       call fow_prep
 
        call fow_loop
 

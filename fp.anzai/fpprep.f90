@@ -32,9 +32,9 @@
       Implicit none
       integer :: ierr,NSA,NS,NR,NP,NTH,id
 !      character(LEN=80)::line 
-      REAL(rkind)::rhon,rhol,rhol1,rhol2,A1,epsl,ql,BT
-      REAL(rkind),DIMENSION(:),POINTER:: work,workg
-      REAL(rkind):: Rmass, RRTFP, RPTFP,RVTFP, sumEmax
+      real(kind8)::rhon,rhol,rhol1,rhol2,A1,epsl,ql,BT
+      real(kind8),DIMENSION(:),POINTER:: work,workg
+      real(kind8):: Rmass, RRTFP, RPTFP,RVTFP, sumEmax
 
 !     ----- define upper boundary of p from Emax-----
       sumEmax=0.D0
@@ -746,8 +746,8 @@
 
         USE fpsub
       IMPLICIT NONE
-      INTEGER:: NTH,NP,NR,NSA,NS
-      REAL(RKIND):: FL
+      INTEGER:: NTH,NP,NR,NSA,NS,NSB
+      REAL(8):: FL
 
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
@@ -803,7 +803,7 @@
       USE fpsub
       IMPLICIT NONE
       INTEGER:: NTH,NP,NR,NSA,NS
-      REAL(RKIND):: FL
+      REAL(8):: FL
 
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
@@ -858,13 +858,13 @@
       SUBROUTINE fp_set_normalize_param
 
       USE plprof
-      USE fpreadeg
+      USE EG_READ
       IMPLICIT NONE
       INTEGER:: NSA, NSB, NS, NSFP, NSFD, NR, ISW_CLOG, i, j
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
-      REAL(rkind):: RTFD0L, RHON, RNE, RTE, RLNRL, FACT, RNA, RTA, RNB, RTB, SUM, AMFDL
-      REAL(rkind):: A_D, tau_se_E0, log_energy, sigma_cx0, sigma_cx, tau_cx_E1
-      REAL(rkind):: tau_se_E0E1, log10_neu0, log10_neus, alpha, beta, N_NEUT, E_CR
+      real(kind8):: RTFD0L, RHON, RNE, RTE, RLNRL, FACT, RNA, RTA, RNB, RTB, SUM, AMFDL
+      real(kind8):: A_D, tau_se_E0, k_energy, log_energy, sigma_cx0, sigma_cx, tau_cx_E1
+      real(kind8):: tau_se_E0E1, k_energy1, log10_neu0, log10_neus, alpha, beta, N_NEUT, E_CR
 
       DO NSA=1,NSAMAX
          NS=NS_NSA(NSA)
@@ -1128,9 +1128,9 @@
 
       IMPLICIT NONE
       INTEGER:: NR, NSA, NSFP, NSFD, NSB, ISW_CLOG
-      REAL(RKIND):: RTA,RTB,RNA,RNB, RLNRL, FACT,RNE
-      REAL(rkind),dimension(NSAMAX,NSBMAX):: CLOG
-      REAL(rkind):: VTFDL, PTFDL
+      DOUBLE PRECISION:: RTA,RTB,RNA,RNB, RLNRL, FACT,RNE
+      double precision,dimension(NSAMAX,NSBMAX):: CLOG
+      double precision:: VTFDL, PTFDL
 
       DO NR=NRSTART,NRENDWM
          ISW_CLOG=0 ! =0 Wesson, =1 NRL
@@ -1200,7 +1200,7 @@
       USE libmtx
       USE fpnflg
       IMPLICIT NONE
-      integer :: ierr,NSA,NR,NP,NTH
+      integer :: ierr,NSA,NR,NP,NTH,NSB
 
       IF(NRANK.eq.0) &
       WRITE(6,*) "----- SET COEFFICIENTS AND DISTRIBUTION FUNCTIONS -----"
@@ -1266,15 +1266,15 @@
       USE fpnfrr
       USE libmtx
       USE fpnflg
-      USE fpread
+      USE FP_READ_FIT
       USE FPOUTDATA
 
       Implicit none
 
-      integer :: ierr,NSA,NS,NR,N,NSW,i,NSFP
+      integer :: ierr,NSA,NS,NR,N,NSW,i,NSFP,NSB
       real:: gut1, gut2, gut_prep
-      REAL(rkind):: SIGMA
-      REAL(rkind),dimension(:),allocatable:: conduct_temp, E1_temp
+      real(8):: SIGMA
+      real(8),dimension(:),allocatable:: conduct_temp, E1_temp
       integer,dimension(6):: idata
       integer,dimension(6*nsize):: idata2
 
@@ -1432,9 +1432,6 @@
 
       IF(OUTPUT_TXT_DELTA_F.eq.1.and.NRANK.eq.0) CALL OUT_TXT_FNS_DEL
  
-      ierr_g=0  ! negative density check
-      N_f1=0    ! nt/ntg1step
-
       RETURN
       END subroutine fp_prep
 !-----

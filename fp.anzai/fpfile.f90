@@ -37,7 +37,7 @@
 
       WRITE(6,*) '# DATA WAS SUCCESSFULLY SAVED TO THE FILE.'
 
-      RETURN
+  900 RETURN
       END SUBROUTINE FP_SAVE
 !
 !     ***********************************************************
@@ -71,7 +71,7 @@
 
       WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
 
-      RETURN
+  900 RETURN
       END SUBROUTINE FP_LOAD
 !------------------------------------------      
       SUBROUTINE FP_SAVE2
@@ -150,7 +150,7 @@
 !         WRITE(*,'(A,I4,3E14.6)') "TEST 1 ", NR, RT_BULK(NR,2), RN_TEMP(NR,3), FNS(1,10,NR,2)
 !      END DO
 
-      RETURN
+  900 RETURN
       END SUBROUTINE FP_SAVE2
 !------------------------------------------      
       SUBROUTINE FP_LOAD2
@@ -225,7 +225,7 @@
 
       WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
 
-      RETURN
+  900 RETURN
       END SUBROUTINE FP_LOAD2
 !------------------------------------------      
       SUBROUTINE FP_PRE_LOAD
@@ -234,7 +234,7 @@
       USE libmpi
       USE fpmpi
       IMPLICIT NONE
-      integer:: NSW, N, NSA, ierr, i
+      integer:: NSW, N, NSA, ierr, i, NR
 !      real:: gut1, gut2
       integer,dimension(1:6):: idata
       integer,dimension(6*nsize):: idata2
@@ -301,7 +301,7 @@
       USE fpprep
       USE libmpi
       USE fpmpi
-      USE fpreadeg
+      USE eg_read
       USE plprof
       USE fpnfrr
       USE fpnflg
@@ -309,7 +309,9 @@
       USE fpsub
       IMPLICIT NONE
       integer:: NSA, ierr, NR, NS, NP, NTH, NBEAM
-      REAL(rkind):: FL
+      double precision:: FL, RHON
+      real(8),dimension(NRMAX,NSMAX):: tempt, tempn 
+      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
 
 !     ----- set parameters for target species -----
       CALL fp_set_normalize_param
@@ -422,7 +424,7 @@
       USE fpoutdata
       IMPLICIT NONE
       INTEGER,DIMENSION(99):: idata
-      REAL(rkind),DIMENSION(99):: rdata
+      real(8),DIMENSION(99):: rdata
       integer:: NR, NSB, NSA, NTH, NP
 
       idata(1)=NT_init
@@ -546,14 +548,14 @@
 
       USE libmpi
       IMPLICIT NONE
-      REAL(rkind),dimension(NRMAX)::temp
-      REAL(rkind),dimension(NRSTART:NREND)::temp_l
-      REAL(rkind),dimension(NTHMAX,NPSTART:NPEND,NRSTART:NREND):: dsend
-      REAL(rkind),dimension(nthmax,npmax,nrmax):: drecv
-      REAL(rkind),dimension(NTHMAX,NPMAX):: dsend_max, drecv_max
+      double precision,dimension(NRMAX)::temp
+      double precision,dimension(NRSTART:NREND)::temp_l
+      double precision,dimension(NTHMAX,NPSTART:NPEND,NRSTART:NREND):: dsend
+      double precision,dimension(nthmax,npmax,nrmax):: drecv
+      double precision,dimension(NTHMAX,NPMAX):: dsend_max, drecv_max
       integer,dimension(NTHMAX,NPMAX)::vloc_max
 
-      REAL(rkind),dimension(nthmax,npmax,nrmax+1,nsastart:nsaend):: temp_l2
+      double precision,dimension(nthmax,npmax,nrmax+1,nsastart:nsaend):: temp_l2
       integer:: nsend
       INTEGER:: NR, NSB, NSA, NTH, NP!, dest, source, tag, nn, Isum
 !!!!!!!!!!!!

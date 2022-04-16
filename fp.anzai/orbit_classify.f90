@@ -1,12 +1,11 @@
-module fowclassify
+module orbit_classify
 
-  USE fpcomm,ONLY: rkind
   private
 
   public :: output_orbit_classify
 
   integer,parameter :: ithmax = 47
-  REAL(rkind),dimension(ithmax) :: theta_m, xi
+  double precision,dimension(ithmax) :: theta_m, xi
 
 contains
 
@@ -15,9 +14,9 @@ contains
     use fowcomm
     use fpwrite
     implicit none
-    REAL(rkind),dimension(ithmax,nrmax,nsamax) :: beta_D, beta_stag
-    REAL(rkind),dimension(ithmax,nrmax,nsamax) :: beta_pinch, theta_pinch
-    REAL(rkind),dimension(nrmax,2) :: xi_Xtype_boundary_ion
+    double precision,dimension(ithmax,nrmax,nsamax) :: beta_D, beta_stag
+    double precision,dimension(ithmax,nrmax,nsamax) :: beta_pinch, theta_pinch
+    double precision,dimension(nrmax,2) :: xi_Xtype_boundary_ion
 
     call prep_orbit_classify
     call pinch_orbit(beta_pinch, theta_pinch)
@@ -55,9 +54,9 @@ contains
     use fpcomm
     use fowcomm
     implicit none
-    REAL(rkind),dimension(ithmax,nrmax,nsamax),intent(out) :: beta_pinch, theta_pinch
-    REAL(rkind) :: psipin
-    integer :: nr,nsa,ierr,nth
+    double precision,dimension(ithmax,nrmax,nsamax),intent(out) :: beta_pinch, theta_pinch
+    double precision :: psipin
+    integer :: nr,nsa,ir,ierr,nth
 
     ierr = 0
 
@@ -78,7 +77,7 @@ contains
     ! return momentum of pinch orbit with psi_m = psim(nr_in), psi_pnc = psip_in
     use fowcomm
     use fpcomm
-    USE fowlib
+    
     implicit none
     real(rkind),intent(out) :: beta_pinch, theta_pncp
     real(rkind),intent(in):: psip_in, psim_in
@@ -86,8 +85,9 @@ contains
 
     real(rkind) :: F_pncp, Bin_pncp, BFFB, ps_ratio, dFdpsi_pncp, dBdpsi_pncp, G_m, C(3), w, FB_prime, xi_pncp, xi2
     real(rkind) :: F_m, B_m, p_ret
-    COMPLEX(rkind) :: z(2)
+    complex(rkind) :: z(2)
     real(rkind),allocatable :: dFdpsi(:), dBdpsi(:)
+    integer :: nr
 
     allocate(dFdpsi(nrmax+1), dBdpsi(nrmax+1))
 
@@ -161,7 +161,7 @@ contains
     use fpcomm
     implicit none
     real(rkind),dimension(ithmax,nrmax,nsamax),intent(out) :: beta_D
-    integer :: nth, nr, nsa, ir
+    integer :: np, nth, nr, nsa, ir
     real(rkind) :: dnr_bn, v_D_orbit
     real(rkind),dimension(ithmax,nrmax,nsamax) :: Gm
     real(rkind),dimension(ithmax,nrmax) :: psin, B_m, Bn
@@ -253,10 +253,10 @@ contains
     ! beta_stag is maximum momentum of not-forbitten particles for given psi_m, xi and particle species
     use fowcomm
     use fpcomm
-    USE fowlib
     implicit none
     real(rkind),dimension(ithmax,nrmax,nsamax),intent(out) :: beta_stag
-    integer :: nth,nr,nsa
+    integer :: nth,np,nr,nsa
+    integer :: ir
     real(rkind) :: v_stagnation_orbit, F_p, B_p
     real(rkind),dimension(ithmax,nrmax,nsamax) :: Gm
     real(rkind),dimension(ithmax,nrmax) :: B_m, dBmdpsi
@@ -312,14 +312,13 @@ contains
     use fpcomm
     use fowcomm
     use fpwrite
-    USE fowlib
     implicit none
     ! F_p : ( dF / d(psi_p/psi_m) )/F 
     ! F_pp : ( d^2F / d(psi_p/psi_m)^2 )/F
     real(rkind),dimension(nrmax,2),intent(out) :: xi_Xtype_boundary(:,:)
-    integer :: nr
+    integer :: nth, np, nr, nsa, ir
     real(rkind) :: C(3), F_p, F_pp, B_p, B_pp
-    COMPLEX(rkind) :: z(2)
+    complex(rkind) :: z(2)
     real(rkind),dimension(nrmax,2) :: dBmdpsi, d2Bmdpsi, B_, B__
     real(rkind),dimension(nrmax) :: dFdpsi, d2Fdpsi, F_, F__
 
@@ -407,4 +406,4 @@ contains
 
   end function func_kaijou
 
-end module fowclassify
+end module orbit_classify

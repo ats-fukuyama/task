@@ -53,8 +53,8 @@ contains
     use fpwrite
     implicit none
     integer::nr,nsa,t=0
-    REAL(rkind)::vprimem,vprimeg,qsum,mj2kev
-    REAL(rkind),dimension(nrmax,nsamax)::temps,drhotdt,ps,hf,dtdr,chieff,keff,dpdr,inPower
+    double precision::vprimem,vprimeg,qsum,mj2kev
+    double precision,dimension(nrmax,nsamax)::temps,drhotdt,ps,hf,dtdr,chieff,keff,dpdr,inPower
 
     mj2kev=1.d-17/aee    !MJ to 10^20keV
     temps(:,:)=rws(:,:)/(1.5d0*rns(:,:))
