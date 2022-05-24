@@ -439,7 +439,7 @@ Data is saved in \$HOME/.gitconfig
 \title{Install TASK (5)}
 \begin{itemize}
 \item
-\emA{Use the latest develop branch and setup make.header file}
+\emA{Use the latest develop branch and setup files, make.header and make.mtxp}
 \begin{itemize}
 \item
 \emBs{cd task}
@@ -460,54 +460,81 @@ Data is saved in \$HOME/.gitconfig
 \item
 \emBs{cd ../task}
 \end{itemize}
-\item
-\emA{Compile TASK}: eq for example
-\begin{itemize}
-\item
-\emBs{cd eq}
-\item
-\emBs{make}
-\item
-\emBs{./eq}
-\end{itemize}
 \end{itemize}
 
 \title{Install TASK (6)}
 \begin{itemize}
 \item
-\emA{Type of parallel matrix solver configuration}
+\emA{Choice of matrix solver configuration}
 \begin{itemize}
 \item
-\emBs{.nompi}: only single- processing solver without MPI environment
+  Single processing without MPI: \emBs{make.mtxp.nompi}
 \item
-\emBs{.mpi}: only single-processing solver with MPI environment
+  Single processing with MPI: \emBs{make.mtxp.mpi}
 \item
-\emBs{.petsc}: various parallel iterative solvers in  with MPI
+  Multi processing with parallel real matrix solver: \emBs{make.mtxp.petsc}
 \item
-\emBs{.petsc+mumps}: various parallel iterative and direct solvers with MPI
+  Multi processing with parallel real and complex solver: \\
+  \emBs{make.mtxp.petsc+mumps}
 \end{itemize}
 \item
-\emA{Setup matrix solver library}
+  \emA{Module using parallel matrix solver}
+  \begin{itemize}
+  \item
+    \emB{Real}: fp, ti, pic, t2
+  \item
+    \emB{Complex}: wmx, wf2d, wf2dt, wf2dx, wq
+  \end{itemize}
+\item
+  \emA{Setup matrix solver library}
+  \begin{itemize}
+  \item
+    \emBs{cd mtxp}
+  \item
+    \emBs{cp make.mtxp.XXX make.mtxp}
+  \item
+    \emBs{make}
+  \item
+    \emBs{cd ..}
+  \end{itemize}
+\end{itemize}
+
+\title{Install TASK (7)}
 \begin{itemize}
 \item
-\emBs{cd mtxp}
-\item
-\emBs{cp make.mtxp.XXX make.mtxp}
-\item
-\emBs{make}
+  \emA{Compile modules}:
+  \begin{itemize}
+  \item
+    \emBs{cd lib}
+  \item
+    \emBs{make}
+  \item
+    \emBs{cd ..}
 \end{itemize}
 \item
-\emA{Compile modules}:
-\begin{itemize}
-\item
-\emBs{Edit the beginning of Makefile}: Select matrix solver
-\begin{itemize}
-\item
-\emC{Real} matrix equation (fp,ti): any mtxp library
-\item
-\emC{Complex} matrix equation (wm,wf2d,wf3d): band matrix or MUMPS
-\end{itemize}
-\end{itemize}
+  \emA{Compile and run TASK module}: eq for example
+  \begin{itemize}
+  \item
+    \emBs{cd eq}
+  \item
+    \emBs{make}
+  \item
+    \emBs{./eq}
+  \item
+    \emBs{5}
+  \item
+    \emBs{c}
+  \item
+    \emBs{r}
+  \item
+    \emBs{g}
+  \item
+    \emBs{s}, \emBs{CR}, \emBs{CR}, $\cdots$
+  \item
+    \emBs{x}
+  \item
+    \emBs{q}
+  \end{itemize}
 \end{itemize}
 
 \title{How to use GSAF}
