@@ -349,14 +349,14 @@ contains
           do nth = 1, nthmax
 
             if ( nr == 1 ) then
-              JIl_m = JI(nth,np,1,nsa)
-              JIl_p = ( JI(nth,np,2,nsa)+JI(nth,np,1,nsa) )*0.5d0
+              JIl_m = JIR(nth,np,1,nsa)
+              JIl_p = ( JIR(nth,np,2,nsa)+JIR(nth,np,1,nsa) )*0.5d0
             else if ( nr == nrmax ) then
-              JIl_m = ( JI(nth,np,nrmax,nsa)+JI(nth,np,nrmax-1,nsa) )*0.5d0
-              JIl_p = JI(nth,np,nrmax,nsa)
+              JIl_m = ( JIR(nth,np,nrmax,nsa)+JIR(nth,np,nrmax-1,nsa) )*0.5d0
+              JIl_p = JIR(nth,np,nrmax,nsa)
             else
-              JIl_m = ( JI(nth,np,nr,nsa)+JI(nth,np,nr-1,nsa) )*0.5d0
-              JIl_p = ( JI(nth,np,nr,nsa)+JI(nth,np,nr+1,nsa) )*0.5d0
+              JIl_m = ( JIR(nth,np,nr,nsa)+JIR(nth,np,nr-1,nsa) )*0.5d0
+              JIl_p = ( JIR(nth,np,nr,nsa)+JIR(nth,np,nr+1,nsa) )*0.5d0
             end if
 
             Drr_ = (Drrfow(nth,np,nr+1,nsa)/JIl_p &
@@ -585,8 +585,8 @@ contains
         do np = 1, npmax
           if ( pm(np,ns) > fact_bulk ) exit
           do nth = 1, nthmax
-           fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa) * JIR(nth,np,nr,nsa)
-!          fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa)
+!           fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa) * JIR(nth,np,nr,nsa)
+          fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa)
           end do
         end do
       end do
@@ -628,86 +628,89 @@ contains
           do nth = 1, nthmax
             !** for nr JI
             if ( nr == 1 ) then
-              JIlr_m = JI(nth,np,1,nsa)
-              JIlr_p = ( JI(nth,np,2,nsa)+JI(nth,np,1,nsa) )*0.5d0
+              JIlr_m = JIR(nth,np,1,nsa)
+              JIlr_p = ( JIR(nth,np,2,nsa)+JIR(nth,np,1,nsa) )*0.5d0
             else if ( nr == nrmax ) then
-              JIlr_m = ( JI(nth,np,nrmax,nsa)+JI(nth,np,nrmax-1,nsa) )*0.5d0
-              JIlr_p = JI(nth,np,nrmax,nsa)
+              JIlr_m = ( JIR(nth,np,nrmax,nsa)+JIR(nth,np,nrmax-1,nsa) )*0.5d0
+              JIlr_p = JIR(nth,np,nrmax,nsa)
             else
-              JIlr_m = ( JI(nth,np,nr,nsa)+JI(nth,np,nr-1,nsa) )*0.5d0
-              JIlr_p = ( JI(nth,np,nr,nsa)+JI(nth,np,nr+1,nsa) )*0.5d0
+              JIlr_m = ( JIR(nth,np,nr,nsa)+JIR(nth,np,nr-1,nsa) )*0.5d0
+              JIlr_p = ( JIR(nth,np,nr,nsa)+JIR(nth,np,nr+1,nsa) )*0.5d0
             end if
             !** for np JI
             if ( np == 1 ) then
-              JIlp_m = JI(nth,1,nr,nsa)
-              JIlp_p = ( JI(nth,2,nr,nsa)+JI(nth,1,nr,nsa) )*0.5d0
+              JIlp_m = JIR(nth,1,nr,nsa)
+              JIlp_p = ( JIR(nth,2,nr,nsa)+JIR(nth,1,nr,nsa) )*0.5d0
             else if ( np == npmax ) then
-              JIlp_m = ( JI(nth,npmax,nr,nsa) + &
-                        JI(nth,npmax-1,nrmax,nsa) )*0.5d0
-              JIlp_p = JI(nth,npmax,nr,nsa)
+              JIlp_m = ( JIR(nth,npmax,nr,nsa) + &
+                        JIR(nth,npmax-1,nrmax,nsa) )*0.5d0
+              JIlp_p = JIR(nth,npmax,nr,nsa)
             else
-              JIlp_m = ( JI(nth,np,nr,nsa)+JI(nth,np-1,nr,nsa) )*0.5d0
-              JIlp_p = ( JI(nth,np,nr,nsa)+JI(nth,np+1,nr,nsa) )*0.5d0
+              JIlp_m = ( JIR(nth,np,nr,nsa)+JIR(nth,np-1,nr,nsa) )*0.5d0
+              JIlp_p = ( JIR(nth,np,nr,nsa)+JIR(nth,np+1,nr,nsa) )*0.5d0
             end if
             !** for nth JI
             if ( nth == 1 ) then
-              JIlth_m = JI(1,np,nth,nsa)
-              JIlth_p = ( JI(2,np,nr,nsa)+JI(1,np,nr,nsa) )*0.5d0
+              JIlth_m = JIR(1,np,nth,nsa)
+              JIlth_p = ( JIR(2,np,nr,nsa)+JIR(1,np,nr,nsa) )*0.5d0
             else if ( nth == nthmax ) then
-              JIlth_m = ( JI(nthmax,np,nr,nsa) + &
-                          JI(nthmax-1,np,nrmax,nsa) )*0.5d0
-              JIlth_p = JI(nthmax,np,nr,nsa)
+              JIlth_m = ( JIR(nthmax,np,nr,nsa) + &
+                          JIR(nthmax-1,np,nrmax,nsa) )*0.5d0
+              JIlth_p = JIR(nthmax,np,nr,nsa)
             else
-              JIlth_m = ( JI(nth,np,nr,nsa)+JI(nth-1,np,nr,nsa) )*0.5d0
-              JIlth_p = ( JI(nth,np,nr,nsa)+JI(nth+1,np,nr,nsa) )*0.5d0
+              JIlth_m = ( JIR(nth,np,nr,nsa)+JIR(nth-1,np,nr,nsa) )*0.5d0
+              JIlth_p = ( JIR(nth,np,nr,nsa)+JIR(nth+1,np,nr,nsa) )*0.5d0
             end if
 
-            Drr_ = ( Drrfow(nth,np,nr+1,nsa)/JIlr_p & 
-                 + Drrfow(nth,np,nr,nsa)/JIlr_m )*0.5d0
-            Drp_ = ( Drpfow(nth,np+1,nr,nsa)/JIlp_p & 
-                 + Drpfow(nth,np,nr,nsa)/JIlp_m )*0.5d0
+            Drr_ = ( Drrfow(nth,np,nr+1,nsa) &
+                 / JIlr_p & 
+                 + Drrfow(nth,np,nr,nsa) &
+                 / JIlr_m &
+                 ) *0.5d0
+            Drp_ = ( Drpfow(nth,np+1,nr,nsa) & 
+                 / JIlp_p & 
+                 + Drpfow(nth,np,nr,nsa) &
+                 /JIlp_m &
+                 ) *0.5d0
             if ( nth == nthmax) then 
-              Drt_ = ( Drtfow(nth,np,nr,nsa)/JIlth_p & 
-                 + Drtfow(nth,np,nr,nsa)/JIlth_m )*0.5d0
+              Drt_ = ( Drtfow(nth,np,nr,nsa) &
+                   / JIlth_p & 
+                   + Drtfow(nth,np,nr,nsa) & 
+                   /JIlth_m &
+                   ) *0.5d0
             else
-              Drt_ = ( Drtfow(nth+1,np,nr,nsa)/JIlth_p & 
-                 + Drtfow(nth,np,nr,nsa)/JIlth_m )*0.5d0
+              Drt_ = ( Drtfow(nth+1,np,nr,nsa) &
+                   / JIlth_p & 
+                   + Drtfow(nth,np,nr,nsa) &
+                   / JIlth_m &
+                   ) *0.5d0
             end if
 
-            Frr_ = ( Frrfow(nth,np,nr+1,nsa)/JIlr_p &
-                 + Frrfow(nth,np,nr,nsa)/JIlr_m )*0.5d0
+            Frr_ = ( Frrfow(nth,np,nr+1,nsa) & 
+                 / JIlr_p &
+                 + Frrfow(nth,np,nr,nsa) & 
+                 / JIlr_m &
+                 ) *0.5d0
            !**** for dfdrhom is made of fnsp*dVI 
            heatfow_out(nr,nsa) = heatfow_out(nr,nsa) &
                                - (pm(np,nsa)*ptfp0(nsa))**2 &
                                / (2*AMFP(nsa)) & 
-                               / (AEE*1.D3) & 
-                               *Drr_* 2.d0/3.d0*dfdrhom(nth,np,nr,nsa) &
-!                               * JIR(nth,np,nr,nsa) &
-!                               * JIR(nth,np,nr,nsa) &
-                               * delp(ns) * delthm(nth,np,nr,nsa) &
-
-                               - (pm(np,nsa)*ptfp0(nsa))**2 &
-                               / (2*AMFP(nsa)) & 
-                               /(AEE*1.D3) & 
-                               * Drp_* 2.d0/3.d0*dfdp(nth,np,nr,nsa) &
- !                              * JIR(nth,np,nr,nsa) &
- !                              * JIR(nth,np,nr,nsa) &
-                               * delp(ns) * delthm(nth,np,nr,nsa)& 
-                               
-                               - (pm(np,nsa)*ptfp0(nsa))**2 &
-                               / (2*AMFP(nsa)) & 
-                               / (AEE*1.D3) & 
-                               * Drt_* 2.d0/3.d0*dfdthm(nth,np,nr,nsa) &
-!                               * JIR(nth,np,nr,nsa) &
-!                               * JIR(nth,np,nr,nsa) &
+                               / (AEE*1.D3)*2.d0/3.d0*1.d0 & 
+                               *(Drr_*dfdrhom(nth,np,nr,nsa)*1.d20 &
+                               + Drp_*dfdp(nth,np,nr,nsa)*1.d20 &
+                               + Drt_*dfdthm(nth,np,nr,nsa)*1.d20&
+                               ) &
+                               * JIR(nth,np,nr,nsa) &
+                               * JIR(nth,np,nr,nsa) &
                                * delp(ns) * delthm(nth,np,nr,nsa) &
  
-                               - (pm(np,nsa)*ptfp0(nsa))**2 &
+                               + (pm(np,nsa)*ptfp0(nsa))**2 &
                                / (2*AMFP(nsa) )& 
-                               / (AEE*1.D3) &
+                               / (AEE*1.D3)*2.d0/3.d0*1.d0 &
                                ! unit converter [J] to [keV] & 
-                               * Frr_* 2.d0/3.d0*fnsp_l(nth,np,nr,nsa) &
-!                               * JIR(nth,np,nr,nsa) &
+                               * Frr_*fnsp_l(nth,np,nr,nsa)*1.d20 &
+                               * JIR(nth,np,nr,nsa) &
+                               * JIR(nth,np,nr,nsa) &
                                * delp(ns) * delthm(nth,np,nr,nsa)  
                                !** unit [keV] [22/6/6]
             !**** dfdrhom is made of fnsp*dVI
@@ -755,7 +758,7 @@ contains
          do np = 1, npmax
            if ( pm(np,ns) > fact_bulk ) exit
            do nth = 1, nthmax
-           fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa) * JIR(nth,np,nr,nsa)
+           fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa)
            end do
          end do
        end do
@@ -814,14 +817,16 @@ contains
 !**** Heat flux for FOW momentum not heat velocity [2022/3/22]
             heatrw(nr,nsa) = heatrw(nr,nsa)&
                            - (pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)) &
-                           * Drwlocal(nth,np,nr,nsa) & 
-                           * 2.d0/3.d0*dfdrhom(nth,np,nr,nsa) &
+                           * Drwlocal(nth,np,nr,nsa) &
+                           * JIR(nth,np,nr,nsa) & 
+                           * 2.d0/3.d0*dfdrhom(nth,np,nr,nsa)*1.d20 &
                            / (AEE*1.D3)&  !** Unit convert [J] to [keV]
                            * delp(ns)*delthm(nth,np,nr,nsa)
             heatrwav(nr,nsa) = heatrwav(nr,nsa) &
                              - (pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)) &
-                             * Drwba(nth,np,nr,nsa) & 
-                             * 2.d0/3.d0*dfdrhom(nth,np,nr,nsa) &
+                             * Drwba(nth,np,nr,nsa) &
+                             * JIR(nth,np,nr,nsa) & 
+                             * 2.d0/3.d0*dfdrhom(nth,np,nr,nsa)*1.d20 &
                              / (AEE*1.D3)& !** Unit convert [J] to [keV]
                              *delp(ns)* delthm(nth,np,nr,nsa)
 
@@ -875,8 +880,8 @@ contains
     !****temperature make
     do nsa = 1, nsamax
       do nr = 1, nrmax
-        Ta(nr,nsa) = 2.d0/3.d0*rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)/(AEE*1.d3)
-        !Ta(temperature)[keV]
+        Ta(nr,nsa) = 2.d0/3.d0*rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)
+        !Ta(temperature)[J]
       end do
     end do
 
@@ -890,13 +895,13 @@ contains
     do nsa = 1, nsamax
       do nr = 1, nrmax
 
-        tau_ele = fact*sqrt(AMFP(1))*((Ta(nr,1)*RKEV)**1.5d0)/ &
+        tau_ele = fact*sqrt(AMFP(1))*((Ta(nr,1))**1.5d0)/ &
              (rnsl(nr,2)*1.d20*AEFP(2)**2*AEE**2*lnlam(nr,2,1))
-        tau_i   = fact*sqrt(2.d0)*sqrt(AMFP(2))*((Ta(nr,2)*RKEV)**1.5d0)/ &
+        tau_i   = fact*sqrt(2.d0)*sqrt(AMFP(2))*((Ta(nr,2))**1.5d0)/ &
              (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2))
         !**** *RKEV converts [keV] to [J] 
       
-        rho_a(nsa) = sqrt(Ta(nr,nsa)*RKEV/AMFP(nsa))*AMFP(nsa)/(AEFP(nsa)*Baxis)
+        rho_a(nsa) = sqrt(Ta(nr,nsa)/AMFP(nsa))*AMFP(nsa)/(AEFP(nsa)*Baxis)
         !**** *RKEV converts [J] to [keV] 
         eps_t = rm(nr)*RA/RR
         B_p = rm(nr)*RA*BB/(safety_factor(nr)*RR)
@@ -907,7 +912,7 @@ contains
          Sr_ba(nr,nsa) = fact_s*rnsl(nr,nsa)*1.D20*Ta(nr,1) & 
             * ((1.53d0*(1+Ta(nr,2)/Ta(nr,1))*dndr(nr, nsa))/rnsl(nr,nsa) &
               - 1.81d0*dTadr(nr,1)/Ta(nr,1) &
-              - 0.27d0*dTadr(nr,2)/Ta(nr,1))
+              - 0.27d0*dTadr(nr,2)/Ta(nr,1))/RKEV!test
         ! neglect E_para term
         
          Sr_pla(nr,nsa) = - sqrt(PI)/4*eps_t**2*Ta(nr,nsa) & 
@@ -915,17 +920,17 @@ contains
                / rm(nr)*( (1+Ta(nr,2)/Ta(nr,1))*dndr(nr,nsa) &
                / (rnsl(nr,nsa)*1.d20) &
                + 7.5d0*dTadr(nr,nsa)/Ta(nr,nsa) & 
-               + 1.5d0*dTadr(nr,2)/Ta(nr,nsa))
+               + 1.5d0*dTadr(nr,2)/Ta(nr,nsa))/RKEV!test
         ! neglect E_para term
         else
          fact_s = (safety_factor(nr)**2) &
               *(rho_a(nsa)**2)/((eps_t**1.5)*tau_i)
          Sr_ba(nr,nsa) = - 0.68d0*fact_s*(1 + 0.48d0*sqrt(eps_t)) &
-              *rnsl(nr,nsa)*1.d20*dTadr(nr,2)
+              *rnsl(nr,nsa)*1.d20*dTadr(nr,2)/RKEV !test
          Sr_pla(nr,nsa) = - 1.5d0*sqrt(pi) &
                         * eps_t**2*Ta(nr,nsa)/(AEE*B_p) &
                         * rho_a(nsa)/rm(nr)*rnsl(nr,nsa) & 
-                        * 1.d20*dTadr(nr,nsa)
+                        * 1.d20*dTadr(nr,nsa)/RKEV !test
         end if  
 
         heatba(nr,nsa)  = Sr_ba(nr, nsa) 
@@ -960,7 +965,7 @@ contains
     do nsa = 1, nsamax
       do nr = 1, nrmax
         Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)/AEE/1.D3
-        !Ta(temperature)[keV]
+        !Ta(temperature)[keV] rwsl[1/m^3*MJ]
         cyclo_rho(nr,nsa) = sqrt(Ta(nr,nsa)*RKEV/AMFP(nsa)) &
                           * AMFP(nsa)/(AEFP(nsa)*Baxis)
         !****Unit [J]
@@ -996,7 +1001,7 @@ contains
         do np = 1, npmax
           if ( pm(np,ns) > fact_bulk ) exit
           do nth = 1, nthmax
-          fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa) * JIR(nth,np,nr,nsa)
+          fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa) !* JIR(nth,np,nr,nsa)
           fnsp_l2(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa)
           end do
         end do
@@ -1028,7 +1033,7 @@ contains
                           + 2.d0/3.d0*dfdrhom(nth,np,nr,nsa) &
 !                          * (pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)) &
                           /AEE/1.d3 &![keV]
-!                          *JIR(nth,np,nr,nsa)&
+                          *JIR(nth,np,nr,nsa)&
                           !** unit [J][2022/5/29]
                           * delp(ns) * delthm(nth,np,nr,nsa)
             spVI2(nr,nsa) = spVI2(nr,nsa) &
@@ -1088,8 +1093,8 @@ contains
         do np = 1, npmax
           if ( pm(np,ns) > fact_bulk ) exit
           do nth = 1, nthmax
-          fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa) * JIR(nth,np,nr,nsa)
-!          fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa)
+!          fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa) * JIR(nth,np,nr,nsa)
+          fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa)
           end do
         end do
       end do
@@ -1131,62 +1136,72 @@ contains
           do nth = 1, nthmax
             !** for nr JI
             if ( nr == 1 ) then
-              JIlr_m = JI(nth,np,1,nsa)
-              JIlr_p = ( JI(nth,np,2,nsa)+JI(nth,np,1,nsa) )*0.5d0
+              JIlr_m = JIR(nth,np,1,nsa)
+              JIlr_p = ( JIR(nth,np,2,nsa)+JIR(nth,np,1,nsa) )*0.5d0
             else if ( nr == nrmax ) then
-              JIlr_m = ( JI(nth,np,nrmax,nsa)+JI(nth,np,nrmax-1,nsa) )*0.5d0
-              JIlr_p = JI(nth,np,nrmax,nsa)
+              JIlr_m = ( JIR(nth,np,nrmax,nsa)+JIR(nth,np,nrmax-1,nsa) )*0.5d0
+              JIlr_p = JIR(nth,np,nrmax,nsa)
             else
-              JIlr_m = ( JI(nth,np,nr,nsa)+JI(nth,np,nr-1,nsa) )*0.5d0
-              JIlr_p = ( JI(nth,np,nr,nsa)+JI(nth,np,nr+1,nsa) )*0.5d0
+              JIlr_m = ( JIR(nth,np,nr,nsa)+JIR(nth,np,nr-1,nsa) )*0.5d0
+              JIlr_p = ( JIR(nth,np,nr,nsa)+JIR(nth,np,nr+1,nsa) )*0.5d0
             end if
             !** for np JI
             if ( np == 1 ) then
-              JIlp_m = JI(nth,1,nr,nsa)
-              JIlp_p = ( JI(nth,2,nr,nsa)+JI(nth,1,nr,nsa) )*0.5d0
+              JIlp_m = JIR(nth,1,nr,nsa)
+              JIlp_p = ( JIR(nth,2,nr,nsa)+JIR(nth,1,nr,nsa) )*0.5d0
             else if ( np == npmax ) then
-              JIlp_m = ( JI(nth,npmax,nr,nsa) + &
-                        JI(nth,npmax-1,nrmax,nsa) )*0.5d0
-              JIlp_p = JI(nth,npmax,nr,nsa)
+              JIlp_m = ( JIR(nth,npmax,nr,nsa) + &
+                        JIR(nth,npmax-1,nrmax,nsa) )*0.5d0
+              JIlp_p = JIR(nth,npmax,nr,nsa)
             else
-              JIlp_m = ( JI(nth,np,nr,nsa)+JI(nth,np-1,nr,nsa) )*0.5d0
-              JIlp_p = ( JI(nth,np,nr,nsa)+JI(nth,np+1,nr,nsa) )*0.5d0
+              JIlp_m = ( JIR(nth,np,nr,nsa)+JIR(nth,np-1,nr,nsa) )*0.5d0
+              JIlp_p = ( JIR(nth,np,nr,nsa)+JIR(nth,np+1,nr,nsa) )*0.5d0
             end if
             !** for nth JI
             if ( nth == 1 ) then
-              JIlth_m = JI(1,np,nth,nsa)
-              JIlth_p = ( JI(2,np,nr,nsa)+JI(1,np,nr,nsa) )*0.5d0
+              JIlth_m = JIR(1,np,nth,nsa)
+              JIlth_p = ( JIR(2,np,nr,nsa)+JIR(1,np,nr,nsa) )*0.5d0
             else if ( nth == nthmax ) then
-              JIlth_m = ( JI(nthmax,np,nr,nsa) + &
-                          JI(nthmax-1,np,nrmax,nsa) )*0.5d0
-              JIlth_p = JI(nthmax,np,nr,nsa)
+              JIlth_m = ( JIR(nthmax,np,nr,nsa) + &
+                          JIR(nthmax-1,np,nrmax,nsa) )*0.5d0
+              JIlth_p = JIR(nthmax,np,nr,nsa)
             else
-              JIlth_m = ( JI(nth,np,nr,nsa)+JI(nth-1,np,nr,nsa) )*0.5d0
-              JIlth_p = ( JI(nth,np,nr,nsa)+JI(nth+1,np,nr,nsa) )*0.5d0
+              JIlth_m = ( JIR(nth,np,nr,nsa)+JIR(nth-1,np,nr,nsa) )*0.5d0
+              JIlth_p = ( JIR(nth,np,nr,nsa)+JIR(nth+1,np,nr,nsa) )*0.5d0
             end if
 
             Drr_ = ( Drrfow(nth,np,nr+1,nsa)/JIlr_p & 
-                 + Drrfow(nth,np,nr,nsa)/JIlr_m )*0.5d0
+                 + Drrfow(nth,np,nr,nsa) &
+                 / JIlr_m &
+                 )*0.5d0
             Drp_ = ( Drpfow(nth,np+1,nr,nsa)/JIlp_p & 
-                 + Drpfow(nth,np,nr,nsa)/JIlp_m )*0.5d0
+                 + Drpfow(nth,np,nr,nsa)&
+                 /JIlp_m &
+                 ) *0.5d0
             if ( nth == nthmax) then 
               Drt_ = ( Drtfow(nth,np,nr,nsa)/JIlth_p & 
-                 + Drtfow(nth,np,nr,nsa)/JIlth_m )*0.5d0
+                 + Drtfow(nth,np,nr,nsa)&
+                 /JIlth_m &
+                 ) *0.5d0
             else
               Drt_ = ( Drtfow(nth+1,np,nr,nsa)/JIlth_p & 
-                 + Drtfow(nth,np,nr,nsa)/JIlth_m )*0.5d0
+                   + Drtfow(nth,np,nr,nsa) &
+                   /JIlth_m& 
+                   ) *0.5d0
             end if
 
             Frr_ = ( Frrfow(nth,np,nr+1,nsa)/JIlr_p &
-                 + Frrfow(nth,np,nr,nsa)/JIlr_m )*0.5d0
+                 + Frrfow(nth,np,nr,nsa) &
+                 /JIlr_m &
+                 ) *0.5d0
            !**** for dfdrhom is made of fnsp*dVI 
            hfowout_r(nr,nsa) = hfowout_r(nr,nsa) &
                                - (pm(np,nsa)*ptfp0(nsa))**2 &
                                / (2*AMFP(nsa)) & 
                                /(AEE*1.D3) &
                                * Drr_* 2.d0/3.d0*dfdrhom(nth,np,nr,nsa) &
-!                               * JIR(nth,np,nr,nsa) &
-!                               * JIR(nth,np,nr,nsa) &
+                               * JIR(nth,np,nr,nsa) &
+                               * JIR(nth,np,nr,nsa) &
                                * delp(ns) * delthm(nth,np,nr,nsa) 
                                !** unit [keV]
            hfowout_p(nr,nsa) = hfowout_p(nr,nsa) &
@@ -1194,25 +1209,26 @@ contains
                                / (2*AMFP(nsa)) & 
                                /(AEE*1.D3) & 
                                * Drp_* 2.d0/3.d0*dfdp(nth,np,nr,nsa) &
-!                               * JIR(nth,np,nr,nsa) &
-!                               * JIR(nth,np,nr,nsa) &
+                               * JIR(nth,np,nr,nsa) &
+                               * JIR(nth,np,nr,nsa) &
                                * delp(ns) * delthm(nth,np,nr,nsa) 
            hfowout_t(nr,nsa) = hfowout_t(nr,nsa) &
                                - (pm(np,nsa)*ptfp0(nsa))**2 &
                                / (2*AMFP(nsa)) & 
                                /(AEE*1.D3) & 
                                * Drt_ &
-!                               * JIR(nth,np,nr,nsa)& 
-!                               * JIR(nth,np,nr,nsa) &
+                               * JIR(nth,np,nr,nsa)& 
+                               * JIR(nth,np,nr,nsa) &
                                * 2.d0/3.d0*dfdthm(nth,np,nr,nsa) &
                                * delp(ns) * delthm(nth,np,nr,nsa) 
            hfowout_f(nr,nsa) = hfowout_f(nr,nsa) &
-                               - (pm(np,nsa)*ptfp0(nsa))**2 &
+                               + (pm(np,nsa)*ptfp0(nsa))**2 &
                                / (2*AMFP(nsa) )& 
                                /(AEE*1.D3) & 
                                ! unit converter [J] to [keV] & 
                                * Frr_* 2.d0/3.d0*fnsp_l(nth,np,nr,nsa) &
-!                               * JIR(nth,np,nr,nsa) &
+                               * JIR(nth,np,nr,nsa) &
+                               * JIR(nth,np,nr,nsa) &
                                * delp(ns) * delthm(nth,np,nr,nsa) 
           end do
         end do
