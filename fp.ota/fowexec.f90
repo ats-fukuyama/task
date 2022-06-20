@@ -640,7 +640,7 @@ contains
                * DIVD(alpha,alpha)
         F_term = -1.d0*si*Ffow(sign_to_index(si),alpha) & 
                * w(si,alpha,0,sign_to_index(si)-1,0,loc)*DIVF(alpha)
-        dl(nm) = dl(nm) + (D_term + F_term)/JI(nth,np,nr,nsa)
+        dl(nm) = dl(nm) + (D_term + F_term)/JIR(nth,np,nr,nsa)
       end do
     end do
 
@@ -650,7 +650,7 @@ contains
       D_term = Dfow(2,2,0,0,loc)*DIVD(2,2)*IBCflux_ratio(np,nr,nsa)
       F_term = -1.d0*Ffow(1,2)*w(-1,2,0,0,0,loc) & 
              * DIVF(2)*IBCflux_ratio(np,nr,nsa)
-      dl(nm) = dl(nm) + (D_term + F_term)/JI(nth,np,nr,nsa)
+      dl(nm) = dl(nm) + (D_term + F_term)/JIR(nth,np,nr,nsa)
 
     end if
 
@@ -677,7 +677,7 @@ contains
 
         nl = nl+1
         ll(nm,nl) = get_nma(alpha,0,si,0,loc)
-        al(nm,nl) = al(nm,nl) + (D_term + F_term)/JI(nth,np,nr,nsa)
+        al(nm,nl) = al(nm,nl) + (D_term + F_term)/JIR(nth,np,nr,nsa)
 
         if ( abs(al(nm,nl)) < 1.d-70 ) then
           ll(nm,nl) = 0
@@ -707,7 +707,7 @@ contains
 
             nl = nl+1
             ll(nm,nl) = get_nma(alpha,beta,si,sj,loc)
-            al(nm,nl) = al(nm,nl) + D_term/JI(nth,np,nr,nsa)
+            al(nm,nl) = al(nm,nl) + D_term/JIR(nth,np,nr,nsa)
 
             if ( abs(al(nm,nl)) < 1.d-70 ) then
               ll(nm,nl) = 0
@@ -1028,8 +1028,8 @@ contains
       end if
 
 
-      fact1 = (1.d0-IBCflux_ratio(np,nr,nsa))/JI(nth-1,np,nr,nsa)
-      fact2 = IBCflux_ratio(np,nr,nsa)/JI(nth_stg(nsa), &
+      fact1 = (1.d0-IBCflux_ratio(np,nr,nsa))/JIR(nth-1,np,nr,nsa)
+      fact2 = IBCflux_ratio(np,nr,nsa)/JIR(nth_stg(nsa), &
                               np,nr_pnc_point(np,nr,nsa),nsa)
       nm_D    = nma(nth-1,np,nr)
       nm_Xstg = nma(nth_stg(nsa), np, nr_pnc_point(np,nr,nsa))
@@ -1183,9 +1183,9 @@ contains
         return
       end if
 
-      fact1 = -1.d0*IBCflux_ratio(np,nr,nsa)/JI(nth,np,nr,nsa)
+      fact1 = -1.d0*IBCflux_ratio(np,nr,nsa)/JIR(nth,np,nr,nsa)
       fact2 = -1.d0*(1.d0-IBCflux_ratio(np,nr,nsa)) &
-            / JI(nth_stg(nsa)-1,np,nr_pnc_point(np,nr,nsa),nsa)
+            / JIR(nth_stg(nsa)-1,np,nr_pnc_point(np,nr,nsa),nsa)
       nm_D    = nma(nth,np,nr)
       nm_Xstg = nma(nth_stg(nsa)-1, np, nr_pnc_point(np,nr,nsa))
 
@@ -1385,7 +1385,7 @@ contains
 
       else if ( S_x > 0.d0 .and. nl_pnc == -1 ) then
 
-        fact1 = -1.d0/JI(nth,np,nr,nsa)
+        fact1 = -1.d0/JIR(nth,np,nr,nsa)
 
         dl(nm_Xstg) = dl(nm_Xstg) + fact1*( -1.d0*Dtx(2) &
                     + Fthp*(1.d0-weight(nth,np,nr,nsa)) )
@@ -1436,7 +1436,7 @@ contains
 
         nm_pnc=nma(loc_pnc(1),loc_pnc(2),loc_pnc(3))
 
-        fact2 = 1.d0/JI(loc_pnc(1),loc_pnc(2),loc_pnc(3),loc_pnc(4))
+        fact2 = 1.d0/JIR(loc_pnc(1),loc_pnc(2),loc_pnc(3),loc_pnc(4))
         nl_pnc = nl_pnc+1 
         ll(nm_pnc,nl_pnc) = nm_Xstg
         al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + fact2 & 
@@ -1573,7 +1573,7 @@ contains
 
       else if ( S_x < 0.d0 .and. nl_pnc == -1 ) then
 
-        fact1 = 1.d0/JI(nth,np,nr,nsa)
+        fact1 = 1.d0/JIR(nth,np,nr,nsa)
         nm_Xstg = nma(nth, np, nr)
 
         dl(nm_Xstg) = dl(nm_Xstg) + fact1*(Dtx(2) & 
@@ -1624,7 +1624,7 @@ contains
 
         nm_pnc = nma(loc_pnc(1),loc_pnc(2),loc_pnc(3))
 
-        fact1 = 1.d0/JI(loc_pnc(1),loc_pnc(2),loc_pnc(3),loc_pnc(4))
+        fact1 = 1.d0/JIR(loc_pnc(1),loc_pnc(2),loc_pnc(3),loc_pnc(4))
 
         nl_pnc = nl_pnc+1 
         ll(nm_pnc,nl_pnc) = nm_Xstg
@@ -1718,7 +1718,7 @@ contains
       Dtx(3)  = Dtrfow(nth+1,np,nr,nsa)*sl/(pl*sl*deltath*delr*2.d0)
       Fthp    = Fthfow(nth+1,np,nr,nsa)*sl
 
-      fact = 1.d0/JI(nth,np,nr,nsa)
+      fact = 1.d0/JIR(nth,np,nr,nsa)
 
       dl(nm_Ostg) = dl(nm_Ostg) + (Dtx(2)+Fthp &
                   * weight(nth+1,np,nr,nsa))*fact
@@ -1767,7 +1767,7 @@ contains
       Dtx(3)  = Dtrfow(nth,np,nr,nsa)*sl/(pl*sl*deltath*delr*2.d0)
       Fthp    = Fthfow(nth,np,nr,nsa)*sl
 
-      fact = -1.d0/JI(nth,np,nr,nsa)
+      fact = -1.d0/JIR(nth,np,nr,nsa)
 
       dl(nm_Ostg) = dl(nm_Ostg) + fact*( -1.d0*Dtx(2) &
                   + Fthp*(1.d0-weight(nth,np,nr,nsa)) )
