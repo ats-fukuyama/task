@@ -29,7 +29,7 @@ CONTAINS
     WRITE(6,602) 'MDLWRQ',MDLWRQ,'MDLWRW',MDLWRW
     WRITE(6,603) 'nres_max    ',nres_max, &
                  'nres_type   ',nres_type,&
-                 'model_beam  ',model_beam
+                 'mode_beam   ',mode_beam
     WRITE(6,603) 'NPMAX_DP    ',NPMAX_DP, &
                  'NTHMAX_DP   ',NTHMAX_DP,&
                  'NRMAX_DP    ',NRMAX_DP
@@ -42,3 +42,4 @@ CONTAINS
 603 FORMAT(1H ,A12,'=',I7,4X  :2X,A12,'=',I7,4X  : &
             2X,A12,'=',I7)
   END SUBROUTINE WR_VIEW
+END MODULE wrview

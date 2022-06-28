@@ -12,8 +12,6 @@ CONTAINS
   SUBROUTINE wr_setup_ray(ierr)
 
     USE wrcomm
-    USE wrexecr
-    USE wrexecb
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
 
