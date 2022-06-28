@@ -43,7 +43,7 @@ OBJS = $(addprefix $(OBJDIR)/, $(SRCS:.f90=.o))
 LIBS = libwr.a  ../dp/libdp.a ../eq/libeq.a ../pl/libpl.a \
        ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a
 
-all : wr
+all : libs wr
 
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
