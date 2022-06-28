@@ -87,6 +87,10 @@ CONTAINS
 !     EPSNW  : CONVERGENCE CRITEIRION IN NEWTON METHOD
 !     LMAXNW : MAXIMUM ITERATION COUNT IN NEWTON METHOD
 
+!     mode_beam : 0 for ray tracing, nonzero for beam tracing
+
+      mode_beam=0
+
 !     MDLWRI : INPUT TYPE OF WAVE PARAMETERS
 !              0 : RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU
 !              1 : RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH,UU

@@ -34,8 +34,11 @@ ${OBJDIR}/%.o:%.f
 MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../dp/$(MOD) -I../lib/$(MOD) \
             -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
-SRCS = wrcomm.f90 wrinit.f90 wrparm.f90 \
-       wrsub.f90 wrexecr.f90 wrcalc.f90 wrbeam.f90 wrgout.f90 wrfile.f90 \
+SRCS = wrcomm.f90 wrinit.f90 wrparm.f90 wrview.f90 \
+       wrsub.f90 \
+       wrsetupr.f90 wrexecr.f90 wrsetupb.f90 wrexecb.f90 \
+       wrexec.f90 \
+       wrgout.f90 wrfile.f90 \
        wrmenu.f90
 
 OBJS = $(addprefix $(OBJDIR)/, $(SRCS:.f90=.o))
@@ -90,8 +93,16 @@ $(OBJDIR)/wrmenu.o: wrmenu.f90 $(WRCOMM) ../pl/plparm.f90 ../dp/dpparm.f90 \
 ../dp/dpcont.f90 wrparm.f90 wrcalc.f90 wrbeam.f90 wrgout.f90 wrfile.f90 
 $(OBJDIR)/wrinit.o: wrinit.f90 $(WRCOMM)
 $(OBJDIR)/wrparm.o: wrparm.f90 $(WRCOMM) ../dp/dpparm.f90 
-$(OBJDIR)/wrcalc.o: wrcalc.f90 $(WRCOMM) ../pl/plprof.f90 wrexecr.f90 wrsub.f90
-$(OBJDIR)/wrexecr.o:wrexecr.f90 $(WRCOMM) ../pl/plprof.f90 wrsub.f90 
+$(OBJDIR)/wrview.o: wrview.f90 $(WRCOMM)
+$(OBJDIR)/wrsetupr.o:wrsetupr.f90 $(WRCOMM)
+$(OBJDIR)/wrsetupb.o:wrsetupb.f90 $(WRCOMM)
+$(OBJDIR)/wrsetup.o:wrsetup.f90 $(WRCOMM) wrsetupr.f90 wrsetupb.f90
+$(OBJDIR)/wrexecr.o:wrexecr.f90 $(WRCOMM) ../pl/plprof.f90 ../dp/dpdisp.f90 \
+wrsub.f90
+$(OBJDIR)/wrexecb.o:wrexecb.f90 $(WRCOMM) ../pl/plprof.f90 ../dp/dpdisp.f90 \
+wrsub.f90
+$(OBJDIR)/wrexec.o:wrexec.f90 $(WRCOMM) wrexecr.f90 wrexecb.f90
+$(OBJDIR)/wrsetup.o:wrsetup.f90 $(WRCOMM) wrsetupr.f90 wrsetupb.f90
 $(OBJDIR)/wrbeam.o: wrbeam.f90 $(WRCOMM) ../pl/plprof.f90 ../dp/dpdisp.f90 \
 wrsub.f90
 $(OBJDIR)/wrsub.o:  wrsub.f90 $(WRCOMM) ../pl/plprof.f90 ../dp/dppola.f90 \
