@@ -10,7 +10,8 @@ CONTAINS
   SUBROUTINE wr_setup(ierr)
 
     USE wrcomm
-    USE wrsetupr,wrsetupb
+    USE wrsetupr
+    USE wrsetupb
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
 

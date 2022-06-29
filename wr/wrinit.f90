@@ -158,6 +158,20 @@ CONTAINS
       nres_type = 0
       nres_max = 3
 
+      ! pne_threshold: threshold value to identify to be in plasma [10^20 m^-3]
+
+      pne_threshold=1.D-6
+
+      ! Rmax_wr: maximum of R for ray calculation, if 0, set RR+1.2*RA
+      ! Rmin_wr: minimum of R for ray calculation, if 0, set RR-1.2*RA >1.D-6
+      ! Zmax_wr: maximum of Z for ray calculation, if 0, set RR+1.2*rkap*RA
+      ! Zmin_wr: minimum of Z for ray calculation, if 0, set RR-1.2*rkap*RA
+
+      Rmax_wr=0.D0
+      Rmin_wr=0.D0
+      Zmax_wr=0.D0
+      Zmin_wr=0.D0
+
 ! --- defined in dp ---
 
       NPMAX_DP=50

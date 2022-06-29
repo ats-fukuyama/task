@@ -3,7 +3,7 @@
 MODULE wrsetupb
 
   PRIVATE
-  PUBLIC wr_setup_beams(ierr)
+  PUBLIC wr_setup_beams
 
 CONTAINS
 
@@ -15,15 +15,11 @@ CONTAINS
     USE wrsub,ONLY: wrcale,wrnwtn
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
-    REAL(rkind):: Y(NBEQ)
-    REAL:: TIME1,TIME2
-    INTEGER:: IERR,NRAY,NSTP
+    INTEGER:: NRAY
     REAL(rkind):: ANGZ,ANGPH,SINP2,SINT2
     EXTERNAL GUTIME
 
     ierr=0
-
-    CALL GUTIME(TIME1)
 
     IF(MDLWRI.EQ.0) THEN
        WRITE(6,*) '# default values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI'
@@ -178,6 +174,11 @@ CONTAINS
        RAYIN(8,NRAY)=UUI
 
     END DO
-  END SUBROUTINE wr_setup_beams
+    RETURN
 
-END MODULE wrbeam
+9000 CONTINUE
+    ierr=9000
+    RETURN
+  END SUBROUTINE wr_setup_beams
+    
+END MODULE wrsetupb

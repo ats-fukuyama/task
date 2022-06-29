@@ -3,13 +3,13 @@
 MODULE wrexecb
 
   PRIVATE
-  PUBLIC wr_exec_beam
+  PUBLIC wr_exec_beams
 
 CONTAINS
 
-!     ***** Beam tracing module *****
+!     ***** Exec beam tracing module *****
 
-  SUBROUTINE wr_setup_beam(ierr)
+  SUBROUTINE wr_exec_beams(ierr)
 
     USE wrcomm
     USE wrsub,ONLY: wrcale,wrnwtn
@@ -17,9 +17,11 @@ CONTAINS
     INTEGER,INTENT(OUT):: ierr
     REAL(rkind):: Y(NBEQ)
     REAL:: TIME1,TIME2
-    INTEGER:: IERR,NRAY,NSTP
-    REAL(rkind):: ANGZ,ANGPH,SINP2,SINT2
+    INTEGER:: NRAY,NSTP
+    REAL(rkind):: ANGZ,ANGPH
     EXTERNAL GUTIME
+
+    CALL GUTIME(time1)
 
     DO NRAY=1,NRAYMAX
        RF=RAYIN(1,NRAY)
@@ -87,8 +89,8 @@ CONTAINS
     CALL GUTIME(TIME2)
     WRITE(6,*) '% CPU TIME = ',TIME2-TIME1,' sec'
 
-9000 RETURN
-  END SUBROUTINE WR_BEAM
+    RETURN
+  END SUBROUTINE wr_exec_beams
 
 ! ***** set uo beam tracing initial condition *****
 
@@ -834,4 +836,4 @@ CONTAINS
       DISPBXI=DIMAG(CF)
       RETURN
   END FUNCTION DISPBXI
-END MODULE wrbeam
+END MODULE wrexecb

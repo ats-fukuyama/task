@@ -1,10 +1,11 @@
-!   wrexecr.f90
+! wrexecr.f90
 
 MODULE wrexecr
 
   PRIVATE
   PUBLIC wr_exec_rays
-
+  PUBLIC wr_calc_pwr
+  
 CONTAINS
 
 !   ***** Ray tracing module *****
@@ -14,7 +15,10 @@ CONTAINS
     USE wrcomm
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
+    REAL(rkind):: time1,time2
+    INTEGER:: NRAY
 
+    CALL GUTIME(TIME1)
     DO NRAY=1,NRAYMAX
        CALL wr_exec_single_ray(NRAY,IERR)
        IF(IERR.NE.0) cycle
@@ -37,16 +41,27 @@ CONTAINS
   SUBROUTINE wr_exec_single_ray(NRAY,IERR)
 
     USE wrcomm
-    USE wrsub,ONLY: wrcale
+    USE wrsub,ONLY: wrcale,wrcale_xyz,wr_cold_rkperp,wrnwtn
+    USE plprof,ONLY: pl_mag_type,pl_mag
+    USE plprofw,ONLY: pl_plfw_type,pl_profw
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NRAY
     INTEGER,INTENT(OUT):: IERR
-    REAL(rkind):: Y(NEQ)
-    INTEGER:: NSTP
+    TYPE(pl_mag_type):: mag
+    TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
+    REAL(rkind):: YA(NEQ)
+    REAL(rkind):: YN(0:NEQ,0:NSTPMAX)
+    REAL(rkind):: ANGPH,ANGZ,EPARA,EPERP
+    REAL(rkind):: R,Z,PHI
+    REAL(rkind):: rhon,rk,rkpara,rkperp_1,rkperp_2,rkphi,rkr
+    REAL(rkind):: rkr_1,rkr_2,rkrz_old,rkrz_new_1,rkrz_new_2
+    REAL(rkind):: rkx,rky,rkz,rkz_1,rkz_2,rnr,rnri2
+    REAL(rkind):: x,y,s
+    INTEGER:: mode,nstp
 
     IERR=0
 
-    
+    ! --- setup common values and initial values ---
 
     RF=RFIN(NRAY)
     RPI=RPIN(NRAY)
@@ -60,24 +75,8 @@ CONTAINS
     MODEW=MODEWIN(NRAY)
     UUI=UUIN(NRAY)
 
-    IF(MDLWRI.EQ.100)THEN
-       WRITE(6,*) &
-            '# initial values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU'
-       WRITE(6,'(1PE12.4,0P7F9.2)') &
-            RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII,UUI
-    ELSE
-       WRITE(6,*) &
-            '# initial values: RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH,UU'
-       WRITE(6,'(1PE12.4,0P7F9.2)') &
-            RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH,UUI
-       SINP2=SIN(ANGZ*PI/180.D0)**2
-       SINT2=SIN(ANGPH*PI/180.D0)**2
-       RNZI  =SQRT(SINP2*(1-SINT2)/(1-SINP2*SINT2))
-       RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
-       IF(ANGZ.LT.0.D0) RNZI=-RNZI
-       IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
-    ENDIF
-    
+    ! --- initialize variable array RAYIN ---
+
     RAYIN(1,NRAY)=RF
     RAYIN(2,NRAY)=RPI
     RAYIN(3,NRAY)=ZPI
@@ -99,17 +98,26 @@ CONTAINS
     nstp=0
     s=0.D0
 
-    DO WHILE(mode.EQ.0) THEN
+    ! --- mode=0: vacuum region ---
+
+    DO WHILE(mode.EQ.0)
        X=R*COS(PHI)
        Y=R*SIN(PHI)
        CALL pl_mag(X,Y,Z,mag)
        rhon=mag%rhon
        CALL pl_profw(rhon,plfw)
-       IF(plfw%RN(1).LE.pne_threshold) THEN
+
+       WRITE(6,'(A,5E12.4)') '@@@ point 1',X,Y,Z,rhon,plfw
+       
+       IF(plfw(1)%rn.LE.pne_threshold) THEN
+
+          ! --- if in vacuume, advance by ds ---
+          
           RNRI2=1.D0-RNZI**2-RNPHII**2
           IF(RNRI2.LT.0.D0) THEN
              mode=4
-             EXIT
+             ierr=401
+             RETURN
           END IF
           RNR=SIGN(SQRT(RNRI2),RKRI)
           RKR=2.D6*PI*RF*RNR/VC
@@ -128,94 +136,124 @@ CONTAINS
           YN(1,nstp)= R
           YN(2,nstp)= PHI
           YN(3,nstp)= Z
-          YN(4,nstp)= RKRI
-          YN(5,nstp)= RKPHII
-          YN(6,nstp)= RKZI
+          YN(4,nstp)= RKR
+          YN(5,nstp)= RKPHI
+          YN(6,nstp)= RKZ
           YN(7,nstp)= UUI
-       ELSE
-          IF
-          
-          
-          
-          mode=0
-          RKX=RKRI
-         
-    
-    
 
-       RKZI  =2.D6*PI*RF*RNZI  /VC
-       RKPHII=2.D6*PI*RF*RNPHII/VC
+          IF(R.GT.RMAX_WR.OR. &
+             R.LT.RMIN_WR.OR. &
+             Z.GT.ZMAX_WR.OR. &
+             Z.LT.ZMAX_WR.OR. &
+             S.GT.SMAX) THEN
 
-       IF(MODEW.NE.0) THEN
-          CALL WR_COLD_RKR0(RKR0_1,RKR0_2)
-          rkr0_11= rkr0_1
-          rkr0_12=-rkr0_1
-          rkr0_21= rkr0_2
-          rkr0_22=-rkr0_2
-          WRITE(6,'(A,1P2E12.4)') 'COLD: RKR0_1,RKR0_2',RKR0_1,RKR0_2
-          RKR0=RKR0_11
-          CALL WRCALE_I(EPARA,EPERP)
-          WRITE(6,'(A,1P3E12.4)') &
-               'RKR0_11,EPARA,EPERP=',RKR0_11,EPARA,EPERP
-          RKR0=RKR0_12
-          CALL WRCALE_I(EPARA,EPERP)
-          WRITE(6,'(A,1P3E12.4)') &
-               'RKR0_12,EPARA,EPERP=',RKR0_12,EPARA,EPERP
-          RKR0=RKR0_21
-          CALL WRCALE_I(EPARA,EPERP)
-          WRITE(6,'(A,1P3E12.4)') &
-               'RKR0_21,EPARA,EPERP=',RKR0_21,EPARA,EPERP
-          RKR0=RKR0_22
-          CALL WRCALE_I(EPARA,EPERP)
-          WRITE(6,'(A,1P3E12.4)') &
-               'RKR0_22,EPARA,EPERP=',RKR0_22,EPARA,EPERP
+             ! --- If ray goes out of calculation region, mode=2 ---
 
-          IF(MODEW.EQ.1) THEN
-             RKR0=RKR0_11
-          ELSE IF(MODEW.EQ.-1) THEN
-             RKR0=RKR0_12
-          ELSE IF(MODEW.EQ.2) THEN
-             RKR0=RKR0_21
-          ELSE IF(MODEW.EQ.-2) THEN
-             RKR0=RKR0_22
+             mode=2
+             WRITE(6,'(A,2I6,2ES12.4)') &
+                  'wr_exec_ray_single: nray,nstp,R,Z=',NRAY,nstp,R,Z
+             ierr=102
+             RETURN
           END IF
-       END IF
 
-       RKRI  = RKR0
-       RKZI  = 2.D6*PI*RF*RNZI  /VC
-       RKPHII= 2.D6*PI*RF*RNPHII/VC
-       CALL WRNWTN(IERR)  ! input RKR0,RKZI,RKPHII; output RKRI
-       IF(IERR.NE.0) cycle
+       ELSE
+
+          ! --- If ray is in plasma, mode=1 ---
+
+          mode=1
+       END IF
+    END DO
+
+    ! --- calculate wave number vector of two EM modes ---
+    
+    IF(MODEW.NE.0) THEN
+
+       ! --- solve cold dispersion for given k_para ---
+       
+       RKX=RKR*COS(PHI)-RKPHI*SIN(PHI)
+       RKY=RKR*SIN(PHI)+RKPHI*COS(PHI)
+       RKZ=RKZI
+       RKPARA=RKX*mag%bnx+RKY*mag%bny+RKZ*mag%bnz
+       CALL WR_COLD_RKPERP(R,Z,PHI,RKPARA,RKPERP_1,RKPERP_2)
+       
+       ! --- new k_r_new and k_z_new is determined from k_perp
+       !         and the direction of old k_r and k_z
+       !             k_rz_old^2=k_r_old^2+k_z_old^2
+       !             k_rz_new^2=k_perp^2+k_para^2-k_phi\2
+       !             k_r_new=(k_rz_new/k_rz_old) k_r_oldf
+       !             k_z_new=(k_rz_new/k_rz_old) k_z_oldf
+       
+       RKRZ_old=SQRT(RKR**2+RKZ**2)
+       RKRZ_new_1=RKPERP_1**2-RKPARA**2-RKPHI**2
+       RKRZ_new_2=RKPERP_2**2-RKPARA**2-RKPHI**2
+
+       WRITE(6,'(A,ES12.4)') 'COLD: rkrz_1,rkrz_2',rkrz_new_1,rkrz_new_2
+       WRITE(6,'(4ES12.4)') RKPERP_1,RKPERP_2,RKPARA,RKPHI
+       RKR_1=(RKRZ_new_1/RKRZ_old)*RKR
+       RKZ_1=(RKRZ_new_1/RKRZ_old)*RKZ
+       CALL WRCALE_XYZ(X,Y,Z,RKR_1,RKZ_1,RKPHI,EPARA,EPERP)
+       WRITE(6,'(A,1P3E12.4)') &
+               'RKR_1,RKZ_1,EPARA,EPERP=',RKR_1,RKZ_1,EPARA,EPERP
+       RKR_2=(RKRZ_new_2/RKRZ_old)*RKR
+       RKZ_2=(RKRZ_new_2/RKRZ_old)*RKZ
+
+       CALL WRCALE_XYZ(X,Y,Z,RKR_2,RKZ_2,RKPHI,EPARA,EPERP)
+
+       WRITE(6,'(A,1P3E12.4)') &
+               'RKR_2,RKZ_2,EPARA,EPERP=',RKR_2,RKZ_2,EPARA,EPERP
+
+       IF(MODEW.EQ.1) THEN
+          RKR0=RKR_1
+       ELSE IF(MODEW.EQ.2) THEN
+          RKR0=RKR_2
+       ELSE IF(MODEW.EQ.-1) THEN
+          RKR0=-RKR_1
+       ELSE IF(MODEW.EQ.-2) THEN
+          RKR0=-RKR_2
+       END IF
+       
+    ELSE
+       ! --- rkr0 is given for MODEW=0 ---
+       CONTINUE
+    END IF
+
+    CALL WRNWTN(IERR)  ! input RKR0,RKZI,RKPHII; output RKRI
+    IF(IERR.NE.0) THEN
+       ierr=300
+       RETURN
+    END IF
+
+    WRITE(6,'(A,2ES12.4)') 'WRNWTN results: RKR0,RKRI=',RKR0,RKRI
 
 
     IF(MODELG.EQ.0.OR.MODELG.EQ.1.OR.MODELG.EQ.11) THEN
-       Y(1)= RPI
-       Y(2)= PHII
-       Y(3)= ZPI
-       Y(4)= RKRI
-       Y(5)= RKPHII
-       Y(6)= RKZI
+       YA(1)= RPI
+       YA(2)= PHII
+       YA(3)= ZPI
+       YA(4)= RKRI
+       YA(5)= RKPHII
+       YA(6)= RKZI
     ELSE
-       Y(1)= RPI*COS(PHII)
-       Y(2)= RPI*SIN(PHII)
-       Y(3)= ZPI
-       Y(4)= RKRI*COS(PHII)-RKPHII*SIN(PHII)
-       Y(5)= RKRI*SIN(PHII)+RKPHII*COS(PHII)
-       Y(6)= RKZI
+       YA(1)= RPI*COS(PHII)
+       YA(2)= RPI*SIN(PHII)
+       YA(3)= ZPI
+       YA(4)= RKRI*COS(PHII)-RKPHII*SIN(PHII)
+       YA(5)= RKRI*SIN(PHII)+RKPHII*COS(PHII)
+       YA(6)= RKZI
     ENDIF
-    Y(7)= UUI
+    YA(7)= UUI
     IF(MDLWRQ.EQ.0) THEN
-       CALL WRRKFT(Y,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT(YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
     ELSEIF(MDLWRQ.EQ.1) THEN
-       CALL WRRKFT_WITHD0(Y,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT_WITHD0(YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
     ELSEIF(MDLWRQ.EQ.2) THEN
-       CALL WRRKFT_WITHMC(Y,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT_WITHMC(YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
     ELSEIF(MDLWRQ.EQ.3) THEN
-       CALL WRRKFT_RKF(Y,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT_RKF(YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
     ELSEIF(MDLWRQ.EQ.4) THEN
-       CALL WRSYMP(Y,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRSYMP(YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
     ELSEIF(MDLWRQ.EQ.5) THEN
-       CALL WRRKFT_ODE(Y,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT_ODE(YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
     ELSE
        WRITE(6,*) 'XX WRCALC: unknown MDLWRQ =', MDLWRQ
        IERR=1
