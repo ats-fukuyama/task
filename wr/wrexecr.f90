@@ -42,13 +42,14 @@ CONTAINS
 
     USE wrcomm
     USE wrsub,ONLY: wrcale,wrcale_xyz,wr_cold_rkperp,wrnwtn
-    USE plprof,ONLY: pl_mag_type,pl_mag
+    USE plprof,ONLY: pl_mag_type,pl_mag,pl_plf_type,pl_prof
     USE plprofw,ONLY: pl_plfw_type,pl_profw
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NRAY
     INTEGER,INTENT(OUT):: IERR
     TYPE(pl_mag_type):: mag
     TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
+    TYPE(pl_plf_type),DIMENSION(nsmax):: plf
     REAL(rkind):: YA(NEQ)
     REAL(rkind):: YN(0:NEQ,0:NSTPMAX)
     REAL(rkind):: ANGPH,ANGZ,EPARA,EPERP
@@ -105,21 +106,26 @@ CONTAINS
        Y=R*SIN(PHI)
        CALL pl_mag(X,Y,Z,mag)
        rhon=mag%rhon
+       CALL pl_prof(rhon,plf)
+       WRITE(6,'(A,5ES12.4)') '@@@ point 1',X,Y,Z,rhon,plf(1)%rn
+       WRITE(6,'(A,3ES12.4)') '           ',RA,RB,RB/RA
        CALL pl_profw(rhon,plfw)
 
-       WRITE(6,'(A,5E12.4)') '@@@ point 1',X,Y,Z,rhon,plfw
+       WRITE(6,'(A,5ES12.4)') '@@@ point 1',X,Y,Z,rhon,plfw(1)%rn
        
        IF(plfw(1)%rn.LE.pne_threshold) THEN
 
           ! --- if in vacuume, advance by ds ---
           
           RNRI2=1.D0-RNZI**2-RNPHII**2
+       WRITE(6,'(A,3ES12.4)') '@@@ point 2',RNZI,RNPHII,SQRT(RNRI2)
           IF(RNRI2.LT.0.D0) THEN
              mode=4
              ierr=401
              RETURN
           END IF
           RNR=SIGN(SQRT(RNRI2),RKRI)
+          WRITE(6,'(A,5E12.4)') 'RN:',X,Y,Z,rhon,plfw(1)%rn
           RKR=2.D6*PI*RF*RNR/VC
           RKX=RKR*COS(PHI)-RKPHI*SIN(PHI)
           RKY=RKR*SIN(PHI)+RKPHI*COS(PHI)
@@ -140,6 +146,8 @@ CONTAINS
           YN(5,nstp)= RKPHI
           YN(6,nstp)= RKZ
           YN(7,nstp)= UUI
+
+          WRITE(6,'(A,I4,6ES12.4)') 'RK:',nstp,R,PHI,Z,RKR,RKPHI,RKZ
 
           IF(R.GT.RMAX_WR.OR. &
              R.LT.RMIN_WR.OR. &
@@ -187,8 +195,11 @@ CONTAINS
        RKRZ_new_1=RKPERP_1**2-RKPARA**2-RKPHI**2
        RKRZ_new_2=RKPERP_2**2-RKPARA**2-RKPHI**2
 
-       WRITE(6,'(A,ES12.4)') 'COLD: rkrz_1,rkrz_2',rkrz_new_1,rkrz_new_2
-       WRITE(6,'(4ES12.4)') RKPERP_1,RKPERP_2,RKPARA,RKPHI
+       WRITE(6,'(A,3ES12.4)') 'COLD: rkrz_1,rkrz_2,rkrz_old', &
+            rkrz_new_1,rkrz_new_2,rkrz_old
+       WRITE(6,'(A,3ES12.4)') 'RKX,RKY,RKZ  =',RKX,RKY,RKZ
+       WRITE(6,'(A,3ES12.4)') 'RKR,RKZ,RKPHI=',RKR,RKZ,RKPHI
+       WRITE(6,'(A,4ES12.4)') 'RKPERP:',RKPERP_1,RKPERP_2,RKPARA,RKPHI
        RKR_1=(RKRZ_new_1/RKRZ_old)*RKR
        RKZ_1=(RKRZ_new_1/RKRZ_old)*RKZ
        CALL WRCALE_XYZ(X,Y,Z,RKR_1,RKZ_1,RKPHI,EPARA,EPERP)
