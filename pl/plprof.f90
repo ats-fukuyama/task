@@ -484,7 +484,6 @@
                  ELSE
                     PLF(NS)%RN  =0.D0
                  END IF
-                 WRITE(6,'(A,2ES12.4)') '@@@point 11:',RHOL,PLF(NS)%RN
                  PLF(NS)%RTPR=PTS(NS)
                  PLF(NS)%RTPP=PTS(NS)
                  PLF(NS)%RU  =PUS(NS)

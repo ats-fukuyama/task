@@ -61,7 +61,7 @@ CONTAINS
          CALL wr_allocate
          CALL wr_setup(ierr)
          IF(ierr.NE.0) GO TO 1
-         CALL wr_exec(ierr)
+         CALL wr_exec(nstat,ierr)
       ELSEIF(KID.EQ.'G') THEN
          CALL WR_GOUT(NSTAT)
       ELSEIF(KID.EQ.'S') THEN

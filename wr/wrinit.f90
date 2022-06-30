@@ -159,13 +159,15 @@ CONTAINS
       nres_max = 3
 
       ! pne_threshold: threshold value to identify to be in plasma [10^20 m^-3]
+      ! bdr_threshold: threshold value to boundary factor: F in below
 
       pne_threshold=1.D-6
+      bdr_threshold=1.2
 
-      ! Rmax_wr: maximum of R for ray calculation, if 0, set RR+1.2*RA
-      ! Rmin_wr: minimum of R for ray calculation, if 0, set RR-1.2*RA >1.D-6
-      ! Zmax_wr: maximum of Z for ray calculation, if 0, set RR+1.2*rkap*RA
-      ! Zmin_wr: minimum of Z for ray calculation, if 0, set RR-1.2*rkap*RA
+      ! Rmax_wr: maximum of R for ray calculation, if 0, set RR+F*RA
+      ! Rmin_wr: minimum of R for ray calculation, if 0, set RR-F*RA >1.D-6
+      ! Zmax_wr: maximum of Z for ray calculation, if 0, set RR+F*rkap*RA
+      ! Zmin_wr: minimum of Z for ray calculation, if 0, set RR-F*rkap*RA
 
       Rmax_wr=0.D0
       Rmin_wr=0.D0

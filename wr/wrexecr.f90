@@ -15,7 +15,7 @@ CONTAINS
     USE wrcomm
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
-    REAL(rkind):: time1,time2
+    REAL:: time1,time2
     INTEGER:: NRAY
 
     CALL GUTIME(TIME1)
@@ -56,9 +56,10 @@ CONTAINS
     REAL(rkind):: R,Z,PHI
     REAL(rkind):: rhon,rk,rkpara,rkperp_1,rkperp_2,rkphi,rkr
     REAL(rkind):: rkr_1,rkr_2,rkrz_old,rkrz_new_1,rkrz_new_2
-    REAL(rkind):: rkx,rky,rkz,rkz_1,rkz_2,rnr,rnri2
-    REAL(rkind):: x,y,s
-    INTEGER:: mode,nstp
+    REAL(rkind):: rkx,rky,rkz,rkz_1,rkz_2,rnr,rnz,rnphi,rnr2
+    REAL(rkind):: x,y,s,sinp2,sint2
+    REAL(rkind):: W(4)
+    INTEGER:: mode,nstp,id,i
 
     IERR=0
 
@@ -76,6 +77,14 @@ CONTAINS
     MODEW=MODEWIN(NRAY)
     UUI=UUIN(NRAY)
 
+    IF(MDLWRI.NE.100)THEN
+       SINP2=SIN(ANGZ*PI/180.D0)**2
+       SINT2=SIN(ANGPH*PI/180.D0)**2
+       RNZI  =SQRT(SINP2*(1-SINT2)/(1-SINP2*SINT2))
+       RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
+       IF(ANGZ.LT.0.D0) RNZI=-RNZI
+       IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
+    ENDIF
     ! --- initialize variable array RAYIN ---
 
     RAYIN(1,NRAY)=RF
@@ -87,9 +96,9 @@ CONTAINS
     RAYIN(7,NRAY)=ANGPH
     RAYIN(8,NRAY)=UUI
 
-    RKRI  = RKR0
-    RKZI  = 2.D6*PI*RF*RNZI  /VC
-    RKPHII= 2.D6*PI*RF*RNPHII/VC
+    RKR  = RKR0
+    RKZ  = 2.D6*PI*RF*RNZI  /VC
+    RKPHI= 2.D6*PI*RF*RNPHII/VC
     
     R=RPI
     Z=ZPI
@@ -107,25 +116,28 @@ CONTAINS
        CALL pl_mag(X,Y,Z,mag)
        rhon=mag%rhon
        CALL pl_prof(rhon,plf)
-       WRITE(6,'(A,5ES12.4)') '@@@ point 1',X,Y,Z,rhon,plf(1)%rn
-       WRITE(6,'(A,3ES12.4)') '           ',RA,RB,RB/RA
        CALL pl_profw(rhon,plfw)
 
-       WRITE(6,'(A,5ES12.4)') '@@@ point 1',X,Y,Z,rhon,plfw(1)%rn
-       
+!       WRITE(6,'(A,3ES12.4)') 'pne:',plfw(1)%rn,pne_threshold,rhon
+
+!       WRITE(6,'(A)') '## wr_exec_single_ray: '
+!       WRITE(6,'(A,3ES12.4)') '   R,Z,PHI      =',R,Z,PHI
+!       WRITE(6,'(A,3ES12.4)') '   X,Y,Z        =',X,Y,Z
+!       WRITE(6,'(A,3ES12.4)') '   RKX,RKY,RKZ  =',RKX,RKY,RKZ
+
        IF(plfw(1)%rn.LE.pne_threshold) THEN
 
           ! --- if in vacuume, advance by ds ---
           
-          RNRI2=1.D0-RNZI**2-RNPHII**2
-       WRITE(6,'(A,3ES12.4)') '@@@ point 2',RNZI,RNPHII,SQRT(RNRI2)
-          IF(RNRI2.LT.0.D0) THEN
+          RNR2=1.D0-RNZ**2-RNPHI**2
+          IF(RNR2.LT.0.D0) THEN
              mode=4
+             WRITE(6,'(A)') 'XX wr_exec_single_ray: RNRI2 is negative'
+             WRITE(6,'(A,3ES12.4)') '   RNZ,RNPHI,RNR2=',RNZ,RNPHI,RNR2
              ierr=401
              RETURN
           END IF
-          RNR=SIGN(SQRT(RNRI2),RKRI)
-          WRITE(6,'(A,5E12.4)') 'RN:',X,Y,Z,rhon,plfw(1)%rn
+          RNR=SIGN(SQRT(RNR2),RKR)
           RKR=2.D6*PI*RF*RNR/VC
           RKX=RKR*COS(PHI)-RKPHI*SIN(PHI)
           RKY=RKR*SIN(PHI)+RKPHI*COS(PHI)
@@ -146,13 +158,19 @@ CONTAINS
           YN(5,nstp)= RKPHI
           YN(6,nstp)= RKZ
           YN(7,nstp)= UUI
+          nstp=nstp+1
 
-          WRITE(6,'(A,I4,6ES12.4)') 'RK:',nstp,R,PHI,Z,RKR,RKPHI,RKZ
+!          WRITE(6,'(A,I4,6ES12.4)') 'RK:',nstp,R,PHI,Z,RKR,RKPHI,RKZ
+!          WRITE(6,'(A,2ES12.4)') 'R: ',R,RMAX_WR
+!          WRITE(6,'(A,2ES12.4)') 'R: ',R,RMIN_WR
+!          WRITE(6,'(A,2ES12.4)') 'Z: ',Z,ZMAX_WR
+!          WRITE(6,'(A,2ES12.4)') 'Z: ',Z,ZMIN_WR
+!          WRITE(6,'(A,2ES12.4)') 'S: ',S,SMAX
 
           IF(R.GT.RMAX_WR.OR. &
              R.LT.RMIN_WR.OR. &
              Z.GT.ZMAX_WR.OR. &
-             Z.LT.ZMAX_WR.OR. &
+             Z.LT.ZMIN_WR.OR. &
              S.GT.SMAX) THEN
 
              ! --- If ray goes out of calculation region, mode=2 ---
@@ -167,104 +185,124 @@ CONTAINS
        ELSE
 
           ! --- If ray is in plasma, mode=1 ---
-
+          
           mode=1
        END IF
     END DO
 
     ! --- calculate wave number vector of two EM modes ---
     
-    IF(MODEW.NE.0) THEN
-
-       ! --- solve cold dispersion for given k_para ---
+    ! --- solve cold dispersion for given k_para ---
        
-       RKX=RKR*COS(PHI)-RKPHI*SIN(PHI)
-       RKY=RKR*SIN(PHI)+RKPHI*COS(PHI)
-       RKZ=RKZI
-       RKPARA=RKX*mag%bnx+RKY*mag%bny+RKZ*mag%bnz
-       CALL WR_COLD_RKPERP(R,Z,PHI,RKPARA,RKPERP_1,RKPERP_2)
+    RKX=RKR*COS(PHI)-RKPHI*SIN(PHI)
+    RKY=RKR*SIN(PHI)+RKPHI*COS(PHI)
+    RKZ=RKZ
+    RKPARA=RKX*mag%bnx+RKY*mag%bny+RKZ*mag%bnz
+    CALL WR_COLD_RKPERP(R,Z,PHI,RKPARA,RKPERP_1,RKPERP_2)
+    WRITE(6,'(A,1P3E12.4)') &
+         'RKRPARA,RKPERP_1,RKPERP_2=',RKPARA,RKPERP_1,RKPERP_2
        
-       ! --- new k_r_new and k_z_new is determined from k_perp
-       !         and the direction of old k_r and k_z
-       !             k_rz_old^2=k_r_old^2+k_z_old^2
-       !             k_rz_new^2=k_perp^2+k_para^2-k_phi\2
-       !             k_r_new=(k_rz_new/k_rz_old) k_r_oldf
-       !             k_z_new=(k_rz_new/k_rz_old) k_z_oldf
+    ! --- new k_r_new and k_z_new is determined from k_perp
+    !         and the direction of old k_r and k_z
+    !             k_rz_old^2=k_r_old^2+k_z_old^2
+    !             k_rz_new^2=k_perp^2+k_para^2-k_phi\2
+    !             k_r_new=(k_rz_new/k_rz_old) k_r_oldf
+    !             k_z_new=(k_rz_new/k_rz_old) k_z_oldf
        
-       RKRZ_old=SQRT(RKR**2+RKZ**2)
-       RKRZ_new_1=RKPERP_1**2-RKPARA**2-RKPHI**2
-       RKRZ_new_2=RKPERP_2**2-RKPARA**2-RKPHI**2
-
-       WRITE(6,'(A,3ES12.4)') 'COLD: rkrz_1,rkrz_2,rkrz_old', &
-            rkrz_new_1,rkrz_new_2,rkrz_old
-       WRITE(6,'(A,3ES12.4)') 'RKX,RKY,RKZ  =',RKX,RKY,RKZ
-       WRITE(6,'(A,3ES12.4)') 'RKR,RKZ,RKPHI=',RKR,RKZ,RKPHI
-       WRITE(6,'(A,4ES12.4)') 'RKPERP:',RKPERP_1,RKPERP_2,RKPARA,RKPHI
+    RKRZ_old=SQRT(RKR**2+RKZ**2)
+    RKRZ_new_1=RKPERP_1**2-RKPARA**2-RKPHI**2
+    RKRZ_new_2=RKPERP_2**2-RKPARA**2-RKPHI**2
+    IF(RKRZ_new_1.GE.0.D0) THEN
+       RKRZ_new_1=SQRT(RKRZ_new_1)
        RKR_1=(RKRZ_new_1/RKRZ_old)*RKR
        RKZ_1=(RKRZ_new_1/RKRZ_old)*RKZ
        CALL WRCALE_XYZ(X,Y,Z,RKR_1,RKZ_1,RKPHI,EPARA,EPERP)
-       WRITE(6,'(A,1P3E12.4)') &
-               'RKR_1,RKZ_1,EPARA,EPERP=',RKR_1,RKZ_1,EPARA,EPERP
+       WRITE(6,'(A,1P4E12.4)') &
+            'RKR_1,RKZ_1,EPARA,EPERP=',RKR_1,RKZ_1,EPARA,EPERP
+    ELSE
+       RKR_1=RKR
+       RKZ_1=RKZ
+    END IF
+    
+    IF(RKRZ_new_2.GE.0.D0) THEN
+       RKRZ_new_2=SQRT(RKRZ_new_2)
        RKR_2=(RKRZ_new_2/RKRZ_old)*RKR
        RKZ_2=(RKRZ_new_2/RKRZ_old)*RKZ
-
        CALL WRCALE_XYZ(X,Y,Z,RKR_2,RKZ_2,RKPHI,EPARA,EPERP)
-
-       WRITE(6,'(A,1P3E12.4)') &
-               'RKR_2,RKZ_2,EPARA,EPERP=',RKR_2,RKZ_2,EPARA,EPERP
-
-       IF(MODEW.EQ.1) THEN
-          RKR0=RKR_1
-       ELSE IF(MODEW.EQ.2) THEN
-          RKR0=RKR_2
-       ELSE IF(MODEW.EQ.-1) THEN
-          RKR0=-RKR_1
-       ELSE IF(MODEW.EQ.-2) THEN
-          RKR0=-RKR_2
-       END IF
-       
+       WRITE(6,'(A,1P4E12.4)') &
+            'RKR_2,RKZ_2,EPARA,EPERP=',RKR_2,RKZ_2,EPARA,EPERP
     ELSE
-       ! --- rkr0 is given for MODEW=0 ---
-       CONTINUE
+       RKR_2=RKR
+       RKZ_2=RKZ
     END IF
 
+    SELECT CASE(MODEW)
+    CASE(0)
+       W(1)=-ABS( RKR_1-RKR0)
+       W(2)=-ABS( RKR_2-RKR0)
+       W(3)=-ABS(-RKR_1-RKR0)
+       W(4)=-ABS(-RKR_2-RKR0)
+       ID=MAXLOC(W,1)
+       WRITE(6,'(A,5ES12.4)')    'RKR0:',RKR0,RKR_1,RKR_2,-RKR_1,-RKR_2
+       WRITE(6,'(A,I6,4ES12.4)') 'ID,W:',ID,(W(I),I=1,4)
+       SELECT CASE(ID)
+       CASE(1)
+          RKR=RKR_1
+       CASE(2)
+          RKR=RKR_2
+       CASE(3)
+          RKR=-RKR_1
+       CASE(4)
+          RKR=-RKR_2
+       END SELECT
+    CASE(1)
+       RKR=RKR_1
+    CASE(2)
+       RKR=RKR_2
+    CASE(3)
+       RKR=-RKR_1
+    CASE(4)
+       RKR=-RKR_2
+    END SELECT
+       
+    ! --- rkr0 is given for MODEW=0 ---
     CALL WRNWTN(IERR)  ! input RKR0,RKZI,RKPHII; output RKRI
     IF(IERR.NE.0) THEN
        ierr=300
        RETURN
     END IF
 
-    WRITE(6,'(A,2ES12.4)') 'WRNWTN results: RKR0,RKRI=',RKR0,RKRI
+    WRITE(6,'(A,3ES12.4)') 'WRNWTN results: RKR0,RKRI,RKR=',RKR0,RKRI,RKR
 
 
     IF(MODELG.EQ.0.OR.MODELG.EQ.1.OR.MODELG.EQ.11) THEN
-       YA(1)= RPI
-       YA(2)= PHII
-       YA(3)= ZPI
-       YA(4)= RKRI
-       YA(5)= RKPHII
-       YA(6)= RKZI
+       YA(1)= R
+       YA(2)= PHI
+       YA(3)= Z
+       YA(4)= RKR
+       YA(5)= RKPHI
+       YA(6)= RKZ
     ELSE
-       YA(1)= RPI*COS(PHII)
-       YA(2)= RPI*SIN(PHII)
-       YA(3)= ZPI
-       YA(4)= RKRI*COS(PHII)-RKPHII*SIN(PHII)
-       YA(5)= RKRI*SIN(PHII)+RKPHII*COS(PHII)
-       YA(6)= RKZI
+       YA(1)= R*COS(PHI)
+       YA(2)= R*SIN(PHI)
+       YA(3)= Z
+       YA(4)= RKR*COS(PHI)-RKPHI*SIN(PHI)
+       YA(5)= RKR*SIN(PHI)+RKPHI*COS(PHI)
+       YA(6)= RKZ
     ENDIF
     YA(7)= UUI
     IF(MDLWRQ.EQ.0) THEN
-       CALL WRRKFT(YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT(nstp,YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
     ELSEIF(MDLWRQ.EQ.1) THEN
-       CALL WRRKFT_WITHD0(YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT_WITHD0(nstp,YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
     ELSEIF(MDLWRQ.EQ.2) THEN
-       CALL WRRKFT_WITHMC(YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT_WITHMC(nstp,YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
     ELSEIF(MDLWRQ.EQ.3) THEN
-       CALL WRRKFT_RKF(YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT_RKF(nstp,YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
     ELSEIF(MDLWRQ.EQ.4) THEN
-       CALL WRSYMP(YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRSYMP(nstp,YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
     ELSEIF(MDLWRQ.EQ.5) THEN
-       CALL WRRKFT_ODE(YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT_ODE(nstp,YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
     ELSE
        WRITE(6,*) 'XX WRCALC: unknown MDLWRQ =', MDLWRQ
        IERR=1
@@ -282,7 +320,7 @@ CONTAINS
 
 !  --- original Runge-Kutta method ---
 
-  SUBROUTINE WRRKFT(Y,YN,NNSTP)
+  SUBROUTINE WRRKFT(nstp_in,Y,YN,NNSTP)
 
     USE wrcomm
     USE wrsub,ONLY: DISPXR
@@ -290,6 +328,7 @@ CONTAINS
     USE plprof,ONLY: PL_MAG_OLD
     USE librk
     IMPLICIT NONE
+    INTEGER,INTENT(INOUT):: nstp_in
     REAL(rkind),INTENT(INOUT):: Y(NEQ)
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
     INTEGER,INTENT(OUT):: NNSTP
@@ -302,7 +341,7 @@ CONTAINS
     NSTPLIM=INT(SMAX/DELS)
     NSTPMIN=INT(0.1D0*SMAX/DELS)
 
-    NSTP=0
+    NSTP=nstp_in
     YN(0,NSTP)=X0
     DO I=1,7
        YN(I,NSTP)=Y(I)
@@ -311,7 +350,7 @@ CONTAINS
 
     CALL wr_write_line(NSTP,X0,Y,YN(8,NSTP))
 
-    DO NSTP = 1,NSTPLIM
+    DO NSTP = nstp_in+1,NSTPLIM
        PW=Y(7)
        CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
 
@@ -357,7 +396,7 @@ CONTAINS
 
 !  --- original Runge-Kutta method with correction for D=0 ---
 
-  SUBROUTINE WRRKFT_WITHD0(Y,YN,NNSTP)
+  SUBROUTINE WRRKFT_WITHD0(nstp_in,Y,YN,NNSTP)
 
     USE wrcomm
     USE wrsub,ONLY: DISPXR,WRMODNWTN
@@ -365,6 +404,7 @@ CONTAINS
     USE plprof,ONLY:PL_MAG_OLD
     USE librk
     IMPLICIT NONE
+    INTEGER,INTENT(INOUT):: nstp_in
     REAL(rkind),INTENT(INOUT):: Y(NEQ)
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
     INTEGER,INTENT(OUT):: NNSTP
@@ -379,7 +419,7 @@ CONTAINS
     NSTPLIM=MIN(INT(SMAX/DELS),NSTPMAX)
     NSTPMIN=INT(0.1D0*SMAX/DELS)
 
-    NSTP=0
+    NSTP=nstp_in
     YN(0,NSTP)=X0
     DO I=1,7
        YN(I,NSTP)=Y(I)
@@ -388,7 +428,7 @@ CONTAINS
 
     CALL wr_write_line(NSTP,X0,Y,YN(8,NSTP))
 
-    DO NSTP = 1,NSTPLIM
+    DO NSTP = nstp_in+1,NSTPLIM
        PW=Y(7)
        CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
 
@@ -441,13 +481,14 @@ CONTAINS
 
 !  --- Runge-Kutta method using ODE library ---
 
-  SUBROUTINE WRRKFT_ODE(Y,YN,NNSTP)
+  SUBROUTINE WRRKFT_ODE(nstp_in,Y,YN,NNSTP)
 
     USE wrcomm
     USE pllocal
     USE plprof,ONLY:PL_MAG_OLD
     USE librk
     IMPLICIT NONE
+    INTEGER,INTENT(INOUT):: nstp_in
     REAL(rkind),INTENT(INOUT):: Y(NEQ)
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
     INTEGER,INTENT(OUT):: NNSTP
@@ -460,7 +501,7 @@ CONTAINS
     NSTPLIM=INT(SMAX/DELS)
     NSTPMIN=INT(0.1D0*SMAX/DELS)
     
-    NSTP=0
+    NSTP=nstp_in
     YN(0,NSTP)=X0
     DO I=1,7
        YN(I,NSTP)=Y(I)
@@ -469,7 +510,7 @@ CONTAINS
 
     CALL wr_write_line(NSTP,X0,Y,YN(8,NSTP))
 
-    DO NSTP = 1,NSTPLIM
+    DO NSTP = nstp_in+1,NSTPLIM
        PW=Y(7)
        CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
        
@@ -515,7 +556,7 @@ CONTAINS
 
 !  --- Runge-Kutta method with tunneling of cutoff-resonant layer ---
 
-  SUBROUTINE WRRKFT_WITHMC(Y,YN,NNSTP)
+  SUBROUTINE WRRKFT_WITHMC(nstp_in,Y,YN,NNSTP)
 
     USE wrcomm
     USE wrsub,ONLY: DISPXR,WRMODCONV,WRMODNWTN
@@ -523,6 +564,7 @@ CONTAINS
     USE plprof,ONLY:PL_MAG_OLD
     USE librk
     IMPLICIT NONE
+    INTEGER,INTENT(INOUT):: nstp_in
     REAL(rkind),INTENT(INOUT):: Y(NEQ)
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
     INTEGER,INTENT(OUT):: NNSTP
@@ -537,7 +579,7 @@ CONTAINS
     NSTPLIM=INT(SMAX/DELS)
     NSTPMIN=INT(0.1D0*SMAX/DELS)
     
-    NSTP=0
+    NSTP=nstp_in
     YN(0,NSTP)=X0
     DO I=1,7
        YN(I,NSTP)=Y(I)
@@ -547,7 +589,7 @@ CONTAINS
 
     CALL wr_write_line(NSTP,X0,Y,YN(8,NSTP))
 
-    DO NSTP = 1,NSTPLIM
+    DO NSTP = nstp_in+1,NSTPLIM
        PW=Y(7)
        CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
        
@@ -615,12 +657,13 @@ CONTAINS
 
 ! --- Auto-step-size Runge-Kutta-F method ---
 
-  SUBROUTINE WRRKFT_RKF(Y,YN,NNSTP)
+  SUBROUTINE WRRKFT_RKF(nstp_in,Y,YN,NNSTP)
 
     USE wrcomm
     USE librkf
     USE plprof,ONLY: pl_mag_old
     IMPLICIT NONE
+    INTEGER,INTENT(INOUT):: nstp_in
     REAL(rkind),INTENT(INOUT):: Y(NEQ)
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
     INTEGER,INTENT(OUT):: NNSTP
@@ -637,7 +680,7 @@ CONTAINS
     NSTPLIM=INT(SMAX/DELS)
     NSTPMIN=INT(0.1D0*SMAX/DELS)
 
-    NSTP=0
+    NSTP=nstp_in
     YN(0,NSTP)=X0
     DO I=1,7
        YN(I,NSTP)=Y(I)
@@ -646,7 +689,7 @@ CONTAINS
 
     CALL wr_write_line(NSTP,X0,Y,YN(8,NSTP))
 
-    DO NSTP = 1,NSTPLIM
+    DO NSTP = nstp_in+1,NSTPLIM
        PW=Y(7)
        CALL RKF(7,WRFDRV,X0,XE,Y,INIT,RELERR,ABSERR,YM, &
                 ESTERR,NDE,IER,WORK0,WORK1,WORK2,WORK3,WORK4)
@@ -698,7 +741,7 @@ CONTAINS
 
 ! --- Symplectic method (not completed) ---
 
-  SUBROUTINE WRSYMP(Y,YN,NNSTP)
+  SUBROUTINE WRSYMP(nstp_in,Y,YN,NNSTP)
 
     USE wrcomm
     USE wrsub,ONLY: DISPXR
@@ -706,6 +749,7 @@ CONTAINS
     USE plprof,ONLY: PL_MAG_OLD,PL_PROF_OLD
     USE libsympl
     IMPLICIT NONE
+    INTEGER,INTENT(INOUT):: nstp_in
     REAL(rkind),INTENT(INOUT):: Y(NEQ)
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
     INTEGER,INTENT(OUT):: NNSTP
@@ -718,7 +762,7 @@ CONTAINS
     NLPMAX=10
     EPS=1.D-6
 
-    NSTP=0
+    NSTP=nstp_in
     X=0.D0
     YN(0,NSTP)=X
     DO I=1,7
@@ -728,7 +772,7 @@ CONTAINS
 
     CALL wr_write_line(NSTP,X,Y,YN(8,NSTP))
 
-    DO NSTP = 1,NSTPLIM
+    DO NSTP = nstp_in+1,NSTPLIM
        PW=Y(7)
        CALL SYMPLECTIC(Y,DELS,WRFDRVR,6,NLPMAX,EPS,NLP,ERROR,IERR)
        CALL WRFDRV(0.D0,Y,F)

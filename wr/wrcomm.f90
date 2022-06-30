@@ -18,7 +18,8 @@ MODULE wrcomm_parm
   REAL(rkind):: RF,RPI,ZPI,PHII,RNZI,RNPHII,RKR0,UUI,RKRI,RKPHII,RKZI
   REAL(rkind):: RCURVA,RCURVB,RBRADA,RBRADB,NRADMX
   INTEGER:: MODEW,nres_max,nres_type
-  REAL(rkind):: pne_threshold,Rmax_wr,Rmin_wr,Zmin_wr,Zmax_wr
+  REAL(rkind):: pne_threshold,bdr_threshold
+  REAL(rkind):: Rmax_wr,Rmin_wr,Zmin_wr,Zmax_wr
 
   REAL(rkind),DIMENSION(NRAYM):: &
        RFIN,RPIN,ZPIN,PHIIN,RKRIN,RNZIN,RNPHIIN,ANGZIN,ANGPHIN,UUIN, &

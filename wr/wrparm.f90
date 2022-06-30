@@ -77,7 +77,8 @@ CONTAINS
                   NPMAX_DP,NTHMAX_DP,NRMAX_DP, &
                   MDLWRI,MDLWRG,MDLWRP,MDLWRQ,MDLWRW,nres_max,nres_type, &
                   SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW, &
-                  mode_beam,pne_threshold,Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr
+                  mode_beam,pne_threshold,bdr_threshold, &
+                  Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr
 
     READ(NID,WR,IOSTAT=IST,ERR=9800,END=9900)
     
@@ -127,7 +128,8 @@ CONTAINS
              9X,'NPMAX_DP,NTHMAX_DP,NRMAX_DP,'/ &
              9X,'MDLWRI,MDLWRG,MDLWRP,MDLWRQ,MDLWRW,nres_max,nres_type,'/ &
              9X,'SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW'/ &
-             9X,'mode_beam,pne_threshold,Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr')
+             9X,'mode_beam,pne_threshold,bdr_thershold'/ &
+             9X,'Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr')
   END SUBROUTINE WRPLST
 
 !     ***** CHECK INPUT PARAMETERS *****

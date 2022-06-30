@@ -37,6 +37,14 @@ CONTAINS
        ENDDO
     ENDDO
 
+    IF(MDLWRI.EQ.100)THEN
+       WRITE(6,*) &
+            '# initial values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU'
+    ELSE
+       WRITE(6,*) &
+            '# initial values: RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH,UU'
+    END IF
+
     DO NRAY=1,NRAYMAX
        RF=RFIN(NRAY)
        RPI=RPIN(NRAY)
@@ -51,13 +59,9 @@ CONTAINS
        UUI=UUIN(NRAY)
 
        IF(MDLWRI.EQ.100)THEN
-          WRITE(6,*) &
-               '# initial values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU'
           WRITE(6,'(1PE12.4,0P7F9.2)') &
                RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII,UUI
        ELSE
-          WRITE(6,*) &
-               '# initial values: RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH,UU'
           WRITE(6,'(1PE12.4,0P7F9.2)') &
                RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH,UUI
           SINP2=SIN(ANGZ*PI/180.D0)**2
@@ -93,7 +97,6 @@ CONTAINS
     REAL(rkind):: ANGZ,ANGPH,SINP2,SINT2
 
     IERR=0
-    WRITE(6,*) '@@@ point 1: mdlwri=',mdlwri
 
     IF(MDLWRI.EQ.0) THEN
        WRITE(6,*) &
