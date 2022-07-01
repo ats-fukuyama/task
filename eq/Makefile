@@ -44,7 +44,7 @@ LIBS3 = ../pl/libpl.a libeq3.a ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbp
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : eq
+all : libs eq
 
 
 ../../bpsd/libbpsd.a:
@@ -63,9 +63,9 @@ libeq3.a: $(OBJS) $(OBJ3D)
 	$(LD) $(LDFLAGS) libeq3.a $(OBJS) $(OBJ3D)
 
 libs:
+	(cd ../../bpsd; make libbpsd.a)
 	(cd ../lib; make libtask.a)
 	(cd ../lib; make libgrf.a)
-	(cd ../../bpsd; make libbpsd.a)
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 

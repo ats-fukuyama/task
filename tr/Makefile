@@ -94,9 +94,9 @@ libtr3.a: $(OBJTR) $(OBJ3D) $(INCNC) $(INCGLF)
 	(cd ../eq; make libeq.a)
 
 libs:
-	(cd ../lib; make libgrf.a)
-	(cd ../lib; make libtask.a)
 	(cd ../../bpsd; make libbpsd.a)
+	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
 
