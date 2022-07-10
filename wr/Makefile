@@ -97,11 +97,13 @@ $(OBJDIR)/wrview.o: wrview.f90 $(WRCOMM)
 $(OBJDIR)/wrsetupr.o:wrsetupr.f90 $(WRCOMM)
 $(OBJDIR)/wrsetupb.o:wrsetupb.f90 $(WRCOMM)
 $(OBJDIR)/wrsetup.o:wrsetup.f90 $(WRCOMM) wrsetupr.f90 wrsetupb.f90
+
 $(OBJDIR)/wrexecr.o:wrexecr.f90 $(WRCOMM) ../pl/plprof.f90 ../dp/dpdisp.f90 \
 wrsub.f90
 $(OBJDIR)/wrexecb.o:wrexecb.f90 $(WRCOMM) ../pl/plprof.f90 ../dp/dpdisp.f90 \
 wrsub.f90
 $(OBJDIR)/wrexec.o:wrexec.f90 $(WRCOMM) wrexecr.f90 wrexecb.f90
+
 $(OBJDIR)/wrsetup.o:wrsetup.f90 $(WRCOMM) wrsetupr.f90 wrsetupb.f90
 $(OBJDIR)/wrsub.o:  wrsub.f90 $(WRCOMM) ../pl/plprof.f90 ../dp/dppola.f90 \
 ../dp/dpdisp.f90
