@@ -181,7 +181,7 @@ CONTAINS
 
     CALL pl_broadcast
 
-!----- DP input parameters -----
+    !----- DP input parameters -----
 
     nsamax_dp=nsmax
     DO nsa=1,nsamax_dp
@@ -190,7 +190,7 @@ CONTAINS
        
     CALL dp_broadcast
 
-! --- WM specific input parameters ---
+    ! --- WM specific input parameters ---
 
     idata( 1)=NRMAX
     idata( 2)=NTHMAX
