@@ -169,7 +169,7 @@ CONTAINS
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: x,y
     INTEGER,INTENT(INOUT):: nelm
-    INTEGER(LONG):: nseg,nelm1,nseg1,nelm2
+    INTEGER:: nseg,nelm1,nseg1,nelm2
     INTEGER:: nside,node1,node2,nside1
     INTEGER:: nxzone,nyzone,ncount
     INTEGER:: nelm_ncount
@@ -275,7 +275,8 @@ CONTAINS
     LOGICAL:: xy_in_nelm
     REAL(rkind),INTENT(IN):: x,y
     INTEGER,INTENT(IN):: nelm
-    INTEGER:: node,nside
+    INTEGER:: node
+    INTEGER:: nside
     REAL(rkind):: x1,y1,x2,y2,f
 !    REAL(rkind):: x3,y3
 !    INTEGER,SAVE:: i=0
