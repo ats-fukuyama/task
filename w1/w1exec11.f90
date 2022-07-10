@@ -506,13 +506,24 @@ CONTAINS
 
   SUBROUTINE W1EPWQ(NZ)
     USE w1comm
+    USE libgrf
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NZ
     INTEGER:: NS,NX,NX1,NXD0,NCL0,IL,NN,MM,IA,IB,NCL1,NXD1
     REAL(rkind):: RW,RKV,RCE,DX,PABSL,RNZ
     REAL(rkind):: PIN1,PIN2,PIN3,PIN4,PIN,POUT1,POUT2,POUT3,POUT4,POUT,PCONV
-    COMPLEX(rkind):: CPABSL,CDEY,CDEZ,CBY,CBZ,CLH0,CLH1,CAJ0L,CAJ1L
-    COMPLEX(rkind):: CPABS0,CPABS1
+    COMPLEX(rkind):: CPABSL,CDEY,CDEZ,CBY,CBZ
+    COMPLEX(rkind):: CLH0,CLH1,CLH2,CLH3,CLH4,CLH5
+    COMPLEX(rkind):: CAJ0L,CAJ1L,CAJ2L,CAJ3L,CAJ4L,CAJ5L
+    COMPLEX(rkind):: CPABS0,CPABS1,CPABS2,CPABS3,CPABS4,CPABS5
+    COMPLEX(rkind):: CPABS0L,CPABS1L,CPABS2L,CPABS3L,CPABS4L,CPABS5L
+    REAL(rkind):: PABS0L,PABS1L,PABS2L,PABS3L,PABS4L,PABS5L
+    REAL(rkind):: PABS0(NXMAX,NSMAX),PABS1(NXMAX,NSMAX)
+    REAL(rkind):: PABS2(NXMAX,NSMAX),PABS3(NXMAX,NSMAX)
+    REAL(rkind):: PABS4(NXMAX,NSMAX),PABS5(NXMAX,NSMAX)
+    COMPLEX(rkind):: CAJ0(6*NXMAX+10),CAJ1(6*NXMAX+10),CAJ2(6*NXMAX+10)
+    COMPLEX(rkind):: CAJ3(6*NXMAX+10),CAJ4(6*NXMAX+10),CAJ5(6*NXMAX+10)
+    
     RW=2.D6*PI*RF
     RKV=2.D6*PI*RF/VC
     RCE=VC*EPS0
@@ -586,12 +597,17 @@ CONTAINS
           
        DO NX=1,NXMAX-1
           DX=RKV*(XA(NX+1)-XA(NX))
+          CPABS0L=0.D0
+          CPABS1L=0.D0
+          CPABS2L=0.D0
+          CPABS3L=0.D0
+          CPABS4L=0.D0
+          CPABS5L=0.D0
           DO NX1=MAX(1,NX+NXDMIN),MIN(NX+NXDMAX,NXMAX-1)
              NXD0=NX1-NX+NXDMAX+1 ! positive
              NCL0=NCLA(NXD0,NX,NS)
              NXD1=NX-NX1+NXDMAX+1 ! positive
              NCL1=NCLA(NXD1,NX1,NS)
-             CPABSL=0.D0
              IF(NCL0.NE.0.AND.NCL1.NE.0) THEN
                 DO IL=1,4
                    SELECT CASE(IL)
@@ -608,53 +624,83 @@ CONTAINS
                       NN=3*NX+2
                       MM=3*NX1+2
                    END SELECT
-                   CPABS0=0.D0
-                   CPABS1=0.D0
+                   CPABS0L=0.D0
+                   CPABS1L=0.D0
+                   CPABS2L=0.D0
+                   CPABS3L=0.D0
+                   CPABS4L=0.D0
+                   CPABS5L=0.D0
                    DO IA=1,3
+                      CPABS0=0.D0
+                      CPABS1=0.D0
+                      CPABS2=0.D0
+                      CPABS3=0.D0
+                      CPABS4=0.D0
+                      CPABS5=0.D0
                       CAJ0L=0.D0
                       CAJ1L=0.D0
+                      CAJ2L=0.D0
+                      CAJ3L=0.D0
+                      CAJ4L=0.D0
+                      CAJ5L=0.D0
                       DO IB=1,3
-!                         CLH0=0.5D0*(CL(IA,IB,IL,NCL0) &
-!                                    -CONJG(CL(IB,IA,IL,NCL0)))
-!                         CLH1=0.5D0*(CL(IA,IB,IL,NCL1) &
-!                                    -CONJG(CL(IB,IA,IL,NCL1)))
                          CLH0=0.5D0*(CL(IA,IB,IL,NCL0) &
                                     -CONJG(CL(IB,IA,IL,NCL0)))
                          CLH1=0.5D0*(CL(IA,IB,IL,NCL1) &
                                     -CONJG(CL(IB,IA,IL,NCL1)))
+                         CLH2=CL(IA,IB,IL,NCL0)
+                         CLH3=CL(IB,IA,IL,NCL0)
+                         CLH4=CL(IA,IB,IL,NCL1)
+                         CLH5=CL(IB,IA,IL,NCL1)
                          CAJ0L=CAJ0L+CLH0*CA(MM+IB)
                          CAJ1L=CAJ1L+CLH1*CA(NN+IB)
+                         CAJ2L=CAJ2L+CLH2*CA(MM+IB)
+                         CAJ3L=CAJ3L+CLH3*CA(MM+IB)
+                         CAJ4L=CAJ4L+CLH4*CA(NN+IB)
+                         CAJ5L=CAJ5L+CLH5*CA(NN+IB)
                       END DO
                       CPABS0=CPABS0+0.5D0*CONJG(CA(NN+IA))*CAJ0L
                       CPABS1=CPABS1+0.5D0*CONJG(CA(MM+IA))*CAJ1L
-!                      CPABSL=CPABSL &
-!                           +0.5D0*CONJG(CA(NN+IA))*CAJ0L &
-!                           +0.5D0*CONJG(CA(MM+IA))*CAJ1L
-!                      CAJ0(NN+IA)=CAJ0(NN+IA)+CAJ0L
-!                      CAJ1(MM+IA)=CAJ1(MM+IA)+CAJ1L
+                      CPABS2=CPABS2+0.5D0*CONJG(CA(NN+IA))*CAJ2L
+                      CPABS3=CPABS3+0.5D0*CONJG(CA(NN+IA))*CAJ3L
+                      CPABS4=CPABS4+0.5D0*CONJG(CA(MM+IA))*CAJ4L
+                      CPABS5=CPABS5+0.5D0*CONJG(CA(MM+IA))*CAJ5L
+                      CAJ0(NN+IA)=CAJ0(NN+IA)+CAJ0L
+                      CAJ1(MM+IA)=CAJ1(MM+IA)+CAJ1L
+                      CAJ2(NN+IA)=CAJ2(NN+IA)+CAJ0L
+                      CAJ3(MM+IA)=CAJ3(MM+IA)+CAJ1L
+                      CAJ4(NN+IA)=CAJ4(NN+IA)+CAJ0L
+                      CAJ5(MM+IA)=CAJ5(MM+IA)+CAJ1L
                    END DO
-!                   IF(NX.EQ.4000.AND.NX1.EQ.4001) THEN
-!                      WRITE(6,'(A,3I5,1P4E12.4)') &
-!                           'CPABS0:',NX,NX1,IL,CPABS0,CPABS1
-!                   END IF
-!                   IF(NX.EQ.4001.AND.NX1.EQ.4000) THEN
-!                      WRITE(6,'(A,3I5,1P4E12.4)') &
-!                           'CPABS1:',NX,NX1,IL,CPABS0,CPABS1
-!                   END IF
-                   CPABSL=CPABSL+CPABS0+CPABS1
+                   CPABS0L=CPABS0L+CPABS0+CPABS1
+                   CPABS1L=CPABS1L+CPABS0-CPABS1
+                   CPABS2L=CPABS2L+CPABS2
+                   CPABS3L=CPABS3L+CPABS3
+                   CPABS4L=CPABS4L+CPABS4
+                   CPABS5L=CPABS5L+CPABS5
                 END DO
              END IF
-             PABSL=-CI*RCE*CPABSL*RKV
-             PABS(NX,   NS)=PABS(NX,   NS)+0.5D0*PABSL
-             PABS(NX1,  NS)=PABS(NX1,  NS)+0.5D0*PABSL
+             PABS0L=-CI*RCE*CPABS0L*RKV
+             PABS1L=-CI*RCE*CPABS1L*RKV
+             PABS2L=-CI*RCE*CPABS2L*RKV
+             PABS3L=-CI*RCE*CPABS3L*RKV
+             PABS4L=-CI*RCE*CPABS4L*RKV
+             PABS5L=-CI*RCE*CPABS5L*RKV
+             PABS0(NX, NS)=PABS0(NX, NS)+0.5D0*PABS0L
+             PABS1(NX1,NS)=PABS1(NX1,NS)+0.5D0*PABS1L
+             PABS2(NX, NS)=PABS2(NX, NS)+0.5D0*PABS2L
+             PABS3(NX1,NS)=PABS3(NX, NS)+0.5D0*PABS3L
+             PABS4(NX1,NS)=PABS4(NX1,NS)+0.5D0*PABS4L
+             PABS5(NX1,NS)=PABS5(NX1,NS)+0.5D0*PABS5L
           END DO
-!          IF(ABS(PABSL).GT.1.D-8) WRITE(6,'(A,I6,1PE12.4)') 'NX,PABSL=',NX,PABSL
        END DO
-       DO NX=1,NXMAX
-          IF(ABS(PABS(NX,NS)).GT.1.D-8) &
-               WRITE(6,'(A,2I6,1PE12.4)') &
-               'NX,PABS=',NX,NS,PABS(NX,NS)
-       END DO
+
+       CALL PAGES
+       CALL GRD1D(1,XA,PABS1,NXMAX,NSMAX,NSMAX,'@PABS1 vs XA @')
+       CALL GRD1D(2,XA,PABS2,NXMAX,NSMAX,NSMAX,'@PABS2 vs XA @')
+       CALL GRD1D(3,XA,PABS3,NXMAX,NSMAX,NSMAX,'@PABS3 vs XA @')
+       CALL GRD1D(4,XA,PABS4,NXMAX,NSMAX,NSMAX,'@PABS4 vs XA @')
+       CALL PAGEE
        
        DO NX=1,NXMAX
           CJ2DA(NZ,NX,1,NS)=CAJ0(3*NX)
