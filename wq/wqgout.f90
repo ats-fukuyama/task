@@ -67,10 +67,10 @@ CONTAINS
 
     CALL PAGES
     WRITE(6,'(A,I8,2ES12.4)') 'ngt_max,t,EX:',ngt_max,t_ngt(1),EX_max_ngt(1)
-    CALL grd1d(1,tn,EX_max_ngt,ngt_m,ngt_max,1,'@Ex_max vs tn@')
-    CALL grd1d(2,tn,EY_max_ngt,ngt_m,ngt_max,1,'@EY_max vs tn@')
-    CALL grd1d(3,tn,EZ_max_ngt,ngt_m,ngt_max,1,'@EZ_max vs tn@')
-    CALL grd1d(4,tn,pabs_tot_ngt,ngt_m,ngt_max,1,'@Pabs_tot vs tn@')
+    CALL grd1d(1,tn,EX_max_ngt,ngt_m,ngt_max,1,'@Ex_max vs tn@',FMIN=0.D0)
+    CALL grd1d(2,tn,EY_max_ngt,ngt_m,ngt_max,1,'@Ey_max vs tn@',FMIN=0.D0)
+    CALL grd1d(3,tn,EZ_max_ngt,ngt_m,ngt_max,1,'@Ez_max vs tn@',FMIN=0.D0)
+    CALL grd1d(4,tn,pabs_tot_ngt,ngt_m,ngt_max,1,'@Pabs_tot vs tn@',FMIN=0.D0)
 
     CALL PAGEE
     RETURN
