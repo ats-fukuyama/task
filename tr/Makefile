@@ -36,7 +36,7 @@ SRC90=trinit.f90 trparm.f90 \
 SRCITG= glf/callglf2d.f \
         itg/ifspppl_model.f itg/weiland.f
 # glf/zgeev.f glf/blas_zgeev.f
-SRCITGF= glf/glf2d.F glf/r8tomsqz.F
+SRCITGF=glf/glf2d.F glf/r8tomsqz.F
 #SRCITG= noitg.f
 #SRCITGF=
 SRC2D=trg2d.f90
@@ -163,9 +163,9 @@ trmdlt.o : trmdlt.f90 trcomm.f90
 glf/callglf2d.o : glf/callglf2d.f glf/glf.m
 	$(FCFIXED) $(FFLAGS) -c -o glf/callglf2d.o -Iglf glf/callglf2d.f
 glf/glf2d.o  : glf/glf2d.F glf/glf.m glf/f77_dcomplx.h
-	$(FCFIXED) $(FFLAGS) $(FPP) -c -o glf/glf2d.o -Iglf glf/glf2d.F
+	$(FCFIXED) $(FFLAGS) -c -o glf/glf2d.o -Iglf glf/glf2d.F
 glf/r8tomsqz.o : glf/r8tomsqz.F glf/f77_dcomplx.h
-	$(FCFIXED) $(FFLAGS) $(FPP) -c -o glf/r8tomsqz.o glf/r8tomsqz.F
+	$(FCFIXED) $(FFLAGS) -c -o glf/r8tomsqz.o glf/r8tomsqz.F
 glf/zgeev.o  : glf/zgeev.f
 glf/blas_zgeev.o : glf/blas_zgeev.f
 trncls.o : trncls.f90 trncls.inc trcomm.f90 nclass/pamx_mi.inc \
