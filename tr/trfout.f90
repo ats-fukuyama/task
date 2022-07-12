@@ -27,6 +27,7 @@ CONTAINS
       CHARACTER(LEN=30):: KFORM
       INTEGER:: I,ID,IERR,N,NR,NTL
       REAL(rkind):: VCL(32)
+      REAL,DIMENSION(:,:),ALLOCATABLE:: GF
 
       WRITE(6,'(A,I3,A,A)') 'NFL=',NFL, &
                             '  FILENAME=',FILENAME(1:LEN_TRIM(FILENAME))
@@ -38,10 +39,10 @@ CONTAINS
                    'RT[0-',KNCRTM(1:LEN_TRIM(KNCRTM)),'], ', &
                    'RN[0-',KNCRTM(1:LEN_TRIM(KNCRTM)),'], ', &
                    'RG[0-',KNCGM(1:LEN_TRIM(KNCGM)),']:txt, ', &
-                   'A:all,'
+                   'AR:all,'
       WRITE(6,'(4A)') &
            '        CR[1-',KNCRTM(1:LEN_TRIM(KNCRTM)),'], ', &
-                   'CP,CN:csv,F:filename,?:help,X:exit'
+                   'AC for all CR,CP,CN:csv,F:filename,?:help,X:exit'
       READ(5,'(A80)',END=9000,ERR=1) LINE
       KID=LINE(1:2)
       CALL toupper(KID(1:1))
@@ -64,7 +65,7 @@ CONTAINS
          CALL VIEWRTLIST(NCRTM)
          GOTO 1
       ENDIF
-      IF(KID(1:1).EQ.'A') THEN
+      IF(KID.EQ.'AR') THEN
          DO I=1,NCTM
             CALL TRF1DGT(NFL,GT,GVT,NGT,I)
          ENDDO
@@ -178,14 +179,33 @@ CONTAINS
 !     ----- csv file for profile data -----
 
       IF(KID.EQ.'CR') THEN
+         ALLOCATE(GF(NRMAX,NGT))
          READ(LINE(3:),*,END=1,ERR=1) ID
-         WRITE(NFL,'(A,A,I5,A,I5)') KVRT(ID),', NRMAX=',NRMAX,', NTMAX= ',NGT
-         WRITE(KFORM,'(A,I5,A)') '(',NGT,'(1PE13.6,","),1PE13.6)'
-         WRITE(NFL,KFORM) 0.D0,(GT(NTL),NTL=1,NGT)
-         DO NR=1,NRMAX
-            WRITE(NFL,KFORM) GRM(NR),(GVRT(NR,NTL,ID),NTL=1,NGT)
+         DO NTL=1,NGT
+            DO NR=1,NRMAX
+               GF(NR,NTL)=GVRT(NR,NTL,ID)
+            END DO
          END DO
-         WRITE(6,'(A,A)') '# data saved in ',FILENAME(1:LEN_TRIM(FILENAME))
+         CALL TRF2DCRT(NFL,GRM,GT,GF,NRMAX,NGT,KVRT(ID))
+         WRITE(6,'(A,A)') '# data saved in ',TRIM(FILENAME)
+         DEALLOCATE(GF)
+         GO TO 1
+      END IF
+            
+!     ----- csv file for all profile data -----
+
+      IF(KID.EQ.'AC') THEN
+         ALLOCATE(GF(NRMAX,NGT))
+         DO ID=1,NCRTM
+            DO NTL=1,NGT
+               DO NR=1,NRMAX
+                  GF(NR,NTL)=GVRT(NR,NTL,ID)
+               END DO
+            END DO
+            CALL TRF2DCRT(NFL,GRM,GT,GF,NRMAX,NGT,KVRT(ID))
+         END DO
+         WRITE(6,'(A,A)') '# data saved in ',TRIM(FILENAME)
+         DEALLOCATE(GF)
          GO TO 1
       END IF
             
@@ -330,4 +350,24 @@ CONTAINS
       RETURN
       END SUBROUTINE TRF2DRG
 
+!     ===== 2D csv output ====
+
+      SUBROUTINE TRF2DCRT(NFL,GR,GT,GF,NRMAX,NTLMAX,TITLE)
+        IMPLICIT NONE
+        INTEGER,INTENT(IN):: NFL,NRMAX,NTLMAX
+        REAL,INTENT(IN):: GR(NRMAX)
+        REAL,INTENT(IN):: GT(NTLMAX)
+        REAL,INTENT(IN):: GF(NRMAX,NTLMAX)
+        CHARACTER(LEN=*),INTENT(IN):: TITLE
+        CHARACTER(LEN=30):: KFORM
+        INTEGER:: NR,NTL
+        
+        WRITE(NFL,'(A,A,I6,A,I6)') TITLE,', NRMAX=',NRMAX,', NTLMAX= ',NTLMAX
+        WRITE(KFORM,'(A,I6,A)') '(',NTLMAX,'(ES14.6,","),ES14.6)'
+        WRITE(NFL,KFORM) 0.D0,(GT(NTL),NTL=1,NTLMAX)
+        DO NR=1,NRMAX
+           WRITE(NFL,KFORM) GR(NR),(GF(NR,NTL),NTL=1,NTLMAX)
+        END DO
+      END SUBROUTINE TRF2DCRT
+      
     END MODULE trfout
