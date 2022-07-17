@@ -46,8 +46,8 @@ SRCMM= mmm/mmm95.f mmm/weiland14.f mmm/stripx.f mmm/tomsqz.f
 ifeq ($(flag_GSAF),1)
  SRCLIB=
  OBJLIB= $(SRCLIB:.f90=.o)
- LIBS2= tx2lib.a ../lib/libgrf.a ../lib/libtask.a
- LIBS3= tx3lib.a ../lib/libtask.a
+ LIBS2= libtx2.a ../lib/libgrf.a ../lib/libtask.a
+ LIBS3= libtx3.a ../lib/libgrf.a ../lib/libtask.a
  MODLIB= -I../lib/mod -I/usr/local/include
 else
  SRCLIB= lib/libbnd.f90 lib/libchar.f90 lib/libfio.f90 lib/libitp.f90 lib/libspl.f90 \
@@ -55,8 +55,8 @@ else
 	 lib/libspf.f90
  SRCFIXLIB= lib/netlib-bes.f
  OBJLIB= $(SRCLIB:.f90=.o) $(SRCFIXLIB:.f=.o)
- LIBS2= tx2lib.a
- LIBS3= tx3lib.a
+ LIBS2= libtx2.a
+ LIBS3= libtx3.a
  MODLIB=
 endif
 
@@ -80,13 +80,13 @@ PROG3= tx
 all: $(PROG2)
 #all: $(PROG3)
 
-tx2lib.a: $(OBJLIB) $(OBJS) $(OBJ2D) $(OBJNC) $(INCNC) $(OBJMM)
-	$(LD) $(LDFLAGS) tx2lib.a $(OBJS) $(OBJ2D) $(OBJNC) $(OBJMM) $(OBJLIB)
+libtx2.a: $(OBJLIB) $(OBJS) $(OBJ2D) $(OBJNC) $(INCNC) $(OBJMM)
+	$(LD) $(LDFLAGS) libtx2.a $(OBJS) $(OBJ2D) $(OBJNC) $(OBJMM) $(OBJLIB)
 
-tx3lib.a: $(OBJLIB) $(OBJS) $(OBJ3D) $(OBJNC) $(INCNC) $(OBJMM)
-	$(LD) $(LDFLAGS) tx3lib.a $(OBJS) $(OBJ3D) $(OBJNC) $(OBJMM) $(OBJLIB)
+libtx3.a: $(OBJLIB) $(OBJS) $(OBJ3D) $(OBJNC) $(INCNC) $(OBJMM)
+	$(LD) $(LDFLAGS) libtx3.a $(OBJS) $(OBJ3D) $(OBJNC) $(OBJMM) $(OBJLIB)
 
-../lib/tasklib.a:
+../lib/libtask.a:
 	(cd ../lib; make)
 
 libs:
