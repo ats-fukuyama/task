@@ -914,7 +914,7 @@
 
       REAL(4) FUNCTION GLOG(X,XMIN,XMAX)
 
-      USE libgrf
+      USE libplog,ONLY: plog
       IMPLICIT NONE
       REAL(8), intent(in) :: X, XMIN, XMAX
       REAL(4) :: GUCLIP

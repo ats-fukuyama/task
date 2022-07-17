@@ -99,7 +99,7 @@ contains
   !***************************************************************
 
   subroutine Wnm_spline
-    USE libspl1d
+    use libspl1d, only : spl1d
     implicit none
     integer(4) :: ist, nmnq, ierr
     real(8), dimension(:), allocatable :: deriv
@@ -109,7 +109,7 @@ contains
 
     if(maxval(fmnq) == 0.D0) then
 
-       open(21,file='wnm_data.d',iostat=ist,status='old',form='formatted')
+       open(21,file='data/wnm_data.d',iostat=ist,status='old',form='formatted')
        if(ist /= 0) stop 'Wnm_spline: cannot read "wnm_data.d"'
        do nmnq = 1, nmnqm
           read(21,*) fmnq(nmnq), wnm(nmnq)
@@ -133,10 +133,10 @@ contains
   !***************************************************************
 
   subroutine NTVcalc
-    use tx_commons, only : m_pol, n_tor, q, nrmax, rho, r, &
+    use tx_commons, only : m_pol, n_tor, q, nrmax, rho, rpt, &
          &                 epst, RR, rKeV, amas, amp, rNuii, achg, AEE, BB, Var
-    USE libspl1d
-    USE libitp
+    use libitp, only: aitken2p,deriv4
+    use libspl1d, only : spl1df
     implicit none
 
     integer(4) :: nr, m, ierr
@@ -166,9 +166,9 @@ contains
        !     write(6,*) rho(nr),rnuntv(nr)
 
        dPTiV = DERIV4(NR,rho,Var(0:NRMAX,2)%T,NRMAX,0) * rKeV
-       if(nr /= 0) UastNC(nr) = 3.5d0 * RR * Q(nr) / (achg(2) * AEE * R(nr) * BB) * dPTiV
+       if(nr /= 0) UastNC(nr) = 3.5d0 * RR * Q(nr) / (achg(2) * AEE * rpt(nr) * BB) * dPTiV
     end do
-    UastNC(0) = AITKEN2P(R(0),UastNC(1),UastNC(2),UastNC(3),R(1),R(2),R(3))
+    UastNC(0) = AITKEN2P(rpt(0),UastNC(1),UastNC(2),UastNC(3),rpt(1),rpt(2),rpt(3))
 
   end subroutine NTVcalc
 

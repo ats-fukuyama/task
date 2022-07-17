@@ -6,7 +6,7 @@
 
 subroutine txequ
   use tx_commons, only : ieqread, epst, aat, rrt, ckt, suft, sst, vro, vlt, art, NRMAX, &
-       & rr, Pisq, ra, rho, bb, ait, bit, bbrt, Rax, Zax, surflcfs, Pi, elip, trig, ft
+       & rr, Pisq, ra, rho, bb, ait, bit, bbrt, Rax, Zax, surflcfs, Pi, elip, trig, rtt, rpt, ft
   use eqread_mod, only : eqinit, intequ, txmesh
   use tx_interface, only : ftfunc
 
@@ -30,6 +30,8 @@ subroutine txequ
   ! bbrt = <B> ; for NCLASS
   ! elip = elongation
   ! trig = triangularity
+  ! rtt  = major radius
+  ! rpt  = minor radius
 
   select case(ieqread)
   case(0) ! Large aspect ratio limit, circular cross section
@@ -51,6 +53,8 @@ subroutine txequ
         bbrt(NR) = bb
         elip(NR) = 1.d0
         trig(NR) = 0.d0
+        rtt(NR)  = rr
+        rpt(NR)  = rho(NR) * ra
      end do
 
      call txmesh
@@ -79,6 +83,8 @@ subroutine txequ
         bbrt(NR) = bb
         elip(NR) = 1.d0
         trig(NR) = 0.d0
+        rtt(NR)  = rr
+        rpt(NR)  = rho(NR) * ra
      end do
 
      call txmesh

@@ -6,7 +6,7 @@ MODULE libgrf
   USE grfutils,ONLY: grf_title,grf_frame1d,grf_frame2d,grf_frame3d, &
                      grf_info,grfut1,grfut2,grfut3,grfut4,setrgba, &
                      gsclip,ngslen
-  USE grdutils,ONLY: gdclip,ngdlen,setrgbd,setrgbda,plog
+  USE grdutils,ONLY: gdclip,ngdlen,setrgbd,setrgbda
   USE grf1d_mod,ONLY: grf1d
   USE grd1d_mod,ONLY: grd1d
   USE grf2d_mod,ONLY: grf2d

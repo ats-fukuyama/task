@@ -918,6 +918,7 @@
 
         USE trcomm,ONLY: rkind
         USE libgrf
+        USE libplog,ONLY: plog
         IMPLICIT NONE
         REAL(rkind), intent(in) :: X, XMIN, XMAX
         REAL :: GLOG, GUCLIP

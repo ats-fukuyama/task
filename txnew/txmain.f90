@@ -1,5 +1,3 @@
-!     $Id: txmain.f90,v 1.38 2011/04/13 05:50:25 honda Exp $
-!
 !***********************************************************************
 !
 !             TOKAMAK TRANSPORT SIMULATION CODE
@@ -10,7 +8,11 @@
 !      FEM scheme with Linear interpolation function
 !      in the axisymmetric flux coordinates
 !
-!     DEVELOPED BY Mitsuru HONDA AND Atsushi FUKUYAMA
+!     DEVELOPED BY HONDA Mitsuru and FUKUYAMA Atsushi
+!
+!          ENGINEERING EDUCATION RESEARCH CENTER
+!              GRADUATE SCHOOL OF ENGINEERING
+!                     KYOTO UNIVERSITY
 !
 !               ADVANCED PLASMA MODELING GROUP
 !                   NAKA FUSION INSTITUTE
@@ -23,30 +25,34 @@
 !
 !   References:
 !     (Current version)
-!     M. Honda and A. Fukuyama
+! [1] M. Honda and A. Fukuyama
 !       "Development of the fluid-type transport code
 !          on the flux coordinates in a tokamak",
-!       Computational Physics Communications, 208 (2016) 117-134.
+!       Computer Physics Communications, 208 (2016) 117-134.
 !     (Original)
-!     M. Honda and A. Fukuyama
+! [2] M. Honda and A. Fukuyama
 !       "Dynamic transport simulation code including plasma rotation
 !          and radial electric field",
 !       Journal of Computational Physics, 227 (2008) 2808-2844.
 !     (With OFMC)
-!     M. Honda, T. Takizuka, A. Fukuyama, M. Yoshida and T. Ozeki
+! [3] M. Honda, T. Takizuka, A. Fukuyama, M. Yoshida and T. Ozeki
 !       "Self-consistent simulation of torque generation
 !          by radial current due to fast particles"
 !       Nuclear Fusion, 49 (2009) 035009 (10pp)
 !     (Neutral model)
-!     M. Honda, T. Takizuka, A. Fukuyama and K. Shimizu
+! [4] M. Honda, T. Takizuka, A. Fukuyama and K. Shimizu
 !       "Modeling of neutral transport for self-consistent transport
 !          simulations in tokamaks"
 !       Journal of Plasma Fusion Research SERIES, 9 (2010) 529-534
 !     (Radial electric field, jxB torque)
-!     M. Honda, A. Fukuyama and N. Nakajima
+! [5] M. Honda, A. Fukuyama and N. Nakajima
 !       "On the Neoclassical Relationship between the Radial Electric
 !          Field and Radial Current in Tokamak Plasmas"
 !       Journal of the Physical Society of Japan, 80 (2011) 114502 (14pp)
+!     (Superstaged impurity)
+! [6] A. Matsuyama
+!       "Reduction of reaction rate equations of impurities" in Japanese
+!       Private Communication, (2022)
 !
 !   Obsolete references:
 !     (Ripple model)
@@ -67,60 +73,67 @@
 !
 !************************************************************************
 !
-!   Variables                                         Boundary Cond.
-!                                                      axis   edge
-!   X1  = phi                                           N      0
-!   X2  = psit'                                         0      D 
-!   X3  = psi'                                          N      D
-!   X4  = psi                                           *      *
-!   X5  = psit                                          *      *
-!   X6  = Ne                 X13  = Ni                  N      N
-!   X7  = Ne * UerV          X14  = Ni * UirV           0      *
-!   X8  = <B Uepara>         X15  = <B Uipara>          N(*)   N(*)
-!   X9  = Ne * <R UePhi>     X16  = Ni * <R UiPhi>      N      N
-!   X10 = Ne * Te            X17  = Ni * Ti             N      N
-!   X11 = <B qhatepara>      X18  = <B qhatipara>       *      *
-!   X12 = Ne <UePhi/R>       X19 = Ni <UiPhi/R>         *      *
-!   X20 = Nb                                            *      *
-!   X21 = Nb * UbrV                                     0      *
-!   X22 = <B Ubpara>                                    *      *
-!   X23 = Nb * <R UbPhi>                                *      *
-!   X24 = Nb <UbPhi/R>                                  *      *
-!   X25 = Slow neutral                                  N      D
-!   X26 = Thermal neutral                               N      0
-!   X27 = Halo Neutral                                  N      0
-!   X28 = Nb ripple                                     N      N
+!   Variables                                                            Boundary Cond.
+!                                                                         axis   edge
+!   X1  = phi                                                              N      0
+!   X2  = psit'                                                            0      D 
+!   X3  = psi'                                                             N      D
+!   X4  = psi                                                              *      *
+!   X5  = psit                                                             *      *
+!   X6  = Ne               X14  = Ni               X22  = Nz               N      N
+!   X7  = Ne * UerV        X15  = Ni * UirV        X23  = Nz * UzrV        0      *
+!   X8  = <B Uepara>       X16  = <B Uipara>       X24  = <B Uzpara>       N(*)   N(*)
+!   X9  = Ne * <R UePhi>   X17  = Ni * <R UiPhi>   X25  = Nz * <R UzPhi>   N      N
+!   X10 = Ne * Te          X18  = Ni * Ti          X26  = Nz * Tz          N      N
+!   X11 = <B qhatepara>    X19  = <B qhatipara>    X27  = <B qhatzpara>    *      *
+!   X12 = Ne <UePhi/R>     X20 = Ni <UiPhi/R>      X28 = Nz <UzPhi/R>      *      *
+!   X13 = B V1e            X21 = B V1i             X29 = B V1z             *      *
+!   X30 = Nb                                                               *      *
+!   X31 = Nb * UbrV                                                        0      *
+!   X32 = <B Ubpara>                                                       *      *
+!   X33 = Nb * <R UbPhi>                                                   *      *
+!   X34 = Nb <UbPhi/R>                                                     *      *
+!   X35 = B V1b                                                            *      *
+!   X36 = Slow neutral                                                     N      D
+!   X37 = Thermal neutral                                                  N      0
+!   X38 = Halo Neutral                                                     N      0
+!   X39 = Impurity neutral                                                 N      D
+!   X40 = Nb ripple                                                        N      N
 !
-!   In case of MDFIXT /= 0, X10 = Te and X17 = Ti.
-!   In case of MDBEAM == 0, X21 vanishes.
+!   In case of MDFIXT /= 0, X10 = Te, X18 = Ti and X26 = Tz.
+!   In case of MDBEAM == 0, X31 vanishes.
 !
 !   Nomenclature:
 !     N : Neumann condition, 0 : Dirichlet condition with zero
-!     D : Neumann or Dirichelt condition with finite value
+!     D : Neumann or Dirichlet condition with finite value
 !     * : No boundary condition imposed
   
-PROGRAM TASK_TX
+program TASK_TX
   
   use tx_commons, only : SLID
   use tx_parameter_control, only : TXPARF, TXPARM_CHECK
   implicit none
   character(len=80) :: KPNAME
 
-  CALL GSOPEN
-  OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
+#ifndef nonGSAF
+  call GSOPEN
+#endif
+  open(7,status='scratch',form='formatted')
 
   !     ***** Version ID *****
   !     SLID is used to identify data file.
-  SLID = 'tx505.0'
-  WRITE(6,*) '######## TASK/TX V5.05.00 16/11/25 ########'
+  SLID = 'tx550.0'
+  write(6,*) '######## TASK/TX V5.50.00 22/06/07 ########'
 
-  CALL TXINIT
+  call TXINIT
   KPNAME='txparm'
-  CALL TXPARF(KPNAME)
-  CALL TXPARM_CHECK
+  call TXPARF(KPNAME)
+  call TXPARM_CHECK
 
-  CALL TXMENU
+  call TXMENU
 
-  CLOSE(7)
-  CALL GSCLOS
-END PROGRAM TASK_TX
+  close(7)
+#ifndef nonGSAF
+  call GSCLOS
+#endif
+end program TASK_TX

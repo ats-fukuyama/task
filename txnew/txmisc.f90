@@ -13,7 +13,7 @@
 !***************************************************************
 
 real(8) function coll_freq(NR,i,j,eps)
-  use tx_commons, only : pi, aee, eps0, amp, rkev, achg, amas, rr, q, Var
+  use tx_commons, only : pi, aee, eps0, amp, rkev, achg, amas, rr, q, Var, Zeff
   use tx_interface, only : coulog
   implicit none
   integer(4), intent(in) :: NR, i, j
@@ -23,7 +23,7 @@ real(8) function coll_freq(NR,i,j,eps)
   const = AEE**4 * 1.d20 / (eps0**2 * 6.d0 * pi * sqrt(2.d0 * pi * amp * rKeV) * rKeV)
 
   coll_freq = Var(NR,j)%n * (achg(i)*achg(j))**2 / ( sqrt(amas(i) * Var(NR,i)%T) * Var(NR,i)%T )  &
-       &    * coulog(1.d0,Var(NR,1)%n,Var(NR,1)%T,Var(NR,2)%T,amas(i),achg(i),amas(j),achg(j)) &
+       &    * coulog(Zeff(NR),Var(NR,1)%n,Var(NR,1)%T,Var(NR,2)%T,amas(i),achg(i),amas(j),achg(j)) &
        &    * const
 
   ! Effective collision frequency
@@ -46,14 +46,14 @@ end function coll_freq
 !
 !***************************************************************
 
-pure REAL(8) FUNCTION CORR(X)
+pure real(8) function CORR(X)
   ! X is the effective charge number
   real(8), intent(in) :: X
 
   CORR = (1.D0 + (1.198D0 + 0.222D0 * X) * X) * X &
   &    / (1.D0 + (2.966D0 + 0.753D0 * X) * X)
 
-END FUNCTION CORR
+end function CORR
 
 !***************************************************************
 !

@@ -4,6 +4,23 @@ module eqread_mod
   real(8) :: sum_dl
   real(8), dimension(:), allocatable :: AJphVRL
 
+  ! --- Used only in eqread_mod -----------------------
+  integer(4) :: iudsym
+
+  integer(4) :: isep, nr, nz, nrm, nszm, nvm
+  real(8) :: dr2i,dz2i
+  real(8) :: cpl,qaxis,bets,beta,betj,ttcu,ttpr
+  real(8) :: psi0_funcvd,rsmax,rsmax_allowance
+
+  real(8), dimension(:),   allocatable :: psizmag, prv
+  real(8), dimension(:,:), allocatable :: dpsidr, dpsidz, ddpsi, upsizmag
+  ! ---------------------------------------------------
+
+  ! ----- Used only when reading equilibrium data -----
+  integer(4) :: ilimt
+  real(8), dimension(:),    allocatable :: rlimt,zlimt
+  ! ---------------------------------------------------
+  
   namelist /txequ/ eqfile
 
 contains
@@ -18,21 +35,22 @@ contains
   end subroutine eqinit
 
 
-  SUBROUTINE TXEQUPARF
+  subroutine txequparf
     use tx_commons, only : ierr
-    integer(4) :: IST, KL
+    use libchar, only : ktrim
+    integer(4) :: IST, KL, iotxequiparf
     logical :: LEX
     character(len=6) :: KPNAME = 'txparm'
 
     INQUIRE(FILE=KPNAME,EXIST=LEX)
     IF(.NOT.LEX) RETURN
 
-    OPEN(25,FILE=KPNAME,IOSTAT=IST,STATUS='OLD')
+    OPEN(newunit=iotxequiparf,FILE=KPNAME,IOSTAT=IST,STATUS='OLD')
     IF(IST > 0) THEN
        WRITE(6,*) 'XX PARM FILE OPEN ERROR : IOSTAT = ',IST
        RETURN
     END IF
-    READ(25,txequ,IOSTAT=IST)
+    READ(iotxequiparf,txequ,IOSTAT=IST)
     IF(IST > 0) THEN
        WRITE(6,*) 'XX PARM FILE READ ERROR'
        RETURN
@@ -40,11 +58,13 @@ contains
        WRITE(6,*) 'XX PARM FILE EOF ERROR'
        RETURN
     END IF
+    CALL KTRIM(KPNAME,KL)
     WRITE(6,*) &
-         &     '## FILE (',TRIM(KPNAME),') IS ASSIGNED FOR TXEQU PARM INPUT'
+         &     '## FILE (',KPNAME(1:KL),') IS ASSIGNED FOR TXEQU PARM INPUT'
     IERR=0
+    CLOSE(iotxequiparf)
 
-  END SUBROUTINE TXEQUPARF
+  end subroutine txequparf
 
 !=======================================================================
 !  Interface subroutine
@@ -52,19 +72,18 @@ contains
   subroutine intequ
     use mod_spln
     use tx_interface, only : dfdx
-    use tx_commons, only : ieqread, nrmax, nra, Pi, Pisq, rMU0, rr, ra, bb, rbvt, Rax, Zax, &
+    use tx_commons, only : ieqread, irktrc, nrmax, nra, Pi, Pisq, rMU0, rr, ra, bb, rbvt, Rax, Zax, &
          & surflcfs, rho, rhov, epst, aat, rrt, ckt, suft, sst, vro, vlt, art, ait, bit, bbrt, &
-         & elip, trig, PsitV, PsiV, hdt, fipol, sdt, bbt, rIPs, ft
+         & elip, trig, rtt, rpt, drhodr, PsitV, PsiV, hdt, fipol, sdt, bbt, rIPs, ft, gtti, array_init_NR
     use equ_params, only : hiv, aav, rrv, ckv, shv, ssv, vlv, arv, aiv, biv, brv, epsv, elipv, &
-         & trigv, qqv, siv, nv, rmaj, rpla, raxis, zaxis, pds, fds, sdw, ftv
-!    use tx_core_module, only : intg_area
-    USE libitp
-    USE libspl1d
+         & trigv, qqv, siv, nv, rmaj, rpla, raxis, zaxis, pds, fds, sdw, ftv, gttiv, rbv, rtv, rpv, vmiller
+    !    use tx_core_module, only : intg_area
+    use libspl1d, only : spl1d, spl1di, spl1di0
     integer(4) :: n, nr, ierr, nrmaxx, nrax, nrs
     real(8), parameter :: fourPisq = 4.d0 * Pi * Pi
-    real(8) :: rhonrs, asdt, bsdt, sdtvac
-    real(8), allocatable :: U(:,:), U0(:), deriv(:), rho_v(:), fipolv(:), hdv(:), zzv(:), &
-         &                  pdst(:), fdst(:), qqt(:), zz(:), zzfunc(:)
+    real(8) :: rhonrs, zscale
+    real(8), allocatable :: U(:,:), U0(:), deriv(:), rho_v(:), hdv(:), zzv(:), &
+         &                  pdst(:), fdst(:), qqt(:), zz(:), zzfunc(:), zzfunc2(:)
 
     nrmaxx = nrmax + 1
     nrax   = nra   + 1
@@ -77,26 +96,29 @@ contains
        end if
     end do
 
-    ! Read equilibrium data in MEUDAS/SELENE format.
+    ! Read equilibrium data
 
     call eqdsk
 
-    allocate(hdv(nv),fipolv(nv))
+    allocate(hdv, mold=vlv)
 
     ! hdv: dpsit/dV = q * dpsi/dV = qqv * sdw
-    !    qqv and sdw from MEUDAS/SELENE often diverge near the magnetic axis
-    !    and anomaly behavior of qqv stems from that of sdw.
-    !    Therefore, hdv = qqv * sdw may not have odd behavior near the magnetic axis.
+    !               = I <R^{-2}> / 4 Pi^2 = rbv * aav / fourPisq
+    !  (new) rbv is given in the equilibrium data or at least can be reconstructed from it.
+    !        Since aav can be computed smoothly in the radial direction in the equilibrium solver,
+    !        hdv should be constructed by rbv and aav, rather than qqv and sdw.
+    !  (old) qqv and sdw from MEUDAS/SELENE often diverge near the magnetic axis
+    !        and anomaly behavior of qqv stems from that of sdw.
+    !        Therefore, hdv = qqv * sdw may not have odd behavior near the magnetic axis.
+    hdv(1:nv) = abs(rbv(1:nv)) * aav(1:nv) / fourPisq
 
-    hdv(1:nv) = qqv(1:nv) * sdw(1:nv)
-
-    ! Exclude anomaly at axis and compensate it by linear extrapolation
-
-    hdv(1) = aitken2p(vlv(1),hdv(2),hdv(3),hdv(4),vlv(2),vlv(3),vlv(4))
-
-    ! hiv = toroidal magnetic flux on the equilibrium mesh
-    ! hiv is calculated by integration with spline
-    allocate(U(4,nv),U0(nv),deriv(nv))
+    ! hiv: toroidal magnetic flux on the equilibrium mesh
+    !      hiv is calculated by integration with spline.
+    !      It could be negative when Ip direction is opposite to Bt's.
+    !      However, for the sake of expedience, it is forced to be always
+    !      positive by rendering hdv positive.
+    allocate(U(4,size(hdv)))
+    allocate(U0,deriv,mold=vlv)
 
     call SPL1D  (vlv,hdv,deriv,U,nv,0,ierr)
     call SPL1DI0(vlv,U,U0,nv,ierr)
@@ -106,25 +128,14 @@ contains
 
     deallocate(U,U0,deriv)
 
-    ! ******************************************************************
-    !     fipol: R B_t,  Poloidal current function
-    !        I = 4 Pi^2 * dpsit/dV / <R^{-2}>
-    !          = fourPisq * hdv / aav
-    !
-    !     fipol is at first calculated so that PsitV is calculated
-    !        based on fipol from the aspect of consistency, because
-    !        in txcalv fipol is always calculated by differentiating PsitV.
-    ! ******************************************************************
+    ! ---
 
-    ! fipol and rho on the equilibrium grid
-
-    fipolv(1:nv) = fourPisq * hdv(1:nv) / aav(1:nv) ! equ. grid
-
-    allocate(rho_v(nv),zzv(nv),zz(0:nrmax))
+    allocate(rho_v,zzv,mold=hiv)
+    allocate(zz,       mold=rho)
     rho_v(1:nv) = sqrt( hiv(1:nv) / hiv(nv) ) ! equ. grid
 
     ! fipol: poloidal current function, assumed to be constant outside the plasma initially
-    call spln( fipol, rho,   nrax,   fipolv,rho_v,    nv,   1 )
+    call spln( fipol, rho,   nrax,   rbv,   rho_v,    nv,   1 )
     fipol(nrax:nrmax) = fipol(nra)
 
     ! epst: inverse aspect ratio, proportional to rho: epst = (Rmax-Rmin)/(Rmax+Rmin)
@@ -146,50 +157,57 @@ contains
     call spln( aat,   zz,   nrmaxx,  aav,   zzv , nv, 151 )
 
     ! hdt: dpsit/dV
-    hdt(:) = fipol(:) * aat(:) / fourPisq
+    !      Sign convention follows that for hdv.
+    hdt(:) = abs(fipol(:)) * aat(:) / fourPisq
 
-    allocate(U(4,0:nrmax),U0(0:nrmax),deriv(0:nrmax),qqt(0:nrmax),zzfunc(0:nrmax))
+    allocate(U(4,0:size(array_init_NR)-1))
+    allocate(U0,deriv,qqt,zzfunc,zzfunc2,source=array_init_NR)
 
-    ! === Volume integration of I<R^{-2}> to obtain psit ===
-
+    ! PsitV: toroidal magnetic flux, computed by volume integration of hdt=I<R^{-2}>/4Pi^2
+    !
+    !        PsitV is constructed by integrating hdt from the aspect of consistency, 
+    !        because fipol is always calculated by differentiating PsitV in txcalv.
+    !
+    !  NOTE: PsitV computed in this way is almost identical to that computed by
+    !          call spln( PsitV, vlt, nrmaxx, hiv, vlv, nv, 151 )
+    !        in rho <= 1 within the difference of 1e-6.
+    !        However, this simple extrapolation does not take into account the conditition
+    !        that fipol is constant in rho > 1, which yields difference between them in rho > 1.
     call SPL1D  (vlt,hdt,deriv,U,nrmaxx,0,ierr)
     call SPL1DI0(vlt,U,U0,nrmaxx,ierr)
     do nr = 0, nrmax
        call SPL1DI(vlt(nr),PsitV(nr),vlt,U,U0,nrmaxx,ierr)
     end do
 
-    !  === ckt(NRMAX) is related to sdt via plasma current ===
-
-    call spln( ckt,   vlt,   nrmaxx, ckv,   vlv, nv, 151 )
-
     ! === Volume integration of I<R^{-2}>/q to obtain psi ===
 
-    ! qqt: safety factor from equilibrium data (not transferred to TX)
+    ! qqt: safety factor from equilibrium data (will not be transferred to TX as it is)
     call spln( qqt(0:nra),PsitV(0:nra), nrax, qqv,   hiv, nv, 1 )
     ! sdt: dpsi/dV = (dpsit/dV) / q
     sdt(0:nra) = hdt(0:nra) / qqt(0:nra)
 
-    sdtvac = 2.d0 * Pi * rMU0 * rIPs * 1.D6 / ckt(nrmax)
+    ! ckt: <|nabla V|^2/R^2> = <B_p^2>(dV/dpsi)^2
+    !
+    !      ckt in rho > 1 would scale as rho^2 because |nabla V|^2 is proportional to r^4
+    !      and R^2 is proportional to r^2. Therefore, ckt is extrapolated linearly in the
+    !      V coordinate.
+    !      Also, ckt(NRMAX) is related to sdt via plasma current.
+    call spln( ckt,   vlt,   nrmaxx, ckv,   vlv, nv, 151 )
 
-!!$    ! interpolate sdt between sdt(nra) at rho=rhoa and sdtvac at rho=rhob
-!!$    ! sdt should be proportional to epst^{-2} because outside the plasma surface
-!!$    !    sdt = dpsi/dV = <|nabla psi|>/<|nabla V|> = epst^{-1}/epst = epst^{-2}
-!!$    asdt = (epst(nra)*epst(nrmax))**2*(sdt(nra)-sdtvac)  / (epst(nrmax)**2-epst(nra)**2)
-!!$    bsdt = (sdtvac*epst(nrmax)**2-sdt(nra)*epst(nra)**2) / (epst(nrmax)**2-epst(nra)**2)
-!!$    do nr = nrax, nrmax
-!!$       sdt(nr) = asdt / epst(nr)**2 + bsdt
-!!$    end do
-
-    zzfunc(0:nra) = ckt(0:nra) * sdt(0:nra)**2
-    zzfunc(nrax)  = ckt(nrmax) * sdtvac**2
+    ! In the SOL region, the current is assumed to be nil temporarily.
+    ! <j.grad zeta> = (1/mu0) d/dV[<|grad V|^2/R^2> dpsi/dV] = 0
+    !              ==>  <|grad V|^2/R^2> dpsi/dV = const. where rho>1.
+    !            Ip = 1/(2 pi mu0) [<|grad V|^2/R^2> dpsi/dV]_{rho(nrmax)}
+    !              ==> [<|grad V|^2/R^2> dpsi/dV]_{rho(nrmax)} = 2 pi mu0 Ip
+    zzfunc(0:nra) = ckt(0:nra) * sdt(0:nra)
+    zzfunc(nrax)  = 2.d0 * Pi * rMU0 * rIPs * 1.d6
     zz    (0:nra) = rho(0:nra)
     zz    (nrax)  = rho(nrmax)
-    call spln( zzfunc, rho, nrmaxx, zzfunc(0:nrax), zz(0:nrax), nrax+1, 151 )
-    sdt(nrax:nrmax) = sqrt( zzfunc(nrax:nrmax) / ckt(nrax:nrmax) )
-
+    call spln( zzfunc2, rho, nrmaxx, zzfunc(0:nrax), zz(0:nrax), nrax+1, 151 )
+    sdt(nrax:nrmax) = zzfunc2(nrax:nrmax) / ckt(nrax:nrmax)
+    
     call SPL1D  (vlt,sdt,deriv,U,nrmaxx,0,ierr)
     call SPL1DI0(vlt,U,U0,nrmaxx,ierr)
-
     do nr = 0, nrmax
        call SPL1DI(vlt(nr),PsiV(nr),vlt,U,U0,nrmaxx,ierr)
     end do
@@ -201,16 +219,17 @@ contains
     call spln( suft, epst, nrmaxx, suft(0:nra), epst(0:nra), nrax, 151 )
 
 !!$    do nr=0,nrmax
-!!$       write(201,'(F8.5,1P8E15.7)') rho(nr),PsitV(nr)/PsitV(nra),vlt(nr)/vlt(nra),epst(nr),suft(nr),sdt(nr),ckt(nr),ckt(nr)*sdt(nr)**2
+!!$       write(201,'(F8.5,8ES15.7)') rho(nr),PsitV(nr)/PsitV(nra),vlt(nr)/vlt(nra),epst(nr),suft(nr),sdt(nr),ckt(nr),ckt(nr)*sdt(nr)**2
 !!$    end do
 
-    deallocate(U,U0,deriv,hdv,fipolv,qqt,zzfunc)
+    deallocate(U,U0,deriv,hdv,qqt,zzfunc,zzfunc2)
 
     ! ******************************************************************
     !    Mapping & extrapolate
     ! ******************************************************************
 
-    allocate(pdst(0:nrmax),fdst(0:nrmax),zzfunc(1:nv))
+    allocate(pdst,fdst,mold=PsitV)
+    allocate(zzfunc(1:nv))
 
     call spln( rrt,  PsitV, nrmaxx, rrv,   hiv, nv, 151 )
     call spln( sst,  PsitV, nrmaxx, ssv,   hiv, nv, 151 ) ! ssv = <|nabla V|^2>
@@ -220,6 +239,14 @@ contains
     call spln( bbrt, PsitV, nrmaxx, brv,   hiv, nv, 151 )
     call spln( elip, PsitV, nrmaxx, elipv, hiv, nv, 151 )
     call spln( trig, PsitV, nrmaxx, trigv, hiv, nv, 151 )
+    call spln( rtt,  PsitV, nrmaxx, rtv,   hiv, nv, 151 )
+    ! rpt^2 almost linearly scales with V or PsitV.
+    zzfunc(1:nv) = rpv(1:nv)**2
+    call spln( rpt,  PsitV, nrmaxx, zzfunc,hiv, nv, 151 )
+    rpt(:) = sqrt(rpt(:))
+    ! rpt is multiplied by a tiny scaling factor, zscale, such that rpt(nra) is identical to rpla (=rpv(nv)).
+    zscale = rpla / rpt(nra)
+    rpt(:) = rpt(:) * zscale
     call spln( pdst, PsitV, nrmaxx, pds,   hiv, nv,   0 ) ! Not extrapolated
     call spln( fdst, PsitV, nrmaxx, fds,   hiv, nv,   0 ) ! Not extrapolated
 
@@ -255,9 +282,9 @@ contains
 
     ! Rescale
 
-    PsiV(:)  = PsiV(:) - PsiV(0)
+    PsiV(:) = PsiV(:) - PsiV(0)
 
-    ! vro: dV/drho
+    ! vro: dV/drho [m^2]
 
     vro(0) = 0.d0
     vro(1:nrmax) = 2.d0 * PsitV(nra) * rho(1:nrmax) / hdt(1:nrmax)
@@ -279,6 +306,30 @@ contains
     ! Mesh
 
     call txmesh
+
+    ! Overwrite drhodr : drho/dr [1/m] when irktrc /= 0.
+    
+    if( irktrc /= 0 ) then
+       ! rminor^2 almost linearly scales with V or PsitV.
+       zzfunc(1:nv) = vmiller(1:nv)%rminor**2
+       allocate(zzfunc2, source=array_init_NR)
+       call spln( zzfunc2, PsitV, nrmaxx, zzfunc, hiv, nv, 151 )
+       zzfunc2(:) = sqrt(zzfunc2(:))
+       drhodr(:) = dfdx(rho,zzfunc2,NRMAX,0)
+       deallocate(zzfunc2)
+    end if
+
+    ! -- gtti
+!!$    zzfunc(1:nv) = 1.d0 / gttiv(1:nv)
+!!$    call spln( gtti,  PsitV, nrmaxx, zzfunc,  hiv, nv, 150 )
+!!$    ! drho/dpsi = dV/dpsi * drho/dV = 1 / (sdt * vro)
+!!$    gtti(0:nrmax) = 1.d0 / gtti(0:nrmax)
+    zzfunc(2:nv) = 1.d0 / gttiv(2:nv)
+    call spln( gtti,  PsitV, nrmaxx, zzfunc(2:nv),  hiv(2:nv), nv-1, 130 )
+    gtti(0:nrmax) = 1.d0 / gtti(0:nrmax)
+!!$    do nr=1,nrmax
+!!$       write(6,*) rho(nr),gtti(nr),1.d0/r(nr)**2
+!!$    end do
 
     ! ******************************************************************
 
@@ -305,7 +356,7 @@ contains
     AJphVRL(NRA+1:NRMAX) = 0.d0
 
 !!$    do nr=0,nrmax
-!!$       write(200,'(F8.5,1P21E15.7)') rho(nr), &
+!!$       write(200,'(F8.5,21ES15.7)') rho(nr), &
 !!$            & vlt(nr)/vlt(nra),fipol(nr),epst(nr),suft(nr),aat(nr),hdt(nr),psitv(nr),ckt(nr),sdt(nr),psiv(nr), &
 !!$            & rrt(nr),sst(nr),art(nr),ait(nr),bit(nr),bbrt(nr),elip(nr),trig(nr),vro(nr),bbt(nr), &
 !!$            & AJphVRL(nr)
@@ -323,15 +374,15 @@ contains
 !=======================================================================
 
   subroutine txmesh
-    use tx_commons, only : r, ra, rb, rr, ravl, rbvl, vlt, Pisq, rho, rhov, rhosq, vv, hv, &
-         &                 NEMAX, NRMAX, NRA, rhob
-    integer(4) nr
+    use tx_commons, only : ra, rb, rr, ravl, rbvl, vlt, Pisq, rho, rhov, vv, hv, &
+         &                 drhodr, NEMAX, NRMAX, NRA, rhob
+    use tx_interface, only : dfdx
+    integer(4) :: nr
 
     ! rhov = volume rho [m]
 
     !--- Create various kinds of mesh that depends upon equilibrium ---
   
-    rhosq(:) = rho(:)**2
     rhov(:)  = sqrt( vlt(:) / ( 2.d0 * Pisq * rr ) )
 
     vv(:)  = vlt(:)
@@ -342,19 +393,21 @@ contains
 
     !------------------------------------------------------------------
 
-    ! ravl: volume-averaged minor radius at the plasma surface
+    !  ravl: volume-averaged minor radius at the plasma surface
 
     ravl = rhov(nra)
 
-    r(:)     = rho(:) * ravl
-
-    ! rbvl: volume-averaged minor radius at the virtual wall
+    !  rbvl: volume-averaged minor radius at the virtual wall
 
     rbvl = rhov(nrmax)
 
-    !   Virtual wall radius (m)
+    !  Virtual wall radius [m]
 
     rb   = rhob * ra   ! geometric
+
+    !  drhodr : drho/dr [1/m]
+
+    drhodr(:) = dfdx(rhov,rho,NRMAX,0)
 
   end subroutine txmesh
 
@@ -363,43 +416,65 @@ contains
 !=======================================================================
 
   subroutine alloc_equ(mode)
-    use equ_params
+    use equ_params, only : irdm, izdm, ivdm, izdm2, isrzdm &
+         &               , rg, zg, vlv, qqv, hiv, siv, siw, sdw, ckv, ssv, aav &
+         &               , rrv, rbv, arv, bbv, biv, r2b2v, shv, grbm2v, rov, aiv, brv &
+         &               , epsv, elipv, trigv, ftv, rtv, rpv, csu, rsu, zsu &
+         &               , upsi, nsr, nsz, vmiller &
+         &               , psi, rbp, pds, fds, prv, gttiv, dsr, dsz, cvac, nsfix, psign
 
     integer(4), intent(in) :: mode
+    integer(4), parameter :: irzdm2=irdm*izdm2
+    integer(4) :: ierr
 
     select case(mode)
     case(1)
        ! *** Allocate arrays that are widely used. ***
        allocate(rg(irdm),zg(izdm2),psi(irzdm2),rbp(irzdm2))
-       allocate(pds(ivdm),fds(ivdm),vlv(ivdm),qqv(ivdm),prv(ivdm))
-       allocate(csu(isrzdm),rsu(isrzdm),zsu(isrzdm))
-       allocate(hiv(ivdm),siv(ivdm),siw(ivdm),sdw(ivdm),ckv(ivdm),ssv(ivdm),aav(ivdm),rrv(ivdm), &
-            &   rbv(ivdm),arv(ivdm),bbv(ivdm),biv(ivdm),r2b2v(ivdm),shv(ivdm),grbm2v(ivdm), &
-            &   rov(ivdm),aiv(ivdm),brv(ivdm),epsv(ivdm),elipv(ivdm),trigv(ivdm),ftv(ivdm))
-       
+       allocate(vlv(ivdm))
+       allocate(pds,fds,qqv,prv,mold=vlv)
+       allocate(csu(isrzdm),stat=ierr)
+       allocate(rsu,zsu,mold=csu)
+       allocate(hiv,siv,siw,sdw,ckv,ssv,aav,rrv, &
+            &   rbv,arv,bbv,biv,r2b2v,shv,grbm2v,rov, &
+            &   aiv,brv,epsv,elipv,trigv,ftv,rtv,rpv,mold=vlv)
+       allocate(gttiv,mold=vlv)
+       allocate(vmiller(ivdm),stat=ierr)
+
     case(2)
        ! *** Allocate arrays that are used only when reading an equilibium data. ***
+       allocate(dsr(irzdm2),dsz(irzdm2))
        ! *** They are specific to MEUDAS/SELENE.                                 ***
-       allocate(ieqout(10),ieqerr(10),icp(10),cp(10))
-       allocate(ivac(0:nsfix),ncoil(0:nsfix),cvac(0:nsfix),rvac(0:nsfix),zvac(0:nsfix))
-       allocate(rcoil(100,icvdm),zcoil(100,icvdm),ccoil(100,icvdm),rlimt(200),zlimt(200))
+       allocate(cvac(0:nsfix),rlimt(200),zlimt(200),stat=ierr)
+
+    case(3)
+       ! *** Allocate arrays for psi interpolation ***
+       allocate(upsizmag(4,nsr),upsi(4,4,nsr,nsz),stat=ierr)
 
     case(-1)
        ! *** Deallocate arrays that are widely used ***
        if(allocated(rg)) then
           deallocate(rg,zg,psi,rbp)
-          deallocate(pds,fds,vlv,qqv,prv)
+          deallocate(vlv,pds,fds,qqv,prv)
           deallocate(csu,rsu,zsu)
           deallocate(hiv,siv,siw,sdw,ckv,ssv,aav,rrv, &
                &     rbv,arv,bbv,biv,r2b2v,shv,grbm2v,rov, &
-               &     aiv,brv,epsv,elipv,trigv,ftv)
+               &     aiv,brv,epsv,elipv,trigv,ftv,rtv,rpv)
+          deallocate(gttiv)
+          deallocate(vmiller)
        end if
 
     case(-2)
        ! *** Deallocate arrays that are used only when reading an equilibium data ***
-       deallocate(ieqout,ieqerr,icp,cp)
-       deallocate(ivac,ncoil,cvac,rvac,zvac)
-       deallocate(rcoil,zcoil,ccoil,rlimt,zlimt)
+       deallocate(dsr,dsz)
+       ! *** Deallocate arrays specific to MEUDAS/SELENE ***
+       deallocate(cvac,rlimt,zlimt)
+
+    case(-3)
+       ! *** Deallocate arrays for psi interpolation ***
+       if(allocated(upsizmag)) then
+          deallocate(upsizmag,upsi)
+       end if
 
     end select
 
@@ -410,77 +485,69 @@ contains
 !=======================================================================
   subroutine eqdsk
 !=======================================================================
-    use tx_commons, only : cnpi => PI, rMU0
+    use tx_commons, only : cnpi => PI, rMU0, ipbtdir, irktrc
     use equ_params
+    use libspl1d, only : spl1d, spl1df
+    use libspl2d, only : spl2d, spl2df
     logical :: lex
-    integer(4) :: i, j, n, ir, iz, ist, igeqdsk, ieqtmp = 22
+    integer(4) :: i, j, n, ir, iz, ist, igeqdsk, iascii, ioeqrd, iaxis, ierr
     real(8) :: rsep, zsep, rrmax, rrmin, zzmax, zzmin, rzmax, rzmin, rpmax, rpmin, betp, zzlam
-    real(8) :: dpsi, btv2, dsr, dsz, dxx, dl
-    character(len=100) :: command, tmpfile, content
+    real(8) :: dpsi, btv2, dxx, dl, psi0
+!    real(8) :: zlen
 !=======================================================================
     igeqdsk = 0
+    iascii  = 1 ! tentatively
+    ! --- ipbtdir becomes  1 when Ip direction is parallel to Bt's. ---
+    ! ---                 -1 when Ip direction is opposite to Bt's. ---
+    ipbtdir = 1
+    ! -----------------------------------------------------------------
 
     inquire(file=eqfile,exist=lex)
     if( lex .neqv. .true. ) stop 'No equilibrium file.'
 !-----------------------------------------------------------------------
 
+    if( allocated(rg) ) return
     call alloc_equ(1)
     call alloc_equ(2)
 
     ! check eqfile with the format of whether binary (MEUDAS) or ascii (G EQDSK)
-    tmpfile = trim(eqfile)//".tmp"
-    command = "file "//trim(eqfile)//" > "//trim(tmpfile)
-    call system(trim(command))
-    open(ieqtmp,file=tmpfile,iostat=ist,form='formatted')
-    if(ist /= 0) stop 'file open error.'
-    read(ieqtmp,'(A)') content
-    i = index(content,'ASCII')
-    close(ieqtmp,status='delete')
+    call detect_format(eqfile,iascii)
 
-    if( i == 0 ) then
+    if( iascii == 0 ) then
        ! *** Standard MEUDAS/SELENE format (unformatted) ***
 
-       open(ieqrd,file=eqfile,iostat=ist,form='unformatted',action='read')
+       open(newunit=ioeqrd,file=eqfile,iostat=ist,form='unformatted',action='read')
        if(ist /= 0) stop 'file open error.'
-
-       read(ieqrd,iostat=ist)nsr,nsz  &
-            &        ,(rg(i),i=1,nsr),(zg(j),j=1,nsz)  &
-            &        ,(psi(i),i=1,nsr*nsz)  &
-            &        ,nv,(pds(i),i=1,nv),(fds(i),i=1,nv)  &
-            &        ,(vlv(i),i=1,nv),(qqv(i),i=1,nv),(prv(i),i=1,nv)  &
-            &        ,btv,ttcu,ttpr,bets,beta,betj  &
-            &        ,(icp(i),i=1,10),(cp(i),i=1,10)  &
-            &        ,saxis,raxis,zaxis,ell,trg  &
-            &        ,nsu,(rsu(i),i=1,nsu),(zsu(i),i=1,nsu),(csu(i),i=1,nsu)  &
-            &        ,isep,dsep,rsep,zsep  &
-            &        ,(ivac(i),i=0,nsfix)  &
-            &        ,(rvac(i),i=0,nsfix),(zvac(i),i=0,nsfix)  &
-            &        ,(cvac(i),i=0,nsfix),(ncoil(i),i=1,nsfix)  &
-            &        ,((rcoil(i,j),i=1,100),j=1,icvdm)  &
-            &        ,((zcoil(i,j),i=1,100),j=1,icvdm)  &
-            &        ,((ccoil(i,j),i=1,100),j=1,icvdm)  &
-            &        ,ilimt,(rlimt(i),i=1,100),(zlimt(i),i=1,100)
-       close(ieqrd)
-       if( ist > 0 ) then ! error
-          stop '===== dataio/read error ====='
-       else if( ist < 0 ) then ! end
-          backspace ieqrd
-          write(6,"(5x,'dataio/end:backspace')")
-          read(*,*)
-       end if
+       call read_meudas(ioeqrd,rsep,zsep)
+       close(ioeqrd)
     else
        ! *** Standard EFIT format, G EQDSK (formatted) ***
        !   We assume that any ascii file is regarded as G EQDSK format files.
 
-       open(ieqrd,file=eqfile,iostat=ist,form='formatted',action='read')
+       open(newunit=ioeqrd,file=eqfile,iostat=ist,form='formatted',action='read')
        if(ist /= 0) stop 'file open error.'
-       call read_geqdsk(igeqdsk)
-       close(ieqrd)
+       call read_geqdsk(ioeqrd,igeqdsk)
+       close(ioeqrd)
     end if
 !-----------------------------------------------------------------------
-    write(6,40)eqfile,ieqrd,jeqrd
-40  format(//5x,'diskio:',a19,':','read(',i3,'/',i3,')')
+    write(6,40)eqfile,ioeqrd
+40  format(//5x,'diskio:',a19,':','read(',i6,')')
 !-----------------------------------------------------------------------
+!=======================================================================
+    if( irktrc /= 0 ) then
+       call alloc_equ(3)
+       allocate(dpsidr(nsr,nsz))
+       allocate(dpsidz,ddpsi,mold=dpsidr)
+       allocate(psizmag(nsr))
+       ! make spline matrix for psi
+       call spl2d(rg,zg,psi,dpsidr,dpsidz,ddpsi,upsi,nsr,nsr,nsz,0,0,ierr)
+       if( ierr /= 0 ) stop 'spl2d error in eqdsk.'
+
+       ! calculate psi(R,Zmag) as a function of R
+       do i = 1, nsr
+          call spl2df(rg(i),zaxis,psizmag(i),rg,zg,upsi,nsr,nsr,nsz,ierr)
+       enddo
+    end if
 !=======================================================================
     sigcu=1.d0
       iudsym=0
@@ -494,8 +561,6 @@ contains
     dz=zg(2)-zg(1)
     dr2i=1.d0/(2.d0*dr)
     dz2i=1.d0/(2.d0*dz)
-    ddri=1.d0/(dr*dr)
-    ddzi=1.d0/(dz*dz)
 !-----
     iraxis=(raxis-rg(1))/dr+1.d0
     izaxis=(zaxis-zg(1))/dz+1.d0
@@ -506,21 +571,28 @@ contains
 !-----
     qaxis=qqv(1)
     qsurf=qqv(nv)
-    dpsi=-saxis/dfloat(nv-1)
+!-----
+    ! psign: sign of psi at axis
+    psign = saxis / abs( saxis )
+    ! fds = rbv d(rbv)/dpsi
+    dpsi=psign*saxis/dfloat(nv-1)
     btv2=btv*btv
     rbv(nv)=btv
     do n=nv-1,1,-1
-       btv2=btv2-dpsi*(fds(n+1)+fds(n))
-       rbv(n)=sqrt(btv2)
+       btv2=btv2+psign*dpsi*(fds(n+1)+fds(n))
+       rbv(n)=ipbtdir*sqrt(btv2)
     end do
+    !-- Alternative eqrbp routine
+    !-- NOTE: dsz could be zero at Z=0 when one used exactly up-down symmetric equilibrium.
     do iz=2,nsz-1
        do ir=2,nsr-1
           i=nsr*(iz-1)+ir
-          dsr=(psi(i+1)-psi(i-1))/(2.d0*dr)
-          dsz=(psi(i+nsr)-psi(i-nsr))/(2.d0*dz)
-          rbp(i)=sqrt(dsr*dsr+dsz*dsz)
+          dsr(i)=(psi(i+1)-psi(i-1))*dr2i          ! dpsi/dR
+          dsz(i)=(psi(i+nsr)-psi(i-nsr))*dz2i      ! dpsi/dZ
+          rbp(i)=sqrt(dsr(i)*dsr(i)+dsz(i)*dsz(i)) ! RB_p = |nabla psi|
        end do
     end do
+    !----------------------------
     dxx=dpsi*0.5d0*(2.d0*cnpi)**2
     hiv(1)=0.d0
     do n=2,nv
@@ -528,7 +600,13 @@ contains
     end do
 !-----
     call eqrbp
-    call eqlin
+    ! === Tracing flux surfaces ===
+    if( irktrc == 0 ) then
+       call eqlin
+    else
+       call eqlinrk
+    end if
+    ! =============================
     do n = nv, 1, -1
        siv(n) = siw(n)
     end do
@@ -571,23 +649,45 @@ contains
 !-----
     qqj=5.d0*rpla**2*btv/rmaj**2/ttcu*(1.d0+elip*2)/2.d0
 !-----------------------------------------------------------------------
-!!$    psi0=0.05d0*saxis
-!!$    call eqtrc(psi0,raxis,-1,irend,izend)
-!!$    q95=1.d0/((2.d0*zpi)**2)*btv*zaav/zsdw
-!!$!-----
-!!$    psi0=0.05d0*saxis
-!!$    x=nvm*(saxis-psi0)/saxis+1.d0
-!!$    ix=x
-!!$    if(ix.ge.nv)ix=nvm
-!!$    x=x-dfloat(ix)
-!!$    q95=qqv(ix)+(qqv(ix+1)-qqv(ix))*x
-!
-!      bets=2.d0*sqrt(tps/vlv(nv))/(rbv(nv)/rmaj)**2
-!      beta=2.d0*tpr/(vlv(nv)*(rbv(nv)/rmaj)**2)
-!      betj=4.d0*tpr/(rmaj*cpl**2)
-!      betp=2.d0*tpr/vlv(nv)/(cpl/zlen)**2
-!-----To avoid error
-    betp=0.d0
+    block
+      integer(4) :: ierr_q
+      real(8), dimension(:),   allocatable :: deriv
+      real(8), dimension(:,:), allocatable :: uqpsi
+      allocate(deriv(nv))
+      allocate(uqpsi(4,nv))
+      call spl1d(siv,qqv,deriv,uqpsi,nv,0,ierr_q)
+      psi0 = 0.05d0 * saxis
+      call spl1df(psi0,q95,siv,uqpsi,nv,ierr_q)
+    end block
+
+    block
+      real(8) :: tpr = 0.d0, tps = 0.d0, cplz, ttprz
+      do n = nv-1, 1, -1
+         tpr = tpr + 0.5d0 * (prv(n+1)   +prv(n)   ) * (vlv(n+1)-vlv(n))
+         tps = tps + 0.5d0 * (prv(n+1)**2+prv(n)**2) * (vlv(n+1)-vlv(n))
+      end do
+      ttprz = tpr
+      tpr   = tpr * (rMU0*1.d6)
+      prfac = prv(1) * vlv(nv) / tpr
+      if( iascii /= 0 ) then
+         ttpr = ttprz
+         tps  = tps * (rMU0*1.d6)**2
+         bets = 2.d0 * sqrt(tps / vlv(nv)) / (rbv(nv) / rmaj)**2
+         beta = 2.d0 * tpr / (vlv(nv) * (rbv(nv) / rmaj)**2)
+
+         cplz = ckv(nv) * sdw(nv) / (2.d0 * cnpi)
+         betj = 4.d0 * tpr / (rmaj * cplz**2)
+!         betp = 2.d0 * tpr / vlv(nv) / (cplz / zlen)**2
+
+         bets = bets * 100.d0 ! [%]
+         beta = beta * 100.d0 ! [%]
+      end if
+    end block
+!-----Set zero to non-defined variabls to avoid error
+    betp =0.d0
+    el95 =0.d0
+    zzlp =0.d0
+    zzli =0.d0
     zzlam=0.d0
 !-----
     do n = 1, nv
@@ -639,6 +739,8 @@ contains
 
     call alloc_equ(-2)
 
+    if( irktrc /= 0 ) deallocate(dpsidr, dpsidz, ddpsi, psizmag)
+
   end subroutine eqdsk
 
 !=======================================================================
@@ -679,15 +781,19 @@ contains
     real(8) :: dpsi,psi0,x,r0,z0,r1,z1,s1,s2,s3,s4,dl &
          &     ,bp0,bl0,ds0,ck0,ss0,vl0,aa0,rr0,bb0,bi0,sh0 &
          &     ,bp1,bl1,ds1,ck1,ss1,vl1,aa1,rr1,bb1,bi1,sh1 &
-         &     ,ai0,ai1,br0,br1,bm0,bm1,zzmax,zzmin,rzmax,rzmin &
-         &     ,rrmax,rrmin,rmajl,rplal,sdw2
+         &     ,ai0,br0,bm0,zl0,dsr0,dsz0 &
+         &     ,ai1,br1,bm1,zl1,dsr1,dsz1 &
+         &     ,zzmax,zzmin,rzmax,rzmin,rrmax,rrmin,sdw2,fac
     real(8) :: fintx, hsq, h
     integer(4), dimension(:), allocatable :: nsul
-    real(8), dimension(:), allocatable :: bmax,fint,flam,dll,zbl
+    real(8), dimension(:), allocatable :: bmax,sdv,fint,flam,dll,zbl,zbpl &
+         &                               ,drl,dzl,rrl,zzl,dsrl,dszl
 !=======================================================================
-    ieqerr(1)=0
-    allocate(bmax(ivdm),fint(0:intf),flam(0:intf))
-    allocate(nsul(isrzdm),dll(isrzdm),zbl(isrzdm))
+    allocate(bmax,sdv,mold=vlv)
+    allocate(fint(0:intf),flam(0:intf))
+    allocate(nsul(isrzdm),dll(isrzdm),zbl(isrzdm),zbpl(isrzdm) &
+         &  ,drl(isrzdm),dzl(isrzdm),rrl(isrzdm),zzl(isrzdm) &
+         &  ,dsrl(isrzdm),dszl(isrzdm))
     do j = 0, intf
        flam(j)  = real( j, 8 ) / real( intf, 8 )
     end do
@@ -716,7 +822,7 @@ contains
        iz=izaxis
 10   i=i-1
        ir=ir-1
-       if(ir < iraxis) go to 800
+       if(ir < iraxis) stop 'eqlin : no starting point                '
        if((psi0-psi(i))*(psi0-psi(i+1)) > 0.d0) go to 10
        ist=i
        irst=ir
@@ -738,15 +844,18 @@ contains
        bmax(n)=0.d0
 
        x=(psi0-psi(i))/(psi(i+1)-psi(i))
-       r1=rg(ir)+x*dr
-       z1=zg(iz)
-       bp1=(rbp(i)+x*(rbp(i+1)-rbp(i)))/r1
-       vl1=r1*r1
-       ds1=1.d0/bp1
-       ck1=bp1
-       ss1=vl1*bp1
-       aa1=ds1/vl1
-       rr1=vl1/bp1
+       r1=rg(ir)+x*dr ! R
+       z1=zg(iz)      ! Z
+       bp1=(rbp(i)+x*(rbp(i+1)-rbp(i)))/r1 ! Bp
+       dsr1=dsr(i)+x*(dsr(i+1)-dsr(i))     ! dpsi/dR
+       dsz1=dsz(i)+x*(dsz(i+1)-dsz(i))     ! dpsi/dZ
+       vl1=r1*r1    ! R^2
+       zl1=z1*z1    ! Z^2
+       ds1=1.d0/bp1 ! 1/Bp
+       ck1=bp1      ! Bp
+       ss1=vl1*bp1  ! R^2Bp
+       aa1=ds1/vl1  ! 1/R^2Bp
+       rr1=vl1/bp1  ! R^2/Bp
        bb1=rbv(n)*rbv(n)/(r1*r1)+bp1*bp1
        bi1=ds1/bb1
        bm1=sqrt(bb1)
@@ -774,7 +883,10 @@ contains
 20     r0=r1
        z0=z1
        bp0=bp1
+       dsr0=dsr1
+       dsz0=dsz1
        vl0=vl1
+       zl0=zl1
        ds0=ds1
        ck0=ck1
        ss0=ss1
@@ -804,6 +916,8 @@ contains
        r1=rg(ir)+dr*x
        z1=zg(iz)
        bp1=(rbp(i1)+x*(rbp(i2)-rbp(i1)))/r1
+       dsr1=dsr(i1)+x*(dsr(i2)-dsr(i1))
+       dsz1=dsz(i1)+x*(dsz(i2)-dsz(i1))
        i=i+nr
        iz=iz+1
        k=3
@@ -812,6 +926,8 @@ contains
        r1=rg(ir+1)
        z1=zg(iz)-dz*x
        bp1=(rbp(i2)+x*(rbp(i3)-rbp(i2)))/r1
+       dsr1=dsr(i2)+x*(dsr(i3)-dsr(i2))
+       dsz1=dsz(i2)+x*(dsz(i3)-dsz(i2))
        i=i+1
        ir=ir+1
        k=4
@@ -820,6 +936,8 @@ contains
        r1=rg(ir)+dr*x
        z1=zg(iz-1)
        bp1=(rbp(i4)+x*(rbp(i3)-rbp(i4)))/r1
+       dsr1=dsr(i4)+x*(dsr(i3)-dsr(i4))
+       dsz1=dsz(i4)+x*(dsz(i3)-dsz(i4))
        i=i-nr
        iz=iz-1
        k=1
@@ -828,16 +946,19 @@ contains
        r1=rg(ir)
        z1=zg(iz)-dz*x
        bp1=(rbp(i1)+x*(rbp(i4)-rbp(i1)))/r1
+       dsr1=dsr(i1)+x*(dsr(i4)-dsr(i1))
+       dsz1=dsz(i1)+x*(dsz(i4)-dsz(i1))
        i=i-1
        ir=ir-1
        k=2
 !..check
-70     if( ir <=  1   ) go to 810
-       if( ir >= nrm  ) go to 810
-       if( iz <=  1   ) go to 810
-       if( iz >= nszm ) go to 810
+70     if( ir <=  1   ) stop 'eqlin : out of range                     '
+       if( ir >= nrm  ) stop 'eqlin : out of range                     '
+       if( iz <=  1   ) stop 'eqlin : out of range                     '
+       if( iz >= nszm ) stop 'eqlin : out of range                     '
 !..line integrals
-       vl1=r1*r1
+       vl1=r1*r1 ! R^2
+       zl1=z1*z1 ! Z^2
        ds1=1.d0/bp1
        ck1=bp1
        ss1=vl1*bp1
@@ -866,8 +987,16 @@ contains
        aiv(n)=aiv(n)+dl*(ai0+ai1)*0.5d0
        brv(n)=brv(n)+dl*(br0+br1)*0.5d0
 
-       dll(nsul(n)) = dl*(ds0+ds1)*0.5d0 ! dlp/Bp
-       zbl(nsul(n)) = 0.5d0*(bm0+bm1)    ! B
+       ! nsul(n) is now counting up.
+       rrl (nsul(n)) = 0.5d0*(r1+r0)      ! R
+       zzl (nsul(n)) = 0.5d0*(z1+z0)      ! Z
+       drl (nsul(n)) = r1-r0              ! dR
+       dzl (nsul(n)) = z1-z0              ! dZ
+       dll (nsul(n)) = dl*(ds0+ds1)*0.5d0 ! dlp/Bp
+       zbl (nsul(n)) = 0.5d0*(bm0+bm1)    ! B
+       zbpl(nsul(n)) = 0.5d0*(bp0+bp1)    ! Bp
+       dsrl(nsul(n)) = 0.5d0*(dsr0+dsr1)  ! dpsi/dR
+       dszl(nsul(n)) = 0.5d0*(dsz0+dsz1)  ! dpsi/dZ
 
        bmax(n) = max(bmax(n),zbl(nsul(n)))
 
@@ -924,25 +1053,25 @@ contains
        endif
 !-----
        vlv(n)=zpi*vlv(n)
-       sdw(n)=1.d0/(2.d0*zpi*sdw(n))
-       ckv(n)=2.d0*zpi*ckv(n)/sdw(n)
-       r2b2v(n)=2.d0*zpi*ssv(n)*sdw(n)
-       ssv(n)=2.d0*zpi*ssv(n)/sdw(n)
-       aav(n)=2.d0*zpi*aav(n)*sdw(n)
-       rrv(n)=2.d0*zpi*rrv(n)*sdw(n)
-       bbv(n)=2.d0*zpi*bbv(n)*sdw(n)
-       biv(n)=2.d0*zpi*biv(n)*sdw(n)
-       shv(n)=2.d0*zpi*shv(n)*sdw(n)
-       grbm2v(n)=2.d0*zpi*grbm2v(n)*sdw(n)
-       aiv(n)=2.d0*zpi*aiv(n)*sdw(n)
-       brv(n)=2.d0*zpi*brv(n)*sdw(n)
-       sdw(n)=sdw(n)*sigcu
+       sdv(n)=1.d0/(2.d0*zpi*sdw(n))
+       ckv(n)=2.d0*zpi*ckv(n)/sdv(n)
+       r2b2v(n)=2.d0*zpi*ssv(n)*sdv(n)
+       ssv(n)=2.d0*zpi*ssv(n)/sdv(n)
+       aav(n)=2.d0*zpi*aav(n)*sdv(n)
+       rrv(n)=2.d0*zpi*rrv(n)*sdv(n)
+       bbv(n)=2.d0*zpi*bbv(n)*sdv(n)
+       biv(n)=2.d0*zpi*biv(n)*sdv(n)
+       shv(n)=2.d0*zpi*shv(n)*sdv(n)
+       grbm2v(n)=2.d0*zpi*grbm2v(n)*sdv(n)
+       aiv(n)=2.d0*zpi*aiv(n)*sdv(n)
+       brv(n)=2.d0*zpi*brv(n)*sdv(n)
+       sdw(n)=sdv(n)*sigcu
 
-       rmajl=0.5d0*(rrmax+rrmin)
-       rplal=0.5d0*(rrmax-rrmin)
+       rtv(n)=0.5d0*(rrmax+rrmin)
+       rpv(n)=0.5d0*(rrmax-rrmin)
        epsv(n) =(rrmax-rrmin)/(rrmax+rrmin)
        elipv(n)=(zzmax-zzmin)/(rrmax-rrmin)
-       trigv(n)=(rmajl-0.5d0*(rzmax+rzmin))/rplal
+       trigv(n)=(rtv(n)-0.5d0*(rzmax+rzmin))/rpv(n)
 
        ! *** trapped particle fraction **********************************
        !
@@ -955,7 +1084,7 @@ contains
           h = zbl(i) / bmax(n) ! h
           do j = 0, intf
              if( 1.d0 - flam(j) * h < 0.d0 ) then
-                write(6,'(a,1pe26.18,a)') &
+                write(6,'(a,es26.18,a)') &
                      &        '** WARNING  IN SQRT(DX),DX < 0.0(DX=',1.d0-flam(j)*h,').'
              endif
              fint(j) = fint(j) + sqrt( abs( 1.d0 - flam(j) * h ) ) * dll(i)
@@ -967,19 +1096,38 @@ contains
           fintx = fintx + ( flam(j)**2 - flam(j-1)**2 ) / ( fint(j) + fint(j-1) )
        enddo
        hsq     = bbv(n) / bmax(n)**2 ! <h^2>
-       fintx   = 0.75d0 * hsq * fintx / (2.d0 * zpi * sdw(n))
+       fintx   = 0.75d0 * hsq * fintx / (2.d0 * zpi * sdv(n))
        ftv(n) = 1.d0 - fintx
+
+
+       !*** metrics *****************************************************
+       !  
+       !  gttiv : g^{theta,theta}^{-1} = (e_theta . e_theta)^{-1}
+       ! 
+       !*****************************************************************
+
+       gttiv(n) = 0.d0
+       do i = 1, nsul(n)
+!!$          if( dszl(i) /= 0.d0 ) then
+             fac = dsrl(i) / dszl(i)
+             gttiv(n) = gttiv(n) + 1.d0 / (rrl(i)**4 *zbpl(i)**2) * dll(i)
+!!$          else
+!!$             gttiv(n) = gttiv(n) + dll(i)**3 / (rrl(i)**4*drl(i)**2)
+!!$          end if
+       enddo
+       gttiv(n) = (2.d0 * zpi * sdv(n)) * gttiv(n) * (4.d0 * zpi**2 * sdv(n) / aav(n))**2
 
     end do
 !..evaluate on the axis
     siw(1)=saxis
     arv(1)=0.d0
     vlv(1)=0.d0
-!    sdw(1)=-dpsi*(vlv(3)**2-2.d0*vlv(2)**2)/(vlv(3)*vlv(2)*(vlv(3)-vlv(2)))
-    sdw2   = 0.5_8 * ( ( siw(2) - siw(1) ) / vlv(2) &
-         &           + ( siw(3) - siw(2) ) / ( vlv(3) - vlv(2) ) )
-    sdw(1) = ( vlv(3) * sdw2 - 2.0_8 * vlv(2) / vlv(3) &
-         &           * ( siw(3) - siw(1) ) ) / ( vlv(3) - 2.0_8 * vlv(2) )
+!!$!    sdw(1)=-dpsi*(vlv(3)**2-2.d0*vlv(2)**2)/(vlv(3)*vlv(2)*(vlv(3)-vlv(2)))
+!!$    sdw2   = 0.5_8 * ( ( siw(2) - siw(1) ) / vlv(2) &
+!!$         &           + ( siw(3) - siw(2) ) / ( vlv(3) - vlv(2) ) )
+!!$    sdw(1) = ( vlv(3) * sdw2 - 2.0_8 * vlv(2) / vlv(3) &
+!!$         &           * ( siw(3) - siw(1) ) ) / ( vlv(3) - 2.0_8 * vlv(2) )
+    sdw(1)= ( vlv(3) * sdw(2) - vlv(2) * sdw(3) ) / ( vlv(3) - vlv(2) )
     ckv(1)=0.d0
     r2b2v(1)=0.d0
     ssv(1)=0.d0
@@ -991,29 +1139,132 @@ contains
     grbm2v(1)=0.d0
     aiv(1)=1.d0/raxis
     brv(1)=rbv(1)/raxis
+    gttiv(1)=gttiv(2)
     nsu = nsu - 1
 
+    rtv(1)=raxis
+    rpv(1)=0.d0
     epsv(1)=0.d0
     elipv(1)=1.d0
     trigv(1)=0.d0
 
     ftv(1) =0.d0
 
-    deallocate(bmax,fint,flam,nsul,dll,zbl)
+    deallocate(bmax,sdv,fint,flam,nsul,dll,zbl,zbpl,drl,dzl,rrl,zzl,dsrl,dszl)
     return
-!*
-800 stop 'eqlin : no starting point                '
-810 stop 'eqlin : out of range                     '
+    
   end subroutine eqlin
+
+!=======================================================================
+! Tracing flux surfaces using Runge-Kutta method
+!=======================================================================
+
+  ! --- For metric calculation
+  subroutine eqlinrk
+    use equ_params, only : nv, nsr, raxis, zaxis, saxis, rg, tol, nsr, vmiller, siw, psign
+    use mod_num_recipe, only : rtsafe
+    use mod_trace, only : magtrace
+    use libspl1d, only : spl1d, spl1dd
+    integer(4) :: n, ierr
+    real(8) :: dpsi, rinit, zinit
+    real(8), dimension(:), allocatable :: dummy
+    
+    allocate(dummy(nsr))
+
+    dpsi = psign * saxis / real(nvm,8)
+
+    ! To avoid negative psi(rsmax), leading to error in rtsafe,
+    ! psi(rsmax+rsmax_allowance) would be positive.
+    rsmax_allowance = 0.05d0 * rsmax
+
+    call spl1d(rg,psizmag,dummy,upsizmag,nsr,0,ierr)
+
+    do n = nv,2,-1
+
+       ! psi0_funcvd is shared with funcvd.
+       psi0_funcvd = dpsi * real(nv-n,8)
+       siw(n) = psign * psi0_funcvd
+
+       ! find the starting point of tracing
+       rinit = rtsafe(funcvd,raxis,rsmax+rsmax_allowance,tol) 
+       zinit = zaxis
+       
+       ! --- trace contour
+       call magtrace(rinit,zinit,n,vmiller(n))
+    end do
+
+    ! --- at the magnetic axis
+    n = 1
+    siw(n) = saxis
+    call magtrace(raxis,zaxis,n,vmiller(n))
+
+    ! Note: Ellipticity at axis is indefinite.
+    !       In the light of continuity, the value nearest the axis is substituted.
+    vmiller(1)%elip = vmiller(2)%elip
+
+    deallocate(dummy)
+
+  end subroutine eqlinrk
+
+  ! --- For fourier coefficient calculation required for TGLF
+
+  subroutine eqlinrk_given_psi(psi0_in,xa,ya,nround)
+    use equ_params, only : raxis, zaxis, tol, nmax
+    use mod_num_recipe, only : rtsafe
+    use mod_trace, only : eqmags
+    real(8),    intent(in)  :: psi0_in
+    integer(4), intent(out) :: nround
+    real(8),    intent(out) :: xa(:), ya(:,:)
+
+    integer(4) :: n, ierr
+    real(8) :: dpsi, rinit, zinit
+    
+    ! upsizmag and upsi have already been calculated in eqlinrk
+
+    ! To avoid negative psi(rsmax), leading to error in rtsafe.
+    ! psi(rsmax+rsmax_allowance) would be positive.
+    rsmax_allowance = 0.05d0 * rsmax
+
+    ! psi0_funcvd is shared with funcvd.
+    psi0_funcvd = psi0_in
+
+    ! find the starting point of tracing
+    rinit = rtsafe(funcvd,raxis,rsmax+rsmax_allowance,tol) 
+    zinit = zaxis
+
+    xa(:)   = 0.d0
+    ya(:,:) = 0.d0
+       
+    ! --- compute all (R,Z) points on the flux surface, unti-clockwise ; xa, ya and nround
+    call eqmags(rinit,zinit,nmax,xa,ya,nround,ierr)
+    if( ierr /= 0 ) stop 'eqmags error in eqlinrk_given_psi.'
+
+  end subroutine eqlinrk_given_psi
+
+  ! -----
+
+  subroutine funcvd(x,fval,fderiv)
+    use equ_params, only : rg, nsr
+    use libspl1d, only : spl1dd
+    real(8), intent(in) :: x
+    real(8), intent(out) :: fval, fderiv
+
+    integer(4) :: ierr
+
+    call spl1dd(x,fval,fderiv,rg,upsizmag,nsr,ierr)
+
+    fval = fval + psi0_funcvd
+
+  end subroutine funcvd
 
 !=======================================================================
 ! Read G EQDSK files
 !=======================================================================
 
-  subroutine read_geqdsk(igeqdsk)
-    use tx_commons, only : rMU0
+  subroutine read_geqdsk(ioeqrd,igeqdsk)
+    use tx_commons, only : rMU0, ipbtdir
     use equ_params
-    integer(4), intent(inout) :: igeqdsk
+    integer(4), intent(inout) :: ioeqrd, igeqdsk
     integer(4) :: i, ist, idum, nw, nh, nbbbs, limitr, kvtor, nmass
     real(8) :: rdim, zdim, rcentr, rleft, zmid, rmaxis, zmaxis, simag, sibry, bcentr, &
          &     current, xdum, rvtor
@@ -1026,40 +1277,41 @@ contains
     igeqdsk = 1
 
     !---- read EFIT-format
-    read(ieqrd,2000,iostat=ist) (case(i),i=1,6), idum, nw, nh
-    read(ieqrd,2020,iostat=ist)  rdim, zdim, rcentr, rleft, zmid
-    read(ieqrd,2020,iostat=ist)  rmaxis, zmaxis, simag, sibry, bcentr
-    read(ieqrd,2020,iostat=ist)  current, simag, xdum, rmaxis, xdum
-    read(ieqrd,2020,iostat=ist)  zmaxis, xdum, sibry, xdum, xdum
+    read(ioeqrd,2000,iostat=ist) (case(i),i=1,6), idum, nw, nh
+    read(ioeqrd,2020,iostat=ist)  rdim, zdim, rcentr, rleft, zmid
+    read(ioeqrd,2020,iostat=ist)  rmaxis, zmaxis, simag, sibry, bcentr
+    read(ioeqrd,2020,iostat=ist)  current, simag, xdum, rmaxis, xdum
+    read(ioeqrd,2020,iostat=ist)  zmaxis, xdum, sibry, xdum, xdum
 
-    allocate(fpol(nw), pres(nw), ffprim(nw), pprime(nw), qpsi(nw))
-    read(ieqrd,2020,iostat=ist) (fpol(i),i=1,nw) 
-    read(ieqrd,2020,iostat=ist) (pres(i),i=1,nw)
-    read(ieqrd,2020,iostat=ist) (ffprim(i),i=1,nw)
-    read(ieqrd,2020,iostat=ist) (pprime(i),i=1,nw)
+    allocate(fpol(nw))
+    allocate(pres, ffprim, pprime, qpsi, mold=fpol)
+    read(ioeqrd,2020,iostat=ist) (fpol(i),i=1,nw) 
+    read(ioeqrd,2020,iostat=ist) (pres(i),i=1,nw)
+    read(ioeqrd,2020,iostat=ist) (ffprim(i),i=1,nw)
+    read(ioeqrd,2020,iostat=ist) (pprime(i),i=1,nw)
     allocate(psirz(nw*nh))
-    read(ieqrd,2020,iostat=ist) (psirz(i),i=1,nw*nh)
-    read(ieqrd,2020,iostat=ist) (qpsi(i),i=1,nw)
+    read(ioeqrd,2020,iostat=ist) (psirz(i),i=1,nw*nh)
+    read(ioeqrd,2020,iostat=ist) (qpsi(i),i=1,nw)
 
-    read(ieqrd,2022,iostat=ist)  nbbbs,limitr
+    read(ioeqrd,2022,iostat=ist)  nbbbs,limitr
     allocate(rbbbs(nbbbs),zbbbs(nbbbs),rlim(limitr),zlim(limitr))
-    read(ieqrd,2020,iostat=ist) (rbbbs(i),zbbbs(i),i=1,nbbbs)
-    read(ieqrd,2020,iostat=ist) (rlim(i),zlim(i),i=1,limitr)
+    read(ioeqrd,2020,iostat=ist) (rbbbs(i),zbbbs(i),i=1,nbbbs)
+    read(ioeqrd,2020,iostat=ist) (rlim(i),zlim(i),i=1,limitr)
 
     if( ist /= 0 ) stop 'G-EQDSK file read error! Processing end ...'
 
     !---- additional data
-    allocate(pressw(nw),pwprim(nw),dmion(nw),rhovn(nw))
-    read(ieqrd,2024,iostat=ist)  kvtor,rvtor,nmass
+    allocate(pressw, pwprim, dmion, rhovn, mold=fpol)
+    read(ioeqrd,2024,iostat=ist)  kvtor,rvtor,nmass
     if ( kvtor > 0 ) then
-       read(ieqrd,2020,iostat=ist) (pressw(i),i=1,nw)
-       read(ieqrd,2020,iostat=ist) (pwprim(i),i=1,nw)
+       read(ioeqrd,2020,iostat=ist) (pressw(i),i=1,nw)
+       read(ioeqrd,2020,iostat=ist) (pwprim(i),i=1,nw)
     endif
     if ( nmass > 0 ) then
-       read(ieqrd,2020,iostat=ist) (dmion(i),i=1,nw)
+       read(ioeqrd,2020,iostat=ist) (dmion(i),i=1,nw)
     endif
     if( ist < 0 ) stop 'G-EQDSK file read error! Processing end ...'
-    read(ieqrd,2020,iostat=ist) (rhovn(i),i=1,nw)
+    read(ioeqrd,2020,iostat=ist) (rhovn(i),i=1,nw)
 
     nsr = nw
     nsz = nh
@@ -1082,8 +1334,12 @@ contains
 
     psi(1:nsr*nsz) = psirz(1:nsr*nsz) - sibry
 
+    ! *** Check Ip and Bt direction
+    if( bcentr < 0.d0 ) ipbtdir = -1
+
     nv  = nw
 
+    rbv(1:nv) = fpol(1:nv)
     pds(1:nv) = pprime(1:nv) * rMU0
     fds(1:nv) = ffprim(1:nv)
     ! vlv will be computed in eqlin.
@@ -1111,6 +1367,8 @@ contains
     rlimt(1:ilimt) = rlim(1:ilimt)
     zlimt(1:ilimt) = zlim(1:ilimt)
 
+    ! Largest R on LCFS
+    rsmax = maxval(rsu)
 
     deallocate(fpol, pres, ffprim, pprime, psirz, qpsi)
     deallocate(rbbbs, zbbbs, rlim, zlim)
@@ -1123,6 +1381,116 @@ contains
 
   end subroutine read_geqdsk
 
+!=======================================================================
+! Read MEUDAS files
+!=======================================================================
+
+  subroutine read_meudas(ioeqrd,rsep,zsep)
+    use tx_commons, only : ipbtdir
+    use equ_params, only : nv, nsr, nsz, raxis, zaxis, saxis, rg, zg, vlv, qqv &
+         &               , csu, rsu, zsu, nsu, btv &
+         &               , psi, pds, fds, prv, cvac
+    integer(4), intent(in) :: ioeqrd
+    real(8),    intent(out) :: rsep, zsep
+    integer(4), parameter :: icvdm = 19, nsfix = 19
+    integer(4) :: i, j, ist
+    integer(4), dimension(:), allocatable :: ieqout, ieqerr, icp, ivac, ncoil
+    real(8) :: dsep, ell, trg
+    real(8), dimension(:),    allocatable :: cp, rvac, zvac
+    real(8), dimension(:,:),  allocatable :: rcoil,zcoil,ccoil
+    real(8), dimension(:),    allocatable :: rlimt,zlimt
+
+    ! *** Allocate arrays that are used only and specific to MEUDAS/SELENE ***
+    ! *** when reading an equilibium data.                                 ***
+
+    allocate(ieqout(10),ieqerr(10),icp(10),cp(10))
+    allocate(ivac(0:nsfix),ncoil(0:nsfix))
+    allocate(rvac(0:nsfix),zvac(0:nsfix))
+    allocate(rcoil(100,icvdm))
+    allocate(zcoil,ccoil,mold=rcoil)
+    allocate(rlimt(200),zlimt(200))
+
+    read(ioeqrd,iostat=ist)nsr,nsz  &
+         &        ,(rg(i),i=1,nsr),(zg(j),j=1,nsz)  &
+         &        ,(psi(i),i=1,nsr*nsz)  &
+         &        ,nv,(pds(i),i=1,nv),(fds(i),i=1,nv)  &
+         &        ,(vlv(i),i=1,nv),(qqv(i),i=1,nv),(prv(i),i=1,nv)  &
+         &        ,btv,ttcu,ttpr,bets,beta,betj  &
+         &        ,(icp(i),i=1,10),(cp(i),i=1,10)  &
+         &        ,saxis,raxis,zaxis,ell,trg  &
+         &        ,nsu,(rsu(i),i=1,nsu),(zsu(i),i=1,nsu),(csu(i),i=1,nsu)  &
+         &        ,isep,dsep,rsep,zsep  &
+         &        ,(ivac(i),i=0,nsfix)  &
+         &        ,(rvac(i),i=0,nsfix),(zvac(i),i=0,nsfix)  &
+         &        ,(cvac(i),i=0,nsfix),(ncoil(i),i=1,nsfix)  &
+         &        ,((rcoil(i,j),i=1,100),j=1,icvdm)  &
+         &        ,((zcoil(i,j),i=1,100),j=1,icvdm)  &
+         &        ,((ccoil(i,j),i=1,100),j=1,icvdm)  &
+         &        ,ilimt,(rlimt(i),i=1,100),(zlimt(i),i=1,100)
+
+    rsmax = maxval(rvac)
+
+    if( ist > 0 ) then ! error
+       stop '===== dataio/read error ====='
+    else if( ist < 0 ) then ! end
+       backspace ioeqrd
+       write(6,"(5x,'dataio/end:backspace')")
+       read(*,*)
+    end if
+
+    ! *** Check Ip and Bt direction
+    if( btv < 0.d0 ) ipbtdir = -1
+
+    ! *** Deallocate arrays that are used only when reading an equilibium data ***
+
+    deallocate(ieqout,ieqerr,icp,cp)
+    deallocate(ivac,ncoil,rvac,zvac)
+    deallocate(rcoil,zcoil,ccoil,rlimt,zlimt)
+
+  end subroutine read_meudas
+
+  !***********************************************************
+  !
+  !   Detect file format
+  !
+  !***********************************************************
+
+  subroutine detect_format(fName,iascii)
+    character(*), intent(in) :: fName
+   integer, intent(out) :: iascii
+    integer :: fId, stat
+!!$    character :: c
+!!$    logical :: formatted
+!!$
+!!$    stat = 0
+!!$    formatted = .true. !assume formatted
+!!$    open(newunit=fId,file=fName,status='old',form='unformatted',recl=1)
+!!$    ! I assume that it fails only on the end of file
+!!$    do while((stat==0).and.formatted)
+!!$       read(fId, iostat=stat)c
+!!$       formatted = formatted.and.( iachar(c)<=127 )
+!!$    end do
+!!$    if(formatted)then
+!!$       iascii = 1
+!!$       write(6,*) trim(fName), ' is a formatted file'
+!!$    else
+!!$       iascii = 0
+!!$       write(6,*) trim(fName), ' is an unformatted file'
+!!$    end if
+!!$    close(fId)
+
+    character(len=100) :: command, tmpfile, content
+
+    tmpfile = trim(fName)//'.tmp'
+    command = 'file '//trim(fName)//' > '//trim(tmpfile)
+    call execute_command_line(trim(command))
+    open(newunit=fId,file=tmpfile,iostat=stat,form='formatted')
+    if(stat /= 0) stop 'file open error.'
+    read(fId,'(A)') content
+    iascii = index(content,'ASCII')
+    close(fId,status='delete')
+
+  end subroutine detect_format
 
 !!$!***************************************************************
 !!$!
@@ -1243,7 +1611,7 @@ contains
 !!$       xa(i,m+2) = b1
 !!$    enddo
 !!$!    write(ft06,*)'XA= '
-!!$!    write(ft06,'(1X,1P5E11.3)')((XA(I,J),J=1,5),I=1,4)
+!!$!    write(ft06,'(1X,5ES11.3)')((XA(I,J),J=1,5),I=1,4)
 !!$
 !!$!----  Derivative at Center = 0
 !!$
@@ -1343,7 +1711,7 @@ contains
 !!$       enddo
 !!$       if( pv.lt.epsl ) then
 !!$          write(6,*) 'ERROR AT GAUSS : PIVOT'
-!!$          write(6,'(1P6E12.5)') (a(i,k),i=k,m)
+!!$          write(6,'(6ES12.5)') (a(i,k),i=k,m)
 !!$          return
 !!$       endif
 !!$

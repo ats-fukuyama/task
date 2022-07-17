@@ -1,0 +1,160 @@
+### $Id$ ###
+
+## if you have lapack library
+LAPACK = lapack.f
+LIBLA=/usr/local/lib/liblapack-gfc64.a /usr/local/lib/libblas-gfc64.a /usr/local/lib/liblapack95-gfc64.a -framework Accelerate
+MODLA95 = 
+#MODLA95 = -I/usr/local/lib/lapack95_modules
+#LIBLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
+#LIBLA = -L/opt/intel/mkl/lib -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm
+#LIBLA=-L$(PETSC_DIR)/$(PETSC_ARCH)/lib -lflapack -lfblas
+#MODLA95 = -lmkl_lapack95
+#MODLA95 =
+## else
+#LAPACK = nolapack.f
+#LIBLA =
+#MODLA95 = 
+
+## if you have mdslib
+#MDSPLUS = mdsplus.f
+#MDSLIB = -lMdsLib
+## else
+MDSPLUS = nomdsplus.f
+MDSLIB =
+
+## mpi compile command
+MFC = mpif77
+MF77 = mpif77
+MF90 = mpif90
+MF95 = mpif90
+
+GFLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11
+GLLIBS=-L/usr/local/lib -lgsgl
+
+## for FX-100 NIFS Plasma Simulator
+#GFLIBS=-L/home/fukuyama/lib -lg3d-xcb -lgsp-xcb -lgdum-xcb
+#GLLIBS=-L/home/fukuyama/lib -lgsgl
+#OFLAGS = -Kfast
+#DFLAGS = -Haefosu
+#FCFIXED= mpifrtpx -Fixed
+#FCFREE = mpifrtpx -Free
+#MOD = mod
+#MODDIR = -M mod
+#LD=ar
+#LDFLAGS=crs
+#FPP=
+
+## for Linux Intel fortran compiler EM64T lib64
+#GFLIBS=-L/usr/local/lib64 -lg3d-ifc64 -lgsp-ifc64 -lgdp-ifc64 -L/usr/X11R6/lib64 -lX11
+#GLLIBS=-L/usr/local/lib64 -lgsgl-ixc
+#OFLAGS = -O3 -vec-report0 -mcmodel=medium -shared-intel
+#DFLAGS = -g -CB -CU -traceback -debug extended -vec-report0 -align -check all -fpe-all0 -fmath-errno -fstack-security-check -mcmodel=medium -shared-intel
+#FCFIXED = ifort
+#FCFREE  = ifort
+#MOD = mod
+#MODDIR = -module mod
+#LD=ld
+#LDFLAGS=-r -o
+#FPP=
+
+## for macos Intel fortran compiler EM64T lib
+#GFLIBS=-L/usr/local/lib -lg3d-ifc64 -lgsp-ifc64 -lgdp-ifc64 -L/opt/X11/lib -lX11
+#GLLIBS=-L/usr/local/lib -lgsgl-ixc
+#OFLAGS = -O3
+#DFLAGS = -g -C -traceback -debug extended -align -fpe-all=0 -fmath-errno -fstack-security-check -no-ftz -check all
+#FCFIXED = ifort
+#FCFREE  = ifort
+#MOD = mod
+#MODDIR = -module mod
+#LD=libtool
+#LDFLAGS=-static -o
+#FPP=
+
+## for macos gfortran lib
+#GFLIBS=-L/usr/local/lib -lg3d-gfc -lgsp-gfc -lgdp-gfc  -L/opt/X11/lib -lX11
+#OFLAGS = -g -O3 -std=legacy
+#DFLAGS = -g -fbounds-check -ffpe-trap=invalid,zero,overflow -fbacktrace -fcheck=all -std=legacy
+#FCFIXED = gfortran -ffixed-form
+#FCFREE = gfortran -ffree-form
+#MOD = mod
+#MODDIR = -Jmod
+#LD=ld
+#LDFLAGS=-r -o
+#FPP=
+
+## for macos gfortran (64bit) lib
+GFLIBS=-L/usr/local/lib -lg3d-gfc64 -lgsp-gfc64 -lgdp-gfc64  -L/opt/X11/lib -lX11
+OFLAGS = -g -O3 -m64 -std=legacy -mmacosx-version-min=12.3
+DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow -fbacktrace -fcheck=all -std=legacy -Wall -mmacosx-version-min=12.3
+FCFIXED = gfortran-mp-devel -ffixed-form
+FCFREE = gfortran-mp-devel -ffree-form
+MOD = mod
+MODDIR = -Jmod
+LD=ld
+LDFLAGS=-r -o
+FPP=
+
+## for linux gfortran (64bit) lib
+#GFLIBS=-L/usr/local/lib -lg3d-gfc64 -lgsp-gfc64 -lgdp-gfc64  -L/usr/X11R6/lib -lX11
+#OFLAGS = -g -O3 -m64 -mcmodel=medium -std=legacy
+#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow -fbacktrace -fcheck=all -mcmodel=medium -std=legacy
+#FCFIXED = gfortran -ffixed-form
+#FCFREE = gfortran -ffree-form
+#MOD = mod
+#MODDIR = -Jmod
+#LD=ld
+#LDFLAGS=-r -o
+#FPP=
+
+## for linux gfortran (64bit) lib64
+#GFLIBS=-L/usr/local/lib64 -lg3d-gfc64 -lgsp-gfc64 -lgdp-gfc64  -L/usr/X11R6/lib -lX11
+#OFLAGS = -g -O3 -m64 -mcmodel=medium -std=legacy
+#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow -fbacktrace -fcheck=all -mcmodel=medium -std=legacy
+#FCFIXED = gfortran -ffixed-form
+#FCFREE = gfortran -ffree-form
+#MOD = mod
+#MODDIR = -Jmod
+#LD=ld
+#LDFLAGS=-r -o
+#FPP=
+
+## for macos pgf95 EM64T lib
+#GFLIBS=-L/usr/local/lib -lg3d-pgf64 -lgsp-pgf64 -lgdp-pgf64 -L/opt/X11/lib -lX11
+#GLLIBS=-L/usr/local/lib -lgsgl-pgf64
+#OFLAGS = -O3 -m64
+#DFLAGS = -g -Mbounds -Minform,inform -Ktrap=fp,unf,denorm -traceback -m64
+#FCFIXED = pgfortran
+#FCFREE  = pgfortran
+#MOD = mod
+#MODDIR = -module mod
+#LD=ld
+#LDFLAGS=-r -o
+#FPP=
+
+## for Cray fortran (JFRS-1)
+#GFLIBS=-L$(HOME)/lib -lg3d -lgsp -lgdum
+#OFLAGS = 
+#DFLAGS = -g -K trap=divz,fp -Rb 
+#FCFIXED = ftn -f fixed -hnoomp
+#FCFREE = ftn -f free -hnoomp
+#MOD = mod
+#MODDIR = -Jmod
+#LD=ld
+#LDFLAGS=-r -o
+#MFC = ftn
+#FPP=
+
+## for NAG Fortran Compiler
+#GFLIBS=-L/usr/local/lib -lg3d-nag -lgsp-nag -lgdp-nag  -L/opt/local/lib -lX11
+#OFLAGS = -g -O3 -dcfuns -mismatch
+#DFLAGS = -g -C=all  -dcfuns -mismatch
+#FCFIXED = nagfor -fixed
+#FCFREE = nagfor
+#MOD = mod
+#MODDIR = -mdir mod
+#LD=ld
+#LDFLAGS=-r -o
+#FPP=-fpp
+
+FLIBS = $(GFLIBS) $(MDSLIB) $(LIBLA)
+#FLIBS = $(GLLIBS) $(MDSLIB) $(LIBLA)

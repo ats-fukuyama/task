@@ -2,18 +2,22 @@ module tx_commons
   implicit none
   public
 
-  integer(4), parameter :: NQM=28, NCM=28
-  integer(4), parameter :: NSM=2, NFM=2
+  integer(4), parameter :: NQM=40, NCM=34
+  integer(4), parameter :: NSM=3, NFM=2
   integer(4), parameter :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,&
        &                   LQe1=6,  LQe2=7,  LQe3=8,  LQe4=9,  LQe5=10,&
-       &                   LQe6=11, LQe7=12, &
-       &                   LQi1=13, LQi2=14, LQi3=15, LQi4=16, LQi5=17,&
-       &                   LQi6=18, LQi7=19, &
-       &                   LQb1=20, LQb2=21, LQb3=22, LQb4=23, &
-       &                            LQb7=24, &
-       &                   LQn1=25, LQn2=26, LQn3=27, &
-       &                   LQr1=28
+       &                   LQe6=11, LQe7=12, LQe8=13, &
+       &                   LQi1=14, LQi2=15, LQi3=16, LQi4=17, LQi5=18,&
+       &                   LQi6=19, LQi7=20, LQi8=21, &
+       &                   LQz1=22, LQz2=23, LQz3=24, LQz4=25, LQz5=26,&
+       &                   LQz6=27, LQz7=28, LQz8=29, &
+       &                   LQb1=30, LQb2=31, LQb3=32, LQb4=33, &
+       &                            LQb7=34, LQb8=35, &
+       &                   LQn1=36, LQn2=37, LQn3=38, LQnz=39,&
+       &                   LQr1=40
   integer(4), parameter :: nmax_file = 100
+
+  real(4) :: gkilo = 1e3, gmega = 1e6
 
   !**********************************************!
   ! Set physical constants, based on CODATA 2010 !
@@ -33,7 +37,7 @@ module tx_commons
   real(8), parameter :: VC   = 2.99792458D8
 
   !   Pi (circle ratio)
-  real(8), parameter :: PI   = 3.14159265358979323846D0
+  real(8), parameter :: Pi   = 3.14159265358979323846D0
 
   !   mu0 (H/m)
   real(8), parameter :: rMU0 = 4.D0 * PI * 1.D-7
@@ -53,6 +57,7 @@ module tx_commons
   !*******************!
   !   Set constants   !
   !*******************!
+
 
   !   Conversion factor from keV to joule
   real(8), parameter :: rKeV = 1.D3 * AEE
@@ -76,29 +81,31 @@ module tx_commons
   real(8) :: rhob, rhoaccum
 
   ! Species
-  real(8) :: Zeff
+  real(8) :: Zeffin
   real(8) :: amb, achgb
   real(8), dimension(NSM) :: amas, achg
 
-  ! Profiles
-  real(8) :: PN0, PNa, PTe0, PTea, PTi0, PTia, PROFJ, PROFN1, PROFN2, PROFT1, PROFT2, Uiph0
+  ! Profile shape
+  real(8) :: PN0, PNa, PTe0, PTea, PTi0, PTia, PTz0, PTza
+  real(8) :: PROFJ, PROFN1, PROFN2, PROFT1, PROFT2, Uiph0
 
   ! Diffusivities and viscosities
-  real(8) :: De0, Di0, rMue0, rMui0, Chie0, Chii0, ChiNC, VWpch0, WPM0
+  real(8), dimension(NSM) :: Dfs0, rMus0, Chis0
+  real(8) :: ChiNC, VWpch0, WPM0
 
   ! Amplitude parameters for transport
-  real(8) :: FSCBAL, FSCBKP, FSCBEL, FSCBSH, FSBOHM, FSPCLD, FSPCLM, FSPCLC, FSVAHL
+  real(8) :: FSCBAL, FSCBKP, FSCBEL, FSCBSH, FSBOHM, FSVAHL
   real(8) :: PROFD, PROFD1, PROFD2, PROFDB, PROFM, PROFM1, PROFMB, PROFC, PROFC1, PROFCB
-  real(8) :: FSCX, FSLC, FSNC, FSNCB, FSLP, FSLTE, FSLTI, FSION, FSD01, FSD02, FSD03, rG1, FSRP, FSNF
+  real(8) :: FSCX, FSLC, FSLP, FSLPB, FSION, FSNCOL, FSD01, FSD02, FSD03, FSD0z, rG1, FSRP, FSNF
   real(8) :: FSADV, FSADVB, FSUG
-  real(8), dimension(1:NSM) :: FSMPCH, FSPARV
-  real(8), dimension(1:3) :: FSDFIX, FSANOM, RhoETB
+  real(8), dimension(NSM) :: FSMPCH, FSTPTM, FSPARV, FSLTs
+  real(8), dimension(1:2) :: FSNC, FSNCB
+  real(8), dimension(1:3) :: FSDFIX, FSANOM, RhoETB, FSPCL
   integer(4) :: MDLC, MDANOM
 
-  ! Scale lengths in SOL
-  real(8) :: rLn, rLT
-  ! SOL model
-  integer(4) :: MDPHIS
+  ! SOL parameters
+  real(8) :: rLn, rLT  ! Scale lengths in SOL
+  real(8), dimension(NSM) :: PNsDIV, PTsDIV
 
   ! Heat sources
   real(8) :: Ebmax, RNBP, RNBP0, RNBT1, RNBT2, RNBT10, RNBT20, &
@@ -108,7 +115,8 @@ module tx_commons
   integer(4) :: MDLNBD
 
   ! Neutral parameters
-  real(8) :: PN0s, V0, rGamm0, rGASPF, PNeDIV, PNiDIV, PTeDIV, PTiDIV
+  real(8) :: PN0s, V0, rGamm0, rGASPF
+  real(8) :: PN0zs, V0z, rGamm0z, rGASPFz
 
   ! Ripple parameters
   real(8) :: DltRPn, kappa
@@ -122,7 +130,7 @@ module tx_commons
   integer(4) :: NRMAX, NEMAX, NRA, NRC
 
   ! Equilibrium parameters
-  integer(4) :: ieqread
+  integer(4) :: ieqread, irktrc, ipbtdir
 
   ! Parameters for density perturbation experiment
   real(8) :: DelRho, DelN
@@ -142,7 +150,7 @@ module tx_commons
   real(8) :: DMAG0, RMAGMN, RMAGMX
 
   ! Diagnostics
-  integer(4) :: IDIAG, NTSTEP
+  integer(4) :: IDIAG, NTSTEP, midbg(2)
 
   ! LAPACK
   integer(4) :: MDLPCK
@@ -157,26 +165,33 @@ module tx_commons
   integer(4) :: MDFIXT, MDBEAM
 
   ! Transport model
-  integer(4) :: MDOSQZ, MDOSQZN, MDLETA, MDLETB, MDLNEO, MDBSETA
+  integer(4) :: MDOSQZ, MDOSQZN, MDLETA, MDLETB, MDLNEO, MDBSETA, imodel_neo(6)
 
   ! Initial condition
   integer(4) :: MDITSN, MDITST, MDINTN, MDINTT, MDINTC
 
-  !**********************************!
-  !   INTERNAL CONTOROL PARAMETERS   !
-  !**********************************!
+  ! Poynting flux calculation
+  integer(4) :: iPoyntpol, iPoynttor
+
+  !*********************************!
+  !   INTERNAL CONTROL PARAMETERS   !
+  !*********************************!
+
+  ! Initializer of arrays
+  real(8), dimension(:),   allocatable :: array_init_NR
+  real(8), dimension(:,:), allocatable :: array_init_NRNS
 
   ! Time control parameters
   integer(4) :: NT, NTCUM, NTMAX
   real(8) :: T_TX = 0.D0, TMAX
 
   ! Configuration parameters
-  integer(4) :: NQMAX, IERR, ICONT, IRPIN
+  integer(4) :: NQMAX, IERR, ICONT, IRPIN, irestart
   real(4) :: AVE_IC
   real(8) :: rIP
   real(8) :: UHth, UHph
   real(8) :: Rax, Zax, surflcfs
-  real(8), dimension(:), allocatable :: R, vv, rho, rhosq
+  real(8), dimension(:), allocatable :: vv, rho
   real(8), dimension(:), allocatable :: hv
 
   ! Convergence accelerator
@@ -187,66 +202,77 @@ module tx_commons
   real(8) :: oldmix
 
   ! SUPG parameter
-  integer(4) :: iSUPG2, iSUPG3, iSUPG6
+  integer(4) :: iSUPG3, iSUPG6, iSUPG8
   real(8) :: SUPGstab
 
   ! Variables
   real(8), dimension(:), allocatable :: &
        & ErV,    BEpol,   Etor,    BthV,  BphV, &
-       & PNbV,   UbrVV,   BUbparV, RUbphV, PTbV, UbphVR, UbphV, &
-       & PN01V,  PN02V,   PN03V, &
+       & PNbV,   UbrV,    UbrVV,   BUbparV, RUbphV, PTbV, UbphVR, UbphV, BVbdiag, &
+       & PN01V,  PN02V,   PN03V,   PN0zV,&
        & PsiV,   PsitV,   PhiV,  &
        & PT01V,  PT02V,   PT03V,   PNbrpV, &
-       & PsidotV,PsitdotV,dPhiV,   bbt,   bthco
+       & PsidotV,PsitdotV,dPhidV,  dPhidrho, bbt, bthco, Zeff
 !!rp_conv       &, PNbrpLV
 
   real(8), dimension(:), allocatable :: ErV_FIX
 
   ! Species variables
   type species_var
-     real(8) :: n, T, p, UrV, BUpar, Bqpar, Uthhat, UphR, RUph, Ur, Uth, Uph
+     real(8) :: n      = 0.1d0 ! [10^{20}m^{-3}]
+     real(8) :: T      = 1.d0  ! [keV]
+     real(8) :: p      = 0.1d0 ! [10^{20}m^{-3}*keV]
+     real(8) :: UrV    = 0.d0  ! [1/s]    : n <u.grad V>
+     real(8) :: BUpar  = 0.d0  ! [Tm/s]
+     real(8) :: Bqpar  = 0.d0  ! [Tm/s]   : <Bq//>/(5p)
+     real(8) :: Uthhat = 0.d0  ! [m/s/T]  : <u.grad theta>/<B.grad theta>
+     real(8) :: UphR   = 0.d0  ! [/s]
+     real(8) :: RUph   = 0.d0  ! [m^2/s]
+     real(8) :: Ur     = 0.d0  ! [m/s]
+     real(8) :: Uth    = 0.d0  ! [m/s]
+     real(8) :: Uph    = 0.d0  ! [m/s]
+     real(8) :: BV1    = 0.d0  ! [Tm/s]
   end type species_var
   type(species_var), dimension(:,:), allocatable :: Var
 
   real(8), dimension(:,:), allocatable :: PNsV_FIX, PTsV_FIX
 
-  real(8), dimension(:,:,:), allocatable :: BVsdiag, UsparNCL, UsthNCL
+  real(8), dimension(:,:,:), allocatable :: BVsdiag, BusparNCL, UsthNCL, QsthNCL
 
   ! Coefficients
   real(8), dimension(:), allocatable :: &
-       & rNuION, rNu0e, rNu0i, rNu0b, rNuL, rNuiCX, rNubCX, rNuiCXT, &
-       & rNuei, rNuii, rNuTei, rNuD, &
-       & rNubrp1, rNubrp2, &
-       & rNuLTe, rNuLTi, &
-       & rNuAse, rNuAsi, &
-!       & rNueHL, rNuiHL, &
+       & rNuION, rNu0b, rNuL, rNuiCX, rNubCX, rNuiCXT, &
+       & rNuei, rNuii, rNuiz, rNuTei, rNuTez, rNuTiz, rNuD, rNuOL, &
+       & WPM, FVpch, FQLcoef, FQLcoef1, FQLcoef2, &
+       & rNuB, rNuLB, ft, VWpch, D01, D02, D03, D0z, &
+       & SiVizA, SiVcxA, SiVa6A, SiVsefA, wexb, &
+       & UgV, PNbVinv, Vbpara
+  real(8), dimension(:), allocatable :: & ! Ripple transport
+       & Ubrp, RUbrp, Dbrp, DltRP, DltRP_mid, rNubL, rip_rat, &
+       & rNubrp1, rNubrp2
+  real(8), dimension(:), allocatable :: & ! Quantities related to Helicals 
        & rNueHLthth,rNueHLthph, rNueHLphth, rNueHLphph, &
        & rNuiHLthth,rNuiHLthph, rNuiHLphth, rNuiHLphph, &
-       & WPM, FVpch, FQLcoef, FQLcoef1, FQLcoef2, &
-       & rMue, rMui, rNuB, rNuLB, ft, &
-       & Chie, Chii, De, Di, VWpch, D01, D02, D03, &
-       & ChiNCpe, ChiNCte, ChiNCpi, ChiNCti, &
-       & DMAG, DMAGe, DMAGi, &
-       & Ubrp, RUbrp, Dbrp, DltRP, DltRP_mid, rNubL, rip_rat, rNuOL, Vbpara, &
-       & SiVizA, SiVcxA, wexb, &
-       & UgV, PNbVinv
+       & DMAG, DMAGe, DMAGi
+  real(8), dimension(:,:), allocatable :: Dfs, rMus, Chis, ChiNCp, ChiNCt
+  real(8), dimension(:,:), allocatable :: rNu0s, rNuLTs, rNuAss, Vhps, Vmps, PiRess
   real(8), dimension(:,:), allocatable :: gamITG
-  real(8), dimension(:,:), allocatable :: Vhps, Vmps, PiRess
 
   ! Coefficients related to neoclassical transport
   integer(4), dimension(:),allocatable :: mxneo
   real(8), dimension(:),   allocatable :: gamneo
-  real(8), dimension(:,:), allocatable :: fmneo, xmuf, BnablaPi
+  real(8), dimension(:,:), allocatable :: fmneo, xmuf, BnablaPi, cL31
   real(8), dimension(:,:,:), allocatable :: lff, gflux
   real(8), dimension(:,:,:,:), allocatable :: xmu, laf, lfb
   real(8), dimension(:,:,:,:,:), allocatable :: lab
 
   ! Equilibrium metrics 
   real(8), dimension(:), allocatable :: &
-       & aat, rrt, ckt, suft, sst, vro, vlt, rhov, art, epst, ait, elip, trig
+       & aat, rrt, ckt, suft, sst, vro, vlt, rhov, art, epst, ait, elip, trig, rtt, rpt, drhodr
   real(8), dimension(:), allocatable :: fipol, Bpsq, qhatsq, Fqhatsq, BEpara, bri
   real(8), dimension(:), allocatable :: sdt, hdt
   real(8), dimension(:), allocatable :: bit, bbrt
+  real(8), dimension(:), allocatable :: gtti
 
   ! Multiple helical Fourier modes    miki_m 10-08-06~
   integer(4) :: UHphSwitch           !  To support (m=0, n>0) Fourier component
@@ -257,29 +283,27 @@ module tx_commons
   ! CDBM
   real(8), dimension(:), allocatable :: rG1h2, FCDBM, S, Alpha, rKappa
 
+  ! For numerical stability
+  real(8), dimension(:), allocatable :: pres0, ErV0
+
   ! CDIM
   ! 09/06/17~ miki_m
   real(8), dimension(:), allocatable :: rG1h2IM, FCDIM, RAQPR
 
-  ! Sheath potential
-  real(8), dimension(:), allocatable :: phis
-
-  ! For numerical stability
-  real(8), dimension(:), allocatable :: pres0, ErV0
-
   ! Sources and sinks
   real(8), dimension(:), allocatable :: PNB, PNBTG, PNBPD, PNBcol_e, PNBcol_i, &
        &                                SNB, SNBe, SNBi, SNBb, SNBPDi, SNBTGi, &
-       &                                PNBe, PNBi, MNB, PRFe, PRFi, &
-       &                                POH, POHe, POHi, PEQe, PEQi, &
-       &                                SiLC, SiLCB, SiLCph, PALFe, PALFi, &
+       &                                PNBe, PNBi,PNBz, MNB, PRFe, PRFi, PRFz, &
+       &                                POH, PEQei, PEQez, PEQiz, &
+       &                                SiLC, SiLCB, SiLCph, PALFe, PALFi, PALFz, &
        &                                BSmb, Tqt, Tqp
-  real(8), dimension(:), allocatable :: PIE, PCX, SIE, SCX, PBr
-  real(8) :: Eb, Vb, RatCX
+  real(8), dimension(:), allocatable :: PIE, PCX, SIE, SCX, PBr, RatCX, ratecxb
+  real(8), dimension(:,:), allocatable :: POHs
+  real(8) :: Eb, Vb
 
   ! Safety factor, currents, resistivity
-  real(8), dimension(:), allocatable :: Q, AJ, BJPARA, AJOH, BJOH, AJV, AJRF, AJNB, BJNB, &
-       &                                BJBS, AJBS, ETA, ETAS 
+  real(8), dimension(:), allocatable :: Q, AJ, BJPARA, AJOH, BJOH, AJRF, BJRF, AJNB, BJNB, &
+       &                                AJBS, BJBS, ETA, ETAS, AJV
   real(8), dimension(:,:), allocatable :: BJBSvar, ETAvar
 
   ! Derivatives
@@ -289,17 +313,20 @@ module tx_commons
   real(8), dimension(:), allocatable :: ANS0, TS0, ANSAV, TSAV, WST
   real(8), dimension(:), allocatable :: ANF0, TF0, ANFAV, TFAV, WFT
   real(8), dimension(:), allocatable :: PBCLT, PFCLT, PLT, SPET, SLT
-  real(8), dimension(:), allocatable :: Deff, thrp
+  real(8), dimension(:), allocatable :: PoyntS, PoyntI, PoyntR, CPsi, CPsi_old, VPoynt
+  real(8), dimension(:), allocatable :: thrp, qneut
+  real(8), dimension(:), allocatable :: PnumN0
+  real(8), dimension(:,:), allocatable :: Deff
   real(8) :: WBULKT, WTAILT, WPT
   real(8) :: AJT, AJOHT, AJNBT, AJRFT, AJBST
   real(8) :: PINT, POHT, PNBT, PRFT, PRFTe, PRFTi, PNFT
   real(8) :: PBINT, PFINT, POUT, PCXT, PIET, PRLT, SINT, SIET
   real(8) :: SNBT, SNFT, SOUT, TNBcol, TTqt
-  real(8) :: VLOOP, ALI, RQ1, RPE, ZEFF0, QF
+  real(8) :: VLOOP, VLOOPpol, ALI, RQ1, RPE, ZEFF0, QF
   real(8) :: WPDOT, TAUE1, TAUE2, TAUEP, TAUEH, TAUP, TAUPA
   real(8) :: BETAP0, BETAPA, BETA0, BETAA, BETAQ0, BETAN
-  real(8) :: TPRE, WPPRE
-  real(8) :: VOLAVN, Gamma_a, PnumN0
+  real(8) :: TPRE, WPPRE, totmnRV, totjxB
+  real(8) :: VOLAVN, Gamma_a, CEjima, PnumN0z
 
   ! Internal variables for transport matrix
   real(8),    dimension(:,:,:), allocatable :: ALC, BLC, CLC, PLC
@@ -337,7 +364,7 @@ contains
 
     integer(4), intent(out) :: ier
     integer(4), intent(in), optional :: icont_in
-    integer(4) :: iflag, N, NS, NF
+    integer(4) :: iflag, NS, NF
     integer(4), dimension(1:20) :: ierl
 
     ierl(:) = 0
@@ -347,13 +374,12 @@ contains
       return
     endif
 
-    N     = NRMAX
     NEMAX = NRMAX
     NS    = NSM
     NF    = NFM
 
     ! allocation check
-    if(allocated(R)) then
+    if(allocated(array_init_NR)) then
        if(present(icont_in) .and. icont_in /= 0) then
           call deallocate_txcomm
        else
@@ -362,119 +388,137 @@ contains
     end if
 
     do
-       allocate(R(0:N),      vv(0:N),    rho(0:N),   rhosq(0:N),              stat = ierl(1))
-       allocate(hv(0:NEMAX),                                                  stat = ierl(2))
+       ! Array for numerical purpose
+       allocate(array_init_NR(0:NRMAX),         source=0.d0,  stat=ierl(1))
+       allocate(array_init_NRNS(0:NRMAX,1:NSM), source=0.d0,  stat=ierl(2))
+
+       ! Mesh-related arrays
+       allocate(vv, rho,                source=array_init_NR, stat=ierl(3))
+       allocate(hv(0:NEMAX),                                  stat=ierl(4))
        ier = sum(ierl) ; iflag = 1
-       if (ier /= 0) exit
+       if (ier == 0) then ; ierl(:) = 0 ; else ; exit ; end if
 
-       allocate(ErV(0:N),    BEpol(0:N), Etor(0:N),  BthV(0:N),  BphV(0:N),    stat = ierl(1))
-       allocate(PNbV(0:N),   UbrVV(0:N), BUbparV(0:N), RUbphV(0:N), PTbV(0:N), UbphVR(0:N), UbphV(0:N), stat = ierl(2))
-       allocate(PN01V(0:N),  PN02V(0:N), PN03V(0:N),                           stat = ierl(3))
-       allocate(PsiV(0:N),   PsitV(0:N), PhiV(0:N),  bbt(0:N), bthco(0:N),     stat = ierl(4))
-       allocate(PT01V(0:N),  PT02V(0:N), PT03V(0:N), PNbrpV(0:N),              stat = ierl(5))
-       allocate(PsidotV(0:N),PsitdotV(0:N),dPhiV(0:N),                         stat = ierl(6))
-       allocate(Var(0:N,NS),                                                   stat = ierl(7))
+       ! Arrays associated with dependent variables
+       allocate(ErV,     BEpol,    Etor,    BthV,   BphV,                 source=array_init_NR, stat=ierl(1))
+       allocate(PNbV,    UbrV,     UbrVV,   BUbparV, RUbphV, PTbV,  UbphVR, UbphV, BVbdiag, source=array_init_NR, stat=ierl(2))
+       allocate(PN01V,   PN02V,    PN03V,   PN0zV,                        source=array_init_NR, stat=ierl(3))
+       allocate(PsiV,    PsitV,    PhiV,    bbt,    bthco, Zeff,          source=array_init_NR, stat=ierl(4))
+       allocate(PT01V,   PT02V,    PT03V,   PNbrpV,                       source=array_init_NR, stat=ierl(5))
+       allocate(PsidotV, PsitdotV, dPhidV,  dPhidrho,                     source=array_init_NR, stat=ierl(6))
+       ! Derived-type dependent variables
+       allocate(Var(0:NRMAX,NS),                                                                stat=ierl(7))
        ier = sum(ierl) ; iflag = 2
-       if (ier /= 0) exit
+       if (ier == 0) then ; ierl(:) = 0 ; else ; exit ; end if
 
-       allocate(ErV_FIX(0:N),                                                  stat = ierl(1))
-       allocate(PNsV_FIX(0:N,NS), PTsV_FIX(0:N,NS),                            stat = ierl(2))
-       allocate(BVsdiag(0:N,NS,2), UsparNCL(0:N,NS,2), UsthNCL(0:N,NS,2),      stat = ierl(3))
+       ! For numerical stabilization
+       allocate(ErV_FIX,  pres0,    ErV0,                               source=array_init_NR,   stat=ierl(1))
+       allocate(PNsV_FIX, PTsV_FIX,                                     source=array_init_NRNS, stat=ierl(2))
        ier = sum(ierl) ; iflag = 3
-       if (ier /= 0) exit
+       if (ier == 0) then ; ierl(:) = 0 ; else ; exit ; end if
 
-       allocate(rNuION(0:N), rNu0e(0:N),  rNu0i(0:N), rNu0b(0:N), rNuL(0:N),  stat = ierl(1))
-       allocate(rNuiCX(0:N), rNubCX(0:N), rNuei(0:N), rNuiCXT(0:N),           stat = ierl(2))
-       allocate(rNuii(0:N),  rNuTei(0:N), rNuD(0:N),                          stat = ierl(3))
-       allocate(rNubrp1(0:N),rNubrp2(0:N),                                    stat = ierl(4))
-       allocate(rNuLTe(0:N),rNuLTi(0:N),                                      stat = ierl(5))
-       allocate(rNuAse(0:N),rNuAsi(0:N),                                      stat = ierl(6))
-!       allocate(rNueHL(0:N), rNuiHL(0:N), rNueHLthth(0:N), rNuiHLthth(0:N), rNueHLthph(0:N), &
-!            &   rNuiHLthph(0:N), rNueHLphth(0:N), rNuiHLphth(0:N),rNueHLphph(0:N), &
-!            &   rNuiHLphph(0:N),                                              stat = ierl(7))
-!       allocate(HPN(1:2,1:NHFMmx),EpsHM(1:2,1:NHFMmx),                        stat = ierl(7))
-       allocate(rNueHLM(1:NHFMmx,0:N), rNuiHLM(1:NHFMmx,0:N), &
-            &   rNueHLthth(0:N), rNuiHLthth(0:N), rNueHLthph(0:N), rNuiHLthph(0:N), &
-            &   rNueHLphth(0:N), rNuiHLphth(0:N), rNueHLphph(0:N), rNuiHLphph(0:N), &
-            &   rNueHLththM(1:NHFMmx,0:N), rNueHLthphM(1:NHFMmx,0:N), &
-            &   rNueHLphthM(1:NHFMmx,0:N), rNueHLphphM(1:NHFMmx,0:N), &
-            &   rNuiHLththM(1:NHFMmx,0:N), rNuiHLthphM(1:NHFMmx,0:N), &
-            &   rNuiHLphthM(1:NHFMmx,0:N), rNuiHLphphM(1:NHFMmx,0:N),         stat = ierl(7))
-       ! miki_m 10-08-06
-       allocate(WPM(0:N),    FVpch(0:N),  FQLcoef(0:N), FQLcoef1(0:N), FQLcoef2(0:N),stat = ierl(8))
-       allocate(rMue(0:N),   rMui(0:N),                                       stat = ierl(9))
-       allocate(rNuB(0:N),   rNuLB(0:N),  ft(0:N),    Chie(0:N),  Chii(0:N),  stat = ierl(10))
-       allocate(De(0:N),     Di(0:N),     VWpch(0:N), D01(0:N),    D02(0:N),  &
-            &   D03(0:N),                                                     stat = ierl(11))
-       allocate(ChiNCpe(0:N),ChiNCte(0:N),ChiNCpi(0:N),ChiNCti(0:N),          stat = ierl(12))
-       allocate(Ubrp(0:N),   RUbrp(0:N),  Dbrp(0:N),  DltRP(0:N), DltRP_mid(0:N), &
-            &   rNubL(0:N),                                                   stat = ierl(13))
-       allocate(rip_rat(0:N),rNuOL(0:N),  Vbpara(0:N),                        stat = ierl(14))
-       allocate(gamITG(0:N,1:3),                                              stat = ierl(15))
-       allocate(DMAG(0:N),   DMAGe(0:N),  DMAGi(0:N),                         stat = ierl(16))
-       allocate(SiVizA(0:N), SiVcxA(0:N), wexb(0:N),                          stat = ierl(17))
-       allocate(UgV(0:N),    PNbVinv(0:N),                                    stat = ierl(18))
-       allocate(Vhps(0:N,NS),Vmps(0:N,NS), PiRess(0:N,NS),                    stat = ierl(19))
+       ! Physical coefficients
+       allocate(rNuION,  rNu0b,   rNuL,    rNuiCX,  rNubCX,  rNuiCXT,   source=array_init_NR,   stat=ierl(1))
+       allocate(rNuei,   rNuii,   rNuiz,   rNuTei,  rNuTez,  rNuTiz,    source=array_init_NR,   stat=ierl(2))
+       allocate(rNuD,    rNuOL,                                         source=array_init_NR,   stat=ierl(3))
+       allocate(WPM,     FVpch,   FQLcoef, FQLcoef1, FQLcoef2,          source=array_init_NR,   stat=ierl(4))
+       allocate(rNuB,    rNuLB,   ft,      VWpch,                       source=array_init_NR,   stat=ierl(5))
+       allocate(D01,     D02,     D03,     D0z,                         source=array_init_NR,   stat=ierl(6))
+       allocate(SiVizA,  SiVcxA,  SiVa6A,  SiVsefA,  wexb,              source=array_init_NR,   stat=ierl(7))
+       allocate(UgV,     PNbVinv, Vbpara,                               source=array_init_NR,   stat=ierl(8))
+       allocate(Ubrp,    RUbrp,   Dbrp,    DltRP,    DltRP_mid,         source=array_init_NR,   stat=ierl(9))
+       allocate(rNubL,   rip_rat, rNubrp1, rNubrp2,                     source=array_init_NR,   stat=ierl(10))
+       allocate(Dfs,     rMus,    Chis,    ChiNCp,   ChiNCt,            source=array_init_NRNS, stat=ierl(11))
+       allocate(rNu0s,   rNuLTs,  rNuAss,  Vhps,     Vmps,     PiRess,  source=array_init_NRNS, stat=ierl(12))
+       allocate(gamITG(0:NRMAX,1:3),                                                            stat=ierl(13))
        ier = sum(ierl) ; iflag = 4
-       if (ier /= 0) exit
+       if (ier == 0) then ; ierl(:) = 0 ; else ; exit ; end if
 
-       allocate(xmu(0:N,NS,3,3), lab(0:N,NS,NS,3,3),                          stat = ierl(1))
-       allocate(laf(0:N,NS,2,2), lfb(0:N,NS,2,2), lff(0:N,2,2), xmuf(0:N,3),  stat = ierl(2))
-       allocate(BnablaPi(0:N,NS),gflux(0:N,NS,3),                             stat = ierl(3))
-       allocate(mxneo(0:N),  fmneo(1:10,0:N), gamneo(0:N),                    stat = ierl(4))
+       ! Neoclassical transport quantities
+       allocate(xmu(0:NRMAX,NS,3,3), lab(0:NRMAX,NS,NS,3,3),                           stat=ierl(1))
+       allocate(laf(0:NRMAX,NS,2,2), lfb(0:NRMAX,NS,2,2), lff(0:NRMAX,2,2),            stat=ierl(2))
+       allocate(xmuf(0:NRMAX,3),                                                       stat=ierl(3))
+       allocate(BnablaPi, cL31,                               source=array_init_NRNS,  stat=ierl(4))
+       allocate(gflux(0:NRMAX,NS,3),                                                   stat=ierl(5))
+       allocate(mxneo(0:NRMAX),      fmneo(1:10,0:NRMAX), gamneo(0:NRMAX),             stat=ierl(6))
+       allocate(BVsdiag(0:NRMAX,NS,2), BusparNCL(0:NRMAX,NS,2), UsthNCL(0:NRMAX,NS,2), QsthNCL(0:NRMAX,NS,2), stat=ierl(7))
        ier = sum(ierl) ; iflag = 5
-       if (ier /= 0) exit
+       if (ier == 0) then ; ierl(:) = 0 ; else ; exit ; end if
 
-       allocate(aat(0:N), rrt(0:N), ckt(0:N), suft(0:N), sst(0:N), vro(0:N), vlt(0:N), rhov(0:N), &
-            &   art(0:N), epst(0:N), ait(0:N), elip(0:N), trig(0:N), stat = ierl(1))
-       allocate(fipol(0:N), Bpsq(0:N), qhatsq(0:N), Fqhatsq(0:N), BEpara(0:N), bri(0:N),stat = ierl(2))
-       allocate(sdt(0:N), hdt(0:N),                                           stat = ierl(3))
-       allocate(bit(0:N), bbrt(0:N),                                          stat = ierl(4))
+       ! Equilibrium quantities
+       allocate(aat, rrt, ckt, suft, sst, vro, vlt, rhov, &
+            &   art, epst, ait, elip, trig, rtt, rpt, drhodr,   source=array_init_NR, stat=ierl(1))
+       allocate(fipol, Bpsq, qhatsq, Fqhatsq, BEpara, bri,      source=array_init_NR, stat=ierl(2))
+       allocate(sdt, hdt, bit, bbrt, gtti,                      source=array_init_NR, stat=ierl(3))
        ier = sum(ierl) ; iflag = 6
-       if (ier /= 0) exit
+       if (ier == 0) then ; ierl(:) = 0 ; else ; exit ; end if
 
-       allocate(rG1h2(0:N),  FCDBM(0:N),  S(0:N),     Alpha(0:N), rKappa(0:N),stat = ierl(1))
-       allocate(rG1h2IM(0:N),  FCDIM(0:N),  RAQPR(0:N),                       stat = ierl(2)) !09/06/17 miki_m
-       allocate(PHIS(0:N))
-
-       allocate(pres0(0:N),  ErV0(0:N),                                       stat = ierl(3))
+       ! CDBM and CDIM
+       allocate(rG1h2,   FCDBM,  S,     Alpha, rKappa,          source=array_init_NR, stat=ierl(1))
+       allocate(rG1h2IM, FCDIM,  RAQPR,                         source=array_init_NR, stat=ierl(2)) !09/06/17 miki_m
        ier = sum(ierl) ; iflag = 7
-       if (ier /= 0) exit
+       if (ier == 0) then ; ierl(:) = 0 ; else ; exit ; end if
 
-       allocate(PNB(0:N),   PNBTG(0:N),PNBPD(0:N),PNBcol_e(0:N),PNBcol_i(0:N),stat = ierl(1))
-       allocate(SNB(0:N),   SNBe(0:N),   SNBi(0:N),   SNBb(0:N),              stat = ierl(2))
-       allocate(SNBPDi(0:N),SNBTGi(0:N),                                      stat = ierl(3))
-       allocate(PNBe(0:N),  PNBi(0:N),   MNB(0:N),    PRFe(0:N),  PRFi(0:N),  stat = ierl(4))
-       allocate(POH(0:N),   POHe(0:N),   POHi(0:N),   PEQe(0:N),  PEQi(0:N),  stat = ierl(5))
-       allocate(SiLC(0:N),  SiLCB(0:N),  SiLCph(0:N), PALFe(0:N), PALFi(0:N), stat = ierl(6))
-       allocate(PIE(0:N),   PCX(0:N),    SIE(0:N),    SCX(0:N),   PBr(0:N),   stat = ierl(7))
-       allocate(BSmb(0:N),  Tqt(0:N),    Tqp(0:N),                            stat = ierl(8))
+       ! Sources and sinks
+       allocate(PNB,    PNBTG,   PNBPD,  PNBcol_e, PNBcol_i,        source=array_init_NR,   stat=ierl(1))
+       allocate(SNB,    SNBe,    SNBi,   SNBb,                      source=array_init_NR,   stat=ierl(2))
+       allocate(SNBPDi, SNBTGi,  MNB,                               source=array_init_NR,   stat=ierl(3))
+       allocate(PNBe,   PNBi,    PNBz,   PRFe,     PRFi,     PRFz,  source=array_init_NR,   stat=ierl(4))
+       allocate(POH,    PEQei,   PEQez,  PEQiz,                     source=array_init_NR,   stat=ierl(5))
+       allocate(SiLC,   SiLCB,   SiLCph, PALFe,    PALFi,    PALFz, source=array_init_NR,   stat=ierl(6))
+       allocate(PIE,    PCX,     SIE,    SCX,      PBr,             source=array_init_NR,   stat=ierl(7))
+       allocate(BSmb,   Tqt,     Tqp,                               source=array_init_NR,   stat=ierl(8))
+       allocate(RatCX,  ratecxb,                                    source=array_init_NR,   stat=ierl(9))
+       allocate(POHs,                                               source=array_init_NRNS, stat=ierl(10))
        ier = sum(ierl) ; iflag = 8
-       if (ier /= 0) exit
+       if (ier == 0) then ; ierl(:) = 0 ; else ; exit ; end if
 
-       allocate(Q(0:N), AJ(0:N), BJPARA(0:N), AJOH(0:N), BJOH(0:N), AJV(0:N), stat = ierl(1))
-       allocate(AJRF(0:N), AJNB(0:N), BJNB(0:N), BJBS(0:N), AJBS(0:N),        stat = ierl(2))
-       allocate(ETA(0:N), ETAS(0:N),                                          stat = ierl(3))
-       allocate(BJBSvar(0:N,0:3), ETAvar(0:N,0:4),                            stat = ierl(4))
+       ! Currents and the safety factor
+       allocate(Q,    AJ,   BJPARA, AJOH, BJOH, AJRF, BJRF,     source=array_init_NR, stat=ierl(1))
+       allocate(AJNB, BJNB, AJBS,   BJBS,                       source=array_init_NR, stat=ierl(2))
+       allocate(ETA,  ETAS, AJV,                                source=array_init_NR, stat=ierl(3))
+       allocate(BJBSvar(0:NRMAX,0:3), ETAvar(0:NRMAX,0:4),                            stat=ierl(4))
        ier = sum(ierl) ; iflag = 9
-       if (ier /= 0) exit
+       if (ier == 0) then ; ierl(:) = 0 ; else ; exit ; end if
 
-       allocate(dPsdpsi(0:NRMAX,NSM), dTsdpsi(0:NRMAX,NSM),                   stat = ierl(1))
+       ! Derivatives with respect to psi
+       allocate(dPsdpsi, dTsdpsi,                             source=array_init_NRNS, stat=ierl(1))
        ier = sum(ierl) ; iflag = 10
-       if (ier /= 0) exit
+       if (ier == 0) then ; ierl(:) = 0 ; else ; exit ; end if
 
-       allocate(ANS0(1:NS), TS0(1:NS),   ANSAV(1:NS), TSAV(1:NS), WST(1:NS),  stat = ierl(1))
-       allocate(ANF0(1:NF), TF0(1:NF),   ANFAV(1:NF), TFAV(1:NF), WFT(1:NF),  stat = ierl(2))
-       allocate(PBCLT(1:NS),PFCLT(1:NS), PLT(1:NS),   SPET(1:NS), SLT(1:NS),  stat = ierl(3))
-       allocate(Deff(0:N),  thrp(1:2*N),                                      stat = ierl(4))
+       ! Global quantities mainly for statistics and graphics
+       allocate(ANS0(1:NS), TS0(1:NS),   ANSAV(1:NS), TSAV(1:NS), WST(1:NS),          stat=ierl(1))
+       allocate(ANF0(1:NF), TF0(1:NF),   ANFAV(1:NF), TFAV(1:NF), WFT(1:NF),          stat=ierl(2))
+       allocate(PBCLT(1:NS),PFCLT(1:NS), PLT(1:NS),   SPET(1:NS), SLT(1:NS),          stat=ierl(3))
+       allocate(PoyntS(1:2),PoyntI(1:4), PoyntR(1:2), &
+            &   CPsi(0:3),  CPsi_old(0:3),VPoynt(0:3),                                stat=ierl(4))
+       allocate(thrp(1:2*NRMAX),qneut(0:NRMAX),                                       stat=ierl(5))
+       allocate(PnumN0(0:3),                                                          stat=ierl(6))
+       allocate(Deff,                                         source=array_init_NRNS, stat=ierl(7))
        ier = sum(ierl) ; iflag = 11
-       if (ier /= 0) exit
+       if (ier == 0) then ; ierl(:) = 0 ; else ; exit ; end if
 
-       allocate(ALC(0:N,0:NCM,1:NQMAX),BLC(0:N,0:NCM,1:NQMAX),CLC(0:N,0:NCM,1:NQMAX),stat = ierl(1))
-       allocate(PLC(0:N,1:NCM,1:NQMAX),                                              stat = ierl(2))
-       allocate(NLC(0:NCM,1:NQMAX),NLCR(0:NCM,0:NQMAX,0:1),NLCMAX(1:NQMAX),          stat = ierl(3))
-       allocate(X(0:N,1:NQMAX), XOLD(0:N,1:NQMAX),                                   stat = ierl(4))
+       ! Internal arrays for numerics
+       allocate(ALC(0:NRMAX,0:NCM,1:NQMAX),                                           stat=ierl(1))
+       allocate(BLC, CLC,                                                source=ALC,  stat=ierl(2))
+       allocate(PLC(0:NRMAX,1:NCM,1:NQMAX),                                           stat=ierl(3))
+       allocate(NLC(0:NCM,1:NQMAX), NLCR(0:NCM,0:NQMAX,0:1), NLCMAX(1:NQMAX),         stat=ierl(4))
+       allocate(X(0:NRMAX,1:NQMAX),                                      source=0.d0, stat=ierl(5))
+       allocate(XOLD,                                                    source=X,    stat=ierl(6))
        ier = sum(ierl) ; iflag = 12
+       if (ier == 0) then ; ierl(:) = 0 ; else ; exit ; end if
+
+       ! Coefficients associated with non-axisymmetric transport
+!       allocate(rNueHL, rNuiHL, rNueHLthth, rNuiHLthth, rNueHLthph, &
+!            &   rNuiHLthph, rNueHLphth, rNuiHLphth, rNueHLphph, &
+!            &   rNuiHLphph,                             source=array_init_NR, stat=ierl(1))
+!       allocate(HPN(1:2,1:NHFMmx),EpsHM(1:2,1:NHFMmx),                        stat=ierl(2))
+       allocate(rNueHLthth, rNuiHLthth, rNueHLthph, rNuiHLthph, rNueHLphth, rNuiHLphth, &
+            &   rNueHLphph, rNuiHLphph,                         source=array_init_NR, stat=ierl(1))
+       allocate(rNueHLM(1:NHFMmx,0:NRMAX),                      source=0.d0,          stat=ierl(2))
+       allocate(rNuiHLM, rNueHLththM, rNueHLthphM, rNueHLphthM, rNueHLphphM, rNuiHLththM, &
+            &   rNuiHLthphM, rNuiHLphthM, rNuiHLphphM,          source=rNueHLM,       stat=ierl(3))
+       allocate(DMAG,    DMAGe,   DMAGi,                        source=array_init_NR, stat=ierl(4))
+       ier = sum(ierl) ; iflag = 13
        if (ier /= 0) exit
 
        ! normal end
@@ -492,27 +536,77 @@ contains
 
   subroutine deallocate_txcomm
 
-    deallocate(R,      vv,      rho,   rhosq)
+    if( .not. allocated(array_init_NR) ) return
+
+    deallocate(array_init_NR)
+    deallocate(vv,      rho)
     deallocate(hv)
 
     deallocate(ErV,    BEpol,   Etor,   BthV,  BphV)
-    deallocate(PNbV,   UbrVV,   BUbparV,RUbphV, PTbV, UbphVR, UbphV)
-    deallocate(PN01V,  PN02V,   PN03V)
+    deallocate(PNbV,   UbrV,    UbrVV,  BUbparV,RUbphV, PTbV, UbphVR, UbphV, BVbdiag)
+    deallocate(PN01V,  PN02V,   PN03V,  PN0zV)
     deallocate(PsiV,   PsitV,   PhiV)
     deallocate(PT01V,  PT02V,   PT03V,  PNbrpV)
-    deallocate(PsidotV,PsitdotV,dPhiV,  bbt,   bthco)
+    deallocate(PsidotV,PsitdotV,dPhidV, dPhidrho, bbt, bthco, Zeff)
     deallocate(Var)
 
-    deallocate(ErV_FIX)
+    deallocate(ErV_FIX, pres0,  ErV0)
     deallocate(PNsV_FIX, PTsV_FIX)
-    deallocate(BVsdiag, UsparNCL, UsthNCL)
 
-    deallocate(rNuION, rNu0e,  rNu0i, rNu0b, rNuL)
-    deallocate(rNuiCX, rNubCX, rNuei, rNuiCXT)
-    deallocate(rNuii,  rNuTei, rNuD)
-    deallocate(rNubrp1,rNubrp2)
-    deallocate(rNuLTe, rNuLTi)
-    deallocate(rNuAse, rNuAsi)
+    deallocate(rNuION, rNu0b,  rNuL,   rNuiCX,  rNubCX,  rNuiCXT)
+    deallocate(rNuei,  rNuii,  rNuiz,  rNuTei,  rNuTez,  rNuTiz)
+    deallocate(rNuOL,  rNuD)
+    deallocate(WPM,    FVpch,  FQLcoef,FQLcoef1,FQLcoef2)
+    deallocate(rNuB,   rNuLB,  ft,     VWpch)
+    deallocate(D01,    D02,    D03,    D0z)
+    deallocate(UgV,    PNbVinv,Vbpara)
+    deallocate(Ubrp,   RUbrp,  Dbrp,   DltRP,   DltRP_mid)
+    deallocate(rNubL,  rip_rat,rNubrp1,rNubrp2)
+    deallocate(Dfs,    rMus,   Chis,   ChiNCp,  ChiNCt) 
+    deallocate(rNu0s,  rNuLTs, rNuAss, Vhps,    Vmps,   PiRess)
+    deallocate(gamITG)
+    deallocate(SiVizA, SiVcxA, SiVa6A, SiVsefA, wexb)
+
+    deallocate(xmu, xmuf, lab, laf, lfb, lff, BnablaPi, gflux, cL31, mxneo, fmneo, gamneo)
+    deallocate(BVsdiag, BusparNCL, UsthNCL, QsthNCL)
+
+    deallocate(aat, rrt, ckt, suft, sst, vro, vlt, rhov, art, epst, ait, elip, trig, rtt, rpt, drhodr)
+    deallocate(fipol, Bpsq, qhatsq, Fqhatsq, BEpara, bri)
+    deallocate(sdt, hdt, bit, bbrt, gtti)
+
+    deallocate(rG1h2,  FCDBM,  S,     Alpha, rKappa)
+    deallocate(rG1h2IM, FCDIM, RAQPR)  !***miki_m 09/06/17~
+
+    deallocate(PNB,   PNBTG, PNBPD, PNBcol_e, PNBcol_i)
+    deallocate(SNB,   SNBe,  SNBi,  SNBb,   SNBPDi, SNBTGi,  MNB)
+    deallocate(PNBe,  PNBi,  PNBz,  PRFe,   PRFi,   PRFz)
+    deallocate(POH,   PEQei, PEQez, PEQiz)
+    deallocate(SiLC,  SiLCB, SiLCph,PALFe,  PALFi,  PALFz)
+    deallocate(PIE,   PCX,   SIE,   SCX,    PBr)
+    deallocate(BSmb,  Tqt,   Tqp)
+    deallocate(RatCX, ratecxb)
+    deallocate(POHs)
+
+    deallocate(Q, AJ, BJPARA, AJOH, BJOH, AJRF, BJRF)
+    deallocate(AJNB, BJNB, AJBS, BJBS)
+    deallocate(ETA, ETAS, AJV)
+    deallocate(BJBSvar, ETAvar)
+
+    deallocate(dPsdpsi, dTsdpsi)
+
+    deallocate(ANS0, TS0, ANSAV, TSAV, WST)
+    deallocate(ANF0, TF0, ANFAV, TFAV, WFT)
+    deallocate(PBCLT, PFCLT, PLT, SPET, SLT)
+    deallocate(PoyntS, PoyntI, PoyntR, CPsi, CPsi_old, VPoynt)
+    deallocate(thrp, qneut)
+    deallocate(PnumN0)
+    deallocate(Deff)
+
+    deallocate(ALC, BLC, CLC)
+    deallocate(PLC)
+    deallocate(NLC,NLCR,NLCMAX)
+    deallocate(X, XOLD)
+
 !    deallocate(rNueHL, rNuiHL, rNueHLthth, rNuiHLthth, rNueHLthph, &
 !         &     rNuiHLthph, rNueHLphth, rNuiHLphth, rNueHLphph, &
 !         &     rNuiHLphph)
@@ -522,55 +616,7 @@ contains
          &     rNueHLphth, rNuiHLphth, rNueHLphph, rNuiHLphph, &
          &     rNueHLththM, rNueHLthphM, rNueHLphthM, rNueHLphphM, &
          &     rNuiHLththM, rNuiHLthphM, rNuiHLphthM, rNuiHLphphM) ! miki_m 10-08-06
-    deallocate(WPM,   FVpch, FQLcoef, FQLcoef1, FQLcoef2)
-    deallocate(rMue,  rMui)
-    deallocate(rNuB,   rNuLB,  ft,    Chie,  Chii)
-    deallocate(De,     Di,     VWpch, D01,   D02,  D03)
-    deallocate(ChiNCpe,ChiNCte,ChiNCpi,ChiNCti)
-    deallocate(Ubrp,   RUbrp,  Dbrp,  DltRP, DltRP_mid, rNubL)
-    deallocate(rip_rat,rNuOL,  Vbpara)
-    deallocate(gamITG)
-    deallocate(DMAG,   DMAGe,  DMAGi)  !***AF (2008-06-08)
-    deallocate(SiVizA, SiVcxA, wexb)
-    deallocate(UgV,    PNbVinv)
-    deallocate(Vhps,   Vmps,   PiRess)
-
-    deallocate(xmu, xmuf, lab, laf, lfb, lff, BnablaPi, gflux, mxneo, fmneo, gamneo)
-
-    deallocate(aat, rrt, ckt, suft, sst, vro, vlt, rhov, art, epst, ait, elip, trig)
-    deallocate(fipol, Bpsq, qhatsq, Fqhatsq, BEpara, bri)
-    deallocate(sdt, hdt)
-    deallocate(bit, bbrt)
-
-    deallocate(rG1h2,  FCDBM,  S,     Alpha, rKappa)
-    deallocate(pres0,  ErV0)
-
-    deallocate(rG1h2IM, FCDIM, RAQPR)  !***miki_m 09/06/17~
-
-    deallocate(PNB,    PNBTG, PNBPD, PNBcol_e, PNBcol_i)
-    deallocate(SNB,    SNBe,  SNBi,  SNBb,   SNBPDi, SNBTGi)
-    deallocate(PNBe,   PNBi,  MNB,   PRFe,   PRFi)
-    deallocate(POH,    POHe,  POHi,  PEQe,   PEQi)
-    deallocate(SiLC,   SiLCB, SiLCph,PALFe,  PALFi)
-    deallocate(PIE,    PCX,   SIE,   SCX,    PBr)
-    deallocate(BSmb,   Tqt,   Tqp)
-
-    deallocate(Q, AJ, BJPARA, AJOH, BJOH, AJV)
-    deallocate(AJRF, AJNB, BJNB, BJBS, AJBS)
-    deallocate(ETA, ETAS)
-    deallocate(BJBSvar, ETAvar)
-
-    deallocate(dPsdpsi, dTsdpsi)
-
-    deallocate(ANS0, TS0, ANSAV, TSAV, WST)
-    deallocate(ANF0, TF0, ANFAV, TFAV, WFT)
-    deallocate(PBCLT, PFCLT, PLT, SPET, SLT)
-    deallocate(Deff, thrp)
-
-    deallocate(ALC, BLC, CLC)
-    deallocate(PLC)
-    deallocate(NLC,NLCR,NLCMAX)
-    deallocate(X, XOLD)
+    deallocate(DMAG, DMAGe, DMAGi)  !***AF (2008-06-08)
 
     if(allocated(infiles)) deallocate(infiles)
 

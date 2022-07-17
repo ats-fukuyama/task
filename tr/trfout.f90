@@ -363,8 +363,11 @@ CONTAINS
         INTEGER:: NR,NTL
         
         WRITE(NFL,'(A,A,I6,A,I6)') TITLE,', NRMAX=',NRMAX,', NTLMAX= ',NTLMAX
-        WRITE(KFORM,'(A,I6,A)') '(',NTLMAX,'(ES14.6,","),ES14.6)'
-        WRITE(NFL,KFORM) 0.D0,(GT(NTL),NTL=1,NTLMAX)
+        WRITE(KFORM,'(A,I6,A)') '(A,',NTLMAX,'(",",ES14.6))'
+        WRITE(6,'(A)') KFORM
+        WRITE(NFL,KFORM) TITLE,(GT(NTL),NTL=1,NTLMAX)
+        WRITE(KFORM,'(A,I6,A)') '(ES14.6,',NTLMAX,'(",",ES14.6))'
+        WRITE(6,'(A)') KFORM
         DO NR=1,NRMAX
            WRITE(NFL,KFORM) GR(NR),(GF(NR,NTL),NTL=1,NTLMAX)
         END DO

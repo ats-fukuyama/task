@@ -10,32 +10,35 @@ contains
 !***************************************************************
 
   subroutine tx_matrix_inversion(NR,ETAout,BJBSout, &
-       &                         ChiNCpel,ChiNCtel,ChiNCpil,ChiNCtil, &
+       &                         ChiNCpl,ChiNCtl, &
        &                         ddPhidpsi_in,MDLNEOL)
     use tx_commons
     use tx_interface, only : coll_freq, ftfunc, corr
     integer(4), intent(in) :: NR, MDLNEOL
-    real(8), intent(in) :: ddPhidpsi_in
-    real(8), intent(out) :: ETAout, BJBSout, ChiNCpel, ChiNCtel, ChiNCpil, ChiNCtil
-    integer(4) :: imodel(10), ibeam, NSMB, i, j, i1, i2, idebug = 0, MDLNEOLgflux, icoebdc
+    real(8), intent(in)  :: ddPhidpsi_in
+    real(8), intent(out) :: ETAout, BJBSout, ChiNCpl(:), ChiNCtl(:)
+    integer(4) :: imodel(6)
+    integer(4) :: ibeam, NSMB, i, j, i1, i2, MDLNEOLgflux, icoebdc
     real(8) :: fbeam, sqzfaccoef, coencc, bjsum, ftl, fac, facee, epsL, &
-         &     fac2, fac3, gflxbp, gflxps, gflxware, coefmneo
-    real(8) :: vdiamg1, vdiamg2, renorm, rbanana
+         &     fac2, fac3, gflxbp, gflxps, gflxware, coefmneo, dPhidpsi, &
+         &     eta_alt, sigma_alt
+    real(8) :: vdiamg1, vdiamg2, renorm1, renorm2, rbanana
     real(8) :: smallvalue = 1.d-4
     real(8), dimension(:), allocatable :: PNsVL, PTsVL, amasL, achgL, sqzfac, xsta, coebdc
     real(8), dimension(:,:), allocatable :: ztau, coebsc, amat, bmat, cmat, dmat, alf, &
          & chipBP, chiTBP, chipPS, chiTPS, DpBP, DTBP, DpPS, DTPS, vohm
 
-    imodel(1) = 0 ! Fast ion viscosity
-    imodel(2) = 1 ! Required for NBCD
-    imodel(3) = 2 ! Fast ion contribution to friction forces
-    imodel(4) = 0 ! Unused
-    imodel(5) = 0 ! PS contribution nil when 1
-    imodel(6) = 3 ! Higher-order flow contribution, valid only for nccoe
+!!$    imodel(1) = 0 ! Fast ion viscosity
+!!$    imodel(2) = 1 ! Required for NBCD
+!!$    imodel(3) = 2 ! Fast ion contribution to friction forces
+!!$    imodel(4) = 0 ! Unused
+!!$    imodel(5) = 0 ! PS contribution nil when 1
+!!$    imodel(6) = 3 ! Higher-order flow contribution, valid only for nccoe
+    imodel(:) = imodel_neo(:)
 
     fbeam = 0.d0 ! 0: fast ion viscosity computed, 1: nil
 
-    if(PNBH == 0.D0 .and. PNbV(NR) < 1.D-8) then
+    if(PNBH == 0.d0 .and. PNbV(NR) < 1.D-8) then
        ibeam = 0
        NSMB  = NSM
     else
@@ -45,12 +48,16 @@ contains
 
     icoebdc = NSM + 1 + 2 ! thermal species + beam species + 2 model
 
-    allocate(PNsVL(NSMB),PTsVL(NSMB),amasL(NSMB),achgL(NSMB),sqzfac(NSMB),xsta(NSMB))
+    allocate(amasL(NSMB))
+    allocate(PNsVL,PTsVL,achgL,sqzfac,xsta,mold=amasL)
+
+    allocate(coebsc(NSMB,2),coebdc(icoebdc),vohm(NSM,2))
+
+    allocate(amat(2*NSMB,2*NSMB))
+    allocate(bmat,cmat,dmat,alf,mold=amat)
+
     allocate(ztau(NSM,NSM))
-    allocate(coebsc(NSMB,2),coebdc(icoebdc),amat(2*NSMB,2*NSMB),bmat(2*NSMB,2*NSMB), &
-         &   cmat(2*NSMB,2*NSMB),dmat(2*NSMB,2*NSMB),alf(2*NSMB,2*NSMB),vohm(NSM,2))
-    allocate(chipBP(NSM,NSM),chiTBP(NSM,NSM),chipPS(NSM,NSM),chiTPS(NSM,NSM))
-    allocate(DpBP(NSM,NSM),DTBP(NSM,NSM),DpPS(NSM,NSM),DTPS(NSM,NSM))
+    allocate(chipBP,chiTBP,chipPS,chiTPS,DpBP,DTBP,DpPS,DTPS,mold=ztau)
 
     amasL(1:NSM) = amas(1:NSM)
     achgL(1:NSM) = achg(1:NSM)
@@ -77,7 +84,7 @@ contains
        if(NR /= 0) then
           rbanana = sqrt(epsL)*amas(i)*amqp/(abs(achg(i))*BthV(NR)) &
                &   *sqrt(2.d0*Var(NR,i)%T*rKeV/(amas(i)*amp)) ! banana width
-          if(r(NR) < rbanana) fac = 0.d0
+          if(rpt(NR) < rbanana) fac = 0.d0
        end if
        sqzfac(i)  = 1.d0 + fac * sqzfaccoef*amas(i)/abs(achg(i))
     end do
@@ -99,7 +106,7 @@ contains
        if(NR /= 0) then
           rbanana = sqrt(epsL)*amb*amqp/(abs(achgb)*BthV(NR)) &
                &   *sqrt(2.d0*PTsVL(NSMB)*aee/(amb*amp)) ! banana width
-          if(r(NR) < rbanana) fac = 0.d0
+          if(rpt(NR) < rbanana) fac = 0.d0
        end if
        sqzfac(NSMB) = 1.d0 + fac * sqzfaccoef*amb/abs(achgb)
        xsta(NSMB)   = 0.d0
@@ -115,7 +122,7 @@ contains
        !-- Call Matrix Inversion (nccoe)
        call nccoe (coebsc,coencc,coebdc,amat,bmat,cmat,dmat,alf &
             &     ,PNsVL,PTsVL,amasL,achgL,mxneo(NR),fmneo(1,NR),gamneo(NR),ftl,sqzfac,ztau &
-            &     ,NSM,ibeam,imodel,fbeam,idebug)
+            &     ,NSM,ibeam,imodel,fbeam,midbg(1))
        MDLNEOLgflux = 2
     end if
 
@@ -127,17 +134,41 @@ contains
     else
        ! coencc sometimes becomes nought at axis.
        ! In such a case, eta is replaced by the Spitzer resistivity.
-       ETAout = corr(1.D0) * amas(1) * amqp * rNuei(NR) / (Var(NR,1)%n * 1.d20 * AEE)
+       ETAout = corr(1.d0) * amas(1) * amqp * rNuei(NR) / (Var(NR,1)%n * 1.d20 * AEE)
     end if
+
+!    !-- Alternative expression of neoclassical resistivity
+!    sigma_alt = 0.d0
+!    do i1 = 1, NSMB
+!       do i2 = 1, NSMB
+!          sigma_alt = sigma_alt - achg(i1) * aee * Var(NR,i1)%n * 1.d20 &
+!               &    * ztau(i2,i2) * achg(i2) / ( amas(i2) * amqp ) * cmat(i1,i2)
+!       end do
+!    end do
+!    eta_alt = 1.d0 / sigma_alt
+!    write(230,'(F8.5,2ES15.7)') rho(NR), ETAout, eta_alt
+
+    ! L_31
+    cL31(NR,1:NSM) = coebsc(1:NSM,1)
 
     !-- Bootstrap current
     bjsum = sum(Var(NR,1:NSM)%T * rKeV / abs(achg(1:NSM)) &
             & * (  coebsc(1:NSM,1) * dPsdpsi(NR,1:NSM) / Var(NR,1:NSM)%p &
             &    + coebsc(1:NSM,2) * dTsdpsi(NR,1:NSM) / Var(NR,1:NSM)%T))
     BJBSout = - fipol(NR) * Var(NR,1)%n * 1.d20 * bjsum
-!    write(6,'(I3,1P6E15.7)') nr,coebsc(1:NSM,1),dPsdpsi(NR,1:NSM),Var(NR,1:NSM)%p
 
-!    !     alternative way of computing bootstrap current
+!    !-- Alternative expression of bootstrap current
+!    bjsum = 0.d0
+!    do i1 = 1, NSM
+!       bjsum = bjsum + Var(NR,i1)%T * rKeV / achg(i1) &
+!            &   *(    sum(achg(1:NSM) * Var(NR,1:NSM)%n * 1.d20 * alf(1:NSM,i1     )) &
+!            &       * dPsdpsi(NR,i1) / Var(NR,i1)%p &
+!            &     -   sum(achg(1:NSM) * Var(NR,1:NSM)%n * 1.d20 * alf(1:NSM,i1+NSMB)) &
+!            &       * dTsdpsi(NR,i1) / Var(NR,i1)%T)
+!    end do
+!    BJBSout = bjsum * fipol(NR)
+
+!    !-- Another alternative expression of bootstrap current
 !    bjsum = 0.d0
 !    do i1 = 1, NSM
 !       do i2 = 1, NSM
@@ -149,28 +180,29 @@ contains
 !    BJBSout = bjsum * aee * 1.d20
 
     !-- Neoclassical viscosities
-    !     Note: bmat is normalized by n_a m_a/tau_aa
+    !     Note: bmat [-] is normalized by n_a m_a/tau_aa.
+    !           xmu [kg/(m^3s)]
     do i1 = 1, NSM
        fac = amas(i1) * amp * Var(NR,i1)%n * 1.d20 / ztau(i1,i1)
-       xmu(NR,i1,1,1) = FSNC * bmat(i1     ,i1     ) * fac
-       xmu(NR,i1,1,2) =-FSNC * bmat(i1     ,i1+NSMB) * fac
-       xmu(NR,i1,2,1) =-FSNC * bmat(i1+NSMB,i1     ) * fac
-       xmu(NR,i1,2,2) = FSNC * bmat(i1+NSMB,i1+NSMB) * fac
+       xmu(NR,i1,1,1) = FSNC(1) * bmat(i1     ,i1     ) * fac
+       xmu(NR,i1,1,2) =-FSNC(1) * bmat(i1     ,i1+NSMB) * fac
+       xmu(NR,i1,2,1) =-FSNC(1) * bmat(i1+NSMB,i1     ) * fac
+       xmu(NR,i1,2,2) = FSNC(1) * bmat(i1+NSMB,i1+NSMB) * fac
     enddo
     !-- Beam neoclassical viscosities
     if( ibeam == 0 ) then
        xmuf(NR,1:2) = 0.d0
     else
        facee = amas(1) * amp * Var(NR,1)%n * 1.d20 / ztau(1,1)
-       xmuf(NR,1) = FSNCB * bmat(NSMB     ,NSMB     ) * facee ! fast ion viscosity
-       xmuf(NR,2) = FSNCB * bmat(NSMB+NSMB,NSMB+NSMB) * facee ! fast ion heat viscosity
+       xmuf(NR,1) = FSNCB(1) * bmat(NSMB     ,NSMB     ) * facee ! fast ion viscosity
+       xmuf(NR,2) = FSNCB(1) * bmat(NSMB+NSMB,NSMB+NSMB) * facee ! fast ion heat viscosity
        if(NR == 0) xmuf(NR,1:2) = 0.d0
     end if
 
     !-- Fricrion coefficients normalized by m_a n_a : lab(NR,i,j,k,l)/(m_a n_a)
     !     Note: amat is normalized by n_a m_a/tau_aa
     do i1 = 1, NSM
-       fac = 1.d0 / ztau(i1,i1)
+       fac = 1.d0 / ztau(i1,i1) * FSNC(2)
        do i2 = 1, NSM
           lab(NR,i1,i2,1,1) = amat(i1     ,i2     ) * fac
           lab(NR,i1,i2,1,2) = amat(i1     ,i2+NSMB) * fac
@@ -187,9 +219,9 @@ contains
        lfb(NR,1:NSM,1:2,1:2) = 0.d0
        lff(NR,1:2,1:2) = 0.d0
     else
-       facee = 1.d0 / ztau(1,1)
+       facee = 1.d0 / ztau(1,1) * FSNCB(2)
        do i1 = 1, NSM
-          fac = 1.d0 / ztau(i1,i1)
+          fac = 1.d0 / ztau(i1,i1) * FSNCB(2)
           laf(NR,i1,1,1) = amat(i1     ,NSMB     ) * fac
           laf(NR,i1,1,2) = amat(i1     ,NSMB+NSMB) * fac
           laf(NR,i1,2,1) = amat(i1+NSMB,NSMB     ) * fac
@@ -210,42 +242,47 @@ contains
        vdiamg1 = 0.d0
        vohm(i1,:) = 0.d0
        vdiamg2 = 0.d0
+       ! Renormalization factor for i1 species
+       renorm1 = ztau(i1,i1) / (amas(i1) * amp * Var(NR,i1)%n)
        do i2 = 1, NSM
-          ! Renormalization factor
-          renorm = ztau(i2,i2) / (amas(i2) * amp * Var(NR,i2)%n)
+          ! Renormalization factor for i2 species
+          renorm2 = ztau(i2,i2) / (amas(i2) * amp * Var(NR,i2)%n)
           ! Diamagnetic parallel particle flow
           vdiamg1 = vdiamg1 - (  alf(i1     ,i2     ) * BVsdiag(NR,i2,1) &
                &               - alf(i1     ,i2+NSMB) * BVsdiag(NR,i2,2))
-!          if(i1==2.and.i2==2) write(6,'(I3,1P3E15.7)') nr,alf(i1     ,i2     ) * BVsdiag(NR,i2,1),- alf(i1     ,i2+NSMB) * BVsdiag(NR,i2,2),alf(i1     ,i2     ) * BVsdiag(NR,i2,1)- alf(i1     ,i2+NSMB) * BVsdiag(NR,i2,2)
+!          if(i1==2.and.i2==2) write(6,'(I3,3ES15.7)') nr,alf(i1     ,i2     ) * BVsdiag(NR,i2,1),- alf(i1     ,i2+NSMB) * BVsdiag(NR,i2,2),alf(i1     ,i2     ) * BVsdiag(NR,i2,1)- alf(i1     ,i2+NSMB) * BVsdiag(NR,i2,2)
           ! Ohmic parallel particle flow
-          vohm(i1,1) = vohm(i1,1) -   cmat(i1     ,i2     ) * achg(i2) * Var(NR,i2)%n * renorm
+          vohm(i1,1) = vohm(i1,1) - ( cmat(i1     ,i2     ) * renorm2 ) * achg(i2) * Var(NR,i2)%n
           ! Diamagnetic parallel heat flow
           vdiamg2 = vdiamg2 - (- alf(i1+NSMB,i2     ) * BVsdiag(NR,i2,1) &
                &               + alf(i1+NSMB,i2+NSMB) * BVsdiag(NR,i2,2))
           ! Ohmic parallel heat flow
-          vohm(i1,2) = vohm(i1,2) - (-cmat(i1+NSMB,i2     ))* achg(i2) * Var(NR,i2)%n * renorm
-!          write(6,'(I3,2I2,1P3E15.7)') nr,i1,i2,amat(i1     ,i2     )-bmat(i1     ,i2     ),amat(i1     ,i2+NSMB)-bmat(i1     ,i2+NSMB),cmat(i1     ,i2     )
-!          write(6,'(I3,2I2,1P3E15.7)') nr,i1,i2,amat(i1     ,i2     )-bmat(i1     ,i2     ),amat(i1     ,i2     ),-bmat(i1     ,i2     )
+          vohm(i1,2) = vohm(i1,2) - (-cmat(i1+NSMB,i2     ) * renorm2) * achg(i2) * Var(NR,i2)%n
+!          vohm(i1,2) = vohm(i1,2) - (-cmat(i2     ,i1+NSMB) * renorm1 )* achg(i2) * Var(NR,i2)%n
+!          write(6,'(I3,2I2,3ES15.7)') nr,i1,i2,(-cmat(i1+NSMB,i2     ) * renorm2 )* achg(i2) * Var(NR,i2)%n &
+!               &                              ,(-cmat(i2     ,i1+NSMB) * renorm1 )* achg(i2) * Var(NR,i2)%n
        end do
-!!$       end do
        vohm(i1,:) = vohm(i1,:) * aee * BEpara(NR)
 
        ! Parallel particle and heat flows
-       UsparNCL(NR,i1,1) = vdiamg1 + vohm(i1,1) ! particle
-       UsparNCL(NR,i1,2) = vdiamg2 + vohm(i1,2) ! heat
+       BusparNCL(NR,i1,1) = vdiamg1 + vohm(i1,1) ! particle
+       BusparNCL(NR,i1,2) = vdiamg2 + vohm(i1,2) ! heat
        ! Poloidal particle flows
        UsthNCL(NR,i1,1) = ( vdiamg1 - BVsdiag(NR,i1,1) ) / bbt(NR) ! diamag component
        UsthNCL(NR,i1,2) = vohm(i1,1) / bbt(NR) ! <E.B>  component
+       ! Poloidal heat flows
+       QsthNCL(NR,i1,1) = ( vdiamg2 - BVsdiag(NR,i1,2) ) / bbt(NR) ! diamag component
+       QsthNCL(NR,i1,2) = vohm(i1,2) / bbt(NR) ! <E.B>  component
     end do
 
     !-- <B.nabla.Pi> for viscous heating
     do i1 = 1, NSM
-       BnablaPi(NR,i1) = sum(xmu(NR,i1,1,1:2) * ( UsparNCL(NR,i1,1:2) - BVsdiag(NR,i1,1:2) ))
+       BnablaPi(NR,i1) = sum(xmu(NR,i1,1,1:2) * ( BusparNCL(NR,i1,1:2) - BVsdiag(NR,i1,1:2) ))
     end do
 
     !-- Neoclassical heat diffusivities
     if( NR /= 0 ) then
-       fac = fipol(NR)**2 / (bbt(NR) * (sst(NR) * sdt(NR)**2))
+       fac = fipol(NR)**2 / (bbt(NR) * (sst(NR) * sdt(NR)**2)) ! I^2/(<B^2><|grad psi|^2>)
     else
        fac = 0.d0
     end if
@@ -253,7 +290,7 @@ contains
        do i2 = 1, NSM
           fac2 = fac * (    amas(i1) * amqp * Var(NR,i2)%T * rKilo &
                &        / ( achg(i1) * achg(i2) * ztau(i1,i1) ) )
-          ! Classical + Pfirsch-Shluter
+          ! Classical + Pfirsch-Schluter
           chipPS(i1,i2) = (bri(NR) / fipol(NR)**2) * amat(i1+NSMB,i2     ) * fac2
           chiTPS(i1,i2) =-(bri(NR) / fipol(NR)**2) * amat(i1+NSMB,i2+NSMB) * fac2
           ! Banana-Plateau
@@ -269,20 +306,16 @@ contains
                   &           + bmat(i1+NSMB,i1+NSMB) * (1.d0 + alf(i1+NSMB,i2+NSMB))) * fac2
           end if
        end do
+       ChiNCpl(i1) = ChiNC * (chipBP(i1,i1) + chipPS(i1,i1))
+       ChiNCtl(i1) = ChiNC * (chiTBP(i1,i1) + chiTPS(i1,i1))
     end do
-    ChiNCpel = ChiNC * (chipBP(1,1) + chipPS(1,1))
-    ChiNCtel = ChiNC * (chiTBP(1,1) + chiTPS(1,1))
-    ChiNCpil = ChiNC * (chipBP(2,2) + chipPS(2,2))
-    ChiNCtil = ChiNC * (chiTBP(2,2) + chiTPS(2,2))
-!    write(6,*) NR,ChiNCpil,ChiNCtil
-!    write(6,*) NR,chiTBP(2,2),chiTPS(2,2)
 
     !-- Neoclassical particle diffusivities
     do i1 = 1, NSM
        do i2 = 1, NSM
           fac2 = fac * (    amas(i1) * amqp * Var(NR,i2)%T * rKilo &
                &        / ( achg(i1) * achg(i2) * ztau(i1,i1) ) )
-          ! Classical + Pfirsch-Shluter
+          ! Classical + Pfirsch-Schluter
           DpPS(i1,i2) =-(bri(NR) / fipol(NR)**2) * amat(i1     ,i2     ) * fac2
           DTPS(i1,i2) = (bri(NR) / fipol(NR)**2) * amat(i1     ,i2+NSMB) * fac2
           ! Banana-Plateau
@@ -303,26 +336,182 @@ contains
     !-- Neoclassical particle flux: gflux = <Gamma . nabla psi>
     fac2 = fac / fipol(NR)
     fac3 = fac2 * BEpara(NR)
+    dPhidpsi = dPhidV(NR) / sdt(NR)
     do i1 = 1, NSM
        gflxbp   = 0.d0
        gflxps   = 0.d0
        gflxware = 0.d0
+       ! dPhidpsi term would vanish in the case of l_{ij}^{ab}=l_{ji}^{ba} by the summation over i2.
        do i2 = 1, NSM
           gflxbp   = gflxbp   + DpBP(i1,i2) * dPsdpsi(NR,i2) / Var(NR,i2)%p &
-               &              + DTBP(i1,i2) * dTsdpsi(NR,i2) / Var(NR,i2)%T
+               &              + DTBP(i1,i2) * dTsdpsi(NR,i2) / Var(NR,i2)%T &
+               &              + DpBP(i1,i2) * achg(i2) / (Var(NR,i2)%T * rKilo) * dPhidpsi
           gflxps   = gflxps   + DpPS(i1,i2) * dPsdpsi(NR,i2) / Var(NR,i2)%p &
-               &              + DTPS(i1,i2) * dTsdpsi(NR,i2) / Var(NR,i2)%T
-          gflxware = gflxware + fac3 * (achg(i2) * Var(NR,i2)%n) / (achg(i1) * Var(NR,i1)%n) &
-               &                     * (  bmat(i1     ,i1     ) * ( cmat(i2     ,i1     )) &
-               &                        + bmat(i1     ,i1+NSMB) * ( cmat(i2     ,i1+NSMB)))! &
+               &              + DTPS(i1,i2) * dTsdpsi(NR,i2) / Var(NR,i2)%T &
+               &              + DpPS(i1,i2) * achg(i2) / (Var(NR,i2)%T * rKilo) * dPhidpsi
+!!$          gflxware = gflxware + fac3 * (achg(i2) * Var(NR,i2)%n) / (achg(i1) * Var(NR,i1)%n) &
+!!$               &                     * (  bmat(i1     ,i1     ) * ( cmat(i2     ,i1     )) &
+!!$               &                        + bmat(i1     ,i1+NSMB) * ( cmat(i2     ,i1+NSMB)))
+          gflxware = gflxware + fac3 * (amas(i1) * achg(i2) * ztau(i2,i2)) &
+               &                     / (amas(i2) * achg(i1) * ztau(i1,i1)) &
+               &                     * (  bmat(i1     ,i1     ) *  cmat(i1     ,i2     ) &
+               &                        + bmat(i1     ,i1+NSMB) *  cmat(i1+NSMB,i2     ))
        end do
-!!$       gflxware = - fac2 * (amas(i1) * amqp) / (ztau(i1,i1) * achg(i1)) &
-!!$            &   * (  bmat(i1     ,i1     ) * vohm(i1,1) &
-!!$            &      - bmat(i1     ,i1+NSMB) * vohm(i1,2) )
 
        gflux(NR,i1,MDLNEOLgflux) = Var(NR,i1)%n * 1.d20 * (sst(NR) * sdt(NR)**2) &
             &                    * ( -( gflxbp + gflxps ) + gflxware )
+
+       ! For JSPF meeting 2020
+       if( mod(midbg(2),2) == 1 ) then ! midbg(2) == 1 or 3
+          select case(i1)
+          case(1)
+             write(210,'(F8.5,i2,4ES15.7)') rho(nr), i1 &
+                  &     , - achg(i1) * Var(NR,i1)%n * 1.d20 * (sst(NR) * sdt(NR)**2) * gflxbp &
+                  &     , - achg(i1) * Var(NR,i1)%n * 1.d20 * (sst(NR) * sdt(NR)**2) * gflxps &
+                  &     ,   achg(i1) * Var(NR,i1)%n * 1.d20 * (sst(NR) * sdt(NR)**2) * gflxware &
+                  &     ,   achg(i1) * gflux(NR,i1,MDLNEOLgflux)
+             write(213,'(F8.5,i2,3ES15.7)') rho(nr), i1 &
+                  &     , - (sst(NR) * sdt(NR)**2) * gflxbp &
+                  &     , - (sst(NR) * sdt(NR)**2) * gflxps &
+                  &     ,   (sst(NR) * sdt(NR)**2) * gflxware
+          case(2)
+             write(211,'(F8.5,i2,4ES15.7)') rho(nr), i1 &
+                  &     , - achg(i1) * Var(NR,i1)%n * 1.d20 * (sst(NR) * sdt(NR)**2) * gflxbp &
+                  &     , - achg(i1) * Var(NR,i1)%n * 1.d20 * (sst(NR) * sdt(NR)**2) * gflxps &
+                  &     ,   achg(i1) * Var(NR,i1)%n * 1.d20 * (sst(NR) * sdt(NR)**2) * gflxware &
+                  &     ,   achg(i1) * gflux(NR,i1,MDLNEOLgflux)
+             write(214,'(F8.5,i2,3ES15.7)') rho(nr), i1 &
+                  &     , - (sst(NR) * sdt(NR)**2) * gflxbp &
+                  &     , - (sst(NR) * sdt(NR)**2) * gflxps &
+                  &     ,   (sst(NR) * sdt(NR)**2) * gflxware
+          case(3)
+             write(212,'(F8.5,i2,4ES15.7)') rho(nr), i1 &
+                  &     , - achg(i1) * Var(NR,i1)%n * 1.d20 * (sst(NR) * sdt(NR)**2) * gflxbp &
+                  &     , - achg(i1) * Var(NR,i1)%n * 1.d20 * (sst(NR) * sdt(NR)**2) * gflxps &
+                  &     ,   achg(i1) * Var(NR,i1)%n * 1.d20 * (sst(NR) * sdt(NR)**2) * gflxware &
+                  &     ,   achg(i1) * gflux(NR,i1,MDLNEOLgflux)
+             write(215,'(F8.5,i2,3ES15.7)') rho(nr), i1 &
+                  &     , - (sst(NR) * sdt(NR)**2) * gflxbp &
+                  &     , - (sst(NR) * sdt(NR)**2) * gflxps &
+                  &     ,   (sst(NR) * sdt(NR)**2) * gflxware
+          end select
+       end if
+          
     end do
+
+    !-- Check Onsager symmetry in banana-plateau regime
+
+    if( midbg(2) >= 2 ) then ! midbg(2) == 2 or 3
+       block
+         integer :: k
+         real(8) :: g1a(NSM), L13a(NSM)
+         real(8) :: Lmat(3,3,NSM,NSM)
+
+         ! Define transport coefficients
+         do i1 = 1, NSM
+            fac = Var(NR,i1)%n * 1.d20 * (sst(NR) * sdt(NR)**2)
+            do i2 = 1, NSM
+               Lmat(1,1,i1,i2) = -   DpBP(i1,i2) * fac
+               Lmat(1,2,i1,i2) = -   DTBP(i1,i2) * fac
+               Lmat(2,1,i1,i2) = - chipBP(i1,i2) * fac
+               Lmat(2,2,i1,i2) = - chiTBP(i1,i2) * fac
+               Lmat(1,3,i1,i2) =   fipol(NR) * Var(NR,i1)%n * 1.d20 / (achg(i1) * aee) &
+                    &           * amas(i1) / amas(i2) * ztau(i2,i2) / ztau(i1,i1) &
+                    &           * (  bmat(i1     ,i1     ) *  cmat(i1     ,i2     ) &
+                    &              + bmat(i1     ,i1+NSMB) *  cmat(i1+NSMB,i2     ))
+               Lmat(2,3,i1,i2) =   fipol(NR) * Var(NR,i1)%n * 1.d20 / (achg(i1) * aee) &
+                    &           * amas(i1) / amas(i2) * ztau(i2,i2) / ztau(i1,i1) &
+                    &           * (- bmat(i1     ,i1+NSMB) *  cmat(i1     ,i2     ) &
+                    &              - bmat(i1+NSMB,i1+NSMB) *  cmat(i1+NSMB,i2     ))
+               Lmat(3,1,i1,i2) = - fipol(NR) * Var(NR,i1)%n * 1.d20 / (achg(i2) * aee) * alf(i1,i2     )
+               Lmat(3,2,i1,i2) =   fipol(NR) * Var(NR,i1)%n * 1.d20 / (achg(i2) * aee) * alf(i1,i2+NSMB)
+               Lmat(3,3,i1,i2) =   bbt(NR) * achg(i1) * achg(i2) * aee**2 * Var(NR,i1)%n * 1.d20 &
+                    &           * ztau(i2,i2) / (amas(i2) * amp) * bmat(i1,i2)
+            end do
+         end do
+
+         ! 217:
+         ! intrinsic ambipolarity:
+         !   sum_a e_a L_{1j}^{ab} = 0           => always valid
+         ! condition vanishing Phi dependence on fluxes
+         !   sum_a e_a L_{j1}^{ba} (T_b/T_a) = 0 => valid only with self-adjointness
+         do i2 = 1, NSM
+            write(217,'(F8.5,I2,4ES11.3)') rho(NR),i2 &
+                 & ,sum(achg(:)*aee*Lmat(1,1,:,i2)),sum(achg(:)*aee*Lmat(1,2,:,i2)) &
+                 & ,sum(achg(:)*aee*Lmat(1,1,i2,:)*(Var(NR,i2)%T/Var(NR,:)%T)) &
+                 & ,sum(achg(:)*aee*Lmat(2,1,i2,:)*(Var(NR,i2)%T/Var(NR,:)%T))
+         end do
+
+         ! 218: Onsager symmetry => valid only with self-adjointness
+         !   T_a L_{12}^{ab} = T_b L_{21}^{ba}
+         !       L_{3j}^{ab} =-L_{j3}^{ba} for j=1,2
+         !       L_{33}^{ab} = L_{33}^{ba}
+         do i1 = 1, NSM
+            do i2 = 1, NSM
+               write(218,'(F8.5,2I2,8ES11.3)') rho(NR),i1,i2 &
+                    & ,Var(NR,i1)%T*Lmat(1,2,i1,i2),Var(NR,i2)%T*Lmat(2,1,i2,i1) &
+                    & ,Lmat(3,1,i1,i2),-Lmat(1,3,i2,i1) &
+                    & ,Lmat(3,2,i1,i2),-Lmat(2,3,i2,i1) &
+                    & ,Lmat(3,3,i1,i2), Lmat(3,3,i2,i1)
+            end do
+         end do
+
+         ! 219: symmetric properties of (L-M)^{-1} => valid only with self-adjointness
+         !   (m_a n_a / tau_{aa}) \hat{\beta}_{ab}      = (m_b n_b / tau_{bb}) \hat{\beta}_{ba}
+         !   (m_a n_a / tau_{aa}) \hat{\beta}_{a+n,b}   = (m_b n_b / tau_{bb}) \hat{\beta}_{b,a+n}
+         !   (m_a n_a / tau_{aa}) \hat{\beta}_{a,b+n}   = (m_b n_b / tau_{bb}) \hat{\beta}_{b+n,a}
+         !   (m_a n_a / tau_{aa}) \hat{\beta}_{a+n,b+n} = (m_b n_b / tau_{bb}) \hat{\beta}_{b+n,a+n}
+         do i1 = 1, NSM
+            do i2 = 1, NSM
+               write(219,'(F8.5,2I2,8ES11.3)') rho(nr),i1,i2 &
+                    & ,cmat(i1    ,i2    )*amas(i1)*Var(NR,i1)%n/ztau(i1,i1) &
+                    & ,cmat(i2    ,i1    )*amas(i2)*Var(NR,i2)%n/ztau(i2,i2) &
+                    & ,cmat(i1+NSM,i2    )*amas(i1)*Var(NR,i1)%n/ztau(i1,i1) &
+                    & ,cmat(i2    ,i1+NSM)*amas(i2)*Var(NR,i2)%n/ztau(i2,i2) &
+                    & ,cmat(i1    ,i2+NSM)*amas(i1)*Var(NR,i1)%n/ztau(i1,i1) &
+                    & ,cmat(i2+NSM,i1    )*amas(i2)*Var(NR,i2)%n/ztau(i2,i2) &
+                    & ,cmat(i1+NSM,i2+NSM)*amas(i1)*Var(NR,i1)%n/ztau(i1,i1) &
+                    & ,cmat(i2+NSM,i1+NSM)*amas(i2)*Var(NR,i2)%n/ztau(i2,i2)
+            end do
+         end do
+
+         ! 220: momentum conservation (sum_a l_{1k}^{ab}=0) => always valid
+         do k = 1, 3
+            do i2 = 1, NSM
+               fac = 0.d0
+               do i1 = 1, NSM
+                  fac = fac + amas(i1)*amp*Var(NR,i1)%n*1.d20*lab(NR,i1,i2,1,k)
+               end do
+               write(220,'(F8.5,2I2,1ES11.3)') rho(NR),k,i2,fac
+            end do
+         end do
+
+         ! 221: momentum conservation (sum_b l_{k1}^{ab}=0) => valid only with self-adjointness
+         do k = 1, 3
+            do i1 = 1, NSM
+               fac = 0.d0
+               do i2 = 1, NSM
+                  fac = fac + amas(i1)*amp*Var(NR,i1)%n*1.d20*lab(NR,i1,i2,k,1)
+               end do
+               write(221,'(F8.5,2I2,1ES11.3)') rho(NR),k,i1,fac
+            end do
+         end do
+
+         ! 222: condition vanishing Phi dependence on fluxes => valid only with self-adjointness
+         !   sum_b alf_{ab}    = -1
+         !   sum_b alf_{a+n,b} = 0
+         do i1 = 1, NSM
+            fac  = 0.d0
+            fac2 = 0.d0
+            do i2 = 1, NSM
+               fac  = fac  + alf(i1     ,i2)
+               fac2 = fac2 + alf(i1+NSMB,i2)
+            end do
+            write(222,'(F8.5,I2,2ES11.3)') rho(NR),i1,fac,fac2
+         end do
+
+       end block
+    end if
 
     deallocate(PNsVL,PTsVL,amasL,achgL,sqzfac,xsta,ztau,coebsc,coebdc,amat,bmat,cmat,dmat,alf,vohm)
     deallocate(chipBP,chiTBP,chipPS,chiTPS,DpBP,DTBP,DpPS,DTPS)
@@ -398,11 +587,12 @@ contains
 !
 !=======================================================================
     use tx_commons, only : cnpi => Pi, cnmp => AMP, cnec => AEE
-    USE libinv
+    !    use lapack95, only : getrf, getri
+    use libinv, only : invmrd
     implicit none
 
 !:: argument
-    integer, intent(in) :: mxneo, ispc, ibeam, imodel(6), idebug
+    integer, intent(in) :: mxneo, ispc, ibeam, imodel(:), idebug
     real(8), intent(in) :: fmneo(10), gmneo, tpfneo, fbeam
     real(8), intent(in), dimension(:) :: den, tem, mas, zz, sqzfac
     real(8), intent(in), dimension(:,:) :: ztau
@@ -413,7 +603,8 @@ contains
     real(8), allocatable :: lab(:,:,:,:), mab(:,:,:,:), nab(:,:,:,:), vt(:), vtn(:), xmu(:,:,:)
     real(8), allocatable :: alph(:,:,:), alphhat(:,:,:), emat(:,:), fmat(:,:) &
          &   , delt(:,:), sumbc2(:), zast(:), zmas(:)
-    real(8), allocatable :: labtmp(:,:,:,:), labe(:,:,:,:), lab3(:,:,:)
+    real(8), allocatable :: laborg(:,:,:,:), laborgdef(:,:,:,:), labdef(:,:,:,:) &
+         &   , labnrl(:,:,:,:), lab3(:,:,:)
     real(8) :: dx, eb, ec, err, fac, fdp, fm, fp, gfun &
          &   , sint, sq3, tbdc, teff &
          &   , teff0, vb, vb2, vb3, vbc3, vc, vc3  &
@@ -431,6 +622,7 @@ contains
     real(8) :: funp, fundp
     integer :: i, i1, i2, i3, ib, ill, is, isp, isp2, ivmax &
          &   , j, j1, j2, js, k, m
+!    integer, allocatable :: ipiv(:)
 
 !=======================================================================
 !!   Standard
@@ -441,13 +633,22 @@ contains
     ivmax = 20    ! org. 100
 !<<total no. of particle species and matrix size>>
     isp=ispc+ibeam
-    allocate(lab(isp,isp,2,2), mab(isp,isp,3,3), nab(isp,isp,3,3), vt(isp), vtn(isp), xmu(isp,2,2))
-    allocate(alph(isp,isp,2), alphhat(isp,isp,2), emat(isp,isp), fmat(isp,isp), delt(isp,isp))
+    allocate(vt(isp))
+    allocate(vtn, zmas, zast, mold=vt)
+
+    allocate(lab(isp,isp,2,2))
+    allocate(mab(isp,isp,3,3))
+    allocate(nab, mold=mab)
+
+    allocate(xmu(isp,2,2)) ! Local variables. Different from xmu defined in tx_commons.
+    allocate(alph(isp,isp,2), alphhat(isp,isp,2))
+
+    allocate(emat(isp,isp))
+    allocate(fmat, delt, mold=emat)
     isp2=2*isp
 !<<ratio of trapped and passing particles>>
     xgt=tpfneo/(1.d0-tpfneo)
 !<<thermal velocity of bulk particles>>
-    allocate(zmas(isp), zast(isp))
     do i = 1, ispc
        zmas(i) = mas(i) * cnmp
        vt(i)   = sqrt( 2.0d0 * cnec * tem(i) / zmas(i) )
@@ -457,6 +658,7 @@ contains
     sq3=sqrt(3.d0)
 !=======================================================================
 !  friction coefficients for bulk particles
+!  viz., mab is M_{ab}^{ij} and nab, N_{ab}^{ij}
 !=======================================================================
     if(mod(imodel(6),2)==0) then
        do i1=1,ispc
@@ -529,7 +731,7 @@ contains
 !!$          do i2=1,ispc
 !!$             fac=tem(i1)/tem(i2)*vtn(i1)/vtn(i2)
 !!$             do j2=1,3
-!!$                write(6,'(3I2,1P3E15.7)') i1,i2,j2 &
+!!$                write(6,'(3I2,3ES15.7)') i1,i2,j2 &
 !!$                     & ,mab(i1,i2,1,j2),-fac*nab(i2,i1,1,j2),-nab(i1,i2,j2,1)
 !!$             enddo
 !!$          enddo
@@ -548,22 +750,22 @@ contains
              mab(i1,i2,1,1)=-            (1.d0+yab)/(1.d0+xab2)   *sqdnm ! M^00
              mab(i1,i2,1,2)=- 1.5d0     *(1.d0+yab)/(1.d0+xab2)**2*sqdnm ! M^01
              mab(i1,i2,1,3)=- 15.d0/8.d0*(1.d0+yab)/(1.d0+xab2)**3*sqdnm ! M^02
-             mab(i1,i2,2,1)=-(1.5d0     *(1.d0+yab) &
-                  &          +2.d0*xab2*(1.d0-yt)*(1.d0+2.5d0*xab2)) &
-                  &        /(1.d0+xab2)**2*sqdnm ! M^10
-!!             mab(i1,i2,2,1)=-0.5d0*(3.d0+xab2*(4.d0-yt &
-!!                  &                +10.d0*(1.d0-yt)*xab2))/(1.d0+xab2)**2*sqdnm ! M^10
+!!$             mab(i1,i2,2,1)=-(1.5d0     *(1.d0+yab) &
+!!$                  &          +2.d0*xab2*(1.d0-yt)*(1.d0+2.5d0*xab2)) &
+!!$                  &        /(1.d0+xab2)**2*sqdnm ! M^10
+             mab(i1,i2,2,1)=-0.5d0*(3.d0+xab2*(4.d0-yt &
+                  &                +10.d0*(1.d0-yt)*xab2))/(1.d0+xab2)**2*sqdnm ! M^10
              mab(i1,i2,2,2)=-0.25d0*(13.d0+xab2*(20.d0+9.d0*yt &
                   &        +xab2*(52.d0-6.d0*yt+xab2*30.d0*yt))) &
                   &        /(1.d0+xab2)**3*sqdnm ! M^11
              mab(i1,i2,2,3)=-3.d0/16.d0*(23.d0+xab2*(36.d0+19.d0*yt &
                   &                     +xab2*(2.d0*(59.d0-yt)+xab2*84.d0*yt))) &
                   &        /(1.d0+xab2)**4*sqdnm ! M^12
-             mab(i1,i2,3,1)=-(15.d0/8.d0*(1.d0+yab) &
-                  &          +xab2*3.d0*(1.d0-yt)*(1.d0+3.5d0*xab2)) &
-                  &        /(1.d0+xab2)**3*sqdnm ! M^20
-!!             mab(i1,i2,3,1)=-3.d0/8.d0*(5.d0+xab2*(8.d0-3.d0*yt &
-!!                  &                    +28.d0*(1.d0-yt)*xab2))/(1.d0+xab2)**3*sqdnm ! M^20
+!!$             mab(i1,i2,3,1)=-(15.d0/8.d0*(1.d0+yab) &
+!!$                  &          +xab2*3.d0*(1.d0-yt)*(1.d0+3.5d0*xab2)) &
+!!$                  &        /(1.d0+xab2)**3*sqdnm ! M^20
+             mab(i1,i2,3,1)=-3.d0/8.d0*(5.d0+xab2*(8.d0-3.d0*yt &
+                  &                    +28.d0*(1.d0-yt)*xab2))/(1.d0+xab2)**3*sqdnm ! M^20
              mab(i1,i2,3,2)=-1.d0/16.d0*(69.d0+xab2*(184.d0-19.d0*yt  &
                   &         +xab2*(348.d0*(2.d0-yt)+xab2*(84.d0*(4.d0-yt) &
                   &         +xab2* 280.d0*(1.d0-yt)))))      /(1.d0+xab2)**4*sqdnm ! M^21
@@ -582,7 +784,7 @@ contains
              nab(i1,i2,2,3)= 45.d0/16.d0*(5.d0+(7.d0*yt-2.d0)*xab2) &
                   &                      *xab4/(1.d0+xab2)**4*sqdnm ! N^12
              nab(i1,i2,3,1)= 15.d0/8.d0 *(1.d0+(5.d0*yt-4.d0)*xab2) &
-                  &                     /(1.d0+xab2)**3*sqdnm ! N^20
+                  &                           /(1.d0+xab2)**3*sqdnm ! N^20
              nab(i1,i2,3,2)= 75.d0/16.d0*(3.d0+(7.d0*yt-4.d0)*xab2) &
                   &                      *xab2/(1.d0+xab2)**4*sqdnm ! N^21
              nab(i1,i2,3,3)=525.d0/64.d0*(5.d0+(9.d0*yt-4.d0)*xab2) &
@@ -603,20 +805,20 @@ contains
 !!$                   mab(i1,i2,3,j2)=mab(i1,i2,3,j2)*tem(i2)/tem(i1)
 !!$                enddo
 !!$             endif
-!!$             write(6,'(2I2,1P4E15.7)') i1,i2 &
+!!$             write(6,'(2I2,4ES15.7)') i1,i2 &
 !!$                  & ,nab(i1,i2,1,2),nab(i2,i1,2,1)*yt/xab &
 !!$                  & ,nab(i1,i2,1,2)/(nab(i2,i1,2,1)*yt/xab),yt
-!!$             write(6,'(2I2,1P4E15.7)') i1,i2 &
+!!$             write(6,'(2I2,4ES15.7)') i1,i2 &
 !!$                  & ,nab(i1,i2,1,3),nab(i2,i1,3,1)*yt/xab &
 !!$                  & ,nab(i1,i2,1,3)/(nab(i2,i1,3,1)*yt/xab),yt
-!!$             write(6,'(2I2,1P6E15.7)') i1,i2 &
+!!$             write(6,'(2I2,6ES15.7)') i1,i2 &
 !!$                  & ,nab(i1,i2,2,2),nab(i2,i1,2,2)*yt/xab &
 !!$                  & ,nab(i1,i2,2,2)/(nab(i2,i1,2,2)*yt/xab),yt
 !!$!                  & ,(3.d0+(5.d0*yt-2.d0)*xab2)/(3.d0*yt*xab2+(5.d0-2.d0*yt))
-!!$             write(6,'(2I2,1P4E15.7)') i1,i2 &
+!!$             write(6,'(2I2,4ES15.7)') i1,i2 &
 !!$                  & ,nab(i1,i2,2,3),nab(i2,i1,3,2)*yt/xab &
 !!$                  & ,nab(i1,i2,2,3)/(nab(i2,i1,3,2)*yt/xab),yt
-!!$             write(6,'(2I2,1P4E15.7)') i1,i2 &
+!!$             write(6,'(2I2,4ES15.7)') i1,i2 &
 !!$                  & ,nab(i1,i2,3,3),nab(i2,i1,3,3)*yt/xab &
 !!$                  & ,nab(i1,i2,3,3)/(nab(i2,i1,3,3)*yt/xab),yt
 !!$          enddo
@@ -628,20 +830,24 @@ contains
 !!$             yab=mas(i1)/mas(i2) ! 1/mu
 !!$             yt =tem(i1)/tem(i2) ! 1/theta
 !!$             fac=yab**2/xab**3 ! F
-!!$          ! Check momentum conservation
-!!$             write(6,'(2I3,1P7E15.7)') i1,i2 &
+!!$             ! Check momentum conservation
+!!$             write(6,'(2I3,6ES15.7)') i1,i2 &
+!!$                  ! M_{ab}^{0j}+(T_a v_{Ta}/(T_b v_{Tb}))N_{ba}^{0j}=0
 !!$                  & ,nab(i2,i1,1,1)*yt/xab+mab(i1,i2,1,1) &
 !!$                  & ,nab(i2,i1,1,2)*yt/xab+mab(i1,i2,1,2) &
 !!$                  & ,nab(i2,i1,1,3)*yt/xab+mab(i1,i2,1,3) &
+!!$                  ! M_{ab}^{0j}+N_{ba}^{0j}=0
 !!$                  & ,nab(i1,i2,1,1)       +mab(i1,i2,1,1) & ! approx. sym. used
 !!$                  & ,nab(i1,i2,2,1)       +mab(i1,i2,1,2) & ! approx. sym. used
-!!$                  & ,nab(i1,i2,3,1)       +mab(i1,i2,1,3) & ! approx. sym. used
-!!$                  enddo
+!!$                  & ,nab(i1,i2,3,1)       +mab(i1,i2,1,3)   ! approx. sym. used
 !!$          enddo
-!!$          stop
+!!$       enddo
+!!$       write(6,*) 
+!!$!       stop
     endif
 !-----------------------------------------------------------------------
 !     friction coef. lab normalized by (na*ma/tauaa)
+!     viz., lab is defined as l_{ij}^{ab}/(m_a*n_a/tau_{aa}).
 !-----------------------------------------------------------------------
     lab(1:isp,1:isp,1:2,1:2) = 0.0_8
 
@@ -650,19 +856,18 @@ contains
        do i1=1,ispc
           denom = nab(i1,i1,3,3)
           do k=1,ispc
-!             denom=denom+(zz(k)/zz(i1))**2*den(k)/den(i1)*mab(i1,k,3,3)
              denom=denom+ztau(i1,i1)/ztau(i1,k)*mab(i1,k,3,3)
           enddo
           do i2=1,ispc
-!             fac=(zz(i2)/zz(i1))**2*den(i2)/den(i1) ! tau_{i1i1}/tau_{i1i2}
              fac=ztau(i1,i1)/ztau(i1,i2)
+             ! alph and delt do not include ztau(i1,i1) nomalization
+             !   due to cancellation b/w fac and denom
              do j2=1,2
                 alph(i1,i2,j2)=fac*nab(i1,i2,3,j2)/denom
              enddo
              if(i1 == i2)then
                 do j2=1,2
                    alph(i1,i2,j2)=alph(i1,i2,j2) &
-!                        &        +sum( (zz(1:ispc)/zz(i1))**2*den(1:ispc)/den(i1) &
                         &        +sum(ztau(i1,i1)/ztau(i1,1:ispc) &
                         &        *mab(i1,1:ispc,3,j2))/denom
                 enddo
@@ -676,7 +881,7 @@ contains
        enddo
        ! compute inverse matrix for ub2 (higher order) correction
        call matslv(ispc,ispc,emat,fmat,err,ill)
-       ! alpha_hat^1, alpha_hat^2
+       ! alpha_hat^1, alpha_hat^2: NOT normalized
        do i1=1,ispc
           do i2=1,ispc
              do j2=1,2
@@ -687,7 +892,7 @@ contains
 
 !!$       ! check alpha_hat and Delta
 !!$       i1=2;i2=3
-!!$       write(200,'(1P6E15.7)') mas(i2)/mas(i1),alphhat(i1,i2,1) &
+!!$       write(200,'(6ES15.7)') mas(i2)/mas(i1),alphhat(i1,i2,1) &
 !!$            & ,alphhat(i1,i2,2),delt(i1,i2) &
 !!$            & ,alph(i1,i2,1)+sum(delt(i1,1:ispc)*alph(1:ispc,i2,1)) &
 !!$            & ,alph(i1,i2,2)+sum(delt(i1,1:ispc)*alph(1:ispc,i2,2))
@@ -725,14 +930,13 @@ contains
 !!$       enddo
 !!$       deallocate(lab3)
 
+       ! lab at present ==> -sum_k(l_{i3}^{ak}*alphhat_{kb}^j)/(m_a*n_a/tau_{aa}) 
        do i1=1,ispc
           do i2=1,ispc
              do j1=1,2
-!                xlm=sum( (zz(1:ispc)/zz(i1))**2*den(1:ispc)/den(i1) &
                 xlm=sum( ztau(i1,i1)/ztau(i1,1:ispc) &
                      &  *mab(i1,1:ispc,j1,3))
                 do j2=1,2
-!                   xln=sum( (zz(1:ispc)/zz(i1))**2*den(1:ispc)/den(i1) &
                    xln=sum( ztau(i1,i1)/ztau(i1,1:ispc) &
                         &  *nab(i1,1:ispc,j1,3)*alphhat(1:ispc,i2,j2))
                    lab(i1,i2,j1,j2)=-(xlm*alphhat(i1,i2,j2)+xln)
@@ -742,23 +946,7 @@ contains
        enddo
     endif
 
-!!    Old way, when ztau was not used.
-!    do i1=1,ispc
-!       do i2=1,ispc
-!          fac=(zz(i2)/zz(i1))**2*den(i2)/den(i1)
-!          do j1=1,2
-!             do j2=1,2
-!                xl=fac*nab(i1,i2,j1,j2)
-!                if(i1.eq.i2)then
-!                   do k=1,ispc
-!                      xl=xl+(zz(k)/zz(i1))**2*den(k)/den(i1)*mab(i1,k,j1,j2)
-!                   enddo
-!                endif
-!                lab(i1,i2,j1,j2)=lab(i1,i2,j1,j2)+xl
-!             enddo
-!          enddo
-!       enddo
-!    enddo
+    ! lab is normalized by m_a*n_a/tau_{aa}
     do i1=1,ispc
        do i2=1,ispc
           fac=ztau(i1,i1)/ztau(i1,i2)
@@ -772,34 +960,24 @@ contains
     forall (i1=1:ispc,i2=1:ispc,j1=1:2,j2=1:2,i1==i2) &
          & lab(i1,i2,j1,j2)=lab(i1,i2,j1,j2)+sum(ztau(i1,i1)/ztau(i1,:)*mab(i1,:,j1,j2))
 
+!!$    ! Check dependence of alphhat on zast
+!!$
 !!$    do i1=1,ispc
+!!$       zast(i1)=0.d0
 !!$       do i2=1,ispc
-!!$          do j1=1,2
-!!$             do j2=1,2
-!!$                write(6,*) i1,i2,j1,j2,lab(i1,i2,j1,j2)
-!!$             enddo
-!!$          enddo
+!!$          fac=ztau(i1,i1)/ztau(i1,i2)
+!!$          if( mas(i2) > mas(i1) ) zast(i1)=zast(i1)+fac
 !!$       enddo
 !!$    enddo
-
-    ! Check dependence of alphhat on zast
-
-    do i1=1,ispc
-       zast(i1)=0.d0
-       do i2=1,ispc
-!          fac=(zz(i2)/zz(i1))**2*den(i2)/den(i1)
-          fac=ztau(i1,i1)/ztau(i1,i2)
-          if( mas(i2) > mas(i1) ) zast(i1)=zast(i1)+fac
-       enddo
-    enddo
+!!$
 !!$    i1=2
 !!$    zeff=0.d0
 !!$    do i=2,ispc
 !!$       zeff=zeff+zz(i)**2*den(i)
 !!$    enddo
 !!$    zeff=zeff/den(1)
-!!$!    write(6,'(A,1P4E15.7)') "== ",mas(2),mas(3),den(2),den(3)
-!!$    write(6,'(4F9.5,1P8E13.5)') zast(i1),zeff &
+!!$!    write(6,'(A,4ES15.7)') "== ",mas(2),mas(3),den(2),den(3)
+!!$    write(6,'(4F9.5,8ES13.5)') zast(i1),zeff &
 !!$         & ,den(2)/den(1),den(3)/den(1) &!,den(4)/den(1)
 !!$         & ,alphhat(i1,i1,1),0.28d0*zast(i1)/(0.59d0+zast(i1)) &! (32c)
 !!$!         & ,alph(i1,i1,1)+sum(delt(i1,1:ispc)*alph(1:ispc,i1,1))
@@ -808,14 +986,14 @@ contains
 
 !!$    ! Check Z^* dependence of chi, compared to 25/(4C_3)
 !!$    alp =zz(3)**2*den(3)/den(2)
-!!$!    write(996,'(F10.5,1P3E15.7)')alp,den(2),lab(2,2,2,1),-lab(2,2,2,2)
-!!$    write(996,'(F10.5,1P4E15.7)')alp,lab(2,2,2,1),-lab(2,2,2,2) &
+!!$!    write(996,'(F10.5,3ES15.7)')alp,den(2),lab(2,2,2,1),-lab(2,2,2,2)
+!!$    write(996,'(F10.5,4ES15.7)')alp,lab(2,2,2,1),-lab(2,2,2,2) &
 !!$         & ,sum(lab(2,1:3,2,1)*zz(2)/zz(1:3)) &
 !!$         & ,-sum(lab(2,1:3,2,2)*zz(2)/zz(1:3))
 
 !!$    ! Check Z^* dependence of D, compared to C_1+C_2^2/C_3
 !!$    alp =zz(3)**2*den(3)/den(2)
-!!$    write(996,'(F10.5,1P4E15.7)')alp,-lab(2,2,1,1) &
+!!$    write(996,'(F10.5,4ES15.7)')alp,-lab(2,2,1,1) &
 !!$         & ,-sum(lab(2,1:3,1,1)*zz(2)/zz(1:3))
 
 !!$    ! Hirshman 1977, Eqs.(49)(50) for D-D friction coef.
@@ -836,81 +1014,92 @@ contains
 !!$    c3=sqrt(2.d0)+13.d0/4.d0*zast(2)-(0.75d0*sqrt(2.d0) &
 !!$         & +69.d0/16.d0*zast(2))**2 &
 !!$         & /(45.d0/16.d0*sqrt(2.d0)+433.d0/64.d0*zast(2))
-!!$    write(201,'(1P6E15.7)') tem(2)/tem(1),zast(2) &
+!!$    write(201,'(6ES15.7)') tem(2)/tem(1),zast(2) &
 !!$         & ,-zast(2)*c1a-xl,-zast(2)*c2 &
 !!$         & ,-zast(2)*c2,-c3
 
 !-----------------------------------------------------------------------      
     if( idebug == 1 ) then
-       allocate(labe(isp,isp,3,3))
-       ! check lab
-       ! Normalized f_{ij}^{ab} by deuterium parameters
-       do i1=1,ispc
-          do i2=1,ispc
-!             xl=den(i1)/den(i2)*(zz(i1)/zz(i2))**2
-             xl=ztau(i1,i2)/ztau(i1,i1) 
-             do j1=1,2
-                do j2=1,2
-                   ! renormalized by electron parameters
-                   labe(i1,i2,j1,j2)=lab(i1,i2,j1,j2)*xl
-!!!ele.renorm     &             *(den(1)*mas(1)*cnmp/ztau(1,1))
-                enddo
-             enddo
-          enddo
-       enddo
+!!$       allocate(labnrl, mold=mab)
+!!$       ! check lab
+!!$       ! Renormalized f_{ij}^{ab}/(m_a*n_a/tau_{aa}), viz., lab
+!!$       !  so as to be f_{ij}^{ab}/(m_a*n_a/tau_{ab}), viz., labnrl
+!!$       do i1=1,ispc
+!!$          do i2=1,ispc
+!!$             xl=ztau(i1,i2)/ztau(i1,i1) 
+!!$             do j1=1,2
+!!$                do j2=1,2
+!!$                   labnrl(i1,i2,j1,j2)=lab(i1,i2,j1,j2)*xl
+!!$                enddo
+!!$             enddo
+!!$          enddo
+!!$       enddo
 
 !!$       i1=2;i2=3
-!!$       write(200,'(1P6E15.7)') mas(i2)/mas(i1) &
-!!$            & ,labe(i1,i2,1,1)/zast(i1),labe(i1,i2,1,2)/zast(i1) &
-!!$            & ,labe(i1,i2,2,1)/zast(i1),labe(i1,i2,2,2)/zast(i1)
-!!$       write(200,'(1P6E15.7)') mas(i2)/mas(i1) &
-!!$            & ,labe(i1,i2,1,1),labe(i1,i2,1,2) &
-!!$            & ,labe(i1,i2,2,1),labe(i1,i2,2,2)
+!!$       write(200,'(6ES15.7)') mas(i2)/mas(i1) &
+!!$            & ,labnrl(i1,i2,1,1)/zast(i1),labnrl(i1,i2,1,2)/zast(i1) &
+!!$            & ,labnrl(i1,i2,2,1)/zast(i1),labnrl(i1,i2,2,2)/zast(i1)
+!!$       write(200,'(6ES15.7)') mas(i2)/mas(i1) &
+!!$            & ,labnrl(i1,i2,1,1),labnrl(i1,i2,1,2) &
+!!$            & ,labnrl(i1,i2,2,1),labnrl(i1,i2,2,2)
 
 !!$       i1=2;i2=2
-!!$       write(200,'(1P6E15.7)') tem(2)/tem(1),zast(i1) &
-!!$            & ,labe(i1,i2,1,1),labe(i1,i2,1,2) &
-!!$            & ,labe(i1,i2,2,1),labe(i1,i2,2,2)
+!!$       write(200,'(6ES15.7)') tem(2)/tem(1),zast(i1) &
+!!$            & ,labnrl(i1,i2,1,1),labnrl(i1,i2,1,2) &
+!!$            & ,labnrl(i1,i2,2,1),labnrl(i1,i2,2,2)
 
-       allocate(labtmp(isp,isp,3,3),sumbc2(isp))
-       ! Recompute original l_{ij}^{ab} as labtmp(i1,i2,j1,j2)
+       allocate(laborg, mold=mab)
+       ! Recompute original l_{ij}^{ab}/(m_a*n_a/tau_{aa}) as laborg(i1,i2,j1,j2)
        do i1=1,ispc
           zast(i1)=0.d0
           do i2=1,ispc
-!             fac=(zz(i2)/zz(i1))**2*den(i2)/den(i1)
              fac=ztau(i1,i1)/ztau(i1,i2)
              if( mas(i2) > mas(i1) ) zast(i1)=zast(i1)+fac
              do j1=1,3
                 do j2=1,3
                    xl=fac*nab(i1,i2,j1,j2)
-                   if(i1.eq.i2)then
+                   if(i1 == i2)then
                       do k=1,ispc
-!                         xl=xl+(zz(k)/zz(i1))**2*den(k)/den(i1)*mab(i1,k,j1,j2)
                          xl=xl+ztau(i1,i1)/ztau(i1,k)*mab(i1,k,j1,j2)
                       enddo
                    endif
-                   labtmp(i1,i2,j1,j2)=xl
+                   laborg(i1,i2,j1,j2)=xl
                 enddo
              enddo
           enddo
        enddo
 
-! To confirm l_{ij}^{ab} = l_{ji}^{ba}, we introduce the factor
-! "xl" that normalizes l_{ij}^{ab} by electron parameters.
-! Note that "xl" is originally normalized by parameters regarding
-! species "a".
+! Currently, laborg is defined as
+!   l_{ij}^{ab}/(m_a*n_a/tau_{aa})
+!  = delta_{ab}*sum_c(tau_{aa}/tau_{ac}*M_{ac}^{i-1,j-1})+tau_{aa}/tau_{ab}*N_{ab}^{i-1,j-1}
+! Based on the self-adjoint property of the collision operator, we find
+!   M_{ab}^{ij} = M_{ba}^{ji}                           (H&S, 4.8)
+!   N_{ab}^{ij}/(T_a*v_{Ta}) = N_{ba}^{ji}/(T_b*v_{Tb}) (H&S, 4.9).
+! To confirm the symmetric property of l_{ij}^{ab}, we have to multiply it with 
+! (tau_{ab}/tau_{aa})*(T_e*v_{Te})/(T_a*v_{Ta}) to obtain
+!   l_{ij}^{ab}/(m_a*n_a/tau_{ab})*(T_e*v_{Te})/(T_a*v_{Ta})
+!  = delta_{ab}*sum_c(tau_{ab}/tau_{ac}(T_e*v_{Te})/(T_a*v_{Ta})*M_{ac}^{i-1,j-1})
+!  + T_e*v_{Te}*N_{ab}^{i-1,j-1}/(T_a*v_{Ta}).
+! If you flip the indices i and j as well as a and b, you will get
+!   l_{ji}^{ba}/(m_b*n_b/tau_{ba})*(T_e*v_{Te})/(T_b*v_{Tb})
+!  = delta_{ba}*sum_c(tau_{ba}/tau_{bc}(T_e*v_{Te})/(T_b*v_{Tb})*M_{bc}^{j-1,i-1})
+!  + T_e*v_{Te}*N_{ba}^{j-1,i-1}/(T_b*v_{Tb})
+! The symmetric property of M and N shown above proves 
+!    l_{ij}^{ab}/(m_a*n_a/tau_{ab})*(T_e*v_{Te})/(T_a*v_{Ta})
+!  = l_{ji}^{ba}/(m_b*n_b/tau_{ba})*(T_e*v_{Te})/(T_b*v_{Tb}).
+! Then, we can easily find 
+!     m_a*n_a/tau_{ab}*T_a*v_{Ta} = m_b*n_b/tau_{ba}*T_b*v_{Tb}.
+! As a result, we obtain l_{ij}^{ab}=l_{ji}^{ba}.
+
+       !  Here, laborg    = l_{ij}^{ab}/(m_a*n_a/tau_{aa}) and
+       !        laborgdef = l_{ij}^{ab}
+       allocate(laborgdef, mold=mab)
        do i1=1,ispc
-!!$          xl=(den(i1)/den(1)*(zz(i1)/zz(1))**2)**2 &
-!!$               & *sqrt(mas(i1)/mas(1))*(tem(1)/tem(i1))**1.5d0 ! tau_{11}/tau_{i1i1}
           do i2=1,ispc
-!             xl=den(i1)/den(i2)*(zz(i1)/zz(i2))**2 &
-!                  & *(tem(1)/tem(i1))*vtn(1)/vtn(i1) ! H&S
-             xl=ztau(i1,i2)/ztau(i1,i1) &
-                  & *(tem(1)/tem(i1))*vtn(1)/vtn(i1) ! H&S
+             xl=zmas(i1)*den(i1)*1.d20/ztau(i1,i1)
              do j1=1,3
                 do j2=1,3
-                   labe(i1,i2,j1,j2)=labtmp(i1,i2,j1,j2)*xl
-!!!ele.renorm     &             *(den(1)*mas(1)*cnmp/ztau(1,1))
+                   laborgdef(i1,i2,j1,j2)=laborg(i1,i2,j1,j2)*xl
                 enddo
              enddo
           enddo
@@ -922,35 +1111,29 @@ contains
             & ,"lorg_{ij}^{ab}","l_{ij}^{ab}","b a j i","l_{ji}^{ba}","ratio","difference"
        do i1=1,ispc
           do i2=1,ispc
-             xab=vtn(i2)/vtn(i1)
-             yab=mas(i1)/mas(i2)
-             yt =tem(i1)/tem(i2)
-             fac=xab/yt
              do j1=1,3
                 do j2=1,3
-                   write(6,'(4I2,2(2X,1PE15.7),2X,4I2,3(2X,E15.7))') &
-                        &  i1,i2,j1,j2,labtmp(i1,i2,j1,j2),labe(i1,i2,j1,j2) &
-                        & ,i2,i1,j2,j1,labe(i2,i1,j2,j1) &
-                        & ,labe(i1,i2,j1,j2)/labe(i2,i1,j2,j1) &
-                        & ,(labe(i1,i2,j1,j2)-labe(i2,i1,j2,j1))! &
-!                        & /labe(i1,i2,j1,j2)
+                   write(6,'(4I2,2(2X,ES15.7),2X,4I2,3(2X,ES15.7))') &
+                        &  i1,i2,j1,j2,laborg(i1,i2,j1,j2),laborgdef(i1,i2,j1,j2) &
+                        & ,i2,i1,j2,j1,laborgdef(i2,i1,j2,j1) &
+                        & ,laborgdef(i1,i2,j1,j2)/laborgdef(i2,i1,j2,j1) &
+                        & ,(laborgdef(i1,i2,j1,j2)-laborgdef(i2,i1,j2,j1))! &
+!                        & /laborgdef(i1,i2,j1,j2)
                 enddo
              enddo
           enddo
        enddo
        write(6,*) 
 
-       ! Normalized f_{ij}^{ab} by electron parameters
+       ! Here, lab    = f_{ij}^{ab}/(m_a*n_a/tau_{aa}) and thus
+       !       labdef = f_{ij}^{ab}
+       allocate(labdef, mold=mab)
        do i1=1,ispc
-!          xl=(den(i1)/den(1)*(zz(i1)/zz(1))**2)**2 &
-!               & *sqrt(mas(i1)/mas(1))*(tem(1)/tem(i1))**1.5d0 ! tau_{11}/tau_{i1i1}
-          xl=ztau(1,1)/ztau(i1,i1)
           do i2=1,ispc
+             xl=zmas(i1)*den(i1)*1.d20/ztau(i1,i1)
              do j1=1,2
                 do j2=1,2
-                   ! renormalized by electron parameters
-                   labe(i1,i2,j1,j2)=lab(i1,i2,j1,j2)*xl
-!!!ele.renorm     &             *(den(1)*mas(1)*cnmp/ztau(1,1))
+                   labdef(i1,i2,j1,j2)=lab(i1,i2,j1,j2)*xl
                 enddo
              enddo
           enddo
@@ -963,10 +1146,10 @@ contains
           do i2=1,ispc
              do j1=1,2
                 do j2=1,2
-                   write(6,'(4I2,2(2X,1PE15.7),2X,4I2,2(2X,E15.7))') &
-                        &  i1,i2,j1,j2,lab(i1,i2,j1,j2),labe(i1,i2,j1,j2) &
-                        & ,i2,i1,j2,j1,labe(i2,i1,j2,j1) &
-                        & ,labe(i1,i2,j1,j2)/labe(i2,i1,j2,j1)
+                   write(6,'(4I2,2(2X,ES15.7),2X,4I2,2(2X,ES15.7))') &
+                        &  i1,i2,j1,j2,lab(i1,i2,j1,j2),labdef(i1,i2,j1,j2) &
+                        & ,i2,i1,j2,j1,labdef(i2,i1,j2,j1) &
+                        & ,labdef(i1,i2,j1,j2)/labdef(i2,i1,j2,j1)
                 enddo
              enddo
           enddo
@@ -979,8 +1162,8 @@ contains
           do i2=1,ispc
              do j1=1,2
                 do j2=1,2
-                   write(6,'(4I2,1P3E15.7)') i1,i2,j1,j2,labe(i1,i2,j1,j2) &
-                        & ,labtmp(i1,i2,j1,j2),labe(i1,i2,j1,j2)/labtmp(i1,i2,j1,j2)
+                   write(6,'(4I2,3ES15.7)') i1,i2,j1,j2,labdef(i1,i2,j1,j2) &
+                        & ,laborgdef(i1,i2,j1,j2),labdef(i1,i2,j1,j2)/laborgdef(i1,i2,j1,j2)
                 enddo
              enddo
           enddo
@@ -989,7 +1172,7 @@ contains
 
        write(6,'(1X,A,6X,A)') "a","Z_a^*"
        do i1=1,ispc
-          write(6,'(I2,1PE15.7)') i1,zast(i1)
+          write(6,'(I2,ES15.7)') i1,zast(i1)
        enddo
        write(6,*) 
 
@@ -1005,20 +1188,20 @@ contains
                 j2=1
                 if(i1==i2) then
                    f=0.28d0*zast(i1)/(0.59d0+zast(i1)) ! (32c)
-                   write(6,'(3I2,1P2E15.7,-1PF7.2)') j2,i1,i2 &
+                   write(6,'(3I2,2ES15.7,F7.2)') j2,i1,i2 &
                         & ,alphhat(i1,i2,j2)*epsab &
-                        & ,f,abs(f/(alphhat(i1,i2,j2)*epsab)-1.d0)*1.d3
+                        & ,f,abs(f/(alphhat(i1,i2,j2)*epsab)-1.d0)*1.d2
                 else
-                   write(6,'(3I2,1P2E15.7,6X,A)') j2,i1,i2 &
+                   write(6,'(3I2,2ES15.7,6X,A)') j2,i1,i2 &
                         & ,alphhat(i1,i2,j2)*epsab,0.d0,"-"
                 endif
                 j2=2
                 if(i1==i2) then
                    f=(0.16d0+0.64d0*zast(i1))/(0.59d0+zast(i1)) ! (32d)
-                   write(6,'(3I2,1P2E15.7,-1PF7.2)') j2,i1,i2 &
-                        & ,alphhat(i1,i2,j2)*epsab,f,abs(f/(alphhat(i1,i2,j2)*epsab)-1.d0)*1.d3
+                   write(6,'(3I2,2ES15.7,F7.2)') j2,i1,i2 &
+                        & ,alphhat(i1,i2,j2)*epsab,f,abs(f/(alphhat(i1,i2,j2)*epsab)-1.d0)*1.d2
                 else
-                   write(6,'(3I2,1P2E15.7,6X,A)') j2,i1,i2 &
+                   write(6,'(3I2,2ES15.7,6X,A)') j2,i1,i2 &
                         & ,alphhat(i1,i2,j2)*epsab,0.d0,"-"
                 endif
              enddo
@@ -1029,7 +1212,7 @@ contains
        ! Check c_2^{ab} against Hirshman PoF (1978) 589, 1295
        do i1=1,ispc
           do i2=1,ispc
-             emat(i1,i2)=labe(i1,i2,2,2)
+             emat(i1,i2)=labdef(i1,i2,2,2)
           enddo
        enddo
        ! compute inverse matrix of l_{22}^{ab}, i.e., (l_{22}^{-1})^{ab}
@@ -1037,6 +1220,7 @@ contains
 
        write(6,*) "Check eps_{ab}*c_2^{ab}"
        write(6,'(1X,A,4X,A,6X,A,5X,A)') "a b","numerical","Hirshman","error%"
+       allocate(sumbc2, mold=vt)
        do i1=1,ispc
           sumbc2(i1)=0.d0
           do i2=1,ispc
@@ -1048,23 +1232,23 @@ contains
 !                xl=(den(i1)/den(k)*(zz(i1)/zz(k))**2)**2 &
 !                     & *sqrt(mas(i1)/mas(k))*(tem(k)/tem(i1))**1.5d0 ! tau_{kk}/tau_{i1i1}
 !                c2 = c2 + fmat(i1,k)*(-lab(k,i2,2,1)*xl)
-                c2 = c2 + fmat(i1,k)*(-labe(k,i2,2,1))
+                c2 = c2 + fmat(i1,k)*(-labdef(k,i2,2,1))
              enddo
              sumbc2(i1) = sumbc2(i1) + c2
              if(i1==i2) then
                 f=-(0.884d0+0.458d0*zast(i1)) &
                      & /(1.d0+2.966d0*zast(i1)+0.753d0*zast(i1)**2)*zast(i1) ! (32b)
-                write(6,'(2I2,1P2E15.7,-1PF7.2)') i1,i2,c2*epsab &
-                     & ,f,abs(f/(c2*epsab)-1.d0)*1.d3
+                write(6,'(2I2,2ES15.7,F7.2)') i1,i2,c2*epsab &
+                     & ,f,abs(f/(c2*epsab)-1.d0)*1.d2
              else
-                write(6,'(2I2,1P2E15.7,6X,A)') i1,i2,c2*epsab,0.d0,"-"
+                write(6,'(2I2,2ES15.7,6X,A)') i1,i2,c2*epsab,0.d0,"-"
              endif
           enddo
        enddo
 
        write(6,'(1X,A,2X,A)') "a","sum_b c2^{ab}"
        do i1=1,ispc
-          write(6,'(I2,1PE15.7)') i1,sumbc2(i1)
+          write(6,'(I2,ES15.7)') i1,sumbc2(i1)
        enddo
 !!$       write(6,*)
 !!$
@@ -1072,10 +1256,10 @@ contains
 !!$       barK1=-alp*(0.83d0+0.42d0*alp)/(0.58d0+alp)
 !!$       barK2=1.58d0*(1.d0+1.33d0*alp*(1.d0+0.6d0*alp)/(1.d0+1.79d0*alp))
 !!$       barK2mod=1.58d0*(1.13d0/alp+0.5d0+0.56d0/(0.56d0+alp))*alp
-!!$       write(6,'(F10.5,1P12E15.7)') alp,lab(2,2,2,1),barK1,-lab(2,2,2,2),barK2,barK2mod
+!!$       write(6,'(F10.5,12ES15.7)') alp,lab(2,2,2,1),barK1,-lab(2,2,2,2),barK2,barK2mod
 
-       deallocate(labtmp,sumbc2)
-       deallocate(labe)
+       deallocate(laborg,sumbc2)
+       deallocate(laborgdef,labdef)
        stop
     endif
 !-----------------------------------------------------------------------      
@@ -1142,7 +1326,7 @@ contains
           else
              zk=0.d0
           end if
-!          if(i1==1) write(6,'(1P4E15.7)') xa,tpfneo,zkb,zkps
+!          if(i1==1) write(6,'(4ES15.7)') xa,tpfneo,zkb,zkps
           if(imodel(5).eq. 1)zk=zkb
           if(imodel(5).eq.-1)zk=zkps
 !-----
@@ -1330,15 +1514,6 @@ contains
 !!$!<cmat>
 !!$    call matslv(isp2,isp2,bmat,cmat,err,ill)
 !-----
-!!$    ! xmu borrowed from booth9
-!!$    xmu=0.d0
-!!$    do i1=1,isp
-!!$       xmu(i1,1,1)=bmat(i1    ,i1    )
-!!$       xmu(i1,1,2)=bmat(i1    ,i1+isp)
-!!$       xmu(i1,2,1)=bmat(i1+isp,i1    )
-!!$       xmu(i1,2,2)=bmat(i1+isp,i1+isp)
-!!$    enddo
-
     cmat = amat
     do i1=1,isp
        cmat(i1    ,i1    )=amat(i1    ,i1    )-xmu(i1,1,1)
@@ -1348,7 +1523,7 @@ contains
     enddo
 !=======================================================================
 !<cmat> : (L - M)^{-1}
-    call invmrd(cmat,isp2,isp2,ill)
+    call invmrd(cmat,isp2,isp2,ill) ! Third arg. denotes the size of cmat.
 !    --- Replace invmrd by the following lines when using LAPACK ---
 !    allocate(ipiv(isp2))
 !    call getrf( cmat, ipiv, ill )
@@ -1427,13 +1602,13 @@ contains
          &     *  xmu1 + ( -xmu2 + 1.5d0 * zeff) * xmu2) &
          &     / ((xmu3 + sqrt(2.d0) + 3.25d0 * zeff) &
          &     * (xmu1 + zeff) - (-xmu2 + 1.5d0 * zeff)**2)
-!!$    write(101,'(1P5E12.5)') coebdc(1)/coebdc(isp), &
+!!$    write(101,'(5ES12.5)') coebdc(1)/coebdc(isp), &
 !!$         &     coebdc(2)/coebdc(isp), &
 !!$         &     coebdc(3)/coebdc(isp), &
 !!$         &     coebdc(4)/coebdc(isp), &
 !!$         &     coebdc(5)/coebdc(isp)
-!!$    write(101,'(1P5E12.5)') cmat(1,isp),cmat(2,isp),cmat(3,isp),cmat(4,isp)
-!!$    write(101,'(1P5E12.5)') xmu1/xgt,xmu2/xgt, &
+!!$    write(101,'(5ES12.5)') cmat(1,isp),cmat(2,isp),cmat(3,isp),cmat(4,isp)
+!!$    write(101,'(5ES12.5)') xmu1/xgt,xmu2/xgt, &
 !!$         &     xmu3/xgt,coebdc(isp+2),coebdc(isp+1)/coebdc(isp)
 
 !=======================================================================
@@ -1525,9 +1700,9 @@ contains
 !        for boothx only
 !
 !=======================================================================
-    use tx_commons, only : cnpi => Pi
-    USE libinv
-!LAPACK  use lapack95, only : getrf, getri
+  use tx_commons, only : cnpi => Pi
+  !LAPACK  use lapack95, only : getrf, getri
+  use libinv, only : invmrd
   integer(4), intent(in) :: ispc, ibeam, imodel(:)
   real(8), intent(in)  :: den(:), tem(:), mas(:), zz(:) &
        &                , tpfneo, xsta(:), ztau(:,:), fbeam &

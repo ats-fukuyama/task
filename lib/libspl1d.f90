@@ -5,7 +5,8 @@ MODULE libspl1d
   PRIVATE
   PUBLIC spl1d      ! calculate real spline coefficients
   PUBLIC spl1df     ! interpolate real function by spline 
-  PUBLIC spl1dd     ! interpolate real function and derivataive by spline 
+  PUBLIC spl1dd     ! interpolate real function and derivative by spline 
+  PUBLIC spl1ddd    ! interpolate real function and derivatives by spline 
   PUBLIC spl1di0    ! calculate real integral for spline
   PUBLIC spl1di     ! integrate real function by spline
   PUBLIC cspl1d     ! calculate complex spline coefficients
@@ -288,6 +289,65 @@ CONTAINS
       IERR=0
       RETURN
       END SUBROUTINE SPL1DD
+
+!     ****** One-Dimensional Spline Interpolation ******
+!       **** Calculation of interpolation  ****
+
+      SUBROUTINE SPL1DDD(X0,F0,DF0,DDF0,X,U,NXMAX,IERR)
+
+      USE task_kinds,ONLY: dp  
+      IMPLICIT NONE
+      INTEGER,                    INTENT(IN) :: NXMAX
+      REAL(dp),                   INTENT(IN) :: X0
+      REAL(dp),DIMENSION(NXMAX),  INTENT(IN) :: X
+      REAL(dp),DIMENSION(4,NXMAX),INTENT(IN) :: U
+      REAL(dp),                   INTENT(OUT):: F0, DF0, DDF0
+      INTEGER,                    INTENT(OUT):: IERR
+      REAL(dp) :: FS, DX
+      INTEGER  :: NX
+
+      IERR=0
+      IF(X(NXMAX).EQ.X(1)) THEN
+         IERR=9
+         RETURN
+      ENDIF
+      FS=1.D0/(X(NXMAX)-X(1))
+      NX=NINT((X0-X(1))*FS*(NXMAX-1))+1
+      IF(NX.LT.1) THEN
+         IERR=1
+         NX=2
+      ENDIF
+      IF(NX.GT.NXMAX) THEN
+         IERR=2
+         NX=NXMAX
+      ENDIF
+
+ 5001 IF(NX.GE.NXMAX) GOTO 5002
+      IF((X0-X(NX  ))*FS.LE.0.D0) GOTO 5002
+         NX=NX+1
+         GOTO 5001
+ 5002 CONTINUE
+ 5003 IF(NX.LE.2) GOTO 5004
+      IF((X0-X(NX-1))*FS.GE.0.D0) GOTO 5004
+         NX=NX-1
+         GOTO 5003
+ 5004 CONTINUE
+      IF(NX.LT.2)     NX=2
+
+      DX=X0-X(NX-1)
+
+      F0= U(1,NX) &
+     &  + U(2,NX)*DX &
+     &  + U(3,NX)*DX*DX &
+     &  + U(4,NX)*DX*DX*DX
+      DF0= U(2,NX) &
+     &   + U(3,NX)*DX*2 &
+     &   + U(4,NX)*DX*DX*3
+      DDF0= U(3,NX)*2 &
+     &    + U(4,NX)*DX*6
+      IERR=0
+      RETURN
+      END SUBROUTINE SPL1DDD
 
 !     ****** One-Dimensional Spline Interpolation ******
 !       **** Calculation of U0  ****
