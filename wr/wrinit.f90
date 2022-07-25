@@ -87,6 +87,10 @@ CONTAINS
 !     EPSNW  : CONVERGENCE CRITEIRION IN NEWTON METHOD
 !     LMAXNW : MAXIMUM ITERATION COUNT IN NEWTON METHOD
 
+!     mode_beam : 0 for ray tracing, nonzero for beam tracing
+
+      mode_beam=0
+
 !     MDLWRI : INPUT TYPE OF WAVE PARAMETERS
 !              0 : RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU
 !              1 : RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH,UU
@@ -153,6 +157,22 @@ CONTAINS
 
       nres_type = 0
       nres_max = 3
+
+      ! pne_threshold: threshold value to identify to be in plasma [10^20 m^-3]
+      ! bdr_threshold: threshold value to boundary factor: F in below
+
+      pne_threshold=1.D-6
+      bdr_threshold=1.2
+
+      ! Rmax_wr: maximum of R for ray calculation, if 0, set RR+F*RA
+      ! Rmin_wr: minimum of R for ray calculation, if 0, set RR-F*RA >1.D-6
+      ! Zmax_wr: maximum of Z for ray calculation, if 0, set RR+F*rkap*RA
+      ! Zmin_wr: minimum of Z for ray calculation, if 0, set RR-F*rkap*RA
+
+      Rmax_wr=0.D0
+      Rmin_wr=0.D0
+      Zmax_wr=0.D0
+      Zmin_wr=0.D0
 
 ! --- defined in dp ---
 

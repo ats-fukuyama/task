@@ -3,39 +3,49 @@
 MODULE wrsub
 
   PRIVATE
-  PUBLIC wr_cold_rkr0,wrmodconv,wrnwtn,wrmodnwtn,dispfn,dispxr,dispxi, &
-         wrcale,wrcalep,wrcale_i,wrcalk
+  PUBLIC wr_cold_rkperp
+  PUBLIC cold_rkr0
+  PUBLIC wrmodconv
+  PUBLIC wrnwtn
+  PUBLIC wrmodnwtn
+  PUBLIC dispfn
+  PUBLIC dispxr
+  PUBLIC dispxi
+  PUBLIC wrcale
+  PUBLIC wrcalep
+  PUBLIC wrcalk
+  PUBLIC wrcale_i
+  PUBLIC wrcale_xyz
 
 CONTAINS
 
-!  --- calculate radial wave number with cold plasma model ---
+!  --- calculate wave number with cold plasma model ---
 !      Input: RF,RPI,PHII,ZPI
 
-  SUBROUTINE WR_COLD_RKR0(RKR0_1,RKR0_2)
+  SUBROUTINE WR_COLD_RKPERP(R,Z,PHI,RKPARA,RKPERP_1,RKPERP_2)
 
     USE wrcomm
     USE pllocal
-    USE plprof,ONLY: PL_MAG_OLD,PL_PROF_OLD
+    USE plprof,ONLY: pl_mag_type,pl_mag
+    USE plprofw,ONLY: pl_plfw_type,pl_profw
     IMPLICIT NONE
-    REAL(rkind),INTENT(OUT):: RKR0_1,RKR0_2
-    REAL(rkind):: OMG,PSIN,OMG_C,WP2
+    REAL(rkind),INTENT(IN):: R,Z,PHI,RKPARA
+    REAL(rkind),INTENT(OUT):: RKPERP_1,RKPERP_2
+    TYPE(pl_mag_type):: mag
+    TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
+    REAL(rkind):: OMG,OMG_C,WP2,RNPARA
     REAL(rkind):: STIX_X,STIX_Y,STIX_S,STIX_P,STIX_D
     REAL(rkind):: W_A,W_B,W_C,RN_1,RN_2
 
-
     OMG=2.D6*PI*RF
-    CALL PL_MAG_OLD(RPI*COS(PHII),RPI*SIN(PHII),ZPI,PSIN)
-    CALL PL_PROF_OLD(PSIN)
-    OMG_C = BABS*AEE/(AME)
-    WP2=RN(1)*1.D20*AEE*AEE/(EPS0*AMP*PA(1))
+    CALL PL_MAG(R*COS(PHI),R*SIN(PHI),Z,mag)
+    CALL PL_PROFW(mag%rhon,plfw)
 
-!         SWNSNK1 = 1.D0 - WP2/(OMG*OMG-OMG_C*OMG_C)
-!         SWNSNK2 = DCMPLX(0.D0, OMG_C*WP2/OMG/(OMG*OMG-OMG_C*OMG_C))
-!         SWNSNK3 = 1.D0 - WP2/OMG/OMG
-!
-!         W_A = SWNSNK1
-!         W_B =-((SWNSNK1 - RNPHII**2)*(SWNSNK1+SWNSNK3)+SWNSNK2*SWNSNK2)
-!         W_C = SWNSNK3*((SWNSNK1 - RNPHII**2)**2 + SWNSNK2*SWNSNK2)
+    ! --- consider only electron contribution for ow density ---
+    
+    OMG_C = mag%BABS*AEE/(AME)
+    WP2=plfw(1)%rn*1.D20*AEE*AEE/(EPS0*AMP*PA(1))
+    RNPARA=RKPARA*VC/OMG
 
     STIX_X = WP2/OMG/OMG
     STIX_Y = OMG_C/OMG
@@ -45,26 +55,28 @@ CONTAINS
 
     W_A = STIX_S
     W_B = - STIX_S**2 + STIX_D**2 - STIX_S*STIX_P
-    W_B = W_B + (STIX_S + STIX_P)*RNPHII**2
-    W_C = STIX_P * ( (STIX_S - RNPHII**2)**2 - STIX_D**2 )
+    W_B = W_B + (STIX_S + STIX_P)*RNPARA**2
+    W_C = STIX_P * ( (STIX_S - RNPARA**2)**2 - STIX_D**2 )
 
 
     RN_1 = (-W_B+SQRT(W_B**2-4.D0*W_A*W_C))/2.D0/W_A
     RN_2 = (-W_B-SQRT(W_B**2-4.D0*W_A*W_C))/2.D0/W_A
 
+    WRITE(6,'(A,2ES12.4)') 'WR_COLD_RKPERP:',RN_1,RN_2
+
     IF(RN_1.GT.0.D0) THEN
-       RKR0_1 = - SQRT(RN_1)*OMG/VC
+       RKPERP_1 = - SQRT(RN_1)*OMG/VC
     ELSE
-       RKR0_1 = 0.D0
+       RKPERP_1 = 0.D0
     END IF
     IF(RN_2.GT.0.D0) THEN
-       RKR0_2 = - SQRT(RN_2)*OMG/VC
+       RKPERP_2 = - SQRT(RN_2)*OMG/VC
     ELSE
-       RKR0_2 = 0.D0
+       RKPERP_2 = 0.D0
     END IF
 
     RETURN
-  END SUBROUTINE WR_COLD_RKR0
+  END SUBROUTINE WR_COLD_RKPERP
 
 !  ----- mode conversion -----
 
@@ -109,19 +121,20 @@ CONTAINS
        S_O_X = 5.0D-5
 
        DELTAB =1.0D0
-       DELTAB=DISPXR( Y(1), Y(2), Y(3), Y(4), Y(5), Y(6), OMG )
-       Y10 = (Rr_IDEI/RL0)*Y(1)
-       Y20 = (Rr_IDEI/RL0)*Y(2)
-       Y30 = Y(3)
-       Y10 = Y10 / SQRT(Y10**2+Y20**2+Y30**2)
-       Y20 = Y20 / SQRT(Y10**2+Y20**2+Y30**2)
-       Y30 = Y30 / SQRT(Y10**2+Y20**2+Y30**2)
-       OX_KC = (Y(4)*Y10 + Y(5)*Y20 + Y(6)*Y30)
-       Y4_OX = Y(4) - OX_KC * Y10 
-       Y5_OX = Y(5) - OX_KC * Y20 
-       Y6_OX = Y(6) - OX_KC * Y30
-       
        DO I=1,1000000
+          IF(I.EQ.1) THEN 
+             DELTAB=DISPXR( Y(1), Y(2), Y(3), Y(4), Y(5), Y(6), OMG )
+             Y10 = (Rr_IDEI/RL0)*Y(1)
+             Y20 = (Rr_IDEI/RL0)*Y(2)
+             Y30 = Y(3)
+             Y10 = Y10 / SQRT(Y10**2+Y20**2+Y30**2)
+             Y20 = Y20 / SQRT(Y10**2+Y20**2+Y30**2)
+             Y30 = Y30 / SQRT(Y10**2+Y20**2+Y30**2)
+             OX_KC = (Y(4)*Y10 + Y(5)*Y20 + Y(6)*Y30)
+             Y4_OX = Y(4) - OX_KC * Y10 
+             Y5_OX = Y(5) - OX_KC * Y20 
+             Y6_OX = Y(6) - OX_KC * Y30
+          END IF
           Y1_OX = Y(1) - IOX * S_O_X * Y10*Y(1)
           Y2_OX = Y(2) - IOX * S_O_X * Y20*Y(2)
           Y3_OX = Y(3) - IOX * S_O_X * Y30*Y(3)
@@ -785,5 +798,58 @@ CONTAINS
               +ABS(CUEZ)**2*(1.D0-BNZ**2))
     RETURN
   END SUBROUTINE WRCALE_I
+
+!  ----- calculate eigen electric field for initial position -----
+
+  SUBROUTINE WRCALE_XYZ(X,Y,Z,RKX,RKY,RKZ,EPARA,EPERP)
+
+    USE wrcomm
+    USE plprof,ONLY: PL_MAG_OLD
+    USE pllocal
+    USE dpdisp,ONLY: dp_disp
+    USE plcomm_type,ONLY: pl_mag_type
+    USE plprof,ONLY: pl_mag
+    IMPLICIT NONE
+    REAL(rkind),INTENT(IN):: X,Y,Z,RKX,RKY,RKZ
+    REAL(rkind),INTENT(OUT):: EPARA,EPERP
+    TYPE(pl_mag_type):: mag
+    COMPLEX(rkind):: CDET(3,3)
+    REAL(rkind):: OMG,EA
+    COMPLEX(rkind):: CRF,CKX,CKY,CKZ,CE1,CE2,CE3,CE4,CEXY,CEZY
+    COMPLEX(rkind):: CUEX,CUEY,CUEZ
+
+    OMG=2.D6*PI*RF
+    CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
+    CKX=DCMPLX(RKX,0.D0)
+    CKY=DCMPLX(RKY,0.D0)
+    CKZ=DCMPLX(RKZ,0.D0)
+    
+    CALL DP_DISP(CRF,CKX,CKY,CKZ,X,Y,Z,CDET)
+    
+    CE1=CDET(2,2)*CDET(1,3)-CDET(1,2)*CDET(2,3)
+    CE2=CDET(1,1)*CDET(2,3)-CDET(2,1)*CDET(1,3)
+    CE3=CDET(2,2)*CDET(1,1)-CDET(1,2)*CDET(2,1)
+    CE4=CDET(1,3)*CDET(2,1)-CDET(2,3)*CDET(1,1)
+    IF(CE2.EQ.0.OR.CE4.EQ.0)THEN
+       CEXY=0
+       CEZY=0
+    ELSE
+       CEXY=CE1/CE2
+       CEZY=CE3/CE4
+    ENDIF
+
+    EA=SQRT(ABS(CEXY)**2+1.D0+ABS(CEZY)**2)
+
+    CUEX=CEXY/EA
+    CUEY=1.D0/EA
+    CUEZ=CEZY/EA
+
+    CALL pl_mag(X,Y,Z,mag)
+    EPARA=ABS(CUEX*mag%bnx+CUEY*mag%bny+CUEZ*mag%bnz)
+    EPERP=SQRT(ABS(CUEX)**2*(1.D0-mag%bnx**2) &
+              +ABS(CUEY)**2*(1.D0-mag%bny**2) &
+              +ABS(CUEZ)**2*(1.D0-mag%bnz**2))
+    RETURN
+  END SUBROUTINE WRCALE_XYZ
 
 END MODULE wrsub

@@ -5,11 +5,11 @@ module tx_interface
   !****************!
 
   interface
-     SUBROUTINE TXKLIN(LINE,KID,MODE)
+     subroutine TXKLIN(LINE,KID,MODE)
        integer(4), intent(out) :: MODE
        character(len=80), intent(out) :: LINE
        character(len=1), intent(out) :: KID
-     end SUBROUTINE TXKLIN
+     end subroutine TXKLIN
   end interface
 
   !****************!
@@ -17,10 +17,11 @@ module tx_interface
   !****************!
 
   interface
-     subroutine txmmm95(dNedr,dNidr,dTedr,dTidr,dQdr,cexb,gamma)
+     subroutine txmmm95(dNsdr,dTsdr,dQdr,cexb,gamma)
        real(8), intent(in) :: cexb
-       real(8), dimension(:), intent(in) :: dNedr,dNidr,dTedr,dTidr,dQdr
-       real(8), dimension(:), intent(out), optional :: gamma
+       real(8), dimension(:,:), intent(in) :: dNsdr,dTsdr
+       real(8), dimension(:),   intent(in) :: dQdr
+       real(8), dimension(:),   intent(out), optional :: gamma
      end subroutine txmmm95
   end interface
 
@@ -29,54 +30,54 @@ module tx_interface
   !****************!
 
   interface APTOS
-     SUBROUTINE APITOS(STR, NSTR, I)
-       character(len=*), INTENT(INOUT) :: STR
-       INTEGER(4),       INTENT(INOUT) :: NSTR
-       INTEGER(4),       INTENT(IN)    :: I
-     end SUBROUTINE APITOS
+     subroutine APITOS(STR, NSTR, I)
+       character(len=*), intent(INOUT) :: STR
+       integer(4),       intent(INOUT) :: NSTR
+       integer(4),       intent(IN)    :: I
+     end subroutine APITOS
 
-     SUBROUTINE APSTOS(STR, NSTR, INSTR, NINSTR)
-       character(len=*), INTENT(INOUT) :: STR
-       INTEGER(4),       INTENT(INOUT) :: NSTR
-       character(len=*), INTENT(IN)    :: INSTR
-       INTEGER(4),       INTENT(IN)    :: NINSTR
-     end SUBROUTINE APSTOS
+     subroutine APSTOS(STR, NSTR, INSTR, NINSTR)
+       character(len=*), intent(INOUT) :: STR
+       integer(4),       intent(INOUT) :: NSTR
+       character(len=*), intent(IN)    :: INSTR
+       integer(4),       intent(IN)    :: NINSTR
+     end subroutine APSTOS
 
-     SUBROUTINE APDTOS(STR, NSTR, D, FORM)
-       character(len=*), INTENT(INOUT) :: STR
-       INTEGER(4),       INTENT(INOUT) :: NSTR
-       REAL(8),          INTENT(IN)    :: D
-       character(len=*), INTENT(IN)    :: FORM
-     end SUBROUTINE APDTOS
+     subroutine APDTOS(STR, NSTR, D, FORM)
+       character(len=*), intent(INOUT) :: STR
+       integer(4),       intent(INOUT) :: NSTR
+       real(8),          intent(IN)    :: D
+       character(len=*), intent(IN)    :: FORM
+     end subroutine APDTOS
 
-     SUBROUTINE APRTOS(STR, NSTR, GR, FORM)
-       character(len=*), INTENT(INOUT) :: STR
-       INTEGER(4),       INTENT(INOUT) :: NSTR
-       REAL(4),          INTENT(IN)    :: GR
-       character(len=*), INTENT(IN)    :: FORM
-     end SUBROUTINE APRTOS
+     subroutine APRTOS(STR, NSTR, GR, FORM)
+       character(len=*), intent(INOUT) :: STR
+       integer(4),       intent(INOUT) :: NSTR
+       real(4),          intent(IN)    :: GR
+       character(len=*), intent(IN)    :: FORM
+     end subroutine APRTOS
   end interface
 
   interface
-     SUBROUTINE TOUPPER(KTEXT)
-       character(len=*), INTENT(INOUT) ::  KTEXT
-     end SUBROUTINE TOUPPER
+     subroutine TOUPPER(KTEXT)
+       character(len=*), intent(INOUT) ::  KTEXT
+     end subroutine TOUPPER
   end interface
 
   interface
-     SUBROUTINE KSPLIT_TX(KKLINE,KID,KKLINE1,KKLINE2)
-       CHARACTER(LEN=*),  INTENT(IN)  :: KKLINE
-       CHARACTER(LEN=1),  INTENT(IN)  :: KID
-       CHARACTER(LEN=*), INTENT(OUT) :: KKLINE1, KKLINE2
-     end SUBROUTINE KSPLIT_TX
+     subroutine KSPLIT_TX(KKLINE,KID,KKLINE1,KKLINE2)
+       character(LEN=*),  intent(IN)  :: KKLINE
+       character(LEN=1),  intent(IN)  :: KID
+       character(LEN=*), intent(OUT) :: KKLINE1, KKLINE2
+     end subroutine KSPLIT_TX
   end interface
 
   interface
-     pure REAL(8) FUNCTION DERIVF(NR,R,F,NRMAX)
+     pure real(8) function DERIVF(NR,R,F,NRMAX)
        integer(4), intent(in) :: NR, NRMAX
        real(8), dimension(0:NRMAX), intent(in)  :: R
        real(8), dimension(0:NRMAX), intent(in)  :: F
-     end FUNCTION DERIVF
+     end function DERIVF
   end interface
 
   interface
@@ -89,35 +90,35 @@ module tx_interface
   end interface
 
   interface
-     SUBROUTINE INTDERIV3(X,R,intX,FVAL,NRMAX,ID)
+     subroutine INTDERIV3(X,R,intX,FVAL,NRMAX,ID)
        integer(4), intent(in) :: NRMAX, ID
        real(8), intent(in), dimension(0:NRMAX) :: X, R
        real(8), intent(in) :: FVAL
        real(8), intent(out), dimension(0:NRMAX) :: intX
-     end SUBROUTINE INTDERIV3
+     end subroutine INTDERIV3
   end interface
 
   interface
-     pure REAL(8) FUNCTION LORENTZ(R,C1,C2,W1,W2,RC1,RC2,AMP)
+     pure real(8) function LORENTZ(R,C1,C2,W1,W2,RC1,RC2,AMP)
        real(8), intent(in) :: r, c1, c2, w1, w2, rc1, rc2
        real(8), intent(in), optional :: AMP
-     end FUNCTION LORENTZ
+     end function LORENTZ
   end interface
 
   interface
-     pure REAL(8) FUNCTION LORENTZ_PART(R,W1,W2,RC1,RC2,ID)
+     pure real(8) function LORENTZ_PART(R,W1,W2,RC1,RC2,ID)
        real(8), intent(in) :: r, w1, w2, rc1, rc2
        integer(4), intent(in) :: ID
-     end FUNCTION LORENTZ_PART
+     end function LORENTZ_PART
   end interface
 
   interface
-     SUBROUTINE BISECTION(f,cl1,cl2,w1,w2,rc1,rc2,amp,s,valmax,val,valmin)
+     subroutine BISECTION(f,cl1,cl2,w1,w2,rc1,rc2,amp,s,valmax,val,valmin)
        real(8), external :: f
        real(8), intent(in) :: cl1, cl2, w1, w2, rc1, rc2, amp, s, valmax
        real(8), intent(in), optional :: valmin
        real(8), intent(out) :: val
-     end SUBROUTINE BISECTION
+     end subroutine BISECTION
   end interface
 
   interface
@@ -167,9 +168,9 @@ module tx_interface
   end interface
 
   interface
-     pure REAL(8) FUNCTION CORR(X)
+     pure real(8) function CORR(X)
        real(8), intent(in) :: X
-     end FUNCTION CORR
+     end function CORR
   end interface
 
   interface
@@ -202,6 +203,7 @@ module tx_interface
        integer(4), intent(in) :: imodel
        real(8), intent(in) :: Ne, Te
        real(8), intent(in), optional :: Ni, Ti, PA, PZ
+       real(8) :: f
      end function coulog_NRL
   end interface
 
@@ -210,21 +212,21 @@ module tx_interface
   !****************!
 
   interface
-     SUBROUTINE TXLOAD(IST)
+     subroutine TXLOAD(IST)
        integer(4), intent(out) :: IST
-     end SUBROUTINE TXLOAD
+     end subroutine TXLOAD
   end interface
 
   interface
-     SUBROUTINE TXGLOD(IST)
+     subroutine TXGLOD(IST)
        integer(4), intent(out) :: IST
-     end SUBROUTINE TXGLOD
+     end subroutine TXGLOD
   end interface
 
   interface
-     REAL(8) FUNCTION rLINEAVE(Rho)
-       REAL(8), INTENT(IN) :: Rho
-     end FUNCTION rLINEAVE
+     real(8) function rLINEAVE(Rho)
+       real(8), intent(IN) :: Rho
+     end function rLINEAVE
   end interface
 
   interface
@@ -240,6 +242,7 @@ module tx_interface
      end subroutine initprof_input
   end interface
 
+#ifndef nonGSAF
   !***************************!
   !   txg3d.f90, txg2d.f90    !
   !***************************!
@@ -250,7 +253,7 @@ module tx_interface
        real(4), dimension(0:NRMAX), intent(in) :: GX
        real(4), dimension(0:NGT),   intent(in) :: GTX
        real(4), dimension(0:NRMAX,0:NGTM), intent(in) :: GYL
-!       CHARACTER(LEN=80),INTENT(IN):: STR, KV
+!       character(LEN=80),intent(IN):: STR, KV
      end subroutine TXGRUR
   end interface
 
@@ -260,19 +263,20 @@ module tx_interface
        real(4), dimension(0:NRMAX), intent(in) :: GX
        real(4), dimension(0:NGT),   intent(in) :: GTX
        real(4), dimension(0:NRMAX,0:NGTM), intent(in) :: GYL
-!       CHARACTER(LEN=80),INTENT(IN):: STR, KV
+!       character(LEN=80),intent(IN):: STR, KV
      end subroutine TXGRURA
   end interface
 
   interface
      subroutine TXGR3D(GX1,GX2,GY1,GY2,GX,GY,GZ,NXM,NXMAX,NYMAX,STR,KV,MODE)
-       REAL(4),    INTENT(IN) :: GX1, GX2, GY1, GY2
-       INTEGER(4), INTENT(IN) :: NXM, NXMAX, NYMAX, MODE
-       REAL(4), DIMENSION(NXMAX),     INTENT(IN) :: GX
-       REAL(4), DIMENSION(NYMAX),     INTENT(IN) :: GY
-       REAL(4), DIMENSION(NXM,NYMAX), INTENT(IN) :: GZ
-       CHARACTER(LEN=80) :: STR, KV
+       real(4),    intent(IN) :: GX1, GX2, GY1, GY2
+       integer(4), intent(IN) :: NXM, NXMAX, NYMAX, MODE
+       real(4), dimension(NXMAX),     intent(IN) :: GX
+       real(4), dimension(NYMAX),     intent(IN) :: GY
+       real(4), dimension(NXM,NYMAX), intent(IN) :: GZ
+       character(LEN=80) :: STR, KV
      end subroutine TXGR3D
   end interface
+#endif
 
 end module tx_interface

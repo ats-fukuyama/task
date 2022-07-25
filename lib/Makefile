@@ -20,7 +20,7 @@ SRCSFREE  =  task_kinds.f90 task_constants.f90 \
              libqsort.f90 librk.f90 librkf.f90 libspf.f90 libsympl.f90 \
              netlib-bes.f90 libbes.f90 \
              libchar.f90 libkio.f90 libfio.f90 \
-             libitp.f90 libsmooth.f90 \
+             libitp.f90 libsmooth.f90 libplog.f90 \
              libufile/ufinit.f90 libufile/uflist.f90 libufile/ufread.f90 \
              ufile.f90
 
@@ -175,6 +175,7 @@ libgrf/grd2dframe.o: $(TASKCOMM) libgrf/grftype.f90 libgrf/grdconvert.f90 \
                 libgrf/grd2dframe.f90
 libgrf.o: libgrf/grftype.f90 libgrf/grfutils.f90 libgrf/grf1d.f90 \
           libgrf/grd1d.f90 libgrf/grf2d.f90 libgrf/grd2d.f90 libgrf/grdxy.f90 \
-          libgrf/grd2dframe.f90 libgrf/grd1dframe.f90 libgrf.f90 
+          libgrf/grd2dframe.f90 libgrf/grd1dframe.f90 libgrf.f90 \
+          libgrf/grdutils.f90
 
 

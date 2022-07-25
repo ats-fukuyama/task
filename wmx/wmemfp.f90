@@ -911,10 +911,10 @@ CONTAINS
                                         +CPC13 &
                                         )*DPSIPDRHOMH*DRHOM &
                                        +CI*EPS0*(VC*VC/CW) &
-                                       *(CPC22*2d0 &
-                                        +CPC33*2d0 &
-                                        +CPC23*2d0 &
-                                        +CPC32*2d0 &
+                                       *(CPC22 &
+                                        +CPC33 &
+                                        +CPC23 &
+                                        +CPC32 &
                                         +CPC21 &
                                         +CPC31 &
                                         +CPP21 &

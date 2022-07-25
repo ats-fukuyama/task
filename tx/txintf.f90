@@ -24,8 +24,9 @@ module tx_interface
 
   interface
      subroutine txmmm95(dNedr,dNidr,dTedr,dTidr,dQdr,gamma)
+       use tx_commons, only : nrmax
        real(8), dimension(*), intent(in) :: dNedr,dNidr,dTedr,dTidr,dQdr
-       real(8), dimension(*), intent(out), optional :: gamma
+       real(8), dimension(0:nrmax), intent(out), optional :: gamma
      end subroutine txmmm95
   end interface
 

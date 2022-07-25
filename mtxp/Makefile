@@ -13,7 +13,7 @@ FFLAGS=$(OFLAGS)
 
 MODINCLUDE=-I./$(MOD) -I../lib/$(MOD) $(MPI_INC)
 
-all: $(EXEC)
+all: libs $(EXEC)
 
 testbnd: $(LIB_MTX_BND) testmtx.o 
 	-$(FLINKER) -g -o testbnd testmtx.o $(LIBX_MTX_BND) \
@@ -63,6 +63,12 @@ testmtxc.o: testmtxc.f90
 ../mtxp/libmtxksp.o: libmtxksp.F90
 	$(FLINKER) $(FFLAGS) -c libmtxksp.F90 $(MODDIR) $(MODINCLUDE) \
 	$(INCLUDE_MTX_PETSC)
+
+libs:
+	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
+	(cd ../../bpsd; make libbpsd.a)
+
 
 clean :
 	-rm -f core a.out *.o *.a *.i90 ./#* ./*~ ./*.mod ./mod/*.mod

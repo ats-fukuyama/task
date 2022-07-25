@@ -1,17 +1,18 @@
-subroutine txmmm95(dNedrho,dNidrho,dTedrho,dTidrho,dQdrho,cexb,gamma)
-  use tx_commons, only : NRMAX, R, RR, achg, PNbV, Zeff, Var, Q, &
-       &                 BphV, amas, Chie, Chii, De, rMue, rMui, FSANOM, &
-       &                 FSPCLD, FSPCLC, rKeV, AEE, NRA, BthV, wexb
+subroutine txmmm95(dNsdrho,dTsdrho,dQdrho,cexb,gamma)
+  use tx_commons, only : NRMAX, rpt, RR, achg, PNbV, Zeff, Var, Q, &
+       &                 BphV, amas, Chis, Dfs, rMus, FSANOM, &
+       &                 FSPCL, rKeV, AEE, NRA, BthV, wexb
 !  use tx_interface, only : dfdx
   implicit none
 
   ! 0:NRMAX => 1:NRMAX+1 if dimension(*) used
   real(8), intent(in) :: cexb
-  real(8), dimension(:), intent(in) :: dNedrho, dNidrho, dTedrho, dTidrho, dQdrho
+  real(8), dimension(:,:), intent(in) :: dNsdrho, dTsdrho
+  real(8), dimension(:),   intent(in) :: dQdrho
   real(8), dimension(0:NRMAX), intent(out), optional :: gamma
 
   integer(4), parameter :: mxmode = 12 ! at least 5
-  integer(4) :: N, NR, igamma
+  integer(4) :: N, NR, igamma, i
   integer(4) :: matdim, npoints, nprout, lprint, nerr, lsuper, lreset
   integer(4), dimension(:), allocatable :: lswitch
   real(4), dimension(:), allocatable :: &
@@ -21,7 +22,7 @@ subroutine txmmm95(dNedrho,dNidrho,dTedrho,dTidrho,dQdrho,cexb,gamma)
        & ztheig, zthzig, zthirb, zthdrb, ztherb, zthzrb, zthikb, zthdkb, zthekb, zthzkb
   real(4), dimension(:,:), allocatable :: zgamma, zomega, zvelthi, zvflux
   real(4), dimension(:,:,:), allocatable :: zdifthi
-  real(8) :: factor_bohm, DeL, cap_val, PAL, PZL
+  real(8) :: factor_bohm, DeL, cap_val
 
   N = NRMAX ! used for abbreviation
 
@@ -33,33 +34,30 @@ subroutine txmmm95(dNedrho,dNidrho,dTedrho,dTidrho,dQdrho,cexb,gamma)
 
   allocate(lswitch(1:8))
   allocate(cswitch(1:25),fig(1:4),frb(1:4),fkb(1:4))
-  allocate(zrmajor(0:N),zelong(0:N),zdense(0:N), zdensh(0:N),zdensimp(0:N),zdensfe(0:N),&
-       &   zxzeff(0:N),zavezimp(0:N), &
-       &   zmassimp(0:N),zmasshyd(0:N),zaimass(0:N),zwexbs(0:N),zgrdne(0:N), &
-       &   zgrdni(0:N),zgrdnh(0:N),zgrdnz(0:N),zgrdte(0:N),zgrdti(0:N),zgrdq(0:N), &
-       &   zthiig(0:N),zthdig(0:N),ztheig(0:N),zthzig(0:N),zthirb(0:N),zthdrb(0:N), &
-       &   ztherb(0:N),zthzrb(0:N),zthikb(0:N),zthdkb(0:N),zthekb(0:N),zthzkb(0:N))
+  allocate(zrmajor(0:N), source=0.0)
+  allocate(zelong,zdense, zdensh,zdensimp,zdensfe,zxzeff,zavezimp, &
+       &   zmassimp,zmasshyd,zaimass,zwexbs,zgrdne, &
+       &   zgrdni,zgrdnh,zgrdnz,zgrdte,zgrdti,zgrdq, &
+       &   zthiig,zthdig,ztheig,zthzig,zthirb,zthdrb, &
+       &   ztherb,zthzrb,zthikb,zthdkb,zthekb,zthzkb, source=zrmajor)
   allocate(zgamma(1:mxmode,0:N),zomega(1:mxmode,0:N),zdifthi(1:mxmode,1:mxmode,0:N), &
        &   zvelthi(1:mxmode,0:N),zvflux(1:mxmode,0:N))
 
   !     *** Dummy high Z impurity ***
   !         No impurities induce no ITG growth rate.
 
-  PAL = 56.D0 ! Fe
-  PZL = 18.D0 ! Fe
-
   zrmajor(0:N)  = real(RR)
   zelong(0:N)   = 1.0
 
   zdense(0:N)   = real(Var(0:N,1)%n) * 1.e20
-  zdensh(0:N)   = real((PZL*achg(2)-Zeff)/(achg(2)*(PZL-achg(2)))*Var(0:N,2)%n) * 1.e20
-  zdensimp(0:N) = real((Zeff-achg(2)**2)/(PZL*(PZL-achg(2)))*Var(0:N,2)%n) * 1.e20
-  zdensfe(0:N)  = real(achg(2)*PNbV(0:N)) * 1.e20
+  zdensh(0:N)   = real(Var(0:N,2)%n) * 1.e20
+  zdensimp(0:N) = real(Var(0:N,3)%n) * 1.e20
+  zdensfe(0:N)  = real(PNbV(0:N))    * 1.e20
 
-  zxzeff(0:N)   = real(Zeff)
+  zxzeff(0:N)   = real(Zeff(0:N))
 
-  zavezimp(0:N) = real(PZL)
-  zmassimp(0:N) = real(PAL)
+  zavezimp(0:N) = real(achg(3))
+  zmassimp(0:N) = real(amas(3))
   zmasshyd(0:N) = real(amas(2))
   zaimass(0:N)  = ( zmasshyd(0:N) * zdensh(0:N) + zmassimp(0:N) * zdensimp(0:N) ) &
        &        / ( zdensh(0:N) + zdensimp(0:N) )
@@ -71,17 +69,17 @@ subroutine txmmm95(dNedrho,dNidrho,dTedrho,dTidrho,dQdrho,cexb,gamma)
   end if
 
   ! Electron density gradient
-  zgrdne(0:N)   = - zrmajor(0:N) * real((dNedrho(1:N+1)) / Var(0:N,1)%n)
-  ! Thermal ion density gradient (including all thermal ions)
-  zgrdni(0:N)   = - zrmajor(0:N) * real((dNidrho(1:N+1)) / Var(0:N,2)%n) ! Same scale length
+  zgrdne(0:N)   = - zrmajor(0:N) * real((dNsdrho(1:N+1,1)) / Var(0:N,1)%n)
   ! Hydrogenic ion density gradient (excluding impurities)
-  zgrdnh(0:N)   = - zrmajor(0:N) * real((dNidrho(1:N+1)) / Var(0:N,2)%n) ! Same scale length
+  zgrdnh(0:N)   = - zrmajor(0:N) * real((dNsdrho(1:N+1,2)) / Var(0:N,2)%n)
   ! Impurity ion density gradient
-  zgrdnz(0:N)   = - zrmajor(0:N) * real((dNidrho(1:N+1)) / Var(0:N,2)%n) ! Same scale length
+  zgrdnz(0:N)   = - zrmajor(0:N) * real((dNsdrho(1:N+1,3)) / Var(0:N,3)%n)
+  ! Thermal ion density gradient (including all thermal ions)
+  zgrdni(0:N)   = zgrdnh(0:N) + zgrdnz(0:N)
   ! Electron temperature gradient
-  zgrdte(0:N)   = - zrmajor(0:N) * real((dTedrho(1:N+1)) / Var(0:N,1)%T)
+  zgrdte(0:N)   = - zrmajor(0:N) * real((dTsdrho(1:N+1,1)) / Var(0:N,1)%T)
   ! Ion temperature gradient
-  zgrdti(0:N)   = - zrmajor(0:N) * real((dTidrho(1:N+1)) / Var(0:N,2)%T)
+  zgrdti(0:N)   = - zrmajor(0:N) * real((dTsdrho(1:N+1,2)) / Var(0:N,2)%T)
   ! Safety factor gradient (~ magnetic shear)
   zgrdq(0:N)    =   zrmajor(0:N) * real((dQdrho(1:N+1) ) / Q(0:N))
 
@@ -95,7 +93,7 @@ subroutine txmmm95(dNedrho,dNidrho,dTedrho,dTidrho,dQdrho,cexb,gamma)
 
   call mmm95( &
      ! Input:
-     &   real(R),  zrmajor,   zelong &
+     &   real(rpt),  zrmajor,   zelong &
      & , zdense,   zdensh,    zdensimp,  zdensfe &
      & , zxzeff,   real(Var(0:N,1)%T),real(Var(0:N,2)%T),real(Q),real(BphV) &
      & , zavezimp, zmassimp,  zmasshyd,  zaimass,  zwexbs &
@@ -113,30 +111,30 @@ subroutine txmmm95(dNedrho,dNidrho,dTedrho,dTidrho,dQdrho,cexb,gamma)
 
   if(FSANOM(3) /= 0.d0 .and. igamma == 0) then
      !  Ion thermal diffusivity
-     Chii(0:N) = FSANOM(3) * (  real(zthiig(0:N),8) &  ! ITG mode
-          &                   + real(zthirb(0:N),8) &  ! Resistive Ballooning mode
-          &                   + real(zthikb(0:N),8))   ! Kinetic Ballooning mode
+     Chis(0:N,2) = FSANOM(3) * (  real(zthiig(0:N),8) &  ! ITG mode
+          &                     + real(zthirb(0:N),8) &  ! Resistive Ballooning mode
+          &                     + real(zthikb(0:N),8))   ! Kinetic Ballooning mode
 !!$     do nr=0,n
 !!$        write(6,*) rho(nr),zthiig(nr),zthirb(nr),zthikb(nr)
 !!$     end do
 
      !  Electron thermal diffusivity
-     Chie(0:N) = FSANOM(3) * (  real(ztheig(0:N),8) &
-          &                   + real(ztherb(0:N),8) &
-          &                   + real(zthekb(0:N),8))
+     Chis(0:N,1) = FSANOM(3) * (  real(ztheig(0:N),8) &
+          &                     + real(ztherb(0:N),8) &
+          &                     + real(zthekb(0:N),8))
   end if
 
   !  Momentum viscosity regarded as the same as thermal diffusivity
   if(FSANOM(2) /= 0.d0 .and. igamma == 0) then
-     rMue(0:N) = FSANOM(2) * Chie(0:N)
-     rMui(0:N) = FSANOM(2) * Chii(0:N)
+     rMus(0:N,1) = FSANOM(2) * Chis(0:N,1)
+     rMus(0:N,2) = FSANOM(2) * Chis(0:N,2)
   end if
 
   !  Particle diffusivity
   if(FSANOM(1) /= 0.d0 .and. igamma == 0) then
-     De  (0:N) = FSANOM(1) * (  real(zthdig(0:N),8) &
-          &                   + real(zthdrb(0:N),8) &
-          &                   + real(zthdkb(0:N),8))
+     Dfs(0:N,1) = FSANOM(1) * (  real(zthdig(0:N),8) &
+          &                    + real(zthdrb(0:N),8) &
+          &                    + real(zthdkb(0:N),8))
   end if
 
   if(igamma == 1) then
@@ -154,100 +152,100 @@ subroutine txmmm95(dNedrho,dNidrho,dTedrho,dTidrho,dQdrho,cexb,gamma)
 
   ! Outside the separatrix
 
-  if(FSPCLD == 0.d0) then
+  if(FSPCL(1) == 0.d0) then
      do NR = NRA, NRMAX
-        factor_bohm = De(NR) / (Var(NRA,1)%T * rKeV &
+        factor_bohm = Dfs(NR,1) / (Var(NRA,1)%T * rKeV &
              &      / (16.D0 * AEE * SQRT(BphV(NRA)**2 + BthV(NRA)**2)))
-        De(NR) = factor_bohm * Var(NR,1)%T * rKeV / (16.D0 * AEE * SQRT(BphV(NR)**2+BthV(NR)**2))
+        Dfs(NR,1) = factor_bohm * Var(NR,1)%T * rKeV / (16.D0 * AEE * SQRT(BphV(NR)**2+BthV(NR)**2))
      end do
   else
      do NR = NRA + 1, NRMAX
-        De(NR) = De(NRA)
+        Dfs(NR,1) = Dfs(NRA,1)
      end do
   end if
      
-  if(FSPCLC == 0.d0) then
+  if(FSPCL(3) == 0.d0) then
      do NR = NRA, NRMAX
-        factor_bohm = Chie(NR) / (Var(NRA,1)%T * rKeV &
+        factor_bohm = Chis(NR,1) / (Var(NRA,1)%T * rKeV &
              &      / (16.D0 * AEE * SQRT(BphV(NRA)**2 + BthV(NRA)**2)))
         DeL = factor_bohm * Var(NR,1)%T * rKeV / (16.D0 * AEE * SQRT(BphV(NR)**2+BthV(NR)**2))
-        Chie(NR) = DeL
-        rMue(NR) = DeL
-        factor_bohm = Chii(NR) / (Var(NRA,1)%T * rKeV &
+        Chis(NR,1) = DeL
+        rMus(NR,1) = DeL
+        factor_bohm = Chis(NR,2) / (Var(NRA,1)%T * rKeV &
              &      / (16.D0 * AEE * SQRT(BphV(NRA)**2 + BthV(NRA)**2)))
         DeL = factor_bohm * Var(NR,1)%T * rKeV / (16.D0 * AEE * SQRT(BphV(NR)**2+BthV(NR)**2))
-        Chii(NR) = DeL
-        rMui(NR) = DeL
+        Chis(NR,2) = DeL
+        rMus(NR,2) = DeL
      end do
   else
      do NR = NRA + 1, NRMAX
-        Chie(NR) = Chie(NRA)
-        rMue(NR) = rMue(NRA)
-        Chii(NR) = Chii(NRA)
-        rMui(NR) = rMui(NRA)
+        do i = 1, 2
+           Chis(NR,i) = Chis(NRA,i)
+           rMus(NR,i) = rMus(NRA,i)
+        end do
      end do
   end if
 
   ! Limitation of diffusivities
 
   cap_val = 5.d1
-  where(Chie > cap_val) Chie = cap_val
-  where(rMue > cap_val) rMue = cap_val
-  where(Chii > cap_val) Chie = cap_val
-  where(rMui > cap_val) rMui = cap_val
+  do i = 1, 2
+     where(Chis(:,i) > cap_val) Chis(:,i) = cap_val
+     where(rMus(:,i) > cap_val) rMus(:,i) = cap_val
+  end do
 
   ! Minimum diffusivities for numerical purpose
 
   cap_val = 0.1d0
-  where(Chie <= 0.d0) Chie = cap_val
-  where(rMue <= 0.d0) rMue = cap_val
-  where(Chii <= 0.d0) Chie = cap_val
-  where(rMui <= 0.d0) rMui = cap_val
+  do i = 1, 2
+     where(Chis(:,i) <= 0.d0) Chis(:,i) = cap_val
+     where(rMus(:,i) <= 0.d0) rMus(:,i) = cap_val
+  end do
 
 end subroutine txmmm95
 
 !=======================================================================
 
 subroutine ITG_growthrate
-  use tx_commons, only : NRMAX, Q, Var, Rho, vv, wexb, gamITG, RR, S, vro
+  use tx_commons, only : NRMAX, NSM, Q, Var, Rho, vv, wexb, gamITG, RR, S, vro, array_init_NRNS
   use tx_interface, only : dfdx, txmmm95
   implicit none
 
-  integer(4) :: N, NR
+  integer(4) :: N, NR, i
   real(8)    :: epsN
-  real(8), dimension(:), allocatable :: dQdrho, dTedrho, dTidrho, dNedrho, dNidrho
-  real(8), dimension(:), allocatable :: gamma, gamma_exb
+  real(8), dimension(:,:), allocatable :: dTsdrho, dNsdrho
+  real(8), dimension(:),   allocatable :: dQdrho, gamma, gamma_exb
 
   N = NRMAX
 
-  allocate(dQdrho(0:N),dTedrho(0:N),dTidrho(0:N),dNedrho(0:N),dNidrho(0:N))
-  allocate(gamma(0:N),gamma_exb(0:N))
+  allocate(dTsdrho,dNsdrho,mold=array_init_NRNS)
+  allocate(dQdrho,gamma,gamma_exb,mold=vv)
 
   dQdrho (0:N) = vro(0:N) * dfdx(vv,Q           ,N,0)
-  dTedrho(0:N) = vro(0:N) * dfdx(vv,Var(0:N,1)%T,N,0)
-  dTidrho(0:N) = vro(0:N) * dfdx(vv,Var(0:N,2)%T,N,0)
-  dNedrho(0:N) = vro(0:N) * dfdx(vv,Var(0:N,1)%n,N,0)
-  dNidrho(0:N) = vro(0:N) * dfdx(vv,Var(0:N,2)%n,N,0)
+  do i = 1, NSM
+     dTsdrho(0:N,i) = vro(0:N) * dfdx(vv,Var(0:N,i)%T,N,0)
+     dNsdrho(0:N,i) = vro(0:N) * dfdx(vv,Var(0:N,i)%n,N,0)
+  end do
 
   ! With ExB shearing effect
-  call txmmm95(dNedrho,dNidrho,dTedrho,dTidrho,dQdrho,1.d0,gamma_exb)
+  call txmmm95(dNsdrho,dTsdrho,dQdrho,1.d0,gamma_exb)
 
   ! Without ExB shearing effect
-  call txmmm95(dNedrho,dNidrho,dTedrho,dTidrho,dQdrho,0.d0,gamma)
+  call txmmm95(dNsdrho,dTsdrho,dQdrho,0.d0,gamma)
 
   write(6,*) "MMM95: Growth rates by Weiland14 model"
   do NR = 0, NRMAX
-     write(6,'(F15.7,1P3E15.7)') Rho(NR),gamma_exb(NR),gamma(NR),wexb(NR)
+     write(6,'(F15.7,3ES15.7)') Rho(NR),gamma_exb(NR),gamma(NR),wexb(NR)
   end do
 
   write(6,*)
 
   write(6,*) "Linear growth rate (Newman, Rogister, Candy)"
   do NR = 1, NRMAX
-     epsN = Var(NR,2)%n / abs(dNidrho(NR)) / RR
-     write(6,'(F9.6,1P5E14.6)') Rho(NR),epsN*S(NR)/Q(NR),gamITG(NR,1),gamITG(NR,2),gamITG(NR,3),wexb(NR)
+     epsN = Var(NR,2)%n / abs(dNsdrho(NR,2)) / RR
+     write(6,'(F9.6,5ES14.6)') Rho(NR),epsN*S(NR)/Q(NR),gamITG(NR,1),gamITG(NR,2),gamITG(NR,3),wexb(NR)
   end do
 
-  deallocate(dQdrho,dTedrho,dTidrho,dNedrho,dNidrho,gamma,gamma_exb)
+  deallocate(dQdrho,dTsdrho,dNsdrho,gamma,gamma_exb)
 
 end subroutine ITG_growthrate

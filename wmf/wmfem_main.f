@@ -989,6 +989,9 @@
       call wmfem_boundary_condition_div_sub(rhoa(nr),
      &                             fmv_1,fmv_2,fmv_3,fmv_4,fmv_5,fmv_6)
 
+      WRITE(6,*) 'mlmax=',mlmax
+      WRITE(6,*) 'nfcmax=',nfcmax
+      WRITE(6,*) 'nrmax=',nrmax
       do nfc=1,nfcmax
 
          ml=8*nfcmax*(nr-1)+1*nfcmax+nfc

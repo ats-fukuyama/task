@@ -31,6 +31,7 @@
       USE trmodels,ONLY: mbgb_driver,mmm95_driver,mmm71_driver
       USE libitp
       USE libgrf
+      USE libplog,ONLY: plog
       IMPLICIT NONE
       INTEGER(4):: &
            NS, NR08, NR, I

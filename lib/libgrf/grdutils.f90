@@ -9,7 +9,6 @@ MODULE grdutils
   PUBLIC ngdlen
   PUBLIC setrgbd
   PUBLIC setrgbda
-  PUBLIC plog
 
 CONTAINS
 
@@ -83,27 +82,4 @@ CONTAINS
     CALL setrgba(grgb)
     RETURN
   END SUBROUTINE setrgbda
-
-!     ***********************************************************
-
-!           CEILING FUNCTION FOR LOG10 PLOT
-
-!     ***********************************************************
-
-  FUNCTION plog(x,xmin,xmax)
-
-    IMPLICIT NONE
-    REAL(dp), INTENT(IN) ::  x, xmin, xmax
-    REAL(dp):: plog
-
-    IF(x.LT.xmin) THEN
-       plog=LOG10(xmin)
-    ELSEIF(x.GT.xmax) THEN
-       plog=LOG10(xmax)
-    ELSE
-       plog=LOG10(x)
-    ENDIF
-
-    RETURN
-  END FUNCTION plog
 END MODULE grdutils

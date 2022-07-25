@@ -1,4 +1,3 @@
-!     $Id: txlib.f90,v 1.50 2011/04/13 05:50:25 honda Exp $
 !!! Miscellaneous libraries NOT related to the physics or physical model
 module tx_core_module
   use tx_commons, only : nrmax, vv, hv, nemax, SUPGstab
@@ -51,45 +50,22 @@ contains
 !      id = 31 : a * b * c'* u * w
 !      id = 32 : a * b * c * u'* w
 !      id = 33 : a * b * c * u * w'
+!      id = 34 : a * b *(c * u)'* w = a * b * c'* u * w + a * b * c * u'* w
 !      id = 36 : a * b * c'* u * w'
 !      id = 37 : a * b * c * u'* w'
-!      id = 38 : a * b *(c * u)'*w' =  a * b * c * u'* w' + a * b * c'* u * w'
+!      id = 38 : a * b *(c * u)'*w' = a * b * c'* u * w'+ a * b * c * u'* w'
 !
 !      id = -1 : a * w
 !      id = -2 : a * b * w
 !      id = -3 :(a * b)'* w
 !      id = -4 : a'* w
+!      id = -5 : a * b' * w
 !      id = -8 : a * w'
 !      id = -9 : a * b * w'
 !
 !      id =-20 : a * b * c * w
 !      id =-22 : a * b * c'* w
 !      id =-23 : a * b * c * w'
-!
-!      < obsolete >
-!      id = 15 : vv * a * u * w
-!      id = 16 : vv * a'* u * w
-!      id = 17 : vv * a * u'* w
-!      id = 18 : vv * a * u'* w'
-!      id = 19 : vv * a * u * w'
-!      id = 20 : vv * a * b'* u * w'
-!
-!      id = 36 : vv * a'* b * u * w
-!      id = 37 : vv * a * b'* u * w
-!      id = 38 : vv * a * b * u'* w
-!      id = 39 :(vv * a * b * u)'* w
-!      id = 40 : vv * a'* b * u * w'
-!      id = 41 : vv * a * b * u'* w'
-!      id = 42 :(vv * a * b * u)'* w'
-!      id = 43 : vv * a * b * (u / b)'* w'
-!
-!      id = 44 : vv * a * b * u * w
-!      id = 45 :(vv * a * b'* u)'* w
-!      id = 46 :(vv * a * b'* u)'* w'
-!      id = 47 : vv * a'* b'* u * w
-!      id = 48 : vv * a * b'* u'* w
-!
-!      id = 49 : vv * a * b'* c'* u * w
 !
 !   where ' means the derivative of vv
 !
@@ -114,11 +90,11 @@ contains
     select case(id)
     case(1,4,8,11,101)
        icheck = 0
-    case(-101,-8,-4:-1,2:3,5:7,9:10,12:14,102,103,105,106)
+    case(-101,-8,-4,-1,2:3,5:7,9:10,12:14,102:103,105:106)
        if(.not. present(a)) icheck = 1
-    case(-102,-12,-9,20:27,120:122)
+    case(-102,-9,-5,-3:-2,20:27,120:122)
        if(.not. present(a) .or. .not. present(b)) icheck = 2
-    case(-120,-23:-22,-20,30:33,36:38,130:132)
+    case(-122,-120,-23:-22,-20,30:34,36:38,130:132)
        if(.not. present(a) .or. .not. present(b) .or. .not. present(c)) icheck = 3
     case default
        icheck = 4
@@ -160,6 +136,13 @@ contains
           x(ne,3) = x(ne,1)
           x(ne,4) = x(ne,2)
        end do
+    case(-5)
+       do ne = 1, nemax
+          x(ne,1) = (-2.d0 * a(ne-1) -        a(ne)) * c16 * b(ne-1)
+          x(ne,2) = ( 2.d0 * a(ne-1) +        a(ne)) * c16 * b(ne)
+          x(ne,3) = (-       a(ne-1) - 2.d0 * a(ne)) * c16 * b(ne-1)
+          x(ne,4) = (        a(ne-1) + 2.d0 * a(ne)) * c16 * b(ne)
+       end do
     case(-8)
        do ne = 1, nemax
           x(ne,1) =-0.5d0 * a(ne-1)
@@ -173,13 +156,6 @@ contains
           x(ne,2) = (-       a(ne-1) - 2.d0 * a(ne)) * c16 * b(ne)
           x(ne,3) = ( 2.d0 * a(ne-1) +        a(ne)) * c16 * b(ne-1)
           x(ne,4) = (        a(ne-1) + 2.d0 * a(ne)) * c16 * b(ne)
-       end do
-    case(-12)
-       do ne = 1, nemax
-          x(ne,1) = 0.5d0 * ( a(ne-1) + a(ne) ) * b(ne-1) / hv(ne)
-          x(ne,2) =-0.5d0 * ( a(ne-1) + a(ne) ) * b(ne  ) / hv(ne)
-          x(ne,3) =-0.5d0 * ( a(ne-1) + a(ne) ) * b(ne-1) / hv(ne)
-          x(ne,4) = 0.5d0 * ( a(ne-1) + a(ne) ) * b(ne  ) / hv(ne)
        end do
     case(-20)
        do ne = 1, nemax
@@ -440,6 +416,21 @@ contains
           x(ne,3) = (a1*coef2+a2*coef1)*c160
           x(ne,4) = (a1*coef1+a2*coef3)*c160
        end do
+    case(34)
+       do ne = 1, nemax
+          a1 = a(ne-1) ; a2 = a(ne) ; b1 = b(ne-1) ; b2 = b(ne) ; c1 = c(ne-1) ; c2 = c(ne)
+          coef1 = 3.d0*b1*(4.d0*c1+c2)+b2*(3.d0*c1+2.d0*c2)
+          coef2 = 3.d0*b1*c1+2.d0*b2*c1+2.d0*b1*c2+3.d0*b2*c2
+          coef3 = b1*(2.d0*c1+3.d0*c2)+3.d0*b2*(c1+4.d0*c2)
+          x(ne,1) = (12.d0*a1*b1+3.d0*a1*b2+3.d0*a2*b1+ 2.d0*a2*b2)*(c2-c1)*c160 &
+               &   -(a1*coef1+a2*coef2)*c160
+          x(ne,2) = ( 3.d0*a1*b1+2.d0*a1*b2+2.d0*a2*b1+ 3.d0*a2*b2)*(c2-c1)*c160 &
+               &   +(a1*coef1+a2*coef2)*c160
+          x(ne,3) = ( 3.d0*a1*b1+2.d0*a1*b2+2.d0*a2*b1+ 3.d0*a2*b2)*(c2-c1)*c160 &
+               &   -(a1*coef2+a2*coef3)*c160
+          x(ne,4) = ( 2.d0*a1*b1+3.d0*a1*b2+3.d0*a2*b1+12.d0*a2*b2)*(c2-c1)*c160 &
+               &   +(a1*coef2+a2*coef3)*c160
+       end do
     case(36)
        do ne = 1, nemax
           a1 = a(ne-1) ; a2 = a(ne) ; b1 = b(ne-1) ; b2 = b(ne) ; c1 = c(ne-1) ; c2 = c(ne)
@@ -629,158 +620,6 @@ contains
           x(ne,4) = (a1*coef2+a2*coef3)*c160 &
                &  + (a2*(b1+b2)*c1+a1*(3.d0*b1+b2)*c1+a1*(b1+b2)*c2+a2*(b1+3.d0*b2)*c2) * c112 * cp
        end do
-!!$    case(15)
-!!$       do ne = 1, nemax
-!!$          x(ne,1) = ( 12.d0*vv(ne-1)*a(ne-1) + 3.d0*vv(ne)*a(ne-1) &
-!!$               &     + 3.d0*vv(ne-1)*a(ne)   + 2.d0*vv(ne)*a(ne)) * hv(ne) * c160
-!!$          x(ne,2) = (  3.d0*vv(ne-1)*a(ne-1) + 2.d0*vv(ne)*a(ne-1) &
-!!$               &     + 2.d0*vv(ne-1)*a(ne)   + 3.d0*vv(ne)*a(ne)) * hv(ne) * c160
-!!$          x(ne,3) = x(ne,2)
-!!$          x(ne,4) = (  2.d0*vv(ne-1)*a(ne-1) + 3.d0*vv(ne)*a(ne-1) &
-!!$               &     + 3.d0*vv(ne-1)*a(ne)   +12.d0*vv(ne)*a(ne)) * hv(ne) * c160
-!!$       end do
-!!$    case(16)
-!!$       do ne = 1, nemax
-!!$          x(ne,1) = (3.d0 * vv(ne-1) +        vv(ne)) * (-a(ne-1) + a(ne)) * c112
-!!$          x(ne,2) = (       vv(ne-1) +        vv(ne)) * (-a(ne-1) + a(ne)) * c112
-!!$          x(ne,3) = x(ne,2)
-!!$          x(ne,4) = (       vv(ne-1) + 3.d0 * vv(ne)) * (-a(ne-1) + a(ne)) * c112
-!!$       end do
-!!$    case(17)
-!!$       do ne = 1, nemax
-!!$          x(ne,1) = (-3.d0*vv(ne-1)*a(ne-1) -      vv(ne)*a(ne-1) &
-!!$               &     -     vv(ne-1)*a(ne)   -      vv(ne)*a(ne)) * c112
-!!$          x(ne,2) =-x(ne,1)
-!!$          x(ne,3) = (-     vv(ne-1)*a(ne-1) -      vv(ne)*a(ne-1) &
-!!$               &     -     vv(ne-1)*a(ne)   - 3.d0*vv(ne)*a(ne)) * c112
-!!$          x(ne,4) =-x(ne,3)
-!!$       end do
-!!$    case(18)
-!!$       do ne = 1, nemax
-!!$          x(ne,1) = ( 2.d0*vv(ne-1)*a(ne-1) +      vv(ne)*a(ne-1) &
-!!$               &     +     vv(ne-1)*a(ne)   + 2.d0*vv(ne)*a(ne))  / hv(ne) * c16
-!!$          x(ne,2) =-x(ne,1)
-!!$          x(ne,3) = x(ne,2)
-!!$          x(ne,4) =-x(ne,3)
-!!$       end do
-!!$    case(20)
-!!$       do ne = 1, nemax
-!!$          x(ne,1) = ( 3.d0*vv(ne-1)*a(ne-1) +      vv(ne)*a(ne-1) &
-!!$               &     +     vv(ne-1)*a(ne)   +      vv(ne)*a(ne)) &
-!!$               &  * (b(ne-1) - b(ne)) / (12.d0 * hv(ne))
-!!$          x(ne,2) = (      vv(ne-1)*a(ne-1) +      vv(ne)*a(ne-1) &
-!!$               &     +     vv(ne-1)*a(ne)   + 3.d0*vv(ne)*a(ne)) &
-!!$               &  * (b(ne-1) - b(ne)) / (12.d0 * hv(ne))
-!!$          x(ne,3) =-x(ne,1)
-!!$          x(ne,4) =-x(ne,2)
-!!$       end do
-!!$    case(36)
-!!$       do ne = 1, nemax
-!!$          x(ne,1) = ( 12.d0*vv(ne-1)*b(ne-1) + 3.d0*vv(ne)*b(ne-1) &
-!!$               &     + 3.d0*vv(ne-1)*b(ne)   + 2.d0*vv(ne)*b(ne)) * (-a(ne-1)+a(ne)) * c160
-!!$          x(ne,2) = (  3.d0*vv(ne-1)*b(ne-1) + 2.d0*vv(ne)*b(ne-1) &
-!!$               &     + 2.d0*vv(ne-1)*b(ne)   + 3.d0*vv(ne)*b(ne)) * (-a(ne-1)+a(ne)) * c160
-!!$          x(ne,3) = x(ne,2)
-!!$          x(ne,4) = (  2.d0*vv(ne-1)*b(ne-1) + 3.d0*vv(ne)*b(ne-1) &
-!!$               &     + 3.d0*vv(ne-1)*b(ne)   +12.d0*vv(ne)*b(ne)) * (-a(ne-1)+a(ne)) * c160
-!!$       end do
-!!$    case(37)
-!!$       do ne = 1, nemax
-!!$          x(ne,1) = (12.d0*vv(ne-1)*a(ne-1) + 3.d0*vv(ne)*a(ne-1) &
-!!$               &    + 3.d0*vv(ne-1)*a(ne)   + 2.d0*vv(ne)*a(ne)) * (-b(ne-1)+b(ne)) * c160
-!!$          x(ne,2) = ( 3.d0*vv(ne-1)*a(ne-1) + 2.d0*vv(ne)*a(ne-1) &
-!!$               &    + 2.d0*vv(ne-1)*a(ne)   + 3.d0*vv(ne)*a(ne)) * (-b(ne-1)+b(ne)) * c160
-!!$          x(ne,3) = ( 3.d0*vv(ne-1)*a(ne-1) + 2.d0*vv(ne)*a(ne-1) &
-!!$               &    + 2.d0*vv(ne-1)*a(ne)   + 3.d0*vv(ne)*a(ne)) * (-b(ne-1)+b(ne)) * c160
-!!$          x(ne,4) = ( 2.d0*vv(ne-1)*a(ne-1) + 3.d0*vv(ne)*a(ne-1) &
-!!$               &    + 3.d0*vv(ne-1)*a(ne)   +12.d0*vv(ne)*a(ne)) * (-b(ne-1)+b(ne)) * c160
-!!$       end do
-!!$    case(38)
-!!$       do ne = 1, nemax
-!!$          a1 = a(ne-1) ; b1 = b(ne-1) ; p1 = vv(ne-1)
-!!$          a2 = a(ne)   ; b2 = b(ne)   ; p2 = vv(ne)
-!!$          x(ne,1) =-( 12.d0*p1*a1*b1 + 3.d0*p2*a1*b1 + 3.d0*p1*a2*b1 + 2.d0*p2*a2*b1 &
-!!$               &     + 3.d0*p1*a1*b2 + 2.d0*p2*a1*b2 + 2.d0*p1*a2*b2 + 3.d0*p2*a2*b2) * c160
-!!$          x(ne,2) = ( 12.d0*p1*a1*b1 + 3.d0*p2*a1*b1 + 3.d0*p1*a2*b1 + 2.d0*p2*a2*b1 &
-!!$               &     + 3.d0*p1*a1*b2 + 2.d0*p2*a1*b2 + 2.d0*p1*a2*b2 + 3.d0*p2*a2*b2) * c160
-!!$          x(ne,3) =-(  3.d0*p1*a1*b1 + 2.d0*p2*a1*b1 + 2.d0*p1*a2*b1 + 3.d0*p2*a2*b1 &
-!!$               &     + 2.d0*p1*a1*b2 + 3.d0*p2*a1*b2 + 3.d0*p1*a2*b2 +12.d0*p2*a2*b2) * c160
-!!$          x(ne,4) = (  3.d0*p1*a1*b1 + 2.d0*p2*a1*b1 + 2.d0*p1*a2*b1 + 3.d0*p2*a2*b1 &
-!!$               &     + 2.d0*p1*a1*b2 + 3.d0*p2*a1*b2 + 3.d0*p1*a2*b2 +12.d0*p2*a2*b2) * c160
-!!$       end do
-!!$    case(39)
-!!$       do ne = 1, nemax
-!!$          a1 = a(ne-1) ; b1 = b(ne-1) ; p1 = vv(ne-1)
-!!$          a2 = a(ne)   ; b2 = b(ne)   ; p2 = vv(ne)
-!!$          x(ne,1) = (-48.d0*a1*b1*p1+3.d0*a2*b1*p1+3.d0*a1*b2*p1+ 2.d0*a2*b2*p1 &
-!!$               &     + 3.d0*a1*b1*p2+2.d0*a2*b1*p2+2.d0*a1*b2*p2+ 3.d0*a2*b2*p2) * c160
-!!$          x(ne,2) = (  3.d0*a1*b1*p1+2.d0*a2*b1*p1+2.d0*a1*b2*p1+ 3.d0*a2*b2*p1 &
-!!$               &     + 2.d0*a1*b1*p2+3.d0*a2*b1*p2+3.d0*a1*b2*p2+12.d0*a2*b2*p2) * c160
-!!$          x(ne,3) = (-12.d0*a1*b1*p1-3.d0*a2*b1*p1-3.d0*a1*b2*p1- 2.d0*a2*b2*p1 &
-!!$               &     - 3.d0*a1*b1*p2-2.d0*a2*b1*p2-2.d0*a1*b2*p2- 3.d0*a2*b2*p2) * c160
-!!$          x(ne,4) = (- 3.d0*a1*b1*p1-2.d0*a2*b1*p1-2.d0*a1*b2*p1- 3.d0*a2*b2*p1 &
-!!$               &     - 2.d0*a1*b1*p2-3.d0*a2*b1*p2-3.d0*a1*b2*p2+48.d0*a2*b2*p2) * c160
-!!$       end do
-!!$    case(41)
-!!$       do ne = 1, nemax
-!!$          x(ne,1) = (b(ne-1)*( 3.d0*vv(ne-1)*a(ne-1)+     vv(ne)*a(ne-1) &
-!!$               &              +     vv(ne-1)*a(ne)  +     vv(ne)*a(ne)) &
-!!$               &    +b(ne)  *(      vv(ne-1)*a(ne-1)+     vv(ne)*a(ne-1) &
-!!$               &              +     vv(ne-1)*a(ne)  +3.d0*vv(ne)*a(ne))) / hv(ne) * c112
-!!$          x(ne,2) =-x(ne,1)
-!!$          x(ne,3) = x(ne,2)
-!!$          x(ne,4) = x(ne,1)
-!!$       end do
-!!$    case(42)
-!!$       do ne = 1, nemax
-!!$          x(ne,1) = a(ne-1)*b(ne-1)*vv(ne-1) / hv(ne)
-!!$          x(ne,2) =-a(ne)  *b(ne)  *vv(ne)   / hv(ne)
-!!$          x(ne,3) =-x(ne,1)
-!!$          x(ne,4) =-x(ne,2)
-!!$       end do
-!!$    case(44)
-!!$       do ne = 1, nemax
-!!$          x(ne,1) = ( 10.d0*a(ne-1)*b(ne-1)*vv(ne-1)+ 2.d0*a(ne)*b(ne-1)*vv(ne-1) &
-!!$               &     + 2.d0*a(ne-1)*b(ne)  *vv(ne-1)+      a(ne)*b(ne)  *vv(ne-1) &
-!!$               &     + 2.d0*a(ne-1)*b(ne-1)*vv(ne)  +      a(ne)*b(ne-1)*vv(ne) &
-!!$               &     +      a(ne-1)*b(ne)  *vv(ne)  +      a(ne)*b(ne)  *vv(ne)) * hv(ne) * c160
-!!$          x(ne,2) = (  2.d0*a(ne-1)*b(ne-1)*vv(ne-1)+      a(ne)*b(ne-1)*vv(ne-1) &
-!!$               &     +      a(ne-1)*b(ne)  *vv(ne-1)+      a(ne)*b(ne)  *vv(ne-1) &
-!!$               &     +      a(ne-1)*b(ne-1)*vv(ne)  +      a(ne)*b(ne-1)*vv(ne) &
-!!$               &     +      a(ne-1)*b(ne)  *vv(ne)  + 2.d0*a(ne)*b(ne)  *vv(ne)) * hv(ne) * c160
-!!$          x(ne,3) = x(ne,2)
-!!$          x(ne,4) = (       a(ne-1)*b(ne-1)*vv(ne-1)+      a(ne)*b(ne-1)*vv(ne-1) &
-!!$               &     +      a(ne-1)*b(ne)  *vv(ne-1)+ 2.d0*a(ne)*b(ne)  *vv(ne-1) &
-!!$               &     +      a(ne-1)*b(ne-1)*vv(ne)  + 2.d0*a(ne)*b(ne-1)*vv(ne) &
-!!$               &     + 2.d0*a(ne-1)*b(ne)  *vv(ne)  +10.d0*a(ne)*b(ne)  *vv(ne)) * hv(ne) * c160
-!!$       end do
-!!$    case(45)
-!!$       do ne = 1, nemax
-!!$          a1 = a(ne-1) ; a2 = a(ne) ; b1 = b(ne-1) ; b2 = b(ne)
-!!$          p1 = vv(ne-1) ; p2 = vv(ne) ; hvlinv = 1.d0 / hv(ne)
-!!$          x(ne,1) = (b1-b2)*( 9.d0*a1*p1-a2*p1-a1*p2-     a2*p2)*hvlinv * c112
-!!$          x(ne,2) =-(b1-b2)*(      a1*p1+a2*p1+a1*p2+3.d0*a2*p2)*hvlinv * c112
-!!$          x(ne,3) = (b1-b2)*( 3.d0*a1*p1+a2*p1+a1*p2+     a2*p2)*hvlinv * c112
-!!$          x(ne,4) =-(b1-b2)*(-     a1*p1-a2*p1-a1*p2+9.d0*a2*p2)*hvlinv * c112
-!!$       end do
-!!$    case(48)
-!!$       do ne = 1, nemax
-!!$          a1 = a(ne-1) ; a2 = a(ne) ; b1 = b(ne-1) ; b2 = b(ne)
-!!$          p1 = vv(ne-1) ; p2 = vv(ne) ; hvlinv = 1.d0 / hv(ne)
-!!$          x(ne,1) =-(3.d0*a1*p1+a2*p1+a1*p2+     a2*p2)*(b2-b1)*hvlinv * c112
-!!$          x(ne,2) = (3.d0*a1*p1+a2*p1+a1*p2+     a2*p2)*(b2-b1)*hvlinv * c112
-!!$          x(ne,3) =-(     a1*p1+a2*p1+a1*p2+3.d0*a2*p2)*(b2-b1)*hvlinv * c112
-!!$          x(ne,4) = (     a1*p1+a2*p1+a1*p2+3.d0*a2*p2)*(b2-b1)*hvlinv * c112
-!!$       end do
-!!$    case(49)
-!!$       do ne = 1, nemax
-!!$          a1 = a(ne-1) ; a2 = a(ne) ; b1 = b(ne-1) ; b2 = b(ne) ; c1 = c(ne-1) ; c2 = c(ne)
-!!$          p1 = vv(ne-1) ; p2 = vv(ne) ; hvlinv = 1.d0 / hv(ne)
-!!$          x(ne,1) = (3.d0*p1*(4.d0*a1+a2)+p2*(3.d0*a1+2.d0*a2))*(b2-b1)*(c2-c1)*hvlinv*c160
-!!$          x(ne,2) = (p1*(3.d0*a1+2.d0*a2)+p2*(2.d0*a1+3.d0*a2))*(b2-b1)*(c2-c1)*hvlinv*c160
-!!$          x(ne,3) = x(ne,2)
-!!$          x(ne,4) = (p1*(2.d0*a1+3.d0*a2)+3.d0*p2*(a1+4.d0*a2))*(b2-b1)*(c2-c1)*hvlinv*c160
-!!$       end do
     case default
        write(6,*)  'XX falut ID in fem_int, id= ',id
        stop
@@ -1244,46 +1083,43 @@ contains
 !                                                                         !
 ! ========================================================================!
 
-  real(8) function intg_vol_p(X,NR)
+  real(8) function intg_vol_p(X,NE)
 
-    ! Integrate X at a certain ONE point (NOT the domain)
+    ! Integrate X at a certain ONE mesh (NOT over the entire domain)
 
-    ! Calculate \int X dV
+    ! Calculate \int_NE X dV
 
-    integer(4), intent(in) :: NR
+    integer(4), intent(in) :: NE
     real(8), dimension(:), intent(in) :: X
-    integer(4) :: NE
 
-    if(NR == 0) THEN
-       intg_vol_p = 0.d0
-    else
-       NE = NR
+    if(NE /= 0) then
        intg_vol_p = sum(fem_int_point(-1,NE,X))
+    else
+       intg_vol_p = 0.d0
     end if
 
   end function intg_vol_p
 
 
-  real(8) function intg_area_p(X,NR)
+  real(8) function intg_area_p(X,NE)
 
-    ! Integrate X at a certain ONE point (NOT the domain)
+    ! Integrate X at a certain ONE mesh (NOT over the entire domain)
 
-    ! Calculate \int X dV
+    ! Calculate \int_NE X dS
 
     use tx_commons, only : Pi, ait
-    integer(4), intent(in) :: NR
+    integer(4), intent(in) :: NE
     real(8), dimension(:), intent(in) :: X
-    integer(4) :: NE
 
-    if(NR == 0) THEN
-       intg_area_p = 0.d0
-    else
-       NE = NR
+    if(NE /= 0) then
        intg_area_p = sum(fem_int_point(-2,NE,ait,X)) / ( 2.d0 * Pi )
+    else
+       intg_area_p = 0.d0
     end if
 
   end function intg_area_p
 
+  
   subroutine sub_intg_vol(X,NRLMAX,VAL,NR_START)
 
     ! Integrate X in the arbitrary size domain from NR_START to NRLMAX
@@ -1320,7 +1156,7 @@ end module tx_core_module
 
 !***************************************************************
 !
-!   SUBROUTINE APpend Integer(4) TO Strings
+!   subroutine APpend Integer(4) TO Strings
 !     INPUT  : STR, NSTR, I
 !              STR(NSTR(original)+1:NSTR(return))
 !              NSTR : Number of STR. First, NSTR = 0.
@@ -1328,28 +1164,27 @@ end module tx_core_module
 !
 !***************************************************************
 
-SUBROUTINE APITOS(STR, NSTR, I)
+subroutine APITOS(STR, NSTR, I)
 
   implicit none
-  character(len=*), INTENT(INOUT) :: STR
-  INTEGER(4),       INTENT(INOUT) :: NSTR
-  INTEGER(4),       INTENT(IN)    :: I
+  character(len=*), intent(inout) :: STR
+  integer(4),       intent(inout) :: NSTR
+  integer(4),       intent(in)    :: I
 
-  INTEGER(4) :: J, NSTRI
+  integer(4) :: J, NSTRI
   character(len=25) :: KVALUE
 
-  WRITE(KVALUE,'(I25)') I
+  write(KVALUE,'(I25)') I
   J = index(KVALUE,' ',.true.)
   NSTRI = 25 - J
   STR(NSTR+1:NSTR+NSTRI) = KVALUE(J+1:25)
   NSTR = NSTR + NSTRI
 
-  RETURN
-END SUBROUTINE APITOS
+end subroutine APITOS
 
 !***************************************************************
 !
-!  SUBROUTINE APpend Strings TO Strings
+!  subroutine APpend Strings TO Strings
 !     INPUT  : STR, NSTR, INSTR, NINSTR
 !              STR(NSTR(original+1):NSTR(return))
 !              NSTR : Number of STR. First, NSTR = 0.
@@ -1358,23 +1193,22 @@ END SUBROUTINE APITOS
 !
 !***************************************************************
 
-SUBROUTINE APSTOS(STR, NSTR, INSTR, NINSTR)
+subroutine APSTOS(STR, NSTR, INSTR, NINSTR)
 
   implicit none
-  character(len=*), INTENT(INOUT) :: STR
-  INTEGER(4),       INTENT(INOUT) :: NSTR
-  character(len=*), INTENT(IN)    :: INSTR
-  INTEGER(4),       INTENT(IN)    :: NINSTR
+  character(len=*), intent(inout) :: STR
+  integer(4),       intent(inout) :: NSTR
+  character(len=*), intent(in)    :: INSTR
+  integer(4),       intent(in)    :: NINSTR
 
   STR(NSTR+1:NSTR+NINSTR) = INSTR(1:NINSTR)
   NSTR = NSTR + NINSTR
 
-  RETURN
-END SUBROUTINE APSTOS
+end subroutine APSTOS
 
 !***************************************************************
 !
-!  SUBROUTINE APpend Double precision real number TO Strings
+!  subroutine APpend Double precision real number TO Strings
 !     INPUT  : STR, NSTR, D, FORM
 !              STR(NSTR(original+1):NSTR(return))
 !              NSTR : Number of STR. First, NSTR = 0.
@@ -1383,88 +1217,88 @@ END SUBROUTINE APSTOS
 !
 !***************************************************************
 
-SUBROUTINE APDTOS(STR, NSTR, D, FORM)
+subroutine APDTOS(STR, NSTR, D, FORM)
 
   implicit none
-  character(len=*), INTENT(INOUT) :: STR
-  INTEGER(4),       INTENT(INOUT) :: NSTR
-  REAL(8),          INTENT(IN)    :: D
-  character(len=*), INTENT(IN)    :: FORM
+  character(len=*), intent(inout) :: STR
+  integer(4),       intent(inout) :: NSTR
+  real(8),          intent(in)    :: D
+  character(len=*), intent(in)    :: FORM
 
-  INTEGER(4) :: IND
-  INTEGER(4) :: L, IS, IE, NSTRD, IST
+  integer(4) :: IND
+  integer(4) :: L, IS, IE, NSTRD, IST
   character(len=10) :: KFORM
   character(len=25) :: KVALUE
 
-  L = LEN(FORM)
-  IF      (L == 0) THEN
-     WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
+  L = len(FORM)
+  if      (L == 0) then
+     write(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
      NSTRD = 0
-     RETURN
-  ELSE IF (L == 1) THEN
-     IF (FORM(1:1) == '*') THEN
-        WRITE(KVALUE,*) REAL(D)
-     ELSE
-        WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
+     return
+  else if (L == 1) then
+     if (FORM(1:1) == '*') then
+        write(KVALUE,*) real(D)
+     else
+        write(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
         NSTRD = 0
-        RETURN
-     END IF
-  ELSE
-     READ(FORM(2:2),'(I1)',IOSTAT=IST) IND
-     IF (IST > 0) THEN
-        WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
+        return
+     end if
+  else
+     read(FORM(2:2),'(I1)',IOSTAT=IST) IND
+     if (IST > 0) then
+        write(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
         NSTRD = 0
-        RETURN
-     END IF
-     IF (FORM(1:1) == 'F') THEN
-        WRITE(KFORM,'(A,I2,A)') '(F25.', IND, ')'
-        WRITE(KVALUE,KFORM) D
-     ELSE IF (FORM(1:1) == 'D' .OR. FORM(1:1) == 'E' &
-          &            .OR. FORM(1:1) == 'G') THEN
-        WRITE(KFORM,'(3A,I2,A)') '(1P', FORM(1:1), '25.', IND, ')'
-        WRITE(KVALUE,KFORM) D
-     ELSE
-        WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
+        return
+     end if
+     if (FORM(1:1) == 'F') then
+        write(KFORM,'(A,I2,A)') '(F25.', IND, ')'
+        write(KVALUE,KFORM) D
+     else if (FORM(1:1) == 'D' .or. FORM(1:1) == 'E' &
+          &            .or. FORM(1:1) == 'G') then
+        write(KFORM,'(3A,I2,A)') '(1P', FORM(1:1), '25.', IND, ')'
+        write(KVALUE,KFORM) D
+     else
+        write(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
         NSTRD = 0
-        RETURN
-     END IF
-  END IF
+        return
+     end if
+  end if
 
   IS = index(KVALUE,' ',.true.) + 1
   IE = IS
-  DO
+  do
      IE = IE + 1
-     IF (KVALUE(IE:IE) /= ' ' .AND. IE < 25) THEN
-        CYCLE
-     ELSE
-        EXIT
-     END IF
-  END DO
-  IF (KVALUE(IE:IE) /= ' ' .AND. IE == 25) IE = 25 + 1
+     if (KVALUE(IE:IE) /= ' ' .and. IE < 25) then
+        cycle
+     else
+        exit
+     end if
+  end do
+  if (KVALUE(IE:IE) /= ' ' .and. IE == 25) IE = 25 + 1
 
-  IF (KVALUE(IS:IS) == '-') THEN
-     IF (IS > 1 .AND. KVALUE(IS+1:IS+1) == '.') THEN
+  if (KVALUE(IS:IS) == '-') then
+     if (IS > 1 .and. KVALUE(IS+1:IS+1) == '.') then
         KVALUE(IS-1:IS-1) = '-'
         KVALUE(IS  :IS  ) = '0'
         IS = IS - 1
-     END IF
-  ELSE IF (KVALUE(IS:IS) == '.') THEN
-     IF (IS > 1) THEN
+     end if
+  else if (KVALUE(IS:IS) == '.') then
+     if (IS > 1) then
         KVALUE(IS-1:IS-1) = '0'
         IS = IS - 1
-     END IF
-  END IF
+     end if
+  end if
 
   NSTRD = IE - IS
   STR(NSTR+1:NSTR+NSTRD) = KVALUE(IS:IE-1)
   NSTR = NSTR + NSTRD
 
-  RETURN
-END SUBROUTINE APDTOS
+  return
+end subroutine APDTOS
 
 !***************************************************************
 !
-!  SUBROUTINE APpend Real number TO Strings
+!  subroutine APpend Real number TO Strings
 !     INPUT  : STR, NSTR, GR, FORM
 !              STR(NSTR(original+1):NSTR(return))
 !              NSTR : Number of STR. First, NSTR = 0.
@@ -1473,21 +1307,21 @@ END SUBROUTINE APDTOS
 !
 !***************************************************************
 
-SUBROUTINE APRTOS(STR, NSTR, GR, FORM)
+subroutine APRTOS(STR, NSTR, GR, FORM)
 
   implicit none
-  character(len=*), INTENT(INOUT) :: STR
-  INTEGER(4),       INTENT(INOUT) :: NSTR
-  REAL(4),          INTENT(IN)    :: GR
-  character(len=*), INTENT(IN)    :: FORM
+  character(len=*), intent(inout) :: STR
+  integer(4),       intent(inout) :: NSTR
+  real(4),          intent(in)    :: GR
+  character(len=*), intent(in)    :: FORM
 
-  REAL(8) :: D
+  real(8) :: D
 
   D = real(GR,8)
-  CALL APDTOS(STR, NSTR, D, FORM)
+  call APDTOS(STR, NSTR, D, FORM)
 
-  RETURN
-END SUBROUTINE APRTOS
+  return
+end subroutine APRTOS
 
 !***************************************************************
 !
@@ -1495,10 +1329,10 @@ END SUBROUTINE APRTOS
 !
 !***************************************************************
 
-SUBROUTINE TOUPPERX(KTEXT)
+subroutine TOUPPER(KTEXT)
 
   implicit none
-  character(len=*), INTENT(INOUT) ::  KTEXT
+  character(len=*), intent(inout) ::  KTEXT
 
   integer(4) :: i
 
@@ -1508,8 +1342,8 @@ SUBROUTINE TOUPPERX(KTEXT)
      end if
   end do
 
-  RETURN
-END SUBROUTINE TOUPPERX
+  return
+end subroutine TOUPPER
 
 !***************************************************************
 !
@@ -1517,27 +1351,27 @@ END SUBROUTINE TOUPPERX
 !
 !***************************************************************
 
-SUBROUTINE KSPLIT_TX(KKLINE,KID,KKLINE1,KKLINE2)
+subroutine KSPLIT_TX(KKLINE,KID,KKLINE1,KKLINE2)
 
-  IMPLICIT NONE
-  CHARACTER(LEN=*),  INTENT(IN)  :: KKLINE
-  CHARACTER(LEN=1),  INTENT(IN)  :: KID
-  CHARACTER(LEN=*), INTENT(OUT) :: KKLINE1, KKLINE2
-  INTEGER(4) :: I
+  implicit none
+  character(len=*),  intent(in)  :: KKLINE
+  character(len=1),  intent(in)  :: KID
+  character(len=*),  intent(out) :: KKLINE1, KKLINE2
+  integer(4) :: I
 
-  I = INDEX(KKLINE,KID)
-  IF(I == 0) THEN
+  I = index(KKLINE,KID)
+  if(I == 0) then
      KKLINE1 = KKLINE
      KKLINE2 = ' '
-  ELSEIF(I == 1) THEN
+  else if(I == 1) then
      KKLINE1 = ' '
      KKLINE2 = KKLINE(I+1:)
-  ELSE
+  else
      KKLINE1 = KKLINE(1:I-1)
      KKLINE2 = KKLINE(I+1:)
-  END IF
+  end if
   
-END SUBROUTINE KSPLIT_TX
+end subroutine KSPLIT_TX
 
 !***************************************************************
 !
@@ -1545,7 +1379,7 @@ END SUBROUTINE KSPLIT_TX
 !
 !***************************************************************
 
-pure REAL(8) FUNCTION DERIVF(NR,R,F,NRMAX)
+pure real(8) function DERIVF(NR,R,F,NRMAX)
 
   implicit none
   integer(4), intent(in) :: NR, NRMAX
@@ -1553,25 +1387,24 @@ pure REAL(8) FUNCTION DERIVF(NR,R,F,NRMAX)
   real(8), dimension(0:NRMAX), intent(in)  :: F
   real(8) :: DR1, DR2
 
-  IF(NR == 0) THEN
+  if(NR == 0) then
      DR1 = R(NR+1) - R(NR)
      DR2 = R(NR+2) - R(NR)
      DERIVF = (DR2**2 * F(NR+1) - DR1**2 * F(NR+2)) / (DR1 * DR2 * (DR2 - DR1)) &
           &- (DR2 + DR1) * F(NR) / (DR1 * DR2)
-  ELSE IF(NR == NRMAX) THEN
+  else if(NR == NRMAX) then
      DR1 = R(NR-1) - R(NR)
      DR2 = R(NR-2) - R(NR)
      DERIVF = (DR2**2 * F(NR-1) - DR1**2 * F(NR-2)) / (DR1 * DR2 * (DR2 - DR1)) &
           &- (DR2 + DR1) * F(NR) / (DR1 * DR2)
-  ELSE
+  else
      DR1 = R(NR-1) - R(NR)
      DR2 = R(NR+1) - R(NR)
      DERIVF = (DR2**2 * F(NR-1) - DR1**2 * F(NR+1)) / (DR1 * DR2 * (DR2 - DR1)) &
           &- (DR2 + DR1) * F(NR) / (DR1 * DR2)
-  END IF
+  end if
 
-  RETURN
-END FUNCTION DERIVF
+end function DERIVF
 
 ! *** Universal high-accuracy 1st-derivative routine ***
 !
@@ -1591,8 +1424,8 @@ END FUNCTION DERIVF
 
 function dfdx(x,f,nmax,mode,daxs,dbnd)
 
-  USE libspl1d
-  USE libitp
+  use libitp, only: deriv4
+  use libspl1d, only : spl1d,spl1df
   implicit none
   integer(4), intent(in) :: nmax, mode
   real(8), dimension(0:nmax), intent(in) :: x, f
@@ -1633,7 +1466,7 @@ end function dfdx
 !     This formula can be used only if intX(0    ) is known of FVAL (ID = 0)
 !                                   or intX(NRMAX) is known of FVAL (ID = else).
 
-SUBROUTINE INTDERIV3(X,R,intX,FVAL,NRMAX,ID)
+subroutine INTDERIV3(X,R,intX,FVAL,NRMAX,ID)
 
   implicit none
   integer(4), intent(in) :: NRMAX, ID
@@ -1643,7 +1476,7 @@ SUBROUTINE INTDERIV3(X,R,intX,FVAL,NRMAX,ID)
   integer(4) :: NR
   real(8) :: D1, D2, D3
 
-  IF(ID == 0) THEN
+  if(ID == 0) then
      intX(0) = FVAL
      D1 = R(1) - R(0)
      D2 = R(2) - R(0)
@@ -1652,13 +1485,13 @@ SUBROUTINE INTDERIV3(X,R,intX,FVAL,NRMAX,ID)
           &  / (-D1**2+D2**2+D3**2) + FVAL
      intX(2) = ( D1**2*D2*(D2-D1)*X(0)+D2*D3**2*(D1-D2)*X(0) &
           &     +D2**2*D3*(D1+D3)*X(1)) / (D1*(-D1**2+D2**2+D3**2)) + FVAL
-     DO NR = 3, NRMAX
+     do NR = 3, NRMAX
         D1 = R(NR-2) - R(NR-1)
         D2 = R(NR  ) - R(NR-1)
         intX(NR) = (D2/D1)**2*intX(NR-2)-((D2/D1)**2-1.D0)*intX(NR-1) &
              &    -X(NR-1)*D2/D1*(D2-D1)
-     END DO
-  ELSE
+     end do
+  else
      intX(NRMAX) = FVAL
      D1 = R(NRMAX-1) - R(NRMAX  )
      D2 = R(NRMAX-2) - R(NRMAX  )
@@ -1667,15 +1500,15 @@ SUBROUTINE INTDERIV3(X,R,intX,FVAL,NRMAX,ID)
           &        / (-D1**2+D2**2+D3**2) + FVAL
      intX(NRMAX-2) = ( D1**2*D2*(D2-D1)*X(NRMAX  )+D2*D3**2*(D1-D2)*X(NRMAX) &
           &           +D2**2*D3*(D1+D3)*X(NRMAX-1)) / (D1*(-D1**2+D2**2+D3**2)) + FVAL
-     DO NR = NRMAX - 3, 0, -1
+     do NR = NRMAX - 3, 0, -1
         D1 = R(NR+2) - R(NR+1)
         D2 = R(NR  ) - R(NR+1)
         intX(NR) = (D2/D1)**2*intX(NR+2)-((D2/D1)**2-1.D0)*intX(NR+1) &
              &    -X(NR+1)*D2/D1*(D2-D1)
-     END DO
-  END IF
+     end do
+  end if
 
-END SUBROUTINE INTDERIV3
+end subroutine INTDERIV3
 
 !***************************************************************
 !
@@ -1689,31 +1522,31 @@ END SUBROUTINE INTDERIV3
 !   W  : width of flat region around R=RC
 !   RC : center radial point of fine mesh region
 
-pure REAL(8) FUNCTION LORENTZ(R,C1,C2,W1,W2,RC1,RC2,AMP)
+pure real(8) function LORENTZ(R,C1,C2,W1,W2,RC1,RC2,AMP)
 
   implicit none
   real(8), intent(in) :: r, c1, c2, w1, w2, rc1, rc2
   real(8), intent(in), optional :: AMP
 
-  LORENTZ = R + C1 * ( W1 * ATAN((R - RC1) / W1) + W1 * ATAN(RC1 / W1)) &
-       &      + C2 * ( W2 * ATAN((R - RC2) / W2) + W2 * ATAN(RC2 / W2))
+  LORENTZ = R + C1 * ( W1 * atan((R - RC1) / W1) + W1 * atan(RC1 / W1)) &
+       &      + C2 * ( W2 * atan((R - RC2) / W2) + W2 * atan(RC2 / W2))
   if(present(amp)) LORENTZ = LORENTZ / AMP
 
-END FUNCTION LORENTZ
+end function LORENTZ
 
-pure REAL(8) FUNCTION LORENTZ_PART(R,W1,W2,RC1,RC2,ID)
+pure real(8) function LORENTZ_PART(R,W1,W2,RC1,RC2,ID)
 
   implicit none
   real(8), intent(in) :: r, w1, w2, rc1, rc2
   integer(4), intent(in) :: ID
 
-  IF(ID == 0) THEN
-     LORENTZ_PART = W1 * ATAN((R - RC1) / W1) + W1 * ATAN(RC1 / W1)
-  ELSE
-     LORENTZ_PART = W2 * ATAN((R - RC2) / W2) + W2 * ATAN(RC2 / W2)
-  END IF
+  if(ID == 0) then
+     LORENTZ_PART = W1 * atan((R - RC1) / W1) + W1 * atan(RC1 / W1)
+  else
+     LORENTZ_PART = W2 * atan((R - RC2) / W2) + W2 * atan(RC2 / W2)
+  end if
 
-END FUNCTION LORENTZ_PART
+end function LORENTZ_PART
 
 !***************************************************************
 !
@@ -1735,7 +1568,7 @@ END FUNCTION LORENTZ_PART
 ! i.e. we now handle the equation of "f = s" or "f - s = 0".
 !   eps    : arithmetic precision
 
-SUBROUTINE BISECTION(f,cl1,cl2,w1,w2,rc1,rc2,amp,s,valmax,val,valmin)
+subroutine BISECTION(f,cl1,cl2,w1,w2,rc1,rc2,amp,s,valmax,val,valmin)
 
   implicit none
   real(8), external :: f
@@ -1765,7 +1598,7 @@ SUBROUTINE BISECTION(f,cl1,cl2,w1,w2,rc1,rc2,amp,s,valmax,val,valmin)
   end do
   val = c
 
-END SUBROUTINE BISECTION
+end subroutine BISECTION
 
 !************************************************************************************
 !
@@ -1797,7 +1630,7 @@ END SUBROUTINE BISECTION
 !************************************************************************************
 
 subroutine inexpolate(nmax_in,rho_in,dat_in,nmax_std,rho_std,imode,dat_out,ideriv,nrbound,idx)
-  USE libitp
+  use libitp, only: aitken2p,aitken,fctr,sctr
   implicit none
   integer(4), intent(in) :: nmax_in, nmax_std, imode
   integer(4), intent(in),  optional :: ideriv, idx
@@ -1985,7 +1818,7 @@ end function moving_average
 
 subroutine replace_interpolate_value(val,index,xarray,varray)
   use mod_spln
-  USE libspl1d
+  use libspl1d, only : spl1d,spl1df
   implicit none
   integer(4), intent(in) :: index
   real(8), dimension(:), intent(in) :: xarray, varray ! 0:NRMAX

@@ -1,3 +1,6 @@
+You can consult details how to use git in 
+https://qiita.com/kohga/items/dccf135b0af395f69144
+
 reduce_D02 in txcalv deteriorates the convergence if it is activated.
 
 
@@ -17,3 +20,17 @@ Send those files to my remote repository.
 $ git push origin txnew
 
 
+=== Reflect modified and deleted files ===
+
+$ git add -u
+$ git commit -m "message"
+$ git push
+
+
+=== See what files managed ===
+
+$ git ls-files
+
+=== Remove files ===
+
+$ git rm hoge

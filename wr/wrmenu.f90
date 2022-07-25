@@ -16,9 +16,10 @@ CONTAINS
     USE dpparm,ONLY: dp_view
     USE dproot,ONLY: dp_root,dpgrp1
     USE dpcont,ONLY: dp_cont2,dp_cont3
-    USE wrparm,ONLY: wr_parm,wr_view
-    USE wrcalc,ONLY: wr_calc
-    USE wrbeam,ONLY: wr_beam
+    USE wrparm,ONLY: wr_parm
+    USE wrview,ONLY: wr_view
+    USE wrsetup,ONLY: wr_setup
+    USE wrexec,ONLY: wr_exec
     USE wrgout,ONLY: wr_gout
     USE wrfile,ONLY: wrsave,wrload
     USE libkio
@@ -58,12 +59,9 @@ CONTAINS
          CALL DP_ROOT
       ELSEIF(KID.EQ.'R') THEN
          CALL wr_allocate
-         CALL WR_CALC(IERR)
-         NSTAT=1
-      ELSEIF(KID.EQ.'B') THEN
-         CALL wr_allocate
-         CALL WR_BEAM
-         NSTAT=2
+         CALL wr_setup(ierr)
+         IF(ierr.NE.0) GO TO 1
+         CALL wr_exec(nstat,ierr)
       ELSEIF(KID.EQ.'G') THEN
          CALL WR_GOUT(NSTAT)
       ELSEIF(KID.EQ.'S') THEN

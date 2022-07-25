@@ -4133,7 +4133,7 @@ contains
 
   REAL(4) FUNCTION GLOG(X,XMIN,XMAX)
 
-    USE libgrf
+    USE libplog,ONLY: plog
     implicit none
     real(4) :: GUCLIP
     real(8), intent(in) :: X, XMIN, XMAX

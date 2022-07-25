@@ -6,7 +6,8 @@ contains
 !=======================================================================
   subroutine eqneo
 !=======================================================================
-    use tx_commons, only : nrmax, PsitV, mxneo, fmneo, gamneo, rho, pi, sdt, bbrt, Pisq!, epst, q, rr
+    use tx_commons, only : nrmax, PsitV, mxneo, fmneo, gamneo, rho, pi, sdt, bbrt, Pisq &
+         &               , array_init_NR, T_TX, irestart!, epst, q, rr
     use equ_params
 !    use neo
     use mod_spln
@@ -24,58 +25,60 @@ contains
 !!$    real(8) :: coefmneo, epsl
 
     nrmaxx = nrmax + 1
-    allocate(yy(0:nrmax))
+    allocate(yy, source=array_init_NR)
 !=======================================================================
 !    geometrical factors of neoclassical diffusion on the equal grid
 !=======================================================================
-    do n = 2, nv
-       psix=real((n-1),8)/real((nv-1),8)
-       call eqneo0(psix,ztpfv,zepsv,bbav(n),bbnav(n), &
-            &      mxnev(n),fmnev(1,n),gamnev(n),fmnerr(n))
-    end do
+    if( T_TX == 0.d0 .or. irestart == 1 ) then
+       do n = 2, nv
+          psix=real((n-1),8)/real((nv-1),8)
+          call eqneo0(psix,ztpfv,zepsv,bbav(n),bbnav(n), &
+               &      mxnev(n),fmnev(1,n),gamnev(n),fmnerr(n))
+       end do
 !-----
 !!$!   The PS contribution from the lower poloidal mode number overwhelms that 
 !!$!     from the higher ones as you go outside of the torus.
 !!$!   Hence, cutoff of maximum mode number, mxnev, inside miv is appropriate
 !!$!     for saving computation time.
-!!$    miv = 2
-!!$    do n = 3, nv
-!!$       if(mxnev(n) >= mxnev(n-1)) then
-!!$          miv=n-1
-!!$          exit
-!!$       endif
-!!$    end do
-!!$    do n = 2, miv
-!!$       mxnev(n) = mxnev(miv)
-!!$    end do
+!!$       miv = 2
+!!$       do n = 3, nv
+!!$          if(mxnev(n) >= mxnev(n-1)) then
+!!$             miv=n-1
+!!$             exit
+!!$          endif
+!!$       end do
+!!$       do n = 2, miv
+!!$          mxnev(n) = mxnev(miv)
+!!$       end do
 !   fmnev significantly decreases as m increases.
-    do n = 2, nv
-       loop_m: do m = 2, 10
-          if( fmnev(m,n) < 0.d0 .or. fmnev(m,n) > fmnev(m-1,n) ) then
-             mxnev(n) = m - 1
-             exit loop_m
-          end if
-       end do loop_m
-    end do
+       do n = 2, nv
+          loop_m: do m = 2, 10
+             if( fmnev(m,n) < 0.d0 .or. fmnev(m,n) > fmnev(m-1,n) ) then
+                mxnev(n) = m - 1
+                exit loop_m
+             end if
+          end do loop_m
+       end do
 !----- 
 !   interpolate the values at the magnetic axis
 !-----
-    mxnev(1)=1
-    gamnev(1)=2.d0*gamnev(2)-gamnev(3)
-    do m = 1, 10
-       fmnev(m,1)=0.d0
+       mxnev(1)=1
+       gamnev(1)=2.d0*gamnev(2)-gamnev(3)
+       do m = 1, 10
+          fmnev(m,1)=0.d0
 !!   Arbitrary assumption to avoid divergence of flows at axis.
-!       fmnev(m,1)=fmnev(m,2)
-    end do
-    bbnav(1)=0.d0
+!          fmnev(m,1)=fmnev(m,2)
+       end do
+       bbnav(1)=0.d0
+    end if
 !-----------------------------------------------------------------------
 !!$    write(6,*)'hivnorm,fm1,fm5,err,fam,mx'
 !!$    do n = 1, nv
-!!$       write(6,'(f10.5,4(a1,1pd10.3),a1,i4)') &
+!!$       write(6,'(f10.5,4(a1,es10.3),a1,i4)') &
 !!$            &     hiv(n)/hiv(nv), &
 !!$            & ',',fmnev(1,n),',',fmnev(5,n),',',fmnerr(n),',',gamnev(n), &
 !!$            & ',',mxnev(n)
-!!$       write(6,'(f10.5,1p10e11.3)') hiv(n)/hiv(nv),fmnev(1:10,n)
+!!$       write(6,'(f10.5,10es11.3)') hiv(n)/hiv(nv),fmnev(1:10,n)
 !!$    end do
 !!$    read(5,*)
 !----------------------------------------------------- 	 
@@ -131,10 +134,10 @@ contains
 !!$    write(6,*)'geometrical factors of nc transport' 
 !!$    write(6,*)'rho,fm1,fm5,gam,gam2,mx'
 !!$    do n = 0, nrmax
-!!$       write(6,'(f10.5,4(a1,1pd10.3),a1,i4)') &
+!!$       write(6,'(f10.5,4(a1,es10.3),a1,i4)') &
 !!$            &     rho(n),',',fmneo(1,n),',',fmneo(5,n),',',gamneo(n), &
 !!$            &     ',',4.d0*pi**2*sdt(n)/bbrt(n),',',mxneo(n)
-!!$!       write(6,'(f10.5,1p10e10.3)') rho(n),fmneo(1:10,n)
+!!$!       write(6,'(f10.5,10es10.3)') rho(n),fmneo(1:10,n)
 !!$    end do
 !!$    write(6,'(/)')
 !!$    read(5,*)
@@ -152,7 +155,7 @@ contains
 !=======================================================================
     use tx_commons, only : cnpi => PI, q, rr
     use equ_params
-    USE libspl1d
+    use libspl1d, only : spl1d, spl1df, spl1dd
     real(8),    intent(in)  :: psix
     integer(4), intent(out) :: mxneo
     real(8),    intent(out) :: tpf,eps,bbav,bbnavr,gamneo,fmnerr
@@ -408,7 +411,7 @@ contains
     do is = 1, ismax
        zthe(is)=2.d0*cnpi*zthe(is)/smax ! theta
        ztet(is)=xgam*ztet(is) ! Theta
-!       write(6,'(I3,1P3E15.7)') is,zsl(is),zthe(is),ztet(is)
+!       write(6,'(I3,3ES15.7)') is,zsl(is),zthe(is),ztet(is)
     end do
 !-----
     call spl1d(zsl,coebb,dcoebb,ubb  ,ismax,4,ierr)
@@ -435,8 +438,8 @@ contains
 !!$          cs2=cs2+cs*cbm*xgam
 !!$          cc1=cc1+cc*cbb*cbm
 !!$          cc2=cc2+cc*cbm*xgam
-!!$!          write(6,'(I3,1P6E15.7)') m,tetm,cs,cbb,cbm,cs1
-!!$          write(6,'(2I3,1P6E15.7)') m,is,tetm,coebb(is),coebb(is-1),cbm
+!!$!          write(6,'(I3,6ES15.7)') m,tetm,cs,cbb,cbm,cs1
+!!$          write(6,'(2I3,6ES15.7)') m,is,tetm,coebb(is),coebb(is-1),cbm
 !!$       end do
 
        ! Using spline
@@ -453,9 +456,9 @@ contains
           cs2=cs2+cs*cbm*xgam*dsl
           cc1=cc1+cc*cbb*cbm*dsl
           cc2=cc2+cc*cbm*xgam*dsl
-!          write(6,'(I3,1P8E15.7)') m,tetm,sl,cs1,cs2,cc1,cc2
-!          if(abs(eps-2.24926d-01)<0.001d0) write(101,'(I3,1P8E15.7)') m,tetm,sl,cs1,cs2,cc1,cc2
-!          write(6,'(I3,1P8E15.7)') m,tetm,sl,cc1,cc*cbb*cbm*dsl
+!          write(6,'(I3,8ES15.7)') m,tetm,sl,cs1,cs2,cc1,cc2
+!          if(abs(eps-2.24926d-01)<0.001d0) write(101,'(I3,8ES15.7)') m,tetm,sl,cs1,cs2,cc1,cc2
+!          write(6,'(I3,8ES15.7)') m,tetm,sl,cc1,cc*cbb*cbm*dsl
        end do
 
 !!$       ! Avoid using dB
@@ -472,8 +475,8 @@ contains
 !!$          cs2=cs2-fm*cc*cbb *(ztet(is)-ztet(is-1))*xgam
 !!$          cc1=cc1+fm*cs*clnb*(ztet(is)-ztet(is-1))
 !!$          cc2=cc2+fm*cs*cbb *(ztet(is)-ztet(is-1))*xgam
-!!$!          write(6,'(I3,1P6E15.7)') m,tetm,(ztet(is)-ztet(is-1)),cs1
-!!$!          write(6,'(I3,1P6E15.7)') m,tetm,cs1,cs2,cc1,cc2
+!!$!          write(6,'(I3,6ES15.7)') m,tetm,(ztet(is)-ztet(is-1)),cs1
+!!$!          write(6,'(I3,6ES15.7)') m,tetm,cs1,cs2,cc1,cc2
 !!$       end do
 
 !       cs1=cs1/bpdl           ! cf. (3) in Ref
@@ -482,9 +485,9 @@ contains
 !       cc2=cc2/bpdl           ! cf. (3) in Ref
 !       fmneo(m)=cs1*cs2+cc1*cc2 ! [ ] in (B9) of Ref
        fmneo(m)=(cs1*cs2+cc1*cc2)/bpdl2 ! [ ] in (B9) of Ref
-!       write(101,'(1pe12.5,4x,i4,1x,1p5e13.5)') eps,m,cs1,cs2,cc1,cc2,fmneo(m)
-!       write(6,'(1pe12.5,4x,i4,1x,1p5e13.5)') eps,m,cs1/bpdl2,(-1.d0)**(m+1)*((1.d0-sqrt(1.d0-eps**2))/eps)**m/(1.d0+0.5d0*eps**2)/(qqv(ix)*rbt)
-!!$       write(6,'(1pe12.5,4x,i4,1x,1p5e13.5)') eps,m,fmneo(m),&
+!       write(101,'(es12.5,4x,i4,1x,5es13.5)') eps,m,cs1,cs2,cc1,cc2,fmneo(m)
+!       write(6,'(es12.5,4x,i4,1x,5es13.5)') eps,m,cs1/bpdl2,(-1.d0)**(m+1)*((1.d0-sqrt(1.d0-eps**2))/eps)**m/(1.d0+0.5d0*eps**2)/(qqv(ix)*rbt)
+!!$       write(6,'(es12.5,4x,i4,1x,5es13.5)') eps,m,fmneo(m),&
 !!$            &         real(m,8)*( (1.D0-SQRT(1.D0-eps**2))/eps)**(2*m) &
 !!$            &         *(1.D0+real(m,8)*SQRT(1.D0-eps**2))/((1.D0-eps**2)**1.5D0 &
 !!$            &         *(qqv(ix)*rr)**2),&
@@ -508,7 +511,7 @@ contains
     do m = 1, maxfmn
        fmneo(m)=2.d0*fmneo(m)/(bbavr*bthavr) ! Fm, (B9)
 !!$       aaa=(1.d0-sqrt(1.d0-eps**2))/eps
-!!$       write(101,'(1pd12.5,4x,i4,1x,1p4d12.5)')eps,m,fmneo(m), &
+!!$       write(101,'(es12.5,4x,i4,1x,4es12.5)')eps,m,fmneo(m), &
 !!$            & dble(m)/(1.d0-eps**2)**1.5d0 & 
 !!$            & *(1.d0+dble(m)*sqrt(1.d0-eps**2))*aaa**(2*m) &
 !!$            & *(rbv(1)/sqrt(rrv(1))/(qqv(ix)*rbv(ix)))**2 &
@@ -526,7 +529,7 @@ contains
        suml=suml+fmneo(m)
        sumdim(m)=suml*bbavr/bbnavr
        fmnerr=1.d0-sumdim(m)
-!       write(6,'(4x,i4,1p4d12.5)')m,sumdim(m),fmneo(m),suml,bbnavr/bbavr
+!       write(6,'(4x,i4,4es12.5)')m,sumdim(m),fmneo(m),suml,bbnavr/bbavr
     end do
 !    sumxx=0.999d0*sumdim(maxfmn)
     sumxx=(1.d0-1.d-5)*sumdim(maxfmn)
@@ -534,7 +537,7 @@ contains
        mxneo=m
        if(sumdim(m) > sumxx) exit
     end do
-!!$    write(6,'(3f10.5,2x,1p4d10.3)')psix,tpf,eps,fmneo(1),fmneo(5),fmnerr,gamneo
+!!$    write(6,'(3f10.5,2x,4es10.3)')psix,tpf,eps,fmneo(1),fmneo(5),fmnerr,gamneo
 !!$    read(5,*)
 !=======================================================================
     bbav0=bbav0/bpdl

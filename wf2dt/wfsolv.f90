@@ -50,11 +50,11 @@ SUBROUTINE CVSOLV
   complex(rkind):: CEB
   INTEGER:: nv_old
   complex(rkind),dimension(:),ALLOCATABLE :: CRVP,CEQP
-  integer(long),dimension(:),ALLOCATABLE :: NSEQ
+  integer,dimension(:),ALLOCATABLE :: NSEQ
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: VAL_SORT
-  INTEGER(long),DIMENSION(:),ALLOCATABLE:: NV_SORT
+  INTEGER,DIMENSION(:),ALLOCATABLE:: NV_SORT
   INTEGER,DIMENSION(:),ALLOCATABLE:: ntyp_nv,nnsd_nv
-  INTEGER(long):: IX,IY
+  INTEGER:: IX,IY
 
   ! ----- initialize ------
   

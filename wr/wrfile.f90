@@ -70,7 +70,7 @@ CONTAINS
   SUBROUTINE WRLOAD(NSTAT)
 
     USE wrcomm
-    USE wrcalc,ONLY: wr_calc_pwr
+    USE wrexecr,ONLY: wr_calc_pwr
     USE libfio
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: NSTAT

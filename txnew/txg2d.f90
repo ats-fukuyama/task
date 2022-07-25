@@ -4,17 +4,17 @@
 !
 !**************************************************************
 
-SUBROUTINE TXGRUR(GX,GTX,GYL,NRMAX,NGT,NGTM)!,STR,KV,INQ)
+subroutine TXGRUR(GX,GTX,GYL,NRMAX,NGT,NGTM)!,STR,KV,INQ)
 
   implicit none
   integer(4),                  intent(in) :: NRMAX, NGT, NGTM!, INQ
   real(4), dimension(0:NRMAX), intent(in) :: GX
   real(4), dimension(0:NGT),   intent(in) :: GTX
   real(4), dimension(0:NRMAX,0:NGTM), intent(in) :: GYL
-!  CHARACTER(LEN=80),INTENT(IN):: STR, KV
+!  CHARACTER(LEN=80),intent(IN):: STR, KV
   integer(4) :: INQ
-  CHARACTER(LEN=80) :: STR, KV
-  REAL(4) :: GX1, GX2, GY1, GY2
+  character(LEN=80) :: STR, KV
+  real(4) :: GX1, GX2, GY1, GY2
 
   STR = '@3D Graphic@'
   KV  = ''
@@ -25,12 +25,12 @@ SUBROUTINE TXGRUR(GX,GTX,GYL,NRMAX,NGT,NGTM)!,STR,KV,INQ)
   GY1=2.0
   GY2=17.0
 
-  CALL PAGES
-  CALL TXGR3D(GX1,GX2,GY1,GY2,GX,GTX,GYL,NRMAX+1,NRMAX+1,NGT,STR,KV,2+INQ)
-  CALL PAGEE
+  call PAGES
+  call TXGR3D(GX1,GX2,GY1,GY2,GX,GTX,GYL,NRMAX+1,NRMAX+1,NGT,STR,KV,2+INQ)
+  call PAGEE
 
-  RETURN
-END SUBROUTINE TXGRUR
+  
+end subroutine TXGRUR
 
 !***********************************************************
 !
@@ -38,91 +38,91 @@ END SUBROUTINE TXGRUR
 !
 !***********************************************************
 
-SUBROUTINE TXGR3D(GX1,GX2,GY1,GY2,GX,GY,GZ,NXM,NXMAX,NYMAX,STR,KV,MODE)
+subroutine TXGR3D(GX1,GX2,GY1,GY2,GX,GY,GZ,NXM,NXMAX,NYMAX,STR,KV,MODE)
 
-  IMPLICIT NONE
-  REAL(4),        INTENT(IN):: GX1,GX2,GY1,GY2
-  INTEGER(4),     INTENT(IN):: NXM,NXMAX,NYMAX,MODE
-  REAL(4),DIMENSION(NXMAX),      INTENT(IN):: GX
-  REAL(4),DIMENSION(NYMAX),      INTENT(IN):: GY
-  REAL(4),DIMENSION(NXM,NYMAX),  INTENT(IN):: GZ
-  CHARACTER(LEN=80),             INTENT(IN):: STR,KV
-  INTEGER(4) :: I, NGULEN
-  REAL(4)    :: GOX, GOY, GOZ, GPHI, GRADIUS, GSTEPX, GSTEPY, GSTEPZ, GSXMAX, GSXMIN, &
+  implicit none
+  real(4),        intent(IN):: GX1,GX2,GY1,GY2
+  integer(4),     intent(IN):: NXM,NXMAX,NYMAX,MODE
+  real(4),dimension(NXMAX),      intent(IN):: GX
+  real(4),dimension(NYMAX),      intent(IN):: GY
+  real(4),dimension(NXM,NYMAX),  intent(IN):: GZ
+  character(LEN=80),             intent(IN):: STR,KV
+  integer(4) :: I, NGULEN
+  real(4)    :: GOX, GOY, GOZ, GPHI, GRADIUS, GSTEPX, GSTEPY, GSTEPZ, GSXMAX, GSXMIN, &
        &        GSYMAX, GSYMIN, GSZMAX, GSZMIN, GTHETA, GXL, GXMAX, GXMIN, GXORG, &
        &        GYL, GYMAX, GYMIN, GYORG, GZL, GZMAX, GZMIN, GZVAL
-  CHARACTER(LEN=80) :: KT
-  CHARACTER(LEN=1)  :: KDL
-  EXTERNAL R2W2B,W2G2B,R2Y2W,WRGBW
+  character(LEN=80) :: KT
+  character(LEN=1)  :: KDL
+  external R2W2B,W2G2B,R2Y2W,WRGBW
 
-  CALL SETCHS(0.3,0.0)
-  CALL SETFNT(32)
-  CALL SETLNW(0.035)
-  CALL SETRGB(0.0,0.0,0.0)
-  CALL SETLIN(-1,-1,7)
+  call SETCHS(0.3,0.0)
+  call SETFNT(32)
+  call SETLNW(0.035)
+  call SETRGB(0.0,0.0,0.0)
+  call SETLIN(-1,-1,7)
   KDL=STR(1:1)
   I=2
-1 IF(STR(I:I).EQ.KDL.OR.I.EQ.80) GOTO 2
+1 if(STR(I:I) == KDL .or. I == 80) go to 2
   KT(I-1:I-1)=STR(I:I)
   I=I+1
-  GOTO 1
+  go to 1
 
-2 CALL MOVE(GX1,GY2+0.2)
-  CALL TEXT(KT,I-2)
+2 call MOVE(GX1,GY2+0.2)
+  call TEXT(KT,I-2)
 
-  CALL GMNMX2(GZ,NXM,1,NXMAX,1,1,NYMAX,1,GZMIN,GZMAX)
-  GZVAL=0.5*(ABS(GZMIN)+ABS(GZMAX))
-  IF((GZVAL.LE.1.D-6).OR.(ABS(GZMAX-GZMIN)/GZVAL.LT.1.D-6)) THEN
-     WRITE(6,*) GZMIN,GZMAX
-     CALL GUFLSH
-     RETURN
-  ENDIF
-  !      WRITE(6,*) GZMIN,GZMAX
-  !      CALL GUFLSH
+  call GMNMX2(GZ,NXM,1,NXMAX,1,1,NYMAX,1,GZMIN,GZMAX)
+  GZVAL=0.5*(abs(GZMIN)+abs(GZMAX))
+  if((GZVAL <= 1.D-6) .or. (abs(GZMAX-GZMIN)/GZVAL < 1.D-6)) then
+     write(6,*) GZMIN,GZMAX
+     flush(6)
+     return
+  end if
+  !      write(6,*) GZMIN,GZMAX
+  !      flush(6)
 
-  IF(MOD(MODE,2).EQ.0) THEN
-     IF(GZMIN.GE.0.0) THEN
+  if(mod(MODE,2) == 0) then
+     if(GZMIN >= 0.0) then
         GZMIN=0.0
-     ELSEIF(GZMAX.LE.0.0) THEN
+     else if(GZMAX <= 0.0) then
         GZMAX=0.0
-     ENDIF
-  ENDIF
+     end if
+  end if
 
-  CALL GMNMX1(GX,1,NXMAX,1,GXMIN,GXMAX)
-  CALL GMNMX1(GY,1,NYMAX,1,GYMIN,GYMAX)
+  call GMNMX1(GX,1,NXMAX,1,GXMIN,GXMAX)
+  call GMNMX1(GY,1,NYMAX,1,GYMIN,GYMAX)
 
-  IF(MOD(MODE/4,2).EQ.1) THEN
-     CALL CHMODE
-     WRITE(6,*) '## TXGR : XMIN,XMAX,YMIN,YMAX = ',GXMIN,GXMAX,GYMIN,GYMAX
-     READ(5,*) GXMIN,GXMAX,GYMIN,GYMAX
-     CALL GRMODE
-  ENDIF
+  if(mod(MODE/4,2) == 1) then
+     call CHMODE
+     write(6,*) '## TXGR : XMIN,XMAX,YMIN,YMAX = ',GXMIN,GXMAX,GYMIN,GYMAX
+     read(5,*) GXMIN,GXMAX,GYMIN,GYMAX
+     call GRMODE
+  end if
 
-  CALL GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GSTEPX)
-  CALL GQSCAL(GYMIN,GYMAX,GSYMIN,GSYMAX,GSTEPY)
-  CALL GQSCAL(GZMIN,GZMAX,GSZMIN,GSZMAX,GSTEPZ)
-  !      WRITE(6,*) GSZMIN,GSZMAX,GSTEPZ
-  !      CALL GUFLSH
+  call GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GSTEPX)
+  call GQSCAL(GYMIN,GYMAX,GSYMIN,GSYMAX,GSTEPY)
+  call GQSCAL(GZMIN,GZMAX,GSZMIN,GSZMAX,GSTEPZ)
+  !      write(6,*) GSZMIN,GSZMAX,GSTEPZ
+  !      flush(6)
 
-  IF(GXMIN*GXMAX.LT.0.0) THEN
+  if(GXMIN*GXMAX < 0.0) then
      GXORG=0.0
-  ELSE
+  else
      GXORG=GSXMIN
-  ENDIF
-  IF(GYMIN*GYMAX.LT.0.0) THEN
+  end if
+  if(GYMIN*GYMAX < 0.0) then
      GYORG=0.0
-  ELSE
+  else
      GYORG=GSYMIN
-  ENDIF
-  IF(GZMIN*GZMAX.LT.0.0) THEN
-     GSZMAX=MAX(ABS(GSZMIN),ABS(GSZMAX))
+  end if
+  if(GZMIN*GZMAX < 0.0) then
+     GSZMAX=max(abs(GSZMIN),abs(GSZMAX))
      GSZMIN=-GSZMAX
-  ENDIF
+  end if
 
   GXL=10.0*1.5
   GYL=20.0*1.5
   GZL=10.0*1.5
-  CALL GDEFIN3D(GX1,GX2,GY1,GY2,GXL,GYL,GZL)
+  call GDEFIN3D(GX1,GX2,GY1,GY2,GXL,GYL,GZL)
 
   ! viewpoint
   GPHI=-65.0
@@ -135,41 +135,41 @@ SUBROUTINE TXGR3D(GX1,GX2,GY1,GY2,GX,GY,GZ,NXM,NXMAX,NYMAX,STR,KV,MODE)
   GOX=0.5*(GSXMIN+GSXMAX)
   GOY=0.5*(GYMIN+GYMAX)
   GOZ=0.5*(GSZMIN+GSZMAX)
-  CALL GVIEW3D(GPHI,GTHETA,GRADIUS,1.0,1,GOX,GOY,GOZ)
-  CALL GDATA3D2(GZ,GX,GY,NXM,NXMAX,NYMAX,GSZMIN,GSZMAX)
-  CALL SETCHS(0.2,0.0)
-  CALL SETLIN(0,0,7)
+  call GVIEW3D(GPHI,GTHETA,GRADIUS,1.0,1,GOX,GOY,GOZ)
+  call GDATA3D2(GZ,GX,GY,NXM,NXMAX,NYMAX,GSZMIN,GSZMAX)
+  call SETCHS(0.2,0.0)
+  call SETLIN(0,0,7)
 
-  CALL GSCALE3DX(GSXMIN,GSTEPX,0.3,0)
-  CALL GSCALE3DY(GSYMIN,GSTEPY,0.3,0)
-  CALL GSCALE3DZ(GSZMIN,GSTEPZ,0.3,0)
-  CALL GVALUE3DX(GSXMIN,GSTEPX,1,NGULEN(GSTEPX))
-  CALL GVALUE3DY(GSYMIN,GSTEPY,1,NGULEN(GSTEPY))
-  CALL GVALUE3DZ(GSZMIN,GSTEPZ,2,NGULEN(GSTEPZ))
+  call GSCALE3DX(GSXMIN,GSTEPX,0.3,0)
+  call GSCALE3DY(GSYMIN,GSTEPY,0.3,0)
+  call GSCALE3DZ(GSZMIN,GSTEPZ,0.3,0)
+  call GVALUE3DX(GSXMIN,GSTEPX,1,NGULEN(GSTEPX))
+  call GVALUE3DY(GSYMIN,GSTEPY,1,NGULEN(GSTEPY))
+  call GVALUE3DZ(GSZMIN,GSTEPZ,2,NGULEN(GSTEPZ))
 
-  !      CALL GTEXTX(GX1-0.3,0.5*(GY1+GY2),
+  !      call GTEXTX(GX1-0.3,0.5*(GY1+GY2),
   !     &              '@TIME (sec)@',
   !     &              2)
-  !      CALL GTEXTX(0.5*(GX1+GX2),GY1-0.3,
+  !      call GTEXTX(0.5*(GX1+GX2),GY1-0.3,
   !     &              '@R@',
   !     &              2)
-  !      CALL GTEXTX(GX1,GY2+0.1,
+  !      call GTEXTX(GX1,GY2+0.1,
   !     &              KV,
   !     &              0)
 
-  IF(GZMIN*GZMAX.LT.0.0) THEN
-     CALL CPLOT3D1(7,R2W2B)
-  ELSEIF(GZMIN.LT.0.0) THEN
-     CALL CPLOT3D1(7,W2G2B)
-  ELSE
-     CALL CPLOT3D1(7,R2Y2W)
-  ENDIF
+  if(GZMIN*GZMAX < 0.0) then
+     call CPLOT3D1(7,R2W2B)
+  else if(GZMIN < 0.0) then
+     call CPLOT3D1(7,W2G2B)
+  else
+     call CPLOT3D1(7,R2Y2W)
+  end if
 
-  !      CALL CONTQ3D1(GZMIN,0.1*(GZMAX-GZMIN),11,0,0,KA,R2W2B,2)
-  !      CALL PERSE3D(3,1)
-  CALL GAXIS3D(0)
-  !      CALL GDrawBack3D(0.5, 0.5, 0.5)
+  !      call CONTQ3D1(GZMIN,0.1*(GZMAX-GZMIN),11,0,0,KA,R2W2B,2)
+  !      call PERSE3D(3,1)
+  call GAXIS3D(0)
+  !      call GDrawBack3D(0.5, 0.5, 0.5)
 
-  CALL SETLIN(0,0,7)
-  RETURN
-END SUBROUTINE TXGR3D
+  call SETLIN(0,0,7)
+  
+end subroutine TXGR3D

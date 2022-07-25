@@ -1,0 +1,2413 @@
+\documentclass[11pt]{article}
+\usepackage[top=1.5cm, bottom=2cm, left=1.5cm, right=1.5cm]{geometry}
+\usepackage{color}
+%\usepackage{amsmath}
+
+%%%
+%\textheight 240mm % A4 297mm
+%\textwidth 160mm   % A4 210mm
+%\columnsep 10pt 
+%\columnseprule 0pt 
+%
+%\oddsidemargin 0pt 
+%\evensidemargin 0pt 
+%\marginparwidth 90pt 
+%\marginparsep 11pt 
+%
+%\topmargin 0pt 
+%\headheight 0pt 
+%\headsep 0pt 
+%\footskip 30pt 
+%
+%\parskip 0pt plus 1pt 
+%\parindent 1.5em 
+%\partopsep 3pt plus 2pt minus 2pt 
+%%%
+
+\makeatletter
+\def\eqnarray{\stepcounter{equation}\let\@currentlabel=\theequation
+\global\@eqnswtrue
+\global\@eqcnt\z@\tabskip\@centering\let\\=\@eqncr
+$$\halign to \displaywidth\bgroup\@eqnsel\hskip\@centering
+%%  $\displaystyle\tabskip\z@{##}$&\global\@eqcnt\@ne 
+    $\displaystyle\tabskip\z@{##}$&\global\@eqcnt\@ne 
+%%  \hskip 2\arraycolsep \hfil${##}$\hfil
+                         \hfil$\displaystyle{{}##{}}$\hfil
+%%  &\global\@eqcnt\tw@ \hskip 2\arraycolsep $\displaystyle\tabskip\z@{##}$\hfil 
+    &\global\@eqcnt\tw@                      $\displaystyle\tabskip\z@{##}$\hfil 
+   \tabskip\@centering&\llap{##}\tabskip\z@\cr}
+\makeatother
+
+\renewcommand{\labelenumi}{(\theenumi)}
+\renewcommand{\theenumi}{\alph{enumi}}
+\renewcommand{\theenumii}{(\arabic{enumi})}
+\renewcommand{\theequation}{\arabic{section}.\arabic{equation}}
+
+\def\baselinestretch{1.20}
+\def\bvec#1{\leavevmode\hbox{\boldmath$#1$}}
+\let\vec=\bvec
+\def\r#1{{\rm#1}}
+\def\ave#1{\left\langle#1\right\rangle}
+\def\aves#1{\langle#1\rangle}
+\def\dd#1#2{\frac{\partial #1}{\partial #2}}
+\def\tensor#1{\mathord{\displaystyle\mathop{#1}^\leftrightarrow}}
+\def\para{\parallel}
+\def\ddrho{\frac{\partial}{\partial\rho}}
+\def\ddV{\frac{\partial}{\partial V}}
+\def\ddt{\frac{\partial}{\partial t}}
+\def\ddr{\frac{\partial}{\partial r}}
+\def\dds{\frac{\partial}{\partial s}}
+\def\gradrho2{\aves{|\nabla\rho|^2}}
+\def\psid{\dot{\psi}}
+\def\psit{\psi_t}
+\def\psitd{\dot{\psit}}
+\def\Er{E_r}
+
+\def\me{m_\r{e}}
+\def\mi{m_\r{i}}
+\def\mz{m_\r{z}}
+\def\mb{m_\r{b}}
+\def\nee{n_\r{e}}
+\def\ni{n_\r{i}}
+\def\nz{n_\r{z}}
+\def\nb{n_\r{b}}
+\def\Te{T_\r{e}}
+\def\Ti{T_\r{i}}
+\def\Tz{T_\r{z}}
+\def\Tb{T_\r{b}}
+\def\Zi{Z_\r{i}}
+\def\Zz{Z_\r{z}}
+\def\Zb{Z_\r{b}}
+\def\uzt#1{u_{\r{#1}\zeta}}
+\def\uszt{u_{s\zeta}}
+\def\upara#1{u_{\r{#1}\para}}
+\def\uhatth#1{\hat{u}_{\r{#1}\theta}}
+\def\qhatpara#1{\hat{q}_{\r{#1}\para}}
+\def\urho#1{u_\r{#1}^\rho}
+\def\ugrho{u_{g}^\rho}
+\def\uV#1{u_\r{#1}^V}
+\def\ugV{u_{g}^V}
+\def\chis#1{\chi_\r{#1}}
+\def\De{D_\r{e}}
+\def\nun#1{\nu_\r{0#1}}
+\def\ndiv#1{n_\r{#1div}}
+\def\Tdiv#1{T_\r{#1div}}
+\def\nuLT#1{\nu_{\r{L}T_\r{#1}}}
+\def\PRF#1{P_\r{RF#1}}
+\def\Palp#1{P_{\alpha\r{#1}}}
+\def\fei{f_\r{ei}}
+
+\def\nbrp{n_\r{b}^\r{rp}}
+\def\ubrp{u_\r{b}^\r{rp}}
+\def\Dbrp{D_\r{b}^\r{rp}}
+\def\Db{D_\r{b}}
+
+\def\bri{\aves{B^2}\aves{R^2} - I^2}
+%\def\rib{\aves{R^2}-\frac{I^2}{\aves{B^2}}}
+\def\uspara{u_{s\para}}
+\def\Pbpara{P_{\r{b}\parallel}}
+\def\Pbperp{P_{\r{b}\perp}}
+\def\PBr{P_\r{Br}}
+\def\Pb{P_\r{b}}
+\def\Eb{E_\r{b}}
+
+\def\EH{E_\r{H}}
+\def\nna{n_{01}}
+\def\nnb{n_{02}}
+\def\nnc{n_{03}}
+\def\Tna{T_{01}}
+\def\Tnb{T_{02}}
+\def\Tnc{T_{03}}
+
+\def\nueff{\nu_\r{eff}}
+\def\fCX{f_\r{CX}}
+\def\nuL{\nu_\r{L}}
+\def\nuCX{\nu_\r{CX}}
+\def\nuion{\nu_\r{ionize}}
+\def\nub{\nu_\r{b}}
+\def\nuTei{\nu_\r{Tei}}
+\def\vb{v_\r{b}}
+\def\nuOL{\nu_\r{OL}}
+\def\nubL{\nu_\r{bL}}
+
+\newcommand{\Frac}[2]{%
+  {\displaystyle {\displaystyle #1\over \displaystyle #2}}%
+}
+\newcommand{\rdprd}[2]{\Frac{\partial #1}{\partial #2}}
+\newcommand{\aveaveB}[1]{\left< \!\! \left< #1 \right> \!\! \right>}
+%\newcommand{\hatomega}{\widehat{\omega}}
+
+\def\red#1{\textcolor{red}{#1}}
+\def\blue#1{\textcolor{blue}{#1}}
+
+\begin{document}
+
+\begin{center}
+TASK/TX V5.20 [20/07/21]
+\end{center}
+
+\section{Equations in $\rho$ coordinates}
+\vspace{-5mm}
+
+%
+\begin{eqnarray}
+%=======%
+% \phi  %
+%=======%
+  0 &=&
+%
+    \frac{1}{V'} \ddrho \left[ V' \gradrho2 \ddrho{\Phi} \right]
+%
+  + \frac{1}{\epsilon_0}
+%
+    \left(-e \nee + \Zi e \ni + \Zz e \nz + \Zb e \nb + \Zb e g \nbrp \right)
+\\[5mm]
+%=========%
+% \psitd  %
+%=========%
+  \frac{1}{c^2} \ddt \psitd &=&
+%
+    V' \ave{\frac{|\nabla\rho|^2}{R^2}} \ddrho \left[ \frac{1}{V'\aves{R^{-2}}}
+				         \ddrho \psit \right] \nonumber\\[3mm]&&{}
+%
+  + \frac{\mu_0}{\aves{B^\theta}}
+%
+    \left[-     e \nee \left( \aves{B\upara{e}} - I\ave{\frac{\uzt{e}}{R}} \right)
+          + \Zi e \ni  \left( \aves{B\upara{i}} - I\ave{\frac{\uzt{i}}{R}} \right)
+    \right.\nonumber\\[3mm]&&{}
+    \left.+ \Zz e \nz  \left( \aves{B\upara{z}} - I\ave{\frac{\uzt{z}}{R}} \right)
+          + \Zb e \nb  \left( \aves{B\upara{b}} - I\ave{\frac{\uzt{b}}{R}} \right) \right]
+\\[5mm]
+%========%
+% \psid  %
+%========%
+  \frac{1}{c^2} \ddt \psid &=&
+%
+  \frac{1}{V'\aves{R^{-2}}} \ddrho \left[ V'
+				    \ave{\frac{|\nabla\rho|^2}{R^2}}
+				    \ddrho \psi \right] \nonumber\\[3mm]&&{}
+%
+  - \frac{\mu_0}{\aves{R^{-2}}} \left(-e \nee \ave{\frac{\uzt{e}}{R}}
+			         + \Zi e \ni  \ave{\frac{\uzt{i}}{R}}
+			         + \Zz e \nz  \ave{\frac{\uzt{z}}{R}}
+			         + \Zb e \nb  \ave{\frac{\uzt{b}}{R}} \right)
+%
+%  + \mu_0 j_\r{virtual}
+\\[5mm]
+%======%
+% \psi %
+%======%
+  \ddt \psi &=&
+%
+  \psid
+\\[5mm]
+%========%
+% \psit  %
+%========%
+  \ddt \psit &=&
+%
+  \psitd
+\end{eqnarray}
+%
+
+%%%
+
+%
+\begin{eqnarray}
+%=======%
+% \nee  %
+%=======%
+  \frac{1}{V'} \ddt ( V' \nee ) &=&
+%
+  - \frac{1}{V'} \ddrho [ V' \nee (\urho{e} - \ugrho) ] 
+%
+  + \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, (\nna + \nnb + \nnc)
+\nonumber\\[3mm]&&{}
+%
+  - \nuL (\nee - \ndiv{e})
+%
+  + (1 - \fCX) \frac{\Pb}{\Eb}
+\\[5mm]
+%=========%
+% radial  %
+%=========%
+  0 &=&
+%
+  -        ( \bri ) \ddrho \nee \Te
+%
+  + e \nee ( \bri ) \ddrho \Phi
+\nonumber\\[3mm]&&{}
+%
+  - e \dd{\psi}{\rho} I          \nee \aves{B\upara{e}}
+%
+  + e \dd{\psi}{\rho} \aves{B^2} \nee \aves{R\uzt{e}}
+\\[5mm]
+%===============%
+% <B \upara{e}> %
+%===============%
+  \me \nee \ddt \aves{B \upara{e}} &=&
+%
+  - \hat{\mu}_1^\r{e} \aves{B \upara{e}} 
+  - \hat{\mu}_2^\r{e} \aves{B \qhatpara{e}} 
+%
+  + \hat{\mu}_1^\r{e} {B V_{1\r{e}}} 
+  + \hat{\mu}_2^\r{e} {B V_{2\r{e}}}
+\nonumber\\[3mm]&&{}
+%
+  + \ell_{11}^{\r{ee}} \aves{B \upara{e}}
+  + \ell_{11}^{\r{ei}} \aves{B \upara{i}}
+  + \ell_{11}^{\r{ez}} \aves{B \upara{z}}
+  + \ell_{11}^{\r{eb}} \aves{B \upara{b}}
+\nonumber\\[3mm]&&{}
+%
+  - \ell_{12}^{\r{ee}} \aves{B \qhatpara{e}} 
+  - \ell_{12}^{\r{ei}} \aves{B \qhatpara{i}} 
+  - \ell_{12}^{\r{ez}} \aves{B \qhatpara{z}} 
+\nonumber\\[3mm]&&{}
+%
+  - e \nee \aves{B E_\para}
+%
+%  + \aves{B S_{\r{m}\para}^\r{e}}
+%
+  - \nuL \me \nee \aves{B \upara{e}}
+%
+  - \nun{e} \me \nee \aves{B \upara{e}}
+\nonumber\\[3mm]&&{}
+%
+  - \frac{1}{V'} \ddrho V' \aves{|\nabla \rho|} v_{\r{e}\zeta} \me \nee \aves{B \upara{e}}
+%
+  + \aves{|\nabla \rho|} v_{\r{e}\zeta} \me \nee 
+  \biggl(\ddrho \frac{\aves{B^2}}{I} \biggl) \frac{I}{\aves{B^2}} \aves{B \upara{e}}
+\nonumber\\[3mm]&&{}
+%
+  + \frac{1}{V'} \ddrho V' \aves{|\nabla \rho|^2} \chis{e\zeta} \me \nee
+  \frac{\aves{B^2}}{I} \ddrho \frac{I}{\aves{B^2}} \aves{B \upara{e}}
+\nonumber\\[3mm]&&{}
+%
+  - \aves{|\nabla \rho|^2} \chis{e\zeta} \me \nee \biggl( \ddrho
+  \frac{\aves{B^2}}{I} \biggr) \ddrho \frac{I}{\aves{B^2}} \aves{B \upara{e}}
+%
+  - \frac{\aves{B^2}}{I} \frac{1}{V'} \ddrho V' \aves{\Pi_\r{e}^\r{res}}
+\nonumber\\[3mm]&&{}
+%
+  - \frac{1}{V'} \ddrho V' 
+    \left[  \aves{|\nabla\rho|} v_{\r{e}\zeta} \me \nee
+          \left(\aves{R^2} - \frac{I^2}{\aves{B^2}}\right) \frac{1}{I}BV_{1\r{e}} \right.
+\nonumber\\[3mm]&&{}
+    \left.- \aves{|\nabla\rho|^2} \chis{e\zeta} \me \nee
+          \ddrho \left(\aves{R^2} - \frac{I^2}{\aves{B^2}}\right) \frac{1}{I}BV_{1\r{e}}\right]
+\\[5mm]
+%================%
+% elec. toroidal %
+%================%
+ \frac{1}{V'} \ddt (V' \me \nee \aves{R \uzt{e}}) &=&
+%
+  - \frac{1}{V'} \ddrho V' \left[  \aves{|\nabla\rho|} v_{\r{e}\zeta} \me \nee \aves{R \uzt{e}}
+			       +   (\urho{e} - \ugrho) \me \nee \aves{R \uzt{e}} \right.
+\nonumber\\[3mm]&&{}
+                           \left.- \aves{|\nabla\rho|^2} \chis{e\zeta} \me \nee \ddrho \aves{R \uzt{e}}
+                               + \aves{\Pi_\r{e}^\r{res}} \right]
+\nonumber\\[3mm]&&{}
+%
+  + \ell_{11}^\r{ee} \aves{R \uzt{e}}
+  + \ell_{11}^\r{ei} \aves{R \uzt{i}}
+  + \ell_{11}^\r{ez} \aves{R \uzt{z}}
+  + \ell_{11}^\r{eb} \aves{R \uzt{b}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \ell_{12}^\r{ee} \frac{I}{\aves{B^2}} \aves{B \qhatpara{e}}
+  - \ell_{12}^\r{ei} \frac{I}{\aves{B^2}} \aves{B \qhatpara{i}}
+  - \ell_{12}^\r{ez} \frac{I}{\aves{B^2}} \aves{B \qhatpara{z}}
+\nonumber\\[2.5mm]&&{}
+%
+  - e                 \nee \aves{R E_\zeta}
+%
+  - e \dd{\psi}{\rho} \nee \urho{e}
+%
+\nonumber\\[2.5mm]&&{}
+%
+%  turbulent particle flux model
+%
+  - \frac{e^2 \aves{|\nabla\rho|^2} \De}{\Te} \dd{\psi}{\rho} \nee
+    \left[  \dd{\psi}{\rho} \frac{\aves{B^2}}{\bri} \aves{R \uzt{e}}
+          - \dd{\psi}{\rho} \frac{I}{\bri} \aves{B \upara{e}} \right.
+\nonumber\\[2.5mm]&&{}
+    \left.+ \frac{C_\r{T}-1}{e} \ddrho \Te
+	  + \ddrho \Phi
+	  + \frac{\Te}{e} \dd{\psi}{\rho} C_\r{p} \right]
+%
+  - \nuL  \me \nee \aves{R \uzt{e}}
+%
+  - \nun{e} \me \nee \aves{R \uzt{e}}
+\\[5mm]
+%===========%
+% \nee \Te  %
+%===========%
+ \frac{3}{2}\frac{1}{V'^{5/3}} \ddt (V'^{5/3} \nee \Te ) &=& 
+%
+  - \frac{1}{V'} \ddrho V'
+    \left[ - \chis{e}       \aves{|\nabla\rho|^2} \nee \ddrho \Te
+           + V_\r{e}^\r{hp} \aves{|\nabla\rho|}   \nee \Te
+           + \frac{5}{2} \nee \Te ( \urho{e} - \ugrho ) \right]
+\nonumber\\[2.5mm]&&{}
+%
+  - \ugrho \ddrho \nee \Te
+%
+  - \urho{i} \ddrho \ni  \Ti
+  - \urho{z} \ddrho \nz  \Tz
+  - \uhatth{i} \aves{\vec{B}\cdot\nabla\cdot\tensor{\pi}_\r{i}}
+  - \uhatth{z} \aves{\vec{B}\cdot\nabla\cdot\tensor{\pi}_\r{z}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \frac{3}{2} \nee \frac{ \Te - \Ti }{\tau_\r{ei}}
+  - \frac{3}{2} \nee \frac{ \Te - \Tz }{\tau_\r{ez}}
+\nonumber\\[2.5mm]&&{}
+%
+%  - \dd{\rho}{\psi} \ddrho ( \nee \Te + \ni \Ti ) \psit
+%  - \frac{1}{\mu_0} \dd{\rho}{\psi} \dd{I}{\rho} I \aves{R^{-2}}
+%    \left( - \frac{\psitd}{q} + \psid \right)
+%\nonumber\\[2.5mm]&&{}
+%
+  - \dot{\psi}_t \aves{B^\theta} (-     e \nee \uhatth{e}
+                                  + \Zi e \ni  \uhatth{i}
+                                  + \Zz e \nz  \uhatth{z})
+\nonumber\\[2.5mm]&&{}
+%  - \frac{1}{\aves{B^2}}\dot{\psi}_t (-e \nee \aves{Bu_{\r{e}\para}} +
+%  Z_\r{i} e \ni \aves{Bu_{\r{i}\para}})
+%
+%  +\frac{1}{\aves{B^2}}\dot{\psi}_t (-e \nee BV_{1\r{e}} + Z_\r{i} e \ni
+%  BV_{1\r{i}})
+%\nonumber\\[2.5mm]&&{}
+%
+  +\dot{\psi}\left(-     e \nee \ave{\frac{\uzt{e}}{R}}
+	           + \Zi e \ni  \ave{\frac{\uzt{i}}{R}}
+	           + \Zz e \nz  \ave{\frac{\uzt{z}}{R}}\right)
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL \Te (\nee - \ndiv{e})
+%
+  - \frac{3}{2} \nuLT{e} \nee (\Te - \Tdiv{e})
+%
+\nonumber\\[2.5mm]&&{}
+  - \EH \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, (\nna + \nnb + \nnc)
+\nonumber\\[2.5mm]&&{}
+%
+  + \fei \Pb
+%
+%  + \mb \frac{\Pb}{\Eb} \aves{B \upara{b}} \frac{\aves{B \upara{e}}}{\aves{B^2}}
+%
+  + \Palp{e}
+%
+  + \PRF{e}
+%
+  - \PBr
+\\[5mm]
+%=====================%
+% 2<B \qepara>/(5 pe) %
+%=====================%
+ \frac{5}{2} \me \nee \ddt \aves{B \qhatpara{e}} &=&
+%
+  - \hat{\mu}_2^\r{e} \aves{B \upara{e}} 
+  - \hat{\mu}_3^\r{e} \aves{B \qhatpara{e}}
+%
+  + \hat{\mu}_2^\r{e} {B V_{1\r{e}}} 
+  + \hat{\mu}_3^\r{e} {B V_{2\r{e}}}
+\nonumber\\[3mm]&&{}
+%
+  - \ell_{21}^{\r{ee}} \aves{B \upara{e}}
+  - \ell_{21}^{\r{ei}} \aves{B \upara{i}}
+  - \ell_{21}^{\r{ez}} \aves{B \upara{z}}
+  - \ell_{21}^{\r{eb}} \aves{B \upara{b}}
+\nonumber\\[3mm]&&{}
+%
+  + \ell_{22}^{\r{ee}} \aves{B \qhatpara{e}}
+  + \ell_{22}^{\r{ei}} \aves{B \qhatpara{i}}
+  + \ell_{22}^{\r{ez}} \aves{B \qhatpara{z}}
+\nonumber\\[3mm]&&{}
+%
+  - \nuL \me \nee \aves{B \qhatpara{e}}
+%
+  - \nun{e} \me \nee \aves{B \qhatpara{e}}
+\\[5mm]
+%=======================%
+% <uezt/R> and <R uezt> %
+%=======================%
+    \ave{\frac{\uzt{e}}{R}} &=&
+%
+    \frac{1}{\aves{R^2}} \aves{R\uzt{e}}
+%
+  - \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{\aves{R^2}}\aves{R\uzt{e}}
+%
+  + \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{I} \aves{B\upara{e}}
+\end{eqnarray}
+%
+
+%
+\begin{eqnarray}
+%======%
+% \ni  %
+%======%
+  \frac{1}{V'} \ddt ( V' \ni ) &=&
+%
+  - \frac{1}{V'} \ddrho [ V' \ni (\urho{i} - \ugrho) ]
+%
+  + \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, (\nna + \nnb
+  + \nnc)
+%
+\nonumber\\[2.5mm]&&{}
+  - \nuL (\ni - \ndiv{i}) 
+%
+  + \nub \nb
+%
+  + \nub g \nbrp
+%
+  - \fCX \frac{\Pb}{\Eb}
+%
+  + \nubL \nb
+%
+  + S_\r{LC}
+%
+  - \nuOL \ni
+%
+\\[5mm]
+%=========%
+% radial  %
+%=========%
+  0 &=&
+%
+  -           ( \bri ) \ddrho \ni \Ti
+%
+  - \Zi e \ni ( \bri ) \ddrho \Phi
+\nonumber\\[3mm]&&{}
+%
+  + \Zi e \ni \dd{\psi}{\rho} I          \aves{B\upara{i}}
+%
+  - \Zi e \ni \dd{\psi}{\rho} \aves{B^2} \aves{R\uzt{i}}
+\\[5mm]
+%===============%
+% <B \upara{i}> %
+%===============%
+  \mi \ni \ddt \aves{B \upara{i}} &=&
+%
+  - \hat{\mu}_1^\r{i} \aves{B \upara{i}} 
+  - \hat{\mu}_2^\r{i} \aves{B \qhatpara{i}}
+%
+  + \hat{\mu}_1^\r{i} {B V_{1\r{i}}} 
+  + \hat{\mu}_2^\r{i} {B V_{2\r{i}}}
+\nonumber\\[3mm]&&{}
+%
+  + \ell_{11}^{\r{ie}} \aves{B \upara{e}}
+  + \ell_{11}^{\r{ii}} \aves{B \upara{i}}
+  + \ell_{11}^{\r{iz}} \aves{B \upara{z}}
+  + \ell_{11}^{\r{ib}} \aves{B \upara{b}}
+\nonumber\\[3mm]&&{}
+%
+  - \ell_{12}^{\r{ie}} \aves{B \qhatpara{e}}
+  - \ell_{12}^{\r{ii}} \aves{B \qhatpara{i}}
+  - \ell_{12}^{\r{iz}} \aves{B \qhatpara{z}}
+\nonumber\\[3mm]&&{}
+%
+  + \Zi e \ni \aves{B E_\para}
+%
+%  + \aves{B S_{\r{m}\para}^\r{i}}
+%
+%  + \aves{B S_\r{LC\para}}
+%
+  - \nuL  \mi \ni \aves{B \upara{i}}
+%
+  + \nub  \mb \nb \aves{B \upara{b}}
+%
+  - \nun{i} \mi \ni \aves{B \upara{i}}
+\nonumber\\[3mm]&&{}
+%
+  - \nuCX \mi \ni \aves{B \upara{i}}
+%
+  - \nuOL \mi \ni \aves{B \upara{i}}
+\nonumber\\[3mm]&&{}
+%
+  - \frac{1}{V'} \ddrho V' \aves{|\nabla \rho|} v_{\r{i}\zeta} \mi \ni \aves{B \upara{i}}
+%
+  + \aves{|\nabla \rho|} v_{\r{i}\zeta} \mi \ni 
+  \biggl(\ddrho \frac{\aves{B^2}}{I} \biggl) \frac{I}{\aves{B^2}} \aves{B \upara{i}}
+\nonumber\\[3mm]&&{}
+%
+  + \frac{1}{V'} \ddrho V' \aves{|\nabla \rho|^2} \chis{i\zeta} \mi \ni
+  \frac{\aves{B^2}}{I} \ddrho \frac{I}{\aves{B^2}} \aves{B \upara{i}}
+\nonumber\\[3mm]&&{}
+%
+  - \aves{|\nabla \rho|^2} \chis{i\zeta} \mi \ni \biggl( \ddrho
+  \frac{\aves{B^2}}{I} \biggr) \ddrho \frac{I}{\aves{B^2}} \aves{B \upara{i}}
+%
+  - \frac{\aves{B^2}}{I} \frac{1}{V'} \ddrho V' \aves{\Pi_\r{i}^\r{res}}
+\nonumber\\[3mm]&&{}
+%
+  - \frac{1}{V'} \ddrho V' 
+    \left[  \aves{|\nabla\rho|} v_{\r{i}\zeta} \mi \ni
+          \left(\aves{R^2} - \frac{I^2}{\aves{B^2}}\right) \frac{1}{I}BV_{1\r{i}} \right.
+\nonumber\\[3mm]&&{}
+    \left.- \aves{|\nabla\rho|^2} \chis{i\zeta} \mi \ni
+          \ddrho \left(\aves{R^2} - \frac{I^2}{\aves{B^2}}\right) \frac{1}{I}BV_{1\r{i}}\right]
+\\[5mm]
+%==============%
+% ion toroidal %
+%==============%
+ \frac{1}{V'} \ddt (V' \mi \ni \aves{R \uzt{i}}) &=&
+%
+  - \frac{1}{V'} \ddrho V' \left[  \aves{|\nabla\rho|} v_{\r{i}\zeta} \mi \ni \aves{R \uzt{i}}
+			       +   (\urho{i} - \ugrho) \mi \ni \aves{R \uzt{i}} \right.
+\nonumber\\[3mm]&&{}
+                        \left. - \aves{|\nabla\rho|^2} \chis{i\zeta} \mi \ni
+			         \ddrho \aves{R \uzt{i}}
+                               + \aves{\Pi_\r{i}^\r{res}} \right]
+\nonumber\\[3mm]&&{}
+%
+  + \ell_{11}^\r{ie} \aves{R \uzt{e}}
+  + \ell_{11}^\r{ii} \aves{R \uzt{i}}
+  + \ell_{11}^\r{iz} \aves{R \uzt{z}}
+  + \ell_{11}^\r{ib} \aves{R \uzt{b}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \ell_{12}^\r{ie} \frac{I}{\aves{B^2}} \aves{B \qhatpara{e}}
+  - \ell_{12}^\r{ii} \frac{I}{\aves{B^2}} \aves{B \qhatpara{i}}
+  - \ell_{12}^\r{iz} \frac{I}{\aves{B^2}} \aves{B \qhatpara{z}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \Zi e                 \ni \aves{R E_\zeta}
+%
+  + \Zi e \dd{\psi}{\rho} \ni \urho{i}
+%
+\nonumber\\[2.5mm]&&{}
+%
+%  turbulent particle flux model
+%
+  + \Zi \frac{e^2 \aves{|\nabla\rho|^2} \De}{\Te} \dd{\psi}{\rho} (\ni+\nb)
+    \left[  \dd{\psi}{\rho} \frac{\aves{B^2}}{\bri} \aves{R \uzt{e}}
+          - \dd{\psi}{\rho} \frac{I}{\bri} \aves{B \upara{e}} \right.
+\nonumber\\[2.5mm]&&{}
+    \left.+ \frac{C_\r{T}-1}{e} \ddrho \Te
+	  + \ddrho \Phi
+	  + \frac{\Te}{e} \dd{\psi}{\rho} C_\r{p} \right]
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL  \mi \ni \aves{R \uzt{i}}
+%
+%  + \nub  \mb \frac{I}{\aves{B^2}} \nb \aves{B \upara{b}}
+  + \nub  \mb \nb \aves{R \uzt{b}}
+%
+  - \nun{i} \mi \ni \aves{R \uzt{i}}
+%
+  - \nuCX \mi \ni \aves{R \uzt{i}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuOL \mi \ni \aves{R \uzt{i}}
+\\[5mm]
+%==========%
+% \ni \Ti  %
+%==========%
+ \frac{3}{2}\frac{1}{V'^{5/3}} \ddt (V'^{5/3} \ni \Ti ) &=& 
+%
+  - \frac{1}{V'} \ddrho V'
+    \left[ - \chis{i}          \aves{|\nabla\rho|^2} \ni \ddrho \Ti
+           + V_\r{i}^\r{hp} \aves{|\nabla\rho|}   \ni \Ti
+           + \frac{5}{2} \ni \Ti ( \urho{i} - \ugrho ) \right]
+\nonumber\\[2.5mm]&&{}
+%
+  + ( \urho{i} - \ugrho ) \ddrho \ni \Ti
+%
+  + \uhatth{i} \aves{\vec{B}\cdot\nabla\cdot\tensor{\pi}_\r{i}}
+%
+  - \frac{3}{2} \ni \frac{ \Ti - \Te }{\tau_\r{ie}}
+  - \frac{3}{2} \ni \frac{ \Ti - \Tz }{\tau_\r{iz}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL \Ti (\ni - \ndiv{i})
+%
+  - \frac{3}{2} \nuLT{i} \ni (\Ti - \Tdiv{i})
+%
+\nonumber\\[2.5mm]&&{}
+  + \frac{3}{2} \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, (\nna \Tna +
+  \nnb \Tnb + \nnc \Tnc)
+\nonumber\\[2.5mm]&&{}
+%
+  - \frac{3}{2} \nuCX \ni (\Ti - \Tna)
+%
+  + (1 - \fei) \Pb
+%
+  + \mb \frac{\Pb}{\Eb} \aves{B \upara{b}} \frac{\aves{B \upara{i}}}{\aves{B^2}}
+%
+  + \Palp{i}
+%
+  + \PRF{i}
+\\[5mm]
+%=====================%
+% 2<B \qipara>/(5 pi) %
+%=====================%
+ \frac{5}{2} \mi \ni \ddt \aves{B \qhatpara{i}} &=&
+%
+  - \hat{\mu}_2^\r{i} \aves{B \upara{i}} 
+  - \hat{\mu}_3^\r{i} \aves{B \qhatpara{i}}
+%
+  + \hat{\mu}_2^\r{i} {B V_{1\r{i}}} 
+  + \hat{\mu}_3^\r{i} {B V_{2\r{i}}}
+\nonumber\\[3mm]&&{}
+%
+  - \ell_{21}^{\r{ie}} \aves{B \upara{e}}
+  - \ell_{21}^{\r{ii}} \aves{B \upara{i}}
+  - \ell_{21}^{\r{iz}} \aves{B \upara{z}}
+  - \ell_{21}^{\r{ib}} \aves{B \upara{b}}
+\nonumber\\[3mm]&&{}
+%
+  + \ell_{22}^{\r{ie}} \aves{B \qhatpara{e}}
+  + \ell_{22}^{\r{ii}} \aves{B \qhatpara{i}}
+  + \ell_{22}^{\r{iz}} \aves{B \qhatpara{z}}
+\nonumber\\[3mm]&&{}
+%
+  - \nuL \mi \ni \aves{B \qhatpara{i}}
+%
+  - \nun{i} \mi \ni \aves{B \qhatpara{i}}
+\\[5mm]
+%=======================%
+% <uizt/R> and <R uizt> %
+%=======================%
+    \ave{\frac{\uzt{i}}{R}} &=&
+%
+    \frac{1}{\aves{R^2}} \aves{R\uzt{i}}
+%
+  - \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{\aves{R^2}}\aves{R\uzt{i}}
+%
+  + \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{I} \aves{B\upara{i}}
+\end{eqnarray}
+%
+
+%
+\begin{eqnarray}
+%======%
+% \nz  %
+%======%
+  \frac{1}{V'} \ddt ( V' \nz ) &=&
+%
+  - \frac{1}{V'} \ddrho [ V' \nz (\urho{z} - \ugrho) ]
+%
+  - \nuL (\nz - \ndiv{z}) 
+%
+  + S_\r{LC}
+%
+  - \nuOL \nz
+%
+\\[5mm]
+%=========%
+% radial  %
+%=========%
+  0 &=&
+%
+  -           ( \bri ) \ddrho \nz \Tz
+%
+  - \Zz e \nz ( \bri ) \ddrho \Phi
+\nonumber\\[3mm]&&{}
+%
+  + \Zz e \nz \dd{\psi}{\rho} I          \aves{B\upara{z}}
+%
+  - \Zz e \nz \dd{\psi}{\rho} \aves{B^2} \aves{R\uzt{z}}
+\\[5mm]
+%===============%
+% <B \upara{z}> %
+%===============%
+  \mz \nz \ddt \aves{B \upara{z}} &=&
+%
+  - \hat{\mu}_1^\r{z} \aves{B \upara{z}} 
+  - \hat{\mu}_2^\r{z} \aves{B \qhatpara{z}}
+%
+  + \hat{\mu}_1^\r{z} {B V_{1\r{z}}} 
+  + \hat{\mu}_2^\r{z} {B V_{2\r{z}}}
+\nonumber\\[3mm]&&{}
+%
+  + \ell_{11}^{\r{ze}} \aves{B \upara{e}}
+  + \ell_{11}^{\r{zi}} \aves{B \upara{i}}
+  + \ell_{11}^{\r{zz}} \aves{B \upara{z}}
+  + \ell_{11}^{\r{zb}} \aves{B \upara{b}}
+\nonumber\\[3mm]&&{}
+%
+  - \ell_{12}^{\r{ze}} \aves{B \qhatpara{e}}
+  - \ell_{12}^{\r{zi}} \aves{B \qhatpara{i}}
+  - \ell_{12}^{\r{zz}} \aves{B \qhatpara{z}}
+\nonumber\\[3mm]&&{}
+%
+  + \Zz e \nz \aves{B E_\para}
+%
+%  + \aves{B S_{\r{m}\para}^\r{i}}
+%
+%  + \aves{B S_\r{LC\para}}
+%
+  - \nuL  \mz \nz \aves{B \upara{z}}
+%
+  - \nun{z} \mz \nz \aves{B \upara{z}}
+%
+  - \nuOL \mz \nz \aves{B \upara{z}}
+\nonumber\\[3mm]&&{}
+%
+  - \frac{1}{V'} \ddrho V' \aves{|\nabla \rho|} v_{\r{z}\zeta} \mz \nz \aves{B \upara{z}}
+%
+  + \aves{|\nabla \rho|} v_{\r{z}\zeta} \mz \nz 
+  \biggl(\ddrho \frac{\aves{B^2}}{I} \biggl) \frac{I}{\aves{B^2}} \aves{B \upara{z}}
+\nonumber\\[3mm]&&{}
+%
+  + \frac{1}{V'} \ddrho V' \aves{|\nabla \rho|^2} \chis{z\zeta} \mz \nz
+  \frac{\aves{B^2}}{I} \ddrho \frac{I}{\aves{B^2}} \aves{B \upara{z}}
+\nonumber\\[3mm]&&{}
+%
+  - \aves{|\nabla \rho|^2} \chis{z\zeta} \mz \nz \biggl( \ddrho
+  \frac{\aves{B^2}}{I} \biggr) \ddrho \frac{I}{\aves{B^2}} \aves{B \upara{z}}
+%
+  - \frac{\aves{B^2}}{I} \frac{1}{V'} \ddrho V' \aves{\Pi_\r{z}^\r{res}}
+\nonumber\\[3mm]&&{}
+%
+  - \frac{1}{V'} \ddrho V' 
+    \left[  \aves{|\nabla\rho|} v_{\r{z}\zeta} \mz \nz
+          \left(\aves{R^2} - \frac{I^2}{\aves{B^2}}\right) \frac{1}{I}BV_{1\r{z}} \right.
+\nonumber\\[3mm]&&{}
+    \left.- \aves{|\nabla\rho|^2} \chis{z\zeta} \mz \nz
+          \ddrho \left(\aves{R^2} - \frac{I^2}{\aves{B^2}}\right) \frac{1}{I}BV_{1\r{z}}\right]
+\\[5mm]
+%==============%
+% imp toroidal %
+%==============%
+ \frac{1}{V'} \ddt (V' \mz \nz \aves{R \uzt{z}}) &=&
+%
+  - \frac{1}{V'} \ddrho V' \left[  \aves{|\nabla\rho|} v_{\r{z}\zeta} \mz \nz \aves{R \uzt{z}}
+			       +   (\urho{z} - \ugrho) \mz \nz \aves{R \uzt{z}} \right.
+\nonumber\\[3mm]&&{}
+                        \left. - \aves{|\nabla\rho|^2} \chis{z\zeta} \mz \nz
+			         \ddrho \aves{R \uzt{z}}
+                               + \aves{\Pi_\r{z}^\r{res}} \right]
+\nonumber\\[3mm]&&{}
+%
+  + \ell_{11}^\r{ze} \aves{R \uzt{e}}
+  + \ell_{11}^\r{zi} \aves{R \uzt{i}}
+  + \ell_{11}^\r{zz} \aves{R \uzt{z}}
+  + \ell_{11}^\r{zb} \aves{R \uzt{b}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \ell_{12}^\r{ze} \frac{I}{\aves{B^2}} \aves{B \qhatpara{e}}
+  - \ell_{12}^\r{zi} \frac{I}{\aves{B^2}} \aves{B \qhatpara{i}}
+  - \ell_{12}^\r{zz} \frac{I}{\aves{B^2}} \aves{B \qhatpara{z}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \Zz e                 \nz \aves{R E_\zeta}
+%
+  + \Zz e \dd{\psi}{\rho} \nz \urho{z}
+%
+\nonumber\\[2.5mm]&&{}
+%
+%  turbulent particle flux model
+%
+  + \Zz \frac{e \aves{|\nabla\rho|^2} \De}{\Te} \dd{\psi}{\rho} \nz
+    \left[  (1-C_\r{T})\frac{\Te}{\nee}\ddrho \nee
+           + C_\r{T} \frac{1}{\nee} \ddrho \nee\Te
+	  + \Te \dd{\psi}{\rho} C_\r{p} \right]
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL    \mz \nz \aves{R \uzt{z}}
+%
+  - \nun{z} \mz \nz \aves{R \uzt{z}}
+%
+  - \nuOL   \mz \nz \aves{R \uzt{z}}
+\\[5mm]
+%==========%
+% \nz \Tz  %
+%==========%
+ \frac{3}{2}\frac{1}{V'^{5/3}} \ddt (V'^{5/3} \nz \Tz ) &=& 
+%
+  - \frac{1}{V'} \ddrho V'
+    \left[ - \chis{z}          \aves{|\nabla\rho|^2} \nz \ddrho \Tz
+           + V_\r{z}^\r{hp} \aves{|\nabla\rho|}   \nz \Tz
+           + \frac{5}{2} \nz \Tz ( \urho{z} - \ugrho ) \right]
+\nonumber\\[2.5mm]&&{}
+%
+  + ( \urho{z} - \ugrho ) \ddrho \nz \Tz
+%
+  + \uhatth{z} \aves{\vec{B}\cdot\nabla\cdot\tensor{\pi}_\r{z}}
+%
+  - \frac{3}{2} \nz \frac{ \Tz - \Te }{\tau_\r{ze}}
+  - \frac{3}{2} \nz \frac{ \Tz - \Ti }{\tau_\r{zi}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL \Tz (\nz - \ndiv{z})
+%
+  - \frac{3}{2} \nuLT{z} \nz (\Tz - \Tdiv{z})
+\nonumber\\[2.5mm]&&{}
+%
+  + \Palp{z}
+%
+  + \PRF{z}
+\\[5mm]
+%=====================%
+% 2<B \qzpara>/(5 pz) %
+%=====================%
+ \frac{5}{2} \mz \nz \ddt \aves{B \qhatpara{z}} &=&
+%
+  - \hat{\mu}_2^\r{z} \aves{B \upara{z}} 
+  - \hat{\mu}_3^\r{z} \aves{B \qhatpara{z}}
+%
+  + \hat{\mu}_2^\r{z} {B V_{1\r{z}}} 
+  + \hat{\mu}_3^\r{z} {B V_{2\r{z}}}
+\nonumber\\[3mm]&&{}
+%
+  - \ell_{21}^{\r{ze}} \aves{B \upara{e}}
+  - \ell_{21}^{\r{zi}} \aves{B \upara{i}}
+  - \ell_{21}^{\r{zz}} \aves{B \upara{z}}
+  - \ell_{21}^{\r{zb}} \aves{B \upara{b}}
+\nonumber\\[3mm]&&{}
+%
+  + \ell_{22}^{\r{ze}} \aves{B \qhatpara{e}}
+  + \ell_{22}^{\r{zi}} \aves{B \qhatpara{i}}
+  + \ell_{22}^{\r{zz}} \aves{B \qhatpara{z}}
+\nonumber\\[3mm]&&{}
+%
+  - \nuL \mz \nz \aves{B \qhatpara{z}}
+%
+  - \nun{z} \mz \nz \aves{B \qhatpara{z}}
+\\[5mm]
+%=======================%
+% <uzzt/R> and <R uzzt> %
+%=======================%
+    \ave{\frac{\uzt{z}}{R}} &=&
+%
+    \frac{1}{\aves{R^2}} \aves{R\uzt{z}}
+%
+  - \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{\aves{R^2}}\aves{R\uzt{z}}
+%
+  + \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{I}\aves{B\upara{z}}
+\end{eqnarray}
+%
+
+%
+\begin{eqnarray}
+%======%
+% \nb  %
+%======%
+  \frac{1}{V'} \ddt (V' \nb) &=&
+%
+  - \frac{1}{V'} \ddrho [ V' \nb (\urho{b} - \ugrho) ]
+%
+  + \frac{\Pb}{\Eb}
+%
+  - g \frac{\Pbperp}{\Eb}
+%
+  - \nub \nb
+%
+  - \nubL \nb
+%
+  - \nueff g (\sqrt{\delta} \nb - \nbrp)
+%
+\nonumber\\[2.5mm]&&{}
+  + \frac{1}{V'} \ddrho V'\aves{|\nabla\rho|^2} f_t \Db \ddrho \nb
+%
+\\[5mm]
+%=========%
+% radial  %
+%=========%
+  0 &=&
+%
+  -           ( \bri ) \ddrho \nb \Tb
+%
+  - \Zb e \nb ( \bri ) \ddrho \Phi
+\nonumber\\[3mm]&&{}
+%
+  + \Zb e \nb \dd{\psi}{\rho} I          \aves{B\upara{b}}
+%
+  - \Zb e \nb \dd{\psi}{\rho} \aves{B^2} \aves{R\uzt{b}}
+\\[5mm]
+%===========%
+% \upara{b} %
+%===========%
+  \mb \ddt \nb \aves{B \upara{b}} &=&
+%
+  - (\hat{\mu}_1^\r{b} - \ell_{11}^\r{bb}) \aves{B \upara{b}}
+%
+  + \sum_{a\neq\r{b}} \ell_{11}^{\r{b}a} \aves{B u_{a\para}}
+%
+  + \hat{\mu}_1^\r{b} {B V_{1\r{b}}}
+%
+  + \Zb e \nb \aves{B E_\para^A}
+\nonumber\\[2.5mm]&&{}
+%
+  - \nubL \mb \nb \aves{B\upara{b}}
+%
+  - \nub  \mb \nb \aves{B\upara{b}}
+%
+  - \nun{b} \mb \nb \aves{B\upara{b}}
+%
+  - \nuCX \mb \nb \aves{B\upara{b}}
+%
+  + \aves{B S_{\r{m}\para\r{b}}}
+%
+%  + \vbph \frac{\Pbpara}{\Eb}
+%
+\nonumber\\[2.5mm]&&{}
+  - \nueff g \sqrt{\delta} \mb \nb \aves{B\upara{b}}
+%
+  + \frac{1}{V'} \ddrho V' \aves{|\nabla\rho|^2} \mb \aves{B\upara{b}} f_t \Db \ddrho \nb
+\\[5mm]
+%===============%
+% beam toroidal %
+%===============%
+  \frac{1}{V'} \ddt (V' \mb \nb \aves{R \uzt{b}}) &=&
+%
+  - \frac{1}{V'} \dd{}{\rho}[ V' (\urho{b} - \ugrho) \mb \nb \aves{R \uzt{b}} ]
+%
+%  - \ddV [\aves{|\nabla V|} v_{\r{b}\zeta} \red{\nb \aves{R \uzt{b}}}]
+%\nonumber\\[3mm]&&{}
+%  + \ddV \aves{|\nabla V|^2} \chis{b\zeta} \ddV \red{\nb \aves{R \uzt{b}}}
+%  - \ddV \aves{|\nabla V|^2} \chis{b\zeta} \aves{R \uzt{b}}\ddV \red{\nb} 
+%  - \frac{1}{\mb} \ddV \aves{\Pi_\r{b}^\r{res}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \ell_{11}^\r{be} \aves{R \uzt{e}}
+  + \ell_{11}^\r{bi} \aves{R \uzt{i}}
+  + \ell_{11}^\r{bz} \aves{R \uzt{z}}
+%  + \hat{\ell}_{11}^\r{bb} \red{\ni \aves{R \uzt{b}}}
+  + \ell_{11}^\r{bb} \nb \aves{R \uzt{b}}
+\nonumber\\[2.5mm]&&{}
+%
+%  - \frac{1}{\mb} \ell_{12}^\r{be} \frac{I}{\aves{B^2}} \red{\aves{B \qhatpara{e}}}
+%  - \frac{1}{\mb} \ell_{12}^\r{bi} \frac{I}{\aves{B^2}} \red{\aves{B \qhatpara{i}}}
+%
+  + \Zb e              \nb \dot{\psi}
+%
+  + \Zb e \dd{\psi}{\rho} \nb \urho{b}
+%
+%%
+%%  turbulent particle flux model
+%%
+%  + \Zi \frac{e^2 \aves{|\nabla V|^2} \De}{\mi\Te} \dd{\psi}{V} 
+%%
+%    \left[  \dd{\psi}{V} \frac{\aves{B^2}}{\bri} \red{\nee \aves{R \uzt{e}}}
+%          - \dd{\psi}{V} \frac{I}{\bri} \nee \red{\aves{B \upara{e}}} \right.
+%\nonumber\\[2.5mm]&&{}
+%%
+%    \left.+ \frac{C_\r{T}-1}{e} \left(\ddV \red{\nee \Te} - \Te \ddV \red{\nee} \right)
+%	  + \nee \ddV \red{\Phi}
+%	  + \frac{\Te}{e} \dd{\psi}{V} C_\r{p} \red{\nee} \right]
+%\nonumber\\[2.5mm]&&{}
+%
+  - \nubL \mb \nb \aves{R \uzt{b}}
+%
+  - \nub  \mb \nb \aves{B \uzt{b}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \nun{i} \mb \nb \aves{R \uzt{b}}
+%
+  - \nuCX \mb \nb \aves{R \uzt{b}}
+%
+%  - \nuOL \mb \nb \aves{R \uzt{b}}
+%
+  + \frac{I}{\aves{B^2}} \aves{B S_{\r{m}\para\r{b}}}
+%
+\\[5mm]
+%=======%
+% \nna  %
+%=======%
+  \frac{1}{V'} \ddt (V' \nna) &=& 
+%
+    \frac{1}{V'} \ddrho V' \aves{|\nabla\rho|^2} D_{01} \ddrho \nna
+%
+  - \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, \nna
+%
+\nonumber\\[2.5mm]&&{}
+  - \nuCX\, \frac{\ni}{\nna + \nnb}\, \nna
+%
+  + \gamma_0 \nuL \, (\ni - \ndiv{i})
+%
+  + \frac{1}{V'} \ddrho V' \aves{\vec{\Gamma}^\r{puff}\cdot\nabla\rho}\biggr|_\r{b}
+\\[5mm]
+%=======%
+% \nnb  %
+%=======%
+  \frac{1}{V'} \ddt (V' \nnb) &=& 
+%
+    \frac{1}{V'} \ddrho V' \aves{|\nabla\rho|^2} D_{02} \ddrho \nnb
+%
+  - \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, \nnb
+%
+%\nonumber\\[2.5mm]&&{}
+  + \nuCX\, \frac{\ni}{\nna + \nnb}\, \nna
+%
+%  + \fCX \frac{\Pb}{\Eb}
+\\[5mm]
+%=======%
+% \nnc  %
+%=======%
+  \frac{1}{V'} \ddt (V' \nnc) &=& 
+%
+    \frac{1}{V'} \ddrho V' \aves{|\nabla\rho|^2} D_{03} \ddrho \nnc
+%
+  - \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, \nnc
+%
+%\nonumber\\[2.5mm]&&{}
+  + \fCX \frac{\Pb}{\Eb}
+\\[5mm]
+%========%
+% \nbrp  %
+%========%
+  \frac{1}{V'} \ddt (V' \nbrp) &=&
+%
+    \frac{\Pbperp}{\Eb}
+%
+  + \nueff (\sqrt{\delta} \nb - \nbrp)
+%
+  - \nub \nbrp
+%
+%\nonumber\\[2.5mm]&&{}
+  - \frac{1}{V'} \ddrho V' \left( \aves{|\nabla\rho|} \ubrp \nbrp - \aves{|\nabla\rho|^2} \Dbrp \ddrho \nbrp \right)
+%
+\end{eqnarray}
+
+\bigskip
+
+\section{Additional important relationship}
+\setcounter{equation}{0}
+
+\begin{eqnarray}
+%=======%
+% B_pol %
+%=======%
+  B_p &=&
+%
+  \frac{|\nabla\rho|}{R} \dd{\psi}{\rho},
+  \quad
+%===========%
+% <B_pol^2> %
+%===========%
+  \aves{B_p^2} =
+%
+  \ave{\frac{|\nabla V|^2}{R^2}} \left(\dd{\psi}{V}\right)^2
+\\[5mm]
+%=======%
+% B_tor %
+%=======%
+  B_t &=&
+%
+  \frac{I}{R}
+%
+  = \frac{1}{R} \frac{4\pi^2}{\aves{R^{-2}}} \dd{\psit}{V},
+  \quad
+%===========%
+% <B_tor^2> %
+%===========%
+  \aves{B_t^2} =
+%
+  \frac{16\pi^4}{\aves{R^{-2}}} \left(\dd{\psit}{V}\right)^2
+\\[5mm]
+%=======%
+% <B^2> %
+%=======%
+  \aves{B^2} &=&
+%
+  \aves{B_t^2} + \aves{B_p^2}
+%
+  = \frac{16\pi^4}{\aves{R^{-2}}}\left(\dd{\psit}{V}\right)^2
+  + \ave{\frac{|\nabla V|^2}{R^2}}\left(\dd{\psi}{V}\right)^2
+\\[5mm]
+%===========%
+% <B^theta> %
+%===========%
+  \aves{B^\theta} &=&
+%
+  \frac{4\pi^2}{V'} \dd{\psi}{\rho}
+%
+  = 4\pi^2 \dd{\psi}{V}
+%
+  = \frac{I\aves{R^{-2}}}{q}
+%
+  = 2\pi\left(\oint \frac{dl_p}{B_p}\right)^{-1}
+\\[5mm]
+%=======%
+% q hat %
+%=======%
+  \hat{q}^2 &\equiv& \frac{I^2}{2\aves{B_p^2}}\left(\ave{\frac{1}{R^2}}-\frac{1}{\aves{R^2}}\right)
+\\[5mm]
+%================%
+% <B^2><R^2>-I^2 %
+%================%
+  \bri &=&
+%
+  \aves{R^2} \ave{\frac{|\nabla V|^2}{R^2}} \left(\dd{\psi}{V}\right)^2 (1+2\hat{q}^2)
+\\[5mm]
+%===================%
+% 2<B \qpara>/(5 p) %
+%===================%
+ \aves{B\hat{q}_{s\para}} &\equiv&
+%
+ \frac{2\aves{Bq_{s\para}}}{5p_s}
+\\[5mm]
+%=============%
+% hat u_theta %
+%=============%
+  \hat{u}_{s\theta} &=&
+%
+  \frac{\aves{B\uspara} - BV_{1s}}{ \aves{B^2} }
+\\[5mm]
+%=====================%
+% <uzt/R> and <R uzt> %
+%=====================%
+  \ave{\frac{\uszt}{R}} &=&
+%
+  \frac{1}{1+2\hat{q}^2}\frac{1}{\aves{R^2}}\aves{R\uszt}+\frac{2\hat{q}^2}{1+2\hat{q}^2}\frac{1}{I}\aves{B\uspara}
+\\[2.5mm]
+%
+%  &=& \frac{\aves{R\uszt}}{\aves{R^2}}
+%
+%  + \frac{2\hat{q}^2}{1+2\hat{q}^2} \left( \frac{1}{I}\aves{B\uspara} - \frac{1}{\aves{R^2}}\aves{R\uszt}\right)
+%\nonumber\\[2.5mm]
+%
+  &=& \frac{\aves{R\uszt}}{\aves{R^2}}
+%
+  + \frac{I}{\aves{B^2}} \left(  \ave{\frac{1}{R^2}}
+			      - \frac{1}{\aves{R^2}} \right)
+    (\aves{B\uspara} - BV_{1s})
+\nonumber\\[2.5mm]
+%
+  &=& \frac{\aves{R\uszt}}{\aves{R^2}}
+%
+  + I \left(  \ave{\frac{1}{R^2}}
+			       - \frac{1}{\aves{R^2}} \right) \hat{u}_{s\theta}
+\nonumber\\[5mm]
+%=======%
+% B V_1 %
+%=======%
+  B V_{1s} &=&
+%
+ - I \left( \frac{1}{e_s n_s} \dd{n_s T_s}{\psi} + \dd{\Phi}{\psi}\right),
+\quad
+%\\[5mm]
+%=======%
+% B V_2 %
+%=======%
+  B V_{2s} =
+%
+ - \frac{I}{e_s} \dd{T_s}{\psi}
+\\[5mm]
+%====================%
+% u.grad rho = u^rho %
+%====================%
+  u^\rho &\equiv&
+%
+  \aves{ \vec{u} \cdot \nabla\rho },
+%
+  \quad u^V = \aves{ \vec{u} \cdot \nabla V }
+\\[5mm]
+%===============%
+% grid velocity %
+%===============%
+  \ugrho &=&
+%
+  - \frac{4\pi^2}{IV'\aves{R^{-2}}} \psitd,
+%
+  \quad \ugV = - \frac{4\pi^2}{I\aves{R^{-2}}} \psitd = - \frac{V'}{2\rho\psi_{ta}}\psitd
+\\[5mm]
+  \frac{1}{V'}\dd{V'}{t} &=&
+%
+  \dd{}{V}\aves{\vec{u}_g\cdot\nabla V} = \dd{u_g^V}{V}
+\\[5mm]
+%======%
+% \Er  %
+%======%
+  \aves{\Er} &=&
+%
+  - \aves{|\nabla\rho|^2} \dd{r}{\rho} \ddrho \Phi
+\\[5mm]
+%============%
+% <B E_para> %
+%============%
+  \aves{B E_\para} &=&
+%
+  I \aves{R^{-2}} \left( - \frac{\psitd}{q} + \psid \right)
+\\[5mm]
+%=========%
+% R E_tor %
+%=========%
+  R E_\zeta &=&
+%
+  \psid
+%
+  = \frac{V_\r{loop}}{2\pi}
+\\[5mm]
+%=================%
+% viscous heating %
+%=================%
+  \aves{\vec{B}\cdot\nabla\cdot\tensor{\pi}_\r{i}} &=&
+%
+  \hat{\mu}_1^\r{i} ( \aves{Bu_{\r{i}\para}} - BV_{1\r{i}}) 
+%
+  + \hat{\mu}_2^\r{i} \left( \frac{2\aves{Bq_{\r{i}\para}}}{5p_\r{i}} -
+		       BV_{2\r{i}}\right)
+\\[5mm]
+%======================%
+% friction coefficient %
+%======================%
+  \hat{\ell}_{ij}^{ab} &\equiv& \frac{\ell_{ij}^{ab}}{m_an_a},
+  \quad
+%===========================%
+% beam friction coefficient %
+%===========================%
+  \hat{\ell}_{ij}^{\r{b}b} \equiv \frac{\ell_{ij}^{\r{b}b}}{m_\r{e}n_\r{e}}
+\\[5mm]
+%==========%
+% gas puff %
+%==========%
+  \Gamma^\r{puff} &\simeq& \frac{\aves{\vec{\Gamma}^\r{puff}\cdot\nabla\rho}}{\aves{|\nabla\rho|}}
+\end{eqnarray}
+
+\bigskip
+
+\section{Equations in the coordinates suitable for implementation}
+\setcounter{equation}{0}
+
+\begin{eqnarray}
+%=======%
+% \phi  %
+%=======%
+  0 &=&
+%
+    \ddV \left[ \aves{|\nabla V|^2} \ddV{\red{\Phi}} \right]
+%
+  + \frac{1}{\epsilon_0}
+%
+    \left(-e \red{\nee} + \Zi e \red{\ni} + \Zz e \red{\nz} + \Zb e \red{\nb} + \Zb e g \red{\nbrp} \right)
+\\[5mm]
+%=========%
+% \psitd  %
+%=========%
+%  \frac{1}{c^2} \ave{\frac{|\nabla V|^2}{R^2}}^{-1} \ddt \red{\psitd} &=&
+%%
+%   \ddV \left[ \frac{1}{\aves{R^{-2}}}
+%				         \ddV \red{\psit} \right]
+%%
+%  + \frac{\mu_0}{\aves{B^\theta}} \ave{\frac{|\nabla V|^2}{R^2}}^{-1}
+% \nonumber\\[3mm]&&{}
+%%
+%    \times \left[-     e \left( \nee \red{\aves{B\upara{e}}} - I\red{\nee \ave{\frac{\uzt{e}}{R}}} \right)
+%          + \Zi e \left( \ni \red{\aves{B\upara{i}}} - I\red{\ni  \ave{\frac{\uzt{i}}{R}}} \right)
+%    \right.\nonumber\\[3mm]&&{}
+%%    \left.+ \Zb e  \left( \red{\nb \aves{B\upara{b}}} - I\red{\nb \ave{\frac{\uzt{b}}{R}}} \right) \right]
+%    \left.+ \Zb e  \frac{1}{\aves{B^2}} \ave{\frac{|\nabla V|^2}{R^2}}
+%     \left(\dd{\psi}{V}\right)^2 \nb \red{\aves{B\upara{b}}} \right]
+%
+  \epsilon_0 \ddt \red{\psitd} &=&
+%
+     \ddV \left[ \ave{\frac{|\nabla V|^2}{R^2}} \frac{1}{\aves{R^{-2}}} \ddV \red{\frac{\psit}{\mu_0}} \right]
+   - \frac{1}{\aves{R^{-2}}} \ddV \left[ \ave{\frac{|\nabla V|^2}{R^2}}
+				  \right] \ddV  \red{\frac{\psit}{\mu_0}}
+ \nonumber\\[3mm]&&{}
+%
+  + \frac{1}{\aves{B^\theta}}
+%
+    \left[-     e \left( \nee \red{\aves{B\upara{e}}} - I\red{\nee \ave{\frac{\uzt{e}}{R}}} \right)
+          + \Zi e \left( \ni  \red{\aves{B\upara{i}}} - I\red{\ni  \ave{\frac{\uzt{i}}{R}}} \right)
+    \right.\nonumber\\[3mm]&&{}
+    \left.+ \Zz e \left( \nz  \red{\aves{B\upara{z}}} - I\red{\nz  \ave{\frac{\uzt{z}}{R}}} \right)
+          + \Zb e  \left( \red{\nb \aves{B\upara{b}}} - I\red{\nb  \ave{\frac{\uzt{b}}{R}}} \right) \right]
+%    \left.+ \Zb e  \frac{1}{\aves{B^2}} \ave{\frac{|\nabla V|^2}{R^2}}
+%     \left(\dd{\psi}{V}\right)^2 \red{\nb \aves{B\upara{b}}} \right]
+\\[5mm]
+%========%
+% \psid  %
+%========%
+  \frac{1}{c^2} \ave{\frac{1}{R^2}} \ddt \red{\psid} &=&
+%
+  \ddV \left[ \ave{\frac{|\nabla V|^2}{R^2}}
+				    \ddV \red{\psi} \right] \nonumber\\[3mm]&&{}
+%
+  - \mu_0 \left(-     e \red{\nee \ave{\frac{\uzt{e}}{R}}}
+                + \Zi e \red{\ni  \ave{\frac{\uzt{i}}{R}}}
+                + \Zz e \red{\nz  \ave{\frac{\uzt{z}}{R}}}
+	        + \Zb e \red{\nb  \ave{\frac{\uzt{b}}{R}}} \right)
+%	        + \Zb e \ave{\frac{1}{R^2}} \frac{I}{\aves{B^2}}
+%	        \red{\nb \aves{B \upara{b}} }\right)
+%
+%  + \mu_0 j_\r{virtual}
+\\[5mm]
+%=======%
+% \psi  %
+%=======%
+  \ddt \red{\psi} &=&
+%
+  \red{\psid}
+\\[5mm]
+%=========%
+% \psitd  %
+%=========%
+  \ddt \red{\frac{\psit}{\mu_0}} &=&
+%
+  \frac{\red{\psitd}}{\mu_0}
+\end{eqnarray}
+%
+
+%
+\begin{eqnarray}
+%=======%
+% \nee  %
+%=======%
+  \ddt \red{\nee}  &=&
+%
+  - \ddV \red{\nee\uV{e}}
+%
+  + \ugV \ddV \red{\nee}
+%
+  + \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, (\red{\nna} + \red{\nnb}
+  + \red{\nnc})
+\nonumber\\[3mm]&&{}
+%
+  - \nuL (\red{\nee} - \ndiv{e})
+%
+  + (1 - \fCX) \frac{\Pb}{\Eb}
+\\[5mm]
+%=========%
+% radial  %
+%=========%
+  0 &=&
+%
+  -        \left( \bri \right) \frac{1}{\me} \ddV \red{\nee \Te}
+%
+  + \frac{e}{\me} \nee \left( \bri \right) \ddV \red{\Phi}
+\nonumber\\[3mm]&&{}
+%
+  - \frac{e}{\me} \dd{\psi}{V} I \nee \red{\aves{B\upara{e}}}
+%
+  + \frac{e}{\me} \dd{\psi}{V} \aves{B^2} \red{\nee \aves{R\uzt{e}}}
+\\[5mm]
+%===============%
+% <B \upara{e}> %
+%===============%
+  \nee \ddt \red{\aves{B \upara{e}}} &=&
+%
+  - \frac{1}{\me} \hat{\mu}_1^\r{e} \red{\aves{B \upara{e}}}
+  - \frac{1}{\me} \hat{\mu}_2^\r{e} \red{\aves{B \qhatpara{e}}}
+%
+%  + \frac{1}{\me} \hat{\mu}_1^\r{e} {B V_{1\r{e}}} 
+  + \frac{1}{e\me} \hat{\mu}_1^\r{e} I \dd{V}{\psi} \frac{1}{\nee} \ddV
+  \red{\nee \Te}
+  - \frac{1}{\me} \hat{\mu}_1^\r{e} I \dd{V}{\psi} \ddV \red{\Phi}
+\nonumber\\[3mm]&&{}
+%
+%  + \frac{1}{\me} \hat{\mu}_2^\r{e} {B V_{2\r{e}}}
+  + \frac{1}{e\me} \hat{\mu}_2^\r{e} I \dd{V}{\psi} \frac{1}{\nee} \ddV
+  \red{\nee \Te}
+  - \frac{1}{e\me} \hat{\mu}_2^\r{e} I \dd{V}{\psi} \frac{\Te}{\nee} \ddV
+  \red{\nee}
+\nonumber\\[3mm]&&{}
+%
+  + \hat{\ell}_{11}^{\r{ee}} \nee \red{\aves{B \upara{e}}}
+  + \hat{\ell}_{11}^{\r{ei}} \nee \red{\aves{B \upara{i}}}
+  + \hat{\ell}_{11}^{\r{ez}} \nee \red{\aves{B \upara{z}}}
+  + \hat{\ell}_{11}^{\r{eb}} \frac{\nee}{\nb} \red{\nb \aves{B \upara{b}}}
+\nonumber\\[3mm]&&{}
+%
+  - \hat{\ell}_{12}^{\r{ee}} \nee \red{\aves{B \qhatpara{e}}}
+  - \hat{\ell}_{12}^{\r{ei}} \nee \red{\aves{B \qhatpara{i}}}
+  - \hat{\ell}_{12}^{\r{ez}} \nee \red{\aves{B \qhatpara{z}}}
+\nonumber\\[3mm]&&{}
+%
+  - e \frac{\nee}{\me} I \aves{R^{-2}} \left( - \frac{\red{\psitd}}{q} + \red{\psid} \right)
+%
+%  + \frac{1}{\me} \aves{B S_{\r{m}\para}^\r{e}}
+%
+  - \nuL \nee \red{\aves{B \upara{e}}}
+%
+  - \nun{e} \nee \red{\aves{B \upara{e}}}
+\nonumber\\[3mm]&&{}
+%
+  - \ddV \aves{|\nabla \rho|} v_{\r{e}\zeta} \nee \red{\aves{B \upara{e}}}
+%
+  + \aves{|\nabla V|} v_{\r{e}\zeta} \nee 
+  \biggl(\ddV \frac{\aves{B^2}}{I} \biggl) \frac{I}{\aves{B^2}} \red{\aves{B \upara{e}}}
+\nonumber\\[3mm]&&{}
+%
+  + \ddV \aves{|\nabla V|^2} \chis{e\zeta} \nee
+  \frac{\aves{B^2}}{I} \ddV \frac{I}{\aves{B^2}} \red{\aves{B \upara{e}}}
+\nonumber\\[3mm]&&{}
+%
+  - \aves{|\nabla V|^2} \chis{e\zeta} \nee \biggl( \ddV
+  \frac{\aves{B^2}}{I} \biggr) \ddV \frac{I}{\aves{B^2}} \red{\aves{B \upara{e}}}
+%
+  - \frac{1}{\me} \frac{\aves{B^2}}{I} \ddV \aves{\Pi_\r{e}^\r{res}}
+\nonumber\\[3mm]&&{}
+%
+  - \ddV
+    \left[  \aves{|\nabla V|} v_{\r{e}\zeta} \nee
+            \frac{\aves{R^2}}{\aves{B^2}}\ave{\frac{|\nabla V|^2}{R^2}}\dd{\psi}{V}(1+2\hat{q}^2)
+	    \frac{1}{I} \dd{\psi}{V} BV_{1\r{e}} \right.
+\nonumber\\[3mm]&&{}
+    \left.- \aves{|\nabla V|^2} \chis{e\zeta} \nee
+          \ddV \frac{\aves{R^2}}{\aves{B^2}}\ave{\frac{|\nabla V|^2}{R^2}}\dd{\psi}{V}(1+2\hat{q}^2)
+	  \frac{1}{I} \dd{\psi}{V} BV_{1\r{e}}\right]
+\\[5mm]
+%================%
+% elec. toroidal %
+%================%
+ \ddt \red{\nee \aves{R \uzt{e}}} &=&
+%
+  - (\uV{e} - \ugV) \ddV \red{\nee \aves{R \uzt{e}}}
+%
+  - \dd{\uV{e}}{V} \red{\nee \aves{R \uzt{e}}}
+%
+  - \ddV [\aves{|\nabla V|} v_{\r{e}\zeta} \red{\nee \aves{R \uzt{e}}}]
+\nonumber\\[3mm]&&{}
+  + \ddV \aves{|\nabla V|^2} \chis{e\zeta} \ddV \red{\nee \aves{R \uzt{e}}}
+  - \ddV \aves{|\nabla V|^2} \chis{e\zeta} \aves{R \uzt{e}} \ddV \red{\nee}
+  - \frac{1}{\me} \ddV \aves{\Pi_\r{e}^\r{res}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \hat{\ell}_{11}^\r{ee}                  \red{\nee \aves{R \uzt{e}}}
+  + \hat{\ell}_{11}^\r{ei} \frac{\nee}{\ni} \red{\ni  \aves{R \uzt{i}}}
+  + \hat{\ell}_{11}^\r{ez} \frac{\nee}{\nz} \red{\nz  \aves{R \uzt{z}}}
+  + \hat{\ell}_{11}^\r{eb} \frac{\nee}{\nb} \red{\nb  \aves{R \uzt{b}}}
+%  + \hat{\ell}_{11}^\r{eb} \frac{I}{\aves{B^2}} \frac{\nee}{\nb}
+%  \red{\nb \aves{B \upara{b}}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \hat{\ell}_{12}^\r{ee} \frac{I}{\aves{B^2}} \nee \red{\aves{B \qhatpara{e}}}
+  - \hat{\ell}_{12}^\r{ei} \frac{I}{\aves{B^2}} \nee \red{\aves{B \qhatpara{i}}}
+  - \hat{\ell}_{12}^\r{ez} \frac{I}{\aves{B^2}} \nee \red{\aves{B \qhatpara{z}}}
+\nonumber\\[2.5mm]&&{}
+%
+  - e \frac{\nee}{\me} \red{\psid}
+%
+  - e \frac{1}{\me} \dd{\psi}{V} \red{\nee \uV{e}}
+%
+\nonumber\\[2.5mm]&&{}
+%p
+%%%  turbulent particle flux model
+%
+  - \frac{e^2 \aves{|\nabla V|^2} \De}{\me\Te} \dd{\psi}{V} 
+%
+    \left[  \dd{\psi}{V} \frac{\aves{B^2}}{\bri} \red{\nee \aves{R \uzt{e}}}
+%
+          - \dd{\psi}{V} \frac{I}{\bri} \nee \red{\aves{B \upara{e}}} \right.
+\nonumber\\[2.5mm]&&{}
+%
+    \left.+ \frac{C_\r{T}-1}{e} \left( \ddV \red{\nee \Te} - \Te \ddV \red{\nee} \right)
+%
+	  + \nee \ddV \red{\Phi}
+%
+	  + \frac{\Te}{e} \dd{\psi}{V} C_\r{p} \red{\nee} \right]
+%%%
+  - \nuL  \red{\nee \aves{R \uzt{e}}}
+%
+  - \nun{e} \red{\nee \aves{R \uzt{e}}}
+\\[5mm]
+%===========%
+% \nee \Te  %
+%===========%
+ \frac{3}{2} \ddt \red{\nee \Te} &=& 
+%
+  - \frac{5}{2} ( \uV{e} - \ugV ) \ddV \red{\nee \Te}
+%
+  - \frac{5}{2} \dd{\uV{e}}{V} \red{\nee \Te}
+%
+  - \ddV [V_\r{e}^\r{hp} \aves{|\nabla V|}   \red{\nee \Te}]
+\nonumber\\[2.5mm]&&{}
+%
+  + \ddV \chis{e} \aves{|\nabla V|^2}\ddV \red{\nee \Te}
+  - \ddV \chis{e} \aves{|\nabla V|^2}\Te \ddV \red{\nee}
+\nonumber\\[2.5mm]&&{}
+%
+  - \ugV   \ddV \red{\nee \Te}
+  - \uV{i} \ddV \red{\ni  \Ti}
+  - \uV{z} \ddV \red{\nz  \Tz}
+%
+  - \uhatth{i} \aves{\vec{B}\cdot\nabla\cdot\tensor{\pi}_\r{i}}
+  - \uhatth{z} \aves{\vec{B}\cdot\nabla\cdot\tensor{\pi}_\r{z}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \frac{3}{2} \nu_\r{Tei} \left(\red{\nee \Te} - \frac{\nee}{\ni} \red{\ni \Ti}\right)
+  - \frac{3}{2} \nu_\r{Tez} \left(\red{\nee \Te} - \frac{\nee}{\nz} \red{\nz \Tz}\right)
+\nonumber\\[2.5mm]&&{}
+%
+%  - \dd{V}{\psi} \ddV ( \red{\nee \Te} + \red{\ni \Ti} ) \psit
+%
+%  - \frac{1}{\mu_0} \dd{V}{\psi} \dd{I}{V} I \aves{R^{-2}}
+%
+%    \left( - \frac{\red{\psitd}}{q} + \red{\psid} \right)
+  - 4\pi^2 \dd{\psi}{V} \dot{\psi}_t 
+  (-    e \nee \uhatth{e} + \Zi e \ni  \uhatth{i} + \Zz e \nz  \uhatth{z})
+%  - \frac{1}{\aves{B^2}}\dot{\psi}_t (-e \nee \red{\aves{Bu_{\r{e}\para}}} +
+%  Z_\r{i} e \ni \red{\aves{Bu_{\r{i}\para}}})
+%
+%  +\frac{1}{\aves{B^2}}\dot{\psi}_t (-e \nee BV_{1\r{e}} + Z_\r{i} e \ni
+%  BV_{1\r{i}})
+\nonumber\\[2.5mm]&&{}
+%
+  +\dot{\psi}\left(-     e \red{\nee \ave{\frac{\uzt{e}}{R}}}
+	           + \Zi e \red{\ni  \ave{\frac{\uzt{i}}{R}}}
+	           + \Zz e \red{\nz  \ave{\frac{\uzt{z}}{R}}}\right)
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL (\red{\nee\Te} - \ndiv{e}\Te)
+%
+  - \frac{3}{2} \nuLT{e} (\red{\nee\Te} - \nee\Tdiv{e})
+%
+  - \EH \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, (\red{\nna} + \red{\nnb} + \red{\nnc})
+\nonumber\\[2.5mm]&&{}
+%
+  + \fei \Pb
+%
+%  + \mb \frac{1}{\nb} \frac{\Pb}{\Eb} \frac{\aves{B \upara{e}}}{\aves{B^2}} \red{\nb \aves{B \upara{b}}}
+%
+  + \Palp{e}
+%
+  + \PRF{e}
+%
+  - \PBr
+\\[5mm]
+%=====================%
+% 2<B \qepara>/(5 pe) %
+%=====================%
+ \frac{5}{2} \nee \ddt \red{\aves{B \qhatpara{e}}} &=&
+%
+  - \frac{1}{\me} \hat{\mu}_2^\r{e} \red{\aves{B \upara{e}}}
+  - \frac{1}{\me} \hat{\mu}_3^\r{e} \red{\aves{B \qhatpara{e}}}
+%
+%  + \frac{1}{\me} \hat{\mu}_2^\r{e} {B V_{1\r{e}}} 
+  + \frac{1}{e\me} \hat{\mu}_2^\r{e} I \dd{V}{\psi} \frac{1}{\nee} \ddV
+  \red{\nee \Te}
+  - \frac{1}{\me} \hat{\mu}_2^\r{e} I \dd{V}{\psi} \ddV \red{\Phi}
+\nonumber\\[3mm]&&{}
+%
+%  + \frac{1}{\me} \hat{\mu}_3^\r{e} {B V_{2\r{e}}}
+  + \frac{1}{e\me} \hat{\mu}_3^\r{e} I \dd{V}{\psi} \frac{1}{\nee} \ddV
+  \red{\nee \Te}
+  - \frac{1}{e\me} \hat{\mu}_3^\r{e} I \dd{V}{\psi} \frac{\Te}{\nee} \ddV
+  \red{\nee}
+\nonumber\\[3mm]&&{}
+%
+  - \hat{\ell}_{21}^{\r{ee}} \nee \red{\aves{B \upara{e}}}
+  - \hat{\ell}_{21}^{\r{ei}} \nee \red{\aves{B \upara{i}}}
+  - \hat{\ell}_{21}^{\r{ez}} \nee \red{\aves{B \upara{z}}}
+  - \hat{\ell}_{21}^{\r{eb}} \frac{\nee}{\nb} \red{\nb \aves{B \upara{b}}}
+\nonumber\\[3mm]&&{}
+%
+  + \hat{\ell}_{22}^{\r{ee}} \nee \red{\aves{B \qhatpara{e}}}
+  + \hat{\ell}_{22}^{\r{ei}} \nee \red{\aves{B \qhatpara{i}}}
+  + \hat{\ell}_{22}^{\r{ez}} \nee \red{\aves{B \qhatpara{z}}}
+\nonumber\\[3mm]&&{}
+%
+  - \nuL \nee \red{\aves{B \qhatpara{e}}}
+%
+  - \nun{e} \nee \red{\aves{B \qhatpara{e}}}
+\\[5mm]
+%=======================%
+% <uezt/R> and <R uezt> %
+%=======================%
+    \red{\nee \ave{\frac{\uzt{e}}{R}}} &=&
+%
+    \frac{1}{\aves{R^2}} \red{\nee \aves{R\uzt{e}}}
+%
+  - \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{\aves{R^2}}\red{\nee\aves{R\uzt{e}}}
+%
+  + \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{I}\nee \red{\aves{B\upara{e}}}
+\end{eqnarray}
+%
+
+\clearpage
+
+%
+\begin{eqnarray}
+%======%
+% \ni  %
+%======%
+  \ddt \ni &=&
+%
+  - \ddV \red{\ni\uV{i}}
+%
+  + \ugV \ddV \red{\ni}
+%
+  + \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, (\red{\nna} +
+  \red{\nnb} + \red{\nnc})
+%
+  - \nuL (\red{\ni} - \ndiv{i}) 
+\nonumber\\[2.5mm]&&{}
+%
+  + \nub \red{\nb}
+%
+  + \nub g \red{\nbrp}
+%
+  - \fCX \frac{\Pb}{\Eb}
+%
+  + \nubL \red{\nb}
+%
+  + S_\r{LC}
+%
+  - \nuOL \red{\ni}
+%
+\\[5mm]
+%=========%
+% radial  %
+%=========%
+  0 &=&
+%
+  -           \left( \bri \right) \frac{1}{\mi} \ddV \red{\ni \Ti}
+%
+  - \Zi \frac{e}{\mi} \ni \left( \bri \right) \ddV \red{\Phi}
+\nonumber\\[3mm]&&{}
+%
+  + \Zi \frac{e}{\mi} \dd{\psi}{V} I \ni \red{\aves{B\upara{i}}}
+%
+  - \Zi \frac{e}{\mi} \dd{\psi}{V} \aves{B^2} \red{\ni \aves{R\uzt{i}}}
+\\[5mm]
+%===============%
+% <B \upara{i}> %
+%===============%
+  \ni \ddt \red{\aves{B \upara{i}}} &=&
+%
+  - \frac{1}{\mi} \hat{\mu}_1^\r{i} \red{\aves{B \upara{i}}}
+  - \frac{1}{\mi} \hat{\mu}_2^\r{i} \red{\aves{B \qhatpara{i}}}
+%
+%  + \frac{1}{\mi} \hat{\mu}_1^\r{i} {B V_{1\r{i}}} 
+  - \frac{1}{\Zi e\mi} \hat{\mu}_1^\r{i} I \dd{V}{\psi} \frac{1}{\ni}
+  \ddV \red{\ni\Ti}
+  - \frac{1}{\mi} \hat{\mu}_1^\r{i} I \dd{V}{\psi} \ddV \red{\Phi}
+\nonumber\\[3mm]&&{}
+%
+%  + \frac{1}{\mi} \hat{\mu}_2^\r{i} {B V_{2\r{i}}}
+  - \frac{1}{\Zi e\mi} \hat{\mu}_2^\r{i} I \dd{V}{\psi} \frac{1}{\ni}
+  \ddV \red{\ni\Ti}
+  + \frac{1}{\Zi e\mi} \hat{\mu}_2^\r{i} I \dd{V}{\psi} \frac{\Ti}{\ni}
+  \ddV \red{\ni}
+\nonumber\\[3mm]&&{}
+%
+  + \hat{\ell}_{11}^{\r{ie}} \ni \red{\aves{B \upara{e}}}
+  + \hat{\ell}_{11}^{\r{ii}} \ni \red{\aves{B \upara{i}}}
+  + \hat{\ell}_{11}^{\r{iz}} \ni \red{\aves{B \upara{z}}}
+  + \hat{\ell}_{11}^{\r{ib}} \frac{\ni}{\nb} \red{\nb \aves{B \upara{b}}}
+\nonumber\\[3mm]&&{}
+%
+  - \hat{\ell}_{12}^{\r{ie}} \ni \red{\aves{B \qhatpara{e}}}
+  - \hat{\ell}_{12}^{\r{ii}} \ni \red{\aves{B \qhatpara{i}}}
+  - \hat{\ell}_{12}^{\r{iz}} \ni \red{\aves{B \qhatpara{z}}}
+\nonumber\\[3mm]&&{}
+%
+  + \Zi e \frac{\ni}{\mi} I \aves{R^{-2}} \left( - \frac{\red{\psitd}}{q} + \red{\psid} \right)
+%
+%  + \frac{1}{\mi} \aves{B S_{\r{m}\para}^\r{i}}
+%
+%  + \frac{1}{\mi} \aves{B S_\r{LC\para}}
+\nonumber\\[3mm]&&{}
+%
+  - \nuL  \ni \red{\aves{B \upara{i}}}
+%
+  + \nub  \frac{\mb}{\mi} \red{\nb \aves{B \upara{b}}}
+%
+  - \nun{i} \ni \red{\aves{B \upara{i}}}
+%
+  - \nuCX \ni \red{\aves{B \upara{i}}}
+%
+  - \nuOL \ni \red{\aves{B \upara{i}}}
+\nonumber\\[3mm]&&{}
+%
+  - \ddV \aves{|\nabla \rho|} v_{\r{i}\zeta} \ni \red{\aves{B \upara{i}}}
+%
+  + \aves{|\nabla V|} v_{\r{i}\zeta} \ni 
+  \biggl(\ddV \frac{\aves{B^2}}{I} \biggl) \frac{I}{\aves{B^2}} \red{\aves{B \upara{i}}}
+\nonumber\\[3mm]&&{}
+%
+  + \ddV \aves{|\nabla V|^2} \chis{i\zeta} \ni
+  \frac{\aves{B^2}}{I} \ddV \frac{I}{\aves{B^2}} \red{\aves{B \upara{i}}}
+\nonumber\\[3mm]&&{}
+%
+  - \aves{|\nabla V|^2} \chis{i\zeta} \ni \biggl( \ddV
+  \frac{\aves{B^2}}{I} \biggr) \ddV \frac{I}{\aves{B^2}} \red{\aves{B \upara{i}}}
+%
+  - \frac{1}{\mi} \frac{\aves{B^2}}{I} \ddV \aves{\Pi_\r{i}^\r{res}}
+\nonumber\\[3mm]&&{}
+%
+  - \ddV
+    \left[  \aves{|\nabla V|} v_{\r{i}\zeta} \ni
+            \frac{\aves{R^2}}{\aves{B^2}}\ave{\frac{|\nabla V|^2}{R^2}}\dd{\psi}{V}(1+2\hat{q}^2)
+	    \frac{1}{I} \dd{\psi}{V} BV_{1\r{i}} \right.
+\nonumber\\[3mm]&&{}
+    \left.- \aves{|\nabla V|^2} \chis{i\zeta} \ni
+          \ddV \frac{\aves{R^2}}{\aves{B^2}}\ave{\frac{|\nabla V|^2}{R^2}}\dd{\psi}{V}(1+2\hat{q}^2)
+	  \frac{1}{I} \dd{\psi}{V} BV_{1\r{i}}\right]
+\\[5mm]
+%==============%
+% ion toroidal %
+%==============%
+  \ddt \red{\ni \aves{R \uzt{i}}} &=&
+%
+  - (\uV{i} - \ugV) \ddV \red{\ni \aves{R \uzt{i}}}
+%
+  - \dd{\uV{i}}{V} \red{\ni \aves{R \uzt{i}}}
+%
+  - \ddV \aves{|\nabla V|} v_{\r{i}\zeta} \red{\ni \aves{R \uzt{i}}}
+\nonumber\\[3mm]&&{}
+  + \ddV \aves{|\nabla V|^2} \chis{i\zeta} \ddV \red{\ni \aves{R \uzt{i}}}
+  - \ddV \aves{|\nabla V|^2} \chis{i\zeta} \aves{R \uzt{i}}\ddV \red{\ni} 
+  - \frac{1}{\mi} \ddV \aves{\Pi_\r{i}^\r{res}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \hat{\ell}_{11}^\r{ie} \frac{\ni}{\nee} \red{\nee \aves{R \uzt{e}}}
+  + \hat{\ell}_{11}^\r{ii}                  \red{\ni  \aves{R \uzt{i}}}
+  + \hat{\ell}_{11}^\r{iz} \frac{\ni}{\nz}  \red{\nz  \aves{R \uzt{z}}}
+  + \hat{\ell}_{11}^\r{ib} \frac{\ni}{\nb}  \red{\nb  \aves{R \uzt{b}}}
+%  + \hat{\ell}_{11}^\r{ib} \frac{I}{\aves{B^2}} \frac{\ni}{\nb} \red{\nb
+%  \aves{B \upara{b}}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \hat{\ell}_{12}^\r{ie} \frac{I}{\aves{B^2}} \ni \red{\aves{B \qhatpara{e}}}
+  - \hat{\ell}_{12}^\r{ii} \frac{I}{\aves{B^2}} \ni \red{\aves{B \qhatpara{i}}}
+  - \hat{\ell}_{12}^\r{iz} \frac{I}{\aves{B^2}} \ni \red{\aves{B \qhatpara{z}}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \Zi \frac{e}{\mi}              \ni \red{\dot{\psi}}
+%
+  + \Zi \frac{e}{\mi} \dd{\psi}{V} \red{\ni \uV{i}}
+%
+\nonumber\\[2.5mm]&&{}
+%
+%  turbulent particle flux model
+%
+  + \Zi \frac{e^2 \aves{|\nabla V|^2} \De}{\mi\Te} \dd{\psi}{V} 
+%
+    \left[  \dd{\psi}{V} \frac{\aves{B^2}}{\bri} \frac{\ni+\nb}{\nee}
+            \red{\nee \aves{R \uzt{e}}}
+          - \dd{\psi}{V} \frac{I}{\bri} (\ni+\nb) \red{\aves{B \upara{e}}} \right.
+\nonumber\\[2.5mm]&&{}
+%
+    \left.+ \frac{C_\r{T}-1}{e} \frac{\ni+\nb}{\nee}
+     \left(\ddV \red{\nee \Te} - \Te \ddV \red{\nee} \right)
+	  + (\ni+\nb) \ddV \red{\Phi}
+	  + \frac{\Te}{e} \dd{\psi}{V} C_\r{p} \red{\ni}
+	  + \frac{\Te}{e} \dd{\psi}{V} C_\r{p} \red{\nb} \right]
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL  \red{\ni \aves{R \uzt{i}}}
+%
+  + \nub  \frac{\mb}{\mi} \red{\nb \aves{B \uzt{b}}}
+%  + \nub  \frac{\mb}{\mi} \frac{I}{\aves{B^2}} \red{\nb \aves{B \upara{b}}}
+%
+  - \nun{i} \red{\ni \aves{R \uzt{i}}}
+%
+  - \nuCX \red{\ni \aves{R \uzt{i}}}
+%
+  - \nuOL \red{\ni \aves{R \uzt{i}}}
+\\[5mm]
+%==========%
+% \ni \Ti  %
+%==========%
+  \frac{3}{2} \ddt \red{\ni \Ti}  &=& 
+%
+  - \frac{5}{2} ( \uV{i} - \ugV ) \ddV \red{\ni \Ti}
+%
+  - \frac{5}{2} \dd{\uV{i}}{V} \red{\ni \Ti}
+%
+  - \ddV V_\r{i}^\r{hp} \aves{|\nabla V|} \red{\ni \Ti}
+\nonumber\\[2.5mm]&&{}
+  + \ddV \chis{i} \aves{|\nabla V|^2} \ddV \red{\ni \Ti}
+  - \ddV \chis{i} \aves{|\nabla V|^2} \Ti \ddV \red{\ni}
+\nonumber\\[2.5mm]&&{}
+%
+  + ( \uV{i} - \ugV ) \ddV \red{\ni \Ti}
+%
+  + \uhatth{i} \aves{\vec{B}\cdot\nabla\cdot\tensor{\pi}_\r{i}}
+%
+  - \frac{3}{2} \nu_\r{Tei} \left(\frac{\nee}{\ni} \red{\ni \Ti} - \red{\nee \Te} \right)
+  - \frac{3}{2} \nu_\r{Tiz} \left(\red{\ni \Ti} - \frac{\ni}{\nz}\red{\nz  \Tz} \right)
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL \left(\red{\ni \Ti}  - \ndiv{i} \Ti \right)
+%
+  - \frac{3}{2} \nuLT{i} (\red{\ni \Ti} - \ni \Tdiv{i})
+%
+\nonumber\\[2.5mm]&&{}
+  + \frac{3}{2} \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, (\red{\nna} \Tna +
+  \red{\nnb} \Tnb + \red{\nnc} \Tnc)
+\nonumber\\[2.5mm]&&{}
+%
+  - \frac{3}{2} \nuCX (\red{\ni \Ti} - \red{\ni} \Tna)
+%
+  + (1 - \fei) \Pb
+%
+  + \mb \frac{1}{\nb} \frac{\Pb}{\Eb} \frac{\aves{B
+  \upara{i}}}{\aves{B^2}} \red{\nb \aves{B \upara{b}}}
+%
+  + \Palp{i}
+%
+  + \PRF{i}
+\\[5mm]
+%=====================%
+% 2<B \qipara>/(5 pi) %
+%=====================%
+ \frac{5}{2} \ni \ddt \red{\aves{B \qhatpara{i}}} &=&
+%
+  - \frac{1}{\mi} \hat{\mu}_2^\r{i} \red{\aves{B \upara{i}}}
+  - \frac{1}{\mi} \hat{\mu}_3^\r{i} \red{\aves{B \qhatpara{i}}}
+%
+%  + \frac{1}{\mi} \hat{\mu}_2^\r{i} {B V_{1\r{i}}} 
+  - \frac{1}{\Zi e\mi} \hat{\mu}_2^\r{i} I \dd{V}{\psi} \frac{1}{\ni}
+  \ddV \red{\ni\Ti}
+  - \frac{1}{\mi} \hat{\mu}_2^\r{i} I \dd{V}{\psi} \ddV \red{\Phi}
+\nonumber\\[3mm]&&{}
+%
+%  + \frac{1}{\mi} \hat{\mu}_3^\r{i} {B V_{2\r{i}}}
+  - \frac{1}{\Zi e\mi} \hat{\mu}_3^\r{i} I \dd{V}{\psi} \frac{1}{\ni}
+  \ddV \red{\ni\Ti}
+  + \frac{1}{\Zi e\mi} \hat{\mu}_3^\r{i} I \dd{V}{\psi} \frac{\Ti}{\ni}
+  \ddV \red{\ni}
+\nonumber\\[3mm]&&{}
+%
+  - \hat{\ell}_{21}^{\r{ie}} \ni \red{\aves{B \upara{e}}} 
+  - \hat{\ell}_{21}^{\r{ii}} \ni \red{\aves{B \upara{i}}} 
+  - \hat{\ell}_{21}^{\r{iz}} \ni \red{\aves{B \upara{z}}} 
+  - \hat{\ell}_{21}^{\r{ib}} \frac{\ni}{\nb} \red{\nb \aves{B \upara{b}}} 
+\nonumber\\[3mm]&&{}
+%
+  + \hat{\ell}_{22}^{\r{ie}} \ni \red{\aves{B \qhatpara{e}}} 
+  + \hat{\ell}_{22}^{\r{ii}} \ni \red{\aves{B \qhatpara{i}}} 
+  + \hat{\ell}_{22}^{\r{iz}} \ni \red{\aves{B \qhatpara{z}}} 
+\nonumber\\[3mm]&&{}
+%
+  - \nuL \ni \red{\aves{B \qhatpara{i}}}
+%
+  - \nun{i} \ni \red{\aves{B \qhatpara{i}}}
+\\[5mm]
+%=======================%
+% <uizt/R> and <R uizt> %
+%=======================%
+    \red{\ni \ave{\frac{\uzt{i}}{R}}} &=&
+%
+    \frac{1}{\aves{R^2}} \red{\ni \aves{R\uzt{i}}}
+%
+  - \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{\aves{R^2}}\red{\ni\aves{R\uzt{i}}}
+%
+  + \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{I}\ni \red{\aves{B\upara{i}}}
+\end{eqnarray}
+%
+
+\clearpage
+
+%
+\begin{eqnarray}
+%======%
+% \nz  %
+%======%
+  \ddt \nz &=&
+%
+  - \ddV \red{\nz\uV{z}}
+%
+  + \ugV \ddV \red{\nz}
+%
+  - \nuL (\red{\nz} - \ndiv{i}) 
+%
+  + S_\r{LC}
+%
+  - \nuOL \red{\nz}
+%
+\\[5mm]
+%=========%
+% radial  %
+%=========%
+  0 &=&
+%
+  -           \left( \bri \right) \frac{1}{\mz} \ddV \red{\nz \Tz}
+%
+  - \Zz \frac{e}{\mz} \nz \left( \bri \right) \ddV \red{\Phi}
+\nonumber\\[3mm]&&{}
+%
+  + \Zz \frac{e}{\mz} \dd{\psi}{V} I \nz \red{\aves{B\upara{z}}}
+%
+  - \Zz \frac{e}{\mz} \dd{\psi}{V} \aves{B^2} \red{\nz \aves{R\uzt{z}}}
+\\[5mm]
+%===============%
+% <B \upara{z}> %
+%===============%
+  \ni \ddt \red{\aves{B \upara{z}}} &=&
+%
+  - \frac{1}{\mi} \hat{\mu}_1^\r{z} \red{\aves{B \upara{z}}}
+  - \frac{1}{\mi} \hat{\mu}_2^\r{z} \red{\aves{B \qhatpara{z}}}
+%
+%  + \frac{1}{\mz} \hat{\mu}_1^\r{i} {B V_{1\r{z}}} 
+  - \frac{1}{\Zz e\mz} \hat{\mu}_1^\r{z} I \dd{V}{\psi} \frac{1}{\nz}
+  \ddV \red{\nz\Tz}
+  - \frac{1}{\mz} \hat{\mu}_1^\r{z} I \dd{V}{\psi} \ddV \red{\Phi}
+\nonumber\\[3mm]&&{}
+%
+%  + \frac{1}{\mz} \hat{\mu}_2^\r{z} {B V_{2\r{z}}}
+  - \frac{1}{\Zz e\mz} \hat{\mu}_2^\r{z} I \dd{V}{\psi} \frac{1}{\nz}
+  \ddV \red{\nz\Tz}
+  + \frac{1}{\Zz e\mz} \hat{\mu}_2^\r{z} I \dd{V}{\psi} \frac{\Tz}{\nz}
+  \ddV \red{\nz}
+\nonumber\\[3mm]&&{}
+%
+  + \hat{\ell}_{11}^{\r{ze}} \nz \red{\aves{B \upara{e}}}
+  + \hat{\ell}_{11}^{\r{zi}} \nz \red{\aves{B \upara{i}}}
+  + \hat{\ell}_{11}^{\r{zz}} \nz \red{\aves{B \upara{z}}}
+  + \hat{\ell}_{11}^{\r{zb}} \frac{\nz}{\nb} \red{\nb \aves{B \upara{b}}}
+\nonumber\\[3mm]&&{}
+%
+  - \hat{\ell}_{12}^{\r{ze}} \nz \red{\aves{B \qhatpara{e}}}
+  - \hat{\ell}_{12}^{\r{zi}} \nz \red{\aves{B \qhatpara{i}}}
+  - \hat{\ell}_{12}^{\r{zz}} \nz \red{\aves{B \qhatpara{z}}}
+\nonumber\\[3mm]&&{}
+%
+  + \Zz e \frac{\nz}{\mz} I \aves{R^{-2}} \left( - \frac{\red{\psitd}}{q} + \red{\psid} \right)
+%
+%  + \frac{1}{\mz} \aves{B S_{\r{m}\para}^\r{z}}
+%
+%  + \frac{1}{\mz} \aves{B S_\r{LC\para}}
+\nonumber\\[3mm]&&{}
+%
+  - \nuL  \nz \red{\aves{B \upara{z}}}
+%
+  - \nun{z} \nz \red{\aves{B \upara{z}}}
+%
+  - \nuOL \nz \red{\aves{B \upara{z}}}
+\nonumber\\[3mm]&&{}
+%
+  - \ddV \aves{|\nabla \rho|} v_{\r{z}\zeta} \nz \red{\aves{B \upara{z}}}
+%
+  + \aves{|\nabla V|} v_{\r{z}\zeta} \nz 
+  \biggl(\ddV \frac{\aves{B^2}}{I} \biggl) \frac{I}{\aves{B^2}} \red{\aves{B \upara{z}}}
+\nonumber\\[3mm]&&{}
+%
+  + \ddV \aves{|\nabla V|^2} \chis{z\zeta} \nz
+  \frac{\aves{B^2}}{I} \ddV \frac{I}{\aves{B^2}} \red{\aves{B \upara{z}}}
+\nonumber\\[3mm]&&{}
+%
+  - \aves{|\nabla V|^2} \chis{z\zeta} \nz \biggl( \ddV
+  \frac{\aves{B^2}}{I} \biggr) \ddV \frac{I}{\aves{B^2}} \red{\aves{B \upara{z}}}
+%
+  - \frac{1}{\mz} \frac{\aves{B^2}}{I} \ddV \aves{\Pi_\r{z}^\r{res}}
+\nonumber\\[3mm]&&{}
+%
+  - \ddV
+    \left[  \aves{|\nabla V|} v_{\r{z}\zeta} \nz
+            \frac{\aves{R^2}}{\aves{B^2}}\ave{\frac{|\nabla V|^2}{R^2}}\dd{\psi}{V}(1+2\hat{q}^2)
+	    \frac{1}{I} \dd{\psi}{V} BV_{1\r{z}} \right.
+\nonumber\\[3mm]&&{}
+    \left.- \aves{|\nabla V|^2} \chis{z\zeta} \nz
+          \ddV \frac{\aves{R^2}}{\aves{B^2}}\ave{\frac{|\nabla V|^2}{R^2}}\dd{\psi}{V}(1+2\hat{q}^2)
+	  \frac{1}{I} \dd{\psi}{V} BV_{1\r{z}}\right]
+\\[5mm]
+%==============%
+% imp toroidal %
+%==============%
+  \ddt \red{\nz \aves{R \uzt{z}}} &=&
+%
+  - (\uV{z} - \ugV) \ddV \red{\nz \aves{R \uzt{z}}}
+%
+  - \dd{\uV{z}}{V} \red{\nz \aves{R \uzt{z}}}
+%
+  - \ddV \aves{|\nabla V|} v_{\r{z}\zeta} \red{\nz \aves{R \uzt{z}}}
+\nonumber\\[3mm]&&{}
+  + \ddV \aves{|\nabla V|^2} \chis{z\zeta} \ddV \red{\nz \aves{R \uzt{z}}}
+  - \ddV \aves{|\nabla V|^2} \chis{z\zeta} \aves{R \uzt{z}}\ddV \red{\nz} 
+  - \frac{1}{\mz} \ddV \aves{\Pi_\r{z}^\r{res}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \hat{\ell}_{11}^\r{ze} \frac{\nz}{\nee} \red{\nee \aves{R \uzt{e}}}
+  + \hat{\ell}_{11}^\r{zi} \frac{\nz}{\ni}  \red{\ni  \aves{R \uzt{i}}}
+  + \hat{\ell}_{11}^\r{zz}                  \red{\nz  \aves{R \uzt{z}}}
+  + \hat{\ell}_{11}^\r{zb} \frac{\nz}{\nb}  \red{\nb  \aves{R \uzt{b}}}
+%  + \hat{\ell}_{11}^\r{zb} \frac{I}{\aves{B^2}} \frac{\nz}{\nb} \red{\nb
+%  \aves{B \upara{b}}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \hat{\ell}_{12}^\r{ze} \frac{I}{\aves{B^2}} \nz \red{\aves{B \qhatpara{e}}}
+  - \hat{\ell}_{12}^\r{zi} \frac{I}{\aves{B^2}} \nz \red{\aves{B \qhatpara{i}}}
+  - \hat{\ell}_{12}^\r{zz} \frac{I}{\aves{B^2}} \nz \red{\aves{B \qhatpara{z}}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \Zz \frac{e}{\mz}              \nz \red{\dot{\psi}}
+%
+  + \Zz \frac{e}{\mz} \dd{\psi}{V} \red{\nz \uV{z}}
+%
+\nonumber\\[2.5mm]&&{}
+%
+%  turbulent particle flux model
+%
+  + \Zz \frac{e \aves{|\nabla V|^2} \De}{\mz\Te} \dd{\psi}{V} 
+%
+    \left[  (1-C_\r{T})\Te \frac{\nz}{\nee} \ddV \red{\nee}
+           + C_\r{T} \frac{\nz}{\nee} \ddV \red{\nee\Te}
+	  + e \frac{\Te}{e} \dd{\psi}{V} C_\r{p} \red{\nz} \right]
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL  \red{\nz \aves{R \uzt{z}}}
+%
+  - \nun{z} \red{\nz \aves{R \uzt{z}}}
+%
+  - \nuOL \red{\nz \aves{R \uzt{z}}}
+\\[5mm]
+%==========%
+% \nz \Tz  %
+%==========%
+  \frac{3}{2} \ddt \red{\nz \Tz}  &=& 
+%
+  - \frac{5}{2} ( \uV{z} - \ugV ) \ddV \red{\nz \Tz}
+%
+  - \frac{5}{2} \dd{\uV{z}}{V} \red{\nz \Tz}
+%
+  - \ddV V_\r{z}^\r{hp} \aves{|\nabla V|} \red{\nz \Tz}
+\nonumber\\[2.5mm]&&{}
+  + \ddV \chis{z} \aves{|\nabla V|^2} \ddV \red{\nz \Tz}
+  - \ddV \chis{z} \aves{|\nabla V|^2} \Tz \ddV \red{\nz}
+\nonumber\\[2.5mm]&&{}
+%
+  + ( \uV{z} - \ugV ) \ddV \red{\nz \Tz}
+%
+  + \uhatth{z} \aves{\vec{B}\cdot\nabla\cdot\tensor{\pi}_\r{z}}
+%
+  - \frac{3}{2} \nu_\r{Tez} \left(\frac{\nee}{\nz} \red{\nz \Tz} - \red{\nee \Te} \right)
+  - \frac{3}{2} \nu_\r{Tiz} \left(\frac{\ni }{\nz} \red{\nz \Tz} - \red{\ni  \Ti} \right)
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL \left(\red{\nz \Tz}  - \ndiv{z} \Tz \right)
+%
+  - \frac{3}{2} \nuLT{z} (\red{\nz \Tz} - \nz \Tdiv{z})
+%
+  + \Palp{z}
+%
+  + \PRF{z}
+\\[5mm]
+%=====================%
+% 2<B \qzpara>/(5 pz) %
+%=====================%
+ \frac{5}{2} \nz \ddt \red{\aves{B \qhatpara{z}}} &=&
+%
+  - \frac{1}{\mz} \hat{\mu}_2^\r{z} \red{\aves{B \upara{z}}}
+  - \frac{1}{\mz} \hat{\mu}_3^\r{z} \red{\aves{B \qhatpara{z}}}
+%
+%  + \frac{1}{\mz} \hat{\mu}_2^\r{z} {B V_{1\r{z}}} 
+  - \frac{1}{\Zz e\mz} \hat{\mu}_2^\r{z} I \dd{V}{\psi} \frac{1}{\nz}
+  \ddV \red{\nz\Tz}
+  - \frac{1}{\mz} \hat{\mu}_2^\r{z} I \dd{V}{\psi} \ddV \red{\Phi}
+\nonumber\\[3mm]&&{}
+%
+%  + \frac{1}{\mz} \hat{\mu}_3^\r{z} {B V_{2\r{z}}}
+  - \frac{1}{\Zz e\mz} \hat{\mu}_3^\r{z} I \dd{V}{\psi} \frac{1}{\nz}
+  \ddV \red{\nz\Tz}
+  + \frac{1}{\Zz e\mz} \hat{\mu}_3^\r{z} I \dd{V}{\psi} \frac{\Tz}{\nz}
+  \ddV \red{\nz}
+\nonumber\\[3mm]&&{}
+%
+  - \hat{\ell}_{21}^{\r{ze}} \nz \red{\aves{B \upara{e}}} 
+  - \hat{\ell}_{21}^{\r{zi}} \nz \red{\aves{B \upara{i}}} 
+  - \hat{\ell}_{21}^{\r{zz}} \nz \red{\aves{B \upara{z}}} 
+  - \hat{\ell}_{21}^{\r{zb}} \frac{\nz}{\nb} \red{\nb \aves{B \upara{b}}} 
+\nonumber\\[3mm]&&{}
+%
+  + \hat{\ell}_{22}^{\r{ze}} \nz \red{\aves{B \qhatpara{e}}} 
+  + \hat{\ell}_{22}^{\r{zi}} \nz \red{\aves{B \qhatpara{i}}} 
+  + \hat{\ell}_{22}^{\r{zz}} \nz \red{\aves{B \qhatpara{z}}} 
+\nonumber\\[3mm]&&{}
+%
+  - \nuL \nz \red{\aves{B \qhatpara{z}}}
+%
+  - \nun{z} \nz \red{\aves{B \qhatpara{z}}}
+\\[5mm]
+%=======================%
+% <uzzt/R> and <R uzzt> %
+%=======================%
+    \red{\nz \ave{\frac{\uzt{z}}{R}}} &=&
+%
+    \frac{1}{\aves{R^2}} \red{\nz \aves{R\uzt{z}}}
+%
+  - \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{\aves{R^2}}\red{\nz\aves{R\uzt{z}}}
+%
+  + \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{I}\nz \red{\aves{B\upara{z}}}
+\end{eqnarray}
+%
+
+%
+\begin{eqnarray}
+%======%
+% \nb  %
+%======%
+  \ddt \red{\nb} &=&
+%
+  - \ddV \red{\nb\uV{b}}
+%
+  + \ugV \ddV \red{\nb}
+%
+  +  \frac{\Pb}{\Eb}
+%
+  - g \frac{\Pbperp}{\Eb}
+%
+  - \nub \red{\nb}
+%
+  - \nubL \red{\nb}
+%
+  - \nueff g (\sqrt{\delta} \red{\nb} - \red{\nbrp})
+%
+\nonumber\\[2.5mm]&&{}
+  + \ddV \aves{|\nabla V|^2} f_t \Db \ddV \red{\nb}
+%
+\\[5mm]
+%=========%
+% radial  %
+%=========%
+  0 &=&
+%
+  -           \left( \bri \right) \frac{1}{\mb} \Tb \ddV \red{\nb}
+  -           \left( \bri \right) \frac{1}{\mb} \dd{\Tb}{V} \red{\nb}
+\nonumber\\[3mm]&&{}
+%
+  - \Zb \frac{e}{\mb} \nb \left( \bri \right) \ddV \red{\Phi}
+%
+  + \Zb \frac{e}{\mb} \dd{\psi}{V} I \red{\nb \aves{B\upara{b}}}
+%
+  - \Zb \frac{e}{\mb} \dd{\psi}{V} \aves{B^2} \red{\nb \aves{R\uzt{b}}}
+\\[5mm]
+%===============%
+% \nb \upara{b} %
+%===============%
+  \ddt \red{\nb \aves{B \upara{b}}} &=&
+%
+  - \frac{1}{\mb \nb} \hat{\mu}_1^\r{b} \red{\nb \aves{B \upara{b}}}
+%
+%  + \frac{1}{\mb} \hat{\mu}_1^\r{b} {B V_{1\r{b}}}
+  - \frac{1}{\Zb e\mb} \hat{\mu}_1^\r{b} I \dd{V}{\psi} \frac{\Tb}{\nb}
+  \ddV \red{\nb}
+  - \frac{1}{\Zb e\mb} \hat{\mu}_1^\r{b} I \dd{V}{\psi} \dd{\Tb}{V}
+  - \frac{1}{\mb} \hat{\mu}_1^\r{b} I \dd{V}{\psi} \ddV \red{\Phi}
+\nonumber\\[2.5mm]&&{}
+%
+  + \hat{\ell}_{11}^\r{bb} \frac{\me\nee}{\mb\nb} \red{\nb \aves{B \upara{b}}}
+%
+  + \sum_{a\neq\r{b}} \hat{\ell}_{11}^{\r{b}a} \frac{\me\nee}{\mb} \red{\aves{B u_{a\para}}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \Zb \frac{e}{\mb} \nb I \aves{R^{-2}} \left( - \frac{\red{\psitd}}{q} + \red{\psid} \right)
+%
+  - \nubL \red{\nb \aves{B\upara{b}}}
+%
+  - \nub  \red{\nb \aves{B\upara{b}}}
+%
+  - \nun{b} \red{\nb \aves{B\upara{b}}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuCX \red{\nb \aves{B\upara{b}}}
+%
+%  + \vbph \frac{\Pbpara}{\Eb}
+%
+  + \frac{1}{\mb} \aves{B S_{\r{m}\para\r{b}}}
+%
+%\nonumber\\[2.5mm]&&{}
+  - \nueff g \sqrt{\delta} \red{\nb \aves{B\upara{b}}}
+%
+  + \ddV \aves{|\nabla V|^2} \aves{B\upara{b}} f_t \Db \ddV \red{\nb}
+\\[5mm]
+%===============%
+% beam toroidal %
+%===============%
+  \ddt \red{\nb \aves{R \uzt{b}}} &=&
+%
+  \ugV \ddV \red{\nb \aves{R \uzt{b}}}
+%
+  - \ddV \aves{R \uzt{b}} \red{\nb \uV{b}} 
+%
+%  - \ddV [\aves{|\nabla V|} v_{\r{b}\zeta} \red{\nb \aves{R \uzt{b}}}]
+%\nonumber\\[3mm]&&{}
+%  + \ddV \aves{|\nabla V|^2} \chis{b\zeta} \ddV \red{\nb \aves{R \uzt{b}}}
+%  - \ddV \aves{|\nabla V|^2} \chis{b\zeta} \aves{R \uzt{b}}\ddV \red{\nb} 
+%  - \frac{1}{\mb} \ddV \aves{\Pi_\r{b}^\r{res}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \frac{1}{\mb} \ell_{11}^\r{be} \frac{1}{\nee} \red{\nee \aves{R \uzt{e}}}
+  + \frac{1}{\mb} \ell_{11}^\r{bi} \frac{1}{\ni}  \red{\ni  \aves{R \uzt{i}}}
+  + \frac{1}{\mb} \ell_{11}^\r{bz} \frac{1}{\nz}  \red{\nz  \aves{R \uzt{z}}}
+%  + \hat{\ell}_{11}^\r{bb} \red{\ni \aves{R \uzt{b}}}
+  + \frac{1}{\mb} \ell_{11}^\r{bb} \frac{1}{\nb}  \red{\nb  \aves{R \uzt{b}}}
+\nonumber\\[2.5mm]&&{}
+%
+%  - \frac{1}{\mb} \ell_{12}^\r{be} \frac{I}{\aves{B^2}} \red{\aves{B \qhatpara{e}}}
+%  - \frac{1}{\mb} \ell_{12}^\r{bi} \frac{I}{\aves{B^2}} \red{\aves{B \qhatpara{i}}}
+%
+  + \Zb \frac{e}{\mb}              \nb \red{\dot{\psi}}
+%
+  + \Zb \frac{e}{\mb} \dd{\psi}{V} \red{\nb \uV{b}}
+%
+\nonumber\\[2.5mm]&&{}
+%%
+%%  turbulent particle flux model
+%%
+%  + \Zi \frac{e^2 \aves{|\nabla V|^2} \De}{\mi\Te} \dd{\psi}{V} 
+%%
+%    \left[  \dd{\psi}{V} \frac{\aves{B^2}}{\bri} \red{\nee \aves{R \uzt{e}}}
+%          - \dd{\psi}{V} \frac{I}{\bri} \nee \red{\aves{B \upara{e}}} \right.
+%\nonumber\\[2.5mm]&&{}
+%%
+%    \left.+ \frac{C_\r{T}-1}{e} \left(\ddV \red{\nee \Te} - \Te \ddV \red{\nee} \right)
+%	  + \nee \ddV \red{\Phi}
+%	  + \frac{\Te}{e} \dd{\psi}{V} C_\r{p} \red{\nee} \right]
+%\nonumber\\[2.5mm]&&{}
+%
+  - \nubL  \red{\nb \aves{R \uzt{b}}}
+%
+  - \nub  \red{\nb \aves{B \uzt{b}}}
+%
+  - \nun{i} \red{\nb \aves{R \uzt{b}}}
+%
+  - \nuCX \red{\nb \aves{R \uzt{b}}}
+%
+%  - \nuOL \red{\nb \aves{R \uzt{b}}}
+%
+  + \frac{1}{\mb} \frac{I}{\aves{B^2}} \aves{B S_{\r{m}\para\r{b}}}
+%
+\\[5mm]
+%=======================%
+% <ubzt/R> and <R ubzt> %
+%=======================%
+    \red{\nb \ave{\frac{\uzt{b}}{R}}} &=&
+%
+    \frac{1}{\aves{R^2}} \red{\nb \aves{R\uzt{b}}}
+%
+  - \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{\aves{R^2}}\red{\nb\aves{R\uzt{b}}}
+%
+  + \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{I}\red{\nb \aves{B\upara{b}}}
+\\[5mm]
+%=======%
+% \nna  %
+%=======%
+  \ddt \red{\nna} &=& 
+%
+  - \dd{\ugV}{V} \red{\nna}
+%
+  + \ddV \aves{|\nabla V|^2} D_{01} \ddV \red{\nna}
+%
+  - \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, \red{\nna}
+%
+\nonumber\\[2.5mm]&&{}
+  - \nuCX\, \frac{\ni}{\nna + \nnb}\, \red{\nna}
+%
+  + \gamma_0 \nuL (\red{\ni} - \ndiv{i})
+%
+  + \ddV V' \Gamma^\r{puff}\biggr|_\r{b}
+\\[5mm]
+%=======%
+% \nnb  %
+%=======%
+  \ddt \red{\nnb} &=& 
+%
+  - \dd{\ugV}{V} \red{\nnb}
+%
+  + \ddV \aves{|\nabla V|^2} D_{02} \ddV \red{\nnb}
+%
+  - \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, \red{\nnb}
+%
+%\nonumber\\[2.5mm]&&{}
+  + \nuCX\, \frac{\ni}{\nna + \nnb}\, \red{\nna}
+%
+%  + \fCX \frac{\Pb}{\Eb}
+\\[5mm]
+%=======%
+% \nnc  %
+%=======%
+  \ddt \red{\nnc} &=& 
+%
+  - \dd{\ugV}{V} \red{\nnc}
+%
+  + \ddV \aves{|\nabla V|^2} D_{03} \ddV \red{\nnc}
+%
+  - \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, \red{\nnc}
+%
+  + \fCX \frac{\Pb}{\Eb}
+\\[5mm]
+%========%
+% \nbrp  %
+%========%
+  \ddt \red{\nbrp} &=&
+%
+  - \dd{\ugV}{V} \red{\nbrp}
+%
+    \frac{\Pbperp}{\Eb}
+%
+  + \nueff (\sqrt{\delta} \red{\nb} - \red{\nbrp})
+%
+  - \nub \red{\nbrp}
+%
+\nonumber\\[2.5mm]&&{}
+  - \ddV \aves{|\nabla V|} \ubrp \red{\nbrp} 
+  + \ddV \aves{|\nabla V|^2} \Dbrp \ddV \red{\nbrp}
+\end{eqnarray}
+
+\bigskip
+
+\section{Boundary Conditions}
+
+%
+\begin{tabular}{|c|c|c|c|c|c|}\hline
+ num. & name & variable             & \shortstack{highest order\\ derivative} & center & edge \\\hline
+ 1    & LQm1 & $\Phi$               & 2    &  N           & 0\\
+ 2    & LQm2 & $\psitd$             & 2    &  0           & $\aves{|\nabla V|^2/R^2}|_{V_b}I_\r{vac}/(4\pi^2)$\\
+ 3    & LQm3 & $\psid$              & 2    &  N           & $2\pi\mu_0I_\r{p}$\\
+ 4    & LQm4 & $\psi$               & 0    &  $\times$    & $\times$\\
+ 5    & LQm5 & $\psit/\mu_0$        & 0    &  $\times$    & $\times$\\
+ 6    & LQe1 & $\nee$               & 2    &  N           & N\\
+ 7    & LQe2 & $\nee\uV{e}$           & 1    &  0           & $\times$\\
+ 8    & LQe3 & $\aves{B\upara{e}}$    & 2(0) &  N($\times$) & N($\times$)\\
+ 9    & LQe4 & $\nee\aves{R\uzt{e}}$  & 2    &  N           & N\\
+ 10   & LQe5 & $\nee \Te$           & 2    &  N           & N\\
+ 11   & LQe6 & $\aves{B\qhatpara{e}}$ & 0    &  $\times$    & $\times$\\
+ 12   & LQe7 & $\nee\aves{\uzt{e}/R}$ & 0    &  $\times$    & $\times$\\
+ 13   & LQi1 & $\ni$                & 2    &  N           & N\\
+ 14   & LQi2 & $\ni\uV{i}$            & 1    &  0           & $\times$\\
+ 15   & LQi3 & $\aves{B\upara{i}}$    & 2(0) &  N($\times$) & N($\times$)\\
+ 16   & LQi4 & $\ni\aves{R\uzt{i}}$   & 2    &  N           & N\\
+ 17   & LQi5 & $\ni \Ti$            & 2    &  N           & N\\
+ 18   & LQi6 & $\aves{B\qhatpara{i}}$ & 0    &  $\times$    & $\times$\\
+ 19   & LQi7 & $\ni\aves{\uzt{i}/R}$  & 0    &  $\times$    & $\times$\\
+ 20   & LQz1 & $\nz$                & 2    &  N           & N\\
+ 21   & LQz2 & $\nz\uV{z}$            & 1    &  0           & $\times$\\
+ 22   & LQz3 & $\aves{B\upara{z}}$    & 2(0) &  N($\times$) & N($\times$)\\
+ 23   & LQz4 & $\nz\aves{R\uzt{z}}$   & 2    &  N           & N\\
+ 24   & LQz5 & $\nz \Tz$            & 2    &  N           & N\\
+ 25   & LQz6 & $\aves{B\qhatpara{z}}$ & 0    &  $\times$    & $\times$\\
+ 26   & LQz7 & $\nz\aves{\uzt{z}/R}$  & 0    &  $\times$    & $\times$\\
+ 27   & LQb1 & $\nb$                & 0(2) &  $\times$(N) & $\times$(N)\\
+ 28   & LQb2 & $\nb\uV{b}$            & 1    &  0           & $\times$\\
+ 29   & LQb3 & $\nb\aves{B\upara{b}}$ & 0    &  $\times$    & $\times$\\
+ 30   & LQb4 & $\nb\aves{R\uzt{b}}$   & 0    &  $\times$    & $\times$\\
+ 31   & LQb7 & $\nb\aves{\uzt{b}/R}$  & 0    &  $\times$    & $\times$\\
+ 32   & LQn1 & $\nna$               & 2    &  N           & $\aves{|\nabla V|}S_\r{gas}|_b$\\
+ 33   & LQn2 & $\nnb$               & 2    &  N           & 0\\
+ 34   & LQn3 & $\nnc$               & 2    &  N           & 0\\
+ 35   & LQr1 & $\nbrp$              & 0(2) &  $\times$(N) & $\times$(N)\\\hline
+ \multicolumn{5}{l}{0: Dirichlet condition $(u=0)$}\\
+ \multicolumn{5}{l}{N: Neumann condition $(u'=0)$}\\
+ \multicolumn{5}{l}{value: Neumann condition $(u'=\mbox{value})$}\\
+ \multicolumn{5}{l}{$\times$: no condition}
+\end{tabular}
+%
+
+\medskip
+
+NOTE: The dependent variable of LQm4 turns to be $\psi/\mu_0$ when NB is
+applied. Subsequently, the boundary condition of LQm3 is also changed to
+$2\pi I_\r{p}$.
+
+NOTE: In the table the column labeled by the highest order derivative means
+the order of the highest order derivative of a dependent variable, not
+an equation, in the corresponding row.
+Please note that the term not integrated by parts is never counted.
+For example, the first row shows the highest order of derivatives is
+equal to 2 for $\Phi$ because the LQm1 equation
+has the diffusion term having the second derivative of $\Phi$ with
+respect to $V$. In addition, the LQe2 and LQi2 equations also have the
+first derivative of $\Phi$, which is not a dependent variable of these
+equations. As a whole, the highest order derivative of $\Phi$ in this
+equation system is 2 that comes from the LQm1 equation.
+When we look at $\nee$, we find that the highest order derivative of
+$\nee$ is 2 shown in the LQe5 equation, even though no derivative
+appears in the LQe1 equation. The Neumann conditions for $\nee$ come
+from the LQe5 equation.
+When it comes to $\nee\uV{e}$, the highest derivative is found as order 1
+in the LQe1 equation, but this term is not integrated by parts.
+It means that any boundary condition is not naturally imposed on
+$\nee\uV{e}$. The Dirichlet boundary condition should be imposed at axis.
+
+
+
+
+\end{document}

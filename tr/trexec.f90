@@ -708,6 +708,20 @@ CONTAINS
          ENDIF
       ENDIF
 
+!      nr=nrmax
+!      WRITE(6,'(A,I6)') '** NRMAX:',nrmax
+!      DO NV=1,NEQMAX
+!         DO NW=1,NEQMAX
+!            IF(NW.EQ.1) THEN
+!               WRITE(6,'(A,2I6,4ES12.4)') 'NV,NW,A,B,C,X=',NV,NW, &
+!                    A(NV,NW,NR),B(NV,NW,NR),C(NV,NW,NR),X(NEQMAX*(NR-1)+NV)
+!            ELSE
+!               WRITE(6,'(A,2I6,3ES12.4)') 'NV,NW,A,B,C  =',NV,NW, &
+!                    A(NV,NW,NR),B(NV,NW,NR),C(NV,NW,NR)
+!            END IF
+!         END DO
+!      END DO
+               
       RETURN
       END SUBROUTINE TRMTRX
 
