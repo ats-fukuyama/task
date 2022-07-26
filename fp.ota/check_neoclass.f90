@@ -62,8 +62,10 @@ contains
     call fptxt2D(Sr_part,"dat/Sr_part.txt")
 !    call fptxt2D(Drw,"dat/Drw.txt")
 !    call fptxt2D(Drwav,"dat/Drwav.txt")
-    call fptxt2D(Sr_ba, "dat/Sr_ba.txt") ![2022/1/31] edited by anzai
-    call fptxt2D(Sr_pla, "dat/Sr_pla.txt") ![2022/1/31] editted by anzai
+    call fptxt2D(Dnba,"dat/Dnba.txt")
+    call fptxt2D(Dnpla,"dat/Dnpla.txt")
+    call fptxt2D(Sr_ba, "dat/Sr_ba.txt") ![2022/7/25] edited by anzai
+    call fptxt2D(Sr_pla, "dat/Sr_pla.txt") ![2022/7/25] editted by anzai
     call fptxt2D(heatba, "dat/heatba.txt")![2022/3/4] editted by anzai
     call fptxt2D(heatpla, "dat/heatpla.txt")![2022/3/4] editted by anzai
 !    call fptxt2D(Drweff,"dat/Drweff.txt") ![2022/3/2] editted by anzai
@@ -390,24 +392,24 @@ contains
           if ( pm(np,ns) > fact_bulk ) exit
           do nth = 1, nthmax
             Sr_part(nr,nsa) = Sr_part(nr,nsa) &
-                        - 1.d0&
-                        * (Drrfow(nth,np,nr,nsa)&
-                        * dfdrhom(nth,np,nr,nsa)*1.d20 &
-                        + Drpfow(nth,np,nr,nsa) &
-                        * dfdp(nth,np,nr,nsa)*1.d20 &
-                        + Drtfow(nth,np,nr,nsa) &
-                        * dfdthm(nth,np,nr,nsa)*1.d20&
-                        ) &
-                        * JI(nth,np,nr,nsa) &
-                        !* JI(nth,np,nr,nsa) &
-                        * delp(ns) * delthm(nth,np,nr,nsa) &
+                            - 1.d0&
+                            * (Drrfow(nth,np,nr,nsa)&
+                            * dfdrhom(nth,np,nr,nsa)*1.d20 &
+                            + Drpfow(nth,np,nr,nsa) &
+                            * dfdp(nth,np,nr,nsa)*1.d20 &
+                            + Drtfow(nth,np,nr,nsa) &
+                            * dfdthm(nth,np,nr,nsa)*1.d20&
+                            ) &
+                            * JI(nth,np,nr,nsa) &
+                            !* JI(nth,np,nr,nsa) &
+                            * delp(ns) * delthm(nth,np,nr,nsa) &
 
-                        + 1.d0&
-                        * Frrfow(nth,np,nr,nsa) &
-                        * fnsp_l(nth,np,nr,nsa)*1.d20 &
-                        * JI(nth,np,nr,nsa) &
-                        !* JI(nth,np,nr,nsa) &
-                        * delp(ns) * delthm(nth,np,nr,nsa)
+                          + 1.d0&
+                          * Frrfow(nth,np,nr,nsa) &
+                          * fnsp_l(nth,np,nr,nsa)*1.d20 &
+                          * JI(nth,np,nr,nsa) &
+                          !* JI(nth,np,nr,nsa) &
+                          * delp(ns) * delthm(nth,np,nr,nsa)
           end do
         end do
         Dr(nr,nsa) = -Sr_part(nr,nsa)/dNadr(nr,nsa)
@@ -550,8 +552,8 @@ contains
     !****temperature make
     do nsa = 1, nsamax
       do nr = 1, nrmax
-        Ta(nr,nsa) = 2.d0/3.d0*rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)/AEE/1.d3
-        !Ta(temperature)[keV]
+        Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)
+        !Ta(temperature)[J]
       end do
     end do
 
@@ -570,8 +572,8 @@ contains
         eps_t = rm(nr)*RA/RR
         B_p = rm(nr)*RA*BB/(safety_factor(nr)*RR)
         fact_ba = (safety_factor(nr)**2)*1.d20*rnsl(nr,nsa) &
-             *(rho_e**2)/((eps_t**1.5)*tau_ele)
-        fact_pla = -sqrt(pi)*(eps_t**2)*Ta(nr,1) &
+             *(rho_e**2)/((eps_t**1.5)*tau_ele)*RKEV ! modified by anzai[*RKEV]
+        fact_pla = -sqrt(pi)*(eps_t**2)*Ta(nr,1)*RKEV &! modified by anzai [*RKEV]
              *rho_e*1.d20*rnsl(nr,nsa)/(2*AEE*B_p*rm(nr)*RA)
 
         Sr_ba(nr,nsa) = fact_ba*(-1.22d0*(1+Ta(nr,2)/Ta(nr,1)) &
@@ -799,7 +801,7 @@ contains
       do nr = 1, nrmax
         do np = 1, npmax
           do nth = 1, nthmax
-!**** Heat flux for FOW momentum not heat velocity [2022/3/22]
+            !**** Heat flux for FOW momentum not heat velocity [2022/3/22]
             heatrw(nr,nsa) = heatrw(nr,nsa)&
                            - (pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)) &
                            * Drwlocal(nth,np,nr,nsa) &
@@ -864,7 +866,7 @@ contains
     !****temperature make
     do nsa = 1, nsamax
       do nr = 1, nrmax
-        Ta(nr,nsa) = 2.d0/3.d0*rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)
+        Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)
         !Ta(temperature)[J]
       end do
     end do
@@ -979,7 +981,7 @@ contains
     !**** initialization ****
     spVI(:,:) = 0.d0
 
-!********** for new dfdrhom module [2022/3/4]
+    !********** for new dfdrhom module [2022/3/4]
     fnsp_l(:,:,:,:)=0.d0
     do nsa = 1, nsamax
       ns = ns_nsa(nsa)
@@ -1005,7 +1007,7 @@ contains
         end do
       end do
     end do
-!!**** end of new dfdrhom module
+    !!**** end of new dfdrhom module
 
     !****Integration over moment(np) and pitch angle(nth)
     do nsa = 1, nsamax
@@ -1086,7 +1088,7 @@ contains
       call first_order_derivative(dTadr(:,nsa), Ta(:,nsa), rm)
     end do
 
-!********** for new dfdrhom module [2022/3/4]
+    !********** for new dfdrhom module [2022/3/4]
     fnsp_l(:,:,:,:)=0.d0
     do nsa = 1, nsamax
       ns = ns_nsa(nsa)
@@ -1126,7 +1128,7 @@ contains
         end do
       end do
     end do
-!!**** end of new dfdrhom module
+    !!**** end of new dfdrhom module
 
     !****Integration over moment(np) and pitch angle(nth)
     do nsa = 1, nsamax
