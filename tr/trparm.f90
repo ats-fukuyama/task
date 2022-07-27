@@ -74,7 +74,7 @@ CONTAINS
                     PNBCD,PECCD,PLHCD,PICCD,PBSCD,MDLCD, &
                     PELTOT,PELR0,PELRW,PELRAD,PELVEL,MDLPEL, &
                     MDLPR,SYNCABS,SYNCSELF, &
-                    PELTIM,PELPAT,KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG, &
+                    PELTIM,PELPAT,KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG,KFNTXT,KFNCVS, &
                     MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0,MDLEQE, &
                     MDLEOI,NSMAX,NSZMAX,NSNMAX, &
                     KUFDIR,KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDTC, &
@@ -124,7 +124,7 @@ CONTAINS
              ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/ &
              ' ',8X,'MDLEQE,MDLEOI,NSMAX,NSZMAX,NSNMAX,KUFDIR,KUFDEV,KUFDCG'/ &
              ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK'/ &
-             ' ',8X,'KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG'/ &
+             ' ',8X,'KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG,KFNTXT,KFNCVS,'/ &
              ' ',8X,'MDLPSC,NPSCMAX,PSCTOT,PSCR0,PSCRW,NSPSC')
     END SUBROUTINE trplst
 
@@ -254,6 +254,13 @@ CONTAINS
          WRITE(6,623) 'MDLPR   ',MDLPR,   'SYNCABS ',SYNCABS, &
                       'SYNCSELF',SYNCSELF
       ENDIF
+
+      WRITE(6,'(A,A)') 'KNAMEQ =',knameq
+      WRITE(6,'(A,A)') 'KNAMEQ2=',knameq2
+      WRITE(6,'(A,A)') 'KNAMTR =',knamtr
+      WRITE(6,'(A,A)') 'KFNLOG =',kfnlog
+      WRITE(6,'(A,A)') 'KFNTXT =',kfntxt
+      WRITE(6,'(A,A)') 'KFNCVS =',kfncvs
 
       WRITE(6,601) 'CNB   ',CNB
       RETURN

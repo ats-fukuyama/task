@@ -1451,9 +1451,12 @@
 !        ****** AV : PARTICLE PINCH ******
 
       IF(MDEDGE.EQ.1) CDPSV=CDP
+      DO NR=1,NRMAX
+         AVDW(NR,1:NSM) = 0.D0
+         ADDW(NR,1:NSM) = 0.D0
+      END DO
+
       IF(MDNCLS.EQ.0) THEN
-!     NCLASS has already calculated neoclassical particle pinch(AVNC)
-!     beforehand if MDNCLS=1 so that MDLAD becomes no longer valid.
       select case(MDLAD)
       case(1)
          DO NR=1,NRMAX
@@ -1468,25 +1471,25 @@
                ANT    = 0.5D0*(RN(NR+1,3)+RN(NR  ,3))
                ANA    = 0.5D0*(RN(NR+1,4)+RN(NR  ,4))
             ENDIF
-            ADNC(NR,2) = PA(2)**ALP(2)*PZ(2)**ALP(3)*AD0
-            ADNC(NR,3) = PA(3)**ALP(2)*PZ(3)**ALP(3)*AD0
-            ADNC(NR,4) = PA(4)**ALP(2)*PZ(4)**ALP(3)*AD0
-            ADNC(NR,1) =(PZ(2)*ANDX*AD(NR,2)+PZ(3)*ANT *AD(NR,3)+PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
+            ADDW(NR,2) = PA(2)**ALP(2)*PZ(2)**ALP(3)*AD0
+            ADDW(NR,3) = PA(3)**ALP(2)*PZ(3)**ALP(3)*AD0
+            ADDW(NR,4) = PA(4)**ALP(2)*PZ(4)**ALP(3)*AD0
+            ADDW(NR,1) =(PZ(2)*ANDX*AD(NR,2) &
+                        +PZ(3)*ANT *AD(NR,3) &
+                        +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
 
-            RX   = ALP(1)*RHOG(NR)
-            PROF0 = 1.D0-RX**PROFN1
-            IF(PROF0.LE.0.D0) THEN
-               PROF1=0.D0
-               PROF2=0.D0
-            ELSE
-               PROF1=PROF0**PROFN2
-               PROF2=PROFN2*PROF0**(PROFN2-1.D0)
-            ENDIF
-            PROF   = PROF1+PNSS(1)/(PN(1)-PNSS(1))
-            DPROF  =-PROFN1*RX**(PROFN1-1.D0)*PROF2
+!            RX   = ALP(1)*RHOG(NR)
+!            PROF0 = 1.D0-RX**PROFN1
+!            IF(PROF0.LE.0.D0) THEN
+!               PROF1=0.D0
+!               PROF2=0.D0
+!            ELSE
+!               PROF1=PROF0**PROFN2
+!               PROF2=PROFN2*PROF0**(PROFN2-1.D0)
+!            ENDIF
+!            PROF   = PROF1+PNSS(1)/(PN(1)-PNSS(1))
+!            DPROF  =-PROFN1*RX**(PROFN1-1.D0)*PROF2
 
-            AD  (NR,1:NSM) = CNP*ADNC(NR,1:NSM)
-            AVNC(NR,1:NSM) = AD(NR,1:NSM)*DPROF/PROF
             AVDW(NR,1:NSM) = 0.D0
          ENDDO
       case(2)
@@ -1502,25 +1505,26 @@
                ANT = 0.5D0*(RN(NR+1,3)+RN(NR  ,3))
                ANA = 0.5D0*(RN(NR+1,4)+RN(NR  ,4))
             ENDIF
-            ADNC(NR,2) = AD0*AKDW(NR,2)
-            ADNC(NR,3) = AD0*AKDW(NR,3)
-            ADNC(NR,4) = AD0*AKDW(NR,4)
-            ADNC(NR,1) =(PZ(2)*ANDX*AD(NR,2)+PZ(3)*ANT *AD(NR,3)+PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
+            ADDW(NR,2) = AD0*AKDW(NR,2)
+            ADDW(NR,3) = AD0*AKDW(NR,3)
+            ADDW(NR,4) = AD0*AKDW(NR,4)
+            ADDW(NR,1) =(PZ(2)*ANDX*AD(NR,2) &
+                        +PZ(3)*ANT *AD(NR,3) &
+                        +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
 
-            RX   = ALP(1)*RHOG(NR)
-            PROF0 = 1.D0-RX**PROFN1
-            IF(PROF0.LE.0.D0) THEN
-               PROF1=0.D0
-               PROF2=0.D0
-            ELSE
-               PROF1=PROF0**PROFN2
-               PROF2=PROFN2*PROF0**(PROFN2-1.D0)
-            ENDIF
-            PROF   = PROF1*(PN(1)-PNSS(1))+PNSS(1)
-            DPROF  = -PROFN1*RX**(PROFN1-1.D0)*PROF2*(PN(1)-PNSS(1))*ALP(1)/RA *1.5D0
+!            RX   = ALP(1)*RHOG(NR)
+!            PROF0 = 1.D0-RX**PROFN1
+!            IF(PROF0.LE.0.D0) THEN
+!               PROF1=0.D0
+!               PROF2=0.D0
+!            ELSE
+!               PROF1=PROF0**PROFN2
+!               PROF2=PROFN2*PROF0**(PROFN2-1.D0)
+!            ENDIF
+!            PROF   = PROF1*(PN(1)-PNSS(1))+PNSS(1)
+!            DPROF  = -PROFN1*RX**(PROFN1-1.D0)*PROF2*(PN(1) &
+!                     -PNSS(1))*ALP(1)/RA *1.5D0
 
-            AD  (NR,1:NSM) = CNP*ADNC(NR,1:NSM)
-            AVNC(NR,1:NSM) = AD(NR,1:NSM)*DPROF/PROF
             AVDW(NR,1:NSM) = 0.D0
          ENDDO
       case(3)
@@ -1628,7 +1632,8 @@
       DO NS=1,NSLMAX
          DO NR=1,NRMAX
             IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
-            AV(NR,NS)=CDP*AVDW(NR,NS)+CNP*AVNC(NR,NS)
+            AD(NR,NS)=CNP*ADNC(NR,NS)+CDP*ADDW(NR,NS)
+            AV(NR,NS)=CNP*AVNC(NR,NS)+CDP*AVDW(NR,NS)
          ENDDO
       ENDDO
       IF(MDEDGE.EQ.1) CDP=CDPSV
