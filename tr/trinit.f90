@@ -581,15 +581,19 @@ CONTAINS
 
 !     ==== FILE NAME ====
 
-!        KNAMEQ: Filename of equilibrium data
-!        KNAMEQ2: Filename of equilibrium data
-!        KNAMTR: Filename of transport data
-!        KFNLOG : LOG FILE NAME
+!        KNAMEQ:  file name of equilibrium data
+!        KNAMEQ2: file name of equilibrium data
+!        KNAMTR:  file name of transport data
+!        KFNLOG : file name of log data
+!        KFNTXT : file name of text output
+!        KFNCVS : file name of cvs output
 
       KNAMEQ='eqdata'
       KNAMEQ2=''
       KNAMTR='trdata'
-      KFNLOG='trf.log'
+      KFNLOG='tr.log'
+      KFNTXT='tr.txt'
+      KFNCVS='tr.cvs'
 
 !     ==== INTERACTION WITH EQ ====
 
