@@ -1,10 +1,10 @@
 ! check_neoclass.f90
-! [2022/3/7]
+! [2022/7/27]
 ! ***************************************
 !  Calculation of diffusion coefficients
 ! ***************************************
 ! made by ota / modified by anzai
-!
+! ver.3
 
 module check_neoclass
   private
@@ -17,7 +17,7 @@ contains
 ! COMMON modules
 !===================================================
   subroutine output_neoclass
-  !----------------------------------------
+  ! !----------------------------------------
   ! module for file out put as *.txt
   !----------------------------------------
     use fpcomm
@@ -246,11 +246,11 @@ contains
   end subroutine gosakn
 
   subroutine bounce_average_for_Drw(Dout, Din)
-
+ 
     use fpcomm
     use fowcomm
     use fowcoef
-
+ 
     implicit none
     double precision,dimension(nthmax,npmax,nrmax,nsamax),intent(out) :: Dout
     double precision,dimension(nthmax,npmax,nrmax,nsamax),intent(in)  :: Din
@@ -259,12 +259,12 @@ contains
     double precision dt, taup, cpitch_ob, psip_ob, thetap_ob, Drw_ob
     type(orbit) ob
     integer nth, np, nr, nsa, nstp, nstpmax, nthp, mode(3)
-
+ 
     allocate(U(4,4,4,nthmax,nrmax,nthpmax,npmax,nsamax))
     allocate(Drwl(nthmax,npmax,nrmax,nthpmax,nsamax))
 
     mode = [0,0,0]
-
+ 
     do nsa = 1, nsamax
       do nthp = 1, nthpmax
         do nr = 1, nrmax
@@ -280,7 +280,7 @@ contains
     do nsa = 1, nsamax
       call make_U_Dxy(U, Drwl, 'm', nsa)
     end do
-
+ 
     do nsa = 1, nsamax
       do nr = 1, nrmax
         do np = 1, npmax
@@ -288,9 +288,9 @@ contains
             ob = orbit_m(nth,np,nr,nsa)
             nstpmax = ob%nstp_max
             taup = ob%time(nstpmax)
-
+ 
             call transformation_matrix(dIdul, ob, nth, np, nr, nsa, mode)
-
+ 
             Dout(nth,np,nr,nsa) = 0.d0
 
             do nstp = 2, nstpmax
@@ -300,7 +300,7 @@ contains
               thetap_ob = ob%thetap(nstp)
               call interpolate_D_unlessZero(Drw_ob, U(:,:,:,:,:,:,np,nsa), &
                     1.d0, cpitch_ob, psip_ob, thetap_ob)
-
+ 
               Dout(nth,np,nr,nsa) = Dout(nth,np,nr,nsa)&
                                   + Drw_ob*dIdul(3,3,nstp)**2*dt
             end do
@@ -309,7 +309,6 @@ contains
         end do
       end do
     end do
-
   end subroutine
 
 !===================================================
@@ -400,14 +399,14 @@ contains
                             + Drtfow(nth,np,nr,nsa) &
                             * dfdthm(nth,np,nr,nsa)*1.d20&
                             ) &
-                            * JI(nth,np,nr,nsa) &
+                            !* JI(nth,np,nr,nsa) &
                             !* JI(nth,np,nr,nsa) &
                             * delp(ns) * delthm(nth,np,nr,nsa) &
 
                           + 1.d0&
                           * Frrfow(nth,np,nr,nsa) &
                           * fnsp_l(nth,np,nr,nsa)*1.d20 &
-                          * JI(nth,np,nr,nsa) &
+                          !* JI(nth,np,nr,nsa) &
                           !* JI(nth,np,nr,nsa) &
                           * delp(ns) * delthm(nth,np,nr,nsa)
           end do
@@ -614,6 +613,7 @@ contains
     double precision,dimension(nrmax,nsamax) :: Ta, dTadr
     double precision,dimension(nthmax,npmax,nrmax,nsamax) ::fnsp_l, dfdrhom
     double precision,dimension(nthmax,npmax,nrmax,nsamax) ::dfdthm, dfdp
+    double precision :: K, PV
     integer nth,np,nr,nsa,ns
 
     !**** initialization ****
@@ -679,33 +679,36 @@ contains
         do np = 1, npmax
           if ( pm(np,ns) > fact_bulk ) exit !** fact_balk=5
           do nth = 1, nthmax
-
+            PV = sqrt(1.d0+theta0(nsa)*pm(np,nsa)**2)
+            K = (PV-1.d0)*AMFP(nsa)*vc**2
            !**** for dfdrhom is made of fnsp*dVI
-           heatfow_out(nr,nsa) = heatfow_out(nr,nsa) &
-                               - (pm(np,nsa)*ptfp0(nsa))**2 &
-                               / (2*AMFP(nsa)) &
-                               / (AEE*1.D3)*2.d0/3.d0 * 1.d0&
-                               *(Drrfow(nth,np,nr,nsa)&
-                               * dfdrhom(nth,np,nr,nsa)*1.d20 &
-                               + Drpfow(nth,np,nr,nsa) &
-                               * dfdp(nth,np,nr,nsa)*1.d20 &
-                               + Drtfow(nth,np,nr,nsa) &
-                               * dfdthm(nth,np,nr,nsa)*1.d20&
-                               ) &
-                               * JI(nth,np,nr,nsa) &
-                               !* JI(nth,np,nr,nsa) &
-                               * delp(ns) * delthm(nth,np,nr,nsa) &
+            heatfow_out(nr,nsa) = heatfow_out(nr,nsa) &
+                                !- (pm(np,nsa)*ptfp0(nsa))**2 &
+                                !/ (2*AMFP(nsa)) &
+                                - k &
+                                / (AEE*1.D3)*2.d0/3.d0 * 1.d0&
+                                *(Drrfow(nth,np,nr,nsa)&
+                                * dfdrhom(nth,np,nr,nsa)*1.d20 &
+                                + Drpfow(nth,np,nr,nsa) &
+                                * dfdp(nth,np,nr,nsa)*1.d20 &
+                                + Drtfow(nth,np,nr,nsa) &
+                                * dfdthm(nth,np,nr,nsa)*1.d20&
+                                ) &
+                                !* JI(nth,np,nr,nsa) &
+                                !* JI(nth,np,nr,nsa) &
+                                * delp(ns) * delthm(nth,np,nr,nsa) &
 
-                               + (pm(np,nsa)*ptfp0(nsa))**2 &
-                               / (2*AMFP(nsa) )&
-                               / (AEE*1.D3)*2.d0/3.d0 *1.d0&
-                               ! unit converter [J] to [keV] &
-                               * Frrfow(nth,np,nr,nsa) &
-                               * fnsp_l(nth,np,nr,nsa)*1.d20 &
-                               * JI(nth,np,nr,nsa) &
-                               !* JI(nth,np,nr,nsa) &
-                               * delp(ns) * delthm(nth,np,nr,nsa)
-                               !** unit [keV] [22/6/6]
+                                !+ (pm(np,nsa)*ptfp0(nsa))**2 &
+                                !/ (2*AMFP(nsa) )&
+                                + K &
+                                / (AEE*1.D3)*2.d0/3.d0 *1.d0&
+                                ! unit converter [J] to [keV] &
+                                * Frrfow(nth,np,nr,nsa) &
+                                * fnsp_l(nth,np,nr,nsa)*1.d20 &
+                                !* JI(nth,np,nr,nsa) &
+                                !* JI(nth,np,nr,nsa) &
+                                * delp(ns) * delthm(nth,np,nr,nsa)
+                                !** unit [keV] [22/6/6]
           end do
         end do
         chi_a(nr,nsa) = -heatfow_out(nr,nsa)/dTadr(nr,nsa)

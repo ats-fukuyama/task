@@ -4,7 +4,7 @@
 !  Main program of FOW
 ! *********************************
 !  made by ota / modified by anzai
-!
+! ver.0.1
 
 program fow
 
@@ -46,7 +46,7 @@ program fow
 
   call fow_loop
 
-  write(*,*)"END of Program"
+  write(*,*)"+++++ END OF FOW MODULE +++++"
 
   call fow_deallocate
 

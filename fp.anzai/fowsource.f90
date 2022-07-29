@@ -112,7 +112,7 @@ contains
 
             S_beam(nth,np,nr) = fact_rm * fact_thm
 
-            dV = delthm(nth,np,nr,beam%ns)*delp(beam%ns)*JIR(nth,np,nr,beam%ns)
+            dV = delthm(nth,np,nr,beam%ns)*delp(beam%ns)*JI(nth,np,nr,beam%ns)
 
             n_total = n_total + S_beam(nth,np,nr)*dV*volr(nr)
 

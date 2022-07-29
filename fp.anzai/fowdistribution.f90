@@ -5,7 +5,7 @@ module fowdistribution
   public :: convert_fI_to_fu
   public :: moment_0th_order_COM, moment_2nd_order_COM
   public :: particle_flux, particle_flux_element
-  public :: total_N, effective_diffusion_cosfficient
+  public :: total_N!, effective_diffusion_cosfficient
 
 contains
 
@@ -59,7 +59,7 @@ contains
         sumI = 0.d0
         do np = 1, npmax
           do nth = 1, nthmax
-            sumI = sumI + fI(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)*delp(nsa)*delthm(nth,np,nr,nsa)
+            sumI = sumI + fI(nth,np,nr,nsa)*JI(nth,np,nr,nsa)*delp(nsa)*delthm(nth,np,nr,nsa)
           end do
         end do
   
@@ -199,7 +199,7 @@ contains
         do np = 1, npmax
           do nth = 1, nthmax
             dVI = delthm(nth,np,nr,nsa)*delp(nsa)
-            M0(nr,nsa) = M0(nr,nsa) + fI_in(nth,np,nr,nsa) * dVI * JIR(nth,np,nr,nsa)
+            M0(nr,nsa) = M0(nr,nsa) + fI_in(nth,np,nr,nsa) * dVI * JI(nth,np,nr,nsa)
           end do
         end do
         M0(nr,nsa) = M0(nr,nsa)*rnfp0(nsa)
@@ -228,7 +228,7 @@ contains
           do nth = 1, nthmax
             K = (PV-1.d0)*amfp(nsa)*vc**2
             dVI = delthm(nth,np,nr,nsa)*delp(nsa)
-            M2(nr,nsa) = M2(nr,nsa) + K*fI_in(nth,np,nr,nsa) * dVI * JIR(nth,np,nr,nsa)
+            M2(nr,nsa) = M2(nr,nsa) + K*fI_in(nth,np,nr,nsa) * dVI * JI(nth,np,nr,nsa)
           end do
         end do
 
@@ -277,7 +277,8 @@ contains
         sum_gammaI = 0.d0
         do np = 1, npmax
           do nth = 1, nthmax
-            dVI = JIR(nth,np,nr,nsa) * delp(nsa) * delthm(nth,np,nr,nsa)
+            dVI = delp(nsa) * delthm(nth,np,nr,nsa)
+            !dVI = JI(nth,np,nr,nsa) * delp(nsa) * delthm(nth,np,nr,nsa)
             Drx(1) = ( Drpfow(nth,np,nr+1,nsa) + Drpfow(nth,np,nr,nsa) )*0.5d0
             Drx(2) = ( Drtfow(nth,np,nr+1,nsa) + Drtfow(nth,np,nr,nsa) )*0.5d0
             Drx(3) = ( Drrfow(nth,np,nr+1,nsa) + Drrfow(nth,np,nr,nsa) )*0.5d0
@@ -288,7 +289,7 @@ contains
               Drx(2) * dfdth(nth,np,nr,nsa)/pm(np,nsa)+ &
               Drx(3) * dfdrm(nth,np,nr,nsa) - &
               Fr     * fnsp(nth,np,nr,nsa) &
-            )/JI(nth,np,nr,nsa)
+            )!/JI(nth,np,nr,nsa)
 
             sum_gammaI = sum_gammaI + gammaI*dVI
           end do
@@ -342,16 +343,17 @@ contains
         Sr_F  (nr,nsa) = 0.d0
         do np = 1, npmax
           do nth = 1, nthmax
-            dVI = JIR(nth,np,nr,nsa) * delp(nsa) * delthm(nth,np,nr,nsa)
+            dVI = delp(nsa) * delthm(nth,np,nr,nsa)
+            !dVI = JI(nth,np,nr,nsa) * delp(nsa) * delthm(nth,np,nr,nsa)
             Drx(1) = ( Drpfow(nth,np,nr+1,nsa) + Drpfow(nth,np,nr,nsa) )*0.5d0
             Drx(2) = ( Drtfow(nth,np,nr+1,nsa) + Drtfow(nth,np,nr,nsa) )*0.5d0
             Drx(3) = ( Drrfow(nth,np,nr+1,nsa) + Drrfow(nth,np,nr,nsa) )*0.5d0
             Fr     = ( Frrfow(nth,np,nr+1,nsa) + Frrfow(nth,np,nr,nsa) )*0.5d0
 
-            Sr_Dp (nr,nsa) = Sr_Dp (nr,nsa) - rnfp0(nsa)*Drx(1)*dfdp (nth,np,nr,nsa)/JI(nth,np,nr,nsa)*dVI
-            Sr_Dth(nr,nsa) = Sr_Dth(nr,nsa) - rnfp0(nsa)*Drx(2)*dfdth(nth,np,nr,nsa)/JI(nth,np,nr,nsa)*dVI
-            Sr_Dr (nr,nsa) = Sr_Dr (nr,nsa) - rnfp0(nsa)*Drx(3)*dfdrm(nth,np,nr,nsa)/JI(nth,np,nr,nsa)*dVI
-            Sr_F  (nr,nsa) = Sr_F  (nr,nsa) + rnfp0(nsa)*Fr    *fnsp (nth,np,nr,nsa)/JI(nth,np,nr,nsa)*dVI
+            Sr_Dp (nr,nsa) = Sr_Dp (nr,nsa) - rnfp0(nsa)*Drx(1)*dfdp (nth,np,nr,nsa)!/JI(nth,np,nr,nsa)*dVI
+            Sr_Dth(nr,nsa) = Sr_Dth(nr,nsa) - rnfp0(nsa)*Drx(2)*dfdth(nth,np,nr,nsa)!/JI(nth,np,nr,nsa)*dVI
+            Sr_Dr (nr,nsa) = Sr_Dr (nr,nsa) - rnfp0(nsa)*Drx(3)*dfdrm(nth,np,nr,nsa)!/JI(nth,np,nr,nsa)*dVI
+            Sr_F  (nr,nsa) = Sr_F  (nr,nsa) + rnfp0(nsa)*Fr    *fnsp (nth,np,nr,nsa)!/JI(nth,np,nr,nsa)*dVI
           end do
         end do
         Sr(nr,nsa) = Sr_Dp(nr,nsa)+Sr_Dth(nr,nsa)+Sr_Dr(nr,nsa)+Sr_F(nr,nsa)
@@ -360,26 +362,26 @@ contains
 
   end subroutine particle_flux_element
 
-  subroutine effective_diffusion_cosfficient(Deff)
-    use fpcomm
-    use fowcomm
-    implicit none
-    real(rkind),dimension(nrmax,nsamax),intent(out) :: Deff
-    real(rkind),dimension(nrmax,nsamax) :: Sr, dndr
-    integer :: nr, nsa
+  ! subroutine effective_diffusion_cosfficient(Deff)
+  !   use fpcomm
+  !   use fowcomm
+  !   implicit none
+  !   real(rkind),dimension(nrmax,nsamax),intent(out) :: Deff
+  !   real(rkind),dimension(nrmax,nsamax) :: Sr, dndr
+  !   integer :: nr, nsa
 
-    call particle_flux(Sr)
-    do nsa = 1, nsamax
-      call first_order_derivative(dndr(:,nsa),rnsl(:,nsa),rm)
-    end do
+  !   call particle_flux(Sr)
+  !   do nsa = 1, nsamax
+  !     call first_order_derivative(dndr(:,nsa),rnsl(:,nsa),rm)
+  !   end do
 
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        Deff(nr,nsa) = -1.d0*Sr(nr,nsa)/dndr(nr,nsa)
-      end do
-    end do
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax
+  !       Deff(nr,nsa) = -1.d0*Sr(nr,nsa)/dndr(nr,nsa)
+  !     end do
+  !   end do
 
-  end subroutine effective_diffusion_cosfficient
+  ! end subroutine effective_diffusion_cosfficient
 
   subroutine total_N(N,fI,nsa)
     use fpcomm
@@ -397,7 +399,7 @@ contains
       do np = 1, npmax
         do nth = 1, nthmax
           dVI = delp(nsa)*delthm(nth,np,nr,nsa)*delr! * 2.d0*pi*pm(np,nsa)**2
-          sumI = sumI+FI(nth,np,nr,nsa)*dVI*JI(nth,np,nr,nsa)
+          sumI = sumI+fi(nth,np,nr,nsa)*dVI*JI(nth,np,nr,nsa)
         end do
       end do
     end do
