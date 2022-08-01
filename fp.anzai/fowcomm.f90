@@ -287,6 +287,9 @@ contains
     close(11)
   end subroutine fow_read_namelist
 
+  !=============================================
+  ! For Mathematical calculation
+  !=============================================
   subroutine solve_quadratic_equation(z,C)
     ! solve C(3)*z**2+C(2)*z+C(1) = 0
     ! z(1) : -sqrt(D)

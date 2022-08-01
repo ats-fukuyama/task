@@ -1,3 +1,11 @@
+! fowmpi.f90
+! [2022/7/29]
+! ********************
+!  For MPI module
+! ********************
+! made by ota/ modified by anzai
+! ver.0.1
+
 subroutine fow_save_orbit_mpi(ierr)
   use libmtx
   use libmpi

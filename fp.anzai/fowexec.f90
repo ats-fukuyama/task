@@ -15,9 +15,9 @@ module fowexec
 contains
 
   subroutine fow_exec(nsa,IERR,its)
-  !-----------------------------------------
+  !=========================================
   ! Main routine for time advance
-  !-----------------------------------------
+  !=========================================
     use libmpi
     use libmtx
     use fpmpi
@@ -598,14 +598,14 @@ contains
     nl=0
     nm=nma(nth,np,nr)
 
-    Ffow(1,1) = Fppfow(nth,np,nr,nsa)*pg(np,nsa)**2
-    Ffow(2,1) = Fppfow(nth,np+1,nr,nsa)*pg(np+1,nsa)**2
+    Ffow(1,1) = Fppfow(nth,np,nr,nsa)
+    Ffow(2,1) = Fppfow(nth,np+1,nr,nsa)
 
-    Ffow(1,2) = Fthfow(nth,np,nr,nsa)*sin(thetamg(nth,np,nr,nsa))
-    Ffow(2,2) = Fthfow(nth+1,np,nr,nsa)*sin(thetamg(nth+1,np,nr,nsa))
+    Ffow(1,2) = Fthfow(nth,np,nr,nsa)
+    Ffow(2,2) = Fthfow(nth+1,np,nr,nsa)
 
-    Ffow(1,3) = Frrfow(nth,np,nr,nsa)*rg(nr)
-    Ffow(2,3) = Frrfow(nth,np,nr+1,nsa)*rg(nr+1)
+    Ffow(1,3) = Frrfow(nth,np,nr,nsa)
+    Ffow(2,3) = Frrfow(nth,np,nr+1,nsa)
 
 
     !**** discretized (div(d/dX))_Y
@@ -614,18 +614,18 @@ contains
     rl = rm(nr)
     deltath= delthm(nth,np,nr,nsa)
 
-    DIVD(1,1) = 1.d0/(pl**2 * delp(nsa)**2)
-    DIVD(1,2) = 1.d0/(pl**2 * delp(nsa) * deltath * 2.d0)
-    DIVD(1,3) = 1.d0/(pl**2 * delp(nsa) * delr * 2.d0)
-    DIVD(2,1) = 1.d0/(pl * sl * delp(nsa) * deltath * 2.d0)
-    DIVD(2,2) = 1.d0/(pl * sl * deltath**2 )
-    DIVD(2,3) = 1.d0/(pl * sl * deltath * delr * 2.d0)
-    DIVD(3,1) = 1.d0/(rl * delp(nsa)  * delr * 2.d0)
-    DIVD(3,2) = 1.d0/(rl * deltath * delr * 2.d0)
-    DIVD(3,3) = 1.d0/(rl * delr**2)
-    DIVF(1)   = 1.d0/(pl**2 * delp(nsa))
-    DIVF(2)   = 1.d0/(pl * sl * deltath)
-    DIVF(3)   = 1.d0/(rl * delr)
+    DIVD(1,1) = 1.d0/(delp(nsa)**2)
+    DIVD(1,2) = 1.d0/(delp(nsa) * deltath * 2.d0)
+    DIVD(1,3) = 1.d0/(delp(nsa) * delr * 2.d0)
+    DIVD(2,1) = 1.d0/(delp(nsa) * deltath * 2.d0)
+    DIVD(2,2) = 1.d0/(deltath**2 )
+    DIVD(2,3) = 1.d0/(deltath * delr * 2.d0)
+    DIVD(3,1) = 1.d0/(delp(nsa)  * delr * 2.d0)
+    DIVD(3,2) = 1.d0/(deltath * delr * 2.d0)
+    DIVD(3,3) = 1.d0/(delr**2)
+    DIVF(1)   = 1.d0/(delp(nsa))
+    DIVF(2)   = 1.d0/(deltath)
+    DIVF(3)   = 1.d0/(delr)
 
     sign_to_index(-1) = 1
     sign_to_index(1)  = 2
@@ -640,7 +640,7 @@ contains
                * DIVD(alpha,alpha)
         F_term = -1.d0*si*Ffow(sign_to_index(si),alpha) & 
                * w(si,alpha,0,sign_to_index(si)-1,0,loc)*DIVF(alpha)
-        dl(nm) = dl(nm) + (D_term + F_term)/JIR(nth,np,nr,nsa)
+        dl(nm) = dl(nm) + (D_term + F_term)
       end do
     end do
 
@@ -650,7 +650,7 @@ contains
       D_term = Dfow(2,2,0,0,loc)*DIVD(2,2)*IBCflux_ratio(np,nr,nsa)
       F_term = -1.d0*Ffow(1,2)*w(-1,2,0,0,0,loc) & 
              * DIVF(2)*IBCflux_ratio(np,nr,nsa)
-      dl(nm) = dl(nm) + (D_term + F_term)/JIR(nth,np,nr,nsa)
+      dl(nm) = dl(nm) + (D_term + F_term)
 
     end if
 
@@ -677,7 +677,7 @@ contains
 
         nl = nl+1
         ll(nm,nl) = get_nma(alpha,0,si,0,loc)
-        al(nm,nl) = al(nm,nl) + (D_term + F_term)/JIR(nth,np,nr,nsa)
+        al(nm,nl) = al(nm,nl) + (D_term + F_term)
 
         if ( abs(al(nm,nl)) < 1.d-70 ) then
           ll(nm,nl) = 0
@@ -707,7 +707,7 @@ contains
 
             nl = nl+1
             ll(nm,nl) = get_nma(alpha,beta,si,sj,loc)
-            al(nm,nl) = al(nm,nl) + D_term/JIR(nth,np,nr,nsa)
+            al(nm,nl) = al(nm,nl) + D_term
 
             if ( abs(al(nm,nl)) < 1.d-70 ) then
               ll(nm,nl) = 0
@@ -742,32 +742,29 @@ contains
 
     if ( alpha == 1 ) then
       if ( beta == 1 ) then
-        Dfow = Dppfow(nth,np+si,nr,nsa)*pg(np+si,nsa)**2
+        Dfow = Dppfow(nth,np+si,nr,nsa)
       else if ( beta == 2 ) then
-        Dfow = Dptfow(nth+sj,np+si,nr,nsa)*pg(np+si,nsa)
+        Dfow = Dptfow(nth+sj,np+si,nr,nsa)
       else if ( beta == 3 ) then
-        Dfow = Dprfow(nth,np+si,nr+sj,nsa)*pg(np+si,nsa)**2
+        Dfow = Dprfow(nth,np+si,nr+sj,nsa)
       end if
 
     else if ( alpha == 2 ) then
       if ( beta == 1 ) then
-        Dfow = Dtpfow(nth+si,np+sj,nr,nsa) &
-             * sin(thetamg(nth+si,np+sj,nr,nsa))
+        Dfow = Dtpfow(nth+si,np+sj,nr,nsa)
       else if ( beta == 2 ) then
-        Dfow = Dttfow(nth+si,np,nr,nsa) & 
-             * sin(thetamg(nth+si,np+sj,nr,nsa))/pm(np,nsa)
+        Dfow = Dttfow(nth+si,np,nr,nsa)
       else if ( beta == 3 ) then
-        Dfow = Dtrfow(nth+si,np,nr+sj,nsa) & 
-             * sin(thetamg(nth+si,np,nr+sj,nsa))
+        Dfow = Dtrfow(nth+si,np,nr+sj,nsa)
       end if
 
     else if ( alpha == 3 ) then
       if ( beta == 1 ) then
-        Dfow = Drpfow(nth,np+sj,nr+si,nsa)*rg(nr+si)
+        Dfow = Drpfow(nth,np+sj,nr+si,nsa)
       else if ( beta == 2 ) then
-        Dfow = Drtfow(nth+sj,np,nr+si,nsa)*rg(nr+si)/pm(np,nsa)
+        Dfow = Drtfow(nth+sj,np,nr+si,nsa)
       else if ( beta == 3 ) then
-        Dfow = Drrfow(nth,np,nr+si,nsa)*rg(nr+si)
+        Dfow = Drrfow(nth,np,nr+si,nsa)
       end if
 
     end if
@@ -973,10 +970,10 @@ contains
     rl = rm(nr)
     deltath= delthm(nth-1,np,nr,nsa)
 
-    Dtx(1)  = Dtpfow(nth,np,nr,nsa)*sl/(pl*sl*delp(nsa)*deltath*2.d0)
-    Dtx(2)  = Dttfow(nth,np,nr,nsa)*sl/(pl**2*sl*deltath**2)
-    Dtx(3)  = Dtrfow(nth,np,nr,nsa)*sl/(pl*sl*deltath*delr*2.d0)
-    Fthp    = Fthfow(nth,np,nr,nsa)*sl
+    Dtx(1)  = Dtpfow(nth,np,nr,nsa)/(delp(nsa)*deltath*2.d0)
+    Dtx(2)  = Dttfow(nth,np,nr,nsa)/(deltath**2)
+    Dtx(3)  = Dtrfow(nth,np,nr,nsa)/(deltath*delr*2.d0)
+    Fthp    = Fthfow(nth,np,nr,nsa)/deltath !**
 
     loc_pnc = [nth,np,nr,nsa]
     loc_D   = [nth,np,nr,nsa]
@@ -1028,8 +1025,8 @@ contains
       end if
 
 
-      fact1 = (1.d0-IBCflux_ratio(np,nr,nsa))/JIR(nth-1,np,nr,nsa)
-      fact2 = IBCflux_ratio(np,nr,nsa)/JIR(nth_stg(nsa), &
+      fact1 = (1.d0-IBCflux_ratio(np,nr,nsa))/JI(nth-1,np,nr,nsa)
+      fact2 = IBCflux_ratio(np,nr,nsa)/JI(nth_stg(nsa), &
                               np,nr_pnc_point(np,nr,nsa),nsa)
       nm_D    = nma(nth-1,np,nr)
       nm_Xstg = nma(nth_stg(nsa), np, nr_pnc_point(np,nr,nsa))
@@ -1183,9 +1180,9 @@ contains
         return
       end if
 
-      fact1 = -1.d0*IBCflux_ratio(np,nr,nsa)/JIR(nth,np,nr,nsa)
+      fact1 = -1.d0*IBCflux_ratio(np,nr,nsa)/JI(nth,np,nr,nsa)
       fact2 = -1.d0*(1.d0-IBCflux_ratio(np,nr,nsa)) &
-            / JIR(nth_stg(nsa)-1,np,nr_pnc_point(np,nr,nsa),nsa)
+            / JI(nth_stg(nsa)-1,np,nr_pnc_point(np,nr,nsa),nsa)
       nm_D    = nma(nth,np,nr)
       nm_Xstg = nma(nth_stg(nsa)-1, np, nr_pnc_point(np,nr,nsa))
 
@@ -1334,10 +1331,10 @@ contains
       rl = rm(nr)
       deltath= delthm(nth,np,nr,nsa)
   
-      Dtx(1)  = Dtpfow(nth,np,nr,nsa)*sl/(pl*sl*delp(nsa)*deltath*2.d0)
-      Dtx(2)  = Dttfow(nth,np,nr,nsa)*sl/(pl**2*sl*deltath**2)
-      Dtx(3)  = Dtrfow(nth,np,nr,nsa)*sl/(pl*sl*deltath*delr*2.d0)
-      Fthp    = Fthfow(nth,np,nr,nsa)*sl  
+      Dtx(1)  = Dtpfow(nth,np,nr,nsa)/(delp(nsa)*deltath*2.d0)
+      Dtx(2)  = Dttfow(nth,np,nr,nsa)/(deltath**2)
+      Dtx(3)  = Dtrfow(nth,np,nr,nsa)/(deltath*delr*2.d0)
+      Fthp    = Fthfow(nth,np,nr,nsa)/deltath !**  
 
       if ( np == npmax ) then
         dfnspdp = (f_grid(loc_Xstg, 0.d0, 0.5d0, 0.5d0) &
@@ -1385,7 +1382,7 @@ contains
 
       else if ( S_x > 0.d0 .and. nl_pnc == -1 ) then
 
-        fact1 = -1.d0/JIR(nth,np,nr,nsa)
+        fact1 = -1.d0/JI(nth,np,nr,nsa)
 
         dl(nm_Xstg) = dl(nm_Xstg) + fact1*( -1.d0*Dtx(2) &
                     + Fthp*(1.d0-weight(nth,np,nr,nsa)) )
@@ -1436,7 +1433,7 @@ contains
 
         nm_pnc=nma(loc_pnc(1),loc_pnc(2),loc_pnc(3))
 
-        fact2 = 1.d0/JIR(loc_pnc(1),loc_pnc(2),loc_pnc(3),loc_pnc(4))
+        fact2 = 1.d0/JI(loc_pnc(1),loc_pnc(2),loc_pnc(3),loc_pnc(4))
         nl_pnc = nl_pnc+1 
         ll(nm_pnc,nl_pnc) = nm_Xstg
         al(nm_pnc,nl_pnc) = al(nm_pnc,nl_pnc) + fact2 & 
@@ -1523,10 +1520,10 @@ contains
       rl = rm(nr)
       deltath= delthm(nth,np,nr,nsa)
   
-      Dtx(1)  = Dtpfow(nth+1,np,nr,nsa)*sl/(pl*sl*delp(nsa)*deltath*2.d0)
-      Dtx(2)  = Dttfow(nth+1,np,nr,nsa)*sl/(pl**2*sl*deltath**2)
-      Dtx(3)  = Dtrfow(nth+1,np,nr,nsa)*sl/(pl*sl*deltath*delr*2.d0)
-      Fthp    = Fthfow(nth+1,np,nr,nsa)*sl  
+      Dtx(1)  = Dtpfow(nth+1,np,nr,nsa)/(delp(nsa)*deltath*2.d0)
+      Dtx(2)  = Dttfow(nth+1,np,nr,nsa)/(deltath**2)
+      Dtx(3)  = Dtrfow(nth+1,np,nr,nsa)/(deltath*delr*2.d0)
+      Fthp    = Fthfow(nth+1,np,nr,nsa)/deltath !**  
 
       if ( np == npmax ) then
         dfnspdp = (f_grid(loc_Xstg, 1.d0, 0.5d0, 0.5d0) & 
@@ -1573,7 +1570,7 @@ contains
 
       else if ( S_x < 0.d0 .and. nl_pnc == -1 ) then
 
-        fact1 = 1.d0/JIR(nth,np,nr,nsa)
+        fact1 = 1.d0/JI(nth,np,nr,nsa)
         nm_Xstg = nma(nth, np, nr)
 
         dl(nm_Xstg) = dl(nm_Xstg) + fact1*(Dtx(2) & 
@@ -1624,7 +1621,7 @@ contains
 
         nm_pnc = nma(loc_pnc(1),loc_pnc(2),loc_pnc(3))
 
-        fact1 = 1.d0/JIR(loc_pnc(1),loc_pnc(2),loc_pnc(3),loc_pnc(4))
+        fact1 = 1.d0/JI(loc_pnc(1),loc_pnc(2),loc_pnc(3),loc_pnc(4))
 
         nl_pnc = nl_pnc+1 
         ll(nm_pnc,nl_pnc) = nm_Xstg
@@ -1713,12 +1710,12 @@ contains
       deltath= delthm(nth,np,nr,nsa)
       nm_Ostg = nma(nth,np,nr)
   
-      Dtx(1)  = Dtpfow(nth+1,np,nr,nsa)*sl/(pl*sl*delp(nsa)*deltath*2.d0)
-      Dtx(2)  = Dttfow(nth+1,np,nr,nsa)*sl/(pl**2*sl*deltath**2)
-      Dtx(3)  = Dtrfow(nth+1,np,nr,nsa)*sl/(pl*sl*deltath*delr*2.d0)
-      Fthp    = Fthfow(nth+1,np,nr,nsa)*sl
+      Dtx(1)  = Dtpfow(nth+1,np,nr,nsa)/(delp(nsa)*deltath*2.d0)
+      Dtx(2)  = Dttfow(nth+1,np,nr,nsa)/(deltath**2)
+      Dtx(3)  = Dtrfow(nth+1,np,nr,nsa)/(deltath*delr*2.d0)
+      Fthp    = Fthfow(nth+1,np,nr,nsa)/deltath !**
 
-      fact = 1.d0/JIR(nth,np,nr,nsa)
+      fact = 1.d0/JI(nth,np,nr,nsa)
 
       dl(nm_Ostg) = dl(nm_Ostg) + (Dtx(2)+Fthp &
                   * weight(nth+1,np,nr,nsa))*fact
@@ -1762,12 +1759,12 @@ contains
       deltath= delthm(nth,np,nr,nsa)
       nm_Ostg = nma(nth,np,nr)
   
-      Dtx(1)  = Dtpfow(nth,np,nr,nsa)*sl/(pl*sl*delp(nsa)*deltath*2.d0)
-      Dtx(2)  = Dttfow(nth,np,nr,nsa)*sl/(pl**2*sl*deltath**2)
-      Dtx(3)  = Dtrfow(nth,np,nr,nsa)*sl/(pl*sl*deltath*delr*2.d0)
-      Fthp    = Fthfow(nth,np,nr,nsa)*sl
+      Dtx(1)  = Dtpfow(nth,np,nr,nsa)/(delp(nsa)*deltath*2.d0)
+      Dtx(2)  = Dttfow(nth,np,nr,nsa)/(deltath**2)
+      Dtx(3)  = Dtrfow(nth,np,nr,nsa)/(deltath*delr*2.d0)
+      Fthp    = Fthfow(nth,np,nr,nsa)/deltath !**
 
-      fact = -1.d0/JIR(nth,np,nr,nsa)
+      fact = -1.d0/JI(nth,np,nr,nsa)
 
       dl(nm_Ostg) = dl(nm_Ostg) + fact*( -1.d0*Dtx(2) &
                   + Fthp*(1.d0-weight(nth,np,nr,nsa)) )

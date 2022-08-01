@@ -1,3 +1,11 @@
+! fowprep.f90
+! [2022/7/19]
+! *******************************
+!  Preparation for Calculation
+! *******************************
+! made by ota /modified by anzai
+!
+
 module fowprep
   private
   public :: fow_prep
@@ -5,7 +13,8 @@ module fowprep
 contains
 
   subroutine fow_prep
-
+    !============================
+    !============================
     use fowcomm
     use fpcomm
     use foworbit
@@ -21,12 +30,10 @@ contains
     logical :: isCo
     real(rkind) :: summ
 
-    ! load equiliblium variable
+    !**** load equiliblium variable
     call fow_eqload(ierr)
 
-    ! call output_orbit_classify
-
-    ! calculate thetam
+    !**** calculate thetam
     nthm3 = nthmax/2
     nthm2 = (nthmax-nthm3)/2
     nthm1 = nthmax-nthm2-nthm3
@@ -36,24 +43,26 @@ contains
     do nsa = 1, nsamax
       do nr = 1, nrmax
         do np = 1, npmax
-          ! calculate theta_pnc and psip_pnc_point
+          !**** calculate theta_pnc and psip_pnc_point
           call bisection_method(get_pinch_point, flag, pm(np,nsa)&
                     , theta_pnc(np,nr,nsa), psip_pnc_point(np,nr,nsa), epspsi, psim(nr)-epspsi, psim(nr), nsa)
           if ( flag /= 0 ) theta_pnc(np,nr,nsa) = NO_PINCH_ORBIT
 
-          ! calculate theta_co_stg
-          !if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),then theta_co_stg(np,nr,nsa) = 0.d0
+          !**** calculate theta_co_stg
+          !**** [ if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),
+          !**** then theta_co_stg(np,nr,nsa) = 0.d0 ]
           call bisection_method(get_p_stg, flag, pm(np,nsa)&
                                       , dummy, theta_co_stg(np,nr,nsa), 0.d0, pi/2.d0, psim(nr), nsa)
           if ( flag > 0 ) theta_co_stg(np,nr,nsa) = 0.d0
 
-          ! calculate theta_cnt_stg 
-          ! if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),then theta_cnt_stg(np,nr,nsa) = pi
+          !**** calculate theta_cnt_stg
+          !**** [ if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),
+          !**** then theta_cnt_stg(np,nr,nsa) = pi ]
           call bisection_method(get_p_stg, flag, pm(np,nsa)&
                                       , dummy, theta_cnt_stg(np,nr,nsa), pi/2.d0, pi, psim(nr), nsa)
           if ( flag > 0 ) theta_cnt_stg(np,nr,nsa) = pi
 
-          ! calculate nr_pnc_point
+          !**** calculate nr_pnc_point
           if ( theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
             do ir = 1, nr
               if ( psimg(ir) <=  psip_pnc_point(np,nr,nsa) &
@@ -63,9 +72,8 @@ contains
               end if
             end do
           end if
-          ! write(6,'(A,3I3,2ES12.4,I2)')"pinch",nsa,nr,np,theta_pnc(np,nr,nsa),psip_pnc_point(np,nr,nsa),nr_pnc_point(np,nr,nsa)
 
-          ! define thetam mesh
+          !**** define thetam mesh
           if ( aefp(nsa) >= 0.d0 ) then
 
             if ( theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
@@ -91,8 +99,8 @@ contains
               end do
 
             end if
-  
-          else 
+
+          else
 
             if ( theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
               do nth = 1, nthm3
@@ -117,7 +125,7 @@ contains
               end do
 
             end if
-  
+
           end if
 
           thetam(1,np,nr,nsa) = 0.5d0*delthm(1,np,nr,nsa)
@@ -138,7 +146,7 @@ contains
             thetamg(nth,np,nr,nsa) = thetamg(nth-1,np,nr,nsa)+delthm(nth-1,np,nr,nsa)
           end do
 
-          thetamg(nthmax+1,np,nr,nsa) = pi 
+          thetamg(nthmax+1,np,nr,nsa) = pi
 
         end do
       end do
@@ -148,7 +156,7 @@ contains
         nth_stg(nsa) = nthm1+nthm2+1
       else
         nth_pnc(nsa) = nthm3+nthm2+1
-        nth_stg(nsa) = nthm3+1  
+        nth_stg(nsa) = nthm3+1
       end if
 
     end do
@@ -156,29 +164,31 @@ contains
     do nsa = 1, nsamax
       do nr = 1, nrmax
         do np = 1, npmax+1
-          ! calculate theta_pnc_pg and psip_pnc_point_pg
+          !**** calculate theta_pnc_pg and psip_pnc_point_pg
           if ( np == 1 ) then
             theta_pnc_pg(np,nr,nsa) = NO_PINCH_ORBIT
           else
             call bisection_method(get_pinch_point, flag, pg(np,nsa)&
                       , theta_pnc_pg(np,nr,nsa), psip_pnc_point_pg(np,nr,nsa), epspsi, psim(nr)-epspsi, psim(nr), nsa)
 
-            if ( flag /= 0 ) theta_pnc_pg(np,nr,nsa) = NO_PINCH_ORBIT  
+            if ( flag /= 0 ) theta_pnc_pg(np,nr,nsa) = NO_PINCH_ORBIT
           end if
-          
-          ! calculate theta_co_stg_pg
-          !if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),then theta_co_stg_pg(np,nr,nsa) = 0.d0
+
+          !**** calculate theta_co_stg_pg
+          !**** [ if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),
+          !**** then theta_co_stg_pg(np,nr,nsa) = 0.d0 ]
           call bisection_method(get_p_stg, flag, pg(np,nsa)&
                                       , dummy, theta_co_stg_pg(np,nr,nsa), 0.d0, pi/2.d0, psim(nr), nsa)
           if ( flag > 0 ) theta_co_stg_pg(np,nr,nsa) = 0.d0
 
-          ! calculate theta_cnt_stg _pg
-          ! if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),then theta_cnt_stg_pg(np,nr,nsa) = pi
+          !**** calculate theta_cnt_stg _pg
+          !**** [ if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),
+          !**** then theta_cnt_stg_pg(np,nr,nsa) = pi ]
           call bisection_method(get_p_stg, flag, pg(np,nsa)&
                                       , dummy, theta_cnt_stg_pg(np,nr,nsa), pi/2.d0, pi, psim(nr), nsa)
           if ( flag > 0 ) theta_cnt_stg_pg(np,nr,nsa) = pi
 
-          ! define thetam mesh
+          !**** define thetam mesh
           if ( aefp(nsa) >= 0.d0 ) then
 
             if ( theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
@@ -204,8 +214,8 @@ contains
               end do
 
             end if
-  
-          else 
+
+          else
 
             if ( theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
               do nth = 1, nthm3
@@ -230,7 +240,7 @@ contains
               end do
 
             end if
-  
+
           end if
 
           thetam_pg(1,np,nr,nsa) = 0.5d0*delthm_pg(1,np,nr,nsa)
@@ -254,30 +264,32 @@ contains
     do nsa = 1, nsamax
       do nr = 1, nrmax+1
         do np = 1, npmax
-          ! calculate theta_pnc_rg and psip_pnc_point_rg
+          !**** calculate theta_pnc_rg and psip_pnc_point_rg
           if ( nr == 1 ) then
             theta_pnc_rg(np,nr,nsa) = NO_PINCH_ORBIT
           else
             call bisection_method(get_pinch_point, flag, pm(np,nsa)&
                       , theta_pnc_rg(np,nr,nsa), psip_pnc_point_rg(np,nr,nsa), epspsi, psimg(nr)-epspsi, psimg(nr), nsa)
 
-            if ( flag /= 0 ) theta_pnc_rg(np,nr,nsa) = NO_PINCH_ORBIT  
+            if ( flag /= 0 ) theta_pnc_rg(np,nr,nsa) = NO_PINCH_ORBIT
 
           end if
 
-          ! calculate theta_co_stg_rg
-          !if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),then theta_co_stg_rg(np,nr,nsa) = 0.d0
+          !**** calculate theta_co_stg_rg
+          !**** [ if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),
+          !**** then theta_co_stg_rg(np,nr,nsa) = 0.d0 ]
           call bisection_method(get_p_stg, flag, pm(np,nsa)&
                                       , dummy, theta_co_stg_rg(np,nr,nsa), 0.d0, pi/2.d0, psimg(nr), nsa)
           if ( flag > 0 ) theta_co_stg_rg(np,nr,nsa) = 0.d0
 
-          ! calculate theta_cnt_stg_rg 
-          ! if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),then theta_cnt_stg_rg(np,nr,nsa) = pi
+          !**** calculate theta_cnt_stg_rg
+          !**** [ if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),
+          !**** then theta_cnt_stg_rg(np,nr,nsa) = pi ]
           call bisection_method(get_p_stg, flag, pm(np,nsa)&
                                       , dummy, theta_cnt_stg_rg(np,nr,nsa), pi/2.d0, pi, psimg(nr), nsa)
           if ( flag > 0 ) theta_cnt_stg_rg(np,nr,nsa) = pi
 
-          ! define theta mesh
+          !**** define theta mesh
           if ( aefp(nsa) >= 0.d0 ) then
 
             if ( theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
@@ -303,8 +315,8 @@ contains
               end do
 
             end if
-  
-          else 
+
+          else
 
             if ( theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
               do nth = 1, nthm3
@@ -329,7 +341,7 @@ contains
               end do
 
             end if
-  
+
           end if
 
           thetam_rg(1,np,nr,nsa) = 0.5d0*delthm_rg(1,np,nr,nsa)
@@ -352,7 +364,7 @@ contains
 
     call fow_orbit(flag, ierr)
 
-    ! IBC
+    !**** IBC
     do nsa = 1, nsamax
       do nr = 1, nrmax
         do np = 1, npmax
@@ -363,7 +375,7 @@ contains
 
           if ( 0.d0 <= orbit_pnc%costh(1) .and. orbit_pnc%costh(1) <= 1.d0 ) then
             isCo = .true.
-          else 
+          else
             isCo = .false.
           end if
 
@@ -393,7 +405,6 @@ contains
           if ( IBCflux_ratio(np,nr,nsa) == 1.d0 .or. IBCflux_ratio(np,nr,nsa) == 0.d0 ) then
             IBCflux_ratio(np,nr,nsa) = 0.5d0
           end if
-          ! write(6,'(3I3,ES12.4)')np,nr,nsa,IBCflux_ratio(np,nr,nsa)
         end do
       end do
     end do
@@ -409,7 +420,7 @@ contains
 
     call calculate_jacobian
 
-    ! calculate local COMs
+    !**** calculate local COMs
     if ( SUM( modelc ) >= 2*nsamax ) then
       if ( model_obload >= 1 .and. flag == 0) then
         call cpu_time(begin_time)
@@ -417,7 +428,7 @@ contains
         call cpu_time(end_time)
         write(6,'("Load local COMs time :",ES10.3,"[sec]")')end_time-begin_time
       end if
-  
+
       if ( model_obload == 0 .or. ierr /= 0 .or. flag /= 0) then
         write(6,'(A)')"TASK/OB is runnnig for local COMs ..."
         call cpu_time(begin_time)
@@ -430,13 +441,13 @@ contains
                   pitch_angle = thm(nth)
                   theta_pol = theta_p(nthp)
                   psi_pol = psim(nr)
-    
+
                   call fow_cal_local_COMs(thetaml, rhoml, tau_loss, momentum, pitch_angle, theta_pol, psi_pol, nsa)
-    
+
                   thetam_local(nth,np,nr,nthp,nsa) = thetaml
                   rhom_local(nth,np,nr,nthp,nsa) = rhoml
                   time_loss(nth,np,nr,nthp,nsa) = tau_loss
-    
+
                 end do
               end do
             end do
@@ -445,12 +456,14 @@ contains
         call cpu_time(end_time)
         write(6,'("TASK/OB time:",ES10.3,"[sec]")')end_time-begin_time
         if ( model_obload > 0 ) call save_local_COM(ierr)
-      end if  
+      end if
     end if
-    
+
   end subroutine fow_prep
 
   subroutine fow_eqload(ierr)
+    !======================================
+    !======================================
     use fowcomm
     use fpcomm,only:rkind,nrmax,nthmax,npmax,rm,rg
     USE libspl1d
@@ -483,7 +496,7 @@ contains
     call eqload(modelg,knameq,ierr)
     if(ierr.ne.0) return
 
-    write(line,'(a)') 'mdleqc = 1'   ! set boozer poloidal angle
+    write(line,'(a)') 'mdleqc = 1'   !**** set boozer poloidal angle
     call eqparm(2,line,ierr)
     if(ierr.ne.0) return
 
@@ -502,15 +515,15 @@ contains
     call eqcalq(ierr)
     if(ierr.ne.0) return
 
-    call eqgetp(rhotg,psimg,nrmax+1)                       ! normalized psit radius , use only psimg
-    call eqgetqn(ppsi,qpsi,Fpsig,vpsi,rlen,ritpsi,nrmax+1) ! flux functions         , use only Fpsig
-    call eqgetbb(Br,Bz,Bp,Bt,nthpmax,nthpmax,nrmax+1)      ! mag field              , use only Bt and Bp
-    call eqgeta(rr_axis,zz_axis,psi0,psit0,qaxis,qsurf)    ! axis and mag parameters, use only psi0
+    call eqgetp(rhotg,psimg,nrmax+1)                       !** normalized psit radius , use only psimg
+    call eqgetqn(ppsi,qpsi,Fpsig,vpsi,rlen,ritpsi,nrmax+1) !** flux functions         , use only Fpsig
+    call eqgetbb(Br,Bz,Bp,Bt,nthpmax,nthpmax,nrmax+1)      !** mag field              , use only Bt and Bp
+    call eqgeta(rr_axis,zz_axis,psi0,psit0,qaxis,qsurf)    !** axis and mag parameters, use only psi0
 
     do nthp = 1, nthpmax
       theta_p(nthp) = (dble(nthp)-0.5d0)*2.d0*pi/nthpmax
     end do
-    
+
     psi0 = psi0/(2*pi)
     do nr = 1, nrmax+1
       Fpsig(nr) = Fpsig(nr)/(2*pi)
@@ -522,7 +535,7 @@ contains
         safety_factor(nr) = qpsi(nr)
         do nthp = 1, nthpmax
           Babs(nr,nthp) = sqrt(Bt(nthp,nr)**2+Bp(nthp,nr)**2)
-        end do  
+        end do
       end if
     end do
 
@@ -535,8 +548,8 @@ contains
     call spl1D(rhot,safety_factor,dqdpsi,Cq,nrmax,3,ierr)
 
     call spl2D(rhot,theta_p,Babs,dBdrho,dBdth,dBdrt,CB,nrmax,nrmax,nthpmax,0,0,ierr)
-    
-    ! re-define
+
+    !**** re-define
     do nr = 1, nrmax+1
       if ( nr <= nrmax ) then
         call spl1DF(rm(nr),psim(nr),rhot,Cps,nrmax,ierr)
@@ -551,7 +564,7 @@ contains
       call spl2DF(rg(nr),pi,Bing(nr),rhot,theta_p,CB,nrmax,nrmax,nthpmax,ierr)
     end do
 
-    ! calculate derivatives of eq variables
+    !**** calculate derivatives of eq variables
     call first_order_derivative(dpsimdr,psim,rm)
     call first_order_derivative(dFdr,Fpsi,rm)
     call first_order_derivative(dBindr,Bin,rm)
@@ -561,7 +574,7 @@ contains
     call first_order_derivative(dFgdr,Fpsig,rg)
     call first_order_derivative(dBingdr,Bing,rg)
     call first_order_derivative(dBoutgdr,Boutg,rg)
-  
+
     do nthp = 1, nthpmax
       call first_order_derivative(dBdr(:,nthp),Babs(:,nthp),rm)
     end do
@@ -572,11 +585,13 @@ contains
   end subroutine fow_eqload
 
   subroutine bisection_method(routine, convergence_flag, f, g, x, x1, x2, psim_in, nsa_in)
+    !======================================================================================
     ! resolve f = func(x), x1 < x < x2, where psim_in and nsa_in are constant
     !         func(x) is z1 of "routine".
     ! use bisection method if calculation has converged then return convergence_flag = 0,
     !                                                   else return convergence_flag = 1,
     !                      if func(x1)*func(x2) > 0     then return convergence_flag = 2.
+    !=====================================================================================
     use fpcomm,only:rkind,npmax
     implicit none
     real(rkind),intent(out) :: x, g
@@ -591,7 +606,7 @@ contains
         integer, intent(in) :: m
       end subroutine
     end interface
-    
+
     real(rkind) :: x_min, x_max, x_mid, f_min, f_max, f_mid, g_min, g_max, g_mid, eps
     integer :: i, imax = 1000
 
@@ -630,14 +645,14 @@ contains
         call routine(f_mid, g_mid, x_mid, psim_in, nsa_in)
         f_mid = f_mid - f
 
-      else 
+      else
         x_max = x_mid
         x_mid = (x_min+x_max)/2.d0
         call routine(f_max, g_max, x_max, psim_in, nsa_in)
         f_max = f_max - f
         call routine(f_mid, g_mid, x_mid, psim_in, nsa_in)
         f_mid = f_mid - f
-    
+
       end if
 
     end do
@@ -650,12 +665,15 @@ contains
   end subroutine bisection_method
 
   subroutine get_pinch_point(p_ret, theta_pncp, psip_in, psim_in, nsa_in)
+    !===========================================================================
     ! input psip_in that is pinch point of pinch orbit with psi_m = psim_in.
     ! psi_p must be less than psim(nr_in)
     ! return momentum of pinch orbit with psi_m = psim(nr_in), psi_pnc = psip_in
+    ! Eqs are from Rome [Orbit classification 1977]
+    !===========================================================================
     use fowcomm
     use fpcomm
-    
+
     implicit none
     real(rkind),intent(out) :: p_ret, theta_pncp
     real(rkind),intent(in):: psip_in, psim_in
@@ -675,18 +693,18 @@ contains
     call fow_cal_spl(F_pncp, psip_in, Fpsig, psimg)
     call fow_cal_spl(dFdpsi_pncp, psip_in, dFdpsi, psimg)
     call fow_cal_spl(F_m, psim_in, Fpsig, psimg)
-    call fow_cal_spl(B_m, psim_in, Boutg, psimg)    
-    
+    call fow_cal_spl(B_m, psim_in, Boutg, psimg)
+
     if ( psip_in == 0.d0 ) then
       Bin_pncp = Bing(1)
       dBdpsi_pncp = dBdpsi(1)
     else
       call fow_cal_spl(Bin_pncp, psip_in, Bing, psimg)
-      call fow_cal_spl(dBdpsi_pncp, psip_in, dBdpsi, psimg)  
+      call fow_cal_spl(dBdpsi_pncp, psip_in, dBdpsi, psimg)
     end if
 
-    ! dFdpsi_pncp = dFdpsi_pncp*psip_in
-    ! dBdpsi_pncp = dBdpsi_pncp*psip_in
+    !**** dFdpsi_pncp = dFdpsi_pncp*psip_in
+    !**** dBdpsi_pncp = dBdpsi_pncp*psip_in
     dFdpsi_pncp = dFdpsi_pncp*psim_in
     dBdpsi_pncp = dBdpsi_pncp*psim_in
 
@@ -710,7 +728,6 @@ contains
     w = real(z(1))
 
     xi2 = 1.d0-(1.d0-w)*B_m/Bin_pncp
-    ! write(*,*)"pnc",xi2,w
     if ( xi2 >= 1.d0 ) xi2 = 1.d0
     if ( xi2 <= 0.d0 ) then
       if( ABS(psip_in-psim_in) >= ABS(psip_in-0.d0) )p_ret = pmax(nsa_in)
@@ -720,27 +737,30 @@ contains
 
     if ( aefp(nsa_in) >= 0.d0 ) then
       xi_pncp = sqrt(xi2)
-    else 
+    else
       xi_pncp = -sqrt(xi2)
     end if
 
     FB_prime = (dFdpsi_pncp*Bin_pncp-F_pncp*dBdpsi_pncp)/Bin_pncp**2*B_m/F_m
-    p_ret = G_m*sqrt(w)/(w*FB_prime-0.5d0*(1.d0-xi_pncp**2)*F_pncp*dBdpsi_pncp/F_m/Bin_pncp) ! LHS = gamma*beta
-    p_ret = vc*sqrt(p_ret**2/(1.d0+p_ret**2))             ! LHS = velocity of stagnation orbit
+    p_ret = G_m*sqrt(w)/(w*FB_prime-0.5d0*(1.d0-xi_pncp**2)*F_pncp*dBdpsi_pncp/F_m/Bin_pncp) !** LHS = gamma*beta
+    p_ret = vc*sqrt(p_ret**2/(1.d0+p_ret**2))             !** LHS = velocity of stagnation orbit
     if ( p_ret >= vc ) then
       p_ret = vc-1.d-5
     end if
-    p_ret = amfp(nsa_in)*p_ret/(1.d0-p_ret**2/vc**2)      ! momentum of stagnation orbit
-    p_ret = p_ret/ptfp0(nsa_in)                           ! normalize
+    p_ret = amfp(nsa_in)*p_ret/(1.d0-p_ret**2/vc**2)      !** momentum of stagnation orbit
+    p_ret = p_ret/ptfp0(nsa_in)                           !** normalize
     theta_pncp = acos(xi_pncp)
 
   end subroutine get_pinch_point
 
   subroutine get_p_stg(p_ret, dummy, theta_in, psim_in, nsa_in)
-    ! return momentum of stagnation orbit for given (theta_m = theta_in, psi_m = psim(nr_in)) and species, nsa_in
+    !====================================================================
+    ! return momentum of stagnation orbit for given (theta_m = theta_in,
+    ! psi_m = psim(nr_in)) and species, nsa_in
+    !====================================================================
     use fowcomm
     use fpcomm
-    
+
     implicit none
     real(rkind),intent(out):: p_ret, dummy
     real(rkind),intent(in):: theta_in, psim_in
@@ -784,14 +804,16 @@ contains
     call fow_cal_spl(B_p, psim_in, dBmdpsi, psim)
     call fow_cal_spl(G_ml, psim_in, G_m, psim)
 
-    p_ret = G_ml*xil/(xil**2*F_p-0.5d0*(1.d0+xil**2)*B_p) ! LHS = gamma*beta
-    p_ret = vc*sqrt(p_ret**2/(1.d0+p_ret**2))             ! LHS = velocity of stagnation orbit
-    p_ret = amfp(nsa_in)*p_ret/(1.d0-p_ret**2/vc**2)      ! momentum of stagnation orbit
-    p_ret = p_ret/ptfp0(nsa_in)                           ! normalize
+    p_ret = G_ml*xil/(xil**2*F_p-0.5d0*(1.d0+xil**2)*B_p) !** LHS = gamma*beta
+    p_ret = vc*sqrt(p_ret**2/(1.d0+p_ret**2))             !** LHS = velocity of stagnation orbit
+    p_ret = amfp(nsa_in)*p_ret/(1.d0-p_ret**2/vc**2)      !** momentum of stagnation orbit
+    p_ret = p_ret/ptfp0(nsa_in)                           !** normalize
 
   end subroutine get_p_stg
 
   subroutine save_local_COM(ierr)
+    !===============================================
+    !===============================================
     use fpcomm
     use fowcomm
     implicit none
@@ -833,6 +855,8 @@ contains
   end subroutine save_local_COM
 
   subroutine load_local_COM(ierr)
+    !===========================================
+    !===========================================
     use fpcomm
     use fowcomm
     implicit none
@@ -921,11 +945,13 @@ contains
   end subroutine load_local_COM
 
   subroutine search_pinch_orbit(nr_pinch,np_x,nr_x,ns_x)
+    !===================================================
+    !===================================================
     use fpcomm
     use fowcomm
     implicit none
     integer,intent(out) :: nr_pinch
-    integer,intent(in) :: np_x,nr_x,ns_x ! index of X point
+    integer,intent(in) :: np_x,nr_x,ns_x !** index of X point
     real(rkind) :: p_pnc,p_pnc_prev, psim_pinch, epspsi, dummy, psix, p_left, p_right
 
     epspsi = psim(1)*1.d-8
@@ -938,7 +964,7 @@ contains
     nr_pinch = nr_x
     do while( nr_pinch <= nrmax+1 )
 
-      ! calcurate momentum of X point
+      !**** calcurate momentum of X point
       call get_pinch_point(p_pnc, dummy, psix, psim_pinch, ns_x)
 
       if ( p_left <= p_pnc .and. p_pnc <= p_right ) then
@@ -961,23 +987,25 @@ contains
   end subroutine search_pinch_orbit
 
   subroutine calculate_jacobian
+    !==============================================
+    !==============================================
     use fowcomm
     use fpcomm
     use foworbit
 
-    implicit none 
+    implicit none
     integer :: np, nth, nr, nsa, nstpmax, ierr
-    ! for JI
+    !**** for JI
     real(rkind) :: J_x2z, J_z2I, tau_p, dBmdrl, pv, Bml, pl, m0, sthm, cthm
     real(rkind) :: dedp, dmudthm, dmudrm, dPzdthm, dPzdrm
-    ! for JIR
+    !***** for JIR
     real(rkind) :: r0, psip0, costh0, sinth0, B0, F0, dBdr0, dFdr0, dpsipdr0, drmdr0
     real(rkind) :: A(2,2), b(2), detA
     real(rkind) :: sumU, sumI, normalize
 
     ierr = 0
 
-    ! calculate JI 
+    !**** calculate JI
     do nsa = 1, nsamax
       m0 = amfp(nsa)
       do nr = 1, nrmax
@@ -997,7 +1025,7 @@ contains
             nstpmax = orbit_m(nth,np,nr,nsa)%nstp_max
             tau_p = orbit_m(nth,np,nr,nsa)%time(nstpmax)
 
-            J_x2z = 4.d0*pi**2*tau_p/(m0**2*ABS(aefp(nsa)))
+            J_x2z = 2.d0*pi*tau_p/(m0**2*ABS(aefp(nsa))) ! *1/2pi For New Definition by anzai [2022/7/19]
 
             dedp    = pl/(m0*pv)
             dmudthm = pl**2*cthm*sthm/(m0*Bml)
@@ -1008,19 +1036,19 @@ contains
             J_z2I = ABS( dedp * (dmudthm*dPzdrm - dmudrm*dPzdthm) )
 
             JI(nth,np,nr,nsa) = J_x2z * J_z2I
-            
+
           end do
         end do
       end do
     end do
 
-
-    ! calculate JIR
+    !**** calculate JIR
+    !**** Do not Use this param [2022/7/19]
     do nsa = 1, nsamax
       do nr = 1, nrmax
         do np = 1, npmax
           pl = pm(np,nsa)*ptfp0(nsa)
-          do nth = 1, nthmax 
+          do nth = 1, nthmax
             cthm = COS( thetam(nth,np,nr,nsa) )
             sthm = SIN( thetam(nth,np,nr,nsa) )
             if ( cthm*aefp(nsa) >= 0.d0 ) then
@@ -1057,7 +1085,8 @@ contains
       do nr = 1, nrmax
         do np = 1, npmax
           do nth = 1, nthmax
-            sumI = sumI + delp(nsa)*delthm(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)
+            sumI = sumI + delp(nsa)*delthm(nth,np,nr,nsa)*JI(nth,np,nr,nsa)
+                 ! * JIR(nth,np,nr,nsa)
             sumU = sumU + volp(nth,np,nsa)
           end do
         end do
@@ -1068,7 +1097,7 @@ contains
       do nr = 1, nrmax
         do np = 1, npmax
           do nth = 1, nthmax
-            JI(nth,np,nr,nsa)  = JI(nth,np,nr,nsa)  * normalize
+            JI(nth,np,nr,nsa)  = JI(nth,np,nr,nsa) * normalize
             JIR(nth,np,nr,nsa) = JIR(nth,np,nr,nsa) * normalize
           end do
         end do
