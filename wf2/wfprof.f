@@ -338,8 +338,10 @@ C
              RLAMEI= 1.D0
            ENDIF
          ELSE
-           IF(RN(1).GT.0) THEN
-             RLAMII=12.1D0+2.3D0*(LOG10(RT(NS))-0.5D0*LOG10(RN(1)))
+            IF(RN(1).GT.0) THEN
+C --- old version ---
+C             RLAMII=12.1D0+2.3D0*(LOG10(RT(NS))-0.5D0*LOG10(RN(1)))
+             RLAMII=7.0D0+2.3D0*(1.5D0*LOG10(RT(NS))-0.5D0*LOG10(RN(1)))
            ELSE
              RLAMII= 1.D0
            ENDIF
@@ -377,11 +379,7 @@ C
             VTI=SQRT(2.D0*TI*AEE/(PA(NS)*AMP))
             RNUIE=PZ(NS)**2*RN(1)*RLAMEI
      &           /(2.00D-1*SQRT(TE*1.D-3)**3*PA(NS))
-            RNUII=0.D0
-            DO NSI=2,NSMAX
-               RNUII=RNUII+PZ(NSI)**2*RN(NSI)
-            ENDDO
-            RNUII=RNUII*RLAMII
+            RNUII=PZ(NS)**4*RN(NS)*RLAMII
      &           /(5.31D-3*SQRT(TI*1.D-3)**3*SQRT(PA(NS)))
             RNUIN=PNN0*SNI*0.88D0*VTI
             RNUE(NS)=RNUIE
