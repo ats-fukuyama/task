@@ -328,25 +328,55 @@ C
 C
       DIMENSION RN(NSM),RT(NSM),RNUE(NSM),RNUI(NSM),RNUN(NSM)
 C
+      RNSUM=0.D0
+      RNTSUM=0.D0
       DO NS=1,NSMAX
-         IF(NS.EQ.1) THEN
-           IF(RN(1).GT.0) THEN
-             RLAMEE= 8.0D0+2.3D0*(LOG10(RT(1))-0.5D0*LOG10(RN(1)))
-             RLAMEI= RLAMEE+0.3D0
-           ELSE
-             RLAMEE= 1.D0
-             RLAMEI= 1.D0
-           ENDIF
+         RNSUM=RNSUM+RN(NS)
+         RNTSUM=RNTSUM+RN(NS)*RT(NS)
+      END DO
+      IF(RNSUM.GT.0.D0) THEN
+         RTAVE=RNTSUM/RNSUM
+      ELSE
+         RTAVE=0.03D0
+      END IF
+         
+      DO NS=1,NSMAX
+         IF(RN(1).GT.0.AND.RTAVE.GT.0.D0) THEN
+            IF(NS.EQ.1) THEN
+               IF(RTAVE.GT.6.65D0) THEN
+                  RLAMEE=8.0D0
+     &                  +2.3D0*(LOG10(RTAVE)-0.5D0*LOG10(RN(1)))
+               ELSE
+                  RLAMEE=7.0D0
+     &                  +2.3D0*(1.5D0*LOG10(RTAVE)-0.5D0*LOG10(RN(1)))
+               END IF
+            ELSE
+               RLAMEE=1.D0
+            END IF
+            IF(RTAVE.GT.13.3D0) THEN
+               RLAMEI=8.3D0
+     &              +2.3D0*(LOG10(RTAVE)-0.5D0*LOG10(RN(1)))
+            ELSE
+               RLAMEI=7.0D0
+     &              +2.3D0*(1.5D0*LOG10(RTAVE)-0.5D0*LOG10(RN(1)))
+            END IF
+            IF(NS.GT.1) THEN
+               IF(RTAVE.GT.24.5D3) THEN
+                  RLAMII=12.1D0
+     &                  +2.3D0*(LOG10(RTAVE)-0.5D0*LOG10(RN(1)))
+               ELSE
+                  RLAMII=7.0D0
+     &                  +2.3D0*(1.5D0*LOG10(RTAVE)-0.5D0*LOG10(RN(1)))
+               END IF
+            ELSE
+               RLAMII=1.D0
+            ENDIF
          ELSE
-            IF(RN(1).GT.0) THEN
-C --- old version ---
-C             RLAMII=12.1D0+2.3D0*(LOG10(RT(NS))-0.5D0*LOG10(RN(1)))
-             RLAMII=7.0D0+2.3D0*(1.5D0*LOG10(RT(NS))-0.5D0*LOG10(RN(1)))
-           ELSE
-             RLAMII= 1.D0
-           ENDIF
-         ENDIF
-      ENDDO
+            RLAMEE= 1.D0
+            RLAMEI= 1.D0
+            RLAMIE= 1.D0
+         END IF
+      END DO
 C
       IF(MODELN.EQ.0) THEN
          TE=RT(1)
