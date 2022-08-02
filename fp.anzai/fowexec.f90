@@ -373,11 +373,11 @@ contains
                 end if
               end if
             end if
-            fvel = Fppfow(nth,np,nr,nsa) & 
-                 - Dptfow(nth,np,nr,nsa)*dfdth & 
-                 - Dprfow(nth,np,nr,nsa)*dfdrm
+            fvel = Fpp_j(nth,np,nr,nsa) & 
+                 - Dpt_j(nth,np,nr,nsa)*dfdth & 
+                 - Dpr_j(nth,np,nr,nsa)*dfdrm
             weighp(nth,np,nr,nsa) = fowwegh(-delp(ns)*fvel, & 
-                                      dppfow(nth,np,nr,nsa))
+                                      Dpp_j(nth,np,nr,nsa))
 
         end do
       end do
@@ -439,14 +439,14 @@ contains
             end if
           end if
 
-          fvel = Fthfow(nth,np,nr,nsa)-Dtpfow(nth,np,nr,nsa) & 
-               * dfdp-Dtrfow(nth,np,nr,nsa)*dfdrm
+          fvel = Fth_j(nth,np,nr,nsa)-Dtp_j(nth,np,nr,nsa) & 
+               * dfdp-Dtr_j(nth,np,nr,nsa)*dfdrm
           if ( nth <= nthmax ) then
             weight(nth,np,nr,nsa) = fowwegh(-delthm(nth,np,nr,nsa) & 
-                                  * fvel,Dttfow(nth,np,nr,nsa))
+                                  * fvel,Dtt_j(nth,np,nr,nsa))
           else
             weight(nth,np,nr,nsa) = fowwegh(-delthm(nth-1,np,nr,nsa) & 
-                                  * fvel,Dttfow(nth,np,nr,nsa))
+                                  * fvel,Dtt_j(nth,np,nr,nsa))
           end if
         end do
       end do
@@ -533,9 +533,9 @@ contains
 
             end if
           end if
-          fvel = Frrfow(nth,np,nr,nsa)-Drpfow(nth,np,nr,nsa) & 
-               * dfdp-Drtfow(nth,np,nr,nsa)*dfdth
-          weighr(nth,np,nr,nsa) = fowwegh(-delr*fvel,Drrfow(nth,np,nr,nsa))
+          fvel = Frr_j(nth,np,nr,nsa)-Drp_j(nth,np,nr,nsa) & 
+               * dfdp-Drt_j(nth,np,nr,nsa)*dfdth
+          weighr(nth,np,nr,nsa) = fowwegh(-delr*fvel,Drr_j(nth,np,nr,nsa))
         end do
       end do
     end do
@@ -598,14 +598,14 @@ contains
     nl=0
     nm=nma(nth,np,nr)
 
-    Ffow(1,1) = Fppfow(nth,np,nr,nsa)
-    Ffow(2,1) = Fppfow(nth,np+1,nr,nsa)
+    Ffow(1,1) = Fpp_j(nth,np,nr,nsa)
+    Ffow(2,1) = Fpp_j(nth,np+1,nr,nsa)
 
-    Ffow(1,2) = Fthfow(nth,np,nr,nsa)
-    Ffow(2,2) = Fthfow(nth+1,np,nr,nsa)
+    Ffow(1,2) = Fth_j(nth,np,nr,nsa)
+    Ffow(2,2) = Fth_j(nth+1,np,nr,nsa)
 
-    Ffow(1,3) = Frrfow(nth,np,nr,nsa)
-    Ffow(2,3) = Frrfow(nth,np,nr+1,nsa)
+    Ffow(1,3) = Frr_j(nth,np,nr,nsa)
+    Ffow(2,3) = Frr_j(nth,np,nr+1,nsa)
 
 
     !**** discretized (div(d/dX))_Y
@@ -742,29 +742,29 @@ contains
 
     if ( alpha == 1 ) then
       if ( beta == 1 ) then
-        Dfow = Dppfow(nth,np+si,nr,nsa)
+        Dfow = Dpp_j(nth,np+si,nr,nsa)
       else if ( beta == 2 ) then
-        Dfow = Dptfow(nth+sj,np+si,nr,nsa)
+        Dfow = Dpt_j(nth+sj,np+si,nr,nsa)
       else if ( beta == 3 ) then
-        Dfow = Dprfow(nth,np+si,nr+sj,nsa)
+        Dfow = Dpr_j(nth,np+si,nr+sj,nsa)
       end if
 
     else if ( alpha == 2 ) then
       if ( beta == 1 ) then
-        Dfow = Dtpfow(nth+si,np+sj,nr,nsa)
+        Dfow = Dtp_j(nth+si,np+sj,nr,nsa)
       else if ( beta == 2 ) then
-        Dfow = Dttfow(nth+si,np,nr,nsa)
+        Dfow = Dtt_j(nth+si,np,nr,nsa)
       else if ( beta == 3 ) then
-        Dfow = Dtrfow(nth+si,np,nr+sj,nsa)
+        Dfow = Dtr_j(nth+si,np,nr+sj,nsa)
       end if
 
     else if ( alpha == 3 ) then
       if ( beta == 1 ) then
-        Dfow = Drpfow(nth,np+sj,nr+si,nsa)
+        Dfow = Drp_j(nth,np+sj,nr+si,nsa)
       else if ( beta == 2 ) then
-        Dfow = Drtfow(nth+sj,np,nr+si,nsa)
+        Dfow = Drt_j(nth+sj,np,nr+si,nsa)
       else if ( beta == 3 ) then
-        Dfow = Drrfow(nth,np,nr+si,nsa)
+        Dfow = Drr_j(nth,np,nr+si,nsa)
       end if
 
     end if
@@ -970,10 +970,10 @@ contains
     rl = rm(nr)
     deltath= delthm(nth-1,np,nr,nsa)
 
-    Dtx(1)  = Dtpfow(nth,np,nr,nsa)/(delp(nsa)*deltath*2.d0)
-    Dtx(2)  = Dttfow(nth,np,nr,nsa)/(deltath**2)
-    Dtx(3)  = Dtrfow(nth,np,nr,nsa)/(deltath*delr*2.d0)
-    Fthp    = Fthfow(nth,np,nr,nsa)/deltath !**
+    Dtx(1)  = Dtp_j(nth,np,nr,nsa)/(delp(nsa)*deltath*2.d0)
+    Dtx(2)  = Dtt_j(nth,np,nr,nsa)/(deltath**2)
+    Dtx(3)  = Dtr_j(nth,np,nr,nsa)/(deltath*delr*2.d0)
+    Fthp    = Fth_j(nth,np,nr,nsa)/deltath !**
 
     loc_pnc = [nth,np,nr,nsa]
     loc_D   = [nth,np,nr,nsa]
@@ -1331,10 +1331,10 @@ contains
       rl = rm(nr)
       deltath= delthm(nth,np,nr,nsa)
   
-      Dtx(1)  = Dtpfow(nth,np,nr,nsa)/(delp(nsa)*deltath*2.d0)
-      Dtx(2)  = Dttfow(nth,np,nr,nsa)/(deltath**2)
-      Dtx(3)  = Dtrfow(nth,np,nr,nsa)/(deltath*delr*2.d0)
-      Fthp    = Fthfow(nth,np,nr,nsa)/deltath !**  
+      Dtx(1)  = Dtp_j(nth,np,nr,nsa)/(delp(nsa)*deltath*2.d0)
+      Dtx(2)  = Dtt_j(nth,np,nr,nsa)/(deltath**2)
+      Dtx(3)  = Dtr_j(nth,np,nr,nsa)/(deltath*delr*2.d0)
+      Fthp    = Fth_j(nth,np,nr,nsa)/deltath !**  
 
       if ( np == npmax ) then
         dfnspdp = (f_grid(loc_Xstg, 0.d0, 0.5d0, 0.5d0) &
@@ -1370,7 +1370,7 @@ contains
 
       fnspg   = f_grid(loc_Xstg, 0.d0, 0.5d0, 0.5d0)
 
-      S_x = -1.d0*(Dtpfow(nth,np,nr,nsa)*dfnspdp  &
+      S_x = -1.d0*(Dtp_j(nth,np,nr,nsa)*dfnspdp  &
           + Dttfow(nth,np,nr,nsa)*dfnspdth &
           + Dtrfow(nth,np,nr,nsa)*dfnspdr)  &
           + Fthfow(nth,np,nr,nsa)*fnspg
@@ -1520,10 +1520,10 @@ contains
       rl = rm(nr)
       deltath= delthm(nth,np,nr,nsa)
   
-      Dtx(1)  = Dtpfow(nth+1,np,nr,nsa)/(delp(nsa)*deltath*2.d0)
-      Dtx(2)  = Dttfow(nth+1,np,nr,nsa)/(deltath**2)
-      Dtx(3)  = Dtrfow(nth+1,np,nr,nsa)/(deltath*delr*2.d0)
-      Fthp    = Fthfow(nth+1,np,nr,nsa)/deltath !**  
+      Dtx(1)  = Dtp_j(nth+1,np,nr,nsa)/(delp(nsa)*deltath*2.d0)
+      Dtx(2)  = Dtt_j(nth+1,np,nr,nsa)/(deltath**2)
+      Dtx(3)  = Dtr_j(nth+1,np,nr,nsa)/(deltath*delr*2.d0)
+      Fthp    = Fth_j(nth+1,np,nr,nsa)/deltath !**  
 
       if ( np == npmax ) then
         dfnspdp = (f_grid(loc_Xstg, 1.d0, 0.5d0, 0.5d0) & 
@@ -1710,10 +1710,10 @@ contains
       deltath= delthm(nth,np,nr,nsa)
       nm_Ostg = nma(nth,np,nr)
   
-      Dtx(1)  = Dtpfow(nth+1,np,nr,nsa)/(delp(nsa)*deltath*2.d0)
-      Dtx(2)  = Dttfow(nth+1,np,nr,nsa)/(deltath**2)
-      Dtx(3)  = Dtrfow(nth+1,np,nr,nsa)/(deltath*delr*2.d0)
-      Fthp    = Fthfow(nth+1,np,nr,nsa)/deltath !**
+      Dtx(1)  = Dtp_j(nth+1,np,nr,nsa)/(delp(nsa)*deltath*2.d0)
+      Dtx(2)  = Dtt_j(nth+1,np,nr,nsa)/(deltath**2)
+      Dtx(3)  = Dtr_j(nth+1,np,nr,nsa)/(deltath*delr*2.d0)
+      Fthp    = Fth_j(nth+1,np,nr,nsa)/deltath !**
 
       fact = 1.d0/JI(nth,np,nr,nsa)
 
@@ -1759,10 +1759,10 @@ contains
       deltath= delthm(nth,np,nr,nsa)
       nm_Ostg = nma(nth,np,nr)
   
-      Dtx(1)  = Dtpfow(nth,np,nr,nsa)/(delp(nsa)*deltath*2.d0)
-      Dtx(2)  = Dttfow(nth,np,nr,nsa)/(deltath**2)
-      Dtx(3)  = Dtrfow(nth,np,nr,nsa)/(deltath*delr*2.d0)
-      Fthp    = Fthfow(nth,np,nr,nsa)/deltath !**
+      Dtx(1)  = Dtp_j(nth,np,nr,nsa)/(delp(nsa)*deltath*2.d0)
+      Dtx(2)  = Dtt_j(nth,np,nr,nsa)/(deltath**2)
+      Dtx(3)  = Dtr_j(nth,np,nr,nsa)/(deltath*delr*2.d0)
+      Fthp    = Fth_j(nth,np,nr,nsa)/deltath !**
 
       fact = -1.d0/JI(nth,np,nr,nsa)
 
@@ -1872,5 +1872,6 @@ contains
     end if
 
   end function nma_boundary
+
 
 end module fowexec

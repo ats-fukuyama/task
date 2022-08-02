@@ -21,6 +21,8 @@ program fow
   use fpprep
   use fpsub
 
+  use check_neoclass !** added by anzai
+
   use fpwrite
 
   use libmtx
@@ -46,9 +48,11 @@ program fow
 
   call fow_loop
 
-  write(*,*)"+++++ END OF FOW MODULE +++++"
+  call output_neoclass !** added by anzai
 
   call fow_deallocate
+
+  write(*,*)"+++++ END OF FOW MODULE +++++"
 
 end program fow
 

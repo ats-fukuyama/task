@@ -1,3 +1,11 @@
+! fowcomm.f90
+! [2022/8/1]
+! **************************
+!  Common params definition
+! **************************
+! made by ota / modified by anzai
+! ver.0.1
+
 module fowcomm
 
   USE commpi
@@ -7,94 +15,202 @@ module fowcomm
   implicit none
 
   public
-
-  integer :: model_obload   ! 0          : exec TASK/OB anyway and do not save orbit_x to binary files
-                            ! 1[default] : If binary file of 'type(orbit) orbit_x' exists then load member of orbit_x, else exec TASK/OB
-
-  integer :: model_mkcsv    ! 0[default] : do not output to csv files
-                            ! 1          : output to csv files
-  integer :: max_stp        ! maximum step number for bounce average
-
-  integer:: nthpmax,&                                        ! number of poloidal angle grid points
-            nthm1,&                                          ! number of theta_m grid points for 0 <= theta_m <= theta_pnc
-            nthm2,&                                          ! number of theta_m grid points for theta_pnc <= theta_m <= theta_co_stg
-            nthm3                                            ! number of theta_m grid points for theta_cnt_stg <= theta_m <= pi
-
-  real(rkind),allocatable :: JI(:,:,:,:),& ! dxdydzd(vx)d(vy)d(vz) = JI * dpd(thetam)d(psim)
-                             JIR(:,:,:,:)  ! for integrate over velocity space
-! COM --------------------------------------------------------------------------------------------------          
-  real(rkind),allocatable,dimension(:) :: psim,&                ! maximum poloidal magnetic flux in an orbit, value at half integer grid points
-                                          psimg                 ! psim at integer grid points
-
+  !=============================================================================================================================================
+  ! integer :: model_obload   ! 0          : exec TASK/OB anyway and do not save orbit_x to binary files
+  !                           ! 1[default] : [If binary file of 'type(orbit) orbit_x' exists then load member of orbit_x,
+  !                                             else exec TASK/OB]
+  !
+  ! integer :: model_mkcsv    ! 0[default] : do not output to csv files
+  !                           ! 1          : output to csv files
+  ! integer :: max_stp        ! maximum step number for bounce average
+  !
+  ! integer:: nthpmax,&       ! number of poloidal angle grid points
+  !           nthm1,&         ! number of theta_m grid points for 0 <= theta_m <= theta_pnc
+  !           nthm2,&         ! number of theta_m grid points for theta_pnc <= theta_m <= theta_co_stg
+  !           nthm3           ! number of theta_m grid points for theta_cnt_stg <= theta_m <= pi
+  !
+  ! real(rkind),allocatable :: JI(:,:,:,:),& ! dxdydzd(vx)d(vy)d(vz) = JI * dpd(thetam)d(psim)
+  !                            JIR(:,:,:,:)  ! for integrate over velocity space
+  !=============================================================================================================================================
+  integer :: model_obload  
+  integer :: model_mkcsv   
+  integer :: max_stp       
+  integer:: nthpmax,&  
+            nthm1,& 
+            nthm2,& 
+            nthm3   
+  real(rkind),allocatable :: JI(:,:,:,:),&
+                             JIR(:,:,:,:) 
+                             
+! COM =================================================================================================================================== 
+!   real(rkind),allocatable,dimension(:) :: psim,&                ! [maximum poloidal magnetic flux in an orbit, 
+!                                                                      value at half integer grid points]
+!                                           psimg                 ! psim at integer grid points
+!
+!   real(rkind),allocatable :: rhom_local(:,:,:,:,:), &
+!                              thetam_local(:,:,:,:,:), &
+!                              time_loss(:,:,:,:,:)
+!
+!   real(rkind),allocatable,dimension(:,:,:,:) :: thetam,&        ! pitch angle along orbit in psim, value at half integer grid points
+!                                                 thetamg,&       ! theta_m at integer grid points
+!                                                 thetam_rg,&     ! theta_m for given pm(np), psimg(nr)
+!                                                 thetam_pg       ! theta_m for given pg(np), psim(nr)
+!========================================================================================================================================
+  real(rkind),allocatable,dimension(:) :: psim,&  
+                                          psimg   
   real(rkind),allocatable :: rhom_local(:,:,:,:,:), &
                              thetam_local(:,:,:,:,:), &
                              time_loss(:,:,:,:,:)
+  real(rkind),allocatable,dimension(:,:,:,:) :: thetam,&  
+                                                thetamg,& 
+                                                thetam_rg,& 
+                                                thetam_pg
 
-  real(rkind),allocatable,dimension(:,:,:,:) :: thetam,&              ! pitch angle along orbit in psim, value at half integer grid points
-                                                thetamg,&             ! theta_m at integer grid points
-                                                thetam_rg,&           ! theta_m for given pm(np), psimg(nr)
-                                                thetam_pg             ! theta_m for given pg(np), psim(nr)
-
-! Diffsion coefficients extend FP's difference equation ------------------------------------------------
+! Diffsion coefficients extend FP's difference equation =====================================================
+!   real(rkind),allocatable,dimension(:,:,:,:) :: Dppfow, Dptfow, Dprfow,&
+!                                                 Dtpfow, Dttfow, Dtrfow,&
+!                                                 Drpfow, Drtfow, Drrfow,&
+!                                                 Fppfow,  Fthfow,  Frrfow
+!   !**** For exec calculation Dxx * jacobian added by anzai
+!   real(rkind),allocatable,dimension(:,:,:,:) :: Dpp_j,  Dpt_j, Dpr_j,&
+!                                                 Dtp_j,  Dtt_j, Dtr_j,&
+!                                                 Drp_j,  Drt_j, Drr_j,&
+!                                                 Fpp_j,  Fth_j, Frr_j
+!============================================================================================================
   real(rkind),allocatable,dimension(:,:,:,:) :: Dppfow, Dptfow, Dprfow,&
                                                 Dtpfow, Dttfow, Dtrfow,&
                                                 Drpfow, Drtfow, Drrfow,&
-                                                Fppfow,  Fthfow,  Frrfow
+                                                Fppfow, Fthfow, Frrfow
+  real(rkind),allocatable,dimension(:,:,:,:) :: Dpp_j,  Dpt_j, Dpr_j,&
+                                                Dtp_j,  Dtt_j, Dtr_j,&
+                                                Drp_j,  Drt_j, Drr_j,&
+                                                Fpp_j,  Fth_j, Frr_j
 
-! equilibrium variables --------------------------------------------------------------------------------
-  real(rkind):: psi0                                             ! poloidal flux at the plasma edge
-  real(rkind),allocatable,dimension(:) :: Fpsi,&                 ! poloidai current at psim
-                                          Bout,&                 ! abs(magnetic field) at psim when psim is outside the axis
-                                          Bin,&                  ! abs(magnetic field) at psim when psim is inside the axis
-                                          Fpsig,&                ! Fpsi for grid points
-                                          Boutg,&                ! Bout for grid points
-                                          Bing,&                 ! Bin for grid points
-                                          dFdr,&                 ! dFpsi/drhom
-                                          dBoutdr,&              ! dBout/drhom
-                                          dBindr,&               ! dBin/drhom
-                                          dpsimdr,&              ! dpsim/drhom
-                                          dFgdr,&                ! dFpsig/drhom
-                                          dBoutgdr,&             ! dBoutg/drhom
-                                          dBingdr,&              ! dBing/drhom
-                                          dpsimgdr,&             ! dpsimg/drhom
-                                          safety_factor          ! dpsimg/drhom
+! equilibrium variables ===================================================================================================
+!   real(rkind):: psi0                                        ! poloidal flux at the plasma edge
+!   real(rkind),allocatable,dimension(:) :: Fpsi,&            ! poloidai current at psim
+!                                           Bout,&            ! abs(magnetic field) at psim when psim is outside the axis
+!                                           Bin,&             ! abs(magnetic field) at psim when psim is inside the axis
+!                                           Fpsig,&           ! Fpsi for grid points
+!                                           Boutg,&           ! Bout for grid points
+!                                           Bing,&            ! Bin for grid points
+!                                           dFdr,&            ! dFpsi/drhom
+!                                           dBoutdr,&         ! dBout/drhom
+!                                           dBindr,&          ! dBin/drhom
+!                                           dpsimdr,&         ! dpsim/drhom
+!                                           dFgdr,&           ! dFpsig/drhom
+!                                           dBoutgdr,&        ! dBoutg/drhom
+!                                           dBingdr,&         ! dBing/drhom
+!                                           dpsimgdr,&        ! dpsimg/drhom
+!                                           safety_factor     ! dpsimg/drhom
+!
+!   real(rkind),allocatable,dimension(:,:) :: Babs,&          ! B(psip,thetap)
+!                                             dBdr,&          ! dBabs/rhot
+!                                             dBdthp          ! dBabs/dtheta_p
+!   real(rkind),allocatable,dimension(:) :: theta_p           ! poloidal angle
+!=========================================================================================================================
+  real(rkind):: psi0 
+  real(rkind),allocatable,dimension(:) :: Fpsi,& 
+                                          Bout,&  
+                                          Bin,&  
+                                          Fpsig,& 
+                                          Boutg,& 
+                                          Bing,&   
+                                          dFdr,&   
+                                          dBoutdr,& 
+                                          dBindr,&  
+                                          dpsimdr,&  
+                                          dFgdr,&    
+                                          dBoutgdr,& 
+                                          dBingdr,&  
+                                          dpsimgdr,& 
+                                          safety_factor
 
-  real(rkind),allocatable,dimension(:,:) :: Babs,&                 ! B(psip,thetap)
-                                            dBdr,&                 ! dBabs/rhot
-                                            dBdthp                 ! dBabs/dtheta_p
-  real(rkind),allocatable,dimension(:) :: theta_p                 ! poloidal angle
+  real(rkind),allocatable,dimension(:,:) :: Babs,&  
+                                            dBdr,&  
+                                            dBdthp  
+  real(rkind),allocatable,dimension(:) :: theta_p   
 
-! use for boundary conditions --------------------------------------------------------------------------
-  real(rkind),allocatable,dimension(:,:,:) :: theta_pnc,&         ! theta_m of pinch orbit for given pm(np) and psim(nr)
-                                              theta_co_stg,&      ! theta_m of co-stagnation orbit for pm(np) and psim(nr)
-                                              theta_cnt_stg,&     ! theta_m of counter-stagnation orbit for pm(np) and psim(nr)
-                                              psip_pnc_point      ! poloidal flux of pinch orbit given by I = (pm(np), theta_pnc(p,psi_m), psim(nr))
-
+! use for boundary conditions ==================================================================================================================================
+!   real(rkind),allocatable,dimension(:,:,:) :: theta_pnc,&         ! theta_m of pinch orbit for given pm(np) and psim(nr)
+!                                               theta_co_stg,&      ! theta_m of co-stagnation orbit for pm(np) and psim(nr)
+!                                               theta_cnt_stg,&     ! theta_m of counter-stagnation orbit for pm(np) and psim(nr)
+!                                               psip_pnc_point      ! poloidal flux of pinch orbit given by I = (pm(np), theta_pnc(p,psi_m), psim(nr))
+!
+!   real(rkind),allocatable,dimension(:,:,:) :: theta_pnc_pg,&
+!                                               theta_co_stg_pg,&
+!                                               theta_cnt_stg_pg,&
+!                                               psip_pnc_point_pg
+!                                              
+!   real(rkind),allocatable,dimension(:,:,:) :: theta_pnc_rg,&
+!                                               theta_co_stg_rg,&
+!                                               theta_cnt_stg_rg,&
+!                                               psip_pnc_point_rg
+!
+!   real(rkind),allocatable,dimension(:,:,:,:) :: delthm_rg, delthm_pg, delthm
+!
+!   integer,allocatable,dimension(:) :: nth_stg,&                  ! thetamg(nth_stg,(nsa),np,nr,nsa) = theta_stg
+!                                       nth_pnc                    ! thetamg(nth_pnc,(nsa),np,nr,nsa) = theta_pnc
+!
+!   real(rkind),allocatable,dimension(:,:,:) :: IBCflux_ratio      ! [ration between the flux from thetam(nth_pnc-1) to thetam(nth_pnc)
+!                                                                       and the flux from thetam(nth_pnc-1) to thetam(nth_co_stg)]
+!   integer,allocatable,dimension(:,:,:) ::  nr_pnc_point          ! nr of pinch point of theta_pnc(:,:,:)
+!
+!   real(rkind),allocatable,dimension(:,:,:) :: rhom_pinch         ! psim of pnc orbit whose pinch point is X stg orbit with np, nr, nsa
+!   integer,allocatable,dimension(:,:,:) ::  nr_rhom_pinch
+!
+!   real(rkind),parameter :: NO_PINCH_ORBIT = 19960610d0
+!   real(rkind),allocatable,dimension(:,:,:,:) :: orbital_loss
+!============================================================================================================================================================
+  real(rkind),allocatable,dimension(:,:,:) :: theta_pnc,&       
+                                              theta_co_stg,&    
+                                              theta_cnt_stg,&   
+                                              psip_pnc_point    
   real(rkind),allocatable,dimension(:,:,:) :: theta_pnc_pg,&
                                               theta_co_stg_pg,&
                                               theta_cnt_stg_pg,&
                                               psip_pnc_point_pg
-                                              
   real(rkind),allocatable,dimension(:,:,:) :: theta_pnc_rg,&
                                               theta_co_stg_rg,&
                                               theta_cnt_stg_rg,&
                                               psip_pnc_point_rg
-
   real(rkind),allocatable,dimension(:,:,:,:) :: delthm_rg, delthm_pg, delthm
 
-  integer,allocatable,dimension(:) :: nth_stg,&        ! thetamg(nth_stg,(nsa),np,nr,nsa) = theta_stg
-                                      nth_pnc          ! thetamg(nth_pnc,(nsa),np,nr,nsa) = theta_pnc
+  integer,allocatable,dimension(:) :: nth_stg,&   
+                                      nth_pnc      
 
-  real(rkind),allocatable,dimension(:,:,:) :: IBCflux_ratio         ! ration between the flux from thetam(nth_pnc-1) to thetam(nth_pnc) and the flux from thetam(nth_pnc-1) to thetam(nth_co_stg)
-  integer,allocatable,dimension(:,:,:) ::  nr_pnc_point             ! nr of pinch point of theta_pnc(:,:,:)
+  real(rkind),allocatable,dimension(:,:,:) :: IBCflux_ratio 
+  integer,allocatable,dimension(:,:,:) ::  nr_pnc_point    
 
-  real(rkind),allocatable,dimension(:,:,:) :: rhom_pinch      ! psim of pnc orbit whose pinch point is X stg orbit with np, nr, nsa
+  real(rkind),allocatable,dimension(:,:,:) :: rhom_pinch   
   integer,allocatable,dimension(:,:,:) ::  nr_rhom_pinch
 
   real(rkind),parameter :: NO_PINCH_ORBIT = 19960610d0
   real(rkind),allocatable,dimension(:,:,:,:) :: orbital_loss
 
-! use for bounce average -------------------------------------------------------------------------------
+! use for bounce average ===========================================================================================================
+!   type :: orbit                                                  ! quantities along orbits culcurated by TASK/OB
+!     integer :: nstp_max
+!     real(rkind),allocatable,dimension(:) :: time, &              ! time
+!                                             psip, &              ! poloidal magnetic flux
+!                                             Babs, &              ! absolute value of magnetic field
+!                                             costh,&              ! COS( pitch angle )
+!                                             sinth,&              ! SIN( pitch angle )
+!                                             thetap,&             ! poloidal angle
+!                                             F,&                  ! poloidal current
+!                                             r,&                  ! minor radius
+!                                             dpsipdr,&            ! dpsip/drho
+!                                             dFdr,&               ! dF/drho
+!                                             dBdr,&
+!                                             dBdthp
+!   end type orbit
+!
+!   type(orbit),allocatable,dimension(:,:,:,:) :: orbit_p,&    ! (np,nth,nr)=(-0.5,  1 ,  1 ) to (npmax+0.5,nthmax,nrmax)
+!                                                 orbit_th,&   ! (np,nth,nr)=(  1 ,-0.5,  1 ) to (npmax,nthmax+0.5,nrmax)
+!                                                 orbit_r,&    ! (np,nth,nr)=(  1 ,  1 ,-0.5) to (npmax,nthmax,nrmax+0.5)
+!                                                 orbit_m      ! (np,nth,nr)=(1,1,1) to (npmax,nthmax,nrmax)
+!
+!=================================================================================================================================
   type :: orbit                                                  ! quantities along orbits culcurated by TASK/OB
     integer :: nstp_max
     real(rkind),allocatable,dimension(:) :: time, &              ! time
@@ -111,16 +227,20 @@ module fowcomm
                                             dBdthp
   end type orbit
 
-  type(orbit),allocatable,dimension(:,:,:,:) :: orbit_p,&    ! (np,nth,nr)=(-0.5,  1 ,  1 ) to (npmax+0.5,nthmax,nrmax)
-                                                orbit_th,&   ! (np,nth,nr)=(  1 ,-0.5,  1 ) to (npmax,nthmax+0.5,nrmax)
-                                                orbit_r,&    ! (np,nth,nr)=(  1 ,  1 ,-0.5) to (npmax,nthmax,nrmax+0.5)
-                                                orbit_m      ! (np,nth,nr)=(1,1,1) to (npmax,nthmax,nrmax)
+  type(orbit),allocatable,dimension(:,:,:,:) :: orbit_p,&        ! (np,nth,nr)=(-0.5,  1 ,  1 ) to (npmax+0.5,nthmax,nrmax)
+                                                orbit_th,&       ! (np,nth,nr)=(  1 ,-0.5,  1 ) to (npmax,nthmax+0.5,nrmax)
+                                                orbit_r,&        ! (np,nth,nr)=(  1 ,  1 ,-0.5) to (npmax,nthmax,nrmax+0.5)
+                                                orbit_m          ! (np,nth,nr)=(1,1,1) to (npmax,nthmax,nrmax)
 
-! ------------------------------------------------------------------------------------------------------
-
+!==========================================================
+!  Main module of fowcomm
+!==========================================================
 contains
 
   subroutine fow_allocate
+    !------------------------------------
+    ! Allocation module
+    !------------------------------------
     use fpcomm, only:npmax,nthmax,nrmax,nsamax
 
     allocate(JI          (nthmax  ,npmax  ,nrmax          ,nsamax))
@@ -198,10 +318,26 @@ contains
     allocate(Fppfow(nthmax  ,npmax+1,nrmax  ,nsamax))
     allocate(Fthfow(nthmax+1,npmax  ,nrmax  ,nsamax))
     allocate(Frrfow(nthmax  ,npmax  ,nrmax+1,nsamax))
-
+    !** added by anzai
+    allocate(Dpp_j(nthmax  ,npmax+1,nrmax  ,nsamax))
+    allocate(Dpt_j(nthmax  ,npmax+1,nrmax  ,nsamax))
+    allocate(Dpr_j(nthmax  ,npmax+1,nrmax  ,nsamax))
+    allocate(Dtp_j(nthmax+1,npmax  ,nrmax  ,nsamax))
+    allocate(Dtt_j(nthmax+1,npmax  ,nrmax  ,nsamax))
+    allocate(Dtr_j(nthmax+1,npmax  ,nrmax  ,nsamax))
+    allocate(Drp_j(nthmax  ,npmax  ,nrmax+1,nsamax))
+    allocate(Drt_j(nthmax  ,npmax  ,nrmax+1,nsamax))
+    allocate(Drr_j(nthmax  ,npmax  ,nrmax+1,nsamax))
+    allocate(Fpp_j(nthmax  ,npmax+1,nrmax  ,nsamax))
+    allocate(Fth_j(nthmax+1,npmax  ,nrmax  ,nsamax))
+    allocate(Frr_j(nthmax  ,npmax  ,nrmax+1,nsamax))
+    
   end subroutine fow_allocate
 
   subroutine fow_deallocate
+    !-----------------------------------------
+    ! Deallocation module
+    !-----------------------------------------
 
     deallocate(JI)
     deallocate(JIR)
@@ -276,6 +412,19 @@ contains
     deallocate(Fppfow)
     deallocate(Fthfow)
     deallocate(Frrfow)
+    !** added by anzai
+    deallocate(Dpp_j)
+    deallocate(Dpt_j)
+    deallocate(Dpr_j)
+    deallocate(Dtp_j)
+    deallocate(Dtt_j)
+    deallocate(Dtr_j)
+    deallocate(Drp_j)
+    deallocate(Drt_j)
+    deallocate(Drr_j)
+    deallocate(Fpp_j)
+    deallocate(Fth_j)
+    deallocate(Frr_j)
 
   end subroutine fow_deallocate
 

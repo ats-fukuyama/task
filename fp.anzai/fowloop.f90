@@ -131,7 +131,6 @@ contains
       call moment_2nd_order_COM(rwsl, fnsp)
 
       call output_data(nt)
-      call output_neoclass
       !call output_orbit_classify
 
       call cpu_time(end_time_loop)

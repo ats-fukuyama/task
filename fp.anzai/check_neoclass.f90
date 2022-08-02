@@ -392,11 +392,11 @@ contains
           do nth = 1, nthmax
             Sr_part(nr,nsa) = Sr_part(nr,nsa) &
                             - 1.d0&
-                            * (Drrfow(nth,np,nr,nsa)&
+                            * (Drr_j(nth,np,nr,nsa)&
                             * dfdrhom(nth,np,nr,nsa)*1.d20 &
-                            + Drpfow(nth,np,nr,nsa) &
+                            + Drp_j(nth,np,nr,nsa) &
                             * dfdp(nth,np,nr,nsa)*1.d20 &
-                            + Drtfow(nth,np,nr,nsa) &
+                            + Drt_j(nth,np,nr,nsa) &
                             * dfdthm(nth,np,nr,nsa)*1.d20&
                             ) &
                             !* JI(nth,np,nr,nsa) &
@@ -404,7 +404,7 @@ contains
                             * delp(ns) * delthm(nth,np,nr,nsa) &
 
                           + 1.d0&
-                          * Frrfow(nth,np,nr,nsa) &
+                          * Frr_j(nth,np,nr,nsa) &
                           * fnsp_l(nth,np,nr,nsa)*1.d20 &
                           !* JI(nth,np,nr,nsa) &
                           !* JI(nth,np,nr,nsa) &
@@ -687,11 +687,11 @@ contains
                                 !/ (2*AMFP(nsa)) &
                                 - k &
                                 / (AEE*1.D3)*2.d0/3.d0 * 1.d0&
-                                *(Drrfow(nth,np,nr,nsa)&
+                                *(Drr_j(nth,np,nr,nsa)&
                                 * dfdrhom(nth,np,nr,nsa)*1.d20 &
-                                + Drpfow(nth,np,nr,nsa) &
+                                + Drp_j(nth,np,nr,nsa) &
                                 * dfdp(nth,np,nr,nsa)*1.d20 &
-                                + Drtfow(nth,np,nr,nsa) &
+                                + Drt_j(nth,np,nr,nsa) &
                                 * dfdthm(nth,np,nr,nsa)*1.d20&
                                 ) &
                                 !* JI(nth,np,nr,nsa) &
@@ -703,7 +703,7 @@ contains
                                 + K &
                                 / (AEE*1.D3)*2.d0/3.d0 *1.d0&
                                 ! unit converter [J] to [keV] &
-                                * Frrfow(nth,np,nr,nsa) &
+                                * Frr_j(nth,np,nr,nsa) &
                                 * fnsp_l(nth,np,nr,nsa)*1.d20 &
                                 !* JI(nth,np,nr,nsa) &
                                 !* JI(nth,np,nr,nsa) &
@@ -711,7 +711,7 @@ contains
                                 !** unit [keV] [22/6/6]
           end do
         end do
-        chi_a(nr,nsa) = -heatfow_out(nr,nsa)/dTadr(nr,nsa)
+        chi_a(nr,nsa) = -heatfow_out(nr,nsa)/(dTadr(nr,nsa)*rnsl(nr,nsa)*1.d20)
       end do
     end do
 
@@ -896,36 +896,40 @@ contains
         B_p = rm(nr)*RA*BB/(safety_factor(nr)*RR)
         !****calculate heat flux
         if (nsa == 1) then
-         fact_s = (safety_factor(nr)**2) &
+          fact_s = (safety_factor(nr)**2) &
              *(rho_a(nsa)**2)/((eps_t**1.5)*tau_ele)
-         Sr_ba(nr,nsa) = fact_s*rnsl(nr,nsa)*1.D20*Ta(nr,1) &
+          heatba(nr,nsa) = fact_s*rnsl(nr,nsa)*1.D20*Ta(nr,1) &
             * ((1.53d0*(1+Ta(nr,2)/Ta(nr,1))*dndr(nr, nsa))/rnsl(nr,nsa) &
               - 1.81d0*dTadr(nr,1)/Ta(nr,1) &
               - 0.27d0*dTadr(nr,2)/Ta(nr,1))/RKEV!test
         ! neglect E_para term
 
-         Sr_pla(nr,nsa) = - sqrt(PI)/4*eps_t**2*Ta(nr,nsa) &
+          heatpla(nr,nsa) = - sqrt(PI)/4*eps_t**2*Ta(nr,nsa) &
                / (AEE*B_p)*rho_a(nsa)*rnsl(nr,nsa)*1.d20*Ta(nr,nsa) &
-               / rm(nr)*( (1+Ta(nr,2)/Ta(nr,1))*dndr(nr,nsa) &
+               / (rm(nr)*RA)*( (1+Ta(nr,2)/Ta(nr,1))*dndr(nr,nsa) &
                / (rnsl(nr,nsa)*1.d20) &
                + 7.5d0*dTadr(nr,nsa)/Ta(nr,nsa) &
                + 1.5d0*dTadr(nr,2)/Ta(nr,nsa))/RKEV!test
         ! neglect E_para term
+          chi_neo_ba(nr,nsa) = (safety_factor(nr)**2)*rho_a(nsa)**2/(eps_t**1.5*tau_ele)
+          chi_neo_pla(nr,nsa)= sqrt(PI)/4*eps_t**2*Ta(nr,nsa) &
+               / (AEE*B_p)*rho_a(nsa)&!*rnsl(nr,nsa)*1.d20 &
+               / (rm(nr)*RA)*7.5d0
         else
-         fact_s = (safety_factor(nr)**2) &
+          fact_s = (safety_factor(nr)**2) &
               *(rho_a(nsa)**2)/((eps_t**1.5)*tau_i)
-         Sr_ba(nr,nsa) = - 0.68d0*fact_s*(1 + 0.48d0*sqrt(eps_t)) &
+          heatba(nr,nsa) = - 0.68d0*fact_s*(1 + 0.48d0*sqrt(eps_t)) &
               *rnsl(nr,nsa)*1.d20*dTadr(nr,2)/RKEV !test
-         Sr_pla(nr,nsa) = - 1.5d0*sqrt(pi) &
+          heatpla(nr,nsa) = - 1.5d0*sqrt(pi) &
                         * eps_t**2*Ta(nr,nsa)/(AEE*B_p) &
-                        * rho_a(nsa)/rm(nr)*rnsl(nr,nsa) &
+                        * rho_a(nsa)/(rm(nr)*RA)*rnsl(nr,nsa) &
                         * 1.d20*dTadr(nr,nsa)/RKEV !test
+          chi_neo_ba(nr,nsa) =(safety_factor(nr)**2)*rho_a(nsa)**2/(eps_t**1.5*tau_i) 
+          chi_neo_pla(nr,nsa)= 1.5d0*sqrt(pi)*eps_t**2*Ta(nr,nsa)*rho_a(nsa)&!*rnsl(nr,nsa)*1.d20 &
+                             / (AEFP(nsa)*B_p*rm(nr)*RA)
         end if
-
-        heatba(nr,nsa)  = Sr_ba(nr, nsa)
-        heatpla(nr,nsa) = Sr_pla(nr, nsa)
-        chi_neo_ba      = -Sr_ba(nr,nsa)/(dTadr(nr,nsa)/RKEV)
-        chi_neo_pla     = -Sr_pla(nr,nsa)/(dTadr(nr,nsa)/RKEV)
+        ! chi_neo_ba      = -Sr_ba(nr,nsa)/(dTadr(nr,nsa)/RKEV)
+        ! chi_neo_pla     = -Sr_pla(nr,nsa)/(dTadr(nr,nsa)/RKEV)
       end do
     end do
 
@@ -1082,7 +1086,7 @@ contains
     !****temperature make
     do nsa = 1, nsamax
       do nr = 1, nrmax
-        Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)/AEE/1.D3
+        Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)/AEE/1.D3![keV]
         !Ta(temperature)[keV] rwsl[1/m^3*MJ]
       end do
     end do
@@ -1148,8 +1152,8 @@ contains
                                /(AEE*1.D3) &
                                * Drrfow(nth,np,nr,nsa) &
                                * 2.d0/3.d0*dfdrhom(nth,np,nr,nsa) &
-                               * JI(nth,np,nr,nsa) &
-                               * JI(nth,np,nr,nsa) &
+                               !* JI(nth,np,nr,nsa) &
+                               !* JI(nth,np,nr,nsa) &
                                * delp(ns) * delthm(nth,np,nr,nsa)
                                !** unit [keV]
            hfowout_p(nr,nsa) = hfowout_p(nr,nsa) &
@@ -1158,16 +1162,16 @@ contains
                                /(AEE*1.D3) &
                                * Drpfow(nth,np,nr,nsa) &
                                * 2.d0/3.d0*dfdp(nth,np,nr,nsa) &
-                               * JI(nth,np,nr,nsa) &
-                               * JI(nth,np,nr,nsa) &
+                               !* JI(nth,np,nr,nsa) &
+                               !* JI(nth,np,nr,nsa) &
                                * delp(ns) * delthm(nth,np,nr,nsa)
            hfowout_t(nr,nsa) = hfowout_t(nr,nsa) &
                                - (pm(np,nsa)*ptfp0(nsa))**2 &
                                / (2*AMFP(nsa)) &
                                /(AEE*1.D3) &
                                * Drtfow(nth,np,nr,nsa) &
-                               * JI(nth,np,nr,nsa)&
-                               * JI(nth,np,nr,nsa) &
+                               !* JI(nth,np,nr,nsa)&
+                               !* JI(nth,np,nr,nsa) &
                                * 2.d0/3.d0*dfdthm(nth,np,nr,nsa) &
                                * delp(ns) * delthm(nth,np,nr,nsa)
            hfowout_f(nr,nsa) = hfowout_f(nr,nsa) &
@@ -1177,15 +1181,15 @@ contains
                                ! unit converter [J] to [keV] &
                                * Frrfow(nth,np,nr,nsa) &
                                * 2.d0/3.d0*fnsp_l(nth,np,nr,nsa) &
-                               * JI(nth,np,nr,nsa) &
-                               * JI(nth,np,nr,nsa) &
+                               !* JI(nth,np,nr,nsa) &
+                               !* JI(nth,np,nr,nsa) &
                                * delp(ns) * delthm(nth,np,nr,nsa)
           end do
         end do
-        chi_Dr(nr,nsa) = hfowout_r(nr,nsa)!/dTadr(nr,nsa)
-        chi_Dp(nr,nsa) = hfowout_p(nr,nsa)!/dTadr(nr,nsa)
-        chi_Dt(nr,nsa) = hfowout_t(nr,nsa)!/dTadr(nr,nsa)
-        chi_Fr(nr,nsa) = hfowout_f(nr,nsa)!/dTadr(nr,nsa)
+        chi_Dr(nr,nsa) = hfowout_r(nr,nsa)/dTadr(nr,nsa)
+        chi_Dp(nr,nsa) = hfowout_p(nr,nsa)/dTadr(nr,nsa)
+        chi_Dt(nr,nsa) = hfowout_t(nr,nsa)/dTadr(nr,nsa)
+        chi_Fr(nr,nsa) = hfowout_f(nr,nsa)/dTadr(nr,nsa)
       end do
     end do
 

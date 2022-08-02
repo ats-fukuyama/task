@@ -1,10 +1,19 @@
+! fowdistribution
+! [2022/8/1]
+! ******************************
+!  Making distribution function
+! ******************************
+! made by ot / modified by anzai
+! ver.0.1
+
+
 module fowdistribution
   implicit none
   private
   public :: fI_Maxwellian
   public :: convert_fI_to_fu
   public :: moment_0th_order_COM, moment_2nd_order_COM
-  public :: particle_flux, particle_flux_element
+  !public :: particle_flux, particle_flux_element
   public :: total_N!, effective_diffusion_cosfficient
 
 contains
@@ -239,128 +248,128 @@ contains
 
   end subroutine
 
-  subroutine particle_flux(Sr)
-    use fpcomm
-    use fowcomm
-    implicit none
-    real(rkind),dimension(nrmax,nsamax),intent(out) :: Sr
-    real(rkind),dimension(nthmax,npmax,nrmax,nsamax) :: dfdp, dfdth, dfdrm
-    real(rkind) :: sum_gammaI, dVI, gammaI, Drx(3), Fr
-    integer :: nth, np, nr, nsa
+  ! subroutine particle_flux(Sr)
+  !   use fpcomm
+  !   use fowcomm
+  !   implicit none
+  !   real(rkind),dimension(nrmax,nsamax),intent(out) :: Sr
+  !   real(rkind),dimension(nthmax,npmax,nrmax,nsamax) :: dfdp, dfdth, dfdrm
+  !   real(rkind) :: sum_gammaI, dVI, gammaI, Drx(3), Fr
+  !   integer :: nth, np, nr, nsa
 
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do nth = 1, nthmax
-          call first_order_derivative(dfdp(nth,:,nr,nsa), fnsp(nth,:,nr,nsa), pm(:,nsa))
-        end do
-      end do
-    end do
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax
+  !       do nth = 1, nthmax
+  !         call first_order_derivative(dfdp(nth,:,nr,nsa), fnsp(nth,:,nr,nsa), pm(:,nsa))
+  !       end do
+  !     end do
+  !   end do
 
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do np = 1, npmax
-          call first_order_derivative(dfdth(:,np,nr,nsa), fnsp(:,np,nr,nsa), thetam(:,np,nr,nsa))
-        end do
-      end do
-    end do
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax
+  !       do np = 1, npmax
+  !         call first_order_derivative(dfdth(:,np,nr,nsa), fnsp(:,np,nr,nsa), thetam(:,np,nr,nsa))
+  !       end do
+  !     end do
+  !   end do
 
-    do nsa = 1, nsamax
-      do np = 1, npmax
-        do nth = 1, nthmax
-          call first_order_derivative(dfdrm(nth,np,:,nsa), fnsp(nth,np,:,nsa), rm)
-        end do
-      end do
-    end do
+  !   do nsa = 1, nsamax
+  !     do np = 1, npmax
+  !       do nth = 1, nthmax
+  !         call first_order_derivative(dfdrm(nth,np,:,nsa), fnsp(nth,np,:,nsa), rm)
+  !       end do
+  !     end do
+  !   end do
 
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        sum_gammaI = 0.d0
-        do np = 1, npmax
-          do nth = 1, nthmax
-            dVI = delp(nsa) * delthm(nth,np,nr,nsa)
-            !dVI = JI(nth,np,nr,nsa) * delp(nsa) * delthm(nth,np,nr,nsa)
-            Drx(1) = ( Drpfow(nth,np,nr+1,nsa) + Drpfow(nth,np,nr,nsa) )*0.5d0
-            Drx(2) = ( Drtfow(nth,np,nr+1,nsa) + Drtfow(nth,np,nr,nsa) )*0.5d0
-            Drx(3) = ( Drrfow(nth,np,nr+1,nsa) + Drrfow(nth,np,nr,nsa) )*0.5d0
-            Fr     = ( Frrfow(nth,np,nr+1,nsa) + Frrfow(nth,np,nr,nsa) )*0.5d0
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax
+  !       sum_gammaI = 0.d0
+  !       do np = 1, npmax
+  !         do nth = 1, nthmax
+  !           dVI = delp(nsa) * delthm(nth,np,nr,nsa)
+  !           !dVI = JI(nth,np,nr,nsa) * delp(nsa) * delthm(nth,np,nr,nsa)
+  !           Drx(1) = ( Drpfow(nth,np,nr+1,nsa) + Drpfow(nth,np,nr,nsa) )*0.5d0
+  !           Drx(2) = ( Drtfow(nth,np,nr+1,nsa) + Drtfow(nth,np,nr,nsa) )*0.5d0
+  !           Drx(3) = ( Drrfow(nth,np,nr+1,nsa) + Drrfow(nth,np,nr,nsa) )*0.5d0
+  !           Fr     = ( Frrfow(nth,np,nr+1,nsa) + Frrfow(nth,np,nr,nsa) )*0.5d0
 
-            gammaI = -1.d0*( &
-              Drx(1) * dfdp(nth,np,nr,nsa) + &
-              Drx(2) * dfdth(nth,np,nr,nsa)/pm(np,nsa)+ &
-              Drx(3) * dfdrm(nth,np,nr,nsa) - &
-              Fr     * fnsp(nth,np,nr,nsa) &
-            )!/JI(nth,np,nr,nsa)
+  !           gammaI = -1.d0*( &
+  !             Drx(1) * dfdp(nth,np,nr,nsa) + &
+  !             Drx(2) * dfdth(nth,np,nr,nsa)/pm(np,nsa)+ &
+  !             Drx(3) * dfdrm(nth,np,nr,nsa) - &
+  !             Fr     * fnsp(nth,np,nr,nsa) &
+  !           )!/JI(nth,np,nr,nsa)
 
-            sum_gammaI = sum_gammaI + gammaI*dVI
-          end do
-        end do
+  !           sum_gammaI = sum_gammaI + gammaI*dVI
+  !         end do
+  !       end do
 
-        Sr(nr,nsa) = rnfp0(nsa)*sum_gammaI
+  !       Sr(nr,nsa) = rnfp0(nsa)*sum_gammaI
 
-      end do
-    end do
+  !     end do
+  !   end do
 
-  end subroutine particle_flux
+  ! end subroutine particle_flux
 
-  subroutine particle_flux_element(Sr, Sr_Dp, Sr_Dth, Sr_Dr, Sr_F)
-    use fpcomm
-    use fowcomm
-    implicit none
-    real(rkind),dimension(nrmax,nsamax),intent(out) :: Sr, Sr_Dp, Sr_Dth, Sr_Dr, Sr_F
-    real(rkind),dimension(nthmax,npmax,nrmax,nsamax) :: dfdp, dfdth, dfdrm
-    real(rkind) :: dVI, Drx(3), Fr
-    integer :: nth, np, nr, nsa
+  ! subroutine particle_flux_element(Sr, Sr_Dp, Sr_Dth, Sr_Dr, Sr_F)
+  !   use fpcomm
+  !   use fowcomm
+  !   implicit none
+  !   real(rkind),dimension(nrmax,nsamax),intent(out) :: Sr, Sr_Dp, Sr_Dth, Sr_Dr, Sr_F
+  !   real(rkind),dimension(nthmax,npmax,nrmax,nsamax) :: dfdp, dfdth, dfdrm
+  !   real(rkind) :: dVI, Drx(3), Fr
+  !   integer :: nth, np, nr, nsa
 
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do nth = 1, nthmax
-          call first_order_derivative(dfdp(nth,:,nr,nsa), fnsp(nth,:,nr,nsa), pm(:,nsa))
-        end do
-      end do
-    end do
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax
+  !       do nth = 1, nthmax
+  !         call first_order_derivative(dfdp(nth,:,nr,nsa), fnsp(nth,:,nr,nsa), pm(:,nsa))
+  !       end do
+  !     end do
+  !   end do
 
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do np = 1, npmax
-          call first_order_derivative(dfdth(:,np,nr,nsa), fnsp(:,np,nr,nsa), thetam(:,np,nr,nsa))
-        end do
-      end do
-    end do
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax
+  !       do np = 1, npmax
+  !         call first_order_derivative(dfdth(:,np,nr,nsa), fnsp(:,np,nr,nsa), thetam(:,np,nr,nsa))
+  !       end do
+  !     end do
+  !   end do
 
-    do nsa = 1, nsamax
-      do np = 1, npmax
-        do nth = 1, nthmax
-          call first_order_derivative(dfdrm(nth,np,:,nsa), fnsp(nth,np,:,nsa), rm)
-        end do
-      end do
-    end do
+  !   do nsa = 1, nsamax
+  !     do np = 1, npmax
+  !       do nth = 1, nthmax
+  !         call first_order_derivative(dfdrm(nth,np,:,nsa), fnsp(nth,np,:,nsa), rm)
+  !       end do
+  !     end do
+  !   end do
 
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        Sr_Dp (nr,nsa) = 0.d0
-        Sr_Dth(nr,nsa) = 0.d0
-        Sr_Dr (nr,nsa) = 0.d0
-        Sr_F  (nr,nsa) = 0.d0
-        do np = 1, npmax
-          do nth = 1, nthmax
-            dVI = delp(nsa) * delthm(nth,np,nr,nsa)
-            !dVI = JI(nth,np,nr,nsa) * delp(nsa) * delthm(nth,np,nr,nsa)
-            Drx(1) = ( Drpfow(nth,np,nr+1,nsa) + Drpfow(nth,np,nr,nsa) )*0.5d0
-            Drx(2) = ( Drtfow(nth,np,nr+1,nsa) + Drtfow(nth,np,nr,nsa) )*0.5d0
-            Drx(3) = ( Drrfow(nth,np,nr+1,nsa) + Drrfow(nth,np,nr,nsa) )*0.5d0
-            Fr     = ( Frrfow(nth,np,nr+1,nsa) + Frrfow(nth,np,nr,nsa) )*0.5d0
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax
+  !       Sr_Dp (nr,nsa) = 0.d0
+  !       Sr_Dth(nr,nsa) = 0.d0
+  !       Sr_Dr (nr,nsa) = 0.d0
+  !       Sr_F  (nr,nsa) = 0.d0
+  !       do np = 1, npmax
+  !         do nth = 1, nthmax
+  !           dVI = delp(nsa) * delthm(nth,np,nr,nsa)
+  !           !dVI = JI(nth,np,nr,nsa) * delp(nsa) * delthm(nth,np,nr,nsa)
+  !           Drx(1) = ( Drpfow(nth,np,nr+1,nsa) + Drpfow(nth,np,nr,nsa) )*0.5d0
+  !           Drx(2) = ( Drtfow(nth,np,nr+1,nsa) + Drtfow(nth,np,nr,nsa) )*0.5d0
+  !           Drx(3) = ( Drrfow(nth,np,nr+1,nsa) + Drrfow(nth,np,nr,nsa) )*0.5d0
+  !           Fr     = ( Frrfow(nth,np,nr+1,nsa) + Frrfow(nth,np,nr,nsa) )*0.5d0
 
-            Sr_Dp (nr,nsa) = Sr_Dp (nr,nsa) - rnfp0(nsa)*Drx(1)*dfdp (nth,np,nr,nsa)!/JI(nth,np,nr,nsa)*dVI
-            Sr_Dth(nr,nsa) = Sr_Dth(nr,nsa) - rnfp0(nsa)*Drx(2)*dfdth(nth,np,nr,nsa)!/JI(nth,np,nr,nsa)*dVI
-            Sr_Dr (nr,nsa) = Sr_Dr (nr,nsa) - rnfp0(nsa)*Drx(3)*dfdrm(nth,np,nr,nsa)!/JI(nth,np,nr,nsa)*dVI
-            Sr_F  (nr,nsa) = Sr_F  (nr,nsa) + rnfp0(nsa)*Fr    *fnsp (nth,np,nr,nsa)!/JI(nth,np,nr,nsa)*dVI
-          end do
-        end do
-        Sr(nr,nsa) = Sr_Dp(nr,nsa)+Sr_Dth(nr,nsa)+Sr_Dr(nr,nsa)+Sr_F(nr,nsa)
-      end do
-    end do
+  !           Sr_Dp (nr,nsa) = Sr_Dp (nr,nsa) - rnfp0(nsa)*Drx(1)*dfdp (nth,np,nr,nsa)!/JI(nth,np,nr,nsa)*dVI
+  !           Sr_Dth(nr,nsa) = Sr_Dth(nr,nsa) - rnfp0(nsa)*Drx(2)*dfdth(nth,np,nr,nsa)!/JI(nth,np,nr,nsa)*dVI
+  !           Sr_Dr (nr,nsa) = Sr_Dr (nr,nsa) - rnfp0(nsa)*Drx(3)*dfdrm(nth,np,nr,nsa)!/JI(nth,np,nr,nsa)*dVI
+  !           Sr_F  (nr,nsa) = Sr_F  (nr,nsa) + rnfp0(nsa)*Fr    *fnsp (nth,np,nr,nsa)!/JI(nth,np,nr,nsa)*dVI
+  !         end do
+  !       end do
+  !       Sr(nr,nsa) = Sr_Dp(nr,nsa)+Sr_Dth(nr,nsa)+Sr_Dr(nr,nsa)+Sr_F(nr,nsa)
+  !     end do
+  !   end do
 
-  end subroutine particle_flux_element
+  ! end subroutine particle_flux_element
 
   ! subroutine effective_diffusion_cosfficient(Deff)
   !   use fpcomm
