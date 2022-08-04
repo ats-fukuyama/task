@@ -90,7 +90,7 @@ CONTAINS
              END SELECT
              y0=source_position_yn
              DO ny=1,nymax
-                yn=ygn(ny)
+                yn=yn_ny(ny)
                 factor_prof=exp(-(yn-y0)**2/source_width**2)
                 SELECT CASE(model_source)
                 CASE(1,3)
@@ -108,7 +108,7 @@ CONTAINS
              END SELECT
              x0=source_position_xn
              DO nx=1,nxmax
-                xn=xg(nx)
+                xn=xn_nx(nx)
                 factor_prof=exp(-(xn-x0)**2/source_width**2)
                 SELECT CASE(model_source)
                 CASE(2,4)

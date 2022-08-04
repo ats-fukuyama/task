@@ -40,9 +40,9 @@ CONTAINS
     source_position_yn = 0.5D0*(ynmin+ynmax) ! [unit=vacuum wave length]
     source_width       = 4.D0   ! length of pulse [unit=vacuum wave length]
     source_thickness   = 2.D0   ! length of pulse [unit=vacuum wave length]
-    source_angle       = 0.D0                ! [unit=degree, 0=direction of x]
+    source_angle       = 0.D0   ! pulse direction [unit=degree, 0=x-direction]
     
-    model_pulse      = 0      ! 0:flat, 1:pulse
+    model_pulse      = 0      ! 0:flat in time, 1:pulse
     pulse_length     = 1.D0   ! length of pulse [unit=period=1/freq]
     model_ramp       = 0      ! 0:step function, 1:linear, 2:smooth
     ramp_length      = 1.D0   ! length of pulse  [period=1/freq]

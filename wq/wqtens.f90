@@ -28,8 +28,8 @@ subroutine wq_tens(omega_,CD_)
         IF(medium.EQ.0) CYCLE
         SELECT CASE(id_medium(medium))
         CASE(1) ! plasma
-           x  = xg(nx)*dxfactor
-           y  = yg(ny)*dyfactor
+           x  = xg_nx(nx)
+           y  = yg_ny(ny)
            r   =  SQRT(x**2+y**2)
 
            IF(r.le.RA)THEN

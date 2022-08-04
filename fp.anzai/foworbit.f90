@@ -522,36 +522,57 @@ contains
     end do
     r0 = sumr/ob%time(nstpmax)
 
+    nstp0=1
     do nstp = 2, nstpmax
       if ( ob%r(nstp-1) <= r0 .and. r0 <= ob%r(nstp) ) then
         nstp0 = nstp
         exit
       end if
-    end do
+   end do
+   
+   IF(nstp0.EQ.1) THEN ! maybe fixed point
+      WRITE(6,'(A,2I8,3ES12.4)') 'nstp0,nstpmax,r0,sumr,time=', &
+           nstp0,nstpmax,r0,sumr,ob%time(nstpmax)
+      psip0  = ob%psip(nstp0)
+      costh0 = ob%costh(nstp0)
+      sinth0 = ob%sinth(nstp0)
+      B0 = ob%Babs(nstp0)
+      F0 = ob%F(nstp0)
+      dBdr0 = ob%dBdr(nstp0)
+      dFdr0 = ob%dFdr(nstp0)
+      dpsipdr0 = ob%dpsipdr(nstp0)
+      WRITE(6,'(A,5ES12.4)') ' psi,cos,sin,B0,F0=', &
+           psip0,costh0,sinth0,B0,F0
+      DO nstp=1,nstpmax
+         WRITE(6,'(A,I8,2ES12.4)') &
+              'ob:nstp=',nstp,ob%time(nstpmax),ob%r(nstpmax)
+      END DO
+   ELSE
 
-    psip0  = ob%psip(nstp0) + (ob%psip(nstp0)-ob%psip(nstp0-1)) &
-           / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
-
-    costh0 = ob%costh(nstp0) + (ob%costh(nstp0)-ob%costh(nstp0-1)) &
-           / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
-
-    sinth0 = ob%sinth(nstp0) + (ob%sinth(nstp0)-ob%sinth(nstp0-1)) &
-           / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
-
-    B0 = ob%Babs(nstp0) + (ob%Babs(nstp0)-ob%Babs(nstp0-1)) &
-       / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
-
-    F0 = ob%F(nstp0) + (ob%F(nstp0)-ob%F(nstp0-1)) &
-       / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
-
-    dBdr0 = ob%dBdr(nstp0) + (ob%dBdr(nstp0)-ob%dBdr(nstp0-1)) &
-          / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
-
-    dFdr0 = ob%dFdr(nstp0) + (ob%dFdr(nstp0)-ob%dFdr(nstp0-1)) &
-          / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
-
-    dpsipdr0 = ob%dpsipdr(nstp0) + (ob%dpsipdr(nstp0)-ob%dpsipdr(nstp0-1)) &
+      psip0  = ob%psip(nstp0) + (ob%psip(nstp0)-ob%psip(nstp0-1)) &
              / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
+
+      costh0 = ob%costh(nstp0) + (ob%costh(nstp0)-ob%costh(nstp0-1)) &
+             / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
+
+      sinth0 = ob%sinth(nstp0) + (ob%sinth(nstp0)-ob%sinth(nstp0-1)) &
+             / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
+
+      B0 = ob%Babs(nstp0) + (ob%Babs(nstp0)-ob%Babs(nstp0-1)) &
+         / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
+
+      F0 = ob%F(nstp0) + (ob%F(nstp0)-ob%F(nstp0-1)) &
+         / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
+
+      dBdr0 = ob%dBdr(nstp0) + (ob%dBdr(nstp0)-ob%dBdr(nstp0-1)) &
+            / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
+
+      dFdr0 = ob%dFdr(nstp0) + (ob%dFdr(nstp0)-ob%dFdr(nstp0-1)) &
+            / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
+
+      dpsipdr0 = ob%dpsipdr(nstp0) + (ob%dpsipdr(nstp0)-ob%dpsipdr(nstp0-1)) &
+           / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
+   END IF
 
   end subroutine mean_ra_quantities
 

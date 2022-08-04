@@ -37,9 +37,9 @@ subroutine wq_solv1
 
 !$omp do        
   do ny=2,nymax-1
-     dy=0.5D0*(yg(ny+1)-yg(ny-1))
+     dy=0.5D0*(yg_ny(ny+1)-yg_ny(ny-1))
      do nx=2,nxmax-1
-        dx=0.5D0*(xg(nx+1)-xg(nx-1))
+        dx=0.5D0*(xg_nx(nx+1)-xg_nx(nx-1))
         R1xy = 0.25d0/(dx*dy)
         R2xx = 1.00d0/dx**2
         R2yy = 1.00d0/dy**2

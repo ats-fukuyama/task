@@ -12,8 +12,8 @@ CONTAINS
     USE wqtens
     USE libinv
     IMPLICIT NONE
-    INTEGER:: nx,ny,i,j,N,NA,ILL,ngr,nt
-    REAL(rkind):: dx,dy,factor,cos_ang,sin_ang,phase,xs,ys,xn,yn
+    INTEGER:: nx,ny,i,j,N,NA,ILL,ngr,nt,medium
+    REAL(rkind):: dxn,dyn,factor,cos_ang,sin_ang,phase,xs,ys,xn,yn
     COMPLEX(rkind):: AA(3,3)
    
     omega       = 2.d0*PI*freq
@@ -22,8 +22,6 @@ CONTAINS
     wave_number = 2.D0*PI/wave_length
 
     dt = dtfactor*period
-    dx = dxfactor*wave_length
-    dy = dyfactor*wave_length
 
     domega     = 1.0d-3*omega
     omegaplus  = omega+domega
@@ -31,30 +29,51 @@ CONTAINS
 
     nxmax=NINT((xnmax-xnmin)/dxfactor)+1
     nymax=NINT((ynmax-ynmin)/dyfactor)+1
-    dx=(xnmax-xnmin)/(nxmax-1)*wave_length
-    dy=(ynmax-ynmin)/(nymax-1)*wave_length
+    dxn=(xnmax-xnmin)/(nxmax-1)
+    dyn=(ynmax-ynmin)/(nymax-1)
     WRITE(6,'(A,2ES12.4,I8,ES12.4)') &
-         'xnmin,xnmax,nxmax,dx=',xnmin,xnmax,nxmax,dx
+         'xnmin,xnmax,nxmax,dxn=',xnmin,xnmax,nxmax,dxn
     WRITE(6,'(A,2ES12.4,I8,ES12.4)') &
-         'ynmin,ynmax,nymax,dy=',ynmin,ynmax,nymax,dy
+         'ynmin,ynmax,nymax,dyn=',ynmin,ynmax,nymax,dyn
 
     CALL wq_allocate
     
     DO nx=1,nxmax
-       xg(nx)=xnmin+dx*(nx-1)
-       xgn(nx)=xg(nx)/wave_length
+       xn_nx(nx)=xnmin+dxn*(nx-1)
+       xg_nx(nx)=xn_nx(nx)*wave_length
     END DO
     DO ny=1,nymax
-       yg(ny)=ynmin+dy*(ny-1)
-       ygn(ny)=yg(ny)/wave_length
+       yn_ny(ny)=ynmin+dyn*(ny-1)
+       yg_ny(ny)=yn_ny(ny)*wave_length
     END DO
 
+    DO medium=1,medium_max
+       WRITE(6,'(A,2I4,4ES12.4)') 'medium',medium, &
+                id_medium(medium), &
+                xnmin_medium(medium), &
+                xnmax_medium(medium), &
+                ynmin_medium(medium), &
+                ynmax_medium(medium)
+    END DO
+    
     DO ny=1,nymax
+       yn=yn_ny(ny)
        DO nx=1,nxmax
+          xn=xn_nx(nx)
           medium_nx_ny(nx,ny)=0
+          DO medium=1,medium_max
+             IF(xn.GE.xnmin_medium(medium).AND. &
+                xn.LE.xnmax_medium(medium).AND. &
+                yn.GE.ynmin_medium(medium).AND. &
+                yn.LE.ynmax_medium(medium)) THEN
+               medium_nx_ny(nx,ny)=medium
+             END IF
+          END DO
+!          IF(medium_nx_ny(nx,ny).NE.0) &
+!               WRITE(6,'(A,I4,2ES12.4)') 'medium:',medium_nx_ny(nx,ny),xn,yn
        END DO
     END DO
-
+                
     ! calculate matrix CD
 
     CALL wq_tens(omegaplus, CDplus)
@@ -139,8 +158,8 @@ CONTAINS
        sin_ang=sin(PI*source_angle/180.D0)
        DO ny=2,nymax-1
           DO nx=2,nxmax-1
-             xn=xgn(nx)
-             yn=ygn(ny)
+             xn=xn_nx(nx)
+             yn=yn_ny(ny)
              xs= (xn-source_position_xn)*cos_ang &
                 +(yn-source_position_yn)*sin_ang
              ys=-(xn-source_position_xn)*sin_ang &

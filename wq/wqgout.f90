@@ -95,9 +95,9 @@ CONTAINS
           fa(nx,ny)=ABS(EX(nx,ny))
        END DO
     END DO
-    CALL grd2d(5,xg,yg,fr,nxmax,nxmax,nymax,'@Real Ex@',ASPECT=0.D0)
-    CALL grd2d(6,xg,yg,fi,nxmax,nxmax,nymax,'@Imag Ex@',ASPECT=0.D0)
-    CALL grd2d(7,xg,yg,fa,nxmax,nxmax,nymax,'@Abs  Ex@',ASPECT=0.D0)
+    CALL grd2d(5,xn_nx,yn_ny,fr,nxmax,nxmax,nymax,'@Real Ex@',ASPECT=0.D0)
+    CALL grd2d(6,xn_nx,yn_ny,fi,nxmax,nxmax,nymax,'@Imag Ex@',ASPECT=0.D0)
+    CALL grd2d(7,xn_nx,yn_ny,fa,nxmax,nxmax,nymax,'@Abs  Ex@',ASPECT=0.D0)
     
     DO ny=1,nymax
        DO nx=1,nxmax
@@ -106,9 +106,9 @@ CONTAINS
           fa(nx,ny)=ABS(EY(nx,ny))
        END DO
     END DO
-    CALL grd2d( 8,xg,yg,fr,nxmax,nxmax,nymax,'@Real Ey@',ASPECT=0.D0)
-    CALL grd2d( 9,xg,yg,fi,nxmax,nxmax,nymax,'@Imag Ey@',ASPECT=0.D0)
-    CALL grd2d(10,xg,yg,fa,nxmax,nxmax,nymax,'@Abs  Ey@',ASPECT=0.D0)
+    CALL grd2d( 8,xn_nx,yn_ny,fr,nxmax,nxmax,nymax,'@Real Ey@',ASPECT=0.D0)
+    CALL grd2d( 9,xn_nx,yn_ny,fi,nxmax,nxmax,nymax,'@Imag Ey@',ASPECT=0.D0)
+    CALL grd2d(10,xn_nx,yn_ny,fa,nxmax,nxmax,nymax,'@Abs  Ey@',ASPECT=0.D0)
     
     DO ny=1,nymax
        DO nx=1,nxmax
@@ -117,9 +117,9 @@ CONTAINS
           fa(nx,ny)=ABS(EZ(nx,ny))
        END DO
     END DO
-    CALL grd2d(11,xg,yg,fr,nxmax,nxmax,nymax,'@Real Ez@',ASPECT=0.D0)
-    CALL grd2d(12,xg,yg,fi,nxmax,nxmax,nymax,'@Imag Ez@',ASPECT=0.D0)
-    CALL grd2d(13,xg,yg,fa,nxmax,nxmax,nymax,'@Abs  Ez@',ASPECT=0.D0)
+    CALL grd2d(11,xn_nx,yn_ny,fr,nxmax,nxmax,nymax,'@Real Ez@',ASPECT=0.D0)
+    CALL grd2d(12,xn_nx,yn_ny,fi,nxmax,nxmax,nymax,'@Imag Ez@',ASPECT=0.D0)
+    CALL grd2d(13,xn_nx,yn_ny,fa,nxmax,nxmax,nymax,'@Abs  Ez@',ASPECT=0.D0)
 
     CALL PAGEE
 
@@ -133,7 +133,7 @@ CONTAINS
           fr(nx,ny)=REAL(pabs(nx,ny))
        END DO
     END DO
-    CALL grd2d(5,xg,yg,fr,nxmax,nxmax,nymax,'@Pabs@',ASPECT=0.D0)
+    CALL grd2d(5,xn_nx,yn_ny,fr,nxmax,nxmax,nymax,'@Pabs@',ASPECT=0.D0)
 
     CALL PAGEE
     RETURN
@@ -228,8 +228,8 @@ CONTAINS
              END DO ! nx
           END DO !ny
 
-          CALL grd2d(ng-1+ng_id,xg,yg,f,nxmax,nxmax,nymax,title//title_t, &
-                     ASPECT=0.D0)
+          CALL grd2d(ng-1+ng_id,xn_nx,yn_ny,f,nxmax,nxmax,nymax, &
+               title//title_t,ASPECT=0.D0)
        END DO
        CALL PAGEE
     END DO

@@ -92,7 +92,7 @@ MODULE wqcomm
   INTEGER,DIMENSION(:,:),ALLOCATABLE :: &
        medium_nx_ny(:,:)
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &
-       xg(:),yg(:),xgn(:),ygn(:)
+       xn_nx(:),yn_ny(:),xg_nx(:),yg_ny(:)
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &
        ne,OCE,OPE,OUH,pabs,OR,OL
   COMPLEX(rkind),DIMENSION(:,:),ALLOCATABLE :: &
@@ -121,8 +121,8 @@ CONTAINS
     END IF
 
     ALLOCATE(medium_nx_ny(nxmax,nymax))
-    ALLOCATE(xg(nxmax),yg(nymax))
-    ALLOCATE(xgn(nxmax),ygn(nymax))
+    ALLOCATE(xn_nx(nxmax),yn_ny(nymax))
+    ALLOCATE(xg_nx(nxmax),yg_ny(nymax))
     ALLOCATE(EX(nxmax,nymax),EY(nxmax,nymax),EZ(nxmax,nymax))
     ALLOCATE(A(3,3,nxmax,nymax),Ainv(3,3,nxmax,nymax))
     ALLOCATE(CD(3,3,nxmax,nymax))
@@ -148,8 +148,8 @@ CONTAINS
     IMPLICIT NONE
    
     DEALLOCATE(medium_nx_ny)
-    DEALLOCATE(xg,yg)
-    DEALLOCATE(xgn,ygn)
+    DEALLOCATE(xn_nx,yn_ny)
+    DEALLOCATE(xg_nx,yg_ny)
     DEALLOCATE(EX,EY,EZ)
     DEALLOCATE(A,Ainv)
     DEALLOCATE(CD,CDplus,CDminus)

@@ -56,6 +56,10 @@ CONTAINS
     nx_end=(iend-1)/mblock_size+1        ! nx_end is nx including iend
     IF(nrank.EQ.nsize-1) nx_end=nxmax
 
+    IF(nrank.EQ.0) &
+         WRITE(6,'(A,5I6)') 'mtx_setup: mle,is,ie,nxs,nxe=', &
+         mlen,istart,iend,nx_start,nx_end
+
     IF(ALLOCATED(istart_nrank)) &
          DEALLOCATE(istart_nrank,iend_nrank,nx_start_nrank,nx_end_nrank)
     ALLOCATE(istart_nrank(0:nsize-1),iend_nrank(0:nsize-1))
@@ -94,8 +98,8 @@ CONTAINS
        il=ii0-3*(ny-1)
 
        IF(nx.GE.2.AND.nx.LE.nxmax-1.AND.ny.GE.2.AND.ny.LE.nymax-1) THEN
-          dx=0.5D0*(xg(nx+1)-xg(nx-1))
-          dy=0.5D0*(yg(ny+1)-yg(ny-1))
+          dx=0.5D0*(xg_nx(nx+1)-xg_nx(nx-1))
+          dy=0.5D0*(yg_ny(ny+1)-yg_ny(ny-1))
 
           R1xy = 0.25d0/(dx*dy)
           R2xx = 1.00d0/dx**2
@@ -207,7 +211,7 @@ CONTAINS
 
     DO i=istart,iend
        IF(ABS(cvec_r(i)).GT.0.D0) CALL mtxc_set_source(i,cvec_r(i))
-!       CALL mtxc_set_source(i,cvec_r(i))
+       CALL mtxc_set_source(i,cvec_r(i))
     END DO
 
 !   --- setup initial solution vector for iterative scheme of matrix solver ---
