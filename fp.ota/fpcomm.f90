@@ -34,10 +34,8 @@ MODULE fpcomm_parm
       integer:: MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY,MODEL_SINK,N_IMPU
       integer:: MODEL_EX_READ_Tn,MODEL_EX_READ_DH_RATIO
       integer:: MODEL_BULK_CONST,MODEL_CX_LOSS
-      INTEGER:: model_fow_fout
       integer:: N_partition_r,N_partition_s,N_partition_p
-      integer:: OUTPUT_TXT_DELTA_F, OUTPUT_TXT_F1
-      INTEGER:: OUTPUT_TXT_BEAM_WIDTH, OUTPUT_TXT_HEAT_PROF
+      integer:: OUTPUT_TXT_DELTA_F, OUTPUT_TXT_F1, OUTPUT_TXT_BEAM_WIDTH, OUTPUT_TXT_HEAT_PROF
       integer:: OUTPUT_TXT_BEAM_DENS
       integer:: NRAYS_WR,NRAYE_WR
 
