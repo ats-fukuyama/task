@@ -2,8 +2,8 @@
 f
 tr.test.gs
 c
-   MDLEQN=1
-   MDLAD=2
+   mdleqn=1
+   mdlad=2
    DT=0.01D0
 
    NTMAX=10

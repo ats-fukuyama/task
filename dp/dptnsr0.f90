@@ -19,7 +19,7 @@ CONTAINS
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
     TYPE(pl_mag_type),INTENT(IN):: mag
-    TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
+    TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
     TYPE(pl_grd_type),DIMENSION(nsmax),INTENT(IN):: grd
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     COMPLEX(rkind):: CLDISP1(6)
@@ -114,7 +114,7 @@ CONTAINS
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: ID1,NS
     TYPE(pl_mag_type),INTENT(IN):: mag
-    TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
+    TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
     TYPE(pl_grd_type),DIMENSION(nsmax),INTENT(IN):: grd
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
 

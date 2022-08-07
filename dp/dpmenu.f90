@@ -33,7 +33,7 @@ CONTAINS
     REAL(rkind):: RF0_SAVE,RFI0_SAVE,RKZ0_SAVE,RKX0_SAVE,RL,RHON
     COMPLEX(rkind):: CW,CKPR,CKPP
     TYPE(pl_mag_type):: mag
-    TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
+    TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
     TYPE(pl_grd_type),DIMENSION(nsmax):: grd
 
 1   CONTINUE

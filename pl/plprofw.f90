@@ -5,9 +5,9 @@ MODULE plprofw
   USE bpsd_kinds,ONLY: rkind
 
   PRIVATE
-  PUBLIC pl_plfw_type,pl_profw,pl_profw3d
+  PUBLIC pl_prfw_type,pl_profw,pl_profw3d
 
-  TYPE pl_plfw_type       ! local plasma parameter for wave analysis
+  TYPE pl_prfw_type       ! local plasma parameter for wave analysis
      real(rkind):: RN,RTPR,RTPP,RUPR,RUPP,RNUC,RZCL
                          ! RN:   number density [10^{20}m^{-3}]
                          ! RTPR: parallel temperature [keV]
@@ -16,17 +16,18 @@ MODULE plprofw
                          ! RUPP: perpendicular fluid velocity [m/s]
                          ! RNUC: collision frequency [1/s]
                          ! RZCL: collision parameter (RNUC/OMEGA)
-  END TYPE pl_plfw_type
+  END TYPE pl_prfw_type
 
 CONTAINS
 
   SUBROUTINE pl_profw(rhon,plfw)
     USE plcomm
+    USE plcomm_type
     USE plprof
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: rhon
-    TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(OUT):: plfw
-    TYPE(pl_plf_type),DIMENSION(nsmax):: plf
+    TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(OUT):: plfw
+    TYPE(pl_prf_type),DIMENSION(nsmax):: plf
     REAL(rkind):: ql,bpbt,bnt,bnp
     INTEGER:: ns
 
@@ -64,8 +65,8 @@ CONTAINS
     USE plprof
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: x,y,z
-    TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(OUT):: plfw
-    TYPE(pl_plf_type),DIMENSION(nsmax):: plf
+    TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(OUT):: plfw
+    TYPE(pl_prf_type),DIMENSION(nsmax):: plf
     TYPE(pl_mag_type):: mag
     REAL(rkind):: raxis,zaxis,rl,rcost,rsint,bnt,bnr,rs,rsinp,rcosp,bnp
     INTEGER:: ns

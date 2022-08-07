@@ -342,7 +342,7 @@ CONTAINS
     USE dpdisp
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NR,NS,MD,ND
-    TYPE(pl_plfw_type),DIMENSION(NSMAX):: plfw
+    TYPE(pl_prfw_type),DIMENSION(NSMAX):: plfw
     TYPE(pl_mag_type):: mag
     TYPE(pl_grd_type),DIMENSION(NSMAX):: grd
     INTEGER:: NHH,NTH,MM,NN,NS1
@@ -689,7 +689,7 @@ CONTAINS
     USE plprofw
     USE wmprof
     IMPLICIT NONE
-    TYPE(pl_plfw_type),DIMENSION(NSMAX):: plfw
+    TYPE(pl_prfw_type),DIMENSION(NSMAX):: plfw
     INTEGER,INTENT(IN):: NR,NS,MD,ND
     INTEGER:: NHH,NTH,NN,MM
     REAL(rkind):: WW,RHON,RNAP,RTAP,RNA,RTA,DRN

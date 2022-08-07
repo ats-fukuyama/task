@@ -856,7 +856,7 @@
       USE fpreadeg
       IMPLICIT NONE
       INTEGER:: NSA, NSB, NS, NSFP, NSFD, NR, ISW_CLOG, i, j
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
       REAL(rkind):: RTFD0L, RHON, RNE, RTE, RLNRL, FACT, RNA, RTA, RNB, RTB, SUM, AMFDL
       REAL(rkind):: A_D, tau_se_E0, log_energy, sigma_cx0, sigma_cx, tau_cx_E1
       REAL(rkind):: tau_se_E0E1, log10_neu0, log10_neus, alpha, beta, N_NEUT, E_CR

@@ -304,7 +304,7 @@
       integer:: NSA, ierr, NR, NS, NP, NTH, NBEAM
       double precision:: FL, RHON
       real(8),dimension(NRMAX,NSMAX):: tempt, tempn 
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
 
 !     ----- set parameters for target species -----
       CALL fp_set_normalize_param

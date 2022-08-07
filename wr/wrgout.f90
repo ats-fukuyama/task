@@ -914,7 +914,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,PARAMETER:: nang_max=100
     TYPE(pl_mag_type):: mag
-    TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
+    TYPE(pl_prf_type),DIMENSION(NSMAX):: plf
     INTEGER:: nray,nres,nstp,nc,nang,line_pat,ngid,ierr
     INTEGER:: nstp_nres(nres_max)
     REAL:: rgb_nres(3,nres_max)

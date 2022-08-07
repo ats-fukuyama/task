@@ -152,7 +152,7 @@ CONTAINS
     INTEGER,INTENT(IN):: NS
     COMPLEX(rkind),INTENT(OUT):: CDTNS(3,3)
     TYPE(pl_mag_type):: mag
-    TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
+    TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
     TYPE(pl_grd_type),DIMENSION(nsmax):: grd
     REAL(rkind):: RHON,BNXY
     COMPLEX(rkind):: CW,CKPR,CKPP
@@ -254,7 +254,7 @@ CONTAINS
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
     TYPE(pl_mag_type),INTENT(IN):: mag
-    TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
+    TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
     TYPE(pl_grd_type),DIMENSION(nsmax),OPTIONAL:: grd
     COMPLEX(rkind),INTENT(OUT):: CDTNS(3,3)
     COMPLEX(rkind):: CDISP(6),CLDISP(6)
@@ -317,7 +317,7 @@ CONTAINS
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR
     TYPE(pl_mag_type),INTENT(IN):: mag
-    TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
+    TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
     TYPE(pl_grd_type),DIMENSION(nsmax):: grd
     COMPLEX(rkind),INTENT(OUT):: CKPPF,CKPPS
     COMPLEX(rkind):: CDISP(6),CLDISP(6)

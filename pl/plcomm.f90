@@ -10,7 +10,7 @@ MODULE plcomm_type
                            ! RHON: normalized minor radius
   END TYPE pl_mag_type
 
-  TYPE pl_plf_type       ! local plasma parameter
+  TYPE pl_prf_type       ! local plasma parameter
      real(rkind):: RN,RTPR,RTPP,RU,RUPL,RNUC
                            ! RN:   number density [10^{20}m^{-3}]
                            ! RTPR: parallel temperature [keV]
@@ -18,7 +18,7 @@ MODULE plcomm_type
                            ! RU:   toroidal fluid velocity [m/s]
                            ! RUPL: poloidal fluid velocity [m/s]
                            ! RNUC: collision frequency [1/s]
-  END TYPE pl_plf_type
+  END TYPE pl_prf_type
 
   TYPE pl_grd_type
      real(rkind):: grdn,grdtpr,grdtpp,grdu,grdupl
@@ -73,6 +73,7 @@ END MODULE plcomm_parm
 MODULE plcomm
 
   USE plcomm_parm
+  USE plcomm_type
 
   REAL(rkind):: HA1
 

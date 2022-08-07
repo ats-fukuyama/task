@@ -42,14 +42,14 @@ CONTAINS
 
     USE wrcomm
     USE wrsub,ONLY: wrcale,wrcale_xyz,wr_cold_rkperp,wrnwtn
-    USE plprof,ONLY: pl_mag_type,pl_mag,pl_plf_type,pl_prof
-    USE plprofw,ONLY: pl_plfw_type,pl_profw
+    USE plprof,ONLY: pl_mag_type,pl_mag,pl_prf_type,pl_prof
+    USE plprofw,ONLY: pl_prfw_type,pl_profw
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NRAY
     INTEGER,INTENT(OUT):: IERR
     TYPE(pl_mag_type):: mag
-    TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
-    TYPE(pl_plf_type),DIMENSION(nsmax):: plf
+    TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
+    TYPE(pl_prf_type),DIMENSION(nsmax):: plf
     REAL(rkind):: YA(NEQ)
     REAL(rkind):: YN(0:NEQ,0:NSTPMAX)
     REAL(rkind):: ANGPH,ANGZ,EPARA,EPERP

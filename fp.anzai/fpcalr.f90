@@ -22,7 +22,7 @@ CONTAINS
       real(kind8):: WRH, DFDR_D, DFDR_F, F_R2, DFDR_R2, F_R1, DFDR_R1
       REAL(kind8):: SHEAR,PNEL,RHONI,DPDR,DVEXBDR,CALF,CKAP,CEXB,FSZ,FEZ
       REAL(kind8),DIMENSION(1:NRMAX+1):: CHI_CDBM
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
       double precision:: densm, densp, rgama, alpha
       INTEGER:: ISW_D
 

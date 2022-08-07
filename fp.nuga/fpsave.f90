@@ -812,7 +812,7 @@
       IMPLICIT NONE
       integer:: NR, NSA, NS
       real(8):: rhon
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
       double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in):: recv
 
       CALL MOMENT_0TH_ORDER(recv,RNSL)
@@ -1063,7 +1063,7 @@
       IMPLICIT NONE
       integer:: NP, NR, NSA, NS
       double precision:: pmax_bulk, p_bulk_r, rhon, RTFPL
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
 
 !     DEFINE BULK MOMENTUM RANGE: 0 < NP < NP_BULK(NR,NSA) 
       IF(MODEL_BULK_CONST.eq.0)THEN

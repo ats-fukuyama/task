@@ -37,7 +37,7 @@
       IMPLICIT NONE
 
       INTEGER:: NR, NSA, NP, NTH, NPC
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
       REAL(RKIND),dimension(NRSTART:NREND):: &
            RN1_temp, RN2_temp, RJ1_temp, RJ2_temp
       REAL(RKIND),dimension(NRSTART:NREND):: RT1_temp, RT2_temp

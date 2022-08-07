@@ -1141,7 +1141,7 @@
       integer :: NR, NS
       REAL(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
       REAL(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: plf
       REAL(rkind):: FPMXWL_calcnr
 
       AMFDL=PA(NS)*AMP
