@@ -85,6 +85,9 @@ CONTAINS
     IMPLICIT NONE
     INTEGER:: nx,ny
     REAL(rkind):: fr(nxmax,nymax),fi(nxmax,nymax),fa(nxmax,nymax)
+    REAL(rkind):: line_thickness(1)
+    
+    line_thickness(1)=0.035D0
 
     CALL PAGES
 
@@ -150,10 +153,13 @@ CONTAINS
     CHARACTER(LEN=9):: title
     CHARACTER(LEN=16):: title_t
     REAL(rkind):: f(nxmax,nymax)
+    REAL(rkind):: line_thickness(1)
+    
+    line_thickness(1)=0.035D0
 
 1   CONTINUE
     WRITE(6,'(A)') '## Input : 1:Exr 2:Exi 3:Exa 4:Eyr 5:Eyi 6:Eya'
-    WRITE(6,'(A)') '           7:Ezr 8:Ezi 9:Eza 10:Pabs     0:end'
+    WRITE(6,'(A)') '           7:Ezr 8:Ezi 9:Eza 10:Pabs 11:Ea 0:end'
     READ(5,*,END=9000,ERR=1) id
     IF(id.EQ.0) GO TO 9000
 
@@ -178,6 +184,8 @@ CONTAINS
        title='@Abs  Ez:'
     CASE(10)
        title='@Pabs   :'
+    CASE(11)
+       title='@Eabs   :'
     END SELECT
 
     npage_max=(ngr_max-1)/16+1
@@ -224,12 +232,16 @@ CONTAINS
                    f(nx,ny)=ABS(EZ_save(nx,ny,ngr))
                 CASE(10)
                    f(nx,ny)=pabs_save(nx,ny,ngr)
+                CASE(11)
+                   f(nx,ny)=SQRT(ABS(EX_save(nx,ny,ngr))**2 &
+                                +ABS(EY_save(nx,ny,ngr))**2 &
+                                +ABS(EZ_save(nx,ny,ngr))**2)
                 END SELECT
              END DO ! nx
           END DO !ny
 
           CALL grd2d(ng-1+ng_id,xn_nx,yn_ny,f,nxmax,nxmax,nymax, &
-               title//title_t,ASPECT=0.D0)
+               title//title_t,ASPECT=0.D0,LINE_THICKNESS=line_thickness)
        END DO
        CALL PAGEE
     END DO
