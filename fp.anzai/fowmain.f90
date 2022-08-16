@@ -36,13 +36,14 @@ program fow
   CALL pl_init
   CALL eq_init
   CALL fp_init
+  call fow_read_namelist !by anzai
   CALL pl_parm(1,'plparm',IERR)
   CALL eqparm(1,'eqparm',IERR)
   CALL fp_parm(1,'fpparm',IERR)
 
   call fp_broadcast
   call fp_prep(IERR)
-  call fow_read_namelist
+  !call fow_read_namelist !by ota
   call fow_allocate
   call fow_prep
 

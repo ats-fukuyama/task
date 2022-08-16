@@ -4,8 +4,7 @@
 !  Making distribution function
 ! ******************************
 ! made by ot / modified by anzai
-! ver.0.1
-
+! ver.0.5
 
 module fowdistribution
   implicit none
@@ -13,7 +12,7 @@ module fowdistribution
   public :: fI_Maxwellian
   public :: convert_fI_to_fu
   public :: moment_0th_order_COM, moment_2nd_order_COM
-  !public :: particle_flux, particle_flux_element
+  ! public :: particle_flux, particle_flux_element
   public :: total_N!, effective_diffusion_cosfficient
 
 contains
@@ -113,7 +112,7 @@ contains
                 thetaml = thetam_local(nth,np,nr,nthp,nsa)
                 rhoml   = rhom_local(nth,np,nr,nthp,nsa)
   
-                ! search the cell include thetaml, psiml
+                !** search the cell include thetaml, psiml
                 do ir = 1, nrmax-1
                   if ( rm(ir) <= rhoml .and. rhoml <= rm(ir+1) ) then
                     exit
@@ -127,7 +126,7 @@ contains
                   end if
                 end do
 
-                ! use bilinear intepolation
+                !** use bilinear intepolation
                 ithr = min( ith+1, nthmax )
                 ithl = ithr-1
                 irr  = min( ir+1, nrmax )
@@ -286,8 +285,7 @@ contains
   !       sum_gammaI = 0.d0
   !       do np = 1, npmax
   !         do nth = 1, nthmax
-  !           dVI = delp(nsa) * delthm(nth,np,nr,nsa)
-  !           !dVI = JI(nth,np,nr,nsa) * delp(nsa) * delthm(nth,np,nr,nsa)
+  !           dVI = JI(nth,np,nr,nsa) * delp(nsa) * delthm(nth,np,nr,nsa)
   !           Drx(1) = ( Drpfow(nth,np,nr+1,nsa) + Drpfow(nth,np,nr,nsa) )*0.5d0
   !           Drx(2) = ( Drtfow(nth,np,nr+1,nsa) + Drtfow(nth,np,nr,nsa) )*0.5d0
   !           Drx(3) = ( Drrfow(nth,np,nr+1,nsa) + Drrfow(nth,np,nr,nsa) )*0.5d0
@@ -298,7 +296,7 @@ contains
   !             Drx(2) * dfdth(nth,np,nr,nsa)/pm(np,nsa)+ &
   !             Drx(3) * dfdrm(nth,np,nr,nsa) - &
   !             Fr     * fnsp(nth,np,nr,nsa) &
-  !           )!/JI(nth,np,nr,nsa)
+  !           )/JI(nth,np,nr,nsa)
 
   !           sum_gammaI = sum_gammaI + gammaI*dVI
   !         end do
@@ -352,17 +350,16 @@ contains
   !       Sr_F  (nr,nsa) = 0.d0
   !       do np = 1, npmax
   !         do nth = 1, nthmax
-  !           dVI = delp(nsa) * delthm(nth,np,nr,nsa)
-  !           !dVI = JI(nth,np,nr,nsa) * delp(nsa) * delthm(nth,np,nr,nsa)
+  !           dVI = JI(nth,np,nr,nsa) * delp(nsa) * delthm(nth,np,nr,nsa)
   !           Drx(1) = ( Drpfow(nth,np,nr+1,nsa) + Drpfow(nth,np,nr,nsa) )*0.5d0
   !           Drx(2) = ( Drtfow(nth,np,nr+1,nsa) + Drtfow(nth,np,nr,nsa) )*0.5d0
   !           Drx(3) = ( Drrfow(nth,np,nr+1,nsa) + Drrfow(nth,np,nr,nsa) )*0.5d0
   !           Fr     = ( Frrfow(nth,np,nr+1,nsa) + Frrfow(nth,np,nr,nsa) )*0.5d0
 
-  !           Sr_Dp (nr,nsa) = Sr_Dp (nr,nsa) - rnfp0(nsa)*Drx(1)*dfdp (nth,np,nr,nsa)!/JI(nth,np,nr,nsa)*dVI
-  !           Sr_Dth(nr,nsa) = Sr_Dth(nr,nsa) - rnfp0(nsa)*Drx(2)*dfdth(nth,np,nr,nsa)!/JI(nth,np,nr,nsa)*dVI
-  !           Sr_Dr (nr,nsa) = Sr_Dr (nr,nsa) - rnfp0(nsa)*Drx(3)*dfdrm(nth,np,nr,nsa)!/JI(nth,np,nr,nsa)*dVI
-  !           Sr_F  (nr,nsa) = Sr_F  (nr,nsa) + rnfp0(nsa)*Fr    *fnsp (nth,np,nr,nsa)!/JI(nth,np,nr,nsa)*dVI
+  !           Sr_Dp (nr,nsa) = Sr_Dp (nr,nsa) - rnfp0(nsa)*Drx(1)*dfdp (nth,np,nr,nsa)/JI(nth,np,nr,nsa)*dVI
+  !           Sr_Dth(nr,nsa) = Sr_Dth(nr,nsa) - rnfp0(nsa)*Drx(2)*dfdth(nth,np,nr,nsa)/JI(nth,np,nr,nsa)*dVI
+  !           Sr_Dr (nr,nsa) = Sr_Dr (nr,nsa) - rnfp0(nsa)*Drx(3)*dfdrm(nth,np,nr,nsa)/JI(nth,np,nr,nsa)*dVI
+  !           Sr_F  (nr,nsa) = Sr_F  (nr,nsa) + rnfp0(nsa)*Fr    *fnsp (nth,np,nr,nsa)/JI(nth,np,nr,nsa)*dVI
   !         end do
   !       end do
   !       Sr(nr,nsa) = Sr_Dp(nr,nsa)+Sr_Dth(nr,nsa)+Sr_Dr(nr,nsa)+Sr_F(nr,nsa)
@@ -408,7 +405,7 @@ contains
       do np = 1, npmax
         do nth = 1, nthmax
           dVI = delp(nsa)*delthm(nth,np,nr,nsa)*delr! * 2.d0*pi*pm(np,nsa)**2
-          sumI = sumI+fi(nth,np,nr,nsa)*dVI*JI(nth,np,nr,nsa)
+          sumI = sumI+FI(nth,np,nr,nsa)*dVI*JI(nth,np,nr,nsa)
         end do
       end do
     end do
