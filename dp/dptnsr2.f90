@@ -29,7 +29,7 @@ CONTAINS
       COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
+      TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind):: CWP,CWC,CKPP2,CWN,CWU,CPERP,CPARA,CCROS,CPERM,CWNU
       COMPLEX(rkind):: CGZ0,CGZ,CZ,CDZ,CADD
@@ -181,7 +181,7 @@ CONTAINS
       COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
+      TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       TYPE(pl_grd_type),DIMENSION(nsmax),INTENT(IN):: grd
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind):: COEF,CWAST,CFN,CX,CEX,CPM,CQM,CRM,CKPR1

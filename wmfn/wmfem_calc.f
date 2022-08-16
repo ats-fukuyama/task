@@ -1173,7 +1173,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       integer,intent(in):: mm,nn,ns
       complex(8),dimension(3,3),intent(out):: fml
       complex(8):: cw,ckpara,ckperp
-      TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
+      TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
       TYPE(pl_mag_type):: mag
       complex(8):: ckppf,ckpps
       real(8):: babs,bsupth,bsupph

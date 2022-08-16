@@ -6,7 +6,8 @@ CONTAINS
 
   SUBROUTINE DPLDFP(IERR)
 
-      USE dpcomm
+    USE dpcomm
+    USE plcomm_type
       USE libfio
       USE commpi
       USE libmpi
@@ -154,7 +155,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NS,ID  ! ID=0 : non-relativistic, ID=1: relativistic
     INTEGER,INTENT(OUT):: IERR
-    TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
+    TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
     INTEGER NR,NTH,NSA,NP,NSA1
     REAL(rkind):: PTH0W,RHON,RN0,TPR,TPP,RT0,PN0,PT0,PTH0
     REAL(rkind):: TNPR,TNPP,SUM,PML,PPP,PPR,EX,TN00,FACTOR,TNL
@@ -291,7 +292,8 @@ CONTAINS
 
   SUBROUTINE DPFPFL(NS1,mag,IERR)
 
-      USE dpcomm
+    USE dpcomm
+    USE plcomm_type
       USE plprof
       USE libspl1d
       IMPLICIT NONE
@@ -438,7 +440,7 @@ CONTAINS
       USE libbes
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NS,ID ! ID=0 : non-relativistic, ID=1: relativistic
-      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
+      TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       REAL(RKIND):: RN0,TPR,TPP,RT0,PN0,PT0,PTH0,PTH0W,TNPR,TNPP,SUM
       REAL(RKIND):: PPP,PPR,EX,EXX,TN0,TNL,PML,FACTOR
       INTEGER:: NP,NTH

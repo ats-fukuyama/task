@@ -345,11 +345,11 @@ C           NR : NODE NUMBER (RADIAL POSITION)
 C           NS : PARTICLE SPECIES 
 C
       USE plprof,ONLY: pl_mag_type
-      USE plprofw,ONLY: pl_profw,pl_plfw_type
+      USE plprofw,ONLY: pl_profw,pl_prfw_type
       USE dpdisp,ONLY: dp_dtns_pzp
       INCLUDE 'wmcoml.inc'
       TYPE(pl_mag_type):: mag
-      TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
+      TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
       DIMENSION CDTNS(3,3)
 C
       CW=2.D0*PI*CRF*1.D6

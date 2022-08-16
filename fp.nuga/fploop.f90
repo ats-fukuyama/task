@@ -412,7 +412,7 @@
       IMPLICIT NONE
       INTEGER:: NTH, NP, NR, NSA, NS
       real(8),dimension(NRMAX,NSMAX):: tempt, tempn
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
       real(8):: RHON, FL
 
 !     Bulk f is replaced by initial Maxwellian

@@ -22,7 +22,7 @@ CONTAINS
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
     TYPE(pl_mag_type),INTENT(IN):: mag
-!    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+!    TYPE(pl_prf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     COMPLEX(rkind):: CLDISP1(6),CLDISP2(6)
     INTEGER:: I
@@ -48,7 +48,7 @@ CONTAINS
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
     TYPE(pl_mag_type),INTENT(IN):: mag
-!    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+!    TYPE(pl_prf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
     INTEGER:: NHMAX,NTH,NP,NC,NCD
@@ -265,7 +265,7 @@ CONTAINS
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
     TYPE(pl_mag_type),INTENT(IN):: mag
-!    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+!    TYPE(pl_prf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
     INTEGER:: NHMAX,NTH,NP,NC,NCD

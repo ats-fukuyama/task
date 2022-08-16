@@ -11,6 +11,33 @@
     USE bpsd_kinds
     USE plcomm_type
 
+    PRIVATE
+    PUBLIC pl_mag_type
+    PUBLIC pl_prf_type
+    PUBLIC pl_grd_type
+    PUBLIC pl_mag_old
+    PUBLIC pl_mag
+    PUBLIC pl_mag_rz
+    PUBLIC pl_prof2
+    PUBLIC pl_prof3d_old
+    PUBLIC pl_prof_old
+    PUBLIC pl_prof3d
+    PUBLIC pl_prof
+    PUBLIC pl_grad
+    PUBLIC pl_bpsd_get
+    PUBLIC rsrhon
+    PUBLIC pl_qprf
+    PUBLIC pl_bminmax
+    PUBLIC pl_rrminmax
+    PUBLIC pl_dvdrho
+    PUBLIC pl_axis
+    PUBLIC pl_rzsu
+    PUBLIC pl_wmxprf
+    PUBLIC wmspl_prof
+    PUBLIC pl_getRZ
+    PUBLIC pl_getRZB
+    PUBLIC pl_getB
+    
     INTERFACE
        SUBROUTINE GETRZ(RL,Z,PP,BR,BZ,BT,RHON)
          USE bpsd_kinds
@@ -260,7 +287,7 @@
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: RHON
       REAL(rkind),INTENT(OUT),DIMENSION(NSMAX):: RN,RTPR,RTPP,RU
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
       INTEGER(ikind):: NS
 
       CALL pl_prof(RHON,PLF)
@@ -281,7 +308,7 @@
       USE pllocal,ONLY: RN,RTPR,RTPP,RU,RUPL,RNUC
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: X,Y,Z
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
       INTEGER:: NS
 
       CALL pl_prof3d(X,Y,Z,PLF)
@@ -304,7 +331,7 @@
       USE pllocal,ONLY: RN,RTPR,RTPP,RU,RUPL,RNUC
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: RHON
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
       INTEGER:: NS
 
       CALL pl_prof(RHON,PLF)
@@ -355,7 +382,7 @@
         USE plcoll
         IMPLICIT NONE
         REAL(rkind),INTENT(IN):: X,Y,Z
-        TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
+        TYPE(pl_prf_type),DIMENSION(NSMAX):: plf
         REAL(rkind),DIMENSION(NSMAX) :: &
              RN_PL,RTPR_PL,RTPP_PL,RU_PL
         REAL(rkind):: RHON,FACTX,FACTY,FACTN,FACTT,FACTU
@@ -457,7 +484,7 @@
         USE plcoll
         IMPLICIT NONE
         REAL(rkind),INTENT(IN):: RHON
-        TYPE(pl_plf_type),DIMENSION(NSMAX),INTENT(OUT):: PLF
+        TYPE(pl_prf_type),DIMENSION(NSMAX),INTENT(OUT):: PLF
         REAL(rkind):: RHOL, FACTN, FACTT, FACTU, FACTITB, PL0, PL,&
              & FACT, FNX, DFNX, AN, BN, FTX, DFTX, AT, BT, FUX, DFUX,&
              & AU, BU, VAL, PNL, PTL, profn, proft
@@ -682,7 +709,7 @@
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: rhon
       TYPE(pl_grd_type),DIMENSION(NSMAX),INTENT(OUT):: grd
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: plf1,plf2
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: plf1,plf2
       INTEGER:: ns
       REAL(rkind):: drhon=1.D-6
 

@@ -28,7 +28,7 @@ CONTAINS
       COMPLEX(rkind),INTENT(IN):: CW
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
+      TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind):: CWP,CWC,CYY,CZZ
 
@@ -59,7 +59,7 @@ CONTAINS
       COMPLEX(rkind),INTENT(IN):: CW
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
+      TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind):: CWP,CWC,CWNU
 
@@ -94,7 +94,7 @@ CONTAINS
       COMPLEX(rkind),INTENT(IN):: CKPR
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
+      TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind):: CWP,CWC,CPARA
       REAL(rkind):: RKPR,VTE
@@ -128,7 +128,7 @@ CONTAINS
       COMPLEX(rkind),INTENT(IN):: CW
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
+      TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind):: CWP,CWC,CWNU
 
@@ -163,7 +163,7 @@ CONTAINS
       COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
+      TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind):: CWP,CWC,CWNU,CTPR,CTPP
       REAL(rkind):: WTPR,WTPP,WTPX
@@ -207,7 +207,7 @@ CONTAINS
       IMPLICIT NONE
       COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
       INTEGER,INTENT(IN):: NS
-      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
+      TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind):: CK2,CGZ,CZ,CDZ,CWP,CFX,CFZ,CLP,CLT,CWNU
       REAL(rkind):: RT,VT2
@@ -252,7 +252,7 @@ CONTAINS
       COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
+      TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind):: CALAM(0:2)
       COMPLEX(rkind):: CWP,CWC,CBETA,CPR,CGZ,CZ,CDZ,CK,CFW,CFF,CFG
@@ -321,7 +321,7 @@ CONTAINS
       COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
+      TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind):: CALAM(0:3)
       COMPLEX(rkind):: CWP,CWC,CBETA,CPR,CGZ,CZ,CDZ,CK,CFW,CFF,CFG
@@ -391,7 +391,7 @@ CONTAINS
       COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
+      TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind),ALLOCATABLE:: CALAM(:)
       COMPLEX(rkind):: CWP,CWC,CBETA,CPR,CGZ,CZ,CDZ,CK,CFW,CFF,CFG
@@ -469,7 +469,7 @@ CONTAINS
       COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
+      TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind),ALLOCATABLE:: CALAM(:)
       COMPLEX(rkind):: CWP,CWC,CBETA,CPR,CGZ,CZ,CDZ,CK,CFW,CFF,CFG
@@ -550,7 +550,7 @@ CONTAINS
       COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
+      TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
 !      COMPLEX(rkind),ALLOCATABLE:: CALAM(:)
       COMPLEX(rkind):: CWP,CWC,CBETA,CNPP,CNPR,CZ,CWNU

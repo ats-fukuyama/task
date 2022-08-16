@@ -1109,7 +1109,7 @@ CONTAINS
       use plprof
       USE dptnsr0
       IMPLICIT NONE
-      TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
+      TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
       TYPE(pl_mag_type):: mag
       TYPE(pl_grd_type),DIMENSION(nsmax):: grd
       REAL(8),INTENT(IN):: rho,th,ph

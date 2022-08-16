@@ -147,21 +147,21 @@ CONTAINS
        ENDIF
 
     ELSE
-       fs1=0.D0
-       fs2=0.D0
+!       fs1=0.D0
+!       fs2=0.D0
 !   corrected the treatment for alpha < 0 (2018-10-26)
-!       sa=alpha-shear
-!       IF(sa.GE.0.D0) THEN
-!          fs1=(1.D0+9.0D0*SQRT(2.D0)*sa**2.5D0) &
-!               & /(SQRT(2.D0)*(1.D0-2.D0*sa+3.D0*sa*sa+2.0D0*sa*sa*sa))
-!       ELSE
-!          fs1=1.D0/SQRT(2.D0*(1.D0-2.D0*sa)*(1.D0-2.D0*sa+3.D0*sa*sa))
-!       ENDIF
-!       IF(curv.LT.0.D0) THEN
-!          fs2=SQRT(-curv)**3/(shear*shear)
-!       ELSE
-!          fs2=0.D0
-!       ENDIF
+       sa=alpha-shear
+       IF(sa.GE.0.D0) THEN
+          fs1=(1.D0+9.0D0*SQRT(2.D0)*sa**2.5D0) &
+               & /(SQRT(2.D0)*(1.D0-2.D0*sa+3.D0*sa*sa+2.0D0*sa*sa*sa))
+       ELSE
+          fs1=1.D0/SQRT(2.D0*(1.D0-2.D0*sa)*(1.D0-2.D0*sa+3.D0*sa*sa))
+       ENDIF
+       IF(curv.LT.0.D0) THEN
+          fs2=SQRT(-curv)**3/(shear*shear)
+       ELSE
+          fs2=0.D0
+       ENDIF
     ENDIF
     trcofs=MAX(fs1,fs2)
 

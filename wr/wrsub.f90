@@ -27,12 +27,12 @@ CONTAINS
     USE wrcomm
     USE pllocal
     USE plprof,ONLY: pl_mag_type,pl_mag
-    USE plprofw,ONLY: pl_plfw_type,pl_profw
+    USE plprofw,ONLY: pl_prfw_type,pl_profw
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: R,Z,PHI,RKPARA
     REAL(rkind),INTENT(OUT):: RKPERP_1,RKPERP_2
     TYPE(pl_mag_type):: mag
-    TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
+    TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
     REAL(rkind):: OMG,OMG_C,WP2,RNPARA
     REAL(rkind):: STIX_X,STIX_Y,STIX_S,STIX_P,STIX_D
     REAL(rkind):: W_A,W_B,W_C,RN_1,RN_2

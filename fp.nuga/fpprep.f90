@@ -446,7 +446,7 @@
       IMPLICIT NONE
       integer:: NSA, NR, NTH, NP, NS
       double precision:: RHON
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
 
       ISAVE=0
 
@@ -882,7 +882,7 @@
       USE EG_READ
       IMPLICIT NONE
       INTEGER:: NSA, NSB, NS, NSFP, NSFD, NR, ISW_CLOG, i, j
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
       real(kind8):: RTFD0L, RHON, RNE, RTE, RLNRL, FACT, RNA, RTA, RNB, RTB, SUM, AMFDL
 
       DO NSA=1,NSAMAX

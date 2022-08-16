@@ -19,14 +19,14 @@ CONTAINS
       USE tiexec
       USE tigout
       USE plload,ONLY: pl_load_trdata
-      USE plprof,ONLY: pl_plf_type,pl_prof
+      USE plprof,ONLY: pl_prf_type,pl_prof
       USE libkio
       USE libchar
       USE libmpi
       
       IMPLICIT NONE
       INTEGER(ikind) :: IERR, MODE, nid,nr,nsa,ns
-      TYPE(pl_plf_type),ALLOCATABLE:: plf(:)
+      TYPE(pl_prf_type),ALLOCATABLE:: plf(:)
       REAL(rkind):: RHON
       INTEGER(ikind), SAVE :: INIT=0
       REAL:: cputime1,cputime2

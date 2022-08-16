@@ -26,7 +26,7 @@ CONTAINS
     INTEGER,ALLOCATABLE:: NXA(:)
     REAL(rkind),ALLOCATABLE:: XA(:),RFA(:),RFIA(:)
     TYPE(pl_mag_type):: mag
-    TYPE(pl_plfw_type),DIMENSION(nsmax):: plfw
+    TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
     CHARACTER(LEN=1):: KID
     INTEGER,SAVE:: INIT=0
     INTEGER:: NID

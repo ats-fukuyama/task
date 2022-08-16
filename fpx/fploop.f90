@@ -425,7 +425,7 @@
       IMPLICIT NONE
       INTEGER:: NTH, NP, NR, NSA, NS
       REAL(rkind),dimension(NRMAX,NSMAX):: tempt, tempn
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
       REAL(rkind):: RHON, FL
 
 !     Bulk f is replaced by initial Maxwellian

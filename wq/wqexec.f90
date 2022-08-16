@@ -198,9 +198,10 @@ CONTAINS
                 EX_save(nx,ny,ngr)=EX(nx,ny)
                 EY_save(nx,ny,ngr)=EY(nx,ny)
                 EZ_save(nx,ny,ngr)=EZ(nx,ny)
+                pabs_save(nx,ny,ngr)=pabs(nx,ny)
              END DO
           END DO
-          WRITE(6,'(A,I8,ES12.4,I8)') '## nt,t,ngr:',nt,t_ngr(ngr),ngr
+          WRITE(6,'(A,I8,ES12.4,I8)') '## nt,t,ngr:     ',nt,t_ngr(ngr),ngr
        END IF
     END DO
     t_tot=t

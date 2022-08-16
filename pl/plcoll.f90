@@ -77,7 +77,7 @@ CONTAINS
     USE plcomm
     USE plcomm_type
     IMPLICIT NONE
-    TYPE(pl_plf_type),DIMENSION(nsmax):: plf
+    TYPE(pl_prf_type),DIMENSION(nsmax):: plf
     REAL(rkind),DIMENSION(nsmax) :: rn,rtpp,rtpr,rnu
     INTEGER:: ns
 

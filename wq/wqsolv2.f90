@@ -91,6 +91,14 @@ CONTAINS
        end do
     end do
 
+    IF(idebuga(62).NE.0) THEN
+       DO i=istart,iend
+          IF(ABS(cvec_l(i)).GT.0.D0) &
+               WRITE(62,'(A,I8,2ES12.4)') &
+               'cvec_l:',i,cvec_l(i)
+       END DO
+    END IF
+
     DO i0=istart,iend
        nx=(i0-1)/(3*nymax)+1   ! 1..nxmax
        ii0=i0-3*nymax*(nx-1)    ! 1..3*nymax
