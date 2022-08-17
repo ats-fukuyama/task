@@ -13,7 +13,7 @@ CONTAINS
 
 !     ***********************************************************
 
-  SUBROUTINE tr_loop
+  SUBROUTINE tr_loop(ierr)
 
       USE TRCOMM
       USE TRCOM1, ONLY : NTAMAX
@@ -22,8 +22,10 @@ CONTAINS
       USE libitp
       USE equnit_mod
       IMPLICIT NONE
-      INTEGER:: IERR,nr
+      INTEGER,INTENT(OUT):: IERR
+      INTEGER:: nr
 
+      ierr=0
       IF(NT.GE.NTMAX) GOTO 9000
       CALL tr_eval(NT,IERR)
       IF(IERR.NE.0) GOTO 9000

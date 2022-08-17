@@ -120,7 +120,7 @@ $(OBJDIR)/fpcalw.o : fpcalw.f90 fpcalwr.f90 fpcalwm.f90 fpcomm.f90
 $(OBJDIR)/fpcalwr.o : fpwrin.f90 fpcalwr.f90 fpcomm.f90
 $(OBJDIR)/fpcalwm.o : fpwmin.f90 fpcalwm.f90 fpcomm.f90
 $(OBJDIR)/fpcont.o : fpcont.f90 fpcomm.f90
-$(OBJDIR)/fpfout.o : fpfout.f90 fowobclassify.f90 fpcomm.f90
+$(OBJDIR)/fpfout.o : fpfout.f90 fowobclassify.f90 fowevalNC.f90 fpcomm.f90
 $(OBJDIR)/fpgfout.o : fpgfout.f90 fpcomm.f90
 $(OBJDIR)/fpgout.o : fpgfout.f90 fpcont.f90 fpgout.f90 fpcomm.f90
 $(OBJDIR)/fpfile.o : fpprep.f90 fpreadeg.f90 fpread.f90 fpfile.f90 fpcomm.f90
