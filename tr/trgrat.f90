@@ -11,7 +11,7 @@
       CHARACTER(LEN=1), INTENT(IN):: K2
       INTEGER,       INTENT(IN):: INQ
 
-      IF(NT.LT.NGTSTP) RETURN
+!      IF(NT.LT.NGTSTP) RETURN
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
 
       IF(K2.EQ.'1') CALL TRGRT1
@@ -363,7 +363,11 @@
          GYT(1:NGT,2)=GVT(1:NGT,2)
          GYT(1:NGT,3)=GVT(1:NGT,3)
          GYT(1:NGT,4)=GVT(1:NGT,4)
-         CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,4,'@NE0,ND0,NT0,NA0 [10$+20$=/m$+3$=]  vs t@',2+INQ)
+         GYT(1:NGT,5)=GVT(1:NGT,5)
+         GYT(1:NGT,6)=GVT(1:NGT,6)
+         GYT(1:NGT,7)=GVT(1:NGT,7)
+         GYT(1:NGT,8)=GVT(1:NGT,8)
+         CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,8,'@NE0,ND0,NT0,NA0,<> [10$+20$=/m$+3$=]  vs t@',2+INQ)
       ENDIF
 
       CALL PAGEE

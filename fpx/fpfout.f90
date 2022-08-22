@@ -41,8 +41,10 @@ CONTAINS
     REAL(rkind),dimension(npmax,nsamax) :: momm
     REAL(rkind),dimension(npmax+1,nsamax) :: momg
     REAL(rkind),dimension(nthmax,npmax,nrmax,nsamax) :: taup, r0
-    REAL(rkind),dimension(nrmax,nsamax) :: Drhmrhm,Drw,Drwav,nud_mono,Dbanana
-    REAL(rkind),dimension(nrmax,nsamax) :: Dnewba,Dnewpla
+    REAL(rkind),DIMENSION(nrmax,nsamax):: &
+         Dn_banana,Dn_plateau,chi_banana,chi_plateau, &
+         Dn_rw,Dn_rw_bav,chi_rw,chi_rw_bav, &
+         Dn_fow,chi_fow
     REAL(rkind),dimension(nrmax,nsamax) :: jaceffect,heatfow,heatnewba,heatrw
     integer :: nth,np,nr,nsa
 
@@ -151,22 +153,22 @@ CONTAINS
        call fptxt4D(Fcpp,"dat/Fpp_fp.txt")
        call fptxt4D(Fcth,"dat/Fth_fp.txt")
 
-       CALL fow_evaluate_NC(Drhmrhm,Drw,Drwav,Dbanana,nud_mono, &
-                            heatrw,heatrwav)
+       CALL eval_analytic(Dn_banana,Dn_plateau,chi_banana,chi_plateau)
+       CALL eval_rw(Dn_rw,Dn_rw_bav,chi_rw,chi_rw_bav)
+       CALL eval_fow(Dn_fow,chi_fow)
        
-       CALL fptxt2D(Drhmrhm,"dat/Drhmrhm.txt")
-       CALL fptxt2D(heatfow, "dat/heatfow.txt")![2022/2/19] edited by anzai
+       CALL fptxt2D(Dn_banana,  "dat/Dn_banana.txt")
+       CALL fptxt2D(Dn_plateau, "dat/Dn_plaeau.txt")
+       CALL fptxt2D(chi_banana, "dat/chi_banana.txt")
+       CALL fptxt2D(chi_plateau,"dat/chi_plaeau.txt")
 
-       CALL fptxt2D(Drw,"dat/Drw.txt")
-       CALL fptxt2D(Drwav,"dat/Drwav.txt")
-!       CALL fptxt2D(nud_mono,"dat/nud_mono.txt")
-!       CALL fptxt2D(Dbanana,"dat/Dbanana.txt")
-       CALL fptxt2D(Dnewba, "dat/Dnewba.txt") ![2022/1/31] edited by anzai
-       CALL fptxt2D(Dnewpla, "dat/Dnewpla.txt") ![2022/1/31] edited by anzai
-!       CALL fptxt2D(jaceffect, "dat/jaceffect.txt")![2022/2/5] edited by anzai
-       CALL fptxt2D(heatnewba, "dat/heatnewba.txt")![2022/2/19] edited by anzai
-       CALL fptxt2D(heatrw, "dat/heatrw.txt")![2022/2/23] edited by anzai
-       CALL fptxt2D(heatrwav, "dat/heatrwav.txt")![2022/2/23] edited by anzai
+       CALL fptxt2D(Dn_rw,     "dat/Dn_rw.txt")
+       CALL fptxt2D(Dn_rw_bav, "dat/Dn_rw_bav.txt")
+       CALL fptxt2D(chi_rw,    "dat/chi_rw.txt")
+       CALL fptxt2D(chi_rw_bav,"dat/chi_rw_bav.txt")
+
+       CALL fptxt2D(Dn_fow,    "dat/Dn_fow.txt")
+       CALL fptxt2D(chi_fow,   "dat/chi_fow.txt")
 
        CALL fow_ob_classify
 

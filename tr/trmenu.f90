@@ -26,7 +26,7 @@ CONTAINS
       INTEGER, SAVE :: INIT=0
       CHARACTER(LEN=1) :: KID
       CHARACTER(LEN=80):: LINE
-      INTEGER:: NR,NS,NF,NTYPE
+      INTEGER:: NR,NS,NF,NTYPE,id_loop
 
 !     ------ SELECTION OF TASK TYPE ------
 
@@ -66,11 +66,13 @@ CONTAINS
          CALL tr_save
 
       ELSE IF(KID.EQ.'R') THEN
+         id_loop=0
          CALL tr_prep(ierr)
          if(ierr.ne.0) GO TO 1
 
-         CALL tr_loop
-
+         CALL tr_loop(ierr)
+         IF(ierr.NE.0) id_loop=1
+         
          INIT=2
          NTMOLD=NTMAX
 !
@@ -81,8 +83,11 @@ CONTAINS
          ELSE
             NT=0
          ENDIF
-         CALL tr_loop
-         NTMOLD=NTMAX
+         IF(id_loop.EQ.0) THEN
+            CALL tr_loop(ierr)
+            IF(ierr.NE.0) id_loop=1
+            NTMOLD=NTMAX
+         END IF
 
       ELSE IF(KID.EQ.'G'.AND.INIT.GE.1) THEN
          CALL tr_gout
