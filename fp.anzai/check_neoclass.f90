@@ -58,7 +58,7 @@ contains
     ! call Heat_rw_baverage(heatrwav, heatrw) ![2022/2/23] editted by anzai
     !** For Factor check
     ! call check_factorneo(eps_t, cyclo_rho, dTadr,Ta,tau_ele,tau_i, spVI,spVI2,sTI) ![2022/2/27] editted by anzai
-    ! call ch_intHD(hfowout_r,hfowout_p,hfowout_t,hfowout_f,chi_Dr,chi_Dp,chi_Dt,chi_Fr) ![2022/6/6]
+    call ch_intHD(hfowout_r,hfowout_p,hfowout_t,hfowout_f,chi_Dr,chi_Dp,chi_Dt,chi_Fr) ![2022/6/6]
 
     !**** write txt file
     !** For Particle Neoclass
@@ -98,10 +98,10 @@ contains
     ! call fptxt2D(hfowout_p, "dat/hfow_p.txt")![2022/6/6] editted by anzai
     ! call fptxt2D(hfowout_t, "dat/hfow_t.txt")![2022/6/6] editted by anzai
     ! call fptxt2D(hfowout_f, "dat/hfow_f.txt")![2022/6/6] editted by anzai
-    ! call fptxt2D(chi_Dr, "dat/chi_Dr.txt")![2022/2/19] editted by anzai
-    ! call fptxt2D(chi_Dp, "dat/chi_Dp.txt")![2022/2/19] editted by anzai
-    ! call fptxt2D(chi_Dt, "dat/chi_Dt.txt")![2022/2/19] editted by anzai
-    ! call fptxt2D(chi_Fr, "dat/chi_Fr.txt")![2022/2/19] editted by anzai
+    call fptxt2D(chi_Dr, "dat/chi_Dr.txt")![2022/2/19] editted by anzai
+    call fptxt2D(chi_Dp, "dat/chi_Dp.txt")![2022/2/19] editted by anzai
+    call fptxt2D(chi_Dt, "dat/chi_Dt.txt")![2022/2/19] editted by anzai
+    call fptxt2D(chi_Fr, "dat/chi_Fr.txt")![2022/2/19] editted by anzai
 
   end subroutine output_neoclass
 
