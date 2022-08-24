@@ -54,22 +54,22 @@ C     ***** LOAD EQUILIBRIUM DATA *****
 C
       SUBROUTINE EQLOAD(MODELG1,KNAMEQ1,IERR)
 C
-      USE eq_bpsd_mod
+      USE eqbpsd
       INCLUDE '../eq/eqcomc.inc'
       CHARACTER KNAMEQ1*80
       INTEGER ierr
 C
       MODELG=MODELG1
       KNAMEQ=KNAMEQ1
-      CALL EQREAD(IERR)
+      CALL EQ_READ(IERR)
       RETURN
       END
 C
 C     ***** LOAD EQUILIBRIUM DATA *****
 C
-      SUBROUTINE EQREAD(IERR)
+      SUBROUTINE EQ_READ(IERR)
 C
-      USE eqread_mod
+      USE equread,ONLY: eqdsk
       INCLUDE '../eq/eqcomc.inc'
 C
       IF(MODELG.EQ.3.OR.MODELG.EQ.9) THEN

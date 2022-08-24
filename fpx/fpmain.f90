@@ -23,7 +23,7 @@ PROGRAM fp
   USE fpcomm
   USE plinit
   USE plparm
-  USE equnit_mod
+  USE equnit
   USE obinit
   USE fpinit
   USE fpparm

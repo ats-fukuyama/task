@@ -19,7 +19,7 @@ MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
 
 SRCS = 	wfcomm.f90 femmeshprep.f90 feminterpolate.f90 \
         wfinit.f90 wfparm.f90 wfload.f90 wfprof.f90 \
-        wfmesh.f90 wfdiv.f90 wflib.f90 wfsub.f90 \
+        wfdiv.f90 wflib.f90 wfsub.f90 \
         wfindx.f90 wfsort.f90 wfgsub.f90 wfant.f90 wfwave.f90 \
 	wfsolv.f90 wfgout.f90 wftest.f90 wfmenu.f90
 

@@ -18,7 +18,7 @@
 
       use fpcomm
       use plinit
-      use equnit_mod
+      use equnit
       use fpinit
       use fpmenu
       use fpwrin

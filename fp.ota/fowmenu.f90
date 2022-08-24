@@ -19,7 +19,7 @@ CONTAINS
     USE fpprep,ONLY: fp_prep
     use fpwrite
     USE fpsub,ONLY: FPMXWL
-    use equnit_mod
+    use equnit
     USE libkio
     use libmpi
 

@@ -12,7 +12,7 @@ PROGRAM tot
 
   USE plinit,ONLY:pl_init
   USE plparm,ONLY:pl_parm
-  USE equnit_mod,ONLY:eq_init
+  USE equnit,ONLY:eq_init
   USE trcomm,ONLY:open_trcomm
   USE trinit,ONLY:tr_init
   USE trparm,ONLY:tr_parm

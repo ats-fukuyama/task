@@ -5,7 +5,7 @@ C
       SUBROUTINE WMGOUT
 C
       USE libchar
-      USE equnit_mod
+      USE equnit
       INCLUDE 'wmcomm.inc'
 C
       CHARACTER KSTR*5,K1,K2,K3,K4

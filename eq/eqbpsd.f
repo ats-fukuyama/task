@@ -1,4 +1,4 @@
-      module eq_bpsd_mod
+      module eqbpsd
 ! interface module with TASK/TR new version
       use bpsd
       public eq_bpsd_init, eq_bpsd_put, eq_bpsd_get
@@ -166,4 +166,4 @@ C     &        psitrx(ntr),ptrrho(ntr),qtrrho(ntr)
 
       END SUBROUTINE eq_bpsd_get
 
-      END MODULE eq_bpsd_mod
+      END MODULE eqbpsd

@@ -13,7 +13,7 @@ CONTAINS
 
     USE wmcomm
     USE wmgsub
-    USE equnit_mod
+    USE equnit
     USE libchar
     IMPLICIT NONE
     CHARACTER(LEN=5):: KSTR

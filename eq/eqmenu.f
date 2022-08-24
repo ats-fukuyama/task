@@ -86,7 +86,7 @@ C
 C
       ELSEIF(KID.EQ.'L') THEN
          IF(MODELG.EQ.2) MODELG=3
-         CALL EQREAD(IERR)
+         CALL EQ_READ(IERR)
          IF(IERR.NE.0) GO TO 1
          CALL EQCALQ(IERR)
          IF(IERR.NE.0) GO TO 1
@@ -102,7 +102,7 @@ C
          IF(KNAM(1:2).NE.'/ ') KNAMEQ=KNAM
 C
          MODELG=5
-         CALL EQREAD(IERR)
+         CALL EQ_READ(IERR)
          IF(IERR.NE.0) GOTO 11
          CALL EQCALQ(IERR)
          MSTAT=2

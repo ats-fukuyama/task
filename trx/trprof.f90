@@ -259,7 +259,7 @@
 
       USE trcomm, ONLY : modelg, nrmax, knameq, knameq2, RR, RA
       USE tr_bpsd, ONLY: tr_bpsd_init,tr_bpsd_put,tr_bpsd_get
-      USE equnit_mod, ONLY: eq_parm,eq_prof,eq_calc,eq_load
+      USE equnit, ONLY: eq_parm,eq_prof,eq_calc,eq_load
       USE plvmec, ONLY: pl_vmec
       IMPLICIT NONE
       INTEGER,INTENT(OUT):: ierr

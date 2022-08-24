@@ -1,4 +1,4 @@
-module eqread_mod
+module equread
 
   USE bpsd_kinds,ONLY: rkind
   !F_UFMTENDIAN=big:17
@@ -526,5 +526,5 @@ contains
 810 stop 'eqlin : out of range                     '
   end subroutine eqlin
 
-end module eqread_mod
+end module equread
 

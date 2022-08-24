@@ -138,24 +138,25 @@ CONTAINS
 
     USE wrcomm_parm
     USE dpparm,ONLY: dpprep_local
+    USE equnit
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
     CHARACTER(LEN=80):: LINE
     INTEGER,SAVE:: INITEQ=0
-    EXTERNAL EQLOAD,EQPARM,EQCALC,EQCALQ,EQGETB,EQREAD
+    EXTERNAL EQCALQ,EQGETB
 
     IERR=0
 
     IF(MODELG.EQ.3.OR.MODELG.EQ.5) THEN
        IF(INITEQ.EQ.0) THEN
-          CALL EQLOAD(MODELG,KNAMEQ,IERR)
+          CALL eq_load(MODELG,KNAMEQ,IERR)
           IF(IERR.EQ.0) THEN
              WRITE(LINE,'(A,I5)') 'NRMAX =',51
-             CALL EQPARM(2,LINE,IERR)
+             CALL eq_parm(2,LINE,IERR)
              WRITE(LINE,'(A,I5)') 'NTHMAX=',64
-             CALL EQPARM(2,LINE,IERR)
+             CALL eq_parm(2,LINE,IERR)
              WRITE(LINE,'(A,I5)') 'NSUMAX=',64
-             CALL EQPARM(2,LINE,IERR)
+             CALL eq_parm(2,LINE,IERR)
              CALL EQCALQ(IERR)
              CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
              INITEQ=1
@@ -166,7 +167,7 @@ CONTAINS
        ENDIF
     ELSE IF(MODELG.EQ.8) THEN
        IF(INITEQ.EQ.0) THEN
-          CALL EQREAD(IERR)
+          CALL eq_read(IERR)
           IF(IERR.EQ.0) THEN
              CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
              INITEQ=1

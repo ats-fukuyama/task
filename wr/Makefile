@@ -31,8 +31,8 @@ ${OBJDIR}/%.o:%.f90
 ${OBJDIR}/%.o:%.f
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../dp/$(MOD) -I../lib/$(MOD) \
-            -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
+MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../dp/$(MOD) -I../eq/$(MOD) \
+            -I../lib/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
 SRCS = wrcomm.f90 wrinit.f90 wrparm.f90 wrview.f90 \
        wrsub.f90 \

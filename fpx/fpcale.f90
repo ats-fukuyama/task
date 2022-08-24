@@ -9,7 +9,7 @@
       USE libmpi
       USE libmtx
       USE plprof
-      USE equnit_mod
+      USE equnit
 
       contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

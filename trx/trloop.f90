@@ -12,7 +12,7 @@
       USE TRCOM1, ONLY : NTAMAX
       use tr_bpsd,only: tr_bpsd_put, tr_bpsd_get
       use trunit
-      use equnit_mod
+      use equnit
       USE libitp
       IMPLICIT NONE
       INTEGER(4):: IERR

@@ -20,7 +20,7 @@ CONTAINS
       USE trbpsd, ONLY: tr_bpsd_put, tr_bpsd_get
       USE trexec
       USE libitp
-      USE equnit_mod
+      USE equnit
       IMPLICIT NONE
       INTEGER,INTENT(OUT):: IERR
       INTEGER:: nr

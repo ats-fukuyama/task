@@ -37,7 +37,7 @@
       use bpsd
       use plinit,ONLY: pl_init
       use plparm,ONLY: pl_parm
-      use equnit_mod
+      use equnit,ONLY: eq_init
 !      use equunit_mod
       use trunit
       IMPLICIT NONE

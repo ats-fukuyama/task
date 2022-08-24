@@ -2,8 +2,8 @@
 !            interface program of "TASK-EQ"
 !                                                         07/05/15
 !=======================================================================
-      module equnit_mod
-      use eq_bpsd_mod
+      module equnit
+      use eqbpsd
       public eq_init,eq_parm,eq_prof,eq_calc,eq_load,eq_gout
       private
       contains
@@ -103,5 +103,5 @@
       return
       end subroutine eq_gout
 !=======================================================================
-      end module equnit_mod
+      end module equnit
 !=======================================================================

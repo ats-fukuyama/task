@@ -7,7 +7,7 @@
 
       USE fpcomm
       USE fpinit
-      USE equnit_mod
+      USE equnit
 
       INTEGER,parameter:: mmax=500
 

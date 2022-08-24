@@ -16,7 +16,7 @@ PROGRAM wm
 
   USE wmcomm
   USE plinit,ONLY: pl_init
-  USE equnit_mod
+  USE equnit,ONLY: eq_init
   USE dpinit,ONLY: dp_init
   USE dpparm,ONLY: dp_parm
   USE wminit,ONLY: wm_init

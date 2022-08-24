@@ -14,7 +14,7 @@ program fow
 
   use plinit
   use plparm
-  use equnit_mod
+  use equnit
   use fpparm
   use fpmenu
   use fpcomm

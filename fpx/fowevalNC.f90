@@ -59,80 +59,36 @@ CONTAINS
     USE fpwrite
 
     IMPLICIT NONE
-    REAL(rkind),DIMENSION(nrmax,nsamax) :: Dr, Sr_part
-    !REAL(rkind),DIMENSION(nrmax,nsamax) :: Drw,Drwav,Drweff,Drweffav
-    REAL(rkind),DIMENSION(nrmax,nsamax) :: Dnba,Dnpla
-    REAL(rkind),DIMENSION(nrmax,nsamax) :: Sr_ba,Sr_pla
-    REAL(rkind),DIMENSION(nrmax,nsamax) :: heatfow, heatrw, heatrwav
-    REAL(rkind),DIMENSION(nrmax,nsamax) :: chi_a
-    REAL(rkind),DIMENSION(nrmax,nsamax) :: hfowout_r, hfowout_p
-    REAL(rkind),DIMENSION(nrmax,nsamax) :: hfowout_t, hfowout_f
-    REAL(rkind),DIMENSION(nrmax,nsamax) :: chi_Dp,chi_Dt
-    REAL(rkind),DIMENSION(nrmax,nsamax) :: chi_Dr, chi_Fr
-    REAL(rkind),DIMENSION(nrmax,nsamax) :: heatba,heatpla
-    REAL(rkind),DIMENSION(nrmax,nsamax) :: chi_neo_ba,chi_neo_pla
-    REAL(rkind),DIMENSION(nrmax,nsamax) :: cyclo_rho, dTadr
-    REAL(rkind),DIMENSION(nrmax,nsamax) :: Ta, spVI, spVI2,sumdf, sTI
-    REAL(rkind),DIMENSION(nrmax,nsamax) :: nu_eff
-    REAL(rkind),DIMENSION(nrmax) :: eps_t,tau_ele,tau_i
-    INTEGER nth, np, nr, nsa, nsb, mode(3)
+    REAL(rkind),DIMENSION(nrmax,nsamax):: &
+         Dn_banana,Dn_plateau,chi_banana,chi_plateau, &
+         Dn_rw,Dn_rw_bav,chi_rw,chi_rw_bav, &
+         Dn_fow,chi_fow
 
     !**** make data folder
+
     CALL system('mkdir -p dat')
 
     !**** calculation of physical values
-!    CALL nu_effective(nu_eff)
-    CALL integral_ParticleDif(Sr_part,Dr)
-    CALL integral_Heatdiff(heatfow,chi_a) ![2022/6/6] editted by anzai
-!    CALL D_random_walk_baverage(Drwav, Drw, Drweff, Drweffav) ![2022/3/7] editted by anzai
-    CALL Particleneoclass(Sr_ba,Sr_pla,Dnba,Dnpla) ![2022/3/7] editted by anzai
-    CALL Heatneoclass(heatba,heatpla,chi_neo_ba,chi_neo_pla) ![2022/3/14] editted by anzai
-    CALL Heat_rw_baverage(heatrwav, heatrw) ![2022/2/23] editted by anzai
-    CALL check_factorneo(eps_t, cyclo_rho, dTadr,Ta,tau_ele,tau_i, spVI,spVI2,sTI) ![2022/2/27] editted by anzai
-    CALL ch_intHD(hfowout_r,hfowout_p,hfowout_t,hfowout_f,chi_Dr,chi_Dp,chi_Dt,chi_Fr) ![2022/6/6]
+
+    CALL eval_analytic(Dn_banana,Dn_plateau,chi_banana,chi_plateau)
+
+    CALL eval_rw(Dn_rw,Dn_rw_bav,chi_rw,chi_rw_bav)
+
+    CALL eval_fow(Dn_fow,chi_fow)
 
     !**** write txt file
-    CALL fptxt2D(Dr,"dat/Dr.txt")
-    CALL fptxt2D(Sr_part,"dat/Sr_part.txt")
-!    CALL fptxt2D(Drw,"dat/Drw.txt")
-!    CALL fptxt2D(Drwav,"dat/Drwav.txt")
-    CALL fptxt2D(Dnba,"dat/Dnba.txt")
-    CALL fptxt2D(Dnpla,"dat/Dnpla.txt")
-    CALL fptxt2D(Sr_ba, "dat/Sr_ba.txt") ![2022/7/25] edited by anzai
-    CALL fptxt2D(Sr_pla, "dat/Sr_pla.txt") ![2022/7/25] editted by anzai
-    CALL fptxt2D(heatba, "dat/heatba.txt")![2022/3/4] editted by anzai
-    CALL fptxt2D(heatpla, "dat/heatpla.txt")![2022/3/4] editted by anzai
-!    CALL fptxt2D(Drweff,"dat/Drweff.txt") ![2022/3/2] editted by anzai
-!    CALL fptxt2D(Drweffav,"dat/Drweffav.txt") ![2022/3/2] editted by anzai
-    CALL fptxt2D(heatfow, "dat/heatfow.txt")![2022/2/19] editted by anzai
-    CALL fptxt2D(heatba, "dat/heatba.txt")![2022/3/4] editted by anzai
-    CALL fptxt2D(heatpla, "dat/heatpla.txt")![2022/3/4] editted by anzai
-    CALL fptxt2D(heatrw, "dat/heatrw.txt")![2022/2/23] editted by anzai
-    CALL fptxt2D(heatrwav, "dat/heatrwav.txt")![2022/2/23] editted by anzai
+    CALL fptxt2D(Dn_banana,"dat/Dn_banana.txt")
+    CALL fptxt2D(Dn_plateau,"dat/Dn_plateau.txt")
+    CALL fptxt2D(chi_banana,"dat/chi_banana.txt")
+    CALL fptxt2D(chi_plateau,"dat/chi_plateau.txt")
 
-    !***** For factor check
-    CALL fptxt1D(eps_t, "dat/eps_t.txt") ![2022/2/27] editted by anzai
-    CALL fptxt2D(cyclo_rho, "dat/cyclo_rho.txt") ![2022/2/27] editted by anzai
-    CALL fptxt2D(spVI, "dat/spVI.txt") ![2022/3/4] editted by anzai
-    CALL fptxt2D(spVI2, "dat/spVI2.txt") ![2022/3/4] editted by anzai
-    CALL fptxt2D(sumdf, "dat/sumdf.txt") ![2022/3/4] editted by anzai
-    CALL fptxt2D(dTadr, "dat/dTadr.txt") ![2022/2/27] editted by anzai
-    CALL fptxt2D(Ta, "dat/Ta.txt") ![2022/2/27] editted by anzai
-    CALL fptxt2D(sTI, "dat/sTI.txt") ![2022/6/10] editted by anzai
-    CALL fptxt1D(tau_ele, "dat/tau_ele.txt") ![2022/2/27] editted by anzai
-    CALL fptxt1D(tau_i, "dat/tau_i.txt") ![2022/2/27] editted by anzai
-    CALL fptxt2D(nu_eff, "dat/nu_eff.txt") ![2022/3/24] editted by anzai
-    CALL fptxt2D(hfowout_r, "dat/hfow_r.txt")![2022/6/6] editted by anzai
-    CALL fptxt2D(hfowout_p, "dat/hfow_p.txt")![2022/6/6] editted by anzai
-    CALL fptxt2D(hfowout_t, "dat/hfow_t.txt")![2022/6/6] editted by anzai
-    CALL fptxt2D(hfowout_f, "dat/hfow_f.txt")![2022/6/6] editted by anzai
-    CALL fptxt2D(chi_a, "dat/chi_a.txt")![2022/2/19] editted by anzai
-    CALL fptxt2D(chi_Dr, "dat/chi_Dr.txt")![2022/2/19] editted by anzai
-    CALL fptxt2D(chi_Dp, "dat/chi_Dp.txt")![2022/2/19] editted by anzai
-    CALL fptxt2D(chi_Dt, "dat/chi_Dt.txt")![2022/2/19] editted by anzai
-    CALL fptxt2D(chi_Fr, "dat/chi_Fr.txt")![2022/2/19] editted by anzai
-    CALL fptxt2D(chi_neo_ba, "dat/chi_neo_ba.txt")![2022/2/19] editted by anzai
-    CALL fptxt2D(chi_neo_pla, "dat/chi_neo_pla.txt")![2022/2/19] editted by anzai
+    CALL fptxt2D(Dn_rw,"dat/Dn_rw.txt")
+    CALL fptxt2D(Dn_rw_bav,"dat/Dn_rw_bav.txt")
+    CALL fptxt2D(chi_rw,"dat/chi_rw.txt")
+    CALL fptxt2D(chi_rw_bav,"dat/chi_rw_bav.txt")
+
+    CALL fptxt2D(Dn_fow,"dat/Dn_fow.txt")
+    CALL fptxt2D(chi_fow,"dat/chi_fow.txt")
 
   END SUBROUTINE fow_fout_NC
   
@@ -152,31 +108,33 @@ CONTAINS
     IMPLICIT NONE
     REAL(rkind),DIMENSION(nrmax,nsamax),INTENT(OUT)  :: &
          Dn_banana,Dn_plateau,chi_banana,chi_plateau
-    REAL(rkind),DIMENSION(nrmax,nsamax)  :: Ta,dTadr,dndr
+    REAL(rkind),DIMENSION(nrmax,nsamax)  :: &
+         pn_nr_nsa,pt_nr_nsa,dpnpr_nr_nsa,dptdr_nr_nsa
     REAL(rkind) fact,fact_ba,fact_pla,tau_ele,rho_e,eps_t,Baxis,B_p
     INTEGER nr, nsa
 
-    fact = 12.d0*pi**1.5d0*EPS0**2/sqrt(2.d0)
+    fact_taue = 12.d0*pi**1.5d0*EPS0**2/sqrt(2.d0)
     Baxis = Bing(1) ! approximation on B by Baxis
 
-    !****temperature make
+    ! --- radial postion and particle species ---
+    
+    DO nsa=1,nsamax
+       DO nr = 1, nrmax
+          pn_nr_nsa(nr,nsa)=rnsl(nr,nsa)*1.D20   ! particle density in m^{-3}
+          pt_nr_nsa(nr,nsa)=rwsl(nr,nsa)*1.D6/(1.5D0*pn_nr_nsa(nr_nsa)) !T in J
+       END DO
+    END DO
+       
+    ! --- radial derivative of density and temperature ---
     DO nsa = 1, nsamax
-      DO nr = 1, nrmax
-        Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)
-        !Ta(temperature)[J]
-      END DO
+      CALL first_order_derivative(dpndr_nr_nsa(:,nsa), pn_nr_nsa(:,nsa), rm)
+      CALL first_order_derivative(dptdr_nr_nsa(:,nsa), pt_nr_nsa(:,nsa), rm)
     END DO
 
-    !****first order derivation
-    DO nsa = 1, nsamax
-      CALL first_order_derivative(dTadr(:,nsa), Ta(:,nsa), rm)
-      CALL first_order_derivative(dndr(:,nsa), rnsl(:, nsa), rm)
-    END DO
+    ! --- calculate diffusion coefficient ---
 
-    !****calculate flux and diffusion coefficient
-    DO nsa = 1, nsamax
-      DO nr = 1, nrmax
-        tau_ele = fact*sqrt(AMFP(1))*((Ta(nr,1))**1.5d0)/ &
+    DO nr = 1, nrmax
+       tau_ele = fact*sqrt(AMFP(1))*(SQRT(pt_nr_nsa(nr,1))**3) &
              (rnsl(nr,2)*1.d20*AEFP(2)**2*lnlam(nr,2,1)*AEE**2)
         rho_e = sqrt(2*Ta(nr,1)/AMFP(1))*AMFP(1)/(AEE*Baxis)
         eps_t = rm(nr)*RA/RR
@@ -186,6 +144,7 @@ CONTAINS
         fact_pla = -sqrt(pi)*(eps_t**2)*Ta(nr,1)*RKEV &! modified by anzai [*RKEV]
              *rho_e*1.d20*rnsl(nr,nsa)/(2*AEE*B_p*rm(nr)*RA)
 
+    DO nsa = 1, nsamax
         Dn_banana(nr,nsa) = 0.D0
         Dn_plateau(nr,nsa) = 0.D0
         chi_banana(nr,nsa) = 0.D0

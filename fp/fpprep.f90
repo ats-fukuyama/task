@@ -11,7 +11,7 @@
       USE fpcoef
       USE fpcalw
       USE fpbounce
-      USE equnit_mod
+      USE equnit
       USE fpmpi
       USE libmpi
       USE fpcaleind

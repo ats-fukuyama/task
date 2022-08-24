@@ -16,7 +16,7 @@ subroutine WFDIV
 1 continue
 
   write(6,*) '## INPUT: D/DIV  G/DRAW  P,V/PARM ',&
-                       'S/SAVE  L/LOAD  W/LIST  X/EXIT'
+                       'S/SAVE  L/LOAD  W/LISTw  X/EXIT'
   read(5,'(A1)',ERR=1,END=9000) KID
   call toupper(KID)
   
@@ -28,12 +28,10 @@ subroutine WFDIV
 
      KID=""
      if (nrank.eq.0) then
-        write(6,'(A24)') '## TYPE: X/Rect L/layer C/Circle'
+        write(6,'(A24)') '## TYPE: X/Rect L/layer C/Circle A/arc'
         read(5,'(A1)') KID
         call toupper(KID)
      end if
-
-     IF(KID.NE.'X'.AND.KID.NE.'L'.AND.KID.NE.'C') GOTO 2
 
      SELECT CASE(KID)
      CASE('X')
@@ -53,56 +51,17 @@ subroutine WFDIV
         r_corner(1)=BDRMIN
         z_corner(1)=BDZMIN
         r_corner(2)=BDRMAX
-           z_corner(2)=BDZMIN
-           r_corner(3)=BDRMIN
-           z_corner(3)=BDZMAX
+        z_corner(2)=BDZMIN
+        r_corner(3)=BDRMIN
+        z_corner(3)=BDZMAX
            
-        CASE('L')
-31         WRITE(6,'(A)') '## DIV:   Layer in x direction'
-           WRITE(6,'(A)') '## number of layers in x: nlxmax ?'
-           READ(5,*,ERR=31,END=21'(I)
+     CASE('L')
+        CALL wf_div_layers
         
-           BDRMIN,BDRMAX,BDZMIN,BDZMAX = ',&
-                                            BDRMIN,BDRMAX,BDZMIN,BDZMAX
-           write(6,'(A)')        '## INPUT: BDRMIN,BDRMAX,BDZMIN,BDZMAX ? '
-           read(5,*,ERR=3,END=2)            BDRMIN,BDRMAX,BDZMIN,BDZMAX
-           write(6,'(A,4F10.4)') '## DIV:   BDRMIN,BDRMAX,BDZMIN,BDZMAX = ',&
-                                            BDRMIN,BDRMAX,BDZMIN,BDZMAX
-4          write(6,'(A,2F10.4)') '## DIV:   DELR,DELZ = ',DELR,DELZ
-           write(6,'(A)')        '## INPUT: DELR,DELZ ? '
-           read(5,*,ERR=4,END=2) DELR,DELZ
-           write(6,'(A,2F10.4)') '## DIV:   DELR,DELZ = ',DELR,DELZ
-           write(6,'(A)')        '## INPUT: DELR,DELZ ? '
-           if(abs(DELR).le.1.d-6.or.abs(DELZ).le.1.d-6) goto 2
-           iddiv=1
-           r_corner(1)=BDRMIN
-           z_corner(1)=BDZMIN
-           r_corner(2)=BDRMAX
-           z_corner(2)=BDZMIN
-           r_corner(3)=BDRMIN
-           z_corner(3)=BDZMAX
-           
-        CASE('C')
-5          write(6,'(A15,F10.4)') '## DIV:   RB = ',RB
-           write(6,'(A15)')       '## INPUT: RB ? '
-           read(5,*,ERR=5,END=2) RB
-           BDRMIN=-RB
-           BDRMAX= RB
-           BDZMIN=-RB
-           BDZMAX= RB
-6          write(6,'(A17,F10.4)') '## DIV:   DELR = ',DELR
-           write(6,'(A17)')       '## INPUT: DELR ? '
-           read(5,*,ERR=6,END=2) DELR
-           if(abs(DELR).le.1.D-6) goto 2
-           iddiv=2
-           r_corner(1)=BDRMIN
-           z_corner(1)=BDZMIN
-           r_corner(2)=BDRMAX
-           z_corner(2)=BDZMIN
-           r_corner(3)=BDRMIN
-           z_corner(3)=BDZMAX
+     CASE DEFAULT
+        GO TO 2
 
-        END SELECT
+     END SELECT
 
      call wfdiv_broadcast
      SELECT CASE(KID)
@@ -130,32 +89,32 @@ subroutine WFDIV
         KANOD(NN)=0
      end do
     
-  elseif(KID.eq.'G') then
+  CASE('G')
      if (nrank.eq.0) then
         NWXMAX=0
         call WFGDIV
      end if
      
-  elseif(KID.eq.'W') then
+  CASE('W')
      if (nrank.eq.0) call WFLDIV
      
-  elseif(KID.eq.'L') then
+  CASE('L')
      !     call WFRELM(ID)
      
-  elseif(KID.eq.'P') then
+  CASE('P')
      if(nrank.eq.0) call WF_PARM(0,'WF',IERR)
      call wfparm_broadcast
      
-  elseif(KID.eq.'V') then
+  CASE('V')
      if (nrank.eq.0) call WF_VIEW
      
-  elseif(KID.eq.'S') then
+  CASE('S')
      !     if (nrank.eq.0) call WFWELM(0)
      
-  elseif(KID.eq.'X') then
+  CASE('X')
      goto 9000
-  end if
-  goto 1
+  END SELECT
+  go to 1
   
 9000 continue
   return
