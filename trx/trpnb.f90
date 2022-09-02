@@ -38,10 +38,10 @@
       SUBROUTINE TRNBIA
 
       USE TRCOMM, ONLY : DR, DVRHO, NRMAX, PNB, PNBENG, PNBR0, PNBRW, PNBTOT, RA, &
-           &             RKEV, RM, SNB
+           &             RKEV, RM, SNB, rkind
       IMPLICIT NONE
-      INTEGER(4):: NR
-      REAL(8)   :: PNB0, SUM
+      INTEGER:: NR
+      REAL(rkind)   :: PNB0, SUM
 
       IF(PNBTOT.LE.0.D0) RETURN
 
@@ -69,11 +69,11 @@
       SUBROUTINE TRNBIB
 
       USE TRCOMM, ONLY : GPNB, NRMAX, PNB, PNBENG, PNBRTG, PNBRW, PNBTOT, PNBVW, PNBVY, &
-           &             RKEV, RTG, SNB
+           &             RKEV, RTG, SNB, rkind
       IMPLICIT NONE
-      INTEGER(4):: I, J, NRNBMAX
-      REAL(8)   ::DRTG, DVY, RDD, VY
-      REAL(8),DIMENSION(10) :: AR = (/0.02D0,0.06D0,0.12D0,0.14D0,0.16D0,0.16D0,0.14D0,0.12D0,0.06D0,0.02D0/)
+      INTEGER:: I, J, NRNBMAX
+      REAL(rkind)   ::DRTG, DVY, RDD, VY
+      REAL(rkind),DIMENSION(10) :: AR = (/0.02D0,0.06D0,0.12D0,0.14D0,0.16D0,0.16D0,0.14D0,0.12D0,0.06D0,0.02D0/)
 
       IF(PNBTOT.LE.0.D0) RETURN
 
@@ -117,15 +117,15 @@
 
       USE TRCOMM, ONLY : ANC, ANFE, DR, DVRHO, GBAN, GBL, GBP1, GBR, GBRH, GPNB, &
            &             NLMAX, NRMAX, PNBENG, PNBTOT, PZC, &
-           &             PZFE, RA, RG, RKEV, RN, RR, RT, SNB
+           &             PZFE, RA, RG, RKEV, RN, RR, RT, SNB, rkind
       IMPLICIT NONE
-      integer(4), intent(in) :: J
-      real(8), intent(in) :: R0, VY, RDD
-      INTEGER(4):: I, IB, IDL, IM, KL
-      REAL(8)   :: ANL, ANL0, COST, COSTV, DCX, DEX, DFX, DL, DOX, DRG, P1, P1SUM, &
+      integer, intent(in) :: J
+      real(rkind), intent(in) :: R0, VY, RDD
+      INTEGER:: I, IB, IDL, IM, KL
+      REAL(rkind)   :: ANL, ANL0, COST, COSTV, DCX, DEX, DFX, DL, DOX, DRG, P1, P1SUM, &
            &       RADIUS1, RADIUS2, RADIUSG, &
      &             RAL, RG1, RG2, SGM, SUML, TEX, XL, ZCX, ZFX, ZOX
-      REAL(4)   :: GUCLIP   ! GSAF
+      REAL   :: GUCLIP   ! GSAF
 
       IF(PNBTOT <= 0.D0) RETURN
 
@@ -339,13 +339,14 @@
 
 !     NOTE: "C" DENOTES CARBON, "F" IRON AND "O" OXIGEN.
 
+      USE trcomm,ONLY: rkind
       IMPLICIT NONE
-      REAL(8), INTENT(IN) :: ANEX, TEX, EB, ANCX, ANFEX, ANOX, PZCX, PZFEX, PZOX
-      REAL(8), INTENT(OUT):: SGM
-      INTEGER(4)          ::  I, J, K
-      REAL(8)             ::  S1, S2, S3, S4
-      REAL(8),DIMENSION(2,3,2):: A
-      REAL(8),DIMENSION(2,3,2):: C, F, O
+      REAL(rkind), INTENT(IN) :: ANEX, TEX, EB, ANCX, ANFEX, ANOX, PZCX, PZFEX, PZOX
+      REAL(rkind), INTENT(OUT):: SGM
+      INTEGER          ::  I, J, K
+      REAL(rkind)             ::  S1, S2, S3, S4
+      REAL(rkind),DIMENSION(2,3,2):: A
+      REAL(rkind),DIMENSION(2,3,2):: C, F, O
 
 !     DATA FORMAT FOR A           DATA FORMAT FOR B
 !         111  211  121  221          111  211  311  121
@@ -405,12 +406,15 @@
 
       SUBROUTINE TRAJNB
 
-      USE TRCOMM, ONLY : AEE, AJNB, AME, AMM, ANC, ANFE, EPS0, EPSRHO, NRMAX, PA, PBCL, PBIN, PI, PNBCD, PNBENG, &
-     &                   PZ, PZC, PZFE, RKEV, RN, RNF, RT, RTF, RW, TAUB, ZEFF
+        USE TRCOMM, ONLY : &
+             AEE, AJNB, AME, AMM, ANC, ANFE, EPS0, EPSRHO, NRMAX, &
+             PA, PBCL, PBIN, PI, PNBCD, PNBENG, &
+             PZ, PZC, PZFE, RKEV, RN, RNF, RT, RTF, RW, TAUB, ZEFF, rkind
       IMPLICIT NONE
-      REAL(8)    :: AMA, AMB, AMD, AMT, ANE, COULOG, EC, EPS, HY, HYB, P2, P3, P4, PAB, PZB, TAUS, TAUS0, TE, VB, VC3,  &
-     &              VCA3, VCD3, VCR, VCT3, VE, WB, XB, ZEFFM, ZN
-      INTEGER(4) :: NR
+      REAL(rkind)    :: AMA, AMB, AMD, AMT, ANE, COULOG, EC, EPS, HY, HYB, &
+           P2, P3, P4, PAB, PZB, TAUS, TAUS0, TE, VB, VC3,  &
+           VCA3, VCD3, VCR, VCT3, VE, WB, XB, ZEFFM, ZN
+      INTEGER :: NR
 
 
       AMD=AMM*PA(2)
@@ -498,11 +502,12 @@
 
 !     ***********************************************************
 
-      REAL(8) FUNCTION HY(V)
+      FUNCTION HY(V)
 
-      USE TRCOMM, ONLY : PI
+      USE TRCOMM, ONLY : PI,rkind
       IMPLICIT NONE
-      REAL(8), INTENT(IN) :: V
+      REAL(rkind), INTENT(IN) :: V
+      REAL(rkind) :: HY
 
       HY = 2.D0*(LOG((V**3+1.D0)/(V+1.D0)**3)/6.D0 &
      &      +(ATAN((2.D0*V-1.D0)/SQRT(3.D0))+PI/6.D0)/SQRT(3.D0))/V**2

@@ -147,9 +147,10 @@ CONTAINS
        ENDIF
 
     ELSE
+!   corrected the treatment for alpha < 0 (2018-10-26)
        fs1=0.D0
        fs2=0.D0
-!   corrected the treatment for alpha < 0 (2018-10-26)
+!   original model
 !       sa=alpha-shear
 !       IF(sa.GE.0.D0) THEN
 !          fs1=(1.D0+9.0D0*SQRT(2.D0)*sa**2.5D0) &
@@ -176,7 +177,7 @@ CONTAINS
     REAL(rkind),intent(in):: wexb  ! omega ExB
     REAL(rkind),intent(in):: shear ! Magnetic shear
     REAL(rkind),intent(in):: alpha ! Normalized pressure gradient
-    REAL(8):: alpha1,alpha2,beta,gamma,arg
+    REAL(rkind):: alpha1,alpha2,beta,gamma,arg
 
     IF(ABS(alpha).LT.1.D-3) THEN
        alpha1=1.D-3

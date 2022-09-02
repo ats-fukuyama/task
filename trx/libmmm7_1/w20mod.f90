@@ -1216,12 +1216,12 @@ subroutine w20diff &!{{{
      !-------------------------------------------------------------
 10099 CONTINUE
      FRAT=TEF/FIH
-     IMF=-IMAG(FRAT)*DNIN/DNI
+     IMF=-DIMAG(FRAT)*DNIN/DNI
      CEFT=(1._R8-fte)*IMF*DT*(2._R8/gte)*im_wu**3/(kyrho*im_zz)
      SCHEF=SCHEF+CEFT
      !**********************************************************
      ! ----Free electron particle flux -----------
-     GEI=-IMAG(NRAT)/im_wu
+     GEI=-DIMAG(NRAT)/im_wu
      DEFT=(1._R8-fte)*GEI*(2._R8/gne)*XDH
      DEF=DEF+DEFT
      ! ----Momentum transport ------
@@ -1581,7 +1581,7 @@ subroutine w20disp &!{{{
          write(hprint,10005) alpha_MHD
 10005    FORMAT(2X,'MHD Alpha=',ES15.6)
          write(hprint,10006) DREAL(A_lpk),R
-10006    FORMAT(2X,' A_lpk=',ES15.6,' R='ES15.6)
+10006    FORMAT(2X,' A_lpk=',ES15.6,' R=',ES15.6)
          write(hprint,*)"HQR=",hqr,"   HQI=",hqi
       end if
 

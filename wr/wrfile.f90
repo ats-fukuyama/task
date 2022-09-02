@@ -2,13 +2,17 @@
 
 MODULE wrfile
 
+  PRIVATE
+  PUBLIC wr_save
+  PUBLIC wr_load
+
 CONTAINS
 
 !***********************************************************************
 !     save ray data
 !***********************************************************************
 
-  SUBROUTINE WRSAVE
+  SUBROUTINE wr_save
 
     USE wrcomm
     USE libfio
@@ -61,13 +65,13 @@ CONTAINS
 
     9 WRITE(6,*) 'XX WRLOAD: File IO error detected: KNAMFR= ',TRIM(KNAMWR)
     RETURN
-  END SUBROUTINE WRSAVE
+  END SUBROUTINE wr_save
 
 !***********************************************************************
 !     load ray data
 !***********************************************************************
 
-  SUBROUTINE WRLOAD(NSTAT)
+  SUBROUTINE wr_load(NSTAT)
 
     USE wrcomm
     USE wrexecr,ONLY: wr_calc_pwr
@@ -153,5 +157,5 @@ CONTAINS
       RETURN
     9 WRITE(6,*) 'XX WRLOAD: File IO error detected: KNAMFR= ',TRIM(KNAMWR)
     RETURN
-  END SUBROUTINE WRLOAD
+  END SUBROUTINE wr_load
 END MODULE wrfile

@@ -1,38 +1,23 @@
+! trinit.f90
+
+MODULE trinit
+
+  PRIVATE
+  PUBLIC tr_init
+
+CONTAINS
+
 !     ***********************************************************
 
 !           INITIALIZE CONSTANTS AND DEFAULT VALUES
 
 !     ***********************************************************
 
-      SUBROUTINE TRINIT
+      SUBROUTINE tr_init
 
-      USE TRCOMM,ONLY : &
-           AD0, AEE, ALP, AME, AMM, AV0, BB, CALF, CDH, CDP, CDW, CHP, &
-           CK0, CK1, CKALFA, CKBETA, CKGUMA,          &
-           CNB, CNH, CNN, CNP, CSPRS, CWEB, DT, EPS0, EPSLTR, IREAD, &
-           IZERO, KFNLOG, KNAMEQ, KNAMTR, KUFDCG,       &
-           KUFDEV, LMAXTR, MDCD05, MDDW, MDEDGE, MDLAD, MDLAVK, MDLCD, &
-           MDLEC, MDLEOI, MDLEQ0, MDLEQB, MDLEQE,     &
-           MDLEQN, MDLEQT, MDLEQU, MDLEQZ, MDLER, MDLETA, MDLFLX, MDLIC, &
-           MDLJBS, MDLJQ, MDLKAI, MDLKNC, MDLLH,    &
-           MDLNB, MDLNF, MDLPCK, MDLPEL, MDLST, MDLTPF, MDLWLD, &
-           MDNCLS, MDNI, MDTC, MODELG, MODEP,  &
-           NGPST, NGRSTP, NGTSTP, NRMAX, NSLMAX, NSMAX, NSNMAX, NSTM, &
-           NSZMAX, NT, NTEQIT, NTMAX, NTSTEP, PA, PBSCD, &
-           PECCD, PECNPR, PECR0, PECRW, PECTOE, PECTOT, PELPAT, PELR0, &
-           PELRAD, PELRW, PELTIM, PELTOT, PELVEL, PI, &
-           PICCD, PICNPR, PICR0, PICRW, PICTOE, PICTOT, PLHNPR, PLHR0, &
-           PLHRW, PLHTOE, PLHTOT, PN, PNBCD, PNBENG,  &
-           PNBR0, PNBRTG, PNBRW, PNBTOT, PNBVW, PNBVY, PNC, PNFE, PNNU, &
-           PNNUS, PNS, PROFJ1, PROFJ2, PROFN1,       &
-           PROFN2, PROFT1, PROFT2, PROFU1, PROFU2, PT, PTS, PZ, RA, RDLT, &
-           RHOA, RIPE, RIPS, RKAP, RKEV, RMU0, RR, &
-           SUMPBM, TIME_INT, TPRST, TSST, VC, VOID, KUFDIR, &
-           MDLPR,SYNCABS,SYNCSELF, PU, PUS, PROFNU1, PROFNU2, &
-           ELMWID, ELMDUR, ELMNRD, ELMTRD, ELMENH, NSMM, MDLELM, KNAMEQ2, &
-           MDLPSC,NPSCMAX,NPSCM,PSCTOT,PSCR0,PSCRW,NSPSC
+      USE trcomm
       IMPLICIT NONE
-      INTEGER(4) NS, IERR, NPSC
+      INTEGER NS, NPSC
 
 !     ==== DEVICE PARAMETERS ====
 
@@ -84,46 +69,46 @@
 
       PA(2)   = 2.D0
       PZ(2)   = 1.D0
-      PN(2)   = 0.5D0-2.D-7
+      PN(2)   = 0.5D0
       PT(2)   = 1.5D0
       PTS(2)  = 0.05D0
-      PNS(2)  = 0.05D0-2.D-8
+      PNS(2)  = 0.05D0
       PU(2)   = 0.D0
       PUS(2)  = 0.D0
 
       PA(3)   = 3.D0
       PZ(3)   = 1.D0
-      PN(3)   = 1.D-7
+      PN(3)   = 0.D0
       PT(3)   = 1.5D0
       PTS(3)  = 0.05D0
-      PNS(3)  = 1.D-8
+      PNS(3)  = 0.D0
       PU(3)   = 0.D0
       PUS(3)  = 0.D0
 
       PA(4)   = 4.D0
       PZ(4)   = 2.D0
-      PN(4)   = 1.D-7
+      PN(4)   = 0.D0
       PT(4)   = 1.5D0
       PTS(4)  = 0.05D0
-      PNS(4)  = 1.D-8
+      PNS(4)  = 0.D0
       PU(4)   = 0.D0
       PUS(4)  = 0.D0
 
       PA(5)   = 12.D0
       PZ(5)   = 2.D0
-      PN(5)   = VOID
+      PN(5)   = 0.D0
       PT(5)   = 0.D0
       PTS(5)  = 0.D0
-      PNS(5)  = VOID
+      PNS(5)  = 0.D0
       PU(5)   = 0.D0
       PUS(5)  = 0.D0
 
       PA(6)   = 12.D0
       PZ(6)   = 4.D0
-      PN(6)   = VOID
+      PN(6)   = 0.D0
       PT(6)   = 0.D0
       PTS(6)  = 0.D0
-      PNS(6)  = VOID
+      PNS(6)  = 0.D0
       PU(6)   = 0.D0
       PUS(6)  = 0.D0
 
@@ -140,11 +125,20 @@
 
 !     ==== IMPURITY PARAMETERS ====
 
-!        PNC    : CARBON DENSITY FACTOR
-!        PNFE   : IRON DENSITY FACTOR
+!     MDLIMP : MODEL IMPURITY TREATMENT with PNC and PNFE
+!              0 : PNC and PNFE are not used
+!              1 : Initial Impurity density according to ITER PHYS GD for 1.D0
+!              2 : Initial Impurity density factor: ANC=PNC*ANE
+!              3 : Electron density changes with Te through PZC/PZFE for case 1
+!              4 : Electron density changes with Te through PZC/PZFE for case 2
+
+      MDLIMP=0
+
+!        PNC    : CARBON DENSITY FACTOR (1.D0 for Guideline, reduce for low PN)
+!        PNFE   : IRON DENSITY FACTOR   (1.D0 for Guideline, reduce for low PN)
 !                      COMPARED WITH ITER PHYSICS DESIGN GUIDELINE
-!        PNNU   : NEUTRAL NUMBER DENSITY ON AXIS (1.E20 M**-3)
-!        PNNUS  :                        ON SURFACE (1.E20 M**-3)
+!        PNNU   : NEUTRAL NUMBER DENSITY ON AXIS (1.E20 M**-3)    : not used
+!        PNNUS  :                        ON SURFACE (1.E20 M**-3) : not used
 
       PNC     = 0.D0
       PNFE    = 0.D0
@@ -587,15 +581,19 @@
 
 !     ==== FILE NAME ====
 
-!        KNAMEQ: Filename of equilibrium data
-!        KNAMEQ2: Filename of equilibrium data
-!        KNAMTR: Filename of transport data
-!        KFNLOG : LOG FILE NAME
+!        KNAMEQ:  file name of equilibrium data
+!        KNAMEQ2: file name of equilibrium data
+!        KNAMTR:  file name of transport data
+!        KFNLOG : file name of log data
+!        KFNTXT : file name of text output
+!        KFNCVS : file name of cvs output
 
       KNAMEQ='eqdata'
       KNAMEQ2=''
       KNAMTR='trdata'
-      KFNLOG='trf.log'
+      KFNLOG='tr.log'
+      KFNTXT='tr.txt'
+      KFNCVS='tr.cvs'
 
 !     ==== INTERACTION WITH EQ ====
 
@@ -608,6 +606,14 @@
 
       MODELG=2
       NTEQIT=0
+
+!     ==== INPUT FROM EXPERIMENTAL DATA ====
+
+!        MDLXP :
+!           0 : from ufiles
+!        else : MDSplus
+
+      MDLXP=0
 
 !     ==== IMPURITY TREATMENT ====
 
@@ -720,4 +726,5 @@
       IREAD=0
 
       RETURN
-      END SUBROUTINE TRINIT
+      END SUBROUTINE tr_init
+END MODULE trinit

@@ -27,7 +27,7 @@ c
       character cputype * 10            ! start dmc 29-Oct 1998 new code
 c
       cputype=' '
-      call getenv('CPU',cputype)
+!      call getenv('CPU',cputype)
       if(cputype(1:3).eq.'DEC') then
          idec=1
       else

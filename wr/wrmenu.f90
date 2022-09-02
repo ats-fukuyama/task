@@ -21,7 +21,7 @@ CONTAINS
     USE wrsetup,ONLY: wr_setup
     USE wrexec,ONLY: wr_exec
     USE wrgout,ONLY: wr_gout
-    USE wrfile,ONLY: wrsave,wrload
+    USE wrfile,ONLY: wr_save,wr_load
     USE libkio
     IMPLICIT NONE
     CHARACTER(LEN=1):: KID
@@ -65,9 +65,9 @@ CONTAINS
       ELSEIF(KID.EQ.'G') THEN
          CALL WR_GOUT(NSTAT)
       ELSEIF(KID.EQ.'S') THEN
-         CALL WRSAVE
+         CALL wr_save
       ELSEIF(KID.EQ.'L') THEN
-         CALL WRLOAD(NSTAT)
+         CALL wr_load(NSTAT)
       ELSEIF(KID.EQ.'Q') THEN
          GOTO 9000
       ELSE

@@ -10,8 +10,8 @@
       IMPLICIT NONE
       CHARACTER(LEN=1), INTENT(IN):: K2
       CHARACTER(LEN=3), INTENT(IN):: K3
-      INTEGER(4),       INTENT(IN):: INQ
-      INTEGER(4) :: I2, I3, IERR, NMB
+      INTEGER,       INTENT(IN):: INQ
+      INTEGER :: I2, I3, IERR, NMB
       CHARACTER(LEN=4) :: KK
       CHARACTER(LEN=80):: KVL, STRL
 
@@ -50,7 +50,7 @@
 
       IMPLICIT NONE
       CHARACTER(LEN=80),INTENT(OUT):: STRL, KVL
-      INTEGER(4),       INTENT(IN) :: NMB
+      INTEGER,       INTENT(IN) :: NMB
       CHARACTER(LEN=80), DIMENSION(67), SAVE:: STR0, KV0
       DATA STR0/ &
            '@TE [keV] vs t@','@TD [keV] vs t@', &
@@ -119,7 +119,7 @@
       SUBROUTINE GETKRT(NP,KRT)
 
       IMPLICIT NONE
-      INTEGER(4),       INTENT(IN) :: NP
+      INTEGER,       INTENT(IN) :: NP
       CHARACTER(LEN=4), INTENT(OUT):: KRT
       CHARACTER(LEN=4),DIMENSION(67)::KRTDATA
       DATA KRTDATA / &
@@ -152,7 +152,7 @@
 
       USE TRCOMM,ONLY:NCTM
       IMPLICIT NONE
-      INTEGER(4),       INTENT(IN) :: NP
+      INTEGER,       INTENT(IN) :: NP
       CHARACTER(LEN=4), INTENT(OUT):: KGT
       CHARACTER(LEN=4),DIMENSION(NCTM)::KGTDATA
       DATA KGTDATA / &
@@ -193,9 +193,9 @@
 
       USE TRCOMM,ONLY: NCRTM
       IMPLICIT NONE
-      INTEGER(4),      INTENT(OUT):: NMB,IERR
+      INTEGER,      INTENT(OUT):: NMB,IERR
       CHARACTER(LEN=4),INTENT(IN) :: KK
-      INTEGER(4)      :: NP
+      INTEGER      :: NP
       CHARACTER(LEN=4):: KRT
 
       IERR=0

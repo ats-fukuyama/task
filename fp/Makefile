@@ -10,8 +10,8 @@ include ../mtxp/make.mtxp
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 .SUFFIXES:
 .SUFFIXES: .f90 .mod .o .a
@@ -21,7 +21,7 @@ FFLAGS=$(OFLAGS)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-MODINCLUDE= -I./$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
+MODINCLUDE= -I./$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD)  -I../dp/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
 SRCS = fpcomm.f90 eg_read.f90 fpinit.f90 fpparm.f90 \
        fpmpi.f90 fpbroadcast.f90 fpsub.f90 \
@@ -35,7 +35,7 @@ SRCS = fpcomm.f90 eg_read.f90 fpinit.f90 fpparm.f90 \
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = libfp.a ../pl/libpl.a ../eq/libeq.a  \
+LIBS = libfp.a ../pl/libpl.a ../eq/libeq.a ../dp/libdp.a \
         ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
 all: fp
@@ -49,6 +49,8 @@ libfp.a: $(OBJS)
 	(cd ../pl; make libpl.a)
 ../eq/libeq.a:
 	(cd ../eq; make libeq.a)
+../dp/libeq.a:
+	(cd ../dp; make libdp.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 ../lib/libgrf.a:
@@ -61,6 +63,7 @@ libs:
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
+	(cd ../dp; make libdp.a)
 
 fp : libs libfp.a fpmain.o 
 	$(FLINKER) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)

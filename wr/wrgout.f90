@@ -1200,7 +1200,7 @@ CONTAINS
        CALL setup_nray(rhon,nstp_nray,ierr)
        WRITE(title,'(A,F8.4,A)') '@Res: rhon=',rhon,'@'
        
-       CALL grd2d_frame_start(ngid,-pmax(ns),pmax(ns),0.D0,pmax(ns), &
+       CALL grd2d_frame_start(ngid,-pmax_dp(ns),pmax_dp(ns),0.D0,pmax_dp(ns), &
                               title,ASPECT=0.5D0,NOINFO=1)
 
        pt0=(ptpr(ns)+2.D0*ptpp(ns))/3.D0          ! axis temperature [J]

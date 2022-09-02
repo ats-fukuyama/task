@@ -3,7 +3,12 @@
 MODULE DPPARM
 
   PRIVATE
-  PUBLIC dp_parm,dp_chek,dpprep,dpprep_local,dp_broadcast,dp_view
+  PUBLIC dp_parm
+  PUBLIC dp_chek
+  PUBLIC dpprep
+  PUBLIC dpprep_local
+  PUBLIC dp_broadcast
+  PUBLIC dp_view
 
 CONTAINS
 
@@ -75,7 +80,7 @@ CONTAINS
            MODELP,MODELV,NCMIN,NCMAX, &
            RF0,RFI0,RKX0,RKY0,RKZ0,RX0,RY0,RZ0,RK0,RKANG0, &
            MODEL_ES,EPSRT,LMAXRT, &
-           NS_NSA_DP,PMAX,EMAX,RHON_MIN,RHON_MAX, &
+           NS_NSA_DP,PMAX_dp,EMAX_dp,RHON_MIN,RHON_MAX, &
            NPMAX_DP,NTHMAX_DP,NRMAX_DP,NSAMAX_DP, &
            RF1,RFI1,RKX1,RKY1,RKZ1,RX1,RY1,RZ1,RK1, &
            RF2,RFI2,RKX2,RKY2,RKZ2,RX2,RY2,RZ2,RK2, &
@@ -130,7 +135,7 @@ CONTAINS
              9X,'MODELP,MODELV,NCMIN,NCMAX,'/ &
              9X,'RF0,RFI0,RKX0,RKY0,RKZ0,RX0,RY0,RZ0,RK0,RKANG0,'/ &
              9X,'MODEL_ES,EPSRT,LMAXRT,'/ &
-             9X,'NS_NSA_DP,PMAX,EMAX,ROHN_MIN,ROHN_MAX,'/ &
+             9X,'NS_NSA_DP,PMAX_dp,EMAX_dp,ROHN_MIN,ROHN_MAX,'/ &
              9X,'NPMAX_DP,NTHMAX_DP,NRMAX_DP,NSAMAX_DP,'/ &
              9X,'RF1,RFI1,RKX1,RKY1,RKZ1,RX1,RY1,RZ1,RK1,'/ &
              9X,'RF2,RFI2,RKX2,RKY2,RKZ2,RX2,RY2,RZ2,RK2,'/ &
@@ -222,7 +227,7 @@ CONTAINS
     WRITE(6,101)
     DO NS=1,NSMAX
        WRITE(6,111) &
-            NS,PMAX(NS),EMAX(NS),RHON_MIN(NS),RHON_MAX(NS)
+            NS,PMAX_dp(NS),EMAX_dp(NS),RHON_MIN(NS),RHON_MAX(NS)
     ENDDO
     WRITE(6,612) ' NPMAX_DP   ',NPMAX_DP ,'NTHMAX_DP  ',NTHMAX_DP
     WRITE(6,612) ' NRMAX_DP   ',NRMAX_DP ,'NSAMAX_DP  ',NSAMAX_DP
@@ -235,7 +240,7 @@ CONTAINS
     RETURN
 
 100 FORMAT('NS    MODELP  MODELV  NCMIN   NCMAX')
-101 FORMAT('NS    PMAX        EMAX        RHON_MIN    RHON_MAX')
+101 FORMAT('NS    PMAX_DP     EMAX_DP     RHON_MIN    RHON_MAX')
 110 FORMAT(I2,' ',4I8)                               
 111 FORMAT(I2,' ',1P4E12.4)                               
 601 FORMAT(A6,'=',1PE11.3 :2X,A6,'=',1PE11.3: &
@@ -286,8 +291,8 @@ CONTAINS
     CALL mtx_broadcast_integer(NCMIN,NSAMAX_DP)
     CALL mtx_broadcast_integer(NCMAX,NSAMAX_DP)
 
-    CALL mtx_broadcast_real8(PMAX,NSAMAX_DP)
-    CALL mtx_broadcast_real8(EMAX,NSAMAX_DP)
+    CALL mtx_broadcast_real8(PMAX_DP,NSAMAX_DP)
+    CALL mtx_broadcast_real8(EMAX_DP,NSAMAX_DP)
     CALL mtx_broadcast_real8(RHON_MIN,NSAMAX_DP)
     CALL mtx_broadcast_real8(RHON_MAX,NSAMAX_DP)
 

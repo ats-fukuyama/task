@@ -3,7 +3,8 @@ MODULE fpcomm_parm
       use bpsd_kinds
       use bpsd_constants
       use commpi
-      use plcomm
+      use plcomm_parm
+      USE dpcomm_parm
       implicit none
 
       public
@@ -17,7 +18,7 @@ MODULE fpcomm_parm
 
       integer:: NSAMAX,NSBMAX,NS_NSA(NSM),NS_NSB(NSM)
       integer:: NSA_F1,NTH_F1,NR_F1
-      integer:: LMAX_WR,NCMIN(NSM),NCMAX(NSM)
+      integer:: LMAX_WR
       integer:: NBEAMMAX,NSSPB(NBEAMM),NSSPF
       integer:: NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX
       integer:: NTMAX,NTSTEP_COEF,NTSTEP_COLL

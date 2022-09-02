@@ -8,11 +8,11 @@ CONTAINS
 
     USE dpcomm
     USE plcomm_type
-      USE libfio
-      USE commpi
-      USE libmpi
-      USE libfio
-      IMPLICIT NONE
+    USE libfio
+    USE commpi
+    USE libmpi
+    USE libfio
+    IMPLICIT NONE
       INTEGER,INTENT(OUT):: IERR
       CHARACTER(LEN=80),SAVE::  KNAMFP_SAVE=' '
       INTEGER:: NSA,NTH,NP,NR,NS,NSBMAX_DP
@@ -43,7 +43,7 @@ CONTAINS
          END DO
 
          DO NS=1,NSMAX
-            READ(21) DELP(NS),PMAX(NS),EMAX(NS)
+            READ(21) DELP(NS),PMAX_dp(NS),EMAX_dp(NS)
          END DO
 
          DO NSA=1, NSAMAX_DP
@@ -73,8 +73,8 @@ CONTAINS
       CALL mtx_broadcast_real8(RNFP0,NSAMAX_DP)
       CALL mtx_broadcast_real8(RTFP0,NSAMAX_DP)
       CALL mtx_broadcast_real8(DELP,NSMAX)
-      CALL mtx_broadcast_real8(pmax,NSMAX)
-      CALL mtx_broadcast_real8(emax,NSMAX)
+      CALL mtx_broadcast_real8(pmax_dp,NSMAX)
+      CALL mtx_broadcast_real8(emax_dp,NSMAX)
 
       DO NSA=1,NSAMAX_DP
          CALL mtx_broadcast_real8(FNS(1:NTHMAX_DP,1:NPMAX_DP,1:NRMAX_DP,NSA), &
@@ -195,7 +195,7 @@ CONTAINS
        TTNG(NTH) = TAN(THG(NTH))
     ENDDO
 
-    DELP(NS)=PMAX(NS)/NPMAX_DP
+    DELP(NS)=PMAX_dp(NS)/NPMAX_DP
          
     DO NP=1,NPMAX_DP
        PM(NP,NSA)=DELP(NS)*(NP-0.5D0)
@@ -468,7 +468,7 @@ CONTAINS
          PTH0W=(PTH0/(AMP*PA(NS)*VC))**2
       ENDIF
 
-      DELP(NS)=PMAX(NS)/NPMAX_DP
+      DELP(NS)=PMAX_dp(NS)/NPMAX_DP
       DELTH=PI/NTHMAX_DP
 
       DO NP=1,NPMAX_DP

@@ -125,6 +125,7 @@ CONTAINS
 !       WRITE(6,'(A,3ES12.4)') '   X,Y,Z        =',X,Y,Z
 !       WRITE(6,'(A,3ES12.4)') '   RKX,RKY,RKZ  =',RKX,RKY,RKZ
 
+       WRITE(6,'(A,2ES12.4)') 'rn,pne_th:',plfw(1)%rn,pne_threshold
        IF(plfw(1)%rn.LE.pne_threshold) THEN
 
           ! --- if in vacuume, advance by ds ---

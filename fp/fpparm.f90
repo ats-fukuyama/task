@@ -3,7 +3,10 @@
 module fpparm
 
   PRIVATE
-  PUBLIC fp_parm,fp_broadcast,fp_view
+  PUBLIC fp_parm
+  PUBLIC fp_broadcast
+  PUBLIC fp_check
+  PUBLIC fp_view
 
 contains
 

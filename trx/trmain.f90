@@ -37,12 +37,15 @@
       use bpsd
       use plinit,ONLY: pl_init
       use plparm,ONLY: pl_parm
-      use equnit,ONLY: eq_init
+      use equnit,ONLY: eq_init,eq_parm
 !      use equunit_mod
-      use trunit
+      USE trinit
+      USE trparm
+      USE trmenu
+
       IMPLICIT NONE
-      REAL(4)   :: GTCPU2
-      INTEGER(4):: IERR
+      REAL   :: GTCPU2
+      INTEGER:: IERR
 
 !     ------ INITIALIZATION ------
 
@@ -50,9 +53,10 @@
 
       CALL GSOPEN
       CALL GUTIME(GTCPU1)
+      OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
 
       CALL pl_init
-      call eq_init
+      CALL eq_init
 !      call equ_init
       CALL tr_init
 
@@ -61,9 +65,11 @@
 !      CALL equ_parm(1,'equparm',IERR)
       CALL tr_parm(1,'trparm',IERR)
 
-      CALL TRMENU
+      CALL tr_setup_kv
 
-      CALL tr_term
+      CALL tr_menu
+
+      CLOSE(7)
 
       CALL GUTIME(GTCPU2)
       WRITE(6,666) GTCPU2-GTCPU1

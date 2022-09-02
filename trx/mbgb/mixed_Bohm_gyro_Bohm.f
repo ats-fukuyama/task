@@ -146,15 +146,16 @@ c@mixed_model.tex
 c--------1---------2---------3---------4---------5---------6---------7-c
 c
       module mixed_Bohm_gyro_Bohm
+      USE bpsd_kinds,ONLY: rkind
       private
       public mixed_model
 c
 c..physical constants
 c
-      real(8), parameter  :: zckb = 1.60210e-16 ! energy conversion factor [Joule/keV]
-      real(8), parameter  :: zcme = 9.1091e-31  ! electron mass [kg]
-      real(8), parameter  :: zcmp = 1.67252e-27 ! proton mass [kg]
-      real(8), parameter  :: zce  = 1.60210e-19 ! electron charge [Coulomb]
+      real(rkind), parameter  :: zckb = 1.60210e-16 ! energy conversion factor [Joule/keV]
+      real(rkind), parameter  :: zcme = 9.1091e-31  ! electron mass [kg]
+      real(rkind), parameter  :: zcmp = 1.67252e-27 ! proton mass [kg]
+      real(rkind), parameter  :: zce  = 1.60210e-19 ! electron charge [Coulomb]
 c
       contains
 c
@@ -256,6 +257,7 @@ c  mixed             - Computes diffusivity from the MIXED model
 c
 c-----------------------------------------------------------------------
 
+      USE bpsd_kinds,ONLY: rkind
       implicit none
 c
 c-----------------------------------------------------------------------
@@ -263,17 +265,17 @@ c..input variables
 c
       integer, intent(in)  :: npoints ! number of radial points
 c
-      real(8), intent(in) ::
+      real(rkind), intent(in) ::
      &   rminor(*),  rmajor(*)
      & , tekev(*),   tikev(*),    q(*),       btor(*)
      & , wexbs(*),   aimass(*),   charge(*)
 c
-      real(8), intent(in) ::                    ! gradients
+      real(rkind), intent(in) ::                    ! gradients
      &   grdne(*)
      & , grdte(*), shear(*)
 c
 !!!      real, intent(in) ::  t_e_kev_edge, rminor_edge
-      real(8), intent(in) :: zte_p8, zte_edge
+      real(rkind), intent(in) :: zte_p8, zte_edge
 c
 c  optional input switch for flow-shear stabilization option
 c
@@ -282,10 +284,10 @@ c
 c-----------------------------------------------------------------------
 c..output variables
 c
-      real(8), intent(out) ::
+      real(rkind), intent(out) ::
      &   thigb(*),   thegb(*),    thibohm(*), thebohm(*)
 c
-      real(8), intent(out) ::
+      real(rkind), intent(out) ::
      &   chi_i_mix(*),   themix(*),  thdmix(*)
 c
       integer, intent(out) :: ierr
@@ -302,12 +304,12 @@ c
       integer  :: lswitch5
 c
 !!!      real     :: zte_p8, zte_edge, zi
-      real(8)     :: zi
+      real(rkind)     :: zi
 c
 c..local variables connected to the mixed module
 c
 
-      real(8) :: zq,    zsound,     zgyrfi,    zrhos, zra
+      real(rkind) :: zq,    zsound,     zgyrfi,    zrhos, zra
      & , zchii, zchie, zdhyd
      & , zrmaj, zaimass, zcharge,   zbtor, zrmin
      & , zgte,  zti,  zte, zgne
@@ -316,7 +318,7 @@ c
 c
 c.. variables for exb model
 c
-      real(8)  zwexb
+      real(rkind)  zwexb
 c
 c  zwexb    = local copy of ExB shearing rate
 c
@@ -510,13 +512,14 @@ c    gamma:     The characteristic growthrate for the ITG type of
 c                    electrostatic turbulence
 c    func:      Function for EXB and magnetic shear stabilization
 c
+      USE bpsd_kinds,ONLY: rkind
       IMPLICIT NONE
 c
 c Declare variables
 c
 c..Input variables
 c
-      real(8), intent(in) ::
+      real(rkind), intent(in) ::
      &  btor,           ra,             rmaj,           rlpe,
      &  shear,          tekev,          te_p8,          te_edge,
      &  tikev,          gradte,         aimass,
@@ -526,7 +529,7 @@ c
 c
 c..Output variables
 c
-      real(8), intent(out)    ::
+      real(rkind), intent(out)    ::
      &  chi_e,               chi_i,               d_hyd,
      &  chi_e_gyro_bohm,     chi_i_gyro_bohm,
      &  chi_e_bohm,          chi_i_bohm
@@ -536,7 +539,7 @@ c
 c
 c..Local variables
 c
-      REAL(8)
+      REAL(rkind)
      &  alfa_be,        alfa_bi,        alfa_gbe,       alfa_gbi,
      &  alfa_d,         chi0,           coef1,          coef2,
      &  delta_edge,

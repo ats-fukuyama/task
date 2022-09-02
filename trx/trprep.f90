@@ -1,3 +1,90 @@
+! trprep.f90
+
+MODULE trprep
+
+  PRIVATE
+  PUBLIC tr_prep
+
+CONTAINS
+
+  SUBROUTINE tr_prep(ierr)
+
+    USE trcomm
+    USE trcom0, ONLY : NSTM
+    USE trcom1, ONLY : NTAMAX,KDIRX
+    USE trprof
+    USE trbpsd
+    USE trmetric
+    IMPLICIT NONE
+    INTEGER,INTENT(OUT):: ierr
+
+      CALL ALLOCATE_TRCOMM(IERR)
+      IF(IERR.NE.0) RETURN
+
+      CALL TR_EQS_SELECT(0)
+
+      NRAMAX=INT(RHOA*NRMAX)
+      DR = 1.D0/DBLE(NRMAX)
+
+      NROMAX=NRMAX
+      NRMAX=NRAMAX
+
+      NT    = 0
+      T     = 0.D0
+      TPRE  = 0.D0
+      TST   = 0.D0
+      VSEC  = 0.D0
+      NGR   = 0
+      NGT   = 0
+      NGST  = 0
+      RIP   = RIPS
+
+      CALL tr_prof
+
+!     *** Initialize bpsd data ***
+
+      CALL tr_bpsd_init
+      CALL tr_bpsd_put(ierr)
+      IF(ierr.NE.0) THEN
+         write(6,'(A,I5)') 'XX tr_bpsd_put in tr_prof: ierr=',ierr
+         STOP
+      END IF
+
+!     *** CALCULATE METRIC FACTOR ***
+
+      CALL tr_set_metric(ierr)
+      IF(ierr.NE.0) THEN
+         write(6,'(A,I5)') 'XX tr_set_metric in tr_metric: ierr=',ierr
+         STOP
+      END IF
+      
+!     *** CALCULATE ANEAVE and ANC, ANFE ***
+
+      CALL tr_prof_impurity
+
+!     *** CALCULATE AJ, QP, BP, EZ ***
+
+      IF(MODELG.EQ.2) CALL tr_prof_current
+
+!     *** Initialize bpsd data ***
+
+      CALL tr_bpsd_put(ierr)
+      IF(ierr.NE.0) THEN
+         write(6,'(A,I5)') 'XX tr_bpsd_put in tr_prof: ierr=',ierr
+         STOP
+      END IF
+
+!     *** initilize graphic data ***
+
+      GRG(1)=0.0
+      GRM(1:NRMAX)  =SNGL(RM(1:NRMAX))
+      GRG(2:NRMAX+1)=SNGL(RG(1:NRMAX))
+
+      RETURN
+
+    END SUBROUTINE tr_prep
+  END MODULE trprep
+
 
 !     ***********************************************************
 
@@ -5,19 +92,21 @@
 
 !     ***********************************************************
 
-      SUBROUTINE TR_EQS_SELECT(INIT)
+  SUBROUTINE TR_EQS_SELECT(INIT)
 
-      USE TRCOMM, ONLY : &
-           AMM, AMZ, MDDIAG, MDLEOI, MDLEQ0, MDLEQB, MDLEQE, MDLEQN, MDLEQT, &
-           MDLEQU, MDLEQZ, MDLKAI, MDLWLD, MDNCLS, NEA, NEQM, NEQMAX, &
-           NEQMAXM, NNS, NREDGE, NRMAX, NSCMAX, NSLMAX, NSM, NSMAX, NSNMAX, &
-           NSS, NST, NSTM, NSTMAX, NSV, NSZMAX, PA, PZ, RGFLS, RQFLS
-      USE TRCOM1, ONLY : INS
-      IMPLICIT NONE
-      INTEGER(4),INTENT(IN) :: INIT
-      INTEGER(4) :: IND, INDH, INDHD, MDANOM, MDSLCT, NEQ, NEQ1, NEQI, &
-           NEQRMAX, NEQS, NEQT, NNSC, NNSMAX, NNSN, NS, NSSN, NSVN
-      INTEGER(4), SAVE :: NSSMAX
+    USE TRCOMM, ONLY : &
+         AMM, AMZ, MDDIAG, MDLEOI, MDLEQ0, MDLEQB, MDLEQE, MDLEQN, &
+         MDLEQT, MDLEQU, MDLEQZ, MDLKAI, &
+         MDLWLD, MDNCLS, NEA, NEQM, NEQMAX, NEQMAXM, NNS, NREDGE, &
+         NRMAX, NSCMAX, NSLMAX, NSM, NSMAX,      &
+         NSNMAX, NSS, NST, NSTM, NSTMAX, NSV, NSZMAX, PA, PZ, RGFLS, RQFLS
+    USE TRCOM1, ONLY : INS
+    IMPLICIT NONE
+    INTEGER,INTENT(IN) :: INIT
+    INTEGER:: IND, INDH, INDHD, MDANOM, MDSLCT, NEQ, NEQ1, NEQI
+    INTEGER:: NEQRMAX, NEQS, NEQT, NNSC, NNSMAX, NNSN, NS, NSSN, NSVN
+    INTEGER, SAVE :: NSSMAX
+
 
 !     If INS is zero, all particles designated by NSMAX are fully
 !     calculated. If INS=1, we handle only electrons and bulk ions
@@ -45,6 +134,11 @@
       ENDIF
 !     ***
 
+!      IF(MDLEQT.EQ.0) THEN
+!         NEQMAX=MDLEQB+(MDLEQN+MDLEQT+MDLEQU)*2+MDLEQ0*NSNMAX+MDLEQZ*NSZMAX
+!      ELSEIF(MDLEQT.EQ.1) THEN
+!         NEQMAX=MDLEQB+2+(MDLEQT+MDLEQU)*2+MDLEQ0*NSNMAX+MDLEQZ*NSZMAX
+!      ENDIF
       IF(MDLEQT.EQ.0) THEN
          NEQMAX=MDLEQB+(MDLEQN+MDLEQT+MDLEQU)*NSMAX+MDLEQ0*NSNMAX+MDLEQZ*NSZMAX
       ELSEIF(MDLEQT.EQ.1) THEN
@@ -169,7 +263,6 @@
 !     *** EQUATION SELECTOR ***
 
 !     Format : NEA(species,equation) for all equations
-
       NEA(0:NSTM,0:3)=0
       DO NEQ=1,NEQMAX
          NEA(NSS(NEQ),NSV(NEQ))=NEQ
@@ -223,12 +316,12 @@
 
       SUBROUTINE TR_TABLE(NS,NEQ,NSW,IND,INDH,INDHD)
 
-      USE TRCOMM, ONLY : AME, AMM, MDLEQE, NEQMAX, NNS, NSMAX, NSS, NSV, PA
+      USE TRCOMM, ONLY : AME, AMM, MDLEQE, NEQMAX, NNS, NSMAX, NSS, NSV, PA, rkind
       IMPLICIT NONE
-      INTEGER(4),INTENT(IN)   :: NS, NSW
-      INTEGER(4),INTENT(INOUT):: NEQ, IND, INDH, INDHD
-      INTEGER(4) :: NEQI, NEQII, NNSN, NSVN
-      REAL(8)    :: REM
+      INTEGER,INTENT(IN)   :: NS, NSW
+      INTEGER,INTENT(INOUT):: NEQ, IND, INDH, INDHD
+      INTEGER :: NEQI, NEQII, NNSN, NSVN
+      REAL(rkind)    :: REM
 
       REM=AME/AMM
       IF(NS.LE.NSMAX) THEN

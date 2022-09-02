@@ -9,13 +9,13 @@
       USE TRCOMM, ONLY : NRAMAX, NRMAX, NROMAX, RHOA, NT, NGTSTP
       IMPLICIT NONE
       CHARACTER(LEN=1), INTENT(IN):: K2
-      INTEGER(4),       INTENT(IN):: INQ
+      INTEGER,       INTENT(IN):: INQ
 
-      IF(NT.LT.NGTSTP) RETURN
+!      IF(NT.LT.NGTSTP) RETURN
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
 
-      IF(K2.EQ.'1') CALL TRGRT1(INQ)
-      IF(K2.EQ.'2') CALL TRGRT2(INQ)
+      IF(K2.EQ.'1') CALL TRGRT1
+      IF(K2.EQ.'2') CALL TRGRT2
       IF(K2.EQ.'5') CALL TRGRT5(INQ)
       IF(K2.EQ.'6') CALL TRGRT6(INQ)
       IF(K2.EQ.'7') CALL TRGRT7(INQ)
@@ -36,7 +36,7 @@
 
       IMPLICIT NONE
       CHARACTER(LEN=1), INTENT(IN):: K2
-      INTEGER(4),       INTENT(IN):: INQ
+      INTEGER,       INTENT(IN):: INQ
 
       IF(K2.EQ.'1') CALL TRGRX1(INQ)
       RETURN
@@ -52,7 +52,7 @@
 
       IMPLICIT NONE
       CHARACTER(LEN=1), INTENT(IN):: K2
-      INTEGER(4),       INTENT(IN):: INQ
+      INTEGER,       INTENT(IN):: INQ
 
       IF(K2.EQ.'1') THEN
          CALL TRGRT6(INQ)
@@ -81,53 +81,47 @@
 
 !     ***********************************************************
 
-      SUBROUTINE TRGRT1(INQ)
+      SUBROUTINE TRGRT1
 
-      USE TRCOMM, ONLY : GT, GVRT, GRM, RTU, NGT, NTM, NRMAX
-      USE TRCOM1, ONLY : TMU, TMU1, NTXMAX, NTXMAX1, NTUM
+      USE TRCOMM, ONLY : GT, GVRT, GRM, RTU, NGT, NTM, NRMAX, rkind
+      USE TRCOM1, ONLY : TMU, NTXMAX, NTUM
+      USE libitp
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN):: INQ
-      INTEGER(4) :: I, NR, IERR
-      REAL(4),DIMENSION(NTM,NRMAX) :: GYL
-      REAL(8) :: TSL, RTEL, RTDL
-      REAL(4) :: GUCLIP
+      INTEGER :: I, NR, IERR
+      REAL,DIMENSION(NTM,NRMAX) :: GYL
+      REAL(rkind) :: TSL, RTEL, RTDL
+      REAL :: GUCLIP
       CALL PAGES
 
       DO I=1,NGT
          GYL(I,1:NRMAX) = GVRT(1:NRMAX,I, 1)
       ENDDO
-      CALL TRGR1DC( 3.0,12.0,14.0,17.0,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX, &
-                   '@TE [keV]  vs t@')
+      CALL TRGR1DC( 3.0,12.0,14.0,17.0,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX,'@TE [keV]  vs t@')
 
       DO I=1,NGT
          GYL(I,1:NRMAX) = GVRT(1:NRMAX,I, 2)
       ENDDO
-      CALL TRGR1DC( 3.0,12.0, 9.7,12.7,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX, &
-                   '@TD [keV]  vs t@')
+      CALL TRGR1DC( 3.0,12.0, 9.7,12.7,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX,'@TD [keV]  vs t@')
 
       DO I=1,NGT
          GYL(I,1:NRMAX) = GVRT(1:NRMAX,I, 5)
       ENDDO
-      CALL TRGR1DC( 3.0,12.0, 5.4, 8.4,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX, &
-                   '@NE [10$+20$=/m$+3$=]  vs t@')
+      CALL TRGR1DC( 3.0,12.0, 5.4, 8.4,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX,'@NE [10$+20$=/m$+3$=]  vs t@')
 
       DO I=1,NGT
          GYL(I,1:NRMAX) = GVRT(1:NRMAX,I, 9) * 1.E-6
       ENDDO
-      CALL TRGR1DC( 3.0,12.0, 1.1, 4.1,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX, &
-                   '@AJ [MA]  vs t@')
+      CALL TRGR1DC( 3.0,12.0, 1.1, 4.1,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX,'@AJ [MA]  vs t@')
 
       DO I=1,NGT
          GYL(I,1:NRMAX) = GVRT(1:NRMAX,I,13) * 1.E-6
       ENDDO
-      CALL TRGR1DC(15.0,24.0, 5.4, 8.4,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX, &
-                   '@AJBS [MA]  vs t@')
+      CALL TRGR1DC(15.0,24.0, 5.4, 8.4,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX,'@AJBS [MA]  vs t@')
 
       DO I=1,NGT
          GYL(I,1:NRMAX) = (GVRT(1:NRMAX,I,11) + GVRT(1:NRMAX,I,12)) * 1.E-6
       ENDDO
-      CALL TRGR1DC(15.0,24.0, 1.1, 4.1,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX, &
-                   '@AJCD [MA]  vs t@')
+      CALL TRGR1DC(15.0,24.0, 1.1, 4.1,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX,'@AJCD [MA]  vs t@')
 
       CALL PAGEE
 
@@ -141,39 +135,34 @@
 
 !     ***********************************************************
 
-      SUBROUTINE TRGRT2(INQ)
+      SUBROUTINE TRGRT2
 
       USE TRCOMM, ONLY : GT, GRG, GRM, GVRT, NGT, NTM, NRMAX
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN):: INQ
-      INTEGER(4) :: I
-      REAL(4),DIMENSION(NTM,NRMAX) :: GYL
+      INTEGER :: I
+      REAL,DIMENSION(NTM,NRMAX) :: GYL
 
       CALL PAGES
 
       DO I=1,NGT
          GYL(I,1:NRMAX) = GVRT(1:NRMAX,I,27)
       ENDDO
-      CALL TRGR1DC( 3.0,12.0,14.0,17.0,GT,GRG,GYL,NTM,NGT,NRMAX,NRMAX, &
-                   '@QP  vs t@')
+      CALL TRGR1DC( 3.0,12.0,14.0,17.0,GT,GRG,GYL,NTM,NGT,NRMAX,NRMAX,'@QP  vs t@')
 
       DO I=1,NGT
          GYL(I,1:NRMAX) = GVRT(1:NRMAX,I,31)
       ENDDO
-      CALL TRGR1DC(15.0,24.0,14.0,17.0,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX, &
-                   '@VLOOP [V]  vs t@')
+      CALL TRGR1DC(15.0,24.0,14.0,17.0,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX,'@VLOOP [V]  vs t@')
 
       DO I=1,NGT
          GYL(I,1:NRMAX) = GVRT(1:NRMAX,I,60)
       ENDDO
-      CALL TRGR1DC( 3.0,12.0, 9.7,12.7,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX, &
-                   '@VTOR [m/s]  vs t@')
+      CALL TRGR1DC( 3.0,12.0, 9.7,12.7,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX,'@VTOR [m/s]  vs t@')
 
       DO I=1,NGT
          GYL(I,1:NRMAX) = GVRT(1:NRMAX,I,63)
       ENDDO
-      CALL TRGR1DC(15.0,24.0, 9.7,12.7,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX, &
-                   '@ER [V/m] vs t@')
+      CALL TRGR1DC(15.0,24.0, 9.7,12.7,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX,'@ER [V/m] vs t@')
 
       CALL PAGEE
 
@@ -189,12 +178,11 @@
 
       SUBROUTINE TRGRT5(INQ)
 
-      USE TRCOMM, ONLY : &
-           DR, GT, GTS, GVT, GYT, IZERO, NGPST, NGST, NGT, NRMAX, NTM
+      USE TRCOMM, ONLY : DR, GT, GTS, GVT, GYT, IZERO, NGPST, NGST, NGT, NRMAX, NTM
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN):: INQ
-      INTEGER(4) :: I, IX, K, M, N, NGPSTH
-      REAL(4)    :: GD, GW
+      INTEGER, INTENT(IN):: INQ
+      INTEGER :: I, IX, K, M, N, NGPSTH
+      REAL    :: GD, GW
 
       IF(NGST.EQ.0) THEN
 
@@ -204,29 +192,25 @@
          GYT(I,1)=GVT(I,97)
          GYT(I,2)=GVT(I,98)
       ENDDO
-      CALL TRGR1D( 3.0,12.0,14.0,17.0,GT,GYT,NTM,NGT,2, &
-                  '@RR, RA [M]  vs t@',2+INQ)
+      CALL TRGR1D( 3.0,12.0,14.0,17.0,GT,GYT,NTM,NGT,2,'@RR, RA [M]  vs t@',2+INQ)
 
       DO I=1,NGT
          GYT(I,1)=GVT(I,99)
          GYT(I,2)=GVT(I,101)!GVT(I,34)
       ENDDO
-      CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,2, &
-                  '@BT, IP  vs t@',2+INQ)
+      CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,2,'@BT, IP  vs t@',2+INQ)
 
       DO I=1,NGT
          GYT(I,1)=GVT(I,100)
       ENDDO
-      CALL TRGR1D(15.0,24.0,14.0,17.0,GT,GYT,NTM,NGT,1, &
-                  '@RKAP  vs t@',2+INQ)
+      CALL TRGR1D(15.0,24.0,14.0,17.0,GT,GYT,NTM,NGT,1,'@RKAP  vs t@',2+INQ)
 
       DO I=1,NGT
          GYT(I,1)=GVT(I,81)
          GYT(I,2)=GVT(I,102)
          GYT(I,3)=GVT(I,103)
       ENDDO
-      CALL TRGR1D(15.0,24.0, 9.7,12.7,GT,GYT,NTM,NGT,3, &
-                  '@TAUE89,TAUE98 [s], H98Y2  vs t@',2+INQ)
+      CALL TRGR1D(15.0,24.0, 9.7,12.7,GT,GYT,NTM,NGT,3,'@TAUE89,TAUE98 [s], H98Y2  vs t@',2+INQ)
 
       CALL PAGEE
 
@@ -271,7 +255,7 @@
 
          NGPSTH=N-NGPST/2
          CALL TRGR1D(15.5,24.5,17-(NGPSTH+1)*GW-NGPSTH*GD,17-NGPSTH*(GW+GD), &
-                     GTS,GYT,NTM,NGST,M,'@TE,TD,TT,TA [keV]  vs t@',1+INQ)
+     &               GTS,GYT,NTM,NGST,M,'@TE,TD,TT,TA [keV]  vs t@',1+INQ)
          CALL SETCHS(0.3,0.0)
          CALL SETFNT(32)
          CALL SETLIN(-1,-1,7)
@@ -299,8 +283,7 @@
 
       USE TRCOMM, ONLY : GT, GVT, GYT, MDLNF, NGT, NTM
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN):: INQ
-      INTEGER(4) :: I
+      INTEGER, INTENT(IN):: INQ
 
       CALL PAGES
 
@@ -308,17 +291,16 @@
       GYT(1:NGT,2)=GVT(1:NGT,10)
       GYT(1:NGT,3)=GVT(1:NGT,13)
       GYT(1:NGT,4)=GVT(1:NGT,14)
-      CALL TRGR1D( 3.0,12.0,14.0,17.0,GT,GYT,NTM,NGT,4, &
-                  '@TE,TD,<TE>,<TD> [keV]  vs t@',2+INQ)
+      CALL TRGR1D( 3.0,12.0,14.0,17.0,GT,GYT,NTM,NGT,4,'@TE,TD,<TE>,<TD> [keV]  vs t@',2+INQ)
 
+!      GYT(1:NGT,1)=GVT(1:NGT,34)
       GYT(1:NGT,1)=GVT(1:NGT,101)
       GYT(1:NGT,2)=GVT(1:NGT,35)
       GYT(1:NGT,3)=GVT(1:NGT,36)
       GYT(1:NGT,4)=GVT(1:NGT,37)
       GYT(1:NGT,5)=GVT(1:NGT,38)
       GYT(1:NGT,6)=GVT(1:NGT,34)
-      CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,6, &
-                  '@IP,IOH,INB,IRF,IBS,IPARA [MA]  vs t@',2+INQ)
+      CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,6,'@IP,IOH,INB,IRF,IBS,IPARA [MA]  vs t@',2+INQ)
 
       GYT(1:NGT,1)=GVT(1:NGT,39)
       GYT(1:NGT,2)=GVT(1:NGT,40)
@@ -326,16 +308,15 @@
       GYT(1:NGT,4)=GVT(1:NGT,42)+GVT(1:NGT,43)+GVT(1:NGT,44)+GVT(1:NGT,45)
       GYT(1:NGT,5)=GVT(1:NGT,46)
       GYT(1:NGT,6)=GVT(1:NGT,89)+GVT(1:NGT,90)+GVT(1:NGT,91)+GVT(1:NGT,92)
-      CALL TRGR1D( 3.0,12.0, 5.4, 8.4,GT,GYT,NTM,NGT,6, &
-                  '@PIN,POH,PNB,PRF,PNF,PEX [MW]  vs t@',2+INQ)
+      CALL TRGR1D( 3.0,12.0, 5.4, 8.4,GT,GYT,NTM,NGT,6,'@PIN,POH,PNB,PRF,PNF,PEX [MW]  vs t@',2+INQ)
 
       GYT(1:NGT,1)=GVT(1:NGT,57)
       GYT(1:NGT,2)=GVT(1:NGT,58)
       GYT(1:NGT,3)=GVT(1:NGT,59)
       GYT(1:NGT,4)=GVT(1:NGT,60)
       GYT(1:NGT,5)=GVT(1:NGT,61)+GVT(1:NGT,62)+GVT(1:NGT,63)+GVT(1:NGT,64)
-      CALL TRGR1D( 3.0,12.0, 1.1, 4.1,GT,GYT,NTM,NGT,5, &
-                  '@POUT,PCX,PIE,PRL,PCON [MW]  vs t@',2+INQ)
+!     &           +GVT(1:NGT,89)+GVT(1:NGT,90)
+      CALL TRGR1D( 3.0,12.0, 1.1, 4.1,GT,GYT,NTM,NGT,5,'@POUT,PCX,PIE,PRL,PCON [MW]  vs t@',2+INQ)
 
       GYT(1:NGT,1)=GVT(1:NGT,87)
       CALL TRGR1D(15.0,24.0,14.0,17.0,GT,GYT,NTM,NGT,1,'@QF  vs t@',2+INQ)
@@ -344,29 +325,29 @@
       GYT(1:NGT,2)=GVT(1:NGT,14)
       GYT(1:NGT,3)=GVT(1:NGT,15)
       GYT(1:NGT,4)=GVT(1:NGT,16)
-      CALL TRGR1D(15.0,24.0, 9.7,12.7,GT,GYT,NTM,NGT,4, &
-                  '@TEAV,TDAV,TTAV,TAAV [keV]  vs t@',2+INQ)
+      CALL TRGR1D(15.0,24.0, 9.7,12.7,GT,GYT,NTM,NGT,4,'@TEAV,TDAV,TTAV,TAAV [keV]  vs t@',2+INQ)
 
       GYT(1:NGT,1)=GVT(1:NGT, 9)
       GYT(1:NGT,2)=GVT(1:NGT,10)
       GYT(1:NGT,3)=GVT(1:NGT,11)
       GYT(1:NGT,4)=GVT(1:NGT,12)
-      CALL TRGR1D(15.0,24.0, 5.4, 8.4,GT,GYT,NTM,NGT,4, &
-                  '@TE0,TD0,TT0,TA0 [keV]  vs t@',2+INQ)
+      CALL TRGR1D(15.0,24.0, 5.4, 8.4,GT,GYT,NTM,NGT,4,'@TE0,TD0,TT0,TA0 [keV]  vs t@',2+INQ)
 
       IF(MDLNF.EQ.0) THEN
          GYT(1:NGT,1)=GVT(1:NGT,1)
          GYT(1:NGT,2)=GVT(1:NGT,5)
          GYT(1:NGT,3)=GVT(1:NGT,104)
-         CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,3, &
-                     '@NE0,<NE>,<NEL> [10$+20$=/m$+3$=]  vs t@',2+INQ)
+         CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,3,'@NE0,<NE>,<NEL> [10$+20$=/m$+3$=]  vs t@',2+INQ)
       ELSE
          GYT(1:NGT,1)=GVT(1:NGT,1)
          GYT(1:NGT,2)=GVT(1:NGT,2)
          GYT(1:NGT,3)=GVT(1:NGT,3)
          GYT(1:NGT,4)=GVT(1:NGT,4)
-         CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,4, &
-                     '@NE0,ND0,NT0,NA0 [10$+20$=/m$+3$=]  vs t@',2+INQ)
+         GYT(1:NGT,5)=GVT(1:NGT,5)
+         GYT(1:NGT,6)=GVT(1:NGT,6)
+         GYT(1:NGT,7)=GVT(1:NGT,7)
+         GYT(1:NGT,8)=GVT(1:NGT,8)
+         CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,8,'@NE0,ND0,NT0,NA0,<> [10$+20$=/m$+3$=]  vs t@',2+INQ)
       ENDIF
 
       CALL PAGEE
@@ -384,8 +365,7 @@
 
       USE TRCOMM, ONLY : GT, GVT, GYT, NGT, NTM, RA, BB
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN):: INQ
-      INTEGER(4) :: I
+      INTEGER, INTENT(IN):: INQ
 
       CALL PAGES
 
@@ -393,29 +373,24 @@
       GYT(1:NGT,2)=GVT(1:NGT,31)+GVT(1:NGT,29)
       GYT(1:NGT,3)=GVT(1:NGT,31)
       GYT(1:NGT,4)=GVT(1:NGT,17)
-      CALL TRGR1D( 3.0,12.0,14.0,17.0,GT,GYT,NTM,NGT,4, &
-                  '@WF,WB,WI,WE [MJ]  vs t@',2+INQ)
+      CALL TRGR1D( 3.0,12.0,14.0,17.0,GT,GYT,NTM,NGT,4,'@WF,WB,WI,WE [MJ]  vs t@',2+INQ)
 
       GYT(1:NGT,1)=GVT(1:NGT,85)*100.0
       GYT(1:NGT,2)=GVT(1:NGT,84)*100.0
       GYT(1:NGT,3)=GVT(1:NGT,85)*100.0/(GVT(1:NGT,101)/SNGL(RA*BB))!(GVT(1:NGT,34)/SNGL(RA*BB))
-      CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,3, &
-                  '@BETAa,BETA0,[%],BETAN  vs t@',2+INQ)
+      CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,3,'@BETAa,BETA0,[%],BETAN  vs t@',2+INQ)
 
       GYT(1:NGT,1)=GVT(1:NGT,79)
       GYT(1:NGT,2)=GVT(1:NGT,80)
       GYT(1:NGT,3)=GVT(1:NGT,81)
-      CALL TRGR1D( 3.0,12.0, 5.4, 8.4,GT,GYT,NTM,NGT,3, &
-                  '@TAUE1,TAUE2,TAUE89  vs t@',2+INQ)
+      CALL TRGR1D( 3.0,12.0, 5.4, 8.4,GT,GYT,NTM,NGT,3,'@TAUE1,TAUE2,TAUE89  vs t@',2+INQ)
 
       GYT(1:NGT,1)=GVT(1:NGT,83)
       GYT(1:NGT,2)=GVT(1:NGT,82)
-      CALL TRGR1D( 3.0,12.0, 1.1, 4.1,GT,GYT,NTM,NGT,2, &
-                  '@BETAPa,BETAP0  vs t@',2+INQ)
+      CALL TRGR1D( 3.0,12.0, 1.1, 4.1,GT,GYT,NTM,NGT,2,'@BETAPa,BETAP0  vs t@',2+INQ)
 
       GYT(1:NGT,1)=GVT(1:NGT,74)
-      CALL TRGR1D(15.0,24.0,14.0,17.0,GT,GYT,NTM,NGT,1, &
-                  '@VLOOP [V]  vs t@',2+INQ)
+      CALL TRGR1D(15.0,24.0,14.0,17.0,GT,GYT,NTM,NGT,1,'@VLOOP [V]  vs t@',2+INQ)
 
       GYT(1:NGT,1)=GVT(1:NGT,77)
       CALL TRGR1D(15.0,24.0, 9.7,12.7,GT,GYT,NTM,NGT,1,'@Q(0)  vs t@',2+INQ)
@@ -440,14 +415,11 @@
       SUBROUTINE TRGRT8(INQ)
 
       USE TRCOMM, ONLY : &
-           DR,GRM,GT,GTS,GYT,GVT,NGT,NGST,NGPST,NRMAX,NTM,IZERO
+           DR, GTS, GYT, GVT, NGST, NGPST, NRMAX, NTM, IZERO
       IMPLICIT NONE
-      INTEGER(4),INTENT(IN):: INQ
-      INTEGER(4),DIMENSION(8,NTM,NRMAX):: KATR
-      INTEGER(4) :: I, IERR, NR, M, IX, N, K, NGPSTH
-      REAL(8)    :: RTDL, RTEL, TSL
-      REAL(4),DIMENSION(NTM,NRMAX)  :: GYL
-      REAL(4)    :: GW, GD
+      INTEGER,INTENT(IN):: INQ
+      INTEGER :: M, IX, N, K, NGPSTH
+      REAL    :: GW, GD
 
       IF(NGST.EQ.0) RETURN
 
@@ -515,30 +487,25 @@
 
       USE TRCOMM, ONLY : GVT, GYT, NGT, NTM, RA, RR
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN):: INQ
-      INTEGER(4) :: I
+      INTEGER, INTENT(IN):: INQ
 
       CALL PAGES
 
       GYT(1:NGT,1)=SNGL(RA/RR)*GVT(1:NGT,83)
       GYT(1:NGT,2)=GVT(1:NGT,80)/GVT(1:NGT,81)
-      CALL TRGR1D( 3.0,12.0,11.0,17.0,GYT(1,1),GYT(1,2),NTM,NGT,1, &
-                  '@tauE/tauE89 vs eps*betap@',2+INQ)
+      CALL TRGR1D( 3.0,12.0,11.0,17.0,GYT(1,1),GYT(1,2),NTM,NGT,1,'@tauE/tauE89 vs eps*betap@',2+INQ)
 
       GYT(1:NGT,1)=GVT(1:NGT,75)
       GYT(1:NGT,2)=GVT(1:NGT,80)/GVT(1:NGT,81)
-      CALL TRGR1D(15.5,24.5,11.0,17.0,GYT(1,1),GYT(1,2),NTM,NGT,1, &
-                  '@tauE/tauE89 vs li@',2+INQ)
+      CALL TRGR1D(15.5,24.5,11.0,17.0,GYT(1,1),GYT(1,2),NTM,NGT,1,'@tauE/tauE89 vs li@',2+INQ)
 
       GYT(1:NGT,1)=SNGL(RA/RR)*GVT(1:NGT,83)
       GYT(1:NGT,2)=GVT(1:NGT,38)/GVT(1:NGT,101)!GVT(1:NGT,34)
-      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GYT(1,1),GYT(1,2),NTM,NGT,1, &
-                  '@Ibs/Ip vs eps*betap@',2+INQ)
+      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GYT(1,1),GYT(1,2),NTM,NGT,1,'@Ibs/Ip vs eps*betap@',2+INQ)
 
       GYT(1:NGT,1)=GVT(1:NGT,77)
       GYT(1:NGT,2)=GVT(1:NGT,80)/GVT(1:NGT,81)
-      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GYT(1,1),GYT(1,2),NTM,NGT,1, &
-                  '@tauE/tauE89 vs q0@',2+INQ)
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GYT(1,1),GYT(1,2),NTM,NGT,1,'@tauE/tauE89 vs q0@',2+INQ)
 
       CALL PAGEE
 

@@ -1,40 +1,49 @@
-!     $Id$
+! trexec.f90
+
+MODULE trexec
+
+  PRIVATE
+  PUBLIC tr_exec,tr_eval,tr_coef_decide
+
+CONTAINS
+
 !     ***********************************************************
 
 !           MAIN ROUTINE FOR TRANSPORT CALCULATION
 
 !     ***********************************************************
 
-      SUBROUTINE TREXEC(DT,IERR)
+      SUBROUTINE tr_exec(DT,IERR)
 
       USE TRCOMM, ONLY : &
-     &   ABRHOG, AJ, AJU, AMM, ANC, ANFE, ANNU, AR1RHOG, AX, AY, AZ, BB, &
-     &   BP, DR, DVRHO, DVRHOG, EPSLTR, LDAB, LMAXTR, MDLEQB, MDLEQE, &
-     &   MDLEQN, MDLPCK, MDTC, MLM, NEQMAX, NFM, NGR, NGRSTP, &
-     &   NGT, NGTSTP, NRAMAX, NRMAX, NROMAX, NSM, NSMAX, NSS, NST, NSV, &
-     &   NTEQIT, NTMAX, NTSTEP, NTUM, &
-     &   PA, PZ, PZC, PZFE, RDP, RG, RHOA, RIP, RIPE, RIPS, RIPU, &
-     &   RMU0, RN, RR, RT, RU, RW, T, TPRST, TST, TTRHO, TTRHOG, &
-     &   VLOOP, VSEC, X, XV, Y, YV, Z, ZV ,NEQMAXM, DIPDT, akdw, nt, &
-     &   ABVRHOG, RDPVRHOG
-      USE TRCOM1, ONLY : TMU, TMU1, NTAMAX, NTXMAX, NTXMAX1
+     &   AJ, AJU, AMM, ANC, ANFE, ANNU, AX, AY, AZ, BB, &
+     &   DR, DVRHO, DVRHOG, EPSLTR, LDAB, LMAXTR, MDLEQB, MDLEQE, &
+     &   MDLEQN, MDLPCK, MDTC, MLM, NEQMAX, NFM, &
+     &   NRAMAX, NRMAX, NROMAX, NSM, NSMAX, NSS, NST, NSV, &
+     &   NTUM, &
+     &   PA, PZ, PZC, PZFE, RDP, RHOA, RIP, RIPU, &
+     &   RMU0, RN, RT, RU, RW, T, TTRHO, TTRHOG, &
+     &   VLOOP, VSEC, X, XV, Y, YV, Z, ZV ,NEQMAXM, DIPDT, &
+         RDPVRHOG, abvrhog, rkind
+      USE TRCOM1, ONLY : TMU, TMU1, NTXMAX, NTXMAX1
       USE libbnd
+      USE libitp
       IMPLICIT NONE
-      REAL(8),INTENT(IN) :: DT
-      INTEGER(4),INTENT(OUT) :: IERR
-      INTEGER(4):: I, ICHCK, INFO, J, L, LDB, M, MWRMAX, &
+      REAL(rkind),INTENT(IN) :: DT
+      INTEGER,INTENT(OUT) :: IERR
+      INTEGER:: I, ICHCK, INFO, J, L, LDB, M, MWRMAX, &
            N, NEQ, NEQ1, NEQRMAX, NR, NRHS, NSSN, NSSN1, &
            NSTN, NSTN1, NSVN, NSVN1, KL, KU
-      REAL(8)   :: AJL, FACTOR0, FACTORM, FACTORP, TSL
-      INTEGER(4),DIMENSION(NEQMAXM*NRMAX) :: IPIV
-      REAL(8),DIMENSION(NEQMAXM*NRMAX)    :: XX
-      REAL(8),DIMENSION(2,NRMAX)  :: YY
-      REAL(8),DIMENSION(NSMAX,NRMAX):: ZZ
+      REAL(rkind)   :: AJL, FACTOR0, FACTORM, FACTORP, TSL
+      INTEGER,DIMENSION(NEQMAXM*NRMAX) :: IPIV
+      REAL(rkind),DIMENSION(NEQMAXM*NRMAX)    :: XX
+      REAL(rkind),DIMENSION(2,NRMAX)  :: YY
+      REAL(rkind),DIMENSION(NSMAX,NRMAX):: ZZ
 
       IERR=0
       ICHCK=0
 
- 1000 L=0
+      L=0
 !     /* Setting New Variables */
       CALL TRATOX
 
@@ -250,8 +259,10 @@
                        + X(NEQRMAX*(NR-1)+NSTN))/(PA(NSSN)*AMM*RN(NR,NSSN))
                ENDIF
             ENDIF
-         ENDDO
-         ANNU(NR)=RN(NR,7)+RN(NR,8)
+         END DO
+         IF(NSMAX.GE.8) THEN
+            ANNU(NR)=RN(NR,7)+RN(NR,8)
+         END IF
 !!!         BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
          RW(NR,1)  = 0.5D0*(YV(1,NR)+Y(1,NR))
          RW(NR,2)  = 0.5D0*(YV(2,NR)+Y(2,NR))
@@ -282,7 +293,6 @@
 !      write(6,'(A,1P4E12.4)') "T,RIP,RIPE,DIP=",T,RIP,RIPE,DIPDT*DT
 
 !     /* Making new XV(NEQ,NR) and YV(NF,NR) */
-
       DO NEQ=1,NEQMAX
          NSTN=NST(NEQ)
          IF(NSTN.NE.0) THEN
@@ -314,8 +324,6 @@
          RETURN
       ENDIF
 
- 8000 continue
-
 !     /* calculate physical quauntities */
 
       CALL TRCALC(IERR)
@@ -346,11 +354,11 @@
 !       ENDIF
 
       RETURN
-      END SUBROUTINE TREXEC
+    END SUBROUTINE tr_exec
 
-      SUBROUTINE TREVAL(NT,IERR)
+      SUBROUTINE tr_eval(NT,IERR)
 
-      USE TRCOMM, ONLY : NGRSTP, NGTSTP, NTSTEP,AJRFV,RT
+      USE TRCOMM, ONLY : NGRSTP, NGTSTP, NTSTEP
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: NT
       INTEGER,INTENT(OUT) :: IERR
@@ -378,7 +386,7 @@
       ENDIF
       IERR=0
       RETURN
-      END SUBROUTINE TREVAL
+    END SUBROUTINE tr_eval
 
 !     ***********************************************************
 
@@ -388,19 +396,19 @@
 
       SUBROUTINE TRMTRX(NEQRMAX)
 
-      USE TRCOMM, ONLY : ABRHOG, AEE, AKDW, AMZ, AX, AY, AZ, DD, DI, DT, &
+      USE TRCOMM, ONLY : AEE, AKDW, AMZ, AX, AY, AZ, DD, DI, DT, &
      &                   DVRHOG, EPS0, LDAB, MDLCD, MDLEQB, MDLPCK, &
      &                   MDTC, MLM, NEA, NEQM, NEQMAX, NRMAX, NSMAX, &
      &                   NSS, NST, NTUM, NVM, PI, PNB, PNF, RA, RIP, RIPA, &
      &                   RKEV, RMU0, RN, RR, RT, RTM, TAUB, TAUF, TAUK, VI, &
-     &                   VV, X, XV, Y, YV, Z, ZV, NEQMAXM, RDPS, &
-     &                   ABVRHOG, RDPVRHOG, RDP
+     &                   VV, X, XV, Y, YV, Z, ZV, RDPS, &
+     &                   ABVRHOG, rkind
       USE TRCOM1, ONLY : A, B, C, D, PPA, PPB, PPC, RD
       IMPLICIT NONE
-      INTEGER(4), INTENT(INOUT):: NEQRMAX
-      INTEGER(4):: KL, MV, MVV, MW, MWMAX, NEQ, NEQ1, NR, NS, NS1, NSTN, NSW, &
+      INTEGER, INTENT(INOUT):: NEQRMAX
+      INTEGER:: KL, MV, MVV, MW, MWMAX, NEQ, NEQ1, NR, NS, NS1, NSTN, NSW, &
      &             NV, NW
-      REAL(8)   :: ADV, C1, COEF, COULOG, DV53, FADV, PRV, RDPA, RLP
+      REAL(rkind)   :: ADV, C1, COEF, COULOG, DV53, FADV, PRV, RDPA, RLP
 
 ! Boundary condition for magnetic diffusion equation
 
@@ -672,6 +680,20 @@
          ENDIF
       ENDIF
 
+!      nr=nrmax
+!      WRITE(6,'(A,I6)') '** NRMAX:',nrmax
+!      DO NV=1,NEQMAX
+!         DO NW=1,NEQMAX
+!            IF(NW.EQ.1) THEN
+!               WRITE(6,'(A,2I6,4ES12.4)') 'NV,NW,A,B,C,X=',NV,NW, &
+!                    A(NV,NW,NR),B(NV,NW,NR),C(NV,NW,NR),X(NEQMAX*(NR-1)+NV)
+!            ELSE
+!               WRITE(6,'(A,2I6,3ES12.4)') 'NV,NW,A,B,C  =',NV,NW, &
+!                    A(NV,NW,NR),B(NV,NW,NR),C(NV,NW,NR)
+!            END IF
+!         END DO
+!      END DO
+               
       RETURN
       END SUBROUTINE TRMTRX
 
@@ -683,12 +705,12 @@
 
       SUBROUTINE TR_BAND_GEN(NEQRMAX,ADV)
 
-      USE TRCOMM, ONLY : AX, MDLPCK, NEQM, NEQMAX, NRMAX, NVM, XV
+      USE TRCOMM, ONLY : AX, MDLPCK, NEQM, NEQMAX, NRMAX, XV, rkind
       USE TRCOM1, ONLY : A, B, C, PPA, PPB, PPC, RD
       IMPLICIT NONE
-      INTEGER(4),INTENT(INOUT):: NEQRMAX
-      REAL(8)   ,INTENT(IN)   :: ADV
-      INTEGER(4):: NEQ, NR, NV, NW
+      INTEGER,INTENT(INOUT):: NEQRMAX
+      REAL(rkind)   ,INTENT(IN)   :: ADV
+      INTEGER:: NEQ, NR, NV, NW
 
       DO NR=1,NRMAX
 
@@ -740,11 +762,12 @@
 
       SUBROUTINE TR_BAND_LAPACK(A,B,C,AX,NRMAX,NEQRMAX,NVM,LDAB,MLM)
 
+      USE TRCOMM,ONLY: rkind
       IMPLICIT NONE
-      REAL(8),DIMENSION(NVM,NVM,NRMAX),INTENT(IN) :: A, B, C
-      REAL(8),DIMENSION(LDAB,MLM)  ,INTENT(OUT) :: AX
-      INTEGER(4),INTENT(IN) :: NRMAX, NEQRMAX, NVM, LDAB, MLM
-      INTEGER(4):: KL, NR, NV, NW
+      INTEGER,INTENT(IN) :: NRMAX, NEQRMAX, NVM, LDAB, MLM
+      REAL(rkind),DIMENSION(NVM,NVM,NRMAX),INTENT(IN) :: A, B, C
+      REAL(rkind),DIMENSION(LDAB,MLM)  ,INTENT(OUT) :: AX
+      INTEGER:: KL, NR, NV, NW
 
       KL=2*NEQRMAX-1
       NR=1
@@ -775,16 +798,16 @@
       SUBROUTINE TR_BANDREDUCE(A,XR,P,NR,NR1,NEQRMAX)
 
 
-      USE TRCOMM, ONLY : NEQM, NEQMAX, NEQMAXM, NNS, NRMAX, NST
+      USE TRCOMM, ONLY : NEQM, NEQMAX, NEQMAXM, NNS, NRMAX, NST, rkind
       IMPLICIT NONE
-      REAL(8),DIMENSION(NEQMAXM,NEQMAXM,NRMAX),INTENT(INOUT):: A
-      REAL(8),DIMENSION(NEQMAXM,NRMAX)     ,INTENT(IN)   :: XR
-      REAL(8),DIMENSION(NEQMAXM,NRMAX)     ,INTENT(INOUT):: P
-      INTEGER(4)                     ,INTENT(IN)  :: NR,NR1
-      INTEGER(4)                     ,INTENT(OUT)  :: NEQRMAX
-      INTEGER(4) :: L, LOOP, NBSIZE, NEQ, NNSN, NNSN1, NNSOLD, NV, NW
-      REAL(8),DIMENSION(NEQMAXM,NEQMAXM) :: AA, AL
-      REAL(8),DIMENSION(NEQMAXM)         :: AM
+      REAL(rkind),DIMENSION(NEQMAXM,NEQMAXM,NRMAX),INTENT(INOUT):: A
+      REAL(rkind),DIMENSION(NEQMAXM,NRMAX)     ,INTENT(IN)   :: XR
+      REAL(rkind),DIMENSION(NEQMAXM,NRMAX)     ,INTENT(INOUT):: P
+      INTEGER                     ,INTENT(IN)  :: NR,NR1
+      INTEGER                     ,INTENT(OUT)  :: NEQRMAX
+      INTEGER :: L, LOOP, NBSIZE, NEQ, NNSN, NNSN1, NNSOLD, NV, NW
+      REAL(rkind),DIMENSION(NEQMAXM,NEQMAXM) :: AA, AL
+      REAL(rkind),DIMENSION(NEQMAXM)         :: AM
 
       DO NV=1,NEQMAX
          DO NW=1,NEQMAX
@@ -868,7 +891,7 @@
 
       USE TRCOMM, ONLY : AKDW, AMM, MDTC, NEQMAX, NRMAX, NSMAX, NSS, NSV, PA, RDP, RN, RT, RU, RW, XV, YV, ZV
       IMPLICIT NONE
-      INTEGER(4):: NEQ, NR, NS, NSSN, NSVN
+      INTEGER:: NEQ, NR, NS, NSSN, NSVN
 
 
       DO NR=1,NRMAX
@@ -907,11 +930,14 @@
 
       SUBROUTINE TRXTOA
 
-      USE TRCOMM, ONLY : AKDW, AMM, ANC, ANFE, ANNU, AR1RHOG, BP, DR, MDLEQE, MDLEQN, MDTC, NEQMAX, NRMAX, NROMAX, &
-     &                   NSM, NSMAX, NSS, NSV, PA, PZ, PZC, PZFE, RDP, RN, RPSI, RR, RT, RU, RW, XV, YV, ZV, RDPVRHOG, DVRHOG
+      USE TRCOMM, ONLY : &
+           AKDW, AMM, ANC, ANFE, ANNU, DR, MDLEQE, MDLEQN, &
+           MDTC, NEQMAX, NRMAX, NROMAX, NSM, NSMAX, NSS, NSV, &
+           PA, PZ, PZC, PZFE, RDP, RN, RPSI, RT, RU, RW, &
+           XV, YV, ZV, RDPVRHOG, DVRHOG, rkind
       IMPLICIT NONE
-      INTEGER(4):: N, NEQ, NEQ1, NR, NS, NSSN, NSSN1, NSVN, NSVN1
-      REAL(8)   :: SUM
+      INTEGER:: N, NEQ, NEQ1, NR, NS, NSSN, NSSN1, NSVN, NSVN1
+      REAL(rkind)   :: SUM
 
 
       DO NR=1,NRMAX
@@ -966,7 +992,9 @@
          ENDDO
          RW(NR,1) = YV(1,NR)
          RW(NR,2) = YV(2,NR)
-         ANNU(NR) = RN(NR,7)+RN(NR,8)
+         IF(NSMAX.GE.8) THEN
+            ANNU(NR) = RN(NR,7)+RN(NR,8)
+         END IF
 !!!         BP(NR)   = AR1RHOG(NR)*RDP(NR)/RR
       ENDDO
 
@@ -1002,8 +1030,8 @@
 
       USE TRCOMM, ONLY : GTS, GVT, IZERO, MDLST, NGPST, NGST, NGT, NRMAX, NTM, RT, T, TSST
       IMPLICIT NONE
-      INTEGER(4):: K, L, IX
-      REAL(4)   :: GUCLIP
+      INTEGER:: K, L, IX
+      REAL   :: GUCLIP
 
 
       IF(NGT.GE.NTM) RETURN
@@ -1041,8 +1069,8 @@
 
       USE TRCOMM, ONLY : NEQMAX, NRMAX, NSS, NSV, NT, RT
       IMPLICIT NONE
-      INTEGER(4),INTENT(OUT):: ICHCK
-      INTEGER(4) :: IND, NEQ, NR, NSSN
+      INTEGER,INTENT(OUT):: ICHCK
+      INTEGER :: IND, NEQ, NR, NSSN
 
       ICHCK = 0
       DO NEQ=1,NEQMAX
@@ -1100,18 +1128,20 @@
 
       SUBROUTINE TR_COEF_DECIDE(NR,NSW,DV53)
 
-      USE TRCOMM, ONLY : ABRHO, AD, ADLD, ADLP, AJ, AJOH, AK, AKLD, AKLP, AMM, AR1RHO, AR2RHO, ARRHO, AV, AVK, BB, DD, DI,  &
-     &                   DR, DT, DVRHO, ETA, FA, FB, FC, MDDIAG, MDLEQ0, MDLEQE, MDLFLX, NEQM, NEQMAX, NRMAX, NSS, NSV,&
-     &                   NVM, PA, PIN, PZ, RGFLS, RGFLX, RKEV, RM, RMU0, RQFLS, RT, RTM, SPE, SSIN, TTRHO, VI, VOID, VV
+      USE trcomm
       USE TRCOM1, ONLY : D, RD
       USE libitp
       IMPLICIT NONE
-      INTEGER(4),INTENT(IN) :: NR, NSW
-      REAL(8)   , INTENT(OUT)::DV53
-      INTEGER(4):: IND, NEQ, NEQ1, NEQLMAX, NF, NI, NJ, NMK, NMKL, NO, NRF, NRJ, NSSN, NSSN1, NSVN, NSVN1, NV, NW
-      REAL(8)   :: C83, CC, DISUMN, DISUMT1, DISUMT2, DV11, DV23, RNV, RPV, RTV, VISUMN, VISUMT1, VISUMT2
-      REAL(8),DIMENSION(2) :: F2C
-      REAL(8),DIMENSION(4) :: SIG, FCB
+      INTEGER,INTENT(IN) :: NR, NSW
+      REAL(rkind)   , INTENT(OUT)::DV53
+      INTEGER:: &
+           IND, NEQ, NEQ1, NEQLMAX, NF, NI, NJ, NMK, NMKL, NO, NRF, NRJ, &
+           NSSN, NSSN1, NSVN, NSVN1, NV, NW
+      REAL(rkind)   :: &
+           C83, CC, DISUMN, DISUMT1, DISUMT2, DV11, DV23, VISUMN, &
+           VISUMT1, VISUMT2
+      REAL(rkind),DIMENSION(2) :: F2C
+      REAL(rkind),DIMENSION(4) :: SIG, FCB
 
 
       DV11=DVRHO(NR)
@@ -1566,12 +1596,12 @@
 
       SUBROUTINE TR_IONIZATION(NR)
 
-      USE TRCOMM, ONLY : DVRHO, MDLEQ0, NEA, NSMAX, NVM, PN, TSIE
+      USE TRCOMM, ONLY : DVRHO, MDLEQ0, NEA, NSMAX, PN, TSIE
       USE TRCOM1, ONLY : B
       IMPLICIT NONE
 !      INCLUDE 'trcomm.inc'
-      INTEGER(4),INTENT(IN):: NR
-      INTEGER(4):: NV, NS, NW, NEQ
+      INTEGER,INTENT(IN):: NR
+      INTEGER:: NV, NS, NW, NEQ
 
       IF(MDLEQ0.EQ.1) THEN
 !     *** electron density ***
@@ -1619,11 +1649,11 @@
 
       SUBROUTINE TR_CHARGE_EXCHANGE(NR)
 
-      USE TRCOMM, ONLY : DVRHO, MDLEQ0, NEA, NVM, TSCX
+      USE TRCOMM, ONLY : DVRHO, MDLEQ0, NEA, TSCX
       USE TRCOM1, ONLY : B
       IMPLICIT NONE
-      INTEGER(4),INTENT(IN) :: NR
-      INTEGER(4):: NEQ, NV, NW
+      INTEGER,INTENT(IN) :: NR
+      INTEGER:: NEQ, NV, NW
 
 
       IF(MDLEQ0.EQ.1) THEN
@@ -1643,11 +1673,12 @@
 
 !     **************************************************************
 
-      REAL(8) FUNCTION RNV(NR,NS)
+      FUNCTION RNV(NR,NS)
 
-      USE TRCOMM, ONLY : NRMAX, PNSS, PNSSA, RHOA, RN
+      USE TRCOMM, ONLY : NRMAX, PNSS, PNSSA, RHOA, RN, rkind
       IMPLICIT NONE
-      INTEGER(4),INTENT(IN):: NR,NS
+      INTEGER,INTENT(IN):: NR,NS
+      REAL(rkind):: RNV
 
       IF(NR.EQ.NRMAX) THEN
          IF(RHOA.EQ.1.D0) THEN
@@ -1662,11 +1693,12 @@
       RETURN
       END FUNCTION RNV
 
-      REAL(8) FUNCTION RTV(NR,NS)
+      FUNCTION RTV(NR,NS)
 
-      USE TRCOMM, ONLY : NRMAX, PTS, PTSA, RHOA, RT
+      USE TRCOMM, ONLY : NRMAX, PTS, PTSA, RHOA, RT, rkind
       IMPLICIT NONE
-      INTEGER(4),INTENT(IN):: NR,NS
+      INTEGER,INTENT(IN):: NR,NS
+      REAL(rkind):: RTV
 
       IF(NR.EQ.NRMAX) THEN
          IF(RHOA.EQ.1.D0) THEN
@@ -1681,11 +1713,12 @@
       RETURN
       END FUNCTION RTV
 
-      REAL(8) FUNCTION RPV(NR,NS)
+      FUNCTION RPV(NR,NS)
 
-      USE TRCOMM, ONLY : NRMAX, PNSS, PNSSA, PTS, PTSA, RHOA, RN, RT
+      USE TRCOMM, ONLY : NRMAX, PNSS, PNSSA, PTS, PTSA, RHOA, RN, RT, rkind
       IMPLICIT NONE
-      INTEGER(4),INTENT(IN):: NR, NS
+      INTEGER,INTENT(IN):: NR, NS
+      REAL(rkind):: RPV
 
 
       IF(NR.EQ.NRMAX) THEN
@@ -1702,3 +1735,5 @@
 
       RETURN
       END FUNCTION RPV
+
+END MODULE trexec

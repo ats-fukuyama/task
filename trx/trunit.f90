@@ -3,7 +3,7 @@
 !            interface of "task/eq"
 !=======================================================================
       module trunit
-      use tr_bpsd
+      use trbpsd
       public tr_init,tr_parm,tr_view,tr_prof,tr_exec,tr_load,tr_save, &
       &      tr_gout,tr_fout,tr_term
       private

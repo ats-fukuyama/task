@@ -36,7 +36,7 @@ CONTAINS
                  'NRMAX_DP    ',NRMAX_DP
     WRITE(6,604) 'pne_threshold   ',pne_threshold, &
                  'bdr_threshold   ',bdr_threshold
-    WRITE(6,603) 'Rmax_wr ',Rmax_wr,'Rmin_wr ',Rmin_wr, &
+    WRITE(6,602) 'Rmax_wr ',Rmax_wr,'Rmin_wr ',Rmin_wr, &
                  'Zmax_wr ',Zmax_wr,'Zmin_wr ',Zmin_wr
     RETURN
 

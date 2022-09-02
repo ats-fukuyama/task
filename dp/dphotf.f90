@@ -85,7 +85,7 @@ CONTAINS
       ENDDO
       DO NP=1,NPMAX_DP
       DO NTH=1,NTHMAX_DP-1
-         DFT(NP,NTH) = (FM(NP,NTH+1) - FM(NP,NTH))/DELTH
+         DFT(NP,NTH) = (FM(NP,NTH+1) - FM(NP,NTH))/delth
       ENDDO
       ENDDO
 
@@ -130,7 +130,7 @@ CONTAINS
             NCD = ABS(NC)
             CDENX= RGM-CKPRW*PG(NP,NS)*TCSM(NTH)-NC*CWC
             CDEN  = CDENX/(CDENX**2+(DELPL*DGP1(NP,NTH)*DELP(NS))**2 &
-                                   +(DELPL*DGT1(NP,NTH)*DELTH)**2)
+                                   +(DELPL*DGT1(NP,NTH)*delth)**2)
             IF(X.EQ.0.D0) THEN
                IF(NCD.EQ.0) THEN
                   PAI1=0.D0
@@ -155,7 +155,7 @@ CONTAINS
 
          PART1= DFP(NP,NTH)*PG(NP,NS)*PG(NP,NS)*PG(NP,NS) &
                            *TSNM(NTH)*TSNM(NTH)*TSNM(NTH) &
-               *DELTH*DELP(NS)
+               *delth*DELP(NS)
 !     
          CINTG111= CINTG111 + CSM11*PART1
          CINTG112= CINTG112 + CSM12*PART1
@@ -197,7 +197,7 @@ CONTAINS
             NCD = ABS(NC)
             CDENX = RGM-CKPRW*PM(NP,NS)*TCSG(NTH)-NC*CWC
             CDEN  = CDENX/(CDENX**2+(DELPL*DGP2(NP,NTH)*DELP(NS))**2 &
-                                   +(DELPL*DGT2(NP,NTH)*DELTH)**2)
+                                   +(DELPL*DGT2(NP,NTH)*delth)**2)
             IF(X.EQ.0.D0) THEN
                IF(NCD.EQ.0) THEN
                   PAI1=0.D0
@@ -222,7 +222,7 @@ CONTAINS
          CPART2= DFT(NP,NTH)*PM(NP,NS)*PM(NP,NS) &
                             *TSNG(NTH)*TSNG(NTH) &
                 *(TCSG(NTH)-CKPRW*PM(NP,NS)/RGM) &
-               *DELTH*DELP(NS)
+               *delth*DELP(NS)
 ! 
          CINTG211= CINTG211 + CSM11*CPART2
          CINTG212= CINTG212 + CSM12*CPART2
@@ -235,7 +235,7 @@ CONTAINS
          CINTG233= CINTG233 + CSM33*CPART2 &
                             - PM(NP,NS)*PM(NP,NS)*TCSG(NTH) &
                               *DFT(NP,NTH)/RGM &
-                              *DELTH*DELP(NS)
+                              *delth*DELP(NS)
       ENDDO
       ENDDO
 
@@ -303,7 +303,7 @@ CONTAINS
       ENDDO
       DO NP=1,NPMAX_DP
       DO NTH=1,NTHMAX_DP-1
-         DFT(NP,NTH) = (FM(NP,NTH+1) - FM(NP,NTH))/DELTH
+         DFT(NP,NTH) = (FM(NP,NTH+1) - FM(NP,NTH))/delth
       ENDDO
       ENDDO
 
@@ -390,7 +390,7 @@ CONTAINS
   310    CONTINUE 
          ENDDO
          CPART32= -CI*PI*ABS(1.D0/(CKPRW*TCSM(NTH))) &
-                 *(TTNM(NTH)/CKPRW)**3*DELTH
+                 *(TTNM(NTH)/CKPRW)**3*delth
 
          CINTG311 = CINTG311 + CSM11*CPART32
          CINTG312 = CINTG312 + CSM12*CPART32
@@ -473,7 +473,7 @@ CONTAINS
          ENDDO
 
          CPART42= -CI*PI*ABS(1.D0/(CKPRW*TCSG(NTH))) &
-                 *(TTNG(NTH)/CKPRW)**2*DELTH
+                 *(TTNG(NTH)/CKPRW)**2*delth
 
          CINTG411 = CINTG411 + CSM11*CPART42
          CINTG412 = CINTG412 + CSM12*CPART42

@@ -26,7 +26,7 @@
 
       USE libchar
       IMPLICIT NONE
-      INTEGER(4)      :: IEND
+      INTEGER      :: IEND
       CHARACTER(LEN=1):: KID
 
     1 WRITE(6,601)
@@ -67,7 +67,7 @@
       SUBROUTINE TRHLPG
 
       IMPLICIT NONE
-      INTEGER(4) :: IEND
+      INTEGER :: IEND
 
       WRITE(6,601)
   601 FORMAT( &
@@ -104,9 +104,9 @@
      &' ',' (C)     : CLEAR GRAPHIC DATA GVR AND GVT.'/             &
      &' ',' (S)     : SAVE GRAPHIC DATA.'/                          &
      &' ',' (L)     : LOAD GRAPHIC DATA.'/                          &
-     &' ',' (Q)     : CHANGE GRAPH SCALE INQUIRE MODE.'/            &
+     &' ',' (I)     : CHANGE GRAPH SCALE INQUIRE MODE.'/            &
      &' ',' (H)ELP  : SHOW HELP MESSAGE WHICH YOU ARE READING.'/    &
-     &' ',' (E)ND   : GO BACK TO MAIN MENU.')
+     &' ',' (X)IT   : EXIT TO MAIN MENU.')
 
       RETURN
       END SUBROUTINE TRHLPG
@@ -145,7 +145,7 @@
       SUBROUTINE TRHLPP
 
       IMPLICIT NONE
-      INTEGER(4) :: IEND
+      INTEGER :: IEND
 
       WRITE(6,601)
   601 FORMAT( &
@@ -293,7 +293,7 @@
 
       USE libchar
       IMPLICIT NONE
-      INTEGER(4), INTENT(OUT):: IEND
+      INTEGER, INTENT(OUT):: IEND
       CHARACTER(LEN=1) :: KID
 
       IEND=0

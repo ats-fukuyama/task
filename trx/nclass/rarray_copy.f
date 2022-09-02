@@ -10,13 +10,14 @@
 !Output:
 !  y-new array
 !***********************************************************************
+      USE trcomm,ONLY: rkind
       IMPLICIT NONE
 !Declaration of input variables
       INTEGER        incx,                    incy,
      #               n
-      REAL           x(*)
+      REAL(rkind)    x(*)
 !Declaration of output variables
-      REAL           y(*)
+      REAL(rkind)    y(*)
 !Declaration of local variables
       INTEGER        i,                       ix,
      #               iy
