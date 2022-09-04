@@ -1049,7 +1049,7 @@
             SL=(S(NR)**2+0.1D0**2)
             cexb=RG1
             ckap=1.d0
-            MODEL=MDLKAI-130
+            MODEL=MDLKAI-230
             PNI=ANDX+ANT+ANA
             DO NS=2,NSMAX
                AMI=PA(NS)*AMM
@@ -1064,7 +1064,11 @@
             ANE=0.D0
             AKDW(NR,1)=0.D0
             DO NS=2,NSMAX
-               ANI=0.5D0*(RN(NR+1,NS)+RN(NR  ,NS))
+               IF(NR.EQ.NRMAX) THEN
+                  ANI=PNSS(NS)
+               ELSE
+                  ANI=0.5D0*(RN(NR+1,NS)+RN(NR  ,NS))
+               END IF
                ANE=ANE+PZ(NS)*ANI
                AKDW(NR,1)=AKDW(NR,1)+AKDW(NR,NS)*PZ(NS)*ANI
             END DO

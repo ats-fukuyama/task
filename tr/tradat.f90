@@ -232,7 +232,10 @@
                             +(AF34*TEL**4)+(AF35*TEL**5)
       ELSEIF(TE.LE.1.D2) THEN
          ARG=AF40+(AF41*TEL)+(AF42*TEL**2)+(AF43*TEL**3) &
-                            +(AF44*TEL**4)+(AF45*TEL**5)
+              +(AF44*TEL**4)+(AF45*TEL**5)
+      ELSE
+         ARG=AF40+(AF41*TEL)+(AF42*TEL**2)+(AF43*TEL**3) &
+              +(AF44*TEL**4)+(AF45*TEL**5)
       ENDIF
       TRRPFE = 10.D0**(ARG-13.D0)
 
