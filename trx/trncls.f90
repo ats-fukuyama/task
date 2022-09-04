@@ -77,13 +77,21 @@
 !        = 5 error: inversion of flow matrix failed
 !        = 6 error: trapped fraction must be 0.0.le.p_ft.le.1.0
 !***********************************************************************
-      USE TRCOMM,  ONLY : ABB2RHOG,     ADNCG,        ADNCP,        ADNCT,        AIB2RHOG,     AJBSNC,       AJEXNC,      &
-     &         AJOH,      AKNCP,        AKNCT,        AR1RHO,       AR2RHO,       ARHBRHOG,     AVKNC,        AVNC,        &
-     &         AVNCG,     BB,           BP,           CJBSP,        CJBST,        DR,           EPSRHO,       ER,          &
-     &         ETA,       ETANC,        MDLEQZ,       MDLTPF,       NRMAX,        NSLMAX,       NSM,         &
-     &         NSZMAX,    PA,           PADD,         PNSS,         PTS,          PZ,           Q0,           QP,          &
-     &         RA,        RDP,          RG,           RGFLS,        RHOG,         RKAP,         RM,           RN,          &
-     &         RQFLS,     RR,           RT,           TTRHOG,       VPAR,         VPOL,         VPRP,         VTOR
+        USE TRCOMM,  ONLY : &
+             ABB2RHOG,  ADNCG,        ADNCP,        ADNCT, &
+             AIB2RHOG,  AJBSNC,       AJEXNC,      &
+             AJOH,      AKNCP,        AKNCT,        AR1RHO,  &
+             AR2RHO,    ARHBRHOG,     AVKNC,        AVPNC, &
+             AVNCG,      BB,           BP,          CJBSP, &
+             CJBST,     DR,           EPSRHO,       ER, &
+             ETA,       ETANC,        MDLEQZ,       model_tpfrac, &
+             NRMAX,     NSLMAX,       NSM,         &
+             NSZMAX,    PA,           PADD,         PNSS, &
+             PTS,       PZ,           Q0,           QP, &
+             RA,        RDP,          RG,           RGFLS, &
+             RHOG,      RKAP,         RM,           RN, &
+             RQFLS,     RR,           RT,           TTRHOG, &
+             VPAR,      VPOL,         VPRP,         VTOR
       USE trcomm,ONLY: rkind
       USE libitp
       IMPLICIT NONE
@@ -184,7 +192,7 @@
      &                 *(1.D0+DBLE(i)*SQRT(1.D0-EPS**2))/((1.D0-EPS**2)**1.5D0*(QP(NR)*RR)**2)
             ENDDO
          ENDIF
-         p_ft=FTPF(MDLTPF,EPS)
+         p_ft=FTPF(model_tpfrac,EPS)
          p_grbm2=ARHBRHOG(NR)
          p_grphi=ER(NR)
 !         p_gr2phi=RDP(NR)*DERIV3(NR,RG,EROPSI,NRMAX,1)
@@ -316,7 +324,7 @@
                RQFLS(NR,NM,NS)=qfl_s(NM,NS)*1.D-20/AR1RHO(NR)
             ENDDO
             AVKNC(NR,NS)=qeb_s(NS)/AR1RHO(NR)
-            AVNC (NR,NS)=veb_s(NS)/AR1RHO(NR)
+            AVPNC (NR,NS)=veb_s(NS)/AR1RHO(NR)
          ENDDO
          IF(MDLEQZ.NE.0) THEN
             DO NSZ=1,NSZMAX
@@ -337,7 +345,7 @@
                   RQFLS(NR,NM,NS)=qfl_s(NM,NSN)*1.D-20/AR1RHO(NR)
                ENDDO
                AVKNC(NR,NS)=qeb_s(NSN)/AR1RHO(NR)
-               AVNC (NR,NS)=veb_s(NSN)/AR1RHO(NR)
+               AVPNC(NR,NS)=veb_s(NSN)/AR1RHO(NR)
             ENDDO
          ENDIF
 

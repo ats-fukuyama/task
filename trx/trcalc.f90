@@ -9,7 +9,8 @@
 
       USE TRCOMM, ONLY : AJBS, AJRF, AJRFV, AR1RHOG, ARRHOG, &
            BP, DT, MDLEQ0, &
-           MDLJBS, MDLNF, MDLPR, MDNCLS, NRAMAX, NRMAX, &
+           model_chi_nc,model_dp_nc,model_vk_nc,model_vp_nc, &
+           model_bs, model_eta, MDLNF, MDLPR, NRAMAX, NRMAX, &
            NROMAX, NSM, NSMAX, PBCL, PBIN, PCX, PELTIM, PEX, PFCL, PFIN, &
            PI, PIE, PIN, PN, PNB, PNF, POH, PRB, PRC, PRF, PRFV, PRL, PRSUM, &
            Q0, QP, RDP, RG, RHOA, RR, SCX, SEX, SIE, SNB, SNF, SPE, SSIN, &
@@ -68,34 +69,38 @@
 
       IF(MDLPR.GT.0) CALL TR_CYTRAN
 
-      IF(MDNCLS.NE.0) THEN
-         CALL TR_NCLASS(IERR)
-         IF(IERR.NE.0) RETURN
-      ENDIF
-
+      IF(model_chi_nc.EQ.1.OR. &
+         model_dp_nc.EQ.1.OR. &
+         model_vk_nc.EQ.1.OR. &
+         model_vp_nc.EQ.1.OR. &
+         model_eta.EQ.1 .OR. &
+         model_bs.EQ.1) THEN
+         CALL TR_NCLASS(ierr)
+         IF(ierr.NE.0) THEN
+            WRITE(6,'(A,I6)') 'XX trcalc: tr_nclass: ierr=',ierr
+            RETURN
+         END IF
+      END IF
+         
       CALL TRCOEF
       CALL TRLOSS
       CALL TRPWRF
       CALL TRPWNB
 
-      IF(MDNCLS.NE.0) THEN
+      SELECT CASE(model_bs)
+      CASE(1)
          CALL TRAJBS_NCLASS
-      ELSE
-         select case(MDLJBS)
-         case(1)
-            CALL TRAJBS
-         case(2)
-            CALL TRAJBS
-         case(3)
-            CALL TRAJBS
-         case(4)
-            CALL TRAJBSNEW
-         case(5)
-            CALL TRAJBSSAUTER
-         case default
-            CALL TRAJBS
-         end select
-      ENDIF
+      CASE(2)
+         CALL TRAJBS
+      CASE(3)
+         CALL TRAJBS
+      CASE(4)
+         CALL TRAJBSNEW
+      CASE(5)
+         CALL TRAJBSSAUTER
+      CASE DEFAULT
+         CALL TRAJBS
+      END SELECT
 
       SELECT CASE(MDLNF)
       CASE(0)
@@ -290,7 +295,7 @@
 
       SUBROUTINE TRAJBSSAUTER
 
-      USE TRCOMM, ONLY : AJBS, BB, DR, EPSRHO, MDLTPF, NRMAX, NSMAX,&
+      USE TRCOMM, ONLY : AJBS, BB, DR, EPSRHO, model_tpfrac, NRMAX, NSMAX,&
            & PADD, PBSCD, PNSS, PTS, PZ, QP, RDP, RHOG, RHOM, RKEV,&
            & RN, RPE, RR, RT, RW, TTRHOG, ZEFF, rkind
       USE libitp
@@ -368,7 +373,7 @@
          RNUE=6.921D-18*QL*RR*ANE*1.D20*ZEFFL*rLnLame /(ABS(TE*1.D3)**2*EPSS)
 
          RPE=PE/(PE+PPI)
-         FT=FTPF(MDLTPF,EPS)
+         FT=FTPF(model_tpfrac,EPS)
 
 !         F33TEFF=FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE)+0.45D0*(1.D0-FT)*RNUE/ZEFFL**1.5)
          F31TEFF=FT/(1.D0+(1.D0-0.1D0*FT)*SQRT(RNUE)   +0.5D0*(1.D0-FT)*RNUE/ZEFFL)
@@ -460,7 +465,7 @@
          RNUE=6.921D-18*QL*RR*ANE*1.D20*ZEFFL*rLnLame /(ABS(TE*1.D3)**2*EPSS)
 !
          RPE=PE/(PE+PPI)
-         FT=FTPF(MDLTPF,EPS)
+         FT=FTPF(model_tpfrac,EPS)
 
 !     F33TEFF=FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE)+0.45D0*(1.D0-FT)*RNUE/ZEFFL**1.5)
          F31TEFF=FT/(1.D0+(1.D0-0.1D0*FT)*SQRT(RNUE)   +0.5D0*(1.D0-FT)*RNUE/ZEFFL)
@@ -633,7 +638,7 @@
 
 !         RNUE=QL*RR/(TAUE*VTE*EPSS)
 
-!         FT=FTPF(MDLTPF,EPS)
+!         FT=FTPF(model_tpfrac,EPS)
          FT=(1.46D0*SQRT(EPS)+2.4D0*EPS)/(1.D0-EPS)**1.5D0
 
 !         DDX=2.4D0+5.4D0*FT+2.6D0*FT**2
@@ -736,7 +741,7 @@
 
 !         RNUE=QL*RR/(TAUE*VTE*EPSS)
 
-!         FT=FTPF(MDLTPF,EPS)
+!         FT=FTPF(model_tpfrac,EPS)
          FT=(1.46D0*SQRT(EPS)+2.4D0*EPS)/(1.D0-EPS)**1.5D0
 
 !         DDX=2.4D0+5.4D0*FT+2.6D0*FT**2

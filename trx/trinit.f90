@@ -174,150 +174,124 @@ CONTAINS
       ALP(2) = 0.D0
       ALP(3) = 0.D0
 
-!     ==== TRANSPORT PARAMETERS ====
+!   *** TRANSPORT MODEL ***
 
-!        AV0    : INWARD PARTICLE PINCH FACTOR
-!        AD0    : PARTICLE DIFFUSION FACTOR
-!        CNP    : COEFFICIENT FOR NEOCLASICAL PARTICLE DIFFUSION
-!        CNH    : COEFFICIENT FOR NEOCLASICAL HEAT DIFFUSION
-!        CDP    : COEFFICIENT FOR TURBULENT PARTICLE DIFFUSION
-!        CDH    : COEFFICIENT FOR TURBLUENT HEAT DIFFUSION
-!        CNN    : COEFFICIENT FOR NEUTRAL DIFFUSION
-!        CDW(8) : COEFFICIENTS FOR DW MODEL
+!   model_chi_tb: TURBULENT TRANSPORT MODEL
 
-      AV0    = 0.5D0
-      AD0    = 0.5D0
+!        [  0..  9] : CONSTANT COEFFICIENT MODEL
+!        [ 10.. 19] : DRIFT WAVE (+ITG +ETG) MODEL
+!        [ 20.. 29] : REBU-LALLA MODEL
+!        [ 30.. 39] : CURRENT-DIFFUSIVITY DRIVEN MODEL
+!        [ 40.. 50] : DRIFT WAVE BALLOONING MODEL
+!        [ 60.. 64] : GLF23,IFS/PPPL,Weiland models
+!        [130..134] : CDBM model
+!        [140..143] : Mixed Boam and gyroBohm model
+!        [150..151] : mmm95 model
+!        [160..162] : mmm7_1 model (ETG not included)
 
-      CNP    = 1.D0
-      CNH    = 1.D0
-      CDP    = 1.D0
-      CDH    = 1.D0
-      CNN    = 1.D0
-      CDW(1) = 0.04D0
-      CDW(2) = 0.04D0
-      CDW(3) = 0.04D0
-      CDW(4) = 0.04D0
-      CDW(5) = 0.04D0
-      CDW(6) = 0.04D0
-      CDW(7) = 0.04D0
-      CDW(8) = 0.04D0
+!      ***  model_chi_tb.EQ. 0   : CONSTANT*(1+A*rho^2)                  ***
+!      ***  model_chi_tb.EQ. 1   : CONSTANT/(1-A*rho^2)                  ***
+!      ***  model_chi_tb.EQ. 2   : CONSTANT*(dTi/drho)^B/(1-A*rho^2)     ***
+!      ***  model_chi_tb.EQ. 3   : CONSTANT*(dTi/drho)^B*Ti^C            ***
+!      ***  model_chi_tb.EQ. 4   : PROP. TO CUBIC FUNC. with Bohm  ***
+!      ***  model_chi_tb.EQ. 5   : PROP. TO CUBIC FUNC.            ***
 
-!     ==== TRANSPORT MODEL ====
+!      ***  model_chi_tb.EQ. 10  : etac=1                                ***
+!      ***  model_chi_tb.EQ. 11  : etac=1 1/(1+exp)                      ***
+!      ***  model_chi_tb.EQ. 12  : etac=1 1/(1+exp) *q                   ***
+!      ***  model_chi_tb.EQ. 13  : etac=1 1/(1+exp) *(1+q^2)             ***
+!      ***  model_chi_tb.EQ. 14  : etac=1+2.5*(Ln/RR-0.2) 1/(1+exp)      ***
+!      ***  model_chi_tb.EQ. 15  : etac=1 1/(1+exp) func(q,eps,Ln)       ***
+!      ***  model_chi_tb.EQ. 16  : (model_chi_tb=15) + ZONAL FLOW        ***
 
-!        MDLKAI: TURBULENT TRANSPORT MODEL
+!      ***  model_chi_tb.EQ. 20  : Rebu-Lalla model                      ***
 
-!   ***************************************************************
-!   ***   0.GE.MDLKAI.LE.  9 : CONSTANT COEFFICIENT MODEL       ***
-!   ***  10.GE.MDLKAI.LE. 19 : DRIFT WAVE (+ITG +ETG) MODEL     ***
-!   ***  20.GE.MDLKAI.LE. 29 : REBU-LALLA MODEL                 ***
-!   ***  30.GE.MDLKAI.LE. 30 : CURRENT-DIFFUSIVITY DRIVEN MODEL ***
-!   ***  40.GE.MDLKAI.LE. 49 : DRIFT WAVE BALLOONING MODEL      ***
-!   ***  60.GE.MDLKAI.LE. 64 : CLF23,IFS/PPPL,Weiland models    ***
-!   *** 130.GE.MDLKAI.LE.134 : CDBM model                       ***
-!   *** 140.GE.MDLKAI.LE.143 : Mixed Boam and gyroBohm model    ***
-!   *** 150.GE.MDLKAI.LE.151 : mmm95 model                      ***
-!   *** 160.GE.MDLKAI.LE.152 : mmm7_1 model (ETG not included)  ***
-!   ***************************************************************
+!      ***  model_chi_tb.EQ. 30  : CDBM 1/(1+s)                          ***
+!      ***  model_chi_tb.EQ. 31  : CDBM F(s,alpha,kappaq)                ***
+!      ***  model_chi_tb.EQ. 32  : CDBM F(s,alpha,kappaq)/(1+WE1^2)      ***
+!      ***  model_chi_tb.EQ. 33  : CDBM F(s,0,kappaq)                    ***
+!      ***  model_chi_tb.EQ. 34  : CDBM F(s,0,kappaq)/(1+WE1^2)          ***
+!      ***  model_chi_tb.EQ. 35  : CDBM (s-alpha)^2/(1+s^2.5)            ***
+!      ***  model_chi_tb.EQ. 36  : CDBM (s-alpha)^2/(1+s^2.5)/(1+WE1^2)  ***
+!      ***  model_chi_tb.EQ. 37  : CDBM s^2/(1+s^2.5)                    ***
+!      ***  model_chi_tb.EQ. 38  : CDBM s^2/(1+s^2.5)/(1+WE1^2)          ***
+!      ***  model_chi_tb.EQ. 39  : CDBM F2(s,alpha,kappaq,a/R)           ***
 
-!      ***  MDLKAI.EQ. 0   : CONSTANT*(1+A*rho^2)              ***
-!      ***  MDLKAI.EQ. 1   : CONSTANT/(1-A*rho^2)                  ***
-!      ***  MDLKAI.EQ. 2   : CONSTANT*(dTi/drho)^B/(1-A*rho^2)     ***
-!      ***  MDLKAI.EQ. 3   : CONSTANT*(dTi/drho)^B*Ti^C            ***
+!      ***  model_chi_tb.EQ. 60  : GLF23 model                           ***
+!      ***  model_chi_tb.EQ. 61  : GLF23 (stability enhanced version)    ***
+!      ***  model_chi_tb.EQ. 62  : IFS/PPPL model                        ***
+!      ***  model_chi_tb.EQ. 63  : Weiland model                         ***
+!      ***  model_chi_tb.EQ. 64  : Modified Weiland model                ***
 
-!      ***  MDLKAI.EQ. 10  : etac=1                                ***
-!      ***  MDLKAI.EQ. 11  : etac=1 1/(1+exp)                      ***
-!      ***  MDLKAI.EQ. 12  : etac=1 1/(1+exp) *q                   ***
-!      ***  MDLKAI.EQ. 13  : etac=1 1/(1+exp) *(1+q^2)             ***
-!      ***  MDLKAI.EQ. 14  : etac=1+2.5*(Ln/RR-0.2) 1/(1+exp)      ***
-!      ***  MDLKAI.EQ. 15  : etac=1 1/(1+exp) func(q,eps,Ln)       ***
-!      ***  MDLKAI.EQ. 16  : (MDLKAI=15) + ZONAL FLOW              ***
+!      ***  model_chi_tb.EQ. 130 : CDBM model                            ***
+!      ***  model_chi_tb.EQ. 131 : CDBM05 model                          ***
+!      ***  model_chi_tb.EQ. 132 : CDBM model with ExB shear             ***
+!      ***  model_chi_tb.EQ. 134 : CDBM05 model with ExB shear           ***
 
-!      ***  MDLKAI.EQ. 20  : Rebu-Lalla model                      ***
+!      ***  model_chi_tb.EQ. 140 : mBgB (mixed Bonm and gyro-Boahm) model ***
+!      ***  model_chi_tb.EQ. 141 : mBgB model suppressed by Tara          ***
+!      ***  model_chi_tb.EQ. 142 : mBgB model suppressed by Pacher (EXB)  ***
+!      ***  model_chi_tb.EQ. 143 : mBgB model supp. by Pacher (EXB+SHEAR) ***
 
-!      ***  MDLKAI.EQ. 30  : CDBM 1/(1+s)                          ***
-!      ***  MDLKAI.EQ. 31  : CDBM F(s,alpha,kappaq)                ***
-!      ***  MDLKAI.EQ. 32  : CDBM F(s,alpha,kappaq)/(1+WE1^2)      ***
-!      ***  MDLKAI.EQ. 33  : CDBM F(s,0,kappaq)                    ***
-!      ***  MDLKAI.EQ. 34  : CDBM F(s,0,kappaq)/(1+WE1^2)          ***
-!      ***  MDLKAI.EQ. 35  : CDBM (s-alpha)^2/(1+s^2.5)            ***
-!      ***  MDLKAI.EQ. 36  : CDBM (s-alpha)^2/(1+s^2.5)/(1+WE1^2)  ***
-!      ***  MDLKAI.EQ. 37  : CDBM s^2/(1+s^2.5)                    ***
-!      ***  MDLKAI.EQ. 38  : CDBM s^2/(1+s^2.5)/(1+WE1^2)          ***
-!      ***  MDLKAI.EQ. 39  : CDBM F2(s,alpha,kappaq,a/R)           ***
-!      ***  MDLKAI.EQ. 40  : CDBM F3(s,alpha,kappaq,a/R)/(1+WS1^2) ***
+!      ***  model_chi_tb.EQ. 150 : mmm95 (Multi-Mode tr Model) (no ExB) ***
+!      ***  model_chi_tb.EQ. 151 : mmm95 (Multi-Mode tr Model) (with ExB) ***
 
-!      ***  MDLKAI.EQ. 60  : GLF23 model                           ***
-!      ***  MDLKAI.EQ. 61  : GLF23 (stability enhanced version)    ***
-!      ***  MDLKAI.EQ. 62  : IFS/PPPL model                        ***
-!      ***  MDLKAI.EQ. 63  : Weiland model                         ***
-!      ***  MDLKAI.EQ. 64  : Modified Weiland model                ***
-
-
-!      ***  MDLKAI.EQ. 130 : CDBM model                            ***
-!      ***  MDLKAI.EQ. 131 : CDBM05 model                          ***
-!      ***  MDLKAI.EQ. 132 : CDBM model with ExB shear             ***
-!      ***  MDLKAI.EQ. 134 : CDBM05 model with ExB shear           ***
-
-!      ***  MDLKAI.EQ. 140 : mBgB (mixed Bonm and gyro-Boahm) model ***
-!      ***  MDLKAI.EQ. 141 : mBgB model with suppresion by Tara     ***
-!      ***  MDLKAI.EQ. 142 : mBgB model with suppresion by Pacher (EXB)  ***
-!      ***  MDLKAI.EQ. 143 : mBgB model with suppresion by Pacher (EXB+SHAR)***
-
-!      ***  MDLKAI.EQ. 150 : mmm95 (Multi-Mode transport Model) (no ExB) ***
-!      ***  MDLKAI.EQ. 151 : mmm95 (Multi-Mode transport Model) (with ExB) ***
-
-!      ***  MDLKAI.EQ. 160 : mmm7_1 (Multi-Mode transport Model) (no ExB) ***
-!      ***  MDLKAI.EQ. 161 : mmm7_1 (Multi-Mode transport Model) (with ExB) ***
-
-!     +++++ WARNING +++++++++++++++++++++++++++++++++++++++++++
-!     +  Parameters below are valid only if MDNCLS /= 0,      +
-!     +  that is, one do not use NCLASS,                      +
-!     +  otherwise NCLASS automatically calculates all        +
-!     +  variables in the following:                          +
-!     +                                                       +
-!     +    MDLETA: RESISTIVITY MODEL                          +
-!     +               1: Hinton and Hazeltine                 +
-!     +               2: Hirshman, Hawryluk                   +
-!     +               3: Sauter                               +
-!     +               4: Hirshman, Sigmar                     +
-!     +               else: CLASSICAL                         +
-!     +    MDLAD : PARTICLE DIFFUSION MODEL                   +
-!     +               1: CONSTANT D                           +
-!     +               2: TURBULENT EFFECT                     +
-!     +               3: Hinton and Hazeltine                 +
-!     +               4: Hinton and Hazeltine w/ TURBULENT    +
-!     +               else: NO PARTICLE TRANSPORT             +
-!     +    MDLAVK: HEAT PINCH MODEL                           +
-!     +               1: Arbitrary amplitude                  +
-!     +               2: Arbitrary amplitude w/ pressure dep. +
-!     +               3: Hinton and Hazeltine                 +
-!     +               else: NO HEAT PINCH                     +
-!     +    MDLJBS: BOOTSTRAP CURRENT MODEL                    +
-!     +               1-3: Hinton and Hazeltine               +
-!     +               4: Hirshman, Sigmar                     +
-!     +               5: Sauter                               +
-!     +               else: Hinton and Hazeltine              +
-!     +    MDLKNC: NEOCLASSICAL TRANSPORT MODEL               +
-!     +               0    : Hinton and Hazeltine             +
-!     +               else : Chang and Hinton                 +
-!     +                                                       +
-!     +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-!        MDLTPF: TRAPPED PARTICLE FRACTION MODEL
+!      ***  model_chi_tb.EQ. 160 : mmm7_1 (Multi-Mode tr Model) (no ExB) ***
+!      ***  model_chi_tb.EQ. 161 : mmm7_1 (Multi-Mode tr Model) (with ExB) ***
+!     ------------------------------------------------------------------------
+      
+!     +    model_dp_tb: turbulent particle diffusion model
+!     +               0: None
+!     +               1: same as thermal diffusion model (multiplied by factor)
+!     +               2: constatn (factor)
+!     +    model_vk_tb: turbulent heat pinch model
+!     +    model_vp_tb: turbulent particle pinch model
+!     +               0: None
+!     +               1: Arbitrary amplitude (multiplied by -factor rD/a^2)
+!     +    model_chi_nc: neocllasical heat diffusion model
+!     +    model_dp_nc : neocllasical particle diffusion model
+!     +    model_vk_nc : neocllasical heat pinch model
+!     +    model_vp_nc : neocllasical model
+!     +               1: nclass
+!     +               2: Hinton and Hazeltine                 +
+!     +               3: Chang and Hinton
+!     +    model_eta: RESISTIVITY MODEL
+!     +               1: nclass
+!     +               2: Hinton and Hazeltine
+!     +               3: Hirshman, Hawryluk
+!     +               4: Hirshman, Sigmar
+!     +               5: Sauter
+!     +    model_bs: BOOTSTRAP CURRENT MODEL
+!     +               1: nclass
+!     +               2-3: Hinton and Hazeltine
+!     +               4: Hirshman, Sigmar
+!     +               5: Sauter
+!          model_tpfrac
+!                   0: Y. B. Kim et al. (default)
 !                   1: Y. R. Lin-Liu and R. L. Miller (numerical)
 !                   2: S. P. Hirshman et al.
 !                   3: Y. R. Lin-Liu and R. L. Miller (analytic)
 !                   4: C  M. N. Rosenbluth et al.
-!                   else: Y. B. Kim et al. (default)
 
-      MDLKAI = 31
-      MDLETA = 3
-      MDLAD  = 3
-      MDLAVK = 3
-      MDLJBS = 5
-      MDLKNC = 1
-      MDLTPF = 0
+      model_chi_tb=31  ! model for turbulent thermal diffusion 
+      model_dp_tb=1    ! model for turbulent particle diffusion 
+      model_vk_tb=0    ! model for turbulent thermal pinch
+      model_vp_tb=0    ! model for turbulent particle pinch
+      model_chi_nc=2   ! model for neoclassical therma diffusion
+      model_dp_nc=2    ! model for neoclassical particle diffusion
+      model_vk_nc=2    ! model for neocllasical thermal pinch
+      model_vp_nc=2    ! model for neocllasical particle pinch
+      model_eta=2      ! model for resistivity
+      model_bs=5       ! model for bootstrap current
+      model_tpfrac=0   ! model for trapped particle fraction
 
+      factor_vk_tb=1.D0   ! factor for turbulent thermal pinch
+      factor_vk_nc=1.D0   ! factor for neocllasical thermal pinch
+      factor_vp_tb=1.D0   ! factor for turbulent particle pinch
+      factor_vp_nc=1.D0   ! factor for neocllasical particle pinch
+      factor_eta=1.D0     ! factor for resistivity
+      factor_bs=1.D0      ! factor for bootstrap current
+       
 !        MDLWLD : Weiland model mode selector
 !            0    : using effective transport coefficients
 !            else : using transport coefficients' matrices
@@ -333,15 +307,25 @@ CONTAINS
 !        MDDW : mode selector for anom. particle transport coefficient
 !            you must NOT modify this parameter.
 !            0    : if MDDW=0 from start to finish when you choose
-!                   a certain transport model (MDLKAI),
+!                   a certain transport model (model_chi_tb),
 !                   you could control a ratio of anomalous particle
 !                   transport to total particle transport to manipulate
 !                   the factor of AD0.
-!            else : this is because you chose MDLKAI=60, 61, 63, or 150:159 
+!            else : this is because you chose model_chi_tb=60, 61, 63, or 150:159 
 !                   which assign the transport models that can calculate
 !                   an anomalous particle transport coefficient
 !                   on their own.
       MDDW=0
+
+      CNN    = 1.D0
+      CDW(1) = 0.04D0
+      CDW(2) = 0.04D0
+      CDW(3) = 0.04D0
+      CDW(4) = 0.04D0
+      CDW(5) = 0.04D0
+      CDW(6) = 0.04D0
+      CDW(7) = 0.04D0
+      CDW(8) = 0.04D0
 
 !     ==== Semi-Empirical Parameter for Anomalous Transport ====
 
@@ -702,12 +686,6 @@ CONTAINS
          ELMTRD(NS)=1.D0
          ELMENH(NS)=1.D0
       END DO
-
-!     ==== MODERATE TIME EVOLUTION FOR ANOM. TRANSPORT COEFFICIENTS ====
-!        0    : off
-!        else : multiplyer for TAUK (which is the required time of
-!               averaging magnetic surface)
-      MDTC=0
 
 !     ==== LAPACK ====
 

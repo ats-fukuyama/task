@@ -16,17 +16,38 @@ CONTAINS
       SUBROUTINE tr_save
 
       USE TRCOMM, ONLY : &
-           ABB2RHOG, ABRHO, ABRHOG, AD0, AIB2RHOG, AJBST, AJNBT, AJOH, &
+           ABB2RHOG, ABRHO, ABRHOG, AIB2RHOG, AJBST, AJNBT, AJOH, &
            AJOHT, AJT, ALI, ALP, AMZ, ANC, ANFE, ANNU, ANSAV, &
-           AR1RHO, AR1RHOG, AR2RHO, AR2RHOG, ARHBRHOG, ARRHO, ARRHOG, AV0, &
-           BB, BETA0, BETAA, BETAP0, BETAPA, BP, CALF, CDH, CDP, CDW, CHP, &
-           CK0, CK1, CKALFA, CKBETA, CKGUMA, CNB, CNH, CNP, CWEB, DR, DT, &
+           AR1RHO, AR1RHOG, AR2RHO, AR2RHOG, ARHBRHOG, ARRHO, ARRHOG, &
+           BB, BETA0, BETAA, BETAP0, BETAPA, BP, CALF, CDW, CHP, &
+           CK0, CK1, CKALFA, CKBETA, CKGUMA, CNB, CWEB, DR, DT, &
            DVRHO, DVRHOG, EPSLTR, EPSRHO, ETA, EZOH, IZERO, KFNLOG, KNAMTR, &
-           KUFDCG, KUFDEV, LMAXTR, MDCD05, MDDIAG, MDDW, MDLAD, MDLAVK, &
+           KUFDCG, KUFDEV, LMAXTR, MDCD05, MDDIAG, MDDW, &
            MDLCD, MDLEC, MDLEOI, MDLEQ0, MDLEQB, MDLEQE, MDLEQN, MDLEQT, &
-           MDLEQU, MDLEQZ, MDLER, MDLETA, MDLFLX, MDLIC, MDLJBS, MDLJQ, &
-           MDLKAI, MDLKNC, MDLLH, MDLNB, MDLNF, MDLPCK, MDLPEL, MDLST, &
-           MDLTPF, MDLWLD, MDLXP, MDNCLS, MDNI, MDTC, MODELG, MODEP, &
+           MDLEQU, MDLEQZ, MDLER, MDLFLX, MDLIC, MDLJQ, &
+           model_chi_tb, &
+           model_chi_nc, &
+           model_dp_tb, &
+           model_dp_nc, &
+           model_vk_tb, &
+           model_vk_nc, &
+           model_vp_tb, &
+           model_vp_nc, &
+           model_eta, & 
+           model_bs, & 
+           model_tpfrac, & 
+           factor_chi_tb, &
+           factor_chi_nc, &
+           factor_dp_tb, &
+           factor_dp_nc, &
+           factor_vk_tb, &
+           factor_vk_nc, &
+           factor_vp_tb, &
+           factor_vp_nc, &
+           factor_eta, &
+           factor_bs, &
+           MDLLH, MDLNB, MDLNF, MDLPCK, MDLPEL, MDLST, &
+           MDLWLD, MDLXP, MDNCLS, MDNI, MODELG, MODEP, &
            NEA, NEQMAX, NGPST, NGRSTP, NGTSTP, NNS, NRAMAX, NRMAX, NROMAX, &
            NSMAX, NSNMAX, NSS, NST, NSV, NSZMAX, NTEQIT, NTMAX, NTMAX_SAVE, &
            NTSTEP, PA, PBSCD, PCXT, PECCD, PECNPR, PECR0, PECRW, PECTOE, &
@@ -58,12 +79,20 @@ CONTAINS
       WRITE(21) PA,PZ,PN,PNS,PT,PTS
       WRITE(21) PNC,PNFE,PNNU,PNNUS
       WRITE(21) PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,PROFJ1,PROFJ2, &
-     &          ALP,AD0,AV0,CNP,CNH,CDP,CDH,CDW,CWEB,CALF,CNB
-      WRITE(21) MDLKAI,MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,MDLTPF,MDCD05
+     &          ALP,CDW,CWEB,CALF,CNB
+      WRITE(21) &
+           model_chi_tb,model_chi_nc,model_dp_tb,model_dp_nc, &
+           model_vk_tb,model_vk_nc,model_vp_tb,model_vp_nc, &
+           model_eta,model_bs,model_tpfrac
+      WRITE(21) &
+           factor_chi_tb,factor_chi_nc,factor_dp_tb,factor_dp_nc, &
+           factor_vk_tb,factor_vk_nc,factor_vp_tb,factor_vp_nc, &
+           factor_eta,factor_bs
+      WRITE(21) MDCD05
       WRITE(21) TPRST,MDLST,MDLNF,IZERO
       WRITE(21) MODELG,NTEQIT
       WRITE(21) MDLXP,MDNCLS,MDLWLD,MDDIAG,MDDW,MDLFLX,MDLER
-      WRITE(21) KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK
+      WRITE(21) KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDLPCK
       WRITE(21) PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,MDLNB
       WRITE(21) PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC
       WRITE(21) PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,MDLLH
@@ -153,13 +182,34 @@ CONTAINS
 
       SUBROUTINE tr_load
 
-      USE TRCOMM, ONLY : ABB2RHOG, ABRHO, ABRHOG, AD0, AIB2RHOG, AJOH, ALP, AMZ, ANC, ANFE, ANNU, AR1RHO, AR1RHOG, AR2RHO,      &
-     &                   AR2RHOG, ARHBRHOG, ARRHO, ARRHOG, AV0, BB, BP, CALF, CDH, CDP, CDW, CHP, CK0, CK1, CKALFA, CKBETA,     &
-     &                   CKGUMA, CNB, CNH, CNP, CWEB, DR, DT, DVRHO, DVRHOG, EPSLTR, EPSRHO, ETA, EZOH, GRG, GRM, IREAD, IZERO, &
-     &                   KFNLOG, KNAMTR, KUFDCG, KUFDEV, LMAXTR, MDCD05, MDDIAG, MDDW, MDLAD, MDLAVK, MDLCD, MDLEC, MDLEOI,     &
-     &                   MDLEQ0, MDLEQB, MDLEQE, MDLEQN, MDLEQT, MDLEQU, MDLEQZ, MDLER, MDLETA, MDLFLX, MDLIC, MDLJBS, MDLJQ,   &
-     &                   MDLKAI, MDLKNC, MDLLH, MDLNB, MDLNF, MDLPCK, MDLPEL, MDLST, MDLTPF, MDLWLD, MDLXP, MDNCLS,      &
-     &                   MDNI, MDTC, MODELG, MODEP, NEA, NEQMAX, NGPST, NGR, NGRSTP, NGST, NGT, NGTSTP, NNS, NRAMAX, NRMAX,     &
+      USE TRCOMM, ONLY : ABB2RHOG, ABRHO, ABRHOG, AIB2RHOG, AJOH, ALP, AMZ, ANC, ANFE, ANNU, AR1RHO, AR1RHOG, AR2RHO,      &
+     &                   AR2RHOG, ARHBRHOG, ARRHO, ARRHOG, BB, BP, CALF, CDW, CHP, CK0, CK1, CKALFA, CKBETA,     &
+     &                   CKGUMA, CNB, CWEB, DR, DT, DVRHO, DVRHOG, EPSLTR, EPSRHO, ETA, EZOH, GRG, GRM, IREAD, IZERO, &
+                    model_chi_tb, &
+                    model_chi_nc, &
+                    model_dp_tb, &
+                    model_dp_nc, &
+                    model_vk_tb, &
+                    model_vk_nc, &
+                    model_vp_tb, &
+                    model_vp_nc, &
+                    model_eta, & 
+                    model_bs, & 
+                    model_tpfrac, & 
+                    factor_chi_tb, &
+                    factor_chi_nc, &
+                    factor_dp_tb, &
+                    factor_dp_nc, &
+                    factor_vk_tb, &
+                    factor_vk_nc, &
+                    factor_vp_tb, &
+                    factor_vp_nc, &
+                    factor_eta, &
+                    factor_bs, &
+     &                   KFNLOG, KNAMTR, KUFDCG, KUFDEV, LMAXTR, MDCD05, MDDIAG, MDDW, MDLCD, MDLEC, MDLEOI,     &
+     &                   MDLEQ0, MDLEQB, MDLEQE, MDLEQN, MDLEQT, MDLEQU, MDLEQZ, MDLER, MDLFLX, MDLIC, MDLJQ,   &
+     &                   MDLLH, MDLNB, MDLNF, MDLPCK, MDLPEL, MDLST, MDLWLD, MDLXP, MDNCLS,      &
+     &                   MDNI, MODELG, MODEP, NEA, NEQMAX, NGPST, NGR, NGRSTP, NGST, NGT, NGTSTP, NNS, NRAMAX, NRMAX,     &
      &                   NROMAX, NSMAX, NSNMAX, NSS, NST, NSV, NSZMAX, NTEQIT, NTMAX, NTMAX_SAVE, NTSTEP, PA, PBSCD, PECCD,     &
      &                   PECNPR, PECR0, PECRW, PECTOE, PECTOT, PELPAT, PELR0, PELRAD, PELRW, PELTIM, PELTOT, PELVEL, PHIA, PI,  &
      &                   PICCD, PICNPR, PICR0, PICRW, PICTOE, PICTOT, PLHCD, PLHNPR, PLHR0, PLHRW, PLHTOE, PLHTOT, PN, PNBCD,   &
@@ -177,7 +227,6 @@ CONTAINS
       CALL FROPEN(21,KNAMTR,0,1,'TR',IERR)
       IF(IERR.NE.0) RETURN
 
-
       READ(21) MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0,MDLEQE,MDLEOI
       READ(21) NRMAX,NRAMAX,NROMAX,DT,NGPST,TSST
       READ(21) NTMAX,NTSTEP,NGTSTP,NGRSTP,NSMAX,NSZMAX,NSNMAX
@@ -188,12 +237,20 @@ CONTAINS
       READ(21) PA,PZ,PN,PNS,PT,PTS
       READ(21) PNC,PNFE,PNNU,PNNUS
       READ(21) PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,PROFJ1,PROFJ2, &
-     &         ALP,AD0,AV0,CNP,CNH,CDP,CDH,CDW,CWEB,CALF,CNB
-      READ(21) MDLKAI,MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,MDLTPF,MDCD05
+           &         ALP,CDW,CWEB,CALF,CNB
+      READ(21) &
+           model_chi_tb,model_chi_nc,model_dp_tb,model_dp_nc, &
+           model_vk_tb,model_vk_nc,model_vp_tb,model_vp_nc, &
+           model_eta,model_bs,model_tpfrac
+      READ(21) &
+           factor_chi_tb,factor_chi_nc,factor_dp_tb,factor_dp_nc, &
+           factor_vk_tb,factor_vk_nc,factor_vp_tb,factor_vp_nc, &
+           factor_eta,factor_bs
+      READ(21) MDCD05
       READ(21) TPRST,MDLST,MDLNF,IZERO
       READ(21) MODELG,NTEQIT
       READ(21) MDLXP,MDNCLS,MDLWLD,MDDIAG,MDDW,MDLFLX,MDLER
-      READ(21) KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK
+      READ(21) KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDLPCK
       READ(21) PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,MDLNB
       READ(21) PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC
       READ(21) PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,MDLLH

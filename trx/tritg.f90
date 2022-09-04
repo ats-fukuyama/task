@@ -23,7 +23,7 @@
 
       USE TRCOMM, ONLY : &
            ADDW, ADDWD, ADDWP, AKDW, AKDWD, AKDWP, AR1RHO, AR2RHO, AVDW, &
-           AVKDW, BB, CDH, DR, MDDW, MDLEOI, MDLEQN, MDLEQT, MDLKAI, &
+           AVKDW, BB, CDH, DR, MDDW, MDLEOI, MDLEQN, MDLEQT, model_chi_tb, &
            NGLF, NRMAX, NSM, NSMAX, PA, PHIA, PI, PZ, Q0, QP, RA, RG, RKAP, &
            RKPRHO, RM, RMJRHO, RMNRHO, RN, RNF, RR, RT, VPAR, VPRP, VTOR, &
            WEXB, WROT, ZEFF, ALPHA, rkind
@@ -175,7 +175,7 @@
       x_alpha=1.D0       ! alpha stabilization (0=off,>0=on)
       i_delay=0          ! default(usually recommended)
 
-      IF(MDLKAI.EQ.60) THEN
+      IF(model_chi_tb.EQ.60) THEN
 !     +++ Normal type +++
 
          igrad=0         ! compute gradients (1=input gradients)
@@ -222,7 +222,7 @@
             ENDDO
          ENDDO
 
-      ELSEIF(MDLKAI.EQ.61) THEN
+      ELSEIF(model_chi_tb.EQ.61) THEN
 !     +++ D-V (diffusion convection) method +++
 
          igrad=1  ! compute gradients (1=input gradients)
@@ -448,7 +448,7 @@
 !***********************************************************************
 
       USE TRCOMM, ONLY : &
-           AR1RHOG, AR2RHOG, BB, DR, EPSRHO, MDDW, MDLKAI, MDLTPF, &
+           AR1RHOG, AR2RHOG, BB, DR, EPSRHO, MDDW, model_chi_tb, model_tpfrac, &
            NRMAX, NT, PA, PNSS, PTS, PZ, QP, RA, RHOG, RHOM, RJCB, RKAP, &
            RKEV, RMU0, RN, RR, RT, WEXB, S, rkind
       USE libitp
@@ -495,7 +495,7 @@
          EEL   =       SLNEL/SLTEL
          TAUL  = (RT(NR+1,1)+RT(NR,1))/(RT(NR+1,2)+RT(NR,2))
          FLL   = 1.D-1
-         FTL   = FTPF(MDLTPF,EPS)
+         FTL   = FTPF(model_tpfrac,EPS)
          BQL   = (RN(NR+1,3)+RN(NR,3))/(RN(NR+1,1)+RN(NR,1))
          EQL   =       SLNQL/SLTQL
          ENQL  = 2.D0*(SLNQL/SLBL )
@@ -509,7 +509,7 @@
 
          RGKL  = AR1RHOG(NR)/(RA*AR2RHOG(NR))
          WEXBL = WEXB(NR)
-         IF(MDLKAI.EQ.64) THEN
+         IF(model_chi_tb.EQ.64) THEN
             SHAT  = SQRT(2.D0*SL-1.D0+RKAP**2*(SL-1.D0)**2)
             FLS   = (0.7D0+2.4D0/(7.14D0*QL*SHAT+0.1D0))*FLL
             FLL   = 2.D0*FLS/(1.D0+1.D0/TAUL)
@@ -556,7 +556,7 @@
          EEL   =       SLNEL/SLTEL
          TAUL  = PTS(1)/PTS(2)
          FLL   = 1.D-1
-         FTL   = FTPF(MDLTPF,EPS)
+         FTL   = FTPF(model_tpfrac,EPS)
          BQL   = PNSS(3)/PNSS(1)
          EQL   =       SLNQL/SLTQL
          ENQL  = 2.D0*(SLNQL/SLBL )
@@ -569,7 +569,7 @@
 
          RGKL  = AR1RHOG(NR)/(RA*AR2RHOG(NR))
          WEXBL = WEXB(NR)
-         IF(MDLKAI.EQ.64) THEN
+         IF(model_chi_tb.EQ.64) THEN
             SHAT  = SQRT(2.D0*SL-1.D0+RKAP**2*(SL-1.D0)**2)
             FLS   = (0.7D0+2.4D0/(7.14D0*QL*SHAT+0.1D0))*FLL
             FLL   = 2.D0*FLS/(1.D0+1.D0/TAUL)

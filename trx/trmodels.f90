@@ -13,7 +13,7 @@ CONTAINS
                          ADFFI,ACHIE,ACHII,ACHIEB,ACHIIB,ACHIEGB,ACHIIGB, &
                          ierr)
     USE trcomm, ONLY: &
-         rkind,RT,NRMAX,MDLKAI,RKEV,AMM
+         rkind,RT,NRMAX,model_chi_tb,RKEV,AMM
     USE mixed_Bohm_gyro_Bohm, ONLY: mixed_model
     IMPLICIT NONE
     REAL(rkind),INTENT(IN) :: &
@@ -43,7 +43,7 @@ CONTAINS
     zte_p8=RT(NR8,1)          ! T_e(0.8a)
     zte_edge=RT(NRMAX,1)      ! T_e(a)
     npoints=1
-    SELECT CASE(MDLKAI)
+    SELECT CASE(model_chi_tb)
     CASE(140)
        lflowshear=0
        SHRfactor=1.D0
@@ -96,7 +96,7 @@ CONTAINS
                              CHIIRB,DIFHRB,CHIERB,DIFZRB, &
                              CHIIKB,DIFHKB,CHIEKB,DIFZKB,IERR)
     USE trcomm, ONLY: &
-         rkind,PA,PZ,RN,PNSS,RT,PTS,RA,RR,NRMAX,MDLKAI,RM,RG,RNF, &
+         rkind,PA,PZ,RN,PNSS,RT,PTS,RA,RR,NRMAX,model_chi_tb,RM,RG,RNF, &
          PZC,ANC,PZFE,ANFE,QP,BB,WEXBP,RKPRHO,S,NSMAX,NFM
     USE modmmm95
     IMPLICIT NONE
@@ -236,7 +236,7 @@ CONTAINS
        ZZL=ZZL/PNZL
        AMZL=AMZL/PNZL
     END IF
-    SELECT CASE(MDLKAI)
+    SELECT CASE(model_chi_tb)
     CASE(150)
        WEXBL=0.D0
     CASE(151:159)
@@ -331,7 +331,7 @@ CONTAINS
                              CHIIW,DIFHW,CHIEW,CHIIB,DIFHB,CHIEB,CHIEG, &
                              IERR)
     USE trcomm, ONLY: &
-         rkind,PA,PZ,RN,PNSS,RT,PTS,RA,RR,NRMAX,MDLKAI,RM,RG,RNF, &
+         rkind,PA,PZ,RN,PNSS,RT,PTS,RA,RR,NRMAX,model_chi_tb,RM,RG,RNF, &
          PZC,ANC,PZFE,ANFE,QP,BB,WEXBP,RKPRHO,S,NSMAX,NFM
     USE modmmm7_1
     IMPLICIT NONE
@@ -472,7 +472,7 @@ CONTAINS
        ZZL=ZZL/PNZL
        AMZL=AMZL/PNZL
     END IF
-    SELECT CASE(MDLKAI)
+    SELECT CASE(model_chi_tb)
     CASE(160)
        WEXBL=0.D0
     CASE(161:169)

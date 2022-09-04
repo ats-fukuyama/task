@@ -24,8 +24,8 @@ MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
             -I../lib/$(MOD) -I../mtxp/$(MOD) \
             -I../../bpsd/$(MOD)
 
-SRCM=trcom0.f90 trcom1.f90 trcomm.f90 trbpsd.f90
-SRCS=trinit.f90 trparm.f90 \
+SRCM=trcom0.f90 trcom1.f90 trcomm.f90 trmeshsub.f90 trbpsd.f90
+SRCS=trinit.f90 trparm.f90 trview.f90 \
      trmetric.f90 trprof.f90 trprep.f90 \
      trfile.f90 trhelp.f90 \
      trexec.f90 trcalc.f90 \
@@ -119,14 +119,16 @@ $(OBJDIR)/trmain.o : trmain.f90 trcomm.f90
 $(OBJDIR)/trmenu.o : trmenu.f90 trcomm.f90 trcom1.f90
 $(OBJDIR)/trinit.o : trinit.f90 trcomm.f90 trcom1.f90
 $(OBJDIR)/trparm.o : trparm.f90 trcomm.f90 trcom1.f90
+$(OBJDIR)/trview.o : trview.f90 trcomm.f90 trcom1.f90
 $(OBJDIR)/trprep.o : trprep.f90 trcomm.f90 trcom1.f90
 $(OBJDIR)/trprof.o : trprof.f90 trcomm.f90 trcom1.f90
 $(OBJDIR)/trmetric.o : trmetric.f90 trcomm.f90 trcom1.f90
 $(OBJDIR)/trfile.o : trfile.f90 trcomm.f90 trcom1.f90
+$(OBJDIR)/trmeshsub.o : trmeshsub.f90 trcomm.f90
 $(OBJDIR)/trbpsd.o : trbpsd.f90 trcomm.f90
 $(OBJDIR)/tradat.o : tradat.f90 trcomm.f90
 $(OBJDIR)/trloop.o : trloop.f90 trcomm.f90 trcom1.f90
-$(OBJDIR)/trexec.o : trexec.f90 trcomm.f90 trcom1.f90
+$(OBJDIR)/trexec.o : trexec.f90 trcomm.f90 trmeshsub.f90  trcom1.f90
 $(OBJDIR)/trpl.o : trpl.f90 trcomm.f90 trcom1.f90
 $(OBJDIR)/trrslt.o : trrslt.f90 trcomm.f90
 $(OBJDIR)/trcalc.o : trcalc.f90 trcomm.f90 trcom1.f90 cytran/tr_cytran_mod.f90

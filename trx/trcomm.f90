@@ -29,9 +29,9 @@ MODULE TRCOMM
        RR, RA, RKAP, RDLT, BB, RIPS, RIPE, RIPSS, PHIA, PNC, PNFE, PNNU, &
        PNNUS, PROFN1, PROFN2, PROFT1, PROFT2, PROFU1, PROFU2, &
        PROFNU1, PROFNU2, PROFJ1, &
-       PROFJ2, AD0, AV0, CNP, CNH, CDP, CDH, CNN, CWEB, DT, EPSLTR, &
-       CHP, CK0, CK1, CKALFA, CKBETA, CKGUMA, CNB, CALF, CSPRS, TSST, &
-       SYNCABS, SYNCSELF
+       PROFJ2
+  REAL(rkind) :: &
+       DT,EPSLTR,TSST
   REAL(rkind), DIMENSION(3) :: &
        ALP
   REAL(rkind), DIMENSION(8) :: &
@@ -41,11 +41,40 @@ MODULE TRCOMM
   INTEGER, DIMENSION(NSMM) :: &
        NPA
   INTEGER:: &
-       LMAXTR, MDLKAI, MDLETA, MDLAD, MDLAVK, MDLKNC, MDLTPF, &
-       NTMAX, NTSTEP, NGTSTP, NGRSTP, NGPST, MODELG,MDLDSK,MDTC, &
-       MDLPR
-
+       LMAXTR,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST
 !     ****** MODEL PARAMETERS ******
+
+  INTEGER:: &
+       MODELG,MDLDSK,MDLPR
+  INTEGER:: & ! MDLKAI, MDLETA, MDLAD, MDLAVK, MDLKNC, MDLJBS, MDLTPF
+       model_chi_tb, &    ! model for turbulent thermal diffusion 
+       model_dp_tb, &     ! model for turbulent particle diffusion 
+       model_vk_tb, &     ! model for turbulent thermal pinch
+       model_vp_tb, &     ! model for turbulent particle pinch
+       model_chi_nc, &    ! model for neoclassical therma diffusion
+       model_dp_nc, &     ! model for neoclassical particle diffusion
+       model_vk_nc, &     ! model for neocllasical thermal pinch
+       model_vp_nc, &     ! model for neocllasical particle pinch
+       model_eta, &       ! model for resistivity
+       model_bs, &        ! model for bootstrap current
+       model_tpfrac       ! model for trapped particle fraction
+
+  REAL(rkind) :: &   !       AD0, AV0, CNP, CNH, CDP, CDH
+       factor_chi_tb, &   ! factor for turbulent thermal diffusion 
+       factor_chi_nc, &   ! factor for neoclassical therma diffusion
+       factor_dp_tb, &    ! factor for turbulent particle diffusion 
+       factor_dp_nc, &    ! factor for neoclassical particle diffusion
+       factor_vk_tb, &    ! factor for turbulent thermal pinch
+       factor_vk_nc, &    ! factor for neocllasical thermal pinch
+       factor_vp_tb, &    ! factor for turbulent particle pinch
+       factor_vp_nc, &    ! factor for neocllasical particle pinch
+       factor_eta, &      ! factor for resistivity
+       factor_bs          ! factor for bootstrap current
+
+  REAL(rkind):: CNN,CHP,CK0,CK1,CWEB,CALF,CKALFA,CKBETA,CKGUMA
+
+  REAL(rkind):: CNB,CSPRS,SYNCABS,SYNCSELF
+
 ! TRMDL
   REAL(rkind)   :: &
        TPRST, PBSCD, &
@@ -62,7 +91,7 @@ MODULE TRCOMM
   INTEGER, DIMENSION(NPSCM) :: &
        NSPSC
   INTEGER:: &
-       MDLNB, MDLEC, MDLLH, MDLIC, MDLCD, MDLPEL, MDLJBS, MDLST, MDLNF, &
+       MDLNB, MDLEC, MDLLH, MDLIC, MDLCD, MDLPEL, MDLST, MDLNF, &
        IZERO, MDLELM, MDLPSC, NPSCMAX, MDLIMP
 
 !     ****** CONTROL VARIABLES ******
@@ -129,7 +158,7 @@ MODULE TRCOMM
   REAL(rkind), DIMENSION(:)  ,ALLOCATABLE :: & ! (NRM)
        ETA, S, ALPHA, RKCV, TAUB, TAUF, TAUK
   REAL(rkind), DIMENSION(:,:),ALLOCATABLE :: & ! (NRM,NSTM)
-       AK, AVK, AD, AV, AKNC, AKDW, ADNC, ADDW, AVNC, AVDW, AVKNC, AVKDW
+       AK, AVK, AD, AVP, AKNC, AKTB, ADNC, ADTB, AVPNC, AVPTB, AVKNC, AVKTB
   REAL(rkind), DIMENSION(:,:),ALLOCATABLE :: & ! (NRM,4)
        VGR1, VGR2, VGR3, VGR4
   CHARACTER(LEN=46)       :: &
@@ -206,7 +235,7 @@ MODULE TRCOMM
   REAL(rkind), DIMENSION(:,:)    ,ALLOCATABLE :: & ! (NRM,NSTM)
        PEX, SEX
   REAL(rkind), DIMENSION(:,:,:)  ,ALLOCATABLE :: & ! (NRM,NSM,NSM)
-       AKDWD, AKDWP, ADDWD, ADDWP
+       AKTBD, AKTBP, ADTBD, ADTBP
   REAL(rkind), DIMENSION(:,:,:,:),ALLOCATABLE :: & ! (NVM,NVM,4,3)
        VV,DD
   REAL(rkind), DIMENSION(:,:,:,:),ALLOCATABLE :: & ! (NVM,NVM,2,3)
@@ -365,13 +394,17 @@ MODULE TRCOMM
       IF(IERR.NE.0) GOTO 900
     ALLOCATE(TAUB(NRMAX),TAUF(NRMAX),TAUK(NRMAX),STAT=IERR)
       IF(IERR.NE.0) GOTO 900
-    ALLOCATE(AK(NRMAX,NSTM),AVK(NRMAX,NSTM),AD(NRMAX,NSTM),STAT=IERR)
+    ALLOCATE(AD(NRMAX,NSTM),AVP(NRMAX,NSTM),STAT=IERR)
       IF(IERR.NE.0) GOTO 900
-    ALLOCATE(AV(NRMAX,NSTM),AKNC(NRMAX,NSTM),AKDW(NRMAX,NSTM),STAT=IERR)
+    ALLOCATE(AK(NRMAX,NSTM),AVK(NRMAX,NSTM),STAT=IERR)
       IF(IERR.NE.0) GOTO 900
-    ALLOCATE(ADNC(NRMAX,NSTM),ADDW(NRMAX,NSTM),AVNC(NRMAX,NSTM),STAT=IERR)
+    ALLOCATE(ADNC(NRMAX,NSTM),AVPNC(NRMAX,NSTM),STAT=IERR)
       IF(IERR.NE.0) GOTO 900
-    ALLOCATE(AVDW(NRMAX,NSTM),AVKNC(NRMAX,NSTM),AVKDW(NRMAX,NSTM),STAT=IERR)
+    ALLOCATE(ADTB(NRMAX,NSTM),AVPTB(NRMAX,NSTM),STAT=IERR)
+      IF(IERR.NE.0) GOTO 900
+    ALLOCATE(AKNC(NRMAX,NSTM),AVKNC(NRMAX,NSTM),STAT=IERR)
+      IF(IERR.NE.0) GOTO 900
+    ALLOCATE(AKTB(NRMAX,NSTM),AVKTB(NRMAX,NSTM),STAT=IERR)
       IF(IERR.NE.0) GOTO 900
     ALLOCATE(VGR1(NRMAX,4),VGR2(NRMAX,4),VGR3(NRMAX,4),VGR4(NRMAX,4),STAT=IERR)
       IF(IERR.NE.0) GOTO 900
@@ -425,9 +458,9 @@ MODULE TRCOMM
       IF(IERR.NE.0) GOTO 900
     ALLOCATE(PEX(NRMAX,NSTM),SEX(NRMAX,NSTM),STAT=IERR)
       IF(IERR.NE.0) GOTO 900
-    ALLOCATE(AKDWD(NRMAX,NSM,NSM),AKDWP(NRMAX,NSM,NSM),STAT=IERR)
+    ALLOCATE(AKTBD(NRMAX,NSM,NSM),AKTBP(NRMAX,NSM,NSM),STAT=IERR)
       IF(IERR.NE.0) GOTO 900
-    ALLOCATE(ADDWD(NRMAX,NSM,NSM),ADDWP(NRMAX,NSM,NSM),STAT=IERR)
+    ALLOCATE(ADTBD(NRMAX,NSM,NSM),ADTBP(NRMAX,NSM,NSM),STAT=IERR)
       IF(IERR.NE.0) GOTO 900
     ALLOCATE(VV(NEQMAXM,NEQMAXM,4,3),DD(NEQMAXM,NEQMAXM,4,3),STAT=IERR)
       IF(IERR.NE.0) GOTO 900
@@ -519,8 +552,8 @@ MODULE TRCOMM
     DEALLOCATE(PNB,SNB,PBIN,PNF,SNF,PFIN,POH,PRB,PRC,PRL,PRSUM,PCX,PIE)
     DEALLOCATE(SIE,SCX,TSIE,TSCX,PIN,SSIN,PBCL, SPE)
     DEALLOCATE(PFCL,PRF,PRFV,AJRFV,RGFLX)
-    DEALLOCATE(ETA,S,ALPHA,RKCV,TAUB,TAUF,TAUK,AK,AVK,AD,AV)
-    DEALLOCATE(AKNC,AKDW,ADNC,ADDW,AVNC,AVDW,AVKNC,AVKDW)
+    DEALLOCATE(ETA,S,ALPHA,RKCV,TAUB,TAUF,TAUK,AK,AVK,AD,AVP)
+    DEALLOCATE(AKNC,AKTB,ADNC,ADTB,AVPNC,AVPTB,AVKNC,AVKTB)
     DEALLOCATE(VGR1,VGR2,VGR3,VGR4)
     DEALLOCATE(ANS0,TS0,ANSAV,ANLAV,TSAV,WST,PRFT,PBCLT,PFCLT)
     DEALLOCATE(PLT,SPET,SLT,PRFVT)
@@ -531,8 +564,8 @@ MODULE TRCOMM
     DEALLOCATE(TTRHOG,DVRHOG,RKPRHOG,ABRHOG,ABVRHOG,ARRHOG,AR1RHOG,AR2RHOG)
     DEALLOCATE(ABB2RHOG,AIB2RHOG,ARHBRHOG,RMJRHOG,RMNRHOG,RDPVRHOG,FACTQ,QRHO)
     DEALLOCATE(PVOLRHOG,PSURRHOG,ABB1RHO)
-    DEALLOCATE(RTM,AMZ,PEXT,PNSSA,PNSA,PTSA,PEX, SEX,AKDWD)
-    DEALLOCATE(AKDWP,ADDWD,ADDWP,VV,DD,VI,DI)
+    DEALLOCATE(RTM,AMZ,PEXT,PNSSA,PNSA,PTSA,PEX, SEX,AKTBD)
+    DEALLOCATE(AKTBP,ADTBD,ADTBP,VV,DD,VI,DI)
     DEALLOCATE(NSS,NSV,NNS,NST,NEA)
     DEALLOCATE(AJBSNC, ETANC, AJEXNC,CJBSP,CJBST,ADNCG,AVNCG)
     DEALLOCATE(AKNCP,AKNCT,ADNCP,ADNCT,AKLP,AKLD,ADLP,ADLD,RGFLS,RQFLS)
@@ -642,15 +675,15 @@ MODULE TRCOMM
     IF(ALLOCATED(AK       ))     DEALLOCATE(AK       )
     IF(ALLOCATED(AVK      ))     DEALLOCATE(AVK      )
     IF(ALLOCATED(AD       ))     DEALLOCATE(AD       )
-    IF(ALLOCATED(AV       ))     DEALLOCATE(AV       )
+    IF(ALLOCATED(AVP      ))     DEALLOCATE(AVP      )
     IF(ALLOCATED(AKNC     ))     DEALLOCATE(AKNC     )
-    IF(ALLOCATED(AKDW     ))     DEALLOCATE(AKDW     )
+    IF(ALLOCATED(AKTB     ))     DEALLOCATE(AKTB     )
     IF(ALLOCATED(ADNC     ))     DEALLOCATE(ADNC     )
-    IF(ALLOCATED(ADDW     ))     DEALLOCATE(ADDW     )
-    IF(ALLOCATED(AVNC     ))     DEALLOCATE(AVNC     )
-    IF(ALLOCATED(AVDW     ))     DEALLOCATE(AVDW     )
+    IF(ALLOCATED(ADTB     ))     DEALLOCATE(ADTB     )
+    IF(ALLOCATED(AVPNC    ))     DEALLOCATE(AVPNC    )
+    IF(ALLOCATED(AVPTB    ))     DEALLOCATE(AVPTB    )
     IF(ALLOCATED(AVKNC    ))     DEALLOCATE(AVKNC    )
-    IF(ALLOCATED(AVKDW    ))     DEALLOCATE(AVKDW    )
+    IF(ALLOCATED(AVKTB    ))     DEALLOCATE(AVKTB    )
     IF(ALLOCATED(VGR1     ))     DEALLOCATE(VGR1     )
     IF(ALLOCATED(VGR2     ))     DEALLOCATE(VGR2     )
     IF(ALLOCATED(VGR3     ))     DEALLOCATE(VGR3     )
@@ -729,10 +762,10 @@ MODULE TRCOMM
     IF(ALLOCATED(PTSA     ))     DEALLOCATE(PTSA     )
     IF(ALLOCATED(PEX      ))     DEALLOCATE(PEX      )
     IF(ALLOCATED(SEX      ))     DEALLOCATE(SEX      )
-    IF(ALLOCATED(AKDWD    ))     DEALLOCATE(AKDWD    )
-    IF(ALLOCATED(AKDWP    ))     DEALLOCATE(AKDWP    )
-    IF(ALLOCATED(ADDWD    ))     DEALLOCATE(ADDWD    )
-    IF(ALLOCATED(ADDWP    ))     DEALLOCATE(ADDWP    )
+    IF(ALLOCATED(AKTBD    ))     DEALLOCATE(AKTBD    )
+    IF(ALLOCATED(AKTBP    ))     DEALLOCATE(AKTBP    )
+    IF(ALLOCATED(ADTBD    ))     DEALLOCATE(ADTBD    )
+    IF(ALLOCATED(ADTBP    ))     DEALLOCATE(ADTBP    )
     IF(ALLOCATED(VV       ))     DEALLOCATE(VV       )
     IF(ALLOCATED(DD       ))     DEALLOCATE(DD       )
     IF(ALLOCATED(VI       ))     DEALLOCATE(VI       )

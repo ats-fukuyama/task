@@ -3,7 +3,8 @@
 MODULE trparm
 
   PRIVATE
-  PUBLIC tr_parm,tr_nlin,tr_view
+  PUBLIC tr_parm
+  PUBLIC tr_nlin
 
 CONTAINS
 
@@ -59,27 +60,31 @@ CONTAINS
       NAMELIST /TR/ RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RHOA, &
                     PA,PZ,PN,PNS,PT,PTS,PNC,PNFE,PNNU,PNNUS, &
                     PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
-                    PROFJ1,PROFJ2,ALP,AD0,AV0,CNP,CNH,CDP,CDH,CNN,CDW, &
-                    CWEB,CALF,CNB,CSPRS, &
-                    MDLKAI,MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,MDLTPF, &
+                    PROFJ1,PROFJ2,ALP, &
                     DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST, &
                     EPSLTR,LMAXTR,CHP,CK0,CK1,CKALFA,CKBETA,CKGUMA, &
-                    TPRST,CDW, &
+                    TPRST,CNN,CDW,CWEB,CALF,CNB,CSPRS, &
+                    model_chi_tb,model_dp_tb,model_vk_tb,model_vp_tb, &
+                    model_chi_nc,model_dp_nc,model_vk_nc,model_vp_nc, &
+                    model_eta,model_bs,model_tpfrac, & 
+                    factor_chi_tb,factor_dp_tb,factor_vk_tb,factor_vp_tb, &
+                    factor_chi_nc,factor_dp_nc,factor_vk_nc,factor_vp_nc, &
+                    factor_eta,factor_bs, &
                     MDLST,MDLNF,IZERO,MODELG,NTEQIT,MDEDGE,MDLIMP, &
                     MDLXP,MDNCLS,MDLWLD,MDLFLX,MDLER,MDCD05, &
-                    PNBTOT,PNBR0,PNBRW,PNBVY,PNBVW,PNBENG,PNBRTG,MDLNB, &
-                    PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC, &
-                    PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,MDLLH, &
-                    PICTOT,PICR0,PICRW,PICTOE,PICNPR,MDLIC, &
-                    PNBCD,PECCD,PLHCD,PICCD,PBSCD,MDLCD, &
-                    PELTOT,PELR0,PELRW,PELRAD,PELVEL,MDLPEL, &
+                    PNBTOT,PNBR0,PNBRW,PNBVY,PNBVW,PNBENG,PNBRTG,PNBCD,MDLNB, &
+                    PECTOT,PECR0,PECRW,PECTOE,PECNPR,PECCD,MDLEC, &
+                    PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,PLHCD,MDLLH, &
+                    PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC, &
+                    PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,PELPAT,MDLPEL, &
                     MDLPR,SYNCABS,SYNCSELF, &
-                    PELTIM,PELPAT,KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG,KFNTXT,KFNCVS, &
-                    MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0,MDLEQE, &
-                    MDLEOI,NSMAX,NSZMAX,NSNMAX, &
-                    KUFDIR,KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDTC, &
-                    MDLPCK,MDLPSC,NPSCMAX,PSCTOT,PSCR0,PSCRW,NSPSC
-
+                    KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG,KFNTXT,KFNCVS, &
+                    MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0,MDLEQE,MDLEOI, &
+                    NSMAX,NSZMAX,NSNMAX, &
+                    KUFDIR,KUFDEV,KUFDCG, &
+                    TIME_INT,MODEP,MDNI,MDLJQ,MDLPCK, &
+                    MDLPSC,NPSCMAX,PSCTOT,PSCR0,PSCRW,NSPSC, &
+                    PBSCD,MDLCD
 
       IF(NID.GE.0) THEN
          READ(NID,TR,IOSTAT=IST,ERR=9800,END=9900)
@@ -99,33 +104,35 @@ CONTAINS
 
     SUBROUTINE trplst
 
-      WRITE(6,601)
+      WRITE(6,*) '# &TR : RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RHOA'
+      WRITE(6,*) '(PA,PZ,PN,PNS,PT,PTS:NSM)'
+      WRITE(6,*) 'PNC,PNFE,PNNU,PNNUS'
+      WRITE(6,*) 'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2'
+      WRITE(6,*) 'PROFJ1,PROFJ2,ALP'
+      WRITE(6,*) 'DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST'
+      WRITE(6,*) 'EPSLTR,LMAXTR,CHP,CK0,CK1,CKALFA,CKBETA,CKGUMA'
+      WRITE(6,*) 'TPRST,CNN,CDW,CWEB,CALF,CNB,CSPRS'
+      WRITE(6,*) 'model_chi_tb,model_dp_tb,model_vk_tb,model_vp_tb'
+      WRITE(6,*) 'model_chi_nc,model_dp_nc,model_vk_nc,model_vp_nc'
+      WRITE(6,*) 'model_eta,model_bs,model_tpfrac'
+      WRITE(6,*) 'factor_chi_tb,factor_dp_tb,factor_vk_tb,factor_vp_tb'
+      WRITE(6,*) 'factor_chi_nc,factor_dp_nc,factor_vk_nc,factor_vp_nc'
+      WRITE(6,*) 'factor_eta,factor_bs'
+      WRITE(6,*) 'MDLST,MDLNF,IZERO,MODELG,NTEQIT,MDEDGE,MDLIMP'
+      WRITE(6,*) 'MDLXP,MDNCLS,MDLWLD,MDLFLX,MDLER,MDCD05'
+      WRITE(6,*) 'PNBTOT,PNBR0,PNBRW,PNBVY,PNBVW,PNBENG,PNBRTG,PNBCD,MDLNB'
+      WRITE(6,*) 'PECTOT,PECR0,PECRW,PECTOE,PECNPR,PECCD,MDLEC'
+      WRITE(6,*) 'PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,PLHCD,MDLLH'
+      WRITE(6,*) 'PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC'
+      WRITE(6,*) 'PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,PELPAT,MDLPEL'
+      WRITE(6,*) 'MDLPR,SYNCABS,SYNCSELF'
+      WRITE(6,*) 'KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG,KFNTXT,KFNCVS'
+      WRITE(6,*) 'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0,MDLEQE,MDLEQI'
+      WRITE(6,*) 'NSMAX,NSZMAX,NSNMAX'
+      WRITE(6,*) 'KUFDIR,KUFDEV,KUFDCG'
+      WRITE(6,*) 'TIME_INT,MODEP,MDNI,MDLJQ,MDLPCK'
+      WRITE(6,*) 'MDLPSC,NPSCMAX,PSCTOT,PSCR0,PSCRW,NSPSC'
       RETURN
-
-  601 FORMAT(' ','# &TR : RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RHOA'/ &
-             ' ',8X,'(PA,PZ,PN,PNS,PT,PTS:NSM)'/ &
-             ' ',8X,'PNC,PNFE,PNNU,PNNUS'/ &
-             ' ',8X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2'/ &
-             ' ',8X,'PROFJ1,PROFJ2,ALP'/ &
-             ' ',8X,'CK0,CK1,CNP,CNH,CDP,CDH,CNN,CDW,CNB,CSPRS'/ &
-             ' ',8X,'CWEB,CALF,CKALFA,CKBETA,MDLKNC,MDLTPF'/ &
-             ' ',8X,'AD0,CHP,MDLAD,MDLAVK,CKGUMA,MDLKAI,MDLETA,MDLJBS'/ &
-             ' ',8X,'DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST'/ &
-             ' ',8X,'EPSLTR,LMAXTR,PRST,MDLST,MDLNF,IZERO,PBSCD,MDLCD'/ &
-             ' ',8X,'PNBTOT,PNBR0,PNBRW,PNBVY,PNBVW,PNBENG,PNBRTG'/ &
-             ' ',8X,'PNBCD,MDLNB'/ &
-             ' ',8X,'PECTOT,PECR0,PECRW,PECTOE,PECNPR,PECCD,MDLEC'/ &
-             ' ',8X,'PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,PLHCD,MDLLH'/ &
-             ' ',8X,'PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC'/ &
-             ' ',8X,'PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,MDLPEL'/ &
-             ' ',8X,'PELTIM,PELPAT,MDLPR,SYNCABS,SYNCSELF,MODELG,NTEQIT'/&
-             ' ',8X,'MDEDGE,MDLIMP,'/ &
-             ' ',8X,'MDLXP,MDNCLS,MDLWLD,MDLFLX,MDLER,MDCD05'/ &
-             ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/ &
-             ' ',8X,'MDLEQE,MDLEOI,NSMAX,NSZMAX,NSNMAX,KUFDIR,KUFDEV,KUFDCG'/ &
-             ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK'/ &
-             ' ',8X,'KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG,KFNTXT,KFNCVS,'/ &
-             ' ',8X,'MDLPSC,NPSCMAX,PSCTOT,PSCR0,PSCRW,NSPSC')
     END SUBROUTINE trplst
 
 !     ***** CHECK INPUT PARAMETERS *****
@@ -155,129 +162,4 @@ CONTAINS
       RETURN
     END SUBROUTINE trchek
 
-!     ***********************************************************
-
-!           VIEW INPUT PARAMETER
-
-!     ***********************************************************
-
-    SUBROUTINE tr_view(ID)
-
-      USE trcomm
-
-      IMPLICIT NONE
-      INTEGER,INTENT(IN) :: ID
-      INTEGER :: NS,NPSC
-
-
-      WRITE(6,*) '** TRANSPORT **'
-      WRITE(6,602) 'MDLEQB',MDLEQB,'MDLEQN',MDLEQN,'MDLEQT',MDLEQT,'MDLEQU',MDLEQU
-      WRITE(6,602) 'MDLEQZ',MDLEQZ,'MDLEQ0',MDLEQ0,'MDLEQE',MDLEQE,'MDLEOI',MDLEOI
-      WRITE(6,602) 'NSMAX ',NSMAX, 'NSZMAX',NSZMAX,'NSNMAX',NSNMAX
-      WRITE(6,601) 'RR    ',RR,    'RA    ',RA,    'RKAP  ',RKAP,  'RDLT  ',RDLT
-      WRITE(6,601) 'RIPS  ',RIPS,  'RIPE  ',RIPE,  'BB    ',BB
-
-      WRITE(6,611)
-  611 FORMAT(' ','NS',2X,'PA           PZ      PN(E20)  PNS(E20) ','PT(KEV)  PTS(KEV) PELPAT')
-      DO NS=1,NSMAX
-         WRITE(6,612) NS,PA(NS),PZ(NS),PN(NS),PNS(NS),PT(NS),PTS(NS),PELPAT(NS)
-  612    FORMAT(' ',I2,1PD12.4,0P,F8.3,5F9.4)
-      ENDDO
-
-      WRITE(6,601) 'PROFN1',PROFN1,'PROFT1',PROFT1,'PROFU1',PROFU1,'PROFJ1',PROFJ1
-      WRITE(6,601) 'PROFN2',PROFN2,'PROFT2',PROFT2,'PROFU2',PROFU2,'PROFJ2',PROFJ2
-      WRITE(6,601) 'ALP(1)',ALP(1),'ALP(2)',ALP(2),'ALP(3)',ALP(3),'PBSCD ',PBSCD
-      WRITE(6,602) 'MDLKAI',MDLKAI,'MDLETA',MDLETA,'MDLAD ',MDLAD, 'MDLAVK',MDLAVK
-      WRITE(6,602) 'MDLJBS',MDLJBS,'MDLKNC',MDLKNC,'MDLTPF',MDLTPF,'MDNCLS',MDNCLS
-      WRITE(6,604) 'KUFDEV',KUFDEV,'KUFDCG',KUFDCG,'MDNI  ',MDNI
-      WRITE(6,605) 'MDLJQ ',MDLJQ, 'MDLFLX',MDLFLX,'MDTC  ',MDTC,  'RHOA  ',RHOA
-      WRITE(6,602) 'MDLWLD',MDLWLD,'MDLER ',MDLER, 'MODELG',MODELG,'NTEQIT',NTEQIT
-      WRITE(6,603) 'MDCD05',MDCD05,'CK0   ',CK0,   'CK1   ',CK1
-      WRITE(6,603) 'MDEDGE',MDEDGE,'CSPRS ',CSPRS, 'CNN   ',CNN
-      WRITE(6,601) 'CNP   ',CNP,   'CNH   ',CNH,   'CDP   ',CDP,   'CDH   ',CDH
-      WRITE(6,601) 'AD0   ',AD0,   'CHP   ',CHP,   'CWEB  ',CWEB,  'CALF  ',CALF
-      IF((MDLKAI.GE.1.AND.MDLKAI.LT.10).OR.ID.EQ.1) &
-         WRITE(6,601) 'CKALFA',CKALFA,'CKBETA',CKBETA,'CKGUMA',CKGUMA
-
-      IF((MDLKAI.GE.10.AND.MDLKAI.LT.20).OR.ID.EQ.1)  &
-         WRITE(6,613) CDW(1),CDW(2),CDW(3),CDW(4),CDW(5),CDW(6),CDW(7),CDW(8)
-  613 FORMAT(' ','    AKDW(E) =  ',0PF6.3,' DEDW + ',F6.3,' DIDW'/ &
-             ' ','    AKDW(D) =  ',0PF6.3,' DEDW + ',F6.3,' DIDW'/ &
-             ' ','    AKDW(T) =  ',0PF6.3,' DEDW + ',F6.3,' DIDW'/ &
-             ' ','    AKDW(A) =  ',0PF6.3,' DEDW + ',F6.3,' DIDW')
-
-      WRITE(6,601) 'DT    ',DT,    'EPSLTR',EPSLTR,'TSST  ',TSST,  'TPRST ',TPRST
-      WRITE(6,602) 'LMAXTR',LMAXTR,'NRMAX ',NRMAX, 'NTMAX ',NTMAX, 'NTSTEP',NTSTEP
-      WRITE(6,602) 'NGRSTP',NGRSTP,'NGTSTP',NGTSTP,'NGPST ',NGPST, 'IZERO ',IZERO
-      WRITE(6,602) 'MDLST ',MDLST, 'MDLCD ',MDLCD, 'MDLNF ',MDLNF
-
-      IF(MDLIMP.GT.0) THEN
-         WRITE(6,602) 'MDLIMP',MDLIMP
-         WRITE(6,601) 'PNC   ',PNC,   'PNFE  ',PNFE
-      END IF
-!         WRITE(6,601) 'PNNU  ',PNNU,  'PNNUS ',PNNUS
-
-      IF((PNBTOT.GT.0.D0).OR.(ID.EQ.1)) THEN
-         WRITE(6,601) 'PNBTOT',PNBTOT,'PNBR0 ',PNBR0,'PNBRW ',PNBRW,'PNBENG',PNBENG
-         WRITE(6,603) 'MDLNB ',MDLNB, 'PNBRTG',PNBRTG,'PNBCD ',PNBCD,'PNBVY ',PNBVY
-         WRITE(6,601) 'PNBVW ',PNBVW
-      ENDIF
-
-      IF((PECTOT.GT.0.D0).OR.(ID.EQ.1)) THEN
-         WRITE(6,601) 'PECTOT',PECTOT, 'PECR0 ',PECR0,'PECRW ',PECRW,'PECTOE',PECTOE
-         WRITE(6,603) 'MDLEC ',MDLEC,  'PECNPR',PECNPR,'PECCD ',PECCD
-      ENDIF
-
-      IF((PLHTOT.GT.0.D0).OR.(ID.EQ.1)) THEN
-         WRITE(6,601) 'PLHTOT',PLHTOT, 'PLHR0 ',PLHR0,'PLHRW ',PLHRW, 'PLHTOE',PLHTOE
-         WRITE(6,603) 'MDLLH ',MDLLH,  'PLHNPR',PLHNPR,'PLHCD ',PLHCD
-      ENDIF
-
-      IF((PICTOT.GT.0.D0).OR.(ID.EQ.1)) THEN
-         WRITE(6,601) 'PICTOT',PICTOT, 'PICR0 ',PICR0, 'PICRW ',PICRW,'PICTOE',PICTOE
-         WRITE(6,603) 'MDLIC ',MDLIC,  'PICNPR',PICNPR,'PICCD ',PICCD
-      ENDIF
-
-      IF((PELTOT.GT.0.D0).OR.(ID.EQ.1)) THEN
-         WRITE(6,601) 'PELTOT',PELTOT,'PELR0 ',PELR0,'PELRW ',PELRW
-         WRITE(6,603) 'MDLPEL',MDLPEL,'PELRAD',PELRAD,'PELVEL',PELVEL,'PELTIM',PELTIM
-      ENDIF
-      IF(MDLPSC.GT.0) THEN
-         WRITE(6,622) 'MDLPSC  ',MDLPSC,'NPSCMAX ',NPSCMAX
-         DO NPSC=1,NPSCMAX
-            WRITE(6,603) 'NSPSC ',NSPSC(NPSC) ,'PSCTOT',PSCTOT(NPSC), &
-                         'PSCR0 ',PSCR0(NPSC) ,'PSCRW ',PSCRW(NPSC)
-         END DO
-      END IF
-
-      IF((MDLPR.GE.1).OR.(ID.EQ.1)) THEN
-         WRITE(6,623) 'MDLPR   ',MDLPR,   'SYNCABS ',SYNCABS, &
-                      'SYNCSELF',SYNCSELF
-      ENDIF
-
-      WRITE(6,'(A,A)') 'KNAMEQ =',knameq
-      WRITE(6,'(A,A)') 'KNAMEQ2=',knameq2
-      WRITE(6,'(A,A)') 'KNAMTR =',knamtr
-      WRITE(6,'(A,A)') 'KFNLOG =',kfnlog
-      WRITE(6,'(A,A)') 'KFNTXT =',kfntxt
-      WRITE(6,'(A,A)') 'KFNCVS =',kfncvs
-
-      WRITE(6,601) 'CNB   ',CNB
-      RETURN
-
-  601 FORMAT(' ',A6,'=',1PE11.3 :2X,A6,'=',1PE11.3: &
-              2X,A6,'=',1PE11.3 :2X,A6,'=',1PE11.3)
-  602 FORMAT(' ',A6,'=',I7,4X   :2X,A6,'=',I7,4X  : &
-              2X,A6,'=',I7,4X   :2X,A6,'=',I7)
-  603 FORMAT(' ',A6,'=',I7,4X   :2X,A6,'=',1PE11.3: &
-              2X,A6,'=',1PE11.3 :2X,A6,'=',1PE11.3)
-  604 FORMAT(' ',A6,'=',I7,4X   :2X,A6,'=',1X,A6,4X: &
-              2X,A6,'=',1X,A6,4X:2X,A6,'=',I7)
-  605 FORMAT(' ',A6,'=',I7,4X   :2X,A6,'=',I7,4X  : &
-              2X,A6,'=',I7,4X   :2X,A6,'=',1PE11.3)
-  622 FORMAT(' ',A8,'=',I5,4X   :2X,A8,'=',I5,4X  : &
-              2X,A8,'=',I5,4X   :2X,A8,'=',I5)
-  623 FORMAT(' ',A8,'=',I7,4X   :2X,A8,'=',1PE11.3: &
-              2X,A8,'=',1PE11.3)
-    END SUBROUTINE tr_view
 END MODULE trparm
