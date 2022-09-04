@@ -41,6 +41,22 @@
     CALL TRCFET
     CALL TRCFAD
 
+    !     ***** OFF-DIAGONAL TRANSPORT COEFFICIENTS from NCLASS *****
+
+    DO NR=1,NRMAX
+       DO NS=1,NSLMAX
+          DO NS1=1,NSLMAX
+             IF(NS.EQ.NS1) THEN
+                ADLD(NR,NS,NS1)= ADTB(NR,NS)+ADNC(NR,NS)-ADNCT(NR,NS,NS1)
+                ADLP(NR,NS,NS1)= ADNCT(NR,NS,NS1)+ADNCP(NR,NS,NS1)
+             ELSE
+                ADLD(NR,NS,NS1)=-ADNCT(NR,NS,NS1)
+                ADLP(NR,NS,NS1)= ADNCT(NR,NS,NS1)+ADNCP(NR,NS,NS1)
+             ENDIF
+          ENDDO
+       ENDDO
+    ENDDO
+
     RETURN
   END SUBROUTINE TRCOEF
 
@@ -1417,8 +1433,7 @@
       REAL(rkind) :: RK23=4.19D0, RA23=0.57D0, RB23=0.61D0, RC23=0.61D0
       REAL(rkind),SAVE :: CDPSV
 
-!        ****** AD : PARTICLE DIFFUSION ******
-!        ****** AVP : PARTICLE PINCH ******
+!     ****** ADTB : turbulent particle diffusion ******
 
       IF(MDEDGE.EQ.1) CDPSV=CDP
 
@@ -1465,10 +1480,14 @@
          ENDDO
       END select
          
+!     ****** ADNC  : neocllasical particle diffusion ******
+!     ****** AVPNC : neocllasical particle pinch ******
+
       SELECT CASE(model_dp_nc)
       case(2)
+         
 !     *** Hinton & Hazeltine ***
-!     *** transport effect of heat pinch ***
+         
          DO NR=1,NRMAX
             IF(NR.EQ.NRMAX) THEN
                ANE = PNSS(1)
@@ -1506,22 +1525,6 @@
             AVPNC(NR,1:NSM) = -(RK13E*SQRT(EPS)*EZOHL)/BPL/H
          ENDDO
       END SELECT
-
-      !     ***** OFF-DIAGONAL TRANSPORT COEFFICIENTS *****
-
-      DO NR=1,NRMAX
-         DO NS=1,NSLMAX
-            DO NS1=1,NSLMAX
-               IF(NS.EQ.NS1) THEN
-                  ADLD(NR,NS,NS1)= ADTB(NR,NS)+ADNC(NR,NS)-ADNCT(NR,NS,NS1)
-                  ADLP(NR,NS,NS1)= ADNCT(NR,NS,NS1)+ADNCP(NR,NS,NS1)
-               ELSE
-                  ADLD(NR,NS,NS1)=-ADNCT(NR,NS,NS1)
-                  ADLP(NR,NS,NS1)= ADNCT(NR,NS,NS1)+ADNCP(NR,NS,NS1)
-               ENDIF
-            ENDDO
-         ENDDO
-      ENDDO
 
 !     /* for nuetral deuterium */
 

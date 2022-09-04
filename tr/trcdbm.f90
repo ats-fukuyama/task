@@ -1,3 +1,4 @@
+!trcdbm.f90
 !     ********************************************
 
 !           CDBM Transport model (2009/03/06)
@@ -5,11 +6,11 @@
 
 !     ********************************************
 
-MODULE cdbm_mod
+MODULE trcdbm
 
   IMPLICIT NONE
   PRIVATE
-  PUBLIC:: cdbm
+  PUBLIC:: tr_cdbm
 
   integer,parameter :: rkind=selected_real_kind(12,100)
   integer,parameter :: ikind=selected_int_kind(8)
@@ -33,8 +34,8 @@ MODULE cdbm_mod
 
 CONTAINS
 
-  SUBROUTINE cdbm(bb,rr,rs,rkap,qp,shear,pne,rhoni,dpdr,dvexbdr, &
-       &             calf,ckap,cexb,model,chi_cdbm,fsz,curvz,fez)
+  SUBROUTINE tr_cdbm(bb,rr,rs,rkap,qp,shear,pne,rhoni,dpdr,dvexbdr, &
+                     calf,ckap,cexb,model,chi_cdbm,fsz,curvz,fez)
 
     real(rkind),intent(in):: bb      ! Magnetic field strength [T]
     real(rkind),intent(in):: rr      ! Major radius [m]
@@ -117,7 +118,7 @@ CONTAINS
     IF(PRESENT(fez))   fez=fe
     
     RETURN
-  END SUBROUTINE cdbm
+  END SUBROUTINE tr_cdbm
 
 ! *** Form factor in CDBM model ***
 
@@ -204,4 +205,4 @@ CONTAINS
     ENDIF
     RETURN
   END FUNCTION FEXB
-END MODULE cdbm_mod
+END MODULE trcdbm

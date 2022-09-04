@@ -69,6 +69,13 @@
 
       IF(MDLPR.GT.0) CALL TR_CYTRAN
 
+
+
+
+
+
+
+
       IF(model_chi_nc.EQ.1.OR. &
          model_dp_nc.EQ.1.OR. &
          model_vk_nc.EQ.1.OR. &

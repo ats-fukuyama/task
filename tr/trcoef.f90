@@ -20,14 +20,13 @@
 
       USE TRCOMM, ONLY : &
            AEE, ADDW, AGMP, AKDW, AME, AMM, AR1RHOG, AR2RHOG, BB, CALF, CDW, &
-           CK0, &
-           CK1, CKALFA, CKBETA, CKGUMA, CWEB, DR, EPS0, EPSRHO, ER, EZOH, &
+           CK0,CK1, CKALFA, CKBETA, CKGUMA, CWEB, DR, EPS0, EPSRHO, ER, EZOH, &
            KGR1, KGR2, KGR3, KGR4, MDCD05, MDLKAI, MDLUF, MDTC, NRMAX, NSM, &
            NSMAX, NSTM, PA, PADD, PBM, PI, PNSS, PTS, PZ, Q0, QP, RA, RDPS, &
            RG, RHOG, RHOM, RJCB, RKAP, RKEV, RKPRHO, RKPRHOG, RM, RMU0, RN, &
            RNF, RR, RT, RW, S, ALPHA, RKCV, SUMPBM, TAUK, VC, VEXB, VGR1, &
            VGR2, VGR3, VGR4, WEXB, ZEFF, VEXBP, WEXBP, BP, rkind
-      USE cdbm_mod
+      USE trcdbm
       USE trmodels,ONLY: mbgb_driver,mmm95_driver,mmm71_driver
       USE libitp
       USE libgrf
@@ -46,7 +45,7 @@
            RNTM, RNTP, RNUZ, ROUS, RPEM, RPEP, RPM, RPP, RREFF, RRSTAR, &
            RRSTAX, SA, SL, SLAMDA, TA, TAUAP, TAUD, TAUE, TD, TE, TI, TRCOFS, &
            TRCOFSS, TRCOFSX, TRCOFT, TT, VA, VTE, VTI, WCI, WE1, WPE2, XCHI0, &
-           XCHI1, XCHI2, XXA, XXH, ZEFFL, FSDFIX, BPA, PROFDL
+           XCHI1, XCHI2, XXA, XXH, ZEFFL, FSDFIX, BPA, PROFDL,ANI
       REAL(rkind):: &
            RS,RKAPL,SHEARL,PNEL,RHONI,DPDRL,DVEXBDRL,CEXB,CKAP,chi_cdbm, &
            PAL,PZL,ADFFI,ACHIE,ACHII,ACHIEB,ACHIIB,ACHIEGB,ACHIIGB, &
@@ -903,7 +902,7 @@
             ckap=1.d0
             MODEL=MDLKAI-130
 
-            CALL cdbm(BB,RR,RS,RKAPL,QL,SHEARL,PNEL,rhoni,dpdrl, &
+            CALL tr_cdbm(BB,RR,RS,RKAPL,QL,SHEARL,PNEL,rhoni,dpdrl, &
                  &    dvexbdrl,calf,ckap,cexb,MODEL,chi_cdbm)
 
             AKDWEL=(CK0/12.D0)*chi_cdbm
@@ -1037,6 +1036,52 @@
             VGR4(NR,2)=VISP
             VGR4(NR,3)=0.D0
 
+
+          CASE(230:239)
+
+            RS=RA*RG(NR)
+            RKAPL=RKPRHO(NR)
+            SHEARL=S(NR)
+            PNEL=ANE*1.D20
+
+            DPDRl=DPP*1.D20*RKEV
+            DVEXBDRL=DVE/RA
+            SL=(S(NR)**2+0.1D0**2)
+            cexb=RG1
+            ckap=1.d0
+            MODEL=MDLKAI-130
+            PNI=ANDX+ANT+ANA
+            DO NS=2,NSMAX
+               AMI=PA(NS)*AMM
+               VA=SQRT(BB**2/(RMU0*ANE*1.D20*AMI))
+               WE1=-QL*RR/(SL*VA)*DVE
+               RG1=CWEB*FEXB(ABS(WE1),S(NR),ALPHA(NR))
+               RHONI=AMI*PNI*1.D20
+               CALL tr_cdbm(BB,RR,RS,RKAPL,QL,SHEARL,PNEL,rhoni,dpdrl, &
+                    dvexbdrl,calf,ckap,cexb,MODEL,chi_cdbm)
+               AKDW(NR,NS)=chi_cdbm
+            END DO
+            ANE=0.D0
+            AKDW(NR,1)=0.D0
+            DO NS=2,NSMAX
+               ANI=0.5D0*(RN(NR+1,NS)+RN(NR  ,NS))
+               ANE=ANE+PZ(NS)*ANI
+               AKDW(NR,1)=AKDW(NR,1)+AKDW(NR,NS)*PZ(NS)*ANI
+            END DO
+            AKDW(NR,1)=AKDW(NR,1)/ANE
+
+            VGR1(NR,1)=0.d0
+            VGR1(NR,2)=S(NR)
+            VGR1(NR,3)=ALPHA(NR)
+            VGR2(NR,1)=ER(NR)!RNST2
+            VGR2(NR,2)=VEXB(NR)!OMEGASS
+            VGR2(NR,3)=WEXB(NR)
+            VGR3(NR,1)=0.D0
+            VGR3(NR,2)=0.D0
+            VGR3(NR,3)=0.D0
+            VGR4(NR,1)=0.D0
+            VGR4(NR,2)=0.D0
+            VGR4(NR,3)=0.D0
 
 !         CASE DEFAULT
 !            WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI

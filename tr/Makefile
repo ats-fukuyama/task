@@ -27,7 +27,7 @@ SRC90=trinit.f90 trparm.f90 \
       trufsub.f90 tr_ufile_task.f90 tr_ufile_topics.f90 trufile.f90 \
       trfile.f90 trhelp.f90 \
       trexec.f90 trcalc.f90 \
-      tradat.f90 cdbm.f90 trmodels.f90 trcoef.f90 tritg.f90 \
+      tradat.f90 trcdbm.f90 trmodels.f90 trcoef.f90 tritg.f90 \
       trrslt.f90 trpnb.f90 trprf.f90 trpnf.f90 trpel.f90 trpsc.f90 trmdlt.f90 \
       trgout.f90 trgrar.f90 trgrat.f90 trgrap.f90 trgrae.f90 \
       trgrad.f90 trgram.f90 trgsub.f90 trfout.f90 \
@@ -193,3 +193,4 @@ mmm95/mmm95.o: mmm95/mmm95.f
 libmmm7_1/w20mod.o: libmmm7_1/w20mod.f90
 libmmm7_1/modmmm7_1.o: libmmm7_1/modmmm7_1.f90 libmmm7_1/w20mod.f90
 mbgb/mixed_Bohm_gyro_Bohm.o: mbgb/mixed_Bohm_gyro_Bohm.f
+trcdbm.o: trcdbm.f90
