@@ -561,13 +561,14 @@
 
             select case(MDLKAI)
             case(20)
-               CRTCL=6.D-2*SQRT(EZOHL*BB**3/(ANE*1.D20*SQRT(TE*RKEV)))*SQRT(AEE**2/(RMU0*SQRT(AME)))/(QL*RKEV)
+               CRTCL=6.D-2*SQRT(EZOHL*BB**3/(ANE*1.D20*SQRT(TE*RKEV))) &
+                          *SQRT(AEE**2/(RMU0*SQRT(AME)))/(QL*RKEV)
                IF(ABS(DTE).LE.CRTCL .OR. DQ.LE.0.D0 .OR. NR.EQ.1) THEN
                   DKAI=0.D0
                ELSE
                   DKAI=1.5D-1*(ABS(DTE)/TE +2.D0*ABS(DNE)/ANE) &
-     &                 *SQRT(TE/TI)*(1.D0/EPS)*(QL**2/(DQ*BB*SQRT(RR)))*VC**2 &
-     &                 *SQRT(RMU0*1.5D0*AMM)*(1.D0-CRTCL/ABS(DTE))
+                       *SQRT(TE/TI)*(1.D0/EPS)*(QL**2/(DQ*BB*SQRT(RR)))*VC**2 &
+                       *SQRT(RMU0*1.5D0*AMM)*(1.D0-CRTCL/ABS(DTE))
                ENDIF
                AKDW(NR,1)=                  DKAI
                AKDW(NR,2)=ZEFFL*SQRT(TE/TD)*DKAI
@@ -608,6 +609,7 @@
 !               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
 !               DELTAE=SQRT(DELTA2)
 !               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
+!               RG1=1.D0/(1.D0+RG1*WE1*WE1)
             ENDIF
 
             select case(MDLKAI)
@@ -618,21 +620,16 @@
             case(31)
                ALPHAL=ALPHA(NR)*CALF
                FS=TRCOFS(S(NR),ALPHAL,RKCV(NR))
-               IF(MDCD05.NE.0) FS=FS*(2.D0*SQRT(RKPRHO(NR))/(1.D0+RKPRHO(NR)**2))**1.5D0
-!               write(6,'(1P3E12.4)') alpha(nr),DPP*1.D20*RKEV,dpp
+               IF(MDCD05.NE.0) &
+                    FS=FS*(2.D0*SQRT(RKPRHO(NR))/(1.D0+RKPRHO(NR)**2))**1.5D0
                AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-!               WRITE(6,'(A,I6,4ES12.4)') &
-!                    'AKDWEL:',NR,S(NR),ALPHAL,RKCV(NR),FS
-!               WRITE(6,'(A,I6,4ES12.4)') &
-!                    '      :',NR,CALF,DELTA2*VA/(QL*RR), &
-!                              SQRT(ABS(ALPHA(NR)))**3,AKDWEL
             case(32)
                ALPHAL=ALPHA(NR)*CALF
                FS=TRCOFS(S(NR),ALPHAL,RKCV(NR))
-!               FS=FS/(1.D0+RG1*WE1*WE1)
                FS=FS*RG1
-               IF(MDCD05.NE.0) FS=FS*(2.D0*SQRT(RKPRHO(NR))/(1.D0+RKPRHO(NR)**2))**1.5D0
+               IF(MDCD05.NE.0) &
+                    FS=FS*(2.D0*SQRT(RKPRHO(NR))/(1.D0+RKPRHO(NR)**2))**1.5D0
                AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
             case(33)
@@ -641,7 +638,6 @@
                AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
             case(34)
                FS=TRCOFS(S(NR),0.D0,RKCV(NR))
-!               FS=FS/(1.D0+RG1*WE1*WE1)
                FS=FS*RG1
                AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
@@ -672,29 +668,6 @@
                FS=TRCOFSX(S(NR),ALPHAL,RKCV(NR),RA/RR)
                AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-
-!$$$            case(40)
-!$$$               AEI=(PZ(2)*ANDX+PZ(3)*ANT+PZ(4)*ANA)*AEE/PNI
-!$$$               WCI=AEI*BB/AMI
-!$$$               PTI=(TD*ANDX+TT*ANT+TA*ANA)/PNI
-!$$$               VTI=SQRT(ABS(PTI*RKEV/AMI))
-!$$$               RHOI=VTI/WCI
-!$$$C
-!$$$               FS=TRCOFT(S(NR),ALPHA(NR),RKCV(NR),RA/RR)
-!$$$               SA=S(NR)-ALPHA(NR)
-!$$$               RNST2=0.5D0/((1.D0-2.D0*SA+3.D0*SA*SA)*FS)
-!$$$               RKPP2=RNST2/(FS*ABS(ALPHA(NR))*DELTA2)
-!$$$C
-!$$$               SLAMDA=RKPP2*RHOI**2
-!$$$               RLAMDA=RLAMBDA(SLAMDA)
-!$$$               OMEGAS= SQRT(RKPP2)*TE*RKEV/(AEE*BB*ABS(CLPE))
-!$$$               TAUAP=(QL*RR)/VA
-!$$$               OMEGASS=(OMEGAS*TAUAP)/(RNST2*SQRT(ALPHA(NR)))
-!$$$C
-!$$$c$$$               FS=FS/(1.D0+RG1*WE1*WE1)
-!$$$C
-!$$$               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR) /(RLAMDA*(1.D0+OMEGASS**2))
-!$$$               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR) /(1.D0+OMEGASS**2)
             case default
                WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
                FS=1.D0
@@ -709,11 +682,10 @@
             VGR1(NR,1)=FS
             VGR1(NR,2)=S(NR)
             VGR1(NR,3)=ALPHA(NR)
-            VGR2(NR,1)=ER(NR)!RNST2
-            VGR2(NR,2)=VEXB(NR)!OMEGASS
+            VGR2(NR,1)=ER(NR)
+            VGR2(NR,2)=VEXB(NR)
             VGR2(NR,3)=0.D0
-!            VGR3(NR,1)=1.D0/(1.D0+RG1*WE1*WE1)!SLAMDA
-            VGR3(NR,1)=RG1!SLAMDA
+            VGR3(NR,1)=RG1
             VGR3(NR,2)=ABS(WE1)
             VGR3(NR,3)=0.D0
             VGR4(NR,1)=RLAMDA
@@ -892,7 +864,9 @@
             RKAPL=RKPRHO(NR)
             SHEARL=S(NR)
             PNEL=ANE*1.D20
+
             RHONI=(AMD*ANDX+AMT*ANT+AMA*ANA)*1.D20
+            
             DPDRl=DPP*1.D20*RKEV
             DVEXBDRL=DVE/RA
             SL=(S(NR)**2+0.1D0**2)
@@ -1047,9 +1021,12 @@
             DPDRl=DPP*1.D20*RKEV
             DVEXBDRL=DVE/RA
             SL=(S(NR)**2+0.1D0**2)
+            WE1=-QL*RR/(SL*VA)*DVE
+            RG1=CWEB*FEXB(ABS(WE1),S(NR),ALPHA(NR))
             cexb=RG1
             ckap=1.d0
             MODEL=MDLKAI-230
+
             PNI=ANDX+ANT+ANA
             DO NS=2,NSMAX
                AMI=PA(NS)*AMM
@@ -1087,12 +1064,6 @@
             VGR4(NR,2)=0.D0
             VGR4(NR,3)=0.D0
 
-!         CASE DEFAULT
-!            WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
-!            AKDW(NR,1)=0.D0
-!            AKDW(NR,2)=0.D0
-!            AKDW(NR,3)=0.D0
-!            AKDW(NR,4)=0.D0
          END SELECT
       ENDDO
 
