@@ -9,6 +9,7 @@ subroutine WFDIV
   USE libchar
   use wfcomm
   use wfparm
+  USE wfdiv_layers
   implicit none
   integer   :: NE,NN,IERR
   character :: KID*1

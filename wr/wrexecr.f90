@@ -248,26 +248,27 @@ CONTAINS
        WRITE(6,'(A,I6,4ES12.4)') 'ID,W:',ID,(W(I),I=1,4)
        SELECT CASE(ID)
        CASE(1)
-          RKR=RKR_1
+          RKRI=RKR_1
        CASE(2)
-          RKR=RKR_2
+          RKRI=RKR_2
        CASE(3)
-          RKR=-RKR_1
+          RKRI=-RKR_1
        CASE(4)
-          RKR=-RKR_2
+          RKRI=-RKR_2
        END SELECT
     CASE(1)
-       RKR=RKR_1
+       RKRI=RKR_1
     CASE(2)
-       RKR=RKR_2
+       RKRI=RKR_2
     CASE(3)
-       RKR=-RKR_1
+       RKRI=-RKR_1
     CASE(4)
-       RKR=-RKR_2
+       RKRI=-RKR_2
     END SELECT
        
-    ! --- rkr0 is given for MODEW=0 ---
-    CALL WRNWTN(IERR)  ! input RKR0,RKZI,RKPHII; output RKRI
+    ! --- rkr is given for MODEW=0 ---
+    CALL WRNWTN(RKRI,RKR,IERR)
+            ! input RKR; output RKRI; using RKZI,RKPHII
     IF(IERR.NE.0) THEN
        ierr=300
        RETURN
