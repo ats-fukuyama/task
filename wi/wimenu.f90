@@ -15,6 +15,7 @@ CONTAINS
     USE wiexec,ONLY: wi_exec
     USE wiscan,ONLY: wi_scan
     USE wigout,ONLY: wi_gout,wi_mesh
+    USE wimeasure,ONLY: wi_measure_pabs
     USE libkio
     USE libgrf
 
@@ -30,7 +31,7 @@ CONTAINS
 
 1   CONTINUE
     ierr=0
-    WRITE(6,'(A)') '## WI MENU: P,V/PARM  R/RUN  S/SCAN  G,M/GRAF  Q/QUIT'
+    WRITE(6,'(A)') '## WI MENU: P,V/PARM  R/RUN  S/SCAN  G,M/GRAF  U/  Q/QUIT'
 
     CALL TASK_KLIN(line,kid,mode,wi_parm)
     IF(mode /= 1) GOTO 1
@@ -100,6 +101,8 @@ CONTAINS
        ELSE
           CALL wi_gout
        END IF
+    ELSEIF(kid.EQ.'U') THEN
+       CALL wi_measure_pabs
     ELSEIF(kid.EQ.'M') THEN
        IF(INIT.EQ.0) THEN
           WRITE(6,*) 'XX xgrid is not ready or destroyed'

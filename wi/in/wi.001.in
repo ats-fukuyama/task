@@ -1,0 +1,31 @@
+0
+f
+gs/wi.001.gs
+c
+  xmin   = -1.2D0
+  xmax   =  1.2D0
+  alfa   =  10.D0
+  any    =  0.D0
+  beta   =  0.1D0
+  pnu    =  0.003D0
+  dx0    =  0.003D0
+  dxmin  =  0.D0
+  xwmin  =  1.D0
+  Bwidth =  30.D0
+  idebug =  0
+r
+g
+u
+alfa=30.D0
+r
+g
+u
+alfa=100.D0
+r
+g
+u
+alfa=300.D0
+r
+g
+u
+q
