@@ -1,5 +1,0 @@
- &wf
- modelg=12
- knampf='smesh__s106297_4666s_ts_Ra3.75_Bt-2.400rf3.90tf0.78zf-0.35_ng7.dat'
- knamwg='efsprf__s106297_4666s_ts_Ra3.75_Bt-2.400rf3.90tf0.78zf-0.35_ng7_zd0.00.dat'
- &end

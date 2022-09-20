@@ -167,7 +167,23 @@ CONTAINS
     WDAMP=0.D0
     FDAMP=0.3D0
 
-!     *** MEDIUM PARAMETERS ***
+    ! *** collision enhancement near a layer ***
+    !  model_coll_enhance:  0: no enhancement, 1: layer in x, 2: layer in y
+    !  factor_coll_enhance: enhancement factor (0.D0: no enhancement)
+    !  xpos_coll_enhance:   center position of the layer in x (R)
+    !  xwidth_coll_enhance: Gaussian width in x (R)
+    !  ypos_coll_enhance:   center position of the layer in y (Z)
+    !  ywidth_coll_enhance: Gaussian width in y (Z)
+    !       rzcl=rzcl_original*(1.D0+factor*exp(-(x-xpos)**2/xwidth**2))
+
+    model_coll_enhance=0
+    factor_coll_enhance=1.D0
+    xpos_coll_enhance  =0.D0
+    xwidth_coll_enhance=0.01D0
+    ypos_coll_enhance  =0.D0
+    ywidth_coll_enhance=0.01D0
+
+  !     *** MEDIUM PARAMETERS ***
 
     call wfmed_allocate
 
@@ -269,9 +285,9 @@ CONTAINS
 
 !     *** GRAPHICS PARAMETER ***
 
-    NGXMAX = 101
-    NGYMAX = 101
-    NGVMAX = 101  
+    NGXMAX = 31
+    NGYMAX = 31
+    NGVMAX = 31  
 
     GFACTOR= 0.5
 

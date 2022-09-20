@@ -1,0 +1,2 @@
+gstops -ab gs/$1.gs >ps/$1.ps
+open ps/$1.ps

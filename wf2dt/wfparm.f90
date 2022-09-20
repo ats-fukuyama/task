@@ -56,6 +56,9 @@ CONTAINS
                   PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PPN0,PTN0,&
                   NSMAX,NAMAX,MODELI,&
                   MODELG,MODELB,MODELD,MODELP,MODELN,&
+                  model_coll_enhance,factor_coll_enhance, &
+                  xpos_coll_enhance,xwidth_coll_enhance, &
+                  ypos_coll_enhance,ywidth_coll_enhance, &
                   NPRINT,NDRAWD,NDRAWA,NDRAWE,NGRAPH,NDRAWV,&
                   KFNAME,KFNAMA,KFNAMF,KFNAMN,KFNAMB,&
                   KNAMPF,KNAMWG, &
@@ -132,6 +135,9 @@ CONTAINS
        WRITE(6,*) '     NSMAX,NAMAX,MODELI,'
        WRITE(6,*) '     MODELG,MODELB,MODELD,MODELP,MODELN,'
        WRITE(6,*) '     NPRINT,NDRAWD,NDRAWA,NDRAWE,NGRAPH,NDRAWV,'
+       WRITE(6,*) '     model_coll_enhance,factor_coll_enhance,'
+       WRITE(6,*) '     xpos_coll_enhance,xwidth_coll_enhance,'
+       WRITE(6,*) '     ypos_coll_enhance,ywidth_coll_enhance,'
        WRITE(6,*) '     KFNAME,KFNAMA,KFNAMF,KFNAMN,KFNAMB,'
        WRITE(6,*) '     KNAMPF,KNAMWG,'
        WRITE(6,*) '     BXMIN,BXMAX,BYMIN,BYMAX,BZMIN,BZMAX,'
@@ -220,6 +226,16 @@ CONTAINS
           IF(PZCL(NS).EQ.0.D0) ID=1
        END DO
        IF(ID.NE.0) CALL WFCOLL(PN,PTPR,PTPP,RZCL,1)
+
+       WRITE(6,'(A24,I4,8X,A24,ES12.4)') &
+            'model_coll_enhance     =',model_coll_enhance, &
+            'factor_coll_enhance    =',factor_coll_enhance
+       WRITE(6,'(A24,ES12.4,A24,ES12.4)') &
+            'xpos_coll_enhance      =',xpos_coll_enhance, &
+            'xwidth_coll_enhance    =',xwidth_coll_enhance
+       WRITE(6,'(A24,ES12.4,A24,ES12.4)') &
+            'ypos_coll_enhance      =',ypos_coll_enhance, &
+            'ywidth_coll_enhance    =',ywidth_coll_enhance
     ENDIF
 
   IF(MODELG.EQ.0) THEN
@@ -281,8 +297,8 @@ SUBROUTINE wfparm_broadcast
   USE wfcomm
   IMPLICIT NONE
 
-  INTEGER,DIMENSION(23) :: idata
-  REAL(rkind),DIMENSION(35) :: ddata
+  INTEGER,DIMENSION(24) :: idata
+  REAL(rkind),DIMENSION(40) :: ddata
   
 ! ---  broadcast integer data -----
 
@@ -310,9 +326,10 @@ SUBROUTINE wfparm_broadcast
      idata(21)=MDAMP
      idata(22)=NCOILMAX
      idata(23)=MODELWF
+     idata(24)=model_coll_enhance
   end if
   
-  call mtx_broadcast_integer(idata,23)
+  call mtx_broadcast_integer(idata,24)
   
   NSMAX =idata(1)
   NAMAX =idata(2)
@@ -337,6 +354,7 @@ SUBROUTINE wfparm_broadcast
   MDAMP =idata(21)
   NCOILMAX =idata(22)
   MODELWF =idata(23)
+  model_coll_enhance=idata(24)
 
 ! ----- broadcast real(8) data ------
 
@@ -376,9 +394,14 @@ SUBROUTINE wfparm_broadcast
      ddata(33)=zdamp_min
      ddata(34)=zdamp_max
      ddata(35)=rkz
+     ddata(36)=factor_coll_enhance
+     ddata(37)=xpos_coll_enhance
+     ddata(38)=xwidth_coll_enhance
+     ddata(39)=ypos_coll_enhance
+     ddata(40)=ywidth_coll_enhance
   end if
 
-  call mtx_broadcast_real8(ddata,35)
+  call mtx_broadcast_real8(ddata,40)
   
   BB    =ddata(1)
   RA    =ddata(2)
@@ -415,6 +438,11 @@ SUBROUTINE wfparm_broadcast
   zdamp_min=ddata(33)
   zdamp_max=ddata(34)
   rkz   =ddata(35)
+  factor_coll_enhance=ddata(36)
+  xpos_coll_enhance=ddata(37)
+  xwidth_coll_enhance=ddata(38)
+  ypos_coll_enhance=ddata(39)
+  ywidth_coll_enhance=ddata(40)
 
   call mtx_broadcast_real8(AJ  ,8)
   call mtx_broadcast_real8(APH ,8)

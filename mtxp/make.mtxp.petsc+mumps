@@ -9,10 +9,8 @@ include ${PETSC_DIR}/lib/petsc/conf/variables
 INCLUDE_MTX_PETSC=-I${PETSC_DIR}/include -I${PETSC_DIR}/include/petsc -I${PETSC_DIR}/${PETSC_ARCH}/include
 
 LIBMTXMPI=../mtxp/libmtxmpi.o
-MUMPS_LIB=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lparmetis -lmetis -llapack -lblas ../lib/libtask.a
 
-MPI_INC=
-##### End of Part 1 #####
+MUMPS_LIB=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lparmetis -lmetis -llapack -lblas ../lib/libtask.a
 
 LIB_MTX_BND=$(LIBMTXMPI) ../mtxp/libmtxbndmpi.o
 LIB_MTX_PCG=$(LIBMTXMPI) ../mtxp/libmtxpcgmpi.o

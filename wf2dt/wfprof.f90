@@ -184,12 +184,16 @@ END SUBROUTINE WFSMAG2
 
 SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
 
-  use wfcomm,ONLY: modelg,nsm,nsmax,mdamp,rkind
+  use wfcomm,ONLY: modelg,nsm,nsmax,mdamp,rkind, &
+       model_coll_enhance,factor_coll_enhance, &
+       xpos_coll_enhance,xwidth_coll_enhance, &
+       ypos_coll_enhance,ywidth_coll_enhance
+       
   use plload
   implicit none
   real(rkind),intent(in) :: R,Z
   real(rkind),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
-  REAL(rkind):: RU(NSM)
+  REAL(rkind):: RU(NSM),factor
   INTEGER:: NSMAXL,IERR,NS
 
   SELECT CASE(MODELG)
@@ -206,6 +210,25 @@ SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
         RU(NSMAX)=0.D0
      END IF
      CALL WFCOLL(rn,rtpr,rtpp,rzcl,0)
+     SELECT CASE(model_coll_enhance)
+     CASE(1)
+        factor=factor_coll_enhance &
+             *(1.D0+EXP(-(R-xpos_coll_enhance)**2/xwidth_coll_enhance**2))
+     CASE(2)
+        factor=factor_coll_enhance &
+             *(1.D0+EXP(-(Z-ypos_coll_enhance)**2/ywidth_coll_enhance**2))
+     CASE DEFAULT
+        factor=1.D0
+     END SELECT
+     IF(mdamp.EQ.0) THEN
+        DO NS=1,NSMAX
+           RZCL(NS)=RZCL(NS)*factor
+        END DO
+     ELSE
+        DO NS=1,NSMAX-1
+           RZCL(NS)=RZCL(NS)*factor
+        END DO
+     END IF
   END SELECT
   RETURN
 END SUBROUTINE WFSDEN

@@ -2,9 +2,9 @@
 ### Setup configureation with MPI and PETSc
 
 EXEC=testbnd testbndc testpcg testksp
-INC_MTX_MPI=-I/usr/local/mpich332-gfortran-clang/include
 
-INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/include include ${PETSC_DIR}/lib/petsc/conf/variables
+INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/include
+include ${PETSC_DIR}/lib/petsc/conf/variables
 
 INCLUDE_MTX_PETSC=-I${PETSC_DIR}/include -I${PETSC_DIR}/include/petsc -I${PETSC_DIR}/${PETSC_ARCH}/include
 
@@ -12,13 +12,13 @@ LIBMTXMPI=../mtxp/libmtxmpi.o
 
 LIB_MTX_BND=$(LIBMTXMPI) ../mtxp/libmtxbndmpi.o
 LIB_MTX_PCG=$(LIBMTXMPI) ../mtxp/libmtxpcgmpi.o
-LIB_MTX_MUMPS=$(LIBMTXMPI) $(PETSC_KSP_LIB)
 LIB_MTX_KSP=$(LIBMTXMPI) ../mtxp/libmtxksp.o
+LIB_MTX_MUMPS=$(LIBMTXMPI) $(PETSC_KSP_LIB)
 
 LIBX_MTX_BND=$(LIB_MTX_BND)
 LIBX_MTX_PCG=$(LIB_MTX_PCG)
-LIBX_MTX_MUMPS=$(LIB_MTX_MUMPS) $(PETSC_KSP_LIB)
 LIBX_MTX_KSP=$(LIB_MTX_KSP) $(PETSC_KSP_LIB)
+LIBX_MTX_MUMPS=$(LIB_MTX_MUMPS) $(PETSC_KSP_LIB)
 
 ### PART 2: Selection of default setup ###
 ###            overwritten in Makefile in each directory ###

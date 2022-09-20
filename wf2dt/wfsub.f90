@@ -19,9 +19,6 @@ SUBROUTINE WFSLIM
      LNODE=SQRT(RNODE(1)**2+ZNODE(1)**2)
   CASE(2)
      LNODE=SQRT((RNODE(1)-RR)**2+ZNODE(1)**2)
-  CASE DEFAULT
-     WRITE(6,'(A,I6)') 'XX wfslim: Undefined modelg: modelg=',modelg
-     STOP
   END SELECT
   LNDMIN=LNODE
   LNDMAX=LNODE
@@ -517,7 +514,7 @@ SUBROUTINE SETBDY(IERR)
   RETURN
 END SUBROUTINE SETBDY
 
-!     ***** SET Waveguide ELECTRIC FIELD *****
+!     ***** SET BOUNDARY ELECTRIC FIELD *****
 
 SUBROUTINE SETEWG
 
@@ -542,7 +539,6 @@ SUBROUTINE SETEWG
   IF(ALLOCATED(CEBSD)) DEALLOCATE(CEBSD)
   ALLOCATE(NSDBS(NBSID))
   ALLOCATE(CEBSD(NBSID))
-  ALLOCATE(PFLUXBDY(NBSID))
   NBSID=0
   DO NSD=1,NSDMAX
      IF(KASID(NSD).EQ.1) THEN
@@ -580,7 +576,7 @@ SUBROUTINE SETEWG
            IF(MODELWG.EQ.1) CEBSD(NBSD)=CEBSD(NBSD)*EXP(-10.D0*FACTOR)
            IF(PROD.GT.0.D0) CEBSD(NBSD)=-CEBSD(NBSD)
            IF(nrank.EQ.0) &
-                WRITE(23,'(A,2I8,1P5E12.4)') &
+                WRITE(6,'(A,2I8,1P5E12.4)') &
                 'SD:',NSD,NBSD,CEBSD(NBSD),AMPWG,PHASE,ANGLE
         ELSE
            CEBSD(NBSD)=(0.D0,0.D0)
@@ -591,7 +587,7 @@ SUBROUTINE SETEWG
            PROD=(R2WG-R1WG)*(RNODE(NN2)-RNODE(NN1)) &
                +(Z2WG-Z1WG)*(ZNODE(NN2)-ZNODE(NN1))
            CALL wf_read_wg(Z,CEX,CEY,CEZ,IERR)
-           IF(nrank.EQ.0) write(23,'(A,1P6E12.4)') 'R,Z,CEY=', &
+           IF(nrank.EQ.0) write(6,'(A,1P6E12.4)') 'R,Z,CEY=', &
                                     R,Z,CEY,PROD,ZNODE(NN2)-ZNODE(NN1)
 !!!           IF(PROD.GT.0.D0) CEY=-CEY
            CEBSD(NBSD)=AMPWG*CEY
@@ -644,7 +640,7 @@ SUBROUTINE SETEWG
            CEBND(NBND)= AMPWG*EXP(CII*PHASE)*(SIN(ANGLE)-CII*ELPWG*COS(ANGLE))
            IF(MODELWG.EQ.1) CEBND(NBND)=CEBND(NBND)*EXP(-10.D0*FACTOR)
            IF(nrank.EQ.0) &
-                WRITE(23,'(A,2I8,1P5E12.4)') &
+                WRITE(6,'(A,2I8,1P5E12.4)') &
                 'ND:',NN,NBND,CEBND(NBND),AMPWG,PHASE,ANGLE
         ELSE
            CEBND(NBND)=(0.D0,0.D0)
@@ -653,7 +649,7 @@ SUBROUTINE SETEWG
         IF((R.GE.R1WG-EPSWG).AND.(R.LE.R2WG+EPSWG).AND. &
            (Z.GE.Z1WG-EPSWG).AND.(Z.LE.Z2WG+EPSWG)) THEN
            CALL wf_read_wg(Z,CEX,CEY,CEZ,IERR)
-           IF(nrank.EQ.0) write(23,'(A,1P4E12.4)') 'R,Z,CEZ=',R,Z,CEZ
+           IF(nrank.EQ.0) write(6,'(A,1P4E12.4)') 'R,Z,CEZ=',R,Z,CEZ
            CEBND(NBND)=AMPWG*CEZ
         ELSE
            CEBND(NBND)=(0.D0,0.D0)
@@ -911,6 +907,7 @@ SUBROUTINE FIELDCR(NE,R,Z,CVALUE,CE)
   complex(rkind),intent(in) :: CVALUE(NSDMAX)
   complex(rkind):: CF
   complex(rkind),intent(out) :: CE
+  REAL(rkind):: DR,DZ,DL
 
   CALL WFABC(NE,A,B,C)
   do ISD=1,3
@@ -944,7 +941,7 @@ SUBROUTINE FIELDCR(NE,R,Z,CVALUE,CE)
      WEIGHT=AW(ISD)-BW(ISD)*Z
      CE=CE+WEIGHT*CF
      IF(idebug.EQ.-1) &
-          WRITE(6,'(A,I6,I4,I6,1P5E12.4)') 'FR:',NE,ISD,NSD,weight,CF,CE
+          WRITE(6,'(A,I10,I5,1P5E12.4)') 'FR:',NE,ISD,weight,CF,CE
   END DO
 
   RETURN
@@ -1026,132 +1023,3 @@ SUBROUTINE FIELDCP(NE,R,Z,CVALUE,CE)
 
   RETURN
 END SUBROUTINE FIELDCP
-
-!     ****** REAL VALUE FIELD AT ELEMENT(NE),POINT(R,Z) [R]******
-
-SUBROUTINE FIELDRR(NE,R,Z,FA,F)
-
-  use wfcomm
-  implicit none
-  integer,intent(in) :: NE
-  integer :: ISD,M,N,NSD
-  real(rkind),intent(in) :: R,Z
-  real(rkind) :: A(3),B(3),C(3),AW(3),BW(3),WEIGHT,L
-  REAL(rkind),intent(in) :: FA(NSDMAX)
-  REAL(rkind):: FL
-  REAL(rkind),intent(out) :: F
-
-  CALL WFABC(NE,A,B,C)
-  do ISD=1,3
-     NSD=ABS(NSDELM(ISD,NE))
-     IF(MODELWF.EQ.0) THEN
-        L=LSID(NSD)
-     ELSE
-        IF(NSDELM(ISD,NE).GT.0.D0) THEN
-           L=LSID(NSD)
-        ELSE
-           L=-LSID(NSD)
-        END IF
-     END IF
-
-     M=ISD
-     N=ISD+1
-     IF(N.gt.3) N=N-3
-     AW(ISD)=L*(A(M)*B(N)-A(N)*B(M))
-     BW(ISD)=L*(B(M)*C(N)-B(N)*C(M))
-  end do
-
-  F=0.D0
-  DO ISD=1,3
-     NSD=NSDELM(ISD,NE)
-     if(NSD.lt.0) then
-        NSD=-NSD
-        FL=-FA(NSD)
-     else
-        FL=FA(NSD)
-     end if
-     WEIGHT=AW(ISD)-BW(ISD)*Z
-     F=F+WEIGHT*FL
-     IF(idebug.EQ.-1) &
-          WRITE(6,'(A,I6,I4,I6,1P3E12.4)') 'FR:',NE,ISD,NSD,weight,FL,F
-  END DO
-
-  RETURN
-END SUBROUTINE FIELDRR
-
-!     ****** REAL VALUE FIELD AT ELEMENT(NE),POINT(R,Z) [Z]******
-
-SUBROUTINE FIELDRZ(NE,R,Z,FA,F)
-
-  use wfcomm
-  implicit none
-  integer,intent(in) :: NE
-  integer :: ISD,M,N,NSD
-  real(rkind),intent(in) :: R,Z
-  real(rkind) :: A(3),B(3),C(3),BW(3),CW(3),WEIGHT,L
-  REAL(rkind),intent(in) :: FA(NSDMAX)
-  REAL(rkind):: FL
-  REAL(rkind),intent(out) :: F
-
-  CALL WFABC(NE,A,B,C)
-  do ISD=1,3
-     NSD=ABS(NSDELM(ISD,NE))
-     IF(MODELWF.EQ.0) THEN
-        L=LSID(NSD)
-     ELSE
-        IF(NSDELM(ISD,NE).GT.0.D0) THEN
-           L=LSID(NSD)
-        ELSE
-           L=-LSID(NSD)
-        END IF
-     END IF
-     
-     M=ISD
-     N=ISD+1
-     IF(N.gt.3) N=N-3
-     BW(ISD)=L*(B(M)*C(N)-B(N)*C(M))
-     CW(ISD)=L*(C(M)*A(N)-C(N)*A(M))
-  end do
-
-  F=0.D0
-  DO ISD=1,3
-     NSD=NSDELM(ISD,NE)
-     if(NSD.lt.0) then
-        NSD=-NSD
-        FL=-FA(NSD)
-     else
-        FL=FA(NSD)
-     end if
-     WEIGHT=-CW(ISD)+BW(ISD)*R
-     F=F+WEIGHT*FL
-  END DO
-
-  RETURN
-END SUBROUTINE FIELDRZ
-
-!     ****** REAL VALUE FIELD AT ELEMENT(NE),POINT(R,Z) [PHI] ******
-
-SUBROUTINE FIELDRP(NE,R,Z,FA,F)
-
-  use wfcomm
-  implicit none
-  integer,intent(in) :: NE
-  integer :: NN,IN
-  real(rkind),intent(in) :: R,Z
-  real(rkind) :: A(3),B(3),C(3),WEIGHT(3)
-  REAL(rkind),intent(in) :: FA(NNMAX)
-  REAL(rkind):: FL
-  REAL(rkind),intent(out) :: F
-
-  CALL WFABC(NE,A,B,C)
-  CALL WFWGT(NE,R,Z,WEIGHT)
-
-  F=0.D0
-  DO IN=1,3
-     NN=NDELM(IN,NE)
-     FL=FA(NN)
-     F=F+WEIGHT(IN)*FL
-  END DO
-
-  RETURN
-END SUBROUTINE FIELDRP

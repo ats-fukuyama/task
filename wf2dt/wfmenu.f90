@@ -5,9 +5,6 @@ subroutine wfmenu
   USE wfparm
   USE plload, ONLY: pl_load
   USE wfload, ONLY: wf_load_wg
-  USE femmeshprep
-  USE feminterpolate
-  USE wftest
   USE libkio
   implicit none
   
@@ -54,8 +51,6 @@ subroutine wfmenu
      CALL pl_load(ierr)
      CALL wf_load_wg(ierr)
      IDEBUG=IDEBUG_SAVE
-  elseif (KID.eq.'T') then
-     if(nrank.eq.0) call wf_test
   elseif (KID.eq.'?') then
      if(nrank.eq.0) call WFINFO
   elseif (KID.eq.'Q') then

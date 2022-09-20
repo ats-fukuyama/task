@@ -5,7 +5,7 @@
 MODULE wfwg1D
 
   USE bpsd_kinds
-  INTEGER:: NYMAX
+  INTEGER(ikind):: NYMAX
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: YD
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: VA
   REAL(rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: UA
@@ -167,9 +167,9 @@ CONTAINS
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: Y    ! Position
       COMPLEX(rkind),INTENT(OUT):: CEX,CEY,CEZ ! WG mouth electric field 
-      INTEGER,INTENT(OUT):: IERR    ! ERROR Indicator 
+      INTEGER(ikind),INTENT(OUT):: IERR    ! ERROR Indicator 
       REAL(rkind):: YL,ER,EI
-      INTEGER:: IERL
+      INTEGER(ikind):: IERL
 
       YL=Y
       IF(YL.LT.YD(1))     YL=YD(1)

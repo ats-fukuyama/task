@@ -1,0 +1,3 @@
+#!/bin/sh
+#exec xterm -geometry 80x21+0-0 -ls -sb -sl 1000 -vb -tn xterm-color -wf &
+exec xterm -fn a14 -geometry 80x21+0-0 -sb -sl 1000 -vb -rightbar -j -wf -tn xterm-color &
