@@ -185,7 +185,7 @@ CONTAINS
 !        CNN    : COEFFICIENT FOR NEUTRAL DIFFUSION
 !        CDW(8) : COEFFICIENTS FOR DW MODEL
 
-      AV0    = 0.5D0
+      AV0    = 0.0D0
       AD0    = 0.5D0
 
       CNP    = 1.D0
@@ -282,7 +282,7 @@ CONTAINS
 !     +               4: Hirshman, Sigmar                     +
 !     +               else: CLASSICAL                         +
 !     +    MDLAD : PARTICLE DIFFUSION MODEL                   +
-!     +               1: CONSTANT D                           +
+!     +               1: CONSTANT D with pinch AV0            +
 !     +               2: TURBULENT EFFECT                     +
 !     +               3: Hinton and Hazeltine                 +
 !     +               4: Hinton and Hazeltine w/ TURBULENT    +

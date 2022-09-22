@@ -1452,7 +1452,7 @@
       USE TRCOMM, ONLY : AD, AD0, ADDW, ADDWD, ADDWP, ADLD, ADLP, ADNC, ADNCP, ADNCT, AEE, AKDW, ALP, AME, AMM, AV, AV0,    &
      &                   AVDW, AVK, AVKDW, AVKNC, AVNC, BB, BP, CDH, CDP, CHP, CNH, CNN, CNP, CSPRS, EPSRHO, EZOH, MDDIAG,  &
      &                   MDDW, MDEDGE, MDLAD, MDLAVK, MDNCLS, NREDGE, NRMAX, NSLMAX, NSM, PA, PN, PNSS, PROFN1, PROFN2, PTS,&
-     &                   PZ, QP, RA, RHOG, RKEV, RN, RR, RT, ZEFF, rkind
+     &                   PZ, QP, RA, RHOG, RKEV, RN, RM, RR, RT, ZEFF, rkind
       IMPLICIT NONE
       INTEGER:: NR, NS, NS1, NA, NB
       REAL(rkind)   :: ANA, ANDX, ANE, ANED, ANI, ANT, BPL, CFNCI, CFNCNC, CFNCNH, CFNHI, CFNHNC, CFNHNH, DPROF, EDCM, EPS, EPSS,&
@@ -1510,7 +1510,7 @@
 !            PROF   = PROF1+PNSS(1)/(PN(1)-PNSS(1))
 !            DPROF  =-PROFN1*RX**(PROFN1-1.D0)*PROF2
 
-            AVDW(NR,1:NSM) = 0.D0
+            AVDW(NR,1:NSM) = -AV0*(RM(NR)/RA**2)*ADDW(NR,1:NSM)
          ENDDO
       case(2)
          DO NR=1,NRMAX
