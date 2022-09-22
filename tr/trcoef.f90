@@ -1510,7 +1510,7 @@
 !            PROF   = PROF1+PNSS(1)/(PN(1)-PNSS(1))
 !            DPROF  =-PROFN1*RX**(PROFN1-1.D0)*PROF2
 
-            AVDW(NR,1:NSM) = -AV0*(RM(NR)/RA**2)*ADDW(NR,1:NSM)
+            AVDW(NR,1:NSM) = -AV0*(RHOG(NR)/RA)*ADDW(NR,1:NSM)
          ENDDO
       case(2)
          DO NR=1,NRMAX
@@ -1545,7 +1545,7 @@
 !            DPROF  = -PROFN1*RX**(PROFN1-1.D0)*PROF2*(PN(1) &
 !                     -PNSS(1))*ALP(1)/RA *1.5D0
 
-            AVDW(NR,1:NSM) = 0.D0
+            AVDW(NR,1:NSM) = -AV0*(RHOG(NR)/RA)*ADDW(NR,1:NSM)
          ENDDO
       case(3)
 !     *** Hinton & Hazeltine model w/o anomalous part of ***

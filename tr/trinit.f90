@@ -283,7 +283,7 @@ CONTAINS
 !     +               else: CLASSICAL                         +
 !     +    MDLAD : PARTICLE DIFFUSION MODEL                   +
 !     +               1: CONSTANT D with pinch AV0            +
-!     +               2: TURBULENT EFFECT                     +
+!     +               2: TURBULENT EFFECT with pinch AV0      +
 !     +               3: Hinton and Hazeltine                 +
 !     +               4: Hinton and Hazeltine w/ TURBULENT    +
 !     +               else: NO PARTICLE TRANSPORT             +
