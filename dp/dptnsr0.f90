@@ -4,7 +4,7 @@ CONTAINS
 
 !     ****** CALCULATE DIELECTRIC TENSOR ******
 
-  SUBROUTINE DP_TNSR0(CW,CKPR,CKPP,NS,mag,plf,grd,CLDISP)
+  SUBROUTINE DP_TNSR0(CW,CKPR,CKPP,NS,mag,plfw,grd,CLDISP)
 
     USE dpcomm
     USE dptnsr1
@@ -14,11 +14,12 @@ CONTAINS
     USE dphotf
     USE dphotr
     USE plprof
+    USE plprofw
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
     TYPE(pl_mag_type),INTENT(IN):: mag
-    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+    TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
     TYPE(pl_grd_type),DIMENSION(nsmax),INTENT(IN):: grd
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     COMPLEX(rkind):: CLDISP1(6)
@@ -26,24 +27,21 @@ CONTAINS
 
 !    WRITE(6,*) 'dp_tens:',modelp(1),modelv(1)
 
-    IF(plf(NS)%RN.LE.0.D0) THEN
-       CALL DPTNCL(CW,NS,mag,plf,CLDISP)
-!      ELSEIF(mag%RHON.LT.RHON_MIN.OR.mag%RHON.GT.RHON_MAX) THEN
-!         ID1=MOD(MODELP(NS),100)
-!         CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plf,grd,CLDISP)
+    IF(plfw(NS)%RN.LE.0.D0) THEN
+       CALL DPTNCL(CW,NS,mag,plfw,CLDISP)
     ELSE
        ID1=MOD(MODELP(NS),100)
        ID2=MODELP(NS)/100
        IDV=MODELV(NS)
        IF(IDV.NE.0.AND.(mag%RHON.LT.RHON_MIN(NS).OR. &
                         mag%RHON.GT.RHON_MAX(NS))) THEN
-          CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plf,grd,CLDISP)
+          CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plfw,grd,CLDISP)
        ELSE
           SELECT CASE(IDV)
           CASE(0)
-             CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plf,grd,CLDISP)
+             CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plfw,grd,CLDISP)
           CASE(1)
-             CALL DPFMFL(NS,plf,0)
+             CALL DPFMFL(NS,plfw,0)
              IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
                 CALL DP_HOTFI(CW,CKPR,CKPP,NS,mag,CLDISP)
              ELSE
@@ -58,7 +56,7 @@ CONTAINS
                 CALL DP_HOTF(CW,CKPR,CKPP,NS,mag,CLDISP)
              ENDIF
           CASE(3)
-             CALL DPFMFL(NS,plf,1)
+             CALL DPFMFL(NS,plfw,1)
              IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
                 CALL DP_HOTRI(CW,CKPR,CKPP,NS,mag,CLDISP)
              ELSE
@@ -75,9 +73,9 @@ CONTAINS
           END SELECT
        END IF
        IF(ID2.EQ.2) THEN
-          CALL DPTNCL(CW,NS,mag,plf,CLDISP1)
+          CALL DPTNCL(CW,NS,mag,plfw,CLDISP1)
        ELSEIF(ID2.EQ.3) THEN
-          CALL DPTNKP(CW,CKPR,CKPP,NS,mag,plf,CLDISP1)
+          CALL DPTNKP(CW,CKPR,CKPP,NS,mag,plfw,CLDISP1)
        ENDIF
 
        IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
@@ -102,47 +100,51 @@ CONTAINS
 
 !     ****** CALCULATE ANALYTIC DIELECTRIC TENSOR ******
 
-  SUBROUTINE DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plf,grd,CLDISP)
+  SUBROUTINE DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plfw,grd,CLDISP)
 
     USE dpcomm
     USE dptnsr1
     USE dptnsr2
     USE dptnsr3
     USE dptnsr4
+    USE dptnsb1
     USE plprof
+    USE plprofw
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: ID1,NS
     TYPE(pl_mag_type),INTENT(IN):: mag
-    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+    TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
     TYPE(pl_grd_type),DIMENSION(nsmax),INTENT(IN):: grd
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
 
       SELECT CASE(ID1)
       CASE(0) ! collisionless cold model
-         CALL DPTNCL(CW,NS,mag,plf,CLDISP)
+         CALL DPTNCL(CW,NS,mag,plfw,CLDISP)
       CASE(1) ! collisional cold model
-         CALL DPTNCC(CW,NS,mag,plf,CLDISP)
+         CALL DPTNCC(CW,NS,mag,plfw,CLDISP)
       CASE(2) ! idial MHD model
-         CALL DPTNIM(CKPR,NS,mag,plf,CLDISP)
+         CALL DPTNIM(CKPR,NS,mag,plfw,CLDISP)
       CASE(3) ! resistive MHD model
-         CALL DPTNRM(CW,NS,mag,plf,CLDISP)
+         CALL DPTNRM(CW,NS,mag,plfw,CLDISP)
       CASE(4) ! kinetic without FLR model
-         CALL DPTNHP(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+         CALL DPTNHP(CW,CKPR,CKPP,NS,mag,plfw,CLDISP)
       CASE(5) ! kinetic with FLR model (symmetric)
-         CALL DPTNKS(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+         CALL DPTNKS(CW,CKPR,CKPP,NS,mag,plfw,CLDISP)
       CASE(6) ! kinetic with FLR model
-         CALL DPTNKP(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+         CALL DPTNKP(CW,CKPR,CKPP,NS,mag,plfw,CLDISP)
       CASE(7) ! kinetic with drift and FLR by Swanson
-         CALL DPTNKD(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+         CALL DPTNKD(CW,CKPR,CKPP,NS,mag,plfw,CLDISP)
       CASE(8) ! kinetic with drift and FLR by T. Watanabe
-         CALL DPTNTW(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+         CALL DPTNTW(CW,CKPR,CKPP,NS,mag,plfw,CLDISP)
       CASE(9) ! weakly relativistic model
-         CALL DPTNKR(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+         CALL DPTNKR(CW,CKPR,CKPP,NS,mag,plfw,CLDISP)
       CASE(11:15) ! old WM models model
-         CALL DPTNFK2(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+         CALL DPTNFK2(CW,CKPR,CKPP,NS,mag,plfw,CLDISP)
       CASE(21) ! old WM drift kinetic model
-         CALL DPTNDK0(CW,CKPR,CKPP,NS,mag,plf,grd,CLDISP)
+         CALL DPTNDK0(CW,CKPR,CKPP,NS,mag,plfw,grd,CLDISP)
+      CASE(31) ! old WM drift kinetic model
+         CALL dp_tnsb1(CW,CKPR,CKPP,NS,mag,plfw,CLDISP)
       CASE DEFAULT
          WRITE(6,*) 'XX WRONG MODELP IN DPTENS: ID1=',ID1
       END SELECT

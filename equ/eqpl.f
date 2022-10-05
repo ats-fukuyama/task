@@ -27,8 +27,8 @@ c=======================================================================
       implicit none
       integer ierr
 ! local variables
-      integer(4)    ns
-      real(8) pretot,dentot,temave
+      integer    ns
+      real(rkind) pretot,dentot,temave
 c=======================================================================
       if(eqpl_init_flag) then
          equ1D%nrmax=0
@@ -49,8 +49,8 @@ c
 c
       equ1D%time=0.D0
       if(equ1D%nrmax.ne.nv) then
-         if(associated(equ1D%rho)) deallocate(equ1D%rho)
-         if(associated(equ1D%data)) deallocate(equ1D%data)
+         if(ALLOCATED(equ1D%rho)) deallocate(equ1D%rho)
+         if(ALLOCATED(equ1D%data)) deallocate(equ1D%data)
          equ1D%nrmax=nv
          allocate(equ1D%rho(nv))
          allocate(equ1D%data(nv))
@@ -58,8 +58,8 @@ c
 c
       metric1D%time=0.D0
       if(metric1D%nrmax.ne.nv) then
-         if(associated(metric1D%rho)) deallocate(metric1d%rho)
-         if(associated(metric1D%data)) deallocate(metric1d%data)
+         if(ALLOCATED(metric1D%rho)) deallocate(metric1d%rho)
+         if(ALLOCATED(metric1D%data)) deallocate(metric1d%data)
          metric1D%nrmax=nv
          allocate(metric1D%rho(nv))
          allocate(metric1D%data(nv))
@@ -83,7 +83,7 @@ c=======================================================================
       integer ierr
 ! local variables
       integer(4)    ns,n
-      real(8) pretot,dentot,temave
+      real(rkind) pretot,dentot,temave
 c=======================================================================
 
 !----- adjust pressure profile -----
@@ -112,13 +112,13 @@ c set pressure profiles
          pretot=(mut(n)/cnmu)*hdt(n)**gam
          dentot=0.d0
          do ns=1,plasmaf%nsmax
-            dentot=dentot+plasmaf%data(n,ns)%pn
+            dentot=dentot+plasmaf%data(n,ns)%density
          enddo
          temave=pretot/(cnec*dentot)
          do ns=1,plasmaf%nsmax
-            plasmaf%data(n,ns)%pt=temave
-            plasmaf%data(n,ns)%ptpr=temave
-            plasmaf%data(n,ns)%ptpp=temave
+            plasmaf%data(n,ns)%temperature=temave
+            plasmaf%data(n,ns)%temperature_para=temave
+            plasmaf%data(n,ns)%temperature_perp=temave
          enddo
       enddo
 
@@ -172,8 +172,8 @@ c=======================================================================
          hit(n)=hiv(nv)*plasmaf%rho(n)**2
          qi(n)=plasmaf%qinv(n)/(2.D0*cnpi)**2
          do ns=1,plasmaf%nsmax
-            den(n,ns-1)=plasmaf%data(n,ns)%pn
-            tem(n,ns-1)=plasmaf%data(n,ns)%pt
+            den(n,ns-1)=plasmaf%data(n,ns)%density
+            tem(n,ns-1)=plasmaf%data(n,ns)%temperature
             pre(n,ns-1)=cnec*tem(n,ns-1)*den(n,ns-1)
          enddo
       enddo
@@ -369,11 +369,11 @@ c-----
       do n=1,plasmaf%nrmax
          do ns=1,plasmaf%nsmax
             tem(n,ns-1)=pre(n,ns-1)/(cnec*den(n,ns-1))
-            plasmaf%data(n,ns)%pn=den(n,ns-1)
-            plasmaf%data(n,ns)%pt=tem(n,ns-1)
-            plasmaf%data(n,ns)%ptpr=tem(n,ns-1)
-            plasmaf%data(n,ns)%ptpp=tem(n,ns-1)
-            plasmaf%data(n,ns)%pu=0.d0
+            plasmaf%data(n,ns)%density=den(n,ns-1)
+            plasmaf%data(n,ns)%temperature=tem(n,ns-1)
+            plasmaf%data(n,ns)%temperature_para=tem(n,ns-1)
+            plasmaf%data(n,ns)%temperature_perp=tem(n,ns-1)
+            plasmaf%data(n,ns)%velocity_tor=0.d0
          enddo
 c         plasmaf%qinv(n)=nut(n)*(2.D0*cnpi)**2
       enddo
@@ -413,7 +413,7 @@ c-----------------------------------------------------------------------
       do iz=1,nz
       do ir=1,nr
       i=(iz-1)*nr+ir
-      rho2d(i)=dfloat(nro+1)
+      rho2d(i)=DBLE(nro+1)
       if(iz.ge.izs.and.iz.le.ize)then
       if(ir.ge.irs.and.ir.le.ire)then
       if(psi(i).le.sit(nro))then

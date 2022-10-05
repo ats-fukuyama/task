@@ -6,28 +6,14 @@
 
       SUBROUTINE TRGLOB
 
-      USE TRCOMM, ONLY : &
-           & ABRHOG, AJ, AJBS, AJBST, AJNB, AJNBT, AJOH, AJOHT, AJRF, AJRFT, &
-           & AJRFV, AJRFVT, AJT, AJTOR, AJTTOR, ALI, ANF0, ANFAV, ANLAV, &
-           & ANS0, ANSAV, BB, BETA, BETA0, BETAA, BETAL, BETAN, BETAP, &
-           & BETAP0, BETAPA, BETAPL, BETAQ, BETAQ0, BP, DD, DR, DVRHO, &
-           & DVRHOG, EZOH, H98Y2, MDLUF, NEQMAX, NFM, NRAMAX, NRMAX, &
-           & NROMAX, NSM, NSS, NSV, PA, PBCL, PBCLT, PBIN, PBINT, PBM, &
-           & PCX, PCXT, PEX, PEXST, PEXT, PFCL, PFCLT, PFIN, PFINT, PI, &
-           & PIE, PIET, PINT, PLT, PNB, PNBT, PNF, PNFT, PNSS, POH, POHT, &
-           & POUT, PRF, PRFST, PRFT, PRFV, PRFVT, PTS, Q0, QF, &
-           & QP, RA, RDP, RG, RHOA, RIP, RKAP, RKEV, RM, RMJRHO, RMU0, RN, &
-           & RNF, RQ1, RR, RT, RW, SIE, SIET, SINT, SLT, SNB, SNBT, SNF, &
-           & SNFT, SOUT, SPE, SPET, T, TAUE1, TAUE2, TAUE89, TAUE98, TF0, &
-           & TFAV, TPRE, TS0, TSAV, VLOOP, VV, WBULKT, WFT, WPDOT, WPPRE, & 
-           & WPT, WST, WTAILT, ZEFF, ZEFF0, ABVRHOG, RDPVRHOG, &
-           & PRB,PRC,PRL,PRSUM,PRBT,PRCT,PRLT,PRSUMT, &
-             NSMAX,SPSCT,SPSC 
+      USE trcomm
+      USE trexec
+      USE libitp
       IMPLICIT NONE
-      INTEGER(4):: NEQ, NF, NMK, NR, NRL, NS, NSSN, NSSN1, NSVN, NSVN1, NSW, NW
-      REAL(8)   :: ANFSUM, C83, DRH, DV53, FCTR, PAI, PLST, RNSUM, RNTSUM, &
+      INTEGER:: NEQ, NF, NMK, NR, NRL, NS, NSSN, NSSN1, NSVN, NSVN1, NSW, NW
+      REAL(rkind)   :: ANFSUM, C83, DRH, DV53, PAI, PLST, RNSUM, RNTSUM, &
            & RTSUM, RWSUM, SLST, SUMM, SUML, SUMP, VOL, WPOL
-      REAL(8),DIMENSION(NRMAX):: DSRHO
+      REAL(rkind),DIMENSION(NRMAX):: DSRHO
 
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
 
@@ -286,7 +272,7 @@
 
       WPT =WBULKT+WTAILT
       PINT=POHT+PNBT+PRFST+PNFT+PEXST
-      POUT=PLST+PCXT+PIET+PRBT*PRCT+PRLT
+      POUT=PLST+PCXT+PIET+PRBT+PRCT+PRLT
       SINT=SIET+SNBT
       SOUT=SLST
 
@@ -377,14 +363,15 @@
            & RMNRHO, RN, RPSI, RQ1, RR, RT, RW, S, ALPHA, SIET, SINT, SLT, &
            & SNBT, SNFT, SOUT, T, TAUE1, TAUE2, TAUE89, TAUE98, TF0, TFAV, &
            & TS0, TSAV, VLOOP, VPOL, VTOR, WBULKT, WFT, WPDOT, WPT, WST, &
-           & WTAILT, ZEFF, ZEFF0, RKCV, PRBT, PRCT, PRSUMT
+           & WTAILT, ZEFF, ZEFF0, RKCV, PRBT, PRCT, PRSUMT, rkind
+      USE libspl1d
       IMPLICIT NONE
-      INTEGER(4):: IERR, NR
-      REAL(8)   :: RMN, F0D
-      REAL(8),DIMENSION(NRMAX):: DERIV, U0
-      REAL(8),DIMENSION(4,NRMAX):: U
-      REAL(8)   :: TRCOFS
-      REAL(4)   :: GUCLIP
+      INTEGER:: IERR, NR
+      REAL(rkind)   :: RMN, F0D
+      REAL(rkind),DIMENSION(NRMAX):: DERIV, U0
+      REAL(rkind),DIMENSION(4,NRMAX):: U
+      REAL(rkind)   :: TRCOFS
+      REAL   :: GUCLIP
 
 
       IF(NGT.GE.NTM) RETURN
@@ -629,8 +616,8 @@
       USE TRCOMM, ONLY : AJ, AJBS, AJNB, AJOH, AJRF, AK, BP, EZOH, GTR, GVR, NGM, NGR, NRAMAX, NRMAX , NROMAX, &
      &                   PIN, POH, Q0, QP, RHOA, RN, RPSI, RT, T, VGR1
       IMPLICIT NONE
-      INTEGER(4):: NR
-      REAL(4)   :: GUCLIP
+      INTEGER:: NR
+      REAL   :: GUCLIP
 
 
       IF(NGR.GE.NGM) RETURN
@@ -683,25 +670,18 @@
 
       SUBROUTINE TRPRNT(KID)
 
-      USE TRCOMM, ONLY : &
-           AJ, AJBST, AJNBT, AJOHT, AJRFT, AJT, ALI, ANC, ANFAV, ANFE, &
-           ANSAV, BB, BETA0, BETAA, BETAN, BETAP0, BETAPA, DT, GTCPU1, &
-           KFNLOG, NGR, NGT, NRMAX, NTMAX, PBCLT, PBINT, PCXT, PFCLT, &
-           PFINT, PICTOT, PIET, PINT, PLHNPR, PLHTOT, PLT, PN, PNBT, &
-           PNFT, POHT, POUT, PRFT, PRSUMT, Q0, QF, QP, RIPE, RIPS, RQ1, &
-           SIET, SINT, SLT, SNBT, SNFT, SOUT, T, TAUE1, TAUE2, TAUE89, &
-           TAUE98, TF0, TFAV, TS0, TSAV, VLOOP, VSEC, WBULKT, WFT, &
-           WPDOT, WPT, WST, WTAILT, ZEFF, ZEFF0, AJTTOR, PRBT, PRCT, PRLT
+      USE trcomm
+      USE trparm
       IMPLICIT NONE
       CHARACTER(LEN=1),INTENT(IN):: KID
-      INTEGER(4):: I, IERR, IST, NDD, NDM, NDY, NTH1, NTM1, NTS1
-      REAL(4)   :: GTCPU2
+      INTEGER:: I, IERR, IST, NDD, NDM, NDY, NTH1, NTM1, NTS1
+      REAL   :: GTCPU2
       CHARACTER(LEN=3) :: K1, K2, K3, K4, K5, K6
       CHARACTER(LEN=40):: KCOM
 
 
       IF(KID.EQ.'N') THEN
-         CALL TRNLIN(-29,IST,IERR)
+         CALL tr_nlin(-29,IST,IERR)
       ELSEIF(KID.EQ.'1') THEN
          WRITE(6,601) T,WPT,WBULKT,WTAILT,WPDOT,TAUE1,TAUE2,TAUE89,TAUE98, &
      &                QF,BETAP0,BETAPA,BETA0,BETAA,Q0,RQ1,ZEFF0,BETAN
@@ -1015,7 +995,7 @@
 
       USE TRCOMM, ONLY : GRG, GRM, GT, GVR, GVT, NGR, NT
       IMPLICIT NONE
-      INTEGER(4):: MGH, MGMAX, MGMIN, MGSTEP, MID, MRMAX, MRMIN, MRSTEP, MTMAX, MTMIN, MTSTEP, NG, NID, NR
+      INTEGER:: MGH, MGMAX, MGMIN, MGSTEP, MID, MRMAX, MRMIN, MRSTEP, MTMAX, MTMIN, MTSTEP, NG, NID, NR
 
 
     1 WRITE(6,*) '## INPUT MODE : 1:GVT(NT)  2:GVR(NR)  3:GVR(NG)'
@@ -1077,8 +1057,8 @@
 
       USE TRCOMM, ONLY : GVT, NGT, NT
       IMPLICIT NONE
-      INTEGER(4):: N
-      REAL(4)   :: GVMAX, GVMIN
+      INTEGER:: N
+      REAL   :: GVMAX, GVMIN
 
       CHARACTER STR*7
 
@@ -1127,7 +1107,7 @@
 
         USE TRCOMM, ONLY : MDLUF,KXNDEV,KXNDCG,KXNID,KDIRW1,KDIRW2
         IMPLICIT NONE
-        INTEGER(4):: IERR, IKDIRW, IKNDCG, IKNDEV, IKNID
+        INTEGER:: IERR, IKDIRW, IKNDCG, IKNDEV, IKNID
         CHARACTER(LEN=80):: KDIRW, KFID
 
 
@@ -1353,21 +1333,22 @@
 
       SUBROUTINE TR_UFILE1D_CREATE(KFID,NUM,AMP,IERR)
 
-      USE TRCOMM, ONLY : BB, GVRT, GT, GVT, MDLUF, NGT, NRAMAX, NRMAX, NROMAX, NTM, RA, RG, RHOA, RKAP, RR
+      USE TRCOMM, ONLY : BB, GVRT, GT, GVT, MDLUF, NGT, NRAMAX, NRMAX, NROMAX, NTM, RA, RG, RHOA, RKAP, RR, rkind
+      USE libspl1d
       IMPLICIT NONE
       CHARACTER(LEN=80),INTENT(INOUT):: KFID
-      INTEGER(4),INTENT(IN) :: NUM
-      REAL(8),   INTENT(IN) :: AMP
-      INTEGER(4),INTENT(OUT):: IERR
-      INTEGER(4):: ID, NTL, NTLMAX
-      REAL(8)   :: DATOUT, DTL, FQ95, TIN
-      REAL(4),DIMENSION(NTM)  :: GTL, GF1
-      REAL(8),DIMENSION(NTM)  :: TF, DGT, DIN, DERIV
-      REAL(8),DIMENSION(NRMAX)  :: F1, DERIVQ
-      REAL(8),DIMENSION(4,NTM):: UOUT
-      REAL(8),DIMENSION(4,NRMAX):: UQ95
+      INTEGER,INTENT(IN) :: NUM
+      REAL(rkind),   INTENT(IN) :: AMP
+      INTEGER,INTENT(OUT):: IERR
+      INTEGER:: ID, NTL, NTLMAX
+      REAL(rkind)   :: DATOUT, DTL, FQ95, TIN
+      REAL,DIMENSION(NTM)  :: GTL, GF1
+      REAL(rkind),DIMENSION(NTM)  :: TF, DGT, DIN, DERIV
+      REAL(rkind),DIMENSION(NRMAX)  :: F1, DERIVQ
+      REAL(rkind),DIMENSION(4,NTM):: UOUT
+      REAL(rkind),DIMENSION(4,NRMAX):: UQ95
       CHARACTER(LEN=80)::KERRF
-      REAL(4) :: GUCLIP
+      REAL :: GUCLIP
 
       IF(KFID.EQ.'DIRECT') THEN
          IF(NUM.EQ.2) THEN
@@ -1455,20 +1436,22 @@
 
       SUBROUTINE TR_UFILE2D_CREATE(KFID,NUM,AMP,ID,IERR)
 
-      USE TRCOMM, ONLY : GVRT, GRG, GRM, GT, NGT, NRMAX, NRMP, NTM
+      USE TRCOMM, ONLY : GVRT, GRG, GRM, GT, NGT, NRMAX, NRMP, NTM, rkind
+      USE libitp  
+      USE libspl1d
       IMPLICIT NONE
       CHARACTER(LEN=80),INTENT(IN) :: KFID
-      INTEGER(4)       ,INTENT(IN) :: NUM, ID
-      REAL(8)          ,INTENT(IN) :: AMP
-      INTEGER(4)       ,INTENT(OUT):: IERR
-      INTEGER(4)::NTL, NRLMAX, NTLMAX, NRL
-      REAL(8)   ::DTL, TIN, F0, R1, R2, F1, F2, FCTR
-      REAL(4),DIMENSION(NRMP)    :: GRL
-      REAL(4),DIMENSION(NTM)     :: GTL
-      REAL(4),DIMENSION(NRMP,NTM):: GF2
-      REAL(8),DIMENSION(NTM)     :: DGT,DIN,DERIV
-      REAL(8),DIMENSION(4,NTM)   :: U
-      REAL(4)   :: GUCLIP
+      INTEGER       ,INTENT(IN) :: NUM, ID
+      REAL(rkind)          ,INTENT(IN) :: AMP
+      INTEGER       ,INTENT(OUT):: IERR
+      INTEGER::NTL, NRLMAX, NTLMAX, NRL
+      REAL(rkind)   ::DTL, TIN, F0, R1, R2, F1, F2
+      REAL,DIMENSION(NRMP)    :: GRL
+      REAL,DIMENSION(NTM)     :: GTL
+      REAL,DIMENSION(NRMP,NTM):: GF2
+      REAL(rkind),DIMENSION(NTM)     :: DGT,DIN,DERIV
+      REAL(rkind),DIMENSION(4,NTM)   :: U
+      REAL   :: GUCLIP
 
 
       DGT(1:NGT)=DBLE(GT(1:NGT))
@@ -1544,9 +1527,9 @@
       USE TRCOMM, ONLY : KDIRW1, KXNDCG, KXNDEV
       IMPLICIT NONE
       CHARACTER(LEN=80)     ,INTENT(IN):: KFID
-      REAL(4),DIMENSION(NTM),INTENT(IN):: GT, GF
-      INTEGER(4)            ,INTENT(IN):: NTM, NTXMAX
-      INTEGER(4):: KL1, IST, NTX
+      INTEGER            ,INTENT(IN):: NTM, NTXMAX
+      REAL,DIMENSION(NTM),INTENT(IN):: GT, GF
+      INTEGER:: KL1, IST, NTX
       CHARACTER(LEN=9) :: CDATE
       CHARACTER(LEN=80):: KFILE
 
@@ -1594,11 +1577,11 @@
       USE TRCOMM, ONLY :KDIRW2, KXNDCG, KXNDEV
       IMPLICIT NONE
       CHARACTER(LEN=80)         ,INTENT(IN):: KFID
-      REAL(4),DIMENSION(NTM)    ,INTENT(IN):: GT
-      REAL(4),DIMENSION(NRM)    ,INTENT(IN):: GR
-      REAL(4),DIMENSION(NRM,NTM),INTENT(IN):: GF
-      INTEGER(4)                ,INTENT(IN):: NRM, NTM, NRXMAX, NTXMAX
-      INTEGER(4):: KL2,IST,NRX,NTX
+      INTEGER                ,INTENT(IN):: NRM, NTM, NRXMAX, NTXMAX
+      REAL,DIMENSION(NTM)    ,INTENT(IN):: GT
+      REAL,DIMENSION(NRM)    ,INTENT(IN):: GR
+      REAL,DIMENSION(NRM,NTM),INTENT(IN):: GF
+      INTEGER:: KL2,IST,NRX,NTX
       CHARACTER(LEN=9) :: CDATE
       CHARACTER(LEN=80):: KFILE
 
@@ -1650,7 +1633,7 @@
 
       IMPLICIT NONE
       CHARACTER(LEN=9),INTENT(OUT):: CDATE
-      INTEGER(4)      :: NDD, NDM, NDY, NTIH, NTIM, NTIS
+      INTEGER      :: NDD, NDM, NDY, NTIH, NTIM, NTIS
       CHARACTER(LEN=2):: CDD, CDY
       CHARACTER(LEN=3):: CDM
       CHARACTER(LEN=3),DIMENSION(12):: CDATA = &
@@ -1674,3 +1657,220 @@
 
       RETURN
       END SUBROUTINE GET_DATE
+
+!   *** setup variable name strings ***
+
+      SUBROUTINE tr_setup_kv
+
+      USE TRCOMM
+      IMPLICIT NONE
+
+      KVT( 1) = 'ANS0(1)   '
+      KVT( 2) = 'ANS0(2)   '
+      KVT( 3) = 'ANS0(3)   '
+      KVT( 4) = 'ANS0(4)   '
+      KVT( 5) = 'ANSAV(1)  '
+      KVT( 6) = 'ANSAV(2)  '
+      KVT( 7) = 'ANSAV(3)  '
+      KVT( 8) = 'ANSAV(4)  '
+
+      KVT( 9) = 'TS0(1)    '
+      KVT(10) = 'TS0(2)    '
+      KVT(11) = 'TS0(3)    '
+      KVT(12) = 'TS0(4)    '
+      KVT(13) = 'TSAV(1)   '
+      KVT(14) = 'TSAV(2)   '
+      KVT(15) = 'TSAV(3)   '
+      KVT(16) = 'TSAV(4)   '
+
+      KVT(17) = 'WST(1)    '
+      KVT(18) = 'WST(2)    '
+      KVT(19) = 'WST(3)    '
+      KVT(20) = 'WST(4)    '
+
+      KVT(21) = 'ANF0(1)   '
+      KVT(22) = 'ANF0(2)   '
+      KVT(23) = 'ANFAV(1)  '
+      KVT(24) = 'ANFAV(2)  '
+      KVT(25) = 'TF0(1)    '
+      KVT(26) = 'TF0(2)    '
+      KVT(27) = 'TFAV(1)   '
+      KVT(28) = 'TFAV(2)   '
+
+      KVT(29) = 'WFT(1)    '
+      KVT(30) = 'WFT(2)    '
+      KVT(31) = 'WBULKT    '
+      KVT(32) = 'WTAILT    '
+      KVT(33) = 'WPT       '
+
+      KVT(34) = 'AJT       '
+      KVT(35) = 'AJOHT     '
+      KVT(36) = 'AJNBT     '
+      KVT(37) = 'AJRFT     '
+      KVT(38) = 'AJBST     '
+
+      KVT(39) = 'PINT      '
+      KVT(40) = 'POHT      '
+      KVT(41) = 'PNBT      '
+      KVT(42) = 'PRFT(1)   '
+      KVT(43) = 'PRFT(2)   '
+      KVT(44) = 'PRFT(3)   '
+      KVT(45) = 'PRFT(4)   '
+      KVT(46) = 'PNFT      '
+
+      KVT(47) = 'PBINT     '
+      KVT(48) = 'PBCLT(1)  '
+      KVT(49) = 'PBCLT(2)  '
+      KVT(50) = 'PBCLT(3)  '
+      KVT(51) = 'PBCLT(4)  '
+      KVT(52) = 'PFINT     '
+      KVT(53) = 'PFCLT(1)  '
+      KVT(54) = 'PFCLT(2)  '
+      KVT(55) = 'PFCLT(3)  '
+      KVT(56) = 'PFCLT(4)  '
+
+      KVT(57) = 'POUT      '
+      KVT(58) = 'PCXT      '
+      KVT(59) = 'PIET      '
+      KVT(60) = 'PRSUMT    '
+      KVT(61) = 'PLT(1)    '
+      KVT(62) = 'PLT(2)    '
+      KVT(63) = 'PLT(3)    '
+      KVT(64) = 'PLT(4)    '
+
+      KVT(65) = 'SINT      '
+      KVT(66) = 'SIET      '
+      KVT(67) = 'SNBT      '
+      KVT(68) = 'SNFT      '
+      KVT(69) = 'SOUT      '
+      KVT(70) = 'SLT(1)    '
+      KVT(71) = 'SLT(2)    '
+      KVT(72) = 'SLT(3)    '
+      KVT(73) = 'SLT(4)    '
+
+      KVT(74) = 'VLOOP     '
+      KVT(75) = 'ALI       '
+      KVT(76) = 'RQ1       '
+      KVT(77) = 'Q0        '
+
+      KVT(78) = 'WPDOT     '
+      KVT(79) = 'TAUE1     '
+      KVT(80) = 'TAUE2     '
+      KVT(81) = 'TAUE89    '
+
+      KVT(82) = 'BETAP0    '
+      KVT(83) = 'BETAPA    '
+      KVT(84) = 'BETA0     '
+      KVT(85) = 'BETAA     '
+
+      KVT(86) = 'ZEFF0     '
+      KVT(87) = 'QF        '
+      KVT(88) = 'RIP       '
+!
+      KVT(89) = 'PEXT(1)   '
+      KVT(90) = 'PEXT(2)   '
+      KVT(91) = 'PRFVT(1,1)' ! ECH  to electron
+      KVT(92) = 'PRFVT(2,1)' ! ECH  to ions
+      KVT(93) = 'PRFVT(1,2)' ! LH   to electron
+      KVT(94) = 'PRFVT(2,2)' ! LH   to ions
+      KVT(95) = 'PRFVT(1,3)' ! ICRH to electron
+      KVT(96) = 'PRFVT(2,3)' ! ICRH to ions
+
+      KVT(97) = 'RR        '
+      KVT(98) = 'RA        '
+      KVT(99) = 'BB        '
+      KVT(100)= 'RKAP      '
+      KVT(101)= 'AJTTOR    '
+
+      KVT(102)= 'TAUE98    '
+      KVT(103)= 'H98Y2     '
+      KVT(104)= 'ANLAV(1)  '
+      KVT(105)= 'ANLAV(2)  '
+      KVT(106)= 'ANLAV(3)  '
+      KVT(107)= 'ANLAV(4)  '
+
+      KVT(108)= 'PRBT      '
+      KVT(109)= 'PRCT      '
+      KVT(110)= 'PRLT      '
+
+!     *** FOR 3D ***
+
+      KVRT( 1) = 'RT(1)     '
+      KVRT( 2) = 'RT(2)     '
+      KVRT( 3) = 'RT(3)     '
+      KVRT( 4) = 'RT(4)     '
+
+      KVRT( 5) = 'RN(1)     '
+      KVRT( 6) = 'RN(2)     '
+      KVRT( 7) = 'RN(3)     '
+      KVRT( 8) = 'RN(4)     '
+
+      KVRT( 9) = 'AJ        '
+      KVRT(10) = 'AJOH      '
+      KVRT(11) = 'AJNB      '
+      KVRT(12) = 'AJRF      '
+      KVRT(13) = 'AJBS      '
+
+      KVRT(14) = 'PTOT      '
+      KVRT(15) = 'POH       '
+      KVRT(16) = 'PNB       '
+      KVRT(17) = 'PNF       '
+      KVRT(18) = 'PRF(1)    '
+      KVRT(19) = 'PRF(2)    '
+      KVRT(20) = 'PRF(3)    '
+      KVRT(21) = 'PRF(4)    '
+      KVRT(22) = 'PRL       '
+      KVRT(23) = 'PCX       '
+      KVRT(24) = 'PIE       '
+      KVRT(25) = 'PEX(1)    '
+      KVRT(26) = 'PEX(2)    '
+      KVRT(27) = 'QP        '
+      KVRT(28) = 'EZOH      '
+      KVRT(29) = 'BETA      '
+      KVRT(30) = 'BETAP     '
+      KVRT(31) = 'EZOH*2PIRR'
+      KVRT(32) = 'ETA       '
+      KVRT(33) = 'ZEFF      '
+      KVRT(34) = 'AK(1)     '
+      KVRT(35) = 'AK(2)     '
+
+      KVRT(36) = 'PRFV(1,1) '
+      KVRT(37) = 'PRFV(1,2) '
+      KVRT(38) = 'PRFV(1,3) '
+      KVRT(39) = 'PRFV(2,1) '
+      KVRT(40) = 'PRFV(2,2) '
+      KVRT(41) = 'PRFV(2,3) '
+
+      KVRT(42) = 'AJRFV(1)  '
+      KVRT(43) = 'AJRFV(2)  '
+      KVRT(44) = 'AJRFV(3)  '
+
+      KVRT(45) = 'RW(1+2)   '
+      KVRT(46) = 'ANC+ANFE  '
+      KVRT(47) = 'BP        '
+      KVRT(48) = 'RPSI      '
+
+      KVRT(49) = 'RMJRHO    '
+      KVRT(50) = 'RMNRHO    '
+      KVRT(51) = 'F0D       '
+      KVRT(52) = 'RKPRHO    '
+      KVRT(53) = 'DELTAR    '
+      KVRT(54) = 'AR1RHO    '
+      KVRT(55) = 'AR2RHO    '
+      KVRT(56) = 'AKDW(1)   '
+      KVRT(57) = 'AKDW(2)   '
+      KVRT(58) = 'RN*RT(1)  '
+      KVRT(59) = 'RN*RT(2)  '
+
+      KVRT(60) = 'VTOR      '
+      KVRT(61) = 'VPOL      '
+
+      KVRT(62) = 'S-ALPHA   '
+      KVRT(63) = 'ER        '
+      KVRT(64) = 'S         '
+      KVRT(65) = 'ALPHA     '
+      KVRT(66) = 'TRCOFS    '
+      KVRT(67) = '2PI/QP    '
+
+      RETURN
+    END SUBROUTINE tr_setup_kv

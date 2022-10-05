@@ -3,25 +3,26 @@
 
 PROGRAM testmtxc
 
+  USE task_kinds,ONLY: dp
   USE libmpi
   USE commpi
   USE libmtx
   USE libgrf,only:grd1d
 
   IMPLICIT NONE
-  integer :: isize,itype,idata(2)
-  integer :: istart,iend,its
-  integer :: imax,jwidth
-  integer :: ndiv,i
-  integer :: MODE
-  real(8) :: tolerance,ddata(1)
-  real(8) :: xmin,xmax,dt,dx
-  real(4) :: cputime1,cputime2
-  complex(8),dimension(:),pointer:: x
-  complex(8) :: k
+  INTEGER :: isize,itype,idata(2)
+  INTEGER :: istart,iend,its
+  INTEGER :: imax,jwidth
+  INTEGER :: ndiv,i
+  INTEGER :: MODE
+  REAL(dp) :: tolerance,ddata(1)
+  REAL(dp) :: xmin,xmax,dt,dx
+  REAL :: cputime1,cputime2
+  COMPLEX(dp),DIMENSION(:),ALLOCATABLE:: x
+  COMPLEX(dp) :: k
   character :: character*1
-  real(8),dimension(:)  ,pointer :: FX
-  real(8),dimension(:,:),pointer :: FY
+  REAL(dp),DIMENSION(:)  ,ALLOCATABLE :: FX
+  REAL(dp),DIMENSION(:,:),ALLOCATABLE :: FY
   character ::STR*80
 
   call mtx_initialize
@@ -68,6 +69,7 @@ PROGRAM testmtxc
 
   imax = isize
   jwidth = 3
+  IF(ALLOCATED(x)) DEALLOCATE(x)
   allocate(x(imax))
 
   do i=1,imax
@@ -102,8 +104,8 @@ PROGRAM testmtxc
         FX(i) = dx*(i-1)
      end do
         do i=1,isize
-           FY(i,1) = real(x(i))
-           FY(i,2) = aimag(x(i))
+           FY(i,1) = REAL(x(i))
+           FY(i,2) = AIMAG(x(i))
            write(6,'(i5,1p3e12.4)') i,FX(i),FY(i,1),FY(i,2)
         end do
      STR="@test1@"
@@ -117,7 +119,7 @@ PROGRAM testmtxc
      write(6,*) "#INPUT: (C)CONTINUE,(Q)QUIT"
      read (5,*,ERR=3) character
   endif
-  CALL mtx_broadcast_character(character,1)
+  CALL mtx_broadcast1_character(character)
 
   call mtxc_cleanup
   if (character.eq."c")then

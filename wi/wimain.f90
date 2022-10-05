@@ -13,6 +13,7 @@ PROGRAM wi_main
 
   IMPLICIT none
   INTEGER(ikind)  :: ierr
+  EXTERNAL GSOPEN,GSCLOS
 
   CALL GSOPEN
   WRITE(6,'(A)') '## TASK/WI 2014/05/03'

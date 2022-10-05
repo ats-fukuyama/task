@@ -1,12 +1,16 @@
+! libspf.f90
+
 MODULE libspf
 
+  USE task_kinds,ONLY: dp
+  
   PRIVATE
   PUBLIC DGAMMA,DLGAMA,DERF,DERFC,DERFCX,ERF0,ERF1,DPLEG
 
 CONTAINS
 !
 !S    REAL FUNCTION GAMMA(X)
-      DOUBLE PRECISION FUNCTION DGAMMA(X)
+      FUNCTION DGAMMA(X)
 !----------------------------------------------------------------------
 !
 ! This routine calculates the GAMMA function for a real argument X.
@@ -96,12 +100,15 @@ CONTAINS
 !           Argonne, IL 60439
 !
 !----------------------------------------------------------------------
+      IMPLICIT NONE
       INTEGER I,N
       LOGICAL PARITY
 !S    REAL 
-      DOUBLE PRECISION &
+      REAL(dp),INTENT(IN):: X
+      REAL(dp):: DGAMMA
+      REAL(dp):: &
            C,CONV,EPS,FACT,HALF,ONE,P,PI,Q,RES,SQRTPI,SUM,TWELVE, &
-           TWO,X,XBIG,XDEN,XINF,XMININ,XNUM,Y,Y1,YSQ,Z,ZERO
+           TWO,XBIG,XDEN,XINF,XMININ,XNUM,Y,Y1,YSQ,Z,ZERO
       DIMENSION C(7),P(8),Q(8)
 !----------------------------------------------------------------------
 !  Mathematical constants
@@ -257,8 +264,7 @@ CONTAINS
 ! ---------- Last line of GAMMA ----------
     END FUNCTION DGAMMA
 !
-!S    REAL FUNCTION ALGAMA(X)
-    DOUBLE PRECISION FUNCTION DLGAMA(X)
+    FUNCTION DLGAMA(X)
 !----------------------------------------------------------------------
 !
 ! This routine calculates the LOG(GAMMA) function for a positive real
@@ -352,11 +358,13 @@ CONTAINS
 !  Latest modification: June 16, 1988
 !
 !----------------------------------------------------------------------
+      IMPLICIT NONE
+      REAL(dp),INTENT(IN):: X
+      REAL(dp):: DLGAMA
       INTEGER I
-!S    REAL      
-      DOUBLE PRECISION &
+      REAL(dp):: &
            C,CORR,D1,D2,D4,EPS,FRTBIG,FOUR,HALF,ONE,PNT68,P1,P2,P4, &
-           Q1,Q2,Q4,RES,SQRTPI,THRHAL,TWELVE,TWO,X,XBIG,XDEN,XINF, &
+           Q1,Q2,Q4,RES,SQRTPI,THRHAL,TWELVE,TWO,XBIG,XDEN,XINF, &
            XM1,XM2,XM4,XNUM,Y,YSQ,ZERO
       DIMENSION C(7),P1(8),P2(8),P4(8),Q1(8),Q2(8),Q4(8)
 !----------------------------------------------------------------------
@@ -657,10 +665,13 @@ CONTAINS
 !  Latest modification: March 19, 1990
 !
 !------------------------------------------------------------------
-      INTEGER I,ID
-!S    REAL
-      DOUBLE PRECISION &
-           A,ARG,B,C,D,DEL,FOUR,HALF,P,ONE,Q,RESULT,SIXTEN,SQRPI, &
+      IMPLICIT NONE
+      REAL(dp),INTENT(IN):: ARG
+      REAL(dp),INTENT(OUT):: RESULT
+      INTEGER,INTENT(IN):: ID
+      INTEGER:: I
+      REAL(dp)::  &
+           A,B,C,D,DEL,FOUR,HALF,P,ONE,Q,SIXTEN,SQRPI, &
            TWO,THRESH,X,XBIG,XDEN,XHUGE,XINF,XMAX,XNEG,XNUM,XSMALL, &
            Y,YSQ,ZERO
       DIMENSION A(5),B(4),C(9),D(8),P(6),Q(5)
@@ -815,8 +826,7 @@ CONTAINS
 !---------- Last card of CALERF ----------
     END SUBROUTINE CALERF
 !
-!S    REAL FUNCTION ERF(X)
-    DOUBLE PRECISION FUNCTION DERF(X)
+    FUNCTION DERF(X)
 !--------------------------------------------------------------------
 !
 ! This subprogram computes approximate values for erf(x).
@@ -825,9 +835,11 @@ CONTAINS
 !   Author/date: W. J. Cody, January 8, 1985
 !
 !--------------------------------------------------------------------
+      IMPLICIT NONE
+      REAL(dp),INTENT(IN):: X
+      REAL(dp):: DERF
       INTEGER ID
-!S    REAL             X, RESULT
-      DOUBLE PRECISION X, RESULT
+      REAL(dp):: RESULT
 !------------------------------------------------------------------
       ID = 0
       CALL CALERF(X,RESULT,ID)
@@ -837,8 +849,7 @@ CONTAINS
 !---------- Last card of DERF ----------
     END FUNCTION DERF
 !
-!S    REAL FUNCTION ERFC(X)
-    DOUBLE PRECISION FUNCTION DERFC(X)
+    FUNCTION DERFC(X)
 !--------------------------------------------------------------------
 !
 ! This subprogram computes approximate values for erfc(x).
@@ -847,9 +858,11 @@ CONTAINS
 !   Author/date: W. J. Cody, January 8, 1985
 !
 !--------------------------------------------------------------------
+      IMPLICIT NONE
+      REAL(dp),INTENT(IN):: X
+      REAL(dp):: DERFC
       INTEGER ID
-!S    REAL             X, RESULT
-      DOUBLE PRECISION X, RESULT
+      REAL(dp):: RESULT
 !------------------------------------------------------------------
       ID = 1
       CALL CALERF(X,RESULT,ID)
@@ -859,8 +872,7 @@ CONTAINS
 !---------- Last card of DERFC ----------
     END FUNCTION DERFC
 !
-!S    REAL FUNCTION ERFCX(X)
-    DOUBLE PRECISION FUNCTION DERFCX(X)
+    FUNCTION DERFCX(X)
 !------------------------------------------------------------------
 !
 ! This subprogram computes approximate values for exp(x*x) * erfc(x).
@@ -869,9 +881,11 @@ CONTAINS
 !   Author/date: W. J. Cody, March 30, 1987
 !
 !------------------------------------------------------------------
+      IMPLICIT NONE
+      REAL(dp),INTENT(IN):: X
+      REAL(dp):: DERFCX
       INTEGER ID
-!S    REAL             X, RESULT
-      DOUBLE PRECISION X, RESULT
+      REAL(dp):: RESULT
 !------------------------------------------------------------------
       ID = 2
       CALL CALERF(X,RESULT,ID)
@@ -889,9 +903,8 @@ CONTAINS
 
   FUNCTION ERF0(X)
     IMPLICIT NONE
-    REAL(8):: ERF0
-    REAL(8),INTENT(IN):: X
-    REAL(8):: DERF
+    REAL(dp):: ERF0
+    REAL(dp),INTENT(IN):: X
 
     ERF0=DERF(X)
     RETURN
@@ -905,10 +918,10 @@ CONTAINS
 
   FUNCTION ERF1(U)
     IMPLICIT NONE
-    REAL(8):: ERF1
-    REAL(8),INTENT(IN):: U
-    REAL(8):: U2
-    REAL(8),PARAMETER:: PI=3.14159265358979323846D0
+    REAL(dp):: ERF1
+    REAL(dp),INTENT(IN):: U
+    REAL(dp):: U2
+    REAL(dp),PARAMETER:: PI=3.14159265358979323846D0
 
     U2=U**2
     IF (U2.GT.100.D0)THEN
@@ -929,12 +942,12 @@ CONTAINS
   SUBROUTINE DPLEG(X,N,Y,IERR)
 
     IMPLICIT NONE
-    REAL(8),INTENT(IN):: X
+    REAL(dp),INTENT(IN):: X
     INTEGER,INTENT(IN):: N
     INTEGER,INTENT(OUT):: IERR
-    REAL(8),INTENT(OUT),DIMENSION(N+1):: Y
+    REAL(dp),INTENT(OUT),DIMENSION(N+1):: Y
     INTEGER:: I
-    REAL(8):: W,WY
+    REAL(dp):: W,WY
 
     IERR = 0
     IF(N .LT. 0) THEN

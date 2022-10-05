@@ -647,6 +647,7 @@
 
       subroutine wmfem_boundary_condition_axis1
 
+      USE libinv
       complex(8),dimension(3,3,nthmax2,nhhmax2):: mtxcl
 !      complex(8),dimension(3*nfcmax,3*nfcmax):: mtxclx
       complex(8),dimension(:,:),ALLOCATABLE:: mtxclx
@@ -988,6 +989,9 @@
       call wmfem_boundary_condition_div_sub(rhoa(nr),
      &                             fmv_1,fmv_2,fmv_3,fmv_4,fmv_5,fmv_6)
 
+      WRITE(6,*) 'mlmax=',mlmax
+      WRITE(6,*) 'nfcmax=',nfcmax
+      WRITE(6,*) 'nrmax=',nrmax
       do nfc=1,nfcmax
 
          ml=8*nfcmax*(nr-1)+1*nfcmax+nfc
@@ -1433,6 +1437,7 @@
 
       subroutine wmfem_solve
 
+      USE libbnd
       integer:: ml,mw,ierr
       integer:: i,j,k
 

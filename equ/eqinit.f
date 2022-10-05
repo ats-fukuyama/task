@@ -8,6 +8,7 @@ c=======================================================================
 c=======================================================================
 c     DEFAULT VALUES FOR JT60
 c=======================================================================
+      USE plcomm,ONLY: KNAMEQ,MODEFW,pl_allocate_ns
       use aaa_mod
       use par_mod
       use geo_mod
@@ -328,6 +329,12 @@ c----- coil file name : 'init' for stdin
 c
       knamcoil='init'
 c
+c----- equ file name : 'equfile'
+c
+      KNAMEQ='equdata'
+      MODEFW=5
+      CALL pl_allocate_ns    ! necessary to link plcomm with iort
+c
       return
       end subroutine eqinit
 c
@@ -352,6 +359,7 @@ c     ierr=10x : input parameter out of range
 c
       use aaa_mod
       use vac_mod
+      USE libkio
       implicit none
       character kin*(*)
       integer mode,ierr

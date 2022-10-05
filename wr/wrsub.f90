@@ -3,39 +3,49 @@
 MODULE wrsub
 
   PRIVATE
-  PUBLIC wr_cold_rkr0,wrmodconv,wrnwtn,wrmodnwtn,dispfn,dispxr,dispxi, &
-         wrcale,wrcale_i,wrcalk
+  PUBLIC wr_cold_rkperp
+  PUBLIC cold_rkr0
+  PUBLIC wrmodconv
+  PUBLIC wrnwtn
+  PUBLIC wrmodnwtn
+  PUBLIC dispfn
+  PUBLIC dispxr
+  PUBLIC dispxi
+  PUBLIC wrcale
+  PUBLIC wrcalep
+  PUBLIC wrcalk
+  PUBLIC wrcale_i
+  PUBLIC wrcale_xyz
 
 CONTAINS
 
-!  --- calculate radial wave number with cold plasma model ---
+!  --- calculate wave number with cold plasma model ---
 !      Input: RF,RPI,PHII,ZPI
 
-  SUBROUTINE WR_COLD_RKR0(RKR0_1,RKR0_2)
+  SUBROUTINE WR_COLD_RKPERP(R,Z,PHI,RKPARA,RKPERP_1,RKPERP_2)
 
     USE wrcomm
     USE pllocal
-    USE plprof,ONLY: PL_MAG_OLD,PL_PROF_OLD
+    USE plprof,ONLY: pl_mag_type,pl_mag
+    USE plprofw,ONLY: pl_prfw_type,pl_profw
     IMPLICIT NONE
-    REAL(rkind),INTENT(OUT):: RKR0_1,RKR0_2
-    REAL(rkind):: OMG,PSIN,OMG_C,WP2
+    REAL(rkind),INTENT(IN):: R,Z,PHI,RKPARA
+    REAL(rkind),INTENT(OUT):: RKPERP_1,RKPERP_2
+    TYPE(pl_mag_type):: mag
+    TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
+    REAL(rkind):: OMG,OMG_C,WP2,RNPARA
     REAL(rkind):: STIX_X,STIX_Y,STIX_S,STIX_P,STIX_D
     REAL(rkind):: W_A,W_B,W_C,RN_1,RN_2
 
-
     OMG=2.D6*PI*RF
-    CALL PL_MAG_OLD(RPI*COS(PHII),RPI*SIN(PHII),ZPI,PSIN)
-    CALL PL_PROF_OLD(PSIN)
-    OMG_C = BABS*AEE/(AME)
-    WP2=RN(1)*1.D20*AEE*AEE/(EPS0*AMP*PA(1))
+    CALL PL_MAG(R*COS(PHI),R*SIN(PHI),Z,mag)
+    CALL PL_PROFW(mag%rhon,plfw)
 
-!         SWNSNK1 = 1.D0 - WP2/(OMG*OMG-OMG_C*OMG_C)
-!         SWNSNK2 = DCMPLX(0.D0, OMG_C*WP2/OMG/(OMG*OMG-OMG_C*OMG_C))
-!         SWNSNK3 = 1.D0 - WP2/OMG/OMG
-!
-!         W_A = SWNSNK1
-!         W_B =-((SWNSNK1 - RNPHII**2)*(SWNSNK1+SWNSNK3)+SWNSNK2*SWNSNK2)
-!         W_C = SWNSNK3*((SWNSNK1 - RNPHII**2)**2 + SWNSNK2*SWNSNK2)
+    ! --- consider only electron contribution for ow density ---
+    
+    OMG_C = mag%BABS*AEE/(AME)
+    WP2=plfw(1)%rn*1.D20*AEE*AEE/(EPS0*AMP*PA(1))
+    RNPARA=RKPARA*VC/OMG
 
     STIX_X = WP2/OMG/OMG
     STIX_Y = OMG_C/OMG
@@ -45,26 +55,28 @@ CONTAINS
 
     W_A = STIX_S
     W_B = - STIX_S**2 + STIX_D**2 - STIX_S*STIX_P
-    W_B = W_B + (STIX_S + STIX_P)*RNPHII**2
-    W_C = STIX_P * ( (STIX_S - RNPHII**2)**2 - STIX_D**2 )
+    W_B = W_B + (STIX_S + STIX_P)*RNPARA**2
+    W_C = STIX_P * ( (STIX_S - RNPARA**2)**2 - STIX_D**2 )
 
 
     RN_1 = (-W_B+SQRT(W_B**2-4.D0*W_A*W_C))/2.D0/W_A
     RN_2 = (-W_B-SQRT(W_B**2-4.D0*W_A*W_C))/2.D0/W_A
 
+    WRITE(6,'(A,2ES12.4)') 'WR_COLD_RKPERP:',RN_1,RN_2
+
     IF(RN_1.GT.0.D0) THEN
-       RKR0_1 = - SQRT(RN_1)*OMG/VC
+       RKPERP_1 = - SQRT(RN_1)*OMG/VC
     ELSE
-       RKR0_1 = 0.D0
+       RKPERP_1 = 0.D0
     END IF
     IF(RN_2.GT.0.D0) THEN
-       RKR0_2 = - SQRT(RN_2)*OMG/VC
+       RKPERP_2 = - SQRT(RN_2)*OMG/VC
     ELSE
-       RKR0_2 = 0.D0
+       RKPERP_2 = 0.D0
     END IF
 
     RETURN
-  END SUBROUTINE WR_COLD_RKR0
+  END SUBROUTINE WR_COLD_RKPERP
 
 !  ----- mode conversion -----
 
@@ -234,20 +246,23 @@ CONTAINS
 
 !  ----- calculate radial wave number satifying D=0 -----
 
-  SUBROUTINE WRNWTN(IERR)
+  SUBROUTINE WRNWTN(RKR_initial,RKR_final,IERR)
 
     USE wrcomm
+    USE dppola
     IMPLICIT NONE
-!    REAL(rkind),INTENT(IN):: RKR0
-!    REAL(rkind),INTENT(IN):: RKZI,RKPHII
-!    REAL(rkind),INTENT(OUT):: RKRI
+    REAL(rkind),INTENT(IN):: RKR_initial
+    REAL(rkind),INTENT(OUT):: RKR_final
     INTEGER,INTENT(OUT):: IERR
     INTEGER:: ICOUNT
-    REAL(rkind):: OMG,S,T,RKR,XP,YP,ZP,RKXP,RKXP1,RKXP2,RKYP,RKYP1,RKYP2,RKZP
+    REAL(rkind):: OMG,S,T,RKR,RKR_PRE
+    REAL(rkind):: XP,YP,ZP,RKXP,RKXP1,RKXP2,RKYP,RKYP1,RKYP2,RKZP
+    COMPLEX(rkind):: cdet(3,3),cepola(3),CRF,CKX,CKY,CKZ
+    REAL(rkind):: err
 
-      IERR=0
-      OMG=2.D6*PI*RF
-      RKRI=RKR0
+    IERR=0
+    OMG=2.D6*PI*RF
+    RKR_PRE=RKR_initial
 
     IF(MODELG.EQ.0.OR.MODELG.EQ.1.OR.MODELG.EQ.11) THEN
        XP= RPI
@@ -267,18 +282,18 @@ CONTAINS
 
     IF(MODELG.EQ.0.OR.MODELG.EQ.1.OR.MODELG.EQ.11) THEN
        RKXP= RKRI
-       RKXP1= RKRI+DELKR
-       RKXP2= RKRI-DELKR
+       RKXP1= RKR_PRE+DELKR
+       RKXP2= RKR_PRE-DELKR
        RKYP= RKPHII
        RKYP1= RKYP
        RKYP2= RKYP
     ELSE
-       RKXP=  RKRI       *COS(PHII)-RKPHII*SIN(PHII)
-       RKXP1=(RKRI+DELKR)*COS(PHII)-RKPHII*SIN(PHII)
-       RKXP2=(RKRI-DELKR)*COS(PHII)-RKPHII*SIN(PHII)
-       RKYP=  RKRI       *SIN(PHII)+RKPHII*COS(PHII)
-       RKYP1=(RKRI+DELKR)*SIN(PHII)+RKPHII*COS(PHII)
-       RKYP2=(RKRI-DELKR)*SIN(PHII)+RKPHII*COS(PHII)
+       RKXP=  RKR_PRE       *COS(PHII)-RKPHII*SIN(PHII)
+       RKXP1=(RKR_PRE+DELKR)*COS(PHII)-RKPHII*SIN(PHII)
+       RKXP2=(RKR_PRE-DELKR)*COS(PHII)-RKPHII*SIN(PHII)
+       RKYP=  RKR_PRE       *SIN(PHII)+RKPHII*COS(PHII)
+       RKYP1=(RKR_PRE+DELKR)*SIN(PHII)+RKPHII*COS(PHII)
+       RKYP2=(RKR_PRE-DELKR)*SIN(PHII)+RKPHII*COS(PHII)
     ENDIF
 
 !      WRITE(6,'(1P6E12.4)') XP,YP,ZP,RKXP, RKYP, RKZP
@@ -292,18 +307,29 @@ CONTAINS
       T=(DISPXR(XP,YP,ZP,RKXP1,RKYP1,RKZP,OMG) &
         -DISPXR(XP,YP,ZP,RKXP2,RKYP2,RKZP,OMG))/(2*DELKR)
 
-      RKR=RKRI-S/T
+      RKR=RKR_PRE-S/T
       IF(MDLWRW.EQ.1) &
-           WRITE(6,'(A,1P3E12.4)') 'RKR,RKRI,-S/T=',RKR,RKRI,-S/T
+           WRITE(6,'(A,1P3E12.4)') 'RKR,RKR_PRE,-S/T=',RKR,RKR_PRE,-S/T
 
-      IF(ABS((RKR-RKRI)/RKRI).LE.EPSNW) GOTO 9000
+      IF(ABS((RKR-RKR_PRE)/RKR_PRE).LE.EPSNW) GOTO 9000
       IF(ICOUNT.GT.LMAXNW) GOTO 8000
-      RKRI=RKR
+      RKR_PRE=RKR
       GOTO 10
 
- 8000 WRITE(6,*) ' WRNWTN: DOES NOT CONVERGE'
+8000  WRITE(6,*) ' WRNWTN: DOES NOT CONVERGE'
       IERR=1000
- 9000 RETURN   
+9000  CONTINUE
+      RKR_final=RKR
+      CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
+      CKX=RKXP
+      CKY=RKYP
+      CKZ=RKZP
+      CALL dp_pola(crf,ckx,cky,ckz,xp,yp,zp,cdet,cepola,err)
+      WRITE(6,'(A,1P2E12.4)') 'CRF=',crf
+      WRITE(6,'(A,1P6E12.4)') 'K,X=',rkxp,rkyp,rkzp,xp,yp,zp
+      WRITE(6,'(A,1P6E12.4)') 'cep=',cepola(1),cepola(2),cepola(3)
+      WRITE(6,'(A,1PE12.4)')  'err=',err
+      RETURN   
   END SUBROUTINE WRNWTN
 
 !  ----- calculate wave number satifying D=0 -----
@@ -432,10 +458,11 @@ CONTAINS
   FUNCTION DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP,OMG)
 
     USE wrcomm
-    USE pllocal
+    USE plprof
     USE dpdisp,ONLY: cfdispr
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: XP,YP,ZP,RKXP,RKYP,RKZP,OMG
+    TYPE(pl_mag_type):: MAG
     REAL(rkind):: DISPXR
     INTEGER:: MODELPS(NSMAX),MODELVS(NSMAX)
     INTEGER:: NS
@@ -449,6 +476,7 @@ CONTAINS
       X=XP
       Y=YP
       Z=ZP
+      CALL pl_mag(X,Y,Z,MAG)
 !            
       DO NS=1,NSMAX
          MODELPS(NS)=MODELP(NS)
@@ -466,7 +494,7 @@ CONTAINS
       CWW=2.D0*PI*1.D6*CRF
       DO NS=1,NSMAX
          IF(NSDP(NS).EQ.1) THEN
-            CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS))
+            CWC=MAG%BABS*PZ(NS)*AEE/(AMP*PA(NS))
             CF=CF*(CWW-ABS(CWC))/(CWW+ABS(CWC))
          ENDIF
       ENDDO
@@ -485,10 +513,11 @@ CONTAINS
   FUNCTION DISPXI(XP,YP,ZP,RKXP,RKYP,RKZP,OMG)
 
     USE wrcomm
-    USE pllocal
+    USE plprof
     USE dpdisp,ONLY: cfdisp
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: XP,YP,ZP,RKXP,RKYP,RKZP,OMG
+    TYPE(pl_mag_type):: MAG
     REAL(rkind):: DISPXI
     INTEGER:: NS
     REAL(rkind):: X,Y,Z
@@ -501,13 +530,14 @@ CONTAINS
       X=XP
       Y=YP
       Z=ZP
+      CALL pl_mag(X,Y,Z,MAG)
             
       CF=CFDISP(CRF,CKX,CKY,CKZ,X,Y,Z)
 
       CWW=2.D0*PI*1.D6*CRF
       DO NS=1,NSMAX
          IF(NSDP(NS).EQ.1) THEN
-            CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS))
+            CWC=MAG%BABS*PZ(NS)*AEE/(AMP*PA(NS))
             CF=CF*(CWW-ABS(CWC))/(CWW+ABS(CWC))
          ENDIF
       ENDDO
@@ -609,6 +639,80 @@ CONTAINS
       RETURN
   END SUBROUTINE WRCALE
 
+!  ----- calculate polarization along ray -----
+
+  SUBROUTINE wrcalep(nstp,nray,cepola,cenorm,err)
+
+    USE wrcomm
+    USE plprof,ONLY: pl_mag_type,pl_mag
+    USE dppola,ONLY: dp_pola
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: nstp,nray
+    COMPLEX(rkind),INTENT(OUT):: cepola(3),cenorm(3)
+    REAL(rkind),INTENT(OUT):: err
+    TYPE(pl_mag_type):: mag
+    REAL(rkind):: x,y,z,rkx,rky,rkz,rk
+    REAL(rkind):: bnx,bny,bnz,knx,kny,knz,r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z
+    REAL(rkind):: en1,en2,en3
+    COMPLEX(rkind):: crf,ckx,cky,ckz,cdet(3,3),cphase
+
+    x=rays(1,nstp,nray)
+    y=rays(2,nstp,nray)
+    z=rays(3,nstp,nray)
+    rkx=rays(4,nstp,nray)
+    rky=rays(5,nstp,nray)
+    rkz=rays(6,nstp,nray)
+    CALL pl_mag(x,y,z,mag)
+
+    crf=rfin(nray)
+    ckx=rkx
+    cky=rky
+    ckz=rkz
+    CALL dp_pola(crf,ckx,cky,ckz,x,y,z,cdet,cepola,err)
+
+    bnx=mag%bnx
+    bny=mag%bny
+    bnz=mag%bnz
+    rk=sqrt(rkx**2+rky**2+rkz**2)
+    knx=rkx/rk
+    kny=rky/rk
+    knz=rkz/rk
+
+    r3x=knx              ! r3 = bn
+    r3y=kny
+    r3z=knz
+    r2x=bny*knz-bnz*kny  ! r2 = bn x kn
+    r2y=bnz*knx-bnx*knz
+    r2z=bnx*kny-bny*knx
+    r1x=r2y*r3z-r2z*r3y  ! r1 = r2 x r3
+    r1y=r2z*r3x-r2x*r3z
+    r1z=r2x*r3y-r2y*r3x
+
+    cenorm(1)=cepola(1)*r1x+cepola(2)*r1y+cepola(3)*r1z  ! O : plane on B and k
+    cenorm(2)=cepola(1)*r2x+cepola(2)*r2y+cepola(3)*r2z  ! X : perp to B and k
+    cenorm(3)=cepola(1)*r3x+cepola(2)*r3y+cepola(3)*r3z  ! P : parallel to B
+    en1=ABS(cenorm(1))
+    en2=ABS(cenorm(2))
+    en3=ABS(cenorm(3))
+    IF(en1.GE.en2) THEN
+       IF(en1.GE.en3) THEN
+          cphase=CONJG(cenorm(1)/en1)
+       ELSE
+          cphase=CONJG(cenorm(3)/en3)
+       END IF
+    ELSE
+       IF(en2.GE.en3) THEN
+          cphase=CONJG(cenorm(2)/en2)
+       ELSE
+          cphase=CONJG(cenorm(3)/en3)
+       END IF
+    END IF
+    cenorm(1)=cenorm(1)*cphase
+    cenorm(2)=cenorm(2)*cphase
+    cenorm(3)=cenorm(3)*cphase
+    RETURN
+  END SUBROUTINE wrcalep
+
 !  ----- calculate wave number along ray -----
 
   SUBROUTINE WRCALK(NSTP,NRAY,RKPARA,RKPERP)
@@ -695,5 +799,58 @@ CONTAINS
               +ABS(CUEZ)**2*(1.D0-BNZ**2))
     RETURN
   END SUBROUTINE WRCALE_I
+
+!  ----- calculate eigen electric field for initial position -----
+
+  SUBROUTINE WRCALE_XYZ(X,Y,Z,RKX,RKY,RKZ,EPARA,EPERP)
+
+    USE wrcomm
+    USE plprof,ONLY: PL_MAG_OLD
+    USE pllocal
+    USE dpdisp,ONLY: dp_disp
+    USE plcomm_type,ONLY: pl_mag_type
+    USE plprof,ONLY: pl_mag
+    IMPLICIT NONE
+    REAL(rkind),INTENT(IN):: X,Y,Z,RKX,RKY,RKZ
+    REAL(rkind),INTENT(OUT):: EPARA,EPERP
+    TYPE(pl_mag_type):: mag
+    COMPLEX(rkind):: CDET(3,3)
+    REAL(rkind):: OMG,EA
+    COMPLEX(rkind):: CRF,CKX,CKY,CKZ,CE1,CE2,CE3,CE4,CEXY,CEZY
+    COMPLEX(rkind):: CUEX,CUEY,CUEZ
+
+    OMG=2.D6*PI*RF
+    CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
+    CKX=DCMPLX(RKX,0.D0)
+    CKY=DCMPLX(RKY,0.D0)
+    CKZ=DCMPLX(RKZ,0.D0)
+    
+    CALL DP_DISP(CRF,CKX,CKY,CKZ,X,Y,Z,CDET)
+    
+    CE1=CDET(2,2)*CDET(1,3)-CDET(1,2)*CDET(2,3)
+    CE2=CDET(1,1)*CDET(2,3)-CDET(2,1)*CDET(1,3)
+    CE3=CDET(2,2)*CDET(1,1)-CDET(1,2)*CDET(2,1)
+    CE4=CDET(1,3)*CDET(2,1)-CDET(2,3)*CDET(1,1)
+    IF(CE2.EQ.0.OR.CE4.EQ.0)THEN
+       CEXY=0
+       CEZY=0
+    ELSE
+       CEXY=CE1/CE2
+       CEZY=CE3/CE4
+    ENDIF
+
+    EA=SQRT(ABS(CEXY)**2+1.D0+ABS(CEZY)**2)
+
+    CUEX=CEXY/EA
+    CUEY=1.D0/EA
+    CUEZ=CEZY/EA
+
+    CALL pl_mag(X,Y,Z,mag)
+    EPARA=ABS(CUEX*mag%bnx+CUEY*mag%bny+CUEZ*mag%bnz)
+    EPERP=SQRT(ABS(CUEX)**2*(1.D0-mag%bnx**2) &
+              +ABS(CUEY)**2*(1.D0-mag%bny**2) &
+              +ABS(CUEZ)**2*(1.D0-mag%bnz**2))
+    RETURN
+  END SUBROUTINE WRCALE_XYZ
 
 END MODULE wrsub

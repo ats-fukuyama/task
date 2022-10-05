@@ -389,10 +389,10 @@ C
                   CALL SETLIN(0,0,6)
                   IF(IDP.EQ.0) THEN
                      CALL CONTPF(GV,GXD,GYD,NNOD,IELM,NELM,
-     &                           GZL,GZDEL,1,0,KAF)
+     &                           GVL,GZDEL,1,0,KAF)
                   ELSE
                      CALL CONTPF(GV,GXD,GYD,NNOD,IELMP,NELMP,
-     &                           GZL,GZDEL,1,0,KAF)
+     &                           GVL,GZDEL,1,0,KAF)
                   ENDIF
                ELSEIF(GVL.LT.0.D0) THEN
                   CALL SETLIN(0,0,5)
@@ -755,7 +755,8 @@ C
      &   KWD(1:1).EQ.'A') THEN
          IGMAX=3
       ELSE
-         IGMAX=4
+C         IGMAX=4
+         IGMAX=3
       ENDIF
       DO NR=1,NRMAX
          GX(NR)  =GZ1(      NR)

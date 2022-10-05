@@ -12,21 +12,15 @@ CONTAINS
   SUBROUTINE wm_setg(ierr)
 
     USE wmcomm
+    USE wmdprf
+    USE wmxprf
+    USE wmvmec,ONLY: wmsetg_vmec
+    USE wmbooz,ONLY: wmsetg_boozer
+    USE trfile,ONLY: tr_load
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
 
     IERR=0
-
-    IF(NTHMAX.EQ.1) THEN
-       NTHMAX_F=1
-    ELSE
-       NTHMAX_F=NINT(NTHMAX*factor_nth)
-    END IF
-    IF(NHHMAX.EQ.1) THEN
-       NHHMAX_F=1
-    ELSE
-       NHHMAX_F=NINT(NHHMAX*factor_nhh)
-    END IF
 
     SELECT CASE(MODELG)
 
@@ -46,20 +40,15 @@ CONTAINS
     CASE(2)
        CALL wmsetg_tor(IERR)
 
-!     ****** EQUILIBRIUM (TASK/EQ) ******
+!     ****** EQUILIBRIUM (TASK/EQ,EQDSK) ******
 
-    CASE(3)
+    CASE(3,5)
        CALL wmsetg_eq(IERR)
 
 !     ****** EQUILIBRIUM (VMEC) ******
 
     CASE(4)
        CALL wmsetg_vmec(IERR)
-
-!     ****** EQUILIBRIUM (EQDSK) ******
-
-    CASE(5)
-       CALL wmsetg_eqdsk(IERR)
 
 !     ****** EQUILIBRIUM (BOOZER) ******
 
@@ -75,9 +64,9 @@ CONTAINS
 
 ! --- load plasma profile data ---
 
-    IF(MODELN.EQ.7) CALL WMDPRF(IERR)
-    IF(MODELN.EQ.8) CALL WMXPRF(IERR)
-    IF(MODELN.EQ.9) CALL WMTRLOAD(IERR)
+    IF(MODELN.EQ.7) CALL wm_dprf(IERR)
+    IF(MODELN.EQ.8) CALL wm_xprf(IERR)
+    IF(MODELN.EQ.9) CALL tr_load
 
     IF(IERR.NE.0) RETURN
 
@@ -152,7 +141,7 @@ CONTAINS
     USE wmcomm
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
-    REAL(rkind):: PSIPB,DRHO,RHOL,DTH,DTHG,RS,RSD,RCOS,RSIN,P0
+    REAL(rkind):: PSIPB,DRHO,RHOL,DTH,DTHF,RS,RSD,RCOS,RSIN,P0
     REAL(rkind):: FEDGE,FACTN,PT,FACTT,DTHU,RRG
     INTEGER:: NR,NSU,NTH,NHH,NS
 
@@ -188,8 +177,16 @@ CONTAINS
        ENDIF
     ENDDO
 
-    DTH=2.D0*PI/NTHMAX_F
-    DTHG=2.D0*PI/nthgmax
+    DTH=2.D0*PI/NTHMAX
+    DO NTH=1,NTHMAX+1
+       XTH(NTH)=DTH*(NTH-1)
+    END DO
+
+    DTHF=2.D0*PI/NTHMAX_F
+    DO NTH=1,NTHMAX_F+1
+       XTHF(NTH)=DTHF*(NTH-1)
+    END DO
+
     DO NR=1,NRMAX+1
        IF(NR.EQ.1) THEN
           RS=XR(2)/XRHO(2)
@@ -198,24 +195,14 @@ CONTAINS
        ENDIF
        RSD=QPS(NR)/(BB*RS)
        DO NTH=1,NTHMAX_F
-          RCOS=COS(DTH*(NTH-1))
-          RSIN=SIN(DTH*(NTH-1))
+          RCOS=COS(DTHF*(NTH-1))
+          RSIN=SIN(DTHF*(NTH-1))
           RPS(NTH,NR)    = RR + XR(NR)*RCOS
           ZPS(NTH,NR)    =      XR(NR)*RSIN
           DRPSI(NTH,NR)  =      RSD   *RCOS
           DZPSI(NTH,NR)  =      RSD   *RSIN
           DRCHI(NTH,NR)  =     -RS    *RSIN
           DZCHI(NTH,NR)  =      RS    *RCOS
-       ENDDO
-       DO NTH=1,nthgmax
-          RCOS=COS(DTHG*(NTH-1))
-          RSIN=SIN(DTHG*(NTH-1))
-          IF(MODELG.EQ.0) THEN
-             RPSG(NTH,NR)  =      XR(NR)*RCOS
-          ELSE IF(MODELG.EQ.1) THEN
-             RPSG(NTH,NR)  = RR + XR(NR)*RCOS
-          ENDIF
-          ZPSG(NTH,NR)  =         XR(NR)*RSIN
        ENDDO
     ENDDO
 
@@ -294,152 +281,147 @@ CONTAINS
     USE plprof,ONLY: pl_qprf
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
-    REAL(rkind):: DRHO,RHOL,DTH,RSD,RCOS,RSIN,DTHG,P0,FEDGE,FACTN,PT,FACTT
+    REAL(rkind):: DRHO,RHOL,DTH,DTHF,RSD,RCOS,RSIN,P0,FEDGE,FACTN,PT,FACTT
     REAL(rkind):: DTHU,RRG
     INTEGER:: NR,NTH,NS,NSU,NHH
 
-         IERR=0
+    IERR=0
 
-         NSUMAX=31
-         NSWMAX=31
-         NHHMAX=1
-         NHHMAX_F=1
+    NSUMAX=31
+    NSWMAX=31
+    NHHMAX=1
+    NHHMAX_F=1
 
-!         CALL plfile_prof_read(modeln,modelq,ierr)
+    PSIPA=RA*RA*BB/(Q0+QA)
+    DRHO=(RB/RA)/NRMAX
 
-         PSIPA=RA*RA*BB/(Q0+QA)
-         DRHO=(RB/RA)/NRMAX
+    DO NR=1,NRMAX+1
+       RHOL=DRHO*(NR-1)
+       XRHO(NR)=RHOL
+       XR(NR)=RA*RHOL
+       CALL PL_QPRF(RHOL,QPS(NR))
+    ENDDO
 
-         DO NR=1,NRMAX+1
-            RHOL=DRHO*(NR-1)
-            XRHO(NR)=RHOL
-            XR(NR)=RA*RHOL
-            CALL PL_QPRF(RHOL,QPS(NR))
-         ENDDO
+    DTH=2.D0*PI/NTHMAX
+    DO NTH=1,NTHMAX+1
+       XTH(NTH)=DTH*(NTH-1)
+    END DO
 
-         DTH=2.D0*PI/NTHMAX_F
-         DO NR=1,NRMAX+1
-            RSD=RA/(2.D0*PSIPA)
-            DO NTH=1,NTHMAX_F
-               RCOS=COS(DTH*(NTH-1))
-               RSIN=SIN(DTH*(NTH-1))
-               RPS(NTH,NR) = RR + XR(NR)*RCOS
-               ZPS(NTH,NR)    =      XR(NR)*RSIN
-               DRPSI(NTH,NR)  =      RSD   *RCOS
-               DZPSI(NTH,NR)  =      RSD   *RSIN
-               DRCHI(NTH,NR)  =     -RA    *RSIN
-               DZCHI(NTH,NR)  =      RA    *RCOS
-            ENDDO
-         END DO
+    DTHF=2.D0*PI/NTHMAX_F
+    DO NTH=1,NTHMAX_F+1
+       XTHF(NTH)=DTHF*(NTH-1)
+    END DO
 
-         DTHG=2.D0*PI/NTHGMAX
-         DO NR=1,NRMAX+1
-            DO NTH=1,NTHGMAX
-               RCOS=COS(DTHG*(NTH-1))
-               RSIN=SIN(DTHG*(NTH-1))
-               IF(MODELG.EQ.0) THEN
-                  RPSG(NTH,NR)  =      XR(NR)*RCOS
-               ELSE
-                  RPSG(NTH,NR)  = RR + XR(NR)*RCOS
-               ENDIF
-               ZPSG(NTH,NR)  =         XR(NR)*RSIN
-            ENDDO
-         ENDDO
+    DTH=2.D0*PI/NTHMAX_F
+    DO NR=1,NRMAX+1
+       RSD=RA/(2.D0*PSIPA)
+       DO NTH=1,NTHMAX_F
+          RCOS=COS(DTHF*(NTH-1))
+          RSIN=SIN(DTHF*(NTH-1))
+          RPS(NTH,NR) = RR + XR(NR)*RCOS
+          ZPS(NTH,NR)    =      XR(NR)*RSIN
+          DRPSI(NTH,NR)  =      RSD   *RCOS
+          DZPSI(NTH,NR)  =      RSD   *RSIN
+          DRCHI(NTH,NR)  =     -RA    *RSIN
+          DZCHI(NTH,NR)  =      RA    *RCOS
+       ENDDO
+    END DO
 
-         P0=0.D0
-         DO NS=1,NSMAX
-            P0=P0+PN(NS)*(PTPR(NS)+2*PTPP(NS))/3.D0
-         ENDDO
-         P0=P0*1.D20*AEE*1.D3/1.D6
+    P0=0.D0
+    DO NS=1,NSMAX
+       P0=P0+PN(NS)*(PTPR(NS)+2*PTPP(NS))/3.D0
+    ENDDO
+    P0=P0*1.D20*AEE*1.D3/1.D6
 
-         DO NR=1,NRMAX+1
-            RHOL=XRHO(NR)
-            IF(RHOL.LE.1.D0) THEN
-               IF(PN(1).LE.0.D0) THEN
-                  FEDGE=0.D0
-               ELSE
-                  FEDGE=PNS(1)/PN(1)
-               END IF
-               FACTN=(1.D0-FEDGE)*(1.D0-RHOL**PROFN1(1))**PROFN2(1)+FEDGE
-               PT=(PTPR(1)+2*PTPP(1))/3.D0
-               FEDGE=PTS(1)/PT
-               FACTT=(1.D0-FEDGE)*(1.D0-RHOL**PROFT1(1))**PROFT2(1)+FEDGE
-               PPS(NR)=P0*FACTN*FACTT
-            ELSE
-               PPS(NR)=0.D0
-            ENDIF
-            RBPS(NR)=BB*RR
-            VPS(NR)=2*PI*RR*PI*XR(NR)**2
-            RLEN(NR)=2*PI*XR(NR)
-         ENDDO
+    DO NR=1,NRMAX+1
+       RHOL=XRHO(NR)
+       IF(RHOL.LE.1.D0) THEN
+          IF(PN(1).LE.0.D0) THEN
+             FEDGE=0.D0
+          ELSE
+             FEDGE=PNS(1)/PN(1)
+          END IF
+          FACTN=(1.D0-FEDGE)*(1.D0-RHOL**PROFN1(1))**PROFN2(1)+FEDGE
+          PT=(PTPR(1)+2*PTPP(1))/3.D0
+          FEDGE=PTS(1)/PT
+          FACTT=(1.D0-FEDGE)*(1.D0-RHOL**PROFT1(1))**PROFT2(1)+FEDGE
+          PPS(NR)=P0*FACTN*FACTT
+       ELSE
+          PPS(NR)=0.D0
+       ENDIF
+       RBPS(NR)=BB*RR
+       VPS(NR)=2*PI*RR*PI*XR(NR)**2
+       RLEN(NR)=2*PI*XR(NR)
+    ENDDO
 
-         DTHU=2.D0*PI/(NSUMAX-1)
-         DO NSU=1,NSUMAX
-            RCOS=COS(DTHU*(NSU-1))
-            RSIN=SIN(DTHU*(NSU-1))
-            RSU(NSU,1)=RR+RA*RCOS
-            RSW(NSU,1)=RR+RB*RCOS
-            ZSU(NSU,1)=RA*RSIN
-            ZSW(NSU,1)=RB*RSIN
-         ENDDO
+    DTHU=2.D0*PI/(NSUMAX-1)
+    DO NSU=1,NSUMAX
+       RCOS=COS(DTHU*(NSU-1))
+       RSIN=SIN(DTHU*(NSU-1))
+       RSU(NSU,1)=RR+RA*RCOS
+       RSW(NSU,1)=RR+RB*RCOS
+       ZSU(NSU,1)=RA*RSIN
+       ZSW(NSU,1)=RB*RSIN
+    ENDDO
 
-         RGMIN=RR-RB*1.01D0
-         RGMAX=RR+RB*1.01D0
-         ZGMIN=-RB*1.01D0
-         ZGMAX= RB*1.01D0
-         RAXIS=RR
-         ZAXIS=0.D0
+    RGMIN=RR-RB*1.01D0
+    RGMAX=RR+RB*1.01D0
+    ZGMIN=-RB*1.01D0
+    ZGMAX= RB*1.01D0
+    RAXIS=RR
+    ZAXIS=0.D0
 
-         DO NR=1,NRMAX+1
-            DO NTH=1,NTHMAX_F
-               RRG=RPS(NTH,NR)
-               DO NHH=1,NHHMAX_F
-                  RPST(NTH,NHH,NR)=RPS(NTH,NR)
-                  ZPST(NTH,NHH,NR)=ZPS(NTH,NR)
+    DO NR=1,NRMAX+1
+       DO NTH=1,NTHMAX_F
+          RRG=RPS(NTH,NR)
+          DO NHH=1,NHHMAX_F
+             RPST(NTH,NHH,NR)=RPS(NTH,NR)
+             ZPST(NTH,NHH,NR)=ZPS(NTH,NR)
 
-                  RG11(NTH,NHH,NR)= DRPSI(NTH,NR)**2+DZPSI(NTH,NR)**2
-                  RG12(NTH,NHH,NR)= DRPSI(NTH,NR)*DRCHI(NTH,NR) &
-                                   +DZPSI(NTH,NR)*DZCHI(NTH,NR)
-                  RG13(NTH,NHH,NR)= 0.D0
-                  RG22(NTH,NHH,NR)= DRCHI(NTH,NR)**2+DZCHI(NTH,NR)**2
-                  RG23(NTH,NHH,NR)= 0.D0
-                  RG33(NTH,NHH,NR)= RRG**2
-                  RJ  (NTH,NHH,NR)= RRG*( DRPSI(NTH,NR)*DZCHI(NTH,NR) &
-                                         -DRCHI(NTH,NR)*DZPSI(NTH,NR))
+             RG11(NTH,NHH,NR)= DRPSI(NTH,NR)**2+DZPSI(NTH,NR)**2
+             RG12(NTH,NHH,NR)= DRPSI(NTH,NR)*DRCHI(NTH,NR) &
+                  +DZPSI(NTH,NR)*DZCHI(NTH,NR)
+             RG13(NTH,NHH,NR)= 0.D0
+             RG22(NTH,NHH,NR)= DRCHI(NTH,NR)**2+DZCHI(NTH,NR)**2
+             RG23(NTH,NHH,NR)= 0.D0
+             RG33(NTH,NHH,NR)= RRG**2
+             RJ  (NTH,NHH,NR)= RRG*( DRPSI(NTH,NR)*DZCHI(NTH,NR) &
+                  -DRCHI(NTH,NR)*DZPSI(NTH,NR))
 
-                  BFLD(2,NTH,NHH,NR)=BB*RR/RRG**2/QPS(NR)
-                  BFLD(3,NTH,NHH,NR)=BB*RR/RRG**2
-               ENDDO
-            ENDDO
-         ENDDO
+             BFLD(2,NTH,NHH,NR)=BB*RR/RRG**2/QPS(NR)
+             BFLD(3,NTH,NHH,NR)=BB*RR/RRG**2
+          ENDDO
+       ENDDO
+    ENDDO
 
-         P0=0.D0
-         DO NS=1,NSMAX
-            P0=P0+PN(NS)*(PTPR(NS)+2*PTPP(NS))/3.D0
-         ENDDO
-         P0=P0*1.D20*AEE*1.D3/1.D6
+    P0=0.D0
+    DO NS=1,NSMAX
+       P0=P0+PN(NS)*(PTPR(NS)+2*PTPP(NS))/3.D0
+    ENDDO
+    P0=P0*1.D20*AEE*1.D3/1.D6
 
-         DO NR=1,NRMAX+1
-            RHOL=XRHO(NR)
-            IF(RHOL.LE.1.D0) THEN
-               IF(PN(1).LE.0.D0) THEN
-                  FEDGE=0.D0
-               ELSE
-                  FEDGE=PNS(1)/PN(1)
-               END IF
-               FACTN=(1.D0-FEDGE)*(1.D0-RHOL**PROFN1(1))**PROFN2(1)+FEDGE
-               PT=(PTPR(1)+2*PTPP(1))/3.D0
-               FEDGE=PTS(1)/PT
-               FACTT=(1.D0-FEDGE)*(1.D0-RHOL**PROFT1(1))**PROFT2(1)+FEDGE
-               PPS(NR)=P0*FACTN*FACTT
-            ELSE
-               PPS(NR)=0.D0
-            ENDIF
-            RBPS(NR)=BB*RR
-            VPS(NR)=2*PI*RR*PI*XR(NR)**2
-            RLEN(NR)=2*PI*XR(NR)
-         ENDDO
-      RETURN
+    DO NR=1,NRMAX+1
+       RHOL=XRHO(NR)
+       IF(RHOL.LE.1.D0) THEN
+          IF(PN(1).LE.0.D0) THEN
+             FEDGE=0.D0
+          ELSE
+             FEDGE=PNS(1)/PN(1)
+          END IF
+          FACTN=(1.D0-FEDGE)*(1.D0-RHOL**PROFN1(1))**PROFN2(1)+FEDGE
+          PT=(PTPR(1)+2*PTPP(1))/3.D0
+          FEDGE=PTS(1)/PT
+          FACTT=(1.D0-FEDGE)*(1.D0-RHOL**PROFT1(1))**PROFT2(1)+FEDGE
+          PPS(NR)=P0*FACTN*FACTT
+       ELSE
+          PPS(NR)=0.D0
+       ENDIF
+       RBPS(NR)=BB*RR
+       VPS(NR)=2*PI*RR*PI*XR(NR)**2
+       RLEN(NR)=2*PI*XR(NR)
+    ENDDO
+
+    RETURN
   END SUBROUTINE wmsetg_tor
 
 !     ****** TASK/EQ wequilibrium ******
@@ -447,11 +429,13 @@ CONTAINS
   SUBROUTINE wmsetg_eq(IERR)
 
     USE wmcomm
+    USE wmeqin
+    USE libmpi
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
     CHARACTER(LEN=80):: LINE
     REAL(rkind):: ARG,BPTL
-    INTEGER:: NSU,NR,NTH,NHH
+    INTEGER:: NR,NTH,NHH
     INTEGER,SAVE:: NRMAXSV=0,NTHMAXSV=0,NSUMAXSV=0
     CHARACTER(LEN=80),SAVE:: KNAMEQSV=' '
 
@@ -462,163 +446,158 @@ CONTAINS
        NSUMAXSV.EQ.NSUMAX.AND. &
        KNAMEQSV.EQ.KNAMEQ) RETURN
 
-      NSUMAX=41
-      NSWMAX=NSUMAX
-      NHHMAX=1
-      NHHMAX_F=1
+    NSUMAX=41
+    NSWMAX=NSUMAX
+    NHHMAX=1
+    NHHMAX_F=1
 
-      IF(NTHMAX_F.LT.4) THEN
-         IF(NRANK.EQ.0) &
-              WRITE(6,*) 'XX WMXRZF: NTHMAX MUST BE GREATER THAN 4'
-         IERR=1
-         RETURN
-      ENDIF
+    IF(NTHMAX_F.LT.4) THEN
+       IF(NRANK.EQ.0) &
+            WRITE(6,*) 'XX WMXRZF: NTHMAX MUST BE GREATER THAN 4'
+       IERR=1
+       RETURN
+    ENDIF
 
-      IF(NRANK.EQ.0) THEN
-         CALL EQLOAD(MODELG,KNAMEQ,IERR)
-      ENDIF
-      CALL mtx_broadcast1_integer(IERR)
-      IF(IERR.EQ.1) RETURN
+    IF(NRANK.EQ.0) THEN
+       CALL EQLOAD(MODELG,KNAMEQ,IERR)
+    ENDIF
+    CALL mtx_broadcast1_integer(IERR)
+    IF(IERR.EQ.1) RETURN
 
-      NRMAXSV=NRMAX
-      NTHMAXSV=NTHMAX_F
-      NSUMAXSV=NSUMAX
-      KNAMEQSV=KNAMEQ
+    NRMAXSV=NRMAX
+    NTHMAXSV=NTHMAX_F
+    NSUMAXSV=NSUMAX
+    KNAMEQSV=KNAMEQ
 
-      IF(NRANK.EQ.0) THEN
-         write(LINE,'(A,I5)') 'nrmax=',NRMAX+1
-         call eqparm(2,line,ierr)
-         write(LINE,'(A,I5)') 'nthmax=',NTHMAX_F
-         call eqparm(2,line,ierr)
-         write(LINE,'(A,I5)') 'nsumax=',NSUMAX
-         call eqparm(2,line,ierr)
-         CALL EQCALQ(IERR)
-         CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
-         CALL EQGETP(RHOT,PSIP,NRMAX+1)
-         CALL EQGETR(RPS,DRPSI,DRCHI,NTHMAX_F,NTHMAX_F,NRMAX+1)
-         CALL EQGETZ(ZPS,DZPSI,DZCHI,NTHMAX_F,NTHMAX_F,NRMAX+1)
-         CALL EQGETBB(BPR,BPZ,BPT,BTP,NTHMAX_F,NTHMAX_F,NRMAX+1)
-         CALL EQGETQ(PPS,QPS,RBPS,VPS,RLEN,NRMAX+1)
-         CALL EQGETU(RSU,ZSU,RSW,ZSW,NSUMAX)
-         CALL EQGETF(RGMIN,RGMAX,ZGMIN,ZGMAX)
-         CALL EQGETA(RAXIS,ZAXIS,PSIPA,PSITA,Q0,QA)
+    IF(NRANK.EQ.0) THEN
+       write(LINE,'(A,I5)') 'nrmax=',NRMAX+1
+       call eqparm(2,line,ierr)
+       write(LINE,'(A,I5)') 'nthmax=',NTHMAX_F
+       call eqparm(2,line,ierr)
+       write(LINE,'(A,I5)') 'nsumax=',NSUMAX
+       call eqparm(2,line,ierr)
+       CALL EQCALQ(IERR)
+       CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
+       CALL EQGETP(RHOT,PSIP,NRMAX+1)
+       CALL EQGETR(RPS,DRPSI,DRCHI,NTHMAX_F,NTHMAX_F,NRMAX+1)
+       CALL EQGETZ(ZPS,DZPSI,DZCHI,NTHMAX_F,NTHMAX_F,NRMAX+1)
+       CALL EQGETBB(BPR,BPZ,BPT,BTP,NTHMAX_F,NTHMAX_F,NRMAX+1)
+       CALL EQGETQ(PPS,QPS,RBPS,VPS,RLEN,NRMAX+1)
+       CALL EQGETU(RSU,ZSU,RSW,ZSW,NSUMAX)
+       CALL EQGETF(RGMIN,RGMAX,ZGMIN,ZGMAX)
+       CALL EQGETA(RAXIS,ZAXIS,PSIPA,PSITA,Q0,QA)
 
-         write(LINE,'(A,I5)') 'nrmax=',NRMAX+1
-         call eqparm(2,line,ierr)
-         write(LINE,'(A,I5)') 'nthmax=',NTHGMAX
-         call eqparm(2,line,ierr)
-         write(LINE,'(A,I5)') 'nsumax=',NSUMAX
-         call eqparm(2,line,ierr)
-         CALL EQCALQ(IERR)
-         CALL EQGETG(RPSG,ZPSG,NTHGMAX,NTHGMAX,NRMAX+1)
-      ENDIF
-      CALL mtx_broadcast1_real8(BB)
-      CALL mtx_broadcast1_real8(RR)
-      CALL mtx_broadcast1_real8(RIP)
-      CALL mtx_broadcast1_real8(RA)
-      CALL mtx_broadcast1_real8(RKAP)
-      CALL mtx_broadcast1_real8(RDLT)
-      CALL mtx_broadcast1_real8(RB)
-      CALL mtx_broadcast_real8(RHOT,NRMAX+1)
-      CALL mtx_broadcast_real8(PSIP,NRMAX+1)
+       write(LINE,'(A,I5)') 'nrmax=',NRMAX+1
+       call eqparm(2,line,ierr)
+       write(LINE,'(A,I5)') 'nthmax=',nthmax_g
+       call eqparm(2,line,ierr)
+       write(LINE,'(A,I5)') 'nsumax=',NSUMAX
+       call eqparm(2,line,ierr)
+       CALL EQCALQ(IERR)
+       CALL EQGETG(RPSG,ZPSG,nthmax_g,nthmax_g,NRMAX+1)
+    ENDIF
+    CALL mtx_broadcast1_real8(BB)
+    CALL mtx_broadcast1_real8(RR)
+    CALL mtx_broadcast1_real8(RIP)
+    CALL mtx_broadcast1_real8(RA)
+    CALL mtx_broadcast1_real8(RKAP)
+    CALL mtx_broadcast1_real8(RDLT)
+    CALL mtx_broadcast1_real8(RB)
+    CALL mtx_broadcast_real8(RHOT,NRMAX+1)
+    CALL mtx_broadcast_real8(PSIP,NRMAX+1)
 
-      CALL mtx_broadcast_real8(RPS,NTHMAX_F*(NRMAX+1))
-      CALL mtx_broadcast_real8(DRPSI,NTHMAX_F*(NRMAX+1))
-      CALL mtx_broadcast_real8(DRCHI,NTHMAX_F*(NRMAX+1))
-      CALL mtx_broadcast_real8(ZPS,NTHMAX_F*(NRMAX+1))
-      CALL mtx_broadcast_real8(DZPSI,NTHMAX_F*(NRMAX+1))
-      CALL mtx_broadcast_real8(DZCHI,NTHMAX_F*(NRMAX+1))
-      CALL mtx_broadcast_real8(BPR,NTHMAX_F*(NRMAX+1))
-      CALL mtx_broadcast_real8(BPZ,NTHMAX_F*(NRMAX+1))
-      CALL mtx_broadcast_real8(BPT,NTHMAX_F*(NRMAX+1))
-      CALL mtx_broadcast_real8(BTP,NTHMAX_F*(NRMAX+1))
+    CALL mtx_broadcast_real8(RPS,NTHMAX_F*(NRMAX+1))
+    CALL mtx_broadcast_real8(DRPSI,NTHMAX_F*(NRMAX+1))
+    CALL mtx_broadcast_real8(DRCHI,NTHMAX_F*(NRMAX+1))
+    CALL mtx_broadcast_real8(ZPS,NTHMAX_F*(NRMAX+1))
+    CALL mtx_broadcast_real8(DZPSI,NTHMAX_F*(NRMAX+1))
+    CALL mtx_broadcast_real8(DZCHI,NTHMAX_F*(NRMAX+1))
+    CALL mtx_broadcast_real8(BPR,NTHMAX_F*(NRMAX+1))
+    CALL mtx_broadcast_real8(BPZ,NTHMAX_F*(NRMAX+1))
+    CALL mtx_broadcast_real8(BPT,NTHMAX_F*(NRMAX+1))
+    CALL mtx_broadcast_real8(BTP,NTHMAX_F*(NRMAX+1))
 
-      CALL mtx_broadcast_real8(PPS,NRMAX+1)
-      CALL mtx_broadcast_real8(QPS,NRMAX+1)
-      CALL mtx_broadcast_real8(RBPS,NRMAX+1)
-      CALL mtx_broadcast_real8(VPS,NRMAX+1)
-      CALL mtx_broadcast_real8(RLEN,NRMAX+1)
-      CALL mtx_broadcast_real8(RSU,NSUMAX)
-      CALL mtx_broadcast_real8(ZSU,NSUMAX)
-      CALL mtx_broadcast_real8(RSW,NSUMAX)
-      CALL mtx_broadcast_real8(ZSW,NSUMAX)
-      CALL mtx_broadcast1_real8(RGMIN)
-      CALL mtx_broadcast1_real8(RGMAX)
-      CALL mtx_broadcast1_real8(ZGMIN)
-      CALL mtx_broadcast1_real8(ZGMAX)
-      CALL mtx_broadcast1_real8(RAXIS)
-      CALL mtx_broadcast1_real8(ZAXIS)
-      CALL mtx_broadcast1_real8(PSIPA)
-      CALL mtx_broadcast1_real8(PSITA)
-      CALL mtx_broadcast1_real8(Q0)
-      CALL mtx_broadcast1_real8(QA)
+    CALL mtx_broadcast_real8(PPS,NRMAX+1)
+    CALL mtx_broadcast_real8(QPS,NRMAX+1)
+    CALL mtx_broadcast_real8(RBPS,NRMAX+1)
+    CALL mtx_broadcast_real8(VPS,NRMAX+1)
+    CALL mtx_broadcast_real8(RLEN,NRMAX+1)
+    CALL mtx_broadcast_real8(RSU,NSUMAX)
+    CALL mtx_broadcast_real8(ZSU,NSUMAX)
+    CALL mtx_broadcast_real8(RSW,NSUMAX)
+    CALL mtx_broadcast_real8(ZSW,NSUMAX)
+    CALL mtx_broadcast1_real8(RGMIN)
+    CALL mtx_broadcast1_real8(RGMAX)
+    CALL mtx_broadcast1_real8(ZGMIN)
+    CALL mtx_broadcast1_real8(ZGMAX)
+    CALL mtx_broadcast1_real8(RAXIS)
+    CALL mtx_broadcast1_real8(ZAXIS)
+    CALL mtx_broadcast1_real8(PSIPA)
+    CALL mtx_broadcast1_real8(PSITA)
+    CALL mtx_broadcast1_real8(Q0)
+    CALL mtx_broadcast1_real8(QA)
 
-         RMAX=RSU(1,1)
-         DO NSU=2,NSUMAX
-            RMAX=MAX(RMAX,RSU(NSU,1))
-         ENDDO
+    DO NR=1,NRMAX+1
+       ARG=RHOT(NR)
+       IF(ARG.LE.0.D0) THEN
+          XRHO(NR)=0.D0
+       ELSE
+          XRHO(NR)=ARG
+       ENDIF
+       XR(NR)=RA*XRHO(NR)
+    ENDDO
 
-         DO NR=1,NRMAX+1
-            ARG=RHOT(NR)
-            IF(ARG.LE.0.D0) THEN
-               XRHO(NR)=0.D0
-            ELSE
-               XRHO(NR)=ARG
-            ENDIF
-            XR(NR)=RA*XRHO(NR)
-         ENDDO
+    DO NR=1,NRMAX+1
+       DO NHH=1,NHHMAX_F
+          DO NTH=1,NTHMAX_F
+             RPST(NTH,NHH,NR)=RPS(NTH,NR)
+             ZPST(NTH,NHH,NR)=ZPS(NTH,NR)
+          ENDDO
+       ENDDO
+    ENDDO
 
-         DO NR=1,NRMAX+1
-         DO NHH=1,NHHMAX_F
-         DO NTH=1,NTHMAX_F
-            RPST(NTH,NHH,NR)=RPS(NTH,NR)
-            ZPST(NTH,NHH,NR)=ZPS(NTH,NR)
-         ENDDO
-         ENDDO
-         ENDDO
+    DO NR=2,NRMAX+1
+       DO NTH=1,NTHMAX_F
+          DO NHH=1,NHHMAX_F
+             RG11(NTH,NHH,NR)= (DRPSI(NTH,NR)**2+DZPSI(NTH,NR)**2)
+             RG12(NTH,NHH,NR)= (DRPSI(NTH,NR)*DRCHI(NTH,NR) &
+                  +DZPSI(NTH,NR)*DZCHI(NTH,NR))/XRHO(NR)
+             RG13(NTH,NHH,NR)=0.D0
+             RG22(NTH,NHH,NR)= (DRCHI(NTH,NR)**2+DZCHI(NTH,NR)**2) &
+                  /(XRHO(NR)*XRHO(NR))
+             RG23(NTH,NHH,NR)=0.D0
+             RG33(NTH,NHH,NR)= RPS(NTH,NR)**2
+             RJ  (NTH,NHH,NR)= RPS(NTH,NR) &
+                  *( DRPSI(NTH,NR)*DZCHI(NTH,NR) &
+                  -DRCHI(NTH,NR)*DZPSI(NTH,NR))/XRHO(NR)
+             BPTL=(BPR(NTH,NR)*DZPSI(NTH,NR) &
+                  -BPZ(NTH,NR)*DRPSI(NTH,NR))/XRHO(NR) &
+                  /SQRT(RG11(NTH,NHH,NR)) &
+                  /SQRT(RG22(NTH,NHH,NR))
 
-         DO NR=2,NRMAX+1
-         DO NTH=1,NTHMAX_F
-         DO NHH=1,NHHMAX_F
-            RG11(NTH,NHH,NR)= (DRPSI(NTH,NR)**2+DZPSI(NTH,NR)**2)
-            RG12(NTH,NHH,NR)= (DRPSI(NTH,NR)*DRCHI(NTH,NR) &
-                              +DZPSI(NTH,NR)*DZCHI(NTH,NR))/XRHO(NR)
-            RG13(NTH,NHH,NR)=0.D0
-            RG22(NTH,NHH,NR)= (DRCHI(NTH,NR)**2+DZCHI(NTH,NR)**2) &
-                              /(XRHO(NR)*XRHO(NR))
-            RG23(NTH,NHH,NR)=0.D0
-            RG33(NTH,NHH,NR)= RPS(NTH,NR)**2
-            RJ  (NTH,NHH,NR)= RPS(NTH,NR) &
-                            *( DRPSI(NTH,NR)*DZCHI(NTH,NR) &
-                              -DRCHI(NTH,NR)*DZPSI(NTH,NR))/XRHO(NR)
-            BPTL=(BPR(NTH,NR)*DZPSI(NTH,NR) &
-                 -BPZ(NTH,NR)*DRPSI(NTH,NR))/XRHO(NR) &
-                 /SQRT(RG11(NTH,NHH,NR)) &
-                 /SQRT(RG22(NTH,NHH,NR))
+             BFLD(2,NTH,NHH,NR)=BPTL
+             BFLD(3,NTH,NHH,NR)=BTP(NTH,NR)/RPS(NTH,NR)
+          ENDDO
+       ENDDO
+    ENDDO
 
-            BFLD(2,NTH,NHH,NR)=BPTL
-            BFLD(3,NTH,NHH,NR)=BTP(NTH,NR)/RPS(NTH,NR)
-         ENDDO
-         ENDDO
-         ENDDO
+    NR=1
+    DO NHH=1,NHHMAX_F
+       DO NTH=1,NTHMAX_F
+          RG11(NTH,NHH,NR)= RG11(NTH,NHH,2)
+          RG12(NTH,NHH,NR)= RG12(NTH,NHH,2)
+          RG13(NTH,NHH,NR)= 0.D0
+          RG22(NTH,NHH,NR)= RG22(NTH,NHH,2)
+          RG23(NTH,NHH,NR)= 0.D0
+          RG33(NTH,NHH,NR)= RPST(NTH,NHH,NR)**2
+          RJ  (NTH,NHH,NR)= RJ(NTH,NHH,2)
+          BPTL=0.D0
+          BFLD(2,NTH,NHH,NR)=BFLD(2,NTH,NHH,2)
+          BFLD(3,NTH,NHH,NR)=BTP(NTH,NR)/RPS(NTH,NR)
+       ENDDO
+    ENDDO
 
-         NR=1
-         DO NHH=1,NHHMAX_F
-         DO NTH=1,NTHMAX_F
-            RG11(NTH,NHH,NR)= RG11(NTH,NHH,2)
-            RG12(NTH,NHH,NR)= RG12(NTH,NHH,2)
-            RG13(NTH,NHH,NR)= 0.D0
-            RG22(NTH,NHH,NR)= RG22(NTH,NHH,2)
-            RG23(NTH,NHH,NR)= 0.D0
-            RG33(NTH,NHH,NR)= RPST(NTH,NHH,NR)**2
-            RJ  (NTH,NHH,NR)= RJ(NTH,NHH,2)
-            BPTL=0.D0
-            BFLD(2,NTH,NHH,NR)=BFLD(2,NTH,NHH,2)
-            BFLD(3,NTH,NHH,NR)=BTP(NTH,NR)/RPS(NTH,NR)
-         ENDDO
-         ENDDO
-
-      RETURN
+    RETURN
   END SUBROUTINE wmsetg_eq
 
 !     ****** CALCULATE ION CYCROTRON RESONANCE SURFACE ******
@@ -648,42 +627,69 @@ CONTAINS
 
 !     ****** CALCULATE INVERT MATRIX ******
 
-  SUBROUTINE WMRGINVERT
+  SUBROUTINE wm_invert_rg
 
     USE wmcomm
+    USE libinv
     IMPLICIT NONE
     REAL(rkind):: RGA(3,3),RGB(3,3)
     INTEGER:: NR,NHH,NTH,I,J,ILL
 
 !        ----- Invert matrix to obtain mu^(-1)=RMB and g^(-1)=RGB ----
 
-      DO NR =1,NRMAX+1
-      DO NHH=1,NHHMAX_F
-      DO NTH=1,NTHMAX_F
-         RGA(1,1)=RG11(NTH,NHH,NR)
-         RGA(1,2)=RG12(NTH,NHH,NR)
-         RGA(1,3)=RG13(NTH,NHH,NR)
-         RGA(2,1)=RG12(NTH,NHH,NR)
-         RGA(2,2)=RG22(NTH,NHH,NR)
-         RGA(2,3)=RG23(NTH,NHH,NR)
-         RGA(3,1)=RG13(NTH,NHH,NR)
-         RGA(3,2)=RG23(NTH,NHH,NR)
-         RGA(3,3)=RG33(NTH,NHH,NR)
-         DO J=1,3
-         DO I=1,3
-            RGB(I,J)=RGA(I,J)
-         ENDDO
-         ENDDO
-         CALL INVMRD(RGB,3,3,ILL)
-         RGI11(NTH,NHH,NR)=RGB(1,1)
-         RGI12(NTH,NHH,NR)=RGB(1,2)
-         RGI13(NTH,NHH,NR)=RGB(1,3)
-         RGI22(NTH,NHH,NR)=RGB(2,2)
-         RGI23(NTH,NHH,NR)=RGB(2,3)
-         RGI33(NTH,NHH,NR)=RGB(3,3)
-      ENDDO
-      ENDDO
-      ENDDO
+    DO NR =1,NRMAX+1
+       DO NHH=1,NHHMAX_F
+          DO NTH=1,NTHMAX_F
+             RGA(1,1)=RG11(NTH,NHH,NR)
+             RGA(1,2)=RG12(NTH,NHH,NR)
+             RGA(1,3)=RG13(NTH,NHH,NR)
+             RGA(2,1)=RG12(NTH,NHH,NR)
+             RGA(2,2)=RG22(NTH,NHH,NR)
+             RGA(2,3)=RG23(NTH,NHH,NR)
+             RGA(3,1)=RG13(NTH,NHH,NR)
+             RGA(3,2)=RG23(NTH,NHH,NR)
+             RGA(3,3)=RG33(NTH,NHH,NR)
+             DO J=1,3
+                DO I=1,3
+                   RGB(I,J)=RGA(I,J)
+                ENDDO
+             ENDDO
+             CALL INVMRD(RGB,3,3,ILL)
+             RGI11(NTH,NHH,NR)=RGB(1,1)
+             RGI12(NTH,NHH,NR)=RGB(1,2)
+             RGI13(NTH,NHH,NR)=RGB(1,3)
+             RGI22(NTH,NHH,NR)=RGB(2,2)
+             RGI23(NTH,NHH,NR)=RGB(2,3)
+             RGI33(NTH,NHH,NR)=RGB(3,3)
+          ENDDO
+       ENDDO
+    ENDDO
 
-  END SUBROUTINE WMRGINVERT
+  END SUBROUTINE wm_invert_rg
+
+  SUBROUTINE BTHOB
+    USE wmcomm
+    IMPLICIT NONE
+    INTEGER:: nr,nth,nhh
+    REAL(rkind):: BSUPTH,BSUPPH,BABS,BTH,RHON
+    
+    ! ----- Invert matrix to obtain mu^(-1)=RMB and g^(-1)=RGB ----
+    
+    DO NR  =1,NRMAX+1
+       BTHOBN(NR)=0.D0
+       RHON=XRHO(NR)
+       DO NHH=1,NHHMAX_F
+          DO NTH=1,NTHMAX_F
+             BSUPTH=BFLD(2,NTH,NHH,NR)
+             BSUPPH=BFLD(3,NTH,NHH,NR)
+             BABS  =BPST(NTH,NHH,NR)
+             BTH=ABS(BSUPTH*RA*RHON)
+!             WRITE(6,'(A,3I6,3ES12.4)') &
+!                  'wmsetg:',NR,NHH,NTH,BTH,BABS,BTHOBN(NR)
+             BTHOBN(NR)=BTHOBN(NR) + BTH/BABS
+          ENDDO
+       ENDDO
+       BTHOBN(NR)=ABS(BTHOBN(NR))/DBLE(NHHMAX_F*NTHMAX_F)
+    ENDDO
+  END SUBROUTINE BTHOB
 END MODULE wmsetg

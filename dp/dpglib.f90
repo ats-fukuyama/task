@@ -17,6 +17,7 @@ CONTAINS
     USE dpcomm,ONLY: rkind
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: rgb(3)
+    EXTERNAL setrgb,POLY,LINES
 
     CALL setrgb(REAL(RGB(1)),REAL(RGB(2)),REAL(RGB(3)))
   END SUBROUTINE set_rgbd
@@ -28,12 +29,13 @@ CONTAINS
 
     USE dpcomm,ONLY: rkind
     IMPLICIT NONE
-    REAL(4),INTENT(IN):: X1,X2,Y1,Y2
-    REAL(rkind),INTENT(IN):: RGB(3,nmax)
+    REAL,INTENT(IN):: X1,X2,Y1,Y2
     INTEGER,INTENT(IN):: nmax,ind
+    REAL(rkind),INTENT(IN):: RGB(3,nmax)
     REAL(rkind):: DX,DY,DXL,DYL
-    REAL(4):: X(5),Y(5)
+    REAL:: X(5),Y(5)
     INTEGER:: n
+    EXTERNAL POLY,SETRGB,LINES
 
     IF(IND.EQ.0) THEN
        DX=(X2-X1)/DBLE(nmax)
@@ -81,6 +83,7 @@ CONTAINS
 
   SUBROUTINE rgbf_a(f,rgb)
     USE dpcomm,ONLY: rkind
+    USE libspl1d
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: f
     REAL(rkind),INTENT(OUT):: rgb(3)
@@ -130,6 +133,7 @@ CONTAINS
 
   SUBROUTINE rgbf_b(f,rgb)
     USE dpcomm,ONLY: rkind
+    USE libspl1d
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: f
     REAL(rkind),INTENT(OUT):: rgb(3)
@@ -179,6 +183,7 @@ CONTAINS
 
   SUBROUTINE rgbf_c(f,rgb)
     USE dpcomm,ONLY: rkind
+    USE libspl1d
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: f
     REAL(rkind),INTENT(OUT):: rgb(3)
@@ -241,7 +246,7 @@ CONTAINS
     USE dpcomm,ONLY: rkind
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: D
-    REAL(4):: dpclip
+    REAL:: dpclip
 
     IF(ABS(D).LT.1.D-30) then
        dpclip=0.0

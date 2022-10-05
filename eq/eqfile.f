@@ -36,7 +36,7 @@ C
       WRITE(21) RA,RKAP,RDLT,RB,FRBIN
       WRITE(21) PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2
       WRITE(21) PP0,PP1,PP2,PROFP0,PROFP1,PROFP2
-      WRITE(21) PT0,PT1,PT2,PROFT0,PROFT1,PROFT2
+      WRITE(21) PT0,PT1,PT2,PROFTP0,PROFTP1,PROFTP2
       WRITE(21) PV0,PV1,PV2,PROFV0,PROFV1,PROFV2
       WRITE(21) PROFR0,PROFR1,PROFR2
 C      WRITE(21) PTS,PN0,HM
@@ -54,22 +54,22 @@ C     ***** LOAD EQUILIBRIUM DATA *****
 C
       SUBROUTINE EQLOAD(MODELG1,KNAMEQ1,IERR)
 C
-      USE eq_bpsd_mod
+      USE eqbpsd
       INCLUDE '../eq/eqcomc.inc'
       CHARACTER KNAMEQ1*80
       INTEGER ierr
 C
       MODELG=MODELG1
       KNAMEQ=KNAMEQ1
-      CALL EQREAD(IERR)
+      CALL EQ_READ(IERR)
       RETURN
       END
 C
 C     ***** LOAD EQUILIBRIUM DATA *****
 C
-      SUBROUTINE EQREAD(IERR)
+      SUBROUTINE EQ_READ(IERR)
 C
-      USE eqread_mod
+      USE equread,ONLY: eqdsk
       INCLUDE '../eq/eqcomc.inc'
 C
       IF(MODELG.EQ.3.OR.MODELG.EQ.9) THEN
@@ -93,8 +93,11 @@ C
       SUBROUTINE EQRTSK(IERR)
 C
       USE libfio
+      USE libbrent
+      USE libspl1d
       INCLUDE '../eq/eqcomc.inc'
       DIMENSION DERIV(NRVM)
+      EXTERNAL EQFBND
 C
       CALL FROPEN(21,KNAMEQ,0,MODEFR,'EQ',IERR)
       IF(IERR.NE.0) RETURN
@@ -124,11 +127,27 @@ C
       READ(21) RA,RKAP,RDLT,RB,FRBIN
       READ(21) PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2
       READ(21) PP0,PP1,PP2,PROFP0,PROFP1,PROFP2
-      READ(21) PT0,PT1,PT2,PROFT0,PROFT1,PROFT2
+      READ(21) PT0,PT1,PT2,PROFTP0,PROFTP1,PROFTP2
       READ(21) PV0,PV1,PV2,PROFV0,PROFV1,PROFV2
       READ(21) PROFR0,PROFR1,PROFR2
 C      READ(21) PTS,PN0,HM
       READ(21,ERR=1000) ((HJTRZ(NRG,NZG),NRG=1,NRGMAX),NZG=1,NZGMAX)
+
+      CALL EQMESH
+      EPSZ=1.D-8
+      DO NTG=1,NTGMAX
+         ZBRF=TAN(THGM(NTG))
+         THDASH=FBRENT(EQFBND,THGM(NTG)-1.0D0,THGM(NTG)+1.0D0,EPSZ)
+         RHOM(NTG)=RA*SQRT(COS(THDASH+RDLT*SIN(THDASH))**2
+     &                    +RKAP**2*SIN(THDASH)**2)
+C
+         ZBRF=TAN(THGG(NTG))
+         THDASH=FBRENT(EQFBND,THGG(NTG)-1.0D0,THGG(NTG)+1.0D0,EPSZ)
+         RHOG(NTG)=RA*SQRT(COS(THDASH+RDLT*SIN(THDASH))**2
+     &                    +RKAP**2*SIN(THDASH)**2)
+      ENDDO
+      RHOG(NTGMAX+1)=RHOG(1)
+      
       GOTO 1001
  1000 CONTINUE
          DO NZG=1,NZGMAX
@@ -172,6 +191,7 @@ C     ***** SAVE METRICS *****
 C
       SUBROUTINE EQMETRIC(IERR)
 C
+      USE libspl1d
       USE libfio
       INCLUDE '../eq/eqcomq.inc'
 C
@@ -278,12 +298,14 @@ c
       end
 
       SUBROUTINE draw_cross(x,y,len)
+      USE bpsd_kinds,ONLY: rkind
       IMPLICIT NONE
-      REAL(8),INTENT(IN):: x,y,len
+      REAL(rkind),INTENT(IN):: x,y,len
       INTERFACE
          FUNCTION GUCLIP(x)
-            REAL(8),INTENT(IN):: x
-            REAL(4):: GUCLIP
+            USE bpsd_kinds,ONLY: rkind
+            REAL(rkind),INTENT(IN):: x
+            REAL:: GUCLIP
          END FUNCTION GUCLIP
       END INTERFACE
 

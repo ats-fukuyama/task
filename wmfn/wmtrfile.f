@@ -8,6 +8,7 @@ C     ***********************************************************
 C
       SUBROUTINE WMTRLOAD(KNAMTR1,IERR)
 C
+      USE libfio
       INCLUDE '../tr/trcomm.inc'
       DIMENSION RNPL(NRM,6),RTPL(NRM,6),RUPL(NRM,6)
       CHARACTER KNAMTR1*80

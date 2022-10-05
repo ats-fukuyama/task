@@ -1,3 +1,5 @@
+!     equcomm.f
+
       module aaa_mod
       implicit none
       public

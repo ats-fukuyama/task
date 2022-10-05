@@ -1,5 +1,15 @@
-### $Id$ ###
+### Makefile for wm
 include ../make.header
+include ../mtxp/make.mtxp
+
+LIB_MTX=$(LIB_MTX_BND)
+LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_PCG)
+#LIB_MTX=$(LIB_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIB_MTX=$(LIBXMTX_KSP)
+#LIBX_MTX=$(LIBX_MTX_KSP)
 
 #FFLAGS = $(OFLAGS)
 FFLAGS = $(DFLAGS)
@@ -19,8 +29,8 @@ LIBMUMPSX=.
 #LIBMTXP=$(LIBMPI) ../mtxp/libmtxmumps.o
 #LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lblacs -lparmetis -lmetis -llapack -lblas
 
-MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
-            -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
+MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
+            -I../dp/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
 SRCFIXED = wmfem_comm.f wmf_hhg.f ../eq/wmeqin.f wmmenu.f wminit.f wmeign.f \
        wmexec.f wmloop.f \
@@ -38,10 +48,8 @@ SRCS = $(SRC0)
 
 OBJS = $(SRCFIXED:.f=.o) $(SRCFREE:.f90=.o)
 
-LIB0 = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a \
-       ../eq/eqlib.a ../dp/dplib.a
-
-LIBS = $(LIBMTXP) ../mtx/mtxlib.a $(LIB0) wmlib.a  
+LIBS = libwm.a ../dp/libdp.a ../eq/libeq.a ../pl/libpl.a ../dp/libdp.a \
+       $(LIBMTXP) ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a 
 
 .f.o :
 	$(FCFIXED)  $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -50,8 +58,8 @@ LIBS = $(LIBMTXP) ../mtx/mtxlib.a $(LIB0) wmlib.a
 
 all: wm
 
-wmlib.a: $(OBJS)
-	$(LD) $(LDFLAGS) wmlib.a $(OBJS)
+libwm.a: $(OBJS)
+	$(LD) $(LDFLAGS) libwm.a $(OBJS)
 
 ../mtxp/libmtxmpi.o:
 	(cd ../mtxp; make libmtxmpi.o)
@@ -63,30 +71,23 @@ wmlib.a: $(OBJS)
 	(cd ../mtxp; make libmtxmumps.o)
 ../mtxp/libmtxbnd.o:
 	(cd ../mtxp; make libmtxbnd.o)
-../mtx/mtxlib.a:
-	(cd ../mtx; make mtxlib.a)
-../mtx/mpimtxlib.a:
-	(cd ../mtx; make mpimtxlib.a)
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
-../plx/pllib.a:
-	(cd ../plx; make pllib.a)
-../eq/eqlib.a:
-	(cd ../eq; make eqlib.a)
-../dp/dplib.a:
-	(cd ../dp; make dplib.a)
+../lib/libtask.a:
+	(cd ../lib; make libtask.a)
+../pl/libpl.a:
+	(cd ../pl; make libpl.a)
+../eq/libeq.a:
+	(cd ../eq; make libeq.a)
+../dp/libdp.a:
+	(cd ../dp; make libdp.a)
 libs:
-	(cd ../lib; make tasklib.a)
+	(cd ../lib; make libtask.a)
 	(cd ../mtxp; make libmtxnompi.o)
 	(cd ../mtxp; make libmtxbnd.o)
 	(cd ../mtxp; make libmtxmpi.o)
 	(cd ../mtxp; make libmtxmumps.o)
-#	(cd ../mpi; make mpilib.o)
-	(cd ../mtx; make mtxlib.a)
-	(cd ../mtx; make mpimtxlib.a)
-	(cd ../plx; make pllib.a)
-	(cd ../eq; make eqlib.a)
-	(cd ../dp; make dplib.a)
+	(cd ../pl; make libpl.a)
+	(cd ../eq; make libeq.a)
+	(cd ../dp; make libdp.a)
 
 wm : wmmain.o $(LIBS)
 	$(FCFIXED) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
@@ -97,7 +98,7 @@ clean:
 veryclean: clean
 	rm -f wm
 
-WMCOMM = wmcomm.inc wmcom0.inc wmcom1.inc ../plx/plcomm.f90 ../dp/dpcom1.inc
+WMCOMM = wmcomm.inc wmcom0.inc wmcom1.inc ../pl/plcomm.f90 ../dp/dpcomm.f90
 
 wmmain.o : wmmain.f $(WMCOMM)
 

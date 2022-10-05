@@ -1,0 +1,22 @@
+0
+f
+eq.plato-01.gs
+c
+p
+ &eq 
+   RR=0.7D0
+   RA=0.2D0
+   RKAP=1.8D0
+   RDLT=0.5D0
+   RB=0.25D0
+   BB=0.3D0
+   RIP=0.075D0
+   KNAMEQ='eqdata.plato-01'
+ &end
+r
+g
+c
+s
+x
+s
+q

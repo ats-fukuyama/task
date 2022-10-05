@@ -1,0 +1,24 @@
+0
+f
+eq.ITER01.gs
+c
+p
+ &eq 
+   RR=6.2
+   RA=2.0
+   RKAP=1.7
+   RDLT=0.33
+   RB=2.1
+   BB=5.3
+   RIP=15
+   KNAMEQ='eqdata.ITER01'
+ &end
+r
+c
+ 0.64/
+g
+c
+s
+x
+s
+q

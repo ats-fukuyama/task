@@ -22,7 +22,7 @@ CONTAINS
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
     TYPE(pl_mag_type),INTENT(IN):: mag
-!    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+!    TYPE(pl_prf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     COMPLEX(rkind):: CLDISP1(6),CLDISP2(6)
     INTEGER:: I
@@ -48,7 +48,7 @@ CONTAINS
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
     TYPE(pl_mag_type),INTENT(IN):: mag
-!    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+!    TYPE(pl_prf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
     INTEGER:: NHMAX,NTH,NP,NC,NCD
@@ -62,7 +62,7 @@ CONTAINS
     COMPLEX(rkind):: CINTG231,CINTG232,CINTG233
     COMPLEX(rkind):: CSM11,CSM12,CSM13,CSM22,CSM23,CSM33
 
-      NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)),2)+2
+      NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)),2)+5
       ALLOCATE(ADJ(0:NHMAX),ADJD(0:NHMAX))
       RGM   = 1.D0
       DELPL = 0.5D0
@@ -71,10 +71,10 @@ CONTAINS
       PT0=RTFP0(NS)
       PTH0=SQRT(PT0*1.D3*AEE*AMFP(NS))
 
-      CWP=PN0*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
-      CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
+      CWP=PN0*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMFP(NS)*CW*CW)
+      CWC=mag%BABS*PZ(NS)*AEE/(AMFP(NS)*CW)
       WCM=mag%BABS*PZ(NS)*AEE
-      CKPRW= CKPR*PTH0/(AMP*PA(NS)*CW)
+      CKPRW= CKPR*PTH0/(AMFP(NS)*CW)
       DKPRW=DBLE(CKPRW)
       DKPP=DBLE(CKPP)
 
@@ -85,7 +85,7 @@ CONTAINS
       ENDDO
       DO NP=1,NPMAX_DP
       DO NTH=1,NTHMAX_DP-1
-         DFT(NP,NTH) = (FM(NP,NTH+1) - FM(NP,NTH))/DELTH
+         DFT(NP,NTH) = (FM(NP,NTH+1) - FM(NP,NTH))/delth
       ENDDO
       ENDDO
 
@@ -130,7 +130,7 @@ CONTAINS
             NCD = ABS(NC)
             CDENX= RGM-CKPRW*PG(NP,NS)*TCSM(NTH)-NC*CWC
             CDEN  = CDENX/(CDENX**2+(DELPL*DGP1(NP,NTH)*DELP(NS))**2 &
-                                   +(DELPL*DGT1(NP,NTH)*DELTH)**2)
+                                   +(DELPL*DGT1(NP,NTH)*delth)**2)
             IF(X.EQ.0.D0) THEN
                IF(NCD.EQ.0) THEN
                   PAI1=0.D0
@@ -155,7 +155,7 @@ CONTAINS
 
          PART1= DFP(NP,NTH)*PG(NP,NS)*PG(NP,NS)*PG(NP,NS) &
                            *TSNM(NTH)*TSNM(NTH)*TSNM(NTH) &
-               *DELTH*DELP(NS)
+               *delth*DELP(NS)
 !     
          CINTG111= CINTG111 + CSM11*PART1
          CINTG112= CINTG112 + CSM12*PART1
@@ -197,7 +197,7 @@ CONTAINS
             NCD = ABS(NC)
             CDENX = RGM-CKPRW*PM(NP,NS)*TCSG(NTH)-NC*CWC
             CDEN  = CDENX/(CDENX**2+(DELPL*DGP2(NP,NTH)*DELP(NS))**2 &
-                                   +(DELPL*DGT2(NP,NTH)*DELTH)**2)
+                                   +(DELPL*DGT2(NP,NTH)*delth)**2)
             IF(X.EQ.0.D0) THEN
                IF(NCD.EQ.0) THEN
                   PAI1=0.D0
@@ -222,7 +222,7 @@ CONTAINS
          CPART2= DFT(NP,NTH)*PM(NP,NS)*PM(NP,NS) &
                             *TSNG(NTH)*TSNG(NTH) &
                 *(TCSG(NTH)-CKPRW*PM(NP,NS)/RGM) &
-               *DELTH*DELP(NS)
+               *delth*DELP(NS)
 ! 
          CINTG211= CINTG211 + CSM11*CPART2
          CINTG212= CINTG212 + CSM12*CPART2
@@ -235,7 +235,7 @@ CONTAINS
          CINTG233= CINTG233 + CSM33*CPART2 &
                             - PM(NP,NS)*PM(NP,NS)*TCSG(NTH) &
                               *DFT(NP,NTH)/RGM &
-                              *DELTH*DELP(NS)
+                              *delth*DELP(NS)
       ENDDO
       ENDDO
 
@@ -265,7 +265,7 @@ CONTAINS
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
     TYPE(pl_mag_type),INTENT(IN):: mag
-!    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+!    TYPE(pl_prf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
     INTEGER:: NHMAX,NTH,NP,NC,NCD
@@ -280,13 +280,8 @@ CONTAINS
     COMPLEX(rkind):: CINTG421,CINTG422,CINTG423
     COMPLEX(rkind):: CINTG431,CINTG432,CINTG433
     COMPLEX(rkind):: CSM11,CSM12,CSM13,CSM22,CSM23,CSM33
-    COMPLEX(rkind):: cdelta
 
-!    cdelta=CI*0.01D0
-!    cdelta=CI*0.003D0
-    cdelta=CI*0.0
-
-      NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)),2)+2
+      NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)),2)+5
       ALLOCATE(ADJ(0:NHMAX),ADJD(0:NHMAX))
       RGM   = 1.D0
 
@@ -294,10 +289,10 @@ CONTAINS
       PT0=RTFP0(NS)
       PTH0=SQRT(PT0*1.D3*AEE*AMFP(NS))
 
-      CWP=PN0*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
-      CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
+      CWP=PN0*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMFP(NS)*CW*CW)
+      CWC=mag%BABS*PZ(NS)*AEE/(AMFP(NS)*CW)
       WCM=mag%BABS*PZ(NS)*AEE
-      CKPRW=CKPR*PTH0/(AMP*PA(NS)*CW)
+      CKPRW=CKPR*PTH0/(AMFP(NS)*CW)
       DKPRW=DBLE(CKPRW)
       DKPP=DBLE(CKPP)
 
@@ -308,7 +303,7 @@ CONTAINS
       ENDDO
       DO NP=1,NPMAX_DP
       DO NTH=1,NTHMAX_DP-1
-         DFT(NP,NTH) = (FM(NP,NTH+1) - FM(NP,NTH))/DELTH
+         DFT(NP,NTH) = (FM(NP,NTH+1) - FM(NP,NTH))/delth
       ENDDO
       ENDDO
 
@@ -347,7 +342,7 @@ CONTAINS
          CSM22 = (0.D0,0.D0)
          CSM23 = (0.D0,0.D0)
          CSM33 = (0.D0,0.D0)
-!               
+
          DO NC=NCMIN(NS),NCMAX(NS)
 
             PNEAR = DBLE((RGM-CWC*NC)/(CKPRW*TCSM(NTH)))
@@ -364,14 +359,12 @@ CONTAINS
                DIF = (PNEAR - PG(NP,NS))/DELP(NS)
                DFP3 = DIF*DFP(NP+1,NTH)+(1.D0-DIF)*DFP(NP,NTH)
             ENDIF
-
+            
             NCD = ABS(NC)
 
             X = DKPP*PTH0*PNEAR*TSNM(NTH)/WCM
             CALL BESSJN(X,NHMAX,ADJ,ADJD)
-
-            CPART31= DFP3*(RGM-NC*CWC)**3
-
+            
             IF(X.EQ.0.D0) THEN
                IF(NCD.EQ.0) THEN
                   PAI1=0.D0
@@ -386,6 +379,8 @@ CONTAINS
             CPAI2 = CI*ADJD(NCD)
             PAI3  = ADJ(NCD)/TTNM(NTH)
 
+            CPART31= DFP3*(RGM-NC*CWC)**3
+            
             CSM11 = CSM11 + PAI1* PAI1*CPART31
             CSM12 = CSM12 + PAI1*CPAI2*CPART31
             CSM13 = CSM13 + PAI1* PAI3*CPART31
@@ -395,8 +390,8 @@ CONTAINS
   310    CONTINUE 
          ENDDO
          CPART32= -CI*PI*ABS(1.D0/(CKPRW*TCSM(NTH))) &
-                 *(TTNM(NTH)/CKPRW)**3*DELTH
-!              
+                 *(TTNM(NTH)/CKPRW)**3*delth
+
          CINTG311 = CINTG311 + CSM11*CPART32
          CINTG312 = CINTG312 + CSM12*CPART32
          CINTG313 = CINTG313 + CSM13*CPART32
@@ -478,7 +473,7 @@ CONTAINS
          ENDDO
 
          CPART42= -CI*PI*ABS(1.D0/(CKPRW*TCSG(NTH))) &
-                 *(TTNG(NTH)/CKPRW)**2*DELTH
+                 *(TTNG(NTH)/CKPRW)**2*delth
 
          CINTG411 = CINTG411 + CSM11*CPART42
          CINTG412 = CINTG412 + CSM12*CPART42

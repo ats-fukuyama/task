@@ -19,11 +19,11 @@
       SUBROUTINE FP_CALWM(NSA)
 
       IMPLICIT NONE
-      real(8),DIMENSION(NSBMAX):: sum11,sum12,sum13,sum14,sum15,sum16
+      real(rkind),DIMENSION(NSBMAX):: sum11,sum12,sum13,sum14,sum15,sum16
       integer:: NSA, NR, NRDO, NTH, NP, NS
-      real(8):: FACT, ETA, DWPPS, DWPTS, DWTPS, DWTTS, RHOL, P
-      real(8):: DWPPL, DWPTL, DWTPL, DWTTL
-      real(4):: gut, gut1, gut2
+      real(rkind):: FACT, ETA, DWPPS, DWPTS, DWTPS, DWTTS, RHOL, P
+      real(rkind):: DWPPL, DWPTL, DWTPL, DWTTL
+      real:: gut, gut1, gut2
 !
 ! =============  CALCULATION OF DWPP AND DWPT  ===============
 !
@@ -218,11 +218,11 @@
       INTEGER,INTENT(IN):: NTH, NP, NR, NSA
       DOUBLE PRECISION,INTENT(OUT):: DWPS, DWTS
       DOUBLE PRECISION:: DWPL, DWTL
-      real(8):: ETA, RSIN, RCOS, P, DWPPS, DWPTS, DWTPS, DWTTS
-      REAL(8):: DELH, RHOL, ETAL, PSIN, PCOS, BMIN, PSI, BMAX
-      REAL(8):: DWPPL, DWPTL, DWTPL, DWTTL
+      real(rkind):: ETA, RSIN, RCOS, P, DWPPS, DWPTS, DWTPS, DWTTS
+      REAL(rkind):: DELH, RHOL, ETAL, PSIN, PCOS, BMIN, PSI, BMAX
+      REAL(rkind):: DWPPL, DWPTL, DWTPL, DWTTL
       integer:: N, NS
-      real(4):: gut2, gut1, gut
+      real:: gut2, gut1, gut
 
       NS=NS_NSA(NSA)
       IF(NSW_PT.eq.0)THEN
@@ -274,17 +274,17 @@
       DOUBLE PRECISION,INTENT(IN):: RHOL, ETAL, PSIN, PCOS, P
       DOUBLE PRECISION,INTENT(OUT):: DWPL, DWTL
       PARAMETER(NJMAX=100)
-      REAL(8),DIMENSION(0:NJMAX):: RJ,DRJ
+      REAL(rkind),DIMENSION(0:NJMAX):: RJ,DRJ
       DOUBLE PRECISION:: DWPPL, DWPTL, DWTPL, DWTTL
       INTEGER:: NHMAX, N, NMI, NPI, NS
-      REAL(8):: RKR, RKTH, RKPH, B0PH, B0TH, RW, B2, RABSE, RGAMMA
-      COMPLEX(8):: CER, CETH, CEPH, CEPARA, CEPERP, CEPLUS, CEMINUS
-      REAL(8):: PPARA, PPERP, VPARA, VPERP, RKPARA, RKPERP, RWC, RKW
-      REAL(8):: RGZAI, DWC11, DWC12, DWC21, DWC22, RJN, RJNM, RJNP
-      COMPLEX(8):: CTHETA, CEX, CEY
-      REAL(8):: RTHETA, A11, A12, A21, A22, DWC, EX
-      real(8):: ratioCE, ratioCE2, ratioBE, RTHETA2
-      REAL(8):: RFWM, RSIN,RCOS
+      REAL(rkind):: RKR, RKTH, RKPH, B0PH, B0TH, RW, B2, RABSE, RGAMMA
+      COMPLEX(rkind):: CER, CETH, CEPH, CEPARA, CEPERP, CEPLUS, CEMINUS
+      REAL(rkind):: PPARA, PPERP, VPARA, VPERP, RKPARA, RKPERP, RWC, RKW
+      REAL(rkind):: RGZAI, DWC11, DWC12, DWC21, DWC22, RJN, RJNM, RJNP
+      COMPLEX(rkind):: CTHETA, CEX, CEY
+      REAL(rkind):: RTHETA, A11, A12, A21, A22, DWC, EX
+      real(rkind):: ratioCE, ratioCE2, ratioBE, RTHETA2
+      REAL(rkind):: RFWM, RSIN,RCOS
 
       NS=NS_NSA(NSA)
 !      THETA0(NSA)=RTFP0(NSA)*1.D3*AEE/(AMFP(NSA)*VC*VC)
@@ -414,8 +414,8 @@
 !     BTL=B_toroidal, BPL=B_poloidal
 !
       IMPLICIT NONE
-      REAL(8):: RHOL, ETAL, BTL, BPL
-      REAL(8):: RS, X, RS1, RS2, QL, RRMINL, RRMAXL
+      REAL(rkind):: RHOL, ETAL, BTL, BPL
+      REAL(rkind):: RS, X, RS1, RS2, QL, RRMINL, RRMAXL
 
       IF(MODELG.EQ.2) THEN
          RS=RSRHON(RHOL)
@@ -442,11 +442,11 @@
       SUBROUTINE FPSETV(RHOL,ETAL,RFWM,RKR,RKTH,RKPH,CER,CETH,CEPH,NSA)
 
       IMPLICIT NONE
-      REAL(8):: RHOL, ETAL, RFWM, RKR, RKTH, RKPH
-      COMPLEX(8):: CER, CETH, CEPH
-      COMPLEX(8):: CEWR1, CEWTH1, CEWPH1, CKWR1, CKWTH1, CKWPH1
+      REAL(rkind):: RHOL, ETAL, RFWM, RKR, RKTH, RKPH
+      COMPLEX(rkind):: CER, CETH, CEPH
+      COMPLEX(rkind):: CEWR1, CEWTH1, CEWPH1, CKWR1, CKWTH1, CKWPH1
       INTEGER:: NSA, IERR, NS
-      REAL(8):: Y, ARG, FACT, PHL
+      REAL(rkind):: Y, ARG, FACT, PHL
 
       NS=NS_NSA(NSA)
       IF(MODELW(NS).EQ.3) THEN
@@ -484,8 +484,8 @@
 !
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR
-      REAL(8),INTENT(IN):: ETAL,RSIN,RCOS
-      REAL(8),INTENT(OUT):: PSIN,PCOS,PSI
+      REAL(rkind),INTENT(IN):: ETAL,RSIN,RCOS
+      REAL(rkind),INTENT(OUT):: PSIN,PCOS,PSI
 
       IF(MODELA.EQ.0) THEN
          PSI=1.D0

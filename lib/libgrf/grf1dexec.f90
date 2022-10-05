@@ -10,11 +10,11 @@ CONTAINS
   SUBROUTINE GRF1D_EXEC(GX,GF,NXM,NXMAX,NYMAX,A)
 
     USE grftype, ONLY: grf_attr_type
-    USE grfutils, ONLY: grf_title, grf_frame1d, setrgba
+    USE grfutils, ONLY: grf_title, grf_frame1d, grf_info, setrgba
     IMPLICIT NONE
 
-    REAL(4),INTENT(IN):: GX(NXMAX),GF(NXM,NYMAX)
     INTEGER,INTENT(IN):: NXM,NXMAX,NYMAX
+    REAL,INTENT(IN):: GX(NXMAX),GF(NXM,NYMAX)
     TYPE(grf_attr_type),INTENT(IN):: A
     INTEGER:: NY,NL
 
@@ -32,6 +32,7 @@ CONTAINS
 
     IF(A%NOFRAME.EQ.0) CALL GRF_FRAME1D(A)
     IF(A%NOTITLE.EQ.0) CALL GRF_TITLE(A)
+    IF(A%NOINFO.EQ.0)  CALL GRF_INFO(A)
     CALL SETRGB(0.0,0.0,0.0)
 
     RETURN

@@ -167,7 +167,23 @@ CONTAINS
     WDAMP=0.D0
     FDAMP=0.3D0
 
-!     *** MEDIUM PARAMETERS ***
+    ! *** collision enhancement near a layer ***
+    !  model_coll_enhance:  0: no enhancement, 1: layer in x, 2: layer in y
+    !  factor_coll_enhance: enhancement factor (0.D0: no enhancement)
+    !  xpos_coll_enhance:   center position of the layer in x (R)
+    !  xwidth_coll_enhance: Gaussian width in x (R)
+    !  ypos_coll_enhance:   center position of the layer in y (Z)
+    !  ywidth_coll_enhance: Gaussian width in y (Z)
+    !       rzcl=rzcl_original*(1.D0+factor*exp(-(x-xpos)**2/xwidth**2))
+
+    model_coll_enhance=0
+    factor_coll_enhance=1.D0
+    xpos_coll_enhance  =0.D0
+    xwidth_coll_enhance=0.01D0
+    ypos_coll_enhance  =0.D0
+    ywidth_coll_enhance=0.01D0
+
+  !     *** MEDIUM PARAMETERS ***
 
     call wfmed_allocate
 
@@ -214,6 +230,11 @@ CONTAINS
     NDRAWE = 0
     NDRAWV = 0
     NGRAPH = 1
+
+!     *** variable_sort parameters ***
+
+   sort_weight_x=1.D0
+   sort_weight_y=1.D0
 
 !     *** DIVIDER PARAMETERS ***
 
@@ -270,6 +291,9 @@ CONTAINS
 
     GFACTOR= 0.5
 
+    nxzone_max=100
+    nyzone_max=100
+
 !     *** Numerical computation parameter ***
 
     tolerance = 1.D-8
@@ -286,11 +310,21 @@ CONTAINS
 !     *** INITIALIZATION PARAMETERS (DO NOT MODIFY) ***
 
     NNMAX  = 0
+    nemax=0
+    nsdmax=0
+    mlen=0
+    rdamp_min=0.D0
+    rdamp_max=0.D0
+    zdamp_min=0.D0
+    zdamp_max=0.D0
+
     NFOPEN = 0
     RNDMIN = 0.D0
     RNDMAX = 0.D0
 
     NDFILE=25
+
+    MODELWF=0         ! side field: 0: positive 1: alternative
 
     RETURN
 END SUBROUTINE WF_INIT

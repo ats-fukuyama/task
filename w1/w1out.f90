@@ -120,7 +120,7 @@ CONTAINS
 
        DO NX=1,NXMAX
           DO NZ=1,NZMAX
-             TEMP(NX,NZ)=IMAG(CE2DA(NZ,NX,IC))
+             TEMP(NX,NZ)=AIMAG(CE2DA(NZ,NX,IC))
           END DO
        END DO
        IF(IC.EQ.1) INDEX='IMAG(EX)'
@@ -228,7 +228,7 @@ CONTAINS
        IF(IC.EQ.3) INDEX='EFIELD-Z'
        WRITE(21) INDEX
        WRITE(21) ((REAL(CE2DA(NZ,NX,IC)), &
-                   IMAG(CE2DA(NZ,NX,IC)),NX=1,NXMAX),NZ=1,NZMAX)
+                   AIMAG(CE2DA(NZ,NX,IC)),NX=1,NXMAX),NZ=1,NZMAX)
     END DO
 
  9000  CONTINUE

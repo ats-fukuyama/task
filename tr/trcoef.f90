@@ -20,44 +20,44 @@
 
       USE TRCOMM, ONLY : &
            AEE, ADDW, AGMP, AKDW, AME, AMM, AR1RHOG, AR2RHOG, BB, CALF, CDW, &
-           CK0, &
-           CK1, CKALFA, CKBETA, CKGUMA, CWEB, DR, EPS0, EPSRHO, ER, EZOH, &
+           CK0,CK1, CKALFA, CKBETA, CKGUMA, CWEB, DR, EPS0, EPSRHO, ER, EZOH, &
            KGR1, KGR2, KGR3, KGR4, MDCD05, MDLKAI, MDLUF, MDTC, NRMAX, NSM, &
            NSMAX, NSTM, PA, PADD, PBM, PI, PNSS, PTS, PZ, Q0, QP, RA, RDPS, &
            RG, RHOG, RHOM, RJCB, RKAP, RKEV, RKPRHO, RKPRHOG, RM, RMU0, RN, &
            RNF, RR, RT, RW, S, ALPHA, RKCV, SUMPBM, TAUK, VC, VEXB, VGR1, &
-           VGR2, VGR3, VGR4, WEXB, ZEFF, VEXBP, WEXBP, BP
-      USE cdbm_mod
+           VGR2, VGR3, VGR4, WEXB, ZEFF, VEXBP, WEXBP, BP, rkind
+      USE trcdbm
       USE trmodels,ONLY: mbgb_driver,mmm95_driver,mmm71_driver
+      USE libitp
       USE libgrf
+      USE libplog, ONLY: plog
       IMPLICIT NONE
-      INTEGER(4):: &
+      INTEGER:: &
            NS, NR08, NR, I
-      REAL(8)   :: &
+      REAL(rkind)   :: &
            AEI, AGITG, AKDWEL, AKDWIL, AKDWL, ALPHAL, ALNI, ALTI, AMA, AMD, &
            AMI, AMT, ANA, ANDX, ANE, ANT, ANYUE, ARG, CHIB, CHIGB, CLN, CLPE, &
-           CLS, CLT, CRTCL, CS, DEDW, DELTA2, DERIV3, DIDW, DKAI, DND, DNE, &
+           CLS, CLT, CRTCL, CS, DEDW, DELTA2, DIDW, DKAI, DND, DNE, &
            DPE, DPERHO, DPP, DQ, DRL, DTD, DTE, DTERHO, DTI, DVE, EPS, ETAC, &
            ETAI, EZOHL, F, FBHM, FDREV, FEXB, FS, FTAUE, FTAUI, HETA, OMEGAD, &
-           OMEGAS, OMEGASS, OMEGATT, PLOG, PNI, PPK, PTI, QL, RBEEDG, RG1, &
+           OMEGAS, OMEGASS, OMEGATT, PNI, PPK, PTI, QL, RBEEDG, RG1, &
            RGL, RGLC, RHOI, RHOS, RKPP2, RLAMBDA, RLAMDA, RNM, RNP, RNST2, &
            RNTM, RNTP, RNUZ, ROUS, RPEM, RPEP, RPM, RPP, RREFF, RRSTAR, &
            RRSTAX, SA, SL, SLAMDA, TA, TAUAP, TAUD, TAUE, TD, TE, TI, TRCOFS, &
            TRCOFSS, TRCOFSX, TRCOFT, TT, VA, VTE, VTI, WCI, WE1, WPE2, XCHI0, &
-           XCHI1, XCHI2, XXA, XXH, ZEFFL, FSDFIX, BPA, PROFDL
-      REAL(8):: &
+           XCHI1, XCHI2, XXA, XXH, ZEFFL, FSDFIX, BPA, PROFDL,ANI
+      REAL(rkind):: &
            RS,RKAPL,SHEARL,PNEL,RHONI,DPDRL,DVEXBDRL,CEXB,CKAP,chi_cdbm, &
            PAL,PZL,ADFFI,ACHIE,ACHII,ACHIEB,ACHIIB,ACHIEGB,ACHIIGB, &
            VTIL, GAMMA0, EXBfactor, SHRfactor
-      REAL(8):: CHIIW,DIFHW,CHIEW,DIMPW, &
+      REAL(rkind):: CHIIW,DIFHW,CHIEW,DIMPW, &
                 CHIIRB,DIFHRB,CHIERB,DIMPRB, &
                 CHIIKB,DIFHKB,CHIEKB,DIMPKB, &
                 ADDWHL,ADDWZL
-      REAL(8):: CHII,DIFH,CHIE,DIFZ,VIST,VISP, &
+      REAL(rkind):: CHII,DIFH,CHIE,DIFZ,VIST,VISP, &
                 CHIIB,DIFHB,CHIEB,CHIEG 
       INTEGER:: MODEL,ierr
-      REAL(8),DIMENSION(NRMAX):: S_HM
-      REAL(8)   :: DERIV3P
+      REAL(rkind),DIMENSION(NRMAX):: S_HM
 
 
       AMD=PA(2)*AMM
@@ -305,7 +305,15 @@
 !$$$         DPPP=(RPIP-2*RPI0+RPIM)*DRL*DRL
 
 !     safety factor and its gradient on grid
-         DQ = DERIV3(NR,RHOG,QP,NRMAX,1)
+!         DQ = DERIV3(NR,RHOG,QP,NRMAX,1)
+         IF(NR.EQ.1) THEN
+            DQ=(4.D0*QP(2)-3.D0*QP(1)-QP(3))/(2.D0*DR)
+         ELSE IF(NR.EQ.NRMAX) THEN
+            DQ=(3.D0*QP(NRMAX)-4.D0*QP(NRMAX-1)+QP(NRMAX-2))/(2.D0*DR)
+         ELSE
+            DQ=(QP(NR+1)-QP(NR-1))/(2.D0*DR)
+         ENDIF
+         
          QL = QP(NR)
 
 !     sound speed for electron
@@ -553,13 +561,14 @@
 
             select case(MDLKAI)
             case(20)
-               CRTCL=6.D-2*SQRT(EZOHL*BB**3/(ANE*1.D20*SQRT(TE*RKEV)))*SQRT(AEE**2/(RMU0*SQRT(AME)))/(QL*RKEV)
+               CRTCL=6.D-2*SQRT(EZOHL*BB**3/(ANE*1.D20*SQRT(TE*RKEV))) &
+                          *SQRT(AEE**2/(RMU0*SQRT(AME)))/(QL*RKEV)
                IF(ABS(DTE).LE.CRTCL .OR. DQ.LE.0.D0 .OR. NR.EQ.1) THEN
                   DKAI=0.D0
                ELSE
                   DKAI=1.5D-1*(ABS(DTE)/TE +2.D0*ABS(DNE)/ANE) &
-     &                 *SQRT(TE/TI)*(1.D0/EPS)*(QL**2/(DQ*BB*SQRT(RR)))*VC**2 &
-     &                 *SQRT(RMU0*1.5D0*AMM)*(1.D0-CRTCL/ABS(DTE))
+                       *SQRT(TE/TI)*(1.D0/EPS)*(QL**2/(DQ*BB*SQRT(RR)))*VC**2 &
+                       *SQRT(RMU0*1.5D0*AMM)*(1.D0-CRTCL/ABS(DTE))
                ENDIF
                AKDW(NR,1)=                  DKAI
                AKDW(NR,2)=ZEFFL*SQRT(TE/TD)*DKAI
@@ -600,6 +609,7 @@
 !               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
 !               DELTAE=SQRT(DELTA2)
 !               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
+!               RG1=1.D0/(1.D0+RG1*WE1*WE1)
             ENDIF
 
             select case(MDLKAI)
@@ -610,16 +620,16 @@
             case(31)
                ALPHAL=ALPHA(NR)*CALF
                FS=TRCOFS(S(NR),ALPHAL,RKCV(NR))
-               IF(MDCD05.NE.0) FS=FS*(2.D0*SQRT(RKPRHO(NR))/(1.D0+RKPRHO(NR)**2))**1.5D0
-!               write(6,'(1P3E12.4)') alpha(nr),DPP*1.D20*RKEV,dpp
+               IF(MDCD05.NE.0) &
+                    FS=FS*(2.D0*SQRT(RKPRHO(NR))/(1.D0+RKPRHO(NR)**2))**1.5D0
                AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
             case(32)
                ALPHAL=ALPHA(NR)*CALF
                FS=TRCOFS(S(NR),ALPHAL,RKCV(NR))
-!               FS=FS/(1.D0+RG1*WE1*WE1)
                FS=FS*RG1
-               IF(MDCD05.NE.0) FS=FS*(2.D0*SQRT(RKPRHO(NR))/(1.D0+RKPRHO(NR)**2))**1.5D0
+               IF(MDCD05.NE.0) &
+                    FS=FS*(2.D0*SQRT(RKPRHO(NR))/(1.D0+RKPRHO(NR)**2))**1.5D0
                AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
             case(33)
@@ -628,7 +638,6 @@
                AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
             case(34)
                FS=TRCOFS(S(NR),0.D0,RKCV(NR))
-!               FS=FS/(1.D0+RG1*WE1*WE1)
                FS=FS*RG1
                AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
@@ -659,29 +668,6 @@
                FS=TRCOFSX(S(NR),ALPHAL,RKCV(NR),RA/RR)
                AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-
-!$$$            case(40)
-!$$$               AEI=(PZ(2)*ANDX+PZ(3)*ANT+PZ(4)*ANA)*AEE/PNI
-!$$$               WCI=AEI*BB/AMI
-!$$$               PTI=(TD*ANDX+TT*ANT+TA*ANA)/PNI
-!$$$               VTI=SQRT(ABS(PTI*RKEV/AMI))
-!$$$               RHOI=VTI/WCI
-!$$$C
-!$$$               FS=TRCOFT(S(NR),ALPHA(NR),RKCV(NR),RA/RR)
-!$$$               SA=S(NR)-ALPHA(NR)
-!$$$               RNST2=0.5D0/((1.D0-2.D0*SA+3.D0*SA*SA)*FS)
-!$$$               RKPP2=RNST2/(FS*ABS(ALPHA(NR))*DELTA2)
-!$$$C
-!$$$               SLAMDA=RKPP2*RHOI**2
-!$$$               RLAMDA=RLAMBDA(SLAMDA)
-!$$$               OMEGAS= SQRT(RKPP2)*TE*RKEV/(AEE*BB*ABS(CLPE))
-!$$$               TAUAP=(QL*RR)/VA
-!$$$               OMEGASS=(OMEGAS*TAUAP)/(RNST2*SQRT(ALPHA(NR)))
-!$$$C
-!$$$c$$$               FS=FS/(1.D0+RG1*WE1*WE1)
-!$$$C
-!$$$               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR) /(RLAMDA*(1.D0+OMEGASS**2))
-!$$$               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR) /(1.D0+OMEGASS**2)
             case default
                WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
                FS=1.D0
@@ -696,11 +682,10 @@
             VGR1(NR,1)=FS
             VGR1(NR,2)=S(NR)
             VGR1(NR,3)=ALPHA(NR)
-            VGR2(NR,1)=ER(NR)!RNST2
-            VGR2(NR,2)=VEXB(NR)!OMEGASS
+            VGR2(NR,1)=ER(NR)
+            VGR2(NR,2)=VEXB(NR)
             VGR2(NR,3)=0.D0
-!            VGR3(NR,1)=1.D0/(1.D0+RG1*WE1*WE1)!SLAMDA
-            VGR3(NR,1)=RG1!SLAMDA
+            VGR3(NR,1)=RG1
             VGR3(NR,2)=ABS(WE1)
             VGR3(NR,3)=0.D0
             VGR4(NR,1)=RLAMDA
@@ -824,7 +809,7 @@
 !            VGR4(NR,3)=1.D0/(1.D0+RG1*WE1*WE1)
             VGR4(NR,3)=RG1
 
-          CASE(65)
+          CASE(60:65)
 
             WPE2=ANE*1.D20*AEE*AEE/(AME*EPS0)
             DELTA2=VC**2/WPE2
@@ -879,7 +864,9 @@
             RKAPL=RKPRHO(NR)
             SHEARL=S(NR)
             PNEL=ANE*1.D20
+
             RHONI=(AMD*ANDX+AMT*ANT+AMA*ANA)*1.D20
+            
             DPDRl=DPP*1.D20*RKEV
             DVEXBDRL=DVE/RA
             SL=(S(NR)**2+0.1D0**2)
@@ -889,7 +876,7 @@
             ckap=1.d0
             MODEL=MDLKAI-130
 
-            CALL cdbm(BB,RR,RS,RKAPL,QL,SHEARL,PNEL,rhoni,dpdrl, &
+            CALL tr_cdbm(BB,RR,RS,RKAPL,QL,SHEARL,PNEL,rhoni,dpdrl, &
                  &    dvexbdrl,calf,ckap,cexb,MODEL,chi_cdbm)
 
             AKDWEL=(CK0/12.D0)*chi_cdbm
@@ -1024,12 +1011,59 @@
             VGR4(NR,3)=0.D0
 
 
-!         CASE DEFAULT
-!            WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
-!            AKDW(NR,1)=0.D0
-!            AKDW(NR,2)=0.D0
-!            AKDW(NR,3)=0.D0
-!            AKDW(NR,4)=0.D0
+          CASE(230:239)
+
+            RS=RA*RG(NR)
+            RKAPL=RKPRHO(NR)
+            SHEARL=S(NR)
+            PNEL=ANE*1.D20
+
+            DPDRl=DPP*1.D20*RKEV
+            DVEXBDRL=DVE/RA
+            SL=(S(NR)**2+0.1D0**2)
+            WE1=-QL*RR/(SL*VA)*DVE
+            RG1=CWEB*FEXB(ABS(WE1),S(NR),ALPHA(NR))
+            cexb=RG1
+            ckap=1.d0
+            MODEL=MDLKAI-230
+
+            PNI=ANDX+ANT+ANA
+            DO NS=2,NSMAX
+               AMI=PA(NS)*AMM
+               VA=SQRT(BB**2/(RMU0*ANE*1.D20*AMI))
+               WE1=-QL*RR/(SL*VA)*DVE
+               RG1=CWEB*FEXB(ABS(WE1),S(NR),ALPHA(NR))
+               RHONI=AMI*PNI*1.D20
+               CALL tr_cdbm(BB,RR,RS,RKAPL,QL,SHEARL,PNEL,rhoni,dpdrl, &
+                    dvexbdrl,calf,ckap,cexb,MODEL,chi_cdbm)
+               AKDW(NR,NS)=chi_cdbm
+            END DO
+            ANE=0.D0
+            AKDW(NR,1)=0.D0
+            DO NS=2,NSMAX
+               IF(NR.EQ.NRMAX) THEN
+                  ANI=PNSS(NS)
+               ELSE
+                  ANI=0.5D0*(RN(NR+1,NS)+RN(NR  ,NS))
+               END IF
+               ANE=ANE+PZ(NS)*ANI
+               AKDW(NR,1)=AKDW(NR,1)+AKDW(NR,NS)*PZ(NS)*ANI
+            END DO
+            AKDW(NR,1)=AKDW(NR,1)/ANE
+
+            VGR1(NR,1)=0.d0
+            VGR1(NR,2)=S(NR)
+            VGR1(NR,3)=ALPHA(NR)
+            VGR2(NR,1)=ER(NR)!RNST2
+            VGR2(NR,2)=VEXB(NR)!OMEGASS
+            VGR2(NR,3)=WEXB(NR)
+            VGR3(NR,1)=0.D0
+            VGR3(NR,2)=0.D0
+            VGR3(NR,3)=0.D0
+            VGR4(NR,1)=0.D0
+            VGR4(NR,2)=0.D0
+            VGR4(NR,3)=0.D0
+
          END SELECT
       ENDDO
 
@@ -1052,7 +1086,7 @@
       IF(MDLKAI.EQ.60.OR.MDLKAI.EQ.61) THEN
          CALL GLF23_DRIVER(S_HM)
       ELSEIF(MDLKAI.EQ.62) THEN
-         CALL AITKEN(1.D0,RBEEDG,RM,RNF(1,1),2,NRMAX)
+         CALL AITKEN(1.D0,RBEEDG,RM,RNF(:,1),2,NRMAX)
          RBEEDG=RBEEDG/PNSS(1)
          CALL IFSPPPL_DRIVER(NSTM,NRMAX,RN,RR,DR,RJCB,RHOG,RHOM, &
               QP,S,EPSRHO,RKPRHOG,RT,BB,AMM,AME,PNSS,PTS,RNF(1:NRMAX,1), &
@@ -1068,17 +1102,22 @@
 
       SUBROUTINE TRCFNC
 
-      USE TRCOMM, ONLY : AEE, AK, AKDW, AKDWD, AKDWP, AKLD, AKLP, AKNC, AKNCP, AKNCT, AME, AMM, BB, BP, CDH, CNH, CSPRS,  &
-     &                   EPSRHO, MDDIAG, MDEDGE, MDLKNC, MDLUF, NREDGE, NRMAX, NSLMAX, NSM, PA, PNSS, PTS, PZ, QP, RA, RG,&
-     &                   RKEV, RN, RR, RT, ZEFF
+      USE TRCOMM, ONLY : AEE, AK, AKDW, AKDWD, AKDWP, AKLD, AKLP,&
+           & AKNC, AKNCP, AKNCT, AME, AMM, BB, BP, CDH, CNH, CSPRS,&
+           & EPSRHO, MDDIAG, MDEDGE, MDLKNC, MDLUF, NREDGE, NRMAX,&
+           & NSLMAX, NSM, PA, PNSS, PTS, PZ, QP, RA, RG, RKEV, RN, RR&
+           &, RT, ZEFF, NSMAX, rkind
       IMPLICIT NONE
-      INTEGER(4):: NR, NS, NS1
-      REAL(8)   :: AMA, AMD, AMT, ANA, ANDX, ANE, ANT, CHECK, DELDA, EPS, EPSS, F1, F2, FTAUE, FTAUI, QL, RALPHA, RHOA2, RHOD2, &
-     &             RHOE2, RHOT2, RK22E, RK2A, RK2D, RK2T, RMUSA, RMUSD, RMUST, RNUA, RNUD, RNUE, RNUT, TA, TAUA, TAUD, TAUE,   &
-     &             TAUT, TD, TE, TERM1A, TERM1D, TERM1T, TERM2A, TERM2D, TERM2T, TT, VTA, VTD, VTE, VTT, ZEFFL
-      REAL(8) :: RK22=2.55D0, RA22=0.45D0, RB22=0.43D0, RC22=0.43D0
-      REAL(8) :: RK2=0.66D0 , RA2=1.03D0 , RB2=0.31D0 , RC2=0.74D0
-      REAL(8),SAVE :: CDHSV
+      INTEGER:: NR, NS, NS1
+      REAL(rkind)   :: AMA, AMD, AMT, ANA, ANDX, ANE, ANT, CHECK,&
+           & DELDA, EPS, EPSS, F1, F2, FTAUE, FTAUI, QL, RALPHA,&
+           & RHOA2, RHOD2, RHOE2, RHOT2, RK22E, RK2A, RK2D, RK2T,&
+           & RMUSA, RMUSD, RMUST, RNUA, RNUD, RNUE, RNUT, TA, TAUA,&
+           & TAUD, TAUE, TAUT, TD, TE, TERM1A, TERM1D, TERM1T, TERM2A&
+           &, TERM2D, TERM2T, TT, VTA, VTD, VTE, VTT, ZEFFL
+      REAL(rkind) :: RK22=2.55D0, RA22=0.45D0, RB22=0.43D0, RC22=0.43D0
+      REAL(rkind) :: RK2=0.66D0 , RA2=1.03D0 , RB2=0.31D0 , RC2=0.74D0
+      REAL(rkind),SAVE :: CDHSV
 
 !      DATA RK11,RA11,RB11,RC11/1.04D0,2.01D0,1.53D0,0.89D0/
 !      DATA RK12,RA12,RB12,RC12/1.20D0,0.76D0,0.67D0,0.56D0/
@@ -1089,29 +1128,39 @@
 !!      DATA RK2 ,RA2 ,RB2 ,RC2 /0.66D0,1.03D0,0.31D0,0.74D0/
 
       AMD=PA(2)*AMM
-      AMT=PA(3)*AMM
-      AMA=PA(4)*AMM
+      AMT=AMD
+      AMA=AMD
+      IF(NSMAX.GE.3) AMT=PA(3)*AMM
+      IF(NSMAX.GE.4) AMA=PA(4)*AMM
 
       DO NR=1,NRMAX
          IF(NR.EQ.NRMAX) THEN
             ANE =PNSS(1)
             ANDX=PNSS(2)
-            ANT =PNSS(3)
-            ANA =PNSS(4)
+            ANT=0.D0
+            ANA=0.D0
+            IF(NSMAX.GE.3) ANT =PNSS(3)
+            IF(NSMAX.GE.4) ANA =PNSS(4)
             TE=PTS(1)
             TD=PTS(2)
-            TT=PTS(3)
-            TA=PTS(4)
+            TT=TD
+            TA=TD
+            IF(NSMAX.GE.3) TT=PTS(3)
+            IF(NSMAX.GE.4) TA=PTS(4)
             ZEFFL=ZEFF(NR)
          ELSE
             ANE    = 0.5D0*(RN(NR+1,1)+RN(NR  ,1))
             ANDX   = 0.5D0*(RN(NR+1,2)+RN(NR  ,2))
-            ANT    = 0.5D0*(RN(NR+1,3)+RN(NR  ,3))
-            ANA    = 0.5D0*(RN(NR+1,4)+RN(NR  ,4))
+            ANT=0.D0
+            ANA=0.D0
+            IF(NSMAX.GE.3) ANT    = 0.5D0*(RN(NR+1,3)+RN(NR  ,3))
+            IF(NSMAX.GE.4) ANA    = 0.5D0*(RN(NR+1,4)+RN(NR  ,4))
             TE     = 0.5D0*(RT(NR+1,1)+RT(NR  ,1))
             TD     = 0.5D0*(RT(NR+1,2)+RT(NR  ,2))
-            TT     = 0.5D0*(RT(NR+1,3)+RT(NR  ,3))
-            TA     = 0.5D0*(RT(NR+1,4)+RT(NR  ,4))
+            TT=TD
+            TA=TD
+            IF(NSMAX.GE.3) TT     = 0.5D0*(RT(NR+1,3)+RT(NR  ,3))
+            IF(NSMAX.GE.4) TA     = 0.5D0*(RT(NR+1,4)+RT(NR  ,4))
             ZEFFL  = 0.5D0*(ZEFF(NR+1)+ZEFF(NR))
          ENDIF
 
@@ -1126,8 +1175,10 @@
 
          RHOE2=2.D0*AME*ABS(TE)*RKEV/(PZ(1)*AEE*BP(NR))**2
          RHOD2=2.D0*AMD*ABS(TD)*RKEV/(PZ(2)*AEE*BP(NR))**2
-         RHOT2=2.D0*AMT*ABS(TT)*RKEV/(PZ(3)*AEE*BP(NR))**2
-         RHOA2=2.D0*AMA*ABS(TA)*RKEV/(PZ(4)*AEE*BP(NR))**2
+         RHOT2=RHOD2
+         RHOA2=RHOD2
+         IF(NSMAX.GE.3) RHOT2=2.D0*AMT*ABS(TT)*RKEV/(PZ(3)*AEE*BP(NR))**2
+         IF(NSMAX.GE.4) RHOA2=2.D0*AMA*ABS(TA)*RKEV/(PZ(4)*AEE*BP(NR))**2
 
 !$$$         TAUE = FTAUE(ANE,ANDX,TE,1.D0)
 !$$$         TAUD = FTAUI(ANE,ANDX,TD,1.D0,PA(2))
@@ -1135,8 +1186,10 @@
 !$$$         TAUA = FTAUI(ANE,ANA ,TA,2.D0,PA(4))
          TAUE = FTAUE(ANE,ANDX,TE,ZEFFL)
          TAUD = FTAUI(ANE,ANDX,TD,PZ(2),PA(2))
-         TAUT = FTAUI(ANE,ANT ,TT,PZ(3),PA(3))
-         TAUA = FTAUI(ANE,ANA ,TA,PZ(4),PA(4))
+         TAUT=TAUD
+         TAUA=TAUD
+         IF(NSMAX.GE.3) TAUT = FTAUI(ANE,ANT ,TT,PZ(3),PA(3))
+         IF(NSMAX.GE.4) TAUA = FTAUI(ANE,ANA ,TA,PZ(4),PA(4))
 
          RNUE=ABS(QL)*RR/(TAUE*VTE*EPSS)
          RNUD=ABS(QL)*RR/(TAUD*VTD*EPSS)
@@ -1210,7 +1263,7 @@
       ENDIF
 
 !     Limit of neoclassical diffusivity
-         DO NS=1,4
+         DO NS=1,NSMAX
             CHECK=ABS(RT(NR,NS)*RKEV/(2.D0*PZ(NS)*AEE*RR*BB))*RG(NR)*RA
             IF(AKNC(NR,NS).GT.CHECK) AKNC(NR,NS)=CHECK
          ENDDO
@@ -1284,12 +1337,12 @@
       SUBROUTINE TRCFET
 
       USE TRCOMM, ONLY : AEE, AME, BB, BP, EPS0, EPSRHO, ETA, ETANC, MDLETA, MDLTPF, MDNCLS, NRMAX, NT, PI, Q0, QP, RKEV, &
-     &                   RN, RR, RT, ZEFF, rm
+     &                   RN, RR, RT, ZEFF, rkind
       IMPLICIT NONE
-      INTEGER(4):: NR
-      REAL(8)   :: ANE, ANI, CH, COULOG, CR, EPS, EPSS, ETAS, F33, F33TEFF, FT, FTAUE, FTPF, H, PHI, QL, RK33E, RLNLAME, &
+      INTEGER:: NR
+      REAL(rkind)   :: ANE, ANI, CH, COULOG, CR, EPS, EPSS, ETAS, F33, F33TEFF, FT, FTAUE, FTPF, H, PHI, QL, RK33E, RLNLAME, &
      &             RNUE, RNUSE, RNZ, SGMSPTZ, TAUE, TAUEL, TE, TEL, VTE, XI, ZEFFL
-      REAL(8):: RK33=1.83D0, RA33=0.68D0, RB33=0.32D0, RC33=0.66D0
+      REAL(rkind):: RK33=1.83D0, RA33=0.68D0, RB33=0.32D0, RC33=0.66D0
 
 
       DO NR=1,NRMAX
@@ -1399,18 +1452,18 @@
       USE TRCOMM, ONLY : AD, AD0, ADDW, ADDWD, ADDWP, ADLD, ADLP, ADNC, ADNCP, ADNCT, AEE, AKDW, ALP, AME, AMM, AV, AV0,    &
      &                   AVDW, AVK, AVKDW, AVKNC, AVNC, BB, BP, CDH, CDP, CHP, CNH, CNN, CNP, CSPRS, EPSRHO, EZOH, MDDIAG,  &
      &                   MDDW, MDEDGE, MDLAD, MDLAVK, MDNCLS, NREDGE, NRMAX, NSLMAX, NSM, PA, PN, PNSS, PROFN1, PROFN2, PTS,&
-     &                   PZ, QP, RA, RHOG, RKEV, RN, RR, RT, ZEFF, RG
+     &                   PZ, QP, RA, RHOG, RKEV, RN, RM, RR, RT, ZEFF, rkind
       IMPLICIT NONE
-      INTEGER(4):: NR, NS, NS1, NA, NB
-      REAL(8)   :: ANA, ANDX, ANE, ANED, ANI, ANT, BPL, CFNCI, CFNCNC, CFNCNH, CFNHI, CFNHNC, CFNHNH, DPROF, EDCM, EPS, EPSS,&
+      INTEGER:: NR, NS, NS1, NA, NB
+      REAL(rkind)   :: ANA, ANDX, ANE, ANED, ANI, ANT, BPL, CFNCI, CFNCNC, CFNCNH, CFNHI, CFNHNC, CFNHNH, DPROF, EDCM, EPS, EPSS,&
      &             EZOHL, FTAUE, FTAUI, H, PROF, PROF0, PROF1, PROF2, QPL, RHOE2, RK11E, RK13E, RK23E, RK3D, RNUD, RNUE, RX, &
      &             SGMNI, SGMNN, SUMA, SUMB, TAUD, TAUE, TD, TE, VNC, VNH, VNI, VTD, VTE, ZEFFL
-      REAL(8),DIMENSION(2):: ACOEF
-      REAL(8),DIMENSION(5):: BCOEF
-      REAL(8) :: RK11=1.04D0, RA11=2.01D0, RB11=1.53D0, RC11=0.89D0
-      REAL(8) :: RK13=2.30D0, RA13=1.02D0, RB13=1.07D0, RC13=1.07D0
-      REAL(8) :: RK23=4.19D0, RA23=0.57D0, RB23=0.61D0, RC23=0.61D0
-      REAL(8),SAVE :: CDPSV
+      REAL(rkind),DIMENSION(2):: ACOEF
+      REAL(rkind),DIMENSION(5):: BCOEF
+      REAL(rkind) :: RK11=1.04D0, RA11=2.01D0, RB11=1.53D0, RC11=0.89D0
+      REAL(rkind) :: RK13=2.30D0, RA13=1.02D0, RB13=1.07D0, RC13=1.07D0
+      REAL(rkind) :: RK23=4.19D0, RA23=0.57D0, RB23=0.61D0, RC23=0.61D0
+      REAL(rkind),SAVE :: CDPSV
 
 !     ZEFF=1
 
@@ -1418,9 +1471,12 @@
 !        ****** AV : PARTICLE PINCH ******
 
       IF(MDEDGE.EQ.1) CDPSV=CDP
+      DO NR=1,NRMAX
+         AVDW(NR,1:NSM) = 0.D0
+         ADDW(NR,1:NSM) = 0.D0
+      END DO
+
       IF(MDNCLS.EQ.0) THEN
-!     NCLASS has already calculated neoclassical particle pinch(AVNC)
-!     beforehand if MDNCLS=1 so that MDLAD becomes no longer valid.
       select case(MDLAD)
       case(1)
          DO NR=1,NRMAX
@@ -1435,26 +1491,26 @@
                ANT    = 0.5D0*(RN(NR+1,3)+RN(NR  ,3))
                ANA    = 0.5D0*(RN(NR+1,4)+RN(NR  ,4))
             ENDIF
-            ADNC(NR,2) = PA(2)**ALP(2)*PZ(2)**ALP(3)*AD0
-            ADNC(NR,3) = PA(3)**ALP(2)*PZ(3)**ALP(3)*AD0
-            ADNC(NR,4) = PA(4)**ALP(2)*PZ(4)**ALP(3)*AD0
-            ADNC(NR,1) =(PZ(2)*ANDX*AD(NR,2)+PZ(3)*ANT *AD(NR,3)+PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
+            ADDW(NR,2) = PA(2)**ALP(2)*PZ(2)**ALP(3)*AD0
+            ADDW(NR,3) = PA(3)**ALP(2)*PZ(3)**ALP(3)*AD0
+            ADDW(NR,4) = PA(4)**ALP(2)*PZ(4)**ALP(3)*AD0
+            ADDW(NR,1) =(PZ(2)*ANDX*AD(NR,2) &
+                        +PZ(3)*ANT *AD(NR,3) &
+                        +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
 
-            RX   = ALP(1)*RHOG(NR)
-            PROF0 = 1.D0-RX**PROFN1
-            IF(PROF0.LE.0.D0) THEN
-               PROF1=0.D0
-               PROF2=0.D0
-            ELSE
-               PROF1=PROF0**PROFN2
-               PROF2=PROFN2*PROF0**(PROFN2-1.D0)
-            ENDIF
-            PROF   = PROF1+PNSS(1)/(PN(1)-PNSS(1))
-            DPROF  =-PROFN1*RX**(PROFN1-1.D0)*PROF2
+!            RX   = ALP(1)*RHOG(NR)
+!            PROF0 = 1.D0-RX**PROFN1
+!            IF(PROF0.LE.0.D0) THEN
+!               PROF1=0.D0
+!               PROF2=0.D0
+!            ELSE
+!               PROF1=PROF0**PROFN2
+!               PROF2=PROFN2*PROF0**(PROFN2-1.D0)
+!            ENDIF
+!            PROF   = PROF1+PNSS(1)/(PN(1)-PNSS(1))
+!            DPROF  =-PROFN1*RX**(PROFN1-1.D0)*PROF2
 
-            AD  (NR,1:NSM) = CNP*ADNC(NR,1:NSM)
-            AVNC(NR,1:NSM) = AD(NR,1:NSM)*DPROF/PROF
-            AVDW(NR,1:NSM) = 0.D0
+            AVDW(NR,1:NSM) = -AV0*(RHOG(NR)/RA)*ADDW(NR,1:NSM)
          ENDDO
       case(2)
          DO NR=1,NRMAX
@@ -1469,26 +1525,27 @@
                ANT = 0.5D0*(RN(NR+1,3)+RN(NR  ,3))
                ANA = 0.5D0*(RN(NR+1,4)+RN(NR  ,4))
             ENDIF
-            ADNC(NR,2) = AD0*AKDW(NR,2)
-            ADNC(NR,3) = AD0*AKDW(NR,3)
-            ADNC(NR,4) = AD0*AKDW(NR,4)
-            ADNC(NR,1) =(PZ(2)*ANDX*AD(NR,2)+PZ(3)*ANT *AD(NR,3)+PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
+            ADDW(NR,2) = AD0*AKDW(NR,2)
+            ADDW(NR,3) = AD0*AKDW(NR,3)
+            ADDW(NR,4) = AD0*AKDW(NR,4)
+            ADDW(NR,1) =(PZ(2)*ANDX*AD(NR,2) &
+                        +PZ(3)*ANT *AD(NR,3) &
+                        +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
 
-            RX   = ALP(1)*RHOG(NR)
-            PROF0 = 1.D0-RX**PROFN1
-            IF(PROF0.LE.0.D0) THEN
-               PROF1=0.D0
-               PROF2=0.D0
-            ELSE
-               PROF1=PROF0**PROFN2
-               PROF2=PROFN2*PROF0**(PROFN2-1.D0)
-            ENDIF
-            PROF   = PROF1*(PN(1)-PNSS(1))+PNSS(1)
-            DPROF  = -PROFN1*RX**(PROFN1-1.D0)*PROF2*(PN(1)-PNSS(1))*ALP(1)/RA *1.5D0
+!            RX   = ALP(1)*RHOG(NR)
+!            PROF0 = 1.D0-RX**PROFN1
+!            IF(PROF0.LE.0.D0) THEN
+!               PROF1=0.D0
+!               PROF2=0.D0
+!            ELSE
+!               PROF1=PROF0**PROFN2
+!               PROF2=PROFN2*PROF0**(PROFN2-1.D0)
+!            ENDIF
+!            PROF   = PROF1*(PN(1)-PNSS(1))+PNSS(1)
+!            DPROF  = -PROFN1*RX**(PROFN1-1.D0)*PROF2*(PN(1) &
+!                     -PNSS(1))*ALP(1)/RA *1.5D0
 
-            AD  (NR,1:NSM) = CNP*ADNC(NR,1:NSM)
-            AVNC(NR,1:NSM) = AD(NR,1:NSM)*DPROF/PROF
-            AVDW(NR,1:NSM) = 0.D0
+            AVDW(NR,1:NSM) = -AV0*(RHOG(NR)/RA)*ADDW(NR,1:NSM)
          ENDDO
       case(3)
 !     *** Hinton & Hazeltine model w/o anomalous part of ***
@@ -1595,7 +1652,8 @@
       DO NS=1,NSLMAX
          DO NR=1,NRMAX
             IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
-            AV(NR,NS)=CDP*AVDW(NR,NS)+CNP*AVNC(NR,NS)
+            AD(NR,NS)=CNP*ADNC(NR,NS)+CDP*ADDW(NR,NS)
+            AV(NR,NS)=CNP*AVNC(NR,NS)+CDP*AVDW(NR,NS)
          ENDDO
       ENDDO
       IF(MDEDGE.EQ.1) CDP=CDPSV
@@ -1765,11 +1823,12 @@
       RETURN
       END SUBROUTINE TRCFAD
 
-      REAL(8) FUNCTION TRCOFS(S,ALPHA,RKCV)
+      FUNCTION TRCOFS(S,ALPHA,RKCV)
 
+      USE TRCOMM,ONLY: rkind
       IMPLICIT NONE
-      REAL(8):: S, ALPHA, RKCV
-      REAL(8):: FS1,FS2, SA
+      REAL(rkind):: S, ALPHA, RKCV, TRCOFS
+      REAL(rkind):: FS1,FS2, SA
 
       IF(ALPHA.GE.0.D0) THEN
          SA=S-ALPHA
@@ -1802,11 +1861,12 @@
       RETURN
       END FUNCTION TRCOFS
 
-      REAL(8) FUNCTION TRCOFSX(S,ALPHA,RKCV,EPSA)
+      FUNCTION TRCOFSX(S,ALPHA,RKCV,EPSA)
 
+      USE TRCOMM,ONLY: rkind
       IMPLICIT NONE
-      REAL(8):: S, ALPHA, RKCV, EPSA
-      REAL(8):: FS1, FS2, SA
+      REAL(rkind):: S, ALPHA, RKCV, EPSA, TRCOFSX
+      REAL(rkind):: FS1, FS2, SA
 
       IF(ALPHA.GE.0.D0) THEN
 !        SA=S-ALPHA
@@ -1847,11 +1907,12 @@
       RETURN
       END FUNCTION TRCOFSX
 
-      REAL(8) FUNCTION TRCOFSS(S,ALPHA)
+      FUNCTION TRCOFSS(S,ALPHA)
 
+      USE TRCOMM,ONLY: rkind
       IMPLICIT NONE
-      REAL(8):: S,ALPHA
-      REAL(8):: SA,FS1
+      REAL(rkind):: S,ALPHA,TRCOFSS
+      REAL(rkind):: SA,FS1
 
       SA=S-ALPHA
       FS1=2.D0*SA**2/(1.D0+(2.D0/9.D0)*SQRT(ABS(SA))**5)
@@ -1859,11 +1920,12 @@
       RETURN
       END FUNCTION TRCOFSS
 
-      REAL(8) FUNCTION TRCOFT(S,ALPHA,RKCV,EPSA)
+      FUNCTION TRCOFT(S,ALPHA,RKCV,EPSA)
 
+      USE TRCOMM,ONLY: rkind
       IMPLICIT NONE
-      REAL(8):: S,ALPHA,RKCV,EPSA
-      REAL(8):: FS1,FS2, SA
+      REAL(rkind):: S,ALPHA,RKCV,EPSA,TRCOFT
+      REAL(rkind):: FS1,FS2, SA
 
       IF(ALPHA.GE.0.D0) THEN
          SA=S-ALPHA
@@ -1896,15 +1958,16 @@
       RETURN
       END FUNCTION TRCOFT
 
-      REAL(8) FUNCTION RLAMBDA(X)
+      FUNCTION RLAMBDA(X)
 
+      USE TRCOMM,ONLY: rkind
       IMPLICIT NONE
-      REAL(8):: X
-      REAL(8):: AX, Y
-      REAL(8),SAVE:: P1=1.0D0, P2=3.5156229D0, P3=3.0899424D0, &
+      REAL(rkind):: X,RLAMBDA
+      REAL(rkind):: AX, Y
+      REAL(rkind),SAVE:: P1=1.0D0, P2=3.5156229D0, P3=3.0899424D0, &
            &         P4=1.2067492D0, P5=0.2659732D0, P6=0.360768D-1, &
            &         P7=0.45813D-2
-      REAL(8),SAVE:: Q1=0.39894228D0,  Q2=0.1328592D-1, Q3=0.225319D-2, &
+      REAL(rkind),SAVE:: Q1=0.39894228D0,  Q2=0.1328592D-1, Q3=0.225319D-2, &
            &         Q4=-0.157565D-2, Q5=0.916281D-2, Q6=-0.2057706D-1, &
            &         Q7=0.2635537D-1, Q8=-0.1647633D-1,Q9=0.392377D-2
 
@@ -1923,10 +1986,11 @@
 
 !     *** for Mixed Bohm/gyro-Bohm model ***
 
-      REAL(8) FUNCTION FBHM(WEXB,AGITG,S)
+      FUNCTION FBHM(WEXB,AGITG,S)
 
+      USE TRCOMM,ONLY: rkind
       IMPLICIT NONE
-      REAL(8):: AGITG,S, WEXB
+      REAL(rkind):: AGITG,S, WEXB,FBHM
 
       FBHM=1.D0/(1.D0+EXP(20.D0*(0.05D0+WEXB/AGITG-S)))
 
@@ -1935,10 +1999,11 @@
 
 !     *** ExB shearing effect for CDBM model ***
 
-      REAL(8) FUNCTION FEXB(X,S,ALPHA)
+      FUNCTION FEXB(X,S,ALPHA)
 
+      USE TRCOMM,ONLY: rkind
       IMPLICIT NONE
-      REAL(8):: A, ALPHA, ALPHAL, BETA, GAMMA, S, X
+      REAL(rkind):: A, ALPHA, ALPHAL, BETA, GAMMA, S, X,FEXB
 
       IF(ABS(ALPHA).LT.1.D-3) THEN
          ALPHAL=1.D-3

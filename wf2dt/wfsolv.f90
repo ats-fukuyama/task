@@ -34,8 +34,8 @@ SUBROUTINE CVSOLV
   use libmtx
   use libqsort
   implicit none
-  integer :: ISD,NSD,NV
-  integer :: NE,NN
+  integer :: ISD,NSD,nnd,nnd1,nnd2,nv_old
+  integer :: NE,NN,nv,nvmax
   integer :: I,J,KK,LL
   integer :: JNSD,JNN,INSD,INN
   integer :: IN,INV,JNV,KB
@@ -45,12 +45,15 @@ SUBROUTINE CVSOLV
   integer :: NNZ,NNZMAX,NNZME      !Number of Non-Zero Matrix Element
   integer,dimension(:),ALLOCATABLE :: NEFLAG
   integer :: ORIENTJ,ORIENTI
-  real(8),dimension(1) :: ddata
-  real(4) :: cputime1,cputime2
-  complex(8):: CEB
-  complex(8),dimension(:),ALLOCATABLE :: CRVP,CEQP
-  integer(8),dimension(:),ALLOCATABLE :: NSEQ
-  INTEGER(8):: IX,IY
+  real :: cputime1,cputime2
+  real(rkind) :: x,y,val
+  complex(rkind):: CEB
+  complex(rkind),dimension(:),ALLOCATABLE :: CRVP,CEQP
+  integer(long),dimension(:),ALLOCATABLE :: NSEQ
+  REAL(rkind),DIMENSION(:),ALLOCATABLE:: VAL_SORT
+  INTEGER(long),DIMENSION(:),ALLOCATABLE:: NV_SORT
+  INTEGER,DIMENSION(:),ALLOCATABLE:: ntyp_nv,nnsd_nv
+  INTEGER(long):: IX,IY
 
   ! ----- initialize ------
   
@@ -64,7 +67,9 @@ SUBROUTINE CVSOLV
   call mtxc_setup(MLEN,istart,iend,0)
   call mtxc_cleanup
 
-  ! ----- set NVNSD & NVNN -----
+  ! ----- set NV_NSD & NV_NN -----
+
+  ALLOCATE(ntyp_nv(nnmax+nsdmax),nnsd_nv(nnmax+nsdmax))
 
   NV=0
   do NSD=1,NSDMAX
@@ -73,6 +78,8 @@ SUBROUTINE CVSOLV
      else
         NV=NV+1
         NVNSD(NSD)=NV
+        NTYP_NV(NV)=2
+        NNSD_NV(NV)=NSD
      end if
   end do
   do NN=1,NNMAX
@@ -81,14 +88,62 @@ SUBROUTINE CVSOLV
      else
         NV=NV+1
         NVNN(NN)=NV
+        NTYP_NV(NV)=1
+        NNSD_NV(NV)=NN
      end if
   end do
+  NVMAX=NV
+
+  ALLOCATE(NV_SORT(NVMAX),VAL_SORT(NVMAX))
+
+  DO NV=1,NVMAX
+     IF(NTYP_NV(NV).EQ.1) THEN
+        NN=NNSD_NV(NV)
+        X=RNODE(NN)
+        Y=ZNODE(NN)
+        VAL=sort_weight_x*X+sort_weight_y*Y
+     ELSE
+        NSD=NNSD_NV(NV)
+        NND1=NDSID(1,NSD)
+        NND2=NDSID(2,NSD)
+        X=0.5D0*(RNODE(NND1)+RNODE(NND2))
+        Y=0.5D0*(ZNODE(NND1)+ZNODE(NND2))
+     END IF
+     VAL=sort_weight_x*X+sort_weight_y*Y
+     nv_sort(NV)=NV
+     val_sort(NV)=VAL
+  END DO
+
+  CALL qsort_dl(val_sort,nv_sort)
+
+  DO nv=1,nvmax
+     nv_old=nv_sort(nv)
+     IF(ntyp_nv(nv_old).EQ.1) THEN
+        nnd=nnsd_nv(nv_old)
+        nvnn(nnd)=nv
+!        X=RNODE(nnd)
+!        Y=ZNODE(nnd)
+!        VAL=sort_weight_x+sort_weight_y*Y
+!        write(21,'(I10,A,I10,1P3E12.4)') nv,' node ',nnd,X,Y,VAL
+     ELSE
+        nsd=nnsd_nv(nv_old)
+        nvnsd(nsd)=nv
+!        NND1=NDSID(1,NSD)
+!        NND2=NDSID(2,NSD)
+!        X=0.5D0*(RNODE(NND1)+RNODE(NND2))
+!        Y=0.5D0*(ZNODE(NND1)+ZNODE(NND2))
+!        VAL=sort_weight_x*X+sort_weight_y*Y
+!        write(21,'(I10,A,I10,1P3E12.4)') nv,' side ',nsd,X,Y,VAL
+     END IF
+  END DO
+     
+  DEALLOCATE(NV_SORT,VAL_SORT,ntyp_nv,nnsd_nv)
 
 !  do NSD=1,NSDMAX
-!     write(*,*) NSD,KASID(NSD),NVNSD(NSD)
+!     write(*,*) NSD,KASID(NSD),NV_NSD(NSD)
 !  end do
 !  do NN=1,NNMAX
-!     write(*,*) NN,KANOD(NN),NVNN(NN)
+!     write(*,*) NN,KANOD(NN),NV_NN(NN)
 !  end do
 
   ! ----- set NEFLAG ------
@@ -289,7 +344,7 @@ SUBROUTINE CVSOLV
         END if
      ENDDO
 
-!    --- Contribution from the boundary ---
+!    --- Contribution from the boundary electric field ---
 
      LL=0
      DO J=1,6
@@ -308,30 +363,31 @@ SUBROUTINE CVSOLV
            IF(KB.NE.0) CEB=CEBND(KB)
         end if
 
-        IF(KB.NE.0.AND.ABS(CEB).GT.0.D0) THEN
-
-           KK=0
-           DO I=1,6
-              ORIENTI=1
-              if(I.ge.1.and.I.le.3) then
-                 INSD=NSDELM(I,NE)
-                 if(INSD.lt.0) then
-                    INSD=-INSD
-                    ORIENTI=-1
+        IF(KB.NE.0) THEN
+           IF(ABS(CEB).GT.0.D0) THEN
+              KK=0
+              DO I=1,6
+                 ORIENTI=1
+                 if(I.ge.1.and.I.le.3) then
+                    INSD=NSDELM(I,NE)
+                    if(INSD.lt.0) then
+                       INSD=-INSD
+                       ORIENTI=-1
+                    end if
+                    INV =NVNSD(INSD)
+                 else
+                    INN=NDELM(I-3,NE)
+                    INV=NVNN(INN)
                  end if
-                 INV =NVNSD(INSD)
-              else
-                 INN=NDELM(I-3,NE)
-                 INV=NVNN(INN)
-              end if
-              KK=INV
-              if((KK.ge.istart).and.&
-                 (KK.le.iend  )) then
-!              write(6,'(4I8,1P4E12.4)') NE,KK,I,J,CEB,CM(I,J)
-              CRVP(KK-istart+1)=CRVP(KK-istart+1)-ORIENTI*ORIENTJ*CM(I,J)*CEB
-              end if
-           END DO
-        END if
+                 KK=INV
+                 if((KK.ge.istart).and.&
+                      (KK.le.iend  )) then
+                    CRVP(KK-istart+1)=CRVP(KK-istart+1) &
+                         -ORIENTI*ORIENTJ*CM(I,J)*CEB
+                 end if
+              END DO
+           END IF
+        END IF
      ENDDO
 
 !    --- Contribution from the antenna current ---
@@ -373,8 +429,6 @@ SUBROUTINE CVSOLV
         CEQP(NNZME)=CEQP(NNZ)
      END IF
   END DO
-
-
 
   if(nrank.eq.0) write(6,'(A77)') &
   '      nrank     istart       iend      MILEN      MJLEN     NNZMAX      NNZME'

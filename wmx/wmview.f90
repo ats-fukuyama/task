@@ -12,7 +12,7 @@ CONTAINS
   SUBROUTINE wm_view
     USE wmcomm_parm
     IMPLICIT NONE
-    INTEGER:: NS,NA
+    INTEGER:: NS,NA,i
 
     SELECT CASE(MODELG)
     CASE(0)
@@ -73,20 +73,24 @@ CONTAINS
     WRITE(6,601) 'RHOMIN',RHOMIN,'QMIN  ',QMIN  , &
                  'PRFIN ',PRFIN
     WRITE(6,601) 'RF    ',RF    ,'RFI   ',RFI   , &
-                 'RD    ',RD    ,'BETAJ ',BETAJ
-    WRITE(6,603) 'factor_nth  ',factor_nth, &
-                 'factor_nhh  ',factor_nhh
+         'RD    ',RD
+    WRITE(6,604) 'factor_nth  ',factor_nth, &
+                 'factor_nhh  ',factor_nhh, &
+                 'factor_nph  ',factor_nph
     WRITE(6,602) 'NRMAX ',NRMAX ,'NTHMAX',NTHMAX, &
-                 'NHHMAX',NHHMAX,'NPHMAX',NPHMAX
+                 'NHHMAX',NHHMAX,'NPPMAX',NPPMAX
     WRITE(6,602) 'NTH0  ',NTH0  ,'NPH0  ',NPH0  , &
                  'NHC   ',NHC   
     WRITE(6,602) 'MODELG',MODELG,'MODELB',MODELB, &
                  'MODELN',MODELN,'MODELQ',MODELQ
     WRITE(6,602) 'MODELA',MODELA, & 
                  'MODEFR',MODEFR,'MODEFW',MODEFW
+    WRITE(6,602) 'MODELM',MODELM, & 
+                 'MDLWMK',MDLWMK, &
+                 'MDLWMX',MDLWMX
     WRITE(6,604) 'MODEL_PROF  ',MODEL_PROF, &
                  'MODEL_NPROF ',MODEL_NPROF, &
-                 'nthgmax     ',nthgmax
+                 'nthmax_g     ',nthmax_g
 
     WRITE(6,692)
     DO NS=1,NSMAX
@@ -108,16 +112,19 @@ CONTAINS
     DO NA=1,NAMAX
        WRITE(6,610) NA,AJ(NA),APH(NA),THJ1(NA),THJ2(NA), &
                                       PHJ1(NA),PHJ2(NA)
-       WRITE(6,614)    AEWGT(NA),AEWGZ(NA),ANTANG(NA)
+       WRITE(6,614)    BETAJ(NA),AEWGT(NA),AEWGZ(NA),ANTANG(NA)
     ENDDO
+
+    DO i=1,idebug_max
+       IF(idebuga(i).NE.0) WRITE(6,'(A,I2,A,I6)') 'idebuga(',i,'):',idebuga(i)
+    END DO
+    IF(idebuga(61).NE.0) WRITE(6,'(A,A)') 'knam_dump=',TRIM(knam_dump)
     RETURN
 
   601 FORMAT(A6,'=',1PE12.4:1X,A6,'=',1PE12.4:1X, &
              A6,'=',1PE12.4:1X,A6,'=',1PE12.4)
   602 FORMAT(A6,'=',I8,4X  :1X,A6,'=',I8,4X  :1X, &
              A6,'=',I8,4X  :1X,A6,'=',I8)
-  603 FORMAT(A12,'=',1PE12.4:1X,A12,'=',1PE12.4:1X, &
-             A12,'=',1PE12.4)
   604 FORMAT(A12,'=',I8,4X  :1X,A12,'=',I8,4X  :1X, &
              A12,'=',I8)
   610 FORMAT(' ',I1,6(1PE11.3))

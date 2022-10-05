@@ -1,18 +1,6 @@
 module tx_interface
 
   !****************!
-  !   txmenu.f90   !
-  !****************!
-
-  interface
-     SUBROUTINE TXKLIN(LINE,KID,MODE)
-       integer(4), intent(out) :: MODE
-       character(len=80), intent(out) :: LINE
-       character(len=1), intent(out) :: KID
-     end SUBROUTINE TXKLIN
-  end interface
-
-  !****************!
   !   txntv.f90    !
   !****************!
 
@@ -36,8 +24,9 @@ module tx_interface
 
   interface
      subroutine txmmm95(dNedr,dNidr,dTedr,dTidr,dQdr,gamma)
+       use tx_commons, only : nrmax
        real(8), dimension(*), intent(in) :: dNedr,dNidr,dTedr,dTidr,dQdr
-       real(8), dimension(*), intent(out), optional :: gamma
+       real(8), dimension(0:nrmax), intent(out), optional :: gamma
      end subroutine txmmm95
   end interface
 
@@ -78,12 +67,6 @@ module tx_interface
        REAL(4),          INTENT(IN)    :: GR
        character(len=*), INTENT(IN)    :: FORM
      end SUBROUTINE APRTOS
-  end interface
-
-  interface
-     SUBROUTINE TOUPPER(KTEXT)
-       character(len=*), INTENT(INOUT) ::  KTEXT
-     end SUBROUTINE TOUPPER
   end interface
 
   interface

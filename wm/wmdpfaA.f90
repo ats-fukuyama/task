@@ -27,6 +27,7 @@ SUBROUTINE WMDPFAA(CW,RHOWM,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
   USE wmfa
   USE libgrf, ONLY : grd1d,grd2d
   USE dpcomm
+  USE libspl2d
 
 !  IMPLICIT NONE
 !  INTEGER,INTENT(IN) :: NRWM
@@ -394,6 +395,7 @@ SUBROUTINE PVINT(j,l,CINT)
   USE pllocal
   USE wmfa
   USE dpcomm
+  USE libspl2d
   REAL(8),INTENT(IN) :: x,xm,xp
   COMPLEX(8) :: CFUNCdp
 
@@ -411,6 +413,7 @@ SUBROUTINE PVINT(j,l,CINT)
   USE pllocal
   USE wmfa
   USE dpcomm
+  USE libspl2d
   REAL(8),INTENT(IN) :: x,xm,xp
   COMPLEX(8) :: CFUNCdr
 
@@ -428,6 +431,7 @@ SUBROUTINE PVINT(j,l,CINT)
   USE pllocal
   USE wmfa
   use dpcomm
+  USE libspl2d
   REAL(8),INTENT(IN) :: x,xm,xp
   REAL(8) :: FL,FR
   COMPLEX(8) :: CFUNCpldp
@@ -455,6 +459,7 @@ SUBROUTINE PVINT(j,l,CINT)
   USE pllocal
   USE wmfa
   USE dpcomm
+  USE libspl2d
   REAL(8),INTENT(IN) :: x,xm,xp
   REAL(8) :: FL,FR
   COMPLEX(8) :: CFUNCpldr

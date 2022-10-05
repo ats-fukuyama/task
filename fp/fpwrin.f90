@@ -11,6 +11,7 @@
       INTEGER:: NRAYMAX,NITMAXM
       INTEGER,PARAMETER:: NCRMAXM=5
       INTEGER,DIMENSION(:),POINTER:: NITMAX  !(NRAYMAX)
+      INTEGER:: NRAYS,NRAYE
 
       REAL(rkind),DIMENSION(:,:),POINTER:: RAYIN !(8,NRAYMAX)
       COMPLEX(rkind),DIMENSION(:,:),POINTER:: &  !(0:NITMAXM,NRAYMAX)
@@ -152,6 +153,7 @@
       SUBROUTINE fp_wr_read(IERR)
 
       USE plprof
+      USE libspl1d
       USE libfio
       USE libmpi
       USE libmtx
@@ -282,16 +284,16 @@
             SI(NIT,NRAY)=RAYS(0,NIT,NRAY)
          ENDDO
 
-         CALL CSPL1D(SI(0,NRAY),CEXS(0,NRAY),CFD,CU1(1,0,NRAY),NITMX+1,0,IERR)
-         CALL CSPL1D(SI(0,NRAY),CEYS(0,NRAY),CFD,CU2(1,0,NRAY),NITMX+1,0,IERR)
-         CALL CSPL1D(SI(0,NRAY),CEZS(0,NRAY),CFD,CU3(1,0,NRAY),NITMX+1,0,IERR)
-         CALL SPL1D (SI(0,NRAY),RKXS(0,NRAY),FD,U4(1,0,NRAY),NITMX+1,0,IERR)
-         CALL SPL1D (SI(0,NRAY),RKYS(0,NRAY),FD,U5(1,0,NRAY),NITMX+1,0,IERR)
-         CALL SPL1D (SI(0,NRAY),RKZS(0,NRAY),FD,U6(1,0,NRAY),NITMX+1,0,IERR)
-         CALL SPL1D (SI(0,NRAY),RXS(0,NRAY),FD,U7(1,0,NRAY),NITMX+1,0,IERR)
-         CALL SPL1D (SI(0,NRAY),RYS(0,NRAY),FD,U8(1,0,NRAY),NITMX+1,0,IERR)
-         CALL SPL1D (SI(0,NRAY),RZS(0,NRAY),FD,U9(1,0,NRAY),NITMX+1,0,IERR)
-         CALL SPL1D (SI(0,NRAY),PSIX(0,NRAY),FD,U10(1,0,NRAY),NITMX+1,0,IERR)
+         CALL CSPL1D(SI(:,NRAY),CEXS(:,NRAY),CFD,CU1(:,:,NRAY),NITMX+1,0,IERR)
+         CALL CSPL1D(SI(:,NRAY),CEYS(:,NRAY),CFD,CU2(:,:,NRAY),NITMX+1,0,IERR)
+         CALL CSPL1D(SI(:,NRAY),CEZS(:,NRAY),CFD,CU3(:,:,NRAY),NITMX+1,0,IERR)
+         CALL SPL1D (SI(:,NRAY),RKXS(:,NRAY),FD,U4(:,:,NRAY),NITMX+1,0,IERR)
+         CALL SPL1D (SI(:,NRAY),RKYS(:,NRAY),FD,U5(:,:,NRAY),NITMX+1,0,IERR)
+         CALL SPL1D (SI(:,NRAY),RKZS(:,NRAY),FD,U6(:,:,NRAY),NITMX+1,0,IERR)
+         CALL SPL1D (SI(:,NRAY),RXS(:,NRAY),FD,U7(:,:,NRAY),NITMX+1,0,IERR)
+         CALL SPL1D (SI(:,NRAY),RYS(:,NRAY),FD,U8(:,:,NRAY),NITMX+1,0,IERR)
+         CALL SPL1D (SI(:,NRAY),RZS(:,NRAY),FD,U9(:,:,NRAY),NITMX+1,0,IERR)
+         CALL SPL1D (SI(:,NRAY),PSIX(:,NRAY),FD,U10(:,:,NRAY),NITMX+1,0,IERR)
       ENDDO
       DEALLOCATE(cfd,fd)
 !
@@ -299,7 +301,8 @@
 !
       DO NRAY=1,NRAYMAX
          NITMX=NITMAX(NRAY)
-         WRITE(6,'(A,I5,1PE12.4)') 'NRAY,RF_WR=',NRAY,RAYIN(1,NRAY)
+         IF(nrank.EQ.0) &
+              WRITE(6,'(A,I5,1PE12.4)') 'NRAY,RF_WR=',NRAY,RAYIN(1,NRAY)
          DO NR=1,NRMAX
             PSICR =RM(NR)**2
             PSIPRE=PSIX(0,NRAY)
@@ -310,11 +313,15 @@
                IF((PSIPRE-PSICR)*(PSIL-PSICR).LT.0.D0.OR. &
                    PSIL-PSICR.EQ.0.D0) THEN
                   CALL FPCROS(PSICR,NIT,NRAY,SICR)
-                  WRITE(6,'(A,3I6,1P2E12.4)') '# NR,NRAY,NIT,PSICR,SICR=', &
-                                                 NR,NRAY,NIT,PSICR,SICR
+                  IF(nrank.EQ.0) &
+                       WRITE(6,'(A,3I6,1P2E12.4)') &
+                       '# NR,NRAY,NIT,PSICR,SICR=', &
+                       NR,NRAY,NIT,PSICR,SICR
                   CALL FPCREK(SICR,NRAY,CEX,CEY,CEZ,RKX,RKY,RKZ,RX,RY,RZ)
-                  WRITE(6,'(A,1P6E12.4)')     '# CE=',CEX,CEY,CEZ
-                  WRITE(6,'(A,1P6E12.4)')     '# KR=',RKX,RKY,RKZ,RX,RY,RZ
+                  IF(nrank.EQ.0) &
+                       WRITE(6,'(A,1P6E12.4)')     '# CE=',CEX,CEY,CEZ
+                  IF(nrank.EQ.0) &
+                       WRITE(6,'(A,1P6E12.4)')     '# KR=',RKX,RKY,RKZ,RX,RY,RZ
                   
                   IF(NCR.LT.NCRMAXM) THEN
                      NCR=NCR+1
@@ -345,17 +352,17 @@
 
   900 IERR=0
       RETURN
-9001  write(6,*) '9001:NIT=',NIT
+9001  write(6,*) 'XX fp_wr_read: 9001:NIT=',NIT
       stop
-9002  write(6,*) '9002:NIT=',NIT
+9002  write(6,*) 'XX fp_wr_read: 9002:NIT=',NIT
       stop
-9003  write(6,*) '9003:NIT=',NIT
+9003  write(6,*) 'XX fp_wr_read: 9003:NIT=',NIT
       stop
-9101  write(6,*) '9101:NIT=',NIT
+9101  write(6,*) 'XX fp_wr_read: 9101:NIT=',NIT
       stop
-9102  write(6,*) '9102:NIT=',NIT
+9102  write(6,*) 'XX fp_wr_read: 9102:NIT=',NIT
       stop
-9103  write(6,*) '9103:NIT=',NIT
+9103  write(6,*) 'XX fp_wr_read: 9103:NIT=',NIT
       stop
       RETURN
       END SUBROUTINE fp_wr_read
@@ -366,6 +373,7 @@
 !
       SUBROUTINE FPCROS(PSICR,NIT,NRAY,SICR)
 
+      USE libspl1d
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: PSICR
       INTEGER,INTENT(IN):: NIT,NRAY
@@ -393,7 +401,7 @@
          DX=-Y/DYDX
          IF(DX.EQ.0.D0) GOTO 8300
          X=X+DX
-         CALL SPL1DF(X,PSIL,SI(0,NRAY),U10(1,0,NRAY),NITMAX(NRAY),IERR)
+         CALL SPL1DF(X,PSIL,SI(:,NRAY),U10(:,:,NRAY),NITMAX(NRAY),IERR)
          YNEW=PSIL-PSICR
          DYDX=(YNEW-Y)/DX
          Y=YNEW
@@ -418,6 +426,7 @@
 !
       SUBROUTINE FPCREK(SICR,NRAY,CEX,CEY,CEZ,RKX,RKY,RKZ,RX,RY,RZ)
 
+      USE libspl1d
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: SICR
       INTEGER,INTENT(IN):: NRAY
@@ -426,15 +435,15 @@
       INTEGER:: NITMX,IERR
 
       NITMX=NITMAX(NRAY)
-      CALL CSPL1DF(SICR,CEX,SI(0,NRAY),CU1(1,0,NRAY),NITMX,IERR)
-      CALL CSPL1DF(SICR,CEY,SI(0,NRAY),CU2(1,0,NRAY),NITMX,IERR)
-      CALL CSPL1DF(SICR,CEZ,SI(0,NRAY),CU3(1,0,NRAY),NITMX,IERR)
-      CALL SPL1DF(SICR,RKX,SI(0,NRAY),U4(1,0,NRAY),NITMX,IERR)
-      CALL SPL1DF(SICR,RKY,SI(0,NRAY),U5(1,0,NRAY),NITMX,IERR)
-      CALL SPL1DF(SICR,RKZ,SI(0,NRAY),U6(1,0,NRAY),NITMX,IERR)
-      CALL SPL1DF(SICR,RX,SI(0,NRAY),U7(1,0,NRAY),NITMX,IERR)
-      CALL SPL1DF(SICR,RY,SI(0,NRAY),U8(1,0,NRAY),NITMX,IERR)
-      CALL SPL1DF(SICR,RZ,SI(0,NRAY),U9(1,0,NRAY),NITMX,IERR)
+      CALL CSPL1DF(SICR,CEX,SI(:,NRAY),CU1(:,:,NRAY),NITMX,IERR)
+      CALL CSPL1DF(SICR,CEY,SI(:,NRAY),CU2(:,:,NRAY),NITMX,IERR)
+      CALL CSPL1DF(SICR,CEZ,SI(:,NRAY),CU3(:,:,NRAY),NITMX,IERR)
+      CALL SPL1DF(SICR,RKX,SI(:,NRAY),U4(:,:,NRAY),NITMX,IERR)
+      CALL SPL1DF(SICR,RKY,SI(:,NRAY),U5(:,:,NRAY),NITMX,IERR)
+      CALL SPL1DF(SICR,RKZ,SI(:,NRAY),U6(:,:,NRAY),NITMX,IERR)
+      CALL SPL1DF(SICR,RX,SI(:,NRAY),U7(:,:,NRAY),NITMX,IERR)
+      CALL SPL1DF(SICR,RY,SI(:,NRAY),U8(:,:,NRAY),NITMX,IERR)
+      CALL SPL1DF(SICR,RZ,SI(:,NRAY),U9(:,:,NRAY),NITMX,IERR)
 
       RETURN
       END SUBROUTINE FPCREK

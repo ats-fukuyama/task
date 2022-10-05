@@ -55,6 +55,7 @@ C   ************************************************
 C
       SUBROUTINE EQPSIN
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomc.inc'
       DIMENSION DERIV(NRVM)
 C
@@ -111,6 +112,7 @@ C   ************************************************
 C
       SUBROUTINE EQPSIR
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomc.inc'
       DIMENSION DERIV(NRVM)
 C
@@ -166,7 +168,8 @@ C   **          Boundary Definition               **
 C   ************************************************
 C
       SUBROUTINE EQDEFB
-C      
+C
+      USE libbrent
       INCLUDE '../eq/eqcomc.inc'
 C
       DIMENSION DRHOM(NTGM),DRHOG(NTGMP)
@@ -370,7 +373,7 @@ C
 C
 C     ------ Set periodic condition ------
 C
-         IF(NTG.EQ.NTGMAX)THEN	
+         IF(NTG.EQ.NTGMAX) THEN
             Q(NBND-2*NTGMAX+1,I)=-(AB(NSG,NTG)+AC(NSG,NTG+1))
      &                            /(4.D0*DSG*DTG)
             Q(NBND-  NTGMAX+1,I)= (AB(NSG+1,NTG)-AB(NSG,NTG))
@@ -419,6 +422,7 @@ C   ************************************************
 C
       SUBROUTINE EQRHSV(IERR)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomc.inc'
       DIMENSION DERIV(NRVM)
 C
@@ -721,9 +725,12 @@ C   ************************************************
 C
       SUBROUTINE EQSOLV
 C
+      USE libbnd
       INCLUDE '../eq/eqcomc.inc'
 C
-      DIMENSION FJT(MLM),PSIOLD(NTGM,NSGM)
+      REAL(rkind),ALLOCATABLE:: FJT(:),PSIOLD(:,:)
+
+      ALLOCATE(FJT(MLM),PSIOLD(NTGM,NSGM))
 C
       DO NSG=1,NSGMAX
       DO NTG=1,NTGMAX
@@ -782,6 +789,7 @@ C   ************************************************
 C
       SUBROUTINE EQTORZ
 C
+      USE libbrent
       INCLUDE '../eq/eqcomc.inc'
       EXTERNAL EQFBND
 C
@@ -842,10 +850,14 @@ C   ******************************************
 C
       SUBROUTINE EQSETF
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomc.inc'
 C
-      DIMENSION PSISX(NTGPM,NSGPM),PSITX(NTGPM,NSGPM)
-      DIMENSION PSISTX(NTGPM,NSGPM)
+      REAL(rkind),ALLOCATABLE:: PSISX(:,:),PSITX(:,:)
+      REAL(rkind),ALLOCATABLE:: PSISTX(:,:)
+
+      ALLOCATE(PSISX(NTGPM,NSGPM),PSITX(NTGPM,NSGPM))
+      ALLOCATE(PSISTX(NTGPM,NSGPM))
 C
 C     ----- mesh extended in sigma (radius) and theta (periodic) -----
 C
@@ -914,6 +926,7 @@ C   *******************************************
 C
       FUNCTION PSIF(RSIG,RTHG)
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomc.inc'
 C
       CALL SPL2DF(RTHG,RSIG,PSIL,THGMX,SIGMX,UPSIST,
@@ -929,6 +942,7 @@ C   *******************************************
 C
       FUNCTION HJTF(RSIG,RTHG)
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomc.inc'
 C
       CALL SPL2DF(RTHG,RSIG,HJTL,THGMX,SIGMX,UHJTST,

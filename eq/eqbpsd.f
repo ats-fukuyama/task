@@ -1,4 +1,4 @@
-      module eq_bpsd_mod
+      module eqbpsd
 ! interface module with TASK/TR new version
       use bpsd
       public eq_bpsd_init, eq_bpsd_put, eq_bpsd_get
@@ -16,9 +16,9 @@
 !=======================================================================
       INCLUDE '../eq/eqcomq.inc'
 !      implicit none
-      integer(4) :: ierr
+      integer :: ierr
 ! local variables
-      integer(4) :: ns
+      integer :: ns
 !=======================================================================
       if(eq_bpsd_init_flag) then
          equ1D%nrmax=0
@@ -28,8 +28,8 @@
 
       equ1D%time=0.D0
       if(equ1D%nrmax.ne.nrmax) then
-         if(associated(equ1D%rho)) deallocate(equ1D%rho)
-         if(associated(equ1D%data)) deallocate(equ1D%data)
+         if(allocated(equ1D%rho)) deallocate(equ1D%rho)
+         if(allocated(equ1D%data)) deallocate(equ1D%data)
          equ1D%nrmax=NRMAX
          allocate(equ1D%rho(NRMAX))
          allocate(equ1D%data(NRMAX))
@@ -37,8 +37,8 @@
 
       metric1D%time=0.D0
       if(metric1D%nrmax.ne.nrmax) then
-         if(associated(metric1D%rho)) deallocate(metric1d%rho)
-         if(associated(metric1D%data)) deallocate(metric1d%data)
+         if(allocated(metric1D%rho)) deallocate(metric1d%rho)
+         if(allocated(metric1D%data)) deallocate(metric1d%data)
          metric1D%nrmax=NRMAX
          allocate(metric1D%rho(NRMAX))
          allocate(metric1D%data(NRMAX))
@@ -55,7 +55,7 @@
 !=======================================================================
       INCLUDE '../eq/eqcomq.inc'
       INCLUDE '../eq/eqcom4.inc'
-      integer(4) :: nr, ierr
+      integer :: nr, ierr
       
 ! local variables
 !=======================================================================
@@ -117,10 +117,11 @@
 !=======================================================================
 !     interface transport => equilibrium
 !=======================================================================
+      USE libspl1d
       INCLUDE '../eq/eqcomm.inc'
       INCLUDE '../eq/eqcom4.inc'
-      real(8),DIMENSION(NTRM):: ptrrho,qtrrho,deriv
-      integer(4) :: ierr,ntr
+      real(rkind),DIMENSION(NTRM):: ptrrho,qtrrho,deriv
+      integer :: ierr,ntr
 
       ! --- device data ---
       CALL bpsd_get_data(device,ierr)
@@ -141,7 +142,7 @@
          ptot = 0.d0
          DO ns = 1, plasmaf%nsmax
             ptot = ptot
-     &           + plasmaf%data(ntr,ns)%density
+     &           + plasmaf%data(ntr,ns)%density 
      &           * plasmaf%data(ntr,ns)%temperature
      &           * aee
          END DO
@@ -165,4 +166,4 @@ C     &        psitrx(ntr),ptrrho(ntr),qtrrho(ntr)
 
       END SUBROUTINE eq_bpsd_get
 
-      END MODULE eq_bpsd_mod
+      END MODULE eqbpsd

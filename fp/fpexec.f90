@@ -21,9 +21,9 @@
       integer:: IERR,its,i,j,ll1
       integer:: imtxstart1,imtxend1
 !      integer,optional:: methodKSP, methodPC
-      real(8),dimension(nmend-nmstart+1):: BM_L
-      real(8),dimension(nthmax):: sendbuf_p, recvbuf_p
-      real(8),dimension(nthmax*(npend-npstart+1)):: sendbuf_r, recvbuf_r
+      real(rkind),dimension(nmend-nmstart+1):: BM_L
+      real(rkind),dimension(nthmax):: sendbuf_p, recvbuf_p
+      real(rkind),dimension(nthmax*(npend-npstart+1)):: sendbuf_r, recvbuf_r
 
       NS=NS_NSA(NSA)
 
@@ -304,11 +304,11 @@
       IMPLICIT NONE
       integer:: NSA, NP, NTH, NR, NL, NM, NTHA, NTHB, NTB, NS
       integer:: IERR
-      real(8):: DFDTH, FVEL, DVEL, DFDP, DFDB
+      real(rkind):: DFDTH, FVEL, DVEL, DFDP, DFDB
 
 !     +++++ calculation of weigthing (including off-diagonal terms) +++++
 
-      real(8)::EPSWT=1.D-70
+      real(rkind)::EPSWT=1.D-70
 
       NS=NS_NSA(NSA)
       DO NR=NRSTART,NREND
@@ -590,8 +590,8 @@
       FUNCTION FPWEGH(X,Y)
 
       IMPLICIT NONE
-      real(8):: X, Y, Z
-      real(8):: FPWEGH
+      real(rkind):: X, Y, Z
+      real(rkind):: FPWEGH
 
       IF(ABS(Y).LT.1.D-70) THEN
          IF(X.GT.0.D0) THEN
@@ -661,13 +661,13 @@
                      !    then NTBP=ITL(NR+1)+ITU(NR+1)-NTH, else NTBP=0
 
       integer:: IERR, NS
-      real(8):: DFDTH, FVEL, DVEL, DFDP, DFDB
-      real(8):: DPPM, DPPP, DPTM, DPTP, SL, DTPM, DTPP, DTTM, DTTP
-      real(8):: WPM, WPP, WTM, WTP, VPM, VPP, VTM, VTP
-      real(8):: WTB, VTB, WRBM, VRBM, WRBP, VRBP
-      real(8):: DIVDPP, DIVDPT, DIVDTP, DIVDTT, DIVFPP, DIVFTH
-      real(8):: RL,DRRM,DRRP,WRM,WRP,VRM,VRP,DIVDRR,DIVFRR
-      real(8):: PL
+      real(rkind):: DFDTH, FVEL, DVEL, DFDP, DFDB
+      real(rkind):: DPPM, DPPP, DPTM, DPTP, SL, DTPM, DTPP, DTTM, DTTP
+      real(rkind):: WPM, WPP, WTM, WTP, VPM, VPP, VTM, VTP
+      real(rkind):: WTB, VTB, WRBM, VRBM, WRBP, VRBP
+      real(rkind):: DIVDPP, DIVDPT, DIVDTP, DIVDTT, DIVFPP, DIVFTH
+      real(rkind):: RL,DRRM,DRRP,WRM,WRP,VRM,VRP,DIVDRR,DIVFRR
+      real(rkind):: PL
       DOUBLE PRECISION:: WPBM, VPBM, WPBP, VPBP
 
       NS=NS_NSA(NSA)

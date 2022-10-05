@@ -252,6 +252,7 @@ C     IERR=6 : namelist line input error
 C     IERR=7 : unknown MODE
 C     IERR=10X : input parameter out of range
 C
+      USE libkio
       INCLUDE 'wmcomm.inc'
 C
       EXTERNAL WMNLIN,WMPLST
@@ -276,7 +277,7 @@ C
       NAMELIST /WM/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,
      &              PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,NSMAX,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
-     &              PNA,PNAL,PTA,ZEFF,NDISP1,NDISP2,
+     &              PNA,PNAL,PTA,ZEFF,NCMIN,NCMAX,
      &              RF,RFI,RD,BETAJ,AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,
      &              NRMAX,NTHMAX,NHHMAX,NTH0,NPH0,NHC,
      &              NPRINT,NGRAPH,MODELG,MODELJ,MODELP,MODELN,MODELA,
@@ -543,7 +544,7 @@ C
      &                   PTPR(NS),PTPP(NS),PTS(NS)
       ENDDO
       DO NS=1,NSMAX
-         WRITE(6,612) NS,MODELP(NS),MODELV(NS),NDISP1(NS),NDISP2(NS),
+         WRITE(6,612) NS,MODELP(NS),MODELV(NS),NCMIN(NS),NCMAX(NS),
      &          PZCL(NS),PU(NS),PUS(NS),PNITB(NS),PTITB(NS),PUITB(NS)
       ENDDO
 C
@@ -576,7 +577,7 @@ C
       USE libmpi
       INCLUDE 'wmcomm.inc'
 C
-      DIMENSION IPARA(21),DPARA(28)
+      DIMENSION IPARA(21),DPARA(21)
 C
       IF(NRANK.EQ.0) THEN
          RF=DBLE(CRF)
@@ -611,30 +612,23 @@ C
          DPARA(6) =QA
          DPARA(7) =RKAP
          DPARA(8) =RDLT
-         DPARA(9) =PROFN1
-         DPARA(10)=PROFN2
-         DPARA(11)=PROFT1
-         DPARA(12)=PROFT2
-         DPARA(13)=ZEFF
-         DPARA(14)=PNA
-         DPARA(15)=PNAL
-         DPARA(16)=PTA
-         DPARA(17)=RF
-         DPARA(18)=RFI
-         DPARA(19)=RD
-         DPARA(20)=BETAJ
-         DPARA(21)=DLTNW
-         DPARA(22)=EPSNW
-         DPARA(23)=RHOMIN
-         DPARA(24)=QMIN
-         DPARA(25)=RHOITB
-         DPARA(26)=PROFU1
-         DPARA(27)=PROFU2
-         DPARA(28)=PRFIN
+         DPARA(9)=ZEFF
+         DPARA(10)=PNA
+         DPARA(11)=PNAL
+         DPARA(12)=PTA
+         DPARA(13)=RF
+         DPARA(14)=RFI
+         DPARA(15)=RD
+         DPARA(16)=BETAJ
+         DPARA(17)=DLTNW
+         DPARA(18)=EPSNW
+         DPARA(19)=RHOMIN
+         DPARA(20)=QMIN
+         DPARA(21)=PRFIN
       ENDIF
 C
       CALL mtx_broadcast_integer(IPARA,21)
-      CALL mtx_broadcast_real8(DPARA,28)
+      CALL mtx_broadcast_real8(DPARA,21)
 C
       IF(NRANK.NE.0) THEN
          NSMAX =IPARA(1) 
@@ -667,26 +661,19 @@ C
          QA    =DPARA(6) 
          RKAP  =DPARA(7) 
          RDLT  =DPARA(8) 
-         PROFN1=DPARA(9) 
-         PROFN2=DPARA(10)
-         PROFT1=DPARA(11)
-         PROFT2=DPARA(12)
-         ZEFF  =DPARA(13)
-         PNA   =DPARA(14)
-         PNAL  =DPARA(15)
-         PTA   =DPARA(16)
-         RF    =DPARA(17)
-         RFI   =DPARA(18)
-         RD    =DPARA(19)
-         BETAJ =DPARA(20)
-         DLTNW =DPARA(21)
-         EPSNW =DPARA(22)
-         RHOMIN=DPARA(23)
-         QMIN  =DPARA(24)
-         RHOITB=DPARA(25)
-         PROFU1=DPARA(26)
-         PROFU2=DPARA(27)
-         PRFIN =DPARA(28)
+         ZEFF  =DPARA(9)
+         PNA   =DPARA(10)
+         PNAL  =DPARA(11)
+         PTA   =DPARA(12)
+         RF    =DPARA(13)
+         RFI   =DPARA(14)
+         RD    =DPARA(15)
+         BETAJ =DPARA(16)
+         DLTNW =DPARA(17)
+         EPSNW =DPARA(18)
+         RHOMIN=DPARA(19)
+         QMIN  =DPARA(20)
+         PRFIN =DPARA(21)
          CRF=DCMPLX(RF,RFI)
       ENDIF
 C
@@ -704,6 +691,14 @@ C
       CALL mtx_broadcast_real8(PTITB,NSMAX)
       CALL mtx_broadcast_real8(PUITB,NSMAX)
       CALL mtx_broadcast_integer(MODELP,NSMAX)
+      CALL mtx_broadcast_real8(PROFN1,NSMAX)
+      CALL mtx_broadcast_real8(PROFN2,NSMAX)
+      CALL mtx_broadcast_real8(PROFT1,NSMAX)
+      CALL mtx_broadcast_real8(PROFT2,NSMAX)
+      CALL mtx_broadcast_real8(PROFU1,NSMAX)
+      CALL mtx_broadcast_real8(PROFU2,NSMAX)
+      CALL mtx_broadcast_real8(RHOITB,NSMAX)
+
       CALL mtx_broadcast_real8(AJ,NAMAX)
       CALL mtx_broadcast_real8(APH,NAMAX)
       CALL mtx_broadcast_real8(THJ1,NAMAX)

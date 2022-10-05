@@ -10,11 +10,11 @@ CONTAINS
   SUBROUTINE wi_warm(iprint,ratea,ierr)
 
     USE wicomm
+    USE libbnd
     IMPLICIT NONE
     INTEGER(ikind),INTENT(IN):: iprint
     REAL(rkind),INTENT(OUT):: ratea
     INTEGER(ikind),INTENT(OUT):: ierr
-    INTEGER(ikind):: ml,mw
     
     mlmax=nxmax*2+3
     mwmax=7
@@ -50,7 +50,7 @@ CONTAINS
       COMPLEX(rkind):: ciky,cbb
       REAL(rkind):: rky,rky2,dx,beta2,dky
       INTEGER(ikind):: ML,MW,I,J,NX,ID,JD
-      INTEGER(ikind):: KK,KD,IOB,IO,I2
+      INTEGER(ikind):: IOB,IO,I2
       REAL(rkind):: gamma=3.D0
 
       RKY=ANY*BETA
@@ -164,8 +164,8 @@ CONTAINS
 
       USE wicomm
       IMPLICIT NONE
-      COMPLEX(ikind):: cp1,cp2,cp3,cp4,cpa
-      INTEGER(ikind):: NX,i,j,id,jd,kk,kd
+      COMPLEX(rkind):: cp1,cp2,cp3,cp4,cpa
+      INTEGER(ikind):: NX,i,j,id,jd
       REAL(rkind):: rky,rky2,dx,AD,BD
       REAL(rkind):: gamma=3.D0
 

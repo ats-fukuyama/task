@@ -16,14 +16,147 @@
 !--------------------------------------
 
       SUBROUTINE FP_CALWR(NSA)
+        USE fpcomm
+        USE fpwrin
+        USE fpsub,ONLY: fp_calpabs
+        IMPLICIT NONE
+        INTEGER,INTENT(IN):: NSA
+        INTEGER:: NRAY,NR,NP,NTH
+        REAL(rkind):: FACTOR,PIN_WR_TOT,PABS_WR,PIN,POUT,PABS
+        REAL(rkind),ALLOCATABLE:: &
+             DWWRPP_TOT(:,:,:,:),DWWRPT_TOT(:,:,:,:), &
+             DWWRTP_TOT(:,:,:,:),DWWRTT_TOT(:,:,:,:)
+
+        ALLOCATE(DWWRPP_TOT(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
+        ALLOCATE(DWWRPT_TOT(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
+        ALLOCATE(DWWRTP_TOT(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
+        ALLOCATE(DWWRTT_TOT(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
+        
+        
+        IF(NRAYS_WR.EQ.0) THEN
+           NRAYS=1
+        ELSE
+           NRAYS=NRAYS_WR
+        END IF
+        IF(NRAYE_WR.EQ.0.OR.NRAYE_WR.GT.NRAYMAX) THEN
+           NRAYE=NRAYMAX
+        ELSE
+           NRAYE=NRAYE_WR
+        END IF
+
+        IF(PIN_WR.GT.0.D0) THEN
+           FACTOR=1.D0/(NRAYE-NRAYS+1)
+           DO NRAY=NRAYS,NRAYE
+              PIN_WR_NRAY(NRAY)=PIN_WR*FACTOR
+           END DO
+           PIN_WR_TOT=PIN_WR
+        ELSE
+           PIN_WR_TOT=0.D0
+           DO NRAY=NRAYS,NRAYE
+              PIN_WR_TOT=PIN_WR_TOT+PIN_WR_NRAY(NRAY)
+           END DO
+        END IF
+       
+        DO NR=NRSTART,NREND
+           DO NP=NPSTART,NPENDWG
+              DO NTH=1,NTHMAX
+                 DWWRPP_TOT(NTH,NP,NR,NSA)=0.D0
+                 DWWRPT_TOT(NTH,NP,NR,NSA)=0.D0
+              END DO
+           END DO
+           DO NP=NPSTARTW,NPENDWM 
+              DO NTH=1,NTHMAX+1
+                 DWWRTP_TOT(NTH,NP,NR,NSA)=0.D0
+                 DWWRTT_TOT(NTH,NP,NR,NSA)=0.D0
+              END DO
+           END DO
+        END DO
+                  
+        IF(PIN_WR_TOT.EQ.0.D0) THEN ! DWWR calculated by amplitude given by WR
+           DO NRAY=NRAYS,NRAYE
+              CALL FP_CALWR_NRAY(NSA,NRAY)
+              DO NR=NRSTART,NREND
+                 DO NP=NPSTART,NPENDWG
+                    DO NTH=1,NTHMAX
+                       DWWRPP_TOT(NTH,NP,NR,NSA)=DWWRPP_TOT(NTH,NP,NR,NSA) &
+                            +DWWRPP(NTH,NP,NR,NSA)
+                       DWWRPT_TOT(NTH,NP,NR,NSA)=DWWRPT_TOT(NTH,NP,NR,NSA) &
+                            +DWWRPT(NTH,NP,NR,NSA)
+                    END DO
+                 END DO
+                 DO NP=NPSTARTW,NPENDWM 
+                    DO NTH=1,NTHMAX+1
+                       DWWRTP_TOT(NTH,NP,NR,NSA)=DWWRTP_TOT(NTH,NP,NR,NSA) &
+                            +DWWRTP(NTH,NP,NR,NSA)
+                       DWWRTT_TOT(NTH,NP,NR,NSA)=DWWRTT_TOT(NTH,NP,NR,NSA) &
+                            +DWWRTT(NTH,NP,NR,NSA)
+                    END DO
+                 END DO
+              END DO
+           END DO
+        ELSE ! PIN_WR_NRAY determines DWWR
+           DO NRAY=NRAYS,NRAYE
+              CALL FP_CALWR_NRAY(NSA,NRAY)
+              CALL FP_CALPABS(DWWRPP,DWWRPT,PABS_WR)
+              PIN=RAYS(7,1,NRAY)
+              POUT=RAYS(7,NITMAX(NRAY),NRAY)
+              PABS=PIN-POUT
+              IF(PABS_WR.GT.0.D0) THEN
+                 FACTOR=PIN_WR_NRAY(NRAY)/PIN*PABS/PABS_WR
+                 WRITE(6,'(A,I3,5ES12.4)') &
+                      'WR:NRAY:',NRAY,PIN_WR_NRAY(NRAY),PIN,POUT,PABS,PABS_WR
+                 DO NR=NRSTART,NREND
+                    DO NP=NPSTART,NPENDWG
+                       DO NTH=1,NTHMAX
+                          DWWRPP_TOT(NTH,NP,NR,NSA)=DWWRPP_TOT(NTH,NP,NR,NSA) &
+                               +FACTOR*DWWRPP(NTH,NP,NR,NSA)
+                          DWWRPT_TOT(NTH,NP,NR,NSA)=DWWRPT_TOT(NTH,NP,NR,NSA) &
+                               +FACTOR*DWWRPT(NTH,NP,NR,NSA)
+                       END DO
+                    END DO
+                    DO NP=NPSTARTW,NPENDWM 
+                       DO NTH=1,NTHMAX+1
+                          DWWRTP_TOT(NTH,NP,NR,NSA)=DWWRTP_TOT(NTH,NP,NR,NSA) &
+                               +FACTOR*DWWRTP(NTH,NP,NR,NSA)
+                          DWWRTT_TOT(NTH,NP,NR,NSA)=DWWRTT_TOT(NTH,NP,NR,NSA) &
+                               +FACTOR*DWWRTT(NTH,NP,NR,NSA)
+                       END DO
+                    END DO
+                 END DO
+              END IF
+           END DO
+        END IF
+
+        DO NR=NRSTART,NREND
+           DO NP=NPSTART,NPENDWG
+              DO NTH=1,NTHMAX
+                 DWWRPP(NTH,NP,NR,NSA)=DWWRPP_TOT(NTH,NP,NR,NSA)
+                 DWWRPT(NTH,NP,NR,NSA)=DWWRPT_TOT(NTH,NP,NR,NSA)
+              END DO
+           END DO
+           DO NP=NPSTARTW,NPENDWM 
+              DO NTH=1,NTHMAX+1
+                 DWWRTP(NTH,NP,NR,NSA)=DWWRTP_TOT(NTH,NP,NR,NSA)
+                 DWWRTT(NTH,NP,NR,NSA)=DWWRTT_TOT(NTH,NP,NR,NSA)
+              END DO
+           END DO
+        END DO
+        DEALLOCATE(DWWRPP_TOT,DWWRPT_TOT,DWWRTP_TOT,DWWRTT_TOT)
+
+      END SUBROUTINE FP_CALWR
+
+      ! *** calculate DW_WR for NSA and NRAY ***
+
+      SUBROUTINE FP_CALWR_NRAY(NSA,NRAY)
 
       USE fpwrin
       USE plprof,ONLY: pl_getRZ
       IMPLICIT NONE
-      INTEGER:: NSA, NSBA, NITM, NP, NTH, NRDO, NR, NAV, NS
+      INTEGER,INTENT(IN):: NSA,NRAY
+      INTEGER:: NSBA, NITM, NP, NTH, NRDO, NR, NAV, NS
       REAL(rkind):: FACT, DELH, ETAL, THETAL, RRAVE, RSAVE
       REAL(rkind):: X,Y,Z,RL,ZL,RXB,RYB,RZB,RRLB,RZLB
-      INTEGER:: NRAY,NIT,NITMX,MINNB1,MINNB2
+      INTEGER:: NIT,NITMX,MINNB1,MINNB2
       REAL(rkind):: DLAMN1,RXMIN1,RYMIN1,RZMIN1,RKXMN1,RKYMN1,RKZMN1,RBMIN1
       REAL(rkind):: DLAMN2,RXMIN2,RYMIN2,RZMIN2,RKXMN2,RKYMN2,RKZMN2,RBMIN2
       COMPLEX(rkind):: CEXMN1,CEYMN1,CEZMN1,CEXMN2,CEYMN2,CEZMN2
@@ -32,12 +165,13 @@
       REAL(rkind):: RKX,RKY,RKZ,RADB,DELCR2,DELRB2,ARG
       REAL(rkind):: DWPPS,DWPTS,DWTPS,DWTTS
 
-      REAL(rkind),DIMENSION(:,:),POINTER:: DLA !(0:NITMAXM,NRAYMAX)
+      REAL(rkind),DIMENSION(:),POINTER:: DLA !(0:NITMAXM,NRAYMAX)
 
 ! =============  CALCULATION OF DWPP AND DWPT  ===============
 
-      ALLOCATE(DLA(0:NITMAXM,NRAYMAX))
       FACT=0.5D0
+
+      ALLOCATE(DLA(0:NITMAXM))
 
       NS=NS_NSA(NSA)
 
@@ -51,7 +185,6 @@
                   ETAL=DELH*(NAV-0.5D0)-2.D0*ETAM(NTH,NR)
                   CALL pl_getRZ(RM(NR),ETAL,RL,ZL)
 
-                  DO NRAY=1,NRAYMAX
                      NITMX=NITMAX(NRAY)
                      RF_WR=RAYIN(1,NRAY)
 
@@ -61,14 +194,14 @@
                         RZB=RZS(NIT,NRAY)
                         RRLB=SQRT(RXB**2+RYB**2)
                         RZLB=RZB
-                        DLA(NIT,NRAY)=SQRT((RRLB-RL)**2+(RZLB-ZL)**2)
+                        DLA(NIT)=SQRT((RRLB-RL)**2+(RZLB-ZL)**2)
 !                        write(6,'(A,2I5,1P3E12.4)') &
-!                          'point 2',NRAY,NIT,RRLB,RZLB,DLA(NIT,NRAY)
+!                          'point 2',NRAY,NIT,RRLB,RZLB,DLA(NIT)
                      ENDDO
 
                      MINNB1=0
                      DO NIT=0,NITMX-1
-                        IF(DLA(NIT+1,NRAY).LT.DLA(NIT,NRAY))THEN
+                        IF(DLA(NIT+1).LT.DLA(NIT))THEN
                            MINNB1=NIT+1
                         ENDIF
                      ENDDO
@@ -76,7 +209,7 @@
                      IF(MINNB1.EQ.0) GOTO 1
                      IF(MINNB1.EQ.NITMX) GOTO 1
 
-                     IF(DLA(MINNB1-1,NRAY).LT.DLA(MINNB1+1,NRAY))THEN
+                     IF(DLA(MINNB1-1).LT.DLA(MINNB1+1))THEN
                         MINNB2=MINNB1-1
                      ELSE
                         MINNB2=MINNB1+1
@@ -84,9 +217,9 @@
 
 !                     write(6,'(A,4I5,1P4E12.4)') &
 !                    'point 3',NRAY,NIT,MINNB1,MINNB2, &
-!                     DLA(MINNB1,NRAY),DLA(MINNB2,NRAY)
+!                     DLA(MINNB1),DLA(MINNB2)
 
-                     DLAMN1=   DLA(MINNB1,NRAY)
+                     DLAMN1=   DLA(MINNB1)
                      RXMIN1=   RXS(MINNB1,NRAY)
                      RYMIN1=   RYS(MINNB1,NRAY)
                      RZMIN1=   RZS(MINNB1,NRAY)
@@ -98,7 +231,7 @@
                      RKZMN1=  RKZS(MINNB1,NRAY)
                      RBMIN1=RAYRB1(MINNB1,NRAY)
 
-                     DLAMN2=   DLA(MINNB2,NRAY)
+                     DLAMN2=   DLA(MINNB2)
                      RXMIN2=   RXS(MINNB2,NRAY)
                      RYMIN2=   RYS(MINNB2,NRAY)
                      RZMIN2=   RZS(MINNB2,NRAY)
@@ -132,9 +265,12 @@
                      RYB =A1*RYMIN2+A2*RYMIN1
                      RZB =A1*RZMIN2+A2*RZMIN1
                      RADB=A1*RBMIN2+A2*RBMIN1
-                     IF(RADB.NE.0.D0) DELYEC=RADB
+                     IF(RADB.EQ.0.D0) THEN
+                        DELRB2=DELY_WR**2 ! for ray tracing
+                     ELSE
+                        DELRB2=RADB**2   ! for beam tracing
+                     END IF
                      DELCR2=XLL2
-                     DELRB2=DELYEC**2
                      ARG=DELCR2/DELRB2
 
                      ARGB (NR,NTH,NAV,NRAY)=ARG
@@ -156,11 +292,10 @@
 !               WRITE(6,'(1P3E12.4)') DELCR2,DELRB2,ARG
 !            ENDIF
 
-                  ENDDO
-               ENDDO
-            ENDDO
-         ENDDO
-      ENDIF
+               ENDDO ! NAV
+            ENDDO ! NTH
+         ENDDO ! NR
+      ENDIF ! MODELW
 
       DO NRDO=NRSTART,NREND
          NR=NRDO
@@ -169,7 +304,7 @@
 !               DO NP=1,NPMAX+1
                DO NP=NPSTART,NPENDWG
                   CALL FPDWAV(ETAM(NTH,NR),SINM(NTH),COSM(NTH),PG(NP,NS), &
-                              NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS,NSA)
+                              NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS,NSA,NRAY)
                   DWWRPP(NTH,NP,NR,NSA)=DWPPS
                   DWWRPT(NTH,NP,NR,NSA)=DWPTS
 !                  IF(ABS(DWPPS).GT.1.D-12) THEN
@@ -219,7 +354,6 @@
                   ETAL=DELH*(NAV-0.5D0)-2.D0*ETAG(NTH,NR)
                   CALL pl_getRZ(RM(NR),ETAL,RL,ZL)
 
-                  DO NRAY=1,NRAYMAX
                      NITMX=NITMAX(NRAY)
                      RF_WR=RAYIN(1,NRAY)
 
@@ -229,12 +363,12 @@
                         RZB=RZS(NIT,NRAY)
                         RRLB=SQRT(RXB**2+RYB**2)
                         RZLB=RZB
-                        DLA(NIT,NRAY)=SQRT((RRLB-RL)**2+(RZLB-ZL)**2)
+                        DLA(NIT)=SQRT((RRLB-RL)**2+(RZLB-ZL)**2)
                      ENDDO
 
                      MINNB1=0
                      DO NIT=0,NITMX-1
-                        IF(DLA(NIT+1,NRAY).LT.DLA(NIT,NRAY))THEN
+                        IF(DLA(NIT+1).LT.DLA(NIT))THEN
                            MINNB1=NIT+1
                         ENDIF
                      ENDDO
@@ -242,13 +376,13 @@
                      IF(MINNB1.EQ.0) GOTO 2
                      IF(MINNB1.EQ.NITMX) GOTO 2
 
-                     IF(DLA(MINNB1-1,NRAY).LT.DLA(MINNB1+1,NRAY))THEN
+                     IF(DLA(MINNB1-1).LT.DLA(MINNB1+1))THEN
                         MINNB2=MINNB1-1
                      ELSE
                         MINNB2=MINNB1+1
                      ENDIF
 
-                     DLAMN1=   DLA(MINNB1,NRAY)
+                     DLAMN1=   DLA(MINNB1)
                      RXMIN1=   RXS(MINNB1,NRAY)
                      RYMIN1=   RYS(MINNB1,NRAY)
                      RZMIN1=   RZS(MINNB1,NRAY)
@@ -260,7 +394,7 @@
                      RKZMN1=  RKZS(MINNB1,NRAY)
                      RBMIN1=RAYRB1(MINNB1,NRAY)
 
-                     DLAMN2=   DLA(MINNB2,NRAY)
+                     DLAMN2=   DLA(MINNB2)
                      RXMIN2=   RXS(MINNB2,NRAY)
                      RYMIN2=   RYS(MINNB2,NRAY)
                      RZMIN2=   RZS(MINNB2,NRAY)
@@ -294,11 +428,14 @@
                      RYB =A1*RYMIN2+A2*RYMIN1
                      RZB =A1*RZMIN2+A2*RZMIN1
                      RADB=A1*RBMIN2+A2*RBMIN1
-                     IF(RADB.NE.0.D0) DELYEC=RADB
-
+                     IF(RADB.EQ.0.D0) THEN
+                        DELRB2=DELY_WR**2 ! for ray tracing
+                     ELSE
+                        DELRB2=RADB**2   ! for beam tracing
+                     END IF
                      DELCR2=XLL2
-                     DELRB2=DELYEC**2
                      ARG=DELCR2/DELRB2
+
                      ARGB (NR,NTH,NAV,NRAY)=ARG
                      CEB(1,NR,NTH,NAV,NRAY)=CEX
                      CEB(2,NR,NTH,NAV,NRAY)=CEY
@@ -310,7 +447,6 @@
                      RBB(2,NR,NTH,NAV,NRAY)=RYB
                      RBB(3,NR,NTH,NAV,NRAY)=RZB
 2                    CONTINUE
-                  ENDDO
 
 !            IF(IDEBUG.EQ.1) THEN
 !               WRITE(6,'(3I3)') NR,NAV,NCR
@@ -331,7 +467,7 @@
 !               DO NP=1,NPMAX
                DO NP=NPSTARTW,NPENDWM 
                   CALL FPDWAV(ETAG(NTH,NR),SING(NTH),COSG(NTH),PM(NP,NS), &
-                              NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS,NSA)
+                              NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS,NSA,NRAY)
                   DWWRTP(NTH,NP,NR,NSA)=DWTPS
                   DWWRTT(NTH,NP,NR,NSA)=DWTTS
                ENDDO
@@ -361,27 +497,27 @@
 
       DEALLOCATE(DLA)
       RETURN
-      END SUBROUTINE FP_CALWR
+    END SUBROUTINE FP_CALWR_NRAY
 
 !***********************************************************************
 !     Calculate DW averaged over magnetic surface for (p,theta0,r)
 !***********************************************************************
 
       SUBROUTINE FPDWAV(ETA,RSIN,RCOS,P,NR,NTH,  &
-                        DWPPS,DWPTS,DWTPS,DWTTS,NSA)
+                        DWPPS,DWPTS,DWTPS,DWTTS,NSA,NRAY)
 
       USE fpwrin
       USE plprof,ONLY: pl_getRZ
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: ETA,RSIN,RCOS,P
-      INTEGER,INTENT(IN):: NR,NTH,NSA
+      INTEGER,INTENT(IN):: NR,NTH,NSA,NRAY
       REAL(rkind),INTENT(OUT):: DWPPS,DWPTS,DWTPS,DWTTS
       REAL(rkind):: DELH,ETAL,THETAL,RRAVE,RSAVE,X,Y,Z,RL,ZL
       REAL(rkind):: RX,RY,RZ,RLCR,ZLCR,DELR2,DELCR2,ARG,FACTOR
       REAL(rkind):: RKX,RKY,RKZ,DWPPL,DWPTL,DWTPL,DWTTL
       REAL(rkind):: PSIN,PCOS,PSI
       COMPLEX(rkind):: CEX,CEY,CEZ
-      INTEGER:: NAV,NRAY,NS,NCR
+      INTEGER:: NAV,NS,NCR
 
       NS=NS_NSA(NSA)
       DELH=4.D0*ETA/NAVMAX
@@ -395,7 +531,6 @@
          ETAL=DELH*(NAV-0.5D0)-2.D0*ETA
          CALL pl_getRZ(RM(NR),ETAL,RL,ZL)
 
-         DO NRAY=1,NRAYMAX
             RF_WR=RAYIN(1,NRAY)
 
             IF(MODELW(NS).EQ.1) THEN
@@ -406,7 +541,7 @@
                   RLCR=SQRT(RX**2+RY**2)
                   ZLCR=RZ
                   DELR2=(RL-RLCR)**2+(ZL-ZLCR)**2
-                  DELCR2=DELYEC**2
+                  DELCR2=DELY_WR**2
                   ARG=DELR2/DELCR2
 
                   IF(ARG.LT.15.D0) THEN
@@ -473,7 +608,6 @@
 
                ENDIF
             ENDIF
-         ENDDO
       ENDDO
 
       RETURN
@@ -636,9 +770,9 @@
 !
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR,NSA
-      REAL(8),INTENT(IN):: ETAL,RSIN,RCOS
-      REAL(8),INTENT(OUT):: PSIN,PCOS,PSI
-      REAL(8):: ARG
+      REAL(rkind),INTENT(IN):: ETAL,RSIN,RCOS
+      REAL(rkind),INTENT(OUT):: PSIN,PCOS,PSI
+      REAL(rkind):: ARG
 
       IF(MODELA.EQ.0) THEN
          PSI=1.D0

@@ -39,7 +39,7 @@ C                               !PSIRZ(NRG,NZG),NRG=1,NRGMAX),NZG=1,NZGMAX)
       WRITE(21) ((siv(n)-siv(1))*(2.D0*cnpi),n=1,nv) !(PSIPS(NPS),NPS=1,NPSMAX)
       WRITE(21) (muv(n)/cnmu*hdv(n)**gam,n=1,nv) !(PPPS(NPS),NPS=1,NPSMAX)
       WRITE(21) (hdv(n)/aav(n)*(2.D0*cnpi),n=1,nv) !(TTPS(NPS),NPS=1,NPSMAX)
-      WRITE(6,'(I8,1pE12.4)') (n,hdv(n)/aav(n),n=1,nv) !(TTPS(NPS),NPS=1,NPSMAX)
+C      WRITE(6,'(I8,1pE12.4)') (n,hdv(n)/aav(n),n=1,nv) !(TTPS(NPS),NPS=1,NPSMAX)
       WRITE(21) (0.d0,n=1,nv) !(TEPS(NPS),NPS=1,NPSMAX)
       WRITE(21) (0.d0,n=1,nv) !(OMPS(NPS),NPS=1,NPSMAX)
 C

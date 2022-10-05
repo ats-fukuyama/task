@@ -4,12 +4,12 @@
 
 SUBROUTINE WFBPSI(R,Z,PSI)
 
-  USE wfcomm,ONLY: rkind,PI,RA,ZBB,RMIR,BB,MODELG,MODELB,NCOILMAX, &
-       RCOIL,ZCOIL,BCOIL,Hpitch1,Hpitch2,RRCH,HA1
+  USE wfcomm,ONLY: rkind,PI,ZBB,RMIR,BB,MODELG,MODELB,NCOILMAX, &
+       RCOIL,ZCOIL,BCOIL,Hpitch1,HA1,rkind
   USE libbes,ONLY: BESINX
   IMPLICIT NONE
-  REAL(8),INTENT(IN) :: R,Z
-  REAL(8),INTENT(OUT):: PSI
+  REAL(rkind),INTENT(IN) :: R,Z
+  REAL(rkind),INTENT(OUT):: PSI
   INTEGER:: NCOIL
   REAL(rkind):: A0,A1,RL,ZL,WFPSIC,XH1,YH1,PSIG
 
@@ -84,12 +84,12 @@ END SUBROUTINE WFBPSI
 
 SUBROUTINE WFSMAG(R,Z,BABS,AL)
 
-  USE wfcomm,ONLY: MODELG
+  USE wfcomm,ONLY: MODELG,rkind
   USE plload
   implicit none
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: BABS,AL(3)
-  REAL(8):: BR,BZ,BT
+  real(rkind),intent(in) :: R,Z
+  real(rkind),intent(out):: BABS,AL(3)
+  REAL(rkind):: BR,BZ,BT
   integer:: IERR
 
   SELECT CASE(MODELG)
@@ -112,10 +112,9 @@ SUBROUTINE WFSMAG0(R,Z,BABS,AL)
   use wfcomm
   USE plload
   implicit none
-  integer :: I
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: BABS,AL(3)
-  real(8) :: rfactor,zfactor,br,bz,bt
+  real(rkind),intent(in) :: R,Z
+  real(rkind),intent(out):: BABS,AL(3)
+  real(rkind) :: rfactor,zfactor,br,bz,bt
 
   rfactor=(r-r_corner(1))/(r_corner(2)-r_corner(1))
   zfactor=(z-z_corner(1))/(z_corner(3)-z_corner(1))
@@ -138,10 +137,10 @@ SUBROUTINE WFSMAG2(R,Z,BABS,AL)
   use wfcomm
   implicit none
   integer :: I
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: BABS,AL(3)
-  real(8) :: BLO(3),LR,LZ
-  real(8) :: L,Q
+  real(rkind),intent(in) :: R,Z
+  real(rkind),intent(out):: BABS,AL(3)
+  real(rkind) :: BLO(3),LR,LZ
+  real(rkind) :: L,Q
 
 ! L : distance from the center of plasma
 ! Q : safety factor
@@ -185,12 +184,16 @@ END SUBROUTINE WFSMAG2
 
 SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
 
-  use wfcomm,ONLY: modelg,nsm,NSMAX
+  use wfcomm,ONLY: modelg,nsm,nsmax,mdamp,rkind, &
+       model_coll_enhance,factor_coll_enhance, &
+       xpos_coll_enhance,xwidth_coll_enhance, &
+       ypos_coll_enhance,ywidth_coll_enhance
+       
   use plload
   implicit none
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
-  REAL(8):: RU(NSM)
+  real(rkind),intent(in) :: R,Z
+  real(rkind),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
+  REAL(rkind):: RU(NSM),factor
   INTEGER:: NSMAXL,IERR,NS
 
   SELECT CASE(MODELG)
@@ -199,11 +202,33 @@ SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
   CASE(1,2)
      CALL WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
   CASE(12)
-     CALL pl_read_p2D(R,Z,RN,RTPR,RU,NSMAXL,IERR)
-     DO NS=1,NSMAXL
-        RTPP(NS)=RTPR(NS)
-     END DO
-     CALL WFCOLL(rn,rtpr,rtpp,rzcl)
+     CALL pl_read_p2D(R,Z,RN,RTPR,RTPP,RU,IERR)
+     IF(mdamp.NE.0) THEN
+        RN(NSMAX)=0.D0
+        RTPR(NSMAX)=1.D0
+        RTPP(NSMAX)=1.D0
+        RU(NSMAX)=0.D0
+     END IF
+     CALL WFCOLL(rn,rtpr,rtpp,rzcl,0)
+     SELECT CASE(model_coll_enhance)
+     CASE(1)
+        factor=factor_coll_enhance &
+             *(1.D0+EXP(-(R-xpos_coll_enhance)**2/xwidth_coll_enhance**2))
+     CASE(2)
+        factor=factor_coll_enhance &
+             *(1.D0+EXP(-(Z-ypos_coll_enhance)**2/ywidth_coll_enhance**2))
+     CASE DEFAULT
+        factor=1.D0
+     END SELECT
+     IF(mdamp.EQ.0) THEN
+        DO NS=1,NSMAX
+           RZCL(NS)=RZCL(NS)*factor
+        END DO
+     ELSE
+        DO NS=1,NSMAX-1
+           RZCL(NS)=RZCL(NS)*factor
+        END DO
+     END IF
   END SELECT
   RETURN
 END SUBROUTINE WFSDEN
@@ -212,9 +237,9 @@ SUBROUTINE WFSDEN0(R,Z,RN,RTPR,RTPP,RZCL)
 
   use wfcomm
   implicit none
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
-  real(8) :: rfactor,zfactor
+  real(rkind),intent(in) :: R,Z
+  real(rkind),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
+  real(rkind) :: rfactor,zfactor
   INTEGER :: ns
 
   ! --- set FACT ---
@@ -250,7 +275,7 @@ SUBROUTINE WFSDEN0(R,Z,RN,RTPR,RTPP,RZCL)
                 +(ptpp_corner(3,ns)-ptpp_corner(1,ns))*zfactor**2
      END DO
   END SELECT
-  CALL WFCOLL(rn,rtpr,rtpp,rzcl)
+  CALL WFCOLL(rn,rtpr,rtpp,rzcl,0)
 
   RETURN
 END SUBROUTINE WFSDEN0
@@ -260,12 +285,11 @@ SUBROUTINE WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
   use wfcomm
   use plprof2d
   implicit none
-  integer :: NS,NSI
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
-  real(8) :: LR,LZ
-  real(8) :: TE,TI,RLAMEE,RLAMEI,RLAMII,SN,PNN0,VTE,RNUEE,RNUEI,RNUEN
-  real(8) :: RNUE,VTI,RNUIE,RNUII,RNUIN,RNUI,FACT,PSI
+  integer :: NS
+  real(rkind),intent(in) :: R,Z
+  real(rkind),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
+  real(rkind) :: LR,LZ
+  real(rkind) :: FACT,PSI
 
   ! --- set FACT ---
 
@@ -298,7 +322,7 @@ SUBROUTINE WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
 
   ! --- set collision frequency ---
   
-  CALL WFCOLL(rn,rtpr,rtpp,rzcl)
+  CALL WFCOLL(rn,rtpr,rtpp,rzcl,0)
 
 !  WRITE(6,*) 'ZND= ',ZND(IN)
 !  WRITE(6,*) 'RN = ',RN(1),RN(2)
@@ -311,13 +335,15 @@ SUBROUTINE WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
   RETURN
 END SUBROUTINE WFSDEN2
 
-SUBROUTINE WFCOLL(rn,rtpr,rtpp,rzcl)
+SUBROUTINE WFCOLL(rn,rtpr,rtpp,rzcl,id)
   USE wfcomm
   IMPLICIT NONE
-  REAL(8),DIMENSION(NSM):: rn,rtpr,rtpp,rzcl
-  REAL(8):: TE,TI,RNTI,RNZI,RLAMEE,RLAMEI,RLAMII,SN,PNN0
-  REAL(8):: VTE,RNUEE,RNUEI,RNUEN,RNUE
-  REAL(8):: VTI,RNUIE,RNUII,RNUIN,RNUI
+  REAL(rkind),INTENT(IN):: rn(NSM),rtpr(NSM),rtpp(NSM)
+  REAL(rkind),INTENT(OUT):: rzcl(NSM)
+  INTEGER,INTENT(IN):: id  ! id=0 without output, id=1 with output
+  REAL(rkind):: TE,TI,RNTI,RNZI,RLAMEE,RLAMEI,RLAMII,SN,PNN0
+  REAL(rkind):: VTE,RNUEE,RNUEI,RNUEN,RNUE
+  REAL(rkind):: VTI,RNUIE,RNUII,RNUIN,RNUI
   INTEGER:: ns
 
   ! --- set collision frequency ---
@@ -347,6 +373,15 @@ SUBROUTINE WFCOLL(rn,rtpr,rtpp,rzcl)
               RNUEN=PNN0*SN*0.88D0*VTE
               RNUE=RNUEE+RNUEI+RNUEN
               RZCL(NS)=RNUE/(2.D6*PI*RF)
+              IF(ID.NE.0) THEN
+                 WRITE(6,'(A,1P3E12.4)') &
+                      'PPN0,PTN0,PNN0    =',PPN0,PTN0,PNN0
+                 WRITE(6,'(A,I12,1P4E12.4)') &
+                      'NS,RN,PTPR,PTPP,TE=',NS,RN(1),PTPR(1),PTPP(1),TE
+                 WRITE(6,'(A,1P5E12.4)') &
+                      'RNUEE/I/N/TOT/RZCL=', &
+                      RNUEE,RNUEI,RNUEN,RNUE,RZCL(1)
+              END IF
            ELSE
               TI=(RTPR(NS)+2.D0*RTPP(NS))*1.D3/3.D0
               VTI=SQRT(2.D0*TI*AEE/(PA(NS)*AMP))
@@ -357,6 +392,14 @@ SUBROUTINE WFCOLL(rn,rtpr,rtpp,rzcl)
               RNUIN=PNN0*SN*0.88D0*VTI
               RNUI=RNUIE+RNUII+RNUIN
               RZCL(NS)=RNUI/(2.D6*PI*RF)
+              IF(ID.NE.0) THEN
+                 WRITE(6,'(A,I12,1P4E12.4)') &
+                      'NS,RN,RTPR,RTPP,TI=', &
+                      NS,RN(NS),PTPR(NS),PTPP(NS),TI
+                 WRITE(6,'(A,1P5E12.4)') &
+                      'RNUIE/I/N/TOT/RZCL=', &
+                      RNUIE,RNUII,RNUIN,RNUI,RZCL(NS)
+              END IF
            ENDIF
         ELSE
            RZCL(NS)=PZCL(NS)

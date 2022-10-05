@@ -22,6 +22,7 @@ C                  V1.50  : 1997 AUG (ZONING ADDED)
 C
 C     ************************************************************
 C
+      USE wfhout
       INCLUDE 'wfcomm.inc'
 C
       CHARACTER KID*1,LINE*80
@@ -41,7 +42,7 @@ C
 C
     1 WRITE(6,601)
   601 FORMAT(1H ,'## INPUT: P,V:PARM  D:DIV  Z:ZONE  A:ANT  W:WAVE',
-     &                   '  T:EVOL  G:GRAPH  '/
+     &                   '  T:EVOL  G,H:GRAPH  '/
      &       1H ,'          R:RUN  C:CONT  S:SAVE  L:LOAD',
      &                   '  B:FREQ  Q:QUIT')
       CALL WFKLIN(LINE,KID,MODE)
@@ -85,6 +86,8 @@ C
          CALL WFFREQ
       ELSEIF (KID.EQ.'G') THEN
          CALL WFGOUT
+      ELSEIF (KID.EQ.'H') THEN
+         CALL wf_hout(xd,yd,nnod,nsmax,nzmax)
       ELSEIF(KID.EQ.'R') THEN
          NEVOL=2
          T=0.D0
@@ -171,6 +174,7 @@ C
      &   KID.EQ.'T'.OR.
      &   KID.EQ.'B'.OR.
      &   KID.EQ.'G'.OR.
+     &   KID.EQ.'H'.OR.
      &   KID.EQ.'R'.OR.
      &   KID.EQ.'C'.OR.
      &   KID.EQ.'M'.OR.

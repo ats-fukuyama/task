@@ -1,6 +1,8 @@
-!
+! libde.f90
+
 MODULE libde
 
+  USE task_kinds,ONLY: dp
   PRIVATE
   PUBLIC DEFT,DEFTC,DEHIFT,DEHIFTC,DEHIFE,DEHIFEC
 
@@ -21,21 +23,22 @@ CONTAINS
 
   SUBROUTINE DEFT(CS,ES,H0,EPS,ILST,FUNC,KID)
     IMPLICIT NONE
-    REAL(8),INTENT(OUT):: CS   ! Integral
-    REAL(8),INTENT(OUT):: ES   ! Estimated error 
-    REAL(8),INTENT(IN)::  H0   ! Initial step size
-    REAL(8),INTENT(IN)::  EPS  ! Convergence thrshold
+    REAL(dp),INTENT(OUT):: CS   ! Integral
+    REAL(dp),INTENT(OUT):: ES   ! Estimated error 
+    REAL(dp),INTENT(IN)::  H0   ! Initial step size
+    REAL(dp),INTENT(IN)::  EPS  ! Convergence thrshold
     INTEGER,INTENT(IN)::  ILST ! print out control: 0 for no print out
     INTERFACE
        FUNCTION FUNC(X,XM,XP)
-         REAL(8):: FUNC
-         REAL(8),INTENT(IN):: X,XM,XP
+         USE task_kinds,ONLY: dp
+         REAL(dp):: FUNC
+         REAL(dp),INTENT(IN):: X,XM,XP
        END FUNCTION FUNC
     END INTERFACE
     CHARACTER(LEN=*),INTENT(IN),OPTIONAL:: KID   ! function identifier string
-    REAL(8),PARAMETER:: HP=1.5707963267948966192D0
+    REAL(dp),PARAMETER:: HP=1.5707963267948966192D0
 
-    REAL(8):: EPS1,H,X,CSI,CSP,ATP,ATM,HN,HC,HS,CC,XM,XP,CT,AT
+    REAL(dp):: EPS1,H,X,CSI,CSP,ATP,ATM,HN,HC,HS,CC,XM,XP,CT,AT
     INTEGER:: NP,NM,NPMIN,NMMIN,IND,NPD,NMD,NMAX
 
       EPS1=EPS**0.75D0
@@ -125,8 +128,8 @@ CONTAINS
   200 RETURN
 
   501 FORMAT(A1)
-  601 FORMAT(1H ,1PD13.5,2I8,1PD24.15)
-  602 FORMAT(1H ,1PD13.5,2I8,1PD24.15,1PD14.5)
+  601 FORMAT(1H ,ES13.5,2I8,ES24.15)
+  602 FORMAT(1H ,ES13.5,2I8,ES24.15,ES14.5)
   603 FORMAT(1H ,'XX DEFT: NMAX EXCEEDS 1000: FUNC=',A)
  9999 STOP
  END SUBROUTINE DEFT
@@ -147,22 +150,23 @@ CONTAINS
 
   SUBROUTINE DEFTC(CS,ES,H0,EPS,ILST,CFUNC,KID)
     IMPLICIT NONE
-    COMPLEX(8),INTENT(OUT):: CS   ! Integral
-    REAL(8),INTENT(OUT):: ES   ! Estimated error 
-    REAL(8),INTENT(IN)::  H0   ! Initial step size
-    REAL(8),INTENT(IN)::  EPS  ! Convergence thrshold
+    COMPLEX(dp),INTENT(OUT):: CS   ! Integral
+    REAL(dp),INTENT(OUT):: ES   ! Estimated error 
+    REAL(dp),INTENT(IN)::  H0   ! Initial step size
+    REAL(dp),INTENT(IN)::  EPS  ! Convergence thrshold
     INTEGER,INTENT(IN)::  ILST ! print out control: 0 for no print out
     INTERFACE
        FUNCTION CFUNC(X,XM,XP)
-         COMPLEX(8):: CFUNC
-         REAL(8),INTENT(IN):: X,XM,XP
+         USE task_kinds,ONLY: dp
+         COMPLEX(dp):: CFUNC
+         REAL(dp),INTENT(IN):: X,XM,XP
        END FUNCTION CFUNC
     END INTERFACE
     CHARACTER(LEN=*),INTENT(IN),OPTIONAL:: KID   ! function identifier string
-    REAL(8),PARAMETER:: HP=1.5707963267948966192D0
+    REAL(dp),PARAMETER:: HP=1.5707963267948966192D0
 
-    COMPLEX(8):: CSI,CSP,CT
-    REAL(8):: EPS1,H,X,ATP,ATM,HN,HC,HS,CC,XM,XP,AT
+    COMPLEX(dp):: CSI,CSP,CT
+    REAL(dp):: EPS1,H,X,ATP,ATM,HN,HC,HS,CC,XM,XP,AT
     INTEGER:: NP,NM,NPMIN,NMMIN,IND,NPD,NMD,NMAX
 
       EPS1=EPS**0.75D0
@@ -252,8 +256,8 @@ CONTAINS
   200 RETURN
 
   501 FORMAT(A1)
-  601 FORMAT(1H ,1PD13.5,2I8,1PD24.15)
-  602 FORMAT(1H ,1PD13.5,2I8,1PD24.15,1PD14.5)
+  601 FORMAT(1H ,ES13.5,2I8,ES24.15)
+  602 FORMAT(1H ,ES13.5,2I8,ES24.15,ES14.5)
   603 FORMAT(1H ,'XX DEFT: NMAX EXCEEDS 1000: FUNC=',A)
  9999 STOP
  END SUBROUTINE DEFTC
@@ -266,21 +270,22 @@ CONTAINS
 
  SUBROUTINE DEHIFT(CS,ES,H0,EPS,ILST,FUNC,KID)
     IMPLICIT NONE
-    REAL(8),INTENT(OUT):: CS   ! Integral
-    REAL(8),INTENT(OUT):: ES   ! Estimated error 
-    REAL(8),INTENT(IN)::  H0   ! Initial step size
-    REAL(8),INTENT(IN)::  EPS  ! Convergence thrshold
+    REAL(dp),INTENT(OUT):: CS   ! Integral
+    REAL(dp),INTENT(OUT):: ES   ! Estimated error 
+    REAL(dp),INTENT(IN)::  H0   ! Initial step size
+    REAL(dp),INTENT(IN)::  EPS  ! Convergence thrshold
     INTEGER,INTENT(IN)::  ILST ! print out control: 0 for no print out
     INTERFACE
        FUNCTION FUNC(X)
-         REAL(8):: FUNC
-         REAL(8),INTENT(IN):: X
+         USE task_kinds,ONLY: dp
+         REAL(dp):: FUNC
+         REAL(dp),INTENT(IN):: X
        END FUNCTION FUNC
     END INTERFACE
     CHARACTER(LEN=*),INTENT(IN),OPTIONAL:: KID   ! function identifier string
-    REAL(8),PARAMETER:: HP=1.5707963267948966192D0
+    REAL(dp),PARAMETER:: HP=1.5707963267948966192D0
 
-    REAL(8):: EPS1,H,X,CSI,CSP,ATP,ATM,HN,HC,HS,CC,XM,XP,CT,AT
+    REAL(dp):: EPS1,H,X,CSI,CSP,ATP,ATM,HN,HC,HS,CC,XM,XP,CT,AT
     INTEGER:: NP,NM,NPMIN,NMMIN,IND,NPD,NMD,NMAX
 
       EPS1=EPS**0.75D0
@@ -364,8 +369,8 @@ CONTAINS
   200 RETURN
 
   501 FORMAT(A1)
-  601 FORMAT(1H ,1PD13.5,2I8,1PD24.15)
-  602 FORMAT(1H ,1PD13.5,2I8,1PD24.15,1PD14.5)
+  601 FORMAT(1H ,ES13.5,2I8,ES24.15)
+  602 FORMAT(1H ,ES13.5,2I8,ES24.15,ES14.5)
   603 FORMAT(1H ,'XX DEHIFT: NMAX EXCEEDS 1000: FUNC=',A)
  9999 STOP
   END SUBROUTINE DEHIFT
@@ -378,22 +383,23 @@ CONTAINS
 
   SUBROUTINE DEHIFTC(CS,ES,H0,EPS,ILST,CFUNC,KID)
     IMPLICIT NONE
-    COMPLEX(8),INTENT(OUT):: CS   ! Integral
-    REAL(8),INTENT(OUT):: ES   ! Estimated error 
-    REAL(8),INTENT(IN)::  H0   ! Initial step size
-    REAL(8),INTENT(IN)::  EPS  ! Convergence thrshold
+    COMPLEX(dp),INTENT(OUT):: CS   ! Integral
+    REAL(dp),INTENT(OUT):: ES   ! Estimated error 
+    REAL(dp),INTENT(IN)::  H0   ! Initial step size
+    REAL(dp),INTENT(IN)::  EPS  ! Convergence thrshold
     INTEGER,INTENT(IN)::  ILST ! print out control: 0 for no print out
     INTERFACE
        FUNCTION CFUNC(X)
-         COMPLEX(8):: CFUNC
-         REAL(8),INTENT(IN):: X
+         USE task_kinds,ONLY: dp
+         COMPLEX(dp):: CFUNC
+         REAL(dp),INTENT(IN):: X
        END FUNCTION CFUNC
     END INTERFACE
     CHARACTER(LEN=*),INTENT(IN),OPTIONAL:: KID   ! function identifier string
-    REAL(8),PARAMETER:: HP=1.5707963267948966192D0
+    REAL(dp),PARAMETER:: HP=1.5707963267948966192D0
 
-    COMPLEX(8):: CSI,CSP,CT
-    REAL(8):: EPS1,H,X,ATP,ATM,HN,HC,HS,XM,XP,AT
+    COMPLEX(dp):: CSI,CSP,CT
+    REAL(dp):: EPS1,H,X,ATP,ATM,HN,HC,HS,XM,XP,AT
     INTEGER:: NP,NM,NPMIN,NMMIN,IND,NPD,NMD,NMAX
 
       EPS1=EPS**0.75D0
@@ -477,8 +483,8 @@ CONTAINS
   200 RETURN
 
   501 FORMAT(A1)
-  601 FORMAT(1H ,1PD13.5,2I8,1PD24.15)
-  602 FORMAT(1H ,1PD13.5,2I8,1PD24.15,1PD14.5)
+  601 FORMAT(1H ,ES13.5,2I8,ES24.15)
+  602 FORMAT(1H ,ES13.5,2I8,ES24.15,ES14.5)
   603 FORMAT(1H ,'XX DEHIFT: NMAX EXCEEDS 1000: FUNC=',A)
  9999 STOP
   END SUBROUTINE DEHIFTC
@@ -492,21 +498,22 @@ CONTAINS
 
   SUBROUTINE DEHIFE(CS,ES,H0,EPS,ILST,FUNC,KID)
     IMPLICIT NONE
-    REAL(8),INTENT(OUT):: CS   ! Integral
-    REAL(8),INTENT(OUT):: ES   ! Estimated error 
-    REAL(8),INTENT(IN)::  H0   ! Initial step size
-    REAL(8),INTENT(IN)::  EPS  ! Convergence thrshold
+    REAL(dp),INTENT(OUT):: CS   ! Integral
+    REAL(dp),INTENT(OUT):: ES   ! Estimated error 
+    REAL(dp),INTENT(IN)::  H0   ! Initial step size
+    REAL(dp),INTENT(IN)::  EPS  ! Convergence thrshold
     INTEGER,INTENT(IN)::  ILST ! print out control: 0 for no print out
     INTERFACE
        FUNCTION FUNC(X)
-         REAL(8):: FUNC
-         REAL(8),INTENT(IN):: X
+         USE task_kinds,ONLY: dp
+         REAL(dp):: FUNC
+         REAL(dp),INTENT(IN):: X
        END FUNCTION FUNC
     END INTERFACE
     CHARACTER(LEN=*),INTENT(IN),OPTIONAL:: KID   ! function identifier string
-    REAL(8),PARAMETER:: HP=1.5707963267948966192D0
+    REAL(dp),PARAMETER:: HP=1.5707963267948966192D0
 
-    REAL(8):: EPS1,H,X,CSI,CSP,ATP,ATM,HN,HC,HS,CC,XM,XP,CT,AT
+    REAL(dp):: EPS1,H,X,CSI,CSP,ATP,ATM,HN,HC,HS,CC,XM,XP,CT,AT
     INTEGER:: NP,NM,NPMIN,NMMIN,IND,NPD,NMD,NMAX
 
       EPS1=EPS**0.75D0
@@ -591,8 +598,8 @@ CONTAINS
       RETURN
 
   501 FORMAT(A1)
-  601 FORMAT(1H ,1PD13.5,2I8,1PD24.15)
-  602 FORMAT(1H ,1PD13.5,2I8,1PD24.15,1PD14.5)
+  601 FORMAT(1H ,ES13.5,2I8,ES24.15)
+  602 FORMAT(1H ,ES13.5,2I8,ES24.15,ES14.5)
   603 FORMAT(1H ,'XX DEHIFE: NMAX EXCEEDS 1000: FUNC=',A)
  9999 STOP
   END SUBROUTINE DEHIFE
@@ -606,22 +613,23 @@ CONTAINS
 
   SUBROUTINE DEHIFEC(CS,ES,H0,EPS,ILST,CFUNC,KID)
     IMPLICIT NONE
-    COMPLEX(8),INTENT(OUT):: CS   ! Integral
-    REAL(8),INTENT(OUT):: ES   ! Estimated error 
-    REAL(8),INTENT(IN)::  H0   ! Initial step size
-    REAL(8),INTENT(IN)::  EPS  ! Convergence thrshold
+    COMPLEX(dp),INTENT(OUT):: CS   ! Integral
+    REAL(dp),INTENT(OUT):: ES   ! Estimated error 
+    REAL(dp),INTENT(IN)::  H0   ! Initial step size
+    REAL(dp),INTENT(IN)::  EPS  ! Convergence thrshold
     INTEGER,INTENT(IN)::  ILST ! print out control: 0 for no print out
     INTERFACE
        FUNCTION CFUNC(X)
-         COMPLEX(8):: CFUNC
-         REAL(8),INTENT(IN):: X
+         USE task_kinds,ONLY: dp
+         COMPLEX(dp):: CFUNC
+         REAL(dp),INTENT(IN):: X
        END FUNCTION CFUNC
     END INTERFACE
     CHARACTER(LEN=*),INTENT(IN),OPTIONAL:: KID   ! function identifier string
-    REAL(8),PARAMETER:: HP=1.5707963267948966192D0
+    REAL(dp),PARAMETER:: HP=1.5707963267948966192D0
 
-    COMPLEX(8):: CSI,CSP,CT
-    REAL(8):: EPS1,H,X,ATP,ATM,HN,HC,HS,CC,XM,XP,AT
+    COMPLEX(dp):: CSI,CSP,CT
+    REAL(dp):: EPS1,H,X,ATP,ATM,HN,HC,HS,CC,XM,XP,AT
     INTEGER:: NP,NM,NPMIN,NMMIN,IND,NPD,NMD,NMAX
 
       EPS1=EPS**0.75D0
@@ -706,8 +714,8 @@ CONTAINS
       RETURN
 
   501 FORMAT(A1)
-  601 FORMAT(1H ,1PD12.4,2I8,1P2D12.4)
-  602 FORMAT(1H ,1PD12.4,2I8,1P2D12.4,1PD12.4)
+  601 FORMAT(1H ,ES12.4,2I8,2ES12.4)
+  602 FORMAT(1H ,ES12.4,2I8,2ES12.4,ES12.4)
   603 FORMAT(1H ,'XX DEHIFEC: NMAX EXCEEDS 1000: FUNC=',A)
  9999 STOP
   END SUBROUTINE DEHIFEC

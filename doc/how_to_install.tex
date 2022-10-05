@@ -1,0 +1,767 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\geometry{a4paper}
+\usepackage[dvips]{graphicx,color}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[varg]{txfonts}
+\usepackage{exscale}
+\usepackage{af}
+\usepackage{slide}
+\usepackage{card}
+\usepackage{sym}
+\usepackage{ulem}
+
+\newcommand{\epspath}{/Users/fukuyama/tex/eps}
+\newcommand{\ttype}[1]{\emC{\LARGE \texttt{#1}}}
+\newcommand{\tline}[1]{\qquad{\Large \texttt{#1}}\\[-3mm]}
+
+%\let\uetheta=\ueth
+%\let\uephi=\ueph
+\let\Ra=\Rightarrow
+\let\Lra=\Longrightarrow
+
+\newenvironment{flist}{\par\noindent\begin{tabular}{%
+p{45mm}p{35mm}p{30mm}p{120mm}}}{\end{tabular}\par\bigskip}
+\newcommand{\fitem}[4]{\quad #1 & #2 & #3 & #4 \\}
+\newcommand{\ffitem}[2]{\multicolumn{3}{p{109mm}}{#1} & #2 \\}
+\newcommand{\fffitem}[1]{\multicolumn{4}{p{228mm}}{#1} \\}
+
+\newcommand{\vvd}{\vv_\mr{d}}
+\newcommand{\vd}{v_\mr{d}}
+\newcommand{\vvE}{\vv_E}
+\newcommand{\Epara}{E_\para}
+\newcommand{\Tperp}{T_\perp}
+\newcommand{\Tb}{T_\mr{b}}
+\newcommand{\kparam}{k_{\para m}}
+\newcommand{\energy}{\varepsilon}
+\newcommand{\tx}{TASK/TX}
+
+\newcommand{\xtitle}[2]{%
+{\fboxsep=10mm \fboxrule=3mm
+\cfbox{dbback}{#1}{%
+\begin{center}\Huge
+ \emC{#2}
+\end{center}
+}}
+}
+
+\begin{document}
+\huge\sf
+
+\begin{flushleft}
+\fig{0.70}{\epspath/logo/KUlogo.eps}
+\end{flushleft}
+\vspace*{-40mm}
+
+\begin{flushright}\LARGE
+  2021/09/03
+\end{flushright}
+\vspace{20mm}
+
+\xtitle{200mm}{%
+How to install the integrated code: TASK
+}
+\medskip
+
+\begin{center}\huge
+\emB{A.~Fukuyama}
+\\[8mm]
+\textcolor{fgreen}{\huge
+Professor Emeritus, Kyoto University 
+}
+\end{center}
+\medskip
+
+\begin{center}
+  \begin{minipage}{130mm}
+    \begin{enumerate}
+    \item
+      Preparation for macOS
+    \item
+      Preparation for Ubuntu
+    \item
+      Introduction to git
+    \item
+      Install task and related libraries
+    \item
+      Introduction to the task code
+    \item
+      Install PETSc
+    \end{enumerate}
+  \end{minipage}
+\end{center}
+
+\title{Preparation for macOS (1)}
+\begin{itemize}
+\item
+  \emA{Install Xcode}
+  \begin{itemize}
+  \item
+    Xcode: development environment on macOS
+  \item
+    Use App Store
+  \item
+    Category: Development
+  \item
+    Choose and install Xcode
+  \end{itemize}
+\item
+  \emA{Install Command\_Line\_Tools}
+  \begin{itemize}
+  \item
+    Command\_Line\_Tools: various Unix commands for development
+  \item
+    Input command on terminal
+  \item
+    \ttype{xcode-select --install}
+  \end{itemize}
+\item
+  \emA{Install XQartz}
+  \begin{itemize}
+  \item
+    Download and install XQartz from https://www.xquartz.org
+  \end{itemize}
+\item
+  \emA{Install java}
+  \begin{itemize}
+  \item
+    Download and install java from \\
+    https://www.java.com/en/download/mac\_download.jsp
+  \end{itemize}
+\end{itemize}
+
+
+\title{Preparation for macOS (2)}
+\begin{itemize}
+\item
+  \emA{Install Macports}
+  \begin{itemize}
+  \item
+    Download the latest macports binary from https://www.macports.org
+  \item
+    Select tab: Installing MacPorts
+  \item
+    Quickstart: download and install MacPorts installer for appropriate macOS
+    version
+  \item
+    MacPorts is mostly installed at /opt/local
+  \item
+    Update to the latest Macports
+    \begin{itemize}
+    \item
+      \ttype{sudo port selfupdate}
+    \item
+      \ttype{sudo port upgrade outdated}
+    \end{itemize}
+  \end{itemize}
+\item
+  \emA{Install compiler and related modules}
+  \begin{itemize}
+  \item
+    gfortran: \ttype{sudo port install gcc11}
+  \item
+    mpich: \ttype{sudo port install mpich}
+  \item
+    others: \ttype{sudo port install gmake cmake imake}
+  \end{itemize}
+\end{itemize}
+
+\title{Preparation for Ubuntu}
+\begin{enumerate}
+\item
+  \emA{Install required modules}
+\begin{verbatim}
+sudo apt-get install gfortran-11
+sudo apt-get install gcc-11
+sudo apt-get install g++-11
+
+sudo apt-get install git
+sudo apt-get install xorg-dev
+sudo apt-get install valgrind
+sudo apt-get install cmake
+sudo apt-get install python
+
+sudo apt-get install mpich
+\end{verbatim}
+\end{enumerate}
+
+\title{How to use git (1)}
+\begin{itemize}
+\item
+  \emA{git}: version and remote repository control facility
+\item
+\emA{Repositories}
+\begin{itemize}
+\item
+\emB{local}: in your machine
+\item
+\emB{remotes}: in remote servers
+\item
+\emB{remotes/origin}: in default server: bpsi.nucleng.kyoto-u.ac.jp
+\end{itemize}
+\item
+\emA{Branches}
+\begin{itemize}
+\item
+\emC{There are several branches for code development}
+\begin{itemize}
+\item
+\emB{master}: default, stable version, often rather old
+\item
+\emB{develop}: latest version, where I am working
+\item
+\emB{others}: branches for working specific modules
+\end{itemize}
+\item
+\emBs{cd task}
+\item
+\emBs{git branch}\qquad : list branch names, local only
+\item
+\emBs{git branch -a}\qquad : list branch names, local and remote
+\end{itemize}
+\end{itemize}
+
+\title{How to use git (2)}
+\begin{itemize}
+\item
+\emA{To use develop branch}
+\begin{itemize}
+\item
+\emC{Create local branch develop and associate it with remote develop}
+\item
+\emBs{git checkout -t -b develop origin/develop}
+\item
+\emBs{git branch}
+\end{itemize}
+\item
+\emA{Change working branch}
+\begin{itemize}
+\item
+\emBs{git checkout master}
+\item
+\emBs{git checkout develop}
+\end{itemize}
+\item
+\emA{Update working branch}: download from remote repository
+\begin{itemize}
+\item
+\emBs{git pull}
+\begin{itemize}
+\item
+Your modification is kept, if committed.
+\item
+If uncommitted modification remains, no overwrite.
+\item
+use \emBs{git stash} to keep away your modification.
+\item
+If there are conflicts with your committed modification, the conflicts
+are indicated in the file. Correct them and \emBs{git pull} again.
+\end{itemize}
+\end{itemize}
+\end{itemize}
+
+\title{How to use git (3)}
+\begin{itemize}
+\item
+\emA{To check your modification}
+\begin{itemize}
+\item
+\emBs{git status}
+\end{itemize}
+\item
+\emA{To commit your modification with message}: only local depository
+is updated.  message is required.
+\begin{itemize}
+\item
+\emBs{git commit -a -m'\textit{message}'}
+\end{itemize}
+\item
+\emA{To list all modification}
+\begin{itemize}
+\item
+\emBs{git log}
+\end{itemize}
+\item
+\emA{To show difference from committed repository}
+\begin{itemize}
+\item
+\emBs{git diff [\textit{filename}]}
+\end{itemize}
+\item
+\emA{For more detail, visit}
+\begin{itemize}
+\item
+\emCs{https://git-scm.com/documentation}
+\end{itemize}
+\end{itemize}
+
+\title{Install TASK (1)}
+\begin{itemize}
+\item
+\emA{Check availability of git}: just command input ``git''
+\item
+\emA{Set your identity}: To record who changed the code?
+\begin{itemize}
+\item
+\emBs{git config -\,-global user.name ``[your-full-name]''}
+\item
+\emBs{git config -\,-global user.email [your-mail-address]}
+\item
+For example,
+\begin{itemize}
+\item
+git config -\,-global user.name ``Atsushi Fukuyama''
+\item
+git config -\,-global user.email fukuyama@nucleng.kyoto-u.ac.jp
+\end{itemize}
+\item
+Data is saved in \$HOME/.gitconfig
+\end{itemize}
+\item
+\emA{Create a working directory}: any directory name is OK
+\begin{itemize}
+\item
+\emBs{mkdir git}
+\item
+\emBs{cd git}
+\end{itemize}
+\end{itemize}
+
+
+\title{Install TASK (2)}
+\begin{itemize}
+\item
+\emA{Download TASK and necessary libraries} for download only
+\begin{itemize}
+\item
+\emBs{git clone https://bpsi.nucleng.kyoto-u.ac.jp/pub/git/gsaf.git}
+\item
+\emBs{git clone https://bpsi.nucleng.kyoto-u.ac.jp/pub/git/bpsd.git}
+\item
+\emBs{git clone https://bpsi.nucleng.kyoto-u.ac.jp/pub/git/task.git}
+\end{itemize}
+\item
+\emA{Download TASK and necessary libraries} for download and upload
+\begin{itemize}
+\item
+\emBs{git clone ssh://username@bpsi.nucleng.kyoto-u.ac.jp/pub/git/gsaf.git}
+\item
+\emBs{git clone ssh://username@bpsi.nucleng.kyoto-u.ac.jp/pub/git/bpsd.git}
+\item
+\emBs{git clone ssh://username@bpsi.nucleng.kyoto-u.ac.jp/pub/git/task.git}
+\item
+  \emBs{username@} can be omitted if the usernames at remote and local
+  are same.
+\end{itemize}
+\item
+\emC{Three directories are created}
+\begin{itemize}
+\item
+\emB{gsaf}: graphic library
+\item
+\emB{bpsd}: data interface library
+\item
+\emB{task}: main TASK directory
+\end{itemize}
+\end{itemize}
+
+\title{Install TASK (3)}
+\begin{itemize}
+\item
+  \emA{Install graphic library GSAF}
+  \begin{itemize}
+  \item
+    \emBs{cd git/gsaf/src}
+  \item
+    Copy Makefile.arch appropriate for your environment
+    \begin{itemize}
+    \item
+      for macOS: \emBs{cp ../arch/macos-gfortran/Makefile.arch .}
+    \item
+      for Ubuntu: \emBs{cp ../arch/ubuntu-gfortran64-static/Makefile.arch .}
+    \end{itemize}
+  \item
+    \emB{Edit Makefile.arch}: adjust BINPATH and LIBPATH to available ones
+    \begin{itemize}
+    \item
+      BINPATH: graphic commands are located, should be included in
+      \$PATH in $\sim$/.profile or ./zprofile
+    \item
+      LIBPATH: graphic libraries are located, should be included in
+      library path for compiling applications using the graphic libs.
+    \end{itemize}
+  \item
+    \emBs{make}
+  \item
+    \emBs{make install}
+    \begin{itemize}
+    \item
+      if BINPATH is protected, use ``\emBs{sudo make install}''
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\title{Install TASK (4)}
+\begin{itemize}
+\item
+  \emA{Check the availability of GSAF library}
+  \begin{itemize}
+  \item
+    \emBs{cd test}
+  \item
+    \emBs{make}
+  \item
+    \emAs{Applications using GSAF library must be started from X11
+      window such as xterm, not from Terminal on macOS.}
+  \item
+    \emBs{./bsctest} 
+  \item
+    \emBs{5}\qquad: Choose the size of window
+  \item
+    \emBs{c}\qquad: Continue the run
+  \item
+    \emBs{m}
+  \item
+    New graphic window opens and marks and lines are drawn.
+  \item
+    To go back to the original window, enter CR.
+  \item
+    If focus does not change, click the original window and check XQartz
+    preferences.
+  \item
+    \emBs{e}\qquad:  Close the graphic window
+  \item
+    \emBs{cd ../../..}
+  \end{itemize}
+\end{itemize}
+
+\title{Install TASK (5)}
+\begin{itemize}
+\item
+\emA{Use the latest develop branch and setup files, make.header and make.mtxp}
+\begin{itemize}
+\item
+\emBs{cd task}
+\item
+\emBs{git checkout -t -b develop origin/develop}
+\item
+\emBs{cp make.header.org make.header}
+\item
+\emB{Edit make.header} to remove comments for target OS and compiler
+\end{itemize}
+\item
+\emA{Compile data exchange library BPSD}
+\begin{itemize}
+\item
+\emBs{cd ../bpsd}
+\item
+\emBs{make}
+\item
+\emBs{cd ../task}
+\end{itemize}
+\end{itemize}
+
+\title{Install TASK (6)}
+\begin{itemize}
+\item
+\emA{Choice of matrix solver configuration}
+\begin{itemize}
+\item
+  Single processing without MPI: \emBs{make.mtxp.nompi}
+\item
+  Single processing with MPI: \emBs{make.mtxp.mpi}
+\item
+  Multi processing with parallel real matrix solver: \emBs{make.mtxp.petsc}
+\item
+  Multi processing with parallel real and complex solver: \\
+  \emBs{make.mtxp.petsc+mumps}
+\end{itemize}
+\item
+  \emA{Module using parallel matrix solver}
+  \begin{itemize}
+  \item
+    \emB{Real}: fp, ti, pic, t2
+  \item
+    \emB{Complex}: wmx, wf2d, wf2dt, wf2dx, wq
+  \end{itemize}
+\item
+  \emA{Setup matrix solver library}
+  \begin{itemize}
+  \item
+    \emBs{cd mtxp}
+  \item
+    \emBs{cp make.mtxp.XXX make.mtxp}
+  \item
+    \emBs{make}
+  \item
+    \emBs{cd ..}
+  \end{itemize}
+\end{itemize}
+
+\title{Install TASK (7)}
+\begin{itemize}
+\item
+  \emA{Compile modules}:
+  \begin{itemize}
+  \item
+    \emBs{cd lib}
+  \item
+    \emBs{make}
+  \item
+    \emBs{cd ..}
+\end{itemize}
+\item
+  \emA{Compile and run TASK module}: eq for example
+  \begin{itemize}
+  \item
+    \emBs{cd eq}
+  \item
+    \emBs{make}
+  \item
+    \emBs{./eq}
+  \item
+    \emBs{5}
+  \item
+    \emBs{c}
+  \item
+    \emBs{r}
+  \item
+    \emBs{g}
+  \item
+    \emBs{s}, \emBs{CR}, \emBs{CR}, $\cdots$
+  \item
+    \emBs{x}
+  \item
+    \emBs{q}
+  \end{itemize}
+\end{itemize}
+
+\title{How to use GSAF}
+\begin{itemize}
+\item
+\emA{At the beginning of the program}
+\begin{itemize}
+\item
+\emB{Set graphic resolution} (0: metafile output only, no graphics)
+\item
+\emB{commands}
+\begin{itemize}
+\item
+\emC{c}: continue
+\item
+\emC{f}: set metafile name and start saving
+\end{itemize}
+\end{itemize}
+\item
+\emA{At the end of one page drawing}
+\begin{itemize}
+\item
+\emB{commands}
+\begin{itemize}
+\item
+\emC{c} or \emC{CR}: change focus to original window and continue
+\item
+\emC{f}: set metafile name and start saving
+\item
+\emC{s}: start saving and save this page
+\item
+\emC{y}: save this page and continue
+\item
+\emC{n}: continue without saving
+\item
+\emC{d}: dump this page as a bitmap file ``gsdump\textit{n}''
+\item
+\emC{b}: switch on/off bell sound
+\item
+\emC{q}: quit program after confirmation
+\end{itemize}
+\end{itemize}
+\end{itemize}
+
+\title{Graphic Utilities}
+\begin{itemize}
+\item
+\emA{Utility program}
+\begin{itemize}
+\item
+\emC{gsview}: View metafile
+\item
+\emC{gsprint}: Print metafile on a postscript printer
+\item
+\emC{gstoeps}: Convert metafile to eps files of each page
+\item
+\emC{gstops}: Convert metafile to a postscript file of all pages
+\item
+\emC{gstotgif}: Convert metafile to a tgif file for graphic editor tgif
+\item
+\emC{gstotsvg}: Convert metafile to a svg file for web browser
+\end{itemize}
+\item
+\emA{Options}
+\begin{itemize}
+\item
+\emC{-a}: output all pages, otherwise interactive mode
+\item
+\emC{-s ps}: output from page ps
+\item
+\emC{-e pe}: output until page pe
+\item
+\emC{-p \textit{np}}: output contiguous \textit{np} pages on a sheet
+\item
+\emC{-b}: output without title
+\item
+\emC{-r}: rotate page
+\item
+\emC{-z}: gray output
+\end{itemize}
+\end{itemize}
+
+\title{Typical File Name of TASK}
+\begin{itemize}
+\itemsep=3mm
+\item
+\ttype{XXcomm.f90}: Definition of global variables, allocation of arrays
+\item
+\ttype{XXmain.f90}: Main program for standalone use, read XXparm file
+\item
+\ttype{XXmenu.f90}: Command input
+\item
+\ttype{XXinit.f90}: Default values
+\item
+\ttype{XXparm.f90}: Read input parameters
+\item
+\ttype{XXview.f90}: Show input parameters
+\item
+\ttype{XXprep.f90}: Initialization of run, initial profile
+\item
+\ttype{XXexec.f90}: Execution of run
+\item
+\ttype{XXgout.f90}: Graphic output
+\item
+\ttype{XXfout.f90}: Text file output
+\item
+\ttype{XXsave.f90}: Binary file output
+\item
+\ttype{XXload.f90}: Binary file input
+\end{itemize}
+
+\title{Typical input command}
+\begin{itemize}
+\item
+When input line includes \emA{=}, interpreted as a namelist
+input (e.g., \ttype{rr=6.5})
+\item
+When the first character is not an alphabet, interpreted as line input
+\item
+\ttype{r}: Initialize profiles and execute
+\item
+\ttype{c}: Continue run
+\item
+\ttype{p}: Namelist input of input parameters
+\item
+\ttype{v}: Display of input parameters
+\item
+\ttype{s}: Save results into a file
+\item
+\ttype{l}: Load results from a file
+\item
+\ttype{q}: End of the program
+\item
+\emB{Order of input parameter setting}
+\begin{itemize}
+\item
+Setting at the subroutine \ttype{XX\_init} in \ttype{XXinit.f90}
+\item
+Read a namelist file \ttype{XXparm} at the beginning of the program
+\item
+Setting by the input line
+\end{itemize}
+\end{itemize}
+
+\title{Install PETSc (1)}
+
+\begin{itemize}
+\item
+  \emA{PETSc}: Parallel matrix solver library
+  \begin{itemize}
+  \item
+    blas,lapack: matrix solver tolls
+  \item
+    scalapack, metis, parmetis, blacs, superlu: parallel solver tools
+  \item
+    MUMPS: Direct matrix solver for real and complex
+  \item
+    PETSc: Iterative matrix solver for real or complex
+  \end{itemize}
+\item
+  \emA{Make PETSc directory and change its owner}
+  \begin{itemize}
+  \item
+    \ttype{sudo mkdir /opt/PETSc}
+  \item
+    \ttype{sudo chown /opt/PETSc \$USERNAME}
+  \item
+    \ttype{cd /opt/PETSc}
+  \end{itemize}
+\item
+  \emA{Download latest PETSc library package by git}
+  \begin{itemize}
+  \item
+    \emB{First download of PETSc source}
+    \begin{itemize}
+    \item
+      \ttype{git clone -b release https://gitlab.com/petsc/petsc.git
+        petsc}
+    \end{itemize}
+  \item
+    \emB{In order to update PETSc source}
+    \begin{itemize}
+    \item
+      \ttype{git pull}
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\title{Install PETSc (2)}
+\begin{itemize}
+\item
+  \emA{Provide environment variables for PETSC in $\sim$/.profile or .zprofile}
+  \begin{itemize}
+  \item
+    \ttype{export PETSC\_DIR=/opt/PETSc/petsc}
+  \item
+    \ttype{export PETSC\_ARCH=default}
+  \end{itemize}
+  
+\item
+  \emA{Configure script in python }
+  \begin{itemize}
+  \item
+    \emB{Copy \ttype{default.py} to \ttype{/opt/PETSc/petsc}}
+  \item
+    \emB{Provide exec attribute to \ttype{default.py}}
+    \begin{itemize}
+    \item
+      \ttype{chmod 755 default.py}
+    \end{itemize}
+  \item
+    \emB{Execute configuration script} \qquad \emCs{(It may take half an hour.)}
+    \begin{itemize}
+    \item
+      \ttype{./default.py}
+    \end{itemize}
+  \item
+    \emB{Additional libraries are created in default/externalpackages}
+  \end{itemize}
+\item
+  \emA{Make and check PETSc library}
+  \begin{itemize}
+  \item
+    \ttype{make} \qquad \emCs{(It may take half an hour.)}
+  \item
+    \ttype{make check}
+  \end{itemize}
+\end{itemize}
+
+\end{document}

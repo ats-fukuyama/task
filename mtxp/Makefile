@@ -1,8 +1,8 @@
 include ../make.header
 include ../mtxp/make.mtxp
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
@@ -11,9 +11,9 @@ FFLAGS=$(OFLAGS)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-MODINCLUDE=-I./$(MOD) -I../lib/$(MOD)
+MODINCLUDE=-I./$(MOD) -I../lib/$(MOD) $(MPI_INC)
 
-all: $(EXEC)
+all: libs $(EXEC)
 
 testbnd: $(LIB_MTX_BND) testmtx.o 
 	-$(FLINKER) -g -o testbnd testmtx.o $(LIBX_MTX_BND) \
@@ -21,7 +21,7 @@ testbnd: $(LIB_MTX_BND) testmtx.o
 
 testbndc: $(LIB_MTX_BND) testmtxc.o 
 	-$(FLINKER) -g -o testbndc testmtxc.o $(LIBX_MTX_BND) \
-	../lib/libtask.a $(FLIBS)
+	../lib/libgrf.a ../lib/libtask.a $(FLIBS)
 
 testpcg: $(LIB_MTX_PCG) testmtx.o 
 	-$(FLINKER) $(FFLAGS) -o testpcg testmtx.o $(LIBX_MTX_PCG) \
@@ -34,7 +34,7 @@ testdmumps: $(LIB_MTX_MUMPS) testmtx.o
 
 testzmumps: $(LIB_MTX_MUMPS) testmtxc.o
 	-${FLINKER} -g -o testzmumps testmtxc.o $(LIBX_MTX_MUMPS) \
-	../lib/libtask.a $(FLIBS)
+	../lib/libgrf.a ../lib/libtask.a $(FLIBS)
 
 
 testksp: $(LIB_MTX_KSP) testmtx.o
@@ -63,6 +63,12 @@ testmtxc.o: testmtxc.f90
 ../mtxp/libmtxksp.o: libmtxksp.F90
 	$(FLINKER) $(FFLAGS) -c libmtxksp.F90 $(MODDIR) $(MODINCLUDE) \
 	$(INCLUDE_MTX_PETSC)
+
+libs:
+	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
+	(cd ../../bpsd; make libbpsd.a)
+
 
 clean :
 	-rm -f core a.out *.o *.a *.i90 ./#* ./*~ ./*.mod ./mod/*.mod

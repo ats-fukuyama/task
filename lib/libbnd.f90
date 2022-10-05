@@ -1,3 +1,12 @@
+! libbnd.f90
+
+MODULE libbnd
+
+  PRIVATE
+  PUBLIC bandrd,bandcd,bandrdu,bandcdu
+
+CONTAINS
+
 !     *****************************************************
 !     **     numerical solution of band matrix (SUB)     **
 !     **          Gaussian Elimination Method            **
@@ -23,14 +32,15 @@
 !                                         30000 : SINGULAR MATRIX
 !          NOTICE: ARRAY A AND X WILL BE DESTROYED.
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),               INTENT(IN)    :: N, L, LA
-      REAL(8), DIMENSION(LA, N),INTENT(INOUT) :: A
-      REAL(8), DIMENSION(N),    INTENT(INOUT) :: X
-      INTEGER(4),               INTENT(OUT)   :: IERR
-      REAL(8)            :: ABS1, ABS2, TEMP
-      REAL(8), PARAMETER :: EPS = 1.D-70
-      INTEGER(4)         :: I, J, K, LH, LHM, NM, LHMK, NPMK, LPMI, IPIVOT, IP, JJ
+      INTEGER,               INTENT(IN)    :: N, L, LA
+      REAL(dp), DIMENSION(LA, N),INTENT(INOUT) :: A
+      REAL(dp), DIMENSION(N),    INTENT(INOUT) :: X
+      INTEGER,               INTENT(OUT)   :: IERR
+      REAL(dp)            :: ABS1, ABS2, TEMP
+      REAL(dp), PARAMETER :: EPS = 1.D-70
+      INTEGER         :: I, J, K, LH, LHM, NM, LHMK, NPMK, LPMI, IPIVOT, IP, JJ
 
       IF( MOD(L,2) .EQ. 0 ) GO TO 9000
       LH  = (L+1)/2
@@ -61,6 +71,11 @@
          ENDDO
 
          IF( ABS2 .LT. EPS ) GO TO 9002
+!         IF( ABS2 .LT. EPS ) THEN
+!            WRITE(6,'(A,I8,3ES12.4)') 'A(1,I),EPS=',I,ABS2,EPS
+!            GO TO 9002
+!         END IF
+
          IF( IPIVOT .NE. I ) THEN
             TEMP        = X( I      )
             X( I      ) = X( IPIVOT )
@@ -87,7 +102,11 @@
          IF( LH .LT. N ) LH = LH + 1
       ENDDO
 
-      IF( ABS(A(1,N)) .LT. EPS ) GO TO 9002
+      IF( ABS(A(1,N)) .LT. EPS ) THEN
+!         WRITE(6,'(A,I8,3ES12.4)') 'A(1,N),EPS=',N,A(1,N),EPS
+         I=N
+         GO TO 9002
+      END IF
       X( N ) = X( N ) / A( 1 , N )
       JJ = 2
       DO I = 1 , NM
@@ -124,15 +143,16 @@
 !                                         30000 : SINGULAR MATRIX
 !          NOTICE: ARRAY A AND X WILL BE DESTROYED.
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),               INTENT(IN)    :: N, L, LA
-      COMPLEX(8), DIMENSION(LA, N),INTENT(INOUT) :: A
-      COMPLEX(8), DIMENSION(N),    INTENT(INOUT) :: X
-      INTEGER(4),               INTENT(OUT)   :: IERR
-      REAL(8) :: ABS1, ABS2
-      COMPLEX(8) :: TEMP
-      REAL(8), PARAMETER :: EPS = 1.D-70
-      INTEGER(4) :: I, J, K, LH, LHM, NM, LHMK, NPMK, LPMI, IPIVOT, IP, JJ
+      INTEGER,               INTENT(IN)    :: N, L, LA
+      COMPLEX(dp), DIMENSION(LA, N),INTENT(INOUT) :: A
+      COMPLEX(dp), DIMENSION(N),    INTENT(INOUT) :: X
+      INTEGER,               INTENT(OUT)   :: IERR
+      REAL(dp) :: ABS1, ABS2
+      COMPLEX(dp) :: TEMP
+      REAL(dp), PARAMETER :: EPS = 1.D-70
+      INTEGER :: I, J, K, LH, LHM, NM, LHMK, NPMK, LPMI, IPIVOT, IP, JJ
 
       IF( MOD(L,2) .EQ. 0 ) GO TO 9000
       LH  = (L+1)/2
@@ -162,11 +182,11 @@
             ENDIF
          ENDDO
 
-!         IF( ABS2 .LT. EPS ) GO TO 9002
-      IF( ABS2 .LT. EPS ) THEN
-         write(6,'(A,I8,1P3E12.4)') 'A(1,I),EPS=',I,A(1,I),EPS
-         GOTO 9002
-      ENDIF
+         IF( ABS2 .LT. EPS ) GO TO 9002
+!         IF( ABS2 .LT. EPS ) THEN
+!            WRITE(6,'(A,I8,3ES12.4)') 'A(1,I),EPS=',I,ABS2,EPS
+!            GOTO 9002
+!         ENDIF
 
          IF( IPIVOT .NE. I ) THEN
             TEMP        = X( I      )
@@ -194,10 +214,9 @@
          IF( LH .LT. N ) LH = LH + 1
       ENDDO
 
-!      IF( ABS(A(1,N)) .LT. EPS ) GO TO 9002
-!      IF( CDABS(A(1,N)) .LT. EPS ) GOTO 9002
-      IF( CDABS(A(1,N)) .LT. EPS ) THEN
-         write(6,'(A,1P3E12.4)') 'A(1,N),EPS=',A(1,N),EPS
+      IF( ABS(A(1,N)) .LT. EPS ) THEN
+!         WRITE(6,'(A,3ES12.4)') 'A(1,N),EPS=',A(1,N),EPS
+         I=N
          GOTO 9002
       ENDIF
 
@@ -235,14 +254,15 @@
 !                                         30000 : SINGULAR MATRIX
 !          NOTICE: ARRAY A AND X WILL BE DESTROYED.
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),               INTENT(IN)    :: N, L, LA
-      REAL(8), DIMENSION(LA, N),INTENT(INOUT) :: A
-      REAL(8), DIMENSION(N),    INTENT(INOUT) :: X
-      INTEGER(4),               INTENT(OUT)   :: IERR
-      REAL(8)            :: ABS1, ABS2, TEMP
-      REAL(8), PARAMETER :: EPS = 1.D-70
-      INTEGER(4)         :: I, J, K, LH, LHM, NM, LHMK, NPMK, LPMI, IPIVOT, IP, JJ
+      INTEGER,               INTENT(IN)    :: N, L, LA
+      REAL(dp), DIMENSION(LA, N),INTENT(INOUT) :: A
+      REAL(dp), DIMENSION(N),    INTENT(INOUT) :: X
+      INTEGER,               INTENT(OUT)   :: IERR
+      REAL(dp)            :: ABS1, ABS2, TEMP
+      REAL(dp), PARAMETER :: EPS = 1.D-70
+      INTEGER         :: I, J, K, LH, LHM, NM, LHMK, NPMK, LPMI, IPIVOT, IP, JJ
 
       IF( MOD(L,2) .EQ. 0 ) GO TO 9000
       LH  = (L+1)/2
@@ -300,7 +320,10 @@
          IF( LH .LT. N ) LH = LH + 1
       ENDDO
 
-      IF( ABS(A(1,N)) .LT. EPS ) GO TO 9002
+      IF( ABS(A(1,N)) .LT. EPS ) THEN
+         I=N
+         GO TO 9002
+      END IF
       X( N ) = X( N ) / A( 1 , N )
       JJ = 2
       DO I = 1 , NM
@@ -337,15 +360,16 @@
 !                                         30000 : SINGULAR MATRIX
 !          NOTICE: ARRAY A AND X WILL BE DESTROYED.
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
-      INTEGER(4),               INTENT(IN)    :: N, L, LA
-      COMPLEX(8), DIMENSION(LA, N),INTENT(INOUT) :: A
-      COMPLEX(8), DIMENSION(N),    INTENT(INOUT) :: X
-      INTEGER(4),               INTENT(OUT)   :: IERR
-      REAL(8) :: ABS1, ABS2
-      COMPLEX(8) :: TEMP
-      REAL(8), PARAMETER :: EPS = 1.D-70
-      INTEGER(4) :: I, J, K, LH, LHM, NM, LHMK, NPMK, LPMI, IPIVOT, IP, JJ
+      INTEGER,               INTENT(IN)    :: N, L, LA
+      COMPLEX(dp), DIMENSION(LA, N),INTENT(INOUT) :: A
+      COMPLEX(dp), DIMENSION(N),    INTENT(INOUT) :: X
+      INTEGER,               INTENT(OUT)   :: IERR
+      REAL(dp) :: ABS1, ABS2
+      COMPLEX(dp) :: TEMP
+      REAL(dp), PARAMETER :: EPS = 1.D-70
+      INTEGER :: I, J, K, LH, LHM, NM, LHMK, NPMK, LPMI, IPIVOT, IP, JJ
 
       IF( MOD(L,2) .EQ. 0 ) GO TO 9000
       LH  = (L+1)/2
@@ -375,12 +399,7 @@
             ENDIF
          ENDDO
 
-!         IF( ABS2 .LT. EPS ) GO TO 9002
-      IF( ABS2 .LT. EPS ) THEN
-         write(6,'(A,I8,1P3E12.4)') 'A(1,I),EPS=',I,A(1,I),EPS
-         GOTO 9002
-      ENDIF
-
+         IF( ABS2 .LT. EPS ) GO TO 9002
          IF( IPIVOT .NE. I ) THEN
             TEMP        = X( I      )
             X( I      ) = X( IPIVOT )
@@ -408,10 +427,8 @@
          IF( LH .LT. N ) LH = LH + 1
       ENDDO
 
-!      IF( ABS(A(1,N)) .LT. EPS ) GO TO 9002
-!      IF( CDABS(A(1,N)) .LT. EPS ) GOTO 9002
-      IF( CDABS(A(1,N)) .LT. EPS ) THEN
-         write(6,'(A,1P3E12.4)') 'A(1,N),EPS=',A(1,N),EPS
+      IF( ABS(A(1,N)) .LT. EPS ) THEN
+         I=N
          GOTO 9002
       ENDIF
 
@@ -435,3 +452,4 @@
  9002 IERR = 30000+I
       RETURN
       END SUBROUTINE BANDCDU
+    END MODULE libbnd

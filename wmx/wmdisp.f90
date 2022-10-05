@@ -3,57 +3,48 @@
 MODULE wmdisp
 
   PRIVATE
-  PUBLIC wmtnsr
+  PUBLIC wm_tnsr
 
 CONTAINS
 
 !     ****** CALCULATE DIELECTRIC TENSOR ******
 
-  SUBROUTINE WMTNSR(NR,NS)
+  SUBROUTINE wm_tnsr(NR,NS,MD,ND)
 
 !           NR : NODE NUMBER (RADIAL POSITION)
 !           NS : PARTICLE SPECIES 
 
     USE wmcomm
     IMPLICIT NONE
-    INTEGER,INTENT(IN):: NR,NS
-    INTEGER:: NHH,NTH,ND,MD
-    INTEGER:: MODELP_save,MODELV_save
+    INTEGER,INTENT(IN):: NR,NS,MD,ND
+    INTEGER:: NTH,NHH
     
     DO NHH=1,NHHMAX_F
     DO NTH=1,NTHMAX_F
-       DO ND=NDMIN_F,NDMAX_F
-       DO MD=MDMIN_F,MDMAX_F
-          CTNSR(1,1,MD,ND,NTH,NHH)=0.D0
-          CTNSR(1,2,MD,ND,NTH,NHH)=0.D0
-          CTNSR(1,3,MD,ND,NTH,NHH)=0.D0
-          CTNSR(2,1,MD,ND,NTH,NHH)=0.D0
-          CTNSR(2,2,MD,ND,NTH,NHH)=0.D0
-          CTNSR(2,3,MD,ND,NTH,NHH)=0.D0
-          CTNSR(3,1,MD,ND,NTH,NHH)=0.D0
-          CTNSR(3,2,MD,ND,NTH,NHH)=0.D0
-          CTNSR(3,3,MD,ND,NTH,NHH)=0.D0
-       ENDDO
-       ENDDO
+       CTNSR(1,1,NTH,NHH)=0.D0
+       CTNSR(1,2,NTH,NHH)=0.D0
+       CTNSR(1,3,NTH,NHH)=0.D0
+       CTNSR(2,1,NTH,NHH)=0.D0
+       CTNSR(2,2,NTH,NHH)=0.D0
+       CTNSR(2,3,NTH,NHH)=0.D0
+       CTNSR(3,1,NTH,NHH)=0.D0
+       CTNSR(3,2,NTH,NHH)=0.D0
+       CTNSR(3,3,NTH,NHH)=0.D0
     ENDDO
     ENDDO
 
 
     IF((MOD(MODELA,2).EQ.1).AND.(NS.EQ.3)) THEN
-       CALL WMTNAX(NR)
+       CALL WMTNAX(NR,MD,ND)
     ELSEIF((MOD(MODELA/2,2).EQ.1).AND.(NS.EQ.1)) THEN
-       CALL WMTNEX(NR)
-    ELSEIF(NS.EQ.5.OR.NS.EQ.6) THEN
-       CALL WMTNDK(NR,NS)
+       CALL WMTNEX(NR,MD,ND)
+    ELSEIF(MODELP(NS).EQ.16) THEN
+       CALL WMTNDK(NR,NS,MD,ND)
     ELSE
-       IF(MODELP(NS).LT.0) THEN
-          CALL WMTNSX(NR,NS)
+       IF(MODELP(NS).GE.11) THEN
+          CALL WMTNSX(NR,NS,MD,ND)
        ELSE
-          IF(MODELV(NS).EQ.5) THEN
-             CALL WMDPDK(NR,NS)
-          ELSE
-             CALL WMDPIN(NR,NS)
-          ENDIF
+          CALL WMDPIN(NR,NS,MD,ND)
        ENDIF
     ENDIF
 
@@ -67,63 +58,60 @@ CONTAINS
 !      IF(NR.EQ.2) STOP
 
     RETURN
-  END SUBROUTINE WMTNSR
+  END SUBROUTINE wm_tnsr
 
-!     ****** CALCULATE DIELECTRIC TENSOR ******
+!     ****** CALCULATE DIELECTRIC TENSOR: MODELP=11..16 ******
 
-  SUBROUTINE WMTNSX(NR,NS)
+  SUBROUTINE WMTNSX(NR,NS,MD,ND)
 
 !           NR : NODE NUMBER (RADIAL POSITION)
 !           NS : PARTICLE SPECIES 
 
     USE wmcomm
+    USE wmprof
     USE libdsp,ONLY: DSPFN
     IMPLICIT NONE
-    INTEGER,INTENT(IN):: NR,NS
+    INTEGER,INTENT(IN):: NR,NS,MD,ND
     REAL(rkind):: RN(NSMAX),RTPR(NSMAX),RTPP(NSMAX),RU(NSMAX)
-    INTEGER:: NHH,NTH,ND,NN,MD,MM,NSS,NC
-    REAL(rkind):: WW,BABS,BSUPTH,BSUPH,RKTH,RKPH,RKPR
-    REAL(rkind):: RNPR,DTT,DTX,AM,AE,WP,WC,RNPP2,RKPP2,RKX2,RKPP,RKT2,RKR2
-    REAL(rkind):: UXX2,UYY2,T,RWC,RKTPR,RKTPP
+    INTEGER:: NHH,NTH,NN,MM,NSS,NC
+    REAL(rkind):: WW,BABS,BSUPTH,BSUPPH,RKTH,RKPH,RKPR,RKPP
+    REAL(rkind):: RNPR,DTT,DTX,AM,AE,WP,WC,RNPP2,RKPP2,RKX2,RKT2,RKR2
+    REAL(rkind):: UXX2,UYY2,RWC,RKTPR,RKTPP,RT,BTH,WTPR,RKPR_EFF
     COMPLEX(rkind):: CW,CWN,CWU,CWP,CWC,CPERP,CPARA,CCROS,CPERM
     COMPLEX(rkind):: CGZ0,CGZ,CADD,CPERP1,CPERP2,CPERM2,CPARA1,CPARA2
-    COMPLEX(rkind):: CCROS1,CCROS2
+    COMPLEX(rkind):: CCROS1,CCROS2,CZ,CDZ
 
-
-
-      CW=2.D0*PI*CRF*1.D6
-      WW=DBLE(CW)
+    CW=2.D0*PI*DCMPLX(RF,RFI)*1.D6
+    WW=DBLE(CW)
 
       CALL WMCDEN(NR,RN,RTPR,RTPP,RU)
 
-!      IF(NS.EQ.1.AND.NR.EQ.1) THEN
-!         WRITE(6,'(A,1P6E12.4)') 'RN  :',(RN(NS1),NS1=1,NSMAX)
-!         WRITE(6,'(A,1P6E12.4)') 'RTPR:',(RTPR(NS1),NS1=1,NSMAX)
-!         WRITE(6,'(A,1P6E12.4)') 'RTPP:',(RTPP(NS1),NS1=1,NSMAX)
-!      ENDIF
+      DO NHH=1,NHHMAX_F
+      DO NTH=1,NTHMAX_F
 
-      DO NHH=1,NHHMAX
-      DO NTH=1,NTHMAX
          CALL WMCMAG(NR,NTH,NHH,BABS,BSUPTH,BSUPPH)
-!         IF(NR.EQ.1.AND.NTH.EQ.1.AND.NHH.EQ.1) THEN
-!            WRITE(6,*) 'BABS:',BABS,BSUPTH,BSUPPH
-!         ENDIF
 
-         DO ND=-NDSIZX,NDSIZX
+         IF(MDLWMK.EQ.1) THEN
+            BTH=ABS(BSUPTH*RA*XRHO(NR))
+            WTPR=RTPR(NS)*1.D3*AEE/(AMP*PA(NS))
+!            RKPR_EFF=SQRT(WW*BTH/SQRT(8.D0*WTPR)/RR/BABS)
+            RKPR_EFF=SQRT(WW*BTHOBN(NR)/SQRT(8.D0*WTPR)/RR)
+         ELSE
+            RKPR_EFF=0.D0
+         END IF
+
             NN=NPH0+NHC*ND
-         DO MD=-MDSIZX,MDSIZX
             MM=NTH0+MD
 
             RKTH=MM*BSUPTH/BABS
             RKPH=NN*BSUPPH/BABS
             RKPR=RKTH+RKPH
 
-!            WRITE(11,'(5I5,1P2E12.4)') NR,NN,MM,NHH,NTH,RKPR,BABS
-
+            IF(ABS(RKPR).LE.RKPR_EFF) RKPR=DSIGN(RKPR_EFF,RKPR)
             IF(ABS(RKPR).LT.1.D-5) RKPR=1.D-5
             RNPR=VC*RKPR/WW
 
-            IF(MODELP(NS).EQ.-4) THEN
+            IF(MODELP(NS).EQ.14) THEN  ! evaluate cold k_perp
                DTT=1.D0
                DTX=0.D0
                DO NSS=1,NSMAX
@@ -140,7 +128,6 @@ CONTAINS
                    +2.D0*MM*NN*RG23(NTH,NHH,NR)*XRHO(NR) &
                    +     NN*NN*RG33(NTH,NHH,NR)
                IF(RKPP2.GT.0.D0) THEN
-!                  RKPP=SQRT(RKPP2)
                   RKT2=RKX2-RKPR**2
                   IF(RKT2.GT.0.D0) THEN
                      IF(RKT2.LE.RKPP2) THEN
@@ -173,7 +160,8 @@ CONTAINS
 
             AM=PA(NS)*AMP
             AE=PZ(NS)*AEE
-            IF(MODELP(NS).EQ.-1) THEN
+
+            IF(MODELP(NS).EQ.11) THEN
                CWN=CW-RU(NS)* RKPR+CI*PZCL(NS)*WW
                CWU=CW-RU(NS)* RKPR
                CWP=AE*AE*RN(NS)*1.D20/(AM*EPS0)
@@ -187,7 +175,7 @@ CONTAINS
                END IF
                CCROS=(0.D0,0.D0)
                CPERM=(0.D0,0.D0)
-            ELSE IF(MODELP(NS).EQ.-2) THEN
+            ELSE IF(MODELP(NS).EQ.12) THEN
                CWN=CW-RU(NS)* RKPR+CI*PZCL(NS)*WW
                CWU=CW-RU(NS)* RKPR
                CWP=AE*AE*RN(NS)*1.D20/(AM*EPS0)
@@ -199,8 +187,7 @@ CONTAINS
                           +2*RKPP2*RU(NS)*RU(NS)/(CWN*CWN-CWC*CWC) &
                            *CWN/CWU)
                CPERM=(0.D0,0.D0)
-!               WRITE(6,*) NR,NS,CPERP,CPARA
-            ELSE IF(MODELP(NS).EQ.-3) THEN
+            ELSE IF(MODELP(NS).EQ.13) THEN
                RT=(RTPR(NS)+2*RTPP(NS))/3.D0
                RKTPR=ABS(RKPR)*SQRT(2.D0*RT*AEE*1.D3/AM)
                CWP=AE*AE*RN(NS)*1.D20/(AM*EPS0*CW*CW)
@@ -226,7 +213,7 @@ CONTAINS
                   ENDIF
                ENDDO
                CPERM=(0.D0,0.D0)
-            ELSE IF(MODELP(NS).EQ.-4) THEN
+            ELSE IF(MODELP(NS).EQ.14) THEN
                CWP=AE*AE*RN(NS)*1.D20/(AM*EPS0*CW*CW)
                RWC=AE*BABS/AM
                RKTPR=ABS(RKPR)*SQRT(2.D0*RTPR(NS)*AEE*1.D3/AM)
@@ -304,26 +291,26 @@ CONTAINS
 !         WRITE(6,*) 'UXX2,UYY2:',UXX2,UYY2
 !      ENDIF
 
-!            CTNSR(1,1,MD,ND,NTH,NHH)= CPERP + UXX2*CPERM
-!            CTNSR(1,2,MD,ND,NTH,NHH)=-CCROS
-!            CTNSR(1,3,MD,ND,NTH,NHH)= 0.D0
-!            CTNSR(2,1,MD,ND,NTH,NHH)= CCROS
-!            CTNSR(2,2,MD,ND,NTH,NHH)= CPERP + UYY2*CPERM
-!            CTNSR(2,3,MD,ND,NTH,NHH)= 0.D0
-!            CTNSR(3,1,MD,ND,NTH,NHH)= 0.D0
-!            CTNSR(3,2,MD,ND,NTH,NHH)= 0.D0
-!            CTNSR(3,3,MD,ND,NTH,NHH)= CPARA
+!            CTNSR(1,1,NTH,NHH)= CPERP + UXX2*CPERM
+!            CTNSR(1,2,NTH,NHH)=-CCROS
+!            CTNSR(1,3,NTH,NHH)= 0.D0
+!            CTNSR(2,1,NTH,NHH)= CCROS
+!            CTNSR(2,2,NTH,NHH)= CPERP + UYY2*CPERM
+!            CTNSR(2,3,NTH,NHH)= 0.D0
+!            CTNSR(3,1,NTH,NHH)= 0.D0
+!            CTNSR(3,2,NTH,NHH)= 0.D0
+!            CTNSR(3,3,NTH,NHH)= CPARA
 
-            CTNSR(1,1,MD,ND,NTH,NHH) &
-           =CTNSR(1,1,MD,ND,NTH,NHH) + CPERP + UXX2*CPERM
-            CTNSR(1,2,MD,ND,NTH,NHH) &
-           =CTNSR(1,2,MD,ND,NTH,NHH) - CCROS
-            CTNSR(2,1,MD,ND,NTH,NHH) &
-           =CTNSR(2,1,MD,ND,NTH,NHH) + CCROS
-            CTNSR(2,2,MD,ND,NTH,NHH) &
-           =CTNSR(2,2,MD,ND,NTH,NHH) + CPERP + UYY2*CPERM
-            CTNSR(3,3,MD,ND,NTH,NHH) &
-           =CTNSR(3,3,MD,ND,NTH,NHH) + CPARA
+            CTNSR(1,1,NTH,NHH) &
+           =CTNSR(1,1,NTH,NHH) + CPERP + UXX2*CPERM
+            CTNSR(1,2,NTH,NHH) &
+           =CTNSR(1,2,NTH,NHH) - CCROS
+            CTNSR(2,1,NTH,NHH) &
+           =CTNSR(2,1,NTH,NHH) + CCROS
+            CTNSR(2,2,NTH,NHH) &
+           =CTNSR(2,2,NTH,NHH) + CPERP + UYY2*CPERM
+            CTNSR(3,3,NTH,NHH) &
+           =CTNSR(3,3,NTH,NHH) + CPARA
 
 !            IF(NR.EQ.30.AND.NTH.EQ.1.AND.MDX.EQ.1) THEN
 !               WRITE(6,*) 'RN,RTPR,RTPP=',RN(1)/1.D20,
@@ -334,8 +321,6 @@ CONTAINS
 !               WRITE(6,*) 'CDZ(0)=',CDZ(0)
 !               WRITE(6,*) 'CTNSR(3,3)=',CTNSR(3,3,NTH,MDX)
 !            ENDIF
-         ENDDO
-         ENDDO
       ENDDO
       ENDDO
 
@@ -344,43 +329,59 @@ CONTAINS
 
 !     ****** IMPORT FROM TASK/DP ******
 
-  SUBROUTINE WMDPIN(NR,NS)
+  SUBROUTINE WMDPIN(NR,NS,MD,ND)
 
 !           NR : NODE NUMBER (RADIAL POSITION)
 !           NS : PARTICLE SPECIES 
 
     USE wmcomm
+    USE plprofw
+    USE plprof
+    USE wmprof
+    USE dptnsr0
+    USE dpdisp
     IMPLICIT NONE
-    INTEGER,INTENT(IN):: NR,NS
-    COMPLEX(rkind):: CDTNS(3,3)
-    INTEGER NDSIZX_TMP, MDSIZX_TMP
+    INTEGER,INTENT(IN):: NR,NS,MD,ND
+    TYPE(pl_prfw_type),DIMENSION(NSMAX):: plfw
+    TYPE(pl_mag_type):: mag
+    TYPE(pl_grd_type),DIMENSION(NSMAX):: grd
+    INTEGER:: NHH,NTH,MM,NN,NS1
+    COMPLEX(rkind):: CLDISP(6),CDTNS(3,3),CW,CKPR,CKPP
+    COMPLEX(rkind):: CKPPF,CKPPS
+    REAL(rkind):: RKX2,RKPPF2
+    REAL(rkind):: WW,RHON,RKPR_EFF,RKPR,RNPR,RKPP2
+    REAL(rkind):: BABS,BSUPTH,BSUPPH,BTH,WTPR,RKTH,RKPH
 
-      CW=2.D0*PI*CRF*1.D6
+    DO ns1=1,nsmax
+       grd(ns1)%grdn=0.D0
+       grd(ns1)%grdtpr=0.D0
+       grd(ns1)%grdtpp=0.D0
+       grd(ns1)%grdu=0.D0
+    END DO
+
+     CW=2.D0*PI*DCMPLX(RF,RFI)*1.D6
       WW=DBLE(CW)
 
       RHON=XRHO(NR)
-      CALL PL_PROF_OLD(RHON)
-      NDSIZX_TMP=NDSIZX_F
-      MDSIZX_TMP=MDSIZX_F
-      IF (NDSIZX_TMP==1)NDSIZX_TMP=0
-      IF (MDSIZX_TMP==1)MDSIZX_TMP=0
+      CALL pl_profw(rhon,plfw)
 
       DO NHH=1,NHHMAX_F
       DO NTH=1,NTHMAX_F
-         CALL WMCMAG_F(NR,NTH,NHH,BABS,BSUPTH,BSUPPH)
-         BTH=ABS(BSUPTH*RA*RHON)
-!         BTH=ABS(BSUPTH*RA)
-         WTPR=RTPR(NS)*1.D3*AEE/(AMP*PA(NS))
-!         RKPR_EFF=SQRT(CW*BTH/SQRT(8.D0*WTPR)/RR/BABS)
-         RKPR_EFF=SQRT(CW*BTHOBN(NR)/SQRT(8.D0*WTPR)/RR)
-         IF (RKPR_EFF < 1d-5)then
-           print *,RKPR_EFF,BTH,WKPT
-           RKPR_EFF=1.D-5
-           STOP
-         endif
-         DO ND=-NDSIZX_TMP,NDSIZX_TMP
+         CALL WMCMAG(NR,NTH,NHH,BABS,BSUPTH,BSUPPH)
+         mag%babs=babs
+         mag%bnx=0.D0
+         mag%bny=0.D0
+         mag%bnz=1.D0
+         mag%rhon=rhon
+         IF(MDLWMK.EQ.1) THEN
+            BTH=ABS(BSUPTH*RA*XRHO(NR))
+            WTPR=plfw(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))
+            RKPR_EFF=SQRT(WW*BTH/SQRT(8.D0*WTPR)/RR/BABS)
+         ELSE
+            RKPR_EFF=0.D0
+         END IF
+
             NN=NPH0+NHC*ND
-         DO MD=-MDSIZX_TMP,MDSIZX_TMP
             MM=NTH0+MD
 
             RKTH=MM*BSUPTH/BABS
@@ -388,149 +389,100 @@ CONTAINS
             RKPR=RKTH+RKPH
 
             IF(ABS(RKPR).LE.RKPR_EFF) RKPR=SIGN(RKPR_EFF,RKPR)
+            IF(ABS(RKPR).LT.1.D-5) RKPR=1.D-5
             RNPR=VC*RKPR/WW
-
-            IF(MODELP(NS).EQ.5.OR.MODELP(NS).EQ.15) THEN
-               DTT=1.D0
-               DTX=0.D0
-               DO NSS=1,NSMAX
-                  AM=PA(NSS)*AMP
-                  AE=PZ(NSS)*AEE
-                  WP=AE*AE*RN(NSS)*1.D20/(AM*EPS0)
-                  WC=AE*BABS/AM
-                  DTT=DTT-WP/(WW*WW-WC*WC)
-                  DTX=DTX-WP*WC/((WW*WW-WC*WC)*WW)
-               ENDDO
-               RNPP2=((DTT-RNPR**2)**2-DTX**2)/(DTT-RNPR**2)
-               RKPP2=RNPP2*WW*WW/(VC*VC)
-               IF (NR .eq. 1)then
-                  RKX2=     MM*MM*RGI22(NTH,NHH,NR)*(1d6/XRHO(2))**2 &
-                      +2.D0*MM*NN*RGI23(NTH,NHH,NR)*(1d6/XRHO(2)) &
-                      +     NN*NN*RGI33(NTH,NHH,NR)
-               ELSE
-                  RKX2=     MM*MM*RGI22(NTH,NHH,NR)/XRHO(NR)**2 &
-                      +2.D0*MM*NN*RGI23(NTH,NHH,NR)/XRHO(NR) &
-                      +     NN*NN*RGI33(NTH,NHH,NR)
-               ENDIF
-
-               IF(RKPP2.GT.0.D0) THEN
-                  RKPP=SQRT(RKPP2)
-                  RKT2=RKX2-RKPR**2
-                  IF(RKT2.GE.0.D0) THEN
-                     IF(RKT2.LE.RKPP2) THEN
-                        RKR2=RKPP2-RKT2
-                     ELSE
-                        RKR2=0.D0
-                     ENDIF
-                  ELSE
-                     RKT2=0.D0
-                     RKR2=RKPP2
-                  ENDIF
-                  UXX2= RKT2/RKPP2
-                  UYY2= RKR2/RKPP2
-               ELSE
-                  RKPP=0.D0
-                  RKT2=0.D0
-                  RKR2=0.D0
-                  UXX2=0.D0
-                  UYY2=0.D0
+            
+            CKPR=RKPR
+            CALL DPCOLD_RKPERP(CW,CKPR,mag,plfw,CKPPF,CKPPS)
+            IF(NR.EQ.1) THEN
+               CKPP=(0.D0,0.D0)
+               IF (MM .eq. 0)THEN
+                 RKPPF2=real(CKPPF**2)
+                 IF (RKPPF2 .gt. 0 )THEN
+                   CKPP=CKPPF
+                 ELSE
+                   CKPP=(0.D0,0.D0)
+                 ENDIF
                ENDIF
             ELSE
-               RKPP2=0.D0
-               RKPP=0.D0
-               RKT2=0.D0
-               RKR2=0.D0
-               UXX2=0.D0
-               UYY2=0.D0
-            ENDIF
+!               WRITE(6,'(A,5I4,3ES12.4)') &
+!                    'wmdisp:',NR,NS,MM,NN,NTH,XR(NR),RPS(NTH,NR),RKPR
+               RKX2=     MM*MM*RGI22(NTH,NHH,NR)/XRHO(NR)**2 &
+                  + 2.D0*MM*NN*RGI23(NTH,NHH,NR)/XRHO(NR)    &
+                  +      NN*NN*RGI33(NTH,NHH,NR)
+               RKPP2=RKX2-RKPR**2
+               RKPPF2=real(CKPPF**2)
+               IF(RKPPF2.GT.0.D0.AND.RKPPF2.GE.RKPP2) THEN
+                  CKPP=CKPPF
+               ELSE
+                  CKPP=(0.D0,0.D0)
+               END IF
+!               CKPP=CKPPF
+!               IF (RKPPF2 .gt. 0 )THEN
+!                 IF (RKPPF2 .lt. RKPP2)THEN
+!                    CKPP=(0.D0,0.D0)
+!                 END IF
+!               ELSE
+!                 CKPP=(0.D0,0.D0)
+!               END IF
+            END IF
+               
+!            CKPR=RKPR
+            CALL dp_tnsr0(CW,CKPR,CKPP,ns,mag,plfw,grd,CLDISP)
+            CDTNS(1,1)= CLDISP(1)
+            CDTNS(1,2)= CLDISP(5)
+            CDTNS(1,3)= CLDISP(4)
+            CDTNS(2,1)=-CLDISP(5)
+            CDTNS(2,2)= CLDISP(1)+CLDISP(3)
+            CDTNS(2,3)= CLDISP(6)
+            CDTNS(3,1)= CLDISP(4)
+            CDTNS(3,2)=-CLDISP(6)
+            CDTNS(3,3)= CLDISP(1)+CLDISP(2)
+!            WRITE(6,'(A,3I6)') 'modelp:',modelp(1),modelp(2)
+!            WRITE(6,'(A,6E12.4)') 'CW:,',CW,CKPR,CKPP
+!            WRITE(6,'(A,5E12.4)') &
+!                 'mag:',mag%babs,mag%bnx,mag%bny,mag%bnz,mag%rhon
+!            WRITE(6,'(A,3E12.4)') &
+!                 'plfw:ns=1:',plfw(1)%rn,plfw(1)%rtpr,plfw(1)%rtpp
+!            WRITE(6,'(A,3E12.4)') &
+!                 'plfw:ns=2:',plfw(2)%rn,plfw(2)%rtpr,plfw(2)%rtpp
+!            WRITE(6,'(A,(6ES12.4))') 'CDTNS:',CDTNS(1:3,1:3)
+!            IF(NR.EQ.3) STOP
+            CTNSR(1,1,NTH,NHH) &
+           =CTNSR(1,1,NTH,NHH) + CDTNS(1,1)
+            CTNSR(1,2,NTH,NHH) &
+           =CTNSR(1,2,NTH,NHH) + CDTNS(1,2)
+            CTNSR(2,1,NTH,NHH) &
+           =CTNSR(2,1,NTH,NHH) + CDTNS(2,1)
+            CTNSR(2,2,NTH,NHH) &
+           =CTNSR(2,2,NTH,NHH) + CDTNS(1,1)
+            CTNSR(3,3,NTH,NHH) &
+           =CTNSR(3,3,NTH,NHH) + CDTNS(3,3)
 
-            CKPR=RKPR
-            CKPP=RKPP
-
-            CALL DPCALC_2(CW,CKPR,CKPP,RHON,BABS,BTH,NS,CDTNS)
-
-            CPERM=CDTNS(2,2)-CDTNS(1,1)
-
-            CTNSR(1,1,MD,ND,NTH,NHH) &
-           =CTNSR(1,1,MD,ND,NTH,NHH) + CDTNS(1,1) + UXX2*CPERM
-            CTNSR(1,2,MD,ND,NTH,NHH) &
-           =CTNSR(1,2,MD,ND,NTH,NHH) + CDTNS(1,2)
-            CTNSR(2,1,MD,ND,NTH,NHH) &
-           =CTNSR(2,1,MD,ND,NTH,NHH) + CDTNS(2,1)
-            CTNSR(2,2,MD,ND,NTH,NHH) &
-           =CTNSR(2,2,MD,ND,NTH,NHH) + CDTNS(1,1) + UYY2*CPERM
-            CTNSR(3,3,MD,ND,NTH,NHH) &
-           =CTNSR(3,3,MD,ND,NTH,NHH) + CDTNS(3,3)
-
-         ENDDO
-         ENDDO
       ENDDO
       ENDDO
 
       RETURN
   END SUBROUTINE WMDPIN
 
-!     ****** IMPORT FROM TASK/DP ******
-
-  SUBROUTINE WMDPDK(NR,NS)
-
-!           NR : NODE NUMBER (RADIAL POSITION)
-!           NS : PARTICLE SPECIES 
-
-    USE wmcomm
-    IMPLICIT NONE
-    INTEGER,INTENT(IN):: NR,NS
-      DIMENSION CDTNS(3,3)
-
-      CW=2.D0*PI*CRF*1.D6
-
-      RHON=XRHO(NR)
-      CALL PL_PROF_OLD(RHON)
-      IF(RN(NS).EQ.0.D0) RETURN
-
-      DO NHH=1,NHHMAX
-      DO NTH=1,NTHMAX
-         
-         CALL WMCMAG(NR,NTH,NHH,BABS,BSUPTH,BSUPPH)
-
-         DO ND=-NDSIZX,NDSIZX
-            NN=NPH0+NHC*ND
-         DO MD=-MDSIZX,MDSIZX
-            MM=NTH0+MD
-
-            RKTH=MM*BSUPTH/BABS
-            RKPH=NN*BSUPPH/BABS
-            RKPR=RKTH+RKPH
-            IF(ABS(RKPR).LT.1.D-5) RKPR=1.D-5
-
-            CKPR=RKPR
-
-            CALL DPDKDT(CW,CKPR,NS,NR,NTH,NTH,MM,CDTNS)
-
-            DO j=1,3
-            DO i=1,3
-               CTNSR(i,j,MD,ND,NTH,NHH) &
-                    =CTNSR(i,j,MD,ND,NTH,NHH)+CDTNS(i,j)
-            ENDDO
-            ENDDO
-         ENDDO
-         ENDDO
-      ENDDO
-      ENDDO
-
-      RETURN
-  END SUBROUTINE WMDPDK
-
 !     ****** CALCULATE ALPHA PARTICLE MAGNETIC DRIFT DIELECTRIC TENSOR ******
 
-  SUBROUTINE WMTNAX(NR)
+  SUBROUTINE WMTNAX(NR,MD,ND)
 
     USE wmcomm
+    USE wmprof
     IMPLICIT NONE
-    INTEGER,INTENT(IN):: NR
+    INTEGER,INTENT(IN):: NR,MD,ND
+    INTEGER:: NHH,NTH,NN,MM,NSEP
+    REAL(rkind):: WW,XL,RNA,DRN,RTA,AM,AE,VTA,WP2
+    REAL(rkind):: BABS,BSUPTH,BSUPPH,BTH,WTPR,RKPR,RKPR_EFF
+    REAL(rkind):: ANGTH,WC,RHOA,RHOR,RKTH,RKPH
+    COMPLEX(rkind):: CW,COEF,CWAST,CFN,CX,CEX,CPM,CQM,CRM
 
-      CW=2.D0*PI*CRF*1.D6
+      CW=2.D0*PI*DCMPLX(RF,RFI)*1.D6
+      WW=2.D0*PI*RF*1.D6
 
+      NSEP=3
       CALL WMCPOS(NR,XL)
       IF(XL.LT.RA) THEN
          RNA=PNA*EXP(-(XL/PNAL)**2)*1.D20
@@ -539,16 +491,26 @@ CONTAINS
          RETURN
       ENDIF
       RTA=PTA*AEE*1.D3
-      AM=PA(3)*AMP
-      AE=PZ(3)*AEE
+      AM=PA(NSEP)*AMP
+      AE=PZ(NSEP)*AEE
       VTA=SQRT(2.D0*RTA/AM)
       WP2=AE*AE*RNA/(AM*EPS0)
 
-      DO NHH=1,NHHMAX
-      DO NTH=1,NTHMAX
+      DO NHH=1,NHHMAX_F
+      DO NTH=1,NTHMAX_F
+
          CALL WMCMAG(NR,NTH,NHH,BABS,BSUPTH,BSUPPH)
-         ANGTH=(NTH-1)*2.D0*PI/NTHMAX
-!         ANGPH=(NHH-1)*2.D0*PI/NHHMAX
+
+         IF(MDLWMK.EQ.1) THEN
+            BTH=ABS(BSUPTH*RA*XRHO(NR))
+            WTPR=RTA*1.D3*AEE/(AMP*PA(NSEP))
+            RKPR_EFF=SQRT(WW*BTH/SQRT(8.D0*WTPR)/RR/BABS)
+         ELSE
+            RKPR_EFF=0.D0
+         END IF
+
+         ANGTH=(NTH-1)*2.D0*PI/NTHMAX_F
+!         ANGPH=(NHH-1)*2.D0*PI/NHHMAX_F
          WC=AE*BABS/AM
          RHOA=VTA/WC
          RHOR=RHOA/RR
@@ -559,14 +521,13 @@ CONTAINS
             CWAST=RTA*DRN/(BABS*CW*AE*XL)
          ENDIF
 
-         DO ND=-NDSIZX,NDSIZX
             NN=NPH0+NHC*ND
-         DO MD=-MDSIZX,MDSIZX
             MM=NTH0+MD
             CFN=1.D0-CWAST*MM
             RKTH=MM*BSUPTH/BABS
             RKPH=NN*BSUPPH/BABS
             RKPR=RKTH+RKPH
+            IF(ABS(RKPR).LT.RKPR_EFF) RKPR=RKPR_EFF
             IF(ABS(RKPR).LT.1.D-5) RKPR=1.D-5
 
             CX=CW/(ABS(RKPR)*VTA)
@@ -579,26 +540,24 @@ CONTAINS
             CQM=CFN*COEF*RHOR     *CEX*CX*CX*(1.D0+2.D0*CX*CX)
             CRM=CFN*COEF          *CEX*CX*CX*CX*2.D0
 
-            CTNSR(1,1,MD,ND,NTH,NHH) &
-           =CTNSR(1,1,MD,ND,NTH,NHH)+CPM*COS(ANGTH)**2
-            CTNSR(1,2,MD,ND,NTH,NHH) &
-           =CTNSR(1,2,MD,ND,NTH,NHH)+CPM*COS(ANGTH)*SIN(ANGTH)
-            CTNSR(1,3,MD,ND,NTH,NHH) &
-           =CTNSR(1,3,MD,ND,NTH,NHH)+CQM*COS(ANGTH)
-            CTNSR(2,1,MD,ND,NTH,NHH) &
-           =CTNSR(2,1,MD,ND,NTH,NHH)+CPM*COS(ANGTH)*SIN(ANGTH)
-            CTNSR(2,2,MD,ND,NTH,NHH) &
-           =CTNSR(2,2,MD,ND,NTH,NHH)+CPM*SIN(ANGTH)**2
-            CTNSR(2,3,MD,ND,NTH,NHH) &
-           =CTNSR(2,3,MD,ND,NTH,NHH)+CQM*SIN(ANGTH)
-            CTNSR(3,1,MD,ND,NTH,NHH) &
-           =CTNSR(3,1,MD,ND,NTH,NHH)+CQM*COS(ANGTH)
-            CTNSR(3,2,MD,ND,NTH,NHH) &
-           =CTNSR(3,2,MD,ND,NTH,NHH)+CQM*SIN(ANGTH)
-            CTNSR(3,3,MD,ND,NTH,NHH) &
-           =CTNSR(3,3,MD,ND,NTH,NHH)+CRM
-         ENDDO
-         ENDDO
+            CTNSR(1,1,NTH,NHH) &
+           =CTNSR(1,1,NTH,NHH)+CPM*COS(ANGTH)**2
+            CTNSR(1,2,NTH,NHH) &
+           =CTNSR(1,2,NTH,NHH)+CPM*COS(ANGTH)*SIN(ANGTH)
+            CTNSR(1,3,NTH,NHH) &
+           =CTNSR(1,3,NTH,NHH)+CQM*COS(ANGTH)
+            CTNSR(2,1,NTH,NHH) &
+           =CTNSR(2,1,NTH,NHH)+CPM*COS(ANGTH)*SIN(ANGTH)
+            CTNSR(2,2,NTH,NHH) &
+           =CTNSR(2,2,NTH,NHH)+CPM*SIN(ANGTH)**2
+            CTNSR(2,3,NTH,NHH) &
+           =CTNSR(2,3,NTH,NHH)+CQM*SIN(ANGTH)
+            CTNSR(3,1,NTH,NHH) &
+           =CTNSR(3,1,NTH,NHH)+CQM*COS(ANGTH)
+            CTNSR(3,2,NTH,NHH) &
+           =CTNSR(3,2,NTH,NHH)+CQM*SIN(ANGTH)
+            CTNSR(3,3,NTH,NHH) &
+           =CTNSR(3,3,NTH,NHH)+CRM
       ENDDO
       ENDDO
       RETURN
@@ -606,23 +565,31 @@ CONTAINS
 
 !     ****** CALCULATE ALPHA PARTICLE MAGNETIC DRIFT DIELECTRIC TENSOR ******
 
-  SUBROUTINE WMTNEX(NR)
+  SUBROUTINE WMTNEX(NR,MD,ND)
 
     USE wmcomm
+    USE wmprof
     IMPLICIT NONE
-    INTEGER,INTENT(IN):: NR
-    DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
-
-      CW=2.D0*PI*CRF*1.D6
+    INTEGER,INTENT(IN):: NR,MD,ND
+    REAL(rkind):: RN(NSMAX),RTPR(NSMAX),RTPP(NSMAX),RU(NSMAX)
+    INTEGER:: NSEL,NHH,NTH,NN,MM
+    REAL(rkind):: WW,XL,XLP,RNX,RTX,RNXP,XLM,RNXM,RTE,AM,AE,VTE,WP2
+    REAL(rkind):: BABS,BSUPTH,BSUPPH,BTH,WTPR,RKPR_EFF
+    REAL(rkind):: ANGTH,WC,RHOE,RHOR,RKTH,RKPH,RKPR,RNE,DRN
+    COMPLEX(rkind):: CW,COEF,CWAST,CFN,CX,CEX,CPM,CQM,CRM
+    
+      CW=2.D0*PI*DCMPLX(RF,RFI)*1.D6
+      WW=2.D0*PI*RF*1.D6
 
       CALL WMCPOS(NR,XL)
       CALL WMCDEN(NR,RN,RTPR,RTPP,RU)
-      RNX=RN(1)
-      RTX=RTPP(1)
+      NSEL=1
+      RNX=RN(NSEL)
+      RTX=RTPP(NSEL)
       IF(NR.LT.NRMAX) THEN
          CALL WMCPOS(NR+1,XLP)
          CALL WMCDEN(NR+1,RN,RTPR,RTPP,RU)
-         RNXP=RN(1)
+         RNXP=RN(NSEL)
       ELSE
          XLP=XL
          RNXP=RNX
@@ -630,7 +597,7 @@ CONTAINS
       IF(NR.GT.1) THEN
          CALL WMCPOS(NR-1,XLM)
          CALL WMCDEN(NR-1,RN,RTPR,RTPP,RU)
-         RNXM=RN(1)
+         RNXM=RN(NSEL)
       ELSE
          XLM=XL
          RNXM=RNX
@@ -647,11 +614,20 @@ CONTAINS
       VTE=SQRT(2.D0*RTE/AM)
       WP2=AE*AE*RNE*1.D20/(AM*EPS0)
 
-      DO NHH=1,NHHMAX
-      DO NTH=1,NTHMAX
+      DO NHH=1,NHHMAX_F
+      DO NTH=1,NTHMAX_F
          CALL WMCMAG(NR,NTH,NHH,BABS,BSUPTH,BSUPPH)
-         ANGTH=(NTH-1)*2.D0*PI/NTHMAX
-!         ANGPH=(NHH-1)*2.D0*PI/NHHMAX
+
+         IF(MDLWMK.EQ.1) THEN
+            BTH=ABS(BSUPTH*RA*XRHO(NR))
+            WTPR=RTPR(NSEL)*1.D3*AEE/(AMP*PA(NSEL))
+            RKPR_EFF=SQRT(WW*BTH/SQRT(8.D0*WTPR)/RR/BABS)
+         ELSE
+            RKPR_EFF=0.D0
+         END IF
+
+         ANGTH=(NTH-1)*2.D0*PI/NTHMAX_F
+!         ANGPH=(NHH-1)*2.D0*PI/NHHMAX_F
          WC=AE*BABS/AM
          RHOE=VTE/WC
          RHOR=RHOE/RR
@@ -662,14 +638,13 @@ CONTAINS
             CWAST=RTE*DRN/(BABS*CW*AE*XL)
          ENDIF
 
-         DO ND=-NDSIZX,NDSIZX
             NN=NPH0+NHC*ND
-         DO MD=-MDSIZX,MDSIZX
             MM=NTH0+MD
             CFN=1.D0-CWAST*MM
             RKTH=MM*BSUPTH/BABS
             RKPH=NN*BSUPPH/BABS
             RKPR=RKTH+RKPH
+            IF(ABS(RKPR).LT.RKPR_EFF) RKPR=RKPR_EFF
             IF(ABS(RKPR).LT.1.D-5) RKPR=1.D-5
 
             CX=CW/(ABS(RKPR)*VTE)
@@ -682,26 +657,24 @@ CONTAINS
             CQM=CFN*COEF*RHOR     *CEX*CX*CX*(1.D0+2.D0*CX*CX)
             CRM=CFN*COEF          *CEX*CX*CX*CX*2.D0
 
-            CTNSR(1,1,MD,ND,NTH,NHH) &
-           =CTNSR(1,1,MD,ND,NTH,NHH)+CPM*COS(ANGTH)**2
-            CTNSR(1,2,MD,ND,NTH,NHH) &
-           =CTNSR(1,2,MD,ND,NTH,NHH)+CPM*COS(ANGTH)*SIN(ANGTH)
-            CTNSR(1,3,MD,ND,NTH,NHH) &
-           =CTNSR(1,3,MD,ND,NTH,NHH)+CQM*COS(ANGTH)
-            CTNSR(2,1,MD,ND,NTH,NHH) &
-           =CTNSR(2,1,MD,ND,NTH,NHH)+CPM*COS(ANGTH)*SIN(ANGTH)
-            CTNSR(2,2,MD,ND,NTH,NHH) &
-           =CTNSR(2,2,MD,ND,NTH,NHH)+CPM*SIN(ANGTH)**2
-            CTNSR(2,3,MD,ND,NTH,NHH) &
-           =CTNSR(2,3,MD,ND,NTH,NHH)+CQM*SIN(ANGTH)
-            CTNSR(3,1,MD,ND,NTH,NHH) &
-           =CTNSR(3,1,MD,ND,NTH,NHH)+CQM*COS(ANGTH)
-            CTNSR(3,2,MD,ND,NTH,NHH) &
-           =CTNSR(3,2,MD,ND,NTH,NHH)+CQM*SIN(ANGTH)
-            CTNSR(3,3,MD,ND,NTH,NHH) &
-           =CTNSR(3,3,MD,ND,NTH,NHH)+CRM
-         ENDDO
-         ENDDO
+            CTNSR(1,1,NTH,NHH) &
+           =CTNSR(1,1,NTH,NHH)+CPM*COS(ANGTH)**2
+            CTNSR(1,2,NTH,NHH) &
+           =CTNSR(1,2,NTH,NHH)+CPM*COS(ANGTH)*SIN(ANGTH)
+            CTNSR(1,3,NTH,NHH) &
+           =CTNSR(1,3,NTH,NHH)+CQM*COS(ANGTH)
+            CTNSR(2,1,NTH,NHH) &
+           =CTNSR(2,1,NTH,NHH)+CPM*COS(ANGTH)*SIN(ANGTH)
+            CTNSR(2,2,NTH,NHH) &
+           =CTNSR(2,2,NTH,NHH)+CPM*SIN(ANGTH)**2
+            CTNSR(2,3,NTH,NHH) &
+           =CTNSR(2,3,NTH,NHH)+CQM*SIN(ANGTH)
+            CTNSR(3,1,NTH,NHH) &
+           =CTNSR(3,1,NTH,NHH)+CQM*COS(ANGTH)
+            CTNSR(3,2,NTH,NHH) &
+           =CTNSR(3,2,NTH,NHH)+CQM*SIN(ANGTH)
+            CTNSR(3,3,NTH,NHH) &
+           =CTNSR(3,3,NTH,NHH)+CRM
       ENDDO
       ENDDO
       RETURN
@@ -709,21 +682,32 @@ CONTAINS
 
 !     ****** CALCULATE MAGNETIC DRIFT DIELECTRIC TENSOR ******
 
-  SUBROUTINE WMTNDK(NR,NS)
+  SUBROUTINE WMTNDK(NR,NS,MD,ND)
 
     USE wmcomm
+    USE plprof
+    USE plprofw
+    USE wmprof
     IMPLICIT NONE
-    INTEGER,INTENT(IN):: NR,NS
+    TYPE(pl_prfw_type),DIMENSION(NSMAX):: plfw
+    INTEGER,INTENT(IN):: NR,NS,MD,ND
+    INTEGER:: NHH,NTH,NN,MM
+    REAL(rkind):: WW,RHON,RNAP,RTAP,RNA,RTA,DRN
+    REAL(rkind):: XL,AM,AE,VTA,WP2,BSUPTH,BSUPPH
+    REAL(rkind):: BABS,BTH,WTPR,RKPR_EFF,ANGTH,WC,RHOA,RHOR
+    REAL(rkind):: RKTH,RKPH,RKPR
+    COMPLEX(rkind):: CW,COEF,CWAST,CFN,CX,CEX,CPM,CQM,CRM
 
-      CW=2.D0*PI*CRF*1.D6
+      CW=2.D0*PI*DCMPLX(RF,RFI)*1.D6
+      WW=2.D0*PI*RF*1.D6
 
       RHON=XRHO(NR)
-      CALL PL_PROF_OLD(RHON+0.01D0)
-      RNAP=RN(NS)*1.D20
-      RTAP=(RTPR(NS)+RTPP(NS))/3.D0*1.D3*AEE
-      CALL PL_PROF_OLD(RHON)
-      RNA=RN(NS)*1.D20
-      RTA=(RTPR(NS)+RTPP(NS))/3.D0*1.D3*AEE
+      CALL pl_profw(RHON+0.01D0,plfw)
+      RNAP=plfw(NS)%RN*1.D20
+      RTAP=(plfw(NS)%RTPR+2.D0*plfw(NS)%RTPP)/3.D0*1.D3*AEE
+      CALL pl_profw(RHON,plfw)
+      RNA=plfw(NS)%RN*1.D20
+      RTA=(plfw(NS)%RTPR+2.D0*plfw(NS)%RTPP)/3.D0*1.D3*AEE
       DRN=(RNAP-RNA)/(0.01D0*RA*RNA)
 !      WRITE(6,'(I5,1P3E12.4)') NR,RNA,RTA,DRN
 
@@ -733,11 +717,19 @@ CONTAINS
       VTA=SQRT(2.D0*RTA/AM)
       WP2=AE*AE*RNA/(AM*EPS0)
 
-      DO NHH=1,NHHMAX
-      DO NTH=1,NTHMAX
+      DO NHH=1,NHHMAX_F
+      DO NTH=1,NTHMAX_F
          CALL WMCMAG(NR,NTH,NHH,BABS,BSUPTH,BSUPPH)
-         ANGTH=(NTH-1)*2.D0*PI/NTHMAX
-!         ANGPH=(NHH-1)*2.D0*PI/NHHMAX
+         IF(MDLWMK.EQ.1) THEN
+            BTH=ABS(BSUPTH*RA*XRHO(NR))
+            WTPR=plfw(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))
+            RKPR_EFF=SQRT(WW*BTH/SQRT(8.D0*WTPR)/RR/BABS)
+         ELSE
+            RKPR_EFF=0.D0
+         END IF
+
+         ANGTH=(NTH-1)*2.D0*PI/NTHMAX_F
+!         ANGPH=(NHH-1)*2.D0*PI/NHHMAX_F
          WC=AE*BABS/AM
          RHOA=VTA/WC
          RHOR=RHOA/RR
@@ -748,14 +740,13 @@ CONTAINS
             CWAST=RTA*DRN/(BABS*CW*AE*XL)
          ENDIF
 
-         DO ND=-NDSIZX,NDSIZX
             NN=NPH0+NHC*ND
-         DO MD=-MDSIZX,MDSIZX
             MM=NTH0+MD
             CFN=1.D0-CWAST*MM
             RKTH=MM*BSUPTH/BABS
             RKPH=NN*BSUPPH/BABS
             RKPR=RKTH+RKPH
+            IF(ABS(RKPR).LT.RKPR_EFF) RKPR=RKPR_EFF
             IF(ABS(RKPR).LT.1.D-5) RKPR=1.D-5
 
             CX=CW/(ABS(RKPR)*VTA)
@@ -768,26 +759,24 @@ CONTAINS
             CQM=CFN*COEF*RHOR     *CEX*CX*CX*(1.D0+2.D0*CX*CX)
             CRM=CFN*COEF          *CEX*CX*CX*CX*2.D0
 
-            CTNSR(1,1,MD,ND,NTH,NHH) &
-           =CTNSR(1,1,MD,ND,NTH,NHH)+CPM*COS(ANGTH)**2
-            CTNSR(1,2,MD,ND,NTH,NHH) &
-           =CTNSR(1,2,MD,ND,NTH,NHH)+CPM*COS(ANGTH)*SIN(ANGTH)
-            CTNSR(1,3,MD,ND,NTH,NHH) &
-           =CTNSR(1,3,MD,ND,NTH,NHH)+CQM*COS(ANGTH)
-            CTNSR(2,1,MD,ND,NTH,NHH) &
-           =CTNSR(2,1,MD,ND,NTH,NHH)+CPM*COS(ANGTH)*SIN(ANGTH)
-            CTNSR(2,2,MD,ND,NTH,NHH) &
-           =CTNSR(2,2,MD,ND,NTH,NHH)+CPM*SIN(ANGTH)**2
-            CTNSR(2,3,MD,ND,NTH,NHH) &
-           =CTNSR(2,3,MD,ND,NTH,NHH)+CQM*SIN(ANGTH)
-            CTNSR(3,1,MD,ND,NTH,NHH) &
-           =CTNSR(3,1,MD,ND,NTH,NHH)+CQM*COS(ANGTH)
-            CTNSR(3,2,MD,ND,NTH,NHH) &
-           =CTNSR(3,2,MD,ND,NTH,NHH)+CQM*SIN(ANGTH)
-            CTNSR(3,3,MD,ND,NTH,NHH) &
-           =CTNSR(3,3,MD,ND,NTH,NHH)+CRM
-         ENDDO
-         ENDDO
+            CTNSR(1,1,NTH,NHH) &
+           =CTNSR(1,1,NTH,NHH)+CPM*COS(ANGTH)**2
+            CTNSR(1,2,NTH,NHH) &
+           =CTNSR(1,2,NTH,NHH)+CPM*COS(ANGTH)*SIN(ANGTH)
+            CTNSR(1,3,NTH,NHH) &
+           =CTNSR(1,3,NTH,NHH)+CQM*COS(ANGTH)
+            CTNSR(2,1,NTH,NHH) &
+           =CTNSR(2,1,NTH,NHH)+CPM*COS(ANGTH)*SIN(ANGTH)
+            CTNSR(2,2,NTH,NHH) &
+           =CTNSR(2,2,NTH,NHH)+CPM*SIN(ANGTH)**2
+            CTNSR(2,3,NTH,NHH) &
+           =CTNSR(2,3,NTH,NHH)+CQM*SIN(ANGTH)
+            CTNSR(3,1,NTH,NHH) &
+           =CTNSR(3,1,NTH,NHH)+CQM*COS(ANGTH)
+            CTNSR(3,2,NTH,NHH) &
+           =CTNSR(3,2,NTH,NHH)+CQM*SIN(ANGTH)
+            CTNSR(3,3,NTH,NHH) &
+           =CTNSR(3,3,NTH,NHH)+CRM
       ENDDO
       ENDDO
       RETURN

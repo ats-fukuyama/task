@@ -1,4 +1,6 @@
       PROGRAM UFILE_READER_WITH_GSGL
+      USE libitp
+      USE libchar
       IMPLICIT REAL*8(A-F,H,O-Z)
       PARAMETER (NRM=100,NTM=2001)
       DIMENSION T(NTM),R(NRM),F1(NTM),F2(NRM,NTM),RL(NRM),FL(NRM)
@@ -9,6 +11,8 @@
       CHARACTER KDIRX*80
       CHARACTER KFID*80,KFIDX*80,KVAR*80
       CHARACTER KFIDCK*90,KFILE*110
+      CHARACTER KTIME*12
+      REAL STIME
       LOGICAL LEX
       COMMON /DIR/ KDIR
 C
@@ -57,7 +61,7 @@ C
       CALL KTRIM(KFID,IKFID)
 C     converting lower case to upper case
       DO I=1,IKFID
-         CALL GUCPTL(KFID(I:I))
+         CALL toupper(KFID(I:I))
       ENDDO
 C
       IF(NDIM.EQ.1) THEN
@@ -280,6 +284,7 @@ C     *** READING PARAMETER FILE ***
 C
       SUBROUTINE parameter_read
 C
+      USE libchar
       IMPLICIT NONE
       INTEGER IDOPEN, IST1, IST2, KL
       LOGICAL LEX

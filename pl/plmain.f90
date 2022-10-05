@@ -24,7 +24,7 @@
       IMPLICIT none
       INTEGER(ikind)  :: ierr
 
-      WRITE(6,*) '## TASK/PL 2018/09/14'
+      WRITE(6,*) '## TASK/PL 2019/09/01'
       OPEN(7,STATUS='SCRATCH')
       CALL gsopen
       CALL pl_init

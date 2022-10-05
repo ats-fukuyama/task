@@ -55,6 +55,7 @@ end subroutine perturb_mag
 !***************************************************************
 
 subroutine Wnm_spline(fmnq, wnm, umnq, nmnqm)
+  USE libspl1d
   implicit none
   integer(4), intent(in) :: nmnqm
   real(8), dimension(1:nmnqm), intent(out) :: fmnq, wnm
@@ -88,11 +89,12 @@ subroutine NTVcalc
   use tx_commons, only : rNuNTV, UastNC, m_pol, n_tor, q, fmnq, umnq, nrmax, nmnqm, &
        &                 DltRP, R, RR, PTiV, rKeV, AMI, rNuii, PTiV, RA, PZ, AEE, BB, &
        &                 deltam, m_pol
+  USE libspl1d
+  USE libitp
   implicit none
 
   integer(4) :: nr, m, ierr
   real(8) :: suml, f, wnm_plus, wnm_minus, EpsL, Vti2, dPTiV, B_lambda
-  real(8) :: deriv4, aitken2p ! external function
 
   do nr = 0, nrmax
      suml = 0.d0

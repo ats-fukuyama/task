@@ -56,10 +56,12 @@ C     ***** SETUP DATA (spline PSIRZ and find axis) *****
 C
       SUBROUTINE EQSETP(IERR)
 C
+      USE libspl1d
+      USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
 C
-      REAL(8),DIMENSION(:,:),ALLOCATABLE:: PSIRG,PSIZG,PSIRZG
-      REAL(8),DIMENSION(:,:),ALLOCATABLE:: HJTRG,HJTZG,HJTRZG
+      REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: PSIRG,PSIZG,PSIRZG
+      REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: HJTRG,HJTZG,HJTRZG
 
       DIMENSION DERIV(NPSM)
       EXTERNAL PSIGD
@@ -134,6 +136,8 @@ C     ***** CALCULATE FLUX VARIABLES IN PLASMA *****
 C
       SUBROUTINE EQCALQP(IERR)
 C
+      USE libspl1d
+      USE libitp
       INCLUDE '../eq/eqcomq.inc'
 C
       EXTERNAL EQDERV
@@ -287,6 +291,7 @@ C
 Chonda         write(6,'(4E15.7)') PSIP(NR),SUMAVGR2,SUMV,AVEGVR2(NR)
          AVEGP2 (NR)=SUMAVGV2/SUMV*4.d0*PI**2
          AVEIR  (NR)=SUMAVIR /SUMV
+         RITOR  (NR)=SUMAVGR2
 
          call zminmax(YA,NZMINR,ZMIN,ZMINR)
          call zminmax(YA,NZMAXR,ZMAX,ZMAXR)
@@ -367,6 +372,19 @@ C
          ENDIF
       ENDDO
 C
+C     ----- current profile evaluation -----
+C
+      DO NR=2,NRPMAX
+         DPPSL=DPPFUNC(PSIP(NR))
+         DTTSL=DTTFUNC(PSIP(NR))
+         TTSL =TTFUNC(PSIP(NR))
+         AVEJTR(NR)=-RR*DPPSL-TTSL*DTTSL/(4.d0*PI**2*RMU0*RR)
+         AVEJPR(NR)=(-TTSL*DPPSL-DTTSL*AVEBB2(NR)/RMU0)
+     &              /(2.d0*PI*ABS(BB))
+C         WRITE(6,'(A,I6,4ES12.4)') 'AVEJ=',NR,
+C     &        AVEJTR(NR),AVEJPR(NR),AVEGP2(NR),AVEGVR2(NR)
+      ENDDO
+C
 C     +++++ SETUP AXIS DATA +++++
 C
       PS2 = PSIP(2)
@@ -390,6 +408,7 @@ C
       AVEJPR(1)  = FCTR2(PS2,PS3,PS4,AVEJPR (2),AVEJPR (3),AVEJPR (4))
       AVEJTR(1)  = FCTR2(PS2,PS3,PS4,AVEJTR (2),AVEJTR (3),AVEJTR (4))
       AVEIR (1)  = FCTR2(PS2,PS3,PS4,AVEIR  (2),AVEIR  (3),AVEIR  (4))
+      RITOR (1)  = 0.D0
 
       RRMIN(1)   = RAXIS
       RRMAX(1)   = RAXIS
@@ -475,21 +494,6 @@ C
       VPSA=VPS(NRPMAX)
       QPSA=QPS(NRPMAX)
 C
-C     ----- current profile evaluation -----
-C
-      DO NR=1,NRPMAX
-         DPPSL=DPPFUNC(PSIP(NR))
-         DTTSL=DTTFUNC(PSIP(NR))
-         TTSL =TTFUNC(PSIP(NR))
-         AVEJTR(NR)=-RR*DPPSL-TTSL*DTTSL/(4.d0*PI**2*RMU0*RR)
-         AVEJPR(NR)=(-TTSL*DPPSL-DTTSL*AVEBB2(NR)/RMU0)
-     &              /(2.d0*PI*ABS(BB))
-C         WRITE(6,'(A,1P6E12.4)') 'AVEJ=',
-C     &        TTSL*DPPSL/BB,AVEBB2(NR)*BB*DTTSL/RMU0,
-C     &        2.D0*PI*RR*DPPSL,AVEIR2(NR)*TTSL*DTTSL/(2.D0*PI*RMU0*RR),
-C     &        AVEJPR(NR),AVEJTR(NR)
-      ENDDO
-C
 C     ----- CALCULATE PLASMA SURFACE -----
 C
       CALL EQCALF(REDGE,ZAXIS,NTHMAX,RSU,ZSU,IERR)
@@ -521,6 +525,7 @@ C     ***** CALCULATE FLUX VARIABLES IN VACUUM *****
 C
       SUBROUTINE EQCALQV(IERR)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
       EXTERNAL EQDERV
       DIMENSION XA(NTVM),YA(2,NTVM)
@@ -528,31 +533,22 @@ C
       DIMENSION RCHI(NTVM),ZCHI(NTVM),DXCHI(NTVM)
       DIMENSION URCHI(4,NTVM),UZCHI(4,NTVM)
       DIMENSION THW(NTHMP)
-      DIMENSION RPSW(NTHMP),DRPSW(NTHMP),URPSW(4,NTHMP)
-      DIMENSION ZPSW(NTHMP),DZPSW(NTHMP),UZPSW(4,NTHMP)
+      DIMENSION RPSW(NTHMP),DRPSW(NTHMP)
+      DIMENSION ZPSW(NTHMP),DZPSW(NTHMP)
+      REAL(rkind),ALLOCATABLE:: URPSW(:,:),UZPSW(:,:)
 C
+      ALLOCATE(URPSW(4,NTHMP),UZPSW(4,NTHMP))
+
       npmax=abs(MDLEQV)
       IERR=0
+      IF(NRMAX.EQ.NRPMAX) RETURN
 C
 C     +++++ SETUP VACUUM DATA +++++
 C
-C      write(6,'(A,1P6E12.4)') 'RR,RB,RA,REDGE-RAXIS:',
-C     &     RR,RB,RA,REDGE-RAXIS,REDGE,RAXIS
-C      NR=NRPMAX-1
-C            write(6,'(A,I5,1P3E12.4)') 
-C     &           'NR,PSIP,PSIT,QPS=',NR,PSIP(NR),PSIT(NR),QPS(NR)
-C      NR=NRPMAX
-C            write(6,'(A,I5,1P3E12.4)') 
-C     &           'NR,PSIP,PSIT,QPS=',NR,PSIP(NR),PSIT(NR),QPS(NR)
-
 
       DR_OUT=(RR+RB-REDGE)/(NRMAX-NRPMAX)
       DR_IN =FRBIN*(RR+RB-REDGE)/(NRMAX-NRPMAX)
       DTH=2.d0*PI/NTHMAX
-
-C            write(6,'(A,1P5E12.4)') 
-C     &           'DR_IN,DR_OUT,RR,RB,REDGE=',
-C     &            DR_IN,DR_OUT,RR,RB,REDGE
 
       IF(MDLEQF.LT.10) THEN
          DO NR=NRPMAX+1,NRMAX
@@ -560,75 +556,40 @@ C     &            DR_IN,DR_OUT,RR,RB,REDGE
             RL_IN =REDGE+DR_IN *(NR-NRPMAX)
             ZL=ZAXIS
             Sratio=(RL_OUT-RR)**2/(REDGE-RR)**2
-!            write(6,'(A,I5,1P3E12.4)') 
-!     &           'NR,RL_OUT,ratio,Sratio=',
-!     &            NR,RL_OUT,RL_OUT/REDGE,Sratio
             PSIP(NR)=PSIG(RL_OUT,ZL)-PSI0
-!            write(6,'(A,I5,1P3E12.4)') 
-!     &           'NR,PSIP,PSIG,PSI0=',NR,PSIP(NR),PSIG(RL_OUT,ZL),PSI0
             PPS(NR)=0.D0
             TTS(NR)=2.D0*PI*BB*RR
 C
-!            call polintx(nr,npmax,nrm,qps)
-!            call polintx(nr,npmax,nrm,dvdpsip)
-!            call polintx(nr,npmax,nrm,dvdpsit)
             DVDPSIP(NR)=DVDPSIP(NRPMAX)*Sratio
             DVDPSIT(NR)=DVDPSIT(NRPMAX)
-C            call polintx(nr,npmax,nrm,dsdpsit)
-!            call polintx(nr,npmax,nrm,rlen)
             RLEN(NR)=RLEN(NRPMAX)*SQRT(Sratio)
-!            call polintx(nr,npmax,nrm,averr)
             AVERR(NR)=AVERR(NRPMAX)
-!            call polintx(nr,npmax,nrm,averr2)
             AVERR2(NR)=AVERR2(NRPMAX)
-!            call polintx(nr,npmax,nrm,aveir2)
             AVEIR2(NR)=AVEIR2(NRPMAX)
-!            call polintx(nr,npmax,nrm,avebb)
             AVEBB(NR)=AVEBB(NRPMAX)
-!            call polintx(nr,npmax,nrm,avebb2)
             AVEBB2(NR)=AVEBB2(NRPMAX)
-!            call polintx(nr,npmax,nrm,aveib2)
             AVEIB2(NR)=AVEIB2(NRPMAX)
-!            call polintx(nr,npmax,nrm,avegv)
             AVEGV(NR)=AVEGV(NRPMAX)
-!            call polintx(nr,npmax,nrm,avegv2)
             AVEGV2(NR)=AVEGV2(NRPMAX)
-!            call polintx(nr,npmax,nrm,avegvr2)
             AVEGVR2(NR)=AVEGVR2(NRPMAX)
-!            call polintx(nr,npmax,nrm,avegp2)
             AVEGP2(NR)=AVEGP2(NRPMAX)
-!            call polintx(nr,npmax,nrm,psit)
-!            call polintx(nr,npmax,nrm,vps)
-!            call polintx(nr,npmax,nrm,sps)
             SPS(NR)=SPS(NRPMAX)*SQRT(Sratio)
-!            call polintx(nr,npmax,nrm,aveir)
             AVEIR(NR)=AVEIR(NRPMAX)
 
-!            PSIT(NR)=PSIT(NR-1)
-!     &              +2.0D0*QPS(NR)*QPS(NR-1)/(QPS(NR)+QPS(NR-1))
-!     &                 *(PSIP(NR)-PSIP(NR-1))
             VPS(NR)=VPS(NRPMAX)*Sratio
             PSIT(NR)=PSIT(NRPMAX)*Sratio
-!            QPS(NR)=(PSIT(NR)-PSIT(NR-1))/(PSIP(NR)-PSIP(NR-1))
             QPS(NR)=QPS(NRPMAX)*Sratio
+            RITOR(NR)=RITOR(NRPMAX)
 
-C            write(6,'(A,I5,1P3E12.4)') 
-C     &           'NR,PSIP,PSIT,QPS=',NR,PSIP(NR),PSIT(NR),QPS(NR)
-
-            IF(MDLEQV.GT.0) THEN
-               F_OUT=(RL_OUT-RR)/(REDGE-RR)
-               F_IN =(RL_IN -RR)/(REDGE-RR)
-               DTHL=2.D0*PI/NTHMAX
-               DO nth=1,nthmax+1
-                  FACTOR=0.5D0*(F_OUT+F_IN)
-     &                  +0.5D0*(F_OUT-F_IN)*COS(DTHL*(NTH-1))
-                  rps(NTH,NR)=RAXIS+(RPS(NTH,NRPMAX)-RAXIS)*FACTOR
-                  zps(NTH,NR)=       ZPS(NTH,NRPMAX)       *FACTOR
-               END DO
-            ELSE
-               call polintxx(nr,nthmax+1,npmax,nthmp,nrm,rps)
-               call polintxx(nr,nthmax+1,npmax,nthmp,nrm,zps)
-            ENDIF
+            F_OUT=(RL_OUT-RR)/(REDGE-RR)
+            F_IN =(RL_IN -RR)/(REDGE-RR)
+            DTHL=2.D0*PI/NTHMAX
+            DO nth=1,nthmax+1
+               FACTOR=0.5D0*(F_OUT+F_IN)
+     &               +0.5D0*(F_OUT-F_IN)*COS(DTHL*(NTH-1))
+               rps(NTH,NR)=RAXIS+(RPS(NTH,NRPMAX)-RAXIS)*FACTOR
+               zps(NTH,NR)=       ZPS(NTH,NRPMAX)       *FACTOR
+            END DO
             
             RMIN=RAXIS
             RMAX=RAXIS
@@ -652,7 +613,6 @@ C     &           'NR,PSIP,PSIT,QPS=',NR,PSIP(NR),PSIT(NR),QPS(NR)
 
             call zminmax(YA,NZMINR,ZMIN,ZMINR)
             call zminmax(YA,NZMAXR,ZMAX,ZMAXR)
-C            write(6,'(I3,5F15.7)') NR,PSIP(NR),ZMIN,ZMINR,ZMAX,ZMAXR 
 
             RRMIN(NR)=RMIN
             RRMAX(NR)=RMAX
@@ -678,7 +638,7 @@ C
 C     ----- CALCULATE PSI,PPS,TTS,PSIT and RPS, ZPS on mag surfaces -----
 C
          DO NR=NRPMAX+1,NRMAX
-            RINIT=REDGE+DR*(NR-NRPMAX)
+            RINIT=REDGE+DR_OUT*(NR-NRPMAX)
             ZINIT=ZAXIS
             PSIP(NR)=PSIG(RINIT,ZINIT)-PSI0
             PPS(NR)=0.D0
@@ -765,10 +725,10 @@ C
             ENDDO
 C
             QPS(NR)=SUMAVIR2*TTS(NR)/(4.D0*PI**2)
+            RITOR(NR)=RITOR(NRPMAX)
             DVDPSIP(NR)=SUMV
             DVDPSIT(NR)=SUMV/QPS(NR)
             SPS(NR)=SUMS*2.D0*PI
-C            DSDPSIT(NR)=SUMS/QPS(NR)/(2.D0*PI)
             RLEN(NR)=XA(NA)
             AVERR  (NR)=SUMAVRR /SUMV
             AVERR2 (NR)=SUMAVRR2/SUMV
@@ -925,10 +885,15 @@ C     ***** CALCULATE SPLINES AND INTEGRAL QUANTITIES *****
 C
       SUBROUTINE EQSETS(IERR)
 C
+      USE libspl1d
+      USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
 C
       DIMENSION DERIV(NRM)
-      DIMENSION D01(NTHMP,NRM),D10(NTHMP,NRM),D11(NTHMP,NRM)
+      REAL(rkind),ALLOCATABLE:: D01(:,:),D10(:,:),D11(:,:)
+      REAL(rkind) CHIPL
+
+      ALLOCATE(D01(NTHMP,NRM),D10(NTHMP,NRM),D11(NTHMP,NRM))
 C
 C      DO NR=1,NRMAX
 C         WRITE(6,'(A,I5,1P5E12.4)')
@@ -1168,6 +1133,8 @@ C             to those with grad rho *****
 C
       SUBROUTINE EQSETS_RHO(IERR)
 C
+      USE libspl1d
+      USE libitp
       INCLUDE '../eq/eqcomq.inc'
 C
       dimension DERIV(NRM)
@@ -1201,6 +1168,7 @@ C     ***** CALCULATE FLUX SURFACE *****
 C
       SUBROUTINE EQCALF(RINIT,ZINIT,NTHUMAX,RU,ZU,IERR)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       DIMENSION RU(NTHUMAX+1),ZU(NTHUMAX+1)
@@ -1257,6 +1225,7 @@ C     ***** INTERPOLATE FUNCTION OF PP(PSIP) *****
 C
       FUNCTION PPFUNC(PSIPL)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       IF(PSIPL.GT.PSIPS(NPSMAX)) THEN
@@ -1276,6 +1245,7 @@ C     ***** INTERPOLATE FUNCTION OF TT(PSIP) *****
 C
       FUNCTION TTFUNC(PSIPL)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       IF(PSIPL.GT.PSIPS(NPSMAX)) THEN
@@ -1293,6 +1263,7 @@ C     ***** INTERPOLATE FUNCTION OF PP(PSIP) *****
 C
       FUNCTION DPPFUNC(PSIPL)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       IF(PSIPL.GT.PSIPS(NPSMAX)) THEN
@@ -1323,6 +1294,7 @@ C     ***** INTERPOLATE FUNCTION OF TT(PSIP) *****
 C
       FUNCTION DTTFUNC(PSIPL)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       IF(PSIPL.GT.PSIPS(NPSMAX)) THEN
@@ -1346,98 +1318,6 @@ C
       RETURN
       END
 
-C **********************************************
-
-      SUBROUTINE polintx(nr,npmax,nrm,data)
-
-      implicit none
-      integer,intent(in):: nr,npmax,nrm
-      real(8),dimension(nrm),intent(inout):: data
-      real(8),dimension(npmax):: nra,datapa
-      integer:: np
-      real(8):: dy
-c
-      do np=1,npmax
-         nra(np)=nr-npmax-1+np
-         datapa(np)=data(nr-npmax-1+np)
-      enddo
-c     
-      call polint(nra,datapa,npmax,nr,data(nr),dy) 
-      return
-      end
-
-C **********************************************
-
-      SUBROUTINE polintxx(nr,nthmax,npmax,nthm,nrm,data)
-
-      implicit none
-      integer,intent(in):: nr,nthmax,npmax,nthm,nrm
-      real(8),dimension(nthm,nrm),intent(inout):: data
-      real(8),dimension(npmax):: nra,datapa
-      integer:: nth,np
-      real(8):: dy
-c
-      do nth=1,nthmax
-         do np=1,npmax
-            nra(np)=nr-npmax-1+np
-            datapa(np)=data(nth,nr-npmax-1+np)
-         enddo
-c     
-         call polint(nra,datapa,npmax,nr,data(nth,nr),dy) 
-      enddo
-      return
-      end
-C
-C **********************************************
-      SUBROUTINE polint(nra,psa,n,nr,ps,dy)
-      implicit none
-      INTEGER n,NMAX,nr
-      REAL*8 dy,nra(n),ps,psa(n)
-      PARAMETER (NMAX=10)
-      INTEGER i,m,ns
-      REAL*8 den,dif,dift,ho,hp,w,c(NMAX),d(NMAX)
-c
-c      do i=1,n
-c         print*, i,nra(i),psa(i)
-c      enddo
-c
-      ns=1
-      dif=abs(nr-nra(1))
-      do 11 i=1,n
-        dift=abs(nr-nra(i))
-        if (dift.lt.dif) then
-          ns=i
-          dif=dift
-        endif
-        c(i)=psa(i)
-        d(i)=psa(i)
-11    continue
-      ps=psa(ns)
-      ns=ns-1
-      do 13 m=1,n-1
-        do 12 i=1,n-m
-          ho=nra(i)-nr
-          hp=nra(i+m)-nr
-          w=c(i+1)-d(i)
-          den=ho-hp
-          IF(den.eq.0.) THEN
-             WRITE(6,*) 'failure in polint'
-             STOP
-          ENDIF
-          den=w/den
-          d(i)=hp*den
-          c(i)=ho*den
-12      continue
-        if (2*ns.lt.n-m)then
-          dy=c(ns+1)
-       else
-          dy=d(ns)
-          ns=ns-1
-        endif
-        ps=ps+dy
-13    continue
-      return
-      END
 
 c     ------ calculate zmin and zmax -----
 c                assume: z=a(r-r0)^2+z0
@@ -1448,11 +1328,12 @@ c       Output: z0, r0
       
       subroutine zminmax(ya,n,z0,r0)
 
+      USE bpsd_kinds,ONLY: rkind
       implicit none
-      real(8),dimension(2,*),intent(in):: ya
+      real(rkind),dimension(2,*),intent(in):: ya
       integer,intent(in):: n
-      real(8),intent(out):: z0,r0
-      real(8):: r1,r2,r3,z1,z2,z3,dz1,dz2,ra1,ra2,a
+      real(rkind),intent(out):: z0,r0
+      real(rkind):: r1,r2,r3,z1,z2,z3,dz1,dz2,ra1,ra2,a
 
       r1=ya(1,n-1)
       z1=ya(2,n-1)

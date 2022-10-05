@@ -2,8 +2,8 @@
 include ../make.header
 include ../mtxp/make.mtxp
 
-LIB_MTX=$(LIB_MTX_BND)
-LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_BND)
+#LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIB_MTX_PCG)
 #LIBX_MTX=$(LIBX_MTX_PCG)
 #LIB_MTX=$(LIB_MTX_MUMPS)
@@ -24,7 +24,7 @@ FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I$(MOD) -I../open-adas/adf11/adf11-lib/$(MOD) \
             -I../adpost/$(MOD) -I../eq/$(MOD) -I../pl/$(MOD) \
-            -I../dp/$(MOD) -I../wr/$(MOD) -I../wm/$(MOD) \
+            -I../dp/$(MOD) -I../wr/$(MOD) -I../wmx/$(MOD) \
             -I../fp/$(MOD) -I../tr/$(MOD) -I../ti/$(MOD) \
             -I../mtxp/$(MOD) -I../lib/$(MOD) \
             -I../../bpsd/$(MOD) 
@@ -35,11 +35,11 @@ SRCS = totmenu.f90
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = ../lib/libmds.a ../lib/libtask.a ../../bpsd/libbpsd.a \
+LIBS = ../lib/libmds.a ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a \
        ../adpost/lib-adpost.a ../open-adas/adf11/adf11-lib/lib-adf11.a \
        ../pl/libpl.a \
        $(EQLIBS) \
-       ../tr/libtr2.a ../dp/libdp.a ../wr/libwr.a ../wm/libwm.a \
+       ../tr/libtr.a ../dp/libdp.a ../wr/libwr.a ../wmx/libwm.a \
        ../fp/libfp.a ../ti/libti.a
 
 
@@ -51,6 +51,8 @@ all : libs tot
 	(cd ../adpost; make lib-adpost.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 ../lib/libmds.a:
 	(cd ../lib; make libmds.a)
 $(LIB_MTX):
@@ -65,14 +67,14 @@ $(LIB_MTX):
 	(cd ../pl; make noequlib.o)
 ../eq/libeq.a:
 	(cd ../eq; make libeq.a)
-../tr/libtr2.a:
-	(cd ../tr; make libtr2.a)
+../tr/libtr.a:
+	(cd ../tr; make libtr.a)
 ../dp/libdp.a:
 	(cd ../dp; make libdp.a)
 ../wr/libwr.a:
 	(cd ../wr; make libwr.a)
-../wm/libwm.a:
-	(cd ../wm; make libwm.a)
+../wmx/libwm.a:
+	(cd ../wmx; make libwm.a)
 ../fp/libfp.a:
 	(cd ../fp; make libfp.a)
 ../ti/libti.a:
@@ -81,6 +83,7 @@ $(LIB_MTX):
 libs:
 	(cd ../../bpsd; make libbpsd.a)
 	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../lib; make libmds.a)
 	(cd ../mtxp; make)
 	(cd ../adpost; make lib-adpost.a)
@@ -89,10 +92,10 @@ libs:
 	(cd ../pl; make noeqlib.o)
 	(cd ../pl; make noequlib.o)
 	(cd ../eq; make libeq.a)
-	(cd ../tr; make libtr2.a)
+	(cd ../tr; make libtr.a)
 	(cd ../dp; make libdp.a)
 	(cd ../wr; make libwr.a)
-	(cd ../wm; make libwm.a)
+	(cd ../wmx; make libwm.a)
 	(cd ../fp; make libfp.a)
 	(cd ../ti; make libti.a)
 	make totmenu.o

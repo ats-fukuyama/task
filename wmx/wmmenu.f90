@@ -15,6 +15,13 @@ CONTAINS
     USE wminit,ONLY: wm_init
     USE wmparm,ONLY: wm_parm,wm_broadcast
     USE wmview,ONLY: wm_view
+    USE wmloop,ONLY: wm_loop
+    USE wmdout,ONLY: wm_dout
+    USE wmgout,ONLY: wm_gout
+    USE wmfile,ONLY: wm_load,wm_save
+    USE wmeign,ONLY: wm_am0d,wm_am1d,wm_am2d,wm_scan,wm_eign,wm_wout
+    USE wmtaem,ONLY: wm_taem
+    USE libkio
     USE libmpi
 
     IMPLICIT NONE
@@ -31,12 +38,12 @@ CONTAINS
     IF(nrank.EQ.0) THEN
        IF(init.EQ.0) THEN
           WRITE(6,601)
-601       FORMAT('## WM MENU: P,V/PARM R/RUN D0-3/AMP F/ROOT ', &
-                 'T/TAE L/LOAD Q/QUIT')
+601       FORMAT('## WM MENU: P,V/parm R/run D0-3/amp F/root ', &
+                 'T/tae L/load Q/quit')
        ELSE
           WRITE(6,602)
-602       FORMAT('## WM MENU: P,V/PARM R/RUN D0-3/AMP F/ROOT ', &
-                 'G,Y/GRAPH T/TAE S.W.O/SAVE L/LOAD ? Q/QUIT')
+602       FORMAT('## WM MENU: P,V/parm R/run D0-3/amp F/root ', &
+                 'G,Y/graph T/tae S,W,O,L/file ? Q/quit')
        END IF
        CALL TASK_KLIN(line,kid,mode,wm_parm)
     END IF
@@ -56,46 +63,45 @@ CONTAINS
 
     CASE('R')                                      ! single/multi mode calc
        CALL wm_allocate
-!       CALL wm_exec(ierr)
+       CALL wm_loop(ierr)
        init=1
 
     CASE('D')                                      ! amp calc for given source
        READ(LINE(2:),*,ERR=1,END=1) nid
        SELECT CASE(nid)
        CASE(0)                                     ! given frequency
-!          CALL wm_amp0d(kid,line)
+          CALL wm_am0d(kid,line)
        CASE(1)                                     ! real/imag frequency scan
-!          CALL wm_amp1d(kid,line)
+          CALL wm_am1d(kid,line)
        CASE(2)                                     ! complex frequency scan
-!          CALL wm_amp2d(kid,line)
+          CALL wm_am2d(kid,line)
        CASE(3)                                     ! parameter scan
-!          CALL wm_scan(kid,line)
+          CALL wm_scan(kid,line)
        CASE DEFAULT
           WRITE(6,*) 'XX wm_menu: unknown nid for kid=R'
        END SELECT
        init=1
 
     CASE('F')                                      ! find complex root
-!       CALL wm_eigen(kid,line)
+       CALL wm_eign(kid,line)
        init=1
 
     CASE('G')                                      ! graph output
-!       IF(init.EQ.1.AND.nrank.EQ.0) CALL wm_gout
+       IF(init.EQ.1.AND.nrank.EQ.0) CALL wm_gout
 
     CASE('S')
-!       IF(nrank.EQ.0) CALL wm_save
+       IF(nrank.EQ.0) CALL wm_save(ierr)
 
     CASE('L')
-!       IF(nrank.EQ.0) CALL wm_load
+       CALL wm_allocate
+       IF(nrank.EQ.0) CALL wm_load(ierr)
+       init=1
 
     CASE('W')
-!       IF(nrank.EQ.0) CALL wm_wout
-
-    CASE('O')
-!       IF(nrank.EQ.0) CALL wm_topics(ierr)
+       IF(nrank.EQ.0) CALL wm_wout
 
     CASE('T')
-!       IF(nrank.EQ.0) CALL wm_tae
+       IF(nrank.EQ.0) CALL wm_taem
 
     CASE('?')
        WRITE(6,*) '# KID: P:  PARAMETER INPUT by namelist'

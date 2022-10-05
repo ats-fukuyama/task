@@ -1,14 +1,25 @@
+! trgout.f
+
+MODULE trgout
+
+  PRIVATE
+  PUBLIC tr_gout
+
+CONTAINS
+
 !     ***** TASK/TR/GOUT MENU *****
 
-      SUBROUTINE TRGOUT
+      SUBROUTINE tr_gout
 
       USE TRCOMM, ONLY : NGR, NGT
+      USE trfile
+      USE libchar
       IMPLICIT NONE
-      INTEGER(4), SAVE :: INIT =0, INQG
+      INTEGER, SAVE :: INIT =0, INQG
       CHARACTER(LEN=5) :: KIG
       CHARACTER(LEN=3) :: KK
       CHARACTER(LEN=1) :: K1, K2, K3, K4, K5
-      integer(4)       :: ist
+      integer       :: ist
 
       IF(INIT.EQ.0) THEN
          INQG=0
@@ -29,11 +40,11 @@
          K3=KIG(3:3)
          K4=KIG(4:4)
          K5=KIG(5:5)
-         CALL GUCPTL(K1)
-         CALL GUCPTL(K2)
-         CALL GUCPTL(K3)
-         CALL GUCPTL(K4)
-         CALL GUCPTL(K5)
+         CALL toupper(K1)
+         CALL toupper(K2)
+         CALL toupper(K3)
+         CALL toupper(K4)
+         CALL toupper(K5)
          KK=K3//K4//K5
 
          select case(K1)
@@ -49,9 +60,9 @@
                WRITE(6,*) '## GRAPHIC SCALE INQUIRE MODE : OFF'
             ENDIF
          case('S')
-            CALL TRGRSV
+            CALL tr_grsv
          case('L')
-            CALL TRGRLD
+            CALL tr_grld
          case('R')
             CALL TRGRR0(K2,INQG)
          case('Y')
@@ -82,4 +93,5 @@
       END DO
 
  9000 RETURN
-      END SUBROUTINE TRGOUT
+      END SUBROUTINE tr_gout
+    END MODULE trgout

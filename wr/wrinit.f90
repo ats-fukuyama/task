@@ -21,6 +21,12 @@ CONTAINS
 !     RNZI   : INITIAL VERTICAL REFRACTIVE INDEX
 !     RNPHII : INITIAL TOROIDAL REFRACTIVE INDEX
 !     RKR0   : SPECULATED INITIAL RADIAL WAVE NUMBER [1/M]
+!     MODEW  : Selection of initial k_r
+!              0: found RKR near RKR0
+!              1: larger  RKR (negative, inward for forward wave)    
+!              2: smaller RKR (negative, inward for forward wave)    
+!             -1: larger RKR  (positive, inward for backward wave)    
+!             -2: smaller RKR (positive, inward for backward wave)    
 !     UUI    : INITIAL WAVE ENERGY
 
 !     RCURVA : INITIAL WAVE-FRONT CURVATURE RADIUS (0 for Plane wave)
@@ -39,6 +45,7 @@ CONTAINS
       RNZI   = 0.D0
       RNPHII = 0.5D0
       RKR0   = -1000.D0
+      MODEW  = 0
       UUI    = 1.D0
       RCURVA = 0.D0
       RCURVB = 0.D0
@@ -65,7 +72,8 @@ CONTAINS
 
 !     NRAYMAX  : Number of rays
 !     NSTPMAX  : Maxmum number of steps 
-!     NRDIVMAX : Number of radial division for absorbed power
+!     NRSMAX   : Number of minor radius division for absorbed power
+!     NRLMAX   : Number of major radius division for absorbed power
 
 !     SMAX   : MAXIMUM RAY LENGTH
 !     DELS   : INCREMENTAL LENGTH OF RAY
@@ -78,6 +86,10 @@ CONTAINS
 !     DELKR  : STEP SIZE TO ESTIMATE D/DKR IN NEWTON METHOD
 !     EPSNW  : CONVERGENCE CRITEIRION IN NEWTON METHOD
 !     LMAXNW : MAXIMUM ITERATION COUNT IN NEWTON METHOD
+
+!     mode_beam : 0 for ray tracing, nonzero for beam tracing
+
+      mode_beam=0
 
 !     MDLWRI : INPUT TYPE OF WAVE PARAMETERS
 !              0 : RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU
@@ -114,6 +126,12 @@ CONTAINS
 !              4 : Write data every 1000 step
 !              5 : Write data every 10000 step
 
+!     nres_type : plot type of resonance curves
+!              0 : power abs density (max, 50% for nres_max=3)
+!              1 : power flux        (25%, 50%, 75% for nres_max=3)
+!              2 : ray length        (25%, 50%, 75% for nres_max=3)
+!     nres_max : number of resonance curves
+
       SMAX   = 1.0D0
       DELS   = 0.05D0
       UUMIN  = 1.D-4
@@ -127,14 +145,34 @@ CONTAINS
       LMAXNW = 100
 
       NRAYMAX  = 1
-      NRDIVMAX = 100
       NSTPMAX  = 10000
+      NRSMAX   = 100
+      NRLMAX   = 200
 
       MDLWRI = 0
       MDLWRG = 0
       MDLWRP = 1
       MDLWRQ = 1
       MDLWRW = 0
+
+      nres_type = 0
+      nres_max = 3
+
+      ! pne_threshold: threshold value to identify to be in plasma [10^20 m^-3]
+      ! bdr_threshold: threshold value to boundary factor: F in below
+
+      pne_threshold=1.D-6
+      bdr_threshold=1.2
+
+      ! Rmax_wr: maximum of R for ray calculation, if 0, set RR+F*RA
+      ! Rmin_wr: minimum of R for ray calculation, if 0, set RR-F*RA >1.D-6
+      ! Zmax_wr: maximum of Z for ray calculation, if 0, set RR+F*rkap*RA
+      ! Zmin_wr: minimum of Z for ray calculation, if 0, set RR-F*rkap*RA
+
+      Rmax_wr=0.D0
+      Rmin_wr=0.D0
+      Zmax_wr=0.D0
+      Zmin_wr=0.D0
 
 ! --- defined in dp ---
 

@@ -14,7 +14,7 @@ C
       DIMENSION GX(NRM),GY(NRM,MMM)
       DIMENSION NGY(NRM)
 C
-      DIMENSION DM(MMM),EM(MMM),FM(MMM,MMM),QM(1,MMM),W(MMM)
+      DIMENSION DM(MMM),EM(MMM),FML(MMM,MMM),QM(1,MMM),W(MMM)
       DIMENSION IBLOCK(MMM),ISPLIT(MMM)
       DIMENSION WORK(5*MMM),IWORK(3*MMM)
 C
@@ -75,7 +75,7 @@ C
                NW1=MAX(1,MDSIZ-1)*(NDX1-1)+(MDX1-1)+1
                NW1=NW1-NW0+1
                IF(NW1.GE.1.AND.NW1.LE.MHMAX+1) THEN
-                  FM(NW1,NW)=DBLE(CWALFK(MDX1,NDX1))/(RKPR1*RKPR2)
+                  FML(NW1,NW)=DBLE(CWALFK(MDX1,NDX1))/(RKPR1*RKPR2)
      &                      *RIOTAL**2
                ENDIF
             ENDDO
@@ -87,7 +87,7 @@ C            EM(NWW)=DBLE(CWALFK(1-MDMIN+1,0-NDMIN+1))
          ENDDO
 C
          CALL LAPACK_DSBTRD('N','L',MMMAX,MHMAX,
-     &                      FM,MMM,DM,EM,QM,1,WORK,INFO1)
+     &                      FML,MMM,DM,EM,QM,1,WORK,INFO1)
 C
          EPSEG=0.D0
          VU=1.D0/(2.D0*PI*1.D6*WAEMIN)**2

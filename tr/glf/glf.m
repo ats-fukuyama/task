@@ -33,11 +33,12 @@ c---------------------------------------------------------------------
      & , eta_per_gf,eta_phi_gf,chie_e_gf
      & , cnorm_gf,xkymin_gf,xkymax_gf,amassgas_gf,amassimp_gf,zimp_gf
 
-      double complex zevec_k_gf(nmode,12,12)
-     & , zomega_k_gf(nmode,12)
+C      double precision complex zevec_k_gf(nmode,12,12)
+C     & , zomega_k_gf(nmode,12)
 
-      common /glf/ zevec_k_gf, zomega_k_gf
-     & , yparam_k_gf,gamma_k_gf,freq_k_gf,phi_norm_k_gf
+C      common /glf/ zevec_k_gf, zomega_k_gf
+      common /glf/ 
+     &   yparam_k_gf,gamma_k_gf,freq_k_gf,phi_norm_k_gf
      & , xparam_gf,xkyf_k_gf,diff_k_gf
      & , diff_im_k_gf,chii_k_gf,chie_k_gf,exch_k_gf
      & , eta_par_k_gf,eta_per_k_gf,eta_phi_k_gf

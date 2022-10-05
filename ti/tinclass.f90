@@ -77,45 +77,44 @@
 !        = 5 error: inversion of flow matrix failed
 !        = 6 error: trapped fraction must be 0.0.le.p_ft.le.1.0
 !***********************************************************************
-      USE TRCOMM,  ONLY : ABB2RHOG,     ADNCG,        ADNCP,        ADNCT,        AIB2RHOG,     AJBSNC,       AJEXNC,      &
-     &         AJOH,      AKNCP,        AKNCT,        AR1RHO,       AR2RHO,       ARHBRHOG,     AVKNC,        AVNC,        &
-     &         AVNCG,     BB,           BP,           CJBSP,        CJBST,        DR,           EPSRHO,       ER,          &
-     &         ETA,       ETANC,        MDLEQZ,       MDLTPF,       NRMAX,        NSLMAX,       NSM,         &
-     &         NSZMAX,    PA,           PADD,         PNSS,         PTS,          PZ,           Q0,           QP,          &
-     &         RA,        RDP,          RG,           RGFLS,        RHOG,         RKAP,         RM,           RN,          &
-     &         RQFLS,     RR,           RT,           TTRHOG,       VPAR,         VPOL,         VPRP,         VTOR
+        USE TRCOMM,  ONLY : rkind,ABB2RHOG,ADNCG,ADNCP,ADNCT,AIB2RHOG, &
+             AJBSNC,AJEXNC,AJOH,AKNCP,AKNCT,AR1RHO,AR2RHO,ARHBRHOG,AVKNC, &
+             AVNC,AVNCG,BB,BP,CJBSP,CJBST,DR,EPSRHO,ER,ETA,ETANC,MDLEQZ, &
+             MDLTPF,NRMAX,NSLMAX,NSM,NSZMAX,PA,PADD,PNSS,PTS,PZ,Q0,QP,RA, &
+             RDP,RG,RGFLS,RHOG,RKAP,RM,RN,RQFLS,RR,RT,TTRHOG,VPAR,VPOL, &
+             VPRP,VTOR
       IMPLICIT NONE
       INCLUDE 'nclass/pamx_mi.inc'
       INCLUDE 'nclass/pamx_ms.inc'
       INCLUDE 'nclass/pamx_mz.inc'
 !      INCLUDE 'trncls.inc'
 !Declaration of input to NCLASS
-      INTEGER(4)::                        k_order,  k_potato, m_i,      m_z
-      REAL(4)::                           c_den,    c_potb,   c_potl,   p_b2,     p_bm2,    p_eb,   &
+      INTEGER::                        k_order,  k_potato, m_i,      m_z
+      REAL::                           c_den,    c_potb,   c_potl,   p_b2,     p_bm2,    p_eb,   &
      &                                    p_fhat,   p_ft,     p_grbm2,  p_ngrth,  p_grphi,  p_gr2phi
-      REAL(4),DIMENSION(3)            ::  p_fm
-      REAL(4),DIMENSION(mx_mi)        ::  amu_i,    grt_i,    temp_i
-      REAL(4),DIMENSION(mx_mi,mx_mz)  ::  den_iz,   grp_iz
-      REAL(4),DIMENSION(3,mx_mi,mx_mz)::  fex_iz
+      REAL,DIMENSION(3)            ::  p_fm
+      REAL,DIMENSION(mx_mi)        ::  amu_i,    grt_i,    temp_i
+      REAL,DIMENSION(mx_mi,mx_mz)  ::  den_iz,   grp_iz
+      REAL,DIMENSION(3,mx_mi,mx_mz)::  fex_iz
 
 !Declaration of output from NCLASS
-      INTEGER(4)::                        iflag,    m_s
-      INTEGER(4),DIMENSION(mx_ms)::       jm_s,     jz_s
-      REAL(4)::                           p_bsjb,   p_etap,    p_exjb
-      REAL(4),DIMENSION(3,3,mx_mi)::      calm_i
-      REAL(4),DIMENSION(3,3,mx_mi,mx_mi)::caln_ii,  capm_ii,  capn_ii
-      REAL(4),DIMENSION(mx_ms)::          bsjbp_s,  bsjbt_s,  dn_s,     sqz_s,    vn_s,     veb_s,    qeb_s,    xi_s
-      REAL(4),DIMENSION(5,mx_ms)::        gfl_s,    qfl_s
-      REAL(4),DIMENSION(3,3,mx_ms)::      upar_s,   utheta_s, ymu_s
-      REAL(4),DIMENSION(mx_ms,mx_ms)::    chip_ss,  chit_ss,  dp_ss,    dt_ss
+      INTEGER::                        iflag,    m_s
+      INTEGER,DIMENSION(mx_ms)::       jm_s,     jz_s
+      REAL::                           p_bsjb,   p_etap,    p_exjb
+      REAL,DIMENSION(3,3,mx_mi)::      calm_i
+      REAL,DIMENSION(3,3,mx_mi,mx_mi)::caln_ii,  capm_ii,  capn_ii
+      REAL,DIMENSION(mx_ms)::          bsjbp_s,  bsjbt_s,  dn_s,     sqz_s,    vn_s,     veb_s,    qeb_s,    xi_s
+      REAL,DIMENSION(5,mx_ms)::        gfl_s,    qfl_s
+      REAL,DIMENSION(3,3,mx_ms)::      upar_s,   utheta_s, ymu_s
+      REAL,DIMENSION(mx_ms,mx_ms)::    chip_ss,  chit_ss,  dp_ss,    dt_ss
 
-      INTEGER(4),INTENT(OUT):: IERR
-      INTEGER(4)::  i,iz,k_out,k_v,na,nm,nr,ns,ns1,nsn,nsz
-      REAL(4)   ::  a0,bt0,e0,p_eps,p_q,q0l,r0
-      REAL(8)   ::  aitken2p,bpol,btor,btot,deriv3p,eps,ftpf,pzmax,uthai
+      INTEGER,INTENT(OUT):: IERR
+      INTEGER::  i,iz,k_out,k_v,na,nm,nr,ns,ns1,nsn,nsz
+      REAL   ::  a0,bt0,e0,p_eps,p_q,q0l,r0
+      REAL(rkind)   ::  aitken2p,bpol,btor,btot,deriv3p,eps,ftpf,pzmax,uthai
 
 
-      REAL(8),DIMENSION(NRMAX):: EROPSI
+      REAL(rkind),DIMENSION(NRMAX):: EROPSI
 
 !     *** Initialization ***
 
@@ -383,21 +382,21 @@
       INCLUDE 'nclass/pamx_mz.inc'
 !      INCLUDE 'trncls.inc'
 !Declaration of input to NCLASS
-      INTEGER(4)::                        k_order,  m_i,      m_z
-      REAL(4)::                           p_fhat,   p_grphi
-      REAL(4),DIMENSION(mx_mi)        ::  amu_i,    grt_i,    temp_i
-      REAL(4),DIMENSION(mx_mi,mx_mz)  ::  den_iz,   grp_iz
+      INTEGER::                        k_order,  m_i,      m_z
+      REAL::                           p_fhat,   p_grphi
+      REAL,DIMENSION(mx_mi)        ::  amu_i,    grt_i,    temp_i
+      REAL,DIMENSION(mx_mi,mx_mz)  ::  den_iz,   grp_iz
 
 !Declaration of output from NCLASS
-      INTEGER(4)::                        iflag,    m_s
-      INTEGER(4),DIMENSION(mx_ms)::       jm_s,     jz_s
-      REAL(4)::                           p_bsjb,   p_etap,    p_exjb
-      REAL(4),DIMENSION(3,3,mx_mi)::      calm_i
-      REAL(4),DIMENSION(3,3,mx_mi,mx_mi)::caln_ii,  capm_ii,  capn_ii
-      REAL(4),DIMENSION(mx_ms)::          bsjbp_s,  bsjbt_s,  dn_s,     vn_s,     veb_s,    qeb_s,    xi_s
-      REAL(4),DIMENSION(5,mx_ms)::        gfl_s,    qfl_s
-      REAL(4),DIMENSION(3,3,mx_ms)::      upar_s,   utheta_s, ymu_s
-      REAL(4),DIMENSION(mx_ms,mx_ms)::    chip_ss,  chit_ss,  dp_ss,    dt_ss
+      INTEGER::                        iflag,    m_s
+      INTEGER,DIMENSION(mx_ms)::       jm_s,     jz_s
+      REAL::                           p_bsjb,   p_etap,    p_exjb
+      REAL,DIMENSION(3,3,mx_mi)::      calm_i
+      REAL,DIMENSION(3,3,mx_mi,mx_mi)::caln_ii,  capm_ii,  capn_ii
+      REAL,DIMENSION(mx_ms)::          bsjbp_s,  bsjbt_s,  dn_s,     vn_s,     veb_s,    qeb_s,    xi_s
+      REAL,DIMENSION(5,mx_ms)::        gfl_s,    qfl_s
+      REAL,DIMENSION(3,3,mx_ms)::      upar_s,   utheta_s, ymu_s
+      REAL,DIMENSION(mx_ms,mx_ms)::    chip_ss,  chit_ss,  dp_ss,    dt_ss
 
 !Declaration of local variables
       CHARACTER(LEN=120):: label

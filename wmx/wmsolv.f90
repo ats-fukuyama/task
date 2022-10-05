@@ -1,217 +1,164 @@
-C     $Id$
-C
-C     ****** SOLVE SIMULTANEOUS EQUATIONS ******
-C
-      SUBROUTINE WMSOLV
-C
-      INCLUDE 'wmcomm.inc'
-C
-      EXTERNAL WMSETM
-C
-      PARAMETER (NBSIZM=3*MDM*NDM)
-C
-      NBSIZ=3*MDSIZ*NDSIZ
-      IF(MODEWG.EQ.0) THEN
-         MSIZ=(NRMAX+2)*NBSIZ
-      ELSE
-         MSIZ=(NRMAX+2)*NBSIZ+MWGMAX*NAMAX
-      ENDIF
-      MBND=2*NBSIZ
+! wmsolv.f90
 
-      IF(MODEEG.EQ.0) THEN
-         CALL WMSOLV_MTXP(CFVG,MSIZ,2*MBND-1,NBSIZ,WMSETM,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'XXX WMSOLV_MTXP: ERROR: IERR=',IERR
-      ELSE
-         CALL WMSOLV_BAND(CFVG,MSIZ,2*MBND-1,WMSETM,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'XXX WMSOLV_BAND: ERROR: IERR=',IERR
-      END IF
+MODULE wmsolv
 
-      RETURN
-      END
+  PRIVATE
+  PUBLIC wm_solv
 
-      SUBROUTINE WMSOLV_MTXP(XX , N , L , NBSIZ, WMSETM, IERR )
+CONTAINS
+  
+!     ****** SOLVE SIMULTANEOUS EQUATIONS ******
 
-      USE libmtx
-      INCLUDE 'wmcomm.inc'
-      COMPLEX(8),DIMENSION(N),INTENT(OUT):: XX
-      INTEGER,INTENT(IN):: N,L,NBSIZ
-      INTEGER,INTENT(OUT)::IERR 
-      EXTERNAL WMSETM
-      COMPLEX(8),DIMENSION(:),ALLOCATABLE:: A
-      COMPLEX(8):: X
-      INTEGER:: istart,iend,i,j,NRP
-      INTEGER:: itype,its
-      REAL(8):: tolerance
+  SUBROUTINE wm_solv
 
-      ALLOCATE(A(L))        ! local coefficient matrix
+    USE wmcomm
+    IMPLICIT NONE
+    INTEGER:: ierr
 
-      CALL mtxc_setup(N,istart,iend,jwidth=L)
+    mblock_size=3*MDSIZ*NDSIZ
+    ! mlen=NRMAX*mblock_size+MWGMAX*NAMAX defined in wm_alloc in wmcomm.f90
+    ! mbnd=4*mblock_size-1 defined in wm_alloc in wmcomm.f90
+    
+    CALL wm_solv_mtxp(CFVG,ierr)
+    IF(IERR.NE.0) WRITE(6,*) 'XX wm_solv_mtxp error: ierr=',ierr
 
-      NBST=(istart-1)/NBSIZ+1
-      NBED=(iend-1)/NBSIZ+1
-      write(6,'(A,2I5)') 'NBST,NBED=',NBST,NBED
-      IF(NRANK.EQ.NSIZE-1) NBED=NRMAX+2
+    RETURN
+  END SUBROUTINE wm_solv
 
-C   ***** CALCULATE MATRIX COEFFICIENTS *****
+  ! --- solving complex matrix equation
+  
+  SUBROUTINE wm_solv_mtxp(svec,ierr)
 
-      NRP=0
-      NBMODE=0
+    USE wmcomm
+    USE libmtx
+    USE wmsetm0
+    USE wmsetm1
+    USE wmsetm2
+    USE libfio
+    USE libmpi
+    USE commpi
+    IMPLICIT NONE
+    COMPLEX(rkind),DIMENSION(MLEN),INTENT(OUT):: svec
+    INTEGER,INTENT(OUT)::ierr 
+    COMPLEX(rkind),DIMENSION(:),ALLOCATABLE:: A
+    COMPLEX(rkind):: X
+    INTEGER:: i,j,nr_previous,nfl,n
+    INTEGER:: itype,its
+    REAL(rkind):: tolerance
 
-      DO i=istart,iend
-         X=(0.D0,0.D0)
-         A(1:L)=(0.D0,0.D0)
-         CALL WMSETM(A,X,i,L,NRP)
-         DO j=MAX(i-(L+1)/2+1,1),MIN(N,i+(L+1)/2-1)
-            IF(ABS(A(j-i+(L+1)/2)).GT.0.D0) THEN
-               CALL mtxc_set_matrix(i,j,A(j-i+(L+1)/2))
-            END IF
-         END DO
-         CALL mtxc_set_source(i,X)
-      END DO
+    nfl=61
+    IF(idebuga(61).NE.0.AND.nrank.EQ.0) THEN
+       CALL FWOPEN(nfl,knam_dump,1,0,'wm',ierr)
+       IF(ierr.NE.0) STOP
+    END IF
+    IF(idebuga(61).NE.0.AND.nrank.EQ.1) THEN
+       CALL FWOPEN(nfl+1,TRIM(knam_dump)//'-1',1,0,'wm',ierr)
+       IF(ierr.NE.0) STOP
+    END IF
+    IF(idebuga(61).NE.0.AND.nrank.EQ.2) THEN
+       CALL FWOPEN(nfl+2,TRIM(knam_dump)//'-2',1,0,'wm',ierr)
+       IF(ierr.NE.0) STOP
+    END IF
+    IF(idebuga(61).NE.0.AND.nrank.EQ.3) THEN
+       CALL FWOPEN(nfl+3,TRIM(knam_dump)//'-3',1,0,'wm',ierr)
+       IF(ierr.NE.0) STOP
+    END IF
 
-      itype=0
-      tolerance=1.D-12
-      CALL mtxc_solve(itype,tolerance,its)
+    ALLOCATE(A(MBND))        ! local coefficient matrix
 
-      CALL mtxc_gather_vector(XX)
+    CALL mtxc_setup(MLEN,istart,iend,jwidth=MBND)
 
-      CALL mtxc_cleanup
-C
-      DEALLOCATE(A)
-      IERR=0
+    nr_start=(istart-1)/mblock_size+1    ! nr_start is nr including istart
+    nr_end=(iend-1)/mblock_size+1        ! nr_end is nr including iend
+    IF(nrank.EQ.nsize-1) nr_end=NRMAX+1
 
-      RETURN
-      END
-C
-C     ****** SOLUTION OF BAND MATRIX (GAUSSIAN ELIMINATION) ******
-C
-      SUBROUTINE WMSOLV_BAND(XX , N , L , WMSETM, IERR )
-C
-      INCLUDE 'wmcomm.inc'
-      COMPLEX(8),DIMENSION(:,:),ALLOCATABLE:: A
-      COMPLEX(8),DIMENSION(:),ALLOCATABLE:: X
-      COMPLEX(8),DIMENSION(N):: XX
-      COMPLEX(8):: TEMP
-      REAL(8):: EPS , ABS1 , ABS2
-      INTEGER:: N,L,NRP,NR,MS,MB,LH,LHM,NM,K,LHMK,NPMK,I,LPMI,J
-      INTEGER:: IPIVOT,IP,JJ,IERR
-      EXTERNAL WMSETM
-      DATA EPS/ 1.D-70 /
-C
-      NBST=1
-      NBED=NRMAX+2
+    ALLOCATE(istart_nrank(0:nsize-1),iend_nrank(0:nsize-1))
+    ALLOCATE(nr_start_nrank(0:nsize-1),nr_end_nrank(0:nsize-1))
+    CALL mtx_allgather1_integer(istart,istart_nrank)
+    CALL mtx_allgather1_integer(iend,iend_nrank)
+    CALL mtx_allgather1_integer(nr_start,nr_start_nrank)
+    CALL mtx_allgather1_integer(nr_end,nr_end_nrank)
 
-      ALLOCATE(A(L,N))
-      ALLOCATE(X(N))
-C
-      NRP=0
-      NBMODE=0
+    IF(idebuga(41).NE.0.AND.nrank.EQ.0) THEN
+       DO n=0,nsize-1
+          WRITE(6,'(A,6I8)') 'nrank,is,ie,nrs,nre,nrl=', &
+               n,istart_nrank(n),iend_nrank(n), &
+               nr_start_nrank(n),nr_end_nrank(n), &
+               nr_end_nrank(n)-nr_start_nrank(n)+1
+       END DO
+    END IF
 
-      DO MS=1,N
-         X(MS)=(0.D0,0.D0)
-         DO MB=1,L
-            A(MB,MS)=(0.D0,0.D0)
-         ENDDO
-         CALL WMSETM(A(1,MS),X(MS),MS,L,NRP)
-      ENDDO
-C
-      IF( MOD(L,2) .EQ. 0 ) GOTO 9000
-      LH  = (L+1)/2
-      LHM = LH-1
-      NM  = N -1
-C
-      DO K = 1 , LHM
-         LHMK = LH-K
-         NPMK = N+1-K
-         DO I = 1 , LHMK
-            LPMI = L+1-I
-            DO J = 2 , L
-               A( J-1 , K ) = A( J , K )
-            ENDDO
-            A( L    , K    ) = ( 0.D0 , 0.D0 )
-            A( LPMI , NPMK ) = ( 0.D0 , 0.D0 )
-         ENDDO
-      ENDDO
-C
-      DO I = 1 , NM
-         IPIVOT = I
-         IP     = I+1
-         ABS2   = CDABS( A(1,IPIVOT) )
-         DO K = IP , LH
-            ABS1 = CDABS( A(1,K) )
-            IF( ABS1 .GT. ABS2 ) THEN
-                IPIVOT = K
-                ABS2 = ABS1
-            ENDIF
-         ENDDO
-C
-         IF( CDABS(A(1,IPIVOT)) .LT. EPS ) THEN
-            write(6,'(A,1P3E12.4)') 'A(1,IPIVOT),EPS=',A(1,IPIVOT),EPS
-            GOTO 9001
-         END IF
-C
-         IF( IPIVOT .NE. I ) THEN
-            TEMP        = X( I      )
-            X( I      ) = X( IPIVOT )
-            X( IPIVOT ) = TEMP
-            DO J = 1 , L
-C              ATMP( J )          = A   ( J , I      )
-               TEMP               = A   ( J , I      )
-               A   ( J , I      ) = A   ( J , IPIVOT )
-C              A   ( J , IPIVOT ) = ATMP( J )
-               A   ( J , IPIVOT ) = TEMP
-            ENDDO
-         END IF
-C
-         TEMP   = 1.D0   / A( 1 , I )
-         X( I ) = X( I ) * TEMP
-C
-         DO J = 2 , L
-            A( J , I ) = A( J , I ) * TEMP
-         ENDDO
-C
-         DO K = IP , LH
-            TEMP   = A( 1 , K )
-            X( K ) = X( K ) - X( I ) * TEMP
-            DO J = 2 , L
-               A( J-1 , K ) = A( J , K ) - A( J , I ) * TEMP
-            ENDDO
-C
-            A( L , K ) = ( 0.D0 , 0.D0 )
-         ENDDO
-         IF( LH .LT. N ) LH = LH + 1
-      ENDDO
-C
-      IF( CDABS(A(1,N)) .LT. EPS ) THEN
-         write(6,'(A,1P3E12.4)') 'A(1,N),EPS=',A(1,N),EPS
-         GOTO 9002
-      END IF
-C
-      X( N ) = X( N ) / A( 1 , N )
-      JJ = 2
-      DO I = 1 , NM
-         K = N-I
-         TEMP = ( 0.D0 , 0.D0 )
-         DO J = 2 , JJ
-            TEMP = A( J , K ) * X( K-1+J ) + TEMP
-         ENDDO
-         X( K ) = X( K ) - TEMP
-         IF( JJ .LT. L ) JJ = JJ + 1
-      ENDDO
-C
-      XX(1:N)=X(1:N)
-      DEALLOCATE(A,X)
-      IERR = 0
-      RETURN
-C
- 9000 IERR = 10000
-      DEALLOCATE(A,X)
-      RETURN
- 9001 IERR = 20000+I
-      DEALLOCATE(A,X)
-      RETURN
- 9002 IERR = 30000+I
-      DEALLOCATE(A,X)
-      RETURN
-C
-      END
+!   ***** CALCULATE MATRIX COEFFICIENTS *****
+
+    nr_previous=0
+
+    DO i=istart,iend
+       X=(0.D0,0.D0)
+       A(1:MBND)=(0.D0,0.D0)
+       SELECT CASE(MDLWMX)
+       CASE(0)
+          CALL wm_setm0(A,X,i,MBND,nr_previous)
+       CASE(1)
+          CALL wm_setm1(A,X,i,MBND,nr_previous)
+       CASE(2)
+          CALL wm_setm2(A,X,i,MBND,nr_previous)
+       END SELECT
+       IF(idebuga(61).NE.0.AND.nrank.EQ.0) &
+            WRITE(nfl,'(A,2I6,ES12.4)') &
+            'wmsolv:',nr_previous,i,XRHO(nr_previous)
+       IF(idebuga(61).NE.0.AND.nrank.EQ.1) &
+            WRITE(nfl+1,'(A,2I6,ES12.4)') &
+            'wmsolv:',nr_previous,i,XRHO(nr_previous)
+       IF(idebuga(61).NE.0.AND.nrank.EQ.2) &
+            WRITE(nfl+2,'(A,2I6,ES12.4)') &
+            'wmsolv:',nr_previous,i,XRHO(nr_previous)
+       IF(idebuga(61).NE.0.AND.nrank.EQ.3) &
+            WRITE(nfl+3,'(A,2I6,ES12.4)') &
+            'wmsolv:',nr_previous,i,XRHO(nr_previous)
+       DO j=MAX(i-MCENT+1,1),MIN(MLEN,i+MCENT-1)
+          IF(ABS(A(j-i+MCENT)).GT.0.D0) THEN
+             CALL mtxc_set_matrix(i,j,A(j-i+MCENT))
+             IF(idebuga(61).NE.0.AND.nrank.EQ.0) &
+                  WRITE(nfl,'(A,2I6,2ES12.4)') 'A:',i,j,A(j-i+MCENT)
+             IF(idebuga(61).NE.0.AND.nrank.EQ.1) &
+                  WRITE(nfl+1,'(A,2I6,2ES12.4)') 'A:',i,j,A(j-i+MCENT)
+             IF(idebuga(61).NE.0.AND.nrank.EQ.2) &
+                  WRITE(nfl+2,'(A,2I6,2ES12.4)') 'A:',i,j,A(j-i+MCENT)
+             IF(idebuga(61).NE.0.AND.nrank.EQ.3) &
+                  WRITE(nfl+3,'(A,2I6,2ES12.4)') 'A:',i,j,A(j-i+MCENT)
+          END IF
+       END DO
+       IF(ABS(X).GT.0.D0) THEN
+          CALL mtxc_set_source(i,X)
+          IF(idebuga(61).NE.0.AND.nrank.EQ.0) &
+               WRITE(nfl,'(A,2I6,2ES12.4)') 'X:',i,0,X
+          IF(idebuga(61).NE.0.AND.nrank.EQ.1) &
+               WRITE(nfl+1,'(A,2I6,2ES12.4)') 'X:',i,0,X
+          IF(idebuga(61).NE.0.AND.nrank.EQ.2) &
+               WRITE(nfl+2,'(A,2I6,2ES12.4)') 'X:',i,0,X
+          IF(idebuga(61).NE.0.AND.nrank.EQ.3) &
+               WRITE(nfl+3,'(A,2I6,2ES12.4)') 'X:',i,0,X
+       END IF
+    END DO
+
+    itype=1  ! infolevel for MUMPS
+    tolerance=1.D-12
+    CALL mtxc_solve(itype,tolerance,its)
+    IF(nrank.EQ.0) WRITE(6,'(A,I8)') '## wm_solv: iteration=',its
+      
+    CALL mtxc_gather_vector(svec)
+
+    IF(idebuga(69).NE.0.AND.nrank.EQ.0) THEN
+       DO i=1,MLEN,3
+          WRITE(69,'(I6,6ES12.4)') &
+               i,svec(i),svec(i+1),svec(i+2)
+       END DO
+    END IF
+    CALL mtxc_cleanup
+
+    DEALLOCATE(A)
+    IERR=0
+
+    RETURN
+  END SUBROUTINE wm_solv_mtxp
+END MODULE wmsolv

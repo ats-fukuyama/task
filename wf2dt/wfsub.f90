@@ -8,7 +8,7 @@ SUBROUTINE WFSLIM
   implicit none
 
   integer :: IN
-  real(8) :: LNODE
+  real(rkind) :: LNODE
 
   RNDMIN=RNODE(1)
   RNDMAX=RNODE(1)
@@ -29,7 +29,7 @@ SUBROUTINE WFSLIM
      ZNDMIN=MIN(ZNDMIN,ZNODE(IN))
      ZNDMAX=MAX(ZNDMAX,ZNODE(IN))
      SELECT CASE(MODELG)
-     CASE(0,1,12)
+     CASE(0,1,11,12)
         LNODE=SQRT(RNODE(IN)**2+ZNODE(IN)**2)
      CASE(2)
         LNODE=SQRT((RNODE(IN)-RR)**2+ZNODE(IN)**2)
@@ -37,7 +37,7 @@ SUBROUTINE WFSLIM
      LNDMIN=MIN(LNDMIN,LNODE)
      LNDMAX=MAX(LNDMAX,LNODE)
   ENDDO
-  write(6,'(A,1p4E12.4)') ':wfsub:',RNDMIN,RNDMAX,ZNDMIN,ZNDMAX
+  IF(nrank.EQ.0) write(6,'(A,1p4E12.4)') ':wfsub:',RNDMIN,RNDMAX,ZNDMIN,ZNDMAX
 
   RETURN
 END SUBROUTINE WFSLIM
@@ -50,7 +50,7 @@ SUBROUTINE WFSELM
   implicit none
 
   integer :: NE
-  real(8) :: RE(3),ZE(3),S
+  real(rkind) :: RE(3),ZE(3),S
 
   do NE=1,NEMAX
 
@@ -93,7 +93,6 @@ SUBROUTINE WFCLASS(NE,R,Z,WGT,IND)
   real(rkind),intent(in) :: R,Z
   real(rkind),intent(out):: WGT(3)
   integer,intent(out) :: IND
-  integer :: IN
   REAL(rkind),PARAMETER:: eps=1.D-12
 
   CALL WFWGT(NE,R,Z,WGT)
@@ -139,9 +138,9 @@ SUBROUTINE WFWGT(NE,R,Z,WGT)
   implicit none
   integer,intent(in) :: NE
   integer :: IN
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: WGT(3)
-  real(8) :: A(3),B(3),C(3)
+  real(rkind),intent(in) :: R,Z
+  real(rkind),intent(out):: WGT(3)
+  real(rkind) :: A(3),B(3),C(3)
   
   call WFABC(NE,A,B,C)
 
@@ -161,8 +160,8 @@ SUBROUTINE WFABC(NE,A,B,C)
   implicit none
   integer,intent(in):: NE
   integer :: I,J,K
-  real(8),intent(out)::A(3),B(3),C(3) 
-  real(8) :: RE(3),ZE(3),S
+  real(rkind),intent(out)::A(3),B(3),C(3) 
+  real(rkind) :: RE(3),ZE(3),S
   
   CALL WFNODE(NE,RE,ZE)
   S=SELM(NE)
@@ -189,7 +188,7 @@ SUBROUTINE WFNODE(NE,RE,ZE)
   implicit none
   integer,intent(in) :: NE
   integer :: IN,NN
-  real(8),intent(out):: RE(3),ZE(3)
+  real(rkind),intent(out):: RE(3),ZE(3)
   
   DO IN=1,3
      NN=NDELM(IN,NE)
@@ -200,14 +199,14 @@ SUBROUTINE WFNODE(NE,RE,ZE)
   RETURN
 END SUBROUTINE WFNODE
 
-!     ******* INITIALIZE INTEGRAL OF ELEMENT FUNCTION *******
+!     *******  INITIALISE SURFACE INTEGRAL OF ELEMENT FUNCTION *******
 
 SUBROUTINE SETAIF
 
   use wfcomm
   implicit none
   integer :: ID(3,3),I,L1,L2,L3,J,K
-  real(8) :: AIF
+  real(rkind) :: AIF
 
   DATA ID/1,3*0,1,3*0,1/
   
@@ -233,21 +232,72 @@ SUBROUTINE SETAIF
   RETURN
 END SUBROUTINE SETAIF
 
-!     ******* INTEGRAL OF ELEMENT FUNCTION *******
+!     ******* SURFACE INTEGRAL OF ELEMENT FUNCTION *******
 !     KAI(X) = X! (X FACTORIAL)
 !     WHEN YOU USE AIF, YOU SHOULD MULTIPLY AREA OF ELEMNT(S)
 
 FUNCTION AIF(L1,L2,L3)
 
+  USE bpsd_kinds,ONLY: rkind
   implicit none
   integer :: KAI(0:10),L1,L2,L3
-  real(8) :: AIF
+  real(rkind) :: AIF
   DATA KAI/1,1,2,6,24,120,720,5040,40320,362880,3628800/
   
   AIF=DBLE(2*KAI(L1)*KAI(L2)*KAI(L3))/DBLE(KAI(L1+L2+L3+2))
 
   RETURN
 END FUNCTION AIF
+
+!     *******  INITIALISE LINE INTEGRAL OF ELEMENT FUNCTION *******
+
+SUBROUTINE SETAIE
+
+  use wfcomm
+  implicit none
+  integer :: ID(3,3),I,L1,L2,L3,J,K
+  real(rkind) :: AIE
+
+  DATA ID/1,0,0,0,1,0,0,0,1/
+  
+  DO I=1,3
+     L1=ID(1,I)
+     L2=ID(2,I)
+     L3=ID(3,I)
+     AIE1(I)=AIE(L1,L2,L3)
+     DO J=1,3
+        L1=ID(1,I)+ID(1,J)
+        L2=ID(2,I)+ID(2,J)
+        L3=ID(3,I)+ID(3,J)
+        AIE2(I,J)=AIE(L1,L2,L3)
+        DO K=1,3
+           L1=ID(1,I)+ID(1,J)+ID(1,K)
+           L2=ID(2,I)+ID(2,J)+ID(2,K)
+           L3=ID(3,I)+ID(3,J)+ID(3,K)
+           AIE3(I,J,K)=AIE(L1,L2,L3)
+        ENDDO
+     ENDDO
+  ENDDO
+ 
+  RETURN
+END SUBROUTINE SETAIE
+
+!     ******* LINE INTEGRAL OF ELEMENT FUNCTION *******
+!     KAI(X) = X! (X FACTORIAL)
+!     WHEN YOU USE AIE, YOU SHOULD MULTIPLY AREA OF ELEMNT(S)
+
+FUNCTION AIE(L1,L2,L3)
+
+  USE bpsd_kinds,ONLY: rkind
+  implicit none
+  integer :: KAI(0:10),L1,L2,L3
+  real(rkind) :: AIE
+  DATA KAI/1,1,2,6,24,120,720,5040,40320,362880,3628800/
+  
+  AIE=DBLE(KAI(L1)*KAI(L2)*KAI(L3))/DBLE(KAI(L1+L2+L3+1))
+
+  RETURN
+END FUNCTION AIE
 
 !     ****** Set Boundary Attribute for Side and Node ******
 
@@ -267,6 +317,7 @@ SUBROUTINE SETBDY(IERR)
 
   if(nrank.eq.0) WRITE(6,*) '------- SETBDY set NSDMAX & KNELM start ---'
 
+!  WRITE(6,'(A,2I8)') 'NEMAX,NNMAX=',NEMAX,NNMAX
   NBSID=0
   DO NE=1,NEMAX
      NN1=NDELM(1,NE)
@@ -278,8 +329,9 @@ SUBROUTINE SETBDY(IERR)
      IF(KNELM(1,NE).EQ.0) NBSID=NBSID+1
      IF(KNELM(2,NE).EQ.0) NBSID=NBSID+1
      IF(KNELM(3,NE).EQ.0) NBSID=NBSID+1
-!     WRITE(6,'(A,4I5)') 'SETBDY NE,NE1,NE2,NE3:', &
-!                        NE,KNELM(1,NE),KNELM(2,NE),KNELM(3,NE)
+!     IF(nrank.EQ.0.AND.MOD(NE-1,100).EQ.0) &
+!          WRITE(6,'(A,7I8)') 'SETBDY NE,NNs,NEs:', &
+!          NE,NN1,NN2,NN3,KNELM(1,NE),KNELM(2,NE),KNELM(3,NE)
   ENDDO
   NSDMAX=(3*NEMAX-NBSID)/2+NBSID
 
@@ -482,7 +534,7 @@ SUBROUTINE SETEWG
   DO NSD=1,NSDMAX
      IF(KASID(NSD).EQ.1) NBSID=NBSID+1
   END DO
-  write(6,*) 'NBSID=',NBSID
+  IF(nrank.EQ.0) write(6,*) 'NBSID=',NBSID
   IF(ALLOCATED(NSDBS)) DEALLOCATE(NSDBS)
   IF(ALLOCATED(CEBSD)) DEALLOCATE(CEBSD)
   ALLOCATE(NSDBS(NBSID))
@@ -535,7 +587,7 @@ SUBROUTINE SETEWG
            PROD=(R2WG-R1WG)*(RNODE(NN2)-RNODE(NN1)) &
                +(Z2WG-Z1WG)*(ZNODE(NN2)-ZNODE(NN1))
            CALL wf_read_wg(Z,CEX,CEY,CEZ,IERR)
-           write(6,'(A,1P6E12.4)') 'R,Z,CEY=', &
+           IF(nrank.EQ.0) write(6,'(A,1P6E12.4)') 'R,Z,CEY=', &
                                     R,Z,CEY,PROD,ZNODE(NN2)-ZNODE(NN1)
 !!!           IF(PROD.GT.0.D0) CEY=-CEY
            CEBSD(NBSD)=AMPWG*CEY
@@ -597,7 +649,7 @@ SUBROUTINE SETEWG
         IF((R.GE.R1WG-EPSWG).AND.(R.LE.R2WG+EPSWG).AND. &
            (Z.GE.Z1WG-EPSWG).AND.(Z.LE.Z2WG+EPSWG)) THEN
            CALL wf_read_wg(Z,CEX,CEY,CEZ,IERR)
-           write(6,'(A,1P4E12.4)') 'R,Z,CEZ=',R,Z,CEZ
+           IF(nrank.EQ.0) write(6,'(A,1P4E12.4)') 'R,Z,CEZ=',R,Z,CEZ
            CEBND(NBND)=AMPWG*CEZ
         ELSE
            CEBND(NBND)=(0.D0,0.D0)
@@ -614,7 +666,7 @@ SUBROUTINE SETLSD
   implicit none
 
   integer :: NSD,ND1,ND2
-  real(8) :: R1,R2,Z1,Z2,L
+  real(rkind) :: R1,R2,Z1,Z2,L
 
   do NSD=1,NSDMAX
      LSID(NSD)=0.d0
@@ -643,12 +695,13 @@ SUBROUTINE MODANT(IERR)
 
   integer,intent(out) :: IERR
   integer :: NE,NA,NSD,L,KN,LS,N,ID,NENEXT,NENEW
-  real(8) :: RC,ZC
+  real(rkind) :: RC,ZC
 
   NE=0
   DO NA=1,NAMAX
      CALL FEP(RJ0(1,NA),ZJ0(1,NA),NE)
-     WRITE(6,'(A,I5,1P2E12.4,I5)') 'NA,RJ0,ZJ0=',NA,RJ0(1,NA),ZJ0(1,NA),NE
+     IF(nrank.EQ.0) &
+          WRITE(6,'(A,I5,1P2E12.4,I5)') 'NA,RJ0,ZJ0=',NA,RJ0(1,NA),ZJ0(1,NA),NE
 !    outside starting point
 
      IF(NE.EQ.0) THEN
@@ -801,11 +854,11 @@ SUBROUTINE CROS(R1,Z1,R2,Z2,IE,L,RC,ZC,IERR)
   integer,intent(in) :: IE,L
   integer,intent(out):: IERR
   integer :: M,N1,N2
-  real(8),intent(in) :: R1,R2,Z1,Z2
-  real(8),intent(out):: RC,ZC
-  real(8),parameter :: EPS = 1.d-12
-  real(8) :: R3,R4,Z3,Z4
-  real(8) :: DELT,R12,R34,Z12,Z34,AD,RK,RT
+  real(rkind),intent(in) :: R1,R2,Z1,Z2
+  real(rkind),intent(out):: RC,ZC
+  real(rkind),parameter :: EPS = 1.d-12
+  real(rkind) :: R3,R4,Z3,Z4
+  real(rkind) :: DELT,R12,R34,Z12,Z34,AD,RK,RT
   
   M=L+1
   if(M.gt.3) M=M-3
@@ -849,16 +902,25 @@ SUBROUTINE FIELDCR(NE,R,Z,CVALUE,CE)
   implicit none
   integer,intent(in) :: NE
   integer :: ISD,M,N,NSD
-  real(8),intent(in) :: R,Z
-  real(8) :: A(3),B(3),C(3),AW(3),BW(3),WEIGHT,L
-  complex(8),intent(in) :: CVALUE(NSDMAX)
-  complex(8):: CF
-  complex(8),intent(out) :: CE
+  real(rkind),intent(in) :: R,Z
+  real(rkind) :: A(3),B(3),C(3),AW(3),BW(3),WEIGHT,L
+  complex(rkind),intent(in) :: CVALUE(NSDMAX)
+  complex(rkind):: CF
+  complex(rkind),intent(out) :: CE
+  REAL(rkind):: DR,DZ,DL
 
   CALL WFABC(NE,A,B,C)
   do ISD=1,3
      NSD=ABS(NSDELM(ISD,NE))
-     L=LSID(NSD)
+     IF(MODELWF.EQ.0) THEN
+        L=LSID(NSD)
+     ELSE
+        IF(NSDELM(ISD,NE).GT.0.D0) THEN
+           L=LSID(NSD)
+        ELSE
+           L=-LSID(NSD)
+        END IF
+     END IF
 
      M=ISD
      N=ISD+1
@@ -878,6 +940,8 @@ SUBROUTINE FIELDCR(NE,R,Z,CVALUE,CE)
      end if
      WEIGHT=AW(ISD)-BW(ISD)*Z
      CE=CE+WEIGHT*CF
+     IF(idebug.EQ.-1) &
+          WRITE(6,'(A,I10,I5,1P5E12.4)') 'FR:',NE,ISD,weight,CF,CE
   END DO
 
   RETURN
@@ -891,17 +955,25 @@ SUBROUTINE FIELDCZ(NE,R,Z,CVALUE,CE)
   implicit none
   integer,intent(in) :: NE
   integer :: ISD,M,N,NSD
-  real(8),intent(in) :: R,Z
-  real(8) :: A(3),B(3),C(3),BW(3),CW(3),WEIGHT,L
-  complex(8),intent(in) :: CVALUE(NSDMAX)
-  complex(8):: CF
-  complex(8),intent(out) :: CE
+  real(rkind),intent(in) :: R,Z
+  real(rkind) :: A(3),B(3),C(3),BW(3),CW(3),WEIGHT,L
+  complex(rkind),intent(in) :: CVALUE(NSDMAX)
+  complex(rkind):: CF
+  complex(rkind),intent(out) :: CE
 
   CALL WFABC(NE,A,B,C)
   do ISD=1,3
      NSD=ABS(NSDELM(ISD,NE))
-     L=LSID(NSD)
-
+     IF(MODELWF.EQ.0) THEN
+        L=LSID(NSD)
+     ELSE
+        IF(NSDELM(ISD,NE).GT.0.D0) THEN
+           L=LSID(NSD)
+        ELSE
+           L=-LSID(NSD)
+        END IF
+     END IF
+     
      M=ISD
      N=ISD+1
      IF(N.gt.3) N=N-3
@@ -933,11 +1005,11 @@ SUBROUTINE FIELDCP(NE,R,Z,CVALUE,CE)
   implicit none
   integer,intent(in) :: NE
   integer :: NN,IN
-  real(8),intent(in) :: R,Z
-  real(8) :: A(3),B(3),C(3),WEIGHT(3)
-  complex(8),intent(in) :: CVALUE(NNMAX)
-  complex(8):: CF
-  complex(8),intent(out) :: CE
+  real(rkind),intent(in) :: R,Z
+  real(rkind) :: A(3),B(3),C(3),WEIGHT(3)
+  complex(rkind),intent(in) :: CVALUE(NNMAX)
+  complex(rkind):: CF
+  complex(rkind),intent(out) :: CE
 
   CALL WFABC(NE,A,B,C)
   CALL WFWGT(NE,R,Z,WEIGHT)

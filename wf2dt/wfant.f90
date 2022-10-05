@@ -9,6 +9,7 @@
 SUBROUTINE WFANT
 
   use libmpi
+  USE libchar
   use wfcomm
   use wfparm
   implicit none
@@ -25,7 +26,7 @@ SUBROUTINE WFANT
 601  FORMAT(' ','## INPUT: A/ANT  G/DRAW  P,V/PARM  S/SAVE  L/LOAD  ',&
                           'W/LIST  X/EXIT')
      READ(5,'(A1)',ERR=1,END=9000) KID
-     CALL GUCPTL(KID)
+     CALL toupper(KID)
   end if
   call mtx_barrier
   call mtx_broadcast_character(KID,1)
@@ -74,10 +75,11 @@ END SUBROUTINE WFANT
 SUBROUTINE WFDEFA
 
   use libmpi
+  USE libchar
   use wfcomm
   implicit none
   integer   :: NA,NJ,IERR
-  real(8)   :: DEGN,DTHETA,THETA,R,Z
+  real(rkind)   :: DEGN,DTHETA,THETA,R,Z
   character KID*1
 
   DEGN=PI/180.D0
@@ -100,7 +102,7 @@ SUBROUTINE WFDEFA
         WRITE(6,*) '## TYPE: C/CIRCLE  A/ARC  P/POINTS'//&
              &            '  X/EXIT'
         READ(5,'(A1)',ERR=2,END=1) KID
-        CALL GUCPTL(KID)
+        CALL toupper(KID)
         
         IF(KID.EQ.'C') THEN
 3          WRITE(6,602) RD,NJMAX
@@ -190,7 +192,7 @@ subroutine wfant_broadcast
   implicit none
   
   integer :: NA,NJ
-  real(8),dimension(NJM)::ddatar,ddataz
+  real(rkind),dimension(NJM)::ddatar,ddataz
 
   call mtx_broadcast1_integer(NAMAX)
 

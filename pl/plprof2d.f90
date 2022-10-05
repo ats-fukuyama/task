@@ -10,86 +10,24 @@ CONTAINS
 
 SUBROUTINE PLSPSI(RL,ZL,PSI)
 
-  use plcomm,ONLY: RA
+  use plcomm,ONLY: RA,rkind
   implicit none
-  real(8),intent(in) :: RL,ZL
-  real(8),intent(out):: PSI
+  real(rkind),intent(in) :: RL,ZL
+  real(rkind),intent(out):: PSI
 
   PSI=(RL*RL+ZL*ZL)/(RA*RA)
 
   RETURN
 END SUBROUTINE PLSPSI
 
-SUBROUTINE PLCOLL(rn,rtpr,rtpp,rzcl)
-  USE plcomm
-  IMPLICIT NONE
-  REAL(8),DIMENSION(NSM):: rn,rtpr,rtpp,rzcl
-  REAL(8):: TE,TI,RNTI,RNZI,RLAMEE,RLAMEI,RLAMII,SN,PNN0
-  REAL(8):: VTE,RNUEE,RNUEI,RNUEN,RNUE
-  REAL(8):: VTI,RNUIE,RNUII,RNUIN,RNUI
-  INTEGER:: ns
-
-  ! --- set collision frequency ---
-  
-  IF(rn(1).GT.0.D0) THEN
-     TE=(RTPR(1)+2.D0*RTPP(1))*1.D3/3.D0
-     RNTI=0.D0
-     RNZI=0.D0
-     DO ns=2,nsmax
-        RNTI=RNTI+RN(ns)*(RTPR(ns)+2.D0*RTPP(ns))*1.D3/3.D0
-        RNZI=RNZI+RN(ns)*PZ(ns)**2
-     END DO
-     TI=RNTI/rn(1)
-     RLAMEE= 8.0D0+2.3D0*(LOG10(TE)-0.5D0*LOG10(RN(1)))
-     RLAMEI= RLAMEE+0.3D0
-     RLAMII=12.1D0+2.3D0*(LOG10(TI)-0.5D0*LOG10(RN(1)))
-
-     SN=1.D-20 ! tytpical ionizatioin crosssection
-     PNN0=PPN0/(PTN0*AEE) ! neutral density
-
-     DO NS=1,NSMAX
-        IF(PZCL(NS).EQ.0) THEN
-           IF(NS.EQ.1) THEN
-              VTE=SQRT(2.D0*TE*AEE/AME)
-              RNUEE=RN(1)*RLAMEE/(1.24D-4*SQRT(TE*1.D-3)**3)
-              RNUEI=RNZI*RLAMEI/(1.51D-4*SQRT(TE*1.D-3)**3)
-              RNUEN=PNN0*SN*0.88D0*VTE
-              RNUE=RNUEE+RNUEI+RNUEN
-              RZCL(NS)=RNUE/(2.D6*PI*RF_PL)
-           ELSE
-              TI=(RTPR(NS)+2.D0*RTPP(NS))*1.D3/3.D0
-              VTI=SQRT(2.D0*TI*AEE/(PA(NS)*AMP))
-              RNUIE=PZ(NS)**2*RN(1)*RLAMEI &
-                       /(2.00D-1*SQRT(TE*1.D-3)**3*PA(NS))
-              RNUII=RNZI*RLAMII &
-                       /(5.31D-3*SQRT(TI*1.D-3)**3*SQRT(PA(NS)))
-              RNUIN=PNN0*SN*0.88D0*VTI
-              RNUI=RNUIE+RNUII+RNUIN
-!              RZCL(NS)=RNUI/(2.D6*PI*RF_PL)
-              RZCL(NS)=0.D0
-           ENDIF
-        ELSE
-           RZCL(NS)=PZCL(NS)
-        ENDIF
-     ENDDO
-  ELSE
-     DO NS=1,NSMAX
-        RZCL(NS)=0.D0
-     ENDDO
-  ENDIF
-  RETURN
-END SUBROUTINE PLCOLL
-
-
 SUBROUTINE PLSMAG11(R,Z,BABS,AL)
 
-  use PLcomm
+  use plcomm
   USE plload
   implicit none
-  integer :: I
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: BABS,AL(3)
-  real(8) :: rfactor,zfactor,br,bz,bt
+  real(rkind),intent(in) :: R,Z
+  real(rkind),intent(out):: BABS,AL(3)
+  real(rkind) :: rfactor,zfactor,br,bz,bt
 
   rfactor=(r-r_corner(1))/(r_corner(2)-r_corner(1))
   zfactor=(z-z_corner(1))/(z_corner(3)-z_corner(1))
@@ -112,10 +50,10 @@ SUBROUTINE PLSMAG13(R,Z,BABS,AL)
   use PLcomm
   implicit none
   integer :: I
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: BABS,AL(3)
-  real(8) :: BLO(3),LR,LZ
-  real(8) :: L,Q
+  real(rkind),intent(in) :: R,Z
+  real(rkind),intent(out):: BABS,AL(3)
+  real(rkind) :: BLO(3),LR,LZ
+  real(rkind) :: L,Q
 
 ! L : distance from the center of plasma
 ! Q : safety factor
@@ -152,13 +90,14 @@ END SUBROUTINE PLSMAG13
 
 !     ****** set density & collision frequency ******
 
-SUBROUTINE PLSDEN11(R,Z,RN,RTPR,RTPP,RZCL)
+SUBROUTINE PLSDEN11(R,Z,RN,RTPR,RTPP)
 
-  use plcomm
+  USE plcomm
+  USE plcomm_type
   implicit none
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
-  real(8) :: rfactor,zfactor
+  real(rkind),intent(in) :: R,Z
+  real(rkind),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM)
+  real(rkind) :: rfactor,zfactor
   INTEGER :: ns
 
   ! --- set FACT ---
@@ -194,33 +133,18 @@ SUBROUTINE PLSDEN11(R,Z,RN,RTPR,RTPP,RZCL)
                 +(ptpp_corner(3,ns)-ptpp_corner(1,ns))*zfactor**2
      END DO
   END SELECT
-!     write(6,'(1P3E12.4)') rfactor,zfactor
-!  DO NS=1,NSMAX
-!     write(6,'(1P3E12.4)') pn_corner(1,NS),pn_corner(2,NS),pn_corner(3,NS)
-!     write(6,'(1P3E12.4)') ptpr_corner(1,NS),ptpr_corner(2,NS),&
-!                           ptpr_corner(3,NS)
-!     write(6,'(1P3E12.4)') ptpp_corner(1,NS),ptpp_corner(2,NS),&
-!                           ptpp_corner(3,NS)
-!     write(6,'(1P3E12.4)') R,Z,rn(ns)
-!     write(6,'(1P3E12.4)') rtpr(NS),rtpp(NS),rzcl(NS)
-!  END DO
-!     STOP
-
-  CALL PLCOLL(rn,rtpr,rtpp,rzcl)
-
   RETURN
 END SUBROUTINE PLSDEN11
 
-SUBROUTINE PLSDEN13(R,Z,RN,RTPR,RTPP,RZCL)
+SUBROUTINE PLSDEN13(R,Z,RN,RTPR,RTPP)
 
-  use plcomm
+  USE plcomm
+  USE plcomm_type
   implicit none
-  integer :: NS,NSI
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
-  real(8) :: LR,LZ
-  real(8) :: TE,TI,RLAMEE,RLAMEI,RLAMII,SN,PNN0,VTE,RNUEE,RNUEI,RNUEN
-  real(8) :: RNUE,VTI,RNUIE,RNUII,RNUIN,RNUI,FACT,PSI
+  integer :: NS
+  real(rkind),intent(in) :: R,Z
+  real(rkind),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM)
+  real(rkind) :: LR,LZ,FACT,PSI
 
   ! --- set FACT ---
 
@@ -249,24 +173,11 @@ SUBROUTINE PLSDEN13(R,Z,RN,RTPR,RTPP,RZCL)
 
   ! --- set density at NODE NN ---
 
-  do NS=1,NSMAX
+  DO NS=1,NSMAX
      RN(NS)  =(PN(NS)-PNS(NS))*FACT+PNS(NS)
      RTPR(NS)=PTPR(NS)
      RTPP(NS)=PTPP(NS)
-  enddo
-
-  ! --- set collision frequency ---
-  
-  CALL PLCOLL(rn,rtpr,rtpp,rzcl)
-
-!  WRITE(6,*) 'ZND= ',ZND(IN)
-!  WRITE(6,*) 'RN = ',RN(1),RN(2)
-!  WRITE(6,*) 'RT = ',RTPR(1),RTPR(2)
-!  WRITE(6,*) 'RZ = ',RZCL(1),RZCL(2)
-!  WRITE(6,*) 'E  = ',RNUE,RNUEE,RNUEI,RNUEN
-!  WRITE(6,*) 'I  = ',RNUI,RNUIE,RNUII,RNUIN
-!  STOP
-
+  ENDDO
   RETURN
 END SUBROUTINE PLSDEN13
 

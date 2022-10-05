@@ -4,7 +4,8 @@ C     ****** CONTROL GRAPHICS ******
 C
       SUBROUTINE WMGOUT
 C
-      USE equnit_mod
+      USE libchar
+      USE equnit
       INCLUDE 'wmcomm.inc'
 C
       CHARACTER KSTR*5,K1,K2,K3,K4
@@ -16,11 +17,11 @@ C
       READ(5,'(A5)',ERR=1,END=900) KSTR
       K1=KSTR(1:1)
 C
-      CALL GUCPTL(K1)
+      CALL toupper(K1)
       IF (K1.EQ.'X') GOTO 900
       IF (K1.EQ.'G') THEN
 	 K2=KSTR(2:2)
-	 CALL GUCPTL(K2)
+	 CALL toupper(K2)
          IF(K2.EQ.'0') NGRAPH=0
          IF(K2.EQ.'1') NGRAPH=1
          IF(K2.EQ.'2') NGRAPH=2
@@ -36,11 +37,11 @@ C
       IF((K1.EQ.'R').OR.(K1.EQ.'C').OR.(K1.EQ.'M').OR.
      &   (K1.EQ.'P').OR.(K1.EQ.'S').OR.(K1.EQ.'E')) THEN
 	 K2=KSTR(2:2)
-	 CALL GUCPTL(K2)
+	 CALL toupper(K2)
          K3=KSTR(3:3)
-	 CALL GUCPTL(K3)
+	 CALL toupper(K3)
          K4=KSTR(4:4)
-	 CALL GUCPTL(K4)
+	 CALL toupper(K4)
          IF(K1.EQ.'R') THEN
             IF(K2.EQ.'G') THEN
                CALL WMGREQG(K2,K3,K4)
@@ -506,7 +507,11 @@ C
         CALL TEXT('md:',3)
         CALL NUMBI(NTH0+MD1,'(I3)',3)
         DO I=1,IMAX
-           GXL=GP(2,4)-4.0+2.0*(I-1)/REAL(IMAX-1)
+           IF(IMAX.EQ.1) THEN
+              GXL=GP(2,4)-4.0
+           ELSE
+              GXL=GP(2,4)-4.0+2.0*(I-1)/REAL(IMAX-1)
+           END IF
            CALL SETLIN(0,2,7-MOD(I-1,5))
            CALL MOVE(GXL,GP(4,4)+0.4)
            CALL DRAW(GXL,GP(4,4)+0.2)
@@ -1090,11 +1095,23 @@ C
 C
       CALL MOVE(XPOS,YPOS-3*DY)
       CALL TEXT('Q0: ',4)
-      CALL NUMBD(Q0,'(F8.4)',8)
+      IF(Q0.LT.1.D4) THEN
+       CALL NUMBD(Q0,'(F8.4)',8)
+      ELSE IF(Q0.LT.1.D6) THEN
+         CALL NUMBD(Q0,'(F8.2)',8)
+      ELSE
+         CALL NUMBD(Q0,'(ES8.1)',8)
+      END IF
 C
       CALL MOVE(XPOS,YPOS-4*DY)
       CALL TEXT('QA: ',4)
-      CALL NUMBD(QA,'(F8.4)',8)
+      IF(QA.LT.1.D4) THEN
+         CALL NUMBD(QA,'(F8.4)',8)
+      ELSE IF(QA.LT.1.D6) THEN
+         CALL NUMBD(QA,'(F8.2)',8)
+      ELSE
+         CALL NUMBD(QA,'(ES8.1)',8)
+      END IF
       YPOS=YPOS-5*DY
 C
 C     ****** PLASMA PARAMETERS ******

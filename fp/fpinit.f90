@@ -15,11 +15,11 @@ contains
 
       use fpcomm_parm
       IMPLICIT NONE
-      integer:: ns,nsa,nsb,nbeam
+      integer:: ns,nsa,nsb,nbeam,nray
 
 !-----PARTICLE SPECIES--------------------------------------------------
 !     nsamax: number of test particle species
-!     nsbmax: number of field particle species (0 for nsbmax=nsmax: default)
+!     nsbmax: number of field particle species
 !     ns_nsa(nsa): mapping from NSA to NS in pl 
 !     ns_nsb(nsb): mapping from NSB to NS in pl
 !     pmax(nsb)  : maximum momentum (normailzed by central thermal momentum)
@@ -56,34 +56,40 @@ contains
       ZEFF  = 1.D0
 
 !-----WM/WR-------------------------------------------------------------
-!     PABS_LH : input power of LH [MW] (0 for given DLH) MODELW=0
-!     PABS_FW : input power of FW [MW] (0 for given DFW) MODELW=0
-!     PABS_EC : input power of EC [MW] (0 for given DEC) MODELW=0
-!     PABS_WR : input power of WR [MW] (0 for given E) MODELW=1 or 2
-!     PABS_WM : input power of WM [MW] (0 for given E) MODELW=3 or 4
+!     PABS_LH : absorbed power of LH [MW] (0 for given DLH) MODELW=0
+!     PABS_FW : absorbed power of FW [MW] (0 for given DFW) MODELW=0
+!     PABS_EC : absorbed power of EC [MW] (0 for given DEC) MODELW=0
+!     PIN_WR  : input power of WR [MW] (0 for given E) MODELW=1 or 2
+!     PABS_WM : absorbed power of WM [MW] (0 for given E) MODELW=3 or 4
 !     RF_WM   : wave frequency [MHz] used for MODELW=3
 
-!     FACT_WM: Numerical factor for wave amplitude for WR
-!     FACT_WR: Numerical factor for wave amplitude for WM
+!     FACT_WM: Numerical factor for wave amplitude for WM
+!     FACT_WR: Numerical factor for wave amplitude for WR
+!     PIN_WR_NRAY(NRAYM): input power of each ray (for PIN_WR=0)
 !     DELNPR_WR: width of toroidal mode number for WR
 !     DELNPR_WM: width of toroidal mode number for WM
 !     LMAX_WR: max loop count in newton method to find ray position
 !     EPS_WR: convergence criterion in newton method to find ray position
-!     DELY_WR: vertical half-width of ray [r/a]
+!     DELY_WR: vertical half-width of ray [m]
 !     Y0_WM: vertical position of wave beam [r/a]
 !     DELY_WM: vertical half-width of wave beam [r/a]
+!     NRAYS_WR: start of NRAY (IF 0, NRAYS_WR=1)
+!     NRAYE_WR: end of NRAY (IF 0, NRAYE_WR=NRAYMAX)
 !     NCMIN(NS): minimum order of cyclotron harmonics for species NS
 !     NCMAX(NS): maximum order of cyclotron harmonics for species NS
 
       PABS_LH = 0.0D0
       PABS_FW = 0.0D0
       PABS_EC = 0.0D0
-      PABS_WR = 0.0D0
+      PIN_WR  = 0.0D0
       PABS_WM = 0.0D0
       RF_WM   = 64.D0
 
       FACT_WR  = 1.D0
       FACT_WM  = 1.D0
+      DO NRAY=1,NRAYM
+         PIN_WR_NRAY(NRAY)=1.D0
+      END DO
       DELNPR_WR= 0.05D0
       DELNPR_WM= 0.05D0
       LMAX_WR = 100
@@ -91,6 +97,8 @@ contains
       DELY_WR = 0.1D0
       Y0_WM   = 0.D0
       DELY_WM =0.1D0
+      NRAYS_WR=0
+      NRAYE_WR=0
       DO NS=1,NSM
          NCMIN(NS) = -3
          NCMAX(NS) = 3
@@ -370,9 +378,7 @@ contains
 !-----COMPUTATION PARAMETERS------------------------------------------
 !     DELT  : time step size (s)
 !     RIMPL : implicit computation parameter
-!     imtx  : type of matrix solver 
-!                    0: petsc ksp (GMRES ILU(0) no initial guess)
-!                    1: petsc ksp (GMRES ILU(0)    initial guess) *default
+!     IMTX  : info level of KSP solver
 !     MODEL_KSP : type of KSP solver
 !     MODEL_PC  : type of pre-conditioning
 !     EPSFP : convergence limit in nonlinear effects

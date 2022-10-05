@@ -24,6 +24,7 @@ CONTAINS
 !     IERR=7 : unknown MODE
 !     IERR=10X : input parameter out of range
 
+    USE libkio
     IMPLICIT NONE
     INTEGER,INTENT(IN):: mode
     CHARACTER(LEN=*),INTENT(IN)::  kin
@@ -54,7 +55,7 @@ CONTAINS
                   AJYH,AJZH,APYH,APZH,ALZH,APHH,AJYL,AJZL,APYL,APZL,ALZL,APHL,&
                   PA,PZ,PN,PTPP,PTPR,PU,PNS,PTS,PZCL,NSMAX, &
                   NXMAX,NZMAX,NPRINT,NFILE,NGRAPH,NLOOP,NSYM, &
-                  NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NDISP, &
+                  NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NGDSP,MODELN, &
                   EPSH,ZEFF,WVYSIZ,NCDTYP,NXABS,IELEC, &
                   MDLWG,MDLWGS,WGZ1,WGZ2,WGAMP,WGNZ
 
@@ -85,7 +86,7 @@ CONTAINS
          '        AJYL,AJZL,APYL,APZL,ALZL,APHL,', &
          '        PA,PZ,PN,PTPP,PTPR,PU,PNS,PTS,PZCL,NSMAX,', &
          '        NXMAX,NZMAX,NPRINT,NFILE,NGRAPH,NLOOP,NSYM,', &
-         '        NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NDISP,', &
+         '        NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NGDSP,MODELN,', &
          '        EPSH,ZEFF,WVYSIZ,NCDTYP,NXABS,IELEC', &
          '        MDLWG,MDLWGS,WGZ1,WGZ2,WGAMP,WGNZ'
     RETURN
@@ -163,8 +164,8 @@ CONTAINS
                  'NPRINT',NPRINT,'NFILE ',NFILE, &
                  'NGRAPH',NGRAPH,'NLOOP ',NLOOP, &
                  'NSYM  ',NSYM  ,'NMODEL',NMODEL, &
-                 'NALPHA',NALPHA, &
-                 'NSYS  ',NSYS  ,'NDISP ',NDISP, &
+                 'NALPHA',NALPHA,'MODELN',MODELN, &
+                 'NSYS  ',NSYS  ,'NGDSP ',NGDSP, &
                  'NCDTYP',NCDTYP,'NXABS ',NXABS, &
                  'MDLWG ',MDLWG ,'MDLWGS',MDLWGS
     RETURN

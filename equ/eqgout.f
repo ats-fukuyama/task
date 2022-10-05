@@ -15,16 +15,23 @@ c=======================================================================
       use eqv_mod
       use eqt_mod
       use trn_mod
+      USE libchar
       implicit none
 c
       integer id,i,idx
       character kid*4,kid1*1
-c
+
+C      write(6,'(A,1P2E12.4)') 'saxis=',saxis
+C      DO i=1,nv
+C         write(6,'(i5,1P6E12.4)')
+C     &        i,vlv(i),siv(i),hiv(i),prv(i),pds(i),qqv(i)
+C      END DO
+      
     1 continue
       write(6,*) '## input graph kid: Ann,Bnn,Cnn,Dn,Pn,X'
       read(5,'(A4)',ERR=1,END=9000) kid
       kid1=kid(1:1)      
-      call gucptl(kid1)
+      call toupper(kid1)
 C
       if(kid1.eq.'A') then
          read(kid(2:4),'(I3)',ERR=1,END=9000) id
@@ -95,12 +102,10 @@ c=======================================================================
 c
       integer id,ipos
 c
-      if(id.ge.21.and.id.le.40) then
-         rovv(1)=0.d0
-         do n=2,nv
-            rovv(n)=sqrt(hiv(n)/hiv(nv))
-         enddo
-      endif
+      rovv(1)=0.d0
+      do n=2,nv
+         rovv(n)=sqrt(hiv(n)/hiv(nv))
+      enddo
 c
       if(id.eq. 1) call eqgr1d(ipos,hiv,vlv,nv,'@volume(psi_t)@')
       if(id.eq. 2) call eqgr1d(ipos,hiv,arv,nv,'@area(psi_t)@')
@@ -128,7 +133,7 @@ c
       if(id.eq.18) call eqgr1d(ipos,hiv,muv,nv,'@muv(psi_t)@')
       if(id.eq.19) call eqgr1d(ipos,hiv,nuv,nv,'@nuv(psi_t)@')
       if(id.eq.20) call eqgr1d(ipos,hiv,prv,nv,'@prv(psi_t)@')
-      if(id.eq.21) call eqgr1d(ipos,hiv,qqv,nv,'@prv(psi_t)@')
+      if(id.eq.21) call eqgr1d(ipos,hiv,qqv,nv,'@qqv(psi_t)@')
       if(id.eq.22) call eqgr1d(ipos,hiv,sha,nv,'@sha(psi_t)@')
       if(id.eq.23) call eqgr1d(ipos,hiv,cuv,nv,'@cuv(psi_t)@')
       if(id.eq.24) call eqgr1d(ipos,hiv,pds,nv,'@pds(psi_t)@')

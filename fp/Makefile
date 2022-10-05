@@ -1,8 +1,8 @@
 ### $Id: Makefile,v 1.69 2012/07/25 07:53:52 nuga Exp $ ###
 include ../make.header
 include ../mtxp/make.mtxp
-LIB_MTX=$(LIB_MTX_BND)
-LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_BND)
+#LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIB_MTX_PCG)
 #LIBX_MTX=$(LIBX_MTX_PCG)
 #LIB_MTX=$(LIB_MTX_MUMPS)
@@ -10,8 +10,8 @@ LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 .SUFFIXES:
 .SUFFIXES: .f90 .mod .o .a
@@ -21,7 +21,7 @@ FFLAGS=$(OFLAGS)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-MODINCLUDE= -I./$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
+MODINCLUDE= -I./$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD)  -I../dp/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
 SRCS = fpcomm.f90 eg_read.f90 fpinit.f90 fpparm.f90 \
        fpmpi.f90 fpbroadcast.f90 fpsub.f90 \
@@ -31,14 +31,14 @@ SRCS = fpcomm.f90 eg_read.f90 fpinit.f90 fpparm.f90 \
        fpcalcn.f90 fpcalcnr.f90 fpcalc.f90 fpnfrr.f90 fpnflg.f90 \
        cdbmfp.f90 fpcalr.f90 sv_read.f90 fpcoef.f90 fpcale.f90 \
        fpbounce.f90 fpdisrupt.f90 fpprep.f90 fploop.f90 \
-       fpcont.f90 fpfout.f90 fpgout.f90 fpfile.f90 fpmenu.f90
+       fpcont.f90 fpfout.f90 fpgsub.f90 fpgout.f90 fpfile.f90 fpmenu.f90
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = libfp.a ../pl/libpl.a ../eq/libeq.a  \
-        ../lib/libtask.a ../../bpsd/libbpsd.a
+LIBS = libfp.a ../pl/libpl.a ../eq/libeq.a ../dp/libdp.a \
+        ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
-all: libs fp
+all: fp
 
 libfp.a: $(OBJS)
 	$(LD) $(LDFLAGS) libfp.a $(OBJS)
@@ -49,17 +49,23 @@ libfp.a: $(OBJS)
 	(cd ../pl; make libpl.a)
 ../eq/libeq.a:
 	(cd ../eq; make libeq.a)
+../dp/libeq.a:
+	(cd ../dp; make libdp.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 
 libs:
 	(cd ../../bpsd; make libbpsd.a)
 	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
+	(cd ../dp; make libdp.a)
 
-fp : $(LIB_MTX) $(LIBS) fpmain.o 
+fp : libs libfp.a fpmain.o 
 	$(FLINKER) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean :
@@ -92,7 +98,8 @@ fpcalwr.o : fpwrin.f90 fpcalwr.f90 fpcomm.f90
 fpcalwm.o : fpwmin.f90 fpcalwm.f90 fpcomm.f90
 fpcont.o : fpcont.f90 fpcomm.f90
 fpfout.o : fpfout.f90 fpcomm.f90
-fpgout.o : fpfout.f90 fpcont.f90 fpgout.f90 fpcomm.f90
+fpgsub.o : fpgsub.f90 fpcomm.f90
+fpgout.o : fpfout.f90 fpcont.f90 fpgsub.f90 fpgout.f90 fpcomm.f90
 fpfile.o : fpprep.f90 eg_read.f90 sv_read.f90 fpfile.f90 fpcomm.f90
 fpsave.o : fpexec.f90 eg_read.f90 fpsave.f90 fpcomm.f90
 fpwrin.o : fpwrin.f90 fpcomm.f90

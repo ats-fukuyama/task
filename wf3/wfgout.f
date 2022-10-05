@@ -8,6 +8,7 @@ C     ***********************************
 C
       SUBROUTINE WFGOUT
 C
+      USE libchar
       INCLUDE 'wfcomm.inc'
 C
       CHARACTER KLINE*80,KWORD*(NCHM),KWD*(NCHM),KID*1,KTAIL*7
@@ -33,7 +34,7 @@ C
    10 IF(NL.GE.80) GOTO 20
          NL=NL+1
          KID=KLINE(NL:NL)
-         CALL GUCPTL(KID)
+         CALL toupper(KID)
          IF(KID.NE.' ') THEN
             IF(NCH.LT.NCHM) NCH=NCH+1
             KWD(NCH:NCH)=KID

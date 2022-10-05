@@ -69,10 +69,10 @@ subroutine TXSTAT
        &                 BETAPA, BETAN, Q, ANSAV, rIp, PI, RA, NRA, NRMAX, R, &
        &                 rMui, Chii, UiphV, TSAV, Gamma_a, TAUPA, PZ, PNiV, UirV, &
        &                 PTeV, rKeV, AMI, RR, rNuei
+  USE libitp
   implicit none
   integer(4) :: NR, NRL1, NRL2
   real(8) :: RL1, RL2, rmuil, chiil, uiphl, PTeVL, WDe, rNueiL
-  real(8) :: aitken2p
 
   RL1 = 0.3D0 * RA ; RL2 = 0.5D0 * RA
   DO NR = 0, NRMAX-1
@@ -131,13 +131,12 @@ end subroutine TXSTAT
 
 subroutine steady_check
   use tx_commons, only : RA, NRMAX, R, UiphV, PNeV, PeV, T_TX
-
+  USE libitp
   implicit none
   integer(4) :: nr
   integer(4), save :: nrl = 0
   real(8) :: rl, uiphl, pnevl, pevl
   real(8), save :: uiphl_old = 0.d0, pnevl_old = 0.d0, pevl_old = 0.d0
-  real(8) :: aitken2p
 
   ! Seel a grid number "nrl" nearest rho=0.3
   if(nrl == 0) then
@@ -222,8 +221,7 @@ SUBROUTINE TXSAVE
        & IGBDF,MDSOLV,MDOSQZ,MDLETA,MDFIXT,MDVAHL,MDANOM, &
        & MDLNBD,PNBMPD,thrp,kappa
 
-  use tx_interface, only : TOUPPER
-
+  USE libchar
   implicit none
   INTEGER(4) :: IST, NQ, NR, NC, I, IGYT, IGYV
   character(len=100) :: TXFNAM, RCSId
@@ -1187,10 +1185,10 @@ end subroutine ascii_input
 integer(4) function detect_datatype(kchar)
 
   use tx_commons, only : infiles, n_infiles
+  USE libchar
   implicit none
   character(len=*), intent(in) :: kchar
   integer(4) :: i
-  logical :: kmatch
 
   do i = 1, n_infiles
      if(kmatch(infiles(i)%name,kchar)) then
@@ -1279,6 +1277,7 @@ end subroutine for_ntmain
 
 subroutine for_ofmc
   use tx_commons, only : NRMAX, NRA, RR, RA, BB, rIp, AphV, PNeV, PTeV, PTiV
+  USE libspl1d
   USE libfio
   implicit none
 
@@ -1384,15 +1383,15 @@ end subroutine for_ofmc
 subroutine initprof_input(nr, idx, out)
 
   use tx_commons, only : NRMAX, Rho, AEE
+  USE libspl1d
   USE libfio
-
+  USE libitp
   integer(4), optional, intent(in) :: nr, idx
   real(8), optional, intent(out) :: out
   integer(4) :: nintin, ier, ist, k, iflag, j
   integer(4), save :: nrinmax
   real(8), dimension(:), allocatable, save :: rho_in, deriv
   real(8), dimension(:,:), allocatable, save :: prof_in, u1, u2, u3, u4
-  real(8) :: FCTR4pt, AITKEN2P
 
   type unit
      integer(4)          :: l_p

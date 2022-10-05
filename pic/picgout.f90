@@ -10,10 +10,12 @@ CONTAINS
 
     USE piccomm
     USE picparm,ONLY: pic_parm
+    USE libkio
     USE grd2dp_mod,ONLY: grd2dp
+    USE libkio
     USE libgrf
     IMPLICIT NONE
-    INTEGER:: kid,mode,err,ich1,ich2,nx,ny,np,npo,nto
+    INTEGER:: mode,err,ich1,ich2,nx,ny,np,npo,nto
     CHARACTER(LEN=2):: kch
     CHARACTER(LEN=80):: line
     REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: work
@@ -46,7 +48,7 @@ CONTAINS
     err=0
     WRITE(6,'(A)') &
          '#### PIC GOUT: T1 E1-8 F1 O1-2 P1-4 X/exit'
-    CALL TASK_KLIN(line,kid,mode,pic_parm)
+    CALL TASK_KLIN(line,kch,mode,pic_parm)
     IF(mode == 2 .OR. mode == 3) GOTO 1
 
     ICH1=ICHAR(LINE(1:1))

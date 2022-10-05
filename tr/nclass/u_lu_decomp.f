@@ -19,6 +19,7 @@
 !       =0 no errors
 !       =1 singular matrix
 !***********************************************************************
+      USE trcomm,ONLY: rkind
       IMPLICIT NONE
 !Declaration of parameters
       INTEGER         nmax
@@ -26,26 +27,26 @@
 !Declaration of input
       INTEGER         iflag,                indx(*),
      #                n,                    ndim
-      REAL            a(ndim,*),            d
+      REAL(rkind)     a(ndim,*),            d
 !Declaration of local variables
       INTEGER         i,                    imax,
      #                j,                    k
-      REAL            aamax,                dum,
+      REAL(rkind)     aamax,                dum,
      #                sum,                  vv(nmax)
 !Initialization
       iflag=0
-      d=1.0
+      d=1.D0
 !Loop over rows to get the implicit scaling information
       DO i=1,n
-        aamax=0.0
+        aamax=0.D0
         DO j=1,n
           IF(ABS(a(i,j)).gt.aamax) aamax=ABS(a(i,j))
         ENDDO    
-        IF(aamax.eq.0.0) THEN
+        IF(aamax.eq.0.D0) THEN
           iflag=1
           GOTO 1000
         ENDIF
-        vv(i)=1.0/aamax
+        vv(i)=1.D0/aamax
       ENDDO   
 !Loop over columns using Crout's method
       DO j=1,n
@@ -57,7 +58,7 @@
           a(i,j)=sum
         ENDDO    
 !  Search for largest pivot element using dum as a figure of merit
-        aamax=0.0
+        aamax=0.D0
         DO i=j,n
           sum=a(i,j)
           DO k=1,j-1
@@ -81,7 +82,7 @@
           vv(imax)=vv(j)
         ENDIF
         indx(j)=imax
-        IF(a(j,j).eq.0.0) THEN
+        IF(a(j,j).eq.0.D0) THEN
           iflag=1
           RETURN
         ENDIF

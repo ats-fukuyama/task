@@ -87,12 +87,16 @@
 !        PTS   : Temperature on surface                        (keV)
 !        PU    : Toroidal rotation velocity at center          (m/s)
 !        PUS   : Toroidal rotation velocity on surface         (m/s)
+!        PUPR  : typical parallel velocity                     (m/s)
+!        PUPP  : typical perpendicular velocity                (m/s)
 !        RHOITB: rho at ITB (0 for no ITB)
 !        PNITB : Density increment at ITB              (1.0E20/Mm*3)
 !        PTITB : Temperature increment at ITB                  (keV)
 !        PUITB : Toroidal rotation velocity increment at ITB   (m/s)
-!        PZCL  : normalized collision frequency
-
+!        PNUC  : Factor for collision frequency: 0:collisionless 1:standard
+!        PZCL  : Factor for collisional damping
+!                   positive: nu/omega=PZCL
+!                   0:        nu/omega=RNUC
 !        KID_NS: index of particle species
 !        ID_NS : -1 : electron
 !                 0 : neutral
@@ -116,10 +120,13 @@
          PTS(NS)  = 0.05D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
+         PUPR(NS) = 0.D0
+         PUPP(NS) = 0.D0
          RHOITB(NS)=0.D0
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
+         PNUC(NS) = 0.D0
          PZCL(NS) = 0.D0
 
 !     *** deuteron ***
@@ -137,12 +144,17 @@
          PTS(NS)  = 0.05D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
+         PUPR(NS) = 0.D0
+         PUPP(NS) = 0.D0
          RHOITB(NS)=0.D0
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
+         PNUC(NS) = 0.D0
+         PZCL(NS) = 0.D0
 
 !     *** triton ***
+
          NS = 3
 
          KID_NS(NS)= ' T'
@@ -157,10 +169,14 @@
          PTS(NS)  = 0.05D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
+         PUPR(NS) = 0.D0
+         PUPP(NS) = 0.D0
          RHOITB(NS)=0.D0
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
+         PNUC(NS) = 0.D0
+         PZCL(NS) = 0.D0
 
 !     *** Helium ion ***
          NS = 4
@@ -177,10 +193,14 @@
          PTS(NS)  = 0.05D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
+         PUPR(NS) = 0.D0
+         PUPP(NS) = 0.D0
          RHOITB(NS)=0.D0
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
+         PNUC(NS) = 0.D0
+         PZCL(NS) = 0.D0
 
          ! *** dummy ***
       DO NS = 5, NSM
@@ -196,10 +216,13 @@
          PTS(NS)  = 0.0D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
+         PUPR(NS) = 0.D0
+         PUPP(NS) = 0.D0
          RHOITB(NS)=0.D0
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
+         PNUC(NS) = 0.D0
          PZCL(NS) = 0.D0
       ENDDO
 
@@ -230,7 +253,6 @@
 
 !     ======( PROFILE PARAMETERS )======
 
-
 !        PROFN1: Density profile parameter (power of rho)
 !        PROFN2: Density profile parameter (power of (1 - rho^PROFN1))
 !        PROFT1: Temperature profile parameter (power of rho)
@@ -247,7 +269,22 @@
      PROFU2(NS)= 1.D0
   END DO
 
-!     ======( MODEL PARAMETERS )======
+!     ======( TRAVIS PROFILE PARAMETERS )======
+
+!        PROF=g-h+(1-g+h)(1-x^p)^q + h(1-EXP(-x^2/w^2))
+
+  profn_travis_g=0.D0
+  profn_travis_h=0.D0
+  profn_travis_p=2.D0
+  profn_travis_q=1.D0
+  profn_travis_w=1.D0
+  proft_travis_g=0.D0
+  proft_travis_h=0.D0
+  proft_travis_p=2.D0
+  proft_travis_q=1.D0
+  proft_travis_w=1.D0
+
+  !     ======( MODEL PARAMETERS )======
 
 !        MODELG: Control plasma geometry model
 !              0: XYZ Slab geometry
@@ -274,19 +311,18 @@
 !              9: RZphi call TASK/EQ
 !             10: reserved for GAMMA-10
 !             11: Straight helical geometry
-!             11: 2D plane profile (B defined by corner)
-!             12: 2D plane profile (B read from file
-!             13: 2D plane 
+!             12: 2D plane profile (B read from file)
+!             13: 2D plane profile (simple parabolic cylinder)
 
 !        MODELN: Control plasma profile
-!                   0: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; 0 in SOL
+!                   0: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; PN=0 in SOL
 !                   1: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; PNS in SOL
-!                   7: Read from file through WMDPRF (DIII-D)
+!                   2: n,T from pressure profile; u from PU,PUS; PNS in SOL
+!                   3: with RHOEDG from PN,PNS,PTPR,PTPP,PTS,PU,PUS; PNS in SOL
 !                   8: Read from file through WMXPRF (JT-60)
-!                   9: Read from file KNAMTR (TASK/TR)
-!                  12: Read from 2D nT file
-!                  14: Read from 2D nT file
+!                   9: Read from bpsd_plasmaf
 !                  21: Read from trdata
+!                  31: Calculated from profn_travis and proft_travis
 !        MODELQ: Control safety factor profile (for MODELG=1,2)
 !                   0: Parabolic q profile (Q0,QA,RHOMIN)
 !                   1: Given current profile (RIP,PROFJ)
@@ -314,6 +350,11 @@
       QMIN   = 1.5D0
       RHOEDG = 1.D0
 
+!        BAXIS_SCALED: if not 0.D0, magnetic field is scaled
+!                      by Baxis_scaled/Baxis_real
+
+      BAXIS_SCALED=0.D0
+      
 !        PPN0: Neutral pressure [Pa] 1 Torr = 1 mmHg = 133.322 Pa
 !        PTN0: Neutral temperature [eV]
 !        RF_PL: wave frequency [MHz], usually set in wave code
@@ -330,6 +371,15 @@
       RHOGMN = 0.D0
       RHOGMX = 1.D0
 
+!     ======( profile for wave parameter )======
+
+!        mdlplw: 0  rupr=pupr, rupp=pupp
+!                1  rupr=ru*bnt+rupl*bnp  rupp=-ru*bnp+rupl*bnt
+!                        ru:   toroidal velocity, rupl: poloidal velocity 
+!                        rupr: parallel velocity, rupp: perpendicular velocity 
+      mdlplw=0
+
+
 !     ======( IO FILE NAMES )======
 
 !        KNAMEQ: Filename of equilibrium data
@@ -338,6 +388,7 @@
 !        KNAMFP: Filename of Fokker-Planck data
 !        KNAMFO: Filename of File output
 !        KNAMPF: Filename of profile data
+!        KNAMTR: Filename of transport data
 
       KNAMEQ = 'eqdata'
       KNAMWR = 'wrdata'
@@ -345,6 +396,7 @@
       KNAMFP = 'fpdata'
       KNAMFO = 'fodata'
       KNAMPF = 'pfdata'
+      KNAMTR = 'trdata'
 
 !     ======( FILE IO MODES )======
 
@@ -362,7 +414,8 @@
 !                 7 : WITH FILE NAME INPUT, ERROR, IF FILE EXISTS
 
 !     ======( Default values )======
-
+!             eq_init sets MODEFR=0 and MODEFW=0 due to histrical reason
+      
       MODEFR = 1
       MODEFW = 5
 

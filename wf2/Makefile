@@ -4,19 +4,21 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f90 .f .mod .o .a
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
-MODINCLUDE=-I ../lib/mod -I $(MOD)
+MODINCLUDE=-I ../../bpsd/mod -I ../lib/mod -I $(MOD)
 
 SRCS = wfinit.f wfdiv.f wfzone.f wfant.f \
        wfwave.f wfevol.f wfgout.f \
        wffreq.f wfprof.f wffile.f wfsub.f wfgsub.f wflib.f \
        wfatmd.f
 
-OBJS = $(SRCS:.f=.o)
+SRCX = wfhout.f90
 
-LIBS = libwf.a ../lib/libtask.a
+OBJS = $(SRCS:.f=.o) $(SRCX:.f90=.o) 
+
+LIBS = libwf.a ../lib/libtask.a ../lib/libgrf.a
 
 .f90.o:
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -29,7 +31,9 @@ libwf.a: $(OBJS)
 	$(LD) $(LDFLAGS) libwf.a $(OBJS)
 
 ../lib/libtask.a:
-	(cd ../lib; make loibtask.a)
+	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 
 wf : wfcomm.inc $(LIBS) wfmain.o
 	$(FCFIXED) wfmain.o -o $@ $(FFLAGS) $(LIBS) $(FLIBS)

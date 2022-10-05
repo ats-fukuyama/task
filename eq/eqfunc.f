@@ -33,6 +33,7 @@ C
       SUBROUTINE EQFUNC(PSINL,F,DF,F0,FS,F1,F2,PSIITB,
      &                  PROFR0,PROFR1,PROFR2,PROFF0,PROFF1,PROFF2)
 C
+      USE eqlib
       IMPLICIT REAL*8 (A-H,O-Z)
 C
       ARG0=FPOW(PSINL,PROFR0)
@@ -78,6 +79,7 @@ C   ************************************************
 C
       SUBROUTINE EQPPSI(PSIPNL,PPSI,DPPSI)
 C
+      USE libspl1d
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
@@ -110,6 +112,7 @@ C   ************************************************
 C
       SUBROUTINE EQFPSI(PSIPNL,FPSI,DFPSI)
 C
+      USE libspl1d
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
@@ -140,6 +143,7 @@ C   ************************************************
 C
       SUBROUTINE EQQPSI(PSIPNL,QPSI)
 C
+      USE libspl1d
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
@@ -163,6 +167,8 @@ C   ************************************************
 C
       SUBROUTINE EQJPSI(PSIPNL,HJPSID,HJPSI)
 C
+      USE eqlib
+      USE libspl1d
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
@@ -210,6 +216,7 @@ C   ************************************************
 C
       SUBROUTINE EQTPSI(PSIPNL,TPSI,DTPSI)
 C
+      USE libspl1d
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
@@ -239,6 +246,7 @@ C   ************************************************
 C
       SUBROUTINE EQOPSI(PSIPNL,OMGPSI,DOMGPSI)
 C
+      USE libspl1d
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C

@@ -13,9 +13,7 @@ C     Making connection to server
       common /IPDB2/ tree, ishot
 C
       server = 'tokamak-profiledb.ukaea.org.uk'//CHAR(0)
-      call ktrim(kdev,ikdev)
-      tree   = kdev(1:ikdev)//char(0)
-      call ktrim(kdcg,ikdcg)
+      tree   = TRIM(kdev)//char(0)
       read(kdcg,*) ishot
 C     Make connection
       if (server.ne.'localhost') then
@@ -79,9 +77,7 @@ C
       ittywr=6
       iretlen=0
 c$$$      server = 'tokamak-profiledb.ukaea.org.uk'//CHAR(0)
-c$$$      call ktrim(kdev,ikdev)
-c$$$      tree   = kdev(1:ikdev)//char(0)
-c$$$      call ktrim(kdcg,ikdcg)
+c$$$      tree   = TRIM(kdev)//char(0)
 c$$$      read(kdcg,*) ishot
 c$$$C     Make connection
 c$$$      if (server.ne.'localhost') then
@@ -131,8 +127,7 @@ c$$$      ianswer = descr(IDTYPE_FLOAT,ip,0)
 c$$$      status = MdsValue('.zerod:ip'//CHAR(0),ianswer, 0, iretlen)
 c$$$      write (6,*) ' Plasma current: ',ip, status
 C     
-      call ktrim(kfid,ikfid)
-      SIGNAL='.oned:'//kfid(1:ikfid)
+      SIGNAL='.oned:'//TRIM(kfid)
 C
 C     Get the rank of a signal:
       ianswer = descr(IDTYPE_LONG,irank,0)
@@ -241,9 +236,7 @@ C
       ittywr=6
       iretlen=0
 c$$$      server = 'tokamak-profiledb.ukaea.org.uk'//CHAR(0)
-c$$$      call ktrim(kdev,ikdev)
-c$$$      tree   = kdev(1:ikdev)//char(0)
-c$$$      call ktrim(kdcg,ikdcg)
+c$$$      tree   = TRIM(kdev)//char(0)
 c$$$      read(kdcg,*) ishot
 c$$$C     Make connection
 c$$$      if (server.ne.'localhost') then
@@ -296,8 +289,7 @@ c$$$      status = MdsValue('.zerod:ip'//CHAR(0),ianswer, 0, iretlen)
 c$$$      write (6,*) ' Plasma current: ',ip, status
 C     
 C     Choose 1 and 2-D signals
-      call ktrim(kfid,ikfid)
-      SIGNAL='.twod:'//kfid(1:ikfid)
+      SIGNAL='.twod:'//TRIM(kfid)
 C     Get the rank of a signal:
       ianswer = descr(IDTYPE_LONG,irank,0)
       status = MdsValue('rank('//signal//')'//CHAR(0),ianswer, 0, 
@@ -494,9 +486,7 @@ C
       ittywr=6
       iretlen=0
 c$$$      server = 'tokamak-profiledb.ukaea.org.uk'//CHAR(0)
-c$$$      call ktrim(kdev,ikdev)
-c$$$      tree   = kdev(1:ikdev)//char(0)
-c$$$      call ktrim(kdcg,ikdcg)
+c$$$      tree   = TRIM(kdev)//char(0)
 c$$$      read(kdcg,*) ishot
 c$$$C     Make connection
 c$$$      if (server.ne.'localhost') then
@@ -549,8 +539,7 @@ c$$$      status = MdsValue('.zerod:ip'//CHAR(0),ianswer, 0, iretlen)
 c$$$      write (6,*) ' Plasma current: ',ip, status
 C     
 C     Choose 1 and 2-D signals
-      call ktrim(kfid,ikfid)
-      SIGNAL='.twod:'//kfid(1:ikfid)
+      SIGNAL='.twod:'//TRIM(kfid)
 C     Get the rank of a signal:
       ianswer = descr(IDTYPE_LONG,irank,0)
       status = MdsValue('rank('//signal//')'//CHAR(0),ianswer, 0, 

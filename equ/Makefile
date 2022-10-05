@@ -1,4 +1,13 @@
 include ../make.header
+include ../mtxp/make.mtxp
+LIB_MTX=$(LIB_MTX_BND)
+LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_PCG)
+#LIB_MTX=$(LIB_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIB_MTX=$(LIBXMTX_KSP)
+#LIBX_MTX=$(LIBX_MTX_KSP)
 
 #FFLAGS = $(OFLAGS)
 FFLAGS = $(DFLAGS)
@@ -6,48 +15,43 @@ FFLAGS = $(DFLAGS)
 
 
 .SUFFIXES:
-.SUFFIXES: .f .mod .o .a
+.SUFFIXES: .f .f90 .mod .o .a
 
 SRCCOM =  eqcomm.f
+SRCS1 =  tpxssl.f eqpfds.f eqsub.f eqinit.f \
+         eqfct.f  eqinp.f eqset.f \
+         eqpl.f eqtrn.f eqfile.f \
+	 eqgout.f equunit.f \
+	 trpl.f trset.f tradv.f trunit.f
+SRCSX =  equ-eqdsk.f90
+SRCS2 = eqmenu.f
 
-SRCTPX = tpxssl.f 
 
-SRCEQ = eqpfds.f eqsub.f eqinit.f \
-        eqfct.f  eqinp.f eqset.f \
-        eqpl.f eqtrn.f eqfile.f \
-	eqgout.f equunit.f
-
-SRCTR = trpl.f trset.f tradv.f trunit.f
-
-#
 BPSDLIB= ../../bpsd/libbpsd.a
 OBJCOM = $(SRCCOM:.f=.o)
-OBJTPX= $(SRCTPX:.f=.o)
-OBJEQ= $(SRCEQ:.f=.o)
-OBJTR= $(SRCTR:.f=.o)
-LIBS = ../lib/libtask.a $(BPSDLIB) $(OBJCOM)  libtpx.a libeq.a libtr.a
-#
-MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD)
-#
-#
+OBJS = $(SRCS1:.f=.o) $(SRCSX:.f90=.o) $(SRCS2:.f=.o)
+LIBS = libequ.a ../pl/libpl.a ../eq/libeq.a ../lib/libtask.a ../lib/libgrf.a $(BPSDLIB) 
+
+MODINCLUDE= -I../../bpsd/$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I$(MOD)
+
+
 .f.o:
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o:
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all: $(LIBS) equ
+all: equ
 
-$(LIBBPSD):
+libequ.a: $(OBJS)
+	$(LD) $(LDFLAGS) libequ.a $(OBJS)
+
+libs:
 	(cd ../../bpsd; make libbpsd.a)
+	(cd ../lib/; make libtask.a)
+	(cd ../pl/; make libpl.a)
 
-libtpx.a: $(OBJTPX)
-	$(LD) $(LDFLAGS) $@ $(OBJTPX)
-libeq.a: $(OBJEQ)
-	$(LD) $(LDFLAGS) $@ $(OBJEQ)
-libtr.a: $(OBJTR)
-	$(LD) $(LDFLAGS) $@ $(OBJTR)
-equ: $(LIBS) eqmenu.o eqmain.o
-	$(FCFIXED) eqmain.o eqmenu.o $(LIBS) $(FLIBS) -o $@ $(FFLAGS)
+equ: $(OBJCOM) libs libequ.a eqmain.o
+	$(FLINKER) eqmain.o $(OBJCOM) $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 clean:
 	-rm -f *.a *.o $(MOD)/*.mod *~
 veryclean: clean
@@ -70,3 +74,4 @@ trpl.o : trpl.f
 trset.o : trset.f  
 tradv.o : tradv.f trpl.f
 tpxssl.o : tpxssl.f
+equ-eqdsk.o : equ-eqdsk.f90 eqcomm.f

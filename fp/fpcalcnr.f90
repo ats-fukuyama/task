@@ -11,7 +11,7 @@
       USE fpcomm
       USE libspf, ONLY: dpleg
 !      USE fpcoef, ONLY: FPMXWL
-      real(8):: PNFP_NLR, THETA0L_NLR, THETAL_NLR
+      real(rkind):: PNFP_NLR, THETA0L_NLR, THETAL_NLR
 
 
       contains
@@ -21,49 +21,50 @@
       SUBROUTINE FPCALC_NLR(NR,NSB,NSA)
 
       USE libde,ONLY: DEHIFT
+      USE libspl1d
       USE libgrf,ONLY: grd1d
       USE fpmpi
       Implicit none
 !      PARAMETER (N=NPM+2,M=NTHM+2,LNM=5)
       integer,parameter::LNM=5
-      real(8),DIMENSION(NTHMAX+3,-1:LNM):: PLM, PLG, D1PLM, D1PLG, D2PLG
-      real(8),DIMENSION(0:LNM):: PLTEMP
-      real(8),DIMENSION(NPSTART:NPEND):: FPLL
-      real(8),DIMENSION(NPMAX):: FPL_recv
-      real(8),DIMENSION(NPMAX,-1:LNM):: FPL
+      real(rkind),DIMENSION(NTHMAX+3,-1:LNM):: PLM, PLG, D1PLM, D1PLG, D2PLG
+      real(rkind),DIMENSION(0:LNM):: PLTEMP
+      real(rkind),DIMENSION(NPSTART:NPEND):: FPLL
+      real(rkind),DIMENSION(NPMAX):: FPL_recv
+      real(rkind),DIMENSION(NPMAX,-1:LNM):: FPL
       double precision,dimension(-1:LNM):: FPLS1
       double precision:: FPLS1_temp
       integer:: NPS
 
-      real(8),DIMENSION(NTHMAX+3):: TX,TY,DF
-      real(8),DIMENSION(4,NTHMAX+3):: UTY
-      real(8),dimension(NTHMAX+3)::UTY0
-      real(8),DIMENSION(NPMAX+3):: TX1,TY1,DF1,UTY10
-      real(8),DIMENSION(4,NPMAX+3):: UTY1
+      real(rkind),DIMENSION(NTHMAX+3):: TX,TY,DF
+      real(rkind),DIMENSION(4,NTHMAX+3):: UTY
+      real(rkind),dimension(NTHMAX+3)::UTY0
+      real(rkind),DIMENSION(NPMAX+3):: TX1,TY1,DF1,UTY10
+      real(rkind),DIMENSION(4,NPMAX+3):: UTY1
 
-!!      real(8),DIMENSION(-2:LLMAX+2, -1:2):: FKLF_J,FKLF_Y
-      real(8),DIMENSION(-2:LLMAX+2, 0:2):: RJ_1, RY_1
-      real(8),DIMENSION(-2:LLMAX+2, 0:2):: DERJ, DERY
+!!      real(rkind),DIMENSION(-2:LLMAX+2, -1:2):: FKLF_J,FKLF_Y
+      real(rkind),DIMENSION(-2:LLMAX+2, 0:2):: RJ_1, RY_1
+      real(rkind),DIMENSION(-2:LLMAX+2, 0:2):: DERJ, DERY
 
-      real(8),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2):: RJABM
-      real(8),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2):: RJABG 
-      real(8),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2):: RYABM
-      real(8),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2):: RYABG
+      real(rkind),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2):: RJABM
+      real(rkind),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2):: RJABG 
+      real(rkind),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2):: RYABM
+      real(rkind),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2):: RYABG
 
-      real(8),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX):: &
+      real(rkind),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX):: &
            DPSI02M,DPSI022M,PSI0M,PSI02M,PSI022M,PSI1M,PSI11M,DPSI11M
 
-      real(8),DIMENSION(NPSTART:NPENDWG,  0:LLMAX):: &
+      real(rkind),DIMENSION(NPSTART:NPENDWG,  0:LLMAX):: &
            DPSI02G,DPSI022G,PSI0G,PSI02G,PSI022G,DPSI1G,DPSI11G
 
 
       integer:: NP, NTH, NSA, NSB, L, NR, LLMIN, NI, NA, NNP, NPG, NSSA, NSSB
       integer:: IER, LTEST, INTH
-      real(8):: RGAMH, SUM1, SUM2, SUM3, SUM4, SUM5
-      real(8):: PSUM, PCRIT, RGAMA, RGAMB, RUFP, FACT, FACT2, RUFD
-      real(8):: SUMA, SUMB, SUMC, SUMD, SUME, SUMF, SUMG, SUMH
-      real(8):: vtatb, ptatb, PMAX2, RINT0, RINT2, ES0, ES2, testF, testP
-      real(8):: DKBSL0, DKBSL1, DKBSL2, Z
+      real(rkind):: RGAMH, SUM1, SUM2, SUM3, SUM4, SUM5
+      real(rkind):: PSUM, PCRIT, RGAMA, RGAMB, RUFP, FACT, FACT2, RUFD
+      real(rkind):: SUMA, SUMB, SUMC, SUMD, SUME, SUMF, SUMG, SUMH
+      real(rkind):: vtatb, ptatb, PMAX2, RINT0, RINT2, ES0, ES2, testF, testP
+      real(rkind):: DKBSL0, DKBSL1, DKBSL2, Z
 !
 !----- DEFINITION OF LOCAL QUANTITIES -------------
 ! 
@@ -504,9 +505,9 @@
 
       IMPLICIT NONE
 
-      real(8),DIMENSION(-2:LLMAX+2, 0:2):: RJ_1, RY_1
+      real(rkind),DIMENSION(-2:LLMAX+2, 0:2):: RJ_1, RY_1
       integer:: L, NA
-      real(8):: RUFP, RGAMA, RZ, RSIGMA, ra1, ra2
+      real(rkind):: RUFP, RGAMA, RZ, RSIGMA, ra1, ra2
 
 !     FKLF_J(L,NA) = P^{-L-1/2}_{A-1/2}
 !     FKLF_Y(L,NA) = P^{L+1/2}_{A-1/2}
@@ -696,10 +697,10 @@
 
       IMPLICIT NONE
 
-!      real(8),DIMENSION(-2:LLMAX+2, -1:2):: FKLF_J,FKLF_Y
-      real(8),DIMENSION(-2:LLMAX+2, 0:2):: RJ_1, RY_1, DERJ, DERY
+!      real(rkind),DIMENSION(-2:LLMAX+2, -1:2):: FKLF_J,FKLF_Y
+      real(rkind),DIMENSION(-2:LLMAX+2, 0:2):: RJ_1, RY_1, DERJ, DERY
       integer:: L, NA
-      real(8):: RUFP, RGAMA, RZ, RSIGMA
+      real(rkind):: RUFP, RGAMA, RZ, RSIGMA
 
 !
       Do L = -2, LLMAX+2
@@ -729,29 +730,30 @@
 
       SUBROUTINE INTEGRATION_RJAB_RYAB(NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM)
 
+      USE libspl1d
       IMPLICIT NONE
 
       integer,parameter::LNM=5
 
-      real(8),DIMENSION(NPMAX,-1:LNM):: FPL
+      real(rkind),DIMENSION(NPMAX,-1:LNM):: FPL
 
-      real(8),DIMENSION(NTHMAX+3):: TX,TY,DF
-      real(8),DIMENSION(4,NTHMAX+3):: UTY
-      real(8),dimension(NTHMAX+3)::UTY0
-      real(8),DIMENSION(NPMAX+3):: TX1,TY1,DF1,UTY10
-      real(8),DIMENSION(4,NPMAX+3):: UTY1
+      real(rkind),DIMENSION(NTHMAX+3):: TX,TY,DF
+      real(rkind),DIMENSION(4,NTHMAX+3):: UTY
+      real(rkind),dimension(NTHMAX+3)::UTY0
+      real(rkind),DIMENSION(NPMAX+3):: TX1,TY1,DF1,UTY10
+      real(rkind),DIMENSION(4,NPMAX+3):: UTY1
 
-      real(8),DIMENSION(-2:LLMAX+2, 0:2):: RJ_1, RY_1
-      real(8),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2):: RJABM
-      real(8),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2):: RJABG 
-      real(8),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2):: RYABM
-      real(8),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2):: RYABG
+      real(rkind),DIMENSION(-2:LLMAX+2, 0:2):: RJ_1, RY_1
+      real(rkind),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2):: RJABM
+      real(rkind),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2):: RJABG 
+      real(rkind),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2):: RYABM
+      real(rkind),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2):: RYABG
 
       integer:: NP, NTH, NSA, NSB, L, LLMIN, NI, NA, NNP, NPG, NSSA, NSSB
       integer:: IER, NS, NPS
-      real(8):: SUM1, SUM2, SUM3, SUM4, SUM5
-      real(8):: PSUM, PCRIT, RGAMA, RGAMB, RUFP, FACT, FACT2
-      real(8):: vtatb, pabbar, ptatb, PMAX2, testF
+      real(rkind):: SUM1, SUM2, SUM3, SUM4, SUM5
+      real(rkind):: PSUM, PCRIT, RGAMA, RGAMB, RUFP, FACT, FACT2
+      real(rkind):: vtatb, pabbar, ptatb, PMAX2, testF
 
       NSSA=NS_NSA(NSA)
       NSSB=NS_NSB(NSB)
@@ -865,9 +867,9 @@
       REAL*8 FUNCTION FPFN0R2(X)
 !
       IMPLICIT NONE
-!      real(8)::FPFN0R2
-      real(8),INTENT(IN):: X
-      real(8)::PN
+!      real(rkind)::FPFN0R2
+      real(rkind),INTENT(IN):: X
+      real(rkind)::PN
 !
       PN=X
       FPFN0R2=PN**2*FPRMXW2(PN)
@@ -879,9 +881,9 @@
 !
       REAL*8 FUNCTION FPFN2R2(X)
 
-!      real(8):: FPFN2R2
-      real(8),INTENT(IN):: X
-      real(8):: A, PN, B
+!      real(rkind):: FPFN2R2
+      real(rkind),INTENT(IN):: X
+      real(rkind):: A, PN, B
 
       A=1.D0
       PN=A*(X+PNFP_NLR)
@@ -896,9 +898,9 @@
 !
       FUNCTION FPRMXW2(PN)
 
-      real(8):: FPRMXW2
-      real(8),INTENT(IN):: PN
-      real(8):: EX
+      real(rkind):: FPRMXW2
+      real(rkind),INTENT(IN):: PN
+      real(rkind):: EX
 
       EX=(1.D0-SQRT(1.D0+PN**2*THETA0L_NLR))/THETAL_NLR
       IF (EX.LT.-100.D0)THEN
@@ -914,29 +916,30 @@
 
       SUBROUTINE INTEGRATION_RJAB_RYAB_FINE(NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM,FPLS1)
 
+      USE libspl1d
       IMPLICIT NONE
 
       integer,parameter::LNM=5
 
       integer,intent(IN):: NSA, NSB
-      real(8),DIMENSION(NPMAX,-1:LNM),INTENT(IN):: FPL
-      real(8),DIMENSION(NPMAX,-1:LNM):: FPL0
+      real(rkind),DIMENSION(NPMAX,-1:LNM),INTENT(IN):: FPL
+      real(rkind),DIMENSION(NPMAX,-1:LNM):: FPL0
       double precision,dimension(-1:LNM),intent(in):: FPLS1
 
-      real(8),DIMENSION(2*NPMAX+3):: TX1,TY1,DF1,UTY10
-      real(8),DIMENSION(4,2*NPMAX+3):: UTY1
+      real(rkind),DIMENSION(2*NPMAX+3):: TX1,TY1,DF1,UTY10
+      real(rkind),DIMENSION(4,2*NPMAX+3):: UTY1
 
-      real(8),DIMENSION(-2:LLMAX+2, 0:2):: RJ_1, RY_1
-      real(8),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2),INTENT(OUT):: RJABM
-      real(8),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2),INTENT(OUT):: RJABG 
-      real(8),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2),INTENT(OUT):: RYABM
-      real(8),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2),INTENT(OUT):: RYABG
+      real(rkind),DIMENSION(-2:LLMAX+2, 0:2):: RJ_1, RY_1
+      real(rkind),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2),INTENT(OUT):: RJABM
+      real(rkind),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2),INTENT(OUT):: RJABG 
+      real(rkind),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2),INTENT(OUT):: RYABM
+      real(rkind),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2),INTENT(OUT):: RYABG
 
       integer:: NP, NTH, L, LLMIN, NI, NA, NNP, NPG, NSSA, NSSB
       integer:: IER, NS, NPF
-      real(8):: SUM1, SUM2, SUM3, SUM4, SUM5
-      real(8):: PSUM, PCRIT, RGAMA, RGAMB, RUFP, FACT, FACT2
-      real(8):: vtatb, pabbar, ptatb, PMAX2, testF, testP
+      real(rkind):: SUM1, SUM2, SUM3, SUM4, SUM5
+      real(rkind):: PSUM, PCRIT, RGAMA, RGAMB, RUFP, FACT, FACT2
+      real(rkind):: vtatb, pabbar, ptatb, PMAX2, testF, testP
       integer:: N_fine_range
 
       THETA0L_NLR=(PTFD0(NSB)/(AMFD(NSB)*VC))**2
@@ -1145,7 +1148,7 @@
       integer :: NR, NS
       real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
       real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: plf
       real(kind8):: FPMXWL_calcnr
 
       AMFDL=PA(NS)*AMP

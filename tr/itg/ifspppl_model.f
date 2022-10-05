@@ -103,7 +103,7 @@ c
      &       btesla, chie, chii, omegaci, zcorrect, zkapfact,
      &       grhoi, gvti, gtau, gnu, zscripty, gamma,
      &       zc1, zc2, zc3, zscriptg, zchiicyc, zscripts
-      CHARACTER*35 calcflag
+      CHARACTER*(35) calcflag
 c
 c
 c     Set some initial values

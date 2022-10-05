@@ -3,7 +3,8 @@ MODULE fpcomm_parm
       use bpsd_kinds
       use bpsd_constants
       use commpi
-      use plcomm
+      use plcomm_parm
+      USE dpcomm_parm
       implicit none
 
       public
@@ -12,11 +13,12 @@ MODULE fpcomm_parm
 
       integer,parameter:: kind8=rkind
       integer,parameter:: NBEAMM=20
+      integer,parameter:: NRAYM=20
       real(rkind),parameter:: rkev=aee*1.D3
 
       integer:: NSAMAX,NSBMAX,NS_NSA(NSM),NS_NSB(NSM)
       integer:: NSA_F1,NTH_F1,NR_F1
-      integer:: LMAX_WR,NCMIN(NSM),NCMAX(NSM)
+      integer:: LMAX_WR
       integer:: NBEAMMAX,NSSPB(NBEAMM),NSSPF
       integer:: NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX
       integer:: NTMAX,NTSTEP_COEF,NTSTEP_COLL
@@ -36,11 +38,13 @@ MODULE fpcomm_parm
       integer:: N_partition_r,N_partition_s,N_partition_p
       integer:: OUTPUT_TXT_DELTA_F, OUTPUT_TXT_F1, OUTPUT_TXT_BEAM_WIDTH, OUTPUT_TXT_HEAT_PROF
       integer:: OUTPUT_TXT_BEAM_DENS
+      integer:: NRAYS_WR,NRAYE_WR
 
       real(rkind):: PMAX(NSM),PMAX_BB(NSM),EMAX(NSM)
       real(rkind):: R1,DELR1,RMIN,RMAX
       real(rkind):: E0,ZEFF
-      real(rkind):: PABS_EC,PABS_LH,PABS_FW,PABS_WR,PABS_WM
+      real(rkind):: PABS_EC,PABS_LH,PABS_FW,PIN_WR,PABS_WM
+      real(rkind):: PIN_WR_NRAY(NRAYM)
       real(rkind):: FACT_WR,FACT_WM,DELNPR_WR,DELNPR_WM
       real(rkind):: RF_WM,EPS_WR,DELY_WR,DELY_WM,Y0_WM
       real(rkind):: DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC
@@ -194,8 +198,6 @@ module fpcomm
            DWECPP,DWECPT,DWLHPP,DWLHPT,DWFWPP,DWFWPT, &
            DWWRPP,DWWRPT,DWWMPP,DWWMPT, &
            SPPB,SPPF,SPPS,SPPI, &
-           DWPP_P,DWPT_P,DWTP_P,DWTT_P, &
-           DWWRPP_P,DWWRPT_P,DWWMPP_P,DWWMPT_P, &
            DWECTP,DWECTT,DWWRTP,DWWRTT,DWWMTP,DWWMTT, &
            DCPPB,DCPTB,FCPPB, &
            FSPP,FSTH,DLPP,FLPP,SPPL,SPPL_CX
@@ -469,12 +471,6 @@ module fpcomm
           allocate(DWWMPT(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
           allocate(DWWMTP(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
           allocate(DWWMTT(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
-          IF(MODEL_WAVE.ne.0)THEN
-             allocate(DWPP_P(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
-             allocate(DWPT_P(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
-             allocate(DWTP_P(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
-             allocate(DWTT_P(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
-          END IF
           IF(MODEL_DISRUPT.ne.0)THEN
              allocate(ER_drei(NRMAX),ER_crit(NRMAX),Rconnor(NRMAX), lnl_gl(NRMAX),RP_crit(NRMAX))
              allocate(RN_disrupt(NRMAX),RN_runaway(NRMAX), RN_drei(NRMAX),RN_runaway_M(NRMAX))
@@ -568,7 +564,8 @@ module fpcomm
           allocate(RIPP(NRMAX,NSAMAX))
 !         NLMAXM= 8   ! this is for analysis without bounce average
 !         NLMAXM=11   ! this is for analysis without radial transport
-          NLMAXM=15   ! this is for analysis with a simple radial transport
+          ! NLMAXM=15   ! this is for analysis with a simple radial transport
+          nlmaxm = nrmax*nthmax*npmax-(nthmax/2+nthmax/4)
           NMMAX=NRMAX*NTHMAX*NPMAX
 
           allocate(NMA(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM))
@@ -698,8 +695,6 @@ module fpcomm
           IF(MODEL_WAVE.ne.0)THEN
              deallocate(DWPP,DWPT)
              deallocate(DWTP,DWTT)
-             deallocate(DWPP_P,DWPT_P)
-             deallocate(DWTP_P,DWTT_P)
 
              deallocate(DWLHPP,DWLHPT)
              deallocate(DWFWPP,DWFWPT)
@@ -787,7 +782,7 @@ module fpcomm
 
         subroutine fp_allocate_ntg1
           implicit none
-          integer,save:: NSAMAX_save=0,NSBMAX_save=0,NTG1M_save=0
+          integer,save:: NSAMAX_save=0,NSBMAX_save=0
           integer,save:: init=0
           
           if((NSAMAX.eq.NSAMAX_save).and. &
@@ -990,7 +985,7 @@ module fpcomm
           implicit none
           real(rkind),dimension(:),POINTER:: data,temp
           integer,intent(in):: NTG1M_NEW
-          integer NTG1,NTG
+          integer NTG
          
           DO NTG=1,NTG1M
              temp(NTG)=data(NTG)
@@ -1006,7 +1001,7 @@ module fpcomm
           implicit none
           real(rkind),dimension(:,:),POINTER:: data,temp
           integer,intent(in):: NTG1M_NEW
-          integer NTG1,NTG,NR,NSA
+          integer NTG,NSA
          
           DO NTG=1,NTG1M
              DO NSA=1,NSAMAX
@@ -1026,7 +1021,7 @@ module fpcomm
           implicit none
           real(rkind),dimension(:,:,:),POINTER:: data,temp
           integer,intent(in):: NTG1M_NEW
-          integer NTG1,NTG,NR,NSA,NSB
+          integer NTG,NSA,NSB
          
           DO NTG=1,NTG1M
              DO NSB=1,NSBMAX
@@ -1226,7 +1221,7 @@ module fpcomm
           implicit none
           real(rkind),dimension(:),POINTER:: data,temp
           integer,intent(in):: NTG2M_NEW
-          integer NTG2,NTG
+          integer NTG
          
           DO NTG=1,NTG2M
              temp(NTG)=data(NTG)
@@ -1242,7 +1237,7 @@ module fpcomm
           implicit none
           real(rkind),dimension(:,:),POINTER:: data,temp
           integer,intent(in):: NTG2M_NEW
-          integer NTG2,NTG,NR
+          integer NTG,NR
          
           DO NTG=1,NTG2M
              DO NR=NRSTART,NREND
@@ -1262,7 +1257,7 @@ module fpcomm
           implicit none
           real(rkind),dimension(:,:,:),POINTER:: data,temp
           integer,intent(in):: NTG2M_NEW
-          integer NTG2,NTG,NR,NSA
+          integer NTG,NR,NSA
          
           DO NTG=1,NTG2M
              DO NSA=1,NSAMAX
@@ -1286,7 +1281,7 @@ module fpcomm
           implicit none
           real(rkind),dimension(:,:,:,:),POINTER:: data,temp
           integer,intent(in):: NTG2M_NEW
-          integer NTG2,NTG,NR,NSA,NSB
+          integer NTG,NR,NSA,NSB
          
           DO NTG=1,NTG2M
              DO NSB=1,NSBMAX

@@ -27,6 +27,7 @@ PROGRAM DP
   use libmtx
   IMPLICIt NONE
   INTEGER:: IERR
+  EXTERNAL GSOPEN,GSCLOS
 
   CALL mtx_initialize
   IF(nrank.EQ.0) THEN

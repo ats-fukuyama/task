@@ -1,0 +1,33 @@
+0
+f
+gs/test01.gs
+c
+    freq     = 1.0d12
+    model_source=1
+    source_width=2.0
+    model_pulse =1
+    model_ramp=2
+    ramp_length=1.D0
+    pulse_length=2.D0
+    medium_max=0
+    model_solver=1
+    model_plot=1
+    dtfactor = 1.0d-3
+    ntmax     = 1000
+    ntstep=100
+    ngtstep=10
+    ngrstep=1000
+r
+c
+c
+c
+g
+g
+p
+t
+4
+5
+6
+0
+x
+q

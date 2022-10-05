@@ -4,6 +4,7 @@ C     ********** F.E.M. DIVIDER ( FIRST ORDER ) **********
 C
       SUBROUTINE WFDIV
 C
+      USE libchar
       INCLUDE 'wfcomm.inc'
       CHARACTER KID*1
 C
@@ -11,7 +12,7 @@ C
   601 FORMAT(1H ,'## INPUT: D/DIV  G/DRAW  P,V/PARM  S/SAVE  L/LOAD  ',
      &           'W/LIST  X/EXIT')
       READ(5,'(A1)',ERR=1,END=9000) KID
-      CALL GUCPTL(KID)
+      CALL toupper(KID)
 C
       IF(KID.EQ.'D') THEN
 C
@@ -19,7 +20,7 @@ C
   602    FORMAT(1H ,'## TYPE:  X,R,P/POLY  M,V/MIRROR  ',
      &              'C/CIRCLE  T/TOKAMAK  H/HELICAL')
          READ(5,'(A1)',ERR=2,END=1) KID
-         CALL GUCPTL(KID)
+         CALL toupper(KID)
 C
     3    CONTINUE
          IF(KID.EQ.'X') THEN
@@ -625,11 +626,13 @@ C
       PARAMETER (NYMH=NYM/2)
       DIMENSION XL1(NYMH),XR1(NYMH)
       DIMENSION NXA1(NYMH),NXR1(NYMH),NXL1(NYMH)
-      DIMENSION XDA1(NXM,NYMH),YDA1(NXM,NYMH)
+      DOUBLE PRECISION,ALLOCATABLE:: XDA1(:,:),YDA1(:,:)
       DIMENSION XU(NXM),YU(NXM),DYU(NXM),NYU(NXM)
       EXTERNAL BOUNDX,BOUNDY
       DATA EPS/1.D-8/
 C
+      ALLOCATE(XDA1(NXM,NYMH),YDA1(NXM,NYMH))
+
     1 CONTINUE
       IF(MODELV.EQ.5) THEN
          WRITE(6,601) RB
@@ -808,6 +811,8 @@ C
  5000 CONTINUE
       NYMAX=2*NYMAX-1
 C
+      DEALLOCATE(XDA1,YDA1)
+
       IERR=0
       RETURN
 C
@@ -909,7 +914,7 @@ C
       SUBROUTINE SETELM(IERR)
 C
       INCLUDE 'wfcomm.inc'
-      DIMENSION ICK(NNODM)
+      INTEGER,ALLOCATABLE:: ICK(:)
 C
       IE=0
       SEPS=1.D-12
@@ -1049,6 +1054,7 @@ C
 C
 C     LOOK FOR UNREFERENCED NODE
 C
+      ALLOCATE(ICK(NNOD))
       DO IN=1,NNOD
          ICK(IN)=0
       ENDDO
@@ -1065,6 +1071,7 @@ C
             IERR=2
          ENDIF
       ENDDO
+      DEALLOCATE(ICK)
       IF(IERR.NE.0) GOTO 9002
 C
       RETURN

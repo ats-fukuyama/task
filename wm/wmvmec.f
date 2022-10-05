@@ -181,11 +181,13 @@ C    ****** CALCULATE R AND Z ******
 C
       SUBROUTINE WMHCRZ
 C
+      USE libspl1d
+      USE libpol
       INCLUDE 'wmcomm.inc'
       INCLUDE 'vmcomm.inc'
       integer np,i
       parameter (np=3)
-      real*8 nra,psipax,srmnca,drmnca,szmnsa,dzmnsa
+      real*8 psipax,srmnca,drmnca,szmnsa,dzmnsa
       dimension nra(np),psipax(np),srmnca(np),drmnca(np),szmnsa(np)
       dimension dzmnsa(np)
 C
@@ -205,7 +207,7 @@ c
                psipax(i)=psip(nr-np-1+i)
             enddo
 c     
-            call polint(nra,psipax,np,nr,psip(nr),dy) 
+            call polintn(nra,psipax,np,nr,psip(nr)) 
 c
          ELSE
             CALL SPL1DF(XRHO(NR),PSIP(NR),XS,U6,NSRMAX,IERR)
@@ -247,15 +249,12 @@ c
                nra(i)=nr-np-1+i
                drmnca(i)=drmnc(mn,nr-np-1+i)
             enddo
-c     
-            call polint(nra,drmnca,np,nr,drmnc(mn,nr),dy) 
+            call polintn(nra,drmnca,np,nr,drmnc(mn,nr)) 
 c
             do i=1,np
-               nra(i)=nr-np-1+i
                srmnca(i)=srmnc(mn,nr-np-1+i)
             enddo
-c     
-            call polint(nra,srmnca,np,nr,srmnc(mn,nr),dy) 
+            call polintn(nra,srmnca,np,nr,srmnc(mn,nr)) 
 c
             ELSE
                CALL SPL1DD(XRHO(NR),SRMNC(MN,NR),DRMNC(MN,NR),
@@ -278,14 +277,13 @@ c
                dzmnsa(i)=dzmns(mn,nr-np-1+i)
             enddo
 c     
-            call polint(nra,dzmnsa,np,nr,dzmns(mn,nr),dy) 
+            call polintn(nra,dzmnsa,np,nr,dzmns(mn,nr)) 
 c
             do i=1,np
-               nra(i)=nr-np-1+i
                szmnsa(i)=szmns(mn,nr-np-1+i)
             enddo
 c     
-            call polint(nra,szmnsa,np,nr,szmns(mn,nr),dy) 
+            call polintn(nra,szmnsa,np,nr,szmns(mn,nr)) 
 c
             ELSE
                CALL SPL1DD(XRHO(NR),SZMNS(MN,NR),DZMNS(MN,NR),
@@ -390,10 +388,12 @@ C    ***** SPLINE POLOIDAL AND TOROIDAL MAGNETIC FIELD *****
 C
       SUBROUTINE WMHCBB
 C
+      USE libspl1d
+      USE libpol
       INCLUDE 'wmcomm.inc'
       INCLUDE 'vmcomm.inc'
       integer np,i
-      real*8 nra,bstha,bspha,qpsa
+      real*8 bstha,bspha,qpsa
       parameter (np=3)
       dimension nra(np),bstha(np),bspha(np),qpsa(np)
       DIMENSION BSUS(NSRM),BSVS(NSRM)
@@ -462,15 +462,12 @@ c
                      nra(i)=nr-np-1+i
                      bstha(i)=bsth(mn,nr-np-1+i)
                   enddo
-c     
-                  call polint(nra,bstha,np,nr,bsth(mn,nr),dy) 
+                  call polintn(nra,bstha,np,nr,bsth(mn,nr)) 
 c     
                do i=1,np
-                  nra(i)=nr-np-1+i
                   bspha(i)=bsph(mn,nr-np-1+i)
                enddo
-c     
-               call polint(nra,bspha,np,nr,bsph(mn,nr),dy) 
+               call polintn(nra,bspha,np,nr,bsph(mn,nr)) 
 c          
             else
             endif
@@ -600,7 +597,7 @@ c
                      qpsa(i)=qps(nr-np-1+i)
                   enddo
 c     
-                  call polint(nra,qpsa,np,nr,qps(nr),dy) 
+                  call polintn(nra,qpsa,np,nr,qps(nr)) 
 c     
                endif
       ENDDO                     
@@ -628,6 +625,7 @@ C    ***** LOCAL POLOIDAL AND TOROIDAL MAGNETIC FIELD *****
 C
       SUBROUTINE WMHCBL(XRHOL,THL,PHL,BFLD2L,BFLD3L,QPSL)
 C
+      USE libspl1d
       INCLUDE 'wmcomm.inc'
       INCLUDE 'vmcomm.inc'
 C
@@ -672,7 +670,7 @@ C
       INCLUDE 'wmcomm.inc'
 C
       DIMENSION XG(NXGMAX),YG(NXGMAX)
-      DIMENSION GX(NRM),GY(NRM)
+      DIMENSION GX(NRM),GY(NRM,NSM)
       CHARACTER KTITL*6
 C
       DIMENSION GP(4,4)
@@ -683,12 +681,12 @@ C
 C
       DO NXG=1,NXGMAX
          GX(NXG)=GUCLIP(XG(NXG))
-         GY(NXG)=GUCLIP(YG(NXG))
+         GY(NXG,1)=GUCLIP(YG(NXG))
       ENDDO
       GXMIN=0.0
       GXMAX=GUCLIP(RB/RA)
 C
-      CALL WMGSUB(NXGMAX,GX,GXMIN,GXMAX,GY,1,GP(1,NGD),KTITL)
+      CALL WMGSUB(NXGMAX,GX,GXMIN,GXMAX,GY,1,GP(1:4,NGD),KTITL)
 C
       RETURN
       END

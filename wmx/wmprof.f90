@@ -3,7 +3,7 @@
 MODULE wmprof
 
   PRIVATE
-  PUBLIC wmcden,wmcmag
+  PUBLIC wmcden,wmcmag,wmcpos
 
 CONTAINS
 
@@ -12,25 +12,25 @@ CONTAINS
   SUBROUTINE wmcden(NR,RN,RTPR,RTPP,RU)
 
     USE wmcomm
-    USE plprof
+    USE plprofw
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NR
     REAL(rkind),INTENT(OUT):: RN(NSMAX),RTPR(NSMAX),RTPP(NSMAX),RU(NSMAX)
-    TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
+    TYPE(pl_prfw_type),DIMENSION(NSMAX):: plfw
     REAL(rkind):: RHON
     INTEGER:: NS,NSD,NST,NSHE,NSAF
 
     RHON=XRHO(NR)
     IF(RHON.LT.0.D0) RHON=0.D0
 
-    CALL pl_prof(RHON,plf)
+    CALL pl_profw(RHON,plfw)
 
     DO NS=1,NSMAX
-       RN(NS)  =plf(NS)%RN
-       RTPR(NS)=plf(NS)%RTPR
-       RTPP(NS)=plf(NS)%RTPP
-       RU(NS)  =plf(NS)%RU
-       PZCL(NS)=plf(NS)%RZCL
+       RN(NS)  =plfw(NS)%RN
+       RTPR(NS)=plfw(NS)%RTPR
+       RTPP(NS)=plfw(NS)%RTPP
+       RU(NS)  =plfw(NS)%RUPR
+       PZCL(NS)=plfw(NS)%RZCL
     ENDDO
 
 !     ****** CALCULATION OF FAST ALPHA DENSITY AND TEMPERATURE ******
@@ -62,7 +62,7 @@ CONTAINS
 
 !     ****** MAGNETIC FIELD PROFILE ******
 
-  SUBROUTINE wcmag(NR,NTH,NHH,BABS,BSUPTH,BSUPPH)
+  SUBROUTINE wmcmag(NR,NTH,NHH,BABS,BSUPTH,BSUPPH)
 
     USE wmcomm
     USE plprof
@@ -75,7 +75,7 @@ CONTAINS
     BABS=BPST(NTH,NHH,NR)
 
     RETURN
-  END SUBROUTINE wcmag
+  END SUBROUTINE wmcmag
 
 !     ***** CALCULATE N AND T OF FAST ALPHA PARTICLES ******
 

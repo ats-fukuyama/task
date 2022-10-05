@@ -3,7 +3,10 @@
 module fpparm
 
   PRIVATE
-  PUBLIC fp_parm,fp_broadcast,fp_view
+  PUBLIC fp_parm
+  PUBLIC fp_broadcast
+  PUBLIC fp_check
+  PUBLIC fp_view
 
 contains
 
@@ -29,6 +32,7 @@ contains
 
       USE plcomm,ONLY: MODEL_PROF,NSMAX, &
            PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2
+      USE libkio
       IMPLICIT NONE
       INTEGER,INTENT(IN):: mode
       CHARACTER(LEN=*),INTENT(IN)::  kin
@@ -75,7 +79,7 @@ contains
            KNAMEQ,KNAMWR,KNAMFP,KNAMWM,KNAMPF, &
            KNAMFO,KNAMTR,KNAMEQ2,KID_NS,ID_NS, &
            NSAMAX,NSBMAX,NS_NSA,NS_NSB, &
-           LMAX_WR,NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF, &
+           LMAX_WR,NRAYS_WR,NRAYE_WR,NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF, &
            NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX, &
            NTMAX,NTSTEP_COEF,NTSTEP_COLL, &
            NTG1STEP,NTG1MIN,NTG1MAX, &
@@ -92,8 +96,8 @@ contains
            N_partition_r,N_partition_s,N_partition_p, &
            PMAX,PMAX_BB,EMAX, &
            R1,DELR1,RMIN,RMAX,E0,ZEFF, &
-           PABS_LH,PABS_FW,PABS_EC,PABS_wr,PABS_WM,RF_WM, &
-           FACT_WM,FACT_WR,DELNPR_WR,DELNPR_WM,EPS_WR,DELY_WR, &
+           PABS_LH,PABS_FW,PABS_EC,PIN_wr,PABS_WM,RF_WM, &
+           FACT_WM,FACT_WR,PIN_WR_NRAY,DELNPR_WR,DELNPR_WM,EPS_WR,DELY_WR, &
            DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC, &
            DLH,PLH1,PLH2,RLH,DFW,PFW1,PFW2,RFW, &
            CEWR,CEWTH,CEWPH,RKWR,RKWTH,RKWPH, &
@@ -105,11 +109,12 @@ contains
            PGMAX,RGMAX,RGMIN, &
            T0_quench,tau_quench,tau_mgi, &
            time_quench_start,RJPROF1,RJPROF2, &
-           v_RE,target_zeff,SPITOT, MODEL_EX_READ_Tn, MODEL_EX_READ_DH_RATIO,  &
-           FACT_BULK, time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS, RN_NEUS, &
-           EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, SV_FILE_NAME_D, NSA_F1, NTH_F1, NR_F1, &
-           OUTPUT_TXT_F1, OUTPUT_TXT_DELTA_F, OUTPUT_TXT_HEAT_PROF, OUTPUT_TXT_BEAM_WIDTH, &
-           OUTPUT_TXT_BEAM_DENS, NI_RATIO
+           v_RE,target_zeff,SPITOT,MODEL_EX_READ_Tn,MODEL_EX_READ_DH_RATIO,  &
+           FACT_BULK,time_exp_offset,MODEL_BULK_CONST,RN_NEU0,MODEL_CX_LOSS, &
+           RN_NEUS,EG_NAME_TMS,EG_NAME_CX,SV_FILE_NAME_H,SV_FILE_NAME_D, &
+           NSA_F1,NTH_F1,NR_F1,OUTPUT_TXT_F1,OUTPUT_TXT_DELTA_F, &
+           OUTPUT_TXT_HEAT_PROF,OUTPUT_TXT_BEAM_WIDTH,OUTPUT_TXT_BEAM_DENS, &
+           NI_RATIO
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
@@ -135,7 +140,8 @@ contains
       WRITE(6,*) '      KNAMEQ,KNAMWR,KNAMFP,KNAMWM,KNAMPF,'
       WRITE(6,*) '      KNAMFO,KNAMTR,KNAMEQ2,KID_NS,ID_NS,'
       WRITE(6,*) '      NSAMAX,NSBMAX,NS_NSA,NS_NSB,'
-      WRITE(6,*) '      LMAX_WR,NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF,'
+      WRITE(6,*) '      LMAX_WR,NRAYS_WR,NRAYE_WR,'
+      WRITE(6,*) '      NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF,'
       WRITE(6,*) '      NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX,'
       WRITE(6,*) '      NTMAX,NTSTEP_COEF,NTSTEP_COLL,'
       WRITE(6,*) '      NTG1STEP,NTG1MIN,NTG1MAX,'
@@ -152,9 +158,9 @@ contains
       WRITE(6,*) '      N_partition_r,N_partition_s,N_partition_p,'
       WRITE(6,*) '      PMAX,PMAX_BB,EMAX'
       WRITE(6,*) '      R1,DELR1,RMIN,RMAX,E0,ZEFF,'
-      WRITE(6,*) '      PABS_LH,PABS_FW,PABS_EC,PABS_WR,PABS_WM,RF_WM,'
+      WRITE(6,*) '      PABS_LH,PABS_FW,PABS_EC,PIN_WR,PABS_WM,RF_WM,'
       WRITE(6,*) '      FACT_WM,FACT_WR,DELNPR_WR,DELNPR_WM,EPS_WR,DELY_WR,'
-      WRITE(6,*) '      Y0_WM,DELY_WM,'
+      WRITE(6,*) '      PIN_WR_NRAY,Y0_WM,DELY_WM,'
       WRITE(6,*) '      DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC,'
       WRITE(6,*) '      DLH,PLH1,PLH2,RLH,DFW,PFW1,PFW2,RFW,'
       WRITE(6,*) '      CEWR,CEWTH,CEWPH,RKWR,RKWTH,RKWPH,'
@@ -166,10 +172,13 @@ contains
       WRITE(6,*) '      PGMAX,RGMAX,RGMIN,'
       WRITE(6,*) '      T0_quench,tau_quench,tau_mgi,'
       WRITE(6,*) '      time_quench_start,RJPROF1,RJPROF2,'
-      WRITE(6,*) '      v_RE,target_zeff,SPITOT,MODEL_EX_READ_Tn, MODEL_EX_READ_DH_RATIO, FACT_BULK'
-      WRITE(6,*) '      time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS, RN_NEUS'
-      WRITE(6,*) '      EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, SV_FILE_NAME_D, NSA_F1, NTH_F1, NR_F1'
-      WRITE(6,*) '      OUTPUT_TXT_F1, OUTPUT_TXT_DELTA_F, OUTPUT_TXT_HEAT_PROF, OUTPUT_TXT_BEAM_WIDTH'
+      WRITE(6,*) '      v_RE,target_zeff,SPITOT,MODEL_EX_READ_Tn,'
+      WRITE(6,*) '      MODEL_EX_READ_DH_RATIO,FACT_BULK,time_exp_offset,'
+      WRITE(6,*) '      MODEL_BULK_CONST,RN_NEU0,MODEL_CX_LOSS,RN_NEUS,'
+      WRITE(6,*) '      EG_NAME_TMS,EG_NAME_CX,SV_FILE_NAME_H,SV_FILE_NAME_D,'
+      WRITE(6,*) '      NSA_F1,NTH_F1,NR_F1,OUTPUT_TXT_F1,'
+      WRITE(6,*) '      OUTPUT_TXT_F1,OUTPUT_TXT_DELTA_F,'
+      WRITE(6,*) '      OUTPUT_TXT_HEAT_PROF,OUTPUT_TXT_BEAM_WIDTH,'
       WRITE(6,*) '      OUTPUT_TXT_BEAM_DENS, NI_RATIO'
 
       RETURN
@@ -197,8 +206,8 @@ contains
       USE libmtx
       IMPLICIT NONE
       INTEGER,DIMENSION(99):: idata
-      real(8),DIMENSION(99):: rdata
-      complex(8),DIMENSION(3):: cdata
+      real(rkind),DIMENSION(99):: rdata
+      complex(rkind),DIMENSION(3):: cdata
       INTEGER:: NS
 
 !----- PL input parameters -----     
@@ -372,8 +381,10 @@ contains
       idata(68)=OUTPUT_TXT_HEAT_PROF
       idata(69)=OUTPUT_TXT_BEAM_WIDTH
       idata(70)=OUTPUT_TXT_BEAM_DENS
+      idata(71)=NRAYS_WR
+      idata(72)=NRAYE_WR
 
-      CALL mtx_broadcast_integer(idata,70)
+      CALL mtx_broadcast_integer(idata,72)
       NSAMAX         =idata( 1)
       NSBMAX         =idata( 2)
       LMAX_WR        =idata( 3)
@@ -447,6 +458,8 @@ contains
       OUTPUT_TXT_HEAT_PROF=idata(68)
       OUTPUT_TXT_BEAM_WIDTH=idata(69)
       OUTPUT_TXT_BEAM_DENS=idata(70)
+      NRAYS_WR=idata(71)
+      NRAYE_WR=idata(72)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -466,7 +479,7 @@ contains
       rdata( 7)=PABS_LH
       rdata( 8)=PABS_FW
       rdata( 9)=PABS_EC
-      rdata(10)=PABS_WR
+      rdata(10)=PIN_WR
 
       rdata(11)=PABS_WM
       rdata(12)=RF_WM
@@ -548,7 +561,7 @@ contains
       PABS_LH          =rdata( 7)
       PABS_FW          =rdata( 8)
       PABS_EC          =rdata( 9)
-      PABS_WR          =rdata(10)
+      PIN_WR           =rdata(10)
 
       PABS_WM          =rdata(11)
       RF_WM            =rdata(12)
@@ -633,6 +646,8 @@ contains
       CALL mtx_broadcast_real8(SPBANG,NBEAMMAX)
       CALL mtx_broadcast_real8(SPBPANG,NBEAMMAX)
 
+      CALL mtx_broadcast_real8(PIN_WR_NRAY,NRAYM)
+
       cdata (1)=CEWR
       cdata (2)=CEWTH
       cdata (3)=CEWPH
@@ -696,12 +711,13 @@ contains
             WRITE(6,600) 'PFW1    ',PFW1    ,'PFW2    ',PFW2
             
          ELSEIF(MODELW(NS).EQ.1) THEN
-            WRITE(6,600) 'PABS_WR ',PABS_WR ,'DELNPR_R',DELNPR_WR, &
+            WRITE(6,600) 'PIN_WR  ',PIN_WR  ,'DELNPR_R',DELNPR_WR, &
                          'DELY_WR ',DELY_WR
             WRITE(6,602) 'EPS_WR  ',EPS_WR  ,'LMAX_WR ',LMAX_WR
+            WRITE(6,603) 'NRAYS_WR',NRAYS_WR,'NRAYE_WR',NRAYE_WR
 
          ELSEIF(MODELW(NS).EQ.2) THEN
-            WRITE(6,600) 'PABS_WR ',PABS_WR ,'DELNPR_R',DELNPR_WR, &
+            WRITE(6,600) 'PIN_WR  ',PIN_WR  ,'DELNPR_R',DELNPR_WR, &
                          'DELY_WR ',DELY_WR
             WRITE(6,601) 'FACT_WR ',FACT_WR ,'EPS_WR  ',EPS_WR   , &
                          'LMAX_WR ',LMAX_WR
@@ -803,10 +819,10 @@ contains
                    'MODEL_SYNCH     ',MODEL_SYNCH
       WRITE(6,606) 'MODEL_NBI       ',MODEL_NBI      , &
                    'MODEL_WAVE      ',MODEL_WAVE
-      WRITE(6,603) 'IMTX    ',IMTX    , &
-                   'LMAXFP  ',LMAXFP  , &
+      WRITE(6,603) 'LMAXFP  ',LMAXFP  , &
                    'LMAXE   ',LMAXE
-      WRITE(6,606) 'MODEL_KSP       ',MODEL_KSP      , &
+      WRITE(6,606) 'IMTX            ',IMTX           , &
+                   'MODEL_KSP       ',MODEL_KSP      , &
                    'MODEL_PC        ',MODEL_PC
       WRITE(6,603) 'NGLINE  ',NGLINE  , &
                    'NGRAPH  ',NGRAPH

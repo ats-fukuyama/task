@@ -23,29 +23,28 @@ SRCSFREE =w1comm.f90 w1lib.f90 w1init.f90 w1parm.f90 \
           w1exec6.f90 w1exec7.f90 w1exec8.f90 \
           w1exec9.f90 w1exec10.f90 w1exec11.f90 \
           w1exec.f90 w1gout.f90 \
-          w1menu.f90 w1main.f90
+          w1menu.f90
 
 
 #OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
 OBJS = $(SRCSFREE:.f90=.o) $(SRCSFIXED:.f=.o) 
-LIBS = libw1.a ../lib/libtask.a ../../bpsd/libbpsd.a
+LIBS = libw1.a ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a
 
 all: w1
 
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
 libw1.a: $(OBJS)
 	$(LD) $(LDFLAGS) libw1.a $(OBJS)
 
-libs:
-	(cd ../lib; make libtask.a)
-	(cd ../../bpsd; make libbpsd.a)
-
-w1 : $(LIBS) w1main.o
-	$(FCFREE) w1main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) \
-           $(MODDIR) $(MODINCLUDE)
+libs: ../../bpsd/libbpsd.a ../lib/libgrf.a ../lib/libtask.a libw1.a
+ 
+w1 : libs w1main.o
+	$(FCFREE) w1main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 clean:
 	-rm -f core ./*.o *.mod ./*~ ./\#* *.a $(MOD)/*.mod

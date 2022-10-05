@@ -2,13 +2,17 @@
 
 MODULE wrfile
 
+  PRIVATE
+  PUBLIC wr_save
+  PUBLIC wr_load
+
 CONTAINS
 
 !***********************************************************************
 !     save ray data
 !***********************************************************************
 
-  SUBROUTINE WRSAVE
+  SUBROUTINE wr_save
 
     USE wrcomm
     USE libfio
@@ -61,20 +65,22 @@ CONTAINS
 
     9 WRITE(6,*) 'XX WRLOAD: File IO error detected: KNAMFR= ',TRIM(KNAMWR)
     RETURN
-  END SUBROUTINE WRSAVE
+  END SUBROUTINE wr_save
 
 !***********************************************************************
 !     load ray data
 !***********************************************************************
 
-  SUBROUTINE WRLOAD(NSTAT)
+  SUBROUTINE wr_load(NSTAT)
 
     USE wrcomm
+    USE wrexecr,ONLY: wr_calc_pwr
     USE libfio
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: NSTAT
     INTEGER:: NFL,IERR,I,NRAY,NSTP
     REAL(rkind):: SINP2,SINT2,ANGZ,ANGPH
+    INTEGER,ALLOCATABLE:: NTEMP(:)
 
       NSTAT=0
 
@@ -86,9 +92,18 @@ CONTAINS
       END IF
 
       READ(NFL,END=8,ERR=9) NRAYMAX
+      ALLOCATE(NTEMP(NRAYMAX))
+      NSTPMAX=0
       DO NRAY=1,NRAYMAX
-         READ(NFL,END=8,ERR=9) NSTPMAX_NRAY(NRAY)
+         READ(NFL,END=8,ERR=9) NTEMP(NRAY)
+         IF(NTEMP(NRAY).GT.NSTPMAX) NSTPMAX=NTEMP(NRAY)
       END DO
+      WRITE(6,*) '## NRAYMAX,NSTPMAX=',NRAYMAX,NSTPMAX
+      CALL wr_allocate
+      DO NRAY=1,NRAYMAX
+         NSTPMAX_NRAY(NRAY)=NTEMP(NRAY)
+      END DO
+      DEALLOCATE(NTEMP)
       DO NRAY=1,NRAYMAX
          READ(NFL,END=8,ERR=9) (RAYIN(I,NRAY),I=1,8)
          READ(NFL,END=8,ERR=9) (CEXS(NSTP,NRAY),NSTP=0,NSTPMAX_NRAY(NRAY))
@@ -134,11 +149,13 @@ CONTAINS
       IF(RNZI  .LT.0.D0) ANGZ= -ANGZ
       IF(RNPHII.LT.0.D0) ANGPH=-ANGPH
 
+      CALL wr_calc_pwr
+
       RETURN
 
     8 WRITE(6,*) 'XX WRLOAD: End of file detected: KNAMFR= ',TRIM(KNAMWR)
       RETURN
     9 WRITE(6,*) 'XX WRLOAD: File IO error detected: KNAMFR= ',TRIM(KNAMWR)
     RETURN
-  END SUBROUTINE WRLOAD
+  END SUBROUTINE wr_load
 END MODULE wrfile

@@ -4,6 +4,7 @@ C     ***** CALCULATE FLUX AVERAGE FOR EQCALC *****
 C
       SUBROUTINE EQCALV(IERR)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomc.inc'
 C
       DIMENSION XA(NTVM),YA(2,NTVM)
@@ -102,7 +103,7 @@ C
 C
 C     ----- calculate PSIITB -----
 C
-      CALL EQCNVA(RHOITB**2,PSIITB)
+      CALL EQCNVA(RHOITB(1)**2,PSIITB)
 C
 C      DO NR=1,11
 C         PSIPNL=0.002*(NR-1)
@@ -121,6 +122,7 @@ C     *************************************
 C
       FUNCTION EQPSITN(PSIPNL)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomc.inc'
 C
       CALL SPL1DF(PSIPNL,PSITL,PSIPNV,UPSITV,NRVMAX,IERR)
@@ -135,6 +137,7 @@ C     *************************************
 C
       FUNCTION EQQPV(PSIPNL)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomc.inc'
 C
       CALL SPL1DF(PSIPNL,QPVL,PSIPNV,UQPV,NRVMAX,IERR)
@@ -150,6 +153,7 @@ C     *************************************
 C
       FUNCTION EQTTV(PSIPNL)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomc.inc'
 C
       CALL SPL1DF(PSIPNL,TTVL,PSIPNV,UTTV,NRVMAX,IERR)
@@ -164,6 +168,7 @@ C     ****************************
 C
       SUBROUTINE EQIPJP
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomc.inc'
       DIMENSION DERIV(NRVM)
 C
@@ -212,6 +217,7 @@ C     ****************************
 C
       SUBROUTINE EQIPQP
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomc.inc'
       DIMENSION DERIV(NRVM)
 C
@@ -268,6 +274,7 @@ C     **************************************
 C
       SUBROUTINE EQFIPV(PSIPNL,FIPL,DFIPL)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomc.inc'
 C
       CALL SPL1DD(PSIPNL,FIPL,DFIPL,PSIPNV,UFIPV,NRVMAX,IERR)

@@ -1,26 +1,33 @@
+! trloop.f90
+
+MODULE trloop
+
+  PRIVATE
+  PUBLIC tr_loop
+
+CONTAINS
+
 !     ***********************************************************
 
 !           MAIN ROUTINE FOR TRANSPORT CALCULATION
 
 !     ***********************************************************
 
-      SUBROUTINE TRLOOP
+  SUBROUTINE tr_loop(ierr)
 
-      USE TRCOMM, ONLY : &
-     &   DT, MDLUF, MODELG, NT, NTEQIT, NTMAX, Q0, QP, RG, RIP, RIPE, RIPS, &
-     &   TPRST, TST, DIPDT
+      USE TRCOMM
       USE TRCOM1, ONLY : NTAMAX
-      use tr_bpsd,only: tr_bpsd_put, tr_bpsd_get
-      use trunit
-      use equnit_mod
-!      use equunit_mod
+      USE trbpsd, ONLY: tr_bpsd_put, tr_bpsd_get
+      USE trexec
+      USE libitp
+      USE equnit
       IMPLICIT NONE
-      INTEGER(4):: IERR
-      REAL(8)   :: FCTR
+      INTEGER,INTENT(OUT):: IERR
+      INTEGER:: nr
 
+      ierr=0
       IF(NT.GE.NTMAX) GOTO 9000
-
-      CALL TREVAL(NT,IERR)
+      CALL tr_eval(NT,IERR)
       IF(IERR.NE.0) GOTO 9000
 
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
@@ -32,11 +39,17 @@
          write(6,'(A,1P4E12.4)') "**RIP,RIPS,RIPE,DIP=",RIP,RIPS,RIPE,DIPDT
       ENDIF
 
+      call tr_bpsd_get(ierr)
+      if(ierr.ne.0) GOTO 9000
+
  1000 CONTINUE
 
       CALL tr_exec(DT,IERR)
       IF(IERR.NE.0) GOTO 9000
-      NT=NT+1
+
+      DO nr=1,nrmax
+         QPINV(nr)=(4.D0*PI**2*RDPVRHOG(nr))/(TTRHOG(nr)*ARRHOG(nr))
+      END DO
 
 !     /* Sawtooth Oscillation */
       Q0=FCTR(RG(1),RG(2),QP(1),QP(2))
@@ -47,25 +60,26 @@
          TST=0.D0
       ENDIF
 
+      call tr_bpsd_put(IERR)
+      if(ierr.ne.0) GOTO 9000
+      NT=NT+1
+
 !     *** SET GEOMETRY VIA TASK/EQ ***
 
       IF(NTEQIT.NE.0) THEN
          IF(MOD(NT,NTEQIT).EQ.0) THEN
-!            if(modelg.eq.8) THEN
+            if(modelg.eq.8) THEN
 !               call equ_calc
-!               call tr_bpsd_get(IERR)
-!               if(ierr.ne.0) return
-!            endif
-            if(modelg.eq.9) THEN
-               call tr_bpsd_put(IERR)
+            endif
+            IF(modelg.eq.9) THEN
                call eq_calc
-               call tr_bpsd_get(IERR)
-               if(ierr.ne.0) return
             endif
          ENDIF
       ENDIF
+      call tr_bpsd_get(IERR)
+      if(ierr.ne.0) return
 
-      CALL TREVAL(NT,IERR)
+      CALL tr_eval(NT,IERR)
       IF(IERR.NE.0) GOTO 9000
 
 !     *** READING DATA FROM UFILES FOR NEXT STEP ***
@@ -85,4 +99,5 @@
          RIPS=RIPE
       ENDIF
       RETURN
-      END SUBROUTINE TRLOOP
+    END SUBROUTINE tr_loop
+  END MODULE trloop

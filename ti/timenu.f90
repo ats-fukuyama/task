@@ -19,15 +19,17 @@ CONTAINS
       USE tiexec
       USE tigout
       USE plload,ONLY: pl_load_trdata
-      USE plprof,ONLY: pl_plf_type,pl_prof
+      USE plprof,ONLY: pl_prf_type,pl_prof
+      USE libkio
+      USE libchar
       USE libmpi
       
       IMPLICIT NONE
       INTEGER(ikind) :: IERR, MODE, nid,nr,nsa,ns
-      TYPE(pl_plf_type),ALLOCATABLE:: plf(:)
+      TYPE(pl_prf_type),ALLOCATABLE:: plf(:)
       REAL(rkind):: RHON
       INTEGER(ikind), SAVE :: INIT=0
-      REAL(4):: cputime1,cputime2
+      REAL:: cputime1,cputime2
       CHARACTER(LEN=1) :: KID
       CHARACTER(LEN=80):: LINE
 
@@ -109,7 +111,7 @@ CONTAINS
          IF(INIT.EQ.2.and.nrank.EQ.0) THEN
 102         WRITE(6,*) '# SELECT ',  ': PRINT TYPE (1..9)  N/NAMELIST X/EXIT'
             READ(5,'(A1)',ERR=102,END=1) KID
-            CALL GUCPTL(KID)
+            CALL toupper(KID)
             IF(KID.EQ.'H') THEN
                !            CALL ti_help('W')
             ELSEIF(KID.EQ.'X') THEN

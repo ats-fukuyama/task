@@ -1,0 +1,413 @@
+\documentclass[11pt]{article}
+\usepackage{af}
+\usepackage{sym}
+\usepackage{doc}
+
+\begin{document}
+\begin{flushright}
+2021-02-11
+\end{flushright}
+
+\begin{center}
+{\Large \bf Parallel processing and matrix solver interface: mtxp}
+\end{center}
+
+\tableofcontents
+
+\bigskip
+\begin{center}
+\textbf{Notice}
+\end{center}
+\begin{itemize}
+\item
+Version number of the software in the following will change owing to
+updates of the software.
+\end{itemize}
+\bigskip
+
+\section{Preparation}
+
+Fortran and C compilers are required to compile 
+
+\subsection{macOS}
+
+
+\section{Parallel matrix solver library: PETSc}
+
+\subsection{Download by git}
+
+\begin{enumerate}
+\item
+Make a directory (if already /opt directory exists, skip first two lines)
+\begin{quote}
+\begin{verbatim}
+sudo mkdir /opt
+cd /opt
+sudo mkdir PETSc
+sudo chown username:username PETSc ("username" should be replaced by your user name)
+cd PETSC
+\end{verbatim}
+\end{quote}
+\item
+  Download by git
+\begin{quote}
+\begin{verbatim}
+git clone -b release https://gitlab.com/petsc/petsc.git petsc
+cd petsc
+\end{verbatim}
+\end{quote}
+\end{enumerate}
+
+\subsection{Configure}
+\begin{enumerate}
+\item
+  Create a configure script ``gfortran.py'' by your favarite editor
+\item
+  Compiler names, ``gcc-mp-10'', ``g++-mp-10'', ``gfortran-mp-10'',
+  should be modified according your configuration.  The suffix shown
+  as an example ``-mp-10'' is for gnu compiler version 10 installed by
+  MacPorts
+\item
+  If you have already installed MPI libraries, such as MPICH or OpenMP, use
+  ``  '--with-mpi-dir=/usr/local/bin','' for the installed directory instead
+  of ``  '--download-mpich=1',''.
+
+  
+\begin{quote}
+gfortran.py
+\hrule
+\begin{verbatim}
+#!/usr/bin/env python
+
+# Build PETSc with gfortran
+
+configure_options = [
+  '--with-cc=gcc-mp-10',
+  '--with-cxx=g++-mp-10',
+  '--with-fc=gfortran-mp-10',
+  '--with-shared-libraries=0',
+  '--with-cxx-dialect=C++11',
+  '--download-mpich=1',
+  '--download-hypre=0',
+  '--download-fblaslapack=1',
+  '--download-spooles=1',
+  '--download-superlu=1',
+  '--download-metis=1',
+  '--download-parmetis=1',
+  '--download-superlu_dist=1',
+  '--download-blacs=1',
+  '--download-scalapack=1',
+  '--download-mumps=1'
+  ]
+
+if __name__ == '__main__':
+  import sys,os
+  sys.path.insert(0,os.path.abspath('config'))
+  import configure
+  configure.petsc_configure(configure_options)
+\end{verbatim}
+\hrule
+\end{quote}
+\item
+Make ``gfortran.py'' executable
+\begin{quote}
+\begin{verbatim}
+chmod 755 gfortran.py
+\end{verbatim}
+\end{quote}
+\item
+Setup environment variables for PETSc
+\begin{quote}
+\begin{verbatim}
+export PETSC_DIR=/opt/PETSc/petsc
+export PETSC_ARCH=gfortran
+\end{verbatim}
+\end{quote}
+\item
+Configure
+\begin{quote}
+\begin{verbatim}
+./gfortran.py
+\end{verbatim}
+\end{quote}
+
+\end{enumerate}
+
+\subsection{Compile}
+\begin{enumerate}
+\item
+Compile
+\begin{quote}
+\begin{verbatim}
+make all
+\end{verbatim}
+\end{quote}
+\end{enumerate}
+
+\section{Compile of task/mtxp module}
+
+\subsection{Setup make.mtxp file}
+\begin{enumerate}
+\item
+Goto mtxp directory
+\begin{quote}
+\begin{verbatim}
+cd task/mtxp
+\end{verbatim}
+\end{quote}
+\item
+Create a setup file 
+\begin{quote}
+\begin{verbatim}
+cp make.mtxp.org make.mtxp
+\end{verbatim}
+\end{quote}
+\item
+Edit the setup file ``make.mtxp''
+\begin{itemize}
+\item
+If MPI is not available, 
+remove comment mark ``\#'' on lines 4--9
+\item
+If MPI is available but PETs not, 
+remove comment mark ``\#'' on lines 12--17
+\item
+If MPI and PETSc are available, 
+remove comment mark ``\#'' on lines 20--27
+\end{itemize}
+\end{enumerate}
+
+\subsection{Modify make.header file}
+\begin{enumerate}
+\item
+Go to task directory
+\begin{quote}
+\begin{verbatim}
+cd ..
+\end{verbatim}
+\end{quote}
+\item
+Edit make.header to use lapack and blas libraries for fortran
+\begin{itemize}
+\item
+Near the beginning of the file, remove comment and ajust the path
+\begin{quote}
+\begin{verbatim}
+LAPACK = lapack.f
+LIBLA=-L /opt/PETSc/petsc/gfortran/lib -lflapack -lfblas
+\end{verbatim}
+\end{quote}
+\item
+In the following, add comment marks
+\begin{quote}
+\begin{verbatim}
+#LAPACK = nolapack.f
+#LIBLA =
+MODLA95 =
+\end{verbatim}
+Keep MODLA95 as it is, since lapack95 is not used.
+\end{quote}
+\item
+Go back to mtxp directory
+\begin{quote}
+\begin{verbatim}
+cd mtxp
+\end{verbatim}
+\end{quote}
+\end{itemize}
+\end{enumerate}
+
+\subsection{Compile}
+\begin{enumerate}
+\item
+Compile
+\begin{quote}
+\begin{verbatim}
+make clean
+make
+\end{verbatim}
+\end{quote}
+\end{enumerate}
+
+\subsection{Test mtxp}
+\begin{enumerate}
+\item
+Test programs solving 1d, 2D and 3D Poisson equation are generated
+\begin{itemize}
+\item
+\verb|testbnd|: Direct band matrix solver (non-parallel)
+\item
+\verb|testpcg|: Iterative band matrix solver (non-parallel)
+\item
+\verb|testdmumps|: Direct band matrix solver (parallel using MUMPS)
+\item
+\verb|testkdsp|: Iterative band matrix solver (parallel using PETSc)
+\end{itemize}
+\item
+Input parameters
+\begin{itemize}
+\item
+\verb|idimen| : number of dimension (i or 2 or 3),  0 for quit
+\item
+\verb|isiz| : number of mesh point in one dimension
+\item
+\verb|isource| : source position is all dimensions
+\item
+\verb|itype| : tyoe of initial guess for PETSc  0..5 (default=0)
+\item
+\verb|m1| : type of solver (methodKSP) of PETSc  0..13 (default=4)
+\item
+\verb|m2| : type of preconditioner (methodPC)  0..12 (default=5)
+\item
+\verb|tolerance| : tolerance in iterative method
+\end{itemize}
+\item
+Example input For parallel processing
+\begin{quote}
+\begin{verbatim}
+mpirun -np 4 ./testdmumps
+# INPUT: idimen,isiz,isource,itype,m1,m2,tolerance,idebug= 
+1,11,6,0,4,5,1.D-7/
+3/
+0/
+\end{verbatim}
+\end{quote}
+\end{enumerate}
+
+\section{Compile of task/fp and related modules}
+
+\subsection{Update Makefile}
+\begin{enumerate}
+\item
+Change directory
+\begin{quote}
+\begin{verbatim}
+cd ../fp
+\end{verbatim}
+\end{quote}
+\item
+Edit Makefile
+\begin{itemize}
+\item
+To use serial band matrix solver, remove comment mark ``\#'' on lines 4-5.
+\item
+To use serial iterative solver, remove comment mark ``\#'' on lines 6-7.
+\item
+To use parallel direct solver MUMPS, remove comment mark ``\#'' on lines 8-9.
+\item
+To use parallel direct solver library PETSc, remove comment mark ``\#''
+on lines 10-11. .
+\end{itemize}
+\end{enumerate}
+
+\subsection{Compile}
+\begin{enumerate}
+\item
+Compile related modules and task/fp files
+\begin{quote}
+\begin{verbatim}
+make
+\end{verbatim}
+\end{quote}
+\end{enumerate}
+
+\section{Install on Ubuntu}
+
+\subsection{Install of required modules}
+
+\begin{verbatim}
+sudo apt-get install gfortran-8
+sudo apt-get install gcc-8
+sudo apt-get install g++-8
+
+sudo apt-get install emacs
+sudo apt-get install git
+sudo apt-get install xorg-dev
+sudo apt-get install valgrind
+sudo apt-get install cmake
+sudo apt-get install python
+\end{verbatim}
+
+\subsection{Install of MPICH}
+
+\begin{enumerate}
+\item
+Download of mpich-3.3.1.tar.gz \qquad (\textit{See 1.1})
+\item
+Expand at ~/soft/mpich \qquad (\textit{See 1.1})
+\item
+Configure by executing ``./run''  \qquad (\textit{See 1.2})
+
+\begin{quote}
+run:
+\hrule
+\begin{verbatim}
+CC=gcc-8 CFLAGS=''-m64'' CXX=g++-8 CXXFLAGS=''-m64'' FC=gfortran-8
+FFLAGS=''-m64'' ./configure --prefix=/usr/local/mpich331-gfortran-gcc8
+--enable-cxx --enable-fast --enable-romio --disable-shared
+\end{verbatim}
+\hrule
+\end{quote}
+
+\item
+Compile and install \qquad (\textit{See 1.3})
+\end{enumerate}
+
+\subsection{Install of PETSc}
+
+\begin{enumerate}
+\item
+Download of petsc-3.11.3.tar.gz \qquad (\textit{See 2.1})
+\item
+Expand at /opt/PETSc/ \qquad (\textit{See 2.1})
+\item
+Setup environment variables \qquad (\textit{See 2.2})
+\begin{quote}
+\begin{verbatim}
+export PETSC_DIR=/opt/PETSc/petsc-3.11.3
+export PETSC_ARCH=gfortran
+\end{verbatim}
+\end{quote}
+\item
+Configure by gfortran.py  \qquad (\textit{See 2.2})
+\item
+Execute fortran.py
+
+\begin{quote}
+gortran.py:
+\hrule
+\begin{verbatim}
+#!/usr/bin/env python
+
+# Build PETSc, with gfortran
+
+configure_options = [
+  '--with-mpi=1',
+  '--with-mpi-dir=/usr/local/mpich331-gfortran-gcc8’,
+  '--with-shared-libraries=0',
+  '--with-cxx-dialect=C++11',
+  '--download-mpich=0',
+  '--download-hypre=0',
+  '--download-fblaslapack=1',
+  '--download-spooles=1',
+  '--download-superlu=1',
+  '--download-metis=1',
+  '--download-parmetis=1',
+  '--download-superlu_dist=1',
+  '--download-blacs=1',
+  '--download-scalapack=1',
+  '--download-mumps=1'
+  ]
+
+if __name__ == '__main__':
+  import sys,os
+  sys.path.insert(0,os.path.abspath('config'))
+  import configure
+  configure.petsc_configure(configure_options)
+\end{verbatim}
+\hrule
+\end{quote}
+\end{enumerate}
+
+\end{document}
+

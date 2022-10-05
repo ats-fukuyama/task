@@ -1,0 +1,2 @@
+tar cvf - $1 | gzip > $1.tar.gz
+#tar cvf - $1 | compress > $1.tar.Z

@@ -9,6 +9,7 @@
 SUBROUTINE WFGOUT
 
   use wfcomm
+  USE libchar
   implicit none
 
   integer :: NL,NWD,NCH,NWMAX,NW
@@ -29,7 +30,6 @@ SUBROUTINE WFGOUT
 1 WRITE(6,*) '# INPUT : E/B/D,X/Y/Z/+/-/P/F,[R/I/A][Xx/Yy/Zz/B6]/'
   WRITE(6,*) '          Xyz/Yxz/Zxy/A9 0-9 V,0-9, L'
   WRITE(6,*) '          P/F,1/2,CXx/CYy/CZz/Xyz/Yxz/Zxy  X=EXIT'
-  CALL GUFLSH
   READ(5,'(A80)',ERR=1,END=9000) KLINE
   NWXMAX=0
   
@@ -39,7 +39,7 @@ SUBROUTINE WFGOUT
 10 IF(NL.GE.80) GOTO 20
   NL=NL+1
   KID=KLINE(NL:NL)
-  CALL GUCPTL(KID)
+  CALL toupper(KID)
   IF(KID.NE.' ') THEN
      IF(NCH.LT.NCHM) NCH=NCH+1
      KWD(NCH:NCH)=KID

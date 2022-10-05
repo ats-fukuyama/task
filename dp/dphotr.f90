@@ -27,7 +27,7 @@ CONTAINS
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
     TYPE(pl_mag_type),INTENT(IN):: mag
-!    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+!    TYPE(pl_prf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     COMPLEX(rkind):: CLDISP1(6),CLDISP2(6)
     INTEGER:: I
@@ -53,7 +53,7 @@ CONTAINS
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
     TYPE(pl_mag_type),INTENT(IN):: mag
-!    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+!    TYPE(pl_prf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
     INTEGER:: NHMAX,NTH,NP,NC,NCD,INC
@@ -146,23 +146,16 @@ CONTAINS
                INC=1
             ENDIF
             IF(X.EQ.0.d0) THEN
-               if(NCD.eq.1) THEN
+               IF(NCD.EQ.1) THEN
                   PAI1=NC*INC*0.5D0
-               else
+               ELSE
                   PAI1=0.D0
-               endif
-            else
+               ENDIF
+            ELSE
                PAI1  = NC*INC*ADJ(NCD)/X
-            endif
-!            WRITE(6,'(A,I5,1PE12.4)') &
-!                 'NCD,ADJD=', &
-!                 NCD,ADJD(NCD)
+            ENDIF
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNM(NTH)
-
-!            WRITE(6,'(A,3I5,1P3E12.4)') &
-!                 'np,nth,nc,CPAI2,CDEN=', &
-!                 np,nth,nc,CPAI2,CDEN
 
             CSM11 = CSM11 + PAI1          *PAI1*CDEN
             CSM12 = CSM12 + PAI1         *CPAI2*CDEN
@@ -224,14 +217,14 @@ CONTAINS
                INC=1
             ENDIF
             IF(X.EQ.0.d0) THEN
-               if(NCD.eq.1) THEN
+               IF(NCD.EQ.1) THEN
                   PAI1=NC*INC*0.5D0
-               else
+               ELSE
                   PAI1=0.D0
-               endif
-            else
+               ENDIF
+            ELSE
                PAI1  = NC*INC*ADJ(NCD)/X
-            endif
+            ENDIF
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNG(NTH)
 
@@ -289,10 +282,10 @@ CONTAINS
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
     TYPE(pl_mag_type),INTENT(IN):: mag
-!    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+!    TYPE(pl_prf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
-    INTEGER:: NHMAX,NTH,NP,NC,NCD,NP1,INC,NP2,N
+    INTEGER:: NHMAX,NTH,NP,NC,NCD,NP1,INC,NP2
     REAL(rkind):: WCM,DKPRW,PTH0C,PTH0W,DCWC,DNPR,DKPP,D
     REAL(rkind):: PNEAR1,DIF,DFP3,X,RGM,PAI1,PAI3,PNEAR2,DFT4,FACT
     REAL(rkind):: PN0,PT0,PTH0
@@ -308,11 +301,10 @@ CONTAINS
     COMPLEX(rkind):: cdelta
 
 !    cdelta=CI*0.01D0
-!    cdelta=CI*0.003D0
-    cdelta=CI*0.0
+    cdelta=CI*0.003D0
+!    cdelta=CI*0.0D0
 
       NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)),2)+2
-!      WRITE(6,'(A,3I5)') 'NC:',NCMIN(NS),NCMAX(NS),NHMAX
       ALLOCATE(ADJ(0:NHMAX),ADJD(0:NHMAX))
 
       PN0=RNFP0(NS)
@@ -375,15 +367,6 @@ CONTAINS
             PNEAR1 = (AMP*PA(NS)*VC)/(1-(DNPR*TCSM(NTH))**2) &
                     *(DNPR*NC*DCWC*TCSM(NTH)+SQRT(D))/PTH0
             IF (PNEAR1.LT.0.D0.OR.PNEAR1.GT.DELP(NS)*NPMAX_DP) GOTO 302
-!            IF (DKPRW*TCSM(NTH)*PNEAR1+NC*DCWC.LT.0.D0) GOTO 302
-
-!            IF(DNPR**2.LE.1.D0) THEN
-!               FL = NC*DCWC/SQRT(1-DNPR**2)
-!               IF(FL.LT.1.D0) THEN
-!                  WRITE(6,'(A,I5,1p3E12.4)') 
-!     &                 'FL:NC,DCWC,DNPR,FL=',NC,DCWC,DNPR,FL
-!               ENDIF
-!            ENDIF
 
             NP1 = INT(PNEAR1/DELP(NS))
             IF (NP1.LT.0.OR.NP1.GE.NPMAX_DP) GOTO 302
@@ -412,14 +395,14 @@ CONTAINS
                INC=1
             ENDIF
             IF(X.EQ.0.d0) THEN
-               if(NCD.eq.1) THEN
+               IF(NCD.EQ.1) THEN
                   PAI1=NC*INC*0.5D0
-               else
+               ELSE
                   PAI1=0.D0
-               endif
-            else
+               ENDIF
+            ELSE
                PAI1  = NC*INC*ADJ(NCD)/X
-            endif
+            ENDIF
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNM(NTH)
 
@@ -435,15 +418,6 @@ CONTAINS
   302       PNEAR2 = (AMP*PA(NS)*VC)/(1-(DNPR*TCSM(NTH))**2) &
                     *(DNPR*NC*DCWC*TCSM(NTH)-SQRT(D))/PTH0
             IF (PNEAR2.LT.0.D0.OR.PNEAR2.GT.DELP(NS)*NPMAX_DP) GOTO 310
-!            IF (DKPRW*TCSM(NTH)*PNEAR2+NC*DCWC.LT.0.D0) GOTO 310
-
-!            IF(DNPR**2.LE.1.D0) THEN
-!               FL = NC*DCWC/SQRT(1-DNPR**2)
-!               IF(FL.LT.1.D0) THEN
-!                  WRITE(6,'(A,I5,1p3E12.4)') 
-!     &                 'FL:NC,DCWC,DNPR,FL=',NC,DCWC,DNPR,FL
-!               ENDIF
-!            ENDIF
 
             NP2 = INT(PNEAR2/DELP(NS))
             IF (NP2.LT.0.OR.NP2.GE.NPMAX_DP) GOTO 310
@@ -462,10 +436,6 @@ CONTAINS
             X = DKPP*PTH0*PNEAR2*TSNM(NTH)/WCM
             CALL BESSJN(X,NHMAX,ADJ,ADJD)
 
-!            WRITE(6,'(A,1PE12.4)') 'BESSJN: X=',X
-!            WRITE(6,'(1P5E12.4)') (ADJ(n),n=0,NHMAX)
-!            WRITE(6,'(1P5E12.4)') (ADJD(n),n=0,NHMAX)
-
             RGM=SQRT(1+PTH0W*PNEAR2**2) 
             CPART31= DFP3*PNEAR2**3 &
                      /ABS(PTH0W*PNEAR2/RGM-CKPRW*TCSM(NTH)+cdelta)
@@ -476,14 +446,14 @@ CONTAINS
                INC=1
             ENDIF
             IF(X.EQ.0.d0) THEN
-               if(NCD.eq.1) THEN
+               IF(NCD.EQ.1) THEN
                   PAI1=NC*INC*0.5D0
-               else
+               ELSE
                   PAI1=0.D0
-               endif
-            else
+               ENDIF
+            ELSE
                PAI1  = NC*INC*ADJ(NCD)/X
-            endif
+            ENDIF
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNM(NTH)
 
@@ -541,15 +511,6 @@ CONTAINS
             PNEAR1 = (AMP*PA(NS)*VC)/(1-(DNPR*TCSG(NTH))**2) &
                     *(DNPR*NC*DCWC*TCSG(NTH)+SQRT(D))/PTH0
             IF (PNEAR1.LT.0.D0.OR.PNEAR1.GT.DELP(NS)*NPMAX_DP) GOTO 402
-!            IF (DKPRW*TCSG(NTH)*PNEAR1+NC*DCWC.LT.0.D0) GOTO 402
-
-!            IF(DNPR**2.LE.1.D0) THEN
-!               FL = NC*DCWC/SQRT(1-DNPR**2)
-!               IF(FL.LT.1.D0) THEN
-!                  WRITE(6,'(A,I5,1p3E12.4)') 
-!     &                 'FL:NC,DCWC,DNPR,FL=',NC,DCWC,DNPR,FL
-!               ENDIF
-!            ENDIF
 
             NP1 = INT(PNEAR1/DELP(NS)+0.5D0)
             IF (NP1.LT.0.OR.NP1.GE.NPMAX_DP) GOTO 402
@@ -578,14 +539,14 @@ CONTAINS
                INC=1
             ENDIF
             IF(X.EQ.0.d0) THEN
-               if(NCD.eq.1) THEN
+               IF(NCD.EQ.1) THEN
                   PAI1=NC*INC*0.5D0
-               else
+               ELSE
                   PAI1=0.D0
-               endif
-            else
+               ENDIF
+            ELSE
                PAI1  = NC*INC*ADJ(NCD)/X
-            endif
+            ENDIF
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNG(NTH)
 
@@ -602,14 +563,6 @@ CONTAINS
                     *(DNPR*NC*DCWC*TCSG(NTH)-SQRT(D))/PTH0
             IF(PNEAR2.LT.0.D0.OR.PNEAR2.GT.DELP(NS)*NPMAX_DP) GOTO 410
 !            IF (DKPRW*TCSG(NTH)*PNEAR2+NC*DCWC.LT.0.D0) GOTO 410
-
-!            IF(DNPR**2.LE.1.D0) THEN
-!               FL = NC*DCWC/SQRT(1-DNPR**2)
-!               IF(FL.LT.1.D0) THEN
-!                  WRITE(6,'(A,I5,1p3E12.4)') 
-!     &                 'FL:NC,DCWC,DNPR,FL=',NC,DCWC,DNPR,FL
-!               ENDIF
-!            ENDIF
 
             NP2 = INT(PNEAR2/DELP(NS)+0.5D0)
             IF (NP2.LT.0.OR.NP2.GE.NPMAX_DP) GOTO 410
@@ -638,14 +591,14 @@ CONTAINS
                INC=1
             ENDIF
             IF(X.EQ.0.d0) THEN
-               if(NCD.eq.1) THEN
+               IF(NCD.EQ.1) THEN
                   PAI1=NC*INC*0.5D0
-               else
+               ELSE
                   PAI1=0.D0
-               endif
-            else
+               ENDIF
+            ELSE
                PAI1  = NC*INC*ADJ(NCD)/X
-            endif
+            ENDIF
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNG(NTH)
 
@@ -681,9 +634,6 @@ CONTAINS
       CLDISP(5)=FACT*(CINTG312+CINTG412)
       CLDISP(6)=FACT*(CINTG323+CINTG423)
 
-!      WRITE(6,'(1P6E12.4)') CLDISP(1),CLDISP(2),CLDISP(3)
-!      WRITE(6,'(1P6E12.4)') CLDISP(4),CLDISP(5),CLDISP(6)
-
       DEALLOCATE(ADJ,ADJD)
       RETURN
   END SUBROUTINE DP_HOTRIX
@@ -702,11 +652,11 @@ CONTAINS
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
     TYPE(pl_mag_type),INTENT(IN):: mag
-!    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+!    TYPE(pl_prf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
-    INTEGER:: NHMAX,NTH,NP,NC,NCD,NP1,INC,NP2,N
-    REAL(rkind):: WCM,DKPRW,PTH0C,PTH0W,DCWC,DNPR,DKPP,D,ADJN
+    INTEGER:: NHMAX,NTH,NP,NC,NCD,NP1,INC,NP2
+    REAL(rkind):: WCM,DKPRW,PTH0W,DCWC,DNPR,DKPP,D
     REAL(rkind):: PNEAR1,DIF,DFP3,X,RGM,PAI1,PAI3,PNEAR2,DFT4,FACT
     REAL(rkind):: PN0,PT0,PTH0
     COMPLEX(rkind):: CWP,CWC,CKPRW,CPAI2
@@ -718,9 +668,8 @@ CONTAINS
     COMPLEX(rkind):: CINTG421,CINTG422,CINTG423
     COMPLEX(rkind):: CINTG431,CINTG432,CINTG433
     COMPLEX(rkind):: CSM11,CSM12,CSM13,CSM22,CSM23,CSM33
-    COMPLEX(rkind):: cdelta
 
-      NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)),2)+2
+    NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)),2)+2
       ALLOCATE(ADJ(0:NHMAX),ADJD(0:NHMAX))
 
       PN0=RNFP0(NS)
@@ -737,14 +686,16 @@ CONTAINS
       DNPR=DBLE(CKPR*VC/CW)
       DKPP=DBLE(CKPP)
 
-      DO 50 NTH=1,NTHMAX_DP
-      DO 50 NP=1,NPMAX_DP-1
-         DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP(NS)
-   50 CONTINUE 
-      DO 60 NP=1,NPMAX_DP
-      DO 60 NTH=1,NTHMAX_DP-1
-         DFT(NP,NTH) = (FM(NP,NTH+1) - FM(NP,NTH))/DELTH
-   60 CONTINUE
+      DO NTH=1,NTHMAX_DP
+         DO NP=1,NPMAX_DP-1
+            DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP(NS)
+         END DO
+      END DO
+      DO NP=1,NPMAX_DP
+         DO NTH=1,NTHMAX_DP-1
+            DFT(NP,NTH) = (FM(NP,NTH+1) - FM(NP,NTH))/DELTH
+         END DO
+      END DO
 
 !***************SINGULAR POINT***************************
 
@@ -800,19 +751,6 @@ CONTAINS
             NCD = ABS(NC)
             X = DKPP*PTH0*PNEAR1*TSNM(NTH)/WCM
             CALL BESSJN(X,NHMAX,ADJ,ADJD)
-            IF(ABS(NCD).EQ.0) THEN
-               ADJN=0.D0
-            ELSE
-               IF(ABS(X).LE.1.D-16) THEN
-                  IF(ABS(NCD).EQ.1) THEN
-                     ADJN=ADJD(NCD)
-                  ELSE
-                     ADJN=0.D0
-                  END IF
-               ELSE
-                  ADJN=NCD*ADJ(NCD)/X
-               END IF
-            END IF
 
             RGM=SQRT(1+PTH0W*PNEAR1**2) 
             CPART31= DFP3*PNEAR1**3 &
@@ -823,7 +761,15 @@ CONTAINS
             ELSE
                INC=1
             ENDIF
-            PAI1  =    INC*ADJN
+            IF(X.EQ.0.d0) THEN
+               IF(NCD.EQ.1) THEN
+                  PAI1=NC*INC*0.5D0
+               ELSE
+                  PAI1=0.D0
+               ENDIF
+            ELSE
+               PAI1  = NC*INC*ADJ(NCD)/X
+            ENDIF
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNM(NTH)
 
@@ -870,7 +816,15 @@ CONTAINS
             ELSE
                INC=1
             ENDIF
-            PAI1  = NC*INC*ADJ(NCD)/X
+            IF(X.EQ.0.d0) THEN
+               IF(NCD.EQ.1) THEN
+                  PAI1=NC*INC*0.5D0
+               ELSE
+                  PAI1=0.D0
+               ENDIF
+            ELSE
+               PAI1  = NC*INC*ADJ(NCD)/X
+            ENDIF
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNM(NTH)
 
@@ -948,20 +902,6 @@ CONTAINS
             X = DKPP*PTH0*PNEAR1*TSNG(NTH)/WCM
             CALL BESSJN(X,NHMAX,ADJ,ADJD)
 
-            IF(ABS(NCD).EQ.0) THEN
-               ADJN=0.D0
-            ELSE
-               IF(ABS(X).LE.1.D-16) THEN
-                  IF(ABS(NCD).EQ.1) THEN
-                     ADJN=ADJD(NCD)
-                  ELSE
-                     ADJN=0.D0
-                  END IF
-               ELSE
-                  ADJN=NCD*ADJ(NCD)/X
-               END IF
-            END IF
-
             RGM=SQRT(1+PTH0W*PNEAR1**2) 
             CPART41=DFT4*PNEAR1**2*(TCSG(NTH)-PNEAR1*CKPRW/RGM) &
                    /ABS(PTH0W*PNEAR1/RGM-CKPRW*TCSG(NTH))
@@ -971,7 +911,15 @@ CONTAINS
             ELSE
                INC=1
             ENDIF
-            PAI1  = NC*INC*ADJN
+            IF(X.EQ.0.d0) THEN
+               IF(NCD.EQ.1) THEN
+                  PAI1=NC*INC*0.5D0
+               ELSE
+                  PAI1=0.D0
+               ENDIF
+            ELSE
+               PAI1  = NC*INC*ADJ(NCD)/X
+            ENDIF
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNG(NTH)
 
@@ -1018,7 +966,15 @@ CONTAINS
             ELSE
                INC=1
             ENDIF
-            PAI1  = NC*INC*ADJ(NCD)/X
+            IF(X.EQ.0.d0) THEN
+               IF(NCD.EQ.1) THEN
+                  PAI1=NC*INC*0.5D0
+               ELSE
+                  PAI1=0.D0
+               ENDIF
+            ELSE
+               PAI1  = NC*INC*ADJ(NCD)/X
+            ENDIF
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNG(NTH)
 
@@ -1053,9 +1009,6 @@ CONTAINS
       CLDISP(5)=FACT*(CINTG312+CINTG412)
       CLDISP(6)=FACT*(CINTG323+CINTG423)
 
-!      WRITE(6,'(1P6E12.4)') CLDISP(1),CLDISP(2),CLDISP(3)
-!      WRITE(6,'(1P6E12.4)') CLDISP(4),CLDISP(5),CLDISP(6)
- 
       RETURN
     END  SUBROUTINE DP_HOTRI
 END MODULE dphotr

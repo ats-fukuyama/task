@@ -1,3 +1,13 @@
+! libspl3d.f90
+
+MODULE libspl3d
+
+  PRIVATE
+  PUBLIC spl3d,spl3df,spl3dd
+  PUBLIC cspl3d,cspl3df,cspl3dd
+
+CONTAINS
+
 !     $Id$
 !
 !     ****** Three-Dimensional Spline Interpolation ******
@@ -45,31 +55,33 @@
 !              FZX(NXM,NYM,NZMAX): ESTIMATED DERIVATIVES
 !              IERR          : ERROR INDICATOR
 
+      USE task_kinds,ONLY: dp
+      USE libspl1d  
       IMPLICIT NONE
 
-      INTEGER(4),INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX,IDX,IDY,IDZ
-      REAL(8), DIMENSION(NXMAX),        INTENT(IN) :: X
-      REAL(8), DIMENSION(NYMAX),        INTENT(IN) :: Y
-      REAL(8), DIMENSION(NZMAX),        INTENT(IN) :: Z
-      REAL(8), DIMENSION(NXM,NYM,NZMAX),INTENT(IN) :: F
-      REAL(8), DIMENSION(NXM,NYM,NZMAX),INTENT(INOUT):: FX,FY,FZ
-      REAL(8), DIMENSION(NXM,NYM,NZMAX),INTENT(INOUT):: FXY,FYZ,FZX,FXYZ
-      INTEGER(4),                             INTENT(OUT):: IERR
-      REAL(8), DIMENSION(4,4,4,NXM,NYM,NZMAX),INTENT(OUT):: U
+      INTEGER,INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX,IDX,IDY,IDZ
+      REAL(dp), DIMENSION(NXMAX),        INTENT(IN) :: X
+      REAL(dp), DIMENSION(NYMAX),        INTENT(IN) :: Y
+      REAL(dp), DIMENSION(NZMAX),        INTENT(IN) :: Z
+      REAL(dp), DIMENSION(NXM,NYM,NZMAX),INTENT(IN) :: F
+      REAL(dp), DIMENSION(NXM,NYM,NZMAX),INTENT(INOUT):: FX,FY,FZ
+      REAL(dp), DIMENSION(NXM,NYM,NZMAX),INTENT(INOUT):: FXY,FYZ,FZX,FXYZ
+      INTEGER,                             INTENT(OUT):: IERR
+      REAL(dp), DIMENSION(4,4,4,NXM,NYM,NZMAX),INTENT(OUT):: U
 
-      INTEGER(4) :: NX,NY,NZ,I,J,K,L
-      REAL(8)    :: DX,DXM,DXP,DX1,DX2,DX3
-      REAL(8)    :: DY,DYM,DYP,DY1,DY2,DY3
-      REAL(8)    :: DZ,DZM,DZP,DZ1,DZ2,DZ3
-      INTEGER(4)    :: IDX1,IDX2,IDY1,IDY2,IDZ1,IDZ2
-      REAL(8),DIMENSION(4,4):: VX,VY,VZ
-      REAL(8),DIMENSION(4,4,4):: T,TT,TTT,TTTT
-      REAL(8),    DIMENSION(4,NXMAX):: UX,UX0
-      REAL(8),    DIMENSION(4,NYMAX):: UY,UY0
-      REAL(8),    DIMENSION(4,NZMAX):: UZ,UZ0
-      REAL(8),    DIMENSION(NXMAX)  :: BX
-      REAL(8),    DIMENSION(NYMAX)  :: BY
-      REAL(8),    DIMENSION(NZMAX)  :: BZ
+      INTEGER :: NX,NY,NZ,I,J,K,L
+      REAL(dp)    :: DX,DXM,DXP,DX1,DX2,DX3
+      REAL(dp)    :: DY,DYM,DYP,DY1,DY2,DY3
+      REAL(dp)    :: DZ,DZM,DZP,DZ1,DZ2,DZ3
+      INTEGER    :: IDX1,IDX2,IDY1,IDY2,IDZ1,IDZ2
+      REAL(dp),DIMENSION(4,4):: VX,VY,VZ
+      REAL(dp),DIMENSION(4,4,4):: T,TT,TTT,TTTT
+      REAL(dp),    DIMENSION(4,NXMAX):: UX,UX0
+      REAL(dp),    DIMENSION(4,NYMAX):: UY,UY0
+      REAL(dp),    DIMENSION(4,NZMAX):: UZ,UZ0
+      REAL(dp),    DIMENSION(NXMAX)  :: BX
+      REAL(dp),    DIMENSION(NYMAX)  :: BY
+      REAL(dp),    DIMENSION(NZMAX)  :: BZ
 
       IDX1=MOD(IDX,2)
       IDX2=MOD(IDX/2,2)
@@ -556,7 +568,7 @@
       ENDDO
 
 !     --- calculate FXYZ ---
-      write(6,*) '--- calculate FXYZ ---'
+!      write(6,*) '--- calculate FXYZ ---'
 
       DO NZ=1,NZMAX
       DO NY=1,NYMAX
@@ -613,7 +625,7 @@
 !      DO NX=1,NXMAX
 !      DO NY=1,NYMAX
 !      DO NZ=1,NZMAX
-!         WRITE(6,'(3I3,1P7E10.2)') NX,NY,NZ, &
+!         WRITE(6,'(3I3,7ES10.2)') NX,NY,NZ, &
 !              F(NX,NY,NZ),FX(NX,NY,NZ),FY(NX,NY,NZ),FZ(NX,NY,NZ), &
 !              FXY(NX,NY,NZ),FYZ(NX,NY,NZ),FZX(NX,NY,NZ)
 !      ENDDO
@@ -840,21 +852,22 @@
 
       SUBROUTINE SPL3DF(X0,Y0,Z0,F0,X,Y,Z,U,NXM,NYM,NXMAX,NYMAX,NZMAX,IERR)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
 
-      INTEGER(4),                       INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX
-      REAL(8),                          INTENT(IN) :: X0, Y0, Z0
-      REAL(8), DIMENSION(NXMAX),        INTENT(IN) :: X
-      REAL(8), DIMENSION(NYMAX),        INTENT(IN) :: Y
-      REAL(8), DIMENSION(NZMAX),        INTENT(IN) :: Z
-      REAL(8), DIMENSION(4,4,4,NXM,NYM,NZMAX),INTENT(IN) :: U
-      INTEGER(4),                       INTENT(OUT):: IERR
-      REAL(8),                          INTENT(OUT):: F0
+      INTEGER,                       INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX
+      REAL(dp),                          INTENT(IN) :: X0, Y0, Z0
+      REAL(dp), DIMENSION(NXMAX),        INTENT(IN) :: X
+      REAL(dp), DIMENSION(NYMAX),        INTENT(IN) :: Y
+      REAL(dp), DIMENSION(NZMAX),        INTENT(IN) :: Z
+      REAL(dp), DIMENSION(4,4,4,NXM,NYM,NZMAX),INTENT(IN) :: U
+      INTEGER,                       INTENT(OUT):: IERR
+      REAL(dp),                          INTENT(OUT):: F0
 
-      INTEGER(4)            :: NX, NY, NZ, I, J
-      REAL(8)               :: DX, DY, DZ, FX, FY, FZ
-      REAL(8),DIMENSION(4)  :: UF
-      REAL(8),DIMENSION(4,4)  :: UFF
+      INTEGER            :: NX, NY, NZ, I, J
+      REAL(dp)               :: DX, DY, DZ, FX, FY, FZ
+      REAL(dp),DIMENSION(4)  :: UF
+      REAL(dp),DIMENSION(4,4)  :: UFF
 
       IERR=0
 
@@ -965,21 +978,22 @@
       SUBROUTINE SPL3DD(X0,Y0,Z0,F0,FX0,FY0,FZ0, &
                         X,Y,Z,U,NXM,NYM,NXMAX,NYMAX,NZMAX,IERR)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
 
-      INTEGER(4),                       INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX
-      REAL(8),                          INTENT(IN) :: X0,Y0,Z0
-      REAL(8), DIMENSION(NXMAX),        INTENT(IN) :: X
-      REAL(8), DIMENSION(NYMAX),        INTENT(IN) :: Y
-      REAL(8), DIMENSION(NZMAX),        INTENT(IN) :: Z
-      REAL(8), DIMENSION(4,4,4,NXM,NYM,NZMAX),INTENT(IN) :: U 
-      INTEGER(4),                       INTENT(OUT):: IERR
-      REAL(8),                          INTENT(OUT):: F0,FX0,FY0,FZ0
+      INTEGER,                       INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX
+      REAL(dp),                          INTENT(IN) :: X0,Y0,Z0
+      REAL(dp), DIMENSION(NXMAX),        INTENT(IN) :: X
+      REAL(dp), DIMENSION(NYMAX),        INTENT(IN) :: Y
+      REAL(dp), DIMENSION(NZMAX),        INTENT(IN) :: Z
+      REAL(dp), DIMENSION(4,4,4,NXM,NYM,NZMAX),INTENT(IN) :: U 
+      INTEGER,                       INTENT(OUT):: IERR
+      REAL(dp),                          INTENT(OUT):: F0,FX0,FY0,FZ0
 
-      INTEGER(4)  :: NX,NY,NZ,I,J
-      REAL(8)     :: DX,DY,DZ,FX,FY,FZ
-      REAL(8),DIMENSION(4):: UF
-      REAL(8),DIMENSION(4,4):: UFF
+      INTEGER  :: NX,NY,NZ,I,J
+      REAL(dp)     :: DX,DY,DZ,FX,FY,FZ
+      REAL(dp),DIMENSION(4):: UF
+      REAL(dp),DIMENSION(4,4):: UFF
 
       IERR=0
 
@@ -1146,31 +1160,33 @@
 !              FZX(NXM,NYM,NZMAX): ESTIMATED DERIVATIVES
 !              IERR          : ERROR INDICATOR
 
+      USE task_kinds,ONLY: dp
+      USE libspl1d  
       IMPLICIT NONE
 
-      INTEGER(4),INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX,IDX,IDY,IDZ
-      REAL(8), DIMENSION(NXMAX),        INTENT(IN) :: X
-      REAL(8), DIMENSION(NYMAX),        INTENT(IN) :: Y
-      REAL(8), DIMENSION(NZMAX),        INTENT(IN) :: Z
-      COMPLEX(8), DIMENSION(NXM,NYM,NZMAX),INTENT(IN) :: F
-      COMPLEX(8), DIMENSION(NXM,NYM,NZMAX),INTENT(INOUT):: FX,FY,FZ
-      COMPLEX(8), DIMENSION(NXM,NYM,NZMAX),INTENT(INOUT):: FXY,FYZ,FZX,FXYZ
-      INTEGER(4),                                INTENT(OUT):: IERR
-      COMPLEX(8), DIMENSION(4,4,4,NXM,NYM,NZMAX),INTENT(OUT):: U
+      INTEGER,INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX,IDX,IDY,IDZ
+      REAL(dp), DIMENSION(NXMAX),        INTENT(IN) :: X
+      REAL(dp), DIMENSION(NYMAX),        INTENT(IN) :: Y
+      REAL(dp), DIMENSION(NZMAX),        INTENT(IN) :: Z
+      COMPLEX(dp), DIMENSION(NXM,NYM,NZMAX),INTENT(IN) :: F
+      COMPLEX(dp), DIMENSION(NXM,NYM,NZMAX),INTENT(INOUT):: FX,FY,FZ
+      COMPLEX(dp), DIMENSION(NXM,NYM,NZMAX),INTENT(INOUT):: FXY,FYZ,FZX,FXYZ
+      INTEGER,                                INTENT(OUT):: IERR
+      COMPLEX(dp), DIMENSION(4,4,4,NXM,NYM,NZMAX),INTENT(OUT):: U
 
-      INTEGER(4) :: NX,NY,NZ,I,J,K,L
-      REAL(8)    :: DX,DXM,DXP,DX1,DX2,DX3
-      REAL(8)    :: DY,DYM,DYP,DY1,DY2,DY3
-      REAL(8)    :: DZ,DZM,DZP,DZ1,DZ2,DZ3
-      INTEGER(4)    :: IDX1,IDX2,IDY1,IDY2,IDZ1,IDZ2
-      COMPLEX(8),DIMENSION(4,4):: VX,VY,VZ
-      COMPLEX(8),DIMENSION(4,4,4):: T,TT,TTT,TTTT
-      COMPLEX(8),    DIMENSION(4,NXMAX):: UX,UX0
-      COMPLEX(8),    DIMENSION(4,NYMAX):: UY,UY0
-      COMPLEX(8),    DIMENSION(4,NZMAX):: UZ,UZ0
-      COMPLEX(8),    DIMENSION(NXMAX)  :: BX
-      COMPLEX(8),    DIMENSION(NYMAX)  :: BY
-      COMPLEX(8),    DIMENSION(NZMAX)  :: BZ
+      INTEGER :: NX,NY,NZ,I,J,K,L
+      REAL(dp)    :: DX,DXM,DXP,DX1,DX2,DX3
+      REAL(dp)    :: DY,DYM,DYP,DY1,DY2,DY3
+      REAL(dp)    :: DZ,DZM,DZP,DZ1,DZ2,DZ3
+      INTEGER    :: IDX1,IDX2,IDY1,IDY2,IDZ1,IDZ2
+      COMPLEX(dp),DIMENSION(4,4):: VX,VY,VZ
+      COMPLEX(dp),DIMENSION(4,4,4):: T,TT,TTT,TTTT
+      COMPLEX(dp),    DIMENSION(4,NXMAX):: UX,UX0
+      COMPLEX(dp),    DIMENSION(4,NYMAX):: UY,UY0
+      COMPLEX(dp),    DIMENSION(4,NZMAX):: UZ,UZ0
+      COMPLEX(dp),    DIMENSION(NXMAX)  :: BX
+      COMPLEX(dp),    DIMENSION(NYMAX)  :: BY
+      COMPLEX(dp),    DIMENSION(NZMAX)  :: BZ
 
       IDX1=MOD(IDX,2)
       IDX2=MOD(IDX/2,2)
@@ -1714,7 +1730,7 @@
 !      DO NX=1,NXMAX
 !      DO NY=1,NYMAX
 !      DO NZ=1,NZMAX
-!         WRITE(6,'(3I3,1P7E10.2)') NX,NY,NZ, &
+!         WRITE(6,'(3I3,7ES10.2)') NX,NY,NZ, &
 !              F(NX,NY,NZ),FX(NX,NY,NZ),FY(NX,NY,NZ),FZ(NX,NY,NZ), &
 !              FXY(NX,NY,NZ),FYZ(NX,NY,NZ),FZX(NX,NY,NZ)
 !      ENDDO
@@ -1941,21 +1957,22 @@
 
       SUBROUTINE CSPL3DF(X0,Y0,Z0,F0,X,Y,Z,U,NXM,NYM,NXMAX,NYMAX,NZMAX,IERR)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
 
-      INTEGER(4),                       INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX
-      REAL(8),                          INTENT(IN) :: X0, Y0, Z0
-      REAL(8), DIMENSION(NXMAX),        INTENT(IN) :: X
-      REAL(8), DIMENSION(NYMAX),        INTENT(IN) :: Y
-      REAL(8), DIMENSION(NZMAX),        INTENT(IN) :: Z
-      COMPLEX(8), DIMENSION(4,4,4,NXM,NYM,NZMAX),INTENT(IN) :: U
-      INTEGER(4),                       INTENT(OUT):: IERR
-      COMPLEX(8),                       INTENT(OUT):: F0
+      INTEGER,                       INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX
+      REAL(dp),                          INTENT(IN) :: X0, Y0, Z0
+      REAL(dp), DIMENSION(NXMAX),        INTENT(IN) :: X
+      REAL(dp), DIMENSION(NYMAX),        INTENT(IN) :: Y
+      REAL(dp), DIMENSION(NZMAX),        INTENT(IN) :: Z
+      COMPLEX(dp), DIMENSION(4,4,4,NXM,NYM,NZMAX),INTENT(IN) :: U
+      INTEGER,                       INTENT(OUT):: IERR
+      COMPLEX(dp),                       INTENT(OUT):: F0
 
-      INTEGER(4)            :: NX, NY, NZ, I, J
-      REAL(8)               :: DX, DY, DZ, FX, FY, FZ
-      COMPLEX(8),DIMENSION(4)  :: UF
-      COMPLEX(8),DIMENSION(4,4)  :: UFF
+      INTEGER            :: NX, NY, NZ, I, J
+      REAL(dp)               :: DX, DY, DZ, FX, FY, FZ
+      COMPLEX(dp),DIMENSION(4)  :: UF
+      COMPLEX(dp),DIMENSION(4,4)  :: UFF
 
       IERR=0
 
@@ -2066,21 +2083,22 @@
       SUBROUTINE CSPL3DD(X0,Y0,Z0,F0,FX0,FY0,FZ0, &
                         X,Y,Z,U,NXM,NYM,NXMAX,NYMAX,NZMAX,IERR)
 
+      USE task_kinds,ONLY: dp
       IMPLICIT NONE
 
-      INTEGER(4),                       INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX
-      REAL(8),                          INTENT(IN) :: X0,Y0,Z0
-      REAL(8), DIMENSION(NXMAX),        INTENT(IN) :: X
-      REAL(8), DIMENSION(NYMAX),        INTENT(IN) :: Y
-      REAL(8), DIMENSION(NZMAX),        INTENT(IN) :: Z
-      COMPLEX(8), DIMENSION(4,4,4,NXM,NYM,NZMAX),INTENT(IN) :: U
-      INTEGER(4),                       INTENT(OUT):: IERR
-      COMPLEX(8),                       INTENT(OUT):: F0,FX0,FY0,FZ0
+      INTEGER,                       INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX
+      REAL(dp),                          INTENT(IN) :: X0,Y0,Z0
+      REAL(dp), DIMENSION(NXMAX),        INTENT(IN) :: X
+      REAL(dp), DIMENSION(NYMAX),        INTENT(IN) :: Y
+      REAL(dp), DIMENSION(NZMAX),        INTENT(IN) :: Z
+      COMPLEX(dp), DIMENSION(4,4,4,NXM,NYM,NZMAX),INTENT(IN) :: U
+      INTEGER,                       INTENT(OUT):: IERR
+      COMPLEX(dp),                       INTENT(OUT):: F0,FX0,FY0,FZ0
 
-      INTEGER(4)  :: NX,NY,NZ,I,J
-      REAL(8)     :: DX,DY,DZ,FX,FY,FZ
-      COMPLEX(8),DIMENSION(4):: UF
-      COMPLEX(8),DIMENSION(4,4):: UFF
+      INTEGER  :: NX,NY,NZ,I,J
+      REAL(dp)     :: DX,DY,DZ,FX,FY,FZ
+      COMPLEX(dp),DIMENSION(4):: UF
+      COMPLEX(dp),DIMENSION(4,4):: UFF
 
       IERR=0
 
@@ -2201,3 +2219,4 @@
       IERR=0
       RETURN
       END SUBROUTINE CSPL3DD
+END MODULE libspl3d

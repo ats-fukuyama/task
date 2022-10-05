@@ -548,7 +548,7 @@ c
       jpt=jptt
 c  note: dependence of shear's  on zpxx_m(jm-1) and zpxx_m(jm+1)
 c  and alpha(jm) depends on zpxx_m(jm+1)
- 200  format(i2,2x,0p1f4.2,0p5f10.5)
+c  200  format(i2,2x,0p1f4.2,0p5f10.5)
 c
       do j=jm-jptf,jm+jpt
 c

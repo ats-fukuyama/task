@@ -8,6 +8,7 @@
 
       MODULE libmtx
 
+      USE task_kinds,ONLY: dp
       use mpi
       use libmpi
       use commpi
@@ -41,13 +42,13 @@
 
       INTEGER:: imax,jmax,nzzmax
       INTEGER:: joffset,ierr,mode,irmax,icmin,icmax,irc,idebug_save
-      REAL(8),DIMENSION(:),POINTER:: x,b
-      REAL(8),DIMENSION(:,:),POINTER:: A
-      INTEGER,DIMENSION(:),POINTER:: ir,ic
-      REAL(8),DIMENSION(:),POINTER:: drc
-      COMPLEX(8),DIMENSION(:),POINTER:: xc,bc
-      COMPLEX(8),DIMENSION(:,:),POINTER:: Ac
-      COMPLEX(8),DIMENSION(:),POINTER:: drcc
+      REAL(dp),DIMENSION(:),ALLOCATABLE:: x,b
+      REAL(dp),DIMENSION(:,:),ALLOCATABLE:: A
+      INTEGER,DIMENSION(:),ALLOCATABLE:: ir,ic
+      REAL(dp),DIMENSION(:),ALLOCATABLE:: drc
+      COMPLEX(dp),DIMENSION(:),ALLOCATABLE:: xc,bc
+      COMPLEX(dp),DIMENSION(:,:),ALLOCATABLE:: Ac
+      COMPLEX(dp),DIMENSION(:),ALLOCATABLE:: drcc
 
       CONTAINS
 
@@ -152,7 +153,7 @@
       SUBROUTINE mtx_set_matrix(i,j,v)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: i,j  ! matrix position i=line, j=row
-      REAL(8),INTENT(IN):: v    ! value to be inserted
+      REAL(dp),INTENT(IN):: v    ! value to be inserted
 
       IF(mode.EQ.1) THEN
          A(j-i+joffset,i)=v
@@ -180,7 +181,7 @@
       SUBROUTINE mtx_set_source(j,v)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: j ! vector positon j=row
-      REAL(8),INTENT(IN):: v ! value to be inserted
+      REAL(dp),INTENT(IN):: v ! value to be inserted
 
       b(j)=v
       IF(idebug_save.EQ.2) &
@@ -193,7 +194,7 @@
       SUBROUTINE mtx_set_vector(j,v)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: j ! vector positon j=row
-      REAL(8),INTENT(IN):: v ! value to be inserted
+      REAL(dp),INTENT(IN):: v ! value to be inserted
 
       x(j)=v
       RETURN
@@ -201,12 +202,13 @@
       
       SUBROUTINE mtx_solve(itype,tolerance,its, &
            methodKSP,methodPC,damping_factor,emax,emin,max_steps)
+      USE libbnd
       IMPLICIT NONE
       INTEGER,INTENT(IN):: itype     ! not used
-      REAL(8),INTENT(IN):: tolerance ! not used
+      REAL(dp),INTENT(IN):: tolerance ! not used
       INTEGER,INTENT(OUT):: its
       INTEGER,OPTIONAL:: methodKSP,methodPC,max_steps
-      REAL(8),OPTIONAL:: damping_factor,emax,emin
+      REAL(dp),OPTIONAL:: damping_factor,emax,emin
       INTEGER:: i,j
 
       DO i=1,imax
@@ -263,7 +265,7 @@
       SUBROUTINE mtx_get_vector_j(j,v)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: j
-      REAL(8),INTENT(OUT):: v
+      REAL(dp),INTENT(OUT):: v
       v=x(j)
       RETURN
       END SUBROUTINE mtx_get_vector_j
@@ -272,7 +274,7 @@
 
       SUBROUTINE mtx_get_vector(v)
       IMPLICIT NONE
-      REAL(8),DIMENSION(imax),INTENT(OUT):: v
+      REAL(dp),DIMENSION(imax),INTENT(OUT):: v
       INTEGER:: i
 
       DO i=1,imax
@@ -285,7 +287,7 @@
 
       SUBROUTINE mtx_gather_vector(v)
       IMPLICIT NONE
-      REAL(8),DIMENSION(imax),INTENT(OUT):: v
+      REAL(dp),DIMENSION(imax),INTENT(OUT):: v
       INTEGER:: i
 
       DO i=1,imax
@@ -374,7 +376,7 @@
       SUBROUTINE mtxc_set_matrix(i,j,v)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: i,j  ! matrix position i=line, j=row
-      COMPLEX(8),INTENT(IN):: v ! value to be inserted
+      COMPLEX(dp),INTENT(IN):: v ! value to be inserted
 
       IF(mode.EQ.1) THEN
          Ac(j-i+joffset,i)=v
@@ -402,7 +404,7 @@
       SUBROUTINE mtxc_set_source(j,v)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: j    ! vector positon j=row
-      COMPLEX(8),INTENT(IN):: v ! value to be inserted
+      COMPLEX(dp),INTENT(IN):: v ! value to be inserted
 
       bc(j)=v
       IF(idebug_save.EQ.2) &
@@ -415,7 +417,7 @@
       SUBROUTINE mtxc_set_vector(j,v)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: j    ! vector positon j=row
-      COMPLEX(8),INTENT(IN):: v ! value to be inserted
+      COMPLEX(dp),INTENT(IN):: v ! value to be inserted
 
       xc(j)=v
       RETURN
@@ -425,12 +427,13 @@
 
       SUBROUTINE mtxc_solve(itype,tolerance,its, &
            methodKSP,methodPC,damping_factor,emax,emin,max_steps)
+      USE libbnd
       IMPLICIT NONE
       INTEGER,INTENT(IN):: itype     ! not used
-      REAL(8),INTENT(IN):: tolerance ! not used
+      REAL(dp),INTENT(IN):: tolerance ! not used
       INTEGER,INTENT(OUT):: its      ! number of iterations
       INTEGER,OPTIONAL:: methodKSP,methodPC,max_steps
-      REAL(8),OPTIONAL:: damping_factor,emax,emin
+      REAL(dp),OPTIONAL:: damping_factor,emax,emin
       INTEGER:: i,j
 
       DO i=1,imax
@@ -444,6 +447,7 @@
       IF(MODE.EQ.2) THEN
          jmax=2*max(-icmin,icmax)+1
          joffset=(jmax+1)/2
+         write(6,'(A,2I10)') 'imax,jmax=',imax,jmax
          ALLOCATE(Ac(jmax,imax))
          DO i=1,imax
             DO j=1,jmax
@@ -458,7 +462,7 @@
 !              '-- libmtxbnd: mtxc_solve: irmax,icmin,icmax,irc=', &
 !                                         irmax,icmin,icmax,irc
       END IF
-         
+
       CALL BANDCD(Ac,xc,imax,jmax,jmax,ierr)
       IF(ierr.ne.0) then
          WRITE(6,'(A,I5)') 'XX BANDCD in mtxc_solve: ierr=',ierr
@@ -485,14 +489,14 @@
       SUBROUTINE mtxc_get_vector_j(j,v)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: j
-      COMPLEX(8),INTENT(OUT):: v
+      COMPLEX(dp),INTENT(OUT):: v
       v=xc(j)
       RETURN
       END SUBROUTINE mtxc_get_vector_j
 
       SUBROUTINE mtxc_get_vector(v)
       IMPLICIT NONE
-      COMPLEX(8),DIMENSION(imax),INTENT(OUT):: v
+      COMPLEX(dp),DIMENSION(imax),INTENT(OUT):: v
       INTEGER:: i
 
       DO i=1,imax
@@ -503,7 +507,7 @@
 
       SUBROUTINE mtxc_gather_vector(v)
       IMPLICIT NONE
-      COMPLEX(8),DIMENSION(imax),INTENT(OUT):: v
+      COMPLEX(dp),DIMENSION(imax),INTENT(OUT):: v
       INTEGER:: i
 
       DO i=1,imax

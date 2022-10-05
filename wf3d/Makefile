@@ -22,11 +22,11 @@ MODINCLUDE= -I../pl/$(MOD) -I../lib/$(MOD) -I../eq/$(MOD) \
 SRCS = wfcomm.f90 wfmenu.f90 wfinit.f90 wfdiv.f90 wfant.f90 wfwave.f90 \
        wfsolv.f90 wfprof.f90 wfsub.f90 wfnas.f90 wfsort.f90 wffile.f90 \
        wflib.f90 wfindx.f90 wfefwg.f90 wfbes.f90 wfgout.f90 wfmag.f90 \
-       wfgsub.f90 wfgutl.f90 mbant.f90
+       wfgsub.f90 mbant.f90
 OBJS = $(SRCS:.f90=.o)
 
 LIBS = libwf.a ../pl/libpl.a ../eq/libeq.a   \
-        ../lib/libtask.a ../../bpsd/libbpsd.a $(LIBMTX)
+        ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a $(LIBMTX)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -88,10 +88,5 @@ wfgout.o: wfgout.f90 wfcomm.f90
 wfgsub.o: wfgsub.f90 wfcomm.f90
 wfefwg.o: wfefwg.f90 wfcomm.f90
 wfmag.o: wfmag.f90
-#	$(FCFREE) $(LFLAGS) -c $< 
 wfgdum.o: wfgdum.f90
-#	$(FCFREE) $(LFLAGS) -c $< 
-wfgutl.o: wfgutl.f90
-#	$(FCFREE) $(LFLAGS) -c $< 
 wflib.o: wflib.f90 wfcomm.f90
-#	$(FCFREE) $(LFLAGS) -c $< $(MODDIR) $(MODINCLUDE)

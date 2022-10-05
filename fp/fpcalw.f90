@@ -17,6 +17,7 @@ contains
 
   SUBROUTINE FP_CALW
 
+    USE fpsub,ONLY: fp_calpabs
     IMPLICIT NONE
     integer:: NSA, NR, NTH, NP, NS
     integer:: NCONST_RF
@@ -86,25 +87,6 @@ contains
          END IF
       END IF
 
-      IF(PABS_WR.NE.0.D0) THEN
-         CALL FP_CALPABS(DWWRPP,DWWRPT,PABSX_WR)
-         IF(PABSX_WR.NE.0.D0) THEN
-            FACTOR=PABS_WR/PABSX_WR
-            DWWRPP(1:NTHMAX,NPSTART:NPENDWG,NRSTART:NREND,NSASTART:NSAEND) &
-            =FACTOR* &
-            DWWRPP(1:NTHMAX,NPSTART:NPENDWG,NRSTART:NREND,NSASTART:NSAEND)
-            DWWRPT(1:NTHMAX,NPSTART:NPENDWG,NRSTART:NREND,NSASTART:NSAEND) &
-            =FACTOR* &
-            DWWRPT(1:NTHMAX,NPSTART:NPENDWG,NRSTART:NREND,NSASTART:NSAEND)
-            DWWRTP(1:NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NREND,NSASTART:NSAEND) &
-            =FACTOR* &
-            DWWRTP(1:NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NREND,NSASTART:NSAEND)
-            DWWRTT(1:NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NREND,NSASTART:NSAEND) &
-            =FACTOR* &
-            DWWRTT(1:NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NREND,NSASTART:NSAEND)
-         END IF
-      END IF
-
       IF(PABS_WM.NE.0.D0) THEN
          CALL FP_CALPABS(DWWMPP,DWWMPT,PABSX_WM)
          IF(PABSX_WM.NE.0.D0) THEN
@@ -162,8 +144,8 @@ contains
       USE plprof, only: rsrhon
       IMPLICIT NONE
       integer:: NSA, NR, NP, NTH, NS
-      real(8):: DLHA, DFWA, DECA, DECB, DECC, DLHL, DFWL, DECL
-      real(8):: FACT
+      real(rkind):: DLHA, DFWA, DECA, DECB, DECC, DLHL, DFWL, DECL
+      real(rkind):: FACT
 !
 ! =============  CALCULATION OF DWPP AND DWPT  ===============
 !
@@ -329,110 +311,6 @@ contains
       RETURN
       END SUBROUTINE FP_CALW0
 
-!-------------------------------------------------------------
-
-      SUBROUTINE FP_CALPABS(DQPP,DQPT,PABSX)
-!
-      USE fpmpi
-      IMPLICIT NONE
-      REAL(rkind),INTENT(IN):: &
-           DQPP(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX), &
-           DQPT(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX)
-      REAL(rkind),INTENT(OUT):: PABSX
-      integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NPS, N, NSW
-      integer:: IERR
-      real(rkind):: RSUML,RSUM(NRSTART:NREND,NSAMAX),RSUMG(NRMAX,NSAMAX)
-      real(rkind):: PV, WPL, WPM, WPP
-      real(rkind):: DFP, DFT, FFP, FACTOR
-
-!----- sum up over NTH and NP
-
-      CALL mtx_set_communicator(comm_np) 
-      DO NR=NRSTART,NREND
-         DO NSA=NSASTART,NSAEND
-            NS=NS_NSA(NSA)
-
-            RSUML=0.D0
-
-            IF(NPSTART.eq.1)THEN
-               NPS=2
-            ELSE
-               NPS=NPSTART
-            END IF
-            DO NP=NPS,NPEND
-               PV=SQRT(1.D0+THETA0(NS)*PG(NP,NS)**2)
-               DO NTH=1,NTHMAX
-                  WPL=WEIGHP(NTH  ,NP,NR,NSA)
-                  IF(NTH.EQ.1) THEN
-                     WPM=0.D0
-                  ELSE
-                     WPM=WEIGHP(NTH-1,NP,NR,NSA)
-                  ENDIF
-                  IF(NTH.EQ.NTHMAX) THEN
-                     WPP=0.D0
-                  ELSE
-                     WPP=WEIGHP(NTH+1,NP,NR,NSA)
-                  ENDIF
-                  DFP=(FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)) &
-                      *PG(NP,NS)/DELP(NS)
-                  IF(NTH.EQ.1) THEN
-                     DFT= 1.D0/DELTH                              &
-                         *( ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSA)  &
-                                  +WPP *FNSP(NTH+1,NP-1,NR,NSA)) &
-                           -((1.D0-WPM)*FNSP(NTH  ,NP  ,NR,NSA)    &
-                                  +WPM *FNSP(NTH  ,NP-1,NR,NSA)))  
-                  ELSE IF(NTH.EQ.NTHMAX) THEN
-                     DFT= 1.D0/DELTH                               & 
-                         *(-((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSA)   &
-                                  +WPM *FNSP(NTH-1,NP-1,NR,NSA))  &
-                          + ((1.D0-WPP)*FNSP(NTH  ,NP  ,NR,NSA)   &
-                                  +WPP *FNSP(NTH  ,NP-1,NR,NSA)))
-                  ELSE
-                     DFT= 1.D0/(2.D0*DELTH)                        &
-                         *( ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSA)   &
-                                  +WPP *FNSP(NTH+1,NP-1,NR,NSA))  &
-                           -((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSA)   &
-                                  +WPM *FNSP(NTH-1,NP-1,NR,NSA)))
-                  ENDIF
-
-                  RSUML = RSUML+PG(NP,NS)**2*SINM(NTH)/PV &
-                                *(DQPP(NTH,NP,NR,NSA)*DFP    &
-                                 +DQPT(NTH,NP,NR,NSA)*DFT)
-               ENDDO
-            ENDDO
-            CALL p_theta_integration(RSUML)
-               
-            FACTOR=-RNFP0(NSA)*1.D20*PTFP0(NSA)**2*RFSADG(NR) &
-                   *2.D0*PI*DELP(NS)*DELTH*1.D-6/AMFP(NSA)
-            RSUM(NR,NSA)=RSUML*FACTOR
-         ENDDO
-      ENDDO
-      CALL mtx_reset_communicator
-
-!----- sum up over NR and NSA
-
-      CALL mtx_set_communicator(comm_nsanr) 
-      NSW=NSAEND-NSASTART+1
-      DO N=1,NSW
-         NSA=N+NSASTART-1
-         CALL fp_gatherv_real8_sav(RSUM,SAVLEN(NRANK+1),RSUMG,N,NSA)
-      END DO
-      IF(nrank.EQ.0) THEN
-         PABSX=0.D0
-         DO NSA=1,NSAMAX
-            DO NR=1,NRMAX
-               PABSX=PABSX+RSUMG(NR,NSA)*VOLR(NR)
-            END DO
-         END DO
-      END IF
-      CALL mtx_reset_communicator 
-
-!----- broadcast over world
-
-      CALL mtx_broadcast1_real8(PABSX)
-
-      RETURN
-      END SUBROUTINE FP_CALPABS
 
 !
 ! =======================================================
@@ -442,9 +320,9 @@ contains
       USE plprof, only: rsrhon
       IMPLICIT NONE
       integer:: NR, NSA, N
-      real(8):: ETA, RSIN, RCOS, P, SUM1, SUM2, SUM3, SUM4, SUM5
-      real(8):: DELH, ETAL, X, Y, PSI, PSIN, PCOS, PPERP, PPARA
-      real(8):: DLHL, DFWL, DECL, XM
+      real(rkind):: ETA, RSIN, RCOS, P, SUM1, SUM2, SUM3, SUM4, SUM5
+      real(rkind):: DELH, ETAL, X, Y, PSI, PSIN, PCOS, PPERP, PPARA
+      real(rkind):: DLHL, DFWL, DECL, XM
 !
       DELH=2.D0*ETA/NAVMAX
 !
@@ -514,10 +392,10 @@ contains
 !
       IMPLICIT NONE
       integer:: NR, NSA, NSB, NS
-      real(8):: PPARA, PPERP, X, Y, DLHL, DFWL, DECL
-      real(8):: P2, PVPARA, RNUDL, RNUFL, AMI, AEI, WPI2, FACT, FACT2
-      real(8):: DFWL1, DFWL2, ARG, ARG1, FACT1, W, PARAN, FN, DELF, ARG2
-      real(8):: WFW2, ARG3, FACT3
+      real(rkind):: PPARA, PPERP, X, Y, DLHL, DFWL, DECL
+      real(rkind):: P2, PVPARA, RNUDL, RNUFL, AMI, AEI, WPI2, FACT, FACT2
+      real(rkind):: DFWL1, DFWL2, ARG, ARG1, FACT1, W, PARAN, FN, DELF, ARG2
+      real(rkind):: WFW2, ARG3, FACT3
 !
       NS=NS_NSA(NSA)
 

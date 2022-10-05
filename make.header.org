@@ -4,8 +4,7 @@
 #LAPACK = lapack.f
 #LIBLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
 #LIBLA = -L/opt/intel/mkl/lib -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm
-#LIBLA=-L /opt/petsc/petsc/ifort/lib -lflapack -lfblas
-#LIBLA=-L /opt/PETSc/petsc/gfortran/lib -lflapack -lfblas
+#LIBLA=-L$(PETSC_DIR)/$(PETSC_ARCH)/lib -lflapack -lfblas
 #MODLA95 = -I/usr/local/lib/lapack95_modules
 #MODLA95 = -lmkl_lapack95
 #MODLA95 =
@@ -41,8 +40,9 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MODDIR = -M mod
 #LD=ar
 #LDFLAGS=crs
+#FPP=
 
-## for Linux Intel fortran compiler EM64T
+## for Linux Intel fortran compiler EM64T lib64
 #GFLIBS=-L/usr/local/lib64 -lg3d-ifc64 -lgsp-ifc64 -lgdp-ifc64 -L/usr/X11R6/lib64 -lX11
 #GLLIBS=-L/usr/local/lib64 -lgsgl-ixc
 #OFLAGS = -O3 -vec-report0 -mcmodel=medium -shared-intel
@@ -53,8 +53,9 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MODDIR = -module mod
 #LD=ld
 #LDFLAGS=-r -o
+#FPP=
 
-## for Mac OSX Intel fortran compiler EM64T
+## for macos Intel fortran compiler EM64T lib
 #GFLIBS=-L/usr/local/lib -lg3d-ifc64 -lgsp-ifc64 -lgdp-ifc64 -L/opt/X11/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-ixc
 #OFLAGS = -O3
@@ -65,39 +66,81 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MODDIR = -module mod
 #LD=libtool
 #LDFLAGS=-static -o
+#FPP=
 
-## for mac osx gfortran (64bit) lib
+## for macos gfortran (64bit) lib
 #GFLIBS=-L/usr/local/lib -lg3d-gfc64 -lgsp-gfc64 -lgdp-gfc64  -L/opt/X11/lib -lX11
 #OFLAGS = -g -O3 -m64 -std=legacy
-#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow,underflow -fbacktrace -fcheck=all -std=legacy
+#DFLAGS = -g -fbounds-check -ffpe-trap=invalid,zero,overflow -fbacktrace -fcheck=all -std=legacy
 #FCFIXED = gfortran -ffixed-form
 #FCFREE = gfortran -ffree-form
 #MOD = mod
 #MODDIR = -Jmod
 #LD=ld
 #LDFLAGS=-r -o
+#FPP=
 
 ## for linux gfortran (64bit) lib
 #GFLIBS=-L/usr/local/lib -lg3d-gfc64 -lgsp-gfc64 -lgdp-gfc64  -L/usr/X11R6/lib -lX11
 #OFLAGS = -g -O3 -m64 -mcmodel=medium -std=legacy
-#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow,underflow -fbacktrace -fcheck=all -mcmodel=medium -std=legacy
+#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow -fbacktrace -fcheck=all -mcmodel=medium -std=legacy
 #FCFIXED = gfortran -ffixed-form
 #FCFREE = gfortran -ffree-form
 #MOD = mod
 #MODDIR = -Jmod
 #LD=ld
 #LDFLAGS=-r -o
+#FPP=
 
 ## for linux gfortran (64bit) lib64
 #GFLIBS=-L/usr/local/lib64 -lg3d-gfc64 -lgsp-gfc64 -lgdp-gfc64  -L/usr/X11R6/lib -lX11
 #OFLAGS = -g -O3 -m64 -mcmodel=medium -std=legacy
-#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow,underflow -fbacktrace -fcheck=all -mcmodel=medium -std=legacy
+#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow -fbacktrace -fcheck=all -mcmodel=medium -std=legacy
 #FCFIXED = gfortran -ffixed-form
 #FCFREE = gfortran -ffree-form
 #MOD = mod
 #MODDIR = -Jmod
 #LD=ld
 #LDFLAGS=-r -o
+#FPP=
+
+## for macos pgf95 EM64T lib
+#GFLIBS=-L/usr/local/lib -lg3d-pgf64 -lgsp-pgf64 -lgdp-pgf64 -L/opt/X11/lib -lX11
+#GLLIBS=-L/usr/local/lib -lgsgl-pgf64
+#OFLAGS = -O3 -m64
+#DFLAGS = -g -Mbounds -Minform,inform -Ktrap=fp,unf,denorm -traceback -m64
+#FCFIXED = pgfortran
+#FCFREE  = pgfortran
+#MOD = mod
+#MODDIR = -module mod
+#LD=ld
+#LDFLAGS=-r -o
+#FPP=
+
+## for Cray fortran (JFRS-1)
+#GFLIBS=-L$(HOME)/lib -lg3d -lgsp -lgdum
+#OFLAGS = 
+#DFLAGS = -g -K trap=divz,fp -Rb 
+#FCFIXED = ftn -f fixed -hnoomp
+#FCFREE = ftn -f free -hnoomp
+#MOD = mod
+#MODDIR = -Jmod
+#LD=ld
+#LDFLAGS=-r -o
+#MFC = ftn
+#FPP=
+
+## for NAG Fortran Compiler
+#GFLIBS=-L/usr/local/lib -lg3d-nag -lgsp-nag -lgdp-nag  -L/opt/local/lib -lX11
+#OFLAGS = -g -O3 -dcfuns -mismatch
+#DFLAGS = -g -C=all  -dcfuns -mismatch
+#FCFIXED = nagfor -fixed
+#FCFREE = nagfor
+#MOD = mod
+#MODDIR = -mdir mod
+#LD=ld
+#LDFLAGS=-r -o
+#FPP=-fpp
 
 FLIBS = $(GFLIBS) $(MDSLIB) $(LIBLA)
 #FLIBS = $(GLLIBS) $(MDSLIB) $(LIBLA)

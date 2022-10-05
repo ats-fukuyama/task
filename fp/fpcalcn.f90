@@ -16,39 +16,40 @@
 
       SUBROUTINE FPCALC_NL(NR,NSB,NSA)
 !
-      USE libgrf,ONLY: grd1d
+      USE libspl1d
       USE libspf, ONLY: dpleg
+      USE libgrf,ONLY: grd1d
       USE fpmpi
       IMPLICIT NONE
 !
 !      integer,parameter::N=NPM+2, M=NTHM+2, LNM=5
       integer,parameter::LNM=5
-      real(8),dimension(NTHMAX+3,-1:LNM):: PLM,PLG
-      real(8),DIMENSION(NTHMAX+3,-1:LNM):: D1PLM, D1PLG, D2PLG
-      real(8),DIMENSION(0:LNM):: PLTEMP
-      real(8),DIMENSION(NPSTART:NPEND):: FPLL 
-      real(8),DIMENSION(NPMAX):: FPL_recv
-      real(8),DIMENSION(NPMAX+3,-1:LNM):: FPL
+      real(rkind),dimension(NTHMAX+3,-1:LNM):: PLM,PLG
+      real(rkind),DIMENSION(NTHMAX+3,-1:LNM):: D1PLM, D1PLG, D2PLG
+      real(rkind),DIMENSION(0:LNM):: PLTEMP
+      real(rkind),DIMENSION(NPSTART:NPEND):: FPLL 
+      real(rkind),DIMENSION(NPMAX):: FPL_recv
+      real(rkind),DIMENSION(NPMAX+3,-1:LNM):: FPL
       double precision,dimension(-1:LNM):: FPLS1
       double precision:: FPLS1_temp
-!      real(8),DIMENSION(NPMAX+3,-1:LNM):: RM1M, RM2M, RM3M, RM4M
-!      real(8),DIMENSION(NPMAX+3,-1:LNM):: RM1G, RM2G, RM3G, RM4G
-      real(8),DIMENSION(NPSTARTW:NPENDWM,-1:LNM):: RM1M, RM2M, RM3M, RM4M
-      real(8),DIMENSION(NPSTART :NPENDWG,-1:LNM):: RM1G, RM2G, RM3G, RM4G
-      real(8),DIMENSION(NTHMAX+3):: TX,TY,DF
-      real(8),dimension(4,NTHMAX+3):: UTY
-      real(8),DIMENSION(NTHMAX+3):: UTY0
-      real(8),DIMENSION(NPMAX+3):: TX1, TY1, DF1
-      real(8),dimension(4,NPMAX+3):: UTY1
-      real(8),DIMENSION(NPMAX+3):: UTY10
-      real(8),DIMENSION(NPMAX+3,-1:LNM):: PHYM, PSYM, D1PSYM
-      real(8),DIMENSION(NPMAX+3,-1:LNM):: PSYG, D1PHYG, D1PSYG, D2PSYG
+!      real(rkind),DIMENSION(NPMAX+3,-1:LNM):: RM1M, RM2M, RM3M, RM4M
+!      real(rkind),DIMENSION(NPMAX+3,-1:LNM):: RM1G, RM2G, RM3G, RM4G
+      real(rkind),DIMENSION(NPSTARTW:NPENDWM,-1:LNM):: RM1M, RM2M, RM3M, RM4M
+      real(rkind),DIMENSION(NPSTART :NPENDWG,-1:LNM):: RM1G, RM2G, RM3G, RM4G
+      real(rkind),DIMENSION(NTHMAX+3):: TX,TY,DF
+      real(rkind),dimension(4,NTHMAX+3):: UTY
+      real(rkind),DIMENSION(NTHMAX+3):: UTY0
+      real(rkind),DIMENSION(NPMAX+3):: TX1, TY1, DF1
+      real(rkind),dimension(4,NPMAX+3):: UTY1
+      real(rkind),DIMENSION(NPMAX+3):: UTY10
+      real(rkind),DIMENSION(NPMAX+3,-1:LNM):: PHYM, PSYM, D1PSYM
+      real(rkind),DIMENSION(NPMAX+3,-1:LNM):: PSYG, D1PHYG, D1PSYG, D2PSYG
 
       integer:: NR, NSB, NSA, NTH, L, NP, NNP, NPG, NPS, NSSA, NSSB
       integer:: N,M
-      real(8):: RGAMH, FACT, WA, WC, WB, WD, WE, WF
-      real(8):: SUM1, PSUM, SUM2, SUM3, SUM4, SUM5, SUM6, SUM7, SUM8, SUM9
-      real(8):: RGAMA, RGAMB, vtatb, pabbar, ptatb, PCRIT, pabar, pbbar, pgbar, pmbar
+      real(rkind):: RGAMH, FACT, WA, WC, WB, WD, WE, WF
+      real(rkind):: SUM1, PSUM, SUM2, SUM3, SUM4, SUM5, SUM6, SUM7, SUM8, SUM9
+      real(rkind):: RGAMA, RGAMB, vtatb, pabbar, ptatb, PCRIT, pabar, pbbar, pgbar, pmbar
       integer:: LLMIN, IER
 
 !      N=NPMAX+2
@@ -432,23 +433,24 @@
 
       SUBROUTINE INTEGRATION_BACKGROUND_F(FPL,NR,NSB,NSA,RM1M,RM2M,RM3M,RM4M,RM1G,RM2G,RM3G,RM4G)
 
+      USE libspl1d
       IMPLICIT NONE
 
       integer,parameter::LNM=5
-!      real(8),dimension(NTHMAX+3,-1:LNM):: PLM,PLG
-!      real(8),DIMENSION(NTHMAX+3,-1:LNM):: D1PLM, D1PLG, D2PLG
-!      real(8),DIMENSION(0:LNM):: PLTEMP
-      real(8),DIMENSION(NPMAX+3,-1:LNM), INTENT(IN):: FPL
-      real(8),DIMENSION(NPMAX+3,-1:LNM), INTENT(OUT):: RM1M, RM2M, RM3M, RM4M
-      real(8),DIMENSION(NPMAX+3,-1:LNM), INTENT(OUT):: RM1G, RM2G, RM3G, RM4G
-      real(8),DIMENSION(NPMAX+3):: TX1, TY1, DF1, UTY10
-      real(8),dimension(4,NPMAX+3):: UTY1
+!      real(rkind),dimension(NTHMAX+3,-1:LNM):: PLM,PLG
+!      real(rkind),DIMENSION(NTHMAX+3,-1:LNM):: D1PLM, D1PLG, D2PLG
+!      real(rkind),DIMENSION(0:LNM):: PLTEMP
+      real(rkind),DIMENSION(NPMAX+3,-1:LNM), INTENT(IN):: FPL
+      real(rkind),DIMENSION(NPMAX+3,-1:LNM), INTENT(OUT):: RM1M, RM2M, RM3M, RM4M
+      real(rkind),DIMENSION(NPMAX+3,-1:LNM), INTENT(OUT):: RM1G, RM2G, RM3G, RM4G
+      real(rkind),DIMENSION(NPMAX+3):: TX1, TY1, DF1, UTY10
+      real(rkind),dimension(4,NPMAX+3):: UTY1
 
       integer:: NR, NSB, NSA, NTH, L,  NP, NNP, NPG, NSSA, NSSB
       integer:: N,M
-      real(8):: RGAMH, FACT, WA, WC, WB, WD, WE, WF
-      real(8):: SUM1, PSUM, SUM2, SUM3, SUM4, SUM5, SUM6, SUM7, SUM8, SUM9
-      real(8):: RGAMA, RGAMB, vtatb, pabbar, ptatb, PCRIT, pabar, pbbar, pgbar, pmbar
+      real(rkind):: RGAMH, FACT, WA, WC, WB, WD, WE, WF
+      real(rkind):: SUM1, PSUM, SUM2, SUM3, SUM4, SUM5, SUM6, SUM7, SUM8, SUM9
+      real(rkind):: RGAMA, RGAMB, vtatb, pabbar, ptatb, PCRIT, pabar, pbbar, pgbar, pmbar
       integer:: LLMIN, IER
 
 !
@@ -658,28 +660,29 @@
 
       SUBROUTINE INTEGRATION_BACKGROUND_F_FINE(FPL,NR,NSB,NSA,RM1M,RM2M,RM3M,RM4M,RM1G,RM2G,RM3G,RM4G)
 
+      USE libspl1d
       IMPLICIT NONE
 
       integer,parameter::LNM=5
-!      real(8),dimension(NTHMAX+3,-1:LNM):: PLM,PLG
-!      real(8),DIMENSION(NTHMAX+3,-1:LNM):: D1PLM, D1PLG, D2PLG
-!      real(8),DIMENSION(0:LNM):: PLTEMP
-      real(8),DIMENSION(NPMAX+3,-1:LNM), INTENT(IN):: FPL
-      real(8),DIMENSION(NPMAX+3,-1:LNM):: FPL0
+!      real(rkind),dimension(NTHMAX+3,-1:LNM):: PLM,PLG
+!      real(rkind),DIMENSION(NTHMAX+3,-1:LNM):: D1PLM, D1PLG, D2PLG
+!      real(rkind),DIMENSION(0:LNM):: PLTEMP
+      real(rkind),DIMENSION(NPMAX+3,-1:LNM), INTENT(IN):: FPL
+      real(rkind),DIMENSION(NPMAX+3,-1:LNM):: FPL0
 !      double precision,dimension(-1:LNM),intent(in):: FPLS1
-!      real(8),DIMENSION(NPMAX+3,-1:LNM), INTENT(OUT):: RM1M, RM2M, RM3M, RM4M
-!      real(8),DIMENSION(NPMAX+3,-1:LNM), INTENT(OUT):: RM1G, RM2G, RM3G, RM4G
-      real(8),DIMENSION(NPSTARTW:NPENDWM,-1:LNM), INTENT(OUT):: RM1M, RM2M, RM3M, RM4M
-      real(8),DIMENSION(NPSTART :NPENDWG,-1:LNM), INTENT(OUT):: RM1G, RM2G, RM3G, RM4G
-      real(8),DIMENSION(2*NPMAX+3):: TX1, TY1, DF1, UTY10
-      real(8),dimension(4,2*NPMAX+3):: UTY1
+!      real(rkind),DIMENSION(NPMAX+3,-1:LNM), INTENT(OUT):: RM1M, RM2M, RM3M, RM4M
+!      real(rkind),DIMENSION(NPMAX+3,-1:LNM), INTENT(OUT):: RM1G, RM2G, RM3G, RM4G
+      real(rkind),DIMENSION(NPSTARTW:NPENDWM,-1:LNM), INTENT(OUT):: RM1M, RM2M, RM3M, RM4M
+      real(rkind),DIMENSION(NPSTART :NPENDWG,-1:LNM), INTENT(OUT):: RM1G, RM2G, RM3G, RM4G
+      real(rkind),DIMENSION(2*NPMAX+3):: TX1, TY1, DF1, UTY10
+      real(rkind),dimension(4,2*NPMAX+3):: UTY1
 
       integer:: NR, NSB, NSA, NTH, L,  NP, NNP, NPG, NSSA, NSSB
       integer:: N,M
-      real(8):: RGAMH, FACT, WA, WC, WB, WD, WE, WF
-      real(8):: SUM1, PSUM, SUM2, SUM3, SUM4, SUM5, SUM6, SUM7, SUM8, SUM9
-      real(8):: RGAMA, RGAMB, vtatb, pabbar, ptatb, PCRIT, pabar, pbbar, pgbar, pmbar
-      real(8):: testP, testF
+      real(rkind):: RGAMH, FACT, WA, WC, WB, WD, WE, WF
+      real(rkind):: SUM1, PSUM, SUM2, SUM3, SUM4, SUM5, SUM6, SUM7, SUM8, SUM9
+      real(rkind):: RGAMA, RGAMB, vtatb, pabbar, ptatb, PCRIT, pabar, pbbar, pgbar, pmbar
+      real(rkind):: testP, testF
       integer:: LLMIN, IER, NPF
 
 !
@@ -966,7 +969,7 @@
       integer :: NR, NS
       real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
       real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: plf
       real(kind8):: FPMXWL_calcn
 
       AMFDL=PA(NS)*AMP
@@ -1014,12 +1017,12 @@
 !      IMPLICIT NONE
 !
 !      integer,parameter::LNM=5
-!      real(8),DIMENSION(NPMAX+3,-1:LNM), INTENT(IN):: FPL
-!      real(8),DIMENSION(NPMAX+3,-1:LNM), INTENT(OUT):: RM1M, RM2M, RM3M, RM4M
-!      real(8),DIMENSION(NPMAX+3,-1:LNM), INTENT(OUT):: RM1G, RM2G, RM3G, RM4G
+!      real(rkind),DIMENSION(NPMAX+3,-1:LNM), INTENT(IN):: FPL
+!      real(rkind),DIMENSION(NPMAX+3,-1:LNM), INTENT(OUT):: RM1M, RM2M, RM3M, RM4M
+!      real(rkind),DIMENSION(NPMAX+3,-1:LNM), INTENT(OUT):: RM1G, RM2G, RM3G, RM4G
 !
 !      integer:: NR,NSA,NSB,NP,NSBA,NPB
-!      real(8):: RGAMH, vtatb, pcrit
+!      real(rkind):: RGAMH, vtatb, pcrit
 !!
 !!     ----- definition of local quantities -----
 !!

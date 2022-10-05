@@ -1,5 +1,5 @@
 module ufile_integer
-  integer(4) :: MODEL
+  integer :: MODEL
 end module ufile_integer
 
 !***********************************************************
@@ -10,12 +10,13 @@ end module ufile_integer
 
   SUBROUTINE UFILE_INTERFACE(KDIRX,KUFDIR,KUFDEV,KUFDCG,MODE)
 
+    USE task_kinds,ONLY: dp
     use ufile_integer
     implicit none
-    integer(4),        intent(in)  :: MODE
+    integer,        intent(in)  :: MODE
     character(len=80), intent(in)  :: KUFDIR, KUFDEV, KUFDCG
     character(len=80), intent(out) :: KDIRX
-    integer(4)         :: IKNDEV, IKNDCG, IKDIRX, IST
+    integer         :: IKNDEV, IKNDCG, IKDIRX, IST
     character(len=100) :: KFILE
 !    COMMON /UFMODE/ MODEL
     LOGICAL :: DIR, FILE
@@ -86,16 +87,17 @@ end module ufile_integer
   SUBROUTINE UFREAD_TIME(KDIRX,KUFDEV,KUFDCG,KFID,TT,F1,NTXMAX,NTUM,MDCHK,IERR)
 
     use ufile_integer
+    USE task_kinds,ONLY: dp
     implicit none
 !    COMMON /UFMODE/ MODEL
     character(len=80),        intent(in)  :: KDIRX, KUFDEV, KUFDCG
     character(len=10),        intent(in)  :: KFID
-    real(8), dimension(NTUM), intent(out) :: TT
-    real(8), dimension(NTUM), intent(out) :: F1
-    integer(4),               intent(out) :: NTXMAX
-    integer(4),               intent(in)  :: NTUM
-    integer(4),               intent(out) :: MDCHK, IERR
-    integer(4) :: IKNDEV, IKNDCG, IKDIRX, KL1, IST
+    integer,               intent(in)  :: NTUM
+    real(dp), dimension(NTUM), intent(out) :: TT
+    real(dp), dimension(NTUM), intent(out) :: F1
+    integer,               intent(out) :: NTXMAX
+    integer,               intent(out) :: MDCHK, IERR
+    integer :: IKNDEV, IKNDCG, IKDIRX, KL1, IST
     character(len=100) :: KDIRR1, KFILE
     LOGICAL :: LEX
 
@@ -129,19 +131,20 @@ end module ufile_integer
        &                        NRFMAX,NTXMAX,NRMU,NTUM,MDCHK,IERR)
 
     use ufile_integer
+    USE task_kinds,ONLY: dp
+    USE libitp
     implicit none
 !    COMMON /UFMODE/ MODEL
-    integer(4), intent(in)  :: NRMU, NTUM
+    integer, intent(in)  :: NRMU, NTUM
     character(len=80), intent(in) :: KDIRX, KUFDEV, KUFDCG
     character(len=10), intent(in) :: KFID
-    integer(4),                    intent(out) :: MDCHK, IERR
-    real(8), dimension(NRMU),      intent(out) :: RUF
-    real(8), dimension(NTUM),      intent(out) :: TMU
-    real(8), dimension(NTUM,NRMU), intent(out) :: F2
-    integer(4) :: IKNDEV, IKNDCG, IKDIRX, KL2, NRFMAX, NTXMAX, NTX, NRF, MD, IST
-    real(8) :: FCTR, AITKEN2P
-    real(8), dimension(NTUM) :: F2CTR, F2EDG
-    real(8), dimension(NRMU,NTUM) :: F2I
+    integer,                    intent(out) :: MDCHK, IERR
+    real(dp), dimension(NRMU),      intent(out) :: RUF
+    real(dp), dimension(NTUM),      intent(out) :: TMU
+    real(dp), dimension(NTUM,NRMU), intent(out) :: F2
+    integer :: IKNDEV, IKNDCG, IKDIRX, KL2, NRFMAX, NTXMAX, NTX, NRF, MD, IST
+    real(dp), dimension(NTUM) :: F2CTR, F2EDG
+    real(dp), dimension(NRMU,NTUM) :: F2I
     character(len=100) :: KDIRR2, KFILE
     LOGICAL :: LEX
 
@@ -247,14 +250,15 @@ end module ufile_integer
 
   SUBROUTINE DATA_ERROR_CORRECT(KUFDEV,KUFDCG,KFID,RUF,F2,NTXMAX,NRMU,NTUM)
 
+    USE task_kinds,ONLY: dp
+    USE libitp
     implicit none
-    integer(4) :: NTXMAX, NRMU, NTUM
+    integer :: NTXMAX, NRMU, NTUM
     character(len=80), intent(in) :: KUFDEV, KUFDCG
     character(len=10), intent(in) :: KFID
-    real(8), dimension(NRMU) :: RUF
-    real(8), dimension(NTUM,NRMU) :: F2
-    integer(4) :: NTX
-    real(8) :: FCTR
+    real(dp), dimension(NRMU) :: RUF
+    real(dp), dimension(NTUM,NRMU) :: F2
+    integer :: NTX
 
     IF(KUFDEV == 'jet' .AND. KFID == 'GRHO1') THEN
        IF(KUFDCG == '57987' .OR. KUFDCG == '58159' .OR. KUFDCG == '58323') THEN
@@ -273,17 +277,18 @@ end module ufile_integer
        &                         NRFMAX,NTXMAX,NRMU,NTUM,MDCHK,IERR)
 
     use ufile_integer
+    USE task_kinds,ONLY: dp
     implicit none
 !    COMMON /UFMODE/ MODEL
-    integer(4),        intent(in) :: NRMU, NTUM
+    integer,        intent(in) :: NRMU, NTUM
     character(len=80), intent(in) :: KDIRX, KUFDEV, KUFDCG
     character(len=10), intent(in) :: KFID
-    integer(4),                    intent(out) :: MDCHK, IERR
-    real(8), dimension(NRMU),      intent(out) :: RUF
-    real(8), dimension(NTUM),      intent(out) :: TMU
-    real(8), dimension(NTUM,NRMU), intent(out) :: F2
-    integer(4) :: IKNDEV, IKNDCG, IKDIRX, KL2, NRFMAX, NTXMAX, NRF, NTX, IST
-    real(8), dimension(NRMU,NTUM) :: F2I
+    integer,                    intent(out) :: MDCHK, IERR
+    real(dp), dimension(NRMU),      intent(out) :: RUF
+    real(dp), dimension(NTUM),      intent(out) :: TMU
+    real(dp), dimension(NTUM,NRMU), intent(out) :: F2
+    integer :: IKNDEV, IKNDCG, IKDIRX, KL2, NRFMAX, NTXMAX, NRF, NTX, IST
+    real(dp), dimension(NRMU,NTUM) :: F2I
     character(len=100) :: KDIRR2, KFILE
     LOGICAL :: LEX
 
@@ -332,9 +337,10 @@ end module ufile_integer
 
   SUBROUTINE NDINIT(NDPOS)
 
+    USE task_kinds,ONLY: dp
     implicit none
-    integer(4), intent(out) :: NDPOS
-    integer(4), parameter :: NLENM=80
+    integer, intent(out) :: NDPOS
+    integer, parameter :: NLENM=80
 
     NDPOS=NLENM
     RETURN
@@ -344,13 +350,14 @@ end module ufile_integer
 
   SUBROUTINE NDREAD(NDPOS,IRD,XD,IERR)
 
+    USE task_kinds,ONLY: dp
     implicit none
-    integer(4), intent(inout) :: NDPOS
-    integer(4), intent(in)    :: IRD
-    integer(4), intent(out)   :: IERR
-    real(8),    intent(out)   :: XD
-    integer(4), parameter :: NLENM=80
-    integer(4) :: NR, NT, NDPOS1, NDPOS2, IST
+    integer, intent(inout) :: NDPOS
+    integer, intent(in)    :: IRD
+    integer, intent(out)   :: IERR
+    real(dp),    intent(out)   :: XD
+    integer, parameter :: NLENM=80
+    integer :: NR, NT, NDPOS1, NDPOS2, IST
     character(len=NLENM) :: LINE
     character(len=40)    :: NUMD
 
@@ -420,16 +427,18 @@ end module ufile_integer
 
   SUBROUTINE TRXR1D(KDIRR1,KFID,T,F1,NTM,NTXMAX,MODEL)
 
+    USE task_kinds,ONLY: dp
+    USE libchar
     implicit none
-    integer(4),              intent(in)  :: NTM, MODEL
+    integer,              intent(in)  :: NTM, MODEL
     character(len=80),       intent(in)  :: KDIRR1
     character(len=10),       intent(in)  :: KFID
-    integer(4),              intent(out) :: NTXMAX
-    real(8), dimension(NTM), intent(out) :: T, F1
-    integer(4) :: KL1, KL2, MODE, IST, IMATCH, NTX, KL, INCL, NDPOS, IERR, NT
+    integer,              intent(out) :: NTXMAX
+    real(dp), dimension(NTM), intent(out) :: T, F1
+    integer :: KL1, KL2, MODE, IST, IMATCH, NTX, KL, INCL, NDPOS, IERR, NT
     character(len=80) :: KFILE, KFILEB, KMATCH1, KMATCH2, KMATCH3, KKLINE, KKLINE1, KKLINE2
     character(len=15) :: KFIDB
-    LOGICAL :: KMATCH, LEX
+    LOGICAL :: LEX
 
     MODE=MODEL
     IMATCH=0
@@ -532,18 +541,20 @@ end module ufile_integer
 
   SUBROUTINE TRXR2D(KDIRR2,KFID,T,R,F2,NRM,NTM,NRXMAX,NTXMAX,MODEL)
 
+    USE task_kinds,ONLY: dp
+    USE libchar
     implicit none
-    integer(4),                  intent(in)  :: NRM, NTM, MODEL
+    integer,                  intent(in)  :: NRM, NTM, MODEL
     character(len=80),           intent(in)  :: KDIRR2
     character(len=10),           intent(in)  :: KFID
-    integer(4),                  intent(out) :: NRXMAX, NTXMAX
-    real(8), dimension(NTM),     intent(out) :: T
-    real(8), dimension(NRM),     intent(out) :: R
-    real(8), dimension(NRM,NTM), intent(out) :: F2
-    integer(4) :: KL2, MODE, IST, IMATCH, NRX, NTX, KL, INCL, NDPOS, IERR, NT
+    integer,                  intent(out) :: NRXMAX, NTXMAX
+    real(dp), dimension(NTM),     intent(out) :: T
+    real(dp), dimension(NRM),     intent(out) :: R
+    real(dp), dimension(NRM,NTM), intent(out) :: F2
+    integer :: KL2, MODE, IST, IMATCH, NRX, NTX, KL, INCL, NDPOS, IERR, NT
     character(len=80) :: KFILE, KFILEB, KMATCH1, KMATCH2, KMATCH3, KKLINE, KKLINE1, KKLINE2
     character(len=15) :: KFIDB
-    LOGICAL :: KMATCH, LEX
+    LOGICAL :: LEX
 
     MODE=MODEL
     IMATCH=0

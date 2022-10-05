@@ -4,12 +4,13 @@ C     ********** F.E.M. ZONING UTILITY **********
 C
       SUBROUTINE WFZONE
 C
+      USE libchar
       INCLUDE 'wfcomm.inc'
       CHARACTER KID*1
 C
     1 WRITE(6,601) 
       READ(5,'(A1)',ERR=1,END=9000) KID
-      CALL GUCPTL(KID)
+      CALL toupper(KID)
 C
       IF(KID.EQ.'Z') THEN
          CALL WFXZON
@@ -41,13 +42,14 @@ C     ****** Input Element Data ******
 C
       SUBROUTINE WFXZON
 C
+      USE libchar
       INCLUDE 'wfcomm.inc'
       CHARACTER KID*1
 C
     1 WRITE(6,*) '## SELECT: D/ELMENT  E,M/MEDIUM  B/BOUNDARY  ',
      &           'W,P/VARPHI  V/VIEW  X/EXIT'
       READ(5,'(A1)',ERR=1,END=9000) KID
-      CALL GUCPTL(KID)
+      CALL toupper(KID)
 C
       IF(KID.EQ.'D') THEN
    10    WRITE(6,*) '## INPUT: NDMAX'

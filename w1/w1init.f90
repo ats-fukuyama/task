@@ -89,6 +89,7 @@ CONTAINS
 !                   IF IHARM GE 3 THEN FAST WAVE FLR FOR 3..IHARM
 !                   IF IHARM LT 0 THEN FAST WAVE FLR FOR 0..ABS(IHARM))
 !     IELEC : 1 for electron, 0 for else other
+!     IELEC : 1 for electron, 0 for else other
 
     NSMAX = 3
 
@@ -200,6 +201,11 @@ CONTAINS
 !             1 : WITH    SYMMETRY
 !            -1 : WITH   ASYMMETRY
 !
+!     MODELN:  0: parabolic with pn=0 in SOL
+!              1: parabolic with pn=pns in SOL
+!             10: linear with pn=0 in SOL
+!             11: linear with pn=pns in SOL
+!
 !     NALPHA: 0 : NO ALPHA PARTICLE EFFECT
 !             1 : SLOWING DOWN DISTRIBUTION FOR ALPHA (IS=4, NMODEL=1)
 !             2 : ALPHA DENSITY BY FUSION REACTION (IS 2:D 3:T 4:ALPHA)
@@ -208,8 +214,12 @@ CONTAINS
 !     NSYS  : 0 : TOKAMAK CONFIGURATION
 !             1 : HELICAL CONFIGURATION
 !
-!     NDISP : 0 : FIELD CALCULATION
-!             1 : WAVE NUMBER DISPLAY
+!     NGDSP : 0 : WAVE NUMBER DISPLAY (without folding)
+!             1 : WAVE NUMBER DISPLAY (folded by 3)
+!             2 : WAVE NUMBER DISPLAY (folded by 3 and 10)
+!             3 : WAVE NUMBER DISPLAY (folded by 3, 10, and 30)
+!             4 : WAVE NUMBER DISPLAY (folded by 3, 10, 30, and 100)
+!             5 : WAVE NUMBER DISPLAY (folded by 3, 10, 30, 100 and 300)
 !
 !     XDMAX : MAXIMUM VALUE OF GYRORADIUS IN INTEGRATION (NMODEL=6)
 !     NDMAX : MAXIMUM NUMBER OF INTEGRAL TABLE (NMODEL=6)
@@ -223,6 +233,7 @@ CONTAINS
     NZMAX= 1
 
     NMODEL= 5
+    MODELN= 0
 
     NPRINT= 0
     NFILE = 0
@@ -233,7 +244,7 @@ CONTAINS
     NSYM  = 0
     NALPHA= 0
     NSYS  = 0
-    NDISP = 0
+    NGDSP = 0
     XDMAX = 10.D0
     NDMAX = 100
     DXFACT= 0.D0

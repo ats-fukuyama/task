@@ -36,7 +36,7 @@ c$$$         CALL MPSYNC
 c$$$         IF(IERR.NE.0) EXIT
 c$$$C
 c$$$         IF(NRANK.EQ.0) THEN
-c$$$            CALL WMPOUT(NPH0)
+c$$$            CALL WMPOUT
 c$$$            IF(MODELW.EQ.1) CALL WMDOUT(IERR)
 c$$$         ENDIF
 c$$$C
@@ -131,6 +131,7 @@ C***********************************************************************
 C
       SUBROUTINE WM_TOPICS_OUT(PABSTS,IERR)
 C
+      USE libfio
       INCLUDE 'wmcomm.inc'
 C
       real(8), dimension(NSMAX,NPHSMAX), intent(in) :: PABSTS

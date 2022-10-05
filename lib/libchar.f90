@@ -1,15 +1,33 @@
+! libchar.f90
+
+MODULE libchar
+
+  PRIVATE
+  PUBLIC kkindex
+  PUBLIC ksplit
+  PUBLIC ktrim
+  PUBLIC kextr
+  PUBLIC kmatch
+  PUBLIC kkint
+  PUBLIC toupper
+  PUBLIC tolower
+  PUBLIC linsep
+  PUBLIC lenx
+  
+CONTAINS
+  
 !     ***** FIND CHARACTER POSITION *****
 !     ===== this routine is no longer necessary =====
 !     ===== use 'INDEX'                         =====
 
-      INTEGER(4) FUNCTION KKINDEX(KKLINEX,KID)
+      INTEGER FUNCTION KKINDEX(KKLINEX,KID)
 
       IMPLICIT NONE
-      INTEGER(4), PARAMETER :: KSLEN=80
+      INTEGER, PARAMETER :: KSLEN=80
       CHARACTER(LEN=*), INTENT(IN) :: KKLINEX
       CHARACTER(LEN=1), INTENT(IN) :: KID
       CHARACTER(LEN=80)            :: KKLINE
-      INTEGER(4) :: I
+      INTEGER :: I
 
       KKLINE=KKLINEX
       DO I=1,KSLEN
@@ -29,8 +47,8 @@
       IMPLICIT NONE
       CHARACTER(LEN=*),  INTENT(IN)  :: KKLINE
       CHARACTER(LEN=1),  INTENT(IN)  :: KID
-      CHARACTER(LEN=80), INTENT(OUT) :: KKLINE1, KKLINE2
-      INTEGER(4) :: I
+      CHARACTER(LEN=*), INTENT(OUT) :: KKLINE1, KKLINE2
+      INTEGER :: I
 
       I = INDEX(KKLINE,KID)
       IF(I == 0) THEN
@@ -54,10 +72,10 @@
 
       IMPLICIT NONE
       CHARACTER(LEN=*), INTENT(INOUT):: KKLINEX
-      INTEGER(4), INTENT(OUT)        :: KL
-      INTEGER(4), PARAMETER          :: KSLEN=80
+      INTEGER, INTENT(OUT)        :: KL
+      INTEGER, PARAMETER          :: KSLEN=80
       CHARACTER(LEN=80)    :: KKLINE, KKLINE1
-      INTEGER(4)           :: I, ITOP, IBOTTOM
+      INTEGER           :: I, ITOP, IBOTTOM
 
       KKLINE=KKLINEX
       DO I=1,KSLEN
@@ -93,7 +111,7 @@
       CHARACTER(LEN=*), INTENT(INOUT) :: KKLINEX
       CHARACTER(LEN=80) :: KKLINE
       CHARACTER(LEN=1)  :: KID
-      INTEGER(4)        :: INCL
+      INTEGER        :: INCL
 
       KKLINE=KKLINEX
       KID=KKLINE(1:1)
@@ -111,10 +129,10 @@
       LOGICAL FUNCTION KMATCH(KKLINE1X,KKLINE2X)
 
       IMPLICIT NONE
-      INTEGER(4), PARAMETER :: KSLEN=80
+      INTEGER, PARAMETER :: KSLEN=80
       CHARACTER(LEN=*),INTENT(IN) :: KKLINE1X, KKLINE2X
       CHARACTER(LEN=80)           :: KKLINE1,  KKLINE2
-      INTEGER(4)                  :: I
+      INTEGER                  :: I
 
       KKLINE1=KKLINE1X
       KKLINE2=KKLINE2X
@@ -142,3 +160,141 @@
       K=LINE(L:8)
       RETURN
       END SUBROUTINE KKINT
+
+!***************************************************************
+!
+!   Convert Strings to Upper Case
+!
+!***************************************************************
+
+SUBROUTINE TOUPPER(KTEXT)
+
+  implicit none
+  character(len=*), INTENT(INOUT) ::  KTEXT
+
+  INTEGER :: NCHAR, I, ID
+
+  NCHAR = LEN(KTEXT)
+  DO I = 1, NCHAR
+     ID=IACHAR(KTEXT(I:I))
+     IF(ID >= 97 .AND. ID <= 122) ID = ID - 32
+     KTEXT(I:I)=ACHAR(ID)
+  END DO
+
+  RETURN
+END SUBROUTINE TOUPPER
+
+!***************************************************************
+!
+!   Convert Strings to Lower Case
+!
+!***************************************************************
+
+SUBROUTINE TOLOWER(KTEXT)
+
+  implicit none
+  character(len=*), INTENT(INOUT) ::  KTEXT
+
+  INTEGER :: NCHAR, I, ID
+
+  NCHAR = LEN(KTEXT)
+  DO I = 1, NCHAR
+     ID=IACHAR(KTEXT(I:I))
+     IF(ID >= 65 .AND. ID <= 90) ID = ID + 32
+     KTEXT(I:I)=ACHAR(ID)
+  END DO
+
+  RETURN
+END SUBROUTINE TOLOWER
+
+  ! *** separate line string by separator and space ***
+
+SUBROUTINE linsep(ckey,csep,nk,mjs,mje,ndm)
+
+    IMPLICIT NONE
+!
+!::arguments
+    CHARACTER(LEN=*),INTENT(IN):: ckey  ! input line
+    CHARACTER(LEN=*),INTENT(IN):: csep  ! separator
+    INTEGER,INTENT(IN):: ndm            ! maximumm number of separated list
+    INTEGER,INTENT(OUT):: nk            ! number of words
+    INTEGER,INTENT(OUT):: mjs(ndm)      ! start char number of a word
+    INTEGER,INTENT(OUT):: mje(ndm)      ! end char number of a word
+!
+!::local varaibales
+    INTEGER:: nmax,ii,js,je,i,is
+    CHARACTER(LEN=1):: ctab
+!
+    ctab = CHAR(9)
+    nmax = LEN_TRIM(ckey)
+!
+    ii = 0
+!
+!::start
+    is = 0
+    DO i = 1, nmax
+       is = i
+       IF( ckey(i:i).EQ.ctab ) CYCLE
+       IF( ckey(i:i).NE." " )  EXIT
+    ENDDO
+    IF( is.EQ.0 ) GOTO 100
+!
+!::separateor
+    IF( INDEX(csep,ckey(i:i)).GT.0 ) is = is+1
+    js = is
+    DO i = is, nmax
+       IF( INDEX(csep,ckey(i:i)).GT.0 ) THEN
+          ii = ii + 1
+          IF( ii.GT.ndm ) GOTO 910
+          je = i - 1
+          je = LEN_TRIM(ckey(1:je))
+!
+!--Note.    xs_units = "      ",  ==> " "
+          IF( ckey(je:je).EQ.'"' .AND. ckey(i:i).EQ.'"' ) je = js+ 1
+!--
+          mjs(ii) = js
+          mje(ii) = je
+          IF( js.GT.je ) THEN
+             ii = ii - 1
+          ENDIF
+          js = i+1
+       ENDIF
+    ENDDO
+!
+    IF( js.LE.nmax ) THEN
+       ii = ii + 1
+       IF( ii.GT.ndm ) GOTO 910
+       mjs(ii) = js
+       mje(ii) = nmax
+    ENDIF
+!
+100 CONTINUE
+    nk = ii
+!
+    RETURN
+!
+910 CONTINUE
+    WRITE(6,'(/2x,"*** linsep ***  too many word  ",2i5)') ii,ndm
+    STOP
+END SUBROUTINE linsep
+
+  ! *** almost equal to TRIM ***
+  
+  FUNCTION lenx(clin)
+    IMPLICIT NONE
+    CHARACTER(LEN=*),INTENT(IN)::  clin ! input character line
+    INTEGER:: lenx                      ! lenggthof 
+    INTEGER:: nmax,i,il
+
+    nmax = LEN(clin)
+    DO i = nmax, 1, -1
+       il = i
+       IF( clin(i:i).NE." " ) GOTO 120
+    END DO
+    il = 0
+120 CONTINUE
+    lenx = il
+
+    RETURN
+  END FUNCTION lenx
+END MODULE libchar

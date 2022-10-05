@@ -37,6 +37,7 @@ CONTAINS
 !                16 : (WM) Drift kinetic plasma
 !                21 : DRIFTKINETIC MODEL (coming)
 !                22 : GYROKINETIC MODEL (coming)
+!                31 : Cold beam model (FLR)
 !
 !             0- 99 : PROPAGATION  = GIVEN MODEL
 !                     POLARIZATION = GIVEN MODEL
@@ -72,9 +73,9 @@ CONTAINS
 !              2 : KINETIC: READ FPDATA DISTRIBUTION
 !              3 : KINETIC: ANALYTIC MAXWELLIAN DISTRIBUTUION (RELATIVISTIC)
 !              4 : KINETIC: READ FPDATA DISTRIBUTION (RELATIVISTIC)
-!              5 : DRIFTKINETIC: ANALYTIC MAXWELLIAN DISTRIBUTION
-!              6 : DRIFTKINETIC: READ FPDATA DISTRIBUTION
-!              9 : LOCAL MODEL (MODELV locally specified by MODELVR)
+!              5 : *DRIFTKINETIC: ANALYTIC MAXWELLIAN DISTRIBUTION 
+!              6 : *DRIFTKINETIC: READ FPDATA DISTRIBUTION
+!              9 : *LOCAL MODEL (MODELV locally specified by MODELVR)
 !
 !     NCMIN(NS): MINIMUM HARMONIC NUMBER
 !     NCMAX(NS): MAXMUM  HARMONIC NUMBER
@@ -85,6 +86,42 @@ CONTAINS
        NCMIN(NS)=-2
        NCMAX(NS)= 2
     ENDDO
+
+!     MODEL_ES : 0: Electromagnetic wave, 1:Electrostatic wave
+    MODEL_ES=0
+    
+!     EPSRT  : CONVERGENCE CRITERION OF ROOT FINDING
+!     LMAXRT : MAXIMUM ITERATION COUNT OF ROOT FINDING
+
+    EPSRT  = 1.D-12
+    LMAXRT = 20
+
+!     --- Velocity distribution function parameters ---
+!             --- usually read from fpfile ---
+!
+!     NS_NSA_DP(NSA): particle species of NSA
+!     PMAX_dp(NSA)  : maximum momentum normalized by p_thermal
+!     EMAX_dp(NSA)  : maximum energy in keV, if EMAX is not zero
+!     rhon_min(NSA) : minimum radius of velocity distribution function (r/a)
+!     rhon_max(NSA) : maximum radius of velocity distribution function (r/a)
+!
+!     NPMAX_DP : number of momentum magnitude mesh
+!     NTHMAX_DP: number of momentum angle mesh
+!     NRMAX_DP : number of radial mesh
+!     NSAMAX_DP: number of test particle species
+
+    DO NS=1,NSM
+       NS_NSA_DP(NS)=NS
+       PMAX_dp(NS)= 7.D0
+       EMAX_dp(NS)= 7.D0
+       rhon_min(NS)=0.D0
+       rhon_max(NS)=1.D0
+    ENDDO
+
+    NPMAX_DP=100
+    NTHMAX_DP=100
+    NRMAX_DP=3
+    NSAMAX_DP=2
 
 !     --- Root finding and dispersion plot parameters ---
 !
@@ -102,41 +139,6 @@ CONTAINS
     RZ0    = 0.D0
     RK0    = 100.D0
     RKANG0 = 89.70
-
-!     EPSRT  : CONVERGENCE CRITERION OF ROOT FINDING
-!     LMAXRT : MAXIMUM ITERATION COUNT OF ROOT FINDING
-
-    EPSRT  = 1.D-12
-    LMAXRT = 20
-
-!     --- Velocity distribution function parameters ---
-!             --- usually read from fpfile ---
-!
-!     NS_NSA(NS)   : particle species of NSA
-!     PMAX(NS)     : maximum momentum normalized by p_thermal
-!     EMAX(NS)     : maximum energy in keV, if EMAX is not zero
-!     rhon_min(NS) : minimum radius of velocity distribution function (r/a)
-!     rhon_max(NS) : maximum radius of velocity distribution function (r/a)
-!
-!     NPMAX_DP : number of momentum magnitude mesh
-!     NTHMAX_DP: number of momentum angle mesh
-!     NRMAX_DP : number of radial mesh
-!     NSMAX_DP : number of total particle species
-!     NSAMAX_DP: number of test particle species
-
-    DO NS=1,NSM
-       NS_NSA(NS)=NS
-       PMAX(NS)= 7.D0
-       EMAX(NS)= 7.D0
-       rhon_min(NS)=0.D0
-       rhon_max(NS)=1.D0
-    ENDDO
-
-    NSMAX=2
-    NPMAX_DP=50
-    NTHMAX_DP=50
-    NRMAX_DP=3
-    NSAMAX_DP=2
 
 !
 !     *********** INPUT PARAMETERS fof DP program ***********
@@ -181,10 +183,10 @@ CONTAINS
     NGPMAX  = 21
 
 !     EPSDP : Convergence torelance for root finding
-!     EPSRF : Torelance for removing duplicate root
+!     EPSRF : Torelance for dumped mode (f_i < EPSRF*ABS(f_r) removed)
 
     EPSDP  = 1.D0
-    EPSRF  = 1.D-3
+    EPSRF  = 3.D-3
 
 !     --- Graphic parameters ---
 !                 WC: absolute value of angular cyclotron frequency

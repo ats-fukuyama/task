@@ -1108,29 +1108,6 @@ END SUBROUTINE APRTOS
 
 !***************************************************************
 !
-!   Convert Strings to Upper Case
-!
-!***************************************************************
-
-SUBROUTINE TOUPPER(KTEXT)
-
-  implicit none
-  character(len=*), INTENT(INOUT) ::  KTEXT
-
-  INTEGER(4) :: NCHAR, I, ID
-
-  NCHAR = LEN(KTEXT)
-  DO I = 1, NCHAR
-     ID=IACHAR(KTEXT(I:I))
-     IF(ID >= 97 .AND. ID <= 122) ID = ID - 32
-     KTEXT(I:I)=ACHAR(ID)
-  END DO
-
-  RETURN
-END SUBROUTINE TOUPPER
-
-!***************************************************************
-!
 !   Separate string at char (similar to KSPLIT in task/lib/libchar.f90)
 !
 !***************************************************************
@@ -1264,6 +1241,8 @@ END FUNCTION DERIVF
 
 function dfdx(x,f,nmax,mode)
 
+  USE libspl1d
+  USE libitp
   implicit none
   integer(4), intent(in) :: nmax, mode
   real(8), dimension(0:nmax), intent(in) :: x, f
@@ -1272,7 +1251,6 @@ function dfdx(x,f,nmax,mode)
   integer(4) :: n, ierr
   real(8), dimension(0:nmax) :: deriv
   real(8), dimension(1:4,0:nmax) :: u
-  real(8) :: deriv4
 
   dfdx(0)    = deriv4(   0,x,f,nmax,0)
   dfdx(nmax) = deriv4(nmax,x,f,nmax,0)
@@ -1545,6 +1523,7 @@ END SUBROUTINE BISECTION
 !************************************************************************************
 
 subroutine inexpolate(nmax_in,rho_in,dat_in,nmax_std,rho_std,imode,dat_out,ideriv,nrbound,idx)
+  USE libitp
   implicit none
   integer(4), intent(in) :: nmax_in, nmax_std, imode
   integer(4), intent(in),  optional :: ideriv, idx
@@ -1555,7 +1534,6 @@ subroutine inexpolate(nmax_in,rho_in,dat_in,nmax_std,rho_std,imode,dat_out,ideri
   integer(4) :: i, iaxis, iedge, nmax, isep, ierr
   real(8) :: rhoa
   real(8), dimension(:), allocatable :: rho_tmp, dat_tmp
-  real(8) :: aitken2p, fctr
 
   isep = 0
 

@@ -44,8 +44,8 @@ CONTAINS
           KK = (NX-1)*2 + N
           DX = RKV*(XA(NX+1)-XA(NX))
           CK = SQRT(CSOL(N,NX))
-          IF(ABS(IMAG(CK)*DX).GT.EXPARG) THEN
-             IF(IMAG(CK).GE.0.D0) THEN
+          IF(ABS(AIMAG(CK)*DX).GT.EXPARG) THEN
+             IF(AIMAG(CK).GE.0.D0) THEN
                 CK = DCMPLX(DBLE(CK), EXPARG/DX)
              ELSE
                 CK = DCMPLX(DBLE(CK),-EXPARG/DX)
@@ -88,6 +88,7 @@ CONTAINS
 
   SUBROUTINE W1BNDB(IERR)
     USE w1comm
+    USE libbnd
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
     INTEGER:: NX,NS,NWH,NCF,NSF,NSE,NT1,NF,I,J,II,JJ
@@ -188,13 +189,13 @@ CONTAINS
 
        DO I=1,NSE
 !       ....................................................
-!           CPHASE=-CDEXP(DCMPLX(0.D0,DX)*CSKX(NS+I-10))
+!           CPHASE=-EXP(DCMPLX(0.D0,DX)*CSKX(NS+I-10))
           IMODE = ( I-1 ) / 2 + 1
           CARG=DCMPLX(0.D0,DX)*CSKX((NX-1)*2+IMODE)
           IF ( MOD(I,2) .EQ. 0 )  THEN
-             CPHASE=-CDEXP(-CARG)
+             CPHASE=-EXP(-CARG)
           ELSE
-             CPHASE=-CDEXP( CARG)
+             CPHASE=-EXP( CARG)
           ENDIF
 !       ....................................................
           DO J=1,NT1
@@ -319,10 +320,10 @@ CONTAINS
        CSPZ1=CSPZ(KK+1)
        CSPZ2=CSPZ(KK+2)
 
-       CPH1  = CDEXP( 0.5D0*DX*CSKX1 )
-       CPH2  = CDEXP(-0.5D0*DX*CSKX1 )
-       CPH3  = CDEXP( 0.5D0*DX*CSKX2 )
-       CPH4  = CDEXP(-0.5D0*DX*CSKX2 )
+       CPH1  = EXP( 0.5D0*DX*CSKX1 )
+       CPH2  = EXP(-0.5D0*DX*CSKX1 )
+       CPH3  = EXP( 0.5D0*DX*CSKX2 )
+       CPH4  = EXP(-0.5D0*DX*CSKX2 )
 
        CEX(NX) = (CA1*CPH1 +CA2*CPH2 )*CSPX1 &
                 +(CA3*CPH3 +CA4*CPH4 )*CSPX2
@@ -440,8 +441,8 @@ CONTAINS
           KK = (NX-1)*3 + N
           DX = RKV*(XA(NX+1)-XA(NX))
           CK = SQRT(CSOL(N,NX))
-          IF(ABS(IMAG(CK)*DX).GT.EXPARG) THEN
-             IF(IMAG(CK).GE.0.D0) THEN
+          IF(ABS(AIMAG(CK)*DX).GT.EXPARG) THEN
+             IF(AIMAG(CK).GE.0.D0) THEN
                 CK = DCMPLX(DBLE(CK), EXPARG/DX)
              ELSE
                 CK = DCMPLX(DBLE(CK),-EXPARG/DX)
@@ -491,8 +492,8 @@ CONTAINS
     USE w1comm,ONLY: rkind
     IMPLICIT NONE
     INTEGER,PARAMETER:: MAXCNT = 50
-    COMPLEX(rkind),INTENT(INOUT):: A (0:3,NMAX)
     INTEGER,INTENT(IN):: NMAX
+    COMPLEX(rkind),INTENT(INOUT):: A (0:3,NMAX)
     REAL(rkind),INTENT(IN):: EPS
     INTEGER:: ICHECK,N,I
     REAL(rkind):: W8,AF1,AF2,AF3,SQEPS
@@ -638,14 +639,14 @@ CONTAINS
 !     WRITE(6,*) '* ITERATION ',I
 
     DO N = 1 , NMAX
-       AF1 = DREAL( A(1,N) )
-       AF2 = DIMAG( A(1,N) )
+       AF1 =  REAL( A(1,N) )
+       AF2 = AIMAG( A(1,N) )
        IF ( (AF1.GT.1.D32) .OR. (AF2.GT.1.D32) ) THEN
-          CWA = A(1,N)*CDSQRT( 1.D0 - 4.D0*A(2,N)/A(1,N)/A(1,N) )
+          CWA = A(1,N)*SQRT( 1.D0 - 4.D0*A(2,N)/A(1,N)/A(1,N) )
        ELSE
-          CWA = CDSQRT( A(1,N)*A(1,N) - 4.D0*A(2,N) )
+          CWA = SQRT( A(1,N)*A(1,N) - 4.D0*A(2,N) )
        ENDIF
-       IF ( CDABS(CWA) .LT. 1.D-70 ) THEN
+       IF ( ABS(CWA) .LT. 1.D-70 ) THEN
           A(1,N) = -0.5D0*A(1,N)
           A(2,N) = A(1,N)
        ELSE
@@ -674,6 +675,7 @@ CONTAINS
 
   SUBROUTINE W1BNDD(IERR)
     USE w1comm
+    USE libbnd
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
     INTEGER:: NS,NX,NWH,NCF,NSF,NSE,NT1,NF
@@ -774,13 +776,13 @@ CONTAINS
        END DO
        DO I=1,NSE
 !       ....................................................
-!           CPHASE=-CDEXP(DCMPLX(0.D0,DX)*CSKX(NS+I-10))
+!           CPHASE=-EXP(DCMPLX(0.D0,DX)*CSKX(NS+I-10))
           IMODE = ( I-1 ) / 2 + 1
           CARG=DCMPLX(0.D0,DX)*CSKX((NX-1)*3+IMODE)
           IF ( MOD(I,2) .EQ. 0 )  THEN
-             CPHASE=-CDEXP(-CARG)
+             CPHASE=-EXP(-CARG)
           ELSE
-             CPHASE=-CDEXP( CARG)
+             CPHASE=-EXP( CARG)
           ENDIF
 !       ....................................................
           DO J=1,NT1
@@ -912,12 +914,12 @@ CONTAINS
        CSPZ2=CSPZ(KK+2)
        CSPZ3=CSPZ(KK+3)
 
-       CPH1  = CDEXP( 0.5D0*DX*CSKX1 )
-       CPH2  = CDEXP(-0.5D0*DX*CSKX1 )
-       CPH3  = CDEXP( 0.5D0*DX*CSKX2 )
-       CPH4  = CDEXP(-0.5D0*DX*CSKX2 )
-       CPH5  = CDEXP( 0.5D0*DX*CSKX3 )
-       CPH6  = CDEXP(-0.5D0*DX*CSKX3 )
+       CPH1  = EXP( 0.5D0*DX*CSKX1 )
+       CPH2  = EXP(-0.5D0*DX*CSKX1 )
+       CPH3  = EXP( 0.5D0*DX*CSKX2 )
+       CPH4  = EXP(-0.5D0*DX*CSKX2 )
+       CPH5  = EXP( 0.5D0*DX*CSKX3 )
+       CPH6  = EXP(-0.5D0*DX*CSKX3 )
 
        CEX(NX) = (CA1*CPH1 +CA2*CPH2 )*CSPX1 & 
                 +(CA3*CPH3 +CA4*CPH4 )*CSPX2 &

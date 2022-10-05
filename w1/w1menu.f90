@@ -9,6 +9,7 @@ CONTAINS
     USE w1exec,ONLY: w1_exec
     USE w1gdsp,ONLY: w1_gdsp
     USE w1gout,ONLY: w1_gout
+    USE libkio
 
     IMPLICIT NONE
     INTEGER(ikind)    :: ierr,mode,ind
@@ -31,8 +32,11 @@ CONTAINS
     ELSEIF(kid.EQ.'V') THEN
        CALL w1_view
     ELSEIF(kid.EQ.'R') THEN
+       WRITE(6,*) '@@@ point 1'
        CALL w1_allocate
+       WRITE(6,*) '@@@ point 2'
        CALL w1_exec(ierr)
+       WRITE(6,*) '@@@ point 3'
        IF(ierr.EQ.0) THEN
           INIT=1
        ELSE

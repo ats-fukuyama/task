@@ -84,6 +84,7 @@ end subroutine wfmenu
 
 subroutine WFKLIN(LINE,KID,MODE)
 
+  USE libchar
   implicit none
   integer,dimension(1) :: MODE
   integer   :: ID,I
@@ -102,7 +103,7 @@ subroutine WFKLIN(LINE,KID,MODE)
   end if
   
   KID=LINE(1:1)
-  call GUCPTL(KID)
+  call toupper(KID)
   if(KID.eq.'P'.or.&
      KID.eq.'V'.or.&
      KID.eq.'D'.or.&
@@ -139,6 +140,7 @@ end subroutine WFKLIN
 SUBROUTINE WFINFO
   
   use wfcomm
+  USE libchar
   implicit none
   integer   :: IE,I,IN,NN,NE,NSF,IB,IA,IS,IN1,IN2,IN3,IDEBUGS,L
   real(8)   :: RND,X,Y,Z
@@ -148,7 +150,7 @@ SUBROUTINE WFINFO
                        ' A,M:ant  F:FEP  D:EFINDK  X:end'
      read(5,'(A1)',ERR=8001,END=9000) KID
      ! capitalize KID
-     call GUCPTL(KID)
+     call toupper(KID)
 
      if(KID.eq.'E') then
 8002    write(6,*) '## INPUT: Element number '

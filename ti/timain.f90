@@ -10,8 +10,7 @@ PROGRAM ti
 
   USE ticomm
   USE plinit,ONLY: pl_init
-  USE plparm,ONLY: pl_parm
-  USE equnit_mod
+  USE equnit,ONLY: eq_init
   USE tiinit,ONLY: ti_init
   USE tiparm,ONLY: ti_parm,ti_broadcast
   USE timenu,ONLY: ti_menu

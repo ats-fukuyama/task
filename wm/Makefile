@@ -4,8 +4,8 @@ include ../mtxp/make.mtxp
 
 #LIB_MTX=$(LIB_MTX_BND)
 #LIBX_MTX=$(LIBX_MTX_BND)
-LIB_MTX=$(LIB_MTX_MUMPS)
-LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIB_MTX=$(LIB_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
 
 FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
@@ -13,10 +13,16 @@ FFLAGS = $(OFLAGS)
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-MODINCLUDE= -I./$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
-            -I../dp/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
+.f.o :
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+.f90.o :
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-SRCS = mpilib.f wmmenu.f wminit.f wmeign.f wmsetg.f \
+MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) -I../tr/$(MODE) \
+            -I../dp/$(MOD) -I../lib/$(MOD) -I../mtxp/$(MOD) \
+            -I../../bpsd/$(MOD)
+
+SRCS = wmmenu.f wminit.f wmeign.f wmsetg.f \
        ../eq/wmeqin.f wmprof.f wmdisp.f \
        wmsetm.f wmsetf.f wmxprf.f wmdprf.f \
        wmpout.f wmgout.f wmgsub.f wmdout.f wmfout.f \
@@ -29,18 +35,15 @@ SRCX = wmcont.f90 wmtest.f90
 OBJS = $(SRCX:.f90=.o) $(SRCS:.f=.o)
 
 LIBS = libwm.a ../dp/libdp.a ../pl/libpl.a  ../eq/libeq.a \
-       ../lib/libtask.a ../../bpsd/libbpsd.a
-
-.f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
-.f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+       ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a
 
 all: wm
 
 libwm.a: $(OBJS)
 	$(LD) $(LDFLAGS) libwm.a $(OBJS)
 
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 ../pl/libpl.a:
@@ -53,16 +56,17 @@ libwm.a: $(OBJS)
 	(cd ../dp; make libdp.a)
 libs:
 	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
 	(cd ../dp; make libdp.a)
 
-wm : $(LIBS) wmmain.o
+wm : libs libwm.a wmmain.o
 	$(FLINKER) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean:
-	rm -f core *.o ./*~ ../mtx/*.o *.a $(MOD)/*.mod
+	rm -f core *.o ./*~ *.a $(MOD)/*.mod
 
 veryclean: clean
 	rm -f wm

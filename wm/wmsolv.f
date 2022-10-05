@@ -11,11 +11,18 @@ C
       PARAMETER (NBSIZM=3*MDM*NDM)
 C
       NBSIZ=3*MDSIZ*NDSIZ
-      IF(MODEWG.EQ.0) THEN
-         MSIZ=NRMAX*NBSIZ
-      ELSE
-         MSIZ=NRMAX*NBSIZ+MWGMAX*NAMAX
+      MODEWG=0
+      DO NA=1,NAMAX
+         IF(ABS(AEWGT(NA)).GT.0.D0.OR.ABS(AEWGZ(NA)).GT.0.D0) MODEWG=1
+      END DO
+      IF(MODEWG.NE.0) THEN
+         MWGMAX=1
       ENDIF
+!      IF(MODEWG.EQ.0) THEN
+         MSIZ=NRMAX*NBSIZ
+!      ELSE
+!         MSIZ=NRMAX*NBSIZ+MWGMAX*NAMAX
+!      END IF
       MBND=2*NBSIZ
 
       IF(MODEEG.EQ.0) THEN
@@ -31,17 +38,19 @@ C
 
       SUBROUTINE WMSOLV_MTXP(XX , N , L , WMSETM, IERR )
 
+      USE bpsd_kinds,ONLY: rkind
       USE libmtx
-      IMPLICIT NONE
-      COMPLEX(8),DIMENSION(N),INTENT(OUT):: XX
+      INCLUDE 'wmcomm.inc'
+!      IMPLICIT NONE
+      COMPLEX(rkind),DIMENSION(N),INTENT(OUT):: XX
       INTEGER,INTENT(IN):: N,L
       INTEGER,INTENT(OUT)::IERR 
       EXTERNAL WMSETM
-      COMPLEX(8),DIMENSION(:),ALLOCATABLE:: A
-      COMPLEX(8):: X
+      COMPLEX(rkind),DIMENSION(:),ALLOCATABLE:: A
+      COMPLEX(rkind):: X
       INTEGER:: istart,iend,i,j,NRP
       INTEGER:: itype,its
-      REAL(8):: tolerance
+      REAL(rkind):: tolerance
 
       ALLOCATE(A(L))        ! local coefficient matrix
 
@@ -54,15 +63,23 @@ C   ***** CALCULATE MATRIX COEFFICIENTS *****
          X=(0.D0,0.D0)
          A(1:L)=(0.D0,0.D0)
          CALL WMSETM(A,X,i,L,NRP)
+!         WRITE(21,'(A,2I6)') 'wmsolv:',NRP,i
+!         WRITE(21,'(6ES12.4)') (A(j),j=1,L)
+!         WRITE(21,'(2ES12.4)') X
+         WRITE(21,'(A,2I6)') 'wmsolv:',NRP,i
          DO j=MAX(i-(L+1)/2+1,1),MIN(N,i+(L+1)/2-1)
             IF(ABS(A(j-i+(L+1)/2)).GT.0.D0) THEN
                CALL mtxc_set_matrix(i,j,A(j-i+(L+1)/2))
+               WRITE(21,'(A,2I6,2ES12.4)') 'A:',i,j,A(j-i+(L+1)/2)
             END IF
          END DO
-         CALL mtxc_set_source(i,X)
+         IF(ABS(X).GT.0.D0) THEN
+            CALL mtxc_set_source(i,X)
+            WRITE(21,'(A,2I6,2ES12.4)') 'X:',i,0,X
+         END IF
       END DO
 
-      itype=0
+      itype=1
       tolerance=1.D-12
       CALL mtxc_solve(itype,tolerance,its)
 
@@ -80,13 +97,15 @@ C     ****** SOLUTION OF BAND MATRIX (GAUSSIAN ELIMINATION) ******
 C
       SUBROUTINE WMSOLV_BAND(XX , N , L , WMSETM, IERR )
 C
+      USE bpsd_kinds,ONLY: rkind
       IMPLICIT NONE
-      COMPLEX(8),DIMENSION(:,:),ALLOCATABLE:: A
-      COMPLEX(8),DIMENSION(:),ALLOCATABLE:: X
-      COMPLEX(8),DIMENSION(N):: XX
-      COMPLEX(8):: TEMP
-      REAL(8):: EPS , ABS1 , ABS2
-      INTEGER:: N,L,NRP,NR,MS,MB,LH,LHM,NM,K,LHMK,NPMK,I,LPMI,J
+      INTEGER:: N,L
+      COMPLEX(rkind),DIMENSION(:,:),ALLOCATABLE:: A
+      COMPLEX(rkind),DIMENSION(:),ALLOCATABLE:: X
+      COMPLEX(rkind),DIMENSION(N):: XX
+      COMPLEX(rkind):: TEMP
+      REAL(rkind):: EPS , ABS1 , ABS2
+      INTEGER:: NRP,NR,MS,MB,LH,LHM,NM,K,LHMK,NPMK,I,LPMI,J
       INTEGER:: IPIVOT,IP,JJ,IERR
       EXTERNAL WMSETM
       DATA EPS/ 1.D-70 /

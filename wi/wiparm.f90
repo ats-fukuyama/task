@@ -1,4 +1,4 @@
-!     $Id$
+! wiparm.f90
 
 Module wiparm
 
@@ -26,6 +26,7 @@ CONTAINS
 !     IERR=7 : unknown MODE
 !     IERR=10X : input parameter out of range
 
+    USE libkio
     IMPLICIT NONE
     INTEGER,INTENT(IN):: mode
     CHARACTER(LEN=*),INTENT(IN)::  kin
@@ -53,7 +54,6 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,INTENT(IN) :: NID
     INTEGER,INTENT(OUT) :: IST,IERR
-    REAL(rkind),SAVE:: pn0_save
 
     NAMELIST /WI/ modelg,xmin,xmax,dx0,xwint,pn0,alfa,any,beta,cfyn, &
                   ntaumax,taumin,taumax,nalfamax,alfamin,alfamax, &

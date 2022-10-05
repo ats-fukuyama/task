@@ -1,0 +1,769 @@
+\documentclass[11pt]{article}
+\usepackage{../../doc/af}
+\usepackage{../../doc/sym}
+\usepackage{../../doc/doc}
+
+\itemsep=0mm
+
+\begin{document}
+\begin{flushright}
+2021/08/13
+\end{flushright}
+
+\begin{center}
+\textbf{\Large User Manual of the TASK/EQ Code}
+\end{center}
+
+\tableofcontents
+
+\section{How to run TASK/EQ}
+
+\subsection{Start TASK/EQ}
+
+Move to the task/eq directory and run the eq code by entering the file
+name.  In order to distinguish it from command names, it should be
+full path name or ./file\_name for the file in the present directory.
+\begin{itemize}
+\item[\qquad]\tline{cd eq}
+\item[\qquad]\tline{./eq}
+\end{itemize}
+
+\subsubsection{Graphic setting}
+
+At the beginning of the task code run, graphic settings are requested.
+
+The first inquiry is the resolution of the graphic output. Enter a one
+character and hit return.
+\begin{itemize}
+\item[]
+0: no graphic output; graphic data can be saved in a file
+\item[]
+1: 512x380
+\item[]
+2: 640x475
+\item[]
+3: 768x570
+\item[]
+4: 896x665
+\item[]
+5: 1024x760
+\item[]
+6: 1280x950
+\item[]
+7-9: obsolete; to be deleted
+\end{itemize}
+
+The second inquiry is a one-character command to define the output of
+graphic data.
+\begin{itemize}
+\item[]
+C: continue without graphic output
+\item[]
+F: save graphic data to a file; the file name to be used will be asked
+\item[]
+O: option setting; paper size, screen title, file output are
+inquired
+\item[]
+H: help for one character command input at each end of page
+\item[]
+Q: quit; terminate the code
+\end{itemize}
+
+Graphic setting can be skipped by defining a environmental variable
+GSGDP.
+\begin{itemize}
+\item[]
+export GSGDP=''5c''
+\end{itemize}
+
+\subsubsection{Menu input}
+
+After the graphic setting, the TASK component EQ show a menu and
+accept a line of command input, one character command or parameter
+change.
+
+\begin{itemize}
+\item
+Typical one character command (the first character of a line, both
+upper- and lower-case work)
+\begin{itemize}
+\item[]
+P: change parameter as a namelist input with group name eq
+\item[]
+V: show input parameters
+\item[]
+R: start a run after initialization
+\item[]
+C: continue the run
+\item[]
+G: graphic output mode
+\item[]
+S: save present status data
+\item[]
+L: load previously save status data
+\item[]
+Q: quit the component
+\end{itemize}
+\item
+Parameter change
+\begin{itemize}
+\item
+You can change the input parameters listed in eqinit.f90 with a form
+similar to a component of the namelist input; for example
+\begin{itemize}
+\item[]
+\ttype{rr=3.D0}
+\item[]
+\ttype{pn(1)=0.5D0, pn(2)=0.4D0, pn(3)=0.1D0}
+\item[]
+\ttype{pn=0.5D0,0.4D0,0.1D0}
+\item[]
+\ttype{modelg=3}
+\item[]
+\ttype{knameq='eqdata.ITER'}
+\end{itemize}
+
+\item
+A input line including a character ``='' is considered as a parameter change.
+\end{itemize}
+\end{itemize}
+
+\subsection{Input parameter}
+
+The input parameters and their default values are defined in
+eqinit.f90.  The sequence of parameter setting is as follows.
+
+\begin{enumerate}
+\item
+The default parameters are defined in eqinit.f90.
+\item
+At the beginning of executing eq, if there exists a namelist file
+eqparm or eqparm.nl, the component reads the namelist file. The
+namelist file has a form
+\begin{itemize}
+\item[] \ \&eq
+\item[] \ \ rr=3.D0
+\item[] \ \&end
+\end{itemize}
+\item
+During the operation of the eq component, input parameters can be
+changed through the menu interface.  The command line input like
+\ttype{rr=3.D0} or the namelist input through``P'' command changes the
+input parameters.
+\end{enumerate}
+
+\subsection{Save graphic data}
+
+Entering ``G'' command for the menu input, the graphic command input
+is prompted.  The graphic command, a sequence of characters, depends
+on the TASK component.  ``X'' command is to exit the graphic menu and
+go back to the main menu. 
+
+The graphic output is page base.  After drawing a page, a key input is
+waited on the graphic window, unless ``0'' graphic mode is chosen at
+the beginning of component operation. 
+
+Following key inputs are acceptable:
+\begin{itemize}
+\item[] C or Return key : continue operation
+\item[] F: open graphic file and start to save following pages
+\item[] S: save this page, open graphic file if not yet opened
+\item[] Y: save this page
+\item[] N: do not save this page
+\item[] X: switch on/off of saving pages\item[] B: switch on/off the bell sound at the end of drawing page
+\item[] D: dump a bitmap of this page to a file and draw it in a new window
+\item[] K: keep this page without erase and overdraw the next page
+\item[] O: change options (page size, page title, file save)
+\item[] H: help, show this information
+\item[] Q: quit the component after confirmation
+\end{itemize}
+
+The graphic date is composed of ASCII-text data, and
+machine-independent.  It can be viewed, converted to EPS file or PS
+file, and printed on a postscript printer.  The recommended extension
+of the graphic date file is ``.gs''.
+
+\subsection{View and convert the graphic data}
+
+The graphic data file of GSAF graphic library can be viewed on the X11
+screen, converted to EPS file, PS file and SVG file, printed in a
+postscript printer.
+
+\begin{itemize}
+\item[] gsview: view on a X-window screen
+\item[] gstoeps: convert selected pages to separate EPS files
+\item[] gstops: convert selected pages to a combined postscript file
+\item[] gstosvg: convert selected pages to separate SVG files
+\item[] gsprint: print on a postscript printer
+\end{itemize}
+
+The available options of these commands are
+\begin{itemize}
+\item[]
+usage: gsxxxx [-atbrcmgz] [-s ps] [-e pe] [-p np] [filename]
+\item[\quad]-a    : show all page
+\item[\quad]-s ps : show from page ps [1]
+\item[\quad]-e pe : show until page pe [999]
+\item[\quad]-p np : combine np pages on a sheet [1]
+\item[\quad]-t    : keep original page title
+\item[\quad]-b    : no page title
+\item[\quad]-r    : rotate figure, valid for gstops/eps 
+\item[\quad]-c    : color figure, valid for gstops/eps (default)
+\item[\quad]-z    : gray figure, valid for gstops/eps 
+\item[\quad]-m    : monochrome figure, valid for gstops/eps 
+\item[\quad]-g    : gouraud shading, valid for gstops/eps 
+\item[\quad]filename : if not specified, prompted
+\end{itemize}
+
+The EPS file using gouraud shading cannot be edited by Adobe Illustrator.
+
+\section{Structure of TASK/EQ}
+
+\subsection{Support directories}
+
+The following directories in a component directory includes:
+\begin{itemize}
+\item[] in/ test input files eq.inITER...
+\item[] parm/ test parameter files, eqparm...
+\item[] mod/ module files (generated during compiling fortran files)
+\end{itemize}
+
+\subsection{Source file name}
+
+File name of main components
+
+\begin{itemize}
+\item[] eqcomm.f: Definition of variable module, allocation of arrays
+\item[] eqmain.f: Initialization, read paramater file, start menu,
+ and termination.
+\item[] eqmenu.f: Show menu, and accept command input
+\item[] eqinit.f: Set default values of input parameters
+\item[] eqparm.f: Read input parameters (at present, in eqinit.f)
+\item[] eqview.f: Show input parameters (at present, in eqinit.f)
+\item[] eqcalc.f: Solve fixed-boundary equilibrium
+\item[] eqcalq.f: calculate rectangular mesh data
+\item[] eqfile.f: Save and load equilibrium data
+\item[] eqgout.f: Graphic output
+\end{itemize}
+
+\section{Run examples}
+
+\begin{itemize}
+\item[] Example 1:
+\item[\quad] start eq from xterm window
+\item[\quad] \ttype{./eq}
+\item[\quad] graphic setting
+\item[\quad] \ttype{5}
+\item[\quad] \ttype{c}
+\item[\quad] run equilibrium solver
+\item[\quad] \ttype{r}
+\item[\quad] show results by graphics
+\item[\quad] \ttype{g}
+\item[\quad] show fixed boundary solution calculated by eqcalc
+\item[\quad] \ttype{c}
+\item[\quad] input ten carriage returns to show a sequence of graphs
+\item[\quad] show equilibrium mesh data calculated by eqcalq
+\item[\quad] \ttype{s}
+\item[\quad] input ten carriage returns to show a sequence of graphs
+\item[\quad] exit graphics and return to main menu
+\item[\quad] \ttype{x}
+\item[\quad] change paramter: elongation 1.5
+\item[\quad] \ttype{rkap=1.5}
+\item[\quad] run equilibrium solver again
+\item[\quad] \ttype{r}
+\item[\quad] show results by graphics
+\item[\quad] \ttype{g}
+\item[\quad] show equilibrium mesh data calculated by eqcalq
+\item[\quad] \ttype{s}
+\item[\quad] input ten carriage returns to show a sequence of graphs
+\item[\quad] exit graphics and return to main menu
+\item[\quad] \ttype{x}
+\item[\quad] quit eq run
+\item[\quad] \ttype{q}
+\item[\quad]
+  
+\item[] Example 2:
+\item[\quad] copy parm/eqparm.ITER eqparm
+\item[\quad] \ttype{cp parm/eqparm .}
+\item[\quad] run eq
+\item[\quad] \ttype{./eq}
+\item[\quad] graphic setting with graphic data output
+\item[\quad] \ttype{5}
+\item[\quad] \ttype{f}
+\item[\quad] \ttype{eq.gs}
+\item[\quad] \ttype{c}
+\item[\quad] run equilibrium solver
+\item[\quad] \ttype{r}
+\item[\quad] show results by graphics
+\item[\quad] \ttype{g}
+\item[\quad] \ttype{c}
+\item[\quad] \ttype{s}
+\item[\quad] \ttype{x}
+\item[\quad] quit eq run
+\item[\quad] \ttype{q}
+\item[\quad] view graphic data
+\item[\quad] \ttype{gsview eq.gs}
+\item[\quad] \ttype{5}
+\item[\quad] \ttype{c}
+\item[\quad] to show all pages
+\item[\quad] \ttype{0}
+\item[\quad] quit gsview
+\item[\quad] \ttype{CTRL-D}
+\item[\quad]
+
+\item[\quad]
+\item[] Example 3:
+\item[\quad] remove eqparm if exists
+\item[\quad] \ttype{rm eqparm}
+\item[\quad] start run copy in/eq.inITER .
+\item[\quad] \ttype{./eq <in/eq.inITER >eq.outITER}
+\item[\quad] convert all graphic data to a ps file
+\item[\quad] \ttype{gstops -ab gsdata.ITER >eq.ITER.ps}
+\item[\quad] (macos only) view ps file and save it to pdf file
+\item[\quad] \ttype{open eq.ITER.ps}
+\end{itemize}
+
+\section{Input parameters}
+
+{\footnotesize
+\begin{verbatim}
+C     $Id$
+C
+C     ****** DEFAULT PARAMETERS ******
+C
+C     ======( DEVICE PARAMETERS )======
+C
+C        RR    : Plasma major radius                             (m)
+C        RA    : Plasma minor radius                             (m)
+C        RB    : Wall minor radius                               (m)
+C        RKAP  : Plasma shape elongation
+C        RDLT  : Plasma shape triangularity *
+C        BB    : Magnetic field at center                        (T)
+C        Q0    : Safety factor at center
+C        QA    : Safety factor on plasma surface
+C        RIP   : Plasma current                                 (MA)
+C        FRBIN : (RB_inside-RA)/(RB_outside-RA)
+C
+      RR    = 3.D0
+      RA    = 1.D0
+      RB    = 1.2D0
+      RKAP  = 1.D0
+      RDLT  = 0.D0
+C
+      BB    = 3.D0
+      Q0    = 1.D0
+      QA    = 3.D0
+      RIP   = 3.D0
+C
+      FRBIN = 1.D0
+      RBRA  = RB/RA
+C
+C     ======( PLASMA PARAMETERS )======
+C
+C        NSMAX : Number of particle species
+C        PA    : Mass number
+C        PZ    : Charge number
+C        PN    : Density at center                     (1.0E20/m**3)
+C        PNS   : Density on plasma surface             (1.0E20/m**3)
+C        PTPR  : Parallel temperature at center                (keV)
+C        PTPP  : Perpendicular temperature at center           (keV)
+C        PTS   : Temperature on surface                        (keV)
+C        PU    : Toroidal rotation velocity at center          (m/s)
+C        PUS   : Toroidal rotation velocity on surface         (m/s)
+C        RHOITB: rho at ITB (0 for no ITB)
+C        PNITB : Density increment at ITB              (1.0E20/Mm*3)
+C        PTITB : Temperature increment at ITB                  (keV)
+C        PUITB : Toroidal rotation velocity increment at ITB   (m/s)
+C
+      NSMAX = MIN(2,NSM)
+C
+         PA(1)   = AME/AMP
+         PZ(1)   =-1.0D0
+         PN(1)   = 1.0D0
+         PNS(1)  = 0.0D0
+         PTPR(1) = 5.0D0
+         PTPP(1) = 5.0D0
+         PTS(1)  = 0.05D0
+         PU(1)   = 0.D0
+         PUS(1)  = 0.D0
+         RHOITB(1)= 0.D0
+         PNITB(1)= 0.D0
+         PTITB(1)= 0.D0
+         PUITB(1)= 0.D0
+C
+      IF(NSM.GE.2) THEN
+         PA(2)   = 1.0D0
+         PZ(2)   = 1.0D0
+         PN(2)   = 1.0D0
+         PNS(2)  = 0.0D0
+         PTPR(2) = 5.0D0
+         PTPP(2) = 5.0D0
+         PTS(2)  = 0.05D0
+         PU(2)   = 0.D0
+         PUS(2)  = 0.D0
+         RHOITB(2)= 0.D0
+         PNITB(2)= 0.D0
+         PTITB(2)= 0.D0
+         PUITB(2)= 0.D0
+      ENDIF
+C
+      DO NS=3,NSM
+         PA(NS)   = 1.0D0
+         PZ(NS)   = 1.0D0
+         PN(NS)   = 0.0D0
+         PNS(NS)  = 0.0D0
+         PTPR(NS) = 5.0D0
+         PTPP(NS) = 5.0D0
+         PTS(NS)  = 0.0D0
+         PU(NS)   = 0.D0
+         PUS(NS)  = 0.D0
+         RHOITB(NS)= 0.D0
+         PNITB(NS)= 0.D0
+         PTITB(NS)= 0.D0
+         PUITB(NS)= 0.D0
+      ENDDO
+C
+C     ======( PROFILE PARAMETERS )======
+C
+C
+C        PROFN1: Density profile parameter (power of rho)
+C        PROFN2: Density profile parameter (power of (1 - rho^PROFN1))
+C        PROFT1: Temperature profile parameter (power of rho)
+C        PROFT2: Temperature profile parameter (power of (1 - rho^PROFN1))
+C        PROFU1: Rotation profile parameter (power of rho)
+C        PROFU2: Rotation profile parameter (power of (1 - rho^PROFN1))
+C
+      DO NS=1,NSM
+         PROFN1(NS)= 2.D0
+         PROFN2(NS)= 0.5D0
+         PROFT1(NS)= 2.D0
+         PROFT2(NS)= 1.D0
+         PROFU1(NS)= 2.D0
+         PROFU2(NS)= 1.D0
+      END DO
+C
+C     ======( MODEL PARAMETERS )======
+C
+C        MODELG: Control plasma geometry model
+C                   0: Slab geometry
+C                   1: Cylindrical geometry
+C                   2: Toroidal geometry
+C                   3: TASK/EQ output geometry
+C                   4: VMEC output geometry
+C                   5: EQDSK output geometry
+C                   6: Boozer output geometry
+C        MODELN: Control plasma profile
+C                   0: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; 0 in SOL
+C                   1: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; PNS in SOL
+C                   7: Read from file by means of WMDPRF routine (DIII-D)
+C                   8: Read from file by means of WMXPRF routine (JT-60)
+C                   9: Read from file KNAMTR (TASK/TR)
+C        MODELQ: Control safety factor profile (for MODELG=0,1,2)
+C                   0: Parabolic q profile (Q0,QA,RHOMIN,RHOITB)
+C                   1: Given current profile (RIP,PROFJ0,PROFJ1,PROFJ2)
+C
+      MODELG= 2
+      MODELN= 0
+      MODELQ= 0
+C
+C        RHOMIN: rho at minimum q (0 for positive shear)
+C        QMIN  : q minimum for reversed shear
+C        RHOEDG: rho at EDGE for smoothing (1 for no smooth)
+C
+      RHOMIN = 0.D0
+      QMIN   = 1.5D0
+      RHOEDG = 1.D0
+C
+C     ======( GRAPHIC PARAMETERS )======
+C
+C        RHOGMN: minimum rho in radial profile
+C        RHOGMX: maximum rho in radial profile
+C
+      RHOGMN = 0.D0
+      RHOGMX = 1.D0
+C
+C     ======( MODEL PARAMETERS )======
+C
+C        KNAMEQ: Filename of equilibrium data
+C        KNAMWR: Filename of ray tracing data
+C        KNAMWM: Filename of full wave data
+C        KNAMFP: Filename of Fokker-Planck data
+C        KNAMFO: Filename of File output
+C        KNAMPF: Filename of profile data
+C        KNAMEQ2:Filename of addisional equilibrium data
+C
+      KNAMEQ = 'eqdata'
+      KNAMWR = 'wrdata'
+      KNAMWM = 'wmdata'
+      KNAMFP = 'fpdata'
+      KNAMFO = 'fodata'
+      KNAMPF = 'pfdata'
+      KNAMEQ2= 'eqdata2'
+C
+      NRMAXPL= 100
+      NSMAXPL= NSMAX
+C
+      IDEBUG = 0
+C
+C     *** PROFILE PARAMETERS ***
+C
+C        PP0   : Plasma pressure (main component)              (MPa)
+C        PP1   : Plasma pressure (sub component)               (MPa)
+C        PP2   : Plasma pressure (increment within ITB)        (MPa)
+C        PROFP0: Pressure profile parameter
+C        PROFP1: Pressure profile parameter
+C        PROFP2: Pressure profile parameter
+C
+C        PPSI=PP0*(1.D0-PSIN**PROFR0)**PROFP0
+C    &       +PP1*(1.D0-PSIN**PROFR1)**PROFP1
+C    &       +PP2*(1.D0-(PSIN/PSIITB)**PROFR2)**PROFP2
+C
+C        The third term exists for RHO < RHOITB
+C
+      PP0    = 0.001D0
+      PP1    = 0.0D0
+      PP2    = 0.0D0
+      PROFP0 = 1.5D0
+      PROFP1 = 1.5D0
+      PROFP2 = 2.0D0
+C
+C        PJ0   : Current density at R=RR (main component) : Fixed to 1
+C        PJ1   : Current density at R=RR (sub component)       (arb)
+C        PJ2   : Current density at R=RR (sub component)       (arb)
+C        PROFJ0: Current density profile parameter
+C        PROFJ1: Current density profile parameter
+C        PROFJ2: Current density profile parameter
+C
+C      HJPSI=-PJ0*(1.D0-PSIN**PROFR0)**PROFJ0
+C     &                *PSIN**(PROFR0-1.D0)
+C     &      -PJ1*(1.D0-PSIN**PROFR1)**PROFJ1
+C     &                *PSIN**(PROFR1-1.D0)
+C     &      -PJ2*(1.D0-PSIN**PROFR2)**PROFJ2
+C     &                *PSIN**(PROFR2-1.D0)
+C
+C        The third term exists for RHO < RHOITB
+C
+      PJ0    = 1.00D0
+      PJ1    = 0.0D0
+      PJ2    = 0.0D0
+      PROFJ0 = 1.5D0
+      PROFJ1 = 1.5D0
+      PROFJ2 = 1.5D0
+C
+C        FF0   : Current density at R=RR (main component) : Fixed to 1
+C        FF1   : Current density at R=RR (sub component)       (arb)
+C        FF2   : Current density at R=RR (sub component)       (arb)
+C        PROFF0: Current density profile parameter
+C        PROFF1: Current density profile parameter
+C        PROFF2: Current density profile parameter
+C
+C      FPSI=BB*RR
+C     &      +FF0*(1.D0-PSIN**PROFR0)**PROFF0
+C     &      +FF1*(1.D0-PSIN**PROFR1)**PROFF1
+C     &      +FF2*(1.D0-PSIN**PROFR2)**PROFF2
+C
+C        The third term exists for RHO < RHOITB
+C
+      FF0    = 1.0D0
+      FF1    = 0.0D0
+      FF2    = 0.0D0
+      PROFF0 = 1.5D0
+      PROFF1 = 1.5D0
+      PROFF2 = 1.5D0
+C
+C        PT0   : Plasma temperature (main component)           (keV)
+C        PT1   : Plasma temperature (sub component)            (keV)
+C        PT2   : Plasma temperature (increment within ITB)     (keV)
+C        PTSEQ : Plasma temperature (at surface)               (keV)
+C        PROFTP0: Temperature profile parameter
+C        PROFTP1: Temperature profile parameter
+C        PROFTP2: Temperature profile parameter
+C
+C        TPSI=PTSEQ+(PT0-PTSEQ)*(1.D0-PSIN**PROFR0)**PROFTP0
+C    &       +PT1*(1.D0-PSIN**PROFR1)**PROFTP1
+C    &       +PT2*(1.D0-PSIN/PSIITB)**PROFR2)**PROFTP2
+C    &       +PTSEQ
+C
+C        The third term exits for RHO < RHOITB
+C
+      PT0    = 1.0D0
+      PT1    = 0.0D0
+      PT2    = 0.0D0
+      PTSEQ  = 0.05D0
+C
+      PROFTP0 = 1.5D0
+      PROFTP1 = 1.5D0
+      PROFTP2 = 2.0D0
+C----
+C        PV0   : Toroidal rotation (main component)              (m/s)
+C        PV1   : Toroidal rotation (sub component)               (m/s)
+C        PV2   : Toroidal rotation (increment within ITB)        (m/s)
+C        PROFV0: Velocity profile parameter
+C        PROFV1: Velocity profile parameter
+C        PROFV2: Velocity profile parameter
+C
+C        PVSI=PV0*(1.D0-PSIN**PROFR0)**PROFV0
+C    &       +PV1*(1.D0-PSIN**PROFR1)**PROFV1
+C    &       +PV2*(1.D0-(PSIN/PSIITB)**PROFR2)**PROFV2
+C
+C        The third term exits for RHO < RHOITB
+C
+      PV0    = 0.0D0
+      PV1    = 0.0D0
+      PV2    = 0.0D0
+      PROFV0 = 1.5D0
+      PROFV1 = 1.5D0
+      PROFV2 = 2.0D0
+C
+C        PN0EQ : Plasma number density(constant)
+C
+      PN0EQ  = 1.D20
+C
+C        PROFR0: Profile parameter
+C        PROFR1: Profile parameter
+C        PROFR2: Profile parameter
+C        RHOITB: Normalized radius SQRT(PSI/PSIA) at ITB
+C
+      PROFR0 = 1.D0
+      PROFR1 = 2.D0
+      PROFR2 = 2.D0
+C
+C        OTC   : Constant OMEGA**2/TPSI
+C        HM    : Constant                                       (Am)
+C
+      OTC = 0.15D0
+      HM  = 1.D6
+C
+C     *** MESH PARAMETERS ***
+C
+C        NSGMAX: Number of radial mesh points for Grad-Shafranov eq.
+C        NTGMAX: Number of poloidal mesh points for Grad-Shafranov eq.
+C        NUGMAX: Number of radial mesh points for flux-average quantities
+C        NRGMAX: Number of horizontal mesh points in R-Z plane
+C        NZGMAX: Number of vertical mesh points in R-Z plane
+C        NPSMAX: Number of flux surfaces
+C        NRMAX : Number of radial mesh points for flux coordinates
+C        NTHMAX: Number of poloidal mesh points for flux coordinates
+C        NSUMAX: Number of boundary points
+C        NRVMAX: Number of radial mesh of surface average
+C        NTVMAX: Number of poloidal mesh for surface average
+C
+      NSGMAX = 32
+      NTGMAX = 32
+      NUGMAX = 32
+C
+      NRGMAX = 33
+      NZGMAX = 33
+      NPSMAX = 21
+C
+      NRMAX  = 50
+      NTHMAX = 64
+      NSUMAX = 65
+C
+      NRVMAX = 50
+      NTVMAX = 200
+C
+C     *** CONTROL PARAMETERS ***
+C
+C        EPSEQ  : Convergence criterion for equilibrium
+C        NLPMAX : Maximum iteration number of EQ
+C        EPSNW  : Convergence criterion for newton method
+C        DELNW  : Increment for derivative in newton method
+C        NLPNW  : Maximum iteration number in newton method
+C
+      EPSEQ  = 1.D-6
+      NLPMAX = 20
+      EPSNW  = 1.D-2
+      DELNW  = 1.D-2
+      NLPNW  = 20
+C
+C        MDLEQF : Profile parameter
+C            0: given analytic profile  P,J_tor,T,Vph + Ip
+C            1: given analytic profile  P,F           + Ip
+C            2: given analytic profile  P,J_para      + Ip
+C            3: given analytic profile  P,J_para
+C            4: given analytic profile  P,q
+C            5: given spline profile    P,J_tor,T,Vph + Ip
+C            6: given spline profile    P,F           + Ip
+C            7: given spline profile    P,J_para      + Ip
+C            8: given spline profile    P,J_para
+C            9: given spline profile    P,q
+C
+      MDLEQF = 0
+C
+C        MDLEQA : Rho in P(rho), F(rho), q(rho),...
+C            0: SQRT(PSIP/PSIPA)
+C            1: SQRT(PSIT/PSITA)
+C
+      MDLEQA = 0
+C
+C        MDLEQC : Poloidal coordinate parameter
+C            0: Poloidal length coordinate
+C            1: Boozer coordinate
+C
+      MDLEQC = 0
+C
+C        MDLEQX : Free boundary calculation
+C            0: Given PSIB and RIPFC
+C            1: PSIB adjusted after loop for given RR,RA,RKAP,RDLT
+C            2: PSIB adjusted eqch loop for given RR,RA,RKAP,RDLT
+C
+      MDLEQX = 0
+C
+C        MDLEQV : Order of extrapolation of psi in the vacuum region
+C                 if positive, wall is linearly extended from plasma surface
+C                 if negative, wall is extraporated by polynomials
+C
+      MDLEQV = 3
+C
+C        NPRINT: Level print out
+C            0: no print
+C            1: print first and last loop
+C            2: print all loop
+C
+      NPRINT= 0
+C
+C        RGMIN: Minimum R of computation region [m]
+C        RGMAX: Maxmum  R of computation region [m]
+C        ZGMIN: Minimum Z of computation region [m]
+C        ZGMAX: Maxmum  Z of computation region [m]
+C        ZLIMP: Position of upper X points
+C        ZLIMM: Position of lower X points
+C
+      RGMIN = 1.5D0
+      RGMAX = 4.5D0
+      ZGMIN =-2.0D0
+      ZGMAX = 2.0D0
+      ZLIMM =-2.5D0
+      ZLIMP = 2.5D0
+C
+C        PSIB(0:5): Multipole moments of poloidal flux PSIRZ on boundary
+C
+      PSIB(0) =  2.0D0
+      PSIB(1) =  0.5D0
+      PSIB(2) =  0.D0
+      PSIB(3) =  0.D0
+      PSIB(4) =  0.D0
+      PSIB(5) =  0.D0
+C
+C        NPFCMAX : Number of poloidal field coils (PFXs)
+C        RIPFC(NPFC) : PFC coil current    [MA]
+C        RPFC(NPFC)  : PFC coil position R [m]
+C        ZPFC(NPFC)  : PFC coil position Z [m]
+C        WPFC(NPFC)  : PFC coil width      [m]
+C
+      NPFCMAX = 0
+      DO NPFC=1,NPFCM
+         RIPFC(NPFC) = 0.D0
+         RPFC(NPFC)  = 3.D0
+         ZPFC(NPFC)  =-1.75D0
+         WPFC(NPFC)  = 0.75D0
+      ENDDO
+
+      MODEFW=0 ! dangerous setting
+      MODEFR=0 ! dangerous setting
+
+\end{verbatim}
+}
+
+\end{document}

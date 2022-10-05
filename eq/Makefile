@@ -1,15 +1,24 @@
 ### $Id$ ###
 include ../make.header
+include ../mtxp/make.mtxp
+#LIB_MTX=$(LIB_MTX_BND)
+#LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_PCG)
+#LIB_MTX=$(LIB_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIB_MTX=$(LIBXMTX_KSP)
+#LIBX_MTX=$(LIBX_MTX_KSP)
 
-FFLAGS=-g $(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=-g $(OFLAGS)
+FFLAGS=$(DFLAGS)
 
-MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD) -I../lib/$(MOD)
+MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I../pl/$(MOD) -I../lib/$(MOD)
 
-SRCX = equcom.f90 equread.f90
+SRCX = equcom.f90 equread.f90 eqlib.f90
 SRCS = eqbpsd.f eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f \
        eqsub.f eqfunc.f eqintf.f eqsplf.f equintf.f \
-       eqf-efit.f eqf-qst.f eqfile.f \
+       eq-eqdsk.f eq-qst.f eqfile.f \
        eqgout.f eqgsub.f \
        newton.f invematrix.f equnit.f eqrppl.f
 SRCT = trtest.f treqin.f
@@ -25,8 +34,8 @@ OBJA = $(SRCA:.f=.o)
 OBJ2D=$(SRC2D:.f=.o)
 OBJ3D=$(SRC3D:.f=.o)
 
-LIBS2 = ../pl/libpl.a libeq.a ../lib/libtask.a ../../bpsd/libbpsd.a
-LIBS3 = ../pl/pllib.a libeq3.a ../lib/libtask.a ../../bpsd/libbpsd.a
+LIBS2 = ../pl/libpl.a libeq.a ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a
+LIBS3 = ../pl/libpl.a libeq3.a ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
 .SUFFIXES: .f90
 
@@ -35,14 +44,17 @@ LIBS3 = ../pl/pllib.a libeq3.a ../lib/libtask.a ../../bpsd/libbpsd.a
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : eq
+all : libs eq
 
 
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgr.a)
 ../pl/libpl.a:
+	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 libeq.a: $(OBJS) $(OBJ2D)
 	(cd ../pl; make plcomm.o)
@@ -51,29 +63,26 @@ libeq3.a: $(OBJS) $(OBJ3D)
 	$(LD) $(LDFLAGS) libeq3.a $(OBJS) $(OBJ3D)
 
 libs:
-	(cd ../lib; make libtask.a)
 	(cd ../../bpsd; make libbpsd.a)
+	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
+	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 
-eq: $(LIBS2) eqmain.o
-	$(FCFIXED) eqmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
-eq3: $(LIBS3) eqmain.o
-	$(FCFIXED) eqmain.o $(LIBS3) -o $@ $(FFLAGS) $(FLIBS)
-tr : $(LIBS2) $(OBJT)
-	$(FCFIXED) $(OBJT) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
-pl : $(LIBS2) $(OGJP)
-	$(FCFIXED) $(OBJP) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
-ak : $(LIBS2) $(OBJA)
-	$(FCFIXED) $(OBJA) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
+eq: libs libeq.a eqmain.o
+	$(FLINKER) eqmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
-check : $(SRCS)
-	ftnchek $(FCKFLAGS) $(SRCS) $(SRC3D) | $(PAGER)
-checktr : $(SRCT)
-	ftnchek $(FCKFLAGS) $(SRCT) | $(PAGER)
-checkpl : $(SRCP)
-	ftnchek $(FCKFLAGS) $(SRCP) | $(PAGER)
-checkak : $(SRCA)
-	ftnchek $(FCKFLAGS) $(SRCA) | $(PAGER)
+eq3: libs libeq3.a eqmain.o
+	$(FLINKER) eqmain.o $(LIBS3) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
+
+tr : libs libeq.a $(OBJT)
+	$(FLINKER) $(OBJT) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
+
+pl : libs libeq.a $(OGJP)
+	$(FLINKER) $(OBJP) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
+
+ak : libs libeq.a $(OBJA)
+	$(FLINKER) $(OBJA) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean:
 	-rm -f core a.out *.o *.mod ./*~ *.a $(MOD)/*.mod
@@ -81,12 +90,6 @@ clean:
 
 veryclean: clean
 	rm -f eq pl ak
-
-new:
-	-mkdir ../eqnew
-	cp -f Makefile ../eqnew
-	cp -f *.f ../eqnew
-	cp -f *.inc ../eqnew
 
 EQCOMM = eqcom0.inc eqcom1.inc
 
@@ -100,10 +103,15 @@ eqsub.o : eqsub.f  $(EQCOMM) eqcom2.inc
 eqfunc.o: eqfunc.f $(EQCOMM) eqcom2.inc eqcom4.inc
 eqsplf.o: eqsplf.f $(EQCOMM) eqcom3.inc
 eqfile.o: eqfile.f $(EQCOMM) eqcom2.inc
+eq-eqdsk.o: eq-eqdsk.f $(EQCOMM) eqcom2.inc
+eq-qst.o: eq-qst.f $(EQCOMM) eqcom2.inc
 eqintf.o: eqintf.f $(EQCOMM) eqcom2.inc
 eqgout.o: eqgout.f $(EQCOMM) eqcom2.inc eqcom3.inc
 eqbpsd.o: eqbpsd.f $(EQCOMM) eqcom3.inc
+#eqtrbpsd.o: eqtrbpsd.f $(EQCOMM)
+#eqtrbpsdlib.o: eqtrbpsdlib.f90
 eqjft2m.o: eqjft2m.f $(EQCOMM) eqcom3.inc
+eqlib.o : eqlib.f90
 equnit.o: equnit.f eqbpsd.f
 eqgsub.o: eqgsub.f
 eqg2d.o: eqg2d.f $(EQCOMM) eqcom3.inc

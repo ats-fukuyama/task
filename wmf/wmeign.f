@@ -4,6 +4,7 @@ C     ***** SINGLE CALCULATION *****
 C
       SUBROUTINE WMAM0D(KID,LINE)
 C
+      USE libkio
       INCLUDE 'wmcomm.inc'
       EXTERNAL WMPARM
       CHARACTER LINE*80,KID*1
@@ -18,9 +19,9 @@ C
             IF(MODE.EQ.0)
      &      READ(LINE,*,ERR=2,END=2) FRINI,FIINI
          ENDIF
-         CALL MPBCIA(MODE)
+         CALL mtx_broadcast1_integer(MODE)
          IF(MODE.EQ.1) THEN
-            CALL MPBCKA(KID)
+            CALL mtx_broadcast1_character(KID)
             GOTO 9000
          ENDIF
          IF(MODE.EQ.2) THEN
@@ -29,8 +30,8 @@ C
          ENDIF
          IF(MODE.EQ.3) GOTO 1
 C
-         CALL MPBCDA(FRINI)
-         CALL MPBCDA(FIINI)
+         CALL mtx_broadcast1_real8(FRINI)
+         CALL mtx_broadcast1_real8(FIINI)
 C
          CALL DIAMIN(FRINI,FIINI,AMPL)
          
@@ -55,6 +56,7 @@ C     ***** 1D PLOT OF AMPLITUDE *****
 C
       SUBROUTINE WMAM1D(KID,LINE)
 C
+      USE libkio
       INCLUDE 'wmcomm.inc'
       DIMENSION GX(NGZM),GZ(NGZM,1)
       CHARACTER LINE*80,KID*1
@@ -70,9 +72,9 @@ C
             IF(MODE.EQ.0)
      &      READ(LINE,*,ERR=2,END=2) FRMIN,FRMAX,NGFMAX,FI0
          ENDIF
-         CALL MPBCIA(MODE)
+         CALL mtx_broadcast1_integer(MODE)
          IF(MODE.EQ.1) THEN
-            CALL MPBCKA(KID)
+            CALL mtx_broadcast1_character(KID)
             GOTO 9000
          ENDIF
          IF(MODE.EQ.2) THEN
@@ -81,10 +83,10 @@ C
          ENDIF
          IF(MODE.EQ.3) GOTO 1
 C
-         CALL MPBCIA(NGFMAX)
-         CALL MPBCDA(FRMIN)
-         CALL MPBCDA(FRMAX)
-         CALL MPBCDA(FI0)
+         CALL mtx_broadcast1_integer(NGFMAX)
+         CALL mtx_broadcast1_real8(FRMIN)
+         CALL mtx_broadcast1_real8(FRMAX)
+         CALL mtx_broadcast1_real8(FI0)
 C
          DELTFR=(FRMAX-FRMIN)/(NGFMAX-1)
          AMPMIN=1.D30
@@ -169,6 +171,7 @@ C     ***** 2D PLOT OF AMPLITUDE *****
 C
       SUBROUTINE WMAM2D(KID,LINE)
 C
+      USE libkio
       INCLUDE 'wmcomm.inc'
       DIMENSION GX(NGZM),GY(NGZM)
       DIMENSION GZ(NGZM,NGZM)
@@ -193,9 +196,9 @@ C
      &      READ(LINE,*,ERR=2,END=2)
      &                         FRMIN,FRMAX,NGXMAX,FIMIN,FIMAX,NGYMAX
          ENDIF
-         CALL MPBCIA(MODE)
+         CALL mtx_broadcast1_integer(MODE)
          IF(MODE.EQ.1) THEN
-            CALL MPBCKA(KID)
+            CALL mtx_broadcast1_character(KID)
             GOTO 9000
          ENDIF
          IF(MODE.EQ.2) THEN
@@ -204,12 +207,12 @@ C
          ENDIF
          IF(MODE.EQ.3) GOTO 1
 C
-         CALL MPBCIA(NGXMAX)
-         CALL MPBCDA(FRMIN)
-         CALL MPBCDA(FRMAX)
-         CALL MPBCIA(NGYMAX)
-         CALL MPBCDA(FIMIN)
-         CALL MPBCDA(FIMAX)
+         CALL mtx_broadcast1_integer(NGXMAX)
+         CALL mtx_broadcast1_real8(FRMIN)
+         CALL mtx_broadcast1_real8(FRMAX)
+         CALL mtx_broadcast1_integer(NGYMAX)
+         CALL mtx_broadcast1_real8(FIMIN)
+         CALL mtx_broadcast1_real8(FIMAX)
 C
          DELTFR=(FRMAX-FRMIN)/(NGXMAX-1)
          DELTFI=(FIMAX-FIMIN)/(NGYMAX-1)
@@ -410,6 +413,7 @@ C     ***** FIND EIGEN VALUE *****
 C
       SUBROUTINE WMEIGN(KID,LINE)
 C
+      USE libkio
       INCLUDE 'wmcomm.inc'
       CHARACTER LINE*80,KID*1
       DIMENSION XA(2),WORK(2,2)
@@ -425,9 +429,9 @@ C
             IF(MODE.EQ.0)
      &      READ(LINE,*,ERR=2,END=2) FRINI,FIINI
          ENDIF
-         CALL MPBCIA(MODE)
+         CALL mtx_broadcast1_integer(MODE)
          IF(MODE.EQ.1) THEN
-            CALL MPBCKA(KID)
+            CALL mtx_broadcast1_character(KID)
             GOTO 9000
          ENDIF
          IF(MODE.EQ.2) THEN
@@ -436,8 +440,8 @@ C
          ENDIF
          IF(MODE.EQ.3) GOTO 1
 C
-         CALL MPBCDA(FRINI)
-         CALL MPBCDA(FIINI)
+         CALL mtx_broadcast1_real8(FRINI)
+         CALL mtx_broadcast1_real8(FIINI)
 C
          X=FRINI
          Y=FIINI
@@ -475,6 +479,7 @@ C     ***** PARAMETER SCAN *****
 C
       SUBROUTINE WMSCAN(KID,LINE)
 C
+      USE libkio
       INCLUDE 'wmcomm.inc'
       DIMENSION PNSAVE(NSM),PTPRSAVE(NSM),PTPPSAVE(NSM)
       DIMENSION PNITBSAVE(NSM),PTITBSAVE(NSM),PUITBSAVE(NSM)
@@ -499,9 +504,9 @@ C
             IF(MODE.EQ.0)
      &      READ(LINE,*,ERR=2,END=2) ISCAN
          ENDIF
-         CALL MPBCIA(MODE)
+         CALL mtx_broadcast1_integer(MODE)
          IF(MODE.EQ.1) THEN
-            CALL MPBCKA(KID)
+            CALL mtx_broadcast1_character(KID)
             GOTO 9000
          ENDIF
          IF(MODE.EQ.2) THEN
@@ -510,7 +515,7 @@ C
          ENDIF
          IF(MODE.EQ.3) GOTO 1
 C
-         CALL MPBCIA(ISCAN)
+         CALL mtx_broadcast1_integer(ISCAN)
          IF(ISCAN.EQ.0.OR.ISCAN.EQ.9) GOTO 1
 C
          IF(ISCAN.EQ.1) THEN
@@ -569,8 +574,8 @@ C
             SCMAX=1.D0
          ELSE IF(ISCAN.EQ.12) THEN
             KV='RHOB'
-            RHOITBSAVE=RHOITB
-            SCMIN=RHOITB
+            RHOITBSAVE=RHOITB(1)
+            SCMIN=RHOITB(1)
          ELSE IF(ISCAN.EQ.13) THEN
             KV='PU  '
             DO NS=1,NSMAX
@@ -591,9 +596,9 @@ C
             IF(MODE1.EQ.0)
      &       READ(LINE,*,ERR=12,END=12) SCMIN,SCMAX,NSCMAX,FRINI,FIINI
          ENDIF
-         CALL MPBCIA(MODE1)
+         CALL mtx_broadcast1_integer(MODE1)
          IF(MODE1.EQ.1) THEN
-            CALL MPBCKA(KID)
+            CALL mtx_broadcast1_character(KID)
             GOTO 9000
          ENDIF
          IF(MODE1.EQ.2) THEN
@@ -602,11 +607,11 @@ C
          ENDIF
          IF(MODE1.EQ.3) GOTO 11
 C
-         CALL MPBCDA(SCMIN)
-         CALL MPBCDA(SCMAX)
-         CALL MPBCIA(NSCMAX)
-         CALL MPBCDA(FRINI)
-         CALL MPBCDA(FIINI)
+         CALL mtx_broadcast1_real8(SCMIN)
+         CALL mtx_broadcast1_real8(SCMAX)
+         CALL mtx_broadcast1_integer(NSCMAX)
+         CALL mtx_broadcast1_real8(FRINI)
+         CALL mtx_broadcast1_real8(FIINI)
 C
          DSC=(SCMAX-SCMIN)/(NSCMAX-1)
          X=FRINI
@@ -916,6 +921,7 @@ C     ****** TWO-DIMENSIONAL NEWTON METHOD ******
 C
       SUBROUTINE NEWTN0(SUB,X,Y,XX,YY,DELT,EPS,ILMAX,LIST,NRANK,IER)
 C
+      USE libmpi
       IMPLICIT REAL*8(A-H,O-Z)
       LOGICAL LPRINT,LDUMP
       EXTERNAL SUB
@@ -988,7 +994,7 @@ C
       IF(LDUMP) WRITE(6,'(A,1P2E12.4)') 'DF,DET:0 =',DF,DET
       IF(LDUMP) CALL GUFLSH
       IF(DF.LE.2.D-15) GO TO 9000
-      CALL MPSYNC
+      CALL mtx_barrier
 C
       H11= FYY/DET
       H12=-FXY/DET
@@ -1010,16 +1016,16 @@ C
       IF(LDUMP) WRITE(6,'(A,1P3E12.4)') 'X,Y,F =',X,Y,F00
       IF(LDUMP) CALL GUFLSH
       IF(F00.LE.2.D-15) GOTO 9001
-      CALL MPSYNC
+      CALL mtx_barrier
 C
       CALL SUB(X-HX,Y,   FM0)
       IF(LDUMP) WRITE(6,'(A,1P3E12.4)') 'X,Y,F =',X-HX,Y,FM0
       IF(LDUMP) CALL GUFLSH
-      CALL MPSYNC
+      CALL mtx_barrier
       CALL SUB(X+HX,Y,   FP0)
       IF(LDUMP) WRITE(6,'(A,1P3E12.4)') 'X,Y,F =',X+HX,Y,FP0
       IF(LDUMP) CALL GUFLSH
-      CALL MPSYNC
+      CALL mtx_barrier
       CALL SUB(X,   Y-HY,F0M)
       IF(LDUMP) WRITE(6,'(A,1P3E12.4)') 'X,Y,F =',X,Y-HY,F0M
       IF(LDUMP) CALL GUFLSH

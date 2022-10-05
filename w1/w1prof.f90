@@ -27,12 +27,41 @@ CONTAINS
     DO NS = 1 , NSMAX
        DO NX = 1,NXPMAX
           X=XAM(NX)/RA
-          PROFPN(NX,NS)=(PN  (NS)-PNS(NS))*(1.D0-X*X)**APRFPN + PNS(NS)
-          PROFTR(NX,NS)=(PTPR(NS)-PTS(NS))*(1.D0-X*X)**APRFTR + PTS(NS)
-!         PROFTR(NX,NS)= PTPR(NS)*EXP(-3.D0*X*X)
-          PROFTP(NX,NS)=(PTPP(NS)-PTS(NS))*(1.D0-X*X)**APRFTP + PTS(NS)
-!         PROFTP(NX,NS)= PTPP(NS)*EXP(-3.D0*X*X)
-          PROFPU(NX,NS)=PU(NS)
+          SELECT CASE(MODELN)
+          CASE(0,1)
+             IF(ABS(X).GT.1.D0) THEN
+                SELECT CASE(MODELN)
+                CASE(0)
+                   PROFPN(NX,NS)=0.D0
+                CASE(1)
+                   PROFPN(NX,NS)=PNS(NS)
+                END SELECT
+             ELSE
+                PROFPN(NX,NS)=(PN  (NS)-PNS(NS))*(1.D0-X*X)**APRFPN + PNS(NS)
+             END IF
+             PROFTR(NX,NS)=(PTPR(NS)-PTS(NS))*(1.D0-X*X)**APRFTR + PTS(NS)
+!             PROFTR(NX,NS)= PTPR(NS)*EXP(-3.D0*X*X)
+             PROFTP(NX,NS)=(PTPP(NS)-PTS(NS))*(1.D0-X*X)**APRFTP + PTS(NS)
+!             PROFTP(NX,NS)= PTPP(NS)*EXP(-3.D0*X*X)
+             PROFPU(NX,NS)=PU(NS)
+          CASE(10,11)
+             IF(ABS(X).GT.1.D0) THEN
+                SELECT CASE(MODELN)
+                CASE(10)
+                   PROFPN(NX,NS)=0.D0
+                CASE(11)
+                   PROFPN(NX,NS)=PNS(NS)
+                END SELECT
+             ELSE
+                PROFPN(NX,NS)=(PN  (NS)-PNS(NS))*(0.5D0*(1.D0-X))**APRFPN &
+                             +PNS(NS)
+             END IF
+             PROFTR(NX,NS)=(PTPR(NS)-PTS(NS))*(0.5D0*(1.D0-X))**APRFTR &
+                          + PTS(NS)
+             PROFTP(NX,NS)=(PTPP(NS)-PTS(NS))*(0.5D0*(1.D0-X))**APRFTP &
+                          + PTS(NS)
+             PROFPU(NX,NS)=PU(NS)
+          END SELECT
        END DO
     END DO
 

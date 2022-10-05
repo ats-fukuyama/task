@@ -9,13 +9,13 @@
       USE TRCOMM, ONLY : NRAMAX, NRMAX, NROMAX, RHOA, NT, NGTSTP
       IMPLICIT NONE
       CHARACTER(LEN=1), INTENT(IN):: K2
-      INTEGER(4),       INTENT(IN):: INQ
+      INTEGER,       INTENT(IN):: INQ
 
-      IF(NT.LT.NGTSTP) RETURN
+!      IF(NT.LT.NGTSTP) RETURN
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
 
-      IF(K2.EQ.'1') CALL TRGRT1(INQ)
-      IF(K2.EQ.'2') CALL TRGRT2(INQ)
+      IF(K2.EQ.'1') CALL TRGRT1
+      IF(K2.EQ.'2') CALL TRGRT2
       IF(K2.EQ.'5') CALL TRGRT5(INQ)
       IF(K2.EQ.'6') CALL TRGRT6(INQ)
       IF(K2.EQ.'7') CALL TRGRT7(INQ)
@@ -36,7 +36,7 @@
 
       IMPLICIT NONE
       CHARACTER(LEN=1), INTENT(IN):: K2
-      INTEGER(4),       INTENT(IN):: INQ
+      INTEGER,       INTENT(IN):: INQ
 
       IF(K2.EQ.'1') CALL TRGRX1(INQ)
       RETURN
@@ -52,7 +52,7 @@
 
       IMPLICIT NONE
       CHARACTER(LEN=1), INTENT(IN):: K2
-      INTEGER(4),       INTENT(IN):: INQ
+      INTEGER,       INTENT(IN):: INQ
 
       IF(K2.EQ.'1') THEN
          CALL TRGRT6(INQ)
@@ -81,16 +81,16 @@
 
 !     ***********************************************************
 
-      SUBROUTINE TRGRT1(INQ)
+      SUBROUTINE TRGRT1
 
-      USE TRCOMM, ONLY : GT, GVRT, GRM, RTU, NGT, NTM, NRMAX, MDLUF
-      USE TRCOM1, ONLY : TMU, TMU1, NTXMAX, NTXMAX1, NTUM
+      USE TRCOMM, ONLY : GT, GVRT, GRM, RTU, NGT, NTM, NRMAX, MDLUF, rkind
+      USE TRCOM1, ONLY : TMU, NTXMAX, NTUM
+      USE libitp
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN):: INQ
-      INTEGER(4) :: I, NR, IERR
-      REAL(4),DIMENSION(NTM,NRMAX) :: GYL
-      REAL(8) :: TSL, RTEL, RTDL
-      REAL(4) :: GUCLIP
+      INTEGER :: I, NR, IERR
+      REAL,DIMENSION(NTM,NRMAX) :: GYL
+      REAL(rkind) :: TSL, RTEL, RTDL
+      REAL :: GUCLIP
       CALL PAGES
 
       DO I=1,NGT
@@ -117,7 +117,7 @@
          DO I=1,NGT
             TSL = DBLE(GT(I))
             DO NR=1,NRMAX
-               CALL TIMESPL(TSL,RTEL,TMU,RTU(1,NR,1),NTXMAX,NTUM,IERR)
+               CALL TIMESPL(TSL,RTEL,TMU,RTU(:,NR,1),NTXMAX,NTUM,IERR)
                GYL(I,NR) = GUCLIP(RTEL)
             ENDDO
          ENDDO
@@ -126,7 +126,7 @@
          DO I=1,NGT
             TSL = DBLE(GT(I))
             DO NR=1,NRMAX
-               CALL TIMESPL(TSL,RTDL,TMU,RTU(1,NR,2),NTXMAX,NTUM,IERR)
+               CALL TIMESPL(TSL,RTDL,TMU,RTU(:,NR,2),NTXMAX,NTUM,IERR)
                GYL(I,NR) = GUCLIP(RTDL)
             ENDDO
          ENDDO
@@ -155,13 +155,12 @@
 
 !     ***********************************************************
 
-      SUBROUTINE TRGRT2(INQ)
+      SUBROUTINE TRGRT2
 
       USE TRCOMM, ONLY : GT, GRG, GRM, GVRT, NGT, NTM, NRMAX
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN):: INQ
-      INTEGER(4) :: I
-      REAL(4),DIMENSION(NTM,NRMAX) :: GYL
+      INTEGER :: I
+      REAL,DIMENSION(NTM,NRMAX) :: GYL
 
       CALL PAGES
 
@@ -201,9 +200,9 @@
 
       USE TRCOMM, ONLY : DR, GT, GTS, GVT, GYT, IZERO, NGPST, NGST, NGT, NRMAX, NTM
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN):: INQ
-      INTEGER(4) :: I, IX, K, M, N, NGPSTH
-      REAL(4)    :: GD, GW
+      INTEGER, INTENT(IN):: INQ
+      INTEGER :: I, IX, K, M, N, NGPSTH
+      REAL    :: GD, GW
 
       IF(NGST.EQ.0) THEN
 
@@ -304,8 +303,7 @@
 
       USE TRCOMM, ONLY : GT, GVT, GYT, MDLNF, NGT, NTM
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN):: INQ
-      INTEGER(4) :: I
+      INTEGER, INTENT(IN):: INQ
 
       CALL PAGES
 
@@ -365,7 +363,11 @@
          GYT(1:NGT,2)=GVT(1:NGT,2)
          GYT(1:NGT,3)=GVT(1:NGT,3)
          GYT(1:NGT,4)=GVT(1:NGT,4)
-         CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,4,'@NE0,ND0,NT0,NA0 [10$+20$=/m$+3$=]  vs t@',2+INQ)
+         GYT(1:NGT,5)=GVT(1:NGT,5)
+         GYT(1:NGT,6)=GVT(1:NGT,6)
+         GYT(1:NGT,7)=GVT(1:NGT,7)
+         GYT(1:NGT,8)=GVT(1:NGT,8)
+         CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,8,'@NE0,ND0,NT0,NA0,<> [10$+20$=/m$+3$=]  vs t@',2+INQ)
       ENDIF
 
       CALL PAGEE
@@ -383,8 +385,7 @@
 
       USE TRCOMM, ONLY : GT, GVT, GYT, NGT, NTM, RA, BB
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN):: INQ
-      INTEGER(4) :: I
+      INTEGER, INTENT(IN):: INQ
 
       CALL PAGES
 
@@ -433,15 +434,12 @@
 
       SUBROUTINE TRGRT8(INQ)
 
-      USE TRCOMM, ONLY : DR, GRM, GT, GTS, GYT, GVT, MDLUF, NGT, NGST, NGPST, NRMAX, NTM, IZERO
-!!!      USE TRCOM1, ONLY : NTXMAX, TMU
+      USE TRCOMM, ONLY : &
+           DR, GTS, GYT, GVT, NGST, NGPST, NRMAX, NTM, IZERO
       IMPLICIT NONE
-      INTEGER(4),INTENT(IN):: INQ
-      INTEGER(4),DIMENSION(8,NTM,NRMAX):: KATR
-      INTEGER(4) :: I, IERR, NR, M, IX, N, K, NGPSTH
-      REAL(8)    :: RTDL, RTEL, TSL
-      REAL(4),DIMENSION(NTM,NRMAX)  :: GYL
-      REAL(4)    :: GW, GD
+      INTEGER,INTENT(IN):: INQ
+      INTEGER :: M, IX, N, K, NGPSTH
+      REAL    :: GW, GD
 
       IF(NGST.EQ.0) RETURN
 
@@ -509,8 +507,7 @@
 
       USE TRCOMM, ONLY : GVT, GYT, NGT, NTM, RA, RR
       IMPLICIT NONE
-      INTEGER(4), INTENT(IN):: INQ
-      INTEGER(4) :: I
+      INTEGER, INTENT(IN):: INQ
 
       CALL PAGES
 

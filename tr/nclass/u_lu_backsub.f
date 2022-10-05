@@ -21,15 +21,16 @@
 !  To solve with a different right hand side, just reload b as  desired
 !  and use the same LU decomposition, CALL U_LU_BACKSUB(a,n,ndim,indx,b)                                 *
 !***********************************************************************
+      USE trcomm,ONLY: rkind
       IMPLICIT NONE
 !Declaration of input variables
       INTEGER        indx(*),               n,
      #               ndim
-      REAL           a(ndim,*),             b(*)
+      REAL(rkind)    a(ndim,*),             b(*)
 !Declaration of local variables
       INTEGER        i,                     ii,
      #               j,                     k
-      REAL           sum
+      REAL(rkind)    sum
 !Find the index of the first nonzero element of b
       ii=0
       DO i=1,n
@@ -40,7 +41,7 @@
           DO j=ii,i-1
             sum=sum-a(i,j)*b(j)
           ENDDO   
-        ELSEIF (sum.ne.0.0) THEN
+        ELSEIF (sum.ne.0.D0) THEN
           ii=i
         ENDIF
         b(i)=sum

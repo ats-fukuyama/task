@@ -40,13 +40,13 @@ c
       nrom=nro-1
       nroblm=nroblk-1
       do n=1,nroblk
-      ro(n)=dfloat(n-1)/dfloat(nroblm)
+      ro(n)=DBLE(n-1)/DBLE(nroblm)
       hit(n)=hiv(nv)*ro(n)**2
       enddo
 c
 !     if(nroscl.gt.0)then
 !     do n=nroblk+1,nro
-!     ro(n)=1.+roscl*dfloat(n-nroblk)/dfloat(nroscl)
+!     ro(n)=1.+roscl*DBLE(n-nroblk)/DBLE(nroscl)
 !     hit(n)=hiv(nv)*ro(n)**2
 !     enddo
 !     endif
@@ -76,7 +76,7 @@ c set pressure profiles
       mion=1
       do n=1,nro
       do is=0,mion
-      pre(n,is)=(mut(n)/cnmu)*hdt(n)**gam/dfloat(mion+1)
+      pre(n,is)=(mut(n)/cnmu)*hdt(n)**gam/DBLE(mion+1)
       enddo
       enddo
 c-----------------------------------------------------------------------

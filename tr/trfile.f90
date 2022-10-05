@@ -1,31 +1,49 @@
-!     $ID$
+! trfile.f90
+
+MODULE trfile
+
+  PRIVATE
+  PUBLIC tr_save,tr_load,tr_grsv,tr_grld
+
+CONTAINS
+
 !     ***********************************************************
 
 !           SAVE TRANSPORT DATA
 
 !     ***********************************************************
 
-      SUBROUTINE TRSAVE
+      SUBROUTINE tr_save
 
-      USE TRCOMM, ONLY : ABB2RHOG, ABRHO, ABRHOG, AD0, AIB2RHOG, AJBST, AJNBT, AJOH, AJOHT, AJRFT, AJT, ALI, ALP, AMZ, ANC,       &
-     &                   ANFE, ANNU, ANSAV, AR1RHO, AR1RHOG, AR2RHO, AR2RHOG, ARHBRHOG, ARRHO, ARRHOG, AV0, BB, BETA0, BETAA,     &
-     &                   BETAP0, BETAPA, BP, CALF, CDH, CDP, CDW, CHP, CK0, CK1, CKALFA, CKBETA, CKGUMA, CNB, CNH, CNP, CWEB,     &
-     &                   DR, DT, DVRHO, DVRHOG, EPSLTR, EPSRHO, ETA, EZOH, IZERO, KFNLOG, KNAMTR, KUFDCG, KUFDEV, LMAXTR, MDCD05, &
-     &                   MDDIAG, MDDW, MDLAD, MDLAVK, MDLCD, MDLEC, MDLEOI, MDLEQ0, MDLEQB, MDLEQE, MDLEQN, MDLEQT, MDLEQU,       &
-     &                   MDLEQZ, MDLER, MDLETA, MDLFLX, MDLIC, MDLJBS, MDLJQ, MDLKAI, MDLKNC, MDLLH, MDLNB, MDLNF, MDLPCK,        &
-     &                   MDLPEL, MDLST, MDLTPF, MDLUF, MDLWLD, MDLXP, MDNCLS, MDNI, MDTC, MODELG, MODEP, NEA, NEQMAX, NGPST,      &
-     &                   NGRSTP, NGTSTP, NNS, NRAMAX, NRMAX, NROMAX, NSMAX, NSNMAX, NSS, NST, NSV, NSZMAX, NTEQIT, NTMAX,         &
-     &                   NTMAX_SAVE, NTSTEP, PA, PBSCD, PCXT, PECCD, PECNPR, PECR0, PECRW, PECTOE, PECTOT, PELPAT, PELR0, PELRAD, &
-     &                   PELRW, PELTIM, PELTOT, PELVEL, PHIA, PICCD, PICNPR, PICR0, PICRW, PICTOE, PICTOT, PIET, PINT, PLHCD,     &
-     &                   PLHNPR, PLHR0, PLHRW, PLHTOE, PLHTOT, PN, PNBCD, PNBENG, PNBR0, PNBRTG, PNBRW, PNBT, PNBTOT, PNC, PNFE,  &
-     &                   PNNU, PNNUS, PNS, PNSS, POHT, POUT, PRFT, PRLT, PROFJ1, PROFJ2, PROFN1, PROFN2, PROFT1, PROFT2, PROFU1,  &
-     &                   PROFU2, PT, PTS, PZ, Q0, RA, RDLT, RDP, RG, RHOA, RHOG, RHOM, RIPE, RIPS, RJCB, RKAP, RKPRHO, RKPRHOG,   &
-     &                   RM, RMJRHO, RMNRHO, RN, RNF, RPSI, RR, RT, RTF, RU, RW, T, TAUE1, TAUE2, TAUE89, TIME_INT, TPRE, TPRST,  &
-     &                   TS0, TSAV, TSST, TST, TTRHO, TTRHOG, VLOOP, VPOL, VSEC, VTOR, WPPRE, WPT, WST, &
-     &                   ABVRHO, ABVRHOG, RDPVRHOG, AJTTOR
+      USE TRCOMM, ONLY : &
+           ABB2RHOG, ABRHO, ABRHOG, AD0, AIB2RHOG, AJBST, AJNBT, AJOH, &
+           AJOHT, AJT, ALI, ALP, AMZ, ANC, ANFE, ANNU, ANSAV, &
+           AR1RHO, AR1RHOG, AR2RHO, AR2RHOG, ARHBRHOG, ARRHO, ARRHOG, AV0, &
+           BB, BETA0, BETAA, BETAP0, BETAPA, BP, CALF, CDH, CDP, CDW, CHP, &
+           CK0, CK1, CKALFA, CKBETA, CKGUMA, CNB, CNH, CNP, CWEB, DR, DT, &
+           DVRHO, DVRHOG, EPSLTR, EPSRHO, ETA, EZOH, IZERO, KFNLOG, KNAMTR, &
+           KUFDCG, KUFDEV, LMAXTR, MDCD05, MDDIAG, MDDW, MDLAD, MDLAVK, &
+           MDLCD, MDLEC, MDLEOI, MDLEQ0, MDLEQB, MDLEQE, MDLEQN, MDLEQT, &
+           MDLEQU, MDLEQZ, MDLER, MDLETA, MDLFLX, MDLIC, MDLJBS, MDLJQ, &
+           MDLKAI, MDLKNC, MDLLH, MDLNB, MDLNF, MDLPCK, MDLPEL, MDLST, &
+           MDLTPF, MDLUF, MDLWLD, MDLXP, MDNCLS, MDNI, MDTC, MODELG, MODEP, &
+           NEA, NEQMAX, NGPST, NGRSTP, NGTSTP, NNS, NRAMAX, NRMAX, NROMAX, &
+           NSMAX, NSNMAX, NSS, NST, NSV, NSZMAX, NTEQIT, NTMAX, NTMAX_SAVE, &
+           NTSTEP, PA, PBSCD, PCXT, PECCD, PECNPR, PECR0, PECRW, PECTOE, &
+           PECTOT, PELPAT, PELR0, PELRAD, PELRW, PELTIM, PELTOT, PELVEL, &
+           PHIA, PICCD, PICNPR, PICR0, PICRW, PICTOE, PICTOT, PIET, PINT, &
+           PLHCD, PLHNPR, PLHR0, PLHRW, PLHTOE, PLHTOT, PN, PNBCD, PNBENG, &
+           PNBR0, PNBRTG, PNBRW, PNBT, PNBTOT, PNC, PNFE, PNNU, PNNUS, PNS, &
+           PNSS, POHT, POUT, PRFT, PRLT, PROFJ1, PROFJ2, PROFN1, PROFN2, &
+           PROFT1, PROFT2, PROFU1, PROFU2, PT, PTS, PZ, Q0, RA, RDLT, RDP, &
+           RG, RHOA, RHOG, RHOM, RIPE, RIPS, RJCB, RKAP, RKPRHO, RKPRHOG, &
+           RM, RMJRHO, RMNRHO, RN, RNF, RPSI, RR, RT, RTF, RU, RW, T, TAUE1, &
+           TAUE2, TAUE89, TIME_INT, TPRE, TPRST, TS0, TSAV, TSST, TST, &
+           TTRHO, TTRHOG, VLOOP, VPOL, VSEC, VTOR, WPPRE, WPT, WST, &
+           ABVRHO, ABVRHOG, RDPVRHOG, AJTTOR
       USE libfio
       IMPLICIT NONE
-      INTEGER(4):: IERR, NDD, NDM, NDY, NTH1, NTM1, NTS1
+      INTEGER:: IERR, NDD, NDM, NDY, NTH1, NTM1, NTS1
       CHARACTER(LEN=3):: K1, K2, K3, K4, K5, K6
 
 
@@ -124,8 +142,8 @@
 
       CLOSE(16)
 
-  900 RETURN
-      END SUBROUTINE TRSAVE
+      RETURN
+      END SUBROUTINE tr_save
 
 !     ***********************************************************
 
@@ -133,7 +151,7 @@
 
 !     ***********************************************************
 
-      SUBROUTINE TRLOAD
+      SUBROUTINE tr_load
 
       USE TRCOMM, ONLY : ABB2RHOG, ABRHO, ABRHOG, AD0, AIB2RHOG, AJOH, ALP, AMZ, ANC, ANFE, ANNU, AR1RHO, AR1RHOG, AR2RHO,      &
      &                   AR2RHOG, ARHBRHOG, ARRHO, ARRHOG, AV0, BB, BP, CALF, CDH, CDP, CDW, CHP, CK0, CK1, CKALFA, CKBETA,     &
@@ -150,10 +168,10 @@
      &                   RIPS, RJCB, RKAP, RKPRHO, RKPRHOG, RM, RMJRHO, RMNRHO, RN, RNF, RPSI, RR, RT, RTF, RU, RW, T, TIME_INT,&
      &                   TPRE, TPRST, TSST, TST, TTRHO, TTRHOG, VPOL, VSEC, VTOR, WPPRE, &
      &                   ALLOCATE_TRCOMM, ABVRHO, ABVRHOG, RDPVRHOG
+      USE libitp
       USE libfio
       IMPLICIT NONE
-      INTEGER(4):: IERR
-      REAL(8)   :: FCTR
+      INTEGER:: IERR
 
 
       CALL FROPEN(21,KNAMTR,0,1,'TR',IERR)
@@ -205,8 +223,8 @@
 !     *** calculate q_axis ***
       Q0=FCTR(RG(1),RG(2),QP(1),QP(2))
 
-  900 RETURN
-      END SUBROUTINE TRLOAD
+      RETURN
+      END SUBROUTINE tr_load
 
 !     ***********************************************************
 
@@ -214,11 +232,11 @@
 
 !     ***********************************************************
 
-      SUBROUTINE TRGRSV
+      SUBROUTINE tr_grsv
 
       USE TRCOMM, ONLY : GRG, GRM, GT, GTR, GVR, GVT, NGR, NGT
       IMPLICIT NONE
-      INTEGER(4):: IST
+      INTEGER:: IST
       CHARACTER(LEN=32):: TRFLNM
       LOGICAL   :: LEX
 
@@ -228,11 +246,6 @@
       IF(TRFLNM.EQ.'                                ') GOTO 900
       INQUIRE (FILE=TRFLNM,EXIST=LEX)
       IF(LEX) THEN
-!         WRITE(6,*) '# OLD FILE IS GOING TO BE OVERWRITTEN.  ',
-!     &              'ARE YOU SURE {Y/N}?'
-!         READ(5,'(A1)',ERR=1,END=900) KID
-!         CALL GUCPTL(KID)
-!         IF(KID.NE.'Y') GOTO 1
          OPEN(22,FILE=TRFLNM,IOSTAT=IST,STATUS='OLD',ERR=10,FORM='UNFORMATTED')
          WRITE(6,*) '# OLD FILE (',TRFLNM,') IS ASSIGNED FOR OUTPUT.'
          GOTO 30
@@ -253,7 +266,7 @@
       WRITE(6,*) '# DATA WAS SUCCESSFULLY SAVED TO THE FILE.'
 
   900 RETURN
-      END SUBROUTINE TRGRSV
+      END SUBROUTINE tr_grsv
 
 !     ***********************************************************
 
@@ -261,11 +274,11 @@
 
 !     ***********************************************************
 
-      SUBROUTINE TRGRLD
+      SUBROUTINE tr_grld
 
       USE TRCOMM, ONLY : GRG, GRM, GT, GTR, GVR, GVT, NGR, NGT
       IMPLICIT NONE
-      INTEGER(4):: IST
+      INTEGER:: IST
       CHARACTER(LEN=32):: TRFLNM
       LOGICAL   :: LEX
 
@@ -291,4 +304,5 @@
       WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
 
   900 RETURN
-      END SUBROUTINE TRGRLD
+      END SUBROUTINE tr_grld
+    END MODULE trfile

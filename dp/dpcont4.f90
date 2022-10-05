@@ -7,46 +7,65 @@ CONTAINS
 
 !     ***** PLOT CONTOUR GRAPH *************************************
 
-  SUBROUTINE DP_CONT4(NID)
+  SUBROUTINE DP_CONT4(NID_)
 
     USE dpcomm_local
     USE plprof
+    USE plprofw
     USE PLPARM,ONLY: pl_parm,pl_view
     USE dpparm
     USE dpdisp
     USE dpglib
+    USE libchar
     IMPLICIT NONE
-    INTEGER,INTENT(IN):: NID
-    REAL(4),ALLOCATABLE:: GX(:),GY(:),GZ(:,:)
+    INTEGER,INTENT(IN):: NID_
+    REAL,ALLOCATABLE:: GX(:),GY(:),GZ(:,:)
     REAL(rkind),ALLOCATABLE:: RFNORM(:),RKNORM(:)
     REAL(rkind),ALLOCATABLE:: Z(:,:)
     INTEGER,ALLOCATABLE:: KA(:,:,:)
+    INTEGER,ALLOCATABLE:: NXA(:)
+    REAL(rkind),ALLOCATABLE:: XA(:),RFA(:),RFIA(:)
     TYPE(pl_mag_type):: mag
-    TYPE(pl_plf_type),DIMENSION(nsmax):: plf
+    TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
     CHARACTER(LEN=1):: KID
     INTEGER,SAVE:: INIT=0
-    INTEGER:: NX,NY,NS,NY1,NY2,NX1,NX2,NGULEN,IERR
+    INTEGER:: NID
+    INTEGER:: NX,NY,NS,NGULEN,IERR
     INTEGER:: NGXMAX_SAVE,NGYMAX_SAVE,INFO
-    REAL(rkind):: XMIN,XMAX,YMIN,YMAX,DX,DY,Y,X,FACTY,FACTX,DZY,DZX,DZ2
-    REAL(rkind):: RX,RY,RZ,Y1,Y2,VAL1,VAL2,VAL3,Y0,RF,RFI,V,VL,RFPREV
-    REAL(rkind):: RHON,WC,WCI,WP2,VA,VT,XN,YN,YNI
-    COMPLEX(rkind):: CRF,CKX,CKY,CKZ,CD,CW,CWC,CD0,CD1
-    REAL(4):: GUCLIP,F
-    REAL(4):: GXMIN,GXMAX,GYMIN,GYMAX,GXSMN,GXSMX,GSCALX,GYSMN,GYSMX,GSCALY
+    REAL(rkind):: XMIN,XMAX,YMIN,YMAX,DX,DY,Y,X
+    REAL(rkind):: RX,RY,RZ,Y1,Y2,VAL1,VAL2,Y0,RF,RFI,V
+    REAL(rkind):: RHON,WC,WP2,VA,VT,XN,YN,YNI
+    COMPLEX(rkind):: CRF,CKX,CKY,CKZ,CD,CD0,CD1
+    REAL:: GUCLIP,F
+    REAL:: GXMIN,GXMAX,GYMIN,GYMAX,GXSMN,GXSMX,GSCALX,GYSMN,GYSMX,GSCALY
+    INTEGER:: ncount,ncount_max
+    REAL(rkind):: vmin,vmax
+    EXTERNAL PAGES,SETLIN,SETCHS,GMNMX1,GQSCAL,MOVE,TEXT,NUMBD,PAGEE
+    EXTERNAL GDEFIN,GFRAME,GSCALE,GVALUE,CONTQ2,SETMKS,SETRGB,MARK2D
 
       IF(INIT.EQ.0) THEN
          KID='1'
          INIT=1
       ENDIF
+      NID=NID_
 
-    1 WRITE(6,*)'## SELECT : X-var : 1/KX 2/KY 3/KZ 4/X 5/Y 6/Z 7/K: ', &
-                'P,D,V/PARM X/EXIT'
+    1 WRITE(6,*)'## SELECT: X-var: 1/KX 2/KY 3/KZ 4/X 5/Y 6/Z 7/K: ', &
+                'P,D,V/parm A,B/C/type X/EXIT'
       READ(5,*,ERR=1,END=9000) KID
-      CALL GUCPTL(KID)
+      CALL toupper(KID)
       IF(KID.EQ.'X') THEN
          GOTO 9000
       ELSEIF(KID.EQ.'P') THEN
          CALL DP_PARM(0,'DP',IERR)
+         GOTO 1
+      ELSEIF(KID.EQ.'A') THEN
+         NID=4
+         GOTO 1
+      ELSEIF(KID.EQ.'B') THEN
+         NID=5
+         GOTO 1
+      ELSEIF(KID.EQ.'C') THEN
+         NID=6
          GOTO 1
       ELSEIF(KID.EQ.'V') THEN
          CALL PL_VIEW
@@ -172,15 +191,15 @@ CONTAINS
             CALL PL_MAG(RX,RY,RZ,mag)
             RHON=mag%rhon
             IF(MODELG.LE.1.OR.MODELG.GT.10) THEN
-               CALL PL_PROF3D(RX,RY,RZ,plf)
+               CALL PL_PROFW3D(RX,RY,RZ,plfw)
             ELSE
-               CALL PL_PROF(RHON,plf)
+               CALL PL_PROFW(RHON,plfw)
             END IF
             IF(NORMK.LT.0) THEN
                VA=1.D0
                DO NS=1,NSMAX
                   WC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS))
-                  WP2=plf(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE &
+                  WP2=plfw(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE &
                        /(EPS0*AMP*PA(NS))
                   VA=VA+WP2/WC**2
                END DO
@@ -196,7 +215,7 @@ CONTAINS
             IF(NORMK.GE.1.AND.NORMK.LE.NSMAX) THEN
                NS=NORMK
                WC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS))
-               VT=SQRT(plf(NS)%RTPP*AEE*1.D3/(AMP*PA(NS)))
+               VT=SQRT(plfw(NS)%RTPP*AEE*1.D3/(AMP*PA(NS)))
                RKNORM(NX)=VT/WC
             ELSEIF(-NORMK.GE.1.AND.-NORMK.LE.NSMAX) THEN
                NS=-NORMK
@@ -244,25 +263,21 @@ CONTAINS
          ENDDO
       END IF
 
-      CALL PAGES
-      CALL SETLIN(0,0,7)
-      CALL SETCHS(0.3,0.)
-      CALL GMNMX1(GX,1,NGXMAX,1,GXMIN,GXMAX)
-      CALL GMNMX1(GY,1,NGYMAX,1,GYMIN,GYMAX)
-      CALL GQSCAL(GXMIN,GXMAX,GXSMN,GXSMX,GSCALX)
-      CALL GQSCAL(GYMIN,GYMAX,GYSMN,GYSMX,GSCALY)
-      CALL GDEFIN(3.,18.,2.,17.,GXSMN,GXSMX,GYSMN,GYSMX)
-      CALL GFRAME
-      CALL GSCALE(GXSMN,GSCALX,0.0,0.0,0.2,9)
-      CALL GSCALE(0.0,0.0,GYSMN,GSCALY,0.2,9)
-      CALL GVALUE(GXSMN,2*GSCALX,0.0,0.0,NGULEN(2*GSCALX))
-      CALL GVALUE(0.0,0.0,GYSMN,2*GSCALY,NGULEN(2*GSCALY))
-      IF(NID.EQ.4) THEN
-         CALL CONTQ2(GZ,GX,GY,NGXMAX,NGXMAX,NGYMAX,0.0,2.0,1,0,0,KA)
-      END IF
+         ! --- count fliping points ---
 
-      CALL SETMKS(3,0.1)
-      RFPREV=0.D0
+      ncount=0
+      DO NX=1,NGXMAX
+         VAL1=Z(NX,1)
+         DO NY=2,NGYMAX
+            VAL2=Z(NX,NY)
+            IF(VAL1*VAL2.LT.0.D0) ncount=ncount+1
+            VAL1=VAL2
+         END DO
+      END DO
+      ncount_max=ncount
+      ALLOCATE(NXA(ncount_max),XA(ncount_max),RFA(ncount_max),RFIA(ncount_max))
+
+      ncount=0
       DO NX=1,NGXMAX
          VAL1=Z(NX,1)
          DO NY=2,NGYMAX
@@ -295,61 +310,201 @@ CONTAINS
                   CKY0=X*COS(RKANG0*PI/180.D0)
                ENDIF
 
-               CRF=DCMPLX(Y0,0.D0)
+               CRF=CMPLX(Y0,0.D0)
                CD0=CFDISP(CRF,CKX0,CKY0,CKZ0,XPOS0,YPOS0,ZPOS0)
                CALL DPBRENTX(CRF,INFO)
                CD1=CFDISP(CRF,CKX0,CKY0,CKZ0,XPOS0,YPOS0,ZPOS0)
+!               IF(ABS(CKX0).GT.1900.D0.AND.ABS(CKX0).LT.2000.D0.AND. &
+!                  REAL(CRF).GT.210.D0.AND.REAL(CRF).LT.220.D0) THEN
+!                  WRITE(6,'(A,5ES12.4)') &
+!                       'CD0:',Y0,0.D0,REAL(CKX0),CD0
+!                  WRITE(6,'(A,5ES12.4)') &
+!                       'CD1:',CRF,REAL(CKX0),CD1
+!               END IF
                IF(IDEBUG.GE.2) THEN
                   WRITE(22,'(A,2I5,1P5E11.3)')    'RT:',NX,NY,X,Y0,0.D0,CD0
                   WRITE(22,'(A,2I5,1P5E11.3,I5)') '   ',NX,NY,X,CRF,    CD1,INFO
                END IF
                RF=DBLE(CRF)
                RFI=AIMAG(CRF)
-               IF(INFO.GE.1.AND.INFO.LE.3.AND. &
-                    RF.GE.YMIN.AND.RF.LE.YMAX.AND. &
-                    ABS(CD1).LE.EPSDP.AND. &
-                    ABS(RF-RFPREV).GT.EPSRF) THEN
-                  V=RFI/RF
-                  IF(V.GT.1.D-12) THEN
-                     VL=MAX(MIN(0.D0,LOG10(V)),-12.D0)+12.D0  ! 0<VL<12
-                     f=GUCLIP(VL/12.D0)
-                     CALL SETRGB(f,1.0-f,0.0)
-                  ELSE IF(V.LT.-1.D-12) THEN
-                     VL=MAX(MIN(0.D0,LOG10(-V)),-12.D0)+12.D0  ! 0<VL<12
-                     f=GUCLIP(VL/12.D0)
-                     CALL SETRGB(0.0,1.0-f,f)
-                  ELSE
-                     VL=0.D0
-                     f=0.0
-                     CALL SETRGB(0.0,1.0,0.0)
-                  END IF
-                  
-                  SELECT CASE(KID)
-                  CASE('1','2','3','7')
-                     XN=X*RKNORM(NX)
-                     YN=RF*RFNORM(NX)
-                     YNI=RFI*RFNORM(NX)
-                  CASE('4','5','6')
-                     XN=X
-                     YN=RF*RFNORM(NX)
-                     YNI=RFI*RFNORM(NX)
-                  END SELECT
-                  
-                  CALL MARK2D(GUCLIP(XN),GUCLIP(YN))
-                  IF(NFLOUT.EQ.21) THEN
-                     WRITE(21,'(1P6E15.7,I5,1P2E15.7)') &
-                          X,RF,RFI,XN,YN,YNI,INFO,CD1
-                    RFPREV=RF
-                 END IF
+               IF(INFO.GE.1.AND.INFO.LE.3.AND. &     ! converged
+                    RF.GE.YMIN.AND.RF.LE.YMAX.AND. & ! not out-of-range
+                    ABS(CD1).LE.EPSDP.AND. &         ! small residue
+                    RFI*RFNORM(NX).GT.-EPSRF) THEN   ! not strong damping
+                  ncount=ncount+1                    ! these data are saved
+                  NXA(ncount)=NX
+                  XA(ncount)=X
+                  RFA(ncount)=RF
+                  RFIA(ncount)=RFI
                END IF
-               RFPREV=RF
             END IF
             VAL1=VAL2
          END DO
       END DO
-      CALL SETRGB(0.0,0.0,0.0)
+      ncount_max=ncount
 
+      ! --- evaluate min and max of rfi/rf ---
+      
+      vmin=0.D0
+      vmax=0.D0
+      DO ncount=1,ncount_max
+         v=RFIA(ncount)/RFA(ncount)
+         vmin=MIN(v,vmin)
+         vmax=MAX(v,vmax)
+      END DO
+      WRITE(6,'(A,I6,2ES12.4)') 'rfi/rf min/max:',ncount_max,vmin,vmax
+      IF(vmax.LT. 1.D-8) vmax= 1.D-8
+      IF(vmin.GT.-1.D-8) vmin=-1.D-8
+
+      ! --- File output ---
+      
+      IF(NFLOUT.NE.0) THEN
+         DO ncount=1,ncount_max
+            NX=NXA(ncount)
+            X=XA(ncount)
+            RF=RFA(ncount)
+            RFI=RFIA(ncount)
+            SELECT CASE(KID)
+            CASE('1','2','3','7')
+               XN=X*RKNORM(NX)
+               YN=RF*RFNORM(NX)
+               YNI=RFI*RFNORM(NX)
+            CASE('4','5','6')
+               XN=X
+               YN=RF*RFNORM(NX)
+               YNI=RFI*RFNORM(NX)
+            END SELECT
+                  
+            WRITE(NFLOUT,'(1P6E15.7,I5,1P2E15.7)') &
+                 X,RF,RFI,XN,YN,YNI,INFO,CD1
+         END DO
+      END IF
+
+      SELECT CASE(NID)
+      CASE(4,5)
+         CALL PAGES
+         CALL SETLIN(0,0,7)
+         CALL SETCHS(0.3,0.)
+         CALL SETMKS(3,0.1)
+         CALL GMNMX1(GX,1,NGXMAX,1,GXMIN,GXMAX)
+         CALL GMNMX1(GY,1,NGYMAX,1,GYMIN,GYMAX)
+         CALL GQSCAL(GXMIN,GXMAX,GXSMN,GXSMX,GSCALX)
+         CALL GQSCAL(GYMIN,GYMAX,GYSMN,GYSMX,GSCALY)
+         CALL GDEFIN(3.,18.,2.,17.,GXSMN,GXSMX,GYSMN,GYSMX)
+         CALL GFRAME
+         CALL GSCALE(GXSMN,GSCALX,0.0,0.0,0.2,9)
+         CALL GSCALE(0.0,0.0,GYSMN,GSCALY,0.2,9)
+         CALL GVALUE(GXSMN,2*GSCALX,0.0,0.0,NGULEN(2*GSCALX))
+         CALL GVALUE(0.0,0.0,GYSMN,2*GSCALY,NGULEN(2*GSCALY))
+
+         IF(NID.EQ.4) THEN
+            CALL CONTQ2(GZ,GX,GY,NGXMAX,NGXMAX,NGYMAX,0.0,2.0,1,0,0,KA)
+         END IF
+
+         DO ncount=1,ncount_max
+            NX=NXA(ncount)
+            X=XA(ncount)
+            RF=RFA(ncount)
+            RFI=RFIA(ncount)
+!            IF(RFI.LE.-0.01D0*ABS(RF)) CYCLE
+            SELECT CASE(KID)
+            CASE('1','2','3','7')
+               XN=X*RKNORM(NX)
+               YN=RF*RFNORM(NX)
+               YNI=RFI*RFNORM(NX)
+            CASE('4','5','6')
+               XN=X
+               YN=RF*RFNORM(NX)
+               YNI=RFI*RFNORM(NX)
+            END SELECT
+
+            v=RFI/RF
+            IF(v.GT.1.D-8) THEN
+               f=GUCLIP(MIN(v/vmax,1.D0))
+               CALL SETRGB(1.0,0.8*(1.0-f),0.0) ! 0 to 1: yellow to red
+            ELSE IF(v.LT.-1.D-8) THEN
+               f=GUCLIP(MIN(-v/MIN(vmax,EPSRF),1.D0))
+               CALL SETRGB(0.0,0.5*(1.0-f),1.0)   ! 0 to -1: green to blue
+            ELSE
+               CALL SETRGB(0.8,0.8,0.8)
+            END IF
+
+            CALL MARK2D(GUCLIP(XN),GUCLIP(YN))
+         END DO
+      
+         CALL DP_CONT4_PARM(KID,vmin,vmax,RFNORM(1),RKNORM(1))
+         CALL PAGEE
+
+      CASE(6)
+         CALL PAGES
+         CALL SETLIN(0,0,7)
+         CALL SETCHS(0.3,0.)
+         CALL SETMKS(3,0.1)
+         CALL GMNMX1(GX,1,NGXMAX,1,GXMIN,GXMAX)
+         CALL GMNMX1(GY,1,NGYMAX,1,GYMIN,GYMAX)
+         CALL GQSCAL(GXMIN,GXMAX,GXSMN,GXSMX,GSCALX)
+         CALL GQSCAL(GYMIN,GYMAX,GYSMN,GYSMX,GSCALY)
+         CALL GDEFIN(3.,18.,2.,17.,GXSMN,GXSMX,GYSMN,GYSMX)
+         CALL GFRAME
+         CALL GSCALE(GXSMN,GSCALX,0.0,0.0,0.2,9)
+         CALL GSCALE(0.0,0.0,GYSMN,GSCALY,0.2,9)
+         CALL GVALUE(GXSMN,2*GSCALX,0.0,0.0,NGULEN(2*GSCALX))
+         CALL GVALUE(0.0,0.0,GYSMN,2*GSCALY,NGULEN(2*GSCALY))
+
+         DO ncount=1,ncount_max
+            NX=NXA(ncount)
+            X=XA(ncount)
+            RF=RFA(ncount)
+            RFI=RFIA(ncount)
+            SELECT CASE(KID)
+            CASE('1','2','3','7')
+               XN=X*RKNORM(NX)
+               YN=RF*RFNORM(NX)
+            CASE('4','5','6')
+               XN=X
+               YN=RF*RFNORM(NX)
+            END SELECT
+                  
+            CALL SETRGB(0.8,0.8,0.8)
+            CALL MARK2D(GUCLIP(XN),GUCLIP(YN))
+
+            v=RFI/RF
+            IF(v.GT.1.D-8) THEN
+               f=GUCLIP(MIN(v/vmax,1.D0))
+               CALL SETRGB(1.0,0.8*(1.0-f),0.0) ! 0 to 1: yellow to red
+               CALL MARK2D(GUCLIP(XN),GUCLIP(YN+RFI*RFNORM(NX)))
+            ELSE IF(v.LT.-1.D-8) THEN
+               f=GUCLIP(MIN(-v/MIN(vmax,EPSRF),1.D0))
+               CALL SETRGB(0.0,0.5*(1.0-f),1.0)   ! 0 to -1: green to blue
+               CALL MARK2D(GUCLIP(XN),GUCLIP(YN+RFI*RFNORM(NX)))
+            END IF
+
+         END DO
+         CALL DP_CONT4_PARM(KID,vmin,vmax,RFNORM(1),RKNORM(1))
+         CALL PAGEE
+      END SELECT
+
+      DEALLOCATE(NXA,XA,RFA,RFIA)
+      DEALLOCATE(GX,GY,GZ,Z,KA,RFNORM,RKNORM)
+      GOTO 2
+
+ 9000 RETURN
+    END SUBROUTINE DP_CONT4
+
+ 
+    SUBROUTINE DP_CONT4_PARM(KID,vmin,vmax,RFNORM,RKNORM)
+      USE dpcomm_local
+      IMPLICIT NONE
+      CHARACTER(LEN=1),INTENT(IN):: KID
+      REAL(rkind),INTENT(IN):: vmin,vmax
+      REAL(rkind):: RFNORM,RKNORM
+      EXTERNAL SETRGB,MOVE,TEXT,NUMBD,NUMBI
+
+      CALL SETRGB(0.0,0.0,0.0)
+      
       CALL MOVE(3.0,17.5)
+      CALL TEXT ('RF',2)
+      CALL TEXT(' vs ',4)
       IF(KID.EQ.'1') THEN
          CALL TEXT ('KX',2)
       ELSEIF(KID.EQ.'2') THEN
@@ -365,50 +520,176 @@ CONTAINS
       ELSEIF(KID.EQ.'7') THEN
          CALL TEXT ('K',1)
       ENDIF
-      CALL TEXT('-',1)
-      CALL TEXT ('RF',2)
+      IF(NORMF.GE.1.AND.NORMF.LE.NSMAX) THEN
+         CALL TEXT('  fc=',5)
+         CALL NUMBD(1.D0/RFNORM,'(ES11.3)',11)
+      END IF
+      IF(NORMK.GE.1.AND.NORMK.LE.NSMAX) THEN
+         CALL TEXT('  Lc=',5)
+         CALL NUMBD(RKNORM,'(ES11.3)',11)
+      ELSEIF(NORMK.LE.-1.AND.NORMK.GE.-NSMAX) THEN
+         CALL TEXT('  LA=',5)
+         CALL NUMBD(RKNORM,'(ES11.3)',11)
+      END IF
+
+      CALL MOVE(20.0,17.5)
+      CALL TEXT('BB  =',5)
+      CALL NUMBD(BB,'(1PE11.3)',11)
 
       CALL MOVE(20.0,16.5)
-      CALL TEXT('RF  =',5)
-      CALL NUMBD(RF0,  '(1PE11.3)',11)
+      CALL TEXT('PN1 =',5)
+      CALL NUMBD(PN(1),'(1PE11.3)',11)
       CALL MOVE(20.0,16.0)
-      CALL TEXT('RFI=',5)
-      CALL NUMBD(RFI0, '(1PE11.3)',11)
+      CALL TEXT('PTPR=',5)
+      CALL NUMBD(PTPR(1),'(1PE11.3)',11)
       CALL MOVE(20.0,15.5)
-      CALL TEXT('KX  =',5)
-      CALL NUMBD(RKX0,'(1PE11.3)',11)
+      CALL TEXT('PTPP=',5)
+      CALL NUMBD(PTPP(1),'(1PE11.3)',11)
       CALL MOVE(20.0,15.0)
-      CALL TEXT('KY  =',5)
-      CALL NUMBD(RKY0,'(1PE11.3)',11)
+      CALL TEXT('PUPR=',5)
+      CALL NUMBD(PUPR(1),'(1PE11.3)',11)
       CALL MOVE(20.0,14.5)
-      CALL TEXT('KZ  =',5)
-      CALL NUMBD(RKZ0,'(1PE11.3)',11)
+      CALL TEXT('PUPP=',5)
+      CALL NUMBD(PUPP(1),'(1PE11.3)',11)
       CALL MOVE(20.0,14.0)
-      CALL TEXT('X   =',5)
-      CALL NUMBD(RX0,'(1PE11.3)',11)
-      CALL MOVE(20.0,13.5)
-      CALL TEXT('Y   =',5)
-      CALL NUMBD(RY0,'(1PE11.3)',11)
+      CALL TEXT('MODELP(1)=',10)
+      CALL NUMBI(MODELP(1),'(I6)',6)
+
       CALL MOVE(20.0,13.0)
-      CALL TEXT('Z   =',5)
-      CALL NUMBD(RZ0,'(1PE11.3)',11)
+      CALL TEXT('PN2 =',5)
+      CALL NUMBD(PN(2),'(1PE11.3)',11)
       CALL MOVE(20.0,12.5)
-      CALL TEXT('ANG =',5)
-      CALL NUMBD(RKANG0,'(1PE11.3)',11)
-      CALL PAGEE
-      DEALLOCATE(GX,GY,GZ,Z,KA,RFNORM,RKNORM)
-      GOTO 2
+      CALL TEXT('PTPR=',5)
+      CALL NUMBD(PTPR(2),'(1PE11.3)',11)
+      CALL MOVE(20.0,12.0)
+      CALL TEXT('PTPP=',5)
+      CALL NUMBD(PTPP(2),'(1PE11.3)',11)
+      CALL MOVE(20.0,11.5)
+      CALL TEXT('PUPR=',5)
+      CALL NUMBD(PUPR(2),'(1PE11.3)',11)
+      CALL MOVE(20.0,11.0)
+      CALL TEXT('PUPP=',5)
+      CALL NUMBD(PUPP(2),'(1PE11.3)',11)
+      CALL MOVE(20.0,10.5)
+      CALL TEXT('MODELP(2)=',10)
+      CALL NUMBI(MODELP(2),'(I6)',6)
 
- 9000 RETURN
- END SUBROUTINE DP_CONT4
+      CALL MOVE(20.0, 9.5)
+      CALL TEXT('PN3 =',5)
+      CALL NUMBD(PN(3),'(1PE11.3)',11)
+      CALL MOVE(20.0, 9.0)
+      CALL TEXT('PTPR=',5)
+      CALL NUMBD(PTPR(3),'(1PE11.3)',11)
+      CALL MOVE(20.0, 8.5)
+      CALL TEXT('PTPP=',5)
+      CALL NUMBD(PTPP(3),'(1PE11.3)',11)
+      CALL MOVE(20.0, 8.0)
+      CALL TEXT('PUPR=',5)
+      CALL NUMBD(PUPR(3),'(1PE11.3)',11)
+      CALL MOVE(20.0, 7.5)
+      CALL TEXT('PUPP=',5)
+      CALL NUMBD(PUPP(3),'(1PE11.3)',11)
+      CALL MOVE(20.0, 7.0)
+      CALL TEXT('MODELP(3)=',10)
+      CALL NUMBI(MODELP(3),'(I6)',6)
 
-!     *************************
+      SELECT CASE(KID)
+      CASE('1','2','3','7')
+         SELECT CASE(KID)
+         CASE('1')
+            CALL MOVE(20.0, 6.0)
+            CALL TEXT('KY  =',5)
+            CALL NUMBD(RKY0,'(1PE11.3)',11)
+            CALL MOVE(20.0, 5.5)
+            CALL TEXT('KZ  =',5)
+            CALL NUMBD(RKZ0,'(1PE11.3)',11)
+         CASE('2')
+            CALL MOVE(20.0, 6.0)
+            CALL TEXT('KX  =',5)
+            CALL NUMBD(RKX0,'(1PE11.3)',11)
+            CALL MOVE(20.0, 5.5)
+            CALL TEXT('KZ  =',5)
+            CALL NUMBD(RKZ0,'(1PE11.3)',11)
+         CASE('3')
+            CALL MOVE(20.0, 6.0)
+            CALL TEXT('KX  =',5)
+            CALL NUMBD(RKX0,'(1PE11.3)',11)
+            CALL MOVE(20.0, 5.5)
+            CALL TEXT('KY  =',5)
+            CALL NUMBD(RKY0,'(1PE11.3)',11)
+         CASE('7')
+            CALL MOVE(20.0, 6.0)
+            CALL TEXT('ANG =',5)
+            CALL NUMBD(RKANG0,'(1PE11.3)',11)
+            CALL MOVE(20.0, 5.5)
+            CALL TEXT('KZ  =',5)
+            CALL NUMBD(RKZ0,'(1PE11.3)',11)
+         END SELECT
+         CALL MOVE(20.0, 5.0)
+         CALL TEXT('X   =',5)
+         CALL NUMBD(RX0,'(1PE11.3)',11)
+         CALL MOVE(20.0, 4.5)
+         CALL TEXT('Y   =',5)
+         CALL NUMBD(RY0,'(1PE11.3)',11)
+         CALL MOVE(20.0, 4.0)
+         CALL TEXT('Z   =',5)
+         CALL NUMBD(RZ0,'(1PE11.3)',11)
+      CASE('4','5','6')
+         CALL MOVE(20.0, 6.0)
+         CALL TEXT('KX  =',5)
+         CALL NUMBD(RKX0,'(1PE11.3)',11)
+         CALL MOVE(20.0, 5.5)
+         CALL TEXT('KY  =',5)
+         CALL NUMBD(RKY0,'(1PE11.3)',11)
+         CALL MOVE(20.0, 5.0)
+         CALL TEXT('KZ  =',5)
+         CALL NUMBD(RKZ0,'(1PE11.3)',11)
+         SELECT CASE(KID)
+         CASE('4')
+            CALL MOVE(20.0, 4.5)
+            CALL TEXT('Y   =',5)
+            CALL NUMBD(RY0,'(1PE11.3)',11)
+            CALL MOVE(20.0, 4.0)
+            CALL TEXT('Z   =',5)
+            CALL NUMBD(RZ0,'(1PE11.3)',11)
+         CASE('5')
+            CALL MOVE(20.0, 4.5)
+            CALL TEXT('X   =',5)
+            CALL NUMBD(RX0,'(1PE11.3)',11)
+            CALL MOVE(20.0, 4.0)
+            CALL TEXT('Z   =',5)
+            CALL NUMBD(RZ0,'(1PE11.3)',11)
+         CASE('6')
+            CALL MOVE(20.0, 4.5)
+            CALL TEXT('X   =',5)
+            CALL NUMBD(RX0,'(1PE11.3)',11)
+            CALL MOVE(20.0, 4.0)
+            CALL TEXT('Y   =',5)
+            CALL NUMBD(RY0,'(1PE11.3)',11)
+         END SELECT
+      END SELECT
+         
+      CALL MOVE(20.0, 3.0)
+      CALL TEXT('MODEL_ES =',10)
+      CALL NUMBI(MODEL_ES,'(I6)',6)
+      CALL MOVE(20.0, 2.5)
+      CALL TEXT('Imax=',5)
+      CALL NUMBD(vmax,'(ES11.3)',11)
+      CALL MOVE(20.0, 2.0)
+      CALL TEXT('Imin=',5)
+      CALL NUMBD(vmin,'(ES11.3)',11)
+      RETURN
+    END SUBROUTINE DP_CONT4_PARM
+
+
+ !     *************************
 !           BRENT METHOD 2
 !     *************************
 
   SUBROUTINE DPBRENTX(CX,INFO)
 
     USE dpcomm_local
+    USE libbrent
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(INOUT):: CX
     INTEGER,INTENT(OUT):: INFO

@@ -1,16 +1,27 @@
+! libkio.f90
+
+MODULE libkio
+
+  PRIVATE
+  PUBLIC TASK_KLIN
+  PUBLIC TASK_PARM
+
+CONTAINS
+
 !     ***** INPUT KID or LINE *****
 !                   MODE=0: LINE INPUT
-!                        1: KID INPUT
+!                        1: KID INPUT (first one char: a-z,A-Z,#,?,!)
 !                        2: PARM INPUT
-!                        3: NEW PROMPT
+!                        3: ERROR INPUT
 
       SUBROUTINE TASK_KLIN(LINE,KID,MODE,XXPARM)
 
+      USE libchar
       IMPLICIT NONE
-      INTEGER(4), INTENT(OUT)  :: MODE
+      INTEGER, INTENT(OUT)  :: MODE
       CHARACTER(LEN=80),INTENT(OUT) :: LINE
       CHARACTER(LEN=1), INTENT(OUT) :: KID
-      INTEGER(4)  :: I, ID, IERR, IKID
+      INTEGER  :: I, ID, IERR, IKID
       EXTERNAL XXPARM
 
       READ(5,'(A80)',ERR=2,END=3) LINE    ! read one line
@@ -32,9 +43,7 @@
       ENDIF
 
       KID=LINE(1:1)                  ! if first char is lower-case, captalized
-      IKID=ICHAR(KID)
-      IF(IKID.GE.97.AND.IKID.LE.122) IKID=IKID-32
-      KID=CHAR(IKID)
+      CALL toupper(KID)
 
       IF((KID.GE.'A'.AND.KID.LE.'Z').OR. &
      &    KID.EQ.'?'.OR.KID.EQ.'#'.OR.KID.EQ.'!') THEN  ! one char input
@@ -42,7 +51,7 @@
          RETURN
       ENDIF
 
-      KID=' '                                           ! line char
+      KID=' '                                           ! line input
       MODE=0
       RETURN
 
@@ -82,14 +91,14 @@
 
       IMPLICIT NONE
 
-      INTEGER(4), INTENT(IN)   :: MODE
-      INTEGER(4), INTENT(OUT)  :: IERR
+      INTEGER, INTENT(IN)   :: MODE
+      INTEGER, INTENT(OUT)  :: IERR
       CHARACTER(LEN=*) , INTENT(IN) :: KWD, KIN
       CHARACTER(LEN=80):: LINE
       CHARACTER(LEN=94):: KNLINE
       CHARACTER(LEN=6) :: KNL
       LOGICAL          :: LEX
-      INTEGER(4)       :: IST, KL, KL1, KL2
+      INTEGER       :: IST, KL, KL1, KL2
       EXTERNAL XXNLIN,XXPLST
 
       IERR=0
@@ -98,8 +107,7 @@
 
       IF(MODE.EQ.0) THEN
     1    CONTINUE
-         CALL KTRIM(KNL,KL)
-         WRITE(6,'(A,A,A)') '## INPUT ',KNL(1:KL),' :'
+         WRITE(6,'(A,A,A)') '## INPUT ',TRIM(KNL),' :'
          CALL XXNLIN(5,IST,IERR)
          IF(IERR.EQ.8) THEN
             CALL XXPLST
@@ -119,14 +127,11 @@
          IF(IERR.EQ.8) GOTO 9800
          IF(IERR.EQ.9) GOTO 9900
          CLOSE(25)
-         CALL KTRIM(LINE,KL)
          WRITE(6,'(A,A,A)')  &
-     &        '## FILE (',LINE(1:KL),') IS ASSIGNED FOR PARM INPUT'
+     &        '## FILE (',TRIM(LINE),') IS ASSIGNED FOR PARM INPUT'
 
       ELSEIF(MODE.EQ.2) THEN
-         CALL KTRIM(KNL,KL1)
-         CALL KTRIM(LINE,KL2)
-         KNLINE=' &'//KNL(1:KL1)//' '//LINE(1:KL2)//' &END'
+         KNLINE=' &'//TRIM(KNL)//' '//TRIM(LINE)//' /'
          WRITE(7,'(A90)') KNLINE
          REWIND(7)
          CALL XXNLIN(7,IST,IERR)
@@ -138,7 +143,7 @@
             IERR=6
             RETURN
          ENDIF
-         WRITE(6,'(A,A6,A2,A)') '## PARM INPUT ACCEPTED: ',KWD,': ',LINE(1:KL2)
+         WRITE(6,'(A,A6,A2,A)') '## PARM INPUT ACCEPTED: ',KWD,': ',TRIM(LINE)
       ELSE
          WRITE(6,'(A,I4)') 'XX XXPARM : UNKNOWN MODE =',MODE
          IERR=7
@@ -156,3 +161,5 @@
       IERR=5
       RETURN
       END SUBROUTINE TASK_PARM
+
+END MODULE libkio

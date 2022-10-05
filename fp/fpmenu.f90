@@ -24,13 +24,14 @@
       USE fpcalchieff
       USE libmpi
       USE libmtx
+      USE libkio
 
       IMPLICIT NONE
       CHARACTER(LEN=1)::  KID
       CHARACTER(LEN=80):: LINE
       integer:: ierr,NGRAPH_SAVE
       integer,DIMENSION(1):: mode
-      REAL(4):: cputime1,cputime2
+      REAL:: cputime1,cputime2
 
     1 CONTINUE
       IF(nrank.EQ.0) THEN
@@ -74,8 +75,7 @@
             CALL fp_view
          endif
       ELSEIF (KID.EQ.'G') THEN
-         IF(nrank.EQ.0) CALL fp_gout
-         CALL mtx_barrier
+         CALL fp_gout
       ELSEIF (KID.EQ.'F') THEN
          IF(nrank.EQ.0) THEN
             NGRAPH_SAVE=NGRAPH
@@ -109,13 +109,14 @@
          CALL mtx_barrier
       ELSEIF (KID.EQ.'L') THEN
          CALL OPEN_EVOLVE_DATA_OUTPUT
-         CALL FP_PRE_LOAD
+         CALL FP_PRE_LOAD(ierr)
+         IF(ierr.NE.0) GO TO 1
          if(nrank.eq.0) CALL fp_load2
          CALL mtx_barrier
          CALL FP_POST_LOAD
       ELSEIF (KID.EQ.'Z') THEN
-         CALL fp_caldeff
-         CALL fp_calchieff
+         IF(nsize.EQ.1) CALL fp_caldeff      ! not for parallel
+         IF(nsize.EQ.1) CALL fp_calchieff    ! not for parallel
       ELSEIF (KID.EQ.'Q') THEN
          CALL CLOSE_EVOLVE_DATA_OUTPUT 
          GO TO 9000

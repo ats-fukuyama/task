@@ -11,7 +11,7 @@
       USE fpcoef
       USE fpcalw
       USE fpbounce
-      USE equnit_mod
+      USE equnit
       USE fpmpi
       USE libmpi
       USE fpcaleind
@@ -76,7 +76,6 @@
          CALL eqcalq(IERR)
          CALL eqgetb(BB,RR,RIP,RA,RKAP,RDLT,RB)
       ENDIF
-!      WRITE(6,*) 'RKAP=',RKAP,' set to 1.0'
       RKAP=1.D0
 
 !     ----- set radial mesh -----
@@ -493,13 +492,14 @@
       END SUBROUTINE FPCINI
 
 ! ============================================================
-      SUBROUTINE fp_comm_setup
+      SUBROUTINE fp_comm_setup(ierr)
 
       USE libmtx
       IMPLICIT NONE
       INTEGER:: ierr, NREND1, keys,N
       INTEGER,DIMENSION(nsize):: ima1,ima2,npa1,npa2,nra1,nra2,nma1,nma2,insa1,insa2
-
+      ierr=0
+      
 !     ----- Check nsize -----
       IF(N_partition_s*N_partition_r*N_partition_p.ne.nsize)THEN
          IF(NRANK.eq.0) THEN
@@ -743,7 +743,7 @@
         USE fpsub
       IMPLICIT NONE
       INTEGER:: NTH,NP,NR,NSA,NS,NSB
-      REAL(8):: FL
+      REAL(rkind):: FL
 
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
@@ -799,7 +799,7 @@
       USE fpsub
       IMPLICIT NONE
       INTEGER:: NTH,NP,NR,NSA,NS
-      REAL(8):: FL
+      REAL(rkind):: FL
 
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
@@ -857,7 +857,7 @@
       USE EG_READ
       IMPLICIT NONE
       INTEGER:: NSA, NSB, NS, NSFP, NSFD, NR, ISW_CLOG, i, j
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
       real(kind8):: RTFD0L, RHON, RNE, RTE, RLNRL, FACT, RNA, RTA, RNB, RTB, SUM, AMFDL
       real(kind8):: A_D, tau_se_E0, k_energy, log_energy, sigma_cx0, sigma_cx, tau_cx_E1
       real(kind8):: tau_se_E0E1, k_energy1, log10_neu0, log10_neus, alpha, beta, N_NEUT, E_CR
@@ -1269,8 +1269,8 @@
 
       integer :: ierr,NSA,NS,NR,N,NSW,i,NSFP,NSB
       real:: gut1, gut2, gut_prep
-      real(8):: SIGMA
-      real(8),dimension(:),allocatable:: conduct_temp, E1_temp
+      real(rkind):: SIGMA
+      real(rkind),dimension(:),allocatable:: conduct_temp, E1_temp
       integer,dimension(6):: idata
       integer,dimension(6*nsize):: idata2
 
@@ -1284,7 +1284,8 @@
       NT_init=0
       gut_comm(:)=0.0
 
-      CALL fp_comm_setup
+      CALL fp_comm_setup(ierr)
+      IF(ierr.NE.0) RETURN
 
 !     ----- Allocate variables -----
 
@@ -1338,12 +1339,12 @@
       CALL fp_set_nsa_nsb
 
 !     ----- create meches -----
-!      WRITE(6,*) "START MESH"
       CALL fp_mesh(ierr)
-!      WRITE(6,*) "END MESH"
+
 !     ----- Initialize diffusion coef. -----
       call FPCINI
       RNS_DELF(:,:)=0.D0
+
 !     ----- set parameters for target species -----
       CALL fp_set_normalize_param
 

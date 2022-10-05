@@ -7,6 +7,7 @@ C
 C      use plfile_prof_mod
       use wmtest
       USE dpparm,ONLY: dpprep
+      USE libkio
       INCLUDE 'wmcomm.inc'
 C
       EXTERNAL WMPARM
@@ -27,22 +28,22 @@ C
             CALL TASK_KLIN(LINE,KID,MODE,WMPARM)
          ENDIF
          CALL DPPREP(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),IERR) !=====
-         CALL MPBCIA(MODE)
+         CALL mtx_broadcast1_integer(MODE)
          IF(MODE.EQ.2) CALL WMPRBC
       IF(MODE.NE.1) GOTO 1
 C
     2 CONTINUE
-         CALL MPBCKA(KID)
+         CALL mtx_broadcast1_character(KID)
 C
          IF (KID.EQ.'P') THEN
             IF(NRANK.EQ.0) CALL WMPARM(0,'WM',IERR)
-            CALL MPSYNC
+            CALL mtx_barrier
             CALL WMPRBC
             KID=' '
          ELSE IF(KID.EQ.'V') THEN
             IF(NRANK.EQ.0) CALL WMVIEW
             CALL DPPREP(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),IERR) !=====
-            CALL MPSYNC
+            CALL mtx_barrier
             KID=' '
 C
 C        *** WAVE CALCULATION ***
@@ -50,7 +51,7 @@ C
          ELSEIF (KID.EQ.'R') THEN
 C            CALL plfile_prof_read(modeln,modelq,ierr)
             CALL WM_LOOP(IERR)
-            CALL MPSYNC
+            CALL mtx_barrier
             IF(IERR.NE.0) GOTO 1
             KID=' '
 C
@@ -59,7 +60,7 @@ C
       ELSEIF(KID.EQ.'D') THEN
 C         CALL plfile_prof_read(modeln,modelq,ierr)
          IF(NRANK.EQ.0) READ(LINE(2:),*,ERR=1,END=1) NID
-         CALL MPBCIA(NID)
+         CALL mtx_broadcast1_integer(NID)
          IF(NID.EQ.0) THEN
             CALL WMAM0D(KID,LINE)
          ELSEIF(NID.EQ.1) THEN
@@ -82,7 +83,7 @@ C        *** GRAPHICS ***
 C
          ELSE IF (KID.EQ.'G') THEN
             IF(NRANK.EQ.0) CALL WMGOUT
-            CALL MPSYNC
+            CALL mtx_barrier
             KID=' '
 C
 C        *** FILE OUTPUT ***
@@ -91,7 +92,7 @@ C
             IF(NRANK.EQ.0) THEN
                CALL WMSAVE
             ENDIF
-            CALL MPSYNC
+            CALL mtx_barrier
             KID=' '
          ELSE IF (KID.EQ.'W') THEN
             IF(NRANK.EQ.0) THEN
@@ -101,7 +102,7 @@ C
                ENDIF
                CALL WMWOUT
             ENDIF
-            CALL MPSYNC
+            CALL mtx_barrier
             KID=' '
 C
 C        *** TAE FREQUENCY ***
@@ -113,7 +114,7 @@ C
             CALL WMSETJ(IERR)
                IF(IERR.NE.0) GOTO 1
             IF(NRANK.EQ.0) CALL WMTAE
-            CALL MPSYNC
+            CALL mtx_barrier
             KID=' '
 C
 C        *** Pabs(r,s) output for TOPICS ***
@@ -121,7 +122,7 @@ C
          ELSE IF (KID.EQ.'O') THEN
             CALL WM_TOPICS(IERR)
             IF(IERR.NE.0) GOTO 1
-            CALL MPSYNC
+            CALL mtx_barrier
             KID=' '
 C
          ELSE IF(KID.EQ.'H') THEN
@@ -141,7 +142,7 @@ C
 C
          ELSEIF (KID.EQ.'Z') THEN
             CALL WMDEBUG(IERR)
-            CALL MPSYNC
+            CALL mtx_barrier
             IF(IERR.NE.0) GOTO 1
             KID=' '
 C

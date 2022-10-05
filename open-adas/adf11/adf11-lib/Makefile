@@ -28,7 +28,7 @@ lib-adf11.f90 \
 
 OBJS = $(SRCS:.for=.o) $(SRCX:.f90=.o) 
 
-LIBS = lib-adf11.a ../../$(LIBMTXMPI) ../../../lib/libtask.a 
+LIBS = lib-adf11.a ../../$(LIBMTXMPI) ../../../lib/libtask.a ../../../lib/libgrf.a 
 
 .for.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)

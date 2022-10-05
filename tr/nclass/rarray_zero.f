@@ -8,14 +8,15 @@
 !Output:
 !  x-zeroed array
 !***********************************************************************
+      USE trcomm,ONLY: rkind
       IMPLICIT NONE
 !Declaration of input variables
       INTEGER        n
-      REAL           x(*)
+      REAL(rkind)    x(*)
 !Declaration of local variables
       INTEGER        i
       DO i=1,n
-        x(i)=0.0
+        x(i)=0.D0
       ENDDO   
       RETURN
       END 

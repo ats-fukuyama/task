@@ -19,7 +19,7 @@ CONTAINS
     INTEGER,SAVE:: init_adas=0
     INTEGER:: NS,NSA,NZ,NEQ,NR,NV,ID_adpost,ID_adas,l1,l2
     REAL(rkind):: RHON,DRX
-    TYPE(pl_plf_type),DIMENSION(:),ALLOCATABLE:: PLF
+    TYPE(pl_prf_type),DIMENSION(:),ALLOCATABLE:: PLF
 
     IERR=0
 

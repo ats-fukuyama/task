@@ -174,6 +174,7 @@ CONTAINS
 
   SUBROUTINE W1BND(IERR)
     USE w1comm
+    USE libbnd
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
     REAL(rkind):: DS0(2,2,2),DS1(2,2,2),DS2(2,2,2)

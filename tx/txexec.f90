@@ -81,6 +81,7 @@ contains
     use tx_coefficients, only : TXCALA
     use tx_interface, only : INTG_F
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ
+    USE libbnd
 !    use f95_lapack ! for self-compiled LAPACK95
 !    use lapack95 ! for intel mkl LAPACK95
 

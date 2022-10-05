@@ -7,23 +7,25 @@ CONTAINS
                      MDM,NPHM,NRM,NSM, &
                      NTHMAX_IN,NPHMAX_IN,NRMAX_IN,NSMAX, &
                      RGMIN,RGMAX,RAXIS,NCONT,NGRAPH)
+    USE bpsd_kinds,ONLY: rkind
     USE grf1d_mod
     IMPLICIT NONE
-    COMPLEX(8),DIMENSION(3,MDM,NPHM,NRM),INTENT(IN):: CEFLD3D
-    COMPLEX(8),DIMENSION(MDM,NPHM,NRM,NSM),INTENT(IN):: CPABS3D
-    REAL(8),DIMENSION(NPHM,NSM),INTENT(IN):: PABST3D
-    REAL(8),DIMENSION(NPHM),INTENT(IN):: PABSTT3D
     INTEGER,INTENT(IN):: MDM,NPHM,NRM,NSM
+    COMPLEX(rkind),DIMENSION(3,MDM,NPHM,NRM),INTENT(IN):: CEFLD3D
+    COMPLEX(rkind),DIMENSION(MDM,NPHM,NRM,NSM),INTENT(IN):: CPABS3D
+    REAL(rkind),DIMENSION(NPHM,NSM),INTENT(IN):: PABST3D
+    REAL(rkind),DIMENSION(NPHM),INTENT(IN):: PABSTT3D
     INTEGER,INTENT(IN):: NTHMAX_IN,NPHMAX_IN,NRMAX_IN,NSMAX
-    REAL(8),INTENT(IN):: RGMIN,RGMAX,RAXIS
+    REAL(rkind),INTENT(IN):: RGMIN,RGMAX,RAXIS
     INTEGER,INTENT(IN):: NCONT,NGRAPH
     INTEGER:: MODE0,MODE1,NN,NPH
-    REAL(4),DIMENSION(NPHMAX_IN):: GX
-    REAL(4),DIMENSION(NPHMAX_IN,1):: GY
+    REAL,DIMENSION(NPHMAX_IN):: GX
+    REAL,DIMENSION(NPHMAX_IN,1):: GY
     INTERFACE 
        FUNCTION GUCLIP(D)
-         REAL(8),INTENT(IN):: D
-         REAL(4):: GUCLIP
+         USE bpsd_kinds,ONLY: rkind
+         REAL(rkind),INTENT(IN):: D
+         REAL:: GUCLIP
        END FUNCTION GUCLIP
     END INTERFACE
 
@@ -75,42 +77,44 @@ CONTAINS
                     RGMIN,RGMAX,RAXIS,MODE,NCONT,NGRAPH)
 
     USE bpsd_constants,ONLY:PI,CI
+    USE bpsd_kinds,ONLY: rkind
     IMPLICIT NONE
-    COMPLEX(8),DIMENSION(3,MDM,NPHM,NRM),INTENT(IN):: CEFLD3D
-    COMPLEX(8),DIMENSION(MDM,NPHM,NRM,NSM),INTENT(IN):: CPABS3D
     INTEGER,INTENT(IN):: MDM,NPHM,NRM,NSM
+    COMPLEX(rkind),DIMENSION(3,MDM,NPHM,NRM),INTENT(IN):: CEFLD3D
+    COMPLEX(rkind),DIMENSION(MDM,NPHM,NRM,NSM),INTENT(IN):: CPABS3D
     INTEGER,INTENT(IN):: NTHMAX_IN,NPHMAX_IN,NRMAX_IN,NSMAX
-    REAL(8),INTENT(IN):: RGMIN,RGMAX,RAXIS
+    REAL(rkind),INTENT(IN):: RGMIN,RGMAX,RAXIS
     INTEGER,INTENT(IN):: MODE,NCONT,NGRAPH
-    REAL(4),DIMENSION(:,:),ALLOCATABLE:: Z
-    REAL(4),DIMENSION(:),ALLOCATABLE:: R
-    REAL(4),DIMENSION(:),ALLOCATABLE:: PH
-    REAL(4),DIMENSION(:),ALLOCATABLE:: ZL,WLN
+    REAL,DIMENSION(:,:),ALLOCATABLE:: Z
+    REAL,DIMENSION(:),ALLOCATABLE:: R
+    REAL,DIMENSION(:),ALLOCATABLE:: PH
+    REAL,DIMENSION(:),ALLOCATABLE:: ZL,WLN
     INTEGER,DIMENSION(:),ALLOCATABLE:: ILN
-    REAL(4),DIMENSION(:,:),ALLOCATABLE:: RGB
+    REAL,DIMENSION(:,:),ALLOCATABLE:: RGB
     INTEGER,DIMENSION(:,:),ALLOCATABLE:: KA(:,:,:)
     INTEGER:: nrmax,nphmax,nr,nth,nph,nn,nglmax,ngl,ispl
     INTEGER:: nr_in,nth_in,nph_in
-    REAL(4):: rmin,rmax,rr,rb,phmin,phmax,dph,zmin,zmax,zmaxm
-    REAL(4):: rmin1,rmax1,rstep,zmin1,zmax1,zstep,fsign,phl
-    COMPLEX(8):: value
+    REAL:: rmin,rmax,rr,rb,phmin,phmax,dph,zmin,zmax,zmaxm
+    REAL:: rmin1,rmax1,rstep,zmin1,zmax1,zstep,fsign,phl
+    COMPLEX(rkind):: value
     INTEGER,parameter:: NRGBA=5
-    REAL(4):: GRGBA(3,NRGBA) = reshape( &
+    REAL:: GRGBA(3,NRGBA) = reshape( &
                                (/ 0.0,0.0,1.0, &
                                   0.0,1.0,1.0, &
                                   1.0,1.0,1.0, &
                                   1.0,1.0,0.0, &
                                   1.0,0.0,0.0/), &
                                   shape(GRGBA))
-    REAL(4):: GLA(NRGBA) = (/0.0,0.40,0.5,0.60,1.0/)
+    REAL:: GLA(NRGBA) = (/0.0,0.40,0.5,0.60,1.0/)
     INTERFACE 
        FUNCTION NGULEN(R)
-         REAL(4),INTENT(IN):: R
+         REAL,INTENT(IN):: R
          INTEGER:: NGULEN
        END FUNCTION NGULEN
        FUNCTION GUCLIP(D)
-         REAL(8),INTENT(IN):: D
-         REAL(4):: GUCLIP
+         USE bpsd_kinds,ONLY: rkind
+         REAL(rkind),INTENT(IN):: D
+         REAL:: GUCLIP
        END FUNCTION GUCLIP
     END INTERFACE
 
@@ -181,7 +185,7 @@ CONTAINS
           CASE(1,4,7)
              Z(NR,NPH)=GUCLIP(REAL(VALUE))
           CASE(2,5,8)
-             Z(NR,NPH)=GUCLIP(IMAG(VALUE))
+             Z(NR,NPH)=GUCLIP(AIMAG(VALUE))
           CASE(3,6,9)
              Z(NR,NPH)=GUCLIP(ABS(VALUE))
           CASE(11:16)
@@ -338,18 +342,20 @@ CONTAINS
   SUBROUTINE wmg3d2(CEFLD3D,CPABS3D,MDM,NPHM,NRM,NSM, &
                     NTHMAX_IN,NPHMAX_IN,NRMAX_IN,NSMAX, &
                     NN,MODE,NGRAPH)
+    USE bpsd_kinds,ONLY: rkind
     IMPLICIT NONE
-    COMPLEX(8),DIMENSION(3,MDM,NPHM,NRM),INTENT(IN):: CEFLD3D
-    COMPLEX(8),DIMENSION(MDM,NPHM,NRM,NSM),INTENT(IN):: CPABS3D
     INTEGER,INTENT(IN):: MDM,NPHM,NRM,NSM
+    COMPLEX(rkind),DIMENSION(3,MDM,NPHM,NRM),INTENT(IN):: CEFLD3D
+    COMPLEX(rkind),DIMENSION(MDM,NPHM,NRM,NSM),INTENT(IN):: CPABS3D
     INTEGER,INTENT(IN):: NTHMAX_IN,NPHMAX_IN,NRMAX_IN,NSMAX,NN,MODE,NGRAPH
-    REAL(4),DIMENSION(NRM,MDM):: Z
+    REAL,DIMENSION(NRM,MDM):: Z
     INTEGER:: NR,NTH,NPH
     CHARACTER(LEN=1):: K2,K3,K4
     INTERFACE 
        FUNCTION GUCLIP(D)
-         REAL(8),INTENT(IN):: D
-         REAL(4):: GUCLIP
+         USE bpsd_kinds,ONLY: rkind
+         REAL(rkind),INTENT(IN):: D
+         REAL:: GUCLIP
        END FUNCTION GUCLIP
     END INTERFACE
 
@@ -368,7 +374,7 @@ CONTAINS
     CASE(2)
        DO NR=1,NRMAX_IN+1
           DO NTH=1,NTHMAX_IN
-             Z(NR,NTH)=GUCLIP(IMAG(CEFLD3D(1,NTH,NPH,NR)))
+             Z(NR,NTH)=GUCLIP(AIMAG(CEFLD3D(1,NTH,NPH,NR)))
           END DO
        END DO
        K2='E'
@@ -395,7 +401,7 @@ CONTAINS
     CASE(5)
        DO NR=1,NRMAX_IN+1
           DO NTH=1,NTHMAX_IN
-             Z(NR,NTH)=GUCLIP(IMAG(CEFLD3D(2,NTH,NPH,NR)))
+             Z(NR,NTH)=GUCLIP(AIMAG(CEFLD3D(2,NTH,NPH,NR)))
           END DO
        END DO
        K2='E'
@@ -422,7 +428,7 @@ CONTAINS
     CASE(8)
        DO NR=1,NRMAX_IN+1
           DO NTH=1,NTHMAX_IN
-             Z(NR,NTH)=GUCLIP(IMAG(CEFLD3D(3,NTH,NPH,NR)))
+             Z(NR,NTH)=GUCLIP(AIMAG(CEFLD3D(3,NTH,NPH,NR)))
           END DO
        END DO
        K2='E'
@@ -523,34 +529,36 @@ CONTAINS
                     RGMIN,RGMAX,RAXIS,MODE,NCONT)
 
     USE bpsd_constants,ONLY:PI,CI
+    USE bpsd_kinds,ONLY: rkind
     IMPLICIT NONE
-    COMPLEX(8),DIMENSION(3,MDM,NPHM,NRM),INTENT(IN):: CEFLD3D
-    COMPLEX(8),DIMENSION(MDM,NPHM,NRM,NSM),INTENT(IN):: CPABS3D
     INTEGER,INTENT(IN):: MDM,NPHM,NRM,NSM
+    COMPLEX(rkind),DIMENSION(3,MDM,NPHM,NRM),INTENT(IN):: CEFLD3D
+    COMPLEX(rkind),DIMENSION(MDM,NPHM,NRM,NSM),INTENT(IN):: CPABS3D
     INTEGER,INTENT(IN):: NTHMAX_IN,NPHMAX_IN,NRMAX_IN,NSMAX
-    REAL(8),INTENT(IN):: RGMIN,RGMAX,RAXIS
+    REAL(rkind),INTENT(IN):: RGMIN,RGMAX,RAXIS
     INTEGER,INTENT(IN):: MODE,NCONT
-    REAL(4),DIMENSION(:,:),ALLOCATABLE:: Z
+    REAL,DIMENSION(:,:),ALLOCATABLE:: Z
     INTEGER,DIMENSION(:,:,:),ALLOCATABLE:: KA
     
-    REAL(4),DIMENSION(:),ALLOCATABLE:: TH
-    REAL(4),DIMENSION(:),ALLOCATABLE:: PH
-    REAL(4),DIMENSION(:),ALLOCATABLE:: ZL,WLN
+    REAL,DIMENSION(:),ALLOCATABLE:: TH
+    REAL,DIMENSION(:),ALLOCATABLE:: PH
+    REAL,DIMENSION(:),ALLOCATABLE:: ZL,WLN
     INTEGER,DIMENSION(:),ALLOCATABLE:: ILN
-    REAL(4),DIMENSION(:,:),ALLOCATABLE:: RGB
+    REAL,DIMENSION(:,:),ALLOCATABLE:: RGB
     INTEGER:: nr,nth,nph,nn,nglmax,ngl,ispl,iprd
     INTEGER:: nr_in,nth_in,nph_in
-    REAL(4):: rmin,rmax,rr,rb,phmin,phmax,dph,zmin,zmax,thmin,thmax,dth
-    REAL(4):: rmin1,rmax1,rstep,zmin1,zmax1,zstep,fsign,phl,zstep1
-    COMPLEX(8):: value
+    REAL:: rmin,rmax,rr,rb,phmin,phmax,dph,zmin,zmax,thmin,thmax,dth
+    REAL:: rmin1,rmax1,rstep,zmin1,zmax1,zstep,fsign,phl,zstep1
+    COMPLEX(rkind):: value
     INTERFACE 
        FUNCTION NGULEN(R)
-         REAL(4),INTENT(IN):: R
+         REAL,INTENT(IN):: R
          INTEGER:: NGULEN
        END FUNCTION NGULEN
        FUNCTION GUCLIP(D)
-         REAL(8),INTENT(IN):: D
-         REAL(4):: GUCLIP
+         USE bpsd_kinds,ONLY: rkind
+         REAL(rkind),INTENT(IN):: D
+         REAL:: GUCLIP
        END FUNCTION GUCLIP
     END INTERFACE
 
@@ -612,7 +620,7 @@ CONTAINS
           CASE(1,4,7)
              Z(NPH,NTH)=GUCLIP(REAL(VALUE))
           CASE(2,5,8)
-             Z(NPH,NTH)=GUCLIP(IMAG(VALUE))
+             Z(NPH,NTH)=GUCLIP(AIMAG(VALUE))
           CASE(3,6,9)
              Z(NPH,NTH)=GUCLIP(ABS(VALUE))
           CASE(11:16)

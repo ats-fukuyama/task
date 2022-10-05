@@ -20,7 +20,7 @@
 
       SUBROUTINE FPFOTT(STRING,FT)
 
-      real(8),DIMENSION(NTG1M):: FT
+      real(rkind),DIMENSION(NTG1M):: FT
       CHARACTER(LEN=*),INTENT(IN):: STRING
 
       CALL FPFOUX1(STRING,NTG1,1,FT,NTG1M)
@@ -35,7 +35,7 @@
 
       SUBROUTINE FPFOTR(STRING,FR)
 
-      real(8),DIMENSION(NRMAX+1,NTG2M):: FR
+      real(rkind),DIMENSION(NRMAX+1,NTG2M):: FR
       CHARACTER(LEN=*),INTENT(IN):: STRING
 
       CALL FPFOUX2(STRING,NRMAX,NTG2,FR,NRMAX+1)
@@ -51,8 +51,8 @@
 
       SUBROUTINE FPFOTP(STRING,FG)
 
-      real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
-      real(8),dimension(NPMAX+1,NRMAX+1):: FL
+      real(rkind),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
+      real(rkind),dimension(NPMAX+1,NRMAX+1):: FL
       CHARACTER(LEN=*),INTENT(IN):: STRING
 
    1  WRITE(6,'(A,I4,A)') '# INPUT NTH (1..',NTHMAX,' or 0) :'
@@ -80,8 +80,8 @@
 
       SUBROUTINE FPFOTC(STRING,FG,MODE)
 !
-      real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
-      real(8),DIMENSION(NPMAX+1,NTHMAX+1):: FL
+      real(rkind),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
+      real(rkind),DIMENSION(NPMAX+1,NTHMAX+1):: FL
       CHARACTER(LEN=*),INTENT(IN):: STRING
 !
     1 CONTINUE
@@ -125,8 +125,8 @@
 !-------------------------------------
       SUBROUTINE FPFOTC_2(STRING,FG,MODE)
 !
-      real(8),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
-      real(8),DIMENSION(NPMAX,NTHMAX):: FL
+      real(rkind),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
+      real(rkind),DIMENSION(NPMAX,NTHMAX):: FL
       CHARACTER(LEN=*),INTENT(IN):: STRING
 !
     1 CONTINUE
@@ -171,7 +171,7 @@
 !-------------------------------------
       SUBROUTINE FPFOUX1(STRING,N1MAX,N2MAX,FL,N1M)
 
-      real(8),DIMENSION(N1M):: FL
+      real(rkind),DIMENSION(N1M):: FL
       CHARACTER(LEN=*),INTENT(IN):: STRING
 
       WRITE(22,'(A)') 'PTG'
@@ -187,7 +187,7 @@
 !----------------------------------------
       SUBROUTINE FPFOUX2(STRING,N1MAX,N2MAX,FL,N1M)
 
-      real(8),DIMENSION(N1M,N2MAX):: FL
+      real(rkind),DIMENSION(N1M,N2MAX):: FL
       CHARACTER(LEN=*),INTENT(IN):: STRING
 
       WRITE(22,'(A)') 'RTG'
@@ -203,7 +203,7 @@
 !----------------------------------------
       SUBROUTINE FPFOUX3(STRING,N1MAX,N2MAX,FL,N1M)
 
-      real(8),DIMENSION(N1M,N2MAX):: FL
+      real(rkind),DIMENSION(N1M,N2MAX):: FL
       CHARACTER(LEN=*),INTENT(IN):: STRING
 
       WRITE(22,'(A)') STRING
@@ -216,7 +216,7 @@
 !----------------------------------------
       SUBROUTINE FPFOUX4(STRING,N1MAX,N2MAX,FL,N1M)
 
-      real(8),DIMENSION(N1M,N2MAX):: FL
+      real(rkind),DIMENSION(N1M,N2MAX):: FL
       CHARACTER(LEN=*),INTENT(IN):: STRING
 
       WRITE(22,'(A)') STRING

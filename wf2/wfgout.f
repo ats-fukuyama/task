@@ -8,6 +8,7 @@ C     ***********************************
 C
       SUBROUTINE WFGOUT
 C
+      USE libchar
       INCLUDE 'wfcomm.inc'
 C
       CHARACTER KLINE*80,KWORD*(NCHM),KWD*(NCHM),KWTEMP*(NCHM)
@@ -41,7 +42,7 @@ C
    10 IF(NL.GE.80) GOTO 20
          NL=NL+1
          KID=KLINE(NL:NL)
-         CALL GUCPTL(KID)
+         CALL toupper(KID)
          IF(KID.NE.','.AND.KID.NE.' ') THEN
             IF(NCH.LT.NCHM) NCH=NCH+1
             KWD(NCH:NCH)=KID
@@ -396,7 +397,7 @@ C
             ELSEIF(KG3.EQ.'5') THEN
                IG3=5
             ELSEIF(KG3.EQ.'6') THEN
-               IDP=2
+C               IDP=2
                IG3=6
             ELSE
                WRITE(6,*) 'XX UNKNOWN KG3:',KG3
@@ -863,10 +864,12 @@ C
          DISPG(IN,4)= (1.D0-WCE)*(1.D0-WCI)
      &               -(1.D0-WCI)*WPE
      &               -(1.D0-WCE)*WPI
-         DISPG(IN,5)= DISPG(IN,1)*DISPG(IN,2)*DISPG(IN,3)*DISPG(IN,4)
-     &               *(1.D0-WCE*WCE)*(1.D0-WCI*WCI)
-         DISPG(IN,6)=-(1.D0-WPE-WPI)
-     &               /(1.D0-WPE/(1.D0-WCE*WCE)-WPI/(1.D0-WCI*WCI))
+!         DISPG(IN,5)= DISPG(IN,1)*DISPG(IN,2)*DISPG(IN,3)*DISPG(IN,4)
+!     &               *(1.D0-WCE*WCE)*(1.D0-WCI*WCI)
+         DISPG(IN,5)= 1.D0+WCE
+         DISPG(IN,6)= 1.D0-WPE-WCE**2
+!         DISPG(IN,6)=-(1.D0-WPE-WPI)
+!     &               /(1.D0-WPE/(1.D0-WCE*WCE)-WPI/(1.D0-WCI*WCI))
 C
          DISPH(IN,1)= 1.D0-WPE-WPI
          DISPH(IN,2)= 1.D0-WPE/(1.D0-WCE*WCE)-WPI/(1.D0-WCI*WCI)

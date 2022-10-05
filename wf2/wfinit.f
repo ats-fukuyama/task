@@ -54,6 +54,24 @@ C
       RMIR   = 2.0D0
       ZBB    = 0.15D0
 C
+C     *** Density Profile Parameters ***
+C
+C        PNPROFY0  : center position of density profile in Z   (m)
+C        PNPROFYW  : effective width of desity profile in Z    (m)
+C        PNPROFY01 : 1st center position of density profile in Z   (m)
+C        PNPROFYW1 : 1st effective width of desity profile in Z    (m)
+C        PNPROFY02 : 2nd center position of density profile in Z   (m)
+C        PNPROFYW2 : 2nd effective width of desity profile in Z    (m)
+C        PNRATIO12 : Ratio of peak desities of profile in Z
+C
+      PNPROFY0 = 0.0D0
+      PNPROFYW = 0.15D0
+      PNPROFY01 = 0.0D0
+      PNPROFYW1 = 0.15D0
+      PNPROFY02 = 0.0D0
+      PNPROFYW2 = 0.15D0
+      PNRATIO12 = 0.0D0
+C
 C     *** CONFIGURATION PARAMETERS (TOKAMAK: MODELB=5) ***
 C
 C        RR    : Plasma major radius                             (m)
@@ -201,6 +219,9 @@ C                2 : Axially exponential profile
 C                3 : Radially and axially parabolic profile
 C                4 : Temporal use
 C                5 : Radially parabolic and axially quartic profile
+C                6 : Radially offset-parabolic and axially parabolic profile
+C                7 : Radially parabolic and axially Gaussian profile
+C                8 : Radially parabolic and axially two-peak Gaussian profile
 C
 C        MODELW: 0 : Fixed density and fixed temperature on boundary
 C                1 : Free density and fixed temperature on boundary
@@ -210,7 +231,10 @@ C                1 : Density gradient model
 C                2 : Pressure gradient model
 C
 C        MODELN: 0 : Fixed crosssection for electron collision with neutrals
-C                1 : Mometum transder collision data
+C                1 : Mometum transfer collision data for Ar, H2, CF4
+C                                H2  for PA(2)~1
+C                                Ar  for PA(2)~40
+C                                CF4 for PA(2)~88
 C
 C        MODELV:   : Type of divide model
 C
@@ -480,6 +504,8 @@ C
       WRITE(6,*) '     DC,PGIVEN,SGIVEN,XGIVEN,YGIVEN,RGIVEN'
       WRITE(6,*) '     NGRAPH,FRATIO,NGXORG,GA,GB,GC,GD,GE,GXN,GYN,GZN,'
       WRITE(6,*) '     GXN1,GXN2,GYN1,GYN2,IXY,IDN'
+      WRITE(6,*) '     PNPROFY0,PNPROFYW,PNRATIO12'
+      WRITE(6,*) '     PNPROFY01,PNPROFYW1,PNPROFY02,PNPROFYW2'
       RETURN
       END
 C
@@ -507,9 +533,10 @@ C
      &              MODELS,MODELB,MODELD,MODELP,MODELW,MODELT,MODELN,
      &              KGINX,KGINV,NGRAPH,FRATIO,NGXORG,
      &              GA,GB,GC,GD,GE,GXN,GYN,GZN,GXN1,GXN2,GYN1,GYN2,
-     &              IXY,IDN,MODIFY
+     &              IXY,IDN,MODIFY,PNPROFY0,PNPROFYW,
+     &              PNPROFY01,PNPROFYW1,PNPROFY02,PNPROFYW2,PNRATIO12
       CHARACTER KSNAME*32,KSNAMZ*32,KSNAMA*32,KSNAMF*32
-      CHARACTER KPNAME*32,KLINE*70,KNAME*80,KID*1
+      CHARACTER KPNAME*32,KLINE*80,KNAME*87,KID*1
       LOGICAL LEX
 C
       MODE=0
@@ -553,9 +580,7 @@ C
       ENTRY WFPARL(KLINE)
 C
       MODE=1
-      CALL KTRIM(KLINE,KL)
-      KNAME=' &WF '//KLINE(1:KL)//' &END'
-C      KNAME=' &WF '//KLINE//' /'
+      KNAME=' &WF '//TRIM(KLINE)//' /'
 C
 C     --- when internal file does not accept namelist ---
 C
@@ -567,7 +592,7 @@ C     --- when internal file accepts namelist ---
 C
 C      READ(KNAME,IN,ERR=8,END=8)
 C
-      WRITE(6,*) '#### PARM INPUT ACCEPTED: ',KLINE(1:KL)
+      WRITE(6,*) '#### PARM INPUT ACCEPTED: ',TRIM(KLINE)
       GOTO 9
     8 WRITE(6,*) 'XX IO ERROR: IOSTAT=',IST
       CALL WFPLST
@@ -679,6 +704,18 @@ C
             WRITE(6,605) 'RF    ',RF    ,'NZMAX ',NZMAX ,
      &                   'RZ    ',RZ    ,'PHIW  ',PHIW
          ENDIF
+      ELSEIF(MODELB.EQ.7) THEN
+         WRITE(6,*) '      RC          ZC          BC'
+         DO NC=1,NCMAX
+            WRITE(6,610) NC,RC(NC),ZC(NC),BC(NC)
+         ENDDO
+         IF(NZMAX.EQ.1) THEN
+            WRITE(6,603) 'RF    ',RF    ,'NPHI  ',NPHI,
+     &                   'PHIW  ',PHIW
+         ELSE
+            WRITE(6,603) 'RF    ',RF    ,'NZMAX ',NZMAX,
+     &                   'PHIW  ',PHIW
+         ENDIF
       ENDIF
 C
       IF(NNOD.GT.0) THEN
@@ -722,6 +759,10 @@ C
      &             'XGIVEN',XGIVEN,'YGIVEN',YGIVEN
       WRITE(6,601) 'RGIVEN',RGIVEN,'RFES  ',RFES  ,
      &             'PHIES ',PHIES ,'FACIMP',FACIMP
+      WRITE(6,611) 'PNPROFY0  ',PNPROFY0  ,'PNPROFYW  ',PNPROFYW
+      WRITE(6,611) 'PNPROFY01 ',PNPROFY01 ,'PNPROFYW1 ',PNPROFYW1
+      WRITE(6,611) 'PNPROFY02 ',PNPROFY01 ,'PNPROFYW2 ',PNPROFYW1
+      WRITE(6,611) 'PNRATIO12 ',PNRATIO12
       WRITE(6,*)
       RETURN
 C
@@ -737,4 +778,6 @@ C
   605 FORMAT(1H ,A6,'=',1PE11.3:2X,A6,'=',I7,4X  :
      &        2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
   610 FORMAT(1H ,I1,7(1PE11.3))
+  611 FORMAT(1H ,A10,'=',1PE12.4:2X,A10,'=',1PE12.4:
+     &        2X,A10,'=',1PE12.4)
       END

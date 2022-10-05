@@ -7,6 +7,7 @@ C             corresponding to RHON (i.e. PSIN(RHON))
 C
       FUNCTION FNPSIN(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       PSITL=PSITA*RHON*RHON
@@ -21,6 +22,7 @@ C             (i.e. rho(PSIN))
 C
       FUNCTION FNRHON(PSIN)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       IF(PSIN.LT.0.D0) THEN
@@ -42,10 +44,14 @@ C
 C     FNPSIPT: evaluate PSIP corresponding to toroidal flux function
 C            (PSIT) (i.e. PSIP(PSIT))
 C
-      FUNCTION FNPSIPT(PSITL)
+      FUNCTION FNPSIPT(PSITL1)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
+      PSITL=PSITL1
+      IF(PSITL.LT.PSIT(1))     PSITL=PSIT(1)
+      IF(PSITL.GT.PSIT(NRMAX)) PSITL=PSIT(NRMAX)
       CALL SPL1DF(PSITL,PSIPL,PSIT,UPSIP,NRMAX,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX FNPSIPT: SPL1DF ERROR : IERR=',IERR
       FNPSIPT=PSIPL
@@ -56,9 +62,12 @@ C     FNPSIP: evaluate PSI corresponding to RHON (i.e. psi(RHON))
 C
       FUNCTION FNPSIP(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       PSITL=PSITA*RHON*RHON
+      IF(PSITL.LT.PSIT(1))     PSITL=PSIT(1)
+      IF(PSITL.GT.PSIT(NRMAX)) PSITL=PSIT(NRMAX)
       CALL SPL1DF(PSITL,PSIPL,PSIT,UPSIP,NRMAX,IERR)
       IF(IERR.NE.0) THEN
          WRITE(6,*) 'XX FNPSIP: SPL1DF ERROR : IERR=',IERR
@@ -73,9 +82,12 @@ C     FNPSIP: evaluate PSIP-derivative corresponding to RHON (i.e. dpsi/dRHON)
 C
       FUNCTION FNDPSIP(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       PSITL=PSITA*RHON*RHON
+      IF(PSITL.LT.PSIT(1))     PSITL=PSIT(1)
+      IF(PSITL.GT.PSIT(NRMAX)) PSITL=PSIT(NRMAX)
       CALL SPL1DD(PSITL,PSIPL,DPSIPL,PSIT,UPSIP,NRMAX,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX FNPSIN: SPL1DF ERROR : IERR=',IERR
       FNDPSIP=2.D0*PSITA*RHON*DPSIPL
@@ -98,6 +110,7 @@ C     FNPPS: evaluate PPS corresponding to RHON (i.e. PPS(RHON))
 C
       FUNCTION FNPPS(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),PPL,PSIP,UPPS,NRMAX,IERR)
@@ -110,6 +123,7 @@ C     FNTTS: evaluate TTS corresponding to RHON (i.e. TTS(RHON))
 C
       FUNCTION FNTTS(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       IF(RHON.LT.1.D0) THEN
@@ -126,6 +140,7 @@ C     FNQPS: evaluate QPS corresponding to RHON (i.e. QPS(RHON))
 C
       FUNCTION FNQPS(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       PSIPL=FNPSIP(RHON)
@@ -143,6 +158,7 @@ C     FNVPS: evaluate VPS corresponding to RHON (i.e. VPS(RHON))
 C
       FUNCTION FNVPS(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),VPL,PSIP,UVPS,NRMAX,IERR)
@@ -155,6 +171,7 @@ C     FNSPS: evaluate SPS corresponding to RHON (i.e. SPS(RHON))
 C
       FUNCTION FNSPS(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),SPL,PSIP,USPS,NRMAX,IERR)
@@ -167,6 +184,7 @@ C     FNRLEN: evaluate RLEN corresponding to RHON (i.e. RLEN(RHON))
 C
       FUNCTION FNRLEN(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),RLENL,PSIP,URLEN,NRMAX,IERR)
@@ -179,6 +197,7 @@ C     FNRRMN: evaluate RRMIN corresponding to RHON (i.e. RRMIN(RHON))
 C
       FUNCTION FNRRMN(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),RRMINL,PSIP,URRMIN,NRMAX,IERR)
@@ -191,6 +210,7 @@ C     FNRRMX: evaluate RRMAX corresponding to RHON (i.e. RRMAX(RHON))
 C
       FUNCTION FNRRMX(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),RRMAXL,PSIP,URRMAX,NRMAX,IERR)
@@ -203,6 +223,7 @@ C     FNZZMN: evaluate ZZMIN corresponding to RHON (i.e. ZZMIN(RHON))
 C
       FUNCTION FNZZMN(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),ZZMINL,PSIP,UZZMIN,NRMAX,IERR)
@@ -215,6 +236,7 @@ C     FNZZMX: evaluate ZZMAX corresponding to RHON (i.e. ZZMAX(RHON))
 C
       FUNCTION FNZZMX(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),ZZMAXL,PSIP,UZZMAX,NRMAX,IERR)
@@ -227,6 +249,7 @@ C     FNBBMN: evaluate BBMIN corresponding to RHON (i.e. BBMIN(RHON))
 C
       FUNCTION FNBBMN(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),BBMINL,PSIP,UBBMIN,NRMAX,IERR)
@@ -239,6 +262,7 @@ C     FNBBMX: evaluate BBMAX corresponding to RHON (i.e. BBMAX(RHON))
 C
       FUNCTION FNBBMX(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),BBMAXL,PSIP,UBBMAX,NRMAX,IERR)
@@ -251,6 +275,7 @@ C     FNAVRR2: evaluate AVERR2 corresponding to RHON (i.e. AVERR2(RHON))
 C
       FUNCTION FNAVRR2(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,UAVERR2,NRMAX,IERR)
@@ -263,6 +288,7 @@ C     FNAVIR2: evaluate AVEIR2 corresponding to RHON (i.e. AVEIR2(RHON))
 C
       FUNCTION FNAVIR2(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,UAVEIR2,NRMAX,IERR)
@@ -275,6 +301,7 @@ C     FNAVBB2: evaluate AVEBB2 corresponding to RHON (i.e. AVEBB2(RHON))
 C
       FUNCTION FNAVBB2(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,UAVEBB2,NRMAX,IERR)
@@ -287,6 +314,7 @@ C     FNAVIB2: evaluate AVEIB2 corresponding to RHON (i.e. AVEIB2(RHON))
 C
       FUNCTION FNAVIB2(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,UAVEIB2,NRMAX,IERR)
@@ -299,6 +327,7 @@ C     FNAVBB: evaluate AVEBB corresponding to RHON (i.e. AVEBB(RHON))
 C
       FUNCTION FNAVBB(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,UAVEBB,NRMAX,IERR)
@@ -311,6 +340,7 @@ C     FNAVGV: evaluate AVEGV corresponding to RHON (i.e. AVEGV(RHON))
 C
       FUNCTION FNAVGV(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,UAVEGV,NRMAX,IERR)
@@ -323,6 +353,7 @@ C     FNAVGV2: evaluate AVEGV2 corresponding to RHON (i.e. AVEGV2(RHON))
 C
       FUNCTION FNAVGV2(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,UAVEGV2,NRMAX,IERR)
@@ -335,6 +366,7 @@ C     FNAVGR2: evaluate AVEGVR2 corresponding to RHON (i.e. AVEGVR2(RHON))
 C
       FUNCTION FNAVGVR2(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,UAVEGVR2,NRMAX,IERR)
@@ -347,6 +379,7 @@ C     FNAVGP2: evaluate AVEGP2 corresponding to RHON (i.e. AVEGP2(RHON))
 C
       FUNCTION FNAVGP2(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,UAVEGP2,NRMAX,IERR)
@@ -359,6 +392,7 @@ C     FNRRPS: evaluate RRPSI corresponding to RHON (i.e. RRPSI(RHON))
 C
       FUNCTION FNRRPS(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,URRPSI,NRMAX,IERR)
@@ -371,6 +405,7 @@ C     FNRSPS: evaluate RSPSI corresponding to RHON (i.e. RSPSI(RHON))
 C
       FUNCTION FNRSPS(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,URSPSI,NRMAX,IERR)
@@ -383,6 +418,7 @@ C     FNELPPS: evaluate ELIPPSI corresponding to RHON (i.e. ELIPPSI(RHON))
 C
       FUNCTION FNELPPS(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,UELIPPSI,NRMAX,IERR)
@@ -395,6 +431,7 @@ C     FNTRGPS: evaluate TRIGPSI corresponding to RHON (i.e. TRIGPSI(RHON))
 C
       FUNCTION FNTRGPS(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,UTRIGPSI,NRMAX,IERR)
@@ -407,6 +444,7 @@ C     FNDVDPSP: evaluate DVDPSIP corresponding to RHON (i.e. DVDPSIP(RHON))
 C
       FUNCTION FNDVDPSP(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,UDVDPSIP,NRMAX,IERR)
@@ -419,6 +457,7 @@ C     FNDVDPST: evaluate DVDPSIT corresponding to RHON (i.e. DVDPSIT(RHON))
 C
       FUNCTION FNDVDPST(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,UDVDPSIT,NRMAX,IERR)
@@ -431,6 +470,7 @@ C     FNAVGR: evaluate AVEGR corresponding to RHON (i.e. AVEGR(RHON))
 C
       FUNCTION FNAVGR(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,UAVEGR,NRMAX,IERR)
@@ -443,6 +483,7 @@ C     FNAVGR2: evaluate AVEGR2 corresponding to RHON (i.e. AVEGR2(RHON))
 C
       FUNCTION FNAVGR2(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,UAVEGR2,NRMAX,IERR)
@@ -455,6 +496,7 @@ C     FNAVGRR2: evaluate AVEGVRR2 corresponding to RHON (i.e. AVEGVRR2(RHON))
 C
       FUNCTION FNAVGRR2(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,UAVEGRR2,NRMAX,IERR)
@@ -467,6 +509,7 @@ C     FNAVIR2: evaluate AVEIR corresponding to RHON (i.e. AVEIR(RHON))
 C
       FUNCTION FNAVIR(RHON)
 C
+      USE libspl1d
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,UAVEIR,NRMAX,IERR)

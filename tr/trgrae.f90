@@ -9,7 +9,7 @@
       USE TRCOMM, ONLY : NRAMAX, NRMAX, NROMAX, RHOA, MODELG
       IMPLICIT NONE
       CHARACTER(LEN=1),INTENT(IN):: K2
-      INTEGER(4),      INTENT(IN):: INQ
+      INTEGER,      INTENT(IN):: INQ
 
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       IF(K2.EQ.'1') CALL TRGRE1(INQ)
@@ -34,9 +34,9 @@
 
       USE TRCOMM,ONLY : NRMAX, NRMP, GRM, GYR, DVRHO, ABRHO, ARRHO, AR1RHO
       IMPLICIT NONE
-      INTEGER(4),INTENT(IN) :: INQ
-      INTEGER(4):: NR
-      REAL(4)   :: GUCLIP
+      INTEGER,INTENT(IN) :: INQ
+      INTEGER:: NR
+      REAL   :: GUCLIP
 
       CALL PAGES
 
@@ -81,9 +81,9 @@
 
       USE TRCOMM,ONLY : NRMAX, NRMP, GRM, GYR, AR2RHO,RKPRHO
       IMPLICIT NONE
-      INTEGER(4),INTENT(IN) :: INQ
-      INTEGER(4):: NR
-      REAL(4)   :: GUCLIP
+      INTEGER,INTENT(IN) :: INQ
+      INTEGER:: NR
+      REAL   :: GUCLIP
 
       CALL PAGES
 
@@ -115,9 +115,9 @@
 
       USE TRCOMM,ONLY : NRMAX, NRMP, GRG, GYR, DVRHOG, ABRHOG, ARRHOG, AR1RHOG
       IMPLICIT NONE
-      INTEGER(4),INTENT(IN) :: INQ
-      INTEGER(4):: NR
-      REAL(4)   :: GUCLIP
+      INTEGER,INTENT(IN) :: INQ
+      INTEGER:: NR
+      REAL   :: GUCLIP
 
       CALL PAGES
 
@@ -131,21 +131,21 @@
       DO NR=1,NRMAX
          GYR(NR+1,1) = GUCLIP(ABRHOG(NR))
       ENDDO
-      GYR(1,1) = (4*GYR(2,1)-GYR(3,1))/3.D0
+      GYR(1,1) = (4*GYR(2,1)-GYR(3,1))/3.0
       CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,1, &
      &            '@ABRHOG vs RHO@',2+INQ)
 
       DO NR=1,NRMAX
          GYR(NR+1,1) = GUCLIP(ARRHOG(NR))
       ENDDO
-      GYR(1,1) = (4*GYR(2,1)-GYR(3,1))/3.D0
+      GYR(1,1) = (4*GYR(2,1)-GYR(3,1))/3.0
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,1, &
      &            '@ARRHOG vs RHO@',2+INQ)
 
       DO NR=1,NRMAX
          GYR(NR+1,1) = GUCLIP(AR1RHOG(NR))
       ENDDO
-      GYR(1,1) = (4*GYR(2,1)-GYR(3,1))/3.D0
+      GYR(1,1) = (4*GYR(2,1)-GYR(3,1))/3.0
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,1, &
      &            '@AR1RHOG vs RHO@',2+INQ)
 
@@ -166,37 +166,37 @@
       USE TRCOMM,ONLY : NRMAX, NRMP,GRG, GYR, AR2RHOG, ABB2RHOG, AIB2RHOG, &
            & ARHBRHOG
       IMPLICIT NONE
-      INTEGER(4),INTENT(IN) :: INQ
-      INTEGER(4):: NR
-      REAL(4)   :: GUCLIP
+      INTEGER,INTENT(IN) :: INQ
+      INTEGER:: NR
+      REAL   :: GUCLIP
 
       CALL PAGES
 
       DO NR=1,NRMAX
          GYR(NR+1,1) = GUCLIP(AR2RHOG(NR))
       ENDDO
-      GYR(1,1) = (4*GYR(2,1)-GYR(3,1))/3.D0
+      GYR(1,1) = (4*GYR(2,1)-GYR(3,1))/3.0
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,1, &
      &            '@AR2RHOG vs RHO@',2+INQ)
 
       DO NR=1,NRMAX
          GYR(NR+1,1) = GUCLIP(ABB2RHOG(NR))
       ENDDO
-      GYR(1,1) = (4*GYR(2,1)-GYR(3,1))/3.D0
+      GYR(1,1) = (4*GYR(2,1)-GYR(3,1))/3.0
       CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,1, &
      &            '@ABB2RHOG vs RHO@',2+INQ)
 
       DO NR=1,NRMAX
          GYR(NR+1,1) = GUCLIP(AIB2RHOG(NR))
       ENDDO
-      GYR(1,1) = (4*GYR(2,1)-GYR(3,1))/3.D0
+      GYR(1,1) = (4*GYR(2,1)-GYR(3,1))/3.0
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,1, &
      &            '@AIB2RHOG vs RHO@',2+INQ)
 
       DO NR=1,NRMAX
          GYR(NR+1,1) = GUCLIP(ARHBRHOG(NR))
       ENDDO
-      GYR(1,1) = (4*GYR(2,1)-GYR(3,1))/3.D0
+      GYR(1,1) = (4*GYR(2,1)-GYR(3,1))/3.0
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,1, &
      &            '@ARHBRHOG vs RHO@',2+INQ)
 
@@ -214,12 +214,11 @@
 
       SUBROUTINE TRGRE5(INQ)
 
-      USE TRCOMM,ONLY : NRMAX, NRMP, GRM, GRG, GYR, EPSRHO, RMJRHO, RMNRHO, &
-           & RKPRHOG
+      USE TRCOMM,ONLY : NRMAX, NRMP, GRG, GYR, EPSRHO, RMJRHO, RMNRHO, RKPRHOG
       IMPLICIT NONE
-      INTEGER(4),INTENT(IN) :: INQ
-      INTEGER(4):: NR
-      REAL(4)   :: GUCLIP
+      INTEGER,INTENT(IN) :: INQ
+      INTEGER:: NR
+      REAL   :: GUCLIP
 
       CALL PAGES
 
@@ -233,7 +232,7 @@
       DO NR=1,NRMAX
          GYR(NR+1,1) = GUCLIP(RMJRHO(NR))
       ENDDO
-      GYR(1,1) = (4*GYR(2,1)-GYR(3,1))/3.D0
+      GYR(1,1) = (4*GYR(2,1)-GYR(3,1))/3.0
       CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,1, &
      &            '@RMJRHO  vs RHO@',2+INQ)
 
@@ -247,7 +246,7 @@
       DO NR=1,NRMAX
          GYR(NR+1,1) = GUCLIP(RKPRHOG(NR))
       ENDDO
-      GYR(1,1) = (4*GYR(2,1)-GYR(3,1))/3.D0
+      GYR(1,1) = (4*GYR(2,1)-GYR(3,1))/3.0
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,1, &
      &            '@RKPRHOG vs RHO@',2+INQ)
 
@@ -265,12 +264,11 @@
 
       SUBROUTINE TRGRE6(INQ)
 
-      USE TRCOMM,ONLY : NRMAX, NRMP, GRM, GYR, PSITRHO,PSIPRHO, PPPRHO, &
-           & PIQRHO, TTRHO, PIRHO
+      USE TRCOMM,ONLY : NRMAX, NRMP, GRM, GYR, PPPRHO, PIQRHO, TTRHO, PIRHO
       IMPLICIT NONE
-      INTEGER(4),INTENT(IN) :: INQ
-      INTEGER(4):: NR
-      REAL(4)   :: GUCLIP
+      INTEGER,INTENT(IN) :: INQ
+      INTEGER:: NR
+      REAL   :: GUCLIP
 
       CALL PAGES
 

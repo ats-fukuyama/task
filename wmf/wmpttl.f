@@ -2,6 +2,7 @@ C     $Id$
 C
 C     ****** CALCULATE TOTAL ABSORPED POWER ROUTINE ******
 C
+      USE libchar
       INCLUDE 'wmcomm.inc'
 C
       CHARACTER KNAMEO*6,KNAMEP*13,KNAMER*10,KNAMES*6,KNAMET*6
@@ -48,7 +49,7 @@ C
       WRITE(6,*) '        A/ ANOTHER FILE OR CHANGE FILE NUMBER'
       READ(5,'(A5)',ERR=100,END=9000) KSTR
 C
-      CALL GUCPTL(KSTR)
+      CALL toupper(KSTR)
       IF(KSTR.EQ.'Q') GO TO 200
 C
       GO TO 7000
@@ -411,6 +412,7 @@ C     ****** GRAPHIC ROUTINE ******
 C
       SUBROUTINE WMPGRP
 C
+      USE libchar
       INCLUDE 'wmcomm.inc'
 C
       DIMENSION GY(NRM,MDM)
@@ -420,16 +422,16 @@ C
       WRITE(6,*) '                       X/ SELECT NUMBER OF FILE AGAIN'
       READ(5,'(A4)',ERR=1,END=9000) KSTR
       K1=KSTR(1:1)
-      CALL GUCPTL(K1)
+      CALL toupper(K1)
       IF(K1.EQ.'X') GO TO 9000
 C
       IF(K1.EQ.'P') THEN
          K2=KSTR(2:2)
-         CALL GUCPTL(K2)
+         CALL toupper(K2)
          K3=KSTR(3:3)
-         CALL GUCPTL(K3)
+         CALL toupper(K3)
          K4=KSTR(4:4)
-         CALL GUCPTL(K4)
+         CALL toupper(K4)
       ELSE
          WRITE(6,*) 'XX UNDEFINED CONTROL CHARACTER K1: ',K1
          GO TO 1

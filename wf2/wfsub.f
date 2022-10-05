@@ -84,11 +84,11 @@ C
      &                   XJ0(2,NA),YJ0(2,NA),
      &                   XD(NJ1), YD(NJ1),
      &                   XD(NK1), YD(NK1),XC,YC,IERR)
-C               WRITE(6,'(3I8,1P4E12.4/1P6E12.4)') 
-C     &                   NJ1,NK1,IERR,XJ0(1,NA),YJ0(1,NA),
-C     &                   XJ0(2,NA),YJ0(2,NA),
-C     &                   XD(NJ1),YD(NJ1),
-C     &                   XD(NK1),YD(NK1),XC,YC
+!               WRITE(6,'(3I8,1P4E12.4/1P6E12.4)') 
+!     &                   NJ1,NK1,IERR,XJ0(1,NA),YJ0(1,NA),
+!     &                   XJ0(2,NA),YJ0(2,NA),
+!     &                   XD(NJ1),YD(NJ1),
+!     &                   XD(NK1),YD(NK1),XC,YC
                IF(IERR.EQ.0) GOTO 1000
                NJ1=NK1
    10       CONTINUE
@@ -107,8 +107,8 @@ C
          XJ(N,NA)=XC
          YJ(N,NA)=YC
          JAELM(N,NA)=IES
-C         WRITE(6,'(A,2I5,1P2E12.4)') '1: N,NE,XJ,YJ=',
-C     &        N,IES,XJ(N,NA),YJ(N,NA)
+!         WRITE(6,'(A,2I5,1P2E12.4)') '1: N,NE,XJ,YJ=',
+!     &        N,IES,XJ(N,NA),YJ(N,NA)
 C
          DO 20 ID=2,JNUM0(NA)
             CALL WFFEP(XJ0(ID,NA),YJ0(ID,NA),IEE)
@@ -134,21 +134,23 @@ C
  4000          XJ(N,NA)=XC
                YJ(N,NA)=YC
                JAELM(N,NA)=IES
-C               WRITE(6,'(A,2I5,1P2E12.4)') '2: N,NE,XJ,YJ=',
-C     &              N,IES,XJ(N,NA),YJ(N,NA)
+!               WRITE(6,'(A,2I5,1P2E12.4)') '2: N,NE,XJ,YJ=',
+!     &              N,IES,XJ(N,NA),YJ(N,NA)
                NJ1=NJ2
                NK1=NK2
 C
                CALL EFINDL(IES,NJ1,NK1,IEN)
-               IES=IEN
-            IF(IEN.NE.0) GOTO 3000
-            IF(ID.EQ.JNUM0(NA).AND.IEE.EQ.0) GOTO 6000
-            GOTO 8400
+               IF(IEN.NE.0) THEN
+                  IES=IEN
+                  GOTO 3000
+               END IF
+               IF(ID.EQ.JNUM0(NA).AND.IEE.EQ.0) GOTO 6000
+               GOTO 8400
  4500       XJ(N,NA)=XJ0(ID,NA)
             YJ(N,NA)=YJ0(ID,NA)
             JAELM(N,NA)=IES
-C            WRITE(6,'(A,2I5,1P2E12.4)') '3: N,NE,XJ,YJ=',
-C     &             N,IES,XJ(N,NA),YJ(N,NA)
+!            WRITE(6,'(A,2I5,1P2E12.4)') '3: N,NE,XJ,YJ=',
+!     &             N,IES,XJ(N,NA),YJ(N,NA)
             NJ1=0
             NK1=0
    20    CONTINUE
@@ -193,6 +195,7 @@ C
      &           ' TWO NODES NJ1,NK1 '/
      &       1H ,'           : IES, NJ1, NK1 = ',3I7)
       IERR=8400
+      STOP
       RETURN
 C
  8500 IERR=8500
@@ -249,6 +252,8 @@ C
             IDELT=-IDELT
             IE    =IES+IDELT
             IF(IE.GE.1.AND.IE.LE.NELM) THEN
+!               WRITE(6,'(A,4I6)')
+!     &              '## IE:',IE,IELM(1,IE),IELM(2,IE),IELM(3,IE)
                DO 30 K=1,3
                   NE1=IELM(K,IE)
                   IF(NE1.EQ.N1) THEN
@@ -256,6 +261,8 @@ C
                         LL=MOD(K+L-1,3)+1
                         NE2=IELM(LL,IE)
                         IF(NE2.EQ.N2) RETURN
+!                        WRITE(6,'(A,8I6)')
+!     &                  '##EFINDL:',IES,IE,N1,N2,K,L,NE1,NE2
    40                CONTINUE
                   ENDIF
    30          CONTINUE
@@ -453,6 +460,53 @@ C
             ENDIF
           ENDIF
       ENDIF
+C
+      RETURN
+      END
+C
+C     ****** Potential at ELEMENT(IE),POINT(X,Y) ******
+C
+      SUBROUTINE FIELDA(X,Y,IE,NZ,ID,CA,CAX,CAY,CAZ)
+C
+      INCLUDE 'wfcomm.inc'
+C
+      DIMENSION CA(4),CAX(4),CAY(4),CAZ(4)
+      REAL*8 A(3),B(3),C(3)
+C
+      IF(MODELS.EQ.1) THEN
+         IF(X.LE.0.D0) THEN
+            CKZ=0.D0
+         ELSE
+            CKZ=CI*NPHIF(NZ)/X
+         ENDIF
+      ELSEIF(MODELS.EQ.2) THEN
+         CKZ=CI*NPHIF(NZ)/(RR+X)
+      ELSE
+         CKZ=CI*RKZF(NZ)
+      ENDIF
+      CALL WFABC(IE,A,B,C,S)
+      DO J=1,4
+         CA(J)=(0.D0,0.D0)
+      END DO
+      DO I=1,3
+         IN=IELM(I,IE)
+         WEIGHT=A(I)+B(I)*X+C(I)*Y
+         IF(ID.EQ.0) THEN
+            DO J=1,4
+               CA(J) =CA(J) +WEIGHT*CAFF(NZ,J,IN)
+               CAX(J)=CAX(J)+  B(I)*CAFF(NZ,J,IN)
+               CAY(J)=CAY(J)+  C(I)*CAFF(NZ,J,IN)
+               CAZ(J)=CAZ(J)+   CKZ*CAFF(NZ,J,IN)
+            END DO
+         ELSE
+            DO J=1,4
+               CA(J) =CA(J) +WEIGHT*CAFR(NZ,J,IN)
+               CAX(J)=CAX(J)+  B(I)*CAFR(NZ,J,IN)
+               CAY(J)=CAY(J)+  C(I)*CAFR(NZ,J,IN)
+               CAZ(J)=CAZ(J)+   CKZ*CAFR(NZ,J,IN)
+            END DO
+         END IF
+      END DO
 C
       RETURN
       END

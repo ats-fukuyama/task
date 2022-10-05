@@ -18,7 +18,6 @@ C        BB    : Magnetic field at center                        (T)
 C        Q0    : Safety factor at center
 C        QA    : Safety factor on plasma surface
 C        RIP   : Plasma current                                 (MA)
-C        PROFJ : Curren density profile parameter (power of (1 - rho^2))
 C        FRBIN : (RB_inside-RA)/(RB_outside-RA)
 C
       RR    = 3.D0
@@ -31,94 +30,9 @@ C
       Q0    = 1.D0
       QA    = 3.D0
       RIP   = 3.D0
-      PROFJ = 2.D0
 C
       FRBIN = 1.D0
       RBRA  = RB/RA
-C
-C     ======( PLASMA PARAMETERS )======
-C
-C        NSMAX : Number of particle species
-C        PA    : Mass number
-C        PZ    : Charge number
-C        PN    : Density at center                     (1.0E20/m**3)
-C        PNS   : Density on plasma surface             (1.0E20/m**3)
-C        PTPR  : Parallel temperature at center                (keV)
-C        PTPP  : Perpendicular temperature at center           (keV)
-C        PTS   : Temperature on surface                        (keV)
-C        PU    : Toroidal rotation velocity at center          (m/s)
-C        PUS   : Toroidal rotation velocity on surface         (m/s)
-C        RHOITB: rho at ITB (0 for no ITB)
-C        PNITB : Density increment at ITB              (1.0E20/Mm*3)
-C        PTITB : Temperature increment at ITB                  (keV)
-C        PUITB : Toroidal rotation velocity increment at ITB   (m/s)
-C
-      NSMAX = MIN(2,NSM)
-C
-         PA(1)   = AME/AMP
-         PZ(1)   =-1.0D0
-         PN(1)   = 1.0D0
-         PNS(1)  = 0.0D0
-         PTPR(1) = 5.0D0
-         PTPP(1) = 5.0D0
-         PTS(1)  = 0.05D0
-         PU(1)   = 0.D0
-         PUS(1)  = 0.D0
-         RHOITB(1)= 0.D0
-         PNITB(1)= 0.D0
-         PTITB(1)= 0.D0
-         PUITB(1)= 0.D0
-C
-      IF(NSM.GE.2) THEN
-         PA(2)   = 1.0D0
-         PZ(2)   = 1.0D0
-         PN(2)   = 1.0D0
-         PNS(2)  = 0.0D0
-         PTPR(2) = 5.0D0
-         PTPP(2) = 5.0D0
-         PTS(2)  = 0.05D0
-         PU(2)   = 0.D0
-         PUS(2)  = 0.D0
-         RHOITB(2)= 0.D0
-         PNITB(2)= 0.D0
-         PTITB(2)= 0.D0
-         PUITB(2)= 0.D0
-      ENDIF
-C
-      DO NS=3,NSM
-         PA(NS)   = 1.0D0
-         PZ(NS)   = 1.0D0
-         PN(NS)   = 0.0D0
-         PNS(NS)  = 0.0D0
-         PTPR(NS) = 5.0D0
-         PTPP(NS) = 5.0D0
-         PTS(NS)  = 0.0D0
-         PU(NS)   = 0.D0
-         PUS(NS)  = 0.D0
-         RHOITB(NS)= 0.D0
-         PNITB(NS)= 0.D0
-         PTITB(NS)= 0.D0
-         PUITB(NS)= 0.D0
-      ENDDO
-C
-C     ======( PROFILE PARAMETERS )======
-C
-C
-C        PROFN1: Density profile parameter (power of rho)
-C        PROFN2: Density profile parameter (power of (1 - rho^PROFN1))
-C        PROFT1: Temperature profile parameter (power of rho)
-C        PROFT2: Temperature profile parameter (power of (1 - rho^PROFN1))
-C        PROFU1: Rotation profile parameter (power of rho)
-C        PROFU2: Rotation profile parameter (power of (1 - rho^PROFN1))
-C
-      DO NS=1,NSM
-         PROFN1(NS)= 2.D0
-         PROFN2(NS)= 0.5D0
-         PROFT1(NS)= 2.D0
-         PROFT2(NS)= 1.D0
-         PROFU1(NS)= 2.D0
-         PROFU2(NS)= 1.D0
-      END DO
 C
 C     ======( MODEL PARAMETERS )======
 C
@@ -138,7 +52,7 @@ C                   8: Read from file by means of WMXPRF routine (JT-60)
 C                   9: Read from file KNAMTR (TASK/TR)
 C        MODELQ: Control safety factor profile (for MODELG=0,1,2)
 C                   0: Parabolic q profile (Q0,QA,RHOMIN,RHOITB)
-C                   1: Given current profile (RIP,PROFJ)
+C                   1: Given current profile (RIP,PROFJ0,PROFJ1,PROFJ2)
 C
       MODELG= 2
       MODELN= 0
@@ -438,8 +352,8 @@ C
          WPFC(NPFC)  = 0.75D0
       ENDDO
 
-      MODEFW=0
-      MODEFR=0
+      MODEFW=0 ! dangerous setting
+      MODEFR=0 ! dangerous setting
 
       RETURN
       END
@@ -462,6 +376,7 @@ C     IERR=6 : namelist line input error
 C     IERR=7 : unknown MODE
 C     IERR=10X : input parameter out of range
 C
+      USE libkio
       CHARACTER KIN*(*)
       EXTERNAL EQNLIN,EQPLST
 C
@@ -481,7 +396,7 @@ C
 C
       INCLUDE 'eqcomm.inc'
 C
-      NAMELIST /EQ/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,
+      NAMELIST /EQ/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,
      &              RHOMIN,QMIN,MODELG,MODELQ,RHOITB,
      &              IDEBUG,KNAMEQ,KNAMEQ2,
      &              PP0,PP1,PP2,PROFP0,PROFP1,PROFP2,
@@ -516,10 +431,9 @@ C
       WRITE(6,601)
       RETURN
 C
-  601 FORMAT(' ','# &EQ : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ'/
+  601 FORMAT(' ','# &EQ : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP'/
      &       9X,'RHOMIN,QMIN,MODELG,MODELQ,RHOITB,'/
      &       9X,'IDEBUG,KNAMEQ,KNAMEQ2,'/
-     &       9X,'PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2'/
      &       9X,'PP0,PP1,PP2,PROFP0,PROFP1,PROFP2'/
      &       9X,'FF0,FF1,FF2,PROFF0,PROFF1,PROFF2'/
      &       9X,'PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2'/
@@ -615,8 +529,7 @@ C
      &             'QA    ',QA
       WRITE(6,601) 'RHOMIN',RHOMIN,
      &             'QMIN  ',QMIN,
-     &             'RB    ',RB,
-     &             'PROFJ ',PROFJ
+     &             'RB    ',RB
       WRITE(6,601) 'RGMIN ',RGMIN,
      &             'RGMAX ',RGMAX,
      &             'ZGMIN ',ZGMIN,

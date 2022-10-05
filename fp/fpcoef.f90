@@ -100,6 +100,20 @@
 !     ----- Radial diffusion term -----
 
       IF(MODELD.NE.0) CALL FP_CALR
+      IF(MODELD.NE.0) THEN
+         NTH=2
+         NP=2
+         NR=NRMAX
+         NSA=1
+         WRITE(6,'(A,4I5,1PE12.4)') &
+              'DRR:',NTH,NP,NR,NSA,DRR(NTH,NP,NR,NSA)
+         NTH=2
+         NP=2
+         NR=NRMAX+1
+         NSA=1
+         WRITE(6,'(A,4I5,1PE12.4)') &
+              'DRR:',NTH,NP,NR,NSA,DRR(NTH,NP,NR,NSA)
+      END IF
 
 !     ----- Particle source term -----
 
@@ -878,7 +892,7 @@
       SUBROUTINE synchrotron
 
       IMPLICIT NONE
-      real(8):: alpha, rgama_para, u, rgama
+      real(rkind):: alpha, rgama_para, u, rgama
       integer:: NSA, NTH, NP, NR, NS
 
       DO NSA=NSASTART,NSAEND
@@ -921,7 +935,7 @@
       SUBROUTINE loss_for_CNL
 
       IMPLICIT NONE
-      real(8):: rgama
+      real(rkind):: rgama
       INTEGER:: NSA,NTH, NP, NR, NS
 
       DO NSA=NSASTART, NSAEND

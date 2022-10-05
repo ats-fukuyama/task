@@ -10,12 +10,12 @@ CONTAINS
   SUBROUTINE wi_hot(iprint,ratea,ierr)
 
     USE wicomm
+    USE libinv
+    USE libbnd
     IMPLICIT NONE
     INTEGER(ikind),INTENT(IN):: iprint
     REAL(rkind),INTENT(OUT):: ratea
     INTEGER(ikind),INTENT(OUT):: ierr
-    INTEGER(ikind):: ml,mw
-    REAL:: GT1,GT2
 
     mlmax=nxmax*2+3
     mwmax=4*nwmax+3
@@ -24,7 +24,7 @@ CONTAINS
     CALL SUBCK2   ! calculate coefficient matrix
     CALL SUBINI   ! calculate right-hand-side vector
     IF(NWMAX.EQ.NXMAX) THEN
-       CALL INVMCD(CK,MLEN,IERR)   ! full matrix solver
+       CALL INVMCD(CK,mlmax,MLEN,IERR)   ! full matrix solver
        IF(IERR.NE.0) GOTO 9900
        CALL SUBFY                  ! calculate field vector
     ELSE
@@ -63,7 +63,7 @@ CONTAINS
       IMPLICIT NONE
       REAL(rkind):: dx,rky,x
       COMPLEX(rkind):: CS
-      INTEGER(ikind):: J,L,NX,NW
+      INTEGER(ikind):: J,L,NW
 
       DX=(XMAX-XMIN)/NXMAX
       RKY=ANY
@@ -282,7 +282,7 @@ CONTAINS
 
       USE wicomm
       IMPLICIT NONE
-      COMPLEX(ikind):: cp1,cp2,cp3,cp4,cpa,cpb
+      COMPLEX(rkind):: cp1,cp2,cp3,cp4,cpa,cpb
       INTEGER(ikind):: NX,ns,ne,nn,i,j,id,jd,kk,kd
       REAL(rkind):: rky,rky2,dx,dx2,AD,BD,BETA0
 

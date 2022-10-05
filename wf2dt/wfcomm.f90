@@ -29,7 +29,7 @@ module wfcomm
   integer,parameter::   NKM = 100  ! Maximum number of material type
   integer,parameter::   NMM = 100  ! Maximum number of medium type
   integer,parameter::   NAM =   8  ! Maximum number of antenna
-  integer,parameter::   NJM = 800  ! Maximum number of antenna current position
+  integer,parameter::   NJM =2000  ! Maximum number of antenna current position
   integer,parameter::   NCM =  30  ! Maximum number of magnectic coil position
   
 !  integer,parameter::  NGXM = 301  ! resolution in x direction
@@ -52,11 +52,18 @@ module wfcomm
   integer(ikind):: NPRINT,NDRAWD,NDRAWA,NDRAWE,NGRAPH,NDRAWV
   integer(ikind):: MODELI
   integer(ikind):: MODELD,MODELP
+  REAL(rkind):: sort_weight_x,sort_weight_y
   REAL(rkind):: PSIA
   real(rkind):: R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,AMPWG,ANGWG,ELPWG,DPHWG
   integer(ikind):: MODELWG
   CHARACTER(LEN=80):: KNAMWG
   real(rkind):: gfactor
+  integer(ikind):: MODELWF
+
+  INTEGER(ikind):: model_coll_enhance
+  REAL(rkind):: factor_coll_enhance
+  REAL(rkind):: xpos_coll_enhance,xwidth_coll_enhance
+  REAL(rkind):: ypos_coll_enhance,ywidth_coll_enhance
 
 !       /WFPRK/
   character(len=32) :: KFNAME,KFNAMA,KFNAMF,KFNAMN
@@ -77,23 +84,42 @@ module wfcomm
 !       /WFELM/
   integer(ikind):: NNMAX,NEMAX,NBNOD,NBSID
   real(rkind)   ,dimension(:)  ,ALLOCATABLE :: RNODE,ZNODE !(NNMAX)
+                                                ! poisition of node
   integer(ikind),dimension(:)  ,ALLOCATABLE :: KANOD,KBNOD !(NNMAX)
+                                                ! if boundary
+                                                !  KANOD=1
+                                                !  KBNOD=boundary node number
   real(rkind)   ,dimension(:)  ,ALLOCATABLE :: SELM        !(NEMAX)
-  integer(ikind),dimension(:)  ,ALLOCATABLE :: KAELM,NBELM !(NEMAX)
+                                                ! area of element
+  integer(ikind),dimension(:)  ,ALLOCATABLE :: KAELM !(NEMAX)
+                                                ! KAELM=dielectric id number
   real(rkind)   ,dimension(:)  ,ALLOCATABLE :: REMIN,ZEMIN !(NEMAX)
   real(rkind)   ,dimension(:)  ,ALLOCATABLE :: REMAX,ZEMAX !(NEMAX)
-  integer(ikind),dimension(:,:),ALLOCATABLE :: NDELM       !(5,NEMAX)
+                                                ! range of element area
+  integer(ikind),dimension(:,:),ALLOCATABLE :: NDELM       !(3,NEMAX)
+                                                ! node number of element
   integer(ikind),dimension(:,:),ALLOCATABLE :: KNELM       !(3,NEMAX)
+                                                ! element number of adjascent
+  integer(ikind),dimension(:,:),ALLOCATABLE :: NSDELM     !(3,NEMAX)
+                                                ! side number of element
   integer(ikind),dimension(:)  ,ALLOCATABLE :: NVNN        !(NNMAX)
+                                                ! variable number of node E
         
 !       /WFSID/
   integer(ikind):: NSDMAX
   real(ikind)   ,dimension(:)  ,ALLOCATABLE :: LSID       !(NSDMAX)
+                                                ! length of side
   integer(ikind),dimension(:,:),ALLOCATABLE :: NDSID      !(2,NSDMAX)
+                                                ! node number of side
   integer(ikind),dimension(:)  ,ALLOCATABLE :: INSID,NESID!(NSDMAX) 
+                                                ! side number in a element
+                                                ! element number of a side
   integer(ikind),dimension(:)  ,ALLOCATABLE :: KASID,KBSID!(NSDMAX) 
-  integer(ikind),dimension(:,:),ALLOCATABLE :: NSDELM     !(3,NEM)
+                                                ! if boundary
+                                                !   KASID=1
+                                                !   KBSID: boundary side number
   integer(ikind),dimension(:)  ,ALLOCATABLE :: NVNSD      !(NSDMAX)
+                                                ! variable number of side E
         
 !       /WFSRT/
   real(rkind)   ,dimension(:),ALLOCATABLE :: SINDEX       !(NEMAX)
@@ -131,9 +157,9 @@ module wfcomm
   complex(rkind),dimension(:)  ,ALLOCATABLE :: CQQ    !(MBND)
 
 !       /WFAIF/
-  real(rkind),dimension(3,3,3):: AIF3
-  real(rkind),dimension(3,3)  :: AIF2
-  real(rkind),dimension(3)    :: AIF1
+  real(rkind),dimension(3,3,3):: AIF3,AIE3
+  real(rkind),dimension(3,3)  :: AIF2,AIE2
+  real(rkind),dimension(3)    :: AIF1,AIE1
         
 !       /WFFLD/
   complex(rkind),dimension(:)  ,ALLOCATABLE :: CESD   !(NSDMAX)
@@ -144,6 +170,7 @@ module wfcomm
   complex(rkind),dimension(:,:),ALLOCATABLE :: CRFL!(NMDM,NBM)
        
 !       /WFPWR/
+  real(rkind):: PABSTT
   real(rkind),dimension(NSM):: PABST
 !  real(rkind),dimension(:)  ,ALLOCATABLE :: PABSS !(NSM)
 !  real(rkind),dimension(:)  ,ALLOCATABLE :: PABSK !(NKMAX)
@@ -180,20 +207,23 @@ module wfcomm
   real(rkind):: LNDMIN,LNDMAX
   integer(ikind):: NFOPEN
   integer(ikind):: NWXMAX
-  real(4),dimension(:,:),ALLOCATABLE :: GZ,GZ_temp !(NGXM,NGYM)
+  real,dimension(:,:),ALLOCATABLE :: GZ,GZ_temp !(NGXM,NGYM)
   INTEGER,dimension(:,:),ALLOCATABLE :: IEGZ !(NXVM,NGYM)
-  real(4),dimension(:)  ,ALLOCATABLE :: G2X!(NGXM)
-  real(4),dimension(:)  ,ALLOCATABLE :: G2Y!(NGYM)
-  real(4),dimension(:,:),ALLOCATABLE :: GV !(NGVM,NGM)
-  real(4),dimension(:)  ,ALLOCATABLE :: GX !(NGVM)
+  real,dimension(:)  ,ALLOCATABLE :: G2X!(NGXM)
+  real,dimension(:)  ,ALLOCATABLE :: G2Y!(NGYM)
+  real,dimension(:,:),ALLOCATABLE :: GV !(NGVM,NGM)
+  real,dimension(:)  ,ALLOCATABLE :: GX !(NGVM)
   integer(ikind):: NGXMAX,NGYMAX,NGVMAX
         
 !       /WFDBG/
   integer(ikind):: NDFILE
 
 ! --- allocation flag ---
-  integer(rkind):: divinit,elminit,sidinit,srtinit,medinit
-  integer(rkind):: srfinit,slvinit,fldinit,pwrinit,nasinit,wininit
+  integer(ikind):: divinit,elminit,sidinit,srtinit,medinit
+  integer(ikind):: srfinit,slvinit,fldinit,pwrinit,nasinit,wininit
+
+! --- fem module variables ---
+  INTEGER(ikind):: nxzone_max,nyzone_max
 
 ! -----------------------------------------------------------------
 
@@ -253,7 +283,7 @@ contains
        NNMAX_save = NNMAX
 
     else if(elminit.eq.1) then
-       allocate(SELM(NEMAX),KAELM(NEMAX),NBELM(NEMAX))
+       allocate(SELM(NEMAX),KAELM(NEMAX))
        allocate(REMIN(NEMAX),ZEMIN(NEMAX))
        allocate(REMAX(NEMAX),ZEMAX(NEMAX))
        allocate(NDELM(3,NEMAX),KNELM(3,NEMAX))
@@ -267,7 +297,7 @@ contains
   subroutine wfelm_deallocate
     implicit none
 
-    deallocate(RNODE,ZNODE,KANOD,KBNOD,SELM,KAELM,NBELM)
+    deallocate(RNODE,ZNODE,KANOD,KBNOD,SELM,KAELM)
     deallocate(REMIN,ZEMIN,REMAX,ZEMAX,NDELM,KNELM,NVNN)
 
     return
@@ -437,7 +467,6 @@ contains
           call wffld_deallocate
        end if
     end if
-    
     allocate(CESD(NSDMAX),CEND(NNMAX))!,CEP(3,NNMAX))
     allocate(CBF(3,NNMAX),CBP(3,NNMAX),EMAX(4),CRFL(NMDMAX,NBMAX))
 

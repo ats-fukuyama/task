@@ -308,7 +308,6 @@ contains
          &     PNeVL, PNiVL, PeVL, PiVL, &
          &     dErdrL, dBthdrL, dTedrL, dTidrL, dPedrL, dPidrL
 !!    real(8) :: p_fhat1, p_fhat2, p_fhat3, btot, uthai, VPOL(0:NRMAX), ppr, AJBSL, ETAL
-!!    REAL(8) :: AITKEN2P
 
     !     *** Ellipticity on axis ***
 

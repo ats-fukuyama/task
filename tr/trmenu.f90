@@ -1,19 +1,32 @@
+! trmenu.f90
+
+MODULE trmenu
+
+  PRIVATE
+  PUBLIC tr_menu
+
+CONTAINS
+
 !     ***** TASK/TR MENU *****
 
-      SUBROUTINE TRMENU
+      SUBROUTINE tr_menu
 
-      USE TRCOMM, ONLY : &
-           MDLUF, MDLXP, NT, NTMAX, NTMAX_SAVE, ALLOCATE_TRCOMM, &
-           RA,RM,RG,RN,RT,RW,RNF,RTF,NRMAX,NSMAX,NFM
-      USE trunit
+      USE trcomm
+      USE trparm
+      USE trprep
+      USE trloop
+      USE trfile
+      USE trgout
+      USE trfout
       USE libfio
+      USE libkio
+      USE libchar
       IMPLICIT NONE
-      INTEGER(4)       :: IERR, MODE, NFL, NFLMAX, NTMOLD
-      INTEGER(4), SAVE :: INIT=0
+      INTEGER       :: IERR, MODE, NTMOLD
+      INTEGER, SAVE :: INIT=0
       CHARACTER(LEN=1) :: KID
       CHARACTER(LEN=80):: LINE
-      INTEGER:: NR,NS,NF,NTYPE
-      EXTERNAL TRPARM
+      INTEGER:: NR,NS,NF,NTYPE,id_loop
 
 !     ------ SELECTION OF TASK TYPE ------
 
@@ -36,28 +49,30 @@
               & 'D/DATA  H/HELP  Q/QUIT')
       ENDIF
 
-      CALL TASK_KLIN(LINE,KID,MODE,TRPARM)
+      CALL TASK_KLIN(LINE,KID,MODE,tr_parm)
       IF(MODE.NE.1) GOTO 1
 
       IF(KID.EQ.'P') THEN
          CALL tr_parm(0,'TR',IERR)
       ELSE IF(KID.EQ.'V') THEN
-         CALL tr_view
+         CALL tr_view(0)
       ELSE IF(KID.EQ.'U') THEN
-         CALL TRVIEW(1)
+         CALL tr_view(1)
 
       ELSE IF(KID.EQ.'L') THEN
-         CALL tr_load(ierr)
+         CALL tr_load
          INIT=2
       ELSE IF(KID.EQ.'S'.AND.INIT.EQ.2) THEN
-         CALL tr_save(ierr)
+         CALL tr_save
 
       ELSE IF(KID.EQ.'R') THEN
-         CALL tr_prof(ierr)
+         id_loop=0
+         CALL tr_prep(ierr)
          if(ierr.ne.0) GO TO 1
 
-         CALL TRLOOP
-
+         CALL tr_loop(ierr)
+         IF(ierr.NE.0) id_loop=1
+         
          INIT=2
          NTMOLD=NTMAX
 !
@@ -68,8 +83,11 @@
          ELSE
             NT=0
          ENDIF
-         CALL TRLOOP
-         NTMOLD=NTMAX
+         IF(id_loop.EQ.0) THEN
+            CALL tr_loop(ierr)
+            IF(ierr.NE.0) id_loop=1
+            NTMOLD=NTMAX
+         END IF
 
       ELSE IF(KID.EQ.'G'.AND.INIT.GE.1) THEN
          CALL tr_gout
@@ -81,7 +99,7 @@
 !         write(6,*)  "J0=",AJ(1)*1.D-6
   102    WRITE(6,*) '# SELECT ',  ': PRINT TYPE (1..9)  N/NAMELIST H/HELP  X/EXIT'
          READ(5,'(A1)',ERR=102,END=1) KID
-         CALL GUCPTL(KID)
+         CALL toupper(KID)
          IF(KID.EQ.'H') THEN
             CALL TRHELP('W')
          ELSEIF(KID.EQ.'X') THEN
@@ -157,4 +175,5 @@
 
  9000 IF(MDLUF.NE.0.AND.MDLXP.NE.0) CALL IPDB_CLOSE
       RETURN
-      END SUBROUTINE TRMENU
+      END SUBROUTINE tr_menu
+    END MODULE trmenu

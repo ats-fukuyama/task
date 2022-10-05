@@ -42,6 +42,14 @@ clean:
 	(cd wmfn; make clean)
 	(cd wmx; make clean)
 	(cd wr; make clean)
+	(cd wq; make clean)
+	(cd ob; make clean)
+	(cd sak; make clean)
+	(cd txnew; make clean)
+	(cd wf2dt; make clean)
+	(cd fpx; make clean)
+	(cd trx; make clean)
+
 	rm -f core a.out *.o ./*~
 
 veryclean: clean
@@ -79,4 +87,11 @@ veryclean: clean
 	(cd wmfn; make veryclean)
 	(cd wmx; make veryclean)
 	(cd wr; make veryclean)
+	(cd wq; make veryclean)
+	(cd ob; make veryclean)
+	(cd sak; make veryclean)
+	(cd txnew; make veryclean)
+	(cd wf2dt; make veryclean)
+	(cd fpx; make veryclean)
+	(cd trx; make veryclean)
 

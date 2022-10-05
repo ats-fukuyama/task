@@ -12,23 +12,22 @@ MODULE DPTNSR3
 !             CLDISP(5)=EPS_XY
 !             CLDISP(6)=EPS_YZ
 
-  PUBLIC DPTNSH
-
 CONTAINS
 
 !     ****** KINETIC MODEL WITH FLR and Drift (by Swanson) ******
 
-    SUBROUTINE DPTNKD(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+    SUBROUTINE DPTNKD(CW,CKPR,CKPP,NS,mag,plfw,CLDISP)
 
       USE libdsp,ONLY: DSPFN
       USE libbes,ONLY: BESEINX
       USE dpcomm
       USE plprof
+      USE plprofw
       IMPLICIT NONE
       COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+      TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind),ALLOCATABLE:: CALAM(:)
 
@@ -45,9 +44,9 @@ CONTAINS
       NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)))+1
       ALLOCATE(CALAM(0:NHMAX))
 
-      CWP=plf(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      CWP=plfw(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS))     ! CWC is not devided by CW
-      CUP=plf(NS)%RU                           ! u_para
+      CUP=plfw(NS)%RUPR                        ! u_para
 
       IF(ABS(CWC).GT.1.D-16) THEN
          CSIGN=CWC/ABS(CWC)
@@ -58,9 +57,9 @@ CONTAINS
       END IF
 
 
-      WTPR=plf(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))  ! T_para/m
+      WTPR=plfw(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))  ! T_para/m
       VTPR=SQRT(2.D0*WTPR)                     ! vt_para
-      WTPP=plf(NS)%RTPP*1.D3*AEE/(AMP*PA(NS))  ! T_perp/m
+      WTPP=plfw(NS)%RTPP*1.D3*AEE/(AMP*PA(NS))  ! T_perp/m
       VTPP=SQRT(2.D0*WTPP)                     ! vt_perp
 
       CBETA=CKPP*CKPP*WTPP/(CWC*CWC)           ! l.c. lambda

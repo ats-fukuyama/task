@@ -266,7 +266,7 @@ C     ****** RADIAL MESH AND METRIC TENSOR ******
 C
       SUBROUTINE wmmetric_eq(IERR)
 C
-      use equnit_mod
+      use equnit
       INCLUDE 'wmcomm.inc'
       real(8),dimension(3,3):: gm
       real(8):: gj

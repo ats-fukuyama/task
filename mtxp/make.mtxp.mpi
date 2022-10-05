@@ -1,0 +1,27 @@
+### make.mtxp.mpi
+### Setup configuration with MPI, but not PETSC
+
+EXEC=testbnd testbndc testpcg
+FLINKER=$(MFC)
+INC_MTX_MPI=
+
+LIBMTXMPI=../mtxp/libmtxmpi.o
+
+LIB_MTX_BND=$(LIBMTXMPI) ../mtxp/libmtxbndmpi.o
+LIB_MTX_PCG=$(LIBMTXMPI) ../mtxp/libmtxpcgmpi.o
+
+LIBX_MTX_BND=$(LIB_MTX_BND)
+LIBX_MTX_PCG=$(LIB_MTX_PCG)
+
+### Selection of default setup ###
+###     overwritten in Makefile in each directory ###
+###     remove comment # of two lines in an appropriate  block###
+
+## no MPI, band matrix solver
+#LIB_MTX=$(LIB_MTX_BND)
+#LIBX_MTX=$(LIBX_MTX_BND)
+
+## with MPI, band matrix solver
+LIB_MTX=$(LIB_MTX_PCG)
+LIBX_MTX=$(LIBX_MTX_PCG)
+

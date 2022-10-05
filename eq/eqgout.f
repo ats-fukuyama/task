@@ -6,6 +6,7 @@ C   ************************************************
 C
       SUBROUTINE EQGOUT(MODE)
 C
+      USE libchar
       INCLUDE 'eqcomc.inc'
 C
       CHARACTER KSTR*2,K1*1,K2*1
@@ -26,8 +27,8 @@ C
       READ(5,'(A2)',ERR=1,END=9000) KSTR
       K1=KSTR(1:1)
       K2=KSTR(2:2)
-      CALL GUCPTL(K1)
-      CALL GUCPTL(K2)
+      CALL toupper(K1)
+      CALL toupper(K2)
       IF(K1.EQ.'C') THEN
          IF(MODE.EQ.1) THEN
             IF(K2.EQ.' ') THEN
@@ -345,6 +346,7 @@ C     ****** DRAW SPLINED EQ1D GRAPH ******
 C
       SUBROUTINE EQGS1D(MODE)
 C
+      USE libspl1d
       INCLUDE 'eqcomq.inc'
 C
       DIMENSION GX(NRM),GY(NRM,6)
@@ -807,7 +809,7 @@ C
       INCLUDE 'eqcomq.inc'
 C
       DIMENSION GR(NTHMP),GZ(NTHMP)
-      REAL(4),DIMENSION(:,:),ALLOCATABLE:: GPSIRZ,GDPSIDR,GDPSIDZ
+      REAL,DIMENSION(:,:),ALLOCATABLE:: GPSIRZ,GDPSIDR,GDPSIDZ
       DIMENSION GRG(NRGM),GZG(NZGM)
       INTEGER,DIMENSION(:,:,:),ALLOCATABLE:: KA
       CHARACTER KTITL*80
@@ -1571,6 +1573,7 @@ C     ****** DRAW 1D METRIC PROFILES FOR TRANSPORT CODES ******
 C
       SUBROUTINE EQGTR1
 C
+      USE libspl1d
       include 'eqcomq.inc'
 C
       dimension gx(nrm),gy(nrm)
@@ -1701,7 +1704,7 @@ C
       DIMENSION GR(NTHMP),GZ(NTHMP)
       DIMENSION GRG(NRGM),GZG(NZGM)
       DIMENSION GRrp(NRrpM), GZrp(NZrpM)
-      REAL(4),DIMENSION(:,:),ALLOCATABLE:: GPSIRZ,GrpplRZ
+      REAL,DIMENSION(:,:),ALLOCATABLE:: GPSIRZ,GrpplRZ
       INTEGER,DIMENSION(:,:,:),ALLOCATABLE:: KA,KB,KC
       CHARACTER KTITL*80
 C

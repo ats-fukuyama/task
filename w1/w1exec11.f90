@@ -39,11 +39,12 @@ CONTAINS
     REAL(rkind):: X1(4)
     COMPLEX(rkind):: CSB(3,3,4)
     INTEGER:: NLW,NCL,IL,IA,IB,NX,NX1,NS,NCMAXS,NC,NN,NXD
-    REAL(rkind):: RT2,RW,FWP,FWC,FVT,RKPR,WC,UD,AKPR,ARG,RT,XD
+    REAL(rkind):: RT2,RW,FVT,RKPR,UD,AKPR,RT,XD
     REAL(rkind):: VXA,VKA,VXB,VKB,VXC,VKC,VXD,VKD,VX,VK,RLI,DXA,DXB,DELTAX
     COMPLEX(rkind):: CT0A,CT1A,CT2A,CT3A,CT0B,CT1B,CT2B,CT3B
     COMPLEX(rkind):: CT0C,CT1C,CT2C,CT3C,CT0D,CT1D,CT2D,CT3D
     COMPLEX(rkind):: CT0,CT1,CT2,CT3
+    COMPLEX(rkind):: CW,CARG,FWP,FWC,WC
     
 ! Allocation of local data array
 
@@ -116,9 +117,10 @@ CONTAINS
 
     RT2  = SQRT ( 2.D0 )
     RW  = 2.D6*PI*RF
+    CW=RW+CI*PZCL(NS)*RW
 
     DO NS=1,NSMAX
-       FWP = 1.D20*AEE*AEE*PZ(NS)*PZ(NS)/(AMP*PA(NS)*EPS0*RW*RW)
+       FWP = 1.D20*AEE*AEE*PZ(NS)*PZ(NS)/(AMP*PA(NS)*EPS0*RW*CW)
        FWC = AEE*PZ(NS)*BB/(AMP*PA(NS))
        FVT = AEE*1.D3/(AMP*PA(NS))
        DO NX = 1 , NXMAX
@@ -131,8 +133,8 @@ CONTAINS
           NCMAXS=2*ABS(IHARM(NS))+1
           DO NC=1,NCMAXS
              NN=NC-ABS(IHARM(NS))-1
-             ARG=(RW-NN*WC)/AKPR
-             CGZ(NX,NC)= ARG
+             CARG=(CW-NN*WC)/AKPR
+             CGZ(NX,NC)= CARG
           END DO
        END DO
 
@@ -159,12 +161,12 @@ CONTAINS
              RT = PROFTP(NX,NS)/PROFTR(NX,NS)
              XM(NX)=XAM(NX)
 !             XM(NX)=XA(NX)
-             YK(NX)=FWP*PROFPN(NX,NS)*ABS(YX(NX,NS))*RW/AKPR
+             YK(NX)=FWP*PROFPN(NX,NS)*ABS(YX(NX,NS))*CW/AKPR
              CS0(NX)=CGZ(NX,NC)*CDZ(NX,NC)
-             CS1(NX)=CZ(NX,NC)+0.5D0*(1.D0-RT)*AKPR*CDZ(NX,NC)/RW
-             CS2(NX)=(RT+(1.D0-RT)*NN*WC/RW)*CDZ(NX,NC) &
+             CS1(NX)=CZ(NX,NC)+0.5D0*(1.D0-RT)*AKPR*CDZ(NX,NC)/CW
+             CS2(NX)=(RT+(1.D0-RT)*NN*WC/CW)*CDZ(NX,NC) &
                     /SQRT(2.D0*RT)
-             CS3(NX)=(1.D0-1.D0/RT)*CS0(NX)*WC/RW
+             CS3(NX)=(1.D0-1.D0/RT)*CS0(NX)*WC/CW
           END DO
 
           DO NX=1,NXMAX-1
@@ -232,6 +234,7 @@ CONTAINS
 
   SUBROUTINE W1BNDQ(NZ,IERR)
     USE w1comm
+    USE libbnd
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NZ
     INTEGER,INTENT(OUT):: IERR
@@ -386,7 +389,7 @@ CONTAINS
 
     CF(MCEN+3,2)=1.D0
     CF(MCEN  ,2)=-1.D0
-    CA(1)=CFWG3
+    CA(2)=CFWG3
 
     CF(MCEN-3,4)=-CKKV
     CA(4)=-CKKV*CFWG4
@@ -503,13 +506,24 @@ CONTAINS
 
   SUBROUTINE W1EPWQ(NZ)
     USE w1comm
+    USE libgrf
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NZ
-    INTEGER:: NS,NX,NX1,NXD,NCL,IL,NN,MM,IA,IB
+    INTEGER:: NS,NX,NX1,NXD0,NCL0,IL,NN,MM,IA,IB,NCL1,NXD1
     REAL(rkind):: RW,RKV,RCE,DX,PABSL,RNZ
     REAL(rkind):: PIN1,PIN2,PIN3,PIN4,PIN,POUT1,POUT2,POUT3,POUT4,POUT,PCONV
-    COMPLEX(rkind):: CABSL,CDEY,CDEZ,CBY,CBZ
-
+    COMPLEX(rkind):: CPABSL,CDEY,CDEZ,CBY,CBZ
+    COMPLEX(rkind):: CLH0,CLH1,CLH2,CLH3,CLH4,CLH5
+    COMPLEX(rkind):: CAJ0L,CAJ1L,CAJ2L,CAJ3L,CAJ4L,CAJ5L
+    COMPLEX(rkind):: CPABS0,CPABS1,CPABS2,CPABS3,CPABS4,CPABS5
+    COMPLEX(rkind):: CPABS0L,CPABS1L,CPABS2L,CPABS3L,CPABS4L,CPABS5L
+    REAL(rkind):: PABS0L,PABS1L,PABS2L,PABS3L,PABS4L,PABS5L
+    REAL(rkind):: PABS0(NXMAX,NSMAX),PABS1(NXMAX,NSMAX)
+    REAL(rkind):: PABS2(NXMAX,NSMAX),PABS3(NXMAX,NSMAX)
+    REAL(rkind):: PABS4(NXMAX,NSMAX),PABS5(NXMAX,NSMAX)
+    COMPLEX(rkind):: CAJ0(6*NXMAX+10),CAJ1(6*NXMAX+10),CAJ2(6*NXMAX+10)
+    COMPLEX(rkind):: CAJ3(6*NXMAX+10),CAJ4(6*NXMAX+10),CAJ5(6*NXMAX+10)
+    
     RW=2.D6*PI*RF
     RKV=2.D6*PI*RF/VC
     RCE=VC*EPS0
@@ -530,66 +544,171 @@ CONTAINS
        CE2DA(NZ,NX,3)=CA(3*NX+2)
     END DO
 
-    WRITE(6,'(A,I5,1PE12.4)') &
-         '== Wave electric field == NZ,RKZ',NZ,AKZ(NZ)
-    WRITE(6,'(A,1P5E12.4)') &
-         'HFS-X:',CFWG4,CA(1),ABS(CA(1))**2, &
-         'HFS-O:',CFWG3,CA(2),ABS(CA(2))**2, &
-         'LFS-X:',CFWG2,CA(MLEN-1),ABS(CA(MLEN-1))**2, &
-         'LFS-O:',CFWG1,CA(MLEN),ABS(CA(MLEN))**2
     RNZ=AKZ(NZ)*VC/RW
     IF(ABS(RNZ).LT.1.D0) THEN
-       PIN1=ABS(CFWG1)**2*(1.D0+RNZ**2)*SQRT(1.D0-RNZ**2)
+       PIN1=ABS(CFWG1)**2/SQRT(1.D0-RNZ**2)
        PIN2=ABS(CFWG2)**2*SQRT(1.D0-RNZ**2)
-       PIN3=ABS(CFWG3)**2*(1.D0+RNZ**2)*SQRT(1.D0-RNZ**2)
+       PIN3=ABS(CFWG3)**2/SQRT(1.D0-RNZ**2)
        PIN4=ABS(CFWG4)**2*SQRT(1.D0-RNZ**2)
        PIN=PIN1+PIN2+PIN3+PIN4
-       POUT1=ABS(CA(MLEN))**2*(1.D0+RNZ**2)*SQRT(1.D0-RNZ**2)
+       POUT1=ABS(CA(MLEN  ))**2/SQRT(1.D0-RNZ**2)
        POUT2=ABS(CA(MLEN-1))**2*SQRT(1.D0-RNZ**2)
-       POUT3=ABS(CA(2))**2*(1.D0+RNZ**2)*SQRT(1.D0-RNZ**2)
-       POUT4=ABS(CA(1))**2*SQRT(1.D0-RNZ**2)
+       POUT3=ABS(CA(2     ))**2/SQRT(1.D0-RNZ**2)
+       POUT4=ABS(CA(1     ))**2*SQRT(1.D0-RNZ**2)
        POUT=POUT1+POUT2+POUT3+POUT4
        PCONV=PIN-POUT
     ELSE
+       PIN1=ABS(CFWG1)**2
+       PIN2=ABS(CFWG2)**2
+       PIN3=ABS(CFWG3)**2
+       PIN4=ABS(CFWG4)**2
        PIN=1.D0
-       POUT=0.D0
+       POUT1=ABS(CA(MLEN  ))**2
+       POUT2=ABS(CA(MLEN-1))**2
+       POUT3=ABS(CA(2     ))**2
+       POUT4=ABS(CA(1     ))**2
+       POUT=1.D0
        PCONV=PIN-POUT
     END IF
+    WRITE(6,'(A,I5,1PE12.4)') &
+         '== Wave electric field == NZ,RKZ',NZ,AKZ(NZ)
+    WRITE(6,'(A,1P6E12.4)') &
+         'HFS-X:',CFWG4,CA(1),     PIN4,POUT4, &
+         'HFS-O:',CFWG3,CA(2),     PIN3,POUT3, &
+         'LFS-X:',CFWG2,CA(MLEN-1),PIN2,POUT2, &
+         'LFS-O:',CFWG1,CA(MLEN),  PIN1,POUT1
     WRITE(6,'(A,F7.2,F7.3,1P5E12.4)') &
          'REFL:',AKZ(NZ),RNZ, &
                  POUT1/PIN,POUT2/PIN,POUT3/PIN,POUT4/PIN,PCONV/PIN
+    WRITE(28,'(ES15.7,6(A1,ES15.7))') &
+         RNZ,',',  &
+         POUT1/PIN,',',POUT2/PIN,',', &
+         POUT3/PIN,',',POUT4/PIN,',',PCONV/PIN,',', &
+         (POUT1+POUT2+POUT3+POUT4+PCONV)/PIN
 
     DO NS=1,NSMAX
+       DO NX=1,NXMAX
+          NN=3*NX-1
+          DO IA=1,3
+             CAJ0(NN+IA)=0.D0
+             CAJ1(NN+IA)=0.D0
+          END DO
+       END DO
+          
        DO NX=1,NXMAX-1
           DX=RKV*(XA(NX+1)-XA(NX))
+          CPABS0L=0.D0
+          CPABS1L=0.D0
+          CPABS2L=0.D0
+          CPABS3L=0.D0
+          CPABS4L=0.D0
+          CPABS5L=0.D0
           DO NX1=MAX(1,NX+NXDMIN),MIN(NX+NXDMAX,NXMAX-1)
-             NXD=NX1-NX+NXDMAX+1 ! positive
-             NCL=NCLA(NXD,NX,NS)
-             IF(NCL.NE.0) THEN
+             NXD0=NX1-NX+NXDMAX+1 ! positive
+             NCL0=NCLA(NXD0,NX,NS)
+             NXD1=NX-NX1+NXDMAX+1 ! positive
+             NCL1=NCLA(NXD1,NX1,NS)
+             IF(NCL0.NE.0.AND.NCL1.NE.0) THEN
                 DO IL=1,4
-                   CABSL=0.D0
-                   NN=3*NX-1
-                   MM=3*NX1-1
-                   IF(IL.EQ.2) NN=NN+3
-                   IF(IL.EQ.3) MM=MM+3
-                   IF(IL.EQ.4) NN=NN+3
-                   IF(IL.EQ.4) MM=MM+3
+                   SELECT CASE(IL)
+                   CASE(1)
+                      NN=3*NX-1
+                      MM=3*NX1-1
+                   CASE(2)
+                      NN=3*NX+2
+                      MM=3*NX1-1
+                   CASE(3)
+                      NN=3*NX-1
+                      MM=3*NX1+2
+                   CASE(4)
+                      NN=3*NX+2
+                      MM=3*NX1+2
+                   END SELECT
+                   CPABS0L=0.D0
+                   CPABS1L=0.D0
+                   CPABS2L=0.D0
+                   CPABS3L=0.D0
+                   CPABS4L=0.D0
+                   CPABS5L=0.D0
                    DO IA=1,3
+                      CPABS0=0.D0
+                      CPABS1=0.D0
+                      CPABS2=0.D0
+                      CPABS3=0.D0
+                      CPABS4=0.D0
+                      CPABS5=0.D0
+                      CAJ0L=0.D0
+                      CAJ1L=0.D0
+                      CAJ2L=0.D0
+                      CAJ3L=0.D0
+                      CAJ4L=0.D0
+                      CAJ5L=0.D0
                       DO IB=1,3
-                         CABSL=CABSL &
-                         +0.5D0*CONJG(CA(NN+IA))*CL(IA,IB,IL,NCL)*CA(MM+IB) &
-                         -0.5D0*CA(NN+IA)*CONJG(CL(IB,IA,IL,NCL)*CA(MM+IB))
-!                         -CONJG(CA(NN+IA))*CL(IA,IB,IL,NCL)*CA(MM+IB)
+                         CLH0=0.5D0*(CL(IA,IB,IL,NCL0) &
+                                    -CONJG(CL(IB,IA,IL,NCL0)))
+                         CLH1=0.5D0*(CL(IA,IB,IL,NCL1) &
+                                    -CONJG(CL(IB,IA,IL,NCL1)))
+                         CLH2=CL(IA,IB,IL,NCL0)
+                         CLH3=CL(IB,IA,IL,NCL0)
+                         CLH4=CL(IA,IB,IL,NCL1)
+                         CLH5=CL(IB,IA,IL,NCL1)
+                         CAJ0L=CAJ0L+CLH0*CA(MM+IB)
+                         CAJ1L=CAJ1L+CLH1*CA(NN+IB)
+                         CAJ2L=CAJ2L+CLH2*CA(MM+IB)
+                         CAJ3L=CAJ3L+CLH3*CA(MM+IB)
+                         CAJ4L=CAJ4L+CLH4*CA(NN+IB)
+                         CAJ5L=CAJ5L+CLH5*CA(NN+IB)
                       END DO
+                      CPABS0=CPABS0+0.5D0*CONJG(CA(NN+IA))*CAJ0L
+                      CPABS1=CPABS1+0.5D0*CONJG(CA(MM+IA))*CAJ1L
+                      CPABS2=CPABS2+0.5D0*CONJG(CA(NN+IA))*CAJ2L
+                      CPABS3=CPABS3+0.5D0*CONJG(CA(NN+IA))*CAJ3L
+                      CPABS4=CPABS4+0.5D0*CONJG(CA(MM+IA))*CAJ4L
+                      CPABS5=CPABS5+0.5D0*CONJG(CA(MM+IA))*CAJ5L
+                      CAJ0(NN+IA)=CAJ0(NN+IA)+CAJ0L
+                      CAJ1(MM+IA)=CAJ1(MM+IA)+CAJ1L
+                      CAJ2(NN+IA)=CAJ2(NN+IA)+CAJ0L
+                      CAJ3(MM+IA)=CAJ3(MM+IA)+CAJ1L
+                      CAJ4(NN+IA)=CAJ4(NN+IA)+CAJ0L
+                      CAJ5(MM+IA)=CAJ5(MM+IA)+CAJ1L
                    END DO
-                   PABSL=-CI*RCE*CABSL*RKV
-!                   WRITE(6,'(A,2I5,1P5E12.4)') &
-!                        'PABS:',NS,NX,RCE,CABSL,RKV,PABSL
-                   PABS(NX,   NS)=PABS(NX,   NS)+0.5D0*PABSL
-                   PABS(NX1,  NS)=PABS(NX1,  NS)+0.5D0*PABSL
+                   CPABS0L=CPABS0L+CPABS0+CPABS1
+                   CPABS1L=CPABS1L+CPABS0-CPABS1
+                   CPABS2L=CPABS2L+CPABS2
+                   CPABS3L=CPABS3L+CPABS3
+                   CPABS4L=CPABS4L+CPABS4
+                   CPABS5L=CPABS5L+CPABS5
                 END DO
              END IF
+             PABS0L=-CI*RCE*CPABS0L*RKV
+             PABS1L=-CI*RCE*CPABS1L*RKV
+             PABS2L=-CI*RCE*CPABS2L*RKV
+             PABS3L=-CI*RCE*CPABS3L*RKV
+             PABS4L=-CI*RCE*CPABS4L*RKV
+             PABS5L=-CI*RCE*CPABS5L*RKV
+             PABS0(NX, NS)=PABS0(NX, NS)+0.5D0*PABS0L
+             PABS1(NX1,NS)=PABS1(NX1,NS)+0.5D0*PABS1L
+             PABS2(NX, NS)=PABS2(NX, NS)+0.5D0*PABS2L
+             PABS3(NX1,NS)=PABS3(NX, NS)+0.5D0*PABS3L
+             PABS4(NX1,NS)=PABS4(NX1,NS)+0.5D0*PABS4L
+             PABS5(NX1,NS)=PABS5(NX1,NS)+0.5D0*PABS5L
           END DO
+       END DO
+
+       CALL PAGES
+       CALL GRD1D(1,XA,PABS1,NXMAX,NSMAX,NSMAX,'@PABS1 vs XA @')
+       CALL GRD1D(2,XA,PABS2,NXMAX,NSMAX,NSMAX,'@PABS2 vs XA @')
+       CALL GRD1D(3,XA,PABS3,NXMAX,NSMAX,NSMAX,'@PABS3 vs XA @')
+       CALL GRD1D(4,XA,PABS4,NXMAX,NSMAX,NSMAX,'@PABS4 vs XA @')
+       CALL PAGEE
+       
+       DO NX=1,NXMAX
+          CJ2DA(NZ,NX,1,NS)=CAJ0(3*NX)
+          CJ2DA(NZ,NX,2,NS)=CAJ0(3*NX+1)
+          CJ2DA(NZ,NX,3,NS)=CAJ0(3*NX+2)
+          CJ2DB(NZ,NX,1,NS)=CAJ1(3*NX)
+          CJ2DB(NZ,NX,2,NS)=CAJ1(3*NX+1)
+          CJ2DB(NZ,NX,3,NS)=CAJ1(3*NX+2)
        END DO
     END DO
 
@@ -618,7 +737,7 @@ CONTAINS
     USE w1comm
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NZ
-    INTEGER:: NX,NS,I
+    INTEGER:: NX,NS,I,NZ1,NZ2,NKZ1,NKZ2,NKZ,NZZ,IA,IB
     REAL(rkind):: FACT,DX,RKZA
     COMPLEX(rkind):: CPANTKX1,CPANTKY1,CPANTKZ1,CPANTKX2,CPANTKY2,CPANTKZ2
     COMPLEX(rkind):: CFJX1,CFJX2
@@ -833,5 +952,47 @@ CONTAINS
     W1CDEF=EFF0*EFF1*EFF2*EFF3
     RETURN
   END FUNCTION W1CDEF
+
+  FUNCTION nkz_nz(nz)
+    USE w1comm,ONLY: nzmax
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: nz
+    INTEGER:: nkz_nz
+
+    IF(nz.GT.nzmax/2) THEN
+       nkz_nz=nz-nzmax
+    ELSE
+       nkz_nz=nz-1
+    END IF
+    RETURN
+  END FUNCTION nkz_nz
+
+  FUNCTION nzz_nkz(nkz)
+    USE w1comm,ONLY: nzmax
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: nkz
+    INTEGER:: nzz_nkz
+
+    IF(nkz.GE.0) THEN
+       nzz_nkz=nkz+1           ! nkz=0 nzz=1, nkz=nzmax-1 nzz=nzmax
+    ELSE
+       nzz_nkz=nkz+2*nzmax+1   ! nkz=-nzmax nzz=nzmax+1, nkz=-1 nzz=2*nzmax
+    END IF
+    RETURN
+  END FUNCTION nzz_nkz
+
+  FUNCTION nkz_nzz(nzz)
+    USE w1comm,ONLY: nzmax
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: nzz
+    INTEGER:: nkz_nzz
+
+    IF(nzz.LE.nzmax) THEN
+       nkz_nzz=nzz-1           ! nkz=0 nzz=1, nkz=nzmax-1 nzz=nzmax
+    ELSE
+       nkz_nzz=nzz-2*nzmax-1   ! nkz=-nzmax nzz=nzmax+1, nkz=-1 nzz=2*nzmax
+    END IF
+    RETURN
+  END FUNCTION nkz_nzz
 
 END MODULE w1exec11

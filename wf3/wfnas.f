@@ -4,6 +4,7 @@ C     ********** NAS FILE PROCESSOR **********
 C
       SUBROUTINE WFNAS
 C
+      USE libchar
       INCLUDE 'wfcomm.inc'
       CHARACTER KID*1
 C
@@ -12,7 +13,7 @@ C
 C
     1 WRITE(6,*) '## INPUT: L/LOAD  G,N/DRAW  P,V/PARM  X/EXIT'
       READ(5,'(A1)',ERR=1,END=9000) KID
-      CALL GUCPTL(KID)
+      CALL toupper(KID)
 C
       IF(KID.EQ.'L') THEN
          CALL WFRNAS(IERR)

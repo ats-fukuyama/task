@@ -35,10 +35,11 @@
 
       SUBROUTINE TRPELA
 
-      USE TRCOMM, ONLY : DR, DVRHO, NRMAX, NSM, PELPAT, PELR0, PELRW, PELTOT, RA, RM, SPE
+      USE TRCOMM, ONLY : DR, DVRHO, NRMAX, NSM, PELPAT, PELR0, PELRW,&
+           PELTOT, RA, RM, SPE, rkind
       IMPLICIT NONE
-      REAL(8)    :: FSUM, S0, SPEL
-      INTEGER(4) :: NR, NS
+      REAL(rkind)    :: FSUM, S0, SPEL
+      INTEGER :: NR, NS
 
 
       FSUM = 0.D0
@@ -66,13 +67,15 @@
 
       SUBROUTINE TRPELB
 
-      USE TRCOMM, ONLY : AEE, AME, AMM, ANC, ANFE, DR, DVRHO, NRMAX, NSM, PA, PELPAT, PELRAD, PELVEL, PI, PNBENG, PZ, &
-     &                   PZC, PZFE, RA, RKEV, RN, RPE, RT, SNB, SNF, SPE
+      USE TRCOMM, ONLY : AEE, AME, AMM, ANC, ANFE, DR, DVRHO, NRMAX,&
+           & NSM, PA, PELPAT, PELRAD, PELVEL, PI, PNBENG, PZ, PZC,&
+           & PZFE, RA, RKEV, RN, RPE, RT, SNB, SNF, SPE, rkind
       IMPLICIT NONE
-      REAL(8)    :: A1, A2, A3, AMA, AMB, AMD, AMP, AMT, ANE, ANFAST, ANS, B1, B2, B3, EFAST, P1, P2, PAP, QFAST, ROS, &
-     &              RP, RPDOT, RPPRE, SPEL, TAUS, TE, VB, VCR, VF
-      INTEGER(4) :: NR, NS
-      REAL(8)    :: COULOG   ! FUNCTION
+      REAL(rkind)    :: A1, A2, A3, AMA, AMB, AMD, AMP, AMT, ANE,&
+           & ANFAST, ANS, B1, B2, B3, EFAST, P1, P2, PAP, QFAST, ROS,&
+           & RP, RPDOT, RPPRE, SPEL, TAUS, TE, VB, VCR, VF
+      INTEGER :: NR, NS
+      REAL(rkind)    :: COULOG   ! FUNCTION
 
       NR = NRMAX
       RP = PELRAD
@@ -151,10 +154,12 @@
 
       SUBROUTINE TRPELC
 
-      USE TRCOMM, ONLY : AMM, DR, DVRHO, NRMAX, NSMAX, PA, PELPAT, PELRAD, PELVEL, PI, RA, RN, RT, SPE
+      USE TRCOMM, ONLY : AMM, DR, DVRHO, NRMAX, NSMAX, PA, PELPAT,&
+           & PELRAD, PELVEL, PI, RA, RN, RT, SPE, rkind
       IMPLICIT NONE
-      REAL(8)    :: ADIVE, AMP, ANA, ANE, ANP, PAP, PP, ROS, RP, RPDOT, RPE, RPPRE, SPEL, TE
-      INTEGER(4) :: NR
+      REAL(rkind)    :: ADIVE, AMP, ANA, ANE, ANP, PAP, PP, ROS, RP,&
+           & RPDOT, RPE, RPPRE, SPEL, TE
+      INTEGER :: NR
 
       NR = NRMAX
       RP = PELRAD

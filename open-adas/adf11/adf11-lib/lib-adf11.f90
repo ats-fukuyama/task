@@ -27,13 +27,13 @@ CONTAINS
 
   SUBROUTINE  READ_ADF11(adas_adf11_filename,IERR)
 
+    USE libspl2d
     USE libfio
     IMPLICIT NONE
     CHARACTER(LEN=*),INTENT(IN):: adas_adf11_filename
     INTEGER,INTENT(OUT):: IERR
     INTEGER:: LUN1,LUN2,ND,IZ0,IC,ID,IT,IS,IZ
-    REAL(dp):: DDENS(IDDIMD),DTEMP(ITDIMD)
-    REAL(dp):: DRCOF(ISDIMD,ITDIMD,IDDIMD)
+    REAL(dp),ALLOCATABLE:: DDENS(:),DTEMP(:),DRCOF(:,:,:)
     REAL(dp),ALLOCATABLE,DIMENSION(:):: DDENSL,DTEMPL
     REAL(dp),ALLOCATABLE,DIMENSION(:,:):: DRCOFL
     REAL(dp),ALLOCATABLE:: FX(:,:),FY(:,:),FXY(:,:)
@@ -74,6 +74,8 @@ CONTAINS
     ALLOCATE(IZ0A(NDMAX),IM0A(NDMAX),ICLASSA(NDMAX),KFNAMA(NDMAX))
     ALLOCATE(IDMAXA(NDMAX),ITMAXA(NDMAX),IZTOTA(NDMAX))
     ALLOCATE(IZMINA(NDMAX),IZMAXA(NDMAX))
+    ALLOCATE(DDENS(IDDIMD),DTEMP(ITDIMD))
+    ALLOCATE(DRCOF(ISDIMD,ITDIMD,IDDIMD))
 
     DO ND=1,NDMAX
        READ(LUN1,*,ERR=9004,END=9005) IZ0A(ND),ICLASSA(ND),KFNAMA(ND)
@@ -242,6 +244,7 @@ CONTAINS
 
   SUBROUTINE CALC_ADF11(ND,NZ,PN,PT,DR,IERR)
 
+    USE libspl2d
     USE commpi
     IMPLICIT NONE
     INTEGER,INTENT(IN):: ND,NZ   ! 1 <= NZ <=NZMAX
@@ -311,11 +314,11 @@ CONTAINS
       INTEGER::   IBLMX     , ISMAX     , ITMAX     , IDMAX
       INTEGER::   NPTNL     , NCNCT
       REAL(dp)::  DNR_AMS
-      INTEGER::   NPTN(NDPTNL)          , NPTNC(NDPTNL,NDPTN)
-      INTEGER::   IPTNLA(NDPTNL)        , IPTNA(NDPTNL,NDPTN) 
-      INTEGER::   IPTNCA(NDPTNL,NDPTN,NDPTNC)
-      INTEGER::   ICNCTV(NDCNCT)
-      INTEGER::   ISPPR(ISDIMD)   , ISPBR(ISDIMD)   , ISSTGR(ISDIMD)
+      INTEGER,ALLOCATABLE::   NPTN(:)          , NPTNC(:,:)
+      INTEGER,ALLOCATABLE::   IPTNLA(:)        , IPTNA(:,:) 
+      INTEGER,ALLOCATABLE::   IPTNCA(:,:,:)
+      INTEGER,ALLOCATABLE::   ICNCTV(:)
+      INTEGER,ALLOCATABLE::   ISPPR(:)   , ISPBR(:)   , ISSTGR(:)
       REAL(dp)::  DDENS(IDDIMD)         , DTEV(ITDIMD)
       REAL(dp)::  DRCOF(ISDIMD,ITDIMD,IDDIMD)
       LOGICAL::   LRES    , LSTAN     , LPTN 
@@ -327,6 +330,12 @@ CONTAINS
       INTEGER:: I, J, K 
 !-----------------------------------------------------------------------
  
+      ALLOCATE(NPTN(NDPTNL)          , NPTNC(NDPTNL,NDPTN))
+      ALLOCATE(IPTNLA(NDPTNL)        , IPTNA(NDPTNL,NDPTN))
+      ALLOCATE(IPTNCA(NDPTNL,NDPTN,NDPTNC))
+      ALLOCATE(ICNCTV(NDCNCT))
+      ALLOCATE(ISPPR(ISDIMD)   , ISPBR(ISDIMD)   , ISSTGR(ISDIMD))
+
 !-----------------------------------------------------------------------
 !     Pass unit number and dimension parameters to XXDATA_11 and
 !     get back contents of file.
@@ -636,7 +645,6 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
     INTEGER:: ND,ID,IT,IS,nmax,n,IC,I,J
-    LOGICAL:: FLAG
     REAL(dp),ALLOCATABLE:: work(:)
 
     CALL mtx_broadcast1_integer(NDMAX)
@@ -843,6 +851,7 @@ CONTAINS
 !       1 Plot PNZ(PZ) 
 !       2 Plot DRI(PZ),DRR(PZ),PNZ(PZ) 
 
+    USE libbnd
     USE libgrf
     use, intrinsic :: ieee_arithmetic, only : IEEE_SELECTED_REAL_KIND
     use, intrinsic :: ieee_exceptions

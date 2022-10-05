@@ -13,7 +13,6 @@
 *.log
 *.dvi
 *.toc
-*.in
 *.out
 .DS_Store
 fort.*
@@ -48,8 +47,8 @@ mtxp/testpcg
 mtxp/testzmumps
 mtxp/libmtxksp.i90
 pic/pic
-plx/pl
-plx/plparm
+pl/pl
+pl/plparm
 t2/t2
 tools/ufread
 tools/ufread3
@@ -92,3 +91,7 @@ wmfn/wm
 wmfn/wmparm
 wr/wr
 wr/wrparm
+adpost/test-adpost
+ti/ti
+cv/cv
+cv/cvj

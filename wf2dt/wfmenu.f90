@@ -5,6 +5,7 @@ subroutine wfmenu
   USE wfparm
   USE plload, ONLY: pl_load
   USE wfload, ONLY: wf_load_wg
+  USE libkio
   implicit none
   
   integer  :: MODE
@@ -67,9 +68,10 @@ end subroutine wfmenu
 subroutine WFINFO
   
   use wfcomm
+  USE libchar
   implicit none
   integer   :: IE,IN,NN,NE,IA,IS,NSD
-  real(8)   :: R,Z
+  real(rkind)   :: R,Z
   character :: KID*1
   
 8001 continue
@@ -78,7 +80,7 @@ subroutine WFINFO
             ' S:side  A,M:antenna  F:FEP  X:end'
   read(5,'(A1)',ERR=8001,END=9000) KID
 
-  call GUCPTL(KID)
+  call toupper(KID)
   
   if(KID.eq.'E') then
 8002 write(6,*) '## INPUT: Element number '

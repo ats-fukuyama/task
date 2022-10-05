@@ -260,7 +260,7 @@ c-----------------------------------------------------------------------
      &            -0.5d0*dz2i*dza*(psi(i+nr)-psi(i-nr))
       siw(1)=saxis
 c----
-      ds=saxis/dfloat(nvm)
+      ds=saxis/DBLE(nvm)
       rbv2=btv**2
       do n=nvm,1,-1
        rbv2=rbv2+(fds(n)+fds(n+1))*ds
@@ -310,7 +310,7 @@ c-----------------------------------------------------------------------
         smax=smax+ds(n)
        enddo
 c-----
-       sd=smax/dfloat(nsumax-1)
+       sd=smax/DBLE(nsumax-1)
        ns=1
        is=1
        s=0.d0
@@ -320,7 +320,7 @@ c-----
        cs(1)=xx*csu(1)*sd
        do while(ns.lt.nsumax)
         ns=ns+1
-        s=sd*dfloat(ns-1)
+        s=sd*DBLE(ns-1)
         if(ns.eq.nsumax)s=smax
         do while(ss.lt.s)
          is=is+1
@@ -729,7 +729,7 @@ c=======================================================================
 c-----CASE:1
       if(iabs(icp(1)).eq.1)then
        do n=1,nv
-        x=dfloat(n-1)/dfloat(nvm)
+        x=DBLE(n-1)/DBLE(nvm)
         siw(n)=saxis*(1.d0-x)
         v=vlv(n)/vlv(nv)
         pds0(n)=(1.d0-cp(4))*(1.d0-v**cp(2))**cp(3)+cp(4)
@@ -739,7 +739,7 @@ c-----------------------------------------------------------------------
 c-----CASE:2
       elseif(iabs(icp(1)).eq.2)then
        do n=1,nv
-        x=dfloat(n-1)/dfloat(nvm)
+        x=DBLE(n-1)/DBLE(nvm)
         siw(n)=saxis*(1.d0-x)
         v=vlv(n)/vlv(nv)
         pds0(n)=1.d0-cp(2)*v**cp(3)-(1.d0-cp(2)+cp(4))*v**cp(5)
@@ -749,7 +749,7 @@ c-----------------------------------------------------------------------
 c-----CASE:11    =====  HOLLOW CURRENT PROFILE =====
       elseif(iabs(icp(1)).eq.11)then
        do n=1,nv
-        x=dfloat(n-1)/dfloat(nvm)
+        x=DBLE(n-1)/DBLE(nvm)
         siw(n)=saxis*(1.d0-x)
         v=vlv(n)/vlv(nv)
         pds0(n)=(1.d0-cp(4))*(1.d0-v**cp(2))**cp(3)+cp(4)
@@ -861,12 +861,12 @@ c=======================================================================
       r=4.1d0
       r0=4.2d0
       xn=((r-r0)/(r+r0))**2
-      yn=dfloat(ntab)/dfloat(ntab-1)*dlog(1.d0/xn)
+      yn=DBLE(ntab)/DBLE(ntab-1)*dlog(1.d0/xn)
       dtab=float(ntab)/yn
       xtab(1)=0.d0
       ftab(1)=0.d0
       do n=2,ntab
-       xtab(n)=1.d0-dexp(-dfloat(n-1)/dtab)
+       xtab(n)=1.d0-dexp(-DBLE(n-1)/dtab)
        ftab(n)=flux0(xtab(n))
       enddo
 c..
@@ -1274,7 +1274,7 @@ c=======================================================================
 c-----------------------------------------------------------------------
       istep=0
       do n=nv,2,-1
-       psi0=dpsi*dfloat(nv-n)
+       psi0=dpsi*DBLE(nv-n)
        ist=(izaxis-1)*nr+irst
        do while((psi0-psi(ist))*(psi0-psi(ist+1)).gt.0.d0)
         irst=irst-1
@@ -1465,8 +1465,8 @@ c-----
      >       -cvac(0)
 c=======================================================================
 c      call clockm(mtime1)
-c      cpu=1.d-03*dfloat(mtime1)-cput
-c      cput=1.d-03*dfloat(mtime1)
+c      cpu=1.d-03*DBLE(mtime1)-cput
+c      cput=1.d-03*DBLE(mtime1)
 c-----
       if(ieqout(3).ge.1)then
        write(6,*)
@@ -1803,7 +1803,7 @@ c-----
       izsmin=(zzsmin-zg(1))/dz
       izsmax=(zzsmax-zg(1))/dz+2.d0
 
-      d0=-dfloat(nvm)/saxis
+      d0=-DBLE(nvm)/saxis
       d1=1.d0-saxis*d0
       tcu=0.d0
       rcumax=0.d0
@@ -1822,10 +1822,10 @@ c-----
         if(istp.eq.0)then
          x=d0*psi(i)+d1
          if(x.le.1.d0)x=1.00001d0
-         if(x.ge.dfloat(nv))x=dfloat(nv)-1.d-05
+         if(x.ge.DBLE(nv))x=DBLE(nv)-1.d-05
          jm=x
          jp=jm+1
-         fp=x-dfloat(jm)
+         fp=x-DBLE(jm)
          fm=1.d0-fp
          rcu1=-fm*(rg2(ir)*pds(jm)+fds(jm))
      >           -fp*(rg2(ir)*pds(jp)+fds(jp))
@@ -2040,7 +2040,7 @@ c-----------------------------------------------------------------------
       k=0
       do while(istp.eq.0) 
        kk=k
-       psi0=1.d-03*saxis*dfloat(k)
+       psi0=1.d-03*saxis*DBLE(k)
        call eqtrc(psi0,raxis,zaxis,-1,0,irend,izend)
        if(irend.ge.2)then
         if(irend.le.nr-2)then
@@ -2193,7 +2193,7 @@ c..SEARCH STARTING POINT
 c-----------------------------------------------------------------------
 c..INITIALIZE LINE INTEGRALS
 
-      n=(saxis-psi0)/saxis*dfloat(nv-1)+1.d0
+      n=(saxis-psi0)/saxis*DBLE(nv-1)+1.d0
       f=hdv(n)/aav(n) 
       ff=f*f
 
@@ -2615,7 +2615,7 @@ c-----------------------------------------------------------------------
 c-----LOAD VALUABLES ON EQUIL GRIDS:SIV(N),N=1,NV
 c-----           SIV : POLOIDAT FLUX FUNCTION
 c-----------------------------------------------------------------------
-      dsi=saxis/dfloat(nvm)
+      dsi=saxis/DBLE(nvm)
       do n=nv,1,-1
        if(n.eq.nv)then
         prv(n)=0.d0
@@ -2661,7 +2661,7 @@ c=======================================================================
       call eqlin
 c=======================================================================
 c-----LOAD VALUABLES ON EQUIL GRIDS:SIV(N),N=1,NV
-      dsi=saxis/dfloat(nvm)
+      dsi=saxis/DBLE(nvm)
       btv2=btv*btv
       do n=nv,1,-1
        if(n.eq.nv)then

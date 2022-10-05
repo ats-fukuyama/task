@@ -27,6 +27,7 @@ CONTAINS
       USE plcomm,ONLY: idebug
       USE wfcomm,ONLY: KNAMWG,RKZ
       USE wfwg1D
+      USE libspl1d
       USE libfio
       USE libgrf
       IMPLICIT NONE
@@ -127,6 +128,7 @@ CONTAINS
       USE bpsd_kinds
       USE wfcomm,ONLY: MODELWG
       USE wfwg1D
+      USE libspl1d
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: Y    ! Position
       COMPLEX(rkind),INTENT(OUT):: CEX,CEY,CEZ ! WG mouth electric field 

@@ -4,6 +4,7 @@ C     ****** CALCULATE ELECTRIC FIELD ******
 C
       SUBROUTINE WMEFLD
 C
+      USE libinv
       INCLUDE 'wmcomm.inc'
       DIMENSION CEF1(MDM,NDM),CEF2(MDM,NDM),RMA(3,3)
 C
@@ -499,7 +500,7 @@ C
       ELSE
          YT=(1.D0-Y2)*WT*WT/Y2
       ENDIF
-      IF(YT.GE.0.D0.AND.RC*YT.LT.40.D0) THEN
+      IF(YT.GE.0.D0.AND.RCX*YT.LT.40.D0) THEN
          ARG=(RCX*YT)**RMX
          IF(ARG.LE.100.D0) THEN
             EFF3=1.D0-MIN(EXP(-ARG),1.D0)
@@ -913,7 +914,7 @@ C
                CPP31=CCE3*CEMP31*CEFLDK(1,MDX,NDX,NRPP)
                CPC32=CCE3*CEMC32*CEFLDK(2,MDX,NDX,NR+1)
                CPC33=CCE3*CEMC33*CEFLDK(3,MDX,NDX,NR+1)
-C     
+C
                CPABSM=CI*EPS0*(VC*VC/CW)
      &            *(0
      &             +CPM11
@@ -1092,6 +1093,15 @@ C
          ENDDO
       ENDDO
       ENDDO
+!      DO NR=1,NRMAX
+!         WRITE(6,'(A,I6,6ES12.4)') 'P:',NR,PABSR(NR,1),PABSR(NR,2),
+!     &                              PABS(1,1,NR,1),PABS(1,1,NR,2),
+!     &                              PABSK(1,1,NR,1),PABSK(1,1,NR,2)
+!         WRITE(6,'(A,I6,4ES12.4)') 'CPK:',NR,
+!     &                        CPABSK(1,1,1,1,1,NR),CPABSK(1,1,1,1,2,NR)
+!         WRITE(6,'(A,I6,4ES12.4)') 'CPR:',NR,
+!     &                              CPABS(1,1,NR,1),CPABS(1,1,NR,2)
+!      END DO
 C
       PCURT=0.D0
       DO NR=1,NRMAX

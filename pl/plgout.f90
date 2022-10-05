@@ -9,13 +9,13 @@ CONTAINS
 
   SUBROUTINE pl_gout
 
-    USE plcomm,ONLY: NSMAX
+    USE plcomm,ONLY: NSMAX,rkind,pl_prf_type
     USE plprof
     USE libgrf
     IMPLICIT NONE
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: rho
     REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: rn,rtpr,rtpp,ru
-    TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
+    TYPE(pl_prf_type),DIMENSION(NSMAX):: plf
     INTEGER:: nrmax,nr,ns
     REAL(rkind):: drho
 

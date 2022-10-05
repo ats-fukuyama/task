@@ -1,10 +1,14 @@
+! libtestfem.f90
+
 MODULE libtestfem
+
+  USE task_kinds,ONLY: dp
   implicit none
   integer:: mwmax,mlmax
-  complex(8),dimension(:,:),allocatable:: fma
-  complex(8),dimension(:),allocatable:: fvb,fvx
-  complex(8),dimension(:,:),allocatable:: cf1,cf2,cf3
-  real(8),dimension(:),allocatable:: rho
+  complex(dp),dimension(:,:),allocatable:: fma
+  complex(dp),dimension(:),allocatable:: fvb,fvx
+  complex(dp),dimension(:,:),allocatable:: cf1,cf2,cf3
+  real(dp),dimension(:),allocatable:: rho
 
 CONTAINS
 
@@ -16,7 +20,7 @@ CONTAINS
       integer,intent(in):: nrmax  ! number of points including end points
       integer,intent(in):: npow   ! power of mesh position
       integer,save:: nrmax_save=0
-      real(8):: drho
+      real(dp):: drho
       integer:: nr
 
       if(nrmax.ne.nrmax_save) then

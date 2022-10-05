@@ -4,18 +4,19 @@ C     ********** F.E.M. DIVIDER ( FIRST ORDER ) **********
 C
       SUBROUTINE WFDIV
 C
+      USE libchar
       INCLUDE 'wfcomm.inc'
       CHARACTER KID*1
 C
     1 WRITE(6,601) 
       READ(5,'(A1)',ERR=1,END=9000) KID
-      CALL GUCPTL(KID)
+      CALL toupper(KID)
 C
       IF(KID.EQ.'D') THEN
 C
     2    WRITE(6,602) 
          READ(5,'(A1)',ERR=2,END=1) KID
-         CALL GUCPTL(KID)
+         CALL toupper(KID)
          IF(KID.EQ.'X') THEN
     3       WRITE(6,603) BXMIN,BXMAX,BYMIN,BYMAX,BZMIN,BZMAX
             READ(5,*,ERR=3,END=2) BXMIN,BXMAX,BYMIN,BYMAX,BZMIN,BZMAX

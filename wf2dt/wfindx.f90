@@ -6,7 +6,7 @@ FUNCTION FINDEX(R,Z)
 
   use wfcomm
   implicit none
-  real(8) :: FINDEX,RN,R,ZN,Z
+  real(rkind) :: FINDEX,RN,R,ZN,Z
 
   RN=(R-RNDMIN)/(RNDMAX-RNDMIN)
   ZN=(Z-ZNDMIN)/(ZNDMAX-ZNDMIN)
@@ -22,7 +22,7 @@ SUBROUTINE WFINDX
   use wfcomm
   implicit none
   integer :: NE,IN,NN
-  real(8) :: RC,ZC,FINDEX
+  real(rkind) :: RC,ZC,FINDEX
   EXTERNAL WFSRTS,WFSRTX
 
   CALL WFSLIM
@@ -40,6 +40,8 @@ SUBROUTINE WFINDX
   
   DO NE=1,NEMAX
      IVELM(NE)=NE
+     IDELM(NE)=0
+     KAELM(NE)=0
   ENDDO
 
 !  DO NE=1,NEMAX
@@ -80,8 +82,8 @@ SUBROUTINE WFFEPI
   use wfcomm
   implicit none
   integer :: NE,IN,NN
-  real(8) :: SINDXL(3),RNDL(3),ZNDL(3),FINDEX
-  real(8) :: SMAX,SMIN
+  real(rkind) :: SINDXL(3),RNDL(3),ZNDL(3),FINDEX
+  real(rkind) :: SMAX,SMIN
 
   DO NE=1,NEMAX
      DO IN=1,3
@@ -157,11 +159,11 @@ SUBROUTINE FEP(R,Z,IE)
 
   use wfcomm
   implicit none
-  real(8),intent(in) :: R,Z
+  real(rkind),intent(in) :: R,Z
   integer,intent(inout):: IE
-  integer :: ICOUNT,INMIN,NN1,NN2,NN3,NELMAX,NELMIN,IES,I,IDELT,J
-  real(8),parameter :: EPS = 1.d-12
-  real(8) :: WGT(3),WGTMIN,RC,ZC,RES,SIDX,FINDEX
+  integer :: ICOUNT,INMIN,NELMAX,NELMIN,IES,I,IDELT,J
+  real(rkind),parameter :: EPS = 1.d-12
+  real(rkind) :: WGT(3),WGTMIN,SIDX,FINDEX
   INTEGER:: IN,NN
   
   IF(IE.NE.0) THEN   ! with initial guess

@@ -4,9 +4,10 @@ C     ***** CALCULATE MAGNETIC AXIS AND EDGE *****
 C
       SUBROUTINE EQAXIS(IERR)
 C
+      USE libbrent
       INCLUDE '../eq/eqcomc.inc'
 C
-      REAL(8),DIMENSION(:,:),ALLOCATABLE::  PSIRG,PSIZG,PSIRZG
+      REAL(rkind),DIMENSION(:,:),ALLOCATABLE::  PSIRG,PSIZG,PSIRZG
       EXTERNAL PSIGD,PSIGZ0
 C
       ALLOCATE(PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM))
@@ -34,7 +35,7 @@ C
          ZMIN=ZGMIN
       ENDIF
 C
-C      write(6,'(1P4E12.4)') RMAX,RMIN,ZMAX,ZMIN
+C      write(6,'(1P6E12.4)') RAXIS,RMIN,RMAX,ZAXIS,ZMIN,ZMAX
 C
       IF(RAXIS.LE.RMAX.AND.
      &   RAXIS.GE.RMIN.AND.
@@ -75,6 +76,7 @@ C       YA    : Coordinate of the current position
 C       N     : Number of partitions along the magnetic surface
 C       IERR  : Error indicator
 C
+      USE eqlib
       INCLUDE '../eq/eqcomc.inc'
 C
       EXTERNAL EQDERV
@@ -182,9 +184,10 @@ C     ***** SETUP PSIG *****
 C
       SUBROUTINE setup_psig
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomc.inc'
 C
-      REAL(8),DIMENSION(:,:),ALLOCATABLE:: PSIRG,PSIZG,PSIRZG
+      REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: PSIRG,PSIZG,PSIRZG
 C
 C     ----- calculate spline coef for psi(R,Z) -----
 C
@@ -204,6 +207,7 @@ C     ***** calculate position of magnetic axis *****
 C
       SUBROUTINE find_axis
 C
+      USE eqlib
       INCLUDE '../eq/eqcomc.inc'
       EXTERNAL PSIGD
 C
@@ -231,6 +235,7 @@ C     ***** calculate position of xpoint1 *****
 C
       SUBROUTINE find_xpoint1
 C
+      USE eqlib
       INCLUDE '../eq/eqcomc.inc'
       EXTERNAL PSIGD
 C
@@ -258,6 +263,7 @@ C     ***** calculate position of xpoint2 *****
 C
       SUBROUTINE find_xpoint2
 C
+      USE eqlib
       INCLUDE '../eq/eqcomc.inc'
       EXTERNAL PSIGD
 C
@@ -301,16 +307,18 @@ C       IERR  : Error indicator
 C
 C      INCLUDE '../eq/eqcomc.inc'
 C
+      USE bpsd_kinds,ONLY: rkind
+      USE eqlib
       IMPLICIT NONE
-      REAL(8),INTENT(IN):: RINIT,ZINIT,RXP,ZXP,H
+      REAL(rkind),INTENT(IN):: RINIT,ZINIT,RXP,ZXP,H
       INTEGER,INTENT(IN):: NMAX
-      REAL(8),INTENT(OUT)::XA(NMAX),RA(NMAX),ZA(NMAX)
+      REAL(rkind),INTENT(OUT)::XA(NMAX),RA(NMAX),ZA(NMAX)
       INTEGER,INTENT(OUT):: NTOT,IERR
 
       INTEGER,PARAMETER:: NEQ=2
-      REAL(8):: XA1(NMAX),YA1(2,NMAX)
-      REAL(8):: XA2(NMAX),YA2(2,NMAX)
-      REAL(8):: X,Y(2),DYDX(2),YOUT(2),DISTANCE
+      REAL(rkind):: XA1(NMAX),YA1(2,NMAX)
+      REAL(rkind):: XA2(NMAX),YA2(2,NMAX)
+      REAL(rkind):: X,Y(2),DYDX(2),YOUT(2),DISTANCE
       INTEGER:: N,I,N1,N2
       EXTERNAL EQDERV
 
@@ -398,6 +406,7 @@ C     ***** INTERPOLATE FUNCTION OF PSI(R,Z) *****
 C
       FUNCTION PSIG(R,Z)
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomc.inc'
 C
       CALL SPL2DF(R,Z,PSIL,RG,ZG,UPSIRZ,NRGM,NRGMAX,NZGMAX,IERR)
@@ -413,6 +422,7 @@ C     ***** INTERPOLATE SUBROUTINE DPSIDR,DPSIDZ(R,Z) *****
 C
       SUBROUTINE PSIGD(R,Z,DPSIDR,DPSIDZ)
 C
+      USE libspl2d
       INCLUDE '../eq/eqcomc.inc'
 C
       CALL SPL2DD(R,Z,PSIL,DPSIDR,DPSIDZ,
@@ -428,7 +438,7 @@ C     ***** INTERPOLATE FUNCTION OF PSI on ZAXIS *****
 C
       FUNCTION PSIGZ0(R)
       INCLUDE '../eq/eqcomc.inc'
-      REAL(8) R,PSIGZ0
+      REAL(rkind) R,PSIGZ0
       PSIGZ0=PSIG(R,ZAXIS)
       RETURN
       END

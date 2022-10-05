@@ -11,12 +11,15 @@ MODULE wrcomm_parm
 
 ! --- input parameters ---
 
-  INTEGER:: NRAYMAX,NSTPMAX,NRDIVMAX,LMAXNW
+  INTEGER:: NRAYMAX,NSTPMAX,NRSMAX,NRLMAX,LMAXNW
+  INTEGER:: mode_beam
   INTEGER:: MDLWRI,MDLWRG,MDLWRP,MDLWRQ,MDLWRW
-  REAL(rkind) SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW
-  REAL(rkind) RF,RPI,ZPI,PHII,RNZI,RNPHII,RKR0,UUI,RKRI,RKPHII,RKZI
-  REAL(rkind) RCURVA,RCURVB,RBRADA,RBRADB,NRADMX
-  INTEGER:: MODEW
+  REAL(rkind):: SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW
+  REAL(rkind):: RF,RPI,ZPI,PHII,RNZI,RNPHII,RKR0,UUI,RKRI,RKPHII,RKZI
+  REAL(rkind):: RCURVA,RCURVB,RBRADA,RBRADB,NRADMX
+  INTEGER:: MODEW,nres_max,nres_type
+  REAL(rkind):: pne_threshold,bdr_threshold
+  REAL(rkind):: Rmax_wr,Rmin_wr,Zmin_wr,Zmax_wr
 
   REAL(rkind),DIMENSION(NRAYM):: &
        RFIN,RPIN,ZPIN,PHIIN,RKRIN,RNZIN,RNPHIIN,ANGZIN,ANGPHIN,UUIN, &
@@ -62,7 +65,18 @@ MODULE wrcomm
        RK2B,RP2B
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        RAMPB
-
+  REAL(rkind),ALLOCATABLE:: &
+       pos_nrs(:),pwr_nrs(:),pwr_nrs_nray(:,:)
+  REAL(rkind),ALLOCATABLE:: &
+       pos_nrl(:),pwr_nrl(:),pwr_nrl_nray(:,:)
+  REAL(rkind),ALLOCATABLE:: &
+       rs_nstp_nray(:,:),rl_nstp_nray(:,:)
+  REAL(rkind),ALLOCATABLE:: &
+       pos_pwrmax_rs_nray(:),pwrmax_rs_nray(:)
+  REAL(rkind):: pos_pwrmax_rs,pwrmax_rs
+  REAL(rkind),ALLOCATABLE:: &
+       pos_pwrmax_rl_nray(:),pwrmax_rl_nray(:)
+  REAL(rkind):: pos_pwrmax_rl,pwrmax_rl
 CONTAINS
 
   SUBROUTINE wr_allocate

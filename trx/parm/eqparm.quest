@@ -1,4 +1,0 @@
- &eq
-   rr=0.64, ra=0.36, rkap=1.60, rdlt=0.80 bb=0.64, rip=0.30, rb=0.40
-   mdleqv=1 mdleqa=1 KNAMEQ='eqdata.quest'
- &end

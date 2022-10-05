@@ -34,7 +34,7 @@ C
          WRITE(6,'(A,F12.4)') "== Power fraction       : ",PFRACL(NPH)
 C
          CALL WMEXEC(IERR)
-         CALL MPSYNC
+         CALL mtx_barrier
          IF(IERR.NE.0) EXIT
 C
          PABSTT_SV=PABSTT_SV+PABSTT

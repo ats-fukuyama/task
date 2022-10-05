@@ -12,6 +12,7 @@ CONTAINS
     COMPLEX(rkind):: CKKV2,CKKV,CFCTD,CFCTB,CKKW2,CKKW,CKKU2,CRE,CRM
     COMPLEX(rkind):: CRJ,CFCJ,CJY1,CJY2,CJZ1,CJZ2
 
+    WRITE(6,*) '@@@ point 2400'
     RW=2.D6*PI*RF
     RKV=RW/VC
     RKPR=RKZ
@@ -38,6 +39,8 @@ CONTAINS
     CJZ1=CFCJ*CFJZ1
     CJZ2=CFCJ*CFJZ2
 
+    WRITE(6,*) '@@@ point 2401'
+
     DO I=1,3
        DO J=1,5
           CGIN(I,J)=(0.D0,0.D0)
@@ -45,6 +48,7 @@ CONTAINS
        END DO
     END DO
 
+    WRITE(6,*) '@@@ point 2402'
     IF(MOD(NMODEL,2).EQ.1) THEN
        CGIN(1,1)=     1.D0+CRE
        CGIN(1,2)=-CI*(1.D0-CRE)*CKKV

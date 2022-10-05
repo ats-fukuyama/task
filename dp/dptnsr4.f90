@@ -19,17 +19,18 @@ CONTAINS
 
 !     ****** KINETIC MODEL WITH FLR and Drift (by T. Watanabe) ******
 
-  SUBROUTINE DPTNTW(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+  SUBROUTINE DPTNTW(CW,CKPR,CKPP,NS,mag,plfw,CLDISP)
 
       USE libdsp,ONLY: DSPFNV
       USE libbes,ONLY: BESEINX
       USE dpcomm
       USE plprof
+      USE plprofw
       IMPLICIT NONE
       COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
-      TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+      TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind),ALLOCATABLE:: CALAM(:)
 
@@ -46,13 +47,13 @@ CONTAINS
       NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)))+1
       ALLOCATE(CALAM(0:NHMAX))
 
-      CWP=plf(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      CWP=plfw(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       WC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS))     ! WC is not devided by CW
-      UPR=plf(NS)%RU                           ! u_para
+      UPR=plfw(NS)%RUPR                           ! u_para
 
-      WTPR=plf(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))  ! v_para^2
+      WTPR=plfw(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))  ! v_para^2
       VTPR=SQRT(2.D0*WTPR)                     ! v_para
-      WTPP=plf(NS)%RTPP*1.D3*AEE/(AMP*PA(NS))  ! v_perp^2
+      WTPP=plfw(NS)%RTPP*1.D3*AEE/(AMP*PA(NS))  ! v_perp^2
 
       CBETA=CKPP*CKPP*WTPP/(WC*WC)           ! l.c. lambda
       DO NH=0,NHMAX

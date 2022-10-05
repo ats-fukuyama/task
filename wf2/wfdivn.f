@@ -4,6 +4,7 @@ C     ****** Define 2-D Node Array (POLYGON) ******
 C
       SUBROUTINE DFNODP
 C
+      USE libchar
       INCLUDE 'wfcomm.inc'
       PARAMETER (NFQM=11,NVQM=11,NPQM=101)
       COMMON /WFDVP1/ XPQ(NPQM),YPQ(NPQM),IPQ(NPQM)
@@ -54,7 +55,7 @@ C
       WRITE(6,*) '##       V: view  C: clear  S:save  X:exit'
     2 READ(5,'(A80)',ERR=1,END=9000) KLINE
       KID=KLINE(1:1)
-      CALL GUCPTL(KID)
+      CALL toupper(KID)
 C
       IF(KID.EQ.'P') THEN
          KLINE(1:1)=' '
@@ -171,7 +172,7 @@ C
             WRITE(6,*) '## Data has been modified.'
             WRITE(6,*) '   Are you sure to exit? [Y/N]' 
             READ(5,'(A1)',ERR=8,end=8) KID
-            CALL GUCPTL(KID)
+            CALL toupper(KID)
             IF(KID.EQ.'Y') GOTO 9000
          ELSE
             GOTO 9000

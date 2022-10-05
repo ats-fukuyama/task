@@ -1,9 +1,0 @@
- &eq
-      RR     = 3.D0
-      RA     = 1.D0
-      RB     = 1.1D0
-      RKAP   = 1.6D0
-      RDLT   = 0.25D0
-      BB     = 3.D0
-      RIP    = 3.D0
- &end

@@ -6,6 +6,7 @@
 subroutine WFDIV
 
   use libmpi
+  USE libchar
   use wfcomm
   use wfparm
   implicit none
@@ -18,7 +19,7 @@ subroutine WFDIV
      write(6,*) '## INPUT: D/DIV  G/DRAW  P,V/PARM ',&
                           'S/SAVE  L/LOAD  W/LIST  X/EXIT'
      read(5,'(A1)',ERR=1,END=9000) KID
-     call GUCPTL(KID)
+     call toupper(KID)
   end if
   call mtx_barrier
   call mtx_broadcast_character(KID,1)
@@ -32,7 +33,7 @@ subroutine WFDIV
      if (nrank.eq.0) then
         write(6,'(A24)') '## TYPE: X/RECT C/CIRCLE'
         read(5,'(A1)') KID
-        call GUCPTL(KID)
+        call toupper(KID)
         if (KID.ne."X".and.KID.ne."C") goto 2
      end if
      call mtx_barrier
@@ -110,6 +111,7 @@ subroutine WFDIV
     
   elseif(KID.eq.'G') then
      if (nrank.eq.0) then
+        NWXMAX=0
         call WFGDIV
      end if
      
@@ -148,7 +150,7 @@ subroutine SETNODX
   integer :: NN1,NN2,NN3,NN4
   integer :: NR,NZ
   integer :: NRMAX,NZMAX
-  real(8) :: DR,DZ,BDRLEN,BDZLEN
+  real(rkind) :: DR,DZ,BDRLEN,BDZLEN
 
   BDRLEN=BDRMAX-BDRMIN
   BDZLEN=BDZMAX-BDZMIN
@@ -243,7 +245,7 @@ subroutine SETNODC
   integer :: NR,NTH,NTH1
   integer :: NRMAX,INNODE
   integer,dimension(:),pointer :: NTHMAX
-  real(8) :: RRING,THETA,DR
+  real(rkind) :: RRING,THETA,DR
 
   ! --- set the number of rings ---
                                 
@@ -464,7 +466,7 @@ subroutine wfdiv_broadcast
   use libmpi
   implicit none
 
-  real(8),dimension(7) :: rdata
+  real(rkind),dimension(7) :: rdata
 
   if (nrank.eq.0) then
      rdata(1)=BDRMIN
