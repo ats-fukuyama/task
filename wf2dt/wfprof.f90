@@ -212,11 +212,11 @@ SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
      CALL WFCOLL(rn,rtpr,rtpp,rzcl,0)
      SELECT CASE(model_coll_enhance)
      CASE(1)
-        factor=factor_coll_enhance &
-             *(1.D0+EXP(-(R-xpos_coll_enhance)**2/xwidth_coll_enhance**2))
+        factor=1.D0+factor_coll_enhance &
+                   *EXP(-(R-xpos_coll_enhance)**2/xwidth_coll_enhance**2)
      CASE(2)
-        factor=factor_coll_enhance &
-             *(1.D0+EXP(-(Z-ypos_coll_enhance)**2/ywidth_coll_enhance**2))
+        factor=1.D0+factor_coll_enhance &
+                   *EXP(-(Z-ypos_coll_enhance)**2/ywidth_coll_enhance**2)
      CASE DEFAULT
         factor=1.D0
      END SELECT

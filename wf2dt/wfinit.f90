@@ -177,7 +177,7 @@ CONTAINS
     !       rzcl=rzcl_original*(1.D0+factor*exp(-(x-xpos)**2/xwidth**2))
 
     model_coll_enhance=0
-    factor_coll_enhance=1.D0
+    factor_coll_enhance=0.D0
     xpos_coll_enhance  =0.D0
     xwidth_coll_enhance=0.01D0
     ypos_coll_enhance  =0.D0
@@ -219,6 +219,7 @@ CONTAINS
 !              * 0 : No output
 !                1 : 2D Vector field in poloidal cross section
 !        NGRAPH: Drawing parameter for field data
+!               -1 : binary file output
 !                0 : text file output
 !              * 1 : Contour plot
 !                2 : Paint plot

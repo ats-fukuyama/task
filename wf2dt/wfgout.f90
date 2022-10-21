@@ -133,23 +133,28 @@ SUBROUTINE WFGOUT
        &    KID.EQ.'I'.OR.&
        &    KID.EQ.'A'.OR.&
        &    KID.EQ.'C') THEN
-        IF(NGRAPH.EQ.0) THEN
+        SELECT CASE(NGRAPH)
+        CASE(-1)
+           CALL WFGBFC(KWD)
+        CASE(0)
            CALL WFGWFC(KWD)
-        ELSEIF(NGRAPH.EQ.1) THEN
+        CASE(1)
            CALL WFGPPC(NW,NWMAX,KWD)
-        ELSEIF(NGRAPH.EQ.2) THEN
+        CASE(2)
            CALL WFGPFC(NW,NWMAX,KWD)
-        ELSEIF(NGRAPH.GE.3) THEN
+        CASE(3:6)
            CALL WFGPBC(NW,NWMAX,KWD)
-        ENDIF
+        END SELECT
      ELSEIF(KID.EQ.'X'.OR.&
-          & KID.EQ.'Y') THEN!.OR.&
-!     & KID.EQ.'B') THEN
-        IF(NGRAPH.EQ.0) THEN
+          & KID.EQ.'Y') THEN
+        SELECT CASE(NGRAPH)
+        CASE(-1)
+           CALL WFGBFR(KWD)
+        CASE(0)
            CALL WFGWFR(KWD)
-        ELSE
+        CASE(1:6)
            CALL WFGPFR(NW,NWMAX,KWD)
-        ENDIF
+        END SELECT
      ELSE
         WRITE(6,*) 'XX UNKNOWN KID3:',KID
      ENDIF
@@ -535,6 +540,26 @@ SUBROUTINE WFCTOGND(ID,KWD)
   RETURN
 END SUBROUTINE WFCTOGND
 
+!     ****** WRITE 2D PROFILE IN BINARY FILE ******
+
+SUBROUTINE WFGBFC(KWD)
+
+  use wfcomm
+  implicit none
+  integer :: NFD,NGX,NGY
+  character,intent(in) :: KWD*(NCHM)
+
+  NFD=23
+  WRITE(NFD) KWD
+  WRITE(NFD) 2
+  WRITE(NFD) NGXMAX,NGYMAX
+  WRITE(NFD) (G2X(NGX),NGX=1,NGXMAX)
+  WRITE(NFD) (G2Y(NGY),NGY=1,NGYMAX)
+  WRITE(NFD) ((GZ(NGX,NGY),NGX=1,NGXMAX),NGY=1,NGYMAX)
+
+  RETURN
+END SUBROUTINE WFGBFC
+
 !     ****** WRITE 2D PROFILE IN TEXT FILE ******
 
 SUBROUTINE WFGWFC(KWD)
@@ -543,7 +568,7 @@ SUBROUTINE WFGWFC(KWD)
   implicit none
   integer :: NFD,NGX,NGY
   character,intent(in) :: KWD*(NCHM)
-  
+
   NFD=22
   WRITE(NFD,'(A79)') KWD
   WRITE(NFD,'(I8)') 2
@@ -551,9 +576,37 @@ SUBROUTINE WFGWFC(KWD)
   WRITE(NFD,'(1P5E15.7)') (G2X(NGX),NGX=1,NGXMAX)
   WRITE(NFD,'(1P5E15.7)') (G2Y(NGY),NGY=1,NGYMAX)
   WRITE(NFD,'(1P5E15.7)') ((GZ(NGX,NGY),NGX=1,NGXMAX),NGY=1,NGYMAX)
-  
+
   RETURN
 END SUBROUTINE WFGWFC
+
+!     ****** WRITE 1D PROFILE IN BINARY FILE ******
+
+SUBROUTINE WFGBFR(KWD)
+
+  use wfcomm
+  implicit none
+  integer :: NGMAX,NFD,NGV,NG
+  character,intent(in) :: KWD*(NCHM)
+
+  IF(KWD(1:1).EQ.'E'.OR.&
+ &   KWD(1:1).EQ.'D'.OR.&
+ &   KWD(1:1).EQ.'B'.OR.&
+ &   KWD(1:1).EQ.'A') THEN
+     NGMAX=3
+  ELSE
+     NGMAX=1
+  ENDIF
+
+  NFD=23
+  WRITE(NFD) KWD
+  WRITE(NFD) 1
+  WRITE(NFD) NGVMAX,NGMAX
+  WRITE(NFD) (GX(NGV),NGV=1,NGVMAX)
+  WRITE(NFD) ((GV(NGV,NG),NGV=1,NGVMAX),NG=1,NGMAX)
+
+  RETURN
+END SUBROUTINE WFGBFR
 
 !     ****** WRITE 1D PROFILE IN TEXT FILE ******
 
