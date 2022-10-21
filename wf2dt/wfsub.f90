@@ -534,7 +534,7 @@ SUBROUTINE SETEWG
   DO NSD=1,NSDMAX
      IF(KASID(NSD).EQ.1) NBSID=NBSID+1
   END DO
-  IF(nrank.EQ.0) write(6,*) 'NBSID=',NBSID
+  IF(nrank.EQ.0) write(6,*) '## setewg: NBSID=',NBSID
   IF(ALLOCATED(NSDBS)) DEALLOCATE(NSDBS)
   IF(ALLOCATED(CEBSD)) DEALLOCATE(CEBSD)
   ALLOCATE(NSDBS(NBSID))
@@ -575,7 +575,7 @@ SUBROUTINE SETEWG
            CEBSD(NBSD)= AMPWG*EXP(CII*PHASE)*(COS(ANGLE)+CII*ELPWG*SIN(ANGLE))
            IF(MODELWG.EQ.1) CEBSD(NBSD)=CEBSD(NBSD)*EXP(-10.D0*FACTOR)
            IF(PROD.GT.0.D0) CEBSD(NBSD)=-CEBSD(NBSD)
-           IF(nrank.EQ.0) &
+           IF(nrank.EQ.0.AND.idebug.EQ.3) &
                 WRITE(6,'(A,2I8,1P5E12.4)') &
                 'SD:',NSD,NBSD,CEBSD(NBSD),AMPWG,PHASE,ANGLE
         ELSE
@@ -587,7 +587,8 @@ SUBROUTINE SETEWG
            PROD=(R2WG-R1WG)*(RNODE(NN2)-RNODE(NN1)) &
                +(Z2WG-Z1WG)*(ZNODE(NN2)-ZNODE(NN1))
            CALL wf_read_wg(Z,CEX,CEY,CEZ,IERR)
-           IF(nrank.EQ.0) write(6,'(A,1P6E12.4)') 'R,Z,CEY=', &
+           IF(nrank.EQ.0.AND.idebug.EQ.3) &
+                write(6,'(A,1P6E12.4)') 'R,Z,CEY=', &
                                     R,Z,CEY,PROD,ZNODE(NN2)-ZNODE(NN1)
 !!!           IF(PROD.GT.0.D0) CEY=-CEY
            CEBSD(NBSD)=AMPWG*CEY
@@ -603,7 +604,7 @@ SUBROUTINE SETEWG
   DO NN=1,NNMAX
      IF(KANOD(NN).EQ.1) NBNOD=NBNOD+1
   END DO
-  IF(nrank.EQ.0) write(6,*) 'NBNOD=',NBNOD
+  IF(nrank.EQ.0) write(6,*) '## setewg: NBNOD=',NBNOD
   IF(ALLOCATED(NNDBS)) DEALLOCATE(NNDBS)
   IF(ALLOCATED(CEBND)) DEALLOCATE(CEBND)
   ALLOCATE(NNDBS(NBNOD))
@@ -639,7 +640,7 @@ SUBROUTINE SETEWG
            PHASE=(PH1WG+(PH2WG-PH1WG)*SN+DPHWG*4.D0*SN*(1.D0-SN))*PI/180.D0
            CEBND(NBND)= AMPWG*EXP(CII*PHASE)*(SIN(ANGLE)-CII*ELPWG*COS(ANGLE))
            IF(MODELWG.EQ.1) CEBND(NBND)=CEBND(NBND)*EXP(-10.D0*FACTOR)
-           IF(nrank.EQ.0) &
+           IF(nrank.EQ.0.AND.idebug.EQ.3) &
                 WRITE(6,'(A,2I8,1P5E12.4)') &
                 'ND:',NN,NBND,CEBND(NBND),AMPWG,PHASE,ANGLE
         ELSE
@@ -649,7 +650,8 @@ SUBROUTINE SETEWG
         IF((R.GE.R1WG-EPSWG).AND.(R.LE.R2WG+EPSWG).AND. &
            (Z.GE.Z1WG-EPSWG).AND.(Z.LE.Z2WG+EPSWG)) THEN
            CALL wf_read_wg(Z,CEX,CEY,CEZ,IERR)
-           IF(nrank.EQ.0) write(6,'(A,1P4E12.4)') 'R,Z,CEZ=',R,Z,CEZ
+           IF(nrank.EQ.0.AND.idebug.EQ.3) &
+                write(6,'(A,1P4E12.4)') 'R,Z,CEZ=',R,Z,CEZ
            CEBND(NBND)=AMPWG*CEZ
         ELSE
            CEBND(NBND)=(0.D0,0.D0)
@@ -907,7 +909,6 @@ SUBROUTINE FIELDCR(NE,R,Z,CVALUE,CE)
   complex(rkind),intent(in) :: CVALUE(NSDMAX)
   complex(rkind):: CF
   complex(rkind),intent(out) :: CE
-  REAL(rkind):: DR,DZ,DL
 
   CALL WFABC(NE,A,B,C)
   do ISD=1,3

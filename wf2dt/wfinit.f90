@@ -300,6 +300,7 @@ CONTAINS
     tolerance = 1.D-8
 
 !     *** DEBUG CONTROL PARAMETER ***
+    ! --- idebug=3 : wg e-field output ---
 
     IDEBUG = 0
 

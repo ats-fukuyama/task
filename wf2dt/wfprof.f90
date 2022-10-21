@@ -194,7 +194,7 @@ SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
   real(rkind),intent(in) :: R,Z
   real(rkind),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
   REAL(rkind):: RU(NSM),factor
-  INTEGER:: NSMAXL,IERR,NS
+  INTEGER:: IERR,NS
 
   SELECT CASE(MODELG)
   CASE(0)

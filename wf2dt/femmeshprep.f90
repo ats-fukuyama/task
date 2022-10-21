@@ -8,7 +8,7 @@ MODULE femmeshprep
   INTEGER(long):: nelm_node_max
   REAL(rkind):: xnode_min,xnode_max,ynode_min,ynode_max
   REAL(rkind):: vol_tot
-  INTEGER(long),ALLOCATABLE:: nside_max_nelm(:)
+  INTEGER,ALLOCATABLE:: nside_max_nelm(:)
   REAL(rkind),ALLOCATABLE:: xcenter_nelm(:),ycenter_nelm(:)
   REAL(rkind),ALLOCATABLE:: vol_nelm(:)
   REAL(rkind),ALLOCATABLE:: xcenter_nseg(:),ycenter_nseg(:)
@@ -98,12 +98,12 @@ CONTAINS
     REAL(rkind),ALLOCATABLE:: xcenter_nsega(:),ycenter_nsega(:)
     INTEGER:: nseg_all
     INTEGER:: nelm,nseg,nside,n1,n2,n3
-    INTEGER:: nseg1,nsega,nelm1,nelm2,nside1,k
+    INTEGER:: nsega,nelm1,nside1
     INTEGER:: node,ncount,ncount_zone_max
     INTEGER:: nsega1,nx,ny
     REAL(rkind):: x,y,xc,yc,xc1,yc1,xlen_zone,ylen_zone
     REAL(rkind):: x1,y1,x2,y2,x3,y3,xg,yg,s,v,xgsum,ygsum,vsum
-    REAL(rkind):: sfactor,vfactor,weight,xce,yce,xcs,ycs,dl,ds,xn,yn
+    REAL(rkind):: sfactor,vfactor,weight
 
     nxzone_max=100
     nyzone_max=100

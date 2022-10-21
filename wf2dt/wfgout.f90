@@ -54,7 +54,7 @@ SUBROUTINE WFGOUT
   GOTO 10
   
 20 NWMAX=NWD
-21 KWD=KWORD(1)
+  KWD=KWORD(1)
   KG1=KWD(1:1)
   KG2=KWD(2:2)
   IF(KG1.EQ.'M') THEN
@@ -185,8 +185,6 @@ SUBROUTINE WFCTOGSD(ID,KWD)
   complex(rkind) :: CE
   character,intent(in) :: KWD*(NCHM)
   CHARACTER  :: KID*1
-  INTEGER:: N1,N2,N3
-  COMPLEX(rkind) :: CE1,CE2,CE3
 
   real(rkind) :: theta
   complex(rkind)::CE_R,CE_Z
@@ -410,9 +408,6 @@ SUBROUTINE WFCTOGND(ID,KWD)
   complex(rkind) :: CE
   character,intent(in) :: KWD*(NCHM)
   CHARACTER  :: KID*1
-
-  real(rkind) :: theta
-  complex(rkind)::CE_R,CE_Z
 
   KID=KWD(3:3)
   IE=0

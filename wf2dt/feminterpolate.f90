@@ -172,7 +172,7 @@ CONTAINS
     INTEGER:: nside,nseg,node1,node2,nelm1,nside1,nseg1,nelm2
     INTEGER:: nxzone,nyzone,ncount
     INTEGER:: nelm_ncount
-    REAL(rkind):: xc,yc,x1,y1,x2,y2,xc1,yc1,xmin,xmax,ymin,ymax
+    REAL(rkind):: xc,yc,x1,y1,x2,y2,xc1,yc1
 
     IF(nelm.NE.0) THEN   ! If nelm is given, look for arround
     
@@ -361,7 +361,6 @@ CONTAINS
     INTEGER,SAVE:: nelm_save=0
     INTEGER,INTENT(IN):: id  ! 0 for new search, 1: use nelm previous search
     INTEGER:: nelm
-    REAL(rkind):: dfx,dfy
 
     IF(id.EQ.0) THEN
        nelm=0

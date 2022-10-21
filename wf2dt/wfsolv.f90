@@ -445,7 +445,7 @@ SUBROUTINE CVSOLV
      IF(ABS(CEQP(NNZ)).GT.0.D0) THEN
         i=NSEQ(NNZ)/MJLEN
         j=NSEQ(NNZ)-i*MJLEN
-        if(i+istart.lt.0) then
+        if(i.lt.0.OR.i.GT.iend-istart) then
            WRITE(6,'(A/6I12)') 'NNZ,NSEQ(NNZ),i,istart,i+istart,iend=', &
                                NNZ,NSEQ(NNZ),i,istart,i+istart,iend
            STOP
