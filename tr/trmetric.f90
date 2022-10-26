@@ -94,10 +94,10 @@ CONTAINS
             RKPRHO(NR)=RKPRHOU(1,NR)
             IF(MDPHIA.EQ.0) THEN
 !     define rho_a from phi_a data
-               RHO_A=SQRT(PHIA/(PI*BB))
+               RHO_A=SQRT(PHIA/(PI*BB))  ! effective minor radius
                RJCB(NR)=1.D0/RHO_A
-               RHOM(NR)=RM(NR)*RHO_A
-               RHOG(NR)=RG(NR)*RHO_A
+               RHOM(NR)=RM(NR)*RHO_A     ! midpoint minor radius
+               RHOG(NR)=RG(NR)*RHO_A     ! grid minor radius
             ELSE
                RHO_A=SQRT(VOLAU(1)/(2.D0*PI**2*RMJRHOU(1,NRMAX)))
                RJCB(NR)=1.D0/RHO_A

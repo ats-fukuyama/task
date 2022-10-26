@@ -70,16 +70,14 @@ CONTAINS
                   KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2, &
                   MODEFW,MODEFR,IDEBUG, &
                   MODELP,MODELV,NCMIN,NCMAX,NS_NSA_DP,PMAX_DP,EMAX_DP, &
-                  RF,RPI,ZPI,PHII,RNZI,RNPHII,RKR0,MODEW,UUI, &
-                  RCURVA,RCURVB,RBRADA,RBRADB, &
-                  RFIN,RPIN,ZPIN,PHIIN,RNZIN,RNPHIIN,RKRIN,MODEWIN,UUIN, &
-                  ANGZIN,ANGPHIN,RCURVAIN,RCURVBIN,RBRADAIN,RBRADBIN, &
+                  RFIN,RPIN,ZPIN,PHIIN,RNKPIN,RNKTIN,MODEWIN,RNKIN,UUIN, &
+                  ANGPIN,ANGTIN,RCURVAIN,RCURVBIN,RBRADAIN,RBRADBIN, &
                   NRAYMAX,NSTPMAX,NRSMAX,NRLMAX,LMAXNW, &
                   NPMAX_DP,NTHMAX_DP,NRMAX_DP, &
                   MDLWRI,MDLWRG,MDLWRP,MDLWRQ,MDLWRW,nres_max,nres_type, &
                   SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW, &
                   mode_beam,pne_threshold,bdr_threshold, &
-                  Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr
+                  Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr,idebug_wr
 
     READ(NID,WR,IOSTAT=IST,ERR=9800,END=9900)
     
@@ -121,16 +119,14 @@ CONTAINS
              9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2'/ &
              9X,'MODEFW,MODEFR,IDEBUG'/ &
              9X,'MODELP,MODELV,NCMIN,NCMAX,NS_NSA_DP,PMAX_DP,EMAX_DP,'/ &
-             9X,'RF,RPI,ZPI,PHII,RNZI,RNPHII,RKR0,MODEW,UUI,'/ &
-             9X,'RCURVA,RCURVB,RBRADA,RBRADB,'/ &
-             9X,'RFIN,RPIN,ZPIN,PHIIN,RNZIN,RNPHIIN,RKR0IN,MODEWIN,UUIN,'/ &
-             9X,'ANGZIN,ANGPHIN,RCURVAIN,RCURVBIN,RBRADAIN,RBRADBIN,'/ &
+             9X,'RFIN,RPIN,ZPIN,PHIIN,RNKPIN,RNKTIN,MODEWIN,RNKIN,UUIN,'/ &
+             9X,'ANGPIN,ANGTIN,RCURVAIN,RCURVBIN,RBRADAIN,RBRADBIN,'/ &
              9X,'NRAYMAX,NSTPMAX,NRSMAX,NRLMAX,LMAXNW,'/ &
              9X,'NPMAX_DP,NTHMAX_DP,NRMAX_DP,'/ &
              9X,'MDLWRI,MDLWRG,MDLWRP,MDLWRQ,MDLWRW,nres_max,nres_type,'/ &
              9X,'SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW'/ &
              9X,'mode_beam,pne_threshold,bdr_thershold'/ &
-             9X,'Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr')
+             9X,'Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr,idebug_wr')
   END SUBROUTINE WRPLST
 
 !     ***** CHECK INPUT PARAMETERS *****

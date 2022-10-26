@@ -48,7 +48,7 @@ CONTAINS
 !       WRITE(6,'(A,1P2E12.4)') 'CFY(NXMAX*2+2)=',CFY(NXMAX*2+2)
 !       WRITE(6,'(A,1P2E12.4)') 'CFY(NXMAX*2+3)=',CFY(NXMAX*2+3)
        RATEA=1.D0-ABS(CFY(NXMAX*2+3))**2
-       IF(iprint > 0) WRITE(6,'(A,F8.5)') '## Absorption rate: ',RATEA
+       IF(iprint > 0) WRITE(6,'(A,ES12.4)') '## Absorption rate: ',RATEA
 9900  CONTINUE
       RETURN
   601 FORMAT('## END OF ',A6,' ##  CPU TIME = ',F8.3,' SEC')

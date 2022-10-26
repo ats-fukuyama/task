@@ -4,9 +4,9 @@ MODULE wrsub
 
   PRIVATE
   PUBLIC wr_cold_rkperp
+  PUBLIC wr_newton
   PUBLIC cold_rkr0
   PUBLIC wrmodconv
-  PUBLIC wrnwtn
   PUBLIC wrmodnwtn
   PUBLIC dispfn
   PUBLIC dispxr
@@ -17,38 +17,37 @@ MODULE wrsub
   PUBLIC wrcale_i
   PUBLIC wrcale_xyz
 
+  PUBLIC wrnwtn
+  
 CONTAINS
 
-!  --- calculate wave number with cold plasma model ---
-!      Input: RF,RPI,PHII,ZPI
+  SUBROUTINE WR_cold_rkperp(omega,R,Z,phi,rkpara,rkperp_1,rkperp_2)
 
-  SUBROUTINE WR_COLD_RKPERP(R,Z,PHI,RKPARA,RKPERP_1,RKPERP_2)
-
-    USE wrcomm
+    USE plcomm,ONLY: nsmax
+    USE bpsd_constants
     USE pllocal
     USE plprof,ONLY: pl_mag_type,pl_mag
     USE plprofw,ONLY: pl_prfw_type,pl_profw
     IMPLICIT NONE
-    REAL(rkind),INTENT(IN):: R,Z,PHI,RKPARA
-    REAL(rkind),INTENT(OUT):: RKPERP_1,RKPERP_2
+    REAL(rkind),INTENT(IN):: omega,R,Z,phi,rkpara
+    REAL(rkind),INTENT(OUT):: rkperp_1,rkperp_2
     TYPE(pl_mag_type):: mag
     TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
-    REAL(rkind):: OMG,OMG_C,WP2,RNPARA
+    REAL(rkind):: omega_c,omega_p2,rnpara
     REAL(rkind):: STIX_X,STIX_Y,STIX_S,STIX_P,STIX_D
-    REAL(rkind):: W_A,W_B,W_C,RN_1,RN_2
+    REAL(rkind):: W_A,W_B,W_C,RN_1,RN_2,RN_temp
 
-    OMG=2.D6*PI*RF
-    CALL PL_MAG(R*COS(PHI),R*SIN(PHI),Z,mag)
+    CALL pl_mag(R*cos(phi),R*SIN(phi),Z,mag)
     CALL PL_PROFW(mag%rhon,plfw)
 
     ! --- consider only electron contribution for ow density ---
     
-    OMG_C = mag%BABS*AEE/(AME)
-    WP2=plfw(1)%rn*1.D20*AEE*AEE/(EPS0*AMP*PA(1))
-    RNPARA=RKPARA*VC/OMG
+    omega_c = mag%BABS*AEE/AME
+    omega_p2=plfw(1)%rn*1.D20*AEE*AEE/(EPS0*AME)
+    rnpara=rkpara*VC/omega
 
-    STIX_X = WP2/OMG/OMG
-    STIX_Y = OMG_C/OMG
+    STIX_X = omega_p2/omega**2
+    STIX_Y = omega_c/omega
     STIX_S = (1.D0-(STIX_X+STIX_Y**2))/(1.D0-STIX_Y**2)
     STIX_P = 1.D0 - STIX_X
     STIX_D = - STIX_X*STIX_Y/(1.D0-STIX_Y**2)
@@ -62,15 +61,21 @@ CONTAINS
     RN_1 = (-W_B+SQRT(W_B**2-4.D0*W_A*W_C))/2.D0/W_A
     RN_2 = (-W_B-SQRT(W_B**2-4.D0*W_A*W_C))/2.D0/W_A
 
-    WRITE(6,'(A,2ES12.4)') 'WR_COLD_RKPERP:',RN_1,RN_2
+!    WRITE(6,'(A,2ES12.4)') 'WR_COLD_RKPERP:',RN_1,RN_2
+
+    IF(ABS(RN_1).GT.ABS(RN_2)) THEN
+       RN_temp=RN_1
+       RN_1=RN_2
+       RN_2=RN_temp
+    END IF
 
     IF(RN_1.GT.0.D0) THEN
-       RKPERP_1 = - SQRT(RN_1)*OMG/VC
+       RKPERP_1 = SQRT(RN_1)*omega/VC
     ELSE
        RKPERP_1 = 0.D0
     END IF
     IF(RN_2.GT.0.D0) THEN
-       RKPERP_2 = - SQRT(RN_2)*OMG/VC
+       RKPERP_2 = SQRT(RN_2)*omega/VC
     ELSE
        RKPERP_2 = 0.D0
     END IF
@@ -78,32 +83,129 @@ CONTAINS
     RETURN
   END SUBROUTINE WR_COLD_RKPERP
 
+!  ----- calculate radial wave number satifying D=0 -----
+
+  SUBROUTINE wr_newton(omega,R,PHI,Z,angp,angt,rk_initial,rk_final,IERR)
+
+    USE wrcomm
+    USE dppola
+    IMPLICIT NONE
+    REAL(rkind),INTENT(IN):: omega,R,PHI,Z,angp,angt,rk_initial
+    REAL(rkind),INTENT(OUT):: rk_final
+    INTEGER,INTENT(OUT):: IERR
+    INTEGER:: ICOUNT
+    REAL(rkind):: S,T,rk,rk_new,delrk
+    REAL(rkind):: XP,YP,ZP,rk0,rk1,rk2,rkr0,rkr1,rkr2,rkz0,rkz1,rkz2
+    REAL(rkind):: rkx0,rkx1,rkx2,rky0,rky1,rky2,rkph0,rkph1,rkph2
+    COMPLEX(rkind):: cdet(3,3),cepola(3),CRF,CKX,CKY,CKZ
+    REAL(rkind):: err,deg
+
+    deg=PI/180.D0
+    IERR=0
+
+    XP=R*COS(PHI)
+    YP=R*SIN(PHI)
+    ZP=Z
+    rk=rk_initial
+    delrk=DELKR
+    
+    ICOUNT=0
+10  CONTINUE
+    ICOUNT=ICOUNT+1
+
+    rk0=rk
+    rk1=rk+delrk
+    rk2=rk-delrk
+
+    SELECT CASE(mdlwri)
+    CASE(0,2,100,102)
+       rkr0=  rk0*COS(angp)*COS(angt)
+       rkph0= rk0*COS(angp)*SIN(angt)
+       rkz0=  rk0*SIN(angp)
+       rkr1=  rk1*COS(angp)*COS(angt)
+       rkph1= rk1*COS(angp)*SIN(angt)
+       rkz1=  rk1*SIN(angp)
+       rkr2=  rk2*COS(angp)*COS(angt)
+       rkph2= rk2*COS(angp)*SIN(angt)
+       rkz2=  rk2*SIN(angp)
+    CASE(1,3,101,103)
+       rkr0=  rk0*COS(angp)*COS(angt)
+       rkph0= rk0*COS(angp)*SIN(angt)
+       rkz0=  rk0*SIN(angp)*COS(angt)
+       rkr1=  rk1*COS(angp)*COS(angt)
+       rkph1= rk1*COS(angp)*SIN(angt)
+       rkz1=  rk1*SIN(angp)*COS(angt)
+       rkr2=  rk2*COS(angp)*COS(angt)
+       rkph2= rk2*COS(angp)*SIN(angt)
+       rkz2=  rk2*SIN(angp)*COS(angt)
+    END SELECT
+
+    rkx0=rkr0*COS(PHI)-rkph0*SIN(PHI)
+    rky0=rkr0*SIN(PHI)+rkph0*COS(PHI)
+    rkx1=rkr1*COS(PHI)-rkph1*SIN(PHI)
+    rky1=rkr1*SIN(PHI)+rkph1*COS(PHI)
+    rkx2=rkr2*COS(PHI)-rkph2*SIN(PHI)
+    rky2=rkr2*SIN(PHI)+rkph2*COS(PHI)
+
+    S= DISPXR(XP,YP,ZP,rkx0,rky0,rkz0,omega)
+    T=(DISPXR(XP,YP,ZP,rkx1,rky1,rkz1,omega) &
+      -DISPXR(XP,YP,ZP,rkx2,rky2,rkz2,omega))/(2*delrk)
+
+    rk_new=rk-S/T
+    IF(idebug_wr(8).NE.0) THEN
+       WRITE(6,'(A,2I4)') '*** idebug_wr(8):'
+       WRITE(6,'(A,3ES12.4)') '      rk,rk_new,-S/T=',rk,rk_new,-S/T
+    END IF
+
+    IF(ABS((rk_new-rk)/rk).LE.EPSNW) GOTO 9000
+    IF(ICOUNT.GT.LMAXNW) GOTO 8000
+    rk=rk_new
+    GOTO 10
+
+8000 WRITE(6,*) ' WRNWTN: DOES NOT CONVERGE'
+    IERR=1000
+9000 CONTINUE
+    rk_final=rk_new
+    crf=DCMPLX(omega/(2.D6*PI),0.D0)
+    ckx=rkx0
+    cky=rky0
+    ckz=rkz0
+    CALL dp_pola(crf,ckx,cky,ckz,xp,yp,zp,cdet,cepola,err)
+    IF(idebug_wr(9).NE.0) THEN
+       WRITE(6,'(A,2I4)') '*** idebug_wr(9):'
+       WRITE(6,'(A,2ES12.4)') '   CRF=',crf
+       WRITE(6,'(A,6ES12.4)') '   K,X=',rkx0,rky0,rkz0,xp,yp,zp
+       WRITE(6,'(A,6ES12.4)') '   cep=',cepola(1),cepola(2),cepola(3)
+       WRITE(6,'(A,ES12.4)')  '   err=',err
+    END IF
+    RETURN   
+  END SUBROUTINE wr_newton
+
 !  ----- mode conversion -----
 
-  SUBROUTINE WRMODCONV(IOX, Y, F, OXEFF) 
+  SUBROUTINE WRMODCONV(IOX, Y, F, OXEFF,omega) 
 
     USE wrcomm
     USE pllocal
     USE plprof,ONLY: PL_MAG_OLD,PL_PROF_OLD
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IOX
+    REAL(rkind),INTENT(IN):: omega
     REAL(rkind),INTENT(INOUT):: Y(NEQ)
     REAL(rkind),INTENT(OUT):: F(NEQ)
     REAL(rkind),INTENT(OUT):: OXEFF
     INTEGER:: I
-    REAL(rkind):: OMG,OX_K0,OX_LN,OX_Y,OX_NZOPT,OX_NZ,OX_NY,RHON
+    REAL(rkind):: OX_K0,OX_LN,OX_Y,OX_NZOPT,OX_NZ,OX_NY,RHON
     REAL(rkind):: BNX0,BNY0,BNZ0,RL0,Rr_IDEI,RKPARA0,S_O_X
     REAL(rkind):: DELTAB,Y10,Y20,Y30,OX_KC,Y4_OX,Y5_OX,Y6_OX
     REAL(rkind):: Y1_OX,Y2_OX,Y3_OX,DELTA
 
-       OMG=2.D6*PI*RF
-
        CALL RAMBDA_N_OX(Y(1), Y(2), Y(3), OX_LN)
-       CALL REFINDEX(Y, OX_Y, OX_NZOPT, OX_NZ, OX_NY)
-       OX_K0 = OMG / VC
+       CALL REFINDEX(omega, Y, OX_Y, OX_NZOPT, OX_NZ, OX_NY)
+       OX_K0 = omega / VC
        WRITE(6,*)'N_OPT=',OX_NZOPT,'NZ=',OX_NZ,'NY=',OX_NY
        WRITE(6,*)'K0=',OX_K0,'N=', &
-            SQRT((Y(4)**2+Y(5)**2+Y(6)**2))*(VC/OMG)
+            SQRT((Y(4)**2+Y(5)**2+Y(6)**2))*(VC/omega)
 
        OXEFF = ( 2.0*(1.0+OX_Y)*((OX_NZ-OX_NZOPT)**2) + OX_NY**2 )
        OXEFF = EXP(-PI*OX_K0*OX_LN*SQRT(0.5*OX_Y)*OXEFF)
@@ -123,7 +225,7 @@ CONTAINS
        DELTAB =1.0D0
        DO I=1,1000000
           IF(I.EQ.1) THEN 
-             DELTAB=DISPXR( Y(1), Y(2), Y(3), Y(4), Y(5), Y(6), OMG )
+             DELTAB=DISPXR( Y(1), Y(2), Y(3), Y(4), Y(5), Y(6), omega )
              Y10 = (Rr_IDEI/RL0)*Y(1)
              Y20 = (Rr_IDEI/RL0)*Y(2)
              Y30 = Y(3)
@@ -139,7 +241,7 @@ CONTAINS
           Y2_OX = Y(2) - IOX * S_O_X * Y20*Y(2)
           Y3_OX = Y(3) - IOX * S_O_X * Y30*Y(3)
 
-          DELTA=DISPXR( Y1_OX, Y2_OX, Y3_OX, Y4_OX, Y5_OX, Y6_OX, OMG )
+          DELTA=DISPXR( Y1_OX, Y2_OX, Y3_OX, Y4_OX, Y5_OX, Y6_OX, omega )
 		
           IF ( DELTA*DELTAB.LT.0D0 ) THEN
              Y(1) =Y1_OX
@@ -207,24 +309,22 @@ CONTAINS
 
 !  ----- calculate refractive index after mode conversion -----
 
-  SUBROUTINE  REFINDEX(Y, OX_Y, OX_NZOPT, OX_NZ, OX_NY)
+  SUBROUTINE  REFINDEX(omega,Y,OX_Y,OX_NZOPT,OX_NZ, OX_NY)
 
     USE wrcomm
     USE pllocal
     USE plprof,ONLY: PL_MAG_OLD
     IMPLICIT NONE
-    REAL(rkind),INTENT(IN):: Y(NEQ)
+    REAL(rkind),INTENT(IN):: omega,Y(NEQ)
     REAL(rkind),INTENT(OUT):: OX_Y,OX_NZOPT,OX_NZ,OX_NY
-    REAL(rkind):: OMG,RHON,OMG_C_OX,RL,Rr_IDEI
+    REAL(rkind):: RHON,omega_C_OX,RL,Rr_IDEI
     REAL(rkind):: Y10,Y20,Y30,OX_NX,OX_N2
 
-       OMG=2.D6*PI*RF 
-		
        CALL PL_MAG_OLD(Y(1), Y(2), Y(3), RHON)
-       OMG_C_OX = BABS*AEE/(AME)
-       OX_Y = OMG_C_OX / OMG
+       omega_C_OX = BABS*AEE/(AME)
+       OX_Y = omega_C_OX / omega
        OX_NZOPT = SQRT(OX_Y/(1.D0+OX_Y))
-       OX_NZ = (Y(4)*BNX + Y(5)*BNY + Y(6)*BNZ)*VC/OMG
+       OX_NZ = (Y(4)*BNX + Y(5)*BNY + Y(6)*BNZ)*VC/omega
 	
        RL  =SQRT(Y(1)**2+Y(2)**2)
        Rr_IDEI = RL-RR
@@ -234,9 +334,9 @@ CONTAINS
        Y10 = Y10 / SQRT(Y10**2+Y20**2+Y30**2)
        Y20 = Y20 / SQRT(Y10**2+Y20**2+Y30**2)
        Y30 = Y30 / SQRT(Y10**2+Y20**2+Y30**2)
-       OX_NX = (Y(4)*Y10 + Y(5)*Y20 + Y(6)*Y30)*VC/OMG
+       OX_NX = (Y(4)*Y10 + Y(5)*Y20 + Y(6)*Y30)*VC/omega
 		
-       OX_N2 = (Y(4)**2+Y(5)**2+Y(6)**2)*(VC/OMG)*(VC/OMG)
+       OX_N2 = (Y(4)**2+Y(5)**2+Y(6)**2)*(VC/omega)*(VC/omega)
        OX_NY = OX_N2 - OX_NZ**2 - OX_NX**2
        IF (OX_NY.LT.0.D0) OX_NY=0.0D0
        OX_NY = SQRT(OX_NY)
@@ -244,111 +344,22 @@ CONTAINS
        RETURN
   END SUBROUTINE REFINDEX
 
-!  ----- calculate radial wave number satifying D=0 -----
-
-  SUBROUTINE WRNWTN(RKR_initial,RKR_final,IERR)
-
-    USE wrcomm
-    USE dppola
-    IMPLICIT NONE
-    REAL(rkind),INTENT(IN):: RKR_initial
-    REAL(rkind),INTENT(OUT):: RKR_final
-    INTEGER,INTENT(OUT):: IERR
-    INTEGER:: ICOUNT
-    REAL(rkind):: OMG,S,T,RKR,RKR_PRE
-    REAL(rkind):: XP,YP,ZP,RKXP,RKXP1,RKXP2,RKYP,RKYP1,RKYP2,RKZP
-    COMPLEX(rkind):: cdet(3,3),cepola(3),CRF,CKX,CKY,CKZ
-    REAL(rkind):: err
-
-    IERR=0
-    OMG=2.D6*PI*RF
-    RKR_PRE=RKR_initial
-
-    IF(MODELG.EQ.0.OR.MODELG.EQ.1.OR.MODELG.EQ.11) THEN
-       XP= RPI
-       YP= PHII
-       ZP= ZPI
-       RKZP= RKZI
-    ELSE
-       XP= RPI*COS(PHII)
-       YP= RPI*SIN(PHII)
-       ZP= ZPI
-       RKZP= RKZI
-    ENDIF
-
-      ICOUNT=0
- 10   CONTINUE
-      ICOUNT=ICOUNT+1
-
-    IF(MODELG.EQ.0.OR.MODELG.EQ.1.OR.MODELG.EQ.11) THEN
-       RKXP= RKRI
-       RKXP1= RKR_PRE+DELKR
-       RKXP2= RKR_PRE-DELKR
-       RKYP= RKPHII
-       RKYP1= RKYP
-       RKYP2= RKYP
-    ELSE
-       RKXP=  RKR_PRE       *COS(PHII)-RKPHII*SIN(PHII)
-       RKXP1=(RKR_PRE+DELKR)*COS(PHII)-RKPHII*SIN(PHII)
-       RKXP2=(RKR_PRE-DELKR)*COS(PHII)-RKPHII*SIN(PHII)
-       RKYP=  RKR_PRE       *SIN(PHII)+RKPHII*COS(PHII)
-       RKYP1=(RKR_PRE+DELKR)*SIN(PHII)+RKPHII*COS(PHII)
-       RKYP2=(RKR_PRE-DELKR)*SIN(PHII)+RKPHII*COS(PHII)
-    ENDIF
-
-!      WRITE(6,'(1P6E12.4)') XP,YP,ZP,RKXP, RKYP, RKZP
-!      WRITE(6,'(1PE12.4)' ) DISPXR(XP,YP,ZP,RKXP, RKYP, RKZP,OMG)
-!      WRITE(6,'(1P6E12.4)') XP,YP,ZP,RKXP1, RKYP1,RKZP
-!      WRITE(6,'(1PE12.4)' ) DISPXR(XP,YP,ZP,RKXP1,RKYP1,RKZP,OMG)
-!      WRITE(6,'(1P6E12.4)') XP,YP,ZP,RKXP2, RKYP2,RKZP
-!      WRITE(6,'(1PE12.4)' ) DISPXR(XP,YP,ZP,RKXP2,RKYP2,RKZP,OMG)
-
-      S= DISPXR(XP,YP,ZP,RKXP, RKYP, RKZP,OMG)
-      T=(DISPXR(XP,YP,ZP,RKXP1,RKYP1,RKZP,OMG) &
-        -DISPXR(XP,YP,ZP,RKXP2,RKYP2,RKZP,OMG))/(2*DELKR)
-
-      RKR=RKR_PRE-S/T
-      IF(MDLWRW.EQ.1) &
-           WRITE(6,'(A,1P3E12.4)') 'RKR,RKR_PRE,-S/T=',RKR,RKR_PRE,-S/T
-
-      IF(ABS((RKR-RKR_PRE)/RKR_PRE).LE.EPSNW) GOTO 9000
-      IF(ICOUNT.GT.LMAXNW) GOTO 8000
-      RKR_PRE=RKR
-      GOTO 10
-
-8000  WRITE(6,*) ' WRNWTN: DOES NOT CONVERGE'
-      IERR=1000
-9000  CONTINUE
-      RKR_final=RKR
-      CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
-      CKX=RKXP
-      CKY=RKYP
-      CKZ=RKZP
-      CALL dp_pola(crf,ckx,cky,ckz,xp,yp,zp,cdet,cepola,err)
-      WRITE(6,'(A,1P2E12.4)') 'CRF=',crf
-      WRITE(6,'(A,1P6E12.4)') 'K,X=',rkxp,rkyp,rkzp,xp,yp,zp
-      WRITE(6,'(A,1P6E12.4)') 'cep=',cepola(1),cepola(2),cepola(3)
-      WRITE(6,'(A,1PE12.4)')  'err=',err
-      RETURN   
-  END SUBROUTINE WRNWTN
-
 !  ----- calculate wave number satifying D=0 -----
 
-  SUBROUTINE WRMODNWTN(Y_zh, YK) 
+  SUBROUTINE WRMODNWTN(Y_zh,omega,YK)
 
     USE wrcomm
     IMPLICIT NONE
-    REAL(rkind),INTENT(IN):: Y_zh(NEQ)
+    REAL(rkind),INTENT(IN):: Y_zh(NEQ),omega
     REAL(rkind),INTENT(OUT):: YK(3)
-    REAL(rkind):: Y(NEQ)
+    REAL(rkind):: Y(0:NEQ)
     INTEGER:: I,IMODNWTN
-    REAL(rkind):: OMG,DELTA,XP,YP,ZP,VV,TT
+    REAL(rkind):: DELTA,XP,YP,ZP,VV,TT
     REAL(rkind):: RKXP,RKYP,RKZP,RRKXP,RRKYP,RRKZP,DKXP,DKYP,DKZP
     REAL(rkind):: DS2,FAC_NWTN,DDELTA
 
     Y(1:NEQ)=Y_zh(1:NEQ)
-    OMG=2.D6*PI*RF
-    DELTA=DISPXR( Y(1), Y(2), Y(3), Y(4), Y(5), Y(6), OMG )
+    DELTA=DISPXR( Y(1), Y(2), Y(3), Y(4), Y(5), Y(6), omega )
     XP=Y(1)
     YP=Y(2)
     ZP=Y(3)
@@ -363,12 +374,12 @@ CONTAINS
        RRKYP=MAX(ABS(RKYP)*VV,TT)
        RRKZP=MAX(ABS(RKZP)*VV,TT)
 
-       DKXP=(DISPXR(XP,YP,ZP,RKXP+RRKXP,RKYP,RKZP,OMG) &
-            -DISPXR(XP,YP,ZP,RKXP-RRKXP,RKYP,RKZP,OMG))/(2.D0*RRKXP)
-       DKYP=(DISPXR(XP,YP,ZP,RKXP,RKYP+RRKYP,RKZP,OMG) &
-            -DISPXR(XP,YP,ZP,RKXP,RKYP-RRKYP,RKZP,OMG))/(2.D0*RRKYP)
-       DKZP=(DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP+RRKZP,OMG) &
-            -DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP-RRKZP,OMG))/(2.D0*RRKZP)
+       DKXP=(DISPXR(XP,YP,ZP,RKXP+RRKXP,RKYP,RKZP,omega) &
+            -DISPXR(XP,YP,ZP,RKXP-RRKXP,RKYP,RKZP,omega))/(2.D0*RRKXP)
+       DKYP=(DISPXR(XP,YP,ZP,RKXP,RKYP+RRKYP,RKZP,omega) &
+            -DISPXR(XP,YP,ZP,RKXP,RKYP-RRKYP,RKZP,omega))/(2.D0*RRKYP)
+       DKZP=(DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP+RRKZP,omega) &
+            -DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP-RRKZP,omega))/(2.D0*RRKZP)
 
        DS2 = DKXP**2+DKYP**2+DKZP**2
        FAC_NWTN = 10.D0
@@ -377,7 +388,7 @@ CONTAINS
           Y(4) = RKXP - (DELTA*DKXP)/DS2*FAC_NWTN
           Y(5) = RKYP - (DELTA*DKYP)/DS2*FAC_NWTN
           Y(6) = RKZP - (DELTA*DKZP)/DS2*FAC_NWTN
-          DDELTA = DISPXR(XP,YP,ZP,Y(4),Y(5),Y(6),OMG)
+          DDELTA = DISPXR(XP,YP,ZP,Y(4),Y(5),Y(6),omega)
           IF (ABS(DDELTA) .LT. ABS(DELTA)) EXIT
        END DO
        IF (ABS(DDELTA).LT.1.0D-6) EXIT
@@ -393,37 +404,37 @@ CONTAINS
 
 !  ----- calculate dispersion relation D -----
 
-  FUNCTION DISPFN(RKR,RKPHI,RKZ,RP,ZP,PHI,OMG)
+  FUNCTION DISPFN(RKR,RKPH,RKZ,RP,ZP,PHI,omega)
 
     USE wrcomm
     USE pllocal
     USE dpdisp,ONLY: cfdisp
     IMPLICIT NONE
-    REAL(rkind),INTENT(IN):: RKR,RKPHI,RKZ,RP,ZP,PHI,OMG
+    REAL(rkind),INTENT(IN):: RKR,RKPH,RKZ,RP,ZP,PHI,omega
     REAL(rkind):: DISPFN
     INTEGER:: MODELPS(NSMAX)
     INTEGER:: NS
     REAL(rkind):: X,Y,Z
     COMPLEX(rkind):: CRF,CKX,CKY,CKZ,CF,CWW,CWC
 
-    CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
+    CRF=DCMPLX(omega/(2.D6*PI),0.D0)
     IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
        CKX=DCMPLX(RKR,0.D0)
-       CKY=DCMPLX(RKPHI,0.D0)
+       CKY=DCMPLX(RKPH,0.D0)
        CKZ=DCMPLX(RKZ,0.D0)
        X=RP
        Y=2.D0*PI*RR*SIN(PHI)
        Z=ZP
     ELSEIF(MODELG.EQ.11) THEN
        CKX=DCMPLX(RKR,0.D0)
-       CKY=DCMPLX(RKPHI,0.D0)
+       CKY=DCMPLX(RKPH,0.D0)
        CKZ=DCMPLX(RKZ,0.D0)
        X=RP
        Y=PHI
        Z=ZP
     ELSE
-       CKX=DCMPLX(RKR*COS(PHI)-RKPHI*SIN(PHI),0.D0)
-       CKY=DCMPLX(RKR*SIN(PHI)+RKPHI*COS(PHI),0.D0)
+       CKX=DCMPLX(RKR*COS(PHI)-RKPH*SIN(PHI),0.D0)
+       CKY=DCMPLX(RKR*SIN(PHI)+RKPH*COS(PHI),0.D0)
        CKZ=DCMPLX(RKZ,0.D0)
        X=RP*COS(PHI)
        Y=RP*SIN(PHI)
@@ -455,13 +466,13 @@ CONTAINS
 
 !  ----- calculate real part of dispersion relation Re D -----
 
-  FUNCTION DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP,OMG)
+  FUNCTION DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP,omega)
 
     USE wrcomm
     USE plprof
     USE dpdisp,ONLY: cfdispr
     IMPLICIT NONE
-    REAL(rkind),INTENT(IN):: XP,YP,ZP,RKXP,RKYP,RKZP,OMG
+    REAL(rkind),INTENT(IN):: XP,YP,ZP,RKXP,RKYP,RKZP,omega
     TYPE(pl_mag_type):: MAG
     REAL(rkind):: DISPXR
     INTEGER:: MODELPS(NSMAX),MODELVS(NSMAX)
@@ -469,14 +480,16 @@ CONTAINS
     REAL(rkind):: X,Y,Z
     COMPLEX(rkind):: CRF,CKX,CKY,CKZ,CF,CWW,CWC
 
-      CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
+      CRF=DCMPLX(omega/(2.D6*PI),0.D0)
       CKX=RKXP
       CKY=RKYP
       CKZ=RKZP
       X=XP
       Y=YP
       Z=ZP
+
       CALL pl_mag(X,Y,Z,MAG)
+
 !            
       DO NS=1,NSMAX
          MODELPS(NS)=MODELP(NS)
@@ -510,20 +523,20 @@ CONTAINS
 
 !  ----- calculate imaginary part of dispersion relation Im D -----
 
-  FUNCTION DISPXI(XP,YP,ZP,RKXP,RKYP,RKZP,OMG)
+  FUNCTION DISPXI(XP,YP,ZP,RKXP,RKYP,RKZP,omega)
 
     USE wrcomm
     USE plprof
     USE dpdisp,ONLY: cfdisp
     IMPLICIT NONE
-    REAL(rkind),INTENT(IN):: XP,YP,ZP,RKXP,RKYP,RKZP,OMG
+    REAL(rkind),INTENT(IN):: XP,YP,ZP,RKXP,RKYP,RKZP,omega
     TYPE(pl_mag_type):: MAG
     REAL(rkind):: DISPXI
     INTEGER:: NS
     REAL(rkind):: X,Y,Z
     COMPLEX(rkind):: CRF,CKX,CKY,CKZ,CF,CWW,CWC
 
-      CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
+      CRF=DCMPLX(omega/(2.D6*PI),0.D0)
       CKX=RKXP
       CKY=RKYP
       CKZ=RKZP
@@ -548,25 +561,24 @@ CONTAINS
 
 !  ----- calculate eigen electric field and wave number -----
 
-  SUBROUTINE WRCALE(YN,NSTPMAX_L,NRAY)
+  SUBROUTINE WRCALE(RF,YN,NSTPMAX_L,NRAY)
 
     USE wrcomm
     USE plprof,ONLY: PL_MAG_OLD
     USE pllocal
     USE dpdisp,ONLY: dp_disp
     IMPLICIT NONE
-    REAL(rkind),INTENT(IN):: YN(0:NEQ,0:NSTPMAX)
+    REAL(rkind),INTENT(IN):: RF,YN(0:NEQ,0:NSTPMAX)
     INTEGER,INTENT(IN):: NSTPMAX_L,NRAY
     COMPLEX(rkind):: CDET(3,3),CDETP(3,3),CDETM(3,3),CDETD(3,3)
     INTEGER:: NSTP,J,I
-    REAL(rkind):: OMG,X1,Y1,Z1,VV,TT,ROMG,UE2,UE,RHON,EA
+    REAL(rkind):: X1,Y1,Z1,VV,TT,domega,UE2,UE,RHON,EA,omega
     COMPLEX(rkind):: CRF,CKX1,CKY1,CKZ1,CE1,CE2,CE3,CE4,CEXY,CEZY
     COMPLEX(rkind):: CUEX,CUEY,CUEZ,CRFP,CRFM,CUE2
 
-      OMG=2.D6*PI*RF
-
+    omega=2.D6*PI*RF
       DO NSTP=0,NSTPMAX_L
-         CRF =DCMPLX(OMG/(2.D6*PI),0.D0)
+         CRF =DCMPLX(RF,0.D0)
          X1  =YN(1,NSTP)
          Y1  =YN(2,NSTP)
          Z1  =YN(3,NSTP)
@@ -595,15 +607,15 @@ CONTAINS
          VV=DELDER
          TT=DELDER
 
-         ROMG=MAX(ABS(OMG)*VV,TT)
-         CRFP =DCMPLX((OMG+ROMG)/(2.D6*PI),0.D0)
+         domega=MAX(ABS(omega)*VV,TT)
+         CRFP =DCMPLX((omega+domega)/(2.D6*PI),0.D0)
          CALL DP_DISP(CRFP,CKX1,CKY1,CKZ1,X1,Y1,Z1,CDETP)
-         CRFM =DCMPLX((OMG-ROMG)/(2.D6*PI),0.D0)
+         CRFM =DCMPLX((omega-domega)/(2.D6*PI),0.D0)
          CALL DP_DISP(CRFM,CKX1,CKY1,CKZ1,X1,Y1,Z1,CDETM)
          
          DO J=1,3
          DO I=1,3
-            CDETD(I,J)=OMG*(CDETP(I,J)-CDETM(I,J))/(2.D0*ROMG) &
+            CDETD(I,J)=omega*(CDETP(I,J)-CDETM(I,J))/(2.D0*domega) &
                       +CDET(I,J)
          ENDDO
          ENDDO
@@ -742,36 +754,37 @@ CONTAINS
 
 !  ----- calculate eigen electric field for initial position -----
 
-  SUBROUTINE WRCALE_I(EPARA,EPERP)
+  SUBROUTINE WRCALE_I(RF,R,PHI,Z,RKR,RKPH,RKZ,EPARA,EPERP)
 
     USE wrcomm
     USE plprof,ONLY: PL_MAG_OLD
     USE pllocal
     USE dpdisp,ONLY: dp_disp
     IMPLICIT NONE
+    REAL(rkind),INTENT(IN):: RF,R,PHI,Z,RKR,RKPH,RKZ
     REAL(rkind),INTENT(OUT):: EPARA,EPERP
     COMPLEX(rkind):: CDET(3,3)
-    REAL(rkind):: OMG,X1,Y1,Z1,RHON,EA
+    REAL(rkind):: omega,X1,Y1,Z1,RHON,EA
     COMPLEX(rkind):: CRF,CKX1,CKY1,CKZ1,CE1,CE2,CE3,CE4,CEXY,CEZY
     COMPLEX(rkind):: CUEX,CUEY,CUEZ
 
-    OMG=2.D6*PI*RF
-    CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
+    omega=2.D6*PI*RF
+    CRF=DCMPLX(RF,0.D0)
 
     IF(MODELG.EQ.0.OR.MODELG.EQ.1.OR.MODELG.EQ.11) THEN
-       X1= RPI
-       Y1= PHII
-       Z1= ZPI
-       CKX1= RKR0
-       CKY1= RKPHII
-       CKZ1= RKZI
+       X1= R
+       Y1= PHI
+       Z1= Z
+       CKX1= RKR
+       CKY1= RKPH
+       CKZ1= RKZ
     ELSE
-       X1= RPI*COS(PHII)
-       Y1= RPI*SIN(PHII)
-       Z1= ZPI
-       CKX1= RKR0*COS(PHII)-RKPHII*SIN(PHII)
-       CKY1= RKR0*SIN(PHII)+RKPHII*COS(PHII)
-       CKZ1= RKZI
+       X1= R*COS(PHI)
+       Y1= R*SIN(PHI)
+       Z1= Z
+       CKX1= RKR*COS(PHI)-RKPH*SIN(PHI)
+       CKY1= RKR*SIN(PHI)+RKPH*COS(PHI)
+       CKZ1= RKZ
     ENDIF
     CALL DP_DISP(CRF,CKX1,CKY1,CKZ1,X1,Y1,Z1,CDET)
     CE1=CDET(2,2)*CDET(1,3)-CDET(1,2)*CDET(2,3)
@@ -802,7 +815,7 @@ CONTAINS
 
 !  ----- calculate eigen electric field for initial position -----
 
-  SUBROUTINE WRCALE_XYZ(X,Y,Z,RKX,RKY,RKZ,EPARA,EPERP)
+  SUBROUTINE WRCALE_XYZ(RF,X,Y,Z,RKX,RKY,RKZ,EPARA,EPERP)
 
     USE wrcomm
     USE plprof,ONLY: PL_MAG_OLD
@@ -811,16 +824,16 @@ CONTAINS
     USE plcomm_type,ONLY: pl_mag_type
     USE plprof,ONLY: pl_mag
     IMPLICIT NONE
-    REAL(rkind),INTENT(IN):: X,Y,Z,RKX,RKY,RKZ
+    REAL(rkind),INTENT(IN):: RF,X,Y,Z,RKX,RKY,RKZ
     REAL(rkind),INTENT(OUT):: EPARA,EPERP
     TYPE(pl_mag_type):: mag
     COMPLEX(rkind):: CDET(3,3)
-    REAL(rkind):: OMG,EA
+    REAL(rkind):: omega,EA
     COMPLEX(rkind):: CRF,CKX,CKY,CKZ,CE1,CE2,CE3,CE4,CEXY,CEZY
     COMPLEX(rkind):: CUEX,CUEY,CUEZ
 
-    OMG=2.D6*PI*RF
-    CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
+    omega=2.D6*PI*RF
+    CRF=DCMPLX(RF,0.D0)
     CKX=DCMPLX(RKX,0.D0)
     CKY=DCMPLX(RKY,0.D0)
     CKZ=DCMPLX(RKZ,0.D0)
@@ -852,5 +865,86 @@ CONTAINS
               +ABS(CUEZ)**2*(1.D0-mag%bnz**2))
     RETURN
   END SUBROUTINE WRCALE_XYZ
+
+!  ----- calculate radial wave number satifying D=0 -----
+
+  SUBROUTINE WRNWTN(RF,R,PHI,Z,RKPH,RKZ,RKR_initial,RKR_final,IERR)
+
+    USE wrcomm
+    USE dppola
+    IMPLICIT NONE
+    REAL(rkind),INTENT(IN):: RF,R,PHI,Z,RKPH,RKZ,RKR_initial
+    REAL(rkind),INTENT(OUT):: RKR_final
+    INTEGER,INTENT(OUT):: IERR
+    INTEGER:: ICOUNT
+    REAL(rkind):: omega,S,T,RKR,RKR_PRE
+    REAL(rkind):: XP,YP,ZP,RKXP,RKXP1,RKXP2,RKYP,RKYP1,RKYP2,RKZP
+    COMPLEX(rkind):: cdet(3,3),cepola(3),CRF,CKX,CKY,CKZ
+    REAL(rkind):: err
+
+    IERR=0
+    omega=2.D6*PI*RF
+    RKR_PRE=RKR_initial
+
+    IF(MODELG.EQ.0.OR.MODELG.EQ.1.OR.MODELG.EQ.11) THEN
+       XP= R
+       YP= PHI
+       ZP= ZP
+       RKZP= RKZ
+    ELSE
+       XP= R*COS(PHI)
+       YP= R*SIN(PHI)
+       ZP= Z
+       RKZP= RKZ
+    ENDIF
+
+      ICOUNT=0
+ 10   CONTINUE
+      ICOUNT=ICOUNT+1
+
+    IF(MODELG.EQ.0.OR.MODELG.EQ.1.OR.MODELG.EQ.11) THEN
+       RKXP=  RKR_PRE
+       RKXP1= RKR_PRE+DELKR
+       RKXP2= RKR_PRE-DELKR
+       RKYP=  RKPH
+       RKYP1= RKYP
+       RKYP2= RKYP
+    ELSE
+       RKXP=  RKR_PRE       *COS(PHI)-RKPH*SIN(PHI)
+       RKXP1=(RKR_PRE+DELKR)*COS(PHI)-RKPH*SIN(PHI)
+       RKXP2=(RKR_PRE-DELKR)*COS(PHI)-RKPH*SIN(PHI)
+       RKYP=  RKR_PRE       *SIN(PHI)+RKPH*COS(PHI)
+       RKYP1=(RKR_PRE+DELKR)*SIN(PHI)+RKPH*COS(PHI)
+       RKYP2=(RKR_PRE-DELKR)*SIN(PHI)+RKPH*COS(PHI)
+    ENDIF
+
+      S= DISPXR(XP,YP,ZP,RKXP, RKYP, RKZP,omega)
+      T=(DISPXR(XP,YP,ZP,RKXP1,RKYP1,RKZP,omega) &
+        -DISPXR(XP,YP,ZP,RKXP2,RKYP2,RKZP,omega))/(2*DELKR)
+
+      RKR=RKR_PRE-S/T
+      IF(MDLWRW.EQ.1) &
+           WRITE(6,'(A,1P3E12.4)') 'RKR,RKR_PRE,-S/T=',RKR,RKR_PRE,-S/T
+
+      IF(ABS((RKR-RKR_PRE)/RKR_PRE).LE.EPSNW) GOTO 9000
+      IF(ICOUNT.GT.LMAXNW) GOTO 8000
+      RKR_PRE=RKR
+      GOTO 10
+
+8000  WRITE(6,*) ' WRNWTN: DOES NOT CONVERGE'
+      IERR=1000
+9000  CONTINUE
+      RKR_final=RKR
+      CRF=DCMPLX(omega/(2.D6*PI),0.D0)
+      CKX=RKXP
+      CKY=RKYP
+      CKZ=RKZP
+      CALL dp_pola(crf,ckx,cky,ckz,xp,yp,zp,cdet,cepola,err)
+      WRITE(6,'(A,1P2E12.4)') 'CRF=',crf
+      WRITE(6,'(A,1P6E12.4)') 'K,X=',rkxp,rkyp,rkzp,xp,yp,zp
+      WRITE(6,'(A,1P6E12.4)') 'cep=',cepola(1),cepola(2),cepola(3)
+      WRITE(6,'(A,1PE12.4)')  'err=',err
+      RETURN   
+  END SUBROUTINE WRNWTN
 
 END MODULE wrsub

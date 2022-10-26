@@ -7,91 +7,111 @@ MODULE wrexecb
 
 CONTAINS
 
-!     ***** Exec beam tracing module *****
+!   ***** Ray tracing module *****
 
   SUBROUTINE wr_exec_beams(ierr)
 
     USE wrcomm
-    USE wrsub,ONLY: wrcale,wrnwtn
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
-    REAL(rkind):: Y(NBEQ)
-    REAL:: TIME1,TIME2
-    INTEGER:: NRAY,NSTP
-    REAL(rkind):: ANGZ,ANGPH,RKR
-    EXTERNAL GUTIME
+    REAL:: time1,time2
+    REAL(rkind):: RK
+    REAL(rkind):: YN(0:NEQ,0:NSTPMAX)
+    INTEGER:: NRAY,nstp
 
-    CALL GUTIME(time1)
-
+    CALL GUTIME(TIME1)
     DO NRAY=1,NRAYMAX
-       RF=RAYIN(1,NRAY)
-       RPI=RAYIN(2,NRAY)
-       ZPI=RAYIN(3,NRAY)
-       PHII=RAYIN(4,NRAY)
-       RKR0=RAYIN(5,NRAY)
-!     
-       IF(MDLWRI.EQ.0)THEN
-          RNZI=RAYIN(6,NRAY)
-          RNPHII=RAYIN(7,NRAY)
-       ELSE
-          ANGZ=RAYIN(6,NRAY)
-          ANGPH=RAYIN(7,NRAY)
-       ENDIF
-
-       UUI=RAYIN(8,NRAY)
-
-       RKZI  =2.D6*PI*RF*RNZI  /VC
-       RKPHII=2.D6*PI*RF*RNPHII/VC
-       CALL WRNWTN(RKR0,RKR,IERR)
-       IF(IERR.NE.0) GOTO 1200
-       RKRI=RKR
-
-       IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
-          Y(1)= RPI
-          Y(2)= 2.D0*PI*RR*SIN(PHII)
-          Y(3)= ZPI
-          Y(4)= RKRI
-          Y(5)= RKPHII
-          Y(6)= RKZI
-       ELSE
-          Y(1)= RPI*COS(PHII)
-          Y(2)= RPI*SIN(PHII)
-          Y(3)= ZPI
-          Y(4)= RKRI*COS(PHII)-RKPHII*SIN(PHII)
-          Y(5)= RKRI*SIN(PHII)+RKPHII*COS(PHII)
-          Y(6)= RKZI
-       ENDIF
-
-       CALL WRSETY(Y)
-
-       Y(19)= UUI
-
-       CALL WRRKFTB(Y,RAYB,NSTPMAX_NRAY(NRAY))
-
-       DO NSTP=0,NSTPMAX_NRAY(NRAY)
-          RAYS(0,NSTP,NRAY)=RAYB( 0,NSTP)
-          RAYS(1,NSTP,NRAY)=RAYB( 1,NSTP)
-          RAYS(2,NSTP,NRAY)=RAYB( 2,NSTP)
-          RAYS(3,NSTP,NRAY)=RAYB( 3,NSTP)
-          RAYS(4,NSTP,NRAY)=RAYB( 4,NSTP)
-          RAYS(5,NSTP,NRAY)=RAYB( 5,NSTP)
-          RAYS(6,NSTP,NRAY)=RAYB( 6,NSTP)
-          RAYS(7,NSTP,NRAY)=RAYB(19,NSTP)
-          RAYS(8,NSTP,NRAY)=RAYB(20,NSTP)
-          RAYRB1(NSTP,NRAY)=RAYB(23,NSTP)
-          RAYRB2(NSTP,NRAY)=RAYB(24,NSTP)
-       ENDDO
-       CALL WRCALE(RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY),NRAY)
-       WRITE(6,'(A,F8.4)') &
-            '# PABS/PIN=',UUI-RAYS(7,NSTPMAX_NRAY(NRAY),NRAY)
-1200   CONTINUE
-    END DO
+       wr_nray_status%nray=nray
+       wr_nray_status%rf=rfin(nray)
+       wr_nray_status%rcurva=RCURVAIN(NRAY)
+       wr_nray_status%rcurvb=RCURVBIN(NRAY)
+       wr_nray_status%rbrada=RBRADAIN(NRAY)
+       wr_nray_status%rbradb=RBRADBIN(NRAY)
+       
+       CALL wr_setup_start_point(NRAY,YN,nstp,IERR)
+       CALL wr_exec_single_beam(NRAY,YN,nstp,IERR)
+       
+       IF(IERR.NE.0) cycle
+       RK=SQRT(RAYS(4,NSTPMAX_NRAY(NRAY),NRAY)**2 &
+              +RAYS(5,NSTPMAX_NRAY(NRAY),NRAY)**2 &
+              +RAYS(6,NSTPMAX_NRAY(NRAY),NRAY)**2)
+       WRITE(6,'(A,ES12.4,A,ES12.4)') &
+            '    RK=  ',RK,  '  PABS/PIN=', &
+            1.D0-RAYS(7,NSTPMAX_NRAY(NRAY),NRAY)
+    ENDDO
 
     CALL GUTIME(TIME2)
     WRITE(6,*) '% CPU TIME = ',TIME2-TIME1,' sec'
 
     RETURN
   END SUBROUTINE wr_exec_beams
+
+!     ***** Single beam tracing module *****
+
+  SUBROUTINE wr_exec_single_beam(NRAY,YN,nstp,ierr)
+
+    USE wrcomm
+    USE wrsub,ONLY: wrcale,wrnwtn
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: NRAY
+    INTEGER,INTENT(INOUT):: nstp
+    REAL(rkind),INTENT(IN):: YN(0:NEQ,0:NSTPMAX)
+    INTEGER,INTENT(OUT):: ierr
+    REAL(rkind):: Y(NBEQ)
+    real(rkind):: rf,rp,zp,phi,rkr,RKPH,RKZ,S,UU
+    EXTERNAL GUTIME
+
+    IERR=0
+
+    RF  =wr_nray_status%rf
+    S   =YN(0,nstp)
+    RP  =YN(1,nstp)
+    PHI =YN(2,nstp)
+    ZP  =YN(3,nstp)
+    RKR =YN(4,nstp)
+    RKPH=YN(5,nstp)
+    RKZ =YN(6,nstp)
+    UU  =YN(7,nstp)
+
+    IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
+       Y(1)= RP
+       Y(2)= 2.D0*PI*RR*SIN(PHI)
+       Y(3)= ZP
+       Y(4)= RKR
+       Y(5)= RKPH
+       Y(6)= RKZ
+    ELSE
+       Y(1)= RP*COS(PHI)
+       Y(2)= RP*SIN(PHI)
+       Y(3)= ZP
+       Y(4)= RKR*COS(PHI)-RKPH*SIN(PHI)
+       Y(5)= RKR*SIN(PHI)+RKPH*COS(PHI)
+       Y(6)= RKZ
+    ENDIF
+    CALL WRSETY(Y)
+    Y(19)=UU
+
+    CALL WRRKFTB(Y,RAYB,NSTPMAX_NRAY(NRAY))
+
+    DO NSTP=0,NSTPMAX_NRAY(NRAY)
+       RAYS(0,NSTP,NRAY)=RAYB( 0,NSTP)
+       RAYS(1,NSTP,NRAY)=RAYB( 1,NSTP)
+       RAYS(2,NSTP,NRAY)=RAYB( 2,NSTP)
+       RAYS(3,NSTP,NRAY)=RAYB( 3,NSTP)
+       RAYS(4,NSTP,NRAY)=RAYB( 4,NSTP)
+       RAYS(5,NSTP,NRAY)=RAYB( 5,NSTP)
+       RAYS(6,NSTP,NRAY)=RAYB( 6,NSTP)
+       RAYS(7,NSTP,NRAY)=RAYB(19,NSTP)
+       RAYS(8,NSTP,NRAY)=RAYB(20,NSTP)
+       RAYRB1(NSTP,NRAY)=RAYB(23,NSTP)
+       RAYRB2(NSTP,NRAY)=RAYB(24,NSTP)
+    ENDDO
+    CALL WRCALE(RF,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY),NRAY)
+    WRITE(6,'(A,F8.4)') &
+         '# PABS/PIN=',UU-RAYS(7,NSTPMAX_NRAY(NRAY),NRAY)
+
+    RETURN
+  END SUBROUTINE wr_exec_single_beam
 
 ! ***** set uo beam tracing initial condition *****
 
@@ -129,15 +149,15 @@ CONTAINS
     RUM(3,3)=RUM(1,1)*RUM(2,2)-RUM(1,2)*RUM(2,1)
 
     RL0=1.D0/RKABS
-    IF(RCURVA.EQ.0.D0)THEN
+    IF(wr_nray_status%rcurva.EQ.0.D0)THEN
        VS22=0.D0
     ELSE
-       VS22=1.D0/(RL0*RCURVA)
+       VS22=1.D0/(RL0*wr_nray_status%rcurva)
     ENDIF
-    IF(RCURVB.EQ.0.D0)THEN
+    IF(wr_nray_status%rcurvb.EQ.0.D0)THEN
        VS33=0.D0
     ELSE
-       VS33=1.D0/(RL0*RCURVB)
+       VS33=1.D0/(RL0*wr_nray_status%rcurvb)
     ENDIF
     DO I=1,3
        DO J=1,3
@@ -146,15 +166,15 @@ CONTAINS
        ENDDO
     ENDDO
 
-    IF(RBRADA.EQ.0.D0)THEN
+    IF(wr_nray_status%rbrada.EQ.0.D0)THEN
        VP22=0.D0
     ELSE
-       VP22=2.D0/(RBRADA*RBRADA)
+       VP22=2.D0/(wr_nray_status%rbrada**2)
     ENDIF
-    IF(RBRADB.EQ.0.D0)THEN
+    IF(wr_nray_status%rbradb.EQ.0.D0)THEN
        VP33=0.D0
     ELSE
-       VP33=2.D0/(RBRADB*RBRADB)
+       VP33=2.D0/(wr_nray_status%rbradb**2)
     ENDIF
     DO I=1,3
        DO J=1,3
@@ -196,10 +216,11 @@ CONTAINS
     REAL(rkind):: RHON,RKNX,RKNY,RKNZ,RKBX,RKBY,RKBZ,RKABS,RKBABS
     REAL(rkind):: SD,RSLAM1,RSLAM2,BD,RBLAM1,RBLAM2,RL0
     REAL(rkind):: VV,TT,XP,YP,ZP,RKXP,RKYP,RKZP
-    REAL(rkind):: OMG,ROMG,DKXP,DKYP,DKZP,DOMG
+    REAL(rkind):: RF,OMG,ROMG,DKXP,DKYP,DKZP,DOMG
     REAL(rkind):: F000P00,F000M00,F0000P0,F0000M0,F00000P,F00000M
     REAL(rkind):: VGX,VGY,VGZ,RVGABS
 
+    RF  =wr_nray_status%rf
     CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
     
     RKABS=SQRT(Y(4)**2+Y(5)**2+Y(6)**2)
@@ -508,7 +529,7 @@ CONTAINS
     REAL(rkind),INTENT(OUT):: F(NBEQ)
     REAL(rkind):: DFR(3),DFK(3),DFRR(3,3),DFKK(3,3),DFRK(3,3),S(3,3),P(3,3)
     INTEGER:: I,J
-    REAL(rkind):: VV,TT,XP,YP,ZP,RKXP,RKYP,RKZP,UU
+    REAL(rkind):: VV,TT,XP,YP,ZP,RKXP,RKYP,RKZP,UU,RF
     REAL(rkind):: OMG,ROMG,DRXP,DRYP,DRZP,DKXP,DKYP,DKZP,DOMG,DS,VDU
     REAL(rkind):: F000000,FP00000,FM00000,F0P0000,F0M0000,F00P000,F00M000
     REAL(rkind):: F000P00,F000M00,F0000P0,F0000M0,F00000P,F00000M
@@ -519,6 +540,7 @@ CONTAINS
     REAL(rkind):: F0000PP
     REAL(rkind):: DUMMY
 
+    RF  =wr_nray_status%rf
       VV=DELDER
       TT=DELDER
       DUMMY=X

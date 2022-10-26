@@ -1449,21 +1449,29 @@
 
       SUBROUTINE TRCFAD
 
-      USE TRCOMM, ONLY : AD, AD0, ADDW, ADDWD, ADDWP, ADLD, ADLP, ADNC, ADNCP, ADNCT, AEE, AKDW, ALP, AME, AMM, AV, AV0,    &
-     &                   AVDW, AVK, AVKDW, AVKNC, AVNC, BB, BP, CDH, CDP, CHP, CNH, CNN, CNP, CSPRS, EPSRHO, EZOH, MDDIAG,  &
-     &                   MDDW, MDEDGE, MDLAD, MDLAVK, MDNCLS, NREDGE, NRMAX, NSLMAX, NSM, PA, PN, PNSS, PROFN1, PROFN2, PTS,&
-     &                   PZ, QP, RA, RHOG, RKEV, RN, RM, RR, RT, ZEFF, rkind
-      IMPLICIT NONE
-      INTEGER:: NR, NS, NS1, NA, NB
-      REAL(rkind)   :: ANA, ANDX, ANE, ANED, ANI, ANT, BPL, CFNCI, CFNCNC, CFNCNH, CFNHI, CFNHNC, CFNHNH, DPROF, EDCM, EPS, EPSS,&
-     &             EZOHL, FTAUE, FTAUI, H, PROF, PROF0, PROF1, PROF2, QPL, RHOE2, RK11E, RK13E, RK23E, RK3D, RNUD, RNUE, RX, &
-     &             SGMNI, SGMNN, SUMA, SUMB, TAUD, TAUE, TD, TE, VNC, VNH, VNI, VTD, VTE, ZEFFL
-      REAL(rkind),DIMENSION(2):: ACOEF
-      REAL(rkind),DIMENSION(5):: BCOEF
-      REAL(rkind) :: RK11=1.04D0, RA11=2.01D0, RB11=1.53D0, RC11=0.89D0
-      REAL(rkind) :: RK13=2.30D0, RA13=1.02D0, RB13=1.07D0, RC13=1.07D0
-      REAL(rkind) :: RK23=4.19D0, RA23=0.57D0, RB23=0.61D0, RC23=0.61D0
-      REAL(rkind),SAVE :: CDPSV
+        USE TRCOMM, ONLY : AD, AD0, ADDW, ADDWD, ADDWP, ADLD, ADLP, ADNC, &
+             ADNCP, ADNCT, AEE, AKDW, ALP, AME, AMM, AV, AV0,    &
+             AVDW, AVK, AVKDW, AVKNC, AVNC, BB, BP, CDH, CDP, CHP, CNH, &
+             CNN, CNP, CSPRS, EPSRHO, EZOH, MDDIAG, MDDW, MDEDGE, &
+             MDLADNC,MDLADDW,MDLAVKNC,MDLAVKDW, &
+             MDNCLS, NREDGE, NRMAX, NSLMAX, NSM, PA, PN, PNSS, &
+             PROFN1, PROFN2, PTS, PZ, QP, RA, RHOG, RKEV, RN, RM, RR, RT, &
+             ZEFF, rkind
+        IMPLICIT NONE
+        INTEGER:: NR, NS, NS1, NA, NB
+        REAL(rkind)   :: &
+             ANA, ANDX, ANE, ANED, ANI, ANT, BPL, CFNCI, CFNCNC, CFNCNH, &
+             CFNHI, CFNHNC, CFNHNH, DPROF, EDCM, EPS, EPSS,&
+             EZOHL, FTAUE, FTAUI, H, PROF, PROF0, PROF1, PROF2, QPL, &
+             RHOE2, RK11E, RK13E, RK23E, RK3D, RNUD, RNUE, RX, &
+             SGMNI, SGMNN, SUMA, SUMB, TAUD, TAUE, TD, TE, VNC, &
+             VNH, VNI, VTD, VTE, ZEFFL
+        REAL(rkind),DIMENSION(2):: ACOEF
+        REAL(rkind),DIMENSION(5):: BCOEF
+        REAL(rkind) :: RK11=1.04D0, RA11=2.01D0, RB11=1.53D0, RC11=0.89D0
+        REAL(rkind) :: RK13=2.30D0, RA13=1.02D0, RB13=1.07D0, RC13=1.07D0
+        REAL(rkind) :: RK23=4.19D0, RA23=0.57D0, RB23=0.61D0, RC23=0.61D0
+        REAL(rkind),SAVE :: CDPSV
 
 !     ZEFF=1
 
@@ -1477,7 +1485,7 @@
       END DO
 
       IF(MDNCLS.EQ.0) THEN
-      select case(MDLAD)
+      select case(MDLADDW)
       case(1)
          DO NR=1,NRMAX
             IF(NR.EQ.NRMAX) THEN
@@ -1498,19 +1506,7 @@
                         +PZ(3)*ANT *ADDW(NR,3) &
                         +PZ(4)*ANA *ADDW(NR,4))/(ANDX+ANT+ANA)
 
-!            RX   = ALP(1)*RHOG(NR)
-!            PROF0 = 1.D0-RX**PROFN1
-!            IF(PROF0.LE.0.D0) THEN
-!               PROF1=0.D0
-!               PROF2=0.D0
-!            ELSE
-!               PROF1=PROF0**PROFN2
-!               PROF2=PROFN2*PROF0**(PROFN2-1.D0)
-!            ENDIF
-!            PROF   = PROF1+PNSS(1)/(PN(1)-PNSS(1))
-!            DPROF  =-PROFN1*RX**(PROFN1-1.D0)*PROF2
-
-            AVDW(NR,1:NSM) = -AV0*(RHOG(NR)/RA)*ADDW(NR,1:NSM)
+            AVDW(NR,1:NSM) = -AV0*(RHOG(NR)/RA**2)*ADDW(NR,1:NSM)
          ENDDO
       case(2)
          DO NR=1,NRMAX
@@ -1532,22 +1528,15 @@
                         +PZ(3)*ANT *ADDW(NR,3) &
                         +PZ(4)*ANA *ADDW(NR,4))/(ANDX+ANT+ANA)
 
-!            RX   = ALP(1)*RHOG(NR)
-!            PROF0 = 1.D0-RX**PROFN1
-!            IF(PROF0.LE.0.D0) THEN
-!               PROF1=0.D0
-!               PROF2=0.D0
-!            ELSE
-!               PROF1=PROF0**PROFN2
-!               PROF2=PROFN2*PROF0**(PROFN2-1.D0)
-!            ENDIF
-!            PROF   = PROF1*(PN(1)-PNSS(1))+PNSS(1)
-!            DPROF  = -PROFN1*RX**(PROFN1-1.D0)*PROF2*(PN(1) &
-!                     -PNSS(1))*ALP(1)/RA *1.5D0
-
-            AVDW(NR,1:NSM) = -AV0*(RHOG(NR)/RA)*ADDW(NR,1:NSM)
+            AVDW(NR,1:NSM) = -AV0*(RHOG(NR)/RA**2)*ADDW(NR,1:NSM)
          ENDDO
-      case(3)
+      case default
+         ADDW(1:NRMAX,1:NSM)=0.D0
+         AVDW(1:NRMAX,1:NSM)=0.D0
+      END select
+
+      select case(MDLADNC)
+      case(1)
 !     *** Hinton & Hazeltine model w/o anomalous part of ***
 !     *** transport effect of heat pinch ***
          DO NR=1,NRMAX
@@ -1584,11 +1573,8 @@
             IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             AVNC(NR,1:NSM) = -(RK13E*SQRT(EPS)*EZOHL)/BPL/H
             ADNC(NR,1:NSM) = SQRT(EPS)*RHOE2/TAUE*RK11E
-            AD  (NR,1:NSM) = CDP*ADDW(NR,1:NSM)+CNP*ADNC(NR,1:NSM)
-            AVDW(NR,1:NSM) = 0.D0
-
          ENDDO
-      case(4)
+      case(2)
 !     *** Hinton & Hazeltine model with anomalous part of ***
 !     *** transport effect of heat pinch ***
          DO NR=1,NRMAX
@@ -1625,27 +1611,14 @@
             IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             AVNC(NR,1:NSM) =-(RK13E*SQRT(EPS)*EZOHL)/BPL/H
             ADNC(NR,1:NSM) = SQRT(EPS)*RHOE2/TAUE*RK11E
-            AVDW(NR,1:NSM) =-AV0*ADDW(NR,1:NSM)*RHOG(NR)/RA
          ENDDO
-!!$      case(5)
-!!$         ADNC(1:NRMAX,1:NSM)=0.D0
-!!$         ADDW(1:NRMAX,1:NSM)=0.D0
-!!$         DO NS=1,NSM
-!!$            DO NR=1,NRMAX
-!!$               AVNC(NR,NS)=RG(NR)*(RG(NR)-1.D0)
-!!$            END DO
-!!$         END DO
-!!$         AVDW(1:NRMAX,1:NSM)=0.D0
       case default
-         IF(MDLAD.NE.0) WRITE(6,*) 'XX INVALID MDLAD : ',MDLAD
-         AD  (1:NRMAX,1:NSM)=0.D0
-         AV  (1:NRMAX,1:NSM)=0.D0
          ADNC(1:NRMAX,1:NSM)=0.D0
          AVNC(1:NRMAX,1:NSM)=0.D0
-         AVDW(1:NRMAX,1:NSM)=0.D0
       end select
       ENDIF
       IF(MDEDGE.EQ.1) CDP=CDPSV
+
 
 !     ***** NET PARTICLE PINCH *****
 
@@ -1753,18 +1726,8 @@
       IF(MDNCLS.EQ.0) THEN
 !     NCLASS has already calculated neoclassical heat pinch(AVKNC)
 !     beforehand if MDNCLS=1 so that MDLAVK becomes no longer valid.
-      select case(MDLAVK)
+      select case(MDLAVKNC)
       case(1)
-         DO NS=1,NSM
-            AVKNC(1:NRMAX,NS) =-RHOG(1:NRMAX)*CHP
-            AVKDW(1:NRMAX,NS) = 0.D0
-         END DO
-      case(2)
-         DO NS=1,NSM
-            AVKNC(1:NRMAX,NS) =-RHOG(1:NRMAX)*(CHP*1.D6) /(ANE*1.D20*TE*RKEV)
-            AVKDW(1:NRMAX,NS) = 0.D0
-         END DO
-      case(3)
 !     *** Hinton & Hazeltine model ***
          DO NR=1,NRMAX
             IF(NR.EQ.NRMAX) THEN
@@ -1804,21 +1767,29 @@
             AVK(NR,1)   = CNH*AVKNC(NR,1)
             AVKNC(NR,2:NSM) = RK3D/((1.D0+(RNUE*EPSS)**2)*PZ(2))*RK13E &
                  & *SQRT(EPS)*EZOHL/BPL/H*ANED
-            AVKDW(NR,2:NSM) = 0.D0
          ENDDO
       case default
-         IF(MDLAVK.NE.0) WRITE(6,*) 'XX INVALID MDLAVK : ',MDLAVK
          AVKNC(1:NRMAX,1:NSM)=0.D0
+      end select
+
+      select case(MDLAVKDW)
+      case(1)
+         DO NS=1,NSM
+            AVKDW(1:NRMAX,NS) =-(RHOG(1:NRMAX)/RA**2)*CHP
+         END DO
+      case(2)
+         DO NS=1,NSM
+            AVKDW(1:NRMAX,NS) =-(RHOG(1:NRMAX)/RA**2)*AKDW(1:NRMAX,NS)
+         END DO
+      case default
          AVKDW(1:NRMAX,1:NSM)=0.D0
-         AVK  (1:NRMAX,1:NSM)=0.D0
       end select
       ENDIF
 
 !     ***** NET HEAT PINCH *****
 
-      AVKDW(1:NRMAX,1:NSLMAX)=CDH*AVKDW(1:NRMAX,1:NSLMAX)
       AVK(1:NRMAX,1:NSLMAX)=CDH*AVKDW(1:NRMAX,1:NSLMAX) &
-           &               +CNH*AVKNC(1:NRMAX,1:NSLMAX)
+                           +CNH*AVKNC(1:NRMAX,1:NSLMAX)
 
       RETURN
       END SUBROUTINE TRCFAD

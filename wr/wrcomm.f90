@@ -8,6 +8,7 @@ MODULE wrcomm_parm
   PUBLIC
 
   INTEGER,PARAMETER:: NRAYM=100
+  INTEGER,PARAMETER:: idebug_max=99
 
 ! --- input parameters ---
 
@@ -15,17 +16,17 @@ MODULE wrcomm_parm
   INTEGER:: mode_beam
   INTEGER:: MDLWRI,MDLWRG,MDLWRP,MDLWRQ,MDLWRW
   REAL(rkind):: SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW
-  REAL(rkind):: RF,RPI,ZPI,PHII,RNZI,RNPHII,RKR0,UUI,RKRI,RKPHII,RKZI
-  REAL(rkind):: RCURVA,RCURVB,RBRADA,RBRADB,NRADMX
-  INTEGER:: MODEW,nres_max,nres_type
   REAL(rkind):: pne_threshold,bdr_threshold
   REAL(rkind):: Rmax_wr,Rmin_wr,Zmin_wr,Zmax_wr
+  INTEGER:: nres_max,nres_type
 
   REAL(rkind),DIMENSION(NRAYM):: &
-       RFIN,RPIN,ZPIN,PHIIN,RKRIN,RNZIN,RNPHIIN,ANGZIN,ANGPHIN,UUIN, &
+       RFIN,RPIN,ZPIN,PHIIN,ANGPIN,ANGTIN,RNKPIN,RNKTIN,RNKIN,UUIN, &
        RCURVAIN,RCURVBIN,RBRADAIN,RBRADBIN
   INTEGER,DIMENSION(NRAYM):: &
        MODEWIN
+
+  INTEGER,DIMENSION(idebug_max):: idebug_wr
 
 CONTAINS
 
@@ -77,6 +78,13 @@ MODULE wrcomm
   REAL(rkind),ALLOCATABLE:: &
        pos_pwrmax_rl_nray(:),pwrmax_rl_nray(:)
   REAL(rkind):: pos_pwrmax_rl,pwrmax_rl
+
+  TYPE wr_nray_status_type
+     INTEGER:: nray,nstp
+     REAL(rkind):: RF,RCURVA,RCURVB,RBRADA,RBRADB
+  END type wr_nray_status_type
+  TYPE(wr_nray_status_type):: wr_nray_status
+     
 CONTAINS
 
   SUBROUTINE wr_allocate

@@ -13,6 +13,7 @@ CONTAINS
 
     USE wrcomm_parm
     IMPLICIT NONE
+    INTEGER:: i
 
     WRITE(6,603) 'NRAYMAX     ',NRAYMAX, &
                  'NSTPMAX     ',NSTPMAX
@@ -36,16 +37,20 @@ CONTAINS
                  'NRMAX_DP    ',NRMAX_DP
     WRITE(6,604) 'pne_threshold   ',pne_threshold, &
                  'bdr_threshold   ',bdr_threshold
-    WRITE(6,602) 'Rmax_wr ',Rmax_wr,'Rmin_wr ',Rmin_wr, &
-                 'Zmax_wr ',Zmax_wr,'Zmin_wr ',Zmin_wr
+    WRITE(6,602) 'Rmax  ',Rmax_wr,'Rmin  ',Rmin_wr, &
+                 'Zmax  ',Zmax_wr,'Zmin  ',Zmin_wr
+    DO i=1,idebug_max
+       IF(idebug_wr(i).NE.0) &
+          WRITE(6,'(A,I4,A,I4)') 'idebug_wr(',i,')=',idebug_wr(i)
+    END DO
     RETURN
 
-601 FORMAT(1H ,A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &
-            2X,A6,'=',I7,4X  :2X,A6,'=',I7)
-602 FORMAT(1H ,A6,'=',ES12.4:2X,A6,'=',ES12.4: &
-            2X,A6,'=',ES12.4:2X,A6,'=',ES12.4)
-603 FORMAT(1H ,A12,'=',I7,4X  :2X,A12,'=',I7,4X  : &
-            2X,A12,'=',I7)
+601 FORMAT(1H ,A6,'=',I8,4X  :1X,A6,'=',I8,4X  : &
+            1X,A6,'=',I8,4X  :1X,A6,'=',I8)
+602 FORMAT(1H ,A6,'=',ES12.4:1X,A6,'=',ES12.4: &
+            1X,A6,'=',ES12.4:1X,A6,'=',ES12.4)
+603 FORMAT(1H ,A12,'=',I8,4X  :1X,A12,'=',I8,4X  : &
+            1X,A12,'=',I8)
 604 FORMAT(1H ,A16'=',ES12.4:2X,A16,'=',ES12.4)
   END SUBROUTINE WR_VIEW
 END MODULE wrview

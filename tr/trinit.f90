@@ -281,16 +281,19 @@ CONTAINS
 !     +               3: Sauter                               +
 !     +               4: Hirshman, Sigmar                     +
 !     +               else: CLASSICAL                         +
-!     +    MDLAD : PARTICLE DIFFUSION MODEL                   +
+!     +    MDLADNC : NEOCLASSICAL PARTICLE DIFFUSION MODEL                   +
+!     +               1: Hinton and Hazeltine                 +
+!     +               else: NO NEOCLASSIXAL PARTICLE TRANSPORT             +
+!     +    MDLADDW : Turbulent PARTICLE DIFFUSION MODEL                   +
 !     +               1: CONSTANT D with pinch AV0            +
 !     +               2: TURBULENT EFFECT with pinch AV0      +
-!     +               3: Hinton and Hazeltine                 +
-!     +               4: Hinton and Hazeltine w/ TURBULENT    +
-!     +               else: NO PARTICLE TRANSPORT             +
-!     +    MDLAVK: HEAT PINCH MODEL                           +
-!     +               1: Arbitrary amplitude                  +
-!     +               2: Arbitrary amplitude w/ pressure dep. +
-!     +               3: Hinton and Hazeltine                 +
+!     +               else: NO TUrbulent PARTICLE TRANSPORT             +
+!     +    MDLAVKNC: Neoclassical HEAT PINCH MODEL                           +
+!     +               1: Hinton and Hazeltine                 +
+!     +               else: NO HEAT PINCH                     +
+!     +    MDLAVKDW: Turbulent HEAT PINCH MODEL                           +
+!     +               1: constant AVK
+!     +               2: Turbulent effect pinch model
 !     +               else: NO HEAT PINCH                     +
 !     +    MDLJBS: BOOTSTRAP CURRENT MODEL                    +
 !     +               1-3: Hinton and Hazeltine               +
@@ -312,8 +315,10 @@ CONTAINS
 
       MDLKAI = 31
       MDLETA = 3
-      MDLAD  = 3
-      MDLAVK = 3
+      MDLADNC= 1
+      MDLADDW= 0
+      MDLAVKNC= 1
+      MDLAVKDW= 0
       MDLJBS = 5
       MDLKNC = 1
       MDLTPF = 0

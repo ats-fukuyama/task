@@ -10,24 +10,27 @@ CONTAINS
 
     USE wrcomm_parm
     IMPLICIT NONE
-    INTEGER:: NRAY
+    INTEGER:: NRAY,i
 
 !     *********** Ray/Beam inital parameters ***********
 
-!     RF     : WAVE FREQUENCY FOR RAY TRACING [MHZ]
-!     RPI    : INITIAL MAJOR RADIUS R [M]
-!     ZPI    : INITIAL VERTICAL POSITION Z [M]
-!     PHII   : INITIAL TOROIDAL ANGLE [RADIAN]
-!     RNZI   : INITIAL VERTICAL REFRACTIVE INDEX
-!     RNPHII : INITIAL TOROIDAL REFRACTIVE INDEX
-!     RKR0   : SPECULATED INITIAL RADIAL WAVE NUMBER [1/M]
-!     MODEW  : Selection of initial k_r
-!              0: found RKR near RKR0
-!              1: larger  RKR (negative, inward for forward wave)    
-!              2: smaller RKR (negative, inward for forward wave)    
-!             -1: larger RKR  (positive, inward for backward wave)    
-!             -2: smaller RKR (positive, inward for backward wave)    
-!     UUI    : INITIAL WAVE ENERGY
+!     NRAYMAX : Number of rays
+
+!     RFIN    : WAVE FREQUENCY FOR RAY TRACING [MHZ]
+!     RPIN    : INITIAL MAJOR RADIUS R [M]
+!     ZPIN    : INITIAL VERTICAL POSITION Z [M]
+!     PHIIN   : INITIAL TOROIDAL ANGLE [RADIAN]
+!     RNKPIN  : INITIAL poloidal REFRACTIVE INDEX
+!     RNKTIN  : INITIAL toroidal REFRACTIVE INDEX
+!     ANGPIN  : INITIAL poloidal injection angle [degree] from horizonal plane
+!     ANGTIN  : INITIAL toroidal injection angle [degree] from equi-phi plane
+!     MODEWIN : Selection of initial wave mode
+!              0: fast wave: smaller k (negative, inward for forward wave)
+!              1: slow wave: larger k  (negative, inward for forward wave)
+!              2: fast wave: smaller k (positive, inward for backward wave)
+!              3: slow wave: larger k  (positive, inward for backward wave) 
+!     RNKIN   : INITIAL estimate of inirial refractive index (1.D0 for vaccum)
+!     UUIN    : INITIAL WAVE ENERGY
 
 !     RCURVA : INITIAL WAVE-FRONT CURVATURE RADIUS (0 for Plane wave)
 !     RCURVB : INITIAL WAVE-FRONT CURVATURE RADIUS (0 for Plane wave)
@@ -38,39 +41,28 @@ CONTAINS
 !                 RBRADA perp to k and B
 !                 RBRADB perp to k and in kxB plane
 
-      RF     = 170.D3
-      RPI    = 3.95D0
-      ZPI    = 0.D0
-      PHII   = 0.D0
-      RNZI   = 0.D0
-      RNPHII = 0.5D0
-      RKR0   = -1000.D0
-      MODEW  = 0
-      UUI    = 1.D0
-      RCURVA = 0.D0
-      RCURVB = 0.D0
-      RBRADA = 0.03D0
-      RBRADB = 0.03D0
+      NRAYMAX  = 1
 
       DO NRAY=1,NRAYM
-         RFIN(NRAY)    = RF
-         RPIN(NRAY)    = RPI
-         ZPIN(NRAY)    = ZPI
-         PHIIN(NRAY)   = PHII
-         RNZIN(NRAY)   = RNZI
-         RNPHIIN(NRAY) = RNPHII
-         RKRIN(NRAY)   = RKR0
-         MODEWIN(NRAY) = MODEW
-         UUIN(NRAY)    = UUI
-         RCURVAIN(NRAY)= RCURVA
-         RCURVBIN(NRAY)= RCURVB
-         RBRADAIN(NRAY)= RBRADA
-         RBRADBIN(NRAY)= RBRADB
+         RFIN(NRAY)     = 170.D3
+         RPIN(NRAY)     = 3.95D0
+         ZPIN(NRAY)     = 0.D0
+         PHIIN(NRAY)    = 0.D0
+         ANGPIN(NRAY)   = 0.D0
+         ANGTIN(NRAY)   = 0.D0
+         RNKPIN(NRAY)   = 0.0D0
+         RNKTIN(NRAY)   = 0.5D0
+         MODEWIN(NRAY)  = 1
+         rnkin(nray)    = 1.d0
+         UUIN(NRAY)     = 1.D0
+         RCURVAIN(NRAY) = 0.D0
+         RCURVBIN(NRAY) = 0.D0
+         RBRADAIN(NRAY) = 0.03D0
+         RBRADBIN(NRAY) = 0.03D0
       ENDDO
 
 !     *********** Ray/Beam control parameters ***********
 
-!     NRAYMAX  : Number of rays
 !     NSTPMAX  : Maxmum number of steps 
 !     NRSMAX   : Number of minor radius division for absorbed power
 !     NRLMAX   : Number of major radius division for absorbed power
@@ -92,12 +84,13 @@ CONTAINS
       mode_beam=0
 
 !     MDLWRI : INPUT TYPE OF WAVE PARAMETERS
-!              0 : RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU
-!              1 : RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH,UU
-!             11 : RF,RP,ZP,RKR0,RNZ,RNPHI,UU
-!            100 : RFIN,RPIN,ZPIN,PHIIN,RKRIN,RNZIN,RNPHIIN,UUIN: namelist
-!            101 : RFIN,RPIN,ZPIN,PHIIN,RKRIN,ANGZIN,ANGPHIN,UUIN: namelist
-
+!        0,1 : RFIN,RPIN,ZPIN,PHIIN,ANGPIN,ANGTIN,MODEWIN,UUIN: interactive
+!        2,3 : RFIN,RPIN,ZPIN,PHIIN,RNPIN,RNTIN,MODEWIN,UUIN:   interactive
+!    100,101 : RFIN,RPIN,ZPIN,PHIIN,ANGPIN,ANGTIN,MODEWIN,UUIN: namelist
+!    102,103 : RFIN,RPIN,ZPIN,PHIIN,RNPIN,RNTIN,MODEWIN,UUIN:   namelist
+!    0,2,100,102: poloidal first definition: k_p = k sin angp
+!    1,3,101,103: toridal first definition:  k_t = k sin angt
+      
 !     MDLWRG : TYPE OF GRAPHICS
 !              0 : FULL TORUS, FULL RADIUS FOR DEPOSITION
 !              1 : PARTIAL TORUS, FULL RADIUS FOR DEPOSITION
@@ -144,12 +137,11 @@ CONTAINS
       EPSNW  = 1.D-6
       LMAXNW = 100
 
-      NRAYMAX  = 1
       NSTPMAX  = 10000
       NRSMAX   = 100
       NRLMAX   = 200
 
-      MDLWRI = 0
+      MDLWRI = 1
       MDLWRG = 0
       MDLWRP = 1
       MDLWRQ = 1
@@ -173,6 +165,10 @@ CONTAINS
       Rmin_wr=0.D0
       Zmax_wr=0.D0
       Zmin_wr=0.D0
+
+      DO i=1,idebug_max
+         idebug_wr(i)=0
+      END DO
 
 ! --- defined in dp ---
 

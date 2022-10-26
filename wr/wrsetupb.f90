@@ -15,165 +15,101 @@ CONTAINS
     USE wrsub,ONLY: wrcale,wrnwtn
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
-    INTEGER:: NRAY
-    REAL(rkind):: ANGZ,ANGPH,SINP2,SINT2
+    INTEGER:: nray
+    REAL(rkind):: deg,factorp,factort
     EXTERNAL GUTIME
 
     ierr=0
+    deg=PI/180.D0
 
-    IF(MDLWRI.EQ.0) THEN
-       WRITE(6,*) '# default values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI'
-       WRITE(6,*) '#                 RCURVA,RCURVB,RBRADA,RBRADB,UU'
-       WRITE(6,'(1PE12.4,0P6F10.3)') &
-            RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII
-       WRITE(6,'(12X,1P5E12.4)') &
-            RCURVA,RCURVB,RBRADA,RBRADB,UUI
-    ELSEIF(MDLWRI.EQ.1.OR.MDLWRI.EQ.2) THEN
-       IF(ABS(RNZI).GT.1.D0) THEN
-          ANGZ=0.D0
-          ANGPH=0.D0
-       ELSE
-          ANGZ=ASIN(RNZI)*180.D0/PI
-          IF(ABS(RNZI).GT.SQRT(1.D0-RNPHII**2)) THEN
-             ANGZ=0.D0
+    ! --- interactive input for beam tracing ---
+    
+    SELECT CASE(mdlwri)
+    CASE(0,1) ! interaactive ANG input
+       WRITE(6,'(A,I8)') '## nraymax=',nraymax
+       DO nray=1,nraymax
+10        CONTINUE
+          WRITE(6,'(A,I8)') '# nray=',nray
+          WRITE(6,'(A)')    '# input: RF,RP,ZP,PHI,ANGP,ANGT,RNK,UU,MODEW'
+          WRITE(6,'(A)')    '#        RCURVA,RCURVB,RBRADA,RBRADB'
+          WRITE(6,'(ES12.4,7F9.2,I4)') &
+               RFIN(NRAY),RPIN(NRAY),ZPIN(NRAY),PHIIN(NRAY), &
+               ANGPIN(NRAY),ANGTIN(NRAY),RNKIN(NRAY),UUIN(NRAY),MODEWIN(NRAY)
+          WRITE(6,'(12X,4F9.2)') &
+               RCURVAIN(NRAY),RCURVBIN(NRAY),RBRADAIN(NRAY),RBRADBIN(NRAY)
+          READ(5,*,ERR=10,END=9000) &
+               RFIN(NRAY),RPIN(NRAY),ZPIN(NRAY),PHIIN(NRAY), &
+               ANGPIN(NRAY),ANGTIN(NRAY),RNKIN(NRAY),UUIN(NRAY),MODEWIN(NRAY),&
+               RCURVAIN(NRAY),RCURVBIN(NRAY),RBRADAIN(NRAY),RBRADBIN(NRAY)
+       END DO
+    CASE(2,3) ! interactive RN input
+       WRITE(6,'(A,I8)') '## nraymax=',nraymax
+       DO nray=1,nraymax
+20        CONTINUE
+          WRITE(6,'(A,I8)') '# nray=',nray
+          WRITE(6,'(A)')    '# input: RF,RP,ZP,PHI,RNKP,RNKT,RNK,UU,MODEW'
+          WRITE(6,'(A)')    '#        RCURVA,RCURVB,RBRADA,RBRADB'
+          WRITE(6,'(ES12.4,7F9.2,I4)') &
+               RFIN(NRAY),RPIN(NRAY),ZPIN(NRAY),PHIIN(NRAY), &
+               RNKPIN(NRAY),RNKTIN(NRAY),RNKIN(NRAY),UUIN(NRAY),MODEWIN(NRAY)
+          WRITE(6,'(12X,4F9.2)') &
+               RCURVAIN(NRAY),RCURVBIN(NRAY),RBRADAIN(NRAY),RBRADBIN(NRAY)
+          READ(5,*,ERR=20,END=9000) &
+               RFIN(NRAY),RPIN(NRAY),ZPIN(NRAY),PHIIN(NRAY), &
+               RNKPIN(NRAY),RNKTIN(NRAY),RNKIN(NRAY),UUIN(NRAY),MODEWIN(NRAY),&
+               RCURVAIN(NRAY),RCURVBIN(NRAY),RBRADAIN(NRAY),RBRADBIN(NRAY)
+       END DO
+    END SELECT
+
+    ! --- conversion between ang <-> rnk ---
+    
+    SELECT CASE(mdlwri)
+    CASE(0,100) ! ANG->RN: poloidal first
+       DO nray=1,nraymax
+          RNKPIN(NRAY)=RNKIN(NRAY)*SIN(ANGPIN(NRAY)*deg)
+          RNKTIN(NRAY)=RNKIN(NRAY)*SIN(ANGTIN(NRAY)*deg)*COS(ANGPIN(NRAY)*deg)
+       END DO
+    CASE(1,101) ! ANG->RN: toroidal first
+       DO nray=1,nraymax
+          RNKTIN(NRAY)=RNKIN(NRAY)*SIN(ANGTIN(NRAY)*deg)
+          RNKPIN(NRAY)=RNKIN(NRAY)*SIN(ANGPIN(NRAY)*deg)*COS(ANGPIN(NRAY)*deg)
+       END DO
+    CASE(2,102) ! RN->ANG: poloidal first
+       DO nray=1,nraymax
+          factorp=RNKPIN(NRAY)/RNKIN(NRAY)
+          IF(ABS(factorp).GT.1.D0) MODEWIN(NRAY)=-1
+          factort=RNKIN(NRAY)**2-RNKPIN(NRAY)**2
+          IF(RNKTIN(NRAY)**2.GT.factort) MODEWIN(NRAY)=-2
+          IF(MODEWIN(NRAY).GE.0) THEN
+             ANGPIN(NRAY)=ASIN(factorp)
+             ANGTIN(NRAY)=ASIN(RNKTIN(NRAY)/SQRT(factort))
           ELSE
-             ANGZ=ASIN(RNZI/SQRT(1.D0-RNPHII**2))*180.D0/PI
-          ENDIF
-          IF(ABS(RNPHII).GT.SQRT(1.D0-RNZI**2)) THEN
-             ANGPH=0.D0
+             WRITE(6,'(A)') &
+                'XX wr_setup_beams: nray,modewin,factorp,factort,rnkp,rnkt,rnk'
+             WRITE(6,'(A,2I4,5ES12.4)') &
+                  '      ',nray,modewin(nray),factorp,factort, &
+                  rnkpin(nray),rnktin(nray),rnkin(nray)
+          END IF
+       END DO
+    CASE(3,103) ! RN->ANG: toroidal first
+       DO nray=1,nraymax
+          factort=RNKTIN(NRAY)/RNKIN(NRAY)
+          IF(ABS(factort).GT.1.D0) MODEWIN(NRAY)=-3
+          factorp=RNKIN(NRAY)**2-RNKTIN(NRAY)**2
+          IF(RNKPIN(NRAY)**2.GT.factorp) MODEWIN(NRAY)=-4
+          IF(MODEWIN(NRAY).GE.0) THEN
+             ANGTIN(NRAY)=ASIN(factort)
+             ANGPIN(NRAY)=ASIN(RNKPIN(NRAY)/SQRT(factorp))
           ELSE
-             ANGPH=ASIN(RNPHII/SQRT(1.D0-RNZI**2))*180.D0/PI
-          ENDIF
-       ENDIF
-       IF(MDLWRI.EQ.1) THEN
-          WRITE(6,*) '# default values: RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH'
-          WRITE(6,*) '#                 RCURVA,RCURVB,RBRADA,RBRADB,UU'
-          WRITE(6,'(1PE12.4,0P6F10.3)') &
-               RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH
-          WRITE(6,'(12X,1P5E12.4)') &
-               RCURVA,RCURVB,RBRADA,RBRADB,UUI
-       ELSEIF(MDLWRI.EQ.2) THEN
-          WRITE(6,*) '# default values: RF,RP,ZP,PHI,MODEW,ANGZ,ANGPH'
-          WRITE(6,*) '#                 RCURVA,RCURVB,RBRADA,RBRADB,UU'
-          WRITE(6,'(1PE12.4,0P6F10.3)') &
-               RF,RPI,ZPI,PHII,MODEW,ANGZ,ANGPH
-          WRITE(6,'(12X,1P5E12.4)') &
-               RCURVA,RCURVB,RBRADA,RBRADB,UUI
-       ENDIF
-    ENDIF
-
-    DO NRAY=1,NRAYMAX
-
-       IF(MDLWRI.LT.10) then
-1         WRITE(6,*) '# NRAY=' ,NRAY
-          IF(MDLWRI.EQ.0) THEN
-             READ(5,*,ERR=1,END=9000) &
-                  RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII, &
-                  RCURVA,RCURVB,RBRADA,RBRADB,UUI
-             WRITE(6,*) &
-                  '# initial values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI'
-             WRITE(6,*) &
-                  '#                 RCURVA,RCURVB,RBRADA,RBRADB,UU'
-             WRITE(6,'(1PE12.4,0P6F10.3)') &
-                  RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII
-             WRITE(6,'(12X,1P5E12.4)') &
-                  RCURVA,RCURVB,RBRADA,RBRADB,UUI
-          ELSEIF(MDLWRI.EQ.1) THEN
-             READ(5,*,ERR=1,END=9000) &
-                  RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH, &
-                  RCURVA,RCURVB,RBRADA,RBRADB,UUI
-             WRITE(6,*) &
-                  '# initial values: RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH'
-             WRITE(6,*) &
-                  '#                 RCURVA,RCURVB,RBRADA,RBRADB,UU'
-             WRITE(6,'(1PE12.4,0P6F10.3)') &
-                  RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH
-             WRITE(6,'(12X,1P5E12.4)') &
-                  RCURVA,RCURVB,RBRADA,RBRADB,UUI
-             SINP2=SIN(ANGZ*PI/180.D0)**2
-             SINT2=SIN(ANGPH*PI/180.D0)**2
-             RNZI  =SQRT(SINP2*(1-SINT2)/(1-SINP2*SINT2))
-             RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
-             IF(ANGZ.LT.0.D0) RNZI=-RNZI
-             IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
-          ELSEIF(MDLWRI.EQ.2) THEN
-             READ(5,*,ERR=1,END=9000) &
-                  RF,RPI,ZPI,PHII,MODEW,ANGZ,ANGPH
-             WRITE(6,*) &
-                  '# initial values: RF,RP,ZP,PHI,MODEW,ANGZ,ANGPH'
-             WRITE(6,*) &
-                  '#                 RCURVA,RCURVB,RBRADA,RBRADB,UU'
-             WRITE(6,'(1PE12.4,0P6F10.3)') &
-                  RF,RPI,ZPI,PHII,MODEW,ANGZ,ANGPH
-             WRITE(6,'(12X,1P5E12.4)') &
-                  RCURVA,RCURVB,RBRADA,RBRADB,UUI
-             SINP2=SIN(ANGZ*PI/180.D0)**2
-             SINT2=SIN(ANGPH*PI/180.D0)**2
-             RNZI  =SQRT(SINP2*(1-SINT2)/(1-SINP2*SINT2))
-             RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
-             WRITE(6,*) 'XX MDLWRI=2 IS NOT SUPPORTED YET.'
-             GOTO 1
-          ENDIF
-       ELSE
-          RF=RFIN(NRAY)
-          RPI=RPIN(NRAY)
-          ZPI=ZPIN(NRAY)
-          PHII=PHIIN(NRAY)
-          RKR0=RKRIN(NRAY)
-          RNZI=RNZIN(NRAY)
-          RNPHII=RNPHIIN(NRAY)
-          ANGZ=ANGZIN(NRAY)
-          ANGPH=ANGPHIN(NRAY)
-          UUI=UUIN(NRAY)
-          RCURVA=RCURVAIN(NRAY)
-          RCURVB=RCURVBIN(NRAY)
-          RBRADA=RBRADAIN(NRAY)
-          RBRADB=RBRADBIN(NRAY)
-
-          IF(MDLWRI.EQ..10)THEN
-             WRITE(6,*) &
-                  '# initial values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI'
-             WRITE(6,*) &
-                  '#                 RCURVA,RCURVB,RBRADA,RBRADB,UU'
-             WRITE(6,'(1PE12.4,0P6F10.3)') &
-                  RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII
-             WRITE(6,'(12X,1P5E12.4)') &
-                  RCURVA,RCURVB,RBRADA,RBRADB,UUI
-          ELSE
-             WRITE(6,*) &
-                  '# initial values: RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH'
-             WRITE(6,*) &
-                  '#                 RCURVA,RCURVB,RBRADA,RBRADB,UU'
-             WRITE(6,'(1PE12.4,0P6F10.3)') &
-                  RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH
-             WRITE(6,'(12X,1P5E12.4)') &
-                  RCURVA,RCURVB,RBRADA,RBRADB,UUI
-             SINP2=SIN(ANGZ*PI/180.D0)**2
-             SINT2=SIN(ANGPH*PI/180.D0)**2
-             RNZI  =SQRT(SINP2*(1-SINT2)/(1-SINP2*SINT2))
-             RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
-             IF(ANGZ.LT.0.D0) RNZI=-RNZI
-             IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
-          ENDIF
-       ENDIF
-
-       RAYIN(1,NRAY)=RF
-       RAYIN(2,NRAY)=RPI
-       RAYIN(3,NRAY)=ZPI
-       RAYIN(4,NRAY)=PHII
-       RAYIN(5,NRAY)=RKR0
-!     
-       IF(MDLWRI.EQ.0)THEN
-          RAYIN(6,NRAY)=RNZI
-          RAYIN(7,NRAY)=RNPHII
-       ELSE
-          RAYIN(6,NRAY)=ANGZ
-          RAYIN(7,NRAY)=ANGPH
-       ENDIF
-
-       RAYIN(8,NRAY)=UUI
-
-    END DO
+             WRITE(6,'(A)') &
+                'XX wr_setup_beams: nray,modewin,factort,factorp,rnkt,rnkp,rnk'
+             WRITE(6,'(A,2I4,5ES12.4)') &
+                  '      ',nray,modewin(nray),factort,factorp, &
+                  rnktin(nray),rnkpin(nray),rnkin(nray)
+          END IF
+       END DO
+       
+    END SELECT
     RETURN
 
 9000 CONTINUE
