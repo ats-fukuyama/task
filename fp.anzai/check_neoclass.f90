@@ -29,17 +29,29 @@ contains
     !double precision,dimension(nrmax,nsamax) :: Drw,Drwav,Drweff,Drweffav
     double precision,dimension(nrmax,nsamax) :: Dnba,Dnpla
     double precision,dimension(nrmax,nsamax) :: Sr_ba,Sr_pla
+<<<<<<< HEAD
+    double precision,dimension(nrmax,nsamax) :: Sr_ch
+=======
+>>>>>>> 3d09fe1dfe252eb17e9e1ec58c696fdc2095c8a9
     double precision,dimension(nrmax,nsamax) :: heatfow, heatrw, heatrwav
     double precision,dimension(nrmax,nsamax) :: chi_a
     double precision,dimension(nrmax,nsamax) :: hfowout_r, hfowout_p
     double precision,dimension(nrmax,nsamax) :: hfowout_t, hfowout_f
     double precision,dimension(nrmax,nsamax) :: chi_Dp,chi_Dt
     double precision,dimension(nrmax,nsamax) :: chi_Dr, chi_Fr
+<<<<<<< HEAD
+    double precision,dimension(nrmax,nsamax) :: chi_ch
+=======
+>>>>>>> 3d09fe1dfe252eb17e9e1ec58c696fdc2095c8a9
     double precision,dimension(nrmax,nsamax) :: heatba,heatpla
     double precision,dimension(nrmax,nsamax) :: chi_neo_ba,chi_neo_pla
     double precision,dimension(nrmax,nsamax) :: cyclo_rho, dTadr
     double precision,dimension(nrmax,nsamax) :: Ta, spVI, spVI2,sumdf, sTI
     double precision,dimension(nrmax,nsamax) :: nu_eff
+<<<<<<< HEAD
+    double precision,dimension(nrmax,nsamax) :: pla_parm, inv_asp
+=======
+>>>>>>> 3d09fe1dfe252eb17e9e1ec58c696fdc2095c8a9
     double precision,dimension(nrmax) :: eps_t,tau_ele,tau_i
     integer nth, np, nr, nsa, nsb, mode(3)
 
@@ -55,7 +67,12 @@ contains
     !** Heat Neoclass
     call integral_Heatdiff(heatfow,chi_a) ![2022/6/6] editted by anzai
     ! call Heatneoclass(heatba,heatpla,chi_neo_ba,chi_neo_pla) ![2022/3/14] editted by anzai
+<<<<<<< HEAD
+    call Heatneoclass(heatba,heatpla,chi_neo_ba,chi_neo_pla,Sr_ba,Sr_pla, Dnba, Dnpla,inv_asp,pla_parm) ![2022/9/5] editted by anzai
+    call Chang_Hinton_neoclass(Sr_ch, chi_ch) ![2022/10/26] editted by anzai
+=======
     call Heatneoclass(heatba,heatpla,chi_neo_ba,chi_neo_pla,Sr_ba,Sr_pla, Dnba, Dnpla) ![2022/9/5] editted by anzai
+>>>>>>> 3d09fe1dfe252eb17e9e1ec58c696fdc2095c8a9
     ! call Heat_rw_baverage(heatrwav, heatrw) ![2022/2/23] editted by anzai
     !** For Factor check
     ! call check_factorneo(eps_t, cyclo_rho, dTadr,Ta,tau_ele,tau_i, spVI,spVI2,sTI) ![2022/2/27] editted by anzai
@@ -80,6 +97,11 @@ contains
     call fptxt2D(heatpla, "dat/heatpla.txt")![2022/3/4] editted by anzai
     call fptxt2D(chi_neo_ba, "dat/chi_neo_ba.txt")![2022/2/19] editted by anzai
     call fptxt2D(chi_neo_pla, "dat/chi_neo_pla.txt")![2022/2/19] editted by anzai
+<<<<<<< HEAD
+    call fptxt2D(chi_ch, "dat/chi_ch.txt")![2022/10/27] editted by anzai
+    call fptxt2D(Sr_ch, "dat/Sr_ch.txt")![2022/10/27] editted by anzai
+=======
+>>>>>>> 3d09fe1dfe252eb17e9e1ec58c696fdc2095c8a9
     ! call fptxt2D(heatrw, "dat/heatrw.txt")![2022/2/23] editted by anzai
     ! call fptxt2D(heatrwav, "dat/heatrwav.txt")![2022/2/23] editted by anzai
 
@@ -103,6 +125,11 @@ contains
     call fptxt2D(chi_Dp, "dat/chi_Dp.txt")![2022/2/19] editted by anzai
     call fptxt2D(chi_Dt, "dat/chi_Dt.txt")![2022/2/19] editted by anzai
     call fptxt2D(chi_Fr, "dat/chi_Fr.txt")![2022/2/19] editted by anzai
+<<<<<<< HEAD
+    call fptxt2D(pla_parm, "dat/pla_parm.txt")![2022/2/19] editted by anzai
+    call fptxt2D(inv_asp, "dat/inv_asp.txt")![2022/2/19] editted by anzai
+=======
+>>>>>>> 3d09fe1dfe252eb17e9e1ec58c696fdc2095c8a9
 
   end subroutine output_neoclass
 
@@ -856,7 +883,11 @@ contains
 
   end subroutine Heat_rw_baverage
 
+<<<<<<< HEAD
+  subroutine Heatneoclass(heatba,heatpla,chi_neo_ba,chi_neo_pla,Sr_ba,Sr_pla,Dnba,Dnpla, inv_asp,pla_parm)
+=======
   subroutine Heatneoclass(heatba,heatpla,chi_neo_ba,chi_neo_pla,Sr_ba,Sr_pla,Dnba,Dnpla)
+>>>>>>> 3d09fe1dfe252eb17e9e1ec58c696fdc2095c8a9
   !---------------------------------------------------------------
   !subroutine for neoclassical heat flux in banana, plateau region
   !calculate heat flux and diffusion coefficient
@@ -871,12 +902,19 @@ contains
     implicit none
     double precision,dimension(nrmax,nsamax),intent(out)  :: heatba, heatpla
     double precision,dimension(nrmax,nsamax),intent(out)  :: chi_neo_ba, chi_neo_pla
+<<<<<<< HEAD
+    double precision,dimension(nrmax,nsamax),intent(out)  :: inv_asp, pla_parm
+=======
+>>>>>>> 3d09fe1dfe252eb17e9e1ec58c696fdc2095c8a9
     ! double precision,dimension(nrmax,nsamax) :: Sr_ba, Sr_pla
     double precision,dimension(nrmax,nsamax) :: Ta, dTadr, dndr
     double precision, dimension(nsamax) :: rho_a
     double precision fact, fact_s, tau_ele,tau_i, eps_t, Baxis, B_p
     integer nr, nsa
+<<<<<<< HEAD
+=======
     ! implicit none
+>>>>>>> 3d09fe1dfe252eb17e9e1ec58c696fdc2095c8a9
     double precision,dimension(nrmax,nsamax),intent(out)  :: Dnba, Dnpla
     double precision,dimension(nrmax,nsamax),intent(out)  :: Sr_ba, Sr_pla
         ! double precision,dimension(nrmax,nsamax)  :: Ta,dTadr,dndr
@@ -900,17 +938,40 @@ contains
       call first_order_derivative(dndr(:,nsa), rnsl(:, nsa), rm)
     end do
 
+<<<<<<< HEAD
+            !  write(*,*)aefp(1)
+            !  write(*,*)tau_ee
+=======
+>>>>>>> 3d09fe1dfe252eb17e9e1ec58c696fdc2095c8a9
     !****calculate flux and diffusion coefficient
     do nsa = 1, nsamax
       do nr = 1, nrmax
         tau_ele = fact*sqrt(AMFP(1))*((Ta(nr,1))**1.5d0)/ &
              (rnsl(nr,2)*1.d20*AEFP(2)**2*lnlam(nr,2,1)*AEE**2)
+<<<<<<< HEAD
+            !  write(*,'(e32.2)')tau_ele
+
         tau_i   = fact*sqrt(2.d0)*sqrt(AMFP(2))*((Ta(nr,2))**1.5d0)/ &
              (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2))
+            !  write(*,'(e32.2)')tau_i
+
+=======
+        tau_i   = fact*sqrt(2.d0)*sqrt(AMFP(2))*((Ta(nr,2))**1.5d0)/ &
+             (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2))
+>>>>>>> 3d09fe1dfe252eb17e9e1ec58c696fdc2095c8a9
         rho_e = sqrt(2*Ta(nr,1)/AMFP(1))*AMFP(1)/(AEE*Baxis)
         rho_a(nsa) = sqrt(2*Ta(nr,nsa)/AMFP(nsa))*AMFP(nsa)/(AEFP(nsa)*Baxis)
         eps_t = rm(nr)*RA/RR
         B_p = rm(nr)*RA*BB/(safety_factor(nr)*RR)
+<<<<<<< HEAD
+        inv_asp(nr,nsa) = eps_t**(1.5) !!!!! for plateau
+        if (nsa == 1)then !!!! for plateau index number must 1.0 form
+          pla_parm(nr,nsa) = (rm(nr)*RA*Baxis/(B_p*sqrt(3.d0*Ta(nr,nsa)/AMFP(1)))/tau_ele)!/inv_asp(nr,nsa)!**(1.0/3.0)
+        else
+          pla_parm(nr,nsa) = (rm(nr)*RA*Baxis/(B_p*sqrt(3.d0*Ta(nr,nsa)/AMFP(nsa)))/tau_i)!/inv_asp(nr,nsa)!**(1.0/3.0)
+        end if
+=======
+>>>>>>> 3d09fe1dfe252eb17e9e1ec58c696fdc2095c8a9
         fact_ba = (safety_factor(nr)**2)*1.d20*rnsl(nr,nsa) &
              *(rho_e**2)/((eps_t**1.5)*tau_ele)*RKEV ! modified by anzai[*RKEV]
         fact_pla = -sqrt(pi)*(eps_t**2)*Ta(nr,1)*RKEV &! modified by anzai [*RKEV]
@@ -994,6 +1055,268 @@ contains
 
   end subroutine Heatneoclass
 
+<<<<<<< HEAD
+  subroutine Chang_Hinton_neoclass(Sr_ch, chi_ch)
+  !---------------------------------------------------------------
+  !subroutine for neoclassical heat flux by Chang and Hinton
+  ! Effect of impurity particles on the finite aspect-ratio neoclassical
+  ! ion thermal conductivity in a tokamak(1986)
+  !--------------------------------------------------------------
+
+    use fpcomm
+    use fowcomm
+
+    implicit none
+    double precision,dimension(nrmax,nsamax),intent(out)  :: Sr_ch
+    double precision,dimension(nrmax,nsamax),intent(out)  :: chi_ch
+    double precision,dimension(nrmax,nsamax) :: Ta, dTadr
+    double precision fact, tau_i, eps_t, Baxis, B_p
+    double precision fact_a, fact_1, fact_2, f_1, f_2
+    double precision sh_shift, alpha, rho_i, nu_i, mu_i
+    integer nr, nsa
+
+    fact = 12.d0*pi**1.5d0*EPS0**2/sqrt(2.d0)
+    Baxis = Bing(1) ! approximation on B by Baxis
+    sh_shift = 0.0D0
+    alpha = 0.0d0 !! n_I*Z_I^2/(n_i*Z_i^2) for impurity ion
+
+    !****temperature make
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)
+        !Ta(temperature)[J]
+      end do
+    end do
+
+    !****first order derivation
+    do nsa = 1, nsamax
+      call first_order_derivative(dTadr(:,nsa), Ta(:,nsa), rm)
+    end do
+            !  write(*,*)aefp(1)
+            !  write(*,*)tau_ee
+    !****calculate flux and diffusion coefficient
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        ! B_p = rm(nr)*RA*BB/(safety_factor(nr)*RR)
+        eps_t = rm(nr)*RA/RR
+        tau_i   = fact*sqrt(2.d0)*sqrt(AMFP(2))*((Ta(nr,2))**1.5d0)/ &
+             (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2))
+            !  write(*,'(e32.2)')tau_i
+        rho_i = sqrt(2.d0*Ta(nr,2)/AMFP(2))*AMFP(2)/(AEFP(2)*Baxis)
+        nu_i = RR*safety_factor(nr)*eps_t**(-1.5d0)*sqrt(2.d0*Ta(nr,2)*(AMFP(2)))*tau_i**(-1.d0)
+        mu_i = nu_i*(1.d0 + 1.54d0 * alpha)
+
+        fact_a = eps_t**(-1.5d0)*(rho_i**(2.d0))*tau_i**(-1.d0)*safety_factor(nr)**(2.d0)
+        fact_1 = (0.66d0*(1+1.54d0*alpha) + (1.88d0*eps_t**(0.5) - 1.54d0*eps_t)*(1+3.75d0*alpha)) * &
+                 (1.d0 + 1.03d0*mu_i**(0.5d0) + 0.31d0*mu_i)**(-1.d0)
+        fact_2 = 0.59d0*mu_i*eps_t*(1.d0+0.74*mu_i*eps_t**(1.5))**(-1.d0) * &
+                 ( 1.d0 + (1.33d0*alpha*(1.d0 + 0.6d0*alpha))*(1.d0+1.79d0*alpha)**(-1.d0))
+
+        f_1 = (1.d0 + 1.5d0*(eps_t**(2.d0) + eps_t * sh_shift) + 3.d0*(8.d0)**(-1.d0)*eps_t**(3.d0)*sh_shift) * &
+              (1 + 0.5 * eps_t * sh_shift)**(-1.d0)
+        f_2 = sqrt(1.d0 - eps_t**(2.d0))*(1.d0 + eps_t*sh_shift*2**(-1.d0)) * &
+              (1.d0 + sh_shift*(sqrt(1.d0 - eps_t**(2.d0)) - 1.D0)*eps_t**(-1.d0))**(-1.d0)
+
+        chi_ch(nr,nsa) = fact_a*(fact_1*f_1 + fact_2*(f_1 - f_2))
+        Sr_ch(nr,nsa) = -rnsl(nr,nsa)*1.d20*chi_ch(nr,nsa)*dTadr(nr,nsa)
+     end do
+   end do
+
+  end subroutine Chang_Hinton_neoclass
+
+  ! subroutine Hinton_Hazeltine_neoclass(Sr_hh, chi_ehh, chi_ihh)
+  ! !---------------------------------------------------------------
+  ! ! subroutine for neoclassical flux by Hinton and Hazeltine
+  ! ! Theory of plasma transport in troidal confinement systems(1976) 
+  ! ! Reviews of Modern Physics 48, 2, part 1
+  ! !--------------------------------------------------------------
+
+  !   use fpcomm
+  !   use fowcomm
+
+  !   implicit none
+  !   double precision,dimension(nrmax,nsamax),intent(out)  :: Sr_hh
+  !   double precision,dimension(nrmax,nsamax),intent(out)  :: chi_ehh, chi_ihh
+  !   double precision,dimension(nrmax,nsamax) :: Ta, dTadr, Pa, dPadr
+  !   double precision,dimension(3,3,3) :: K_, a_, b_, c_
+  !   double precision,dimension(3,3,3) :: K_eff
+  !   !**** dimension K is (species, m, n) in the paper p298(1976)
+  !   double precision fact, tau_e, tau_i, eps_t, Baxis, B_p
+  !   double precision fact_a, fact_1, fact_2, f_1, f_2
+  !   double precision inner_product
+  !   double precision sh_shift, alpha, rho_i, nu_i, nu_e, mu_i
+  !   integer nr, nsa, i, j, k
+
+  !   !**** initialization
+  !   fact = 12.d0*pi**1.5d0*EPS0**2/sqrt(2.d0)
+  !   Baxis = Bing(1) ! approximation on B by Baxis
+  !   sh_shift = 0.0D0
+  !   alpha = 0.0d0 !! n_I*Z_I^2/(n_i*Z_i^2) for impurity ion
+  !   K_eff(:,:,:)=0.d0
+  !   K_(:,:,:) = 0.d0
+  !   a_(:,:,:) = 0.d0
+  !   b_(:,:,:) = 0.d0
+  !   c_(:,:,:) = 0.d0
+
+  !   !**** input values of K, a_, b_, c_
+  !   !** Z_i = 1
+  !   K_(1,1,1)=1.04d0
+  !   K_(1,1,2)=1.20d0
+  !   K_(1,1,3)=2.30d0
+  !   K_(1,2,2)=2.55d0
+  !   K_(1,2,3)=4.19d0  
+  !   K_(1,3,3)=1.83d0
+
+  !   a_(1,1,1)=2.01d0
+  !   a_(1,1,2)=0.76d0
+  !   a_(1,1,3)=1.02d0
+  !   a_(1,2,2)=0.45d0
+  !   a_(1,2,3)=0.57d0
+  !   a_(1,3,3)=0.68d0
+
+  !   b_(1,1,1)=1.53d0
+  !   b_(1,1,2)=0.67d0
+  !   b_(1,1,3)=1.07d0
+  !   b_(1,2,2)=0.43d0
+  !   b_(1,2,3)=0.61d0
+  !   b_(1,3,3)=0.32d0
+
+  !   c_(1,1,1)=0.89d0
+  !   c_(1,1,2)=0.56d0
+  !   c_(1,1,3)=1.07d0
+  !   c_(1,2,2)=0.43d0
+  !   c_(1,2,3)=0.61d0
+  !   c_(1,3,3)=0.66d0
+
+  !   !** Z_i = 2
+  !   K_(2,1,1)=0.86d0
+  !   K_(2,1,2)=0.95d0
+  !   K_(2,1,3)=1.87d0
+  !   K_(2,2,2)=1.99d0
+  !   K_(2,2,3)=3.72d0
+  !   K_(2,3,3)=1.56d0
+
+  !   a_(2,1,1)=2.18d0
+  !   a_(2,1,2)=0.78d0
+  !   a_(2,1,3)=0.89d0
+  !   a_(2,2,2)=0.46d0
+  !   a_(2,2,3)=0.52d0
+  !   a_(2,3,3)=0.56d0
+
+  !   b_(2,1,1)=1.17d0
+  !   b_(2,1,2)=0.50d0
+  !   b_(2,1,3)=0.62d0
+  !   b_(2,2,2)=0.26d0
+  !   b_(2,2,3)=0.34d0
+  !   b_(2,3,3)=0.25d0
+
+  !   c_(2,1,1)=0.79d0
+  !   c_(2,1,2)=0.51d0
+  !   c_(2,1,3)=0.69d0
+  !   c_(2,2,2)=0.34d0
+  !   c_(2,2,3)=0.38d0
+  !   c_(2,3,3)=0.58d0
+
+  !   !** Z_i = 4
+  !   K_(3,1,1)=0.76d0
+  !   K_(3,1,2)=0.83d0
+  !   K_(3,1,3)=1.65d0
+  !   K_(3,2,2)=1.71d0
+  !   K_(3,2,3)=3.54d0
+  !   K_(3,3,3)=1.42d0
+
+  !   a_(3,1,1)=2.30d0
+  !   a_(3,1,2)=0.80d0
+  !   a_(3,1,3)=0.79d0
+  !   a_(3,2,2)=0.46d0
+  !   a_(3,2,3)=0.48d0
+  !   a_(3,3,3)=0.47d0
+
+  !   b_(3,1,1)=0.98d0
+  !   b_(3,1,2)=0.42d0
+  !   b_(3,1,3)=0.56d0
+  !   b_(3,2,2)=0.22d0
+  !   b_(3,2,3)=0.33d0
+  !   b_(3,3,3)=0.20d0
+
+  !   c_(3,1,1)=0.74d0
+  !   c_(3,1,2)=0.48d0
+  !   c_(3,1,3)=0.51d0
+  !   c_(3,2,2)=0.30d0
+  !   c_(3,2,3)=0.28d0
+  !   c_(3,3,3)=0.51d0
+  !   !!!!!!!!!!!!!!!! atode kansuu ni suru
+
+
+  !   !****temperature make
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax
+  !       Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)
+  !       !**Ta(temperature)[J]
+  !       Pa(nr,nsa) = rnsl(nr,nsa)*1.d20*Ta(nr,nsa) 
+  !       !**Pressure[Pa]
+  !     end do
+  !   end do
+
+  !   !****first order derivation
+  !   do nsa = 1, nsamax
+  !     call first_order_derivative(dTadr(:,nsa), Ta(:,nsa), rm)
+  !     call first_order_derivative(dPadr(:,nsa), Pa(:,nsa), rm)
+  !   end do
+  !           !  write(*,*)aefp(1)
+  !           !  write(*,*)tau_ee
+  !   !****calculate flux and diffusion coefficient
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax
+  !       B_p = rm(nr)*RA*BB/(safety_factor(nr)*RR)
+  !       eps_t = rm(nr)*RA/RR
+  !       tau_ele = fact*sqrt(AMFP(1))*((Ta(nr,1))**1.5d0)/ &
+  !            (rnsl(nr,2)*1.d20*AEFP(2)**2*lnlam(nr,2,1)*AEE**2)
+  !       tau_i   = fact*sqrt(2.d0)*sqrt(AMFP(2))*((Ta(nr,2))**1.5d0)/ &
+  !            (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2))
+  !           !  write(*,'(e32.2)')tau_i
+  !       rho_i = sqrt(2.d0*Ta(nr,2)/AMFP(2))*AMFP(2)/(AEFP(2)*Baxis)
+  !       nu_i = sqrt(2.d0)*rm(nr)*RA*Baxis/(B_p*sqrt(2.d0*Ta(nr,2)/AMFP(2))*tau_i*eps_t**(1.5d0))
+  !       nu_e = sqrt(2.d0)*rm(nr)*RA*Baxis/(B_p*sqrt(2.d0*Ta(nr,1)/AMFP(1))*tau_e*eps_t**(1.5d0))
+  !       inner_product = (1.17d0 - 0.35*nu_i**(0.5d0)*eps_t**(3.d0))*(1.d0 + 0.7*nu_i**(0.5d0))**(-1.d0)
+
+  !       !**** Making coefficient
+  !       do k = 1, 3
+  !         do j = 1, 3
+  !           do i = 1, nsa
+  !             if (k .ne. 3) then
+  !               K_eff(i,j,k)=K_(i,j,k)*(1.d0*(1.d0 + a_(i,j,k)*nu_e**(0.5d0) + b_(i,j,k)*nu_e) + &
+  !                            (eps_t**(1.5d0)*(c_(i,j,k)**(2.d0)/b_(i,j,k)*nu_e*eps_t**(1.5d0)))/ &
+  !                            (1.d0 +c_(i,j,k)*nu_e*eps_t**(1.5d0)) )
+  !             else if (k .eq. 3) then
+  !               K_eff(i,j,k)= K_(i,j,k)*(1.d0 + a_(i,j,k)*nu_e**(0.5d0) + b_(i,j,k)*nu_e)**(-1.d0) * &
+  !                             (1.d0+c_(i,j,k)*nu_e**(0.5d0)*eps_t**(1.5d0))**(-1.d0)
+  !             end if
+  !           end do!i
+  !         end do !j
+  !       end do !k
+
+  !       mu_i = nu_i*(1.d0 + 1.54d0 * alpha)
+
+  !       fact_a = eps_t**(-1.5d0)*(rho_i**(2.d0))*tau_i**(-1.d0)*safety_factor(nr)**(2.d0)
+  !       fact_1 = (0.66d0*(1+1.54d0*alpha) + (1.88d0*eps_t**(0.5) - 1.54d0*eps_t)*(1+3.75d0*alpha)) * &
+  !                (1.d0 + 1.03d0*mu_i**(0.5d0) + 0.31d0*mu_i)**(-1.d0)
+  !       fact_2 = 0.59d0*mu_i*eps_t*(1.d0+0.74*mu_i*eps_t**(1.5))**(-1.d0) * &
+  !                ( 1.d0 + (1.33d0*alpha*(1.d0 + 0.6d0*alpha))*(1.d0+1.79d0*alpha)**(-1.d0))
+
+  !       f_1 = (1.d0 + 1.5d0*(eps_t**(2.d0) + eps_t * sh_shift) + 3.d0*(8.d0)**(-1.d0)*eps_t**(3.d0)*sh_shift) * &
+  !             (1 + 0.5 * eps_t * sh_shift)**(-1.d0)
+  !       f_2 = sqrt(1.d0 - eps_t**(2.d0))*(1.d0 + eps_t*sh_shift*2**(-1.d0)) * &
+  !             (1.d0 + sh_shift*(sqrt(1.d0 - eps_t**(2.d0)) - 1.D0)*eps_t**(-1.d0))**(-1.d0)
+
+  !       chi_ch(nr,nsa) = fact_a*(fact_1*f_1 + fact_2*(f_1 - f_2))
+  !       Sr_ch(nr,nsa) = -rnsl(nr,nsa)*1.d20*chi_ch(nr,nsa)*dTadr(nr,nsa)
+  !    end do
+  !  end do
+
+  ! end subroutine Hinton_Hazeltine_neoclass
+=======
+>>>>>>> 3d09fe1dfe252eb17e9e1ec58c696fdc2095c8a9
 !===============================================
 ! Subroutine for factor check
 !===============================================

@@ -302,21 +302,39 @@ contains
             end do
 
             if ( nth == nth_pnc(nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+<<<<<<< HEAD
+              ! JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
+              !       + JI(nth,np,nr,nsa)*IBCflux_ratio(np,nr,nsa))
+              ! JIl = ( JI(nth-1,np,nr,nsa)*IBCflux_ratio(np,nr,nsa)&
+              !       * orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
+              !       + JI(nth,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa)) &
+              !       * orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
+              !       / (orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max) &
+              !       + orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))
+=======
               JIl = ( JI(nth-1,np,nr,nsa)*IBCflux_ratio(np,nr,nsa)&
                     * orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
                     + JI(nth,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa)) &
                     * orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
                     * orbit_m(nth,np,nr,nsa)%time(nstpmax)
+>>>>>>> 3d09fe1dfe252eb17e9e1ec58c696fdc2095c8a9
               ! JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
               !       +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
               !       *0.5d0/orbit_m(nth,np,nr,nsa)%time(nstpmax)
               ! JIl = (JI(nth-1,np,nr,nsa)&
               !       +JI(nth,np,nr,nsa))&
               !       *0.5d0
+<<<<<<< HEAD
+              JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
+                    +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
+                    /(orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)+ &
+                    orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))
+=======
               ! JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
               !       +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
               !       /(orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)+ &
               !       orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))
+>>>>>>> 3d09fe1dfe252eb17e9e1ec58c696fdc2095c8a9
               ! JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
               !       +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
               !       *0.5d0*orbit_th(nth,np,nr,nsa)%time(nstpmax)
