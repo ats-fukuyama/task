@@ -320,7 +320,7 @@ CONTAINS
        CALL GPLOTP(GUX,GUY,1,NSTPMAX_NRAY(NRAY)+1,1,0,0,0)      
     ENDDO
 
-    CALL WRGPRM(1)
+    CALL WRGPRM
     CALL PAGEE
     RETURN
   END SUBROUTINE WRGRF1
@@ -389,9 +389,7 @@ CONTAINS
 
 !    GXORG=(INT(GXMIN/(2*GXSTEP))+1)*2*GXSTEP
     GXORG=0.0
-    IF(idebug_wr(92).NE.0) THEN
-       WRITE(6,'(A,1P3E12.4)') 'GX:',GXORG,GXSTEP,GYSTEP
-    END IF
+    WRITE(6,'(A,1P3E12.4)') 'GX:',GXORG,GXSTEP,GYSTEP
     CALL GSCALE(GXORG,GXSTEP,0.0,GYSTEP,0.1,9)
     CALL GVALUE(GXORG,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
     CALL GVALUE(0.0,0.0,0.0,2*GYSTEP,NGULEN(2*GYSTEP))
@@ -467,7 +465,7 @@ CONTAINS
        CALL GPLOTP(GUX,GUY,1,NSTPMAX_NRAY(NRAY)+1,1,0,0,0)      
     ENDDO
 
-    CALL WRGPRM(1)
+    CALL WRGPRM
     CALL PAGEE
 
     RETURN
@@ -632,7 +630,7 @@ CONTAINS
        CALL GPLOTP(GKX(1,NRAY),GKY2(1,NRAY),1,NSTPMAX_NRAY(NRAY)+1,1,0,0,0)
     ENDDO
 
-    CALL WRGPRM(1)
+    CALL WRGPRM
     CALL PAGEE
 
     RETURN
@@ -651,7 +649,7 @@ CONTAINS
     INTEGER:: NRAY,NSTP
     REAL:: GXMIN,GXMAX,GXSTEP
     REAL:: GYMIN1,GYMAX1,GYMIN,GYMAX,GYSTEP,GYORG
-    REAL(rkind):: XL,YL,ZL,RHON,RL,RKR,RKZ,RKPH,RNPHI
+    REAL(rkind):: XL,YL,ZL,RHON,RL,RKR,RKZ,RKPHI,RNPHI
     EXTERNAL GMNMX1,GQSCAL,PAGES,SETCHS,SETFNT,SETLIN,SETRGB,PAGEE
     EXTERNAL GDEFIN,GFRAME,GSCALE,GVALUE,GPLOTP,CONTP2
     EXTERNAL MOVE,TEXT
@@ -745,9 +743,9 @@ CONTAINS
     DO NRAY=1,NRAYMAX
        DO NSTP=0,NSTPMAX_NRAY(NRAY)
           RL=SQRT(RAYS(1,NSTP,NRAY)**2+RAYS(2,NSTP,NRAY)**2)
-          RKPH=(-RAYS(4,NSTP,NRAY)*RAYS(2,NSTP,NRAY) &
+          RKPHI=(-RAYS(4,NSTP,NRAY)*RAYS(2,NSTP,NRAY) &
                +RAYS(5,NSTP,NRAY)*RAYS(1,NSTP,NRAY))/RL
-          GKY( NSTP+1,NRAY)=GUCLIP(RKPH)
+          GKY( NSTP+1,NRAY)=GUCLIP(RKPHI)
        ENDDO
     ENDDO
     NRAY=1
@@ -804,7 +802,7 @@ CONTAINS
        CALL GPLOTP(GKX(1,NRAY),GKY(1,NRAY),1,NSTPMAX_NRAY(NRAY)+1,1,0,0,0)
     ENDDO
 
-    CALL WRGPRM(1)
+    CALL WRGPRM
     CALL PAGEE
     RETURN
   END SUBROUTINE WRGRF4
@@ -844,36 +842,28 @@ CONTAINS
        NSTP4=NSTPMAX_NRAY(NRAY)
        
        CALL wrcalep(nstp1,nray,cepola,cenorm,err)
-       IF(idebug_wr(90).NE.0) THEN
-          WRITE(6,'(A,2I6,1PE12.4)') 'nray,nstp,R=',nray,nstp1, &
-               SQRT(rays(1,nstp1,nray)**2+rays(2,nstp1,nray)**2)
-          WRITE(6,'(A,1P6E12.4)')    'cexyz=',(cepola(i),i=1,3)
-          WRITE(6,'(A,1P6E12.4)')    'ceoxp=',(cenorm(i),i=1,3)
-       END IF
+       WRITE(6,'(A,2I6,1PE12.4)') 'nray,nstp,R=',nray,nstp1, &
+            SQRT(rays(1,nstp1,nray)**2+rays(2,nstp1,nray)**2)
+       WRITE(6,'(A,1P6E12.4)')    'cexyz=',(cepola(i),i=1,3)
+       WRITE(6,'(A,1P6E12.4)')    'ceoxp=',(cenorm(i),i=1,3)
 
        CALL wrcalep(nstp2,nray,cepola,cenorm,err)
-       IF(idebug_wr(90).NE.0) THEN
-          WRITE(6,'(A,2I6,1PE12.4)') 'nray,nstp,R=',nray,nstp2, &
-               SQRT(rays(1,nstp2,nray)**2+rays(2,nstp2,nray)**2)
-          WRITE(6,'(A,1P6E12.4)')    'cexyz=',(cepola(i),i=1,3)
-          WRITE(6,'(A,1P6E12.4)')    'ceoxp=',(cenorm(i),i=1,3)
-       END IF
-       
+       WRITE(6,'(A,2I6,1PE12.4)') 'nray,nstp,R=',nray,nstp2, &
+            SQRT(rays(1,nstp2,nray)**2+rays(2,nstp2,nray)**2)
+       WRITE(6,'(A,1P6E12.4)')    'cexyz=',(cepola(i),i=1,3)
+       WRITE(6,'(A,1P6E12.4)')    'ceoxp=',(cenorm(i),i=1,3)
+
        CALL wrcalep(nstp3,nray,cepola,cenorm,err)
-       IF(idebug_wr(90).NE.0) THEN
-          WRITE(6,'(A,2I6,1PE12.4)') 'nray,nstp,R=',nray,nstp3, &
-               SQRT(rays(1,nstp3,nray)**2+rays(2,nstp3,nray)**2)
-          WRITE(6,'(A,1P6E12.4)')    'cexyz=',(cepola(i),i=1,3)
-          WRITE(6,'(A,1P6E12.4)')    'ceoxp=',(cenorm(i),i=1,3)
-       END IF
-       
+       WRITE(6,'(A,2I6,1PE12.4)') 'nray,nstp,R=',nray,nstp3, &
+            SQRT(rays(1,nstp3,nray)**2+rays(2,nstp3,nray)**2)
+       WRITE(6,'(A,1P6E12.4)')    'cexyz=',(cepola(i),i=1,3)
+       WRITE(6,'(A,1P6E12.4)')    'ceoxp=',(cenorm(i),i=1,3)
+
        CALL wrcalep(nstp4,nray,cepola,cenorm,err)
-       IF(idebug_wr(90).NE.0) THEN
-          WRITE(6,'(A,2I6,1PE12.4)') 'nray,nstp,R=',nray,nstp4, &
-               SQRT(rays(1,nstp4,nray)**2+rays(2,nstp4,nray)**2)
-          WRITE(6,'(A,1P6E12.4)')    'cexyz=',(cepola(i),i=1,3)
-          WRITE(6,'(A,1P6E12.4)')    'ceoxp=',(cenorm(i),i=1,3)
-       END IF
+       WRITE(6,'(A,2I6,1PE12.4)') 'nray,nstp,R=',nray,nstp4, &
+            SQRT(rays(1,nstp4,nray)**2+rays(2,nstp4,nray)**2)
+       WRITE(6,'(A,1P6E12.4)')    'cexyz=',(cepola(i),i=1,3)
+       WRITE(6,'(A,1P6E12.4)')    'ceoxp=',(cenorm(i),i=1,3)
     END DO
 
     CALL PAGES
@@ -893,10 +883,7 @@ CONTAINS
        NTMAX(3*(nray-1)+1)=NSTPMAX_NRAY(NRAY)+1
        NTMAX(3*(nray-1)+2)=NSTPMAX_NRAY(NRAY)+1
        NTMAX(3*(nray-1)+3)=NSTPMAX_NRAY(NRAY)+1
-       IF(idebug_wr(90).NE.0) THEN
-          WRITE(6,'(A,3I8)') &
-               '## nray,ntmax:',nray,nstpmax+1,NSTPMAX_NRAY(NRAY)+1
-       END IF
+       WRITE(6,'(A,3I8)') '## nray,ntmax:',nray,nstpmax+1,NSTPMAX_NRAY(NRAY)+1
        DO NSTP=0,NSTPMAX_NRAY(NRAY)
           CALL wrcalep(nstp,nray,cepola,cenorm,err)
           gepola(1,nstp+1,3*(nray-1)+1)= REAL(cenorm(1))
@@ -908,13 +895,11 @@ CONTAINS
           errmax=MAX(err,errmax)
        END DO
     END DO
-    IF(idebug_wr(90).NE.0) THEN
        WRITE(6,'(A,I5,1PE12.4)') 'nray,errmax=',nray,errmax
-    END IF
 
-    CALL grdxy(0,gepola,2,nstpmax+1,ntmax,3*nraymax, &
-         '@Polarization@',NLMAX=3,XSCALE_ZERO=0,YSCALE_ZERO=0, &
-         LINE_RGB=LINE_RGB)
+       CALL grdxy(0,gepola,2,nstpmax+1,ntmax,3*nraymax, &
+            '@Polarization@',NLMAX=3,XSCALE_ZERO=0,YSCALE_ZERO=0, &
+            LINE_RGB=LINE_RGB)
     CALL PAGEE
   END SUBROUTINE WRGRF5
     
@@ -972,10 +957,6 @@ CONTAINS
        DO nres=1,nres_max
           CALL SETRGB(rgb_nres(1,nres),rgb_nres(2,nres),rgb_nres(3,nres))
           nstp=nstp_nres(nres)
-          IF(nstp.LE.0.OR.nstp.GT.nstpmax_nray(nray)) CYCLE
-          IF(idebug_wr(91).NE.0) THEN
-             WRITE(6,'(A,3I8)') 'nres,nstp,nres_max=',nres,nstp,nres_max
-          END IF
           xl=rays(1,nstp,nray)
           yl=rays(2,nstp,nray)
           zl=rays(3,nstp,nray)
@@ -1138,18 +1119,12 @@ CONTAINS
        END DO
     END SELECT
 
-    IF(idebug_wr(91).NE.0) THEN
-       WRITE(6,'(A,I8)') 'nres_max=',nres_max
-    END IF
-    
     DO nres=1,nres_max
        level=GUCLIP(level_nres(nres))
        
-       IF(idebug_wr(91).NE.0) THEN
-          WRITE(6,'(A,2I4,I8,3ES12.4)') &
-               'nray,nres,nstp,level,pf,pw=',nray,nres,nstp,level, &
-               rays(7,nstp,nray),rays(8,nstp,nray)
-       end IF
+       WRITE(6,'(A,2I4,I8,3ES12.4)') &
+            'nray,nres,nstp,level,pf,pw=',nray,nres,nstp,level, &
+            rays(7,nstp,nray),rays(8,nstp,nray)
        
        IF(level.LT.0.1) THEN
           factor=level/0.1
@@ -1173,13 +1148,6 @@ CONTAINS
           rgb_nres(3,nres)=0.0
        END IF
     END DO
-    IF(idebug_wr(91).NE.0) THEN
-       WRITE(6,'(A,2I8)') 'nres:',nray,nstpmax_nray(nray)
-       DO nres=1,nres_max
-          WRITE(6,'(A,2I8,3ES12.4)') 'nstp:',nstp,nstp_nres(nres), &
-               rgb_nres(1,nres),rgb_nres(2,nres),rgb_nres(3,nres)
-       END DO
-    END IF
     RETURN
   END SUBROUTINE setup_nres
        
@@ -1519,10 +1487,10 @@ CONTAINS
       CALL NUMBD(smax,'(F5.2)',5)
       CALL MOVE(11.0,16.0)
       CALL TEXT ('RCURV= ',6)
-      CALL NUMBD(wr_nray_status%RCURVA,'(F5.2)',5)
+      CALL NUMBD(RCURVA,'(F5.2)',5)
       CALL MOVE(11.0,16.4)
       CALL TEXT ('RBRAD= ',6)
-      CALL NUMBD(wr_nray_status%RBRADA,'(F5.2)',5)
+      CALL NUMBD(RBRADA,'(F5.2)',5)
 
 !     ----- Fig.3  Beam-Rot -----
 
@@ -1866,7 +1834,7 @@ CONTAINS
       DEALLOCATE(DELP1)
       DEALLOCATE(DELP2)
 
-      CALL WRGPRM(1)
+      CALL WRGPRM
       CALL PAGEE
       RETURN
     END SUBROUTINE WRGRFB1
@@ -2208,7 +2176,7 @@ CONTAINS
 
       CALL SETRGB(1.0,0.0,0.0)
       CALL SETRGB(0.0,0.0,0.0)
-      CALL WRGPRM(1)
+      CALL WRGPRM
       CALL PAGEE
       RETURN
     END SUBROUTINE WRGRFB3
@@ -2400,18 +2368,17 @@ CONTAINS
 
       CALL SETRGB(1.0,0.0,0.0)
       CALL SETRGB(0.0,0.0,0.0)
-      CALL WRGPRM(1)
+      CALL WRGPRM
       CALL PAGEE 
       RETURN
     END SUBROUTINE WRGRFB4
 
 !     ***** DRAW PARAMETERS *****
 
-    SUBROUTINE WRGPRM(nray)
+    SUBROUTINE WRGPRM
 
       USE wrcomm
       IMPLICIT NONE
-      INTEGER nray
       EXTERNAL SETLIN
 
 !     ----- DRAW PARAMETERS -----
@@ -2423,8 +2390,8 @@ CONTAINS
       CALL WRPRMT(1.0,16.8, 'RKAP =',6, RKAP,'(F8.3)',8)
       CALL WRPRMT(5.0,18.0, 'Q0   =',6, Q0  ,'(F8.3)',8)
       CALL WRPRMT(5.0,17.6, 'QA   =',6, QA  ,'(F8.3)',8)
-      CALL WRPRMT(5.0,17.2, 'RF   =',6, RFIN(nray)  ,'(1PE10.3)',10)
-      CALL WRPRMT(5.0,16.8, 'NKKT =',6, RNKTIN(nray),'(F8.4)',8)
+      CALL WRPRMT(5.0,17.2, 'RF =',  4, RF  ,'(1PE10.3)',10)
+      CALL WRPRMT(5.0,16.8, 'NPHII=',6,RNPHII,'(F8.4)',8)
       CALL WRPRMT(9.0,18.0, 'PA(1)  =',8,PA(1),'(F8.4)',8)
       CALL WRPRMT(9.0,17.6, 'PZ(1)  =',8,PZ(1),'(F8.4)',8)
       CALL WRPRMT(9.0,17.2, 'PN(1)  =',8,PN(1),'(F8.4)',8)
@@ -2696,7 +2663,7 @@ CONTAINS
       ENDDO
       CALL SETLIN(0,2,7)
 
-      CALL WRGPRM(1)
+      CALL WRGPRM
       CALL PAGEE
       RETURN
     END SUBROUTINE WRGRF11A
@@ -2844,7 +2811,7 @@ CONTAINS
       ENDDO
       CALL SETLIN(0,2,7)
 
-      CALL WRGPRM(1)
+      CALL WRGPRM
       CALL PAGEE
 
       RETURN

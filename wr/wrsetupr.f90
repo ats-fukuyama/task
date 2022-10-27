@@ -7,7 +7,7 @@ MODULE wrsetupr
 
 CONTAINS
 
-!   ***** setup initial ray tracing parameters *****
+!   ***** Ray tracing module *****
 
   SUBROUTINE wr_setup_rays(ierr)
 
@@ -15,97 +15,231 @@ CONTAINS
     USE wrsub,ONLY: wrnwtn,wrcale_i
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
-    INTEGER:: nray
-    REAL(rkind):: deg,factorp,factort
+    REAL:: TIME1
+    INTEGER:: NS,NSS,NRAY
+    REAL(rkind):: ZA1,ZA2,SINP2,SINT2,ANGZ,ANGPH
     EXTERNAL GUTIME
 
-    ierr=0
-    deg=PI/180.D0
+    IERR=0
 
-    ! --- interactive input for ray tracing ---
-    
-    SELECT CASE(mdlwri)
-    CASE(0,1) ! interaactive ANG input
-       WRITE(6,'(A,I8)') '## nraymax=',nraymax
-       DO NRAY=1,NRAYMAX
-10        CONTINUE
-          WRITE(6,'(A,I8)') '# nray=',nray
-          WRITE(6,'(A)')    '# input: RF,RP,ZP,PHI,ANGP,ANGT,RNK,UU,MODEW'
-          WRITE(6,'(ES12.4,7F9.2,I4)') &
-               RFIN(NRAY),RPIN(NRAY),ZPIN(NRAY),PHIIN(NRAY), &
-               ANGPIN(NRAY),ANGTIN(NRAY),RNKIN(NRAY),UUIN(NRAY),MODEWIN(NRAY)
-          READ(5,*,ERR=10,END=9000) &
-               RFIN(NRAY),RPIN(NRAY),ZPIN(NRAY),PHIIN(NRAY), &
-               ANGPIN(NRAY),ANGTIN(NRAY),RNKIN(NRAY),UUIN(NRAY),MODEWIN(NRAY)
-       END DO
-    CASE(2,3) ! interactive RN input
-       WRITE(6,'(A,I8)') '## nraymax=',nraymax
-       DO nray=1,nraymax
-20        CONTINUE
-          WRITE(6,'(A,I8)') '# nray=',nray
-          WRITE(6,'(A)')    '# input: RF,RP,ZP,PHI,RNKP,RNKT,RNK,UU,MODEW'
-          WRITE(6,'(ES12.4,5F10.3,I4,F10.3)') &
-               RFIN(NRAY),RPIN(NRAY),ZPIN(NRAY),PHIIN(NRAY), &
-               RNKPIN(NRAY),RNKTIN(NRAY),MODEWIN(NRAY),RNKIN(NRAY),UUIN(NRAY)
-          READ(5,*,ERR=20,END=9000) &
-               RFIN(NRAY),RPIN(NRAY),ZPIN(NRAY),PHIIN(NRAY), &
-               RNKPIN(NRAY),RNKTIN(NRAY),MODEWIN(NRAY),RNKIN(NRAY),UUIN(NRAY)
-       END DO
-    END SELECT
+    CALL GUTIME(TIME1)
 
-    ! --- conversion between ang <-> rnk ---
-    
-    SELECT CASE(mdlwri)
-    CASE(0,100) ! ANG->RN: poloidal first
-       DO nray=1,nraymax
-          RNKPIN(NRAY)=RNKIN(NRAY)*SIN(ANGPIN(NRAY)*deg)
-          RNKTIN(NRAY)=RNKIN(NRAY)*SIN(ANGTIN(NRAY)*deg)*COS(ANGPIN(NRAY)*deg)
-       END DO
-    CASE(1,101) ! ANG->RN: toroidal first
-       DO nray=1,nraymax
-          RNKTIN(NRAY)=RNKIN(NRAY)*SIN(ANGTIN(NRAY)*deg)
-          RNKPIN(NRAY)=RNKIN(NRAY)*SIN(ANGPIN(NRAY)*deg)*COS(ANGPIN(NRAY)*deg)
-       END DO
-    CASE(2,102) ! RN->ANG: poloidal first
-       DO nray=1,nraymax
-          factorp=RNKPIN(NRAY)/RNKIN(NRAY)
-          IF(ABS(factorp).GT.1.D0) MODEWIN(NRAY)=-1
-          factort=RNKIN(NRAY)**2-RNKPIN(NRAY)**2
-          IF(RNKTIN(NRAY)**2.GT.factort) MODEWIN(NRAY)=-2
-          IF(MODEWIN(NRAY).GE.0) THEN
-             ANGPIN(NRAY)=ASIN(factorp)
-             ANGTIN(NRAY)=ASIN(RNKTIN(NRAY)/SQRT(factort))
-          ELSE
-             WRITE(6,'(A)') &
-                'XX wr_setup_rays: nray,modewin,factorp,factort,rnkp,rnkt,rnk'
-             WRITE(6,'(A,2I4,5ES12.4)') &
-                  '      ',nray,modewin(nray),factorp,factort, &
-                  rnkpin(nray),rnktin(nray),rnkin(nray)
-          END IF
-       END DO
-    CASE(3,103) ! RN->ANG: toroidal first
-       DO nray=1,nraymax
-          factort=RNKTIN(NRAY)/RNKIN(NRAY)
-          IF(ABS(factort).GT.1.D0) MODEWIN(NRAY)=-3
-          factorp=RNKIN(NRAY)**2-RNKTIN(NRAY)**2
-          IF(RNKPIN(NRAY)**2.GT.factorp) MODEWIN(NRAY)=-4
-          IF(MODEWIN(NRAY).GE.0) THEN
-             ANGTIN(NRAY)=ASIN(factort)
-             ANGPIN(NRAY)=ASIN(RNKPIN(NRAY)/SQRT(factorp))
-          ELSE
-             WRITE(6,'(A)') &
-                'XX wr_setup_rays: nray,modewin,factort,factorp,rnkt,rnkp,rnk'
-             WRITE(6,'(A,2I4,5ES12.4)') &
-                  '      ',nray,modewin(nray),factort,factorp, &
-                  rnktin(nray),rnkpin(nray),rnkin(nray)
-          END IF
-       END DO
-       
-    END SELECT
-    RETURN
-9000 CONTINUE
-    ierr=9000
+    CALL WRSETUP(IERR)
+
+!     --- eliminate disp factor for same z/a species ---
+
+    DO NS=1,NSMAX
+       NSDP(NS)=1
+       DO NSS=1,NS-1
+          ZA1=PZ(NS)/PA(NS)
+          ZA2=PZ(NSS)/PA(NSS)
+          IF(ABS(ZA1-ZA2).LE.1.D-8) NSDP(NS)=0
+       ENDDO
+    ENDDO
+
+    IF(MDLWRI.EQ.100)THEN
+       WRITE(6,*) &
+            '# initial values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU'
+    ELSE
+       WRITE(6,*) &
+            '# initial values: RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH,UU'
+    END IF
+
+    DO NRAY=1,NRAYMAX
+       RF=RFIN(NRAY)
+       RPI=RPIN(NRAY)
+       ZPI=ZPIN(NRAY)
+       PHII=PHIIN(NRAY)
+       RKR0=RKRIN(NRAY)
+       RNZI=RNZIN(NRAY)
+       RNPHII=RNPHIIN(NRAY)
+       ANGZ=ANGZIN(NRAY)
+       ANGPH=ANGPHIN(NRAY)
+       MODEW=MODEWIN(NRAY)
+       UUI=UUIN(NRAY)
+
+       IF(MDLWRI.EQ.100)THEN
+          WRITE(6,'(1PE12.4,0P7F9.2)') &
+               RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII,UUI
+       ELSE
+          WRITE(6,'(1PE12.4,0P7F9.2)') &
+               RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH,UUI
+          SINP2=SIN(ANGZ*PI/180.D0)**2
+          SINT2=SIN(ANGPH*PI/180.D0)**2
+          RNZI  =SQRT(SINP2*(1-SINT2)/(1-SINP2*SINT2))
+          RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
+          IF(ANGZ.LT.0.D0) RNZI=-RNZI
+          IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
+       ENDIF
+
+       RAYIN(1,NRAY)=RF
+       RAYIN(2,NRAY)=RPI
+       RAYIN(3,NRAY)=ZPI
+       RAYIN(4,NRAY)=PHII
+       RAYIN(5,NRAY)=RKR0
+       RAYIN(6,NRAY)=ANGZ
+       RAYIN(7,NRAY)=ANGPH
+       RAYIN(8,NRAY)=UUI
+
+    ENDDO
+
     RETURN
   END SUBROUTINE wr_setup_rays
+
+!     ***** ABSORBED POWER PROFILE*****
+
+  SUBROUTINE WRSETUP(IERR)
+
+    USE wrcomm
+    IMPLICIT NONE
+    INTEGER,INTENT(OUT):: IERR
+    INTEGER:: NRAY
+    REAL(rkind):: ANGZ,ANGPH,SINP2,SINT2
+
+    IERR=0
+
+    IF(MDLWRI.EQ.0) THEN
+       WRITE(6,*) &
+            '# default values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU'
+       WRITE(6,'(1PE12.4,0P7F9.2)') &
+            RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII,UUI
+    ELSEIF(MDLWRI.EQ.1.OR.MDLWRI.EQ.2) THEN
+       IF(ABS(RNZI).GT.1.D0) THEN
+          ANGZ=0.D0
+          ANGPH=0.D0
+       ELSE
+          ANGZ=ASIN(RNZI)*180.D0/PI
+          IF(ABS(RNZI).GT.SQRT(1.D0-RNPHII**2)) THEN
+             ANGZ=0.D0
+          ELSE
+             ANGZ=ASIN(RNZI/SQRT(1.D0-RNPHII**2))*180.D0/PI
+          ENDIF
+          IF(ABS(RNPHII).GT.SQRT(1.D0-RNZI**2)) THEN
+             ANGPH=0.D0
+          ELSE
+             ANGPH=ASIN(RNPHII/SQRT(1.D0-RNZI**2))*180.D0/PI
+          ENDIF
+       ENDIF
+       IF(MDLWRI.EQ.1) THEN
+          WRITE(6,*) &
+               '# default values: RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH,UU'
+          WRITE(6,'(1PE12.4,0P7F9.2)') &
+               RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH,UUI
+       ELSEIF(MDLWRI.EQ.2) THEN
+          WRITE(6,*) &
+               '# default values: RF,RP,ZP,PHI,MODEW,ANGZ,ANGPH,UU'
+          WRITE(6,'(1PE12.4,0P7F9.2)') &
+               RF,RPI,ZPI,PHII,MODEW,ANGZ,ANGPH,UUI
+       ENDIF
+    ELSEIF(MDLWRI.EQ.11) THEN
+       WRITE(6,*) &
+            '# default values: RF,RP,ZP,RKR0,RNZ,RNPHI,UU'
+       WRITE(6,'(1PE12.4,0P7F9.2)') &
+            RF,RPI,ZPI,RKR0,RNZI,RNPHII,UUI
+       PHII=0.D0
+    ENDIF
+
+!     --- Each ray tracing ---
+
+    DO NRAY=1,NRAYMAX
+
+       IF(MDLWRI.LT.100) THEN
+
+1         WRITE(6,*) '# NRAY = ',NRAY
+          IF(MDLWRI.EQ.0) THEN
+             READ(5,*,ERR=1,END=9000) &
+                  RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII,UUI
+             WRITE(6,*) &
+                  '# initial values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU'
+             WRITE(6,'(1PE12.4,0P7F9.2)') &
+                  RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII,UUI
+             IF(ABS(RNZI).GT.1.D0) THEN
+                ANGZ=0.D0
+                ANGPH=0.D0
+             ELSE
+                ANGZ=ASIN(RNZI)*180.D0/PI
+                IF(ABS(RNZI).GT.SQRT(1.D0-RNPHII**2)) THEN
+                   ANGZ=0.D0
+                ELSE
+                   ANGZ=ASIN(RNZI/SQRT(1.D0-RNPHII**2))*180.D0/PI
+                ENDIF
+                IF(ABS(RNPHII).GT.SQRT(1.D0-RNZI**2)) THEN
+                   ANGPH=0.D0
+                ELSE
+                   ANGPH=ASIN(RNPHII/SQRT(1.D0-RNZI**2))*180.D0/PI
+                ENDIF
+             ENDIF
+          ELSEIF(MDLWRI.EQ.1) THEN
+             READ(5,*,ERR=1,END=9000) &
+                  RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH,UUI
+             WRITE(6,*) &
+                  '# initial values: RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH,UU'
+             WRITE(6,'(1PE12.4,0P7F9.2)') &
+                  RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH,UUI
+             SINP2=SIN(ANGZ*PI/180.D0)**2
+             SINT2=SIN(ANGPH*PI/180.D0)**2
+             RNZI  =SQRT(SINP2*(1.D0-SINT2)/(1.D0-SINP2*SINT2))
+             RNPHII=SQRT(SINT2*(1.D0-SINP2)/(1.D0-SINP2*SINT2))
+             IF(ANGZ.LT.0.D0) RNZI=-RNZI
+             IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
+          ELSEIF(MDLWRI.EQ.2) THEN
+             READ(5,*,ERR=1,END=9000) &
+                  RF,RPI,ZPI,PHII,MODEW,ANGZ,ANGPH,UUI
+             WRITE(6,*) &
+                  '# initial values: RF,RP,ZP,PHI,MODEW,ANGZ,ANGPH,UU'
+             WRITE(6,'(1PE12.4,0P7F9.2)') &
+                  RF,RPI,ZPI,PHII,MODEW,ANGZ,ANGPH,UUI
+             SINP2=SIN(ANGZ*PI/180.D0)**2
+             SINT2=SIN(ANGPH*PI/180.D0)**2
+             RNZI  =SQRT(SINP2*(1-SINT2)/(1-SINP2*SINT2))
+             RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
+             IF(ANGZ.LT.0.D0) RNZI=-RNZI
+             IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
+             WRITE(6,*) 'XX MDLWRI=2 IS NOT SUPPORTED YET.'
+             GOTO 1
+          ELSEIF(MDLWRI.EQ.11) THEN
+             READ(5,*,ERR=1,END=9000) &
+                  RF,RPI,ZPI,RKR0,RNZI,RNPHII,UUI
+             WRITE(6,*) &
+                  '# initial values: RF,RP,ZP,RKR0,RNZ,RNPHI,UU'
+             WRITE(6,'(1PE12.4,0P7F9.2)') &
+                  RF,RPI,ZPI,RKR0,RNZI,RNPHII,UUI
+             IF(ABS(RNZI).GT.1.D0) THEN
+                ANGZ=0.D0
+                ANGPH=0.D0
+             ELSE
+                ANGZ=ASIN(RNZI)*180.D0/PI
+                IF(ABS(RNZI).GT.SQRT(1.D0-RNPHII**2)) THEN
+                   ANGZ=0.D0
+                ELSE
+                   ANGZ=ASIN(RNZI/SQRT(1.D0-RNPHII**2))*180.D0/PI
+                ENDIF
+                IF(ABS(RNPHII).GT.SQRT(1.D0-RNZI**2)) THEN
+                   ANGPH=0.D0
+                ELSE
+                   ANGPH=ASIN(RNPHII/SQRT(1.D0-RNZI**2))*180.D0/PI
+                ENDIF
+             ENDIF
+          ENDIF
+          RFIN(NRAY)=RF
+          RPIN(NRAY)=RPI
+          ZPIN(NRAY)=ZPI
+          PHIIN(NRAY)=PHII
+          RKRIN(NRAY)=RKR0
+          RNZIN(NRAY)=RNZI
+          RNPHIIN(NRAY)=RNPHII
+          ANGZIN(NRAY)=ANGZ
+          ANGPHIN(NRAY)=ANGPH
+          MODEWIN(NRAY)=MODEW
+          UUIN(NRAY)=UUI
+       ENDIF
+    END DO
+    RETURN
+
+9000 CONTINUE
+    IERR=10
+    RETURN
+  END SUBROUTINE WRSETUP
+
 
 END MODULE wrsetupr
