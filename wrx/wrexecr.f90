@@ -16,7 +16,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
     REAL:: time1,time2
-    REAL(rkind):: RK
+    REAL(rkind):: RK,PABSN
     INTEGER:: NRAY,nstp
 
     CALL GUTIME(TIME1)
@@ -27,9 +27,9 @@ CONTAINS
        RK=SQRT(RAYS(4,NSTPMAX_NRAY(NRAY),NRAY)**2 &
               +RAYS(5,NSTPMAX_NRAY(NRAY),NRAY)**2 &
               +RAYS(6,NSTPMAX_NRAY(NRAY),NRAY)**2)
-       WRITE(6,'(A,ES12.4,A,ES12.4)') &
-            '    RK=  ',RK,  '  PABS/PIN=', &
-            1.D0-RAYS(7,NSTPMAX_NRAY(NRAY),NRAY)
+       PABSN=1.D0-RAYS(7,NSTPMAX_NRAY(NRAY),NRAY)
+       WRITE(6,'(A,I3,A,ES12.4,A,ES12.4)') &
+            '    NRAY=',NRAY,'  RK=  ',RK,  '  PABS/PIN=', PABSN
     ENDDO
 
     CALL wr_calc_pwr
@@ -40,7 +40,7 @@ CONTAINS
     RETURN
   END SUBROUTINE wr_exec_rays
 
-  !
+  ! *** single ray tracing ***
 
   SUBROUTINE wr_exec_single_ray(NRAY,YN,nstp,IERR)
     USE wrcomm
@@ -51,8 +51,7 @@ CONTAINS
     REAL(rkind),INTENT(IN):: YN(0:NEQ,0:NSTPMAX)
     INTEGER,INTENT(OUT):: IERR
     REAL(rkind):: YA(NEQ)
-    REAL(rkind):: RF,S,RP,ZP,PHI,UU,omega,rkv
-    REAL(rkind):: rkr,rkph,rkz
+    REAL(rkind):: RF,S,XP,YP,ZP,RKX,RKY,RKZ,UU,omega,rkv
 
     IERR=0
     
@@ -62,37 +61,28 @@ CONTAINS
     rkv=omega/VC
 
     S   =YN(0,nstp)
-    RP  =YN(1,nstp)
-    PHI =YN(2,nstp)
+    XP  =YN(1,nstp)
+    YP  =YN(2,nstp)
     ZP  =YN(3,nstp)
-    RKR =YN(4,nstp)
-    RKPH=YN(5,nstp)
+    RKX =YN(4,nstp)
+    RKY =YN(5,nstp)
     RKZ =YN(6,nstp)
     UU  =YN(7,nstp)
 
     IF(idebug_wr(12).NE.0) THEN
        WRITE(6,'(A,2I4)') '*** idebug_wr(12): nray,nstp=',nray,nstp
-       WRITE(6,'(A,3ES12.4)') '      rp,phi,zp      =',RP,PHI,ZP
-       WRITE(6,'(A,3ES12.4)') '      rkr,rkph,rkz   =',RKR,RKPH,RKZ
-       WRITE(6,'(A,3ES12.4)') '      rnkr,rnkph,rnkz=',RKR/rkv,RKPH/rkv,RKZ/rkv
+       WRITE(6,'(A,3ES12.4)') '      xp,yp,zp       =',XP,YP,ZP
+       WRITE(6,'(A,3ES12.4)') '      rkx,rky,rkz    =',RKX,RKY,RKZ
+       WRITE(6,'(A,3ES12.4)') '      rnkx,rnky,rnkz =',RKX/rkv,RKY/rkv,RKZ/rkv
        WRITE(6,'(A,2ES12.4)') '      UU,S           =',UU,S
     END IF
 
-    IF(MODELG.EQ.0.OR.MODELG.EQ.1.OR.MODELG.EQ.11) THEN
-       YA(1)= RP
-       YA(2)= PHI
-       YA(3)= ZP
-       YA(4)= RKR
-       YA(5)= RKPH
-       YA(6)= RKZ
-    ELSE
-       YA(1)= RP*COS(PHI)
-       YA(2)= RP*SIN(PHI)
-       YA(3)= ZP
-       YA(4)= RKR*COS(PHI)-RKPH*SIN(PHI)
-       YA(5)= RKR*SIN(PHI)+RKPH*COS(PHI)
-       YA(6)= RKZ
-    ENDIF
+    YA(1)= XP
+    YA(2)= YP
+    YA(3)= ZP
+    YA(4)= RKX
+    YA(5)= RKY
+    YA(6)= RKZ
     YA(7)= UU
     
     IF(MDLWRQ.EQ.0) THEN

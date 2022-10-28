@@ -21,6 +21,10 @@ MODULE wrsub
   
 CONTAINS
 
+  ! *** calculate perpendicular wave numbers for parallel wave number ***
+  !             (rkperp_1)**2 >= (rkperp_2)**2
+  !              rkperp = 0 for evanescent mode
+  
   SUBROUTINE WR_cold_rkperp(omega,R,Z,phi,rkpara,rkperp_1,rkperp_2)
 
     USE plcomm,ONLY: nsmax
@@ -63,7 +67,7 @@ CONTAINS
 
 !    WRITE(6,'(A,2ES12.4)') 'WR_COLD_RKPERP:',RN_1,RN_2
 
-    IF(ABS(RN_1).GT.ABS(RN_2)) THEN
+    IF(RN_2.GT.RN_1) THEN
        RN_temp=RN_1
        RN_1=RN_2
        RN_2=RN_temp

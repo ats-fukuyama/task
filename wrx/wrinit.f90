@@ -25,10 +25,10 @@ CONTAINS
 !     ANGPIN  : INITIAL poloidal injection angle [degree] from horizonal plane
 !     ANGTIN  : INITIAL toroidal injection angle [degree] from equi-phi plane
 !     MODEWIN : Selection of initial wave mode
-!              0: fast wave: smaller k (negative, inward for forward wave)
-!              1: slow wave: larger k  (negative, inward for forward wave)
-!              2: fast wave: smaller k (positive, inward for backward wave)
-!              3: slow wave: larger k  (positive, inward for backward wave) 
+!              0: slow wave: larger k  (negative, inward for forward wave)
+!              1: fast wave: smaller k (negative, inward for forward wave)
+!              2: slow wave: larger k  (positive, inward for backward wave)
+!              3: fast wave: smaller k (positive, inward for backward wave) 
 !     RNKIN   : INITIAL estimate of inirial refractive index (1.D0 for vaccum)
 !     UUIN    : INITIAL WAVE ENERGY
 

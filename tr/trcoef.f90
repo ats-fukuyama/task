@@ -1653,8 +1653,8 @@
 
 !     ***** NET PARTICLE PINCH *****
 
-      DO NS=1,NSLMAX
-         DO NR=1,NRMAX
+      DO NR=1,NRMAX
+         DO NS=1,NSLMAX
             FACTOR=CDP
             IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) FACTOR=CSPRS
             AD(NR,NS)=CNP*ADNC(NR,NS)+FACTOR*ADDW(NR,NS)
