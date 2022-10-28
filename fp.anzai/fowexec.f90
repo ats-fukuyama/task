@@ -1568,7 +1568,7 @@ contains
       Dtx(1)  = Dtpfow(nth+1,np,nr,nsa)*sl/(pl*sl*delp(nsa)*deltath*2.d0)
       Dtx(2)  = Dttfow(nth+1,np,nr,nsa)*sl/(pl**2*sl*deltath**2)
       Dtx(3)  = Dtrfow(nth+1,np,nr,nsa)*sl/(pl*sl*deltath*delr*2.d0)
-      Fthp    = Fthfow(nth+1,np,nr,nsa)*sl
+      Fthp    = Fthfow(nth+1,np,nr,nsa)*sl/deltath !**
 
       fact = 1.d0/JI(nth,np,nr,nsa)
 
@@ -1606,7 +1606,7 @@ contains
       Dtx(1)  = Dtpfow(nth,np,nr,nsa)*sl/(pl*sl*delp(nsa)*deltath*2.d0)
       Dtx(2)  = Dttfow(nth,np,nr,nsa)*sl/(pl**2*sl*deltath**2)
       Dtx(3)  = Dtrfow(nth,np,nr,nsa)*sl/(pl*sl*deltath*delr*2.d0)
-      Fthp    = Fthfow(nth,np,nr,nsa)*sl
+      Fthp    = Fthfow(nth,np,nr,nsa)*sl/deltath !**
 
       fact = -1.d0/JI(nth,np,nr,nsa)
 
