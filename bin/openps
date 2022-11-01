@@ -1,1 +1,1 @@
-open ps/$1.ps
+open -a preview ps/$1.ps

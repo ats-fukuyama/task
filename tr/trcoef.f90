@@ -1114,7 +1114,7 @@
            & RHOA2, RHOD2, RHOE2, RHOT2, RK22E, RK2A, RK2D, RK2T,&
            & RMUSA, RMUSD, RMUST, RNUA, RNUD, RNUE, RNUT, TA, TAUA,&
            & TAUD, TAUE, TAUT, TD, TE, TERM1A, TERM1D, TERM1T, TERM2A&
-           &, TERM2D, TERM2T, TT, VTA, VTD, VTE, VTT, ZEFFL, FACTOR
+           &, TERM2D, TERM2T, TT, VTA, VTD, VTE, VTT, ZEFFL
       REAL(rkind) :: RK22=2.55D0, RA22=0.45D0, RB22=0.43D0, RC22=0.43D0
       REAL(rkind) :: RK2=0.66D0 , RA2=1.03D0 , RB2=0.31D0 , RC2=0.74D0
       REAL(rkind),SAVE :: CDHSV
@@ -1273,10 +1273,9 @@
 
       IF(MDEDGE.EQ.1) CDHSV=CDH
       DO NR=1,NRMAX
-         FACTOR=CDH
-         IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) FACTOR=CSPRS
+         IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDH=CSPRS
          DO NS=1,NSM
-            AKDW(NR,NS) = FACTOR*AKDW(NR,NS)
+            AKDW(NR,NS) = CDH*AKDW(NR,NS)
             AK(NR,NS) = AKDW(NR,NS)+CNH*AKNC(NR,NS)
          ENDDO
       ENDDO
@@ -1304,28 +1303,26 @@
          ENDDO
       case(2)
          DO NR=1,NRMAX
-            FACTOR=CDH
-            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) FACTOR=CSPRS
+            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDH=CSPRS
             DO NS=1,NSLMAX
                DO NS1=1,NSLMAX
                   IF(NS.EQ.NS1) THEN
-                     AKLP(NR,NS,NS1)= FACTOR*AKDWP(NR,NS,NS1)+CNH*AKNC(NR,NS)
-                     AKLD(NR,NS,NS1)= FACTOR*AKDWD(NR,NS,NS1)
+                     AKLP(NR,NS,NS1)= CDH*AKDWP(NR,NS,NS1)+CNH*AKNC(NR,NS)
+                     AKLD(NR,NS,NS1)= CDH*AKDWD(NR,NS,NS1)
                   ELSE
-                     AKLP(NR,NS,NS1)= FACTOR*AKDWP(NR,NS,NS1)
-                     AKLD(NR,NS,NS1)= FACTOR*AKDWD(NR,NS,NS1)
+                     AKLP(NR,NS,NS1)= CDH*AKDWP(NR,NS,NS1)
+                     AKLD(NR,NS,NS1)= CDH*AKDWD(NR,NS,NS1)
                   ENDIF
                ENDDO
             ENDDO
          ENDDO
       case(3)
          DO NR=1,NRMAX
-            FACTOR=CDH
-            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) FACTOR=CSPRS
+            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDH=CSPRS
             DO NS=1,NSLMAX
                DO NS1=1,NSLMAX
-                  AKLP(NR,NS,NS1)= FACTOR*AKDWP(NR,NS,NS1)+CNH*( AKNCT(NR,NS,NS1)+AKNCP(NR,NS,NS1))
-                  AKLD(NR,NS,NS1)= FACTOR*AKDWD(NR,NS,NS1)+CNH*(-AKNCT(NR,NS,NS1))
+                  AKLP(NR,NS,NS1)= CDH*  AKDWP(NR,NS,NS1)+CNH*( AKNCT(NR,NS,NS1)+AKNCP(NR,NS,NS1))
+                  AKLD(NR,NS,NS1)= CDH*  AKDWD(NR,NS,NS1)+CNH*(-AKNCT(NR,NS,NS1))
                ENDDO
             ENDDO
          ENDDO
@@ -1455,13 +1452,12 @@
       USE TRCOMM, ONLY : AD, AD0, ADDW, ADDWD, ADDWP, ADLD, ADLP, ADNC, ADNCP, ADNCT, AEE, AKDW, ALP, AME, AMM, AV, AV0,    &
      &                   AVDW, AVK, AVKDW, AVKNC, AVNC, BB, BP, CDH, CDP, CHP, CNH, CNN, CNP, CSPRS, EPSRHO, EZOH, MDDIAG,  &
      &                   MDDW, MDEDGE, MDLAD, MDLAVK, MDNCLS, NREDGE, NRMAX, NSLMAX, NSM, PA, PN, PNSS, PROFN1, PROFN2, PTS,&
-     &                   PZ, QP, RA, RHOG, RKEV, RN, RM, RR, RT, ZEFF,  &
-     rkind
+     &                   PZ, QP, RA, RHOG, RKEV, RN, RM, RR, RT, ZEFF, rkind
       IMPLICIT NONE
       INTEGER:: NR, NS, NS1, NA, NB
       REAL(rkind)   :: ANA, ANDX, ANE, ANED, ANI, ANT, BPL, CFNCI, CFNCNC, CFNCNH, CFNHI, CFNHNC, CFNHNH, DPROF, EDCM, EPS, EPSS,&
      &             EZOHL, FTAUE, FTAUI, H, PROF, PROF0, PROF1, PROF2, QPL, RHOE2, RK11E, RK13E, RK23E, RK3D, RNUD, RNUE, RX, &
-     &             SGMNI, SGMNN, SUMA, SUMB, TAUD, TAUE, TD, TE, VNC, VNH, VNI, VTD, VTE, ZEFFL, factor
+     &             SGMNI, SGMNN, SUMA, SUMB, TAUD, TAUE, TD, TE, VNC, VNH, VNI, VTD, VTE, ZEFFL
       REAL(rkind),DIMENSION(2):: ACOEF
       REAL(rkind),DIMENSION(5):: BCOEF
       REAL(rkind) :: RK11=1.04D0, RA11=2.01D0, RB11=1.53D0, RC11=0.89D0
@@ -1498,9 +1494,9 @@
             ADDW(NR,2) = PA(2)**ALP(2)*PZ(2)**ALP(3)*AD0
             ADDW(NR,3) = PA(3)**ALP(2)*PZ(3)**ALP(3)*AD0
             ADDW(NR,4) = PA(4)**ALP(2)*PZ(4)**ALP(3)*AD0
-            ADDW(NR,1) =(PZ(2)*ANDX*ADDW(NR,2) &
-                        +PZ(3)*ANT *ADDW(NR,3) &
-                        +PZ(4)*ANA *ADDW(NR,4))/(ANDX+ANT+ANA)
+            ADDW(NR,1) =(PZ(2)*ANDX*AD(NR,2) &
+                        +PZ(3)*ANT *AD(NR,3) &
+                        +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
 
 !            RX   = ALP(1)*RHOG(NR)
 !            PROF0 = 1.D0-RX**PROFN1
@@ -1532,9 +1528,9 @@
             ADDW(NR,2) = AD0*AKDW(NR,2)
             ADDW(NR,3) = AD0*AKDW(NR,3)
             ADDW(NR,4) = AD0*AKDW(NR,4)
-            ADDW(NR,1) =(PZ(2)*ANDX*ADDW(NR,2) &
-                        +PZ(3)*ANT *ADDW(NR,3) &
-                        +PZ(4)*ANA *ADDW(NR,4))/(ANDX+ANT+ANA)
+            ADDW(NR,1) =(PZ(2)*ANDX*AD(NR,2) &
+                        +PZ(3)*ANT *AD(NR,3) &
+                        +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
 
 !            RX   = ALP(1)*RHOG(NR)
 !            PROF0 = 1.D0-RX**PROFN1
@@ -1585,11 +1581,10 @@
 
             RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)+(EPSS*RC11)**2/RB11*RNUE/(1.D0+RC11*RNUE*EPSS))
 
-            FACTOR=CDP
-            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) FACTOR=CSPRS
+            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             AVNC(NR,1:NSM) = -(RK13E*SQRT(EPS)*EZOHL)/BPL/H
             ADNC(NR,1:NSM) = SQRT(EPS)*RHOE2/TAUE*RK11E
-            AD  (NR,1:NSM) = FACTOR*ADDW(NR,1:NSM)+CNP*ADNC(NR,1:NSM)
+            AD  (NR,1:NSM) = CDP*ADDW(NR,1:NSM)+CNP*ADNC(NR,1:NSM)
             AVDW(NR,1:NSM) = 0.D0
 
          ENDDO
@@ -1627,6 +1622,7 @@
 
             RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)+(EPSS*RC11)**2/RB11*RNUE/(1.D0+RC11*RNUE*EPSS))
 
+            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             AVNC(NR,1:NSM) =-(RK13E*SQRT(EPS)*EZOHL)/BPL/H
             ADNC(NR,1:NSM) = SQRT(EPS)*RHOE2/TAUE*RK11E
             AVDW(NR,1:NSM) =-AV0*ADDW(NR,1:NSM)*RHOG(NR)/RA
@@ -1653,15 +1649,13 @@
 
 !     ***** NET PARTICLE PINCH *****
 
-      DO NR=1,NRMAX
-         DO NS=1,NSLMAX
-            FACTOR=CDP
-            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) FACTOR=CSPRS
-            AD(NR,NS)=CNP*ADNC(NR,NS)+FACTOR*ADDW(NR,NS)
-            AV(NR,NS)=CNP*AVNC(NR,NS)+FACTOR*AVDW(NR,NS)
+      DO NS=1,NSLMAX
+         DO NR=1,NRMAX
+            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
+            AD(NR,NS)=CNP*ADNC(NR,NS)+CDP*ADDW(NR,NS)
+            AV(NR,NS)=CNP*AVNC(NR,NS)+CDP*AVDW(NR,NS)
          ENDDO
       ENDDO
-
       IF(MDEDGE.EQ.1) CDP=CDPSV
 
 !     ***** OFF-DIAGONAL TRANSPORT COEFFICIENTS *****
@@ -1672,13 +1666,12 @@
       select case(MDDIAG)
       case(1)
          DO NR=1,NRMAX
-            FACTOR=CDP
-            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) FACTOR=CSPRS
+            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             DO NS=1,NSLMAX
                IF(MDDW.EQ.0) ADDW(NR,NS) = AD0*AKDW(NR,NS)
                DO NS1=1,NSLMAX
                   IF(NS.EQ.NS1) THEN
-                     ADLD(NR,NS,NS1)= FACTOR*  ADDW(NR,NS) +CNP*(-ADNCT(NR,NS,NS1))
+                     ADLD(NR,NS,NS1)= CDP*  ADDW(NR,NS) +CNP*(-ADNCT(NR,NS,NS1))
                      ADLP(NR,NS,NS1)= CNP*( ADNCT(NR,NS,NS1)+ADNCP(NR,NS,NS1))
                   ELSE
                      ADLD(NR,NS,NS1)= CNP*(-ADNCT(NR,NS,NS1))
@@ -1689,28 +1682,26 @@
          ENDDO
       case(2)
          DO NR=1,NRMAX
-            FACTOR=CDP
-            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) FACTOR=CSPRS
+            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             DO NS=1,NSLMAX
                DO NS1=1,NSLMAX
                   IF(NS.EQ.NS1) THEN
-                     ADLD(NR,NS,NS1)= FACTOR*ADDWD(NR,NS,NS1)+CNP*ADNC(NR,NS)
-                     ADLP(NR,NS,NS1)= FACTOR*ADDWP(NR,NS,NS1)
+                     ADLD(NR,NS,NS1)= CDP*ADDWD(NR,NS,NS1)+CNP*ADNC(NR,NS)
+                     ADLP(NR,NS,NS1)= CDP*ADDWP(NR,NS,NS1)
                   ELSE
-                     ADLD(NR,NS,NS1)= FACTOR*ADDWD(NR,NS,NS1)
-                     ADLP(NR,NS,NS1)= FACTOR*ADDWP(NR,NS,NS1)
+                     ADLD(NR,NS,NS1)= CDP*ADDWD(NR,NS,NS1)
+                     ADLP(NR,NS,NS1)= CDP*ADDWP(NR,NS,NS1)
                   ENDIF
                ENDDO
             ENDDO
          ENDDO
       case(3)
          DO NR=1,NRMAX
-            FACTOR=CDP
-            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) FACTOR=CSPRS
+            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             DO NS=1,NSLMAX
                DO NS1=1,NSLMAX
-                  ADLD(NR,NS,NS1)= FACTOR*ADDWD(NR,NS,NS1)+CNP*(-ADNCT(NR,NS,NS1))
-                  ADLP(NR,NS,NS1)= FACTOR*ADDWP(NR,NS,NS1)+CNP*( ADNCT(NR,NS,NS1) +ADNCP(NR,NS,NS1))
+                  ADLD(NR,NS,NS1)= CDP*ADDWD(NR,NS,NS1)+CNP*(-ADNCT(NR,NS,NS1))
+                  ADLP(NR,NS,NS1)= CDP*ADDWP(NR,NS,NS1)+CNP*( ADNCT(NR,NS,NS1) +ADNCP(NR,NS,NS1))
                ENDDO
             ENDDO
          ENDDO

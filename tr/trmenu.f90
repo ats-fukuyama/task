@@ -13,6 +13,7 @@ CONTAINS
 
       USE trcomm
       USE trparm
+      USE trview
       USE trprep
       USE trloop
       USE trfile
