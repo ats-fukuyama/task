@@ -138,6 +138,7 @@ contains
                        ,end_time_loop-begin_time_loop,'[sec]'
       
     end do !** time loop
+      call fptxt1D(rm,"dat/rm.txt")
 
   end subroutine fow_loop
 
@@ -224,7 +225,8 @@ contains
 
     ! MJ2keV = 1.d-3/aee*1.d6
 
-     if ( nt == 1 ) then
+    !  if ( nt == 1 ) then
+    !  if ( nt == 0 ) then !** modified by anzai
     !   do nr = 1, nrmax
     !     rmg(nr) = rg(nr+1)
     !   end do
@@ -309,7 +311,7 @@ contains
     !   call fptxt4D(Fcpp,"dat/Fpp_fp.txt")
     !   call fptxt4D(Fcth,"dat/Fth_fp.txt")
 
-     end if
+    !  end if
 
     ! do nsa = 1, nsamax
     !   do nr = 1, nrmax

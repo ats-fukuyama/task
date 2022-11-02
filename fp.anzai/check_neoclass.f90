@@ -51,18 +51,14 @@ contains
     call system('mkdir -p dat')
 
     !**** calculation of physical values
-    !** Particle Neoclass
-!    call nu_effective(nu_eff)
     call integral_ParticleDif(Sr_part,Dr)
     ! call Particleneoclass(Sr_ba,Sr_pla,Dnba,Dnpla) ![2022/3/7] editted by anzai
-!    call D_random_walk_baverage(Drwav, Drw, Drweff, Drweffav) ![2022/3/7] editted by anzai
-    !** Heat Neoclass
+    !**
     call integral_Heatdiff(heatfow,chi_a) ![2022/6/6] editted by anzai
-    ! call Heatneoclass(heatba,heatpla,chi_neo_ba,chi_neo_pla) ![2022/3/14] editted by anzai
-    call Heatneoclass(heatba,heatpla,chi_neo_ba,chi_neo_pla,Sr_ba,Sr_pla, Dnba, Dnpla,inv_asp,pla_parm) ![2022/9/5] editted by anzai
+    ! call Rosenbluth_Hazeltine_Hinton_Neoclass(heatba,heatpla,chi_neo_ba,chi_neo_pla) ![2022/3/14] editted by anzai
+    call Rosenbluth_Hazeltine_Hinton_Neoclass(heatba,heatpla,chi_neo_ba,chi_neo_pla,Sr_ba,Sr_pla, Dnba, Dnpla) ![2022/9/5] editted by anzai
     call Chang_Hinton_neoclass(Sr_ch, chi_ch) ![2022/10/26] editted by anzai
     call Hinton_Hazeltine_neoclass(Sr_hh, Dr_hh, heat_hh, chi_hh) ![2022/10/27] added by anzai
-    ! call Heat_rw_baverage(heatrwav, heatrw) ![2022/2/23] editted by anzai
     !** For Factor check
     ! call check_factorneo(eps_t, cyclo_rho, dTadr,Ta,tau_ele,tau_i, spVI,spVI2,sTI) ![2022/2/27] editted by anzai
     call ch_intHD(hfowout_r,hfowout_p,hfowout_t,hfowout_f,chi_Dr,chi_Dp,chi_Dt,chi_Fr) ![2022/6/6]
@@ -441,29 +437,29 @@ contains
 
   end subroutine integral_ParticleDif
 
-  subroutine D_random_walk_baverage(Drwav, Drw, Drweff, Drweffav)
-  !-----------------------------------------------------
-  ! For particle diffusion in banana region
-  ! modified and added by anzai [2022/3/2]
-  !-----------------------------------------------------
-    use fpcomm
-    use fowcomm
-    implicit none
-    double precision,dimension(nrmax,nsamax),intent(out)  :: Drw, Drwav
-    double precision,dimension(nrmax,nsamax),intent(out)  :: Drweff, Drweffav
-    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom
-    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: fnsp_l
-    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: Drwlocal, Drwba
-    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: Drweff_l, Drweff_ba
-    double precision,dimension(npmax,nrmax,nsamax) :: nu
-    double precision,dimension(nrmax,nsamax) :: Ta
-    double precision,dimension(nrmax,nsamax) :: nu_eff
-    double precision step_len, step_time, step_time_eff, eps_t
-    double precision rho_theta, Baxis, pv, B_theta, rho
-    double precision dVI, sumVI
-    integer nth, np, nr, nsa, ns
+!   subroutine D_random_walk_baverage(Drwav, Drw, Drweff, Drweffav)
+!   !-----------------------------------------------------
+!   ! For particle diffusion in banana region
+!   ! modified and added by anzai [2022/3/2]
+!   !-----------------------------------------------------
+!     use fpcomm
+!     use fowcomm
+!     implicit none
+!     double precision,dimension(nrmax,nsamax),intent(out)  :: Drw, Drwav
+!     double precision,dimension(nrmax,nsamax),intent(out)  :: Drweff, Drweffav
+!     double precision,dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom
+!     double precision,dimension(nthmax,npmax,nrmax,nsamax) :: fnsp_l
+!     double precision,dimension(nthmax,npmax,nrmax,nsamax) :: Drwlocal, Drwba
+!     double precision,dimension(nthmax,npmax,nrmax,nsamax) :: Drweff_l, Drweff_ba
+!     double precision,dimension(npmax,nrmax,nsamax) :: nu
+!     double precision,dimension(nrmax,nsamax) :: Ta
+!     double precision,dimension(nrmax,nsamax) :: nu_eff
+!     double precision step_len, step_time, step_time_eff, eps_t
+!     double precision rho_theta, Baxis, pv, B_theta, rho
+!     double precision dVI, sumVI
+!     integer nth, np, nr, nsa, ns
 
-!     !**** initialization ****
+! !     !**** initialization ****
 !     Baxis = Bing(1)
 !     Drw(:,:) = 0.d0
 !     Drwav(:,:) = 0.d0
@@ -550,9 +546,9 @@ contains
 !       end do
 !     end do
 
-  end subroutine D_random_walk_baverage
+  ! end subroutine D_random_walk_baverage
 
-  subroutine Particleneoclass(Sr_ba,Sr_pla,Dnba,Dnpla)
+  ! subroutine Particleneoclass(Sr_ba,Sr_pla,Dnba,Dnpla)
     !------------------------------------------------------------
     ! Subroutine for neoclassical particle flux in banana region
     ! Calculate particle flux and diffusion coefficient
@@ -615,7 +611,7 @@ contains
   !    end do
   !  end do
 
-  end subroutine Particleneoclass
+  ! end subroutine Particleneoclass
 
 !======================================================================
 !subroutines for heat fluxes
@@ -746,7 +742,7 @@ contains
 
   end subroutine integral_Heatdiff
 
-  subroutine Heat_rw_baverage(heatrwav, heatrw)
+  ! subroutine Heat_rw_baverage(heatrwav, heatrw)
   !---------------------------------------------
   ! heat diffusion coef calcul module
   ! This module corresponds to integral_Heatdiff
@@ -870,14 +866,14 @@ contains
 !       end do
 !     end do
 
-  end subroutine Heat_rw_baverage
+  ! end subroutine Heat_rw_baverage
 
-  subroutine Heatneoclass(heatba,heatpla,chi_neo_ba,chi_neo_pla,Sr_ba,Sr_pla,Dnba,Dnpla, inv_asp,pla_parm)
+  subroutine Rosenbluth_Hazeltine_Hinton_Neoclass(heatba,heatpla,chi_neo_ba,chi_neo_pla,Sr_ba,Sr_pla,Dnba,Dnpla)
   !---------------------------------------------------------------
-  !subroutine for neoclassical heat flux in banana, plateau region
-  !calculate heat flux and diffusion coefficient
+  ! subroutine for neoclassical heat flux in banana, plateau region
+  ! calculate heat flux and diffusion coefficient
+  ! Plasma Transport in Toroidal Confinement Systems(1972)
   ! main calcul using[J]
-  ! Formulae from "Tokamaks fourth edition"
   ! Calculation with [J]
   !--------------------------------------------------------------
 
@@ -887,19 +883,16 @@ contains
     implicit none
     double precision,dimension(nrmax,nsamax),intent(out)  :: heatba, heatpla
     double precision,dimension(nrmax,nsamax),intent(out)  :: chi_neo_ba, chi_neo_pla
-    double precision,dimension(nrmax,nsamax),intent(out)  :: inv_asp, pla_parm
-    ! double precision,dimension(nrmax,nsamax) :: Sr_ba, Sr_pla
+    ! double precision,dimension(nrmax,nsamax),intent(out)  :: inv_asp, pla_parm
+    double precision,dimension(nrmax,nsamax),intent(out)  :: Dnba, Dnpla
+    double precision,dimension(nrmax,nsamax),intent(out)  :: Sr_ba, Sr_pla
     double precision,dimension(nrmax,nsamax) :: Ta, dTadr, dndr
     double precision, dimension(nsamax) :: rho_a
     double precision fact, fact_s, tau_ele,tau_i, eps_t, Baxis, B_p
-    integer nr, nsa
-    double precision,dimension(nrmax,nsamax),intent(out)  :: Dnba, Dnpla
-    double precision,dimension(nrmax,nsamax),intent(out)  :: Sr_ba, Sr_pla
-        ! double precision,dimension(nrmax,nsamax)  :: Ta,dTadr,dndr
     double precision fact_ba,fact_pla,rho_e!,eps_t,Baxis,B_p
-    !integer nr, nsa
+    integer nr, nsa
 
-    fact = 12.d0*pi**1.5d0*EPS0**2/sqrt(2.d0)
+    fact = 12.d0*pi**1.5d0*EPS0**2/sqrt(2.d0) !** for SI unit collisional time
     Baxis = Bing(1) ! approximation on B by Baxis
 
     !****temperature make
@@ -916,72 +909,50 @@ contains
       call first_order_derivative(dndr(:,nsa), rnsl(:, nsa), rm)
     end do
 
-            !  write(*,*)aefp(1)
-            !  write(*,*)tau_ee
     !****calculate flux and diffusion coefficient
     do nsa = 1, nsamax
       do nr = 1, nrmax
+
+        eps_t = rm(nr)*RA/RR
+        B_p = rm(nr)*RA*BB/(safety_factor(nr)*RR)
+
         tau_ele = fact*sqrt(AMFP(1))*((Ta(nr,1))**1.5d0)/ &
              (rnsl(nr,2)*1.d20*AEFP(2)**2*lnlam(nr,2,1)*AEE**2)
-            !  write(*,'(e32.2)')tau_ele
-
+              ! write(*,'(e32.2)')tau_ele
         tau_i   = fact*sqrt(2.d0)*sqrt(AMFP(2))*((Ta(nr,2))**1.5d0)/ &
              (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2))
-            !  write(*,'(e32.2)')tau_i
 
         rho_e = sqrt(2*Ta(nr,1)/AMFP(1))*AMFP(1)/(AEE*Baxis)
         rho_a(nsa) = sqrt(2*Ta(nr,nsa)/AMFP(nsa))*AMFP(nsa)/(AEFP(nsa)*Baxis)
-        eps_t = rm(nr)*RA/RR
-        B_p = rm(nr)*RA*BB/(safety_factor(nr)*RR)
-        inv_asp(nr,nsa) = eps_t**(1.5) !!!!! for plateau
-        if (nsa == 1)then !!!! for plateau index number must 1.0 form
-          pla_parm(nr,nsa) = (rm(nr)*RA*Baxis/(B_p*sqrt(3.d0*Ta(nr,nsa)/AMFP(1)))/tau_ele)!/inv_asp(nr,nsa)!**(1.0/3.0)
-        else
-          pla_parm(nr,nsa) = (rm(nr)*RA*Baxis/(B_p*sqrt(3.d0*Ta(nr,nsa)/AMFP(nsa)))/tau_i)!/inv_asp(nr,nsa)!**(1.0/3.0)
-        end if
+        ! inv_asp(nr,nsa) = eps_t**(1.5) !!!!! for plateau
+        ! if (nsa == 1)then !!!! for plateau index number must 1.0 form
+        !   pla_parm(nr,nsa) = (rm(nr)*RA*Baxis/(B_p*sqrt(3.d0*Ta(nr,nsa)/AMFP(1)))/tau_ele)!/inv_asp(nr,nsa)!**(1.0/3.0)
+        ! else
+        !   pla_parm(nr,nsa) = (rm(nr)*RA*Baxis/(B_p*sqrt(3.d0*Ta(nr,nsa)/AMFP(nsa)))/tau_i)!/inv_asp(nr,nsa)!**(1.0/3.0)
+        ! end if
+
+        !==== Calculation of Particle Fluxes and Coefficients ====
         fact_ba = (safety_factor(nr)**2)*1.d20*rnsl(nr,nsa) &
              *(rho_e**2)/((eps_t**1.5)*tau_ele)*RKEV ! modified by anzai[*RKEV]
         fact_pla = -sqrt(pi)*(eps_t**2)*Ta(nr,1)*RKEV &! modified by anzai [*RKEV]
              *rho_e*1.d20*rnsl(nr,nsa)/(2*AEE*B_p*rm(nr)*RA)
-        ! fact_ba = (safety_factor(nr)**2)*1.d20*rnsl(nr,nsa) &
-        !      *(rho_a(nsa)**2)/((eps_t**1.5)*tau_ele)*RKEV ! modified by anzai[*RKEV]
-        ! fact_pla = -sqrt(pi)*(eps_t**2)*Ta(nr,1)*RKEV &! modified by anzai [*RKEV]
-        !      *rho_a(nsa)*1.d20*rnsl(nr,nsa)/(2*AEE*B_p*rm(nr)*RA)
 
         Sr_ba(nr,nsa) = fact_ba*(-1.22d0*(1+Ta(nr,2)/Ta(nr,1)) &
                       * 1.d20 * dndr(nr, nsa) &
                       + 4.3d-1*dTadr(nr,1)/Ta(nr,1) &
                       + 1.9d-1*dTadr(nr,2)/Ta(nr,1) )
-        !**** neglect E_para term
+        !** neglect E_para term
+
         Sr_pla(nr,nsa) = fact_pla*((1+Ta(nr,2)/Ta(nr,1)) &
                        * 1.d20 * dndr(nr,nsa) &
                        / (1.d20*rnsl(nr,nsa)) &
                        + 1.5d0*dTadr(nr,1)/Ta(nr,1) + 1.5d0*dTadr(nr,2)/Ta(nr,1) )
-        !**** neglect B term
+        !** neglect B term
 
         Dnba(nr,nsa) = - Sr_ba(nr, nsa)/(1.d20*dndr(nr, nsa))
         Dnpla(nr,nsa) = - Sr_pla(nr, nsa)/(1.d20*dndr(nr, nsa))
-     end do
-   end do
 
-    !****calculate flux and diffusion coefficient
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-
-        eps_t = rm(nr)*RA/RR
-        tau_ele = fact*sqrt(AMFP(1))*((Ta(nr,1))**1.5d0)/ &
-             (rnsl(nr,2)*1.d20*AEFP(2)**2*lnlam(nr,2,1)*AEE**2)
-        tau_i   = fact*sqrt(2.d0)*sqrt(AMFP(2))*((Ta(nr,2))**1.5d0)/ &
-             (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2))
-        ! tau_ele = fact*sqrt(AMFP(1))*((Ta(nr,1))**1.5d0)/ &
-        !      (rnsl(nr,2)*1.d20*AEFP(2)**2*AEE**2*lnlam(nr,2,1))
-        ! tau_i   = fact*sqrt(2.d0)*sqrt(AMFP(2))*((Ta(nr,2))**1.5d0)/ &
-        !      (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2))
-        ! !**** *RKEV converts [keV] to [J]
-
-        ! rho_a(nsa) = sqrt(Ta(nr,nsa)/AMFP(nsa))*AMFP(nsa)/(AEFP(nsa)*Baxis)
-        !**** /RKEV converts [J] to [keV]
-        !****calculate heat flux
+        !==== Calculation of Heat Fluxes and Coeffisients ====
         if (nsa == 1) then
           fact_s = (safety_factor(nr)**2) &
              *(rho_a(1)**2)/((eps_t**1.5)*tau_ele)
@@ -989,7 +960,7 @@ contains
             * ((1.53d0*(1+Ta(nr,2)/Ta(nr,1))*dndr(nr, nsa))/rnsl(nr,nsa) &
               - 1.81d0*dTadr(nr,1)/Ta(nr,1) &
               - 0.27d0*dTadr(nr,2)/Ta(nr,1))!test for [keV]
-        ! neglect E_para term
+        !** neglect E_para term
 
           heatpla(nr,nsa) =  sqrt(PI)/4*eps_t**2*Ta(nr,nsa)/AEE/1.d3 &
                / (AEE*B_p)*rho_a(nsa)*rnsl(nr,nsa)*1.d20*Ta(nr,nsa)/(AEE*1.d3) &
@@ -997,9 +968,10 @@ contains
                / (rnsl(nr,nsa)*1.d20) &
                + 7.5d0*dTadr(nr,nsa)/Ta(nr,nsa) &
                + 1.5d0*dTadr(nr,2)/Ta(nr,nsa))*RKEV!test [keV]
-        ! neglect E_para term
+        !** neglect E_para term
+
           ! chi_neo_ba(nr,nsa) = 1.81d0*(safety_factor(nr)**2)*rho_a(1)**2/(eps_t**1.5*tau_ele)
-          chi_neo_ba(nr,nsa) = heatba(nr,nsa)/(rnsl(nr,nsa)*1.d20)
+          chi_neo_ba(nr,nsa) = -heatba(nr,nsa)/(rnsl(nr,nsa)*1.d20)/dTadr(nr,nsa)*AEE*1.d3
           chi_neo_pla(nr,nsa)= -sqrt(PI)/4*eps_t**2*Ta(nr,nsa)/AEE/1.d3&
                / (AEE*B_p)*rho_a(nsa)&!*rnsl(nr,nsa)*1.d20 &
                / (rm(nr)*RA)*7.5d0*RKEV
@@ -1016,12 +988,67 @@ contains
           chi_neo_pla(nr,nsa)= 1.5d0*sqrt(pi)*eps_t**2*Ta(nr,nsa)/AEE/1.d3*rho_a(nsa)&!*rnsl(nr,nsa)*1.d20 &
                              / (AEFP(nsa)*B_p*rm(nr)*RA)*RKEV
         end if
-        ! chi_neo_ba      = -Sr_ba(nr,nsa)/(dTadr(nr,nsa)/RKEV)
-        ! chi_neo_pla     = -Sr_pla(nr,nsa)/(dTadr(nr,nsa)/RKEV)
-      end do
-    end do
+     end do
+   end do
 
-  end subroutine Heatneoclass
+    ! !****calculate flux and diffusion coefficient
+    ! do nsa = 1, nsamax
+    !   do nr = 1, nrmax
+
+    !     eps_t = rm(nr)*RA/RR
+    !     tau_ele = fact*sqrt(AMFP(1))*((Ta(nr,1))**1.5d0)/ &
+    !          (rnsl(nr,2)*1.d20*AEFP(2)**2*lnlam(nr,2,1)*AEE**2)
+    !     tau_i   = fact*sqrt(2.d0)*sqrt(AMFP(2))*((Ta(nr,2))**1.5d0)/ &
+    !          (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2))
+    !     ! tau_ele = fact*sqrt(AMFP(1))*((Ta(nr,1))**1.5d0)/ &
+    !     !      (rnsl(nr,2)*1.d20*AEFP(2)**2*AEE**2*lnlam(nr,2,1))
+    !     ! tau_i   = fact*sqrt(2.d0)*sqrt(AMFP(2))*((Ta(nr,2))**1.5d0)/ &
+    !     !      (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2))
+    !     ! !**** *RKEV converts [keV] to [J]
+
+    !     ! rho_a(nsa) = sqrt(Ta(nr,nsa)/AMFP(nsa))*AMFP(nsa)/(AEFP(nsa)*Baxis)
+    !     !**** /RKEV converts [J] to [keV]
+    !     !****calculate heat flux
+    !     if (nsa == 1) then
+    !       fact_s = (safety_factor(nr)**2) &
+    !          *(rho_a(1)**2)/((eps_t**1.5)*tau_ele)
+    !       heatba(nr,nsa) = fact_s*rnsl(nr,nsa)*1.D20*Ta(nr,1)/RKEV &
+    !         * ((1.53d0*(1+Ta(nr,2)/Ta(nr,1))*dndr(nr, nsa))/rnsl(nr,nsa) &
+    !           - 1.81d0*dTadr(nr,1)/Ta(nr,1) &
+    !           - 0.27d0*dTadr(nr,2)/Ta(nr,1))!test for [keV]
+    !     ! neglect E_para term
+
+    !       heatpla(nr,nsa) =  sqrt(PI)/4*eps_t**2*Ta(nr,nsa)/AEE/1.d3 &
+    !            / (AEE*B_p)*rho_a(nsa)*rnsl(nr,nsa)*1.d20*Ta(nr,nsa)/(AEE*1.d3) &
+    !            / (rm(nr)*RA)*( (1+Ta(nr,2)/Ta(nr,1))*dndr(nr,nsa)*1.d20 &
+    !            / (rnsl(nr,nsa)*1.d20) &
+    !            + 7.5d0*dTadr(nr,nsa)/Ta(nr,nsa) &
+    !            + 1.5d0*dTadr(nr,2)/Ta(nr,nsa))*RKEV!test [keV]
+    !     ! neglect E_para term
+    !       ! chi_neo_ba(nr,nsa) = 1.81d0*(safety_factor(nr)**2)*rho_a(1)**2/(eps_t**1.5*tau_ele)
+    !       chi_neo_ba(nr,nsa) = heatba(nr,nsa)/(rnsl(nr,nsa)*1.d20)
+    !       chi_neo_pla(nr,nsa)= -sqrt(PI)/4*eps_t**2*Ta(nr,nsa)/AEE/1.d3&
+    !            / (AEE*B_p)*rho_a(nsa)&!*rnsl(nr,nsa)*1.d20 &
+    !            / (rm(nr)*RA)*7.5d0*RKEV
+    !     else
+    !       fact_s = (safety_factor(nr)**2) &
+    !           *(rho_a(nsa)**2)/((eps_t**1.5)*tau_i)
+    !       heatba(nr,nsa) = - 0.68d0*fact_s*(1 + 0.48d0*sqrt(eps_t)) &
+    !           *rnsl(nr,nsa)*1.d20*dTadr(nr,2)/RKEV !test for [keV]
+    !       heatpla(nr,nsa) = - 1.5d0*sqrt(pi) &
+    !                     * eps_t**2*Ta(nr,nsa)/AEE/1.d3/(AEE*B_p) &
+    !                     * rho_a(nsa)/(rm(nr)*RA)*rnsl(nr,nsa)*1.d20 &
+    !                     * dTadr(nr,nsa)/(AEE*1.d3)*RKEV !test for [keV]
+    !       chi_neo_ba(nr,nsa) = 0.68d0*(1+0.48d0*sqrt(eps_t))*(safety_factor(nr)**2)*rho_a(nsa)**2/(eps_t**1.5*tau_i)
+    !       chi_neo_pla(nr,nsa)= 1.5d0*sqrt(pi)*eps_t**2*Ta(nr,nsa)/AEE/1.d3*rho_a(nsa)&!*rnsl(nr,nsa)*1.d20 &
+    !                          / (AEFP(nsa)*B_p*rm(nr)*RA)*RKEV
+    !     end if
+    !     ! chi_neo_ba      = -Sr_ba(nr,nsa)/(dTadr(nr,nsa)/RKEV)
+    !     ! chi_neo_pla     = -Sr_pla(nr,nsa)/(dTadr(nr,nsa)/RKEV)
+    !   end do
+    ! end do
+
+  end subroutine Rosenbluth_Hazeltine_Hinton_Neoclass
 
   subroutine Chang_Hinton_neoclass(Sr_ch, chi_ch)
   !---------------------------------------------------------------
@@ -1105,7 +1132,7 @@ contains
     implicit none
     double precision,dimension(nrmax,nsamax),intent(out)  :: Sr_hh, heat_hh
     double precision,dimension(nrmax,nsamax),intent(out)  :: Dr_hh, chi_hh
-    double precision,dimension(nrmax,nsamax) :: Ta, dTadr, Pa_, dPadr
+    double precision,dimension(nrmax,nsamax) :: Ta, dTadr, Pa_, dPadr, dNadr
     double precision,dimension(3,3,3) :: K_, a_, b_, c_
     double precision,dimension(3,3,3) :: K_eff
     !**** dimension K is (species, m, n) in the paper p298(1976)
@@ -1141,6 +1168,7 @@ contains
     do nsa = 1, nsamax
       call first_order_derivative(dTadr(:,nsa), Ta(:,nsa), rm)
       call first_order_derivative(dPadr(:,nsa), Pa_(:,nsa), rm)
+      call first_order_derivative(dNadr(:,nsa), rnsl(:, nsa), rm)
     end do
             !  write(*,*)aefp(1)
             !  write(*,*)tau_ee
@@ -1150,15 +1178,20 @@ contains
         B_p = rm(nr)*RA*BB/(safety_factor(nr)*RR)
         eps_t = rm(nr)*RA/RR
         tau_e = fact*sqrt(AMFP(1))*((Ta(nr,1))**1.5d0)/ &
-             (rnsl(nr,2)*1.d20*AEFP(2)**2*lnlam(nr,2,1)*AEE**2)
+             (rnsl(nr,2)*1.d20*AEFP(2)**2*lnlam(nr,2,1)*AEE**2) !** for SI unit
+        ! tau_e = 3.d0/4.d0*(2.d0*pi)**(-0.5d0)*sqrt(AMFP(1))*((Ta(nr,1))**1.5d0)/ &
+            !  (rnsl(nr,2)*1.d20*AEFP(2)**2*lnlam(nr,2,1)*AEE**2) !** for cgs unit
         tau_i   = fact*sqrt(2.d0)*sqrt(AMFP(2))*((Ta(nr,2))**1.5d0)/ &
-             (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2))
+             (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2)) !** for SI unit
+        ! tau_i   = 3.d0/4.d0*sqrt(pi)**(-1)*sqrt(AMFP(2))*((Ta(nr,2))**1.5d0)/ &
+            !  (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2))*EPS0**2.d0 !** for cgs unit
             !  write(*,'(e32.2)')tau_i
-        nu_i = sqrt(2.d0)*rm(nr)*RA*Baxis/(B_p*sqrt(2.d0*Ta(nr,2)/AMFP(2))*tau_i*eps_t**(1.5d0))
         nu_e = sqrt(2.d0)*rm(nr)*RA*Baxis/(B_p*sqrt(2.d0*Ta(nr,1)/AMFP(1))*tau_e*eps_t**(1.5d0))
-        inner_product = (1.17d0 - 0.35*nu_i**(0.5d0)*eps_t**(3.d0))*(1.d0 + 0.7*nu_i**(0.5d0))**(-1.d0)
-        rho_ep = sqrt(2.d0*Ta(nr,1)/AMFP(1))*AMFP(1)/(AEFP(1)*B_p)
-        rho_ip = sqrt(2.d0*Ta(nr,2)/AMFP(2))*AMFP(2)/(AEFP(2)*B_p)
+        nu_i = sqrt(2.d0)*rm(nr)*RA*Baxis/(B_p*sqrt(2.d0*Ta(nr,2)/AMFP(2))*tau_i*eps_t**(1.5d0))
+        inner_product = (1.17d0 - 0.35*nu_i**(0.5d0))*(1.d0 + 0.7*nu_i**(0.5d0))**(-1.d0)
+        inner_product = (inner_product -2.1d0*nu_i**(2.d0)*eps_t**(3.d0))/(1.d0 + nu_i**(2.d0)*eps_t**(3.d0)) 
+        rho_ep = sqrt(2.d0*Ta(nr,1)/AMFP(1))*AMFP(1)/(AEFP(1)*B_p)!*vc !** for cgs unit
+        rho_ip = sqrt(2.d0*Ta(nr,2)/AMFP(2))*AMFP(2)/(AEFP(2)*B_p)!*vc !** for cgs unit
 
         fact_i = 0.66d0*( 1.d0*(1.d0 + 1.03d0 * nu_i**(0.5d0) + 0.31d0*nu_i)**(-1.d0) + &
                  (eps_t**(3.d0)*(0.74d0)**(2.d0)/(0.31d0)*nu_i) * &
@@ -1171,13 +1204,12 @@ contains
             do i = 1, 3
               if (k .ne. 3) then
                 K_eff(i,j,k)=K_(i,j,k)*(1.d0/(1.d0 + a_(i,j,k)*nu_e**(0.5d0) + b_(i,j,k)*nu_e) + &
-                             (eps_t**(1.5d0)*(c_(i,j,k)**(2.d0)*b_(i,j,k)**(-1.d0)*nu_e*eps_t**(1.5d0)))/ &
-                             (1.d0 +c_(i,j,k)*nu_e*eps_t**(1.5d0)) )
+                             (eps_t**(3.d0)*c_(i,j,k)**(2.d0)*b_(i,j,k)**(-1.d0)*nu_e)/ &
+                             (1.d0 + c_(i,j,k)*nu_e*eps_t**(1.5d0)) )
               else if (k .eq. 3) then
                 K_eff(i,j,k)= K_(i,j,k)/(1.d0 + a_(i,j,k)*nu_e**(0.5d0) + b_(i,j,k)*nu_e) / &
-                              (1.d0+c_(i,j,k)*nu_e**(0.5d0)*eps_t**(1.5d0))
+                              (1.d0+c_(i,j,k)*nu_e*eps_t**(1.5d0))
               end if
-              ! write(*,'(e32.2)')K_eff(i,j,k)
             end do!i
           end do !j
         end do !k
@@ -1185,36 +1217,33 @@ contains
 
         !**** Making Fluxes
         A_force = dPadr(nr,1)*(Pa_(nr,nsa)**(-1.d0))-2.5d0*dTadr(nr,1)*(Ta(nr,1)**(-1.d0))+ &
-                  (Ta(nr,2)*(AEFP(2)*Ta(nr,1))**(-1.d0)) * &
-                  (dPadr(nr,2)*(Pa_(nr,2)**(-1.d0)) - inner_product*(1.d0 + nu_e**(0.5d0)*eps_t**(0.5d0))**(-1.d0) * &
+                  (Ta(nr,2)*(AEFP(2)**(-1.d0)*AEE)*Ta(nr,1)) * &
+                  (dPadr(nr,2)*(Pa_(nr,2)**(-1.d0)) - inner_product*(1.d0 + nu_e**(2.d0)*eps_t**(2.d0))**(-1.d0) * &
                   dTadr(nr,2) * (Ta(nr,2)**(-1.d0)) )
-        !** Z_i = 2 selected --> nsa = 2
+            !  write(*,'(e32.2)')nu_e!EPS0
+        !** Z_i = 1 selected --> nsa = 2
         Sr_hh(nr,nsa) = - rnsl(nr,1)*1.d20 * eps_t**(0.5d0)*rho_ep**(2.d0)*(tau_e)**(-1.d0)* &
-                        (K_eff(2,1,1)*A_force + K_eff(2,1,2)*dTadr(nr,1)*(Ta(nr,1)**(-1.d0)))
+                        (K_eff(1,1,1)*A_force + K_eff(1,1,2)*dTadr(nr,1)*(Ta(nr,1)**(-1.d0)))
 
         if (nsa .eq. 1) then
-          heat_hh(nr,nsa) = -2.5d0*Ta(nr,nsa)*Sr_hh(nr,nsa)/AEE/1.d3 -rnsl(nr,nsa)*1.d20 * &
-                            Ta(nr,nsa)/AEE/1.d3 * eps_t**(0.5d0)*(rho_ep**(2.d0)*(tau_e)**(-1.d0)) * &
-                            (K_eff(2,1,2)*A_force + K_eff(2,2,2)*dTadr(nr,nsa)*(Ta(nr,nsa)**(-1.d0)))
+          heat_hh(nr,nsa) = (-2.5d0*Ta(nr,nsa)*Sr_hh(nr,nsa) &
+                            -rnsl(nr,nsa)*1.d20 * &
+                            Ta(nr,nsa) * eps_t**(0.5d0)*(rho_ep**(2.d0)*(tau_e)**(-1.d0)) * &
+                            (K_eff(1,1,2)*A_force + K_eff(1,2,2)*dTadr(nr,nsa)*(Ta(nr,nsa)**(-1.d0))))/AEE/1.d3
         else
-          heat_hh(nr,nsa) = - fact_i * rnsl(nr,nsa)*1.d20*eps_t**(0.5d0)*rho_ep**(2.d0)*(tau_i)**(-1.d0)* &
-                            dTadr(nr,nsa)/AEE/1.d3 - inner_product* Ta(nr,nsa)/AEE/1.d3 * &
-                            Sr_hh(nr,nsa)/AEFP(nsa)*(1.d0 + nu_e**(2.d0)*eps_t**(3.d0))**(-1.d0)
+          heat_hh(nr,nsa) = (- fact_i * rnsl(nr,nsa)*1.d20*eps_t**(0.5d0)*rho_ip**(2.d0)*(tau_i)**(-1.d0)* &
+                            dTadr(nr,nsa) - inner_product* Ta(nr,nsa) * &
+                            Sr_hh(nr,nsa)/AEFP(2)*AEE*(1.d0 + nu_e**(2.d0)*eps_t**(3.d0))**(-1.d0))/AEE/1.d3
         end if
 
+      Dr_hh(nr,nsa) = - Sr_hh(nr,nsa)/(dNadr(nr,nsa)*1.d20)
+      chi_hh(nr,nsa) = - heat_hh(nr,nsa)/(rnsl(nr,nsa)*1.d20)/dTadr(nr,nsa)*AEE*1.d3
      end do
    end do
 
-   do nsa = 1, nsamax
-    do nr = 1, nrmax
-      Dr_hh(nr,nsa) = - Sr_hh(nr,nsa)/(rnsl(nr,nsa)*1.d20)
-      chi_hh(nr,nsa) = - heat_hh(nr,nsa)/(rnsl(nr,nsa)*1.d20)
-    end do
-  end do
-
   end subroutine Hinton_Hazeltine_neoclass
 
-  subroutine make_HHCoef(K_,a_, b_, c_)
+  subroutine make_HHCoef(K_, a_, b_, c_)
   !------------------------------------------
   ! Subroutine for making coefficient in
   ! Theory of plasma transport(1976)

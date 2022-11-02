@@ -880,6 +880,7 @@ contains
                 read(60,iostat=ierr)orbit_m(nth,np,nr,nsa)%dFdr(nstp)
                 read(60,iostat=ierr)orbit_m(nth,np,nr,nsa)%dBdr(nstp)
                 read(60,iostat=ierr)orbit_m(nth,np,nr,nsa)%dBdthp(nstp)
+                write(*,*)nsa,orbit_m(nth,np,nr,nsa)%time(nstp)
               end do
               
             end if
