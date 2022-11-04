@@ -591,7 +591,7 @@ contains
     !use foworbit
 
     implicit none
-    real(rkind) :: ra_Bmin, theta_Bmin
+    real(rkind) :: ra_Bmin, theta_Bmin, ra_rmin
     type(orbit),intent(in) :: ob
     ! real(rkind) :: B_min, thetap_option(7), thetap_Bmin, psip_Bmin, A
     real(rkind) :: ra_obmax, dif_r
@@ -603,15 +603,20 @@ contains
     call quantities_at_Bminimum(ra_Bmin, theta_Bmin, ob)
 
     ra_obmax = 0.0
+    ra_rmin = 10020.0
     nstp_max = ob%nstp_max
     do nstp = 1, nstp_max
       if (ra_obmax < ob%r(nstp)) then
         ra_obmax = ob%r(nstp)
       end if
+      if (ra_rmin > ob%r(nstp)) then
+        ra_rmin = ob%r(nstp)
+      end if
     end do
 
     !**** difference of max(orbit radial place) - ob B_minimum place 
-    write(*,*)"nsa, max_ob_radius", nsa, ra_obmax - ra_Bmin
+    !write(*,*)"nsa, max_ob_radius", nsa, ra_obmax - ra_Bmin
+    write(*,*)"nsa, max_ob_radius", nsa, ra_obmax - ra_rmin
 
   end subroutine check_orbit_max_radial_displacement
 
