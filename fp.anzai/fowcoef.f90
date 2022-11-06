@@ -697,4 +697,218 @@ contains
 
   end subroutine interpolate_D_unlessZero
 
+! !===========================================
+! ! for moment vector quantities calculation
+! !===========================================
+!   subroutine make_moment_vector(moment_vector)
+!   !---------------------------------------------------
+!   ! maybe using interpole module is good [2022/11/7]
+!   !---------------------------------------------------
+
+!     use fpcomm
+!     use fowcomm
+
+!     implicit none
+!     ! type(orbit):: orbit_m
+!     real(rkind),dimension(3,3,max_stp) :: dIdu
+!     ! real(rkind),dimension(3, npmax, nthmax, nrmax, nsamax, max_stp) :: moment_vector_at_ob !by anzai
+!     real(rkind),intent(out),dimension(3, npmax, nthmax, nrmax, nsamax) :: moment_vector !by anzai
+!     !** momentvector(1,:,:,:,:) = pm(:,:)
+!     !** momentvector(2,:,:,:,:) = pm(:,:)*dthdp
+!     !** momentvector(3,:,:,:,:) = pm(:,:)*drdp
+!     real(rkind) :: cpitch_ob, thetap_ob, psip_ob, JIl
+!     real(rkind) :: sumt, dt
+!     integer :: nth, np, nr, nsa, nthp, mode(3), nstp, nstpmax, ierr = 0
+
+!     !**** initialize
+!     moment_vector(:,:,:,:,:) = 0.0
+
+!     !**** Bounce average moment vector
+!     do nsa = 1, nsamax
+!       do nr = 1, nrmax
+!         do nth = 1, nthmax
+!           do np = 1, npmax
+          
+!             nstpmax = orbit_r(nth,np,nr,nsa)%nstp_max
+!             call transformation_matrix_for_vector(dIdu, orbit_m(nth,np,nr,nsa), &
+!                                                    nth, np, nr, nsa)
+
+!             !**** for nstp = 1
+!             moment_vector(1,nth,np,nr,nsa) = moment_vector(1,nth,np,nr,nsa) + pm(np,nsa)*dIdu(1,1,1)
+!             moment_vector(2,nth,np,nr,nsa) = moment_vector(2,nth,np,nr,nsa) + pm(np,nsa)*dIdu(1,2,1)
+!             moment_vector(3,nth,np,nr,nsa) = moment_vector(3,nth,np,nr,nsa) + pm(np,nsa)*dIdu(1,3,1)
+
+!             do nstp = 2, nstpmax
+
+!               dt = orbit_m(nth,np,nr,nsa)%time(nstp)-orbit_m(nth,np,nr,nsa)%time(nstp-1)
+!               moment_vector(1,nth,np,nr,nsa) = moment_vector(1,nth,np,nr,nsa) & 
+!                                              + pm(np,nsa)*dIdu(1,1,nstp)*dt
+!               moment_vector(2,nth,np,nr,nsa) = moment_vector(2,nth,np,nr,nsa) &
+!                                              + pm(np,nsa)*dIdu(1,2,nstp)*dt
+!               moment_vector(3,nth,np,nr,nsa) = moment_vector(3,nth,np,nr,nsa) &
+!                                              + pm(np,nsa)*dIdu(1,3,nstp)*dt
+!             end do !** nstp
+
+!             moment_vector(1,nth,np,nr,nsa) = moment_vector(1,nth,np,nr,nsa)/orbit_m(nth,np,nr,nsa)%time(nstpmax)
+!             moment_vector(2,nth,np,nr,nsa) = moment_vector(2,nth,np,nr,nsa)/orbit_m(nth,np,nr,nsa)%time(nstpmax)
+!             moment_vector(3,nth,np,nr,nsa) = moment_vector(3,nth,np,nr,nsa)/orbit_m(nth,np,nr,nsa)%time(nstpmax)
+
+!           end do
+!         end do
+!       end do
+!     end do
+
+!   end subroutine make_moment_vector
+
+!   subroutine transformation_matrix_for_vector(dIdu, ob, nth, np, nr, nsa)
+!   !----------------------------------------------------------------
+!   ! Calcuration of transform matrix  from Energy, momentum space
+!   ! to momentum, pitch angle, the largest magnetic flux
+!   !----------------------------------------------------------------
+!     use fpcomm
+!     use fowcomm
+!     ! use foworbit
+
+!     implicit none
+
+!     real(rkind),dimension(3,3,max_stp),intent(out) :: dIdu
+!     type(orbit),intent(in) :: ob
+!     integer,intent(in) :: nth, np, nr, nsa!, mode(3)
+
+!     ! elements of transformation matrix, dIdu
+!     real(rkind) :: dpdp,  dthmdp,  drmdp,&
+!                    dpdth, dthmdth, drmdth,&
+!                    dpdr,  dthmdr,  drmdr
+!     real(rkind) :: pl, Bml, dBmdrl, Fml, dFmdrl, cthm, sthm, dpsimdrl
+!     real(rkind) :: Bob, Fob, cthob, sthob, dBobdr, dpsiobdr, dFobdr
+!     real(rkind) :: A(2,2), b(2), detA
+!     integer :: nstp, nstpmax
+
+!     ! select case(mode(1))
+!     ! case(0)
+!     !   if ( mode(2) == 0 .and. mode(3) == 0 ) cthm = COS( thetam(nth,np,nr,nsa) )
+!     !   if ( mode(2) == 1 .and. mode(3) == 0 ) cthm = COS( thetam_pg(nth,np,nr,nsa) )
+!     !   if ( mode(2) == 0 .and. mode(3) == 1 ) cthm = COS( thetam_rg(nth,np,nr,nsa) )
+!     ! case(1)
+!     !   cthm = COS( thetamg(nth,np,nr,nsa) )
+!     ! end select
+
+!     !**** for pitch angle
+!     cthm = COS ( thetam(nth,np,nr,nsa))
+!     sthm = SQRT( 1.d0-cthm**2 )
+    
+!     ! select case(mode(2))
+!     ! case(0)
+!     !   pl = pm(np,nsa)*ptfp0(nsa)
+!     ! case(1)
+!     !   pl = pg(np,nsa)*ptfp0(nsa)
+!     ! end select
+
+!     !**** for moment
+!       pl = pm(np,nsa)*ptfp0(nsa)
+
+!     ! select case(mode(3))
+!     ! case(0)
+!     !   if ( cthm*aefp(nsa) >= 0.d0 ) then
+!     !     Bml = Bout(nr)
+!     !     dBmdrl = dBoutdr(nr)
+!     !   else
+!     !     Bml = Bin(nr)
+!     !     dBmdrl = dBindr(nr)
+!     !   end if
+!     !   dpsimdrl = dpsimdr(nr)
+!     !   Fml = Fpsi(nr)
+!     !   dFmdrl = dFdr(nr)
+!     ! case(1)
+!     !   if ( cthm*aefp(nsa) >= 0.d0 ) then
+!     !     Bml = Boutg(nr)
+!     !     dBmdrl = dBoutgdr(nr)
+!     !   else
+!     !     Bml = Bing(nr)
+!     !     dBmdrl = dBingdr(nr)
+!     !   end if
+!     !   dpsimdrl = dpsimgdr(nr)
+!     !   Fml = Fpsig(nr)
+!     !   dFmdrl = dFgdr(nr)
+!     ! end select
+
+!     !**** for radial part
+!     if ( cthm*aefp(nsa) >= 0.d0 ) then
+!       Bml = Bout(nr)
+!       dBmdrl = dBoutdr(nr)
+!     else
+!       Bml = Bin(nr)
+!       dBmdrl = dBindr(nr)
+!     end if
+!       dpsimdrl = dpsimdr(nr)
+!       Fml = Fpsi(nr)
+!       dFmdrl = dFdr(nr)
+
+!     A(1,1) = 2.d0*sthm*cthm/Bml
+!     A(1,2) = -1.d0*sthm**2*dBmdrl/Bml**2
+!     A(2,1) = Fml/Bml*pl*sthm
+!     A(2,2) = aefp(nsa)*dpsimdrl-(dFmdrl*Bml-Fml*dBmdrl)/Bml**2*pl*cthm
+!     detA = A(1,1)*A(2,2)-A(1,2)*A(2,1)
+
+!     nstpmax = ob%nstp_max
+
+!     if ( detA /= 0.d0 ) then
+!       do nstp = 1, nstpmax
+!         Bob = ob%Babs(nstp)
+!         Fob = ob%F(nstp)
+!         cthob = ob%costh(nstp)
+!         sthob = ob%sinth(nstp)
+!         dBobdr = ob%dBdr(nstp)
+!         dpsiobdr = ob%dpsipdr(nstp)
+!         dFobdr = ob%dFdr(nstp)
+
+!         ! dX/dp
+!         b(1) = 0.d0
+!         b(2) = Fml/Bml*cthm-Fob/Bob*cthob
+!         dpdp   = 1.d0
+!         dthmdp = (A(2,2)*b(1)-A(1,2)*b(2))/detA
+!         drmdp  = (A(1,1)*b(2)-A(2,1)*b(1))/detA
+
+!         ! dX/dtheta
+!         b(1) = 2.d0*sthob*cthob/Bob
+!         b(2) = Fob/Bob*pl*sthob
+!         dpdth   = 0.d0
+!         dthmdth = (A(2,2)*b(1)-A(1,2)*b(2))/detA
+!         drmdth  = (A(1,1)*b(2)-A(2,1)*b(1))/detA
+
+!         ! dX/drho
+!         b(1) = -1.d0*sthob**2/Bob**2*dBobdr
+!         b(2) = aefp(nsa)*dpsiobdr - ( dFobdr*Bob-Fob*dBobdr )/Bob**2*pl*cthob
+!         dpdr   = 0.d0
+!         dthmdr = (A(2,2)*b(1)-A(1,2)*b(2))/detA
+!         drmdr  = (A(1,1)*b(2)-A(2,1)*b(1))/detA
+
+!         dIdu(1,1,nstp) = dpdp
+!         dIdu(1,2,nstp) = dthmdp*ptfp0(nsa)
+!         dIdu(1,3,nstp) = drmdp*ptfp0(nsa)
+!         dIdu(2,1,nstp) = dpdth
+!         dIdu(2,2,nstp) = dthmdth
+!         dIdu(2,3,nstp) = drmdth
+!         dIdu(3,1,nstp) = dpdr
+!         dIdu(3,2,nstp) = dthmdr
+!         dIdu(3,3,nstp) = drmdr
+
+!       end do
+
+!     else
+!       do nstp = 1, nstpmax
+!         dIdu(1,1,nstp) = 1.d0
+!         dIdu(1,2,nstp) = 0.d0
+!         dIdu(1,3,nstp) = 0.d0
+!         dIdu(2,1,nstp) = 0.d0
+!         dIdu(2,2,nstp) = 1.d0
+!         dIdu(2,3,nstp) = 0.d0
+!         dIdu(3,1,nstp) = 0.d0
+!         dIdu(3,2,nstp) = 0.d0
+!         dIdu(3,3,nstp) = 1.d0
+!       end do
+
+!     end if
+!   end subroutine transformation_matrix_for_vector
+
 end module fowcoef
