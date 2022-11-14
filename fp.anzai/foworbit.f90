@@ -44,10 +44,12 @@ contains
 
     call ob_init
     call ob_parm(1,'../fp.ota/fpparm',ierr)
+    write(*,*)ns_ob
 
     nobt_max = 1
 
     call ob_prep(ierr)
+    write(*,*)ns_ob
     call ob_allocate
 
     allocate(Ups(4,nrmax))
@@ -287,6 +289,7 @@ contains
     USE libspl1d
     USE libspl2d
     use obcalc
+    use obcomm ! by anzai
 
     implicit none
     type(orbit),intent(out) :: ob
@@ -300,9 +303,9 @@ contains
 
     ierr = 0
 
+    ns_ob = ns
     mass0 = pa(ns)*amp
     pv = SQRT( 1.d0+momentum**2/(mass0*vc)**2 )
-    ns_ob = ns
 
     penergy_ob_in(1) = mass0*vc**2*(pv-1.d0)/(aee*1.d3)
     pcangle_ob_in(1) = cos( pitch_angle )
@@ -416,7 +419,7 @@ contains
 
   subroutine quantities_at_Bminimum(ra_Bmin, theta_Bmin, ob)
   !-----------------------------------------------------------
-  !
+  !  Didn't use for fow [2022/11/3] checked by anzai
   !-----------------------------------------------------------
 
     use fpcomm
@@ -499,7 +502,9 @@ contains
   subroutine mean_ra_quantities(ob, r0, psip0, costh0, sinth0, &
                B0, F0, dBdr0, dFdr0, dpsipdr0)
   !-------------------------------------------------------------
-  !
+  ! For Making Orbit Averaged Quantities 
+  ! Used to Make Distribution Function 
+  ! [2022/11/3] Checked by anzai
   !--------------------------------------------------------------
 
     use fpcomm
@@ -531,8 +536,8 @@ contains
    end do
    
    IF(nstp0.EQ.1) THEN ! maybe fixed point
-      WRITE(6,'(A,2I8,3ES12.4)') 'nstp0,nstpmax,r0,sumr,time=', &
-           nstp0,nstpmax,r0,sumr,ob%time(nstpmax)
+      !WRITE(6,'(A,2I8,3ES12.4)') 'nstp0,nstpmax,r0,sumr,time=', &
+      !     nstp0,nstpmax,r0,sumr,ob%time(nstpmax)
       psip0  = ob%psip(nstp0)
       costh0 = ob%costh(nstp0)
       sinth0 = ob%sinth(nstp0)
@@ -541,12 +546,12 @@ contains
       dBdr0 = ob%dBdr(nstp0)
       dFdr0 = ob%dFdr(nstp0)
       dpsipdr0 = ob%dpsipdr(nstp0)
-      WRITE(6,'(A,5ES12.4)') ' psi,cos,sin,B0,F0=', &
-           psip0,costh0,sinth0,B0,F0
-      DO nstp=1,nstpmax
-         WRITE(6,'(A,I8,2ES12.4)') &
-              'ob:nstp=',nstp,ob%time(nstpmax),ob%r(nstpmax)
-      END DO
+      ! WRITE(6,'(A,5ES12.4)') ' psi,cos,sin,B0,F0=', &
+      !      psip0,costh0,sinth0,B0,F0
+      ! DO nstp=1,nstpmax
+      !    WRITE(6,'(A,I8,2ES12.4)') &
+      !         'ob:nstp=',nstp,ob%time(nstpmax),ob%r(nstpmax)
+      ! END DO
    ELSE
 
       psip0  = ob%psip(nstp0) + (ob%psip(nstp0)-ob%psip(nstp0-1)) &
@@ -575,6 +580,45 @@ contains
    END IF
 
   end subroutine mean_ra_quantities
+
+  subroutine check_orbit_max_radial_displacement(nsa, ob)
+  !---------------------------------------------
+  ! subroutine for orbit width check [2022/11/1]
+  ! not real values but abstruct values
+  !---------------------------------------------
+    use fpcomm
+    use fowcomm
+    !use foworbit
+
+    implicit none
+    real(rkind) :: ra_Bmin, theta_Bmin, ra_rmin
+    type(orbit),intent(in) :: ob
+    ! real(rkind) :: B_min, thetap_option(7), thetap_Bmin, psip_Bmin, A
+    real(rkind) :: ra_obmax, dif_r
+    ! real(rkind) :: nstp_near, diff_thetap(7)
+    ! real(rkind),allocatable :: dradpsi(:)
+    integer :: nstp, nstpmax!, nstpmin, mm(1), ierr
+    integer, intent(in) :: nsa
+
+    call quantities_at_Bminimum(ra_Bmin, theta_Bmin, ob)
+
+    ra_obmax = 0.0
+    ra_rmin = 10020.0
+    nstp_max = ob%nstp_max
+    do nstp = 1, nstp_max
+      if (ra_obmax < ob%r(nstp)) then
+        ra_obmax = ob%r(nstp)
+      end if
+      if (ra_rmin > ob%r(nstp)) then
+        ra_rmin = ob%r(nstp)
+      end if
+    end do
+
+    !**** difference of max(orbit radial place) - ob B_minimum place 
+    !write(*,*)"nsa, max_ob_radius", nsa, ra_obmax - ra_Bmin
+    write(*,*)"nsa, max_ob_radius", nsa, ra_obmax - ra_rmin
+
+  end subroutine check_orbit_max_radial_displacement
 
 !==========================================
 ! File save and read (load) modules
@@ -669,6 +713,8 @@ contains
                 write(60,iostat=ierr)orbit_m(nth,np,nr,nsa)%dBdthp(nstp)
               end do
               
+              call check_orbit_max_radial_displacement(nsa, orbit_m(nth,np,nr,nsa)) !** by anzai [22/11/4]
+
             end if
 
             if ( np <= npmax .and. nr <= nrmax ) then
@@ -880,7 +926,6 @@ contains
                 read(60,iostat=ierr)orbit_m(nth,np,nr,nsa)%dFdr(nstp)
                 read(60,iostat=ierr)orbit_m(nth,np,nr,nsa)%dBdr(nstp)
                 read(60,iostat=ierr)orbit_m(nth,np,nr,nsa)%dBdthp(nstp)
-                write(*,*)nsa,orbit_m(nth,np,nr,nsa)%time(nstp)
               end do
               
             end if
