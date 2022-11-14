@@ -51,7 +51,7 @@ CONTAINS
     REAL(rkind),INTENT(IN):: YN(0:NEQ,0:NSTPMAX)
     INTEGER,INTENT(OUT):: IERR
     REAL(rkind):: YA(NEQ)
-    REAL(rkind):: RF,S,XP,YP,ZP,RKX,RKY,RKZ,UU,omega,rkv
+    REAL(rkind):: RF,S,XP,YP,ZP,RKX,RKY,RKZ,UU,omega,rkv,rk
 
     IERR=0
     
@@ -69,12 +69,14 @@ CONTAINS
     RKZ =YN(6,nstp)
     UU  =YN(7,nstp)
 
-    IF(idebug_wr(12).NE.0) THEN
-       WRITE(6,'(A,2I4)') '*** idebug_wr(12): nray,nstp=',nray,nstp
-       WRITE(6,'(A,3ES12.4)') '      xp,yp,zp       =',XP,YP,ZP
-       WRITE(6,'(A,3ES12.4)') '      rkx,rky,rkz    =',RKX,RKY,RKZ
-       WRITE(6,'(A,3ES12.4)') '      rnkx,rnky,rnkz =',RKX/rkv,RKY/rkv,RKZ/rkv
-       WRITE(6,'(A,2ES12.4)') '      UU,S           =',UU,S
+    IF(idebug_wr(8).NE.0) THEN
+       rk=SQRT(rkx**2+rky**2+rkz**2)
+       WRITE(6,'(A,A,I4,I8)') '*** idebug_wr(8): wr_exec_single_ray: ', &
+            'nray,nstp=',nray,nstp
+       WRITE(6,'(A,3ES12.4)') '   xp,yp,zp       =',XP,YP,ZP
+       WRITE(6,'(A,3ES12.4)') '   rkx,rky,rkz    =',RKX,RKY,RKZ
+       WRITE(6,'(A,3ES12.4)') '   rnkx,rnky,rnkz =',RKX/rkv,RKY/rkv,RKZ/rkv
+       WRITE(6,'(A,2ES12.4)') '   UU,S,rk,rn     =',UU,S,rk,rk/rkv
     END IF
 
     YA(1)= XP
@@ -107,15 +109,7 @@ CONTAINS
        RAYRB2(NSTP,NRAY)=0.D0
     END DO
 
-    IF(idebug_wr(17).NE.0) THEN
-       WRITE(6,'(A,2I4)') '*** idebug_wr(17): nray,nstp=',nray,nstp
-    END IF
-
     CALL WRCALE(RF,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY),NRAY)
-
-    IF(idebug_wr(18).NE.0) THEN
-       WRITE(6,'(A,2I4)') '*** idebug_wr(18): nray,nstp=',nray,nstp
-    END IF
 
     RETURN
   END SUBROUTINE
@@ -220,9 +214,9 @@ CONTAINS
     X0 = 0.D0
     XE = DELS
 
-    IF(idebug_wr(13).NE.0) THEN
-       WRITE(6,'(A,2I4)') '*** idebug_wr(13): nstp=',nstp_in
-       WRITE(6,'(A,4ES12.4)') '      X0,XE,SMAX,DELS =',X0,XE,SMAX,DELS
+    IF(idebug_wr(11).NE.0) THEN
+       WRITE(6,'(A,I8)') '*** idebug_wr(11): wrrkft_withd0: nstp=',nstp
+       WRITE(6,'(A,4ES12.4)') '      x0,xe,smax,dels =',X0,XE,SMAX,DELS
     END IF
        
     NSTPLIM=MIN(INT(SMAX/DELS),NSTPMAX)
@@ -234,10 +228,10 @@ CONTAINS
     ENDDO
     YN(8,NSTP_in)=0.D0
 
-    IF(idebug_wr(14).NE.0) THEN
-       WRITE(6,'(A,I4)') '*** idebug_wr(14): nstp=',nstp
-       WRITE(6,'(A,4ES12.4)') '      X0,Y1,Y2,Y3 =',X0,Y(1),Y(2),Y(3)
-       WRITE(6,'(A,4ES12.4)') '      Y4,Y5,Y6,Y7 =',Y(4),Y(5),Y(6),Y(7)
+    IF(idebug_wr(11).NE.0) THEN
+       WRITE(6,'(A,I8)') '*** idebug_wr(11): wrrkft_withd0: nstp=',nstp
+       WRITE(6,'(A,4ES12.4)') '      x0,y1,y2,y3 =',X0,Y(1),Y(2),Y(3)
+       WRITE(6,'(A,4ES12.4)') '      y4,y5,y6,y7 =',Y(4),Y(5),Y(6),Y(7)
     END IF
 
     CALL wr_write_line(NSTP,X0,Y,YN(8,NSTP))
@@ -246,12 +240,12 @@ CONTAINS
        PW=Y(7)
        CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
 
-       IF(idebug_wr(16).NE.0) THEN
-          WRITE(6,'(A,I4)') '*** idebug_wr(16): nstp=',nstp
-          WRITE(6,'(A,4ES12.4)') '      X0,Y1,Y2,Y3 =',X0,Y(1),Y(2),Y(3)
-          WRITE(6,'(A,4ES12.4)') '      Y4,Y5,Y6,Y7 =',Y(4),Y(5),Y(6),Y(7)
-          WRITE(6,'(A,4ES12.4)') '      XE,Y1,Y2,Y3 =',XE,YM(1),YM(2),YM(3)
-          WRITE(6,'(A,4ES12.4)') '      Y4,Y5,Y6,Y7 =',YM(4),YM(5),YM(6),YM(7)
+       IF(idebug_wr(11).NE.0) THEN
+          WRITE(6,'(A,I8)') '*** idebug_wr(11): wrrkft_withd0: nstp=',nstp
+          WRITE(6,'(A,4ES12.4)') '      x0,y1,y2,y3 =',X0,Y(1),Y(2),Y(3)
+          WRITE(6,'(A,4ES12.4)') '      y4,y5,y6,y7 =',Y(4),Y(5),Y(6),Y(7)
+          WRITE(6,'(A,4ES12.4)') '      xe,y1,y2,y3 =',XE,YM(1),YM(2),YM(3)
+          WRITE(6,'(A,4ES12.4)') '      y4,y5,y6,y7 =',YM(4),YM(5),YM(6),YM(7)
        END IF
 
        DELTA=DISPXR(YM(1),YM(2),YM(3),YM(4),YM(5),YM(6),omega)
@@ -498,9 +492,9 @@ CONTAINS
     ABSERR = EPSRAY
     INIT = 1
 
-    IF(idebug_wr(13).NE.0) THEN
-       WRITE(6,'(A,2I4)') '*** idebug_wr(13): nstp=',nstp
-       WRITE(6,'(A,4ES12.4)') '      X0,XE,SMAX,DELS =',X0,XE,SMAX,DELS
+    IF(idebug_wr(11).NE.0) THEN
+       WRITE(6,'(A,I8)') '*** idebug_wr(11): wrrkft_rkf: nstp=',nstp
+       WRITE(6,'(A,4ES12.4)') '      X0,xe,smax,dels =',X0,XE,SMAX,DELS
     END IF
        
     X0 = 0.D0
@@ -515,10 +509,10 @@ CONTAINS
     ENDDO
     YN(8,NSTP)=0.D0
 
-    IF(idebug_wr(14).NE.0) THEN
-       WRITE(6,'(A,2I4)') '*** idebug_wr(14): nstp=',nstp
-       WRITE(6,'(A,4ES12.4)') '      X0,Y1,Y2,Y3 =',X0,Y(1),Y(2),Y(3)
-       WRITE(6,'(A,4ES12.4)') '      Y4,Y5,Y6,Y7 =',Y(4),Y(5),Y(6),Y(7)
+    IF(idebug_wr(11).NE.0) THEN
+       WRITE(6,'(A,I8)') '*** idebug_wr(12): wrrkft_rkf: nstp=',nstp
+       WRITE(6,'(A,4ES12.4)') '      x0,y1,y2,y3 =',X0,Y(1),Y(2),Y(3)
+       WRITE(6,'(A,4ES12.4)') '      y4,y5,y6,y7 =',Y(4),Y(5),Y(6),Y(7)
     END IF
 
        CALL wr_write_line(NSTP,X0,Y,YN(8,NSTP))
@@ -738,11 +732,11 @@ CONTAINS
          F(7)=VDU*UU 
       ENDIF
 
-      IF(idebug_wr(15).NE.0) THEN
-         WRITE(6,'(A)') '*** idebug_wr(15): WRFDRV'
-         WRITE(6,'(A,3ES12.4)') 'X7:',X,Y(7),F(7)
-         WRITE(6,'(A,6ES12.4)') 'Y :',Y(1),Y(2),Y(3),Y(4),Y(5),Y(6)
-         WRITE(6,'(A,6ES12.4)') 'F :',F(1),F(2),F(3),F(4),F(5),F(6)
+      IF(idebug_wr(12).NE.0) THEN
+         WRITE(6,'(A)') '*** idebug_wr(12): wrfdrv'
+         WRITE(6,'(A,3ES12.4)') 'x7:',X,Y(7),F(7)
+         WRITE(6,'(A,6ES12.4)') 'y :',Y(1),Y(2),Y(3),Y(4),Y(5),Y(6)
+         WRITE(6,'(A,6ES12.4)') 'f :',F(1),F(2),F(3),F(4),F(5),F(6)
       END IF
       RETURN
   END SUBROUTINE WRFDRV

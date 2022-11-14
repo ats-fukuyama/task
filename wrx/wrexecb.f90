@@ -51,7 +51,7 @@ CONTAINS
   SUBROUTINE wr_exec_single_beam(NRAY,YN,nstp,ierr)
 
     USE wrcomm
-    USE wrsub,ONLY: wrcale,wrnwtn
+    USE wrsub,ONLY: wrcale
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NRAY
     INTEGER,INTENT(INOUT):: nstp

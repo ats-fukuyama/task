@@ -1,3 +1,4 @@
+
 !   wrsub.f90
 
 MODULE wrsub
@@ -17,8 +18,6 @@ MODULE wrsub
   PUBLIC wrcale_i
   PUBLIC wrcale_xyz
 
-  PUBLIC wrnwtn
-  
 CONTAINS
 
   ! *** calculate perpendicular wave numbers for parallel wave number ***
@@ -89,12 +88,13 @@ CONTAINS
 
 !  ----- calculate radial wave number satifying D=0 -----
 
-  SUBROUTINE wr_newton(omega,R,PHI,Z,angp,angt,rk_initial,rk_final,IERR)
+  SUBROUTINE wr_newton(omega,R,PHI,Z,angp,angt,modew,rk_initial,rk_final,IERR)
 
     USE wrcomm
     USE dppola
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: omega,R,PHI,Z,angp,angt,rk_initial
+    INTEGER,INTENT(IN):: modew
     REAL(rkind),INTENT(OUT):: rk_final
     INTEGER,INTENT(OUT):: IERR
     INTEGER:: ICOUNT
@@ -123,25 +123,37 @@ CONTAINS
 
     SELECT CASE(mdlwri)
     CASE(0,2,100,102)
-       rkr0=  rk0*COS(angp)*COS(angt)
-       rkph0= rk0*COS(angp)*SIN(angt)
-       rkz0=  rk0*SIN(angp)
-       rkr1=  rk1*COS(angp)*COS(angt)
-       rkph1= rk1*COS(angp)*SIN(angt)
-       rkz1=  rk1*SIN(angp)
-       rkr2=  rk2*COS(angp)*COS(angt)
-       rkph2= rk2*COS(angp)*SIN(angt)
-       rkz2=  rk2*SIN(angp)
+       rkr0= -rk0*COS(angp*deg)*COS(angt*deg)
+       rkph0= rk0*COS(angp*deg)*SIN(angt*deg)
+       rkz0=  rk0*SIN(angp*deg)
+       rkr1= -rk1*COS(angp*deg)*COS(angt*deg)
+       rkph1= rk1*COS(angp*deg)*SIN(angt*deg)
+       rkz1=  rk1*SIN(angp*deg)
+       rkr2= -rk2*COS(angp*deg)*COS(angt*deg)
+       rkph2= rk2*COS(angp*deg)*SIN(angt*deg)
+       rkz2=  rk2*SIN(angp*deg)
     CASE(1,3,101,103)
-       rkr0=  rk0*COS(angp)*COS(angt)
-       rkph0= rk0*COS(angp)*SIN(angt)
-       rkz0=  rk0*SIN(angp)*COS(angt)
-       rkr1=  rk1*COS(angp)*COS(angt)
-       rkph1= rk1*COS(angp)*SIN(angt)
-       rkz1=  rk1*SIN(angp)*COS(angt)
-       rkr2=  rk2*COS(angp)*COS(angt)
-       rkph2= rk2*COS(angp)*SIN(angt)
-       rkz2=  rk2*SIN(angp)*COS(angt)
+       rkr0= -rk0*COS(angp*deg)*COS(angt*deg)
+       rkph0= rk0              *SIN(angt*deg)
+       rkz0=  rk0*SIN(angp*deg)*COS(angt*deg)
+       rkr1= -rk1*COS(angp*deg)*COS(angt*deg)
+       rkph1= rk1              *SIN(angt*deg)
+       rkz1=  rk1*SIN(angp*deg)*COS(angt*deg)
+       rkr2= -rk2*COS(angp*deg)*COS(angt*deg)
+       rkph2= rk2              *SIN(angt*deg)
+       rkz2=  rk2*SIN(angp*deg)*COS(angt*deg)
+    END SELECT
+    SELECT CASE(modew)
+    CASE(2,3)
+       rkr0 =-rkr0
+       rkph0=-rkph0
+       rkz0 =-rkz0
+       rkr1 =-rkr1
+       rkph1=-rkph1
+       rkz1 =-rkz1
+       rkr2 =-rkr2
+       rkph2=-rkph2
+       rkz2 =-rkz2
     END SELECT
 
     rkx0=rkr0*COS(PHI)-rkph0*SIN(PHI)
@@ -156,8 +168,8 @@ CONTAINS
       -DISPXR(XP,YP,ZP,rkx2,rky2,rkz2,omega))/(2*delrk)
 
     rk_new=rk-S/T
-    IF(idebug_wr(8).NE.0) THEN
-       WRITE(6,'(A,2I4)') '*** idebug_wr(8):'
+    IF(idebug_wr(6).NE.0) THEN
+       WRITE(6,'(A,2I4)') '*** idebug_wr(6):'
        WRITE(6,'(A,3ES12.4)') '      rk,rk_new,-S/T=',rk,rk_new,-S/T
     END IF
 
@@ -166,7 +178,7 @@ CONTAINS
     rk=rk_new
     GOTO 10
 
-8000 WRITE(6,*) ' WRNWTN: DOES NOT CONVERGE'
+8000 WRITE(6,*) 'XX wr_newton: DOES NOT CONVERGE'
     IERR=1000
 9000 CONTINUE
     rk_final=rk_new
@@ -175,9 +187,9 @@ CONTAINS
     cky=rky0
     ckz=rkz0
     CALL dp_pola(crf,ckx,cky,ckz,xp,yp,zp,cdet,cepola,err)
-    IF(idebug_wr(9).NE.0) THEN
-       WRITE(6,'(A,2I4)') '*** idebug_wr(9):'
-       WRITE(6,'(A,2ES12.4)') '   CRF=',crf
+    IF(idebug_wr(7).NE.0) THEN
+       WRITE(6,'(A,2I4)') '*** idebug_wr(7):'
+       WRITE(6,'(A,3ES12.4)') '   CRF=',crf,rk0
        WRITE(6,'(A,6ES12.4)') '   K,X=',rkx0,rky0,rkz0,xp,yp,zp
        WRITE(6,'(A,6ES12.4)') '   cep=',cepola(1),cepola(2),cepola(3)
        WRITE(6,'(A,ES12.4)')  '   err=',err
@@ -869,86 +881,5 @@ CONTAINS
               +ABS(CUEZ)**2*(1.D0-mag%bnz**2))
     RETURN
   END SUBROUTINE WRCALE_XYZ
-
-!  ----- calculate radial wave number satifying D=0 -----
-
-  SUBROUTINE WRNWTN(RF,R,PHI,Z,RKPH,RKZ,RKR_initial,RKR_final,IERR)
-
-    USE wrcomm
-    USE dppola
-    IMPLICIT NONE
-    REAL(rkind),INTENT(IN):: RF,R,PHI,Z,RKPH,RKZ,RKR_initial
-    REAL(rkind),INTENT(OUT):: RKR_final
-    INTEGER,INTENT(OUT):: IERR
-    INTEGER:: ICOUNT
-    REAL(rkind):: omega,S,T,RKR,RKR_PRE
-    REAL(rkind):: XP,YP,ZP,RKXP,RKXP1,RKXP2,RKYP,RKYP1,RKYP2,RKZP
-    COMPLEX(rkind):: cdet(3,3),cepola(3),CRF,CKX,CKY,CKZ
-    REAL(rkind):: err
-
-    IERR=0
-    omega=2.D6*PI*RF
-    RKR_PRE=RKR_initial
-
-    IF(MODELG.EQ.0.OR.MODELG.EQ.1.OR.MODELG.EQ.11) THEN
-       XP= R
-       YP= PHI
-       ZP= ZP
-       RKZP= RKZ
-    ELSE
-       XP= R*COS(PHI)
-       YP= R*SIN(PHI)
-       ZP= Z
-       RKZP= RKZ
-    ENDIF
-
-      ICOUNT=0
- 10   CONTINUE
-      ICOUNT=ICOUNT+1
-
-    IF(MODELG.EQ.0.OR.MODELG.EQ.1.OR.MODELG.EQ.11) THEN
-       RKXP=  RKR_PRE
-       RKXP1= RKR_PRE+DELKR
-       RKXP2= RKR_PRE-DELKR
-       RKYP=  RKPH
-       RKYP1= RKYP
-       RKYP2= RKYP
-    ELSE
-       RKXP=  RKR_PRE       *COS(PHI)-RKPH*SIN(PHI)
-       RKXP1=(RKR_PRE+DELKR)*COS(PHI)-RKPH*SIN(PHI)
-       RKXP2=(RKR_PRE-DELKR)*COS(PHI)-RKPH*SIN(PHI)
-       RKYP=  RKR_PRE       *SIN(PHI)+RKPH*COS(PHI)
-       RKYP1=(RKR_PRE+DELKR)*SIN(PHI)+RKPH*COS(PHI)
-       RKYP2=(RKR_PRE-DELKR)*SIN(PHI)+RKPH*COS(PHI)
-    ENDIF
-
-      S= DISPXR(XP,YP,ZP,RKXP, RKYP, RKZP,omega)
-      T=(DISPXR(XP,YP,ZP,RKXP1,RKYP1,RKZP,omega) &
-        -DISPXR(XP,YP,ZP,RKXP2,RKYP2,RKZP,omega))/(2*DELKR)
-
-      RKR=RKR_PRE-S/T
-      IF(MDLWRW.EQ.1) &
-           WRITE(6,'(A,1P3E12.4)') 'RKR,RKR_PRE,-S/T=',RKR,RKR_PRE,-S/T
-
-      IF(ABS((RKR-RKR_PRE)/RKR_PRE).LE.EPSNW) GOTO 9000
-      IF(ICOUNT.GT.LMAXNW) GOTO 8000
-      RKR_PRE=RKR
-      GOTO 10
-
-8000  WRITE(6,*) ' WRNWTN: DOES NOT CONVERGE'
-      IERR=1000
-9000  CONTINUE
-      RKR_final=RKR
-      CRF=DCMPLX(omega/(2.D6*PI),0.D0)
-      CKX=RKXP
-      CKY=RKYP
-      CKZ=RKZP
-      CALL dp_pola(crf,ckx,cky,ckz,xp,yp,zp,cdet,cepola,err)
-      WRITE(6,'(A,1P2E12.4)') 'CRF=',crf
-      WRITE(6,'(A,1P6E12.4)') 'K,X=',rkxp,rkyp,rkzp,xp,yp,zp
-      WRITE(6,'(A,1P6E12.4)') 'cep=',cepola(1),cepola(2),cepola(3)
-      WRITE(6,'(A,1PE12.4)')  'err=',err
-      RETURN   
-  END SUBROUTINE WRNWTN
 
 END MODULE wrsub

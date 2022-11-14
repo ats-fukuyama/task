@@ -20,17 +20,16 @@ CONTAINS
 !     RPIN    : INITIAL MAJOR RADIUS R [M]
 !     ZPIN    : INITIAL VERTICAL POSITION Z [M]
 !     PHIIN   : INITIAL TOROIDAL ANGLE [RADIAN]
-!     RNKPIN  : INITIAL poloidal REFRACTIVE INDEX
-!     RNKTIN  : INITIAL toroidal REFRACTIVE INDEX
-!     ANGPIN  : INITIAL poloidal injection angle [degree] from horizonal plane
 !     ANGTIN  : INITIAL toroidal injection angle [degree] from equi-phi plane
+!     ANGPIN  : INITIAL poloidal injection angle [degree] from horizonal plane
+!     RNPHIN  : INITIAL poloidal REFRACTIVE INDEX
 !     MODEWIN : Selection of initial wave mode
 !              0: slow wave: larger k  (negative, inward for forward wave)
 !              1: fast wave: smaller k (negative, inward for forward wave)
 !              2: slow wave: larger k  (positive, inward for backward wave)
 !              3: fast wave: smaller k (positive, inward for backward wave) 
-!     RNKIN   : INITIAL estimate of inirial refractive index (1.D0 for vaccum)
-!     UUIN    : INITIAL WAVE ENERGY
+!     RNKIN   : INITIAL estimate of initial refractive index (1.D0 for vaccum)
+!     UUIN    : INITIAL WAVE ENERGY (default 1.D0)
 
 !     RCURVA : INITIAL WAVE-FRONT CURVATURE RADIUS (0 for Plane wave)
 !     RCURVB : INITIAL WAVE-FRONT CURVATURE RADIUS (0 for Plane wave)
@@ -48,11 +47,10 @@ CONTAINS
          RPIN(NRAY)     = 3.95D0
          ZPIN(NRAY)     = 0.D0
          PHIIN(NRAY)    = 0.D0
-         ANGPIN(NRAY)   = 0.D0
          ANGTIN(NRAY)   = 0.D0
-         RNKPIN(NRAY)   = 0.0D0
-         RNKTIN(NRAY)   = 0.5D0
-         MODEWIN(NRAY)  = 1
+         ANGPIN(NRAY)   = 0.D0
+         RNPHIN(NRAY)   = 0.0D0
+         MODEWIN(NRAY)  = 0
          rnkin(nray)    = 1.d0
          UUIN(NRAY)     = 1.D0
          RCURVAIN(NRAY) = 0.D0
@@ -84,12 +82,19 @@ CONTAINS
       mode_beam=0
 
 !     MDLWRI : INPUT TYPE OF WAVE PARAMETERS
-!        0,1 : RFIN,RPIN,ZPIN,PHIIN,ANGPIN,ANGTIN,MODEWIN,UUIN: interactive
-!        2,3 : RFIN,RPIN,ZPIN,PHIIN,RNPIN,RNTIN,MODEWIN,UUIN:   interactive
-!    100,101 : RFIN,RPIN,ZPIN,PHIIN,ANGPIN,ANGTIN,MODEWIN,UUIN: namelist
-!    102,103 : RFIN,RPIN,ZPIN,PHIIN,RNPIN,RNTIN,MODEWIN,UUIN:   namelist
-!    0,2,100,102: poloidal first definition: k_p = k sin angp
-!    1,3,101,103: toridal first definition:  k_t = k sin angt
+!        0,1 : RFIN,RPIN,ZPIN,PHIIN,ANGTIN,ANGPIN,MODEWIN,RNKIN,UUIN: input
+!        2,3 : RFIN,RPIN,ZPIN,PHIIN,RNPHIN,ANGPIN,MODEWIN,RNKIN,UUIN: input
+!    100,101 : RFIN,RPIN,ZPIN,PHIIN,ANGTIN,ANGPIN,MODEWIN,RNKIN,UUIN: no input
+!    102,103 : RFIN,RPIN,ZPIN,PHIIN,RNPHIN,ANGPIN,MODEWIN,RNKIN,UUIN: no inpu
+!
+!        0,1,2,3:         interactive, with line input
+!        100,101,102,103: non-interactive, namelist only
+!
+!        0,1,101,102: toroidal angle and poloidal angle
+!        2,3,102,103: toroidal refractive index and poloidal angle
+!
+!        0,2,100,102: poloidal first definition: k_p = k sin angp
+!        1,3,101,103: toroidal first definition: k_t = k sin angt
       
 !     MDLWRG : TYPE OF GRAPHICS
 !              0 : FULL TORUS, FULL RADIUS FOR DEPOSITION
@@ -141,7 +146,7 @@ CONTAINS
       NRSMAX   = 100
       NRLMAX   = 200
 
-      MDLWRI = 1
+      MDLWRI = 100
       MDLWRG = 0
       MDLWRP = 1
       MDLWRQ = 1
@@ -166,6 +171,22 @@ CONTAINS
       Zmax_wr=0.D0
       Zmin_wr=0.D0
 
+      ! --- debug output contral ---
+      !        idebug_wr =  1: initial position, wave number, denisty
+      !        idebug_wr =  2: vacuum step position, density
+      !        idebug_wr =  3: initial plasma position, wave number
+      !        idebug_wr =  4: initial plasma position, k_para, kperp 
+      !        idebug_wr =  5: initial plasma position, k convergence check
+      !        idebug_wr =  6: wr_newton: iteration rk
+      !        idebug_wr =  7: wr_newton: polarization check
+      !        idebug_wr =  8: plasma step: position, wave number
+      !        idebug_wr = 11: wrrkft: initial and each step
+      !        idebug_wr = 12: wrfdrv: functions and derivatives
+      !        idebug_wr = 90: wrgout: wrgrf5: R,cexyz,ceoxp, error
+      !        idebug_wr = 91: wrgout: wrgrf6: nres_max
+      !        idebug_wr = 92: wrgout: wrgrf2: gxorg,gxstep,gystep
+      
+      
       DO i=1,idebug_max
          idebug_wr(i)=0
       END DO

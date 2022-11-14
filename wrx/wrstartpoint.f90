@@ -15,7 +15,7 @@
     TYPE(pl_mag_type):: mag
     TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
     TYPE(pl_prf_type),DIMENSION(nsmax):: plf
-    REAL(rkind):: RF,RP,ZP,PHI,RNK,RNKP,RNKT,ANGP,ANGT,UU
+    REAL(rkind):: RF,RP,ZP,PHI,RNPH,ANGT,ANGP,RNK,UU
     INTEGER:: MODEW,mode,icount
     REAL(rkind):: XP,YP,omega,rkv,s,deg,factor,omega_pe2,rne
     REAL(rkind):: rhon,rk,rk_new,rkpara,rkperp,rkperp1,rkperp2
@@ -30,21 +30,12 @@
     RP=RPIN(NRAY)
     ZP=ZPIN(NRAY)
     PHI=PHIIN(NRAY)
-    RNK=RNKIN(NRAY)
-    RNKP=RNKPIN(NRAY)
-    RNKT=RNKTIN(NRAY)
-    ANGP=ANGPIN(NRAY)
+    RNPH=RNPHIN(NRAY)
     ANGT=ANGTIN(NRAY)
-    MODEW=MODEWIN(NRAY)
+    ANGP=ANGPIN(NRAY)
+    RNK=RNKIN(NRAY)
     UU=UUIN(NRAY)
-
-    IF(idebug_wr(1).NE.0) THEN
-       WRITE(6,'(A,I4)')         '*** idebug_wr(1): nray=',nray
-       WRITE(6,'(A,3ES12.4)')    'rp,zp,phi=         ',rp,zp,phi
-       WRITE(6,'(A,3ES12.4)')    'rnk,rnkp,rnkt=     ',rnk,rnkp,rnkt
-       WRITE(6,'(A,3ES12.4)')    'rnk,angp,angt=     ',rnk,angp,angt
-       WRITE(6,'(A,2ES12.4,I4)') 'rf,uu,modew=       ',rf,uu,modew
-    END IF
+    MODEW=MODEWIN(NRAY)
 
     ! --- save initial vaariables in RAYIN ---
 
@@ -77,7 +68,7 @@
        rkz=  rk*SIN(angp*deg)
     CASE(1,3,101,103)
        rkr= -rk*COS(angp*deg)*COS(angt*deg)
-       rkph= rk*SIN(angt*deg)
+       rkph= rk              *SIN(angt*deg)
        rkz=  rk*SIN(angp*deg)*COS(angt*deg)
     END SELECT
     SELECT CASE(modew)
@@ -101,15 +92,6 @@
     YN(6,nstp)= RKZ
     YN(7,nstp)= UU
     
-    IF(idebug_wr(2).NE.0) THEN
-       WRITE(6,'(A,2I4)')     '*** idebug_wr(2): nray,nstp=',nray,nstp
-       WRITE(6,'(A,3ES12.4)') '   xp,yp,zp    =',XP,YP,ZP
-       WRITE(6,'(A,3ES12.4)') '   rkr,rkph,rkz=',RKR,RKPH,RKZ
-       WRITE(6,'(A,3ES12.4)') '   rkx,rky,rkz =',RKX,RKY,RKZ
-       WRITE(6,'(A,3ES12.4)') '   rnx,rny,rnz =',RKX/rkv,RKY/rkv,RKZ/rkv
-       WRITE(6,'(A,2ES12.4)') '   UU,S           =',UU,S
-    END IF
-
     ! --- set magnetic field and minor radius at the start point ---
 
     CALL pl_mag(XP,YP,ZP,mag)
@@ -123,9 +105,16 @@
     omega_pe2=rne*1.D20*AEE*AEE/(AME*EPS0)
     factor=omega_pe2/omega**2
 
-    IF(idebug_wr(3).NE.0) THEN
-       WRITE(6,'(A)') '*** idebug_wr(3): xp,yp,zp,rhon,rne,factor='
-       WRITE(6,'(6ES12.4)') xp,yp,zp,rhon,rne,factor
+    IF(idebug_wr(1).NE.0) THEN
+       WRITE(6,'(A,A,I4,I8)') '*** idebug_wr(1): wr_setup_start_point: ', &
+            'nray,nstp=',nray,nstp
+       WRITE(6,'(A,3ES12.4)') '   rf,rnk,rk      =',rf,rnk,rk
+       WRITE(6,'(A,3ES12.4)') '   xp,yp,zp       =',XP,YP,ZP
+       WRITE(6,'(A,3ES12.4)') '   rkr,rkph,rkz   =',RKR,RKPH,RKZ
+       WRITE(6,'(A,3ES12.4)') '   rkx,rky,rkz    =',RKX,RKY,RKZ
+       WRITE(6,'(A,3ES12.4)') '   rnx,rny,rnz    =',RKX/rkv,RKY/rkv,RKZ/rkv
+       WRITE(6,'(A,2ES12.4)') '   uu,s           =',UU,S
+       WRITE(6,'(A,3ES12.4)') '   rhon,rne,factor=',rhon,rne,factor
     END IF
     
     ! --- If normalized density is below the threshold ---
@@ -156,11 +145,6 @@
           YN(6,nstp)= RKZ
           YN(7,nstp)= UU
           
-          IF(idebug_wr(4).NE.0) THEN
-             WRITE(6,'(A,2I4)') '*** idebug_wr(4): nray,nstp=',nray,nstp
-             WRITE(6,'(A,4ES12.4)') '   xp,yp,zp,s =',XP,YP,ZP,S
-          END IF
-
           ! --- set magnetic field and minor radius at the new point ---
 
           CALL pl_mag(XP,YP,ZP,mag)
@@ -174,8 +158,9 @@
           omega_pe2=rne*1.D20*AEE*AEE/(AME*EPS0)
           factor=omega_pe2/omega**2
 
-          IF(idebug_wr(5).NE.0) THEN
-             WRITE(6,'(A)') '*** idebug_wr(5): xp,yp,zp,rhon,rne,factor='
+          IF(idebug_wr(2).NE.0) THEN
+             WRITE(6,'(A,A)') '*** idebug_wr(2): wr_setup_start_point: ', &
+                  'xp,yp,zp,rhon,rne,factor='
              WRITE(6,'(6ES12.4)') xp,yp,zp,rhon,rne,factor
           END IF
           
@@ -227,7 +212,7 @@
           rkz=  rk*SIN(angp*deg)
        CASE(1,3,101,103)
           rkr= -rk*COS(angp*deg)*COS(angt*deg)
-          rkph= rk*SIN(angt*deg)
+          rkph= rk              *SIN(angt*deg)
           rkz=  rk*SIN(angp*deg)*COS(angt*deg)
        END SELECT
        SELECT CASE(modew)
@@ -239,8 +224,9 @@
        rkx=rkr*COS(phi)-rkph*SIN(phi)
        rky=rkr*SIN(phi)+rkph*COS(phi)
 
-       IF(idebug_wr(6).NE.0) THEN
-          WRITE(6,'(A,2I4)')     '*** idebug_wr(6): nray,nstp=',nray,nstp
+       IF(idebug_wr(3).NE.0) THEN
+          WRITE(6,'(2A,I4,I8)')  '*** idebug_wr(3): wr_setup_start_point: ', &
+               'nray,nstp=',nray,nstp
           WRITE(6,'(A,4ES12.4)') '   xp,yp,zp,s  =',XP,YP,ZP,S
           WRITE(6,'(A,3ES12.4)') '   rkr,rkph,rkz=',RKR,RKPH,RKZ
           WRITE(6,'(A,3ES12.4)') '   rkx,rky,rkz =',RKX,RKY,RKZ
@@ -253,12 +239,15 @@
        rkpara=rkx*mag%bnx+rky*mag%bny+rkz*mag%bnz
        CALL wr_cold_rkperp(omega,RP,ZP,PHI,rkpara,rkperp1,rkperp2)
 
-       IF(idebug_wr(7).NE.0) THEN
-          WRITE(6,'(A,2I4)') '*** idebug_wr(7): nray,nstp=',nray,nstp
+       IF(idebug_wr(4).NE.0) THEN
+          WRITE(6,'(A,I4,I8,I4)') &
+               '*** idebug_wr(4): wr_setup_start_point: nray,nstp,icoutn=', &
+               nray,nstp,icount
           WRITE(6,'(A)')     '  rkpara,rkperp1,rkperp2,rnpara,rnperp1,rnperp2='
           WRITE(6,'(6ES12.4)')  &
                rkpara,rkperp1,rkperp2,rkpara/rkv,rkperp1/rkv,rkperp2/rkv
-          WRITE(6,'(4ES12.4)')  &
+          WRITE(6,'(A,4ES12.4)') &
+               '  rk1,rk2,rn1,rn2=', &
                SQRT(rkpara**2+rkperp1**2),SQRT(rkpara**2+rkperp2**2), &
                SQRT(rkpara**2+rkperp1**2)/rkv,SQRT(rkpara**2+rkperp2**2)/rkv
        END IF
@@ -282,10 +271,12 @@
        
        IF(ABS(rk_new-rk).LT.epsnw) THEN
           mode=2
-          IF(idebug_wr(8).NE.0) THEN
-             WRITE(6,'(A,2I4)')  '*** idebug_wr(8): nray,nstp=',nray,nstp
-             WRITE(6,'(A)')         '    rk,rk_new,residual='
-             WRITE(6,'(A,3ES12.4)') '   ',rk,rk_new,ABS(rk_new-rk)
+          IF(idebug_wr(5).NE.0) THEN
+             WRITE(6,'(A,A,I4,I8,I4)') &
+                  '*** idebug_wr(5): wr_setup_start_point: ', &
+                  'nray,nstp,icount=',nray,nstp,icount
+             WRITE(6,'(A,3ES12.4)') &
+                  '     rk,rk_new,residual=',rk,rk_new,ABS(rk_new-rk)
           END IF
           rk=rk_new
           EXIT
@@ -307,15 +298,10 @@
           
     ! --- confirm wave number by newton ---
     
-    CALL wr_newton(omega,RP,ZP,PHI,angp,angt,rk,rk_new,ierr)
+    CALL wr_newton(omega,RP,PHI,ZP,angp,angt,modew,rk,rk_new,ierr)
     IF(ierr.NE.0) THEN
        ierr=2000+ierr
        RETURN
-    END IF
-
-    IF(idebug_wr(9).NE.0) THEN
-       WRITE(6,'(A,2I4)') '*** idebug_wr(9): nray,nstp=',nray,nstp
-       WRITE(6,'(A,2ES12.4)') '      rk,rk_new=',rk,rk_new
     END IF
 
     XP=RP*COS(PHI)
@@ -348,12 +334,14 @@
     YN(6,nstp)= RKZ
     YN(7,nstp)= UU
           
-    IF(idebug_wr(10).NE.0) THEN
-       WRITE(6,'(A,2I4)') '*** idebug_wr(10): nray,nstp=',nray,nstp
+    IF(idebug_wr(8).NE.0) THEN
+       rk=SQRT(rkx**2+rky**2+rkz**2)
+       WRITE(6,'(A,A,I4,I8)') '*** idebug_wr(8): wr_setup_start_point: ', &
+            'nray,nstp=',nray,nstp
        WRITE(6,'(A,3ES12.4)') '   xp,yp,zp    =',XP,YP,ZP
        WRITE(6,'(A,3ES12.4)') '   rkx,rky,rkz =',RKX,RKY,RKZ
        WRITE(6,'(A,3ES12.4)') '   rnx,rny,rnz =',RKX/rkv,RKY/rkv,RKZ/rkv
-       WRITE(6,'(A,2ES12.4)') '   UU,S           =',UU,S
+       WRITE(6,'(A,2ES12.4)') '   UU,S,RK,RN  =',UU,S,rk,rk/rkv
     END IF
 
     RETURN

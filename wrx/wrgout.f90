@@ -234,7 +234,6 @@ CONTAINS
        CALL SETLIN(0,2,7-MOD(NRAY-1,5))
        CALL GPLOTP(GX,GY,1,NSTPMAX_NRAY(NRAY)+1,1,0,0,0)
     ENDDO
-    CALL SETLIN(0,2,7)
 
 
 !   ----- draw deposition profile vs minor radius -----
@@ -258,6 +257,7 @@ CONTAINS
 !    GYSMAX=MAX(GYSMAX1,GYSMAX2)
 !    GYSCAL=MAX(GYSCAL1,GYSCAL2)
 
+    CALL SETLIN(0,2,7)
     CALL MOVE(13.5,16.1)
     CALL TEXT('ABS POWER*RS',12)
     IF(MOD(MDLWRG/2,2).EQ.0) THEN
@@ -281,7 +281,6 @@ CONTAINS
        CALL SETLIN(0,2,7-MOD(NRAY-1,5))
        CALL GPLOTP(GPX,GPY(1:nrsmax,nray),1,nrsmax,1,0,0,0)
     ENDDO
-    CALL SETLIN(0,2,7)
 
 !  ----- draw power flux vs minor radius -----
       
@@ -289,6 +288,7 @@ CONTAINS
     GZSMAX=1.1
     GZSCAL=0.2
 
+    CALL SETLIN(0,2,7)
     CALL MOVE(13.5,8.1)
     CALL TEXT('POWER FLUX',10)
     IF(MOD(MDLWRG/2,2).EQ.0) THEN
@@ -382,8 +382,8 @@ CONTAINS
     CALL PAGES
     CALL SETCHS(0.25,0.)
     CALL SETFNT(32)
-    CALL SETLIN(0,2,7)
 
+    CALL SETLIN(0,2,7)
     CALL GDEFIN(1.7,11.7,1.0,11.0,GXMIN,GXMAX,GYMIN,GYMAX)
     CALL GFRAME
 
@@ -424,10 +424,10 @@ CONTAINS
     CALL GQSCAL(GYMIN,GYMAX,GYSMIN,GYSMAX,GYSCAL)
     CALL GQSCAL(GRMIN,GRMAX,GRSMIN,GRSMAX,GRSCAL)
     
+    CALL SETLIN(0,2,7)
     CALL MOVE(13.5,16.1)
     CALL TEXT('ABS POWER vs R',10)
     CALL GDEFIN(13.5,23.5,9.0,16.0,GRSMIN,GRSMAX,0.0,GYSMAX)
-    CALL SETLIN(0,2,7)
     CALL GFRAME
     CALL GSCALE(GRSMIN,  GRSCAL,0.0,GYSCAL,0.1,9)
     CALL GVALUE(GRSMIN,2*GRSCAL,0.0,   0.0,NGULEN(2*GRSCAL))
@@ -443,10 +443,10 @@ CONTAINS
     GZSMAX=1.1
     GZSCAL=0.2
 
+    CALL SETLIN(0,2,7)
     CALL MOVE(13.5,8.1)
     CALL TEXT('POWER FLUX',10)
     CALL GDEFIN(13.5,23.5,1.0,8.0,GRSMIN,GRSMAX,0.0,GZSMAX)
-    CALL SETLIN(0,2,7)
     CALL GFRAME
     CALL GSCALE(GRSMIN,  GRSCAL,0.0,GZSCAL,0.1,9)
     CALL GVALUE(GRSMIN,2*GRSCAL,0.0,   0.0,NGULEN(2*GRSCAL))
@@ -528,12 +528,12 @@ CONTAINS
        GYMIN2=MIN(GYMIN2,GYMIN)
        GYMAX2=MAX(GYMAX2,GYMAX)
     ENDDO
-
     CALL GQSCAL(GYMIN1,GYMAX1,GYMIN,GYMAX,GYSTEP)
+
+    CALL SETLIN(0,2,7)
     CALL MOVE(1.7,16.1)
     CALL TEXT('n-para vs rhon',6)
     CALL GDEFIN(1.7,11.7,9.0,16.0,0.0,GXMAX,GYMIN,GYMAX)
-    CALL SETLIN(0,2,7)
     CALL GFRAME
     GYORG=(INT(GYMIN/(2*GYSTEP))+1)*2*GYSTEP
     CALL GSCALE(0.0,GXSTEP,GYMIN,GYSTEP,0.1,9)
@@ -546,10 +546,11 @@ CONTAINS
     ENDDO
 
     CALL GQSCAL(GYMIN2,GYMAX2,GYMIN,GYMAX,GYSTEP)
+
+    CALL SETLIN(0,2,7)
     CALL MOVE(1.7,8.1)
     CALL TEXT('k-perp vs rhon',6)
     CALL GDEFIN(1.7,11.7,1.0,8.0,0.0,GXMAX,GYMIN,GYMAX)
-    CALL SETLIN(0,2,7)
     CALL GFRAME
     GYORG=(INT(GYMIN/(2*GYSTEP))+1)*2*GYSTEP
     CALL GSCALE(0.0,GXSTEP,GYORG,GYSTEP,0.1,9)
@@ -601,10 +602,11 @@ CONTAINS
     ENDDO
 
     CALL GQSCAL(GYMIN1,GYMAX1,GYMIN,GYMAX,GYSTEP)
+
+    CALL SETLIN(0,2,7)
     CALL MOVE(13.7,16.1)
     CALL TEXT('n-para vs R',11)
     CALL GDEFIN(13.7,23.7,9.0,16.0,GXMIN,GXMAX,GYMIN,GYMAX)
-    CALL SETLIN(0,2,7)
     CALL GFRAME
     GYORG=(INT(GYMIN/(2*GYSTEP))+1)*2*GYSTEP
     CALL GSCALE(GXMIN,GXSTEP,GYMIN,GYSTEP,0.1,9)
@@ -617,10 +619,11 @@ CONTAINS
     ENDDO
 
     CALL GQSCAL(GYMIN2,GYMAX2,GYMIN,GYMAX,GYSTEP)
+
+    CALL SETLIN(0,2,7)
     CALL MOVE(13.7,8.1)
     CALL TEXT('k-perp vs R',11)
     CALL GDEFIN(13.7,23.7,1.0,8.0,GXMIN,GXMAX,GYMIN,GYMAX)
-    CALL SETLIN(0,2,7)
     CALL GFRAME
     GYORG=(INT(GYMIN/(2*GYSTEP))+1)*2*GYSTEP
     CALL GSCALE(GXMIN,GXSTEP,GYORG,GYSTEP,0.1,9)
@@ -661,7 +664,6 @@ CONTAINS
     CALL PAGES
     CALL SETFNT(32)
     CALL SETCHS(0.25,0.)
-    CALL SETLIN(0,2,7)
 
 !     ----- X AXIS -----
 
@@ -695,10 +697,10 @@ CONTAINS
     ENDDO
     CALL GQSCAL(GYMIN1,GYMAX1,GYMIN,GYMAX,GYSTEP)
 
+    CALL SETLIN(0,2,7)
     CALL MOVE(1.7,16.1)
     CALL TEXT('k-R',3)
     CALL GDEFIN(1.7,11.7,9.0,16.0,0.0,GXMAX,GYMIN,GYMAX)
-    CALL SETLIN(0,2,7)
     CALL GFRAME
     GYORG=(INT(GYMIN/(2*GYSTEP))+1)*2*GYSTEP
     CALL GSCALE(0.0,GXSTEP,GYORG,GYSTEP,0.1,9)
@@ -726,10 +728,10 @@ CONTAINS
     ENDDO
     CALL GQSCAL(GYMIN1,GYMAX1,GYMIN,GYMAX,GYSTEP)
 
+    CALL SETLIN(0,2,7)
     CALL MOVE(13.7,16.1)
     CALL TEXT('k-Z',3)
     CALL GDEFIN(13.7,23.7,9.0,16.0,0.0,GXMAX,GYMIN,GYMAX)
-    CALL SETLIN(0,2,7)
     CALL GFRAME
     GYORG=(INT(GYMIN/(2*GYSTEP))+1)*2*GYSTEP
     CALL GSCALE(0.0,GXSTEP,GYORG,GYSTEP,0.1,9)
@@ -759,10 +761,10 @@ CONTAINS
     ENDDO
     CALL GQSCAL(GYMIN1,GYMAX1,GYMIN,GYMAX,GYSTEP)
 
+    CALL SETLIN(0,2,7)
     CALL MOVE(1.7,8.1)
     CALL TEXT('k-phi',5)
     CALL GDEFIN(1.7,11.7,1.0,8.0,0.0,GXMAX,GYMIN,GYMAX)
-    CALL SETLIN(0,2,7)
     CALL GFRAME
     GYORG=(INT(GYMIN/(2*GYSTEP))+1)*2*GYSTEP
     CALL GSCALE(0.0,GXSTEP,GYORG,GYSTEP,0.1,9)
@@ -790,10 +792,11 @@ CONTAINS
        GYMAX1=MAX(GYMAX1,GYMAX)
     ENDDO
     CALL GQSCAL(GYMIN1-1.0,GYMAX1+1.0,GYMIN,GYMAX,GYSTEP)
+
+    CALL SETLIN(0,2,7)
     CALL MOVE(13.7,8.1)
     CALL TEXT('R*k-phi',7)
     CALL GDEFIN(13.7,23.7,1.0,8.0,0.0,GXMAX,GYMIN,GYMAX)
-    CALL SETLIN(0,2,7)
     CALL GFRAME
     GYORG=(INT(GYMIN/(2*GYSTEP))+1)*2*GYSTEP
     CALL GSCALE(0.0,GXSTEP,GYORG,GYSTEP,0.1,9)
@@ -845,7 +848,7 @@ CONTAINS
        
        CALL wrcalep(nstp1,nray,cepola,cenorm,err)
        IF(idebug_wr(90).NE.0) THEN
-          WRITE(6,'(A,2I6,1PE12.4)') 'nray,nstp,R=',nray,nstp1, &
+          WRITE(6,'(A,I4,I8,1PE12.4)') 'nray,nstp,R=',nray,nstp1, &
                SQRT(rays(1,nstp1,nray)**2+rays(2,nstp1,nray)**2)
           WRITE(6,'(A,1P6E12.4)')    'cexyz=',(cepola(i),i=1,3)
           WRITE(6,'(A,1P6E12.4)')    'ceoxp=',(cenorm(i),i=1,3)
@@ -853,7 +856,7 @@ CONTAINS
 
        CALL wrcalep(nstp2,nray,cepola,cenorm,err)
        IF(idebug_wr(90).NE.0) THEN
-          WRITE(6,'(A,2I6,1PE12.4)') 'nray,nstp,R=',nray,nstp2, &
+          WRITE(6,'(A,I4,I8,1PE12.4)') 'nray,nstp,R=',nray,nstp2, &
                SQRT(rays(1,nstp2,nray)**2+rays(2,nstp2,nray)**2)
           WRITE(6,'(A,1P6E12.4)')    'cexyz=',(cepola(i),i=1,3)
           WRITE(6,'(A,1P6E12.4)')    'ceoxp=',(cenorm(i),i=1,3)
@@ -861,7 +864,7 @@ CONTAINS
        
        CALL wrcalep(nstp3,nray,cepola,cenorm,err)
        IF(idebug_wr(90).NE.0) THEN
-          WRITE(6,'(A,2I6,1PE12.4)') 'nray,nstp,R=',nray,nstp3, &
+          WRITE(6,'(A,I4,I8,1PE12.4)') 'nray,nstp,R=',nray,nstp3, &
                SQRT(rays(1,nstp3,nray)**2+rays(2,nstp3,nray)**2)
           WRITE(6,'(A,1P6E12.4)')    'cexyz=',(cepola(i),i=1,3)
           WRITE(6,'(A,1P6E12.4)')    'ceoxp=',(cenorm(i),i=1,3)
@@ -869,7 +872,7 @@ CONTAINS
        
        CALL wrcalep(nstp4,nray,cepola,cenorm,err)
        IF(idebug_wr(90).NE.0) THEN
-          WRITE(6,'(A,2I6,1PE12.4)') 'nray,nstp,R=',nray,nstp4, &
+          WRITE(6,'(A,I4,I8,1PE12.4)') 'nray,nstp,R=',nray,nstp4, &
                SQRT(rays(1,nstp4,nray)**2+rays(2,nstp4,nray)**2)
           WRITE(6,'(A,1P6E12.4)')    'cexyz=',(cepola(i),i=1,3)
           WRITE(6,'(A,1P6E12.4)')    'ceoxp=',(cenorm(i),i=1,3)
@@ -909,7 +912,7 @@ CONTAINS
        END DO
     END DO
     IF(idebug_wr(90).NE.0) THEN
-       WRITE(6,'(A,I5,1PE12.4)') 'nray,errmax=',nray,errmax
+       WRITE(6,'(A,I4,1PE12.4)') 'nray,errmax=',nray,errmax
     END IF
 
     CALL grdxy(0,gepola,2,nstpmax+1,ntmax,3*nraymax, &
@@ -2423,8 +2426,8 @@ CONTAINS
       CALL WRPRMT(1.0,16.8, 'RKAP =',6, RKAP,'(F8.3)',8)
       CALL WRPRMT(5.0,18.0, 'Q0   =',6, Q0  ,'(F8.3)',8)
       CALL WRPRMT(5.0,17.6, 'QA   =',6, QA  ,'(F8.3)',8)
-      CALL WRPRMT(5.0,17.2, 'RF   =',6, RFIN(nray)  ,'(1PE10.3)',10)
-      CALL WRPRMT(5.0,16.8, 'NKKT =',6, RNKTIN(nray),'(F8.4)',8)
+      CALL WRPRMT(5.0,17.2, 'RF   =',6, RFIN(nray),'(1PE10.3)',10)
+      CALL WRPRMT(5.0,16.8, 'RNPH =',6, RNPHIN(nray),'(F8.4)',8)
       CALL WRPRMT(9.0,18.0, 'PA(1)  =',8,PA(1),'(F8.4)',8)
       CALL WRPRMT(9.0,17.6, 'PZ(1)  =',8,PZ(1),'(F8.4)',8)
       CALL WRPRMT(9.0,17.2, 'PN(1)  =',8,PN(1),'(F8.4)',8)
