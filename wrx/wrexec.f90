@@ -22,8 +22,10 @@ CONTAINS
     IF(Rmin_wr.LT.0.D0) Rmin_wr=0.D0
     IF(Zmax_wr.EQ.0.D0) Zmax_wr= bdr_threshold*rkap*RA
     IF(Zmin_wr.EQ.0.D0) Zmin_wr=-bdr_threshold*rkap*RA
-!    WRITE(6,'(A,4ES12.3)') &
-!         '--Rmin/max,Zmin/max:',Rmin_wr,Rmax_wr,Zmin_wr,Zmax_wr
+    WRITE(6,'(A,4ES12.3)') &
+         '--RR,RA,rka,bdr_thr:',RR,RA,rkap,bdr_threshold
+    WRITE(6,'(A,4ES12.3)') &
+         '--Rmin/max,Zmin/max:',Rmin_wr,Rmax_wr,Zmin_wr,Zmax_wr
 
 !     --- eliminate disp factor for same z/a species ---
 

@@ -20,6 +20,13 @@
     REAL(rkind):: XP,YP,omega,rkv,s,deg,factor,omega_pe2,rne
     REAL(rkind):: rhon,rk,rk_new,rkpara,rkperp,rkperp1,rkperp2
     REAL(rkind):: rkr,rkph,rkz,rkx,rky,dXP,dYP,dZP
+    REAL(rkind):: b_x,b_y,b_z,b_R,b_phi
+    REAL(rkind):: ut_x,ut_y,ut_z,ut_R,ut_phi
+    REAL(rkind):: un_x,un_y,un_z,un_R,un_phi
+    REAL(rkind):: rk_b,rk_n,rk_t,rk_R,rk_phi
+    REAL(rkind):: rk_x1,rk_y1,rk_z1,rk_R1,rk_phi1
+    REAL(rkind):: rk_x2,rk_y2,rk_z2,rk_R2,rk_phi2
+    REAL(rkind):: alpha1,alpha2,diff1,diff2
 
     IERR=0
     deg=PI/180.D0
@@ -50,8 +57,6 @@
 
     ! --- initial setup ---
     
-    omega=2.D6*PI*RF  ! angular frequency
-    rkv=omega/VC      ! vacuum wave number
     mode=0            ! status:  0 : vacuum, 1: plasma, 2: started
                       !         11 : out of region, 12: over count 
     s=0.D0            ! initial ray length
@@ -70,12 +75,6 @@
        rkr= -rk*COS(angp*deg)*COS(angt*deg)
        rkph= rk              *SIN(angt*deg)
        rkz=  rk*SIN(angp*deg)*COS(angt*deg)
-    END SELECT
-    SELECT CASE(modew)
-    CASE(2,3)
-       rkr= -rkr
-       rkph=-rkph
-       rkz= -rkz
     END SELECT
     rkx=rkr*COS(phi)-rkph*SIN(phi)
     rky=rkr*SIN(phi)+rkph*COS(phi)
@@ -145,6 +144,26 @@
           YN(6,nstp)= RKZ
           YN(7,nstp)= UU
           
+          ! --- If the ray is out of region, exit mode=11 ---
+
+          IF(RP.GT.RMAX_WR.OR. &
+             RP.LT.RMIN_WR.OR. &
+             ZP.GT.ZMAX_WR.OR. &
+             ZP.LT.ZMIN_WR.OR. &
+             S.GT.SMAX) THEN
+
+             WRITE(6,'(A,2I6,2ES12.4)') &
+                  'wr_exec_ray_single: nray,nstp,R,Z=',NRAY,nstp,R,Z
+             WRITE(6,'(A,I4,6ES12.4)') 'RK:',nstp,R,PHI,Z,RKR,RKPHI,RKZ
+             WRITE(6,'(A,2ES12.4)') 'R: ',R,RMAX_WR
+             WRITE(6,'(A,2ES12.4)') 'R: ',R,RMIN_WR
+             WRITE(6,'(A,2ES12.4)') 'Z: ',Z,ZMAX_WR
+             WRITE(6,'(A,2ES12.4)') 'Z: ',Z,ZMIN_WR
+             WRITE(6,'(A,2ES12.4)') 'S: ',S,SMAX
+             mode=11
+             EXIT
+          END IF
+
           ! --- set magnetic field and minor radius at the new point ---
 
           CALL pl_mag(XP,YP,ZP,mag)
@@ -171,141 +190,14 @@
              EXIT
           END IF
 
-          ! --- If the ray is out of region, exit mode=11 ---
-
-          IF(RP.GT.RMAX_WR.OR. &
-             RP.LT.RMIN_WR.OR. &
-             ZP.GT.ZMAX_WR.OR. &
-             ZP.LT.ZMIN_WR.OR. &
-             S.GT.SMAX) THEN
-             mode=11
-             EXIT
-          END IF
        END DO
-
-       ! --- If the ray is out of region, return with ierr=1011 ---
-
-       IF(mode.EQ.11) THEN
-          ierr=1011
-          WRITE(6,'(A)') &
-               'XX wr_exec_single_ray: out of range: nray,X,Y,Z,R,phi:'
-          WRITE(6,'(A,I6,5ES12.4)') &
-               '      ',nray,XP,YP,ZP,RP,phi
-          WRITE(6,'(A,I6,5ES12.4)') &
-               '      ',nray,RMAX_WR,RMIN_WR,ZMAX_WR,ZMIN_WR,S
-          RETURN
-       END IF
-
     ELSE
        mode=1
     END IF
 
-    ! --- Solve cold plasma dispersion relation ---
-
+    ! --- solve cold dispersion for given k_para ---
+       
     rk=rkv*rnk
-    icount=0
-    DO WHILE(mode.EQ.1)
-       SELECT CASE(mdlwri)
-       CASE(0,2,100,102)
-          rkr= -rk*COS(angp*deg)*COS(angt*deg)
-          rkph= rk*COS(angp*deg)*SIN(angt*deg)
-          rkz=  rk*SIN(angp*deg)
-       CASE(1,3,101,103)
-          rkr= -rk*COS(angp*deg)*COS(angt*deg)
-          rkph= rk              *SIN(angt*deg)
-          rkz=  rk*SIN(angp*deg)*COS(angt*deg)
-       END SELECT
-       SELECT CASE(modew)
-       CASE(2,3)
-          rkr =-rkr
-          rkph=-rkph
-          rkz =-rkz
-       END SELECT
-       rkx=rkr*COS(phi)-rkph*SIN(phi)
-       rky=rkr*SIN(phi)+rkph*COS(phi)
-
-       IF(idebug_wr(3).NE.0) THEN
-          WRITE(6,'(2A,I4,I8)')  '*** idebug_wr(3): wr_setup_start_point: ', &
-               'nray,nstp=',nray,nstp
-          WRITE(6,'(A,4ES12.4)') '   xp,yp,zp,s  =',XP,YP,ZP,S
-          WRITE(6,'(A,3ES12.4)') '   rkr,rkph,rkz=',RKR,RKPH,RKZ
-          WRITE(6,'(A,3ES12.4)') '   rkx,rky,rkz =',RKX,RKY,RKZ
-          WRITE(6,'(A,3ES12.4)') '   rnx,rny,rnz =',RKX/rkv,RKY/rkv,RKZ/rkv
-       END IF
-
-       ! --- calculate perpendicular wave numbers for parallel wave number ---
-       !        kperp_1**2 (slow wave) > kperp_2**2 (fast wave)
-       
-       rkpara=rkx*mag%bnx+rky*mag%bny+rkz*mag%bnz
-       CALL wr_cold_rkperp(omega,RP,ZP,PHI,rkpara,rkperp1,rkperp2)
-
-       IF(idebug_wr(4).NE.0) THEN
-          WRITE(6,'(A,I4,I8,I4)') &
-               '*** idebug_wr(4): wr_setup_start_point: nray,nstp,icoutn=', &
-               nray,nstp,icount
-          WRITE(6,'(A)')     '  rkpara,rkperp1,rkperp2,rnpara,rnperp1,rnperp2='
-          WRITE(6,'(6ES12.4)')  &
-               rkpara,rkperp1,rkperp2,rkpara/rkv,rkperp1/rkv,rkperp2/rkv
-          WRITE(6,'(A,4ES12.4)') &
-               '  rk1,rk2,rn1,rn2=', &
-               SQRT(rkpara**2+rkperp1**2),SQRT(rkpara**2+rkperp2**2), &
-               SQRT(rkpara**2+rkperp1**2)/rkv,SQRT(rkpara**2+rkperp2**2)/rkv
-       END IF
-
-       SELECT CASE(modew)
-       CASE(0,2) ! slow wave
-          rkperp=rkperp1
-       CASE(1,3) ! fast wave
-          rkperp=rkperp2
-       CASE DEFAULT
-          WRITE(6,'(A,2I4)') &
-               'XX wr_exec_single_ray: unknown modew: nray,modewin(nray)=', &
-               nray,modew
-          ierr=1012
-          RETURN
-       END SELECT
-
-       rk_new=SQRT(rkpara**2+rkperp**2)
-
-       ! --- if wave number (absolute value) converged, EXIT ---
-       
-       IF(ABS(rk_new-rk).LT.epsnw) THEN
-          mode=2
-          IF(idebug_wr(5).NE.0) THEN
-             WRITE(6,'(A,A,I4,I8,I4)') &
-                  '*** idebug_wr(5): wr_setup_start_point: ', &
-                  'nray,nstp,icount=',nray,nstp,icount
-             WRITE(6,'(A,3ES12.4)') &
-                  '     rk,rk_new,residual=',rk,rk_new,ABS(rk_new-rk)
-          END IF
-          rk=rk_new
-          EXIT
-       END IF
-
-       ! --- if loop count exceeds lmaxnw, EXIT with ierr=1013 ---
-       
-       IF(icount.GT.lmaxnw) THEN
-          WRITE(6,'(A,2I4)') &
-               'XX wr_exec_single_ray: icount exceed lmaxnw: nray,icount=', &
-               nray,icount
-          ierr=1013
-          RETURN
-       END IF
-
-       icount=icount+1
-       rk=rk_new
-    END DO
-          
-    ! --- confirm wave number by newton ---
-    
-    CALL wr_newton(omega,RP,PHI,ZP,angp,angt,modew,rk,rk_new,ierr)
-    IF(ierr.NE.0) THEN
-       ierr=2000+ierr
-       RETURN
-    END IF
-
-    XP=RP*COS(PHI)
-    YP=RP*SIN(PHI)
     SELECT CASE(mdlwri)
     CASE(0,2,100,102)
        rkr= -rk*COS(angp*deg)*COS(angt*deg)
@@ -313,17 +205,123 @@
        rkz=  rk*SIN(angp*deg)
     CASE(1,3,101,103)
        rkr= -rk*COS(angp*deg)*COS(angt*deg)
-       rkph= rk*SIN(angt*deg)
+       rkph= rk              *SIN(angt*deg)
        rkz=  rk*SIN(angp*deg)*COS(angt*deg)
     END SELECT
-    SELECT CASE(modew)
-    CASE(2,3)
-       rkr =-rkr
-       rkph=-rkph
-       rkz =-rkz
+    RKX=RKR*COS(PHI)-RKPHI*SIN(PHI)
+    RKY=RKR*SIN(PHI)+RKPHI*COS(PHI)
+
+    XP=RP*COS(PHI)
+    YP=RP*SIN(PHI)
+    CALL pl_mag(XP,YP,ZP,mag)
+
+    rkpara=rkx*mag%bnx+rky*mag%bny+rkz*mag%bnz
+    CALL WR_COLD_RKPERP(RP,ZP,PHI,RKPARA,RKPERP_1,RKPERP_2)
+    
+    WRITE(6,'(A,1P3E12.4)') 'R,PHI,Z=',RP,phi,ZP
+    WRITE(6,'(A,1P3E12.4)') &
+         'RKRPARA,RKPERP_1,RKPERP_2=',RKPARA,RKPERP_1,RKPERP_2
+    WRITE(6,'(A,1P3E12.4)') &
+         'RKPARA,RNPARA=',RKPARA,RKPARA*VC/(2.D6*PI*RF)
+
+    ! unit vectors
+
+    ! parallel vector
+
+    b_X=mag%bnx
+    b_Y=mag%bny
+    b_Z=mag%bnz
+
+    b_R  = b_X*COS(phi)+b_Y*SIN(phi)
+    b_phi=-b_X*SIN(phi)+b_Y*COS(phi)
+
+    ! normal vector
+
+    un_R  = b_Z/SQRT(b_Z**2+b_R**2)
+    un_phi= 0.D0
+    un_Z  =-b_R/SQRT(b_Z**2+b_R**2)
+    
+    un_X=un_R*COS(phi)-un_phi*SIN(phi)
+    un_Y=un_R*SIN(phi)+un_phi*COS(phi)
+
+    ! tangential vector
+
+    ut_X=un_Y*b_Z-un_Z*b_Y
+    ut_Y=un_X*b_X-un_X*b_Z
+    ut_Z=un_Z*b_Y-un_Y*b_X
+
+    ut_R  = ut_X*COS(phi)+ut_Y*SIN(phi)
+    ut_phi=-ut_X*SIN(phi)+ut_Y*COS(phi)
+
+    ! normal, parallel, tangential  component of wave vector
+
+    rk_n=RKX*un_X+RKY*un_Y+RKZ*un_Z
+    rk_b=RKX*b_X +RKY*b_Y +RKZ*b_Z
+    rk_t=RKX*ut_X+RKY*ut_Y+RKZ*ut_Z
+
+    ! new wave number vector #1
+
+    diff1=rkperp_1**2-rk_t**2
+    IF(diff1.GT.0.D0) THEN
+       alpha1=SQRT(diff1/rk_n**2)
+    ELSE
+       alpha1=0.D0
+    END IF
+    rk_x1=rk_b*b_x+rk_t*ut_x+alpha1*rk_n*un_x
+    rk_y1=rk_b*b_y+rk_t*ut_y+alpha1*rk_n*un_y
+    rk_z1=rk_b*b_z+rk_t*ut_z+alpha1*rk_n*un_z
+    
+    ! new wave number vector #2
+
+    diff2=rkperp_2**2-rk_t**2
+    IF(diff2.GT.0.D0) THEN
+       alpha2=SQRT(diff2/rk_n**2)
+    ELSE
+       alpha2=0.D0
+    END IF
+    rk_x2=rk_b*b_x+rk_t*ut_x+alpha2*rk_n*un_x
+    rk_y2=rk_b*b_y+rk_t*ut_y+alpha2*rk_n*un_y
+    rk_z2=rk_b*b_z+rk_t*ut_z+alpha2*rk_n*un_z
+    
+    rk_R1  = rk_x1*COS(phi)+rk_y1*SIN(phi)
+    rk_phi1=-rk_x1*SIN(phi)+rk_y1*COS(phi)
+    rk_R2  = rk_x2*COS(phi)+rk_y2*SIN(phi)
+    rk_phi2=-rk_x2*SIN(phi)+rk_y2*COS(phi)
+
+    SELECT CASE(MODEW)
+    CASE(1)
+       rkx=rk_x1
+       rky=rk_y1
+       rkz=rk_z1
+    CASE(2)
+       rkx=rk_x2
+       rky=rk_y2
+       rkz=rk_z2
+    CASE DEFAULT
+       WRITE(6,'(A,I4)') 'XX wr_exec_single_ray: MODEW is not 1 nor 2:', MODEW
+       STOP
     END SELECT
-    rkx=rkr*COS(phi)-rkph*SIN(phi)
-    rky=rkr*SIN(phi)+rkph*COS(phi)
+    rkpara=rkx*mag%bnx+rky*mag%bny+rkz*mag%bnz
+
+    WRITE(6,'(A,1ES12.4)') 'rkpara   :',rkpara
+    WRITE(6,'(A,5ES12.4)') 'b_xyzrp  :',b_x,b_y,b_z,b_R,b_phi
+    WRITE(6,'(A,5ES12.4)') 'ut_xyzrp :',ut_x,ut_y,ut_z,ut_R,ut_phi
+    WRITE(6,'(A,5ES12.4)') 'un_xyzrp :',un_x,un_y,un_z,un_R,un_phi
+    WRITE(6,'(A,3ES12.4)') 'rk_bnt   :',rk_b,rk_n,rk_t
+    WRITE(6,'(A,3ES12.4)') 'rn_bnt   :',rk_b*rnv,rk_n*rnv,rk_t*rnv
+    WRITE(6,'(A,2ES12.4)') 'alpha_12 :',alpha1,alpha2
+    WRITE(6,'(A,5ES12.4)') 'rk1_xyzrp:',rk_x1,rk_y1,rk_z1,rk_R1,rk_phi1
+    WRITE(6,'(A,5ES12.4)') 'rn1_xyzrp:',rk_x1*rnv,rk_y1*rnv,rk_z1*rnv, &
+                                        rk_R1*rnv,rk_phi1*rnv
+    WRITE(6,'(A,5ES12.4)') 'rk2_xyzrp:',rk_x2,rk_y2,rk_z2,rk_R2,rk_phi2
+    WRITE(6,'(A,5ES12.4)') 'rn2_xyzrp:',rk_x2*rnv,rk_y2*rnv,rk_z2*rnv, &
+                                        rk_R2*rnv,rk_phi2*rnv
+    WRITE(6,'(A,5ES12.4)') 'rk_xyzrp: ',rkx,rky,rkz,rk_R,rk_phi
+    WRITE(6,'(A,5ES12.4)') 'rn_xyzrp: ',rkx*rnv,rky*rnv,rkz*rnv, &
+                                        rk_R*rnv,rk_phi*rnv
+
+    rkx=rk_r*COS(phi)-rk_ph*SIN(phi)
+    rky=rk_r*SIN(phi)+rk_ph*COS(phi)
 
     YN(0,nstp)= s
     YN(1,nstp)= XP
@@ -334,15 +332,5 @@
     YN(6,nstp)= RKZ
     YN(7,nstp)= UU
           
-    IF(idebug_wr(8).NE.0) THEN
-       rk=SQRT(rkx**2+rky**2+rkz**2)
-       WRITE(6,'(A,A,I4,I8)') '*** idebug_wr(8): wr_setup_start_point: ', &
-            'nray,nstp=',nray,nstp
-       WRITE(6,'(A,3ES12.4)') '   xp,yp,zp    =',XP,YP,ZP
-       WRITE(6,'(A,3ES12.4)') '   rkx,rky,rkz =',RKX,RKY,RKZ
-       WRITE(6,'(A,3ES12.4)') '   rnx,rny,rnz =',RKX/rkv,RKY/rkv,RKZ/rkv
-       WRITE(6,'(A,2ES12.4)') '   UU,S,RK,RN  =',UU,S,rk,rk/rkv
-    END IF
-
     RETURN
   END SUBROUTINE wr_setup_start_point

@@ -308,8 +308,9 @@ CONTAINS
         -DISPXR(XP,YP,ZP,RKXP2,RKYP2,RKZP,OMG))/(2*DELKR)
 
       RKR=RKR_PRE-S/T
-      IF(MDLWRW.EQ.1) &
-           WRITE(6,'(A,1P3E12.4)') 'RKR,RKR_PRE,-S/T=',RKR,RKR_PRE,-S/T
+      IF(MDLWRW.EQ.1) THEN
+         WRITE(6,'(A,1P3E12.4)') 'RKR,RKR_PRE,-S/T=',RKR,RKR_PRE,-S/T
+      END IF
 
       IF(ABS((RKR-RKR_PRE)/RKR_PRE).LE.EPSNW) GOTO 9000
       IF(ICOUNT.GT.LMAXNW) GOTO 8000
@@ -477,6 +478,11 @@ CONTAINS
       Y=YP
       Z=ZP
       CALL pl_mag(X,Y,Z,MAG)
+!      WRITE(6,'(A,3ES12.4)') 'RXP,RYP,RZP=',XP,YP,ZP
+!      WRITE(6,'(A,3ES12.4)') 'RKX,RKY,RKZ=',RKXP,RKYP,RKZP
+!      WRITE(6,'(A,2ES12.4)') 'RKPARA,RNPARA=', &
+!           RKXP*mag%bnx+RKYP*mag%bny+RKZP*mag%bnz, &
+!           (RKXP*mag%bnx+RKYP*mag%bny+RKZP*mag%bnz)*vc/omg
 !            
       DO NS=1,NSMAX
          MODELPS(NS)=MODELP(NS)

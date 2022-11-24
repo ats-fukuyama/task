@@ -2,6 +2,7 @@
 
 module task_kinds
   USE ISO_FORTRAN_ENV
+  integer, parameter :: qkind=REAL128
   integer, parameter :: rkind=REAL64
   integer, parameter :: ikind=INT32
   integer, parameter :: dp=REAL64

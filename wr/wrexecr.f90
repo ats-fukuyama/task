@@ -2,6 +2,10 @@
 
 MODULE wrexecr
 
+  USE wrcomm,ONLY: rkind
+  REAL(rkind):: omega,rkv,rnv
+  INTEGER:: nray_exec,nstp_exec
+  
   PRIVATE
   PUBLIC wr_exec_rays
   PUBLIC wr_calc_pwr
@@ -20,6 +24,10 @@ CONTAINS
 
     CALL GUTIME(TIME1)
     DO NRAY=1,NRAYMAX
+       nray_exec=nray
+       omega=2.D6*PI*RFIN(nray)
+       rkv=omega/VC
+       rnv=VC/omega
        CALL wr_exec_single_ray(NRAY,IERR)
        IF(IERR.NE.0) cycle
 
@@ -58,7 +66,13 @@ CONTAINS
     REAL(rkind):: rkr_1,rkr_2,rkrz_old,rkrz_new_1,rkrz_new_2
     REAL(rkind):: rkx,rky,rkz,rkz_1,rkz_2,rnr,rnz,rnphi,rnr2
     REAL(rkind):: x,y,s,sinp2,sint2
-    REAL(rkind):: W(4)
+    REAL(rkind):: b_x,b_y,b_z,b_R,b_phi
+    REAL(rkind):: ut_x,ut_y,ut_z,ut_R,ut_phi
+    REAL(rkind):: un_x,un_y,un_z,un_R,un_phi
+    REAL(rkind):: rk_b,rk_n,rk_t,rk_R,rk_phi
+    REAL(rkind):: rk_x1,rk_y1,rk_z1,rk_R1,rk_phi1
+    REAL(rkind):: rk_x2,rk_y2,rk_z2,rk_R2,rk_phi2
+    REAL(rkind):: alpha1,alpha2,diff1,diff2
     INTEGER:: mode,nstp,id,i
 
     IERR=0
@@ -161,13 +175,6 @@ CONTAINS
           YN(7,nstp)= UUI
           nstp=nstp+1
 
-!          WRITE(6,'(A,I4,6ES12.4)') 'RK:',nstp,R,PHI,Z,RKR,RKPHI,RKZ
-!          WRITE(6,'(A,2ES12.4)') 'R: ',R,RMAX_WR
-!          WRITE(6,'(A,2ES12.4)') 'R: ',R,RMIN_WR
-!          WRITE(6,'(A,2ES12.4)') 'Z: ',Z,ZMAX_WR
-!          WRITE(6,'(A,2ES12.4)') 'Z: ',Z,ZMIN_WR
-!          WRITE(6,'(A,2ES12.4)') 'S: ',S,SMAX
-
           IF(R.GT.RMAX_WR.OR. &
              R.LT.RMIN_WR.OR. &
              Z.GT.ZMAX_WR.OR. &
@@ -179,6 +186,12 @@ CONTAINS
              mode=2
              WRITE(6,'(A,2I6,2ES12.4)') &
                   'wr_exec_ray_single: nray,nstp,R,Z=',NRAY,nstp,R,Z
+             WRITE(6,'(A,I4,6ES12.4)') 'RK:',nstp,R,PHI,Z,RKR,RKPHI,RKZ
+             WRITE(6,'(A,2ES12.4)') 'R: ',R,RMAX_WR
+             WRITE(6,'(A,2ES12.4)') 'R: ',R,RMIN_WR
+             WRITE(6,'(A,2ES12.4)') 'Z: ',Z,ZMAX_WR
+             WRITE(6,'(A,2ES12.4)') 'Z: ',Z,ZMIN_WR
+             WRITE(6,'(A,2ES12.4)') 'S: ',S,SMAX
              ierr=102
              RETURN
           END IF
@@ -195,87 +208,119 @@ CONTAINS
     
     ! --- solve cold dispersion for given k_para ---
        
+    X=R*COS(PHI)
+    Y=R*SIN(PHI)
+    CALL pl_mag(X,Y,Z,mag)
     RKX=RKR*COS(PHI)-RKPHI*SIN(PHI)
     RKY=RKR*SIN(PHI)+RKPHI*COS(PHI)
-    RKZ=RKZ
-    RKPARA=RKX*mag%bnx+RKY*mag%bny+RKZ*mag%bnz
+
+    rkpara=rkx*mag%bnx+rky*mag%bny+rkz*mag%bnz
+    WRITE(6,'(A,1ES12.4)') 'rkpara   :',rkpara
+
     CALL WR_COLD_RKPERP(R,Z,PHI,RKPARA,RKPERP_1,RKPERP_2)
+    
+    WRITE(6,'(A,1P3E12.4)') 'R,PHI,Z=',R,phi,Z
     WRITE(6,'(A,1P3E12.4)') &
          'RKRPARA,RKPERP_1,RKPERP_2=',RKPARA,RKPERP_1,RKPERP_2
-       
-    ! --- new k_r_new and k_z_new is determined from k_perp
-    !         and the direction of old k_r and k_z
-    !             k_rz_old^2=k_r_old^2+k_z_old^2
-    !             k_rz_new^2=k_perp^2+k_para^2-k_phi\2
-    !             k_r_new=(k_rz_new/k_rz_old) k_r_oldf
-    !             k_z_new=(k_rz_new/k_rz_old) k_z_oldf
-       
-    RKRZ_old=SQRT(RKR**2+RKZ**2)
-    RKRZ_new_1=RKPERP_1**2-RKPARA**2-RKPHI**2
-    RKRZ_new_2=RKPERP_2**2-RKPARA**2-RKPHI**2
-    IF(RKRZ_new_1.GE.0.D0) THEN
-       RKRZ_new_1=SQRT(RKRZ_new_1)
-       RKR_1=(RKRZ_new_1/RKRZ_old)*RKR
-       RKZ_1=(RKRZ_new_1/RKRZ_old)*RKZ
-       CALL WRCALE_XYZ(X,Y,Z,RKR_1,RKZ_1,RKPHI,EPARA,EPERP)
-       WRITE(6,'(A,1P4E12.4)') &
-            'RKR_1,RKZ_1,EPARA,EPERP=',RKR_1,RKZ_1,EPARA,EPERP
-    ELSE
-       RKR_1=RKR
-       RKZ_1=RKZ
-    END IF
+    WRITE(6,'(A,1P3E12.4)') &
+         'RKPARA,RNPARA=',RKPARA,RKPARA*VC/(2.D6*PI*RF)
+
+    ! unit vectors
+
+    ! parallel vector
+
+    b_X=mag%bnx
+    b_Y=mag%bny
+    b_Z=mag%bnz
+
+    b_R  = b_X*COS(phi)+b_Y*SIN(phi)
+    b_phi=-b_X*SIN(phi)+b_Y*COS(phi)
+
+    ! normal vector
+
+    un_R  = b_Z/SQRT(b_Z**2+b_R**2)
+    un_phi= 0.D0
+    un_Z  =-b_R/SQRT(b_Z**2+b_R**2)
     
-    IF(RKRZ_new_2.GE.0.D0) THEN
-       RKRZ_new_2=SQRT(RKRZ_new_2)
-       RKR_2=(RKRZ_new_2/RKRZ_old)*RKR
-       RKZ_2=(RKRZ_new_2/RKRZ_old)*RKZ
-       CALL WRCALE_XYZ(X,Y,Z,RKR_2,RKZ_2,RKPHI,EPARA,EPERP)
-       WRITE(6,'(A,1P4E12.4)') &
-            'RKR_2,RKZ_2,EPARA,EPERP=',RKR_2,RKZ_2,EPARA,EPERP
+    un_X=un_R*COS(phi)-un_phi*SIN(phi)
+    un_Y=un_R*SIN(phi)+un_phi*COS(phi)
+
+    ! tangential vector
+
+    ut_X=un_Y*b_Z-un_Z*b_Y
+    ut_Y=un_X*b_X-un_X*b_Z
+    ut_Z=un_Z*b_Y-un_Y*b_X
+
+    ut_R  = ut_X*COS(phi)+ut_Y*SIN(phi)
+    ut_phi=-ut_X*SIN(phi)+ut_Y*COS(phi)
+
+    ! normal, parallel, tangential  component of wave vector
+
+    rk_n=RKX*un_X+RKY*un_Y+RKZ*un_Z
+    rk_b=RKX*b_X +RKY*b_Y +RKZ*b_Z
+    rk_t=RKX*ut_X+RKY*ut_Y+RKZ*ut_Z
+
+    ! new wave number vector #1
+
+    diff1=rkperp_1**2-rk_t**2
+    IF(diff1.GT.0.D0) THEN
+       alpha1=SQRT(diff1/rk_n**2)
     ELSE
-       RKR_2=RKR
-       RKZ_2=RKZ
+       alpha1=0.D0
     END IF
+    rk_x1=rk_b*b_x+rk_t*ut_x+alpha1*rk_n*un_x
+    rk_y1=rk_b*b_y+rk_t*ut_y+alpha1*rk_n*un_y
+    rk_z1=rk_b*b_z+rk_t*ut_z+alpha1*rk_n*un_z
+    
+    ! new wave number vector #2
+
+    diff2=rkperp_2**2-rk_t**2
+    IF(diff2.GT.0.D0) THEN
+       alpha2=SQRT(diff2/rk_n**2)
+    ELSE
+       alpha2=0.D0
+    END IF
+    rk_x2=rk_b*b_x+rk_t*ut_x+alpha2*rk_n*un_x
+    rk_y2=rk_b*b_y+rk_t*ut_y+alpha2*rk_n*un_y
+    rk_z2=rk_b*b_z+rk_t*ut_z+alpha2*rk_n*un_z
+    
+    rk_R1  = rk_x1*COS(phi)+rk_y1*SIN(phi)
+    rk_phi1=-rk_x1*SIN(phi)+rk_y1*COS(phi)
+    rk_R2  = rk_x2*COS(phi)+rk_y2*SIN(phi)
+    rk_phi2=-rk_x2*SIN(phi)+rk_y2*COS(phi)
 
     SELECT CASE(MODEW)
-    CASE(0)
-       W(1)=-ABS( RKR_1-RKR0)
-       W(2)=-ABS( RKR_2-RKR0)
-       W(3)=-ABS(-RKR_1-RKR0)
-       W(4)=-ABS(-RKR_2-RKR0)
-       ID=MAXLOC(W,1)
-       WRITE(6,'(A,5ES12.4)')    'RKR0:',RKR0,RKR_1,RKR_2,-RKR_1,-RKR_2
-       WRITE(6,'(A,I6,4ES12.4)') 'ID,W:',ID,(W(I),I=1,4)
-       SELECT CASE(ID)
-       CASE(1)
-          RKRI=RKR_1
-       CASE(2)
-          RKRI=RKR_2
-       CASE(3)
-          RKRI=-RKR_1
-       CASE(4)
-          RKRI=-RKR_2
-       END SELECT
     CASE(1)
-       RKRI=RKR_1
+       rkx=rk_x1
+       rky=rk_y1
+       rkz=rk_z1
     CASE(2)
-       RKRI=RKR_2
-    CASE(3)
-       RKRI=-RKR_1
-    CASE(4)
-       RKRI=-RKR_2
+       rkx=rk_x2
+       rky=rk_y2
+       rkz=rk_z2
+    CASE DEFAULT
+       WRITE(6,'(A,I4)') 'XX wr_exec_single_ray: MODEW is not 1 nor 2:', MODEW
+       STOP
     END SELECT
+    rkpara=rkx*mag%bnx+rky*mag%bny+rkz*mag%bnz
+
+    WRITE(6,'(A,1ES12.4)') 'rkpara   :',rkpara
+    WRITE(6,'(A,5ES12.4)') 'b_xyzrp  :',b_x,b_y,b_z,b_R,b_phi
+    WRITE(6,'(A,5ES12.4)') 'ut_xyzrp :',ut_x,ut_y,ut_z,ut_R,ut_phi
+    WRITE(6,'(A,5ES12.4)') 'un_xyzrp :',un_x,un_y,un_z,un_R,un_phi
+    WRITE(6,'(A,3ES12.4)') 'rk_bnt   :',rk_b,rk_n,rk_t
+    WRITE(6,'(A,3ES12.4)') 'rn_bnt   :',rk_b*rnv,rk_n*rnv,rk_t*rnv
+    WRITE(6,'(A,2ES12.4)') 'alpha_12 :',alpha1,alpha2
+    WRITE(6,'(A,5ES12.4)') 'rk1_xyzrp:',rk_x1,rk_y1,rk_z1,rk_R1,rk_phi1
+    WRITE(6,'(A,5ES12.4)') 'rn1_xyzrp:',rk_x1*rnv,rk_y1*rnv,rk_z1*rnv, &
+                                        rk_R1*rnv,rk_phi1*rnv
+    WRITE(6,'(A,5ES12.4)') 'rk2_xyzrp:',rk_x2,rk_y2,rk_z2,rk_R2,rk_phi2
+    WRITE(6,'(A,5ES12.4)') 'rn2_xyzrp:',rk_x2*rnv,rk_y2*rnv,rk_z2*rnv, &
+                                        rk_R2*rnv,rk_phi2*rnv
+    WRITE(6,'(A,5ES12.4)') 'rk_xyzrp: ',rkx,rky,rkz,rk_R,rk_phi
+    WRITE(6,'(A,5ES12.4)') 'rn_xyzrp: ',rkx*rnv,rky*rnv,rkz*rnv, &
+                                        rk_R*rnv,rk_phi*rnv
        
-    ! --- rkr is given for MODEW=0 ---
-    CALL WRNWTN(RKRI,RKR,IERR)
-            ! input RKR; output RKRI; using RKZI,RKPHII
-    IF(IERR.NE.0) THEN
-       ierr=300
-       RETURN
-    END IF
-
-    WRITE(6,'(A,3ES12.4)') 'WRNWTN results: RKR0,RKRI,RKR=',RKR0,RKRI,RKR
-
 
     IF(MODELG.EQ.0.OR.MODELG.EQ.1.OR.MODELG.EQ.11) THEN
        YA(1)= R
@@ -288,11 +333,12 @@ CONTAINS
        YA(1)= R*COS(PHI)
        YA(2)= R*SIN(PHI)
        YA(3)= Z
-       YA(4)= RKR*COS(PHI)-RKPHI*SIN(PHI)
-       YA(5)= RKR*SIN(PHI)+RKPHI*COS(PHI)
-       YA(6)= RKZ
+       YA(4)= rkx
+       YA(5)= rky
+       YA(6)= rkz
     ENDIF
     YA(7)= UUI
+
     IF(MDLWRQ.EQ.0) THEN
        CALL WRRKFT(nstp,YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
     ELSEIF(MDLWRQ.EQ.1) THEN
@@ -475,7 +521,8 @@ CONTAINS
     END DO
     NNSTP=NSTPLIM
  
-11  IF(YN(7,NNSTP).LT.0.D0) YN(7,NNSTP)=0.D0
+11  CONTINUE
+    IF(YN(7,NNSTP).LT.0.D0) YN(7,NNSTP)=0.D0
     CALL wr_write_line(NNSTP,X0,YM,YN(8,NNSTP))
 
     RETURN
@@ -985,12 +1032,14 @@ CONTAINS
   
   SUBROUTINE wr_write_line(NSTP,X,Y,PABS)
     USE wrcomm
+    USE plprof,ONLY: pl_mag_type,pl_mag,pl_prf_type,pl_prof
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NSTP
     REAL(rkind),INTENT(IN):: X,Y(NEQ),PABS
-    REAL(rkind):: RL,PHIL,ZL,RKRL
+    REAL(rkind):: RL,PHIL,ZL,RKRL,rkpara
     INTEGER:: ID
     INTEGER,SAVE:: NSTP_SAVE=-1
+    TYPE(pl_mag_type):: mag
 
     IF(MDLWRW.EQ.0) RETURN
 
@@ -1006,7 +1055,7 @@ CONTAINS
        ELSE
           WRITE(6,'(A,A)') &
                '      S          R        PHI          Z    ', &
-               '    RKR          W       PABS'
+               '    RNPR         W       PABS'
        ENDIF
     END IF
 
@@ -1032,7 +1081,7 @@ CONTAINS
     IF(ID.EQ.1) THEN
        IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
           RL  =Y(1)
-          PHIL=ASIN(Y(2)/(2.D0*PI*RR))
+          PHIL=ASIN(Y(2)/(2.D0*PI*RL))
           ZL  =Y(3)
           RKRL=Y(4)
        ELSE IF(MODELG.EQ.11) THEN
@@ -1044,7 +1093,10 @@ CONTAINS
           RL  =SQRT(Y(1)**2+Y(2)**2)
           PHIL=ATAN2(Y(2),Y(1))
           ZL  =Y(3)
-          RKRL=(Y(4)*Y(1)+Y(5)*Y(2))/RL
+          CALL pl_mag(Y(1),Y(2),Y(3),mag)
+          rkpara=Y(4)*mag%bnx+Y(5)*mag%bny+Y(6)*mag%bnz
+          rkrl=rkpara*rnv
+!          RKRL=(Y(4)*Y(1)+Y(5)*Y(2))/RL
        ENDIF
        WRITE(6,'(1P7E11.3)') X,RL,PHIL,ZL,RKRL,Y(7),PABS
        NSTP_SAVE=NSTP

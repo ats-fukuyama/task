@@ -12,8 +12,8 @@ include ../mtxp/make.mtxp
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 OBJDIR   = ./obj
 
@@ -35,7 +35,7 @@ MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../dp/$(MOD) -I../eq/$(MOD) \
             -I../lib/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
 SRCS = wrcomm.f90 wrinit.f90 wrparm.f90 wrview.f90 \
-       wrsub.f90 wrstartpoint.f90 \
+       wrsub.f90 \
        wrsetupr.f90 wrexecr.f90 wrsetupb.f90 wrexecb.f90 \
        wrsetup.f90 wrexec.f90 \
        wrgout.f90 wrfile.f90 \
@@ -99,13 +99,12 @@ $(OBJDIR)/wrsetupb.o:wrsetupb.f90 $(WRCOMM)
 $(OBJDIR)/wrsetup.o:wrsetup.f90 $(WRCOMM) wrsetupr.f90 wrsetupb.f90
 
 $(OBJDIR)/wrexecr.o:wrexecr.f90 $(WRCOMM) ../pl/plprof.f90 ../dp/dpdisp.f90 \
-wrsub.f90 wrstartpoint.f90
+wrsub.f90
 $(OBJDIR)/wrexecb.o:wrexecb.f90 $(WRCOMM) ../pl/plprof.f90 ../dp/dpdisp.f90 \
-wrsub.f90 wrstartpoint.f90
+wrsub.f90
 $(OBJDIR)/wrexec.o:wrexec.f90 $(WRCOMM) wrexecr.f90 wrexecb.f90
 
 $(OBJDIR)/wrsetup.o:wrsetup.f90 $(WRCOMM) wrsetupr.f90 wrsetupb.f90
-$(OBJDIR)/wrstartpoint.o:wrstartpoint.f90 $(WRCOMM) 
 $(OBJDIR)/wrsub.o:  wrsub.f90 $(WRCOMM) ../pl/plprof.f90 ../dp/dppola.f90 \
 ../dp/dpdisp.f90
 $(OBJDIR)/wrgout.o: wrgout.f90 $(WRCOMM) ../pl/plprof.f90 ../pl/plgout.f90 \
