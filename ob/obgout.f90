@@ -74,7 +74,6 @@ CONTAINS
 
     !  ----- PLASMA BOUNDARY -----
 
-    ALLOCATE(rsu_temp(nsu_m),zsu_temp(nsu_m))
     CALL pl_rzsu(rsu_temp,zsu_temp,nsu_m,nsu_max)
     ALLOCATE(rsu(nsu_max+1),zsu(nsu_max+1))
     DO nsu=1,nsu_max

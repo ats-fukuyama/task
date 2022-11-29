@@ -14,7 +14,7 @@ CONTAINS
     USE libbnd
     IMPLICIT NONE
     INTEGER(ikind),INTENT(IN):: iprint
-    REAL(rkind),INTENT(OUT):: ratea
+    REAL(qkind),INTENT(OUT):: ratea
     INTEGER(ikind),INTENT(OUT):: ierr
 
     mlmax=nxmax*2+3
@@ -24,7 +24,7 @@ CONTAINS
     CALL SUBCK2   ! calculate coefficient matrix
     CALL SUBINI   ! calculate right-hand-side vector
     IF(NWMAX.EQ.NXMAX) THEN
-       CALL INVMCD(CK,mlmax,MLEN,IERR)   ! full matrix solver
+       CALL INVMCQ(CK,mlmax,MLEN,IERR)   ! full matrix solver
        IF(IERR.NE.0) GOTO 9900
        CALL SUBFY                  ! calculate field vector
     ELSE
@@ -37,7 +37,7 @@ CONTAINS
 !       DO ML=MLMAX-3,MLMAX
 !        WRITE(6,'(I5,1P6E12.4)') ML,(CK(MW,ML),MW=(MWMAX+1)/2-1,(MWMAX+1)/2+1)
 !       END DO
-       CALL BANDCD(CK,CSO,mlmax,mwmax,MWID,IERR)   ! band matrix solver
+       CALL BANDCQ(CK,CSO,mlmax,mwmax,MWID,IERR)   ! band matrix solver
           IF(IERR.NE.0) GOTO 9900
        CALL SUBFYW                               ! calculate field vector
     ENDIF
@@ -60,8 +60,8 @@ CONTAINS
       USE wicomm
       USE wigcom
       IMPLICIT NONE
-      REAL(rkind):: dx,rky,x
-      COMPLEX(rkind):: CS
+      REAL(qkind):: dx,rky,x
+      COMPLEX(qkind):: CS
       INTEGER(ikind):: J,L,NW
 
       DX=(XMAX-XMIN)/NXMAX
@@ -84,9 +84,9 @@ CONTAINS
 
       USE wicomm
       IMPLICIT NONE
-      COMPLEX(rkind):: ciky,cbb
-      REAL(rkind):: rky,rky2,dx,dx2,dky
-      REAL(rkind):: ANB,beta0
+      COMPLEX(qkind):: ciky,cbb
+      REAL(qkind):: rky,rky2,dx,dx2,dky
+      REAL(qkind):: ANB,beta0
       INTEGER(ikind):: NDUB,NBAND,NWDUB,NWDDUB,I,J,MM,ID,JD,NS,NE,NN
       INTEGER(ikind):: KK,KD,KS,IOB,IO,I2
 
@@ -94,8 +94,8 @@ CONTAINS
       RKY2=RKY**2
       DKY=ANY*ANY
       CIKY=CI*ANY
-      ANB=DEXP(-ALFA*xgrid(nxmax))
-      CBB=CI/DSQRT(1.D0-ANB-ANY*ANY)
+      ANB=EXP(-ALFA*xgrid(nxmax))
+      CBB=CI/SQRT(1.D0-ANB-ANY*ANY)
       BETA0=BETA
 
       NDUB=2*NXMAX
@@ -230,12 +230,12 @@ CONTAINS
 
       USE wicomm
       IMPLICIT NONE
-      COMPLEX(rkind):: CBB
+      COMPLEX(qkind):: CBB
       INTEGER(ikind):: ML
-      REAL(rkind):: ANB
+      REAL(qkind):: ANB
 
-      ANB=PN0*DEXP(-ALFA*xgrid(nxmax))
-      CBB=CI/DSQRT(1.D0-ANB-ANY*ANY)
+      ANB=PN0*EXP(-ALFA*xgrid(nxmax))
+      CBB=CI/SQRT(1.D0-ANB-ANY*ANY)
       DO ML=1,NXMAX*2+1
          CSO(ML)=(0.D0,0.D0)
       END DO
@@ -281,9 +281,9 @@ CONTAINS
 
       USE wicomm
       IMPLICIT NONE
-      COMPLEX(rkind):: cp1,cp2,cp3,cp4,cpa,cpb
+      COMPLEX(qkind):: cp1,cp2,cp3,cp4,cpa,cpb
       INTEGER(ikind):: NX,ns,ne,nn,i,j,id,jd,kk,kd
-      REAL(rkind):: rky,rky2,dx,dx2,AD,BD,BETA0
+      REAL(qkind):: rky,rky2,dx,dx2,AD,BD,BETA0
 
       RKY=ANY
       RKY2=RKY**2
@@ -366,15 +366,15 @@ CONTAINS
       USE wicomm
       USE wigcom
       IMPLICIT NONE
-      REAL(rkind),PARAMETER:: HP=0.5D0*PI
+      REAL(qkind),PARAMETER:: HP=0.5D0*PI
       INTEGER(ikind),PARAMETER:: LMAX=1000
-      REAL(rkind),INTENT(IN):: X,RKY
+      REAL(qkind),INTENT(IN):: X,RKY
       INTEGER(ikind),INTENT(IN):: M
       INTEGER(ikind),INTENT(INOUT):: L
-      COMPLEX(rkind),INTENT(OUT):: CS
-      REAL(rkind),DIMENSION(LMAX)::  A,B
+      COMPLEX(qkind),INTENT(OUT):: CS
+      REAL(qkind),DIMENSION(LMAX)::  A,B
       INTEGER(ikind):: ILST,K
-      REAL(rkind):: H0,SR1,SI1,SR,SI,ESR,ESI,SR2,SI2,PARITY,SKR,SKI,BETA0
+      REAL(qkind):: H0,SR1,SI1,SR,SI,ESR,ESI,SR2,SI2,PARITY,SKR,SKI,BETA0
 
       BETA0=BETA
       IF(XMAX.GE.500.D0.AND.ALFA*XMAX.LT.10.D0) THEN
@@ -435,11 +435,11 @@ CONTAINS
       SKI=B(1)*PARITY*0.5D0**(L+1)
       SI2=SI2+SKI
       PARITY=-PARITY
-      IF(DABS(SKR).GT.EPS_KF.OR.DABS(SKI).GT.EPS_KF) GOTO 30
+      IF(ABS(SKR).GT.EPS_KF.OR.ABS(SKI).GT.EPS_KF) GOTO 30
 
       SR=(SR1+SR2)/SQRT(4.D0*G2)
       SI=(SI1+SI2)/SQRT(4.D0*G2)
-      CS=CMPLX(SR,SI,rkind)
+      CS=CMPLX(SR,SI,qkind)
 
       BETA=BETA0
 
@@ -454,12 +454,12 @@ CONTAINS
 
     FUNCTION FUNR(X,XM,XP)
 
-      USE wicomm,ONLY: ikind,rkind
+      USE wicomm,ONLY: ikind,qkind
       USE wigcom
       IMPLICIT NONE
-      REAL(rkind),INTENT(IN):: X,XM,XP
-      REAL(rkind):: FUNR
-      REAL(rkind):: Y1,T,T2,YY,AN2
+      REAL(qkind),INTENT(IN):: X,XM,XP
+      REAL(qkind):: FUNR
+      REAL(qkind):: Y1,T,T2,YY,AN2
 
       Y1=XM
       IF(INT(G1).EQ.0) THEN 
@@ -472,7 +472,7 @@ CONTAINS
             ELSEIF(N1.EQ.2) THEN
                AN2=T
             ENDIF
-               FUNR=AN2*0.5*G2*DEXP(YY)*DCOS(T)
+               FUNR=AN2*0.5*G2*EXP(YY)*COS(T)
          ELSE
             FUNR=0.D0
          ENDIF 
@@ -486,7 +486,7 @@ CONTAINS
             ELSEIF(N1.EQ.2) THEN
                AN2=T
             ENDIF
-               FUNR=AN2*G2*DEXP(YY)*DCOS(T)
+               FUNR=AN2*G2*EXP(YY)*COS(T)
          ELSE
             FUNR=0.D0
          ENDIF
@@ -498,12 +498,12 @@ CONTAINS
 
     FUNCTION FUNI(X,XM,XP)
 
-      USE wicomm,ONLY: ikind,rkind
+      USE wicomm,ONLY: ikind,qkind
       USE wigcom
       IMPLICIT NONE
-      REAL(rkind),INTENT(IN):: X,XM,XP
-      REAL(rkind):: FUNI
-      REAL(rkind):: Y1,Y2,T,T2,YY,AN2
+      REAL(qkind),INTENT(IN):: X,XM,XP
+      REAL(qkind):: FUNI
+      REAL(qkind):: Y1,Y2,T,T2,YY,AN2
 
       Y1=X
       Y2=XM
@@ -516,7 +516,7 @@ CONTAINS
          ELSEIF(N1.EQ.2) THEN
             AN2=T
          ENDIF
-         FUNI=AN2*G2*DEXP(YY)*DSIN(T)
+         FUNI=AN2*G2*EXP(YY)*SIN(T)
       ELSE
          FUNI=0.D0
       ENDIF
@@ -531,29 +531,29 @@ CONTAINS
 !                    (-1.D0, +1.D0)
 !         INTEGRAND SHOULD BE DEFINED BY FUNC(X,1-X,1+X)
 
-      USE wicomm,ONLY: rkind,ikind
+      USE wicomm,ONLY: qkind,ikind
       IMPLICIT NONE
-      REAL(rkind),INTENT(OUT):: CSR,CSI ! Integral
-      REAL(rkind),INTENT(OUT):: ESR,ESI ! Estimated error
-      REAL(rkind),INTENT(IN)::  H0      ! Initial step size
-      REAL(rkind),INTENT(IN)::  EPS     ! Convergence thrshold
+      REAL(qkind),INTENT(OUT):: CSR,CSI ! Integral
+      REAL(qkind),INTENT(OUT):: ESR,ESI ! Estimated error
+      REAL(qkind),INTENT(IN)::  H0      ! Initial step size
+      REAL(qkind),INTENT(IN)::  EPS     ! Convergence thrshold
       INTEGER,INTENT(IN)::  ILST    ! print out control: 0 for no print out
 !      INTERFACE
 !         FUNCTION FUNR(X,XM,XP)
-!           USE wicomm,ONLY: rkind,ikind
-!           REAL(rkind):: FUNR
-!           REAL(rkind),INTENT(IN):: X,XM,XP
+!           USE wicomm,ONLY: qkind,ikind
+!           REAL(qkind):: FUNR
+!           REAL(qkind),INTENT(IN):: X,XM,XP
 !         END FUNCTION FUNR
 !         FUNCTION FUNI(X,XM,XP)
-!           USE wicomm,ONLY: rkind,ikind
-!           REAL(rkind):: FUNI
-!           REAL(rkind),INTENT(IN):: X,XM,XP
+!           USE wicomm,ONLY: qkind,ikind
+!           REAL(qkind):: FUNI
+!           REAL(qkind),INTENT(IN):: X,XM,XP
 !         END FUNCTION FUNI
 !      END INTERFACE
-      REAL(rkind),PARAMETER:: HP=1.5707963267948966192D0
+      REAL(qkind),PARAMETER:: HP=1.5707963267948966192D0
 
-      REAL(rkind):: EPS1,H,X,CSRP,CSIP,ATPR,ATPI,ATMR,ATMI,EPSI
-      REAL(rkind):: HN,HC,HS,CC,XM,XP,CTR,CTI,ATR,ATI
+      REAL(qkind):: EPS1,H,X,CSRP,CSIP,ATPR,ATPI,ATMR,ATMI,EPSI
+      REAL(qkind):: HN,HC,HS,CC,XM,XP,CTR,CTI,ATR,ATI
       INTEGER:: N,NP,NM,NMIN,IND,ND
 
       EPS1=EPS**0.75

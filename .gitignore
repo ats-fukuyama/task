@@ -8,12 +8,15 @@
 *.dat
 *.data
 *.i
+*.in
 *.optrpt
 *.aux
 *.log
 *.dvi
 *.toc
 *.out
+*.ps
+*.pdf
 .DS_Store
 fort.*
 gsdump*

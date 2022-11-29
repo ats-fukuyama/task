@@ -49,7 +49,7 @@ CONTAINS
     USE wicomm, ONLY: modelg,xmin,xmax,dx0,xwint,pn0,alfa,any,beta,cfyn, &
                       ntaumax,taumin,taumax,nalfamax,alfamin,alfamax, &
                       modelp,pnu,dxmin,xwmin,Bwidth, &
-                      modela,kfscan,idebug,rkind,eps_kf
+                      modela,kfscan,idebug,qkind,eps_kf
 
     IMPLICIT NONE
     INTEGER,INTENT(IN) :: NID

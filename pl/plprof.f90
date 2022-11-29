@@ -63,12 +63,11 @@
          USE bpsd_kinds
          REAL(rkind),INTENT(OUT):: RAXIS,ZAXIS
        END SUBROUTINE GETAXS
-       SUBROUTINE GETRSU(RSU,ZSU,NSUM,NSUMAX)
+       SUBROUTINE eqget_rzsu(rsu,zsu,nsumax)
          USE bpsd_kinds
-         INTEGER(ikind),INTENT(IN):: NSUM
-         REAL(rkind),DIMENSION(NSUM),INTENT(OUT):: RSU,ZSU
-         INTEGER(ikind),INTENT(OUT):: NSUMAX
-       END SUBROUTINE GETRSU
+         REAL(rkind),INTENT(OUT):: rsu(:),zsu(:)
+         INTEGER(ikind),INTENT(OUT):: nsumax
+       END SUBROUTINE eqget_rzsu
        SUBROUTINE GET_BMINMAX(rhon,BBMIN,BBMAX)
          USE bpsd_kinds
          REAL(rkind),INTENT(IN):: rhon
@@ -940,19 +939,21 @@
 
 !     ***** PLASMA BOUNDARY *****
 
-    SUBROUTINE pl_rzsu(RSU,ZSU,NSUM,NSUMAX)
+    SUBROUTINE pl_rzsu(RSU,ZSU,NSUMAX)
 
       USE plcomm,ONLY: PI,RA,RKAP,RR,MODELG
       IMPLICIT NONE
-      INTEGER(ikind),INTENT(IN):: NSUM
-      REAL(rkind),DIMENSION(NSUM),INTENT(OUT) :: RSU,ZSU
+      REAL(rkind),ALLOCATABLE,INTENT(OUT) :: RSU(:),ZSU(:)
       INTEGER(ikind),INTENT(OUT):: NSUMAX
       REAL(rkind)     :: DTH, TH
       INTEGER(ikind)  :: NSU
 
       SELECT CASE(MODELG)
       CASE(0:2)
-         NSUMAX=NSUM
+         IF(ALLOCATED(RSU)) DEALLOCATE(RSU)
+         IF(ALLOCATED(ZSU)) DEALLOCATE(ZSU)
+         ALLOCATE(RSU(NSUMAX))
+         NSUMAX=256
          DTH=2.D0*PI/(NSUMAX-1)
          DO NSU=1,NSUMAX
             TH=(NSU-1)*DTH
@@ -960,7 +961,7 @@
             ZSU(NSU)=   RKAP*RA*SIN(TH)
          ENDDO
       CASE(3,5,8)
-         CALL GETRSU(RSU,ZSU,NSUM,NSUMAX)
+         CALL eqget_rzsu(RSU,ZSU,NSUMAX)
       END SELECT
       RETURN
     END SUBROUTINE pl_rzsu

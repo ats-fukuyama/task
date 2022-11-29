@@ -1122,8 +1122,7 @@ CONTAINS
 
 !   ----- evaluate plasma major radius range -----
 
-    ALLOCATE(rsu(nsum),zsu(nsum))
-    CALL pl_rzsu(rsu,zsu,nsum,nsumax)
+    CALL pl_rzsu(rsu,zsu,nsumax)
     rlmin=rsu(1)
     rlmax=rsu(1)
     DO nsu=2,nsumax

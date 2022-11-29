@@ -38,7 +38,6 @@ CONTAINS
        IF(iprint > 0) WRITE(6,'(A,F8.5)') '## Absorption rate: ',RATEA
 9900  CONTINUE
       RETURN
-  601 FORMAT('## END OF ',A6,' ##  CPU TIME = ',F8.3,' SEC')
     END SUBROUTINE wi_cold
 
 !     *****  CALCULATION OF COEFFICIENT MATRIX  ***** 

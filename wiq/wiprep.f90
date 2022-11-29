@@ -58,11 +58,11 @@ CONTAINS
 
       USE libgrf,ONLY: GRD1D
       USE wicomm,ONLY: &
-           ikind,rkind,dxmin,dx0,xwmin,xwint,alfa,pn0,xmin,xmax,nxmax,nwmax, &
+           ikind,qkind,dxmin,dx0,xwmin,xwint,alfa,pn0,xmin,xmax,nxmax,nwmax, &
            xgrid,modelp
       IMPLICIT NONE
 
-      REAL(rkind):: xres,x,factor,dx1,dx2,range
+      REAL(qkind):: xres,x,factor,dx1,dx2,range
       INTEGER(ikind):: nx,nx1,nx2
       INTEGER(ikind),SAVE:: nxmax_save=0
 
@@ -151,7 +151,7 @@ CONTAINS
 
     SUBROUTINE set_profile
 
-      USE wicomm,ONLY: ikind,rkind,nxmax,xgrid,alfa,pn0,cwe,cwp
+      USE wicomm,ONLY: ikind,qkind,nxmax,xgrid,alfa,pn0,cwe,cwp
       USE wigcom
       IMPLICIT NONE
 
@@ -159,9 +159,9 @@ CONTAINS
 
       DO NX=0,NXMAX
          IF(-0.5D0*ALFA*xgrid(nx).GT.100.D0) THEN
-            CWE(NX)=DEXP(100.D0)
+            CWE(NX)=EXP(100.D0)
          ELSE
-            CWE(NX)=DEXP(-0.5D0*ALFA*xgrid(nx))
+            CWE(NX)=EXP(-0.5D0*ALFA*xgrid(nx))
          END IF
          CWP(NX)=PN0
       END DO

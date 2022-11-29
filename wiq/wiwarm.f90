@@ -13,7 +13,7 @@ CONTAINS
     USE libbnd
     IMPLICIT NONE
     INTEGER(ikind),INTENT(IN):: iprint
-    REAL(rkind),INTENT(OUT):: ratea
+    REAL(qkind),INTENT(OUT):: ratea
     INTEGER(ikind),INTENT(OUT):: ierr
     
     mlmax=nxmax*2+3
@@ -30,7 +30,7 @@ CONTAINS
 !       DO ML=MLMAX-3,MLMAX
 !        WRITE(6,'(I5,1P6E12.4)') ML,(CK(MW,ML),MW=(MWMAX+1)/2-1,(MWMAX+1)/2+1)
 !       END DO
-    CALL BANDCD(CK,CSO,mlmax,mwmax,MWID,IERR)   ! band matrix solver   
+    CALL BANDCQ(CK,CSO,mlmax,mwmax,MWID,IERR)   ! band matrix solver   
        IF(IERR.NE.0) GOTO 9900
     CALL SUBFYW                               ! calculate field vector
     CALL SUBPOW    ! calculate sbsorbed power
@@ -46,18 +46,18 @@ CONTAINS
 
       USE wicomm
       IMPLICIT NONE
-      COMPLEX(rkind):: ciky,cbb
-      REAL(rkind):: rky,rky2,dx,beta2,dky
+      COMPLEX(qkind):: ciky,cbb
+      REAL(qkind):: rky,rky2,dx,beta2,dky
       INTEGER(ikind):: ML,MW,I,J,NX,ID,JD
       INTEGER(ikind):: IOB,IO,I2
-      REAL(rkind):: gamma=3.D0
+      REAL(qkind):: gamma=3.D0
 
       RKY=ANY*BETA
       RKY2=RKY**2
       BETA2=BETA*BETA
       DKY=ANY*ANY
       CIKY=CI*ANY/BETA
-      CBB=CI/(DSQRT(1.D0-ANY*ANY)*BETA)
+      CBB=CI/(SQRT(1.D0-ANY*ANY)*BETA)
 
       DO ML=1,MLMAX
          DO MW=1,MWMAX
@@ -130,10 +130,10 @@ CONTAINS
 
       USE wicomm
       IMPLICIT NONE
-      COMPLEX(rkind):: CBB
+      COMPLEX(qkind):: CBB
       INTEGER(ikind):: ML
 
-      CBB=CI/(DSQRT(1.D0-ANY*ANY)*BETA)
+      CBB=CI/(SQRT(1.D0-ANY*ANY)*BETA)
 
       DO ML=1,NXMAX*2+1
          CSO(ML)=(0.D0,0.D0)
@@ -163,10 +163,10 @@ CONTAINS
 
       USE wicomm
       IMPLICIT NONE
-      COMPLEX(rkind):: cp1,cp2,cp3,cp4,cpa
+      COMPLEX(qkind):: cp1,cp2,cp3,cp4,cpa
       INTEGER(ikind):: NX,i,j,id,jd
-      REAL(rkind):: rky,rky2,dx,AD,BD
-      REAL(rkind):: gamma=3.D0
+      REAL(qkind):: rky,rky2,dx,AD,BD
+      REAL(qkind):: gamma=3.D0
 
       RKY=ANY*BETA
       RKY2=RKY**2

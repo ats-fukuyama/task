@@ -16,9 +16,18 @@ Module wigout
 
 CONTAINS
 
+  FUNCTION GQCLIP(X)
+    USE wicomm,ONLY: rkind,qkind
+    IMPLICIT NONE
+    REAL(qkind):: X
+    REAL:: GQCLIP
+
+    GQCLIP=GUCLIP(DBLE(X))
+  END FUNCTION GQCLIP
+
   SUBROUTINE wi_gout
 
-    USE wicomm,ONLY: rkind
+    USE wicomm,ONLY: qkind
     USE wiparm
     USE libgrf
     IMPLICIT NONE
@@ -26,6 +35,7 @@ CONTAINS
     INTEGER:: IERR
 
     ierr=0
+    
 !    WRITE(6,'(A)') &
 !         '#### WI GOUT:  R/1D  X/exit'
 !    CALL TASK_KLIN(line,kid,mode,wi_parm)
@@ -56,13 +66,13 @@ CONTAINS
 
     USE wicomm
     IMPLICIT NONE
-    COMPLEX(rkind):: CZ
+    COMPLEX(qkind):: CZ
     REAL,DIMENSION(nxmax+1):: SVX,SCR,SCI,SCA,SCER,SCEI,SCEA,SPOWR 
     REAL:: SMINX,SMAXX,SMINF,SMAXF,SMINE,SMAXE,SMINP,SMAXP
     REAL:: SGMINX,SGMAXX,SGMINF,SGMAXF,SGMINE,SGMAXE,SGMINP,SGMAXP
     REAL:: SCALX,SCALF,SCALE,SCALP
-    REAL(rkind):: ANB
-    REAL(rkind):: R,T,S
+    REAL(qkind):: ANB
+    REAL(qkind):: R,T,S
     INTEGER:: J,JD
     EXTERNAL PAGES,SETLIN,SETCHS,SETFNT,GMNMX1,GQSCAL,PAGEE
     EXTERNAL GDEFIN,GFRAME,GSCALE,GVALUE,GPLOTP,MOVE,TEXT,NUMBI,NUMBD
@@ -70,14 +80,14 @@ CONTAINS
 
     DO J=1,NXMAX+1 
        JD=2*(J-1) 
-       SVX(J)=GUCLIP(xgrid(J-1))
-       SCR(J)=GUCLIP(REAL(CFY(JD+1)))
-       SCI(J)=GUCLIP(AIMAG(CFY(JD+1)))
-       SCA(J)=GUCLIP(ABS(CFY(JD+1)))
-       SCER(J)=GUCLIP(REAL(CFY(JD+2)))
-       SCEI(J)=GUCLIP(AIMAG(CFY(JD+2)))
-       SCEA(J)=GUCLIP(ABS(CFY(JD+2)))
-       SPOWR(J)=GUCLIP(REAL(CPOWER(J-1)))
+       SVX(J)=REAL(DBLE(xgrid(J-1)))
+       SCR(J)=GUCLIP(DBLE(REAL(CFY(JD+1))))
+       SCI(J)=GUCLIP(DBLE(AIMAG(CFY(JD+1))))
+       SCA(J)=GUCLIP(DBLE(ABS(CFY(JD+1))))
+       SCER(J)=GUCLIP(DBLE(REAL(CFY(JD+2))))
+       SCEI(J)=GUCLIP(DBLE(AIMAG(CFY(JD+2))))
+       SCEA(J)=GUCLIP(DBLE(ABS(CFY(JD+2))))
+       SPOWR(J)=GUCLIP(DBLE(REAL(CPOWER(J-1))))
     END DO
 
     CALL PAGES
@@ -141,57 +151,57 @@ CONTAINS
     CALL NUMBI(NWMAX,'(I7)',8)
     CALL MOVE(15.5,16.0)
     CALL TEXT('  XMAX  = ',10)
-    CALL NUMBD(XMAX,'(F7.1)',7)
+    CALL NUMBD(DBLE(XMAX),'(F7.1)',7)
     CALL MOVE(15.5,15.5)
     CALL TEXT('  PN0   = ',10)
-    CALL NUMBD(PN0,'(F7.3)',7)
+    CALL NUMBD(DBLE(PN0),'(F7.3)',7)
     CALL MOVE(15.5,15.0)
     CALL TEXT('  ALFA  = ',10)
-    CALL NUMBD(ALFA,'(F9.5)',9)
+    CALL NUMBD(DBLE(ALFA),'(F9.5)',9)
     CALL MOVE(15.5,14.5)
     CALL TEXT('  ANY   = ',10)
-    CALL NUMBD(ANY,'(F7.3)',7)
+    CALL NUMBD(DBLE(ANY),'(F7.3)',7)
     CALL MOVE(15.5,14.0)
     CALL TEXT('  BETA  = ',10)
-    CALL NUMBD(BETA,'(F7.3)',7)
+    CALL NUMBD(DBLE(BETA),'(F7.3)',7)
     CALL MOVE(15.5,13.5)
     CALL TEXT('  PNU   = ',10)
-    CALL NUMBD(PNU,'(F7.3)',7)
+    CALL NUMBD(DBLE(PNU),'(F7.3)',7)
     CALL MOVE(15.5,12.75)
 
     CALL TEXT('  R     = ',10)
     R=ABS(CFY(NXMAX*2+3))**2
-    CALL NUMBD(R,'(F9.5)',9)
+    CALL NUMBD(DBLE(R),'(F9.5)',9)
     CALL MOVE(15.5,12.25)
     CALL TEXT('  A     = ',10)
-    T=1-R
-    CALL NUMBD(T,'(F9.5)',9)
+    T=1.D0-R
+    CALL NUMBD(DBLE(T),'(F9.5)',9)
     CALL MOVE(15.5,11.5)
     CALL TEXT('  P-IN  = ',10)
 
     IF(ALFA*xgrid(nxmax).GT.100.D0) THEN
        ANB=0.D0
     ELSE
-       ANB=DEXP(-ALFA*xgrid(nxmax))
+       ANB=EXP(-ALFA*xgrid(nxmax))
     END IF
     IF(1.D0-ANB-ANY*ANY.LT.0.D0) THEN
        S=0.D0
     ELSE
-       S=T/(DSQRT(1.D0-ANB-ANY*ANY)) 
+       S=T/(SQRT(1.D0-ANB-ANY*ANY)) 
     END IF
-    CALL NUMBD(S,'(ES12.4)',12)
+    CALL NUMBD(DBLE(S),'(ES12.4)',12)
     CALL MOVE(15.5,11.0)
     CALL TEXT('  P-ABS = ',10)
-    CALL NUMBD(PTOT,'(ES12.4)',12)
+    CALL NUMBD(DBLE(PTOT),'(ES12.4)',12)
     CALL MOVE(15.5,10.0)
     CALL TEXT('   CZ   = ',10)
-    CZ=(1.D0+CFY(NXMAX*2+3))*DSQRT(1.D0-ANY*ANY)/(1.D0-CFY(NXMAX*2+3)) 
+    CZ=(1.D0+CFY(NXMAX*2+3))*SQRT(1.D0-ANY*ANY)/(1.D0-CFY(NXMAX*2+3)) 
     S=REAL(CZ)
-    CALL NUMBD(S,'(F9.5)',9)
+    CALL NUMBD(DBLE(S),'(F9.5)',9)
     CALL MOVE(15.5, 9.5)
     CALL TEXT('       +i ',10)
     S=AIMAG(CZ)
-    CALL NUMBD(S,'(F9.5)',9)
+    CALL NUMBD(DBLE(S),'(F9.5)',9)
     CALL MOVE(6.0,17.2)
     CALL TEXT('< CEX >',7)
     CALL MOVE(6.0,8.2)
@@ -204,18 +214,19 @@ CONTAINS
 
   SUBROUTINE wi_mesh
     USE libgrf,ONLY: GRD1D
-    USE wicomm,ONLY: ikind,rkind,nxmax,xgrid
+    USE wicomm,ONLY: ikind,rkind,qkind,nxmax,xgrid
     IMPLICIT NONE
     INTEGER(ikind):: nx
-    REAL(rkind),DIMENSION(:),ALLOCATABLE:: xid
+    REAL(rkind),DIMENSION(:),ALLOCATABLE:: xid,xrgrid
     EXTERNAL PAGES,PAGEE
 
     CALL PAGES
-    ALLOCATE(xid(nxmax))
+    ALLOCATE(xid(nxmax),xrgrid(nxmax))
     DO nx=1,nxmax
-       xid(nx)=dble(nx)
+       xid(nx)=DBLE(nx)
+       xrgrid(nx)=DBLE(xgrid(nxmax))
     END DO
-    CALL GRD1D(0,xid,xgrid,nxmax,nxmax,1,'@xgrid vs nx@')
+    CALL GRD1D(0,xid,xrgrid,nxmax,nxmax,1,'@xgrid vs nx@')
     DEALLOCATE(xid)
     CALL PAGEE
     RETURN

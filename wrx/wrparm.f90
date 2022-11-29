@@ -140,11 +140,11 @@ CONTAINS
     INTEGER,INTENT(OUT):: IERR
     CHARACTER(LEN=80):: LINE
     INTEGER,SAVE:: INITEQ=0
-    EXTERNAL EQCALQ,EQGETB
+    EXTERNAL EQCALQ,EQGETB,eqget_rzsu
 
     IERR=0
 
-    IF(MODELG.EQ.3.OR.MODELG.EQ.5) THEN
+    IF(MODELG.EQ.3.OR.MODELG.EQ.5) THEN ! task/eq and eqdsk
        IF(INITEQ.EQ.0) THEN
           CALL eq_load(MODELG,KNAMEQ,IERR)
           IF(IERR.EQ.0) THEN
@@ -156,17 +156,53 @@ CONTAINS
              CALL eq_parm(2,LINE,IERR)
              CALL EQCALQ(IERR)
              CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
+             CALL eqget_rzsu(rsu,zsu,nsumax)
+             rmax_eq=rsu(1)
+             rmin_eq=rsu(1)
+             zmax_eq=zsu(1)
+             zmin_eq=zsu(1)
+             DO nsu=2,nsumax
+                IF(rsu(nsu).GT.rmax_eq) rmax_eq=rsu(nsu)
+                IF(rsu(nsu).LT.rmin_eq) rmin_eq=rsu(nsu)
+                IF(zsu(nsu).GT.zmax_eq) zmax_eq=rsu(nsu)
+                IF(zsu(nsu).LT.zmin_eq) zmin_eq=rsu(nsu)
+             END DO
+             raxis_eq=0.5D0*(rmin_eq+rmax_eq)
+             zaxis_eq=0.5D0*(zmin_eq+zmax_eq)
+             rmax_wr=raxis_eq+bdr_threshold*(rmax_eq-raxis_eq)
+             rmin_wr=raxis_eq+bdr_threshold*(rmin_eq-raxis_eq)
+             zmax_wr=zaxis_eq+bdr_threshold*(zmax_eq-zaxis_eq)
+             zmin_wr=zaxis_eq+bdr_threshold*(zmin_eq-zaxis_eq)
+             IF(rmin_wr.LT.0.D0) rmin_wr=0.D0
              INITEQ=1
           ELSE
              WRITE(6,*) 'XX EQLOAD: IERR=',IERR
              INITEQ=0
           ENDIF
        ENDIF
-    ELSE IF(MODELG.EQ.8) THEN
+    ELSE IF(MODELG.EQ.8) THEN ! task/equ
        IF(INITEQ.EQ.0) THEN
           CALL eq_read(IERR)
           IF(IERR.EQ.0) THEN
              CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
+             CALL eqget_rzsu(rsu,zsu,nsumax)
+             rmax_eq=rsu(1)
+             rmin_eq=rsu(1)
+             zmax_eq=zsu(1)
+             zmin_eq=zsu(1)
+             DO nsu=2,nsumax
+                IF(rsu(nsu).GT.rmax_eq) rmax_eq=rsu(nsu)
+                IF(rsu(nsu).LT.rmin_eq) rmin_eq=rsu(nsu)
+                IF(zsu(nsu).GT.zmax_eq) zmax_eq=rsu(nsu)
+                IF(zsu(nsu).LT.zmin_eq) zmin_eq=rsu(nsu)
+             END DO
+             raxis_eq=0.5D0*(rmin_eq+rmax_eq)
+             zaxis_eq=0.5D0*(zmin_eq+zmax_eq)
+             rmax_wr=raxis_eq+bdr_threshold*(rmax_eq-raxis_eq)
+             rmin_wr=raxis_eq+bdr_threshold*(rmin_eq-raxis_eq)
+             zmax_wr=zaxis_eq+bdr_threshold*(zmax_eq-zaxis_eq)
+             zmin_wr=zaxis_eq+bdr_threshold*(zmin_eq-zaxis_eq)
+             IF(rmin_wr.LT.0.D0) rmin_wr=0.D0
              INITEQ=1
           ELSE
              WRITE(6,*) 'XX EQREAD: IERR=',IERR
@@ -175,6 +211,24 @@ CONTAINS
        ENDIF
     ELSE
        INITEQ=0
+       raxis_eq=RR
+       zaxis_eq=0.D0
+       rmax_eq=RR+RA
+       rmin_wr=RR-RA
+       zmax_wr= RKAP*RA
+       zmin_wr=-RKAP*RA
+       rmax_wr=raxis_eq+bdr_threshold*(rmax_eq-raxis_eq)
+       rmin_wr=raxis_eq+bdr_threshold*(rmin_eq-raxis_eq)
+       zmax_wr=zaxis_eq+bdr_threshold*(zmax_eq-zaxis_eq)
+       zmin_wr=zaxis_eq+bdr_threshold*(zmin_eq-zaxis_eq)
+       IF(rmin_wr.LT.0.D0) rmin_wr=0.D0
+       nsumax=128
+       ALLOCATE(rsu(nsumax+1),zsu(nsumax+1))
+       dth=2.D0*PI/nsumax
+       DO nsu=1,nsumax+1
+          rsu(nsu)=RR+RA*COS((nsu-1)*dth)
+          zsu(nsu)=RKAP*RA*SIN((nsu-1)*dth)
+       END DO
     ENDIF
 
     CALL DPPREP_LOCAL(IERR)

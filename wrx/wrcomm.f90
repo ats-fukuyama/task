@@ -17,7 +17,10 @@ MODULE wrcomm_parm
   INTEGER:: MDLWRI,MDLWRG,MDLWRP,MDLWRQ,MDLWRW
   REAL(rkind):: SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW
   REAL(rkind):: pne_threshold,bdr_threshold
+  INTEGER:: nsumax
+  REAL(rkind):: Rmax_eq,Rmin_eq,Zmin_eq,Zmax_eq,Raxis_eq,Zaxis_eq
   REAL(rkind):: Rmax_wr,Rmin_wr,Zmin_wr,Zmax_wr
+  REAL(rkind),ALLOCATABLE:: rsu(:),nsu(:)
   INTEGER:: nres_max,nres_type
 
   REAL(rkind),DIMENSION(NRAYM):: &

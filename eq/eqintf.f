@@ -111,6 +111,26 @@ C
 C
 C     ***** GET PLASMA BOUNDARY POSITION *****
 C
+      SUBROUTINE eqget_rzsu(rsu1,zsu1,nsumax1)
+C
+      INCLUDE '../eq/eqcomq.inc'
+      REAL(rkind),ALLOCATABLE,INTENT(OUT):: rsu1(:),zsu1(:)
+      INTEGER,INTENT(OUT):: nsumax1
+      INTEGER:: nsu
+C
+      IF(ALLOCATED(rsu1)) DEALLOCATE(rsu1)
+      IF(ALLOCATED(zsu1)) DEALLOCATE(zsu1)
+      ALLOCATE(rsu1(nsumax),zsu1(nsumax))
+      DO nsu=1,nsumax
+         rsu1(nsu)=rsu(nsu)
+         zsu1(nsu)=zsu(nsu)
+      enddo
+      nsumax1=nsumax
+      return
+      end
+C
+C     ***** GET PLASMA BOUNDARY POSITION *****
+C
       SUBROUTINE GETRSU(RSU1,ZSU1,N,NSUMAX1)
 C
       INCLUDE '../eq/eqcomq.inc'
@@ -126,15 +146,15 @@ C
 C
 C     ***** GET R and Z for rhot and th *****
 C
-      SUBROUTINE GET_RZ(rhon_,rchip_,R_,Z_)
+      SUBROUTINE GET_RZ(rhon_,chip_,R_,Z_)
 C
       USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
       REAL(rkind):: chip_
 C
-      CALL SPL2DF(rchip_,rhon_,R_,
+      CALL SPL2DF(chip_,rhon_,R_,
      &                  CHIP,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-      CALL SPL2DF(rchip_,rhon_,Z_,
+      CALL SPL2DF(chip_,rhon_,Z_,
      &                  CHIP,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
       RETURN
       END
