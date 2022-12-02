@@ -159,5 +159,5 @@ $(OBJDIR)/fowcoef.o : fowdistribution.f90 fowcoef.f90 fowcomm.f90 fpcomm.f90
 $(OBJDIR)/fowsource.o : fowsource.f90 fowcomm.f90 fpcomm.f90 fowprep.f90 foworbit.f90 fowdistribution.f90
 $(OBJDIR)/fowloop.o : fowexec.f90 fowdistribution.f90 fowcoef.f90 fowsource.f90 \
 											fowcomm.f90 fpcomm.f90 fowprep.f90 fpwrite.f90 check_neoclass.f90 orbit_classify.f90
-$(OBJDIR)/check_neoclass.o : check_neoclass.f90 fowcomm.f90 fpcomm.f90 fpwrite.f90 fowcoef.f90 fowexec.f90
+$(OBJDIR)/check_neoclass.o : check_neoclass.f90 fowcomm.f90 fpcomm.f90 fpwrite.f90 fowcoef.f90 fowexec.f90 foworbit.f90
 $(OBJDIR)/orbit_classify.o : orbit_classify.f90 fowcomm.f90 fpcomm.f90 fpwrite.f90

@@ -95,18 +95,24 @@ contains
                 Dptl(nth,np,nr,nthp,nsa) = Dptl(nth,np,nr,nthp,nsa) + DCPT(nth,np,nr,nsa) ! + DWPT(nth,np,nr,nsa)    
                 Fppl(nth,np,nr,nthp,nsa) = Fppl(nth,np,nr,nthp,nsa) + FCPP(nth,np,nr,nsa) ! + FEPP(nth,np,nr,nsa)
 
-                check_zeroD(1,1,nsa) = check_zeroD(1,1,nsa) + ABS( Dppl(nth,np,nr,nthp,nsa) )
-                check_zeroD(1,2,nsa) = check_zeroD(1,2,nsa) + ABS( Dptl(nth,np,nr,nthp,nsa) )
-                check_zeroF(1,nsa)   = check_zeroF(1,nsa)   + ABS( Fppl(nth,np,nr,nthp,nsa) )
+                ! check_zeroD(1,1,nsa) = check_zeroD(1,1,nsa) + ABS( Dppl(nth,np,nr,nthp,nsa) )
+                ! check_zeroD(1,1,nsa) = check_zeroD(1,1,nsa) + ABS( Dppl(nth,np,nr,nthp,nsa) )
+                ! check_zeroD(1,2,nsa) = check_zeroD(1,2,nsa) + ABS( Dptl(nth,np,nr,nthp,nsa) )
+                check_zeroF(1,nsa)   = check_zeroF(1,nsa)   + ( Fppl(nth,np,nr,nthp,nsa) )
+                check_zeroD(1,2,nsa) = check_zeroD(1,2,nsa) + ( Dptl(nth,np,nr,nthp,nsa) )
+                check_zeroF(1,nsa)   = check_zeroF(1,nsa)   + ( Fppl(nth,np,nr,nthp,nsa) )
               end if
               if ( np /= npmax+1 ) then
                 Dtpl(nth,np,nr,nthp,nsa) = Dtpl(nth,np,nr,nthp,nsa) + DCTP(nth,np,nr,nsa) ! + DWTP(nth,np,nr,nsa) 
                 Dttl(nth,np,nr,nthp,nsa) = Dttl(nth,np,nr,nthp,nsa) + DCTT(nth,np,nr,nsa) ! + DWTT(nth,np,nr,nsa)
                 Fthl(nth,np,nr,nthp,nsa) = Fthl(nth,np,nr,nthp,nsa) + FCTH(nth,np,nr,nsa) ! + FETH(nth,np,nr,nsa)
 
-                check_zeroD(2,1,nsa) = check_zeroD(2,1,nsa) + ABS( Dtpl(nth,np,nr,nthp,nsa) )
-                check_zeroD(2,2,nsa) = check_zeroD(2,2,nsa) + ABS( Dttl(nth,np,nr,nthp,nsa) )
-                check_zeroF(2,nsa)   = check_zeroF(2,nsa)   + ABS( Fthl(nth,np,nr,nthp,nsa) )
+                ! check_zeroD(2,1,nsa) = check_zeroD(2,1,nsa) + ABS( Dtpl(nth,np,nr,nthp,nsa) )
+                ! check_zeroD(2,2,nsa) = check_zeroD(2,2,nsa) + ABS( Dttl(nth,np,nr,nthp,nsa) )
+                ! check_zeroF(2,nsa)   = check_zeroF(2,nsa)   + ABS( Fthl(nth,np,nr,nthp,nsa) )
+                check_zeroD(2,1,nsa) = check_zeroD(2,1,nsa) + ( Dtpl(nth,np,nr,nthp,nsa) )
+                check_zeroD(2,2,nsa) = check_zeroD(2,2,nsa) + ( Dttl(nth,np,nr,nthp,nsa) )
+                check_zeroF(2,nsa)   = check_zeroF(2,nsa)   + ( Fthl(nth,np,nr,nthp,nsa) )
 
               end if
 
@@ -136,7 +142,7 @@ contains
     use fowcomm
 
     implicit none
-    integer :: nth, np, nr, nsa, nthp, mode(3), nstp, nstpmax, ierr = 0
+    integer :: nth, np, nr, nsa, nthp, mode(3), nstp, nstpmax, ierr = 0, np_tmp, nr_tmp
     real(rkind),dimension(3,3,max_stp) :: dIdu
     real(rkind),allocatable:: U_Dpp(:,:,:,:,:,:,:,:),&
                               U_Dpt(:,:,:,:,:,:,:,:),& 
@@ -158,6 +164,12 @@ contains
     allocate(U_Fth(4,4,4,nthmax+1,nrmax,nthpmax,npmax,nsamax))
 
     !**** Initialization
+    U_Dpp(:,:,:,:,:,:,:,:) = 0.d0
+    U_Dpt(:,:,:,:,:,:,:,:) = 0.d0
+    U_Dtp(:,:,:,:,:,:,:,:) = 0.d0
+    U_Dtt(:,:,:,:,:,:,:,:) = 0.d0
+    U_Fpp(:,:,:,:,:,:,:,:) = 0.d0
+    U_Fth(:,:,:,:,:,:,:,:) = 0.d0
     Dppfow(:,:,:,:) = 0.d0
     Dptfow(:,:,:,:) = 0.d0
     Dprfow(:,:,:,:) = 0.d0
@@ -178,6 +190,19 @@ contains
       if ( check_zeroD(2,2,nsa) >= 1.d-70 ) call make_U_Dxy(U_Dtt, Dttl, 't', nsa)
       if ( check_zeroF(1,nsa) >= 1.d-70 )   call make_U_Dxy(U_Fpp, Fppl, 'p', nsa)
       if ( check_zeroF(2,nsa) >= 1.d-70 )   call make_U_Dxy(U_Fth, Fthl, 't', nsa)  
+      !================ NEW =================
+      ! !if ( check_zeroD(1,1,nsa) >= 1.d-70 ) 
+      ! call make_U_Dxy(U_Dpp, Dppl, 'p', nsa)
+      ! !if ( check_zeroD(1,2,nsa) >= 1.d-70 ) 
+      ! call make_U_Dxy(U_Dpt, Dptl, 'p', nsa)
+      ! !if ( check_zeroD(2,1,nsa) >= 1.d-70 ) 
+      ! call make_U_Dxy(U_Dtp, Dtpl, 't', nsa)
+      ! !if ( check_zeroD(2,2,nsa) >= 1.d-70 ) 
+      ! call make_U_Dxy(U_Dtt, Dttl, 't', nsa)
+      ! !if ( check_zeroF(1,nsa) >= 1.d-70 )   
+      ! call make_U_Dxy(U_Fpp, Fppl, 'p', nsa)
+      ! !if ( check_zeroF(2,nsa) >= 1.d-70 )   
+      ! call make_U_Dxy(U_Fth, Fthl, 't', nsa)  
     end do
 
     !**** calculate Dpp, Dpt, Dpr, Fp
@@ -204,9 +229,21 @@ contains
               
               !****[ calucurate local coefficient along orbit
               ! Dxx(p_orbit, theta_orbit, psip_orbit, thetap_orbit) ]
-              call interpolate_D_unlessZero(Dpp_ob, U_Dpp(:,:,:,:,:,:,np,nsa), check_zeroD(1,1,nsa), cpitch_ob, psip_ob, thetap_ob)
-              call interpolate_D_unlessZero(Dpt_ob, U_Dpt(:,:,:,:,:,:,np,nsa), check_zeroD(1,2,nsa), cpitch_ob, psip_ob, thetap_ob)
-              call interpolate_D_unlessZero(Fpp_ob, U_Fpp(:,:,:,:,:,:,np,nsa), check_zeroF(1,nsa), cpitch_ob, psip_ob, thetap_ob)
+
+              ! call interpolate_D_unlessZero(Dpp_ob, U_Dpp(:,:,:,:,:,:,np,nsa), check_zeroD(1,1,nsa), cpitch_ob, psip_ob, thetap_ob) !** original
+              call interpolate_D_unlessZero(D_pls, U_Dpp(:,:,:,:,:,:,np+1,nsa), check_zeroD(1,1,nsa), cpitch_ob, psip_ob, thetap_ob)
+              call interpolate_D_unlessZero(D_mns, U_Dpp(:,:,:,:,:,:,np,nsa), check_zeroD(1,1,nsa), cpitch_ob, psip_ob, thetap_ob)
+              Dpp_ob = (D_pls+D_mns)/2.d0
+
+              ! call interpolate_D_unlessZero(Dpt_ob, U_Dpt(:,:,:,:,:,:,np,nsa), check_zeroD(1,2,nsa), cpitch_ob, psip_ob, thetap_ob) !** original
+              call interpolate_D_unlessZero(D_pls, U_Dpt(:,:,:,:,:,:,np+1,nsa), check_zeroD(1,2,nsa), cpitch_ob, psip_ob, thetap_ob)
+              call interpolate_D_unlessZero(D_mns, U_Dpt(:,:,:,:,:,:,np,nsa), check_zeroD(1,2,nsa), cpitch_ob, psip_ob, thetap_ob)
+              Dpt_ob = (D_pls+D_mns)/2.d0
+
+              ! call interpolate_D_unlessZero(Fpp_ob, U_Fpp(:,:,:,:,:,:,np,nsa), check_zeroF(1,nsa), cpitch_ob, psip_ob, thetap_ob) !** original
+              call interpolate_D_unlessZero(D_pls, U_Fpp(:,:,:,:,:,:,np+1,nsa), check_zeroF(1,nsa), cpitch_ob, psip_ob, thetap_ob)
+              call interpolate_D_unlessZero(D_mns, U_Fpp(:,:,:,:,:,:,np,nsa), check_zeroF(1,nsa), cpitch_ob, psip_ob, thetap_ob)
+              Fpp_ob = (D_pls+D_mns)/2.d0
 
 
               dt = orbit_p(nth,np,nr,nsa)%time(nstp)-orbit_p(nth,np,nr,nsa)%time(nstp-1)
@@ -224,11 +261,26 @@ contains
             end do
 
             if ( np == npmax+1 ) then
-              JIl = JI(nth,np-1,nr,nsa)
+              if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                  JIl = ( JI(nth-1,np-1,nr,nsa)*(1.d0 - IBCflux_ratio(np-1,nr,nsa))&
+                      + JI(nth,np-1,nr,nsa)*IBCflux_ratio(np-1,nr,nsa))
+              else
+                JIl = JI(nth,np-1,nr,nsa)
+              end if
             else if ( np == 1 ) then
-              JIl = JI(nth,np,nr,nsa)
+              if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                  JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
+                      + JI(nth,np,nr,nsa)*IBCflux_ratio(np,nr,nsa))
+              else
+                JIl = JI(nth,np,nr,nsa)
+              end if
             else
-              JIl = (JI(nth,np-1,nr,nsa)+JI(nth,np,nr,nsa))*0.50
+              if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                  JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
+                      + JI(nth,np,nr,nsa)*IBCflux_ratio(np,nr,nsa))
+              else
+                JIl = (JI(nth,np-1,nr,nsa)+JI(nth,np,nr,nsa))*0.50
+              end if
             end if
 
             Dppfow(nth,np,nr,nsa) = Dppfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * JIl
@@ -279,9 +331,20 @@ contains
               Fpp_ob = (D_pls+D_mns)/2.d0
 
 
-              call interpolate_D_unlessZero(Dtp_ob, U_Dtp(:,:,:,:,:,:,np,nsa), check_zeroD(2,1,nsa), cpitch_ob, psip_ob, thetap_ob)
-              call interpolate_D_unlessZero(Dtt_ob, U_Dtt(:,:,:,:,:,:,np,nsa), check_zeroD(2,2,nsa), cpitch_ob, psip_ob, thetap_ob)
-              call interpolate_D_unlessZero(Fth_ob, U_Fth(:,:,:,:,:,:,np,nsa), check_zeroF(2,nsa), cpitch_ob, psip_ob, thetap_ob)
+              ! call interpolate_D_unlessZero(Dtp_ob, U_Dtp(:,:,:,:,:,:,np,nsa), check_zeroD(2,1,nsa), cpitch_ob, psip_ob, thetap_ob) !** original
+              call interpolate_D_unlessZero(D_pls, U_Dtp(:,:,:,:,:,:,np+1,nsa), check_zeroD(2,1,nsa), cpitch_ob, psip_ob, thetap_ob)
+              call interpolate_D_unlessZero(D_mns, U_Dtp(:,:,:,:,:,:,np,nsa), check_zeroD(2,1,nsa), cpitch_ob, psip_ob, thetap_ob)
+              Dtp_ob = (D_pls+D_mns)/2.d0
+              
+              ! call interpolate_D_unlessZero(Dtt_ob, U_Dtt(:,:,:,:,:,:,np,nsa), check_zeroD(2,2,nsa), cpitch_ob, psip_ob, thetap_ob) !** original
+              call interpolate_D_unlessZero(D_pls, U_Dtt(:,:,:,:,:,:,np+1,nsa), check_zeroD(2,2,nsa), cpitch_ob, psip_ob, thetap_ob)
+              call interpolate_D_unlessZero(D_mns, U_Dtt(:,:,:,:,:,:,np,nsa), check_zeroD(2,2,nsa), cpitch_ob, psip_ob, thetap_ob)
+              Dtt_ob = (D_pls+D_mns)/2.d0
+
+              ! call interpolate_D_unlessZero(Fth_ob, U_Fth(:,:,:,:,:,:,np,nsa), check_zeroF(2,nsa), cpitch_ob, psip_ob, thetap_ob) !**original
+              call interpolate_D_unlessZero(D_pls, U_Fth(:,:,:,:,:,:,np+1,nsa), check_zeroF(2,nsa), cpitch_ob, psip_ob, thetap_ob)
+              call interpolate_D_unlessZero(D_mns, U_Fth(:,:,:,:,:,:,np,nsa), check_zeroF(2,nsa), cpitch_ob, psip_ob, thetap_ob)
+              Fth_ob = (D_pls+D_mns)/2.d0
 
               dt = orbit_th(nth,np,nr,nsa)%time(nstp)-orbit_th(nth,np,nr,nsa)%time(nstp-1)
 
@@ -302,8 +365,8 @@ contains
             end do
 
             if ( nth == nth_pnc(nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
-              ! JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
-              !       + JI(nth,np,nr,nsa)*IBCflux_ratio(np,nr,nsa))
+              JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
+                    + JI(nth,np,nr,nsa)*IBCflux_ratio(np,nr,nsa))
               ! JIl = ( JI(nth-1,np,nr,nsa)*IBCflux_ratio(np,nr,nsa)&
               !       * orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
               !       + JI(nth,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa)) &
@@ -321,14 +384,18 @@ contains
               ! JIl = (JI(nth-1,np,nr,nsa)&
               !       +JI(nth,np,nr,nsa))&
               !       *0.5d0
-              JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
-                    +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
-                    /(orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)+ &
-                    orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))
+              !========================= master version ===============================
               ! JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
               !       +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
               !       /(orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)+ &
               !       orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))
+
+
+              ! JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
+              !       +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
+              !       /(orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)+ &
+              !       orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))
+              !======================== original version ==============================
               ! JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
               !       +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
               !       *0.5d0*orbit_th(nth,np,nr,nsa)%time(nstpmax)
@@ -387,10 +454,20 @@ contains
               call interpolate_D_unlessZero(D_mns, U_Fpp(:,:,:,:,:,:,np,nsa), check_zeroF(1,nsa), cpitch_ob, psip_ob, thetap_ob)
               Fpp_ob = (D_pls+D_mns)/2.d0
 
+              ! call interpolate_D_unlessZero(Dtp_ob, U_Dtp(:,:,:,:,:,:,np,nsa), check_zeroD(2,1,nsa), cpitch_ob, psip_ob, thetap_ob) !** original
+              call interpolate_D_unlessZero(D_pls, U_Dtp(:,:,:,:,:,:,np+1,nsa), check_zeroD(2,1,nsa), cpitch_ob, psip_ob, thetap_ob)
+              call interpolate_D_unlessZero(D_mns, U_Dtp(:,:,:,:,:,:,np,nsa), check_zeroD(2,1,nsa), cpitch_ob, psip_ob, thetap_ob)
+              Dtp_ob = (D_pls+D_mns)/2.d0
 
-              call interpolate_D_unlessZero(Dtp_ob, U_Dtp(:,:,:,:,:,:,np,nsa), check_zeroD(2,1,nsa), cpitch_ob, psip_ob, thetap_ob)
-              call interpolate_D_unlessZero(Dtt_ob, U_Dtt(:,:,:,:,:,:,np,nsa), check_zeroD(2,2,nsa), cpitch_ob, psip_ob, thetap_ob)
-              call interpolate_D_unlessZero(Fth_ob, U_Fth(:,:,:,:,:,:,np,nsa), check_zeroF(2,nsa), cpitch_ob, psip_ob, thetap_ob)
+              ! call interpolate_D_unlessZero(Dtt_ob, U_Dtt(:,:,:,:,:,:,np,nsa), check_zeroD(2,2,nsa), cpitch_ob, psip_ob, thetap_ob) !** original
+              call interpolate_D_unlessZero(D_pls, U_Dtt(:,:,:,:,:,:,np+1,nsa), check_zeroD(2,2,nsa), cpitch_ob, psip_ob, thetap_ob)
+              call interpolate_D_unlessZero(D_mns, U_Dtt(:,:,:,:,:,:,np,nsa), check_zeroD(2,2,nsa), cpitch_ob, psip_ob, thetap_ob)
+              Dtt_ob = (D_pls+D_mns)/2.d0
+
+              ! call interpolate_D_unlessZero(Fth_ob, U_Fth(:,:,:,:,:,:,np,nsa), check_zeroF(2,nsa), cpitch_ob, psip_ob, thetap_ob) !** original
+              call interpolate_D_unlessZero(D_pls, U_Fth(:,:,:,:,:,:,np+1,nsa), check_zeroF(2,nsa), cpitch_ob, psip_ob, thetap_ob)
+              call interpolate_D_unlessZero(D_mns, U_Fth(:,:,:,:,:,:,np,nsa), check_zeroF(2,nsa), cpitch_ob, psip_ob, thetap_ob)
+              Fth_ob = (D_pls+D_mns)/2.d0
 
               dt = orbit_r(nth,np,nr,nsa)%time(nstp)-orbit_r(nth,np,nr,nsa)%time(nstp-1)
 
@@ -412,11 +489,26 @@ contains
             end do
 
             if ( nr == 1 ) then
-              JIl = JI(nth,np,nr,nsa)
+              if ( nth == nth_pnc(nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                  JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
+                      + JI(nth,np,nr,nsa)*IBCflux_ratio(np,nr,nsa))
+              else
+                JIl = JI(nth,np,nr,nsa)
+              end if
             else if ( nr == nrmax+1 ) then
-              JIl = JI(nth,np,nr-1,nsa)
+              if ( nth == nth_pnc(nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                  JIl = ( JI(nth-1,np,nr-1,nsa)*(1.d0 - IBCflux_ratio(np,nr-1,nsa))&
+                      + JI(nth,np,nr-1,nsa)*IBCflux_ratio(np,nr-1,nsa))
+              else
+                JIl = JI(nth,np,nr-1,nsa)
+              end if
             else
-              JIl = (JI(nth,np,nr,nsa)+JI(nth,np,nr-1,nsa))*0.5d0
+              if ( nth == nth_pnc(nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                  JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
+                      + JI(nth,np,nr,nsa)*IBCflux_ratio(np,nr,nsa))
+              else
+                JIl = (JI(nth,np,nr,nsa)+JI(nth,np,nr-1,nsa))*0.5d0
+              end if
             end if
 
             Drpfow(nth,np,nr,nsa) = Drpfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) * JIl
@@ -537,8 +629,11 @@ contains
         b(1) = -1.d0*sthob**2/Bob**2*dBobdr
         b(2) = aefp(nsa)*dpsiobdr - ( dFobdr*Bob-Fob*dBobdr )/Bob**2*pl*cthob
         dpdr   = 0.d0
-        dthmdr = (A(2,2)*b(1)-A(1,2)*b(2))/detA
-        drmdr  = (A(1,1)*b(2)-A(2,1)*b(1))/detA
+        dthmdr = 0.d0
+        drmdr  = 0.d0
+        !**** original
+        ! dthmdr = (A(2,2)*b(1)-A(1,2)*b(2))/detA
+        ! drmdr  = (A(1,1)*b(2)-A(2,1)*b(1))/detA
 
         dIdu(1,1,nstp) = dpdp
         dIdu(1,2,nstp) = dthmdp*ptfp0(nsa)
@@ -562,7 +657,8 @@ contains
         dIdu(2,3,nstp) = 0.d0
         dIdu(3,1,nstp) = 0.d0
         dIdu(3,2,nstp) = 0.d0
-        dIdu(3,3,nstp) = 1.d0
+        ! dIdu(3,3,nstp) = 1.d0 !** original
+        dIdu(3,3,nstp) = 0.d0
       end do
 
     end if
@@ -696,219 +792,5 @@ contains
 
 
   end subroutine interpolate_D_unlessZero
-
-! !===========================================
-! ! for moment vector quantities calculation
-! !===========================================
-!   subroutine make_moment_vector(moment_vector)
-!   !---------------------------------------------------
-!   ! maybe using interpole module is good [2022/11/7]
-!   !---------------------------------------------------
-
-!     use fpcomm
-!     use fowcomm
-
-!     implicit none
-!     ! type(orbit):: orbit_m
-!     real(rkind),dimension(3,3,max_stp) :: dIdu
-!     ! real(rkind),dimension(3, npmax, nthmax, nrmax, nsamax, max_stp) :: moment_vector_at_ob !by anzai
-!     real(rkind),intent(out),dimension(3, npmax, nthmax, nrmax, nsamax) :: moment_vector !by anzai
-!     !** momentvector(1,:,:,:,:) = pm(:,:)
-!     !** momentvector(2,:,:,:,:) = pm(:,:)*dthdp
-!     !** momentvector(3,:,:,:,:) = pm(:,:)*drdp
-!     real(rkind) :: cpitch_ob, thetap_ob, psip_ob, JIl
-!     real(rkind) :: sumt, dt
-!     integer :: nth, np, nr, nsa, nthp, mode(3), nstp, nstpmax, ierr = 0
-
-!     !**** initialize
-!     moment_vector(:,:,:,:,:) = 0.0
-
-!     !**** Bounce average moment vector
-!     do nsa = 1, nsamax
-!       do nr = 1, nrmax
-!         do nth = 1, nthmax
-!           do np = 1, npmax
-          
-!             nstpmax = orbit_r(nth,np,nr,nsa)%nstp_max
-!             call transformation_matrix_for_vector(dIdu, orbit_m(nth,np,nr,nsa), &
-!                                                    nth, np, nr, nsa)
-
-!             !**** for nstp = 1
-!             moment_vector(1,nth,np,nr,nsa) = moment_vector(1,nth,np,nr,nsa) + pm(np,nsa)*dIdu(1,1,1)
-!             moment_vector(2,nth,np,nr,nsa) = moment_vector(2,nth,np,nr,nsa) + pm(np,nsa)*dIdu(1,2,1)
-!             moment_vector(3,nth,np,nr,nsa) = moment_vector(3,nth,np,nr,nsa) + pm(np,nsa)*dIdu(1,3,1)
-
-!             do nstp = 2, nstpmax
-
-!               dt = orbit_m(nth,np,nr,nsa)%time(nstp)-orbit_m(nth,np,nr,nsa)%time(nstp-1)
-!               moment_vector(1,nth,np,nr,nsa) = moment_vector(1,nth,np,nr,nsa) & 
-!                                              + pm(np,nsa)*dIdu(1,1,nstp)*dt
-!               moment_vector(2,nth,np,nr,nsa) = moment_vector(2,nth,np,nr,nsa) &
-!                                              + pm(np,nsa)*dIdu(1,2,nstp)*dt
-!               moment_vector(3,nth,np,nr,nsa) = moment_vector(3,nth,np,nr,nsa) &
-!                                              + pm(np,nsa)*dIdu(1,3,nstp)*dt
-!             end do !** nstp
-
-!             moment_vector(1,nth,np,nr,nsa) = moment_vector(1,nth,np,nr,nsa)/orbit_m(nth,np,nr,nsa)%time(nstpmax)
-!             moment_vector(2,nth,np,nr,nsa) = moment_vector(2,nth,np,nr,nsa)/orbit_m(nth,np,nr,nsa)%time(nstpmax)
-!             moment_vector(3,nth,np,nr,nsa) = moment_vector(3,nth,np,nr,nsa)/orbit_m(nth,np,nr,nsa)%time(nstpmax)
-
-!           end do
-!         end do
-!       end do
-!     end do
-
-!   end subroutine make_moment_vector
-
-!   subroutine transformation_matrix_for_vector(dIdu, ob, nth, np, nr, nsa)
-!   !----------------------------------------------------------------
-!   ! Calcuration of transform matrix  from Energy, momentum space
-!   ! to momentum, pitch angle, the largest magnetic flux
-!   !----------------------------------------------------------------
-!     use fpcomm
-!     use fowcomm
-!     ! use foworbit
-
-!     implicit none
-
-!     real(rkind),dimension(3,3,max_stp),intent(out) :: dIdu
-!     type(orbit),intent(in) :: ob
-!     integer,intent(in) :: nth, np, nr, nsa!, mode(3)
-
-!     ! elements of transformation matrix, dIdu
-!     real(rkind) :: dpdp,  dthmdp,  drmdp,&
-!                    dpdth, dthmdth, drmdth,&
-!                    dpdr,  dthmdr,  drmdr
-!     real(rkind) :: pl, Bml, dBmdrl, Fml, dFmdrl, cthm, sthm, dpsimdrl
-!     real(rkind) :: Bob, Fob, cthob, sthob, dBobdr, dpsiobdr, dFobdr
-!     real(rkind) :: A(2,2), b(2), detA
-!     integer :: nstp, nstpmax
-
-!     ! select case(mode(1))
-!     ! case(0)
-!     !   if ( mode(2) == 0 .and. mode(3) == 0 ) cthm = COS( thetam(nth,np,nr,nsa) )
-!     !   if ( mode(2) == 1 .and. mode(3) == 0 ) cthm = COS( thetam_pg(nth,np,nr,nsa) )
-!     !   if ( mode(2) == 0 .and. mode(3) == 1 ) cthm = COS( thetam_rg(nth,np,nr,nsa) )
-!     ! case(1)
-!     !   cthm = COS( thetamg(nth,np,nr,nsa) )
-!     ! end select
-
-!     !**** for pitch angle
-!     cthm = COS ( thetam(nth,np,nr,nsa))
-!     sthm = SQRT( 1.d0-cthm**2 )
-    
-!     ! select case(mode(2))
-!     ! case(0)
-!     !   pl = pm(np,nsa)*ptfp0(nsa)
-!     ! case(1)
-!     !   pl = pg(np,nsa)*ptfp0(nsa)
-!     ! end select
-
-!     !**** for moment
-!       pl = pm(np,nsa)*ptfp0(nsa)
-
-!     ! select case(mode(3))
-!     ! case(0)
-!     !   if ( cthm*aefp(nsa) >= 0.d0 ) then
-!     !     Bml = Bout(nr)
-!     !     dBmdrl = dBoutdr(nr)
-!     !   else
-!     !     Bml = Bin(nr)
-!     !     dBmdrl = dBindr(nr)
-!     !   end if
-!     !   dpsimdrl = dpsimdr(nr)
-!     !   Fml = Fpsi(nr)
-!     !   dFmdrl = dFdr(nr)
-!     ! case(1)
-!     !   if ( cthm*aefp(nsa) >= 0.d0 ) then
-!     !     Bml = Boutg(nr)
-!     !     dBmdrl = dBoutgdr(nr)
-!     !   else
-!     !     Bml = Bing(nr)
-!     !     dBmdrl = dBingdr(nr)
-!     !   end if
-!     !   dpsimdrl = dpsimgdr(nr)
-!     !   Fml = Fpsig(nr)
-!     !   dFmdrl = dFgdr(nr)
-!     ! end select
-
-!     !**** for radial part
-!     if ( cthm*aefp(nsa) >= 0.d0 ) then
-!       Bml = Bout(nr)
-!       dBmdrl = dBoutdr(nr)
-!     else
-!       Bml = Bin(nr)
-!       dBmdrl = dBindr(nr)
-!     end if
-!       dpsimdrl = dpsimdr(nr)
-!       Fml = Fpsi(nr)
-!       dFmdrl = dFdr(nr)
-
-!     A(1,1) = 2.d0*sthm*cthm/Bml
-!     A(1,2) = -1.d0*sthm**2*dBmdrl/Bml**2
-!     A(2,1) = Fml/Bml*pl*sthm
-!     A(2,2) = aefp(nsa)*dpsimdrl-(dFmdrl*Bml-Fml*dBmdrl)/Bml**2*pl*cthm
-!     detA = A(1,1)*A(2,2)-A(1,2)*A(2,1)
-
-!     nstpmax = ob%nstp_max
-
-!     if ( detA /= 0.d0 ) then
-!       do nstp = 1, nstpmax
-!         Bob = ob%Babs(nstp)
-!         Fob = ob%F(nstp)
-!         cthob = ob%costh(nstp)
-!         sthob = ob%sinth(nstp)
-!         dBobdr = ob%dBdr(nstp)
-!         dpsiobdr = ob%dpsipdr(nstp)
-!         dFobdr = ob%dFdr(nstp)
-
-!         ! dX/dp
-!         b(1) = 0.d0
-!         b(2) = Fml/Bml*cthm-Fob/Bob*cthob
-!         dpdp   = 1.d0
-!         dthmdp = (A(2,2)*b(1)-A(1,2)*b(2))/detA
-!         drmdp  = (A(1,1)*b(2)-A(2,1)*b(1))/detA
-
-!         ! dX/dtheta
-!         b(1) = 2.d0*sthob*cthob/Bob
-!         b(2) = Fob/Bob*pl*sthob
-!         dpdth   = 0.d0
-!         dthmdth = (A(2,2)*b(1)-A(1,2)*b(2))/detA
-!         drmdth  = (A(1,1)*b(2)-A(2,1)*b(1))/detA
-
-!         ! dX/drho
-!         b(1) = -1.d0*sthob**2/Bob**2*dBobdr
-!         b(2) = aefp(nsa)*dpsiobdr - ( dFobdr*Bob-Fob*dBobdr )/Bob**2*pl*cthob
-!         dpdr   = 0.d0
-!         dthmdr = (A(2,2)*b(1)-A(1,2)*b(2))/detA
-!         drmdr  = (A(1,1)*b(2)-A(2,1)*b(1))/detA
-
-!         dIdu(1,1,nstp) = dpdp
-!         dIdu(1,2,nstp) = dthmdp*ptfp0(nsa)
-!         dIdu(1,3,nstp) = drmdp*ptfp0(nsa)
-!         dIdu(2,1,nstp) = dpdth
-!         dIdu(2,2,nstp) = dthmdth
-!         dIdu(2,3,nstp) = drmdth
-!         dIdu(3,1,nstp) = dpdr
-!         dIdu(3,2,nstp) = dthmdr
-!         dIdu(3,3,nstp) = drmdr
-
-!       end do
-
-!     else
-!       do nstp = 1, nstpmax
-!         dIdu(1,1,nstp) = 1.d0
-!         dIdu(1,2,nstp) = 0.d0
-!         dIdu(1,3,nstp) = 0.d0
-!         dIdu(2,1,nstp) = 0.d0
-!         dIdu(2,2,nstp) = 1.d0
-!         dIdu(2,3,nstp) = 0.d0
-!         dIdu(3,1,nstp) = 0.d0
-!         dIdu(3,2,nstp) = 0.d0
-!         dIdu(3,3,nstp) = 1.d0
-!       end do
-
-!     end if
-!   end subroutine transformation_matrix_for_vector
 
 end module fowcoef
