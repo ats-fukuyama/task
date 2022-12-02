@@ -4,7 +4,7 @@ MODULE wrexecr
 
   USE wrcomm,ONLY: rkind
   REAL(rkind):: omega,rkv,rnv
-  INTEGER:: nray_exec,nstp_exec
+  INTEGER:: nray_exec
   
   PRIVATE
   PUBLIC wr_exec_rays
@@ -66,10 +66,10 @@ CONTAINS
     TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
     TYPE(pl_prf_type),DIMENSION(nsmax):: plf
     REAL(rkind):: RF,RP,ZP,PHI,RNPH,ANGT,ANGP,RNK,UU
-    INTEGER:: MODEW,mode,icount
+    INTEGER:: MODEW,mode
     REAL(rkind):: XP,YP,s,deg,factor,omega_pe2,rne
-    REAL(rkind):: rhon,rk,rk_new,rkpara,rkperp,rkperp_1,rkperp_2
-    REAL(rkind):: rk_x,rk_y,rk_z,dXP,dYP,dZP
+    REAL(rkind):: rhon,rkpara,rkperp_1,rkperp_2
+    REAL(rkind):: rk,rk_x,rk_y,rk_z,dXP,dYP,dZP
     REAL(rkind):: b_x,b_y,b_z,b_R,b_phi
     REAL(rkind):: ut_x,ut_y,ut_z,ut_R,ut_phi
     REAL(rkind):: un_x,un_y,un_z,un_R,un_phi
@@ -1250,18 +1250,15 @@ CONTAINS
     USE plprof,ONLY: pl_mag_old,pl_rzsu
     USE libgrf
     IMPLICIT NONE
-    INTEGER,PARAMETER:: nsum=201
-    REAL(rkind),ALLOCATABLE:: rsu(:),zsu(:)
     INTEGER:: nrs,nray,nstp,nrs1,nrs2,ndrs,locmax
-    INTEGER:: nrl1,nrl2,ndrl,nsumax,nsu,nrl
+    INTEGER:: nrl1,nrl2,ndrl,nsu,nrl
     REAL(rkind):: drs,xl,yl,zl,rs1,rs2,sdrs,delpwr,pwrmax,dpwr,ddpwr
     REAL(rkind):: rlmin,rlmax,drl,rl1,rl2,sdrl
     INTEGER,SAVE:: nrsmax_save=0,nrlmax_save=0,nraymax_save=0,nstpmax_save=0
 
 !   ----- evaluate plasma major radius range -----
 
-    ALLOCATE(rsu(nsum),zsu(nsum))
-    CALL pl_rzsu(rsu,zsu,nsum,nsumax)
+    CALL pl_rzsu(rsu,zsu,nsumax)
     rlmin=rsu(1)
     rlmax=rsu(1)
     DO nsu=2,nsumax

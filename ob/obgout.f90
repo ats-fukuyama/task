@@ -54,7 +54,6 @@ CONTAINS
     USE plprof,ONLY: pl_rzsu,pl_mag_old,pl_mag_type,pl_mag
     USE libgrf
     IMPLICIT NONE
-    INTEGER,PARAMETER:: nsu_m=501
     INTEGER,PARAMETER:: nx_max=101
     INTEGER,PARAMETER:: ny_max=101
     REAL(rkind),PARAMETER:: aspect_ob=0.D0
@@ -74,7 +73,7 @@ CONTAINS
 
     !  ----- PLASMA BOUNDARY -----
 
-    CALL pl_rzsu(rsu_temp,zsu_temp,nsu_m,nsu_max)
+    CALL pl_rzsu(rsu_temp,zsu_temp,nsu_max)
     ALLOCATE(rsu(nsu_max+1),zsu(nsu_max+1))
     DO nsu=1,nsu_max
        rsu(nsu)=rsu_temp(nsu)

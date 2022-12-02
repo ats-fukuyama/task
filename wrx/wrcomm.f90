@@ -20,7 +20,7 @@ MODULE wrcomm_parm
   INTEGER:: nsumax
   REAL(rkind):: Rmax_eq,Rmin_eq,Zmin_eq,Zmax_eq,Raxis_eq,Zaxis_eq
   REAL(rkind):: Rmax_wr,Rmin_wr,Zmin_wr,Zmax_wr
-  REAL(rkind),ALLOCATABLE:: rsu(:),nsu(:)
+  REAL(rkind),ALLOCATABLE:: rsu(:),zsu(:)
   INTEGER:: nres_max,nres_type
 
   REAL(rkind),DIMENSION(NRAYM):: &

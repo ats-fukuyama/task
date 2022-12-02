@@ -3,8 +3,8 @@
 MODULE wrexecb
 
   USE wrcomm,ONLY: rkind
-  REAL(rkind):: omega,rkv,rnv
-  INTEGER:: nray_exec,nstp_exec
+  REAL(rkind):: omega,rnv,rkv
+  INTEGER:: nray_exec
 
   PRIVATE
   PUBLIC wr_exec_beams
@@ -25,6 +25,11 @@ CONTAINS
 
     CALL GUTIME(TIME1)
     DO NRAY=1,NRAYMAX
+       nray_exec=nray
+       omega=2.D6*PI*RFIN(nray)
+       rkv=omega/VC
+       rnv=VC/omega
+       WRITE(6,'(A,I4,3ES12.4)') 'nray,omega,rkv,rnv=',nray,omega,rkv,rnv
        wr_nray_status%nray=nray
        wr_nray_status%rf=rfin(nray)
        wr_nray_status%rcurva=RCURVAIN(NRAY)
@@ -67,9 +72,9 @@ CONTAINS
     TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
     TYPE(pl_prf_type),DIMENSION(nsmax):: plf
     REAL(rkind):: RF,RP,ZP,PHI,RNPH,ANGT,ANGP,RNK,UU
-    INTEGER:: MODEW,mode,icount
-    REAL(rkind):: XP,YP,omega,rkv,s,deg,factor,omega_pe2,rne
-    REAL(rkind):: rhon,rk,rk_new,rkpara,rkperp,rkperp_1,rkperp_2
+    INTEGER:: MODEW,mode
+    REAL(rkind):: XP,YP,omega,s,deg,factor,omega_pe2,rne
+    REAL(rkind):: rhon,rk,rkpara,rkperp_1,rkperp_2
     REAL(rkind):: rk_x,rk_y,rk_z,dXP,dYP,dZP
     REAL(rkind):: b_x,b_y,b_z,b_R,b_phi
     REAL(rkind):: ut_x,ut_y,ut_z,ut_R,ut_phi
