@@ -461,6 +461,30 @@ contains
 
   end subroutine fow_prep
 
+  subroutine make_nth_pnc
+  !------------------------------------------------
+  ! search nth at theta of pinch orbit [2022/12/2]
+  !------------------------------------------------
+    use fowcomm
+    use fpcomm
+
+    implicit none
+
+    integer :: ns, nth, np, nr, nsa, ierr = 0, flag, nstp, nstpmax, ir, nthp
+
+    do nsa = 1, nsamax
+      do nr = 1, NRMAX
+        do np = 1, npmax
+          do nth = 1, nthmax
+            if (thetam(nth,np,nr,nsa)<= theta_pnc(np,nr,nsa)<thetam(nth,np,nr,nsa) .and. &
+                aefp(nsa)>0)
+          end do
+        end do
+      end do
+    end do
+
+  end subroutine make_nth_pnc
+
   subroutine fow_eqload(ierr)
     !======================================
     !======================================

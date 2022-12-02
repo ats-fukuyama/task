@@ -30,7 +30,7 @@ module fowcomm
   !           nthm3           ! number of theta_m grid points for theta_cnt_stg <= theta_m <= pi
   !
   ! real(rkind),allocatable :: JI(:,:,:,:),& ! dxdydzd(vx)d(vy)d(vz) = JI * dpd(thetam)d(psim)
-  !                            JIR(:,:,:,:)  ! for integrate over velocity space
+  !                            JIR(:,:,:,:)  ! for integrate over velocity space maybe for orbit average [2022/12/1]
   !=============================================================================================================================================
   integer :: model_obload  
   integer :: model_mkcsv   
@@ -81,10 +81,10 @@ module fowcomm
                                                 Dtpfow, Dttfow, Dtrfow,&
                                                 Drpfow, Drtfow, Drrfow,&
                                                 Fppfow, Fthfow, Frrfow
-  real(rkind),allocatable,dimension(:,:,:,:) :: Dpp_j,  Dpt_j, Dpr_j,&
-                                                Dtp_j,  Dtt_j, Dtr_j,&
-                                                Drp_j,  Drt_j, Drr_j,&
-                                                Fpp_j,  Fth_j, Frr_j
+  ! real(rkind),allocatable,dimension(:,:,:,:) :: Dpp_j,  Dpt_j, Dpr_j,&
+  !                                               Dtp_j,  Dtt_j, Dtr_j,&
+  !                                               Drp_j,  Drt_j, Drr_j,&
+  !                                               Fpp_j,  Fth_j, Frr_j
 
 ! equilibrium variables ===================================================================================================
 !   real(rkind):: psi0                                        ! poloidal flux at the plasma edge
@@ -151,6 +151,12 @@ module fowcomm
 !
 !   integer,allocatable,dimension(:) :: nth_stg,&                  ! thetamg(nth_stg,(nsa),np,nr,nsa) = theta_stg
 !                                       nth_pnc                    ! thetamg(nth_pnc,(nsa),np,nr,nsa) = theta_pnc
+!   integer,allocatable,dimension(:,:,:) :: nth_stg_pg,&           ! thetas on stagnation orbit surfaces !**** by anzai [2022/12/2]
+!                                           nth_pnc_pg             ! thetas on pinch orbit surface       !**** by anzai [2022/12/2]
+!   integer,allocatable,dimension(:,:,:) :: nth_stg_m,&            ! thetas on stagnation orbit surfaces !**** by anzai [2022/12/2]
+!                                           nth_pnc_m              ! thetas on pinch orbit surface       !**** by anzai [2022/12/2]
+!   integer,allocatable,dimension(:,:,:) :: nth_stg_rg,&           ! thetas on stagnation orbit surfaces !**** by anzai [2022/12/2]
+!                                           nth_pnc_rg             ! thetas on pinch orbit surface       !**** by anzai [2022/12/2]
 !
 !   real(rkind),allocatable,dimension(:,:,:) :: IBCflux_ratio      ! [ration between the flux from thetam(nth_pnc-1) to thetam(nth_pnc)
 !                                                                       and the flux from thetam(nth_pnc-1) to thetam(nth_co_stg)]
@@ -178,6 +184,12 @@ module fowcomm
 
   integer,allocatable,dimension(:) :: nth_stg,&   
                                       nth_pnc      
+  integer,allocatable,dimension(:,:,:) :: nth_stg_pg,&   
+                                          nth_pnc_pg      
+  integer,allocatable,dimension(:,:,:) :: nth_stg_m,&   
+                                          nth_pnc_m      
+  integer,allocatable,dimension(:,:,:) :: nth_stg_rg,&   
+                                          nth_pnc_rg      
 
   real(rkind),allocatable,dimension(:,:,:) :: IBCflux_ratio 
   integer,allocatable,dimension(:,:,:) ::  nr_pnc_point    
@@ -318,20 +330,26 @@ contains
     allocate(Fppfow(nthmax  ,npmax+1,nrmax  ,nsamax))
     allocate(Fthfow(nthmax+1,npmax  ,nrmax  ,nsamax))
     allocate(Frrfow(nthmax  ,npmax  ,nrmax+1,nsamax))
-    !** added by anzai
-    allocate(Dpp_j(nthmax  ,npmax+1,nrmax  ,nsamax))
-    allocate(Dpt_j(nthmax  ,npmax+1,nrmax  ,nsamax))
-    allocate(Dpr_j(nthmax  ,npmax+1,nrmax  ,nsamax))
-    allocate(Dtp_j(nthmax+1,npmax  ,nrmax  ,nsamax))
-    allocate(Dtt_j(nthmax+1,npmax  ,nrmax  ,nsamax))
-    allocate(Dtr_j(nthmax+1,npmax  ,nrmax  ,nsamax))
-    allocate(Drp_j(nthmax  ,npmax  ,nrmax+1,nsamax))
-    allocate(Drt_j(nthmax  ,npmax  ,nrmax+1,nsamax))
-    allocate(Drr_j(nthmax  ,npmax  ,nrmax+1,nsamax))
-    allocate(Fpp_j(nthmax  ,npmax+1,nrmax  ,nsamax))
-    allocate(Fth_j(nthmax+1,npmax  ,nrmax  ,nsamax))
-    allocate(Frr_j(nthmax  ,npmax  ,nrmax+1,nsamax))
-    
+    ! !** added by anzai
+    ! allocate(Dpp_j(nthmax  ,npmax+1,nrmax  ,nsamax))
+    ! allocate(Dpt_j(nthmax  ,npmax+1,nrmax  ,nsamax))
+    ! allocate(Dpr_j(nthmax  ,npmax+1,nrmax  ,nsamax))
+    ! allocate(Dtp_j(nthmax+1,npmax  ,nrmax  ,nsamax))
+    ! allocate(Dtt_j(nthmax+1,npmax  ,nrmax  ,nsamax))
+    ! allocate(Dtr_j(nthmax+1,npmax  ,nrmax  ,nsamax))
+    ! allocate(Drp_j(nthmax  ,npmax  ,nrmax+1,nsamax))
+    ! allocate(Drt_j(nthmax  ,npmax  ,nrmax+1,nsamax))
+    ! allocate(Drr_j(nthmax  ,npmax  ,nrmax+1,nsamax))
+    ! allocate(Fpp_j(nthmax  ,npmax+1,nrmax  ,nsamax))
+    ! allocate(Fth_j(nthmax+1,npmax  ,nrmax  ,nsamax))
+    ! allocate(Frr_j(nthmax  ,npmax  ,nrmax+1,nsamax))
+   
+    allocate(nth_stg_pg(npmax+1, nrmax,   nsamax))
+    allocate(nth_pnc_pg(npmax+1, nrmax,   nsamax))
+    allocate(nth_stg_m( npmax  , nrmax,   nsamax))
+    allocate(nth_pnc_m( npmax  , nrmax,   nsamax))
+    allocate(nth_stg_rg(npmax  , nrmax+1, nsamax))
+    allocate(nth_pnc_rg(npmax  , nrmax+1, nsamax))
   end subroutine fow_allocate
 
   subroutine fow_deallocate
@@ -413,18 +431,24 @@ contains
     deallocate(Fthfow)
     deallocate(Frrfow)
     !** added by anzai
-    deallocate(Dpp_j)
-    deallocate(Dpt_j)
-    deallocate(Dpr_j)
-    deallocate(Dtp_j)
-    deallocate(Dtt_j)
-    deallocate(Dtr_j)
-    deallocate(Drp_j)
-    deallocate(Drt_j)
-    deallocate(Drr_j)
-    deallocate(Fpp_j)
-    deallocate(Fth_j)
-    deallocate(Frr_j)
+    ! deallocate(Dpp_j)
+    ! deallocate(Dpt_j)
+    ! deallocate(Dpr_j)
+    ! deallocate(Dtp_j)
+    ! deallocate(Dtt_j)
+    ! deallocate(Dtr_j)
+    ! deallocate(Drp_j)
+    ! deallocate(Drt_j)
+    ! deallocate(Drr_j)
+    ! deallocate(Fpp_j)
+    ! deallocate(Fth_j)
+    ! deallocate(Frr_j)
+    deallocate(nth_stg_pg)
+    deallocate(nth_pnc_pg)
+    deallocate(nth_stg_m)
+    deallocate(nth_pnc_m)
+    deallocate(nth_stg_rg)
+    deallocate(nth_pnc_rg)
 
   end subroutine fow_deallocate
 

@@ -44,12 +44,12 @@ contains
 
     call ob_init
     call ob_parm(1,'../fp.ota/fpparm',ierr)
-    write(*,*)ns_ob
+    ! write(*,*)'nsob:',ns_ob !by anzai
 
     nobt_max = 1
 
     call ob_prep(ierr)
-    write(*,*)ns_ob
+    ! write(*,*)'nsob:',ns_ob !by anzai
     call ob_allocate
 
     allocate(Ups(4,nrmax))
@@ -713,7 +713,7 @@ contains
                 write(60,iostat=ierr)orbit_m(nth,np,nr,nsa)%dBdthp(nstp)
               end do
               
-              call check_orbit_max_radial_displacement(nsa, orbit_m(nth,np,nr,nsa)) !** by anzai [22/11/4]
+              ! call check_orbit_max_radial_displacement(nsa, orbit_m(nth,np,nr,nsa)) !** by anzai [22/11/4]
 
             end if
 
