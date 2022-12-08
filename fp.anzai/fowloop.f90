@@ -121,6 +121,7 @@ contains
       if ( .not.coef_is_updated ) then
         call update_bulk_temperature
         call coulomb_log
+        write(*,*)"For Test in fowloop"
         call fow_coef
         call fow_calculate_source(nt)
         coef_is_updated = .false.
@@ -278,7 +279,7 @@ contains
     !   call fptxt2D(momg,"dat/momentumg.txt")
     
     !   call fptxt4D(thetam,"dat/thetam.txt")
-    !   call fptxt4D(thetamg,"dat/thetamg.txt")
+    !   call fptxt4D(thetam_tg,"dat/thetam_tg.txt")
     !   call fptxt4D(thetam_pg,"dat/thetam_pg.txt")
     !   call fptxt4D(thetam_rg,"dat/thetam_rg.txt")
     !   call fptxt4D(JI,"dat/Jacobian.txt")

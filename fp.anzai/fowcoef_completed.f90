@@ -535,7 +535,7 @@ contains
       if ( mode(2) == 0 .and. mode(3) == 1 ) &
            cthm = COS( thetam_rg(nth,np,nr,nsa) )
     case(1)
-      cthm = COS( thetamg(nth,np,nr,nsa) )
+      cthm = COS( thetam_tg(nth,np,nr,nsa) )
     end select
 
     sthm = SQRT( 1.d0-cthm**2 )

@@ -602,8 +602,8 @@ contains
     Ffow(1,1) = Fppfow(nth,np,nr,nsa)*pg(np,nsa)**2
     Ffow(2,1) = Fppfow(nth,np+1,nr,nsa)*pg(np+1,nsa)**2
 
-    Ffow(1,2) = Fthfow(nth,np,nr,nsa)*sin(thetamg(nth,np,nr,nsa))
-    Ffow(2,2) = Fthfow(nth+1,np,nr,nsa)*sin(thetamg(nth+1,np,nr,nsa))
+    Ffow(1,2) = Fthfow(nth,np,nr,nsa)*sin(thetam_tg(nth,np,nr,nsa))
+    Ffow(2,2) = Fthfow(nth+1,np,nr,nsa)*sin(thetam_tg(nth+1,np,nr,nsa))
 
     Ffow(1,3) = Frrfow(nth,np,nr,nsa)*rg(nr)
     Ffow(2,3) = Frrfow(nth,np,nr+1,nsa)*rg(nr+1)
@@ -755,11 +755,11 @@ contains
 
     else if ( alpha == 2 ) then
       if ( beta == 1 ) then
-        Dfow = Dtpfow(nth+si,np+sj,nr,nsa) * sin(thetamg(nth+si,np+sj,nr,nsa))
+        Dfow = Dtpfow(nth+si,np+sj,nr,nsa) * sin(thetam_tg(nth+si,np+sj,nr,nsa))
       else if ( beta == 2 ) then
-        Dfow = Dttfow(nth+si,np,nr,nsa) * sin(thetamg(nth+si,np+sj,nr,nsa))/pm(np,nsa)
+        Dfow = Dttfow(nth+si,np,nr,nsa) * sin(thetam_tg(nth+si,np+sj,nr,nsa))/pm(np,nsa)
       else if ( beta == 3 ) then
-        Dfow = Dtrfow(nth+si,np,nr+sj,nsa) * sin(thetamg(nth+si,np,nr+sj,nsa))
+        Dfow = Dtrfow(nth+si,np,nr+sj,nsa) * sin(thetam_tg(nth+si,np,nr+sj,nsa))
       end if
 
     else if ( alpha == 3 ) then
