@@ -52,7 +52,7 @@ module fowcomm
 !                              time_loss(:,:,:,:,:)
 !
 !   real(rkind),allocatable,dimension(:,:,:,:) :: thetam,&        ! pitch angle along orbit in psim, value at half integer grid points
-!                                                 thetamg,&       ! theta_m at integer grid points
+!                                                 thetam_tg,&       ! theta_m at integer grid points
 !                                                 thetam_rg,&     ! theta_m for given pm(np), psimg(nr)
 !                                                 thetam_pg       ! theta_m for given pg(np), psim(nr)
 !========================================================================================================================================
@@ -62,7 +62,7 @@ module fowcomm
                              thetam_local(:,:,:,:,:), &
                              time_loss(:,:,:,:,:)
   real(rkind),allocatable,dimension(:,:,:,:) :: thetam,&  
-                                                thetamg,& 
+                                                thetam_tg,& 
                                                 thetam_rg,& 
                                                 thetam_pg
 
@@ -149,21 +149,34 @@ module fowcomm
 !
 !   real(rkind),allocatable,dimension(:,:,:,:) :: delthm_rg, delthm_pg, delthm
 !
-!   integer,allocatable,dimension(:) :: nth_stg,&                  ! thetamg(nth_stg,(nsa),np,nr,nsa) = theta_stg
-!                                       nth_pnc                    ! thetamg(nth_pnc,(nsa),np,nr,nsa) = theta_pnc
+!   integer,allocatable,dimension(:) :: nth_stg,&                  ! thetam_tg(nth_stg,(nsa),np,nr,nsa) = theta_stg
+!                                       nth_pnc                    ! thetam_tg(nth_pnc,(nsa),np,nr,nsa) = theta_pnc
+!   integer,allocatable,dimension(:,:,:) :: nth_stg_tg,&            ! thetas on stagnation orbit surfaces !**** by anzai [2022/12/2]
+!                                           nth_pnc_tg              ! thetas on pinch orbit surface       !**** by anzai [2022/12/2]
 !   integer,allocatable,dimension(:,:,:) :: nth_stg_pg,&           ! thetas on stagnation orbit surfaces !**** by anzai [2022/12/2]
 !                                           nth_pnc_pg             ! thetas on pinch orbit surface       !**** by anzai [2022/12/2]
-!   integer,allocatable,dimension(:,:,:) :: nth_stg_m,&            ! thetas on stagnation orbit surfaces !**** by anzai [2022/12/2]
-!                                           nth_pnc_m              ! thetas on pinch orbit surface       !**** by anzai [2022/12/2]
+!   integer,allocatable,dimension(:,:,:) :: nth_stg_tg,&           ! thetas on stagnation orbit surfaces !**** by anzai [2022/12/2]
+!                                           nth_pnc_tg             ! thetas on pinch orbit surface       !**** by anzai [2022/12/2]
 !   integer,allocatable,dimension(:,:,:) :: nth_stg_rg,&           ! thetas on stagnation orbit surfaces !**** by anzai [2022/12/2]
 !                                           nth_pnc_rg             ! thetas on pinch orbit surface       !**** by anzai [2022/12/2]
 !
 !   real(rkind),allocatable,dimension(:,:,:) :: IBCflux_ratio      ! [ration between the flux from thetam(nth_pnc-1) to thetam(nth_pnc)
 !                                                                       and the flux from thetam(nth_pnc-1) to thetam(nth_co_stg)]
+!   real(rkind),allocatable,dimension(:,:,:) :: IBCflux_ratio_pg   ! [ration between the flux from thetam(nth_pnc-1) to thetam_pg(nth_pnc)
+!                                                                       and the flux from thetam(nth_pnc-1) to thetam(nth_co_stg)]
+!   real(rkind),allocatable,dimension(:,:,:) :: IBCflux_ratio_rg   ! [ration between the flux from thetam_rg(nth_pnc-1) to thetam_rg(nth_pnc)
+!                                                                       and the flux from thetam(nth_pnc-1) to thetam(nth_co_stg)]
 !   integer,allocatable,dimension(:,:,:) ::  nr_pnc_point          ! nr of pinch point of theta_pnc(:,:,:)
 !
 !   real(rkind),allocatable,dimension(:,:,:) :: rhom_pinch         ! psim of pnc orbit whose pinch point is X stg orbit with np, nr, nsa
 !   integer,allocatable,dimension(:,:,:) ::  nr_rhom_pinch
+!
+!   real(rkind),allocatable,dimension(:,:,:) :: nr_cgt_stg_tg,        ! nr of counter psim on the pinch orbit   !**** by anzai [2022/12/7]
+!                                               nr_cgt_stg_pg,
+!                                               nr_cgt_stg_rg
+!   real(rkind),allocatable,dimension(:,:,:,:) :: pm_stg_pg,       ! normalized moment on stagnation surface !**** by anzai [2022/12/7]
+!                                                 pm_stg_tg,
+!                                                 pm_stg_rg
 !
 !   real(rkind),parameter :: NO_PINCH_ORBIT = 19960610d0
 !   real(rkind),allocatable,dimension(:,:,:,:) :: orbital_loss
@@ -184,18 +197,30 @@ module fowcomm
 
   integer,allocatable,dimension(:) :: nth_stg,&   
                                       nth_pnc      
+  integer,allocatable,dimension(:,:,:) :: nth_stg_tg,&   
+                                          nth_pnc_tg      
   integer,allocatable,dimension(:,:,:) :: nth_stg_pg,&   
                                           nth_pnc_pg      
-  integer,allocatable,dimension(:,:,:) :: nth_stg_m,&   
-                                          nth_pnc_m      
+  ! integer,allocatable,dimension(:,:,:) :: nth_stg_tg,&  
+  !                                         nth_pnc_tg    
   integer,allocatable,dimension(:,:,:) :: nth_stg_rg,&   
                                           nth_pnc_rg      
 
   real(rkind),allocatable,dimension(:,:,:) :: IBCflux_ratio 
+  real(rkind),allocatable,dimension(:,:,:) :: IBCflux_ratio_pg 
+  real(rkind),allocatable,dimension(:,:,:) :: IBCflux_ratio_rg 
   integer,allocatable,dimension(:,:,:) ::  nr_pnc_point    
 
   real(rkind),allocatable,dimension(:,:,:) :: rhom_pinch   
   integer,allocatable,dimension(:,:,:) ::  nr_rhom_pinch
+
+  real(rkind),allocatable,dimension(:,:,:) :: nr_cgt_stg_tg,&      
+                                              nr_cgt_stg_pg,&
+                                              nr_cgt_stg_rg
+
+  real(rkind),allocatable,dimension(:,:,:,:) :: pm_stg_pg,&
+                                                pm_stg_tg,&
+                                                pm_stg_rg 
 
   real(rkind),parameter :: NO_PINCH_ORBIT = 19960610d0
   real(rkind),allocatable,dimension(:,:,:,:) :: orbital_loss
@@ -261,7 +286,7 @@ contains
     allocate(thetam_local(nthmax  ,npmax  ,nrmax  ,nthpmax,nsamax))
     allocate(time_loss   (nthmax  ,npmax  ,nrmax  ,nthpmax,nsamax))
     allocate(thetam      (nthmax  ,npmax  ,nrmax          ,nsamax))
-    allocate(thetamg     (nthmax+1,npmax  ,nrmax          ,nsamax))
+    allocate(thetam_tg     (nthmax+1,npmax  ,nrmax          ,nsamax))
     allocate(thetam_pg   (nthmax  ,npmax+1,nrmax          ,nsamax))
     allocate(thetam_rg   (nthmax  ,npmax  ,nrmax+1        ,nsamax))
 
@@ -344,12 +369,23 @@ contains
     ! allocate(Fth_j(nthmax+1,npmax  ,nrmax  ,nsamax))
     ! allocate(Frr_j(nthmax  ,npmax  ,nrmax+1,nsamax))
    
+    allocate(nth_stg_tg( npmax  , nrmax,   nsamax))
+    allocate(nth_pnc_tg( npmax  , nrmax,   nsamax))
     allocate(nth_stg_pg(npmax+1, nrmax,   nsamax))
     allocate(nth_pnc_pg(npmax+1, nrmax,   nsamax))
-    allocate(nth_stg_m( npmax  , nrmax,   nsamax))
-    allocate(nth_pnc_m( npmax  , nrmax,   nsamax))
     allocate(nth_stg_rg(npmax  , nrmax+1, nsamax))
     allocate(nth_pnc_rg(npmax  , nrmax+1, nsamax))
+    allocate(nr_cgt_stg_tg(npmax       , nrmax  , nsamax))
+    allocate(nr_cgt_stg_pg(npmax+1  , nrmax+1, nsamax))
+    allocate(nr_cgt_stg_rg(npmax    , nrmax+1, nsamax))
+    allocate(pm_stg_pg(nthmax  , npmax+1, nrmax  , nsamax))
+    allocate(pm_stg_tg(nthmax+1, npmax  , nrmax  , nsamax))
+    allocate(pm_stg_rg(nthmax  , npmax  , nrmax+1, nsamax))
+    allocate(IBCflux_ratio_pg(         npmax+1  ,nrmax  ,nsamax)) !** added by anzai
+    allocate(IBCflux_ratio_rg(         npmax  ,nrmax+1  ,nsamax)) !** adeed by anzai
+    ! allocate(pm_stg_pg(nthmax  , npmax+1, nrmax  , nsamax))
+    ! allocate(pm_stg_th(nthmax+1, npmax  , nrmax  , nsamax))
+    ! allocate(pm_stg_rg(nthmax  , npmax  , nrmax+1, nsamax))
   end subroutine fow_allocate
 
   subroutine fow_deallocate
@@ -363,7 +399,7 @@ contains
     deallocate(thetam_local)
     deallocate(time_loss)
     deallocate(thetam)
-    deallocate(thetamg)
+    deallocate(thetam_tg)
     deallocate(thetam_pg)
     deallocate(thetam_rg)
 
@@ -445,10 +481,21 @@ contains
     ! deallocate(Frr_j)
     deallocate(nth_stg_pg)
     deallocate(nth_pnc_pg)
-    deallocate(nth_stg_m)
-    deallocate(nth_pnc_m)
+    deallocate(nth_stg_tg)
+    deallocate(nth_pnc_tg)
     deallocate(nth_stg_rg)
     deallocate(nth_pnc_rg)
+    deallocate(nr_cgt_stg_tg)
+    deallocate(nr_cgt_stg_pg)
+    deallocate(nr_cgt_stg_rg)
+    deallocate(pm_stg_pg)
+    deallocate(pm_stg_tg)
+    deallocate(pm_stg_rg)
+    deallocate(IBCflux_ratio_pg)
+    deallocate(IBCflux_ratio_rg)
+    ! deallocate(pm_stg_pg)
+    ! deallocate(pm_stg_th)
+    ! deallocate(pm_stg_rg)
 
   end subroutine fow_deallocate
 

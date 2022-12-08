@@ -124,6 +124,7 @@ contains
     end do
 
     call bounce_average
+    call make_and_multiple_JIl
 
     deallocate(Dppl, Dptl, Fppl,Dtpl, Dttl, Fthl)
     deallocate(FNSBL, check_zeroD, check_zeroF)
@@ -260,33 +261,36 @@ contains
 
             end do
 
-            if ( np == npmax+1 ) then
-              if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
-                  JIl = ( JI(nth-1,np-1,nr,nsa)*(1.d0 - IBCflux_ratio(np-1,nr,nsa))&
-                      + JI(nth,np-1,nr,nsa)*IBCflux_ratio(np-1,nr,nsa))
-              else
-                JIl = JI(nth,np-1,nr,nsa)
-              end if
-            else if ( np == 1 ) then
-              if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
-                  JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
-                      + JI(nth,np,nr,nsa)*IBCflux_ratio(np,nr,nsa))
-              else
-                JIl = JI(nth,np,nr,nsa)
-              end if
-            else
-              if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
-                  JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
-                      + JI(nth,np,nr,nsa)*IBCflux_ratio(np,nr,nsa))
-              else
-                JIl = (JI(nth,np-1,nr,nsa)+JI(nth,np,nr,nsa))*0.50
-              end if
-            end if
+            ! if ( np == npmax+1 ) then
+            !   if ( nth == nth_pnc_pg(np,nr,nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+            !   ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+            !       JIl = ( JI(nth-1,np-1,nr,nsa)*(1.d0 - IBCflux_ratio(np-1,nr,nsa))&
+            !           + JI(nth_stg_tg(np-1,nr,nsa)+1,np-1,nr,nsa)*IBCflux_ratio(np-1,nr,nsa))
+            !   else
+            !     JIl = JI(nth,np-1,nr,nsa)
+            !   end if
+            ! else if ( np == 1 ) then
+            !   if ( nth == nth_pnc_pg(np,nr,nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+            !   ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+            !       JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
+            !           + JI(nth_stg_tg(np,nr,nsa)+1,np,nr,nsa)*IBCflux_ratio(np,nr,nsa))
+            !   else
+            !     JIl = JI(nth,np,nr,nsa)
+            !   end if
+            ! else
+            !   if ( nth == nth_pnc_pg(np,nr,nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+            !   ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+            !       JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
+            !           + JI(nth_stg_tg(np,nr,nsa)+1,np,nr,nsa)*IBCflux_ratio(np,nr,nsa))
+            !   else
+            !     JIl = (JI(nth,np-1,nr,nsa)+JI(nth,np,nr,nsa))*0.50
+            !   end if
+            ! end if
 
-            Dppfow(nth,np,nr,nsa) = Dppfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * JIl
-            Dptfow(nth,np,nr,nsa) = Dptfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * JIl
-            Dprfow(nth,np,nr,nsa) = Dprfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * JIl
-            Fppfow(nth,np,nr,nsa) = Fppfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) * JIl
+            Dppfow(nth,np,nr,nsa) = Dppfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) !* JIl
+            Dptfow(nth,np,nr,nsa) = Dptfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) !* JIl
+            Dprfow(nth,np,nr,nsa) = Dprfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) !* JIl
+            Fppfow(nth,np,nr,nsa) = Fppfow(nth,np,nr,nsa) / orbit_p(nth,np,nr,nsa)%time(nstpmax) !* JIl
 
           end do
         end do
@@ -364,54 +368,55 @@ contains
                                     + ( Fpp_ob*dIdu(1,2,nstp) + Fth_ob*dIdu(2,2,nstp) ) * dt                      
             end do
 
-            if ( nth == nth_pnc(nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
-              JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
-                    + JI(nth,np,nr,nsa)*IBCflux_ratio(np,nr,nsa))
-              ! JIl = ( JI(nth-1,np,nr,nsa)*IBCflux_ratio(np,nr,nsa)&
-              !       * orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
-              !       + JI(nth,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa)) &
-              !       * orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
-              !       / (orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max) &
-              !       + orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))
-              ! JIl = ( JI(nth-1,np,nr,nsa)*IBCflux_ratio(np,nr,nsa)&
-              !       * orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
-              !       + JI(nth,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa)) &
-              !       * orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
-              !       * orbit_m(nth,np,nr,nsa)%time(nstpmax)
-              ! JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
-              !       +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
-              !       *0.5d0/orbit_m(nth,np,nr,nsa)%time(nstpmax)
-              ! JIl = (JI(nth-1,np,nr,nsa)&
-              !       +JI(nth,np,nr,nsa))&
-              !       *0.5d0
-              !========================= master version ===============================
-              ! JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
-              !       +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
-              !       /(orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)+ &
-              !       orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))
+            ! if ( nth == nth_pnc_tg(np,nr,nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+            ! ! if ( nth == nth_pnc(nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+            !   JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
+            !         + JI(nth_stg_tg(np,nr,nsa)+1,np,nr,nsa)*IBCflux_ratio(np,nr,nsa))
+            !   ! JIl = ( JI(nth-1,np,nr,nsa)*IBCflux_ratio(np,nr,nsa)&
+            !   !       * orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
+            !   !       + JI(nth,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa)) &
+            !   !       * orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
+            !   !       / (orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max) &
+            !   !       + orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))
+            !   ! JIl = ( JI(nth-1,np,nr,nsa)*IBCflux_ratio(np,nr,nsa)&
+            !   !       * orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
+            !   !       + JI(nth,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa)) &
+            !   !       * orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
+            !   !       * orbit_m(nth,np,nr,nsa)%time(nstpmax)
+            !   ! JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
+            !   !       +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
+            !   !       *0.5d0/orbit_m(nth,np,nr,nsa)%time(nstpmax)
+            !   ! JIl = (JI(nth-1,np,nr,nsa)&
+            !   !       +JI(nth,np,nr,nsa))&
+            !   !       *0.5d0
+            !   !========================= master version ===============================
+            !   ! JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
+            !   !       +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
+            !   !       /(orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)+ &
+            !   !       orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))
 
 
-              ! JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
-              !       +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
-              !       /(orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)+ &
-              !       orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))
-              !======================== original version ==============================
-              ! JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
-              !       +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
-              !       *0.5d0*orbit_th(nth,np,nr,nsa)%time(nstpmax)
+            !   ! JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
+            !   !       +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
+            !   !       /(orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)+ &
+            !   !       orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))
+            !   !======================== original version ==============================
+            !   ! JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
+            !   !       +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
+            !   !       *0.5d0*orbit_th(nth,np,nr,nsa)%time(nstpmax)
 
-            else if ( nth == 1 ) then
-              JIl = JI(nth,np,nr,nsa)
-            else if ( nth == nthmax+1 ) then
-              JIl = JI(nth-1,np,nr,nsa)  
-            else 
-              JIl = (JI(nth,np,nr,nsa)+JI(nth-1,np,nr,nsa))*0.5d0
-            end if
+            ! else if ( nth == 1 ) then
+            !   JIl = JI(nth,np,nr,nsa)
+            ! else if ( nth == nthmax+1 ) then
+            !   JIl = JI(nth-1,np,nr,nsa)  
+            ! else 
+            !   JIl = (JI(nth,np,nr,nsa)+JI(nth-1,np,nr,nsa))*0.5d0
+            ! end if
 
-            Dtpfow(nth,np,nr,nsa) = Dtpfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax) * JIl
-            Dttfow(nth,np,nr,nsa) = Dttfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax) * JIl
-            Dtrfow(nth,np,nr,nsa) = Dtrfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax) * JIl      
-            Fthfow(nth,np,nr,nsa) = Fthfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax) * JIl
+            Dtpfow(nth,np,nr,nsa) = Dtpfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax)! * JIl
+            Dttfow(nth,np,nr,nsa) = Dttfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax)! * JIl
+            Dtrfow(nth,np,nr,nsa) = Dtrfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax)! * JIl      
+            Fthfow(nth,np,nr,nsa) = Fthfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax)! * JIl
 
           end do
         end do
@@ -488,33 +493,36 @@ contains
                       
             end do
 
-            if ( nr == 1 ) then
-              if ( nth == nth_pnc(nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
-                  JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
-                      + JI(nth,np,nr,nsa)*IBCflux_ratio(np,nr,nsa))
-              else
-                JIl = JI(nth,np,nr,nsa)
-              end if
-            else if ( nr == nrmax+1 ) then
-              if ( nth == nth_pnc(nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
-                  JIl = ( JI(nth-1,np,nr-1,nsa)*(1.d0 - IBCflux_ratio(np,nr-1,nsa))&
-                      + JI(nth,np,nr-1,nsa)*IBCflux_ratio(np,nr-1,nsa))
-              else
-                JIl = JI(nth,np,nr-1,nsa)
-              end if
-            else
-              if ( nth == nth_pnc(nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
-                  JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
-                      + JI(nth,np,nr,nsa)*IBCflux_ratio(np,nr,nsa))
-              else
-                JIl = (JI(nth,np,nr,nsa)+JI(nth,np,nr-1,nsa))*0.5d0
-              end if
-            end if
+            ! if ( nr == 1 ) then
+            !   if ( nth == nth_pnc_rg(np,nr,nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+            !   ! if ( nth == nth_pnc(nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+            !       JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
+            !           + JI(nth_stg_tg(np,nr,nsa)+1,np,nr,nsa)*IBCflux_ratio(np,nr,nsa))
+            !   else
+            !     JIl = JI(nth,np,nr,nsa)
+            !   end if
+            ! else if ( nr == nrmax+1 ) then
+            !   if ( nth == nth_pnc_rg(np,nr,nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+            !   ! if ( nth == nth_pnc(nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+            !       JIl = ( JI(nth-1,np,nr-1,nsa)*(1.d0 - IBCflux_ratio(np,nr-1,nsa))&
+            !           + JI(nth_stg_tg(np,nr-1,nsa)+1,np,nr-1,nsa)*IBCflux_ratio(np,nr-1,nsa))
+            !   else
+            !     JIl = JI(nth,np,nr-1,nsa)
+            !   end if
+            ! else
+            !   if ( nth == nth_pnc_rg(np,nr,nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+            !   ! if ( nth == nth_pnc(nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+            !       JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
+            !           + JI(nth_stg_tg(np,nr,nsa)+1,np,nr,nsa)*IBCflux_ratio(np,nr,nsa))
+            !   else
+            !     JIl = (JI(nth,np,nr,nsa)+JI(nth,np,nr-1,nsa))*0.5d0
+            !   end if
+            ! end if
 
-            Drpfow(nth,np,nr,nsa) = Drpfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) * JIl
-            Drtfow(nth,np,nr,nsa) = Drtfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) * JIl
-            Drrfow(nth,np,nr,nsa) = Drrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) * JIl
-            Frrfow(nth,np,nr,nsa) = Frrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) * JIl
+            Drpfow(nth,np,nr,nsa) = Drpfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax)! * JIl
+            Drtfow(nth,np,nr,nsa) = Drtfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax)! * JIl
+            Drrfow(nth,np,nr,nsa) = Drrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax)! * JIl
+            Frrfow(nth,np,nr,nsa) = Frrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax)! * JIl
 
           end do
         end do
@@ -523,6 +531,378 @@ contains
     
 
   end subroutine bounce_average
+
+  subroutine make_and_multiple_JIl
+  !-------------------------------------------------
+  ! Use this module after bounce_average
+  !-------------------------------------------------
+    use fpcomm
+    use fowcomm
+
+    implicit none
+    real(rkind) :: Dpp_ob, Dpt_ob, Fpp_ob, Dtp_ob, Dtt_ob, Fth_ob, D_pls, D_mns, dt
+    real(rkind) :: cpitch_ob, thetap_ob, psip_ob, JIl
+    integer :: nth, np, nr, nsa, nthp, mode(3), nstp, nstpmax, ierr = 0, np_tmp, nr_tmp
+
+    !**** calculate Dpp, Dpt, Dpr, Fp
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do np = 1, npmax+1
+          do nth = 1, nthmax
+            if (nsa ==1) then
+
+              if ( np == npmax+1 ) then
+                if ( nth == nth_pnc_pg(np,nr,nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                    JIl = ( JI(nth-1,np-1,nr,nsa)*(1.d0 - IBCflux_ratio_pg(np,nr,nsa))&
+                        + JI(nth_stg_pg(np,nr,nsa)+1,np-1,nr,nsa)*IBCflux_ratio_pg(np,nr,nsa) &
+                        + JI(nth+1,np-1,nr,nsa))*0.5d0
+                else if ( nth == nth_stg_pg(np,nr,nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                    JIl = (JI(nth-1,np-1,nr,nsa) &
+                        - JI(nth_pnc_pg(np,nr,nsa)+1,np-1,nr,nsa)*(1.d0-IBCflux_ratio_pg(np,nr,nsa))/IBCflux_ratio_pg(np,nr,nsa) &
+                        + JI(nth_pnc_pg(np,nr,nsa)-1,np-1,nr,nsa)/IBCflux_ratio_pg(np,nr,nsa) &
+                        )*0.5d0
+                else
+                  JIl = JI(nth,np-1,nr,nsa)
+                end if
+              else if ( np == 1 ) then
+                if ( nth == nth_pnc_pg(np,nr,nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                  JIl = ( JI(nth+1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
+                      + JI(nth_stg_pg(np,nr,nsa)-1,np,nr,nsa)*IBCflux_ratio_pg(np,nr,nsa) &
+                      + JI(nth-1,np,nr,nsa))*0.5d0
+                else if (nth == nth_stg_pg(np,nr,nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT) then
+                  JIl = (JI(nth-1,np,nr,nsa) &
+                      - JI(nth_pnc_pg(np,nr,nsa)+1,np,nr,nsa)*(1.d0 -IBCflux_ratio_pg(np,nr,nsa))/IBCflux_ratio_pg(np,nr,nsa) &
+                      + JI(nth_pnc_pg(np,nr,nsa)-1,np,nr,nsa)/IBCflux_ratio_pg(np,nr,nsa) &
+                      )*0.5d0
+                else
+                  JIl = JI(nth,np,nr,nsa)
+                end if
+              else
+                if ( nth == nth_pnc_pg(np,nr,nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                  JIl = ( JI(nth+1,np,nr,nsa)*(1.d0 - IBCflux_ratio_pg(np,nr,nsa))&
+                      + JI(nth_stg_pg(np,nr,nsa)-1,np,nr,nsa)*IBCflux_ratio_pg(np,nr,nsa) &
+                      + JI(nth-1,np,nr,nsa))*0.5d0
+                      if (theta_pnc_pg(np-1,nr,nsa)/=NO_PINCH_ORBIT)then
+                        JIl = (JIl + ( JI(nth+1,np-1,nr,nsa)*(1.d0 - IBCflux_ratio_pg(np-1,nr,nsa))&
+                            + JI(nth_stg_pg(np-1,nr,nsa)-1,np-1,nr,nsa)*IBCflux_ratio_pg(np-1,nr,nsa) &
+                            + JI(nth-1,np-1,nr,nsa))*0.5d0)*0.5d0
+                      end if
+                else if (nth == nth_stg_pg(np,nr,nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT) then
+                  JIl = (JI(nth-1,np,nr,nsa) &
+                      - JI(nth_pnc_pg(np,nr,nsa)+1,np,nr,nsa)*(1.d0 -IBCflux_ratio_pg(np,nr,nsa))/IBCflux_ratio_pg(np,nr,nsa) &
+                      + JI(nth_pnc_pg(np,nr,nsa)-1,np,nr,nsa)/IBCflux_ratio_pg(np,nr,nsa) &
+                      )*0.5d0
+                      if (theta_pnc_pg(np-1,nr,nsa) /= NO_PINCH_ORBIT) then
+                        JIl = (JIl + (JI(nth-1,np-1,nr,nsa) &
+                            - JI(nth_pnc_pg(np-1,nr,nsa)+1,np-1,nr,nsa)*(1.d0 -IBCflux_ratio_pg(np-1,nr,nsa)) &
+                            /IBCflux_ratio(np-1,nr,nsa) &
+                            + JI(nth_pnc_pg(np-1,nr,nsa)-1,np-1,nr,nsa)/IBCflux_ratio_pg(np-1,nr,nsa) &
+                            )*0.5d0 )*0.5d0
+                      end if !** pnc(np-1) /= NO_PNC
+                else
+                  JIl = (JI(nth,np-1,nr,nsa)+JI(nth,np,nr,nsa))*0.50
+                end if
+              end if
+
+            else !** nsa != 1
+
+              if ( np == npmax+1 ) then
+                if ( nth == nth_pnc_pg(np,nr,nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                    JIl = ( JI(nth-1,np-1,nr,nsa)*(1.d0 - IBCflux_ratio_pg(np,nr,nsa))&
+                        + JI(nth_stg_pg(np,nr,nsa)+1,np-1,nr,nsa)*IBCflux_ratio_pg(np,nr,nsa))
+                else if ( nth == nth_stg_pg(np,nr,nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                    JIl = (JI(nth+1,np-1,nr,nsa) &
+                        - JI(nth_pnc_pg(np,nr,nsa)-1,np-1,nr,nsa)*(1.d0-IBCflux_ratio_pg(np,nr,nsa))&
+                        /IBCflux_ratio_pg(np,nr,nsa) &
+                        + JI(nth_pnc_pg(np,nr,nsa)+1,np-1,nr,nsa)/IBCflux_ratio_pg(np,nr,nsa) &
+                        )*0.5d0
+                else
+                  JIl = JI(nth,np-1,nr,nsa)
+                end if
+              else if ( np == 1 ) then
+                if ( nth == nth_pnc_pg(np,nr,nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                    JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio_pg(np,nr,nsa))&
+                        + JI(nth_stg_pg(np,nr,nsa)+1,np,nr,nsa)*IBCflux_ratio_pg(np,nr,nsa))
+                else if (nth == nth_stg_pg(np,nr,nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT) then
+                  JIl = (JI(nth+1,np,nr,nsa) &
+                      - JI(nth_pnc_pg(np,nr,nsa)-1,np,nr,nsa)*(1.d0 -IBCflux_ratio_pg(np,nr,nsa))&
+                      /IBCflux_ratio_pg(np,nr,nsa) &
+                      + JI(nth_pnc_pg(np,nr,nsa)+1,np,nr,nsa)/IBCflux_ratio_pg(np,nr,nsa) &
+                      )*0.5d0
+                else
+                  JIl = JI(nth,np,nr,nsa)
+                end if
+              else !** np
+                if ( nth == nth_pnc_pg(np,nr,nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                    JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio_pg(np,nr,nsa))&
+                        + JI(nth_stg_pg(np,nr,nsa)+1,np,nr,nsa)*IBCflux_ratio_pg(np,nr,nsa))
+                      if (theta_pnc_pg(np-1,nr,nsa) /= NO_PINCH_ORBIT) then
+                        JIl = (JIl + (JI(nth-1,np-1,nr,nsa) &
+                            - JI(nth_pnc_pg(np-1,nr,nsa)-1,np-1,nr,nsa)*(1.d0 -IBCflux_ratio_pg(np-1,nr,nsa))&
+                            /IBCflux_ratio(np-1,nr,nsa) &
+                            + JI(nth_pnc_pg(np-1,nr,nsa)+1,np-1,nr,nsa)/IBCflux_ratio_pg(np-1,nr,nsa) &
+                            )*0.5d0 )*0.5d0
+                      end if !** pnc(np-1) /= NO_PNC
+                else
+                  JIl = (JI(nth,np,nr,nsa)+JI(nth,np-1,nr,nsa))*0.50
+                end if
+              end if !** np
+            
+            end if !** nsa
+
+            Dppfow(nth,np,nr,nsa) = Dppfow(nth,np,nr,nsa) * JIl
+            Dptfow(nth,np,nr,nsa) = Dptfow(nth,np,nr,nsa) * JIl
+            Dprfow(nth,np,nr,nsa) = Dprfow(nth,np,nr,nsa) * JIl
+            Fppfow(nth,np,nr,nsa) = Fppfow(nth,np,nr,nsa) * JIl
+
+          end do
+        end do
+      end do
+    end do
+
+    !**** calculate Dtp, Dtt, Dtr, Fth
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do np = 1, npmax
+          do nth = 1, nthmax+1
+
+            if (nsa == 1) then
+
+              if ( nth == nth_pnc_tg(np,nr,nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+              ! if ( nth == nth_pnc(nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                JIl = ( JI(nth+1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
+                      + JI(nth_stg_tg(np,nr,nsa)-1,np,nr,nsa)*IBCflux_ratio(np,nr,nsa) &
+                      + JI(nth-1,np,nr,nsa) &
+                      ) * 0.5d0
+              else if ( nth == nth_stg_tg(np,nr,nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                JIl = ( &
+                    JI(nth-1,np,nr,nsa) &
+                     - JI(nth_pnc_tg(np,nr,nsa)+1,np,nr,nsa)*(1.d0-IBCflux_ratio(np,nr,nsa))&
+                     /IBCflux_ratio(np,nr,nsa) &
+                    + JI(nth_pnc_tg(np,nr,nsa)-1,np,nr,nsa)/IBCflux_ratio(np,nr,nsa) &
+                    )*0.5d0
+                ! JIl = ( JI(nth-1,np,nr,nsa)*IBCflux_ratio(np,nr,nsa)&
+                !       * orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
+                !       + JI(nth,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa)) &
+                !       * orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
+                !       / (orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max) &
+                !       + orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))
+                ! JIl = ( JI(nth-1,np,nr,nsa)*IBCflux_ratio(np,nr,nsa)&
+                !       * orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
+                !       + JI(nth,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa)) &
+                !       * orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
+                !       * orbit_m(nth,np,nr,nsa)%time(nstpmax)
+                ! JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
+                !       +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
+                !       *0.5d0/orbit_m(nth,np,nr,nsa)%time(nstpmax)
+                ! JIl = (JI(nth-1,np,nr,nsa)&
+                !       +JI(nth,np,nr,nsa))&
+                !       *0.5d0
+                !========================= master version ===============================
+                ! JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
+                !       +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
+                !       /(orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)+ &
+                !       orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))
+
+                ! JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
+                !       +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
+                !       /(orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)+ &
+                !       orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))
+                !======================== original version ==============================
+                ! JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
+                !       +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
+                !       *0.5d0*orbit_th(nth,np,nr,nsa)%time(nstpmax)
+
+              else if ( nth == nthmax+1 ) then
+                JIl = JI(nth-1,np,nr,nsa)  
+              else if ( nth == 1 ) then
+                JIl = JI(nth,np,nr,nsa)
+              else 
+                JIl = (JI(nth,np,nr,nsa)+JI(nth-1,np,nr,nsa))*0.5d0
+              end if
+
+            else !** nsa /= 1
+
+              if ( nth == nth_pnc_tg(np,nr,nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+              ! if ( nth == nth_pnc(nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa)) &
+                      + JI(nth_stg_tg(np,nr,nsa)+1,np,nr,nsa)*IBCflux_ratio(np,nr,nsa) &
+                      + JI(nth+1,np,nr,nsa))*0.5d0
+              else if (nth == nth_stg_tg(np,nr,nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT) then
+                JIl = (JI(nth+1,np,nr,nsa) &
+                    - JI(nth_pnc_tg(np,nr,nsa)-1,np,nr,nsa)*(1.d0-IBCflux_ratio(np,nr,nsa))&
+                    /IBCflux_ratio(np,nr,nsa) &
+                    + JI(nth_pnc_tg(np,nr,nsa)+1,np,nr,nsa)/IBCflux_ratio(np,nr,nsa) &
+                    )*0.5d0
+              else if ( nth == 1 ) then
+                JIl = JI(nth,np,nr,nsa)
+              else if ( nth == nthmax+1 ) then
+                JIl = JI(nth-1,np,nr,nsa)  
+              else 
+                JIl = (JI(nth,np,nr,nsa)+JI(nth-1,np,nr,nsa))*0.5d0
+              end if
+
+            end if
+
+            Dtpfow(nth,np,nr,nsa) = Dtpfow(nth,np,nr,nsa) * JIl
+            Dttfow(nth,np,nr,nsa) = Dttfow(nth,np,nr,nsa) * JIl
+            Dtrfow(nth,np,nr,nsa) = Dtrfow(nth,np,nr,nsa) * JIl      
+            Fthfow(nth,np,nr,nsa) = Fthfow(nth,np,nr,nsa) * JIl
+
+          end do
+        end do
+      end do
+    end do
+
+    !**** calculate Drp, Drt, Drr, Frr
+    do nsa = 1, nsamax
+      do nr = 1, nrmax+1
+        do np = 1, npmax
+          do nth = 1, nthmax
+
+          if (nsa == 1) then
+
+            if ( nr == nrmax +1 ) then
+                if ( nth == nth_pnc_rg(np,nr,nsa) .and. theta_pnc_rg(np,nr-1,nsa) /= NO_PINCH_ORBIT ) then
+                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                    JIl = ( JI(nth+1,np,nr-1,nsa)*(1.d0 - IBCflux_ratio_rg(np,nr,nsa))&
+                        + JI(nth_stg_rg(np,nr,nsa)-1,np,nr-1,nsa)*IBCflux_ratio_rg(np,nr,nsa) &
+                        + JI(nth-1,np,nr-1,nsa))*0.5d0
+                else if ( nth == nth_stg_rg(np,nr,nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                    JIl = (JI(nth-1,np,nr-1,nsa) &
+                        - JI(nth_pnc_rg(np,nr,nsa)+1,np,nr-1,nsa)*(1.d0-IBCflux_ratio_rg(np,nr,nsa))&
+                        /IBCflux_ratio_rg(np,nr,nsa) &
+                        + JI(nth_pnc_rg(np,nr,nsa)-1,np,nr-1,nsa)/IBCflux_ratio_rg(np,nr,nsa) &
+                        )*0.5d0
+                else
+                  JIl = JI(nth,np,nr-1,nsa)
+                end if !** nr = nrmax +1
+            else if ( nr == 1 ) then
+                if ( nth == nth_pnc_rg(np,nr,nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                  JIl = ( JI(nth+1,np,nr,nsa)*(1.d0 - IBCflux_ratio_rg(np,nr,nsa))&
+                      + JI(nth_stg_rg(np,nr,nsa)-1,np,nr,nsa)*IBCflux_ratio_rg(np,nr,nsa) &
+                      + JI(nth-1,np,nr,nsa))*0.5d0
+                else if (nth == nth_stg_rg(np,nr,nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT) then
+                  JIl = (JI(nth-1,np,nr,nsa) &
+                      - JI(nth_pnc_rg(np,nr,nsa)+1,np,nr,nsa)*(1.d0 -IBCflux_ratio_rg(np,nr,nsa))&
+                      /IBCflux_ratio_rg(np,nr,nsa) &
+                      + JI(nth_pnc_rg(np,nr,nsa)-1,np,nr,nsa)/IBCflux_ratio_rg(np,nr,nsa) &
+                      )*0.5d0
+                else
+                  JIl = JI(nth,np,nr,nsa)
+                end if
+            else
+                if ( nth == nth_pnc_rg(np,nr,nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                  JIl = ( JI(nth+1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
+                      + JI(nth_stg_rg(np,nr,nsa)-1,np,nr,nsa)*IBCflux_ratio_rg(np,nr,nsa) &
+                      + JI(nth-1,np,nr,nsa))*0.5d0
+                      if (theta_pnc_rg(np,nr-1,nsa) /= NO_PINCH_ORBIT)then
+                        JIl = (JIl + ( JI(nth_pnc_rg(np,nr-1,nsa)+1,np,nr-1,nsa)&
+                        *(1.d0 - IBCflux_ratio_rg(np,nr-1,nsa))&
+                        + JI(nth_stg_rg(np,nr-1,nsa)-1,np,nr-1,nsa)*IBCflux_ratio_rg(np,nr-1,nsa) &
+                        + JI(nth_pnc_rg(np,nr-1,nsa)-1,np,nr-1,nsa))*0.5d0)*0.5d0
+                      end if
+                else if (nth == nth_stg_rg(np,nr,nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT) then
+                  JIl = (JI(nth-1,np,nr,nsa) &
+                      - JI(nth_pnc_rg(np,nr,nsa)+1,np,nr,nsa)*(1.d0 -IBCflux_ratio_rg(np,nr,nsa))&
+                      /IBCflux_ratio_rg(np,nr,nsa) &
+                      + JI(nth_pnc_rg(np,nr,nsa)-1,np,nr,nsa)/IBCflux_ratio_rg(np,nr,nsa) &
+                      )*0.5d0
+                  if (theta_pnc_rg(np,nr-1,nsa) /= NO_PINCH_ORBIT) then
+                    JIl = (JIl + (JI(nth_stg_rg(np,nr-1,nsa)-1,np,nr-1,nsa) &
+                      - JI(nth_pnc_rg(np,nr-1,nsa)+1,np,nr-1,nsa)*(1.d0 -IBCflux_ratio_rg(np,nr-1,nsa)) &
+                      / IBCflux_ratio_rg(np,nr-1,nsa) &
+                      + JI(nth_pnc_rg(np,nr-1,nsa)-1,np,nr-1,nsa)/IBCflux_ratio_rg(np,nr-1,nsa) &
+                      )*0.5d0 )*0.5d0
+                  end if !** pnc(np-1) /= NO_PNC
+                else
+                  JIl = (JI(nth,np,nr,nsa)+JI(nth,np,nr-1,nsa))*0.50
+                end if
+            end if
+
+          else !** nsa /= 1
+
+            if ( nr == nrmax + 1  ) then
+                if ( nth == nth_pnc_rg(np,nr,nsa) .and. theta_pnc(np,nr-1,nsa) /= NO_PINCH_ORBIT ) then
+                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                    JIl = ( JI(nth-1,np,nr-1,nsa)*(1.d0 - IBCflux_ratio_rg(np,nr,nsa))&
+                        + JI(nth_stg_rg(np,nr,nsa)+1,np,nr-1,nsa)*IBCflux_ratio_rg(np,nr,nsa) &
+                        + JI(nth+1,np,nr-1,nsa))*0.5d0
+                else if ( nth == nth_stg_rg(np,nr,nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                    JIl = (JI(nth+1,np,nr-1,nsa) &
+                        - JI(nth_pnc_rg(np,nr,nsa)+1,np,nr-1,nsa)*(1.d0-IBCflux_ratio_rg(np,nr,nsa)) &
+                        / IBCflux_ratio_rg(np,nr,nsa) &
+                        + JI(nth_pnc_rg(np,nr,nsa)-1,np,nr-1,nsa)/IBCflux_ratio_rg(np,nr,nsa) &
+                        )*0.5d0
+                else
+                  JIl = JI(nth,np,nr-1,nsa)
+                end if !** nr = nrmax +1
+            else if ( nr == 1 ) then
+                if ( nth == nth_pnc_rg(np,nr,nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                  JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio_rg(np,nr,nsa))&
+                      + JI(nth_stg_rg(np,nr,nsa)+1,np,nr,nsa)*IBCflux_ratio_rg(np,nr,nsa) &
+                      + JI(nth+1,np,nr,nsa))*0.5d0
+                else if (nth == nth_stg_rg(np,nr,nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT) then
+                  JIl = (JI(nth,np,nr,nsa) &
+                      - JI(nth_pnc_rg(np,nr,nsa)-1,np,nr,nsa)*(1.d0 -IBCflux_ratio_rg(np,nr,nsa)) &
+                      / IBCflux_ratio_rg(np,nr,nsa) &
+                      + JI(nth_pnc_rg(np,nr,nsa)+1,np,nr,nsa)/IBCflux_ratio_rg(np,nr,nsa) &
+                      )*0.5d0
+                else
+                  JIl = JI(nth,np,nr,nsa)
+                end if
+            else
+                if ( nth == nth_pnc_rg(np,nr,nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
+                  JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio_rg(np,nr,nsa))&
+                      + JI(nth_stg_rg(np,nr,nsa)+1,np,nr,nsa)*IBCflux_ratio_rg(np,nr,nsa) &
+                      + JI(nth+1,np,nr,nsa))*0.5d0
+                      if (theta_pnc_rg(np,nr-1,nsa)/=NO_PINCH_ORBIT)then
+                        JIl = (JIl + ( JI(nth_pnc_rg(np,nr-1,nsa)-1,np,nr,nsa)&
+                        *(1.d0 - IBCflux_ratio_rg(np,nr,nsa))&
+                        + JI(nth_stg_rg(np,nr-1,nsa)+1,np,nr,nsa)*IBCflux_ratio_rg(np,nr,nsa) &
+                        + JI(nth_pnc_rg(np,nr-1,nsa)+1,np,nr,nsa))*0.5d0)*0.5d0
+                      end if
+                else if (nth == nth_stg_rg(np,nr,nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT) then
+                  JIl = (JI(nth+1,np,nr,nsa) &
+                      - JI(nth_pnc_rg(np,nr,nsa)-1,np,nr,nsa)*(1.d0 -IBCflux_ratio_rg(np,nr,nsa)) &
+                      / IBCflux_ratio_rg(np,nr,nsa) &
+                      + JI(nth_pnc_rg(np,nr,nsa)+1,np,nr,nsa)/IBCflux_ratio_rg(np,nr,nsa) &
+                      )*0.5d0
+                  if (theta_pnc_rg(np,nr-1,nsa) /= NO_PINCH_ORBIT) then
+                    JIl = (JIl + (JI(nth_stg_rg(np,nr-1,nsa)+1,np,nr-1,nsa) &
+                        - JI(nth_pnc_rg(np,nr-1,nsa)-1,np,nr-1,nsa)*(1.d0 -IBCflux_ratio_rg(np,nr-1,nsa)) &
+                        / IBCflux_ratio_rg(np,nr-1,nsa) &
+                        + JI(nth_pnc_rg(np,nr-1,nsa)+1,np,nr-1,nsa)/IBCflux_ratio_rg(np,nr-1,nsa) &
+                        )*0.5d0 )*0.5d0
+                  end if !** pnc(np-1) /= NO_PNC
+                else
+                  JIl = (JI(nth,np,nr,nsa)+JI(nth,np,nr-1,nsa))*0.50
+                end if
+            end if
+
+          end if !** nsa
+
+            Drpfow(nth,np,nr,nsa) = Drpfow(nth,np,nr,nsa) * JIl
+            Drtfow(nth,np,nr,nsa) = Drtfow(nth,np,nr,nsa) * JIl
+            Drrfow(nth,np,nr,nsa) = Drrfow(nth,np,nr,nsa) * JIl
+            Frrfow(nth,np,nr,nsa) = Frrfow(nth,np,nr,nsa) * JIl
+
+          end do
+        end do
+      end do
+    end do
+
+
+  end subroutine make_and_multiple_JIl
 
 !===============================================
 ! For matrix calculation modules
@@ -557,7 +937,7 @@ contains
       if ( mode(2) == 1 .and. mode(3) == 0 ) cthm = COS( thetam_pg(nth,np,nr,nsa) )
       if ( mode(2) == 0 .and. mode(3) == 1 ) cthm = COS( thetam_rg(nth,np,nr,nsa) )
     case(1)
-      cthm = COS( thetamg(nth,np,nr,nsa) )
+      cthm = COS( thetam_tg(nth,np,nr,nsa) )
     end select
     sthm = SQRT( 1.d0-cthm**2 )
 

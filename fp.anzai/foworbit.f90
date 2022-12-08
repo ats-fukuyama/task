@@ -99,6 +99,7 @@ contains
       write(6,'("Load orbit time :",ES10.3,"[sec]")')end_time-begin_time
 
       if ( ierr == 0 ) then
+        write(*,*)"End of Orbit Module"
         return
       else
         write(6,'("IOSTAT = ",I4," in load_orbit")'),ierr
@@ -162,14 +163,14 @@ contains
         do np = 1, npmax
           do nth = 1, nthmax+1
 
-            if ( aefp(nsa) * cos( thetamg(nth,np,nr,nsa) ) >= 0.d0 ) then
+            if ( aefp(nsa) * cos( thetam_tg(nth,np,nr,nsa) ) >= 0.d0 ) then
               thetap_in = 0.d0
             else 
               thetap_in = pi
             end if
 
             call construct_orbit(orbit_th(nth,np,nr,nsa), & 
-                   pm(np,nsa)*ptfp0(nsa), thetamg(nth,np,nr,nsa), &
+                   pm(np,nsa)*ptfp0(nsa), thetam_tg(nth,np,nr,nsa), &
                    thetap_in, psim(nr), nsa, ierr)
 
           end do
@@ -339,6 +340,7 @@ contains
     allocate(ob%dBdthp(ob%nstp_max))
 
     do nstp = 1, ob%nstp_max
+
       if ( nstpmax <= max_stp ) then
         i = nstp-1
       else
@@ -368,8 +370,6 @@ contains
              ob%dBdthp(nstp),rm,theta_p,UB,nrmax,nrmax,nthpmax,ierr)
 
     end do
-
-    return
 
   end subroutine construct_orbit
 
@@ -714,6 +714,7 @@ contains
               end do
               
               ! call check_orbit_max_radial_displacement(nsa, orbit_m(nth,np,nr,nsa)) !** by anzai [22/11/4]
+          ! write(*,*)"nsa,ob_psi:",nsa, orbit_m(nth,np,nr,nsa)%psi_pnc
 
             end if
 
@@ -927,8 +928,8 @@ contains
                 read(60,iostat=ierr)orbit_m(nth,np,nr,nsa)%dBdr(nstp)
                 read(60,iostat=ierr)orbit_m(nth,np,nr,nsa)%dBdthp(nstp)
               end do
-              
             end if
+
 
             if ( np <= npmax .and. nr <= nrmax ) then
               read(51,iostat=ierr)nstpmax
@@ -947,7 +948,6 @@ contains
               allocate(orbit_th(nth,np,nr,nsa)%dBdr(nstpmax))
               allocate(orbit_th(nth,np,nr,nsa)%dBdthp(nstpmax))
 
-
               do nstp = 1, nstpmax
                 read(61,iostat=ierr)orbit_th(nth,np,nr,nsa)%time(nstp)
                 read(61,iostat=ierr)orbit_th(nth,np,nr,nsa)%psip(nstp)
@@ -964,6 +964,7 @@ contains
               end do
             end if
     
+
             if ( nth <= nthmax .and. nr <= nrmax ) then
               read(52,iostat=ierr)nstpmax
               orbit_p(nth,np,nr,nsa)%nstp_max = nstpmax
@@ -980,7 +981,6 @@ contains
               allocate(orbit_p(nth,np,nr,nsa)%dFdr(nstpmax))
               allocate(orbit_p(nth,np,nr,nsa)%dBdr(nstpmax))
               allocate(orbit_p(nth,np,nr,nsa)%dBdthp(nstpmax))
-
 
               do nstp = 1, nstpmax
                 read(62,iostat=ierr)orbit_p(nth,np,nr,nsa)%time(nstp)

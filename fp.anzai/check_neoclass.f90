@@ -54,11 +54,23 @@ contains
       do nr = 1, nrmax
         do np = 1, npmax
           ! do nth = 1, nthmax
-          write(*,*)"thetap_pnc:", theta_pnc(np,nr,nsa)
+          ! write(*,*)"thetap_pnc:", NO_PINCH_ORBIT!nsa,nth_pnc_tg(np,nr,nsa)
+          ! if (IBCflux_ratio(np,nr,nsa)==0.d0)write(*,*)"nsa,IBC:",nsa, IBCflux_ratio(np,nr,nsa)
+          ! write(*,*)"nsa,IBC:",nsa, IBCflux_ratio(np,nr,nsa)
+          ! write(*,*)"nsa,nr_pinch:",nsa, theta_pnc(np,nr,nsa),nr_rhom_pinch(np,nr,nsa)
+          ! write(*,*)"nsa,IBC:",nsa, thetam(nth,np,nr,nsa)
+          ! write(*,*)"nsa,stg:",nsa, theta_co_stg(np,nr,nsa), theta_cnt_stg(np,nr,nsa)
+          ! write(*,*)"nsa,ob_psi:",nsa, orbit_m(nth,np,nr,nsa)%psi_pnc
+          ! write(*,*)"nr,psi:",nr, psim(nr)
+          ! write(*,*)"pinc:",nth_pnc(nsa),nth_pnc_tg(np,nr,nsa), nth_pnc_pg(np,nr,nsa), nth_pnc_rg(np,nr,nsa)
+          write(*,*)"pinc:",nth_pnc(nsa),theta_pnc_rg(np,nr,nsa)
           ! end do
         end do
       end do
     end do
+          ! do nth = 1, nthmax
+          ! write(*,*)"dble:",dble(nth)
+          ! end do
 
     !**** make data folder
     call system('mkdir -p dat')
@@ -984,23 +996,23 @@ contains
             radial_mean_moment(nr,nsa) = radial_mean_moment(nr,nsa) &
                                 -(Drrfow(nth,np,nr,nsa)&
                                 * dfdrhom(nth,np,nr,nsa)*1.d20 &
-                                + Drpfow(nth,np,nr,nsa) &
-                                * dfdp(nth,np,nr,nsa)*1.d20 &
-                                + Drtfow(nth,np,nr,nsa) &
-                                * dfdthm(nth,np,nr,nsa)*1.d20&
+                                ! + Drpfow(nth,np,nr,nsa) &
+                                ! * dfdp(nth,np,nr,nsa)*1.d20 &
+                                ! + Drtfow(nth,np,nr,nsa) &
+                                ! * dfdthm(nth,np,nr,nsa)*1.d20&
                                 ) &
                                 !* JI(nth,np,nr,nsa) &
                                 / JI(nth,np,nr,nsa) &
-                                * delp(ns) * delthm(nth,np,nr,nsa) &
+                                * delp(ns) * delthm(nth,np,nr,nsa) !&
 
-                                ! unit converter [J] to [keV] &
-                                !* Frr_j(nth,np,nr,nsa) &
-                                + Frrfow(nth,np,nr,nsa) &
-                                * fnsp_l(nth,np,nr,nsa)*1.d20 &
-                                !* JI(nth,np,nr,nsa) &
-                                / JI(nth,np,nr,nsa) &
-                                * delp(ns) * delthm(nth,np,nr,nsa)
-                                !** unit [keV] [22/6/6]
+                                ! ! unit converter [J] to [keV] &
+                                ! !* Frr_j(nth,np,nr,nsa) &
+                                ! + Frrfow(nth,np,nr,nsa) &
+                                ! * fnsp_l(nth,np,nr,nsa)*1.d20 &
+                                ! !* JI(nth,np,nr,nsa) &
+                                ! / JI(nth,np,nr,nsa) &
+                                ! * delp(ns) * delthm(nth,np,nr,nsa)
+                                ! !** unit [keV] [22/6/6]
           end do
         end do
         radial_mean_moment(nr,nsa) = radial_mean_moment(nr,nsa)/(rnsl(nr,nsa)*1.d20)
@@ -1019,7 +1031,7 @@ contains
             K = (PV-1.d0)*AMFP(nsa)*vc**2 &
             ! K = (pm(np,nsa)*PTFP0(nsa)-mean_moment(nr,nsa))**2.d0/AMFP(nsa)/2.d0 &
             ! K = (pm(np,nsa)*PTFP0(nsa))**2.d0/AMFP(nsa)/2.d0 &
-                                / (AEE*1.D3)!*2.d0/3.d0 * 1.d0
+                                / (AEE*1.D3)*2.d0/3.d0 * 1.d0
            !**** for dfdrhom is made of fnsp*dVI
             heatfow_out(nr,nsa) = heatfow_out(nr,nsa) &
                                 !- (pm(np,nsa)*ptfp0(nsa))**2 &
@@ -1028,29 +1040,29 @@ contains
                                 !*(Drr_j(nth,np,nr,nsa)&
                                 *(Drrfow(nth,np,nr,nsa)&
                                 * dfdrhom(nth,np,nr,nsa)*1.d20 &
-                                !+ Drp_j(nth,np,nr,nsa) &
-                                + Drpfow(nth,np,nr,nsa) &
-                                * dfdp(nth,np,nr,nsa)*1.d20 &
-                                !+ Drt_j(nth,np,nr,nsa) &
-                                + Drtfow(nth,np,nr,nsa) &
-                                * dfdthm(nth,np,nr,nsa)*1.d20&
+                                ! !+ Drp_j(nth,np,nr,nsa) &
+                                ! + Drpfow(nth,np,nr,nsa) &
+                                ! * dfdp(nth,np,nr,nsa)*1.d20 &
+                                ! !+ Drt_j(nth,np,nr,nsa) &
+                                ! + Drtfow(nth,np,nr,nsa) &
+                                ! * dfdthm(nth,np,nr,nsa)*1.d20&
                                 ) &
                                 !* JI(nth,np,nr,nsa) &
                                 / JI(nth,np,nr,nsa) &
-                                * delp(ns) * delthm(nth,np,nr,nsa) &
+                                * delp(ns) * delthm(nth,np,nr,nsa)! &
 
                                 !+ (pm(np,nsa)*ptfp0(nsa))**2 &
                                 !/ (2*AMFP(nsa) )&
                                 
-                                + K &
-                                ! unit converter [J] to [keV] &
-                                !* Frr_j(nth,np,nr,nsa) &
-                                * Frrfow(nth,np,nr,nsa) &
-                                * fnsp_l(nth,np,nr,nsa)*1.d20 &
-                                !* JI(nth,np,nr,nsa) &
-                                / JI(nth,np,nr,nsa) &
-                                * delp(ns) * delthm(nth,np,nr,nsa) !&
-                                !** unit [keV] [22/6/6]
+                                ! + K &
+                                ! ! unit converter [J] to [keV] &
+                                ! !* Frr_j(nth,np,nr,nsa) &
+                                ! * Frrfow(nth,np,nr,nsa) &
+                                ! * fnsp_l(nth,np,nr,nsa)*1.d20 &
+                                ! !* JI(nth,np,nr,nsa) &
+                                ! / JI(nth,np,nr,nsa) &
+                                ! * delp(ns) * delthm(nth,np,nr,nsa) !&
+                                ! !** unit [keV] [22/6/6]
               add_heat(nr,nsa)  = K &
                                 * fnsp_l(nth,np,nr,nsa) * 1.d20 &
                                 ! * radial_mean_moment(nr,nsa)&!/AMFP(nsa) &
@@ -1902,7 +1914,7 @@ contains
       if ( mode(2) == 1 .and. mode(3) == 0 ) cthm = COS( thetam_pg(nth,np,nr,nsa) )
       if ( mode(2) == 0 .and. mode(3) == 1 ) cthm = COS( thetam_rg(nth,np,nr,nsa) )
     case(1)
-      cthm = COS( thetamg(nth,np,nr,nsa) )
+      cthm = COS( thetam_tg(nth,np,nr,nsa) )
     end select
     sthm = SQRT( 1.d0-cthm**2 )
 
@@ -2043,7 +2055,7 @@ contains
     !   if ( mode(2) == 1 .and. mode(3) == 0 ) cthm = COS( thetam_pg(nth,np,nr,nsa) )
     !   if ( mode(2) == 0 .and. mode(3) == 1 ) cthm = COS( thetam_rg(nth,np,nr,nsa) )
     ! case(1)
-    !   cthm = COS( thetamg(nth,np,nr,nsa) )
+    !   cthm = COS( thetam_tg(nth,np,nr,nsa) )
     ! end select
 
     !**** for pitch angle

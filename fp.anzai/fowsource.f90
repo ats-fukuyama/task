@@ -102,8 +102,8 @@ contains
             ex_rm = -(rm(nr)-beam%rhom)**2/beam%rhomw**2
             fact_rm = EXP( ex_rm ) / SQRT( pi*beam%rhomw**2 )
 
-            if ( thetamg(nth,np,nr,beam%ns) <= beam%thetam &
-                .and. beam%thetam <= thetamg(nth+1,np,nr,beam%ns) ) then
+            if ( thetam_tg(nth,np,nr,beam%ns) <= beam%thetam &
+                .and. beam%thetam <= thetam_tg(nth+1,np,nr,beam%ns) ) then
               fact_thm = 1.d0
             else
               ex_thm = -(thetam(nth,np,nr,beam%ns)-beam%thetam)**2/beam%thetamw**2
