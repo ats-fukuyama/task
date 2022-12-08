@@ -326,6 +326,10 @@
 !        MODELQ: Control safety factor profile (for MODELG=1,2)
 !                   0: Parabolic q profile (Q0,QA,RHOMIN)
 !                   1: Given current profile (RIP,PROFJ)
+!        model_coll: collision parameter
+!                   0: nu_coll=PZCL*omega
+!                   1: nu_coll=Coulomb collision freq.
+!                   2: nu_coll=Coulomb collision + neutral collision freq.
 !        MODEL_PROF: profile parameter
 !                   0: PROFX1(NS)=PROFX1(1),PROFX2(NS)=PROFX2(1): compatibility
 !                   1: PROFX1(NS),PROFX2(NS): defined separately
@@ -338,6 +342,7 @@
       MODELB= 0
       MODELN= 0
       MODELQ= 0
+      model_coll=0
       MODEL_PROF=0
       MODEL_NPROF=0
 

@@ -51,7 +51,12 @@ CONTAINS
              RNUEE=RNE*RLAMEE/(1.24D-4*SQRT(TE*1.D-3)**3)
              RNUEI=RNZI*RLAMEI/(1.51D-4*SQRT(TE*1.D-3)**3)
              RNUEN=PNN0*SN*0.88D0*VTE
-             RNUE=RNUEE+RNUEI+RNUEN
+             SELECT CASE(model_coll)
+             CASE(1)
+                RNUE=RNUEE+RNUEI
+             CASE DEFAULT
+                RNUE=RNUEE+RNUEI+RNUEN
+             END SELECT
              RNU(NS)=RNUE
           ELSE
              TI=(RTPR(NS)+2.D0*RTPP(NS))*1.D3/3.D0
@@ -61,7 +66,12 @@ CONTAINS
              RNUII=RNZI*RLAMII &
                   /(5.31D-3*SQRT(TI*1.D-3)**3*SQRT(PA(NS)))
              RNUIN=PNN0*SN*0.88D0*VTI
-             RNUI=RNUIE+RNUII+RNUIN
+             SELECT CASE(model_coll)
+             CASE(1)
+                RNUI=RNUIE+RNUII
+             CASE DEFAULT
+                RNUI=RNUIE+RNUII+RNUIN
+             END SELECT
              RNU(NS)=RNUI
           ENDIF
        ENDDO

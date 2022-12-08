@@ -52,11 +52,12 @@ CONTAINS
           plfw(ns)%rupp=-plf(ns)%ru*bnp+plf(ns)%rupl*bnt
        END SELECT
        plfw(ns)%rnuc=plf(ns)%rnuc
-       IF(pzcl(ns).EQ.0.D0) THEN
-          plfw(ns)%rzcl=plf(ns)%rnuc/(2.D0*PI*RF_PL*1.D6)
-       ELSE
+       SELECT CASE(model_coll)
+       CASE(0)
           plfw(ns)%rzcl=PZCL(NS)
-       END IF
+       CASE(1,2)
+          plfw(ns)%rzcl=plf(ns)%rnuc/(2.D0*PI*RF_PL*1.D6)
+       END SELECT
     END DO
   END SUBROUTINE pl_profw
 
@@ -104,11 +105,12 @@ CONTAINS
           plfw(ns)%rupp=-plf(ns)%ru*bnp+plf(ns)%rupl*bnt
        END SELECT
        plfw(ns)%rnuc=plf(ns)%rnuc
-       IF(pzcl(ns).EQ.0.D0) THEN
-          plfw(ns)%rzcl=plf(ns)%rnuc/(2.D0*PI*RF_PL*1.D6)
-       ELSE
+       SELECT CASE(model_coll)
+       CASE(0)
           plfw(ns)%rzcl=PZCL(NS)
-       END IF
+       CASE(1,2)
+          plfw(ns)%rzcl=plf(ns)%rnuc/(2.D0*PI*RF_PL*1.D6)
+       END SELECT
     END DO
   END SUBROUTINE pl_profw3d
 

@@ -66,7 +66,7 @@ CONTAINS
            profn_travis_g,profn_travis_h,profn_travis_p,profn_travis_q, &
            profn_travis_w,proft_travis_g,proft_travis_h,proft_travis_p, &
            proft_travis_q,proft_travis_w, &
-           MODELG,MODELB,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF, &
+           MODELG,MODELB,MODELN,MODELQ,model_coll,MODEL_PROF,MODEL_NPROF, &
            RHOGMN,RHOGMX, &
            KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
            MODEFR,MODEFW,IDEBUG,mdlplw
@@ -115,7 +115,8 @@ CONTAINS
              9X,'proft_travis_w,'/ &
              9X,'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,'/ &
              9X,'PPN0,PTN0,RFCL,BAXIS_SCALED,'/ &
-             9X,'MODELG,MODELB,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF,'/ &
+             9X,'MODELG,MODELB,MODELN,MODELQ,'/ &
+             9X,'model_coll,MODEL_PROF,MODEL_NPROF,'/ &
              9X,'RHOGMN,RHOGMX,'/ &
              9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2'/ &
              9X,'MODEFW,MODEFR,IDEBUG,mdlplw')
@@ -194,11 +195,12 @@ CONTAINS
     idata( 7)=MODEFR
     idata( 8)=MODEFW
     idata( 9)=mdlplw
-    idata(10)=MODEL_PROF
-    idata(11)=MODEL_NPROF
-    idata(12)=NCOILMAX
+    idata(10)=model_coll
+    idata(11)=MODEL_PROF
+    idata(12)=MODEL_NPROF
+    idata(13)=NCOILMAX
 
-    CALL mtx_broadcast_integer(idata,12)
+    CALL mtx_broadcast_integer(idata,13)
     
     NSMAX=idata( 1)
     MODELG=idata( 2)
@@ -209,9 +211,10 @@ CONTAINS
     MODEFR=idata( 7)
     MODEFW=idata( 8)
     mdlplw=idata( 9)
-    MODEL_PROF=idata(10)
-    MODEL_NPROF=idata(11)
-    NCOILMAX=idata(12)
+    model_coll=idata(10)
+    MODEL_PROF=idata(11)
+    MODEL_NPROF=idata(12)
+    NCOILMAX=idata(13)
 
     rdata( 1)=RR
     rdata( 2)=RA
