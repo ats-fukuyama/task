@@ -767,7 +767,7 @@ contains
                   ,U,nthmax+1,nrmax,nthmax+1,nrmax,nthpmax,IERR)
 
     else if (nxmax == nthmax .and. nymax == nrmax+1 ) then
-      call SPL3DF(cpitch_in,psip_in,thetap_in,C_out,cosm,psimg,theta_p&
+      call SPL3DF(cpitch_in,psip_in,thetap_in,C_out,cosm,psim_rg,theta_p&
                   ,U,nthmax,nrmax+1,nthmax,nrmax+1,nthpmax,IERR)
 
     end if

@@ -67,7 +67,7 @@ contains
     end do
 
     call spl2D(rm,theta_p,Babs,dBdr,dBdthp,dBdrt, &
-                 UB,nrmax,nrmax,nthpmax,3,3,ierr)
+                UB,nrmax,nrmax,nthpmax,3,3,ierr)
 
     call first_order_derivative(dradpsi, rm, psim)
     call spl1D(psim,rm,dradpsi,UR,nrmax,3,ierr)
@@ -99,7 +99,7 @@ contains
       write(6,'("Load orbit time :",ES10.3,"[sec]")')end_time-begin_time
 
       if ( ierr == 0 ) then
-        write(*,*)"End of Orbit Module"
+        write(*,*)"*=*=*=*=*=* End of FOW Orbit Module *=*=*=*=*=*"
         return
       else
         write(6,'("IOSTAT = ",I4," in load_orbit")'),ierr
@@ -194,7 +194,7 @@ contains
   
               call construct_orbit(orbit_r(nth,np,nr,nsa), &
                      pm(np,nsa)*ptfp0(nsa), thetam_rg(nth,np,nr,nsa), &
-                     thetap_in, psimg(nr), nsa, ierr)
+                     thetap_in, psim_rg(nr), nsa, ierr)
   
             end if
 
@@ -217,6 +217,8 @@ contains
     end if
 
     flag = 1
+
+    write(*,*)"*=*=*=*=*=* End of FOW Orbit Module *=*=*=*=*=*"
 
   end subroutine fow_orbit
 
@@ -438,7 +440,7 @@ contains
       allocate(dradpsi(nrmax))
       allocate(UR(4,nrmax))
       call first_order_derivative(dradpsi, rm, psim)
-      call SPL1D(psimg,rm,dradpsi,UR,nrmax,3,ierr)
+      call SPL1D(psim_rg,rm,dradpsi,UR,nrmax,3,ierr)
     end if
     
     nstpmax = ob%nstp_max

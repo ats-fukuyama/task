@@ -13,8 +13,9 @@ module fowprep
 contains
 
   subroutine fow_prep
-    !============================
-    !============================
+    !---------------------------------------------------
+    ! Make boundary conditios and prepare for execution 
+    !---------------------------------------------------
     use fowcomm
     use fpcomm
     use foworbit
@@ -65,8 +66,8 @@ contains
           !**** calculate nr_pnc_point
           if ( theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
             do ir = 1, nr
-              if ( psimg(ir) <=  psip_pnc_point(np,nr,nsa) &
-                  .and. psip_pnc_point(np,nr,nsa) <= psimg(ir+1) ) then
+              if ( psim_rg(ir) <=  psip_pnc_point(np,nr,nsa) &
+                  .and. psip_pnc_point(np,nr,nsa) <= psim_rg(ir+1) ) then
                 nr_pnc_point(np,nr,nsa) = ir
                 exit
               end if
@@ -270,7 +271,7 @@ contains
             theta_pnc_rg(np,nr,nsa) = NO_PINCH_ORBIT
           else
             call bisection_method(get_pinch_point, flag, pm(np,nsa)&
-                      , theta_pnc_rg(np,nr,nsa), psip_pnc_point_rg(np,nr,nsa), epspsi, psimg(nr)-epspsi, psimg(nr), nsa)
+                      , theta_pnc_rg(np,nr,nsa), psip_pnc_point_rg(np,nr,nsa), epspsi, psim_rg(nr)-epspsi, psim_rg(nr), nsa)
 
             if ( flag /= 0 ) theta_pnc_rg(np,nr,nsa) = NO_PINCH_ORBIT
 
@@ -280,14 +281,14 @@ contains
           !**** [ if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),
           !**** then theta_co_stg_rg(np,nr,nsa) = 0.d0 ]
           call bisection_method(get_p_stg, flag, pm(np,nsa)&
-                                      , dummy, theta_co_stg_rg(np,nr,nsa), 0.d0, pi/2.d0, psimg(nr), nsa)
+                                      , dummy, theta_co_stg_rg(np,nr,nsa), 0.d0, pi/2.d0, psim_rg(nr), nsa)
           if ( flag > 0 ) theta_co_stg_rg(np,nr,nsa) = 0.d0
 
           !**** calculate theta_cnt_stg_rg
           !**** [ if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),
           !**** then theta_cnt_stg_rg(np,nr,nsa) = pi ]
           call bisection_method(get_p_stg, flag, pm(np,nsa)&
-                                      , dummy, theta_cnt_stg_rg(np,nr,nsa), pi/2.d0, pi, psimg(nr), nsa)
+                                      , dummy, theta_cnt_stg_rg(np,nr,nsa), pi/2.d0, pi, psim_rg(nr), nsa)
           if ( flag > 0 ) theta_cnt_stg_rg(np,nr,nsa) = pi
 
           !**** define theta mesh
@@ -364,6 +365,7 @@ contains
     end do
 
     call fow_orbit(flag, ierr)
+    write(*,*)"--------------------------------------------------"
     call make_nth_pnc
     call make_IBC
     call make_psi_change_nr
@@ -421,11 +423,9 @@ contains
         end do
       end do
     end do
-    write(*,*)"For test in fowprep ------------------------------"
 
     call calculate_jacobian
 
-    ! write(*,*)"For test in fowprep for4 END of Iteration"
     !**** calculate local COMs
     if ( SUM( modelc ) >= 2*nsamax ) then
       if ( model_obload >= 1 .and. flag == 0) then
@@ -465,8 +465,13 @@ contains
       end if
     end if
 
+    call make_pm_stg
+
+    ! call check_stg_time
 
   end subroutine fow_prep
+
+  !=============================================================== submodules =======================================================
 
   subroutine make_nth_pnc
   !------------------------------------------------------------
@@ -482,9 +487,48 @@ contains
     integer :: ns, nth, np, nr, nsa, ierr = 0, flag, nstp, nstpmax, ir, nthp
 
     !**** Initialization for Error
-    nth_pnc_tg(:,:,:)  = NTHMAX + 10000
-    nth_pnc_pg(:,:,:) = NTHMAX + 10000
-    nth_pnc_rg(:,:,:) = NTHMAX + 10000
+    nth_pnc_tg(:,:,:)  = ERROR_INT
+    nth_pnc_pg(:,:,:) = ERROR_INT
+    nth_pnc_rg(:,:,:) = ERROR_INT
+
+    !**** For npmax + 1 (orbit_p)
+    do nsa = 1, nsamax
+      do nr = 1, NRMAX
+        do np = 1, npmax+1
+          do nth = 1, nthmax-1
+            if (thetam_pg(nth,np,nr,nsa)<= theta_pnc_pg(np,nr,nsa) .and. &
+                theta_pnc_pg(np,nr,nsa)<=thetam_pg(nth+1,np,nr,nsa)) then
+              if (nsa == 1)then
+                nth_pnc_pg(np,nr,nsa) = nth
+              else
+                nth_pnc_pg(np,nr,nsa) = nth+1
+              end if
+            end if
+          end do
+        end do
+      end do
+    end do
+    do nsa = 1, nsamax
+      do nr = 1, NRMAX
+        do np = 1, npmax+1
+          do nth = 1, nthmax-1
+            if (nsa == 1) then
+              if (thetam_pg(nth,np,nr,nsa)<= theta_co_stg_pg(np,nr,nsa) .and. &
+                  theta_co_stg_pg(np,nr,nsa)<=thetam_pg(nth+1,np,nr,nsa)) then
+              ! if (thetam_pg(nth,np,nr,nsa)<= theta_cnt_stg_pg(np,nr,nsa) .and. &
+              !     theta_cnt_stg_pg(np,nr,nsa)<=thetam_pg(nth+1,np,nr,nsa)) then
+                nth_stg_pg(np,nr,nsa) = nth
+              end if
+            else
+              if (thetam_pg(nth,np,nr,nsa)<= theta_cnt_stg_pg(np,nr,nsa) .and. &
+                  theta_cnt_stg_pg(np,nr,nsa)<=thetam_pg(nth+1,np,nr,nsa)) then
+              nth_stg_pg(np,nr,nsa) = nth-1
+              end if
+            end if !** nsa
+          end do
+        end do
+      end do
+    end do
 
     !**** For nthmax + 1 (orbit_th)
     do nsa = 1, nsamax
@@ -492,8 +536,12 @@ contains
         do np = 1, npmax
           do nth = 1, nthmax
             if (thetam_tg(nth,np,nr,nsa)<= theta_pnc(np,nr,nsa) .and. &
-                theta_pnc(np,nr,nsa)<thetam_tg(nth+1,np,nr,nsa)) then
-              nth_pnc_tg(np,nr,nsa) = nth+1
+                theta_pnc(np,nr,nsa)<=thetam_tg(nth+1,np,nr,nsa)) then
+              if (nsa == 1)then
+                nth_pnc_tg(np,nr,nsa) = nth-1
+              else
+                nth_pnc_tg(np,nr,nsa) = nth+1
+              end if
               ! write(*,*)"!!!!"
               ! write(*,*)"pinth:", nth_pnc_tg(np,nr,nsa)!nth_stg_tg(np,nr,nsa)
             end if
@@ -506,55 +554,22 @@ contains
         do np = 1, npmax
           do nth = 1, nthmax
             if (nsa == 1) then
-              if (thetam_tg(nth,np,nr,nsa)<= theta_cnt_stg(np,nr,nsa) .and. &
-                  theta_co_stg(np,nr,nsa)<thetam_tg(nth+1,np,nr,nsa)) then
-              ! if (thetam(nth,np,nr,nsa)< theta_co_stg(np,nr,nsa) .and. &
-              !     theta_co_stg(np,nr,nsa)<=thetam(nth+1,np,nr,nsa)) then
+              if (thetam_tg(nth,np,nr,nsa)<= theta_co_stg(np,nr,nsa) .and. &
+                  theta_co_stg(np,nr,nsa)<=thetam_tg(nth+1,np,nr,nsa)) then
+              ! if (thetam_tg(nth,np,nr,nsa)< theta_cnt_stg(np,nr,nsa) .and. &
+              !     theta_cnt_stg(np,nr,nsa)<=thetam_tg(nth+1,np,nr,nsa)) then
                 nth_stg_tg(np,nr,nsa) = nth
                 ! if(nsa == 1) write(*,*)"stag_counter:", thetam(12,np,nr,nsa)!nth_stg_tg(np,nr,nsa)
                 ! write(*,*)"nsa,stg:",nsa, nth_stg_tg(np,nr,nsa)
               end if
             else
               if (thetam_tg(nth,np,nr,nsa)<= theta_cnt_stg(np,nr,nsa) .and. &
-                  theta_cnt_stg(np,nr,nsa)<thetam_tg(nth+1,np,nr,nsa)) then
+                  theta_cnt_stg(np,nr,nsa)<=thetam_tg(nth+1,np,nr,nsa)) then
               ! if (thetam(nth,np,nr,nsa)< theta_co_stg(np,nr,nsa) .and. &
               !     theta_co_stg(np,nr,nsa)<=thetam(nth+1,np,nr,nsa)) then
               nth_stg_tg(np,nr,nsa) = nth
               ! if(nsa == 1) write(*,*)"stag_counter:", thetam(12,np,nr,nsa)!nth_stg_tg(np,nr,nsa)
               ! write(*,*)"nsa,stg:",nsa, nth_stg_tg(np,nr,nsa)
-              end if
-            end if !** nsa
-          end do
-        end do
-      end do
-    end do
-
-    !**** For npmax + 1 (orbit_p)
-    do nsa = 1, nsamax
-      do nr = 1, NRMAX
-        do np = 1, npmax+1
-          do nth = 1, nthmax-1
-            if (thetam_pg(nth,np,nr,nsa)<= theta_pnc_pg(np,nr,nsa) .and. &
-                theta_pnc_pg(np,nr,nsa)<thetam_pg(nth+1,np,nr,nsa)) then
-              nth_pnc_pg(np,nr,nsa) = nth+1
-            end if
-          end do
-        end do
-      end do
-    end do
-    do nsa = 1, nsamax
-      do nr = 1, NRMAX
-        do np = 1, npmax+1
-          do nth = 1, nthmax-1
-            if (nsa == 1) then
-              if (thetam_pg(nth,np,nr,nsa)<= theta_cnt_stg_pg(np,nr,nsa) .and. &
-                  theta_co_stg_pg(np,nr,nsa)<thetam_pg(nth+1,np,nr,nsa)) then
-                nth_stg_pg(np,nr,nsa) = nth
-              end if
-            else
-              if (thetam_pg(nth,np,nr,nsa)<= theta_cnt_stg_pg(np,nr,nsa) .and. &
-                  theta_cnt_stg_pg(np,nr,nsa)<thetam_pg(nth+1,np,nr,nsa)) then
-              nth_stg_pg(np,nr,nsa) = nth
               end if
             end if !** nsa
           end do
@@ -568,8 +583,12 @@ contains
         do np = 1, npmax
           do nth = 1, nthmax-1
             if (thetam_rg(nth,np,nr,nsa)<= theta_pnc_rg(np,nr,nsa) .and. &
-                theta_pnc_rg(np,nr,nsa)<thetam_rg(nth+1,np,nr,nsa)) then
-              nth_pnc_rg(np,nr,nsa) = nth+1
+                theta_pnc_rg(np,nr,nsa)<=thetam_rg(nth+1,np,nr,nsa)) then
+              if (nsa == 1)then
+                nth_pnc_rg(np,nr,nsa) = nth
+              else
+                nth_pnc_rg(np,nr,nsa) = nth+1
+              end if
             ! write(*,*) nth_pnc_rg(np,nr,nsa)
             end if
           end do
@@ -581,14 +600,16 @@ contains
         do np = 1, npmax
           do nth = 1, nthmax-1
             if (nsa == 1) then
-              if (thetam_rg(nth,np,nr,nsa)<= theta_cnt_stg_rg(np,nr,nsa) .and. &
-                  theta_co_stg_rg(np,nr,nsa)<thetam_rg(nth+1,np,nr,nsa)) then
+              if (thetam_rg(nth,np,nr,nsa)<= theta_co_stg_rg(np,nr,nsa) .and. &
+                  theta_co_stg_rg(np,nr,nsa)<=thetam_rg(nth+1,np,nr,nsa)) then
+              ! if (thetam_rg(nth,np,nr,nsa)<= theta_cnt_stg_rg(np,nr,nsa) .and. &
+              !     theta_cnt_stg_rg(np,nr,nsa)<=thetam_rg(nth+1,np,nr,nsa)) then
                 nth_stg_rg(np,nr,nsa) = nth
               end if
             else
               if (thetam_rg(nth,np,nr,nsa)<= theta_cnt_stg_rg(np,nr,nsa) .and. &
-                  theta_cnt_stg_rg(np,nr,nsa)<thetam_rg(nth+1,np,nr,nsa)) then
-              nth_stg_rg(np,nr,nsa) = nth
+                  theta_cnt_stg_rg(np,nr,nsa)<=thetam_rg(nth+1,np,nr,nsa)) then
+              nth_stg_rg(np,nr,nsa) = nth -1
               end if
             end if !** nsa
           end do
@@ -619,192 +640,331 @@ contains
 
     !**** Initialization
     IBCflux_ratio(:,:,:) = 0.d0
+    IBCflux_ratio_pg(:,:,:) = 0.d0
+    IBCflux_ratio_rg(:,:,:) = 0.d0
 
-    !**** IBC for nthmax + 1
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do np = 1, npmax
-          if ( theta_pnc(np,nr,nsa) == NO_PINCH_ORBIT ) cycle
-
-          ! orbit_pnc = orbit_th(nth_pnc_tg(np,nr,nsa),np,nr,nsa)
-          ! orbit_pnc = orbit_th(nth_pnc(nsa),np,nr,nsa)
-          if (nsa == 1) then
-            orbit_co  = orbit_th(nth_pnc_tg(np,nr,nsa)+1,np,nr,nsa)
-            orbit_cnt = orbit_th(nth_stg_tg(np,nr,nsa)-1,np,nr,nsa)
-          else
-            orbit_co  = orbit_th(nth_pnc_tg(np,nr,nsa)-1,np,nr,nsa)
-            orbit_cnt = orbit_th(nth_stg_tg(np,nr,nsa)+1,np,nr,nsa)
-          end if
-          ! nstpmax = orbit_pnc%nstp_max
-          nstpmax_co = orbit_co%nstp_max
-          nstpmax_cnt = orbit_cnt%nstp_max
-
-          ! if ( 0.d0 <= orbit_pnc%costh(1) .and. orbit_pnc%costh(1) <= 1.d0 ) then
-          ! if ( orbit_pnc%costh(1)*AEFP(nsa) >= 0.d0 ) then
-          !   isCo = .true.
-          ! else
-          !   isCo = .false.
-          ! end if
-
-          ! if (nsa /= 1) write(*,*)"isCO:",isCo
-
-          time_v_co = 0.d0
-          time_v_cnt = 0.d0
-          if (nsa == 1) then
-            do nstp = 2, nstpmax_co
-              dt_co  = orbit_co%time(nstp)-orbit_co%time(nstp-1)
-              time_v_cnt = time_v_cnt + dt_cnt
-            end do
-            do nstp = 2, nstpmax_cnt
-              dt_cnt = orbit_cnt%time(nstp)-orbit_cnt%time(nstp-1)
-              time_v_co  = time_v_co  + dt_co
-            end do
-          else
-            do nstp = 2, nstpmax_co
-              dt_co  = orbit_co%time(nstp)-orbit_co%time(nstp-1)
-              time_v_co  = time_v_co  + dt_co
-            end do
-            do nstp = 2, nstpmax_cnt
-              dt_cnt = orbit_cnt%time(nstp)-orbit_cnt%time(nstp-1)
-              time_v_cnt = time_v_cnt + dt_cnt
-            end do
-          end if
-          ! do nstp = 2, nstpmax
-                ! write(*,*)"nsa,orbit_cos:",nsa, orbit_pnc%costh(nstp) 
-            ! dt = orbit_pnc%time(nstp)-orbit_pnc%time(nstp-1)
-            ! if ( isCo ) then
-            !   if ( 0.d0 <= orbit_pnc%costh(nstp) .and. orbit_pnc%costh(nstp) <= 1.d0 ) then
-            !     time_v_co = time_v_co + dt
-            !   else
-            !     ! time_v_co = time_v_co + dt/2.d0
-            !     ! time_v_cnt = time_v_cnt + dt/2.d0
-            !     time_v_cnt = time_v_cnt + dt
-            !     ! isCo = .false.
-            !   end if
-            ! else
-            !   if ( 0.d0 <= orbit_pnc%costh(nstp) .and. orbit_pnc%costh(nstp) <= 1.d0 ) then
-            !     ! time_v_co = time_v_co + dt/2.d0
-            !     ! time_v_cnt = time_v_cnt + dt/2.d0
-            !     time_v_cnt = time_v_cnt + dt
-            !     ! write(*,*)"counter"
-            !     ! isCo = .true.
-            !   else
-            !     ! time_v_cnt = time_v_cnt + dt
-            !     time_v_co = time_v_co + dt
-            !     ! isCo = .true.
-            !   end if
-            ! end if
-          ! end do
-          ! if (time_v_co < 1.d-8) time_v_co = 1.d-8
-          ! if (time_v_cnt < 1.d-8) time_v_cnt = 1.d-8
-          IBCflux_ratio(np,nr,nsa) = time_v_cnt/(time_v_co+time_v_cnt)
-          ! write(*,*) IBCflux_ratio(np,nr,nsa)
-          if ( IBCflux_ratio(np,nr,nsa) < 1.d-8 ) then
-            IBCflux_ratio(np,nr,nsa) = 1.d-8
-          ! write(*,*) time_v_cnt
-          end if
-        end do
-      end do
-    end do
-
-    !**** IBC for nphmax + 1
+    !**** IBC_pg
     do nsa = 1, nsamax
       do nr = 1, nrmax
         do np = 1, npmax + 1
           if ( theta_pnc_pg(np,nr,nsa) == NO_PINCH_ORBIT ) cycle
 
-          if (nsa == 1) then
-            orbit_co  = orbit_p(nth_pnc_pg(np,nr,nsa)+1,np,nr,nsa)
-            orbit_cnt = orbit_p(nth_stg_pg(np,nr,nsa)-1,np,nr,nsa)
-          else
-            orbit_co  = orbit_p(nth_pnc_pg(np,nr,nsa)-1,np,nr,nsa)
-            orbit_cnt = orbit_p(nth_stg_pg(np,nr,nsa)+1,np,nr,nsa)
-          end if
-          nstpmax_co = orbit_co%nstp_max
-          nstpmax_cnt = orbit_cnt%nstp_max
+          orbit_pnc = orbit_p(nth_pnc_pg(np,nr,nsa),np,nr,nsa)
+          nstpmax = orbit_pnc%nstp_max
 
           time_v_co = 0.d0
           time_v_cnt = 0.d0
-          if (nsa == 1) then
-            do nstp = 2, nstpmax_co
-              dt_co  = orbit_co%time(nstp)-orbit_co%time(nstp-1)
-              time_v_cnt = time_v_cnt + dt_cnt
-            end do
-            do nstp = 2, nstpmax_cnt
-              dt_cnt = orbit_cnt%time(nstp)-orbit_cnt%time(nstp-1)
-              time_v_co  = time_v_co  + dt_co
-            end do
-          else
-            do nstp = 2, nstpmax_co
-              dt_co  = orbit_co%time(nstp)-orbit_co%time(nstp-1)
-              time_v_co  = time_v_co  + dt_co
-            end do
-            do nstp = 2, nstpmax_cnt
-              dt_cnt = orbit_cnt%time(nstp)-orbit_cnt%time(nstp-1)
-              time_v_cnt = time_v_cnt + dt_cnt
-            end do
-          end if
-          ! if (time_v_co < 1.d-8) time_v_co = 1.d-8
-          ! if (time_v_cnt < 1.d-8) time_v_cnt = 1.d-8
+          do nstp = 2, nstpmax
+            dt = orbit_pnc%time(nstp)-orbit_pnc%time(nstp-1)
+            if (nsa == 1) then
+
+              if ( 0.d0 <= orbit_pnc%costh(nstp) ) then
+                time_v_cnt = time_v_cnt + dt
+              else
+                time_v_co = time_v_co + dt
+              end if
+
+            else
+
+              if ( 0.d0 <= orbit_pnc%costh(nstp) ) then
+                time_v_co = time_v_co + dt
+              else
+                time_v_cnt = time_v_cnt + dt
+              end if
+            end if !** nsa
+
+          end do
           IBCflux_ratio_pg(np,nr,nsa) = time_v_cnt/(time_v_co+time_v_cnt)
-          ! write(*,*) IBCflux_ratio(np,nr,nsa)
-          if ( IBCflux_ratio_pg(np,nr,nsa) < 1.d-8 ) then
+          if ( IBCflux_ratio_pg(np,nr,nsa) <= 1.d-8 ) then
             IBCflux_ratio_pg(np,nr,nsa) = 1.d-8
           end if
         end do
       end do
     end do
 
-    !**** IBC for nrhmax + 1
+    !**** IBC_tg
     do nsa = 1, nsamax
-      do nr = 1, nrmax + 1
+      do nr = 1, nrmax
         do np = 1, npmax
-          if ( theta_pnc_rg(np,nr,nsa) == NO_PINCH_ORBIT ) cycle
+          if ( theta_pnc(np,nr,nsa) == NO_PINCH_ORBIT ) cycle
 
-          if (nsa == 1) then
-            orbit_co  = orbit_r(nth_pnc_rg(np,nr,nsa)+1,np,nr,nsa)
-            orbit_cnt = orbit_r(nth_stg_rg(np,nr,nsa)-1,np,nr,nsa)
-          else
-            orbit_co  = orbit_r(nth_pnc_rg(np,nr,nsa)-1,np,nr,nsa)
-            orbit_cnt = orbit_r(nth_stg_rg(np,nr,nsa)+1,np,nr,nsa)
-          end if
-          nstpmax_co = orbit_co%nstp_max
-          nstpmax_cnt = orbit_cnt%nstp_max
+          orbit_pnc = orbit_th(nth_pnc_tg(np,nr,nsa),np,nr,nsa)
+          nstpmax = orbit_pnc%nstp_max
 
           time_v_co = 0.d0
           time_v_cnt = 0.d0
-          if (nsa == 1) then
-            do nstp = 2, nstpmax_co
-              dt_co  = orbit_co%time(nstp)-orbit_co%time(nstp-1)
-              time_v_cnt = time_v_cnt + dt_cnt
-            end do
-            do nstp = 2, nstpmax_cnt
-              dt_cnt = orbit_cnt%time(nstp)-orbit_cnt%time(nstp-1)
-              time_v_co  = time_v_co  + dt_co
-            end do
-          else
-            do nstp = 2, nstpmax_co
-              dt_co  = orbit_co%time(nstp)-orbit_co%time(nstp-1)
-              time_v_co  = time_v_co  + dt_co
-            end do
-            do nstp = 2, nstpmax_cnt
-              dt_cnt = orbit_cnt%time(nstp)-orbit_cnt%time(nstp-1)
-              time_v_cnt = time_v_cnt + dt_cnt
-            end do
-          end if
-          if (time_v_co < 1.d-8) time_v_co = 1.d-8
-          if (time_v_cnt < 1.d-8) time_v_cnt = 1.d-8
-          IBCflux_ratio_rg(np,nr,nsa) = time_v_cnt/(time_v_co+time_v_cnt)
-          ! write(*,*) IBCflux_ratio(np,nr,nsa)
-          if ( IBCflux_ratio_rg(np,nr,nsa) < 1.d-8 ) then
-            IBCflux_ratio_rg(np,nr,nsa) = 1.d-8
-          ! write(*,*) time_v_cnt
+          do nstp = 2, nstpmax
+            dt = orbit_pnc%time(nstp)-orbit_pnc%time(nstp-1)
+            if (nsa == 1) then
+
+              if ( 0.d0 <= orbit_pnc%costh(nstp) ) then
+                time_v_cnt = time_v_cnt + dt
+              else
+                time_v_co = time_v_co + dt
+              end if
+
+            else
+
+              if ( 0.d0 <= orbit_pnc%costh(nstp) ) then
+                time_v_co = time_v_co + dt
+              else
+                time_v_cnt = time_v_cnt + dt
+              end if
+            end if !** nsa
+
+          end do
+          IBCflux_ratio(np,nr,nsa) = time_v_cnt/(time_v_co+time_v_cnt)
+          if ( IBCflux_ratio(np,nr,nsa) == 1.d0 .or. IBCflux_ratio(np,nr,nsa) == 0.d0 ) then
+            IBCflux_ratio(np,nr,nsa) = 0.5d0
           end if
         end do
       end do
     end do
 
+    !**** IBC_rg
+    do nsa = 1, nsamax
+      do nr = 1, nrmax + 1
+        do np = 1, npmax
+          if ( theta_pnc_rg(np,nr,nsa) == NO_PINCH_ORBIT ) cycle
+
+          time_v_co = 0.d0
+          time_v_cnt = 0.d0
+          do nstp = 2, nstpmax
+            dt = orbit_pnc%time(nstp)-orbit_pnc%time(nstp-1)
+            if (nsa == 1) then
+
+              if ( 0.d0 <= orbit_pnc%costh(nstp) ) then
+                time_v_cnt = time_v_cnt + dt
+              else
+                time_v_co = time_v_co + dt
+              end if
+
+            else
+
+              if ( 0.d0 <= orbit_pnc%costh(nstp) ) then
+                time_v_co = time_v_co + dt
+              else
+                time_v_cnt = time_v_cnt + dt
+              end if
+            end if !** nsa
+
+          end do
+          IBCflux_ratio_rg(np,nr,nsa) = time_v_cnt/(time_v_co+time_v_cnt)
+          if ( IBCflux_ratio_rg(np,nr,nsa) == 1.d0 .or. IBCflux_ratio_rg(np,nr,nsa) == 0.d0 ) then
+            IBCflux_ratio_rg(np,nr,nsa) = 0.5d0
+          end if
+        end do
+      end do
+    end do
   end subroutine make_IBC
+
+  ! subroutine make_IBC
+  ! !-----------------------------------------------------
+  ! ! Make Internal Boundary Condition (IBC)
+  ! ! IBC_ratio is Counter time per total time of orbit
+  ! ! To ensure using make_nth_pnc before this mosule
+  ! ! [2022/12/2]
+  ! !-----------------------------------------------------
+  !   use fowcomm
+  !   use fpcomm
+  !   use foworbit
+
+  !   implicit none
+
+  !   type(orbit) :: orbit_pnc,ob, orbit_co, orbit_cnt
+  !   real(rkind) :: time_v_co, time_v_cnt, dt, dt_co, dt_cnt 
+  !   real(rkind) :: summ
+  !   integer :: ns, nth, np, nr, nsa, nstp, nstpmax, ir
+  !   integer :: nstpmax_co, nstpmax_cnt
+
+  !   !**** Initialization
+  !   IBCflux_ratio(:,:,:) = 0.d0
+
+  !   !**** IBC for nthmax + 1
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax
+  !       do np = 1, npmax
+  !         if ( theta_pnc(np,nr,nsa) == NO_PINCH_ORBIT ) cycle
+
+  !         ! orbit_pnc = orbit_th(nth_pnc_tg(np,nr,nsa),np,nr,nsa)
+  !         ! orbit_pnc = orbit_th(nth_pnc(nsa),np,nr,nsa)
+  !         if (nsa == 1) then
+  !           orbit_co  = orbit_th(nth_pnc_tg(np,nr,nsa)+1,np,nr,nsa)
+  !           orbit_cnt = orbit_th(nth_stg_tg(np,nr,nsa)-1,np,nr,nsa)
+  !         else
+  !           orbit_co  = orbit_th(nth_pnc_tg(np,nr,nsa)-1,np,nr,nsa)
+  !           orbit_cnt = orbit_th(nth_stg_tg(np,nr,nsa)+1,np,nr,nsa)
+  !         end if
+  !         ! nstpmax = orbit_pnc%nstp_max
+  !         nstpmax_co = orbit_co%nstp_max
+  !         nstpmax_cnt = orbit_cnt%nstp_max
+
+  !         ! if ( 0.d0 <= orbit_pnc%costh(1) .and. orbit_pnc%costh(1) <= 1.d0 ) then
+  !         ! if ( orbit_pnc%costh(1)*AEFP(nsa) >= 0.d0 ) then
+  !         !   isCo = .true.
+  !         ! else
+  !         !   isCo = .false.
+  !         ! end if
+
+  !         ! if (nsa /= 1) write(*,*)"isCO:",isCo
+
+  !         time_v_co = 0.d0
+  !         time_v_cnt = 0.d0
+  !         if (nsa == 1) then
+  !           do nstp = 2, nstpmax_co
+  !             dt_co  = orbit_co%time(nstp)-orbit_co%time(nstp-1)
+  !             time_v_cnt = time_v_cnt + dt_cnt
+  !           end do
+  !           do nstp = 2, nstpmax_cnt
+  !             dt_cnt = orbit_cnt%time(nstp)-orbit_cnt%time(nstp-1)
+  !             time_v_co  = time_v_co  + dt_co
+  !           end do
+  !         else
+  !           do nstp = 2, nstpmax_co
+  !             dt_co  = orbit_co%time(nstp)-orbit_co%time(nstp-1)
+  !             time_v_co  = time_v_co  + dt_co
+  !           end do
+  !           do nstp = 2, nstpmax_cnt
+  !             dt_cnt = orbit_cnt%time(nstp)-orbit_cnt%time(nstp-1)
+  !             time_v_cnt = time_v_cnt + dt_cnt
+  !           end do
+  !         end if
+  !         ! do nstp = 2, nstpmax
+  !               ! write(*,*)"nsa,orbit_cos:",nsa, orbit_pnc%costh(nstp) 
+  !           ! dt = orbit_pnc%time(nstp)-orbit_pnc%time(nstp-1)
+  !           ! if ( isCo ) then
+  !           !   if ( 0.d0 <= orbit_pnc%costh(nstp) .and. orbit_pnc%costh(nstp) <= 1.d0 ) then
+  !           !     time_v_co = time_v_co + dt
+  !           !   else
+  !           !     ! time_v_co = time_v_co + dt/2.d0
+  !           !     ! time_v_cnt = time_v_cnt + dt/2.d0
+  !           !     time_v_cnt = time_v_cnt + dt
+  !           !     ! isCo = .false.
+  !           !   end if
+  !           ! else
+  !           !   if ( 0.d0 <= orbit_pnc%costh(nstp) .and. orbit_pnc%costh(nstp) <= 1.d0 ) then
+  !           !     ! time_v_co = time_v_co + dt/2.d0
+  !           !     ! time_v_cnt = time_v_cnt + dt/2.d0
+  !           !     time_v_cnt = time_v_cnt + dt
+  !           !     ! write(*,*)"counter"
+  !           !     ! isCo = .true.
+  !           !   else
+  !           !     ! time_v_cnt = time_v_cnt + dt
+  !           !     time_v_co = time_v_co + dt
+  !           !     ! isCo = .true.
+  !           !   end if
+  !           ! end if
+  !         ! end do
+  !         ! if (time_v_co < 1.d-8) time_v_co = 1.d-8
+  !         ! if (time_v_cnt < 1.d-8) time_v_cnt = 1.d-8
+  !         IBCflux_ratio(np,nr,nsa) = time_v_cnt/(time_v_co+time_v_cnt)
+  !         ! write(*,*) IBCflux_ratio(np,nr,nsa)
+  !         if ( IBCflux_ratio(np,nr,nsa) < 1.d-8 ) then
+  !           IBCflux_ratio(np,nr,nsa) = 1.d-8
+  !         ! write(*,*) time_v_cnt
+  !         end if
+  !       end do
+  !     end do
+  !   end do
+
+  !   !**** IBC for nphmax + 1
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax
+  !       do np = 1, npmax + 1
+  !         if ( theta_pnc_pg(np,nr,nsa) == NO_PINCH_ORBIT ) cycle
+
+  !         if (nsa == 1) then
+  !           orbit_co  = orbit_p(nth_pnc_pg(np,nr,nsa)+1,np,nr,nsa)
+  !           orbit_cnt = orbit_p(nth_stg_pg(np,nr,nsa)-1,np,nr,nsa)
+  !         else
+  !           orbit_co  = orbit_p(nth_pnc_pg(np,nr,nsa)-1,np,nr,nsa)
+  !           orbit_cnt = orbit_p(nth_stg_pg(np,nr,nsa)+1,np,nr,nsa)
+  !         end if
+  !         nstpmax_co = orbit_co%nstp_max
+  !         nstpmax_cnt = orbit_cnt%nstp_max
+
+  !         time_v_co = 0.d0
+  !         time_v_cnt = 0.d0
+  !         if (nsa == 1) then
+  !           do nstp = 2, nstpmax_co
+  !             dt_co  = orbit_co%time(nstp)-orbit_co%time(nstp-1)
+  !             time_v_cnt = time_v_cnt + dt_cnt
+  !           end do
+  !           do nstp = 2, nstpmax_cnt
+  !             dt_cnt = orbit_cnt%time(nstp)-orbit_cnt%time(nstp-1)
+  !             time_v_co  = time_v_co  + dt_co
+  !           end do
+  !         else
+  !           do nstp = 2, nstpmax_co
+  !             dt_co  = orbit_co%time(nstp)-orbit_co%time(nstp-1)
+  !             time_v_co  = time_v_co  + dt_co
+  !           end do
+  !           do nstp = 2, nstpmax_cnt
+  !             dt_cnt = orbit_cnt%time(nstp)-orbit_cnt%time(nstp-1)
+  !             time_v_cnt = time_v_cnt + dt_cnt
+  !           end do
+  !         end if
+  !         ! if (time_v_co < 1.d-8) time_v_co = 1.d-8
+  !         ! if (time_v_cnt < 1.d-8) time_v_cnt = 1.d-8
+  !         IBCflux_ratio_pg(np,nr,nsa) = time_v_cnt/(time_v_co+time_v_cnt)
+  !         ! write(*,*) IBCflux_ratio(np,nr,nsa)
+  !         if ( IBCflux_ratio_pg(np,nr,nsa) < 1.d-8 ) then
+  !           IBCflux_ratio_pg(np,nr,nsa) = 1.d-8
+  !         end if
+  !       end do
+  !     end do
+  !   end do
+
+  !   !**** IBC for nrhmax + 1
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax + 1
+  !       do np = 1, npmax
+  !         if ( theta_pnc_rg(np,nr,nsa) == NO_PINCH_ORBIT ) cycle
+
+  !         if (nsa == 1) then
+  !           orbit_co  = orbit_r(nth_pnc_rg(np,nr,nsa)+1,np,nr,nsa)
+  !           orbit_cnt = orbit_r(nth_stg_rg(np,nr,nsa)-1,np,nr,nsa)
+  !         else
+  !           orbit_co  = orbit_r(nth_pnc_rg(np,nr,nsa)-1,np,nr,nsa)
+  !           orbit_cnt = orbit_r(nth_stg_rg(np,nr,nsa)+1,np,nr,nsa)
+  !         end if
+  !         nstpmax_co = orbit_co%nstp_max
+  !         nstpmax_cnt = orbit_cnt%nstp_max
+
+  !         time_v_co = 0.d0
+  !         time_v_cnt = 0.d0
+  !         if (nsa == 1) then
+  !           do nstp = 2, nstpmax_co
+  !             dt_co  = orbit_co%time(nstp)-orbit_co%time(nstp-1)
+  !             time_v_cnt = time_v_cnt + dt_cnt
+  !           end do
+  !           do nstp = 2, nstpmax_cnt
+  !             dt_cnt = orbit_cnt%time(nstp)-orbit_cnt%time(nstp-1)
+  !             time_v_co  = time_v_co  + dt_co
+  !           end do
+  !         else
+  !           do nstp = 2, nstpmax_co
+  !             dt_co  = orbit_co%time(nstp)-orbit_co%time(nstp-1)
+  !             time_v_co  = time_v_co  + dt_co
+  !           end do
+  !           do nstp = 2, nstpmax_cnt
+  !             dt_cnt = orbit_cnt%time(nstp)-orbit_cnt%time(nstp-1)
+  !             time_v_cnt = time_v_cnt + dt_cnt
+  !           end do
+  !         end if
+  !         if (time_v_co < 1.d-8) time_v_co = 1.d-8
+  !         if (time_v_cnt < 1.d-8) time_v_cnt = 1.d-8
+  !         IBCflux_ratio_rg(np,nr,nsa) = time_v_cnt/(time_v_co+time_v_cnt)
+  !         ! write(*,*) IBCflux_ratio(np,nr,nsa)
+  !         if ( IBCflux_ratio_rg(np,nr,nsa) < 1.d-8 ) then
+  !           IBCflux_ratio_rg(np,nr,nsa) = 1.d-8
+  !         ! write(*,*) time_v_cnt
+  !         end if
+  !       end do
+  !     end do
+  !   end do
+
+  ! end subroutine make_IBC
 
   subroutine make_psi_change_nr
   !-----------------------------------------------
@@ -820,20 +980,28 @@ contains
     ! real(rkind) :: time_v_co, time_v_cnt, dt, dt_co, dt_cnt 
     real(rkind) :: summ
     real(rkind) :: psi_pnc, psi_max, psi_tmp
-    integer :: ns, nth, np, nr, nsa, nstp, nstpmax, ir
+    integer :: ns, nth, np, nr, nsa, nstp, nstpmax, ir, nrt, nstp_
 
     !**** Initialization
-    nr_cgt_stg_pg(:,:,:) = 2022
-    nr_cgt_stg_tg(:,:,:) = 2022
-    nr_cgt_stg_rg(:,:,:) = 2022
+    nr_cgt_stg_pg(:,:,:) = ERROR_INT
+    nr_cgt_stg_tg(:,:,:) = ERROR_INT
+    nr_cgt_stg_rg(:,:,:) = ERROR_INT
+    nr_stg_inv_pg(:,:,:) = ERROR_INT
+    nr_stg_inv_tg(:,:,:) = ERROR_INT
+    nr_stg_inv_rg(:,:,:) = ERROR_INT
 
+    !**** nr for orbit_p
     do nsa = 1, nsamax
       do nr = 1, nrmax
-        do np = 1, npmax
+        do np = 1, npmax+1
           ! do nth = 1, nthmax
-            if (theta_pnc(np,nr,nsa) == NO_PINCH_ORBIT) cycle
+            if (theta_pnc_pg(np,nr,nsa) == NO_PINCH_ORBIT) cycle
 
-            obt = orbit_th(nth_pnc_tg(np,nr,nsa),np,nr,nsa)
+            if (nsa == 1) then
+              obt = orbit_p(nth_pnc_pg(np,nr,nsa)-1,np,nr,nsa)
+            else
+              obt = orbit_p(nth_pnc_pg(np,nr,nsa)+1,np,nr,nsa)
+            end if
             nstpmax = obt%nstp_max
             psi_pnc = 0.d0
             psi_max = obt%psip(1)
@@ -844,29 +1012,434 @@ contains
               if (psi_max < psi_tmp) psi_max = psi_tmp
 
               if (nsa == 1) then
-                if (nstp /= nstpmax .and. obt%costh(nstp)< 0 .and.&
+                if (nstp_ == nstpmax-1 .and. obt%costh(nstpmax-1) <= 0 .and.&
+                obt%costh(nstpmax) >= 0) then
+                  psi_pnc = psi_tmp
+                else if (nstp /= nstpmax .and. obt%costh(nstp) <= 0 .and.&
                 obt%costh(nstp+1) >= 0) then
                   psi_pnc = psi_tmp
                 end if
               else
-                if(nstp /=nstpmax .and. obt%costh(nstp)> 0 .and. &
+                if (nstp == nstpmax-1 .and. obt%costh(nstpmax-1) >= 0 .and.&
+                obt%costh(1) <= 0) then
+                  psi_pnc = psi_tmp
+                else if(nstp /=nstpmax .and. obt%costh(nstp) >= 0 .and. &
                 obt%costh(nstp+1)<= 0) then
                   psi_pnc = psi_tmp
                 end if
               end if
 
-            ! if(theta_pnc(np,nr,nsa)/=NO_PINCH_ORBIT) write(*,*)"pinch,max:",nsa,nstp, orbit_m(nth_pnc_tg(np,nr,nsa)&
-            ! ,np,nr,nsa)%costh(nstp),orbit_m(nth_pnc_tg(np,nr,nsa),np,nr,nsa)%sinth(nstp)
+              ! if(theta_pnc_pg(np,nr,nsa)/=NO_PINCH_ORBIT) write(*,*)"pinch,max:",nsa,nstp, orbit_p(nth_pnc_pg(np,nr,nsa)&
+              ! ,np,nr,nsa)%costh(nstp),orbit_p(nth_pnc_pg(np,nr,nsa),np,nr,nsa)%sinth(nstp)
+              ! write(*,*)nstp
 
             end do
+
             if (psi_max < obt%psip(nstpmax)) psi_max = obt%psip(nstpmax)
+
+            if (nsa == 1) then
+              if (obt%costh(nstpmax) <= 0 .and. obt%costh(1) >= 0) then
+                psi_pnc = psi_tmp
+              end if
+            else
+              if (obt%costh(nstpmax) >= 0 .and. obt%costh(1) <= 0) then
+                psi_pnc = psi_tmp
+              end if
+            end if
+
+
+            do nrt = 1, nrmax-1
+
+              if (nrt == 1) then
+                if (psim(nrt) <= psi_max .or. psi_max <= psim(nrt)) nr_stg_inv_pg(np,nr,nsa) = nrt
+              else if (nrt == nrmax -1) then
+                if (psi_max >= psim(nrt+1)) nr_stg_inv_pg(np,nr,nsa) = nrt
+              else
+                if (psim(nrt) <= psi_max .and. psi_max <= psim(nrt + 1)) nr_stg_inv_pg(np,nr,nsa) = nrt
+              end if
+
+              if (nrt == 1) then
+                if (psim(nrt) <= psi_pnc .or. psi_pnc <= psim(nrt)) nr_cgt_stg_pg(np,nr,nsa) = nrt
+              else if (nrt == nrmax -1) then
+                if (psi_pnc >= psim(nrt+1)) nr_cgt_stg_pg(np,nr,nsa) = nrt
+              else
+                if (psim(nrt) <= psi_pnc .and. psi_pnc <= psim(nrt+1)) nr_cgt_stg_pg(np,nr,nsa) = nrt
+              end if
+
+            end do
             ! if(theta_pnc(np,nr,nsa)/=NO_PINCH_ORBIT) write(*,*)"pinch,max:",nsa,psi_pnc,psi_max!, theta_pnc(np,nr,nsa)
 
           ! end do
         end do
       end do
     end do
+
+    !**** nr for orbit_th
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do np = 1, npmax
+          ! do nth = 1, nthmax
+            if (theta_pnc(np,nr,nsa) == NO_PINCH_ORBIT) cycle
+
+            if (psi_max < psi_tmp) psi_max = psi_tmp
+
+            if (nsa == 1) then
+              obt = orbit_th(nth_pnc_tg(np,nr,nsa)-1,np,nr,nsa)
+            else
+              obt = orbit_th(nth_pnc_tg(np,nr,nsa)+1,np,nr,nsa)
+            end if
+            nstpmax = obt%nstp_max
+            psi_pnc = 0.d0
+            psi_max = obt%psip(1)
+
+            do nstp = 1, nstpmax-1
+              psi_tmp = obt%psip(nstp)
+
+              if (nsa == 1) then
+                if (nstp == nstpmax-1 .and. obt%costh(nstpmax-1) <= 0 .and.&
+                obt%costh(1) >= 0) then
+                  psi_pnc = psi_tmp
+                else if (nstp /= nstpmax .and. obt%costh(nstp) <= 0 .and.&
+                obt%costh(nstp+1) >= 0) then
+                  psi_pnc = psi_tmp
+                end if
+              else
+                if (nstp == nstpmax-1 .and. obt%costh(nstpmax-1) >= 0 .and.&
+                obt%costh(1) <= 0) then
+                  psi_pnc = psi_tmp
+                else if(nstp /=nstpmax .and. obt%costh(nstp) >= 0 .and. &
+                obt%costh(nstp+1)<= 0) then
+                  psi_pnc = psi_tmp
+                end if
+              end if
+
+            ! if(theta_pnc(np,nr,nsa)/=NO_PINCH_ORBIT) write(*,*)"pinch,max:",nsa,nstp, orbit_th(nth_pnc_tg(np,nr,nsa)&
+            ! ,np,nr,nsa)%costh(nstp),orbit_th(nth_pnc_tg(np,nr,nsa),np,nr,nsa)%sinth(nstp)
+
+            end do
+
+            if (psi_max < obt%psip(nstpmax)) psi_max = obt%psip(nstpmax)
+
+              if (nsa == 1) then
+                if (obt%costh(nstpmax) <= 0 .and. obt%costh(1) >= 0) then
+                  psi_pnc = psi_tmp
+                end if
+              else
+                if (obt%costh(nstpmax) >= 0 .and. obt%costh(1) <= 0) then
+                  psi_pnc = psi_tmp
+                end if
+              end if
+
+              do nrt = 1, nrmax-1
+
+              if (nrt == 1) then
+                if (psim(nrt) <= psi_max .or. psi_max <= psim(nrt)) nr_stg_inv_tg(np,nr,nsa) = nrt
+              else if (nrt == nrmax -1) then
+                if (psi_max >= psim(nrt+1)) nr_stg_inv_tg(np,nr,nsa) = nrt
+              else
+                if (psim(nrt) <= psi_max .and. psi_max <= psim(nrt + 1)) nr_stg_inv_tg(np,nr,nsa) = nrt
+              end if
+
+                if (nrt == 1) then
+                  if (psim(nrt) <= psi_pnc .or. psi_pnc <= psim(nrt)) nr_cgt_stg_tg(np,nr,nsa) = nrt
+                else if (nrt == nrmax -1) then
+                  if (psi_pnc >= psim(nrt+1)) nr_cgt_stg_tg(np,nr,nsa) = nrt
+                else
+                  if (psim(nrt) <= psi_pnc .and. psi_pnc <= psim(nrt+1)) nr_cgt_stg_tg(np,nr,nsa) = nrt
+                end if
+
+              end do
+
+            ! if(theta_pnc(np,nr,nsa)/=NO_PINCH_ORBIT) write(*,*)"pinch,max:",nsa,psi_pnc,psi_max!, theta_pnc(np,nr,nsa)
+
+          ! end do
+        end do
+      end do
+    end do
+
+    !**** nr for orbit_r
+    do nsa = 1, nsamax
+      do nr = 1, nrmax+1
+        do np = 1, npmax
+          ! do nth = 1, nthmax
+            if (theta_pnc_rg(np,nr,nsa) == NO_PINCH_ORBIT) cycle
+
+            if (psi_max < psi_tmp) psi_max = psi_tmp
+
+            if (nsa == 1)then
+              obt = orbit_r(nth_pnc_rg(np,nr,nsa)-1,np,nr,nsa)
+            else
+              obt = orbit_r(nth_pnc_rg(np,nr,nsa)+1,np,nr,nsa)
+            end if
+            nstpmax = obt%nstp_max
+            psi_pnc = 0.d0
+            psi_max = obt%psip(1)
+
+            do nstp = 1, nstpmax-1
+              psi_tmp = obt%psip(nstp)
+
+              if (nsa == 1) then
+                if (nstp == nstpmax-1 .and. obt%costh(nstpmax-1) <= 0 .and.&
+                obt%costh(1) >= 0) then
+                  psi_pnc = psi_tmp
+                else if (nstp /= nstpmax .and. obt%costh(nstp) <= 0 .and.&
+                obt%costh(nstp+1) >= 0) then
+                  psi_pnc = psi_tmp
+                end if
+              else
+                if (nstp == nstpmax-1 .and. obt%costh(nstpmax-1) >= 0 .and.&
+                obt%costh(1) <= 0) then
+                  psi_pnc = psi_tmp
+                else if(nstp /=nstpmax .and. obt%costh(nstp) >= 0 .and. &
+                obt%costh(nstp+1) <= 0) then
+                  psi_pnc = psi_tmp
+                end if
+              end if
+
+            ! if(theta_pnc_rg(np,nr,nsa)/=NO_PINCH_ORBIT) write(*,*)"pinch,max:",nsa,nstp, orbit_r(nth_pnc_rg(np,nr,nsa)&
+            ! ,np,nr,nsa)%costh(nstp),orbit_r(nth_pnc_rg(np,nr,nsa),np,nr,nsa)%sinth(nstp)
+
+            end do
+
+            if (psi_max < obt%psip(nstpmax)) psi_max = obt%psip(nstpmax)
+
+              if (nsa == 1) then
+                if (obt%costh(nstpmax) <= 0 .and. obt%costh(1) >= 0) then
+                  psi_pnc = psi_tmp
+                end if
+              else
+                if (obt%costh(nstpmax) >= 0 .and. obt%costh(1) <= 0) then
+                  psi_pnc = psi_tmp
+                end if
+              end if
+
+              do nrt = 1, nrmax
+
+              if (nrt == 1) then
+                if (psim_rg(nrt) <= psi_max .or. psi_max <= psim_rg(nrt)) nr_stg_inv_rg(np,nr,nsa) = nrt
+              else if (nrt == nrmax -1) then
+                if (psi_max >= psim_rg(nrt+1)) nr_stg_inv_rg(np,nr,nsa) = nrt
+              else
+                if (psim_rg(nrt) <= psi_max .and. psi_max <= psim_rg(nrt + 1)) nr_stg_inv_rg(np,nr,nsa) = nrt
+              end if
+
+                if (nrt == 1) then
+                  if (psim_rg(nrt) <= psi_pnc .or. psi_pnc <= psim_rg(nrt)) nr_cgt_stg_rg(np,nr,nsa) = nrt
+                else if (nrt == nrmax) then
+                  if (psi_pnc >= psim_rg(nrt+1)) nr_cgt_stg_rg(np,nr,nsa) = nrt
+                else
+                  if (psim_rg(nrt) <= psi_pnc .and. psi_pnc <= psim_rg(nrt+1)) nr_cgt_stg_rg(np,nr,nsa) = nrt
+                end if
+              end do
+            ! write(*,*)"###:",psi_pnc, psim_rg(NRMAX+1)
+            ! if(theta_pnc(np,nr,nsa)/=NO_PINCH_ORBIT) write(*,*)"pinch,max:",nsa,psi_pnc,psi_max!, theta_pnc(np,nr,nsa)
+
+          ! end do
+        end do
+      end do
+    end do
+
+    ! do nsa = 1, nsamax
+    !   do nr = 1, nrmax + 1
+    !     do np = 1, npmax + 1
+
+    !       if (np /= npmax + 1) then
+
+    !         if (nr /= nrmax + 1) then
+    !           if (nr_stg_inv_tg(np,nr,nsa) == 1) nr_stg_inv_tg(np,nr,nsa) = ERROR_INT
+    !           if (nr_stg_inv_tg(np,nr,nsa) == nrmax) nr_stg_inv_tg(np,nr,nsa) = ERROR_INT
+    !         end if
+
+    !         if (nr_stg_inv_rg(np,nr,nsa)) nr_stg_inv_rg(np,nr,nsa) = ERROR_INT
+    !       end if
+
+    !     end do
+    !   end do
+    ! end do
+
   end subroutine make_psi_change_nr
+
+  ! subroutine check_stg_time
+  ! !-----------------------------------------------
+  ! ! search nr of a pinch point on the pinch orbit
+  ! !-----------------------------------------------
+  !   use fowcomm
+  !   use fpcomm
+  !   use foworbit
+
+  !   implicit none
+
+  !   type(orbit) :: obt
+  !   ! real(rkind) :: time_v_co, time_v_cnt, dt, dt_co, dt_cnt 
+  !   real(rkind) :: summ
+  !   real(rkind) :: psi_min, psi_max, psi_tmp
+  !   integer :: ns, nth, np, nr, nsa, nstp, nstpmax, ir, nrt
+
+  !   !**** nr for orbit_p
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax
+  !       do np = 1, npmax+1
+  !         ! do nth = 1, nthmax
+  !           if (theta_pnc_pg(np,nr,nsa) == NO_PINCH_ORBIT) cycle
+
+  !           if (nsa == 1) then
+  !             obt = orbit_p(nth_stg_pg(np,nr,nsa),np,nr,nsa)
+  !           else
+  !             obt = orbit_p(nth_stg_pg(np,nr,nsa),np,nr,nsa)
+  !           end if
+  !           nstpmax = obt%nstp_max
+  !           psi_min = 1.d8
+  !           psi_max = obt%psip(1)
+
+  !           do nstp = 1, nstpmax-1
+  !             psi_tmp = obt%psip(nstp)
+
+  !             if (psi_max < psi_tmp) psi_max = psi_tmp
+  !             if (psi_tmp < psi_min) psi_min = psi_tmp
+
+  !           ! if(theta_pnc_pg(np,nr,nsa)/=NO_PINCH_ORBIT) write(*,*)"pinch,max:",nsa,nstp, orbit_p(nth_pnc_pg(np,nr,nsa)&
+  !           ! ,np,nr,nsa)%costh(nstp),orbit_p(nth_pnc_pg(np,nr,nsa),np,nr,nsa)%sinth(nstp)
+
+  !           end do
+  !           ! if (psi_max < obt%psip(nstpmax)) psi_max = obt%psip(nstpmax)
+
+  !           if(theta_pnc_pg(np,nr,nsa)/=NO_PINCH_ORBIT) write(*,*)"pinch,max:",nsa,psi_min-psi_max!, theta_pnc(np,nr,nsa)
+
+  !         ! end do
+  !       end do
+  !     end do
+  !   end do
+
+  !   !**** nr for orbit_th
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax
+  !       do np = 1, npmax
+  !         ! do nth = 1, nthmax
+  !           if (theta_pnc(np,nr,nsa) == NO_PINCH_ORBIT) cycle
+
+  !           if (nsa == 1) then
+  !             obt = orbit_th(nth_stg_tg(np,nr,nsa),np,nr,nsa)
+  !           else
+  !             obt = orbit_th(nth_stg_tg(np,nr,nsa),np,nr,nsa)
+  !           end if
+  !           nstpmax = obt%nstp_max
+  !           psi_min = 1.d8
+  !           psi_max = obt%psip(1)
+
+  !           do nstp = 1, nstpmax-1
+  !             psi_tmp = obt%psip(nstp)
+
+  !             if (psi_max < psi_tmp) psi_max = psi_tmp
+  !             if (psi_tmp < psi_min) psi_min = psi_tmp
+
+  !           ! if(theta_pnc(np,nr,nsa)/=NO_PINCH_ORBIT) write(*,*)"pinch,max:",nsa,nstp, orbit_th(nth_pnc_tg(np,nr,nsa)&
+  !           ! ,np,nr,nsa)%costh(nstp),orbit_th(nth_pnc_tg(np,nr,nsa),np,nr,nsa)%sinth(nstp)
+
+  !           end do
+  !           ! if (psi_max < obt%psip(nstpmax)) psi_max = obt%psip(nstpmax)
+  !           ! if(theta_pnc(np,nr,nsa)/=NO_PINCH_ORBIT) write(*,*)"pinch,max:",nsa,psi_pnc,psi_max!, theta_pnc(np,nr,nsa)
+  !           ! if(theta_pnc(np,nr,nsa)/=NO_PINCH_ORBIT) write(*,*)"pinch,max:",nsa,psi_min-psi_max!, theta_pnc(np,nr,nsa)
+
+  !         ! end do
+  !       end do
+  !     end do
+  !   end do
+
+  !   !**** nr for orbit_r
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax+1
+  !       do np = 1, npmax
+  !         ! do nth = 1, nthmax
+  !           if (theta_pnc_rg(np,nr,nsa) == NO_PINCH_ORBIT) cycle
+
+  !           if (nsa == 1)then
+  !             obt = orbit_r(nth_pnc_rg(np,nr,nsa),np,nr,nsa)
+  !           else
+  !             obt = orbit_r(nth_pnc_rg(np,nr,nsa)+1,np,nr,nsa)
+  !           end if
+  !           nstpmax = obt%nstp_max
+  !           psi_min = 1.d8
+  !           psi_max = obt%psip(1)
+
+  !           do nstp = 1, nstpmax-1
+  !             psi_tmp = obt%psip(nstp)
+
+  !             if (psi_max < psi_tmp) psi_max = psi_tmp
+  !             if (psi_tmp < psi_min) psi_min = psi_tmp
+  !           ! if(theta_pnc_rg(np,nr,nsa)/=NO_PINCH_ORBIT) write(*,*)"pinch,max:",nsa,nstp, orbit_r(nth_pnc_rg(np,nr,nsa)&
+  !           ! ,np,nr,nsa)%costh(nstp),orbit_r(nth_pnc_rg(np,nr,nsa),np,nr,nsa)%sinth(nstp)
+  !           ! if(theta_pnc_rg(np,nr,nsa)/=NO_PINCH_ORBIT) write(*,*)"pinch,max:",nsa,psi_min-psi_max!, theta_pnc(np,nr,nsa)
+
+  !           end do
+  !           ! write(*,*)"###:",psi_pnc, psim_rg(NRMAX+1)
+  !           ! if(theta_pnc(np,nr,nsa)/=NO_PINCH_ORBIT) write(*,*)"pinch,max:",nsa,psi_pnc,psi_max!, theta_pnc(np,nr,nsa)
+
+  !         ! end do
+  !       end do
+  !     end do
+  !   end do
+  ! end subroutine check_stg_time
+
+  subroutine make_pm_stg
+  !-----------------------------------------------------
+  ! Making sstagnation boundary for coefcalc in fowcoef
+  !-----------------------------------------------------
+    use fowcomm
+    use fpcomm
+    use foworbit
+    use orbit_classify
+
+    implicit none
+
+    integer :: ns, nth, np, nr, nsa, ierr = 0, flag, nstp, nstpmax, ir, nthp
+    real(rkind) :: dummy
+    real(rkind) :: pm_tmp
+
+    !**** Initialization
+    dummy = 0.d0
+    pm_tmp = 0.d0
+
+    !**** For orbit_p
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do np = 1, npmax+1
+          do nth = 1, nthmax
+            call get_p_stg(pm_tmp, dummy, thetam_pg(nth,np,nr,nsa), psim(nr), nsa)
+            pm_tmp = pm_tmp * PTFP0(nsa)/AMFP(nsa)/VC
+            pm_stg_pg(nth,np,nr,nsa) = pm_tmp
+          end do
+        end do
+      end do
+    end do
+
+    pm_tmp = 0.d0
+    !**** For orbit_t
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do np = 1, npmax
+          do nth = 1, nthmax+1
+            call get_p_stg(pm_tmp, dummy, thetam_tg(nth,np,nr,nsa), psim(nr), nsa)
+            pm_tmp = pm_tmp * PTFP0(nsa)/AMFP(nsa)/VC
+            pm_stg_tg(nth,np,nr,nsa) = pm_tmp
+          end do
+        end do
+      end do
+    end do
+
+    pm_tmp = 0.d0
+    !**** For orbit_p
+    do nsa = 1, nsamax
+      do nr = 1, nrmax+1
+        do np = 1, npmax
+          do nth = 1, nthmax
+            call get_p_stg(pm_tmp, dummy, thetam_rg(nth,np,nr,nsa), psim_rg(nr), nsa)
+            pm_tmp = pm_tmp * PTFP0(nsa)/AMFP(nsa)/VC
+            pm_stg_rg(nth,np,nr,nsa) = pm_tmp
+          end do
+        end do
+      end do
+    end do
+  end subroutine make_pm_stg
 
   subroutine fow_eqload(ierr)
     !======================================
@@ -922,7 +1495,7 @@ contains
     call eqcalq(ierr)
     if(ierr.ne.0) return
 
-    call eqgetp(rhotg,psimg,nrmax+1)                       !** normalized psit radius , use only psimg
+    call eqgetp(rhotg,psim_rg,nrmax+1)                       !** normalized psit radius , use only psim_rg
     call eqgetqn(ppsi,qpsi,Fpsig,vpsi,rlen,ritpsi,nrmax+1) !** flux functions         , use only Fpsig
     call eqgetbb(Br,Bz,Bp,Bt,nthpmax,nthpmax,nrmax+1)      !** mag field              , use only Bt and Bp
     call eqgeta(rr_axis,zz_axis,psi0,psit0,qaxis,qsurf)    !** axis and mag parameters, use only psi0
@@ -934,11 +1507,11 @@ contains
     psi0 = psi0/(2*pi)
     do nr = 1, nrmax+1
       Fpsig(nr) = Fpsig(nr)/(2*pi)
-      psimg(nr) = psimg(nr)/(2*pi)
+      psim_rg(nr) = psim_rg(nr)/(2*pi)
       if ( nr <= nrmax ) then
         rhot(nr) = rhotg(nr)
         Fpsi(nr) = Fpsig(nr)
-        psim(nr) = psimg(nr)
+        psim(nr) = psim_rg(nr)
         safety_factor(nr) = qpsi(nr)
         do nthp = 1, nthpmax
           Babs(nr,nthp) = sqrt(Bt(nthp,nr)**2+Bp(nthp,nr)**2)
@@ -965,7 +1538,7 @@ contains
         call spl2DF(rm(nr),0.d0,Bout(nr),rhot,theta_p,CB,nrmax,nrmax,nthpmax,ierr)
         call spl2DF(rm(nr),pi,Bin(nr),rhot,theta_p,CB,nrmax,nrmax,nthpmax,ierr)
       end if
-      call spl1DF(rg(nr),psimg(nr),rhot,Cps,nrmax,ierr)
+      call spl1DF(rg(nr),psim_rg(nr),rhot,Cps,nrmax,ierr)
       call spl1DF(rg(nr),Fpsig(nr),rhot,CF,nrmax,ierr)
       call spl2DF(rg(nr),0.d0,Boutg(nr),rhot,theta_p,CB,nrmax,nrmax,nthpmax,ierr)
       call spl2DF(rg(nr),pi,Bing(nr),rhot,theta_p,CB,nrmax,nrmax,nthpmax,ierr)
@@ -977,7 +1550,7 @@ contains
     call first_order_derivative(dBindr,Bin,rm)
     call first_order_derivative(dBoutdr,Bout,rm)
 
-    call first_order_derivative(dpsimgdr,psimg,rg)
+    call first_order_derivative(dpsimgdr,psim_rg,rg)
     call first_order_derivative(dFgdr,Fpsig,rg)
     call first_order_derivative(dBingdr,Bing,rg)
     call first_order_derivative(dBoutgdr,Boutg,rg)
@@ -1094,20 +1667,20 @@ contains
 
     allocate(dFdpsi(nrmax+1), dBdpsi(nrmax+1))
 
-    call first_order_derivative(dFdpsi, Fpsig, psimg)
-    call first_order_derivative(dBdpsi, Bing, psimg)
+    call first_order_derivative(dFdpsi, Fpsig, psim_rg)
+    call first_order_derivative(dBdpsi, Bing, psim_rg)
 
-    call fow_cal_spl(F_pncp, psip_in, Fpsig, psimg)
-    call fow_cal_spl(dFdpsi_pncp, psip_in, dFdpsi, psimg)
-    call fow_cal_spl(F_m, psim_in, Fpsig, psimg)
-    call fow_cal_spl(B_m, psim_in, Boutg, psimg)
+    call fow_cal_spl(F_pncp, psip_in, Fpsig, psim_rg)
+    call fow_cal_spl(dFdpsi_pncp, psip_in, dFdpsi, psim_rg)
+    call fow_cal_spl(F_m, psim_in, Fpsig, psim_rg)
+    call fow_cal_spl(B_m, psim_in, Boutg, psim_rg)
 
     if ( psip_in == 0.d0 ) then
       Bin_pncp = Bing(1)
       dBdpsi_pncp = dBdpsi(1)
     else
-      call fow_cal_spl(Bin_pncp, psip_in, Bing, psimg)
-      call fow_cal_spl(dBdpsi_pncp, psip_in, dBdpsi, psimg)
+      call fow_cal_spl(Bin_pncp, psip_in, Bing, psim_rg)
+      call fow_cal_spl(dBdpsi_pncp, psip_in, dBdpsi, psim_rg)
     end if
 
     !**** dFdpsi_pncp = dFdpsi_pncp*psip_in
@@ -1163,7 +1736,7 @@ contains
   subroutine get_p_stg(p_ret, dummy, theta_in, psim_in, nsa_in)
     !====================================================================
     ! return momentum of stagnation orbit for given (theta_m = theta_in,
-    ! psi_m = psim(nr_in)) and species, nsa_in
+    ! psim_in = psim(nr_in)) and species, nsa_in
     !====================================================================
     use fowcomm
     use fpcomm
