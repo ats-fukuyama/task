@@ -950,18 +950,23 @@
 
       SELECT CASE(MODELG)
       CASE(0:2)
+         WRITE(6,*) '@@@ point 401'
          IF(ALLOCATED(RSU)) DEALLOCATE(RSU)
          IF(ALLOCATED(ZSU)) DEALLOCATE(ZSU)
-         ALLOCATE(RSU(NSUMAX))
          NSUMAX=256
+         ALLOCATE(RSU(NSUMAX),ZSU(NSUMAX))
          DTH=2.D0*PI/(NSUMAX-1)
+         WRITE(6,*) '@@@ point 402'
          DO NSU=1,NSUMAX
             TH=(NSU-1)*DTH
             RSU(NSU)=RR+     RA*COS(TH)
             ZSU(NSU)=   RKAP*RA*SIN(TH)
          ENDDO
+         WRITE(6,*) '@@@ point 403'
       CASE(3,5,8)
+         WRITE(6,*) '@@@ point 401'
          CALL eqget_rzsu(RSU,ZSU,NSUMAX)
+         WRITE(6,*) '@@@ point 402'
       END SELECT
       RETURN
     END SUBROUTINE pl_rzsu

@@ -28,6 +28,8 @@ CONTAINS
        ENDDO
     ENDDO
 
+!     --- exec ray/beam tracing ---
+
     IF(mode_beam.EQ.0) THEN
        CALL wr_exec_rays(ierr)
        nstat=1

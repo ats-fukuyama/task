@@ -75,9 +75,10 @@ CONTAINS
                   NRAYMAX,NSTPMAX,NRSMAX,NRLMAX,LMAXNW, &
                   NPMAX_DP,NTHMAX_DP,NRMAX_DP, &
                   MDLWRI,MDLWRG,MDLWRP,MDLWRQ,MDLWRW,nres_max,nres_type, &
+                  MDLWRF, &
                   SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW, &
                   mode_beam,pne_threshold,bdr_threshold, &
-                  Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr,idebug_wr
+                  Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr,ra_wr,idebug_wr
 
     READ(NID,WR,IOSTAT=IST,ERR=9800,END=9900)
     
@@ -124,9 +125,10 @@ CONTAINS
              9X,'NRAYMAX,NSTPMAX,NRSMAX,NRLMAX,LMAXNW,'/ &
              9X,'NPMAX_DP,NTHMAX_DP,NRMAX_DP,'/ &
              9X,'MDLWRI,MDLWRG,MDLWRP,MDLWRQ,MDLWRW,nres_max,nres_type,'/ &
+             9X,'MDLWRF,'/ &
              9X,'SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW'/ &
              9X,'mode_beam,pne_threshold,bdr_thershold'/ &
-             9X,'Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr,idebug_wr')
+             9X,'Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr,ra_wr,idebug_wr')
   END SUBROUTINE WRPLST
 
 !     ***** CHECK INPUT PARAMETERS *****
@@ -142,7 +144,14 @@ CONTAINS
     INTEGER,SAVE:: INITEQ=0
     INTEGER:: nsu
     REAL(rkind):: dth
-    EXTERNAL EQCALQ,EQGETB,eqget_rzsu
+    EXTERNAL EQCALQ,EQGETB  !,eqget_rzsu
+    INTERFACE
+       SUBROUTINE eqget_rzsu(rsu,zsu,nsumax)
+         USE task_kinds,ONLY: dp
+         REAL(dp),ALLOCATABLE,INTENT(OUT):: rsu(:),zsu(:)
+         INTEGER,INTENT(OUT):: nsumax
+       END SUBROUTINE eqget_rzsu
+    END INTERFACE
 
     IERR=0
 
@@ -158,16 +167,17 @@ CONTAINS
              CALL eq_parm(2,LINE,IERR)
              CALL EQCALQ(IERR)
              CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
-             CALL eqget_rzsu(rsu,zsu,nsumax)
-             rmax_eq=rsu(1)
-             rmin_eq=rsu(1)
-             zmax_eq=zsu(1)
-             zmin_eq=zsu(1)
+             WRITE(6,*) ALLOCATED(rsu_wr)
+             CALL eqget_rzsu(rsu_wr,zsu_wr,nsumax)
+             rmax_eq=rsu_wr(1)
+             rmin_eq=rsu_wr(1)
+             zmax_eq=zsu_wr(1)
+             zmin_eq=zsu_wr(1)
              DO nsu=2,nsumax
-                IF(rsu(nsu).GT.rmax_eq) rmax_eq=rsu(nsu)
-                IF(rsu(nsu).LT.rmin_eq) rmin_eq=rsu(nsu)
-                IF(zsu(nsu).GT.zmax_eq) zmax_eq=rsu(nsu)
-                IF(zsu(nsu).LT.zmin_eq) zmin_eq=rsu(nsu)
+                IF(rsu_wr(nsu).GT.rmax_eq) rmax_eq=rsu_wr(nsu)
+                IF(rsu_wr(nsu).LT.rmin_eq) rmin_eq=rsu_wr(nsu)
+                IF(zsu_wr(nsu).GT.zmax_eq) zmax_eq=rsu_wr(nsu)
+                IF(zsu_wr(nsu).LT.zmin_eq) zmin_eq=rsu_wr(nsu)
              END DO
              raxis_eq=0.5D0*(rmin_eq+rmax_eq)
              zaxis_eq=0.5D0*(zmin_eq+zmax_eq)
@@ -187,16 +197,16 @@ CONTAINS
           CALL eq_read(IERR)
           IF(IERR.EQ.0) THEN
              CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
-             CALL eqget_rzsu(rsu,zsu,nsumax)
-             rmax_eq=rsu(1)
-             rmin_eq=rsu(1)
-             zmax_eq=zsu(1)
-             zmin_eq=zsu(1)
+             CALL eqget_rzsu(rsu_wr,zsu_wr,nsumax)
+             rmax_eq=rsu_wr(1)
+             rmin_eq=rsu_wr(1)
+             zmax_eq=zsu_wr(1)
+             zmin_eq=zsu_wr(1)
              DO nsu=2,nsumax
-                IF(rsu(nsu).GT.rmax_eq) rmax_eq=rsu(nsu)
-                IF(rsu(nsu).LT.rmin_eq) rmin_eq=rsu(nsu)
-                IF(zsu(nsu).GT.zmax_eq) zmax_eq=rsu(nsu)
-                IF(zsu(nsu).LT.zmin_eq) zmin_eq=rsu(nsu)
+                IF(rsu_wr(nsu).GT.rmax_eq) rmax_eq=rsu_wr(nsu)
+                IF(rsu_wr(nsu).LT.rmin_eq) rmin_eq=rsu_wr(nsu)
+                IF(zsu_wr(nsu).GT.zmax_eq) zmax_eq=rsu_wr(nsu)
+                IF(zsu_wr(nsu).LT.zmin_eq) zmin_eq=rsu_wr(nsu)
              END DO
              raxis_eq=0.5D0*(rmin_eq+rmax_eq)
              zaxis_eq=0.5D0*(zmin_eq+zmax_eq)
@@ -225,11 +235,13 @@ CONTAINS
        zmin_wr=zaxis_eq+bdr_threshold*(zmin_eq-zaxis_eq)
        IF(rmin_wr.LT.0.D0) rmin_wr=0.D0
        nsumax=128
-       ALLOCATE(rsu(nsumax+1),zsu(nsumax+1))
+       IF(ALLOCATED(rsu_wr)) DEALLOCATE(rsu_wr)
+       IF(ALLOCATED(zsu_wr)) DEALLOCATE(zsu_wr)
+       ALLOCATE(rsu_wr(nsumax+1),zsu_wr(nsumax+1))
        dth=2.D0*PI/nsumax
        DO nsu=1,nsumax+1
-          rsu(nsu)=RR+RA*COS((nsu-1)*dth)
-          zsu(nsu)=RKAP*RA*SIN((nsu-1)*dth)
+          rsu_wr(nsu)=RR+RA*COS((nsu-1)*dth)
+          zsu_wr(nsu)=RKAP*RA*SIN((nsu-1)*dth)
        END DO
     ENDIF
 

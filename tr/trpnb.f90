@@ -71,13 +71,28 @@
       USE TRCOMM, ONLY : GPNB, NRMAX, PNB, PNBENG, PNBRTG, PNBRW, PNBTOT, PNBVW, PNBVY, &
            &             RKEV, RTG, SNB, rkind
       IMPLICIT NONE
-      INTEGER:: I, J, NRNBMAX
-      REAL(rkind)   ::DRTG, DVY, RDD, VY
-      REAL(rkind),DIMENSION(10) :: AR = (/0.02D0,0.06D0,0.12D0,0.14D0,0.16D0,0.16D0,0.14D0,0.12D0,0.06D0,0.02D0/)
+      INTEGER:: I, J, NRNB,NRNBMAX
+      INTEGER,SAVE:: NRNBMAX_save=0
+      REAL(rkind)   ::DRTG, DVY, RDD, VY,sum,x
+      REAL(rkind),ALLOCATABLE :: AR(:)
 
       IF(PNBTOT.LE.0.D0) RETURN
 
-      NRNBMAX=10
+      ALLOCATE(AR(NRNBMAX))
+      IF(NRNBMAX.NE.NRNBMAX_save) THEN
+         IF(ALLOCATED(GPNB)) DEALLOCATE(GPNB)
+         ALLOCATE(GPNB(4*NRMAX,NRNBMAX))
+         sum=0.D0
+         DO NRNB=1,NRNBMAX
+            x=2.D0*(DBLE(NRNB)/DBLE(NRNBMAX+1)-0.5D0)  ! -1.0..1.0
+            AR(NRNB)=EXP(-3.D0*x**2)
+            sum=sum+AR(NRNB)
+         END DO
+         DO NRNB=1,NRNBMAX
+            AR(NRNB)=AR(NRNB)/sum
+         END DO
+         NRNBMAX_save=NRNBMAX
+      END IF
       SNB(1:NRMAX) = 0.D0
       GPNB(1:4*NRMAX,1:NRNBMAX) = 0.0
 
@@ -93,6 +108,7 @@
       ENDDO
 
       PNB(1:NRMAX) = SNB(1:NRMAX)*1.D20*PNBENG*RKEV
+      DEALLOCATE(AR)
 
       RETURN
       END SUBROUTINE TRNBIB

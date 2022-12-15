@@ -14,17 +14,18 @@ MODULE wrcomm_parm
 
   INTEGER:: NRAYMAX,NSTPMAX,NRSMAX,NRLMAX,LMAXNW
   INTEGER:: mode_beam
-  INTEGER:: MDLWRI,MDLWRG,MDLWRP,MDLWRQ,MDLWRW
+  INTEGER:: MDLWRI,MDLWRG,MDLWRP,MDLWRQ,MDLWRW,MDLWRF
   REAL(rkind):: SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW
   REAL(rkind):: pne_threshold,bdr_threshold
   INTEGER:: nsumax
   REAL(rkind):: Rmax_eq,Rmin_eq,Zmin_eq,Zmax_eq,Raxis_eq,Zaxis_eq
   REAL(rkind):: Rmax_wr,Rmin_wr,Zmin_wr,Zmax_wr
-  REAL(rkind),ALLOCATABLE:: rsu(:),zsu(:)
+  REAL(rkind):: ra_wr
+  REAL(rkind),ALLOCATABLE:: rsu_wr(:),zsu_wr(:)
   INTEGER:: nres_max,nres_type
 
   REAL(rkind),DIMENSION(NRAYM):: &
-       RFIN,RPIN,ZPIN,PHIIN,ANGTIN,ANGPIN,RNPHIN,RNKIN,UUIN, &
+       RFIN,RPIN,ZPIN,PHIIN,ANGTIN,ANGPIN,RNPHIN,RNZIN,RNKIN,UUIN, &
        RCURVAIN,RCURVBIN,RBRADAIN,RBRADBIN
   INTEGER,DIMENSION(NRAYM):: &
        MODEWIN

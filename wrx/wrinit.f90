@@ -82,20 +82,15 @@ CONTAINS
       mode_beam=0
 
 !     MDLWRI : INPUT TYPE OF WAVE PARAMETERS
-!        0,1 : RFIN,RPIN,ZPIN,PHIIN,ANGTIN,ANGPIN,MODEWIN,RNKIN,UUIN: input
-!        2,3 : RFIN,RPIN,ZPIN,PHIIN,RNPHIN,ANGPIN,MODEWIN,RNKIN,UUIN: input
-!    100,101 : RFIN,RPIN,ZPIN,PHIIN,ANGTIN,ANGPIN,MODEWIN,RNKIN,UUIN: no input
-!    102,103 : RFIN,RPIN,ZPIN,PHIIN,RNPHIN,ANGPIN,MODEWIN,RNKIN,UUIN: no inpu
-!
-!        0,1,2,3:         interactive, with line input
-!        100,101,102,103: non-interactive, namelist only
-!
-!        0,1,101,102: toroidal angle and poloidal angle
-!        2,3,102,103: toroidal refractive index and poloidal angle
-!
-!        0,2,100,102: poloidal first definition: k_p = k sin angp
-!        1,3,101,103: toroidal first definition: k_t = k sin angt
-      
+!                   RFIN,RPIN,ZPIN,PHIIN,...,MODEWIN,RNKIN,UUIN
+!         1, 2, 3 : ANGTIN,ANGPIN (toroidal, poloidal incident angles) 
+!        11,12,13 : RNPHIN,ANGPIN (N_phi, poloidal incident angle)
+!        21,22,23 : ANGTIN,ANGPIN (toroidal, poloidal absolute angles : TRAVIS)
+!               1 : poloidal first angle  k_p = k sin angp
+!               2 : toroidal first angle  k_t = k sin angt
+!               3 : Intuitive angle       k_p = k sin angp, k_t = k sin angt
+!            +100 : interactive parameter input for each ray
+!      
 !     MDLWRG : TYPE OF GRAPHICS
 !              0 : FULL TORUS, FULL RADIUS FOR DEPOSITION
 !              1 : PARTIAL TORUS, FULL RADIUS FOR DEPOSITION
@@ -124,6 +119,10 @@ CONTAINS
 !              4 : Write data every 1000 step
 !              5 : Write data every 10000 step
 
+!     MDLWRF : type of WRFDRV
+!              0 : original    DS
+!              1 : corrected   DOMG
+      
 !     nres_type : plot type of resonance curves
 !              0 : power abs density (max, 50% for nres_max=3)
 !              1 : power flux        (25%, 50%, 75% for nres_max=3)
@@ -151,6 +150,7 @@ CONTAINS
       MDLWRP = 1
       MDLWRQ = 1
       MDLWRW = 0
+      MDLWRF = 0
 
       nres_type = 0
       nres_max = 3
@@ -165,11 +165,13 @@ CONTAINS
       ! Rmin_wr: minimum of R for ray calculation, if 0, set RR-F*RA >1.D-6
       ! Zmax_wr: maximum of Z for ray calculation, if 0, set RR+F*rkap*RA
       ! Zmin_wr: minimum of Z for ray calculation, if 0, set RR-F*rkap*RA
+      ! ra_wr:   maximum minor radius for plot
 
       Rmax_wr=0.D0
       Rmin_wr=0.D0
       Zmax_wr=0.D0
       Zmin_wr=0.D0
+      ra_wr=1.1D0
 
       ! --- debug output contral ---
       !        idebug_wr =  1: initial position, wave number, denisty

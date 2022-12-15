@@ -93,10 +93,13 @@
 !        PNITB : Density increment at ITB              (1.0E20/Mm*3)
 !        PTITB : Temperature increment at ITB                  (keV)
 !        PUITB : Toroidal rotation velocity increment at ITB   (m/s)
-!        PNUC  : Factor for collision frequency: 0:collisionless 1:standard
+!        PNUC  : Factor for collision frequency
+!                   model_coll=1:  RNUC (no nueutral)
+!                   model_coll!=1: RNUC (with nueutral)
 !        PZCL  : Factor for collisional damping
-!                   positive: nu/omega=PZCL
-!                   0:        nu/omega=RNUC
+!                   model_coll=0: nu/omega=PZCL
+!                   model_coll=1: nu/omega=RNUC (no nueutral)
+!                   model_coll=2: nu/omega=RNUC (with nueutral)
 !        KID_NS: index of particle species
 !        ID_NS : -1 : electron
 !                 0 : neutral

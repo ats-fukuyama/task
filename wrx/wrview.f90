@@ -28,7 +28,8 @@ CONTAINS
     WRITE(6,601) 'LMAXNW',LMAXNW
     WRITE(6,601) 'MDLWRI',MDLWRI,'MDLWRG',MDLWRG, &
                  'MDLWRP',MDLWRP
-    WRITE(6,601) 'MDLWRQ',MDLWRQ,'MDLWRW',MDLWRW
+    WRITE(6,601) 'MDLWRQ',MDLWRQ,'MDLWRW',MDLWRW, &
+                 'MDLWRF',MDLWRF
     WRITE(6,603) 'nres_max    ',nres_max, &
                  'nres_type   ',nres_type,&
                  'mode_beam   ',mode_beam

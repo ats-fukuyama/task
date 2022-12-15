@@ -160,8 +160,9 @@ CONTAINS
 !             3: no damp in the region z=zmin, rdamp_min<r<rdamp_max 
 !             4: no damp in the region z=zmax, rdamp_min<r<rdamp_max 
 !      WDAMP   : width of damping region [m]
-!      FDAMP   : damping factor       epsilon=FDAMP*(WDAMP-DX)/(DX+CI*PZCL(NSMAX))
-!      PZCL(NSMAX): damping factor     
+!      FDAMP   : damping factor
+!                       epsilon=FDAMP*(WDAMP-DX)/(DX+CI*PZCL(NSMAX))
+!      PZCL(NSMAX): damping factor: PN(NSMAX)=0
 
     MDAMP=0
     WDAMP=0.D0

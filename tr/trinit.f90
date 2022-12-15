@@ -423,6 +423,7 @@ CONTAINS
 !        PNBCD  : CURRENT DRIVE FACTOR
 !                 0: off
 !                 0 to 1: ratio of v_parallel to v
+!        NRNBMAX: number of division of NB profile      
 !        MDLNB  : NBI MODEL TYPE
 !                    0:OFF
 !                    1:GAUSSIAN (NO PARTICLE SOURCE)
@@ -438,6 +439,7 @@ CONTAINS
       PNBENG = 80.D0
       PNBRTG = 3.D0
       PNBCD  = 1.D0
+      NRNBMAX=10
       MDLNB  = 1
 
 !     ==== ECRF PARAMETERS ====

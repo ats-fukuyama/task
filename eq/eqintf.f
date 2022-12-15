@@ -118,13 +118,20 @@ C
       INTEGER,INTENT(OUT):: nsumax1
       INTEGER:: nsu
 C
+      WRITE(6,'(A)') '@@@ point 31'
+      WRITE(6,*) ALLOCATED(rsu1)
+      WRITE(6,'(A)') '@@@ point 310'
       IF(ALLOCATED(rsu1)) DEALLOCATE(rsu1)
+      WRITE(6,'(A)') '@@@ point 311'
       IF(ALLOCATED(zsu1)) DEALLOCATE(zsu1)
+      WRITE(6,'(A)') '@@@ point 312'
       ALLOCATE(rsu1(nsumax),zsu1(nsumax))
+      WRITE(6,'(A)') '@@@ point 32'
       DO nsu=1,nsumax
          rsu1(nsu)=rsu(nsu)
          zsu1(nsu)=zsu(nsu)
       enddo
+      WRITE(6,'(A)') '@@@ point 33'
       nsumax1=nsumax
       return
       end

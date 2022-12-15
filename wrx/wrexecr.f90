@@ -30,9 +30,18 @@ CONTAINS
        rkv=omega/VC
        rnv=VC/omega
        WRITE(6,'(A,I4,3ES12.4)') 'nray,omega,rkv,rnv=',nray,omega,rkv,rnv
+
        CALL wr_setup_start_point(NRAY,RAYS(0,0,NRAY),nstp,IERR)
+       IF(IERR.NE.0) THEN
+          nstpmax_nray(nray)=nstp
+          cycle
+       END IF
        CALL wr_exec_single_ray(NRAY,RAYS(0,0,NRAY),nstp,IERR)
-       IF(IERR.NE.0) cycle
+       IF(IERR.NE.0) THEN
+          nstpmax_nray(nray)=nstp
+          cycle
+       END IF
+
        RK=SQRT(RAYS(4,NSTPMAX_NRAY(NRAY),NRAY)**2 &
               +RAYS(5,NSTPMAX_NRAY(NRAY),NRAY)**2 &
               +RAYS(6,NSTPMAX_NRAY(NRAY),NRAY)**2)
@@ -65,12 +74,12 @@ CONTAINS
     TYPE(pl_mag_type):: mag
     TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
     TYPE(pl_prf_type),DIMENSION(nsmax):: plf
-    REAL(rkind):: RF,RP,ZP,PHI,RNPH,ANGT,ANGP,RNK,UU
+    REAL(rkind):: RF,RP,ZP,PHI,ANGT,ANGP,RNK,UU
     INTEGER:: MODEW,mode
     REAL(rkind):: XP,YP,s,deg,factor,omega_pe2,rne
     REAL(rkind):: rhon,rkpara,rkperp_1,rkperp_2
     REAL(rkind):: rk,rk_x,rk_y,rk_z,dXP,dYP,dZP
-    REAL(rkind):: b_x,b_y,b_z,b_R,b_phi
+    REAL(rkind):: ub_x,ub_y,ub_z,ub_R,ub_phi
     REAL(rkind):: ut_x,ut_y,ut_z,ut_R,ut_phi
     REAL(rkind):: un_x,un_y,un_z,un_R,un_phi
     REAL(rkind):: rk_b,rk_n,rk_t,rk_R,rk_phi
@@ -87,9 +96,14 @@ CONTAINS
     RP=RPIN(NRAY)
     ZP=ZPIN(NRAY)
     PHI=PHIIN(NRAY)
-    RNPH=RNPHIN(NRAY)
-    ANGT=ANGTIN(NRAY)
-    ANGP=ANGPIN(NRAY)
+    SELECT CASE(mdlwri)
+       CASE(21,22,23,121,122,123)
+          ANGT=180.D0-ANGTIN(NRAY)
+          ANGP=180.D0-ANGPIN(NRAY)
+       CASE DEFAULT
+          ANGT=ANGTIN(NRAY)
+          ANGP=ANGPIN(NRAY)
+       END SELECT
     RNK=RNKIN(NRAY)
     UU=UUIN(NRAY)
     MODEW=MODEWIN(NRAY)
@@ -116,25 +130,34 @@ CONTAINS
     XP=RP*COS(PHI)
     YP=RP*SIN(PHI)
     rk=rkv*rnk
-    WRITE(6,'(A,3ES12.4)') 'rk,rkv,rnk=',rk,rkv,rnk
+
     SELECT CASE(mdlwri)
-    CASE(0,2,100,102)
+    CASE(1,11,21,101,111,121) ! poloidal first angle
        rk_r  = -rk*COS(angp*deg)*COS(angt*deg)
        rk_phi=  rk*COS(angp*deg)*SIN(angt*deg)
-       rk_z  =  rk*SIN(angp*deg)
-    CASE(1,3,101,103)
+       rk_z  =  rk              *SIN(angp*deg)
+    CASE(2,12,22,102,112,122) ! toroidal first angle
        rk_r  = -rk*COS(angp*deg)*COS(angt*deg)
        rk_phi=  rk              *SIN(angt*deg)
        rk_z  =  rk*SIN(angp*deg)*COS(angt*deg)
+    CASE(3,13,23,103,113,123) ! toroidal first angle
+       factor=1.D0-SIN(angp*deg)**2-SIN(angt*deg)**2
+       IF(factor.LE.0.D0) THEN
+          rk_r  = 0.D0
+          WRITE(6,'(A,A,I4)') 'XX wr_setup_start_point: out of angle: ', &
+               'mdlwri=',mdlwri
+          WRITE(6,'(A,3ES12.4)') '      factor,angt,angp=',factor,angt,angp
+          IERR=1
+          RETURN
+       ELSE
+          rk_r  = -rk*SQRT(factor)
+       END IF
+       rk_phi=  rk*SIN(angt*deg)
+       rk_z  =  rk*SIN(angp*deg)
     END SELECT
     rk_x=rk_r*COS(phi)-rk_phi*SIN(phi)
     rk_y=rk_r*SIN(phi)+rk_phi*COS(phi)
 
-    WRITE(6,'(A,5ES12.4)') &
-         'rk0:',rk_x,rk_y,rk_z,rk_r,rk_phi
-    WRITE(6,'(A,5ES12.4)') &
-         'rn0:',rk_x*rnv,rk_y*rnv,rk_z*rnv,rk_r*rnv,rk_phi*rnv
-    
     ! --- initial save ---
 
     nstp=0
@@ -167,7 +190,7 @@ CONTAINS
        WRITE(6,'(A,3ES12.4)') '   xp,yp,zp       =',XP,YP,ZP
        WRITE(6,'(A,3ES12.4)') '   rkr,rkph,rkz   =',rk_r,rk_phi,rk_z
        WRITE(6,'(A,3ES12.4)') '   rkx,rky,rkz    =',rk_x,rk_y,rk_z
-       WRITE(6,'(A,3ES12.4)') '   rnx,rny,rnz    =',rk_x/rkv,rk_y/rkv,rk_z/rkv
+       WRITE(6,'(A,3ES12.4)') '   rnx,rny,rnz    =',rk_x*rnv,rk_y*rnv,rk_z*rnv
        WRITE(6,'(A,2ES12.4)') '   uu,s           =',UU,S
        WRITE(6,'(A,3ES12.4)') '   rhon,rne,factor=',rhon,rne,factor
     END IF
@@ -211,13 +234,11 @@ CONTAINS
              WRITE(6,'(A,2I6,2ES12.4)') &
                   'wr_exec_ray_single: nray,nstp,R,Z=',NRAY,nstp,RP,ZP
              WRITE(6,'(A,I4,6ES12.4)') 'RK:',nstp,RP,PHI,ZP,RK_R,RK_PHI,RK_Z
-             WRITE(6,'(A,2ES12.4)') 'R: ',RP,RMAX_WR
-             WRITE(6,'(A,2ES12.4)') 'R: ',RP,RMIN_WR
-             WRITE(6,'(A,2ES12.4)') 'Z: ',ZP,ZMAX_WR
-             WRITE(6,'(A,2ES12.4)') 'Z: ',ZP,ZMIN_WR
-             WRITE(6,'(A,2ES12.4)') 'S: ',S,SMAX
-             mode=11
-             EXIT
+             WRITE(6,'(A,3ES12.4)') 'R,min,max: ',RP,RMIN_WR,RMAX_WR
+             WRITE(6,'(A,3ES12.4)') 'Z,min,max: ',ZP,ZMIN_WR,ZMAX_WR
+             WRITE(6,'(A,2ES12.4)') 'S,max:     ',S,SMAX
+             IERR=2
+             RETURN
           END IF
 
           ! --- set magnetic field and minor radius at the new point ---
@@ -253,62 +274,43 @@ CONTAINS
 
     ! --- solve cold dispersion for given k_para ---
        
-    rk=rkv*rnk
-    SELECT CASE(mdlwri)
-    CASE(0,2,100,102)
-       rk_r  =-rk*COS(angp*deg)*COS(angt*deg)
-       rk_phi= rk*COS(angp*deg)*SIN(angt*deg)
-       rk_z  = rk*SIN(angp*deg)
-    CASE(1,3,101,103)
-       rk_r  =-rk*COS(angp*deg)*COS(angt*deg)
-       rk_phi= rk              *SIN(angt*deg)
-       rk_z  = rk*SIN(angp*deg)*COS(angt*deg)
-    END SELECT
-    rk_x=rk_r*COS(phi)-rk_phi*SIN(phi)
-    rk_y=rk_r*SIN(phi)+rk_phi*COS(phi)
-    WRITE(6,'(A,5ES12.4)') &
-         'rk1:',rk_x,rk_y,rk_z,rk_r,rk_phi
-    WRITE(6,'(A,5ES12.4)') &
-         'rn1:',rk_x*rnv,rk_y*rnv,rk_z*rnv,rk_r*rnv,rk_phi*rnv
-
-    XP=RP*COS(PHI)
-    YP=RP*SIN(PHI)
-    CALL pl_mag(XP,YP,ZP,mag)
-
     rkpara=rk_x*mag%bnx+rk_y*mag%bny+rk_z*mag%bnz
     CALL WR_COLD_RKPERP(omega,RP,ZP,PHI,RKPARA,RKPERP_1,RKPERP_2)
     
-    WRITE(6,'(A,1P3E12.4)') 'R,PHI,Z=',RP,phi,ZP
-    WRITE(6,'(A,1P3E12.4)') &
-         'RKRPARA,RKPERP_1,RKPERP_2=',RKPARA,RKPERP_1,RKPERP_2
-    WRITE(6,'(A,1P3E12.4)') &
-         'RKPARA,RNPARA=',RKPARA,RKPARA*VC/(2.D6*PI*RF)
+    IF(idebug_wr(3).NE.0) THEN
+       WRITE(6,'(A)') '*** idebug_wr(3): wr_setup_start_point: '
+       WRITE(6,'(A,1P3E12.4)') 'R,PHI,Z=',RP,phi,ZP
+       WRITE(6,'(A,1P3E12.4)') &
+            'RKPARA,RKPERP_1,RKPERP_2=',RKPARA,RKPERP_1,RKPERP_2
+       WRITE(6,'(A,1P3E12.4)') &
+            'RNPARA,RNPERP_1,RNPERP_2=',RKPARA*rnv,RKPERP_1*rnv,RKPERP_2*rnv
+    END IF
 
     ! unit vectors
 
     ! parallel vector
 
-    b_X=mag%bnx
-    b_Y=mag%bny
-    b_Z=mag%bnz
+    ub_X=mag%bnx
+    ub_Y=mag%bny
+    ub_Z=mag%bnz
 
-    b_R  = b_X*COS(phi)+b_Y*SIN(phi)
-    b_phi=-b_X*SIN(phi)+b_Y*COS(phi)
+    ub_R  = ub_X*COS(phi)+ub_Y*SIN(phi)
+    ub_phi=-ub_X*SIN(phi)+ub_Y*COS(phi)
 
-    ! normal vector
+    ! normal vector (assuming toroidal symmetry)
 
-    un_R  = b_Z/SQRT(b_Z**2+b_R**2)
+    un_R  = ub_Z/SQRT(ub_Z**2+ub_R**2)
     un_phi= 0.D0
-    un_Z  =-b_R/SQRT(b_Z**2+b_R**2)
+    un_Z  =-ub_R/SQRT(ub_Z**2+ub_R**2)
     
     un_X=un_R*COS(phi)-un_phi*SIN(phi)
     un_Y=un_R*SIN(phi)+un_phi*COS(phi)
 
-    ! tangential vector
+    ! tangential vector (u_t = u_n x u_b)
 
-    ut_X=un_Y*b_Z-un_Z*b_Y
-    ut_Y=un_Z*b_X-un_X*b_Z
-    ut_Z=un_X*b_Y-un_Y*b_X
+    ut_X=un_Y*ub_Z-un_Z*ub_Y
+    ut_Y=un_Z*ub_X-un_X*ub_Z
+    ut_Z=un_X*ub_Y-un_Y*ub_X
 
     ut_R  = ut_X*COS(phi)+ut_Y*SIN(phi)
     ut_phi=-ut_X*SIN(phi)+ut_Y*COS(phi)
@@ -316,7 +318,7 @@ CONTAINS
     ! normal, parallel, tangential  component of wave vector
 
     rk_n=rk_x*un_X+rk_y*un_Y+rk_z*un_Z
-    rk_b=rk_x*b_X +rk_y*b_Y +rk_z*b_Z
+    rk_b=rk_x*ub_X+rk_y*ub_Y+rk_z*ub_Z
     rk_t=rk_x*ut_X+rk_y*ut_Y+rk_z*ut_Z
 
     ! new wave number vector #1
@@ -327,9 +329,9 @@ CONTAINS
     ELSE
        alpha1=0.D0
     END IF
-    rk_x1=rk_b*b_x+rk_t*ut_x+alpha1*rk_n*un_x
-    rk_y1=rk_b*b_y+rk_t*ut_y+alpha1*rk_n*un_y
-    rk_z1=rk_b*b_z+rk_t*ut_z+alpha1*rk_n*un_z
+    rk_x1=rk_b*ub_x+rk_t*ut_x+alpha1*rk_n*un_x
+    rk_y1=rk_b*ub_y+rk_t*ut_y+alpha1*rk_n*un_y
+    rk_z1=rk_b*ub_z+rk_t*ut_z+alpha1*rk_n*un_z
     
     ! new wave number vector #2
 
@@ -339,9 +341,9 @@ CONTAINS
     ELSE
        alpha2=0.D0
     END IF
-    rk_x2=rk_b*b_x+rk_t*ut_x+alpha2*rk_n*un_x
-    rk_y2=rk_b*b_y+rk_t*ut_y+alpha2*rk_n*un_y
-    rk_z2=rk_b*b_z+rk_t*ut_z+alpha2*rk_n*un_z
+    rk_x2=rk_b*ub_x+rk_t*ut_x+alpha2*rk_n*un_x
+    rk_y2=rk_b*ub_y+rk_t*ut_y+alpha2*rk_n*un_y
+    rk_z2=rk_b*ub_z+rk_t*ut_z+alpha2*rk_n*un_z
     
     rk_R1  = rk_x1*COS(phi)+rk_y1*SIN(phi)
     rk_phi1=-rk_x1*SIN(phi)+rk_y1*COS(phi)
@@ -365,27 +367,26 @@ CONTAINS
        WRITE(6,'(A,I4)') 'XX wr_exec_single_ray: MODEW is not 1 nor 2:', MODEW
        STOP
     END SELECT
-    rkpara=rk_x*mag%bnx+rk_y*mag%bny+rk_z*mag%bnz
 
-    WRITE(6,'(A,1ES12.4)') 'rkpara   :',rkpara
-    WRITE(6,'(A,5ES12.4)') 'b_xyzrp  :',b_x,b_y,b_z,b_R,b_phi
-    WRITE(6,'(A,5ES12.4)') 'ut_xyzrp :',ut_x,ut_y,ut_z,ut_R,ut_phi
-    WRITE(6,'(A,5ES12.4)') 'un_xyzrp :',un_x,un_y,un_z,un_R,un_phi
-    WRITE(6,'(A,3ES12.4)') 'rk_bnt   :',rk_b,rk_n,rk_t
-    WRITE(6,'(A,3ES12.4)') 'rn_bnt   :',rk_b*rnv,rk_n*rnv,rk_t*rnv
-    WRITE(6,'(A,2ES12.4)') 'alpha_12 :',alpha1,alpha2
-    WRITE(6,'(A,5ES12.4)') 'rk1_xyzrp:',rk_x1,rk_y1,rk_z1,rk_R1,rk_phi1
-    WRITE(6,'(A,5ES12.4)') 'rn1_xyzrp:',rk_x1*rnv,rk_y1*rnv,rk_z1*rnv, &
-                                        rk_R1*rnv,rk_phi1*rnv
-    WRITE(6,'(A,5ES12.4)') 'rk2_xyzrp:',rk_x2,rk_y2,rk_z2,rk_R2,rk_phi2
-    WRITE(6,'(A,5ES12.4)') 'rn2_xyzrp:',rk_x2*rnv,rk_y2*rnv,rk_z2*rnv, &
-                                        rk_R2*rnv,rk_phi2*rnv
-    WRITE(6,'(A,5ES12.4)') 'rk_xyzrp: ',rk_x,rk_y,rk_z,rk_R,rk_phi
-    WRITE(6,'(A,5ES12.4)') 'rn_xyzrp: ',rk_x*rnv,rk_y*rnv,rk_z*rnv, &
-                                        rk_R*rnv,rk_phi*rnv
-
-    rk_x=rk_r*COS(phi)-rk_phi*SIN(phi)
-    rk_y=rk_r*SIN(phi)+rk_phi*COS(phi)
+    IF(idebug_wr(4).NE.0) THEN
+       WRITE(6,'(A)') '*** idebug_wr(4): wr_setup_start_point: '
+       WRITE(6,'(A,1ES12.4)') 'rkpara   :',rkpara
+       WRITE(6,'(A,5ES12.4)') 'ub_xyzrp :',ub_x,ub_y,ub_z,ub_R,ub_phi
+       WRITE(6,'(A,5ES12.4)') 'ut_xyzrp :',ut_x,ut_y,ut_z,ut_R,ut_phi
+       WRITE(6,'(A,5ES12.4)') 'un_xyzrp :',un_x,un_y,un_z,un_R,un_phi
+       WRITE(6,'(A,3ES12.4)') 'rk_bnt   :',rk_b,rk_n,rk_t
+       WRITE(6,'(A,3ES12.4)') 'rn_bnt   :',rk_b*rnv,rk_n*rnv,rk_t*rnv
+       WRITE(6,'(A,2ES12.4)') 'alpha_12 :',alpha1,alpha2
+       WRITE(6,'(A,5ES12.4)') 'rk1_xyzrp:',rk_x1,rk_y1,rk_z1,rk_R1,rk_phi1
+       WRITE(6,'(A,5ES12.4)') 'rn1_xyzrp:',rk_x1*rnv,rk_y1*rnv,rk_z1*rnv, &
+                                           rk_R1*rnv,rk_phi1*rnv
+       WRITE(6,'(A,5ES12.4)') 'rk2_xyzrp:',rk_x2,rk_y2,rk_z2,rk_R2,rk_phi2
+       WRITE(6,'(A,5ES12.4)') 'rn2_xyzrp:',rk_x2*rnv,rk_y2*rnv,rk_z2*rnv, &
+                                           rk_R2*rnv,rk_phi2*rnv
+       WRITE(6,'(A,5ES12.4)') 'rk_xyzrp: ',rk_x,rk_y,rk_z,rk_R,rk_phi
+       WRITE(6,'(A,5ES12.4)') 'rn_xyzrp: ',rk_x*rnv,rk_y*rnv,rk_z*rnv, &
+                                           rk_R*rnv,rk_phi*rnv
+    END IF
 
     YN(0,nstp)= s
     YN(1,nstp)= XP
@@ -1063,11 +1064,16 @@ CONTAINS
       DKZP=(DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP+RRKZP,OMG) &
            -DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP-RRKZP,OMG))/(2.D0*RRKZP)
 
-      IF(DOMG.GT.0.D0) THEN
-         DS= SQRT(DKXP**2+DKYP**2+DKZP**2)
-      ELSE
-         DS=-SQRT(DKXP**2+DKYP**2+DKZP**2)
-      ENDIF
+      SELECT CASE(MDLWRF)
+      CASE(0)
+         IF(DOMG.GT.0.D0) THEN
+            DS= SQRT(DKXP**2+DKYP**2+DKZP**2)
+         ELSE
+            DS=-SQRT(DKXP**2+DKYP**2+DKZP**2)
+         ENDIF
+      CASE(1)
+         DS=DOMG
+      END SELECT
 
       VX   =-DKXP/DS
       VY   =-DKYP/DS
@@ -1258,14 +1264,15 @@ CONTAINS
 
 !   ----- evaluate plasma major radius range -----
 
-    CALL pl_rzsu(rsu,zsu,nsumax)
-    rlmin=rsu(1)
-    rlmax=rsu(1)
+    WRITE(6,*) '@@@ point 40'
+    CALL pl_rzsu(rsu_wr,zsu_wr,nsumax)
+    WRITE(6,*) '@@@ point 41'
+    rlmin=rsu_wr(1)
+    rlmax=rsu_wr(1)
     DO nsu=2,nsumax
-       rlmin=MIN(rlmin,rsu(nsu))
-       rlmax=MAX(rlmax,rsu(nsu))
+       rlmin=MIN(rlmin,rsu_wr(nsu))
+       rlmax=MAX(rlmax,rsu_wr(nsu))
     END DO
-    DEALLOCATE(rsu,zsu)
 
     !   --- allocate variables for power deposition profile ---
 
@@ -1299,6 +1306,7 @@ CONTAINS
     nraymax_save=nraymax
     nstpmax_save=nstpmax
 
+    WRITE(6,*) '@@@ point 42'
 !     ----- Setup for RADIAL DEPOSITION PROFILE (Minor radius) -----
 
     drs=1.D0/nrsmax
@@ -1329,6 +1337,7 @@ CONTAINS
        pwr_nrl(nrl)=0.D0
     ENDDO
 
+    WRITE(6,*) '@@@ point 43'
 !   --- calculate power deposition density ----
 
     DO nray=1,nraymax
@@ -1438,6 +1447,7 @@ CONTAINS
                /(2.D0*PI*(DBLE(nrl)-0.5D0)*drl*drl)
        ENDDO
     ENDDO
+    WRITE(6,*) '@@@ point 44'
 
 !     ----- sum of power for each ray-------
 
@@ -1457,6 +1467,7 @@ CONTAINS
 
 !     ----- find location of absorbed power peak -----
 
+    WRITE(6,*) '@@@ point 45'
     DO nray=1,nraymax
        pwrmax=0.D0
        locmax=0
@@ -1481,6 +1492,7 @@ CONTAINS
        ENDIF
     END DO
    
+    WRITE(6,*) '@@@ point 46'
     pwrmax=0.D0
     locmax=0
     DO nrl=1,nrlmax
