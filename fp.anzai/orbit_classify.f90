@@ -91,20 +91,20 @@ contains
 
     allocate(dFdpsi(nrmax+1), dBdpsi(nrmax+1))
 
-    call first_order_derivative(dFdpsi, Fpsig, psimg)
-    call first_order_derivative(dBdpsi, Bing, psimg)
+    call first_order_derivative(dFdpsi, Fpsig, psim_rg)
+    call first_order_derivative(dBdpsi, Bing, psim_rg)
 
-    call fow_cal_spl(F_pncp, psip_in, Fpsig, psimg)
-    call fow_cal_spl(dFdpsi_pncp, psip_in, dFdpsi, psimg)
-    call fow_cal_spl(F_m, psim_in, Fpsig, psimg)
-    call fow_cal_spl(B_m, psim_in, Boutg, psimg)    
+    call fow_cal_spl(F_pncp, psip_in, Fpsig, psim_rg)
+    call fow_cal_spl(dFdpsi_pncp, psip_in, dFdpsi, psim_rg)
+    call fow_cal_spl(F_m, psim_in, Fpsig, psim_rg)
+    call fow_cal_spl(B_m, psim_in, Boutg, psim_rg)    
     
     if ( psip_in == 0.d0 ) then
       Bin_pncp = Bing(1)
       dBdpsi_pncp = dBdpsi(1)
     else
-      call fow_cal_spl(Bin_pncp, psip_in, Bing, psimg)
-      call fow_cal_spl(dBdpsi_pncp, psip_in, dBdpsi, psimg)  
+      call fow_cal_spl(Bin_pncp, psip_in, Bing, psim_rg)
+      call fow_cal_spl(dBdpsi_pncp, psip_in, dBdpsi, psim_rg)  
     end if
 
     ! dFdpsi_pncp = dFdpsi_pncp*psip_in
@@ -198,11 +198,11 @@ contains
             do ir = 1, nrmax
               if( Boutg(ir+1)<=Bn(nth,nr) ) then
                 dnr_bn = (Bn(nth,nr)-Boutg(ir))/(Boutg(ir+1)-Boutg(ir))
-                psin(nth,nr) = psimg(ir)+(psimg(ir+1)-psimg(ir))*dnr_bn
+                psin(nth,nr) = psim_rg(ir)+(psim_rg(ir+1)-psim_rg(ir))*dnr_bn
                 exit
               else if ( Bn(nth,nr)<Boutg(nrmax+1) ) then
                 dnr_bn = (Bn(nth,nr)-Boutg(nrmax+1))/(Boutg(nrmax+1)-Boutg(nrmax))
-                psin(nth,nr) = psimg(nrmax+1)+(psimg(nrmax+1)-psimg(nrmax))*dnr_bn
+                psin(nth,nr) = psim_rg(nrmax+1)+(psim_rg(nrmax+1)-psim_rg(nrmax))*dnr_bn
                 exit
               end if
             end do
@@ -210,11 +210,11 @@ contains
             do ir = 1, nrmax
               if( Bn(nth,nr)<=Bing(ir+1) ) then
                 dnr_bn = (Bn(nth,nr)-Bing(ir))/(Bing(ir+1)-Bing(ir))
-                psin(nth,nr) = psimg(ir)+(psimg(ir+1)-psimg(ir))*dnr_bn
+                psin(nth,nr) = psim_rg(ir)+(psim_rg(ir+1)-psim_rg(ir))*dnr_bn
                 exit
               else if ( Bn(nth,nr)>Bing(nrmax+1) ) then
                 dnr_bn = (Bn(nth,nr)-Bing(nrmax+1))/(Bing(nrmax+1)-Bing(nrmax))
-                psin(nth,nr) = psimg(nrmax+1)+(psimg(nrmax+1)-psimg(nrmax))*dnr_bn
+                psin(nth,nr) = psim_rg(nrmax+1)+(psim_rg(nrmax+1)-psim_rg(nrmax))*dnr_bn
                 exit
               end if
             end do

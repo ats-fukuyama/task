@@ -1,10 +1,10 @@
 ! check_neoclass.f90
-! [2022/7/27]
+! [2022/12/9]
 ! ***************************************
 !  Calculation of diffusion coefficients
 ! ***************************************
 ! made by ota / modified by anzai
-! ver.3
+! ver.4
 
 module check_neoclass
   private
@@ -53,7 +53,7 @@ contains
     do nsa = 1, nsamax
       do nr = 1, nrmax
         do np = 1, npmax
-          ! do nth = 1, nthmax
+          do nth = 1, nthmax
           ! write(*,*)"thetap_pnc:", NO_PINCH_ORBIT!nsa,nth_pnc_tg(np,nr,nsa)
           ! if (IBCflux_ratio(np,nr,nsa)==0.d0)write(*,*)"nsa,IBC:",nsa, IBCflux_ratio(np,nr,nsa)
           ! write(*,*)"nsa,IBC:",nsa, IBCflux_ratio(np,nr,nsa)
@@ -63,8 +63,15 @@ contains
           ! write(*,*)"nsa,ob_psi:",nsa, orbit_m(nth,np,nr,nsa)%psi_pnc
           ! write(*,*)"nr,psi:",nr, psim(nr)
           ! write(*,*)"pinc:",nth_pnc(nsa),nth_pnc_tg(np,nr,nsa), nth_pnc_pg(np,nr,nsa), nth_pnc_rg(np,nr,nsa)
-          write(*,*)"pinc:",nth_pnc(nsa),theta_pnc_rg(np,nr,nsa)
-          ! end do
+          ! if(theta_pnc_pg(np,nr,nsa)/= NO_PINCH_ORBIT)write(*,*)"pinc:",nth_pnc_pg(np,nr,nsa), theta_cnt_stg_pg(np,nr,nsa)
+          ! write(*,*)"pinc:",nth_pnc(nsa),theta_pnc_rg(np,nr,nsa)
+          ! write(*,*)"pism_rg:",nr,psim_rg(nr),psim(nr)
+          ! write(*,*)"pism_rg:",thetam_rg(nth,np,nr,nsa)
+          ! write(*,*)"pinc:",nsa,nr_cgt_stg_pg(np,nr,nsa),nr_cgt_stg_tg(np,nr,nsa),nr_cgt_stg_rg(np,nr,nsa)
+          ! write(*,*)"pinc:",nsa,nr_stg_inv_pg(np,nr,nsa),nr_stg_inv_tg(np,nr,nsa),nr_stg_inv_rg(np,nr,nsa)
+          ! write(*,*)"pm_stg:",nsa,pm_stg_pg(nth,np,nr,nsa),pm_stg_tg(nth,np,nr,nsa),pm_stg_rg(nth,np,nr,nsa)
+          ! write(*,*)"pm_stg:",shape(pg)
+          end do
         end do
       end do
     end do
@@ -284,71 +291,71 @@ contains
 
   end subroutine gosakn
 
-  subroutine bounce_average_for_Drw(Dout, Din)
+  ! subroutine bounce_average_for_Drw(Dout, Din)
  
-    use fpcomm
-    use fowcomm
-    use fowcoef
+  !   use fpcomm
+  !   use fowcomm
+  !   use fowcoef
  
-    implicit none
-    double precision,dimension(nthmax,npmax,nrmax,nsamax),intent(out) :: Dout
-    double precision,dimension(nthmax,npmax,nrmax,nsamax),intent(in)  :: Din
-    double precision,dimension(3,3,max_stp) :: dIdul
-    double precision,allocatable :: U(:,:,:,:,:,:,:,:), Drwl(:,:,:,:,:)
-    double precision dt, taup, cpitch_ob, psip_ob, thetap_ob, Drw_ob
-    type(orbit) ob
-    integer nth, np, nr, nsa, nstp, nstpmax, nthp, mode(3)
+  !   implicit none
+  !   double precision,dimension(nthmax,npmax,nrmax,nsamax),intent(out) :: Dout
+  !   double precision,dimension(nthmax,npmax,nrmax,nsamax),intent(in)  :: Din
+  !   double precision,dimension(3,3,max_stp) :: dIdul
+  !   double precision,allocatable :: U(:,:,:,:,:,:,:,:), Drwl(:,:,:,:,:)
+  !   double precision dt, taup, cpitch_ob, psip_ob, thetap_ob, Drw_ob
+  !   type(orbit) ob
+  !   integer nth, np, nr, nsa, nstp, nstpmax, nthp, mode(3)
  
-    allocate(U(4,4,4,nthmax,nrmax,nthpmax,npmax,nsamax))
-    allocate(Drwl(nthmax,npmax,nrmax,nthpmax,nsamax))
+  !   allocate(U(4,4,4,nthmax,nrmax,nthpmax,npmax,nsamax))
+  !   allocate(Drwl(nthmax,npmax,nrmax,nthpmax,nsamax))
 
-    mode = [0,0,0]
+  !   mode = [0,0,0]
  
-    do nsa = 1, nsamax
-      do nthp = 1, nthpmax
-        do nr = 1, nrmax
-          do np = 1, npmax
-            do nth = 1, nthmax
-              Drwl(nth,np,nr,nthp,nsa) = Din(nth,np,nr,nsa)
-            end do
-          end do
-        end do
-      end do
-    end do
+  !   do nsa = 1, nsamax
+  !     do nthp = 1, nthpmax
+  !       do nr = 1, nrmax
+  !         do np = 1, npmax
+  !           do nth = 1, nthmax
+  !             Drwl(nth,np,nr,nthp,nsa) = Din(nth,np,nr,nsa)
+  !           end do
+  !         end do
+  !       end do
+  !     end do
+  !   end do
 
-    do nsa = 1, nsamax
-      call make_U_Dxy(U, Drwl, 'm', nsa)
-    end do
+  !   do nsa = 1, nsamax
+  !     call make_U_Dxy(U, Drwl, 'm', nsa)
+  !   end do
  
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do np = 1, npmax
-          do nth = 1, nthmax
-            ob = orbit_m(nth,np,nr,nsa)
-            nstpmax = ob%nstp_max
-            taup = ob%time(nstpmax)
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax
+  !       do np = 1, npmax
+  !         do nth = 1, nthmax
+  !           ob = orbit_m(nth,np,nr,nsa)
+  !           nstpmax = ob%nstp_max
+  !           taup = ob%time(nstpmax)
  
-            call transformation_matrix(dIdul, ob, nth, np, nr, nsa, mode)
+  !           call transformation_matrix(dIdul, ob, nth, np, nr, nsa, mode)
  
-            Dout(nth,np,nr,nsa) = 0.d0
+  !           Dout(nth,np,nr,nsa) = 0.d0
 
-            do nstp = 2, nstpmax
-              dt = ob%time(nstp)-ob%time(nstp-1)
-              cpitch_ob = ob%costh(nstp)
-              psip_ob   = ob%psip(nstp)
-              thetap_ob = ob%thetap(nstp)
-              call interpolate_D_unlessZero(Drw_ob, U(:,:,:,:,:,:,np,nsa), &
-                    1.d0, cpitch_ob, psip_ob, thetap_ob)
+  !           do nstp = 2, nstpmax
+  !             dt = ob%time(nstp)-ob%time(nstp-1)
+  !             cpitch_ob = ob%costh(nstp)
+  !             psip_ob   = ob%psip(nstp)
+  !             thetap_ob = ob%thetap(nstp)
+  !             call interpolate_D_unlessZero(Drw_ob, U(:,:,:,:,:,:,np,nsa), &
+  !                   1.d0, cpitch_ob, psip_ob, thetap_ob)
  
-              Dout(nth,np,nr,nsa) = Dout(nth,np,nr,nsa)&
-                                  + Drw_ob*dIdul(3,3,nstp)**2*dt
-            end do
-            Dout(nth,np,nr,nsa) = Dout(nth,np,nr,nsa)/taup
-          end do
-        end do
-      end do
-    end do
-  end subroutine
+  !             Dout(nth,np,nr,nsa) = Dout(nth,np,nr,nsa)&
+  !                                 + Drw_ob*dIdul(3,3,nstp)**2*dt
+  !           end do
+  !           Dout(nth,np,nr,nsa) = Dout(nth,np,nr,nsa)/taup
+  !         end do
+  !       end do
+  !     end do
+  !   end do
+  ! end subroutine
 
 !===================================================
 ! Subroutines for particle diffusion coef
@@ -434,14 +441,16 @@ contains
       do nr = 1, nrmax
         do np = 1, npmax
           do nth = 1, nthmax
-            temp_dfdp(nth,np,nr,nsa) = Dppfow(nth,np,nr,nsa) * dfdp(nth,np,nr,nsa) &
-                                     + Dptfow(nth,np,nr,nsa) * dfdthm(nth,np,nr,nsa) &
-                                     + Dprfow(nth,np,nr,nsa) * dfdrhom(nth,np,nr,nsa) &
-                                     - Fppfow(nth,np,nr,nsa) * fnsp_l(nth,np,nr,nsa)*1.d20
-            temp_dfdthm(nth,np,nr,nsa) = Dtpfow(nth,np,nr,nsa) * dfdp(nth,np,nr,nsa) &
-                                     + Dttfow(nth,np,nr,nsa) * dfdthm(nth,np,nr,nsa) &
-                                     + Dtrfow(nth,np,nr,nsa) * dfdrhom(nth,np,nr,nsa) &
-                                     - Fthfow(nth,np,nr,nsa) * fnsp_l(nth,np,nr,nsa)*1.d20
+            temp_dfdp(nth,np,nr,nsa) = 0.d0 &
+                                    !  + Dppfow(nth,np,nr,nsa) * dfdp(nth,np,nr,nsa) &
+                                    !  + Dptfow(nth,np,nr,nsa) * dfdthm(nth,np,nr,nsa) &
+                                     + Dprfow(nth,np,nr,nsa) * dfdrhom(nth,np,nr,nsa)! &
+                                    !  - Fppfow(nth,np,nr,nsa) * fnsp_l(nth,np,nr,nsa)*1.d20
+            temp_dfdthm(nth,np,nr,nsa) = 0.d0 &
+                                      !  + Dtpfow(nth,np,nr,nsa) * dfdp(nth,np,nr,nsa) &
+                                      !  + Dttfow(nth,np,nr,nsa) * dfdthm(nth,np,nr,nsa) &
+                                       + Dtrfow(nth,np,nr,nsa) * dfdrhom(nth,np,nr,nsa)! &
+                                      !  - Fthfow(nth,np,nr,nsa) * fnsp_l(nth,np,nr,nsa)*1.d20
           end do
         end do
       end do
@@ -471,7 +480,7 @@ contains
               add_sr(nr_temp,nsa) = -( 0.d0&
               ! add_sr(nr,nsa) = -( 0.d0&
                                          + divDdfdp(nth,np,nr,nsa)/JI(nth,np,nr,nsa) &
-                                         + divDdfdthm(nth,np,nr,nsa)/JI(nth,np,nr,nsa)&
+                                        !  + divDdfdthm(nth,np,nr,nsa)/JI(nth,np,nr,nsa)&
                                         ) &
                                          * delp(nsa) * delthm(nth,np,nr,nsa) * delr &
                                          * JI(nth,np,nr,nsa)!*1.d20
@@ -536,17 +545,17 @@ contains
                             Drrfow(nth,np,nr,nsa)&
                             * dfdrhom(nth,np,nr,nsa)&!*1.d20 &
                             ! + Drp_j(nth,np,nr,nsa) &
-                            + Drpfow(nth,np,nr,nsa) &
-                            * dfdp(nth,np,nr,nsa)&!*1.d20 &
-                            ! !+ Drt_j(nth,np,nr,nsa) &
-                            + Drtfow(nth,np,nr,nsa) &
-                            * dfdthm(nth,np,nr,nsa)&!*1.d20&
+                            ! + Drpfow(nth,np,nr,nsa) &
+                            ! * dfdp(nth,np,nr,nsa)&!*1.d20 &
+                            ! ! !+ Drt_j(nth,np,nr,nsa) &
+                            ! + Drtfow(nth,np,nr,nsa) &
+                            ! * dfdthm(nth,np,nr,nsa)&!*1.d20&
                             ) &
                             ! * JI(nth,np,nr,nsa) &
                             / JI(nth,np,nr,nsa) &
-                            * delp(ns) * delthm(nth,np,nr,nsa)  &
+                            * delp(ns) * delthm(nth,np,nr,nsa) &
 
-                            + 1.d0&
+                            - 1.d0&
                             !* Frr_j(nth,np,nr,nsa) &
                             * Frrfow(nth,np,nr,nsa) &
                             * fnsp_l(nth,np,nr,nsa)*1.d20 &
@@ -1007,7 +1016,7 @@ contains
 
                                 ! ! unit converter [J] to [keV] &
                                 ! !* Frr_j(nth,np,nr,nsa) &
-                                ! + Frrfow(nth,np,nr,nsa) &
+                                ! - Frrfow(nth,np,nr,nsa) &
                                 ! * fnsp_l(nth,np,nr,nsa)*1.d20 &
                                 ! !* JI(nth,np,nr,nsa) &
                                 ! / JI(nth,np,nr,nsa) &
@@ -1032,18 +1041,16 @@ contains
             ! K = (pm(np,nsa)*PTFP0(nsa)-mean_moment(nr,nsa))**2.d0/AMFP(nsa)/2.d0 &
             ! K = (pm(np,nsa)*PTFP0(nsa))**2.d0/AMFP(nsa)/2.d0 &
                                 / (AEE*1.D3)*2.d0/3.d0 * 1.d0
-           !**** for dfdrhom is made of fnsp*dVI
+            !**** for dfdrhom is made of fnsp*dVI
             heatfow_out(nr,nsa) = heatfow_out(nr,nsa) &
                                 !- (pm(np,nsa)*ptfp0(nsa))**2 &
                                 !/ (2*AMFP(nsa)) &
                                 - k &
-                                !*(Drr_j(nth,np,nr,nsa)&
-                                *(Drrfow(nth,np,nr,nsa)&
+                                *( &
+                                Drrfow(nth,np,nr,nsa)&
                                 * dfdrhom(nth,np,nr,nsa)*1.d20 &
-                                ! !+ Drp_j(nth,np,nr,nsa) &
                                 ! + Drpfow(nth,np,nr,nsa) &
                                 ! * dfdp(nth,np,nr,nsa)*1.d20 &
-                                ! !+ Drt_j(nth,np,nr,nsa) &
                                 ! + Drtfow(nth,np,nr,nsa) &
                                 ! * dfdthm(nth,np,nr,nsa)*1.d20&
                                 ) &
@@ -1054,7 +1061,7 @@ contains
                                 !+ (pm(np,nsa)*ptfp0(nsa))**2 &
                                 !/ (2*AMFP(nsa) )&
                                 
-                                ! + K &
+                                ! - K &
                                 ! ! unit converter [J] to [keV] &
                                 ! !* Frr_j(nth,np,nr,nsa) &
                                 ! * Frrfow(nth,np,nr,nsa) &
@@ -2289,7 +2296,7 @@ contains
                   ,U,nthmax+1,nrmax,nthmax+1,nrmax,nthpmax,IERR)
 
     else if (nxmax == nthmax .and. nymax == nrmax+1 ) then
-      call SPL3DF(cpitch_in,psip_in,thetap_in,C_out,cosm,psimg,theta_p&
+      call SPL3DF(cpitch_in,psip_in,thetap_in,C_out,cosm,psim_rg,theta_p&
                   ,U,nthmax,nrmax+1,nthmax,nrmax+1,nthpmax,IERR)
                                         
     end if

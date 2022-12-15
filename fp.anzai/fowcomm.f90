@@ -45,7 +45,7 @@ module fowcomm
 ! COM =================================================================================================================================== 
 !   real(rkind),allocatable,dimension(:) :: psim,&                ! [maximum poloidal magnetic flux in an orbit, 
 !                                                                      value at half integer grid points]
-!                                           psimg                 ! psim at integer grid points
+!                                           psim_rg                 ! psim at integer grid points
 !
 !   real(rkind),allocatable :: rhom_local(:,:,:,:,:), &
 !                              thetam_local(:,:,:,:,:), &
@@ -53,11 +53,11 @@ module fowcomm
 !
 !   real(rkind),allocatable,dimension(:,:,:,:) :: thetam,&        ! pitch angle along orbit in psim, value at half integer grid points
 !                                                 thetam_tg,&       ! theta_m at integer grid points
-!                                                 thetam_rg,&     ! theta_m for given pm(np), psimg(nr)
+!                                                 thetam_rg,&     ! theta_m for given pm(np), psim_rg(nr)
 !                                                 thetam_pg       ! theta_m for given pg(np), psim(nr)
 !========================================================================================================================================
   real(rkind),allocatable,dimension(:) :: psim,&  
-                                          psimg   
+                                          psim_rg   
   real(rkind),allocatable :: rhom_local(:,:,:,:,:), &
                              thetam_local(:,:,:,:,:), &
                              time_loss(:,:,:,:,:)
@@ -171,14 +171,20 @@ module fowcomm
 !   real(rkind),allocatable,dimension(:,:,:) :: rhom_pinch         ! psim of pnc orbit whose pinch point is X stg orbit with np, nr, nsa
 !   integer,allocatable,dimension(:,:,:) ::  nr_rhom_pinch
 !
-!   real(rkind),allocatable,dimension(:,:,:) :: nr_cgt_stg_tg,        ! nr of counter psim on the pinch orbit   !**** by anzai [2022/12/7]
+!   real(rkind),allocatable,dimension(:,:,:) :: nr_cgt_stg_tg,     ! nr of counter psim on the pinch orbit   !**** by anzai [2022/12/7]
 !                                               nr_cgt_stg_pg,
 !                                               nr_cgt_stg_rg
+!
+!   real(rkind),allocatable,dimension(:,:,:) :: nr_cgt_stg_tg,     ! nr of psim of pinch orbit from counter to pinch  !**** by anzai [2022/12/7]
+!                                               nr_cgt_stg_pg,
+!                                               nr_cgt_stg_rg
+!
 !   real(rkind),allocatable,dimension(:,:,:,:) :: pm_stg_pg,       ! normalized moment on stagnation surface !**** by anzai [2022/12/7]
 !                                                 pm_stg_tg,
 !                                                 pm_stg_rg
 !
-!   real(rkind),parameter :: NO_PINCH_ORBIT = 19960610d0
+!   real(rkind),parameter :: NO_PINCH_ORBIT = 19960610d0           ! For pinch orbit error
+!   integer,parameter :: ERROR_INT = 2022                          ! For pinch orbit error 
 !   real(rkind),allocatable,dimension(:,:,:,:) :: orbital_loss
 !============================================================================================================================================================
   real(rkind),allocatable,dimension(:,:,:) :: theta_pnc,&       
@@ -214,15 +220,20 @@ module fowcomm
   real(rkind),allocatable,dimension(:,:,:) :: rhom_pinch   
   integer,allocatable,dimension(:,:,:) ::  nr_rhom_pinch
 
-  real(rkind),allocatable,dimension(:,:,:) :: nr_cgt_stg_tg,&      
-                                              nr_cgt_stg_pg,&
-                                              nr_cgt_stg_rg
+  integer,allocatable,dimension(:,:,:) :: nr_cgt_stg_pg,&      
+                                          nr_cgt_stg_tg,&
+                                          nr_cgt_stg_rg
+
+  integer,allocatable,dimension(:,:,:) :: nr_stg_inv_pg,&      
+                                          nr_stg_inv_tg,&
+                                          nr_stg_inv_rg
 
   real(rkind),allocatable,dimension(:,:,:,:) :: pm_stg_pg,&
                                                 pm_stg_tg,&
                                                 pm_stg_rg 
 
   real(rkind),parameter :: NO_PINCH_ORBIT = 19960610d0
+  integer,parameter :: ERROR_INT = 2022
   real(rkind),allocatable,dimension(:,:,:,:) :: orbital_loss
 
 ! use for bounce average ===========================================================================================================
@@ -294,7 +305,7 @@ contains
     allocate(Fpsi    (nrmax  ))
     allocate(Bout    (nrmax  ))
     allocate(Bin     (nrmax  ))
-    allocate(psimg   (nrmax+1))
+    allocate(psim_rg   (nrmax+1))
     allocate(Fpsig   (nrmax+1))
     allocate(Boutg   (nrmax+1))
     allocate(Bing    (nrmax+1))
@@ -371,13 +382,21 @@ contains
    
     allocate(nth_stg_tg( npmax  , nrmax,   nsamax))
     allocate(nth_pnc_tg( npmax  , nrmax,   nsamax))
+
     allocate(nth_stg_pg(npmax+1, nrmax,   nsamax))
     allocate(nth_pnc_pg(npmax+1, nrmax,   nsamax))
+
     allocate(nth_stg_rg(npmax  , nrmax+1, nsamax))
     allocate(nth_pnc_rg(npmax  , nrmax+1, nsamax))
-    allocate(nr_cgt_stg_tg(npmax       , nrmax  , nsamax))
-    allocate(nr_cgt_stg_pg(npmax+1  , nrmax+1, nsamax))
-    allocate(nr_cgt_stg_rg(npmax    , nrmax+1, nsamax))
+
+    allocate(nr_cgt_stg_tg(npmax  , nrmax  , nsamax))
+    allocate(nr_cgt_stg_pg(npmax+1, nrmax  , nsamax))
+    allocate(nr_cgt_stg_rg(npmax  , nrmax+1, nsamax))
+
+    allocate(nr_stg_inv_tg(npmax  , nrmax  , nsamax))
+    allocate(nr_stg_inv_pg(npmax+1, nrmax  , nsamax))
+    allocate(nr_stg_inv_rg(npmax  , nrmax+1, nsamax))
+
     allocate(pm_stg_pg(nthmax  , npmax+1, nrmax  , nsamax))
     allocate(pm_stg_tg(nthmax+1, npmax  , nrmax  , nsamax))
     allocate(pm_stg_rg(nthmax  , npmax  , nrmax+1, nsamax))
@@ -407,7 +426,7 @@ contains
     deallocate(Fpsi)
     deallocate(Bout)
     deallocate(Bin)
-    deallocate(psimg)
+    deallocate(psim_rg)
     deallocate(Fpsig)
     deallocate(Boutg)
     deallocate(Bing)
@@ -488,6 +507,9 @@ contains
     deallocate(nr_cgt_stg_tg)
     deallocate(nr_cgt_stg_pg)
     deallocate(nr_cgt_stg_rg)
+    deallocate(nr_stg_inv_tg)
+    deallocate(nr_stg_inv_pg)
+    deallocate(nr_stg_inv_rg)
     deallocate(pm_stg_pg)
     deallocate(pm_stg_tg)
     deallocate(pm_stg_rg)

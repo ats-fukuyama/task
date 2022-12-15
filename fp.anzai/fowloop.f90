@@ -259,7 +259,7 @@ contains
       call system('mkdir -p dat')
 
       !***** txt file output
-      ! call fptxt1D(psimg,"dat/psimg.txt")
+      ! call fptxt1D(psim_rg,"dat/psim_rg.txt")
       ! call fptxt1D(psim,"dat/psim.txt")
       ! call fptxt1D(Fpsig,"dat/Fpsig.txt")
       ! call fptxt1D(Boutg,"dat/Boutg.txt")
