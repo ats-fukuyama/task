@@ -155,7 +155,7 @@ $(OBJDIR)/foworbit.o: foworbit.f90 fowcomm.f90 fpcomm.f90 \
 											../ob/obcomm.f90 ../ob/obcalc.f90 ../ob/obprep.f90 ../ob/obinit.f90 \
 											../ob/obparm.f90
 $(OBJDIR)/fowdistribution.o : fowdistribution.f90 foworbit.f90 fowcomm.f90 fpcomm.f90
-$(OBJDIR)/fowcoef.o : fowdistribution.f90 fowcoef.f90 fowcomm.f90 fpcomm.f90
+$(OBJDIR)/fowcoef.o : fowdistribution.f90 fowcoef.f90 fowcomm.f90 fpcomm.f90 orbit_classify.f90
 $(OBJDIR)/fowsource.o : fowsource.f90 fowcomm.f90 fpcomm.f90 fowprep.f90 foworbit.f90 fowdistribution.f90
 $(OBJDIR)/fowloop.o : fowexec.f90 fowdistribution.f90 fowcoef.f90 fowsource.f90 \
 											fowcomm.f90 fpcomm.f90 fowprep.f90 fpwrite.f90 check_neoclass.f90 orbit_classify.f90

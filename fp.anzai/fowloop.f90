@@ -34,6 +34,7 @@ contains
     use fpprep
     use fpwrite
     use check_neoclass
+    ! use orbit_classify !** test
     
     implicit none
     logical :: iteration_flag, coef_is_updated
@@ -132,7 +133,7 @@ contains
       call moment_2nd_order_COM(rwsl, fnsp)
 
       call output_data(nt)
-      !call output_orbit_classify
+      ! call output_orbit_classify
 
       call cpu_time(end_time_loop)
       write(6,'(A,I0,A,ES10.3,A)'),'time to loop(nt=',nt,'):' &
@@ -261,9 +262,9 @@ contains
       !***** txt file output
       ! call fptxt1D(psim_rg,"dat/psim_rg.txt")
       ! call fptxt1D(psim,"dat/psim.txt")
-      ! call fptxt1D(Fpsig,"dat/Fpsig.txt")
-      ! call fptxt1D(Boutg,"dat/Boutg.txt")
-      ! call fptxt1D(Bing,"dat/Bing.txt")
+      ! call fptxt1D(Fpsi_rg,"dat/Fpsi_rg.txt")
+      ! call fptxt1D(Bout_rg,"dat/Bout_rg.txt")
+      ! call fptxt1D(Bin_rg,"dat/Bin_rg.txt")
       ! call fptxt1D(Bout,"dat/Bout.txt")
       ! call fptxt1D(Bin,"dat/Bin.txt")
       ! call fptxt1D(Fpsi,"dat/Fpsi.txt")

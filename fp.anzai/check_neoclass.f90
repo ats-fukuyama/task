@@ -45,22 +45,25 @@ contains
     double precision,dimension(nrmax,nsamax) :: nu_eff
     double precision,dimension(nrmax,nsamax) :: pla_parm, inv_asp
     double precision,dimension(nrmax) :: eps_t,tau_ele,tau_i
-    integer nth, np, nr, nsa, nsb, mode(3)
+    integer nth, np, nr, nsa, nsb, mode(3), nstpmax, nstp
 
     ! do nr = 1, nrmax
     ! write(*,*)"Bin:",Bin(nr)
     ! end do
+
     do nsa = 1, nsamax
       do nr = 1, nrmax
         do np = 1, npmax
           do nth = 1, nthmax
+            ! nstpmax = orbit_m(nth,np,nr,nsa)%nstp_max
+            ! do nstp = 1, nstpmax
           ! write(*,*)"thetap_pnc:", NO_PINCH_ORBIT!nsa,nth_pnc_tg(np,nr,nsa)
           ! if (IBCflux_ratio(np,nr,nsa)==0.d0)write(*,*)"nsa,IBC:",nsa, IBCflux_ratio(np,nr,nsa)
           ! write(*,*)"nsa,IBC:",nsa, IBCflux_ratio(np,nr,nsa)
           ! write(*,*)"nsa,nr_pinch:",nsa, theta_pnc(np,nr,nsa),nr_rhom_pinch(np,nr,nsa)
           ! write(*,*)"nsa,IBC:",nsa, thetam(nth,np,nr,nsa)
           ! write(*,*)"nsa,stg:",nsa, theta_co_stg(np,nr,nsa), theta_cnt_stg(np,nr,nsa)
-          ! write(*,*)"nsa,ob_psi:",nsa, orbit_m(nth,np,nr,nsa)%psi_pnc
+          ! write(*,*)"nsa,F:",nsa, orbit_m(nth,np,nr,nsa)%F(nstp)
           ! write(*,*)"nr,psi:",nr, psim(nr)
           ! write(*,*)"pinc:",nth_pnc(nsa),nth_pnc_tg(np,nr,nsa), nth_pnc_pg(np,nr,nsa), nth_pnc_rg(np,nr,nsa)
           ! if(theta_pnc_pg(np,nr,nsa)/= NO_PINCH_ORBIT)write(*,*)"pinc:",nth_pnc_pg(np,nr,nsa), theta_cnt_stg_pg(np,nr,nsa)
@@ -69,8 +72,16 @@ contains
           ! write(*,*)"pism_rg:",thetam_rg(nth,np,nr,nsa)
           ! write(*,*)"pinc:",nsa,nr_cgt_stg_pg(np,nr,nsa),nr_cgt_stg_tg(np,nr,nsa),nr_cgt_stg_rg(np,nr,nsa)
           ! write(*,*)"pinc:",nsa,nr_stg_inv_pg(np,nr,nsa),nr_stg_inv_tg(np,nr,nsa),nr_stg_inv_rg(np,nr,nsa)
-          ! write(*,*)"pm_stg:",nsa,pm_stg_pg(nth,np,nr,nsa),pm_stg_tg(nth,np,nr,nsa),pm_stg_rg(nth,np,nr,nsa)
-          ! write(*,*)"pm_stg:",shape(pg)
+          ! if(nr == 2)write(*,*)"pm_stg:",nsa,pm_stg_pg(nth,np,nr,nsa),pm_stg_tg(nth,np,nr,nsa),pm_stg_rg(nth,np,nr,nsa)
+          ! write(*,*)"pm_stg:",shape(thetam)
+          ! write(*,*)"pm_stg:",PTFP()：w
+          ! write(*,*)"nsa,ptfp,amfp:",nsa,ptfp0(nsa),AMFP(nsa)
+          ! write(*,*)"pm_stg:",thetam_pg(nth,np,nr,nsa)
+          ! write(*,*)"pm_stg:",Fpsi(nr), (RR-RA*rm(nr))*Bin(nr), &
+          ! (RR+RA*rm(nr))*Bout(nr)
+          ! B_p = rm(nr)*RA*BB/(safety_factor(nr)*RR)
+          ! if(pm_stg_pg(nth,np,nr,nsa)>1.d0)write(*,*)"pm_stg:",nsa,pm_stg_pg(nth,np,nr,nsa)
+            ! end do
           end do
         end do
       end do
@@ -479,11 +490,11 @@ contains
             do nth = 1, nthmax
               add_sr(nr_temp,nsa) = -( 0.d0&
               ! add_sr(nr,nsa) = -( 0.d0&
-                                         + divDdfdp(nth,np,nr,nsa)/JI(nth,np,nr,nsa) &
-                                        !  + divDdfdthm(nth,np,nr,nsa)/JI(nth,np,nr,nsa)&
+                                         + divDdfdp(nth,np,nr,nsa)/JIR(nth,np,nr,nsa) &
+                                        !  + divDdfdthm(nth,np,nr,nsa)/JIR(nth,np,nr,nsa)&
                                         ) &
                                          * delp(nsa) * delthm(nth,np,nr,nsa) * delr &
-                                         * JI(nth,np,nr,nsa)!*1.d20
+                                         * JIR(nth,np,nr,nsa)!*1.d20
             end do !** np
           end do !** nth
         end do !** nr
@@ -502,8 +513,8 @@ contains
     !        !**** making mean vector
     !         Sr_part(nr,nsa) = moment_vector(3,nth,np,nr,nsa)*ptfp0(nsa)/AMFP(nsa) &
     !                             * fnsp_l(nth,np,nr,nsa)*1.d20 &
-    !                             * JI(nth,np,nr,nsa) &
-    !                             / JI(nth,np,nr,nsa) &
+    !                             * JIR(nth,np,nr,nsa) &
+    !                             / JIR(nth,np,nr,nsa) &
     !                             * delp(ns) * delthm(nth,np,nr,nsa)
     !         sum_ = sum_ + fnsp_l(nth,np,nr,nsa)*1.d20 &
     !             * ( &
@@ -514,10 +525,10 @@ contains
     !             ! + moment_vector(1,nth,np,nr,nsa)*moment_vector(2,nth,np,nr,nsa)*2.0 &
     !             ! + moment_vector(1,nth,np,nr,nsa)*moment_vector(3,nth,np,nr,nsa)*2.0 &
     !             ) /(pm(np,nsa)**2.0) &
-    !                             * JI(nth,np,nr,nsa) &
+    !                             * JIR(nth,np,nr,nsa) &
     !                             *delp(ns) * delthm(nth,np,nr,nsa)
     !         sum2_ = sum2_ + fnsp_l(nth,np,nr,nsa)*1.d20 &
-    !                             * JI(nth,np,nr,nsa) &
+    !                             * JIR(nth,np,nr,nsa) &
     !                             *delp(ns) * delthm(nth,np,nr,nsa)
     !       end do !** nth
     !     end do !** np
@@ -545,22 +556,22 @@ contains
                             Drrfow(nth,np,nr,nsa)&
                             * dfdrhom(nth,np,nr,nsa)&!*1.d20 &
                             ! + Drp_j(nth,np,nr,nsa) &
-                            ! + Drpfow(nth,np,nr,nsa) &
-                            ! * dfdp(nth,np,nr,nsa)&!*1.d20 &
-                            ! ! !+ Drt_j(nth,np,nr,nsa) &
-                            ! + Drtfow(nth,np,nr,nsa) &
-                            ! * dfdthm(nth,np,nr,nsa)&!*1.d20&
+                            + Drpfow(nth,np,nr,nsa) &
+                            * dfdp(nth,np,nr,nsa)&!*1.d20 &
+                            ! !+ Drt_j(nth,np,nr,nsa) &
+                            + Drtfow(nth,np,nr,nsa) &
+                            * dfdthm(nth,np,nr,nsa)&!*1.d20&
                             ) &
-                            ! * JI(nth,np,nr,nsa) &
-                            / JI(nth,np,nr,nsa) &
+                            ! * JIR(nth,np,nr,nsa) &
+                            / JIR(nth,np,nr,nsa) &
                             * delp(ns) * delthm(nth,np,nr,nsa) &
 
                             - 1.d0&
                             !* Frr_j(nth,np,nr,nsa) &
                             * Frrfow(nth,np,nr,nsa) &
                             * fnsp_l(nth,np,nr,nsa)*1.d20 &
-                          !  * JI(nth,np,nr,nsa) &
-                            / JI(nth,np,nr,nsa) &
+                          !  * JIR(nth,np,nr,nsa) &
+                            / JIR(nth,np,nr,nsa) &
                             * delp(ns) * delthm(nth,np,nr,nsa) !&
 
                             ! + add_sr(nr,nsa)
@@ -598,7 +609,7 @@ contains
 !     integer nth, np, nr, nsa, ns
 
 ! !     !**** initialization ****
-!     Baxis = Bing(1)
+!     Baxis = Bin_rg(1)
 !     Drw(:,:) = 0.d0
 !     Drwav(:,:) = 0.d0
 !     sumVI = 0.d0
@@ -664,7 +675,7 @@ contains
 !       do nr = 1, nrmax
 !         do np = 1, npmax
 !           do nth = 1, nthmax
-!             dVI = delp(nsa)*delthm(nth,np,nr,nsa)*JI(nth,np,nr,nsa)
+!             dVI = delp(nsa)*delthm(nth,np,nr,nsa)*JIR(nth,np,nr,nsa)
 !
 !             Drw(nr,nsa) = Drw(nr,nsa) - Drwlocal(nth,np,nr,nsa) &
 !                         * dfdrhom(nth,np,nr,nsa)*dVI
@@ -704,7 +715,7 @@ contains
   !   integer nr, nsa
 
   !   fact = 12.d0*pi**1.5d0*EPS0**2/sqrt(2.d0)
-  !   Baxis = Bing(1) ! approximation on B by Baxis
+  !   Baxis = Bin_rg(1) ! approximation on B by Baxis
 
   !   !****temperature make
   !   do nsa = 1, nsamax
@@ -843,16 +854,16 @@ contains
   !          !**** making mean vector
   !           radial_mean_moment_vector(nr,nsa) = moment_vector(3,nth,np,nr,nsa)*ptfp0(nsa) &
   !                               * fnsp_l(nth,np,nr,nsa)*1.d20 &
-  !                               * JI(nth,np,nr,nsa) &
-  !                               / JI(nth,np,nr,nsa) &
+  !                               * JIR(nth,np,nr,nsa) &
+  !                               / JIR(nth,np,nr,nsa) &
   !                               * delp(ns) * delthm(nth,np,nr,nsa)
   !           mean_moment_vector(nr,nsa) = pm(np,nsa)*ptfp0(nsa) &
   !                               * fnsp_l(nth,np,nr,nsa)*1.d20 &
-  !                               * JI(nth,np,nr,nsa) &
-  !                               / JI(nth,np,nr,nsa) &
+  !                               * JIR(nth,np,nr,nsa) &
+  !                               / JIR(nth,np,nr,nsa) &
   !                               * delp(ns) * delthm(nth,np,nr,nsa)
   !           sum_ = sum_ + fnsp_l(nth,np,nr,nsa)*1.d20 &
-  !                               * JI(nth,np,nr,nsa) &
+  !                               * JIR(nth,np,nr,nsa) &
   !                               *delp(ns) * delthm(nth,np,nr,nsa)
   !         end do !** nth
   !       end do !** np
@@ -879,8 +890,8 @@ contains
   !                               !/ (2*AMFP(nsa)) &
   !                               + K &
   !                               * fnsp_l(nth,np,nr,nsa)*1.d20 &
-  !                               * JI(nth,np,nr,nsa) &
-  !                               / JI(nth,np,nr,nsa) &
+  !                               * JIR(nth,np,nr,nsa) &
+  !                               / JIR(nth,np,nr,nsa) &
   !                               * delp(ns) * delthm(nth,np,nr,nsa) 
   !         end do !** nth
   !       end do !** np
@@ -918,6 +929,7 @@ contains
     sumVI_l(:,:) = 0.d0
     fnsp_l(:,:,:,:)=0.d0
     radial_mean_moment(:,:) = 0.d0
+    add_heat(:,:) = 0.d0
     sum_ = 0.d0
 
     !****temperature make
@@ -981,10 +993,10 @@ contains
            !**** making mean vector
             mean_moment(nr,nsa) = pm(np,nsa)*PTFP0(nsa) &
                                 * fnsp_l(nth,np,nr,nsa)*1.d20 &
-                                * JI(nth,np,nr,nsa) &
+                                * JIR(nth,np,nr,nsa) &
                                 * delp(ns) * delthm(nth,np,nr,nsa)
             sum_ = sum_ + fnsp_l(nth,np,nr,nsa)*1.d20 &
-                                * JI(nth,np,nr,nsa) &
+                                * JIR(nth,np,nr,nsa) &
                                 *delp(ns) * delthm(nth,np,nr,nsa)
           end do
         end do
@@ -1003,27 +1015,29 @@ contains
           do nth = 1, nthmax
            !**** radial mean velocity
             radial_mean_moment(nr,nsa) = radial_mean_moment(nr,nsa) &
-                                -(Drrfow(nth,np,nr,nsa)&
-                                * dfdrhom(nth,np,nr,nsa)*1.d20 &
+                                -( 0.d0 &
+                                ! + Drrfow(nth,np,nr,nsa)&
+                                ! * dfdrhom(nth,np,nr,nsa)*1.d20 &
                                 ! + Drpfow(nth,np,nr,nsa) &
                                 ! * dfdp(nth,np,nr,nsa)*1.d20 &
                                 ! + Drtfow(nth,np,nr,nsa) &
                                 ! * dfdthm(nth,np,nr,nsa)*1.d20&
                                 ) &
-                                !* JI(nth,np,nr,nsa) &
-                                / JI(nth,np,nr,nsa) &
-                                * delp(ns) * delthm(nth,np,nr,nsa) !&
+                                !* JIR(nth,np,nr,nsa) &
+                                / JIR(nth,np,nr,nsa) &
+                                * delp(ns) * delthm(nth,np,nr,nsa) &
 
-                                ! ! unit converter [J] to [keV] &
-                                ! !* Frr_j(nth,np,nr,nsa) &
-                                ! - Frrfow(nth,np,nr,nsa) &
-                                ! * fnsp_l(nth,np,nr,nsa)*1.d20 &
-                                ! !* JI(nth,np,nr,nsa) &
-                                ! / JI(nth,np,nr,nsa) &
-                                ! * delp(ns) * delthm(nth,np,nr,nsa)
-                                ! !** unit [keV] [22/6/6]
+                                ! unit converter [J] to [keV] &
+                                !* Frr_j(nth,np,nr,nsa) &
+                                - Frrfow(nth,np,nr,nsa) &
+                                * fnsp_l(nth,np,nr,nsa)*1.d20 &
+                                !* JIR(nth,np,nr,nsa) &
+                                / JIR(nth,np,nr,nsa) &
+                                * delp(ns) * delthm(nth,np,nr,nsa)
+                                !** unit [keV] [22/6/6]
           end do
         end do
+        ! write(*,*)radial_mean_moment(nr,nsa)
         radial_mean_moment(nr,nsa) = radial_mean_moment(nr,nsa)/(rnsl(nr,nsa)*1.d20)
         ! write(*,*)radial_mean_moment(nr,nsa)
       end do
@@ -1046,38 +1060,40 @@ contains
                                 !- (pm(np,nsa)*ptfp0(nsa))**2 &
                                 !/ (2*AMFP(nsa)) &
                                 - k &
-                                *( &
-                                Drrfow(nth,np,nr,nsa)&
-                                * dfdrhom(nth,np,nr,nsa)*1.d20 &
+                                *( 0.d0&
+                                ! + Drrfow(nth,np,nr,nsa)&
+                                ! * dfdrhom(nth,np,nr,nsa)*1.d20 &
                                 ! + Drpfow(nth,np,nr,nsa) &
                                 ! * dfdp(nth,np,nr,nsa)*1.d20 &
                                 ! + Drtfow(nth,np,nr,nsa) &
                                 ! * dfdthm(nth,np,nr,nsa)*1.d20&
                                 ) &
-                                !* JI(nth,np,nr,nsa) &
-                                / JI(nth,np,nr,nsa) &
-                                * delp(ns) * delthm(nth,np,nr,nsa)! &
+                                !* JIR(nth,np,nr,nsa) &
+                                / JIR(nth,np,nr,nsa) &
+                                * delp(ns) * delthm(nth,np,nr,nsa) &
 
                                 !+ (pm(np,nsa)*ptfp0(nsa))**2 &
                                 !/ (2*AMFP(nsa) )&
                                 
-                                ! - K &
-                                ! ! unit converter [J] to [keV] &
-                                ! !* Frr_j(nth,np,nr,nsa) &
-                                ! * Frrfow(nth,np,nr,nsa) &
-                                ! * fnsp_l(nth,np,nr,nsa)*1.d20 &
-                                ! !* JI(nth,np,nr,nsa) &
-                                ! / JI(nth,np,nr,nsa) &
-                                ! * delp(ns) * delthm(nth,np,nr,nsa) !&
-                                ! !** unit [keV] [22/6/6]
+                                - K &
+                                ! unit converter [J] to [keV] &
+                                !* Frr_j(nth,np,nr,nsa) &
+                                * Frrfow(nth,np,nr,nsa) &
+                                * fnsp_l(nth,np,nr,nsa)*1.d20 &
+                                ! * JIR(nth,np,nr,nsa) &
+                                / JIR(nth,np,nr,nsa) &
+                                * delp(ns) * delthm(nth,np,nr,nsa) !&
+                                !** unit [keV] [22/6/6]
               add_heat(nr,nsa)  = K &
                                 * fnsp_l(nth,np,nr,nsa) * 1.d20 &
                                 ! * radial_mean_moment(nr,nsa)&!/AMFP(nsa) &
-                                * JI(nth,np,nr,nsa) * delp(ns) * delthm(nth,np,nr,nsa) 
+                                * JIR(nth,np,nr,nsa) * delp(ns) * delthm(nth,np,nr,nsa) 
 ! write(*,*)"add term"
           end do
         end do
-        heatfow_out(nr,nsa) = heatfow_out(nr,nsa)-add_heat(nr,nsa)*radial_mean_moment(nr,nsa)!&
+        heatfow_out(nr,nsa) = heatfow_out(nr,nsa)-add_heat(nr,nsa)*radial_mean_moment(nr,nsa)*rnsl(nr,nsa)!&
+        ! heatfow_out(nr,nsa) = heatfow_out(nr,nsa)-Ta(nr,nsa)*rnsl(nr,nsa)*radial_mean_moment(nr,nsa)*1.d20!&
+        ! write(*,*)"ta_radial" ,TA(nr,nsa)*radial_mean_moment(nr,nsa)
                             ! + 2.5d0*Ta(nr,nsa)*(rnsl(nr,nsa)*1.d20)*radial_mean_moment(nr,nsa)
         ! write(*,*)"add heat:",add_heat(nr,nsa)*radial_mean_moment(nr,nsa)
         chi_a(nr,nsa) = -heatfow_out(nr,nsa)/(dTadr(nr,nsa)*rnsl(nr,nsa)*1.d20)
@@ -1095,10 +1111,10 @@ contains
     !        !**** making mean vector
     !         radial_mean_moment_vector(nr,nsa) = moment_vector(3,nth,np,nr,nsa) &
     !                             * fnsp_l(nth,np,nr,nsa)*1.d20 &
-    !                             * JI(nth,np,nr,nsa) &
+    !                             * JIR(nth,np,nr,nsa) &
     !                             * delp(ns) * delthm(nth,np,nr,nsa)
     !         sum_ = sum_ + fnsp_l(nth,np,nr,nsa)*1.d20 &
-    !                             * JI(nth,np,nr,nsa) &
+    !                             * JIR(nth,np,nr,nsa) &
     !                             *delp(ns) * delthm(nth,np,nr,nsa)
     !       end do
     !     end do
@@ -1128,7 +1144,7 @@ contains
 !     integer nth, np, nr, nsa, ns
 
 !     !**** initialization ****
-!     Baxis = Bing(1)
+!     Baxis = Bin_rg(1)
 !     heatrw(:,:) = 0.d0
 !     heatrwav(:,:) = 0.d0
 !     sumVI = 0.d0
@@ -1200,14 +1216,14 @@ contains
 !             heatrw(nr,nsa) = heatrw(nr,nsa)&
 !                            - (pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)) &
 !                            * Drwlocal(nth,np,nr,nsa) &
-!                            * JI(nth,np,nr,nsa) &
+!                            * JIR(nth,np,nr,nsa) &
 !                            * 2.d0/3.d0*dfdrhom(nth,np,nr,nsa)*1.d20 &
 !                            / (AEE*1.D3)&  !** Unit convert [J] to [keV]
 !                            * delp(ns)*delthm(nth,np,nr,nsa)
 !             heatrwav(nr,nsa) = heatrwav(nr,nsa) &
 !                              - (pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)) &
 !                              * Drwba(nth,np,nr,nsa) &
-!                              * JI(nth,np,nr,nsa) &
+!                              * JIR(nth,np,nr,nsa) &
 !                              * 2.d0/3.d0*dfdrhom(nth,np,nr,nsa)*1.d20 &
 !                              / (AEE*1.D3)& !** Unit convert [J] to [keV]
 !                              *delp(ns)* delthm(nth,np,nr,nsa)
@@ -1260,7 +1276,7 @@ contains
     integer nr, nsa
 
     fact = 12.d0*pi**1.5d0*EPS0**2/sqrt(2.d0) !** for SI unit collisional time
-    Baxis = Bing(1) ! approximation on B by Baxis
+    Baxis = Bin_rg(1) ! approximation on B by Baxis
 
     !****temperature make
     do nsa = 1, nsamax
@@ -1290,7 +1306,9 @@ contains
              (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2))
 
         rho_e = sqrt(2*Ta(nr,1)/AMFP(1))*AMFP(1)/(AEE*Baxis)
+        ! rho_e = sqrt(Ta(nr,1)/AMFP(1))*AMFP(1)/(AEE*Baxis)
         rho_a(nsa) = sqrt(2*Ta(nr,nsa)/AMFP(nsa))*AMFP(nsa)/(AEFP(nsa)*Baxis)
+        ! rho_a(nsa) = sqrt(Ta(nr,nsa)/AMFP(nsa))*AMFP(nsa)/(AEFP(nsa)*Baxis)
         ! inv_asp(nr,nsa) = eps_t**(1.5) !!!!! for plateau
         ! if (nsa == 1)then !!!! for plateau index number must 1.0 form
         !   pla_parm(nr,nsa) = (rm(nr)*RA*Baxis/(B_p*sqrt(3.d0*Ta(nr,nsa)/AMFP(1)))/tau_ele)!/inv_asp(nr,nsa)!**(1.0/3.0)
@@ -1307,7 +1325,8 @@ contains
         Sr_ba(nr,nsa) = fact_ba*(-1.22d0*(1+Ta(nr,2)/Ta(nr,1)) &
                       * 1.d20 * dndr(nr, nsa) &
                       + 4.3d-1*dTadr(nr,1)/Ta(nr,1) &
-                      + 1.9d-1*dTadr(nr,2)/Ta(nr,1) )
+                      + 1.9d-1*dTadr(nr,2)/Ta(nr,1) &
+                      )
         !** neglect E_para term
 
         Sr_pla(nr,nsa) = fact_pla*((1+Ta(nr,2)/Ta(nr,1)) &
@@ -1324,11 +1343,11 @@ contains
           fact_s = (safety_factor(nr)**2) &
              *(rho_a(1)**2)/((eps_t**1.5)*tau_ele)
           heatba(nr,nsa) = fact_s*rnsl(nr,nsa)*1.D20*Ta(nr,1)/RKEV &
-            * (&
-            (1.53d0*(1+Ta(nr,2)/Ta(nr,1))*dndr(nr, nsa))/rnsl(nr,nsa) &
+            * ( 0.d0 &
+              ! + 1.53d0*(1+Ta(nr,2)/Ta(nr,1))*dndr(nr, nsa))/rnsl(nr,nsa) &
               - 1.81d0*dTadr(nr,1)/Ta(nr,1) &
-               - 0.27d0*dTadr(nr,2)/Ta(nr,1) &
-              )!test for [keV]
+              !  - 0.27d0*dTadr(nr,2)/Ta(nr,1) &
+              ) !test for [keV]
         !** neglect E_para term
 
           heatpla(nr,nsa) =  sqrt(PI)/4*eps_t**2*Ta(nr,nsa)/AEE/1.d3 &
@@ -1439,7 +1458,7 @@ contains
     integer nr, nsa
 
     fact = 12.d0*pi**1.5d0*EPS0**2/sqrt(2.d0)
-    Baxis = Bing(1) ! approximation on B by Baxis
+    Baxis = Bin_rg(1) ! approximation on B by Baxis
     sh_shift = 0.0D0
     alpha = 0.0d0 !! n_I*Z_I^2/(n_i*Z_i^2) for impurity ion
 
@@ -1466,6 +1485,7 @@ contains
              (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2))
             !  write(*,'(e32.2)')tau_i
         rho_i = sqrt(2.d0*Ta(nr,2)/AMFP(2))*AMFP(2)/(AEFP(2)*Baxis)
+        ! rho_i = sqrt(Ta(nr,2)/AMFP(2))*AMFP(2)/(AEFP(2)*Baxis)
         nu_i = RR*safety_factor(nr)*eps_t**(-1.5d0)*sqrt(2.d0*Ta(nr,2)*(AMFP(2)))*tau_i**(-1.d0)
         mu_i = nu_i*(1.d0 + 1.54d0 * alpha)
 
@@ -1514,7 +1534,7 @@ contains
 
     !**** initialization
     fact = 12.d0*pi**1.5d0*EPS0**2/sqrt(2.d0)
-    Baxis = Bing(1) ! approximation on B by Baxis
+    Baxis = Bin_rg(1) ! approximation on B by Baxis
     K_eff(:,:,:)=0.d0
     K_(:,:,:) = 0.000001d0 !** avoid floating error
     a_(:,:,:) = 0.000001d0 !** avoid floating error
@@ -1561,6 +1581,8 @@ contains
         inner_product = (inner_product -2.1d0*nu_i**(2.d0)*eps_t**(3.d0))/(1.d0 + nu_i**(2.d0)*eps_t**(3.d0)) 
         rho_ep = sqrt(2.d0*Ta(nr,1)/AMFP(1))*AMFP(1)/(AEFP(1)*B_p)!*vc !** for cgs unit
         rho_ip = sqrt(2.d0*Ta(nr,2)/AMFP(2))*AMFP(2)/(AEFP(2)*B_p)!*vc !** for cgs unit
+        ! rho_ep = sqrt(Ta(nr,1)/AMFP(1))*AMFP(1)/(AEFP(1)*B_p)!*vc !** for cgs unit
+        ! rho_ip = sqrt(Ta(nr,2)/AMFP(2))*AMFP(2)/(AEFP(2)*B_p)!*vc !** for cgs unit
 
         fact_i = 0.66d0*( 1.d0*(1.d0 + 1.03d0 * nu_i**(0.5d0) + 0.31d0*nu_i)**(-1.d0) + &
                  (eps_t**(3.d0)*(0.74d0)**(2.d0)/(0.31d0)*nu_i) * &
@@ -1946,14 +1968,14 @@ contains
       dFmdrl = dFdr(nr)
     case(1)
       if ( cthm*aefp(nsa) >= 0.d0 ) then
-        Bml = Boutg(nr)
+        Bml = Bout_rg(nr)
         dBmdrl = dBoutgdr(nr)
       else
-        Bml = Bing(nr)
+        Bml = Bin_rg(nr)
         dBmdrl = dBingdr(nr)
       end if
       dpsimdrl = dpsimgdr(nr)
-      Fml = Fpsig(nr)
+      Fml = Fpsi_rg(nr)
       dFmdrl = dFgdr(nr)
     end select
 
@@ -2093,14 +2115,14 @@ contains
     !   dFmdrl = dFdr(nr)
     ! case(1)
     !   if ( cthm*aefp(nsa) >= 0.d0 ) then
-    !     Bml = Boutg(nr)
+    !     Bml = Bout_rg(nr)
     !     dBmdrl = dBoutgdr(nr)
     !   else
-    !     Bml = Bing(nr)
+    !     Bml = Bin_rg(nr)
     !     dBmdrl = dBingdr(nr)
     !   end if
     !   dpsimdrl = dpsimgdr(nr)
-    !   Fml = Fpsig(nr)
+    !   Fml = Fpsi_rg(nr)
     !   dFmdrl = dFgdr(nr)
     ! end select
 
@@ -2322,7 +2344,7 @@ contains
     double precision,dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom,dfdrhom2, fnsp_l,fnsp_l2
     integer nth,np,nr,nsa,ns
 
-    Baxis = Bing(1)
+    Baxis = Bin_rg(1)
     fact = 12.d0*pi**1.5d0*EPS0**2/sqrt(2.d0)
     !****temperature make
     do nsa = 1, nsamax
@@ -2364,7 +2386,7 @@ contains
         do np = 1, npmax
           if ( pm(np,ns) > fact_bulk ) exit
           do nth = 1, nthmax
-          fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa) !* JI(nth,np,nr,nsa)
+          fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa) !* JIR(nth,np,nr,nsa)
           fnsp_l2(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa)
           end do
         end do
@@ -2396,21 +2418,21 @@ contains
                           + 2.d0/3.d0*dfdrhom(nth,np,nr,nsa) &
 !                          * (pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)) &
                           /AEE/1.d3 &![keV]
-                          *JI(nth,np,nr,nsa)&
+                          *JIR(nth,np,nr,nsa)&
                           !** unit [J][2022/5/29]
                           * delp(ns) * delthm(nth,np,nr,nsa)
             spVI2(nr,nsa) = spVI2(nr,nsa) &
                           + 2.d0/3.d0*dfdrhom2(nth,np,nr,nsa) &
                           * (pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)) &
                           /AEE/1.d3 &![keV]
-                          *JI(nth,np,nr,nsa)&
+                          *JIR(nth,np,nr,nsa)&
                           !** unit [J][2022/5/29]
                           * delp(ns) * delthm(nth,np,nr,nsa)
             sTI(nr,nsa) = sTI(nr,nsa) &
                           + 2.d0/3.d0*fnsp_l2(nth,np,nr,nsa) &
                           * (pm(np,nsa)*ptfp0(nsa))**2/(2*AMFP(nsa)) &
                           /AEE/1.d3 &![keV]
-                          *JI(nth,np,nr,nsa)&
+                          *JIR(nth,np,nr,nsa)&
                           !** unit [J][2022/5/29]
                           * delp(ns) * delthm(nth,np,nr,nsa)
           end do
@@ -2471,7 +2493,7 @@ contains
         do np = 1, npmax
           if ( pm(np,ns) > fact_bulk ) exit
           do nth = 1, nthmax
-!          fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa) * JI(nth,np,nr,nsa)
+!          fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa) * JIR(nth,np,nr,nsa)
           fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa) * 1.d20
           end do
         end do
@@ -2520,8 +2542,8 @@ contains
                                /(AEE*1.D3) &
                                * Drrfow(nth,np,nr,nsa) &
                                * 2.d0/3.d0*dfdrhom(nth,np,nr,nsa) &
-                               !* JI(nth,np,nr,nsa) &
-                               !* JI(nth,np,nr,nsa) &
+                               !* JIR(nth,np,nr,nsa) &
+                               !* JIR(nth,np,nr,nsa) &
                                * delp(ns) * delthm(nth,np,nr,nsa)
                                !** unit [keV]
            hfowout_p(nr,nsa) = hfowout_p(nr,nsa) &
@@ -2530,16 +2552,16 @@ contains
                                /(AEE*1.D3) &
                                * Drpfow(nth,np,nr,nsa) &
                                * 2.d0/3.d0*dfdp(nth,np,nr,nsa) &
-                               !* JI(nth,np,nr,nsa) &
-                               !* JI(nth,np,nr,nsa) &
+                               !* JIR(nth,np,nr,nsa) &
+                               !* JIR(nth,np,nr,nsa) &
                                * delp(ns) * delthm(nth,np,nr,nsa)
            hfowout_t(nr,nsa) = hfowout_t(nr,nsa) &
                                - (pm(np,nsa)*ptfp0(nsa))**2 &
                                / (2*AMFP(nsa)) &
                                /(AEE*1.D3) &
                                * Drtfow(nth,np,nr,nsa) &
-                               !* JI(nth,np,nr,nsa)&
-                               !* JI(nth,np,nr,nsa) &
+                               !* JIR(nth,np,nr,nsa)&
+                               !* JIR(nth,np,nr,nsa) &
                                * 2.d0/3.d0*dfdthm(nth,np,nr,nsa) &
                                * delp(ns) * delthm(nth,np,nr,nsa)
            hfowout_f(nr,nsa) = hfowout_f(nr,nsa) &
@@ -2549,8 +2571,8 @@ contains
                                ! unit converter [J] to [keV] &
                                * Frrfow(nth,np,nr,nsa) &
                                * 2.d0/3.d0*fnsp_l(nth,np,nr,nsa) &
-                               !* JI(nth,np,nr,nsa) &
-                               !* JI(nth,np,nr,nsa) &
+                               !* JIR(nth,np,nr,nsa) &
+                               !* JIR(nth,np,nr,nsa) &
                                * delp(ns) * delthm(nth,np,nr,nsa)
           end do
         end do

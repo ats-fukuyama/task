@@ -31,6 +31,7 @@ contains
     use fpcalc
     use fpcoef
     use fpcalw
+    use orbit_classify !** test
 
     implicit none
 
@@ -104,7 +105,8 @@ contains
 
                 ! if(DCPP(nth,np,nr,nsa)<1.d-70) write(*,*)"Dppl:",DCPP(nth,np,nr,1),DCpp(nth,np,nr,2)
                 ! if(DCPT(nth,np,nr,nsa)<0.d0) write(*,*)"Dptl:",DCPT(nth,np,nr,1),DCpt(nth,np,nr,2)
-                ! if(fCPP(nth,np,nr,nsa)<1.d-70) write(*,*)"fppl:",fCPP(nth,np,nr,1),fCpp(nth,np,nr,2)
+                !if(fCPP(nth,np,nr,nsa)<1.d-70) 
+                ! write(*,*)"fppl:",fCPP(nth,np,nr,1),fCpp(nth,np,nr,2)
               end if
               if ( np /= npmax+1 ) then
                 Dtpl(nth,np,nr,nthp,nsa) = Dtpl(nth,np,nr,nthp,nsa) + DCTP(nth,np,nr,nsa) ! + DWTP(nth,np,nr,nsa) 
@@ -120,7 +122,7 @@ contains
 
                 ! if(DCTP(nth,np,nr,nsa)<1.d-70) write(*,*)"Dptpl:",DCtP(nth,np,nr,1),DCtp(nth,np,nr,2)
                 ! if(DCTT(nth,np,nr,nsa)<1.d-70) write(*,*)"Dttl:",DCtt(nth,np,nr,1),DCtt(nth,np,nr,2)
-                ! if(fCth(nth,np,nr,nsa)<0.d0) write(*,*)"fthl:",fCth(nth,np,nr,1),fCth(nth,np,nr,2)
+                !if(fCth(nth,np,nr,nsa)<0.d0) write(*,*)"fthl:",fCth(nth,np,nr,1),fCth(nth,np,nr,2)
               end if
 
             end do
@@ -132,6 +134,8 @@ contains
 
     call bounce_average
     call make_and_multiple_JIl
+
+    call output_orbit_classify
 
     deallocate(Dppl, Dptl, Fppl,Dtpl, Dttl, Fthl)
     deallocate(FNSBL, check_zeroD, check_zeroF)
@@ -552,8 +556,8 @@ contains
                                     + Dtp_ob * dIdu(1,2,nstp)*dIdu(2,3,nstp) + Dtt_ob * dIdu(2,2,nstp)*dIdu(2,3,nstp)) * dt
 
               Drrfow(nth,np,nr,nsa) = Drrfow(nth,np,nr,nsa)&
-                                    + ( Dpp_ob * dIdu(1,3,nstp)**2 + Dpt_ob * dIdu(1,3,nstp)*dIdu(2,3,nstp) &
-                                    + Dtp_ob * dIdu(2,3,nstp)*dIdu(1,3,nstp) + Dtt_ob * dIdu(2,3,nstp)**2) * dt
+                                    + ( Dpp_ob * dIdu(1,3,nstp)**2.d0 + Dpt_ob * dIdu(1,3,nstp)*dIdu(2,3,nstp) &
+                                    + Dtp_ob * dIdu(2,3,nstp)*dIdu(1,3,nstp) + Dtt_ob * dIdu(2,3,nstp)**2.d0) * dt
 
               Frrfow(nth,np,nr,nsa) = Frrfow(nth,np,nr,nsa)&
                                     + ( Fpp_ob*dIdu(1,3,nstp) + Fth_ob*dIdu(2,3,nstp) ) * dt
@@ -630,7 +634,6 @@ contains
               if ( np == npmax+1 ) then
                 if ( nth == nth_pnc_pg(np,nr,nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT &
                 .and. nrstg /= ERROR_INT) then
-                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
                     JIl = ( JI(nth-1,np-1,nr,nsa)*(1.d0 - IBCflux_ratio_pg(np,nr,nsa))&
                         + JI(nth_stg_pg(np,nrstg,nsa)+1,np-1,nr,nsa)*IBCflux_ratio_pg(np,nr,nsa) &
                         + JI(nth+1,np-1,nr,nsa))*0.5d0
@@ -659,7 +662,6 @@ contains
               else if ( np == 1 ) then
                 if ( nth == nth_pnc_pg(np,nr,nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT &
                 .and. nth_pnc_pg(np,nr,nsa) /= ERROR_INT) then
-                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
                   JIl = ( JI(nth+1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
                       + JI(nth_stg_pg(np,nrstg,nsa)-1,np,nrstg,nsa) & 
                       * IBCflux_ratio_pg(np,nr,nsa) &
@@ -690,18 +692,21 @@ contains
               else
                 if ( nth == nth_pnc_pg(np,nr,nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT &
                 .and. nrstg /= ERROR_INT) then
-                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
                   JIl = ( JI(nth+1,np,nr,nsa)*(1.d0 - IBCflux_ratio_pg(np,nr,nsa))&
                       + JI(nth_stg_pg(np,nrstg,nsa)-1,np,nrstg,nsa)*IBCflux_ratio_pg(np,nr,nsa) &
                       + JI(nth-1,np,nr,nsa))*0.5d0
-                      ! if (theta_pnc_pg(np-1,nr,nsa)/=NO_PINCH_ORBIT .and. nrstg_ /= ERROR_INT)then
-                      !   JIl = (JIl &
-                      !       + ( JI(nth_pnc_pg(np-1,nr,nsa)+1,np-1,nr,nsa)*(1.d0 - IBCflux_ratio_pg(np-1,nr,nsa))&
-                      !       + JI(nth_stg_pg(np-1,nrstg_,nsa)-1,np-1,nrstg_,nsa)*IBCflux_ratio_pg(np-1,nr,nsa) &
-                      !       + JI(nth_pnc_pg(np-1,nr,nsa)-1,np-1,nr,nsa) &
-                      !       )*0.5d0)*0.5d0
-                      ! end if
-                  JIl = (JIl + JI(nth,np-1,nr,nsa))*0.5d0
+                      if (theta_pnc_pg(np-1,nr,nsa)/=NO_PINCH_ORBIT .and. nrstg_ /= ERROR_INT)then
+                        JIl = (JIl &
+                            + ( JI(nth_pnc_pg(np-1,nr,nsa)+1,np-1,nr,nsa)*(1.d0 - IBCflux_ratio_pg(np-1,nr,nsa))&
+                            + JI(nth_stg_pg(np-1,nrstg_,nsa)-1,np-1,nrstg_,nsa)*IBCflux_ratio_pg(np-1,nr,nsa) &
+                            + JI(nth_pnc_pg(np-1,nr,nsa)-1,np-1,nr,nsa) &
+                            )*0.5d0)*0.5d0
+                      else
+                        JIl = (JIl + JI(nth,np-1,nr,nsa))*0.5d0
+                      end if
+
+                  ! JIl = (JIl + JI(nth,np-1,nr,nsa))*0.5d0
+
                 else if (nth == nth_stg_pg(np,nr,nsa) ) then
                   if(nrinvstg /= ERROR_INT) then 
 
@@ -714,9 +719,10 @@ contains
 
                       if (nrinvstg_ /= ERROR_INT)THEN
                         
-                      if(theta_pnc_pg(np-1,nrinvstg_,nsa) /= NO_PINCH_ORBIT) then
+                      if(nth == nth_stg_pg(np-1,nr,nsa) .and. theta_pnc_pg(np-1,nrinvstg_,nsa) /= NO_PINCH_ORBIT) then
                         JIl = (JIl + (JI(nth_stg_pg(np-1,nr,nsa)-1,np-1,nr,nsa) &
-                            - JI(nth_pnc_pg(np-1,nrinvstg_,nsa)+1,np-1,nrinvstg_,nsa)*(1.d0 -IBCflux_ratio_pg(np-1,nrinvstg_,nsa)) &
+                            - JI(nth_pnc_pg(np-1,nrinvstg_,nsa)+1,np-1,nrinvstg_,nsa) &
+                            * (1.d0 -IBCflux_ratio_pg(np-1,nrinvstg_,nsa)) &
                             /IBCflux_ratio(np-1,nrinvstg_,nsa) &
                             + JI(nth_pnc_pg(np-1,nrinvstg_,nsa)-1,np-1,nrinvstg_,nsa)/IBCflux_ratio_pg(np-1,nrinvstg_,nsa) &
                             )*0.5d0 )*0.5d0
@@ -727,6 +733,8 @@ contains
                       else
                         JIl = (JIl + JI(nth, np-1,nr,nsa))*0.5d0
                       end if !** pnc(np-1) /= NO_PNC
+
+                  ! JIl = (JIl + JI(nth,np-1,nr,nsa))*0.5d0
 
                   else
                     JIl = (JI(nth,np-1,nr,nsa) + JI(nth,np,nr,nsa))*0.5d0
@@ -776,7 +784,6 @@ contains
               else if ( np == 1 ) then
                 if ( nth == nth_pnc_pg(np,nr,nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT &
                 .and. nrstg /= ERROR_INT) then
-                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
                   JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio_pg(np,nr,nsa))&
                       + JI(nth_stg_pg(np,nrstg,nsa)+1,np,nrstg,nsa)*IBCflux_ratio_pg(np,nr,nsa) &
                       + JI(nth+1,np,nr,nsa))*0.5d0
@@ -805,18 +812,22 @@ contains
               else
                 if ( nth == nth_pnc_pg(np,nr,nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT &
                 .and. nrstg /= ERROR_INT) then
-                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
                   JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio_pg(np,nr,nsa))&
                       + JI(nth_stg_pg(np,nrstg,nsa)+1,np,nrstg,nsa)*IBCflux_ratio_pg(np,nr,nsa) &
                       + JI(nth+1,np,nr,nsa))*0.5d0
-                      ! if (theta_pnc_pg(np-1,nr,nsa) /= NO_PINCH_ORBIT .and. nrstg_ /= ERROR_INT) then
-                      !   JIl = (JIl &
-                      !       + JI(nth_pnc_pg(np-1,nr,nsa)-1,np-1,nr,nsa)*(1.d0 -IBCflux_ratio_pg(np-1,nr,nsa))&
-                      !       + (JI(nth_stg_pg(np-1,nrstg_,nsa)-1,np-1,nrstg_,nsa)*IBCflux_ratio_pg(np-1,nr,nsa) &
-                      !       + JI(nth_pnc_pg(np-1,nr,nsa)+1,np-1,nr,nsa) &
-                      !       )*0.5d0 )*0.5d0
-                      ! end if !** pnc(np-1) /= NO_PNC
-                  JIl = (JIl + JI(nth,np-1,nr,nsa))*0.5d0
+
+                      if (theta_pnc_pg(np-1,nr,nsa) /= NO_PINCH_ORBIT .and. nrstg_ /= ERROR_INT) then
+                        JIl = (JIl &
+                            + JI(nth_pnc_pg(np-1,nr,nsa)-1,np-1,nr,nsa)*(1.d0 -IBCflux_ratio_pg(np-1,nr,nsa))&
+                            + (JI(nth_stg_pg(np-1,nrstg_,nsa)-1,np-1,nrstg_,nsa)*IBCflux_ratio_pg(np-1,nr,nsa) &
+                            + JI(nth_pnc_pg(np-1,nr,nsa)+1,np-1,nr,nsa) &
+                            )*0.5d0 )*0.5d0
+                      else
+                        JIl = (JIl + JI(nth,np-1,nr,nsa))*0.5d0
+                      end if !** pnc(np-1) /= NO_PNC
+
+                  ! JIl = (JIl + JI(nth,np-1,nr,nsa))*0.5d0
+
                 else if (nth == nth_stg_pg(np,nr,nsa)) then 
                   if (nrinvstg /= ERROR_INT) then
 
@@ -829,7 +840,7 @@ contains
 
                         if(nrinvstg_ /= ERROR_INT) then
 
-                        if (theta_pnc_pg(np-1,nrinvstg_,nsa) /= NO_PINCH_ORBIT) then
+                        if (nth == nth_stg_pg(np-1,nr,nsa) .and. theta_pnc_pg(np-1,nrinvstg_,nsa) /= NO_PINCH_ORBIT) then
                           JIl = (JIl + (JI(nth_stg_pg(np-1,nr,nsa)+1,np-1,nr,nsa) &
                               - JI(nth_pnc_pg(np-1,nrinvstg_,nsa)-1,np-1,nrinvstg_,nsa)&
                               * (1.d0 -IBCflux_ratio_pg(np-1,nrinvstg_,nsa)) &
@@ -843,6 +854,8 @@ contains
                         else
                           JIl = (JIl + JI(nth,np-1,nr,nsa))*0.5d0
                         end if !** pnc(np-1) /= NO_PNC
+
+                    ! JIl = (JIl + JI(nth,np-1,nr,nsa))*0.5d0
 
                   else
                     JIl = (JI(nth,np,nr,nsa) + JI(nth,np-1,nr,nsa))*0.5d0
@@ -884,11 +897,11 @@ contains
 
               if ( nth == nth_pnc_tg(np,nr,nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT &
               .and. nrstg /= ERROR_INT) then
-              ! if ( nth == nth_pnc(nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
                 JIl = ( JI(nth+1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
                       + JI(nth_stg_tg(np,nrstg,nsa)-1,np,nrstg,nsa)*IBCflux_ratio(np,nr,nsa) &
                       + JI(nth-1,np,nr,nsa) &
                       ) * 0.5d0
+                  ! JIl =  (JIl + JI(nth-1,np,nr,nsa))*0.5d0
               else if ( nth == nth_stg_tg(np,nr,nsa)) THEN
 
                 if (nrinvstg /= ERROR_INT) then
@@ -899,12 +912,14 @@ contains
                     / IBCflux_ratio(np,nrinvstg,nsa) &
                     + JI(nth_pnc_tg(np,nrinvstg,nsa)-1,np,nrinvstg,nsa)/IBCflux_ratio(np,nrinvstg,nsa) &
                     )*0.5d0
+                ! JIl =  (JIl + JI(nth-1,np,nr,nsa))*0.5d0
+
                 else
-                  JIl = JI(nth,np,nr,nsa)
+                JIl = (JI(nth,np,nr,nsa)+JI(nth-1,np,nr,nsa))*0.5d0
                 end if
 
                 else
-                  JIl = JI(nth,np,nr,nsa)
+                JIl = (JI(nth,np,nr,nsa)+JI(nth-1,np,nr,nsa))*0.5d0
                 end if
 
               else if ( nth == nthmax+1 ) then
@@ -920,10 +935,10 @@ contains
 
               if ( nth == nth_pnc_tg(np,nr,nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT &
               .and. nrstg /= ERROR_INT) then
-              ! if ( nth == nth_pnc(nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
                 JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa)) &
                       + JI(nth_stg_tg(np,nrstg,nsa)+1,np,nrstg,nsa)*IBCflux_ratio(np,nr,nsa) &
                       + JI(nth+1,np,nr,nsa))*0.5d0
+                  ! JIl =  (JIl + JI(nth-1,np,nr,nsa))*0.5d0
               else if (nth == nth_stg_tg(np,nr,nsa)) then
 
                 if(nrinvstg /= ERROR_INT) then
@@ -934,12 +949,13 @@ contains
                     /IBCflux_ratio(np,nrinvstg,nsa) &
                     + JI(nth_pnc_tg(np,nrinvstg,nsa)+1,np,nrinvstg,nsa)/IBCflux_ratio(np,nrinvstg,nsa) &
                     )*0.5d0
+                ! JIl =  (JIl + JI(nth-1,np,nr,nsa))*0.5d0
                 else
-                  JIl = JI(nth,np,nr,nsa)
+                JIl = (JI(nth,np,nr,nsa)+JI(nth-1,np,nr,nsa))*0.5d0
                 end if
 
                 else
-                  JIl = JI(nth,np,nr,nsa)
+                JIl = (JI(nth,np,nr,nsa)+JI(nth-1,np,nr,nsa))*0.5d0
                 end if
 
               else if ( nth == 1 ) then
@@ -980,7 +996,6 @@ contains
             if ( nr == nrmax +1 ) then
                 if ( nth == nth_pnc_rg(np,nr,nsa) .and. theta_pnc_rg(np,nr-1,nsa) /= NO_PINCH_ORBIT &
                 .and. nrstg /= ERROR_INT) then
-                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
                     JIl = ( JI(nth+1,np,nr-1,nsa)*(1.d0 - IBCflux_ratio_rg(np,nr,nsa))&
                         + JI(nth_stg_rg(np,nrstg,nsa)-1,np,nrstg,nsa)*IBCflux_ratio_rg(np,nr,nsa) &
                         + JI(nth-1,np,nr-1,nsa))*0.5d0
@@ -1011,7 +1026,6 @@ contains
             else if ( nr == 1 ) then
                 if ( nth == nth_pnc_rg(np,nr,nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT &
                 .and. nrstg /= ERROR_INT) then
-                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
                   JIl = ( JI(nth+1,np,nr,nsa)*(1.d0 - IBCflux_ratio_rg(np,nr,nsa))&
                       + JI(nth_stg_rg(np,nrstg,nsa)-1,np,nrstg,nsa)*IBCflux_ratio_rg(np,nr,nsa) &
                       + JI(nth-1,np,nr,nsa))*0.5d0
@@ -1042,17 +1056,18 @@ contains
             else
               if ( nth == nth_pnc_rg(np,nr,nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT &
                 .and. nrstg /= ERROR_INT) then
-                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
                   JIl = ( JI(nth+1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
                       + JI(nth_stg_rg(np,nrstg,nsa)-1,np,nrstg,nsa)*IBCflux_ratio_rg(np,nr,nsa) &
                       + JI(nth-1,np,nr,nsa))*0.5d0
-                      ! if (theta_pnc_rg(np,nr-1,nsa) /= NO_PINCH_ORBIT .and. nrstg_ /= ERROR_INT)then
-                      !   JIl = (JIl &
-                      !   + ( JI(nth_pnc_rg(np,nr-1,nsa)+1,np,nr-1,nsa) * (1.d0 - IBCflux_ratio_rg(np,nr-1,nsa))&
-                      !   + JI(nth_stg_rg(np,nrstg_,nsa)-1,np,nrstg_,nsa) * IBCflux_ratio_rg(np,nr-1,nsa) &
-                      !   + JI(nth_pnc_rg(np,nr-1,nsa)-1,np,nr-1,nsa))*0.5d0)*0.5d0
-                      ! end if
-                  JIl = (JIl + JI(nth,np,nr-1,nsa))*0.5d0
+                      if (theta_pnc_rg(np,nr-1,nsa) /= NO_PINCH_ORBIT .and. nrstg_ /= ERROR_INT)then
+                        JIl = (JIl &
+                        + ( JI(nth_pnc_rg(np,nr-1,nsa)+1,np,nr-1,nsa) * (1.d0 - IBCflux_ratio_rg(np,nr-1,nsa))&
+                        + JI(nth_stg_rg(np,nrstg_,nsa)-1,np,nrstg_,nsa) * IBCflux_ratio_rg(np,nr-1,nsa) &
+                        + JI(nth_pnc_rg(np,nr-1,nsa)-1,np,nr-1,nsa))*0.5d0)*0.5d0
+                      else
+                        JIl = (JIl + JI(nth,np,nr-1,nsa))*0.5d0
+                      end if
+                  ! JIl = (JIl + JI(nth,np,nr-1,nsa))*0.5d0
 
               else if (nth == nth_stg_rg(np,nr,nsa)) then
                   
@@ -1067,7 +1082,7 @@ contains
 
                     if(nrinvstg_ /= ERROR_INT) then!*: 2
 
-                    if (theta_pnc_rg(np,nrinvstg_,nsa) /= NO_PINCH_ORBIT ) then!**1
+                    if (nth == nth_stg_rg(np,nr-1,nsa) .and. theta_pnc_rg(np,nrinvstg_,nsa) /= NO_PINCH_ORBIT ) then!**1
                       JIl = (JIl + (JI(nth_stg_rg(np,nrinvstg_,nsa)-1,np,nrinvstg_,nsa) &
                           - JI(nth_pnc_rg(np,nrinvstg_,nsa)+1,np,nrinvstg_,nsa)*(1.d0 -IBCflux_ratio_rg(np,nrinvstg_,nsa)) &
                           / IBCflux_ratio_rg(np,nrinvstg_,nsa) &
@@ -1081,6 +1096,8 @@ contains
                     else!** 2
                       JIl = (JIl + JI(nth,np,nr-1,nsa))*0.5d0
                     end if!** 2
+
+                  ! JIl = (JIl + JI(nth,np,nr-1,nsa))*0.5d0
 
                   else!** 3
                     JIl = (JI(nth,np,nr,nsa) + JI(nth,np,nr-1,nsa))*0.5d0
@@ -1103,7 +1120,6 @@ contains
             if ( nr == nrmax + 1  ) then
                 if ( nth == nth_pnc_rg(np,nr,nsa) .and. theta_pnc(np,nr-1,nsa) /= NO_PINCH_ORBIT &
                 .and. nrstg /= ERROR_INT) then
-                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
                     JIl = ( JI(nth-1,np,nr-1,nsa)*(1.d0 - IBCflux_ratio_rg(np,nr,nsa))&
                         + JI(nth_stg_rg(np,nrstg,nsa)+1,np,nrstg,nsa)*IBCflux_ratio_rg(np,nr,nsa) &
                         + JI(nth+1,np,nr-1,nsa))*0.5d0
@@ -1134,7 +1150,6 @@ contains
             else if ( nr == 1 ) then
                 if ( nth == nth_pnc_rg(np,nr,nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT &
                 .and. nrstg /= ERROR_INT) then
-                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
                   JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio_rg(np,nr,nsa))&
                       + JI(nth_stg_rg(np,nrstg,nsa)+1,np,nrstg,nsa)*IBCflux_ratio_rg(np,nr,nsa) &
                       + JI(nth+1,np,nr,nsa))*0.5d0
@@ -1164,17 +1179,18 @@ contains
             else
                 if ( nth == nth_pnc_rg(np,nr,nsa) .and. theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT &
                 .and. nrstg /= ERROR_INT) then
-                ! if ( nth == nth_pnc(nsa) .and. theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
                   JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio_rg(np,nr,nsa))&
                       + JI(nth_stg_rg(np,nrstg,nsa)+1,np,nrstg,nsa)*IBCflux_ratio_rg(np,nr,nsa) &
                       + JI(nth+1,np,nr,nsa))*0.5d0
-                      ! if (theta_pnc_rg(np,nr-1,nsa)/=NO_PINCH_ORBIT .and. nrstg_  /= ERROR_INT)then
-                      !   JIl = (JIl &
-                      !       + ( JI(nth_pnc_rg(np,nr-1,nsa)-1,np,nr,nsa) * (1.d0 - IBCflux_ratio_rg(np,nr,nsa))&
-                      !       + JI(nth_stg_rg(np,nrstg_,nsa)+1,np,nrstg_,nsa)*IBCflux_ratio_rg(np,nr,nsa) &
-                      !       + JI(nth_pnc_rg(np,nr-1,nsa)+1,np,nr,nsa))*0.5d0)*0.5d0
-                      ! end if
-                  JIl = (JIl + JI(nth,np,nr-1,nsa))*0.5d0
+                      if (theta_pnc_rg(np,nr-1,nsa)/=NO_PINCH_ORBIT .and. nrstg_  /= ERROR_INT)then
+                        JIl = (JIl &
+                            + ( JI(nth_pnc_rg(np,nr-1,nsa)-1,np,nr,nsa) * (1.d0 - IBCflux_ratio_rg(np,nr,nsa))&
+                            + JI(nth_stg_rg(np,nrstg_,nsa)+1,np,nrstg_,nsa)*IBCflux_ratio_rg(np,nr,nsa) &
+                            + JI(nth_pnc_rg(np,nr-1,nsa)+1,np,nr,nsa))*0.5d0)*0.5d0
+                      else
+                        JIl = (JIl + JI(nth,np,nr-1,nsa))*0.5d0
+                      end if
+                  ! JIl = (JIl + JI(nth,np,nr-1,nsa))*0.5d0
                 else if (nth == nth_stg_rg(np,nr,nsa)) then
                 
                   if (nrinvstg /= ERROR_INT) then
@@ -1188,7 +1204,7 @@ contains
 
                     if(nrinvstg_ /= ERROR_INT) then
 
-                    if (theta_pnc_rg(np,nrinvstg_,nsa) /= NO_PINCH_ORBIT) then
+                    if (nth == nth_stg_rg(np,nr-1,nsa) .and. theta_pnc_rg(np,nrinvstg_,nsa) /= NO_PINCH_ORBIT) then
                       JIl = (JIl &
                           + (JI(nth_stg_rg(np,nr-1,nsa)+1,np,nr-1,nsa) &
                           - JI(nth_pnc_rg(np,nrinvstg_,nsa)-1,np,nrinvstg_,nsa)*(1.d0 -IBCflux_ratio_rg(np,nrinvstg_,nsa)) &
@@ -1202,6 +1218,8 @@ contains
                     else
                       JIl = (JIl + JI(nth,np,nr-1,nsa))*0.5d0
                     end if
+
+                  ! JIl = (JIl + JI(nth,np,nr-1,nsa))*0.5d0
 
                   else
                     JIl = (JI(nth,np,nr,nsa) + JI(nth,np,nr-1,nsa))*0.5d0
@@ -1233,6 +1251,149 @@ contains
 !===============================================
 ! For matrix calculation modules
 !===============================================
+  ! subroutine transformation_matrix(dIdu, ob, nth, np, nr, nsa, mode)
+  ! !----------------------------------------------------------------
+  ! ! Calcuration of transform matrix  from Energy, momentum space
+  ! ! to momentum, pitch angle, the largest magnetic flux
+  ! !----------------------------------------------------------------
+  !   use fpcomm
+  !   use fowcomm
+  !   use foworbit
+
+  !   implicit none
+
+  !   real(rkind),dimension(3,3,max_stp),intent(out) :: dIdu
+  !   type(orbit),intent(in) :: ob
+  !   integer,intent(in) :: nth, np, nr, nsa, mode(3)
+
+  !   ! elements of transformation matrix, dIdu
+  !   real(rkind) :: dpdp,  dthmdp,  drmdp,&
+  !                  dpdth, dthmdth, drmdth,&
+  !                  dpdr,  dthmdr,  drmdr
+  !   real(rkind) :: pl, Bml, dBmdrl, Fml, dFmdrl, cthm, sthm, dpsimdrl
+  !   real(rkind) :: Bob, Fob, cthob, sthob, dBobdr, dpsiobdr, dFobdr
+  !   real(rkind) :: C_a, C_b
+  !   integer :: nstp, nstpmax
+
+  !   select case(mode(1))
+  !   case(0)
+  !     if ( mode(2) == 0 .and. mode(3) == 0 ) cthm = COS( thetam(nth,np,nr,nsa) )
+  !     if ( mode(2) == 1 .and. mode(3) == 0 ) cthm = COS( thetam_pg(nth,np,nr,nsa) )
+  !     if ( mode(2) == 0 .and. mode(3) == 1 ) cthm = COS( thetam_rg(nth,np,nr,nsa) )
+  !   case(1)
+  !     cthm = COS( thetam_tg(nth,np,nr,nsa) )
+  !   end select
+  !   sthm = SQRT( 1.d0-cthm**2 )
+
+  !   select case(mode(2))
+  !   case(0)
+  !     pl = pm(np,nsa)*ptfp0(nsa)
+  !   case(1)
+  !     pl = pg(np,nsa)*ptfp0(nsa)
+  !   end select
+
+  !   select case(mode(3))
+  !   case(0)
+  !     if ( cthm*aefp(nsa) >= 0.d0 ) then
+  !       Bml = Bout(nr)
+  !       dBmdrl = dBoutdr(nr)
+  !     else
+  !       Bml = Bin(nr)
+  !       dBmdrl = dBindr(nr)
+  !     end if
+  !     dpsimdrl = dpsimdr(nr)
+  !     Fml = Fpsi(nr)
+  !     dFmdrl = dFdr(nr)
+  !   case(1)
+  !     if ( cthm*aefp(nsa) >= 0.d0 ) then
+  !       Bml = Bout_rg(nr)
+  !       dBmdrl = dBoutgdr(nr)
+  !     else
+  !       Bml = Bin_rg(nr)
+  !       dBmdrl = dBingdr(nr)
+  !     end if
+  !     dpsimdrl = dpsimgdr(nr)
+  !     Fml = Fpsi_rg(nr)
+  !     dFmdrl = dFgdr(nr)
+  !   end select
+
+  !   if (cthm /= 0.d0) then
+  !     C_a = sthm*dBmdrl/(2.d0*cthm*Bml)
+  !     C_b = AEFP(nsa)*dpsimdrl + Fml*dBmdrl*pl*(sthm**2.d0)/(2.d0*cthm*Bml**2.d0) &
+  !         - (dFmdrl*Bml-Fml*dBmdrl)*pl*cthm/(Bml**2.d0)
+  !   else
+  !     C_a = 0.d0
+  !     C_b = AEFP(nsa)*dpsimdrl
+  !   end if
+
+  !   nstpmax = ob%nstp_max
+
+  !   if ( C_b /= 0.d0 ) then
+  !     do nstp = 1, nstpmax
+  !       Bob = ob%Babs(nstp)
+  !       Fob = ob%F(nstp)
+  !       cthob = ob%costh(nstp)
+  !       sthob = ob%sinth(nstp)
+  !       dBobdr = ob%dBdr(nstp)
+  !       dpsiobdr = ob%dpsipdr(nstp)
+  !       dFobdr = ob%dFdr(nstp)
+
+  !       ! dX/dp
+  !       dpdp   = 1.d0
+  !       drmdp  = C_b**(-1.d0)*(Fml*cthm/Bml - Fob*cthob/Bob)
+  !       dthmdp = C_a*drmdp 
+
+  !       ! dX/dtheta
+  !       dpdth   = 0.d0
+  !       drmdth  = C_b**(-1.d0)*pl*sthob/(Bob*cthm)*(Fob*cthm - Fml*cthob)
+  !       if (cthm /= 0.d0 .and. sthm /= 0.d0 ) then
+  !         dthmdth = C_a * drmdth + sthob*cthob*Bml/(sthm*cthm*Bob)
+  !       else
+  !         dthmdth = C_a * drmdth
+  !       end if 
+
+  !       ! dX/drho
+  !       dpdr   = 0.d0
+  !       dthmdr = 0.d0
+  !       drmdr  = 0.d0
+
+  !       dIdu(1,1,nstp) = dpdp*ptfp0(nsa)
+  !       dIdu(1,2,nstp) = dthmdp*ptfp0(nsa)
+  !       dIdu(1,3,nstp) = drmdp*ptfp0(nsa)
+  !       dIdu(2,1,nstp) = dpdth/pl*ptfp0(nsa)
+  !       dIdu(2,2,nstp) = dthmdth/pl*ptfp0(nsa)
+  !       dIdu(2,3,nstp) = drmdth/pl*ptfp0(nsa)
+  !       dIdu(3,1,nstp) = dpdr
+  !       dIdu(3,2,nstp) = dthmdr
+  !       dIdu(3,3,nstp) = drmdr
+
+  !     end do
+
+  !   else
+  !     do nstp = 1, nstpmax
+  !       dIdu(1,1,nstp) = 1.d0
+  !       dIdu(1,2,nstp) = 0.d0
+  !       dIdu(1,3,nstp) = 0.d0
+  !       dIdu(2,1,nstp) = 0.d0
+  !       dIdu(2,2,nstp) = 1.d0
+  !       dIdu(2,3,nstp) = 0.d0
+  !       dIdu(3,1,nstp) = 0.d0
+  !       dIdu(3,2,nstp) = 0.d0
+  !       ! dIdu(3,3,nstp) = 1.d0 !** original
+  !       dIdu(3,3,nstp) = 0.d0
+  !     end do
+
+  !   end if
+
+  !   ! do nstp = 1, nstpmax
+  !   !   write(6,'(I4)')nstp
+  !   !   write(6,'(3ES12.4)')dIdu(1,1,nstp),dIdu(1,2,nstp),dIdu(1,3,nstp)
+  !   !   write(6,'(3ES12.4)')dIdu(2,1,nstp),dIdu(2,2,nstp),dIdu(2,3,nstp)
+  !   !   write(6,'(3ES12.4)')dIdu(3,1,nstp),dIdu(3,2,nstp),dIdu(3,3,nstp)
+  !   ! end do
+
+  ! end subroutine transformation_matrix
+
   subroutine transformation_matrix(dIdu, ob, nth, np, nr, nsa, mode)
   !----------------------------------------------------------------
   ! Calcuration of transform matrix  from Energy, momentum space
@@ -1288,14 +1449,14 @@ contains
       dFmdrl = dFdr(nr)
     case(1)
       if ( cthm*aefp(nsa) >= 0.d0 ) then
-        Bml = Boutg(nr)
+        Bml = Bout_rg(nr)
         dBmdrl = dBoutgdr(nr)
       else
-        Bml = Bing(nr)
+        Bml = Bin_rg(nr)
         dBmdrl = dBingdr(nr)
       end if
       dpsimdrl = dpsimgdr(nr)
-      Fml = Fpsig(nr)
+      Fml = Fpsi_rg(nr)
       dFmdrl = dFgdr(nr)
     end select
 
@@ -1341,12 +1502,12 @@ contains
         ! dthmdr = (A(2,2)*b(1)-A(1,2)*b(2))/detA
         ! drmdr  = (A(1,1)*b(2)-A(2,1)*b(1))/detA
 
-        dIdu(1,1,nstp) = dpdp
+        dIdu(1,1,nstp) = dpdp!*ptfp0(nsa)
         dIdu(1,2,nstp) = dthmdp*ptfp0(nsa)
         dIdu(1,3,nstp) = drmdp*ptfp0(nsa)
-        dIdu(2,1,nstp) = dpdth
-        dIdu(2,2,nstp) = dthmdth
-        dIdu(2,3,nstp) = drmdth
+        dIdu(2,1,nstp) = dpdth!/pl*ptfp0(nsa)
+        dIdu(2,2,nstp) = dthmdth!/pl*ptfp0(nsa)
+        dIdu(2,3,nstp) = drmdth!/pl*ptfp0(nsa)
         dIdu(3,1,nstp) = dpdr
         dIdu(3,2,nstp) = dthmdr
         dIdu(3,3,nstp) = drmdr
@@ -1470,7 +1631,7 @@ contains
     implicit none
 
     real(rkind),intent(out) :: C_out
-    real(rkind) :: normalized_v
+    real(rkind) :: normalized_v,dif
     real(rkind),intent(in) :: U(:,:,:,:,:,:), check0, cpitch_in, psip_in, thetap_in
     integer,intent(in), dimension(3) :: mode
     integer,intent(in) :: nth_in,np_in,nr_in,nsa_in
@@ -1483,27 +1644,34 @@ contains
 
     !**** If v is larger than v on stagnation surface, then Coefficient is 0 
     if(mode(1) == 0 .and. mode(2) == 1) then
-      normalized_v = pg(np_in,nsa_in)*PTFP0(nsa_in)/AMFP(nsa_in)/VC
+      normalized_v = pg(np_in,nsa_in)*PTFP0(nsa_in)/AMFP(nsa_in)
+      normalized_v = normalized_v/vc!/(1.d0-normalized_v**2.d0/vc**2.d0)
       mode_num = 1
-      if (normalized_v >= pm_stg_pg(nth_in,np_in,nr_in,nsa_in)) then
+      ! dif = normalized_v-pm_stg_pg(nth_in,np_in,nr_in,nsa_in)
+      ! if(abs(dif)>10)write(*,*)nth_in,np_in, nr_in, nsa_in
+      ! if(normalized_v>1.d0)write(*,*)nth_in,np_in, nr_in,nsa_in, normalized_v
+      ! if(normalized_v>1.d0)write(*,*)pg(np_in,nsa_in)*PTFP0(nsa_in)/AMFP(nsa_in)/VC,pm_stg_pg(nth_in,np_in,nr_in,nsa_in)
+      if (normalized_v > pm_stg_pg(nth_in,np_in,nr_in,nsa_in)) then
         C_out = 0.d0
-        write(*,*)1
+        ! write(*,*)1
         return
       end if
     else if( mode(1) == 1 .and. mode(2) == 0) then
       normalized_v = pm(np_in,nsa_in)*PTFP0(nsa_in)/AMFP(nsa_in)/VC
       mode_num = 2
-      if (normalized_v >= pm_stg_tg(nth_in,np_in,nr_in,nsa_in)) then
+      ! if(normalized_v>1.d0)write(*,*)pm(np_in,nsa_in)*PTFP0(nsa_in)/AMFP(nsa_in)/VC,pm_stg_tg(nth_in,np_in,nr_in,nsa_in)
+      if (normalized_v > pm_stg_tg(nth_in,np_in,nr_in,nsa_in)) then
         C_out = 0.d0
-        write(*,*)2
+        ! write(*,*)2
         return
       end if
     else
       normalized_v = pm(np_in,nsa_in)*PTFP0(nsa_in)/AMFP(nsa_in)/VC
       mode_num = 3
-      if (normalized_v >= pm_stg_rg(nth_in,np_in,nr_in,nsa_in)) then
+      ! if(normalized_v>1.d0)write(*,*)pm(np_in,nsa_in)*PTFP0(nsa_in)/AMFP(nsa_in)/VC,pm_stg_rg(nth_in,np_in,nr_in,nsa_in)
+      if (normalized_v > pm_stg_rg(nth_in,np_in,nr_in,nsa_in)) then
         C_out = 0.d0
-        write(*,*)3
+        ! write(*,*)3
         return
       end if
     end if

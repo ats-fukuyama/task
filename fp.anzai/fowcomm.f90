@@ -91,9 +91,9 @@ module fowcomm
 !   real(rkind),allocatable,dimension(:) :: Fpsi,&            ! poloidai current at psim
 !                                           Bout,&            ! abs(magnetic field) at psim when psim is outside the axis
 !                                           Bin,&             ! abs(magnetic field) at psim when psim is inside the axis
-!                                           Fpsig,&           ! Fpsi for grid points
-!                                           Boutg,&           ! Bout for grid points
-!                                           Bing,&            ! Bin for grid points
+!                                           Fpsi_rg,&           ! Fpsi for grid points
+!                                           Bout_rg,&           ! Bout for grid points
+!                                           Bin_rg,&            ! Bin for grid points
 !                                           dFdr,&            ! dFpsi/drhom
 !                                           dBoutdr,&         ! dBout/drhom
 !                                           dBindr,&          ! dBin/drhom
@@ -113,9 +113,9 @@ module fowcomm
   real(rkind),allocatable,dimension(:) :: Fpsi,& 
                                           Bout,&  
                                           Bin,&  
-                                          Fpsig,& 
-                                          Boutg,& 
-                                          Bing,&   
+                                          Fpsi_rg,& 
+                                          Bout_rg,& 
+                                          Bin_rg,&   
                                           dFdr,&   
                                           dBoutdr,& 
                                           dBindr,&  
@@ -151,8 +151,8 @@ module fowcomm
 !
 !   integer,allocatable,dimension(:) :: nth_stg,&                  ! thetam_tg(nth_stg,(nsa),np,nr,nsa) = theta_stg
 !                                       nth_pnc                    ! thetam_tg(nth_pnc,(nsa),np,nr,nsa) = theta_pnc
-!   integer,allocatable,dimension(:,:,:) :: nth_stg_tg,&            ! thetas on stagnation orbit surfaces !**** by anzai [2022/12/2]
-!                                           nth_pnc_tg              ! thetas on pinch orbit surface       !**** by anzai [2022/12/2]
+!   integer,allocatable,dimension(:,:,:) :: nth_stg_tg,&           ! thetas on stagnation orbit surfaces !**** by anzai [2022/12/2]
+!                                           nth_pnc_tg             ! thetas on pinch orbit surface       !**** by anzai [2022/12/2]
 !   integer,allocatable,dimension(:,:,:) :: nth_stg_pg,&           ! thetas on stagnation orbit surfaces !**** by anzai [2022/12/2]
 !                                           nth_pnc_pg             ! thetas on pinch orbit surface       !**** by anzai [2022/12/2]
 !   integer,allocatable,dimension(:,:,:) :: nth_stg_tg,&           ! thetas on stagnation orbit surfaces !**** by anzai [2022/12/2]
@@ -306,9 +306,9 @@ contains
     allocate(Bout    (nrmax  ))
     allocate(Bin     (nrmax  ))
     allocate(psim_rg   (nrmax+1))
-    allocate(Fpsig   (nrmax+1))
-    allocate(Boutg   (nrmax+1))
-    allocate(Bing    (nrmax+1))
+    allocate(Fpsi_rg   (nrmax+1))
+    allocate(Bout_rg   (nrmax+1))
+    allocate(Bin_rg    (nrmax+1))
     allocate(dFdr    (nrmax  ))
     allocate(dBoutdr (nrmax  ))
     allocate(dBindr  (nrmax  ))
@@ -427,9 +427,9 @@ contains
     deallocate(Bout)
     deallocate(Bin)
     deallocate(psim_rg)
-    deallocate(Fpsig)
-    deallocate(Boutg)
-    deallocate(Bing)
+    deallocate(Fpsi_rg)
+    deallocate(Bout_rg)
+    deallocate(Bin_rg)
     deallocate(dFdr)
     deallocate(dBoutdr)
     deallocate(dBindr)

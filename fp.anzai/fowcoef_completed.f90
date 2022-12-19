@@ -561,14 +561,14 @@ contains
       dFmdrl = dFdr(nr)
     case(1)
       if ( cthm*aefp(nsa) >= 0.d0 ) then
-        Bml = Boutg(nr)
+        Bml = Bout_rg(nr)
         dBmdrl = dBoutgdr(nr)
       else
-        Bml = Bing(nr)
+        Bml = Bin_rg(nr)
         dBmdrl = dBingdr(nr)
       end if
       dpsimdrl = dpsimgdr(nr)
-      Fml = Fpsig(nr)
+      Fml = Fpsi_rg(nr)
       dFmdrl = dFgdr(nr)
     end select
 

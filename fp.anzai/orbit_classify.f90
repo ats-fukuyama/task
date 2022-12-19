@@ -91,19 +91,19 @@ contains
 
     allocate(dFdpsi(nrmax+1), dBdpsi(nrmax+1))
 
-    call first_order_derivative(dFdpsi, Fpsig, psim_rg)
-    call first_order_derivative(dBdpsi, Bing, psim_rg)
+    call first_order_derivative(dFdpsi, Fpsi_rg, psim_rg)
+    call first_order_derivative(dBdpsi, Bin_rg, psim_rg)
 
-    call fow_cal_spl(F_pncp, psip_in, Fpsig, psim_rg)
+    call fow_cal_spl(F_pncp, psip_in, Fpsi_rg, psim_rg)
     call fow_cal_spl(dFdpsi_pncp, psip_in, dFdpsi, psim_rg)
-    call fow_cal_spl(F_m, psim_in, Fpsig, psim_rg)
-    call fow_cal_spl(B_m, psim_in, Boutg, psim_rg)    
+    call fow_cal_spl(F_m, psim_in, Fpsi_rg, psim_rg)
+    call fow_cal_spl(B_m, psim_in, Bout_rg, psim_rg)    
     
     if ( psip_in == 0.d0 ) then
-      Bin_pncp = Bing(1)
+      Bin_pncp = Bin_rg(1)
       dBdpsi_pncp = dBdpsi(1)
     else
-      call fow_cal_spl(Bin_pncp, psip_in, Bing, psim_rg)
+      call fow_cal_spl(Bin_pncp, psip_in, Bin_rg, psim_rg)
       call fow_cal_spl(dBdpsi_pncp, psip_in, dBdpsi, psim_rg)  
     end if
 
@@ -194,26 +194,26 @@ contains
             Bn(nth,nr) = B_m(nth,nr)/(1.d0-xi(nth)**2)
           end if
     
-          if( Bn(nth,nr)<=Boutg(1) ) then
+          if( Bn(nth,nr)<=Bout_rg(1) ) then
             do ir = 1, nrmax
-              if( Boutg(ir+1)<=Bn(nth,nr) ) then
-                dnr_bn = (Bn(nth,nr)-Boutg(ir))/(Boutg(ir+1)-Boutg(ir))
+              if( Bout_rg(ir+1)<=Bn(nth,nr) ) then
+                dnr_bn = (Bn(nth,nr)-Bout_rg(ir))/(Bout_rg(ir+1)-Bout_rg(ir))
                 psin(nth,nr) = psim_rg(ir)+(psim_rg(ir+1)-psim_rg(ir))*dnr_bn
                 exit
-              else if ( Bn(nth,nr)<Boutg(nrmax+1) ) then
-                dnr_bn = (Bn(nth,nr)-Boutg(nrmax+1))/(Boutg(nrmax+1)-Boutg(nrmax))
+              else if ( Bn(nth,nr)<Bout_rg(nrmax+1) ) then
+                dnr_bn = (Bn(nth,nr)-Bout_rg(nrmax+1))/(Bout_rg(nrmax+1)-Bout_rg(nrmax))
                 psin(nth,nr) = psim_rg(nrmax+1)+(psim_rg(nrmax+1)-psim_rg(nrmax))*dnr_bn
                 exit
               end if
             end do
           else
             do ir = 1, nrmax
-              if( Bn(nth,nr)<=Bing(ir+1) ) then
-                dnr_bn = (Bn(nth,nr)-Bing(ir))/(Bing(ir+1)-Bing(ir))
+              if( Bn(nth,nr)<=Bin_rg(ir+1) ) then
+                dnr_bn = (Bn(nth,nr)-Bin_rg(ir))/(Bin_rg(ir+1)-Bin_rg(ir))
                 psin(nth,nr) = psim_rg(ir)+(psim_rg(ir+1)-psim_rg(ir))*dnr_bn
                 exit
-              else if ( Bn(nth,nr)>Bing(nrmax+1) ) then
-                dnr_bn = (Bn(nth,nr)-Bing(nrmax+1))/(Bing(nrmax+1)-Bing(nrmax))
+              else if ( Bn(nth,nr)>Bin_rg(nrmax+1) ) then
+                dnr_bn = (Bn(nth,nr)-Bin_rg(nrmax+1))/(Bin_rg(nrmax+1)-Bin_rg(nrmax))
                 psin(nth,nr) = psim_rg(nrmax+1)+(psim_rg(nrmax+1)-psim_rg(nrmax))*dnr_bn
                 exit
               end if
@@ -233,7 +233,7 @@ contains
             beta_D(nth,nr,nsa) = 0.d0
           end if
           
-          if( Boutg(nrmax+1)<=Bn(nth,nr) .and. Bn(nth,nr)<=Bing(nrmax+1) .and. psin(nth,nr)<=psim(nr) ) then
+          if( Bout_rg(nrmax+1)<=Bn(nth,nr) .and. Bn(nth,nr)<=Bin_rg(nrmax+1) .and. psin(nth,nr)<=psim(nr) ) then
             v_D_orbit = vc/sqrt(1.d0+xi(nth)**2/(Gm(nth,nr,nsa)*(1.d0-psin(nth,nr)/psim(nr)))**2)
             ! beta_D(nth,nr,nsa) = amfp(nsa)*v_D_orbit/sqrt(1.d0-v_D_orbit**2/vc**2)
             ! beta_D(nth,nr,nsa) = beta_D(nth,nr,nsa)/ptfp0(nsa) ! normalize
@@ -302,6 +302,7 @@ contains
           ! beta_stag(nth,nr,nsa) = amfp(nsa)*v_stagnation_orbit/(1.d0-v_stagnation_orbit**2/vc**2) ! momentum of stagnation orbit
           ! beta_stag(nth,nr,nsa) = beta_stag(nth,nr,nsa)/ptfp0(nsa) ! normalize
           beta_stag(nth,nr,nsa) = v_stagnation_orbit/vc
+          ! write(*,*) beta_stag(nth,nr,nsa)
         end do
       end do
     end do

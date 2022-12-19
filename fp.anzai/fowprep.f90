@@ -465,7 +465,7 @@ contains
       end if
     end if
 
-    call make_pm_stg
+    call make_stag_surfece_v
 
     ! call check_stg_time
 
@@ -1380,66 +1380,69 @@ contains
   !   end do
   ! end subroutine check_stg_time
 
-  subroutine make_pm_stg
-  !-----------------------------------------------------
-  ! Making sstagnation boundary for coefcalc in fowcoef
-  !-----------------------------------------------------
-    use fowcomm
-    use fpcomm
-    use foworbit
-    use orbit_classify
+  ! subroutine make_pm_stg
+  ! !-----------------------------------------------------
+  ! ! Making sstagnation boundary for coefcalc in fowcoef
+  ! !-----------------------------------------------------
+  !   use fowcomm
+  !   use fpcomm
+  !   use foworbit
+  !   use orbit_classify
 
-    implicit none
+  !   implicit none
 
-    integer :: ns, nth, np, nr, nsa, ierr = 0, flag, nstp, nstpmax, ir, nthp
-    real(rkind) :: dummy
-    real(rkind) :: pm_tmp
+  !   integer :: ns, nth, np, nr, nsa, ierr = 0, flag, nstp, nstpmax, ir, nthp
+  !   real(rkind) :: dummy
+  !   real(rkind) :: pm_tmp
 
-    !**** Initialization
-    dummy = 0.d0
-    pm_tmp = 0.d0
+  !   !**** Initialization
+  !   dummy = 0.d0
+  !   pm_tmp = 0.d0
 
-    !**** For orbit_p
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do np = 1, npmax+1
-          do nth = 1, nthmax
-            call get_p_stg(pm_tmp, dummy, thetam_pg(nth,np,nr,nsa), psim(nr), nsa)
-            pm_tmp = pm_tmp * PTFP0(nsa)/AMFP(nsa)/VC
-            pm_stg_pg(nth,np,nr,nsa) = pm_tmp
-          end do
-        end do
-      end do
-    end do
+  !   !**** For orbit_p
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax
+  !       do np = 1, npmax+1
+  !         do nth = 1, nthmax
+  !           call get_p_stg(pm_tmp, dummy, thetam_pg(nth,np,nr,nsa), psim(nr), nsa)
+  !           pm_tmp = pm_tmp * PTFP0(nsa)/AMFP(nsa)/VC*(1.d0-(ptfp0(nsa)*pm_tmp)**2/vc**2)
+  !           pm_stg_pg(nth,np,nr,nsa) = pm_tmp
+  !         end do
+  !       end do
+  !     end do
+  !   end do
 
-    pm_tmp = 0.d0
-    !**** For orbit_t
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do np = 1, npmax
-          do nth = 1, nthmax+1
-            call get_p_stg(pm_tmp, dummy, thetam_tg(nth,np,nr,nsa), psim(nr), nsa)
-            pm_tmp = pm_tmp * PTFP0(nsa)/AMFP(nsa)/VC
-            pm_stg_tg(nth,np,nr,nsa) = pm_tmp
-          end do
-        end do
-      end do
-    end do
+  !   pm_tmp = 0.d0
+  !   **** For orbit_t
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax
+  !       do np = 1, npmax
+  !         do nth = 1, nthmax+1
+  !           call get_p_stg(pm_tmp, dummy, thetam_tg(nth,np,nr,nsa), psim(nr), nsa)
+  !           ! pm_tmp = pm_tmp * PTFP0(nsa)/AMFP(nsa)/VC
+  !           ! pm_tmp = pm_tmp * PTFP0(nsa)/AMFP(nsa)/VC*(1.d0-(ptfp0(nsa)*pm_tmp)**2/vc**2)
+  !           pm_stg_tg(nth,np,nr,nsa) = pm_tmp
+  !           call make_stag_surfece_v(pm_stg_tg,2)
+  !         end do
+  !       end do
+  !     end do
+  !   end do
 
-    pm_tmp = 0.d0
-    !**** For orbit_p
-    do nsa = 1, nsamax
-      do nr = 1, nrmax+1
-        do np = 1, npmax
-          do nth = 1, nthmax
-            call get_p_stg(pm_tmp, dummy, thetam_rg(nth,np,nr,nsa), psim_rg(nr), nsa)
-            pm_tmp = pm_tmp * PTFP0(nsa)/AMFP(nsa)/VC
-            pm_stg_rg(nth,np,nr,nsa) = pm_tmp
-          end do
-        end do
-      end do
-    end do
-  end subroutine make_pm_stg
+  !   pm_tmp = 0.d0
+  !   !**** For orbit_p
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax+1
+  !       do np = 1, npmax
+  !         do nth = 1, nthmax
+  !           call get_p_stg(pm_tmp, dummy, thetam_rg(nth,np,nr,nsa), psim_rg(nr), nsa)
+  !           ! pm_tmp = pm_tmp * PTFP0(nsa)/AMFP(nsa)/VC
+  !           pm_tmp = pm_tmp * PTFP0(nsa)/AMFP(nsa)/VC*(1.d0-(ptfp0(nsa)*pm_tmp)**2/vc**2)
+  !           pm_stg_rg(nth,np,nr,nsa) = pm_tmp
+  !         end do
+  !       end do
+  !     end do
+  !   end do
+  ! end subroutine make_pm_stg
 
   subroutine fow_eqload(ierr)
     !======================================
@@ -1496,7 +1499,7 @@ contains
     if(ierr.ne.0) return
 
     call eqgetp(rhotg,psim_rg,nrmax+1)                       !** normalized psit radius , use only psim_rg
-    call eqgetqn(ppsi,qpsi,Fpsig,vpsi,rlen,ritpsi,nrmax+1) !** flux functions         , use only Fpsig
+    call eqgetqn(ppsi,qpsi,Fpsi_rg,vpsi,rlen,ritpsi,nrmax+1) !** flux functions         , use only Fpsi_rg
     call eqgetbb(Br,Bz,Bp,Bt,nthpmax,nthpmax,nrmax+1)      !** mag field              , use only Bt and Bp
     call eqgeta(rr_axis,zz_axis,psi0,psit0,qaxis,qsurf)    !** axis and mag parameters, use only psi0
 
@@ -1506,11 +1509,11 @@ contains
 
     psi0 = psi0/(2*pi)
     do nr = 1, nrmax+1
-      Fpsig(nr) = Fpsig(nr)/(2*pi)
+      Fpsi_rg(nr) = Fpsi_rg(nr)/(2*pi)
       psim_rg(nr) = psim_rg(nr)/(2*pi)
       if ( nr <= nrmax ) then
         rhot(nr) = rhotg(nr)
-        Fpsi(nr) = Fpsig(nr)
+        Fpsi(nr) = Fpsi_rg(nr)
         psim(nr) = psim_rg(nr)
         safety_factor(nr) = qpsi(nr)
         do nthp = 1, nthpmax
@@ -1539,9 +1542,9 @@ contains
         call spl2DF(rm(nr),pi,Bin(nr),rhot,theta_p,CB,nrmax,nrmax,nthpmax,ierr)
       end if
       call spl1DF(rg(nr),psim_rg(nr),rhot,Cps,nrmax,ierr)
-      call spl1DF(rg(nr),Fpsig(nr),rhot,CF,nrmax,ierr)
-      call spl2DF(rg(nr),0.d0,Boutg(nr),rhot,theta_p,CB,nrmax,nrmax,nthpmax,ierr)
-      call spl2DF(rg(nr),pi,Bing(nr),rhot,theta_p,CB,nrmax,nrmax,nthpmax,ierr)
+      call spl1DF(rg(nr),Fpsi_rg(nr),rhot,CF,nrmax,ierr)
+      call spl2DF(rg(nr),0.d0,Bout_rg(nr),rhot,theta_p,CB,nrmax,nrmax,nthpmax,ierr)
+      call spl2DF(rg(nr),pi,Bin_rg(nr),rhot,theta_p,CB,nrmax,nrmax,nthpmax,ierr)
     end do
 
     !**** calculate derivatives of eq variables
@@ -1551,9 +1554,9 @@ contains
     call first_order_derivative(dBoutdr,Bout,rm)
 
     call first_order_derivative(dpsimgdr,psim_rg,rg)
-    call first_order_derivative(dFgdr,Fpsig,rg)
-    call first_order_derivative(dBingdr,Bing,rg)
-    call first_order_derivative(dBoutgdr,Boutg,rg)
+    call first_order_derivative(dFgdr,Fpsi_rg,rg)
+    call first_order_derivative(dBingdr,Bin_rg,rg)
+    call first_order_derivative(dBoutgdr,Bout_rg,rg)
 
     do nthp = 1, nthpmax
       call first_order_derivative(dBdr(:,nthp),Babs(:,nthp),rm)
@@ -1667,19 +1670,19 @@ contains
 
     allocate(dFdpsi(nrmax+1), dBdpsi(nrmax+1))
 
-    call first_order_derivative(dFdpsi, Fpsig, psim_rg)
-    call first_order_derivative(dBdpsi, Bing, psim_rg)
+    call first_order_derivative(dFdpsi, Fpsi_rg, psim_rg)
+    call first_order_derivative(dBdpsi, Bin_rg, psim_rg)
 
-    call fow_cal_spl(F_pncp, psip_in, Fpsig, psim_rg)
+    call fow_cal_spl(F_pncp, psip_in, Fpsi_rg, psim_rg)
     call fow_cal_spl(dFdpsi_pncp, psip_in, dFdpsi, psim_rg)
-    call fow_cal_spl(F_m, psim_in, Fpsig, psim_rg)
-    call fow_cal_spl(B_m, psim_in, Boutg, psim_rg)
+    call fow_cal_spl(F_m, psim_in, Fpsi_rg, psim_rg)
+    call fow_cal_spl(B_m, psim_in, Bout_rg, psim_rg)
 
     if ( psip_in == 0.d0 ) then
-      Bin_pncp = Bing(1)
+      Bin_pncp = Bin_rg(1)
       dBdpsi_pncp = dBdpsi(1)
     else
-      call fow_cal_spl(Bin_pncp, psip_in, Bing, psim_rg)
+      call fow_cal_spl(Bin_pncp, psip_in, Bin_rg, psim_rg)
       call fow_cal_spl(dBdpsi_pncp, psip_in, dBdpsi, psim_rg)
     end if
 
@@ -1786,10 +1789,229 @@ contains
 
     p_ret = G_ml*xil/(xil**2*F_p-0.5d0*(1.d0+xil**2)*B_p) !** LHS = gamma*beta
     p_ret = vc*sqrt(p_ret**2/(1.d0+p_ret**2))             !** LHS = velocity of stagnation orbit
+    ! write(*,*)p_ret*AMFP(nsa_in)/vc, p_ret*AMFP(nsa_in)/(1.d0-p_ret**2/vc**2.d0)/vc
     p_ret = amfp(nsa_in)*p_ret/(1.d0-p_ret**2/vc**2)      !** momentum of stagnation orbit
     p_ret = p_ret/ptfp0(nsa_in)                           !** normalize
+    ! write(*,*)":::",p_ret*PTFP0(nsa_in)/AMFP(nsa_in)/vc*(1.d0-(ptfp0(nsa_in)*p_ret)**2/vc**2)
 
   end subroutine get_p_stg
+
+  subroutine make_stag_surfece_v
+  !-------------------------------------------------
+  ! Make stagnation velocity normalized by vc
+  !-------------------------------------------------
+    ! v_stag is maximum momentum of not-forbitten particles for given psi_m, xi and particle species
+    use fowcomm
+    use fpcomm
+    implicit none
+    ! real(rkind),dimension(nthmax+1,npmax,nrmax,nsamax),intent(out) :: v_stag
+    real(rkind) :: v_stagnation_orbit, F_p, B_p
+    ! real(rkind),dimension(ithmax,nrmax,nsamax) :: Gm
+    ! real(rkind),dimension(ithmax,nrmax) :: B_m, dBmdpsi
+    real(rkind),allocatable, dimension(:,:,:) :: Gm
+    real(rkind),allocatable, dimension(:,:) :: B_m, dBmdpsi
+    real(rkind),allocatable, dimension(:) :: dFdpsi
+    real(rkind) :: cxi
+    integer :: nth,np,nr,nsa
+    integer :: ir, mode
+
+    !**** For orbit_p
+
+    !**** Initialization
+    allocate(Gm(nthmax,nrmax,nsamax))
+    allocate(B_m(nthmax,nrmax), dBmdpsi(nthmax,nrmax))
+    allocate(dFdpsi(NRMAX))
+
+    do nsa = 1, nsamax
+
+      do nr = 1, nrmax
+        do np = 1,npmax
+          do nth = 1, nthmax
+
+          cxi = cos(thetam_pg(nth,np,nr,nsa))
+
+          if ( aefp(nsa)*cxi <= 0.d0 ) then
+            B_m(nth,nr) = Bin(nr)
+          else
+            B_m(nth,nr) = Bout(nr)
+          end if
+
+          end do
+        end do
+      end do
+  
+        do nr = 1, nrmax
+          do nth = 1, nthmax
+            Gm(nth,nr,nsa) = aefp(nsa)*B_m(nth,nr)*psim(nr)/(amfp(nsa)*vc*Fpsi(nr))
+          end do
+        end do
+
+      call first_order_derivative(dFdpsi, Fpsi, psim)
+
+      do nth = 1, nthmax
+        call first_order_derivative(dBmdpsi(nth,:), B_m(nth,:), psim)
+      end do
+    
+      do nr = 1, nrmax
+        do np = 1, npmax+1
+          do nth = 1, nthmax
+
+            cxi = cos(thetam_pg(nth,np,nr,nsa))
+
+            if ( cxi == 0.d0 ) then
+              pm_stg_pg(nth,np,nr,nsa) = 0.d0
+              cycle
+            end if
+
+            F_p = dFdpsi(nr)*psim(nr)/Fpsi(nr)
+            B_p = dBmdpsi(nth,nr)*psim(nr)/B_m(nth,nr)
+
+            v_stagnation_orbit = Gm(nth,nr,nsa)*cxi/(cxi**2*F_p-0.5d0*(1.d0+cxi**2)*B_p) ! LHS = gamma*beta 
+            v_stagnation_orbit = vc*sqrt(v_stagnation_orbit**2/(1.d0+v_stagnation_orbit**2)) ! LHS = velocity of stagnation orbit
+  
+            pm_stg_pg(nth,np,nr,nsa) = v_stagnation_orbit/vc
+            ! write(*,*) v_stag(nth,np,nr,nsa)
+          end do
+        end do
+      end do
+
+    end do !** nsa
+
+    deallocate(Gm)
+    deallocate(B_m)
+    deallocate(dBmdpsi)
+    
+    !**** For orbit_th
+    allocate(Gm(nthmax+1,nrmax,nsamax))
+    allocate(B_m(nthmax+1,nrmax), dBmdpsi(nthmax+1,nrmax))
+
+    do nsa = 1, nsamax
+
+      do nr = 1, nrmax
+        do np = 1,npmax
+          do nth = 1, nthmax+1
+
+            cxi = cos(thetam_tg(nth,np,nr,nsa))
+
+            if ( aefp(nsa)*cxi <= 0.d0 ) then
+              B_m(nth,nr) = Bin(nr)
+            else
+              B_m(nth,nr) = Bout(nr)
+            end if
+
+          end do
+        end do
+      end do
+  
+        do nr = 1, nrmax
+          do nth = 1, nthmax+1
+            Gm(nth,nr,nsa) = aefp(nsa)*B_m(nth,nr)*psim(nr)/(amfp(nsa)*vc*Fpsi(nr))
+          end do
+        end do
+
+      call first_order_derivative(dFdpsi, Fpsi, psim)
+
+      do nth = 1, nthmax+1
+        call first_order_derivative(dBmdpsi(nth,:), B_m(nth,:), psim)
+      end do
+    
+      do nr = 1, nrmax
+        do np = 1, npmax
+          do nth = 1, nthmax+1
+            cxi = cos(thetam_tg(nth,np,nr,nsa))
+            if ( cxi == 0.d0 ) then
+              pm_stg_tg(nth,np,nr,nsa) = 0.d0
+              cycle
+            end if
+
+            F_p = dFdpsi(nr)*psim(nr)/Fpsi(nr)
+            B_p = dBmdpsi(nth,nr)*psim(nr)/B_m(nth,nr)
+
+            v_stagnation_orbit = Gm(nth,nr,nsa)*cxi/(cxi**2*F_p-0.5d0*(1.d0+cxi**2)*B_p) ! LHS = gamma*beta 
+            v_stagnation_orbit = vc*sqrt(v_stagnation_orbit**2/(1.d0+v_stagnation_orbit**2)) ! LHS = velocity of stagnation orbit
+  
+            pm_stg_tg(nth,np,nr,nsa) = v_stagnation_orbit/vc
+            ! write(*,*)"Fpsi:",nr,Fpsi(nr)
+          end do
+        end do
+      end do
+    end do !** nsa
+
+    deallocate(Gm)
+    deallocate(B_m)
+    deallocate(dBmdpsi)
+    deallocate(dFdpsi)
+
+    !**** For orbit_r
+
+    !**** Initialization
+    allocate(Gm(nthmax,nrmax+1,nsamax))
+    allocate(B_m(nthmax,nrmax+1), dBmdpsi(nthmax,nrmax+1))
+    allocate(dFdpsi(nrmax+1))
+
+    do nsa = 1, nsamax
+
+      do nr = 1, nrmax+1
+        do np = 1,npmax
+          do nth = 1, nthmax
+            cxi = cos(thetam_rg(nth,np,nr,nsa))
+            if ( aefp(nsa)*cxi <= 0.d0 ) then
+              B_m(nth,nr) = Bin_rg(nr)
+            else
+              B_m(nth,nr) = Bout_rg(nr)
+            end if
+          end do
+        end do
+      end do
+  
+        do nr = 1, nrmax+1
+          do nth = 1, nthmax
+            Gm(nth,nr,nsa) = aefp(nsa)*B_m(nth,nr)*psim_rg(nr)/(amfp(nsa)*vc*Fpsi_rg(nr))
+          end do
+        end do
+
+      call first_order_derivative(dFdpsi, Fpsi_rg, psim_rg)
+
+      do nth = 1, nthmax
+        call first_order_derivative(dBmdpsi(nth,:), B_m(nth,:), psim_rg)
+      end do
+      
+      do nr = 1, nrmax+1
+        do np = 1, npmax
+          do nth = 1, nthmax
+
+            cxi = cos(thetam_rg(nth,np,nr,nsa))
+
+            if ( cxi == 0.d0 ) then
+              pm_stg_rg(nth,np,nr,nsa) = 0.d0
+              cycle
+            end if
+
+            F_p = dFdpsi(nr)*psim_rg(nr)/Fpsi_rg(nr)
+            B_p = dBmdpsi(nth,nr)*psim_rg(nr)/B_m(nth,nr)
+            !** For Floating point exception
+            if(abs(F_p) == 0.d0 .and. abs(B_p) == 0.d0) then
+              pm_stg_rg(nth,np,nr,nsa) = pm(np,nsa)*PTFP0(nsa)/AMFP(nsa)/vc
+              cycle
+            end if
+
+            v_stagnation_orbit = Gm(nth,nr,nsa)*cxi/(cxi**2.d0*F_p-0.5d0*(1.d0+cxi**2.d0)*B_p) ! LHS = gamma*beta 
+            v_stagnation_orbit = vc*sqrt(v_stagnation_orbit**2.d0/(1.d0+v_stagnation_orbit**2.d0)) ! LHS = velocity of stagnation orbit
+  
+            pm_stg_rg(nth,np,nr,nsa) = v_stagnation_orbit/vc
+            ! write(*,*) v_stag(nth,np,nr,nsa)
+          end do
+        end do
+      end do
+    end do !** nsa
+
+    deallocate(Gm)
+    deallocate(B_m)
+    deallocate(dBmdpsi)
+    deallocate(dFdpsi)
+
+
+  end subroutine make_stag_surfece_v
 
   subroutine save_local_COM(ierr)
     !===============================================
@@ -2027,9 +2249,10 @@ contains
     real(rkind) :: J_x2z, J_z2I, tau_p, dBmdrl, pv, Bml, pl, m0, sthm, cthm
     real(rkind) :: dedp, dmudthm, dmudrm, dPzdthm, dPzdrm
     !***** for JIR
-    real(rkind) :: r0, psip0, costh0, sinth0, B0, F0, dBdr0, dFdr0, dpsipdr0, drmdr0
+    real(rkind) :: r0, psip0, cth0, sth0, B0, F0, dBdr0, dFdr0, dpsipdr0, drmdr0
     real(rkind) :: A(2,2), b(2), detA
     real(rkind) :: sumU, sumI, normalize
+    real(rkind), dimension(nthmax,npmax,nrmax,nsamax) :: drmdrl, rl0
 
     ierr = 0
 
@@ -2039,31 +2262,44 @@ contains
       do nr = 1, nrmax
         do np = 1, npmax
           pl = pm(np,nsa)*ptfp0(nsa)
-          do nth = 1, nthmax
+            do nth = 1, nthmax
+
+          ! write(*,*)"PM:",pl/AMFP(nsa)
+            ! nstpmax = orbit_m(nth,np,nr,nsa)%nstp_max
             cthm = COS( thetam(nth,np,nr,nsa) )
             sthm = SIN( thetam(nth,np,nr,nsa) )
-            if ( cthm*aefp(nsa) >= 0.d0 ) then
-              dBmdrl = dBoutdr(nr)
-              Bml = Bout(nr)
-            else
-              dBmdrl = dBindr(nr)
-              Bml = Bin(nr)
-            end if
-            pv = SQRT(1.d0+theta0(nsa)*pm(np,nsa)**2)
+          
             nstpmax = orbit_m(nth,np,nr,nsa)%nstp_max
             tau_p = orbit_m(nth,np,nr,nsa)%time(nstpmax)
+            ! pl = pm(np,nsa)*ptfp0(nsa)
+            ! pv = SQRT(1.d0+theta0(nsa)*pm(np,nsa)**2)
+          ! end if
+          ! end if
+              ! cthm = COS( thetam(nth,np,nr,nsa) )
+              ! sthm = SIN( thetam(nth,np,nr,nsa) )
+              if ( cthm*aefp(nsa) >= 0.d0 ) then
+                dBmdrl = dBoutdr(nr)
+                Bml = Bout(nr)
+              else
+                dBmdrl = dBindr(nr)
+                Bml = Bin(nr)
+              end if
+              pv = SQRT(1.d0+theta0(nsa)*pm(np,nsa)**2)
+              ! nstpmax = orbit_m(nth,np,nr,nsa)%nstp_max
+              ! tau_p = orbit_m(nth,np,nr,nsa)%time(nstpmax)
 
-            J_x2z = 2.d0*pi*tau_p/(m0**2*ABS(aefp(nsa))) ! *1/2pi For New Definition by anzai [2022/7/19]
+              ! J_x2z = 2.d0*pi*tau_p/(m0**2*ABS(aefp(nsa))) ! *1/2pi For New Definition by anzai [2022/7/19]
+              J_x2z = 4.d0*pi**2.d0*tau_p/(m0**2*ABS(aefp(nsa))) ! *1/2pi For New Definition by anzai [2022/7/19]
 
-            dedp    = pl/(m0*pv)
-            dmudthm = pl**2*cthm*sthm/(m0*Bml)
-            dmudrm  = -1.d0*pl**2*sthm**2/(2.d0*m0)*dBmdrl/Bml**2
-            dPzdthm = -1.d0*Fpsi(nr)/Bml*pl*sthm
-            dPzdrm  = (Bml*dFdr(nr)-dBmdrl*Fpsi(nr))/Bml**2*pl*cthm-aefp(nsa)*dpsimdr(nr)
+              dedp    = pl/(m0*pv)
+              dmudthm = pl**2*cthm*sthm/(m0*Bml)
+              dmudrm  = -1.d0*pl**2*sthm**2/(2.d0*m0)*dBmdrl/Bml**2
+              dPzdthm = -1.d0*Fpsi(nr)/Bml*pl*sthm
+              dPzdrm  = (Bml*dFdr(nr)-dBmdrl*Fpsi(nr))/Bml**2*pl*cthm-aefp(nsa)*dpsimdr(nr)
 
-            J_z2I = ABS( dedp * (dmudthm*dPzdrm - dmudrm*dPzdthm) )
+              J_z2I = ABS( dedp * (dmudthm*dPzdrm - dmudrm*dPzdthm) )
 
-            JI(nth,np,nr,nsa) = J_x2z * J_z2I
+              JI(nth,np,nr,nsa) = J_x2z * J_z2I
 
           end do
         end do
@@ -2071,39 +2307,42 @@ contains
     end do
 
     !**** calculate JIR
-    !**** Do not Use this param [2022/7/19]
+    call make_jacobian_coef(rl0,drmdrl)
     do nsa = 1, nsamax
       do nr = 1, nrmax
         do np = 1, npmax
-          pl = pm(np,nsa)*ptfp0(nsa)
+          ! pl = pm(np,nsa)*ptfp0(nsa)
           do nth = 1, nthmax
-            cthm = COS( thetam(nth,np,nr,nsa) )
-            sthm = SIN( thetam(nth,np,nr,nsa) )
-            if ( cthm*aefp(nsa) >= 0.d0 ) then
-              Bml = Bout(nr)
-              dBmdrl = dBoutdr(nr)
-            else
-              Bml = Bin(nr)
-              dBmdrl = dBindr(nr)
-            end if
+            ! cthm = COS( thetam(nth,np,nr,nsa) )
+            ! sthm = SIN( thetam(nth,np,nr,nsa) )
+            ! if ( cthm*aefp(nsa) >= 0.d0 ) then
+            !   Bml = Bout(nr)
+            !   dBmdrl = dBoutdr(nr)
+            ! else
+            !   Bml = Bin(nr)
+            !   dBmdrl = dBindr(nr)
+            ! end if
 
-            call mean_ra_quantities(orbit_m(nth,np,nr,nsa), r0, psip0, costh0, sinth0, B0, F0, dBdr0, dFdr0, dpsipdr0)
+            ! call mean_ra_quantities(orbit_m(nth,np,nr,nsa), r0, psip0, cth0, sth0, B0, F0, dBdr0, dFdr0, dpsipdr0)
 
-            A(1,1) = 2.d0*sthm*cthm/Bml
-            A(1,2) = -1.d0*sthm**2*dBmdrl/Bml**2
-            A(2,1) = Fpsi(nr)/Bml*pl*sthm
-            A(2,2) = aefp(nsa)*dpsimdr(nr)-( dFdr(nr)*Bml-Fpsi(nr)*dBmdrl )/Bml**2*pl*cthm
-            detA = A(1,1)*A(2,2)-A(1,2)*A(2,1)
+            ! A(1,1) = 2.d0*sthm*cthm/Bml
+            ! A(1,2) = -1.d0*sthm**2*dBmdrl/Bml**2
+            ! A(2,1) = Fpsi(nr)/Bml*pl*sthm
+            ! A(2,2) = aefp(nsa)*dpsimdr(nr)-( dFdr(nr)*Bml-Fpsi(nr)*dBmdrl )/Bml**2*pl*cthm
+            ! detA = A(1,1)*A(2,2)-A(1,2)*A(2,1)
 
-            if ( detA /= 0.d0 ) then
-              b(1) = -1.d0*sinth0**2/B0**2*dBdr0
-              b(2) = aefp(nsa)*dpsipdr0 - ( dFdr0*B0-F0*dBdr0 )/B0**2*pl*costh0
-              drmdr0 = (A(1,1)*b(2)-A(2,1)*b(1))/detA
-            else
-              drmdr0 = 1.d0
-            end if
+            ! if ( detA /= 0.d0 ) then
+            !   b(1) = -1.d0*sth0**2/B0**2*dBdr0
+            !   b(2) = aefp(nsa)*dpsipdr0 - ( dFdr0*B0-F0*dBdr0 )/B0**2*pl*cth0
+            !   drmdr0 = (A(1,1)*b(2)-A(2,1)*b(1))/detA
+            ! else
+            !   drmdr0 = 1.d0
+            ! end if
 
-            JIR(nth,np,nr,nsa) = JI(nth,np,nr,nsa)*ABS( drmdr0 )/r0
+
+            ! write(*,*)"r0:",r0
+            ! JIR(nth,np,nr,nsa) = JI(nth,np,nr,nsa)*ABS( drmdr0 )/r0
+            JIR(nth,np,nr,nsa) = JI(nth,np,nr,nsa)*ABS( drmdrl(nth,np,nr,nsa) )/rl0(nth,np,nr,nsa)
           end do
         end do
       end do
@@ -2125,8 +2364,8 @@ contains
       do nr = 1, nrmax
         do np = 1, npmax
           do nth = 1, nthmax
-            JI(nth,np,nr,nsa)  = JI(nth,np,nr,nsa) * normalize
-            JIR(nth,np,nr,nsa) = JIR(nth,np,nr,nsa) * normalize
+            JI(nth,np,nr,nsa)  = JI(nth,np,nr,nsa) * normalize 
+            JIR(nth,np,nr,nsa) = JIR(nth,np,nr,nsa) * normalize 
           end do
         end do
       end do
@@ -2134,5 +2373,90 @@ contains
     end do
 
   end subroutine calculate_jacobian
+
+  subroutine make_jacobian_coef(rl0,drmdrl)
+  !----------------------------------------------
+  ! Make coef of jacobian
+  !----------------------------------------------
+
+    use fpcomm
+    use fowcomm
+
+    implicit none
+    type(orbit) :: ob
+    real(rkind) :: r0, psip0, cth0, sth0
+    real(rkind) :: B0, F0, dBdr0, dFdr0, dpsipdr0
+    real(rkind) :: dBmdrl, pv, Bml, pl, m0, sthm, cthm, drmdr0
+    real(rkind), dimension(nthmax,npmax,nrmax,nsamax), intent(out) :: drmdrl, rl0
+    real(rkind) :: int, dt, sumr
+    real(rkind) :: A(2,2), b(2), detA
+    integer :: nstp, nstpmax, nstp0,nth,np,nr,nsa
+
+    !**** Initialization
+    drmdrl(:,:,:,:) = 0.d0
+    rl0(:,:,:,:) = 0.d0
+
+    do nsa = 1, nsamax
+      do nr = 1, nrmax
+        do np = 1, npmax
+          pl = pm(np,nsa)*ptfp0(nsa)
+          do nth = 1, nthmax
+
+            ob = orbit_m(nth,np,nr,nsa)
+
+            cthm = COS( thetam(nth,np,nr,nsa) )
+            sthm = SIN( thetam(nth,np,nr,nsa) )
+            if ( cthm*aefp(nsa) >= 0.d0 ) then
+              Bml = Bout(nr)
+              dBmdrl = dBoutdr(nr)
+            else
+              Bml = Bin(nr)
+              dBmdrl = dBindr(nr)
+            end if
+
+            A(1,1) = 2.d0*sthm*cthm/Bml
+            A(1,2) = -1.d0*sthm**2*dBmdrl/Bml**2
+            A(2,1) = Fpsi(nr)/Bml*pl*sthm
+            A(2,2) = aefp(nsa)*dpsimdr(nr)-( dFdr(nr)*Bml-Fpsi(nr)*dBmdrl )/Bml**2*pl*cthm
+            detA = A(1,1)*A(2,2)-A(1,2)*A(2,1)
+
+            nstpmax = ob%nstp_max
+            
+            sumr = 0.d0
+            do nstp = 2, nstpmax
+              dt  = ob%time(nstp)-ob%time(nstp-1)
+              int = (ob%r(nstp)+ ob%r(nstp-1))*0.5d0
+              sumr = sumr + int*dt
+
+              psip0  = (ob%psip(nstp)+ob%psip(nstp-1))*0.5d0
+              cth0 = (ob%costh(nstp)+ob%costh(nstp-1))*0.5d0
+              sth0 = (ob%sinth(nstp)+ob%sinth(nstp-1))*0.5d0
+              B0 = (ob%Babs(nstp)+ob%Babs(nstp-1))*0.5d0
+              F0 = (ob%F(nstp)+ob%F(nstp-1))*0.5d0
+              dBdr0 = (ob%dBdr(nstp)+ob%dBdr(nstp-1))*0.5d0
+              dFdr0 = (ob%dFdr(nstp)+ob%dFdr(nstp-1))*0.5d0
+              dpsipdr0 = (ob%dpsipdr(nstp)+ob%dpsipdr(nstp-1))*0.5d0
+
+            if ( detA /= 0.d0 ) then
+              b(1) = -1.d0*sth0**2/B0**2*dBdr0
+              b(2) = aefp(nsa)*dpsipdr0 - ( dFdr0*B0-F0*dBdr0 )/B0**2*pl*cth0
+              drmdr0 = (A(1,1)*b(2)-A(2,1)*b(1))/detA
+            else
+              drmdr0 = 1.d0
+            end if
+
+              drmdrl(nth,np,nr,nsa) = drmdrl(nth,np,nr,nsa) + drmdr0*dt
+
+            end do
+            
+            rl0(nth,np,nr,nsa) = sumr/ob%time(nstpmax)
+            drmdrl(nth,np,nr,nsa) = drmdrl(nth,np,nr,nsa)/ob%time(nstpmax)
+
+          end do
+        end do
+      end do
+    end do
+
+  end subroutine make_jacobian_coef
 
 end module fowprep
