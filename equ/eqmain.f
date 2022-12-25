@@ -13,7 +13,6 @@ c
       write(6,*) '## topics/equ 2006/08/24'
       call gsopen
       open(7,STATUS='SCRATCH',FORM='FORMATTED')
-c
       call equ_init
       call tr_init
 c

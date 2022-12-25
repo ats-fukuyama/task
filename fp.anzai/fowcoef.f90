@@ -104,8 +104,10 @@ contains
                 check_zeroF(1,nsa)   = check_zeroF(1,nsa)   + ( Fppl(nth,np,nr,nthp,nsa) )
 
                 ! if(DCPP(nth,np,nr,nsa)<1.d-70) write(*,*)"Dppl:",DCPP(nth,np,nr,1),DCpp(nth,np,nr,2)
+                ! write(*,*)"Dppl:",DCPP(nth,np,nr,1),DCpp(nth,np,nr,2)
                 ! if(DCPT(nth,np,nr,nsa)<0.d0) write(*,*)"Dptl:",DCPT(nth,np,nr,1),DCpt(nth,np,nr,2)
-                !if(fCPP(nth,np,nr,nsa)<1.d-70) 
+                ! write(*,*)"Dptl:",DCPT(nth,np,nr,1),DCpt(nth,np,nr,2)
+                !if(fCPP(nth,np,nr,nsa)<1.d-70) write(*,*)"fppl:",fCPP(nth,np,nr,1),fCpp(nth,np,nr,2)
                 ! write(*,*)"fppl:",fCPP(nth,np,nr,1),fCpp(nth,np,nr,2)
               end if
               if ( np /= npmax+1 ) then
@@ -121,8 +123,11 @@ contains
                 check_zeroF(2,nsa)   = check_zeroF(2,nsa)   + ( Fthl(nth,np,nr,nthp,nsa) )
 
                 ! if(DCTP(nth,np,nr,nsa)<1.d-70) write(*,*)"Dptpl:",DCtP(nth,np,nr,1),DCtp(nth,np,nr,2)
+                ! write(*,*)"Dptpl:",DCtP(nth,np,nr,1),DCtp(nth,np,nr,2)
                 ! if(DCTT(nth,np,nr,nsa)<1.d-70) write(*,*)"Dttl:",DCtt(nth,np,nr,1),DCtt(nth,np,nr,2)
+                ! write(*,*)"Dttl:",DCtt(nth,np,nr,1),DCtt(nth,np,nr,2)
                 !if(fCth(nth,np,nr,nsa)<0.d0) write(*,*)"fthl:",fCth(nth,np,nr,1),fCth(nth,np,nr,2)
+                ! write(*,*)"fthl:",fCth(nth,np,nr,1),fCth(nth,np,nr,2)
               end if
 
             end do
@@ -203,17 +208,11 @@ contains
       ! if ( check_zeroF(1,nsa) >= 1.d-70 )   call make_U_Dxy(U_Fpp, Fppl, 'p', nsa)
       ! if ( check_zeroF(2,nsa) >= 1.d-70 )   call make_U_Dxy(U_Fth, Fthl, 't', nsa)  
       !================ NEW =================
-      !if ( check_zeroD(1,1,nsa) >= 1.d-70 ) 
       call make_U_Dxy(U_Dpp, Dppl, 'p', nsa)
-      !if ( check_zeroD(1,2,nsa) >= 1.d-70 ) 
       call make_U_Dxy(U_Dpt, Dptl, 'p', nsa)
-      !if ( check_zeroD(2,1,nsa) >= 1.d-70 ) 
       call make_U_Dxy(U_Dtp, Dtpl, 't', nsa)
-      !if ( check_zeroD(2,2,nsa) >= 1.d-70 ) 
       call make_U_Dxy(U_Dtt, Dttl, 't', nsa)
-      !if ( check_zeroF(1,nsa) >= 1.d-70 )   
       call make_U_Dxy(U_Fpp, Fppl, 'p', nsa)
-      !if ( check_zeroF(2,nsa) >= 1.d-70 )   
       call make_U_Dxy(U_Fth, Fthl, 't', nsa)  
     end do
 
@@ -241,12 +240,13 @@ contains
               
               !****[ calucurate local coefficient along orbit
               ! Dxx(p_orbit, theta_orbit, psip_orbit, thetap_orbit) ]
-
+              ! write(*,*)"checked_p1"
               ! call interpolate_D_unlessZero(Dpp_ob, U_Dpp(:,:,:,:,:,:,np,nsa), check_zeroD(1,1,nsa), cpitch_ob, psip_ob, thetap_ob) !** original
               ! call interpolate_D_unlessZero(D_pls, U_Dpp(:,:,:,:,:,:,np+1,nsa), check_zeroD(1,1,nsa), cpitch_ob, psip_ob, thetap_ob)
               ! call interpolate_D_unlessZero(D_mns, U_Dpp(:,:,:,:,:,:,np,nsa), check_zeroD(1,1,nsa), cpitch_ob, psip_ob, thetap_ob)
               call interpolate_D_unlessZero(D_pls, U_Dpp(:,:,:,:,:,:,np+1,nsa), check_zeroD(1,1,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! write(*,*)"checked_p2"
               call interpolate_D_unlessZero(D_mns, U_Dpp(:,:,:,:,:,:,np,nsa), check_zeroD(1,1,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
               Dpp_ob = (D_pls+D_mns)/2.d0
@@ -254,8 +254,10 @@ contains
               ! call interpolate_D_unlessZero(Dpt_ob, U_Dpt(:,:,:,:,:,:,np,nsa), check_zeroD(1,2,nsa), cpitch_ob, psip_ob, thetap_ob) !** original
               ! call interpolate_D_unlessZero(D_pls, U_Dpt(:,:,:,:,:,:,np+1,nsa), check_zeroD(1,2,nsa), cpitch_ob, psip_ob, thetap_ob)
               ! call interpolate_D_unlessZero(D_mns, U_Dpt(:,:,:,:,:,:,np,nsa), check_zeroD(1,2,nsa), cpitch_ob, psip_ob, thetap_ob)
+              ! write(*,*)"checked_p3"
               call interpolate_D_unlessZero(D_pls, U_Dpt(:,:,:,:,:,:,np+1,nsa), check_zeroD(1,2,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! write(*,*)"checked_p4"
               call interpolate_D_unlessZero(D_mns, U_Dpt(:,:,:,:,:,:,np,nsa), check_zeroD(1,2,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
               Dpt_ob = (D_pls+D_mns)/2.d0
@@ -263,8 +265,10 @@ contains
               ! call interpolate_D_unlessZero(Fpp_ob, U_Fpp(:,:,:,:,:,:,np,nsa), check_zeroF(1,nsa), cpitch_ob, psip_ob, thetap_ob) !** original
               ! call interpolate_D_unlessZero(D_pls, U_Fpp(:,:,:,:,:,:,np+1,nsa), check_zeroF(1,nsa), cpitch_ob, psip_ob, thetap_ob)
               ! call interpolate_D_unlessZero(D_mns, U_Fpp(:,:,:,:,:,:,np,nsa), check_zeroF(1,nsa), cpitch_ob, psip_ob, thetap_ob)
+              ! write(*,*)"checked_p5"
               call interpolate_D_unlessZero(D_pls, U_Fpp(:,:,:,:,:,:,np+1,nsa), check_zeroF(1,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! write(*,*)"checked_p6"
               call interpolate_D_unlessZero(D_mns, U_Fpp(:,:,:,:,:,:,np,nsa), check_zeroF(1,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
               Fpp_ob = (D_pls+D_mns)/2.d0
@@ -347,24 +351,30 @@ contains
 
               ! call interpolate_D_unlessZero(D_pls, U_Dpp(:,:,:,:,:,:,np+1,nsa), check_zeroD(1,1,nsa), cpitch_ob, psip_ob, thetap_ob)
               ! call interpolate_D_unlessZero(D_mns, U_Dpp(:,:,:,:,:,:,np,nsa), check_zeroD(1,1,nsa), cpitch_ob, psip_ob, thetap_ob)
+              ! write(*,*)"checked_t1"
               call interpolate_D_unlessZero(D_pls, U_Dpp(:,:,:,:,:,:,np+1,nsa), check_zeroD(1,1,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! write(*,*)"checked_t2"
               call interpolate_D_unlessZero(D_mns, U_Dpp(:,:,:,:,:,:,np,nsa), check_zeroD(1,1,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
               Dpp_ob = (D_pls+D_mns)/2.d0
 
               ! call interpolate_D_unlessZero(D_pls, U_Dpt(:,:,:,:,:,:,np+1,nsa), check_zeroD(1,2,nsa), cpitch_ob, psip_ob, thetap_ob)
               ! call interpolate_D_unlessZero(D_mns, U_Dpt(:,:,:,:,:,:,np,nsa), check_zeroD(1,2,nsa), cpitch_ob, psip_ob, thetap_ob)
+              ! write(*,*)"checked_t3"
               call interpolate_D_unlessZero(D_pls, U_Dpt(:,:,:,:,:,:,np+1,nsa), check_zeroD(1,2,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! write(*,*)"checked_t4"
               call interpolate_D_unlessZero(D_mns, U_Dpt(:,:,:,:,:,:,np,nsa), check_zeroD(1,2,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
               Dpt_ob = (D_pls+D_mns)/2.d0
 
               ! call interpolate_D_unlessZero(D_pls, U_Fpp(:,:,:,:,:,:,np+1,nsa), check_zeroF(1,nsa), cpitch_ob, psip_ob, thetap_ob)
               ! call interpolate_D_unlessZero(D_mns, U_Fpp(:,:,:,:,:,:,np,nsa), check_zeroF(1,nsa), cpitch_ob, psip_ob, thetap_ob)
+              ! write(*,*)"checked_t5"
               call interpolate_D_unlessZero(D_pls, U_Fpp(:,:,:,:,:,:,np+1,nsa), check_zeroF(1,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! write(*,*)"checked_t6"
               call interpolate_D_unlessZero(D_mns, U_Fpp(:,:,:,:,:,:,np,nsa), check_zeroF(1,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
               Fpp_ob = (D_pls+D_mns)/2.d0
@@ -373,8 +383,12 @@ contains
               ! call interpolate_D_unlessZero(Dtp_ob, U_Dtp(:,:,:,:,:,:,np,nsa), check_zeroD(2,1,nsa), cpitch_ob, psip_ob, thetap_ob) !** original
               ! call interpolate_D_unlessZero(D_pls, U_Dtp(:,:,:,:,:,:,np+1,nsa), check_zeroD(2,1,nsa), cpitch_ob, psip_ob, thetap_ob)
               ! call interpolate_D_unlessZero(D_mns, U_Dtp(:,:,:,:,:,:,np,nsa), check_zeroD(2,1,nsa), cpitch_ob, psip_ob, thetap_ob)
-              call interpolate_D_unlessZero(D_pls, U_Dtp(:,:,:,:,:,:,np+1,nsa), check_zeroD(2,1,nsa), cpitch_ob, &
+              ! write(*,*)"checked_t7"
+              call interpolate_D_unlessZero(D_pls, U_Dtp(:,:,:,:,:,:,np,nsa), check_zeroD(2,1,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! call interpolate_D_unlessZero(D_pls, U_Dtp(:,:,:,:,:,:,np+1,nsa), check_zeroD(2,1,nsa), cpitch_ob, &
+              !                               psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! write(*,*)"checked_t8"
               call interpolate_D_unlessZero(D_mns, U_Dtp(:,:,:,:,:,:,np,nsa), check_zeroD(2,1,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
               Dtp_ob = (D_pls+D_mns)/2.d0
@@ -382,8 +396,12 @@ contains
               ! call interpolate_D_unlessZero(Dtt_ob, U_Dtt(:,:,:,:,:,:,np,nsa), check_zeroD(2,2,nsa), cpitch_ob, psip_ob, thetap_ob) !** original
               ! call interpolate_D_unlessZero(D_pls, U_Dtt(:,:,:,:,:,:,np+1,nsa), check_zeroD(2,2,nsa), cpitch_ob, psip_ob, thetap_ob)
               ! call interpolate_D_unlessZero(D_mns, U_Dtt(:,:,:,:,:,:,np,nsa), check_zeroD(2,2,nsa), cpitch_ob, psip_ob, thetap_ob)
-              call interpolate_D_unlessZero(D_pls, U_Dtt(:,:,:,:,:,:,np+1,nsa), check_zeroD(2,2,nsa), cpitch_ob, &
+              ! write(*,*)"checked_t9"
+              call interpolate_D_unlessZero(D_pls, U_Dtt(:,:,:,:,:,:,np,nsa), check_zeroD(2,2,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! call interpolate_D_unlessZero(D_pls, U_Dtt(:,:,:,:,:,:,np+1,nsa), check_zeroD(2,2,nsa), cpitch_ob, &
+              !                               psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! write(*,*)"checked_t10"
               call interpolate_D_unlessZero(D_mns, U_Dtt(:,:,:,:,:,:,np,nsa), check_zeroD(2,2,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
               Dtt_ob = (D_pls+D_mns)/2.d0
@@ -391,8 +409,12 @@ contains
               ! call interpolate_D_unlessZero(Fth_ob, U_Fth(:,:,:,:,:,:,np,nsa), check_zeroF(2,nsa), cpitch_ob, psip_ob, thetap_ob) !**original
               ! call interpolate_D_unlessZero(D_pls, U_Fth(:,:,:,:,:,:,np+1,nsa), check_zeroF(2,nsa), cpitch_ob, psip_ob, thetap_ob)
               ! call interpolate_D_unlessZero(D_mns, U_Fth(:,:,:,:,:,:,np,nsa), check_zeroF(2,nsa), cpitch_ob, psip_ob, thetap_ob)
-              call interpolate_D_unlessZero(D_pls, U_Fth(:,:,:,:,:,:,np+1,nsa), check_zeroF(2,nsa), cpitch_ob, &
+              ! write(*,*)"checked_t11"
+              call interpolate_D_unlessZero(D_pls, U_Fth(:,:,:,:,:,:,np,nsa), check_zeroF(2,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! call interpolate_D_unlessZero(D_pls, U_Fth(:,:,:,:,:,:,np+1,nsa), check_zeroF(2,nsa), cpitch_ob, &
+              !                               psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! write(*,*)"checked_t12"
               call interpolate_D_unlessZero(D_mns, U_Fth(:,:,:,:,:,:,np,nsa), check_zeroF(2,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
               Fth_ob = (D_pls+D_mns)/2.d0
@@ -417,8 +439,9 @@ contains
 
             ! if ( nth == nth_pnc_tg(np,nr,nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
             ! ! if ( nth == nth_pnc(nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
-            !   JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
-            !         + JI(nth_stg_tg(np,nr,nsa)+1,np,nr,nsa)*IBCflux_ratio(np,nr,nsa))
+            !   !--------------------- new ----------------------------------------------------
+            !   ! JIl = ( JI(nth-1,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa))&
+            !   !       + JI(nth_stg_tg(np,nr,nsa)+1,np,nr,nsa)*IBCflux_ratio(np,nr,nsa))
             !   ! JIl = ( JI(nth-1,np,nr,nsa)*IBCflux_ratio(np,nr,nsa)&
             !   !       * orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
             !   !       + JI(nth,np,nr,nsa)*(1.d0 - IBCflux_ratio(np,nr,nsa)) &
@@ -448,9 +471,9 @@ contains
             !   !       /(orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)+ &
             !   !       orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))
             !   !======================== original version ==============================
-            !   ! JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
-            !   !       +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
-            !   !       *0.5d0*orbit_th(nth,np,nr,nsa)%time(nstpmax)
+            !   JIl = (JI(nth-1,np,nr,nsa)*orbit_m(nth-1,np,nr,nsa)%time(orbit_m(nth-1,np,nr,nsa)%nstp_max)&
+            !         +JI(nth,np,nr,nsa)*orbit_m(nth,np,nr,nsa)%time(orbit_m(nth,np,nr,nsa)%nstp_max))&
+            !         *0.5d0*orbit_th(nth,np,nr,nsa)%time(nstpmax)
 
             ! else if ( nth == 1 ) then
             !   JIl = JI(nth,np,nr,nsa)
@@ -460,10 +483,10 @@ contains
             !   JIl = (JI(nth,np,nr,nsa)+JI(nth-1,np,nr,nsa))*0.5d0
             ! end if
 
-            Dtpfow(nth,np,nr,nsa) = Dtpfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax)! * JIl
-            Dttfow(nth,np,nr,nsa) = Dttfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax)! * JIl
-            Dtrfow(nth,np,nr,nsa) = Dtrfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax)! * JIl      
-            Fthfow(nth,np,nr,nsa) = Fthfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax)! * JIl
+            Dtpfow(nth,np,nr,nsa) = Dtpfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax) !* JIl
+            Dttfow(nth,np,nr,nsa) = Dttfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax) !* JIl
+            Dtrfow(nth,np,nr,nsa) = Dtrfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax) !* JIl      
+            Fthfow(nth,np,nr,nsa) = Fthfow(nth,np,nr,nsa) / orbit_th(nth,np,nr,nsa)%time(nstpmax) !* JIl
 
           end do
         end do
@@ -496,24 +519,30 @@ contains
               ! Dxx(p_orbit, theta_orbit, psip_orbit, thetap_orbit) ]
               ! call interpolate_D_unlessZero(D_pls, U_Dpp(:,:,:,:,:,:,np+1,nsa), check_zeroD(1,1,nsa), cpitch_ob, psip_ob, thetap_ob)
               ! call interpolate_D_unlessZero(D_mns, U_Dpp(:,:,:,:,:,:,np,nsa), check_zeroD(1,1,nsa), cpitch_ob, psip_ob, thetap_ob)
+              ! write(*,*)"checked_r1"
               call interpolate_D_unlessZero(D_pls, U_Dpp(:,:,:,:,:,:,np+1,nsa), check_zeroD(1,1,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! write(*,*)"checked_r2"
               call interpolate_D_unlessZero(D_mns, U_Dpp(:,:,:,:,:,:,np,nsa), check_zeroD(1,1,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
               Dpp_ob = (D_pls+D_mns)/2.d0
 
               ! call interpolate_D_unlessZero(D_pls, U_Dpt(:,:,:,:,:,:,np+1,nsa), check_zeroD(1,2,nsa), cpitch_ob, psip_ob, thetap_ob)
               ! call interpolate_D_unlessZero(D_mns, U_Dpt(:,:,:,:,:,:,np,nsa), check_zeroD(1,2,nsa), cpitch_ob, psip_ob, thetap_ob)
+              ! write(*,*)"checked_r3"
               call interpolate_D_unlessZero(D_pls, U_Dpt(:,:,:,:,:,:,np+1,nsa), check_zeroD(1,2,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! write(*,*)"checked_r4"
               call interpolate_D_unlessZero(D_mns, U_Dpt(:,:,:,:,:,:,np,nsa), check_zeroD(1,2,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
               Dpt_ob = (D_pls+D_mns)/2.d0
 
               ! call interpolate_D_unlessZero(D_pls, U_Fpp(:,:,:,:,:,:,np+1,nsa), check_zeroF(1,nsa), cpitch_ob, psip_ob, thetap_ob)
               ! call interpolate_D_unlessZero(D_mns, U_Fpp(:,:,:,:,:,:,np,nsa), check_zeroF(1,nsa), cpitch_ob, psip_ob, thetap_ob)
+              ! write(*,*)"checked_r5"
               call interpolate_D_unlessZero(D_pls, U_Fpp(:,:,:,:,:,:,np+1,nsa), check_zeroF(1,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! write(*,*)"checked_r6"
               call interpolate_D_unlessZero(D_mns, U_Fpp(:,:,:,:,:,:,np,nsa), check_zeroF(1,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
               Fpp_ob = (D_pls+D_mns)/2.d0
@@ -521,8 +550,12 @@ contains
               ! call interpolate_D_unlessZero(Dtp_ob, U_Dtp(:,:,:,:,:,:,np,nsa), check_zeroD(2,1,nsa), cpitch_ob, psip_ob, thetap_ob) !** original
               ! call interpolate_D_unlessZero(D_pls, U_Dtp(:,:,:,:,:,:,np+1,nsa), check_zeroD(2,1,nsa), cpitch_ob, psip_ob, thetap_ob)
               ! call interpolate_D_unlessZero(D_mns, U_Dtp(:,:,:,:,:,:,np,nsa), check_zeroD(2,1,nsa), cpitch_ob, psip_ob, thetap_ob)
-              call interpolate_D_unlessZero(D_pls, U_Dtp(:,:,:,:,:,:,np+1,nsa), check_zeroD(2,1,nsa), cpitch_ob, &
+              ! write(*,*)"checked_r7"
+              call interpolate_D_unlessZero(D_pls, U_Dtp(:,:,:,:,:,:,np,nsa), check_zeroD(2,1,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! call interpolate_D_unlessZero(D_pls, U_Dtp(:,:,:,:,:,:,np+1,nsa), check_zeroD(2,1,nsa), cpitch_ob, &
+              !                               psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! write(*,*)"checked_r8"
               call interpolate_D_unlessZero(D_mns, U_Dtp(:,:,:,:,:,:,np,nsa), check_zeroD(2,1,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
               Dtp_ob = (D_pls+D_mns)/2.d0
@@ -530,8 +563,12 @@ contains
               ! call interpolate_D_unlessZero(Dtt_ob, U_Dtt(:,:,:,:,:,:,np,nsa), check_zeroD(2,2,nsa), cpitch_ob, psip_ob, thetap_ob) !** original
               ! call interpolate_D_unlessZero(D_pls, U_Dtt(:,:,:,:,:,:,np+1,nsa), check_zeroD(2,2,nsa), cpitch_ob, psip_ob, thetap_ob)
               ! call interpolate_D_unlessZero(D_mns, U_Dtt(:,:,:,:,:,:,np,nsa), check_zeroD(2,2,nsa), cpitch_ob, psip_ob, thetap_ob)
-              call interpolate_D_unlessZero(D_pls, U_Dtt(:,:,:,:,:,:,np+1,nsa), check_zeroD(2,2,nsa), cpitch_ob, &
+              ! write(*,*)"checked_r7"
+              call interpolate_D_unlessZero(D_pls, U_Dtt(:,:,:,:,:,:,np,nsa), check_zeroD(2,2,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! call interpolate_D_unlessZero(D_pls, U_Dtt(:,:,:,:,:,:,np+1,nsa), check_zeroD(2,2,nsa), cpitch_ob, &
+              !                               psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! write(*,*)"checked_r8"
               call interpolate_D_unlessZero(D_mns, U_Dtt(:,:,:,:,:,:,np,nsa), check_zeroD(2,2,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
               Dtt_ob = (D_pls+D_mns)/2.d0
@@ -539,8 +576,12 @@ contains
               ! call interpolate_D_unlessZero(Fth_ob, U_Fth(:,:,:,:,:,:,np,nsa), check_zeroF(2,nsa), cpitch_ob, psip_ob, thetap_ob) !** original
               ! call interpolate_D_unlessZero(D_pls, U_Fth(:,:,:,:,:,:,np+1,nsa), check_zeroF(2,nsa), cpitch_ob, psip_ob, thetap_ob)
               ! call interpolate_D_unlessZero(D_mns, U_Fth(:,:,:,:,:,:,np,nsa), check_zeroF(2,nsa), cpitch_ob, psip_ob, thetap_ob)
-              call interpolate_D_unlessZero(D_pls, U_Fth(:,:,:,:,:,:,np+1,nsa), check_zeroF(2,nsa), cpitch_ob, &
+              ! write(*,*)"checked_r9"
+              call interpolate_D_unlessZero(D_pls, U_Fth(:,:,:,:,:,:,np,nsa), check_zeroF(2,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! call interpolate_D_unlessZero(D_pls, U_Fth(:,:,:,:,:,:,np+1,nsa), check_zeroF(2,nsa), cpitch_ob, &
+              !                               psip_ob, thetap_ob, mode,nth,np,nr,nsa)
+              ! write(*,*)"checked_r10"
               call interpolate_D_unlessZero(D_mns, U_Fth(:,:,:,:,:,:,np,nsa), check_zeroF(2,nsa), cpitch_ob, &
                                             psip_ob, thetap_ob, mode,nth,np,nr,nsa)
               Fth_ob = (D_pls+D_mns)/2.d0
@@ -590,10 +631,11 @@ contains
             !   end if
             ! end if
 
-            Drpfow(nth,np,nr,nsa) = Drpfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax)! * JIl
-            Drtfow(nth,np,nr,nsa) = Drtfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax)! * JIl
-            Drrfow(nth,np,nr,nsa) = Drrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax)! * JIl
-            Frrfow(nth,np,nr,nsa) = Frrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax)! * JIl
+            Drpfow(nth,np,nr,nsa) = Drpfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) !* JIl
+            Drtfow(nth,np,nr,nsa) = Drtfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) !* JIl
+            Drrfow(nth,np,nr,nsa) = Drrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) !* JIl
+            Frrfow(nth,np,nr,nsa) = Frrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) !* JIl
+            ! if(nsa == 2) write(*,*)"Frr:",Frrfow(nth,np,nr,nsa) - Frrfow(nth,np,nr,1)
 
           end do
         end do
@@ -1505,9 +1547,9 @@ contains
         dIdu(1,1,nstp) = dpdp!*ptfp0(nsa)
         dIdu(1,2,nstp) = dthmdp*ptfp0(nsa)
         dIdu(1,3,nstp) = drmdp*ptfp0(nsa)
-        dIdu(2,1,nstp) = dpdth!/pl*ptfp0(nsa)
-        dIdu(2,2,nstp) = dthmdth!/pl*ptfp0(nsa)
-        dIdu(2,3,nstp) = drmdth!/pl*ptfp0(nsa)
+        dIdu(2,1,nstp) = dpdth!*ptfp0(nsa)/pl
+        dIdu(2,2,nstp) = dthmdth!*ptfp0(nsa)/pl
+        dIdu(2,3,nstp) = drmdth!*ptfp0(nsa)/pl
         dIdu(3,1,nstp) = dpdr
         dIdu(3,2,nstp) = dthmdr
         dIdu(3,3,nstp) = drmdr
@@ -1644,8 +1686,7 @@ contains
 
     !**** If v is larger than v on stagnation surface, then Coefficient is 0 
     if(mode(1) == 0 .and. mode(2) == 1) then
-      normalized_v = pg(np_in,nsa_in)*PTFP0(nsa_in)/AMFP(nsa_in)
-      normalized_v = normalized_v/vc!/(1.d0-normalized_v**2.d0/vc**2.d0)
+      normalized_v = pg(np_in,nsa_in)*PTFP0(nsa_in)/AMFP(nsa_in)/vc
       mode_num = 1
       ! dif = normalized_v-pm_stg_pg(nth_in,np_in,nr_in,nsa_in)
       ! if(abs(dif)>10)write(*,*)nth_in,np_in, nr_in, nsa_in
@@ -1677,14 +1718,12 @@ contains
     end if
 
     if (check0 < 1.d-70 .and. check0 >= 0.d0) then 
+    ! if ( check0 < 1.d-70 ) then
       C_out = 0.d0
       return
     end if
-    ! if ( check0 < 1.d-70 ) then
-    !   C_out = 0.d0
-    !   ! write(*,*)"checked:",nth_in,np_in,nr_in,nsa_in,mode_num
-    !   return
-    ! end if
+
+    ! write(*,*)"Error check"
 
     if ( nxmax == nthmax .and. nymax == nrmax ) then
       call SPL3DF(cpitch_in,psip_in,thetap_in,C_out,cosm,psim,theta_p&
@@ -1699,6 +1738,7 @@ contains
                   ,U,nthmax,nrmax+1,nthmax,nrmax+1,nthpmax,IERR)
                                         
     end if
+    ! write(*,*)"Error check interpole"
 
 
   end subroutine interpolate_D_unlessZero
@@ -1718,10 +1758,10 @@ contains
   !   nymax = size(U,5)
   !   nzmax = size(U,6)
 
-  !   if ( check0 < 1.d-70 ) then
-  !     C_out = 0.d0
-  !     return
-  !   end if
+    ! if ( check0 < 1.d-70 ) then
+    !   C_out = 0.d0
+    !   return
+    ! end if
 
   !   if ( nxmax == nthmax .and. nymax == nrmax ) then
   !     call SPL3DF(cpitch_in,psip_in,thetap_in,C_out,cosm,psim,theta_p&

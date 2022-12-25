@@ -40,6 +40,7 @@ contains
     nthm1 = nthmax-nthm2-nthm3
 
     epspsi = psim(1)*1.d-8
+    write(*,*)"------------------- FOW PREP  start---------------------"
 
     do nsa = 1, nsamax
       do nr = 1, nrmax
@@ -369,6 +370,7 @@ contains
     call make_nth_pnc
     call make_IBC
     call make_psi_change_nr
+    write(*,*)"------------------- FOW PREP ---------------------"
 
     ! !**** IBC
     ! do nsa = 1, nsamax
@@ -466,6 +468,7 @@ contains
     end if
 
     call make_stag_surfece_v
+    write(*,*)"------------------- FOW PREP  end---------------------"
 
     ! call check_stg_time
 
