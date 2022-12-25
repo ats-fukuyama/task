@@ -39,7 +39,7 @@ LIBS = ../lib/libmds.a ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a \
        ../adpost/lib-adpost.a ../open-adas/adf11/adf11-lib/lib-adf11.a \
        ../pl/libpl.a \
        $(EQLIBS) \
-       ../tr/libtr.a ../dp/libdp.a ../wr/libwr.a ../wmx/libwm.a \
+       ../tr/libtr2.a ../dp/libdp.a ../wr/libwr.a ../wmx/libwm.a \
        ../fp/libfp.a ../ti/libti.a
 
 
@@ -67,8 +67,8 @@ $(LIB_MTX):
 	(cd ../pl; make noequlib.o)
 ../eq/libeq.a:
 	(cd ../eq; make libeq.a)
-../tr/libtr.a:
-	(cd ../tr; make libtr.a)
+../tr/libtr2.a:
+	(cd ../tr; make libtr2.a)
 ../dp/libdp.a:
 	(cd ../dp; make libdp.a)
 ../wr/libwr.a:
@@ -92,7 +92,7 @@ libs:
 	(cd ../pl; make noeqlib.o)
 	(cd ../pl; make noequlib.o)
 	(cd ../eq; make libeq.a)
-	(cd ../tr; make libtr.a)
+	(cd ../tr; make libtr2.a)
 	(cd ../dp; make libdp.a)
 	(cd ../wr; make libwr.a)
 	(cd ../wmx; make libwm.a)
