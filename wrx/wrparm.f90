@@ -176,8 +176,8 @@ CONTAINS
              DO nsu=2,nsumax
                 IF(rsu_wr(nsu).GT.rmax_eq) rmax_eq=rsu_wr(nsu)
                 IF(rsu_wr(nsu).LT.rmin_eq) rmin_eq=rsu_wr(nsu)
-                IF(zsu_wr(nsu).GT.zmax_eq) zmax_eq=rsu_wr(nsu)
-                IF(zsu_wr(nsu).LT.zmin_eq) zmin_eq=rsu_wr(nsu)
+                IF(zsu_wr(nsu).GT.zmax_eq) zmax_eq=zsu_wr(nsu)
+                IF(zsu_wr(nsu).LT.zmin_eq) zmin_eq=zsu_wr(nsu)
              END DO
              raxis_eq=0.5D0*(rmin_eq+rmax_eq)
              zaxis_eq=0.5D0*(zmin_eq+zmax_eq)
@@ -186,6 +186,10 @@ CONTAINS
              zmax_wr=zaxis_eq+bdr_threshold*(zmax_eq-zaxis_eq)
              zmin_wr=zaxis_eq+bdr_threshold*(zmin_eq-zaxis_eq)
              IF(rmin_wr.LT.0.D0) rmin_wr=0.D0
+
+             WRITE(6,'(A,4ES12.4)') '_eq:',rmin_eq,rmax_eq,zmin_eq,zmax_eq
+             WRITE(6,'(A,2ES12.4)') '_ax:',raxis_eq,zaxis_eq
+             WRITE(6,'(A,4ES12.4)') '_wr:',rmin_wr,rmax_wr,zmin_wr,zmax_wr
              INITEQ=1
           ELSE
              WRITE(6,*) 'XX EQLOAD: IERR=',IERR

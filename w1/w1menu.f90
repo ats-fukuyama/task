@@ -32,11 +32,8 @@ CONTAINS
     ELSEIF(kid.EQ.'V') THEN
        CALL w1_view
     ELSEIF(kid.EQ.'R') THEN
-       WRITE(6,*) '@@@ point 1'
        CALL w1_allocate
-       WRITE(6,*) '@@@ point 2'
        CALL w1_exec(ierr)
-       WRITE(6,*) '@@@ point 3'
        IF(ierr.EQ.0) THEN
           INIT=1
        ELSE

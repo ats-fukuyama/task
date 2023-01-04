@@ -69,9 +69,9 @@
       SUBROUTINE TRNBIB
 
       USE TRCOMM, ONLY : GPNB, NRMAX, PNB, PNBENG, PNBRTG, PNBRW, PNBTOT, PNBVW, PNBVY, &
-           &             RKEV, RTG, SNB, rkind
+           &             RKEV, RTG, SNB, NRNBMAX, rkind
       IMPLICIT NONE
-      INTEGER:: I, J, NRNB,NRNBMAX
+      INTEGER:: I, J, NRNB
       INTEGER,SAVE:: NRNBMAX_save=0
       REAL(rkind)   ::DRTG, DVY, RDD, VY,sum,x
       REAL(rkind),ALLOCATABLE :: AR(:)

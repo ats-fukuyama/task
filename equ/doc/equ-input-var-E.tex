@@ -1,0 +1,127 @@
+\documentclass[11pt]{article}
+\usepackage{../../doc/af}
+\usepackage{../../doc/sym}
+\usepackage{../../doc/doc}
+
+\begin{document}
+\begin{flushright}
+2022/12/21
+\end{flushright}
+
+\begin{center}
+\textbf{\Large List of input parameters for TASK/EQU}
+\end{center}
+
+
+\begin{center}
+  \begin{tabular}{lclcl}
+    \ttype{nr} & I & 257 & & number of grids in $R$ \\
+    \ttype{nz} & I & 257 & & number of grids in $Z$ \\
+    \ttype{nv} & I & 101 & & number of grids in $\psi$ \\
+    \ttype{device} & C8 & 'JT60U' & & device name \\
+    \ttype{title} & C70 & '' & & job title \\
+    \ttype{btv} & R & 13.5 & & Toroidal magnetic field multiplied by major
+    radius $R*Bt [\unit{mT}]$ \\
+    \\
+    \ttype{tcur} & R & 2.0 & & Plasma current $I_p [\unit{MA}]$ \\
+    & & & & note: in the code, tcu = myu0*tcur \\
+    \ttype{icp(i)} & I & 1,1 & & $dp/ds$ and $dF/ds$ profiles: option
+    id \\
+    & & & & see subroutine eqequ and eqpds0 in eqsub.f: \\
+    & & & & \ttype{icp(1)}=1: $v$=volume \\
+    & & & & \qquad $pds0=(1-cp4)*(1-v^{cp2})^{cp3}+cp4$ \\
+    & & & & \qquad $fds0=(1-cp8)*(1-v^{cp6})^{cp7}+cp8$ \\
+    & & & & \ttype{icp(1)}=2: \\
+    & & & & \qquad $pds0=1-cp2*v^{cp3}-(1-vp2+cp4)*v^{cp5}$ \\
+    & & & & \qquad $fds0=1-cp6*v^{cp7}-(1-vp6+cp8)*v^{cp9}$ \\
+    & & & & \ttype{icp(1)}=9: \\
+    & & & & \qquad see subroutine eqpfds in eqpdfs.f \\
+    & & & & \ttype{icp(1)}=11: hollow current profile \\
+    & & & & \qquad $pds0=(1-cp4)*(1-v^{cp2})^{cp3}+cp4$ \\
+    & & & & \qquad
+    $fds0=(1-v^{vp6})^{cp7}*(1+cp8*exp(-((v-cp9)/cp10)^2))$ \\
+    & & & & \ttype{icp(2)} \\
+    & & & & \qquad $>0$ : adjust poloidal beta $pds$ \\
+    & & & & \qquad $1$ : adjust poloidal current $fds$ for given $<J/R>$ \\
+    & & & & \qquad $2$ : adjust poloidal current $fds$ for given 
+    $<J\cdot B>$ \\
+    \ttype{cp(1)}  & R & 0.1 & & beta-j: see sub eqequ \\
+    & & & & see subroutine eqequ \\
+    \ttype{cp(i)}  & R & 1.0,1.0,...0.05 & &
+    $dp/ds$ and $dF/ds$ profiles: coefficients (i=2..10): \\
+    & & & & see subroutine eqequ \\
+    \\
+    \ttype{rwmx} & R & 4.20 & & maximum $R$ of computation area
+    ($R < \mttype{rwmx}$) \\
+    \ttype{rwmn} & R & 1.90 & & minimum $R$ of computation area
+    ($R > \mttype{rwmn}$) \\
+    \ttype{zwmx} & R & 1.20 & & maximum $|Z|$ of computation area
+    ($|Z| < \mttype{zwmx}$) \\
+  \end{tabular}
+
+  \begin{tabular}{lclcl}
+    \ttype{iudsym} & I & 0 & &  up-down symmetry (1 for symmetric) \\
+    \\
+    \ttype{msfx} & I & 9 & & number of marker points \\
+    & & & & if positive, \ttype{rmaj}..\ttype{trig} are generated from \\
+    \ttype{rvac}, \ttype{zvac} \\
+    & & & & if negative, \ttype{rvac}, \ttype{zvac} are generated from
+    \ttype{rmaj}..\ttype{trig} \\
+    \ttype{rvac} & $R(0:\mttype{msfx})$ & & & $R$ coordinates of marker
+    points \\
+    \ttype{zvac} & $Z(0:\mttype{msfx})$ & & & $R$ coordinates of marker
+    points \\
+    \ttype{rmaj} & R & 3.05 & & optional: Major radius [$\unit{m}$] \\
+    \ttype{rpla} & R & 0.9  & & optional: Minor radius [$\unit{m}$] \\
+    \ttype{zpla} & R & 0.0  & & optional: $Z$ position of magnetic
+    axis [$\unit{m}$] \\
+    \ttype{elip} & R & 1.0  & & optional: ellipticity \\
+    \ttype{trig} & R & 0.0  & & optional: triangularity \\
+    \ttype{elipup} & R & 1.0  & & optional: ellipticity for upper \\
+    \ttype{trigup} & R & 0.0  & & optional: triangularity for upper \\
+    \ttype{yh}   & R & 0.5  & & optional: half height \\
+    \ttype{yd}   & R & 0.995 & & optional: edge height \\
+    \ttype{msetup} & I & 20 & & maximum iteration count of initial
+    equilibrium \\
+    \ttype{esetup} & R & 1.D-3 & & covergence criterion of initial
+    equilibrium \\
+    \ttype{ieqmax} & I & 20 & & maximum iteration count of FCT
+    equilibrium \\
+    \ttype{eeqmax} & R & 1.D-3 & & covergence criterion of FCT
+    equilibrium \\
+    \ttype{iodmax} & I & 10 & & maximum iteration count of ODE
+    calculation \\
+    \ttype{eodmax} & R & 1.D-5 & & covergence criterion of ODE
+    calculation \\
+    \ttype{iadmax} & I & 1 & & maximum iteration count of vaccum
+    adjustment \\
+    \ttype{eadmax} & R & 1.D-4 & &covergence criterion of vaccum
+    adjustment \\
+    \ttype{bavmax} & R & 0.8 & & FCT convergence parameter (see eqfct
+    and eqrcu) \\
+    \ttype{bavmin} & R & 0.2 & & FCT convergence parameter (see eqfct
+    and eqrcu) \\
+    \\
+    \ttype{nsumax} & I & 101 & & number of points on plasma surface \\
+    \\
+    \ttype{ivac} & I(0:13) & 0,1,2,-1... & & model id of coil setting: \\
+    & & & & negative: fixed coil current \\
+    & & & & positive: adjustable \\
+    \ttype{cvac} & R(0:13) & 0.0... & & surface flux \ttype{cvac}(0) and
+    coil current $[\unit{AT}]$ \\
+    \ttype{ncoil} & I(0:13) & 0,70... & & number of coil turn \\
+    \ttype{cvacst} & R(13) & & & coil current (initial value) $[\unit{AT}]$ \\
+    \ttype{cvacwg} & R(13) & & & weight of coil current \\
+    \ttype{cvact} & R(13) & & & time derivative of coil current $[\unit{AT/s}]$\\
+    \ttype{isep} & I & 2 & & type of X point for divertor \\
+    & & & & \quad 0: no X point \\
+    & & & & \quad 1: lower X point \\
+    & & & & \quad 2: outer X point (JFT-2a) \\
+    & & & & \quad 3: upper X point \\
+    & & & & \quad 4: inner X point \\
+    \ttype{dsep} & R & 0.001 & & separation between X point and \\
+    & & & & \quad LCMF (last-closed magnetic surface)
+  \end{tabular}
+\end{center}
+\end{document}
+

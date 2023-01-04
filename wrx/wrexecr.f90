@@ -97,7 +97,7 @@ CONTAINS
     ZP=ZPIN(NRAY)
     PHI=PHIIN(NRAY)
     SELECT CASE(mdlwri)
-       CASE(21,22,23,121,122,123)
+       CASE(11,12,13,31,32,33,111,112,113,131,132,133)
           ANGT=180.D0-ANGTIN(NRAY)
           ANGP=180.D0-ANGPIN(NRAY)
        CASE DEFAULT
@@ -132,15 +132,15 @@ CONTAINS
     rk=rkv*rnk
 
     SELECT CASE(mdlwri)
-    CASE(1,11,21,101,111,121) ! poloidal first angle
+    CASE(1,11,21,31,41,51,101,111,121,131,141,151) ! poloidal first angle
        rk_r  = -rk*COS(angp*deg)*COS(angt*deg)
        rk_phi=  rk*COS(angp*deg)*SIN(angt*deg)
        rk_z  =  rk              *SIN(angp*deg)
-    CASE(2,12,22,102,112,122) ! toroidal first angle
+    CASE(2,12,22,32,42,52,102,112,122,132,142,152) ! toroidal first angle
        rk_r  = -rk*COS(angp*deg)*COS(angt*deg)
        rk_phi=  rk              *SIN(angt*deg)
        rk_z  =  rk*SIN(angp*deg)*COS(angt*deg)
-    CASE(3,13,23,103,113,123) ! toroidal first angle
+    CASE(3,13,23,33,43,53,103,113,123,133,143,153) ! toroidal first angle
        factor=1.D0-SIN(angp*deg)**2-SIN(angt*deg)**2
        IF(factor.LE.0.D0) THEN
           rk_r  = 0.D0
@@ -1264,9 +1264,7 @@ CONTAINS
 
 !   ----- evaluate plasma major radius range -----
 
-    WRITE(6,*) '@@@ point 40'
     CALL pl_rzsu(rsu_wr,zsu_wr,nsumax)
-    WRITE(6,*) '@@@ point 41'
     rlmin=rsu_wr(1)
     rlmax=rsu_wr(1)
     DO nsu=2,nsumax
@@ -1306,7 +1304,6 @@ CONTAINS
     nraymax_save=nraymax
     nstpmax_save=nstpmax
 
-    WRITE(6,*) '@@@ point 42'
 !     ----- Setup for RADIAL DEPOSITION PROFILE (Minor radius) -----
 
     drs=1.D0/nrsmax
@@ -1337,7 +1334,6 @@ CONTAINS
        pwr_nrl(nrl)=0.D0
     ENDDO
 
-    WRITE(6,*) '@@@ point 43'
 !   --- calculate power deposition density ----
 
     DO nray=1,nraymax
@@ -1447,7 +1443,6 @@ CONTAINS
                /(2.D0*PI*(DBLE(nrl)-0.5D0)*drl*drl)
        ENDDO
     ENDDO
-    WRITE(6,*) '@@@ point 44'
 
 !     ----- sum of power for each ray-------
 
@@ -1467,7 +1462,6 @@ CONTAINS
 
 !     ----- find location of absorbed power peak -----
 
-    WRITE(6,*) '@@@ point 45'
     DO nray=1,nraymax
        pwrmax=0.D0
        locmax=0
@@ -1492,7 +1486,6 @@ CONTAINS
        ENDIF
     END DO
    
-    WRITE(6,*) '@@@ point 46'
     pwrmax=0.D0
     locmax=0
     DO nrl=1,nrlmax

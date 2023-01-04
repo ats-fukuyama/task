@@ -477,7 +477,6 @@
 
          SALFA0=-1.17D0*(1.D0-FT)/(1.D0-0.22D0*FT-0.19D0*FT**2)
 
-!         WRITE(6,*) '@@@ point 3'
 !         WRITE(6,'(A,I6,3ES12.4)') 'SALFA:',NR,SALFA0,FT,RNUI
          SALFA=((SALFA0+0.25D0*(1.D0-FT**2)*SQRT(RNUI)) /(1.D0+0.5D0*SQRT(RNUI))+0.315D0*RNUI**2*FT**6) &
      &        /(1.D0+0.15D0*RNUI**2*FT**6)

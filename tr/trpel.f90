@@ -77,6 +77,7 @@
       INTEGER :: NR, NS
       REAL(rkind)    :: COULOG   ! FUNCTION
 
+      WRITE(6,*) '@@@ point 1'
       NR = NRMAX
       RP = PELRAD
       PAP= PA(2)*PELPAT(2)+PA(3)*PELPAT(3)+PA(4)*PELPAT(4)
@@ -92,6 +93,7 @@
       VB  = SQRT(2.D0*PNBENG*RKEV/AMB)
 
  1000 ANE=RN(NR,1)
+      WRITE(6,'(A,I4)') '@@@ point 2',NR
       TE=RT(NR,1)
       P1   = 3.D0*SQRT(0.5D0*PI)*AME/ANE *(ABS(TE)*RKEV/AME)**1.5D0
 
@@ -100,16 +102,21 @@
      &           + ANC (NR)*PZC(NR) **2/12.D0))**(1.D0/3.D0)
 
       TAUS = 0.2D0*PA(2)*ABS(TE)**1.5D0 /(PZ(2)**2*ANE*COULOG(1,2,ANE,TE))
+      WRITE(6,'(A,I4)') '@@@ point 21',NR
 
-      ANFAST=(SNB(NR)*LOG(1.D0+(VB/VCR)**3) + SNF(NR)*LOG(1.D0+(VF/VCR)**3))*TAUS/3.D0
+      ANFAST=(SNB(NR)*LOG(1.D0+(VB/VCR)**3) &
+           + SNF(NR)*LOG(1.D0+(VF/VCR)**3))*TAUS/3.D0
+      WRITE(6,'(A,I4)') '@@@ point 211',NR
 
       A1   = SNB(NR)*(0.5D0*AMB*VCR*VCR/AEE)**3
       B1   = SNF(NR)*(0.5D0*AMA*VCR*VCR/AEE)**3
       A2   = 0.5D0*(VB/VCR)**6-(VB/VCR)**3+LOG(1.D0+(VB/VCR)**3)
       B2   = 0.5D0*(VF/VCR)**6-(VF/VCR)**3+LOG(1.D0+(VF/VCR)**3)
       P2   = (A1*A2+B1*B2)*TAUS/3.D0
+      WRITE(6,'(A,I4)') '@@@ point 212',NR
 
       EFAST= (P2/ANFAST)**(1.D0/3.D0)
+      WRITE(6,'(A,I4)') '@@@ point 22',NR
 
       A3   = SNB(NR)*1.D20*AMB*((VB/VCR)**3-LOG(1.D0+(VB/VCR)**3))
       B3   = SNF(NR)*1.D20*AMA*((VF/VCR)**3-LOG(1.D0+(VF/VCR)**3))
@@ -121,6 +128,7 @@
 
       RPPRE=RP
       RP=RP-RPDOT*DR*RA/PELVEL
+      WRITE(6,'(A,I4)') '@@@ point 23',NR
 
       IF(RP.LE.0.D0) THEN
          RPE=RA-RA*DR*(NR-1)+RA*DR*RPPRE/(RPPRE-RP)
@@ -131,11 +139,13 @@
          RPE=RA
          GOTO 9000
       ENDIF
+      WRITE(6,'(A,I4)') '@@@ point 24',NR
 
       SPEL=ANS*RP*0.5D0*(RP+RPPRE)*RPDOT*4.D0*PI*RA/(DVRHO(NR)*PELVEL)
       DO NS=1,NSM
          SPE(NR,NS)=PELPAT(NS)*SPEL
       ENDDO
+      WRITE(6,'(A,I4)') '@@@ point 25',NR
 
       NR = NR-1
       GOTO 1000

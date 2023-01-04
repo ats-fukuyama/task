@@ -50,6 +50,7 @@ CONTAINS
          ANGTIN(NRAY)   = 0.D0
          ANGPIN(NRAY)   = 0.D0
          RNPHIN(NRAY)   = 0.0D0
+         RNZIN(NRAY)    = 0.0D0
          MODEWIN(NRAY)  = 0
          rnkin(nray)    = 1.d0
          UUIN(NRAY)     = 1.D0
@@ -84,8 +85,11 @@ CONTAINS
 !     MDLWRI : INPUT TYPE OF WAVE PARAMETERS
 !                   RFIN,RPIN,ZPIN,PHIIN,...,MODEWIN,RNKIN,UUIN
 !         1, 2, 3 : ANGTIN,ANGPIN (toroidal, poloidal incident angles) 
-!        11,12,13 : RNPHIN,ANGPIN (N_phi, poloidal incident angle)
-!        21,22,23 : ANGTIN,ANGPIN (toroidal, poloidal absolute angles : TRAVIS)
+!        11,12,13 : ANGTIN,ANGPIN (toroidal, poloidal absolute angles : TRAVIS)
+!        21,22,23 : RNPHIN,ANGPIN (N_phi, poloidal incident angle)
+!        31,32,33 : RNPHIN,ANGPIN (N_phi, poloidal absolute angle)
+!        41,42,43 : RNPHIN,RNZIN  (RNR= RNK*SQRT(1-RNPH**2-RN**1) positive RNR)
+!        51,52,53 : RNPHIN,RNZIN  (RNR=-RNK*SQRT(1-RNPH**2-RN**1) negative RNR)
 !               1 : poloidal first angle  k_p = k sin angp
 !               2 : toroidal first angle  k_t = k sin angt
 !               3 : Intuitive angle       k_p = k sin angp, k_t = k sin angt

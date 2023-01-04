@@ -1,11 +1,11 @@
-!   $Id$
+!    $Id$
 
-MODULE LIBT2
+MODULE t2lib
 
   USE bpsd,ONLY: rkind
 
   PRIVATE
-  PUBLIC integ_f,func_1,x_ab
+  PUBLIC integ_f,func_1,x_ab,func_phi,func_G
 
   REAL(rkind):: x_ab
 
@@ -43,6 +43,7 @@ CONTAINS
     x_b=x_a/x_ab
     f=(func_phi(x_b)-func_G(x_b))/(x_a)**3
     func_1=(4.D0/(3.D0*SQRT(pi)))*f*EXP(-x_a**2)*x_a**3
+    print*,'x_a=',x_a,'x_ab=',x_ab
     RETURN
   END FUNCTION func_1
 
@@ -89,4 +90,4 @@ CONTAINS
     ENDIF
     RETURN
   END SUBROUTINE integ_f
-END MODULE LIBT2
+END MODULE t2lib
