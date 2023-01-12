@@ -55,7 +55,7 @@ p{45mm}p{35mm}p{30mm}p{120mm}}}{\end{tabular}\par\bigskip}
 \vspace*{-40mm}
 
 \begin{flushright}\LARGE
-  2021/09/03
+  2022/01/12
 \end{flushright}
 \vspace{20mm}
 
@@ -66,7 +66,7 @@ How to install the integrated code: TASK
 
 \begin{center}\huge
 \emB{A.~Fukuyama}
-\\[8mm]
+\\
 \textcolor{fgreen}{\huge
 Professor Emeritus, Kyoto University 
 }
@@ -74,10 +74,12 @@ Professor Emeritus, Kyoto University
 \medskip
 
 \begin{center}
-  \begin{minipage}{130mm}
+  \begin{minipage}{140mm}
     \begin{enumerate}
     \item
       Preparation for macOS
+    \item
+      In case of macOS major version up
     \item
       Preparation for Ubuntu
     \item
@@ -159,11 +161,47 @@ Professor Emeritus, Kyoto University
   \emA{Install compiler and related modules}
   \begin{itemize}
   \item
-    gfortran: \ttype{sudo port install gcc11}
+    gfortran: \ttype{sudo port install gcc12}
   \item
     mpich: \ttype{sudo port install mpich}
   \item
     others: \ttype{sudo port install gmake cmake imake}
+  \end{itemize}
+\end{itemize}
+
+\title{In case of macOS major version-up}
+\begin{itemize}
+\item
+  \emA{macOS major version-up}: e.g. 13.3 \s 14.0
+\item
+  \emA{Update Xcode}
+  \begin{itemize}
+  \item
+    Use App Store to update Xcode for the new version of macOS
+  \end{itemize}
+\item
+  \emA{Update Command\_Line\_Tools}
+  \begin{itemize}
+  \item
+    \ttype{xcode-select --install}
+  \end{itemize}
+\item
+  \emA{Update Macports}
+  \begin{itemize}
+  \item
+    Download and install the Macports binary for the new version of
+    macOS from https://www.macports.org
+  \item
+    It may take a few days before the binary for the new
+    version of macOS becomes available.
+  \item
+    Update the installed ports for the new Macports binary
+    \begin{itemize}
+    \item
+      \ttype{sudo port selfupdate}
+    \item
+      \ttype{sudo port upgrade outdated}
+    \end{itemize}
   \end{itemize}
 \end{itemize}
 
@@ -172,9 +210,9 @@ Professor Emeritus, Kyoto University
 \item
   \emA{Install required modules}
 \begin{verbatim}
-sudo apt-get install gfortran-11
-sudo apt-get install gcc-11
-sudo apt-get install g++-11
+sudo apt-get install gfortran-12
+sudo apt-get install gcc-12
+sudo apt-get install g++-12
 
 sudo apt-get install git
 sudo apt-get install xorg-dev
