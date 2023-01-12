@@ -105,7 +105,7 @@
       WRITE(6,'(A,I4)') '@@@ point 21',NR
 
       ANFAST=(SNB(NR)*LOG(1.D0+(VB/VCR)**3) &
-           + SNF(NR)*LOG(1.D0+(VF/VCR)**3))*TAUS/3.D0
+            + SNF(NR)*LOG(1.D0+(VF/VCR)**3))*TAUS/3.D0
       WRITE(6,'(A,I4)') '@@@ point 211',NR
 
       A1   = SNB(NR)*(0.5D0*AMB*VCR*VCR/AEE)**3
@@ -113,7 +113,8 @@
       A2   = 0.5D0*(VB/VCR)**6-(VB/VCR)**3+LOG(1.D0+(VB/VCR)**3)
       B2   = 0.5D0*(VF/VCR)**6-(VF/VCR)**3+LOG(1.D0+(VF/VCR)**3)
       P2   = (A1*A2+B1*B2)*TAUS/3.D0
-      WRITE(6,'(A,I4)') '@@@ point 212',NR
+      WRITE(6,'(A,I4,4ES12.4)') '@@@ point 212',NR,A1,A2,B1,B2
+      WRITE(6,'(A,I4,4ES12.4)') '             ',NR,TAUS,P2,ANFAST
 
       EFAST= (P2/ANFAST)**(1.D0/3.D0)
       WRITE(6,'(A,I4)') '@@@ point 22',NR

@@ -22,7 +22,6 @@ clean:
 	(cd pic; make clean)
 	(cd pl; make clean)
 	(cd t2; make clean)
-	(cd t2x; make clean)
 	(cd ti; make clean)
 	(cd tools; make clean)
 	(cd tot; make clean)

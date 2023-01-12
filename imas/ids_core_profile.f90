@@ -37,8 +37,7 @@ CONTAINS
     machine = 'ITER'
 
     ! OPEN INPUT DATAFILE FROM OFFICIAL ITER DB
-    call imas_open_env('ids' ,131024,1,idx, &
-         'public',trim(machine),'3')
+    call imas_open_env('ids' ,131024,1,idx,'public',trim(machine),'3')
     call ids_get(idx,'core_profiles',core_profiles_ids)
     call imas_close(idx)
     
@@ -70,15 +69,21 @@ CONTAINS
     pz(1)=-1.D0
     rn(1:nrmax,1)= core_profiles_ids%profiles_1d(1)%electrons%density(1:nrmax)
     ru(1:nrmax,1)= 0.D0
-    rtpr(1:nrmax,1)= core_profiles_ids%profiles_1d(1)%electrons%temperature(1:nrmax)
-    rtpp(1:nrmax,1)= core_profiles_ids%profiles_1d(1)%electrons%temperature(1:nrmax)
+    rtpr(1:nrmax,1) &
+         = core_profiles_ids%profiles_1d(1)%electrons%temperature(1:nrmax)
+    rtpp(1:nrmax,1) &
+         = core_profiles_ids%profiles_1d(1)%electrons%temperature(1:nrmax)
     DO ns=2,nsmax
        pa(ns)=core_profiles_ids%profiles_1d(1)%ion(ns)%element(1)%a
        pz(ns)=core_profiles_ids%profiles_1d(1)%ion(ns)%element(1)%z_n
-       rn(1:nrmax,ns)= core_profiles_ids%profiles_1d(1)%ion(ns)%density(1:nrmax)
-       ru(1:nrmax,ns)= core_profiles_ids%profiles_1d(1)%ion(ns)%velocity%toroidal(1:nrmax)
-       rtpr(1:nrmax,ns)= core_profiles_ids%profiles_1d(1)%ion(ns)%temperature(1:nrmax)
-       rtpp(1:nrmax,1)= core_profiles_ids%profiles_1d(1)%ion(ns)%temperature(1:nrmax)
+       rn(1:nrmax,ns) &
+            = core_profiles_ids%profiles_1d(1)%ion(ns)%density(1:nrmax)
+       ru(1:nrmax,ns) &
+          = core_profiles_ids%profiles_1d(1)%ion(ns)%velocity%toroidal(1:nrmax)
+       rtpr(1:nrmax,ns) &
+            = core_profiles_ids%profiles_1d(1)%ion(ns)%temperature(1:nrmax)
+       rtpp(1:nrmax,1) &
+            = core_profiles_ids%profiles_1d(1)%ion(ns)%temperature(1:nrmax)
        Zeff  = core_profiles_ids%profiles_1d(1)%zeff
     END DO
     RETURN
