@@ -1,5 +1,5 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      MODULE EG_READ
+      MODULE fpreadeg
 
       USE fpcomm
       USE libmpi
@@ -1106,5 +1106,5 @@
 
       END SUBROUTINE MAKE_QLM_QLG_FROM_kspdiag
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      END MODULE EG_READ
+    END MODULE fpreadeg
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

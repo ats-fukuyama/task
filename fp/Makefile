@@ -85,7 +85,7 @@ fpmenu.o : fpwrin.f90 fpgout.f90 fpfout.f90 fploop.f90 fpprep.f90 fpparm.f90 fpf
 fpinit.o : fpinit.f90 fpcomm.f90
 fpparm.o : fpparm.f90 fpcomm.f90
 fpprep.o : fpoutdata.f90 fpcale.f90 fpbounce.f90 fpnfrr.f90 fpwmin.f90 fpwrin.f90 fpsave.f90 fpcalw.f90 fpbroadcast.f90 fpparm.f90 fpcoef.f90 fpdisrupt.f90 fpreadeg.f90 fpprep.f90 fpcomm.f90
-fploop.o : fpoutdata.f90 fpnfrr.f90 fpsave.f90 fpexec.f90 fpprep.f90 fpcoef.f90 fpdisrupt.f90 eg_read.f90 fploop.f90 fpcomm.f90 fpoutdata.f90 fpfunc.f90
+fploop.o : fpoutdata.f90 fpnfrr.f90 fpsave.f90 fpexec.f90 fpprep.f90 fpcoef.f90 fpdisrupt.f90 fpreadeg.f90 fploop.f90 fpcomm.f90 fpoutdata.f90 fpfunc.f90
 fpexec.o : fpexec.f90 fpcomm.f90
 fpdrexec.o : fpdrexec.f90 fpcomm.f90
 fpbroadcast.o : fpbroadcast.f90 fpcomm.f90

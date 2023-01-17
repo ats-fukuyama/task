@@ -15,7 +15,7 @@
       SUBROUTINE OUT_TXT_FNS_DEL
 
       USE fpfunc
-      USE eg_read
+      USE fpreadeg
       IMPLICIT NONE
       INTEGER:: NSA, NR, NP, NTH, NS
       double precision:: FL
@@ -63,7 +63,7 @@
       SUBROUTINE OUT_TXT_F1
 
       USE fpfunc
-      USE EG_READ
+      USE fpreadeg
       IMPLICIT NONE
       INTEGER:: NP, NTH, NS_F1, DNTH
       double precision:: pitch_angle_av, FL, PML, av, sum, av2

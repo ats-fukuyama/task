@@ -13,7 +13,7 @@
       use libmpi
       use fpmpi
       use fpdisrupt
-      use eg_read
+      use fpreadeg
       use fpoutdata
       use fpfunc
       use fpcalj

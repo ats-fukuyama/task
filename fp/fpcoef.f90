@@ -1074,7 +1074,7 @@
 !-------------------------------------------------------------
       SUBROUTINE update_fnsb_maxwell
 
-      USE EG_READ
+      USE fpreadeg
       IMPLICIT NONE
       INTEGER:: NS, NR, NP, NTH
       double precision:: FL

@@ -819,7 +819,7 @@
 
       USE libmtx
       USE fpmpi
-      USE EG_READ
+      USE fpreadeg
       USE plprof
       IMPLICIT NONE
       integer:: NR, NSA, NS
@@ -880,7 +880,7 @@
 
       USE libmpi
       USE fpmpi
-      USE EG_READ
+      USE fpreadeg
       IMPLICIT NONE
       double precision,intent(in):: time
       integer:: NS, NSA, NR, NP, iflag, N, NSW

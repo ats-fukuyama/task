@@ -11,14 +11,7 @@
       USE fpcomm
       USE fpcont
       USE fpfout
-      interface
-         real(4) function GUCLIP(X)
-           real(8):: X
-         end function GUCLIP
-         integer(4) function NGULEN(Y)
-           real(4):: Y
-         end function NGULEN
-      end interface
+      USE libgrf
 
       contains
 !---------------------------------------
@@ -472,17 +465,17 @@
       CALL SETFNT(32)
 
       DO NR=1,NRMAX
-          GX(NR)=GUCLIP(RM(NR))
+          GX(NR)=GDCLIP(RM(NR))
       ENDDO
       CALL GMNMX1(GX,1,NRMAX,1,GXMIN,GXMAX)
-      IF(RGMIN.NE.0.0) GXMIN=GUCLIP(RGMIN)
-      IF(RGMAX.NE.1.0) GXMIN=GUCLIP(RGMAX)
+      IF(RGMIN.NE.0.0) GXMIN=GDCLIP(RGMIN)
+      IF(RGMAX.NE.1.0) GXMIN=GDCLIP(RGMAX)
 
       GYMAX0=-1.E30
       GYMIN0= 1.E30
       DO NT2=1,NTG2
          DO NR=1,NRMAX
-            GY(NR)=GUCLIP(FR(NR,NT2))
+            GY(NR)=GDCLIP(FR(NR,NT2))
          END DO
          CALL GMNMX1(GY,1,NRMAX,1,GYMIN,GYMAX)
          GYMAX0=MAX(GYMAX0,GYMAX)
@@ -497,12 +490,12 @@
       CALL GFRAME
       GXORG=(INT(GXMIN1/(2*GXSTEP)+1))*2*GXSTEP
       CALL GSCALE(GXORG,GXSTEP,0.0,GYSTEP,0.1,9)    
-      CALL GVALUE(GXORG,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
-      CALL GVALUE(0.,0.0,0.0,2*GYSTEP,NGULEN(2*GYSTEP))
+      CALL GVALUE(GXORG,2*GXSTEP,0.0,0.0,NGSLEN(2*GXSTEP))
+      CALL GVALUE(0.,0.0,0.0,2*GYSTEP,NGSLEN(2*GYSTEP))
       DO NT2=1,NTG2
          DO NR=1,NRMAX
-            GY(NR)=GUCLIP(FR(NR,NT2))
-            GX(NR)=GUCLIP(RM(NR))
+            GY(NR)=GDCLIP(FR(NR,NT2))
+            GX(NR)=GDCLIP(RM(NR))
          END DO
          CALL SETLIN(0,2,7-MOD(NT2-1,5))
          CALL GPLOTP(GX,GY,1,NRMAX,1,0,0,0)
@@ -578,8 +571,8 @@
       CALL SETFNT(32)
 !
       DO  NT1=1,NTG1
-         GX(NT1)=GUCLIP(PTG(NT1))
-         GY(NT1)=GUCLIP(FT(NT1))
+         GX(NT1)=GDCLIP(PTG(NT1))
+         GY(NT1)=GDCLIP(FT(NT1))
       END DO
       CALL GMNMX1(GY,1,NTG1,1,GYMIN,GYMAX)
       IF(GYMIN.GT.0.) GYMIN=0.0
@@ -591,8 +584,8 @@
       CALL GSCALE(0.,GXSTEP,0.,GYSTEP,1.0,0)
       CALL SETLNW(0.07)
       CALL GFRAME
-      CALL GVALUE(0.,GXSTEP*2,0.,0.,NGULEN(2*GXSTEP))
-      CALL GVALUE(0.,0.,0.,GYSTEP*2,NGULEN(2*GYSTEP))
+      CALL GVALUE(0.,GXSTEP*2,0.,0.,NGSLEN(2*GXSTEP))
+      CALL GVALUE(0.,0.,0.,GYSTEP*2,NGSLEN(2*GYSTEP))
       CALL GPLOTP(GX,GY,1,NTG1,1,0,0,0)
       CALL MOVE(1.0,17.5)
       CALL TEXT(STRING,LEN(STRING))
@@ -684,15 +677,15 @@
             IF(FG(NTH,NP,NR).LT.1.D-14) THEN
                GY(NP,NR)=-14.0
             ELSE
-               GY(NP,NR)=GUCLIP(LOG10(FG(NTH,NP,NR)))
+               GY(NP,NR)=GDCLIP(LOG10(FG(NTH,NP,NR)))
             ENDIF
          END DO
       END DO
       DO NP=1,NPMAX
-         GX(NP)=GUCLIP(PM(NP,NS)**2)
+         GX(NP)=GDCLIP(PM(NP,NS)**2)
       ENDDO
-      GXMAX=GUCLIP(PMAX(NS)**2)
-      IF(PGMAX.NE.0.0) GXMAX=GUCLIP(PGMAX**2)
+      GXMAX=GDCLIP(PMAX(NS)**2)
+      IF(PGMAX.NE.0.0) GXMAX=GDCLIP(PGMAX**2)
 
       CALL GMNMX2(GY,NPM,1,NPMAX,1,1,NRMAX,1,GYMIN,GYMAX)
       CALL GQSCAL(GYMIN,GYMAX,GYMINP,GYMAXP,GYSTEP)
@@ -707,7 +700,7 @@
       CALL GSCALL(0.,0,0.0,1,1.0,0)
       CALL GSCALL(0.,0,0.0,2,0.2,9)
       CALL GFRAME
-      CALL GVALUE(0.,GXSTEP*2,0.0,0.0,NGULEN(2*GXSTEP))
+      CALL GVALUE(0.,GXSTEP*2,0.0,0.0,NGSLEN(2*GXSTEP))
       CALL GVALUL(0.,0.0,0.0,1,0)
       DO NR=1,NRMAX
          CALL SETLIN(0,0,7-MOD(NR-1,5))
@@ -801,18 +794,18 @@
             IF(PM(NP,NS).GT.PGMAX) GOTO 10
          ENDIF
          NPGMAX=NP
-         GX(NP)=GUCLIP(PM(NP,NS)**2)
+         GX(NP)=GDCLIP(PM(NP,NS)**2)
       ENDDO
    10 CONTINUE
       DO NR=1,NRMAX
-         GY(NR)=GUCLIP(RM(NR))
+         GY(NR)=GDCLIP(RM(NR))
       ENDDO
       DO NR=1,NRMAX
       DO NP=1,NPMAX
          IF(FG(NTH,NP,NR).LT.1.D-14) THEN
             GZ(NP,NR)=-14.0
          ELSE
-            GZ(NP,NR)=GUCLIP(LOG10(FG(NTH,NP,NR)))
+            GZ(NP,NR)=GDCLIP(LOG10(FG(NTH,NP,NR)))
          ENDIF
       ENDDO
       ENDDO
@@ -824,7 +817,7 @@
 
       CALL PAGES
       CALL FPGR3D(GX1,GX2,GY1,GY2,GX,GY,GZ,NPM,NPGMAX,NRMAX,  &
-           GUCLIP(PGMAX**2),GUCLIP(RGMIN),GUCLIP(RGMAX),TRIM(STRING1))
+           GDCLIP(PGMAX**2),GDCLIP(RGMIN),GDCLIP(RGMAX),TRIM(STRING1))
       CALL PAGEE
 
  9000 RETURN
@@ -846,7 +839,7 @@
       REAL(4),DIMENSION(NYMAX),      INTENT(IN):: GY
       REAL(4),DIMENSION(NXM,NYMAX),  INTENT(IN):: GZ
       CHARACTER(LEN=*),             INTENT(IN):: STR
-      INTEGER(4) :: I, NGULEN
+      INTEGER(4) :: I
       REAL(4)    :: GOX, GOY, GOZ, GPHI, GRADIUS, GSTEPX, GSTEPY,   &
                     GSTEPZ, GSXMAX, GSXMIN, GSYMAX, GSYMIN, GSZMAX, &
                     GSZMIN, GTHETA, GXL, GXMAX, GXMIN, GXORG, GYL,  &
@@ -923,9 +916,9 @@
       CALL GSCALE3DX(GSXMIN,GSTEPX,0.3,0)
       CALL GSCALE3DY(GSYMIN,GSTEPY,0.3,0)
       CALL GSCALE3DZ(GSZMIN,GSTEPZ,0.3,0)
-      CALL GVALUE3DX(GSXMIN,GSTEPX,1,NGULEN(GSTEPX))
-      CALL GVALUE3DY(GSYMIN,GSTEPY,1,NGULEN(GSTEPY))
-      CALL GVALUE3DZ(GSZMIN,GSTEPZ,2,NGULEN(GSTEPZ))
+      CALL GVALUE3DX(GSXMIN,GSTEPX,1,NGSLEN(GSTEPX))
+      CALL GVALUE3DY(GSYMIN,GSTEPY,1,NGSLEN(GSTEPY))
+      CALL GVALUE3DZ(GSZMIN,GSTEPZ,2,NGSLEN(GSTEPZ))
 
       IF(GZMIN*GZMAX.LT.0.0) THEN
          CALL CPLOT3D1(7,R2W2B)
@@ -1014,25 +1007,25 @@
       IF(MODE.EQ.0) THEN
          DO NP=1,NPMAX
          DO NTH=1,NTHMAX
-            GF(NP,NTH)=GUCLIP(FGA(NTH,NP,NSA))
+            GF(NP,NTH)=GDCLIP(FGA(NTH,NP,NSA))
          ENDDO
          ENDDO
       ELSEIF(MODE.EQ.1) THEN
          DO NP=1,NPMAX+1
          DO NTH=1,NTHMAX
-            GF(NP,NTH)=GUCLIP(FGA(NTH,NP,NSA))
+            GF(NP,NTH)=GDCLIP(FGA(NTH,NP,NSA))
          ENDDO
          ENDDO
       ELSEIF(MODE.EQ.2) THEN
          DO NP=1,NPMAX
          DO NTH=1,NTHMAX+1
-            GF(NP,NTH)=GUCLIP(FGA(NTH,NP,NSA))
+            GF(NP,NTH)=GDCLIP(FGA(NTH,NP,NSA))
          ENDDO
          ENDDO
       ELSEIF(MODE.EQ.3) THEN
          DO NP=1,NPMAX
          DO NTH=1,NTHMAX
-            GF(NP,NTH)=GUCLIP(FGA(NTH,NP,NSA))
+            GF(NP,NTH)=GDCLIP(FGA(NTH,NP,NSA))
          ENDDO
          ENDDO
       ELSEIF(MODE.EQ.4) THEN
@@ -1041,7 +1034,7 @@
                IF(FGA(NTH,NP,NSA).LT.1.D-70) THEN
                   GF(NP,NTH)=-70.0
                ELSE
-                  GF(NP,NTH)=GUCLIP(LOG10(ABS(FGA(NTH,NP,NSA))))
+                  GF(NP,NTH)=GDCLIP(LOG10(ABS(FGA(NTH,NP,NSA))))
                ENDIF
             END DO
          END DO
@@ -1204,25 +1197,25 @@
       IF(MODE.EQ.0) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
-               GF(NP,NTH)=GUCLIP(FG(NTH,NP,NR))
+               GF(NP,NTH)=GDCLIP(FG(NTH,NP,NR))
             END DO
          END DO
       ELSEIF(MODE.EQ.1) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX+1
-               GF(NP,NTH)=GUCLIP(FG(NTH,NP,NR))
+               GF(NP,NTH)=GDCLIP(FG(NTH,NP,NR))
             END DO
          END DO
       ELSEIF(MODE.EQ.2) THEN
          DO NTH=1,NTHMAX+1
             DO NP=1,NPMAX
-               GF(NP,NTH)=GUCLIP(FG(NTH,NP,NR))
+               GF(NP,NTH)=GDCLIP(FG(NTH,NP,NR))
             END DO
          END DO
       ELSEIF(MODE.EQ.3) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
-               GF(NP,NTH)=GUCLIP(FG(NTH,NP,NR))
+               GF(NP,NTH)=GDCLIP(FG(NTH,NP,NR))
             END DO
          END DO
       ELSEIF(MODE.EQ.4) THEN
@@ -1231,7 +1224,7 @@
                IF(FG(NTH,NP,NR).LT.1.D-70) THEN
                   GF(NP,NTH)=-70.0
                ELSE
-                  GF(NP,NTH)=GUCLIP(LOG10(ABS(FG(NTH,NP,NR))))
+                  GF(NP,NTH)=GDCLIP(LOG10(ABS(FG(NTH,NP,NR))))
                ENDIF
             END DO
          END DO
@@ -1291,25 +1284,25 @@
       IF(MODE.EQ.0) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
-               GF(NP,NTH)=GUCLIP(FG(NTH,NP,NR))
+               GF(NP,NTH)=GDCLIP(FG(NTH,NP,NR))
             END DO
          END DO
       ELSEIF(MODE.EQ.1) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX+1
-               GF(NP,NTH)=GUCLIP(FG(NTH,NP,NR))
+               GF(NP,NTH)=GDCLIP(FG(NTH,NP,NR))
             END DO
          END DO
       ELSEIF(MODE.EQ.2) THEN
          DO NTH=1,NTHMAX+1
             DO NP=1,NPMAX
-               GF(NP,NTH)=GUCLIP(FG(NTH,NP,NR))
+               GF(NP,NTH)=GDCLIP(FG(NTH,NP,NR))
             END DO
          END DO
       ELSEIF(MODE.EQ.3) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
-               GF(NP,NTH)=GUCLIP(FG(NTH,NP,NR))
+               GF(NP,NTH)=GDCLIP(FG(NTH,NP,NR))
             END DO
          END DO
       ELSEIF(MODE.EQ.4) THEN
@@ -1322,7 +1315,7 @@
 !               IF(FG(NTH,NP,NR).LT.1.D-12) THEN 
 !                  GF(NP,NTH)=-12.0
                ELSE
-                  GF(NP,NTH)=GUCLIP(LOG10(ABS(FG(NTH,NP,NR))))
+                  GF(NP,NTH)=GDCLIP(LOG10(ABS(FG(NTH,NP,NR))))
                ENDIF
             END DO
          END DO
@@ -1365,29 +1358,29 @@
 !
       IF(MODE.EQ.1) THEN
          DO NP=1,NPMAX+1
-            GP(NP)=GUCLIP(PG(NP,NS))
+            GP(NP)=GDCLIP(PG(NP,NS))
          END DO
          NPG=NPMAX+1
       ELSE
          DO NP=1,NPMAX
-            GP(NP)=GUCLIP(PM(NP,NS))
+            GP(NP)=GDCLIP(PM(NP,NS))
          END DO
          NPG=NPMAX
       ENDIF
 
       IF(MODE.EQ.2) THEN
          DO NTH=1,NTHMAX+1
-            GTH(NTH)=GUCLIP(THG(NTH))
+            GTH(NTH)=GDCLIP(THG(NTH))
          END DO
          NTHG=NTHMAX+1
       ELSE
          DO NTH=1,NTHMAX
-            GTH(NTH)=GUCLIP(THM(NTH))
+            GTH(NTH)=GDCLIP(THM(NTH))
          END DO
          NTHG=NTHMAX
       ENDIF
 !
-      GPMAX=GUCLIP(PMAX(NS))
+      GPMAX=GDCLIP(PMAX(NS))
 !
       CALL PAGES
       CALL SETLNW(0.07)
@@ -1404,7 +1397,7 @@
       CALL SETLNW(0.035)
       CALL GSCALE(0.,GPSTEP,0.,GPSTEP,1.0,0)
       CALL SETLNW(0.07)
-      CALL GVALUE(0.,GPSTEP*2,0.,GPSTEP*2,NGULEN(2*GPSTEP))
+      CALL GVALUE(0.,GPSTEP*2,0.,GPSTEP*2,NGSLEN(2*GPSTEP))
 !
       IF(LMODE.EQ.0) THEN
          IF(GFMIN*GFMAX.GE.0.0) THEN
@@ -1538,29 +1531,29 @@
 !
       IF(MODE.EQ.1) THEN
          DO NP=1,NPMAX+1
-            GP(NP)=GUCLIP(PG(NP,NS))
+            GP(NP)=GDCLIP(PG(NP,NS))
          END DO
          NPG=NPMAX+1
       ELSE
          DO NP=1,NPMAX
-            GP(NP)=GUCLIP(PM(NP,NS))
+            GP(NP)=GDCLIP(PM(NP,NS))
          END DO
          NPG=NPMAX
       ENDIF
 
       IF(MODE.EQ.2) THEN
          DO NTH=1,NTHMAX+1
-            GTH(NTH)=GUCLIP(THG(NTH))
+            GTH(NTH)=GDCLIP(THG(NTH))
          END DO
          NTHG=NTHMAX+1
       ELSE
          DO NTH=1,NTHMAX
-            GTH(NTH)=GUCLIP(THM(NTH))
+            GTH(NTH)=GDCLIP(THM(NTH))
          END DO
          NTHG=NTHMAX
       ENDIF
 !
-      GPMAX=GUCLIP(PMAX(NS))
+      GPMAX=GDCLIP(PMAX(NS))
 !
       CALL PAGES
       CALL SETLNW(0.07)
@@ -1576,7 +1569,7 @@
       CALL SETLNW(0.035)
       CALL GSCALE(0.,GPSTEP,0.,GPSTEP,1.0,0)
       CALL SETLNW(0.07)
-      CALL GVALUE(0.,GPSTEP*2,0.,GPSTEP*2,NGULEN(2*GPSTEP))
+      CALL GVALUE(0.,GPSTEP*2,0.,GPSTEP*2,NGSLEN(2*GPSTEP))
 !
       IF(LMODE.EQ.0) THEN
          IF(GFMIN*GFMAX.GE.0.0) THEN
@@ -1859,24 +1852,24 @@
 !
       IF(MOD(MODE,2).EQ.0) THEN
          DO NP=1,NPMAX
-            GP(NP)=GUCLIP(PM(NP,NS))
+            GP(NP)=GDCLIP(PM(NP,NS))
          END DO
          NPG=NPMAX
       ELSE
          DO NP=1,NPMAX+1
-            GP(NP)=GUCLIP(PG(NP,NS))
+            GP(NP)=GDCLIP(PG(NP,NS))
          END DO
          NPG=NPMAX+1
       ENDIF
 !
       IF(MOD(MODE/2,2).EQ.0) THEN
          DO NTH=1,NTHMAX
-            GTH(NTH)=GUCLIP(THM(NTH))
+            GTH(NTH)=GDCLIP(THM(NTH))
          END DO
          NTHG=NTHMAX
       ELSE
          DO NTH=1,NTHMAX+1
-            GTH(NTH)=GUCLIP(THG(NTH))
+            GTH(NTH)=GDCLIP(THG(NTH))
          END DO
          NTHG=NTHMAX+1
       ENDIF
@@ -1885,21 +1878,21 @@
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
                NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-               GF(NP,NTH)=GUCLIP(FG(NM)*PM(NP,NS))
+               GF(NP,NTH)=GDCLIP(FG(NM)*PM(NP,NS))
             END DO
          END DO
       ELSEIF(MODE.EQ.1) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX+1
                NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-               GF(NP,NTH)=GUCLIP(FG(NM)*PG(NP,NS))
+               GF(NP,NTH)=GDCLIP(FG(NM)*PG(NP,NS))
             END DO
          END DO
       ELSEIF(MODE.EQ.2) THEN
          DO NTH=1,NTHMAX+1
             DO NP=1,NPMAX
                NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-               GF(NP,NTH)=GUCLIP(FG(NM)*PM(NP,NS))
+               GF(NP,NTH)=GDCLIP(FG(NM)*PM(NP,NS))
             END DO
          END DO
       ELSEIF(MODE.EQ.4) THEN
@@ -1909,12 +1902,12 @@
                IF(FG(NM)*PM(NP,NS).LT.1.D-70) THEN
                   GF(NP,NTH)=-70.0
                ELSE
-                  GF(NP,NTH)=GUCLIP(LOG10(ABS(FG(NM)*PM(NP,NS))))
+                  GF(NP,NTH)=GDCLIP(LOG10(ABS(FG(NM)*PM(NP,NS))))
                ENDIF
             END DO
          END DO
       ENDIF
-      GPMAX=GUCLIP(PMAX(NS))
+      GPMAX=GDCLIP(PMAX(NS))
 
       CALL PAGES
       CALL SETLNW(0.07)
@@ -1930,7 +1923,7 @@
       CALL SETLNW(0.035)
       CALL GSCALE(0.,GPSTEP,0.,GPSTEP,1.0,0)
       CALL SETLNW(0.07)
-      CALL GVALUE(0.,GPSTEP*2,0.,GPSTEP*2,NGULEN(2*GPSTEP))
+      CALL GVALUE(0.,GPSTEP*2,0.,GPSTEP*2,NGSLEN(2*GPSTEP))
 !
       IF(LMODE.EQ.0) THEN
          IF(GFMIN*GFMAX.GE.0.0) THEN

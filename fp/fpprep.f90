@@ -29,7 +29,7 @@
       USE fpbroadcast
       USE fpwrin
       USE fpwmin
-      USE EG_READ
+      USE fpreadeg
 
       Implicit none
       integer :: ierr,NSA,NS,NR,NP,NTH,id
@@ -867,7 +867,7 @@
       SUBROUTINE fp_set_normalize_param
 
       USE plprof
-      USE EG_READ
+      USE fpreadeg
       IMPLICIT NONE
       INTEGER:: NSA, NSB, NS, NSFP, NSFD, NR, ISW_CLOG, i, j
       TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
