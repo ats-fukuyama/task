@@ -1,0 +1,32 @@
+2022.April.21st (nuga)
+*1 バウンス平均に関する修正と動作検証を行なった．
+	詳細はbafp_formulation.pdf
+
+
+2022.March.16th (nuga)
+
+*1. バルク温度に関する変更
+
+	バルク温度に関する変数，RT_TEMP, RT_BULKが混在しており，非常に
+	紛らわしいため，すべてRT_BULKに統一した．
+
+	バルク温度の制御変数MODEL_BULK_T(NS)を追加した．
+	defaultのMODEL_BULK_T(NS)=0では，バルク温度は分布関数から計算
+	される．
+
+	バルク密度に関しては，温度とは扱いが異なるため，RN_TEMPを残し
+	た．（総粒子密度とバルク密度どちらも必要となる場面がある）
+	
+*2. バウンス平均に関する変更
+
+	バウンス平均に関して，bafp_formulation.pdfに従い，定式化を見直
+	した．
+
+	現状，rho-sigma_bafp_20220316.epsに示すように，modela=0の場合，
+	modelc=4でfpで求めた電気伝導度がSpitzer conductivityと一致する
+	が，modela=1では新古典補正したSpitzer conductivityと一致しない．
+	また，modelc=1でmodelc=4とほぼ同じ値になる．modelc=1では
+	modelc=4よりも小さい電気伝導度になるはずであるので，まだ異常が
+	あると考えられる．
+
+

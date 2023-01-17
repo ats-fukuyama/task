@@ -964,7 +964,7 @@
       FUNCTION FPMXWL_calcn(PML,NR,NS)
 
       USE plprof
-      USE libbes,ONLY: besekn 
+      USE libbes,ONLY: beseknx 
       implicit none
       integer :: NR, NS
       real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon

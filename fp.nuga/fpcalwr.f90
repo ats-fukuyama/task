@@ -36,8 +36,20 @@
 
 ! =============  CALCULATION OF DWPP AND DWPT  ===============
 
-      ALLOCATE(DLA(0:NITMAXM,NRAYMAX))
+      IF(NRAYS_WR.EQ.0) THEN
+         NRAYS=1
+      ELSE
+         NRAYS=NRAYS_WR
+      END IF
+      IF(NRAYE_WR.EQ.0.OR.NRAYE_WR.GT.NRAYMAX) THEN
+         NRAYE=NRAYMAX
+      ELSE
+         NRAYE=NRAYE_WR
+      END IF
+
       FACT=0.5D0
+
+      ALLOCATE(DLA(0:NITMAXM,NRAYS:NRAYE))
 
       NS=NS_NSA(NSA)
 
@@ -51,7 +63,7 @@
                   ETAL=DELH*(NAV-0.5D0)-2.D0*ETAM(NTH,NR)
                   CALL pl_getRZ(RM(NR),ETAL,RL,ZL)
 
-                  DO NRAY=1,NRAYMAX
+                  DO NRAY=NRAYS,NRAYE
                      NITMX=NITMAX(NRAY)
                      RF_WR=RAYIN(1,NRAY)
 
@@ -134,6 +146,7 @@
                      RADB=A1*RBMIN2+A2*RBMIN1
                      IF(RADB.NE.0.D0) DELYEC=RADB
                      DELCR2=XLL2
+!  DELY_WR                     
                      DELRB2=DELYEC**2
                      ARG=DELCR2/DELRB2
 
@@ -219,7 +232,7 @@
                   ETAL=DELH*(NAV-0.5D0)-2.D0*ETAG(NTH,NR)
                   CALL pl_getRZ(RM(NR),ETAL,RL,ZL)
 
-                  DO NRAY=1,NRAYMAX
+                  DO NRAY=NRAYS,NRAYE
                      NITMX=NITMAX(NRAY)
                      RF_WR=RAYIN(1,NRAY)
 
@@ -395,7 +408,7 @@
          ETAL=DELH*(NAV-0.5D0)-2.D0*ETA
          CALL pl_getRZ(RM(NR),ETAL,RL,ZL)
 
-         DO NRAY=1,NRAYMAX
+         DO NRAY=NRAYS,NRAYE
             RF_WR=RAYIN(1,NRAY)
 
             IF(MODELW(NS).EQ.1) THEN
@@ -421,6 +434,18 @@
                      CALL FPDWLL(P,PSIN,PCOS,                      &
                                  CEX,CEY,CEZ,RKX,RKY,RKZ,RX,RY,RZ, &
                                  DWPPL,DWPTL,DWTPL,DWTTL,NSA)
+!                     IF(NRAY.EQ.2) &
+!                     WRITE(28,'(A,4I5,1P3E12.4)') &
+!                          'FPDWAV:',NR,NAV,NRAY,NCR,CEX,DWPPL
+!                     IF(NRAY.EQ.2) &
+!                     WRITE(28,'(A,1P6E12.4)') &
+!                          '------:',RX,RY,RZ,RKX,RKY,RKZ
+!                     IF(NRAY.EQ.1) &
+!                     WRITE(29,'(A,4I5,1P3E12.4)') &
+!                          'FPDWAV:',NR,NAV,NRAY,NCR,CEX,DWPPL
+!                     IF(NRAY.EQ.1) &
+!                     WRITE(29,'(A,1P6E12.4)') &
+!                          '------:',RX,RY,RZ,RKX,RKY,RKZ
                      DWPPS=DWPPS+DWPPL*RCOS/PCOS
                      DWPTS=DWPTS+DWPTL          /SQRT(PSI)
                      DWTPS=DWTPS+DWTPL          /SQRT(PSI)
@@ -492,7 +517,7 @@
       TYPE(pl_mag_type):: mag
 
       NS=NS_NSA(NSA)
-      CALL pl_mag(RX,RY,RZ,RHON,MAG)
+      CALL pl_mag(RX,RY,RZ,MAG)
 
       RW     =2.D0*PI*RF_WR*1.D6
       RWC    =AEFP(NSA)*MAG%BABS/AMFP(NSA)

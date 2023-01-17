@@ -27,18 +27,19 @@ MODINCLUDE= -I$(MOD) -I../lib/$(MOD) \
             -I../eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../mtxp/$(MOD)
 
-SRCS = fpcomm.f90 fpinit.f90 fpparm.f90 fpmpi.f90 fpbroadcast.f90 fpfunc.f90 \
+SRCS = fpcomm.f90 fpinit.f90 fpparm.f90 fpmpi.f90 fpbroadcast.f90 fpfunc.f90 fpsub.f90\
        fpexec.f90 fpreadeg.f90 fpsave.f90 \
+       fpcaltp.f90 fpcalte.f90 fpcaldeff.f90 fpcalchieff.f90 \
        fpwmin.f90 fpwrin.f90 fpcalwm.f90 fpcalwr.f90 fpcalw.f90 \
        fpcalcn.f90 fpcalcnr.f90 fpcalc.f90 fpnfrr.f90 fpnflg.f90 fpwrite.f90 \
-       cdbm.f90 fpcalr.f90 fpreadsv.f90 fpcoef.f90 fpcale.f90 \
+       cdbmfp.f90 fpcalr.f90 fpreadsv.f90 fpcoef.f90 fpcale.f90 \
        fpbounce.f90 fpdisrupt.f90 fpprep.f90 fploop.f90 \
        fpcont.f90 fpfout.f90 fpgout.f90 fpfile.f90 fpmenu.f90
 
 OBJS = $(SRCS:.f90=.o)
 
 LIBS = libfp.a ../pl/libpl.a ../eq/libeq.a  \
-        ../lib/libtask.a ../../bpsd/libbpsd.a
+        ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
 all: libs fp
 
@@ -53,9 +54,12 @@ libfp.a: $(OBJS)
 	(cd ../eq; make libeq.a)
 ../lib/tasklib.a:
 	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 
 libs:
 	(cd ../../bpsd; make libbpsd.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../lib; make libtask.a)
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
@@ -108,3 +112,5 @@ fpreadeg.o: fpreadeg.f90 fpcomm.f90
 fpreadsv.o: fpreadsv.f90 fpcomm.f90
 fpwrite.o: fpwrite.f90 fpreadeg.f90 fpfunc.f90 fpnfrr.f90 fpcomm.f90
 fpfunc.o: fpfunc.f90 fpcomm.f90
+fpcaltp.o: fpcaltp.f90 fpcomm.f90
+fpcaldeff.o: fpcaldeff.f90 fpcomm.f90 

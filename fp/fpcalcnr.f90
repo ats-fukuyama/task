@@ -1143,7 +1143,7 @@
       FUNCTION FPMXWL_calcnr(PML,NR,NS)
 
       USE plprof
-      USE libbes,ONLY: beseknx
+      USE libbes,ONLY: beseknx 
       implicit none
       integer :: NR, NS
       real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
@@ -1179,10 +1179,10 @@
          RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
       ELSE
          RNFDL=PLF(NS)%RN/RNFD0L
-         RNFDL=RN_TEMP(NR,NS)/RNFD0L
-         RTFDL=RT_TEMP(NR,NS)
+!         RNFDL=RN_TEMP(NR,NS)/RNFD0L
+         RNFDL=RN_BULK(NR,NS)/RNFD0L
+         RTFDL=RT_BULK(NR,NS)
 !            RTFDL=RT_BULK(NR,NS)
-!         IF(NRANK.eq.0) WRITE(*,'(A,2I5,10E14.6)') "TEST_cnr ", NR, NS, RNFDL, RN_TEMP(NR,NS)/RNFD0L, RTFDL, RT_TEMP(NR,NS), RN_TEMP(NR,NS)
       END IF
 
       THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)

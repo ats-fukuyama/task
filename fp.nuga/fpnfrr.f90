@@ -801,7 +801,7 @@
             WRITE(6,'(A,E14.6,3I4)') '|-NF_REACTION_RATE:', TIMEFP, nrank, comm_nr%rank, comm_nsa%rank
             WRITE(6,'(A,I5,A,2I5,A,2I5)') '   |-ID,NSB1,NSB2 -> NSA1,NSA2=' &
                  ,ID,':  ',NSB1,NSB2,' -> ',NSA1,NSA2
-            WRITE(6, *) "  |-ID,  NR,NSB1,NSB2,  <sigma*v>,      ENG1_NF,      RATE_NF,   RATE_NF_BT,   RATE_NF_TT"
+            WRITE(6, '(A90)') "  |-ID,  NR,NSB1,NSB2,  <sigma*v>,      ENG1_NF,      RATE_NF,   RATE_NF_BT,   RATE_NF_TT"
             WRITE(6,'("  ",4I5,1PE14.6,1PE12.4, 1P4E14.6)') ID,NR,NSB1,NSB2,RATE_NF(NR,ID)/FACT,&
                  ENG1_NF(ID), RATE_NF(NR,ID), RATE_NF_BT(NR,ID),RATE_NF_TT(NR,ID)
          END IF

@@ -84,17 +84,17 @@ CONTAINS
             DO NS=1,NSMAX
                IF(ID_NS(NS).EQ.1.OR.ID_NS(NS).EQ.-1) THEN
                   IF(NR.EQ.1) THEN
-                     PPP=PPP+RHONI+RN_TEMP(NR,NS)*1.D20*RT_TEMP(NR,NS)*RKEV
-                     PPM=PPM+RHONI+RN_TEMP(NR,NS)*1.D20*RT_TEMP(NR,NS)*RKEV
+                     PPP=PPP+RHONI+RN_TEMP(NR,NS)*1.D20*RT_BULK(NR,NS)*RKEV
+                     PPM=PPM+RHONI+RN_TEMP(NR,NS)*1.D20*RT_BULK(NR,NS)*RKEV
                   ELSE IF(NR.EQ.NRMAX) THEN
-                     PPP=PPP+RHONI+RN_TEMP(NR  ,NS)*1.D20*RT_TEMP(NR  ,NS)*RKEV
-                     PPM=PPM+RHONI+RN_TEMP(NR-1,NS)*1.D20*RT_TEMP(NR-1,NS)*RKEV
+                     PPP=PPP+RHONI+RN_TEMP(NR  ,NS)*1.D20*RT_BULK(NR  ,NS)*RKEV
+                     PPM=PPM+RHONI+RN_TEMP(NR-1,NS)*1.D20*RT_BULK(NR-1,NS)*RKEV
                   ELSE IF(NR.EQ.NRMAX+1) THEN
-                     PPP=PPP+RHONI+RN_TEMP(NR-1,NS)*1.D20*RT_TEMP(NR-1,NS)*RKEV
-                     PPM=PPM+RHONI+RN_TEMP(NR-2,NS)*1.D20*RT_TEMP(NR-2,NS)*RKEV
+                     PPP=PPP+RHONI+RN_TEMP(NR-1,NS)*1.D20*RT_BULK(NR-1,NS)*RKEV
+                     PPM=PPM+RHONI+RN_TEMP(NR-2,NS)*1.D20*RT_BULK(NR-2,NS)*RKEV
                   ELSE
-                     PPP=PPP+RHONI+RN_TEMP(NR+1,NS)*1.D20*RT_TEMP(NR+1,NS)*RKEV
-                     PPM=PPM+RHONI+RN_TEMP(NR-1,NS)*1.D20*RT_TEMP(NR-1,NS)*RKEV
+                     PPP=PPP+RHONI+RN_TEMP(NR+1,NS)*1.D20*RT_BULK(NR+1,NS)*RKEV
+                     PPM=PPM+RHONI+RN_TEMP(NR-1,NS)*1.D20*RT_BULK(NR-1,NS)*RKEV
                   END IF
                END IF
             END DO

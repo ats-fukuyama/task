@@ -28,13 +28,15 @@
 
       FUNCTION FPMXWL(PML,NR,NS)
 
+      USE fpcomm
       USE plprof
+      USE plcomm_type
       implicit none
       integer :: NR, NS
-      real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
-      TYPE(pl_prf_type),DIMENSION(NSMAX):: plf
-      real(kind8):: FPMXWL
+      real(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      real(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: prf
+      real(rkind):: FPMXWL
 
       AMFDL=PA(NS)*AMP
       AEFDL=PZ(NS)*AEE
@@ -55,13 +57,13 @@
 
       IF(NR.eq.0.or.NR.eq.NRMAX+1)THEN
          IF(MODEL_EX_READ_Tn.eq.0)THEN 
-            CALL PL_PROF(RHON,PLF)
-            RNFDL=PLF(NS)%RN/RNFD0L
-            RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+            CALL PL_PROF(RHON,PRF)
+            RNFDL=PRF(NS)%RN/RNFD0L
+            RTFDL=(PRF(NS)%RTPR+2.D0*PRF(NS)%RTPP)/3.D0
          ELSE
             IF(NR.eq.0)THEN
                RNFDL=RN_TEMP(1,NS)/RNFD0L
-               RTFDL=RT_TEMP(1,NS)
+               RTFDL=RT_BULK(1,NS)
             ELSEIF(NR.eq.NRMAX+1)THEN
                RNFDL=RNE_EXP_EDGE/RNFD0L
                RTFDL=RTE_EXP_EDGE
@@ -69,7 +71,7 @@
          END IF
       ELSE
          RNFDL=RN_TEMP(NR,NS)/RNFD0L
-         RTFDL=RT_TEMP(NR,NS)
+         RTFDL=RT_BULK(NR,NS)
       END IF
       
       IF(MODELR.EQ.0) THEN
@@ -92,12 +94,13 @@
 !-------------------------------------------------------------
       FUNCTION FPMXWL_S(PML,NR,NS)
 
-      USE plprof
+        USE plcomm_type
+        USE plprof
       implicit none
       integer :: NR, NS
       real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
       real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
-      TYPE(pl_prf_type),DIMENSION(NSMAX):: plf
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: prf
       real(kind8):: FPMXWL_S
 
       AMFDL=PA(NS)*AMP
@@ -107,7 +110,7 @@
       PTFD0L=SQRT(RTFD0L*1.D3*AEE*AMFDL)
 
       IF(MODEL_EX_READ_Tn.eq.0)THEN
-         CALL PL_PROF(RHON,PLF)
+         CALL PL_PROF(RHON,PRF)
          RNFDL=PNS(NS)/RNFD0L*1.D-1
          RTFDL=PTS(NS)*1.D-2
       ELSEIF(MODEL_EX_READ_Tn.ne.0)THEN
@@ -305,7 +308,7 @@
          RNFDL=(RN_TEMP(NR,NS))/RNFD0L
       END IF
 
-      RTFDL=RT_TEMP(NR,NS)
+      RTFDL=RT_BULK(NR,NS)
 
       IF(MODELR.EQ.0) THEN
          FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3

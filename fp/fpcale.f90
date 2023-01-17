@@ -13,7 +13,81 @@
 
       contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      SUBROUTINE E_IND_IMPLICIT
+      SUBROUTINE E_IND_IMPLICIT_CD(djdt_nind) ! for current drive
+
+      IMPLICIT NONE
+      integer:: NR
+      integer:: imtxstart1,imtxend1,its
+      real(8),dimension(NRSTART:NREND),intent(in):: djdt_nind
+      real(4):: gut1, gut2
+      real(8):: Aij, Aij_m1, Aij_p1, RHS, b_wall, E_e, a_e, coef_ln
+
+      CALL GUTIME(gut1)
+
+      CALL mtx_set_communicator(comm_nr) 
+
+      CALL mtx_setup(NRMAX,imtxstart1,imtxend1)
+      E_e=0.D0
+!---- DIAGONAL TERM
+      DO NR=NRSTART,NREND
+!         Aij=SIGMA_SPP(NR)+2.D0*DELT/(RMU0*DELR**2*RA**2)
+         Aij=2.D0 + SIGMA_SPP(NR)*RMU0*(DELR*RA)**2/DELT
+         CALL mtx_set_matrix(NR,NR,Aij)
+         CALL mtx_set_vector(NR,EM(NR))
+      END DO
+!---- OFF DIAGONAL
+      DO NR=NRSTART,NREND
+!         Aij_m1=-DELT/(RMU0*DELR**2*RA**2)*(1.D0-0.5D0*DELR/RM(NR))
+!         Aij_p1=-DELT/(RMU0*DELR**2*RA**2)*(1.D0+0.5D0*DELR/RM(NR))
+         Aij_m1=-(1.D0-0.5D0*DELR/RM(NR))
+         Aij_p1=-(1.D0+0.5D0*DELR/RM(NR))
+         IF(NR.ne.1)THEN
+            CALL mtx_set_matrix(NR,NR-1,Aij_m1)
+         END IF
+         IF(NR.ne.NRMAX)THEN
+            CALL mtx_set_matrix(NR,NR+1,Aij_p1)
+         END IF
+      END DO
+!---- RIGHT HAND SIDE
+      DO NR=NRSTART,NREND
+         IF(NR.ne.NRMAX)THEN
+!            RHS=SIGMA_SPM(NR)*EM(NR) &
+!                 -DJDT_NIND(NR)*1.D6*DELT
+            RHS=SIGMA_SPM(NR)*EM(NR)*RMU0*(DELR*RA)**2/DELT &
+                 -DJDT_NIND(NR)*1.D6*RMU0*(DELR*RA)**2
+         ELSE
+!------- boundary condition
+            Aij_p1=-(1.D0+0.5D0*DELR/RM(NR))
+!            Aij_p1=-DELT/(RMU0*DELR**2*RA**2)*(1.D0+0.5D0*DELR/RM(NR))
+            coef_ln=LOG(RA*(1.D0+0.5D0*DELR)/RB)/DELR
+            E_e=-coef_ln*EP(NRMAX)/(1.D0-coef_ln)
+            RHS=SIGMA_SPM(NR)*EM(NR)*RMU0*(DELR*RA)**2/DELT &
+                 -DJDT_NIND(NR)*1.D6*RMU0*(DELR*RA)**2 &
+                  -Aij_p1*E_e
+!            RHS=SIGMA_SPM(NR)*EM(NR) -Aij_p1*E_e &
+!                 -DJDT_NIND(NR)*1.D6*DELT
+         END IF
+         CALL mtx_set_source(NR,RHS)
+      END DO
+!---- SOLVE
+      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) 
+      CALL mtx_gather_vector(E1)
+      CALL mtx_cleanup
+
+!      IF(NPSTART.eq.1) &
+!      WRITE(*,'(A,I5,10E14.5e3)') "TEST 2delta_t/mu_0", &
+!!           NRANK, Aij_m1, Aij, Aij_p1, RHS, SIGMA_SPM(NRSTART)*EM(NRSTART), &
+!!           E_e, SIGMA_SPM(NRSTART), EM(NRSTART), EP(NRSTART), DJDT_NIND(NRSTART)
+!      NRANK, 2.D0*DELT/(RMU0*DELR**2*RA**2), SIGMA_SPP(NRSTART), SIGMA_SPM(NRSTART), E1(NRSTART)
+
+      CALL mtx_reset_communicator
+
+
+      CALL GUTIME(gut2)
+
+      END SUBROUTINE E_IND_IMPLICIT_CD
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE E_IND_IMPLICIT_RE
 
       IMPLICIT NONE
       integer:: NR
@@ -157,9 +231,9 @@
 
       CALL GUTIME(gut2)
 
-      END SUBROUTINE E_IND_IMPLICIT
+      END SUBROUTINE E_IND_IMPLICIT_RE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      SUBROUTINE E_IND_EXPLICIT
+      SUBROUTINE E_IND_EXPLICIT_RE
 
       IMPLICIT NONE
       integer:: NR
@@ -195,9 +269,9 @@
       CALL GUTIME(gut2)
       IF(NRANK.eq.0) WRITE(*,*) "GUT_EVOL_ITERATION = ",gut2-gut1
 
-      END SUBROUTINE E_IND_EXPLICIT
+      END SUBROUTINE E_IND_EXPLICIT_RE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
-      SUBROUTINE E_IND_IMPLICIT_FP(E_SIGMA) ! MODEL_jfp=1
+      SUBROUTINE E_IND_IMPLICIT_RE_FP(E_SIGMA) ! MODEL_jfp=1
 
       IMPLICIT NONE
       integer:: NR
@@ -282,9 +356,9 @@
 !         IF(NRANK.eq.0) WRITE(*,*) "GUT_EVOL_ITERATION = ",gut2-gut1
 !      END IF
 
-      END SUBROUTINE E_IND_IMPLICIT_FP
+      END SUBROUTINE E_IND_IMPLICIT_RE_FP
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
-      SUBROUTINE E_IND_CRANK_NICOLSON_FP
+      SUBROUTINE E_IND_CRANK_NICOLSON_RE_FP
 
       IMPLICIT NONE
       integer:: NR
@@ -374,7 +448,7 @@
 !         IF(NRANK.eq.0) WRITE(*,*) "GUT_EVOL_ITERATION = ",gut2-gut1
 !      END IF
 
-      END SUBROUTINE E_IND_CRANK_NICOLSON_FP
+      END SUBROUTINE E_IND_CRANK_NICOLSON_RE_FP
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
       SUBROUTINE E_IND_PSI_IMPLICIT_FP
 

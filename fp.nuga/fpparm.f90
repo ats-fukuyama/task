@@ -91,7 +91,7 @@ contains
            MODEL_LNL,MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY, &
            MODEL_SINK,N_IMPU,MODEL_DELTA_F, &
            N_partition_r,N_partition_s,N_partition_p, &
-           PMAX,PMAX_BB,EMAX, &
+           PMAX,PMAX_BB,PMAX_TT,EMAX, &
            R1,DELR1,RMIN,RMAX,E0,ZEFF, &
            PABS_LH,PABS_FW,PABS_EC,PABS_wr,PABS_WM,RF_WM, &
            FACT_WM,FACT_WR,FACT_NRAY,DELNPR_WR,DELNPR_WM,EPS_WR,DELY_WR, &
@@ -101,7 +101,7 @@ contains
            SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,SPBPANG, &
            SPFTOT,SPFR0,SPFRW,SPFENG, &
            DRR0,DRRS,FACTOR_CDBM,DRR_EDGE,RHO_EDGE, &
-           FACTOR_DRR_EDGE,FACTOR_PINCH,deltaB_B,TLOSS, &
+           FACTOR_DRR_EDGE,FACTOR_PINCH,deltaB_B,TLOSS,TLOSS_PARA,TLOSS_PERP, &
            DELT,RIMPL,EPSFP,EPSM,EPSE,EPSDE,H0DE, &
            PGMAX,RGMAX,RGMIN, &
            T0_quench,tau_quench,tau_mgi, &
@@ -154,7 +154,7 @@ contains
       WRITE(6,*) '      MODEL_LNL,MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY,'
       WRITE(6,*) '      MODEL_SINK,N_IMPU,MODEL_DELTA_F'
       WRITE(6,*) '      N_partition_r,N_partition_s,N_partition_p,'
-      WRITE(6,*) '      PMAX,PMAX_BB,EMAX'
+      WRITE(6,*) '      PMAX,PMAX_BB,PMAX_TT,EMAX'
       WRITE(6,*) '      R1,DELR1,RMIN,RMAX,E0,ZEFF,'
       WRITE(6,*) '      PABS_LH,PABS_FW,PABS_EC,PABS_WR,PABS_WM,RF_WM,'
       WRITE(6,*) '      FACT_WM,FACT_WR,DELNPR_WR,DELNPR_WM,EPS_WR,DELY_WR,'
@@ -165,12 +165,12 @@ contains
       WRITE(6,*) '      SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,SPBPANG,'
       WRITE(6,*) '      SPFTOT,SPFR0,SPFRW,SPFENG,'
       WRITE(6,*) '      DRR0,DRRS,FACTOR_CDBM,DRR_EDGE,RHO_EDGE,'
-      WRITE(6,*) '      FACTOR_DRR_EDGE,FACTOR_PINCH,deltaB_B,TLOSS,'
+      WRITE(6,*) '      FACTOR_DRR_EDGE,FACTOR_PINCH,deltaB_B,TLOSS,TLOSS_PARA,TLOSS_PERP'
       WRITE(6,*) '      DELT,RIMPL,EPSFP,EPSM,EPSE,EPSDE,H0DE,'
       WRITE(6,*) '      PGMAX,RGMAX,RGMIN,'
       WRITE(6,*) '      T0_quench,tau_quench,tau_mgi,'
       WRITE(6,*) '      time_quench_start,RJPROF1,RJPROF2,'
-      WRITE(6,*) '      v_RE,target_zeff,SPITOT,MODEL_EX_READ_Tn, MODEL_EX_READ_DH_RATIO, FACT_BULK'
+      WRITE(6,*) '      v_RE,target_zeff,SPITOT,MODEL_EX_READ_Tn, FACT_BULK'
       WRITE(6,*) '      time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS, RN_NEUS'
       WRITE(6,*) '      EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, SV_FILE_NAME_D, NSA_F1, NTH_F1, NR_F1'
       WRITE(6,*) '      OUTPUT_TXT_F1, OUTPUT_TXT_DELTA_F, OUTPUT_TXT_HEAT_PROF, OUTPUT_TXT_BEAM_WIDTH'
@@ -290,10 +290,13 @@ contains
       CALL mtx_broadcast_character(KNAMFO,80)
       CALL mtx_broadcast_character(KNAMTR,80)
       CALL mtx_broadcast_character(KNAMEQ2,80)
-      CALL mtx_broadcast_character(EG_NAME_TMS,80)
-      CALL mtx_broadcast_character(EG_NAME_CX,80)
+      CALL mtx_broadcast_character(EG_NAME_TMS,1000)
+      CALL mtx_broadcast_character(EG_NAME_CX,1000)
+      CALL mtx_broadcast_character(EG_PATH,1000) 
+      CALL mtx_broadcast_character(SHOT_NUMBER,1000) 
       CALL mtx_broadcast_character(SV_FILE_NAME_H,80)
       CALL mtx_broadcast_character(SV_FILE_NAME_D,80)
+
 
       DO NS=1,NSMAX
          CALL mtx_broadcast_character(KID_NS(NS),2)
@@ -370,7 +373,7 @@ contains
       idata(62)=NSA_F1
       idata(63)=NTH_F1
       idata(64)=NR_F1
-      idata(65)=MODEL_EX_READ_DH_RATIO
+!      idata(65)=MODEL_EX_READ_DH_RATIO
       idata(66)=OUTPUT_TXT_F1
       idata(67)=OUTPUT_TXT_DELTA_F
       idata(68)=OUTPUT_TXT_HEAT_PROF
@@ -378,8 +381,15 @@ contains
       idata(70)=OUTPUT_TXT_BEAM_DENS
       idata(71)=NRAYS_WR
       idata(72)=NRAYE_WR
+      idata(73)=NF_IDMAX
+      idata(74)=MODELS_full
+      idata(75)=MODELS_bt
+      idata(76)=MODELS_tt
+      idata(77)=MODEL_DELTA_F_CN
+      idata(78)=MODEL_DELTA_F_NI_RATIO
+      idata(79)=OUTPUT_NFID
 
-      CALL mtx_broadcast_integer(idata,72)
+      CALL mtx_broadcast_integer(idata,79)
       NSAMAX         =idata( 1)
       NSBMAX         =idata( 2)
       LMAX_WR        =idata( 3)
@@ -447,7 +457,7 @@ contains
       NSA_F1 = idata(62)
       NTH_F1 = idata(63)
       NR_F1 = idata(64)
-      MODEL_EX_READ_DH_RATIO=idata(65)
+!      MODEL_EX_READ_DH_RATIO=idata(65)
       OUTPUT_TXT_F1=idata(66)
       OUTPUT_TXT_DELTA_F=idata(67)
       OUTPUT_TXT_HEAT_PROF=idata(68)
@@ -455,6 +465,13 @@ contains
       OUTPUT_TXT_BEAM_DENS=idata(70)
       NRAYS_WR=idata(71)
       NRAYE_WR=idata(72)
+      NF_IDMAX=idata(73)
+      MODELS_full=idata(74)
+      MODELS_bt=idata(75)
+      MODELS_tt=idata(76)
+      MODEL_DELTA_F_CN=idata(77)
+      MODEL_DELTA_F_NI_RATIO=idata(78)
+      OUTPUT_NFID=idata(79)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -544,8 +561,11 @@ contains
       rdata(71)=time_exp_offset
       rdata(72)=RN_NEU0
       rdata(73)=RN_NEUS
+      rdata(74)=DH_RATIO
+      rdata(75)=HHe_RATIO
+      rdata(76)=given_zeff
 
-      CALL mtx_broadcast_real8(rdata,73)
+      CALL mtx_broadcast_real8(rdata,76)
 
       R1               =rdata( 1)
       DELR1            =rdata( 2)
@@ -628,10 +648,17 @@ contains
       RN_NEU0          =rdata(72)
       RN_NEUS          =rdata(73)
 
+      DH_RATIO         =rdata(74)
+      HHe_RATIO        =rdata(75)
+      given_zeff       =rdata(76)
+
       CALL mtx_broadcast_real8(pmax,NSMAX)
       CALL mtx_broadcast_real8(pmax_bb,NSMAX)
+      CALL mtx_broadcast_real8(pmax_tt,NSMAX)
       CALL mtx_broadcast_real8(Emax,NSMAX)
       CALL mtx_broadcast_real8(TLOSS,NSMAX)
+      CALL mtx_broadcast_real8(TLOSS_PARA,NSMAX)
+      CALL mtx_broadcast_real8(TLOSS_PERP,NSMAX)
       CALL mtx_broadcast_real8(NI_RATIO,NSMAX)
 
       CALL mtx_broadcast_real8(SPBTOT,NBEAMMAX)

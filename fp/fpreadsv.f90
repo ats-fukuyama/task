@@ -112,17 +112,18 @@
        SUBROUTINE READ_FIT3D_D
 
        IMPLICIT NONE
-       integer:: i,j,k,l_max 
-       integer:: iempty, n_p_theta
-       double precision:: mass_ratio, vmax_mks, rempty
+       integer:: nt, npt, k, l_max, i, j
+       integer:: iempty, npt_max, IOStatus!, ntmax_fit_D_temp
+       double precision:: mass_ratio, vmax_mks, rempty, time
+!       double precision,dimension(:),allocatable:: time_grid_fit_D_temp
+       character(255) :: IOMessage
 
 !       open(23,file='./dat/sv_fp_119489.txt',status='old')
        open(23,file=SV_FILE_NAME_D,status='old')
 
        READ(23,*) 
-!       READ(23,*) npm_fit, nthm_fit, nrm_fit, ntmax_fit_H
 !       READ(23,*) iempty, iempty, iempty, ntmax_fit_D
-       READ(23,*) iempty, iempty, nrm_fit, ntmax_fit_D
+       READ(23,*) npm_fit, nthm_fit, nrm_fit, ntmax_fit_D
        allocate(time_grid_fit_D(ntmax_fit_D))
        READ(23,*) 
        READ(23,*) vmax_mks, mass_ratio
@@ -143,30 +144,38 @@
        number_of_lines_fit_D(:,:)=0.D0
 
        k=0
-       DO i=1, ntmax_fit_D
+       nt=0
+       read_sv_D: DO 
+          nt=nt+1
+          READ(23,*,iostat = IOStatus,iomsg = IOMessage) 
+          if(IOStatus.lt.0)THEN
+             IF(NRANK.eq.0) WRITE(*,'(2I5,A)') nt, IOStatus, trim(IOMessage)
+             exit read_sv_D
+          END if
+          READ(23,*) time, npt_max
+          DO WHILE(time_grid_fit_D(nt).ne.time)
+             nt=nt+1
+          END DO
           READ(23,*) 
-          READ(23,*) rempty, n_p_theta
-          READ(23,*) 
-          IF(n_p_theta.ne.0)THEN
-             number_of_lines_fit_D(1,i)=k+1
-             DO j=1, n_p_theta
+          IF(npt_max.ne.0)THEN
+             number_of_lines_fit_D(1,nt)=k+1
+             DO npt=1, npt_max
                 k=k+1
                 READ(23,*) I_FIT_temp(1,k), rempty, I_FIT_temp(2,k), rempty, I_FIT_temp(3,k), rempty, D_FIT_temp(k)
-                I_FIT_temp(4,K)=i
+                I_FIT_temp(4,k)=nt
              END DO
-             number_of_lines_fit_D(2,i)=k
+             number_of_lines_fit_D(2,nt)=k
           END IF
 !      I_FIT(i,k)= NP, NTH, NR, NT, k=line number
-       END DO
-
+       END DO read_sv_D
+       IF(NRANK.eq.0.and.IOStatus.eq.0) WRITE(*,'(A)') "READ SV D appropriately"
        close(23)
 
-!       WRITE(*,'(5I8,E14.6)') k, (I_FIT_temp(i,k),i=1,4), D_FIT_temp(k)
        l_max=k
 
        allocate(I_FIT_D(4,k))
        allocate(D_FIT_D(k))
-       
+
        DO j=1,l_max
           DO i=1,4
              I_FIT_D(i,j)=I_FIT_temp(i,j)
@@ -190,20 +199,21 @@
 
        ntime1=1
        ntime2=1
-       DO i=1, ntmax_fit_D
+       DO i=1, ntmax_fit_D-1
           IF(time_grid_fit_D(i).le.time.and.time.lt.time_grid_fit_D(i+1))THEN
              ntime1=i
              ntime2=i+1
           END IF
        END DO
-       weight=(time-time_grid_fit_D(ntime1))/(time_grid_fit_D(ntime2)-time_grid_fit_D(ntime1))
+       IF(ntime1.ne.ntime2)THEN
+          weight=(time-time_grid_fit_D(ntime1))/(time_grid_fit_D(ntime2)-time_grid_fit_D(ntime1))
+       END IF
 
        IF(time.lt.time_grid_fit_D(1).or.time_grid_fit_D(ntmax_fit_D).lt.time)THEN
           ntime1=1
           ntime2=1
           weight=0.D0
        END IF
-
 !       WRITE(*,'(A,2I5)') "ntime1, 2= ", ntime1, ntime2
 !       WRITE(*,'(A,1P3E14.6)') "time ", time_grid_fit(ntime1), time, time_grid_fit(ntime2)
 !       WRITE(*,*) "weight ", weight
@@ -366,15 +376,16 @@
        ELSE
           k=0
           DO NR=NRSTART, NREND
-             DO j=1, NRM_FIT
-                IF(rm_fit(j).le.RM(NR).and.RM(NR).lt.rm_fit(j+1))THEN
-                   k=j                   
-                END IF
-             END DO
              IF(RM(NR).lt.rm_fit(1))THEN
                 k=1
              ELSEIF(rm_fit(nrm_fit).lt.RM(NR))THEN
                 k=nrm_fit
+             ELSE
+                DO j=1, NRM_FIT
+                   IF(rm_fit(j).le.RM(NR).and.RM(NR).lt.rm_fit(j+1))THEN
+                      k=j                   
+                   END IF
+                END DO
              END IF
              DO NP=NPSTART, NPEND
                 DO NTH=1, NTHMAX
@@ -384,8 +395,10 @@
                    + weight &
                    *( (1.D0-WEIGHT_R(NR))*SPPB_FIT_TEMP2(NTH,NP,K)+ &
                    WEIGHT_R(NR)*SPPB_FIT_TEMP2(NTH,NP,K+1) )
-!                   SPPB(NTH,NP,NR,NSA)=(1.D0-weight)*SPPB_FIT_TEMP1(NTH,NP,NR) &
-!                        + weight*SPPB_FIT_TEMP2(NTH,NP,NR)
+!                   IF(SPPB(NTH,NP,NR,NSA).ne.SPPB(NTH,NP,NR,NSA)) &
+!                        WRITE(*,'(A,4I5,4E14.6,I5)') "TEST SPPB NaN ",&
+!                        NTH,NP,NR,NSA,SPPB_FIT_TEMP1(NTH,NP,K),SPPB_FIT_TEMP1(NTH,NP,K+1),&
+!                        SPPB_FIT_TEMP2(NTH,NP,K),SPPB_FIT_TEMP2(NTH,NP,K+1),K
                 END DO
              END DO
           END DO
@@ -451,6 +464,22 @@
        END DO
 
        END SUBROUTINE NBI_SOURCE_FIT3D
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+       SUBROUTINE NBI_BAFP_SV(NSA)
+
+       IMPLICIT NONE
+       integer,intent(in):: NSA
+       integer:: NTH, NP, NR
+
+       DO NR=NRSTART, NREND
+          DO NP=NPSTART, NPEND
+             DO NTH=1, NTHMAX
+                SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA)/(RFSADG(NR)*RLAMDA(NTH,NR))
+             END DO
+          END DO
+       END DO
+
+       END SUBROUTINE NBI_BAFP_SV
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      END MODULE FP_READ_FIT
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -52,6 +52,7 @@
                RVTFP=SQRT(RRTFP*1.D3*AEE/Rmass)
                pmax(ns)=SQRT(2.D0*AEE*Rmass*1.D3*EMAX(NS))/RPTFP
             END IF
+            IF(NRANK.eq.0) WRITE(6,'(A,1P6E14.6)') "VMAX[m/s] = ", RVTFP*pmax(ns)
          END DO
          IF(NRANK.eq.0) WRITE(6,'(A,1P6E12.4)') "new pmax= ", (pmax(ns),ns=1,nsmax)
       END IF
@@ -228,7 +229,7 @@
       ENDDO
 
       IF(NRANK.eq.0) THEN
-         WRITE(6,'(A,3E14.6)') "DEVICE, RR, RA, BB", RR, RA, BB
+         WRITE(6,'(A,4E14.6)') "DEVICE, RR, RA, BB, TVOLR ", RR, RA, BB, TVOLR
       END IF
 !     ----- set bounce-average parameters -----
 
@@ -270,7 +271,6 @@
             ELSE
                ITL_judge(NR)=ITL(NR)-1
             END IF
-
          ENDDO
 
          IF(NRANK.eq.1) WRITE(6,*) " "
@@ -1119,13 +1119,19 @@
       IF(NRANK.eq.0)THEN
          WRITE(*,'(A)') "---TIME CONST CX---"
          WRITE(*,'(A,E14.6)') "E_CR on axis=   ", E_CR
-         WRITE(*,'(A,1PE14.6,2E14.6)') "CX E0, tau_se_E0 on axis=   ", Ebeam0, tau_se_E0
-         WRITE(*,'(A,1PE14.6,2E14.6)') "CX E1, tau_se_E0E1, wo E_CR on axis= ", Ebeam1, tau_se_E0E1, tau_se_E0*log(Ebeam0/Ebeam1)*0.5D0
+         WRITE(*,'(A,1PE14.6,2E14.6)') &
+              "CX E0, tau_se_E0 on axis=   ", Ebeam0, tau_se_E0
+         WRITE(*,'(A,1PE14.6,2E14.6)') &
+              "CX E1, tau_se_E0E1, wo E_CR on axis= ", Ebeam1, tau_se_E0E1, &
+              tau_se_E0*log(Ebeam0/Ebeam1)*0.5D0
          WRITE(*,'(A,E14.6)') "tau_cx_E1 on axis=   ", tau_cx_E1
       END IF
       IF(NRSTART.eq.NRMAX.and.NPSTART.eq.1.and.NSASTART.eq.1)THEN
-         WRITE(*,'(A,1PE14.6,2E14.6)') "CX E0, tau_se_E0, on edge=   ", Ebeam0, tau_se_E0
-         WRITE(*,'(A,1PE14.6,2E14.6)') "CX E1, tau_se_E0E1, on edge= ", Ebeam1, tau_se_E0E1, tau_se_E0*log(Ebeam0/Ebeam1)*0.5D0
+         WRITE(*,'(A,1PE14.6,2E14.6)') &
+              "CX E0, tau_se_E0, on edge=   ", Ebeam0, tau_se_E0
+         WRITE(*,'(A,1PE14.6,2E14.6)') &
+              "CX E1, tau_se_E0E1, on edge= ", Ebeam1, tau_se_E0E1, &
+              tau_se_E0*log(Ebeam0/Ebeam1)*0.5D0
          WRITE(*,'(A,E14.6)') "tau_cx_E1 on edge=   ", tau_cx_E1
       END IF
 
@@ -1187,16 +1193,29 @@
 
       IF(NRANK.eq.0)THEN
          WRITE(*,'(A)') "---TIME CONST NF---"
-         WRITE(*,'(A,2E14.6)') "NF E_CR on axis=   ", E_CR, E_CR_2
-         WRITE(*,'(A,1P2E14.6)') "NF E0, tau_se_E0 on axis=   ", Ebeam0, tau_se_E0
-         WRITE(*,'(A,1P3E14.6)') "NF E1, tau_se_E0E1, tau_nf on axis= ", Ebeam1, tau_se_E0E1, 1.D0/sigmav_nf1
-         WRITE(*,'(A,2E14.6)') "NF C_tause on axis ", tau_se_E0*RN_TEMP(NRSTART,1)/(RT_TEMP(NRSTART,1))**1.5D0, LNLAM(NRSTART,1,NSA_F1)
+         WRITE(*,'(A,2E14.6)') &
+              "NF E_CR on axis=   ", E_CR, E_CR_2
+         WRITE(*,'(A,1P2E14.6)') &
+              "NF E0, tau_se_E0 on axis=   ", Ebeam0, tau_se_E0
+         WRITE(*,'(A,1P3E14.6)') &
+              "NF E1, tau_se_E0E1, tau_nf on axis= ", Ebeam1, tau_se_E0E1, &
+              1.D0/sigmav_nf1
+         WRITE(*,'(A,2E14.6)') &
+              "NF C_tause on axis ", &
+              tau_se_E0*RN_TEMP(NRSTART,1)/(RT_TEMP(NRSTART,1))**1.5D0, &
+              LNLAM(NRSTART,1,NSA_F1)
       END IF
       IF(NRSTART.eq.5.and.NPSTART.eq.1.and.NSASTART.eq.1)THEN
-         WRITE(*,'(A,I5,2E14.6)') "NF E_CR on NR=", NRSTART, E_CR, E_CR_2
-         WRITE(*,'(A,I5,1P2E14.6)') "NF E0, tau_se_E0, on NR=", NRSTART, Ebeam0, tau_se_E0
-         WRITE(*,'(A,I5,1P4E14.6)') "NF E1, tau_se_E0E1, tau_nf, coef on NR=", NRSTART, Ebeam1, tau_se_E0E1, 1.D0/sigmav_nf1, coef
-         WRITE(*,'(A,2E14.6)') "NF C_tause on NR, ", tau_se_E0*RN_TEMP(NRSTART,1)/(RT_TEMP(NRSTART,1))**1.5D0, LNLAM(NRSTART,1,NSA_F1)
+         WRITE(*,'(A,I5,2E14.6)') &
+              "NF E_CR on NR=", NRSTART, E_CR, E_CR_2
+         WRITE(*,'(A,I5,1P2E14.6)') &
+              "NF E0, tau_se_E0, on NR=", NRSTART, Ebeam0, tau_se_E0
+         WRITE(*,'(A,I5,1P4E14.6)') &
+              "NF E1, tau_se_E0E1, tau_nf, coef on NR=", NRSTART, Ebeam1, &
+              tau_se_E0E1, 1.D0/sigmav_nf1, coef
+         WRITE(*,'(A,2E14.6)') "NF C_tause on NR, ", &
+              tau_se_E0*RN_TEMP(NRSTART,1)/(RT_TEMP(NRSTART,1))**1.5D0, &
+              LNLAM(NRSTART,1,NSA_F1)
       END IF
 
 

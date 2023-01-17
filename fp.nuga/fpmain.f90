@@ -18,8 +18,10 @@
 
       use fpcomm
       use plinit
+      use plparm
       use equnit
       use fpinit
+      use fpparm
       use fpmenu
       use fpwrin
       use libmtx

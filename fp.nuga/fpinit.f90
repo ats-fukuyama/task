@@ -216,6 +216,8 @@
 
       DO nsa=1,nsm
          TLOSS(nsa)=0.d0          ! default no loss
+         TLOSS_PARA(nsa)=0.d0          ! default no loss
+         TLOSS_PERP(nsa)=0.d0          ! default no loss
       ENDDO
 
 !-----NUMBER OF MESH----------------------------------------------------

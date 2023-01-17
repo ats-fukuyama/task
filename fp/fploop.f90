@@ -8,12 +8,15 @@
 
       USE fpcomm
       use fpexec
+      use fpcoef
       use fpsave
       use libmpi
       use fpmpi
       use fpdisrupt
       use eg_read
       use fpoutdata
+      use fpfunc
+      use fpcalj
 
       contains
 
@@ -21,14 +24,11 @@
 
       SUBROUTINE FP_LOOP
 
-      USE fpcoef
-      USE fpsub
       USE libmtx
       USE plprof
       USE FPMPI
-      USE fpprep, only: Coulomb_log 
+      USE fpprep, only: Coulomb_log
       USE fpnfrr
-      USE fpcaltp
       IMPLICIT NONE
       real(kind8):: DEPS,IP_all_FP,DEPS_E2
 
@@ -36,7 +36,8 @@
       real:: gut_exe1, gut_exe2, gut_coef1, gut_coef2, gut_coef3
       real:: gut_loop1, gut_loop2, gut1, gut2, gut_conv3
       real:: sum_gut_ex, sum_gut_coef, gut_1step, sum_gut_conv
-      LOGICAL:: flag
+      REAL(rkind),dimension(NRMAX):: RJ_NIND_M
+      LOGICAL:: flag      
 
 !     +++++ Time loop +++++
 
@@ -45,21 +46,18 @@
          DEPS=1.D0
          DO NSA=NSASTART,NSAEND
             NS=NS_NSA(NSA)
-!            DO NR=NRSTART-1,NREND+1 ! local
             DO NR=NRSTARTW,NRENDWM ! local
-!               IF(NR.ge.1.and.NR.le.NRMAX)THEN
-                  DO NP=NPSTARTW,NPENDWM
-                     IF(MODEL_DELTA_F(NS).eq.0)THEN
-                        DO NTH=1,NTHMAX
-                           FNSM(NTH,NP,NR,NSA)=FNSP(NTH,NP,NR,NSA) ! minus step: invariant during N_IMPL 
-                        END DO
-                     ELSEIF(MODEL_DELTA_F(NS).eq.1)THEN
-                        DO NTH=1,NTHMAX
-                           FNSM(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) ! minus step: invariant during N_IMPL 
-                        END DO
-                     END IF
-                  END DO
-!               END IF
+               DO NP=NPSTARTW,NPENDWM
+                  IF(MODEL_DELTA_F(NS).eq.0)THEN
+                     DO NTH=1,NTHMAX
+                        FNSM(NTH,NP,NR,NSA)=FNSP(NTH,NP,NR,NSA) ! minus step: invariant during N_IMPL 
+                     END DO
+                  ELSEIF(MODEL_DELTA_F(NS).eq.1)THEN
+                     DO NTH=1,NTHMAX
+                        FNSM(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)! minus step: invariant during N_IMPL 
+                     END DO
+                  END IF
+               END DO
             END DO
          END DO
  
@@ -72,8 +70,11 @@
          IF(MODEL_DISRUPT.ne.0)THEN
             CALL TOP_OF_TIME_LOOP_DISRUPT(NT) ! include fpcoef
          END IF
+         IF(MODEL_CD.ne.0)THEN
+            CALL TOP_OF_TIME_LOOP_CD(RJ_NIND_M)
+         END IF
          CALL GUTIME(gut_coef3)
-
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          DO WHILE(N_IMPL.le.LMAXFP) ! start do while
 
             CALL GUTIME(gut_exe1)
@@ -97,17 +98,22 @@
 
 !-- updating diffusion coef
             CALL GUTIME(gut_coef1)
-            CALL update_RN_RT(FNSP) ! update RN_TEMP, RT_TEMP for Coulomb Ln, fpcalcnr, and FPMXWL_EXP
+            DO NSA=NSASTART, NSAEND
+               NS=NS_NSA(NSA)
+               IF(MODEL_DELTA_F(NS).eq.0)THEN
+                  CALL update_RN_RT(FNSP) ! update RN_TEMP, RT_BULK for Coulomb Ln, fpcalcnr, and FPMXWL_EXP
+               END IF
+            END DO
             IF(MODEL_LNL.eq.0) CALL Coulomb_log ! update coulomb log
 
             CALL fusion_source_init
-!           update FNSB (fnsb is required by NL collsion and NF reaction)
             FLAG=.FALSE.
             DO NSB=1,NSBMAX
                NS=NS_NSB(NSB)
                IF(MODELC(NS).GE.4) FLAG=.TRUE.
             END DO
-            IF(FLAG.or.MODELS.ge.2)THEN
+!           update FNSB (fnsb is required by NL collsion and NF reaction)
+            IF(FLAG.or.ABS(MODELS).ge.2)THEN
                CALL mtx_set_communicator(comm_nsa)
                CALL update_fnsb_maxwell
                CALL update_fnsb
@@ -129,12 +135,13 @@
             CALL GUTIME(gut_coef2)
             SUM_GUT_COEF = SUM_GUT_COEF + gut_coef2 - gut_coef1
 !-- end of updating diffusion coef
+            IF(MODEL_CD.ne.0)THEN ! QLM should be updated in do while
+               CALL AFTER_DO_WHILE_CD(RJ_NIND_M, NT)
+! calculate E_ind
+            END IF
+         END DO 
+!-------------------------------- END OF DOWHILE
 
-            WRITE(6,'(A,1p3E12.4)') '---DEPS,DEPS2=', &
-                 DEPS,DEPS_E2,EPSFP
-
-
-         END DO ! END OF DOWHILE
          SUM_GUT_COEF= SUM_GUT_COEF + gut_coef3 - gut_loop1
 
          CALL mtx_reset_communicator
@@ -153,9 +160,9 @@
             CALL FILE_OUTPUT_DISRUPT(NT,IP_all_FP) 
          END IF
 
-         IF(MODELS.ge.2)THEN
-            CALL ALLREDUCE_NF_RATE
-            CALL PROF_OF_NF_REACTION_RATE(1)
+         IF(MODELS.lt.0) CALL NF_RATE_no_SPPF
+         IF(ABS(MODELS).ge.2)THEN
+            CALL PROF_OF_NF_REACTION_RATE(OUTPUT_NFID)
          END IF
 
          DO NSA=NSASTART,NSAEND
@@ -173,11 +180,11 @@
          GUT_1step = gut_loop2-gut_loop1
 
          IF (MOD(NT,NTG1STEP).EQ.0) THEN
-         IF(NRANK.eq.0) &
-              WRITE(6,'(A,E12.4, A,E12.4, A,E12.4, A,E12.4, A,E12.4)') &
-              " GUT_EXEC= ", SUM_GUT_EX,   " GUT_CONV= ",SUM_GUT_conv, &
-              " GUT_COEF= ", SUM_GUT_COEF, " GUT_1step= ", GUT_1step, &
-              " EXEC_RATIO = ", SUM_GUT_EX/GUT_1step
+            IF(NRANK.eq.0) &
+                 WRITE(6,'(A,E12.4, A,E12.4, A,E12.4, A,E12.4, A,E12.4)') &
+                 " GUT_EXEC= ", SUM_GUT_EX,   " GUT_CONV= ",SUM_GUT_conv, &
+                 " GUT_COEF= ", SUM_GUT_COEF, " GUT_1step= ", GUT_1step, &
+                 " EXEC_RATIO = ", SUM_GUT_EX/GUT_1step
          END IF
 !     +++++ calculate and save global data +++++
 
@@ -189,7 +196,6 @@
             IF(NRANK.EQ.0) THEN
                CALL FPSGLB
                CALL FPWRTGLB
-               IF(nsize.EQ.1) CALL fp_caltp  ! not for parallel
             ENDIF
          ENDIF
          IF (MOD(NT,NTG2STEP).EQ.0) THEN
@@ -208,11 +214,12 @@
          END IF
 
          DO NSA=1,NSAMAX
+            NS=NS_NSA(NSA)
             DO NR=1,NRMAX
                IF(RNS(NR,NSA).lt.0)THEN
                   ierr_g = ierr_g + 1
                   IF(NRANK.eq.0)THEN
-                     WRITE(*,'(A,3I5,E14.6)') "NEGATIVE DENS. at NR= ", NR, NSA, ierr_g, RNS(NR,NSA)
+                     WRITE(*,'(A,3I5,3E14.6)') "NEGATIVE DENS. at NR= ", NR, NSA, ierr_g, TIMEFP, RNS(NR,NSA), RNS_DELF(NR,NS)
                   END IF
                END IF
             END DO
@@ -228,8 +235,11 @@
          IF(NRANK.eq.0)THEN
             IF(OUTPUT_TXT_BEAM_DENS.eq.1) CALL NUMBER_OF_NONTHERMAL_IONS
             IF(OUTPUT_TXT_HEAT_PROF.eq.1) CALL OUT_TXT_HEAT_PROF
+            IF(DEC.ne.0.D0) CALL OUT_LHCD_EVOL
+            IF(MODEL_CD.eq.1) CALL OUT_PLASMA_CURRENT_EVOL ! t-j.dat
          END IF
 
+         IF(MODEL_CD.eq.1.and.NRANK.eq.0) CALL OUT_J_PROFILE_CD
       Enddo ! END OF NT LOOP
 
 !     +++++ end of time loop +++++
@@ -245,7 +255,40 @@
          IF(OUTPUT_TXT_F1.eq.1) CALL OUT_TXT_F1
          IF(OUTPUT_TXT_BEAM_WIDTH.eq.1) CALL OUT_TXT_BEAM_WIDTH
          IF(OUTPUT_TXT_DELTA_F.eq.1) CALL OUT_TXT_FNS_DEL
+         IF(OUTPUT_TXT_F1.eq.1) CALL OUT_TXT_F1_PITCH
+!         IF(MODEL_CD.eq.1) CALL OUT_J_PROFILE_CD
       END IF
+      CALL OUT_RHO_SIGMA_SPITZER
+      IF(ABS(MODELS).ge.2) CALL OUT_TXT_NF_RADIAL_PROF(OUTPUT_NFID)
+
+!      IF(NRANK.eq.0)THEN
+!         WRITE(*,'(A,4E14.6)') "RJS check", &
+!              RJS(1,1), RECS(1,1), RJS(1,1)/RECS(1,1),&
+!              RJS(1,1)/RECS(1,1)*AEFP(1)**2*AEFD(1)**2&
+!              *LNLAM(1,1,1)*AMFP(1)/(4.D0*PI*EPS0**2)&
+!              *RNFD(1,1)*1.D20*PTFP0(1)&
+!              /(AEFP(1)*PTFP0(1)**3)
+!         WRITE(*,'(A,E14.6,A,E14.6)') "normalized P", &
+!              RECS(1,1)/(RNFD(1,1)**2*1.D40*AEFP(1)**4*LNLAM(1,1,1))&
+!              *(4.D0*PI*EPS0**2*PTFP0(1))*1.D6, &
+!              " normalized J", &
+!              RJS(1,1)*AMFP(1)/(RNFD(1,1)*1.D20*AEFP(1)*PTFP0(1))*1.D6
+!         WRITE(*,'(A,E14.6,A,E14.6)') "normalized P_non-R", &
+!              RECS(1,1)*1.D6/(RNFD(1,1)*1.D20), &
+!              " normalized J", &
+!              RJS(1,1)*1.D6/(RNFD(1,1)*1.D20)
+!         WRITE(*,'(A,E14.6,A,E14.6,A,E14.6)') "normalized P_K-F=", &
+!              RECS(1,1)*1.D6 &
+!              /(AMFP(1)*RNFD(1,1)*1.D20*VC**2)&
+!              *(4.D0*PI*EPS0**2*AMFP(1)**2*VC**3)&
+!              /(RNFD(1,1)*1.D20*AEFP(1)**4*LNLAM(1,1,1)), &
+!              " normalized J= ", &
+!              RJS(1,1)*1.D6/(AEFP(1)*RNFD(1,1)*1.D20*VC), &
+!              " J/P * (mcnu/q)= ", &
+!              RJS(1,1)/RECS(1,1)*AMFP(1)*VC*&
+!              (RNFD(1,1)*1.D20*AEFP(1)**3*LNLAM(1,1,1))/&
+!              (4.D0*PI*EPS0**2*AMFP(1)**2*VC**3)
+!      END IF
 
       RETURN
       END SUBROUTINE FP_LOOP
@@ -294,28 +337,28 @@
             DO NR=NRSTARTW,NRENDWM
                DO NP=NPSTARTW,NPENDWM
                   DO NTH=1,NTHMAX
-                     FNSP(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) &
-                                        +FNSP_MXWL(NTH,NP,NR,NSA) ! at n step
-                     FNSP_DEL(NTH,NP,NR,NSA)=FNS0(NTH,NP,NR,NSA)  ! at n+1 step
-                     send(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) &
-                                        +FNSP_MXWL(NTH,NP,NR,NSA)
-                                                           ! MODEL_EX_READ_Tn=0
+                     FNSP(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)+FNSP_MXWL(NTH,NP,NR,NSA) ! at n step
+                     FNSP_DEL(NTH,NP,NR,NSA)=FNS0(NTH,NP,NR,NSA) ! at n+1 step
+                     send(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)+FNSP_MXWL(NTH,NP,NR,NSA) ! MODEL_EX_READ_Tn=0
+!                     send(NTH,NP,NR,NSA)=FNSP_MXWL(NTH,NP,NR,NSA) ! MODEL_EX_READ_Tn=0
                   END DO
                END DO
             END DO
          END DO
-         CALL update_RN_RT(send) ! update RN_TEMP, RT_TEMP
          CALL COUNT_BEAM_DENSITY ! update RNS_DELF use for FPMXWL_EXP
+         CALL update_RN_RT(send) ! update RN_TEMP, RT_BULK.
+         CALL update_RN_BULK
          DO NSA=NSASTART,NSAEND 
             NS=NS_NSA(NSA)
             DO NR=NRSTARTW,NRENDWM
                DO NP=NPSTARTW,NPENDWM
                   DO NTH=1,NTHMAX
-                     FNSP_MXWL(NTH,NP,NR,NSA)=FPMXWL_EXP(PM(NP,NS),NR,NS)
-                                                           ! at n+1 step
-                     FNS0(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) &
-                                        +FNSP_MXWL(NTH,NP,NR,NSA)
-                                                           ! at n+1 step
+                     IF(MODEL_EX_READ_Tn.eq.0)THEN
+                        FNSP_MXWL(NTH,NP,NR,NSA)=FPMXWL(PM(NP,NS),NR,NS) ! at n+1 step
+                     ELSE
+                        FNSP_MXWL(NTH,NP,NR,NSA)=FPMXWL_EXP(PM(NP,NS),NR,NS) ! at n+1 step
+                     END IF
+                     FNS0(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)+FNSP_MXWL(NTH,NP,NR,NSA) ! at n+1 step
                   END DO
                END DO
             END DO
@@ -348,13 +391,9 @@
          DO NR=NRSTART,NREND
             DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX
-!                  IF(NRANK.EQ.0) WRITE(6,'(A,4I5,1P4E12.4)') &
-!                       'NSA,NR,NP,NTH,FNSP,FNS0,DIFF,RSUMF=', &
-!                       NSA,NR,NP,NTH,FNSP(NTH,NP,NR,NSA),FNS0(NTH,NP,NR,NSA),&
-!                       FNSP(NTH,NP,NR,NSA)-FNS0(NTH,NP,NR,NSA),RSUMF(NSA)
-                  RSUMF(NSA)=(FNSP(NTH,NP,NR,NSA)-FNS0(NTH,NP,NR,NSA) )**2 &
+                  RSUMF(NSA)=ABS(FNSP(NTH,NP,NR,NSA)-FNS0(NTH,NP,NR,NSA) )**2 &
                        + RSUMF(NSA)
-                  RSUMF0(NSA)=(FNSP(NTH,NP,NR,NSA))**2 + RSUMF0(NSA)
+                  RSUMF0(NSA)=ABS(FNSP(NTH,NP,NR,NSA))**2 + RSUMF0(NSA)
                ENDDO
             ENDDO
          ENDDO
@@ -430,7 +469,7 @@
       DO NS=1, NSMAX
          DO NR=1, NRMAX
             tempn(NR,NS)=RN_TEMP(NR,NS) ! RNS
-            tempt(NR,NS)=RT_TEMP(NR,NS) ! RT_BULK
+            tempt(NR,NS)=RT_BULK(NR,NS) ! RT_BULK
          END DO
       END DO
       

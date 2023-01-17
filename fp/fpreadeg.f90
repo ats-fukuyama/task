@@ -6,7 +6,9 @@
 
       PUBLIC READ_EXP_DATA
       PUBLIC MAKE_EXP_PROF
-      
+      PUBLIC MAKE_Tene_PROF_POLYNOMIAL
+      PUBLIC MAKE_QLM_QLG_FROM_kspdiag
+
       PRIVATE
       integer:: TMS_DimSize, TMS_ValNo, CX_DimSize, CX_ValNo
       CHARACTER(len=100),dimension(:),allocatable:: TMS_ValName, CX_ValName
@@ -15,14 +17,7 @@
       double precision,dimension(:,:),allocatable:: TMS_te_poly_coef, CX_ti_poly_coef
       double precision,dimension(:,:),allocatable:: TMS_ne_poly_coef
       double precision,dimension(:),allocatable:: TMS_tedge, TMS_nedge, CX_ti_edge
-!      double precision,dimension(:,:),pointer:: read_tms_double, read_cx_double
-!      integer,dimension(:,:),pointer:: read_tms_int
-!      double precision,dimension(5):: cte_fit
-!      double precision,dimension(6):: cne_fit
-!      integer:: nend_tms, nend_cx
-!      integer,parameter:: NRMAX=32
-!      double precision,dimension(32):: RM
-!      double precision,dimension(32):: RNE_EXP, RTE_EXP
+
       contains
 !-----------------------------------
       SUBROUTINE READ_EXP_DATA ! EGDATA OF TMS and CX are READ
@@ -64,7 +59,7 @@
          RT_READ(NR,1)=RTE_EXP(NR)
          RN_READ(NR,1)=RNE_EXP(NR)
                
-         RT_TEMP(NR,1)=RTE_EXP(NR)
+         RT_BULK(NR,1)=RTE_EXP(NR)
          RN_TEMP(NR,1)=RNE_EXP(NR)
          RN_BULK(NR,1)=RNE_EXP(NR)
       END DO
@@ -72,10 +67,10 @@
          DO NS=2, NSMAX
             IF(MODEL_EX_READ_Tn.eq.1)THEN
                DO NR=1, NRMAX
-                  RT_READ(NR,NS)=RTE_EXP(NR) ! assume to be same to electron
+                  RT_READ(NR,NS)=RTE_EXP(NR)
                   RN_READ(NR,NS)=RNE_EXP(NR)*NI_RATIO(NS)
                   
-                  RT_TEMP(NR,NS)=RTE_EXP(NR)
+                  RT_BULK(NR,NS)=RTE_EXP(NR)
                   RN_TEMP(NR,NS)=RNE_EXP(NR)*NI_RATIO(NS)
                END DO
             ELSEIF(MODEL_EX_READ_Tn.eq.2)THEN
@@ -83,7 +78,7 @@
                   RT_READ(NR,NS)=RTI_EXP(NR)
                   RN_READ(NR,NS)=RNE_EXP(NR)*NI_RATIO(NS)
                   
-                  RT_TEMP(NR,NS)=RTI_EXP(NR)
+                  RT_BULK(NR,NS)=RTI_EXP(NR)
                   RN_TEMP(NR,NS)=RNE_EXP(NR)*NI_RATIO(NS)
                END DO
             END IF
@@ -100,51 +95,51 @@
          IF(MODEL_EX_READ_Tn.eq.1)THEN
             DO NS=2,NSMAX
                DO NR=1,NRMAX
-                  RT_READ(NR,NS)=RTE_EXP(NR) ! assume to be same to electron
-                  RT_TEMP(NR,NS)=RTE_EXP(NR)
+                  RT_READ(NR,NS)=RTE_EXP(NR)*Ti_Te_ratio(NS)
+                  RT_BULK(NR,NS)=RTE_EXP(NR)*Ti_Te_ratio(NS)
 !                  RT_READ(NR,NS)=RTE_EXP(NR)*0.5D0 ! temporal
-!                  RT_TEMP(NR,NS)=RTE_EXP(NR)*0.5D0
                END DO
             END DO
          ELSEIF(MODEL_EX_READ_Tn.eq.2)THEN
             DO NS=2,NSMAX
                DO NR=1,NRMAX
                   RT_READ(NR,NS)=RTI_EXP(NR)
-                  RT_TEMP(NR,NS)=RTI_EXP(NR)
+                  RT_BULK(NR,NS)=RTI_EXP(NR)
                END DO
             END DO
          END IF
       END IF
 
-      DO NSA=1, NSAMAX
-         NS=NS_NSA(NSA)
+      DO NS=1, NSMAX
          IF(NS.eq.1)THEN
             DO NR=1,NRMAX
-               RT_BULK(NR,NSA)=RTE_EXP(NR)
+               RT_BULK(NR,NS)=RTE_EXP(NR)
             END DO
          ELSE
             IF(MODEL_EX_READ_Tn.eq.1)THEN
                DO NR=1, NRMAX
-                  RT_BULK(NR,NSA)=RTE_EXP(NR)
+                  RT_BULK(NR,NS)=RTE_EXP(NR)*Ti_Te_ratio(NS)
                END DO
             ELSEIF(MODEL_EX_READ_Tn.eq.2)THEN
                DO NR=1, NRMAX
-                  RT_BULK(NR,NSA)=RTI_EXP(NR)
+                  RT_BULK(NR,NS)=RTI_EXP(NR)
                END DO
             END IF
          END IF
       END DO
 
       !temporal
+!      WRITE(*,'(4E14.6)') TIMEFP, RTE_EXP(1), RT_BULK(1,1), Ti_Te_ratio(NS_NSA(1))
 !      WRITE(35,'(4E14.6)') TIMEFP, RN_TEMP(1,1), RN_TEMP(1,2), RN_TEMP(1,3)
       zeff=0.D0
       CN=0.D0
       DO NS=2, NSMAX
-         zeff=zeff+PZ(NS)**2*RN_BULK(1,NS)/RN_BULK(1,1)
-         CN = CN + PZ(NS)*RN_BULK(1,NS)/RN_BULK(1,1)
+         zeff=zeff+PZ(NS)**2*RN_TEMP(1,NS)/RN_TEMP(1,1)
+         CN = CN + PZ(NS)*RN_TEMP(1,NS)/RN_TEMP(1,1)
       END DO
 
-      WRITE(37,'(99E14.6)') TIMEFP, (RN_BULK(1,NS), NS=1, NSMAX), zeff, CN
+      WRITE(37,'(99E14.6)') TIMEFP, (RN_BULK(1,NS), NS=1, NSMAX), &
+           (RN_TEMP(1,NS), NS=1, NSMAX), zeff, CN
 
       END SUBROUTINE MAKE_EXP_PROF
 !-----------------------------------
@@ -446,7 +441,7 @@
       integer,intent(in):: NR
       double precision,dimension(NSMAX-1,NSMAX-1),intent(out):: Aji
       double precision,dimension(NSMAX-1),intent(out):: bk
-      double precision:: RSUM
+      double precision:: RSUMZ, RSUMZ2
       integer:: i_row,j_column,NS,judge,judge_zeff,imax, i, j
       integer,dimension(NSMAX-1):: ID_NS
 
@@ -482,19 +477,21 @@
       i_row=0
 ! 1  eq. of charge neutrality
       i_row=i_row+1
-      RSUM=0.D0
+      RSUMZ=0.D0
+      RSUMZ2=0.D0
       DO j_column=1,NSMAX-1
          Aji(i_row,j_column) = PZ(j_column+1)
       END DO
 
       IF(MODEL_DELTA_F_CN.eq.0)THEN
-         RSUM=0.D0
+         RSUMZ=0.D0
       ELSEIF(MODEL_DELTA_F_CN.eq.1)THEN
          DO NS=2,NSMAX
-            RSUM=RSUM+RNS_DELF(NR,NS)
+            RSUMZ =RSUMZ +RNS_DELF(NR,NS)*PZ(NS)
+            RSUMZ2=RSUMZ2+RNS_DELF(NR,NS)*PZ(NS)**2
          END DO
       END IF
-      bk(i_row) = RN_TEMP(NR,1)-RSUM
+      bk(i_row) = RN_TEMP(NR,1)-RSUMZ
 
 ! 2  eq. of Zeff
       IF(judge_zeff.eq.1)THEN
@@ -502,7 +499,7 @@
          DO j_column=1,NSMAX-1
             Aji(i_row,j_column) = PZ(j_column+1)**2
          END DO
-         bk(i_row) = given_zeff*RN_TEMP(NR,1)-RSUM
+         bk(i_row) = given_zeff*RN_TEMP(NR,1)-RSUMZ2
       END IF
 
 ! 3  eq. of DH_RATIO
@@ -974,6 +971,140 @@
       close(22)
       
       END SUBROUTINE MAKE_PROF_FROM_CX_v2
+!------------------------------------
+      SUBROUTINE MAKE_Tene_PROF_POLYNOMIAL
+
+      IMPLICIT NONE
+      INTEGER:: NR, NS, NSA, i
+      
+      DO NR=1, NRMAX
+         RT_INIT(NR,1)=te_poly(1) + te_poly(2)*RM(NR)**2 + &
+              te_poly(3)*RM(NR)**4 + te_poly(4)*RM(NR)**6
+         
+
+         RN_INIT(NR,1)=(ne_poly(1) + ne_poly(2)*RM(NR)**2 + &
+              ne_poly(3)*RM(NR)**4 + &
+              ne_poly(4)*RM(NR)**6 + ne_poly(5)*RM(NR)**8)*1.D-1
+         
+         RN_BULK(NR,1)=RN_TEMP(NR,1)
+      END DO
+      
+      DO NS=2, NSMAX
+         DO NR=1, NRMAX
+            RT_INIT(NR,NS)=RT_INIT(NR,1)
+            RN_INIT(NR,NS)=RN_TEMP(NR,1)*NI_RATIO(NS)
+               
+            RN_BULK(NR,NS)=RN_INIT(NR,NS)
+         END DO
+      END DO
+
+      END SUBROUTINE MAKE_Tene_PROF_POLYNOMIAL
+!------------------------------------
+      SUBROUTINE READ_kspdiag(FILEPATH, FILETIME, nrho_max, RM_ksp, iota_bar_ksp)
+
+      IMPLICIT NONE
+      character(len=1000),intent(in):: FILEPATH, FILETIME
+      integer,intent(out):: nrho_max
+      double precision,dimension(100),intent(out):: RM_ksp, iota_bar_ksp
+
+      character(len=1000):: path, name
+      character(len=1000):: string, trimmed
+      integer:: ierr, i_pos_s, i_pos_e, nrho
+
+      name='kspdiag_data_'//trim(SHOT_NUMBER)//'t'//trim(FILETIME)//'.flx'
+      path=trim(FILEPATH)//trim(name)
+      RM_ksp(:)=0.D0
+      iota_bar_ksp(:)=0.D0
+
+!      IF(NRANK.eq.0) WRITE(*,*) "VMEC_PATH=", path
+
+      OPEN(22,file=path,status='old',IOSTAT=ierr)
+      IF(ierr.ne.0)THEN
+         WRITE(*,'(A,I5,A)') "READ EG ERR ", nrank, path
+         call mtx_abort(ierr)         
+      END IF
+
+      string='initialize'
+      DO WHILE(index(string,'nrho').eq.0)
+         READ(22,'(A)') string
+      END DO
+      i_pos_s = index(string,'=') + 1
+      i_pos_e = index(string,'modnum') - 2
+
+      trimmed = trim(string(i_pos_s:i_pos_e))
+      READ(trimmed,*) nrho_max
+
+!      IF(NRANK.eq.0) WRITE(*,*) "TEST ", nrho_max
+
+      string='initialize'
+      DO nrho=1, nrho_max
+         DO WHILE(index(string,'rho=').eq.0)
+            READ(22,'(A)') string
+         END DO
+!         IF(NRANK.eq.0) WRITE(*,*) "TEST string", string
+
+         i_pos_s = index(string,'rho=') + 4
+         i_pos_e = index(string,'1/q') - 2
+         trimmed = trim(string(i_pos_s:i_pos_e))
+!         IF(NRANK.eq.0) WRITE(*,*) "TEST RM_ksp", trimmed
+         READ(trimmed,*) RM_ksp(nrho)
+
+         i_pos_s = index(string,'1/q=') + 4
+         i_pos_e = index(string,'Vp') - 2
+         trimmed = trim(string(i_pos_s:i_pos_e))
+!         IF(NRANK.eq.0) WRITE(*,*) "TEST iotabar_ksp", trimmed
+         READ(trimmed,*) iota_bar_ksp(nrho)
+         string='initialize'
+      END DO
+
+      CLOSE(22)
+
+      END SUBROUTINE READ_kspdiag
+!------------------------------------
+      SUBROUTINE MAKE_QLM_QLG_FROM_kspdiag(FILEPATH, FILETIME)
+
+      IMPLICIT NONE
+      character(len=1000),intent(in):: FILEPATH, FILETIME
+      integer:: nrho_max, NR, nrho, nrho_m, nrho_p
+      double precision,dimension(100):: RM_ksp, iota_bar_ksp
+      double precision:: a1, a2, iota_bar
+
+      CALL READ_kspdiag(FILEPATH, FILETIME, nrho_max, RM_ksp, iota_bar_ksp)
+
+      DO nrho=1, nrho_max
+         IF(NRANK.eq.0) WRITE(*,'(I4,3E14.6)') nrho, RM_ksp(nrho), iota_bar_ksp(nrho), &
+              1.D0/SQRT(1.D0 + (RM_ksp(nrho)*RA*iota_bar_ksp(nrho)/RR)**2)
+      END DO
+
+      DO NR=1, NRMAX
+         DO nrho=1, nrho_max-1
+            IF(RM_ksp(nrho).lt.RM(NR).and.RM(NR).le.RM_ksp(nrho+1))THEN
+               nrho_m = nrho
+               nrho_p = nrho + 1
+            END IF
+         END DO
+         a1= (RM(NR)-RM_ksp(nrho_m))/(RM_ksp(nrho_p)-RM_ksp(nrho_m))
+         a2= (RM_ksp(nrho_p)-RM(NR))/(RM_ksp(nrho_p)-RM_ksp(nrho_m))
+         iota_bar = a2*iota_bar_ksp(nrho_m) + a1*iota_bar_ksp(nrho_p)
+         QLM(NR) = 1.D0 / iota_bar
+         QLM_INIT(NR) = QLM(NR)
+      END DO
+
+      DO NR=1, NRMAX+1
+         DO nrho=1, nrho_max-1
+            IF(RM_ksp(nrho).lt.RG(NR).and.RG(NR).le.RM_ksp(nrho+1))THEN
+               nrho_m = nrho
+               nrho_p = nrho + 1
+            END IF
+         END DO
+         a1= (RG(NR)-RM_ksp(nrho_m))/(RM_ksp(nrho_p)-RM_ksp(nrho_m))
+         a2= (RM_ksp(nrho_p)-RG(NR))/(RM_ksp(nrho_p)-RM_ksp(nrho_m))
+         iota_bar = a2*iota_bar_ksp(nrho_m) + a1*iota_bar_ksp(nrho_p)
+         QLG(NR) = 1.D0 / iota_bar
+         QLG_INIT(NR) = QLG(NR)
+      END DO
+
+      END SUBROUTINE MAKE_QLM_QLG_FROM_kspdiag
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       END MODULE EG_READ
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

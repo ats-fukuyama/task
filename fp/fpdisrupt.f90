@@ -21,7 +21,7 @@
 
       integer,parameter:: ISW_Z=1 !0=Z_ef, 1=ZEFF
 
-      real(rkind),dimension(:),pointer:: rt_init
+      real(rkind),dimension(:),pointer:: rt_init_d
 !      real(rkind),parameter:: lnL_ED=10.D0
       real(rkind),parameter:: lnL_ED=18.D0
       integer,parameter:: ISW_Q=2 ! 2=exponential, 3=2step quench, 0=linear
@@ -34,6 +34,7 @@
       USE plprof
       USE fpmpi
       USE libmpi
+      USE fpcalj
       IMPLICIT NONE
 
       INTEGER:: NR, NSA, NSB, NS, NP, NSW, N, NTH
@@ -45,7 +46,7 @@
       INTEGER:: VLOC, n_ite
       real(rkind):: Erunm, Erunp, minimum_RE_E
 
-      allocate(rt_init(NRSTART:NREND))
+      allocate(rt_init_d(NRSTART:NREND))
 !------critical momentum
 !      IF(MODELR.eq.0)THEN
 !         pc_runaway=1.D0/SQRT(E0)
@@ -111,7 +112,7 @@
          CALL PL_PROF(RHON,PLF)
          T0_init=2.D0
          RT1_temp(NR)=RTFD(NR,1)
-         RT_INIT(NR)=RTFD(NR,1)
+         RT_INIT_D(NR)=RTFD(NR,1)
 !         RT2_temp(NR)=T0_quench ! flat profile
          RT2_temp(NR)=T0_quench*(1.D0-0.9D0*RM(NR)**2) ! smith
 !         RT2_temp(NR)=T0_quench*(1.D0-0.1D0*RM(NR)**2) ! nearly flat
@@ -154,7 +155,7 @@
             SUMIP=0.D0
             SUMIP_ohm=0.D0
             DO NR=1,NRMAX
-               call bootstrap_current(NR,jbs)
+               call bootstrap_current(NR,RT_quench,RT_quench,RN_disrupt,jbs)
 !               RJ_bs(NR)=jbs
                RJ_bs(NR)=jbs*0.D0
                SUMIP_ohm= RJ_ohm(NR)*VOLR(NR)/(2.D0*PI*RR) + SUMIP_ohm
@@ -453,95 +454,6 @@
       
 
       END SUBROUTINE display_disrupt_initials
-! ****************************************************
-      SUBROUTINE SPITZER_SIGMA(NR,Sigma)
-
-      IMPLICIT NONE
-      INTEGER,INTENT(IN):: NR
-      REAL(rkind),INTENT(OUT):: Sigma
-      INTEGER:: NSA, NSB
-      real(rkind):: fact, taue_col, RTE, RNE, RTI, RNI, Z_i
-      real(rkind):: neoc,  phi, f_T, C_, tau_rela, theta_l, C_log
-
-      NSA=1
-      NSB=2
-
-      IF(ISW_Z.eq.0)THEN
-         z_i = Z_ef 
-      ELSEIF(ISW_Z.eq.1)THEN
-         z_i = ZEFF
-      END IF
-
-      IF(MODEL_DISRUPT.eq.0)THEN
-         RTE=RTFP(NR,NSA)
-         RNE=RNFP(NR,NSA)
-         C_log = LNLAM(NR,NSA,NSA)
-      ELSE
-         IF(NT_init.eq.0)THEN
-            RTE=RT_INIT(NR)
-            RNE=RNFP(NR,NSA)
-         ELSE
-            RTE=RT_quench(NR)
-            IF(MODEL_IMPURITY.eq.0)THEN
-               RNE=RNS(NR,1)
-            ELSE
-               RNE=RN_MGI(NR,1)
-            END IF
-         END IF
-         C_log = POST_LNLAM(NR,NSA,NSA)
-      END IF
-
-!      FACT=AEFP(NSA)**2*AEFD(NSB)**2*POST_LNLAM(NR,NSB,NSA)*RNE*1.D20
-      FACT=Z_i*AEFP(NSA)**4*C_log*RNE*1.D20
-      taue_col=3.D0*SQRT((2.D0*PI)**3)/FACT &
-           *SQRT(AMFP(1)*(AEE*RTE*1.D3)**3)*(EPS0**2)
-      sigma=1.96D0*RNE*1.D20*AEFP(NSA)**2*taue_col/AMFP(NSA) ! Wesson P. 174, 737
-!      sigma= ! P. 71
-
-!!     NEO-CLASSICAL CORRECTION
-!      neoc=(1.D0-SQRT(invasp))**2 ! P. 174     
-      IF(MODEL_DISRUPT.eq.0)THEN
-         theta_l=THETA0(1)*RTFP(NR,1)/RTFP0(1)
-         tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-              ( AEFP(1)**4*LNLAM(NR,1,1)*RNFP(NR,NSA)*1.D20 )
-      ELSE
-         theta_l=THETA0(1)*RT_quench(NR)/RTFP0(1)
-         IF(MODEL_IMPURITY.eq.0)THEN
-            tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-                 ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP(NR,NSA)*1.D20 )
-         ELSE
-            tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-                 ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN_MGI(NR,NSA)*1.D20 )
-         END IF
-      END IF
-
-      C_ = 0.56D0/Z_i*(3.0D0-Z_i)/(3.D0+Z_i)
-      f_t=1.D0 -(1.D0-EPSRM2(NR))**2 &
-               /( SQRT(1.D0-EPSRM2(NR)**2)*(1.D0+1.46D0*SQRT(EPSRM2(NR))) )
-!      phi = f_t/(1.D0 + (0.58D0+0.2D0*Z_i)*theta_l**2 &
-!                       *(2.D0*RR*QLM(NR)*EPSRM2(NR)**(-1.5D0) ) &
-      !                       /(3.D0*SQRT(2.D0*PI)*VC*tau_rela) )
-!      IF(NRANK.EQ.0) write(6,'(A,I5,1P5E12.4)') &
-!           'NR,RR,QLM,EPSRM2,tau_rela,theta_l', &
-!           NR,RR,QLM(NR),EPSRM2(NR),tau_rela,theta_l
-
-      phi = f_t/(1.D0 + (0.58D0+0.2D0*Z_i) &
-                       *(2.D0*RR*QLM(NR)*EPSRM2(NR)**(-1.5D0) )*theta_l**2 &
-                       /(3.D0*SQRT(2.D0*PI)*VC*tau_rela))
-! AF modified 190313
-!                       *(2.D0*RR*QLM(NR)*EPSRM2(NR)**(-1.5D0) ) &
-!                       /(3.D0*SQRT(2.D0*PI)*VC*tau_rela)/theta_l**2 )
-! /AF
-
-      neoc=(1.D0-phi)*(1.D0-C_*phi)*(1.D0+0.47D0*(Z_i-1.D0))/ &
-           (Z_i*(1.D0+0.27D0*(Z_i-1.D0)) )
-
-!      neoc=( 1.D0-SQRT(EPSRM2(NR)) )**2 ! simple correction
-      sigma=sigma*neoc
-!      sigma=sigma*1.D0
-!      WRITE(*,'(2I,6E14.6)') NRANK, NR, SIGMA, neoc, Z_i, phi, tau_rela, POST_LNLAM(NR,1,1)
-
-      END SUBROUTINE SPITZER_SIGMA
 ! *******************************************************
       SUBROUTINE Tquench_trans
 
@@ -557,8 +469,8 @@
          IF(TIMEFP+DELT.le.5.D0*tau_quench)THEN
             DO NR=NRSTART,NREND
 !               k=( RT_quench_f(NR)-RTFP(NR,1) )/(5.D0*tau_quench)
-               k=( RT_quench_f(NR)-RT_init(NR) )/(5.D0*tau_quench)
-               RT1_temp(NR)=RT_init(NR) + k*(TIMEFP+DELT)
+               k=( RT_quench_f(NR)-Rt_init_d(NR) )/(5.D0*tau_quench)
+               RT1_temp(NR)=Rt_init_d(NR) + k*(TIMEFP+DELT)
             END DO
          ELSE
             DO NR=NRSTART,NREND
@@ -579,7 +491,7 @@
       ELSEIF(ISW_Q.eq.2)THEN ! SMITH
          DO NR=NRSTART,NREND
             RT1_temp(NR)=RT_quench_f(NR)+ &
-                 (RT_init(NR)-RT_quench_f(NR))*EXP(-(TIMEFP+DELT-time_quench_start)/tau_quench)
+                 (Rt_init_d(NR)-RT_quench_f(NR))*EXP(-(TIMEFP+DELT-time_quench_start)/tau_quench)
          END DO
       ELSEIF(ISW_Q.eq.3)THEN ! ITB break
          IF(TIMEFP.le.tau_quench*6.D0)THEN
@@ -1101,7 +1013,7 @@
       END DO
 
       END SUBROUTINE update_fpp
-!**********************************************
+
       SUBROUTINE bootstrap_current(NR,jbs)
 
       USE plprof
@@ -1525,10 +1437,11 @@
       USE libmtx
       USE fpcoef
       use fpcaleind
+      USE fpcalc
       IMPLICIT NONE
       INTEGER:: NTH, NP, NR, NSA
       INTEGER,intent(in):: NT
-      double precision:: sigma
+      double precision:: sigma, Z_i, RNE
 
       DO NR=NRSTART,NREND
          EM(NR)=E1(NR)
@@ -1549,8 +1462,20 @@
       END IF
 
       CALL set_post_disrupt_Clog
+
+      IF(ISW_Z.eq.0)THEN
+         Z_i=Z_ef
+      ELSEIF(ISW_Z.eq.1)THEN
+         Z_i=ZEFF 
+      END IF
+      IF(MODEL_IMPURITY.eq.0)THEN
+         RNE=RNS(NR,1)
+      ELSE
+         RNE=RN_MGI(NR,1)
+      END IF
+
       DO NR=NRSTART,NREND
-         CALL SPITZER_SIGMA(NR,sigma)
+         CALL SPITZER_SIGMA(NR,RT_quench(NR),RNE,Z_i,sigma)
          SIGMA_SPP(NR)=sigma
          RJ_bsm(NR)=RJ_bs(NR)
       END DO
@@ -1600,7 +1525,7 @@
             NDIMPL=NDIMPL+1
             call calculation_runaway_rate
             CALL AVALANCHE
-            IF(TIMEFP.ge.time_quench_start) CALL E_IND_IMPLICIT !non-given
+            IF(TIMEFP.ge.time_quench_start) CALL E_IND_IMPLICIT_RE !non-given
             DEPS_E=(E1(NRSTART)-EP(NRSTART))**2/EM(NRSTART)**2
             
             DO NR=NRSTART,NREND
@@ -1625,7 +1550,7 @@
             NDIMPL=NDIMPL+1
             call calculation_runaway_rate
             CALL AVALANCHE
-            IF(TIMEFP.ge.time_quench_start) CALL E_IND_IMPLICIT_FP(E_SIGMA)
+            IF(TIMEFP.ge.time_quench_start) CALL E_IND_IMPLICIT_RE_FP(E_SIGMA)
             DEPS_E=(E1(NRSTART)-EP(NRSTART))**2/EM(NRSTART)**2
             
             CALL mtx_set_communicator(comm_nr) 
@@ -1733,7 +1658,7 @@
       END IF
 
 ! time_evol.dat
-      WRITE(10,'(I6,1P30E16.7e3)') NT, TIMEFP, RT_TEMP(1,1), &
+      WRITE(10,'(I6,1P30E16.7e3)') NT, TIMEFP, RT_BULK(1,1), &
            RT_quench(1), RJ_ohm(1), &
            RJ_runaway(1), RN_disrupt(1), RN_runaway(1), &
            RN_drei(1), &

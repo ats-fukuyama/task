@@ -14,6 +14,7 @@
 !      REAL(rkind),DIMENSION(nrmax*nsamax):: vrecv
       REAL(rkind),DIMENSION(nrmax*N_partition_s):: vrecv
       REAL(rkind),DIMENSION(nrmax,nsamax),INTENT(OUT):: vreturn
+      INTEGER,DIMENSION(nsize):: nlen, npos
       INTEGER:: n, nsa, nn, ns, nr, nsw, nse
       integer,dimension(nsize):: idisp
 
@@ -42,7 +43,7 @@
       SUBROUTINE update_fnsb
 
       IMPLICIT NONE
-      integer:: nsend, nth, np, nr, nsa, nsb
+      integer:: nsend, nth, np, nr, nsa, NS
       double precision,dimension(nthmax,npstart:npend,nrstart:nrend,nsastart:nsaend):: dsend
       double precision,dimension(nthmax,npstart:npend,nrstart:nrend,nsamax):: drecv
 
@@ -62,12 +63,12 @@
 
 
       DO NSA=1, NSAMAX
-         NSB=NSB_NSA(NSA)
-         IF(NSB.ne.0)THEN
+         NS=NS_NSA(NSA)
+         IF(NS.ne.0)THEN
             DO NR=NRSTART,NREND
                DO NP=NPSTART,NPEND
                   DO NTH=1,NTHMAX
-                     FNSB(NTH,NP,NR,NSB)=drecv(nth,np,nr,nsa)
+                     FNSB(NTH,NP,NR,NS)=drecv(nth,np,nr,nsa)
                   END DO
                END DO
             END DO
@@ -80,7 +81,7 @@
 
       USE libmtx
       IMPLICIT NONE
-      integer:: nsend, nth, np, nr, nsa, nsb, nsw, nswi
+      integer:: nsend, nth, np, nr, nsa, nsw, nswi,N
 !      double precision,dimension(nthmax,npstart:npend,nrstart:nrend):: dsend
 !      double precision,dimension(nthmax,npmax,nrmax,n_partition_s):: drecv
       double precision,dimension(nthmax,npstart:npend,nrstart:nrend):: dsend
@@ -112,6 +113,88 @@
       CALL mtx_reset_communicator 
 
       END SUBROUTINE update_fns
+!-----
+      SUBROUTINE update_Dpcoef(recv,send)
+
+      USE libmtx
+      IMPLICIT NONE
+      integer:: nsend, nth, np, nr, nsa, nsw, nswi,N
+      double precision,&
+           dimension(nthmax,npstart:npendwg,nrstart:nrendwm,nsamax),intent(in)::recv
+      double precision,&
+           dimension(nthmax,npmax+1,nrmax,nsamax),intent(out)::send
+!      double precision,dimension(nthmax,npstart:npend,nrstart:nrend):: dsend
+!      double precision,dimension(nthmax,npmax,nrmax,n_partition_s):: drecv
+      double precision,dimension(nthmax,npstart:npend,nrstart:nrend):: dsend
+      double precision,dimension(nthmax,npmax,nrmax):: drecv
+      double precision,dimension(nthmax,npmax,nrmax,nsastart:nsaend):: dsend2
+
+      CALL mtx_set_communicator(comm_nrnp)
+      DO NSA=NSASTART,NSAEND
+         DO NR=NRSTART,NREND
+            DO NP=NPSTART,NPEND
+               DO NTH=1,NTHMAX
+                  dsend(nth,np,nr)=recv(nth,np,nr,nsa)
+               END DO
+            END DO
+         END DO
+         nsend=NTHMAX*(NPEND-NPSTART+1)*(NREND-NRSTART+1)
+         CALL mtx_allgather_real8(dsend,nsend,drecv) 
+         DO NR=1,NRMAX
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX
+                  dsend2(nth,np,nr,nsa)=drecv(nth,np,nr)
+               END DO
+            END DO
+         END DO
+      END DO
+      CALL mtx_set_communicator(comm_nsa)
+      nsend=NTHMAX*NPMAX*NRMAX*(NSAEND-NSASTART+1)
+      CALL mtx_gather_real8(dsend2,nsend,send) 
+      CALL mtx_reset_communicator 
+
+      END SUBROUTINE update_Dpcoef
+!-----
+      SUBROUTINE update_Dtcoef(recv,send)
+
+      USE libmtx
+      IMPLICIT NONE
+      integer:: nsend, nth, np, nr, nsa, nsw, nswi,N
+      double precision,&
+           dimension(nthmax+1,npstartw:npendwm,nrstart:nrendwm,nsamax),intent(in)::recv
+      double precision,&
+           dimension(nthmax+1,npmax,nrmax,nsamax),intent(out)::send
+!      double precision,dimension(nthmax,npstart:npend,nrstart:nrend):: dsend
+!      double precision,dimension(nthmax,npmax,nrmax,n_partition_s):: drecv
+      double precision,dimension(nthmax+1,npstart:npend,nrstart:nrend):: dsend
+      double precision,dimension(nthmax+1,npmax,nrmax):: drecv
+      double precision,dimension(nthmax+1,npmax,nrmax,nsastart:nsaend):: dsend2
+
+      CALL mtx_set_communicator(comm_nrnp)
+      DO NSA=NSASTART,NSAEND
+         DO NR=NRSTART,NREND
+            DO NP=NPSTART,NPEND
+               DO NTH=1,NTHMAX+1
+                  dsend(nth,np,nr)=recv(nth,np,nr,nsa)
+               END DO
+            END DO
+         END DO
+         nsend=(NTHMAX+1)*(NPEND-NPSTART+1)*(NREND-NRSTART+1)
+         CALL mtx_allgather_real8(dsend,nsend,drecv) 
+         DO NR=1,NRMAX
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX+1
+                  dsend2(nth,np,nr,nsa)=drecv(nth,np,nr)
+               END DO
+            END DO
+         END DO
+      END DO
+      CALL mtx_set_communicator(comm_nsa)
+      nsend=(NTHMAX+1)*NPMAX*NRMAX*(NSAEND-NSASTART+1)
+      CALL mtx_gather_real8(dsend2,nsend,send) 
+      CALL mtx_reset_communicator 
+
+      END SUBROUTINE update_Dtcoef
 !-----
 
       SUBROUTINE source_allreduce(array)

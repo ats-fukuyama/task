@@ -70,7 +70,7 @@
 
       IMPLICIT NONE
       integer,SAVE:: NSA=1,NSB=0
-      DATA NSA,NSB/1,0/
+!      DATA NSA,NSB/1,0/
       integer:: NR, NP, NTH, NSA1, NS
 !
       real(8),DIMENSION(NTHMAX,NPMAX,NRMAX)::TEMP
@@ -1237,7 +1237,7 @@
          END DO
       ENDIF
 !
-      CALL FPGRACX(STRING,GF,MODE,NSB)
+      CALL FPGRACX(STRING1,GF,MODE,NSB)
 
       IF(NRMAX.GT.1) GOTO 1
 !
@@ -1315,10 +1315,10 @@
       ELSEIF(MODE.EQ.4) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
-!               IF(FG(NTH,NP,NR).LT.1.D-70) THEN ! TEST
-!                  GF(NP,NTH)=-70.0
-               IF(FG(NTH,NP,NR).LT.1.D-50) THEN ! TEST
-                  GF(NP,NTH)=-50.0
+               IF(FG(NTH,NP,NR).LT.1.D-70) THEN ! TEST
+                  GF(NP,NTH)=-70.0
+!               IF(FG(NTH,NP,NR).LT.1.D-50) THEN ! TEST
+!                  GF(NP,NTH)=-50.0
 !               IF(FG(NTH,NP,NR).LT.1.D-12) THEN 
 !                  GF(NP,NTH)=-12.0
                ELSE
@@ -1347,7 +1347,6 @@
 !      real(4),dimension(NTHMAX+1):: GTH
 !      real(8),dimension(8,NPMAX+1,NTHMAX+1)::KA
       CHARACTER(LEN=*),INTENT(IN):: STRING
-      CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
       REAL(4):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
       INTEGER:: ILN(NGLM)
@@ -1495,7 +1494,7 @@
       CALL TEXT('PPERP',5)
 !
       CALL MOVE(3.0,12.5)
-      CALL TEXT(STRING1,LEN(STRING1))
+      CALL TEXT(STRING,LEN(STRING))
       CALL MOVE(8.0,12.5)
       CALL TEXT('FMIN =',6)
       CALL NUMBR(GFMIN,'(1PE12.4)',12)
@@ -1520,7 +1519,6 @@
       real(4),dimension(NTHMAX+1):: GTH
       real(8),dimension(8,NPMAX+1,NTHMAX+1)::KA
       CHARACTER(LEN=*),INTENT(IN):: STRING
-      CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
       REAL(4):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
       INTEGER:: ILN(NGLM)
@@ -1663,7 +1661,7 @@
       CALL TEXT('PPERP',5)
 !
       CALL MOVE(3.0,12.5)
-      CALL TEXT(STRING1,LEN(STRING1))
+      CALL TEXT(STRING,LEN(STRING))
       CALL MOVE(8.0,12.5)
       CALL TEXT('FMIN =',6)
       CALL NUMBR(GFMIN,'(1PE12.4)',12)

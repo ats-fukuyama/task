@@ -9,7 +9,7 @@
       USE fpcomm
       USE plprof
       USE fpexec
-      USE libbes,ONLY: besekn,besjnv
+      USE libbes,ONLY: beseknx,besjnv
 
       contains
 
@@ -520,8 +520,8 @@
       REAL(8):: thetal,rfunc
       REAL(8):: z,dkbsl1,dkbsl2
       z=1.D0/thetal
-      dkbsl1=BESEKN(1,Z)
-      dkbsl2=BESEKN(2,Z)
+      dkbsl1=BESEKNX(1,Z)
+      dkbsl2=BESEKNX(2,Z)
       rfunc= (dkbsl1 /dkbsl2 -1.D0+3.D0/Z)
       RETURN
       END FUNCTION rfunc
@@ -542,10 +542,10 @@
       REAL(8):: thetal,dfunc
       REAL(8):: z,dkbsl0,dkbsl1,dkbsl2,dkbsl3
       z=1.D0/thetal
-      dkbsl0=BESEKN(0,z)
-      dkbsl1=BESEKN(1,z)
-      dkbsl2=BESEKN(2,z)
-      dkbsl3=BESEKN(3,z)
+      dkbsl0=BESEKNX(0,z)
+      dkbsl1=BESEKNX(1,z)
+      dkbsl2=BESEKNX(2,z)
+      dkbsl3=BESEKNX(3,z)
       dfunc =( (dkbsl0 +dkbsl2 )/dkbsl2                           &
                 -(dkbsl1 +dkbsl3 )*dkbsl1 /dkbsl2 **2)*0.5d0*z**2 &
             +3.d0
@@ -769,7 +769,8 @@
             RNS_DELF(NR,NS)=RNS_DELF_NSA(NR,NSA)
             RWS_PARA(NR,NS)=RWS_DELF_PARA(NR,NSA)
             RWS_PERP(NR,NS)=RWS_DELF_PERP(NR,NSA)
-            IF(RNS_DELF(NR,NS).lt.0.D0) WRITE(*,'(A,2I5,4E14.6)') "NEGATIVE RNS_DELF, ", NR, NS, RNS_DELF(NR,NS), TIMEFP, RN_BULK(NR,NS), RT_TEMP(NR,NS)
+            IF(RNS_DELF(NR,NS).lt.0.D0.and.ABS(RNS_DELF(NR,NS)).gt.1.D-20) &
+                 WRITE(*,'(A,2I5,4E14.6)') "NEGATIVE RNS_DELF, ", NR, NS, RNS_DELF(NR,NS), TIMEFP, RN_BULK(NR,NS), RT_TEMP(NR,NS)
          END DO
       END DO
 
@@ -1069,7 +1070,8 @@
       IF(MODEL_BULK_CONST.eq.0)THEN
          DO NSA=1, NSAMAX
             NS=NS_NSA(NSA)
-            DO NR=1, NRMAX
+!            DO NR=1, NRMAX
+            DO NR=NRSTART, NREND
                IF(NT_init.eq.0)THEN
                   PMAX_BULK = FACT_BULK
                   P_BULK_R = PMAX_BULK* RT_TEMP(NR,NS)/RTFP0(NSA)
@@ -1091,7 +1093,8 @@
       ELSE
          DO NSA=1, NSAMAX
             NS=NS_NSA(NSA)
-            DO NR=1, NRMAX
+!            DO NR=1, NRMAX
+            DO NR=NRSTART, NREND
                PMAX_BULK = FACT_BULK
                IF(MODEL_EX_READ_Tn.eq.0)THEN
                   P_BULK_R = PMAX_BULK* RTFP(NR,NSA)/RTFP0(NSA)
@@ -1109,7 +1112,8 @@
 !
          DO NSA=1, NSAMAX
             NS=NS_NSA(NSA)
-            DO NR=1, NRMAX
+!            DO NR=1, NRMAX
+            DO NR=NRSTART, NREND
 !               PMAX_BULK = 1.D0 ! for LHD
 !               PMAX_BULK = 3.D0 ! for ITER
                PMAX_BULK = FACT_BULK
@@ -1356,6 +1360,7 @@
             RSUM_WR=0.D0
             RSUM_WM=0.D0
             DO NP=NPS,NPEND
+               NTH=1
                DO NTH=1,NTHMAX
                   CALL PHASE_SPACE_DERIVATIVE_F(NTH,NP,NR,NSA,FNSP,DFP,DFT,FFP)
 

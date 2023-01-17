@@ -292,6 +292,11 @@
       CALL FPSETV(RHOL,ETAL,RFWM,RKR,RKTH,RKPH,CER,CETH,CEPH,NSA)
       CALL FPSETB(RHOL,ETAL,B0PH,B0TH)
 !     BOPH=B_\phi=B_toroidal, B0TH=B_\theta=B_poloidal
+!      IF(NRANK.eq.0)THEN
+!         WRITE(*,'(A,90E14.6)') "WAVV0 ", RHOL, ETAL, PSIN, PCOS, P
+!         WRITE(*,'(A,4E14.6)') "WAVV1 ", RFWM,RKR,RKTH,RKPH
+!         WRITE(*,'(A,6E14.6)') "WAVV2 ", CER,CETH,CEPH
+!      END IF
 
       RW     =2.D0*PI*RFWM*1.D6
       B2     =B0TH**2+B0PH**2
@@ -473,6 +478,7 @@
          RKR = DBLE(CKWR1)
          RKTH= DBLE(CKWTH1)
          RKPH= DBLE(CKWPH1)
+         RFWM=RF_WM
       ENDIF
 
       RETURN

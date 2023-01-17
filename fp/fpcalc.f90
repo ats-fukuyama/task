@@ -689,7 +689,7 @@
                RTFD0L_C=RTFD0(NSB)
                RNFDL=RNFD(NR,NSB)
             ELSEIF(MODELC(NSSB).eq.2)THEN ! for updating temperature
-               RTFDL_C=RT_TEMP(NR,NSB)
+               RTFDL_C=RT_BULK(NR,NSB)
                RTFD0L_C=RTFD0(NSB)
                RNFDL=RN_TEMP(NR,NSB)
                RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2) &
@@ -851,8 +851,8 @@
                RNFDL_C=RNFD(NR,NSB) 
                RTFDL_C=RTFD(NR,NSB)
             ELSEIF(MODELC(NSSB).eq.2)THEN ! variable n, T
-               RNFDL_C=RN_TEMP(NR,NS_NSB(NSB))
-               RTFDL_C=RT_TEMP(NR,NS_NSB(NSB))
+               RNFDL_C=RN_TEMP(NR,NSSB)
+               RTFDL_C=RT_BULK(NR,NSSB)
             END IF
          ELSEIF(MODEL_DISRUPT.ge.1)THEN
             IF(MODEL_IMPURITY.eq.0)THEN 
@@ -981,7 +981,8 @@
          ENDDO
 
          DO NP=NPSTARTW,NPENDWM
-            PNFP_C=PM(NP,NSSA)
+!            PNFP_C=PM(NP,NSSA)
+            PNFPL=PM(NP,NSSA)
             PNFP_C=PNFPL
             RGAMA=SQRT(1.D0+PNFP_C**2*THETA0(NSSA))
             VFPL=PM(NP,NSSA)*PTFP0(NSA)/(AMFP(NSA)*RGAMA)
@@ -1060,40 +1061,26 @@
       INTEGER:: NG, ITLB, ITUB, NSSB
 
 ! DCPP, FCPP
+      ITLB=ITL_judge(NR)
+      ITUB=NTHMAX-ITLB+1
       DO NSB=1,NSBMAX
          DO NP=NPSTART,NPENDWG
             DO NTH=1,NTHMAX
-               FACT=RLAMDA(NTH,NR)
-               DCPP2(NTH,NP,NR,NSB,NSA) &
-                    =FACT*DCPP2(NTH,NP,NR,NSB,NSA)!*2.D0
-               FCPP2(NTH,NP,NR,NSB,NSA) &
-                    =FACT*FCPP2(NTH,NP,NR,NSB,NSA)!*2.D0
+!               DELH = 2.D0*ETAM(NTH,NR)/NAVMAX
+!               SUM=0.D0
+!               DO NG=1,NAVMAX
+!                  ETAL = DELH*(NG-0.5D0)
+!                  X=EPSRM2(NR)*COS(ETAL)
+!                  PSIB=(1.D0+EPSRM2(NR))/(1.D0+X)
+!                  ARG=1.D0-PSIB*SINM(NTH)**2
+!                  PCOS = SQRT(ARG)
+!                  sum=sum + ABS(COSM(NTH))/PCOS
+!               END DO
+!               DCPP2(NTH,NP,NR,NSB,NSA)=sum*DELH*Line_Element(NR)*2.D0*A_chi0(NR)*DCPP2(NTH,NP,NR,NSB,NSA)
+!               FCPP2(NTH,NP,NR,NSB,NSA)=sum*DELH*Line_Element(NR)*2.D0*A_chi0(NR)*FCPP2(NTH,NP,NR,NSB,NSA)
+               DCPP2(NTH,NP,NR,NSB,NSA)=DCPP2(NTH,NP,NR,NSB,NSA)*RLAMDA(NTH,NR)!*Line_Element(NR)
+               FCPP2(NTH,NP,NR,NSB,NSA)=FCPP2(NTH,NP,NR,NSB,NSA)*RLAMDA(NTH,NR)!*Line_Element(NR)
             ENDDO
-!            ITLB=ITL(NR)-1
-!            ITUB=NTHMAX-ITLB+1
-!            DCPP2(ITLB,NP,NR,NSB,NSA) &
-!                     =RLAMDA(ITLB,NR)/4.D0 &
-!                       *( DCPP2(ITLB-1,NP,NR,NSB,NSA) &
-!                                   /RLAMDA(ITLB-1,NR) &
-!                         +DCPP2(ITLB+1,NP,NR,NSB,NSA) &
-!                                   /RLAMDA(ITLB+1,NR) &
-!                         +DCPP2(ITUB-1,NP,NR,NSB,NSA) &
-!                                   /RLAMDA(ITUB-1,NR) &
-!                         +DCPP2(ITUB+1,NP,NR,NSB,NSA) &
-!                                   /RLAMDA(ITUB+1,NR) )
-
-!            FCPP2(ITLB,NP,NR,NSB,NSA) &
-!                    =RLAMDA(ITLB,NR)/4.D0  &
-!                      *( FCPP2(ITLB-1,NP,NR,NSB,NSA) &
-!                                    /RLAMDA(ITLB-1,NR) &
-!                        +FCPP2(ITLB+1,NP,NR,NSB,NSA) &
-!                                    /RLAMDA(ITLB+1,NR) &
-!                        +FCPP2(ITUB-1,NP,NR,NSB,NSA) &
-!                                    /RLAMDA(ITUB-1,NR) &
-!                        +FCPP2(ITUB+1,NP,NR,NSB,NSA) &
-!                                    /RLAMDA(ITUB+1,NR) ) 
-!            DCPP2(ITUB,NP,NR,NSB,NSA)=DCPP2(ITLB,NP,NR,NSB,NSA)
-!            FCPP2(ITUB,NP,NR,NSB,NSA)=FCPP2(ITLB,NP,NR,NSB,NSA)
          END DO
 
 ! DCTT
@@ -1108,14 +1095,14 @@
                      PSIB=(1.D0+EPSRM2(NR))/(1.D0+X)
                      ARG=1.D0-PSIB*SING(NTH)**2
                      PCOS = SQRT(ARG)
-                     sum=sum + DCTT2(NTH,NP,NR,NSB,NSA)*PCOS/(PSIB*ABS(COSG(NTH))) 
+                     sum=sum + PCOS/(PSIB) 
                   END DO
-                  DCTT2(NTH,NP,NR,NSB,NSA)=sum*DELH*Line_Element(NR)*A_chi0(NR)*2.D0
+                  DCTT2(NTH,NP,NR,NSB,NSA)=DCTT2(NTH,NP,NR,NSB,NSA)*sum &
+                       /ABS(COSG(NTH))*DELH*Line_Element(NR)*2.D0*A_chi0(NR)
                ELSE
                   DCTT2(NTH,NP,NR,NSB,NSA)=0.D0
                END IF
             ENDDO
-
 !            ITLB=ITL_judge(NR)+1
 !            DO NTH=ITLB,NTHMAX/2
 !               DCTT2(NTH,NP,NR,NSB,NSA)        &
@@ -1124,7 +1111,6 @@
 !               DCTT2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
 !                    =DCTT2(NTH,NP,NR,NSB,NSA) 
 !            END DO
-
          END DO ! NP
       END DO ! NSB
 
@@ -1133,38 +1119,56 @@
          NSSB=NS_NSB(NSB)
          IF(MODELC(NSSB).ge.3)THEN
          DO NP=NPSTART,NPENDWG
-            DO NTH=1,NTHMAX
+!            DO NTH=1,NTHMAX
+            DO NTH=1,ITL_judge(NR)-1
                DELH = 2.D0*ETAM(NTH,NR)/NAVMAX
                SUM=0.D0
                DO NG=1,NAVMAX
                   ETAL = DELH*(NG-0.5D0)
                   X=EPSRM2(NR)*COS(ETAL)
                   PSIB=(1.D0+EPSRM2(NR))/(1.D0+X)
-                  sum=sum + DCPT2(NTH,NP,NR,NSB,NSA)/SQRT(PSIB)
+                  sum=sum + 1.D0/SQRT(PSIB)
                END DO
-               DCPT2(NTH,NP,NR,NSB,NSA)=sum*DELH*Line_Element(NR)*A_chi0(NR)*2.D0
+               DCPT2(NTH,NP,NR,NSB,NSA)=DCPT2(NTH,NP,NR,NSB,NSA)&
+                    *sum*DELH*Line_Element(NR)*2.D0*A_chi0(NR)
             ENDDO
+!            DO NTH=ITL_judge(NR)+1, NTHMAX-(ITL_judge(NR)+1)+1
+            DO NTH=ITL_judge(NR), NTHMAX-ITL_judge(NR)+1
+               DCPT2(NTH,NP,NR,NSB,NSA)=0.D0
+            END DO
+            DO NTH=NTHMAX-(ITL_judge(NR))+2, NTHMAX
+               DELH = 2.D0*ETAM(NTH,NR)/NAVMAX
+               SUM=0.D0
+               DO NG=1,NAVMAX
+                  ETAL = DELH*(NG-0.5D0)
+                  X=EPSRM2(NR)*COS(ETAL)
+                  PSIB=(1.D0+EPSRM2(NR))/(1.D0+X)
+                  sum=sum + 1.D0/SQRT(PSIB)
+               END DO
+!               DCPT2(NTH,NP,NR,NSB,NSA)=-sum*DELH*Line_Element(NR)*2.D0!*A_chi0(NR)*2.D0
+               DCPT2(NTH,NP,NR,NSB,NSA)=DCPT2(NTH,NP,NR,NSB,NSA)&
+                    *sum*DELH*Line_Element(NR)*2.D0*A_chi0(NR)
+            ENDDO
+!            ITLB=ITL(NR)-1
 
-            ITLB=ITL(NR)-1
-            ITUB=NTHMAX-ITLB+1
-
-            DCPT2(ITLB,NP,NR,NSB,NSA) &
-                     =RLAMDA(ITLB,NR)/4.D0 &
-                       *( DCPT2(ITLB-1,NP,NR,NSB,NSA) &
-                                   /RLAMDA(ITLB-1,NR) &
-                         +DCPT2(ITLB+1,NP,NR,NSB,NSA) &
-                                   /RLAMDA(ITLB+1,NR) &
-                         +DCPT2(ITUB-1,NP,NR,NSB,NSA) &
-                                   /RLAMDA(ITUB-1,NR) &
-                         +DCPT2(ITUB+1,NP,NR,NSB,NSA) &
-                                   /RLAMDA(ITUB+1,NR) )
-
-            DCPT2(ITUB,NP,NR,NSB,NSA)=DCPT2(ITLB,NP,NR,NSB,NSA)
+!            DCPT2(ITLB,NP,NR,NSB,NSA) &
+!                     =RLAMDA(ITLB,NR)/4.D0 &
+!                       *( DCPT2(ITLB-1,NP,NR,NSB,NSA) &
+!                                   /RLAMDA(ITLB-1,NR) &
+!                         +DCPT2(ITLB+1,NP,NR,NSB,NSA) &
+!                                   /RLAMDA(ITLB+1,NR) &
+!                         +DCPT2(ITUB-1,NP,NR,NSB,NSA) &
+!                                   /RLAMDA(ITUB-1,NR) &
+!                         +DCPT2(ITUB+1,NP,NR,NSB,NSA) &
+!                                   /RLAMDA(ITUB+1,NR) )
+!
+!            DCPT2(ITUB,NP,NR,NSB,NSA)=DCPT2(ITLB,NP,NR,NSB,NSA)
          END DO
 
 ! DTP, FTH
          DO NP=NPSTARTW,NPENDWM
-            DO NTH=1,NTHMAX+1
+!            DO NTH=1,NTHMAX+1
+            DO NTH=1,ITL_judge(NR)
                DELH = 2.D0*ETAG(NTH,NR)/NAVMAX
                SUM=0.D0
                DO NG=1,NAVMAX
@@ -1173,24 +1177,44 @@
                   PSIB=(1.D0+EPSRM2(NR))/(1.D0+X)
                   sum=sum + 1.D0/SQRT(PSIB)
                END DO
-               DCTP2(NTH,NP,NR,NSB,NSA)=sum*DCTP2(NTH,NP,NR,NSB,NSA)*DELH*Line_Element(NR)*A_chi0(NR)*2.D0
-               FCTH2(NTH,NP,NR,NSB,NSA)=sum*FCTH2(NTH,NP,NR,NSB,NSA)*DELH*Line_Element(NR)*A_chi0(NR)*2.D0
+               DCTP2(NTH,NP,NR,NSB,NSA)=sum*DCTP2(NTH,NP,NR,NSB,NSA)*DELH &
+                    *Line_Element(NR)*2.D0*A_chi0(NR)!*2.D0
+               FCTH2(NTH,NP,NR,NSB,NSA)=sum*FCTH2(NTH,NP,NR,NSB,NSA)*DELH &
+                    *Line_Element(NR)*2.D0*A_chi0(NR)!*2.D0
+            ENDDO
+            DO NTH=ITL_judge(NR)+1, NTHMAX+2-(ITL_judge(NR)+1)
+               DCTP2(NTH,NP,NR,NSB,NSA)=0.D0
+               FCTH2(NTH,NP,NR,NSB,NSA)=0.D0
+            END DO
+            DO NTH=NTHMAX+2-(ITL_judge(NR)+1)+1, NTHMAX+1
+               DELH = 2.D0*ETAG(NTH,NR)/NAVMAX
+               SUM=0.D0
+               DO NG=1,NAVMAX
+                  ETAL = DELH*(NG-0.5D0)
+                  X=EPSRM2(NR)*COS(ETAL)
+                  PSIB=(1.D0+EPSRM2(NR))/(1.D0+X)
+                  sum=sum + 1.D0/SQRT(PSIB)
+               END DO
+               DCTP2(NTH,NP,NR,NSB,NSA)=sum*DCTP2(NTH,NP,NR,NSB,NSA)*DELH &
+                    *Line_Element(NR)*2.D0*A_chi0(NR)
+               FCTH2(NTH,NP,NR,NSB,NSA)=sum*FCTH2(NTH,NP,NR,NSB,NSA)*DELH &
+                    *Line_Element(NR)*2.D0*A_chi0(NR)
             ENDDO
 
-            ITLB=ITL_judge(NR)+1
-            DO NTH=ITLB,NTHMAX/2
-               DCTP2(NTH,NP,NR,NSB,NSA)        &
-                    =(DCTP2(NTH,NP,NR,NSB,NSA) &
-                    +DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
-               DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
-                    =DCTP2(NTH,NP,NR,NSB,NSA) 
-
-               FCTH2(NTH,NP,NR,NSB,NSA)        &
-                    =(FCTH2(NTH,NP,NR,NSB,NSA) &
-                    +FCTH2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
-               FCTH2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
-                    =FCTH2(NTH,NP,NR,NSB,NSA) 
-            END DO
+!            ITLB=ITL_judge(NR)+1
+!            DO NTH=ITLB,NTHMAX/2
+!               DCTP2(NTH,NP,NR,NSB,NSA)        &
+!                    =(DCTP2(NTH,NP,NR,NSB,NSA) &
+!                    +DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
+!               DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
+!                    =DCTP2(NTH,NP,NR,NSB,NSA) 
+!
+!               FCTH2(NTH,NP,NR,NSB,NSA)        &
+!                    =(FCTH2(NTH,NP,NR,NSB,NSA) &
+!                    +FCTH2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
+!               FCTH2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
+!                    =FCTH2(NTH,NP,NR,NSB,NSA) 
+!            END DO
          END DO ! NP
          END IF
       END DO ! NSB
@@ -1483,4 +1507,82 @@
       RETURN
       END SUBROUTINE FPCALC_NLAV
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! ****************************************************
+      SUBROUTINE SPITZER_SIGMA(NR, RTE, RNE, Z_i, Sigma)
+
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: NR
+      REAL(8),INTENT(IN):: RTE, RNE, Z_i
+      REAL(8),INTENT(OUT):: Sigma
+      INTEGER:: NS, model_nc
+      real(8):: fact, taue_col, RTI, RNI
+      real(8):: neoc,  phi, f_T, C_, tau_rela, theta_l, C_log, nu_star_e
+
+      model_nc=1
+      NS=1
+
+      IF(MODEL_DISRUPT.eq.0)THEN
+         C_log = LNLAM(NR,NS,NS)
+      ELSE
+         C_log = POST_LNLAM(NR,NS,NS)
+      END IF
+
+      FACT=Z_i*(PZ(NS)*AEE)**4*C_log*RNE*1.D20
+      taue_col=3.D0*SQRT((2.D0*PI)**3)/FACT &
+           *SQRT(PA(NS)*AMP*(AEE*RTE*1.D3)**3)*(EPS0**2)
+      sigma=1.96D0*RNE*1.D20*(PZ(NS)*AEE)**2*taue_col/(PA(NS)*AMP) ! Wesson P. 174, 737
+!      sigma= ! P. 71
+
+      IF(model_nc.eq.0)THEN
+!         IF(MODEL_DISRUPT.eq.0)THEN
+            theta_l=THETA0(1)*RTE/RTFP0(1)
+            tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+                 ( AEFP(1)**4*C_log*RNE*1.D20 )
+!         ELSE
+!            theta_l=THETA0(1)*RT_quench(NR)/RTFP0(1)
+!            IF(MODEL_IMPURITY.eq.0)THEN
+!               tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+!                    ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP(NR,NSA)*1.D20 )
+!            ELSE
+!               tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+!                    ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN_MGI(NR,NSA)*1.D20 )
+!            END IF
+!         END IF
+
+         C_ = 0.56D0/Z_i*(3.0D0-Z_i)/(3.D0+Z_i)
+         f_t=1.D0 -(1.D0-EPSRM2(NR))**2 &
+              /( SQRT(1.D0-EPSRM2(NR)**2)*(1.D0+1.46D0*SQRT(EPSRM2(NR))) )
+!      phi = f_t/(1.D0 + (0.58D0+0.2D0*Z_i)*theta_l**2 &
+!                       *(2.D0*RR*QLM(NR)*EPSRM2(NR)**(-1.5D0) ) &
+      !                       /(3.D0*SQRT(2.D0*PI)*VC*tau_rela) )
+         nu_star_e=EPSRM2(NR)**(-1.5D0)*RR*QLM(NR)/&
+              (SQRT(AEE*RTE*1.D3/AMFP(1))*taue_col)
+         phi = f_t/(1.D0 + (0.58D0+0.2D0*Z_i)*nu_star_e) 
+
+!         phi = f_t/(1.D0 + (0.58D0+0.2D0*Z_i) &
+!              *(2.D0*RR*QLM(NR)*EPSRM2(NR)**(-1.5D0) )*theta_l**2 &
+!              /(3.D0*SQRT(2.D0*PI)*VC*tau_rela))
+! AF modified 190313
+!                       *(2.D0*RR*QLM(NR)*EPSRM2(NR)**(-1.5D0) ) &
+!                       /(3.D0*SQRT(2.D0*PI)*VC*tau_rela)/theta_l**2 )
+! /AF
+
+         neoc=(1.D0-phi)*(1.D0-C_*phi)*(1.D0+0.47D0*(Z_i-1.D0))/ &
+              (Z_i*(1.D0+0.27D0*(Z_i-1.D0)) )
+      ELSE ! simple model
+         neoc=( 1.D0-SQRT(EPSRM2(NR)) )**2 ! simple correction in Wesson
+!         neoc=( 1.D0-1.95D0*SQRT(EPSRM2(NR)) ) ! simplest 
+      END IF
+      IF(MODELA.eq.1)THEN
+         sigma=sigma*neoc
+      END IF
+
+!      sigma=sigma*1.D0
+!      WRITE(*,'(2I,6E14.6)') NRANK, NR, SIGMA, neoc, Z_i, phi, tau_rela, POST_LNLAM(NR,1,1)
+!      IF(NRANK.eq.0) &
+!           WRITE(*,'(A,2I,10E14.6)') "sigma_sp, ",NRANK, NR, SIGMA, neoc, Z_i, &
+!           taue_col*RNE, RTE, RNE, LNLAM(NR,NS,NS)
+
+      END SUBROUTINE SPITZER_SIGMA
+! *******************************************************
       END MODULE fpcalc

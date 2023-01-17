@@ -112,8 +112,7 @@
       WRITE(21) TIMEFP, NT_init
 
       WRITE(21) ( (RN_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
-      WRITE(21) ( (RT_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
-      WRITE(21) ( (RT_BULK(NR,NS), NR=1,NRMAX), NS=1,NSAMAX)
+      WRITE(21) ( (RT_BULK(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
       WRITE(21) ( (RNS_DELF(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
       WRITE(21) (E1(NR),NR=1,NRMAX) ! -> EP
 
@@ -192,8 +191,7 @@
       READ(21) TIMEFP, NT_init
 
       READ(21) ( (RN_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
-      READ(21) ( (RT_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
-      READ(21) ( (RT_BULK(NR,NS), NR=1,NRMAX), NS=1,NSAMAX)
+      READ(21) ( (RT_BULK(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
       READ(21) ( (RNS_DELF(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
       READ(21) (E1(NR),NR=1,NRMAX) ! -> EP
 
@@ -311,6 +309,7 @@
       USE fpnflg
       USE fpoutdata
       USE fpsub
+
       IMPLICIT NONE
       integer:: NSA, ierr, NR, NS, NP, NTH, NBEAM
       double precision:: FL, RHON
@@ -363,17 +362,11 @@
       IF(MODELS.ne.0) CALL NF_REACTION_COEF
       CALL fp_continue(ierr)
       IF(MODELS.ge.2)THEN
-         CALL ALLREDUCE_NF_RATE
+!         CALL ALLREDUCE_NF_RATE
          CALL PROF_OF_NF_REACTION_RATE(1)
       END IF
       CALL fp_set_initial_value_from_f
 
-!      DO NS=1, NSMAX
-!         DO NR=1, NRMAX
-!            tempn(NR,NS)=RN_TEMP(NR,NS)
-!            tempt(NR,NS)=RT_TEMP(NR,NS)
-!         END DO
-!      END DO
 
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
@@ -406,19 +399,6 @@
          END IF
       END DO
 
-!      DO NSA=1, NSAMAX
-!         DO NR=1, NRMAX
-!            NS=NS_NSA(NSA)
-!            RN_TEMP(NR,NS)=tempn(NR,NS)
-!            RT_TEMP(NR,NS)=tempt(NR,NS)
-!         END DO
-!      END DO
-
-!      IF(NRANK.eq.0)THEN
-!      DO NR=1, NRMAX
-!         WRITE(*,'(A,I4,3E14.6)') "TEST 2 ", NR, RT_TEMP(NR,3), RN_TEMP(NR,3), FNS(1,10,NR,2)
-!      END DO
-!      END IF
 
       END SUBROUTINE FP_POST_LOAD
 !------------------------------------------      
@@ -446,8 +426,7 @@
       TIMEFP=rdata(NRMAX+1)
 
       CALL mtx_broadcast_real8(RN_TEMP,NRMAX*NSMAX)
-      CALL mtx_broadcast_real8(RT_TEMP,NRMAX*NSMAX)
-      CALL mtx_broadcast_real8(RT_BULK,NRMAX*NSAMAX)
+      CALL mtx_broadcast_real8(RT_BULK,NRMAX*NSMAX)
       CALL mtx_broadcast_real8(RNS_DELF,NRMAX*NSMAX)
 
       IF(MODELD.ne.0)THEN
@@ -639,7 +618,10 @@
       USE libmpi      
       IMPLICIT NONE
 
-      IF(OUTPUT_TXT_F1.eq.1) OPEN(9,file="f1_1.dat") 
+      IF(OUTPUT_TXT_F1.eq.1)THEN
+         OPEN(9,file="f1_1.dat") 
+         OPEN(39,file="f1_1_pitch.dat") 
+      END IF
       IF(OUTPUT_TXT_BEAM_WIDTH.eq.1)THEN
          OPEN(24,file="time_evol_f1.dat") 
       END IF
@@ -647,7 +629,8 @@
       IF(OUTPUT_TXT_HEAT_PROF.eq.1)THEN
          OPEN(29,file="RPCS2_NSB_H.dat")
          OPEN(30,file="RPCS2_NSB_H_DEL.dat")
-         OPEN(32,file="RSPL_NSB.dat")
+         OPEN(32,file="RSPL_NSA.dat")
+         OPEN(34,file="RSPB.dat") 
       END IF
       IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
          open(10,file='time_evol.dat') 
@@ -659,15 +642,27 @@
          open(18,file='efield_ref.dat')
          open(33,file='collision_time.dat')
       END IF
-      IF(MODELS.eq.2)THEN
+      IF(ABS(MODELS).eq.2)THEN
          open(25,file='fusion_reaction_rate_prof.dat')
          open(26,file='fusion_reaction_rate_tot.dat')
+         open(27,file='prof_nf_rate.dat') 
       END IF
+      IF(OUTPUT_TXT_DELTA_F.eq.1) OPEN(35,file='grid_data.dat') 
       IF(OUTPUT_TXT_DELTA_F.eq.1) OPEN(33,file='output_fns_del.dat')
+      IF(OUTPUT_BEAM_BIRTH_PROF.eq.1) OPEN(36,file='output_beam_birth_prof.dat')
 
+      OPEN(37,file="t-density.dat") 
+      OPEN(38,file="prof_sigma_sp.dat")
+      IF(DEC.ne.0.D0) OPEN(40,file="lhcd_evol.dat")
+      IF(MODEL_CD.eq.1)THEN
+         open(41,file="t-j.dat")
+         open(42,file="rho-j.dat")
+      END IF
 !      open(19,file='p-T_bulk.dat')
-!      open(20,file='DCPP.dat')
+!      open(20,file='DWPP.dat')
+!      open(22,file='DWTT.dat')
 !      open(16,file='err_message_for_RT_BULK.dat')
+!      WRITE(*,*) "OPEN RANK= ", NRANK
 
       END SUBROUTINE OPEN_EVOLVE_DATA_OUTPUT
 !------------------------------------------      
@@ -676,16 +671,19 @@
       USE libmpi      
       IMPLICIT NONE
 
-      IF(OUTPUT_TXT_F1.eq.1) close(9)
+      IF(OUTPUT_TXT_F1.eq.1)THEN
+         close(9)
+         close(39)
+      END IF
       IF(OUTPUT_TXT_BEAM_WIDTH.eq.1)THEN
          close(24)
-!         close(34)
       END IF
       IF(OUTPUT_TXT_BEAM_DENS.eq.1) close(31)
       IF(OUTPUT_TXT_HEAT_PROF.eq.1)THEN
          close(29)
          close(30)
          close(32)
+         close(34)
       END IF
 
       IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
@@ -701,10 +699,21 @@
       IF(MODELS.eq.2)THEN
          close(25)
          close(26)
+         close(27)
       END IF
+      IF(OUTPUT_TXT_DELTA_F.eq.1) close(35)
       IF(OUTPUT_TXT_DELTA_F.eq.1) close(33)
+      close(37)
+      close(38)
+      IF(OUTPUT_BEAM_BIRTH_PROF.eq.1) close(36)
+      IF(DEC.ne.0.D0) CLOSE(40)
+      IF(MODEL_CD.eq.1)THEN
+         close(41)
+         close(42)
+      END IF
 !      close(19)
 !      close(20)  
+!      close(22)  
 !      close(16)  
 
       END SUBROUTINE CLOSE_EVOLVE_DATA_OUTPUT

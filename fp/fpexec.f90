@@ -200,16 +200,11 @@
 !     ----- Get solution vector -----
 
       CALL mtx_get_vector(BM_L)
-
       DO NR=NRSTART, NREND
          DO NP=NPSTART, NPEND
             DO NTH=1,NTHMAX
                NM=NMA(NTH,NP,NR)
-               IF(ABS(BM_L(NM-NMSTART+1)).LT.1.D-100) THEN
-                  FNS0(NTH,NP,NR,NSA)=0.D0
-               ELSE
-                  FNS0(NTH,NP,NR,NSA)=BM_L(NM-NMSTART+1)
-               END IF
+               FNS0(NTH,NP,NR,NSA)=BM_L(NM-NMSTART+1)
             END DO
          END DO
       END DO
@@ -221,6 +216,7 @@
       CALL mtx_set_communicator(comm_nr)
       CALL shadow_comm_nr(NSA)
       CALL mtx_set_communicator(comm_nrnp) !3D
+
 
 !      CALL mtx_gather_vector(BMTOT)
 !      DO NR=NRSTARTW,NRENDWM
@@ -1035,9 +1031,11 @@
                 +SPPS(NTH,NP,NR,NSA) &
                 +SPPL(NTH,NP,NR,NSA) &
                 +SPPI(NTH,NP,NR,NSA) &
-                +SPPL_CX(NTH,NP,NR,NSA) )
+                +SPPL_CX(NTH,NP,NR,NSA) &
+                +SPP_ICRF(NTH,NP,NR,NSA) )
 
       IF(MODELD.GT.0.AND.NR.EQ.NRMAX) THEN
+! temporal maybe need RLAMDA*RFSAD
          SPPD(NTH,NP,NSA)= FS2(NTH,NP,NSA) &
               *(DRR(NTH,NP,NR+1,NSA)    *DIVDRR &
                -FRR(NTH,NP,NR+1,NSA)*VRP*DIVFRR)*DRRP/RLAMDA_RG(NTH,NRMAX+1)

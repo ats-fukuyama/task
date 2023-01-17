@@ -10,7 +10,7 @@ CONTAINS
 
       USE fpcomm
       USE plprof
-      USE cdbm_mod
+      USE cdbmfp_mod
       USE libmpi,ONLY: mtx_set_communicator, mtx_reset_communicator
       USE fpmpi,ONLY: p_theta_integration
       IMPLICIT NONE
@@ -32,8 +32,8 @@ CONTAINS
          IF(nrank.EQ.0) THEN
             NR1=1
             NR2=NRMAX+1
-            write(18,'(A,1PE12.4/A)') 'T =',TIMEFP,&
-                     'NR,RS/QLM,SHEAR,PNEL,RHONI,DPDR,CHI_CDBM'
+!            write(18,'(A,1PE12.4/A)') 'T =',TIMEFP,&
+!                     'NR,RS/QLM,SHEAR,PNEL,RHONI,DPDR,CHI_CDBM'
          ELSE
             NR1=NRSTART
             NR2=NRENDWG
@@ -116,12 +116,12 @@ CONTAINS
 !            CURVZ=0.D0   ! option
 !            FEZ=0.D0     ! option
 
-            CALL CDBM(BB,RR,RA*RHON,RKAP,QLM(NR),SHEAR,PNEL,RHONI,DPDR, &
+            CALL CDBMFP(BB,RR,RA*RHON,RKAP,QLM(NR),SHEAR,PNEL,RHONI,DPDR, &
                       DVEXBDR,CALF,CKAP,CEXB,MODELD_CDBM,CHI_CDBM(NR))
-            IF(nrank.EQ.0) THEN
-               write(18,'(I2,1P7E11.3)'), &
-                 NR,RA*RHON,QLM(NR),SHEAR,PNEL,RHONI,DPDR,CHI_CDBM(NR)
-            END IF
+!            IF(nrank.EQ.0) THEN
+!               write(18,'(I2,1P7E11.3)') &
+!                 NR,RA*RHON,QLM(NR),SHEAR,PNEL,RHONI,DPDR,CHI_CDBM(NR)
+!            END IF
          END DO
       END IF
 

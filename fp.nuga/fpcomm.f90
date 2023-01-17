@@ -44,7 +44,7 @@ MODULE fpcomm_parm
       real(rkind):: R1,DELR1,RMIN,RMAX
       real(rkind):: E0,ZEFF
       real(rkind):: PABS_EC,PABS_LH,PABS_FW,PABS_WR,PABS_WM
-      REAL(rkind):: PIN_WR_NRAY(NRAYM),FACT_NRAY
+      REAL(rkind):: PIN_WR_NRAY(NRAYM)
       real(rkind):: FACT_WR,FACT_WM,DELNPR_WR,DELNPR_WM
       real(rkind):: RF_WM,EPS_WR,DELY_WR,DELY_WM,Y0_WM
       real(rkind):: DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC
@@ -56,7 +56,7 @@ MODULE fpcomm_parm
       real(rkind):: SPFTOT,SPFR0,SPFRW,SPFENG
       real(rkind):: DRR0,DRRS,FACTOR_CDBM,DRR_EDGE,RHO_EDGE,FACTOR_DRR_EDGE
       real(rkind):: FACTOR_PINCH,deltaB_B
-      real(rkind),dimension(NSM):: TLOSS
+      real(rkind),dimension(NSM):: TLOSS, TLOSS_PARA, TLOSS_PERP
       real(rkind):: DELT,RIMPL,EPSFP,EPSM,EPSE,EPSDE,H0DE
       real(rkind):: PGMAX,RGMAX,RGMIN
       real(rkind):: T0_quench,tau_quench,tau_mgi
@@ -64,6 +64,7 @@ MODULE fpcomm_parm
       real(rkind):: v_RE,target_zeff,SPITOT,FACT_BULK
       real(rkind):: RN_NEU0, RN_NEUS ! temporal 
       real(rkind):: NI_RATIO(NSM), DH_RATIO, HHe_RATIO, given_zeff, DT_RATIO
+      real(rkind):: FACT_NRAY(NRAYM)
 
 !     for read experiment data
       CHARACTER(len=1000):: EG_NAME_TMS, EG_NAME_CX, EG_NAME_HA3, SHOT_NUMBER, EG_PATH

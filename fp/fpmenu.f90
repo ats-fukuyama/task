@@ -9,6 +9,7 @@
       SUBROUTINE fp_menu
 
       USE fpcomm
+      USE libkio
       USE fpinit
       USE fpparm
       USE fpprep

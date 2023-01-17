@@ -14,6 +14,8 @@
 !----------------------------------------------------------------
       SUBROUTINE FP_SAVE
 
+      USE libfio
+
       CALL FWOPEN(21,KNAMFP,0,MODEFW,'FP',IERR)
       IF(IERR.NE.0) THEN
          WRITE(6,*) 'XX FPSAVE: FWOPEN: IERR=',IERR
@@ -46,9 +48,11 @@
 !
       SUBROUTINE FP_LOAD
 
+      USE libfio
+
       CALL FROPEN(21,KNAMFP,0,MODEFR,'FP',IERR)
       IF(IERR.NE.0) THEN
-         WRITE(6,*) 'XX DPLDFP: FROPEN: IERR=',IERR
+         WRITE(6,*) 'XX FP_LOAD: FROPEN: IERR=',IERR
          RETURN
       ENDIF
 
@@ -72,6 +76,7 @@
 !------------------------------------------      
       SUBROUTINE FP_SAVE2
 
+        USE libfio
       IMPLICIT NONE
       INTEGER:: NSA, NR, NP, NTH, NSB, NS, IERR
 
@@ -81,10 +86,17 @@
          RETURN
       ENDIF
 
-! required for FP
-! the values that update in each step
       REWIND(21)
-      WRITE(21) TIMEFP, NT_init
+
+      WRITE(21) NRMAX,NPMAX,NTHMAX,NSAMAX,NSBMAX,NSMAX
+      WRITE(21) DELR,DELTH,RMIN,RMAX
+      DO NSA=1,NSAMAX
+         WRITE(21) NS_NSA(NSA)
+         WRITE(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
+      ENDDO
+      DO NS=1,NSMAX
+         WRITE(21) DELP(NS),PMAX(NS),EMAX(NS)
+      ENDDO
 
       DO NSA=1, NSAMAX
          DO NR=1, NRMAX
@@ -94,8 +106,12 @@
          END DO
       END DO
 
+! required for FP
+! the values that update in each step
+
+      WRITE(21) TIMEFP, NT_init
+
       WRITE(21) ( (RN_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
-      WRITE(21) ( (RN_BULK(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
       WRITE(21) ( (RT_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
       WRITE(21) ( (RT_BULK(NR,NS), NR=1,NRMAX), NS=1,NSAMAX)
       WRITE(21) ( (RNS_DELF(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
@@ -126,16 +142,6 @@
          END IF
       END IF
 
-! required for other components
-      WRITE(21) NRMAX,NPMAX,NTHMAX,NSAMAX
-      WRITE(21) DELR,DELTH,RMIN,RMAX
-      DO NSA=1,NSAMAX
-         WRITE(21) NS_NSA(NSA)
-         WRITE(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
-      ENDDO
-      DO NS=1,NSMAX
-         WRITE(21) DELP(NS),PMAX(NS),EMAX(NS)
-      ENDDO
       CLOSE(21)
 
       WRITE(6,*) '# DATA WAS SUCCESSFULLY SAVED TO THE FILE.'
@@ -149,19 +155,29 @@
 !------------------------------------------      
       SUBROUTINE FP_LOAD2
 
+        USE libfio
       IMPLICIT NONE
       INTEGER:: NSA, NR, NP, NTH, NSB, IERR, NS
 
       CALL FROPEN(21,KNAMFP,0,MODEFR,'FP',IERR)
       IF(IERR.NE.0) THEN
-         WRITE(6,*) 'XX DPLDFP: FROPEN: IERR=',IERR
+         WRITE(6,*) 'XX FP_LOAD2: FROPEN: IERR=',IERR
          RETURN
       ENDIF
 
 ! required for FP
 ! the values that update in each step
       REWIND(21)
-      READ(21) TIMEFP, NT_init
+
+      READ(21) NRMAX,NPMAX,NTHMAX,NSAMAX,NSBMAX,NSMAX
+      READ(21) DELR,DELTH,RMIN,RMAX
+      DO NSA=1,NSAMAX
+         READ(21) NS_NSA(NSA)
+         READ(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
+      ENDDO
+      DO NS=1,NSMAX
+         READ(21) DELP(NS),PMAX(NS),EMAX(NS)
+      ENDDO
 
       DO NSA=1, NSAMAX
          DO NR=1, NRMAX
@@ -171,8 +187,11 @@
          END DO
       END DO
 
+! ------
+
+      READ(21) TIMEFP, NT_init
+
       READ(21) ( (RN_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
-      READ(21) ( (RN_BULK(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
       READ(21) ( (RT_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
       READ(21) ( (RT_BULK(NR,NS), NR=1,NRMAX), NS=1,NSAMAX)
       READ(21) ( (RNS_DELF(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
@@ -202,17 +221,6 @@
          END IF
       END IF
 
-
-! required for other components
-      READ(21) NRMAX,NPMAX,NTHMAX,NSAMAX
-      READ(21) DELR,DELTH,RMIN,RMAX
-      DO NSA=1,NSAMAX
-         READ(21) NS_NSA(NSA)
-         READ(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
-      ENDDO
-      DO NS=1,NSMAX
-         READ(21) DELP(NS),PMAX(NS),EMAX(NS)
-      ENDDO
       CLOSE(21)
 
       WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
@@ -298,8 +306,8 @@
       USE fpnfrr
       USE fpnflg
       USE fpoutdata
-      USE fpfunc
-      USE fpcoef, only: NF_RATE_no_SPPF
+      USE fpsub
+
       IMPLICIT NONE
       integer:: NSA, ierr, NR, NS, NP, NTH, NBEAM
       double precision:: FL, RHON
@@ -348,18 +356,12 @@
       END IF
       
       CALL FNSP_INIT_EDGE
-      IF(ABS(MODELS).eq.2)THEN
-         CALL NF_REACTION_COEF
-      ELSEIF(MODELS.eq.3)THEN
-         CALL NF_LG_FUNCTION
-      ELSEIF(ABS(MODELS).eq.4)THEN
-         CALL NF_REACTION_COEF_BT
-      END IF
-
+      IF(MODELS.eq.3) CALL NF_LG_FUNCTION
+      IF(MODELS.ne.0) CALL NF_REACTION_COEF
       CALL fp_continue(ierr)
-      IF(MODELS.eq.-2.or.MODELS.eq.-4) CALL NF_RATE_no_SPPF
-      IF(ABS(MODELS).ge.2)THEN
-         CALL PROF_OF_NF_REACTION_RATE(OUTPUT_NFID)
+      IF(MODELS.ge.2)THEN
+!         CALL ALLREDUCE_NF_RATE
+         CALL PROF_OF_NF_REACTION_RATE(1)
       END IF
       CALL fp_set_initial_value_from_f
 
@@ -375,27 +377,27 @@
          IF(MODEL_DELTA_F(NS).eq.1)THEN
             DO NR=NRSTARTW, NRENDWM
                DO NP=NPSTARTW, NPENDWM
-!                  IF(NP.le.NP_BULK(NR,NSA))THEN
-                  IF(MODEL_EX_READ_Tn.eq.0)THEN
-                     FL=FPMXWL(PM(NP,NS),NR,NS)   
+                  IF(NP.le.NP_BULK(NR,NSA))THEN
+                     DO NTH=1, NTHMAX
+                        IF(MODEL_EX_READ_Tn.eq.0)THEN
+                           FL=FPMXWL(PM(NP,NS),NR,NS)   
+                        ELSE
+                           FL=FPMXWL_EXP(PM(NP,NS),NR,NS)
+                        END IF
+                        FNSP_MXWL(NTH,NP,NR,NSA)=FL
+                        FNSP_DEL(NTH,NP,NR,NSA)=FNSP(NTH,NP,NR,NSA)-FNSP_MXWL(NTH,NP,NR,NSA)
+                     END DO
                   ELSE
-                     FL=FPMXWL_EXP(PM(NP,NS),NR,NS)
+                     DO NTH=1, NTHMAX
+                        IF(MODEL_EX_READ_Tn.eq.0)THEN
+                           FL=FPMXWL(PM(NP,NS),NR,NS)   
+                        ELSE
+                           FL=FPMXWL_EXP(PM(NP,NS),NR,NS)
+                        END IF
+                        FNSP_MXWL(NTH,NP,NR,NSA)=FL
+                        FNSP_DEL(NTH,NP,NR,NSA)=FNSP(NTH,NP,NR,NSA)-FNSP_MXWL(NTH,NP,NR,NSA)
+                     END DO
                   END IF
-                  DO NTH=1, NTHMAX
-                     FNSP_MXWL(NTH,NP,NR,NSA)=FL
-                     FNSP_DEL(NTH,NP,NR,NSA)=FNSP(NTH,NP,NR,NSA)-FNSP_MXWL(NTH,NP,NR,NSA)
-                  END DO
-!                  ELSE
-!                     DO NTH=1, NTHMAX
-!                        IF(MODEL_EX_READ_Tn.eq.0)THEN
-!                           FL=FPMXWL(PM(NP,NS),NR,NS)   
-!                        ELSE
-!                           FL=FPMXWL_EXP(PM(NP,NS),NR,NS)
-!                        END IF
-!                        FNSP_MXWL(NTH,NP,NR,NSA)=FL
-!                        FNSP_DEL(NTH,NP,NR,NSA)=FNSP(NTH,NP,NR,NSA)-FNSP_MXWL(NTH,NP,NR,NSA)
-!                     END DO
-!                  END IF
                END DO
             END DO
          END IF
@@ -441,7 +443,6 @@
       TIMEFP=rdata(NRMAX+1)
 
       CALL mtx_broadcast_real8(RN_TEMP,NRMAX*NSMAX)
-      CALL mtx_broadcast_real8(RN_BULK,NRMAX*NSMAX)
       CALL mtx_broadcast_real8(RT_TEMP,NRMAX*NSMAX)
       CALL mtx_broadcast_real8(RT_BULK,NRMAX*NSAMAX)
       CALL mtx_broadcast_real8(RNS_DELF,NRMAX*NSMAX)
@@ -561,10 +562,9 @@
 !!!!!!!!!!!!
 
       IF(MODELD.ne.0)THEN
-         CALL mtx_set_communicator(comm_nrnp)
-         nsend=NTHMAX*(NPEND-NPSTART+1)*(NREND-NRSTART+1)
-
          DO NSA=NSASTART, NSAEND
+            CALL mtx_set_communicator(comm_nrnp)
+            nsend=NTHMAX*(NPEND-NPSTART+1)*(NREND-NRSTART+1)
             DO NR=NRSTART, NREND
                DO NP=NPSTART, NPEND
                   DO NTH=1, NTHMAX
@@ -581,29 +581,24 @@
                END DO
             END DO
             IF(NREND.eq.NRMAX)THEN
+               CALL mtx_set_communicator(comm_np)
                DO NP=NPSTART, NPEND
                   DO NTH=1, NTHMAX
                      dsend_max(nth,np)=WEIGHR(NTH,NP,NRMAX+1,NSA)
                   END DO
                END DO
-            ELSE
-               DO NP=NPSTART, NPEND
+               CALL mtx_allreduce_real8(dsend_max,NTHMAX*NPMAX,3, &
+                                        drecv_max,vloc_max)
+               DO NP=1, NPMAX
                   DO NTH=1, NTHMAX
-                     dsend_max(nth,np)=0.D0
+                     temp_l2(nth,np,nrmax+1,nsa)=drecv_max(NTH,NP)
                   END DO
                END DO
             END IF
-            CALL mtx_allreduce_real8(dsend_max,NTHMAX*NPMAX,3,drecv_max,vloc_max)
-            DO NP=1, NPMAX
-               DO NTH=1, NTHMAX
-                  temp_l2(nth,np,nrmax+1,nsa)=drecv_max(NTH,NP)
-               END DO
-            END DO
          END DO
          CALL mtx_set_communicator(comm_nsa)
          nsend=NTHMAX*NPMAX*(NRMAX+1)*(NSAEND-NSASTART+1) 
          CALL mtx_gather_real8(temp_l2,nsend,WEIGHR_G)
-         CALL mtx_reset_communicator 
       END IF ! END MODELD
 
 !!!!!!!!!!!!!
@@ -642,7 +637,6 @@
       IMPLICIT NONE
 
       IF(OUTPUT_TXT_F1.eq.1) OPEN(9,file="f1_1.dat") 
-      IF(OUTPUT_TXT_F1.eq.1) OPEN(36,file="f_th.dat") 
       IF(OUTPUT_TXT_BEAM_WIDTH.eq.1)THEN
          OPEN(24,file="time_evol_f1.dat") 
       END IF
@@ -651,7 +645,7 @@
          OPEN(29,file="RPCS2_NSB_H.dat")
          OPEN(30,file="RPCS2_NSB_H_DEL.dat")
          OPEN(32,file="RSPL_NSB.dat")
-         OPEN(34,file="RSPB.dat")
+         OPEN(34,file="RSPB.dat") 
       END IF
       IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
          open(10,file='time_evol.dat') 
@@ -663,18 +657,18 @@
          open(18,file='efield_ref.dat')
          open(33,file='collision_time.dat')
       END IF
-      IF(ABS(MODELS).ge.2)THEN
+      IF(ABS(MODELS).eq.2)THEN
          open(25,file='fusion_reaction_rate_prof.dat')
          open(26,file='fusion_reaction_rate_tot.dat')
-         open(27,file='radial_prof_nf_rate.dat')
+         open(27,file='prof_nf_rate.dat') 
       END IF
-      IF(OUTPUT_TXT_DELTA_F.eq.1) OPEN(35,file='grid_data.dat')
+      IF(OUTPUT_TXT_DELTA_F.eq.1) OPEN(35,file='grid_data.dat') 
       IF(OUTPUT_TXT_DELTA_F.eq.1) OPEN(33,file='output_fns_del.dat')
 
+      OPEN(37,file="t-density.dat") 
 !      open(19,file='p-T_bulk.dat')
 !      open(20,file='DCPP.dat')
 !      open(16,file='err_message_for_RT_BULK.dat')
-      OPEN(37,file="t-density.dat")
 
       END SUBROUTINE OPEN_EVOLVE_DATA_OUTPUT
 !------------------------------------------      
@@ -684,7 +678,6 @@
       IMPLICIT NONE
 
       IF(OUTPUT_TXT_F1.eq.1) close(9)
-      IF(OUTPUT_TXT_F1.eq.1) close(36)
       IF(OUTPUT_TXT_BEAM_WIDTH.eq.1)THEN
          close(24)
       END IF
@@ -706,7 +699,7 @@
          close(18)  
          close(33)  
       END IF
-      IF(ABS(MODELS).ge.2)THEN
+      IF(MODELS.eq.2)THEN
          close(25)
          close(26)
          close(27)

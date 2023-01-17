@@ -17,6 +17,7 @@
       SUBROUTINE FPCALC_NL(NR,NSB,NSA)
 !
       USE libspl1d
+      USE libgrf,ONLY: grd1d
       USE libspf, ONLY: dpleg
       USE libgrf,ONLY: grd1d
       USE fpmpi
@@ -433,7 +434,7 @@
 
       SUBROUTINE INTEGRATION_BACKGROUND_F(FPL,NR,NSB,NSA,RM1M,RM2M,RM3M,RM4M,RM1G,RM2G,RM3G,RM4G)
 
-      USE libspl1d
+      USE libspl1d 
       IMPLICIT NONE
 
       integer,parameter::LNM=5
@@ -660,7 +661,7 @@
 
       SUBROUTINE INTEGRATION_BACKGROUND_F_FINE(FPL,NR,NSB,NSA,RM1M,RM2M,RM3M,RM4M,RM1G,RM2G,RM3G,RM4G)
 
-      USE libspl1d
+      USE libspl1d 
       IMPLICIT NONE
 
       integer,parameter::LNM=5
@@ -1000,8 +1001,6 @@
          RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
       ELSE
          RNFDL=PLF(NS)%RN/RNFD0L
-!         RNFDL=PNT(NR,NS,NTG2)
-!         RTFDL=RT_TEMP(NR,NS)
          RTFDL=RT_BULK(NR,NS)
       END IF
 

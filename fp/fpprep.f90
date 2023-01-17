@@ -16,6 +16,7 @@
       USE libmpi
       USE fpcaleind
       USE fpdisrupt
+      USE fpfunc
 
       contains
 
@@ -28,13 +29,14 @@
       USE fpbroadcast
       USE fpwrin
       USE fpwmin
+      USE EG_READ
 
       Implicit none
       integer :: ierr,NSA,NS,NR,NP,NTH,id
 !      character(LEN=80)::line 
       real(kind8)::rhon,rhol,rhol1,rhol2,A1,epsl,ql,BT
       real(kind8),DIMENSION(:),POINTER:: work,workg
-      real(kind8):: Rmass, RRTFP, RPTFP,RVTFP, sumEmax
+      real(kind8):: Rmass, RRTFP, RPTFP,RVTFP, sumEmax, sum_lambda
 
 !     ----- define upper boundary of p from Emax-----
       sumEmax=0.D0
@@ -51,6 +53,7 @@
                RVTFP=SQRT(RRTFP*1.D3*AEE/Rmass)
                pmax(ns)=SQRT(2.D0*AEE*Rmass*1.D3*EMAX(NS))/RPTFP
             END IF
+            IF(NRANK.eq.0) WRITE(6,'(A,1P6E14.6)') "VMAX[m/s] = ", RVTFP*pmax(ns)
          END DO
          IF(NRANK.eq.0) WRITE(6,'(A,1P6E12.4)') "new pmax= ", (pmax(ns),ns=1,nsmax)
       END IF
@@ -129,6 +132,7 @@
          RHON=RM(NR)
          CALL pl_qprf(RHON,QL)
          QLM(NR)=QL
+         QLM_INIT(NR)=QL
          BT=BB
          BP= RSRHON(RHON)*BT/(RR*QL)
          EPSRM(NR)=RSRHON(RHON)/RR
@@ -154,6 +158,7 @@
          RHON=RG(NR)
          CALL pl_qprf(RHON,QL)
          QLG(NR)=QL
+         QLG_INIT(NR)=QL
          BT=BB
          BP(NR)= RSRHON(RHON)*BT/(RR*QL)
          EPSRG(NR)=RSRHON(RHON)/RR
@@ -166,6 +171,9 @@
                /(RMU0*RM(NR)*DELR)
       ENDDO
 
+      IF(MODEL_Q_PROF.eq.1)THEN ! read vmec
+         CALL MAKE_QLM_QLG_FROM_kspdiag(VMEC_PATH, VMEC_TIME)
+      END IF
 !     ----- set momentum space mesh -----
 
       DELTH=PI/NTHMAX
@@ -210,7 +218,7 @@
             VOLR(NR)=2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1)) &
                  *2.D0*PI*RR
          ENDDO
-      CASE(3,5,8) ! toroidal
+      CASE(3:4) ! toroidal
          DO NR=1,NRMAX
             RHOL=RM(NR)
             RHOL1=RG(NR)
@@ -226,7 +234,7 @@
       ENDDO
 
       IF(NRANK.eq.0) THEN
-         WRITE(6,'(A,3E14.6)') "DEVICE, RR, RA, BB", RR, RA, BB
+         WRITE(6,'(A,4E14.6)') "DEVICE, RR, RA, BB, TVOLR ", RR, RA, BB, TVOLR
       END IF
 !     ----- set bounce-average parameters -----
 
@@ -243,7 +251,7 @@
 ! THM(ITL(NR)) is always trapped region 
 ! Exact boundary A1 lays on between THM(ITL-1) and THM(ITL)
          IF(nsize.gt.1.and.NRANK.eq.1) & 
-              WRITE(6,'(A)') '# NR,ITL(NR),EPSRM2,EPSRM,THM(ITL-1)<THC<THM(ITL),THG(ITL) on RM(NR)'
+              WRITE(6,'(A)') '# NR,ITL(NR),EPSRM2,EPSRM,THM(ITL-1)<THC<THM(ITL),THG(ITL),QLM on RM(NR)'
          DO NR=1,NRMAX+1
             A1=ACOS(SQRT(2.D0*EPSRM(NR)/(1.D0+EPSRM(NR))))
             NTH=0
@@ -260,7 +268,8 @@
             EPSRM2(NR) = EPSRM(NR)
             EPSRM(NR)=EPSL
             IF(nsize.gt.1.and.NRANK.eq.1) &
-                 WRITE(6,'(2I5,1P8E12.4)') NR,ITL(NR),EPSRM2(NR),EPSRM(NR),THM(ITL(NR)-1), A1, THM(ITL(NR)),THG(ITL(NR))
+                 WRITE(6,'(2I5,1P8E12.4)') NR,ITL(NR),EPSRM2(NR),EPSRM(NR),&
+                 THM(ITL(NR)-1), A1, THM(ITL(NR)),THG(ITL(NR)),QLM(NR)
 
             IF(A1.ge.THG(ITL(NR)))THEN ! The mesh point including A1. RLAMDA(NTH) on such a point can not calculate numerically.
                ITL_judge(NR)=ITL(NR)
@@ -268,7 +277,6 @@
             ELSE
                ITL_judge(NR)=ITL(NR)-1
             END IF
-
          ENDDO
 
          IF(NRANK.eq.1) WRITE(6,*) " "
@@ -392,16 +400,19 @@
       CALL mtx_reset_communicator
 
 !      IF(MODELA.eq.1)THEN
-!      IF(NRANK.eq.0)THEN
-!      open(8,file='RLAMDAG.dat')
-!      DO NR =1, NRMAX+1
-!         DO NTH=1,NTHMAX
-!            WRITE(8,'(2I4, 4E14.6)') NR, NTH, COSM(NTH), RLAMDAG(NTH,NR), RFSADG(NR)
-!         END DO
-!         WRITE(8,*) " "
-!         WRITE(8,*) " "
-!      END DO
-!      close(8)
+      IF(NRANK.eq.0)THEN
+      open(8,file='RLAMDAG.dat')
+      DO NR =1, NRMAX+1
+         sum_lambda=0.D0
+         DO NTH=1,NTHMAX
+            WRITE(8,'(2I4, 4E14.6)') NR, NTH, COSM(NTH), RLAMDAG(NTH,NR), RFSADG(NR)
+            sum_lambda = sum_lambda + RLAMDAG(NTH,NR)*DELTH*SINM(NTH)
+         END DO
+         WRITE(8,*) " "
+         WRITE(8,*) " "
+!         WRITE(*,'(I4,4E14.6)') NR, sum_lambda, sum_lambda*RFSADG(NR), RLAMDAG(10,NR)*RFSADG(NR)*SINM(10), QLM(NR)
+      END DO
+      close(8)
 !      open(8,file='RLAMDAG_RG.dat')
 !      DO NR =1, NRMAX+1
 !         DO NTH=1,NTHMAX
@@ -412,7 +423,7 @@
 !      END DO
 !      close(8)
 !      END IF
-!      END IF
+      END IF
 
 !      IF(NREND.eq.NRMAX)THEN
 !         open(8,file='RLAMDA_RG_MAX.dat')
@@ -440,8 +451,11 @@
 
       SUBROUTINE FPCINI
 
+      USE plprof
       IMPLICIT NONE
-      integer:: NSA, NR, NTH, NP
+      integer:: NSA, NR, NTH, NP, NS
+      double precision:: RHON
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
 
       ISAVE=0
 
@@ -488,6 +502,15 @@
       ENDDO
       ENDDO
 
+      RNS_DELF(:,:)=0.D0
+      DO NR=1,NRMAX ! change in time
+         RHON=RM(NR)
+         CALL PL_PROF(RHON,PLF)
+         DO NS=1,NSMAX
+            RN_BULK(NR,NS)=PLF(NS)%RN
+         END DO
+      END DO
+
       RETURN
       END SUBROUTINE FPCINI
 
@@ -496,7 +519,7 @@
 
       USE libmtx
       IMPLICIT NONE
-      INTEGER:: ierr, NREND1, keys,N
+      INTEGER:: ierr, NREND1, keys
       INTEGER,DIMENSION(nsize):: ima1,ima2,npa1,npa2,nra1,nra2,nma1,nma2,insa1,insa2
       ierr=0
       
@@ -508,6 +531,7 @@
                                    N_partition_s, N_partition_r, nsize
          END IF
          ierr=1
+         call mtx_abort(ierr)
          RETURN
       END IF
 
@@ -518,6 +542,7 @@
                                    NPMAX, N_partition_p
          END IF
          ierr=1
+         call mtx_abort(ierr)
          RETURN
       END IF
 
@@ -528,6 +553,18 @@
                                    NRMAX, N_partition_r
          END IF
          ierr=1
+         call mtx_abort(ierr)
+         RETURN
+      END IF
+
+      IF(MOD(NSAMAX,N_partition_s).ne.0)THEN
+         IF(NRANK.eq.0) THEN
+            WRITE(6,*) 'XX fp_prep: MOD(NSAMAX,N_partition_s)!=0'
+            WRITE(6,'(A,2I4)') 'XX NSAMAX, N_partition_s', &
+                                   NSAMAX, N_partition_s
+         END IF
+         ierr=1
+         call mtx_abort(ierr)
          RETURN
       END IF
 
@@ -550,12 +587,6 @@
 !      NSAEND =   (NSAMAX/N_partition_s)*(colors+1)
 
 
-      IF(N_partition_s.GT.NSAMAX) THEN
-         IF(NRANK.EQ.0) &
-              write(6,'(A,2I5)') 'XX N_partition_s.GT.NSAMAX:', &
-              N_partition_s,NSAMAX
-         STOP
-      END IF
       keys=comm_nsa%rankl
       NSASTART = (NSAMAX/N_partition_s)*keys+1 !3D
       NSAEND =   (NSAMAX/N_partition_s)*(keys+1)
@@ -615,8 +646,6 @@
       nmstart= imtxstart !3D
       nmend  = imtxend
 
-      CALL mtx_reset_communicator
-
       CALL mtx_gather1_integer(imtxstart,ima1)
       CALL mtx_gather1_integer(imtxend,  ima2)
       CALL mtx_gather1_integer(npstart,  npa1)
@@ -628,17 +657,16 @@
       CALL mtx_gather1_integer(nsastart,insa1)
       CALL mtx_gather1_integer(nsaend,  insa2)
 
-      IF(nrank.EQ.0) THEN
-         write(6,'(A,2I10)') '  imtxsize,imtxwidth=',imtxsize,imtxwidth
-         write(6,'(A,A,A)') '  nrank imtxstart end  npstart  end', &
-                                   ' nrstart   end  nmstart  end', &
-                                   ' nsastart  end'
-         DO N=1,nsize
-            write(6,'(11I7)') N,ima1(N),ima2(N),npa1(N),npa2(N), &
-                                nra1(N),nra2(N),nma1(N),nma2(N), &
-                                insa1(N),insa2(N)
-         ENDDO
-      ENDIF
+!      IF(nrank.EQ.0) THEN
+!         write(6,'(A,2I10)') '  imtxsize,imtxwidth=',imtxsize,imtxwidth
+!         write(6,'(A,A,A)') '     nrank   imtxstart   imtxend   npstart    npend', &
+!                          '    nrstart     nrend   nmstart     nmend', &
+!                          '      nsastart      nsaend'
+!         DO N=1,nsize
+!            write(6,'(11I10)') N,ima1(N),ima2(N),npa1(N),npa2(N),nra1(N),nra2(N), &
+!                              nma1(N),nma2(N),insa1(N),insa2(N)
+!         ENDDO
+!      ENDIF
 
 !      IF(NRANK.eq.0) WRITE(6,*) "      NRANK, nsa_rank, nr_rank, np_rank, nrnp_rank, nsanp_rank, nsanr_rank"
 !      write(6,'(7I10)') NRANK, comm_nsa%rankl, comm_nr%rankl, &
@@ -740,7 +768,6 @@
 !-------------------------------------------------------------
       SUBROUTINE FNSP_INIT
 
-        USE fpsub
       IMPLICIT NONE
       INTEGER:: NTH,NP,NR,NSA,NS,NSB
       REAL(rkind):: FL
@@ -751,8 +778,6 @@
             IF(NR.ge.1.and.NR.le.NRMAX)THEN
                DO NP=NPSTARTW,NPENDWM
                   FL=FPMXWL(PM(NP,NS),NR,NS)
-!                  IF(NRANK.EQ.0) WRITE(6,'(A,4I5,1PE12.4)') &
-!                       'NSA,NS,NR,NP,FL=',NSA,NS,NR,NP,FL
                   DO NTH=1,NTHMAX
                      FNSP(NTH,NP,NR,NSA)=FL
                      FNS0(NTH,NP,NR,NSA)=FL
@@ -779,24 +804,12 @@
          END IF
       END DO
 
-!      DO NS=1, NSMAX
-!         DO NR=NRSTART,NREND
-!            DO NP=NPSTART,NPEND
-!               FL=FPMXWL(PM(NP,NS),NR,NS)
-!               DO NTH=1,NTHMAX
-!                  FNSB(NTH,NP,NR,NS)=FL
-!               END DO
-!            ENDDO
-!         END DO
-!      END DO
-
       CALL update_fnsb_maxwell
 
       END SUBROUTINE FNSP_INIT
 !-------------------------------------------------------------
       SUBROUTINE FNSP_INIT_EDGE
 
-      USE fpsub
       IMPLICIT NONE
       INTEGER:: NTH,NP,NR,NSA,NS
       REAL(rkind):: FL
@@ -859,8 +872,6 @@
       INTEGER:: NSA, NSB, NS, NSFP, NSFD, NR, ISW_CLOG, i, j
       TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
       real(kind8):: RTFD0L, RHON, RNE, RTE, RLNRL, FACT, RNA, RTA, RNB, RTB, SUM, AMFDL
-      real(kind8):: A_D, tau_se_E0, k_energy, log_energy, sigma_cx0, sigma_cx, tau_cx_E1
-      real(kind8):: tau_se_E0E1, k_energy1, log10_neu0, log10_neus, alpha, beta, N_NEUT, E_CR
 
       DO NSA=1,NSAMAX
          NS=NS_NSA(NSA)
@@ -905,17 +916,23 @@
          RHON=RM(NR)
          CALL PL_PROF(RHON,PLF)
          DO NS=1,NSMAX
-            RT_TEMP(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+            RT_BULK(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
             RN_TEMP(NR,NS)=PLF(NS)%RN
+            RT_INIT(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+            RN_INIT(NR,NS)=PLF(NS)%RN
+!            RN_BULK(NR,NS)=PLF(NS)%RN
          END DO
       END DO
+
+      IF(MODEL_PROF_POLY.eq.1)THEN
+         CALL MAKE_Tene_PROF_POLYNOMIAL
+      END IF
 
       IF(MODEL_EX_READ_Tn.ne.0)THEN
          CALL READ_EXP_DATA
          CALL MAKE_EXP_PROF(timefp)
          IF(NRANK.eq.0) WRITE(*,'(A,E14.6)') "time_exp_offset= ", time_exp_offset
       END IF
-!      WRITE(*,*) NR, NS, RT_READ(NR,NS), RN_READ(NR,NS), RT_TEMP(NR,NS), RN_TEMP(NR,NS)
 
       DO NR=NRSTART,NRENDWM
          RHON=RM(NR)
@@ -938,11 +955,11 @@
          ENDDO
 !         WRITE(*,'(3I4, 4E14.6)') NRANK, NR, NPSTART, RTFD(NR,1), RTFD(NR,2)
 
-         IF(MODEL_EX_READ_Tn.ne.0)THEN
+         IF(MODEL_EX_READ_Tn.ne.0.or.MODEL_PROF_POLY.eq.1)THEN
             DO NSA=1,NSAMAX ! temporal
                NS=NS_NSA(NSA)
                RNFP(NR,NSA)=RN_TEMP(NR,NS)
-               RTFP(NR,NSA)=RT_TEMP(NR,NS)
+               RTFP(NR,NSA)=RT_BULK(NR,NS)
                PTFP(NR,NSA)=SQRT(RTFP(NR,NSA)*1.D3*AEE*AMFP(NSA))
                VTFP(NR,NSA)=SQRT(RTFP(NR,NSA)*1.D3*AEE/AMFP(NSA))
             END DO
@@ -960,68 +977,34 @@
          RNE=PLF(1)%RN
          RTE=(PLF(1)%RTPR+2.D0*PLF(1)%RTPP)/3.D0
          E_EDGEM=0.D0
-
+      END DO
 !-----   Coulomb log
+      CALL Coulomb_log
 
-         ISW_CLOG=0 ! =0 Wesson, =1 NRL
-         DO NSA=1,NSAMAX
-            NSFP=NS_NSB(NSA)
-            RNA=RN_TEMP(NR,NSFP)
-            RTA=RT_TEMP(NR,NSFP)
-            DO NSB=1,NSBMAX
-               NSFD=NS_NSB(NSB)
-               RNB=RN_TEMP(NR,NSFD)
-               RTB=RT_TEMP(NR,NSFD)
-               IF(ISW_CLOG.eq.0)THEN
-                  IF(PZ(NSFP).eq.-1.and.PZ(NSFD).eq.-1) THEN !e-e
-                     RLNRL=14.9D0-0.5D0*LOG(RNE)+LOG(RTE) 
-                  ELSEIF(PZ(NSFP).eq.-1.OR.PZ(NSFD).eq.-1) THEN
-                     RLNRL=15.2D0-0.5D0*LOG(RNE)+LOG(RTE) ! e-i T>10eV
-                  ELSE
-                     RLNRL=17.3D0-0.5D0*LOG(RNE)+1.5D0*LOG(RTB) ! i-i T < m_i/m_p*10 keV, single charge
-                  ENDIF
-               ELSEIF(ISW_CLOG.eq.1)THEN
-                  IF(PZ(NSFP).eq.-1.and.PZ(NSFD).eq.-1) THEN !e-e
-                     RLNRL=23.5D0-LOG(SQRT(RNA*1.D14)*(RTA*1.D3)**(-1.25D0) ) - &
-                          SQRT(1.D-5+(LOG(RTA*1.D3)-2.D0)**2/16.D0 )
-                  ELSEIF(PZ(NSFP).eq.-1.OR.PZ(NSFD).eq.-1) THEN
-                     RLNRL=24.D0-LOG(SQRT(RNA*1.D14)*(RTA*1.D3)**(-1) ) ! Ti*(me/mi) < 10eV < Te
-                  ELSE
-                     RLNRL=23.D0-LOG(PZ(NSFP)*PZ(NSFD)*(PA(NSFP)+PA(NSFD)) &
-                          /(PA(NSFP)*(RTB*1.D3)+PA(NSFD)*(RTA*1.D3))* &
-                          SQRT((RNA*1.D14)*PZ(NSFP)**2/(RTA*1.D3) + (RNB*1.D14)*PZ(NSFD)**2/(RTB*1.D3) ) )
-                  ENDIF
-               END IF
+      IF(NRANK.eq.0)THEN
+         DO NSA=1, NSAMAX
+            tau_ta0(NSA)=(4.D0*PI*EPS0**2)*PTFP0(NSA)**3 &
+                 /( AMFP(NSA)*AEFP(NSA)**4*LNLAM(1,NSA,NSA)*RNFP0(NSA)*1.D20 )
+         END DO
+         WRITE(6,'(A,1P5E14.6)') "tau_ta0 = ",(tau_ta0(NSA),NSA=1,NSAMAX)
+      END IF
 
-!               IF(NRSTART.eq.NRMAX) WRITE(*,*) NR,"Coulomb log",NSA,NSB,RLNRL
-               LNLAM(NR,NSB,NSA)=RLNRL
-               FACT=AEFP(NSA)**2*AEFD(NSB)**2*RLNRL/(4.D0*PI*EPS0**2)
-               RNUD(NR,NSB,NSA)=FACT*RNFP0(NSA)*1.D20 &
-                      /(SQRT(2.D0)*VTFD(NR,NSB)*PTFP0(NSA)**2)
-               RNUF(NR,NSB,NSA)=FACT*RNFP0(NSA)*1.D20 &
-                      /(2*AMFD(NSB)*VTFD(NR,NSB)**2*PTFP0(NSA))
-
-            ENDDO
-            IF(NRANK.eq.0)THEN
-               tau_ta0(NSA)=(4.D0*PI*EPS0**2)*PTFP0(NSA)**3 &
-                    /( AMFP(NSA)*AEFP(NSA)**4*LNLAM(1,NSA,NSA)*RNFP0(NSA)*1.D20 )
-            END IF
-         ENDDO
-      ENDDO
-
-      IF(NRANK.eq.0) WRITE(6,'(A,1P5E14.6)') "tau_ta0 = ",(tau_ta0(NSA),NSA=1,NSAMAX)
       IF(NRANK.eq.0.and.NSBMAX.ge.2)THEN
          SUM=0.D0
-         DO NSB=2,NSBMAX
-            SUM = SUM + RNFD0(NSB)*AEFD(NSB)**2
+!         DO NSB=2,NSBMAX
+!            SUM = SUM + RNFD0(NSB)*AEFD(NSB)**2
+!         END DO
+         DO NS=2,NSMAX
+            SUM = SUM + RN_TEMP(1,NS)*PZ(NS)**2
          END DO
-         ZEFF = SUM/(RNFD0(1)*AEFD(1)**2)
+         ZEFF = SUM/RN_TEMP(NRSTART,1)
          WRITE(6,'(A,1PE12.4)') " ZEFF = ", ZEFF
          WRITE(6,'(A,1P2E12.4)') "LN_LAMBDA = ", LNLAM(1,1,1), LNLAM(1,2,1)
       END IF
 
       CALL mtx_broadcast1_real8(ZEFF)
       call mtx_broadcast_real8(tau_ta0,nsamax)
+
 !     ----- set relativistic parameters -----
 
       IF (MODELR.EQ.0) THEN
@@ -1037,66 +1020,18 @@
             AMFDL=PA(NS)*AMP
             THETA0(NS)=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
             DO NR=NRSTART,NREND
-               THETA(NR,NS)=THETA0(NS)*RT_TEMP(NR,NS)/RTFD0L
+               THETA(NR,NS)=THETA0(NS)*RT_BULK(NR,NS)/RTFD0L
             ENDDO
          ENDDO
       ENDIF
 
 ! ---- NBI energy loss time
-!      IF(MODEL_NBI.ne.0.and.NRANK.eq.0.and.MODEL_CX_LOSS.eq.1)THEN ! assuming AMFD(NSA_F1)=D, D beam, ZEFF=1
-
-      IF(MODEL_NBI.ne.0.and.MODEL_CX_LOSS.eq.1)THEN ! assuming AMFD(NSA_F1)=D, D beam, ZEFF=1
-         NS=NS_NSA(NSA_F1)
-         A_D=RN_TEMP(NRSTART,1)*1.D20*AEFD(1)**4*LNLAM(NRSTART,1,NSA_F1)/(2.D0*PI*EPS0**2*AMFP(NSA_F1)**2)
-         tau_se_E0 = (3.D0*sqrt(2.D0*PI)*(RT_TEMP(NRSTART,1)*AEE*1.D3)**1.5)/(sqrt(AMFD(1))*AMFP(NSA_F1)*A_D) 
-
-         Ebeam0= 140.D3
-         log_energy = dlog10(Ebeam0)
-         sigma_cx0 = 0.6937D-14*(1.D0-0.155D0*log_energy)**2/ &
-              (1.D0+0.1112D-14*Ebeam0**3.3D0)*1.D-4 * SQRT(Ebeam0*AEE/AMFD(NSA_F1))
-
-         j=0
-         DO i=1, 100
-            Ebeam1= (140.D0-1.D0*i)*1.D3
-            log_energy = dlog10(Ebeam1)
-            sigma_cx = 0.6937D-14*(1.D0-0.155D0*log_energy)**2/ &
-                 (1.D0+0.1112D-14*Ebeam1**3.3D0)*1.D-4 *SQRT(Ebeam1*AEE/AMFD(NSA_F1))
-            IF(sigma_cx.le.sigma_cx0*exp(1.D0))THEN
-               j=i
-            END IF
-         END DO
-         Ebeam1= (140.D0-1.D0*j)*1.D3
-         log_energy = dlog10(Ebeam1)
-         sigma_cx = 0.6937D-14*(1.D0-0.155D0*log_energy)**2/ &
-              (1.D0+0.1112D-14*Ebeam1**3.3D0)*1.D-4 *SQRT(Ebeam1*AEE/AMFD(NSA_F1))
-
-         E_CR=14.8D0*PA(NS)/PA(NS)**(2.D0/3.D0)*RT_TEMP(NRSTART,1)*1.D3
-!         tau_se_E0E1=tau_se_E0*log(Ebeam0/Ebeam1)*0.5D0
-         tau_se_E0E1=tau_se_E0*&
-              log( (Ebeam0**(1.5D0)+E_CR**(1.5D0) )/( Ebeam1**(1.5D0)+E_CR**(1.5D0) ) )&
-              /3.D0
-
-         log10_neu0=LOG10(RN_NEU0)
-         log10_neus=LOG10(RN_NEUS)
-!     neutral gas profile
-         alpha=2.5D0
-         beta=0.8D0
-         N_NEUT=10**( (log10_neu0-log10_neus)*(1.D0-RM(NRSTART)**alpha)**beta+log10_neus )
-
-         tau_cx_E1 = 1.D0/(N_NEUT*1.D20*EXP(1.D0)*sigma_cx0)
-
-         IF(NRANK.eq.0)THEN
-            WRITE(*,'(A,E14.6)') "E_CR on axis=   ", E_CR
-            WRITE(*,'(A,1PE14.6,2E14.6)') "E0, tau_se_E0 on axis=   ", Ebeam0, tau_se_E0
-            WRITE(*,'(A,1PE14.6,2E14.6)') "E1, tau_se_E0E1, wo E_CR on axis= ",&
-                 Ebeam1, tau_se_E0E1, tau_se_E0*log(Ebeam0/Ebeam1)*0.5D0
-            WRITE(*,'(A,E14.6)') "tau_cx_E1 on axis=   ", tau_cx_E1
-         END IF
-         IF(NRSTART.eq.NRMAX.and.NPSTART.eq.1.and.NSASTART.eq.1)THEN
-            WRITE(*,'(A,1PE14.6,2E14.6)') "E0, tau_se_E0, on edge=   ", Ebeam0, tau_se_E0
-            WRITE(*,'(A,1PE14.6,2E14.6)') "E1, tau_se_E0E1, on edge= ", Ebeam1, tau_se_E0E1, tau_se_E0*log(Ebeam0/Ebeam1)*0.5D0
-            WRITE(*,'(A,E14.6)') "tau_cx_E1 on edge=   ", tau_cx_E1
-         END IF
+!      IF(MODEL_NBI.ne.0.and.MODEL_CX_LOSS.eq.1)THEN ! assuming AMFD(NSA_F1)=D, D beam, ZEFF=1
+!         CALL EVALUATE_TIME_CONST_CX
+!      END IF
+! ---- NF time const
+      IF(ABS(MODELS).ge.2)THEN
+         CALL EVALUATE_TIME_CONST_NF
       END IF
 ! ----set runaway
       IF(MODEL_DISRUPT.ne.0.and.nt_init.eq.0)THEN 
@@ -1120,6 +1055,167 @@
 
       END SUBROUTINE fp_set_normalize_param
 !==============================================================
+      SUBROUTINE EVALUATE_TIME_CONST_CX
+      
+      IMPLICIT NONE
+      INTEGER:: NS, i, j
+      double precision:: A_D, tau_se_E0, Ebeam0, Ebeam1, log_energy, sigma_cx0, sigma_cx
+      double precision:: E_CR, tau_se_E0E1, log10_neu0, log10_neus, alpha, beta, N_NEUT
+      double precision:: tau_cx_E1
+
+! ---- NBI energy loss time
+!      IF(MODEL_NBI.ne.0.and.NRANK.eq.0.and.MODEL_CX_LOSS.eq.1)THEN ! assuming AMFD(NSA_F1)=D, D beam, ZEFF=1
+
+      NS=NS_NSA(NSA_F1)
+      A_D=RN_TEMP(NRSTART,1)*1.D20*AEFD(1)**4*LNLAM(NRSTART,1,NSA_F1)/(2.D0*PI*EPS0**2*AMFP(NSA_F1)**2)
+      tau_se_E0 = (3.D0*sqrt(2.D0*PI)*(RT_BULK(NRSTART,1)*AEE*1.D3)**1.5)/(sqrt(AMFD(1))*AMFP(NSA_F1)*A_D) 
+
+      Ebeam0= 140.D3
+      log_energy = dlog10(Ebeam0)
+      sigma_cx0 = 0.6937D-14*(1.D0-0.155D0*log_energy)**2/ &
+           (1.D0+0.1112D-14*Ebeam0**3.3D0)*1.D-4 * SQRT(Ebeam0*AEE/AMFD(NSA_F1))
+
+      j=0
+      DO i=1, 100
+         Ebeam1= (140.D0-1.D0*i)*1.D3
+         log_energy = dlog10(Ebeam1)
+         sigma_cx = 0.6937D-14*(1.D0-0.155D0*log_energy)**2/ &
+              (1.D0+0.1112D-14*Ebeam1**3.3D0)*1.D-4 *SQRT(Ebeam1*AEE/AMFD(NSA_F1))
+         IF(sigma_cx.le.sigma_cx0*exp(1.D0))THEN
+            j=i
+         END IF
+      END DO
+      Ebeam1= (140.D0-1.D0*j)*1.D3
+      log_energy = dlog10(Ebeam1)
+      sigma_cx = 0.6937D-14*(1.D0-0.155D0*log_energy)**2/ &
+           (1.D0+0.1112D-14*Ebeam1**3.3D0)*1.D-4 *SQRT(Ebeam1*AEE/AMFD(NSA_F1))
+
+      E_CR=14.8D0*PA(NS)/PA(NS)**(2.D0/3.D0)*RT_BULK(NRSTART,1)*1.D3
+!         tau_se_E0E1=tau_se_E0*log(Ebeam0/Ebeam1)*0.5D0
+      tau_se_E0E1=tau_se_E0*&
+           log( (Ebeam0**(1.5D0)+E_CR**(1.5D0) )/( Ebeam1**(1.5D0)+E_CR**(1.5D0) ) )&
+           /3.D0
+      
+      log10_neu0=LOG10(RN_NEU0)
+      log10_neus=LOG10(RN_NEUS)
+!     neutral gas profile
+      alpha=2.5D0
+      beta=0.8D0
+      N_NEUT=10**( (log10_neu0-log10_neus)*(1.D0-RM(NRSTART)**alpha)**beta+log10_neus )
+      
+      tau_cx_E1 = 1.D0/(N_NEUT*1.D20*EXP(1.D0)*sigma_cx0)
+
+      IF(NRANK.eq.0)THEN
+         WRITE(*,'(A)') "---TIME CONST CX---"
+         WRITE(*,'(A,E14.6)') "E_CR on axis=   ", E_CR
+         WRITE(*,'(A,1PE14.6,2E14.6)') &
+              "CX E0, tau_se_E0 on axis=   ", Ebeam0, tau_se_E0
+         WRITE(*,'(A,1PE14.6,2E14.6)') &
+              "CX E1, tau_se_E0E1, wo E_CR on axis= ", Ebeam1, tau_se_E0E1, &
+              tau_se_E0*log(Ebeam0/Ebeam1)*0.5D0
+         WRITE(*,'(A,E14.6)') "tau_cx_E1 on axis=   ", tau_cx_E1
+      END IF
+      IF(NRSTART.eq.NRMAX.and.NPSTART.eq.1.and.NSASTART.eq.1)THEN
+         WRITE(*,'(A,1PE14.6,2E14.6)') &
+              "CX E0, tau_se_E0, on edge=   ", Ebeam0, tau_se_E0
+         WRITE(*,'(A,1PE14.6,2E14.6)') &
+              "CX E1, tau_se_E0E1, on edge= ", Ebeam1, tau_se_E0E1, &
+              tau_se_E0*log(Ebeam0/Ebeam1)*0.5D0
+         WRITE(*,'(A,E14.6)') "tau_cx_E1 on edge=   ", tau_cx_E1
+      END IF
+
+      END SUBROUTINE EVALUATE_TIME_CONST_CX
+!==============================================================
+      SUBROUTINE EVALUATE_TIME_CONST_NF
+
+      USE fpnfrr
+      IMPLICIT NONE
+      INTEGER:: NS, i, j, imax, NS2, NR
+      double precision:: A_D, tau_se_E0, Ebeam0, Ebeam1, sigmav_nf0, sigmav_nf1
+      double precision:: E_CR, tau_se_E0E1, alpha, beta
+      double precision:: tau_nf_E1, coef, RED_MASS, zoa_eff, A_b, E_CR_2
+
+      NS=NS_NSA(NSSPB(1)) ! beam ion species
+!     Spitzer slowing down time on electron
+      A_D=RN_TEMP(NRSTART,1)*1.D20*AEFD(1)**4*LNLAM(NRSTART,1,NSA_F1) &
+           /(2.D0*PI*EPS0**2*AMFP(NSA_F1)**2)
+      tau_se_E0 = (3.D0*sqrt(2.D0*PI)*(RT_BULK(NRSTART,1)*AEE*1.D3)**1.5) &
+           /(sqrt(AMFD(1))*AMFP(NSA_F1)*A_D) 
+
+      E_CR=14.8D0*PA(NS)/PA(NS)**(2.D0/3.D0)*RT_BULK(NRSTART,1)*1.D3 ! assuming pure plasma
+      zoa_eff=0.D0
+      DO NS2=2, NSMAX
+         zoa_eff = zoa_eff + RN_TEMP(NRSTART,NS2)*PZ(NS2)**2 &
+              /( RN_TEMP(NRSTART,1)*PA(NS2) )
+      END DO
+!      A_b = 
+      E_CR_2 =( 3.D0**(2.D0/3.D0)*PI**(1.D0/3.D0)*AMP**(1.D0/3.D0) )/ &
+           (4.D0**(2.D0/3.D0)*AMFD(1)**(1.D0/3.D0))**PA(NS)*zoa_eff*RT_BULK(NRSTART,1)
+
+      RED_MASS = AMFP(NSA_F1)*0.5D0
+      Ebeam0= SPBENG(1)*1.D-3*0.5D0 ! in keV, temporal, 0.5 means reduced_mass
+      sigmav_nf0 = SIGMA_E_Bosch(Ebeam0,2)*SQRT(Ebeam0) ! temporal
+
+      j=0
+      imax=101
+      DO i=1, 100
+!         Ebeam1= 140.D0*(imax-i)*1.D-2*0.5D0
+         Ebeam1= SPBENG(1)*1.D-3*(imax-i)*1.D-2*0.5D0
+         sigmav_nf1 = SIGMA_E_Bosch(Ebeam1,1)*SQRT(Ebeam1)
+
+         IF(sigmav_nf1*exp(1.D0).ge.sigmav_nf0)THEN
+            j=i
+         END IF
+!         IF(NRANK.eq.0) WRITE(*,'(I5,3E14.6)') i, sigmav_nf0, sigmav_nf, Ebeam1
+      END DO
+!      Ebeam1= 140.D0*(imax-j)*1.D-2*0.5D0
+      Ebeam1= SPBENG(1)*1.D-3*(imax-j)*1.D-2*0.5D0
+
+
+      Ebeam0 = Ebeam0 * 2.D3
+      Ebeam1 = Ebeam1 * 2.D3
+      coef = log( (Ebeam0**(1.5D0)+E_CR**(1.5D0) )/( Ebeam1**(1.5D0)+E_CR**(1.5D0) ) )&
+           /3.D0
+
+      tau_se_E0E1=tau_se_E0* &
+           log( (Ebeam0**(1.5D0)+E_CR**(1.5D0) )/( Ebeam1**(1.5D0)+E_CR**(1.5D0) ) )&
+           /3.D0
+
+      sigmav_nf1 = SIGMA_E_Bosch(Ebeam1,1)*SQRT(Ebeam1)*SQRT(AEE*1.D3*2.D0/RED_MASS)*RN_TEMP(NRSTART,1)*1.D20*0.5D0
+
+      IF(NRANK.eq.0)THEN
+         WRITE(*,'(A)') "---TIME CONST NF---"
+         WRITE(*,'(A,2E14.6)') &
+              "NF E_CR on axis=   ", E_CR, E_CR_2
+         WRITE(*,'(A,1P2E14.6)') &
+              "NF E0, tau_se_E0 on axis=   ", Ebeam0, tau_se_E0
+         WRITE(*,'(A,1P3E14.6)') &
+              "NF E1, tau_se_E0E1, tau_nf on axis= ", Ebeam1, tau_se_E0E1, &
+              1.D0/sigmav_nf1
+         WRITE(*,'(A,2E14.6)') &
+              "NF C_tause on axis ", &
+              tau_se_E0*RN_TEMP(NRSTART,1)/(RT_BULK(NRSTART,1))**1.5D0, &
+              LNLAM(NRSTART,1,NSA_F1)
+      END IF
+      IF(NRSTART.eq.5.and.NPSTART.eq.1.and.NSASTART.eq.1)THEN
+         WRITE(*,'(A,I5,2E14.6)') &
+              "NF E_CR on NR=", NRSTART, E_CR, E_CR_2
+         WRITE(*,'(A,I5,1P2E14.6)') &
+              "NF E0, tau_se_E0, on NR=", NRSTART, Ebeam0, tau_se_E0
+         WRITE(*,'(A,I5,1P4E14.6)') &
+              "NF E1, tau_se_E0E1, tau_nf, coef on NR=", &
+              NRSTART, Ebeam1, tau_se_E0E1, 1.D0/sigmav_nf1, coef
+         WRITE(*,'(A,2E14.6)') &
+              "NF C_tause on NR, ", &
+              tau_se_E0*RN_TEMP(NRSTART,1)/(RT_BULK(NRSTART,1))**1.5D0, &
+              LNLAM(NRSTART,1,NSA_F1)
+      END IF
+
+
+      END SUBROUTINE EVALUATE_TIME_CONST_NF
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!==============================================================
       SUBROUTINE Coulomb_log
 
       IMPLICIT NONE
@@ -1134,17 +1230,12 @@
             NSFP=NS_NSA(NSA)
             RNE=RN_TEMP(NR,1)
             RNA=RN_TEMP(NR,NSFP)
-            RTA=RT_TEMP(NR,NSFP)
+            RTA=RT_BULK(NR,NSFP)
             DO NSB=1,NSBMAX
                NSFD=NS_NSB(NSB)
                IF(MODEL_disrupt.eq.0)THEN
-!                  IF(NSFD.NE.0)THEN
-                     RNB=RN_TEMP(NR,NSFD)
-                     RTB=RT_TEMP(NR,NSFD)
-!                  ELSE
-!                     RNB=RNFD(NR,NSB)
-!                     RTB=RTFD(NR,NSB)
-!                  END IF
+                  RNB=RN_TEMP(NR,NSFD)
+                  RTB=RT_BULK(NR,NSFD)
                ELSE
                   RNB=RNFD(NR,NSB)
                   RTB=RT_quench(NR)
@@ -1189,6 +1280,61 @@
       ENDDO
 
       END SUBROUTINE Coulomb_log
+!-------------------------------------------------------------
+      SUBROUTINE Neumann_condition
+
+      IMPLICIT NONE
+      double precision:: RHS, RHS_min
+      integer:: NTH, NP, NR, NSA, NS, ILOC1
+
+      CALL mtx_reset_communicator
+      RHS_min=1.D6
+      DO NSA=1, NSAMAX
+         NS=NS_NSA(NSA)
+         DO NR=NRSTART, NREND
+            DO NP=NPSTART, NPEND
+               DO NTH=1, NTHMAX
+                  RHS = DELP(NS)**2/(2.D0*ABS( DCPP(NTH,NP,NR,NSA) ) )
+                  IF(RHS.le.RHS_MIN) RHS_MIN=RHS
+               END DO
+            END DO
+         END DO
+      END DO
+      CALL mtx_reduce1_real8(RHS_min,2,RHS,ILOC1)
+
+      IF(NRANK.eq.0)THEN
+         WRITE(*,'(A,2E12.4)') "Neumann condition, delt, neumann=", &
+              DELT, RHS
+      END IF
+
+      END SUBROUTINE Neumann_condition
+!------------------------------------------------------------
+      SUBROUTINE Courant_condition
+
+      IMPLICIT NONE
+      double precision:: RHS, RHS_max
+      integer:: NTH, NP, NR, NSA, NS, ILOC1
+
+      RHS_max=0.D0
+      DO NSA=1, NSAMAX
+         NS=NS_NSA(NSA)
+         DO NR=NRSTART, NREND
+            DO NP=NPSTART, NPEND
+               DO NTH=1, NTHMAX
+                  RHS = ABS(FCPP(NTH,NP,NR,NSA))*DELT/DELP(NS)
+                  IF(RHS.ge.RHS_max) RHS_max = RHS
+               END DO
+            END DO
+         END DO
+      END DO
+      CALL mtx_reduce1_real8(RHS_max,1,RHS,ILOC1)
+
+      IF(NRANK.eq.0)THEN
+         WRITE(*,'(A,E12.4)') "Courant_number=                    ", &
+              RHS
+      END IF
+      END SUBROUTINE Courant_condition
+!------------------------------------------------------------
 !==============================================================
       SUBROUTINE fp_continue(ierr)
 
@@ -1223,6 +1369,22 @@
          CALL mtx_reset_communicator
       END IF
 
+!      IF(NRANK.eq.0)THEN
+!         WRITE(*,*) "WEIGHP"
+!         DO NP=NPSTART, NPENDWG
+!            DO NTH=1, NTHMAX
+!               WRITE(*,*) NTH, NP, WEIGHP(NTH  ,NP  ,1  ,1)
+!            END DO
+!         END DO
+!      
+!         WRITE(*,*) "WEIGHT"
+!         DO NP=NPSTART, NPEND
+!            DO NTH=1, NTHMAX+1
+!               WRITE(*,*) NTH, NP, WEIGHT(NTH  ,NP  ,1  ,1)
+!            END DO
+!         END DO
+!      END IF
+
       ISAVE=0
 
       IERR=0
@@ -1240,9 +1402,7 @@
       IF(NRANK.eq.0.and.MODEL_disrupt.ne.0)THEN
          CALL display_disrupt_initials
       END IF
-
       CALL FPSSUB
-
       IF(nrank.EQ.0) THEN
          CALL FPSGLB
          CALL FPSPRF
@@ -1264,11 +1424,13 @@
       USE fpnflg
       USE FP_READ_FIT
       USE FPOUTDATA
+      USE fpcalc
+      USE fpcoef, only: NF_RATE_no_SPPF
 
       Implicit none
 
       integer :: ierr,NSA,NS,NR,N,NSW,i,NSFP,NSB
-      real:: gut1, gut2, gut_prep
+      real:: gut1, gut2, gut_prep, gut_nf1, gut_nf2
       real(rkind):: SIGMA
       real(rkind),dimension(:),allocatable:: conduct_temp, E1_temp
       integer,dimension(6):: idata
@@ -1339,26 +1501,28 @@
       CALL fp_set_nsa_nsb
 
 !     ----- create meches -----
+!      WRITE(6,*) "START MESH"
       CALL fp_mesh(ierr)
-
+      IF(NRANK.eq.0) WRITE(6,*) "END MESH"
 !     ----- Initialize diffusion coef. -----
       call FPCINI
-      RNS_DELF(:,:)=0.D0
-
 !     ----- set parameters for target species -----
       CALL fp_set_normalize_param
-
+      IF(NRANK.eq.0) WRITE(6,*) "END fp_set_normalize_param"
 !     ----- Initialize velocity distribution function of all species -----
 
-      CALL FNSP_INIT     
-      CALL FNSP_INIT_EDGE
-      IF(NRANK.EQ.0) WRITE(6,*) 'END INIT'
+      CALL FNSP_INIT
+      IF(NRANK.eq.0) WRITE(6,*) "END FNSP_INIT"
 
+      CALL FNSP_INIT_EDGE
+      IF(NRANK.eq.0) WRITE(6,*) "END FNSP_INIT_EDGE"
+!      WRITE(6,*) "END INIT"
 !     ----- set background f
 
       CALL mtx_set_communicator(comm_nsa)
       CALL update_fnsb
       CALL mtx_reset_communicator
+      IF(NRANK.eq.0) WRITE(6,*) "END update_fnsb"
 
 !     ----- READ FIT3D result for NBI -----
       IF(MODEL_NBI.eq.2)THEN
@@ -1372,7 +1536,6 @@
             CALL SV_WEIGHT_R
         END DO
       END IF
-
 !     ----- set parallel electric field -----
 
       IF(MODEL_DISRUPT.eq.0)THEN
@@ -1385,7 +1548,8 @@
          END DO
          allocate(conduct_temp(NRSTART:NREND))
          DO NR=NRSTART,NREND
-            CALL SPITZER_SIGMA(NR,SIGMA)
+!            CALL SPITZER_SIGMA(NR,RTFD(NR,1),RNFD(NR,NSA),ZEFF,SIGMA)
+            CALL SPITZER_SIGMA(NR,RT_BULK(NR,1),RN_TEMP(NR,1),ZEFF,SIGMA)
             conduct_temp(NR)=sigma
          END DO
          CALL mtx_set_communicator(comm_nr)
@@ -1395,7 +1559,7 @@
          allocate(conduct_temp(NRSTART:NREND))
          allocate(E1_temp(NRSTART:NREND))
          DO NR=NRSTART,NREND
-            CALL SPITZER_SIGMA(NR,SIGMA)
+            CALL SPITZER_SIGMA(NR,RTFD(NR,1),RNFD(NR,1),ZEFF,SIGMA)
             conduct_temp(NR)=sigma
             IF(MODELE.eq.0)THEN
                E1_temp(NR)=RJ_ohm(NR)/SIGMA*1.D6 ! fit to initial current prof
@@ -1412,20 +1576,37 @@
          CALL mtx_reset_communicator
       END IF
 
+      IF(MODEL_CD.ne.0)THEN
+         RJ_IND(:)=0.D0
+         RJ_BS(:)=0.D0
+      END IF
+
 !continue start
-      IF(MODELS.eq.3) CALL NF_LG_FUNCTION
-      IF(MODELS.ne.0) CALL NF_REACTION_COEF
+      CALL GUTIME(gut_nf1)
+      IF(ABS(MODELS).eq.2)THEN
+         CALL NF_REACTION_COEF
+      ELSEIF(MODELS.eq.3)THEN
+         CALL NF_LG_FUNCTION
+      ELSEIF(ABS(MODELS).eq.4)THEN
+         CALL NF_REACTION_COEF_BT
+      END IF
+      CALL GUTIME(gut_nf2)
 
       CALL fp_continue(ierr)
-      IF(MODELS.ge.2)THEN
-         CALL ALLREDUCE_NF_RATE
-         CALL PROF_OF_NF_REACTION_RATE(1)
+      IF(NRANK.eq.0) WRITE(6,*) "END fp_continue"
+
+      IF(MODELS.lt.0) CALL NF_RATE_no_SPPF
+      IF(ABS(MODELS).ge.2)THEN
+         CALL PROF_OF_NF_REACTION_RATE(OUTPUT_NFID)
       END IF
       CALL fp_set_initial_value_from_f
 
+      CALL Neumann_condition 
+      CALL Courant_condition
+
       CALL GUTIME(gut2)
       gut_prep=gut2-gut1
-      IF(NRANK.eq.0) WRITE(6,'(A,E14.6)') "---------------PREP_TIME=", gut_prep
+      IF(NRANK.eq.0) WRITE(6,'(A,2E14.6)') "---------------PREP_TIME=", gut_prep, gut_nf2-gut_nf1
 
       IF(OUTPUT_TXT_DELTA_F.eq.1.and.NRANK.eq.0) CALL OUT_TXT_FNS_DEL
  

@@ -14,7 +14,6 @@
       USE fpcalwm
       USE fpcalwr
       USE fpcalr
-      USE libbes,ONLY: besekn
       USE libmtx
       USE FP_READ_FIT
       USE FPFUNC
@@ -287,8 +286,8 @@
       USE fpnfrr
       IMPLICIT NONE
       integer:: NSA, NSB, NR, NTH, NP, NS, ID
-      integer:: NBEAM, NSABEAM, NSAX, ISW_LOSS
-      real(kind8):: PSP, SUML, ANGSP, SPL, FL, const_inv_tau
+      integer:: NBEAM, NSABEAM, NSAX, ISW_LOSS, ITL_temp, ITU_temp
+      real(kind8):: PSP, SUML, ANGSP, SPL, FL, const_inv_tau, A1
 
       PPL(:,:,:,:)=0.D0
       SPPL(:,:,:,:)=0.D0
@@ -304,18 +303,6 @@
 
 !     ----- Particle source term -----
 
-!         DO NR=NRSTART,NREND
-!         DO NP=NPSTART,NPEND
-!            DO NTH=1,NTHMAX
-!               PPL(NTH,NP,NR,NSA)=0.D0
-!               SPPL(NTH,NP,NR,NSA)=0.D0
-!               SPPB(NTH,NP,NR,NSA)=0.D0
-!               SPPS(NTH,NP,NR,NSA)=0.D0
-!               SPPI(NTH,NP,NR,NSA)=0.D0
-!               SPPD(NTH,NP,NSA)=0.D0
-!            ENDDO
-!         ENDDO
- !        ENDDO
 !     ----- NBI source term -----
 
       IF(MODEL_NBI.eq.1)THEN
@@ -386,13 +373,38 @@
          ENDDO
       ELSE
          IF(ISW_LOSS.eq.0)THEN ! loss term depends on the present FNSP
-            DO NR=NRSTART,NREND
-               DO NP=NPSTART,NPEND
-                  DO NTH=1,NTHMAX
-                     PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS(NS)*RLAMDA(NTH,NR)
+            IF(TLOSS_PARA(NS).ne.0.D0.or.TLOSS_PERP(NS).ne.0.D0)THEN
+               DO NR=NRSTART,NREND
+!temporal! should be fixed
+                  A1=ACOS(SQRT(2.D0*EPSRM(NR)/(1.D0+EPSRM(NR))))
+                  NTH=0
+                  DO WHILE (THM(NTH+1).le.A1)
+                     NTH = NTH+1
+                  END DO
+                  ITL_temp=NTH+1
+                  ITU_temp=NTHMAX+1 - ITL_temp
+                  DO NP=NPSTART,NPEND
+                     DO NTH=1,ITL_temp-1
+                        PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS_PARA(NS)*RLAMDA(NTH,NR)
+                     ENDDO
+                     DO NTH=ITL_temp, ITU_temp
+                        PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS_PERP(NS)*RLAMDA(NTH,NR)
+                     ENDDO
+                     DO NTH=ITU_temp+1,NTHMAX
+                        PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS_PARA(NS)*RLAMDA(NTH,NR)
+                     ENDDO
+                  ENDDO
+!                  IF(NPSTART.eq.1) WRITE(*,*) ITL_temp, ITU_temp, TLOSS_PARA(2), TLOSS_PERP(2)
+               ENDDO
+            ELSE
+               DO NR=NRSTART,NREND
+                  DO NP=NPSTART,NPEND
+                     DO NTH=1,NTHMAX
+                        PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS(NS)*RLAMDA(NTH,NR)
+                     ENDDO
                   ENDDO
                ENDDO
-            ENDDO
+            END IF
          ELSEIF(ISW_LOSS.eq.1)THEN ! loss term depends on initial FNS, const total density
             SUML=0.D0
             DO NR=NRSTART,NREND
@@ -1176,7 +1188,11 @@
             END DO
          END DO
       ELSEIF(MODELS_bt.eq.1)THEN
-         RATE_NF(NR,ID)=RATE_NF_BT(NR,ID)+RATE_NF_TT(NR,ID)
+         DO ID=1,NF_IDMAX
+            DO NR=NRSTART,NREND
+               RATE_NF(NR,ID)=RATE_NF_BT(NR,ID)+RATE_NF_TT(NR,ID)
+            END DO
+         END DO
       END IF
 
       DO ID=1,NF_IDMAX
