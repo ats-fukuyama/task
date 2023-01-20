@@ -1,3 +1,11 @@
+! foworbit.f90
+
+! **************************
+!  Orbit calc for FOW
+! **************************
+! made by ota / modified by anzai
+!
+
 module foworbit
   
   use obcomm
@@ -6,7 +14,8 @@ module foworbit
   public :: fow_orbit, fow_cal_local_COMs, fow_set_obparm
   public :: quantities_at_Bminimum, mean_ra_quantities
 
-  REAL(rkind),allocatable :: UR(:,:), Ups(:,:), UF(:,:), UB(:,:,:,:), dBdrt(:,:)
+  double precision,allocatable :: UR(:,:), Ups(:,:), UF(:,:), UB(:,:,:,:)
+  double precision,allocatable :: dBdrt(:,:)
 
 contains
 
@@ -23,8 +32,8 @@ contains
     implicit none
     integer,intent(out) :: ierr
     logical,save :: called = .false.
-    integer :: nthp
     real(rkind),allocatable :: dradpsi(:)
+    integer :: nthp
 
     ierr = 0
 
@@ -34,9 +43,11 @@ contains
       called = .true.
     end if
 
-!    call ob_init
-!    call ob_parm(1,'../fp.ota/fpparm',ierr)
+    call ob_init
+    call ob_parm(1,'../fp.ota/fpparm',ierr)
+
     nobt_max = 1
+
     call ob_prep(ierr)
     call ob_allocate
 
@@ -53,14 +64,20 @@ contains
     do nthp = 1, nthpmax
       call first_order_derivative(dBdrt(:,nthp),dBdthp(:,nthp),rm)
     end do
-    call spl2D(rm,theta_p,Babs,dBdr,dBdthp,dBdrt,UB,nrmax,nrmax,nthpmax,3,3,ierr)
+
+    call spl2D(rm,theta_p,Babs,dBdr,dBdthp,dBdrt, &
+                UB,nrmax,nrmax,nthpmax,3,3,ierr)
 
     call first_order_derivative(dradpsi, rm, psim)
-    call SPL1D(psim,rm,dradpsi,UR,nrmax,3,ierr)
+    call spl1D(psim,rm,dradpsi,UR,nrmax,3,ierr)
 
   end subroutine fow_set_obparm
 
   subroutine fow_orbit(flag, ierr)
+  !-------------------------------
+  !
+  !-------------------------------
+
     use fpcomm
     use fowcomm
     use obparm
@@ -68,8 +85,8 @@ contains
 
     implicit none
     integer,intent(out) :: flag, ierr
-    integer :: nth,np,nr,nsa
     real(rkind) :: end_time, begin_time, thetap_in
+    integer :: nth,np,nr,nsa,n,nmax
 
     ierr = 0
     flag = 0
@@ -81,6 +98,7 @@ contains
       write(6,'("Load orbit time :",ES10.3,"[sec]")')end_time-begin_time
 
       if ( ierr == 0 ) then
+        write(*,*)"*=*=*=*=*=* End of FOW Orbit Module *=*=*=*=*=*"
         return
       else
         write(6,'("IOSTAT = ",I4," in load_orbit")'),ierr
@@ -94,18 +112,19 @@ contains
     call fow_set_obparm(ierr)
 
     do nsa = 1, nsamax
-      do nr = nrstart, nrend
-        do np = npstart, npend
+      do nr = 1, nrmax
+        do np = 1, npmax
           do nth = 1, nthmax
 
-            if ( aefp(nsa) * COS( thetam(nth,np,nr,nsa) ) >= 0.d0 ) then
+            if ( aefp(nsa) * cos( thetam(nth,np,nr,nsa) ) >= 0.d0 ) then
               thetap_in = 0.d0
             else 
               thetap_in = pi
             end if
 
-            call construct_orbit(orbit_m(nth,np,nr,nsa), pm(np,nsa)*ptfp0(nsa)&
-                                ,thetam(nth,np,nr,nsa), thetap_in, psim(nr), nsa, ierr)
+            call construct_orbit(orbit_m(nth,np,nr,nsa), &
+                   pm(np,nsa)*ptfp0(nsa), thetam(nth,np,nr,nsa), &
+                   thetap_in, psim(nr), nsa, ierr)
 
           end do
         end do
@@ -121,14 +140,15 @@ contains
               call construct_orbit_zero(orbit_p(nth,np,nr,nsa))
 
             else
-              if ( aefp(nsa) * COS( thetam_pg(nth,np,nr,nsa) ) >= 0.d0 ) then
+              if ( aefp(nsa) * cos( thetam_pg(nth,np,nr,nsa) ) >= 0.d0 ) then
                 thetap_in = 0.d0
               else 
                 thetap_in = pi
               end if
   
-              call construct_orbit(orbit_p(nth,np,nr,nsa), pg(np,nsa)*ptfp0(nsa)&
-                                  ,thetam_pg(nth,np,nr,nsa), thetap_in, psim(nr), nsa, ierr)
+              call construct_orbit(orbit_p(nth,np,nr,nsa), &
+                     pg(np,nsa)*ptfp0(nsa), thetam_pg(nth,np,nr,nsa), &
+                     thetap_in, psim(nr), nsa, ierr)
 
             end if
 
@@ -142,14 +162,15 @@ contains
         do np = 1, npmax
           do nth = 1, nthmax+1
 
-            if ( aefp(nsa) * COS( thetamg(nth,np,nr,nsa) ) >= 0.d0 ) then
+            if ( aefp(nsa) * cos( thetam_tg(nth,np,nr,nsa) ) >= 0.d0 ) then
               thetap_in = 0.d0
             else 
               thetap_in = pi
             end if
 
-            call construct_orbit(orbit_th(nth,np,nr,nsa), pm(np,nsa)*ptfp0(nsa)&
-                                ,thetamg(nth,np,nr,nsa), thetap_in, psim(nr), nsa, ierr)
+            call construct_orbit(orbit_th(nth,np,nr,nsa), & 
+                   pm(np,nsa)*ptfp0(nsa), thetam_tg(nth,np,nr,nsa), &
+                   thetap_in, psim(nr), nsa, ierr)
 
           end do
         end do
@@ -164,14 +185,15 @@ contains
               call construct_orbit_zero(orbit_r(nth,np,nr,nsa))
 
             else
-              if ( aefp(nsa) * COS( thetam_rg(nth,np,nr,nsa) ) >= 0.d0 ) then
+              if (aefp(nsa)*cos( thetam_rg(nth,np,nr,nsa)) >= 0.d0 ) then
                 thetap_in = 0.d0
               else 
                 thetap_in = pi
               end if
   
-              call construct_orbit(orbit_r(nth,np,nr,nsa), pm(np,nsa)*ptfp0(nsa)&
-                                  ,thetam_rg(nth,np,nr,nsa), thetap_in, psimg(nr), nsa, ierr)
+              call construct_orbit(orbit_r(nth,np,nr,nsa), &
+                     pm(np,nsa)*ptfp0(nsa), thetam_rg(nth,np,nr,nsa), &
+                     thetap_in, psim_rg(nr), nsa, ierr)
   
             end if
 
@@ -195,26 +217,34 @@ contains
 
     flag = 1
 
+    write(*,*)"*=*=*=*=*=* End of FOW Orbit Module *=*=*=*=*=*"
+
   end subroutine fow_orbit
 
-  subroutine fow_cal_local_COMs(thetaml, rhoml, tau_loss, momentum, pitch_angle, theta_pol, psi_pol, ns)
+  subroutine fow_cal_local_COMs(thetaml, rhoml, tau_loss, &
+               momentum, pitch_angle, theta_pol, psi_pol, ns)
+  !----------------------------------------------------------
+  !
+  !----------------------------------------------------------
+
     use fpcomm
     use fowcomm
     implicit none
     real(rkind),intent(out) :: thetaml, rhoml, tau_loss
     real(rkind),intent(in) :: momentum, pitch_angle, theta_pol, psi_pol
-    type(orbit) :: ob
     integer,intent(in) :: ns
-    integer :: nstp, nstpmax, loc_max,i, im, ierr
-    real(rkind) :: psip_max, diff_thetap_min,  diff_thetap, thetap_eq(6)
+    type(orbit) :: ob
+    real(rkind) :: psip_max, diff_thetap_min,  diff_thetap, thetap_eq(6), A
+    integer :: nstp, nstpmax, loc_max,i, im, ierr, ir, il
 
-    call construct_orbit(ob, momentum, pitch_angle, theta_pol, psi_pol, ns, ierr)
+    call construct_orbit(ob, momentum, pitch_angle, &
+           theta_pol, psi_pol, ns, ierr)
 
     nstpmax = ob%nstp_max 
 
-    if ( ob%psip(nstpmax) > psi0 ) then ! loss to wall
+    if ( ob%psip(nstpmax) > psi0 ) then !** loss to wall
       rhoml = ob%psip(nstpmax)
-      thetaml = ACOS( ob%costh(nstpmax) )
+      thetaml = acos( ob%costh(nstpmax) )
       tau_loss = ob%time(nstpmax)
       return
     end if
@@ -227,9 +257,10 @@ contains
       end if
     end do
 
-    thetap_eq = [-2.d0*pi, -1.d0*pi, 0.d0, pi, 2.d0*pi, 3.d0*pi] ! opion of thetap at psim
+    thetap_eq = [-2.d0*pi, -1.d0*pi, 0.d0, pi, 2.d0*pi, 3.d0*pi] 
+    !** opion of thetap at psim
 
-    ! thetap_eq(im) is thetap(psim)
+    !** thetap_eq(im) is thetap(psim)
     diff_thetap_min = 1.d8
     do i = 1, 6
       diff_thetap = ABS( thetap_eq(i)-ob%thetap(loc_max) )
@@ -241,7 +272,7 @@ contains
 
     ! if ( diff_thetap_min <= pi/1.d2 ) then
       rhoml  = ob%r(loc_max)
-      thetaml= ACOS( ob%costh(loc_max) )
+      thetaml= acos( ob%costh(loc_max) )
     ! else
     ! end if
 
@@ -249,30 +280,37 @@ contains
 
   end subroutine fow_cal_local_COMs
 
-  subroutine construct_orbit(ob, momentum, pitch_angle, theta_pol, psi_pol, ns, ierr)
+  subroutine construct_orbit(ob, momentum, pitch_angle, &
+               theta_pol, psi_pol, ns, ierr)
+  !-----------------------------------------------------
+  !
+  !-----------------------------------------------------
+
     use fpcomm
     use fowcomm
     USE libspl1d
     USE libspl2d
     use obcalc
+    use obcomm ! by anzai
 
     implicit none
     type(orbit),intent(out) :: ob
     real(rkind),intent(in) :: momentum, pitch_angle, theta_pol, psi_pol
     integer,intent(out) :: ierr
     integer,intent(in) :: ns
-    integer :: nstp, nstpmax
+    logical :: is_allocated
     real(rkind) :: pv, mass0, dummy
+    integer :: nstp, nstpmax, nthp
     integer :: A,B,i
 
     ierr = 0
 
+    ns_ob = ns
     mass0 = pa(ns)*amp
     pv = SQRT( 1.d0+momentum**2/(mass0*vc)**2 )
-    ns_ob = ns
 
     penergy_ob_in(1) = mass0*vc**2*(pv-1.d0)/(aee*1.d3)
-    pcangle_ob_in(1) = COS( pitch_angle )
+    pcangle_ob_in(1) = cos( pitch_angle )
     theta_ob_in(1)   = theta_pol!*180.d0/pi
     psipn_ob_in(1)   = psi_pol/psi0
     zeta_ob_in(1)    = 0.d0
@@ -303,6 +341,7 @@ contains
     allocate(ob%dBdthp(ob%nstp_max))
 
     do nstp = 1, ob%nstp_max
+
       if ( nstpmax <= max_stp ) then
         i = nstp-1
       else
@@ -322,22 +361,27 @@ contains
 
       call spl1DF(psip_ob(i,1),ob%r(nstp),psim,UR,nrmax,ierr)
 
-      ob%costh(nstp) = vpara_ob(i,1)/SQRT( vpara_ob(i,1)**2+vperp_ob(i,1)**2 )
+      ob%costh(nstp) = vpara_ob(i,1)/SQRT( vpara_ob(i,1)**2 &
+                     + vperp_ob(i,1)**2 )
       ob%sinth(nstp) = SQRT( 1.d0-ob%costh(nstp)**2 )
 
       call spl1DD(ob%r(nstp),dummy,ob%dpsipdr(nstp),rm,Ups,nrmax,ierr)
       call spl1DD(ob%r(nstp),ob%F(nstp),ob%dFdr(nstp),rm,UF,nrmax,ierr)
-      call spl2DD(ob%r(nstp),theta_ob(i,1),dummy,ob%dBdr(nstp),ob%dBdthp(nstp),rm,theta_p,UB,nrmax,nrmax,nthpmax,ierr)
+      call spl2DD(ob%r(nstp),theta_ob(i,1),dummy,ob%dBdr(nstp), & 
+             ob%dBdthp(nstp),rm,theta_p,UB,nrmax,nrmax,nthpmax,ierr)
 
     end do
-
-    return
 
   end subroutine construct_orbit
 
   subroutine construct_orbit_zero(ob)
+  !--------------------------------------
+  !
+  !--------------------------------------
+
     use fpcomm
     use fowcomm
+
     implicit none
     type(orbit),intent(out) :: ob
     
@@ -370,51 +414,280 @@ contains
 
   end subroutine construct_orbit_zero
 
-  subroutine save_orbit(ierr)
+!=============================================
+! Other physical value programs
+!=============================================
+
+  subroutine quantities_at_Bminimum(ra_Bmin, theta_Bmin, ob)
+  !-----------------------------------------------------------
+  !  Didn't use for fow [2022/11/3] checked by anzai
+  !-----------------------------------------------------------
+
     use fpcomm
     use fowcomm
+    USE fowlib
+    use libspl1d
+
+    IMPLICIT NONE
+    real(rkind),intent(out) :: ra_Bmin, theta_Bmin
+    type(orbit),intent(in) :: ob
+    real(rkind) :: B_min, thetap_option(7), thetap_Bmin, psip_Bmin, A
+    real(rkind) :: nstp_near, diff_thetap(7)
+    real(rkind),allocatable :: dradpsi(:)
+    integer :: nstp, nstpmax, nstpmin, mm(1), ierr
+
+    if ( .not.allocated(UR) ) then
+      allocate(dradpsi(nrmax))
+      allocate(UR(4,nrmax))
+      call first_order_derivative(dradpsi, rm, psim)
+      call SPL1D(psim_rg,rm,dradpsi,UR,nrmax,3,ierr)
+    end if
+    
+    nstpmax = ob%nstp_max
+    B_min = 1.0d10
+    do nstp = 1, nstpmax
+      if ( ob%Babs(nstp) < B_min ) then
+        B_min = ob%Babs(nstp)
+        nstpmin = nstp
+      end if
+    end do
+
+    !** assume vertiucally symmmetry system, i.e. MIN(B) is at the equator. 
+    thetap_option = [-3.d0*pi, -2.d0*pi, -1.d0*pi, 0.d0,  &
+                       pi, 2.d0*pi, 3.d0*pi]
+
+    diff_thetap(1) = ABS( thetap_option(1) - ob%thetap(nstpmin) )
+    diff_thetap(2) = ABS( thetap_option(2) - ob%thetap(nstpmin) )
+    diff_thetap(3) = ABS( thetap_option(3) - ob%thetap(nstpmin) )
+    diff_thetap(4) = ABS( thetap_option(4) - ob%thetap(nstpmin) )
+    diff_thetap(5) = ABS( thetap_option(5) - ob%thetap(nstpmin) )
+    diff_thetap(6) = ABS( thetap_option(6) - ob%thetap(nstpmin) )
+    diff_thetap(7) = ABS( thetap_option(7) - ob%thetap(nstpmin) )
+
+    mm(1) = MINLOC(diff_thetap, 1)
+    thetap_Bmin = thetap_option(mm(1))
+
+    if ( diff_thetap(mm(1)) < twopi/dble(nthpmax)*1.0d-2 ) then
+      psip_Bmin  = ob%psip(nstpmin)
+      theta_Bmin = acos( ob%costh(nstpmin) )
+
+    else if ( nstpmin == 1 .or. nstpmin == nstpmax ) then
+      psip_Bmin  = ob%psip(nstpmin)
+      theta_Bmin = acos( ob%costh(nstpmin) )
+
+    else ! linear interpolate
+      if ( ABS( theta_Bmin - ob%thetap(nstpmin-1) ) &
+          < ABS( theta_Bmin - ob%thetap(nstpmin+1) ) ) then
+        nstp_near = nstpmin-1
+      else
+        nstp_near = nstpmin+1
+      end if
+
+      A = ( ob%psip(nstpmin) - ob%psip(nstp_near) ) &
+        /( ob%thetap(nstpmin) - ob%thetap(nstp_near) )
+
+      psip_Bmin = ob%psip(nstpmin) + A &
+                * ( thetap_Bmin - ob%thetap(nstpmin) )
+
+
+      A = ( acos( ob%costh(nstpmin) ) - acos( ob%costh(nstp_near) ) ) &
+        / ( ob%thetap(nstpmin) - ob%thetap(nstp_near) )
+
+      theta_Bmin = acos( ob%costh(nstpmin) ) + A &
+                 * ( thetap_Bmin - ob%thetap(nstpmin) )
+    end if
+
+    call SPL1DF(psip_Bmin,ra_Bmin,psim,UR,nrmax,IERR)
+
+  end subroutine quantities_at_Bminimum
+
+  subroutine mean_ra_quantities(ob, r0, psip0, costh0, sinth0, &
+               B0, F0, dBdr0, dFdr0, dpsipdr0)
+  !-------------------------------------------------------------
+  ! For Making Orbit Averaged Quantities 
+  ! Used to Make Distribution Function 
+  ! [2022/11/3] Checked by anzai
+  !--------------------------------------------------------------
+
+    use fpcomm
+    use fowcomm
+
+    implicit none
+    type(orbit),intent(in) :: ob
+    real(rkind),intent(out) :: r0, psip0, costh0, sinth0
+    real(rkind),intent(out) :: B0, F0, dBdr0, dFdr0, dpsipdr0
+    real(rkind) :: int, dt, sumr
+    integer :: nstp, nstpmax, nstp0
+
+    nstpmax = ob%nstp_max
+
+    sumr = 0.d0
+    do nstp = 2, nstpmax
+      dt  = ob%time(nstp)-ob%time(nstp-1)
+      int = ( ob%r(nstp)+ob%r(nstp-1) ) *0.5d0
+      sumr = sumr + int*dt
+    end do
+    r0 = sumr/ob%time(nstpmax)
+
+    nstp0=1
+    do nstp = 2, nstpmax
+      if ( ob%r(nstp-1) <= r0 .and. r0 <= ob%r(nstp) ) then
+        nstp0 = nstp
+        exit
+      end if
+   end do
+   
+   IF(nstp0.EQ.1) THEN ! maybe fixed point
+      !WRITE(6,'(A,2I8,3ES12.4)') 'nstp0,nstpmax,r0,sumr,time=', &
+      !     nstp0,nstpmax,r0,sumr,ob%time(nstpmax)
+      psip0  = ob%psip(nstp0)
+      costh0 = ob%costh(nstp0)
+      sinth0 = ob%sinth(nstp0)
+      B0 = ob%Babs(nstp0)
+      F0 = ob%F(nstp0)
+      dBdr0 = ob%dBdr(nstp0)
+      dFdr0 = ob%dFdr(nstp0)
+      dpsipdr0 = ob%dpsipdr(nstp0)
+      ! WRITE(6,'(A,5ES12.4)') ' psi,cos,sin,B0,F0=', &
+      !      psip0,costh0,sinth0,B0,F0
+      ! DO nstp=1,nstpmax
+      !    WRITE(6,'(A,I8,2ES12.4)') &
+      !         'ob:nstp=',nstp,ob%time(nstpmax),ob%r(nstpmax)
+      ! END DO
+   ELSE
+
+      psip0  = ob%psip(nstp0) + (ob%psip(nstp0)-ob%psip(nstp0-1)) &
+             / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
+
+      costh0 = ob%costh(nstp0) + (ob%costh(nstp0)-ob%costh(nstp0-1)) &
+             / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
+
+      sinth0 = ob%sinth(nstp0) + (ob%sinth(nstp0)-ob%sinth(nstp0-1)) &
+             / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
+
+      B0 = ob%Babs(nstp0) + (ob%Babs(nstp0)-ob%Babs(nstp0-1)) &
+         / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
+
+      F0 = ob%F(nstp0) + (ob%F(nstp0)-ob%F(nstp0-1)) &
+         / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
+
+      dBdr0 = ob%dBdr(nstp0) + (ob%dBdr(nstp0)-ob%dBdr(nstp0-1)) &
+            / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
+
+      dFdr0 = ob%dFdr(nstp0) + (ob%dFdr(nstp0)-ob%dFdr(nstp0-1)) &
+            / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
+
+      dpsipdr0 = ob%dpsipdr(nstp0) + (ob%dpsipdr(nstp0)-ob%dpsipdr(nstp0-1)) &
+           / (ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
+   END IF
+
+  end subroutine mean_ra_quantities
+
+  subroutine check_orbit_max_radial_displacement(nsa, ob)
+  !---------------------------------------------
+  ! subroutine for orbit width check [2022/11/1]
+  ! not real values but abstruct values
+  !---------------------------------------------
+    use fpcomm
+    use fowcomm
+    !use foworbit
+
+    implicit none
+    real(rkind) :: ra_Bmin, theta_Bmin, ra_rmin
+    type(orbit),intent(in) :: ob
+    ! real(rkind) :: B_min, thetap_option(7), thetap_Bmin, psip_Bmin, A
+    real(rkind) :: ra_obmax, dif_r
+    ! real(rkind) :: nstp_near, diff_thetap(7)
+    ! real(rkind),allocatable :: dradpsi(:)
+    integer :: nstp, nstpmax!, nstpmin, mm(1), ierr
+    integer, intent(in) :: nsa
+
+    call quantities_at_Bminimum(ra_Bmin, theta_Bmin, ob)
+
+    ra_obmax = 0.0
+    ra_rmin = 10020.0
+    nstp_max = ob%nstp_max
+    do nstp = 1, nstp_max
+      if (ra_obmax < ob%r(nstp)) then
+        ra_obmax = ob%r(nstp)
+      end if
+      if (ra_rmin > ob%r(nstp)) then
+        ra_rmin = ob%r(nstp)
+      end if
+    end do
+
+    !**** difference of max(orbit radial place) - ob B_minimum place 
+    !write(*,*)"nsa, max_ob_radius", nsa, ra_obmax - ra_Bmin
+    write(*,*)"nsa, max_ob_radius", nsa, ra_obmax - ra_rmin
+
+  end subroutine check_orbit_max_radial_displacement
+
+!==========================================
+! File save and read (load) modules
+!==========================================
+  
+  subroutine save_orbit(ierr)
+  !-------------------------------
+  !
+  !-------------------------------
+
+    use fpcomm
+    use fowcomm
+
     implicit none
     integer,intent(out) :: ierr
-    character(30) :: BIN_DIR, filename
-    integer :: nth, np, nr, nsa, nstp, nstpmax, i
+    character(30) :: filename
+    integer :: nm ,nth, np, nr, nsa, nstp, nstpmax, it, ip, ir, im, i
 
     ierr = 0
 
-    BIN_DIR = "bin/"
+    filename = TRIM(dir_binary_data)//"/eqparm.bin"
+    open(10,file=filename,access='sequential', &
+           form='unformatted',status='replace',iostat=ierr)
 
-    filename = TRIM(BIN_DIR)//"eqparm.bin"
-    open(10,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
     write(10,iostat=ierr)RR,RA,RKAP,RDLT,RB,BB,RIP
+
     close(10)
 
-    filename = TRIM(BIN_DIR)//"fpparm.bin"
-    open(11,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
+    filename = TRIM(dir_binary_data)//"/fpparm.bin"
+    open(11,file=filename,access='sequential', & 
+           form='unformatted',status='replace',iostat=ierr)
+
     write(11,iostat=ierr)nthmax,npmax,nrmax,nsamax,nthpmax
+
     close(11)
 
-    filename = TRIM(BIN_DIR)//"ob_nstpmax_m.bin"
-    open(40,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
+    filename = TRIM(dir_binary_data)//"/ob_nstpmax_m.bin"
+    open(50,file=filename,access='sequential', & 
+           form='unformatted',status='replace',iostat=ierr)
 
-    filename = TRIM(BIN_DIR)//"ob_nstpmax_t.bin"
-    open(41,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
+    filename = TRIM(dir_binary_data)//"/ob_nstpmax_t.bin"
+    open(51,file=filename,access='sequential', & 
+           form='unformatted',status='replace',iostat=ierr)
 
-    filename = TRIM(BIN_DIR)//"ob_nstpmax_p.bin"
-    open(42,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
+    filename = TRIM(dir_binary_data)//"/ob_nstpmax_p.bin"
+    open(52,file=filename,access='sequential', & 
+           form='unformatted',status='replace',iostat=ierr)
 
-    filename = TRIM(BIN_DIR)//"ob_nstpmax_r.bin"
-    open(43,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
+    filename = TRIM(dir_binary_data)//"/ob_nstpmax_r.bin"
+    open(53,file=filename,access='sequential', & 
+           form='unformatted',status='replace',iostat=ierr)
 
-    filename = TRIM(BIN_DIR)//"ob_m.bin"
-    open(60,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
+    filename = TRIM(dir_binary_data)//"/ob_m.bin"
+    open(60,file=filename,access='sequential', & 
+           form='unformatted',status='replace',iostat=ierr)
 
-    filename = TRIM(BIN_DIR)//"ob_t.bin"
-    open(61,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
+    filename = TRIM(dir_binary_data)//"/ob_t.bin"
+    open(61,file=filename,access='sequential', & 
+           form='unformatted',status='replace',iostat=ierr)
 
-    filename = TRIM(BIN_DIR)//"ob_p.bin"
-    open(62,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
+    filename = TRIM(dir_binary_data)//"/ob_p.bin"
+    open(62,file=filename,access='sequential', & 
+           form='unformatted',status='replace',iostat=ierr)
 
-    filename = TRIM(BIN_DIR)//"ob_r.bin"
-    open(63,file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
+    filename = TRIM(dir_binary_data)//"/ob_r.bin"
+    open(63,file=filename,access='sequential', &
+           form='unformatted',status='replace',iostat=ierr)
 
     do nsa = 1, nsamax
       do nr = 1, nrmax+1
@@ -422,7 +695,7 @@ contains
           do nth = 1, nthmax+1
 
             if ( nth <= nthmax .and. np <= npmax .and. nr <= nrmax ) then
-              write(40,iostat=ierr)orbit_m(nth,np,nr,nsa)%nstp_max
+              write(50,iostat=ierr)orbit_m(nth,np,nr,nsa)%nstp_max
               nstpmax = orbit_m(nth,np,nr,nsa)%nstp_max
 
               do nstp = 1, nstpmax
@@ -443,7 +716,7 @@ contains
             end if
 
             if ( np <= npmax .and. nr <= nrmax ) then
-              write(41,iostat=ierr)orbit_th(nth,np,nr,nsa)%nstp_max
+              write(51,iostat=ierr)orbit_th(nth,np,nr,nsa)%nstp_max
               nstpmax = orbit_th(nth,np,nr,nsa)%nstp_max
 
               do nstp = 1, nstpmax
@@ -463,7 +736,7 @@ contains
             end if
     
             if ( nth <= nthmax .and. nr <= nrmax ) then
-              write(42,iostat=ierr)orbit_p(nth,np,nr,nsa)%nstp_max
+              write(52,iostat=ierr)orbit_p(nth,np,nr,nsa)%nstp_max
               nstpmax = orbit_p(nth,np,nr,nsa)%nstp_max
 
               do nstp = 1, nstpmax
@@ -483,7 +756,7 @@ contains
             end if
 
             if ( nth <= nthmax .and. np <= npmax ) then
-              write(43,iostat=ierr)orbit_r(nth,np,nr,nsa)%nstp_max
+              write(53,iostat=ierr)orbit_r(nth,np,nr,nsa)%nstp_max
               nstpmax = orbit_r(nth,np,nr,nsa)%nstp_max
 
               do nstp = 1, nstpmax
@@ -508,52 +781,57 @@ contains
     end do
 
     do i = 0, 3
-      close(40+i)
+      close(50+i)
       close(60+i)
     end do
 
   end subroutine save_orbit
 
   subroutine load_orbit(ierr)
+  !--------------------------------
+  !
+  !--------------------------------
+
     use fpcomm
     use fowcomm
+
     implicit none
     integer,intent(out) :: ierr
-    character(30) :: BIN_DIR, filename
-    integer :: nth, np, nr, nsa, nstp, nstpmax, i
-
+    character(30) :: eqin, mesh, filename
     real(rkind) :: RR_,RA_,RKAP_,RDLT_,RB_,BB_,RIP_
+    integer :: nm ,nth, np, nr, nsa, nstp, nstpmax, im, ip, it, ir, i
     integer :: nthm_,npm_,nrm_,nsam_,nthpm_
     integer :: access
 
     ierr = 0
 
-    call system('mkdir -p bin')
+    call system('mkdir -p '//TRIM(dir_binary_data))
 
-    BIN_DIR = "bin/"
-
-    if ( access( TRIM(BIN_DIR)//"fpparm.bin", " ")       /= 0 &
-    .or. access( TRIM(BIN_DIR)//"eqparm.bin", " ")       /= 0 &
-    .or. access( TRIM(BIN_DIR)//"ob_nstpmax_m.bin", " ") /= 0 &
-    .or. access( TRIM(BIN_DIR)//"ob_nstpmax_p.bin", " ") /= 0 &
-    .or. access( TRIM(BIN_DIR)//"ob_nstpmax_t.bin", " ") /= 0 &
-    .or. access( TRIM(BIN_DIR)//"ob_nstpmax_r.bin", " ") /= 0 &
-    .or. access( TRIM(BIN_DIR)//"ob_m.bin", " ")         /= 0 &
-    .or. access( TRIM(BIN_DIR)//"ob_p.bin", " ")         /= 0 &
-    .or. access( TRIM(BIN_DIR)//"ob_t.bin", " ")         /= 0 &
-    .or. access( TRIM(BIN_DIR)//"ob_r.bin", " ")         /= 0 &
+    if ( access( TRIM(dir_binary_data)//"/fpparm.bin", " ")       /= 0 &
+    .or. access( TRIM(dir_binary_data)//"/eqparm.bin", " ")       /= 0 &
+    .or. access( TRIM(dir_binary_data)//"/ob_nstpmax_m.bin", " ") /= 0 &
+    .or. access( TRIM(dir_binary_data)//"/ob_nstpmax_p.bin", " ") /= 0 &
+    .or. access( TRIM(dir_binary_data)//"/ob_nstpmax_t.bin", " ") /= 0 &
+    .or. access( TRIM(dir_binary_data)//"/ob_nstpmax_r.bin", " ") /= 0 &
+    .or. access( TRIM(dir_binary_data)//"/ob_m.bin", " ")         /= 0 &
+    .or. access( TRIM(dir_binary_data)//"/ob_p.bin", " ")         /= 0 &
+    .or. access( TRIM(dir_binary_data)//"/ob_t.bin", " ")         /= 0 &
+    .or. access( TRIM(dir_binary_data)//"/ob_r.bin", " ")         /= 0 &
     ) then
       ierr = 1000
       return
     end if
 
-    filename = TRIM(BIN_DIR)//"eqparm.bin"
-    open(10,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    filename = TRIM(dir_binary_data)//"eqparm.bin"
+    open(10,file=filename,access='sequential', &
+           form='unformatted',status='old',iostat=ierr)
+
     read(10,iostat=ierr)RR_,RA_,RKAP_,RDLT_,RB_,BB_,RIP_
     close(10)
 
-    filename = TRIM(BIN_DIR)//"fpparm.bin"
-    open(11,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    filename = TRIM(dir_binary_data)//"fpparm.bin"
+    open(11,file=filename,access='sequential', & 
+           form='unformatted',status='old',iostat=ierr)
     read(11,iostat=ierr)nthm_,npm_,nrm_,nsam_,nthpm_
     close(11)
 
@@ -578,36 +856,44 @@ contains
 
     if ( ierr /= 0 ) return
 
-    filename = TRIM(BIN_DIR)//"ob_nstpmax_m.bin"
-    open(40,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    filename = TRIM(dir_binary_data)//"ob_nstpmax_m.bin"
+    open(50,file=filename,access='sequential', & 
+           form='unformatted',status='old',iostat=ierr)
 
-    filename = TRIM(BIN_DIR)//"ob_nstpmax_t.bin"
-    open(41,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    filename = TRIM(dir_binary_data)//"ob_nstpmax_t.bin"
+    open(51,file=filename,access='sequential', & 
+           form='unformatted',status='old',iostat=ierr)
 
-    filename = TRIM(BIN_DIR)//"ob_nstpmax_p.bin"
-    open(42,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    filename = TRIM(dir_binary_data)//"ob_nstpmax_p.bin"
+    open(52,file=filename,access='sequential', & 
+           form='unformatted',status='old',iostat=ierr)
 
-    filename = TRIM(BIN_DIR)//"ob_nstpmax_r.bin"
-    open(43,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    filename = TRIM(dir_binary_data)//"ob_nstpmax_r.bin"
+    open(53,file=filename,access='sequential', & 
+           form='unformatted',status='old',iostat=ierr)
 
-    filename = TRIM(BIN_DIR)//"ob_m.bin"
-    open(60,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    filename = TRIM(dir_binary_data)//"ob_m.bin"
+    open(60,file=filename,access='sequential', & 
+           form='unformatted',status='old',iostat=ierr)
 
-    filename = TRIM(BIN_DIR)//"ob_t.bin"
-    open(61,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    filename = TRIM(dir_binary_data)//"ob_t.bin"
+    open(61,file=filename,access='sequential', & 
+           form='unformatted',status='old',iostat=ierr)
 
-    filename = TRIM(BIN_DIR)//"ob_p.bin"
-    open(62,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    filename = TRIM(dir_binary_data)//"ob_p.bin"
+    open(62,file=filename,access='sequential', & 
+           form='unformatted',status='old',iostat=ierr)
 
-    filename = TRIM(BIN_DIR)//"ob_r.bin"
-    open(63,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    filename = TRIM(dir_binary_data)//"ob_r.bin"
+    open(63,file=filename,access='sequential', & 
+           form='unformatted',status='old',iostat=ierr)
 
     do nsa = 1, nsamax
       do nr = 1, nrmax+1
         do np = 1, npmax+1
           do nth = 1, nthmax+1
             if ( nth <= nthmax .and. np <= npmax .and. nr <= nrmax ) then
-              read(40,iostat=ierr)nstpmax
+              read(50,iostat=ierr)nstpmax
               orbit_m(nth,np,nr,nsa)%nstp_max = nstpmax
 
               allocate(orbit_m(nth,np,nr,nsa)%time(nstpmax))
@@ -637,11 +923,11 @@ contains
                 read(60,iostat=ierr)orbit_m(nth,np,nr,nsa)%dBdr(nstp)
                 read(60,iostat=ierr)orbit_m(nth,np,nr,nsa)%dBdthp(nstp)
               end do
-              
             end if
 
+
             if ( np <= npmax .and. nr <= nrmax ) then
-              read(41,iostat=ierr)nstpmax
+              read(51,iostat=ierr)nstpmax
               orbit_th(nth,np,nr,nsa)%nstp_max = nstpmax
 
               allocate(orbit_th(nth,np,nr,nsa)%time(nstpmax))
@@ -656,7 +942,6 @@ contains
               allocate(orbit_th(nth,np,nr,nsa)%dFdr(nstpmax))
               allocate(orbit_th(nth,np,nr,nsa)%dBdr(nstpmax))
               allocate(orbit_th(nth,np,nr,nsa)%dBdthp(nstpmax))
-
 
               do nstp = 1, nstpmax
                 read(61,iostat=ierr)orbit_th(nth,np,nr,nsa)%time(nstp)
@@ -674,6 +959,7 @@ contains
               end do
             end if
     
+
             if ( nth <= nthmax .and. nr <= nrmax ) then
               read(52,iostat=ierr)nstpmax
               orbit_p(nth,np,nr,nsa)%nstp_max = nstpmax
@@ -690,7 +976,6 @@ contains
               allocate(orbit_p(nth,np,nr,nsa)%dFdr(nstpmax))
               allocate(orbit_p(nth,np,nr,nsa)%dBdr(nstpmax))
               allocate(orbit_p(nth,np,nr,nsa)%dBdthp(nstpmax))
-
 
               do nstp = 1, nstpmax
                 read(62,iostat=ierr)orbit_p(nth,np,nr,nsa)%time(nstp)
@@ -748,138 +1033,10 @@ contains
     end do
 
     do i = 0, 3
-      close(40+i)
+      close(50+i)
       close(60+i)
     end do
 
   end subroutine load_orbit
 
-  subroutine quantities_at_Bminimum(ra_Bmin, theta_Bmin, ob)
-    use fpcomm
-    use fowcomm
-    USE fowlib
-    USE libspl1d
-    IMPLICIT NONE
-    real(rkind),intent(out) :: ra_Bmin, theta_Bmin
-    type(orbit),intent(in) :: ob
-    integer :: nstp, nstpmax, nstpmin, mm(1), ierr
-    real(rkind) :: B_min, thetap_option(7), thetap_Bmin, psip_Bmin, A
-    real(rkind) :: nstp_near, diff_thetap(7)
-    real(rkind),allocatable :: dradpsi(:)
-
-    if ( .not.allocated(UR) ) then
-      allocate(dradpsi(nrmax))
-      allocate(UR(4,nrmax))
-      call first_order_derivative(dradpsi, rm, psim)
-      call SPL1D(psimg,rm,dradpsi,UR,nrmax,3,ierr)
-    end if
-    
-    nstpmax = ob%nstp_max
-    B_min = 1.0d10
-    do nstp = 1, nstpmax
-      if ( ob%Babs(nstp) < B_min ) then
-        B_min = ob%Babs(nstp)
-        nstpmin = nstp
-      end if
-    end do
-
-    ! assume vertiucally symmmetry system, i.e. MIN(B) is at the equator. 
-    thetap_option = [-3.d0*pi, -2.d0*pi, -1.d0*pi, 0.d0, pi, 2.d0*pi, 3.d0*pi]
-
-    diff_thetap(1) = ABS( thetap_option(1) - ob%thetap(nstpmin) )
-    diff_thetap(2) = ABS( thetap_option(2) - ob%thetap(nstpmin) )
-    diff_thetap(3) = ABS( thetap_option(3) - ob%thetap(nstpmin) )
-    diff_thetap(4) = ABS( thetap_option(4) - ob%thetap(nstpmin) )
-    diff_thetap(5) = ABS( thetap_option(5) - ob%thetap(nstpmin) )
-    diff_thetap(6) = ABS( thetap_option(6) - ob%thetap(nstpmin) )
-    diff_thetap(7) = ABS( thetap_option(7) - ob%thetap(nstpmin) )
-
-    mm(1) = MINLOC(diff_thetap, 1)
-    thetap_Bmin = thetap_option(mm(1))
-
-    if ( diff_thetap(mm(1)) < twopi/dble(nthpmax)*1.0d-2 ) then
-      psip_Bmin  = ob%psip(nstpmin)
-      theta_Bmin = ACOS( ob%costh(nstpmin) )
-
-    else if ( nstpmin == 1 .or. nstpmin == nstpmax ) then
-      psip_Bmin  = ob%psip(nstpmin)
-      theta_Bmin = ACOS( ob%costh(nstpmin) )
-
-    else ! linear interpolate
-      if ( ABS( theta_Bmin - ob%thetap(nstpmin-1) ) &
-          < ABS( theta_Bmin - ob%thetap(nstpmin+1) ) ) then
-        nstp_near = nstpmin-1
-      else
-        nstp_near = nstpmin+1
-      end if
-
-      A = ( ob%psip(nstpmin) - ob%psip(nstp_near) ) &
-        /( ob%thetap(nstpmin) - ob%thetap(nstp_near) )
-
-      psip_Bmin = ob%psip(nstpmin) + A * ( thetap_Bmin - ob%thetap(nstpmin) )
-
-
-      A = ( ACOS( ob%costh(nstpmin) ) - ACOS( ob%costh(nstp_near) ) ) &
-        /( ob%thetap(nstpmin) - ob%thetap(nstp_near) )
-
-      theta_Bmin = ACOS( ob%costh(nstpmin) ) + A * ( thetap_Bmin - ob%thetap(nstpmin) )
-
-    end if
-
-    call SPL1DF(psip_Bmin,ra_Bmin,psim,UR,nrmax,IERR)
-
-  end subroutine quantities_at_Bminimum
-
-  subroutine mean_ra_quantities(ob, r0, psip0, costh0, sinth0, B0, F0, dBdr0, dFdr0, dpsipdr0)
-    use fpcomm
-    use fowcomm
-    implicit none
-    type(orbit),intent(in) :: ob
-    real(rkind),intent(out) :: r0, psip0, costh0, sinth0, B0, F0, dBdr0, dFdr0, dpsipdr0
-    integer :: nstp, nstpmax, nstp0
-    real(rkind) :: int, dt, sumr
-
-    nstpmax = ob%nstp_max
-
-    sumr = 0.d0
-    do nstp = 2, nstpmax
-      dt  = ob%time(nstp)-ob%time(nstp-1)
-      int = ( ob%r(nstp)+ob%r(nstp-1) ) *0.5d0
-      sumr = sumr + int*dt
-    end do
-    r0 = sumr/ob%time(nstpmax)
-
-    do nstp = 2, nstpmax
-      if ( ob%r(nstp-1) <= r0 .and. r0 <= ob%r(nstp) ) then
-        nstp0 = nstp
-        exit
-      end if
-    end do
-
-    psip0  = ob%psip(nstp0) + &
-          (ob%psip(nstp0)-ob%psip(nstp0-1))/(ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
-
-    costh0 = ob%costh(nstp0) + &
-          (ob%costh(nstp0)-ob%costh(nstp0-1))/(ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
-
-    sinth0 = ob%sinth(nstp0) + &
-          (ob%sinth(nstp0)-ob%sinth(nstp0-1))/(ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
-
-    B0     = ob%Babs(nstp0) + &
-          (ob%Babs(nstp0)-ob%Babs(nstp0-1))/(ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
-
-    F0     = ob%F(nstp0) + &
-          (ob%F(nstp0)-ob%F(nstp0-1))/(ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
-
-    dBdr0  = ob%dBdr(nstp0) + &
-          (ob%dBdr(nstp0)-ob%dBdr(nstp0-1))/(ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
-
-    dFdr0  = ob%dFdr(nstp0) + &
-          (ob%dFdr(nstp0)-ob%dFdr(nstp0-1))/(ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
-
-    dpsipdr0= ob%dpsipdr(nstp0) + &
-          (ob%dpsipdr(nstp0)-ob%dpsipdr(nstp0-1))/(ob%r(nstp0)-ob%r(nstp0-1))*(ob%r(nstp0)-r0)
-
-  end subroutine mean_ra_quantities
-  
 end module foworbit

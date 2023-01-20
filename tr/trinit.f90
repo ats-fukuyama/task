@@ -516,6 +516,9 @@ CONTAINS
 !        PELVEL : PELLET INJECTION VELOCITY (M/S)
 !        PELTIM : TIME FOR PELLET TO BE INJECTED
 !        PELPAT : PARTICLE RATIO IN PELLET'
+!        pellet_time_start : start time of pellet injection repeat (s)
+!        pellet_time_interval : interval of pellet injection repeat (s)
+!        number_of_pellet_repeat : maximum repeat count of pellet injection
 
       MDLPEL = 1
       PELTOT = 0.D0
@@ -531,7 +534,11 @@ CONTAINS
          PELPAT(NS) = 0.0D0
       ENDDO
 
-!     ==== CONTINUOUS PARTICLE SOURCE PARAMETERS ====
+      pellet_time_start=0.D0
+      pellet_time_interval=1.D0
+      number_of_pellet_repeat=0
+
+      !     ==== CONTINUOUS PARTICLE SOURCE PARAMETERS ====
 
 !        MDLPSC : Partcicle SOurce MODEL TYPE
 !                    0:OFF  1:GAUSSIAN

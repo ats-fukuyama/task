@@ -75,6 +75,12 @@ contains
            PNITB,PTITB,PUITB,PZCL, &
            KNAMEQ,KNAMWR,KNAMFP,KNAMWM,KNAMPF, &
            KNAMFO,KNAMTR,KNAMEQ2,KID_NS,ID_NS, &
+           nobt_max,nstp_max,ns_ob,lmax_nw, &
+           mdlobp,mdlobi,mdlobq,mdlobt,mdlobc,mdlobw,mdlobg,mdlobx, &
+           tmax_ob,delt_ob,eps_ob,del_ob,eps_nw, &
+           penergy_ob_in,pcangle_ob_in,zeta_ob_in,psipn_ob_in, &
+           theta_ob_in,rr_ob_in,zz_ob_in, &
+           nrmax_ob,nthmax_ob,nsumax_ob, &
            NSAMAX,NSBMAX,NS_NSA,NS_NSB, &
            LMAX_WR,NRAYS_WR,NRAYE_WR,NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF, &
            NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX, &
@@ -85,12 +91,12 @@ contains
            MODELD,MODELD_RDEP,MODELD_PDEP,MODELD_EDGE, &
            MODELD_PINCH,MODELD_BOUNDARY,MODELD_CDBM, &
            MODEL_LOSS,MODEL_SYNCH,MODEL_NBI,MODEL_WAVE, &
-           MODEL_MTX,MODEL_KSP,MODEL_PC,LMAXFP,LMAXE, &
+           MODEL_FOW, &
+           IMTX,MODEL_KSP,MODEL_PC,LMAXFP,LMAXE, &
            NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP, &
            MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp, &
            MODEL_LNL,MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY, &
            MODEL_SINK,N_IMPU,MODEL_DELTA_F, &
-           MODEL_FOW, &
            N_partition_r,N_partition_s,N_partition_p, &
            PMAX,PMAX_BB,EMAX, &
            R1,DELR1,RMIN,RMAX,E0,ZEFF, &
@@ -105,24 +111,17 @@ contains
            FACTOR_DRR_EDGE,FACTOR_PINCH,deltaB_B,TLOSS, &
            DELT,RIMPL,EPSFP,EPSM,EPSE,EPSDE,H0DE, &
            PGMAX,RGMAX,RGMIN, &
-           nthpmax, max_stp, model_obload, model_mkcsv, &
            T0_quench,tau_quench,tau_mgi, &
            time_quench_start,RJPROF1,RJPROF2, &
-           v_RE,target_zeff,SPITOT, MODEL_EX_READ_Tn, MODEL_EX_READ_DH_RATIO, &
-           FACT_BULK, time_exp_offset, MODEL_BULK_CONST, RN_NEU0, &
-           MODEL_CX_LOSS, RN_NEUS, EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, &
-           SV_FILE_NAME_D, NSA_F1, NTH_F1, NR_F1, OUTPUT_TXT_F1, &
-           OUTPUT_TXT_DELTA_F, OUTPUT_TXT_HEAT_PROF, OUTPUT_TXT_BEAM_WIDTH, &
-           OUTPUT_TXT_BEAM_DENS, NI_RATIO, &
-           model_fow_fout, &
-    !
-         nobt_max,nstp_max,ns_ob,lmax_nw, &
-         mdlobp,mdlobi,mdlobq,mdlobt,mdlobc,mdlobw,mdlobg,mdlobx, &
-         tmax_ob,delt_ob,eps_ob,del_ob,eps_nw, &
-         penergy_ob_in,pcangle_ob_in,zeta_ob_in,psipn_ob_in, &
-         theta_ob_in,rr_ob_in,zz_ob_in, &
-         nrmax_ob,nthmax_ob,nsumax_ob
-
+           v_RE,target_zeff,SPITOT,MODEL_EX_READ_Tn,MODEL_EX_READ_DH_RATIO, &
+           FACT_BULK,time_exp_offset,MODEL_BULK_CONST,RN_NEU0,MODEL_CX_LOSS, &
+           RN_NEUS, &
+           EG_NAME_TMS,EG_NAME_CX,SV_FILE_NAME_H,SV_FILE_NAME_D, &
+           NSA_F1,NTH_F1,NR_F1, &
+           OUTPUT_TXT_F1,OUTPUT_TXT_DELTA_F,OUTPUT_TXT_HEAT_PROF, &
+           OUTPUT_TXT_BEAM_WIDTH,OUTPUT_TXT_BEAM_DENS,NI_RATIO, &
+           nthpmax, max_stp, model_obload, model_mkcsv, &
+           dir_text_data,dir_binary_data
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
       ierr=0
@@ -146,6 +145,12 @@ contains
       WRITE(6,*) '      PNITB,PTITB,PUITB,PZCL,'
       WRITE(6,*) '      KNAMEQ,KNAMWR,KNAMFP,KNAMWM,KNAMPF,'
       WRITE(6,*) '      KNAMFO,KNAMTR,KNAMEQ2,KID_NS,ID_NS,'
+      WRITE(6,*) '      nobt_max,nstp_max,ns_ob,lmax_nw,'
+      WRITE(6,*) '      mdlobp,mdlobi,mdlobq,mdlobt,mdlobc,mdlobw,mdlobg,'
+      WRITE(6,*) '      mdlobx,tmax_ob,delt_ob,eps_ob,del_ob,eps_nw,'
+      WRITE(6,*) '      penergy_ob_in,pcangle_ob_in,zeta_ob_in,psipn_ob_in,'
+      WRITE(6,*) '      theta_ob_in,rr_ob_in,zz_ob_in,nrmax_ob,nthmax_ob,'
+      WRITE(6,*) '      nsumax_ob,'
       WRITE(6,*) '      NSAMAX,NSBMAX,NS_NSA,NS_NSB,'
       WRITE(6,*) '      LMAX_WR,NRAYS_WR,NRAYE_WR,'
       WRITE(6,*) '      NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF,'
@@ -157,13 +162,12 @@ contains
       WRITE(6,*) '      MODELD,MODELD_RDEP,MODELD_PDEP,MODELD_EDGE,'
       WRITE(6,*) '      MODELD_BOUNDARY,MODELD_CDBM,MODELD_PINCH,'
       WRITE(6,*) '      MODEL_LOSS,MODEL_SYNCH,MODEL_NBI,MODEL_WAVE,'
-      WRITE(6,*) '      MODEL_MTX,MODEL_KSP,MODEL_PC,LMAXFP,LMAXE,'
+      WRITE(6,*) '      MODEL_FOW,'
+      WRITE(6,*) '      IMTX,MODEL_KSP,MODEL_PC,LMAXFP,LMAXE,'
       WRITE(6,*) '      NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP,'
       WRITE(6,*) '      MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp,'
       WRITE(6,*) '      MODEL_LNL,MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY,'
-      WRITE(6,*) '      MODEL_SINK,N_IMPU,MODEL_DELTA_F,'
-      WRITE(6,*) '      MODEL_FOW,'
-      WRITE(6,*) '      nthpmax, max_stp, model_obload, model_mkcsv,'
+      WRITE(6,*) '      MODEL_SINK,N_IMPU,MODEL_DELTA_F'
       WRITE(6,*) '      N_partition_r,N_partition_s,N_partition_p,'
       WRITE(6,*) '      PMAX,PMAX_BB,EMAX'
       WRITE(6,*) '      R1,DELR1,RMIN,RMAX,E0,ZEFF,'
@@ -179,22 +183,18 @@ contains
       WRITE(6,*) '      FACTOR_DRR_EDGE,FACTOR_PINCH,deltaB_B,TLOSS,'
       WRITE(6,*) '      DELT,RIMPL,EPSFP,EPSM,EPSE,EPSDE,H0DE,'
       WRITE(6,*) '      PGMAX,RGMAX,RGMIN,'
-      WRITE(6,*) '      nobt_max,nstp_max,ns_ob,lmax_nw,'
-      WRITE(6,*) '      eps_ob,del_ob,eps_nw,tmax_ob,delt_ob,'
-      WRITE(6,*) '      mdlobp,mdlobi,mdlobq,mdlobt,mdlobc,'
-      WRITE(6,*) '      mdlobw,mdlobg,mdlobx,max,'
-      WRITE(6,*) '      penergy_ob_in,spcangle_ob_in,zeta_ob_in,psipn_ob_in,'
-      WRITE(6,*) '      heta_ob_in,rr_ob_in,zz_ob_in,nrmax_ob,nthmax_ob,'
-      WRITE(6,*) '      nsumax_obT0_quench,tau_quench,tau_mgi,'
+      WRITE(6,*) '      T0_quench,tau_quench,tau_mgi,'
       WRITE(6,*) '      time_quench_start,RJPROF1,RJPROF2,'
       WRITE(6,*) '      v_RE,target_zeff,SPITOT,MODEL_EX_READ_Tn,'
-      WRITE(6,*) '      MODEL_EX_READ_DH_RATIO,FACT_BULK,time_exp_offset,'
-      WRITE(6,*) '      MODEL_BULK_CONST,RN_NEU0,MODEL_CX_LOSS,RN_NEUS'
-      WRITE(6,*) '      EG_NAME_TMS,EG_NAME_CX,SV_FILE_NAME_H,'
-      WRITE(6,*) '      SV_FILE_NAME_D,NSA_F1,NTH_F1,NR_F1'
-      WRITE(6,*) '      OUTPUT_TXT_F1,OUTPUT_TXT_DELTA_F,OUTPUT_TXT_HEAT_PROF,'
-      WRITE(6,*) '      OUTPUT_TXT_BEAM_WIDTH,OUTPUT_TXT_BEAM_DENS,NI_RATIO'
-      WRITE(6,*) '      mode_fow_fout'
+      WRITE(6,*) '      MODEL_EX_READ_DH_RATIO,FACT_BULK'
+      WRITE(6,*) '      time_exp_offset,MODEL_BULK_CONST,RN_NEU0,'
+      WRITE(6,*) '      MODEL_CX_LOSS,RN_NEUS'
+      WRITE(6,*) '      EG_NAME_TMS,EG_NAME_CX,SV_FILE_NAME_H,SV_FILE_NAME_D,'
+      WRITE(6,*) '      NSA_F1,NTH_F1,NR_F1'
+      WRITE(6,*) '      OUTPUT_TXT_F1,OUTPUT_TXT_DELTA_F,'
+      WRITE(6,*) '      OUTPUT_TXT_HEAT_PROF,OUTPUT_TXT_BEAM_WIDTH'
+      WRITE(6,*) '      OUTPUT_TXT_BEAM_DENS,NI_RATIO'
+      WRITE(6,*) '      nthpmax,max_stp,model_obload,model_mkcsv'
 
       RETURN
   END SUBROUTINE fp_plst
@@ -216,13 +216,14 @@ contains
 
   SUBROUTINE fp_broadcast
 
-      USE fpcomm_parm
+    USE fpcomm_parm
+    USE obparm
       USE libmpi
       USE libmtx
       IMPLICIT NONE
       INTEGER,DIMENSION(99):: idata
       REAL(rkind),DIMENSION(99):: rdata
-      COMPLEX(8),DIMENSION(3):: cdata
+      COMPLEX(rkind),DIMENSION(3):: cdata
       INTEGER:: NS
 
 !----- PL input parameters -----     
@@ -319,6 +320,10 @@ contains
          CALL mtx_broadcast_character(KID_NS(NS),2)
       END DO
 
+!----- OB input parameters -----
+
+      CALL ob_broadcast
+
 !----- FP input parameters -----
 
       idata( 1)=NSAMAX
@@ -344,8 +349,7 @@ contains
 
       idata(20)=MODELE
       idata(21)=MODELA
-!      idata(22)=MODELC
-      idata(22)=0.D0
+      idata(22)=MODEL_FOW
       idata(23)=MODELR
       idata(24)=MODELS
       idata(25)=MODELD
@@ -359,7 +363,7 @@ contains
       idata(33)=MODEL_SYNCH
       idata(34)=MODEL_NBI
       idata(35)=MODEL_WAVE
-      idata(36)=MODEL_MTX
+      idata(36)=IMTX
       idata(37)=MODEL_KSP
       idata(38)=MODEL_PC
 
@@ -398,15 +402,8 @@ contains
       idata(70)=OUTPUT_TXT_BEAM_DENS
       idata(71)=NRAYS_WR
       idata(72)=NRAYE_WR
-      idata(73)=MODEL_FOW
-      idata(74)=nthpmax
-      idata(75)=max_stp
-      idata(76)=model_obload
-      idata(77)=model_mkcsv
-      idata(78)=model_fow_fout
-      
-      CALL mtx_broadcast_integer(idata,78)
 
+      CALL mtx_broadcast_integer(idata,72)
       NSAMAX         =idata( 1)
       NSBMAX         =idata( 2)
       LMAX_WR        =idata( 3)
@@ -430,7 +427,7 @@ contains
 
       MODELE         =idata(20)
       MODELA         =idata(21)
-!      MODELC         =idata(22)
+      MODEL_FOW      =idata(22)
       MODELR         =idata(23)
       MODELS         =idata(24)
       MODELD         =idata(25)
@@ -444,7 +441,7 @@ contains
       MODEL_SYNCH    =idata(33)
       MODEL_NBI      =idata(34)
       MODEL_WAVE     =idata(35)
-      MODEL_MTX      =idata(36)
+      IMTX           =idata(36)
       MODEL_KSP      =idata(37)
       MODEL_PC       =idata(38)
 
@@ -482,12 +479,6 @@ contains
       OUTPUT_TXT_BEAM_DENS=idata(70)
       NRAYS_WR=idata(71)
       NRAYE_WR=idata(72)
-      MODEL_FOW=idata(73)
-      nthpmax=idata(74)
-      max_stp=idata(75)
-      model_obload=idata(76)
-      model_mkcsv=idata(77)
-      model_fow_fout=idata(78)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -684,6 +675,20 @@ contains
       CEWTH=cdata(2)
       CEWPH=cdata(3)
 
+!----- FOW input parameters -----
+
+      idata( 1)=nthpmax
+      idata( 2)=max_stp
+      idata( 3)=model_obload
+      idata( 4)=model_mkcsv
+
+      CALL mtx_broadcast_integer(idata,4)
+
+      nthpmax        =idata( 1)
+      max_stp        =idata( 2)
+      model_obload   =idata( 3)
+      model_mkcsv    =idata( 4)
+
       RETURN
   END SUBROUTINE fp_broadcast
 
@@ -693,8 +698,7 @@ contains
 
   SUBROUTINE fp_view
 
-    use fpcomm_parm
-    USE obview
+      use fpcomm_parm
       IMPLICIT NONE
       integer:: nsa,nsb,ns,NBEAM
 
@@ -848,11 +852,11 @@ contains
                    'MODEL_SYNCH     ',MODEL_SYNCH
       WRITE(6,606) 'MODEL_NBI       ',MODEL_NBI      , &
                    'MODEL_WAVE      ',MODEL_WAVE
-      WRITE(6,603) 'MODEL_MTX       ',MODEL_MTX    , &
-                   'MODEL_KSP       ',MODEL_KSP      , &
-                   'MODEL_PC        ',MODEL_PC
-      WRITE(6,603) 'LMAXFP  ',LMAXFP  , &
+      WRITE(6,603) 'IMTX    ',IMTX    , &
+                   'LMAXFP  ',LMAXFP  , &
                    'LMAXE   ',LMAXE
+      WRITE(6,606) 'MODEL_KSP       ',MODEL_KSP      , &
+                   'MODEL_PC        ',MODEL_PC
       WRITE(6,603) 'NGLINE  ',NGLINE  , &
                    'NGRAPH  ',NGRAPH
       WRITE(6,603) 'LLMAX   ',LLMAX   , &
@@ -879,16 +883,8 @@ contains
                    'v_RE    ',v_RE
       WRITE(6,604) 'target_zeff     ',target_zeff     , &
                    'SPITOT          ',SPITOT
-
-      WRITE(6,*) "-------- Finite Oorbit Width effects --------"
-
       WRITE(6,606) 'MODEL_FOW       ',MODEL_FOW
-      WRITE(6,606) 'nthpmax         ',nthpmax, &
-                   'max_stp         ',max_stp
-      WRITE(6,606) 'model_obload    ',model_obload, &
-                   'model_mkcsv     ',model_mkcsv
-      WRITE(6,606) 'model_fow_fout  ',model_fow_fout
-      
+
       WRITE(6,*) "-------- PLASMA MODELS --------"
 
       IF(MODELE.EQ.0)THEN
@@ -976,8 +972,13 @@ contains
       WRITE(6,'(A,I4)') "PARTITION NUMBER FOR NR  =", N_partition_r
       WRITE(6,'(A,I4)') "PARTITION NUMBER FOR NP  =", N_partition_p
 
-      CALL ob_view
-
+      WRITE(6,*) "-------- FOW CONFIGURATION --------"
+      WRITE(6,606) 'nthpmax         ',nthpmax, &
+                   'max_stp         ',max_stp
+      WRITE(6,606) 'model_obload    ',model_obload, &
+                   'model_mkcsv     ',model_mkcsv
+      WRITE(6,'(A,A)') 'dir_text_data =',TRIM(dir_text_data)
+      WRITE(6,'(A,A)') 'dir_binary_data =',TRIM(dir_binary_data)
       RETURN
 
   600 FORMAT(' ',A8,'=',1PE12.4:3X,A8,'=',1PE12.4:3X,A8,'=',1PE12.4)
@@ -985,7 +986,7 @@ contains
   602 FORMAT(' ',A8,'=',1PE12.4:3X,A8,'=',I8,4X  :3X,A8,'=',I8)
   603 FORMAT(' ',A8,'=',I8,4X  :3X,A8,'=',I8,4X  :3X,A8,'=',I8)
   604 FORMAT(' ',A16,'=',1PE12.4:3X,A16,'=',1PE12.4)
-!  605 FORMAT(' ',A16,'=',1PE12.4:3X,A16,'=',I8)
+  605 FORMAT(' ',A16,'=',1PE12.4:3X,A16,'=',I8)
   606 FORMAT(' ',A16,'=',I8,4X  :3X,A16,'=',I8)
   END SUBROUTINE fp_view
 

@@ -1,19 +1,14 @@
-!     $Id: fpexec.f90,v 1.29 2013/02/08 07:36:24 nuga Exp $
+! fpexec.f90
 
 !     **************************
 !        EXECUTE TIME ADVANCE
 !     **************************
 
-MODULE fpexec
+      MODULE fpexec
 
-  use fpcomm
+      use fpcomm
 
-  PRIVATE
-  PUBLIC fp_exec
-  PUBLIC fpweight
-        
-
-contains
+      contains
 
       SUBROUTINE fp_exec(NSA,IERR,its)
 
@@ -22,11 +17,13 @@ contains
       USE fpmpi
       IMPLICIT NONE
       integer:: NSA, NP, NTH, NR, NL, NM, NN, NS
-      integer:: NTHS
-      integer:: IERR,its
+      integer:: NTHS, NLL
+      integer:: IERR,its,i,j,ll1
       integer:: imtxstart1,imtxend1
 !      integer,optional:: methodKSP, methodPC
       REAL(rkind),dimension(nmend-nmstart+1):: BM_L
+      REAL(rkind),dimension(nthmax):: sendbuf_p, recvbuf_p
+      REAL(rkind),dimension(nthmax*(npend-npstart+1)):: sendbuf_r, recvbuf_r
 
       NS=NS_NSA(NSA)
 
@@ -47,11 +44,11 @@ contains
 
       CALL FPWEIGHT(NSA,IERR)
 
-!     ----- Set up index array imtxa -----
+!     ----- Set up index array NMA -----
 !               NM: line number of the coefficient matrix
 !               NL: 
 
-      CALL SET_FM_imtxa(NSA,FNSM)
+      CALL SET_FM_NMA(NSA,FNSM)
 
       DO NM=NMSTART,NMEND
          NLMAX(NM)=0
@@ -68,18 +65,18 @@ contains
          IF(MODELA.EQ.0) THEN
             DO NP=NPSTART,NPEND
             DO NTH=1,NTHMAX
-               NM=imtxa(NTH,NP,NR)
+               NM=NMA(NTH,NP,NR)
                CALL FPSETM(NTH,NP,NR,NSA,NLMAX(NM))
             ENDDO
             ENDDO
          ELSE
             DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX/2
-                  NM=imtxa(NTH,NP,NR)
+                  NM=NMA(NTH,NP,NR)
                   CALL FPSETM(NTH,NP,NR,NSA,NLMAX(NM))
                ENDDO
                DO NTH=ITU(NR)+1,NTHMAX
-                  NM=imtxa(NTH,NP,NR)
+                  NM=NMA(NTH,NP,NR)
                   CALL FPSETM(NTH,NP,NR,NSA,NLMAX(NM))
                ENDDO
             ENDDO
@@ -92,12 +89,12 @@ contains
          IF(MODELA.EQ.0) THEN
             DO NP=NPSTART,NPEND
             DO NTH=1,NTHMAX
-               NM=imtxa(NTH,NP,NR)
+               NM=NMA(NTH,NP,NR)
                BM(NM)=(1.D0+(1.D0-RIMPL)*DELT*DL(NM))*FM(NM) &
                      +DELT*SPP(NTH,NP,NR,NSA)
                IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
                   CALL mtx_set_matrix(nm,nm,1.D0-rimpl*delt*dl(nm))
-!                  write(50,*)nm,dl(nm)
+                  write(50,*)nm,dl(nm)
                   CALL mtx_set_vector(nm,FM(NM))
                ENDIF
             ENDDO
@@ -105,7 +102,7 @@ contains
          ELSE
             DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX/2
-                  NM=imtxa(NTH,NP,NR)
+                  NM=NMA(NTH,NP,NR)
                   BM(NM)=(RLAMDA(NTH,NR)+(1.D0-RIMPL)*DELT*DL(NM))*FM(NM) &
                         +DELT*SPP(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)
                   IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
@@ -116,7 +113,7 @@ contains
                ENDDO
                DO NTH=NTHMAX/2+1,ITU(NR)
                   NTHS=NTHMAX+1-NTH
-                  NM=imtxa(NTH,NP,NR)
+                  NM=NMA(NTH,NP,NR)
                   BM(NM)=0.D0
                   IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
                      CALL mtx_set_matrix(nm,nm,1.d0)
@@ -125,7 +122,7 @@ contains
                   ENDIF
                ENDDO
                DO NTH=ITU(NR)+1,NTHMAX
-                  NM=imtxa(NTH,NP,NR)
+                  NM=NMA(NTH,NP,NR)
                   BM(NM)=(RLAMDA(NTH,NR)+(1.D0-RIMPL)*DELT*DL(NM))*FM(NM) &
                         +DELT*SPP(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)
                   IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
@@ -153,7 +150,7 @@ contains
 !      DO NR=NRSTART,NREND
 !      DO NP=NPSTART,NPEND
 !      DO NTH=NTHMAX/2+1,ITU(NR)
-!         NM=imtxa(NTH,NP,NR)
+!         NM=NMA(NTH,NP,NR)
 !         IF(LL(NM,NL).NE.0) WRITE(6,'(A,5I5,1PE12.4)') &
 !              'NR,NP,NTH,NM.NL,AL=',NR,NP,NTH,NM,NL,AL(NM,NL)
 !      ENDDO
@@ -193,8 +190,7 @@ contains
 
 !     ----- Solve matrix equation -----
 
-      CALL mtx_solve(MODEL_MTX,epsm,its,MODEL_KSP,MODEL_PC)
-      ! ncom is nessesary for MUMPS not PETSc
+      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) ! ncom is nessesary for MUMPS not PETSc
 !      IF(MODELD_temp.eq.0)THEN
 !         if(nrank.eq.0) then
 !            write(6,*) 'Number of iterations, NSA    =',its,NSA
@@ -209,7 +205,7 @@ contains
       DO NR=NRSTART, NREND
          DO NP=NPSTART, NPEND
             DO NTH=1,NTHMAX
-               NM=imtxa(NTH,NP,NR)
+               NM=NMA(NTH,NP,NR)
                IF(ABS(BM_L(NM-NMSTART+1)).LT.1.D-100) THEN
                   FNS0(NTH,NP,NR,NSA)=0.D0
                ELSE
@@ -231,7 +227,7 @@ contains
 !      DO NR=NRSTARTW,NRENDWM
 !         DO NP=NPSTARTW,NPENDWM
 !            DO NTH=1,NTHMAX
-!               NM=imtxa(NTH,NP,NR)
+!               NM=NMA(NTH,NP,NR)
 !               FNS0(NTH,NP,NR,NSA)=BMTOT(NM)
 !            ENDDO
 !         ENDDO
@@ -247,11 +243,11 @@ contains
 
 !     ---------------------------------
 
-      SUBROUTINE SET_FM_imtxa(NSA,func_in)
+      SUBROUTINE SET_FM_NMA(NSA,func_in)
 
       IMPLICIT NONE
-      integer:: NTH, NP, NR, NSA, NM, NRS
-      REAL(rkind),dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND), &
+      integer:: NTH, NP, NR, NSA, NM, NRS, NPS
+      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND), &
            intent(IN):: func_in
 
       IF(NRSTART.eq.1)THEN
@@ -264,7 +260,7 @@ contains
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX
                NM=NTH+NTHMAX*(NP-1)+NPMAX*NTHMAX*(NR-1)
-               imtxa(NTH,NP,NR)=NM
+               NMA(NTH,NP,NR)=NM
             END DO
          END DO
       END DO
@@ -272,7 +268,7 @@ contains
       DO NR=NRSTART,NREND
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX
-               NM=imtxa(NTH,NP,NR)
+               NM=NMA(NTH,NP,NR)
                FM(NM)=func_in(NTH,NP,NR,NSA)
             ENDDO
          ENDDO
@@ -281,7 +277,7 @@ contains
       IF(NR.ne.NRSTART)THEN
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX
-               NM=imtxa(NTH,NP,NR)
+               NM=NMA(NTH,NP,NR)
                FM_shadow_m(NM)=func_in(NTH,NP,NR,NSA)
             ENDDO
          ENDDO
@@ -290,14 +286,14 @@ contains
       IF(NR.ne.NREND)THEN
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX
-               NM=imtxa(NTH,NP,NR)
+               NM=NMA(NTH,NP,NR)
                FM_shadow_p(NM)=func_in(NTH,NP,NR,NSA)
             ENDDO
          ENDDO
       END IF
 
       
-      END SUBROUTINE SET_FM_imtxa
+      END SUBROUTINE SET_FM_NMA
 
 !
 !     ***************************
@@ -307,15 +303,14 @@ contains
       SUBROUTINE FPWEIGHT(NSA,IERR) ! proposed by Chang and Cooper [30] in Karney
 
       IMPLICIT NONE
-      integer:: NSA, NP, NTH, NR, NTHA, NTHB, NTB, NS
+      integer:: NSA, NP, NTH, NR, NL, NM, NTHA, NTHB, NTB, NS
       integer:: IERR
       REAL(rkind):: DFDTH, FVEL, DVEL, DFDP, DFDB
-      REAL(rkind)::EPSWT=1.D-70
 
 !     +++++ calculation of weigthing (including off-diagonal terms) +++++
 
-      IERR=0
-      
+      REAL(rkind)::EPSWT=1.D-70
+
       NS=NS_NSA(NSA)
       DO NR=NRSTART,NREND
 !      DO NP=1,NPMAX+1
@@ -631,7 +626,7 @@ contains
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NTH,NP,NR,NSA
       INTEGER,INTENT(OUT):: NL
-      INTEGER:: NM
+      INTEGER:: NM, NTHA, NTHB
                      ! if NTH=ITL(NR)-1 (NTH:untrapped, NTH+1:trapped)
                      !       flux to NTH-1 as usual
                      !       flux to NTH+1 as usual
@@ -666,14 +661,15 @@ contains
       INTEGER:: NTBP ! if NTH>=ITU(NR)+1 and NTH<=ITU(NR+1)
                      !    then NTBP=ITL(NR+1)+ITU(NR+1)-NTH, else NTBP=0
 
-      integer:: NS
+      integer:: IERR, NS
+      REAL(rkind):: DFDTH, FVEL, DVEL, DFDP, DFDB
       REAL(rkind):: DPPM, DPPP, DPTM, DPTP, SL, DTPM, DTPP, DTTM, DTTP
       REAL(rkind):: WPM, WPP, WTM, WTP, VPM, VPP, VTM, VTP
-      REAL(rkind):: WTB, VTB, WRBM, VRBM
+      REAL(rkind):: WTB, VTB, WRBM, VRBM, WRBP, VRBP
       REAL(rkind):: DIVDPP, DIVDPT, DIVDTP, DIVDTT, DIVFPP, DIVFTH
       REAL(rkind):: RL,DRRM,DRRP,WRM,WRP,VRM,VRP,DIVDRR,DIVFRR
       REAL(rkind):: PL
-      REAL(rkind):: WPBM, VPBM, WPBP, VPBP
+      DOUBLE PRECISION:: WPBM, VPBM, WPBP, VPBP
 
       NS=NS_NSA(NSA)
 
@@ -697,7 +693,7 @@ contains
       END IF ! MODELA
 
       NL=0
-      NM=imtxa(NTH,NP,NR)
+      NM=NMA(NTH,NP,NR)
       PL=PM(NP,NS)
       DPPM=PG(NP,NS  )**2
       DPPP=PG(NP+1,NS)**2
@@ -768,7 +764,7 @@ contains
 !         IF(NR.NE.1.AND.NP.NE.NPMAX) THEN
          IF(NR.NE.1) THEN
             NL=NL+1
-            LL(NM,NL)=imtxa(NTH,NP,NR-1)
+            LL(NM,NL)=NMA(NTH,NP,NR-1)
             AL(NM,NL)=DRR(NTH  ,NP  ,NR,NSA)    *DIVDRR*DRRM&
                      +FRR(NTH  ,NP  ,NR,NSA)*WRM*DIVFRR*DRRM
             IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
@@ -778,7 +774,7 @@ contains
             ENDIF
             IF(NTBM.NE.0) THEN
                NL=NL+1
-               LL(NM,NL)=imtxa(NTBM,NP,NR-1)
+               LL(NM,NL)=NMA(NTBM,NP,NR-1)
                AL(NM,NL)=DRR(NTBM ,NP  ,NR,NSA)     *DIVDRR*DRRM&
                         +FRR(NTBM ,NP  ,NR,NSA)*WRBM*DIVFRR*DRRM
                IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
@@ -792,7 +788,7 @@ contains
 
       IF(NP.NE.1.AND.NTH.NE.1) THEN
          NL=NL+1
-         LL(NM,NL)=imtxa(NTH-1,NP-1,NR)
+         LL(NM,NL)=NMA(NTH-1,NP-1,NR)
          AL(NM,NL)=+DPT(NTH  ,NP  ,NR,NSA)*WPM*DIVDPT*DPTM &
                    +DTP(NTH  ,NP  ,NR,NSA)*WTM*DIVDTP*DTPM
 
@@ -805,7 +801,7 @@ contains
 
       IF(NP.NE.1) THEN
          NL=NL+1
-         LL(NM,NL)=imtxa(NTH,NP-1,NR)
+         LL(NM,NL)=NMA(NTH,NP-1,NR)
          AL(NM,NL)=+DPP(NTH  ,NP  ,NR,NSA)    *DIVDPP*DPPM &
                    +FPP(NTH  ,NP  ,NR,NSA)*WPM*DIVFPP*DPPM &
                    -DTP(NTH+1,NP  ,NR,NSA)*WTP*DIVDTP*DTPP &
@@ -818,7 +814,7 @@ contains
 
       IF(NP.NE.1.AND.NTH.NE.NTHMAX) THEN
          NL=NL+1
-         LL(NM,NL)=imtxa(NTH+1,NP-1,NR)
+         LL(NM,NL)=NMA(NTH+1,NP-1,NR)
          AL(NM,NL)=-DPT(NTH  ,NP  ,NR,NSA)*WPM*DIVDPT*DPTM &
                    -DTP(NTH+1,NP  ,NR,NSA)*VTP*DIVDTP*DTPP
          IF(NTB.ne.0)THEN
@@ -829,7 +825,7 @@ contains
 
       IF(NP.NE.1.AND.NTB.NE.0) THEN
          NL=NL+1
-         LL(NM,NL)=imtxa(NTB,NP-1,NR)
+         LL(NM,NL)=NMA(NTB,NP-1,NR)
          AL(NM,NL)= &
               +DPT(NTH, NP  ,NR,NSA)*WPBM*DIVDPT*DPTM &
               -DTP(NTB, NP  ,NR,NSA)*VTB *DIVDTP*DTPM
@@ -842,7 +838,7 @@ contains
 
       IF(NTH.NE.1) THEN
          NL=NL+1
-         LL(NM,NL)=imtxa(NTH-1,NP,NR)
+         LL(NM,NL)=NMA(NTH-1,NP,NR)
          AL(NM,NL)=-DPT(NTH  ,NP+1,NR,NSA)*WPP*DIVDPT*DPTP &
                    +DPT(NTH  ,NP  ,NR,NSA)*VPM*DIVDPT*DPTM &
                    +DTT(NTH  ,NP  ,NR,NSA)    *DIVDTT*DTTM &
@@ -855,7 +851,7 @@ contains
 
       IF(NTH.NE.NTHMAX) THEN
          NL=NL+1
-         LL(NM,NL)=imtxa(NTH+1,NP,NR)
+         LL(NM,NL)=NMA(NTH+1,NP,NR)
          AL(NM,NL)=+DPT(NTH  ,NP+1,NR,NSA)*WPP*DIVDPT*DPTP &
                    -DPT(NTH  ,NP  ,NR,NSA)*VPM*DIVDPT*DPTM &
                    +DTT(NTH+1,NP  ,NR,NSA)    *DIVDTT*DTTP &
@@ -873,7 +869,7 @@ contains
 
       IF(NTB.NE.0) THEN
          NL=NL+1
-         LL(NM,NL)=imtxa(NTB,NP,NR)
+         LL(NM,NL)=NMA(NTB,NP,NR)
          AL(NM,NL)=-DPT(NTH,NP+1,NR,NSA)*WPBP*DIVDPT*DPTP &
                    +DPT(NTH,NP  ,NR,NSA)*VPBM*DIVDPT*DPTM &
                    +DTT(NTB,NP  ,NR,NSA)    *DIVDTT*DTTM &
@@ -886,7 +882,7 @@ contains
 
       IF(NP.NE.NPMAX.AND.NTH.NE.1) THEN
          NL=NL+1
-         LL(NM,NL)=imtxa(NTH-1,NP+1,NR)
+         LL(NM,NL)=NMA(NTH-1,NP+1,NR)
          AL(NM,NL)=-DPT(NTH  ,NP+1,NR,NSA)*VPP*DIVDPT*DPTP &
                    -DTP(NTH  ,NP  ,NR,NSA)*WTM*DIVDTP*DTPM
          IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
@@ -898,7 +894,7 @@ contains
 
       IF(NP.NE.NPMAX) THEN
          NL=NL+1
-         LL(NM,NL)=imtxa(NTH,NP+1,NR)
+         LL(NM,NL)=NMA(NTH,NP+1,NR)
          AL(NM,NL)=+DPP(NTH  ,NP+1,NR,NSA)    *DIVDPP*DPPP &
                    -FPP(NTH  ,NP+1,NR,NSA)*VPP*DIVFPP*DPPP &
                    +DTP(NTH+1,NP  ,NR,NSA)*WTP*DIVDTP*DTPP &
@@ -911,7 +907,7 @@ contains
 
       IF(NP.NE.NPMAX.AND.NTH.NE.NTHMAX) THEN
          NL=NL+1
-         LL(NM,NL)=imtxa(NTH+1,NP+1,NR)
+         LL(NM,NL)=NMA(NTH+1,NP+1,NR)
          AL(NM,NL)=+DPT(NTH  ,NP+1,NR,NSA)*VPP*DIVDPT*DPTP &
                    +DTP(NTH+1,NP  ,NR,NSA)*VTP*DIVDTP*DTPP
          IF(NTB.ne.0)THEN
@@ -927,7 +923,7 @@ contains
 
       IF(NP.NE.NPMAX.AND.NTB.NE.0) THEN
          NL=NL+1
-         LL(NM,NL)=imtxa(NTB,NP+1,NR)
+         LL(NM,NL)=NMA(NTB,NP+1,NR)
          AL(NM,NL)= &
               -DPT(NTH,NP+1,NR,NSA)*VPBP*DIVDPT*DPTP &
               +DTP(NTB,NP  ,NR,NSA)*VTB *DIVDTP*DTPM
@@ -942,7 +938,7 @@ contains
 !         IF(NR.NE.NRMAX.AND.NP.NE.NPMAX) THEN
          IF(NR.NE.NRMAX) THEN
             NL=NL+1
-            LL(NM,NL)=imtxa(NTH,NP,NR+1)
+            LL(NM,NL)=NMA(NTH,NP,NR+1)
             AL(NM,NL)=DRR(NTH  ,NP  ,NR+1,NSA)    *DIVDRR*DRRP&
                      -FRR(NTH  ,NP  ,NR+1,NSA)*VRP*DIVFRR*DRRP
             IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
@@ -952,7 +948,7 @@ contains
             ENDIF
 !            IF(NTBP.NE.0) THEN
 !               NL=NL+1
-!               LL(NM,NL)=imtxa(NTBP,NP,NR+1)
+!               LL(NM,NL)=NMA(NTBP,NP,NR+1)
 !               AL(NM,NL)=DRR(NTBP ,NP  ,NR+1,NSA)     *DIVDRR*DRRP &
 !                            *RLAMDAG(NTBP,NR+1) &
 !                        -FRR(NTBP ,NP  ,NR+1,NSA)*VRBP*DIVFRR*DRRP &

@@ -1,5 +1,5 @@
-!     $Id: fpcont.f90,v 1.4 2014/10/03 13:53:58 fukuyama Exp $
-!
+! fpcont.f90
+
 ! ***********************************************************
 !
 !                    SELECTION OF GRAPH
@@ -28,10 +28,7 @@
       INTEGER,DIMENSION(NSTEP):: ILN
       REAL,DIMENSION(3,NSTEP):: RGB
       INTEGER,DIMENSION(4,NXMAX,NYMAX):: KA
-      INTEGER:: N,IDUMMY
-
-      IDUMMY=ILN(1)
-      IDUMMY=ISPL
+      INTEGER:: N
 !
       DO N=1,NSTEP!
          CALL SETRGB(RGB(1,N),RGB(2,N),RGB(3,N))
@@ -86,8 +83,7 @@
       integer,dimension(NGLM):: ILN
       REAL,dimension(3,NGLM):: RGB
       PARAMETER(NH=101)
-      REAL,DIMENSION(NH):: ZLS,WLNS
-      INTEGER,DIMENSION(NH):: ILNS
+      REAL,DIMENSION(NH):: ZLS,ILNS,WLNS
       REAL,dimension(3,NH):: RGBS
 !      PARAMETER (NFMAX=2000,NGMAX=4000)
       PARAMETER (NFMAX=200,NGMAX=400)

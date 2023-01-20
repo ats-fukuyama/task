@@ -10,6 +10,10 @@ MODULE fowlib
   PUBLIC fow_cal_spl
   PUBLIC fow_cal_spl2D
 
+  !=============================================
+  ! For Mathematical calculation
+  !=============================================
+
 CONTAINS
   
   subroutine solve_quadratic_equation(z,C)
@@ -20,9 +24,9 @@ CONTAINS
 
     implicit none
     real(rkind),intent(in) :: C(3)
-    COMPLEX(rkind),intent(out) :: z(2)
+    complex(rkind),intent(out) :: z(2)
     real(rkind) :: D
-    COMPLEX(rkind) :: ei=(0.d0,1.d0)
+    complex(rkind) :: ei=(0.d0,1.d0)
 
     z(1) = (0.d0, 0.d0)
     z(2) = (0.d0, 0.d0)
@@ -185,10 +189,9 @@ CONTAINS
     implicit none
     real(rkind),intent(out) :: f_out
     real(rkind),intent(in) :: x_in, f(:), x(:)
-    integer :: imax,ierr
+    integer :: i,imax,ierr=0
     real(rkind),allocatable :: U(:,:), fx(:)
 
-    ierr=0
     imax = size(f,1)
 
     allocate(U(4,imax), fx(imax))
@@ -210,10 +213,9 @@ CONTAINS
     implicit none
     real(rkind),intent(out) :: f_out
     real(rkind),intent(in) :: x_in, y_in, f(:,:), x(:), y(:)
-    integer :: imax, jmax, ierr
+    integer :: i, j, imax, jmax, ierr = 0
     real(rkind),allocatable :: U(:,:,:,:), fx(:,:), fy(:,:) , fxy(:,:)
 
-    ierr=0
     imax = size(x)
     jmax = size(y)
 
@@ -230,5 +232,5 @@ CONTAINS
     call SPL2DF(x_in,y_in,f_out,x,y,U,imax,imax,jmax,ierr)
 
   end subroutine fow_cal_spl2D
-
 END MODULE fowlib
+

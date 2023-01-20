@@ -54,7 +54,10 @@ MODULE TRCOMM
        PLHTOT, PLHR0, PLHRW, PLHCD, PLHTOE, PLHNPR, &
        PICTOT, PICR0, PICRW, PICCD, PICTOE, PICNPR, &
        PELTOT, PELR0, PELRW, PELRAD, PELVEL, PELTIM, &
+       pellet_time_start,pellet_time_interval, &
        ELMWID, ELMDUR
+  INTEGER:: &
+       number_of_pellet_repeat
   REAL(rkind), DIMENSION(NSMM) :: &
        PELPAT, ELMNRD, ELMTRD, ELMENH
   REAL(rkind), DIMENSION(NPSCM) :: &
@@ -75,6 +78,9 @@ MODULE TRCOMM
        PNSS
   INTEGER:: &
        NT, NRAMAX, NROMAX, NREDGE, NTMAX_SAVE, IREAD
+  INTEGER:: &
+       icount_of_pellet ! 0 : before start
+                        ! positive: number of pellet from t_start
 
 !     ****** MATRIX VARIBALES ******
 ! TRMTX

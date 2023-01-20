@@ -1,4 +1,4 @@
-!     $Id: fploop.f90,v 1.40 2013/02/08 07:36:24 nuga Exp $
+! fploop.f90
 
 ! *****************
 !     MAIN LOOP
@@ -15,9 +15,6 @@
       use fpreadeg
       use fpoutdata
 
-      PRIVATE
-      PUBLIC fp_loop
-
       contains
 
 !-----------------------------
@@ -25,15 +22,16 @@
       SUBROUTINE FP_LOOP
 
       USE fpcoef
-      USE fpsub
+      USE fplib
       USE libmtx
       USE plprof
       USE FPMPI
       USE fpprep, only: Coulomb_log 
       USE fpnfrr
       USE fpcaltp
+      USE libgrf
       IMPLICIT NONE
-      REAL(rkind):: DEPS,IP_all_FP,DEPS_E2
+      real(rkind):: DEPS,IP_all_FP,DEPS_E2
 
       integer:: NT, NR, NP, NTH, NSA, NS, IERR, NSB
       REAL:: gut_exe1, gut_exe2, gut_coef1, gut_coef2, gut_coef3
@@ -260,7 +258,7 @@
       IMPLICIT NONE
       INTEGER:: NSA, NR, NP, NTH, NS, its
       INTEGER,intent(OUT):: IERR
-      REAL(rkind),dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND)::&
+      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND)::&
            send
 
       N_IMPL=N_IMPL+1
@@ -336,11 +334,11 @@
       INTEGER,INTENT(IN):: NT
       integer,dimension(NSASTART:NSAEND):: ILOCL
       integer,dimension(NSAMAX):: ILOC
-      REAL(rkind),intent(out):: DEPS
-      REAL(rkind),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS
-      REAL(rkind),dimension(NSASTART:NSAEND):: DEPS_MAXVL, DEPSV
-      REAL(rkind),dimension(NSAMAX):: DEPS_MAXV
-      REAL(rkind):: RSUMF_, RSUMF0_, DEPS_MAX, DEPS1
+      real(rkind),intent(out):: DEPS
+      real(rkind),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS
+      real(rkind),dimension(NSASTART:NSAEND):: DEPS_MAXVL, DEPSV
+      real(rkind),dimension(NSAMAX):: DEPS_MAXV
+      real(rkind):: RSUMF_, RSUMF0_, DEPS_MAX, DEPS1
       character:: fmt*40
 
       nsw = NSAEND-NSASTART+1      

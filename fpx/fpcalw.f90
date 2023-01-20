@@ -1,4 +1,5 @@
-!
+! fpcalw.f90
+
 ! ************************************************************
 !
 !            CALCULATION OF DW
@@ -19,7 +20,8 @@ contains
 
     IMPLICIT NONE
     integer:: NSA, NR, NTH, NP, NS
-    REAL(rkind):: FACTOR,PABSX_LH,PABSX_FW,PABSX_EC,PABSX_WR,PABSX_WM
+    integer:: NCONST_RF
+    real(rkind):: FACTOR,PABSX_LH,PABSX_FW,PABSX_EC,PABSX_WR,PABSX_WM
 
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
@@ -338,10 +340,11 @@ contains
            DQPP(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX), &
            DQPT(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX)
       REAL(rkind),INTENT(OUT):: PABSX
-      integer:: NR, NSA, NP, NTH, NS, NPS, N, NSW
+      integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NPS, N, NSW
+      integer:: IERR
       real(rkind):: RSUML,RSUM(NRSTART:NREND,NSAMAX),RSUMG(NRMAX,NSAMAX)
       real(rkind):: PV, WPL, WPM, WPP
-      real(rkind):: DFP, DFT, FACTOR
+      real(rkind):: DFP, DFT, FFP, FACTOR
 
 !----- sum up over NTH and NP
 

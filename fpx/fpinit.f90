@@ -13,7 +13,8 @@ contains
 
   SUBROUTINE fp_init
 
-      use fpcomm_parm
+      USE fpcomm_parm
+      USE fpcomm,ONLY: ierr_g,N_f1
       IMPLICIT NONE
       integer:: ns,nsa,nsb,nbeam,nray
 
@@ -277,6 +278,8 @@ contains
 !                -2 : nonlinear collision operator for same with ion scattering
 !     MODELR: 0 : without relativistic effect
 !             1 : with relativistic effect
+!     MODEL_FOW: 0 : zero orbit width
+!                1 : finite orbit width
 !     MODELS: 0 No fusion reaction
 !             1 DT reaction source (NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG)
 !             2 DT reaction source (self-consistent reactioin rate)
@@ -331,13 +334,11 @@ contains
 !     MODEL_DELTA_F(NSA): 0 ordinary mode
 !                       : 1 f is described as f=f_M + delta f
 !                         Evolution of f_M is not solved.
-!
-!     MODEL_FOW: 0 : without FOW (finite orbit width effects)
-!                1 : with FOW : fow_prep and fow_loop
 
       MODELE= 0
       MODELA= 0
       MODELR= 0
+      MODEL_FOW=0
       MODELS= 0
       DO NSA=1,NSM
          MODELW(NSA)=0
@@ -368,24 +369,6 @@ contains
       DO NS=1,NSM
          MODEL_DELTA_F(NS)=0
       END DO
-
-      model_fow=0    ! control parameter for finite orbit width effects
-                     !    0 : without FOW effects
-                     !    1 : with FOW effects
-      model_obload=1 ! control parameter for loading orbit_x
-                     !    0 : do not load orbit_x, instead calculate by ob
-                     !    1 : load orbit_x if exits, otherwise calculate by ob
-      model_mkcsv=0  ! contral parameter for generating csv files
-                     !    0 : do not generate csv files
-                     !    1 : generate csv files
-      nthpmax=8      ! number of poloidal angle grid points
-      max_stp=20     ! maximum step number for bounce average
-
-      ! --- control fout parameter ---
-
-      model_fow_fout=0      ! control fow_fout_tot: 0=no tot, 1=with tot
-
-
 !-----TXT TYPE OUTPUT COMMAND------------------------------------------
 !     OUTPUT_TXT_DELTA_F: OUTPUT DELTA f
 !     OUTPUT_TXT_F1: OUTPUT E-f1 on NR_F1 DIRECT TO NTH_F1
@@ -399,7 +382,7 @@ contains
 !-----COMPUTATION PARAMETERS------------------------------------------
 !     DELT  : time step size (s)
 !     RIMPL : implicit computation parameter
-!     MODEL_MTXP: type of matrix solver 
+!     imtx  : type of matrix solver 
 !                    0: petsc ksp (GMRES ILU(0) no initial guess)
 !                    1: petsc ksp (GMRES ILU(0)    initial guess) *default
 !     MODEL_KSP : type of KSP solver
@@ -414,7 +397,7 @@ contains
 
       DELT  = 1.D-2
       RIMPL = 1.D0
-      MODEL_MTX=1
+      IMTX  = 1
       MODEL_KSP=5
       MODEL_PC =1
       EPSFP = 1.D-9
@@ -514,6 +497,33 @@ contains
       N_partition_s = 1
       N_partition_r = nsize
       N_partition_p = 1
+
+!-----------------------------------------------------------------------
+!     FOW contraol parameter [*: default]
+
+! integer :: model_obload   ! 0 : exec TASK/OB anyway and
+!                                 do not save orbit_x to binary files
+!                           !*1 : If binary files exist in bin directory,
+!                                 load them, else exec TASK/OB
+
+! integer :: model_mkcsv    ! 0 : no csv file output
+!                           !*1 : output to csv files
+
+! integer :: max_stp        ! maximum step number for bounce average
+
+! integer :: nthpmax        ! number of poloidal angle grid points
+
+      model_obload=1
+      model_mkcsv=1
+      max_stp=20
+      nthpmax=24
+      dir_text_data='dat'
+      dir_binary_data='bin'
+
+      ! --- debug info initialization ---
+
+      ierr_g=0
+      N_f1=0
 
       RETURN
     END SUBROUTINE fp_init

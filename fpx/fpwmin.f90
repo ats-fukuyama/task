@@ -1,4 +1,4 @@
-!     $Id: fpwmin.f90,v 1.4 2013/01/14 16:48:26 fukuyama Exp $
+! fpwmin.f90
 !
 !     ***** READ AND INTERPOLATE wmdata *****
 !
@@ -8,25 +8,25 @@
 
       integer:: NWTHMAX,NWPHMAX,NWRMAX,NPH0W,NTH0W
       real(rkind):: RAW,RRW,BBW,RFWR,RFWI,RABS
-      COMPLEX(rkind),dimension(:,:,:,:),ALLOCATABLE:: CEWV 
+      complex(rkind),dimension(:,:,:,:),POINTER:: CEWV 
                                                   ! (3,NWTHM,NWPHM,NWRM)
-      real(rkind),dimension(:),ALLOCATABLE ::  RWSPL  ! (NWRM)
-      real(rkind),dimension(:),ALLOCATABLE ::  THWSPL ! (NWTHM)
-      real(rkind),dimension(:),ALLOCATABLE ::  PHWSPL ! (NWPHM)
-      COMPLEX(rkind),dimension(:),ALLOCATABLE :: CEWL ! (NWPHM)
-      COMPLEX(rkind),dimension(:,:),ALLOCATABLE :: CEWL2,CEWX2,CEWY2,CEWXY2
+      real(rkind),dimension(:),POINTER ::  RWSPL  ! (NWRM)
+      real(rkind),dimension(:),POINTER ::  THWSPL ! (NWTHM)
+      real(rkind),dimension(:),POINTER ::  PHWSPL ! (NWPHM)
+      complex(rkind),dimension(:),POINTER :: CEWL ! (NWPHM)
+      complex(rkind),dimension(:,:),POINTER :: CEWL2,CEWX2,CEWY2,CEWXY2
                                                   ! (NWTHMP,NWRM)
-      COMPLEX(rkind),dimension(:,:,:),ALLOCATABLE :: CEWL3,CEWX3,CEWY3,CEWZ3, &
+      complex(rkind),dimension(:,:,:),POINTER :: CEWL3,CEWX3,CEWY3,CEWZ3, &
                                                  CEWXY3,CEWYZ3,CEWZX3,CEWXYZ3
                                                   ! (NWTHMP,NWPHMP,NWRM)
-      COMPLEX(rkind),dimension(:,:,:,:,:),ALLOCATABLE :: UCEW2 
+      complex(rkind),dimension(:,:,:,:,:),POINTER :: UCEW2 
                                                   ! (4,4,NWTHM,NWRM,3)
-      COMPLEX(rkind),dimension(:,:,:,:,:,:,:),ALLOCATABLE :: UCEW3
+      complex(rkind),dimension(:,:,:,:,:,:,:),POINTER :: UCEW3
                                                   ! (4,4,4,NWTHM,NEPHM,NWRM,3)
 
-      COMPLEX(rkind),dimension(:),ALLOCATABLE:: CFFT  ! (NWTHM)
-      real(rkind),dimension(:),ALLOCATABLE:: RFFT     ! (NWTHM)
-      integer,dimension(:),ALLOCATABLE:: LFFT         ! (NWTHM) 
+      complex(rkind),dimension(:),POINTER:: CFFT  ! (NWTHM)
+      real(rkind),dimension(:),POINTER:: RFFT     ! (NWTHM)
+      integer,dimension(:),POINTER:: LFFT         ! (NWTHM) 
 
       contains
 
@@ -53,7 +53,7 @@
          READ(21) NWTHMAX,NWPHMAX,NWRMAX,NSMAX1
          WRITE(6,*) 'NWTHMAX,NWPHMAX,NWRMAX=',NWTHMAX,NWPHMAX,NWRMAX
 
-         IF(ALLOCATED(CEWV)) DEALLOCATE(CEWV)
+         IF(ASSOCIATED(CEWV)) deallocate(CEWV)
          allocate(CEWV(3,NWTHMAX,NWPHMAX,NWRMAX))
 
          READ(21) RAW,RRW,BBW,RFWR,RFWI,NPH0W,NTH0W
@@ -65,24 +65,24 @@
 
       CALL fp_wm_broadcast
 
-      IF(ALLOCATED(RWSPL)) DEALLOCATE(RWSPL)
-      IF(ALLOCATED(THWSPL)) DEALLOCATE(THWSPL)
-      IF(ALLOCATED(PHWSPL)) DEALLOCATE(PHWSPL)
-      IF(ALLOCATED(CEWL)) DEALLOCATE(CEWL)
-      IF(ALLOCATED(UCEW2)) DEALLOCATE(UCEW2)
-      IF(ALLOCATED(CEWL2)) DEALLOCATE(CEWL2)
-      IF(ALLOCATED(CEWX2)) DEALLOCATE(CEWX2)
-      IF(ALLOCATED(CEWY2)) DEALLOCATE(CEWY2)
-      IF(ALLOCATED(CEWXY2)) DEALLOCATE(CEWXY2)
-      IF(ALLOCATED(UCEW3)) DEALLOCATE(UCEW3)
-      IF(ALLOCATED(CEWL3)) DEALLOCATE(CEWL3)
-      IF(ALLOCATED(CEWX3)) DEALLOCATE(CEWX3)
-      IF(ALLOCATED(CEWY3)) DEALLOCATE(CEWY3)
-      IF(ALLOCATED(CEWZ3)) DEALLOCATE(CEWZ3)
-      IF(ALLOCATED(CEWXY3)) DEALLOCATE(CEWXY3)
-      IF(ALLOCATED(CEWYZ3)) DEALLOCATE(CEWYZ3)
-      IF(ALLOCATED(CEWZX3)) DEALLOCATE(CEWZX3)
-      IF(ALLOCATED(CEWXYZ3)) DEALLOCATE(CEWXYZ3)
+      IF(ASSOCIATED(RWSPL)) deallocate(RWSPL)
+      IF(ASSOCIATED(THWSPL)) deallocate(THWSPL)
+      IF(ASSOCIATED(PHWSPL)) deallocate(PHWSPL)
+      IF(ASSOCIATED(CEWL)) deallocate(CEWL)
+      IF(ASSOCIATED(UCEW2)) deallocate(UCEW2)
+      IF(ASSOCIATED(CEWL2)) deallocate(CEWL2)
+      IF(ASSOCIATED(CEWX2)) deallocate(CEWX2)
+      IF(ASSOCIATED(CEWY2)) deallocate(CEWY2)
+      IF(ASSOCIATED(CEWXY2)) deallocate(CEWXY2)
+      IF(ASSOCIATED(UCEW3)) deallocate(UCEW3)
+      IF(ASSOCIATED(CEWL3)) deallocate(CEWL3)
+      IF(ASSOCIATED(CEWX3)) deallocate(CEWX3)
+      IF(ASSOCIATED(CEWY3)) deallocate(CEWY3)
+      IF(ASSOCIATED(CEWZ3)) deallocate(CEWZ3)
+      IF(ASSOCIATED(CEWXY3)) deallocate(CEWXY3)
+      IF(ASSOCIATED(CEWYZ3)) deallocate(CEWYZ3)
+      IF(ASSOCIATED(CEWZX3)) deallocate(CEWZX3)
+      IF(ASSOCIATED(CEWXYZ3)) deallocate(CEWXYZ3)
 
       allocate(RWSPL(NWRMAX))
       allocate(THWSPL(NWTHMAX+1))
@@ -191,8 +191,8 @@
       USE fpcomm
       IMPLICIT NONE
       INTEGER,DIMENSION(5):: idata
-      REAL(RKIND),DIMENSION(5):: ddata
-      COMPLEX(8),DIMENSION(:),ALLOCATABLE:: temp
+      REAL(rkind),DIMENSION(5):: ddata
+      COMPLEX(rkind),DIMENSION(:),POINTER:: temp
       INTEGER:: nr1,md1,nd1,n
 
       IF(nrank.eq.0) THEN
@@ -221,7 +221,7 @@
       RFWI =ddata(5)
 
       IF(nrank.NE.0) THEN
-         IF(ALLOCATED(CEWV)) DEALLOCATE(CEWV)
+         IF(ASSOCIATED(CEWV)) DEALLOCATE(CEWV)
          ALLOCATE(CEWV(3,NWTHMAX,NWPHMAX,NWRMAX))
       ENDIF
 
@@ -263,7 +263,7 @@
 
       IMPLICIT NONE
       integer:: IERR
-      COMPLEX(8):: CEWR1,CEWTH1,CEWPH1,CKWR1,CKWTH1,CKWPH1
+      COMPLEX(rkind):: CEWR1,CEWTH1,CEWPH1,CKWR1,CKWTH1,CKWPH1
       REAL(rkind):: RL, THL, PHL, RFWM
       DATA RL,THL,PHL/0.D0,0.D0,0.D0/
 
@@ -288,11 +288,11 @@
       USE libspl2d
       USE libspl3d
       IMPLICIT NONE
-      REAL(RKIND),INTENT(IN):: RL,THL,PHL
-      REAL(RKIND),INTENT(OUT):: RFWM
-      COMPLEX(8),INTENT(OUT):: CEWR1,CEWTH1,CEWPH1,CKWR1,CKWTH1,CKWPH1
+      REAL(rkind),INTENT(IN):: RL,THL,PHL
+      REAL(rkind),INTENT(OUT):: RFWM
+      COMPLEX(rkind),INTENT(OUT):: CEWR1,CEWTH1,CEWPH1,CKWR1,CKWTH1,CKWPH1
       INTEGER,INTENT(OUT):: IERR
-      COMPLEX(8):: CEWDTH,CEWDPH,CEWDR
+      COMPLEX(rkind):: CEWDTH,CEWDPH,CEWDR
 
       IERR=0
       RFWM=RFWR
@@ -366,16 +366,16 @@
       IMPLICIT NONE
       integer:: N, KEY, IND, IX, I
       integer,save:: NS=0
-      COMPLEX(8),DIMENSION(N):: CA
-!      COMPLEX(8),dimension(N):: CFFT ! (NWTHM) 
+      COMPLEX(rkind),DIMENSION(N):: CA
+!      COMPLEX(rkind),dimension(N):: CFFT ! (NWTHM) 
 !      REAL(rkind),dimension(N):: RFFT ! (NWTHM) 
-!      integer,dimension(N):: LFFT ! (NWTHM)
+!      INTEGER,dimension(N):: LFFT ! (NWTHM)
 
       IF(N.NE.1) THEN
          IF(N.EQ.NS) THEN
             IND=0
          ELSE
-            IF(NS.NE.0) DEALLOCATE(CFFT,RFFT,LFFT)
+            IF(NS.NE.0) deallocate(CFFT,RFFT,LFFT)
             allocate(CFFT(N),RFFT(N),LFFT(N))               
             IND=1
             NS=N

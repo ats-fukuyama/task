@@ -1,3 +1,5 @@
+! fpcalr.f90
+
 MODULE fpcalr
 
 ! ****************************************
@@ -14,14 +16,17 @@ CONTAINS
       USE libmpi,ONLY: mtx_set_communicator, mtx_reset_communicator
       USE fpmpi,ONLY: p_theta_integration
       IMPLICIT NONE
-      integer:: NSA, NSBA, NS, NR, NTH, NP, NR1, NR2
-      REAL(rkind):: RHON, RTFPL, FACTR, FACTP, PPP, PPM
-      REAL(rkind):: FACT, DINT_D, DINT_F, WRL
-      REAL(rkind):: SRHODM, SRHOFM
-      REAL(rkind):: F_R1, DFDR_R1
-      REAL(rkind):: SHEAR,PNEL,RHONI,DPDR,DVEXBDR,CALF,CKAP,CEXB
+      integer:: NSA, NSBA, NS, NR, NTH, NP, NG, NSB, NR1, NR2
+      real(rkind):: RHON, RTFPL, FACTR, FACTP, SV, PPP, PPM
+      real(rkind):: PSIB, PCOS, X, ETAL, sumd, sumf, DELH
+      real(rkind):: DNDR, NEDGE, FACT, DINT_D, DINT_F, WRL
+      real(rkind):: sum1, temp1, SRHODP, SRHODM, SRHOFP, SRHOFM
+      real(rkind):: WRH, DFDR_D, DFDR_F, F_R2, DFDR_R2, F_R1, DFDR_R1
+      REAL(rkind):: SHEAR,PNEL,RHONI,DPDR,DVEXBDR,CALF,CKAP,CEXB,FSZ,FEZ
       REAL(rkind),DIMENSION(1:NRMAX+1):: CHI_CDBM
-      REAL(rkind):: rgama, alpha
+      TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
+      double precision:: densm, densp, rgama, alpha
+      INTEGER:: ISW_D
 
 !---- Calculation of CDBM diffusion coefficient ----
 

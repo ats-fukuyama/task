@@ -3,7 +3,9 @@
 MODULE obparm
 
   PRIVATE
-  PUBLIC ob_parm,ob_view
+  PUBLIC ob_parm
+  PUBLIC ob_view
+  PUBLIC ob_broadcast
 
 CONTAINS
 
@@ -147,5 +149,72 @@ CONTAINS
 
     RETURN
   END SUBROUTINE ob_chek
+
+  !     ***** BROADCAST INPUT PARAMETERS *****
+
+  SUBROUTINE ob_broadcast
+
+    Use obcomm_parm
+    USE libmpi
+    USE libmtx
+    IMPLICIT NONE
+    INTEGER,DIMENSION(99):: idata
+    REAL(rkind),DIMENSION(99):: ddata
+    
+    idata( 1)=nobt_max
+    idata( 2)=nstp_max
+    idata( 3)=ns_ob
+    idata( 4)=lmax_nw
+    idata( 5)=mdlobp
+    idata( 6)=mdlobi
+    idata( 7)=mdlobq
+    idata( 8)=mdlobt
+    idata( 9)=mdlobc
+    idata(10)=mdlobw
+    idata(11)=mdlobg
+    idata(12)=mdlobx
+    idata(13)=nrmax_ob
+    idata(14)=nthmax_ob
+    idata(15)=nsumax_ob
+    CALL mtx_broadcast_integer(idata,15)
+    nobt_max=idata( 1)
+    nstp_max=idata( 2)
+    ns_ob=idata( 3)
+    lmax_nw=idata( 4)
+    mdlobp=idata( 5)
+    mdlobi=idata( 6)
+    mdlobq=idata( 7)
+    mdlobt=idata( 8)
+    mdlobc=idata( 9)
+    mdlobw=idata(10)
+    mdlobg=idata(11)
+    mdlobx=idata(12)
+    nrmax_ob=idata(13)
+    nthmax_ob=idata(14)
+    nsumax_ob=idata(15)
+
+    ddata(1)=tmax_ob
+    ddata(2)=delt_ob
+    ddata(3)=eps_ob
+    ddata(4)=del_ob
+    ddata(5)=eps_nw
+    CALL mtx_broadcast_real8(ddata, 5)
+    tmax_ob=ddata( 1)
+    delt_ob=ddata( 2)
+    eps_ob=ddata( 3)
+    del_ob=ddata( 4)
+    eps_nw=ddata( 5)
+
+    CALL mtx_broadcast_real8(penergy_ob_in,nobt_max)
+    CALL mtx_broadcast_real8(pcangle_ob_in,nobt_max)
+    CALL mtx_broadcast_real8(zeta_ob_in,nobt_max)
+    CALL mtx_broadcast_real8(psipn_ob_in,nobt_max)
+    CALL mtx_broadcast_real8(theta_ob_in,nobt_max)
+    CALL mtx_broadcast_real8(rr_ob_in,nobt_max)
+    CALL mtx_broadcast_real8(zz_ob_in,nobt_max)
+
+    RETURN
+  END SUBROUTINE ob_broadcast
+
 END MODULE obparm
 

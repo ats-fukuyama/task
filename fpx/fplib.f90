@@ -1,8 +1,12 @@
-MODULE fpsub
+! fplib.f90
+
+MODULE fplib
+
+  USE fpcomm,ONLY: rkind
 
   PRIVATE
-  PUBLIC fpbave_dpp   ! not used
-  PUBLIC fpbave_dth   ! not used
+!  PUBLIC fpbave_dpp
+!  PUBLIC fpbave_dth
   PUBLIC FPMXWL
   PUBLIC FPMXWL_S
   PUBLIC FPMXWL_EDGE
@@ -14,9 +18,9 @@ CONTAINS
 
   SUBROUTINE fpbave_dpp(DPP,NR,NSA,ID)
     USE fpcomm,ONLY: NTHMAX,NPSTART,NPENDWG,NRSTART,NRENDWM,NSAMAX, &
-                     RLAMDA,ITL,ITU,rkind
+                     RLAMDA,ITL,ITU
     IMPLICIT NONE
-    REAL(RKIND),INTENT(INOUT):: &
+    REAL(rkind),INTENT(INOUT):: &
          DPP(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX)
     INTEGER,INTENT(IN):: NR,NSA,ID  ! ID=0 for DPP,FPP, ID=1 for DPT
     INTEGER:: NP,NTH
@@ -56,9 +60,9 @@ CONTAINS
 
   SUBROUTINE fpbave_dth(DTH,NR,NSA,ID)
     USE fpcomm,ONLY: NTHMAX,NPSTARTW,NPENDWM,NRSTART,NRENDWM,NSAMAX, &
-                     ITL,rkind
+                     RLAMDA,ITL,ITU
     IMPLICIT NONE
-    REAL(RKIND),INTENT(INOUT):: &
+    REAL(rkind),INTENT(INOUT):: &
          DTH(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX)
     INTEGER,INTENT(IN):: NR,NSA,ID  ! ID=0 for DTT, ID=1 for DTP,FTH
     INTEGER:: NP,NTH
@@ -92,10 +96,10 @@ CONTAINS
       USE libbes
       implicit none
       integer :: NR, NS
-      REAL(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      REAL(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+      real(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      real(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
       TYPE(pl_prf_type),DIMENSION(NSMAX):: plf
-      REAL(rkind):: FPMXWL
+      real(rkind):: FPMXWL
 
       AMFDL=PA(NS)*AMP
       AEFDL=PZ(NS)*AEE
@@ -156,10 +160,10 @@ CONTAINS
       USE libbes
       implicit none
       integer :: NR, NS
-      REAL(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      REAL(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+      real(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      real(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
       TYPE(pl_prf_type),DIMENSION(NSMAX):: plf
-      REAL(rkind):: FPMXWL_S
+      real(rkind):: FPMXWL_S
 
       AMFDL=PA(NS)*AMP
       AEFDL=PZ(NS)*AEE
@@ -221,7 +225,9 @@ CONTAINS
 !      integer,intent(in):: NP, NSA
       integer:: NP, NSA
       integer:: NS
-      REAL(rkind):: FL
+      real(rkind):: FL1, FL2
+!      real(rkind),intent(out):: FL
+      real(rkind):: FL
 
       NS=NS_NSA(NSA)
 
@@ -243,10 +249,10 @@ CONTAINS
       USE libbes
       implicit none
       integer :: NR, NS
-      REAL(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      REAL(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+      real(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      real(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
       TYPE(pl_prf_type),DIMENSION(NSMAX):: plf
-      REAL(rkind):: FPMXWL_LT
+      real(rkind):: FPMXWL_LT
 
       AMFDL=PA(NS)*AMP
       AEFDL=PZ(NS)*AEE
@@ -298,7 +304,7 @@ CONTAINS
     USE fpreadeg
     IMPLICIT NONE
     INTEGER:: NS, NR, NP, NTH, NSB
-    REAL(rkind):: FL
+    double precision:: FL
 
       IF(MODEL_EX_READ_Tn.eq.0)THEN
          DO NSB=1, NSBMAX
@@ -330,14 +336,14 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-      Subroutine FPNEWTON(NSA,RNSL_,RWSL_,rtemp)
+      Subroutine FPNEWTON(NR,NSA,RNSL_,RWSL_,rtemp)
 
-      USE fpcomm,ONLY: NS_NSA,AMFP,THETA0,PTFP0,VC,AEE,rkind
+      USE fpcomm,ONLY: NS_NSA,AMFP,THETA0,PTFP0,VC,AEE
       USE libbes
       IMPLICIT NONE
-      INTEGER,INTENT(IN)::NSA
-      REAL(rkind),intent(in):: RNSL_, RWSL_ 
-      REAL(rkind),intent(out)::rtemp
+      INTEGER,INTENT(IN)::NR,NSA
+      double precision,intent(in):: RNSL_, RWSL_ 
+      double precision,intent(out)::rtemp
       integer:: ncount, NS
       REAL(rkind):: xeave
       REAL(rkind):: xtemp, thetal, EAVE
@@ -361,8 +367,7 @@ CONTAINS
 
       CONTAINS
 
-        SUBROUTINE xnewton(eave,thetal,ncount)
-          USE fpcomm,ONLY: rkind
+      SUBROUTINE xnewton(eave,thetal,ncount)
       IMPLICIT NONE
       REAL(rkind),intent(in):: eave
       REAL(rkind),intent(inout):: thetal
@@ -385,7 +390,6 @@ CONTAINS
       END SUBROUTINE xnewton
 
       FUNCTION rfunc(thetal)
-        USE fpcomm,ONLY: rkind
       IMPLICIT NONE
       REAL(rkind):: thetal,rfunc
       REAL(rkind):: z,dkbsl1,dkbsl2
@@ -397,7 +401,6 @@ CONTAINS
       END FUNCTION rfunc
 
       FUNCTION rfuncp(thetal)
-          USE fpcomm,ONLY: rkind
       IMPLICIT NONE
       REAL(rkind):: thetal,rfuncp
       REAL(rkind):: z,dkbsl1,dkbsl2
@@ -409,7 +412,6 @@ CONTAINS
       END FUNCTION rfuncp
       
       FUNCTION dfunc(thetal)
-          USE fpcomm,ONLY: rkind
       IMPLICIT NONE
       REAL(rkind):: thetal,dfunc
       REAL(rkind):: z,dkbsl0,dkbsl1,dkbsl2,dkbsl3
@@ -425,7 +427,6 @@ CONTAINS
       END FUNCTION dfunc
 
       FUNCTION dfuncp(thetal)
-          USE fpcomm,ONLY: rkind
       IMPLICIT NONE
       REAL(rkind):: thetal,dfuncp
       REAL(rkind):: z,dkbsl0,dkbsl1,dkbsl2,dkbsl3
@@ -442,4 +443,4 @@ CONTAINS
       
       end Subroutine FPNEWTON
 
-END MODULE fpsub
+    END MODULE fplib

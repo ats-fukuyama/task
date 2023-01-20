@@ -1,4 +1,4 @@
-!     $Id: fpprep.f90,v 1.41 2013/02/08 07:36:24 nuga Exp $
+! fpprep.f90
 
 ! *****************************
 !     PREPARATION OF FPLOOP
@@ -32,9 +32,9 @@
       Implicit none
       integer :: ierr,NSA,NS,NR,NP,NTH,id
 !      character(LEN=80)::line 
-      REAL(rkind)::rhon,rhol,rhol1,rhol2,A1,epsl,ql,BT
-      REAL(rkind),DIMENSION(:),POINTER:: work,workg
-      REAL(rkind):: Rmass, RRTFP, RPTFP,RVTFP, sumEmax
+      real(rkind)::rhon,rhol,rhol1,rhol2,A1,epsl,ql,BT
+      real(rkind),DIMENSION(:),POINTER:: work,workg
+      real(rkind):: Rmass, RRTFP, RPTFP,RVTFP, sumEmax
 
 !     ----- define upper boundary of p from Emax-----
       sumEmax=0.D0
@@ -500,9 +500,8 @@
 
       USE libmtx
       IMPLICIT NONE
-      INTEGER:: ierr,keys,N
-      INTEGER,DIMENSION(nsize):: &
-           ima1,ima2,npa1,npa2,nra1,nra2,nma1,nma2,insa1,insa2
+      INTEGER:: ierr, NREND1, keys,N
+      INTEGER,DIMENSION(nsize):: ima1,ima2,npa1,npa2,nra1,nra2,nma1,nma2,insa1,insa2
 
 !     ----- Check nsize -----
       IF(N_partition_s*N_partition_r*N_partition_p.ne.nsize)THEN
@@ -577,6 +576,12 @@
 
       nrstart=(imtxstart-1)/(nthmax*npmax)+1
       nrend=  (imtxend  -1)/(nthmax*npmax)+1
+      nrend1= (imtxend    )/(nthmax*npmax)+1
+!      IF(nrend1.EQ.nrend) THEN
+!         NRENDX=NREND-1
+!      ELSE
+!         NRENDX=NREND
+!      ENDIF
 
       NPSTART=( imtxstart-1- (nrstart-1)*nthmax*npmax )/nthmax +1
       NPEND  =( imtxend - (nrend-1)*nthmax*npmax )/nthmax
@@ -739,10 +744,10 @@
 !-------------------------------------------------------------
       SUBROUTINE FNSP_INIT
 
-        USE fpsub
+        USE fplib
       IMPLICIT NONE
-      INTEGER:: NTH,NP,NR,NSA,NS
-      REAL(RKIND):: FL
+      INTEGER:: NTH,NP,NR,NSA,NS,NSB
+      REAL(rkind):: FL
 
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
@@ -795,10 +800,10 @@
 !-------------------------------------------------------------
       SUBROUTINE FNSP_INIT_EDGE
 
-      USE fpsub
+      USE fplib
       IMPLICIT NONE
       INTEGER:: NTH,NP,NR,NSA,NS
-      REAL(RKIND):: FL
+      REAL(rkind):: FL
 
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
@@ -857,9 +862,9 @@
       IMPLICIT NONE
       INTEGER:: NSA, NSB, NS, NSFP, NSFD, NR, ISW_CLOG, i, j
       TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
-      REAL(rkind):: RTFD0L, RHON, RNE, RTE, RLNRL, FACT, RNA, RTA, RNB, RTB, SUM, AMFDL
-      REAL(rkind):: A_D, tau_se_E0, log_energy, sigma_cx0, sigma_cx, tau_cx_E1
-      REAL(rkind):: tau_se_E0E1, log10_neu0, log10_neus, alpha, beta, N_NEUT, E_CR
+      real(rkind):: RTFD0L, RHON, RNE, RTE, RLNRL, FACT, RNA, RTA, RNB, RTB, SUM, AMFDL
+      real(rkind):: A_D, tau_se_E0, k_energy, log_energy, sigma_cx0, sigma_cx, tau_cx_E1
+      real(rkind):: tau_se_E0E1, k_energy1, log10_neu0, log10_neus, alpha, beta, N_NEUT, E_CR
 
       DO NSA=1,NSAMAX
          NS=NS_NSA(NSA)
@@ -1123,9 +1128,9 @@
 
       IMPLICIT NONE
       INTEGER:: NR, NSA, NSFP, NSFD, NSB, ISW_CLOG
-      REAL(RKIND):: RTA,RTB,RNA,RNB, RLNRL, FACT,RNE
-      REAL(rkind),dimension(NSAMAX,NSBMAX):: CLOG
-      REAL(rkind):: VTFDL, PTFDL
+      DOUBLE PRECISION:: RTA,RTB,RNA,RNB, RLNRL, FACT,RNE
+      double precision,dimension(NSAMAX,NSBMAX):: CLOG
+      double precision:: VTFDL, PTFDL
 
       DO NR=NRSTART,NRENDWM
          ISW_CLOG=0 ! =0 Wesson, =1 NRL
@@ -1195,7 +1200,7 @@
       USE libmtx
       USE fpnflg
       IMPLICIT NONE
-      integer :: ierr,NSA,NR,NP,NTH
+      integer :: ierr,NSA,NR,NP,NTH,NSB
 
       IF(NRANK.eq.0) &
       WRITE(6,*) "----- SET COEFFICIENTS AND DISTRIBUTION FUNCTIONS -----"
@@ -1261,12 +1266,12 @@
       USE fpnfrr
       USE libmtx
       USE fpnflg
-      USE fpread
+      USE fpreadfit3d
       USE FPOUTDATA
 
       Implicit none
 
-      integer :: ierr,NSA,NS,NR,N,NSW,i,NSFP
+      integer :: ierr,NSA,NS,NR,N,NSW,i,NSFP,NSB
       real:: gut1, gut2, gut_prep
       REAL(rkind):: SIGMA
       REAL(rkind),dimension(:),allocatable:: conduct_temp, E1_temp
@@ -1427,9 +1432,6 @@
 
       IF(OUTPUT_TXT_DELTA_F.eq.1.and.NRANK.eq.0) CALL OUT_TXT_FNS_DEL
  
-      ierr_g=0  ! negative density check
-      N_f1=0    ! nt/ntg1step
-
       RETURN
       END subroutine fp_prep
 !-----

@@ -1,5 +1,5 @@
-!     $Id: fpcalwr.f90,v 1.7 2013/01/22 04:31:15 fukuyama Exp $
-!
+! fpcalwr.f90
+
 ! ************************************************************
 !
 !            CALCULATION OF DW (BOUNCE AVERAGED,RAY)
@@ -20,9 +20,9 @@
       USE fpwrin
       USE plprof,ONLY: pl_getRZ
       IMPLICIT NONE
-      INTEGER:: NSA, NP, NTH, NRDO, NR, NAV, NS
-      REAL(rkind):: FACT, DELH, ETAL
-      REAL(rkind):: RL,ZL,RXB,RYB,RZB,RRLB,RZLB
+      INTEGER:: NSA, NSBA, NITM, NP, NTH, NRDO, NR, NAV, NS
+      REAL(rkind):: FACT, DELH, ETAL, THETAL, RRAVE, RSAVE
+      REAL(rkind):: X,Y,Z,RL,ZL,RXB,RYB,RZB,RRLB,RZLB
       INTEGER:: NRAY,NIT,NITMX,MINNB1,MINNB2
       REAL(rkind):: DLAMN1,RXMIN1,RYMIN1,RZMIN1,RKXMN1,RKYMN1,RKZMN1,RBMIN1
       REAL(rkind):: DLAMN2,RXMIN2,RYMIN2,RZMIN2,RKXMN2,RKYMN2,RKZMN2,RBMIN2
@@ -32,7 +32,7 @@
       REAL(rkind):: RKX,RKY,RKZ,RADB,DELCR2,DELRB2,ARG
       REAL(rkind):: DWPPS,DWPTS,DWTPS,DWTTS
 
-      REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: DLA !(0:NITMAXM,NRAYMAX)
+      REAL(rkind),DIMENSION(:,:),POINTER:: DLA !(0:NITMAXM,NRAYMAX)
 
 ! =============  CALCULATION OF DWPP AND DWPT  ===============
 
@@ -388,7 +388,7 @@
       REAL(rkind),INTENT(IN):: ETA,RSIN,RCOS,P
       INTEGER,INTENT(IN):: NR,NTH,NSA
       REAL(rkind),INTENT(OUT):: DWPPS,DWPTS,DWTPS,DWTTS
-      REAL(rkind):: DELH,ETAL,RL,ZL
+      REAL(rkind):: DELH,ETAL,THETAL,RRAVE,RSAVE,X,Y,Z,RL,ZL
       REAL(rkind):: RX,RY,RZ,RLCR,ZLCR,DELR2,DELCR2,ARG,FACTOR
       REAL(rkind):: RKX,RKY,RKZ,DWPPL,DWPTL,DWTPL,DWTTL
       REAL(rkind):: PSIN,PCOS,PSI
@@ -423,7 +423,7 @@
 
                   IF(ARG.LT.15.D0) THEN
                      FACTOR=EXP(-ARG)
-                     CALL FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI)
+                     CALL FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI,NSA)
                      CEX=CECR(1,NCR,NR,NRAY)*FACTOR
                      CEY=CECR(2,NCR,NR,NRAY)*FACTOR
                      CEZ=CECR(3,NCR,NR,NRAY)*FACTOR
@@ -464,7 +464,7 @@
                ARG=ARGB(NR,NTH,NAV,NRAY)
                IF(ARG.GT.0.D0.AND.ARG.LT.15.D0) THEN
                   FACTOR= EXP(-ARG)
-                  CALL FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI)
+                  CALL FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI,NSA)
                   CEX=CEB(1,NR,NTH,NAV,NRAY)*FACTOR
                   CEY=CEB(2,NR,NTH,NAV,NRAY)*FACTOR
                   CEZ=CEB(3,NR,NTH,NAV,NRAY)*FACTOR
@@ -506,13 +506,13 @@
       REAL(rkind),INTENT(OUT):: DWPPL,DWPTL,DWTPL,DWTTL
       INTEGER,INTENT(IN):: NSA
       INTEGER:: NS,NHMAX,NC,NMI,NPI
-      REAL(rkind):: RW,RWC,RKPARA,RKPERP
+      REAL(rkind):: RHON,RW,RWC,RKPARA,RKPERP
       REAL(rkind):: U1X,U1Y,U1Z,U2X,U2Y,U2Z
       REAL(rkind):: RGAMMA,PPARA,PPERP,VPARA,VPERP
       REAL(rkind):: DWC11,DWC12,DWC21,DWC22,RKW,RGZAI
       REAL(rkind):: RJN,RJNM,RJNP,RTHETA2,A11,A12,A21,A22,DWC,EX
-      COMPLEX(rkind):: CE1,CE2,CEPARA,CEPLUS,CEMINUS,CTHETA
-      REAL(rkind),DIMENSION(:),ALLOCATABLE::  RJ,DRJ
+      COMPLEX(rkind):: CE1,CE2,CE3,CEPARA,CEPLUS,CEMINUS,CTHETA
+      REAL(rkind),DIMENSION(:),POINTER::  RJ,DRJ
       TYPE(pl_mag_type):: mag
 
       NS=NS_NSA(NSA)
@@ -594,12 +594,12 @@
             A12=0
             A21=0
             A22=RTHETA2*RKW**2/(AMFP(NSA)**2*RGAMMA**2)
-         ELSE
+	 ELSE
             A11=RTHETA2*(1.D0-RKW*VPARA)**2
             A12=RTHETA2*RKW*VPERP*(1.D0-RKW*VPARA)
             A21=RTHETA2*RKW*VPERP*(1.D0-RKW*VPARA)
             A22=RTHETA2*RKW**2*VPERP**2
-         ENDIF
+	 ENDIF        
          IF(VPARA.EQ.0.D0) THEN
             DWC=0.D0  
          ELSE
@@ -644,13 +644,13 @@
 !     Calculate PSIN, PCOS, PSI
 !***********************************************************************
 !
-      SUBROUTINE FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI)
+      SUBROUTINE FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI,NSA)
 !
       IMPLICIT NONE
-      INTEGER,INTENT(IN):: NR
-      REAL(RKIND),INTENT(IN):: ETAL,RSIN,RCOS
-      REAL(RKIND),INTENT(OUT):: PSIN,PCOS,PSI
-      REAL(RKIND):: ARG
+      INTEGER,INTENT(IN):: NR,NSA
+      REAL(rkind),INTENT(IN):: ETAL,RSIN,RCOS
+      REAL(rkind),INTENT(OUT):: PSIN,PCOS,PSI
+      REAL(rkind):: ARG
 
       IF(MODELA.EQ.0) THEN
          PSI=1.D0

@@ -1,5 +1,5 @@
-!     $Id: fpsave.f90,v 1.41 2013/02/08 07:36:24 nuga Exp $
-!
+! fpsave.f90
+
 ! *************************
 !     SAVE DATA ROUTINE
 ! *************************
@@ -19,7 +19,7 @@
       USE libmtx
       USE fpmpi
       IMPLICIT NONE
-      integer:: NR, NSA
+      integer:: NR, NSA, NS
 
       IF(ISAVE.NE.0) RETURN
 
@@ -63,7 +63,7 @@
 !
       SUBROUTINE FPSGLB
 !
-        USE fpsub
+        USE fplib
       IMPLICIT NONE
       integer:: NSA, NSB, NR
       REAL(rkind):: rtemp, rtemp2
@@ -127,7 +127,7 @@
             PPLT(NSA,NTG1)=PPLT(NSA,NTG1)+RPLS(NR,NSA)*VOLR(NR)
 
             IF(MODELR.eq.1) then
-               CALL FPNEWTON(NSA,RNS(NR,NSA),RWS(NR,NSA),rtemp)
+               CALL FPNEWTON(NR,NSA,RNS(NR,NSA),RWS(NR,NSA),rtemp)
             else
                rtemp=0.D0
                rtemp2=0.D0
@@ -167,7 +167,7 @@
 !
       SUBROUTINE FPSPRF
 !
-        USE fpsub
+        USE fplib
       IMPLICIT NONE
       integer:: NR, NSA, NSB
       REAL(rkind):: RS, rtemp
@@ -207,7 +207,7 @@
                   RTT(NR,NSA,NTG2) = RWS(NR,NSA)*1.D6 &
                        /(1.5D0*RNS(NR,NSA)*1.D20*AEE*1.D3)
                ELSEIF(MODELR.eq.1)THEN
-                  CALL FPNEWTON(NSA,RNS(NR,NSA),RWS(NR,NSA),rtemp)
+                  CALL FPNEWTON(NR,NSA,RNS(NR,NSA),RWS(NR,NSA),rtemp)
                   RTT(NR,NSA,NTG2) = rtemp
                END IF
             ELSE
@@ -237,7 +237,7 @@
       IMPLICIT NONE
       integer:: NSA, NSB
       REAL(rkind):: rtotalPW, rtotalPC,rtotalSP,rtotalPC2
-      REAL(rkind):: rtotalLH,rtotalFW,rtotalEC,rtotalWR,rtotalWM,rtotalIP
+      REAL(rkind):: rtotalDR,rtotalLH,rtotalFW,rtotalEC,rtotalWR,rtotalWM,rtotalIP
       character:: fmt0*50
 !
       WRITE(6,*)"--------------------------------------------"
@@ -307,7 +307,7 @@
   104 FORMAT('        ',2I2,' PCAB    =',10X,1P14E12.4)
   105 FORMAT('Total absorption power [MW]', 1PE12.4,'    WR:',1PE12.4,'    WM:',1PE12.4)
   115 FORMAT('   absorption power [MW] LH', 1PE12.4,'    FW:',1PE12.4,'    EC:',1PE12.4)
-! 106  FORMAT(F12.4, 8E12.4)
+ 106  FORMAT(F12.4, 8E12.4)
  107  FORMAT('total collision power  [MW]', 1PE12.4)
  108  FORMAT('        ',2I2,' PSPB/F/S/L/S+L=',4X,1P5E12.4) 
  109  FORMAT('total source power     [MW]', 1PE12.4)
@@ -319,9 +319,10 @@
 
       SUBROUTINE FPWRTPRF
 !
-        USE fpsub
+        USE fplib
       IMPLICIT NONE
       integer:: NSA, NR, NS
+      REAL(rkind):: rtemp
       character:: fmt0*50
 !
 !      WRITE(fmt0,'(a15)') '(2I3,1P20E13.4)'
@@ -370,11 +371,11 @@
            'NSA/NS',5X,'RM',10X,' n',8X,' T    ',6X, &
            ' j    ',5X,'PC     ',5X,'PE     ',5X,   &
            'n_b',9X,'PNBI',8X,'PDRP',8X,'TBULK' )
-!  107 FORMAT( &
-!           'NSA/NS',5X,'RM',10X,' n',8X,' T    ',6X, &
-!           ' j     ',5X,'PC     ',5X,'PC12     ',5X,  &
-!           'PC11   ',5X,'PE     ',5X,'E_ind    ',5X,  &
-!           'PE_IND ',4X,'PSIP   ',5X,'DPSIP ',5X,'SIGMA' )
+  107 FORMAT( &
+           'NSA/NS',5X,'RM',10X,' n',8X,' T    ',6X, &
+           ' j     ',5X,'PC     ',5X,'PC12     ',5X,  &
+           'PC11   ',5X,'PE     ',5X,'E_ind    ',5X,  &
+           'PE_IND ',4X,'PSIP   ',5X,'DPSIP ',5X,'SIGMA' )
   108 FORMAT( &
            'NSA/NS',5X,'RM',10X,' n',8X,' T    ',6X, &
            ' NBI   ',5X,'j_fp   ',5X,'E1    ',5X,  &
@@ -452,12 +453,12 @@
       USE fpmpi
       IMPLICIT NONE
       integer:: NR, NSA, NSB, NP, NSW, N
-      REAL(rkind),dimension(NRSTART:NREND,NSAMAX):: work
-      REAL(rkind),dimension(NRMAX,NSAMAX):: workg
-      REAL(rkind),dimension(NSAMAX):: temp_nsanr
-      REAL(rkind),dimension(NPMAX,NRSTART:NREND):: temp_npnr1
-      REAL(rkind),dimension(NPMAX,NRMAX):: temp_npnr2
-      REAL(rkind),dimension(NPMAX,NRMAX,NSASTART:NSAEND):: temp_npnr3
+      double precision,dimension(NRSTART:NREND,NSAMAX):: work
+      double precision,dimension(NRMAX,NSAMAX):: workg
+      double precision,dimension(NSAMAX):: temp_nsanr
+      double precision,dimension(NPMAX,NRSTART:NREND):: temp_npnr1
+      double precision,dimension(NPMAX,NRMAX):: temp_npnr2
+      double precision,dimension(NPMAX,NRMAX,NSASTART:NSAEND):: temp_npnr3
       integer,dimension(NSAMAX):: vloc
 
       CALL mtx_set_communicator(comm_nsanr) 
@@ -573,7 +574,7 @@
       USE fpmpi
       IMPLICIT NONE
       integer:: NTH, NP, NR, NSA, NS, N, NSW
-      REAL(rkind):: FACT, RSUM3_PARA, RSUM3_PERP
+      double precision:: FACT, RSUM3_PARA, RSUM3_PERP
 
       RNS_DELF_NSA(:,:)=0.D0
       RWS_DELF_PARA(:,:)=0.D0
@@ -658,7 +659,7 @@
       USE libmtx
       USE fpmpi
       IMPLICIT NONE
-      integer:: NSA, NSW, N
+      integer:: NSA, NSW, N,NR
 
       CALL mtx_set_communicator(comm_nsanr) 
       NSW=NSAEND-NSASTART+1
@@ -687,7 +688,7 @@
       integer:: NR, NSA, NS
       REAL(rkind):: rhon
       TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
-      REAL(rkind),dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in):: recv
+      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in):: recv
 
       CALL mtx_reset_communicator
       DO NSA=NSASTART,NSAEND
@@ -735,11 +736,11 @@
 !==============================================================
       SUBROUTINE BULK_TEMPERATURE(NPB,NR,NSA)
 
-        USE fpsub
+        USE fplib
       USE fpmpi
       IMPLICIT NONE
       INTEGER,intent(in):: NPB, NR, NSA
-!      REAL(RKIND),INTENT(OUT):: RTL
+!      REAL(rkind),INTENT(OUT):: RTL
       integer:: ISW_BULK, NP, NTH, NS
       REAL(rkind):: RSUM_T, RSUM_V, PV, DFDP, WPL, FFP, RSUMN, RSUMW, FACT
       REAL(rkind),dimension(NTHMAX,NPMAX):: T_BULK
@@ -897,7 +898,7 @@
                RTL_BULK(NR,NSA) = RWL_BULK*1.D6 &
                     /(1.5D0*RNL_BULK*1.D20*AEE*1.D3)
             ELSEIF(MODELR.eq.1)THEN
-               CALL FPNEWTON(NSA,RNL_BULK,RWL_BULK,rtemp)
+               CALL FPNEWTON(NR,NSA,RNL_BULK,RWL_BULK,rtemp)
                RTL_BULK(NR,NSA) = rtemp
             END IF
          END IF
@@ -917,7 +918,7 @@
 
       IMPLICIT NONE
       integer:: NP, NR, NSA, NS
-      REAL(rkind):: pmax_bulk, p_bulk_r, rhon, RTFPL
+      double precision:: pmax_bulk, p_bulk_r, rhon, RTFPL
       TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
 
 !     DEFINE BULK MOMENTUM RANGE: 0 < NP < NP_BULK(NR,NSA) 
@@ -969,9 +970,9 @@
       USE fpmpi
       IMPLICIT NONE
       INTEGER:: NP, NTH, NR, NSA, NS
-      REAL(rkind):: RSUM1, FACT
-      REAL(rkind),dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in)::SEND
-      REAL(rkind),dimension(NRSTART:NREND,NSAMAX),intent(out):: RECV
+      double precision:: RSUM1, FACT
+      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in)::SEND
+      double precision,dimension(NRSTART:NREND,NSAMAX),intent(out):: RECV
 
       CALL mtx_set_communicator(comm_np)
 
@@ -1012,9 +1013,9 @@
       USE fpmpi
       IMPLICIT NONE
       INTEGER:: NP, NTH, NR, NSA, NS
-      REAL(rkind):: FACT, RSUM2, PV
-      REAL(rkind),dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in)::SEND
-      REAL(rkind),dimension(NRSTART:NREND,NSAMAX),intent(out):: RECV
+      double precision:: FACT, RSUM2, PV
+      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in)::SEND
+      double precision,dimension(NRSTART:NREND,NSAMAX),intent(out):: RECV
 
       CALL mtx_set_communicator(comm_np) 
 
@@ -1087,9 +1088,9 @@
       USE fpmpi
       IMPLICIT NONE
       INTEGER:: NP, NTH, NR, NSA, NS
-      REAL(rkind):: FACT, RSUM3, PV
-      REAL(rkind),dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in)::SEND
-      REAL(rkind),dimension(NRSTART:NREND,NSAMAX),intent(out):: RECV
+      double precision:: FACT, RSUM3, PV
+      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in)::SEND
+      double precision,dimension(NRSTART:NREND,NSAMAX),intent(out):: RECV
 
       CALL mtx_set_communicator(comm_np) 
 
@@ -1154,11 +1155,11 @@
       USE fpmpi
       IMPLICIT NONE
       INTEGER:: NP, NTH, NR, NSA, NS, NPS, NSB
-      REAL(rkind):: FACT, DFP, DFT, FFP
-      REAL(rkind),dimension(NTHMAX,NPSTART:NPENDWG,NRSTART:NRENDWM,NSAMAX):: no_coef
-      REAL(rkind):: RSUM1, RSUM2, RSUM3, RSUM4, RSUM5, RSUM6, RSUM8, RSUM9, RSUM10
-      REAL(rkind),dimension(NSBMAX):: RSUM11, RSUM12
-      REAL(rkind):: RSUM_WR, RSUM_WM
+      double precision:: FACT, DFP, DFT, FFP
+      double precision,dimension(NTHMAX,NPSTART:NPENDWG,NRSTART:NRENDWM,NSAMAX):: no_coef
+      double precision:: RSUM1, RSUM2, RSUM3, RSUM4, RSUM5, RSUM6, RSUM8, RSUM9, RSUM10
+      double precision,dimension(NSBMAX):: RSUM11, RSUM12
+      double precision:: RSUM_WR, RSUM_WM
 
       no_coef(:,:,:,:)=0.D0
       CALL mtx_set_communicator(comm_np)
@@ -1269,9 +1270,9 @@
       IMPLICIT NONE
       integer,intent(in):: NTH,NP,NR,NSA
       integer:: NS
-      REAL(rkind),dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in)::SEND
-      REAL(rkind),intent(out):: DFP, DFT, FFP
-      REAL(rkind):: WPP, WPM, WPL
+      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in)::SEND
+      double precision,intent(out):: DFP, DFT, FFP
+      double precision:: WPP, WPM, WPL
 
       NS=NS_NSA(NSA)
 
@@ -1329,10 +1330,10 @@
       IMPLICIT NONE
       integer,intent(in):: NTH,NP,NR,NSA 
       integer:: NS
-      REAL(rkind),intent(in):: DFP,DFT,FFP      
-      REAL(rkind),dimension(NTHMAX,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX),intent(in)::DIFPP, DIFPT, FRICP
-      REAL(rkind),intent(inout):: RSUM
-      REAL(rkind):: PV
+      double precision,intent(in):: DFP,DFT,FFP      
+      double precision,dimension(NTHMAX,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX),intent(in)::DIFPP, DIFPT, FRICP
+      double precision,intent(inout):: RSUM
+      double precision:: PV
 
       NS=NS_NSA(NSA)
       PV=SQRT(1.D0+THETA0(NS)*PG(NP,NS)**2)
@@ -1349,10 +1350,10 @@
       IMPLICIT NONE
       integer,intent(in):: NTH,NP,NR,NSA,NSB
       integer:: NS
-      REAL(rkind),intent(in):: DFP,DFT,FFP      
-      REAL(rkind),dimension(NTHMAX,NPSTART :NPENDWG,NRSTART:NRENDWM,NSBMAX,NSAMAX),intent(in)::DIFPP, DIFPT, FRICP
-      REAL(rkind),dimension(NSBMAX),intent(inout):: RSUM
-      REAL(rkind):: PV
+      double precision,intent(in):: DFP,DFT,FFP      
+      double precision,dimension(NTHMAX,NPSTART :NPENDWG,NRSTART:NRENDWM,NSBMAX,NSAMAX),intent(in)::DIFPP, DIFPT, FRICP
+      double precision,dimension(NSBMAX),intent(inout):: RSUM
+      double precision:: PV
 
       NS=NS_NSA(NSA)
       PV=SQRT(1.D0+THETA0(NS)*PG(NP,NS)**2)
@@ -1370,7 +1371,7 @@
       USE libmpi
       IMPLICIT NONE
       INTEGER:: NTH, NP, NR, NSA, NS
-      REAL(rkind):: FACT, RSUM11B, RSUM11F, RSUM11S, RSUM11L, RSUM11S_CX, PV
+      double precision:: FACT, RSUM11B, RSUM11F, RSUM11S, RSUM11L, RSUM11S_CX, PV
 
       CALL mtx_set_communicator(comm_np)
       DO NR=NRSTART,NREND

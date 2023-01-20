@@ -814,6 +814,7 @@
       INTEGER:: NTH,NP,NR,NSA,NS
       REAL(rkind):: FL
 
+      WRITE(6,*) '@@@ point 001'
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
          NR=NRMAX+1
@@ -826,6 +827,7 @@
       END DO
 !     ----- set boundary distribution functions -----
       
+      WRITE(6,*) '@@@ point 002'
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
          DO NP=NPSTARTW,NPENDWM
@@ -837,6 +839,7 @@
       END DO
 
       IF(MODELD_boundary.eq.0)THEN
+      WRITE(6,*) '@@@ point 003'
          DO NSA=NSASTART,NSAEND
             NS=NS_NSA(NSA)
             DO NP=NPSTARTW,NPENDWM
@@ -848,6 +851,7 @@
             ENDDO
          ENDDO
       ELSEIF(MODELD_boundary.eq.1)THEN
+      WRITE(6,*) '@@@ point 004'
          IF(NREND.eq.NRMAX)THEN
             DO NSA=NSASTART,NSAEND
                NS=NS_NSA(NSA)

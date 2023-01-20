@@ -1,4 +1,4 @@
-!     $Id: fpcalcn.f90,v 1.21 2013/02/08 07:36:24 nuga Exp $
+! fpcalcn.f90
 !
 ! ************************************************************
 !
@@ -30,19 +30,26 @@
       REAL(rkind),DIMENSION(NPSTART:NPEND):: FPLL 
       REAL(rkind),DIMENSION(NPMAX):: FPL_recv
       REAL(rkind),DIMENSION(NPMAX+3,-1:LNM):: FPL
+      double precision,dimension(-1:LNM):: FPLS1
+      double precision:: FPLS1_temp
+!      REAL(rkind),DIMENSION(NPMAX+3,-1:LNM):: RM1M, RM2M, RM3M, RM4M
+!      REAL(rkind),DIMENSION(NPMAX+3,-1:LNM):: RM1G, RM2G, RM3G, RM4G
       REAL(rkind),DIMENSION(NPSTARTW:NPENDWM,-1:LNM):: RM1M, RM2M, RM3M, RM4M
       REAL(rkind),DIMENSION(NPSTART :NPENDWG,-1:LNM):: RM1G, RM2G, RM3G, RM4G
       REAL(rkind),DIMENSION(NTHMAX+3):: TX,TY,DF
       REAL(rkind),dimension(4,NTHMAX+3):: UTY
       REAL(rkind),DIMENSION(NTHMAX+3):: UTY0
+      REAL(rkind),DIMENSION(NPMAX+3):: TX1, TY1, DF1
+      REAL(rkind),dimension(4,NPMAX+3):: UTY1
+      REAL(rkind),DIMENSION(NPMAX+3):: UTY10
       REAL(rkind),DIMENSION(NPMAX+3,-1:LNM):: PHYM, PSYM, D1PSYM
       REAL(rkind),DIMENSION(NPMAX+3,-1:LNM):: PSYG, D1PHYG, D1PSYG, D2PSYG
 
-      integer:: NR, NSB, NSA, NTH, L, NP, NPS, NSSA, NSSB
+      integer:: NR, NSB, NSA, NTH, L, NP, NNP, NPG, NPS, NSSA, NSSB
       integer:: N,M
       REAL(rkind):: RGAMH, FACT, WA, WC, WB, WD, WE, WF
-      REAL(rkind):: SUM1
-      REAL(rkind):: RGAMA, vtatb, pabbar, pabar, pbbar, pgbar, pmbar
+      REAL(rkind):: SUM1, PSUM, SUM2, SUM3, SUM4, SUM5, SUM6, SUM7, SUM8, SUM9
+      REAL(rkind):: RGAMA, RGAMB, vtatb, pabbar, ptatb, PCRIT, pabar, pbbar, pgbar, pmbar
       integer:: LLMIN, IER
 
 !      N=NPMAX+2
@@ -439,11 +446,12 @@
       REAL(rkind),DIMENSION(NPMAX+3):: TX1, TY1, DF1, UTY10
       REAL(rkind),dimension(4,NPMAX+3):: UTY1
 
-      integer:: NR, NSB, NSA, L,  NP, NNP, NPG, NSSA, NSSB
-      REAL(rkind):: RGAMH
-      REAL(rkind):: PSUM, SUM2, SUM3, SUM4, SUM5, SUM6, SUM7, SUM8, SUM9
-      REAL(rkind):: RGAMA, RGAMB, vtatb, pabbar, ptatb, PCRIT
-      integer:: IER
+      integer:: NR, NSB, NSA, NTH, L,  NP, NNP, NPG, NSSA, NSSB
+      integer:: N,M
+      REAL(rkind):: RGAMH, FACT, WA, WC, WB, WD, WE, WF
+      REAL(rkind):: SUM1, PSUM, SUM2, SUM3, SUM4, SUM5, SUM6, SUM7, SUM8, SUM9
+      REAL(rkind):: RGAMA, RGAMB, vtatb, pabbar, ptatb, PCRIT, pabar, pbbar, pgbar, pmbar
+      integer:: LLMIN, IER
 
 !
 !     ----- definition of local quantities -----
@@ -661,7 +669,7 @@
 !      REAL(rkind),DIMENSION(0:LNM):: PLTEMP
       REAL(rkind),DIMENSION(NPMAX+3,-1:LNM), INTENT(IN):: FPL
       REAL(rkind),DIMENSION(NPMAX+3,-1:LNM):: FPL0
-!      REAL(rkind),dimension(-1:LNM),intent(in):: FPLS1
+!      double precision,dimension(-1:LNM),intent(in):: FPLS1
 !      REAL(rkind),DIMENSION(NPMAX+3,-1:LNM), INTENT(OUT):: RM1M, RM2M, RM3M, RM4M
 !      REAL(rkind),DIMENSION(NPMAX+3,-1:LNM), INTENT(OUT):: RM1G, RM2G, RM3G, RM4G
       REAL(rkind),DIMENSION(NPSTARTW:NPENDWM,-1:LNM), INTENT(OUT):: RM1M, RM2M, RM3M, RM4M
@@ -669,12 +677,13 @@
       REAL(rkind),DIMENSION(2*NPMAX+3):: TX1, TY1, DF1, UTY10
       REAL(rkind),dimension(4,2*NPMAX+3):: UTY1
 
-      integer:: NR, NSB, NSA, L,  NP, NNP, NPG, NSSA, NSSB
-      REAL(rkind):: RGAMH
-      REAL(rkind):: PSUM, SUM2, SUM3, SUM4, SUM5, SUM6, SUM7, SUM8, SUM9
-      REAL(rkind):: RGAMA, RGAMB, vtatb, pabbar, ptatb, PCRIT
+      integer:: NR, NSB, NSA, NTH, L,  NP, NNP, NPG, NSSA, NSSB
+      integer:: N,M
+      REAL(rkind):: RGAMH, FACT, WA, WC, WB, WD, WE, WF
+      REAL(rkind):: SUM1, PSUM, SUM2, SUM3, SUM4, SUM5, SUM6, SUM7, SUM8, SUM9
+      REAL(rkind):: RGAMA, RGAMB, vtatb, pabbar, ptatb, PCRIT, pabar, pbbar, pgbar, pmbar
       REAL(rkind):: testP, testF
-      integer:: IER, NPF
+      integer:: LLMIN, IER, NPF
 
 !
 !     ----- definition of local quantities -----
@@ -958,10 +967,10 @@
       USE libbes,ONLY: beseknx 
       implicit none
       integer :: NR, NS
-      REAL(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      REAL(rkind) :: rnfdl,rtfdl,fact,ex
+      real(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      real(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
       TYPE(pl_prf_type),DIMENSION(NSMAX):: plf
-      REAL(rkind):: FPMXWL_calcn
+      real(rkind):: FPMXWL_calcn
 
       AMFDL=PA(NS)*AMP
       AEFDL=PZ(NS)*AEE

@@ -1,13 +1,11 @@
 module fowsource
-  USE fpcomm,ONLY: rkind
-  
   private
   public :: fow_calculate_source
 
   type beam_quantities
     logical :: isLoss
     integer :: ns, np_near
-    REAL(rkind) :: p, rhomw, thetamw, rhom, thetam, total
+    double precision :: p, rhomw, thetamw, rhom, thetam, total
   end type beam_quantities
 
 contains
@@ -76,7 +74,7 @@ contains
     type(beam_quantities),intent(in) :: beam
     real(rkind) :: ex_thm, ex_rm, fact_thm, fact_rm
     real(rkind) :: n_total, normalize, dV
-    integer :: nth, np, nr
+    integer :: nth, np, nr, nsa
 
 
     if ( PMAX(beam%ns) < beam%p ) then
@@ -104,8 +102,8 @@ contains
             ex_rm = -(rm(nr)-beam%rhom)**2/beam%rhomw**2
             fact_rm = EXP( ex_rm ) / SQRT( pi*beam%rhomw**2 )
 
-            if ( thetamg(nth,np,nr,beam%ns) <= beam%thetam &
-                .and. beam%thetam <= thetamg(nth+1,np,nr,beam%ns) ) then
+            if ( thetam_tg(nth,np,nr,beam%ns) <= beam%thetam &
+                .and. beam%thetam <= thetam_tg(nth+1,np,nr,beam%ns) ) then
               fact_thm = 1.d0
             else
               ex_thm = -(thetam(nth,np,nr,beam%ns)-beam%thetam)**2/beam%thetamw**2
@@ -114,7 +112,7 @@ contains
 
             S_beam(nth,np,nr) = fact_rm * fact_thm
 
-            dV = delthm(nth,np,nr,beam%ns)*delp(beam%ns)*JIR(nth,np,nr,beam%ns)
+            dV = delthm(nth,np,nr,beam%ns)*delp(beam%ns)*JI(nth,np,nr,beam%ns)
 
             n_total = n_total + S_beam(nth,np,nr)*dV*volr(nr)
 
@@ -155,7 +153,7 @@ contains
     real(rkind) :: dBdr_b, dBdthp_b, dFdr_b, dpsipdr_b, B_b, F_b, psip_b
     real(rkind) :: thetam_b, rhom_b, cthm, sthm, dBmdrl, dFmdrl, Bml, Fml, dpsimdrl, pl
     real(rkind) :: dthmdr, dthmdthp, drmdr, drmdthp
-    real(rkind) :: A(2,2), b(2), detA
+    real(rkind) :: A(2,2), b(2), detA, THPW
     integer :: np, ierr
 
     ierr = 0

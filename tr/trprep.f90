@@ -58,6 +58,8 @@ CONTAINS
       NGST  = 0
       RIP   = RIPS
 
+      icount_of_pellet=0
+
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
       ENDIF

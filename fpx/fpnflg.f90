@@ -1,4 +1,4 @@
-!
+! fpnflg.f90
 
 ! ***********************************************************
 !       Nuclear Fusion Reaction Rate with Legendre Expansion
@@ -22,7 +22,7 @@
       USE fpcomm
 
       INTEGER::NTH, IERR, L
-      REAL(RKIND),DIMENSION(0:LLMAX_NF):: PL
+      REAL(rkind),DIMENSION(0:LLMAX_NF):: PL
 
       !     ---- legendre polynomials
       DO NTH=1,NTHMAX
@@ -40,13 +40,13 @@
       USE libmpi
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR,ID
-      INTEGER:: L, K, NSB1, NSB2, NSA1, NSA2, NP1, NP2, NTH, VLOC
-      REAL(RKIND):: RSUM, FACT, RSUM2, FACT1, FACT2
-      REAL(RKIND):: RSUM_SUM, double_count, RSUM_B
-      REAL(RKIND),DIMENSION(0:LLMAX_NF,NPSTART:NPEND):: F_LG1, F_LG2, R_1
-      REAL(RKIND),DIMENSION(0:LLMAX_NF,NPMAX):: F_LG2_ALL, R_2
-      REAL(RKIND),DIMENSION(NTHMAX,NPMAX):: FNSB_B2_VOLP
-      REAL(RKIND),DIMENSION(NTHMAX,NPSTART:NPEND):: FNSB_temp
+      INTEGER:: L, K, L2, NSB1, NSB2, NSA1, NSA2, NP1, NP2, NTH, VLOC
+      REAL(rkind):: RSUM, FACT, RSUM2, FACT1, FACT2
+      REAL(rkind):: RSUM_SUM, double_count, RSUM_B
+      REAL(rkind),DIMENSION(0:LLMAX_NF,NPSTART:NPEND):: F_LG1, F_LG2, R_1
+      REAL(rkind),DIMENSION(0:LLMAX_NF,NPMAX):: F_LG2_ALL, R_2
+      REAL(rkind),DIMENSION(NTHMAX,NPMAX):: FNSB_B2_VOLP
+      REAL(rkind),DIMENSION(NTHMAX,NPSTART:NPEND):: FNSB_temp
 
       NSB1=NSB1_NF(ID)
       NSB2=NSB2_NF(ID)

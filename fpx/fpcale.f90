@@ -1,4 +1,5 @@
-!
+! fpcale.f90
+
 ! *************************
 !     SAVE DATA ROUTINE
 ! *************************
@@ -150,7 +151,7 @@
          CALL mtx_set_source(NR,RHS)
       END DO
 !---- SOLVE
-      CALL mtx_solve(MODEL_MTX,epsm,its,MODEL_KSP,MODEL_PC) 
+      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) 
       CALL mtx_gather_vector(E1)
       CALL mtx_cleanup
       CALL mtx_reset_communicator
@@ -271,7 +272,7 @@
          CALL mtx_set_source(NR,RHS)
       END DO
 !---- SOLVE
-      CALL mtx_solve(MODEL_MTX,epsm,its,MODEL_KSP,MODEL_PC) 
+      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) 
 !      IF(NRANK.eq.0) write(6,*) 'E_IND_EVOL, Number of iterations    =',its
       CALL mtx_gather_vector(E1)
       CALL mtx_cleanup
@@ -363,7 +364,7 @@
          CALL mtx_set_source(NR,RHS)
       END DO
 !---- SOLVE
-      CALL mtx_solve(MODEL_MTX,epsm,its,MODEL_KSP,MODEL_PC) 
+      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) 
 !      IF(NRANK.eq.0) write(6,*) 'E_IND_EVOL, Number of iterations    =',its
       CALL mtx_gather_vector(E1)
       CALL mtx_cleanup
@@ -381,8 +382,8 @@
       IMPLICIT NONE
       integer:: NR
       integer:: imtxstart1,imtxend1,its
-      REAL(rkind):: Aij, Aij_p1, RHS, b_wall, E_e, a_e, coef_ln
-      REAL(rkind):: SUMB_pol_p, SUMB_POL_M, SUM_PSI_P, SUM_PSI_M 
+      REAL(rkind):: Aij, Aij_m1, Aij_p1, RHS, b_wall, E_e, a_e, coef_ln
+      REAL(rkind):: RJ_P, SUMB_pol_p, SUMB_POL_M, SUM_PSI_P, SUM_PSI_M 
       REAL(rkind),dimension(NRMAX):: RB_pol_P, RB_pol_M
       REAL(rkind):: RPSI_POL_P, RPSI_POL_M
 
@@ -445,7 +446,7 @@
          CALL mtx_set_source(NR,RHS)
       END DO
 !---- SOLVE
-      CALL mtx_solve(MODEL_MTX,epsm,its,MODEL_KSP,MODEL_PC) 
+      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) 
 !      IF(NRANK.eq.0) write(6,*) 'E_IND_EVOL, Number of iterations    =',its
       CALL mtx_gather_vector(E1)
       CALL mtx_cleanup
@@ -463,7 +464,7 @@
       REAL(rkind),dimension(NRMAX),intent(out):: dndt
       integer:: imtxstart1,imtxend1,its
       REAL(rkind):: Dr_coef, factp, factr
-      REAL(rkind):: Aij, Aij_m1, Aij_p1, RHS
+      REAL(rkind):: Aij, Aij_m1, Aij_p1, RHS, b_wall, E_e, a_e, coef_ln
       REAL(rkind),dimension(NRMAX):: RN_new
       REAL(rkind):: sum1, sum2
 
@@ -503,7 +504,7 @@
          CALL mtx_set_source(NR,RHS)
       END DO
 !---- SOLVE
-      CALL mtx_solve(MODEL_MTX,epsm,its,MODEL_KSP,MODEL_PC) 
+      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) 
       CALL mtx_gather_vector(RN_new)
       CALL mtx_cleanup
       CALL mtx_reset_communicator
@@ -528,8 +529,8 @@
       USE libmpi
       IMPLICIT NONE
       INTEGER:: i,j
-      REAL(rkind):: time_read
-      REAL(rkind),dimension(NRMAX):: read_E
+      double precision:: time_read
+      double precision,dimension(NRMAX):: read_E
 
       CALL mtx_reset_communicator
 

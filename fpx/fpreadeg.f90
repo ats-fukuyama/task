@@ -1,6 +1,7 @@
-! fpreadeg
+! fpreadeg.f90
 
-MODULE fpreadeg
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      MODULE fpreadeg
 
       USE fpcomm
 
@@ -9,14 +10,14 @@ MODULE fpreadeg
       PUBLIC FPMXWL_EXP
       
       PRIVATE
-!      REAL(rkind),dimension(:,:),ALLOCATABLE:: read_tms_double, read_cx_double
-!      integer,dimension(:,:),ALLOCATABLE:: read_tms_int
-!      REAL(rkind),dimension(5):: cte_fit
-!      REAL(rkind),dimension(6):: cne_fit
+!      double precision,dimension(:,:),pointer:: read_tms_double, read_cx_double
+!      integer,dimension(:,:),pointer:: read_tms_int
+!      double precision,dimension(5):: cte_fit
+!      double precision,dimension(6):: cne_fit
 !      integer:: nend_tms, nend_cx
 !      integer,parameter:: NRMAX=32
-!      REAL(rkind),dimension(32):: RM
-!      REAL(rkind),dimension(32):: RNE_EXP, RTE_EXP
+!      double precision,dimension(32):: RM
+!      double precision,dimension(32):: RNE_EXP, RTE_EXP
 
       contains
 !-----------------------------------
@@ -32,8 +33,8 @@ MODULE fpreadeg
       SUBROUTINE MAKE_EXP_PROF(time) ! RNE_EXP and RTE_EXP are updated
 
       IMPLICIT NONE
-      REAL(rkind),intent(in):: time
-      REAL(rkind):: weight
+      double precision,intent(in):: time
+      double precision:: weight
       integer:: ntime1, NS, NR, NSA
 
       IF(MODEL_EX_READ_Tn.ne.0)THEN
@@ -99,11 +100,8 @@ MODULE fpreadeg
 
       IMPLICIT NONE
       integer:: i,j,k,m,nend1
-!      REAL(rkind),dimension(27,1000):: read_temporary_double
-      REAL(rkind),allocatable:: read_temporary_double(:,:)
+      double precision,dimension(27,1000):: read_temporary_double
       integer,dimension(2,1000):: read_temporary_int
-
-      ALLOCATE(read_temporary_double(27,1000))
 
 !      open(22,file='./dat/tswpe@119489.dat',status='old')
       open(22,file=EG_NAME_TMS,status='old')
@@ -147,12 +145,9 @@ MODULE fpreadeg
 
       IMPLICIT NONE
       integer:: i,j,nend2, k
-!      REAL(rkind),dimension(34,1000):: read_cx_temp, read_cx_temp2
-      REAL(rkind),allocatable:: read_cx_temp(:,:), read_cx_temp2(:,:)
+      double precision,dimension(34,1000):: read_cx_temp, read_cx_temp2
 
-      ALLOCATE(read_cx_temp(34,1000), read_cx_temp2(34,1000))
-
-      !      open(22,file='./dat/cxswpi7@119489.dat',status='old')
+!      open(22,file='./dat/cxswpi7@119489.dat',status='old')
       open(22,file=EG_NAME_CX,status='old')
 
       DO i=1,21
@@ -201,11 +196,11 @@ MODULE fpreadeg
 
       IMPLICIT NONE
       integer,intent(in):: ntime1
-      REAL(rkind),intent(in):: weight
+      double precision,intent(in):: weight
       integer:: i,j,k
       integer:: NR
-      REAL(rkind):: rte_ex, rne_ex, rho
-      REAL(rkind),dimension(NRMAX,2):: prof_ne_temp, prof_te_temp
+      double precision:: rte_ex, rne_ex, rho
+      double precision,dimension(NRMAX,2):: prof_ne_temp, prof_te_temp
       
       DO k=1, 2
          i=k-1+ntime1
@@ -273,11 +268,11 @@ MODULE fpreadeg
 
       IMPLICIT NONE
       integer,intent(in):: ntime1
-      REAL(rkind),intent(in):: weight
+      double precision,intent(in):: weight
       integer:: i,j,k
       integer:: NR
-      REAL(rkind):: rti_ex, rho
-      REAL(rkind),dimension(NRMAX,2):: prof_ti_temp
+      double precision:: rti_ex, rho
+      double precision,dimension(NRMAX,2):: prof_ti_temp
       
       DO k=1, 2
          i=k-1+ntime1
@@ -329,11 +324,11 @@ MODULE fpreadeg
       SUBROUTINE time_interpolation_cx(time, ntime1, weight)
 
       IMPLICIT NONE
-      REAL(rkind), intent(in):: time
+      double precision, intent(in):: time
       integer,intent(out):: ntime1
       integer:: ntime2
-      REAL(rkind),intent(out):: weight ! y=(1-alpha)*y1 + alpha*y2
-      REAL(rkind):: time_exp
+      double precision,intent(out):: weight ! y=(1-alpha)*y1 + alpha*y2
+      double precision:: time_exp
       integer:: i
 
       time_exp= time + time_exp_offset
@@ -369,11 +364,11 @@ MODULE fpreadeg
       SUBROUTINE time_interpolation_tms(time, ntime1, weight)
 
       IMPLICIT NONE
-      REAL(rkind), intent(in):: time
+      double precision, intent(in):: time
       integer,intent(out):: ntime1
       integer:: ntime2
-      REAL(rkind),intent(out):: weight ! y=(1-alpha)*y1 + alpha*y2
-      REAL(rkind):: time_exp
+      double precision,intent(out):: weight ! y=(1-alpha)*y1 + alpha*y2
+      double precision:: time_exp
       integer:: i
 
       time_exp= time + time_exp_offset
@@ -404,10 +399,10 @@ MODULE fpreadeg
       USE libbes,ONLY: beseknx 
       implicit none
       integer :: NR, NS
-      REAL(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      REAL(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+      real(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      real(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
       TYPE(pl_prf_type),DIMENSION(NSMAX):: plf
-      REAL(rkind):: FPMXWL_EXP
+      real(rkind):: FPMXWL_EXP
 
       AMFDL=PA(NS)*AMP
       AEFDL=PZ(NS)*AEE
@@ -450,7 +445,7 @@ MODULE fpreadeg
       END IF
 
       RETURN
-    END FUNCTION FPMXWL_EXP
-
-  END MODULE fpreadeg
-    
+      END FUNCTION FPMXWL_EXP
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      END MODULE fpreadeg
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

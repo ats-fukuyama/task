@@ -1,11 +1,11 @@
-!     $Id: fpcalcnr.f90,v 1.22 2013/02/08 07:36:24 nuga Exp $
-!
+! fpcalcnr.f90
+
 ! ************************************************************
 !
 !      CALCULATION OF NONLINEAR-RELAIVISTIC COLLISIONAL OPERATOR
 !
 ! ************************************************************
-!
+
       MODULE fpcalcnr
 
       USE fpcomm
@@ -32,13 +32,15 @@
       REAL(rkind),DIMENSION(NPSTART:NPEND):: FPLL
       REAL(rkind),DIMENSION(NPMAX):: FPL_recv
       REAL(rkind),DIMENSION(NPMAX,-1:LNM):: FPL
-      REAL(rkind),dimension(-1:LNM):: FPLS1
-      REAL(rkind):: FPLS1_temp
+      double precision,dimension(-1:LNM):: FPLS1
+      double precision:: FPLS1_temp
       integer:: NPS
 
       REAL(rkind),DIMENSION(NTHMAX+3):: TX,TY,DF
       REAL(rkind),DIMENSION(4,NTHMAX+3):: UTY
       REAL(rkind),dimension(NTHMAX+3)::UTY0
+      REAL(rkind),DIMENSION(NPMAX+3):: TX1,TY1,DF1,UTY10
+      REAL(rkind),DIMENSION(4,NPMAX+3):: UTY1
 
 !!      REAL(rkind),DIMENSION(-2:LLMAX+2, -1:2):: FKLF_J,FKLF_Y
       REAL(rkind),DIMENSION(-2:LLMAX+2, 0:2):: RJ_1, RY_1
@@ -50,18 +52,19 @@
       REAL(rkind),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2):: RYABG
 
       REAL(rkind),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX):: &
-           DPSI02M,DPSI022M,PSI02M,PSI022M,PSI1M,PSI11M
+           DPSI02M,DPSI022M,PSI0M,PSI02M,PSI022M,PSI1M,PSI11M,DPSI11M
 
       REAL(rkind),DIMENSION(NPSTART:NPENDWG,  0:LLMAX):: &
            DPSI02G,DPSI022G,PSI0G,PSI02G,PSI022G,DPSI1G,DPSI11G
 
 
-      integer:: NP, NTH, NSA, NSB, L, NR, LLMIN, NSSA, NSSB
-      integer:: IER
-      REAL(rkind):: RGAMH, SUM1
-      REAL(rkind):: PCRIT, RGAMA, RUFP, FACT, FACT2
+      integer:: NP, NTH, NSA, NSB, L, NR, LLMIN, NI, NA, NNP, NPG, NSSA, NSSB
+      integer:: IER, LTEST, INTH
+      REAL(rkind):: RGAMH, SUM1, SUM2, SUM3, SUM4, SUM5
+      REAL(rkind):: PSUM, PCRIT, RGAMA, RGAMB, RUFP, FACT, FACT2, RUFD
       REAL(rkind):: SUMA, SUMB, SUMC, SUMD, SUME, SUMF, SUMG, SUMH
-      REAL(rkind):: RINT0, RINT2, ES0, ES2
+      REAL(rkind):: vtatb, ptatb, PMAX2, RINT0, RINT2, ES0, ES2, testF, testP
+      REAL(rkind):: DKBSL0, DKBSL1, DKBSL2, Z
 !
 !----- DEFINITION OF LOCAL QUANTITIES -------------
 ! 
@@ -682,7 +685,8 @@
       END DO
 
 
-      RETURN
+ 935  FORMAT(4E12.4)
+      Return
       END SUBROUTINE FKLF_JY
 
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
@@ -696,7 +700,7 @@
 !      REAL(rkind),DIMENSION(-2:LLMAX+2, -1:2):: FKLF_J,FKLF_Y
       REAL(rkind),DIMENSION(-2:LLMAX+2, 0:2):: RJ_1, RY_1, DERJ, DERY
       integer:: L, NA
-      REAL(rkind):: RUFP, RGAMA
+      REAL(rkind):: RUFP, RGAMA, RZ, RSIGMA
 
 !
       Do L = -2, LLMAX+2
@@ -733,6 +737,9 @@
 
       REAL(rkind),DIMENSION(NPMAX,-1:LNM):: FPL
 
+      REAL(rkind),DIMENSION(NTHMAX+3):: TX,TY,DF
+      REAL(rkind),DIMENSION(4,NTHMAX+3):: UTY
+      REAL(rkind),dimension(NTHMAX+3)::UTY0
       REAL(rkind),DIMENSION(NPMAX+3):: TX1,TY1,DF1,UTY10
       REAL(rkind),DIMENSION(4,NPMAX+3):: UTY1
 
@@ -742,11 +749,11 @@
       REAL(rkind),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2):: RYABM
       REAL(rkind),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2):: RYABG
 
-      integer:: NP, NSA, NSB, L, NI, NA, NNP, NPG, NSSA, NSSB
-      integer:: IER, NPS
-      REAL(rkind):: SUM2, SUM3, SUM4, SUM5
-      REAL(rkind):: PSUM, PCRIT, RGAMB, RUFP
-      REAL(rkind):: PMAX2
+      integer:: NP, NTH, NSA, NSB, L, LLMIN, NI, NA, NNP, NPG, NSSA, NSSB
+      integer:: IER, NS, NPS
+      REAL(rkind):: SUM1, SUM2, SUM3, SUM4, SUM5
+      REAL(rkind):: PSUM, PCRIT, RGAMA, RGAMB, RUFP, FACT, FACT2
+      REAL(rkind):: vtatb, pabbar, ptatb, PMAX2, testF
 
       NSSA=NS_NSA(NSA)
       NSSB=NS_NSB(NSB)
@@ -917,7 +924,7 @@
       integer,intent(IN):: NSA, NSB
       REAL(rkind),DIMENSION(NPMAX,-1:LNM),INTENT(IN):: FPL
       REAL(rkind),DIMENSION(NPMAX,-1:LNM):: FPL0
-      REAL(rkind),dimension(-1:LNM),intent(in):: FPLS1
+      double precision,dimension(-1:LNM),intent(in):: FPLS1
 
       REAL(rkind),DIMENSION(2*NPMAX+3):: TX1,TY1,DF1,UTY10
       REAL(rkind),DIMENSION(4,2*NPMAX+3):: UTY1
@@ -928,11 +935,11 @@
       REAL(rkind),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2),INTENT(OUT):: RYABM
       REAL(rkind),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2),INTENT(OUT):: RYABG
 
-      integer:: NP, L, NI, NA, NNP, NPG, NSSA, NSSB
-      integer:: IER, NPF
-      REAL(rkind):: SUM2, SUM3, SUM4, SUM5
-      REAL(rkind):: PSUM, PCRIT, RGAMB, RUFP
-      REAL(rkind):: PMAX2, testF, testP
+      integer:: NP, NTH, L, LLMIN, NI, NA, NNP, NPG, NSSA, NSSB
+      integer:: IER, NS, NPF
+      REAL(rkind):: SUM1, SUM2, SUM3, SUM4, SUM5
+      REAL(rkind):: PSUM, PCRIT, RGAMA, RGAMB, RUFP, FACT, FACT2
+      REAL(rkind):: vtatb, pabbar, ptatb, PMAX2, testF, testP
       integer:: N_fine_range
 
       THETA0L_NLR=(PTFD0(NSB)/(AMFD(NSB)*VC))**2
@@ -1139,10 +1146,10 @@
       USE libbes,ONLY: beseknx
       implicit none
       integer :: NR, NS
-      REAL(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      REAL(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+      real(rkind) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      real(rkind) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
       TYPE(pl_prf_type),DIMENSION(NSMAX):: plf
-      REAL(rkind):: FPMXWL_calcnr
+      real(rkind):: FPMXWL_calcnr
 
       AMFDL=PA(NS)*AMP
       AEFDL=PZ(NS)*AEE
@@ -1184,11 +1191,8 @@
       DKBSL=BESEKNX(2,Z)
       FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
            *RTFD0L
-      IF(PML.EQ.0.D0) THEN
-         EX=0.D0
-      ELSE
-         EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
-      END IF
+!      EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
+      EX=0.D0
       FPMXWL_calcnr=FACT*EXP(EX)
 
       RETURN

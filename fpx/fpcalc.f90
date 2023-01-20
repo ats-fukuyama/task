@@ -1,4 +1,4 @@
-! fpcalc.f90
+!     $Id: fpcalc.f90,v 1.25 2013/02/08 07:36:24 nuga Exp $
 !
 ! ******************************************************************
 !
@@ -33,7 +33,8 @@
       USE fpcalcnr, ONLY: FPCALC_NLR 
       IMPLICIT NONE
       integer:: NSA,NSB,NSSB,NR, NP, NTH,NS
-      REAL(rkind):: RGAMH, RGAMH2, RZI, PFPL, VFPL, DCTTL, RGAMA
+      integer:: nsrc,nsend
+      REAL(rkind):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL, RGAMA, DFDP, DFDTH
 
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
@@ -144,15 +145,13 @@
                IF(NS_NSA(NSA).EQ.1) THEN
                   DO NSB=1,NSBMAX
                      IF(NS_NSB(NSB).EQ.2) THEN
-                        RGAMH=RNUD(NR,NSA,NSA)*SQRT(2.D0)*VTFD(NR,NSA) &
-                             *AMFP(NSA) &
+                        RGAMH=RNUD(NR,NSA,NSA)*SQRT(2.D0)*VTFD(NR,NSA)*AMFP(NSA) &
                              /(RNFP0(NSA)*PTFP0(NSA)*1.D20)*RNFD0(NSA)
-                        RGAMH2=RGAMH*RNFP(NR,NSA)*1.D20*PTFP0(NSA) &
-                             /AMFP(NSA)/RNFD0(NSA)
+                        RGAMH2=RGAMH*RNFP(NR,NSA)*1.D20*PTFP0(NSA)/AMFP(NSA)/RNFD0(NSA)
                         rZI = -PZ(2)/PZ(1) &
 !                     rZI = ( PZ(2)/PZ(1) )**2 * RNFD(NR,NSB)/RNFP(NR,NSA) &
-                          /(14.9D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA))) &
-                          *(15.2D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))
+                             /(14.9D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))* &
+                             (15.2D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))
                         DO NP=NPSTARTW,NPENDWM
                            RGAMA =SQRT(1.D0+PM(NP,NS)**2*THETA0(NS))
                            PFPL=PM(NP,NS)*PTFP0(NSA)
@@ -381,11 +380,14 @@
       IMPLICIT NONE
       REAL(rkind)::FPFN1R
       REAL(rkind),INTENT(IN)::X, XM, XP
-      REAL(rkind)::PN, A, B
-      REAL(RKIND):: DUMMY
+      REAL(rkind)::PN, A, B, FACT
 
-      DUMMY=X
-      DUMMY=XM
+!      IF(MODEL_DE.eq.0)THEN
+!         FACT=1.D0
+!      ELSE
+!         FACT=SQRT(RTFDL_C/RTFD0L_C)
+!      END IF
+
       A=0.5D0*PNFP_C
       PN=A*XP
       B=PN**4/(1.D0+PN**2*THETA0L_C)
@@ -426,11 +428,8 @@
 
       REAL(rkind):: FPFN3R
       REAL(rkind),INTENT(IN):: X, XM, XP
-      REAL(rkind):: A, PN
-      REAL(RKIND):: DUMMY
+      REAL(rkind):: A, PN, FACT
 
-      DUMMY=X
-      DUMMY=XM
       A=0.5D0*PNFP_C
       PN=A*XP
       FPFN3R=A*PN**2*FPRMXW(PN)
@@ -444,11 +443,8 @@
 
       REAL(rkind):: FPFN4R
       REAL(rkind),INTENT(IN):: X, XM, XP
-      REAL(rkind):: A, PN, B
-      REAL(RKIND):: DUMMY
+      REAL(rkind):: A, PN, B, FACT
 
-      DUMMY=X
-      DUMMY=XM
       A=0.5D0*PNFP_C
       PN=A*XP
       B=PN**2/SQRT(1.D0+PN**2*THETA0L_C)
@@ -463,11 +459,8 @@
 
       REAL(rkind):: FPFN5R
       REAL(rkind),INTENT(IN):: X, XM, XP
-      REAL(rkind):: A, PN, B
-      REAL(RKIND):: DUMMY
+      REAL(rkind):: A, PN, B, FACT
 
-      DUMMY=X
-      DUMMY=XM
       A=0.5D0*PNFP_C
       PN=A*XP
       B=PN**4/(SQRT(1.D0+PN**2*THETA0L_C))**3
@@ -502,12 +495,9 @@
 !                            
       REAL(rkind):: FPFN7R
       REAL(rkind),INTENT(IN):: X, XM, XP
-      REAL(rkind):: A, PN, B, PMAX2
-      REAL(RKIND):: DUMMY
+      REAL(rkind):: A, PN, B, PMAX2, FACT
 
 
-      DUMMY=X
-      DUMMY=XM
       PMAX2=PMAXC
       A=0.5D0*(PNFP_C-PMAX2)
       PN=( A*XP+0.5D0*(PNFP_C+PMAX2) )
@@ -523,11 +513,9 @@
 
       REAL(rkind):: FPFN8R
       REAL(rkind),INTENT(IN):: X, XM, XP
-      REAL(rkind):: A, PN, PMAX2
-      REAL(RKIND):: DUMMY
+      REAL(rkind):: A, PN, B, PMAX2, FACT
 
-      DUMMY=X
-      DUMMY=XM
+
       PMAX2=PMAXC
       A=0.5D0*(PNFP_C-PMAX2)
       PN=( A*XP+0.5D0*(PNFP_C+PMAX2) )
@@ -542,11 +530,9 @@
 
       REAL(rkind):: FPFN9R
       REAL(rkind),INTENT(IN):: X, XM, XP
-      REAL(rkind):: A, PN, B, PMAX2
-      REAL(RKIND):: DUMMY
+      REAL(rkind):: A, PN, B, PMAX2, FACT
 
-      DUMMY=X
-      DUMMY=XM
+
       PMAX2=PMAXC
       A=0.5D0*(PNFP_C-PMAX2)
       PN=( A*XP+0.5D0*(PNFP_C+PMAX2) )
@@ -562,11 +548,8 @@
 
       REAL(rkind):: FPFN10R
       REAL(rkind),INTENT(IN):: X, XM, XP
-      REAL(rkind):: A, PN, B, PMAX2
-      REAL(rkind):: DUMMY
+      REAL(rkind):: A, PN, B, PMAX2, FACT
 
-      DUMMY=X
-      DUMMY=XM
       PMAX2=PMAXC
       A=0.5D0*(PNFP_C-PMAX2)
       PN=( A*XP+0.5D0*(PNFP_C+PMAX2) )
@@ -624,12 +607,12 @@
       IMPLICIT NONE
 
       integer:: NSA, NSB, NR, NP, NTH, NSSA, NSSB
-      REAL(rkind):: RGAMH, PFPL, VFPL, U, DCTTL
+      REAL(rkind):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL
       REAL(rkind):: RNNL, RNUFL, RNUDL, DCPPL, FCPPL, V
       REAL(rkind):: PNFPL, RGAMA, vtatb, ptatb, PCRIT
       REAL(rkind):: RINT0, ES0, RINT1, ES1, RINT2, ES2, RINT4, ES4, RINT5, ES5
       REAL(rkind):: RINT6, ES6, RINT7, ES7, RINT8, ES8, RINT9, ES9
-      REAL(rkind):: RINT3, ES3, p_thermal, v_thermal, RNFDL
+      REAL(rkind):: RINT3, ES3, p_thermal, v_thermal, pe_thermal, EX, RNFDL
 
 !     ------ define --------
       RNNL=RNFD(NR,NSB)/RNFP0(NSA)
@@ -680,10 +663,12 @@
 !            WRITE(*,'(3I4,3E16.8)') NP, NSA,NSB,PG(NP,NSBA), DCPPL, FCPPL
             ENDDO
 
+!         DO NP=1,NPMAX
             DO NP=NPSTARTW,NPENDWM
                PFPL=PM(NP,NSSA)*PTFP0(NSA)
                VFPL=PFPL/AMFP(NSA)
                V=VFPL/VTFP0(NSA)
+!            U=VFPL/(SQRT(2.D0)*VTFD(NR,NSB))
                U=VFPL/(SQRT(2.D0)*v_thermal)
                DCTTL= 0.25D0*RNUDL/U &
                     *((2.D0-1.D0/U**2)*ERF0(U)+ERF1(U)/U)
@@ -692,6 +677,7 @@
                   DCTT2(NTH,NP,NR,NSB,NSA)=DCTT2(NTH,NP,NR,NSB,NSA)+DCTTL
                ENDDO
             ENDDO
+!         ELSEIF(MODELC(NS).eq.1)THEN ! isotoropic
          ELSEIF(MODELC(NSSB).ge.2)THEN ! isotoropic
             PMAXC=PMAX(NSSB)
             THETAL_C =0.D0
@@ -706,8 +692,7 @@
                RTFDL_C=RT_TEMP(NR,NSB)
                RTFD0L_C=RTFD0(NSB)
                RNFDL=RN_TEMP(NR,NSB)
-               RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*LNLAM(NR,NSB,NSA) &
-                    /(4.D0*PI*EPS0**2) &
+               RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2) &
                     *AMFP(NSA)/PTFP0(NSA)**3 
             END IF
             IF(MODEL_DISRUPT.eq.1)THEN
@@ -718,8 +703,7 @@
                ELSE
                   RNFDL=RN_MGI(NR,NSB)
                END IF
-               RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*POST_LNLAM(NR,NSB,NSA) &
-                    /(4.D0*PI*EPS0**2) &
+               RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*POST_LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2) &
                     *AMFP(NSA)/PTFP0(NSA)**3 
             END IF
 
@@ -745,8 +729,7 @@
                   ptatb=PG(NP,NSSA)/RGAMA
 !                  PCRIT=SQRT(vtatb**2/(1.D0-THETA0L_C*vtatb**2*ptatb**2)) &
 !                       *ptatb
-                  PCRIT=(AMFD(NSB)*PTFP0(NSA)) &
-                       /(AMFP(NSA)*PTFD0(NSB))*PG(NP,NSSA)
+                  PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PG(NP,NSSA)
                   IF(PCRIT.le.PMAX(NSSB))THEN
                      CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"N0R_DCPP")
                      PNFP_C=PCRIT
@@ -788,11 +771,11 @@
                           *RNFDL*1.D20
 !                     PNFP_C=PMAX(NSBA)
                      PNFP_C=PMAX(NSSB)
-                     CALL DEFT(RINT4,ES4,H0DE,EPSDE,0,FPFN4R,"N4R_PMAX_FCPP")
-                     CALL DEFT(RINT5,ES5,H0DE,EPSDE,0,FPFN5R,"N5R_PMAX_FCPP")
+                     CALL DEFT  (RINT4,ES4,H0DE,EPSDE,0,FPFN4R,"N4R_PMAX_FCPP")
+                     CALL DEFT  (RINT5,ES5,H0DE,EPSDE,0,FPFN5R,"N5R_PMAX_FCPP")
                      PNFP_C=PCRIT
-                     CALL DEFT(RINT8,ES8,H0DE,EPSDE,0,FPFN9R,"N9R_PMAX_FCPP")
-                     CALL DEFT(RINT9,ES9,H0DE,EPSDE,0,FPFN10R,"N10R_PMAX_FCPP")
+                     CALL DEFT  (RINT8,ES8,H0DE,EPSDE,0,FPFN9R,"N9R_PMAX_FCPP")
+                     CALL DEFT  (RINT9,ES9,H0DE,EPSDE,0,FPFN10R,"N10R_PMAX_FCPP")
                      CALL DEHIFT(RINT6,ES6,H0DE,EPSDE,0,FPFN6R,"N6R_PMAX_FCPP")
                      PNFP_C=PNFPL
                      FCPPL=-RGAMH/(3.D0*RINT0)*(                &
@@ -1071,8 +1054,9 @@
       IMPLICIT NONE
 
       integer:: NSA, NSB,NR, NP, NTH
+      REAL(rkind):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL
       REAL(rkind):: FACT
-      REAL(RKIND):: DELH, sum, etal, psib, pcos, arg, x
+      DOUBLE PRECISION:: DELH, sum, etal, psib, pcos, arg, x, PSIN
       INTEGER:: NG, ITLB, ITUB, NSSB
 
 ! DCPP, FCPP
@@ -1220,8 +1204,9 @@
       integer,intent(in):: NR, NSA
       integer:: NSB, NTH, NP, NG
       REAL(rkind):: DELH, ETAL, X, PSIB, PCOS, ARG
-      REAL(rkind):: sum1, sum2, sum3, sum4, sum5, sum6
-      INTEGER:: ISW_LAV
+      REAL(rkind):: sum1, sum2, sum3, sum4, sum5, sum6, sum7, sum8, sum9
+      REAL(rkind):: temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9
+      INTEGER:: ISW_LAV, INTH
      
       ISW_LAV=0
 ! INTEGRATION OF BOUNCE AVERAGING

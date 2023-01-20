@@ -1076,12 +1076,13 @@
 
       USE fpreadeg
       IMPLICIT NONE
-      INTEGER:: NS, NR, NP, NTH
+      INTEGER:: NS, NR, NP, NTH, NSB
       double precision:: FL
 
       IF(MODEL_EX_READ_Tn.eq.0)THEN
-         DO NS=1, NSMAX
+         DO NSB=1, NSBMAX
             DO NR=NRSTART,NREND
+               NS=NS_NSB(NSB)
                DO NP=NPSTART,NPEND
                   FL=FPMXWL(PM(NP,NS),NR,NS)
                   DO NTH=1,NTHMAX
@@ -1092,12 +1093,13 @@
          END DO
       ELSE
 !      ELSEIF(MODEL_EX_READ_Tn.eq.1)THEN
-         DO NS=1, NSMAX
+         DO NSB=1, NSBMAX
+            NS=NS_NSB(NSB)
             DO NR=NRSTART,NREND
                DO NP=NPSTART,NPEND
                   FL=FPMXWL_EXP(PM(NP,NS),NR,NS)
                   DO NTH=1,NTHMAX
-                     FNSB(NTH,NP,NR,NS)=FL
+                     FNSB(NTH,NP,NR,NSB)=FL
                   END DO
                ENDDO
             END DO

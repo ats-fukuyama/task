@@ -1,5 +1,5 @@
-!     $Id: fpgout.f90,v 1.13 2013/01/20 23:24:03 fukuyama Exp $
-!
+! fpgout.f90
+
 ! ***********************************************************
 !
 !                    SELECTION OF GRAPH
@@ -10,7 +10,7 @@
 
       USE fpcomm
       USE fpcont
-      USE fpgfout
+      USE fpfout
       contains
 !---------------------------------------
       SUBROUTINE FP_GOUT
@@ -455,7 +455,7 @@
       REAL:: GXORG
 !
       IF(NGRAPH.EQ.0) THEN
-         CALL fp_gf_r1d(STRING,FR)
+         CALL FPFOTR(STRING,FR)
          RETURN
       ENDIF
 
@@ -562,7 +562,7 @@
       REAL:: GXMIN, GXMAX, GXSTEP
 
       IF(NGRAPH.EQ.0) THEN
-         CALL fp_gf_time(STRING,FT)
+         CALL FPFOTT(STRING,FT)
          RETURN
       ENDIF
 
@@ -659,7 +659,7 @@
       integer:: NR, NP, NTH, NPM, NS
 
       IF(NGRAPH.EQ.0) THEN
-         CALL fp_gf_pr2d(STRING,FG)
+         CALL FPFOTP(STRING,FG)
          RETURN
       ENDIF
 
@@ -780,7 +780,7 @@
       REAL:: GX1, GX2, GY1, GY2
 
       IF(NGRAPH.EQ.0) THEN
-         CALL fp_gf_pr2d(STRING,FG)
+         CALL FPFOTP(STRING,FG)
          RETURN
       ENDIF
       NS=NS_NSA(NSA)
@@ -843,6 +843,7 @@
       REAL,DIMENSION(NYMAX),      INTENT(IN):: GY
       REAL,DIMENSION(NXM,NYMAX),  INTENT(IN):: GZ
       CHARACTER(LEN=*),             INTENT(IN):: STR
+      INTEGER :: I
       REAL    :: GOX, GOY, GOZ, GPHI, GRADIUS, GSTEPX, GSTEPY,   &
                     GSTEPZ, GSXMAX, GSXMIN, GSYMAX, GSYMIN, GSZMAX, &
                     GSZMIN, GTHETA, GXL, GXMAX, GXMIN, GXORG, GYL,  &
@@ -1001,8 +1002,8 @@
       REAL,dimension(NTHMAX+1,NPMAX+1):: GF
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
-      integer:: NPM, NTHM, NRM, NP, NTH, NSA, NS
-      integer:: MODE
+      integer:: NPM, NTHM, NRM, NR, NP, NTH, NSA, NS
+      integer:: NM, NM1, MODE
       NPM=NPMAX+1
       NTHM=NTHMAX+1
       NRM=NRMAX+1
@@ -1057,7 +1058,7 @@
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSB
-      integer:: MODE
+      integer:: NM, NM1, MODE
 !
       IF(MODE.EQ.0.OR.MODE.EQ.4) THEN
          DO NR=1,NRMAX
@@ -1104,7 +1105,7 @@
       REAL(rkind),dimension((NRMAX+1)*(NTHMAX+1)*(NPMAX+1)):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
-      integer:: NR, NP, NTH, NSA,NSB,NS,NM, NPM, NTHM, NRM, NSBM, MODE
+      integer:: NR, NP, NTH, NSA,NSB,NS,NM, NM1, NPM, NTHM, NRM, NSBM, MODE
       NPM=NPMAX+1
       NTHM=NTHMAX+1
       NRM=NRMAX+1
@@ -1159,19 +1160,27 @@
       IMPLICIT NONE
       REAL(rkind),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
       REAL,DIMENSION(NPMAX+1,NTHMAX+1):: GF
+      REAL,dimension(NPMAX+1):: GP
+      REAL,dimension(NTHMAX+1):: GTH
+      REAL(rkind),dimension(8,NPMAX+1,NTHMAX+1)::KA
       CHARACTER(LEN=*),INTENT(IN):: STRING
-      INTEGER,INTENT(IN):: MODE,NSB
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
-      INTEGER:: NP,NR,NRG,NTH
-      integer:: NPM, NTHM, NRM
+      REAL:: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
+      INTEGER:: ILN(NGLM)
+      REAL:: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
+      REAL:: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
+      REAL:: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
+      integer:: NR, NP, NTH, NSB, NRG, MODE
+      integer:: NPG, NTHG, NPM, NTHM, NRM, NM, NGLMAX, NGL
+      integer:: I
 
       NPM=NPMAX+1
       NTHM=NTHMAX+1
       NRM=NRMAX+1
 
       IF(NGRAPH.EQ.0) THEN
-         CALL fp_gf_pp2d(STRING,FG,MODE)
+         CALL FPFOTC(STRING,FG,MODE)
          RETURN
       ENDIF
 
@@ -1245,15 +1254,21 @@
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
+      REAL:: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
+      INTEGER:: ILN(NGLM)
+      REAL:: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
+      REAL:: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
+      REAL:: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
       integer:: NR, NP, NTH, NRG, MODE, NSB
-      integer:: NPM, NTHM, NRM
+      integer:: NPG, NTHG, NPM, NTHM, NRM, NM, NGLMAX, NGL
+      integer:: I
 
       NPM=NPMAX+1
       NTHM=NTHMAX+1
       NRM=NRMAX+1
 
       IF(NGRAPH.EQ.0) THEN
-         CALL fp_gf_pp2da(STRING,FG,MODE)
+         CALL FPFOTC_2(STRING,FG,MODE)
          RETURN
       ENDIF
 
@@ -1327,6 +1342,7 @@
       REAL,DIMENSION(NPMAX,NTHMAX):: GF
       REAL,dimension(NPMAX):: GP
       REAL,dimension(NTHMAX):: GTH
+      REAL(rkind),dimension(8,NPMAX,NTHMAX)::KA
 !      REAL,DIMENSION(NPMAX+1,NTHMAX+1):: GF
 !      REAL,dimension(NPMAX+1):: GP
 !      REAL,dimension(NTHMAX+1):: GTH
@@ -1336,13 +1352,13 @@
       INTEGER,PARAMETER:: NGLM=30
       REAL:: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
       INTEGER:: ILN(NGLM)
+      REAL:: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
       REAL:: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
-      REAL:: GPMIN1, GPMAX1, GPSTEP, GFFMAX
-      integer:: NP, NTH, NSB, MODE, LMODE
+      REAL:: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
+      integer:: NR, NP, NTH, NSB, NRG, MODE, LMODE
       integer:: NPG, NTHG, NPM, NTHM, NGLMAX, NGL
-      integer:: NS
+      integer:: I, NS
 
-      STRING1=STRING
       NPM=NPMAX+1
       NTHM=NTHMAX+1
 
@@ -1504,18 +1520,19 @@
       REAL,DIMENSION(NPMAX+1,NTHMAX+1):: GF
       REAL,dimension(NPMAX+1):: GP
       REAL,dimension(NTHMAX+1):: GTH
+      REAL(rkind),dimension(8,NPMAX+1,NTHMAX+1)::KA
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
       REAL:: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
       INTEGER:: ILN(NGLM)
+      REAL:: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
       REAL:: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
-      REAL:: GPMIN1, GPMAX1, GPSTEP, GFFMAX
-      integer:: NP, NTH, NSB, MODE, LMODE
-      integer:: NPG, NTHG, NPM, NTHM, NRM, NGLMAX, NGL
-      integer:: NS
+      REAL:: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
+      integer:: NR, NP, NTH, NSB, NRG, MODE, LMODE
+      integer:: NPG, NTHG, NPM, NTHM, NRM, NM, NGLMAX, NGL
+      integer:: I, NS
 
-      STRING1=STRING
       NPM=NPMAX+1
       NTHM=NTHMAX+1
       NRM=NRMAX+1
@@ -1666,7 +1683,6 @@
       END SUBROUTINE FPGRACX
 
       SUBROUTINE SETRGBFP(F,RGB)
-        USE grdutils
         IMPLICIT NONE
         REAL,INTENT(IN):: F
         REAL,DIMENSION(3),INTENT(OUT):: RGB
@@ -1686,9 +1702,9 @@
         GF=F*DBLE(NFMAX-1)+1
         IM=MIN(INT(GF),NFMAX-1)
         DF=GF-IM
-        RGB(1)=gdclip(RGBC(1,IM)*(1.D0-DF)+RGBC(1,IM+1)*DF)
-        RGB(2)=gdclip(RGBC(2,IM)*(1.D0-DF)+RGBC(2,IM+1)*DF)
-        RGB(3)=gdclip(RGBC(3,IM)*(1.D0-DF)+RGBC(3,IM+1)*DF)
+        RGB(1)=RGBC(1,IM)*(1.D0-DF)+RGBC(1,IM+1)*DF
+        RGB(2)=RGBC(2,IM)*(1.D0-DF)+RGBC(2,IM+1)*DF
+        RGB(3)=RGBC(3,IM)*(1.D0-DF)+RGBC(3,IM+1)*DF
         RETURN
         END SUBROUTINE SETRGBFP
           
@@ -1707,8 +1723,6 @@
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSA, MODE, NPM, NTHM, NRM, NM, NM1
-
-      STRING1=STRING
       NPM=NPMAX+1
       NTHM=NTHMAX+1
       NRM=NRMAX+1
@@ -1815,6 +1829,7 @@
       INTEGER,PARAMETER:: NGLM=30
       REAL:: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
       INTEGER:: ILN(NGLM)
+      REAL:: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
       REAL:: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
       REAL:: GPMIN1, GPMAX1, GPSTEP, GLIN
       integer:: NR, NTH, NP, NSA, MODE, NRG, LMODE, NTHG, NS
@@ -1825,7 +1840,7 @@
 
       NS=NS_NSA(NSA)
       IF(NGRAPH.EQ.0) THEN
-         CALL fp_gf_pp2d(STRING,FG,MODE)
+         CALL FPFOTC(STRING,FG,MODE)
          RETURN
       ENDIF
 

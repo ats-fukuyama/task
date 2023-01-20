@@ -75,7 +75,10 @@ CONTAINS
                     PNBCD,PECCD,PLHCD,PICCD,PBSCD,MDLCD, &
                     PELTOT,PELR0,PELRW,PELRAD,PELVEL,MDLPEL, &
                     MDLPR,SYNCABS,SYNCSELF, &
-                    PELTIM,PELPAT,KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG,KFNTXT,KFNCVS, &
+                    PELTIM,PELPAT, &
+                    pelle_time_start,pelle_time_interval, &
+                    number_of_pelle_repeat, &
+                    KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG,KFNTXT,KFNCVS, &
                     MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0,MDLEQE, &
                     MDLEOI,NSMAX,NSZMAX,NSNMAX, &
                     KUFDIR,KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDTC, &
@@ -119,7 +122,10 @@ CONTAINS
              ' ',8X,'PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,PLHCD,MDLLH'/ &
              ' ',8X,'PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC'/ &
              ' ',8X,'PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,MDLPEL'/ &
-             ' ',8X,'PELTIM,PELPAT,MDLPR,SYNCABS,SYNCSELF,MODELG,NTEQIT'/&
+             ' ',8X,'PELTIM,PELPAT'/ &
+             ' ',8X,'pellet_time_start,pellet_time_interval'/ &
+             ' ',8X,'number_of_pellet_repeat'/ &
+             ' ',8X,'MDLPR,SYNCABS,SYNCSELF,MODELG,NTEQIT'/&
              ' ',8X,'MDEDGE,MDLIMP,'/ &
              ' ',8X,'MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX,MDLER,MDCD05'/ &
              ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/ &
