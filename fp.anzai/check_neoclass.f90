@@ -825,7 +825,8 @@ contains
     double precision,dimension(nthmax,npmax,nrmax,nsamax) ::Frrl
     double precision,dimension(nthmax,npmax,nrmax,nsamax) ::Drrl, Drpl, Drthl
     double precision,dimension(nthmax,npmax,nrmax,nsamax) ::dfdthm, dfdp, dfdrhom
-    double precision :: K, PV, Dpl, Dtl, Drl, Frl, JIp, JIm
+    double precision,dimension(nrmax,nsamax) :: mean_moment_vector
+    double precision :: K, PV, Dpl, Dtl, Drl, Frl, JIp, JIm, sum_
     integer nth,np,nr,nsa,ns
 
     !**** initialization ****
@@ -836,6 +837,7 @@ contains
     Drrl(:,:,:,:) = 0.d0
     Drpl(:,:,:,:) = 0.d0
     Drthl(:,:,:,:) = 0.d0
+    sum_ = 0.d0
 
     !****temperature make
     do nsa = 1, nsamax
@@ -953,6 +955,26 @@ contains
       end do
     end do
 
+    do nsa = 1, nsamax
+      ns = ns_nsa(nsa)
+      do nr = 1, nrmax
+        do np = 1, npmax
+          if ( pm(np,ns) > fact_bulk ) exit !** fact_balk=5
+          do nth = 1, nthmax
+            mean_moment_vector(nr,nsa) = pm(np,nsa) &
+                                        * fnsp_l(nth,np,nr,nsa)*1.d20 &
+                                        * JI(nth,np,nr,nsa) &
+                                        * delp(ns) * delthm(nth,np,nr,nsa)
+            sum_ = sum_ + fnsp_l(nth,np,nr,nsa)*1.d20 &
+                  * JI(nth,np,nr,nsa) &
+                  *delp(ns) * delthm(nth,np,nr,nsa)
+          end do
+        end do !** np
+        mean_moment_vector(nr,nsa) = mean_moment_vector(nr,nsa)/sum_
+        sum_ = 0.d0
+      end do !** nr
+    end do !** nsa
+
     !**** Making flux
     do nsa = 1, nsamax
       ns = ns_nsa(nsa)
@@ -960,7 +982,8 @@ contains
         do np = 1, npmax
           if ( pm(np,ns) > fact_bulk ) exit !** fact_balk=5
           do nth = 1, nthmax
-            PV = sqrt(1.d0+theta0(nsa)*pm(np,nsa)**2)
+            ! PV = sqrt(1.d0+theta0(nsa)*pm(np,nsa)**2)
+            PV = sqrt(1.d0+theta0(nsa)*(pm(np,nsa)-mean_moment_vector(nr,nsa))**2)
             K = (PV-1.d0)*AMFP(nsa)*vc**2 &
             ! K = (pm(np,nsa)*PTFP0(nsa))**2.d0/AMFP(nsa)/2.d0 &
                                 / (AEE*1.D3)!/3.d0 
