@@ -378,254 +378,254 @@ contains
 !===================================================
 ! Subroutines for particle diffusion coef
 !===================================================
-  subroutine integral_ParticleDif(Sr_part,Dr)
-  !---------------------------------------------
-  ! calculation of FOW diff coef
-  ! 1/J * dfdx_i * dV(volume)
-  !---------------------------------------------
-    use fpcomm
-    use fowcomm
-    implicit none
-    double precision,dimension(nrmax,nsamax),intent(out) :: Sr_part, Dr
-    double precision,dimension(nrmax,nsamax) :: Na, dNadr
-    double precision,dimension(3,nthmax,npmax,nrmax,nsamax) ::moment_vector ! by anzai
-    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom,dfdp, divDdfdp
-    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: temp_dfdthm,temp_dfdp
-    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: dfdthm, divDdfdthm
-    double precision,dimension(nrmax,nsamax) :: add_sr
-    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: fnsp_l
-    real(rkind) :: sum_, sum2_
-    double precision Drr_, dVI, Frr_, JIp, JIm
-    integer nth,np,nr,nsa,ns, nr_temp
+  ! subroutine integral_ParticleDif(Sr_part,Dr)
+  ! !---------------------------------------------
+  ! ! calculation of FOW diff coef
+  ! ! 1/J * dfdx_i * dV(volume)
+  ! !---------------------------------------------
+  !   use fpcomm
+  !   use fowcomm
+  !   implicit none
+  !   double precision,dimension(nrmax,nsamax),intent(out) :: Sr_part, Dr
+  !   double precision,dimension(nrmax,nsamax) :: Na, dNadr
+  !   double precision,dimension(3,nthmax,npmax,nrmax,nsamax) ::moment_vector ! by anzai
+  !   double precision,dimension(nthmax,npmax,nrmax,nsamax) :: dfdrhom,dfdp, divDdfdp
+  !   double precision,dimension(nthmax,npmax,nrmax,nsamax) :: temp_dfdthm,temp_dfdp
+  !   double precision,dimension(nthmax,npmax,nrmax,nsamax) :: dfdthm, divDdfdthm
+  !   double precision,dimension(nrmax,nsamax) :: add_sr
+  !   double precision,dimension(nthmax,npmax,nrmax,nsamax) :: fnsp_l
+  !   real(rkind) :: sum_, sum2_
+  !   double precision Drr_, dVI, Frr_, JIp, JIm
+  !   integer nth,np,nr,nsa,ns, nr_temp
 
-    !**** initialization ****
-    Sr_part(:,:) = 0.d0
-    Dr(:,:) = 0.d0
-    divDdfdp(:,:,:,:) = 0.d0
-    divDdfdthm(:,:,:,:) = 0.d0
-    add_sr(:,:) = 0.d0
-    !****temperature make
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        Na(nr,nsa) = rnsl(nr,nsa)*1.d20
-      end do
-    end do
-    !****first order derivation
-    do nsa = 1, nsamax
-      call first_order_derivative(dNadr(:,nsa), Na(:,nsa), rm)
-    end do
-    ! write(*,*)"------------------- check 1 ---------------------"
+  !   !**** initialization ****
+  !   Sr_part(:,:) = 0.d0
+  !   Dr(:,:) = 0.d0
+  !   divDdfdp(:,:,:,:) = 0.d0
+  !   divDdfdthm(:,:,:,:) = 0.d0
+  !   add_sr(:,:) = 0.d0
+  !   !****temperature make
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax
+  !       Na(nr,nsa) = rnsl(nr,nsa)*1.d20
+  !     end do
+  !   end do
+  !   !****first order derivation
+  !   do nsa = 1, nsamax
+  !     call first_order_derivative(dNadr(:,nsa), Na(:,nsa), rm)
+  !   end do
+  !   ! write(*,*)"------------------- check 1 ---------------------"
 
-    !********** for new dfdrhom module [2022/3/4]
-    fnsp_l(:,:,:,:)=0.d0
-    do nsa = 1, nsamax
-      ns = ns_nsa(nsa)
-      do nr= 1, nrmax
-        do np = 1, npmax
-          if ( pm(np,ns) > fact_bulk ) exit
-          do nth = 1, nthmax
-          fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa)
-          end do
-        end do
-      end do
-    end do
+  !   !********** for new dfdrhom module [2022/3/4]
+  !   fnsp_l(:,:,:,:)=0.d0
+  !   do nsa = 1, nsamax
+  !     ns = ns_nsa(nsa)
+  !     do nr= 1, nrmax
+  !       do np = 1, npmax
+  !         if ( pm(np,ns) > fact_bulk ) exit
+  !         do nth = 1, nthmax
+  !         fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa)
+  !         end do
+  !       end do
+  !     end do
+  !   end do
 
-    !**** first order derivative
-    do nsa = 1, nsamax
-      do np = 1, npmax
-        do nth = 1, nthmax
-          call first_order_derivative(dfdrhom(nth,np,:,nsa), &
-                 fnsp_l(nth,np,:,nsa)*1.d20, rm)
-        end do
-      end do
-    end do
-    ! write(*,*)"------------------- check 2 ---------------------"
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do np = 1, npmax
-          call first_order_derivative(dfdthm(:,np,nr,nsa), &
-                 fnsp_l(:,np,nr,nsa)*1.d20, thetam(:,np,nr,nsa))
-        end do
-      end do
-    end do
-    ! write(*,*)"------------------- check 3 ---------------------"
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do nth = 1, nthmax
-          call first_order_derivative(dfdp(nth,:,nr,nsa), &
-                 fnsp_l(nth,:,nr,nsa)*1.d20, pm(:,nsa))
-        end do
-      end do
-    end do
-    ! write(*,*)"------------------- check 4 ---------------------"
-    ! !**** Making additional source term
-    ! do nsa = 1, nsamax
-    !   do nr = 1, nrmax
-    !     do np = 1, npmax
-    !       do nth = 1, nthmax
-    !         temp_dfdp(nth,np,nr,nsa) = 0.d0 &
-    !                                 !  + Dppfow(nth,np,nr,nsa) * dfdp(nth,np,nr,nsa) &
-    !                                 !  + Dptfow(nth,np,nr,nsa) * dfdthm(nth,np,nr,nsa) &
-    !                                  + Dprfow(nth,np,nr,nsa) * dfdrhom(nth,np,nr,nsa)! &
-    !                                 !  - Fppfow(nth,np,nr,nsa) * fnsp_l(nth,np,nr,nsa)*1.d20
-    !         temp_dfdthm(nth,np,nr,nsa) = 0.d0 &
-    !                                   !  + Dtpfow(nth,np,nr,nsa) * dfdp(nth,np,nr,nsa) &
-    !                                   !  + Dttfow(nth,np,nr,nsa) * dfdthm(nth,np,nr,nsa) &
-    !                                    + Dtrfow(nth,np,nr,nsa) * dfdrhom(nth,np,nr,nsa)! &
-    !                                   !  - Fthfow(nth,np,nr,nsa) * fnsp_l(nth,np,nr,nsa)*1.d20
-    !       end do
-    !     end do
-    !   end do
-    ! end do
-    ! do nsa = 1, NSAMAX
-    !   do nr = 1, NRMAX
-    !     do nth = 1, NTHMAX
-    !       call first_order_derivative(divDdfdp(nth,:,nr,nsa), &
-    !               temp_dfdp(nth,:,nr,nsa), pm(:,nsa))
-    !     end do
-    !   end do
-    ! end do
-    ! do nsa = 1, nsamax
-    !   do nr = 1, nrmax
-    !     do np = 1, npmax
-    !       call first_order_derivative(divDdfdthm(:,np,nr,nsa), &
-    !               temp_dfdthm(:,np,nr,nsa), thetam(:,np,nr,nsa))
-    !     end do
-    !   end do
-    ! end do 
-    ! do nr_temp = 1, nrmax !** for place integral 
-    !   do nsa = 1, nsamax
-    !     do nr = 1, nr_temp
-    !     ! do nr = 1, nrmax
-    !       do np = 1, npmax
-    !         do nth = 1, nthmax
-    !           add_sr(nr_temp,nsa) = -( 0.d0&
-    !           ! add_sr(nr,nsa) = -( 0.d0&
-    !                                      + divDdfdp(nth,np,nr,nsa)/JIR(nth,np,nr,nsa) &
-    !                                     !  + divDdfdthm(nth,np,nr,nsa)/JIR(nth,np,nr,nsa)&
-    !                                     ) &
-    !                                      * delp(nsa) * delthm(nth,np,nr,nsa) * delr &
-    !                                      * JIR(nth,np,nr,nsa)!*1.d20
-    !         end do !** np
-    !       end do !** nth
-    !     end do !** nr
-    !   end do !** nsa
-    ! end do !** nr_temp
+  !   !**** first order derivative
+  !   do nsa = 1, nsamax
+  !     do np = 1, npmax
+  !       do nth = 1, nthmax
+  !         call first_order_derivative(dfdrhom(nth,np,:,nsa), &
+  !                fnsp_l(nth,np,:,nsa)*1.d20, rm)
+  !       end do
+  !     end do
+  !   end do
+  !   ! write(*,*)"------------------- check 2 ---------------------"
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax
+  !       do np = 1, npmax
+  !         call first_order_derivative(dfdthm(:,np,nr,nsa), &
+  !                fnsp_l(:,np,nr,nsa)*1.d20, thetam(:,np,nr,nsa))
+  !       end do
+  !     end do
+  !   end do
+  !   ! write(*,*)"------------------- check 3 ---------------------"
+  !   do nsa = 1, nsamax
+  !     do nr = 1, nrmax
+  !       do nth = 1, nthmax
+  !         call first_order_derivative(dfdp(nth,:,nr,nsa), &
+  !                fnsp_l(nth,:,nr,nsa)*1.d20, pm(:,nsa))
+  !       end do
+  !     end do
+  !   end do
+  !   ! write(*,*)"------------------- check 4 ---------------------"
+  !   ! !**** Making additional source term
+  !   ! do nsa = 1, nsamax
+  !   !   do nr = 1, nrmax
+  !   !     do np = 1, npmax
+  !   !       do nth = 1, nthmax
+  !   !         temp_dfdp(nth,np,nr,nsa) = 0.d0 &
+  !   !                                 !  + Dppfow(nth,np,nr,nsa) * dfdp(nth,np,nr,nsa) &
+  !   !                                 !  + Dptfow(nth,np,nr,nsa) * dfdthm(nth,np,nr,nsa) &
+  !   !                                  + Dprfow(nth,np,nr,nsa) * dfdrhom(nth,np,nr,nsa)! &
+  !   !                                 !  - Fppfow(nth,np,nr,nsa) * fnsp_l(nth,np,nr,nsa)*1.d20
+  !   !         temp_dfdthm(nth,np,nr,nsa) = 0.d0 &
+  !   !                                   !  + Dtpfow(nth,np,nr,nsa) * dfdp(nth,np,nr,nsa) &
+  !   !                                   !  + Dttfow(nth,np,nr,nsa) * dfdthm(nth,np,nr,nsa) &
+  !   !                                    + Dtrfow(nth,np,nr,nsa) * dfdrhom(nth,np,nr,nsa)! &
+  !   !                                   !  - Fthfow(nth,np,nr,nsa) * fnsp_l(nth,np,nr,nsa)*1.d20
+  !   !       end do
+  !   !     end do
+  !   !   end do
+  !   ! end do
+  !   ! do nsa = 1, NSAMAX
+  !   !   do nr = 1, NRMAX
+  !   !     do nth = 1, NTHMAX
+  !   !       call first_order_derivative(divDdfdp(nth,:,nr,nsa), &
+  !   !               temp_dfdp(nth,:,nr,nsa), pm(:,nsa))
+  !   !     end do
+  !   !   end do
+  !   ! end do
+  !   ! do nsa = 1, nsamax
+  !   !   do nr = 1, nrmax
+  !   !     do np = 1, npmax
+  !   !       call first_order_derivative(divDdfdthm(:,np,nr,nsa), &
+  !   !               temp_dfdthm(:,np,nr,nsa), thetam(:,np,nr,nsa))
+  !   !     end do
+  !   !   end do
+  !   ! end do 
+  !   ! do nr_temp = 1, nrmax !** for place integral 
+  !   !   do nsa = 1, nsamax
+  !   !     do nr = 1, nr_temp
+  !   !     ! do nr = 1, nrmax
+  !   !       do np = 1, npmax
+  !   !         do nth = 1, nthmax
+  !   !           add_sr(nr_temp,nsa) = -( 0.d0&
+  !   !           ! add_sr(nr,nsa) = -( 0.d0&
+  !   !                                      + divDdfdp(nth,np,nr,nsa)/JIR(nth,np,nr,nsa) &
+  !   !                                     !  + divDdfdthm(nth,np,nr,nsa)/JIR(nth,np,nr,nsa)&
+  !   !                                     ) &
+  !   !                                      * delp(nsa) * delthm(nth,np,nr,nsa) * delr &
+  !   !                                      * JIR(nth,np,nr,nsa)!*1.d20
+  !   !         end do !** np
+  !   !       end do !** nth
+  !   !     end do !** nr
+  !   !   end do !** nsa
+  !   ! end do !** nr_temp
 
-    !**** end of new dfdrhom module
-    ! !**** making radial mean vector
-    ! call make_moment_vector(moment_vector)
-    ! do nsa = 1, nsamax
-    !   ns = ns_nsa(nsa)
-    !   do nr = 1, nrmax
-    !     do np = 1, npmax
-    !       if ( pm(np,ns) > fact_bulk ) exit !** fact_balk=5
-    !       do nth = 1, nthmax
-    !        !**** making mean vector
-    !         Sr_part(nr,nsa) = moment_vector(3,nth,np,nr,nsa)*ptfp0(nsa)/AMFP(nsa) &
-    !                             * fnsp_l(nth,np,nr,nsa)*1.d20 &
-    !                             * JIR(nth,np,nr,nsa) &
-    !                             / JIR(nth,np,nr,nsa) &
-    !                             * delp(ns) * delthm(nth,np,nr,nsa)
-    !         sum_ = sum_ + fnsp_l(nth,np,nr,nsa)*1.d20 &
-    !             * ( &
-    !             ! moment_vector(1,nth,np,nr,nsa)**2.0 &
-    !             ! + moment_vector(2,nth,np,nr,nsa)**2.0 &
-    !             + moment_vector(3,nth,np,nr,nsa)**2.0 &
-    !             ! + moment_vector(2,nth,np,nr,nsa)*moment_vector(3,nth,np,nr,nsa)*2.0 &
-    !             ! + moment_vector(1,nth,np,nr,nsa)*moment_vector(2,nth,np,nr,nsa)*2.0 &
-    !             ! + moment_vector(1,nth,np,nr,nsa)*moment_vector(3,nth,np,nr,nsa)*2.0 &
-    !             ) /(pm(np,nsa)**2.0) &
-    !                             * JIR(nth,np,nr,nsa) &
-    !                             *delp(ns) * delthm(nth,np,nr,nsa)
-    !         sum2_ = sum2_ + fnsp_l(nth,np,nr,nsa)*1.d20 &
-    !                             * JIR(nth,np,nr,nsa) &
-    !                             *delp(ns) * delthm(nth,np,nr,nsa)
-    !       end do !** nth
-    !     end do !** np
-    !     ! radial_mean_moment_vector(nr,nsa) = radial_mean_moment_vector(nr,nsa)/sum_
-    !     ! mean_moment_vector(nr,nsa) = mean_moment_vector(nr,nsa)/sum_
-    !     ! write(*,*)radial_mean_moment_vector(nr,nsa),mean_moment_vector(nr,nsa)
-    !     Dr(nr,nsa) = -Sr_part(nr,nsa)/dNadr(nr,nsa)
-    !     write(*,*)'sum_:', sum_/sum2_
-    !     sum_ = 0.0
-    !     sum2_ = 0.0
-    !   end do !** nr
-    ! end do !** nsa
+  !   !**** end of new dfdrhom module
+  !   ! !**** making radial mean vector
+  !   ! call make_moment_vector(moment_vector)
+  !   ! do nsa = 1, nsamax
+  !   !   ns = ns_nsa(nsa)
+  !   !   do nr = 1, nrmax
+  !   !     do np = 1, npmax
+  !   !       if ( pm(np,ns) > fact_bulk ) exit !** fact_balk=5
+  !   !       do nth = 1, nthmax
+  !   !        !**** making mean vector
+  !   !         Sr_part(nr,nsa) = moment_vector(3,nth,np,nr,nsa)*ptfp0(nsa)/AMFP(nsa) &
+  !   !                             * fnsp_l(nth,np,nr,nsa)*1.d20 &
+  !   !                             * JIR(nth,np,nr,nsa) &
+  !   !                             / JIR(nth,np,nr,nsa) &
+  !   !                             * delp(ns) * delthm(nth,np,nr,nsa)
+  !   !         sum_ = sum_ + fnsp_l(nth,np,nr,nsa)*1.d20 &
+  !   !             * ( &
+  !   !             ! moment_vector(1,nth,np,nr,nsa)**2.0 &
+  !   !             ! + moment_vector(2,nth,np,nr,nsa)**2.0 &
+  !   !             + moment_vector(3,nth,np,nr,nsa)**2.0 &
+  !   !             ! + moment_vector(2,nth,np,nr,nsa)*moment_vector(3,nth,np,nr,nsa)*2.0 &
+  !   !             ! + moment_vector(1,nth,np,nr,nsa)*moment_vector(2,nth,np,nr,nsa)*2.0 &
+  !   !             ! + moment_vector(1,nth,np,nr,nsa)*moment_vector(3,nth,np,nr,nsa)*2.0 &
+  !   !             ) /(pm(np,nsa)**2.0) &
+  !   !                             * JIR(nth,np,nr,nsa) &
+  !   !                             *delp(ns) * delthm(nth,np,nr,nsa)
+  !   !         sum2_ = sum2_ + fnsp_l(nth,np,nr,nsa)*1.d20 &
+  !   !                             * JIR(nth,np,nr,nsa) &
+  !   !                             *delp(ns) * delthm(nth,np,nr,nsa)
+  !   !       end do !** nth
+  !   !     end do !** np
+  !   !     ! radial_mean_moment_vector(nr,nsa) = radial_mean_moment_vector(nr,nsa)/sum_
+  !   !     ! mean_moment_vector(nr,nsa) = mean_moment_vector(nr,nsa)/sum_
+  !   !     ! write(*,*)radial_mean_moment_vector(nr,nsa),mean_moment_vector(nr,nsa)
+  !   !     Dr(nr,nsa) = -Sr_part(nr,nsa)/dNadr(nr,nsa)
+  !   !     write(*,*)'sum_:', sum_/sum2_
+  !   !     sum_ = 0.0
+  !   !     sum2_ = 0.0
+  !   !   end do !** nr
+  !   ! end do !** nsa
 
-    !**** Source calculation
-    do nsa = 1, nsamax
-      ns = ns_nsa(nsa)
-      do nr = 1, nrmax
-        do np = 1, npmax
-          if ( pm(np,ns) > fact_bulk ) exit
-          do nth = 1, nthmax
+  !   !**** Source calculation
+  !   do nsa = 1, nsamax
+  !     ns = ns_nsa(nsa)
+  !     do nr = 1, nrmax
+  !       do np = 1, npmax
+  !         if ( pm(np,ns) > fact_bulk ) exit
+  !         do nth = 1, nthmax
 
-            if (nr /= 1 .and. nr /= nrmax) then
-              JIp = (JIR(nth,np,nr+1,nsa)+JIR(nth,np,nr,nsa))*0.5d0
-              JIm = (JIR(nth,np,nr,nsa)+JIR(nth,np,nr-1,nsa))*0.5d0
-              Drr_ = ((Drrfow(nth,np,nr+1,nsa)+Drrfow(nth,np,nr,nsa))/JIp*0.5d0 &
-                   + (Drrfow(nth,np,nr,nsa)+Drrfow(nth,np,nr-1,nsa))/JIm*0.5d0)*0.5d0
-              Frr_ = ((Frrfow(nth,np,nr+1,nsa)+Frrfow(nth,np,nr,nsa))/JIp*0.5d0 &
-                   + (Frrfow(nth,np,nr,nsa)+Frrfow(nth,np,nr-1,nsa))/JIm*0.5d0)*0.5d0
-            else if (nr == 1) then
-              JIp = (JIR(nth,np,nr+1,nsa)+JIR(nth,np,nr,nsa))*0.5d0
-              JIm = (JIR(nth,np,nr,nsa)+JIR(nth,np,nr,nsa))*0.5d0
-              Drr_ = ((Drrfow(nth,np,nr+1,nsa)+Drrfow(nth,np,nr,nsa))/JIp*0.5d0 &
-                   + (Drrfow(nth,np,nr,nsa)+Drrfow(nth,np,nr,nsa))/JIm*0.5d0)*0.5d0
-              Frr_ = ((Frrfow(nth,np,nr+1,nsa)+Frrfow(nth,np,nr,nsa))/JIp*0.5d0 &
-                   + (Frrfow(nth,np,nr,nsa)+Frrfow(nth,np,nr,nsa))/JIm*0.5d0)*0.5d0
-            else
-              JIp = (JIR(nth,np,nr,nsa)+JIR(nth,np,nr,nsa))*0.5d0
-              JIm = (JIR(nth,np,nr-1,nsa)+JIR(nth,np,nr,nsa))*0.5d0
-              Drr_ = ((Drrfow(nth,np,nr+1,nsa)+Drrfow(nth,np,nr,nsa))/JIp*0.5d0 &
-                   + (Drrfow(nth,np,nr-1,nsa)+Drrfow(nth,np,nr,nsa))/JIm*0.5d0)*0.5d0
-              Frr_ = ((Frrfow(nth,np,nr+1,nsa)+Frrfow(nth,np,nr,nsa))/JIp*0.5d0 &
-                   + (Frrfow(nth,np,nr-1,nsa)+Frrfow(nth,np,nr,nsa))/JIm*0.5d0)*0.5d0
-            end if
+  !           if (nr /= 1 .and. nr /= nrmax) then
+  !             JIp = (JIR(nth,np,nr+1,nsa)+JIR(nth,np,nr,nsa))*0.5d0
+  !             JIm = (JIR(nth,np,nr,nsa)+JIR(nth,np,nr-1,nsa))*0.5d0
+  !             Drr_ = ((Drrfow(nth,np,nr+1,nsa)+Drrfow(nth,np,nr,nsa))/JIp*0.5d0 &
+  !                  + (Drrfow(nth,np,nr,nsa)+Drrfow(nth,np,nr-1,nsa))/JIm*0.5d0)*0.5d0
+  !             Frr_ = ((Frrfow(nth,np,nr+1,nsa)+Frrfow(nth,np,nr,nsa))/JIp*0.5d0 &
+  !                  + (Frrfow(nth,np,nr,nsa)+Frrfow(nth,np,nr-1,nsa))/JIm*0.5d0)*0.5d0
+  !           else if (nr == 1) then
+  !             JIp = (JIR(nth,np,nr+1,nsa)+JIR(nth,np,nr,nsa))*0.5d0
+  !             JIm = (JIR(nth,np,nr,nsa)+JIR(nth,np,nr,nsa))*0.5d0
+  !             Drr_ = ((Drrfow(nth,np,nr+1,nsa)+Drrfow(nth,np,nr,nsa))/JIp*0.5d0 &
+  !                  + (Drrfow(nth,np,nr,nsa)+Drrfow(nth,np,nr,nsa))/JIm*0.5d0)*0.5d0
+  !             Frr_ = ((Frrfow(nth,np,nr+1,nsa)+Frrfow(nth,np,nr,nsa))/JIp*0.5d0 &
+  !                  + (Frrfow(nth,np,nr,nsa)+Frrfow(nth,np,nr,nsa))/JIm*0.5d0)*0.5d0
+  !           else
+  !             JIp = (JIR(nth,np,nr,nsa)+JIR(nth,np,nr,nsa))*0.5d0
+  !             JIm = (JIR(nth,np,nr-1,nsa)+JIR(nth,np,nr,nsa))*0.5d0
+  !             Drr_ = ((Drrfow(nth,np,nr+1,nsa)+Drrfow(nth,np,nr,nsa))/JIp*0.5d0 &
+  !                  + (Drrfow(nth,np,nr-1,nsa)+Drrfow(nth,np,nr,nsa))/JIm*0.5d0)*0.5d0
+  !             Frr_ = ((Frrfow(nth,np,nr+1,nsa)+Frrfow(nth,np,nr,nsa))/JIp*0.5d0 &
+  !                  + (Frrfow(nth,np,nr-1,nsa)+Frrfow(nth,np,nr,nsa))/JIm*0.5d0)*0.5d0
+  !           end if
 
-            Sr_part(nr,nsa) = Sr_part(nr,nsa) &
-                            - 1.d0&
-                            !* (Drr_j(nth,np,nr,nsa)&
-                            * ( 0.d0 &
-                            ! + Drrfow(nth,np,nr,nsa)&
-                            + Drr_ &
-                            * dfdrhom(nth,np,nr,nsa)&!*1.d20 &
-                            ! + Drpfow(nth,np,nr,nsa) &
-                            ! * dfdp(nth,np,nr,nsa)&!*1.d20 &
-                            ! + Drtfow(nth,np,nr,nsa) &
-                            ! * dfdthm(nth,np,nr,nsa)&!*1.d20&
-                            ) &
-                            ! * JIR(nth,np,nr,nsa) &
-                            ! / JIR(nth,np,nr,nsa) &
-                            * delp(ns) * delthm(nth,np,nr,nsa) &
+  !           Sr_part(nr,nsa) = Sr_part(nr,nsa) &
+  !                           - 1.d0&
+  !                           !* (Drr_j(nth,np,nr,nsa)&
+  !                           * ( 0.d0 &
+  !                           ! + Drrfow(nth,np,nr,nsa)&
+  !                           + Drr_ &
+  !                           * dfdrhom(nth,np,nr,nsa)&!*1.d20 &
+  !                           ! + Drpfow(nth,np,nr,nsa) &
+  !                           ! * dfdp(nth,np,nr,nsa)&!*1.d20 &
+  !                           ! + Drtfow(nth,np,nr,nsa) &
+  !                           ! * dfdthm(nth,np,nr,nsa)&!*1.d20&
+  !                           ) &
+  !                           ! * JIR(nth,np,nr,nsa) &
+  !                           ! / JIR(nth,np,nr,nsa) &
+  !                           * delp(ns) * delthm(nth,np,nr,nsa) &
 
-                            - 1.d0&
-                            !* Frr_j(nth,np,nr,nsa) &
-                            ! * Frrfow(nth,np,nr,nsa) &
-                            * fnsp_l(nth,np,nr,nsa)*1.d20 &
-                          !  * JIR(nth,np,nr,nsa) &
-                            * Frr_ &
-                            ! / JIR(nth,np,nr,nsa) &
-                            * delp(ns) * delthm(nth,np,nr,nsa) &
-                            + 0.d0
-    ! write(*,*)"------------------- check tt ---------------------"
+  !                           - 1.d0&
+  !                           !* Frr_j(nth,np,nr,nsa) &
+  !                           ! * Frrfow(nth,np,nr,nsa) &
+  !                           * fnsp_l(nth,np,nr,nsa)*1.d20 &
+  !                         !  * JIR(nth,np,nr,nsa) &
+  !                           * Frr_ &
+  !                           ! / JIR(nth,np,nr,nsa) &
+  !                           * delp(ns) * delthm(nth,np,nr,nsa) &
+  !                           + 0.d0
+  !   ! write(*,*)"------------------- check tt ---------------------"
 
-                            ! + add_sr(nr,nsa)
-                            ! write(*,*)"add:",add_sr(nr,nsa)
-          end do
-        end do
-    ! write(*,*)"------------------- check error ---------------------"
-        Sr_part(nr,nsa) = Sr_part(nr,nsa) !- add_sr(nr,nsa)
-                            ! write(*,*)"add:",add_sr(nr,nsa)
-    ! write(*,*)"------------------- check error 2 ---------------------"
-        Dr(nr,nsa) = -Sr_part(nr,nsa)/dNadr(nr,nsa)
-    ! write(*,*)"------------------- check error 3 ---------------------"
-      end do
-    end do
-    ! write(*,*)"------------------- check 5 ---------------------"
+  !                           ! + add_sr(nr,nsa)
+  !                           ! write(*,*)"add:",add_sr(nr,nsa)
+  !         end do
+  !       end do
+  !   ! write(*,*)"------------------- check error ---------------------"
+  !       Sr_part(nr,nsa) = Sr_part(nr,nsa) !- add_sr(nr,nsa)
+  !                           ! write(*,*)"add:",add_sr(nr,nsa)
+  !   ! write(*,*)"------------------- check error 2 ---------------------"
+  !       Dr(nr,nsa) = -Sr_part(nr,nsa)/dNadr(nr,nsa)
+  !   ! write(*,*)"------------------- check error 3 ---------------------"
+  !     end do
+  !   end do
+  !   ! write(*,*)"------------------- check 5 ---------------------"
 
-  end subroutine integral_ParticleDif
+  ! end subroutine integral_ParticleDif
 
 !   subroutine D_random_walk_baverage(Drwav, Drw, Drweff, Drweffav)
 !   !-----------------------------------------------------
@@ -919,11 +919,6 @@ contains
                                   + Frrfow(nth,np,nr,nsa) &
                                   ! / JIm &
                                     )*0.5d0
-            ! else if (nr == nrmax) then
-            !   Drpl(nth,np,nr,nsa) = (Drpfow(nth,np,nr+1,nsa) + 3.d0*Drpfow(nth,np,nr,nsa))*0.25d0
-            !   Drthl(nth,np,nr,nsa) = (Drpfow(nth,np,nr+1,nsa) + 3.d0*Drtfow(nth,np,nr,nsa))*0.25d0
-            !   Drrl(nth,np,nr,nsa) = (Drrfow(nth,np,nr+1,nsa) + 3.d0*Drrfow(nth,np,nr,nsa))*0.25d0
-            !   Frrl(nth,np,nr,nsa) = (Frrfow(nth,np,nr+1,nsa) + 3.d0*Frrfow(nth,np,nr,nsa))*0.25d0
             else
               if(nr == nrmax) then
                 JIp = JIR(nth,np,nr,nsa)
@@ -968,7 +963,7 @@ contains
             PV = sqrt(1.d0+theta0(nsa)*pm(np,nsa)**2)
             K = (PV-1.d0)*AMFP(nsa)*vc**2 &
             ! K = (pm(np,nsa)*PTFP0(nsa))**2.d0/AMFP(nsa)/2.d0 &
-                                / (AEE*1.D3)!*2.d0/3.d0 * 1.d0
+                                / (AEE*1.D3)!/3.d0 
             
             if(nth /= nthmax) then
               if(np /= npmax) then
@@ -1184,263 +1179,263 @@ contains
   !   end do !** nse
   ! end subroutine integral_Heatdiff
 
-  subroutine integral_Heatdiff(heatfow_out,chi_a)
-  !--------------------------------------------
-  ! Subroutine for FOW heat diffuion coefficient
-  ! calculate only heat diffusion coefficient
-  ! 1/J * K * dfdx_i dV(volume)
-  !--------------------------------------------
+!   subroutine integral_Heatdiff(heatfow_out,chi_a)
+!   !--------------------------------------------
+!   ! Subroutine for FOW heat diffuion coefficient
+!   ! calculate only heat diffusion coefficient
+!   ! 1/J * K * dfdx_i dV(volume)
+!   !--------------------------------------------
 
-    use fpcomm
-    use fowcomm
+!     use fpcomm
+!     use fowcomm
 
-    implicit none
-    double precision,dimension(nrmax,nsamax),intent(out) :: heatfow_out
-    double precision,dimension(nrmax,nsamax),intent(out) :: chi_a
-    double precision,dimension(nrmax,nsamax) :: heatfow_l,sumVI_l,sumVI
-    double precision,dimension(nrmax,nsamax) :: Ta, dTadr, add_heat
-    double precision,dimension(nthmax,npmax,nrmax,nsamax) ::fnsp_l, dfdrhom
-    double precision,dimension(nthmax,npmax,nrmax,nsamax) ::dfdthm, dfdp
-    double precision,dimension(3,nthmax,npmax,nrmax,nsamax) ::moment_vector
-    double precision,dimension(nrmax,nsamax) :: radial_mean_moment, mean_moment
-    double precision :: K, PV, sum_, Drr_, Frr_, Drp_, Drt_, JIp, JIm
-    integer nth,np,nr,nsa,ns
+!     implicit none
+!     double precision,dimension(nrmax,nsamax),intent(out) :: heatfow_out
+!     double precision,dimension(nrmax,nsamax),intent(out) :: chi_a
+!     double precision,dimension(nrmax,nsamax) :: heatfow_l,sumVI_l,sumVI
+!     double precision,dimension(nrmax,nsamax) :: Ta, dTadr, add_heat
+!     double precision,dimension(nthmax,npmax,nrmax,nsamax) ::fnsp_l, dfdrhom
+!     double precision,dimension(nthmax,npmax,nrmax,nsamax) ::dfdthm, dfdp
+!     double precision,dimension(3,nthmax,npmax,nrmax,nsamax) ::moment_vector
+!     double precision,dimension(nrmax,nsamax) :: radial_mean_moment, mean_moment
+!     double precision :: K, PV, sum_, Drr_, Frr_, Drp_, Drt_, JIp, JIm
+!     integer nth,np,nr,nsa,ns
 
 
 
-    !**** initialization ****
-    heatfow_out(:,:) = 0.d0
-    sumVI_l(:,:) = 0.d0
-    fnsp_l(:,:,:,:)=0.d0
-    radial_mean_moment(:,:) = 0.d0
-    add_heat(:,:) = 0.d0
-    sum_ = 0.d0
+!     !**** initialization ****
+!     heatfow_out(:,:) = 0.d0
+!     sumVI_l(:,:) = 0.d0
+!     fnsp_l(:,:,:,:)=0.d0
+!     radial_mean_moment(:,:) = 0.d0
+!     add_heat(:,:) = 0.d0
+!     sum_ = 0.d0
 
-    !****temperature make
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)/AEE/1.D3
-        !Ta(temperature)[keV] rwsl[1/m^3*MJ]
-      end do
-    end do
-    !****first order derivation
-    do nsa = 1, nsamax
-      call first_order_derivative(dTadr(:,nsa), Ta(:,nsa), rm)
-    end do
-!********** for new dfdrhom module [2022/3/4]
-    do nsa = 1, nsamax
-      ns = ns_nsa(nsa)
-      do nr= 1, nrmax
-        do np = 1, npmax
-          if ( pm(np,ns) > fact_bulk ) exit
-          do nth = 1, nthmax
-          fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa)
-          end do
-        end do
-      end do
-    end do
+!     !****temperature make
+!     do nsa = 1, nsamax
+!       do nr = 1, nrmax
+!         Ta(nr,nsa) = rwsl(nr,nsa)*1.d6/(1.5d0*rnsl(nr,nsa)*1.d20)/AEE/1.D3
+!         !Ta(temperature)[keV] rwsl[1/m^3*MJ]
+!       end do
+!     end do
+!     !****first order derivation
+!     do nsa = 1, nsamax
+!       call first_order_derivative(dTadr(:,nsa), Ta(:,nsa), rm)
+!     end do
+! !********** for new dfdrhom module [2022/3/4]
+!     do nsa = 1, nsamax
+!       ns = ns_nsa(nsa)
+!       do nr= 1, nrmax
+!         do np = 1, npmax
+!           if ( pm(np,ns) > fact_bulk ) exit
+!           do nth = 1, nthmax
+!           fnsp_l(nth,np,nr,nsa) = fnsp(nth,np,nr,nsa)
+!           end do
+!         end do
+!       end do
+!     end do
 
-    !**** first order derivative
-    do nsa = 1, nsamax
-      do np = 1, npmax
-        do nth = 1, nthmax
-          call first_order_derivative(dfdrhom(nth,np,:,nsa), &
-                 fnsp_l(nth,np,:,nsa), rm)
-        end do
-      end do
-    end do
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do np = 1, npmax
-          call first_order_derivative(dfdthm(:,np,nr,nsa), &
-                 fnsp_l(:,np,nr,nsa), thetam(:,np,nr,nsa))
-        end do
-      end do
-    end do
-    do nsa = 1, nsamax
-      do nr = 1, nrmax
-        do nth = 1, nthmax
-          call first_order_derivative(dfdp(nth,:,nr,nsa), &
-                 fnsp_l(nth,:,nr,nsa), pm(:,nsa))
-        end do
-      end do
-    end do
-!!**** end of new dfdrhom module
-    !**** making radial mean vector
-    ! call make_moment_vector(moment_vector)
-    do nsa = 1, nsamax
-      ns = ns_nsa(nsa)
-      do nr = 1, nrmax
-        do np = 1, npmax
-          if ( pm(np,ns) > fact_bulk ) exit !** fact_balk=5
-          do nth = 1, nthmax
-           !**** making mean vector
-            mean_moment(nr,nsa) = pm(np,nsa)*PTFP0(nsa) &
-                                * fnsp_l(nth,np,nr,nsa)*1.d20 &
-                                * JIR(nth,np,nr,nsa) &
-                                * delp(ns) * delthm(nth,np,nr,nsa)
-            sum_ = sum_ + fnsp_l(nth,np,nr,nsa)*1.d20 &
-                                * JIR(nth,np,nr,nsa) &
-                                *delp(ns) * delthm(nth,np,nr,nsa)
-          end do
-        end do
-        mean_moment(nr,nsa) = mean_moment(nr,nsa)/sum_
-        sum_ = 0.d0
-        ! write(*,*)"mean_moment:",mean_moment(nr,nsa)
-      end do
-    end do
+!     !**** first order derivative
+!     do nsa = 1, nsamax
+!       do np = 1, npmax
+!         do nth = 1, nthmax
+!           call first_order_derivative(dfdrhom(nth,np,:,nsa), &
+!                  fnsp_l(nth,np,:,nsa), rm)
+!         end do
+!       end do
+!     end do
+!     do nsa = 1, nsamax
+!       do nr = 1, nrmax
+!         do np = 1, npmax
+!           call first_order_derivative(dfdthm(:,np,nr,nsa), &
+!                  fnsp_l(:,np,nr,nsa), thetam(:,np,nr,nsa))
+!         end do
+!       end do
+!     end do
+!     do nsa = 1, nsamax
+!       do nr = 1, nrmax
+!         do nth = 1, nthmax
+!           call first_order_derivative(dfdp(nth,:,nr,nsa), &
+!                  fnsp_l(nth,:,nr,nsa), pm(:,nsa))
+!         end do
+!       end do
+!     end do
+! !!**** end of new dfdrhom module
+!     !**** making radial mean vector
+!     ! call make_moment_vector(moment_vector)
+!     do nsa = 1, nsamax
+!       ns = ns_nsa(nsa)
+!       do nr = 1, nrmax
+!         do np = 1, npmax
+!           if ( pm(np,ns) > fact_bulk ) exit !** fact_balk=5
+!           do nth = 1, nthmax
+!            !**** making mean vector
+!             mean_moment(nr,nsa) = pm(np,nsa)*PTFP0(nsa) &
+!                                 * fnsp_l(nth,np,nr,nsa)*1.d20 &
+!                                 * JIR(nth,np,nr,nsa) &
+!                                 * delp(ns) * delthm(nth,np,nr,nsa)
+!             sum_ = sum_ + fnsp_l(nth,np,nr,nsa)*1.d20 &
+!                                 * JIR(nth,np,nr,nsa) &
+!                                 *delp(ns) * delthm(nth,np,nr,nsa)
+!           end do
+!         end do
+!         mean_moment(nr,nsa) = mean_moment(nr,nsa)/sum_
+!         sum_ = 0.d0
+!         ! write(*,*)"mean_moment:",mean_moment(nr,nsa)
+!       end do
+!     end do
 
-    !**** Making mean radial moment
-    do nsa = 1, nsamax
-      ns = ns_nsa(nsa)
-      do nr = 1, nrmax
-        do np = 1, npmax
-          if ( pm(np,ns) > fact_bulk ) exit !** fact_balk=5
-          do nth = 1, nthmax
-           !**** radial mean velocity
-            radial_mean_moment(nr,nsa) = radial_mean_moment(nr,nsa) &
-                                -( 0.d0 &
-                                ! + Drrfow(nth,np,nr,nsa)&
-                                ! * dfdrhom(nth,np,nr,nsa)*1.d20 &
-                                ! + Drpfow(nth,np,nr,nsa) &
-                                ! * dfdp(nth,np,nr,nsa)*1.d20 &
-                                ! + Drtfow(nth,np,nr,nsa) &
-                                ! * dfdthm(nth,np,nr,nsa)*1.d20&
-                                ) &
-                                ! * JIR(nth,np,nr,nsa) &
-                                / JIR(nth,np,nr,nsa) &
-                                * delp(ns) * delthm(nth,np,nr,nsa) &
+!     !**** Making mean radial moment
+!     do nsa = 1, nsamax
+!       ns = ns_nsa(nsa)
+!       do nr = 1, nrmax
+!         do np = 1, npmax
+!           if ( pm(np,ns) > fact_bulk ) exit !** fact_balk=5
+!           do nth = 1, nthmax
+!            !**** radial mean velocity
+!             radial_mean_moment(nr,nsa) = radial_mean_moment(nr,nsa) &
+!                                 -( 0.d0 &
+!                                 ! + Drrfow(nth,np,nr,nsa)&
+!                                 ! * dfdrhom(nth,np,nr,nsa)*1.d20 &
+!                                 ! + Drpfow(nth,np,nr,nsa) &
+!                                 ! * dfdp(nth,np,nr,nsa)*1.d20 &
+!                                 ! + Drtfow(nth,np,nr,nsa) &
+!                                 ! * dfdthm(nth,np,nr,nsa)*1.d20&
+!                                 ) &
+!                                 ! * JIR(nth,np,nr,nsa) &
+!                                 / JIR(nth,np,nr,nsa) &
+!                                 * delp(ns) * delthm(nth,np,nr,nsa) &
 
-                                ! unit converter [J] to [keV] &
-                                !* Frr_j(nth,np,nr,nsa) &
-                                + Frrfow(nth,np,nr,nsa) &
-                                * fnsp_l(nth,np,nr,nsa)*1.d20 &
-                                !* JIR(nth,np,nr,nsa) &
-                                / JIR(nth,np,nr,nsa) &
-                                * delp(ns) * delthm(nth,np,nr,nsa) &
-                                !** unit [keV] [22/6/6]
-                                + 0.d0
-          end do
-        end do
-        ! write(*,*)radial_mean_moment(nr,nsa)
-        ! radial_mean_moment(nr,nsa) = radial_mean_moment(nr,nsa)/(rnsl(nr,nsa)*1.d20)
-        ! write(*,*)radial_mean_moment(nr,nsa)
-      end do
-    end do
-    !****Integration over moment(np) and pitch angle(nth)
-    do nsa = 1, nsamax
-      ns = ns_nsa(nsa)
-      do nr = 1, nrmax
-        do np = 1, npmax
-          if ( pm(np,ns) > fact_bulk ) exit !** fact_balk=5
-          do nth = 1, nthmax
-            ! PV = sqrt(1.d0+theta0(nsa)*pm(np,nsa)**2)
-            PV = sqrt(1.d0+theta0(nsa)*(pm(np,nsa)-mean_moment(nr,nsa)/PTFP0(nsa))**2)
-            K = (PV-1.d0)*AMFP(nsa)*vc**2 &
-            ! K = (pm(np,nsa)*PTFP0(nsa)-mean_moment(nr,nsa))**2.d0/AMFP(nsa)/2.d0 &
-            ! K = (pm(np,nsa)*PTFP0(nsa))**2.d0/AMFP(nsa)/2.d0 &
-                                / (AEE*1.D3)*2.d0/3.d0 * 1.d0
+!                                 ! unit converter [J] to [keV] &
+!                                 !* Frr_j(nth,np,nr,nsa) &
+!                                 + Frrfow(nth,np,nr,nsa) &
+!                                 * fnsp_l(nth,np,nr,nsa)*1.d20 &
+!                                 !* JIR(nth,np,nr,nsa) &
+!                                 / JIR(nth,np,nr,nsa) &
+!                                 * delp(ns) * delthm(nth,np,nr,nsa) &
+!                                 !** unit [keV] [22/6/6]
+!                                 + 0.d0
+!           end do
+!         end do
+!         ! write(*,*)radial_mean_moment(nr,nsa)
+!         ! radial_mean_moment(nr,nsa) = radial_mean_moment(nr,nsa)/(rnsl(nr,nsa)*1.d20)
+!         ! write(*,*)radial_mean_moment(nr,nsa)
+!       end do
+!     end do
+!     !****Integration over moment(np) and pitch angle(nth)
+!     do nsa = 1, nsamax
+!       ns = ns_nsa(nsa)
+!       do nr = 1, nrmax
+!         do np = 1, npmax
+!           if ( pm(np,ns) > fact_bulk ) exit !** fact_balk=5
+!           do nth = 1, nthmax
+!             ! PV = sqrt(1.d0+theta0(nsa)*pm(np,nsa)**2)
+!             PV = sqrt(1.d0+theta0(nsa)*(pm(np,nsa)-mean_moment(nr,nsa)/PTFP0(nsa))**2)
+!             K = (PV-1.d0)*AMFP(nsa)*vc**2 &
+!             ! K = (pm(np,nsa)*PTFP0(nsa)-mean_moment(nr,nsa))**2.d0/AMFP(nsa)/2.d0 &
+!             ! K = (pm(np,nsa)*PTFP0(nsa))**2.d0/AMFP(nsa)/2.d0 &
+!                                 / (AEE*1.D3)*2.d0/3.d0 * 1.d0
 
-            if (nr /= 1 .and. nr /= nrmax) then
-              JIp = (JIR(nth,np,nr+1,nsa)+JIR(nth,np,nr,nsa))*0.5d0
-              JIm = (JIR(nth,np,nr,nsa)+JIR(nth,np,nr-1,nsa))*0.5d0
-              Drr_ = ((Drrfow(nth,np,nr+1,nsa)+Drrfow(nth,np,nr,nsa))/JIp*0.5d0 &
-                   + (Drrfow(nth,np,nr,nsa)+Drrfow(nth,np,nr-1,nsa))/JIm*0.5d0)*0.5d0
-              Frr_ = ((Frrfow(nth,np,nr+1,nsa)+Frrfow(nth,np,nr,nsa))/JIp*0.5d0 &
-                   + (Frrfow(nth,np,nr,nsa)+Frrfow(nth,np,nr-1,nsa))/JIm*0.5d0)*0.5d0
-            else if (nr == 1) then
-              JIp = (JIR(nth,np,nr+1,nsa)+JIR(nth,np,nr,nsa))*0.5d0
-              JIm = (JIR(nth,np,nr,nsa)+JIR(nth,np,nr,nsa))*0.5d0
-              Drr_ = ((Drrfow(nth,np,nr+1,nsa)+Drrfow(nth,np,nr,nsa))/JIp*0.5d0 &
-                   + (Drrfow(nth,np,nr,nsa)+Drrfow(nth,np,nr,nsa))/JIm*0.5d0)*0.5d0
-              Frr_ = ((Frrfow(nth,np,nr+1,nsa)+Frrfow(nth,np,nr,nsa))/JIp*0.5d0 &
-                   + (Frrfow(nth,np,nr,nsa)+Frrfow(nth,np,nr,nsa))/JIm*0.5d0)*0.5d0
-            else
-              JIp = (JIR(nth,np,nr,nsa)+JIR(nth,np,nr,nsa))*0.5d0
-              JIm = (JIR(nth,np,nr-1,nsa)+JIR(nth,np,nr,nsa))*0.5d0
-              Drr_ = ((Drrfow(nth,np,nr+1,nsa)+Drrfow(nth,np,nr,nsa))/JIp*0.5d0 &
-                   + (Drrfow(nth,np,nr-1,nsa)+Drrfow(nth,np,nr,nsa))/JIm*0.5d0)*0.5d0
-              Frr_ = ((Frrfow(nth,np,nr+1,nsa)+Frrfow(nth,np,nr,nsa))/JIp*0.5d0 &
-                   + (Frrfow(nth,np,nr-1,nsa)+Frrfow(nth,np,nr,nsa))/JIm*0.5d0)*0.5d0
-            end if
-              ! Drr_ = Drrfow(nth,np,nr,nsa)/JIR(nth,np,nr,nsa)
-              ! Frr_ = Frrfow(nth,np,nr,nsa)/JIR(nth,np,nr,nsa)
+!             if (nr /= 1 .and. nr /= nrmax) then
+!               JIp = (JIR(nth,np,nr+1,nsa)+JIR(nth,np,nr,nsa))*0.5d0
+!               JIm = (JIR(nth,np,nr,nsa)+JIR(nth,np,nr-1,nsa))*0.5d0
+!               Drr_ = ((Drrfow(nth,np,nr+1,nsa)+Drrfow(nth,np,nr,nsa))/JIp*0.5d0 &
+!                    + (Drrfow(nth,np,nr,nsa)+Drrfow(nth,np,nr-1,nsa))/JIm*0.5d0)*0.5d0
+!               Frr_ = ((Frrfow(nth,np,nr+1,nsa)+Frrfow(nth,np,nr,nsa))/JIp*0.5d0 &
+!                    + (Frrfow(nth,np,nr,nsa)+Frrfow(nth,np,nr-1,nsa))/JIm*0.5d0)*0.5d0
+!             else if (nr == 1) then
+!               JIp = (JIR(nth,np,nr+1,nsa)+JIR(nth,np,nr,nsa))*0.5d0
+!               JIm = (JIR(nth,np,nr,nsa)+JIR(nth,np,nr,nsa))*0.5d0
+!               Drr_ = ((Drrfow(nth,np,nr+1,nsa)+Drrfow(nth,np,nr,nsa))/JIp*0.5d0 &
+!                    + (Drrfow(nth,np,nr,nsa)+Drrfow(nth,np,nr,nsa))/JIm*0.5d0)*0.5d0
+!               Frr_ = ((Frrfow(nth,np,nr+1,nsa)+Frrfow(nth,np,nr,nsa))/JIp*0.5d0 &
+!                    + (Frrfow(nth,np,nr,nsa)+Frrfow(nth,np,nr,nsa))/JIm*0.5d0)*0.5d0
+!             else
+!               JIp = (JIR(nth,np,nr,nsa)+JIR(nth,np,nr,nsa))*0.5d0
+!               JIm = (JIR(nth,np,nr-1,nsa)+JIR(nth,np,nr,nsa))*0.5d0
+!               Drr_ = ((Drrfow(nth,np,nr+1,nsa)+Drrfow(nth,np,nr,nsa))/JIp*0.5d0 &
+!                    + (Drrfow(nth,np,nr-1,nsa)+Drrfow(nth,np,nr,nsa))/JIm*0.5d0)*0.5d0
+!               Frr_ = ((Frrfow(nth,np,nr+1,nsa)+Frrfow(nth,np,nr,nsa))/JIp*0.5d0 &
+!                    + (Frrfow(nth,np,nr-1,nsa)+Frrfow(nth,np,nr,nsa))/JIm*0.5d0)*0.5d0
+!             end if
+!               ! Drr_ = Drrfow(nth,np,nr,nsa)/JIR(nth,np,nr,nsa)
+!               ! Frr_ = Frrfow(nth,np,nr,nsa)/JIR(nth,np,nr,nsa)
 
-            !**** for dfdrhom is made of fnsp*dVI
-            heatfow_out(nr,nsa) = heatfow_out(nr,nsa) &
-                                !- (pm(np,nsa)*ptfp0(nsa))**2 &
-                                !/ (2*AMFP(nsa)) &
-                                - k &
-                                *( 0.d0&
-                                + Drr_&
-                                * dfdrhom(nth,np,nr,nsa)*1.d20 &
-                                ! + Drpfow(nth,np,nr,nsa) &
-                                ! * dfdp(nth,np,nr,nsa)*1.d20 &
-                                ! + Drtfow(nth,np,nr,nsa) &
-                                ! * dfdthm(nth,np,nr,nsa)*1.d20&
-                                ) &
-                                ! / JIR(nth,np,nr,nsa)**2.d0 &
-                                ! / JIR(nth,np,nr,nsa) &
-                                * delp(ns) * delthm(nth,np,nr,nsa) &
+!             !**** for dfdrhom is made of fnsp*dVI
+!             heatfow_out(nr,nsa) = heatfow_out(nr,nsa) &
+!                                 !- (pm(np,nsa)*ptfp0(nsa))**2 &
+!                                 !/ (2*AMFP(nsa)) &
+!                                 - k &
+!                                 *( 0.d0&
+!                                 + Drr_&
+!                                 * dfdrhom(nth,np,nr,nsa)*1.d20 &
+!                                 ! + Drpfow(nth,np,nr,nsa) &
+!                                 ! * dfdp(nth,np,nr,nsa)*1.d20 &
+!                                 ! + Drtfow(nth,np,nr,nsa) &
+!                                 ! * dfdthm(nth,np,nr,nsa)*1.d20&
+!                                 ) &
+!                                 ! / JIR(nth,np,nr,nsa)**2.d0 &
+!                                 ! / JIR(nth,np,nr,nsa) &
+!                                 * delp(ns) * delthm(nth,np,nr,nsa) &
 
-                                !+ (pm(np,nsa)*ptfp0(nsa))**2 &
-                                !/ (2*AMFP(nsa) )&
+!                                 !+ (pm(np,nsa)*ptfp0(nsa))**2 &
+!                                 !/ (2*AMFP(nsa) )&
                                 
-                                - K &
-                                ! unit converter [J] to [keV] &
-                                !* Frr_j(nth,np,nr,nsa) &
-                                * Frr_ &
-                                * fnsp_l(nth,np,nr,nsa)*1.d20 &
-                                ! / JIR(nth,np,nr,nsa)**2.d0 &
-                                ! / JIR(nth,np,nr,nsa) &
-                                * delp(ns) * delthm(nth,np,nr,nsa) &
-                                !** unit [keV] [22/6/6]
-                                + 0.d0
-              ! add_heat(nr,nsa)  = K &
-              !                   * fnsp_l(nth,np,nr,nsa) * 1.d20 &
-              !                   ! * radial_mean_moment(nr,nsa)&!/AMFP(nsa) &
-              !                   * JIR(nth,np,nr,nsa) * delp(ns) * delthm(nth,np,nr,nsa) 
-! write(*,*)"add term"
-          end do
-        end do
-        heatfow_out(nr,nsa) = ( 0.d0&
-                            + heatfow_out(nr,nsa) &
-                            ! -5.d0/2.d0*Ta(nr,nsa)*radial_mean_moment(nr,nsa)&
-                            +0.d0 )
-        ! if(nsa ==1)heatfow_out(nr,nsa) = heatfow_out(nr,nsa)*sqrt(AMFP(1)/AMFP(2))
-        ! heatfow_out(nr,nsa) = heatfow_out(nr,nsa)-Ta(nr,nsa)*rnsl(nr,nsa)*radial_mean_moment(nr,nsa)*1.d20!&
-        ! write(*,*)"ta_radial" ,TA(nr,nsa)*radial_mean_moment(nr,nsa)
-                            ! + 2.5d0*Ta(nr,nsa)*(rnsl(nr,nsa)*1.d20)*radial_mean_moment(nr,nsa)
-        ! write(*,*)"add heat:",add_heat(nr,nsa)*radial_mean_moment(nr,nsa)
-        if(nsa ==1)heatfow_out(nr,nsa) = heatfow_out(nr,nsa)*sqrt(AMFP(1)/AMFP(2))
-        chi_a(nr,nsa) = -heatfow_out(nr,nsa)/(dTadr(nr,nsa)*rnsl(nr,nsa)*1.d20)
-      end do
-    end do
+!                                 - K &
+!                                 ! unit converter [J] to [keV] &
+!                                 !* Frr_j(nth,np,nr,nsa) &
+!                                 * Frr_ &
+!                                 * fnsp_l(nth,np,nr,nsa)*1.d20 &
+!                                 ! / JIR(nth,np,nr,nsa)**2.d0 &
+!                                 ! / JIR(nth,np,nr,nsa) &
+!                                 * delp(ns) * delthm(nth,np,nr,nsa) &
+!                                 !** unit [keV] [22/6/6]
+!                                 + 0.d0
+!               ! add_heat(nr,nsa)  = K &
+!               !                   * fnsp_l(nth,np,nr,nsa) * 1.d20 &
+!               !                   ! * radial_mean_moment(nr,nsa)&!/AMFP(nsa) &
+!               !                   * JIR(nth,np,nr,nsa) * delp(ns) * delthm(nth,np,nr,nsa) 
+! ! write(*,*)"add term"
+!           end do
+!         end do
+!         heatfow_out(nr,nsa) = ( 0.d0&
+!                             + heatfow_out(nr,nsa) &
+!                             ! -5.d0/2.d0*Ta(nr,nsa)*radial_mean_moment(nr,nsa)&
+!                             +0.d0 )
+!         ! if(nsa ==1)heatfow_out(nr,nsa) = heatfow_out(nr,nsa)*sqrt(AMFP(1)/AMFP(2))
+!         ! heatfow_out(nr,nsa) = heatfow_out(nr,nsa)-Ta(nr,nsa)*rnsl(nr,nsa)*radial_mean_moment(nr,nsa)*1.d20!&
+!         ! write(*,*)"ta_radial" ,TA(nr,nsa)*radial_mean_moment(nr,nsa)
+!                             ! + 2.5d0*Ta(nr,nsa)*(rnsl(nr,nsa)*1.d20)*radial_mean_moment(nr,nsa)
+!         ! write(*,*)"add heat:",add_heat(nr,nsa)*radial_mean_moment(nr,nsa)
+!         if(nsa ==1)heatfow_out(nr,nsa) = heatfow_out(nr,nsa)*sqrt(AMFP(1)/AMFP(2))
+!         chi_a(nr,nsa) = -heatfow_out(nr,nsa)/(dTadr(nr,nsa)*rnsl(nr,nsa)*1.d20)
+!       end do
+!     end do
 
-    ! !**** making radial mean vector
-    ! call make_moment_vector(moment_vector)
-    ! do nsa = 1, nsamax
-    !   ns = ns_nsa(nsa)
-    !   do nr = 1, nrmax
-    !     do np = 1, npmax
-    !       if ( pm(np,ns) > fact_bulk ) exit !** fact_balk=5
-    !       do nth = 1, nthmax
-    !        !**** making mean vector
-    !         radial_mean_moment_vector(nr,nsa) = moment_vector(3,nth,np,nr,nsa) &
-    !                             * fnsp_l(nth,np,nr,nsa)*1.d20 &
-    !                             * JIR(nth,np,nr,nsa) &
-    !                             * delp(ns) * delthm(nth,np,nr,nsa)
-    !         sum_ = sum_ + fnsp_l(nth,np,nr,nsa)*1.d20 &
-    !                             * JIR(nth,np,nr,nsa) &
-    !                             *delp(ns) * delthm(nth,np,nr,nsa)
-    !       end do
-    !     end do
-    !     radial_mean_moment_vector(nr,nsa) = radial_mean_moment_vector(nr,nsa)/sum_
-    !     write(*,*)radial_mean_moment_vector(nr,nsa)
-    !   end do
-    ! end do
+!     ! !**** making radial mean vector
+!     ! call make_moment_vector(moment_vector)
+!     ! do nsa = 1, nsamax
+!     !   ns = ns_nsa(nsa)
+!     !   do nr = 1, nrmax
+!     !     do np = 1, npmax
+!     !       if ( pm(np,ns) > fact_bulk ) exit !** fact_balk=5
+!     !       do nth = 1, nthmax
+!     !        !**** making mean vector
+!     !         radial_mean_moment_vector(nr,nsa) = moment_vector(3,nth,np,nr,nsa) &
+!     !                             * fnsp_l(nth,np,nr,nsa)*1.d20 &
+!     !                             * JIR(nth,np,nr,nsa) &
+!     !                             * delp(ns) * delthm(nth,np,nr,nsa)
+!     !         sum_ = sum_ + fnsp_l(nth,np,nr,nsa)*1.d20 &
+!     !                             * JIR(nth,np,nr,nsa) &
+!     !                             *delp(ns) * delthm(nth,np,nr,nsa)
+!     !       end do
+!     !     end do
+!     !     radial_mean_moment_vector(nr,nsa) = radial_mean_moment_vector(nr,nsa)/sum_
+!     !     write(*,*)radial_mean_moment_vector(nr,nsa)
+!     !   end do
+!     ! end do
 
-  end subroutine integral_Heatdiff
+!   end subroutine integral_Heatdiff
 
   ! subroutine Heat_rw_baverage(heatrwav, heatrw)
   !---------------------------------------------
@@ -1642,8 +1637,8 @@ contains
 
         Sr_ba(nr,nsa) = fact_ba*(-1.22d0*(1+Ta(nr,2)/Ta(nr,1)) &
                       * 1.d20 * dndr(nr, nsa) &
-                      ! + 4.3d-1*dTadr(nr,1)/Ta(nr,1) &
-                      ! + 1.9d-1*dTadr(nr,2)/Ta(nr,1) &
+                      + 4.3d-1*dTadr(nr,1)/Ta(nr,1) &
+                      + 1.9d-1*dTadr(nr,2)/Ta(nr,1) &
                       )
         !** neglect E_para term
 
@@ -1661,11 +1656,11 @@ contains
           fact_s = (safety_factor(nr)**2) &
              *(rho_a(1)**2)/((eps_t**1.5)*tau_ele)
           heatba(nr,nsa) = fact_s*rnsl(nr,nsa)*1.D20*Ta(nr,1)/RKEV &
-            * ( 0.d0 &
-              ! + 1.53d0*(1+Ta(nr,2)/Ta(nr,1))*dndr(nr, nsa))/rnsl(nr,nsa) &
-              - 1.81d0*dTadr(nr,1)/Ta(nr,1) &
-              !  - 0.27d0*dTadr(nr,2)/Ta(nr,1) &
-              ) !test for [keV]
+                         * ( 0.d0 &
+                         + 1.53d0*(1+Ta(nr,2)/Ta(nr,1))*dndr(nr, nsa)/rnsl(nr,nsa) &
+                         - 1.81d0*dTadr(nr,1)/Ta(nr,1) &
+                         - 0.27d0*dTadr(nr,2)/Ta(nr,1) &
+                         ) !test for [keV]
         !** neglect E_para term
 
           heatpla(nr,nsa) =  sqrt(PI)/4*eps_t**2*Ta(nr,nsa)/AEE/1.d3 &
@@ -1804,7 +1799,6 @@ contains
              (rnsl(nr,2)*1.d20*AEFP(2)**4*lnlam(nr,2,2))
             !  write(*,'(e32.2)')tau_i
         rho_i = sqrt(2.d0*Ta(nr,2)/AMFP(2))*AMFP(2)/(AEFP(2)*Baxis)
-        ! rho_i = sqrt(Ta(nr,2)/AMFP(2))*AMFP(2)/(AEFP(2)*Baxis)
         nu_i = RR*safety_factor(nr)*eps_t**(-1.5d0)*sqrt(2.d0*Ta(nr,2)*(AMFP(2)))*tau_i**(-1.d0)
         mu_i = nu_i*(1.d0 + 1.54d0 * alpha)
 
@@ -1910,8 +1904,6 @@ contains
         inner_product = (inner_product -2.1d0*nu_i**(2.d0)*eps_t**(3.d0))/(1.d0 + nu_i**(2.d0)*eps_t**(3.d0)) 
         rho_ep = sqrt(2.d0*Ta(nr,1)/AMFP(1))*AMFP(1)/(AEFP(1)*B_p)!*vc !** for cgs unit
         rho_ip = sqrt(2.d0*Ta(nr,2)/AMFP(2))*AMFP(2)/(AEFP(2)*B_p)!*vc !** for cgs unit
-        ! rho_ep = sqrt(Ta(nr,1)/AMFP(1))*AMFP(1)/(AEFP(1)*B_p)!*vc !** for cgs unit
-        ! rho_ip = sqrt(Ta(nr,2)/AMFP(2))*AMFP(2)/(AEFP(2)*B_p)!*vc !** for cgs unit
 
         fact_i = 0.66d0*( 1.d0*(1.d0 + 1.03d0 * nu_i**(0.5d0) + 0.31d0*nu_i)**(-1.d0) + &
                  (eps_t**(3.d0)*(0.74d0)**(2.d0)/(0.31d0)*nu_i) * &
