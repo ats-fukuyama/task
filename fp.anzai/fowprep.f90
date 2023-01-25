@@ -2344,7 +2344,7 @@ contains
 
 
             ! write(*,*)"r0:",r0
-            ! JIR(nth,np,nr,nsa) = JI(nth,np,nr,nsa)*ABS( drmdr0 )/r0
+            ! JIR(nth,np,nr,nsa) = JI(nth,np,nr,nsa)*ABS( drmdr0 )!/r0
             JIR(nth,np,nr,nsa) = JI(nth,np,nr,nsa)*ABS( drmdrl(nth,np,nr,nsa) )/rl0(nth,np,nr,nsa)
           end do
         end do
@@ -2379,7 +2379,9 @@ contains
 
   subroutine make_jacobian_coef(rl0,drmdrl)
   !----------------------------------------------
-  ! Make coef of jacobian
+  ! Make coef of jacobian for integration
+  ! jacobaian factor when element of <drmdr>_b change
+  ! per <r>_b --> <>_b denotes bounce average
   !----------------------------------------------
 
     use fpcomm
@@ -2443,7 +2445,7 @@ contains
             if ( detA /= 0.d0 ) then
               b(1) = -1.d0*sth0**2/B0**2*dBdr0
               b(2) = aefp(nsa)*dpsipdr0 - ( dFdr0*B0-F0*dBdr0 )/B0**2*pl*cth0
-              drmdr0 = (A(1,1)*b(2)-A(2,1)*b(1))/detA
+              drmdr0 = (A(1,1)*b(2)+(-A(2,1))*b(1))/detA
             else
               drmdr0 = 1.d0
             end if

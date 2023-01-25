@@ -634,7 +634,7 @@ contains
             Drpfow(nth,np,nr,nsa) = Drpfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) !* JIl
             Drtfow(nth,np,nr,nsa) = Drtfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) !* JIl
             Drrfow(nth,np,nr,nsa) = Drrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) !* JIl
-            Frrfow(nth,np,nr,nsa) = Frrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) !* JIl
+            Frrfow(nth,np,nr,nsa) = - Frrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) !* JIl
             ! if(nsa == 2) write(*,*)"Frr:",Frrfow(nth,np,nr,nsa) - Frrfow(nth,np,nr,1)
 
           end do
