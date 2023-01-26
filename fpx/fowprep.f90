@@ -1,16 +1,17 @@
 ! fowprep.f90
-! [2022/7/19]
+
 ! *******************************
 !  Preparation for Calculation
 ! *******************************
 ! made by ota /modified by anzai
 !
 
-module fowprep
-  private
-  public :: fow_prep
+MODULE fowprep
+  USE fpcomm,ONLY: rkind
+  PRIVATE
+  PUBLIC :: fow_prep
 
-contains
+CONTAINS
 
   subroutine fow_prep
     !---------------------------------------------------
@@ -46,22 +47,26 @@ contains
       do nr = 1, nrmax
         do np = 1, npmax
           !**** calculate theta_pnc and psip_pnc_point
-          call bisection_method(get_pinch_point, flag, pm(np,nsa)&
-                    , theta_pnc(np,nr,nsa), psip_pnc_point(np,nr,nsa), epspsi, psim(nr)-epspsi, psim(nr), nsa)
+          call bisection_method(get_pinch_point, flag, pm(np,nsa), &
+               theta_pnc(np,nr,nsa), psip_pnc_point(np,nr,nsa), &
+               epspsi, psim(nr)-epspsi, psim(nr), nsa)
           if ( flag /= 0 ) theta_pnc(np,nr,nsa) = NO_PINCH_ORBIT
 
           !**** calculate theta_co_stg
-          !**** [ if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),
+          !**** [ if orbit with all theta_m are in forbitten region
+          !                  for given pm(np) and psim(nr),
           !**** then theta_co_stg(np,nr,nsa) = 0.d0 ]
-          call bisection_method(get_p_stg, flag, pm(np,nsa)&
-                                      , dummy, theta_co_stg(np,nr,nsa), 0.d0, pi/2.d0, psim(nr), nsa)
+          call bisection_method(get_p_stg, flag, pm(np,nsa), &
+               dummy, theta_co_stg(np,nr,nsa), 0.d0, pi/2.d0, psim(nr),nsa)
           if ( flag > 0 ) theta_co_stg(np,nr,nsa) = 0.d0
 
           !**** calculate theta_cnt_stg
-          !**** [ if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),
+          !**** [ if orbit with all theta_m are in forbitten region
+          !                  for given pm(np) and psim(nr),
           !**** then theta_cnt_stg(np,nr,nsa) = pi ]
-          call bisection_method(get_p_stg, flag, pm(np,nsa)&
-                                      , dummy, theta_cnt_stg(np,nr,nsa), pi/2.d0, pi, psim(nr), nsa)
+          call bisection_method(get_p_stg, flag, pm(np,nsa), &
+               dummy, theta_cnt_stg(np,nr,nsa), pi/2.d0, pi, psim(nr), nsa)
+          
           if ( flag > 0 ) theta_cnt_stg(np,nr,nsa) = pi
 
           !**** calculate nr_pnc_point
@@ -85,20 +90,25 @@ contains
               end do
 
               do nth = nthm1+1, nthm1+nthm2
-                delthm(nth,np,nr,nsa) = (theta_co_stg(np,nr,nsa)-theta_pnc(np,nr,nsa))/dble(nthm2)
+                 delthm(nth,np,nr,nsa) &
+                      = (theta_co_stg(np,nr,nsa) -theta_pnc(np,nr,nsa)) &
+                      /dble(nthm2)
               end do
 
               do nth = nthm1+nthm2+1, nthmax
-                delthm(nth,np,nr,nsa) = (pi-theta_cnt_stg(np,nr,nsa))/dble(nthm3)
+                 delthm(nth,np,nr,nsa) &
+                      = (pi-theta_cnt_stg(np,nr,nsa))/dble(nthm3)
               end do
 
             else
               do nth = 1, nthm1+nthm2
-                delthm(nth,np,nr,nsa) = theta_co_stg(np,nr,nsa)/dble(nthm1+nthm2)
+                 delthm(nth,np,nr,nsa) &
+                      = theta_co_stg(np,nr,nsa)/dble(nthm1+nthm2)
               end do
 
               do nth = nthm1+nthm2+1, nthmax
-                delthm(nth,np,nr,nsa) = (pi-theta_cnt_stg(np,nr,nsa))/dble(nthm3)
+                 delthm(nth,np,nr,nsa) &
+                      = (pi-theta_cnt_stg(np,nr,nsa))/dble(nthm3)
               end do
 
             end if
@@ -111,11 +121,14 @@ contains
               end do
 
               do nth = nthm3+1, nthm3+nthm2
-                delthm(nth,np,nr,nsa) = (theta_pnc(np,nr,nsa)-theta_cnt_stg(np,nr,nsa))/dble(nthm2)
+                 delthm(nth,np,nr,nsa) &
+                      = (theta_pnc(np,nr,nsa)-theta_cnt_stg(np,nr,nsa))&
+                      /dble(nthm2)
               end do
 
               do nth = nthm3+nthm2+1, nthmax
-                delthm(nth,np,nr,nsa) = (pi-theta_pnc(np,nr,nsa))/dble(nthm1)
+                 delthm(nth,np,nr,nsa) = (pi-theta_pnc(np,nr,nsa)) &
+                      /dble(nthm1)
               end do
 
             else
@@ -124,7 +137,8 @@ contains
               end do
 
               do nth = nthm3+1, nthmax
-                delthm(nth,np,nr,nsa) = (pi-theta_cnt_stg(np,nr,nsa))/dble(nthm1+nthm2)
+                 delthm(nth,np,nr,nsa) &
+                      = (pi-theta_cnt_stg(np,nr,nsa))/dble(nthm1+nthm2)
               end do
 
             end if
@@ -136,17 +150,20 @@ contains
 
           do nth = 2, nthm1+nthm2
             thetam(nth,np,nr,nsa) = thetam(nth-1,np,nr,nsa) &
-                                  +0.5d0*delthm(nth-1,np,nr,nsa)+0.5d0*delthm(nth,np,nr,nsa)
-            thetam_tg(nth,np,nr,nsa) = thetam_tg(nth-1,np,nr,nsa)+delthm(nth-1,np,nr,nsa)
+                 +0.5d0*delthm(nth-1,np,nr,nsa)+0.5d0*delthm(nth,np,nr,nsa)
+            thetam_tg(nth,np,nr,nsa) = thetam_tg(nth-1,np,nr,nsa) &
+                 +delthm(nth-1,np,nr,nsa)
           end do
 
-          thetam(nthm1+nthm2+1,np,nr,nsa) = theta_cnt_stg(np,nr,nsa) + 0.5d0*delthm(nthm1+nthm2+1,np,nr,nsa)
+          thetam(nthm1+nthm2+1,np,nr,nsa) = theta_cnt_stg(np,nr,nsa) &
+               + 0.5d0*delthm(nthm1+nthm2+1,np,nr,nsa)
           thetam_tg(nthm1+nthm2+1,np,nr,nsa) = theta_cnt_stg(np,nr,nsa)
 
           do nth = nthm1+nthm2+2, nthmax
             thetam(nth,np,nr,nsa) = thetam(nth-1,np,nr,nsa) &
-                                  +0.5d0*delthm(nth-1,np,nr,nsa)+0.5d0*delthm(nth,np,nr,nsa)
-            thetam_tg(nth,np,nr,nsa) = thetam_tg(nth-1,np,nr,nsa)+delthm(nth-1,np,nr,nsa)
+                 +0.5d0*delthm(nth-1,np,nr,nsa)+0.5d0*delthm(nth,np,nr,nsa)
+            thetam_tg(nth,np,nr,nsa) = thetam_tg(nth-1,np,nr,nsa) &
+                 +delthm(nth-1,np,nr,nsa)
           end do
 
           thetam_tg(nthmax+1,np,nr,nsa) = pi
@@ -171,24 +188,27 @@ contains
           if ( np == 1 ) then
             theta_pnc_pg(np,nr,nsa) = NO_PINCH_ORBIT
           else
-            call bisection_method(get_pinch_point, flag, pg(np,nsa)&
-                      , theta_pnc_pg(np,nr,nsa), psip_pnc_point_pg(np,nr,nsa), epspsi, psim(nr)-epspsi, psim(nr), nsa)
+            call bisection_method(get_pinch_point, flag, pg(np,nsa), &
+                 theta_pnc_pg(np,nr,nsa), psip_pnc_point_pg(np,nr,nsa), &
+                 epspsi, psim(nr)-epspsi, psim(nr), nsa)
 
             if ( flag /= 0 ) theta_pnc_pg(np,nr,nsa) = NO_PINCH_ORBIT
           end if
 
           !**** calculate theta_co_stg_pg
-          !**** [ if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),
+          !**** [ if orbit with all theta_m are in forbitten region
+          !                      for given pm(np) and psim(nr),
           !**** then theta_co_stg_pg(np,nr,nsa) = 0.d0 ]
-          call bisection_method(get_p_stg, flag, pg(np,nsa)&
-                                      , dummy, theta_co_stg_pg(np,nr,nsa), 0.d0, pi/2.d0, psim(nr), nsa)
+          call bisection_method(get_p_stg, flag, pg(np,nsa), &
+               dummy, theta_co_stg_pg(np,nr,nsa), 0.d0, pi/2.d0, psim(nr), nsa)
           if ( flag > 0 ) theta_co_stg_pg(np,nr,nsa) = 0.d0
 
           !**** calculate theta_cnt_stg _pg
-          !**** [ if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),
+          !**** [ if orbit with all theta_m are in forbitten region
+          !                      for given pm(np) and psim(nr),
           !**** then theta_cnt_stg_pg(np,nr,nsa) = pi ]
-          call bisection_method(get_p_stg, flag, pg(np,nsa)&
-                                      , dummy, theta_cnt_stg_pg(np,nr,nsa), pi/2.d0, pi, psim(nr), nsa)
+          call bisection_method(get_p_stg, flag, pg(np,nsa), &
+               dummy, theta_cnt_stg_pg(np,nr,nsa), pi/2.d0, pi, psim(nr), nsa)
           if ( flag > 0 ) theta_cnt_stg_pg(np,nr,nsa) = pi
 
           !**** define thetam mesh
@@ -200,20 +220,25 @@ contains
               end do
 
               do nth = nthm1+1, nthm1+nthm2
-                delthm_pg(nth,np,nr,nsa) = (theta_co_stg_pg(np,nr,nsa)-theta_pnc_pg(np,nr,nsa))/dble(nthm2)
+                 delthm_pg(nth,np,nr,nsa) &
+                      = (theta_co_stg_pg(np,nr,nsa)-theta_pnc_pg(np,nr,nsa)) &
+                      /dble(nthm2)
               end do
 
               do nth = nthm1+nthm2+1, nthmax
-                delthm_pg(nth,np,nr,nsa) = (pi-theta_cnt_stg_pg(np,nr,nsa))/dble(nthm3)
+                 delthm_pg(nth,np,nr,nsa) &
+                      = (pi-theta_cnt_stg_pg(np,nr,nsa))/dble(nthm3)
               end do
 
             else
               do nth = 1, nthm1+nthm2
-                delthm_pg(nth,np,nr,nsa) = theta_co_stg_pg(np,nr,nsa)/dble(nthm1+nthm2)
+                 delthm_pg(nth,np,nr,nsa) &
+                      = theta_co_stg_pg(np,nr,nsa)/dble(nthm1+nthm2)
               end do
 
               do nth = nthm1+nthm2+1, nthmax
-                delthm_pg(nth,np,nr,nsa) = (pi-theta_cnt_stg_pg(np,nr,nsa))/dble(nthm3)
+                 delthm_pg(nth,np,nr,nsa) &
+                      = (pi-theta_cnt_stg_pg(np,nr,nsa))/dble(nthm3)
               end do
 
             end if
@@ -222,24 +247,30 @@ contains
 
             if ( theta_pnc_pg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
               do nth = 1, nthm3
-                delthm_pg(nth,np,nr,nsa) = theta_co_stg_pg(np,nr,nsa)/dble(nthm3)
+                 delthm_pg(nth,np,nr,nsa) &
+                      = theta_co_stg_pg(np,nr,nsa)/dble(nthm3)
               end do
 
               do nth = nthm3+1, nthm3+nthm2
-                delthm_pg(nth,np,nr,nsa) = (theta_pnc_pg(np,nr,nsa)-theta_cnt_stg_pg(np,nr,nsa))/dble(nthm2)
+                 delthm_pg(nth,np,nr,nsa) &
+                      = (theta_pnc_pg(np,nr,nsa)-theta_cnt_stg_pg(np,nr,nsa)) &
+                      /dble(nthm2)
               end do
 
               do nth = nthm3+nthm2+1, nthmax
-                delthm_pg(nth,np,nr,nsa) = (pi-theta_pnc_pg(np,nr,nsa))/dble(nthm1)
+                 delthm_pg(nth,np,nr,nsa)&
+                      = (pi-theta_pnc_pg(np,nr,nsa))/dble(nthm1)
               end do
 
             else
               do nth = 1, nthm3
-                delthm_pg(nth,np,nr,nsa) = theta_co_stg_pg(np,nr,nsa)/dble(nthm3)
+                 delthm_pg(nth,np,nr,nsa) &
+                      = theta_co_stg_pg(np,nr,nsa)/dble(nthm3)
               end do
 
               do nth = nthm3+1, nthmax
-                delthm_pg(nth,np,nr,nsa) = (pi-theta_cnt_stg_pg(np,nr,nsa))/dble(nthm1+nthm2)
+                 delthm_pg(nth,np,nr,nsa)&
+                      = (pi-theta_cnt_stg_pg(np,nr,nsa))/dble(nthm1+nthm2)
               end do
 
             end if
@@ -249,15 +280,21 @@ contains
           thetam_pg(1,np,nr,nsa) = 0.5d0*delthm_pg(1,np,nr,nsa)
 
           do nth = 2, nthm1+nthm2
-            thetam_pg(nth,np,nr,nsa) = thetam_pg(nth-1,np,nr,nsa) &
-                                  +0.5d0*delthm_pg(nth-1,np,nr,nsa)+0.5d0*delthm_pg(nth,np,nr,nsa)
+             thetam_pg(nth,np,nr,nsa) &
+                  = thetam_pg(nth-1,np,nr,nsa) &
+                  +0.5d0*delthm_pg(nth-1,np,nr,nsa) &
+                  +0.5d0*delthm_pg(nth,np,nr,nsa)
           end do
 
-          thetam_pg(nthm1+nthm2+1,np,nr,nsa) = theta_cnt_stg_pg(np,nr,nsa) + 0.5d0*delthm_pg(nthm1+nthm2+1,np,nr,nsa)
+          thetam_pg(nthm1+nthm2+1,np,nr,nsa) &
+               = theta_cnt_stg_pg(np,nr,nsa) &
+               + 0.5d0*delthm_pg(nthm1+nthm2+1,np,nr,nsa)
 
           do nth = nthm1+nthm2+2, nthmax
-            thetam_pg(nth,np,nr,nsa) = thetam_pg(nth-1,np,nr,nsa) &
-                                  +0.5d0*delthm_pg(nth-1,np,nr,nsa)+0.5d0*delthm_pg(nth,np,nr,nsa)
+             thetam_pg(nth,np,nr,nsa) &
+                  = thetam_pg(nth-1,np,nr,nsa) &
+                  +0.5d0*delthm_pg(nth-1,np,nr,nsa) &
+                  +0.5d0*delthm_pg(nth,np,nr,nsa)
           end do
 
         end do
@@ -271,25 +308,30 @@ contains
           if ( nr == 1 ) then
             theta_pnc_rg(np,nr,nsa) = NO_PINCH_ORBIT
           else
-            call bisection_method(get_pinch_point, flag, pm(np,nsa)&
-                      , theta_pnc_rg(np,nr,nsa), psip_pnc_point_rg(np,nr,nsa), epspsi, psim_rg(nr)-epspsi, psim_rg(nr), nsa)
+            call bisection_method(get_pinch_point, flag, pm(np,nsa), &
+                 theta_pnc_rg(np,nr,nsa), psip_pnc_point_rg(np,nr,nsa), &
+                 epspsi, psim_rg(nr)-epspsi, psim_rg(nr), nsa)
 
             if ( flag /= 0 ) theta_pnc_rg(np,nr,nsa) = NO_PINCH_ORBIT
 
           end if
 
           !**** calculate theta_co_stg_rg
-          !**** [ if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),
+          !**** [ if orbit with all theta_m are in forbitten region
+          !                           for given pm(np) and psim(nr), 
           !**** then theta_co_stg_rg(np,nr,nsa) = 0.d0 ]
-          call bisection_method(get_p_stg, flag, pm(np,nsa)&
-                                      , dummy, theta_co_stg_rg(np,nr,nsa), 0.d0, pi/2.d0, psim_rg(nr), nsa)
+          call bisection_method(get_p_stg, flag, pm(np,nsa), &
+               dummy, theta_co_stg_rg(np,nr,nsa), 0.d0, pi/2.d0, &
+               psim_rg(nr), nsa)
           if ( flag > 0 ) theta_co_stg_rg(np,nr,nsa) = 0.d0
 
           !**** calculate theta_cnt_stg_rg
-          !**** [ if orbit with all theta_m are in forbitten region given pm(np) and psim(nr),
+          !**** [ if orbit with all theta_m are in forbitten region
+          !                           for given pm(np) and psim(nr),
           !**** then theta_cnt_stg_rg(np,nr,nsa) = pi ]
-          call bisection_method(get_p_stg, flag, pm(np,nsa)&
-                                      , dummy, theta_cnt_stg_rg(np,nr,nsa), pi/2.d0, pi, psim_rg(nr), nsa)
+          call bisection_method(get_p_stg, flag, pm(np,nsa), &
+               dummy, theta_cnt_stg_rg(np,nr,nsa), pi/2.d0, pi, &
+               psim_rg(nr), nsa)
           if ( flag > 0 ) theta_cnt_stg_rg(np,nr,nsa) = pi
 
           !**** define theta mesh
@@ -297,24 +339,30 @@ contains
 
             if ( theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
               do nth = 1, nthm1
-                delthm_rg(nth,np,nr,nsa) = theta_pnc_rg(np,nr,nsa)/dble(nthm1)
+                 delthm_rg(nth,np,nr,nsa) &
+                      = theta_pnc_rg(np,nr,nsa)/dble(nthm1)
               end do
 
               do nth = nthm1+1, nthm1+nthm2
-                delthm_rg(nth,np,nr,nsa) = (theta_co_stg_rg(np,nr,nsa)-theta_pnc_rg(np,nr,nsa))/dble(nthm2)
+                 delthm_rg(nth,np,nr,nsa) &
+                      = (theta_co_stg_rg(np,nr,nsa)-theta_pnc_rg(np,nr,nsa)) &
+                      /dble(nthm2)
               end do
 
               do nth = nthm1+nthm2+1, nthmax
-                delthm_rg(nth,np,nr,nsa) = (pi-theta_cnt_stg_rg(np,nr,nsa))/dble(nthm3)
+                 delthm_rg(nth,np,nr,nsa) &
+                      = (pi-theta_cnt_stg_rg(np,nr,nsa))/dble(nthm3)
               end do
 
             else
               do nth = 1, nthm1+nthm2
-                delthm_rg(nth,np,nr,nsa) = theta_co_stg_rg(np,nr,nsa)/dble(nthm1+nthm2)
+                 delthm_rg(nth,np,nr,nsa) &
+                      = theta_co_stg_rg(np,nr,nsa)/dble(nthm1+nthm2)
               end do
 
               do nth = nthm1+nthm2+1, nthmax
-                delthm_rg(nth,np,nr,nsa) = (pi-theta_cnt_stg_rg(np,nr,nsa))/dble(nthm3)
+                 delthm_rg(nth,np,nr,nsa) &
+                      = (pi-theta_cnt_stg_rg(np,nr,nsa))/dble(nthm3)
               end do
 
             end if
@@ -323,24 +371,30 @@ contains
 
             if ( theta_pnc_rg(np,nr,nsa) /= NO_PINCH_ORBIT ) then
               do nth = 1, nthm3
-                delthm_rg(nth,np,nr,nsa) = theta_co_stg_rg(np,nr,nsa)/dble(nthm3)
+                 delthm_rg(nth,np,nr,nsa) &
+                      = theta_co_stg_rg(np,nr,nsa)/dble(nthm3)
               end do
 
               do nth = nthm3+1, nthm3+nthm2
-                delthm_rg(nth,np,nr,nsa) = (theta_pnc_rg(np,nr,nsa)-theta_cnt_stg_rg(np,nr,nsa))/dble(nthm2)
+                 delthm_rg(nth,np,nr,nsa) &
+                      = (theta_pnc_rg(np,nr,nsa)-theta_cnt_stg_rg(np,nr,nsa)) &
+                      /dble(nthm2)
               end do
 
               do nth = nthm3+nthm2+1, nthmax
-                delthm_rg(nth,np,nr,nsa) = (pi-theta_pnc_rg(np,nr,nsa))/dble(nthm1)
+                 delthm_rg(nth,np,nr,nsa) &
+                      = (pi-theta_pnc_rg(np,nr,nsa))/dble(nthm1)
               end do
 
             else
               do nth = 1, nthm3
-                delthm_rg(nth,np,nr,nsa) = theta_co_stg_rg(np,nr,nsa)/dble(nthm3)
+                 delthm_rg(nth,np,nr,nsa) &
+                      = theta_co_stg_rg(np,nr,nsa)/dble(nthm3)
               end do
 
               do nth = nthm3+1, nthmax
-                delthm_rg(nth,np,nr,nsa) = (pi-theta_cnt_stg_rg(np,nr,nsa))/dble(nthm1+nthm2)
+                 delthm_rg(nth,np,nr,nsa) &
+                      = (pi-theta_cnt_stg_rg(np,nr,nsa))/dble(nthm1+nthm2)
               end do
 
             end if
@@ -350,15 +404,21 @@ contains
           thetam_rg(1,np,nr,nsa) = 0.5d0*delthm_rg(1,np,nr,nsa)
 
           do nth = 2, nthm1+nthm2
-            thetam_rg(nth,np,nr,nsa) = thetam_rg(nth-1,np,nr,nsa) &
-                                  +0.5d0*delthm_rg(nth-1,np,nr,nsa)+0.5d0*delthm_rg(nth,np,nr,nsa)
+             thetam_rg(nth,np,nr,nsa) &
+                  = thetam_rg(nth-1,np,nr,nsa) &
+                  +0.5d0*delthm_rg(nth-1,np,nr,nsa) &
+                  +0.5d0*delthm_rg(nth,np,nr,nsa)
           end do
 
-          thetam_rg(nthm1+nthm2+1,np,nr,nsa) = theta_cnt_stg_rg(np,nr,nsa) + 0.5d0*delthm_rg(nthm1+nthm2+1,np,nr,nsa)
+          thetam_rg(nthm1+nthm2+1,np,nr,nsa) &
+               = theta_cnt_stg_rg(np,nr,nsa) &
+               + 0.5d0*delthm_rg(nthm1+nthm2+1,np,nr,nsa)
 
           do nth = nthm1+nthm2+2, nthmax
-            thetam_rg(nth,np,nr,nsa) = thetam_rg(nth-1,np,nr,nsa) &
-                                  +0.5d0*delthm_rg(nth-1,np,nr,nsa)+0.5d0*delthm_rg(nth,np,nr,nsa)
+             thetam_rg(nth,np,nr,nsa) &
+                  = thetam_rg(nth-1,np,nr,nsa) &
+                  +0.5d0*delthm_rg(nth-1,np,nr,nsa) &
+                  +0.5d0*delthm_rg(nth,np,nr,nsa)
           end do
 
         end do
@@ -371,51 +431,6 @@ contains
     call make_IBC
     call make_psi_change_nr
     write(*,*)"------------------- FOW PREP ---------------------"
-
-    ! !**** IBC
-    ! do nsa = 1, nsamax
-    !   do nr = 1, nrmax
-    !     do np = 1, npmax
-    !       if ( theta_pnc(np,nr,nsa) == NO_PINCH_ORBIT ) cycle
-
-    !       orbit_pnc = orbit_th(nth_pnc(nsa),np,nr,nsa)
-    !       nstpmax = orbit_pnc%nstp_max
-
-    !       if ( 0.d0 <= orbit_pnc%costh(1) .and. orbit_pnc%costh(1) <= 1.d0 ) then
-    !         isCo = .true.
-    !       else
-    !         isCo = .false.
-    !       end if
-
-    !       time_v_co = 0.d0
-    !       time_v_cnt = 0.d0
-    !       do nstp = 2, nstpmax
-    !         dt = orbit_pnc%time(nstp)-orbit_pnc%time(nstp-1)
-    !         if ( isCo ) then
-    !           if ( 0.d0 <= orbit_pnc%costh(nstp) .and. orbit_pnc%costh(nstp) <= 1.d0 ) then
-    !             time_v_co = time_v_co + dt
-    !           else
-    !             time_v_co = time_v_co + dt/2.d0
-    !             time_v_cnt = time_v_cnt + dt/2.d0
-    !             isCo = .false.
-    !           end if
-    !         else
-    !           if ( 0.d0 <= orbit_pnc%costh(nstp) .and. orbit_pnc%costh(nstp) <= 1.d0 ) then
-    !             time_v_co = time_v_co + dt/2.d0
-    !             time_v_cnt = time_v_cnt + dt/2.d0
-    !             isCo = .true.
-    !           else
-    !             time_v_cnt = time_v_cnt + dt
-    !           end if
-    !         end if
-    !       end do
-    !       IBCflux_ratio(np,nr,nsa) = time_v_cnt/(time_v_co+time_v_cnt)
-    !       if ( IBCflux_ratio(np,nr,nsa) == 1.d0 .or. IBCflux_ratio(np,nr,nsa) == 0.d0 ) then
-    !         IBCflux_ratio(np,nr,nsa) = 0.5d0
-    !       end if
-    !     end do
-    !   end do
-    ! end do
 
     do nsa = 1, nsamax
       ns = ns_nsa(nsa)
@@ -450,7 +465,8 @@ contains
                   theta_pol = theta_p(nthp)
                   psi_pol = psim(nr)
 
-                  call fow_cal_local_COMs(thetaml, rhoml, tau_loss, momentum, pitch_angle, theta_pol, psi_pol, nsa)
+                  call fow_cal_local_COMs(thetaml, rhoml, tau_loss, &
+                       momentum, pitch_angle, theta_pol, psi_pol, nsa)
 
                   thetam_local(nth,np,nr,nthp,nsa) = thetaml
                   rhom_local(nth,np,nr,nthp,nsa) = rhoml
@@ -474,7 +490,7 @@ contains
 
   end subroutine fow_prep
 
-  !=============================================================== submodules =======================================================
+  !========================== submodules =========================
 
   subroutine make_nth_pnc
   !------------------------------------------------------------
@@ -559,20 +575,12 @@ contains
             if (nsa == 1) then
               if (thetam_tg(nth,np,nr,nsa)<= theta_co_stg(np,nr,nsa) .and. &
                   theta_co_stg(np,nr,nsa)<=thetam_tg(nth+1,np,nr,nsa)) then
-              ! if (thetam_tg(nth,np,nr,nsa)< theta_cnt_stg(np,nr,nsa) .and. &
-              !     theta_cnt_stg(np,nr,nsa)<=thetam_tg(nth+1,np,nr,nsa)) then
                 nth_stg_tg(np,nr,nsa) = nth
-                ! if(nsa == 1) write(*,*)"stag_counter:", thetam(12,np,nr,nsa)!nth_stg_tg(np,nr,nsa)
-                ! write(*,*)"nsa,stg:",nsa, nth_stg_tg(np,nr,nsa)
               end if
             else
               if (thetam_tg(nth,np,nr,nsa)<= theta_cnt_stg(np,nr,nsa) .and. &
                   theta_cnt_stg(np,nr,nsa)<=thetam_tg(nth+1,np,nr,nsa)) then
-              ! if (thetam(nth,np,nr,nsa)< theta_co_stg(np,nr,nsa) .and. &
-              !     theta_co_stg(np,nr,nsa)<=thetam(nth+1,np,nr,nsa)) then
               nth_stg_tg(np,nr,nsa) = nth
-              ! if(nsa == 1) write(*,*)"stag_counter:", thetam(12,np,nr,nsa)!nth_stg_tg(np,nr,nsa)
-              ! write(*,*)"nsa,stg:",nsa, nth_stg_tg(np,nr,nsa)
               end if
             end if !** nsa
           end do
@@ -592,7 +600,6 @@ contains
               else
                 nth_pnc_rg(np,nr,nsa) = nth+1
               end if
-            ! write(*,*) nth_pnc_rg(np,nr,nsa)
             end if
           end do
         end do
@@ -605,8 +612,6 @@ contains
             if (nsa == 1) then
               if (thetam_rg(nth,np,nr,nsa)<= theta_co_stg_rg(np,nr,nsa) .and. &
                   theta_co_stg_rg(np,nr,nsa)<=thetam_rg(nth+1,np,nr,nsa)) then
-              ! if (thetam_rg(nth,np,nr,nsa)<= theta_cnt_stg_rg(np,nr,nsa) .and. &
-              !     theta_cnt_stg_rg(np,nr,nsa)<=thetam_rg(nth+1,np,nr,nsa)) then
                 nth_stg_rg(np,nr,nsa) = nth
               end if
             else
@@ -1572,13 +1577,14 @@ contains
   end subroutine fow_eqload
 
   subroutine bisection_method(routine, convergence_flag, f, g, x, x1, x2, psim_in, nsa_in)
-    !======================================================================================
+    !=========================================================================
     ! resolve f = func(x), x1 < x < x2, where psim_in and nsa_in are constant
     !         func(x) is z1 of "routine".
-    ! use bisection method if calculation has converged then return convergence_flag = 0,
-    !                                                   else return convergence_flag = 1,
-    !                      if func(x1)*func(x2) > 0     then return convergence_flag = 2.
-    !=====================================================================================
+    ! use bisection method
+    !       if calculation has converged then return convergence_flag = 0,
+    !       else return convergence_flag = 1,
+    !       if func(x1)*func(x2) > 0     then return convergence_flag = 2.
+    !=========================================================================
     use fpcomm,only:rkind,npmax
     implicit none
     real(rkind),intent(out) :: x, g
@@ -1588,13 +1594,15 @@ contains
 
     interface
       subroutine routine(z1, z2, y1, y2, m)
-        double precision , intent(out) :: z1, z2
-        double precision, intent(in) :: y1, y2
+        USE fpcomm,ONLY: rkind
+        REAL(rkind) , intent(out) :: z1, z2
+        REAL(rkind), intent(in) :: y1, y2
         integer, intent(in) :: m
       end subroutine
     end interface
 
-    real(rkind) :: x_min, x_max, x_mid, f_min, f_max, f_mid, g_min, g_max, g_mid, eps
+    real(rkind) :: x_min, x_max, x_mid, f_min, f_max, f_mid, &
+                   g_min, g_max, g_mid, eps
     integer :: i, imax = 10000
 
     convergence_flag = 0
@@ -2032,14 +2040,20 @@ contains
 
     ierr = 0
 
+    write(*,*)"------------------- save local COM ---------------------"
+    call system('mkdir -p '//TRIM(dir_binary_data))
+
     filename = TRIM(dir_binary_data)//"rhom_local.bin"
-    open(20, file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
+    open(20, file=filename,access='sequential', &
+         form='unformatted',status='replace',iostat=ierr)
 
     filename = TRIM(dir_binary_data)//"thetam_local.bin"
-    open(21, file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
+    open(21, file=filename,access='sequential', &
+         form='unformatted',status='replace',iostat=ierr)
 
     filename = TRIM(dir_binary_data)//"time_loss.bin"
-    open(22, file=filename,access='sequential',form='unformatted',status='replace',iostat=ierr)
+    open(22, file=filename,access='sequential', &
+         form='unformatted',status='replace',iostat=ierr)
 
     do nsa = 1, nsamax
       do nthp = 1, nthpmax
@@ -2088,7 +2102,8 @@ contains
     end if
 
     filename = TRIM(dir_binary_data)//"eqparm.bin"
-    open(10,file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    open(10,file=filename,access='sequential', &
+         form='unformatted',status='old',iostat=ierr)
     read(10,iostat=ierr)RR_,RA_,RKAP_,RDLT_,RB_,BB_,RIP_
     close(10)
 
@@ -2120,13 +2135,16 @@ contains
     end if
 
     filename = TRIM(dir_binary_data)//"rhom_local.bin"
-    open(20, file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    open(20, file=filename,access='sequential', &
+         form='unformatted',status='old',iostat=ierr)
 
     filename = TRIM(dir_binary_data)//"thetam_local.bin"
-    open(21, file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    open(21, file=filename,access='sequential', &
+         form='unformatted',status='old',iostat=ierr)
 
     filename = TRIM(dir_binary_data)//"time_loss.bin"
-    open(22, file=filename,access='sequential',form='unformatted',status='old',iostat=ierr)
+    open(22, file=filename,access='sequential', &
+         form='unformatted',status='old',iostat=ierr)
 
     if ( ierr /= 0 ) return
 
@@ -2150,63 +2168,16 @@ contains
 
   end subroutine load_local_COM
 
-  ! subroutine search_pinch_orbit(nr_pinch,np_x,nr_x,ns_x)
-  !   !===================================================
-  !   ! Modified by anzai
-  !   !===================================================
-  !   use fpcomm
-  !   use fowcomm
-  !   implicit none
-  !   integer,intent(out) :: nr_pinch
-  !   integer,intent(in) :: np_x,nr_x,ns_x !** index of X point
-  !   real(rkind) :: p_pnc,p_pnc_prev, psim_pinch, epspsi, dummy, psix, p_left, p_right
-
-  !   epspsi = psim(1)*1.d-8
-  !   psim_pinch = psim(nr_x) !+ epspsi
-  !   psix = psim(nr_x)
-  !   p_left  = pg(np_x,ns_x)
-  !   p_right = pg(np_x+1,ns_x)
-  !   p_pnc_prev = p_left
-
-  !   nr_pinch = nr_x
-  !   do while( nr_pinch < nrmax + 1 )
-
-  !     !**** calcurate momentum of X point
-  !     call get_pinch_point(p_pnc, dummy, psix, psim_pinch, ns_x)
-
-  !     if ( p_left <= p_pnc .and. p_pnc <= p_right ) then
-  !       return
-
-  !     else if ( p_pnc > p_right .and. ABS( p_pnc-p_right ) < ABS( p_pnc_prev-p_right ) ) then
-  !       return
-
-  !     else if ( p_pnc > p_right .and. ABS( p_pnc-p_right ) >= ABS( p_pnc_prev-p_right ) ) then
-  !       nr_pinch = nr_pinch - 1
-  !       return
-
-  !     end if
-
-  !     if(nr_pinch == nrmax) then
-  !       nr_pinch = 2022
-  !       return
-  !     end if
-
-  !     psim_pinch = psim_pinch + psim(1)
-  !     nr_pinch = nr_pinch + 1
-
-  !   end do
-
-  ! end subroutine search_pinch_orbit
 
   subroutine search_pinch_orbit(nr_pinch,np_x,nr_x,ns_x)
-    !===================================================
-    !===================================================
+
     use fpcomm
     use fowcomm
     implicit none
     integer,intent(out) :: nr_pinch
     integer,intent(in) :: np_x,nr_x,ns_x !** index of X point
-    real(rkind) :: p_pnc,p_pnc_prev, psim_pinch, epspsi, dummy, psix, p_left, p_right
+    real(rkind):: p_pnc,p_pnc_prev, psim_pinch, epspsi, dummy
+    REAL(rkind):: psix, p_left, p_right
 
     epspsi = psim(1)*1.d-8
     psim_pinch = psim(nr_x)+epspsi
@@ -2219,22 +2190,24 @@ contains
     do while( nr_pinch < nrmax+1 )
 
       !**** calcurate momentum of X point
-      call get_pinch_point(p_pnc, dummy, psix, psim_pinch, ns_x)
+       call get_pinch_point(p_pnc, dummy, psix, psim_pinch, ns_x)
 
-      if ( p_left <= p_pnc .and. p_pnc <= p_right ) then
-        return
+       if ( p_left <= p_pnc .and. p_pnc <= p_right ) then
+          return
 
-      else if ( p_pnc > p_right .and. ABS( p_pnc-p_right ) < ABS( p_pnc_prev-p_right ) ) then
-        return
+       else if ( p_pnc > p_right .and. &
+            ABS( p_pnc-p_right ) < ABS( p_pnc_prev-p_right ) ) then
+          return
 
-      else if ( p_pnc > p_right .and. ABS( p_pnc-p_right ) >= ABS( p_pnc_prev-p_right ) ) then
-        nr_pinch = nr_pinch - 1
-        return
+       else if ( p_pnc > p_right .and. &
+            ABS( p_pnc-p_right ) >= ABS( p_pnc_prev-p_right ) ) then
+          nr_pinch = nr_pinch - 1
+          return
 
-      else
-        psim_pinch = psim_pinch + psim(1)
-        nr_pinch = nr_pinch + 1
-      end if
+       else
+          psim_pinch = psim_pinch + psim(1)
+          nr_pinch = nr_pinch + 1
+       end if
 
     end do
 
@@ -2346,7 +2319,8 @@ contains
 
             ! write(*,*)"r0:",r0
             ! JIR(nth,np,nr,nsa) = JI(nth,np,nr,nsa)*ABS( drmdr0 )/r0
-            JIR(nth,np,nr,nsa) = JI(nth,np,nr,nsa)*ABS( drmdrl(nth,np,nr,nsa) )/rl0(nth,np,nr,nsa)
+             JIR(nth,np,nr,nsa) = JI(nth,np,nr,nsa) &
+                                *ABS(drmdrl(nth,np,nr,nsa))/rl0(nth,np,nr,nsa)
           end do
         end do
       end do
@@ -2381,6 +2355,9 @@ contains
   subroutine make_jacobian_coef(rl0,drmdrl)
   !----------------------------------------------
   ! Make coef of jacobian
+  ! Make coef of jacobian for integration
+  ! jacobaian factor when element of <drmdr>_b change
+  ! per <r>_b --> <>_b denotes bounce average
   !----------------------------------------------
 
     use fpcomm

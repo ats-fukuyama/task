@@ -727,8 +727,8 @@
       SUBROUTINE FPGRAPRA(STRING,FGA,NSA)
 
       IMPLICIT NONE
-      REAL(RKIND),DIMENSION(NTHMAX,NPMAX,NRMAX,NSAMAX):: FGA
-      REAL(RKIND),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
+      REAL(rkind),DIMENSION(NTHMAX,NPMAX,NRMAX,NSAMAX):: FGA
+      REAL(rkind),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSA
@@ -948,8 +948,8 @@
       SUBROUTINE FPGRACA(STRING,FGA,MODE,NSA)
        
       IMPLICIT NONE
-      REAL(RKIND),DIMENSION(:,:,:,:):: FGA
-      REAL(RKIND),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
+      REAL(rkind),DIMENSION(:,:,:,:):: FGA
+      REAL(rkind),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSA, NS
@@ -998,7 +998,7 @@
        
       USE libgrf
       IMPLICIT NONE
-      REAL(RKIND),DIMENSION(NTHMAX+1,NPMAX+1,NSAMAX):: FGA
+      REAL(rkind),DIMENSION(NTHMAX+1,NPMAX+1,NSAMAX):: FGA
       REAL,dimension(NTHMAX+1,NPMAX+1):: GF
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
@@ -1052,9 +1052,9 @@
       SUBROUTINE FPGRACB(STRING,FGA,MODE,NSB)
        
       IMPLICIT NONE
-      REAL(RKIND),DIMENSION(:,:,:,:):: FGA
-!      REAL(RKIND),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
-      REAL(RKIND),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
+      REAL(rkind),DIMENSION(:,:,:,:):: FGA
+!      REAL(rkind),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
+      REAL(rkind),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSB
@@ -1696,7 +1696,7 @@
                    1.0,0.4,0.0, &
                    1.0,0.0,0.0, &
                    1.0,1.0,1.0/
-        REAL(RKIND):: GF,DF
+        REAL(rkind):: GF,DF
         INTEGER:: IM
 !
         GF=F*DBLE(NFMAX-1)+1

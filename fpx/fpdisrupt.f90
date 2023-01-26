@@ -1406,11 +1406,11 @@ MODULE fpdisrupt
       USE libmpi
       IMPLICIT NONE
       INTEGER:: NTH, NP, NR, NSA, NPS, NPE, NS, NTHSTEP
-      DOUBLE PRECISION:: WPL, WPM, WPP, WTP, DFT, DFP, FFP, FFT
-      DOUBLE PRECISION, dimension(NTHMAX,NPSTART:NPEND+1):: FLUXS_PL_L
-      DOUBLE PRECISION, dimension(NTHMAX+1,NPSTART:NPEND):: FLUXS_TL_L
-      DOUBLE PRECISION, dimension(NTHMAX,NPSTART:NPEND):: FLUXS_PL, FLUXS_TL!, dfdt_l
-      DOUBLE PRECISION, dimension(NTHMAX,NPMAX):: FLUXS_P, FLUXS_T!, dfdt
+      REAL(rkind):: WPL, WPM, WPP, WTP, DFT, DFP, FFP, FFT
+      REAL(rkind), dimension(NTHMAX,NPSTART:NPEND+1):: FLUXS_PL_L
+      REAL(rkind), dimension(NTHMAX+1,NPSTART:NPEND):: FLUXS_TL_L
+      REAL(rkind), dimension(NTHMAX,NPSTART:NPEND):: FLUXS_PL, FLUXS_TL!, dfdt_l
+      REAL(rkind), dimension(NTHMAX,NPMAX):: FLUXS_P, FLUXS_T!, dfdt
 
       IF(NPSTART.eq.1)THEN
          NPS=2
@@ -1530,7 +1530,7 @@ MODULE fpdisrupt
       IMPLICIT NONE
       INTEGER:: NTH, NP, NR, NSA
       INTEGER,intent(in):: NT
-      double precision:: sigma
+      REAL(rkind):: sigma
 
       DO NR=NRSTART,NREND
          EM(NR)=E1(NR)
@@ -1590,9 +1590,9 @@ MODULE fpdisrupt
       INTEGER,intent(in):: NT
       INTEGER:: NR, NSA
       INTEGER:: NDIMPL, ILOC1
-      double precision:: DEPS_E, DEPS_MAX
-      double precision,intent(out):: IP_all_FP, DEPS_E2
-      double precision,dimension(NRSTART:NREND):: E_SIGMA 
+      REAL(rkind):: DEPS_E, DEPS_MAX
+      REAL(rkind),intent(out):: IP_all_FP, DEPS_E2
+      REAL(rkind),dimension(NRSTART:NREND):: E_SIGMA 
 
       NDIMPL=0
       DEPS_E=0.D0
@@ -1666,8 +1666,8 @@ MODULE fpdisrupt
       INTEGER,intent(in):: NT
       INTEGER:: NR, NSA, NP, NTH
 
-      double precision:: ip_all, ip_ohm, ip_run, jbs, IP_bs
-      double precision:: IP_all_FP, l_ind, IP_prim, Z_i
+      REAL(rkind):: ip_all, ip_ohm, ip_run, jbs, IP_bs
+      REAL(rkind):: IP_all_FP, l_ind, IP_prim, Z_i
 
       CALL update_disruption_quantities(IP_all, IP_ohm, IP_run, IP_prim, IP_bs, l_ind)
 
@@ -1769,7 +1769,7 @@ MODULE fpdisrupt
 
       IMPLICIT NONE
       INTEGER:: NR, NSB
-      DOUBLE PRECISION:: FACTZ, tau_imp, imp_charge
+      REAL(rkind):: FACTZ, tau_imp, imp_charge
       
 !      tau_imp=3.D0*tau_quench
       tau_imp=tau_mgi

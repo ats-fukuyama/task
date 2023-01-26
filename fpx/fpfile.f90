@@ -309,7 +309,7 @@
       USE fplib
       IMPLICIT NONE
       integer:: NSA, ierr, NR, NS, NP, NTH, NBEAM
-      double precision:: FL, RHON
+      REAL(rkind):: FL, RHON
       REAL(rkind),dimension(NRMAX,NSMAX):: tempt, tempn 
       TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
 
@@ -548,14 +548,14 @@
 
       USE libmpi
       IMPLICIT NONE
-      double precision,dimension(NRMAX)::temp
-      double precision,dimension(NRSTART:NREND)::temp_l
-      double precision,dimension(NTHMAX,NPSTART:NPEND,NRSTART:NREND):: dsend
-      double precision,dimension(nthmax,npmax,nrmax):: drecv
-      double precision,dimension(NTHMAX,NPMAX):: dsend_max, drecv_max
+      REAL(rkind),dimension(NRMAX)::temp
+      REAL(rkind),dimension(NRSTART:NREND)::temp_l
+      REAL(rkind),dimension(NTHMAX,NPSTART:NPEND,NRSTART:NREND):: dsend
+      REAL(rkind),dimension(nthmax,npmax,nrmax):: drecv
+      REAL(rkind),dimension(NTHMAX,NPMAX):: dsend_max, drecv_max
       integer,dimension(NTHMAX,NPMAX)::vloc_max
 
-      double precision,dimension(nthmax,npmax,nrmax+1,nsastart:nsaend):: temp_l2
+      REAL(rkind),dimension(nthmax,npmax,nrmax+1,nsastart:nsaend):: temp_l2
       integer:: nsend
       INTEGER:: NR, NSB, NSA, NTH, NP!, dest, source, tag, nn, Isum
 !!!!!!!!!!!!

@@ -5,11 +5,11 @@ MODULE fpreadfit3d
       USE fpcomm      
 
        integer,dimension(:,:),pointer:: I_FIT_temp
-       double precision,dimension(:),pointer:: D_FIT_temp
+       REAL(rkind),dimension(:),pointer:: D_FIT_temp
        integer:: npm_fit, nthm_fit, nrm_fit
-       double precision,dimension(:),pointer:: rm_fit
-       double precision,dimension(:),pointer:: weight_r
-       double precision:: rho_del_fit
+       REAL(rkind),dimension(:),pointer:: rm_fit
+       REAL(rkind),dimension(:),pointer:: weight_r
+       REAL(rkind):: rho_del_fit
 
        contains
 !-----------------------------------
@@ -18,7 +18,7 @@ MODULE fpreadfit3d
        IMPLICIT NONE
        integer:: i,j,k,l_max 
        integer:: iempty, n_p_theta
-       double precision:: mass_ratio, vmax_mks, rempty
+       REAL(rkind):: mass_ratio, vmax_mks, rempty
 
        open(23,file=SV_FILE_NAME_H,status='old')
 
@@ -85,9 +85,9 @@ MODULE fpreadfit3d
        SUBROUTINE time_interpolation_fit_H(time, ntime1, ntime2, weight)
 
        IMPLICIT NONE
-       double precision, intent(in):: time
+       REAL(rkind), intent(in):: time
        integer,intent(out):: ntime1, ntime2
-       double precision,intent(out):: weight ! y=(1-alpha)*y1 + alpha*y2
+       REAL(rkind),intent(out):: weight ! y=(1-alpha)*y1 + alpha*y2
        integer:: i
 
        DO i=1, ntmax_fit_H
@@ -115,7 +115,7 @@ MODULE fpreadfit3d
        IMPLICIT NONE
        integer:: i,j,k,l_max 
        integer:: iempty, n_p_theta
-       double precision:: mass_ratio, vmax_mks, rempty
+       REAL(rkind):: mass_ratio, vmax_mks, rempty
 
 !       open(23,file='./dat/sv_fp_119489.txt',status='old')
        open(23,file=SV_FILE_NAME_D,status='old')
@@ -184,9 +184,9 @@ MODULE fpreadfit3d
        SUBROUTINE time_interpolation_fit_D(time, ntime1, ntime2, weight)
 
        IMPLICIT NONE
-       double precision, intent(in):: time
+       REAL(rkind), intent(in):: time
        integer,intent(out):: ntime1, ntime2
-       double precision,intent(out):: weight ! y=(1-alpha)*y1 + alpha*y2
+       REAL(rkind),intent(out):: weight ! y=(1-alpha)*y1 + alpha*y2
        integer:: i
 
        ntime1=1
@@ -214,14 +214,14 @@ MODULE fpreadfit3d
        SUBROUTINE MAKE_SPPB_FIT_H(weight, ntime1, ntime2, NSA)
 
        IMPLICIT NONE
-       double precision,intent(in):: weight
+       REAL(rkind),intent(in):: weight
        integer,intent(in):: ntime1, ntime2, NSA
        integer:: i,j,k
        integer:: NTH, NP, NR, NS
-!       double precision,dimension(NTHMAX,NPMAX,NRMAX):: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
-       double precision,dimension(:,:,:),pointer:: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
-       double precision:: FACT
-!       double precision,dimension(NRMAX):: power1, power2, power3
+!       REAL(rkind),dimension(NTHMAX,NPMAX,NRMAX):: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
+       REAL(rkind),dimension(:,:,:),pointer:: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
+       REAL(rkind):: FACT
+!       REAL(rkind),dimension(NRMAX):: power1, power2, power3
 
        NS=NS_NSA(NSA)
 !       FACT = VTFP0(NSA)**3/(RNFP0(NSA)*1.D20)*1.D6
@@ -309,14 +309,14 @@ MODULE fpreadfit3d
        SUBROUTINE MAKE_SPPB_FIT_D(weight, ntime1, ntime2, NSA)
 
        IMPLICIT NONE
-       double precision,intent(in):: weight
+       REAL(rkind),intent(in):: weight
        integer,intent(in):: ntime1, ntime2, NSA
        integer:: i,j,k
        integer:: NTH, NP, NR, NS
-!       double precision,dimension(NTHMAX,NPMAX,NRMAX):: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
-       double precision,dimension(:,:,:),pointer:: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
-       double precision:: FACT
-!       double precision,dimension(NRMAX):: power1, power2, power3
+!       REAL(rkind),dimension(NTHMAX,NPMAX,NRMAX):: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
+       REAL(rkind),dimension(:,:,:),pointer:: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
+       REAL(rkind):: FACT
+!       REAL(rkind),dimension(NRMAX):: power1, power2, power3
 
        NS=NS_NSA(NSA)
        FACT = AMFP(NSA)/(RNFP0(NSA)*1.D20*PTFP0(NSA)**2)*1.D6
@@ -433,7 +433,7 @@ MODULE fpreadfit3d
 
        IMPLICIT NONE
        integer,intent(in):: NSA
-       double precision:: weight, time
+       REAL(rkind):: weight, time
        integer:: ntime1, ntime2, NBEAM, NS
 
        NS=NS_NSA(NSA)
@@ -459,7 +459,7 @@ MODULE fpreadfit3d
 !
 !       USE READ_FIT
 !       IMPLICIT NONE
-!       double precision:: timefp, weight
+!       REAL(rkind):: timefp, weight
 !       integer:: ntime1, ntime2
 !
 !       timefp=4.5D0

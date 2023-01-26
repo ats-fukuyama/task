@@ -10,14 +10,14 @@
       PUBLIC FPMXWL_EXP
       
       PRIVATE
-!      double precision,dimension(:,:),pointer:: read_tms_double, read_cx_double
+!      REAL(rkind),dimension(:,:),pointer:: read_tms_double, read_cx_double
 !      integer,dimension(:,:),pointer:: read_tms_int
-!      double precision,dimension(5):: cte_fit
-!      double precision,dimension(6):: cne_fit
+!      REAL(rkind),dimension(5):: cte_fit
+!      REAL(rkind),dimension(6):: cne_fit
 !      integer:: nend_tms, nend_cx
 !      integer,parameter:: NRMAX=32
-!      double precision,dimension(32):: RM
-!      double precision,dimension(32):: RNE_EXP, RTE_EXP
+!      REAL(rkind),dimension(32):: RM
+!      REAL(rkind),dimension(32):: RNE_EXP, RTE_EXP
 
       contains
 !-----------------------------------
@@ -33,8 +33,8 @@
       SUBROUTINE MAKE_EXP_PROF(time) ! RNE_EXP and RTE_EXP are updated
 
       IMPLICIT NONE
-      double precision,intent(in):: time
-      double precision:: weight
+      REAL(rkind),intent(in):: time
+      REAL(rkind):: weight
       integer:: ntime1, NS, NR, NSA
 
       IF(MODEL_EX_READ_Tn.ne.0)THEN
@@ -100,7 +100,7 @@
 
       IMPLICIT NONE
       integer:: i,j,k,m,nend1
-      double precision,dimension(27,1000):: read_temporary_double
+      REAL(rkind),dimension(27,1000):: read_temporary_double
       integer,dimension(2,1000):: read_temporary_int
 
 !      open(22,file='./dat/tswpe@119489.dat',status='old')
@@ -145,7 +145,7 @@
 
       IMPLICIT NONE
       integer:: i,j,nend2, k
-      double precision,dimension(34,1000):: read_cx_temp, read_cx_temp2
+      REAL(rkind),dimension(34,1000):: read_cx_temp, read_cx_temp2
 
 !      open(22,file='./dat/cxswpi7@119489.dat',status='old')
       open(22,file=EG_NAME_CX,status='old')
@@ -196,11 +196,11 @@
 
       IMPLICIT NONE
       integer,intent(in):: ntime1
-      double precision,intent(in):: weight
+      REAL(rkind),intent(in):: weight
       integer:: i,j,k
       integer:: NR
-      double precision:: rte_ex, rne_ex, rho
-      double precision,dimension(NRMAX,2):: prof_ne_temp, prof_te_temp
+      REAL(rkind):: rte_ex, rne_ex, rho
+      REAL(rkind),dimension(NRMAX,2):: prof_ne_temp, prof_te_temp
       
       DO k=1, 2
          i=k-1+ntime1
@@ -268,11 +268,11 @@
 
       IMPLICIT NONE
       integer,intent(in):: ntime1
-      double precision,intent(in):: weight
+      REAL(rkind),intent(in):: weight
       integer:: i,j,k
       integer:: NR
-      double precision:: rti_ex, rho
-      double precision,dimension(NRMAX,2):: prof_ti_temp
+      REAL(rkind):: rti_ex, rho
+      REAL(rkind),dimension(NRMAX,2):: prof_ti_temp
       
       DO k=1, 2
          i=k-1+ntime1
@@ -324,11 +324,11 @@
       SUBROUTINE time_interpolation_cx(time, ntime1, weight)
 
       IMPLICIT NONE
-      double precision, intent(in):: time
+      REAL(rkind), intent(in):: time
       integer,intent(out):: ntime1
       integer:: ntime2
-      double precision,intent(out):: weight ! y=(1-alpha)*y1 + alpha*y2
-      double precision:: time_exp
+      REAL(rkind),intent(out):: weight ! y=(1-alpha)*y1 + alpha*y2
+      REAL(rkind):: time_exp
       integer:: i
 
       time_exp= time + time_exp_offset
@@ -364,11 +364,11 @@
       SUBROUTINE time_interpolation_tms(time, ntime1, weight)
 
       IMPLICIT NONE
-      double precision, intent(in):: time
+      REAL(rkind), intent(in):: time
       integer,intent(out):: ntime1
       integer:: ntime2
-      double precision,intent(out):: weight ! y=(1-alpha)*y1 + alpha*y2
-      double precision:: time_exp
+      REAL(rkind),intent(out):: weight ! y=(1-alpha)*y1 + alpha*y2
+      REAL(rkind):: time_exp
       integer:: i
 
       time_exp= time + time_exp_offset

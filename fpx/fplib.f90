@@ -304,7 +304,7 @@ CONTAINS
     USE fpreadeg
     IMPLICIT NONE
     INTEGER:: NS, NR, NP, NTH, NSB
-    double precision:: FL
+    REAL(rkind):: FL
 
       IF(MODEL_EX_READ_Tn.eq.0)THEN
          DO NSB=1, NSBMAX
@@ -342,8 +342,8 @@ CONTAINS
       USE libbes
       IMPLICIT NONE
       INTEGER,INTENT(IN)::NR,NSA
-      double precision,intent(in):: RNSL_, RWSL_ 
-      double precision,intent(out)::rtemp
+      REAL(rkind),intent(in):: RNSL_, RWSL_ 
+      REAL(rkind),intent(out)::rtemp
       integer:: ncount, NS
       REAL(rkind):: xeave
       REAL(rkind):: xtemp, thetal, EAVE

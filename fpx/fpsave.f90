@@ -453,12 +453,12 @@
       USE fpmpi
       IMPLICIT NONE
       integer:: NR, NSA, NSB, NP, NSW, N
-      double precision,dimension(NRSTART:NREND,NSAMAX):: work
-      double precision,dimension(NRMAX,NSAMAX):: workg
-      double precision,dimension(NSAMAX):: temp_nsanr
-      double precision,dimension(NPMAX,NRSTART:NREND):: temp_npnr1
-      double precision,dimension(NPMAX,NRMAX):: temp_npnr2
-      double precision,dimension(NPMAX,NRMAX,NSASTART:NSAEND):: temp_npnr3
+      REAL(rkind),dimension(NRSTART:NREND,NSAMAX):: work
+      REAL(rkind),dimension(NRMAX,NSAMAX):: workg
+      REAL(rkind),dimension(NSAMAX):: temp_nsanr
+      REAL(rkind),dimension(NPMAX,NRSTART:NREND):: temp_npnr1
+      REAL(rkind),dimension(NPMAX,NRMAX):: temp_npnr2
+      REAL(rkind),dimension(NPMAX,NRMAX,NSASTART:NSAEND):: temp_npnr3
       integer,dimension(NSAMAX):: vloc
 
       CALL mtx_set_communicator(comm_nsanr) 
@@ -574,7 +574,7 @@
       USE fpmpi
       IMPLICIT NONE
       integer:: NTH, NP, NR, NSA, NS, N, NSW
-      double precision:: FACT, RSUM3_PARA, RSUM3_PERP
+      REAL(rkind):: FACT, RSUM3_PARA, RSUM3_PERP
 
       RNS_DELF_NSA(:,:)=0.D0
       RWS_DELF_PARA(:,:)=0.D0
@@ -688,7 +688,7 @@
       integer:: NR, NSA, NS
       REAL(rkind):: rhon
       TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
-      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in):: recv
+      REAL(rkind),dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in):: recv
 
       CALL mtx_reset_communicator
       DO NSA=NSASTART,NSAEND
@@ -918,7 +918,7 @@
 
       IMPLICIT NONE
       integer:: NP, NR, NSA, NS
-      double precision:: pmax_bulk, p_bulk_r, rhon, RTFPL
+      REAL(rkind):: pmax_bulk, p_bulk_r, rhon, RTFPL
       TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
 
 !     DEFINE BULK MOMENTUM RANGE: 0 < NP < NP_BULK(NR,NSA) 
@@ -970,9 +970,9 @@
       USE fpmpi
       IMPLICIT NONE
       INTEGER:: NP, NTH, NR, NSA, NS
-      double precision:: RSUM1, FACT
-      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in)::SEND
-      double precision,dimension(NRSTART:NREND,NSAMAX),intent(out):: RECV
+      REAL(rkind):: RSUM1, FACT
+      REAL(rkind),dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in)::SEND
+      REAL(rkind),dimension(NRSTART:NREND,NSAMAX),intent(out):: RECV
 
       CALL mtx_set_communicator(comm_np)
 
@@ -1013,9 +1013,9 @@
       USE fpmpi
       IMPLICIT NONE
       INTEGER:: NP, NTH, NR, NSA, NS
-      double precision:: FACT, RSUM2, PV
-      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in)::SEND
-      double precision,dimension(NRSTART:NREND,NSAMAX),intent(out):: RECV
+      REAL(rkind):: FACT, RSUM2, PV
+      REAL(rkind),dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in)::SEND
+      REAL(rkind),dimension(NRSTART:NREND,NSAMAX),intent(out):: RECV
 
       CALL mtx_set_communicator(comm_np) 
 
@@ -1088,9 +1088,9 @@
       USE fpmpi
       IMPLICIT NONE
       INTEGER:: NP, NTH, NR, NSA, NS
-      double precision:: FACT, RSUM3, PV
-      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in)::SEND
-      double precision,dimension(NRSTART:NREND,NSAMAX),intent(out):: RECV
+      REAL(rkind):: FACT, RSUM3, PV
+      REAL(rkind),dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in)::SEND
+      REAL(rkind),dimension(NRSTART:NREND,NSAMAX),intent(out):: RECV
 
       CALL mtx_set_communicator(comm_np) 
 
@@ -1155,11 +1155,11 @@
       USE fpmpi
       IMPLICIT NONE
       INTEGER:: NP, NTH, NR, NSA, NS, NPS, NSB
-      double precision:: FACT, DFP, DFT, FFP
-      double precision,dimension(NTHMAX,NPSTART:NPENDWG,NRSTART:NRENDWM,NSAMAX):: no_coef
-      double precision:: RSUM1, RSUM2, RSUM3, RSUM4, RSUM5, RSUM6, RSUM8, RSUM9, RSUM10
-      double precision,dimension(NSBMAX):: RSUM11, RSUM12
-      double precision:: RSUM_WR, RSUM_WM
+      REAL(rkind):: FACT, DFP, DFT, FFP
+      REAL(rkind),dimension(NTHMAX,NPSTART:NPENDWG,NRSTART:NRENDWM,NSAMAX):: no_coef
+      REAL(rkind):: RSUM1, RSUM2, RSUM3, RSUM4, RSUM5, RSUM6, RSUM8, RSUM9, RSUM10
+      REAL(rkind),dimension(NSBMAX):: RSUM11, RSUM12
+      REAL(rkind):: RSUM_WR, RSUM_WM
 
       no_coef(:,:,:,:)=0.D0
       CALL mtx_set_communicator(comm_np)
@@ -1270,9 +1270,9 @@
       IMPLICIT NONE
       integer,intent(in):: NTH,NP,NR,NSA
       integer:: NS
-      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in)::SEND
-      double precision,intent(out):: DFP, DFT, FFP
-      double precision:: WPP, WPM, WPL
+      REAL(rkind),dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in)::SEND
+      REAL(rkind),intent(out):: DFP, DFT, FFP
+      REAL(rkind):: WPP, WPM, WPL
 
       NS=NS_NSA(NSA)
 
@@ -1330,10 +1330,10 @@
       IMPLICIT NONE
       integer,intent(in):: NTH,NP,NR,NSA 
       integer:: NS
-      double precision,intent(in):: DFP,DFT,FFP      
-      double precision,dimension(NTHMAX,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX),intent(in)::DIFPP, DIFPT, FRICP
-      double precision,intent(inout):: RSUM
-      double precision:: PV
+      REAL(rkind),intent(in):: DFP,DFT,FFP      
+      REAL(rkind),dimension(NTHMAX,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX),intent(in)::DIFPP, DIFPT, FRICP
+      REAL(rkind),intent(inout):: RSUM
+      REAL(rkind):: PV
 
       NS=NS_NSA(NSA)
       PV=SQRT(1.D0+THETA0(NS)*PG(NP,NS)**2)
@@ -1350,10 +1350,10 @@
       IMPLICIT NONE
       integer,intent(in):: NTH,NP,NR,NSA,NSB
       integer:: NS
-      double precision,intent(in):: DFP,DFT,FFP      
-      double precision,dimension(NTHMAX,NPSTART :NPENDWG,NRSTART:NRENDWM,NSBMAX,NSAMAX),intent(in)::DIFPP, DIFPT, FRICP
-      double precision,dimension(NSBMAX),intent(inout):: RSUM
-      double precision:: PV
+      REAL(rkind),intent(in):: DFP,DFT,FFP      
+      REAL(rkind),dimension(NTHMAX,NPSTART :NPENDWG,NRSTART:NRENDWM,NSBMAX,NSAMAX),intent(in)::DIFPP, DIFPT, FRICP
+      REAL(rkind),dimension(NSBMAX),intent(inout):: RSUM
+      REAL(rkind):: PV
 
       NS=NS_NSA(NSA)
       PV=SQRT(1.D0+THETA0(NS)*PG(NP,NS)**2)
@@ -1371,7 +1371,7 @@
       USE libmpi
       IMPLICIT NONE
       INTEGER:: NTH, NP, NR, NSA, NS
-      double precision:: FACT, RSUM11B, RSUM11F, RSUM11S, RSUM11L, RSUM11S_CX, PV
+      REAL(rkind):: FACT, RSUM11B, RSUM11F, RSUM11S, RSUM11L, RSUM11S_CX, PV
 
       CALL mtx_set_communicator(comm_np)
       DO NR=NRSTART,NREND

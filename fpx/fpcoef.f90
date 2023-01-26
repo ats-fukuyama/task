@@ -21,7 +21,7 @@
       USE fpreadfit3d
 
       INTEGER,parameter:: MODEL_T_IMP=2
-!      double precision,parameter::deltaB_B=1.D-4
+!      REAL(rkind),parameter::deltaB_B=1.D-4
 
       contains
 !-------------------------------------------------------------
@@ -233,7 +233,7 @@
       IMPLICIT NONE
       integer,intent(in):: NR, NSA
       integer:: NTH, NP, NG, ITLB, ITUB
-      double precision:: DELH, SUM, ETAL, X, PSIB, PSIN
+      REAL(rkind):: DELH, SUM, ETAL, X, PSIB, PSIN
 
 !     BOUNCE AVERAGE FEPP
       DO NP=NPSTART,NPENDWG
@@ -464,8 +464,8 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NSA
       INTEGER:: NTH, NP, NR, NS, NBEAM, NSABEAM, NSAX
-      DOUBLE PRECISION:: PSP, ANGSP, SUML, SPL
-      DOUBLE PRECISION:: SPFS, PSI, PCOS, TH0B, PANGSP
+      REAL(rkind):: PSP, ANGSP, SUML, SPL
+      REAL(rkind):: SPFS, PSI, PCOS, TH0B, PANGSP
 
 !     NBI distribute Gaussian in rho space
 !     and distribute as delta function in p, theta, poloidal angle
@@ -584,7 +584,7 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NSA
       integer:: NTH, NP, NR, NS, NBEAM, NSABEAM, NSAX
-      DOUBLE PRECISION:: PSP, ANGSP, SUML, SPL
+      REAL(rkind):: PSP, ANGSP, SUML, SPL
 
       NS=NS_NSA(NSA)
 
@@ -687,7 +687,7 @@
       INTEGER,INTENT(IN):: NSA
       integer:: NSB, NR, NTH, NP, NS, ID, NSA1, NSA2
       integer:: NBEAM, NSABEAM, NSAX
-      DOUBLE PRECISION:: PSP, SUML, ANGSP, SPL
+      REAL(rkind):: PSP, SUML, ANGSP, SPL
 
       NS=NS_NSA(NSA)
 
@@ -794,7 +794,7 @@
       INTEGER,INTENT(IN):: NSA
       integer:: NSB, NR, NTH, NP, NS, ID, NSA1, NSA2
       integer:: NBEAM, NSABEAM, NSAX
-      DOUBLE PRECISION:: PSP, SUML, ANGSP, SPL
+      REAL(rkind):: PSP, SUML, ANGSP, SPL
 
       NS=NS_NSA(NSA)
 
@@ -1050,7 +1050,7 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NSA
       INTEGER:: NS,NTH,NP,NR
-      double precision:: tau_dB, rgama, factp, factr, diff_c
+      REAL(rkind):: tau_dB, rgama, factp, factr, diff_c
 
       NS=NS_NSA(NSA)
 
@@ -1075,10 +1075,10 @@
 
       IMPLICIT NONE
       integer,intent(in):: NSA
-      double precision:: sigma_cx, k_energy, log_energy
-      double precision:: log10_neu0, log10_neus, alpha, beta
+      REAL(rkind):: sigma_cx, k_energy, log_energy
+      REAL(rkind):: log10_neu0, log10_neus, alpha, beta
       integer:: NP, NTH, NR, NS
-      double precision,dimension(NRSTART:NREND):: RN_NEU
+      REAL(rkind),dimension(NRSTART:NREND):: RN_NEU
 
       NS=NS_NSA(NSA)
 

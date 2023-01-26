@@ -32,8 +32,8 @@
       REAL(rkind),DIMENSION(NPSTART:NPEND):: FPLL
       REAL(rkind),DIMENSION(NPMAX):: FPL_recv
       REAL(rkind),DIMENSION(NPMAX,-1:LNM):: FPL
-      double precision,dimension(-1:LNM):: FPLS1
-      double precision:: FPLS1_temp
+      REAL(rkind),dimension(-1:LNM):: FPLS1
+      REAL(rkind):: FPLS1_temp
       integer:: NPS
 
       REAL(rkind),DIMENSION(NTHMAX+3):: TX,TY,DF
@@ -924,7 +924,7 @@
       integer,intent(IN):: NSA, NSB
       REAL(rkind),DIMENSION(NPMAX,-1:LNM),INTENT(IN):: FPL
       REAL(rkind),DIMENSION(NPMAX,-1:LNM):: FPL0
-      double precision,dimension(-1:LNM),intent(in):: FPLS1
+      REAL(rkind),dimension(-1:LNM),intent(in):: FPLS1
 
       REAL(rkind),DIMENSION(2*NPMAX+3):: TX1,TY1,DF1,UTY10
       REAL(rkind),DIMENSION(4,2*NPMAX+3):: UTY1

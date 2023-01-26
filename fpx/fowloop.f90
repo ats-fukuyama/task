@@ -1,21 +1,22 @@
 ! fowloop.f90
-! [2022/3/9]
+
 ! ****************************
 !  Main loop of FOW
 ! ****************************
 !  made by ota / modified by anzai
 !
 
-module fowloop
+MODULE fowloop
 
-  private
-  public :: fow_loop 
+  USE fpcomm,ONLY: rkind
+  PRIVATE
+  PUBLIC :: fow_loop 
 
-  double precision,allocatable,dimension(:,:,:) :: density, p_flux
-  double precision,allocatable,dimension(:,:,:) :: Deff, temperature
-  double precision,allocatable,dimension(:,:,:) :: Sr, Sr_Dp
-  double precision,allocatable,dimension(:,:,:) :: Sr_Dth, Sr_Dr, Sr_F
-  double precision,allocatable,dimension(:,:,:,:,:) :: fI, source
+  REAL(rkind),allocatable,dimension(:,:,:) :: density, p_flux
+  REAL(rkind),allocatable,dimension(:,:,:) :: Deff, temperature
+  REAL(rkind),allocatable,dimension(:,:,:) :: Sr, Sr_Dp
+  REAL(rkind),allocatable,dimension(:,:,:) :: Sr_Dth, Sr_Dr, Sr_F
+  REAL(rkind),allocatable,dimension(:,:,:,:,:) :: fI, source
 
 contains
 
@@ -199,13 +200,13 @@ contains
     use fowobclassify
     implicit none
     integer,intent(in) :: nt
-    double precision,dimension(nrmax) :: rmg
-    double precision,dimension(npmax,nsamax) :: momm
-    double precision,dimension(npmax+1,nsamax) :: momg
-    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: taup, r0
-    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: gammaI
-    double precision :: r_, psip0, costh0, sinth0, B0
-    double precision :: F0, dBdr0, dFdr0, dpsipdr0, MJ2keV
+    REAL(rkind),dimension(nrmax) :: rmg
+    REAL(rkind),dimension(npmax,nsamax) :: momm
+    REAL(rkind),dimension(npmax+1,nsamax) :: momg
+    REAL(rkind),dimension(nthmax,npmax,nrmax,nsamax) :: taup, r0
+    REAL(rkind),dimension(nthmax,npmax,nrmax,nsamax) :: gammaI
+    REAL(rkind) :: r_, psip0, costh0, sinth0, B0
+    REAL(rkind) :: F0, dBdr0, dFdr0, dpsipdr0, MJ2keV
     integer :: nth,np,nr,nsa
 
     ! if ( .not.allocated(density) ) allocate(density(nrmax,nsamax,ntmax))

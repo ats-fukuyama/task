@@ -79,10 +79,10 @@ MODULE fpcomm_parm
 
 !     for read FIT3D result
       CHARACTER(len=80):: SV_FILE_NAME_H, SV_FILE_NAME_D
-      double precision,dimension(:),pointer:: time_grid_fit_H, time_grid_fit_D
+      REAL(rkind),dimension(:),pointer:: time_grid_fit_H, time_grid_fit_D
       integer:: ntmax_fit_H, ntmax_fit_D
       integer,dimension(:,:),pointer:: I_FIT_H, I_FIT_D
-      double precision,dimension(:),pointer:: D_FIT_H, D_FIT_D
+      REAL(rkind),dimension(:),pointer:: D_FIT_H, D_FIT_D
       integer,dimension(:,:),pointer:: number_of_lines_fit_H, number_of_lines_fit_D
 
       ! --- FOW input parameters ---

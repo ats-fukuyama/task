@@ -472,8 +472,8 @@
       USE fpcomm
       USE libmpi
       IMPLICIT NONE
-      double precision,dimension((NREND-NRSTART+1)*6):: RATE_NF_SEND, RATE_NF_BB_SEND
-      double precision,dimension((NREND-NRSTART+1)*6):: RATE_NF_RECV, RATE_NF_BB_RECV
+      REAL(rkind),dimension((NREND-NRSTART+1)*6):: RATE_NF_SEND, RATE_NF_BB_SEND
+      REAL(rkind),dimension((NREND-NRSTART+1)*6):: RATE_NF_RECV, RATE_NF_BB_RECV
       integer,dimension(6*(NREND-NRSTART+1)):: vloc ! empty
       INTEGER:: NR,ID,ndata,NSA1,NSA2,i,j
 

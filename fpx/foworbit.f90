@@ -14,8 +14,8 @@ module foworbit
   public :: fow_orbit, fow_cal_local_COMs, fow_set_obparm
   public :: quantities_at_Bminimum, mean_ra_quantities
 
-  double precision,allocatable :: UR(:,:), Ups(:,:), UF(:,:), UB(:,:,:,:)
-  double precision,allocatable :: dBdrt(:,:)
+  REAL(rkind),allocatable :: UR(:,:), Ups(:,:), UF(:,:), UB(:,:,:,:)
+  REAL(rkind),allocatable :: dBdrt(:,:)
 
 contains
 

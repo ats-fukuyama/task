@@ -247,7 +247,7 @@
 
       IMPLICIT NONE
       integer:: NTH, NP, NR, NSA, NM, NRS, NPS
-      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND), &
+      REAL(rkind),dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND), &
            intent(IN):: func_in
 
       IF(NRSTART.eq.1)THEN
@@ -669,7 +669,7 @@
       REAL(rkind):: DIVDPP, DIVDPT, DIVDTP, DIVDTT, DIVFPP, DIVFTH
       REAL(rkind):: RL,DRRM,DRRP,WRM,WRP,VRM,VRP,DIVDRR,DIVFRR
       REAL(rkind):: PL
-      DOUBLE PRECISION:: WPBM, VPBM, WPBP, VPBP
+      REAL(rkind):: WPBM, VPBM, WPBP, VPBP
 
       NS=NS_NSA(NSA)
 

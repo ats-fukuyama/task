@@ -1128,9 +1128,9 @@
 
       IMPLICIT NONE
       INTEGER:: NR, NSA, NSFP, NSFD, NSB, ISW_CLOG
-      DOUBLE PRECISION:: RTA,RTB,RNA,RNB, RLNRL, FACT,RNE
-      double precision,dimension(NSAMAX,NSBMAX):: CLOG
-      double precision:: VTFDL, PTFDL
+      REAL(rkind):: RTA,RTB,RNA,RNB, RLNRL, FACT,RNE
+      REAL(rkind),dimension(NSAMAX,NSBMAX):: CLOG
+      REAL(rkind):: VTFDL, PTFDL
 
       DO NR=NRSTART,NRENDWM
          ISW_CLOG=0 ! =0 Wesson, =1 NRL

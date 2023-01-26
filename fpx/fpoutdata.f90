@@ -18,7 +18,7 @@
       USE fpreadeg
       IMPLICIT NONE
       INTEGER:: NSA, NR, NP, NTH, NS
-      double precision:: FL
+      REAL(rkind):: FL
 
       
       IF(NT_init.eq.0)THEN
@@ -61,7 +61,7 @@
       
       IMPLICIT NONE
       INTEGER:: NP, NTH, NS_F1
-      double precision:: pitch_angle_av
+      REAL(rkind):: pitch_angle_av
 
       NS_F1=NS_NSA(NSA_F1) 
       WRITE(9,'(A,E14.6,I4)') "# ", TIMEFP, NP_BULK(NR_F1,NSA_F1)
@@ -88,10 +88,10 @@
 
       IMPLICIT NONE
       INTEGER:: NP
-      double precision:: beam_peak_value
+      REAL(rkind):: beam_peak_value
       integer:: NP_2e_h, NP_2e_l, NP_1e_h, NP_1e_l, NP_half_l, NP_half_h, NP_B_peak, NS_F1, i, j
-      double precision:: log10_neu0, log10_neus, alpha, beta, k_energy, log_energy
-      double precision:: N_NEUT, sigma_cx
+      REAL(rkind):: log10_neu0, log10_neus, alpha, beta, k_energy, log_energy
+      REAL(rkind):: N_NEUT, sigma_cx
 
       NS_F1=NS_NSA(NSA_F1)
       NP_B_peak=1
@@ -172,9 +172,9 @@
 
       IMPLICIT NONE
       integer:: NP, NS_F1, NR
-      double precision:: RSUM1, RSUM2, RSUM3
-!      double precision,dimension(NRSTART:NREND):: RNSL_BEAM
-!      double precision,dimension(NRMAX):: RNS_BEAM
+      REAL(rkind):: RSUM1, RSUM2, RSUM3
+!      REAL(rkind),dimension(NRSTART:NREND):: RNSL_BEAM
+!      REAL(rkind),dimension(NRMAX):: RNS_BEAM
 
       RSUM1=0.D0
       RSUM2=0.D0
@@ -197,9 +197,9 @@
       IMPLICIT NONE
       integer,intent(in):: ID
       integer:: NR, ndata, NS
-      double precision,dimension(NRSTART:NREND):: send1, send2
-      double precision,dimension(NRMAX):: recv1, recv2, sigmav_mx
-      double precision:: tot1, tot2, sum
+      REAL(rkind),dimension(NRSTART:NREND):: send1, send2
+      REAL(rkind),dimension(NRMAX):: recv1, recv2, sigmav_mx
+      REAL(rkind):: tot1, tot2, sum
 
       CALL mtx_set_communicator(comm_nr)
       ndata=NREND-NRSTART+1
@@ -235,8 +235,8 @@
 
       IMPLICIT NONE
       INTEGER:: NSA, NSB, NR
-      double precision,dimension(NSBMAX):: RSUM_PC, RSUM_PC_DEL
-      double precision:: RSUM_RSPL
+      REAL(rkind),dimension(NSBMAX):: RSUM_PC, RSUM_PC_DEL
+      REAL(rkind):: RSUM_RSPL
 
 !      IF(NRANK.eq.0.and.MODEL_NBI.eq.2)THEN
       NSA=NSA_F1

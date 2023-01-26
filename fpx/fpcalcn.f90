@@ -30,8 +30,8 @@
       REAL(rkind),DIMENSION(NPSTART:NPEND):: FPLL 
       REAL(rkind),DIMENSION(NPMAX):: FPL_recv
       REAL(rkind),DIMENSION(NPMAX+3,-1:LNM):: FPL
-      double precision,dimension(-1:LNM):: FPLS1
-      double precision:: FPLS1_temp
+      REAL(rkind),dimension(-1:LNM):: FPLS1
+      REAL(rkind):: FPLS1_temp
 !      REAL(rkind),DIMENSION(NPMAX+3,-1:LNM):: RM1M, RM2M, RM3M, RM4M
 !      REAL(rkind),DIMENSION(NPMAX+3,-1:LNM):: RM1G, RM2G, RM3G, RM4G
       REAL(rkind),DIMENSION(NPSTARTW:NPENDWM,-1:LNM):: RM1M, RM2M, RM3M, RM4M
@@ -669,7 +669,7 @@
 !      REAL(rkind),DIMENSION(0:LNM):: PLTEMP
       REAL(rkind),DIMENSION(NPMAX+3,-1:LNM), INTENT(IN):: FPL
       REAL(rkind),DIMENSION(NPMAX+3,-1:LNM):: FPL0
-!      double precision,dimension(-1:LNM),intent(in):: FPLS1
+!      REAL(rkind),dimension(-1:LNM),intent(in):: FPLS1
 !      REAL(rkind),DIMENSION(NPMAX+3,-1:LNM), INTENT(OUT):: RM1M, RM2M, RM3M, RM4M
 !      REAL(rkind),DIMENSION(NPMAX+3,-1:LNM), INTENT(OUT):: RM1G, RM2G, RM3G, RM4G
       REAL(rkind),DIMENSION(NPSTARTW:NPENDWM,-1:LNM), INTENT(OUT):: RM1M, RM2M, RM3M, RM4M

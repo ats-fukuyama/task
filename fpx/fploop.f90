@@ -258,7 +258,7 @@
       IMPLICIT NONE
       INTEGER:: NSA, NR, NP, NTH, NS, its
       INTEGER,intent(OUT):: IERR
-      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND)::&
+      REAL(rkind),dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND)::&
            send
 
       N_IMPL=N_IMPL+1

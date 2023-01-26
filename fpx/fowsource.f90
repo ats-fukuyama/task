@@ -1,11 +1,14 @@
-module fowsource
-  private
-  public :: fow_calculate_source
+! fowsource.f90
+
+MODULE fowsource
+  USE fpcomm,ONLY: rkind
+  PRIVATE
+  PUBLIC :: fow_calculate_source
 
   type beam_quantities
     logical :: isLoss
     integer :: ns, np_near
-    double precision :: p, rhomw, thetamw, rhom, thetam, total
+    REAL(rkind) :: p, rhomw, thetamw, rhom, thetam, total
   end type beam_quantities
 
 contains

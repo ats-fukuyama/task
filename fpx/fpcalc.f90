@@ -1056,7 +1056,7 @@
       integer:: NSA, NSB,NR, NP, NTH
       REAL(rkind):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL
       REAL(rkind):: FACT
-      DOUBLE PRECISION:: DELH, sum, etal, psib, pcos, arg, x, PSIN
+      REAL(rkind):: DELH, sum, etal, psib, pcos, arg, x, PSIN
       INTEGER:: NG, ITLB, ITUB, NSSB
 
 ! DCPP, FCPP

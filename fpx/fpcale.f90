@@ -529,8 +529,8 @@
       USE libmpi
       IMPLICIT NONE
       INTEGER:: i,j
-      double precision:: time_read
-      double precision,dimension(NRMAX):: read_E
+      REAL(rkind):: time_read
+      REAL(rkind),dimension(NRMAX):: read_E
 
       CALL mtx_reset_communicator
 

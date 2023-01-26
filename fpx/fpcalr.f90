@@ -25,7 +25,7 @@ CONTAINS
       REAL(rkind):: SHEAR,PNEL,RHONI,DPDR,DVEXBDR,CALF,CKAP,CEXB,FSZ,FEZ
       REAL(rkind),DIMENSION(1:NRMAX+1):: CHI_CDBM
       TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
-      double precision:: densm, densp, rgama, alpha
+      REAL(rkind):: densm, densp, rgama, alpha
       INTEGER:: ISW_D
 
 !---- Calculation of CDBM diffusion coefficient ----

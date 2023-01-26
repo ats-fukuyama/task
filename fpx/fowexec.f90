@@ -31,7 +31,7 @@ contains
     REAL(rkind),dimension(nthmax*(npend-npstart+1)):: sendbuf_r, recvbuf_r
 
     integer :: nm_pnc, nm_D, nm_Xstg, nl_lost, nm_Ostg
-    double precision :: begin_time, end_time
+    REAL(rkind) :: begin_time, end_time
 
     call cpu_time(begin_time)
 
@@ -229,7 +229,7 @@ contains
 
     IMPLICIT NONE
     integer:: NTH, NP, NR, NSA, NM, NRS, NPS
-    double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND), &
+    REAL(rkind),dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND), &
           intent(IN):: func_in
 
     IF(NRSTART.eq.1)THEN
@@ -292,7 +292,7 @@ contains
     REAL(rkind):: dfdth, fvel, dfdp
     
     integer :: nrl, nrr, npl, npr
-    double precision :: dfdrm, width_p, width_r, width_t, dth
+    REAL(rkind) :: dfdrm, width_p, width_r, width_t, dth
 
     !**** calculation of weigthing (including off-diagonal terms)
 
@@ -547,10 +547,10 @@ contains
     INTEGER:: NM
 
     integer:: ierr, ns
-    double precision:: pl, sl, rl
-    double precision :: deltath
-    double precision :: DIVD(3,3), DIVF(3), del(3), Ffow(2,3)
-    double precision :: D_term, F_term
+    REAL(rkind):: pl, sl, rl
+    REAL(rkind) :: deltath
+    REAL(rkind) :: DIVD(3,3), DIVF(3), del(3), Ffow(2,3)
+    REAL(rkind) :: D_term, F_term
     integer :: si, sj, sk, sign_to_index(-1:1), alpha, beta, gama, loc(4), loc_pnc(4)
     integer :: boundary_flag
 
@@ -682,7 +682,7 @@ contains
   !
   !------------------------------------------
     implicit none
-    double precision :: Dfow
+    REAL(rkind) :: Dfow
     integer,intent(in) :: alpha,beta,si,sj,loc(4)
     integer :: nth, np, nr, nsa
     
@@ -727,7 +727,7 @@ contains
   ! weight function for alpha, beta, gamma
   !----------------------------------------------
     implicit none
-    double precision :: w
+    REAL(rkind) :: w
     integer,intent(in) :: sign,alpha,beta,si,sj,loc(4)
     integer :: nth, np, nr, nsa
     
@@ -895,13 +895,13 @@ contains
     implicit none
     integer,intent(in) :: np,nr,nsa
     integer,intent(inout) :: nl_D, nl_Xstg
-    double precision :: S_pnc_to_trp, S_pnc_to_pas
+    REAL(rkind) :: S_pnc_to_trp, S_pnc_to_pas
 
     integer:: ierr, ns, nth, nm_D, nm_Xstg, nl
-    double precision:: pl, sl, rl
-    double precision :: deltath, ratio, fact1, fact2
-    double precision :: DIVD(3), DIVF, Fthm, Fthp, Dtx(3)
-    double precision :: D_term, F_term, D_tp, D_tt, D_tr, dfnspdp, dfnspdth, dfnspdr, fnspg
+    REAL(rkind):: pl, sl, rl
+    REAL(rkind) :: deltath, ratio, fact1, fact2
+    REAL(rkind) :: DIVD(3), DIVF, Fthm, Fthp, Dtx(3)
+    REAL(rkind) :: D_term, F_term, D_tp, D_tt, D_tr, dfnspdp, dfnspdth, dfnspdr, fnspg
     integer :: loc_pnc(4), loc_Xstg(4), loc_D(4), loc(4)
 
     if ( theta_pnc(np,nr,nsa) == NO_PINCH_ORBIT ) then
@@ -1213,10 +1213,10 @@ contains
     integer,intent(inout) :: nl_Xstg, nl_pnc
 
     integer:: ierr, ns, nth, nm_Xstg, nm_pnc, nl
-    double precision:: pl, sl, rl
-    double precision :: deltath, S_x, fact1, fact2
-    double precision :: DIVD(3), DIVF, Fthm, Fthp, Dtx(3)
-    double precision :: D_tp, D_tt, D_tr, dfnspdp, dfnspdth, dfnspdr, fnspg
+    REAL(rkind):: pl, sl, rl
+    REAL(rkind) :: deltath, S_x, fact1, fact2
+    REAL(rkind) :: DIVD(3), DIVF, Fthm, Fthp, Dtx(3)
+    REAL(rkind) :: D_tp, D_tt, D_tr, dfnspdp, dfnspdth, dfnspdr, fnspg
     integer :: loc_Xstg(4), loc_pnc(4), loc(4)
 
     ns = ns_nsa(nsa)
@@ -1552,7 +1552,7 @@ contains
     integer,intent(inout) :: nl_Ostg
     integer :: ns, nl, nm_Ostg,nth
     real(rkind) :: fact
-    double precision :: DIVF, Fthm, Fthp, Dtx(3),pl,sl,deltath,rl
+    REAL(rkind) :: DIVF, Fthm, Fthp, Dtx(3),pl,sl,deltath,rl
 
     ns = ns_nsa(nsa)
 

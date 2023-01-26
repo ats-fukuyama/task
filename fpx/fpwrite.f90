@@ -85,7 +85,7 @@ CONTAINS
 
   subroutine fptxt1D(f,filename)
     implicit none
-    double precision,intent(in) :: f(:)
+    REAL(rkind),intent(in) :: f(:)
     character(*),intent(in) :: filename
     integer :: i, imax
 
@@ -103,7 +103,7 @@ CONTAINS
 
   subroutine fptxt2D(f,filename)
     implicit none
-    double precision,intent(in) :: f(:,:)
+    REAL(rkind),intent(in) :: f(:,:)
     character(*),intent(in) :: filename
     integer :: i1,i2,imax(2)
 
@@ -125,7 +125,7 @@ CONTAINS
 
   subroutine fptxt3D(f,filename)
     implicit none
-    double precision,intent(in) :: f(:,:,:)
+    REAL(rkind),intent(in) :: f(:,:,:)
     character(*),intent(in) :: filename
     integer :: i1, i2, i3, imax(3)
 
@@ -151,7 +151,7 @@ CONTAINS
 
   subroutine fptxt4D(f,filename)
     implicit none
-    double precision,intent(in) :: f(:,:,:,:)
+    REAL(rkind),intent(in) :: f(:,:,:,:)
     character(*),intent(in) :: filename
     integer :: i1, i2, i3, i4, imax(4)
 
@@ -181,7 +181,7 @@ CONTAINS
 
   subroutine fptxt5D(f,filename)
     implicit none
-    double precision,intent(in) :: f(:,:,:,:,:)
+    REAL(rkind),intent(in) :: f(:,:,:,:,:)
     character(*),intent(in) :: filename
     integer :: i1, i2, i3, i4, i5, imax(5)
 
@@ -218,8 +218,8 @@ CONTAINS
 
   function write_for_python(f) result(g)
     implicit none
-    double precision,intent(in) :: f
-    double precision :: g
+    REAL(rkind),intent(in) :: f
+    REAL(rkind) :: g
 
     if ( f /= f ) then
       g = 0.d0
@@ -240,7 +240,7 @@ CONTAINS
 ! use fpcomm
 ! implicit none
 ! integer::nr,t=0
-! double precision,dimension(nrmax,nsamax),intent(in):: recv_d,recv_chi,recv_k,recv_gamma,recv_hf,recv_temps,recv_ps
+! REAL(rkind),dimension(nrmax,nsamax),intent(in):: recv_d,recv_chi,recv_k,recv_gamma,recv_hf,recv_temps,recv_ps
 ! character(len=30)::filedeffe,filekeffe,filechieffe,filetempe,filedense,filegammae,filehfe, &
 !                        filedeffi,filekeffi,filechieffi,filetempi,filedensi,filegammai,filehfi, &
 !                        filedeff_chi,filechi_deff,fileps,filetps
@@ -342,7 +342,7 @@ CONTAINS
 !   implicit none
 
 !   integer::nr
-!   double precision,dimension(nrmax,nsamax),intent(in):: recv_d,recv_chi,recv_k,recv_gamma,recv_hf,recv_temps,recv_ps,recv_p
+!   REAL(rkind),dimension(nrmax,nsamax),intent(in):: recv_d,recv_chi,recv_k,recv_gamma,recv_hf,recv_temps,recv_ps,recv_p
 !   character(len=30)::filename
 
 !   write(filename,'("pdep_data",i2,".csv")')int(pdep_exp*10)

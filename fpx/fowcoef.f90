@@ -1,5 +1,5 @@
 ! fowcoef.f90
-! [2022/3/30]
+
 ! *************************
 !  Coefficient calculation
 ! *************************
@@ -32,11 +32,12 @@ contains
     use fpcoef
     use fpcalw
     use fowobclassify
+    USE fowlib
 
     implicit none
 
     integer :: nthp, nth, np, nr, nsa, i, j
-    double precision :: begin_time, end_time
+    REAL(rkind) :: begin_time, end_time
 
     call cpu_time(begin_time)
 
@@ -634,7 +635,7 @@ contains
             Drpfow(nth,np,nr,nsa) = Drpfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) !* JIl
             Drtfow(nth,np,nr,nsa) = Drtfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) !* JIl
             Drrfow(nth,np,nr,nsa) = Drrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) !* JIl
-            Frrfow(nth,np,nr,nsa) = Frrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) !* JIl
+            Frrfow(nth,np,nr,nsa) = - Frrfow(nth,np,nr,nsa) / orbit_r(nth,np,nr,nsa)%time(nstpmax) !* JIl
             ! if(nsa == 2) write(*,*)"Frr:",Frrfow(nth,np,nr,nsa) - Frrfow(nth,np,nr,1)
 
           end do

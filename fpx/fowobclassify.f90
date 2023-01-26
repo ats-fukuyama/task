@@ -1,13 +1,14 @@
 ! fowobclassify.f90
 
-module fowobclassify
+MODULE fowobclassify
 
-  private
-
-  public :: output_orbit_classify
+  USE fpcomm,ONLY: rkind
+  
+  PRIVATE
+  PUBLIC :: output_orbit_classify
 
   integer,parameter :: ithmax = 47
-  double precision,dimension(ithmax) :: theta_m, xi
+  REAL(rkind),dimension(ithmax) :: theta_m, xi
 
 contains
 
@@ -16,9 +17,9 @@ contains
     use fowcomm
     use fpwrite
     implicit none
-    double precision,dimension(ithmax,nrmax,nsamax) :: beta_D, beta_stag
-    double precision,dimension(ithmax,nrmax,nsamax) :: beta_pinch, theta_pinch
-    double precision,dimension(nrmax,2) :: xi_Xtype_boundary_ion
+    REAL(rkind),dimension(ithmax,nrmax,nsamax) :: beta_D, beta_stag
+    REAL(rkind),dimension(ithmax,nrmax,nsamax) :: beta_pinch, theta_pinch
+    REAL(rkind),dimension(nrmax,2) :: xi_Xtype_boundary_ion
 
     call prep_orbit_classify
     call pinch_orbit(beta_pinch, theta_pinch)
@@ -56,8 +57,8 @@ contains
     use fpcomm
     use fowcomm
     implicit none
-    double precision,dimension(ithmax,nrmax,nsamax),intent(out) :: beta_pinch, theta_pinch
-    double precision :: psipin
+    REAL(rkind),dimension(ithmax,nrmax,nsamax),intent(out) :: beta_pinch, theta_pinch
+    REAL(rkind) :: psipin
     integer :: nr,nsa,ir,ierr,nth
 
     ierr = 0

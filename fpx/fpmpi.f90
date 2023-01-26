@@ -12,7 +12,7 @@ MODULE fpmpi
       IMPLICIT NONE
       INTEGER,INTENT(IN):: nscnt
       REAL(rkind),DIMENSION(nrstart:nrend,NSAMAX),INTENT(IN):: vsend
-      double precision,dimension(nrstart:nrend):: vtemp
+      REAL(rkind),dimension(nrstart:nrend):: vtemp
 !      REAL(rkind),DIMENSION(nrmax*nsamax):: vrecv
       REAL(rkind),DIMENSION(nrmax*N_partition_s):: vrecv
       REAL(rkind),DIMENSION(nrmax,nsamax),INTENT(OUT):: vreturn
@@ -46,8 +46,8 @@ MODULE fpmpi
 
       IMPLICIT NONE
       integer:: nsend, nth, np, nr, nsa, nsb, NS
-      double precision,dimension(nthmax,npstart:npend,nrstart:nrend,nsastart:nsaend):: dsend
-      double precision,dimension(nthmax,npstart:npend,nrstart:nrend,nsamax):: drecv
+      REAL(rkind),dimension(nthmax,npstart:npend,nrstart:nrend,nsastart:nsaend):: dsend
+      REAL(rkind),dimension(nthmax,npstart:npend,nrstart:nrend,nsamax):: drecv
 
       DO NSA=NSASTART,NSAEND
          DO NR=NRSTART,NREND
@@ -84,11 +84,11 @@ MODULE fpmpi
       USE libmtx
       IMPLICIT NONE
       integer:: nsend, nth, np, nr, nsa, nsb, nsw, nswi,N
-!      double precision,dimension(nthmax,npstart:npend,nrstart:nrend):: dsend
-!      double precision,dimension(nthmax,npmax,nrmax,n_partition_s):: drecv
-      double precision,dimension(nthmax,npstart:npend,nrstart:nrend):: dsend
-      double precision,dimension(nthmax,npmax,nrmax):: drecv
-      double precision,dimension(nthmax,npmax,nrmax,nsastart:nsaend):: dsend2
+!      REAL(rkind),dimension(nthmax,npstart:npend,nrstart:nrend):: dsend
+!      REAL(rkind),dimension(nthmax,npmax,nrmax,n_partition_s):: drecv
+      REAL(rkind),dimension(nthmax,npstart:npend,nrstart:nrend):: dsend
+      REAL(rkind),dimension(nthmax,npmax,nrmax):: drecv
+      REAL(rkind),dimension(nthmax,npmax,nrmax,nsastart:nsaend):: dsend2
 
       CALL mtx_set_communicator(comm_nrnp)
       DO NSA=NSASTART,NSAEND
@@ -120,9 +120,9 @@ MODULE fpmpi
       SUBROUTINE source_allreduce(array)
 
       IMPLICIT NONE
-      DOUBLE PRECISION,dimension(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX), &
+      REAL(rkind),dimension(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX), &
            INTENT(INOUT):: array
-      DOUBLE PRECISION,dimension(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX):: &
+      REAL(rkind),dimension(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX):: &
            sendbuf, recvbuf
       INTEGER,dimension(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX):: &
            lloc
@@ -143,8 +143,8 @@ MODULE fpmpi
       SUBROUTINE p_theta_integration(vdata)
 
       IMPLICIT NONE
-      double precision,intent(inout):: vdata
-      double precision:: vrecv
+      REAL(rkind),intent(inout):: vdata
+      REAL(rkind):: vrecv
       integer::vloc
 
       CALL mtx_allreduce1_real8(vdata,3,vrecv,vloc) 
@@ -155,8 +155,8 @@ MODULE fpmpi
       SUBROUTINE fpl_comm(vdata,vrecv)
 
       IMPLICIT NONE
-      double precision,dimension(NPSTART:NPEND),intent(in)::vdata
-      double precision,dimension(NPMAX),intent(out)::vrecv
+      REAL(rkind),dimension(NPSTART:NPEND),intent(in)::vdata
+      REAL(rkind),dimension(NPMAX),intent(out)::vrecv
       integer:: ndata
 
       ndata = (NPEND-NPSTART+1)
@@ -167,8 +167,8 @@ MODULE fpmpi
       SUBROUTINE shadow_comm_np(NR,NSA)
 
       IMPLICIT NONE
-      double precision,dimension(nthmax)::sendbuf
-      double precision,dimension(nthmax)::recvbuf
+      REAL(rkind),dimension(nthmax)::sendbuf
+      REAL(rkind),dimension(nthmax)::recvbuf
       integer,intent(in):: NR,NSA
       integer:: sendcount, recvcount, dest, source, nth
 
@@ -212,8 +212,8 @@ MODULE fpmpi
       SUBROUTINE shadow_comm_nr(NSA)
 
       IMPLICIT NONE
-      double precision,dimension(nthmax*(npendwm-npstartw+1))::sendbuf
-      double precision,dimension(nthmax*(npendwm-npstartw+1))::recvbuf
+      REAL(rkind),dimension(nthmax*(npendwm-npstartw+1))::sendbuf
+      REAL(rkind),dimension(nthmax*(npendwm-npstartw+1))::recvbuf
       integer,intent(in):: NSA
       integer:: sendcount, recvcount, dest, source, nth, np, NM
 
@@ -276,7 +276,7 @@ MODULE fpmpi
       integer:: NPS, NPE, NRS, NRE, NSAS, NSAE
       integer:: sendcount, recvcount
       integer:: dest, source, tag
-      double precision,dimension(:,:,:,:),allocatable:: sendbuf, recvbuf
+      REAL(rkind),dimension(:,:,:,:),allocatable:: sendbuf, recvbuf
 
       CALL mtx_reset_communicator 
 
