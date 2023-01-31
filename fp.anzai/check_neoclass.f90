@@ -993,7 +993,7 @@ contains
             PV = sqrt(1.d0+theta0(nsa)*(pm(np,nsa)-mean_moment_vector(nr,nsa))**2)
             K = (PV-1.d0)*AMFP(nsa)*vc**2 &
                                 / (AEE*1.D3) 
-            Pra(nr,nsa) = K *2.d0 &
+            Pra(nr,nsa) = K *2.d0 /3.d0&
                         * fnsp_l(nth,np,nr,nsa)*1.d20 &    
                         * JI(nth,np,nr,nsa) &
                         * delp(ns) * delthm(nth,np,nr,nsa)
@@ -1018,7 +1018,7 @@ contains
             ! PV = sqrt(1.d0+theta0(nsa)*(pm(np,nsa)-mean_moment_vector(nr,nsa))**2)
             K = (PV-1.d0)*AMFP(nsa)*vc**2 &
             ! K = (pm(np,nsa)*PTFP0(nsa))**2.d0/AMFP(nsa)/2.d0 &
-                                / (AEE*1.D3)!/3.d0 
+                                / (AEE*1.D3) 
             
             if(nth /= nthmax) then
               if(np /= npmax) then
@@ -1089,11 +1089,12 @@ contains
                                 + 0.d0
           end do
         end do
+        if(nsa == 1) heatfow_out(nr,nsa) = heatfow_out(nr,nsa)*sqrt(AMFP(1)/AMFP(2)) 
+        !** for energy transfer time ref[2]
         heatfow_out(nr,nsa) = (heatfow_out(nr,nsa) - 5.d0/2.d0 * Pra(nr,nsa) * pfow_out(nr,nsa))
         D_fow(nr,nsa) = - pfow_out(nr,nsa)/dNadr(nr,nsa)
 
-        if(nsa == 1) heatfow_out(nr,nsa) = heatfow_out(nr,nsa)*sqrt(AMFP(1)/AMFP(2)) 
-        !** for energy transfer time ref[2]
+        ! if(nsa == 1) heatfow_out(nr,nsa) = heatfow_out(nr,nsa)*sqrt(AMFP(1)/AMFP(2)) 
 
         chi_a(nr,nsa) = -heatfow_out(nr,nsa)/(dTadr(nr,nsa)*Na(nr,nsa))
       end do
@@ -1812,6 +1813,7 @@ contains
   !subroutine for neoclassical heat flux by Chang and Hinton
   ! Effect of impurity particles on the finite aspect-ratio neoclassical
   ! ion thermal conductivity in a tokamak(1986)
+  ! "Tokamaks 3rd ed" p738 eq14.11.1
   !--------------------------------------------------------------
 
     use fpcomm
