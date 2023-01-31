@@ -809,7 +809,11 @@ CONTAINS
   subroutine Fow_flux_p_and_h(pfow_out, D_fow, heatfow_out, chi_a)
   !----------------------------------------------------------------------------
   ! Subroutine for FOW particle and heat diffuion coefficient
+  ! === ref ===
   ! 1/J * K * dfdx_i dV(volume) from "concerto for nabla" by ota koichi (2015)
+  ! Energy transfer time "Gendai Plasma rikogaku" 1979 Ohmsha [2]
+  ! "Plasma Confinement" R.D.Hazeltine and J.D.Meiss 1992 Addison-Wesly Pub.
+  !  chap 6.1 and Moments of Guiding-Center Distribution p191-194 eq(18)
   !----------------------------------------------------------------------------
 
     use fpcomm
@@ -826,6 +830,7 @@ CONTAINS
     REAL(rkind),dimension(nthmax,npmax,nrmax,nsamax) ::Drrl, Drpl, Drthl
     REAL(rkind),dimension(nthmax,npmax,nrmax,nsamax) ::dfdthm, dfdp, dfdrhom
     REAL(rkind),dimension(nrmax,nsamax) :: mean_moment_vector
+    REAL(rkind),dimension(nrmax,nsamax) :: Pra
     REAL(rkind) :: K, PV, Dpl, Dtl, Drl, Frl, JIp, JIm, sum_
     integer nth,np,nr,nsa,ns
 
@@ -838,6 +843,8 @@ CONTAINS
     Drpl(:,:,:,:) = 0.d0
     Drthl(:,:,:,:) = 0.d0
     sum_ = 0.d0
+    mean_moment_vector(:,:) = 0.d0
+    Pra(:,:) = 0.d0
 
     !****temperature make
     do nsa = 1, nsamax
@@ -955,6 +962,7 @@ CONTAINS
       end do
     end do
 
+    !**** Making radial mean moment
     do nsa = 1, nsamax
       ns = ns_nsa(nsa)
       do nr = 1, nrmax
@@ -975,6 +983,30 @@ CONTAINS
       end do !** nr
     end do !** nsa
 
+    !**** Making Radial Pressure
+    do nsa = 1, nsamax
+      ns = ns_nsa(nsa)
+      do nr = 1, nrmax
+        do np = 1, npmax
+          if ( pm(np,ns) > fact_bulk ) exit !** fact_balk=5
+          do nth = 1, nthmax
+            PV = sqrt(1.d0+theta0(nsa)*(pm(np,nsa)-mean_moment_vector(nr,nsa))**2)
+            K = (PV-1.d0)*AMFP(nsa)*vc**2 &
+                                / (AEE*1.D3) 
+            Pra(nr,nsa) = K *2.d0 &
+                        * fnsp_l(nth,np,nr,nsa)*1.d20 &    
+                        * JI(nth,np,nr,nsa) &
+                        * delp(ns) * delthm(nth,np,nr,nsa)
+            sum_ = sum_ + fnsp_l(nth,np,nr,nsa)*1.d20 &
+                 * JI(nth,np,nr,nsa) &
+                 * delp(ns) * delthm(nth,np,nr,nsa)
+          end do
+        end do !** np
+        Pra(nr,nsa) = Pra(nr,nsa)/sum_
+        sum_ = 0.d0
+      end do !** nr
+    end do !** nsa
+
     !**** Making flux
     do nsa = 1, nsamax
       ns = ns_nsa(nsa)
@@ -982,8 +1014,8 @@ CONTAINS
         do np = 1, npmax
           if ( pm(np,ns) > fact_bulk ) exit !** fact_balk=5
           do nth = 1, nthmax
-            ! PV = sqrt(1.d0+theta0(nsa)*pm(np,nsa)**2)
-            PV = sqrt(1.d0+theta0(nsa)*(pm(np,nsa)-mean_moment_vector(nr,nsa))**2)
+            PV = sqrt(1.d0+theta0(nsa)*pm(np,nsa)**2)
+            ! PV = sqrt(1.d0+theta0(nsa)*(pm(np,nsa)-mean_moment_vector(nr,nsa))**2)
             K = (PV-1.d0)*AMFP(nsa)*vc**2 &
             ! K = (pm(np,nsa)*PTFP0(nsa))**2.d0/AMFP(nsa)/2.d0 &
                                 / (AEE*1.D3)!/3.d0 
@@ -1057,11 +1089,11 @@ CONTAINS
                                 + 0.d0
           end do
         end do
-        ! heatfow_out(nr,nsa) = (heatfow_out(nr,nsa) - 5.d0/2.d0 * Ta(nr,nsa) * pfow_out(nr,nsa)) !/3.d0
+        heatfow_out(nr,nsa) = (heatfow_out(nr,nsa) - 5.d0/2.d0 * Pra(nr,nsa) * pfow_out(nr,nsa))
         D_fow(nr,nsa) = - pfow_out(nr,nsa)/dNadr(nr,nsa)
 
         if(nsa == 1) heatfow_out(nr,nsa) = heatfow_out(nr,nsa)*sqrt(AMFP(1)/AMFP(2))
-
+        !** for energy transfer time ref[2]
         chi_a(nr,nsa) = -heatfow_out(nr,nsa)/(dTadr(nr,nsa)*Na(nr,nsa))
       end do
     end do
