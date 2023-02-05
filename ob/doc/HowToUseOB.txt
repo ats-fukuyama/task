@@ -1,8 +1,8 @@
 1, まずmakeを使用しコンパイルする．
-2, eqdataをtask/eqで作成し./obのあるフォルダに入れておく．
+2, eqdataをtask/eqで作成し実行ファイルobのあるフォルダに入れておく．
 3, ./ob < ~.inとしてinputファイルを入力し~.gsファイルを作成する．
 4, gsview ~.gsと入力し，ファイルの中をグラフとして表示可能
-5, gsview -a ~.gs と入力するとグラフがeps変換されて出てくる．
+5, gstoeps -a ~.gs と入力するとグラフがeps変換されて出てくる．
 ---> gsaf/doc/gsaf.doc.txtに使用方法が書かれている．
 
 by Anzai Akiyoshi[2023/2/4]

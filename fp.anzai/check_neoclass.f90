@@ -829,10 +829,14 @@ contains
     double precision,dimension(nthmax,npmax,nrmax,nsamax) ::Frrl
     double precision,dimension(nthmax,npmax,nrmax,nsamax) ::Drrl, Drpl, Drthl
     double precision,dimension(nthmax,npmax,nrmax,nsamax) ::dfdthm, dfdp, dfdrhom
+    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: KS_p, dKSdp
+    double precision,dimension(nthmax,npmax,nrmax,nsamax) :: KS_t, dKSdt
     double precision,dimension(nrmax,nsamax) :: mean_moment_vector
+    double precision,dimension(nrmax,nsamax) :: Coll_h
     double precision,dimension(nrmax,nsamax) :: Pra
-    double precision :: K, PV, Dpl, Dtl, Drl, Frl, JIp, JIm, sum_
-    integer nth,np,nr,nsa,ns
+    double precision :: K, PV, Dpl, Dtl, Drl, Frl, JIp, JIm, sum_!, m_u
+    double precision :: Dpph, Dpth, Dprh, Dtph, Dtth, Dtrh, Fph, Ftth
+    integer nth,np,nr,nsa,ns, nrtmp
 
     !**** initialization ****
     pfow_out(:,:) = 0.d0
@@ -845,6 +849,11 @@ contains
     sum_ = 0.d0
     mean_moment_vector(:,:) = 0.d0
     Pra(:,:) = 0.d0
+    KS_p(:,:,:,:) = 0.d0
+    KS_t(:,:,:,:) = 0.d0
+    dKSdp(:,:,:,:) = 0.d0
+    dKSdt(:,:,:,:) = 0.d0
+    Coll_h(:,:) = 0.d0
 
     !****temperature make
     do nsa = 1, nsamax
@@ -874,10 +883,10 @@ contains
 
     !**** first order derivative
     do nsa = 1, nsamax
-      do np = 1, npmax
+      do nr = 1, nrmax
         do nth = 1, nthmax
-          call first_order_derivative(dfdrhom(nth,np,:,nsa), &
-                 fnsp_l(nth,np,:,nsa), rm)
+          call first_order_derivative(dfdp(nth,:,nr,nsa), &
+                 fnsp_l(nth,:,nr,nsa), pm(:,nsa))
         end do
       end do
     end do
@@ -890,10 +899,10 @@ contains
       end do
     end do
     do nsa = 1, nsamax
-      do nr = 1, nrmax
+      do np = 1, npmax
         do nth = 1, nthmax
-          call first_order_derivative(dfdp(nth,:,nr,nsa), &
-                 fnsp_l(nth,:,nr,nsa), pm(:,nsa))
+          call first_order_derivative(dfdrhom(nth,np,:,nsa), &
+                 fnsp_l(nth,np,:,nsa), rm)
         end do
       end do
     end do
@@ -962,6 +971,130 @@ contains
       end do
     end do
 
+    ! !**** Making heat collision term
+    ! do nsa = 1, nsamax
+    !   do nr = 1, nrmax
+    !     do np = 1, npmax
+    !       do nth = 1, nthmax
+    !         PV = sqrt(1.d0+theta0(nsa)*pm(np,nsa)**2)
+    !         ! PV = sqrt(1.d0+theta0(nsa)*(pm(np,nsa)-mean_moment_vector(nr,nsa))**2)
+    !         K = (PV-1.d0)*AMFP(nsa)*vc**2 &
+    !         ! K = (pm(np,nsa)*PTFP0(nsa))**2.d0/AMFP(nsa)/2.d0 &
+    !                             / (AEE*1.D3) 
+            
+    !         if(nth /= nthmax) then
+    !           if(np /= npmax) then
+    !             Dpph = (Dppfow(nth,np+1,nr,nsa) + 2.d0*Dppfow(nth,np,nr,nsa) + Dppfow(nth+1,np,nr,nsa))*0.25d0
+    !             Dpth = (Dptfow(nth,np+1,nr,nsa) + 2.d0*Dptfow(nth,np,nr,nsa) + Dptfow(nth+1,np,nr,nsa))*0.25d0
+    !             Dprh = (Dprfow(nth,np+1,nr,nsa) + 2.d0*Dprfow(nth,np,nr,nsa) + Dprfow(nth+1,np,nr,nsa))*0.25d0
+    !             Fph = (Fppfow(nth,np+1,nr,nsa) + 2.d0*Fppfow(nth,np,nr,nsa) + Fppfow(nth+1,np,nr,nsa))*0.25d0
+    !             Dtph = (Dtpfow(nth,np+1,nr,nsa) + 2.d0*Dtpfow(nth,np,nr,nsa) + Dtpfow(nth+1,np,nr,nsa))*0.25d0
+    !             Dtth = (Dttfow(nth,np+1,nr,nsa) + 2.d0*Dttfow(nth,np,nr,nsa) + Dttfow(nth+1,np,nr,nsa))*0.25d0
+    !             Dtrh = (Dtrfow(nth,np+1,nr,nsa) + 2.d0*Dtrfow(nth,np,nr,nsa) + Dtrfow(nth+1,np,nr,nsa))*0.25d0
+    !             Ftth = (Fthfow(nth,np+1,nr,nsa) + 2.d0*Fthfow(nth,np,nr,nsa) + Fthfow(nth+1,np,nr,nsa))*0.25d0
+    !           else 
+    !             Dpph = (Dppfow(nth,np+1,nr,nsa) + 2.d0*Dppfow(nth,np,nr,nsa) + Dppfow(nth+1,np,nr,nsa))*0.25d0
+    !             Dpth = (Dptfow(nth,np+1,nr,nsa) + 2.d0*Dptfow(nth,np,nr,nsa) + Dptfow(nth+1,np,nr,nsa))*0.25d0
+    !             Dprh = (Dprfow(nth,np+1,nr,nsa) + 2.d0*Dprfow(nth,np,nr,nsa) + Dprfow(nth+1,np,nr,nsa))*0.25d0
+    !             Fph = (Fppfow(nth,np+1,nr,nsa) + 2.d0*Fppfow(nth,np,nr,nsa) + Fppfow(nth+1,np,nr,nsa))*0.25d0
+    !             Dtph = (3.d0*Dtpfow(nth,np,nr,nsa) + Dtpfow(nth+1,np,nr,nsa))*0.25d0
+    !             Dtth = (3.d0*Dttfow(nth,np,nr,nsa) + Dttfow(nth+1,np,nr,nsa))*0.25d0
+    !             Dtrh = (3.d0*Dtrfow(nth,np,nr,nsa) + Dtrfow(nth+1,np,nr,nsa))*0.25d0
+    !             Ftth = (3.d0*Fthfow(nth,np,nr,nsa) + Fthfow(nth+1,np,nr,nsa))*0.25d0
+    !           end if
+    !         else
+    !           if(np /= npmax) then
+    !             Dpph = (Dppfow(nth,np+1,nr,nsa) + 3.d0*Dppfow(nth,np,nr,nsa))*0.25d0
+    !             Dpth = (Dptfow(nth,np+1,nr,nsa) + 3.d0*Dptfow(nth,np,nr,nsa))*0.25d0
+    !             Dprh = (Dprfow(nth,np+1,nr,nsa) + 3.d0*Dprfow(nth,np,nr,nsa))*0.25d0
+    !             Fph = (Fppfow(nth,np+1,nr,nsa) + 3.d0*Fppfow(nth,np,nr,nsa))*0.25d0
+    !             Dtph = (Dtpfow(nth,np+1,nr,nsa) + 2.d0*Dtpfow(nth,np,nr,nsa) + Dtpfow(nth+1,np,nr,nsa))*0.25d0
+    !             Dtth = (Dttfow(nth,np+1,nr,nsa) + 2.d0*Dttfow(nth,np,nr,nsa) + Dttfow(nth+1,np,nr,nsa))*0.25d0
+    !             Dtrh = (Dtrfow(nth,np+1,nr,nsa) + 2.d0*Dtrfow(nth,np,nr,nsa) + Dtrfow(nth+1,np,nr,nsa))*0.25d0
+    !             Ftth = (Fthfow(nth,np+1,nr,nsa) + 2.d0*Fthfow(nth,np,nr,nsa) + Fthfow(nth+1,np,nr,nsa))*0.25d0
+    !           else
+    !             Dpph = (Dppfow(nth,np+1,nr,nsa) + 3.d0*Dppfow(nth,np,nr,nsa))*0.25d0
+    !             Dpth = (Dptfow(nth,np+1,nr,nsa) + 3.d0*Dptfow(nth,np,nr,nsa))*0.25d0
+    !             Dprh = (Dprfow(nth,np+1,nr,nsa) + 3.d0*Dprfow(nth,np,nr,nsa))*0.25d0
+    !             Fph = (Fppfow(nth,np+1,nr,nsa) + 3.d0*Fppfow(nth,np,nr,nsa))*0.25d0
+    !             Dtph = (3.d0*Dtpfow(nth,np,nr,nsa) + Dtpfow(nth+1,np,nr,nsa))*0.25d0
+    !             Dtth = (3.d0*Dttfow(nth,np,nr,nsa) + Dttfow(nth+1,np,nr,nsa))*0.25d0
+    !             Dtrh = (3.d0*Dtrfow(nth,np,nr,nsa) + Dtrfow(nth+1,np,nr,nsa))*0.25d0
+    !             Ftth = (3.d0*Fthfow(nth,np,nr,nsa) + Fthfow(nth+1,np,nr,nsa))*0.25d0
+    !           end if
+    !         end if
+
+    !         KS_p(nth,np,nr,nsa) = KS_p(nth,np,nr,nsa) &
+    !                             - K * ( 0.d0 &
+    !                             + Dpph &
+    !                             * dfdp(nth,np,nr,nsa) &
+    !                             + Dpth &
+    !                             * dfdthm(nth,np,nr,nsa) &
+    !                             + Dprh &
+    !                             * dfdthm(nth,np,nr,nsa) &
+    !                             +0.d0 ) &
+
+    !                             + K * ( 0.d0 &
+    !                             + Fph * fnsp_l(nth,np,nr,nsa) &
+    !                             + 0.d0 )
+
+    !         KS_t(nth,np,nr,nsa) = KS_t(nth,np,nr,nsa) &
+    !                             - K * ( 0.d0 &
+    !                             + Dtph &
+    !                             * dfdp(nth,np,nr,nsa) &
+    !                             + Dtth &
+    !                             * dfdthm(nth,np,nr,nsa) &
+    !                             + Dprh &
+    !                             * dfdrhom(nth,np,nr,nsa) &
+    !                             + 0.d0 ) &
+
+    !                             + K * ( 0.d0 &
+    !                             + Ftth * fnsp_l(nth,np,nr,nsa) &
+    !                             + 0.d0)
+
+    !     ! write(*,*)"collision source term:" ,KS_p(nth,np,nr,nsa)
+    !       end do !nth
+    !     end do !np
+    !   end do !nr
+    ! end do !nsa
+
+    ! do nsa = 1, nsamax
+    !   do nr = 1, nrmax
+    !     do nth = 1, nthmax
+    !       call first_order_derivative(dKSdp(nth,:,nr,nsa), &
+    !              KS_p(nth,:,nr,nsa), pm(:,nsa))
+    !     end do
+    !   end do
+    ! end do
+    ! do nsa = 1, nsamax
+    !   do nr = 1, nrmax
+    !     do np = 1, npmax
+    !       call first_order_derivative(dKSdt(:,np,nr,nsa), &
+    !              KS_t(:,np,nr,nsa), thetam(:,np,nr,nsa))
+    !     end do
+    !   end do
+    ! end do
+
+    ! do nsa = 1, nsamax
+    !   ns = ns_nsa(nsa)
+    !   do nr = 1, nrmax
+    !     do nrtmp = 1, nr
+    !       do np = 1, npmax
+    !         do nth = 1, nthmax
+    !           Coll_h(nr,nsa) = Coll_h(nr,nsa) &
+    !                          + (0.d0 &
+    !                          + dKSdp(nth,np,nrtmp,nsa) &
+    !                          + dKSdt(nth,np,nrtmp,nsa) &
+    !                          )* 1.d20 &
+    !                         !  / JIR(nth,np,nrtmp,nsa) &
+    !                         !  * JI(nth,np,nr,nsa) &
+    !                          * delp(ns)* delthm(nth,np,nr,nsa) * delr
+    !         end do !nth
+    !       end do !np
+    !     end do !nrtmp
+    !   end do !nr
+    ! end do !nsa
+
     !**** Making radial mean moment
     do nsa = 1, nsamax
       ns = ns_nsa(nsa)
@@ -993,7 +1126,7 @@ contains
             PV = sqrt(1.d0+theta0(nsa)*(pm(np,nsa)-mean_moment_vector(nr,nsa))**2)
             K = (PV-1.d0)*AMFP(nsa)*vc**2 &
                                 / (AEE*1.D3) 
-            Pra(nr,nsa) = K *2.d0 /3.d0&
+            Pra(nr,nsa) = K *2.d0 / 3.d0&
                         * fnsp_l(nth,np,nr,nsa)*1.d20 &    
                         * JI(nth,np,nr,nsa) &
                         * delp(ns) * delthm(nth,np,nr,nsa)
@@ -1090,11 +1223,18 @@ contains
           end do
         end do
         if(nsa == 1) heatfow_out(nr,nsa) = heatfow_out(nr,nsa)*sqrt(AMFP(1)/AMFP(2)) 
+        ! heatfow_out(nr,nsa) = heatfow_out(nr,nsa)*sqrt(AMFP(1)/AMFP(2)) 
         !** for energy transfer time ref[2]
-        heatfow_out(nr,nsa) = (heatfow_out(nr,nsa) - 5.d0/2.d0 * Pra(nr,nsa) * pfow_out(nr,nsa))
+        heatfow_out(nr,nsa) = (heatfow_out(nr,nsa) &
+                            - 5.d0/2.d0 * Pra(nr,nsa) * pfow_out(nr,nsa)) &
+                            ! - Coll_h(nr,nsa) &
+                            + 0.d0
         D_fow(nr,nsa) = - pfow_out(nr,nsa)/dNadr(nr,nsa)
 
+        ! write(*,*)"collision term:" ,Coll_h(nr,nsa)
+        ! write(*,*)"pressure term:", Pra(nr,nsa) * pfow_out(nr,nsa)
         ! if(nsa == 1) heatfow_out(nr,nsa) = heatfow_out(nr,nsa)*sqrt(AMFP(1)/AMFP(2)) 
+        ! heatfow_out(nr,nsa) = heatfow_out(nr,nsa)*sqrt(AMFP(1)/AMFP(2)) 
 
         chi_a(nr,nsa) = -heatfow_out(nr,nsa)/(dTadr(nr,nsa)*Na(nr,nsa))
       end do
