@@ -25,7 +25,7 @@ c
       parameter(irzdm=irdm*izdm)
       parameter(isrzdm=2*(irdm+izdm))
 c<<vaccuum field>>
-      parameter(icvdm= 13, nsfix= 30)
+      parameter(icvdm= 15, nsfix= 30)
 c
       parameter(icvdm1=icvdm+1)
       parameter(icvdm2=icvdm+2)
