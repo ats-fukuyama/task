@@ -149,7 +149,8 @@ c-----PRINT OUT
       k=k+1
       y(k)=x(i)/y0
       enddo
-      write(ft06,'(19x,11f10.4)')(y(l),l=1,k)
+c      write(ft06,'(19x,11f10.4)')(y(l),l=1,k)
+      write(ft06,'(10f8.4)')(y(l),l=1,k)
       enddo
       return
       end subroutine prnts

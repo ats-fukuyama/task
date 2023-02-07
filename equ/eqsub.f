@@ -427,7 +427,10 @@ c-----------------------------------------------------------------------
       kkread=kk
       enddo
 c-----------------------------------------------------------------------
-  99  if(kkread.eq.0)stop '===== DARAIO/READ ERROR ====='
+ 99   if(kkread.eq.0) then
+         write(6,*) '===== DARAIO/READ ERROR ====='
+         stop
+      endif
 c-----------------------------------------------------------------------
   88  if(kkread.eq.0)then
        backspace iieqrd
@@ -788,7 +791,8 @@ c----------------------------------------------------------------------
       enddo
       call prnts(ft06,'psi ',psir,nr,-siw(1))
 c----------------------------------------------------------------------
-      stop'===error stop==='
+      write(6,*) '===error stop==='
+      stop
       end subroutine eqerr
 c   
 c=======================================================================
@@ -1285,7 +1289,10 @@ c-----------------------------------------------------------------------
         call eqtrc(psi0,rg(irst+1),zaxis,1,0,irend,izend)
         if(irend.eq.0)then
          istep=istep+1
-         if(istep.gt.20)stop'  stop at eqlin : istep > 20'   
+         if(istep.gt.20) then
+            write(6,*) '  stop at eqlin : istep > 20'
+            stop
+         endif
          dps=-0.001d0*saxis
          do i=1,nrz
           psi(i)=psi(i)+dps
@@ -2123,6 +2130,8 @@ c*
       iaxis=nr*(izaxis-1)+iraxis
       raxis=dsqrt(asol)
       zaxis=zpla
+      WRITE(6,'(A,3ES12.4)') 'raxis,zaxis,asol   =',raxis,zaxis,asol
+      WRITE(6,'(A,3I12)')    'iraxis,izaxis,iaxis=',iraxis,izaxis,iaxis
 c-----
       irsep=1
       izsep=1
@@ -2287,7 +2296,8 @@ c-----
         ir=ir-1
         k=2
        else
-        stop ' stop at eqtrc : s1*s2*s3*s4=0 '
+          write(6,*) ' stop at eqtrc : s1*s2*s3*s4=0 '
+          stop
        endif
 c
        vl1=r1*r1

@@ -112,7 +112,8 @@ c-----
       if(nv.gt.ivdm)nv=ivdm
 c-----
       if(nr*nz*nv.eq.0)then
-      stop'========== DATA ERROR : NR*NZ*NV=0 ====='
+         write(6,*) '========== DATA ERROR : NR*NZ*NV=0 ====='
+         stop
       endif
       return
       end subroutine eqrest

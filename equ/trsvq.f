@@ -73,5 +73,6 @@ c-----------------------------------------------------------------------
       do 380 n=1,nt
       write(6,*) 'N=',n,'QI=',qi(n)
  380  continue
-      stop'=====  ERROR STOP AT TRSVQ  ====='
+      write(6,*) '=====  ERROR STOP AT TRSVQ  ====='
+      stop
       end
