@@ -557,8 +557,10 @@ SUBROUTINE SETEWG
      Z=0.5D0*(ZNODE(NN1)+ZNODE(NN2))
      SELECT CASE(MODELWG)
      CASE(0,1)
+!        WRITE(29,'(A,6ES12.4)') 'R,Z:WG:',R,Z,R1WG,R2WG,Z1WG,Z2WG
         IF((R.GE.R1WG).AND.(R.LE.R2WG).AND. &
-           (Z.GE.Z1WG).AND.(Z.LE.Z2WG)) THEN
+             (Z.GE.Z1WG).AND.(Z.LE.Z2WG)) THEN
+           WRITE(6,'(A,2ES12.4)') 'R,Z in WG:',R,Z
            PROD=(R2WG-R1WG)*(RNODE(NN2)-RNODE(NN1)) &
                +(Z2WG-Z1WG)*(ZNODE(NN2)-ZNODE(NN1))
            IF(ABS(R1WG-R2WG).LT.1.D-8) THEN
