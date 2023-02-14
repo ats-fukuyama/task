@@ -3,9 +3,30 @@
 MODULE plcoll
 
   PRIVATE
-  PUBLIC pl_coll,pl_set_rnuc
+  PUBLIC pl_set_rnuc
+  PUBLIC pl_coll
 
 CONTAINS
+
+  SUBROUTINE pl_set_rnuc(plf)
+    USE plcomm
+    USE plcomm_type
+    IMPLICIT NONE
+    TYPE(pl_prf_type),DIMENSION(nsmax):: plf
+    REAL(rkind),DIMENSION(nsmax) :: rn,rtpp,rtpr,rnu
+    INTEGER:: ns
+
+    DO ns=1,nsmax
+       rn(ns)=plf(ns)%rn
+       rtpp(ns)=plf(ns)%rtpp
+       rtpr(ns)=plf(ns)%rtpr
+    END DO
+    CALL pl_coll(rn,rtpr,rtpp,rnu)
+    DO ns=1,nsmax
+       plf(ns)%rnuc=pnuc(ns)*rnu(ns)
+    END DO
+    RETURN
+  END SUBROUTINE pl_set_rnuc
 
   SUBROUTINE pl_coll(rn,rtpr,rtpp,rnu)
     USE plcomm
@@ -83,23 +104,119 @@ CONTAINS
     RETURN
   END SUBROUTINE pl_coll
 
-  SUBROUTINE pl_set_rnuc(plf)
+! ****** CALCULATE COLLISION FREQUENCY ******
+
+  SUBROUTINE pl_coll2(rn,rtpr,rtpp,rnue,rnui,rnun)
+
     USE plcomm
     USE plcomm_type
+    USE platmd
     IMPLICIT NONE
-    TYPE(pl_prf_type),DIMENSION(nsmax):: plf
-    REAL(rkind),DIMENSION(nsmax) :: rn,rtpp,rtpr,rnu
-    INTEGER:: ns
+    REAL(rkind),INTENT(IN),DIMENSION(nsmax):: rn,rtpr,rtpp
+    REAL(rkind),INTENT(OUT),DIMENSION(nsmax):: rnue,rnui,rnun
+    REAL(rkind),PARAMETER:: RKEV=1.D3
+    REAL(rkind):: RNSUM,RNTSUM,RTAVE,TE,VTE,SNE,SVE,SNI,PNN0,TI,VTI
+    REAL(rkind):: RLAMEE,RLAMEI,RLAMII,RNUEE,RNUEI,RNUEN,RNUIE,RNUII,RNUIN
+    REAL(rkind):: RNESUM,RNTESUM
+    INTEGER:: NS,NSI
 
-    DO ns=1,nsmax
-       rn(ns)=plf(ns)%rn
-       rtpp(ns)=plf(ns)%rtpp
-       rtpr(ns)=plf(ns)%rtpr
+    RNESUM=0.D0
+    RNTESUM=0.D0
+    RNSUM=0.D0
+    RNTSUM=0.D0
+    DO NS=1,NSMAX
+       IF(PA(NS).LE.0.1D0) THEN
+          RNESUM=RNESUM+RN(NS)
+          RNTESUM=RNTESUM+RN(NS)*(RTPR(NS)+2.D0*RTPP(NS))*RKEV/3.D0
+       END IF
+       RNSUM=RNSUM+RN(NS)
+       RNTSUM=RNTSUM+RN(NS)*(RTPR(NS)+2.D0*RTPP(NS))*RKEV/3.D0
     END DO
-    CALL pl_coll(rn,rtpr,rtpp,rnu)
-    DO ns=1,nsmax
-       plf(ns)%rnuc=pnuc(ns)*rnu(ns)
+    IF(RNSUM.GT.0.D0) THEN
+       RTAVE=RNTSUM/RNSUM
+    ELSE
+       RTAVE=0.03D0
+    END IF
+         
+    DO NS=1,NSMAX
+       IF(RNESUM.GT.0.AND.RTAVE.GT.0.D0) THEN
+          IF(PA(NS).LE.0.1D0) THEN ! electron or positron
+             IF(RTAVE.GT.6.65D0) THEN
+                RLAMEE=8.0D0 &
+                      +2.3D0*(LOG10(RTAVE)-0.5D0*LOG10(RNESUM))
+             ELSE
+                RLAMEE=7.0D0 &
+                      +2.3D0*(1.5D0*LOG10(RTAVE)-0.5D0*LOG10(RNESUM))
+             END IF
+          ELSE
+             RLAMEE=1.D0
+          END IF
+          IF(RTAVE.GT.13.3D0) THEN
+             RLAMEI=8.3D0 &
+                   +2.3D0*(LOG10(RTAVE)-0.5D0*LOG10(RNESUM))
+          ELSE
+             RLAMEI=7.0D0 &
+                   +2.3D0*(1.5D0*LOG10(RTAVE)-0.5D0*LOG10(RNESUM))
+          END IF
+          IF(NS.GT.1) THEN
+             IF(RTAVE.GT.24.5D3) THEN
+                RLAMII=12.1D0 &
+                      +2.3D0*(LOG10(RTAVE)-0.5D0*LOG10(RNESUM))
+             ELSE
+                RLAMII=7.0D0 &
+                      +2.3D0*(1.5D0*LOG10(RTAVE)-0.5D0*LOG10(RNESUM))
+             END IF
+          ELSE
+             RLAMII=1.D0
+          ENDIF
+       ELSE
+          RLAMEE= 1.D0
+          RLAMEI= 1.D0
+          RLAMII= 1.D0
+       END IF
     END DO
+
+    IF(MODELN.EQ.0) THEN
+       TE=RNTESUM/RNESUM
+       VTE=SQRT(2.D0*TE*AEE/AME)
+       SNE=0.88D-20
+       SVE=SNE*VTE
+    ELSE
+       CALL ATSIGV(TE,SVE,1)
+    ENDIF
+    SNI=1.D-20
+    PNN0=PPN0/(PTN0*AEE)
+
+    DO NS=1,NSMAX
+       IF(PA(NS).LE.0.1D0) THEN ! electron or positron
+          TE=(RTPR(NS)+2.D0*RTPP(NS))*RKEV/3.D0
+          VTE=SQRT(2.D0*TE*AEE/AME)
+          RNUEE=RN(NS)*RLAMEE &
+               /(1.24D-4*SQRT(TE*1.D-3)**3)
+          RNUEI=0.D0
+          DO NSI=1,NSMAX
+             IF(PA(NS).LE.0.1D0) RNUEI=RNUEI+PZ(NSI)**2*RN(NSI)
+          ENDDO
+          RNUEI=RNUEI*RLAMEI/(1.51D-4*SQRT(TE*1.D-3)**3)
+          RNUEN=PNN0*SVE
+          RNUE(NS)=RNUEE
+          RNUI(NS)=RNUEI
+          RNUN(NS)=RNUEN
+       ELSE
+          TI=(RTPR(NS)+2.D0*RTPP(NS))*RKEV/3.D0
+          VTI=SQRT(2.D0*TI*AEE/(PA(NS)*AMP))
+          RNUIE=PZ(NS)**2*RN(1)*RLAMEI &
+               /(2.00D-1*SQRT(TE*1.D-3)**3*PA(NS))
+          RNUII=PZ(NS)**4*RN(NS)*RLAMII &
+               /(5.31D-3*SQRT(TI*1.D-3)**3*SQRT(PA(NS)))
+          RNUIN=PNN0*SNI*0.88D0*VTI
+          RNUE(NS)=RNUIE
+          RNUI(NS)=RNUII
+          RNUN(NS)=RNUIN
+       ENDIF
+    ENDDO
+
     RETURN
-  END SUBROUTINE pl_set_rnuc
+  END SUBROUTINE pl_coll2
+
 END MODULE plcoll

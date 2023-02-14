@@ -351,7 +351,7 @@ CONTAINS
                END DO
             END DO
 
-            DEALLOCATE(VATEMP)
+            IF(ALLOCATED(VATEMP)) DEALLOCATE(VATEMP)
             
             WRITE(6,'(A,1P4E12.4)') 'XMIN,XMAX,YMIN,YMAX =', &
                  XD(1),XD(NXMAX),YD(1),YD(NYMAX)
