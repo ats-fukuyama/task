@@ -25,7 +25,7 @@ MODINCLUDE=-I$(MOD) -I../mtxp/$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD)
 
 SRCSFIXED = 
 SRCSFREE = modules.f90 plvmec.f90 plcomm.f90 plinit.f90 plparm.f90 \
-           plcoll.f90 \
+           plcoll.f90 platmd.f90 \
            plload.f90 plprof_travis.f90 plprof2d.f90 \
            plprof.f90 plprofw.f90  \
            plgout.f90 plmenu.f90
@@ -80,6 +80,7 @@ plparm.o: plparm.f90 plcomm.f90
 plintf.o: plintf.f90 plcomm.f90
 pldata.o: pldata.f90 plcomm.f90
 plcoll.o: plcoll.f90 plcomm.f90
+platmd.o: platmd.f90 plcomm.f90
 plprof.o: plprof.f90 plcomm.f90 plload.f90 \
           plprof2d.f90 plcoll.f90 plprof_travis.f90
 plprof2d.o: plprof2d.f90 plcoll.f90 plcomm.f90
