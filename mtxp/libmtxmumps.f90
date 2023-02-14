@@ -270,6 +270,8 @@
       id%LRHS=imax
 !     ----- distributed matrix -----
       id%ICNTL(18)=3
+!     ----- strage allocation contraol -----
+      id%ICNTL(14)=40
 !     ----- error output level contrall -----
       IF(itype.EQ.0) THEN
          id%ICNTL(1)=0
@@ -320,6 +322,12 @@
 
       id%JOB=6
       CALL dmumps(id)
+
+      IF(id%INFO(1).NE.0) THEN
+         WRITE(6,'(A,I6)') 'INFO(1)=',id%info(1)
+         WRITE(6,'(A,I6)') 'INFO(2)=',id%info(2)
+         STOP
+      END IF
 
       CALL mtx_broadcast_real8(id%RHS,imax)
       its=0
