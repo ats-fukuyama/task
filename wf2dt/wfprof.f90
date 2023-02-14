@@ -193,7 +193,7 @@ SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
   implicit none
   real(rkind),intent(in) :: R,Z
   real(rkind),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
-  REAL(rkind):: RU(NSM),factor
+  REAL(rkind):: RU(NSM),factor,arg
   INTEGER:: IERR,NS
 
   SELECT CASE(MODELG)
@@ -212,11 +212,19 @@ SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
      CALL WFCOLL(rn,rtpr,rtpp,rzcl,0)
      SELECT CASE(model_coll_enhance)
      CASE(1)
-        factor=1.D0+factor_coll_enhance &
-                   *EXP(-(R-xpos_coll_enhance)**2/xwidth_coll_enhance**2)
+        arg=(R-xpos_coll_enhance)**2/xwidth_coll_enhance**2
+        IF(arg.LE.44.D0) THEN
+           factor=1.D0+factor_coll_enhance*EXP(-arg)
+        ELSE
+           factor=1.D0
+        END IF
      CASE(2)
-        factor=1.D0+factor_coll_enhance &
-                   *EXP(-(Z-ypos_coll_enhance)**2/ywidth_coll_enhance**2)
+        arg=(Z-ypos_coll_enhance)**2/ywidth_coll_enhance**2
+        IF(arg.LE.44.D0) THEN
+           factor=1.D0+factor_coll_enhance*EXP(-arg)
+        ELSE
+           factor=1.D0
+        END IF
      CASE DEFAULT
         factor=1.D0
      END SELECT
