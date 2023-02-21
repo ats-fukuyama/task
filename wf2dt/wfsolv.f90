@@ -49,11 +49,11 @@ SUBROUTINE CVSOLV
   real(rkind) :: x,y,val
   complex(rkind):: CEB
   complex(rkind),dimension(:),ALLOCATABLE :: CRVP,CEQP
-  integer,dimension(:),ALLOCATABLE :: NSEQ
+  integer(long),dimension(:),ALLOCATABLE :: NSEQ
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: VAL_SORT
-  INTEGER,DIMENSION(:),ALLOCATABLE:: NV_SORT
+  INTEGER(long),DIMENSION(:),ALLOCATABLE:: NV_SORT
   INTEGER,DIMENSION(:),ALLOCATABLE:: ntyp_nv,nnsd_nv
-  INTEGER:: IX,IY
+  INTEGER(long):: IX,IY
 
   ! ----- initialize ------
   
@@ -114,8 +114,7 @@ SUBROUTINE CVSOLV
      val_sort(NV)=VAL
   END DO
 
-!  CALL qsort_dl(val_sort,nv_sort)
-  CALL qsort_di(val_sort,nv_sort)
+  CALL qsort_dl(val_sort,nv_sort)
 
   DO nv=1,nvmax
      nv_old=nv_sort(nv)
@@ -418,8 +417,7 @@ SUBROUTINE CVSOLV
   end do
 
   IF(nrank.EQ.0) write(6,*) 'wfsolv: sort started'
-!  CALL qsort_lc(NSEQ,CEQP)
-  CALL qsort_ic(NSEQ,CEQP)
+  CALL qsort_lc(NSEQ,CEQP)
   IF(nrank.EQ.0) write(6,*) 'wfsolv: reduction started'
   NNZME=1
   DO NNZ=2,NNZMAX

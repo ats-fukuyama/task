@@ -42,10 +42,10 @@ libwf.a: $(OBJS)
 
 ../dp/libdp.a:
 	(cd ../dp; make libdp.a)
-../pl/libpl.a:
-	(cd ../pl; make libpl.a)
 ../eq/libeq.a:
 	(cd ../eq; make liobeq.a)
+../pl/libpl.a:
+	(cd ../pl; make libpl.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 ../lib/libgrf.a:
