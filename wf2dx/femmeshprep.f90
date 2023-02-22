@@ -2,7 +2,7 @@
 
 MODULE femmeshprep
 
-  USE wfcomm,ONLY: rkind,long
+  USE wfcomm,ONLY: rkind
   LOGICAL:: fem_mesh_allocated=.FALSE.
   INTEGER:: nseg_max,nside_max
   INTEGER:: nelm_node_max
