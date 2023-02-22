@@ -158,6 +158,9 @@ CONTAINS
 !           ALP(1): RADIUS REDUCTION FACTOR
 !           ALP(2): MASS WEIGHTING FACTOR FOR NC
 !           ALP(3): CHARGE WEIGHTING FACTOR FOR NC
+!           ALP(4): ADDW factor for D
+!           ALP(5): ADDW factor for T
+!           ALP(6): ADDW factor for He
 
       PROFN1 = 2.D0
       PROFN2 = 0.5D0
@@ -173,6 +176,9 @@ CONTAINS
       ALP(1) = 1.0D0
       ALP(2) = 0.D0
       ALP(3) = 0.D0
+      ALP(4) = 1.0D0
+      ALP(5) = 1.0D0
+      ALP(6) = 1.0D0
 
 !     ==== TRANSPORT PARAMETERS ====
 

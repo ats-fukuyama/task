@@ -95,10 +95,10 @@ CONTAINS
          WRITE(6,603) 'MDLPEL',MDLPEL,'PELRAD',PELRAD, &
                       'PELVEL',PELVEL,'PELTIM',PELTIM
          WRITE(6,'(2(A24,ES12.4))') &
-              'pel_time_start'      ,pel_time_start, &
-              'pel_time_interval'   ,pel_time_interval
+              'pellet_time_start'      ,pellet_time_start, &
+              'pellet_time_interval'   ,pellet_time_interval
          WRITE(6,'(2(A24,I8,4X))') &
-              'number_of_pel_repeat',number_of_pel_repeat
+              'number_of_pellet_repeat',number_of_pellet_repeat
       ENDIF
       IF(MDLPSC.GT.0) THEN
          WRITE(6,622) 'MDLPSC  ',MDLPSC,'NPSCMAX ',NPSCMAX

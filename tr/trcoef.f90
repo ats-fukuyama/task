@@ -1491,13 +1491,14 @@
                ANT    = 0.5D0*(RN(NR+1,3)+RN(NR  ,3))
                ANA    = 0.5D0*(RN(NR+1,4)+RN(NR  ,4))
             ENDIF
-            ADDW(NR,2) = PA(2)**ALP(2)*PZ(2)**ALP(3)*AD0
-            ADDW(NR,3) = PA(3)**ALP(2)*PZ(3)**ALP(3)*AD0
-            ADDW(NR,4) = PA(4)**ALP(2)*PZ(4)**ALP(3)*AD0
+            ADDW(NR,2) = PA(2)**ALP(2)*PZ(2)**ALP(3)*AD0*ALP(4)
+            ADDW(NR,3) = PA(3)**ALP(2)*PZ(3)**ALP(3)*AD0*ALP(5)
+            ADDW(NR,4) = PA(4)**ALP(2)*PZ(4)**ALP(3)*AD0*ALP(6)
             ADDW(NR,1) =(PZ(2)*ANDX*AD(NR,2) &
                         +PZ(3)*ANT *AD(NR,3) &
                         +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
 
+!    ALP(4)~ALP(6) is arbitrary coef for deuterium,tritium,helium, respectively
 !            RX   = ALP(1)*RHOG(NR)
 !            PROF0 = 1.D0-RX**PROFN1
 !            IF(PROF0.LE.0.D0) THEN
@@ -1525,9 +1526,9 @@
                ANT = 0.5D0*(RN(NR+1,3)+RN(NR  ,3))
                ANA = 0.5D0*(RN(NR+1,4)+RN(NR  ,4))
             ENDIF
-            ADDW(NR,2) = AD0*AKDW(NR,2)
-            ADDW(NR,3) = AD0*AKDW(NR,3)
-            ADDW(NR,4) = AD0*AKDW(NR,4)
+            ADDW(NR,2) = AD0*AKDW(NR,2)*ALP(4)
+            ADDW(NR,3) = AD0*AKDW(NR,3)*ALP(5)
+            ADDW(NR,4) = AD0*AKDW(NR,4)*ALP(6)
             ADDW(NR,1) =(PZ(2)*ANDX*AD(NR,2) &
                         +PZ(3)*ANT *AD(NR,3) &
                         +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)

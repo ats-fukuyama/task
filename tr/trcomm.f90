@@ -32,7 +32,7 @@ MODULE TRCOMM
        PROFJ2, AD0, AV0, CNP, CNH, CDP, CDH, CNN, CWEB, DT, EPSLTR, &
        CHP, CK0, CK1, CKALFA, CKBETA, CKGUMA, CNB, CALF, CSPRS, TSST, &
        SYNCABS, SYNCSELF
-  REAL(rkind), DIMENSION(3) :: &
+  REAL(rkind), DIMENSION(6) :: &
        ALP
   REAL(rkind), DIMENSION(8) :: &
        CDW

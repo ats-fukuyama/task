@@ -76,8 +76,8 @@ CONTAINS
                     PELTOT,PELR0,PELRW,PELRAD,PELVEL,MDLPEL, &
                     MDLPR,SYNCABS,SYNCSELF, &
                     PELTIM,PELPAT, &
-                    pelle_time_start,pelle_time_interval, &
-                    number_of_pelle_repeat, &
+                    pellet_time_start,pellet_time_interval, &
+                    number_of_pellet_repeat, &
                     KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG,KFNTXT,KFNCVS, &
                     MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0,MDLEQE, &
                     MDLEOI,NSMAX,NSZMAX,NSNMAX, &

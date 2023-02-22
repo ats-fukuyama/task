@@ -13,12 +13,16 @@
            NROMAX, NSM, NSMAX, PBCL, PBIN, PCX, PELTIM, PEX, PFCL, PFIN, &
            PI, PIE, PIN, PN, PNB, PNF, POH, PRB, PRC, PRF, PRFV, PRL, PRSUM, &
            Q0, QP, RDP, RG, RHOA, RR, SCX, SEX, SIE, SNB, SNF, SPE, SSIN, &
-           T, TAUF, TTRHOG, RDPVRHOG, SPSC
+           T, TAUF, TTRHOG, RDPVRHOG, SPSC, &
+           pellet_time_start,pellet_time_interval, &
+           number_of_pellet_repeat,icount_of_pellet
       USE tr_cytran_mod
       USE libitp
       IMPLICIT NONE
       INTEGER,INTENT(OUT)    :: IERR
       INTEGER                :: NR,NS
+      REAL(rkind),SAVE:: pellet_time_start_save=-1.D0
+      REAL(rkind):: t_pellet
 
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       IERR=0
@@ -67,6 +71,27 @@
 
       CALL TRERAD
 
+      IF(pellet_time_start.NE.pellet_time_start_save) THEN
+         icount_of_pellet=0
+         pellet_time_start_save=pellet_time_start
+!         WRITE(6,'(A,I6,2ES12.4)') &
+!              '# pellet setup:',icount_of_pellet,pellet_time_start,t
+      END IF
+      IF(T.GT.pellet_time_start-0.5D0*DT) THEN
+!         WRITE(6,*) '@@@',t,pellet_time_start+0.5D0*DT
+         IF(icount_of_pellet.LT.number_of_pellet_repeat) THEN
+            t_pellet=pellet_time_start+icount_of_pellet*pellet_time_interval
+!            WRITE(6,'(A,3ES12.4)') '# t_pellet:', &
+!                 T,t_pellet-0.5D0*DT,t_pellet+0.5D0*DT
+            IF(T.GT.t_pellet-0.5D0*DT.AND.T.LE.t_pellet+0.5D0*DT) THEN
+               CALL TRPELT
+               icount_of_pellet=icount_of_pellet+1
+               WRITE(6,'(A,I6,2ES12.4)') &
+                    '# pellet injected:',icount_of_pellet,T,t_pellet
+            ENDIF
+         ENDIF
+      END IF
+            
       IF(T.LT.PELTIM+0.5D0*DT.AND. T.GE.PELTIM-0.5D0*DT) CALL TRPELT
 
       CALL TRPSC

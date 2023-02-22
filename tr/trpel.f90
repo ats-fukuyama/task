@@ -48,6 +48,7 @@
       ENDDO
 
       S0  =PELTOT/FSUM
+      WRITE(6,*) 'S0=',S0
 
       DO NR=1,NRMAX
          SPEL=S0*DEXP(-((RA*RM(NR)-PELR0)/PELRW)**2)
@@ -55,6 +56,9 @@
          SPE(NR,NS)=PELPAT(NS)*SPEL
       ENDDO
       ENDDO
+
+      WRITE(6,*) 'TRPELA:'
+      WRITE(6,'(5ES12.4)') SPE(1:NRMAX,1)
 
       RETURN
       END  SUBROUTINE TRPELA
@@ -198,6 +202,9 @@
 
       SPEL=ANP*RP*0.5D0*(RP+RPPRE)*RPDOT*4.D0*PI*RA/(DVRHO(NR)*PELVEL)
       SPE(NR,1:NSMAX)=PELPAT(1:NSMAX)*SPEL
+
+      WRITE(6,*) 'TRPELC:'
+      WRITE(6,'(5ES12.4)') SPE(1:NRMAX,1)
 
       NR = NR-1
       GOTO 100
