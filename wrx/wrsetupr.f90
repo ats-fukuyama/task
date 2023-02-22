@@ -28,8 +28,8 @@ CONTAINS
     ! --- interactive input for ray tracing ---
 
     IF(mdlwri.GT.100) THEN
-       SELECT CASE(mdlwri)
-       CASE(101,102,103,111,112,113) ! interaactive ANGT-ANGP input
+       SELECT CASE(mdlwri/10)
+       CASE(10,11) ! interaactive ANGT-ANGP input
           WRITE(6,'(A,I8)') '## nraymax=',nraymax
           DO NRAY=1,NRAYMAX
 10           CONTINUE
@@ -44,7 +44,7 @@ CONTAINS
                   ANGTIN(NRAY),ANGPIN(NRAY), &
                   MODEWIN(NRAY),RNKIN(NRAY),UUIN(NRAY)
           END DO
-       CASE(121,122,123,131,132,133) ! interactive Nphi-ANGP input
+       CASE(12,13) ! interactive Nph-ANGP input
           WRITE(6,'(A,I8)') '## nraymax=',nraymax
           DO nray=1,nraymax
 20           CONTINUE
@@ -59,7 +59,7 @@ CONTAINS
                   RNPHIN(NRAY),ANGPIN(NRAY), &
                   MODEWIN(NRAY),RNKIN(NRAY),UUIN(NRAY)
           END DO
-       CASE(141,142,143,151,152,153) ! interactive Nphi-Nz input
+       CASE(14,15) ! interactive Nph-Nz input
           WRITE(6,'(A,I8)') '## nraymax=',nraymax
           DO nray=1,nraymax
 30           CONTINUE
@@ -69,7 +69,7 @@ CONTAINS
                   RFIN(NRAY),RPIN(NRAY),ZPIN(NRAY),PHIIN(NRAY), &
                   RNPHIN(NRAY),RNZIN(NRAY), &
                   MODEWIN(NRAY),RNKIN(NRAY),UUIN(NRAY)
-             READ(5,*,ERR=20,END=9000) &
+             READ(5,*,ERR=30,END=9000) &
                   RFIN(NRAY),RPIN(NRAY),ZPIN(NRAY),PHIIN(NRAY), &
                   RNPHIN(NRAY),RNZIN(NRAY), &
                   MODEWIN(NRAY),RNKIN(NRAY),UUIN(NRAY)
@@ -83,54 +83,55 @@ CONTAINS
     ! --- conversion from rnz -> angp ---
 
     SELECT CASE(mdlwri)
-    CASE(41,141) ! RNZ->ANGP positive: poloidal first
+    CASE(41,43,141,143) ! RNZ->ANGP positive: poloidal first, intuitive,  LFS
        DO nray=1,nraymax
           ANGPIN(NRAY)= ASIN(RNZIN(NRAY)/RNKIN(NRAY))/deg
        END DO
-    CASE(51,151) ! RNZ->ANGP negative: poloidal first
-       DO nray=1,nraymax
-          ANGPIN(NRAY)=-ASIN(RNZIN(NRAY)/RNKIN(NRAY))/deg
-       END DO
-    CASE(42,142) ! RNZ->ANGP positive: toroidal first
+    CASE(42,142) ! RNZ->ANGP positive: toroidal first LFS
        DO nray=1,nraymax
           ANGPIN(NRAY)= ASIN(RNZIN(NRAY) &
                /(RNKIN(NRAY)*COS(ANGTIN(NRAY)*deg)))/deg
        END DO
-    CASE(52,152) ! RNZ->ANGP negative: toroidal first
+    CASE(51,53,151,153) ! RNZ->ANGP negative: poloidal first, intuitive,  HFS
        DO nray=1,nraymax
-          ANGPIN(NRAY)=-ASIN(RNZIN(NRAY) &
+          ANGPIN(NRAY)=180.D0+ASIN(RNZIN(NRAY)/RNKIN(NRAY))/deg
+       END DO
+    CASE(52,152) ! RNZ->ANGP negative: toroidal first HFS
+       DO nray=1,nraymax
+          ANGPIN(NRAY)=180.D0+ASIN(RNZIN(NRAY) &
                /(RNKIN(NRAY)*COS(ANGTIN(NRAY)*deg)))/deg
        END DO
     END SELECT
 
     ! --- conversion from rnph -> angt ---
     
-    SELECT CASE(mdlwri)
-    CASE(21,41,51,121,141,151) ! RNPH->ANGT: poloidal first
+    SELECT CASE(MOD(mdlwri,100))
+    CASE(21) ! RNPH->ANGT: poloidal first
        DO nray=1,nraymax
           ANGTIN(NRAY)=ASIN(RNPHIN(NRAY) &
                /(RNKIN(NRAY)*COS(ANGPIN(NRAY)*deg)))/deg
        END DO
-    CASE(31,131) ! RNPH->ANGT: absolute angle:  poloidal first
-       DO nray=1,nraymax
-          ARG=180.D0-ASIN(RNPHIN(NRAY) &
-               /(RNKIN(NRAY)*COS((180.D0-ANGPIN(NRAY))*deg)))/deg
-       END DO
-    CASE(22,42,52,122,142,152) ! RNPH->ANGT: toroidal first
+    CASE(22,23) ! RNPH->ANGT: toroidal first
        DO nray=1,nraymax
           ANGTIN(NRAY)=ASIN(RNPHIN(NRAY)/RNKIN(NRAY))/deg
        END DO
-    CASE(32,132) ! RNPH->ANGT: absolue angel: toroidal first
+    CASE(31) ! RNPH->ANGT: poloidal first: absolute angle
+       DO nray=1,nraymax
+          ANGTIN(NRAY)=180.D0-ASIN(RNPHIN(NRAY) &
+               /(RNKIN(NRAY)*COS(180.D0-ANGPIN(NRAY)*deg))/deg
+       END DO
+    CASE(32,33) ! RNPH->ANGT: absolue angel: toroidal first
        DO nray=1,nraymax
           ANGTIN(NRAY)=180.D0-ASIN(RNPHIN(NRAY)/RNKIN(NRAY))/deg
        END DO
-    CASE(23,43,53,123,143,153) ! RNPH->ANGT: intuitive
+    CASE(41,51) ! RNPH->ANGT: poloidal first
+       DO nray=1,nraymax
+          ANGTIN(NRAY)=ASIN(RNPHIN(NRAY) &
+               /(RNKIN(NRAY)*COS(ANGPIN(NRAY)*deg)))/deg
+       END DO
+    CASE(42,43,52,53) ! RNPH->ANGT: intuitive
        DO nray=1,nraymax
           ANGTIN(NRAY)=ASIN(RNPHIN(NRAY)/RNKIN(NRAY))/deg
-       END DO
-    CASE(33,133) ! RNPH->ANGT: absolute angle: intuitive
-       DO nray=1,nraymax
-          ANGTIN(NRAY)=180.D0-ASIN(RNPHIN(NRAY)/RNKIN(NRAY))/deg
        END DO
     END SELECT
 

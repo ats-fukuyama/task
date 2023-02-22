@@ -15,7 +15,7 @@
     TYPE(pl_mag_type):: mag
     TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
     TYPE(pl_prf_type),DIMENSION(nsmax):: plf
-    REAL(rkind):: RF,RP,ZP,PHI,RNPH,ANGT,ANGP,RNK,UU
+    REAL(rkind):: RF,RP,ZP,PHI,ANGT,ANGP,RNK,UU
     INTEGER:: MODEW,mode,icount
     REAL(rkind):: XP,YP,omega,rkv,s,deg,factor,omega_pe2,rne
     REAL(rkind):: rhon,rk,rk_new,rkpara,rkperp,rkperp1,rkperp2
@@ -37,7 +37,6 @@
     RP=RPIN(NRAY)
     ZP=ZPIN(NRAY)
     PHI=PHIIN(NRAY)
-    RNPH=RNPHIN(NRAY)
     ANGT=ANGTIN(NRAY)
     ANGP=ANGPIN(NRAY)
     RNK=RNKIN(NRAY)
@@ -66,15 +65,24 @@
     XP=RP*COS(PHI)
     YP=RP*SIN(PHI)
     rk=rkv*rnk
-    SELECT CASE(mdlwri)
-    CASE(0,2,100,102)
+    SELECT CASE(MOD(mdlwri,10))
+    CASE(1)
        rkr= -rk*COS(angp*deg)*COS(angt*deg)
        rkph= rk*COS(angp*deg)*SIN(angt*deg)
        rkz=  rk*SIN(angp*deg)
-    CASE(1,3,101,103)
+    CASE(2)
        rkr= -rk*COS(angp*deg)*COS(angt*deg)
        rkph= rk              *SIN(angt*deg)
        rkz=  rk*SIN(angp*deg)*COS(angt*deg)
+    CASE(3)
+       arg=1.D0-SIN(angt*deg)**2-SIN(angp*deg)**2
+       IF(arg.GT.0.D0) THEN
+          rkr= -rk*SQRT(arg)
+       ELSE
+          rkr=0.D0
+       END IF
+       rkph= rk              *SIN(angt*deg)
+       rkz=  rk              *SIN(angp*deg)
     END SELECT
     rkx=rkr*COS(phi)-rkph*SIN(phi)
     rky=rkr*SIN(phi)+rkph*COS(phi)
@@ -198,15 +206,24 @@
     ! --- solve cold dispersion for given k_para ---
        
     rk=rkv*rnk
-    SELECT CASE(mdlwri)
-    CASE(0,2,100,102)
+    SELECT CASE(MOD(mdlwri,10))
+    CASE(1)
        rkr= -rk*COS(angp*deg)*COS(angt*deg)
        rkph= rk*COS(angp*deg)*SIN(angt*deg)
        rkz=  rk*SIN(angp*deg)
-    CASE(1,3,101,103)
+    CASE(2)
        rkr= -rk*COS(angp*deg)*COS(angt*deg)
        rkph= rk              *SIN(angt*deg)
        rkz=  rk*SIN(angp*deg)*COS(angt*deg)
+    CASE(3)
+       arg=1.D0-SIN(angt*deg)**2-SIN(angp*deg)**2
+       IF(arg.GT.0.D0) THEN
+          rkr= -rk*SQRT(arg)
+       ELSE
+          rkr=0.D0
+       END IF
+       rkph= rk              *SIN(angt*deg)
+       rkz=  rk              *SIN(angp*deg)
     END SELECT
     RKX=RKR*COS(PHI)-RKPHI*SIN(PHI)
     RKY=RKR*SIN(PHI)+RKPHI*COS(PHI)

@@ -51,7 +51,7 @@ CONTAINS
          ANGPIN(NRAY)   = 0.D0
          RNPHIN(NRAY)   = 0.0D0
          RNZIN(NRAY)    = 0.0D0
-         MODEWIN(NRAY)  = 0
+         MODEWIN(NRAY)  = 1
          rnkin(nray)    = 1.d0
          UUIN(NRAY)     = 1.D0
          RCURVAIN(NRAY) = 0.D0
@@ -86,10 +86,10 @@ CONTAINS
 !                   RFIN,RPIN,ZPIN,PHIIN,...,MODEWIN,RNKIN,UUIN
 !         1, 2, 3 : ANGTIN,ANGPIN (toroidal, poloidal incident angles) 
 !        11,12,13 : ANGTIN,ANGPIN (toroidal, poloidal absolute angles : TRAVIS)
-!        21,22,23 : RNPHIN,ANGPIN (N_phi, poloidal incident angle)
-!        31,32,33 : RNPHIN,ANGPIN (N_phi, poloidal absolute angle)
-!        41,42,43 : RNPHIN,RNZIN  (RNR= RNK*SQRT(1-RNPH**2-RN**1) positive RNR)
-!        51,52,53 : RNPHIN,RNZIN  (RNR=-RNK*SQRT(1-RNPH**2-RN**1) negative RNR)
+!        21,22,23 : RNPHIN,ANGPIN (angt=ARCSIN(rnph/(rnk*COS(angp))))
+!        31,32,33 : RNPHIN,ANGPIN (angt=ARCSIN(rnph/(rnk*COS(angp))) : TRAVIS)
+!        41,42,43 : RNPHIN,RNZIN  (angp=   ARCSIN(rnz/rnk) LFS)
+!        51,52,53 : RNPHIN,RNZIN  (angp=pi+ARCSIN(rnz/rnk) HFS)
 !               1 : poloidal first angle  k_p = k sin angp
 !               2 : toroidal first angle  k_t = k sin angt
 !               3 : Intuitive angle       k_p = k sin angp, k_t = k sin angt
@@ -149,7 +149,7 @@ CONTAINS
       NRSMAX   = 100
       NRLMAX   = 200
 
-      MDLWRI = 100
+      MDLWRI = 1
       MDLWRG = 0
       MDLWRP = 1
       MDLWRQ = 1

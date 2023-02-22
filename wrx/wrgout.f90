@@ -58,7 +58,7 @@ CONTAINS
     IF(KID.EQ.'4'.AND.NSTAT.GE.1) CALL WRGRF4
     IF(KID.EQ.'5'.AND.NSTAT.GE.1) CALL WRGRF5
     IF(KID.EQ.'6'.AND.NSTAT.GE.1) CALL WRGRF6
-    IF(KID.EQ.'7'.AND.NSTAT.GE.1) THEN
+    IF((KID.EQ.'7'.OR.KID.EQ.'8').AND.NSTAT.GE.1) THEN
 2      CONTINUE
        WRITE(6,'(A,2I6)') '## ns,nmax=',ns,nmax
        READ(5,*,ERR=2,END=1) ns,nmax
@@ -72,7 +72,11 @@ CONTAINS
        WRITE(6,'(A)') '## rhona='
        WRITE(6,'(10F8.4)') (rhona(n),n=1,nmax)
        READ(5,*,ERR=3,END=2) (rhona(n),n=1,nmax)
-       CALL WRGRF7(ns,nmax,rhona)
+       IF(KID.EQ.'7') THEN
+          CALL WRGRF7(ns,nmax,rhona)
+       ELSE
+          CALL WRGRF8(ns,nmax,rhona)
+       END IF
     END IF
     IF(KID.EQ.'A'.AND.NSTAT.GE.2) CALL WRGRFB1
     IF(KID.EQ.'B'.AND.NSTAT.GE.2) CALL WRGRFB2
@@ -1276,6 +1280,121 @@ CONTAINS
 
     CALL pagee
   END SUBROUTINE WRGRF7
+
+!     ***** relativistic cyclotron resonance condition (normalized by c) *****
+
+  SUBROUTINE WRGRF8(ns,nmax,rhona)
+
+    USE wrcomm
+    USE wrsub,ONLY: wrcalk
+    USE plprof
+    USE libgrf
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: ns,nmax
+    REAL(rkind),INTENT(IN):: rhona(nmax)
+    TYPE(pl_mag_type):: mag
+    CHARACTER(LEN=20):: title
+    INTEGER,parameter:: nang_max=50
+    INTEGER:: n,ngid,nray,i,nstp,nc,line_pat,nang,ierr
+    REAL(rkind):: dang,rhon,pt0,vt0c,omega,xl,yl,zl,omegac
+    REAL(rkind):: rkpara,rkperp,rnpara,pc_org,pc_rad2,pc_rad,pv_org,pv_rad
+    REAL(rkind):: ang,x,y
+    INTEGER:: nstp_nray(2,nraymax)
+    EXTERNAL PAGES,PAGEE,MOVE2D,DRAW2D
+
+    IF(nmax.LE.4) THEN
+       WRITE(6,'(A,2I6,4ES12.4)') 'ns,nmax,rhona=',ns,nmax,(rhona(n),n=1,nmax)
+    ELSE
+       WRITE(6,'(A,2I6,4ES12.4)') 'ns,nmax,rhona=',ns,nmax,(rhona(n),n=1,4)
+       WRITE(6,'(14X   5ES12.4)')                          (rhona(n),n=5,nmax)
+    END IF
+       
+    dang=PI/nang_max
+    CALL pages
+
+    DO n=1,nmax
+       SELECT CASE(nmax)
+       CASE(1)
+          ngid=0
+       CASE(2:4)
+          ngid=n    ! ngid=1:4
+       CASE(5:9)
+          ngid=n+4  ! ngid=9:13  (5:13)
+       CASE(10:16)
+          ngid=n+13 ! ngid=23:29 (14:29)
+       CASE(17:25)
+          ngid=n+29 ! ngid=46:54 (30:54)
+       END SELECT
+
+       rhon=rhona(n)
+       CALL setup_nray(rhon,nstp_nray,ierr)
+       WRITE(title,'(A,F8.4,A)') '@Res: rhon=',rhon,'@'
+       
+!     CALL grd2d_frame_start(ngid,-pmax_dp(ns),pmax_dp(ns),0.D0,pmax_dp(ns), &
+!                              title,ASPECT=0.5D0,NOINFO=1)
+
+     CALL grd2d_frame_start(ngid,-1.D0,1.D0,0.D0,1.D0, &
+                              title,ASPECT=0.5D0,NOINFO=1)
+
+       pt0=(ptpr(ns)+2.D0*ptpp(ns))/3.D0          ! axis temperature [J]
+!       vt0c=SQRT(pt0*AEE*1.D3/(PA(ns)*AMP*VC**2))  ! vt0/c
+       vt0c=1.D0
+       DO nray=1,nraymax
+!          CALL SETRGBDA(line_rgb_nlmax(1:3,MOD(2*(nray-1)+(i-1),nlmax_p)+1))
+          CALL SETLIN(0,2,7-MOD(nray-1,5))
+          omega=2*PI*RAYIN(1,nray)*1.D6
+          DO i=1,2
+             nstp=nstp_nray(i,nray)
+             IF(nstp.NE.0) THEN
+                xl=rays(1,nstp,nray)
+                yl=rays(2,nstp,nray)
+                zl=rays(3,nstp,nray)
+                CALL pl_mag(xl,yl,zl,mag)
+                omegac=PZ(ns)*AEE*mag%babs/(PA(ns)*AMP)
+                CALL wrcalk(nstp,nray,rkpara,rkperp)
+                rnpara=rkpara*VC/omega
+                IF(ABS(rnpara).LT.1.D0) THEN
+                   DO nc=ncmin(ns),ncmax(ns)
+                      SELECT CASE(ABS(nc))
+                      CASE(1)
+                         line_pat=0
+                      CASE(2)
+                         line_pat=2
+                      CASE(3)
+                         line_pat=4
+                      CASE DEFAULT
+                         line_pat=6
+                      END SELECT
+                      pc_org=rnpara/(1.D0-rnpara**2)*nc*omegac/omega
+                      IF(nc*omegac/omega+rnpara*pc_org.GT.1.D0) THEN
+                         pc_rad2=((nc*omegac/omega)**2-(1.D0-rnpara**2)) &
+                                 /(1-rnpara**2)**2
+                         IF(pc_rad2.GT.0.D0) THEN
+                            pc_rad= SQRT(pc_rad2)
+                            pv_org=pc_org/vt0c
+                            pv_rad=pc_rad/vt0c
+                            ang=0.D0
+                            x=pv_org+                     pv_rad*cos(ang)
+                            y=       SQRT(1.D0-rnpara**2)*pv_rad*sin(ang)
+                            CALL MOVEPT2D(gdclip(x),gdclip(y),line_pat)
+                            DO nang=2,nang_max+1
+                               ang=(nang-1)*dang
+                               x=pv_org+                     pv_rad*cos(ang)
+                               y=       SQRT(1.D0-rnpara**2)*pv_rad*sin(ang)
+                               CALL DRAWPT2D(gdclip(x),gdclip(y))
+                            END DO
+                         END IF ! pc_rad2>0
+                      END IF ! cyclotron resonance condition
+                   END DO ! nc
+                END IF ! anpara
+             END IF ! nstp
+          END DO ! i
+       END DO ! nray
+       CALL grd2d_frame_end
+    END DO ! n
+
+    CALL pagee
+  END SUBROUTINE WRGRF8
 
   SUBROUTINE setup_nray(rhon,nstp_nray,ierr)
     USE wrcomm

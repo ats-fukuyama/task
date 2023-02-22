@@ -76,7 +76,7 @@ CONTAINS
     TYPE(pl_prf_type),DIMENSION(nsmax):: plf
     REAL(rkind):: RF,RP,ZP,PHI,ANGT,ANGP,RNK,UU
     INTEGER:: MODEW,mode
-    REAL(rkind):: XP,YP,s,deg,factor,omega_pe2,rne
+    REAL(rkind):: XP,YP,s,deg,factor,omega_pe2,rne,arg
     REAL(rkind):: rhon,rkpara,rkperp_1,rkperp_2
     REAL(rkind):: rk,rk_x,rk_y,rk_z,dXP,dYP,dZP
     REAL(rkind):: ub_x,ub_y,ub_z,ub_R,ub_phi
@@ -85,7 +85,7 @@ CONTAINS
     REAL(rkind):: rk_b,rk_n,rk_t,rk_R,rk_phi
     REAL(rkind):: rk_x1,rk_y1,rk_z1,rk_R1,rk_phi1
     REAL(rkind):: rk_x2,rk_y2,rk_z2,rk_R2,rk_phi2
-    REAL(rkind):: alpha1,alpha2,diff1,diff2
+    REAL(rkind):: alpha_1,alpha_2,diff_1,diff_2
 
     IERR=0
     deg=PI/180.D0
@@ -131,29 +131,24 @@ CONTAINS
     YP=RP*SIN(PHI)
     rk=rkv*rnk
 
-    SELECT CASE(mdlwri)
-    CASE(1,11,21,31,41,51,101,111,121,131,141,151) ! poloidal first angle
-       rk_r  = -rk*COS(angp*deg)*COS(angt*deg)
-       rk_phi=  rk*COS(angp*deg)*SIN(angt*deg)
-       rk_z  =  rk              *SIN(angp*deg)
-    CASE(2,12,22,32,42,52,102,112,122,132,142,152) ! toroidal first angle
-       rk_r  = -rk*COS(angp*deg)*COS(angt*deg)
-       rk_phi=  rk              *SIN(angt*deg)
-       rk_z  =  rk*SIN(angp*deg)*COS(angt*deg)
-    CASE(3,13,23,33,43,53,103,113,123,133,143,153) ! toroidal first angle
-       factor=1.D0-SIN(angp*deg)**2-SIN(angt*deg)**2
-       IF(factor.LE.0.D0) THEN
-          rk_r  = 0.D0
-          WRITE(6,'(A,A,I4)') 'XX wr_setup_start_point: out of angle: ', &
-               'mdlwri=',mdlwri
-          WRITE(6,'(A,3ES12.4)') '      factor,angt,angp=',factor,angt,angp
-          IERR=1
-          RETURN
+    SELECT CASE(MOD(mdlwri,10))
+    CASE(1)
+       rk_r  =-rk*COS(angp*deg)*COS(angt*deg)
+       rk_phi= rk*COS(angp*deg)*SIN(angt*deg)
+       rk_z  = rk*SIN(angp*deg)
+    CASE(2)
+       rk_r  =-rk*COS(angp*deg)*COS(angt*deg)
+       rk_phi= rk              *SIN(angt*deg)
+       rk_z  = rk*SIN(angp*deg)*COS(angt*deg)
+    CASE(3)
+       arg=1.D0-SIN(angt*deg)**2-SIN(angp*deg)**2
+       IF(arg.GT.0.D0) THEN
+          rk_r= -rk*SQRT(arg)
        ELSE
-          rk_r  = -rk*SQRT(factor)
+          rk_r=0.D0
        END IF
-       rk_phi=  rk*SIN(angt*deg)
-       rk_z  =  rk*SIN(angp*deg)
+       rk_phi= rk              *SIN(angt*deg)
+       rk_z  = rk              *SIN(angp*deg)
     END SELECT
     rk_x=rk_r*COS(phi)-rk_phi*SIN(phi)
     rk_y=rk_r*SIN(phi)+rk_phi*COS(phi)
@@ -184,10 +179,12 @@ CONTAINS
     factor=omega_pe2/omega**2
 
     IF(idebug_wr(1).NE.0) THEN
-       WRITE(6,'(A,A,I4,I8)') '*** idebug_wr(1): wr_setup_start_point: ', &
-            'nray,nstp=',nray,nstp
+       WRITE(6,'(A,A,I4,I8,I4)') '*** idebug_wr(1): wr_setup_start_point: ', &
+            'nray,nstp,mdlwri=',nray,nstp,mdlwri
        WRITE(6,'(A,3ES12.4)') '   rf,rnk,rk      =',rf,rnk,rk
+       WRITE(6,'(A,3ES12.4)') '   rp,phi,zp      =',rp,phi,zp
        WRITE(6,'(A,3ES12.4)') '   xp,yp,zp       =',XP,YP,ZP
+       WRITE(6,'(A,3ES12.4)') '   rk,angt,angp   =',rk,angt,angp
        WRITE(6,'(A,3ES12.4)') '   rkr,rkph,rkz   =',rk_r,rk_phi,rk_z
        WRITE(6,'(A,3ES12.4)') '   rkx,rky,rkz    =',rk_x,rk_y,rk_z
        WRITE(6,'(A,3ES12.4)') '   rnx,rny,rnz    =',rk_x*rnv,rk_y*rnv,rk_z*rnv
@@ -303,8 +300,8 @@ CONTAINS
     un_phi= 0.D0
     un_Z  =-ub_R/SQRT(ub_Z**2+ub_R**2)
     
-    un_X=un_R*COS(phi)-un_phi*SIN(phi)
-    un_Y=un_R*SIN(phi)+un_phi*COS(phi)
+    un_X=un_R*COS(phi)
+    un_Y=un_R*SIN(phi)
 
     ! tangential vector (u_t = u_n x u_b)
 
@@ -323,27 +320,37 @@ CONTAINS
 
     ! new wave number vector #1
 
-    diff1=rkperp_1**2-rk_t**2
-    IF(diff1.GT.0.D0) THEN
-       alpha1=SQRT(diff1/rk_n**2)
+    diff_1=rkperp_1**2-rk_t**2
+    IF(rk_n.NE.0.D0) THEN
+       IF(diff_1.GT.0.D0) THEN
+          WRITE(6,*) 'alpha_1:',diff_1,rk_n**2
+          alpha_1=SQRT(diff_1/rk_n**2)
+       ELSE
+          alpha_1=0.D0
+       END IF
     ELSE
-       alpha1=0.D0
+       alpha_1=0.D0
     END IF
-    rk_x1=rk_b*ub_x+rk_t*ut_x+alpha1*rk_n*un_x
-    rk_y1=rk_b*ub_y+rk_t*ut_y+alpha1*rk_n*un_y
-    rk_z1=rk_b*ub_z+rk_t*ut_z+alpha1*rk_n*un_z
+    rk_x1=rk_b*ub_x+rk_t*ut_x+alpha_1*rk_n*un_x
+    rk_y1=rk_b*ub_y+rk_t*ut_y+alpha_1*rk_n*un_y
+    rk_z1=rk_b*ub_z+rk_t*ut_z+alpha_1*rk_n*un_z
     
     ! new wave number vector #2
 
-    diff2=rkperp_2**2-rk_t**2
-    IF(diff2.GT.0.D0) THEN
-       alpha2=SQRT(diff2/rk_n**2)
+    diff_2=rkperp_2**2-rk_t**2
+    IF(rk_n.NE.0.D0) THEN
+       IF(diff_2.GT.0.D0) THEN
+          WRITE(6,*) 'alpha_2:',diff_2,rk_n**2
+          alpha_2=SQRT(diff_2/rk_n**2)
+       ELSE
+          alpha_2=0.D0
+       END IF
     ELSE
-       alpha2=0.D0
+       alpha_2=0.D0
     END IF
-    rk_x2=rk_b*ub_x+rk_t*ut_x+alpha2*rk_n*un_x
-    rk_y2=rk_b*ub_y+rk_t*ut_y+alpha2*rk_n*un_y
-    rk_z2=rk_b*ub_z+rk_t*ut_z+alpha2*rk_n*un_z
+    rk_x2=rk_b*ub_x+rk_t*ut_x+alpha_2*rk_n*un_x
+    rk_y2=rk_b*ub_y+rk_t*ut_y+alpha_2*rk_n*un_y
+    rk_z2=rk_b*ub_z+rk_t*ut_z+alpha_2*rk_n*un_z
     
     rk_R1  = rk_x1*COS(phi)+rk_y1*SIN(phi)
     rk_phi1=-rk_x1*SIN(phi)+rk_y1*COS(phi)
@@ -370,13 +377,14 @@ CONTAINS
 
     IF(idebug_wr(4).NE.0) THEN
        WRITE(6,'(A)') '*** idebug_wr(4): wr_setup_start_point: '
-       WRITE(6,'(A,1ES12.4)') 'rkpara   :',rkpara
+       WRITE(6,'(A,3ES12.4)') 'rkpara,pp:',rkpara,rkperp_1,rkperp_2
        WRITE(6,'(A,5ES12.4)') 'ub_xyzrp :',ub_x,ub_y,ub_z,ub_R,ub_phi
        WRITE(6,'(A,5ES12.4)') 'ut_xyzrp :',ut_x,ut_y,ut_z,ut_R,ut_phi
        WRITE(6,'(A,5ES12.4)') 'un_xyzrp :',un_x,un_y,un_z,un_R,un_phi
        WRITE(6,'(A,3ES12.4)') 'rk_bnt   :',rk_b,rk_n,rk_t
        WRITE(6,'(A,3ES12.4)') 'rn_bnt   :',rk_b*rnv,rk_n*rnv,rk_t*rnv
-       WRITE(6,'(A,2ES12.4)') 'alpha_12 :',alpha1,alpha2
+       WRITE(6,'(A,2ES12.4)') 'diff_12  :',diff_1,diff_2
+       WRITE(6,'(A,2ES12.4)') 'alpha_12 :',alpha_1,alpha_2
        WRITE(6,'(A,5ES12.4)') 'rk1_xyzrp:',rk_x1,rk_y1,rk_z1,rk_R1,rk_phi1
        WRITE(6,'(A,5ES12.4)') 'rn1_xyzrp:',rk_x1*rnv,rk_y1*rnv,rk_z1*rnv, &
                                            rk_R1*rnv,rk_phi1*rnv
