@@ -5,6 +5,7 @@ MODULE plcoll
   PRIVATE
   PUBLIC pl_set_rnuc
   PUBLIC pl_coll
+  PUBLIC pl_coll2
 
 CONTAINS
 
