@@ -1,3 +1,3 @@
 gstops -ab gs/$1.gs >ps/$1.ps
-pstopdf -o pdf/$1.pdf ps/$1.ps
+pstopdf ps/$1.ps -o pdf/$1.pdf 
 open pdf/$1.pdf
