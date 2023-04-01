@@ -1,0 +1,1 @@
+emacs -nw -l $HOME/lib/emacs/ws8.el $*
