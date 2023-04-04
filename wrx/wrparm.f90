@@ -65,7 +65,7 @@ CONTAINS
                   PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
                   RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG, &
                   PPN0,PTN0,RF_PL, &
-                  MODELG,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF, &
+                  MODELG,MODELN,MODELQ,model_coll,MODEL_PROF,MODEL_NPROF, &
                   RHOGMN,RHOGMX, &
                   KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2, &
                   MODEFW,MODEFR,IDEBUG, &
@@ -115,7 +115,7 @@ CONTAINS
              9X,'pn_corner,ptpr_corner,ptpp_corner,'/ &
              9X,'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,'/ &
              9X,'PPN0,PTN0,RFCL,'/ &
-             9X,'MODELG,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF,'/ &
+             9X,'MODELG,MODELN,MODELQ,model_coll,MODEL_PROF,MODEL_NPROF,'/ &
              9X,'RHOGMN,RHOGMX,'/ &
              9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2'/ &
              9X,'MODEFW,MODEFR,IDEBUG'/ &
