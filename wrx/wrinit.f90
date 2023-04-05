@@ -24,8 +24,8 @@ CONTAINS
 !     ANGPIN  : INITIAL poloidal injection angle [degree] from horizonal plane
 !     RNPHIN  : INITIAL poloidal REFRACTIVE INDEX
 !     MODEWIN : Selection of initial wave mode
-!               0: slow wave: larger k  (negative, inward for forward wave)
-!               1: fast wave: smaller k (negative, inward for forward wave)
+!               1: slow wave: larger k  (negative, inward for forward wave)
+!               2: fast wave: smaller k (negative, inward for forward wave)
 !     RNKIN   : INITIAL estimate of initial refractive index (1.D0 for vaccum)
 !               positive for forward wave propagating inward 
 !               negative for backward wave propagating inward 
