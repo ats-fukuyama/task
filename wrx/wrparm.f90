@@ -78,7 +78,7 @@ CONTAINS
                   MDLWRF, &
                   SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW, &
                   mode_beam,pne_threshold,bdr_threshold, &
-                  Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr,ra_wr,idebug_wr
+                  Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr,ra_wr,idebug_wr,KNAMWRW
 
     READ(NID,WR,IOSTAT=IST,ERR=9800,END=9900)
     
@@ -128,7 +128,8 @@ CONTAINS
              9X,'MDLWRF,'/ &
              9X,'SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW'/ &
              9X,'mode_beam,pne_threshold,bdr_thershold'/ &
-             9X,'Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr,ra_wr,idebug_wr')
+             9X,'Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr,ra_wr,idebug_wr'/ &
+             9X,'KNAMWRW')
   END SUBROUTINE WRPLST
 
 !     ***** CHECK INPUT PARAMETERS *****

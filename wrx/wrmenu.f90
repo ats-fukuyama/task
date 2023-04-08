@@ -21,7 +21,7 @@ CONTAINS
     USE wrsetup,ONLY: wr_setup
     USE wrexec,ONLY: wr_exec
     USE wrgout,ONLY: wr_gout
-    USE wrfile,ONLY: wr_save,wr_load
+    USE wrfile,ONLY: wr_save,wr_load,wr_write
     USE libkio
     IMPLICIT NONE
     CHARACTER(LEN=1):: KID
@@ -33,7 +33,7 @@ CONTAINS
     1 CONTINUE
          IERR=0
          WRITE(6,601)
-  601    FORMAT('## WR MENU: P,V/PARM  R,B/RAY  G/GRAPH  S,L/FILE', &
+  601    FORMAT('## WR MENU: P,V/PARM  R,B/RAY  G/GRAPH  S,L,W/FILE', &
                 '  Dn/DISP  F/ROOT  Q/QUIT')
          CALL TASK_KLIN(LINE,KID,MODE,WR_PARM)
          IF(MODE.EQ.3) STOP
@@ -69,6 +69,8 @@ CONTAINS
          CALL wr_save
       ELSEIF(KID.EQ.'L') THEN
          CALL wr_load(NSTAT)
+      ELSEIF(KID.EQ.'W') THEN
+         CALL wr_write
       ELSEIF(KID.EQ.'Q') THEN
          GOTO 9000
       ELSE

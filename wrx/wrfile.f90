@@ -5,6 +5,7 @@ MODULE wrfile
   PRIVATE
   PUBLIC wr_save
   PUBLIC wr_load
+  PUBLIC wr_write
 
 CONTAINS
 
@@ -152,4 +153,44 @@ CONTAINS
     9 WRITE(6,*) 'XX WRLOAD: File IO error detected: KNAMFR= ',TRIM(KNAMWR)
     RETURN
   END SUBROUTINE wr_load
+
+!***********************************************************************
+!     write ray data as ascii format
+!***********************************************************************
+
+  SUBROUTINE wr_write
+
+    USE wrcomm
+    USE libfio
+    IMPLICIT NONE
+    INTEGER:: NFL,IERR,NRAY,I,NSTP
+
+    NFL=22
+    CALL FWOPEN(NFL,KNAMWRW,1,MODEFW,'WR',IERR)
+    IF(IERR.NE.0) THEN
+       WRITE(6,*) 'XX wr_write: FWOPEN ERROR: IERR=',IERR
+       RETURN
+    END IF
+
+    WRITE(NFL,'(I8)') NRAYMAX
+    DO NRAY=1,NRAYMAX
+       WRITE(NFL,'(8ES16.8)') (RAYIN(I,NRAY),I=1,8)
+       WRITE(NFL,'(I8)') NSTPMAX_NRAY(NRAY)
+       DO NSTP=1,NSTPMAX_NRAY(NRAY)
+          WRITE(NFL,'(27ES16.8)') &
+               (RAYS(I,NSTP,NRAY),I=1,8), &
+               CEXS(NSTP,NRAY),CEYS(NSTP,NRAY),CEZS(NSTP,NRAY), &
+               RKXS(NSTP,NRAY),RKYS(NSTP,NRAY),RKZS(NSTP,NRAY), &
+               RXS(NSTP,NRAY),RYS(NSTP,NRAY),RZS(NSTP,NRAY), &
+               RAYRB1(NSTP,NRAY),RAYRB2(NSTP,NRAY), &
+               BNXS(NSTP,NRAY),BNYS(NSTP,NRAY),BNZS(NSTP,NRAY), &
+               BABSS(NSTP,NRAY),RAYS(0,NSTP,NRAY)
+       END DO
+    END DO
+    CLOSE(NFL)
+
+    WRITE(6,*) '# DATA WAS SUCCESSFULLY WRITTEN TO THE FILE: ',TRIM(KNAMWRW)
+    RETURN
+  END SUBROUTINE wr_write
+
 END MODULE wrfile

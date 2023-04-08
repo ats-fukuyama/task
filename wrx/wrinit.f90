@@ -177,6 +177,10 @@ CONTAINS
       Zmin_wr=0.D0
       ra_wr=1.1D0
 
+      ! wr ascii data file
+
+      KNAMWRW='wr-text-data'
+
       ! --- debug output contral ---
       !        idebug_wr =  1: initial position, wave number, denisty
       !        idebug_wr =  2: vacuum step position, density
