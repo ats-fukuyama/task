@@ -108,17 +108,23 @@
       RNFD0L=PN(NS)
       RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
       PTFD0L=SQRT(RTFD0L*1.D3*AEE*AMFDL)
-
-      IF(MODEL_EX_READ_Tn.eq.0)THEN
-         CALL PL_PROF(RHON,PRF)
-         RNFDL=PNS(NS)/RNFD0L*1.D-1
-         RTFDL=PTS(NS)*1.D-2
-      ELSEIF(MODEL_EX_READ_Tn.ne.0)THEN
-         RNFDL=RNE_EXP_EDGE/RNFD0L*1.D-1
-         RTFDL=RTE_EXP_EDGE*1.D-1
+      IF(RNFD0L.NE.0.D0) THEN
+         IF(MODEL_EX_READ_Tn.eq.0)THEN
+            CALL PL_PROF(RHON,PRF)
+            RNFDL=PNS(NS)/RNFD0L*1.D-1
+            RTFDL=PTS(NS)*1.D-2
+         ELSEIF(MODEL_EX_READ_Tn.ne.0)THEN
+            RNFDL=RNE_EXP_EDGE/RNFD0L*1.D-1
+            RTFDL=RTE_EXP_EDGE*1.D-1
+         END IF
+      ELSE
+         RNFDL=0.D0
+         IF(MODEL_EX_READ_Tn.eq.0)THEN
+            RTFDL=PTS(NS)*1.D-2
+         ELSEIF(MODEL_EX_READ_Tn.ne.0)THEN
+            RTFDL=RTE_EXP_EDGE*1.D-1
+         END IF
       END IF
-
-
       IF(MODELR.EQ.0) THEN
          FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3
          EX=PML**2/(2.D0*RTFDL/RTFD0L)

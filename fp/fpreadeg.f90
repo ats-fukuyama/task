@@ -571,7 +571,7 @@
       integer::NS,IERR
       integer,dimension(NSMAX-1):: IPIV
 
-      CALL DGESV(NSMAX-1,1,Aji,NSMAX-1,IPIV,bk,NSMAX-1,IERR)
+      CALL LAPACK_DGESV(NSMAX-1,1,Aji,NSMAX-1,IPIV,bk,NSMAX-1,IERR)
       IF(IERR.ne.0)THEN
          WRITE(*,'(A,I4)') "DGSEV ERR, IERR=", IERR
          WRITE(*,'(A,I4)') "DGSEV ERR, NRANK=", NRANK

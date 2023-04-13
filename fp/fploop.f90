@@ -74,7 +74,9 @@
             CALL TOP_OF_TIME_LOOP_CD(RJ_NIND_M)
          END IF
          CALL GUTIME(gut_coef3)
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+         ! --- iteration loop ---
+         
          DO WHILE(N_IMPL.le.LMAXFP) ! start do while
 
             CALL GUTIME(gut_exe1)
@@ -256,7 +258,6 @@
          IF(OUTPUT_TXT_BEAM_WIDTH.eq.1) CALL OUT_TXT_BEAM_WIDTH
          IF(OUTPUT_TXT_DELTA_F.eq.1) CALL OUT_TXT_FNS_DEL
          IF(OUTPUT_TXT_F1.eq.1) CALL OUT_TXT_F1_PITCH
-!         IF(MODEL_CD.eq.1) CALL OUT_J_PROFILE_CD
       END IF
       CALL OUT_RHO_SIGMA_SPITZER
       IF(ABS(MODELS).ge.2) CALL OUT_TXT_NF_RADIAL_PROF(OUTPUT_NFID)

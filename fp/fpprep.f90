@@ -814,7 +814,6 @@
       INTEGER:: NTH,NP,NR,NSA,NS
       REAL(rkind):: FL
 
-      WRITE(6,*) '@@@ point 001'
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
          NR=NRMAX+1
@@ -825,9 +824,9 @@
             END DO
          ENDDO
       END DO
-!     ----- set boundary distribution functions -----
+
+      !     ----- set boundary distribution functions -----
       
-      WRITE(6,*) '@@@ point 002'
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
          DO NP=NPSTARTW,NPENDWM
@@ -838,26 +837,26 @@
          ENDDO
       END DO
 
+      WRITE(6,*) '@@@ point 12'
+
       IF(MODELD_boundary.eq.0)THEN
-      WRITE(6,*) '@@@ point 003'
          DO NSA=NSASTART,NSAEND
             NS=NS_NSA(NSA)
             DO NP=NPSTARTW,NPENDWM
                CALL FPMXWL_EDGE(NP,NSA,FL)
                DO NTH=1,NTHMAX
-!                  FS2(NTH,NP,NS)=FL ! at R=1.0+DELR/2
                   FS2(NTH,NP,NSA)=FL ! at R=1.0+DELR/2
                ENDDO
             ENDDO
          ENDDO
       ELSEIF(MODELD_boundary.eq.1)THEN
-      WRITE(6,*) '@@@ point 004'
          IF(NREND.eq.NRMAX)THEN
             DO NSA=NSASTART,NSAEND
                NS=NS_NSA(NSA)
                DO NP=NPSTARTW,NPENDWM
                   DO NTH=1,NTHMAX
-                     FS2(NTH,NP,NSA) = 2.D0*FS1(NTH,NP,NSA)-FNSP(NTH,NP,NRMAX,NSA) ! linear
+                     FS2(NTH,NP,NSA) &
+                          = 2.D0*FS1(NTH,NP,NSA)-FNSP(NTH,NP,NRMAX,NSA) !linear
                   ENDDO
                ENDDO
             ENDDO
@@ -865,6 +864,8 @@
             FS2(:,:,:)=0.D0
          END IF
       END IF
+
+      WRITE(6,*) '@@@ point 13'
 
       END SUBROUTINE FNSP_INIT_EDGE
 !-------------------------------------------------------------
@@ -1610,7 +1611,8 @@
 
       CALL GUTIME(gut2)
       gut_prep=gut2-gut1
-      IF(NRANK.eq.0) WRITE(6,'(A,2E14.6)') "---------------PREP_TIME=", gut_prep, gut_nf2-gut_nf1
+      IF(NRANK.eq.0) WRITE(6,'(A,2E14.6)') &
+           "---------------PREP_TIME=", gut_prep, gut_nf2-gut_nf1
 
       IF(OUTPUT_TXT_DELTA_F.eq.1.and.NRANK.eq.0) CALL OUT_TXT_FNS_DEL
  

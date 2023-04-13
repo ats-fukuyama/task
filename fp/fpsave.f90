@@ -1409,19 +1409,21 @@
 
             DO NP=NPSTART,NPEND
                DO NTH=ITL_temp+1, ITU_temp-1
-                  RSUM1 = RSUM1+VOLP(NTH,NP,NS)*RECV(NTH,NP,NR,NSA) !&
-!                       *RLAMDA(NTH,NR)*RFSADG(NR)
+                  RSUM1 = RSUM1+VOLP(NTH,NP,NS)*RECV(NTH,NP,NR,NSA)
                END DO
                DO NTH=1, NTHMAX
-                  RSUM2 = RSUM2+VOLP(NTH,NP,NS)*RECV(NTH,NP,NR,NSA) !&
-!                       *RLAMDA(NTH,NR)*RFSADG(NR)
+                  RSUM2 = RSUM2+VOLP(NTH,NP,NS)*RECV(NTH,NP,NR,NSA)
                END DO
             ENDDO
 
             CALL p_theta_integration(RSUM1)
             CALL p_theta_integration(RSUM2)
 
-            SEND(NR,NSA) = RSUM1/RSUM2
+            IF(RSUM2.NE.0.D0) THEN
+               SEND(NR,NSA) = RSUM1/RSUM2
+            ELSE
+               SEND(NR,NSA)=0.D0
+            END IF
 
          END DO
       END DO

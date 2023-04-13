@@ -570,17 +570,19 @@
       DO NC=NCMIN(NS),NCMAX(NS)
          
          IF (NC.LT.0) THEN
-             RJN=(-1)**(-NC)*RJ(-NC)
+            NPI=NC-1
+            NMI=NC+1
+            RJN=(-1)**(-NC)*RJ(-NC)
          ELSE
-             RJN=RJ(NC)
+            NPI=NC+1
+            NMI=NC-1
+            RJN=RJ(NC)
          ENDIF
-         NMI=NC-1
          IF (NMI.LT.0) THEN
              RJNM=(-1)**(-NMI)*RJ(-NMI)
          ELSE
              RJNM=RJ(NMI)
          ENDIF
-         NPI=NC+1
          IF (NPI.LT.0) THEN
              RJNP=(-1)**(-NPI)*RJ(-NPI)
          ELSE

@@ -468,10 +468,11 @@
       CALL mtx_allgather_real8(rte_send,NREND-NRSTART+1,rte_recv)
       CALL mtx_reset_communicator
 
-      IF(NRANK.eq.0)THEN
+      IF(NRANK.eq.0.AND.E0.NE.0.D0)THEN
          WRITE(38,"(A,E14.6)") "# TIME=", TIMEFP
          DO NR=1, NRMAX
-            WRITE(38,"(5E14.6)") RM(NR), RJS(NR,1)*1.D6/E0, sigma_recv(NR), rte_recv(NR)
+            WRITE(38,"(5E14.6)") &
+                 RM(NR), RJS(NR,1)*1.D6/E0, sigma_recv(NR), rte_recv(NR)
          END DO
          WRITE(38,"(A)") " "
          WRITE(38,"(A)") " "
