@@ -21,7 +21,7 @@ PROGRAM tot
   USE tiparm,ONLY:ti_parm,ti_broadcast
   USE fpinit,ONLY:fp_init
   USE fpparm,ONLY:fp_parm
-  USE fpcomm,ONLY:open_fpcomm_parm
+  USE fpcomm,ONLY:fpcomm_parm
   USE dpinit,ONLY:dp_init
   USE dpparm,ONLY:dp_parm
   USE wrcomm,ONLY:open_wrcomm_parm
@@ -35,7 +35,7 @@ PROGRAM tot
 
   CALL open_trcomm
   CALL open_ticomm_parm
-  CALL open_fpcomm_parm
+!  CALL open_fpcomm_parm
   CALL open_wrcomm_parm
 
   CALL mtx_initialize
