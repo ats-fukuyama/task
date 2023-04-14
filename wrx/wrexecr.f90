@@ -219,6 +219,9 @@ CONTAINS
           YN(5,nstp)= RK_Y
           YN(6,nstp)= RK_Z
           YN(7,nstp)= UU
+          YN(8,nstp)= 0.D0
+          CALL wr_write_line(NSTP,YN(0,NSTP),YN(1:7,NSTP),YN(8,NSTP))
+
           
           ! --- If the ray is out of region, exit mode=11 ---
 
@@ -404,6 +407,7 @@ CONTAINS
     YN(5,nstp)= rk_y
     YN(6,nstp)= rk_z
     YN(7,nstp)= UU
+    YN(8,nstp)= 0.D0
           
     RETURN
   END SUBROUTINE wr_setup_start_point
@@ -418,7 +422,6 @@ CONTAINS
     INTEGER,INTENT(INOUT):: nstp
     REAL(rkind),INTENT(IN):: YN(0:NEQ,0:NSTPMAX)
     INTEGER,INTENT(OUT):: IERR
-    REAL(rkind):: YA(NEQ)
     REAL(rkind):: RF,S,XP,YP,ZP,RKX,RKY,RKZ,UU,omega,rkv,rk
 
     IERR=0
@@ -447,26 +450,18 @@ CONTAINS
        WRITE(6,'(A,2ES12.4)') '   UU,S,rk,rn     =',UU,S,rk,rk/rkv
     END IF
 
-    YA(1)= XP
-    YA(2)= YP
-    YA(3)= ZP
-    YA(4)= RKX
-    YA(5)= RKY
-    YA(6)= RKZ
-    YA(7)= UU
-    
     IF(MDLWRQ.EQ.0) THEN
-       CALL WRRKFT(nstp,YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT(nstp,RAYS(:,:,NRAY),NSTPMAX_NRAY(NRAY))
     ELSEIF(MDLWRQ.EQ.1) THEN
-       CALL WRRKFT_WITHD0(nstp,YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT_WITHD0(nstp,RAYS(:,:,NRAY),NSTPMAX_NRAY(NRAY))
     ELSEIF(MDLWRQ.EQ.2) THEN
-       CALL WRRKFT_WITHMC(nstp,YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT_WITHMC(nstp,RAYS(:,:,NRAY),NSTPMAX_NRAY(NRAY))
     ELSEIF(MDLWRQ.EQ.3) THEN
-       CALL WRRKFT_RKF(nstp,YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT_RKF(nstp,RAYS(:,:,NRAY),NSTPMAX_NRAY(NRAY))
     ELSEIF(MDLWRQ.EQ.4) THEN
-       CALL WRSYMP(nstp,YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRSYMP(nstp,RAYS(:,:,NRAY),NSTPMAX_NRAY(NRAY))
     ELSEIF(MDLWRQ.EQ.5) THEN
-       CALL WRRKFT_ODE(nstp,YA,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT_ODE(nstp,RAYS(:,:,NRAY),NSTPMAX_NRAY(NRAY))
     ELSE
        WRITE(6,*) 'XX WRCALC: unknown MDLWRQ =', MDLWRQ
        IERR=1
@@ -484,36 +479,34 @@ CONTAINS
 
 !  --- original Runge-Kutta method ---
 
-  SUBROUTINE WRRKFT(nstp_in,Y,YN,NNSTP)
+  SUBROUTINE WRRKFT(nstp_start,YN,nstp_end)
 
     USE wrcomm
     USE pllocal
     USE plprof,ONLY: PL_MAG_OLD
     USE librk
     IMPLICIT NONE
-    INTEGER,INTENT(INOUT):: nstp_in
-    REAL(rkind),INTENT(INOUT):: Y(NEQ)
+    INTEGER,INTENT(INOUT):: nstp_start
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
-    INTEGER,INTENT(OUT):: NNSTP
+    INTEGER,INTENT(OUT):: nstp_end
+    REAL(rkind):: Y(NEQ)
     REAL(rkind):: YM(NEQ),WORK(2,NEQ)
     INTEGER:: NSTPLIM,NSTPMIN,NSTP,I
     REAL(rkind):: X0,XE,RHON,PW,R
 
-    X0 = 0.D0
-    XE = DELS
     NSTPLIM=INT(SMAX/DELS)
     NSTPMIN=INT(0.1D0*SMAX/DELS)
 
-    NSTP=nstp_in
-    YN(0,NSTP)=X0
+    NSTP=nstp_start
+    X0 = YN(0,NSTP)
+    XE = X0+DELS
     DO I=1,7
-       YN(I,NSTP)=Y(I)
+       Y(I)=YN(I,NSTP)
     ENDDO
-    YN(8,NSTP)=0.D0
 
     CALL wr_write_line(NSTP,X0,Y,YN(8,NSTP))
 
-    DO NSTP = nstp_in+1,NSTPLIM
+    DO NSTP = nstp_start+1,NSTPLIM
        PW=Y(7)
        CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
 
@@ -538,20 +531,20 @@ CONTAINS
           R.LT.RR-1.1D0*RB.OR. &
           Y(3).GT. RKAP*1.1D0*RB.OR. &
           Y(3).LT.-RKAP*1.1D0*RB))) THEN
-          NNSTP = NSTP
+          nstp_end = NSTP
           GOTO 11
        ENDIF
        IF(MODELG.LE.10) THEN
           CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
           IF(RHON.GT.RB/RA) THEN
-             NNSTP = NSTP
+             nstp_end = NSTP
              GOTO 11
           ENDIF
        ENDIF
     END DO
-    NNSTP=NSTPLIM
+    nstp_end=NSTPLIM
 
-11  IF(YN(7,NNSTP).LT.0.D0) YN(7,NNSTP)=0.D0
+11  IF(YN(7,nstp_end).LT.0.D0) YN(7,nstp_end)=0.D0
     CALL wr_write_line(NSTP,X0,YM,YN(8,NSTP))
 
     RETURN
@@ -559,7 +552,7 @@ CONTAINS
 
 !  --- original Runge-Kutta method with correction for D=0 ---
 
-  SUBROUTINE WRRKFT_WITHD0(nstp_in,Y,YN,NNSTP)
+  SUBROUTINE WRRKFT_WITHD0(nstp_start,YN,nstp_end)
 
     USE wrcomm
     USE wrsub,ONLY: DISPXR,WRMODNWTN
@@ -567,35 +560,33 @@ CONTAINS
     USE plprof,ONLY:PL_MAG_OLD
     USE librk
     IMPLICIT NONE
-    INTEGER,INTENT(INOUT):: nstp_in
-    REAL(rkind),INTENT(INOUT):: Y(NEQ)
+    INTEGER,INTENT(INOUT):: nstp_start
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
-    INTEGER,INTENT(OUT):: NNSTP
+    INTEGER,INTENT(OUT):: nstp_end
+    REAL(rkind):: Y(NEQ)
     REAL(rkind):: YM(NEQ),WORK(2,NEQ),YK(3)
     INTEGER:: NSTPLIM,NSTPMIN,NSTP,I
     REAL(rkind):: X0,XE,PW,DELTA,RHON,R,RF,omega
 
     RF=wr_nray_status%RF
     omega=2.D6*PI*RF
-    nstp=nstp_in
 
-    X0 = 0.D0
-    XE = DELS
+    NSTPLIM=MIN(INT(SMAX/DELS),NSTPMAX)
+    NSTPMIN=INT(0.1D0*SMAX/DELS)
+
+    nstp=nstp_start
+
+    X0 = YN(0,NSTP)
+    XE = X0+DELS
+    DO I=1,7
+       Y(I)=YN(I,nstp)
+    ENDDO
 
     IF(idebug_wr(11).NE.0) THEN
        WRITE(6,'(A,I8)') '*** idebug_wr(11): wrrkft_withd0: nstp=',nstp
        WRITE(6,'(A,4ES12.4)') '      x0,xe,smax,dels =',X0,XE,SMAX,DELS
     END IF
        
-    NSTPLIM=MIN(INT(SMAX/DELS),NSTPMAX)
-    NSTPMIN=INT(0.1D0*SMAX/DELS)
-
-    YN(0,NSTP_in)=X0
-    DO I=1,7
-       YN(I,NSTP_in)=Y(I)
-    ENDDO
-    YN(8,NSTP_in)=0.D0
-
     IF(idebug_wr(11).NE.0) THEN
        WRITE(6,'(A,I8)') '*** idebug_wr(11): wrrkft_withd0: nstp=',nstp
        WRITE(6,'(A,4ES12.4)') '      x0,y1,y2,y3 =',X0,Y(1),Y(2),Y(3)
@@ -604,7 +595,7 @@ CONTAINS
 
     CALL wr_write_line(NSTP,X0,Y,YN(8,NSTP))
 
-    DO NSTP = nstp_in+1,NSTPLIM
+    DO NSTP = nstp_start+1,NSTPLIM
        PW=Y(7)
        CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
 
@@ -644,57 +635,55 @@ CONTAINS
           R.LT.RR-1.1D0*RB.OR. &
           Y(3).GT. RKAP*1.1D0*RB.OR. &
           Y(3).LT.-RKAP*1.1D0*RB))) THEN
-          NNSTP = NSTP
+          nstp_end = NSTP
           GOTO 11
        ENDIF
        IF(MODELG.LE.10) THEN
           CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
           IF(RHON.GT.RB/RA*RKAP) THEN
-             NNSTP = NSTP
+             nstp_end = NSTP
              GOTO 11
           ENDIF
        END IF
     END DO
-    NNSTP=NSTPLIM
+    nstp_end=NSTPLIM
  
-11  IF(YN(7,NNSTP).LT.0.D0) YN(7,NNSTP)=0.D0
-    CALL wr_write_line(NNSTP,X0,YM,YN(8,NNSTP))
+11  IF(YN(7,nstp_end).LT.0.D0) YN(7,nstp_end)=0.D0
+    CALL wr_write_line(nstp_end,X0,YM,YN(8,nstp_end))
 
     RETURN
   END SUBROUTINE WRRKFT_WITHD0
 
 !  --- Runge-Kutta method using ODE library ---
 
-  SUBROUTINE WRRKFT_ODE(nstp_in,Y,YN,NNSTP)
+  SUBROUTINE WRRKFT_ODE(nstp_start,YN,nstp_end)
 
     USE wrcomm
     USE pllocal
     USE plprof,ONLY:PL_MAG_OLD
     USE librk
     IMPLICIT NONE
-    INTEGER,INTENT(INOUT):: nstp_in
-    REAL(rkind),INTENT(INOUT):: Y(NEQ)
+    INTEGER,INTENT(INOUT):: nstp_start
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
-    INTEGER,INTENT(OUT):: NNSTP
+    INTEGER,INTENT(OUT):: nstp_end
+    REAL(rkind):: Y(NEQ)
     REAL(rkind):: YM(NEQ),WORK(2,NEQ)
     INTEGER:: NSTPLIM,NSTPMIN,NSTP,I
     REAL(rkind):: X0,XE,PW,RHON,R
 
-    X0 = 0.D0
-    XE = DELS     
     NSTPLIM=INT(SMAX/DELS)
     NSTPMIN=INT(0.1D0*SMAX/DELS)
-    
-    NSTP=nstp_in
-    YN(0,NSTP)=X0
+
+    NSTP=nstp_start
+    X0 = YN(0,NSTP)
+    XE = X0+DELS     
     DO I=1,7
-       YN(I,NSTP)=Y(I)
+       Y(I)=YN(I,NSTP)
     ENDDO
-    YN(8,NSTP)=0.D0
 
     CALL wr_write_line(NSTP,X0,Y,YN(8,NSTP))
 
-    DO NSTP = nstp_in+1,NSTPLIM
+    DO NSTP = nstp_start+1,NSTPLIM
        PW=Y(7)
        CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
        
@@ -719,20 +708,20 @@ CONTAINS
           R.LT.RR-1.1D0*RB.OR. &
           Y(3).GT. RKAP*1.1D0*RB.OR. &
           Y(3).LT.-RKAP*1.1D0*RB))) THEN
-          NNSTP = NSTP
+          nstp_end = NSTP
           GOTO 11
        ENDIF
        IF(MODELG.LE.10) THEN
           CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
           IF(RHON.GT.RB/RA) THEN
-             NNSTP = NSTP
+             nstp_end = NSTP
              GOTO 11
           ENDIF
        END IF
     END DO
-    NNSTP=NSTPLIM
+    nstp_end=NSTPLIM
 
-11  IF(YN(7,NNSTP).LT.0.D0) YN(7,NNSTP)=0.D0
+11  IF(YN(7,nstp_end).LT.0.D0) YN(7,nstp_end)=0.D0
     CALL wr_write_line(NSTP,X0,YM,YN(8,NSTP))
 
     RETURN
@@ -740,7 +729,7 @@ CONTAINS
 
 !  --- Runge-Kutta method with tunneling of cutoff-resonant layer ---
 
-  SUBROUTINE WRRKFT_WITHMC(nstp_in,Y,YN,NNSTP)
+  SUBROUTINE WRRKFT_WITHMC(nstp_start,YN,nstp_end)
 
     USE wrcomm
     USE wrsub,ONLY: DISPXR,WRMODCONV,WRMODNWTN
@@ -748,10 +737,10 @@ CONTAINS
     USE plprof,ONLY:PL_MAG_OLD
     USE librk
     IMPLICIT NONE
-    INTEGER,INTENT(INOUT):: nstp_in
-    REAL(rkind),INTENT(INOUT):: Y(NEQ)
+    INTEGER,INTENT(INOUT):: nstp_start
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
-    INTEGER,INTENT(OUT):: NNSTP
+    INTEGER,INTENT(OUT):: nstp_end
+    REAL(rkind):: Y(NEQ)
     REAL(rkind):: YM(NEQ),WORK(2,NEQ),YK(3),F(NEQ)
     REAL(rkind):: X0,XE,RF,omega,OXEFF,RHON,PW,RL,RKRL,DELTA,R
     INTEGER:: NSTPLIM,NSTPMIN,NSTP,I,IOX
@@ -759,22 +748,21 @@ CONTAINS
     RF=wr_nray_status%RF
     omega=2.D6*PI*RF
     
-    X0 = 0.D0
-    XE = DELS
     NSTPLIM=INT(SMAX/DELS)
     NSTPMIN=INT(0.1D0*SMAX/DELS)
-    
-    NSTP=nstp_in
-    YN(0,NSTP)=X0
+
+    NSTP=nstp_start
+    X0 = YN(0,NSTP)
+    XE = X0+DELS
     DO I=1,7
-       YN(I,NSTP)=Y(I)
+       Y(I)=YN(I,NSTP)
     ENDDO
-    YN(8,NSTP)=0.D0
+
     IOX=0
 
     CALL wr_write_line(NSTP,X0,Y,YN(8,NSTP))
 
-    DO NSTP = nstp_in+1,NSTPLIM
+    DO NSTP = nstp_start+1,NSTPLIM
        PW=Y(7)
        CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
        
@@ -823,18 +811,18 @@ CONTAINS
           R.LT.RR-1.1D0*RB.OR. &
           Y(3).GT. RKAP*1.1D0*RB.OR. &
           Y(3).LT.-RKAP*1.1D0*RB))) THEN
-          NNSTP = NSTP
+          nstp_end = NSTP
           GOTO 11
        ENDIF
        CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
        IF(RHON.GT.RB/RA) THEN
-          NNSTP = NSTP
+          nstp_end = NSTP
           GOTO 11
        ENDIF
     END DO
-    NNSTP=NSTPLIM
+    nstp_end=NSTPLIM
 
-11  IF(YN(7,NNSTP).LT.0.D0) YN(7,NNSTP)=0.D0
+11  IF(YN(7,nstp_end).LT.0.D0) YN(7,nstp_end)=0.D0
     CALL wr_write_line(NSTP,X0,YM,YN(8,NSTP))
 
     RETURN
@@ -842,16 +830,16 @@ CONTAINS
 
 ! --- Auto-step-size Runge-Kutta-F method ---
 
-  SUBROUTINE WRRKFT_RKF(nstp_in,Y,YN,NNSTP)
+  SUBROUTINE WRRKFT_RKF(nstp_start,YN,nstp_end)
 
     USE wrcomm
     USE librkf
     USE plprof,ONLY: pl_mag_old
     IMPLICIT NONE
-    INTEGER,INTENT(INOUT):: nstp_in
-    REAL(rkind),INTENT(INOUT):: Y(NEQ)
+    INTEGER,INTENT(INOUT):: nstp_start
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
-    INTEGER,INTENT(OUT):: NNSTP
+    INTEGER,INTENT(OUT):: nstp_end
+    REAL(rkind):: Y(NEQ)
     INTEGER:: NSTPLIM,NSTPMIN,NSTP,INIT,NDE,IER,I
     REAL(rkind):: RELERR,ABSERR,X0,XE,WORK0,PW,YM(NEQ),RHON,R
     REAL(rkind):: ESTERR(NEQ),WORK1(NEQ),WORK2(NEQ),WORK3(NEQ),WORK4(NEQ,11)
@@ -860,22 +848,15 @@ CONTAINS
     ABSERR = EPSRAY
     INIT = 1
 
-    IF(idebug_wr(11).NE.0) THEN
-       WRITE(6,'(A,I8)') '*** idebug_wr(11): wrrkft_rkf: nstp=',nstp
-       WRITE(6,'(A,4ES12.4)') '      X0,xe,smax,dels =',X0,XE,SMAX,DELS
-    END IF
-       
-    X0 = 0.D0
-    XE = DELS     
     NSTPLIM=INT(SMAX/DELS)
     NSTPMIN=INT(0.1D0*SMAX/DELS)
 
-    NSTP=nstp_in
-    YN(0,NSTP)=X0
+    NSTP=nstp_start
+    X0 = YN(0,NSTP)
+    XE = X0+DELS     
     DO I=1,7
-       YN(I,NSTP)=Y(I)
+       Y(I)=YN(I,NSTP)
     ENDDO
-    YN(8,NSTP)=0.D0
 
     IF(idebug_wr(11).NE.0) THEN
        WRITE(6,'(A,I8)') '*** idebug_wr(12): wrrkft_rkf: nstp=',nstp
@@ -885,7 +866,7 @@ CONTAINS
 
        CALL wr_write_line(NSTP,X0,Y,YN(8,NSTP))
 
-    DO NSTP = nstp_in+1,NSTPLIM
+    DO NSTP = nstp_start+1,NSTPLIM
        PW=Y(7)
        CALL RKF(7,WRFDRV,X0,XE,Y,INIT,RELERR,ABSERR,YM, &
                 ESTERR,NDE,IER,WORK0,WORK1,WORK2,WORK3,WORK4)
@@ -915,21 +896,21 @@ CONTAINS
           R.LT.RR-1.1D0*RB.OR. &
           Y(3).GT. RKAP*1.1D0*RB.OR. &
           Y(3).LT.-RKAP*1.1D0*RB))) THEN
-          NNSTP = NSTP
+          nstp_end = NSTP
           GOTO 8000
        ENDIF
        IF(MODELG.LE.10) THEN
           CALL pl_mag_old(Y(1),Y(2),Y(3),RHON)
           IF(RHON.GT.RB/RA) THEN
-             NNSTP = NSTP
+             nstp_end = NSTP
              GOTO 8000
           END IF
        ENDIF
     END DO
-    NNSTP=NSTPLIM
+    nstp_end=NSTPLIM
      
 8000 CONTINUE
-    IF(YN(7,NNSTP).LT.0.D0) YN(7,NNSTP)=0.D0
+    IF(YN(7,nstp_end).LT.0.D0) YN(7,nstp_end)=0.D0
     CALL wr_write_line(NSTP,X0,YM,YN(8,NSTP))
 
     RETURN
@@ -937,37 +918,36 @@ CONTAINS
 
 ! --- Symplectic method (not completed) ---
 
-  SUBROUTINE WRSYMP(nstp_in,Y,YN,NNSTP)
+  SUBROUTINE WRSYMP(nstp_start,YN,nstp_end)
 
     USE wrcomm
     USE pllocal
     USE plprof,ONLY: PL_MAG_OLD,PL_PROF_OLD
     USE libsympl
     IMPLICIT NONE
-    INTEGER,INTENT(INOUT):: nstp_in
-    REAL(rkind),INTENT(INOUT):: Y(NEQ)
+    INTEGER,INTENT(INOUT):: nstp_start
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
-    INTEGER,INTENT(OUT):: NNSTP
+    INTEGER,INTENT(OUT):: nstp_end
+    REAL(rkind):: Y(NEQ)
     REAL(rkind):: X,F(NEQ)
     INTEGER:: NSTPLIM,NSTPMIN,NLPMAX,NSTP,I,NLP,IERR
     REAL(rkind):: EPS,PW,ERROR,RHON,R
 
-    NSTPLIM=INT(SMAX/DELS)
-    NSTPMIN=INT(0.1D0*SMAX/DELS)
     NLPMAX=10
     EPS=1.D-6
 
-    NSTP=nstp_in
-    X=0.D0
-    YN(0,NSTP)=X
+    NSTPLIM=INT(SMAX/DELS)
+    NSTPMIN=INT(0.1D0*SMAX/DELS)
+
+    NSTP=nstp_start
+    X=YN(0,NSTP)
     DO I=1,7
-       YN(I,NSTP)=Y(I)
+       Y(I)=YN(I,NSTP)
     ENDDO
-    YN(8,NSTP)=0.D0
 
     CALL wr_write_line(NSTP,X,Y,YN(8,NSTP))
 
-    DO NSTP = nstp_in+1,NSTPLIM
+    DO NSTP = nstp_start+1,NSTPLIM
        PW=Y(7)
        CALL SYMPLECTIC(Y,DELS,WRFDRVR,6,NLPMAX,EPS,NLP,ERROR,IERR)
        CALL WRFDRV(0.D0,Y,F)
@@ -995,20 +975,20 @@ CONTAINS
           R.LT.RR-1.1D0*RB.OR. &
           Y(3).GT. RKAP*1.1D0*RB.OR. &
           Y(3).LT.-RKAP*1.1D0*RB))) THEN
-          NNSTP = NSTP
+          nstp_end = NSTP
           GOTO 11
        ENDIF
        IF(MODELG.LE.10) THEN
           CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
           IF(RHON.GT.RB/RA) THEN
-             NNSTP = NSTP
+             nstp_end = NSTP
              GOTO 11
           ENDIF
        END IF
     END DO
-    NNSTP=NSTPLIM
+    nstp_end=NSTPLIM
 
-11  IF(YN(7,NNSTP).LT.0.D0) YN(7,NNSTP)=0.D0
+11  IF(YN(7,nstp_end).LT.0.D0) YN(7,nstp_end)=0.D0
     CALL wr_write_line(NSTP,X,Y,YN(8,NSTP))
     RETURN
   END SUBROUTINE WRSYMP
