@@ -164,6 +164,8 @@ CONTAINS
     YN(5,nstp)= RK_Y
     YN(6,nstp)= RK_Z
     YN(7,nstp)= UU
+    YN(8,nstp)= 0.D0
+    CALL wr_write_line(NSTP,YN(0,NSTP),YN(1:7,NSTP),YN(8,NSTP))
     
     ! --- set magnetic field and minor radius at the start point ---
 
@@ -397,6 +399,10 @@ CONTAINS
        WRITE(6,'(A,5ES12.4)') 'rk_xyzrp: ',rk_x,rk_y,rk_z,rk_R,rk_phi
        WRITE(6,'(A,5ES12.4)') 'rn_xyzrp: ',rk_x*rnv,rk_y*rnv,rk_z*rnv, &
                                            rk_R*rnv,rk_phi*rnv
+       WRITE(6,'(A,3ES12.4)') 'rk_bnt:   ', &
+            rk_x*ub_X+rk_y*ub_Y+rk_z*ub_Z, &
+            rk_x*un_X+rk_y*un_Y+rk_z*un_Z, &
+            rk_x*ut_X+rk_y*ut_Y+rk_z*ut_Z
     END IF
 
     YN(0,nstp)= s

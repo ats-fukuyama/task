@@ -231,9 +231,9 @@ CONTAINS
        raxis_eq=RR
        zaxis_eq=0.D0
        rmax_eq=RR+RA
-       rmin_wr=RR-RA
-       zmax_wr= RKAP*RA
-       zmin_wr=-RKAP*RA
+       rmin_eq=RR-RA
+       zmax_eq= RKAP*RA
+       zmin_eq=-RKAP*RA
        rmax_wr=raxis_eq+bdr_threshold*(rmax_eq-raxis_eq)
        rmin_wr=raxis_eq+bdr_threshold*(rmin_eq-raxis_eq)
        zmax_wr=zaxis_eq+bdr_threshold*(zmax_eq-zaxis_eq)
