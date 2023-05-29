@@ -1,0 +1,950 @@
+!     ***********************************************************
+
+!           SUBPROGRAM FOR 1D PROFILE
+
+!                   MODE =  0  : Y=0 INCLUDED
+!                          +1  : USING YMIN/YMAX
+!                          +2  : LINE PATTERN CHANGE
+!                          +4  : INPUT YMIN/YMAX
+!                          +8  : LOG SCALE
+
+!     ***********************************************************
+
+      SUBROUTINE TRGR1D(GX1,GX2,GY1,GY2,GX,GY,NXM,NXMAX,NGMAX,STR,MODE)
+
+      IMPLICIT NONE
+      INTEGER,                  INTENT(IN):: NXM, NXMAX, NGMAX, MODE
+      REAL,                     INTENT(IN):: GX1, GX2, GY1, GY2
+      REAL,DIMENSION(NXMAX)    ,INTENT(IN):: GX
+      REAL,DIMENSION(NXM,NGMAX),INTENT(IN):: GY
+      CHARACTER(LEN=*),            INTENT(IN):: STR
+      INTEGER :: I, NG, NGULEN
+      INTEGER, DIMENSION(6)  :: IPAT = (/0,2,3,4,6,7/)
+      REAL  :: GYMIN, GYMAX, GXMIN, GXMAX, GSXMIN, GSXMAX, GSTEPX, GSYMIN, GSYMAX, GSTEPY, GXORG, GYORG
+      CHARACTER(LEN=80):: KT
+      CHARACTER(LEN=1) :: KDL
+
+      CALL SETCHS(0.3,0.0)
+      CALL SETFNT(32)
+      CALL SETLNW(0.035)
+      CALL SETRGB(0.0,0.0,0.0)
+      CALL SETLIN(-1,-1,7)
+      KDL=STR(1:1)
+      I=2
+    1 IF(STR(I:I).EQ.KDL.OR.I.EQ.LEN(STR)) GOTO 2
+         KT(I-1:I-1)=STR(I:I)
+         I=I+1
+      GOTO 1
+
+    2 CALL MOVE(GX1,GY2+0.3)
+      CALL TEXT(KT,I-2)
+
+      CALL GMNMX2(GY,NXM,1,NXMAX,1,1,NGMAX,1,GYMIN,GYMAX)
+      IF(ABS(GYMAX-GYMIN).LT.1.D-6) THEN
+         GYMIN=GYMIN-0.999E-6
+         GYMAX=GYMAX+1.000E-6
+      ENDIF
+
+      IF(MOD(MODE,2).EQ.0) THEN
+         IF(GYMIN.GE.0.0) THEN
+            GYMIN=0.0
+         ELSEIF(GYMAX.LE.0.0) THEN
+            GYMAX=0.0
+         ENDIF
+      ENDIF
+
+      CALL GMNMX1(GX,1,NXMAX,1,GXMIN,GXMAX)
+      IF(ABS(GXMAX-GXMIN).LT.1.D-6) THEN
+         GXMIN=GXMIN-0.999E-6
+         GXMAX=GXMAX+1.000E-6
+      ENDIF
+
+!      GXMIN=GX(1)
+!      GXMAX=GX(NXMAX)
+
+      CALL GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GSTEPX)
+      CALL GQSCAL(GYMIN,GYMAX,GSYMIN,GSYMAX,GSTEPY)
+
+      IF(MOD(MODE,2).EQ.0) THEN
+         IF(GYMIN.GE.0.0) THEN
+            GSYMIN=0.0
+         ELSEIF(GYMAX.LE.0.0) THEN
+            GSYMAX=0.0
+         ENDIF
+      ENDIF
+      GYMIN=GSYMIN
+      GYMAX=GSYMAX
+      IF(MOD(MODE/4,2).EQ.1) THEN
+         CALL CHMODE
+  701    WRITE(6,*) '## TRGR : XMIN,XMAX,YMIN,YMAX = ',GXMIN,GXMAX,GYMIN,GYMAX
+         READ(5,*,ERR=701,END=900) GXMIN,GXMAX,GYMIN,GYMAX
+         CALL GRMODE
+      ENDIF
+      CALL GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GSTEPX)
+      CALL GQSCAL(GYMIN,GYMAX,GSYMIN,GSYMAX,GSTEPY)
+
+      IF(GXMIN*GXMAX.LE.0.0) THEN
+         GXORG=0.0
+      ELSE
+         GXORG=GSXMIN
+      ENDIF
+      IF(GYMIN*GYMAX.LE.0.0) THEN
+         GYORG=0.0
+      ELSE
+         GYORG=GSYMIN
+      ENDIF
+
+      CALL GDEFIN(GX1,GX2,GY1,GY2,GSXMIN,GSXMAX,GSYMIN,GSYMAX)
+      CALL SETCHS(0.3,0.0)
+      CALL SETLIN(-1,-1,7)
+      CALL GFRAME
+      CALL GSCALE(GXORG,GSTEPX,0.0,0.0,0.1,9)
+      CALL GSCALE(0.0,0.0,0.0,2*(GSYMAX-GSYMIN),0.0,0)
+      CALL GVALUE(GXORG,2*GSTEPX,0.0,0.0,NGULEN(2*GSTEPX))
+      IF(MOD(MODE/8,2).EQ.1) THEN
+         CALL GSCALL(0.0,0,GYORG,9,0.1,9)
+         CALL GVALUL(0.0,0,GYORG,1,NGULEN(2*GSTEPY))
+      ELSE
+         CALL GSCALE(0.0,0.0,GYORG,GSTEPY,0.1,9)
+         CALL GVALUE(0.0,0.0,GYORG,2*GSTEPY,NGULEN(2*GSTEPY))
+      ENDIF
+
+      DO NG=1,NGMAX
+         CALL SETLIN(-1,-1,7-MOD(NG-1,6))
+         IF(MOD(MODE/2,2).EQ.0) THEN
+            CALL GPLOTP(GX,GY(1,NG),1,NXMAX,1,0,0,0)
+!            IF(NG.EQ.5) THEN
+!            CALL GPLOTP(GX,GY(1,NG),1,NXMAX,1,0,0,2)
+!            ELSE
+!            CALL GPLOTP(GX,GY(1,NG),1,NXMAX,1,0,0,0)
+!            ENDIF
+         ELSE
+            CALL GPLOTP(GX,GY(1,NG),1,NXMAX,1,0,0,IPAT(MOD(NG-1,6)+1))
+         ENDIF
+      ENDDO
+
+      CALL SETLIN(-1,-1,7)
+  900 RETURN
+      END  SUBROUTINE TRGR1D
+
+!     ***********************************************************
+
+!           SUBPROGRAM FOR 1D PROFILE
+
+!                   MODE =  0  : Y=0 INCLUDED
+!                          +1  : USING YMIN/YMAX
+!                          +2  : LINE PATTERN CHANGE
+!                          +4  : INPUT YMIN/YMAX
+!                          +8  : LOG SCALE
+
+!     ***********************************************************
+
+      SUBROUTINE TRGR1DX(GX1,GX2,GY1,GY2,GX,GY,NXM,NXMAX,NGMAX,STR,MODE)
+
+      IMPLICIT NONE
+      INTEGER,                  INTENT(IN):: NXM, NXMAX, NGMAX, MODE
+      REAL,                     INTENT(IN):: GX1, GX2, GY1, GY2
+      REAL,DIMENSION(NXM,NGMAX),INTENT(IN):: GX, GY
+      CHARACTER(LEN=*),            INTENT(IN):: STR
+      INTEGER :: I, NG, NGULEN
+      INTEGER,DIMENSION(5) :: IPAT = (/0,2,3,4,6/)
+      REAL :: GYMIN, GYMAX, GXMIN, GXMAX, GSXMIN, GSXMAX, GSTEPX, GSYMIN, GSYMAX, GSTEPY, GXORG, GYORG
+      CHARACTER(LEN=80) :: KT
+      CHARACTER(LEN=1)  :: KDL
+
+      CALL SETCHS(0.3,0.0)
+      CALL SETFNT(32)
+      CALL SETLNW(0.035)
+      CALL SETLIN(-1,-1,7)
+      KDL=STR(1:1)
+      I=2
+    1 IF(STR(I:I).EQ.KDL.OR.I.EQ.LEN(STR)) GOTO 2
+         KT(I-1:I-1)=STR(I:I)
+         I=I+1
+      GOTO 1
+
+    2 CALL MOVE(GX1,GY2+0.3)
+      CALL TEXT(KT,I-2)
+
+      CALL GMNMX2(GY,NXM,1,NXMAX,1,1,NGMAX,1,GYMIN,GYMAX)
+      IF(ABS(GYMAX-GYMIN).LT.1.D-6) THEN
+         GYMIN=GYMIN-0.999E-6
+         GYMAX=GYMAX+1.000E-6
+      ENDIF
+
+      CALL GMNMX2(GX,NXM,1,NXMAX,1,1,NGMAX,1,GXMIN,GXMAX)
+      IF(ABS(GXMAX-GXMIN).LT.1.D-6) THEN
+         GXMIN=GXMIN-0.999E-6
+         GXMAX=GXMAX+1.000E-6
+      ENDIF
+
+      IF(MOD(MODE,2).EQ.0) THEN
+         IF(GYMIN.GE.0.0) THEN
+            GYMIN=0.0
+         ELSEIF(GYMAX.LE.0.0) THEN
+            GYMAX=0.0
+         ENDIF
+      ENDIF
+
+      IF(MOD(MODE,2).EQ.0) THEN
+         IF(GXMIN.GE.0.0) THEN
+            GXMIN=0.0
+         ELSEIF(GXMAX.LE.0.0) THEN
+            GXMAX=0.0
+         ENDIF
+      ENDIF
+
+      CALL GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GSTEPX)
+      CALL GQSCAL(GYMIN,GYMAX,GSYMIN,GSYMAX,GSTEPY)
+
+      IF(MOD(MODE,2).EQ.0) THEN
+         IF(GYMIN.GE.0.0) THEN
+            GSYMIN=0.0
+         ELSEIF(GYMAX.LE.0.0) THEN
+            GSYMAX=0.0
+         ENDIF
+      ENDIF
+
+      IF(MOD(MODE,2).EQ.0) THEN
+         IF(GXMIN.GE.0.0) THEN
+            GSXMIN=0.0
+         ELSEIF(GXMAX.LE.0.0) THEN
+            GSXMAX=0.0
+         ENDIF
+      ENDIF
+
+      GYMIN=GSYMIN
+      GYMAX=GSYMAX
+      GXMIN=GSXMIN
+      GXMAX=GSXMAX
+      IF(MOD(MODE/4,2).EQ.1) THEN
+         CALL CHMODE
+  701    WRITE(6,*) '## TRGR : XMIN,XMAX,YMIN,YMAX = ',GXMIN,GXMAX,GYMIN,GYMAX
+         READ(5,*,ERR=701,END=900) GXMIN,GXMAX,GYMIN,GYMAX
+         CALL GRMODE
+      ENDIF
+      CALL GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GSTEPX)
+      CALL GQSCAL(GYMIN,GYMAX,GSYMIN,GSYMAX,GSTEPY)
+
+      IF(GXMIN*GXMAX.LE.0.0) THEN
+         GXORG=0.0
+      ELSE
+         GXORG=GSXMIN
+      ENDIF
+      IF(GYMIN*GYMAX.LE.0.0) THEN
+         GYORG=0.0
+      ELSE
+         GYORG=GSYMIN
+      ENDIF
+
+      CALL GDEFIN(GX1,GX2,GY1,GY2,GSXMIN,GSXMAX,GSYMIN,GSYMAX)
+      CALL SETCHS(0.3,0.0)
+      CALL SETLIN(-1,-1,7)
+      CALL GFRAME
+      CALL GSCALE(GXORG,GSTEPX,0.0,0.0,0.1,9)
+      CALL GSCALE(0.0,0.0,0.0,2*(GSYMAX-GSYMIN),0.0,0)
+      CALL GVALUE(GXORG,2*GSTEPX,0.0,0.0,NGULEN(2*GSTEPX))
+      IF(MOD(MODE/8,2).EQ.1) THEN
+         CALL GSCALL(0.0,0,GYORG,9,0.1,9)
+         CALL GVALUL(0.0,0,GYORG,1,NGULEN(2*GSTEPY))
+      ELSE
+         CALL GSCALE(0.0,0.0,GYORG,GSTEPY,0.1,9)
+         CALL GVALUE(0.0,0.0,GYORG,2*GSTEPY,NGULEN(2*GSTEPY))
+      ENDIF
+
+      DO NG=1,NGMAX
+         CALL SETLIN(-1,-1,7-MOD(NG-1,5))
+         IF(MOD(MODE/2,2).EQ.0) THEN
+            CALL GPLOTP(GX(1,NG),GY(1,NG),1,NXMAX,1,0,0,0)
+!            IF(NG.EQ.5) THEN
+!            CALL GPLOTP(GX,GY(1,NG),1,NXMAX,1,0,0,2)
+!            ELSE
+!            CALL GPLOTP(GX,GY(1,NG),1,NXMAX,1,0,0,0)
+!            ENDIF
+         ELSE
+            CALL GPLOTP(GX(1,NG),GY(1,NG),1,NXMAX,1,0,0,IPAT(MOD(NG-1,5)+1))
+         ENDIF
+      ENDDO
+
+      CALL SETLIN(-1,-1,7)
+  900 RETURN
+      END SUBROUTINE TRGR1DX
+
+!     ***********************************************************
+
+!           SUBPROGRAM FOR 1D PROFILE
+!                   FOR DOUBLE PLOT
+
+!                   MODE =  0  : Y=0 INCLUDED
+!                          +1  : USING YMIN/YMAX
+!                          +2  : LINE PATTERN CHANGE
+!                          +4  : INPUT YMIN/YMAX
+!                          +8  : LOG SCALE
+
+!     ***********************************************************
+
+      SUBROUTINE TRGR1DD(GX1,GX2,GY1,GY2,GX,GYA,GYB,NXM,NXMAX,NGAMAX,NGBMAX,STR,MODEA,MODEB)
+
+      IMPLICIT NONE
+      INTEGER,                   INTENT(IN):: NXM, NXMAX, NGAMAX, NGBMAX, &
+                                                 MODEA, MODEB
+      REAL,                      INTENT(IN):: GX1, GX2, GY1, GY2
+      REAL,DIMENSION(NXM)       ,INTENT(IN):: GX
+      REAL,DIMENSION(NXM,NGAMAX),INTENT(IN):: GYA
+      REAL,DIMENSION(NXM,NGBMAX),INTENT(IN):: GYB
+      CHARACTER(LEN=*),             INTENT(IN):: STR
+      INTEGER :: I, NG, NGULEN
+      INTEGER,DIMENSION(6) :: IPAT = (/0,2,3,4,6,7/)
+      REAL :: GYAMIN, GYAMAX, GYBMIN, GYBMAX, GXMIN, GXMAX, GSYAMIN, GSYAMAX, GSTEPYA
+      REAL :: GSYBMIN, GSYBMAX, GSTEPYB, GSXMIN, GSXMAX, GSTEPX, GYAORG, GYBORG, GXORG
+      CHARACTER(LEN=80) :: KT
+      CHARACTER(LEN=1)  :: KDL
+
+
+
+      CALL SETCHS(0.3,0.0)
+      CALL SETFNT(32)
+      CALL SETLNW(0.035)
+      CALL SETRGB(0.0,0.0,0.0)
+      CALL SETLIN(-1,-1,7)
+      KDL=STR(1:1)
+      I=2
+    1 IF(STR(I:I).EQ.KDL.OR.I.EQ.LEN(STR)) GOTO 2
+         KT(I-1:I-1)=STR(I:I)
+         I=I+1
+      GOTO 1
+
+    2 CALL MOVE(GX1,GY2+0.3)
+      CALL TEXT(KT,I-2)
+
+      CALL GMNMX2(GYA,NXM,1,NXMAX,1,1,NGAMAX,1,GYAMIN,GYAMAX)
+      IF(ABS(GYAMAX-GYAMIN).LT.1.D-6) THEN
+         GYAMIN=GYAMIN-0.999E-6
+         GYAMAX=GYAMAX+1.000E-6
+      ENDIF
+      CALL GMNMX2(GYB,NXM,1,NXMAX,1,1,NGBMAX,1,GYBMIN,GYBMAX)
+      IF(ABS(GYBMAX-GYBMIN).LT.1.D-6) THEN
+         GYBMIN=GYBMIN-0.999E-6
+         GYBMAX=GYBMAX+1.000E-6
+      ENDIF
+
+      IF(MOD(MODEA,2).EQ.0) THEN
+         IF(GYAMIN.GE.0.0) THEN
+            GYAMIN=0.0
+         ELSEIF(GYAMAX.LE.0.0) THEN
+            GYAMAX=0.0
+         ENDIF
+      ENDIF
+      IF(MOD(MODEB,2).EQ.0) THEN
+         IF(GYBMIN.GE.0.0) THEN
+            GYBMIN=0.0
+         ELSEIF(GYBMAX.LE.0.0) THEN
+            GYBMAX=0.0
+         ENDIF
+      ENDIF
+
+      CALL GMNMX1(GX,1,NXMAX,1,GXMIN,GXMAX)
+      IF(ABS(GXMAX-GXMIN).LT.1.D-6) THEN
+         GXMIN=GXMIN-0.999E-6
+         GXMAX=GXMAX+1.000E-6
+      ENDIF
+
+!      GXMIN=GX(1)
+!      GXMAX=GX(NXMAX)
+
+      CALL GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GSTEPX)
+      CALL GQSCAL(GYAMIN,GYAMAX,GSYAMIN,GSYAMAX,GSTEPYA)
+      CALL GQSCAL(GYBMIN,GYBMAX,GSYBMIN,GSYBMAX,GSTEPYB)
+
+      IF(MOD(MODEA,2).EQ.0) THEN
+         IF(GYAMIN.GE.0.0) THEN
+            GSYAMIN=0.0
+         ELSEIF(GYAMAX.LE.0.0) THEN
+            GSYAMAX=0.0
+         ENDIF
+      ENDIF
+      IF(MOD(MODEB,2).EQ.0) THEN
+         IF(GYBMIN.GE.0.0) THEN
+            GSYBMIN=0.0
+         ELSEIF(GYBMAX.LE.0.0) THEN
+            GSYBMAX=0.0
+         ENDIF
+      ENDIF
+      GYAMIN=GSYAMIN
+      GYAMAX=GSYAMAX
+      GYBMIN=GSYBMIN
+      GYBMAX=GSYBMAX
+      IF(MOD(MODEA/4,2).EQ.1) THEN
+         CALL CHMODE
+ 701     WRITE(6,*) '## TRGR : XMIN,XMAX,YAMIN,YAMAX = ',GXMIN,GXMAX,GYAMIN,GYAMAX
+         READ(5,*,ERR=701,END=900) GXMIN,GXMAX,GYAMIN,GYAMAX
+         CALL GRMODE
+      ENDIF
+      IF(MOD(MODEB/4,2).EQ.1) THEN
+         CALL CHMODE
+         IF(MOD(MODEA/4,2).EQ.1) THEN
+ 702        WRITE(6,*) '## TRGR : YBMIN,YBMAX = ',GYBMIN,GYBMAX
+            READ(5,*,ERR=702,END=900) GYBMIN,GYBMAX
+         ELSE
+ 703        WRITE(6,*) '## TRGR : XMIN,XMAX,YBMIN,YBMAX = ',GXMIN,GXMAX,GYBMIN,GYBMAX
+            READ(5,*,ERR=703,END=900) GXMIN,GXMAX,GYBMIN,GYBMAX
+         ENDIF
+         CALL GRMODE
+      ENDIF
+      CALL GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GSTEPX)
+      CALL GQSCAL(GYAMIN,GYAMAX,GSYAMIN,GSYAMAX,GSTEPYA)
+      CALL GQSCAL(GYBMIN,GYBMAX,GSYBMIN,GSYBMAX,GSTEPYB)
+
+      IF(GXMIN*GXMAX.LE.0.0) THEN
+         GXORG=0.0
+      ELSE
+         GXORG=GSXMIN
+      ENDIF
+      IF(GYAMIN*GYAMAX.LE.0.0) THEN
+         GYAORG=0.0
+      ELSE
+         GYAORG=GSYAMIN
+      ENDIF
+      IF(GYBMIN*GYBMAX.LE.0.0) THEN
+         GYBORG=0.0
+      ELSE
+         GYBORG=GSYBMIN
+      ENDIF
+
+      CALL GDEFIN(GX1,GX2,GY1,GY2,GSXMIN,GSXMAX,GSYAMIN,GSYAMAX)
+      CALL SETCHS(0.3,0.0)
+      CALL SETLIN(-1,-1,7)
+      CALL GFRAME
+      CALL GSCALE(GXORG,GSTEPX,0.0,0.0,0.1,1)
+      CALL GVALUE(GXORG,2*GSTEPX,0.0,0.0,NGULEN(2*GSTEPX))
+      IF(MOD(MODEA/8,2).EQ.1) THEN
+         CALL GSCALL(0.0,0,GYAORG,9,0.1,1)
+         CALL GVALUL(0.0,0,GYAORG,1,NGULEN(2*GSTEPYA))
+      ELSE
+         CALL GSCALE(0.0,0.0,GYAORG,GSTEPYA,0.1,1)
+         CALL GVALUE(0.0,0.0,GYAORG,2*GSTEPYA,NGULEN(2*GSTEPYA))
+      ENDIF
+
+      DO NG=1,NGAMAX
+         CALL SETLIN(-1,-1,7-MOD(NG-1,6))
+         IF(MOD(MODEA/2,2).EQ.0) THEN
+            CALL GPLOTP(GX,GYA(1,NG),1,NXMAX,1,0,0,0)
+         ELSE
+            CALL GPLOTP(GX,GYA(1,NG),1,NXMAX,1,0,0,IPAT(MOD(NG-1,6)+1))
+         ENDIF
+      ENDDO
+
+      CALL GDEFIN(GX1,GX2,GY1,GY2,GSXMIN,GSXMAX,GSYBMIN,GSYBMAX)
+      CALL SETCHS(0.3,0.0)
+      CALL SETLIN(-1,-1,7)
+      IF(MOD(MODEB/8,2).EQ.1) THEN
+         CALL GSCALL(GXORG,1,GYBORG,9,0.1,5)
+         CALL GVALUL(0.0,0,GYBORG,1,NGULEN(2*GSTEPYB)+400)
+      ELSE
+         CALL GSCALE(GXORG,GSTEPX,GYBORG,GSTEPYB,0.1,5)
+         CALL GVALUE(0.0,0.0,GYBORG,2*GSTEPYB,NGULEN(2*GSTEPYB)+400)
+      ENDIF
+      DO NG=1,NGBMAX
+         CALL SETLIN(-1,-1,7-MOD(NG-1+NGAMAX,6))
+         IF(MOD(MODEB/2,2).EQ.0) THEN
+            CALL GPLOTP(GX,GYB(1,NG),1,NXMAX,1,0,0,0)
+         ELSE
+            CALL GPLOTP(GX,GYB(1,NG),1,NXMAX,1,0,0,IPAT(MOD(NG-1+NGAMAX,6)+1))
+         ENDIF
+      ENDDO
+
+      CALL SETLIN(-1,-1,7)
+  900 RETURN
+      END SUBROUTINE TRGR1DD
+
+!     ***********************************************************
+
+!           SUBPROGRAM FOR 1D PROFILE
+!                   DRAW RADIAL PROFILE WITH ERROR BARS
+
+!                   MODE =  0  : Y=0 INCLUDED
+!                          +1  : USING YMIN/YMAX
+!                          +2  : LINE PATTERN CHANGE
+!                          +4  : INPUT YMIN/YMAX
+!                          +8  : LOG SCALE
+
+!     ***********************************************************
+
+      SUBROUTINE TRGR1DE(GX1,GX2,GY1,GY2,GX,GY,GXE,GE,NXM,NXMAX,NXEMAX,NGMAX,STR,MODE)
+
+      IMPLICIT NONE
+      INTEGER,                  INTENT(IN):: NXM, NXMAX, NXEMAX, NGMAX, MODE
+      REAL,                     INTENT(IN):: GX1, GX2, GY1, GY2
+      REAL,DIMENSION(NXM)      ,INTENT(IN):: GX
+      REAL,DIMENSION(NXM,NGMAX),INTENT(IN):: GY
+      CHARACTER(LEN=*),            INTENT(IN):: STR
+      INTEGER :: I, NG, NX, NGULEN
+      INTEGER,DIMENSION(5) :: IPAT = (/0,2,3,4,6/)
+      REAL :: GYMIN, GYMAX, GXMIN, GXMAX, GSXMIN, GSXMAX, GSTEPX, GSYMIN, GSYMAX, GSTEPY, GXORG, GYORG
+      REAL :: GYEMIN, GYEMAX, GSYEMIN, GSYEMAX, GSTEPYE
+      REAL,DIMENSION(NXM)      :: GXE, GEUP, GEUN
+      REAL,DIMENSION(NXM,NGMAX):: GE
+      CHARACTER(LEN=80) :: KT
+      CHARACTER(LEN=1)  :: KDL
+
+
+      CALL SETCHS(0.3,0.0)
+      CALL SETFNT(32)
+      CALL SETLNW(0.035)
+      CALL SETRGB(0.0,0.0,0.0)
+      CALL SETLIN(-1,-1,7)
+      KDL=STR(1:1)
+      I=2
+    1 IF(STR(I:I).EQ.KDL.OR.I.EQ.LEN(STR)) GOTO 2
+         KT(I-1:I-1)=STR(I:I)
+         I=I+1
+      GOTO 1
+
+    2 CALL MOVE(GX1,GY2+0.3)
+      CALL TEXT(KT,I-2)
+
+      DO NX=1,NXMAX
+         GEUP(NX)=GY(NX,1)+GE(NX,1)
+      ENDDO
+
+      CALL GMNMX2(GY  ,NXM,1,NXMAX ,1,1,NGMAX,1,GYMIN ,GYMAX )
+      CALL GMNMX1(GEUP,1,NXEMAX,1,GYEMIN,GYEMAX)
+      GYMIN=MIN(GYMIN,GYEMIN)
+      GYMAX=MAX(GYMAX,GYEMAX)
+      IF(ABS(GYMAX-GYMIN).LT.1.D-6) THEN
+         GYMIN=GYMIN-0.999E-6
+         GYMAX=GYMAX+1.000E-6
+      ENDIF
+
+      IF(MOD(MODE,2).EQ.0) THEN
+         IF(GYMIN.GE.0.0) THEN
+            GYMIN=0.0
+         ELSEIF(GYMAX.LE.0.0) THEN
+            GYMAX=0.0
+         ENDIF
+      ENDIF
+
+      CALL GMNMX1(GX,1,NXMAX,1,GXMIN,GXMAX)
+      IF(ABS(GXMAX-GXMIN).LT.1.D-6) THEN
+         GXMIN=GXMIN-0.999E-6
+         GXMAX=GXMAX+1.000E-6
+      ENDIF
+
+!      GXMIN=GX(1)
+!      GXMAX=GX(NXMAX)
+
+      CALL GQSCAL(GXMIN ,GXMAX ,GSXMIN ,GSXMAX ,GSTEPX )
+      CALL GQSCAL(GYMIN ,GYMAX ,GSYMIN ,GSYMAX ,GSTEPY )
+      CALL GQSCAL(GYEMIN,GYEMAX,GSYEMIN,GSYEMAX,GSTEPYE)
+      GSYMIN=MIN(GSYMIN,GSYEMIN)
+      GSYMAX=MAX(GSYMAX,GSYEMAX)
+
+      IF(MOD(MODE,2).EQ.0) THEN
+         IF(GYMIN.GE.0.0) THEN
+            GSYMIN=0.0
+         ELSEIF(GYMAX.LE.0.0) THEN
+            GSYMAX=0.0
+         ENDIF
+      ENDIF
+      GYMIN=GSYMIN
+      GYMAX=GSYMAX
+      IF(MOD(MODE/4,2).EQ.1) THEN
+         CALL CHMODE
+  701    WRITE(6,*) '## TRGR : XMIN,XMAX,YMIN,YMAX = ',GXMIN,GXMAX,GYMIN,GYMAX
+         READ(5,*,ERR=701,END=900) GXMIN,GXMAX,GYMIN,GYMAX
+         CALL GRMODE
+      ENDIF
+      CALL GQSCAL(GXMIN ,GXMAX ,GSXMIN ,GSXMAX ,GSTEPX )
+      CALL GQSCAL(GYMIN ,GYMAX ,GSYMIN ,GSYMAX ,GSTEPY )
+      CALL GQSCAL(GYEMIN,GYEMAX,GSYEMIN,GSYEMAX,GSTEPYE)
+      GSYMIN=MIN(GSYMIN,GSYEMIN)
+      GSYMAX=MAX(GSYMAX,GSYEMAX)
+
+      IF(GXMIN*GXMAX.LE.0.0) THEN
+         GXORG=0.0
+      ELSE
+         GXORG=GSXMIN
+      ENDIF
+      IF(GYMIN*GYMAX.LE.0.0) THEN
+         GYORG=0.0
+      ELSE
+         GYORG=GSYMIN
+      ENDIF
+
+      CALL GDEFIN(GX1,GX2,GY1,GY2,GSXMIN,GSXMAX,GSYMIN,GSYMAX)
+      CALL SETCHS(0.3,0.0)
+      CALL SETLIN(-1,-1,7)
+      CALL GFRAME
+      CALL GSCALE(GXORG,GSTEPX,0.0,0.0,0.1,9)
+      CALL GSCALE(0.0,0.0,0.0,2*(GSYMAX-GSYMIN),0.0,0)
+      CALL GVALUE(GXORG,2*GSTEPX,0.0,0.0,NGULEN(2*GSTEPX))
+      IF(MOD(MODE/8,2).EQ.1) THEN
+         CALL GSCALL(0.0,0,GYORG,9,0.1,9)
+         CALL GVALUL(0.0,0,GYORG,1,NGULEN(2*GSTEPY))
+      ELSE
+         CALL GSCALE(0.0,0.0,GYORG,GSTEPY,0.1,9)
+         CALL GVALUE(0.0,0.0,GYORG,2*GSTEPY,NGULEN(2*GSTEPY))
+      ENDIF
+
+      DO NG=1,NGMAX
+         CALL SETLIN(-1,-1,7-MOD(NG-1,5))
+         IF(NG.EQ.1) THEN
+            IF(MOD(MODE/2,2).EQ.0) THEN
+               CALL GPLOTP(GXE,GY(1,NG),1,NXEMAX,1,1,1,0)
+            ELSE
+               CALL GPLOTP(GXE,GY(1,NG),1,NXEMAX,1,1,1,IPAT(MOD(NG-1,5)+1))
+            ENDIF
+            DO NX=1,NXMAX
+               GEUN(NX)=GY(NX,NG)-GE(NX,NG)
+               GEUP(NX)=GY(NX,NG)+GE(NX,NG)
+            ENDDO
+            CALL GPLOTPE(GXE,GEUN,GEUP,1,NXEMAX,1,0.1)
+         ELSEIF(NG.EQ.2) THEN
+            IF(MOD(MODE/2,2).EQ.0) THEN
+               CALL GPLOTP(GX,GY(1,NG),1,NXMAX,1,0,0,0)
+            ELSE
+               CALL GPLOTP(GX,GY(1,NG),1,NXMAX,1,0,0,IPAT(MOD(NG-1,5)+1))
+            ENDIF
+         ENDIF
+      ENDDO
+
+      CALL SETLIN(-1,-1,7)
+  900 RETURN
+      END SUBROUTINE TRGR1DE
+
+!     ***********************************************************
+
+!           SUBPROGRAM FOR 1D PROFILE
+!                   DRAW EVOLUTION CONTOUR
+
+!     ***********************************************************
+
+      SUBROUTINE TRGR1DC(GX1,GX2,GY1,GY2,GT,GX,GF,NTM,NTMAX,NXM,NXMAX,STR)
+
+      IMPLICIT NONE
+      INTEGER,                  INTENT(IN):: NTM,NTMAX, NXM, NXMAX
+      REAL,                     INTENT(IN):: GX1, GX2, GY1, GY2
+      REAL,DIMENSION(NTM)      ,INTENT(IN):: GT
+      REAL,DIMENSION(NXM)      ,INTENT(IN):: GX
+      REAL,DIMENSION(NTM,NXMAX),INTENT(IN):: GF
+      CHARACTER(LEN=*),            INTENT(IN):: STR
+
+      INTEGER :: I, NGULEN, ISTEPF, ISTEPE
+      INTEGER, PARAMETER :: NRGBA = 5
+      INTEGER, PARAMETER :: NSTEPM = 101
+      INTEGER, DIMENSION(NSTEPM):: ILN
+      INTEGER, DIMENSION(2,NTM,NXMAX) :: KA
+      REAL :: GXMIN, GXMAX, GYMIN, GYMAX, GSXMIN, GSXMAX, GSTEPX, GSYMIN, GSYMAX, GSTEPY
+      REAL :: GXORG, GYORG, GFMIN, GFMAX, GZA, GDZ, GFACT
+      REAL, DIMENSION(NSTEPM)    :: GDLF, GDLE, GWLN
+      REAL, DIMENSION(3,0:NSTEPM):: GRGBF, GRGBG
+      CHARACTER(LEN=80) :: KT
+      CHARACTER(LEN=1)  :: KDL
+
+      CALL SETCHS(0.3,0.0)
+      CALL SETFNT(32)
+      CALL SETLNW(0.035)
+      CALL SETRGB(0.0,0.0,0.0)
+      CALL SETLIN(-1,-1,7)
+      KDL=STR(1:1)
+      I=2
+    1 IF(STR(I:I).EQ.KDL.OR.I.EQ.LEN(STR)) GOTO 2
+         KT(I-1:I-1)=STR(I:I)
+         I=I+1
+      GOTO 1
+
+    2 CALL MOVE(GX1,GY2+0.3)
+      CALL TEXT(KT,I-2)
+
+      CALL GMNMX1(GT,1,NTMAX,1,GXMIN,GXMAX)
+      IF(ABS(GXMAX-GXMIN).LT.1.D-6) THEN
+         GXMIN=GXMIN-0.999E-6
+         GXMAX=GXMAX+1.000E-6
+      ENDIF
+
+      CALL GMNMX1(GX,1,NXMAX,1,GYMIN,GYMAX)
+      IF(ABS(GYMAX-GYMIN).LT.1.D-6) THEN
+         GYMIN=GYMIN-0.999E-6
+         GYMAX=GYMAX+1.000E-6
+      ENDIF
+
+      CALL GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GSTEPX)
+      CALL GQSCAL(GYMIN,GYMAX,GSYMIN,GSYMAX,GSTEPY)
+
+      IF(GXMIN*GXMAX.LE.0.0) THEN
+         GXORG=0.0
+      ELSE
+         GXORG=GSXMIN
+      ENDIF
+      IF(GYMIN*GYMAX.LE.0.0) THEN
+         GYORG=0.0
+      ELSE
+         GYORG=GSYMIN
+      ENDIF
+
+      CALL GDEFIN(GX1,GX2,GY1,GY2,GSXMIN,GSXMAX,GSYMIN,GSYMAX)
+      CALL SETCHS(0.3,0.0)
+      CALL SETLIN(-1,-1,7)
+
+      ISTEPF=40
+      ISTEPE=20
+
+      CALL GMNMX2(GF,NTM,1,NTMAX,1,1,NXMAX,1,GFMIN,GFMAX)
+      GZA=GFMAX-GFMIN
+      GDZ=GZA/ISTEPF
+      DO I=1,ISTEPF
+         GDLF(I)=GDZ*(I-0.5)+GFMIN
+      ENDDO
+      GDZ=GZA/ISTEPE
+      DO I=1,ISTEPE
+         GDLE(I)=GDZ*(I-0.5)+GFMIN
+         ILN(I)=0
+         GWLN(I)=0.01
+      ENDDO
+
+      DO I=0,ISTEPF
+         GFACT=REAL(I)/REAL(ISTEPF)
+         CALL R2G2B(GFACT,GRGBF(1,I))
+      ENDDO
+      DO I=0,ISTEPE
+         GFACT=REAL(I)/REAL(ISTEPE)
+         CALL BLACK(GFACT,GRGBG(1,I))
+      ENDDO
+
+      CALL SETLIN(-1,-1,7)
+      CALL CONTF1(GF,NTM,NTMAX,NXMAX,GDLF,GRGBF,ISTEPF,0)
+!CC      CALL CONTE1(GF,NTM,NTMAX,NXMAX,GDLE,ISTEPE,0,0,KA)
+!C      CALL SETLNW(0.01)
+!C      CALL CONTP1(GF,NTM,NTMAX,NXMAX,GDLE(1),GDLE(2)-GDLE(1),ISTEPE,0,0,KA)
+      CALL CONTG1(GF,NTM,NTMAX,NXMAX,GDLE,GRGBG,ILN,GWLN,ISTEPE,0,0,KA)
+
+      CALL SETLIN(-1,-1,7)
+      CALL GFRAME
+      CALL GSCALE(GXORG,GSTEPX,0.0,0.0,0.1,9)
+      CALL GVALUE(GXORG,2*GSTEPX,0.0,0.0,NGULEN(2*GSTEPX))
+      CALL GSCALE(0.0,0.0,GYORG,GSTEPY,0.1,9)
+      CALL GVALUE(0.0,0.0,GYORG,2*GSTEPY,NGULEN(2*GSTEPY))
+
+      RETURN
+      END SUBROUTINE TRGR1DC
+
+!     ***********************************************************
+
+!           SUBPROGRAM FOR 2D CONTOUR
+
+!     ***********************************************************
+
+      SUBROUTINE TRGR2C(GX1,GX2,GY1,GY2,GXMIN,GXMAX,GYMIN,GYMAX,GZ,NXM,NXMAX,NYMAX,STR,MODE)
+      IMPLICIT NONE
+      INTEGER,                  INTENT(IN):: NXM, NXMAX, NYMAX, MODE
+      REAL,                     INTENT(IN):: GX1, GX2, GY1, GY2,GXMIN, GXMAX, GYMIN, GYMAX
+      REAL,DIMENSION(NXM,NYMAX),INTENT(IN):: GZ
+      CHARACTER(LEN=*),            INTENT(IN):: STR
+
+      INTEGER :: I, NSTEP, NGULEN
+      INTEGER,DIMENSION(4,NXM,NYMAX) :: KA
+      REAL:: GZMIN, GZMAX, GGMIN, GGMAX, GZSTEP, GZORG, GSXMIN, GSXMAX, GXSTEP, GSYMIN, GSYMAX, GYSTEP, GXORG, GYORG
+      CHARACTER(LEN=80) :: KT
+      CHARACTER(LEN=1)  :: KDL
+
+
+      CALL SETCHS(0.3,0.0)
+      CALL SETFNT(32)
+      CALL SETLNW(0.035)
+      CALL SETLIN(-1,-1,7)
+      KDL=STR(1:1)
+      I=2
+    1 IF(STR(I:I).EQ.KDL.OR.I.EQ.LEN(STR)) GOTO 2
+         KT(I-1:I-1)=STR(I:I)
+         I=I+1
+      GOTO 1
+
+    2 CALL MOVE(GX1,GY2+0.3)
+      CALL TEXT(KT,I-2)
+
+      CALL GMNMX2(GZ,NXM,1,NXMAX,1,1,NYMAX,1,GZMIN,GZMAX)
+      IF(GZMAX.EQ.GZMIN) THEN
+         GZMAX=GZMIN+1.0
+      ENDIF
+      CALL GQSCAL(GZMIN,GZMAX,GGMIN,GGMAX,GZSTEP)
+      GZMIN=GGMIN+GZSTEP
+      GZMAX=GGMAX-GZSTEP
+      NSTEP=INT((GZMAX-GZMIN)/GZSTEP)+3
+      IF(MOD(MODE/4,2).EQ.1) THEN
+         CALL CHMODE
+  701    WRITE(6,*) '## TRGR2C : ZMIN,ZMAX = ',GZMIN,GZMAX
+         WRITE(6,*) '## INPUT  : ZORG,ZSTEP,NSTEP'
+         READ(5,*,ERR=701,END=900) GZORG,GZSTEP,NSTEP
+         CALL GRMODE
+      ENDIF
+
+      CALL GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GXSTEP)
+      CALL GQSCAL(GYMIN,GYMAX,GSYMIN,GSYMAX,GYSTEP)
+
+      IF(GXMIN*GXMAX.LE.0.0) THEN
+         GXORG=0.0
+      ELSE
+         GXORG=GSXMIN+GXSTEP
+      ENDIF
+      IF(GYMIN*GYMAX.LE.0.0) THEN
+         GYORG=0.0
+      ELSE
+         GYORG=GSYMIN+GYSTEP
+      ENDIF
+
+      CALL SETCHS(0.3,0.0)
+      CALL SETLIN(-1,-1,7)
+      CALL GDEFIN(GX1,GX2,GY1,GY2,GXMIN,GXMAX,GYMIN,GYMAX)
+      CALL GFRAME
+      CALL GSCALE(GXORG,GXSTEP,GYORG,GYSTEP,0.1,9)
+      CALL GSCALE(0.0,100*GXSTEP,0.0,100*GYSTEP,0.0,0)
+      CALL GVALUE(GXORG,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
+      CALL GVALUE(0.0,0.0,GYORG,2*GYSTEP,NGULEN(2*GYSTEP))
+      CALL SETLIN(-1,-1,7)
+      IF(GZMIN*GZMAX.GE.0.D0) THEN
+         IF(MOD(MODE,2).EQ.0) THEN
+            GZORG=GZMIN
+         ELSE
+            GZORG=GZMAX
+            GZSTEP=-GZSTEP
+         ENDIF
+         IF(GZORG.GE.0.D0) THEN
+            CALL CONTP1(GZ,NXM,NXMAX,NYMAX,GZORG,GZSTEP,NSTEP,0,0,KA)
+         ELSE
+            CALL CONTP1(GZ,NXM,NXMAX,NYMAX,GZORG,GZSTEP,NSTEP,0,3,KA)
+         ENDIF
+         CALL MOVE(GX2-10.0,GY2+0.3)
+         CALL TEXT('ZORG =',6)
+         CALL NUMBR(GZORG,'(1PE10.2)',10)
+      ELSE
+         CALL CONTP1(GZ,NXM,NXMAX,NYMAX, GZSTEP, GZSTEP,NSTEP,0,0,KA)
+         CALL CONTP1(GZ,NXM,NXMAX,NYMAX, 0.0,    GZSTEP,1,0,4,KA)
+         CALL CONTP1(GZ,NXM,NXMAX,NYMAX,-GZSTEP,-GZSTEP,NSTEP,0,3,KA)
+      ENDIF
+      CALL MOVE(GX2-5.0,GY2+0.3)
+      CALL TEXT('STEP =',6)
+      CALL NUMBR(GZSTEP,'(1PE10.2)',10)
+
+  900 CALL SETLIN(-1,-1,7)
+      RETURN
+      END SUBROUTINE TRGR2C
+
+!     ***********************************************************
+
+!           SUBPROGRAM FOR 2D PROFILE
+
+!     ***********************************************************
+
+      SUBROUTINE TRGR2D(GX1,GX2,GY1,GY2,GZ,NXM,NXMAX,NYMAX,STR,MODE)
+
+      USE trcomm,ONLY: rkind
+      IMPLICIT NONE
+      INTEGER,                  INTENT(IN):: NXM, NXMAX, NYMAX, MODE
+      REAL,                     INTENT(IN):: GX1, GX2, GY1, GY2
+      REAL,DIMENSION(NXM,NYMAX),INTENT(IN):: GZ
+      CHARACTER(LEN=80),           INTENT(IN):: STR
+      INTEGER :: I,IXY, IND
+      REAL    :: GZMIN, GZMAX, X1, X2, Y1, Y2
+      REAL(rkind)    :: XL, YL, ZL, A, B, C, D, E
+      CHARACTER(LEN=80) :: KT
+      CHARACTER(LEN=1)  :: KDL
+
+
+      CALL SETCHS(0.3,0.0)
+      CALL SETFNT(32)
+      CALL SETLNW(0.035)
+      CALL SETLIN(-1,-1,7)
+      KDL=STR(1:1)
+      I=2
+    1 IF(STR(I:I).EQ.KDL.OR.I.EQ.LEN(STR)) GOTO 2
+         KT(I-1:I-1)=STR(I:I)
+         I=I+1
+      GOTO 1
+
+    2 CALL MOVE(GX1,GY2+0.3)
+      CALL TEXT(KT,I-2)
+
+      IXY= 3
+      IND=-3
+      CALL GMNMX2(GZ,NXM,1,NXMAX,1,1,NYMAX,1,GZMIN,GZMAX)
+      IF(MOD(MODE,2).EQ.0) THEN
+         GZMIN=0.0
+      ENDIF
+      IF(GZMAX.EQ.GZMIN) THEN
+         GZMAX=GZMIN+1.0
+      ENDIF
+      IF(MOD(MODE/4,2).EQ.1) THEN
+         CALL CHMODE
+  701    WRITE(6,*) '## TRGR2D : ZMIN,ZMAX = ',GZMIN,GZMAX
+         READ(5,*,ERR=701,END=900) GZMIN,GZMAX
+         CALL GRMODE
+      ENDIF
+
+      XL=10.0
+      YL=10.0
+      ZL= 5.0
+      A=-30.0
+      B=0.0
+      C=-30.0
+      D=0.0
+      E=1000.0
+      X1=-10.0
+      X2= 10.0
+      Y1= 0.0
+      Y2= 15.0
+
+!      WRITE(6,*) 'INPUT : IND,ZMIN,ZMAX,HX,HY,HZ,A,B,C,D,E,X1,X2,Y1,Y2 '
+!      READ(5,*,END=900) IND,ZMIN,ZMAX,HX,HY,HZ,A,B,C,D,E,X1,X2,Y1,Y2
+
+      CALL SETCHS(0.3,0.0)
+      CALL SETLIN(-1,-1,7)
+      CALL GDEFIN(GX1,GX2,GY1,GY2,X1,X2,Y1,Y2)
+      CALL GFRAME
+      CALL SETLIN(-1,-1,7)
+      CALL PERSE1(GZ,NXM,NXMAX,NYMAX,GZMIN,GZMAX,IXY,IND,XL,YL,ZL,A,B,C,D,E)
+
+  900 CALL SETLIN(-1,-1,7)
+      RETURN
+      END SUBROUTINE TRGR2D
+
+
+!     ***********************************************************
+
+!           CEILING FUNCTION FOR LOG10 PLOT
+
+!     ***********************************************************
+
+      FUNCTION GLOG(X,XMIN,XMAX)
+
+        USE trcomm,ONLY: rkind
+        USE libgrf
+        USE libplog,ONLY: plog
+        IMPLICIT NONE
+        REAL(rkind), intent(in) :: X, XMIN, XMAX
+        REAL :: GLOG, GUCLIP
+
+        GLOG=GUCLIP(PLOG(X,XMIN,XMAX))
+
+        RETURN
+      END FUNCTION GLOG
+
+!     *****************************
+
+!     WRITE TIME ON FIGURE
+
+!     *****************************
+
+      SUBROUTINE TRGRTM
+
+      USE TRCOMM, ONLY : T
+      IMPLICIT NONE
+
+      CALL SETLIN(0,0,7)
+      CALL SETCHS(0.3,0.0)
+      CALL SETFNT(32)
+      CALL MOVE(11.8,18.0)
+      CALL TEXT('T=',2)
+      CALL NUMBD(T,'(1F7.3)',7)
+      CALL TEXT(' SEC',4)
+      RETURN
+      END SUBROUTINE TRGRTM
