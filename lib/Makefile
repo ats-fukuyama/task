@@ -66,7 +66,7 @@ clean:
 
 veryclean: clean
 
-testfem: libgrf.a libtask.a libtestfem.o fem_calc.o fem_calc_15.o fem_calc_16.o testfem-sub.o testfem.o 
+testfem: libtask.a libgrf.a libtestfem.o fem_calc.o fem_calc_15.o fem_calc_16.o testfem-sub.o testfem.o 
 	$(FCFREE) libtestfem.o fem_calc.o fem_calc_15.o fem_calc_16.o testfem-sub.o testfem.o libtask.a libgrf.a $(FFLAGS) -o $@ $(FLIBS) $(MODINCLUDE)
 
 testfem-sub.o: $(TASKCOMM) testfem-sub.f90
@@ -80,33 +80,33 @@ testtri: libtask.a testtri.o
 testduo: libtask.a testduo.o 
 	$(FCFREE) testduo.o libtask.a $(FFLAGS) -o $@ $(FLIBS) $(MODINCLUDE)
 
-testfem_func: libgrf.a libtask.a testfem_func.o 
-	$(FCFREE) testfem_func.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS) $(MODINCLUDE)
+testfem_func: libtask.a libgrf.a testfem_func.o 
+	$(FCFREE) testfem_func.o libtask.a libgrf.a $(FFLAGS) -o $@ $(FLIBS) $(MODINCLUDE)
 
-testbes: libgrf.a libtask.a testbes.o
-	$(FCFREE) testbes.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS)
+testbes: libtask.a libgrf.a testbes.o
+	$(FCFREE) testbes.o libtask.a libgrf.a $(FFLAGS) -o $@ $(FLIBS)
 
-testell: libgrf.a libtask.a testell.o 
-	$(FCFIXED) testell.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS)
+testell: libtask.a libgrf.a testell.o 
+	$(FCFIXED) testell.o libtask.a libgrf.a $(FFLAGS) -o $@ $(FLIBS)
 
-testspl: libgrf.a libtask.a testspl.o 
-	$(FCFIXED) testspl.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS)
+testspl: libtask.a libgrf.a testspl.o 
+	$(FCFIXED) testspl.o libtask.a libgrf.a $(FFLAGS) -o $@ $(FLIBS)
 
-testspl3d: libgrf.a libtask.a testspl3d.o 
-	$(FCFIXED) testspl3d.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS)
+testspl3d: libtask.a libgrf.a testspl3d.o 
+	$(FCFIXED) testspl3d.o libtask.a libgrf.a $(FFLAGS) -o $@ $(FLIBS)
 
-testgrf: libgrf.a libtask.a testgrf.o 
-	$(FCFIXED) testgrf.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS)
-testgrd: libtask.a testgrd.o 
-	$(FCFIXED) testgrd.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS)
+testgrf: libtask.a libgrf.a testgrf.o 
+	$(FCFIXED) testgrf.o libtask.a libgrf.a $(FFLAGS) -o $@ $(FLIBS)
+testgrd: libtask.a libgrf.a testgrd.o 
+	$(FCFIXED) testgrd.o libtask.a libgrf.a $(FFLAGS) -o $@ $(FLIBS)
 
 testqsort: libtask.a testqsort.o 
-	$(FCFREE) testqsort.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS)
+	$(FCFREE) testqsort.o libtask.a libgrf.a $(FFLAGS) -o $@ $(FLIBS)
 
 testrk: libtask.a testrk.o
-	$(FCFREE) testrk.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS)
+	$(FCFREE) testrk.o libtask.a libgrf.a $(FFLAGS) -o $@ $(FLIBS)
 testpol: libtask.a testpol.o 
-	$(FCFREE) testpol.o libgrf.a libtask.a $(FFLAGS) -o $@ $(FLIBS)
+	$(FCFREE) testpol.o libtask.a libgrf.a $(FFLAGS) -o $@ $(FLIBS)
 
 TASKCOMM=task_kinds.f90
 
@@ -173,7 +173,7 @@ libgrf/grd1dframe.o: $(TASKCOMM) libgrf/grftype.f90 libgrf/grdconvert.f90 \
                 libgrf/grd1dframe.f90
 libgrf/grd2dframe.o: $(TASKCOMM) libgrf/grftype.f90 libgrf/grdconvert.f90 \
                 libgrf/grd2dframe.f90
-libgrf.o: libgrf/grftype.f90 libgrf/grfutils.f90 libgrf/grf1d.f90 \
+libgrf.o: $(TASKCOMM) libgrf/grftype.f90 libgrf/grfutils.f90 libgrf/grf1d.f90 \
           libgrf/grd1d.f90 libgrf/grf2d.f90 libgrf/grd2d.f90 libgrf/grdxy.f90 \
           libgrf/grd2dframe.f90 libgrf/grd1dframe.f90 libgrf.f90 \
           libgrf/grdutils.f90
