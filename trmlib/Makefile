@@ -36,14 +36,16 @@ SRCCYT=cytran/cytran_mod.f90
 SRCMMM95=mmm95/stripx.f mmm95/tomsqz.f mmm95/weiland14.f mmm95/mmm95.f
 SRCMMM7=libmmm7_1/w20mod.f90 libmmm7_1/modmmm7_1.f90
 SRCMBGB=mbgb/mixed_Bohm_gyro_Bohm.f
+SRCCDBM=trcdbm.f90
 
 OBJNC=$(addprefix $(OBJDIR)/, $(SRCNC:.f=.o))
 OBJCYT=$(addprefix $(OBJDIR)/, $(SRCCYT:.f90=.o))
 OBJMMM=$(addprefix $(OBJDIR)/, $(SRCMMM95:.f=.o) $(SRCMMM7:.f90=.o))
 OBJMBGB=$(addprefix $(OBJDIR)/, $(SRCMBGB:.f=.o))
 OBJITG=$(addprefix $(OBJDIR)/, $(SRCITG:.f=.o) $(SRCITGF:.F=.o))
+OBJCDBM=$(addprefix $(OBJDIR)/, $(SRCCDBM:.f90=.o))
 
-OBJTR=$(OBJNC) $(OBJCYT) $(OBJMMM) $(OBJMBGB) $(OBJITG)
+OBJTR=$(OBJNC) $(OBJCYT) $(OBJMMM) $(OBJMBGB) $(OBJITG) $(OBJCDBM)
 
 LIBS=../lib/libtask.a ../lib/libgrf.a  ../../bpsd/libbpsd.a
 
@@ -98,3 +100,4 @@ $(OBJDIR)/mmm95/mmm95.o: mmm95/mmm95.f
 $(OBJDIR)/libmmm7_1/w20mod.o: libmmm7_1/w20mod.f90
 $(OBJDIR)/libmmm7_1/modmmm7_1.o: libmmm7_1/modmmm7_1.f90 libmmm7_1/w20mod.f90
 $(OBJDIR)/mbgb/mixed_Bohm_gyro_Bohm.o: mbgb/mixed_Bohm_gyro_Bohm.f
+$(OBJDIR)/trcdbm.o: trcdbm.f90
