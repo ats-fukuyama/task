@@ -518,7 +518,7 @@ CONTAINS
           A%LINE_MARK_SIZE(1:A%NLMAX)=0.3*GFACTOR
        ENDIF
 
-    CASE(1:) ! 2D contour line and paint and 3D Bird's ey view
+    CASE(1:19) ! 2D contour line and paint and 3D Bird's ey view
 
        IF(A%FMIN < 0.0 .AND. A%FMAX > 0.0) THEN
            A%FMAX=MAX(ABS(A%FMIN),ABS(A%FMAX))

@@ -31,7 +31,7 @@ SRCS=trinit.f90 trparm.f90 trview.f90 \
      trncls.f90 trcytran.f90 \
      trfile.f90 trhelp.f90 \
      trexec.f90 trcalc.f90 \
-     tradat.f90 trcdbm.f90 trmodels.f90 trcoef.f90 tritg.f90 \
+     tradat.f90 trmodels.f90 trcoef.f90 tritg.f90 \
      trrslt.f90 trpnb.f90 trprf.f90 trpnf.f90 trpel.f90 trpsc.f90 trmdlt.f90 \
      trgout.f90 trgrar.f90 trgrat.f90 trgrap.f90 trgrae.f90 \
      trgrad.f90 trgram.f90 trgsub.f90 trfout.f90 \
@@ -145,4 +145,3 @@ $(OBJDIR)/trmodels.o : trmodels.f90  trcomm.f90
 $(OBJDIR)/trncls.o : trncls.f90 trcomm.f90 ../trmlib/nclass/pamx_mi.inc \
            ../trmlib/nclass/pamx_ms.inc ../trmlib/nclass/pamx_mz.inc
 $(OBJDIR)/trcytran.o: trcytran.f90
-$(OBJDIR)/trcdbm.o: trcdbm.f90

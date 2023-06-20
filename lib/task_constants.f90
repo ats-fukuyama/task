@@ -8,6 +8,7 @@ module task_constants
   real(rkind),parameter :: HALF = 0.5_dp
   real(rkind),parameter :: ONE  = 1.0_dp
   real(rkind),parameter :: TWO  = 2.0_dp
+  real(rkind),parameter :: ONEHALF = 1.5_dp
 
   real(rkind),parameter :: PI   = 3.14159265358979323846_dp
   real(rkind),parameter :: TWOPI= PI+PI
