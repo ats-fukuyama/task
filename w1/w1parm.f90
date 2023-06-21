@@ -1,8 +1,21 @@
 Module w1parm
 
+  USE w1comm_parm
+  NAMELIST /W1/ &
+       BB,RR,RZ,RA,RD,RB,RF,WALLR,APRFPN,APRFTR,APRFTP, &
+       RKZ,DRF,DRKZ,DXFACT,DXWDTH,NAMAX, &
+       AJYH,AJZH,APYH,APZH,ALZH,APHH,AJYL,AJZL,APYL,APZL,ALZL,APHL,&
+       PA,PZ,PN,PTPP,PTPR,PU,PNS,PTS,PZCL,NSMAX, &
+       NXMAX,NZMAX,NPRINT,NFILE,NGRAPH,NLOOP,NSYM, &
+       NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NGDSP,MODELN, &
+       EPSH,ZEFF,WVYSIZ,NCDTYP,NXABS,IELEC, &
+       MDLWG,MDLWGS,WGZ1,WGZ2,WGAMP,WGNZ,job_id,nfile_data
+  
   PRIVATE
-
-  PUBLIC w1_parm, w1_view
+  PUBLIC w1_parm
+  PUBLIC w1_view
+  PUBLIC w1_save_parm
+  PUBLIC w1_load_parm
 
 CONTAINS
 
@@ -50,14 +63,6 @@ CONTAINS
     INTEGER,INTENT(IN) :: NID
     INTEGER,INTENT(OUT) :: IST,IERR
 
-    NAMELIST /W1/ BB,RR,RZ,RA,RD,RB,RF,WALLR,APRFPN,APRFTR,APRFTP, &
-                  RKZ,DRF,DRKZ,DXFACT,DXWDTH,NAMAX, &
-                  AJYH,AJZH,APYH,APZH,ALZH,APHH,AJYL,AJZL,APYL,APZL,ALZL,APHL,&
-                  PA,PZ,PN,PTPP,PTPR,PU,PNS,PTS,PZCL,NSMAX, &
-                  NXMAX,NZMAX,NPRINT,NFILE,NGRAPH,NLOOP,NSYM, &
-                  NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NGDSP,MODELN, &
-                  EPSH,ZEFF,WVYSIZ,NCDTYP,NXABS,IELEC, &
-                  MDLWG,MDLWGS,WGZ1,WGZ2,WGAMP,WGNZ
 
     RZ=0.D0
 
@@ -88,7 +93,7 @@ CONTAINS
          '        NXMAX,NZMAX,NPRINT,NFILE,NGRAPH,NLOOP,NSYM,', &
          '        NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NGDSP,MODELN,', &
          '        EPSH,ZEFF,WVYSIZ,NCDTYP,NXABS,IELEC', &
-         '        MDLWG,MDLWGS,WGZ1,WGZ2,WGAMP,WGNZ'
+         '        MDLWG,MDLWGS,WGZ1,WGZ2,WGAMP,WGNZ,job_id,nfile_data'
     RETURN
 
   END SUBROUTINE w1_plst
@@ -168,6 +173,8 @@ CONTAINS
                  'NSYS  ',NSYS  ,'NGDSP ',NGDSP, &
                  'NCDTYP',NCDTYP,'NXABS ',NXABS, &
                  'MDLWG ',MDLWG ,'MDLWGS',MDLWGS
+    WRITE(6,'(A)') TRIM(job_id)
+    WRITE(6,'(A,I6)') 'nfile_data = ',nfile_data
     RETURN
 
 601 FORMAT(    A6,'=',1PE11.3:2X,A6,'=',1PE11.3: &
@@ -176,5 +183,44 @@ CONTAINS
             2X,A6,'=',I7,4X  :2X,A6,'=',I7)
   END SUBROUTINE w1_view
 
+!     ****** save NAMELIST w1 ******
+
+  SUBROUTINE w1_save_parm(nfc)
+
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: nfc
+
+    WRITE(nfc,w1)
+    RETURN
+  END SUBROUTINE w1_save_parm
+
+!     ****** load NAMELIST w1 ******
+
+  SUBROUTINE w1_load_parm(nfc,ierr)
+
+    USE w1comm_parm
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: nfc
+    INTEGER,INTENT(OUT) :: ierr
+    INTEGER:: ist
+
+    CALL w1_nlin(nfc,ist,ierr)
+    IF(ierr.EQ.8) GOTO 9800
+    IF(ierr.EQ.9) GOTO 9900
+    ierr=0
+    WRITE(6,'(A,I5)') '## w1_load_parm: w1.namelist loaded.'
+    RETURN
+
+9800 CONTINUE
+    ierr=1
+    WRITE(6,'(A,I5)') 'XX w1_load_parm: read error: ist=',ist
+    RETURN
+
+9900 CONTINUE
+    ierr=2
+    WRITE(6,'(A)') 'XX w1_load_parm: file open error:'
+    RETURN
+  END SUBROUTINE w1_load_parm
+    
 END MODULE w1parm
   

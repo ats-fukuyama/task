@@ -172,7 +172,6 @@ CONTAINS
 !             9 : COLD CONDUCTIVITY MODEL          (FULL FINITE ELEMENT) ABS
 !            10 : WARM CONDUCTIVITY MODEL          (FULL FINITE ELEMENT) ABS
 !            11 : INTEGRAL CONDUCTIVITY MODEL      (FULL FINITE ELEMENT) ABS
-!            12 : INTEGRAL CONDUCTIVITY MODEL      (FINITE ELEMENT)
 !
 !     NPRINT: 0 :    LP OUTPUT (GLOBAL DATA)
 !             1 :    LP OUTPUT (1-D DATA K-DEPENDENCE)
@@ -283,6 +282,11 @@ CONTAINS
       WGZ2   = 0.15D0
       WGAMP  = 1.D0
       WGNZ   = 0.2D0
+
+      !     job_id: identifier of job (used in data file nam)
+
+      job_id='test_job'
+      nfile_data=28
 
     RETURN
   END SUBROUTINE w1_init

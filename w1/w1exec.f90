@@ -44,10 +44,6 @@ CONTAINS
        CALL w1prex(IERR)
        DXD=XDMAX/NDMAX
        CALL W1QTBLX
-    CASE(12)
-       CALL w1pre(IERR)
-       DXD=XDMAX/NDMAX
-       CALL W1QTBL
     END SELECT
 
 !     ******* 2-DIMENSIONAL ANALYSIS *******
@@ -152,21 +148,12 @@ CONTAINS
           CASE(11) ! FEM hot integro-differential (one region, absorbing wall)
              CALL W1_EXEC11(NZP,IERR)
                 IF(IERR.NE.0) GOTO 2000
-          CASE(12) ! old FEM hot integro-differential
-             CALL W1_BCND
-             CALL W1DSPQ
-             CALL W1BNDQ(IERR)
-             IF(IERR.NE.0) GOTO 2000
-             CALL W1EPWQ(NZP)
-             CALL W1EVAC(NZP)
-             CALL W1CLCD(NZP)
-             CALL W1CLPW(NZP)
           END SELECT
 
        END DO
 
        SELECT CASE(NMODEL)
-       CASE(0:5,12)
+       CASE(0:5)
           CALL w1post
        CASE(6:11)
           CALL w1postx

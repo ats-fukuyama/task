@@ -9,6 +9,7 @@ CONTAINS
     USE w1exec,ONLY: w1_exec
     USE w1gdsp,ONLY: w1_gdsp
     USE w1gout,ONLY: w1_gout
+    USE w1file,ONLY: w1_save,w1_load
     USE libkio
 
     IMPLICIT NONE
@@ -19,7 +20,8 @@ CONTAINS
 
 1   CONTINUE
     ierr=0
-    WRITE(6,'(A)') '## W1 MENU: P,V/PARM  R/RUN  G/GRAF  D/DISP  Q/QUIT'
+    WRITE(6,'(A)') &
+         '## W1 MENU: P,V/PARM  R/RUN  G/GRAF  D/DISP  S,L/FILE  Q/QUIT'
 
     CALL TASK_KLIN(line,kid,mode,w1_parm)
     IF(mode /= 1) GOTO 1
@@ -27,11 +29,12 @@ CONTAINS
 !       INIT=0
 !    END IF
 
-    IF(kid.EQ.'P') THEN
+    SELECT CASE(kid)
+    CASE('P')
        CALL w1_parm(0,'W1',ierr)
-    ELSEIF(kid.EQ.'V') THEN
+    CASE('V')
        CALL w1_view
-    ELSEIF(kid.EQ.'R') THEN
+    CASE('R')
        CALL w1_allocate
        CALL w1_exec(ierr)
        IF(ierr.EQ.0) THEN
@@ -39,21 +42,30 @@ CONTAINS
        ELSE
           INIT=0
        END IF
-    ELSEIF(kid.EQ.'G') THEN
+    CASE('G')
        IF(INIT.EQ.0) THEN
           WRITE(6,*) 'W1 data is not ready or destroyed'
        ELSE
           CALL w1_gout
        END IF
-    ELSEIF(kid.EQ.'D') THEN
+    CASE('D')
        CALL w1_allocate
        CALL w1_gdsp
        INIT=1
-    ELSEIF(kid.EQ.'Q') THEN
+    CASE('S')
+       CALL w1_save(ierr)
+    CASE('L')
+       CALL w1_load(ierr)
+       IF(ierr.EQ.0) THEN
+          INIT=1
+       ELSE
+          INIT=0
+       END IF
+    CASE('Q')
        GOTO 9000
-    ELSE
+    CASE DEFAULT
        WRITE(6,*) 'W1 W1MENU: UNKNOWN kid: kid = ',kid
-    ENDIF
+    END SELECT
     GOTO 1
 
 9000 CALL w1_deallocate

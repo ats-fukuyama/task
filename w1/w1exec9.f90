@@ -408,11 +408,11 @@ CONTAINS
     WRITE(6,'(A,F7.2,F7.3,1P5E12.4)') &
          'REFL:',AKZ(NZ),RNZ,  &
                  POUT1/PIN,POUT2/PIN,POUT3/PIN,POUT4/PIN,PCONV/PIN
-    WRITE(28,'(ES15.7,6(A1,ES15.7))') &
-         RNZ,',',  &
-         POUT1/PIN,',',POUT2/PIN,',', &
-         POUT3/PIN,',',POUT4/PIN,',',PCONV/PIN,',', &
-         (POUT1+POUT2+POUT3+POUT4+PCONV)/PIN
+!    WRITE(28,'(ES15.7,6(A1,ES15.7))') &
+!         RNZ,',',  &
+!         POUT1/PIN,',',POUT2/PIN,',', &
+!         POUT3/PIN,',',POUT4/PIN,',',PCONV/PIN,',', &
+!         (POUT1+POUT2+POUT3+POUT4+PCONV)/PIN
 
     DO NS=1,NSMAX
        pabs_ns(ns)=0.D0
@@ -439,7 +439,7 @@ CONTAINS
           END DO
        END DO
     END DO
-    WRITE(6,'(A,3ES12.4)') 'pasb_ns:',(pabs_ns(ns),ns=1,nsmax)
+!    WRITE(6,'(A,3ES12.4)') 'pabs_ns:',(pabs_ns(ns),ns=1,nsmax)
 
     DO NX=1,NXMAX
        IF(NX.EQ.1) THEN

@@ -7,7 +7,6 @@ MODULE w1comm_parm
   INTEGER,PARAMETER:: NSM=100  ! maximum number of particle species
   INTEGER,PARAMETER:: NAM=20   ! maximum number of antenna
 
-
   INTEGER:: NXMAX,NZMAX,NSMAX,NAMAX
   REAL(rkind):: BB,RR,RA,RD,RB,WALLR,APRFPN,APRFTR,APRFTP
   REAL(rkind):: RF,RKZ,DRF,DRKZ,DXFACT,DXWDTH
@@ -21,6 +20,8 @@ MODULE w1comm_parm
   INTEGER:: MODELN
   INTEGER:: MDLWG,MDLWGS
   REAL(rkind):: WGZ1,WGZ2,WGAMP,WGNZ
+  CHARACTER(LEN=80):: job_id
+  INTEGER:: nfile_data
   
 END MODULE w1comm_parm
 
