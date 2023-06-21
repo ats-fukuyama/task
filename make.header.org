@@ -70,8 +70,8 @@ GLLIBS=-L/usr/local/lib -lgsgl
 
 ## for macos gfortran (64bit) lib
 #GFLIBS=-L/usr/local/lib -lg3d-gfc64 -lgsp-gfc64 -lgdp-gfc64  -L/opt/X11/lib -lX11
-#OFLAGS = -g -O3 -m64 -std=legacy
-#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow -fbacktrace -fcheck=all -std=legacy
+#OFLAGS = -g -O3 -m64 -std=legacy -mmacosx-version-min=13.0
+#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow -fbacktrace -fcheck=all -std=legacy  -mmacosx-version-min=13.0
 #FCFIXED = gfortran -ffixed-form
 #FCFREE = gfortran -ffree-form
 #MOD = mod
