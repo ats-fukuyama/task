@@ -281,10 +281,11 @@ CONTAINS
     
     IF(idebug_wr(3).NE.0) THEN
        WRITE(6,'(A)') '*** idebug_wr(3): wr_setup_start_point: '
-       WRITE(6,'(A,1P3E12.4)') 'R,PHI,Z=',RP,phi,ZP
-       WRITE(6,'(A,1P3E12.4)') &
+       WRITE(6,'(A,3ES12.4)') 'rhon,rne,wpe2/w2    =',rhon,rne,factor
+       WRITE(6,'(A,3ES12.4)') 'R,PHI,Z=',RP,phi,ZP
+       WRITE(6,'(A,3ES12.4)') &
             'RKPARA,RKPERP_1,RKPERP_2=',RKPARA,RKPERP_1,RKPERP_2
-       WRITE(6,'(A,1P3E12.4)') &
+       WRITE(6,'(A,3ES12.4)') &
             'RNPARA,RNPERP_1,RNPERP_2=',RKPARA*rnv,RKPERP_1*rnv,RKPERP_2*rnv
     END IF
 
@@ -328,7 +329,6 @@ CONTAINS
     diff_1=rkperp_1**2-rk_t**2
     IF(rk_n.NE.0.D0) THEN
        IF(diff_1.GT.0.D0) THEN
-          WRITE(6,*) 'alpha_1:',diff_1,rk_n**2
           alpha_1=SQRT(diff_1/rk_n**2)
        ELSE
           alpha_1=0.D0
@@ -345,7 +345,6 @@ CONTAINS
     diff_2=rkperp_2**2-rk_t**2
     IF(rk_n.NE.0.D0) THEN
        IF(diff_2.GT.0.D0) THEN
-          WRITE(6,*) 'alpha_2:',diff_2,rk_n**2
           alpha_2=SQRT(diff_2/rk_n**2)
        ELSE
           alpha_2=0.D0
@@ -403,6 +402,10 @@ CONTAINS
             rk_x*ub_X+rk_y*ub_Y+rk_z*ub_Z, &
             rk_x*un_X+rk_y*un_Y+rk_z*un_Z, &
             rk_x*ut_X+rk_y*ut_Y+rk_z*ut_Z
+       WRITE(6,'(A,3ES12.4)') 'rn_bnt:   ', &
+            (rk_x*ub_X+rk_y*ub_Y+rk_z*ub_Z)*rnv, &
+            (rk_x*un_X+rk_y*un_Y+rk_z*un_Z)*rnv, &
+            (rk_x*ut_X+rk_y*ut_Y+rk_z*ut_Z)*rnv
     END IF
 
     YN(0,nstp)= s
@@ -453,7 +456,7 @@ CONTAINS
        WRITE(6,'(A,3ES12.4)') '   xp,yp,zp       =',XP,YP,ZP
        WRITE(6,'(A,3ES12.4)') '   rkx,rky,rkz    =',RKX,RKY,RKZ
        WRITE(6,'(A,3ES12.4)') '   rnkx,rnky,rnkz =',RKX/rkv,RKY/rkv,RKZ/rkv
-       WRITE(6,'(A,2ES12.4)') '   UU,S,rk,rn     =',UU,S,rk,rk/rkv
+       WRITE(6,'(A,4ES12.4)') '   UU,S,rk,rn     =',UU,S,rk,rk/rkv
     END IF
 
     IF(MDLWRQ.EQ.0) THEN
@@ -478,7 +481,7 @@ CONTAINS
        RAYRB2(NSTP,NRAY)=0.D0
     END DO
 
-    CALL WRCALE(RF,RAYS(0,0,NRAY),NSTPMAX_NRAY(NRAY),NRAY)
+    CALL WRCALE(RF,RAYS(:,:,NRAY),NSTPMAX_NRAY(NRAY),NRAY)
 
     RETURN
   END SUBROUTINE
@@ -1216,7 +1219,7 @@ CONTAINS
        CASE(5)
           IF(MOD(NSTP,10000).EQ.0) ID=1
        END SELECT
-       IF(NSTP.EQ.NSTP_SAVE) ID=0
+!       IF(NSTP.EQ.NSTP_SAVE) ID=0
     END IF
     
     IF(ID.EQ.1) THEN
@@ -1236,7 +1239,9 @@ CONTAINS
           ZL  =Y(3)
           RKRL=(Y(4)*Y(1)+Y(5)*Y(2))/RL
        ENDIF
-       WRITE(6,'(1P7E11.3)') X,RL,PHIL,ZL,RKRL,Y(7),PABS
+       WRITE(6,'(7ES11.3)') X,RL,PHIL,ZL,RKRL,Y(7),PABS
+       IF(idebug_wr(10).NE.0) &
+            WRITE(6,'(11X,6ES11.3)') Y(1),Y(2),Y(3),Y(4),Y(5),Y(6)
        NSTP_SAVE=NSTP
     END IF
   END SUBROUTINE wr_write_line

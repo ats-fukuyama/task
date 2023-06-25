@@ -159,10 +159,11 @@ CONTAINS
       nres_type = 0
       nres_max = 3
 
-      ! pne_threshold: threshold value to identify to be in plasma [10^20 m^-3]
+      ! pne_threshold: threshold value to identify to be in plasma
+      !                          [omegape^2/omega^2]
       ! bdr_threshold: threshold value to boundary factor: F in below
 
-      pne_threshold=1.D-6
+      pne_threshold=1.D-3
       bdr_threshold=1.2
 
       ! Rmax_wr: maximum of R for ray calculation, if 0, set RR+F*RA
@@ -190,6 +191,7 @@ CONTAINS
       !        idebug_wr =  6: wr_newton: iteration rk
       !        idebug_wr =  7: wr_newton: polarization check
       !        idebug_wr =  8: plasma step: position, wave number
+      !        idebug_wr = 10: wr_write_line: output Y(1:6)
       !        idebug_wr = 11: wrrkft: initial and each step
       !        idebug_wr = 12: wrfdrv: functions and derivatives
       !        idebug_wr = 90: wrgout: wrgrf5: R,cexyz,ceoxp, error
