@@ -77,8 +77,8 @@ PROG3= tx
 %.mod: %.f90 %.o
 	@:
 
-all: $(PROG2)
-#all: $(PROG3)
+all: libs $(PROG2)
+#all: libs $(PROG3)
 
 libtx2.a: $(OBJLIB) $(OBJS) $(OBJ2D) $(OBJNC) $(INCNC) $(OBJMM)
 	$(LD) $(LDFLAGS) libtx2.a $(OBJS) $(OBJ2D) $(OBJNC) $(OBJMM) $(OBJLIB)
@@ -90,7 +90,7 @@ libtx3.a: $(OBJLIB) $(OBJS) $(OBJ3D) $(OBJNC) $(INCNC) $(OBJMM)
 	(cd ../lib; make)
 
 libs:
-	(cd ../lib; make)
+	(cd ../lib; make libtask.a)
 
 ifeq ($(flag_GSAF),0)
  FLIBS = $(LIBLA)

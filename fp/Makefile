@@ -38,23 +38,23 @@ OBJS = $(SRCS:.f90=.o)
 LIBS = libfp.a ../pl/libpl.a ../eq/libeq.a ../dp/libdp.a \
         ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
-all: fp
+all: libs fp
 
 libfp.a: $(OBJS)
 	$(LD) $(LDFLAGS) libfp.a $(OBJS)
 
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
+../lib/libtask.a:
+	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 ../pl/libpl.a:
 	(cd ../pl; make libpl.a)
 ../eq/libeq.a:
 	(cd ../eq; make libeq.a)
 ../dp/libeq.a:
 	(cd ../dp; make libdp.a)
-../lib/libtask.a:
-	(cd ../lib; make libtask.a)
-../lib/libgrf.a:
-	(cd ../lib; make libgrf.a)
 
 libs:
 	(cd ../../bpsd; make libbpsd.a)

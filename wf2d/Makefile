@@ -26,8 +26,8 @@ SRCS = 	wfcomm.f90 wfinit.f90 wfparm.f90 wfload.f90 wfprof.f90 \
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = libwf.a ../pl/libpl.a ../eq/libeq.a   \
-        ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a
+LIBS = ../../bpsd/libbpsd.a ../lib/libtask.a ../lib/libgrf.a \
+       ../pl/libpl.a ../eq/libeq.a libwf.a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -41,24 +41,16 @@ libwf.a: $(OBJS)
 
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make loibbpsd.a)
-../pl/liobpl.a:
-	(cd ../pl; make loibpl.a)
-../eq/libeq.a:
-	(cd ../eq; make libeq.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 ../lib/libgrf.a:
 	(cd ../lib; make libgrf.a)
-
-libs:
-	(cd ../../bpsd; make libbpsd.a)
-	(cd ../lib; make libgrf.a)
-	(cd ../lib; make libtask.a)
-	(cd ../mtxp; make)
-	(cd ../pl; make libpl.a)
+../pl/liobpl.a:
+	(cd ../pl; make loibpl.a)
+../eq/libeq.a:
 	(cd ../eq; make libeq.a)
 
-wf : libs $(LIBS) wfmain.o
+wf : $(LIBS) wfmain.o
 	$(FLINKER) wfmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 save :

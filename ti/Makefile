@@ -46,31 +46,31 @@ OBJS=$(SRCS:.f90=.o)
 LIBS=libti.a ../adpost/lib-adpost.a ../open-adas/adf11/adf11-lib/lib-adf11.a ../eq/libeq.a ../pl/libpl.a ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a
 
 
-all: ti
+all: libs ti
 
 libti.a: $(OBJS)
 	$(LD) $(LDFLAGS) $@ $(OBJS)
 
-../open-adas/adf11/adf11-lib/lib-adf11.a: 
-	(cd ../open-adas/adf11/adf11-lib; make lib-adf11.a)
-../adpost/lib-adpost.a: 
-	(cd ../adpost; make lib-adpost.a)
-../eq/libeq.a:
-	(cd ../eq; make libeq.a)
-../pl/libpl.a:
-	(cd ../pl; make libpl.a)
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 ../lib/libgrf.a:
 	(cd ../lib; make libgrf.a)
-../../bpsd/libbpsd.a:
-	(cd ../../bpsd; make libbpsd.a)
+../open-adas/adf11/adf11-lib/lib-adf11.a: 
+	(cd ../open-adas/adf11/adf11-lib; make lib-adf11.a)
+../adpost/lib-adpost.a: 
+	(cd ../adpost; make lib-adpost.a)
+../pl/libpl.a:
+	(cd ../pl; make libpl.a)
+../eq/libeq.a:
+	(cd ../eq; make libeq.a)
 
 
 libs:
 	(cd ../../bpsd; make libbpsd.a)
-	(cd ../lib; make libgrf.a)
 	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../mtxp; make)
 	(cd ../open-adas/adf11/adf11-lib; make lib-adf11.a)
 	(cd ../adpost; make lib-adpost.a)

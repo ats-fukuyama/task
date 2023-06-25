@@ -17,30 +17,26 @@ CONTAINS
 
     !  tokamak:	nhhmax=1
     !		nppmax=1 
-    !		nph=nph0
     !           nphmax=1
-    !		nphtot=1
+    !		nph=nph0
     !		L=2PiR
-
-    !  helical:	nhhmax: given >1
-    !		nppmax=1
-    !		nph=nph0+nhc*(nhh-1)
-    !           nphmax=nhhmax
-    !		nphtot>=nhhmax
-    !		L=2PiR/nhc
 
     ! tokamak3D nhhmax=1
-    !		nppmax: given > 1
-    !		nph=1..nphmax
+    !		nppmax>1
     !		nphmax=nppmax
-    !		nphtot=Max(nphmax,2**n)
+    !		nph=npp-nppmax/2-1
     !		L=2PiR
 
-    ! helical3D	nhhmax: given >1
-    !		nppmax=nhc
+    !  helical:	nhhmax>1
+    !		nppmax=1
+    !           nphmax=nhhmax
+    !		nph=nph0+nhc*(nhh-nhhmax/2-1)
+    !		L=2PiR/nhc
+
+    ! helical3D	nhhmax>1
+    !		nppmax=nhc>1
     !		nphmax=nhhmax*nhc
-    !		nph=(nhh-1)*nhc+(npp-1)
-    !		nphtot=Max(nhhmax*nhc,2**n)
+    !		nph=(npp-1)+nhc*(nhh-nhmax/2-1)
     !		L=2PiR
     
 !     *** MESH PARAMETERS ***
@@ -72,6 +68,7 @@ CONTAINS
       NSUMAX  = 64
       NSWMAX  = 64
       B0_FACT = 1.D0
+      
 !     NTH0  : Central value of poloidal mode number
 !     NPH0  : Central value of toroidal mode number
 !     NHC   : Number of helical coils

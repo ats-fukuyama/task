@@ -47,9 +47,9 @@ CONTAINS
           END DO
        ELSE                 ! multi mode-group
           DO NPP=1,NPPMAX
-             nph0_npp(npp)=npp-nppmax/2-1
+             nph0_npp(npp)=npp-1
              DO nhh=1,nhhmax
-                nph_nhh_npp(nhh,npp)=npp-nppmax/2-1+nhc*(nhh-nhhmax/2-1)
+                nph_nhh_npp(nhh,npp)=npp-1+nhc*(nhh-nhhmax/2-1)
              END DO
           END DO
        END IF

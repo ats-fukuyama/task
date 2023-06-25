@@ -30,7 +30,7 @@ MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../tr/$
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : ufread ufread3 guiread usplit
+all : libs ufread ufread3 guiread usplit
 #all : ufread usplit
 
 ../lib/libtask.a:
@@ -42,6 +42,14 @@ all : ufread ufread3 guiread usplit
 ../pl/libpl.a:
 	(cd ../pl; make libpl.a)
 ../tr/libtr.a:
+	(cd ../tr; make libtr.a)
+
+libs:
+	(cd ../../bpsd; make libbpsd.a)
+	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
+	(cd ../pl; make libpl.a)
+	(cd ../eq; make libeq.a)
 	(cd ../tr; make libtr.a)
 
 ufread : $(UROBJS) $(LIBS)

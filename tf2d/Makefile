@@ -33,14 +33,14 @@ LIBS= ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a $(LIBMTX) \
 .f90.o:
 	$(FLINKER) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all: t2
+all: libs t2
 
+../bpsd/libbpsd.a:
+	(cd ../bpsd; make libbpsd.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 ../lib/libgrf.a:
 	(cd ../lib; make libgrf.a)
-../bpsd/libbpsd.a:
-	(cd ../bpsd; make libbpsd.a)
 ../pl/libpl.a:
 	(cd ../pl; make libpl.a)
 ../eq/libeq.a:

@@ -1,8 +1,16 @@
-!     $Id: wfsolv.f90,v 1.19 2012/03/05 06:29:02 maruyama Exp $
+! wfsolv.f90
+
+MODULE wfsolv
+
+  PRIVATE
+  PUBLIC wf_defmlen
+  PUBLIC wf_cvsolv
+
+CONTAINS
 
 !    ******* SET MLEN *******
 
-SUBROUTINE DEFMLEN
+SUBROUTINE wf_defmlen
 
   use wfcomm
   implicit none
@@ -23,18 +31,20 @@ SUBROUTINE DEFMLEN
   call wfslv_allocate
 
   RETURN
-END SUBROUTINE DEFMLEN
+END SUBROUTINE wf_defmlen
 
 !     ****** SOLV MATRIX EQUATION *****
 
-SUBROUTINE CVSOLV
+SUBROUTINE wf_cvsolv
 
   use wfcomm
+  USE wfcalcC
+  USE wfcalcK
   use libmpi
   use libmtx
   use libqsort
   implicit none
-  integer :: ISD,NSD,nnd,nnd1,nnd2,nv_old
+  integer :: ISD,NSD,nnd,nnd1,nnd2
   integer :: NE,NN,nv,nvmax
   integer :: I,J,KK,LL
   integer :: JNSD,JNN,INSD,INN
@@ -53,7 +63,7 @@ SUBROUTINE CVSOLV
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: VAL_SORT
   INTEGER(long),DIMENSION(:),ALLOCATABLE:: NV_SORT
   INTEGER,DIMENSION(:),ALLOCATABLE:: ntyp_nv,nnsd_nv
-  INTEGER(long):: IX,IY
+  INTEGER(long):: IX,IY,nv_old
 
   ! ----- initialize ------
   
@@ -290,7 +300,12 @@ SUBROUTINE CVSOLV
 
   do NE=1,NEMAX
      if(NEFLAG(NE).eq.0) goto 8000
-     CALL CMCALC(NE)
+     SELECT CASE(model_dielectric)
+     CASE(1)
+        CALL wf_cmcalc_cold(NE)
+     CASE(2)
+        CALL wf_cmcalc_kinetic(NE)
+     END SELECT
      
 !    === ASSEMBLY ===
 !    If KK (or LL) is out of assigned range,  
@@ -473,4 +488,6 @@ SUBROUTINE CVSOLV
   deallocate(NEFLAG)
   call mtxc_cleanup
   RETURN
-END SUBROUTINE CVSOLV
+END SUBROUTINE wf_cvsolv
+
+END MODULE wfsolv

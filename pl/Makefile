@@ -36,14 +36,14 @@ OBJO = $(SRCO:.f=.o)
 
 LIBS = libpl.a ../eq/libeq.a ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
-all : pl
+all : libs pl
 
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 ../lib/libgrf.a:
 	(cd ../lib; make libgrf.a)
-../../bpsd/libbpsd.a:
-	(cd ../../bpsd; make libbpsd.a)
 ../eq/libeq.a:
 	(cd ../eq; make libeq.a)
 libpl.a: $(OBJS)
@@ -51,8 +51,8 @@ libpl.a: $(OBJS)
 
 libs:
 	(cd ../../bpsd; make libbpsd.a)
-	(cd ../lib; make libgrf.a)
 	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../mtxp; make)
 	(cd ../eq; make libeq.a)
 

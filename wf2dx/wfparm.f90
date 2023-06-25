@@ -52,10 +52,11 @@ CONTAINS
     INTEGER,INTENT(IN):: NID
     INTEGER,INTENT(OUT):: IST,IERR
 
-    NAMELIST /WF/ BB,RA,RR,RF,AJ,APH,AWD,APOS,NPH,RKZ,&
-                  PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PPN0,PTN0,&
-                  NSMAX,NAMAX,MODELI,&
-                  MODELG,MODELB,MODELD,MODELP,MODELN,&
+    NAMELIST /WF/ BB,RA,RR,RF,AJ,APH,AWD,APOS,NPH,RKZ, &
+                  PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PPN0,PTN0, &
+                  NSMAX,NAMAX,MODELI, &
+                  MODELG,MODELB,MODELD,MODELP,MODELN, &
+                  model_dielectric, &
                   model_coll_enhance,factor_coll_enhance, &
                   xpos_coll_enhance,xwidth_coll_enhance, &
                   ypos_coll_enhance,ywidth_coll_enhance, &
@@ -135,6 +136,7 @@ CONTAINS
        WRITE(6,*) '     NSMAX,NAMAX,MODELI,'
        WRITE(6,*) '     MODELG,MODELB,MODELD,MODELP,MODELN,'
        WRITE(6,*) '     NPRINT,NDRAWD,NDRAWA,NDRAWE,NGRAPH,NDRAWV,'
+       WRITE(6,*) '     model_dielectric,'
        WRITE(6,*) '     model_coll_enhance,factor_coll_enhance,'
        WRITE(6,*) '     xpos_coll_enhance,xwidth_coll_enhance,'
        WRITE(6,*) '     ypos_coll_enhance,ywidth_coll_enhance,'
@@ -205,7 +207,14 @@ CONTAINS
     END IF
   
     IF(NSMAX.GT.0) THEN
-       WRITE(6,*) '***** COLD *****'
+       SELECT CASE(model_dielectric)
+       CASE(1)
+          WRITE(6,'(A,I4)') &
+               '***** COLD    ***** model_dielectric=',model_dielectric
+       CASE(3)
+          WRITE(6,'(A,I4)') &
+               '***** KINEITC ***** model_dielectric=',model_dielectric
+       END SELECT
        WRITE(6,698)
 698    FORMAT(' ','NS    PA',9X,'PZ',9X,'PN',9X,'PNS',&
              &                8X,'PZCL')
@@ -297,7 +306,7 @@ SUBROUTINE wfparm_broadcast
   USE wfcomm
   IMPLICIT NONE
 
-  INTEGER,DIMENSION(24) :: idata
+  INTEGER,DIMENSION(25) :: idata
   REAL(rkind),DIMENSION(40) :: ddata
   
 ! ---  broadcast integer data -----
@@ -327,9 +336,10 @@ SUBROUTINE wfparm_broadcast
      idata(22)=NCOILMAX
      idata(23)=MODELWF
      idata(24)=model_coll_enhance
+     idata(25)=model_dielectric
   end if
   
-  call mtx_broadcast_integer(idata,24)
+  call mtx_broadcast_integer(idata,25)
   
   NSMAX =idata(1)
   NAMAX =idata(2)
@@ -355,6 +365,7 @@ SUBROUTINE wfparm_broadcast
   NCOILMAX =idata(22)
   MODELWF =idata(23)
   model_coll_enhance=idata(24)
+  model_dielectric=idata(25)
 
 ! ----- broadcast real(8) data ------
 

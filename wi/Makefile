@@ -24,21 +24,22 @@ OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o)
 
 LIBS = libwi.a ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a
 
-all : wi plotwi plotwi2
+all : libs wi plotwi plotwi2
 
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 ../lib/libgrf.a:
 	(cd ../lib; make libgrf.a)
-../../bpsd/libbpsd.a:
-	(cd ../../bpsd; make libbpsd.a)
+
 libwi.a: $(OBJS)
 	$(LD) $(LDFLAGS) libwi.a $(OBJS)
 
 libs:
-	(cd ../lib; make libgrf.a)
-	(cd ../lib; make libtask.a)
 	(cd ../../bpsd; make libbpsd.a)
+	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
 
 wi : $(LIBS) wimain.o
 	$(FCFREE) wimain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) \

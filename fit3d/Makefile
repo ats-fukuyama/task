@@ -20,7 +20,7 @@ LIBS = hfreya2/libhfreya2.a mcnbi/libmcnbi.a fit/libfit.a ../lib/libtask.a
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : fit3d
+all : libs fit3d
 
 hfreya2/libhfreya2.a:
 	(cd hfreya2; make)
@@ -30,6 +30,7 @@ fit/libfit.a:
 	(cd fit; make)
 
 libs:
+	(cd ../lib; make libtask.a)
 	(cd hfreya2; make)
 	(cd mcnbi; make)
 	(cd fit; make)

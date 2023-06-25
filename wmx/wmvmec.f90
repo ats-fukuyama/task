@@ -48,7 +48,7 @@ CONTAINS
     IERR=0
 
     NFL=8
-    CALL FROPEN(NFL,KNAMEQ,1,0,'EQ',IERR)
+    CALL FROPEN(NFL,KNAMEQ,1,0,'EQ',IERR,CONVERT='LITTLE_ENDIAN')
 
     read  (     8,711) voli, rgam,     d2,      rc,     d3, &
                n1,mnmax,nsrmax,ntheta_in,nzeta_in,n2,n3, &

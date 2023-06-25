@@ -11,8 +11,8 @@ include ../mtxp/make.mtxp
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-#FFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS)
+FFLAGS = $(OFLAGS)
+#FFLAGS = $(DFLAGS)
 
 OBJDIR   = ./obj
 
@@ -47,7 +47,7 @@ SRC7 = wmeqin.f
 
 OBJS = $(addprefix $(OBJDIR)/, $(SRC7:.f=.o) $(SRCS:.f90=.o))
 
-LIBS = libwm.a ../dp/libdp.a ../eq/libeq.a ../pl/libpl.a ../tr/libtr.a \
+LIBS = libwm.a ../dp/libdp.a ../eq/libeq.a ../pl/libpl.a ../tr/libtr2.a \
        ../lib/libtask.a ../lib/libmds.a ../lib/libgrf.a ../../bpsd/libbpsd.a
 
 all: libs wm
@@ -64,8 +64,8 @@ all: libs wm
 	(cd ../pl; make libpl.a)
 ../eq/libeq.a:
 	(cd ../eq; make libeq.a)
-../tr/libtr.a:
-	(cd ../tr; make libtr.a)
+../tr/libtr2.a:
+	(cd ../tr; make libtr2.a)
 ../dp/libdp.a:
 	(cd ../dp; make libdp.a)
 $(LIB_MTX):
@@ -81,7 +81,7 @@ libs:
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
-	(cd ../tr; make libtr.a)
+	(cd ../tr; make libtr2.a)
 	(cd ../dp; make libdp.a)
 
 wm : $(LIB_MTX) $(LIBS) $(OBJDIR)/wmmain.o 

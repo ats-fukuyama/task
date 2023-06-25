@@ -12,6 +12,7 @@
       USE plparm,ONLY: pl_parm,pl_view
       USE plgout,ONLY: pl_gout
       USE plload,ONLY: pl_load
+      USE plvmec,ONLY: pl_vmec
       USE libkio
 
       IMPLICIT NONE
@@ -36,6 +37,8 @@
       ELSEIF(KID.EQ.'L') THEN
          CALL pl_load(ierr)
          IF(ierr.ne.0) GO TO 1
+      ELSEIF(KID.EQ.'M') THEN
+         CALL pl_vmec(knameq,ierr)
       ELSEIF(KID.EQ.'Q') THEN
          GOTO 9000
       ELSE

@@ -18,24 +18,26 @@ SRCX = wfhout.f90
 
 OBJS = $(SRCS:.f=.o) $(SRCX:.f90=.o) 
 
-LIBS = libwf.a ../lib/libtask.a ../lib/libgrf.a
+LIBS = ../../bpsd/libbpsd.a ../lib/libtask.a ../lib/libgrf.a libwf.a
 
 .f90.o:
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f.o:
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all: wf
+all: $(LIBS) wf
 
 libwf.a: $(OBJS)
 	$(LD) $(LDFLAGS) libwf.a $(OBJS)
 
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 ../lib/libgrf.a:
 	(cd ../lib; make libgrf.a)
 
-wf : wfcomm.inc $(LIBS) wfmain.o
+wf : $(LIBS) wfmain.o
 	$(FCFIXED) wfmain.o -o $@ $(FFLAGS) $(LIBS) $(FLIBS)
 
 clean:

@@ -59,6 +59,7 @@ module wfcomm
   CHARACTER(LEN=80):: KNAMWG
   real(rkind):: gfactor
   integer:: MODELWF
+  INTEGER:: model_dielectric
 
   INTEGER:: model_coll_enhance
   REAL(rkind):: factor_coll_enhance

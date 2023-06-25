@@ -28,12 +28,19 @@ CONTAINS
 !                1 : Step function with radius R/RA 
 !              * 2 : Parabolic with radius R/RA
 
+!   model_dielectric: model of dielectric
+!                1 : cold plasma
+!                2 : warm plasma (k_para ~ n_phi/R)
+!                3 : kinetic plasma
+    
     CALL pl_allocate_ns
 
     MODELI=0
     MODELG=2
     MODELD=0
     MODELP=2
+
+    model_dielectric=1
 
 !        KFNAME: File name of element data
 !        KFNAMA: File name of antenna data

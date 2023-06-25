@@ -3,6 +3,9 @@ subroutine wfmenu
   use libmpi
   use wfcomm
   USE wfparm
+  USE wfdiv
+  USE wfwaveC
+  USE wfwaveK
   USE plload, ONLY: pl_load
   USE wfload, ONLY: wf_load_wg
   USE femmeshprep
@@ -20,7 +23,7 @@ subroutine wfmenu
 
   IF(nrank.EQ.0) THEN
      WRITE(6,*) '## INPUT: P,V:PARM  D:DIV  A:ANT', &
-                         ' W,C:WAVE G:GRAPH  S,L:FILE  Q:QUIT'
+                         ' R,C:WAVE G:GRAPH  S,L:FILE  Q:QUIT'
      CALL TASK_KLIN(LINE,KID,MODE,WF_PARM)
   END IF
   call mtx_barrier
@@ -36,14 +39,19 @@ subroutine wfmenu
   elseif (KID.eq.'V') then
      if (nrank.eq.0) call WF_VIEW
   elseif (KID.eq.'D') then
-     call WFDIV
+     call wf_div
   elseif (KID.eq.'A') then
 !     if (NNMAX.eq.0) call WFRELM(ID)
      call WFANT
   elseif (KID.eq.'C') then
      call WFWPRE(IERR)
-  elseif (KID.eq.'W') then
-     call WFWAVE
+  elseif (KID.eq.'R') then
+     SELECT CASE(model_dielectric)
+     CASE(1)
+        CALL wf_wave_cold
+     CASE(3)
+        CALL wf_wave_kinetic
+     END SELECT
   elseif (KID.eq.'G') then
      if (nrank.eq.0) call WFGOUT
 !  elseif (KID.eq.'S') then

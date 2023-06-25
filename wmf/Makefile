@@ -50,21 +50,13 @@ LIBS = libwm.a ../dp/libdp.a ../eq/libeq.a ../pl/libpl.a \
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all: wm
+all: libs wm
 
 libwm.a: $(OBJS)
 	$(LD) $(LDFLAGS) libwm.a $(OBJS)
 
-../mtxp/libmtxmpi.o:
-	(cd ../mtxp; make libmtxmpi.o)
-../mtxp/libmtxnompi.o:
-	(cd ../mtxp; make libmtxnompi.o)
-../mtxp/libmtxksp.o:
-	(cd ../mtxp; make libmtxksp.o)
-../mtxp/libmtxmumps.o:
-	(cd ../mtxp; make libmtxmumps.o)
-../mtxp/libmtxbnd.o:
-	(cd ../mtxp; make libmtxbnd.o)
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libpsd.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 ../lib/libgrf.a:
@@ -76,12 +68,10 @@ libwm.a: $(OBJS)
 ../dp/libdp.a:
 	(cd ../dp; make libdp.a)
 libs:
+	(cd ../../bpsd; make libbpsd.a)
 	(cd ../lib; make libtask.a)
 	(cd ../lib; make libgrf.a)
-	(cd ../mtxp; make libmtxnompi.o)
-	(cd ../mtxp; make libmtxbnd.o)
-	(cd ../mtxp; make libmtxmpi.o)
-	(cd ../mtxp; make libmtxmumps.o)
+	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
 	(cd ../dp; make libdp.a)

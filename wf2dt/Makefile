@@ -40,20 +40,18 @@ all: libs wf
 libwf.a: $(OBJS)
 	$(LD) $(LDFLAGS) libwf.a $(OBJS)
 
-../dp/libdp.a:
-	(cd ../dp; make libdp.a)
-../eq/libeq.a:
-	(cd ../eq; make liobeq.a)
-../pl/libpl.a:
-	(cd ../pl; make libpl.a)
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpd.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 ../lib/libgrf.a:
 	(cd ../lib; make libgrf.a)
-../../bpsd/libbpsd.a:
-	(cd ../../bpsd; make libbpd.a)
-$(LIB_MTX):
-	(cd ../mtxp; make)
+../pl/libpl.a:
+	(cd ../pl; make libpl.a)
+../eq/libeq.a:
+	(cd ../eq; make liobeq.a)
+../dp/libdp.a:
+	(cd ../dp; make libdp.a)
 
 libs:
 	(cd ../../bpsd; make libbpsd.a)
@@ -64,7 +62,7 @@ libs:
 	(cd ../eq; make libeq.a)
 	(cd ../dp; make libdp.a)
 
-wf : libs $(LIBS) $(OBJDIR)/wfmain.o
+wf : libs $(OBJDIR)/wfmain.o
 	$(FLINKER) $(OBJDIR)/wfmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean:

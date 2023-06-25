@@ -22,13 +22,29 @@ LIBS=libwf.a ../lib/libtask.a
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all: wf
+all: libs wf
+
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
+../lib/libtask.a:
+	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
+../pl/libpl.a:
+	(cd ../../pl; make libpl.a)
+../eq/libeq.a:
+	(cd ../eq; make libeq.a)
+
+libs:
+	(cd ../../bpsd; make libbpsd.a)
+	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
+	(cd ../mtxp; make)
+	(cd ../pl; make libpl.a)
+	(cd ../eq; make libeq.a)
 
 libwf.a: $(OBJS)
 	$(LD) $(LDFLAGS) libwf.a $(OBJS)
-
-../lib/libtask.a:
-	(cd ../lib; make libtask.a)
 
 wf : wfcomm.inc $(LIBS) wfmain.o
 	$(FCFIXED) wfmain.o -o $@ $(FFLAGS) $(LIBS) $(FLIBS)

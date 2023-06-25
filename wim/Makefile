@@ -22,7 +22,7 @@ OBJS = $(SRCSFREE:.f90=.o)
 
 LIBS = libwim.a ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
-all : wim
+all : libs wim
 
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
@@ -34,9 +34,9 @@ libwim.a: $(OBJS)
 	$(LD) $(LDFLAGS) libwim.a $(OBJS)
 
 libs:
+	(cd ../../bpsd; make libbpsd.a)
 	(cd ../lib; make libtask.a)
 	(cd ../lib; make libgrf.a)
-	(cd ../../bpsd; make libbpsd.a)
 
 wim : $(LIBS) wimmain.o
 	$(FCFIXED) wimmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) \

@@ -733,8 +733,8 @@ SUBROUTINE MODANT(IERR)
         RJ(N,NA)=RC
         ZJ(N,NA)=ZC
         JELMT(N,NA)=NE
-        IF(IDEBUG.EQ.2) THEN
-           if(nrank.eq.0) WRITE(6,'(A,3I8,1P3E12.4)') 'NA,N,NE,R,Z=' ,&
+        IF(IDEBUG.EQ.3) THEN
+           if(nrank.eq.0) WRITE(6,'(A,3I8,1P3E12.4)') 'NA,N,NE,R,Z:1=' ,&
                 &NA,N,NE,RJ(N,NA),ZJ(N,NA)
         ENDIF
 
@@ -745,8 +745,8 @@ SUBROUTINE MODANT(IERR)
         RJ(N,NA)=RJ0(1,NA)
         ZJ(N,NA)=ZJ0(1,NA)
         JELMT(N,NA)=NE
-        IF(IDEBUG.EQ.2) THEN
-           if(nrank.eq.0) WRITE(6,'(A,3I8,1P3E12.4)') 'NA,N,NE,R,Z=',&
+        IF(IDEBUG.EQ.3) THEN
+           if(nrank.eq.0) WRITE(6,'(A,3I8,1P3E12.4)') 'NA,N,NE,R,Z:2=',&
                 &NA,N,NE,RJ(N,NA),ZJ(N,NA)
         ENDIF
         LS=0
@@ -775,8 +775,8 @@ SUBROUTINE MODANT(IERR)
         RJ(N,NA)=RC
         ZJ(N,NA)=ZC
         JELMT(N,NA)=NE
-        IF(IDEBUG.EQ.2) THEN
-           if(nrank.eq.0) WRITE(6,'(A,3I8,1P3E12.4)') 'NA,N,NE,R,Z=',&
+        IF(IDEBUG.EQ.3) THEN
+           if(nrank.eq.0) WRITE(6,'(A,3I8,1P3E12.4)') 'NA,N,NE,R,Z:3=',&
                 &NA,N,NE,RJ(N,NA),ZJ(N,NA)
         ENDIF
         NENEW=KNELM(LS,NE) ! look for neighboring element
@@ -797,8 +797,8 @@ SUBROUTINE MODANT(IERR)
         ZJ(N,NA)=ZJ0(ID,NA)
         JELMT(N,NA)=NE
         LS=0
-        IF(IDEBUG.EQ.2) THEN
-           if(nrank.eq.0) WRITE(6,'(A,3I8,1P3E12.4)') 'NA,N,NE,R,Z=',&
+        IF(IDEBUG.EQ.3) THEN
+           if(nrank.eq.0) WRITE(6,'(A,3I8,1P3E12.4)') 'NA,N,NE,R,Z:4=',&
                 & NA,N,NE,RJ(N,NA),ZJ(N,NA)
         ENDIF
      ENDDO

@@ -295,9 +295,16 @@ CONTAINS
     IF(nphmax.GT.2**npow) npow=npow+1
     nphtot=2**npow
              
-    mblock_size=3*nthmax*nppmax
-    mbnd= 4*mblock_size-1
-    mcent=2*mblock_size
+!    mblock_size=3*nthmax*nppmax
+    mblock_size=3*nthmax*nhhmax
+    SELECT CASE(mdlwmx)
+    CASE(0)
+       mbnd= 4*mblock_size-1
+       mcent=2*mblock_size
+    CASE(1,2)
+       mbnd= 6*mblock_size-1
+       mcent=3*mblock_size
+    END SELECT
     SELECT CASE(mdlwmx)
     CASE(0,2)
        mlen=mblock_size*nrmax

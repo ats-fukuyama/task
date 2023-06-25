@@ -81,14 +81,14 @@ libtr2.a: $(OBJTR) $(OBJ2D) $(INCNC) $(INCGLF)
 libtr3.a: $(OBJTR) $(OBJ3D) $(INCNC) $(INCGLF)
 	$(LD) $(LDFLAGS) libtr3.a $(OBJTR) $(OBJ3D)
 
-../lib/libgrf.a:
-	(cd ../lib; make libgrf.a)
-../lib/libtask.a:
-	(cd ../lib; make libtask.a)
-../lib/libmds.a:
-	(cd ../lib; make libmds.a)
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
+../lib/libtask.a:
+	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
+../lib/libmds.a:
+	(cd ../lib; make libmds.a)
 ../pl/libpl.a:
 	(cd ../pl; make libpl.a)
 ../eq/libeq.a:
@@ -98,6 +98,7 @@ libs:
 	(cd ../../bpsd; make libbpsd.a)
 	(cd ../lib; make libtask.a)
 	(cd ../lib; make libgrf.a)
+	(cd ../lib; make libmds.a)
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
 

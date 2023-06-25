@@ -16,6 +16,7 @@ CONTAINS
     USE wmxprf
     USE wmvmec,ONLY: wmsetg_vmec
     USE wmbooz,ONLY: wmsetg_boozer
+    USE plvmec,ONLY: pl_vmec
     USE trfile,ONLY: tr_load
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
@@ -49,6 +50,9 @@ CONTAINS
 
     CASE(4)
        CALL wmsetg_vmec(IERR)
+
+    CASE(7)
+       CALL pl_vmec(knameq,IERR)
 
 !     ****** EQUILIBRIUM (BOOZER) ******
 

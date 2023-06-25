@@ -33,14 +33,14 @@ LIBS= ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a $(LIBMTX) \
 .f90.o:
 	$(FLINKER) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all: t2
+all: libs t2
 
+../bpsd/libbpsd.a:
+	(cd ../bpsd; make libbpsd.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 ../lib/libgrf.a:
 	(cd ../lib; make libgrf.a)
-../bpsd/libbpsd.a:
-	(cd ../bpsd; make libbpsd.a)
 ../pl/libpl.a:
 	(cd ../pl; make libpl.a)
 ../eq/libeq.a:
@@ -49,11 +49,10 @@ libt2x.a: $(OBJS)
 	$(LD) $(LDFLAGS) libt2x.a $(OBJS)
 
 libs:
-	(cd ../lib; make libgrf.a)
-	(cd ../lib; make libtask.a)
 	(cd ../../bpsd; make libbpsd.a)
-	(cd ../mtxp; make libmtxmpi.o libmtxnompi.o)
-	(cd ../mtxp; make libmtxbnd.o libmtxksp.o libmtxmumps.o)
+	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
+	(cd ../mtxp; make)
 
 t2:$(LIBS) t2main.o
 	$(FLINKER)  t2main.o -o $@ $(FFLAGS) $(LIBS)  $(FLIBS) $(LIBX_MTX)

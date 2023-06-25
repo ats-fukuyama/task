@@ -33,7 +33,7 @@ LIBS = libwf.a ../pl/libpl.a ../eq/libeq.a   \
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all: wf
+all: libs wf
 
 libwf.a: $(OBJS)
 	$(LD) $(LDFLAGS) libwf.a $(OBJS)
@@ -42,14 +42,8 @@ libwf.a: $(OBJS)
 	(cd ../../bpsd; make libbpsd.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
-../mtxp/libmtxbnd.o:
-	(cd ../mtxp; make libmtxbnd.o)
-../mtxp/libmtxmumps.o:
-	(cd ../mtxp; make libmtxmumps.o)
-../mtxp/libmtxmpi.o:
-	(cd ../mtxp; make libmtxmpi.o)
-../mtxp/libmtxnompi.o:
-	(cd ../mtxp; make libmtxnompi.o)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 ../pl/libpl.a:
 	(cd ../../pl; make libpl.a)
 ../eq/libeq.a:
@@ -58,6 +52,7 @@ libwf.a: $(OBJS)
 libs:
 	(cd ../../bpsd; make libbpsd.a)
 	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)

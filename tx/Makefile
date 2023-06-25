@@ -42,8 +42,8 @@ LIBS3= libtx3.a ../lib/libtask.a ../lib/libgrf.a
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE) $(MODLA95)
 
-all: $(PROG2)
-#all: $(PROG3)
+all: libs $(PROG2)
+#all: libs $(PROG3)
 
 libtx2.a: $(OBJS) $(OBJ2D) $(OBJNC) $(INCNC) $(OBJMM)
 	$(LD) $(LDFLAGS) libtx2.a $(OBJS) $(OBJ2D) $(OBJNC) $(OBJMM)
@@ -56,7 +56,8 @@ libtx3.a: $(OBJS) $(OBJ3D) $(OBJNC) $(INCNC) $(OBJMM)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 libs:
-	(cd ../lib; make)
+	(cd ../lib; make libtask.a)
+	(cd ../lib; make libgrf.a)
 
 $(PROG2): $(LIBS2) 
 	$(FLINKER) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)

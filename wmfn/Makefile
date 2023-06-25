@@ -56,23 +56,17 @@ LIBS = libwm.a ../dp/libdp.a ../eq/libeq.a ../pl/libpl.a ../dp/libdp.a \
 .f90.o :
 	$(FCFREE)   $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all: wm
+all: libs wm
 
 libwm.a: $(OBJS)
 	$(LD) $(LDFLAGS) libwm.a $(OBJS)
 
-../mtxp/libmtxmpi.o:
-	(cd ../mtxp; make libmtxmpi.o)
-../mtxp/libmtxnompi.o:
-	(cd ../mtxp; make libmtxnompi.o)
-../mtxp/libmtxksp.o:
-	(cd ../mtxp; make libmtxksp.o)
-../mtxp/libmtxmumps.o:
-	(cd ../mtxp; make libmtxmumps.o)
-../mtxp/libmtxbnd.o:
-	(cd ../mtxp; make libmtxbnd.o)
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
+../lib/libgrf.a:
+	(cd ../lib; make libgrf.a)
 ../pl/libpl.a:
 	(cd ../pl; make libpl.a)
 ../eq/libeq.a:
@@ -80,16 +74,15 @@ libwm.a: $(OBJS)
 ../dp/libdp.a:
 	(cd ../dp; make libdp.a)
 libs:
+	(cd ../../bpsd; make libbpsd.a)
 	(cd ../lib; make libtask.a)
-	(cd ../mtxp; make libmtxnompi.o)
-	(cd ../mtxp; make libmtxbnd.o)
-	(cd ../mtxp; make libmtxmpi.o)
-	(cd ../mtxp; make libmtxmumps.o)
+	(cd ../lib; make libgrf.a)
+	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
 	(cd ../dp; make libdp.a)
 
-wm : wmmain.o $(LIBS)
+wm : $(LIBS) wmmain.o
 	$(FCFIXED) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 clean:

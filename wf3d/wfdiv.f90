@@ -1030,10 +1030,16 @@ subroutine SETELMX(IERR)
               IE=IE+3
            end do
            if(NX10.eq.NX1MAX) then
-              do NZ=1,NZMAX-1
+101           do NZ=1,NZMAX-1
                  IE=IE+3
               end do
-              goto 200
+              ! ---- add by Y.Kubota at Nov./14/2019 ----
+	       if(NX00.ne.NX0MAX)then
+                  NX00=NX00+1
+                  goto 101
+               endif
+               ! ---- Nov./14/2019 ----
+               goto 200
            else
               NX10=NX10+1
            end if
@@ -1108,9 +1114,17 @@ subroutine SETELMX(IERR)
               call SETELLX(NX00,NX01,NX10,NY,NZ,IE,1)
            end do
            if(NX00.eq.NX0MAX) then
-              do NZ=1,NZMAX-1
+111           do NZ=1,NZMAX-1
                  call SETELLX(NX01,NX10,NX11,NY,NZ,IE,0)
               end do
+               ! ---- add by Y.Kubota at Nov./14/2019 ----
+	       if(NX00.ne.NX0MAX)then
+                  NX00=NX00+1
+                  NX01=NX00+1
+                  if(NX01.gt.NX0MAX) NX01=1
+                  goto 111
+	       endif
+               ! ---- add by Y.Kubota at Nov./14/2019 ----
               goto 210
            else
               NX00=NX00+1

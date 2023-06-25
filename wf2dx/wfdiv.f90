@@ -59,7 +59,6 @@ CONTAINS
            CALL wf_div_circle_input
         END IF
      END IF
-
      CALL wfdiv_broadcast
      
      IF(KID.EQ.'X') THEN
@@ -180,5 +179,42 @@ subroutine WFLDIV
           (' ',4(I5,'(',I1,') ')))
   return
 end subroutine WFLDIV
+
+
+!-- broadcast data --
+subroutine wfdiv_broadcast
+
+  use wfcomm
+  use libmpi
+  implicit none
+
+  real(rkind),dimension(7) :: rdata
+
+  if (nrank.eq.0) then
+     rdata(1)=BDRMIN
+     rdata(2)=BDRMAX
+     rdata(3)=BDZMIN
+     rdata(4)=BDZMAX
+     rdata(5)=DELR
+     rdata(6)=DELZ
+     rdata(7)=RB
+  end if
+  
+  call mtx_barrier
+  call mtx_broadcast_real8(rdata,7)
+
+  BDRMIN=rdata(1)
+  BDRMAX=rdata(2)
+  BDZMIN=rdata(3)
+  BDZMAX=rdata(4)
+  DELR  =rdata(5)
+  DELZ  =rdata(6)
+  RB    =rdata(7)
+
+  call mtx_broadcast_real8(r_corner,3)
+  call mtx_broadcast_real8(z_corner,3)
+
+  return 
+end subroutine wfdiv_broadcast
 
 END MODULE wfdiv

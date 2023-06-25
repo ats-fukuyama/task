@@ -944,7 +944,7 @@
       CALL SETFNT(32)
       CALL MOVE(11.8,18.0)
       CALL TEXT('T=',2)
-      CALL NUMBD(T,'(1F7.3)',7)
+      CALL NUMBD(T,'(1F8.3)',8)
       CALL TEXT(' SEC',4)
       RETURN
       END SUBROUTINE TRGRTM

@@ -33,23 +33,23 @@ OBJS = $(SRCSFREE:.f90=.o)
 
 LIBS = ../../bpsd/libbpsd.a ../lib/libgrf.a ../lib/libtask.a libpic.a
 
-all : pic
+all : libs pic
 
 #disp: disp
 
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 ../lib/libgrf.a:
 	(cd ../lib; make libgrf.a)
-../../bpsd/libbpsd.a:
-	(cd ../../bpsd; make libbpsd.a)
 libpic.a: $(OBJS)
 	$(LD) $(LDFLAGS) libpic.a $(OBJS)
 
 libs:
+	(cd ../../bpsd; make libbpsd.a)
 	(cd ../lib; make libtask.a)
 	(cd ../lib; make libgrf.a)
-	(cd ../../bpsd; make libbpsd.a)
 	(cd ../mtxp; make)
 
 pic : $(LIBS) $(LIBX_MTX) picmain.o

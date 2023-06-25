@@ -23,21 +23,21 @@ OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o)
 
 LIBS = libxx.a ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a
 
-all : xx
+all : libs xx
 
+../../bpsd/libbpsd.a:
+	(cd ../../bpsd; make libbpsd.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 ../lib/libgrf.a:
 	(cd ../lib; make libgrf.a)
-../../bpsd/libbpsd.a:
-	(cd ../../bpsd; make libbpsd.a)
 libxx.a: $(OBJS)
 	$(LD) $(LDFLAGS) libxx.a $(OBJS)
 
 libs:
+	(cd ../../bpsd; make libbpsd.a)
 	(cd ../lib; make libtask.a)
 	(cd ../lib; make libgrf.a)
-	(cd ../../bpsd; make libbpsd.a)
 
 xx : $(LIBS) xxmain.o
 	$(FCFIXED) xxmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) \

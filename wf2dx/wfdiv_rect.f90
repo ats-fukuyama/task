@@ -68,6 +68,7 @@ CONTAINS
     IF(MOD(nyr_max,2).EQ.0) nyr_max=nyr_max+1 ! nyr_max should be odd number
     dyr=DBLE(yr_len/(nyr_max-1))
     node_max=nxr_max*nyr_max
+    CALL wfelm_allocate
 
     ! --- set nelm_max ---
     nelm_max=2*(nxr_max-1)*(nyr_max-1)

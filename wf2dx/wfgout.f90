@@ -78,6 +78,19 @@ SUBROUTINE WFGOUT
                 &'P1C'//KTAIL//'P2C'//KTAIL
         end if
         GOTO 9
+     ELSEIF(KG2.EQ.'I') THEN
+        if(NDRAWE.eq.0) then
+           KLINE='ERR'//KTAIL//'ERI'//KTAIL//&
+                &'EZR'//KTAIL//'EZI'//KTAIL//&
+                &'EPR'//KTAIL//'EPI'//KTAIL//&
+                &'P2C'//KTAIL//'P3C'//KTAIL
+        elseif(NDRAWE.eq.1) then
+           KLINE='ERR'//KTAIL//'ERI'//KTAIL//&
+                &'ETR'//KTAIL//'ETI'//KTAIL//&
+                &'EPR'//KTAIL//'EPI'//KTAIL//&
+                &'P2C'//KTAIL//'P3C'//KTAIL
+        end if
+        GOTO 9
      ELSE
         WRITE(6,*) 'XX UNKNOWN KID2:',KG2
         GOTO 1

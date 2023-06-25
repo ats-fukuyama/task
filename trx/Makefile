@@ -20,7 +20,7 @@ ${OBJDIR}/%.o:%.f
 ${OBJDIR}/%.o:%.f90
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
+MODINCLUDE= -I./$(MOD) -I../trmlib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
             -I../lib/$(MOD) -I../mtxp/$(MOD) \
             -I../../bpsd/$(MOD)
 
@@ -29,7 +29,7 @@ SRCS=trinit.f90 trparm.f90 trview.f90 \
      trmetric.f90 trprof.f90 trprep.f90 \
      trfile.f90 trhelp.f90 \
      trexec.f90 trcalc.f90 \
-     tradat.f90 cdbm.f90 trmodels.f90 trcoef.f90 tritg.f90 \
+     tradatw.f90 cdbm.f90 trmodels.f90 trcoef.f90 tritg.f90 \
      trrslt.f90 trpnb.f90 trprf.f90 trpnf.f90 trpel.f90 trpsc.f90 \
      trgout.f90 trgrar.f90 trgrat.f90 trgrap.f90 trgrae.f90 \
      trgrad.f90 trgram.f90 trgsub.f90 trfout.f90 \

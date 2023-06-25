@@ -56,14 +56,14 @@ libfp.a: $(OBJS)
 
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
-../pl/libpl.a:
-	(cd ../pl; make libpl.a)
-../eq/libeq.a:
-	(cd ../eq; make libeq.a)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 ../lib/libgrf.a:
 	(cd ../lib; make libgrf.a)
+../pl/libpl.a:
+	(cd ../pl; make libpl.a)
+../eq/libeq.a:
+	(cd ../eq; make libeq.a)
 ../ob/libob.a:
 	(cd ../ob; make libob.a)
 

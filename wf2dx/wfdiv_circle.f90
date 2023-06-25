@@ -65,12 +65,13 @@ CONTAINS
        node=node+nthmax_nr(nr)
     END DO
     node_max=node
+    CALL wfelm_allocate
 
     ! --- set nelm_max ---
 
-    nelm=0
-    DO nr=1,nr_max-1
-       nelm=nelm+nthmax_nr(nr)
+    nelm=6
+    DO nr=2,nr_max-1
+       nelm=nelm+nthmax_nr(nr)+nthmax_nr(nr+1)
     END DO
     nelm_max=nelm
     CALL wfelm_allocate

@@ -329,7 +329,7 @@ CONTAINS
           ENDDO
 
           DO KD=KDMIN_F,KDMAX_F
-             KDX=KD-KDMIN+1
+             KDX=KD-KDMIN_F+1
              DO KAB=KDMIN_F,KDMAX_F
                 KABX=KAB-KDMIN_F+1
                 KC=KD-KAB
