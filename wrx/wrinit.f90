@@ -70,9 +70,10 @@ CONTAINS
 !     DELS   : INCREMENTAL LENGTH OF RAY
 !     UUMIN  : MINIMUM POWER TO ADVANCE RAY
 
-!     EPSRAY : CONVERGENCE CRITEIRION IN RAY TRACING
+!     EPSRAY : CONVERGENCE CRITERION IN RAY TRACING
 !     DELRAY : MINIMUM STEP SIZE IN RAY TRACING
 !     DELDER : STEP SIZE TO CALCULATE DERIVATIVES IN RAY TRACING
+!     EPSD0  : CONVERGENCE CRITERIION for D=0 in WRMODNWTN
 
 !     DELKR  : STEP SIZE TO ESTIMATE D/DKR IN NEWTON METHOD
 !     EPSNW  : CONVERGENCE CRITEIRION IN NEWTON METHOD
@@ -141,6 +142,8 @@ CONTAINS
       DELRAY = 1.D-3
       DELDER = 1.D-4
 
+      EPSD0  = 1.D-4
+
       DELKR  = 1.D0
       EPSNW  = 1.D-6
       LMAXNW = 100
@@ -194,6 +197,7 @@ CONTAINS
       !        idebug_wr = 10: wr_write_line: output Y(1:6)
       !        idebug_wr = 11: wrrkft: initial and each step
       !        idebug_wr = 12: wrfdrv: functions and derivatives
+      !        idebug_wr = 13: wrmodenwtn: iteration data
       !        idebug_wr = 90: wrgout: wrgrf5: R,cexyz,ceoxp, error
       !        idebug_wr = 91: wrgout: wrgrf6: nres_max
       !        idebug_wr = 92: wrgout: wrgrf2: gxorg,gxstep,gystep

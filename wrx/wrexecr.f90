@@ -536,10 +536,10 @@ CONTAINS
        R=SQRT(Y(1)**2+Y(2)**2)
        IF(Y(7).LT.UUMIN.OR. &
          (NSTP.GT.NSTPMIN.AND. &
-         (R.GT.RR+1.1D0*RB.OR. &
-          R.LT.RR-1.1D0*RB.OR. &
-          Y(3).GT. RKAP*1.1D0*RB.OR. &
-          Y(3).LT.-RKAP*1.1D0*RB))) THEN
+         (R.GT.Rmax_wr.OR. &
+          R.LT.Rmin_wr.OR. &
+          Y(3).GT.Zmax_wr.OR. &
+          Y(3).LT.Zmin_wr))) THEN
           nstp_end = NSTP
           GOTO 11
        ENDIF
@@ -640,10 +640,10 @@ CONTAINS
        R=SQRT(Y(1)**2+Y(2)**2)
        IF(Y(7).LT.UUMIN.OR. &
          (NSTP.GT.NSTPMIN.AND. &
-         (R.GT.RR+1.1D0*RB.OR. &
-          R.LT.RR-1.1D0*RB.OR. &
-          Y(3).GT. RKAP*1.1D0*RB.OR. &
-          Y(3).LT.-RKAP*1.1D0*RB))) THEN
+         (R.GT.Rmax_wr.OR. &
+          R.LT.Rmin_wr.OR. &
+          Y(3).GT.Zmax_wr.OR. &
+          Y(3).LT.Zmin_wr))) THEN
           nstp_end = NSTP
           GOTO 11
        ENDIF
@@ -713,10 +713,10 @@ CONTAINS
        R=SQRT(Y(1)**2+Y(2)**2)
        IF(Y(7).LT.UUMIN.OR. &
          (NSTP.GT.NSTPMIN.AND. &
-         (R.GT.RR+1.1D0*RB.OR. &
-          R.LT.RR-1.1D0*RB.OR. &
-          Y(3).GT. RKAP*1.1D0*RB.OR. &
-          Y(3).LT.-RKAP*1.1D0*RB))) THEN
+         (R.GT.Rmax_wr.OR. &
+          R.LT.Rmin_wr.OR. &
+          Y(3).GT.Zmax_wr.OR. &
+          Y(3).LT.Zmin_wr))) THEN
           nstp_end = NSTP
           GOTO 11
        ENDIF
@@ -816,10 +816,10 @@ CONTAINS
        R=SQRT(Y(1)**2+Y(2)**2)
        IF(Y(7).LT.UUMIN.OR. &
          (NSTP.GT.NSTPMIN.AND. &
-         (R.GT.RR+1.1D0*RB.OR. &
-          R.LT.RR-1.1D0*RB.OR. &
-          Y(3).GT. RKAP*1.1D0*RB.OR. &
-          Y(3).LT.-RKAP*1.1D0*RB))) THEN
+         (R.GT.Rmax_wr.OR. &
+          R.LT.Rmin_wr.OR. &
+          Y(3).GT.Zmax_wr.OR. &
+          Y(3).LT.Zmin_wr))) THEN
           nstp_end = NSTP
           GOTO 11
        ENDIF
@@ -901,10 +901,10 @@ CONTAINS
        R=SQRT(Y(1)**2+Y(2)**2)
        IF(Y(7).LT.UUMIN.OR. &
          (NSTP.GT.NSTPMIN.AND. &
-         (R.GT.RR+1.1D0*RB.OR. &
-          R.LT.RR-1.1D0*RB.OR. &
-          Y(3).GT. RKAP*1.1D0*RB.OR. &
-          Y(3).LT.-RKAP*1.1D0*RB))) THEN
+         (R.GT.Rmax_wr.OR. &
+          R.LT.Rmin_wr.OR. &
+          Y(3).GT.Zmax_wr.OR. &
+          Y(3).LT.Zmin_wr))) THEN
           nstp_end = NSTP
           GOTO 8000
        ENDIF
@@ -980,10 +980,10 @@ CONTAINS
        R=SQRT(Y(1)**2+Y(2)**2)
        IF(Y(7).LT.UUMIN.OR. &
          (NSTP.GT.NSTPMIN.AND. &
-         (R.GT.RR+1.1D0*RB.OR. &
-          R.LT.RR-1.1D0*RB.OR. &
-          Y(3).GT. RKAP*1.1D0*RB.OR. &
-          Y(3).LT.-RKAP*1.1D0*RB))) THEN
+         (R.GT.Rmax_wr.OR. &
+          R.LT.Rmin_wr.OR. &
+          Y(3).GT.Zmax_wr.OR. &
+          Y(3).LT.Zmin_wr))) THEN
           nstp_end = NSTP
           GOTO 11
        ENDIF

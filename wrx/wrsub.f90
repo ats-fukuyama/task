@@ -407,7 +407,12 @@ CONTAINS
           DDELTA = DISPXR(XP,YP,ZP,Y(4),Y(5),Y(6),omega)
           IF (ABS(DDELTA) .LT. ABS(DELTA)) EXIT
        END DO
-       IF (ABS(DDELTA).LT.1.0D-6) EXIT
+       IF(idebug_wr(13).NE.0) THEN
+          WRITE(6,'(A)') '*** idebug_wr(13):'
+          WRITE(6,'(A,4ES12.4)') &
+               '      Y(4,5,6),DDELTA=',Y(4),Y(5),Y(6),DDELTA
+       END IF
+       IF (ABS(DDELTA).LT.EPSD0) EXIT
        DELTA = DDELTA
     END DO
 

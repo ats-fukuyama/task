@@ -15,7 +15,7 @@ MODULE wrcomm_parm
   INTEGER:: NRAYMAX,NSTPMAX,NRSMAX,NRLMAX,LMAXNW
   INTEGER:: mode_beam
   INTEGER:: MDLWRI,MDLWRG,MDLWRP,MDLWRQ,MDLWRW,MDLWRF
-  REAL(rkind):: SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW
+  REAL(rkind):: SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW,EPSD0
   REAL(rkind):: pne_threshold,bdr_threshold
   INTEGER:: nsumax
   REAL(rkind):: Rmax_eq,Rmin_eq,Zmin_eq,Zmax_eq,Raxis_eq,Zaxis_eq
