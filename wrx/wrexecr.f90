@@ -1023,7 +1023,7 @@ CONTAINS
     REAL(rkind):: RXP,RYP,RZP,RRKXP,RRKYP,RRKZP
     REAL(rkind):: DOMG,DXP,DYP,DZP,DKXP,DKYP,DKZP,DS
     REAL(rkind):: VX,VY,VZ,VKX,VKY,VKZ,VDU
-    REAL(rkind):: DUMMY
+    REAL(rkind):: DUMMY,AVR,AVKR
 
       VV=DELDER
       TT=DELDER
@@ -1039,12 +1039,14 @@ CONTAINS
       UU=Y(7)
       OMG=2.D6*PI*RF
       ROMG=MAX(ABS(OMG)*VV,TT)
-      RXP=MAX(ABS(XP)*VV,TT)
-      RYP=MAX(ABS(YP)*VV,TT)
-      RZP=MAX(ABS(ZP)*VV,TT)
-      RRKXP=MAX(ABS(RKXP)*VV,TT)
-      RRKYP=MAX(ABS(RKYP)*VV,TT)
-      RRKZP=MAX(ABS(RKZP)*VV,TT)
+      AVR=dels
+      RXP=MAX(AVR*VV,TT)
+      RYP=MAX(AVR*VV,TT)
+      RZP=MAX(AVR*VV,TT)
+      AVKR=dels*SQRT(RKXP**2+RKYP**2+RKZP**2)/SQRT(XP**2+YP**2+ZP**2)
+      RRKXP=MAX(AVKR*VV,TT)
+      RRKYP=MAX(AVKR*VV,TT)
+      RRKZP=MAX(AVKR*VV,TT)
 
       DOMG=(DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP,OMG+ROMG) &
            -DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP,OMG-ROMG))/(2.D0*ROMG)
@@ -1095,10 +1097,10 @@ CONTAINS
       ENDIF
 
       IF(idebug_wr(12).NE.0) THEN
-         WRITE(6,'(A)') '*** idebug_wr(12): wrfdrv'
-         WRITE(6,'(A,3ES12.4)') 'x7:',X,Y(7),F(7)
-         WRITE(6,'(A,6ES12.4)') 'y :',Y(1),Y(2),Y(3),Y(4),Y(5),Y(6)
-         WRITE(6,'(A,6ES12.4)') 'f :',F(1),F(2),F(3),F(4),F(5),F(6)
+         WRITE(26,'(A)') '*** idebug_wr(12): wrfdrv'
+         WRITE(26,'(A,4ES12.4)') 'x7ds:',X,Y(7),F(7),DS
+         WRITE(26,'(A,6ES12.4)') 'y   :',Y(1),Y(2),Y(3),Y(4),Y(5),Y(6)
+         WRITE(26,'(A,6ES12.4)') 'f   :',F(1),F(2),F(3),F(4),F(5),F(6)
       END IF
       RETURN
   END SUBROUTINE WRFDRV

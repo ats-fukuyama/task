@@ -304,7 +304,7 @@ CONTAINS
 !     +               5: Sauter                               +
 !     +               else: Hinton and Hazeltine              +
 !     +    MDLKNC: NEOCLASSICAL TRANSPORT MODEL               +
-!     +               0    : Hinton and Hazeltine             +
+!     +               1    : Hinton and Hazeltine             +
 !     +               else : Chang and Hinton                 +
 !     +                                                       +
 !     +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
