@@ -148,7 +148,7 @@ module fpcomm
       integer,dimension(:),POINTER :: & ! (NRM)
            ITLG,ITUG,ITLG_RG,ITUG_RG
       real(rkind),dimension(:),POINTER :: & ! (NRM)
-           volr
+           volr,arear
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
            rlamdag,ETAMG,ETAMG_RG,ETAGG_RG,RLAMDAG_RG
       real(rkind),dimension(:),POINTER :: & ! (NRM)
@@ -339,7 +339,7 @@ module fpcomm
           allocate( F(NTHMAX,NPSTARTW:NPENDWM,NRSTART:NREND))
           allocate(F1(NTHMAX,NPSTARTW:NPENDWM,NRSTART:NREND))
 
-          allocate(RG(NRMAX+1),RM(NRMAX),VOLR(NRMAX))
+          allocate(RG(NRMAX+1),RM(NRMAX),VOLR(NRMAX),AREAR(NRMAX))
           allocate(RLAMDAG(NTHMAX,NRMAX+1),RLAMDAG_RG(NTHMAX,NRMAX+1))
           allocate(ETAMG(NTHMAX,NRMAX+1),ETAMG_RG(NTHMAX,NRMAX+1))
           allocate(BP(NRMAX+1),QR(NRMAX))
@@ -612,7 +612,7 @@ module fpcomm
           deallocate(F)
           deallocate(F1)
 
-          deallocate(RG,RM,VOLR)
+          deallocate(RG,RM,VOLR,AREAR)
           deallocate(RLAMDAG,RLAMDAG_RG)
           deallocate(ETAMG,ETAMG_RG)
           deallocate(BP,QR)

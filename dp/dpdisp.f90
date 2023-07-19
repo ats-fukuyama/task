@@ -187,9 +187,9 @@ CONTAINS
           CU21= 0.D0
           CU22= 1.D0
           CU23= 0.D0
-          CU31= 1.D0
+          CU31= 0.D0
           CU32= 0.D0
-          CU33= 0.D0
+          CU33= 1.D0
        ELSE
           CU11=-mag%BNZ*mag%BNX/BNXY
           CU12=-mag%BNZ*mag%BNY/BNXY

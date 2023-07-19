@@ -33,6 +33,7 @@
       integer :: ierr,NSA,NS,NR,NP,NTH,id
 !      character(LEN=80)::line 
       real(rkind)::rhon,rhol,rhol1,rhol2,A1,epsl,ql,BT
+      real(rkind)::vol1,vol2,area1,area2
       real(rkind),DIMENSION(:),POINTER:: work,workg
       real(rkind):: Rmass, RRTFP, RPTFP,RVTFP, sumEmax
 
@@ -213,14 +214,30 @@
             RHOL2=RG(NR+1)
             VOLR(NR)=2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1)) &
                  *2.D0*PI*RR
+            AREAR(NR)=2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1))
          ENDDO
-      CASE(3,5,8) ! toroidal
+      CASE(3,8) ! toroidal
          DO NR=1,NRMAX
             RHOL=RM(NR)
             RHOL1=RG(NR)
             RHOL2=RG(NR+1)
             VOLR(NR)=2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1)) &
                  *2.D0*PI*RR
+            AREAR(NR)=2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1))
+         ENDDO
+      CASE(5) ! eqdsk
+         DO NR=1,NRMAX
+            RHOL=RM(NR)
+            RHOL1=RG(NR)
+            RHOL2=RG(NR+1)
+            CALL eq_get_vps(RHOL1,VOL1)
+            CALL eq_get_vps(RHOL2,VOL2)
+            VOLR(NR)=VOL2-VOL1
+            CALL eq_get_sps(RHOL1,AREA1)
+            CALL eq_get_sps(RHOL2,AREA2)
+            AREAR(NR)=AREA2-AREA1
+            WRITE(6,'(A,I6,3ES12.4)') 'vps: ',NR,RHOL,VOLR(NR), &
+                 2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1))*2.D0*PI*RR
          ENDDO
       END SELECT
 

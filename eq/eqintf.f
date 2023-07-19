@@ -78,6 +78,26 @@ C
       RETURN
       END
 C
+C     ***** GET plasma volume *****
+C
+      SUBROUTINE eq_get_vps(RHON,VPSL)
+C
+      INCLUDE '../eq/eqcomq.inc'
+C
+      VPSL=FNVPS(RHON)
+      RETURN
+      END
+C
+C     ***** GET plasma cross section area *****
+C
+      SUBROUTINE eq_get_sps(RHON,SPSL)
+C
+      INCLUDE '../eq/eqcomq.inc'
+C
+      SPSL=FNSPS(RHON)
+      RETURN
+      END
+C
 C     ***** GET MINIMUM R AS A FUNCTION OF PSIN *****
 C
       SUBROUTINE GETRMN(RHON,RRMINL)
