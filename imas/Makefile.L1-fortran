@@ -1,0 +1,62 @@
+# DEFINE F90
+include ../../compiler.mk
+# SET COMPILER OPTIONS
+ifeq ($(F90), ifort)
+# INTEL - LINKS TO THE IMAS LIBRARY AND INCLUDE DIRECTORY
+  F90FLAGS=-fPIC -fpp -g # FPIC AND PREPROCESSING OPTIONS
+  F90INC=-I. `pkg-config imas-ifort --cflags`
+  F90LIB=`pkg-config imas-ifort --libs`
+else ifeq ($(F90), gfortran)
+# GFORTRAN - LINKS TO THE IMAS LIBRARY AND INCLUDE DIRECTORY
+  F90FLAGS=-fPIC -cpp # FPIC AND PREPROCESSING OPTIONS
+  F90INC=-I. `pkg-config imas-gfortran --cflags`
+  F90LIB=`pkg-config imas-gfortran --libs`
+else
+  $(warning Unsupported Fortran compiler $(F90), proceed with care...)
+  F90FLAGS=-fPIC -cpp # FPIC AND PREPROCESSING OPTIONS
+  F90INC=-I. `pkg-config imas-gfortran --cflags`
+  F90LIB=`pkg-config imas-gfortran --libs`
+endif
+
+# LIST OF FORTRAN FILES
+OBJS_ACTOR = physics_model_level1.o
+OBJS_STDA  = standalone.o
+
+all: lib exe actor
+
+lib: libphysics_model_level1.a
+
+exe: standalone.exe
+
+orig: physics_original.exe
+
+# STANDALONE COMPILATION
+standalone.exe: libphysics_model_level1.a ${OBJS_STDA}
+	$(F90) ${F90FLAGS} -o standalone.exe ${OBJS_STDA} $(F90LIB) -L. -lphysics_model_level1
+
+# LIBRARY COMPILATION
+libphysics_model_level1.a: ${OBJS_ACTOR}
+	ar -cr $@ $^
+
+# COMPILE THE ACTOR
+fc2k_actor: libphysics_model_level1.a
+	sed 's/__COMPILER__/${F90}/g' physics_model_level1_template.xml > physics_model_level1.xml
+	$(FC2K)/bin/fc2k physics_model_level1.xml -nokepler -pyworkspace $(ACTOR_FOLDER)
+
+actor: libphysics_model_level1.a 
+	sed 's/__COMPILER__/${F90}/g' physics_model_level1_template.yaml > physics_model_level1.yaml
+	iwrap -f physics_model_level1.yaml -i $(ACTOR_FOLDER)
+
+# COMPILE THE ORIGINAL CODE
+input_data.txt:
+	echo "3.14156" >> $@
+physics_original.exe: physics_original.f90 input_data.txt
+	$(F90) -o $@ $<
+
+# RULES FOR ALL OBJECT FILES
+%.o:%.f90
+	$(F90) ${F90FLAGS} -c  $< $(F90INC)
+
+# CLEAN DIRECTORY
+clean:
+	rm -f *~ *.exe *.a *.mod *.o physics_model_level1.xml physics_original.exe input_data.txt output_data.txt
