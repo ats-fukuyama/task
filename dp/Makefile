@@ -10,8 +10,8 @@ LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 .SUFFIXES:
 .SUFFIXES: .f90 .mod .o .a
@@ -27,8 +27,9 @@ SRCS = dpcomm.f90 dpinit.f90 dpfpin.f90 dpparm.f90 dpsub.f90  \
        dphotf.f90 dphotr.f90 \
        dptnsb1.f90 \
        dptnsr1.f90 dptnsr2.f90 dptnsr3.f90 dptnsr4.f90 dptnsr0.f90 \
-       dpdisp.f90 dppola.f90 \
+       dpdisp.f90 dpdispx.f90 dppola.f90 \
        dpgsub.f90 dpglib.f90 dproot.f90 dpcont.f90 dpcont4.f90 \
+       dptest.f90 \
        dpmenu.f90	
 
 SRCSX = dpdkdt.f dptestk.f
@@ -89,6 +90,7 @@ dpcont.o: dpcont.f90 $(DPCOMM) $(PLPROF)
 dpcont4.o: dpcont4.f90 $(DPCOMM) $(PLPROF)
 dpscan.o: dpscan.f $(DPCOMM)
 dpdisp.o: dpdisp.f90 $(DPCOMM) $(PLPROF)
+dpdispx.o: dpdispx.f90 $(DPCOMM) $(PLPROF)
 dptnsr0.o: dptnsr0.f90 $(DPCOMM) $(PLPROF)
 dptnsr1.o: dptnsr1.f90 $(DPCOMM) $(PLPROF)
 dptnsr2.o: dptnsr2.f90 $(DPCOMM) $(PLPROF)
@@ -101,6 +103,7 @@ dphotr.o: dphotr.f90 $(DPCOMM) $(PLPROF)
 dpdkdt.o: dpdkdt.f90 $(DPCOMM)
 dpgsub.o: dpgsub.f90
 dpsub.o: dpsub.f90
+dptest.o: dptest.f90 $(DPCOMM)
 dpmenu.o: dpmenu.f90 dptnsb1.f90 $(DPCOMM) $(PLPROF)
 dpmain.o: dpmain.f90 $(DPCOMM)
 

@@ -36,7 +36,7 @@ CONTAINS
   601    FORMAT('## WR MENU: P,V/PARM  R,B/RAY  G/GRAPH  S,L,W/FILE', &
                 '  Dn/DISP  F/ROOT  Q/QUIT')
          CALL TASK_KLIN(LINE,KID,MODE,WR_PARM)
-         IF(MODE.EQ.3) STOP
+!         IF(MODE.EQ.3) STOP
       IF(MODE.NE.1) GOTO 1
 
       IF(KID.EQ.'P') THEN

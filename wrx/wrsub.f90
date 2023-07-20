@@ -9,7 +9,6 @@ MODULE wrsub
   PUBLIC cold_rkr0
   PUBLIC wrmodconv
   PUBLIC wrmodnwtn
-  PUBLIC dispfn
   PUBLIC dispxr
   PUBLIC dispxi
   PUBLIC wrcale
@@ -423,68 +422,6 @@ CONTAINS
     RETURN
   END SUBROUTINE WRMODNWTN
 
-!  ----- calculate dispersion relation D -----
-
-  FUNCTION DISPFN(RKR,RKPH,RKZ,RP,ZP,PHI,omega)
-
-    USE wrcomm
-    USE pllocal
-    USE dpdisp,ONLY: cfdisp
-    IMPLICIT NONE
-    REAL(rkind),INTENT(IN):: RKR,RKPH,RKZ,RP,ZP,PHI,omega
-    REAL(rkind):: DISPFN
-    INTEGER:: MODELPS(NSMAX)
-    INTEGER:: NS
-    REAL(rkind):: X,Y,Z
-    COMPLEX(rkind):: CRF,CKX,CKY,CKZ,CF,CWW,CWC
-
-    CRF=DCMPLX(omega/(2.D6*PI),0.D0)
-    IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
-       CKX=DCMPLX(RKR,0.D0)
-       CKY=DCMPLX(RKPH,0.D0)
-       CKZ=DCMPLX(RKZ,0.D0)
-       X=RP
-       Y=2.D0*PI*RR*SIN(PHI)
-       Z=ZP
-    ELSEIF(MODELG.EQ.11) THEN
-       CKX=DCMPLX(RKR,0.D0)
-       CKY=DCMPLX(RKPH,0.D0)
-       CKZ=DCMPLX(RKZ,0.D0)
-       X=RP
-       Y=PHI
-       Z=ZP
-    ELSE
-       CKX=DCMPLX(RKR*COS(PHI)-RKPH*SIN(PHI),0.D0)
-       CKY=DCMPLX(RKR*SIN(PHI)+RKPH*COS(PHI),0.D0)
-       CKZ=DCMPLX(RKZ,0.D0)
-       X=RP*COS(PHI)
-       Y=RP*SIN(PHI)
-       Z=ZP
-    ENDIF
-        
-    DO NS=1,NSMAX
-       MODELPS(NS)=MODELP(NS)
-       IF(MODELP(NS).GE.100.AND.MODELP(NS).LT.300) MODELP(NS)=0
-       IF(MODELP(NS).GE.300.AND.MODELP(NS).LT.500) MODELP(NS)=4
-       IF(MODELP(NS).GE.500.AND.MODELP(NS).LT.600) MODELP(NS)=6
-    ENDDO
-
-    CF=CFDISP(CRF,CKX,CKY,CKZ,X,Y,Z)
-
-    CWW=2.D0*PI*1.D6*CRF
-    DO NS=1,NSMAX
-       CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS))
-       CF=CF*(CWW-ABS(CWC))/(CWW+ABS(CWC))
-    ENDDO
-
-    DO NS=1,NSMAX
-       MODELP(NS)=MODELPS(NS)
-    ENDDO
-
-    DISPFN=DBLE(CF)
-    RETURN
-  END FUNCTION DISPFN
-
 !  ----- calculate real part of dispersion relation Re D -----
 
   FUNCTION DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP,omega)
@@ -525,13 +462,13 @@ CONTAINS
 
       CF=CFDISPR(CRF,CKX,CKY,CKZ,X,Y,Z)
 
-      CWW=2.D0*PI*1.D6*CRF
-      DO NS=1,NSMAX
-         IF(NSDP(NS).EQ.1) THEN
-            CWC=MAG%BABS*PZ(NS)*AEE/(AMP*PA(NS))
-            CF=CF*(CWW-ABS(CWC))/(CWW+ABS(CWC))
-         ENDIF
-      ENDDO
+!      CWW=2.D0*PI*1.D6*CRF
+!      DO NS=1,NSMAX
+!         IF(NSDP(NS).EQ.1) THEN
+!            CWC=MAG%BABS*PZ(NS)*AEE/(AMP*PA(NS))
+!            CF=CF*(CWW-ABS(CWC))/(CWW+ABS(CWC))
+!         ENDIF
+!      ENDDO
 
       DO NS=1,NSMAX
          MODELP(NS)=MODELPS(NS)
@@ -568,13 +505,13 @@ CONTAINS
             
       CF=CFDISP(CRF,CKX,CKY,CKZ,X,Y,Z)
 
-      CWW=2.D0*PI*1.D6*CRF
-      DO NS=1,NSMAX
-         IF(NSDP(NS).EQ.1) THEN
-            CWC=MAG%BABS*PZ(NS)*AEE/(AMP*PA(NS))
-            CF=CF*(CWW-ABS(CWC))/(CWW+ABS(CWC))
-         ENDIF
-      ENDDO
+!      CWW=2.D0*PI*1.D6*CRF
+!      DO NS=1,NSMAX
+!         IF(NSDP(NS).EQ.1) THEN
+!            CWC=MAG%BABS*PZ(NS)*AEE/(AMP*PA(NS))
+!            CF=CF*(CWW-ABS(CWC))/(CWW+ABS(CWC))
+!         ENDIF
+!      ENDDO
 
       DISPXI=DIMAG(CF)
       RETURN

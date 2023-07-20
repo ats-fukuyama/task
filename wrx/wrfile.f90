@@ -75,7 +75,7 @@ CONTAINS
   SUBROUTINE wr_load(NSTAT)
 
     USE wrcomm
-    USE wrexecr,ONLY: wr_calc_pwr
+    USE wrcalpwr,ONLY: wr_calc_pwr
     USE libfio
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: NSTAT

@@ -10,7 +10,7 @@ CONTAINS
 
     USE wrcomm_parm
     IMPLICIT NONE
-    INTEGER:: NRAY,i
+    INTEGER:: NRAY,i,nsa
 
 !     *********** Ray/Beam inital parameters ***********
 
@@ -212,6 +212,11 @@ CONTAINS
       NPMAX_DP=50
       NTHMAX_DP=50
       NRMAX_DP=50
+      NSAMAX_WR=1
+      DO NSA=1,NSM
+         NS_NSA_WR(NSA)=1
+      END DO
+      nsa_grf=1
 
       RETURN
   END SUBROUTINE WR_INIT

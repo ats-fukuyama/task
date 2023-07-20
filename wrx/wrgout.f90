@@ -241,7 +241,7 @@ CONTAINS
 
     DO nray=1,nraymax
        DO nrs=1,nrsmax
-          GPY(nrs,nray)=GUCLIP(pwr_nrs_nray(nrs,nray)*pos_nrs(nrs))
+          GPY(nrs,nray)=GUCLIP(pwr_nrs_nray(nsa_grf,nrs,nray)*pos_nrs(nrs))
        ENDDO
     ENDDO
     DO nrs=1,nrsmax
@@ -402,7 +402,7 @@ CONTAINS
 
     DO nray=1,nraymax
        DO nrl=1,nrlmax
-          GPY(nrl,nray)=GUCLIP(pwr_nrl_nray(nrl,nray))
+          GPY(nrl,nray)=GUCLIP(pwr_nrl_nray(nsa_grf,nrl,nray))
        ENDDO
     ENDDO
     DO nrl=1,nrlmax

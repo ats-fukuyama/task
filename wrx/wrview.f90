@@ -13,7 +13,7 @@ CONTAINS
 
     USE wrcomm_parm
     IMPLICIT NONE
-    INTEGER:: i
+    INTEGER:: i,nsa
 
     WRITE(6,603) 'NRAYMAX     ',NRAYMAX, &
                  'NSTPMAX     ',NSTPMAX
@@ -36,6 +36,11 @@ CONTAINS
     WRITE(6,603) 'NPMAX_DP    ',NPMAX_DP, &
                  'NTHMAX_DP   ',NTHMAX_DP,&
                  'NRMAX_DP    ',NRMAX_DP
+    WRITE(6,603) 'NSAMAX_WR   ',NSAMAX_WR, &
+                 'nsa_grf     ',nsa_grf
+    DO NSA=1,NSAMAX_WR
+       WRITE(6,603) 'NS_NSA_WR   ',NS_NSA_WR(NSA)
+    END DO
     WRITE(6,604) 'pne_threshold   ',pne_threshold, &
                  'bdr_threshold   ',bdr_threshold
     WRITE(6,602) 'Rmax  ',Rmax_wr,'Rmin  ',Rmin_wr, &

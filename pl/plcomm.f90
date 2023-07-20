@@ -81,7 +81,7 @@ CONTAINS
 
   SUBROUTINE pl_allocate_ns
     ! DUMMY SUBROUTINE 
-    NSMAX=1
+    NSMAX=2
     return
   end subroutine pl_allocate_ns
 

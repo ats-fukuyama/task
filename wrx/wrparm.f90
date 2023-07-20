@@ -73,7 +73,7 @@ CONTAINS
                   RFIN,RPIN,ZPIN,PHIIN,RNPHIN,MODEWIN,RNKIN,UUIN, &
                   ANGTIN,ANGPIN,RCURVAIN,RCURVBIN,RBRADAIN,RBRADBIN, &
                   NRAYMAX,NSTPMAX,NRSMAX,NRLMAX,LMAXNW, &
-                  NPMAX_DP,NTHMAX_DP,NRMAX_DP, &
+                  NPMAX_DP,NTHMAX_DP,NRMAX_DP,NSAMAX_WR,NS_NSA_WR,nsa_grf, &
                   MDLWRI,MDLWRG,MDLWRP,MDLWRQ,MDLWRW,nres_max,nres_type, &
                   MDLWRF, &
                   SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW,EPSD0, &
@@ -123,7 +123,7 @@ CONTAINS
              9X,'RFIN,RPIN,ZPIN,PHIIN,RNPHIN,MODEWIN,RNKIN,UUIN,'/ &
              9X,'ANGTIN,ANGPIN,RCURVAIN,RCURVBIN,RBRADAIN,RBRADBIN,'/ &
              9X,'NRAYMAX,NSTPMAX,NRSMAX,NRLMAX,LMAXNW,'/ &
-             9X,'NPMAX_DP,NTHMAX_DP,NRMAX_DP,'/ &
+             9X,'NPMAX_DP,NTHMAX_DP,NRMAX_DP,NSAMAX_WR,NS_NSA_WR,nsa_grf'/ &
              9X,'MDLWRI,MDLWRG,MDLWRP,MDLWRQ,MDLWRW,nres_max,nres_type,'/ &
              9X,'MDLWRF,'/ &
              9X,'SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW,EPSD0,'/ &
@@ -168,7 +168,6 @@ CONTAINS
              CALL eq_parm(2,LINE,IERR)
              CALL EQCALQ(IERR)
              CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
-             WRITE(6,*) ALLOCATED(rsu_wr)
              CALL eqget_rzsu(rsu_wr,zsu_wr,nsumax)
              rmax_eq=rsu_wr(1)
              rmin_eq=rsu_wr(1)
@@ -188,9 +187,9 @@ CONTAINS
              zmin_wr=zaxis_eq+bdr_threshold*(zmin_eq-zaxis_eq)
              IF(rmin_wr.LT.0.D0) rmin_wr=0.D0
 
-             WRITE(6,'(A,4ES12.4)') '_eq:',rmin_eq,rmax_eq,zmin_eq,zmax_eq
-             WRITE(6,'(A,2ES12.4)') '_ax:',raxis_eq,zaxis_eq
-             WRITE(6,'(A,4ES12.4)') '_wr:',rmin_wr,rmax_wr,zmin_wr,zmax_wr
+ !            WRITE(6,'(A,4ES12.4)') '_eq:',rmin_eq,rmax_eq,zmin_eq,zmax_eq
+ !            WRITE(6,'(A,2ES12.4)') '_ax:',raxis_eq,zaxis_eq
+ !            WRITE(6,'(A,4ES12.4)') '_wr:',rmin_wr,rmax_wr,zmin_wr,zmax_wr
              INITEQ=1
           ELSE
              WRITE(6,*) 'XX EQLOAD: IERR=',IERR

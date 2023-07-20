@@ -36,7 +36,7 @@ MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../dp/$(MOD) -I../eq/$(MOD) \
 
 SRCS = wrcomm.f90 wrinit.f90 wrparm.f90 wrview.f90 \
        wrsub.f90 \
-       wrsetup.f90 wrexecr.f90 wrexecb.f90 \
+       wrsetup.f90 wrcalpwr.f90 wrexecr.f90 wrexecb.f90 \
        wrexec.f90 \
        wrgout.f90 wrfile.f90 \
        wrmenu.f90
@@ -100,9 +100,10 @@ $(OBJDIR)/wrinit.o: wrinit.f90 $(WRCOMM)
 $(OBJDIR)/wrparm.o: wrparm.f90 $(WRCOMM) ../dp/dpparm.f90 
 $(OBJDIR)/wrview.o: wrview.f90 $(WRCOMM)
 $(OBJDIR)/wrsetup.o:wrsetup.f90 $(WRCOMM)
+$(OBJDIR)/wrcalpwr.o:wrcalpwr.f90 $(WRCOMM)
 
 $(OBJDIR)/wrexecr.o:wrexecr.f90 $(WRCOMM) ../pl/plprof.f90 ../dp/dpdisp.f90 \
-wrsub.f90
+wrsub.f90 wrcalpwr.f90
 $(OBJDIR)/wrexecb.o:wrexecb.f90 $(WRCOMM) ../pl/plprof.f90 ../dp/dpdisp.f90 \
 wrsub.f90
 $(OBJDIR)/wrexec.o:wrexec.f90 $(WRCOMM) wrexecr.f90 wrexecb.f90

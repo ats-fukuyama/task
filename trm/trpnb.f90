@@ -497,7 +497,7 @@
 
       IF(PNBCD.LE.0.D0) RETURN
 
-!     D. R .Mikkelsen and C. E. Singer, J. Plasma Phys. 4 237 (1983)
+!     D. R .Mikkelsen and C. E. Singer, Nucl. Tech. - Fusion 4 237 (1983)
 !        xi_0 corresponds to PNBCD
 !        H(r)*P_b/V_p corresponds to PBIN(NR)
 !
