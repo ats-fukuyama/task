@@ -25,44 +25,44 @@ F90INCMOD=$(F90INC) $(MODINCLUDE)
 OBJDIR=./obj
 
 # LIST OF FORTRAN FILES
-OBJS_ACTOR = $(OBJDIR)/physics_model_level1.o
-OBJS_STDA  = $(OBJDIR)/standalone.o
+OBJS_ACTOR = $(OBJDIR)/wr_imas.o
+OBJS_STDA  = $(OBJDIR)/wr_standalone.o
 
 all: lib exe actor
 
-lib: libphysics_model_level1.a
+lib: libwr_imas.a
 
-exe: standalone.exe
+exe: wr_standalone.exe
 
-orig: physics_original.exe
+orig: wr_original.exe
 
 # STANDALONE COMPILATION
-standalone.exe: libphysics_model_level1.a ${OBJS_STDA}
-	$(F90) ${F90FLAGS} -o standalone.exe ${OBJS_STDA} $(F90LIB) -L. -lphysics_model_level1
+wr_standalone.exe: libwr_imas.a ${OBJS_STDA}
+	$(F90) ${F90FLAGS} -o wr_standalone.exe ${OBJS_STDA} $(F90LIB) -L. -lwr_imas
 
 # LIBRARY COMPILATION
-libphysics_model_level1.a: ${OBJS_ACTOR}
+libwr_imas.a: ${OBJS_ACTOR}
 	ar -cr $@ $^
 
 # COMPILE THE ACTOR
-fc2k_actor: libphysics_model_level1.a
-	sed 's/__COMPILER__/${F90}/g' physics_model_level1_template.xml > physics_model_level1.xml
-	$(FC2K)/bin/fc2k physics_model_level1.xml -nokepler -pyworkspace $(ACTOR_FOLDER)
+task_wr_actor: libwr_imas_wr.a
+	sed 's/__COMPILER__/${F90}/g'task_wr_template.xml > task_wr.xml
+	$(FC2K)/bin/fc2k task_wr.xml -nokepler -pyworkspace $(ACTOR_FOLDER)
 
 actor: libphysics_model_level1.a 
-	sed 's/__COMPILER__/${F90}/g' physics_model_level1_template.yaml > physics_model_level1.yaml
-	iwrap -f physics_model_level1.yaml -i $(ACTOR_FOLDER)
+	sed 's/__COMPILER__/${F90}/g' task_wr_template.yaml > task_wr.yaml
+	iwrap -f task_wr.yaml -i $(ACTOR_FOLDER)
 
 # COMPILE THE ORIGINAL CODE
 input_data.txt:
 	echo "3.14156" >> $@
-physics_original.exe: physics_original.f90 input_data.txt
+wr_original.exe: wr_original.f90 input_data.txt
 	$(F90) -o $@ $<
 
 # RULES FOR ALL OBJECT FILES
-${OBDIR}/%.o:%.f90
+${OBJDIR}/%.o:%.f90
 	$(F90) ${F90FLAGS} -c  $< -o $@ $(F90INCMOD)
 
 # CLEAN DIRECTORY
 clean:
-	rm -f *~ *.exe *.a *.mod *.o physics_model_level1.xml physics_original.exe input_data.txt output_data.txt
+	rm -f *~ *.exe *.a *.mod *.o task_wr.xml task_wr.exe input_data.txt output_data.txt
