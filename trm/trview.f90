@@ -48,6 +48,8 @@ CONTAINS
       WRITE(6,603) 'MDEDGE',MDEDGE,'CSPRS ',CSPRS, 'CNN   ',CNN
       WRITE(6,601) 'CNP   ',CNP,   'CNH   ',CNH,   'CDP   ',CDP,   'CDH   ',CDH
       WRITE(6,601) 'AD0   ',AD0,   'CHP   ',CHP,   'CWEB  ',CWEB,  'CALF  ',CALF
+      WRITE(6,631)     'model_prof  ',model_prof
+      WRITE(6,'(A,A)') 'knam_prof   ',knam_prof
       IF((MDLKAI.GE.1.AND.MDLKAI.LT.10).OR.ID.EQ.1) &
          WRITE(6,601) 'CKALFA',CKALFA,'CKBETA',CKBETA,'CKGUMA',CKGUMA
 
@@ -137,5 +139,6 @@ CONTAINS
               2X,A8,'=',I5,4X   :2X,A8,'=',I5)
   623 FORMAT(' ',A8,'=',I7,4X   :2X,A8,'=',1PE11.3: &
               2X,A8,'=',1PE11.3)
+631   FORMAT(' ',A12,'=',ES11.3)
     END SUBROUTINE tr_view
   END MODULE trview

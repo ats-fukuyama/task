@@ -172,6 +172,8 @@ CONTAINS
       PROFNU2= 1.D0
       PROFJ1 =-2.D0
       PROFJ2 = 1.D0
+      model_prof=0
+      knam_prof='prof.data'
 
       ALP(1) = 1.0D0
       ALP(2) = 0.D0

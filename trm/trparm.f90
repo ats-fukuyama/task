@@ -68,7 +68,7 @@ CONTAINS
                     MDLST,MDLNF,IZERO,MODELG,NTEQIT,MDEDGE,MDLIMP, &
                     MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX,MDLER,MDCD05, &
                     PNBTOT,PNBR0,PNBRW,PNBVY,PNBVW,PNBENG,PNBRTG,MDLNB, &
-                    NRNBMAX, &
+                    NRNBMAX,model_prof,knam_prof, &
                     PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC, &
                     PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,MDLLH, &
                     PICTOT,PICR0,PICRW,PICTOE,PICNPR,MDLIC, &
@@ -126,7 +126,7 @@ CONTAINS
              ' ',8X,'pellet_time_start,pellet_time_interval'/ &
              ' ',8X,'number_of_pellet_repeat'/ &
              ' ',8X,'MDLPR,SYNCABS,SYNCSELF,MODELG,NTEQIT'/&
-             ' ',8X,'MDEDGE,MDLIMP,'/ &
+             ' ',8X,'MDEDGE,MDLIMP,model_prof,knam_prof,'/ &
              ' ',8X,'MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX,MDLER,MDCD05'/ &
              ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/ &
              ' ',8X,'MDLEQE,MDLEOI,NSMAX,NSZMAX,NSNMAX,KUFDIR,KUFDEV,KUFDCG'/ &

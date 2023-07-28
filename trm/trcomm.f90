@@ -44,6 +44,10 @@ MODULE TRCOMM
        LMAXTR, MDLKAI, MDLETA, MDLAD, MDLAVK, MDLKNC, MDLTPF, &
        NTMAX, NTSTEP, NGTSTP, NGRSTP, NGPST, MODELG,MDLDSK,MDTC, &
        MDLPR
+  INTEGER:: &
+       model_prof
+  CHARACTER(LEN=128):: &
+       knam_prof
 
 !     ****** MODEL PARAMETERS ******
 ! TRMDL

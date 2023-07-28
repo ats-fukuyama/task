@@ -16,9 +16,16 @@ CONTAINS
     SUBROUTINE tr_prof
 
       USE trcomm
+      USE libfio
+      USE libspl1d
       IMPLICIT NONE
       INTEGER:: NR, NS, NF
       REAL(rkind) :: PROF,qsurf,qaxis
+      REAL(rkind),ALLOCATABLE:: &
+           rs_prof(:),rn_prof(:),rdn_prof(:),uprof(:,:)
+      INTEGER:: nrmax_prof,ierr,i
+      REAL(rkind):: R1,RN1
+      
 
       CALL TR_EDGE_DETERMINER(0)
       CALL TR_EDGE_SELECTOR(0)
@@ -41,203 +48,89 @@ CONTAINS
             RNF(NR,NF)=0.D0
             RTF(NR,NF)=0.D0
          END DO
+      END DO
 
-         select case(MDLUF)
-         case(1)
-            IF(MDNI.EQ.0) THEN
-               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-               RN(NR,1) = RNU(1,NR,1)
-               RN(NR,2) = RNU(1,NR,2)
-               RN(NR,3) = (PN(3)-PNS(3))*PROF+PNS(3)
-               RN(NR,4) = (PN(4)-PNS(4))*PROF+PNS(4)
+      SELECT CASE(model_prof)
+      CASE(11)
+         CALL FROPEN(21,knam_prof,1,0,'PN',ierr)
+         IF(ierr.NE.0) THEN
+            WRITE(6,'(A,I8)') &
+                 'XX file open error: knam_prof: ierr=',ierr
+            STOP
+         END IF
+         I=0
+         READ(21,'(A)')
+100      CONTINUE
+         I=I+1
+         READ(21,*,ERR=190,END=200) R1,RN1
+         GO TO 100
+190      WRITE(6,*) 'XX prof error'
+         STOP
+200      WRITE(6,'(A,I6)') '## prof_data size=',I-1
+         nrmax_prof=I-1
+         ALLOCATE(rs_prof(nrmax_prof),rn_prof(nrmax_prof))
+         REWIND(21)
+         READ(21,'(A)')
+300      CONTINUE
+         DO I=1,nrmax_prof
+            READ(21,*,ERR=390,END=400) rs_prof(I),rn_prof(I)
+            rn_prof(I)=rn_PROF(I)*1.D-20
+            WRITE(6,'(A,I8,2ES12.4)') 'read:',I,rs_prof(I),rn_prof(I)
+         END DO
+         GOTO 400
+390      WRITE(6,*) 'XX prof data error'
+         STOP
+               
+400      CONTINUE
+         WRITE(6,*) nrmax_prof,rs_prof(1),rs_prof(nrmax_prof)
+         ALLOCATE(rdn_prof(nrmax_prof))
+         ALLOCATE(uprof(4,nrmax_prof))
+         rdn_prof(1)=0.D0
+         CALL SPL1D(rs_prof,rn_prof,rdn_prof,uprof,nrmax_prof,1,ierr)
+         WRITE(6,*) nrmax_prof,rs_prof(1),rs_prof(nrmax_prof)
+         IF(ierr.NE.0) THEN
+            WRITE(6,*) 'XX prof spline error !'
+            STOP
+         END IF
+      END SELECT
 
-               IF(RHOA.EQ.1.D0.OR.(RHOA.NE.1.D0.AND.NR.LE.NRAMAX)) THEN
-                  PROF   = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFT1)**PROFT2
-                  RT(NR,1:2) = (PT(1:2)-PTS(1:2))*PROF+PTS(1:2)
-               ELSEIF(RHOA.NE.1.D0.AND.NR.GT.NRAMAX) THEN
-                  RT(NR,1) = RTU(1,NR,1)
-                  RT(NR,2) = RTU(1,NR,2)
-               ENDIF
-               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-               RT(NR,3) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF +RTU(1,NRMAX,2)
-               RT(NR,4) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF +RTU(1,NRMAX,2)
-            ELSE
-               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-               RN(NR,1) = RNU(1,NR,1)
-               RN(NR,2) = RNU(1,NR,2)
-               RN(NR,3) = RNU(1,NR,3)
-               RN(NR,4) = (PN(4)-PNS(4))*PROF+PNS(4)
-
-               RT(NR,1) = RTU(1,NR,1)
-               RT(NR,2) = RTU(1,NR,2)
-               RT(NR,3) = RTU(1,NR,3)
-               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-               RT(NR,4) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF +RTU(1,NRMAX,2)
-            ENDIF
-
-            PEX(NR,1) = PNBU(1,NR,1)
-            PEX(NR,2) = PNBU(1,NR,2)
-            PEX(NR,3) = 0.D0
-            PEX(NR,4) = 0.D0
-            SEX(NR,1:NSM) = 0.D0
-            PRF(NR,1) = PICU(1,NR,1)
-            PRF(NR,2) = PICU(1,NR,2)
-            PRF(NR,3) = 0.D0
-            PRF(NR,4) = 0.D0
-
-            RNF(NR,1) = RNFU(1,NR)
-            RNF(NR,2:NFM) = RNFU(1,NR)
-            PBM(NR)   = PBMU(1,NR)
-            WROT(NR)  = WROTU(1,NR)
-            VTOR(NR)  = WROTU(1,NR)*RMJRHOU(1,NR)
-         case(2)
-            IF(MDNI.EQ.0) THEN ! ** MDNI **
-            IF(MODEP.EQ.1) THEN
-               IF(RHOA.EQ.1.D0.OR.(RHOA.NE.1.D0.AND.NR.LE.NRAMAX)) THEN
-                  PROF   = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFN1)**PROFN2
-                  RN(NR,1:2) = (PN(1:2)-PNS(1:2))*PROF+PNS(1:2)
-               ELSEIF(RHOA.NE.1.D0.AND.NR.GT.NRAMAX) THEN
-                  RN(NR,1) = RNU(1,NR,1)
-                  RN(NR,2) = RNU(1,NR,2)
-               ENDIF
-               PROF   = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFN1)**PROFN2
-               RN(NR,3) = (RNU(1,NR,2)-RNU(1,NRMAX,2))*PROF +RNU(1,NRMAX,2)
-               RN(NR,4) = (RNU(1,NR,2)-RNU(1,NRMAX,2))*PROF +RNU(1,NRMAX,2)
-
-               IF(RHOA.EQ.1.D0.OR.(RHOA.NE.1.D0.AND.NR.LE.NRAMAX)) THEN
-                  PROF   = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFT1)**PROFT2
-                  RT(NR,1:2) = (PT(1:2)-PTS(1:2))*PROF+PTS(1:2)
-               ELSEIF(RHOA.NE.1.D0.AND.NR.GT.NRAMAX) THEN
-                  RT(NR,1) = RTU(1,NR,1)
-                  RT(NR,2) = RTU(1,NR,2)
-               ENDIF
-               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-               RT(NR,3) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF +RTU(1,NRMAX,2)
-               RT(NR,4) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF +RTU(1,NRMAX,2)
-            ELSEIF(MODEP.EQ.2) THEN
-               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-               RN(NR,1) = RNU(1,NR,1)
-               RN(NR,2) = RNU(1,NR,2)
-               RN(NR,3) = (PN(3)-PNS(3))*PROF+PNS(3)
-               RN(NR,4) = (PN(4)-PNS(4))*PROF+PNS(4)
-
-               RT(NR,3) = RTU(1,NR,2)
-               RT(NR,4) = RTU(1,NR,2)
-            ELSEIF(MODEP.EQ.3) THEN
-               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-               RN(NR,1) = RNU(1,NR,1)
-               RN(NR,2) = RNU(1,NR,2)
-               RN(NR,3) = (PN(3)-PNS(3))*PROF+PNS(3)
-               RN(NR,4) = (PN(4)-PNS(4))*PROF+PNS(4)
-
-               IF(RHOA.EQ.1.D0.OR.(RHOA.NE.1.D0.AND.NR.LE.NRAMAX)) THEN
-                  PROF   = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFT1)**PROFT2
-                  RT(NR,1:2) = (PT(1:2)-PTS(1:2))*PROF+PTS(1:2)
-               ELSEIF(RHOA.NE.1.D0.AND.NR.GT.NRAMAX) THEN
-                  RT(NR,1) = RTU(1,NR,1)
-                  RT(NR,2) = RTU(1,NR,2)
-               ENDIF
-               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-               RT(NR,3) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF +RTU(1,NRMAX,2)
-               RT(NR,4) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF +RTU(1,NRMAX,2)
-            ENDIF
-            ELSE ! ** MDNI **
-            IF(MODEP.EQ.1) THEN
-               IF(RHOA.EQ.1.D0.OR.(RHOA.NE.1.D0.AND.NR.LE.NRAMAX)) THEN
-                  PROF   = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFN1)**PROFN2
-                  RN(NR,1:3) = (PN(1:3)-PNS(1:3))*PROF+PNS(1:3)
-               ELSEIF(RHOA.NE.1.D0.AND.NR.GT.NRAMAX) THEN
-                  RN(NR,1:3) = RNU(1,NR,1:3)
-               ENDIF
-               PROF   = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFN1)**PROFN2
-               RN(NR,4) = (RNU(1,NR,2)-RNU(1,NRMAX,2))*PROF +RNU(1,NRMAX,2)
-
-               IF(RHOA.EQ.1.D0.OR.(RHOA.NE.1.D0.AND.NR.LE.NRAMAX)) THEN
-                  PROF   = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFT1)**PROFT2
-                  RT(NR,1:3) = (PT(1:3)-PTS(1:3))*PROF+PTS(1:3)
-               ELSEIF(RHOA.NE.1.D0.AND.NR.GT.NRAMAX) THEN
-                  RT(NR,1:3) = RTU(1,NR,1:3)
-               ENDIF
-               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-               RT(NR,4) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF +RTU(1,NRMAX,2)
-            ELSEIF(MODEP.EQ.2) THEN
-               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-               RN(NR,1:3) = RNU(1,NR,1:3)
-               RN(NR,4) = (PN(4)-PNS(4))*PROF+PNS(4)
-
-               RT(NR,4) = RTU(1,NR,2)
-            ELSEIF(MODEP.EQ.3) THEN
-               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-               RN(NR,1:3) = RNU(1,NR,1:3)
-               RN(NR,4) = (PN(4)-PNS(4))*PROF+PNS(4)
-
-               IF(RHOA.EQ.1.D0.OR.(RHOA.NE.1.D0.AND.NR.LE.NRAMAX)) THEN
-                  PROF   = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFT1)**PROFT2
-                  RT(NR,1:3) = (PT(1:3)-PTS(1:3))*PROF+PTS(1:3)
-               ELSEIF(RHOA.NE.1.D0.AND.NR.GT.NRAMAX) THEN
-                  RT(NR,1:3) = RTU(1,NR,1:3)
-               ENDIF
-               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-               RT(NR,4) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF +RTU(1,NRMAX,2)
-            ENDIF
-            ENDIF ! ** MDNI **
-
-            PEX(NR,1)=PNBU(1,NR,1)
-            PEX(NR,2)=PNBU(1,NR,2)
-            PEX(NR,3)=0.D0
-            PEX(NR,4)=0.D0
-
-            SEX(NR,1)=SNBU(1,NR,1)+SWLU(1,NR)/PZ(2)
-            SEX(NR,2)=SNBU(1,NR,2)+SWLU(1,NR)
-            SEX(NR,3)=0.D0
-            SEX(NR,4)=0.D0
-            PRF(NR,1:NSM)=0.D0
-            RNF(NR,1)=RNFU(1,NR)
-            RNF(NR,2:NFM)=0.D0
-            PBM(NR)=0.D0
-            WROT(NR) =WROTU(1,NR)
-            VTOR(NR) =WROTU(1,NR)*RMJRHOU(1,NR)
-         case(3)
+      DO nr=1,nrmax
+         SELECT CASE(model_prof)
+         CASE(11)
+            CALL SPL1DF(RM(nr),RN(nr,1),rs_prof,uprof,nrmax_prof,ierr)
+            IF(ierr.NE.0) THEN
+               WRITE(6,*) nr,RM(nr),rs_prof(1),rs_prof(nrmax_prof)
+               WRITE(6,*) 'XX prof splinef error !',ierr
+               STOP
+            END IF
+            DO ns=2,nsmax
+               RN(nr,ns)=PN(ns)/PN(1)*RN(nr,1)
+            END DO
+            WRITE(6,'(A,I6,5ES12.4)') &
+                 'prof: ',nr,RM(nr),RN(nr,1),RN(nr,2),RN(nr,3),RN(nr,4)
             PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-            RN(NR,1) = RNU(1,NR,1)
-            RN(NR,2) = RNU(1,NR,2)
-            RN(NR,3) = RNU(1,NR,3)
-            RN(NR,4) = (PN(4)-PNS(4))*PROF+PNS(4)
-            RT(NR,1) = RTU(1,NR,1)
-            RT(NR,2) = RTU(1,NR,2)
-            RT(NR,3) = RTU(1,NR,3)
-            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-            RT(NR,4) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF +RTU(1,NRMAX,2)
-
-            PEX(NR,1) = PNBU(1,NR,1)
-            PEX(NR,2) = PNBU(1,NR,2)
-            PEX(NR,3) = 0.D0
-            PEX(NR,4) = 0.D0
-            SEX(NR,1:NSM) = 0.D0
-            PRF(NR,1) = PICU(1,NR,1)
-            PRF(NR,2) = PICU(1,NR,2)
-            PRF(NR,3) = 0.D0
-            PRF(NR,4) = 0.D0
-            RNF(NR,1:NFM) = 0.D0
-            PBM(NR)=0.D0
-            PRF(NR,4) = 0.D0
-            WROT(NR)  = WROTU(1,NR)
-            VTOR(NR)  = WROTU(1,NR)*RMJRHOU(1,NR)
-         case default
-            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-            RN(NR,1:NSM) = (PN(1:NSM)-PNS(1:NSM))*PROF+PNS(1:NSM)
-
+            RN(NR,nsmax+1:NSM) = (PN(1:NSM)-PNS(1:NSM))*PROF+PNS(1:NSM)
             PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
             RT(NR,1:NSM) = (PT(1:NSM)-PTS(1:NSM))*PROF+PTS(1:NSM)
+            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFU1)**PROFU2
+            RU(NR,1:NSM) = (PU(1:NSM)-PUS(1:NSM))*PROF+PUS(1:NSM)
+            
+         CASE default
+            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
+            RN(NR,1:NSM) = (PN(1:NSM)-PNS(1:NSM))*PROF+PNS(1:NSM)
+            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
+            RT(NR,1:NSM) = (PT(1:NSM)-PTS(1:NSM))*PROF+PTS(1:NSM)
+            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFU1)**PROFU2
+            RU(NR,1:NSM) = (PU(1:NSM)-PUS(1:NSM))*PROF+PUS(1:NSM)
+         END SELECT
 
-            PEX(NR,1:NSM) = 0.D0
-            SEX(NR,1:NSM) = 0.D0
-            PRF(NR,1:NSM) = 0.D0
-            RNF(NR,1:NFM) = 0.D0
-            PBM(NR)=0.D0
-            WROT(NR)=0.D0
-            VTOR(NR)=0.D0
-         end select
+         PEX(NR,1:NSM) = 0.D0
+         SEX(NR,1:NSM) = 0.D0
+         PRF(NR,1:NSM) = 0.D0
+         RNF(NR,1:NFM) = 0.D0
+         PBM(NR)=0.D0
+         WROT(NR)=0.D0
+         VTOR(NR)=0.D0
 
          IF(MDLEQ0.EQ.1) THEN
             PROF   = (1.D0-(ALP(1)*RM(NR))**PROFU1)**PROFU2
@@ -252,7 +145,7 @@ CONTAINS
 
          SUMPBM=SUMPBM+PBM(NR)
       ENDDO
-!      CALL PLDATA_SETR(RG,RM)
+
       CALL TR_EDGE_DETERMINER(1)
       CALL TR_EDGE_SELECTOR(1)
 
