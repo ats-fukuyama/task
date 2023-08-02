@@ -29,7 +29,7 @@ CONTAINS
 !     RNKIN   : INITIAL estimate of initial refractive index (1.D0 for vaccum)
 !               positive for forward wave propagating inward 
 !               negative for backward wave propagating inward 
-!     UUIN    : INITIAL WAVE ENERGY (default 1.D0)
+!     UUIN    : INITIAL WAVE POWER (default 1.D0)
 
 !     RCURVA : INITIAL WAVE-FRONT CURVATURE RADIUS (0 for Plane wave)
 !     RCURVB : INITIAL WAVE-FRONT CURVATURE RADIUS (0 for Plane wave)

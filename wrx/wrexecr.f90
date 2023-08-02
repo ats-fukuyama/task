@@ -21,7 +21,7 @@ CONTAINS
     INTEGER,INTENT(OUT):: ierr
     REAL:: time1,time2
     REAL(rkind):: RK,PABSN
-    INTEGER:: NRAY,nstp
+    INTEGER:: NRAY,nstp,nsa
 
     CALL GUTIME(TIME1)
     DO NRAY=1,NRAYMAX
@@ -32,16 +32,18 @@ CONTAINS
        WRITE(6,'(A,I4,3ES12.4)') 'nray,omega,rkv,rnv=',nray,omega,rkv,rnv
 
        CALL wr_setup_start_point(NRAY,RAYS(0,0,NRAY),nstp,IERR)
-       IF(IERR.NE.0) THEN
-          nstpmax_nray(nray)=nstp
-          cycle
-       END IF
+       nstpmax_nray(nray)=nstp
+       IF(IERR.NE.0) CYCLE
        CALL wr_exec_single_ray(NRAY,RAYS(0,0,NRAY),nstp,IERR)
-       IF(IERR.NE.0) THEN
-          nstpmax_nray(nray)=nstp
-          cycle
-       END IF
+       nstpmax_nray(nray)=nstp
+       IF(IERR.NE.0) CYCLE
 
+       DO nsa=1,nsamax_wr
+          DO nstp=0,nstpmax_nray(nray)
+             pwr_nsa_nstp_nray(nsa,nstp,nray)=pwr_nsa_nstp(nsa,nstp)
+          END DO
+       END DO
+       
        RK=SQRT(RAYS(4,NSTPMAX_NRAY(NRAY),NRAY)**2 &
               +RAYS(5,NSTPMAX_NRAY(NRAY),NRAY)**2 &
               +RAYS(6,NSTPMAX_NRAY(NRAY),NRAY)**2)
@@ -432,6 +434,7 @@ CONTAINS
     REAL(rkind),INTENT(IN):: YN(0:NEQ,0:NSTPMAX)
     INTEGER,INTENT(OUT):: IERR
     REAL(rkind):: RF,S,XP,YP,ZP,RKX,RKY,RKZ,UU,omega,rkv,rk
+    INTEGER:: nstp1,nstp_end
 
     IERR=0
     
@@ -460,31 +463,35 @@ CONTAINS
     END IF
 
     IF(MDLWRQ.EQ.0) THEN
-       CALL WRRKFT(nstp,RAYS(:,:,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT(nstp,RAYS(:,:,NRAY),nstp_end)
     ELSEIF(MDLWRQ.EQ.1) THEN
-       CALL WRRKFT_WITHD0(nstp,RAYS(:,:,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT_WITHD0(nstp,RAYS(:,:,NRAY),nstp_end)
     ELSEIF(MDLWRQ.EQ.2) THEN
-       CALL WRRKFT_WITHMC(nstp,RAYS(:,:,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT_WITHMC(nstp,RAYS(:,:,NRAY),nstp_end)
     ELSEIF(MDLWRQ.EQ.3) THEN
-       CALL WRRKFT_RKF(nstp,RAYS(:,:,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT_RKF(nstp,RAYS(:,:,NRAY),nstp_end)
     ELSEIF(MDLWRQ.EQ.4) THEN
-       CALL WRSYMP(nstp,RAYS(:,:,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRSYMP(nstp,RAYS(:,:,NRAY),nstp_end)
     ELSEIF(MDLWRQ.EQ.5) THEN
-       CALL WRRKFT_ODE(nstp,RAYS(:,:,NRAY),NSTPMAX_NRAY(NRAY))
+       CALL WRRKFT_ODE(nstp,RAYS(:,:,NRAY),nstp_end)
     ELSE
        WRITE(6,*) 'XX WRCALC: unknown MDLWRQ =', MDLWRQ
        IERR=1
+       nstp_end=nstp
        RETURN
     ENDIF
-    DO NSTP=0,NSTPMAX_NRAY(NRAY)
-       RAYRB1(NSTP,NRAY)=0.D0
-       RAYRB2(NSTP,NRAY)=0.D0
+
+    DO NSTP1=0,nstp_end
+       RAYRB1(NSTP1,NRAY)=0.D0
+       RAYRB2(NSTP1,NRAY)=0.D0
     END DO
 
-    CALL WRCALE(RF,RAYS(:,:,NRAY),NSTPMAX_NRAY(NRAY),NRAY)
+    CALL WRCALE(RF,RAYS(:,:,NRAY),nstp_end,NRAY)
+
+    nstp=nstp_end
 
     RETURN
-  END SUBROUTINE
+  END SUBROUTINE wr_exec_single_ray
 
 !  --- original Runge-Kutta method ---
 
@@ -524,12 +531,14 @@ CONTAINS
           YN(I,NSTP)=YM(I)
        ENDDO
        YN(8,NSTP)=PW-YM(7)
+       pwr_nsa_nstp(1,nstp)=PW-YM(7)
 
        CALL wr_write_line(NSTP,XE,YM,YN(8,NSTP))
 
        DO I=1,7
           Y(I)=YM(I)
        ENDDO
+       
        X0=XE
        XE=X0+DELS
 
@@ -628,6 +637,7 @@ CONTAINS
        DO I=1,7
           YN(I,NSTP)=YM(I)
        ENDDO
+       pwr_nsa_nstp(1,nstp)=PW-YM(7)
        YN(8,NSTP)=PW-YM(7)
 
        CALL wr_write_line(NSTP,XE,YM,YN(8,NSTP))
@@ -700,6 +710,7 @@ CONTAINS
        DO I=1,7
           YN(I,NSTP)=YM(I)
        ENDDO
+       pwr_nsa_nstp(1,nstp)=PW-YM(7)
        YN(8,NSTP)=PW-YM(7)
 
        CALL wr_write_line(NSTP,XE,YM,YN(8,NSTP))
@@ -803,6 +814,7 @@ CONTAINS
        DO I=1,7
           YN(I,NSTP)=YM(I)
        ENDDO
+       pwr_nsa_nstp(1,nstp)=PW-YM(7)
        YN(8,NSTP)=PW-YM(7)
 
        CALL wr_write_line(NSTP,XE,YM,YN(8,NSTP))
@@ -888,6 +900,7 @@ CONTAINS
        DO I=1,7
           YN(I,NSTP)=YM(I)
        ENDDO
+       pwr_nsa_nstp(1,nstp)=PW-YM(7)
        YN(8,NSTP)=PW-YM(7)
 
        CALL wr_write_line(NSTP,XE,YM,YN(8,NSTP))
@@ -970,9 +983,11 @@ CONTAINS
        IF(Y(7).GT.0.D0) THEN
           YN(7,NSTP)=Y(7)
           YN(8,NSTP)=-F(7)*DELS
+          pwr_nsa_nstp(1,nstp)=-F(7)*DELS
        ELSE
           YN(7,NSTP)=0.D0
           YN(8,NSTP)=Y(7)
+          pwr_nsa_nstp(1,nstp)=-F(7)*DELS
        ENDIF
 
        CALL wr_write_line(NSTP,X,Y,YN(8,NSTP))

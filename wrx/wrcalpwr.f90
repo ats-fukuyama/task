@@ -101,12 +101,12 @@ CONTAINS
              IF(ndrs.EQ.0) THEN
                 DO nsa=1,nsamax_wr
                    pwr_nrs_nray(nsa,nrs1,nray)=pwr_nrs_nray(nsa,nrs1,nray) &
-                        +rays_pwr(nsa,nstp+1,nray)
+                        +pwr_nsa_nstp_nray(nsa,nstp+1,nray)
                 END DO
              ELSE IF(nrs1.lt.nrs2) THEN
                 sdrs=(rs2-rs1)/drs
                 DO nsa=1,nsamax_wr
-                   delpwr=rays_pwr(nsa,nstp+1,nray)/sdrs
+                   delpwr=pwr_nsa_nstp_nray(nsa,nstp+1,nray)/sdrs
                    pwr_nrs_nray(nsa,nrs1,nray)=pwr_nrs_nray(nsa,nrs1,nray) &
                         +(DBLE(nrs1)-rs1/drs)*delpwr
                    DO nrs=nrs1+1,nrs2-1
@@ -119,7 +119,7 @@ CONTAINS
              ELSE
                 sdrs=(rs1-rs2)/drs
                 DO nsa=1,nsamax_wr
-                   delpwr=rays_pwr(nsa,nstp+1,nray)/sdrs
+                   delpwr=pwr_nsa_nstp_nray(nsa,nstp+1,nray)/sdrs
                    pwr_nrs_nray(nsa,nrs2,nray)=pwr_nrs_nray(nsa,nrs2,nray) &
                         +(DBLE(nrs2)-rs2/drs)*delpwr
                    DO nrs=nrs2+1,nrs1-1
@@ -153,12 +153,12 @@ CONTAINS
              IF(ndrl.EQ.0) THEN
                 DO nsa=1,nsamax_wr
                    pwr_nrl_nray(nsa,nrl1,nray)=pwr_nrl_nray(nsa,nrl1,nray) &
-                        +rays_pwr(nsa,nstp+1,nray)
+                        +pwr_nsa_nstp_nray(nsa,nstp+1,nray)
                 END DO
              ELSE IF(nrl1.LT.nrl2) THEN
                 sdrl=(rl2-rl1)/drl
                 DO nsa=1,nsamax_wr
-                   delpwr=rays_pwr(nsa,nstp+1,nray)/sdrl
+                   delpwr=pwr_nsa_nstp_nray(nsa,nstp+1,nray)/sdrl
                    pwr_nrl_nray(nsa,nrl1,nray)=pwr_nrl_nray(nsa,nrl1,nray) &
                         +(DBLE(nrl1)-(rl1-rlmin)/drl)*delpwr
                    DO nrl=nrl1+1,nrl2-1
@@ -171,7 +171,7 @@ CONTAINS
              ELSE
                 sdrl=(rl1-rl2)/drl
                 DO nsa=1,nsamax_wr
-                   delpwr=rays_pwr(nsa,nstp+1,nray)/sdrl
+                   delpwr=pwr_nsa_nstp_nray(nsa,nstp+1,nray)/sdrl
                    pwr_nrl_nray(nsa,nrl2,nray)=pwr_nrl_nray(nsa,nrl2,nray) &
                         +(DBLE(nrl2)-(rl2-rlmin)/drl)*delpwr
                    DO nrl=nrl2+1,nrl1-1
@@ -218,8 +218,8 @@ CONTAINS
     END DO
 
     DO nray=1,nraymax
-       WRITE(6,'(A,I4,A,1PE12.4,A,1PE12.4)') 'nray=',nray, &
-            '    pwr_nray=',pwr_nray(nray)
+       WRITE(6,'(A,I4,A,ES12.4,A,4ES12.4)') 'nray=',nray, &
+            '    pwr_nsa_nray=',(pwr_nsa_nray(nsa,nray),nsa=1,MIN(nsamax_wr,4))
     END DO
     
        ! --- power divided by division area ---
@@ -283,7 +283,7 @@ CONTAINS
                    -pwr_nrl(nsa,locmax-1))/(2.D0*drl)
              ddpwr=(pwr_nrl(nsa,locmax+1) &
                  -2*pwr_nrl(nsa,locmax  ) &
-                   +pwr_nrl(nsa,locmax-1))/drl**2
+                 +pwr_nrl(nsa,locmax-1))/drl**2
              pos_pwrmax_rl_nray(nsa,nray) &
                   =(locmax-0.5D0)/(nrlmax-1.D0)-dpwr/ddpwr
              pwrmax_rl_nray(nsa,nray)=pwrmax-dpwr**2/(2.D0*ddpwr)
