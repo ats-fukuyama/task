@@ -167,7 +167,7 @@ CONTAINS
     YN(6,nstp)= RK_Z
     YN(7,nstp)= UU
     YN(8,nstp)= 0.D0
-    CALL wr_write_line(NSTP,YN(0,NSTP),YN(1:7,NSTP),YN(8,NSTP))
+    CALL wr_write_line(NSTP,YN(0,NSTP),YN(1:NEQ,NSTP),YN(8,NSTP))
     
     ! --- set magnetic field and minor radius at the start point ---
 
@@ -224,7 +224,7 @@ CONTAINS
           YN(6,nstp)= RK_Z
           YN(7,nstp)= UU
           YN(8,nstp)= 0.D0
-          CALL wr_write_line(NSTP,YN(0,NSTP),YN(1:7,NSTP),YN(8,NSTP))
+          CALL wr_write_line(NSTP,YN(0,NSTP),YN(1:NEQ,NSTP),YN(8,NSTP))
 
           
           ! --- If the ray is out of region, exit mode=11 ---
