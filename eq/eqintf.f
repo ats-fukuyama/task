@@ -138,7 +138,6 @@ C
       INTEGER,INTENT(OUT):: nsumax1
       INTEGER:: nsu
 C
-      WRITE(6,*) ALLOCATED(rsu1)
       IF(ALLOCATED(rsu1)) DEALLOCATE(rsu1)
       IF(ALLOCATED(zsu1)) DEALLOCATE(zsu1)
       ALLOCATE(rsu1(nsumax),zsu1(nsumax))
