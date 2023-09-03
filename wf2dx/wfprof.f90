@@ -2,7 +2,7 @@
 
 !     ****** set psi ******
 
-SUBROUTINE WFBPSI(R,Z,PSI)
+SUBROUTINE wf_bpsi(R,Z,PSI)
 
   USE wfcomm,ONLY: rkind,PI,ZBB,RMIR,BB,MODELG,MODELB,NCOILMAX, &
        RCOIL,ZCOIL,BCOIL,Hpitch1,HA1,rkind
@@ -56,7 +56,7 @@ SUBROUTINE WFBPSI(R,Z,PSI)
      PSI=(XH1**2+YH1**2+2.D0*HA1*(XH1**2-YH1**2))
   END SELECT
   RETURN
-END SUBROUTINE WFBPSI
+END SUBROUTINE wf_bpsi
 
 !   --- psi function for circular coil ---
 

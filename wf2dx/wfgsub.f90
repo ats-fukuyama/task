@@ -61,6 +61,7 @@ END SUBROUTINE WFGWIN
 SUBROUTINE PWRPLOT(NS)
 
   use wfcomm
+  USE wfwaveC
   USE libgrf
   implicit none
 
@@ -90,7 +91,7 @@ SUBROUTINE PWRPLOT(NS)
         ELSE
            ! --- calculate conductivity tensor ---
 
-           CALL DTENSR(IE,DTENS)
+           CALL wf_dtensr_cold(IE,DTENS)
            call WFWGT(IE,X,Y,WGT)
 
            CTENS=(0.d0,0.d0)

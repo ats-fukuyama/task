@@ -17,7 +17,7 @@ SUBROUTINE WFANT
   character :: KID*1
 
   if (nrank.eq.0) WRITE(6,*) '--- SETBDY start ---'
-  CALL SETBDY(IERR)
+  CALL wf_setbdy(IERR)
   IF(IERR.NE.0) RETURN
 
 1 continue
@@ -178,7 +178,7 @@ SUBROUTINE WFDEFA
   call mtx_barrier
   call wfant_broadcast
 
-  CALL MODANT(IERR)
+  CALL wf_modant(IERR)
   IF(IERR.NE.0) GOTO 9000
   
 9000 RETURN

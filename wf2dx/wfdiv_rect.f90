@@ -89,11 +89,14 @@ CONTAINS
 
     nelm=0
     DO nyr=1,nyr_max-1
-       DO nxr=1,nxr_max
+       DO nxr=1,nxr_max-1
           node1=nxr+nxr_max*(nyr-1)
           node2=nxr+nxr_max*(nyr-1)+1
           node3=nxr+nxr_max*nyr+1
           node4=nxr+nxr_max*nyr
+
+          IF(nelm.GE.nelm_max) WRITE(6,'(A,6I8)') &
+               'nxr,nyr,nelm,max=',nxr,nyr,nelm,nxr_max,nyr_max,nelm_max
 
           IF(nxr.LE.nxr_max/2) THEN
              IF(nyr.LE.nyr_max/2) then

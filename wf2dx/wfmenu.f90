@@ -44,7 +44,12 @@ subroutine wfmenu
 !     if (NNMAX.eq.0) call WFRELM(ID)
      call WFANT
   elseif (KID.eq.'C') then
-     call WFWPRE(IERR)
+     SELECT CASE(model_dielectric)
+     CASE(1)
+        CALL wf_wpre_cold(ierr)
+     CASE(3)
+        CALL wf_wpre_kinetic(ierr)
+     END SELECT
   elseif (KID.eq.'R') then
      SELECT CASE(model_dielectric)
      CASE(1)

@@ -1,5 +1,30 @@
 !     $Id: wfsub.f90,v 1.16 2011/11/16 09:18:22 maruyama Exp $
 
+!    ******* SET MLEN *******
+
+SUBROUTINE wf_defmlen
+
+  use wfcomm
+  implicit none
+  integer :: NSD,NN
+
+  NBSID=0
+  do NSD=1,NSDMAX
+     if(KASID(NSD).eq.1) NBSID=NBSID+1
+  end do
+
+  NBNOD=0
+  do NN=1,NNMAX
+     if(KANOD(NN).eq.1) NBNOD=NBNOD+1
+  end do
+
+  MLEN=NSDMAX+NNMAX-NBSID-NBNOD
+
+  call wfslv_allocate
+
+  RETURN
+END SUBROUTINE wf_defmlen
+
 !     ****** SETUP NODE RANGE ******
 
 SUBROUTINE WFSLIM
@@ -304,7 +329,7 @@ END FUNCTION AIE
 
 !     ****** Set Boundary Attribute for Side and Node ******
 
-SUBROUTINE SETBDY(IERR)
+SUBROUTINE wf_setbdy(IERR)
 
   use wfcomm
   implicit none
@@ -515,11 +540,11 @@ SUBROUTINE SETBDY(IERR)
   
   IERR=0
   RETURN
-END SUBROUTINE SETBDY
+END SUBROUTINE wf_setbdy
 
 !     ***** SET Waveguide ELECTRIC FIELD *****
 
-SUBROUTINE SETEWG
+SUBROUTINE wf_setewg
 
   USE wfcomm
   USE wfload,ONLY: wf_read_wg 
@@ -661,11 +686,11 @@ SUBROUTINE SETEWG
      END SELECT
      END DO
   RETURN
-END SUBROUTINE SETEWG
+END SUBROUTINE wf_setewg
 
 !     ***** SET LENGTH OF SIDE *****
 
-SUBROUTINE SETLSD
+SUBROUTINE wf_setlsd
   use wfcomm
   implicit none
 
@@ -688,11 +713,11 @@ SUBROUTINE SETLSD
      LSID(NSD)=L
   end do
   return
-end SUBROUTINE SETLSD
+end SUBROUTINE wf_setlsd
 
 !     ****** MODIFY ANTENNA DATA ******
 
-SUBROUTINE MODANT(IERR)
+SUBROUTINE wf_modant(IERR)
   
   use wfcomm
   implicit none
@@ -847,7 +872,7 @@ SUBROUTINE MODANT(IERR)
          & ' ','                : NA,NE,JNUM0 = ',3I7)
   RETURN
   
-END SUBROUTINE MODANT
+END SUBROUTINE wf_modant
 
 !     ******* CALCULATE POINT OF INTERSECTION *******
 

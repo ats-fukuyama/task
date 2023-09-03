@@ -285,12 +285,14 @@ contains
           end if
        end if
 
+       WRITE(6,'(A,I8)') 'NNMAX=',NNMAX
        allocate(RNODE(NNMAX),ZNODE(NNMAX),KANOD(NNMAX),KBNOD(NNMAX))
        ALLOCATE(NVNN(NNMAX))
        elminit = 1
        NNMAX_save = NNMAX
 
     else if(elminit.eq.1) then
+       WRITE(6,'(A,I8)') 'NEMAX=',NEMAX
        allocate(SELM(NEMAX),KAELM(NEMAX))
        allocate(REMIN(NEMAX),ZEMIN(NEMAX))
        allocate(REMAX(NEMAX),ZEMAX(NEMAX))
