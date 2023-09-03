@@ -21,7 +21,7 @@ PROGRAM tot
   USE tiparm,ONLY:ti_parm,ti_broadcast
   USE fpinit,ONLY:fp_init
   USE fpparm,ONLY:fp_parm
-  USE fpcomm,ONLY:fpcomm_parm
+  USE fpcomm_parm
   USE dpinit,ONLY:dp_init
   USE dpparm,ONLY:dp_parm
   USE wrcomm,ONLY:open_wrcomm_parm
