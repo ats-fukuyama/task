@@ -4,7 +4,7 @@ MODULE femmeshprep
 
   USE wfcomm,ONLY: rkind,long
   LOGICAL:: fem_mesh_allocated=.FALSE.
-  INTEGER:: nseg_max
+  INTEGER(long):: nseg_max
   INTEGER:: nside_max
   INTEGER:: nelm_node_max
   REAL(rkind):: xnode_min,xnode_max,ynode_min,ynode_max
@@ -15,7 +15,7 @@ MODULE femmeshprep
   REAL(rkind),ALLOCATABLE:: xcenter_nseg(:),ycenter_nseg(:)
   INTEGER,ALLOCATABLE:: node_nseg(:,:),nelm_nseg(:,:)
   INTEGER,ALLOCATABLE:: idir_nside_nelm(:,:),idseg_nseg(:)
-  INTEGER,ALLOCATABLE:: nseg_nside_nelm(:,:)
+  INTEGER(long),ALLOCATABLE:: nseg_nside_nelm(:,:)
   INTEGER,ALLOCATABLE:: nelm1_nside_nelm(:,:)
   INTEGER,ALLOCATABLE:: nside1_nside_nelm(:,:)
   INTEGER,ALLOCATABLE:: nelm_nangle_node(:,:),nelm_max_node(:)
@@ -31,7 +31,7 @@ CONTAINS
          nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
          xnode=>rnode,ynode=>znode
     IMPLICIT NONE
-    INTEGER,SAVE:: nseg_max_save=0,nside_max_save=0,nelm_max_save=0
+    INTEGER(long),SAVE:: nseg_max_save=0,nside_max_save=0,nelm_max_save=0
 
     IF(fem_mesh_allocated) THEN
        IF((nseg_max .EQ.nseg_max_save ).AND. &
@@ -92,20 +92,21 @@ CONTAINS
          nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
          xnode=>rnode,ynode=>znode
     IMPLICIT NONE
-    INTEGER,ALLOCATABLE:: node_nsega(:,:),nsega_nside_nelm(:,:)
-    INTEGER,ALLOCATABLE:: nsega_pair(:),nsega_nseg(:),nseg_nsega(:)
+    INTEGER,ALLOCATABLE:: node_nsega(:,:)
+    INTEGER(long),ALLOCATABLE:: nsega_nside_nelm(:,:)
+    INTEGER(long),ALLOCATABLE:: nsega_pair(:),nsega_nseg(:),nseg_nsega(:)
     INTEGER,ALLOCATABLE:: ncount_max_nxzone_nyzone(:,:)
-    INTEGER,ALLOCATABLE:: nsega_ncount_nxzone_nyzone(:,:,:)
+    INTEGER(long),ALLOCATABLE:: nsega_ncount_nxzone_nyzone(:,:,:)
     INTEGER,ALLOCATABLE:: nelm_nsega(:),nside_nsega(:)
     REAL(rkind),ALLOCATABLE:: xcenter_nsega(:),ycenter_nsega(:)
-    INTEGER:: nseg_all
-    INTEGER:: nelm,nseg,nside,n1,n2,n3
-    INTEGER:: nsega,nelm1,nside1
+    INTEGER(long):: nseg,nsega,nseg_all,nsega1
+    INTEGER:: nelm,nside,n1,n2,n3
+    INTEGER:: nelm1,nside1
     INTEGER:: node,ncount,ncount_zone_max
-    INTEGER:: nsega1,nx,ny
+    INTEGER:: nx,ny
     REAL(rkind):: x,y,xc,yc,xc1,yc1,xlen_zone,ylen_zone
     REAL(rkind):: x1,y1,x2,y2,x3,y3,xg,yg,s,v,xgsum,ygsum,vsum
-    REAL(rkind):: sfactor,vfactor,weight
+    REAL(rkind):: sfactor,vfactor
 
     nxzone_max=100
     nyzone_max=100
@@ -142,7 +143,7 @@ CONTAINS
 !    --- First, define each side of elements has different segment number
 !       --- therefore most of segments are counted twice
 
-    nseg_all=nside_max*nelm_max
+    nseg_all=nside_max*INT(nelm_max,KIND=long)
 
     ALLOCATE(node_nsega(2,nseg_all),nsega_nside_nelm(nside_max,nelm_max))
     ALLOCATE(nelm_nsega(nseg_all),nside_nsega(nseg_all))

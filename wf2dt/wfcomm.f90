@@ -61,6 +61,7 @@ module wfcomm
   integer(ikind):: MODELWF
 
   INTEGER(ikind):: model_coll_enhance
+  INTEGER(ikind):: model_interpolation
   REAL(rkind):: factor_coll_enhance
   REAL(rkind):: xpos_coll_enhance,xwidth_coll_enhance
   REAL(rkind):: ypos_coll_enhance,ywidth_coll_enhance
@@ -107,7 +108,7 @@ module wfcomm
         
 !       /WFSID/
   integer(ikind):: NSDMAX
-  real(ikind)   ,dimension(:)  ,ALLOCATABLE :: LSID       !(NSDMAX)
+  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: LSID       !(NSDMAX)
                                                 ! length of side
   integer(ikind),dimension(:,:),ALLOCATABLE :: NDSID      !(2,NSDMAX)
                                                 ! node number of side

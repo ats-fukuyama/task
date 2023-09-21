@@ -61,6 +61,7 @@ libs:
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
 	(cd ../dp; make libdp.a)
+	make libwf.a
 
 wf : libs $(OBJDIR)/wfmain.o
 	$(FLINKER) $(OBJDIR)/wfmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
@@ -86,7 +87,7 @@ $(OBJDIR)/wfsort.o: wfsort.f90 wfcomm.f90
 $(OBJDIR)/wffile.o: wffile.f90 wfcomm.f90
 $(OBJDIR)/wfload.o: wfload.f90 wfcomm.f90
 $(OBJDIR)/wfindx.o: wfindx.f90 wfcomm.f90
-$(OBJDIR)/wfgout.o: wfgout.f90 wfcomm.f90
+$(OBJDIR)/wfgout.o: wfgout.f90 wfcomm.f90 feminterpolate.f90
 $(OBJDIR)/wfgsub.o: wfgsub.f90 wfcomm.f90
 $(OBJDIR)/wfefwg.o: wfefwg.f90 wfcomm.f90
 $(OBJDIR)/wfgdum.o: wfgdum.f90

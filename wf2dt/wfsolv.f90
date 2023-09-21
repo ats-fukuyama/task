@@ -34,7 +34,7 @@ SUBROUTINE CVSOLV
   use libmtx
   use libqsort
   implicit none
-  integer :: ISD,NSD,nnd,nnd1,nnd2,nv_old
+  integer :: ISD,NSD,nnd,nnd1,nnd2
   integer :: NE,NN,nv,nvmax
   integer :: I,J,KK,LL
   integer :: JNSD,JNN,INSD,INN
@@ -53,7 +53,7 @@ SUBROUTINE CVSOLV
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: VAL_SORT
   INTEGER(long),DIMENSION(:),ALLOCATABLE:: NV_SORT
   INTEGER,DIMENSION(:),ALLOCATABLE:: ntyp_nv,nnsd_nv
-  INTEGER(long):: IX,IY
+  INTEGER(long):: IX,IY,nv_old
 
   ! ----- initialize ------
   

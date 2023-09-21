@@ -340,6 +340,7 @@ SUBROUTINE ZETA(X,Z,DZ,DDZ)
   SAVE   I
   DATA   I /0/
   
+  SR=1.D0   ! to suppress uninitialized warning
   IF(I.EQ.0) THEN
      I   =1
      M   =12

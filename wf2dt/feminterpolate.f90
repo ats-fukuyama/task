@@ -14,7 +14,9 @@ MODULE feminterpolate
                                  ! nelm for ncount in a zone
   
   PRIVATE
-  PUBLIC fem_setup_zone,fem_find_nelm_for_xy,fem_interpolate_xy
+  PUBLIC fem_setup_zone
+  PUBLIC fem_find_nelm_for_xy
+  PUBLIC fem_interpolate_xy
 
 CONTAINS
 
@@ -169,7 +171,8 @@ CONTAINS
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: x,y
     INTEGER,INTENT(INOUT):: nelm
-    INTEGER:: nside,nseg,node1,node2,nelm1,nside1,nseg1,nelm2
+    INTEGER(long):: nseg,nseg1
+    INTEGER:: nside,node1,node2,nelm1,nside1,nelm2
     INTEGER:: nxzone,nyzone,ncount
     INTEGER:: nelm_ncount
     REAL(rkind):: xc,yc,x1,y1,x2,y2,xc1,yc1
@@ -354,13 +357,15 @@ CONTAINS
     USE wfcomm, &
          nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
          xnode=>rnode,ynode=>znode
+    USE femmeshprep
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: x,y
     REAL(rkind),INTENT(OUT):: f
     REAL(rkind),INTENT(IN):: f_nelm(nelm_max)
-    INTEGER,SAVE:: nelm_save=0
     INTEGER,INTENT(IN):: id  ! 0 for new search, 1: use nelm previous search
+    INTEGER,SAVE:: nelm_save=0
     INTEGER:: nelm
+    REAL(rkind):: dfx,dfy
 
     IF(id.EQ.0) THEN
        nelm=0
@@ -376,21 +381,19 @@ CONTAINS
        nelm_save=nelm
     END IF
 
-!    IF(model_interpolation.GT.2.OR.model_interpolation.EQ.0) THEN
+    SELECT CASE(model_interpolation)
+    CASE(0)
        f=f_nelm(nelm)
-!    ELSE
-!       SELECT CASE(model_interpolation)
-!       CASE(1) ! linear interpolation (discontinuous)
-!          CALL fem_grad_f(nelm,f_nelm,dfx,dfy)
+    CASE(1) ! linear interpolation (discontinuous)
+!       CALL fem_grad_f(nelm,f_nelm,dfx,dfy)
 !!          WRITE(29,'(A,I5,1P5E12.4)') 'nelm,f,dfx,dfy=', &
 !!               nelm,f_nelm(nelm),dfx,x-xcenter_nelm(nelm), &
 !!                                 dfy,y-ycenter_nelm(nelm)
-!          f=f_nelm(nelm)+dfx*(x-xcenter_nelm(nelm)) &
-!                        +dfy*(y-ycenter_nelm(nelm))
-!       CASE(2) ! linear interpolation (continuouas)
-!          CALL fem_linear_interporate(x,y,nelm,f_nelm,f)
-!       END SELECT
-!    END IF
+       f=f_nelm(nelm)+dfx*(x-xcenter_nelm(nelm)) &
+                     +dfy*(y-ycenter_nelm(nelm))
+    CASE(2) ! linear interpolation (continuouas)
+       CALL fem_linear_interporate(x,y,nelm,f_nelm,f)
+    END SELECT
     RETURN
   END SUBROUTINE fem_interpolate_xy
 

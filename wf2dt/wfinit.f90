@@ -184,7 +184,12 @@ CONTAINS
     ypos_coll_enhance  =0.D0
     ywidth_coll_enhance=0.01D0
 
-  !     *** MEDIUM PARAMETERS ***
+    !     *** interpolation level ***
+    !                   0: element center value
+    !                   1: local linear interpolation
+    model_interpolation=0
+
+    !     *** MEDIUM PARAMETERS ***
 
     call wfmed_allocate
 

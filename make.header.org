@@ -24,7 +24,7 @@ MDSLIB =
 MF77 = mpif77
 MF90 = mpif90
 MF95 = mpif90
-MFC  = MF90
+MFC  = $(MF90)
 
 GFLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11
 GLLIBS=-L/usr/local/lib -lgsgl
