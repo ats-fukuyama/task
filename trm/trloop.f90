@@ -16,7 +16,6 @@ CONTAINS
   SUBROUTINE tr_loop(ierr)
 
       USE TRCOMM
-      USE TRCOM1, ONLY : NTAMAX
       USE trbpsd, ONLY: tr_bpsd_put, tr_bpsd_get
       USE trexec
       USE libitp

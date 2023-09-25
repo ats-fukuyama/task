@@ -24,8 +24,8 @@ CONTAINS
      &   PA, PZ, PZC, PZFE, RDP, RHOA, RIP, RIPU, &
      &   RMU0, RN, RT, RU, RW, T, TTRHO, TTRHOG, &
      &   VLOOP, VSEC, X, XV, Y, YV, Z, ZV ,NEQMAXM, DIPDT, &
-         RDPVRHOG, abvrhog, rkind
-      USE TRCOM1, ONLY : TMU, TMU1, NTXMAX, NTXMAX1
+         RDPVRHOG, abvrhog, rkind, &
+         TMU, TMU1, NTXMAX, NTXMAX1
       USE libbnd
       USE libitp
       IMPLICIT NONE
@@ -425,10 +425,11 @@ CONTAINS
      &                   DVRHOG, EPS0, LDAB, MDLCD, MDLEQB, MDLPCK, MDLUF, &
      &                   MDTC, MLM, NEA, NEQM, NEQMAX, NRMAX, NSMAX, &
      &                   NSS, NST, NTUM, NVM, PI, PNB, PNF, RA, RIP, RIPA, &
-     &                   RKEV, RMU0, RN, RR, RT, RTM, TAUB, TAUF, TAUK, VI, &
-     &                   VV, X, XV, Y, YV, Z, ZV, RDPS, &
+     &                   RKEV, RMU0, RN, RR, RT, RTM, T, TAUB, TAUF, TAUK, &
+     &                   VI, VV, X, XV, Y, YV, Z, ZV, RDPS, &
      &                   ABVRHOG, rkind
-      USE TRCOM1, ONLY : A, B, C, D, PPA, PPB, PPC, RD
+      USE TRCOMX, ONLY:  A, B, C, D, PPA, PPB, PPC, RD
+      USE trfixed
       IMPLICIT NONE
       INTEGER, INTENT(INOUT):: NEQRMAX
       INTEGER:: KL, MV, MVV, MW, MWMAX, NEQ, NEQ1, NR, NS, NS1, NSTN, NSW, &
@@ -516,6 +517,9 @@ CONTAINS
       CALL TR_IONIZATION(NR)
       CALL TR_CHARGE_EXCHANGE(NR)
 
+      CALL tr_set_nfixed(NR,t)
+      CALL tr_set_tfixed(NR,t)
+
 !     ***** RHS Vector *****
 
       DO NEQ=1,NEQMAX
@@ -575,6 +579,9 @@ CONTAINS
 
          CALL TR_IONIZATION(NR)
          CALL TR_CHARGE_EXCHANGE(NR)
+
+         CALL tr_set_nfixed(NR,t)
+         CALL tr_set_tfixed(NR,t)
 
 !     ***** RHS Vector *****
 
@@ -639,6 +646,9 @@ CONTAINS
 
       CALL TR_IONIZATION(NR)
       CALL TR_CHARGE_EXCHANGE(NR)
+
+      CALL tr_set_nfixed(NR,t)
+      CALL tr_set_tfixed(NR,t)
 
 !     ***** RHS Vector *****
 
@@ -734,7 +744,7 @@ CONTAINS
       SUBROUTINE TR_BAND_GEN(NEQRMAX,ADV)
 
       USE TRCOMM, ONLY : AX, MDLPCK, NEQM, NEQMAX, NRMAX, XV, rkind
-      USE TRCOM1, ONLY : A, B, C, PPA, PPB, PPC, RD
+      USE TRCOMX, ONLY : A, B, C, PPA, PPB, PPC, RD
       IMPLICIT NONE
       INTEGER,INTENT(INOUT):: NEQRMAX
       REAL(rkind)   ,INTENT(IN)   :: ADV
@@ -763,11 +773,6 @@ CONTAINS
          ENDIF
 
          IF(MDLPCK.EQ.0) THEN
-!            forall(NV=1:NEQRMAX,NW=1:NEQRMAX)
-!               AX(  NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = A(NV,NW,NR)
-!               AX(2*NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = B(NV,NW,NR)
-!               AX(3*NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = C(NV,NW,NR)
-!            end forall
             DO NV=1,NEQRMAX
                DO NW=1,NEQRMAX
                   AX(  NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = A(NV,NW,NR)
@@ -1157,7 +1162,7 @@ CONTAINS
       SUBROUTINE TR_COEF_DECIDE(NR,NSW,DV53)
 
       USE trcomm
-      USE TRCOM1, ONLY : D, RD
+      USE TRCOMX, ONLY : D, RD
       USE libitp
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: NR, NSW
@@ -1625,7 +1630,7 @@ CONTAINS
       SUBROUTINE TR_IONIZATION(NR)
 
       USE TRCOMM, ONLY : DVRHO, MDLEQ0, NEA, NSMAX, PN, TSIE
-      USE TRCOM1, ONLY : B
+      USE TRCOMX, ONLY : B
       IMPLICIT NONE
 !      INCLUDE 'trcomm.inc'
       INTEGER,INTENT(IN):: NR
@@ -1678,7 +1683,7 @@ CONTAINS
       SUBROUTINE TR_CHARGE_EXCHANGE(NR)
 
       USE TRCOMM, ONLY : DVRHO, MDLEQ0, NEA, TSCX
-      USE TRCOM1, ONLY : B
+      USE TRCOMX, ONLY : B
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: NR
       INTEGER:: NEQ, NV, NW
@@ -1764,4 +1769,90 @@ CONTAINS
       RETURN
       END FUNCTION RPV
 
-END MODULE trexec
+  !     ***** Routine for fixed density profile *****
+      
+  SUBROUTINE tr_set_nfixed(nr,time)
+
+    USE trcomm
+    USE trcomx
+    USE trfixed
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: nr
+    REAL(rkind),INTENT(IN):: time
+    REAL(rkind):: rn_local
+    INTEGER:: NS,NEQ,NW
+
+    IF(model_nfixed.EQ.0) RETURN
+    IF(t.LE.time_nfixed(1)) return
+    IF(model_nfixed.EQ.2) THEN
+       IF((rm(nr).LT.rho_min_nfixed).OR. &
+            (rm(nr).GT.rho_max_nfixed)) RETURN
+    END IF
+    CALL tr_prof_nfixed(rm(nr),time,rn_local)
+    NEQ=NEQMAX*(NR-1)+NEA(1,1) ! NEQ of electron density equation
+    DO NW=1,NEQMAX
+       A(NEQ,NW,NR) = 0.D0
+       B(NEQ,NW,NR) = 0.D0
+       C(NEQ,NW,NR) = 0.D0
+    END DO
+    B(NEQ,NEQ,NR)=-1.D0/tau_nfixed
+    D(NEQ,NR)=rn_local/tau_nfixed
+    RD(NEQ,NR)=1.D0
+    DO NS=2,NSMAX
+       NEQ=NEQMAX*(NR-1)+NEA(NS,1) ! NEQ of density equation
+       DO NW=1,NEQMAX
+          A(NEQ,NW,NR) = 0.D0
+          B(NEQ,NW,NR) = 0.D0
+          C(NEQ,NW,NR) = 0.D0
+       END DO
+       B(NEQ,NEQ,NR)=-1.D0/tau_nfixed
+       D(NEQ,NR)=pn(ns)/(pz(ns)*pn(1))*rn_local/tau_nfixed
+       RD(NEQ,NR)=1.D0
+    END DO
+    RETURN
+  END SUBROUTINE tr_set_nfixed
+      
+  !     ***** Routine for fixed temperature profile *****
+      
+  SUBROUTINE tr_set_tfixed(nr,time)
+
+    USE trcomm
+    USE trcomx
+    USE trfixed
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: nr
+    REAL(rkind),INTENT(IN):: time
+    REAL(rkind):: rt_local
+    INTEGER:: NS,NEQ,NW
+
+    IF(model_tfixed.EQ.0) RETURN
+    IF(t.LE.time_tfixed(1)) return
+    IF(model_tfixed.EQ.2) THEN
+       IF((rm(nr).LT.rho_min_tfixed).OR. &
+            (rm(nr).GT.rho_max_tfixed)) RETURN
+    END IF
+    CALL tr_prof_tfixed(rm(nr),time,rt_local)
+    NEQ=NEQMAX*(NR-1)+NEA(1,1) ! NEQ of electron density equation
+    DO NW=1,NEQMAX
+       A(NEQ,NW,NR) = 0.D0
+       B(NEQ,NW,NR) = 0.D0
+       C(NEQ,NW,NR) = 0.D0
+    END DO
+    B(NEQ,NEQ,NR)=-1.D0/tau_tfixed
+    D(NEQ,NR)=rt_local/tau_tfixed
+    RD(NEQ,NR)=1.D0
+    DO NS=2,NSMAX
+       NEQ=NEQMAX*(NR-1)+NEA(NS,2) ! NEQ of temperature equation
+       DO NW=1,NEQMAX
+          A(NEQ,NW,NR) = 0.D0
+          B(NEQ,NW,NR) = 0.D0
+          C(NEQ,NW,NR) = 0.D0
+       END DO
+       B(NEQ,NEQ,NR)=-1.D0/tau_tfixed
+       D(NEQ,NR)=rt_local/tau_tfixed
+       RD(NEQ,NR)=1.D0
+    END DO
+    RETURN
+  END SUBROUTINE tr_set_tfixed
+      
+  END MODULE trexec

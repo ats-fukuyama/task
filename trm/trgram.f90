@@ -158,8 +158,7 @@
 
       USE TRCOMM, ONLY : AJBST, AJTTOR, GVRT, GT, GVT, GYT, KUFDCG,&
            & KUFDEV, MDLUF, MDLXP, NGT, NRMAX, NTM, NTS, NTUM, PEXST,&
-           & PRFST, RTU, TS0, WPT, rkind
-      USE TRCOM1, ONLY : NTXMAX
+           & PRFST, RTU, TS0, WPT, rkind, NTXMAX
       USE libitp
       IMPLICIT NONE
       INTEGER, INTENT(IN):: INQ
@@ -360,8 +359,7 @@
 
       USE TRCOMM, ONLY : AJ, AJBS, AJBSU, AJU, BP, BPU, DT, GRG, GRM,&
            & GYR, KUFDCG, KUFDEV, MDLJQ, MDLUF, NRMAX, NRMP, NT, NTUM&
-           &, QP, QPU, RT, RTU, rkind
-      USE TRCOM1, ONLY : NTXMAX, TMU
+           &, QP, QPU, RT, RTU, rkind, NTXMAX, TMU
       USE libitp
       IMPLICIT NONE
       INTEGER, INTENT(IN):: INQ
@@ -505,8 +503,8 @@
       SUBROUTINE TRCMP4(INQ)
 
       USE TRCOMM, ONLY : GER, GRM, GRM, GYR, MDLUF, NRMAX, NRMP, NRUM&
-           &, NTUM, RN, RT
-      USE TRCOM1, ONLY : GRE, NREMAX, RNEXEU, RNEXU, RTEXEU, RTEXU,&
+           &, NTUM, RN, RT, &
+                         GRE, NREMAX, RNEXEU, RNEXU, RTEXEU, RTEXU,&
            & RTIXEU, RTIXU
       IMPLICIT NONE
       INTEGER, INTENT(IN):: INQ
@@ -547,8 +545,7 @@
       SUBROUTINE TRCMP5(INQ)
 
       USE TRCOMM, ONLY : DT, GRM, GYR, MDLUF, NRMAX, NRMP, NT, NTUM,&
-           & POH, POHU, RN, RNU_ORG, ZEFF, ZEFFU_ORG, rkind
-      USE TRCOM1, ONLY : NTXMAX, TMU
+           & POH, POHU, RN, RNU_ORG, ZEFF, ZEFFU_ORG, rkind, NTXMAX, TMU
       USE libitp
       IMPLICIT NONE
       INTEGER, INTENT(IN):: INQ
@@ -625,8 +622,7 @@
       SUBROUTINE TRCMP6(INQ)
 
       USE TRCOMM, ONLY : GVRT, GT, GVT, GYT, MDLUF, NGT, NRMAX, NTM,&
-           & NTUM, RTU, rkind
-      USE TRCOM1, ONLY : NTXMAX, TMU
+           & NTUM, RTU, rkind, NTXMAX, TMU
       USE libitp
       IMPLICIT NONE
       INTEGER, INTENT(IN):: INQ

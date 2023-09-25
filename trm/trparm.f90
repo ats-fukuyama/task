@@ -29,7 +29,7 @@ CONTAINS
 !     IERR=7 : unknown MODE
 !     IERR=10X : input parameter out of range
 
-      USE TRCOMM
+      USE trcomm
       USE libkio
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: MODE
@@ -68,7 +68,7 @@ CONTAINS
                     MDLST,MDLNF,IZERO,MODELG,NTEQIT,MDEDGE,MDLIMP, &
                     MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX,MDLER,MDCD05, &
                     PNBTOT,PNBR0,PNBRW,PNBVY,PNBVW,PNBENG,PNBRTG,MDLNB, &
-                    NRNBMAX,model_prof,knam_prof, &
+                    NRNBMAX,model_prof,knam_prof,knam_nfixed,knam_tfixed, &
                     PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC, &
                     PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,MDLLH, &
                     PICTOT,PICR0,PICRW,PICTOE,PICNPR,MDLIC, &
@@ -83,7 +83,8 @@ CONTAINS
                     MDLEOI,NSMAX,NSZMAX,NSNMAX, &
                     KUFDIR,KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDTC, &
                     MDLPCK,MDLPSC,NPSCMAX,PSCTOT,PSCR0,PSCRW,NSPSC, &
-                    RB,NPRINT
+                    RB,NPRINT, &
+                    model_nfixed,model_tfixed,tau_nfixed,tau_tfixed
 
       IF(NID.GE.0) THEN
          READ(NID,TR,IOSTAT=IST,ERR=9800,END=9900)
@@ -133,7 +134,9 @@ CONTAINS
              ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK'/ &
              ' ',8X,'KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG,KFNTXT,KFNCVS,'/ &
              ' ',8X,'MDLPSC,NPSCMAX,PSCTOT,PSCR0,PSCRW,NSPSC'/ &
-             ' ',8X,'RB,NPRINT')
+             ' ',8X,'RB,NPRINT'/ &
+             ' ',8X,'knam_nfixed,knam_tfixed'/ &
+             ' ',8X,'model_nfixed,model_tfixed,tau_nfixed,tau_tfixed')
     END SUBROUTINE trplst
 
 !     ***** CHECK INPUT PARAMETERS *****

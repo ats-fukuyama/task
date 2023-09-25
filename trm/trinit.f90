@@ -174,7 +174,9 @@ CONTAINS
       PROFJ2 = 1.D0
       model_prof=0
       knam_prof='prof.data'
-
+      knam_nfixed='nprof_coef_data'
+      knam_tfixed='tprof_coef_data'
+      
       ALP(1) = 1.0D0
       ALP(2) = 0.D0
       ALP(3) = 0.D0
@@ -740,6 +742,34 @@ CONTAINS
 !        else : on  (using DGBSV for band matrix solver)
 
       MDLPCK=0
+
+!     ====== Fixed profile =====      
+!     model_nfixed: for density profile
+!     model_tfixed: for temperature profile
+!        0: no fixed profile      
+!        1: fixed profile (x=n for density, x=t for temperatrue) 
+!        2: fixed profile for rho_min_xfixed <= rho <= rho_max_xfixed
+!               read coefficients from file 'xprof_coef_data'
+!                  ntime_xfixed_max: number of time points
+!                  ndata_xfixed_max: number of coefficients
+!                  rho_min_xfixed:   rho minimum of fixed profile
+!                  rho_max_xfixed:   rho maximum of fixed profile
+!                  time_xfixed(ntime): start time of fixed profile   
+!                  coef_xfixed(ndata,ntime): coefficients of fixed profile
+!       f(nr)=coef(0) &
+!            +0.5D0*coef(1) &
+!            *(tanh((1.D0-coef(2)*coef(3)-rho(nr))/coef(3))+1.D0) &
+!            +coef(4)*(1.D0-rho(nr)*rho(nr))**coef(5) &
+!            +0.5D0*coef(8)*(1.D0-erf((rho(nr)-coef(9))/SQRT(2.D0*coef(10))))
+!
+!
+!    tau_nfixed: relaxation time of density profile
+!    tau_tfixed: relaxation time of temperature profile
+
+      model_nfixed=0
+      model_tfixed=0
+      tau_nfixed=1.D0 ! [s]
+      tau_tfixed=1.D0 ! [s]
 
 !     ====== INTIALIZE ======
 

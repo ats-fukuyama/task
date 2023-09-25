@@ -252,8 +252,8 @@
 
       USE TRCOMM, ONLY : AEE, ANC, ANFE, ANNU, DT, KUFDEV, MDLUF, MDLPR, &
            NRMAX, NT, NTUM, PCX, PIE, PRB, PRC, PRSUM, PRL, PRLU, RKEV, RN, &
-           RT, SCX, SIE, TSCX, TSIE,NSMAX, rkind
-      USE TRCOM1, ONLY : NTAMAX, NTXMAX, PNBI, TMU
+           RT, SCX, SIE, TSCX, TSIE,NSMAX, rkind, &
+           NTAMAX, NTXMAX, PNBI, TMU
       USE tr_cytran_mod, ONLY: tr_cytran
       USE libitp
       IMPLICIT NONE

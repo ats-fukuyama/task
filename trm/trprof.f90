@@ -3,7 +3,10 @@
 MODULE trprof
 
   PRIVATE
-  PUBLIC tr_prof,tr_prof_impurity,tr_prof_current
+  PUBLIC tr_prof
+  PUBLIC tr_prof_impurity
+  PUBLIC tr_prof_current
+  PUBLIC tr_fixed
 
 CONTAINS
 
@@ -16,6 +19,7 @@ CONTAINS
     SUBROUTINE tr_prof
 
       USE trcomm
+      USE trfixed
       USE libfio
       USE libspl1d
       IMPLICIT NONE
@@ -26,7 +30,6 @@ CONTAINS
       INTEGER:: nrmax_prof,ierr,i
       REAL(rkind):: R1,RN1
       
-
       CALL TR_EDGE_DETERMINER(0)
       CALL TR_EDGE_SELECTOR(0)
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
@@ -145,6 +148,44 @@ CONTAINS
 
          SUMPBM=SUMPBM+PBM(NR)
       ENDDO
+
+      SELECT CASE(model_nfixed)
+      CASE(1)
+         DO nr=1,nrmax
+            CALL tr_prof_nfixed(rm(nr),t,rn(nr,1))
+            DO ns=2,nsmax
+               rn(nr,ns)=pn(ns)/(pz(ns)*pn(1))*rn(nr,1)
+            END DO
+         END DO
+      CASE(2)
+         DO nr=1,nrmax
+            IF((rm(nr).GE.rho_min_nfixed).AND. &
+               (rm(nr).LE.rho_max_nfixed)) THEN
+               CALL tr_prof_nfixed(rm(nr),t,rn(nr,1))
+               DO ns=2,nsmax
+                  rn(nr,ns)=pn(ns)/(pz(ns)*pn(1))*rn(nr,1)
+               END DO
+            END IF
+         END DO
+      END SELECT
+      SELECT CASE(model_tfixed)
+      CASE(1)
+         DO nr=1,nrmax
+            CALL tr_prof_tfixed(rm(nr),t,rt(nr,1))
+            DO ns=2,nsmax
+               rt(nr,ns)=rt(nr,1)
+            END DO
+         END DO
+      CASE(2)
+         DO nr=1,nrmax
+            IF((rm(nr).GE.rho_min_tfixed).AND.(rm(nr).LE.rho_max_tfixed)) THEN
+               CALL tr_prof_tfixed(rm(nr),t,rt(nr,1))
+               DO ns=2,nsmax
+                  rn(nr,ns)=rn(nr,1)
+               END DO
+            END IF
+         END DO
+      END SELECT
 
       CALL TR_EDGE_DETERMINER(1)
       CALL TR_EDGE_SELECTOR(1)
@@ -619,5 +660,6 @@ CONTAINS
       ENDIF
 
       RETURN
-      END SUBROUTINE TR_EDGE_SELECTOR
-    END MODULE trprof
+    END SUBROUTINE TR_EDGE_SELECTOR
+
+  END MODULE trprof

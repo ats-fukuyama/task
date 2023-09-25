@@ -83,8 +83,8 @@
 
       SUBROUTINE TRGRT1
 
-      USE TRCOMM, ONLY : GT, GVRT, GRM, RTU, NGT, NTM, NRMAX, MDLUF, rkind
-      USE TRCOM1, ONLY : TMU, NTXMAX, NTUM
+      USE TRCOMM, ONLY : GT, GVRT, GRM, RTU, NGT, NTM, NRMAX, MDLUF, rkind, &
+                         TMU, NTXMAX, NTUM
       USE libitp
       IMPLICIT NONE
       INTEGER :: I, NR, IERR

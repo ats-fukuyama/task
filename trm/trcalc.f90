@@ -78,7 +78,6 @@
 !              '# pellet setup:',icount_of_pellet,pellet_time_start,t
       END IF
       IF(T.GT.pellet_time_start-0.5D0*DT) THEN
-!         WRITE(6,*) '@@@',t,pellet_time_start+0.5D0*DT
          IF(icount_of_pellet.LT.number_of_pellet_repeat) THEN
             t_pellet=pellet_time_start+icount_of_pellet*pellet_time_interval
 !            WRITE(6,'(A,3ES12.4)') '# t_pellet:', &

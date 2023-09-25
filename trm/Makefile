@@ -10,8 +10,8 @@ include ../mtxp/make.mtxp
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 OBJDIR=./obj
 
@@ -24,9 +24,9 @@ MODINCLUDE= -I./$(MOD) -I../trmlib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
             -I../lib/$(MOD) -I../mtxp/$(MOD) \
             -I../../bpsd/$(MOD)
 
-SRCM=trcom0.f90 trcom1.f90 trcomm.f90 trbpsd.f90
+SRCM=trcomm.f90 trbpsd.f90
 SRCS=trinit.f90 trparm.f90 trview.f90 \
-     trmetric.f90 trprof.f90 trprep.f90 \
+     trmetric.f90 trfixed.f90  trprof.f90 trprep.f90 \
      trufsub.f90 tr_ufile_task.f90 tr_ufile_topics.f90 trufile.f90 \
      trncls.f90 trcytran.f90 \
      trfile.f90 trhelp.f90 \
@@ -92,6 +92,9 @@ tr2: $(LIBS2) $(OBJDIR)/trmain.o
 tr3: $(LIBS3) $(OBJDIR)/trmain.o 
 	$(FLINKER) $(OBJDIR)/trmain.o $(LIBS3) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
+trplot: $(OBJDIR)/trcomm.o $(OBJDIR)/trfixed.o $(OBJDIR)/trplot.o 
+	$(FLINKER) $(OBJDIR)/trcomm.o $(OBJDIR)/trfixed.o $(OBJDIR)/trplot.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
+
 clean : 
 	-rm -f ./#* ./*~ $(OBJDIR)/*.o $(OBJDIR)/*/*.o $(MOD)/*.mod $(MOD)/*/*.mod core *.a
 
@@ -103,25 +106,28 @@ distclean: clean
 	cd ../eq && make clean
 	cd ../lib && make clean
 
+$(OBJDIR)/trcomm.o : trcomm.f90  
 $(OBJDIR)/trmain.o : trmain.f90 trcomm.f90  
-$(OBJDIR)/trmenu.o : trmenu.f90 trcomm.f90 trcom1.f90
-$(OBJDIR)/trinit.o : trinit.f90 trcomm.f90 trcom1.f90
-$(OBJDIR)/trparm.o : trparm.f90 trcomm.f90 trcom1.f90
-$(OBJDIR)/trprep.o : trprep.f90 trcomm.f90 trcom1.f90
-$(OBJDIR)/trprof.o : trprof.f90 trcomm.f90 trcom1.f90
-$(OBJDIR)/trmetric.o : trmetric.f90 trcomm.f90 trcom1.f90
-$(OBJDIR)/trfile.o : trfile.f90 trcomm.f90 trcom1.f90
+$(OBJDIR)/trmenu.o : trmenu.f90 trcomm.f90
+$(OBJDIR)/trinit.o : trinit.f90 trcomm.f90
+$(OBJDIR)/trparm.o : trparm.f90 trcomm.f90
+$(OBJDIR)/trview.o : trview.f90 trcomm.f90
+$(OBJDIR)/trfixed.o : trfixed.f90 trcomm.f90
+$(OBJDIR)/trprep.o : trprep.f90 trcomm.f90
+$(OBJDIR)/trprof.o : trprof.f90 trcomm.f90
+$(OBJDIR)/trmetric.o : trmetric.f90 trcomm.f90
+$(OBJDIR)/trfile.o : trfile.f90 trcomm.f90
 $(OBJDIR)/trbpsd.o : trbpsd.f90 trcomm.f90
 $(OBJDIR)/tradat.o : tradat.f90 trcomm.f90
-$(OBJDIR)/trufile.o : trufile.f90 trcomm.f90 trcom1.f90
-$(OBJDIR)/tr_ufile_task.o : tr_ufile_task.f90 trcomm.f90 trcom1.f90
-$(OBJDIR)/tr_ufile_topics.o : tr_ufile_topics.f90 trcomm.f90 trcom1.f90
-$(OBJDIR)/trufsub.o : trufsub.f90 trcomm.f90 trcom1.f90
-$(OBJDIR)/trloop.o : trloop.f90 trcomm.f90 trcom1.f90
-$(OBJDIR)/trexec.o : trexec.f90 trcomm.f90 trcom1.f90
-$(OBJDIR)/trpl.o : trpl.f90 trcomm.f90 trcom1.f90
+$(OBJDIR)/trufile.o : trufile.f90 trcomm.f90
+$(OBJDIR)/tr_ufile_task.o : tr_ufile_task.f90 trcomm.f90
+$(OBJDIR)/tr_ufile_topics.o : tr_ufile_topics.f90 trcomm.f90
+$(OBJDIR)/trufsub.o : trufsub.f90 trcomm.f90
+$(OBJDIR)/trloop.o : trloop.f90 trcomm.f90
+$(OBJDIR)/trexec.o : trexec.f90 trcomm.f90
+$(OBJDIR)/trpl.o : trpl.f90 trcomm.f90
 $(OBJDIR)/trrslt.o : trrslt.f90 trcomm.f90
-$(OBJDIR)/trcalc.o : trcalc.f90 trcomm.f90 trcom1.f90
+$(OBJDIR)/trcalc.o : trcalc.f90 trcomm.f90
 $(OBJDIR)/trcoef.o : trcoef.f90 trcomm.f90 trglf.inc
 $(OBJDIR)/trpnb.o  : trpnb.f90  trcomm.f90 
 $(OBJDIR)/trprf.o  : trprf.f90  trcomm.f90 
@@ -131,11 +137,11 @@ $(OBJDIR)/trpsc.o  : trpsc.f90  trcomm.f90
 
 $(OBJDIR)/trgout.o : trgout.f90 trcomm.f90 
 $(OBJDIR)/trgrar.o : trgrar.f90 trcomm.f90 
-$(OBJDIR)/trgrat.o : trgrat.f90 trcomm.f90 trcom1.f90
+$(OBJDIR)/trgrat.o : trgrat.f90 trcomm.f90
 $(OBJDIR)/trgrap.o : trgrap.f90 trcomm.f90 
 $(OBJDIR)/trgrae.o : trgrae.f90 trcomm.f90 
 $(OBJDIR)/trgrad.o : trgrad.f90 trcomm.f90 
-$(OBJDIR)/trgram.o : trgram.f90 trcomm.f90 trcom1.f90
+$(OBJDIR)/trgram.o : trgram.f90 trcomm.f90
 $(OBJDIR)/trgsub.o : trgsub.f90 trcomm.f90 
 $(OBJDIR)/trhelp.o : trhelp.f90 trcomm.f90 
 $(OBJDIR)/trg2d.o  : trg2d.f90  trcomm.f90 
@@ -145,3 +151,5 @@ $(OBJDIR)/trmodels.o : trmodels.f90  trcomm.f90
 $(OBJDIR)/trncls.o : trncls.f90 trcomm.f90 ../trmlib/nclass/pamx_mi.inc \
            ../trmlib/nclass/pamx_ms.inc ../trmlib/nclass/pamx_mz.inc
 $(OBJDIR)/trcytran.o: trcytran.f90
+
+$(OBJDIR)/trplot.o  : trplot.f90 trfixed.f90 trcomm.f90

@@ -10,13 +10,13 @@ CONTAINS
   SUBROUTINE tr_prep(ierr)
 
     USE trcomm
-    USE trcom0, ONLY : NSTM
-    USE trcom1, ONLY : NTAMAX,KDIRX
     USE trprof
     USE trbpsd
     USE trmetric
+    USE trfixed
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
+    INTEGER:: nr,ns
 
       CALL ALLOCATE_TRCOMM(IERR)
       IF(IERR.NE.0) RETURN
@@ -66,7 +66,7 @@ CONTAINS
 
       CALL tr_prof
 
-!     *** Initialize bpsd data ***
+      !     *** Initialize bpsd data ***      IF(model_nfixed.EQ.1) THEN
 
       CALL tr_bpsd_init
       CALL tr_bpsd_put(ierr)
@@ -124,8 +124,8 @@ CONTAINS
          MDLEQT, MDLEQU, MDLEQZ, MDLKAI, MDLUF, &
          MDLWLD, MDNCLS, NEA, NEQM, NEQMAX, NEQMAXM, NNS, NREDGE, &
          NRMAX, NSCMAX, NSLMAX, NSM, NSMAX,      &
-         NSNMAX, NSS, NST, NSTM, NSTMAX, NSV, NSZMAX, PA, PZ, RGFLS, RQFLS
-    USE TRCOM1, ONLY : INS
+         NSNMAX, NSS, NST, NSTM, NSTMAX, NSV, NSZMAX, PA, PZ, RGFLS, RQFLS, &
+         INS
     IMPLICIT NONE
     INTEGER,INTENT(IN) :: INIT
     INTEGER:: IND, INDH, INDHD, MDANOM, MDSLCT, NEQ, NEQ1, NEQI

@@ -1,17 +1,7 @@
-MODULE TRCOMM
-  USE TRCOM0
+MODULE trcomm_constants
+  USE bpsd_kinds,ONLY: rkind
   IMPLICIT NONE
-
-!     ****** CONSTANTS, based on CODATA 2006 ******
-! TRCNS
-!        PI    : Pi
-!        AEE   : Elementaty charge
-!        AME   : Electron mass
-!        AMM   : Proton mass
-!        VC    : Speed of light in vacuum
-!        RMU0  : Permeability of free space
-!        EPS0  : Permittivity of free space
-!        RKEV  : Factor ([keV] -> [J])
+  
   REAL(rkind), PARAMETER :: PI   = 3.14159265358979323846D0
   REAL(rkind), PARAMETER :: AEE  = 1.602176487D-19
   REAL(rkind), PARAMETER :: AME  = 9.10938215D-31
@@ -21,12 +11,34 @@ MODULE TRCOMM
   REAL(rkind), PARAMETER :: EPS0 = 1.D0/(VC*VC*RMU0)
   REAL(rkind), PARAMETER :: RKEV = AEE*1.D3
 
+  INTEGER, PARAMETER :: NSMM=100 ! Max number of species for namelist input
+  INTEGER, PARAMETER :: NSM=4
+  INTEGER, PARAMETER :: NSZM=2
+  INTEGER, PARAMETER :: NSNM=2
+  INTEGER, PARAMETER :: NFM=2
+  INTEGER, PARAMETER :: NTM =10001
+  INTEGER, PARAMETER :: NGM=1001
+  INTEGER, PARAMETER :: NCGM=23
+  INTEGER, PARAMETER :: NCTM=110
+  INTEGER, PARAMETER :: NCRTM=67
+  INTEGER, PARAMETER :: NSTM=8
+  INTEGER, PARAMETER :: NEQM=3*NSTM+1
+  INTEGER, PARAMETER :: NLM =1001
+  INTEGER, PARAMETER :: NTUM=1001  ! Size of ufile data
+  INTEGER, PARAMETER :: NRUM=102   ! Size of ufile data
   INTEGER, PARAMETER :: NPSCM = 10 ! Maximum number of particle source
 
-!     ****** PARAMETERS ******
+END MODULE trcomm_constants
+
+MODULE trcomm_parm
+
+  USE trcomm_constants
+  IMPLICIT NONE
+
+!     ****** INPUT PARAMETERS ******
 ! TRPRM
   REAL(rkind)   :: &
-       RR, RA, RKAP, RDLT, BB, RIPS, RIPE, RIPSS, PHIA, PNC, PNFE, PNNU, &
+       RR, RA, RB, RKAP, RDLT, BB, RIPS, RIPE, RIPSS, PHIA, PNC, PNFE, PNNU, &
        PNNUS, PROFN1, PROFN2, PROFT1, PROFT2, PROFU1, PROFU2, &
        PROFNU1, PROFNU2, PROFJ1, &
        PROFJ2, AD0, AV0, CNP, CNH, CDP, CDH, CNN, CWEB, DT, EPSLTR, &
@@ -40,6 +52,8 @@ MODULE TRCOMM
        PA,PZ,PN,PNS,PT,PTS,PU,PUS
   INTEGER, DIMENSION(NSMM) :: &
        NPA
+  INTEGER  :: &
+       NRMAX, NSMAX, NSZMAX, NSNMAX
   INTEGER:: &
        LMAXTR, MDLKAI, MDLETA, MDLAD, MDLAVK, MDLKNC, MDLTPF, &
        NTMAX, NTSTEP, NGTSTP, NGRSTP, NGPST, MODELG,MDLDSK,MDTC, &
@@ -49,8 +63,6 @@ MODULE TRCOMM
   CHARACTER(LEN=128):: &
        knam_prof
 
-!     ****** MODEL PARAMETERS ******
-! TRMDL
   REAL(rkind)   :: &
        TPRST, PBSCD, &
        PNBTOT, PNBR0, PNBRW, PNBCD, PNBVY, PNBVW, PNBENG, PNBRTG, &
@@ -70,7 +82,69 @@ MODULE TRCOMM
        NSPSC
   INTEGER:: &
        MDLNB, MDLEC, MDLLH, MDLIC, MDLCD, MDLPEL, MDLJBS, MDLST, MDLNF, &
-       IZERO, MDLELM, MDLPSC, NPSCMAX, MDLIMP, NRNBMAX
+       IZERO, MDLELM, MDLPSC, NPSCMAX, MDLIMP, NRNBMAX, NPRINT
+
+  INTEGER:: &
+       model_nfixed,model_tfixed
+  REAL(rkind):: &
+       tau_nfixed,tau_tfixed
+
+END MODULE trcomm_parm
+
+MODULE trcomx
+  USE bpsd_kinds,ONLY: rkind
+  IMPLICIT NONE
+  REAL(rkind), DIMENSION(:,:,:),ALLOCATABLE :: A, B, C
+  REAL(rkind), DIMENSION(:,:)  ,ALLOCATABLE :: D
+  REAL(rkind), DIMENSION(:,:)  ,ALLOCATABLE :: RD, PPA, PPB, PPC
+
+CONTAINS
+
+  SUBROUTINE allocate_trcomx(NEQMAXM,NRMAX)
+
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: NEQMAXM,NRMAX
+    INTEGER:: IERR
+
+    IF(ALLOCATED(A)) CALL deallocate_trcomx
+    IERR=0
+    ALLOCATE(A(NEQMAXM,NEQMAXM,NRMAX),B(NEQMAXM,NEQMAXM,NRMAX),STAT=IERR)
+    IF(IERR.NE.0) GOTO 900
+    ALLOCATE(C(NEQMAXM,NEQMAXM,NRMAX),D(NEQMAXM,NRMAX),STAT=IERR)
+    IF(IERR.NE.0) GOTO 900
+    ALLOCATE(RD(NEQMAXM,NRMAX),STAT=IERR)
+    IF(IERR.NE.0) GOTO 900
+    ALLOCATE(PPA(NEQMAXM,NRMAX),PPB(NEQMAXM,NRMAX),STAT=IERR)
+    IF(IERR.NE.0) GOTO 900
+    ALLOCATE(PPC(NEQMAXM,NRMAX),STAT=IERR)
+    IF(IERR.NE.0) GOTO 900
+    RETURN
+
+900 WRITE(6,'(A,I8)') 'XX allocate_trcomx: ierr=',IERR
+    IF(ALLOCATED(A)) DEALLOCATE(A)
+    IF(ALLOCATED(B)) DEALLOCATE(B)
+    IF(ALLOCATED(C)) DEALLOCATE(C)
+    IF(ALLOCATED(D)) DEALLOCATE(D)
+    IF(ALLOCATED(RD)) DEALLOCATE(RD)
+    IF(ALLOCATED(PPA)) DEALLOCATE(PPA)
+    IF(ALLOCATED(PPB)) DEALLOCATE(PPB)
+    IF(ALLOCATED(PPC)) DEALLOCATE(PPC)
+    STOP
+  END SUBROUTINE allocate_trcomx
+
+  SUBROUTINE deallocate_trcomx
+
+    IMPLICIT NONE
+
+    DEALLOCATE(A,B,C,D,RD,PPA,PPB,PPC)
+    RETURN
+  END SUBROUTINE deallocate_trcomx
+END MODULE trcomx
+
+MODULE trcomm
+  
+  USE trcomm_parm
+  IMPLICIT NONE
 
 !     ****** CONTROL VARIABLES ******
 !TRCTL
@@ -82,6 +156,8 @@ MODULE TRCOMM
        PNSS
   INTEGER:: &
        NT, NRAMAX, NROMAX, NREDGE, NTMAX_SAVE, IREAD
+  INTEGER:: &
+       NEQMAXM, NVM, MWM, MLM, NRMP, NGLF, LDAB
   INTEGER:: &
        icount_of_pellet ! 0 : before start
                         ! positive: number of pellet from t_start
@@ -203,6 +279,7 @@ MODULE TRCOMM
 !     ****** LOG FILE NAME ******
 ! TRNAM
   CHARACTER(LEN=80) :: KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG,KFNTXT,KFNCVS
+  CHARACTER(LEN=80) :: knam_nfixed,knam_tfixed
 ! TRCOM2
   CHARACTER(LEN=80) :: KXNDEV,KXNDCG,KXNID
   CHARACTER(LEN=80) :: KDIRW1,KDIRW2
@@ -265,39 +342,57 @@ MODULE TRCOMM
   REAL(rkind)    :: TIME_INT
   INTEGER :: MDLXP,MDLUF,MODEP,MDNI,MDCURT,MDNM1,MDLJQ,MDPHIA,NTS
   CHARACTER(LEN=80) :: KUFDIR,KUFDEV,KUFDCG
+  
 !     ****** LAPACK ******
 ! TRLPCK
   INTEGER :: MDLPCK
+
+! fixed profile variables
+  REAL(rkind):: time_initial_nfixed,time_initial_tfixed
 
 !     ************
 !TRPROF
   REAL(rkind), DIMENSION(:),ALLOCATABLE :: & ! (NSTM)
        PNSSO,PTSO,PNSSAO,PTSAO
 
-!     ******************************************************
+! *** trcom1 ***
+  
+! TMSLC
+  INTEGER              :: NTAMAX, NTXMAX, NTXMAX1
+  REAL(rkind)                 :: PNBI
+  REAL(rkind), DIMENSION(NTUM):: TMU, TMU1
+
+! TRERU
+  REAL(rkind), DIMENSION(:,:),ALLOCATABLE :: RTEXU, RTIXU, RNEXU, RTEXEU, RTIXEU, RNEXEU   ! (NTUM,NRUM)
+
+! TRINS
+  INTEGER:: INS
+
+
+! TRUFC
+  INTEGER              :: NMCHK
+  INTEGER,DIMENSION(2) :: NREMAX
+  REAL,DIMENSION(:,:),ALLOCATABLE :: GRE   ! (NRUM,2)
+  CHARACTER(LEN=80)       :: KDIRX
+
   CONTAINS
 
-  SUBROUTINE ALLOCATE_TRCOMM(ierr)
+  SUBROUTINE allocate_trcomm(ierr)
 
-    use trcom1, ONLY : ALLOCATE_TRCOM1
+    USE trcomx,ONLY: allocate_trcomx
+    IMPLICIT NONE
     integer, intent(out):: ierr
+    INTEGER,SAVE:: nrmax_save=0
+    INTEGER,SAVE:: nsmax_save=0
+    INTEGER,SAVE:: nszmax_save=0
+    INTEGER,SAVE:: nsnmax_save=0
 
     ierr = 0
-    if(nsmax<1) then
-      write(6,*) "XXX ALLOCATE_TRCOMM : ILLEGAL PARAMETER    NSMAX=",nsmax
-      ierr = 1
-      return
-    endif
-    if(nrmax<1) then
-      write(6,*) "XXX ALLOCATE_TRCOMM : ILLEGAL PARAMETER    NRMAX=",nrmax
-      ierr = 1
-      return
-    endif
 
-    if(nrmax_old==nrmax .and. &
-       nsmax_old==nsmax .and. &
-       nszmax_old==nszmax .and. &
-       nsnmax_old==nsnmax .and. &
+    if(nrmax==nrmax_save .and. &
+       nsmax==nsmax_save .and. &
+       nszmax==nszmax_save .and. &
+       nsnmax==nsnmax_save .and. &
        ALLOCATED(PNSS)) return
     if(ALLOCATED(PNSS)) call DEALLOCATE_TRCOMM
 
@@ -496,14 +591,19 @@ MODULE TRCOMM
     ALLOCATE(PNSSO(NSTM),PTSO(NSTM),PNSSAO(NSTM),PTSAO(NSTM),STAT=IERR)
       IF(IERR.NE.0) GOTO 900
 
-
-    CALL ALLOCATE_TRCOM1(IERR)
+    ALLOCATE(RTEXU(NTUM,NRUM), RTIXU(NTUM,NRUM), RNEXU(NTUM,NRUM),STAT=IERR)
       IF(IERR.NE.0) GOTO 900
+    ALLOCATE(RTEXEU(NTUM,NRUM), RTIXEU(NTUM,NRUM), RNEXEU(NTUM,NRUM),STAT=IERR)
+      IF(IERR.NE.0) GOTO 900
+    ALLOCATE(GRE(NRUM,2),STAT=IERR)
+    IF(IERR.NE.0) GOTO 900
 
-    nrmax_old  = nrmax
-    nsmax_old  = nsmax
-    nszmax_old = nszmax
-    nsnmax_old = nsnmax
+    CALL allocate_trcomx(NEQMAXM,NRMAX)
+
+    nrmax_save = nrmax
+    nsmax_save = nsmax
+    nszmax_save = nszmax
+    nsnmax_save = nsnmax
     return
 
  900 continue
@@ -515,8 +615,9 @@ MODULE TRCOMM
 
 
   SUBROUTINE DEALLOCATE_TRCOMM
-    use trcom1, ONLY : DEALLOCATE_TRCOM1
 
+    USE trcomx,ONLY: deallocate_trcomx
+    IMPLICIT NONE
     DEALLOCATE(PNSS)
     DEALLOCATE(XV,YV, AY, Y,ZV, AZ, Z,AX,X)
     DEALLOCATE(RG,RM,RHOM,RHOG,BP,RDP,RPSI,RN,RT,RU,RW)
@@ -551,7 +652,10 @@ MODULE TRCOMM
     DEALLOCATE(RNU,RTU,PNBU,PICU,SNBU,RNU_ORG)
     DEALLOCATE(PNSSO,PTSO,PNSSAO,PTSAO)
 
-    CALL  DEALLOCATE_TRCOM1
+    DEALLOCATE(RTEXU, RTIXU, RNEXU, RTEXEU, RTIXEU, RNEXEU)
+    DEALLOCATE(GRE)
+
+    CALL deallocate_trcomx
 
     return
 
@@ -559,7 +663,6 @@ MODULE TRCOMM
 
 
   SUBROUTINE DEALLOCATE_ERR_TRCOMM
-    use trcom1, ONLY : DEALLOCATE_ERR_TRCOM1
 
     IF(ALLOCATED(PNSS     ))     DEALLOCATE(PNSS     )
     IF(ALLOCATED(XV       ))     DEALLOCATE(XV       )
@@ -804,10 +907,15 @@ MODULE TRCOMM
     IF(ALLOCATED(PTSO     ))     DEALLOCATE(PTSO     )
     IF(ALLOCATED(PNSSAO   ))     DEALLOCATE(PNSSAO   )
     IF(ALLOCATED(PTSAO    ))     DEALLOCATE(PTSAO    )
+    IF(ALLOCATED(RTEXU ))     DEALLOCATE(RTEXU )
+    IF(ALLOCATED(RTIXU ))     DEALLOCATE(RTIXU )
+    IF(ALLOCATED(RNEXU ))     DEALLOCATE(RNEXU )
+    IF(ALLOCATED(RTEXEU))     DEALLOCATE(RTEXEU)
+    IF(ALLOCATED(RTIXEU))     DEALLOCATE(RTIXEU)
+    IF(ALLOCATED(RNEXEU))     DEALLOCATE(RNEXEU)
+    IF(ALLOCATED(GRE   ))     DEALLOCATE(GRE   )
 
-    CALL DEALLOCATE_ERR_TRCOM1
-
-    return
+    RETURN
 
   END SUBROUTINE DEALLOCATE_ERR_TRCOMM
 
@@ -815,4 +923,5 @@ MODULE TRCOMM
     RETURN
   END SUBROUTINE open_trcomm
 
-END MODULE TRCOMM
+END MODULE trcomm
+
