@@ -1,0 +1,16 @@
+0
+f
+gs/fixed01.gs
+c
+model_nfixed=1
+tau_nfixed=0.1D0
+knam_nfixed='data/nprof_coef_data'
+r
+g
+t6
+t7
+r1
+r2
+r4
+x
+q
