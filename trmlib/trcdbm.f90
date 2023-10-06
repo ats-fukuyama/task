@@ -178,9 +178,9 @@ CONTAINS
        ENDIF
        IF(curv.LT.0.D0) THEN
           IF(ABS(shear).GT.shear_min) THEN
-             fs2=SQRT(curv)**3/(shear*shear)
+             fs2=SQRT(-curv)**3/(shear*shear)
           ELSE
-             fs2=SQRT(curv)**3/shear_min**2
+             fs2=SQRT(-curv)**3/shear_min**2
           END IF
        ELSE
           fs2=0.D0

@@ -86,8 +86,6 @@ MODULE trcomm_parm
 
   INTEGER:: &
        model_nfixed,model_tfixed
-  REAL(rkind):: &
-       tau_nfixed,tau_tfixed
 
 END MODULE trcomm_parm
 

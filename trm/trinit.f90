@@ -762,14 +762,8 @@ CONTAINS
 !            +coef(4)*(1.D0-rho(nr)*rho(nr))**coef(5) &
 !            +0.5D0*coef(8)*(1.D0-erf((rho(nr)-coef(9))/SQRT(2.D0*coef(10))))
 !
-!
-!    tau_nfixed: relaxation time of density profile
-!    tau_tfixed: relaxation time of temperature profile
-
       model_nfixed=0
       model_tfixed=0
-      tau_nfixed=1.D0 ! [s]
-      tau_tfixed=1.D0 ! [s]
 
 !     ====== INTIALIZE ======
 

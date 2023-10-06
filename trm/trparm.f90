@@ -84,7 +84,7 @@ CONTAINS
                     KUFDIR,KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDTC, &
                     MDLPCK,MDLPSC,NPSCMAX,PSCTOT,PSCR0,PSCRW,NSPSC, &
                     RB,NPRINT, &
-                    model_nfixed,model_tfixed,tau_nfixed,tau_tfixed
+                    model_nfixed,model_tfixed
 
       IF(NID.GE.0) THEN
          READ(NID,TR,IOSTAT=IST,ERR=9800,END=9900)
@@ -136,7 +136,7 @@ CONTAINS
              ' ',8X,'MDLPSC,NPSCMAX,PSCTOT,PSCR0,PSCRW,NSPSC'/ &
              ' ',8X,'RB,NPRINT'/ &
              ' ',8X,'knam_nfixed,knam_tfixed'/ &
-             ' ',8X,'model_nfixed,model_tfixed,tau_nfixed,tau_tfixed')
+             ' ',8X,'model_nfixed,model_tfixed')
     END SUBROUTINE trplst
 
 !     ***** CHECK INPUT PARAMETERS *****

@@ -21,11 +21,13 @@ CONTAINS
      &   MDLEQN, MDLPCK, MDLUF, MDTC, MLM, NEQMAX, NFM, &
      &   NRAMAX, NRMAX, NROMAX, NSM, NSMAX, NSS, NST, NSV, &
      &   NTUM, &
-     &   PA, PZ, PZC, PZFE, RDP, RHOA, RIP, RIPU, &
+     &   PA, PZ, PZC, PZFE, PN, RDP, RHOA, RIP, RIPU, RM, &
      &   RMU0, RN, RT, RU, RW, T, TTRHO, TTRHOG, &
      &   VLOOP, VSEC, X, XV, Y, YV, Z, ZV ,NEQMAXM, DIPDT, &
          RDPVRHOG, abvrhog, rkind, &
-         TMU, TMU1, NTXMAX, NTXMAX1
+         TMU, TMU1, NTXMAX, NTXMAX1, model_nfixed, model_tfixed
+      USE trcomx
+      USE trfixed
       USE libbnd
       USE libitp
       IMPLICIT NONE
@@ -34,7 +36,9 @@ CONTAINS
       INTEGER:: I, ICHCK, INFO, J, L, LDB, M, MWRMAX, &
            N, NEQ, NEQ1, NEQRMAX, NR, NRHS, NSSN, NSSN1, &
            NSTN, NSTN1, NSVN, NSVN1, KL, KU
+      INTEGER:: id_nfixed,id_tfixed
       REAL(rkind)   :: AJL, FACTOR0, FACTORM, FACTORP, TSL
+      REAL(rkind):: rne_local,rt_local
       INTEGER,DIMENSION(NEQMAXM*NRMAX) :: IPIV
       REAL(rkind),DIMENSION(NEQMAXM*NRMAX)    :: XX
       REAL(rkind),DIMENSION(2,NRMAX)  :: YY
@@ -144,6 +148,24 @@ CONTAINS
          ENDDO
       ENDIF
 
+!      CALL TRXTOA
+!      GO TO 6000
+
+      id_nfixed=0
+      id_tfixed=0
+      IF(model_nfixed.EQ.1) THEN
+         IF(t.GE.time_nfixed(1)) id_nfixed=1
+      END IF
+      IF(model_nfixed.EQ.2) THEN
+         IF(t.GE.time_nfixed(1)) id_nfixed=2
+      END IF
+      IF(model_tfixed.EQ.1) THEN
+         IF(t.GE.time_tfixed(1)) id_tfixed=1
+      END IF
+      IF(model_tfixed.EQ.2) THEN
+         IF(t.GE.time_tfixed(1)) id_tfixed=2
+      END IF
+
       DO NR=1,NRMAX
          DO NEQ=1,NEQMAX
             NSSN=NSS(NEQ)
@@ -164,100 +186,110 @@ CONTAINS
                RDPVRHOG(NR) = RDP(NR) / DVRHOG(NR)
             ELSEIF(NSVN.EQ.1) THEN
                IF(MDLEQN.NE.0) THEN
-                  IF(NSSN.EQ.1.AND.MDLEQE.EQ.0) THEN
-                     RN(NR,NSSN) = 0.D0
-                     DO NEQ1=1,NEQMAX
-                        NSSN1=NSS(NEQ1)
-                        NSVN1=NSV(NEQ1)
-                        NSTN1=NST(NEQ1)
-                        IF(NSVN1.EQ.1.AND.NSSN1.NE.1) THEN
-                           IF(NSTN1.EQ.0) THEN
-                              RN(NR,NSSN) = RN(NR,NSSN) &
-                                   + PZ(NSSN1)*XV(NEQ1,NR)
-                           ELSE
-                              RN(NR,NSSN) = RN(NR,NSSN) &
-                                   + PZ(NSSN1)*0.5D0*(XV(NEQ1,NR) &
-                                                   +X(NEQRMAX*(NR-1)+NSTN1))
-                           ENDIF
-                        ENDIF
-                     ENDDO
-                     RN(NR,NSSN) = RN(NR,NSSN) &
-                          +PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
-                  ELSEIF(NSSN.EQ.1.AND.MDLEQE.EQ.1) THEN
-                     RN(NR,NSSN) = 0.5D0*(XV(NEQ,NR)+X(NEQRMAX*(NR-1)+NEQ))
-                  ELSEIF(NSSN.EQ.2.AND.MDLEQE.EQ.2) THEN
-                     RN(NR,NSSN) = 0.D0
-                     DO NEQ1=1,NEQMAX
-                        NSSN1=NSS(NEQ1)
-                        NSVN1=NSV(NEQ1)
-                        NSTN1=NST(NEQ1)
-                        IF(NSVN1.EQ.1.AND.NSSN1.NE.2) THEN
-                           IF(NSTN1.EQ.0) THEN
-                              RN(NR,NSSN) = RN(NR,NSSN) &
-                                   +ABS(PZ(NSSN1))*XV(NEQ1,NR)
-                           ELSE
-                              RN(NR,NSSN) = RN(NR,NSSN) &
-                                   +ABS(PZ(NSSN1))*0.5D0*(XV(NEQ1,NR) &
-                                   +X(NEQRMAX*(NR-1)+NSTN1))
-                           ENDIF
-                        ENDIF
-                     ENDDO
-                     RN(NR,NSSN) = RN(NR,NSSN) &
-                          +PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
-                  ELSE
-                     IF(NSTN.EQ.0) THEN
-                        RN(NR,NSSN) = XV(NEQ,NR)
+                  IF(id_nfixed.EQ.1.OR. &
+                    (id_nfixed.EQ.2.AND. &
+                     rm(nr).GE.rho_min_nfixed.AND. &
+                     rm(nr).LE.rho_max_nfixed)) THEN
+                     CALL tr_prof_nfixed(rm(nr),t,rne_local)
+                     IF(nssn.EQ.1) THEN
+                        rn(nr,nssn)=rne_local
                      ELSE
-                        RN(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
-                                            + X(NEQRMAX*(NR-1)+NSTN))
+                        rn(nr,nssn)=pn(nssn)*rne_local/(pz(nssn)*pn(1))
+                     END IF
+                  ELSE
+                     IF(NSSN.EQ.1.AND.MDLEQE.EQ.0) THEN
+                        RN(NR,NSSN) = 0.D0
+                        DO NEQ1=1,NEQMAX
+                           NSSN1=NSS(NEQ1)
+                           NSVN1=NSV(NEQ1)
+                           NSTN1=NST(NEQ1)
+                           IF(NSVN1.EQ.1.AND.NSSN1.NE.1) THEN
+                              IF(NSTN1.EQ.0) THEN
+                                 RN(NR,NSSN) = RN(NR,NSSN) &
+                                      + PZ(NSSN1)*XV(NEQ1,NR)
+                              ELSE
+                                 RN(NR,NSSN) = RN(NR,NSSN) &
+                                      + PZ(NSSN1)*0.5D0*(XV(NEQ1,NR) &
+                                      + X(NEQRMAX*(NR-1)+NSTN1))
+                              ENDIF
+                           ENDIF
+                        ENDDO
+                        RN(NR,NSSN) = RN(NR,NSSN) &
+                             +PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
+                     ELSEIF(NSSN.EQ.1.AND.MDLEQE.EQ.1) THEN
+                        RN(NR,NSSN) = 0.5D0*(XV(NEQ,NR)+X(NEQRMAX*(NR-1)+NEQ))
+                     ELSEIF(NSSN.EQ.2.AND.MDLEQE.EQ.2) THEN
+                        RN(NR,NSSN) = 0.D0
+                        DO NEQ1=1,NEQMAX
+                           NSSN1=NSS(NEQ1)
+                           NSVN1=NSV(NEQ1)
+                           NSTN1=NST(NEQ1)
+                           IF(NSVN1.EQ.1.AND.NSSN1.NE.2) THEN
+                              IF(NSTN1.EQ.0) THEN
+                                 RN(NR,NSSN) = RN(NR,NSSN) &
+                                      +ABS(PZ(NSSN1))*XV(NEQ1,NR)
+                              ELSE
+                                 RN(NR,NSSN) = RN(NR,NSSN) &
+                                      +ABS(PZ(NSSN1))*0.5D0*(XV(NEQ1,NR) &
+                                      +X(NEQRMAX*(NR-1)+NSTN1))
+                              ENDIF
+                           ENDIF
+                        ENDDO
+                        RN(NR,NSSN) = RN(NR,NSSN) &
+                             +PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
+                     ELSE
+                        IF(NSTN.EQ.0) THEN
+                           RN(NR,NSSN) = XV(NEQ,NR)
+                        ELSE
+                           RN(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
+                                + X(NEQRMAX*(NR-1)+NSTN))
+                        ENDIF
                      ENDIF
                   ENDIF
+               END IF
+            ELSEIF(NSVN.EQ.2) THEN
+               IF(id_tfixed.EQ.1.OR. &
+                 (id_tfixed.EQ.2.AND. &
+                  RM(nr).GE.rho_min_tfixed.AND. &
+                  RM(nr).LE.rho_max_tfixed)) THEN
+                  CALL tr_prof_tfixed(rm(nr),t,rt_local)
+                  RT(nr,nssn)=rt_local
                ELSE
                   IF(NSTN.EQ.0) THEN
-                     RN(NR,NSSN) = XV(NEQ,NR)
-                  ELSE
-                     RN(NR,NSSN) = 0.5D0*(XV(NEQ,NR) +  X(NEQRMAX*(NR-1)+NSTN))
-                  ENDIF
-               ENDIF
-            ELSEIF(NSVN.EQ.2) THEN
-               IF(NSTN.EQ.0) THEN
-                  IF(NSSN.NE.NSM) THEN
-                     RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
-!                     write(6,'(A,2I5,1P3E12.4)') '-1- ',NR,NSSN, &
-!                     & XV(NEQ,NR),RN(NR,NSSN),RT(NR,NSSN)
-                  ELSE
                      IF(RN(NR,NSM).LT.1.D-70) THEN
                         RT(NR,NSM) = 0.D0
                      ELSE
-                        RT(NR,NSM) = XV(NEQ,NR)/RN(NR,NSM)
+                        IF(NSSN.NE.NSM) THEN
+                           RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
+                        ELSE
+                           RT(NR,NSM) = XV(NEQ,NR)/RN(NR,NSM)
+                        ENDIF
                      ENDIF
-                  ENDIF
-               ELSE
-                  IF(NSSN.NE.NSM) THEN
-                     RT(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
-                                         +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSSN)
-!                     write(6,'(A,3I5,1P4E12.4)') &
-!                             '-2- ',NR,NSSN,NSTN, &
-!                              XV(NEQ,NR),RN(NR,NSSN),RT(NR,NSSN),&
-!                              X(NEQRMAX*(NR-1)+NSTN)
                   ELSE
                      IF(RN(NR,NSM).LT.1.D-70) THEN
-                        RT(NR,NSM) = 0.D0
+                        RT(NR,NSM) = 0.03D0
                      ELSE
-                        RT(NR,NSM) = 0.5D0*(XV(NEQ,NR) &
-                             +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSM)
-!                     write(6,'(A,2I5,1P3E12.4)') '-3- ',NR,NSM, &
-!                     & XV(NEQ,NR),RN(NR,NSM),RT(NR,NSM)
+                        IF(NSSN.NE.NSM) THEN
+                           RT(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
+                                +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSSN)
+                        ELSE
+                           RT(NR,NSM) = 0.5D0*(XV(NEQ,NR) &
+                                +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSM)
+                        ENDIF
                      ENDIF
                   ENDIF
-               ENDIF
+               END IF
             ELSEIF(NSVN.EQ.3) THEN
-               IF(NSTN.EQ.0) THEN
-                  RU(NR,NSSN) = XV(NEQ,NR)/(PA(NSSN)*AMM*RN(NR,NSSN))
+               IF(RN(NR,NSSN).LT.1.D-70) THEN
+                  RU(NR,NSSN) = 0.D0
                ELSE
-                  RU(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
-                       + X(NEQRMAX*(NR-1)+NSTN))/(PA(NSSN)*AMM*RN(NR,NSSN))
-               ENDIF
+                  IF(NSTN.EQ.0) THEN
+                     RU(NR,NSSN) = XV(NEQ,NR)/(PA(NSSN)*AMM*RN(NR,NSSN))
+                  ELSE
+                     RU(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
+                          + X(NEQRMAX*(NR-1)+NSTN))/(PA(NSSN)*AMM*RN(NR,NSSN))
+                  ENDIF
+               END IF
             ENDIF
          END DO
          IF(NSMAX.GE.8) THEN
@@ -268,6 +300,8 @@ CONTAINS
          RW(NR,2)  = 0.5D0*(YV(2,NR)+Y(2,NR))
       ENDDO
 
+6000  CONTINUE
+      
       CALL TRCHCK(ICHCK)
       IF(ICHCK.EQ.1) THEN
          CALL TRGLOB
@@ -289,8 +323,6 @@ CONTAINS
  4000 T=T+DT
       VSEC=VSEC+VLOOP*DT
       RIP=RIP+DIPDT*DT
-
-!      write(6,'(A,1P4E12.4)') "T,RIP,RIPE,DIP=",T,RIP,RIPE,DIPDT*DT
 
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
 
@@ -428,7 +460,7 @@ CONTAINS
      &                   RKEV, RMU0, RN, RR, RT, RTM, T, TAUB, TAUF, TAUK, &
      &                   VI, VV, X, XV, Y, YV, Z, ZV, RDPS, &
      &                   ABVRHOG, rkind
-      USE TRCOMX, ONLY:  A, B, C, D, PPA, PPB, PPC, RD
+      USE TRCOMX
       USE trfixed
       IMPLICIT NONE
       INTEGER, INTENT(INOUT):: NEQRMAX
@@ -517,8 +549,8 @@ CONTAINS
       CALL TR_IONIZATION(NR)
       CALL TR_CHARGE_EXCHANGE(NR)
 
-      CALL tr_set_nfixed(NR,t)
-      CALL tr_set_tfixed(NR,t)
+      CALL tr_set_nfixed(nr,t)
+      CALL tr_set_tfixed(nr,t)
 
 !     ***** RHS Vector *****
 
@@ -580,9 +612,9 @@ CONTAINS
          CALL TR_IONIZATION(NR)
          CALL TR_CHARGE_EXCHANGE(NR)
 
-         CALL tr_set_nfixed(NR,t)
-         CALL tr_set_tfixed(NR,t)
-
+         CALL tr_set_nfixed(nr,t)
+         CALL tr_set_tfixed(nr,t)
+         
 !     ***** RHS Vector *****
 
          DO NEQ=1,NEQMAX
@@ -647,9 +679,9 @@ CONTAINS
       CALL TR_IONIZATION(NR)
       CALL TR_CHARGE_EXCHANGE(NR)
 
-      CALL tr_set_nfixed(NR,t)
-      CALL tr_set_tfixed(NR,t)
-
+      CALL tr_set_nfixed(nr,t)
+      CALL tr_set_tfixed(nr,t)
+      
 !     ***** RHS Vector *****
 
       DO NEQ=1,NEQMAX
@@ -937,6 +969,8 @@ CONTAINS
                XV(NEQ,NR) = RN(NR,NSSN)
             ELSEIF(NSVN.EQ.2) THEN
                XV(NEQ,NR) = RN(NR,NSSN)*RT(NR,NSSN)
+               IF(NSSN.EQ.1) &
+               WRITE(72,'(I6,3ES12.4)') NR,RN(NR,NSSN),RT(NR,NSSN),XV(NEQ,NR)
             ELSEIF(NSVN.EQ.3) THEN
                XV(NEQ,NR) = PA(NSSN)*AMM*RN(NR,NSSN)*RU(NR,NSSN)
             ENDIF
@@ -964,14 +998,34 @@ CONTAINS
       SUBROUTINE TRXTOA
 
       USE TRCOMM, ONLY : &
-           AKDW, AMM, ANC, ANFE, ANNU, DR, MDLEQE, MDLEQN, &
-           MDTC, NEQMAX, NRMAX, NROMAX, NSM, NSMAX, NSS, NSV, &
-           PA, PZ, PZC, PZFE, RDP, RN, RPSI, RT, RU, RW, &
-           XV, YV, ZV, RDPVRHOG, DVRHOG, rkind
+           AKDW, AMM, ANC, ANFE, ANNU, DR, MDLEQE, MDLEQN, MDLEQT, &
+           MDTC, NEQMAX, NRMAX, NROMAX, NSM, NSMAX, NSS, NST, NSV, &
+           PA, PZ, PZC, PZFE, RDP, RN, RPSI, RT, RU, RW, RM, T, pn, &
+           XV, YV, ZV, RDPVRHOG, DVRHOG, rkind, &
+           model_nfixed,model_tfixed
+      USE trfixed, ONLY: &
+           time_nfixed,time_tfixed, &
+           rho_min_nfixed,rho_max_nfixed,rho_min_tfixed,rho_max_tfixed, &
+           tr_prof_nfixed,tr_prof_tfixed
       IMPLICIT NONE
-      INTEGER:: N, NEQ, NEQ1, NR, NS, NSSN, NSSN1, NSVN, NSVN1
-      REAL(rkind)   :: SUM
+      INTEGER:: N,NEQ,NEQ1,NR,NS,NSSN,NSSN1,NSVN,NSVN1,NSTN,NSTN1
+      INTEGER:: id_nfixed,id_tfixed
+      REAL(rkind)   :: SUM,rne_local,rt_local
 
+      id_nfixed=0
+      id_tfixed=0
+      IF(model_nfixed.EQ.1) THEN
+         IF(t.GE.time_nfixed(1)) id_nfixed=1
+      END IF
+      IF(model_nfixed.EQ.2) THEN
+         IF(t.GE.time_nfixed(1)) id_nfixed=2
+      END IF
+      IF(model_tfixed.EQ.1) THEN
+         IF(t.GE.time_tfixed(1)) id_tfixed=1
+      END IF
+      IF(model_tfixed.EQ.2) THEN
+         IF(t.GE.time_tfixed(1)) id_tfixed=2
+      END IF
 
       DO NR=1,NRMAX
          DO NEQ=1,NEQMAX
@@ -982,45 +1036,72 @@ CONTAINS
                RDPVRHOG(NR)=RDP(NR) / DVRHOG(NR)
             ELSEIF(NSVN.EQ.1) THEN
                IF(MDLEQN.NE.0) THEN
-                  IF(NSSN.EQ.1.AND.MDLEQE.EQ.0) THEN
-                     RN(NR,NSSN) = 0.D0
-                     DO NEQ1=1,NEQMAX
-                        NSSN1=NSS(NEQ1)
-                        NSVN1=NSV(NEQ1)
-                        IF(NSVN1.EQ.1.AND.NSSN1.NE.1) THEN
-                           RN(NR,NSSN) = RN(NR,NSSN)+ABS(PZ(NSSN1))*XV(NEQ1,NR)
-                        ENDIF
-                     ENDDO
-                     RN(NR,NSSN) = RN(NR,NSSN)+PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
-!     I think the above expression is obsolete.
-                  ELSEIF(NSSN.EQ.2.AND.MDLEQE.EQ.2) THEN
-                     RN(NR,NSSN) = 0.D0
-                     DO NEQ1=1,NEQMAX
-                        NSSN1=NSS(NEQ1)
-                        NSVN1=NSV(NEQ1)
-                        IF(NSVN1.EQ.1.AND.NSSN1.NE.2) THEN
-                           RN(NR,NSSN) = RN(NR,NSSN)+ABS(PZ(NSSN1))*XV(NEQ1,NR)
-                        ENDIF
-                     ENDDO
-                     RN(NR,NSSN) = RN(NR,NSSN)+PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
+                  IF(id_nfixed.EQ.1.OR. &
+                    (id_nfixed.EQ.2.AND. &
+                     rm(nr).GE.rho_min_nfixed.AND. &
+                     rm(nr).LE.rho_max_nfixed)) THEN
+                     CALL tr_prof_nfixed(rm(nr),t,rne_local)
+                     IF(nssn.EQ.1) THEN
+                        rn(nr,nssn)=rne_local
+                     ELSE
+                        rn(nr,nssn)=pn(nssn)*rne_local/(pz(nssn)*pn(1))
+                     END IF
                   ELSE
-                     RN(NR,NSSN) = XV(NEQ,NR)
-                  ENDIF
-               ELSE
-                  RN(NR,NSSN) = XV(NEQ,NR)
+                     IF(NSSN.EQ.1.AND.MDLEQE.EQ.0) THEN
+                        RN(NR,NSSN) = 0.D0
+                        DO NEQ1=1,NEQMAX
+                           NSSN1=NSS(NEQ1)
+                           NSVN1=NSV(NEQ1)
+                           IF(NSVN1.EQ.1.AND.NSSN1.NE.1) THEN
+                              RN(NR,NSSN) = RN(NR,NSSN)+PZ(NSSN1)*XV(NEQ1,NR)
+                           ENDIF
+                        ENDDO
+                        RN(NR,NSSN) = RN(NR,NSSN) &
+                             +PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
+                     ELSEIF(NSSN.EQ.2.AND.MDLEQE.EQ.2) THEN
+                        RN(NR,NSSN) = 0.D0
+                        DO NEQ1=1,NEQMAX
+                           NSSN1=NSS(NEQ1)
+                           NSVN1=NSV(NEQ1)
+                           IF(NSVN1.EQ.1.AND.NSSN1.NE.2) THEN
+                              RN(NR,NSSN) = RN(NR,NSSN)+PZ(NSSN1)*XV(NEQ1,NR)
+                           ENDIF
+                        ENDDO
+                        RN(NR,NSSN) = RN(NR,NSSN) &
+                             +PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
+                     ELSE
+                        RN(NR,NSSN) = XV(NEQ,NR)
+                     ENDIF
+                  END IF
                ENDIF
             ELSEIF(NSVN.EQ.2) THEN
-               IF(NSSN.NE.NSM) THEN
-                  RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
+               IF(id_tfixed.EQ.1.OR. &
+                 (id_tfixed.EQ.2.AND. &
+                  RM(nr).GE.rho_min_tfixed.AND. &
+                  RM(nr).LE.rho_max_tfixed)) THEN
+                  CALL tr_prof_tfixed(rm(nr),t,rt_local)
+                  RT(nr,nssn)=rt_local
                ELSE
-                  IF(RN(NR,NSM).LT.1.D-70) THEN
-                     RT(NR,NSM) = 0.D0
+                  IF(NSSN.NE.NSM) THEN
+                     RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
                   ELSE
-                     RT(NR,NSM) = XV(NEQ,NR)/RN(NR,NSM)
-                  ENDIF
-               ENDIF
+                     IF(RN(NR,NSM).LT.1.D-70) THEN
+                        RT(NR,NSM) = 0.D0
+                     ELSE
+                        IF(RN(NR,NSM).LT.1.D-70) THEN
+                           RT(NR,NSM)=0.03D0
+                        ELSE
+                           RT(NR,NSM) = XV(NEQ,NR)/RN(NR,NSM)
+                        END IF
+                     END IF
+                  END IF
+               END IF
             ELSEIF(NSVN.EQ.3) THEN
-               RU(NR,NSSN) = XV(NEQ,NR)/(PA(NSSN)*AMM*RN(NR,NSSN))
+               IF(RN(NR,NSSN).LT.1.D-70) THEN
+                  RU(NR,NSSN) = 0.D0
+               ELSE
+                  RU(NR,NSSN) = XV(NEQ,NR)/(PA(NSSN)*AMM*RN(NR,NSSN))
+               END IF
             ENDIF
          ENDDO
          RW(NR,1) = YV(1,NR)
@@ -1769,90 +1850,4 @@ CONTAINS
       RETURN
       END FUNCTION RPV
 
-  !     ***** Routine for fixed density profile *****
-      
-  SUBROUTINE tr_set_nfixed(nr,time)
-
-    USE trcomm
-    USE trcomx
-    USE trfixed
-    IMPLICIT NONE
-    INTEGER,INTENT(IN):: nr
-    REAL(rkind),INTENT(IN):: time
-    REAL(rkind):: rn_local
-    INTEGER:: NS,NEQ,NW
-
-    IF(model_nfixed.EQ.0) RETURN
-    IF(t.LE.time_nfixed(1)) return
-    IF(model_nfixed.EQ.2) THEN
-       IF((rm(nr).LT.rho_min_nfixed).OR. &
-            (rm(nr).GT.rho_max_nfixed)) RETURN
-    END IF
-    CALL tr_prof_nfixed(rm(nr),time,rn_local)
-    NEQ=NEQMAX*(NR-1)+NEA(1,1) ! NEQ of electron density equation
-    DO NW=1,NEQMAX
-       A(NEQ,NW,NR) = 0.D0
-       B(NEQ,NW,NR) = 0.D0
-       C(NEQ,NW,NR) = 0.D0
-    END DO
-    B(NEQ,NEQ,NR)=-1.D0/tau_nfixed
-    D(NEQ,NR)=rn_local/tau_nfixed
-    RD(NEQ,NR)=1.D0
-    DO NS=2,NSMAX
-       NEQ=NEQMAX*(NR-1)+NEA(NS,1) ! NEQ of density equation
-       DO NW=1,NEQMAX
-          A(NEQ,NW,NR) = 0.D0
-          B(NEQ,NW,NR) = 0.D0
-          C(NEQ,NW,NR) = 0.D0
-       END DO
-       B(NEQ,NEQ,NR)=-1.D0/tau_nfixed
-       D(NEQ,NR)=pn(ns)/(pz(ns)*pn(1))*rn_local/tau_nfixed
-       RD(NEQ,NR)=1.D0
-    END DO
-    RETURN
-  END SUBROUTINE tr_set_nfixed
-      
-  !     ***** Routine for fixed temperature profile *****
-      
-  SUBROUTINE tr_set_tfixed(nr,time)
-
-    USE trcomm
-    USE trcomx
-    USE trfixed
-    IMPLICIT NONE
-    INTEGER,INTENT(IN):: nr
-    REAL(rkind),INTENT(IN):: time
-    REAL(rkind):: rt_local
-    INTEGER:: NS,NEQ,NW
-
-    IF(model_tfixed.EQ.0) RETURN
-    IF(t.LE.time_tfixed(1)) return
-    IF(model_tfixed.EQ.2) THEN
-       IF((rm(nr).LT.rho_min_tfixed).OR. &
-            (rm(nr).GT.rho_max_tfixed)) RETURN
-    END IF
-    CALL tr_prof_tfixed(rm(nr),time,rt_local)
-    NEQ=NEQMAX*(NR-1)+NEA(1,1) ! NEQ of electron density equation
-    DO NW=1,NEQMAX
-       A(NEQ,NW,NR) = 0.D0
-       B(NEQ,NW,NR) = 0.D0
-       C(NEQ,NW,NR) = 0.D0
-    END DO
-    B(NEQ,NEQ,NR)=-1.D0/tau_tfixed
-    D(NEQ,NR)=rt_local/tau_tfixed
-    RD(NEQ,NR)=1.D0
-    DO NS=2,NSMAX
-       NEQ=NEQMAX*(NR-1)+NEA(NS,2) ! NEQ of temperature equation
-       DO NW=1,NEQMAX
-          A(NEQ,NW,NR) = 0.D0
-          B(NEQ,NW,NR) = 0.D0
-          C(NEQ,NW,NR) = 0.D0
-       END DO
-       B(NEQ,NEQ,NR)=-1.D0/tau_tfixed
-       D(NEQ,NR)=rt_local/tau_tfixed
-       RD(NEQ,NR)=1.D0
-    END DO
-    RETURN
-  END SUBROUTINE tr_set_tfixed
-      
   END MODULE trexec

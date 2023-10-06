@@ -124,7 +124,7 @@ $(OBJDIR)/tr_ufile_task.o : tr_ufile_task.f90 trcomm.f90
 $(OBJDIR)/tr_ufile_topics.o : tr_ufile_topics.f90 trcomm.f90
 $(OBJDIR)/trufsub.o : trufsub.f90 trcomm.f90
 $(OBJDIR)/trloop.o : trloop.f90 trcomm.f90
-$(OBJDIR)/trexec.o : trexec.f90 trcomm.f90
+$(OBJDIR)/trexec.o : trexec.f90 trcomm.f90 trfixed.f90
 $(OBJDIR)/trpl.o : trpl.f90 trcomm.f90
 $(OBJDIR)/trrslt.o : trrslt.f90 trcomm.f90
 $(OBJDIR)/trcalc.o : trcalc.f90 trcomm.f90

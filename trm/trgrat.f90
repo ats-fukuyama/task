@@ -91,8 +91,8 @@
       REAL,DIMENSION(NTM,NRMAX) :: GYL
       REAL(rkind) :: TSL, RTEL, RTDL
       REAL :: GUCLIP
-      CALL PAGES
 
+      CALL PAGES
       DO I=1,NGT
          GYL(I,1:NRMAX) = GVRT(1:NRMAX,I, 1)
       ENDDO

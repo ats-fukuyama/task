@@ -6,7 +6,6 @@ MODULE trprof
   PUBLIC tr_prof
   PUBLIC tr_prof_impurity
   PUBLIC tr_prof_current
-  PUBLIC tr_fixed
 
 CONTAINS
 
@@ -112,7 +111,7 @@ CONTAINS
             WRITE(6,'(A,I6,5ES12.4)') &
                  'prof: ',nr,RM(nr),RN(nr,1),RN(nr,2),RN(nr,3),RN(nr,4)
             PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-            RN(NR,nsmax+1:NSM) = (PN(1:NSM)-PNS(1:NSM))*PROF+PNS(1:NSM)
+            RN(NR,1:NSM) = (PN(1:NSM)-PNS(1:NSM))*PROF+PNS(1:NSM)
             PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
             RT(NR,1:NSM) = (PT(1:NSM)-PTS(1:NSM))*PROF+PTS(1:NSM)
             PROF   = (1.D0-(ALP(1)*RM(NR))**PROFU1)**PROFU2
@@ -151,41 +150,81 @@ CONTAINS
 
       SELECT CASE(model_nfixed)
       CASE(1)
-         DO nr=1,nrmax
-            CALL tr_prof_nfixed(rm(nr),t,rn(nr,1))
-            DO ns=2,nsmax
-               rn(nr,ns)=pn(ns)/(pz(ns)*pn(1))*rn(nr,1)
-            END DO
-         END DO
-      CASE(2)
-         DO nr=1,nrmax
-            IF((rm(nr).GE.rho_min_nfixed).AND. &
-               (rm(nr).LE.rho_max_nfixed)) THEN
+         CALL tr_prep_nfixed
+         IF(time_nfixed(1).LE.0.D0) THEN
+            DO nr=1,nrmax
                CALL tr_prof_nfixed(rm(nr),t,rn(nr,1))
                DO ns=2,nsmax
                   rn(nr,ns)=pn(ns)/(pz(ns)*pn(1))*rn(nr,1)
+                  IF(ns.EQ.2) WRITE(6,'(I6,3ES12.4)') nr,rm(nr),rn(nr,1),rn(nr,2)
                END DO
-            END IF
-         END DO
+            END DO
+            CALL tr_prof_nfixed(1.D0,t,pns(1))
+            pnss(1)=pns(1)
+            DO ns=2,nsmax
+               pns(ns)=pn(ns)/(pz(ns)*pn(1))*pns(1)
+               pnss(ns)=pns(ns)
+            END DO
+         END IF
+      CASE(2)
+         CALL tr_prep_nfixed
+         IF(time_nfixed(1).LE.0.D0) THEN
+            DO nr=1,nrmax
+               IF((rm(nr).GE.rho_min_nfixed).AND. &
+                  (rm(nr).LE.rho_max_nfixed)) THEN
+                  CALL tr_prof_nfixed(rm(nr),t,rn(nr,1))
+                  DO ns=2,nsmax
+                     rn(nr,ns)=pn(ns)/(pz(ns)*pn(1))*rn(nr,1)
+                  END DO
+               END IF
+            END DO
+            CALL tr_prof_nfixed(1.D0,t,pns(1))
+            pnss(1)=pns(1)
+            DO ns=2,nsmax
+               pns(ns)=pn(ns)/(pz(ns)*pn(1))*pns(1)
+               pnss(ns)=pns(1)
+            END DO
+         END IF
       END SELECT
       SELECT CASE(model_tfixed)
       CASE(1)
-         DO nr=1,nrmax
-            CALL tr_prof_tfixed(rm(nr),t,rt(nr,1))
-            DO ns=2,nsmax
-               rt(nr,ns)=rt(nr,1)
-            END DO
-         END DO
-      CASE(2)
-         DO nr=1,nrmax
-            IF((rm(nr).GE.rho_min_tfixed).AND.(rm(nr).LE.rho_max_tfixed)) THEN
+         CALL tr_prep_tfixed
+         IF(time_tfixed(1).LE.0.D0) THEN
+            DO nr=1,nrmax
                CALL tr_prof_tfixed(rm(nr),t,rt(nr,1))
                DO ns=2,nsmax
-                  rn(nr,ns)=rn(nr,1)
+                  rt(nr,ns)=rt(nr,1)
                END DO
-            END IF
-         END DO
+            END DO
+            CALL tr_prof_tfixed(1.D0,t,pts(1))
+            DO ns=2,nsmax
+               pts(ns)=pts(1)
+            END DO
+         END IF
+      CASE(2)
+         CALL tr_prep_tfixed
+         IF(time_tfixed(1).LE.0.D0) THEN
+            DO nr=1,nrmax
+               IF((rm(nr).GE.rho_min_tfixed).AND. &
+                  (rm(nr).LE.rho_max_tfixed)) THEN
+                  CALL tr_prof_tfixed(rm(nr),t,rt(nr,1))
+                  DO ns=2,nsmax
+                     rt(nr,ns)=rt(nr,1)
+                  END DO
+               END IF
+            END DO
+            CALL tr_prof_tfixed(1.D0,t,pts(1))
+            DO ns=2,nsmax
+               pts(ns)=pts(1)
+            END DO
+         END IF
       END SELECT
+
+!      WRITE(6,*) model_nfixed,model_tfixed,time_nfixed(1),time_tfixed(1)
+!      DO nr=1,nrmax
+!         WRITE(6,'(I6,5ES12.4)') nr,rm(nr),rn(nr,1),rn(nr,2),rt(nr,1),rt(nr,2)
+!      END DO
+!      WRITE(6,'(I6,5ES12.4)') nrmax+1,1.D0,pnss(1),pnss(2),pts(1),pts(2)
 
       CALL TR_EDGE_DETERMINER(1)
       CALL TR_EDGE_SELECTOR(1)
@@ -196,6 +235,9 @@ CONTAINS
          qpinv(nr)=1.D0/(qaxis+(qsurf-qaxis)*RG(nr)**2)
       END DO
 
+      DO nr=1,nrmax
+         WRITE(6,'(I6,5ES12.4)') nr,rm(nr),rn(nr,1),rn(nr,2),rt(nr,1),rt(nr,2)
+      END DO
     END SUBROUTINE tr_prof
 
 

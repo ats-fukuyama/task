@@ -20,6 +20,8 @@ MODULE trfixed
   REAL(dp),PUBLIC,ALLOCATABLE:: time_tfixed(:)     ! time points t_i
   REAL(dp),ALLOCATABLE:: coef_tfixed(:,:)   ! coef data for t_i<= t <t_{i+1}
 
+  PUBLIC tr_set_nfixed  ! set coef matrix for n
+  PUBLIC tr_set_tfixed  ! set coef matrix for nT
   PUBLIC tr_prof_nfixed ! set fixed density profile
   PUBLIC tr_prof_tfixed ! set fixed temperature profile
   PUBLIC tr_prep_nfixed ! read fixed density pfofile parameters
@@ -27,6 +29,96 @@ MODULE trfixed
 
 CONTAINS
 
+  !     ***** Routine for fixed density profile *****
+      
+  SUBROUTINE tr_set_nfixed(nr,time)
+
+    USE trcomm
+    USE trcomx
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: nr
+    REAL(rkind),INTENT(IN):: time
+    REAL(rkind):: rn_local
+    INTEGER:: NS,NEQ,NW
+
+    IF(model_nfixed.EQ.0) RETURN
+    IF(time.LE.time_nfixed(1)) return
+    IF(model_nfixed.EQ.2) THEN
+       IF((rm(nr).LT.rho_min_nfixed).OR. &
+            (rm(nr).GT.rho_max_nfixed)) RETURN
+    END IF
+    CALL tr_prof_nfixed(rm(nr),time,rn_local)
+!    WRITE(26,'(i8,4E12.4)') nr,rm(nr),rn(nr,1),rn_local,t
+    NEQ=NEA(1,1) ! NEQ of electron density equation
+    DO NW=1,NEQMAX
+       A(NEQ,NW,NR) = 0.D0
+       B(NEQ,NW,NR) = 0.D0
+       C(NEQ,NW,NR) = 0.D0
+    END DO
+    D(NEQ,NR)=0.D0
+!    B(NEQ,NEQ,NR)=-1.D0/tau_nfixed
+!    D(NEQ,NR)=rn_local/tau_nfixed
+    RD(NEQ,NR)=1.D0
+    DO NS=2,NSMAX
+       NEQ=NEA(NS,1) ! NEQ of density equation
+       DO NW=1,NEQMAX
+          A(NEQ,NW,NR) = 0.D0
+          B(NEQ,NW,NR) = 0.D0
+          C(NEQ,NW,NR) = 0.D0
+       END DO
+       D(NEQ,NR)=0.D0
+!       B(NEQ,NEQ,NR)=-1.D0/tau_nfixed
+!       D(NEQ,NR)=pn(ns)/(pz(ns)*pn(1))*rn_local/tau_nfixed
+       RD(NEQ,NR)=1.D0
+    END DO
+    RETURN
+  END SUBROUTINE tr_set_nfixed
+      
+  !     ***** Routine for fixed temperature profile *****
+      
+  SUBROUTINE tr_set_tfixed(nr,time)
+
+    USE trcomm
+    USE trcomx
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: nr
+    REAL(rkind),INTENT(IN):: time
+    REAL(rkind):: rt_local
+    INTEGER:: NS,NEQ,NW
+
+    IF(model_tfixed.EQ.0) RETURN
+    IF(time.LE.time_tfixed(1)) return
+    IF(model_tfixed.EQ.2) THEN
+       IF((rm(nr).LT.rho_min_tfixed).OR. &
+            (rm(nr).GT.rho_max_tfixed)) RETURN
+    END IF
+    CALL tr_prof_tfixed(rm(nr),time,rt_local)
+    WRITE(26,'(i8,4E12.4)') nr,rm(nr),rt(nr,1),rt_local,t
+    NEQ=NEA(1,1) ! NEQ of electron density equation
+    DO NW=1,NEQMAX
+       A(NEQ,NW,NR) = 0.D0
+       B(NEQ,NW,NR) = 0.D0
+       C(NEQ,NW,NR) = 0.D0
+    END DO
+    D(NEQ,NR)=0.D0
+!    B(NEQ,NEQ,NR)=-1.D0/tau_tfixed
+!    D(NEQ,NR)=rt_local/tau_tfixed
+    RD(NEQ,NR)=1.D0
+    DO NS=2,NSMAX
+       NEQ=NEA(NS,2) ! NEQ of temperature equation
+       DO NW=1,NEQMAX
+          A(NEQ,NW,NR) = 0.D0
+          B(NEQ,NW,NR) = 0.D0
+          C(NEQ,NW,NR) = 0.D0
+       END DO
+       D(NEQ,NR)=0.D0
+!       B(NEQ,NEQ,NR)=-1.D0/tau_tfixed
+!       D(NEQ,NR)=rt_local/tau_tfixed
+       RD(NEQ,NR)=1.D0
+    END DO
+    RETURN
+  END SUBROUTINE tr_set_tfixed
+      
   ! *** set fixed density profile ***
   
   SUBROUTINE tr_prof_nfixed(rho,time,rn)
@@ -78,6 +170,8 @@ CONTAINS
          *(tanh((1.D0-coef(2)*coef(3)-rho)/coef(3))+1.D0) &
          +coef(4)*(1.D0-rho*rho)**coef(5) &
          +0.5D0*coef(8)*(1.D0-erf((rho-coef(9))/SQRT(2.D0*coef(10))))
+    rn=rn*1.D-20
+    IF(rn.LE.0.D0) rn=1.D-8
     RETURN
   END SUBROUTINE tr_prof_nfixed
 
@@ -86,6 +180,7 @@ CONTAINS
   SUBROUTINE tr_prof_tfixed(rho,time,rt)
   
     USE task_kinds,ONLY: dp
+    USE trcomm,ONLY: model_tfixed
     IMPLICIT NONE    
     REAL(dp),INTENT(IN):: rho,time
     REAL(dp),INTENT(OUT):: rt
@@ -136,6 +231,8 @@ CONTAINS
          *(tanh((1.D0-coef(2)*coef(3)-rho)/coef(3))+1.D0) &
          +coef(4)*(1.D0-rho*rho)**coef(5) &
          +0.5D0*coef(8)*(1.D0-erf((rho-coef(9))/SQRT(2.D0*coef(10))))
+    rt=rt*1.D-3
+    WRITE(73,'(A,2ES12.4)') 'tfixed:',rho,rt
     RETURN
   END SUBROUTINE tr_prof_tfixed
 
@@ -180,4 +277,5 @@ CONTAINS
     CLOSE(NFL)
     RETURN
   END SUBROUTINE tr_prep_tfixed
+  
 END MODULE trfixed

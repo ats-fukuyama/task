@@ -66,7 +66,7 @@ CONTAINS
 
       CALL tr_prof
 
-      !     *** Initialize bpsd data ***      IF(model_nfixed.EQ.1) THEN
+      !     *** Initialize bpsd data ***
 
       CALL tr_bpsd_init
       CALL tr_bpsd_put(ierr)
