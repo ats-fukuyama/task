@@ -48,6 +48,7 @@ CONTAINS
       ICHCK=0
 
       L=0
+
 !     /* Setting New Variables */
       CALL TRATOX
 
@@ -255,29 +256,48 @@ CONTAINS
                   CALL tr_prof_tfixed(rm(nr),t,rt_local)
                   RT(nr,nssn)=rt_local
                ELSE
-                  IF(NSTN.EQ.0) THEN
-                     IF(RN(NR,NSM).LT.1.D-70) THEN
-                        RT(NR,NSM) = 0.D0
-                     ELSE
-                        IF(NSSN.NE.NSM) THEN
-                           RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
-                        ELSE
-                           RT(NR,NSM) = XV(NEQ,NR)/RN(NR,NSM)
-                        ENDIF
-                     ENDIF
+                  IF(RN(NR,NSSN).LT.1.D-70) THEN
+                     RT(NR,NSSN) = 0.03D0
                   ELSE
-                     IF(RN(NR,NSM).LT.1.D-70) THEN
-                        RT(NR,NSM) = 0.03D0
+                     IF(RN(NR,NSSN).LT.1.D-70) THEN
+                        RT(NR,NSSN)=0.03D0
                      ELSE
-                        IF(NSSN.NE.NSM) THEN
-                           RT(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
-                                +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSSN)
-                        ELSE
-                           RT(NR,NSM) = 0.5D0*(XV(NEQ,NR) &
-                                +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSM)
-                        ENDIF
-                     ENDIF
-                  ENDIF
+                        RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
+                     END IF
+                     IF(RT(NR,NSSN).LE.0.D0) THEN
+                        WRITE(6,'(A,2I6,ES12.4)') &
+                             'XX TRXTOA: negative rt: nr,ns,rt: ', &
+                             nr,nssn,RT(NR,NSSN)
+                        RT(NR,NSSN)=-RT(NR,NSSN)
+                     END IF
+                  END IF
+!                  IF(NSTN.EQ.0) THEN
+!                     IF(RN(NR,NSM).LT.1.D-70) THEN
+!                        RT(NR,NSM) = 0.D0
+!                     ELSE
+!                        IF(NSSN.NE.NSM) THEN
+!                           RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
+!                        ELSE
+!                           RT(NR,NSM) = XV(NEQ,NR)/RN(NR,NSM)
+!                        ENDIF
+!                     ENDIF
+!                  ELSE
+!                     IF(RN(NR,NSM).LT.1.D-70) THEN
+!                        RT(NR,NSM) = 0.03D0
+!                     ELSE
+!                        IF(NSSN.NE.NSM) THEN
+!                           RT(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
+!                                +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSSN)
+!                        ELSE
+!                           RT(NR,NSM) = 0.5D0*(XV(NEQ,NR) &
+!                                +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSM)
+!                        ENDIF
+!                     ENDIF
+                  IF(RT(NR,NSSN).LE.0.D0) THEN
+                     WRITE(6,'(A,2I6,ES12.4)') &
+                          'XX TRXTOA: negative RT:',NR,NSSN,RT(NR,NSSN)
+                     RT(NR,NSSN)=ABS(RT(NR,NSSN))
+                  END IF
                END IF
             ELSEIF(NSVN.EQ.3) THEN
                IF(RN(NR,NSSN).LT.1.D-70) THEN
@@ -969,8 +989,6 @@ CONTAINS
                XV(NEQ,NR) = RN(NR,NSSN)
             ELSEIF(NSVN.EQ.2) THEN
                XV(NEQ,NR) = RN(NR,NSSN)*RT(NR,NSSN)
-               IF(NSSN.EQ.1) &
-               WRITE(72,'(I6,3ES12.4)') NR,RN(NR,NSSN),RT(NR,NSSN),XV(NEQ,NR)
             ELSEIF(NSVN.EQ.3) THEN
                XV(NEQ,NR) = PA(NSSN)*AMM*RN(NR,NSSN)*RU(NR,NSSN)
             ENDIF
@@ -1082,18 +1100,38 @@ CONTAINS
                   CALL tr_prof_tfixed(rm(nr),t,rt_local)
                   RT(nr,nssn)=rt_local
                ELSE
-                  IF(NSSN.NE.NSM) THEN
-                     RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
+                  IF(RN(NR,NSSN).LT.1.D-70) THEN
+                     RT(NR,NSSN) = 0.03D0
                   ELSE
-                     IF(RN(NR,NSM).LT.1.D-70) THEN
-                        RT(NR,NSM) = 0.D0
+                     IF(RN(NR,NSSN).LT.1.D-70) THEN
+                        RT(NR,NSSN)=0.03D0
                      ELSE
-                        IF(RN(NR,NSM).LT.1.D-70) THEN
-                           RT(NR,NSM)=0.03D0
-                        ELSE
-                           RT(NR,NSM) = XV(NEQ,NR)/RN(NR,NSM)
-                        END IF
+                        RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
                      END IF
+                     IF(RT(NR,NSSN).LE.0.D0) THEN
+                        WRITE(6,'(A,2I6,ES12.4)') &
+                             'XX TRXTOA: negative rt: nr,ns,rt: ', &
+                             nr,nssn,RT(NR,NSSN)
+                        RT(NR,NSSN)=-RT(NR,NSSN)
+                     END IF
+                  END IF
+!                  IF(NSSN.NE.NSM) THEN
+!                     RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
+!                  ELSE
+!                     IF(RN(NR,NSM).LT.1.D-70) THEN
+!                        RT(NR,NSM) = 0.D0
+!                     ELSE
+!                        IF(RN(NR,NSM).LT.1.D-70) THEN
+!                           RT(NR,NSM)=0.03D0
+!                        ELSE
+!                           RT(NR,NSM) = XV(NEQ,NR)/RN(NR,NSM)
+!                        END IF
+!                     END IF
+!                  END IF
+                  IF(RT(NR,NSSN).LE.0.D0) THEN
+                     WRITE(6,'(A,2I6,ES12.4)') &
+                          'XX TRXTOA: negative RT:',NR,NSSN,RT(NR,NSSN)
+                     RT(NR,NSSN)=ABS(RT(NR,NSSN))
                   END IF
                END IF
             ELSEIF(NSVN.EQ.3) THEN
@@ -1269,7 +1307,14 @@ CONTAINS
 
          NSSN=NSS(NEQ)
          NSVN=NSV(NEQ)
-         IF(NSSN.NE.0) RTM(NSSN)=RT(NR,NSSN)*RKEV/(PA(NSSN)*AMM)
+         IF(NSSN.NE.0) THEN
+            RTM(NSSN)=RT(NR,NSSN)*RKEV/(PA(NSSN)*AMM)
+            IF(RTM(NSSN).LE.0.D0) THEN
+               WRITE(6,'(A,2I6,2ES12.4)') &
+                    'XX negative RTM:',nr,nssn,RT(NR,NSSN),RTM(NSSN)
+               RTM(NSSN)=ABS(RTM(NSSN))
+            END IF
+         END IF
 
 !     /* Coefficients of left hand side variables */
 

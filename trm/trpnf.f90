@@ -80,7 +80,7 @@
 
 !     ***********************************************************
 
-!           REACTION CROSS SECTION (MAXELLIAN)
+!           REACTION CROSS SECTION (MAXELLIAN) DT
 
 !     ***********************************************************
 
@@ -102,6 +102,32 @@
 
       RETURN
       END FUNCTION SIGMAM
+
+!     ***********************************************************
+
+!           REACTION CROSS SECTION (MAXELLIAN) DD
+
+!     ***********************************************************
+
+      FUNCTION SIGMAMDD(TD)
+
+        ! not completed
+
+      USE trcomm,ONLY: rkind
+      IMPLICIT NONE
+      REAL(rkind) TD,SIGMAMDD
+      REAL(rkind) TI,H,ARG
+
+      H  = TI/37.D0 + 5.45D0/(3.D0+TI*(1.D0+(TI/37.5D0)**2.8D0))
+      ARG= -20.D0/TI**(1.D0/3.D0)
+      IF(ARG.GE.-100.D0)  THEN
+         SIGMAMDD = 3.7D-18*TI**(-2.D0/3.D0)*EXP(ARG)/H
+      ELSE
+         SIGMAMDD = 0.D0
+      ENDIF
+
+      RETURN
+    END FUNCTION SIGMAMDD
 
 !     ***********************************************************
 

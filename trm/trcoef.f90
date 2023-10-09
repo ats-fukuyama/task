@@ -59,7 +59,6 @@
       INTEGER:: MODEL,ierr
       REAL(rkind),DIMENSION(NRMAX):: S_HM
 
-
       AMD=PA(2)*AMM
       AMT=PA(3)*AMM
       AMA=PA(4)*AMM
@@ -2004,8 +2003,8 @@
 
       USE TRCOMM,ONLY: rkind
       IMPLICIT NONE
-      REAL(rkind):: A, ALPHA, ALPHAL, BETA, GAMMA, S, X,FEXB
-
+      REAL(rkind):: A, ALPHA, ALPHAL, BETA, GAMMA, S, X,FEXB, XG
+      
       IF(ABS(ALPHA).LT.1.D-3) THEN
          ALPHAL=1.D-3
       ELSE
@@ -2020,7 +2019,21 @@
       ELSE
          GAMMA = (1.D0-0.5D0*S)/(1.1D0-2.D0*S+A*S**2+4.D0*S**3)+0.75D0
       ENDIF
-      FEXB=EXP(-BETA*X**GAMMA)
+      IF(GAMMA.LE.-20.D0) THEN
+         XG=0.D0
+      ELSEIF(GAMMA.GE.20.D0) THEN
+         XG=1.D10
+      ELSE
+         XG=X**GAMMA
+      END IF
+         
+      IF(-BETA*XG.LE.-20.D0) THEN
+         FEXB=0.D0
+      ELSEIF(-BETA*XG.GE.20.D0) THEN
+         FEXB=1.D10
+      ELSE
+         FEXB=EXP(-BETA*XG)
+      END IF
 
       RETURN
       END FUNCTION FEXB

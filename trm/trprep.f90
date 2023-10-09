@@ -64,16 +64,13 @@ CONTAINS
          IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
       ENDIF
 
+!     *** set initial profile ***
+
       CALL tr_prof
 
-      !     *** Initialize bpsd data ***
+!     *** Initialize bpsd data ***
 
       CALL tr_bpsd_init
-      CALL tr_bpsd_put(ierr)
-      IF(ierr.NE.0) THEN
-         write(6,'(A,I5)') 'XX tr_bpsd_put in tr_prof: ierr=',ierr
-         STOP
-      END IF
 
 !     *** CALCULATE METRIC FACTOR ***
 
@@ -83,6 +80,14 @@ CONTAINS
          STOP
       END IF
       
+!     *** set bpsd plasmaf data ***
+
+      CALL tr_bpsd_put(ierr)
+      IF(ierr.NE.0) THEN
+         write(6,'(A,I5)') 'XX tr_bpsd_put in tr_prof: ierr=',ierr
+         STOP
+      END IF
+
 !     *** CALCULATE ANEAVE and ANC, ANFE ***
 
       CALL tr_prof_impurity

@@ -19,6 +19,7 @@ CONTAINS
       USE trfile
       USE trgout
       USE trfout
+      
       USE libfio
       USE libkio
       USE libchar
@@ -28,6 +29,7 @@ CONTAINS
       CHARACTER(LEN=1) :: KID
       CHARACTER(LEN=80):: LINE
       INTEGER:: NR,NS,NF,NTYPE,id_loop
+      REAL(rkind):: SIGMAM
 
 !     ------ SELECTION OF TASK TYPE ------
 
@@ -61,8 +63,12 @@ CONTAINS
          CALL tr_view(1)
 
       ELSE IF(KID.EQ.'L') THEN
+         CALL tr_prep(ierr)
+         if(ierr.ne.0) GO TO 1
          CALL tr_load
          INIT=2
+         id_loop=0
+         NT=0
       ELSE IF(KID.EQ.'S'.AND.INIT.EQ.2) THEN
          CALL tr_save
 
@@ -161,6 +167,13 @@ CONTAINS
          CALL TRXOUT
       ELSE IF(KID.EQ.'M'.AND.INIT.EQ.2) THEN
          CALL TRMDLT
+      ELSE IF(KID.EQ.'B') THEN
+7777     CONTINUE
+         WRITE(6,*) '## INPUT T'
+         READ(5,*,END=7779) T
+         WRITE(6,*) '   sigma=',SIGMAM(T,T)
+         GOTO 7777
+7779     CONTINUE
       ELSE IF(KID.EQ.'H') THEN
          CALL TRHELP('M')
       ELSE IF(KID.EQ.'Q') THEN

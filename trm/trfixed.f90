@@ -48,7 +48,6 @@ CONTAINS
             (rm(nr).GT.rho_max_nfixed)) RETURN
     END IF
     CALL tr_prof_nfixed(rm(nr),time,rn_local)
-!    WRITE(26,'(i8,4E12.4)') nr,rm(nr),rn(nr,1),rn_local,t
     NEQ=NEA(1,1) ! NEQ of electron density equation
     DO NW=1,NEQMAX
        A(NEQ,NW,NR) = 0.D0
@@ -93,7 +92,6 @@ CONTAINS
             (rm(nr).GT.rho_max_tfixed)) RETURN
     END IF
     CALL tr_prof_tfixed(rm(nr),time,rt_local)
-    WRITE(26,'(i8,4E12.4)') nr,rm(nr),rt(nr,1),rt_local,t
     NEQ=NEA(1,1) ! NEQ of electron density equation
     DO NW=1,NEQMAX
        A(NEQ,NW,NR) = 0.D0
@@ -232,7 +230,6 @@ CONTAINS
          +coef(4)*(1.D0-rho*rho)**coef(5) &
          +0.5D0*coef(8)*(1.D0-erf((rho-coef(9))/SQRT(2.D0*coef(10))))
     rt=rt*1.D-3
-    WRITE(73,'(A,2ES12.4)') 'tfixed:',rho,rt
     RETURN
   END SUBROUTINE tr_prof_tfixed
 
@@ -247,6 +244,8 @@ CONTAINS
     NFL=12
     CALL fropen(NFL,knam_nfixed,1,0,'fn',ierr)
     READ(NFL,*) ntime_nfixed_max,ndata_nfixed_max,rho_min_nfixed,rho_max_nfixed
+    IF(ALLOCATED(time_nfixed)) DEALLOCATE(time_nfixed)
+    IF(ALLOCATED(coef_nfixed)) DEALLOCATE(coef_nfixed)
     ALLOCATE(time_nfixed(ntime_nfixed_max))
     ALLOCATE(coef_nfixed(0:ndata_nfixed_max,ntime_nfixed_max))
     DO ntime=1,ntime_nfixed_max
@@ -268,6 +267,8 @@ CONTAINS
     NFL=12
     CALL fropen(NFL,knam_tfixed,1,0,'ft',ierr)
     READ(NFL,*) ntime_tfixed_max,ndata_tfixed_max,rho_min_tfixed,rho_max_tfixed
+    IF(ALLOCATED(time_tfixed)) DEALLOCATE(time_tfixed)
+    IF(ALLOCATED(coef_tfixed)) DEALLOCATE(coef_tfixed)
     ALLOCATE(time_tfixed(ntime_tfixed_max))
     ALLOCATE(coef_tfixed(0:ndata_tfixed_max,ntime_tfixed_max))
     DO ntime=1,ntime_tfixed_max
