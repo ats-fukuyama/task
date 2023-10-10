@@ -30,7 +30,9 @@ CONTAINS
       endif
 
       if(species%nsmax.ne.nsmax) then
-         if(ALLOCATED(species%data)) deallocate(species%data)
+         if(ALLOCATED(species%data)) then
+            deallocate(species%data)
+         endif
          species%nsmax=nsmax
          allocate(species%data(species%nsmax))
       endif
@@ -41,6 +43,41 @@ CONTAINS
          species%data(ns)%npa=npa(ns)
       enddo
       call bpsd_put_data(species,ierr)
+
+      if((equ1D%nrmax.ne.nrmax+1)) then
+         if(ALLOCATED(equ1D%rho)) then
+            deallocate(equ1D%rho)
+         endif
+         if(ALLOCATED(equ1D%data)) then
+            deallocate(equ1D%data)
+         endif
+         equ1D%nrmax=nrmax+1
+         allocate(equ1D%rho(equ1D%nrmax))
+         allocate(equ1D%data(equ1D%nrmax))
+      endif
+
+      equ1D%rho(1)=0.d0
+      do nr=1,nrmax
+         equ1D%rho(nr+1)=rg(nr)
+      enddo
+
+      if((metric1D%nrmax.ne.nrmax+1)) then
+         if(ALLOCATED(metric1D%rho)) then
+            deallocate(metric1D%rho)
+         endif
+         if(ALLOCATED(metric1D%data)) then
+            deallocate(metric1D%data)
+         endif
+         metric1D%nrmax=nrmax+1
+         allocate(metric1D%rho(metric1D%nrmax))
+         allocate(metric1D%data(metric1D%nrmax))
+      endif
+
+      metric1D%time=0.d0
+      metric1D%rho(1)=0.d0
+      do nr=1,nrmax
+         metric1D%rho(nr+1)=rg(nr)
+      enddo
 
       if((plasmaf%nsmax.ne.nsmax).or. &
      &   (plasmaf%nrmax.ne.nrmax+1)) then
@@ -87,7 +124,6 @@ CONTAINS
       device%elip=RKAP
       device%trig=RDLT
       call bpsd_put_data(device,ierr)
-      IF(ierr.NE.0) STOP
 
       plasmaf%time=t
       do ns=1,nsmax

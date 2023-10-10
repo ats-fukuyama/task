@@ -43,7 +43,6 @@ CONTAINS
             WRITE(6,*) 'XX eq_load: ierr=',ierr
             RETURN
          ENDIF
-         CALL tr_bpsd_init
          call tr_bpsd_get(ierr)  ! 
          if(ierr.ne.0) write(6,*) 'XX tr_bpsd_get: ierr=',ierr
 !         call trgout
