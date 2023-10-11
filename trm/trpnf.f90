@@ -31,7 +31,7 @@
          TT = RT(NR,3)
 !         WRITE(6,*) NR,TD,TT
          SS = SIGMAM(TD,TT)
-         IF(MDLNF/2.EQ.1) THEN
+         IF(MDLNF.GE.3) THEN
             ZEFFM = (PZ(2)*PZ(2)*RN(NR,2)/PA(2) &
                     +PZ(3)*PZ(3)*RN(NR,3)/PA(3) &
                     +PZ(4)*PZ(4)*RN(NR,4)/PA(4) &
@@ -46,7 +46,7 @@
          ENDIF
          SNF(NR) = (SS+SSB)*RN(NR,2)*RN(NR,3)*1.D20
          PNF(NR) = SNF(NR)*3.5D3*RKEV*1.D20
-         IF(MOD(MDLNF,2).EQ.0) SNF(NR) = 0.D0
+         IF(MOD(MDLNF,2).EQ.1) SNF(NR) = 0.D0
       ENDDO
 
       DO NR=1,NRMAX
@@ -232,12 +232,11 @@
          TE   = RT(NR,1)
          TD   = RT(NR,2)
          THe3 = RT(NR,3)
-         write(6,*) NR,TE,TD,THe3
          SS = SIGMADHe3(TD,THe3)
          SNF(NR) = SS*RN(NR,2)*RN(NR,3)*1.D20
          PNF(NR) = SNF(NR)*(3.5D3+14.7D3)*RKEV*1.D20  ! proton energy added
                                                       ! for simplicity
-         IF(MOD(MDLNF,2).EQ.0) SNF(NR) = 0.D0
+         IF(MOD(MDLNF,2).EQ.1) SNF(NR) = 0.D0
          WRITE(6,*) NR,PNF(NR)
       ENDDO
 

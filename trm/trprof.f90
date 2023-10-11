@@ -235,9 +235,9 @@ CONTAINS
          qpinv(nr)=1.D0/(qaxis+(qsurf-qaxis)*RG(nr)**2)
       END DO
 
-      DO nr=1,nrmax
-         WRITE(6,'(I6,5ES12.4)') nr,rm(nr),rn(nr,1),rn(nr,2),rt(nr,1),rt(nr,2)
-      END DO
+!      DO nr=1,nrmax
+!         WRITE(6,'(I6,5ES12.4)') nr,rm(nr),rn(nr,1),rn(nr,2),rt(nr,1),rt(nr,2)
+!      END DO
     END SUBROUTINE tr_prof
 
 
