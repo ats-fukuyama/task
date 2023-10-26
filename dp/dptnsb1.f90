@@ -15,7 +15,7 @@ MODULE dptnsb1
 !             CLDISP(6)=EPS_YZ
 
   PRIVATE
-  PUBLIC dp_tnsb1,test_dpbes
+  PUBLIC dp_tnsb1,dp_besj
 
 CONTAINS
 
@@ -60,7 +60,7 @@ CONTAINS
     ALLOCATE(BESJN(-nhmax:nhmax))
     ALLOCATE(DBESJN(-nhmax:nhmax))
     ALLOCATE(DDBESJN(-nhmax:nhmax))
-    CALL DPBESJ(nhmax,zeta,BESJN,DBESJN,DDBESJN,ierr)
+    CALL dp_besj(nhmax,zeta,BESJN,DBESJN,DDBESJN,ierr)
     IF(ierr.NE.0) THEN
        WRITE(6,'(A,I6,ES12.4,I6)') 'nh,zeta,ierr=',nh,zeta,ierr
        STOP
@@ -117,39 +117,7 @@ CONTAINS
     RETURN
   END SUBROUTINE dp_tnsb1
 
-  SUBROUTINE test_dpbes
-    USE dpcomm,ONLY: rkind
-    IMPLICIT NONE
-    
-    REAL(rkind),ALLOCATABLE:: BESJN(:),DBESJN(:),DDBESJN(:)
-    INTEGER:: nhmax=5
-    REAL(rkind):: x=10.D0
-    INTEGER:: nh,ierr
-
-1   CONTINUE
-    WRITE(6,'(A,I6,ES12.4)') '## input nhmax and x:',nhmax,x
-    READ(5,*,ERR=1,END=9000) nhmax,x
-    
-    ALLOCATE(BESJN(-nhmax:nhmax))
-    ALLOCATE(DBESJN(-nhmax:nhmax))
-    ALLOCATE(DDBESJN(-nhmax:nhmax))
-
-    CALL DPBESJ(nhmax,x,BESJN,DBESJN,DDBESJN,ierr)
-
-    DO nh=-nhmax,nhmax
-       WRITE(6,'(I6,4ES12.4)') nh,BESJN(nh),DBESJN(nh),DDBESJN(nh), &
-            BESJN(nh)*DBESJN(nh)/x
-    END DO
-
-    DEALLOCATE(BESJN,DBESJN,DDBESJN)
-    
-    GO TO 1
-    
-9000 CONTINUE
-    RETURN
-  END SUBROUTINE test_dpbes
-
-  SUBROUTINE DPBESJ(nhmax,zeta,BESJN_,DBESJN_,DDBESJN_,ierr)
+  SUBROUTINE dp_besj(nhmax,zeta,BESJN_,DBESJN_,DDBESJN_,ierr)
 
     USE dpcomm,ONLY: rkind
     USE dpsub
@@ -225,6 +193,6 @@ CONTAINS
        DBESJN_(nh)=DBESJN(nh)
        DDBESJN_(nh)=DDBESJN(nh)
     END DO
-  END SUBROUTINE DPBESJ
+  END SUBROUTINE dp_besj
 END MODULE dptnsb1
 

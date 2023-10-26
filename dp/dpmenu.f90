@@ -21,8 +21,6 @@ CONTAINS
     USE dpcont,ONLY: dp_cont2,dp_cont3
     USE dpcont4,ONLY: dp_cont4
     USE dptest,ONLY: dp_test
-    USE dptnsb1,ONLY: test_dpbes
-    USE dptest
     USE libkio
     USE libchar
     IMPLICIT NONE
@@ -33,7 +31,7 @@ CONTAINS
 
 1   CONTINUE
     WRITE(6,*) '## DP MENU: P,V/PARM  ', &
-               'D0,D1,D2,D3,D4,D5,D6/DISP  F/ROOT  T,S,K/TEST  Q/QUIT'
+               'D0,D1,D2,D3,D4,D5,D6/DISP F/ROOT T,B/TEST ?/HELP Q/QUIT'
 
     CALL TASK_KLIN(LINE,KID,MODE,DP_PARM)
     IF(MODE.NE.1) GOTO 1
@@ -65,12 +63,6 @@ CONTAINS
     ELSEIF(KID.EQ.'T') THEN
        CALL dp_test
        GOTO 1
-    ELSEIF(KID.EQ.'B') THEN
-       CALL test_dpbes
-    ELSEIF(KID.EQ.'K') THEN
-       CONTINUE
-    ELSEIF(KID.EQ.'S') THEN
-       CONTINUE
     ELSEIF(KID.EQ.'?') THEN
        CALL dp_help(0)
     ELSEIF(KID.EQ.'Q') THEN
@@ -101,6 +93,7 @@ CONTAINS
        WRITE(6,'(A)') 'D6: Plot D=0 with shifted imag with color'
        WRITE(6,'(A)') 'F : Find a root of D=0'
        WRITE(6,'(A)') 'T : show D for various plasma model for EC waves'
+       WRITE(6,'(A)') 'B : show D for various plasma model for EC waves'
        WRITE(6,'(A)') ' '
        WRITE(6,'(A)') 'P : parameter input through namelist'
        WRITE(6,'(A)') 'V : show input parameters'

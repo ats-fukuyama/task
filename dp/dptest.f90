@@ -22,6 +22,8 @@ CONTAINS
        CALL dp_test1
     CASE(2)
        CALL dp_test2
+    CASE(3)
+       CALL dp_test_bes
     CASE(0,9)
        GO TO 9
     END SELECT
@@ -178,4 +180,39 @@ CONTAINS
     RKX0=RKX0_SAVE
     RETURN
   END SUBROUTINE dp_test2
+
+  SUBROUTINE dp_test_bes
+    USE dpcomm,ONLY: rkind
+    USE dptnsb1
+    USE libbes
+    IMPLICIT NONE
+    
+    REAL(rkind),ALLOCATABLE:: BESJN(:),DBESJN(:),DDBESJN(:)
+    INTEGER:: nhmax=5
+    REAL(rkind):: x=10.D0
+    INTEGER:: nh,ierr
+
+1   CONTINUE
+    WRITE(6,'(A,I6,ES12.4)') '## input nhmax and x:',nhmax,x
+    READ(5,*,ERR=1,END=9000) nhmax,x
+    
+    ALLOCATE(BESJN(-nhmax:nhmax))
+    ALLOCATE(DBESJN(-nhmax:nhmax))
+    ALLOCATE(DDBESJN(-nhmax:nhmax))
+
+    CALL dp_besj(nhmax,x,BESJN,DBESJN,DDBESJN,ierr)
+
+    DO nh=-nhmax,nhmax
+       WRITE(6,'(I6,4ES12.4)') nh,BESJN(nh),DBESJN(nh),DDBESJN(nh), &
+            BESJN(nh)*DBESJN(nh)/x
+    END DO
+
+    DEALLOCATE(BESJN,DBESJN,DDBESJN)
+    
+    GO TO 1
+    
+9000 CONTINUE
+    RETURN
+  END SUBROUTINE dp_test_bes
+
 END MODULE dptest

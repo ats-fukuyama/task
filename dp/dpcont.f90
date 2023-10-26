@@ -667,22 +667,41 @@ CONTAINS
     IMPLICIT NONE
     REAL(rkind),ALLOCATABLE:: xa(:),ya(:),fa(:,:,:)
     REAL(rkind),ALLOCATABLE:: pn_save(:)
-    REAL(rkind),ALLOCATABLE:: pdata(:)
+    REAL(rkind),ALLOCATABLE:: pgdata(:)
     TYPE(pl_mag_type):: mag
     CHARACTER(LEN=1):: KID1,KID2
     CHARACTER(LEN=80):: LINE
     INTEGER,SAVE:: INIT=0
-    INTEGER:: NS,NGP,NY,NX,NY1,NY2,NX1,NX2,IERR,NGULEN
+    INTEGER:: NS,NGP,NY,NX,NY1,NY2,NX1,NX2,IERR,NGULEN,NMAX
     REAL(rkind):: XMIN,XMAX,YMIN,YMAX,DX,DY,Y,X,FACTY,FACTX,DZY,DZX,DZ2
     COMPLEX(rkind):: CRF,CKX,CKY,CKZ,CD,CW,CWC
-    REAL(rkind):: bb_save
-    INTEGER:: mode,ngmax,nmax,np,ntype
-    EXTERNAL PAGES,PAGEE
+    REAL(rkind):: bb_save,rf0_save
+    REAL(rkind):: dpg,pgmin,pgmax
+    REAL(rkind):: line_value(1)
+    REAL(rkind):: line_rgb_npg(3,1)
+    INTEGER:: mode,npgmax,npg,ntype
+    REAL:: guclip,w,gy
+    EXTERNAL PAGES,PAGEE,SETRGB
+    INTEGER,PARAMETER:: nlmax_p=11
+    REAL(rkind),PARAMETER:: line_rgb(3,nlmax_p) &
+       =RESHAPE([0.0D0,0.0D0,1.0D0, &
+                 0.0D0,0.2D0,0.8D0, &
+                 0.0D0,0.4D0,0.6D0, &
+                 0.0D0,0.6D0,0.4D0, &
+                 0.0D0,0.8D0,0.2D0, &
+                 0.0D0,1.0D0,0.0D0, &
+                 0.2D0,0.8D0,0.0D0, &
+                 0.4D0,0.6D0,0.0D0, &
+                 0.6D0,0.4D0,0.0D0, &
+                 0.8D0,0.2D0,0.0D0, &
+                 1.0D0,0.0D0,0.0D0],[3,11])
+    INTEGER,PARAMETER:: line_pat(nlmax_p)=[ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
 
     IF(INIT.EQ.0) THEN
        LINE='YW'
        INIT=1
     ENDIF
+    LINE_VALUE(1)=0.D0
 
 1   CONTINUE
     WRITE(6,*)'## SELECT : XY : W/RF X/KX Y/KY Z/KZ : parm P,V/PARM Q/END'
@@ -721,19 +740,28 @@ CONTAINS
       CASE('W')
          WRITE(6,*) '## INPUT X-AXIS: RF1,RF2,NGXMAX'
          WRITE(6,'(6X,2ES12.4,I6)') RF1,RF2,NGXMAX
+         XMIN=RF1
+         XMAX=RF2
       CASE('X')
          WRITE(6,*) '## INPUT X-AXIS: RKX1,RKX2,NGXMAX'
          WRITE(6,'(6X,2ES12.4,I6)') RKX1,RKX2,NGXMAX
+         XMIN=RKX1
+         XMAX=RKX2
       CASE('Y')
          WRITE(6,*) '## INPUT X-AXIS: RKY1,RKY2,NGXMAX'
          WRITE(6,'(6X,2ES12.4,I6)') RKY1,RKY2,NGXMAX
+         XMIN=RKY1
+         XMAX=RKY2
       CASE('Z')
          WRITE(6,*) '## INPUT X-AXIS: RKZ1,RKZ2,NGXMAX'
          WRITE(6,'(6X,2ES12.4,I6)') RKZ1,RKZ2,NGXMAX
+         XMIN=RKZ1
+         XMAX=RKZ2
       CASE DEFAULT
          WRITE(6,*) 'XX UNKNOWN KID1'
          GOTO 1
       END SELECT
+      nmax=ngxmax
       READ(5,*,ERR=2,END=1) XMIN,XMAX,NMAX
       IF(NMAX.LE.0) GOTO 1
       SELECT CASE(KID1)
@@ -752,24 +780,32 @@ CONTAINS
       END SELECT
       NGXMAX=NMAX
 
-3     CONTINUE
       SELECT CASE(KID2)
       CASE('W')
          WRITE(6,*) '## INPUT Y-AXIS: RF1,RF2,NGYMAX'
          WRITE(6,'(6X,2ES12.4,I6)') RF1,RF2,NGYMAX
+         YMIN=RF1
+         YMAX=RF2
       CASE('X')
          WRITE(6,*) '## INPUT Y-AXIS: RKX1,RKX2,NGYMAX'
          WRITE(6,'(6X,2ES12.4,I6)') RKX1,RKX2,NGYMAX
+         YMIN=RKX1
+         YMAX=RKX2
       CASE('Y')
          WRITE(6,*) '## INPUT Y-AXIS: RKY1,RKY2,NGYMAX'
          WRITE(6,'(6X,2ES12.4,I6)') RKY1,RKY2,NGYMAX
+         YMIN=RKY1
+         YMAX=RKY2
       CASE('Z')
          WRITE(6,*) '## INPUT Y-AXIS: RKZ1,RKZ2,NGYMAX'
          WRITE(6,'(6X,2ES12.4,I6)') RKZ1,RKZ2,NGYMAX
+         YMIN=RKZ1
+         YMAX=RKZ2
       CASE DEFAULT
          WRITE(6,*) 'XX UNKNOWN KID2'
          GOTO 1
       END SELECT
+      nmax=ngymax
       READ(5,*,ERR=2,END=1) YMIN,YMAX,NMAX
       IF(NMAX.LE.0) GOTO 1
       SELECT CASE(KID2)
@@ -789,30 +825,48 @@ CONTAINS
       NGYMAX=NMAX
 
 4     CONTINUE
-      WRITE(6,*) '## INPUT : Parameter type: 1:BB 2:PN (0:cancel, 9:end) ?'
-      READ(5,*,ERR=4,END=3) ntype
-      IF(ntype.LE.0) GO TO 3     ! cancel
+      WRITE(6,*) '## INPUT : Parameter type: 1:RF: 2:BB 3:PN (0:back, 9:end) ?'
+      READ(5,*,ERR=4,END=2) ntype
+      IF(ntype.LE.0) GO TO 2     ! back
       IF(ntype.EQ.9) GO TO 9000  ! end
-      IF(ntype.GT.2) GO TO 4     ! out of range
+      IF(ntype.GT.3) GO TO 4     ! out of range
+      IF(ntype.EQ.1.AND.(KID1.EQ.'W'.OR.KID2.EQ.'W')) THEN
+         WRITE(6,'(A,A1,A1)') 'XX no frequecy scan for kid=',KID1,KID2
+         GO TO 4
+      END IF
 
-5     CONTINUE
-      WRITE(6,'(A,I4)') '## INPUT : NUMBER OF Parameters: ngpmax=',ngpmax
-      READ(5,*,ERR=5,END=4) ngpmax
-      IF(ngpmax.LE.0) GOTO 4     ! cancel
-
-      IF(ALLOCATED(pdata)) DEALLOCATE(pdata)
-      ALLOCATE(pdata(ngpmax))
       SELECT CASE(ntype)
       CASE(1)
-         pdata(1:ngpmax)=BB
+         npgmax=3
+         pgmin=0.9D0*BB
+         pgmax=1.1D0*BB
       CASE(2)
-         pdata(1:ngpmax)=PN(1)
+         npgmax=3
+         pgmin=0.9D0*BB
+         pgmax=1.1D0*BB
+      CASE(3)
+         npgmax=3
+         pgmin=0.9D0*PN(1)
+         pgmax=1.1D0*PN(1)
       END SELECT
+         
+5     CONTINUE
       
-6     CONTINUE
-      WRITE(6,*) '## INPUT : Parameters ?'
-      WRITE(6,'(6X,6ES12.4)') pdata(1:ngmax)
-      READ(5,*,ERR=6,END=5) pdata(1:ngmax)
+      WRITE(6,'(A,2ES12.4,I4)') &
+           '## INPUT : pgmin,pgmax,npgmax=',pgmin,pgmax,npgmax
+      READ(5,*,ERR=5,END=4) pgmin,pgmax,npgmax
+      IF(npgmax.LE.0) GOTO 4     ! cancel
+
+      IF(ALLOCATED(pgdata)) DEALLOCATE(pgdata)
+      ALLOCATE(pgdata(npgmax))
+      IF(npgmax.EQ.1) THEN
+         pgdata(1)=pgmin
+      ELSE
+         dpg=(pgmax-pgmin)/(npgmax-1)
+         DO npg=1,npgmax
+            pgdata(npg)=pgmin+dpg*(npg-1)
+         END DO
+      END IF
       
       DY=(YMAX-YMIN)/(NGYMAX-1)
       DX=(XMAX-XMIN)/(NGXMAX-1)
@@ -822,13 +876,19 @@ CONTAINS
       CKY=RKY0
       CKZ=RKZ0
 
-      ALLOCATE(xa(ngxmax),ya(ngymax),fa(ngxmax,ngymax,ngpmax))
+      ALLOCATE(xa(ngxmax),ya(ngymax),fa(ngxmax,ngymax,npgmax))
       ALLOCATE(pn_save(nsmax))
 
+      rf0_save=rf0
       bb_save=bb
       DO ns=1,nsmax
          pn_save(ns)=pn(ns)
       ENDDO
+
+      CRF=DCMPLX(RF0,0.D0)
+      CKX=RKX0
+      CKY=RKY0
+      CKZ=RKZ0
 
       DO nx=1,ngxmax
          xa(nx)=xmin+dx*(nx-1)
@@ -836,30 +896,43 @@ CONTAINS
       DO ny=1,ngymax
          ya(ny)=ymin+dy*(ny-1)
       END DO
-      DO ny=1,ngymax
-         SELECT CASE(KID2)
-         CASE('W')
-            CRF=DCMPLX(ya(ny),0.D0)
-         CASE('X')
-            CKX=ya(ny)
-         CASE('Y')
-            CKY=ya(ny)
-         CASE('Z')
-            CKZ=ya(ny)
-         END SELECT
-         DO nx=1,ngxmax
-            SELECT CASE(KID1)
-            CASE('W')
-               CRF=DCMPLX(xa(nx),0.D0)
-            CASE('X')
-               CKX=xa(nx)
-            CASE('Y')
-               CKY=xa(nx)
-            CASE('Z')
-               CKZ=xa(nx)
-            END SELECT
 
-            DO np=1,ngpmax
+      DO npg=1,npgmax
+         SELECT CASE(ntype)
+         CASE(1)
+            CRF=DCMPLX(pgdata(npg),0.D0)
+         CASE(2)
+            BB=pgdata(npg)
+         CASE(3)
+            PN(1)=pgdata(npg)
+            DO NS=1,NSMAX
+               PN(NS)=pn_save(ns)*pn(1)/pn_save(1)
+            END DO
+         END SELECT
+                  
+         DO ny=1,ngymax
+            SELECT CASE(KID2)
+            CASE('W')
+               CRF=DCMPLX(ya(ny),0.D0)
+            CASE('X')
+               CKX=ya(ny)
+            CASE('Y')
+               CKY=ya(ny)
+            CASE('Z')
+               CKZ=ya(ny)
+            END SELECT
+            DO nx=1,ngxmax
+               SELECT CASE(KID1)
+               CASE('W')
+                  CRF=DCMPLX(xa(nx),0.D0)
+               CASE('X')
+                  CKX=xa(nx)
+               CASE('Y')
+                  CKY=xa(nx)
+               CASE('Z')
+                  CKZ=xa(nx)
+               END SELECT
+               
                CD=CFDISP(CRF,CKX,CKY,CKZ,RX0,RY0,RZ0)
                CALL pl_mag(RX0,RY0,RZ0,mag)
                CW=2.D0*PI*1.D6*CRF
@@ -867,45 +940,97 @@ CONTAINS
                   CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
                   CD=CD*(1.D0-CWC)
                ENDDO
+               fa(nx,ny,npg)=DBLE(CD)
             END DO
-
-            fa(nx,ny,ngp)=DBLE(CD)
          ENDDO
       ENDDO
 
-      CALL MOVE(20.0,16.5)
-      CALL TEXT('BB  =',5)
-      CALL NUMBD(BB,'(1PE11.3)',11)
-      CALL MOVE(20.0,16.0)
-      CALL TEXT('RF  =',5)
-      CALL NUMBD(RF0,  '(1PE11.3)',11)
-      CALL MOVE(20.0,15.5)
-      CALL TEXT('RFI0=',5)
-      CALL NUMBD(RFI0, '(1PE11.3)',11)
-      CALL MOVE(20.0,15.0)
-      CALL TEXT('KX  =',5)
-      CALL NUMBD(RKX0,'(1PE11.3)',11)
-      CALL MOVE(20.0,14.5)
-      CALL TEXT('KY  =',5)
-      CALL NUMBD(RKY0,'(1PE11.3)',11)
-      CALL MOVE(20.0,14.0)
-      CALL TEXT('KZ  =',5)
-      CALL NUMBD(RKZ0,'(1PE11.3)',11)
-      CALL MOVE(20.0,13.5)
-      CALL TEXT('BB  =',5)
-      CALL NUMBD(BB,'(1PE11.3)',11)
+      CALL PAGES
 
-      DO np=1,ngpmax
-         CALL MOVE(20.0,12.5-np*0.5)
-         CALL SETLIN(0,0,7-MOD(np-1,5))
-         CALL TEXT('P   =',5)
-         CALL NUMBD(pdata(np),'(1PE11.3)',11)
-      ENDDO
+      line_rgb_npg(1:3,1)=line_rgb(1:3,1)
+      CALL GRD2D(0,xa,ya,fa(1:ngxmax,1:ngymax,1),ngxmax,ngxmax,ngymax, &
+           nlmax=1,LINE_VALUE=line_value, &
+           LINE_RGB=line_rgb_npg,LINE_PAT=line_pat, &
+           ASPECT=1.D0,NOINFO=1)
+      DO npg=2,npgmax
+         line_rgb_npg(1:3,1)=line_rgb(1:3,MOD(npg-1,nlmax_p)+1)
+         CALL GRD2D(0,xa,ya,fa(1:ngxmax,1:ngymax,npg),ngxmax,ngxmax,ngymax, &
+              nlmax=1,LINE_VALUE=line_value, &
+              LINE_RGB=line_rgb_npg,LINE_PAT=line_pat, &
+              ASPECT=1.D0,NOINFO=1, &
+              NOFRAME=1)
+      END DO
+
       CALL SETLIN(0,0,7)
-      CALL PAGEE
-      DEALLOCATE(xa,ya,fa)
-      GOTO 1
+      CALL SETCHS(0.3,0.0)
+      CALL MOVE(20.0,16.5)
+      SELECT CASE(ntype)
+      CASE(1)
+         CALL TEXT('RF  :',5)
+      CASE(2)
+         CALL TEXT('BB  :',5)
+      CASE(3)
+         CALL TEXT('PN  :',5)
+      END SELECT
 
- 9000 RETURN
+      CALL MOVE(20.0,16.0)
+      CALL TEXT('max: ',5)
+      CALL MOVE(22.0,16.0)
+      CALL NUMBD(pgmax,'(ES12.4)',12)
+      CALL SETLNW(0.05)
+      IF(npgmax.EQ.1) THEN
+         gy=14.2
+         CALL MOVE(20.0,gy)
+         line_rgb_npg(1:3,1)=line_rgb(1:3,MOD(npg-1,nlmax_p)+1)
+         CALL SETRGB(GUCLIP(line_rgb_npg(1,1)), &
+                     GUCLIP(line_rgb_npg(2,1)), &
+                     GUCLIP(line_rgb_npg(3,1)))
+         CALL DRAW(22.0,gy)
+      ELSE
+         dy=3.0/(npgmax-1)
+         DO npg=1,npgmax
+            gy=GUCLIP(12.6+dy*(npg-1))
+            CALL MOVE(20.0,gy)
+            line_rgb_npg(1:3,1)=line_rgb(1:3,MOD(npg-1,nlmax_p)+1)
+            CALL SETRGB(GUCLIP(line_rgb_npg(1,1)), &
+                        GUCLIP(line_rgb_npg(2,1)), &
+                        GUCLIP(line_rgb_npg(3,1)))
+            CALL DRAW(22.0,gy)
+         END DO
+      END IF
+      CALL SETRGB(0.0,0.0,0.0)
+      
+      CALL MOVE(20.0,12.0)
+      CALL TEXT('min: ',5)
+      CALL MOVE(22.0,12.0)
+      CALL NUMBD(pgmin,'(ES12.4)',12)
+      CALL MOVE(20.0,11.5)
+      CALL TEXT('BB:       ',10)
+      CALL MOVE(22.0,11.5)
+      CALL NUMBD(BB,'(ES12.4)',12)
+      CALL MOVE(20.0,11.0)
+      CALL TEXT('PN(1):    ',10)
+      CALL MOVE(22.0,11.0)
+      CALL NUMBD(PN(1),'(ES12.4)',12)
+      CALL MOVE(20.0,10.5)
+      CALL TEXT('PTPR(1):  ',10)
+      CALL MOVE(22.0,10.5)
+      CALL NUMBD(PTPR(1),'(ES12.4)',12)
+      CALL MOVE(20.0,10.0)
+      CALL TEXT('PTPP(1):  ',10)
+      CALL MOVE(22.0,10.0)
+      CALL NUMBD(PTPP(1),'(ES12.4)',12)
+      CALL PAGEE
+      rf0=rf0_save
+      bb=bb_save
+      DO ns=1,nsmax
+         pn(ns)=pn_save(ns)
+      ENDDO
+      DEALLOCATE(xa,ya,fa,pn_save)
+
+      GOTO 5
+
+9000  CONTINUE
+      RETURN
   END SUBROUTINE dp_cont3
 END MODULE dpcont

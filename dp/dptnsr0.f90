@@ -23,7 +23,7 @@ CONTAINS
     TYPE(pl_grd_type),DIMENSION(nsmax),INTENT(IN):: grd
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     COMPLEX(rkind):: CLDISP1(6)
-    INTEGER:: ID1,ID2,IDV,IERR
+    INTEGER:: ID1,ID2,IDV,IERR,NSA
 
 !    WRITE(6,*) 'dp_tens:',modelp(1),modelv(1)
 
@@ -33,45 +33,56 @@ CONTAINS
        ID1=MOD(MODELP(NS),100)
        ID2=MODELP(NS)/100
        IDV=MODELV(NS)
-       IF(IDV.NE.0.AND.(mag%RHON.LT.RHON_MIN(NS).OR. &
-                        mag%RHON.GT.RHON_MAX(NS))) THEN
-          CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plfw,grd,CLDISP)
-       ELSE
-          SELECT CASE(IDV)
-          CASE(0)
-             CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plfw,grd,CLDISP)
-          CASE(1)
-             CALL DPFMFL(NS,plfw,0)
-             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-                CALL DP_HOTFI(CW,CKPR,CKPP,NS,mag,CLDISP)
-             ELSE
-                CALL DP_HOTF(CW,CKPR,CKPP,NS,mag,CLDISP)
-             ENDIF
-          CASE(2)
-             CALL DPFPFL(NS,mag,IERR)
-             IF(IERR.NE.0) RETURN
-             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-                CALL DP_HOTFI(CW,CKPR,CKPP,NS,mag,CLDISP)
-             ELSE
-                CALL DP_HOTF(CW,CKPR,CKPP,NS,mag,CLDISP)
-             ENDIF
-          CASE(3)
-             CALL DPFMFL(NS,plfw,1)
-             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-                CALL DP_HOTRI(CW,CKPR,CKPP,NS,mag,CLDISP)
-             ELSE
-                CALL DP_HOTR(CW,CKPR,CKPP,NS,mag,CLDISP)
-             ENDIF
-          CASE(4)
-             CALL DPFPFL(NS,mag,IERR)
-             IF(IERR.NE.0) RETURN
-             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-                CALL DP_HOTRI(CW,CKPR,CKPP,NS,mag,CLDISP)
-             ELSE
-                CALL DP_HOTR(CW,CKPR,CKPP,NS,mag,CLDISP)
-             ENDIF
-          END SELECT
+       IF(IDV.NE.0) THEN
+          IF(ALLOCATED(NSA_NS_DP)) THEN
+             NSA=NSA_NS_DP(NS)
+             IF(NSA.EQ.0) IDV=0
+          ELSE
+             IDV=0
+          END IF
        END IF
+       IF(mag%RHON.LT.RHON_MIN(NS).OR. &
+          mag%RHON.GT.RHON_MAX(NS)) IDV=0
+       SELECT CASE(IDV)
+       CASE(0)
+          CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plfw,grd,CLDISP)
+       CASE(1)
+          CALL DPFMFL(NSA,plfw,0)
+          IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
+             CALL DP_HOTFI(CW,CKPR,CKPP,NSA,mag,CLDISP)
+          ELSE
+             CALL DP_HOTF(CW,CKPR,CKPP,NSA,mag,CLDISP)
+          ENDIF
+       CASE(2)
+          CALL DPFPFL(NSA,mag,IERR)
+          IF(IERR.NE.0) THEN
+             CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plfw,grd,CLDISP)
+          ELSE
+             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
+                CALL DP_HOTFI(CW,CKPR,CKPP,NSA,mag,CLDISP)
+             ELSE
+                CALL DP_HOTF(CW,CKPR,CKPP,NSA,mag,CLDISP)
+             ENDIF
+          END IF
+       CASE(3)
+          CALL DPFMFL(NSA,plfw,1)
+          IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
+             CALL DP_HOTRI(CW,CKPR,CKPP,NSA,mag,CLDISP)
+          ELSE
+             CALL DP_HOTR(CW,CKPR,CKPP,NSA,mag,CLDISP)
+          ENDIF
+       CASE(4)
+          CALL DPFPFL(NSA,mag,IERR)
+          IF(IERR.NE.0) THEN
+             CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plfw,grd,CLDISP)
+          ELSE
+             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
+                CALL DP_HOTRI(CW,CKPR,CKPP,NSA,mag,CLDISP)
+             ELSE
+                CALL DP_HOTR(CW,CKPR,CKPP,NSA,mag,CLDISP)
+             ENDIF
+          END IF
+       END SELECT
        IF(ID2.EQ.2) THEN
           CALL DPTNCL(CW,NS,mag,plfw,CLDISP1)
        ELSEIF(ID2.EQ.3) THEN
