@@ -14,21 +14,21 @@ MODULE dphotf
 
 CONTAINS
 
-  SUBROUTINE DP_HOTF(CW,CKPR,CKPP,NS,mag,CLDISP)
+  SUBROUTINE DP_HOTF(CW,CKPR,CKPP,NSA,mag,CLDISP)
 
     USE dpcomm
     USE plprof
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
-    INTEGER,INTENT(IN):: NS
+    INTEGER,INTENT(IN):: NSA
     TYPE(pl_mag_type),INTENT(IN):: mag
 !    TYPE(pl_prf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     COMPLEX(rkind):: CLDISP1(6),CLDISP2(6)
     INTEGER:: I
       
-    CALL DP_HOTFR(CW,CKPR,CKPP,NS,mag,CLDISP1)
-    CALL DP_HOTFI(CW,CKPR,CKPP,NS,mag,CLDISP2)
+    CALL DP_HOTFR(CW,CKPR,CKPP,NSA,mag,CLDISP1)
+    CALL DP_HOTFI(CW,CKPR,CKPP,NSA,mag,CLDISP2)
     DO I=1,6
        CLDISP(I)=CLDISP1(I)+CLDISP2(I)
     ENDDO
@@ -39,19 +39,19 @@ CONTAINS
 !                       DPHOTFR
 ! ******************************************************
 
-  SUBROUTINE DP_HOTFR(CW,CKPR,CKPP,NS,mag,CLDISP)
+  SUBROUTINE DP_HOTFR(CW,CKPR,CKPP,NSA,mag,CLDISP)
 
     USE dpcomm
     USE plprof
     USE libbes,ONLY: bessjn
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
-    INTEGER,INTENT(IN):: NS
+    INTEGER,INTENT(IN):: NSA
     TYPE(pl_mag_type),INTENT(IN):: mag
 !    TYPE(pl_prf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
-    INTEGER:: NHMAX,NTH,NP,NC,NCD
+    INTEGER:: NHMAX,NTH,NP,NC,NCD,NS
     REAL(rkind):: RGM,WCM,DKPRW,DKPP,X,PAI1,PAI3,PART1,FACT,DELPL,PN0,PT0,PTH0
     COMPLEX(rkind):: CWP,CWC,CKPRW,CDENX,CDEN,CPAI2,CPART2
     COMPLEX(rkind):: CINTG111,CINTG112,CINTG113
@@ -62,25 +62,26 @@ CONTAINS
     COMPLEX(rkind):: CINTG231,CINTG232,CINTG233
     COMPLEX(rkind):: CSM11,CSM12,CSM13,CSM22,CSM23,CSM33
 
+    NS=NS_NSA_DP(NSA)
       NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)),2)+5
       ALLOCATE(ADJ(0:NHMAX),ADJD(0:NHMAX))
       RGM   = 1.D0
       DELPL = 0.5D0
 
-      PN0=RNFP0(NS)
-      PT0=RTFP0(NS)
-      PTH0=SQRT(PT0*1.D3*AEE*AMFP(NS))
+      PN0=RNFP0(NSA)
+      PT0=RTFP0(NSA)
+      PTH0=SQRT(PT0*1.D3*AEE*AMFP(NSA))
 
-      CWP=PN0*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMFP(NS)*CW*CW)
-      CWC=mag%BABS*PZ(NS)*AEE/(AMFP(NS)*CW)
+      CWP=PN0*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMFP(NSA)*CW*CW)
+      CWC=mag%BABS*PZ(NS)*AEE/(AMFP(NSA)*CW)
       WCM=mag%BABS*PZ(NS)*AEE
-      CKPRW= CKPR*PTH0/(AMFP(NS)*CW)
+      CKPRW= CKPR*PTH0/(AMFP(NSA)*CW)
       DKPRW=DBLE(CKPRW)
       DKPP=DBLE(CKPP)
 
       DO NTH=1,NTHMAX_DP
       DO NP=1,NPMAX_DP-1
-         DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP(NS)
+         DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP(NSA)
       ENDDO
       ENDDO
       DO NP=1,NPMAX_DP
@@ -95,8 +96,8 @@ CONTAINS
       DO NTH=1,NTHMAX_DP
          DGP1(NP,NTH)=-DKPRW*TCSM(NTH)
          DGP2(NP,NTH)=-DKPRW*TCSG(NTH)
-         DGT1(NP,NTH)= DKPRW*PG(NP,NS)*TSNM(NTH)
-         DGT2(NP,NTH)= DKPRW*PM(NP,NS)*TSNG(NTH)
+         DGT1(NP,NTH)= DKPRW*PG(NP,NSA)*TSNM(NTH)
+         DGT2(NP,NTH)= DKPRW*PM(NP,NSA)*TSNG(NTH)
       ENDDO
       ENDDO
 
@@ -123,13 +124,13 @@ CONTAINS
          CSM23 = (0.D0,0.D0)
          CSM33 = (0.D0,0.D0)
 
-         X = DKPP*PTH0*PG(NP,NS)*TSNM(NTH)/WCM
+         X = DKPP*PTH0*PG(NP,NSA)*TSNM(NTH)/WCM
          CALL BESSJN(X,NHMAX,ADJ,ADJD)
 
          DO NC=NCMIN(NS),NCMAX(NS)
             NCD = ABS(NC)
-            CDENX= RGM-CKPRW*PG(NP,NS)*TCSM(NTH)-NC*CWC
-            CDEN  = CDENX/(CDENX**2+(DELPL*DGP1(NP,NTH)*DELP(NS))**2 &
+            CDENX= RGM-CKPRW*PG(NP,NSA)*TCSM(NTH)-NC*CWC
+            CDEN  = CDENX/(CDENX**2+(DELPL*DGP1(NP,NTH)*DELP(NSA))**2 &
                                    +(DELPL*DGT1(NP,NTH)*delth)**2)
             IF(X.EQ.0.D0) THEN
                IF(NCD.EQ.0) THEN
@@ -153,9 +154,9 @@ CONTAINS
             CSM33 = CSM33 + PAI3* PAI3*CDEN
          ENDDO
 
-         PART1= DFP(NP,NTH)*PG(NP,NS)*PG(NP,NS)*PG(NP,NS) &
+         PART1= DFP(NP,NTH)*PG(NP,NSA)*PG(NP,NSA)*PG(NP,NSA) &
                            *TSNM(NTH)*TSNM(NTH)*TSNM(NTH) &
-               *delth*DELP(NS)
+               *delth*DELP(NSA)
 !     
          CINTG111= CINTG111 + CSM11*PART1
          CINTG112= CINTG112 + CSM12*PART1
@@ -190,13 +191,13 @@ CONTAINS
          CSM23 = (0.D0,0.D0)
          CSM33 = (0.D0,0.D0)
 
-         X = DKPP*PTH0*PM(NP,NS)*TSNG(NTH)/WCM
+         X = DKPP*PTH0*PM(NP,NSA)*TSNG(NTH)/WCM
          CALL BESSJN(X,NHMAX,ADJ,ADJD)
 
          DO NC=NCMIN(NS),NCMAX(NS)
             NCD = ABS(NC)
-            CDENX = RGM-CKPRW*PM(NP,NS)*TCSG(NTH)-NC*CWC
-            CDEN  = CDENX/(CDENX**2+(DELPL*DGP2(NP,NTH)*DELP(NS))**2 &
+            CDENX = RGM-CKPRW*PM(NP,NSA)*TCSG(NTH)-NC*CWC
+            CDEN  = CDENX/(CDENX**2+(DELPL*DGP2(NP,NTH)*DELP(NSA))**2 &
                                    +(DELPL*DGT2(NP,NTH)*delth)**2)
             IF(X.EQ.0.D0) THEN
                IF(NCD.EQ.0) THEN
@@ -219,10 +220,10 @@ CONTAINS
             CSM33 = CSM33 + PAI3* PAI3*CDEN
          ENDDO
 ! 
-         CPART2= DFT(NP,NTH)*PM(NP,NS)*PM(NP,NS) &
+         CPART2= DFT(NP,NTH)*PM(NP,NSA)*PM(NP,NSA) &
                             *TSNG(NTH)*TSNG(NTH) &
-                *(TCSG(NTH)-CKPRW*PM(NP,NS)/RGM) &
-               *delth*DELP(NS)
+                *(TCSG(NTH)-CKPRW*PM(NP,NSA)/RGM) &
+               *delth*DELP(NSA)
 ! 
          CINTG211= CINTG211 + CSM11*CPART2
          CINTG212= CINTG212 + CSM12*CPART2
@@ -233,9 +234,9 @@ CONTAINS
          CINTG231= CINTG231 + CSM13*CPART2
          CINTG232= CINTG232 - CSM23*CPART2
          CINTG233= CINTG233 + CSM33*CPART2 &
-                            - PM(NP,NS)*PM(NP,NS)*TCSG(NTH) &
+                            - PM(NP,NSA)*PM(NP,NSA)*TCSG(NTH) &
                               *DFT(NP,NTH)/RGM &
-                              *delth*DELP(NS)
+                              *delth*DELP(NSA)
       ENDDO
       ENDDO
 
@@ -256,19 +257,19 @@ CONTAINS
 !                       DPHOTFI
 ! ******************************************************
 
-  SUBROUTINE DP_HOTFI(CW,CKPR,CKPP,NS,mag,CLDISP)
+  SUBROUTINE DP_HOTFI(CW,CKPR,CKPP,NSA,mag,CLDISP)
 
     USE dpcomm
     USE plprof
     USE libbes,ONLY: bessjn
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
-    INTEGER,INTENT(IN):: NS
+    INTEGER,INTENT(IN):: NSA
     TYPE(pl_mag_type),INTENT(IN):: mag
 !    TYPE(pl_prf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
-    INTEGER:: NHMAX,NTH,NP,NC,NCD
+    INTEGER:: NHMAX,NTH,NP,NC,NCD,NS
     REAL(rkind):: RGM,WCM,DKPRW,DKPP,PNEAR,DIF,DFP3,X,PAI1,PAI3,DFT4,FACT
     REAL(rkind):: PN0,PT0,PTH0
     COMPLEX(rkind):: CWP,CWC,CKPRW,CPAI2
@@ -281,24 +282,25 @@ CONTAINS
     COMPLEX(rkind):: CINTG431,CINTG432,CINTG433
     COMPLEX(rkind):: CSM11,CSM12,CSM13,CSM22,CSM23,CSM33
 
+    NS=NS_NSA_DP(NSA)
       NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)),2)+5
       ALLOCATE(ADJ(0:NHMAX),ADJD(0:NHMAX))
       RGM   = 1.D0
 
-      PN0=RNFP0(NS)
-      PT0=RTFP0(NS)
-      PTH0=SQRT(PT0*1.D3*AEE*AMFP(NS))
+      PN0=RNFP0(NSA)
+      PT0=RTFP0(NSA)
+      PTH0=SQRT(PT0*1.D3*AEE*AMFP(NSA))
 
-      CWP=PN0*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMFP(NS)*CW*CW)
-      CWC=mag%BABS*PZ(NS)*AEE/(AMFP(NS)*CW)
+      CWP=PN0*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMFP(NSA)*CW*CW)
+      CWC=mag%BABS*PZ(NS)*AEE/(AMFP(NSA)*CW)
       WCM=mag%BABS*PZ(NS)*AEE
-      CKPRW=CKPR*PTH0/(AMFP(NS)*CW)
+      CKPRW=CKPR*PTH0/(AMFP(NSA)*CW)
       DKPRW=DBLE(CKPRW)
       DKPP=DBLE(CKPP)
 
       DO NTH=1,NTHMAX_DP
       DO NP=1,NPMAX_DP-1
-         DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP(NS)
+         DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP(NSA)
       ENDDO
       ENDDO
       DO NP=1,NPMAX_DP
@@ -313,8 +315,8 @@ CONTAINS
       DO NTH=1,NTHMAX_DP
          DGP1(NP,NTH)=-DKPRW*TCSM(NTH)
          DGP2(NP,NTH)=-DKPRW*TCSG(NTH)
-         DGT1(NP,NTH)= DKPRW*PG(NP,NS)*TSNM(NTH)
-         DGT2(NP,NTH)= DKPRW*PM(NP,NS)*TSNG(NTH)
+         DGT1(NP,NTH)= DKPRW*PG(NP,NSA)*TSNM(NTH)
+         DGT2(NP,NTH)= DKPRW*PM(NP,NSA)*TSNG(NTH)
       ENDDO
       ENDDO
 
@@ -346,17 +348,17 @@ CONTAINS
          DO NC=NCMIN(NS),NCMAX(NS)
 
             PNEAR = DBLE((RGM-CWC*NC)/(CKPRW*TCSM(NTH)))
-            IF(PNEAR.LT.0.D0.OR.PNEAR.GT.DELP(NS)*NPMAX_DP) GOTO 310
-            NP = INT(PNEAR/DELP(NS))
+            IF(PNEAR.LT.0.D0.OR.PNEAR.GT.DELP(NSA)*NPMAX_DP) GOTO 310
+            NP = INT(PNEAR/DELP(NSA))
             IF (NP.LT.0.OR.NP.GE.NPMAX_DP) GOTO 310
             IF (NP.EQ.0) THEN
-               DIF = PNEAR/DELP(NS)
+               DIF = PNEAR/DELP(NSA)
                DFP3 = DIF*DFP(1,NTH)
             ELSE IF(NP.EQ.NPMAX_DP-1) THEN
-               DIF = (PNEAR - PG(NP,NS))/DELP(NS)
+               DIF = (PNEAR - PG(NP,NSA))/DELP(NSA)
                DFP3 = (1.D0-DIF)*DFP(NP,NTH)
             ELSE
-               DIF = (PNEAR - PG(NP,NS))/DELP(NS)
+               DIF = (PNEAR - PG(NP,NSA))/DELP(NSA)
                DFP3 = DIF*DFP(NP+1,NTH)+(1.D0-DIF)*DFP(NP,NTH)
             ENDIF
             
@@ -428,17 +430,17 @@ CONTAINS
 !               
             IF(NTH*2.EQ.NTHMAX_DP) GOTO 410
             PNEAR = DBLE((RGM-CWC*NC)/(CKPRW*TCSG(NTH)))
-            IF(PNEAR.LT.0.D0.OR.PNEAR.GT.DELP(NS)*NPMAX_DP) GOTO 410
-            NP = INT(PNEAR/DELP(NS)+0.5D0)
+            IF(PNEAR.LT.0.D0.OR.PNEAR.GT.DELP(NSA)*NPMAX_DP) GOTO 410
+            NP = INT(PNEAR/DELP(NSA)+0.5D0)
             IF(NP.LT.0.OR.NP.GE.NPMAX_DP) GOTO 410
             IF (NP.EQ.0) THEN
-               DIF = (PNEAR - PM(1,NS))/DELP(NS)
+               DIF = (PNEAR - PM(1,NSA))/DELP(NSA)
                DFT4  = DIF*DFT(1,NTH)-(1.D0-DIF)*DFT(1,NTH)
             ELSEIF(NP.EQ.NPMAX_DP-1) THEN
-               DIF = (PNEAR - PM(NP,NS))/DELP(NS)
+               DIF = (PNEAR - PM(NP,NSA))/DELP(NSA)
                DFT4  = (1.D0-DIF)*DFT(NP,NTH)
             ELSE
-               DIF = (PNEAR - PM(NP,NS))/DELP(NS)
+               DIF = (PNEAR - PM(NP,NSA))/DELP(NSA)
                DFT4  = DIF*DFT(NP+1,NTH)+(1.D0-DIF)*DFT(NP,NTH)
             ENDIF
 
