@@ -19,21 +19,21 @@ MODULE dphotr
 
 CONTAINS
 
-  SUBROUTINE DP_HOTR(CW,CKPR,CKPP,NS,mag,CLDISP)
+  SUBROUTINE DP_HOTR(CW,CKPR,CKPP,NSA,mag,CLDISP)
 
     USE dpcomm
     USE plprof
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
-    INTEGER,INTENT(IN):: NS
+    INTEGER,INTENT(IN):: NSA
     TYPE(pl_mag_type),INTENT(IN):: mag
 !    TYPE(pl_prf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     COMPLEX(rkind):: CLDISP1(6),CLDISP2(6)
     INTEGER:: I
       
-    CALL DP_HOTRR(CW,CKPR,CKPP,NS,mag,CLDISP1)
-    CALL DP_HOTRI(CW,CKPR,CKPP,NS,mag,CLDISP2)
+    CALL DP_HOTRR(CW,CKPR,CKPP,NSA,mag,CLDISP1)
+    CALL DP_HOTRI(CW,CKPR,CKPP,NSA,mag,CLDISP2)
     DO I=1,6
        CLDISP(I)=CLDISP1(I)+CLDISP2(I)
     ENDDO
@@ -44,19 +44,19 @@ CONTAINS
 !                       DPHOTRR
 ! ******************************************************
 
-  SUBROUTINE DP_HOTRR(CW,CKPR,CKPP,NS,mag,CLDISP)
+  SUBROUTINE DP_HOTRR(CW,CKPR,CKPP,NSA,mag,CLDISP)
 
     USE dpcomm
     USE plprof
     USE libbes,ONLY: bessjn
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
-    INTEGER,INTENT(IN):: NS
+    INTEGER,INTENT(IN):: NSA
     TYPE(pl_mag_type),INTENT(IN):: mag
 !    TYPE(pl_prf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
-    INTEGER:: NHMAX,NTH,NP,NC,NCD,INC
+    INTEGER:: NHMAX,NTH,NP,NC,NCD,INC,NS
     REAL(rkind):: DELPL,WCM,DKPRW,PTH0W,DKPP,X,PAI1,PAI3,PART1,FACT
     REAL(rkind):: PN0,PT0,PTH0
     COMPLEX(rkind):: CWP,CWC,CKPRW,CDENX,CDEN,CPAI2,CPART2
@@ -68,13 +68,14 @@ CONTAINS
     COMPLEX(rkind):: CINTG231,CINTG232,CINTG233
     COMPLEX(rkind):: CSM11,CSM12,CSM13,CSM22,CSM23,CSM33
 
+    NS=NS_NSA_DP(NS)
       NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)),2)+2
       ALLOCATE(ADJ(0:NHMAX),ADJD(0:NHMAX))
       DELPL  = 0.5D0
 
-      PN0=RNFP0(NS)
-      PT0=RTFP0(NS)
-      PTH0=SQRT(PT0*1.D3*AEE*AMFP(NS))
+      PN0=RNFP0(NSA)
+      PT0=RTFP0(NSA)
+      PTH0=SQRT(PT0*1.D3*AEE*AMFP(NSA))
 
       CWP=PN0*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
@@ -99,12 +100,12 @@ CONTAINS
 
       DO NP=1,NPMAX_DP
       DO NTH=1,NTHMAX_DP
-         DGP1(NP,NTH)=PTH0W*PG(NP,NS)/SQRT(1+PTH0W*PG(NP,NS)**2) &
+         DGP1(NP,NTH)=PTH0W*PG(NP,NSA)/SQRT(1+PTH0W*PG(NP,NSA)**2) &
                      -DKPRW*TCSM(NTH)
-         DGP2(NP,NTH)=PTH0W*PM(NP,NS)/SQRT(1+PTH0W*PM(NP,NS)**2) &
+         DGP2(NP,NTH)=PTH0W*PM(NP,NSA)/SQRT(1+PTH0W*PM(NP,NSA)**2) &
                      -DKPRW*TCSG(NTH)
-         DGT1(NP,NTH)=DKPRW*PG(NP,NS)*TSNM(NTH)
-         DGT2(NP,NTH)=DKPRW*PM(NP,NS)*TSNG(NTH)
+         DGT1(NP,NTH)=DKPRW*PG(NP,NSA)*TSNM(NTH)
+         DGT2(NP,NTH)=DKPRW*PM(NP,NSA)*TSNG(NTH)
       ENDDO
       ENDDO
 
@@ -131,13 +132,13 @@ CONTAINS
          CSM23 = (0.D0,0.D0)
          CSM33 = (0.D0,0.D0)
 
-         X = DKPP*PTH0*PG(NP,NS)*TSNM(NTH)/WCM
+         X = DKPP*PTH0*PG(NP,NSA)*TSNM(NTH)/WCM
          CALL BESSJN(X,NHMAX,ADJ,ADJD)
 
          DO NC=NCMIN(NS),NCMAX(NS)
             NCD = ABS(NC)
-            CDENX= RGMG(NP,NS)-CKPRW*PG(NP,NS)*TCSM(NTH)-NC*CWC
-            CDEN  = CDENX/(CDENX**2+(DELPL*DGP1(NP,NTH)*DELP(NS))**2 &
+            CDENX= RGMG(NP,NSA)-CKPRW*PG(NP,NSA)*TCSM(NTH)-NC*CWC
+            CDEN  = CDENX/(CDENX**2+(DELPL*DGP1(NP,NTH)*DELP(NSA))**2 &
                                    +(DELPL*DGT1(NP,NTH)*DELTH)**2)
 
             IF(NC.LT.0.AND.MOD(-NC,2).EQ.1) THEN
@@ -165,9 +166,9 @@ CONTAINS
             CSM33 = CSM33 + PAI3          *PAI3*CDEN
          ENDDO
 
-         PART1= DFP(NP,NTH)*PG(NP,NS)*PG(NP,NS)*PG(NP,NS) &
+         PART1= DFP(NP,NTH)*PG(NP,NSA)*PG(NP,NSA)*PG(NP,NSA) &
                            *TSNM(NTH)*TSNM(NTH)*TSNM(NTH) &
-               *DELTH*DELP(NS)
+               *DELTH*DELP(NSA)
 
          CINTG111= CINTG111 + CSM11*PART1
          CINTG112= CINTG112 + CSM12*PART1
@@ -202,13 +203,13 @@ CONTAINS
          CSM23 = (0.D0,0.D0)
          CSM33 = (0.D0,0.D0)
 
-         X = DKPP*PTH0*PM(NP,NS)*TSNG(NTH)/WCM
+         X = DKPP*PTH0*PM(NP,NSA)*TSNG(NTH)/WCM
          CALL BESSJN(X,NHMAX,ADJ,ADJD)
 
          DO NC=NCMIN(NS),NCMAX(NS)
             NCD = ABS(NC)
-            CDENX = RGMM(NP,NS)-CKPRW*PM(NP,NS)*TCSG(NTH)-NC*CWC
-            CDEN  = CDENX/(CDENX**2+(DELPL*DGP2(NP,NTH)*DELP(NS))**2 &
+            CDENX = RGMM(NP,NSA)-CKPRW*PM(NP,NSA)*TCSG(NTH)-NC*CWC
+            CDEN  = CDENX/(CDENX**2+(DELPL*DGP2(NP,NTH)*DELP(NSA))**2 &
                                    +(DELPL*DGT2(NP,NTH)*DELTH)**2)
 
             IF(NC.LT.0.AND.MOD(-NC,2).EQ.1) THEN
@@ -236,10 +237,10 @@ CONTAINS
             CSM33 = CSM33 + PAI3          *PAI3*CDEN
          ENDDO
 
-         CPART2= DFT(NP,NTH)*PM(NP,NS)*PM(NP,NS) &
+         CPART2= DFT(NP,NTH)*PM(NP,NSA)*PM(NP,NSA) &
                             *TSNG(NTH)*TSNG(NTH) &
-                *(TCSG(NTH)-CKPRW*PM(NP,NS)/RGMM(NP,NS)) &
-                *DELTH*DELP(NS)
+                *(TCSG(NTH)-CKPRW*PM(NP,NS)/RGMM(NP,NSA)) &
+                *DELTH*DELP(NSA)
 
          CINTG211= CINTG211 + CSM11*CPART2
          CINTG212= CINTG212 + CSM12*CPART2
@@ -250,9 +251,9 @@ CONTAINS
          CINTG231= CINTG231 + CSM13*CPART2
          CINTG232= CINTG232 - CSM23*CPART2
          CINTG233= CINTG233 + CSM33*CPART2 &
-                            - PM(NP,NS)*PM(NP,NS)*TCSG(NTH) &
-                              *DFT(NP,NTH)/RGMM(NP,NS) &
-                              *DELTH*DELP(NS)
+                            - PM(NP,NSA)*PM(NP,NSA)*TCSG(NTH) &
+                              *DFT(NP,NTH)/RGMM(NP,NSA) &
+                              *DELTH*DELP(NSA)
       ENDDO
       ENDDO
 
@@ -273,19 +274,18 @@ CONTAINS
 !                       DPHOTRI
 ! ******************************************************
 
-  SUBROUTINE DP_HOTRIX(CW,CKPR,CKPP,NS,mag,CLDISP)
+  SUBROUTINE DP_HOTRIX(CW,CKPR,CKPP,NSA,mag,CLDISP)
 
     USE dpcomm
     USE plprof
     USE libbes,ONLY: bessjn
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
-    INTEGER,INTENT(IN):: NS
+    INTEGER,INTENT(IN):: NSA
     TYPE(pl_mag_type),INTENT(IN):: mag
-!    TYPE(pl_prf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
-    INTEGER:: NHMAX,NTH,NP,NC,NCD,NP1,INC,NP2
+    INTEGER:: NHMAX,NTH,NP,NC,NCD,NP1,INC,NP2,NS
     REAL(rkind):: WCM,DKPRW,PTH0C,PTH0W,DCWC,DNPR,DKPP,D
     REAL(rkind):: PNEAR1,DIF,DFP3,X,RGM,PAI1,PAI3,PNEAR2,DFT4,FACT
     REAL(rkind):: PN0,PT0,PTH0
@@ -304,12 +304,13 @@ CONTAINS
     cdelta=CI*0.003D0
 !    cdelta=CI*0.0D0
 
+    NS=NS_NSA_DP(NSA)
       NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)),2)+2
       ALLOCATE(ADJ(0:NHMAX),ADJD(0:NHMAX))
 
-      PN0=RNFP0(NS)
-      PT0=RTFP0(NS)
-      PTH0=SQRT(PT0*1.D3*AEE*AMFP(NS))
+      PN0=RNFP0(NSA)
+      PT0=RTFP0(NSA)
+      PTH0=SQRT(PT0*1.D3*AEE*AMFP(NSA))
 
       CWP=PN0*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
@@ -324,7 +325,7 @@ CONTAINS
 
       DO NTH=1,NTHMAX_DP
       DO NP=1,NPMAX_DP-1
-         DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP(NS)
+         DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP(NSA)
       ENDDO
       ENDDO
       DO NP=1,NPMAX_DP
@@ -366,18 +367,18 @@ CONTAINS
 
             PNEAR1 = (AMP*PA(NS)*VC)/(1-(DNPR*TCSM(NTH))**2) &
                     *(DNPR*NC*DCWC*TCSM(NTH)+SQRT(D))/PTH0
-            IF (PNEAR1.LT.0.D0.OR.PNEAR1.GT.DELP(NS)*NPMAX_DP) GOTO 302
+            IF (PNEAR1.LT.0.D0.OR.PNEAR1.GT.DELP(NSA)*NPMAX_DP) GOTO 302
 
-            NP1 = INT(PNEAR1/DELP(NS))
+            NP1 = INT(PNEAR1/DELP(NSA))
             IF (NP1.LT.0.OR.NP1.GE.NPMAX_DP) GOTO 302
             IF (NP1.EQ.0) THEN             
-               DIF = PNEAR1/DELP(NS)
+               DIF = PNEAR1/DELP(NSA)
                DFP3 = DIF*DFP(1,NTH)
             ELSE IF(NP1.EQ.NPMAX_DP-1) THEN
-               DIF = (PNEAR1 - PG(NP1,NS))/DELP(NS)
+               DIF = (PNEAR1 - PG(NP1,NSA))/DELP(NSA)
                DFP3 = (1.D0-DIF)*DFP(NP1,NTH)
             ELSE
-               DIF = (PNEAR1 - PG(NP1,NS))/DELP(NS)
+               DIF = (PNEAR1 - PG(NP1,NSA))/DELP(NSA)
                DFP3 = DIF*DFP(NP1+1,NTH)+(1.D0-DIF)*DFP(NP1,NTH)
             ENDIF
 
@@ -417,18 +418,18 @@ CONTAINS
 
   302       PNEAR2 = (AMP*PA(NS)*VC)/(1-(DNPR*TCSM(NTH))**2) &
                     *(DNPR*NC*DCWC*TCSM(NTH)-SQRT(D))/PTH0
-            IF (PNEAR2.LT.0.D0.OR.PNEAR2.GT.DELP(NS)*NPMAX_DP) GOTO 310
+            IF (PNEAR2.LT.0.D0.OR.PNEAR2.GT.DELP(NSA)*NPMAX_DP) GOTO 310
 
-            NP2 = INT(PNEAR2/DELP(NS))
+            NP2 = INT(PNEAR2/DELP(NSA))
             IF (NP2.LT.0.OR.NP2.GE.NPMAX_DP) GOTO 310
             IF(NP2.EQ.0) THEN
-               DIF = PNEAR2/DELP(NS)
+               DIF = PNEAR2/DELP(NSA)
                DFP3 = DIF*DFP(1,NTH)
             ELSE IF(NP2.EQ.NPMAX_DP-1) THEN
-               DIF = (PNEAR2 - PG(NP2,NS))/DELP(NS)
+               DIF = (PNEAR2 - PG(NP2,NSA))/DELP(NSA)
                DFP3 = (1.D0-DIF)*DFP(NP2,NTH)
             ELSE
-               DIF = (PNEAR2 - PG(NP2,NS))/DELP(NS)
+               DIF = (PNEAR2 - PG(NP2,NSA))/DELP(NSA)
                DFP3 = DIF*DFP(NP2+1,NTH)+(1.D0-DIF)*DFP(NP2,NTH)
             ENDIF
 
@@ -510,18 +511,18 @@ CONTAINS
 
             PNEAR1 = (AMP*PA(NS)*VC)/(1-(DNPR*TCSG(NTH))**2) &
                     *(DNPR*NC*DCWC*TCSG(NTH)+SQRT(D))/PTH0
-            IF (PNEAR1.LT.0.D0.OR.PNEAR1.GT.DELP(NS)*NPMAX_DP) GOTO 402
+            IF (PNEAR1.LT.0.D0.OR.PNEAR1.GT.DELP(NSA)*NPMAX_DP) GOTO 402
 
-            NP1 = INT(PNEAR1/DELP(NS)+0.5D0)
+            NP1 = INT(PNEAR1/DELP(NSA)+0.5D0)
             IF (NP1.LT.0.OR.NP1.GE.NPMAX_DP) GOTO 402
             IF(NP1.EQ.0) THEN
-               DIF = (PNEAR1 - PM(1,NS))/DELP(NS)
+               DIF = (PNEAR1 - PM(1,NSA))/DELP(NSA)
                DFT4  = DIF*DFT(1,NTH)-(1.D0-DIF)*DFT(1,NTH)
             ELSE IF(NP1.EQ.NPMAX_DP-1) THEN
-               DIF = (PNEAR1 - PM(NP1,NS))/DELP(NS)
+               DIF = (PNEAR1 - PM(NP1,NSA))/DELP(NSA)
                DFT4  = (1.D0-DIF)*DFT(NP1,NTH)
             ELSE
-               DIF = (PNEAR1 - PM(NP1,NS))/DELP(NS)
+               DIF = (PNEAR1 - PM(NP1,NSA))/DELP(NSA)
                DFT4  = DIF*DFT(NP1+1,NTH)+(1.D0-DIF)*DFT(NP1,NTH)
             ENDIF
 
@@ -561,19 +562,19 @@ CONTAINS
 
  402        PNEAR2 = (AMP*PA(NS)*VC)/(1-(DNPR*TCSG(NTH))**2) &
                     *(DNPR*NC*DCWC*TCSG(NTH)-SQRT(D))/PTH0
-            IF(PNEAR2.LT.0.D0.OR.PNEAR2.GT.DELP(NS)*NPMAX_DP) GOTO 410
+            IF(PNEAR2.LT.0.D0.OR.PNEAR2.GT.DELP(NSA)*NPMAX_DP) GOTO 410
 !            IF (DKPRW*TCSG(NTH)*PNEAR2+NC*DCWC.LT.0.D0) GOTO 410
 
-            NP2 = INT(PNEAR2/DELP(NS)+0.5D0)
+            NP2 = INT(PNEAR2/DELP(NSA)+0.5D0)
             IF (NP2.LT.0.OR.NP2.GE.NPMAX_DP) GOTO 410
             IF(NP2.EQ.0) THEN
-               DIF = (PNEAR2 - PM(1,NS))/DELP(NS)
+               DIF = (PNEAR2 - PM(1,NSA))/DELP(NSA)
                DFT4  = DIF*DFT(1,NTH)-(1.D0-DIF)*DFT(1,NTH)
             ELSE IF(NP2.EQ.NPMAX_DP-1) THEN
-               DIF = (PNEAR2 - PM(NP2,NS))/DELP(NS)
+               DIF = (PNEAR2 - PM(NP2,NSA))/DELP(NSA)
                DFT4  = (1.D0-DIF)*DFT(NP2,NTH)
             ELSE
-               DIF = (PNEAR2 - PM(NP2,NS))/DELP(NS)
+               DIF = (PNEAR2 - PM(NP2,NSA))/DELP(NSA)
                DFT4  = DIF*DFT(NP2+1,NTH)+(1.D0-DIF)*DFT(NP2,NTH)
             ENDIF
 
@@ -643,19 +644,19 @@ CONTAINS
 !                       DPHOTRI
 ! ******************************************************
 
-  SUBROUTINE DP_HOTRI(CW,CKPR,CKPP,NS,mag,CLDISP)
+  SUBROUTINE DP_HOTRI(CW,CKPR,CKPP,NSA,mag,CLDISP)
 
     USE dpcomm
     USE plprof
     USE libbes,ONLY: bessjn
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
-    INTEGER,INTENT(IN):: NS
+    INTEGER,INTENT(IN):: NSA
     TYPE(pl_mag_type),INTENT(IN):: mag
 !    TYPE(pl_prf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
-    INTEGER:: NHMAX,NTH,NP,NC,NCD,NP1,INC,NP2
+    INTEGER:: NHMAX,NTH,NP,NC,NCD,NP1,INC,NP2,NS
     REAL(rkind):: WCM,DKPRW,PTH0W,DCWC,DNPR,DKPP,D
     REAL(rkind):: PNEAR1,DIF,DFP3,X,RGM,PAI1,PAI3,PNEAR2,DFT4,FACT
     REAL(rkind):: PN0,PT0,PTH0
@@ -669,12 +670,13 @@ CONTAINS
     COMPLEX(rkind):: CINTG431,CINTG432,CINTG433
     COMPLEX(rkind):: CSM11,CSM12,CSM13,CSM22,CSM23,CSM33
 
+    NS=NS_NSA_DP(NSA)
     NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)),2)+2
       ALLOCATE(ADJ(0:NHMAX),ADJD(0:NHMAX))
 
-      PN0=RNFP0(NS)
-      PT0=RTFP0(NS)
-      PTH0=SQRT(PT0*1.D3*AEE*AMFP(NS))
+      PN0=RNFP0(NSA)
+      PT0=RTFP0(NSA)
+      PTH0=SQRT(PT0*1.D3*AEE*AMFP(NSA))
 
       CWP=PN0*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
@@ -688,7 +690,7 @@ CONTAINS
 
       DO NTH=1,NTHMAX_DP
          DO NP=1,NPMAX_DP-1
-            DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP(NS)
+            DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP(NSA)
          END DO
       END DO
       DO NP=1,NPMAX_DP
@@ -729,22 +731,22 @@ CONTAINS
 
             PNEAR1 = (AMP*PA(NS)*VC)/(1-(DNPR*TCSM(NTH))**2)* &
                     (DNPR*NC*DCWC*TCSM(NTH)+SQRT(D-1))/PTH0
-            IF (PNEAR1.LT.0.D0.OR.PNEAR1.GT.DELP(NS)*NPMAX_DP) THEN
+            IF (PNEAR1.LT.0.D0.OR.PNEAR1.GT.DELP(NSA)*NPMAX_DP) THEN
                GOTO 302
             ELSEIF (DKPRW*TCSM(NTH)*PNEAR1+NC*DCWC.LT.0.D0) THEN
                GOTO 302
             END IF
-            NP1 = INT(PNEAR1/DELP(NS))
+            NP1 = INT(PNEAR1/DELP(NSA))
             IF (NP1.LT.0.OR.NP1.GE.NPMAX_DP) THEN
                GOTO 302
             ELSEIF (NP1.EQ.0) THEN
-               DIF = PNEAR1/DELP(NS)
+               DIF = PNEAR1/DELP(NSA)
                DFP3 = DIF*DFP(1,NTH)
             ELSE IF(NP1.EQ.NPMAX_DP-1) THEN
-               DIF = (PNEAR1 - PG(NP1,NS))/DELP(NS)
+               DIF = (PNEAR1 - PG(NP1,NSA))/DELP(NSA)
                DFP3 = (1.D0-DIF)*DFP(NP1,NTH)
             ELSE
-               DIF = (PNEAR1 - PG(NP1,NS))/DELP(NS)
+               DIF = (PNEAR1 - PG(NP1,NSA))/DELP(NSA)
                DFP3 = DIF*DFP(NP1+1,NTH)+(1.D0-DIF)*DFP(NP1,NTH)
             ENDIF
 
@@ -784,22 +786,22 @@ CONTAINS
 
   302       PNEAR2 = (AMP*PA(NS)*VC)/(1-(DNPR*TCSM(NTH))**2)* &
                     (DNPR*NC*DCWC*TCSM(NTH)-SQRT(D-1))/PTH0
-            IF (PNEAR2.LT.0.D0.OR.PNEAR2.GT.DELP(NS)*NPMAX_DP) THEN 
+            IF (PNEAR2.LT.0.D0.OR.PNEAR2.GT.DELP(NSA)*NPMAX_DP) THEN 
                GOTO 310
             ELSEIF (DKPRW*TCSM(NTH)*PNEAR2+NC*DCWC.LT.0.D0) THEN
                GOTO 310
             END IF
-            NP2 = INT(PNEAR2/DELP(NS))
+            NP2 = INT(PNEAR2/DELP(NSA))
             IF (NP2.LT.0.OR.NP2.GE.NPMAX_DP) THEN
                GOTO 310
             ELSE IF(NP2.EQ.0) THEN
-               DIF = PNEAR2/DELP(NS)
+               DIF = PNEAR2/DELP(NSA)
                DFP3 = DIF*DFP(1,NTH)
             ELSE IF(NP2.EQ.NPMAX_DP-1) THEN
-               DIF = (PNEAR2 - PG(NP2,NS))/DELP(NS)
+               DIF = (PNEAR2 - PG(NP2,NSA))/DELP(NSA)
                DFP3 = (1.D0-DIF)*DFP(NP2,NTH)
             ELSE
-               DIF = (PNEAR2 - PG(NP2,NS))/DELP(NS)
+               DIF = (PNEAR2 - PG(NP2,NSA))/DELP(NSA)
                DFP3 = DIF*DFP(NP2+1,NTH)+(1.D0-DIF)*DFP(NP2,NTH)
             ENDIF
 
@@ -879,22 +881,22 @@ CONTAINS
 
             PNEAR1 = (AMP*PA(NS)*VC)/(1-(DNPR*TCSG(NTH))**2)* &
                      (DNPR*NC*DCWC*TCSG(NTH)+SQRT(D-1))/PTH0
-            IF (PNEAR1.LT.0.D0.OR.PNEAR1.GT.DELP(NS)*NPMAX_DP) THEN
+            IF (PNEAR1.LT.0.D0.OR.PNEAR1.GT.DELP(NSA)*NPMAX_DP) THEN
                GOTO 402
             ELSEIF (DKPRW*TCSG(NTH)*PNEAR1+NC*DCWC.LT.0.D0) THEN
                GOTO 402
             END IF
-            NP1 = INT(PNEAR1/DELP(NS)+0.5D0)
+            NP1 = INT(PNEAR1/DELP(NSA)+0.5D0)
             IF (NP1.LT.0.OR.NP1.GE.NPMAX_DP) THEN
                GOTO 402
             ELSE IF(NP1.EQ.0) THEN
-               DIF = (PNEAR1 - PM(1,NS))/DELP(NS)
+               DIF = (PNEAR1 - PM(1,NSA))/DELP(NSA)
                DFT4  = DIF*DFT(1,NTH)-(1.D0-DIF)*DFT(1,NTH)
             ELSE IF(NP1.EQ.NPMAX_DP-1) THEN
-               DIF = (PNEAR1 - PM(NP1,NS))/DELP(NS)
+               DIF = (PNEAR1 - PM(NP1,NSA))/DELP(NSA)
                DFT4  = (1.D0-DIF)*DFT(NP1,NTH)
             ELSE
-               DIF = (PNEAR1 - PM(NP1,NS))/DELP(NS)
+               DIF = (PNEAR1 - PM(NP1,NSA))/DELP(NSA)
                DFT4  = DIF*DFT(NP1+1,NTH)+(1.D0-DIF)*DFT(NP1,NTH)
             ENDIF
 
@@ -934,22 +936,22 @@ CONTAINS
 
  402        PNEAR2 = (AMP*PA(NS)*VC)/(1-(DNPR*TCSG(NTH))**2)* &
                     (DNPR*NC*DCWC*TCSG(NTH)-SQRT(D-1))/PTH0
-            IF(PNEAR2.LT.0.D0.OR.PNEAR2.GT.DELP(NS)*NPMAX_DP) THEN
+            IF(PNEAR2.LT.0.D0.OR.PNEAR2.GT.DELP(NSA)*NPMAX_DP) THEN
                GOTO 410
             ELSEIF (DKPRW*TCSG(NTH)*PNEAR2+NC*DCWC.LT.0.D0) THEN
                GOTO 410
             END IF
-            NP2 = INT(PNEAR2/DELP(NS)+0.5D0)
+            NP2 = INT(PNEAR2/DELP(NSA)+0.5D0)
             IF (NP2.LT.0.OR.NP2.GE.NPMAX_DP) THEN
                GOTO 410
             ELSE IF(NP2.EQ.0) THEN
-               DIF = (PNEAR2 - PM(1,NS))/DELP(NS)
+               DIF = (PNEAR2 - PM(1,NSA))/DELP(NSA)
                DFT4  = DIF*DFT(1,NTH)-(1.D0-DIF)*DFT(1,NTH)
             ELSE IF(NP2.EQ.NPMAX_DP-1) THEN
-               DIF = (PNEAR2 - PM(NP2,NS))/DELP(NS)
+               DIF = (PNEAR2 - PM(NP2,NSA))/DELP(NSA)
                DFT4  = (1.D0-DIF)*DFT(NP2,NTH)
             ELSE
-               DIF = (PNEAR2 - PM(NP2,NS))/DELP(NS)
+               DIF = (PNEAR2 - PM(NP2,NSA))/DELP(NSA)
                DFT4  = DIF*DFT(NP2+1,NTH)+(1.D0-DIF)*DFT(NP2,NTH)
             ENDIF
 

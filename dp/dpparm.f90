@@ -151,6 +151,12 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
 
+    IF(NSAMAX_DP.GT.NSMAX) THEN
+       WRITE(6,'(A,2I8)') &
+            '!! NSAMAX_DP.GT.NSMAX: NSAMAX_DP,NSMAX=',NSAMAX_DP,NSMAX
+       WRITE(6,'(A)') '   NSAMAX_DP changed to NSMAX'
+       NSAMAX_DP=NSMAX
+    END IF
     IERR=0
 
     RETURN
@@ -186,24 +192,24 @@ CONTAINS
     INTEGER:: NS,IND
 
     IERR=0
+    
     IND=0
     DO NS=1,NSMAX
        IF(MODELV(NS).EQ.2.OR. &
           MODELV(NS).EQ.4.OR. &
           MODELV(NS).EQ.9) IND=1
     END DO
-
-    IF(IND.EQ.1) THEN
+    IF(IND.EQ.1) THEN ! load Fokker-Planck data
        CALL DPLDFP(IERR)
        IF(IERR.NE.0) RETURN
     END IF
 
     DO NS=1,NSMAX
-       IF(MODELV(NS).EQ.1) THEN
+       IF(MODELV(NS).EQ.1) THEN ! non-relativistic
           CALL DPLDFM(NS,0,IERR)
           IF(IERR.NE.0) RETURN
        END IF
-       IF(MODELV(NS).EQ.3) THEN
+       IF(MODELV(NS).EQ.3) THEN ! relativistic 
           CALL DPLDFM(NS,1,IERR)
           IF(IERR.NE.0) RETURN
        END IF

@@ -26,8 +26,8 @@ CONTAINS
 !                 4 : KINETIC MODEL WITHOUT FLR
 !                 5 : KINETIC MODEL WITH FLR (symmetric)
 !                 6 : KINETIC MODEL WITH FLR
-!                 7 : Kiknetic with parallel drift and FLR by Swanson
-!                 8 : Kiknetic with paralleldrift and FLR by T. Watanabe
+!                 7 : Kinetic with parallel drift and FLR by Swanson
+!                 8 : Kinetic with parallel drift and FLR by T. Watanabe
 !                 9 : KINETIC MODEL WITH RELATIVISTIC EFFECTS (test)
 !                11 : (WM) MHD plasma
 !                12 : (WM) Cold plasma

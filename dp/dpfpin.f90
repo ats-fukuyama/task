@@ -42,8 +42,14 @@ CONTAINS
             READ(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
          END DO
 
-         DO NS=1,NSMAX
-            READ(21) DELP(NS),PMAX_dp(NS),EMAX_dp(NS)
+         NSA_NS_DP(1:NSMAX)=0
+         DO NSA=1,NSAMAX_DP
+            NS=NS_NSA_DP(NSA)
+            NSA_NS_DP(NS)=NSA
+         END DO
+
+         DO NSA=1,NSAMAX_DP
+            READ(21) DELP(NSA),PMAX_dp(NSA),EMAX_dp(NSA)
          END DO
 
          DO NSA=1, NSAMAX_DP
@@ -68,13 +74,14 @@ CONTAINS
       CALL mtx_broadcast1_real8(RMIN)
       CALL mtx_broadcast1_real8(RMAX)
       CALL mtx_broadcast_integer(NS_NSA_DP,NSAMAX_DP)
+      CALL mtx_broadcast_integer(NSA_NS_DP,NSMAX)
       CALL mtx_broadcast_real8(AEFP,NSAMAX_DP)
       CALL mtx_broadcast_real8(AMFP,NSAMAX_DP)
       CALL mtx_broadcast_real8(RNFP0,NSAMAX_DP)
       CALL mtx_broadcast_real8(RTFP0,NSAMAX_DP)
-      CALL mtx_broadcast_real8(DELP,NSMAX)
-      CALL mtx_broadcast_real8(pmax_dp,NSMAX)
-      CALL mtx_broadcast_real8(emax_dp,NSMAX)
+      CALL mtx_broadcast_real8(DELP,NSAMAX_DP)
+      CALL mtx_broadcast_real8(pmax_dp,NSAMAX_DP)
+      CALL mtx_broadcast_real8(emax_dp,NSAMAX_DP)
 
       DO NSA=1,NSAMAX_DP
          CALL mtx_broadcast_real8(FNS(1:NTHMAX_DP,1:NPMAX_DP,1:NRMAX_DP,NSA), &
@@ -119,9 +126,6 @@ CONTAINS
          TTNG(NTH) = TAN(THG(NTH))
       ENDDO
 
-      RHON_MIN=RMIN
-      RHON_MAX=RMAX
-
       IF(NRMAX_DP.EQ.1) THEN
          DELR=1.D0
       ENDIF
@@ -133,11 +137,11 @@ CONTAINS
       RFP(NRMAX_DP+2)=RMIN+DELR*NRMAX_DP
 
       FPDATA(1)=DELR
+      FPDATA(2)=DELTH
       DO NSA=1,NSAMAX_DP
          NS=NS_NSA_DP(NSA)
          FPDATAS(NS)=DELP(NSA)
       ENDDO
-      FPDATA(2)=DELTH
       NFPDATA(1)=NRMAX_DP
       NFPDATA(2)=NPMAX_DP
       NFPDATA(3)=NTHMAX_DP
@@ -147,40 +151,30 @@ CONTAINS
 
 !****** LOAD Maxwellian VELOCITY DISTRIBUTION DATA ******
 
-  SUBROUTINE DPLDFM(NS,ID,IERR)
+  SUBROUTINE DPLDFM(NSA,ID,IERR)
 
     USE dpcomm
     USE plprofw
     USE libbes
     IMPLICIT NONE
-    INTEGER,INTENT(IN):: NS,ID  ! ID=0 : non-relativistic, ID=1: relativistic
+    INTEGER,INTENT(IN):: NSA,ID  ! ID=0 : non-relativistic, ID=1: relativistic
     INTEGER,INTENT(OUT):: IERR
     TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
-    INTEGER NR,NTH,NSA,NP,NSA1
+    INTEGER NR,NTH,NS,NP,NSA1
     REAL(rkind):: PTH0W,RHON,RN0,TPR,TPP,RT0,PN0,PT0,PTH0
     REAL(rkind):: TNPR,TNPP,SUM,PML,PPP,PPR,EX,TN00,FACTOR,TNL
-      
-    NSA=0
-    DO NSA1=1,NSAMAX_DP
-       IF(NS.EQ.NS_NSA_DP(NSA1)) THEN
-          NSA=NSA1
-       END IF
-    END DO
-    IF(NSA.EQ.0) THEN
-       WRITE(6,'(A,I5)') 'XX DPLDFM: NSA is not defined fo NS=',NS
-       IERR=1
-       RETURN
-    END IF
-         
+
+    NS=NS_NSA_DP(NSA)
+
     CALL dpfp_allocate
 
     IF(NRMAX_DP.EQ.1) THEN
        DELR=0.1D0
     ELSE
-       DELR=(RHON_MAX(NS_NSA_DP(NS))-RHON_MIN(NS_NSA_DP(NSA)))/(NRMAX_DP-1)
+       DELR=(RHON_MAX(NSA)-RHON_MIN(NSA))/(NRMAX_DP-1)
     ENDIF
     DO NR=1,NRMAX_DP
-       RM(NR)=RHON_MIN(NS_NSA_DP(NS))+DELR*(NR-1)
+       RM(NR)=RHON_MIN(NSA)+DELR*(NR-1)
     ENDDO
 
     DELTH=PI/NTHMAX_DP
@@ -195,7 +189,7 @@ CONTAINS
        TTNG(NTH) = TAN(THG(NTH))
     ENDDO
 
-    DELP(NS)=PMAX_dp(NS)/NPMAX_DP
+    DELP(NSA)=PMAX_dp(NSA)/NPMAX_DP
          
     DO NP=1,NPMAX_DP
        PM(NP,NSA)=DELP(NS)*(NP-0.5D0)
@@ -277,8 +271,8 @@ CONTAINS
 
     FPDATA(1)=DELR
     FPDATA(2)=DELTH
-    DO NSA=1,NSAMAX_DP
-       FPDATA(NSA)=DELP(NSA)
+    DO NSA1=1,NSAMAX_DP
+       FPDATAS(NSA1)=DELP(NSA1)
     END DO
     NFPDATA(1)=NRMAX_DP
     NFPDATA(2)=NPMAX_DP
@@ -290,45 +284,33 @@ CONTAINS
 
 !     ****** SET LOCAL VELOCITY DISTRIBUTION DATA ******
 
-  SUBROUTINE DPFPFL(NS1,mag,IERR)
+  SUBROUTINE DPFPFL(NSA,mag,ierr)
 
     USE dpcomm
     USE plcomm_type
       USE plprof
       USE libspl1d
       IMPLICIT NONE
-      INTEGER,INTENT(IN):: NS1
-      INTEGER,INTENT(OUT):: IERR
+      INTEGER,INTENT(IN):: NSA
       TYPE(pl_mag_type),INTENT(IN):: mag
+      INTEGER,INTENT(OUT):: IERR
       REAL(rkind),DimensION(:),ALLOCATABLE:: THT,FPT,FPTX,FPR,FPRX
       REAL(rkind),DimensION(:,:),ALLOCATABLE:: U2
-      INTEGER:: NSA,NSA1,NS,NP,NTH,NR,ID,NTH2
+      INTEGER:: NS,NP,NTH,NR,ID,NTH2,NSA1
       REAL(rkind):: PN0,PT0,PTH0,PTH0W,RHON,BMINL,BMAXL,PSIS,TH,XX,X,Y
 
       ALLOCATE(THT(NTHMAX_DP+2),FPT(NTHMAX_DP+2),FPTX(NTHMAX_DP+2))
       ALLOCATE(FPR(NRMAX_DP+2),FPRX(NRMAX_DP+2))
       ALLOCATE(U2(4,NTHMAX_DP+2))
 
-      DO NSA1=1,NSAMAX_DP
-         IF(NS1.EQ.NS_NSA_DP(NSA1)) THEN
-            NSA=NSA1
-            GO TO 1
-         ENDIF
-      ENDDO
-      WRITE(6,*) 'XX DPFPFL: unknown NS1: NS1=',NS1
-      IERR=6001
-      RETURN
-
-    1 CONTINUE
+      NS=NS_NSA_DP(NSA)
 
       PN0   =RNFP0(NSA)
       PT0   =RTFP0(NSA)
       PTH0  =SQRT(PT0*1.D3*AEE*AMFP(NSA))
       DELR  =FPDATA(1)
-      DO NS=1,NSMAX
-         DELP(NS) =FPDATAS(NS)
-      ENDDO
       DELTH =FPDATA(2)
+      DELP(NS) =FPDATAS(NSA)
       NRMAX_DP =NFPDATA(1)
       NPMAX_DP =NFPDATA(2)
       NTHMAX_DP=NFPDATA(3)
@@ -336,10 +318,10 @@ CONTAINS
       PTH0W=(PTH0/(AMFP(NSA)*VC))**2
 
       DO NP=1,NPMAX_DP
-         PM(NP,NS)=DELP(NS)*(NP-0.5D0)
-         PG(NP,NS)=DELP(NS)* NP
-         RGMM(NP,NS)=SQRT(1.D0+PTH0W*PM(NP,NS)**2)
-         RGMG(NP,NS)=SQRT(1.D0+PTH0W*PG(NP,NS)**2)
+         PM(NP,NS)=DELP(NSA)*(NP-0.5D0)
+         PG(NP,NS)=DELP(NSA)* NP
+         RGMM(NP,NSA)=SQRT(1.D0+PTH0W*PM(NP,NSA)**2)
+         RGMG(NP,NSA)=SQRT(1.D0+PTH0W*PG(NP,NSA)**2)
       ENDDO
 
       DO NTH=1,NTHMAX_DP
@@ -358,7 +340,7 @@ CONTAINS
             DO NR=1,NRMAX_DP
                FP(NTH,NP,NR)=FNS(NTH,NP,NR,NSA)
             ENDDO
-            IF(RHON_MIN(NS_NSA_DP(NSA)).EQ.0.D0)THEN
+            IF(RHON_MIN(NSA).EQ.0.D0)THEN
                FPR(1)=(9.D0*FP(NTH,NP,1)-FP(NTH,NP,2))/8.D0
                FPRX(1)=0.D0
                ID=1
@@ -443,7 +425,7 @@ CONTAINS
       TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       REAL(RKIND):: RN0,TPR,TPP,RT0,PN0,PT0,PTH0,PTH0W,TNPR,TNPP,SUM
       REAL(RKIND):: PPP,PPR,EX,EXX,TN0,TNL,PML,FACTOR
-      INTEGER:: NP,NTH
+      INTEGER:: NP,NTH,NSA
 
       CALL dpfp_allocate
 
@@ -453,9 +435,11 @@ CONTAINS
       PN0 = PN(NS)
       PT0 = (PTPR(NS)+2*PTPP(NS))/3.D0
       PTH0 = SQRT(PT0*1.D3*AEE*AMP*PA(NS))
-      RNFP0(NS)=PN0
-      RTFP0(NS)=PT0
-      AMFP(NS)=AMP*PA(NS)
+
+      NSA=NSA_NS_DP(NS)
+      RNFP0(NSA)=PN0
+      RTFP0(NSA)=PT0
+      AMFP(NSA)=AMP*PA(NS)
 
       RN0 = plfw(NS)%RN
       TPR = plfw(NS)%RTPR
@@ -468,14 +452,14 @@ CONTAINS
          PTH0W=(PTH0/(AMP*PA(NS)*VC))**2
       ENDIF
 
-      DELP(NS)=PMAX_dp(NS)/NPMAX_DP
+      DELP(NSA)=PMAX_dp(NSA)/NPMAX_DP
       DELTH=PI/NTHMAX_DP
 
       DO NP=1,NPMAX_DP
-         PM(NP,NS)=DELP(NS)*(NP-0.5D0)
-         PG(NP,NS)=DELP(NS)* NP
-         RGMM(NP,NS)=SQRT(1.D0+PTH0W*PM(NP,NS)**2)
-         RGMG(NP,NS)=SQRT(1.D0+PTH0W*PG(NP,NS)**2)
+         PM(NP,NSA)=DELP(NSA)*(NP-0.5D0)
+         PG(NP,NSA)=DELP(NSA)* NP
+         RGMM(NP,NSA)=SQRT(1.D0+PTH0W*PM(NP,NSA)**2)
+         RGMG(NP,NSA)=SQRT(1.D0+PTH0W*PG(NP,NSA)**2)
       ENDDO
 
       DO NTH=1,NTHMAX_DP
@@ -495,16 +479,16 @@ CONTAINS
          FACTOR=1.D0/(SQRT(2.D0*PI)**3*SQRT(TNPR)*(TNPP))
          SUM=0.D0
          DO NP=1,NPMAX_DP
-            PML=PM(NP,NS)
+            PML=PM(NP,NSA)
             DO NTH=1,NTHMAX_DP
                PPR=PML*TCSM(NTH)
                PPP=PML*TSNM(NTH)
                EX=0.5D0*(PPR**2/TNPR+PPP**2/TNPP)
                FM(NP,NTH)=FACTOR*EXP(-EX)
-               SUM=SUM+FM(NP,NTH)*PM(NP,NS)*PM(NP,NS)*TSNM(NTH)
+               SUM=SUM+FM(NP,NTH)*PM(NP,NSA)*PM(NP,NSA)*TSNM(NTH)
             ENDDO
          ENDDO
-         SUM=SUM*2.D0*PI*DELP(NS)*DELTH
+         SUM=SUM*2.D0*PI*DELP(NSA)*DELTH
       ELSE
          TN0=PT0*1.D3*AEE/(AMP*PA(NS)*VC**2)
          TNL=RT0*1.D3*AEE/(AMP*PA(NS)*VC**2)
@@ -512,17 +496,17 @@ CONTAINS
                *SQRT(TNPR)*(TNPP))
          SUM=0.D0
          DO NP=1,NPMAX_DP
-            PML=PM(NP,NS)
+            PML=PM(NP,NSA)
             DO NTH=1,NTHMAX_DP
                PPP=PML*TSNM(NTH)
                PPR=PML*TCSM(NTH)
                EXX=PPR**2/TNPR+PPP**2/TNPP
                EX=(SQRT(1.D0+TN0*EXX)-1.D0)/TN0
                FM(NP,NTH) = FACTOR*EXP(-EX)
-               SUM=SUM+FM(NP,NTH)*PM(NP,NS)*PM(NP,NS)*TSNM(NTH)
+               SUM=SUM+FM(NP,NTH)*PM(NP,NSA)*PM(NP,NSA)*TSNM(NTH)
             ENDDO
          ENDDO
-         SUM=SUM*2.D0*PI*DELP(NS)*DELTH
+         SUM=SUM*2.D0*PI*DELP(NSA)*DELTH
       ENDIF
 
       FACTOR=RN0/PN0
