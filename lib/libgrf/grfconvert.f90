@@ -569,10 +569,14 @@ CONTAINS
              A%LINE_RGB(1:3,NL)=LINE_RGB(1:3,MOD(NL-1,NLL)+1)
           END DO
        ELSE IF(PRESENT(LINE_RGB_SUB)) THEN
-          DO NL=1,A%NLMAX
-             FACTOR=FLOAT(NL-1)/FLOAT(A%NLMAX-1)
-             CALL LINE_RGB_SUB(FACTOR,A%LINE_RGB(1:3,NL))
-          END DO
+          IF(A%NLMAX.EQ.1) THEN
+             CALL LINE_RGB_SUB(0.0,A%LINE_RGB(1:3,1))
+          ELSE
+             DO NL=1,A%NLMAX
+                FACTOR=FLOAT(NL-1)/FLOAT(A%NLMAX-1)
+                CALL LINE_RGB_SUB(FACTOR,A%LINE_RGB(1:3,NL))
+             END DO
+          END IF
        ELSE
           IF(A%FMIN < 0.0 .AND. A%FMAX > 0.0) THEN
              DO NL=1,A%NLMAX
@@ -617,27 +621,43 @@ CONTAINS
              A%PAINT_RGB(1:3,NP)=PAINT_RGB(1:3,MOD(NP-1,NPL)+1)
           END DO
        ELSE IF(PRESENT(PAINT_RGB_SUB)) THEN
-          DO NP=1,A%NPMAX
-             FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
-             CALL PAINT_RGB_SUB(FACTOR,A%PAINT_RGB(1:3,NP))
-          END DO
-       ELSE
-          IF(A%FMIN <0.0 .AND. A%FMAX > 0.0) THEN
+          IF(A%NPMAX.EQ.1) THEN
+             CALL PAINT_RGB_SUB(0.0,A%PAINT_RGB(1:3,1))
+          ELSE
              DO NP=1,A%NPMAX
                 FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
-                CALL R2W2B(FACTOR,A%PAINT_RGB(1:3,NP))
+                CALL PAINT_RGB_SUB(FACTOR,A%PAINT_RGB(1:3,NP))
              END DO
-          ELSE
-             IF(A%FORG >= 0.0) THEN
-                DO NP=1,A%NPMAX
-                   FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
-                   CALL R2Y2W(FACTOR,A%PAINT_RGB(1:3,NP))
-                END DO
+          END IF
+       ELSE
+          IF(A%FMIN <0.0 .AND. A%FMAX > 0.0) THEN
+             IF(A%NPMAX.EQ.1) THEN
+                CALL R2W2B(0.0,A%PAINT_RGB(1:3,1))
              ELSE
                 DO NP=1,A%NPMAX
                    FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
-                   CALL W2G2B(FACTOR,A%PAINT_RGB(1:3,NP))
+                   CALL R2W2B(FACTOR,A%PAINT_RGB(1:3,NP))
                 END DO
+             END IF
+          ELSE
+             IF(A%FORG >= 0.0) THEN
+                IF(A%NPMAX.EQ.1) THEN
+                   CALL R2Y2W(0.0,A%PAINT_RGB(1:3,1))
+                ELSE
+                   DO NP=1,A%NPMAX
+                      FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
+                      CALL R2Y2W(FACTOR,A%PAINT_RGB(1:3,NP))
+                   END DO
+                END IF
+             ELSE
+                IF(A%NPMAX.EQ.1) THEN
+                   CALL W2G2B(0.0,A%PAINT_RGB(1:3,1))
+                ELSE
+                   DO NP=1,A%NPMAX
+                      FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
+                      CALL W2G2B(FACTOR,A%PAINT_RGB(1:3,NP))
+                   END DO
+                END IF
              END IF
           END IF
        END IF

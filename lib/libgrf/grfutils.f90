@@ -222,9 +222,17 @@ CONTAINS
 
     SELECT CASE(A%MODE_2D)
     CASE(1)
-       STEP=A%LINE_VALUE(2)-A%LINE_VALUE(1)
+       IF(A%NLMAX.GE.2) THEN
+          STEP=A%LINE_VALUE(2)-A%LINE_VALUE(1)
+       ELSE
+          STEP=0.0
+       END IF
     CASE(2)
-       STEP=A%PAINT_VALUE(2)-A%PAINT_VALUE(1)
+       IF(A%NpMAX.GE.2) THEN
+          STEP=A%PAINT_VALUE(2)-A%PAINT_VALUE(1)
+       ELSE
+          STEP=0.0
+       END IF
     CASE DEFAULT
        STEP=0.0
     END SELECT
