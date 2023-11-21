@@ -218,7 +218,7 @@ CONTAINS
     END DO
 
     DO nray=1,nraymax
-       WRITE(6,'(A,I4,A,ES12.4,A,4ES12.4)') 'nray=',nray, &
+       WRITE(6,'(A,I4,A,4ES12.4)') 'nray=',nray, &
             '    pwr_nsa_nray=',(pwr_nsa_nray(nsa,nray),nsa=1,MIN(nsamax_wr,4))
     END DO
     

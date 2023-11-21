@@ -140,7 +140,7 @@ CONTAINS
 
       EPSRAY = 1.D-4
       DELRAY = 1.D-3
-      DELDER = 1.D-4
+      DELDER = 1.D-3
 
       EPSD0  = 1.D-4
 
@@ -167,7 +167,7 @@ CONTAINS
       ! bdr_threshold: threshold value to boundary factor: F in below
 
       pne_threshold=1.D-3
-      bdr_threshold=1.2
+      bdr_threshold=1.5
 
       ! Rmax_wr: maximum of R for ray calculation, if 0, set RR+F*RA
       ! Rmin_wr: minimum of R for ray calculation, if 0, set RR-F*RA >1.D-6
@@ -212,9 +212,9 @@ CONTAINS
       NPMAX_DP=50
       NTHMAX_DP=50
       NRMAX_DP=50
-      NSAMAX_WR=1
+      NSAMAX_WR=2
       DO NSA=1,NSM
-         NS_NSA_WR(NSA)=1
+         NS_NSA_WR(NSA)=NSA
       END DO
       nsa_grf=1
 

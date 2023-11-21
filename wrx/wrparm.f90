@@ -26,6 +26,8 @@ CONTAINS
 !     IERR=10X : input parameter out of range
 
     USE dpparm,ONLY: dp_chek
+    USE dpcomm,ONLY: nsamax_dp
+    USE wrcomm,ONLY: nsamax_wr,nsmax
     USE libkio
     IMPLICIT NONE
     INTEGER,INTENT(IN):: MODE
@@ -40,6 +42,8 @@ CONTAINS
 
     CALl EQCHEK(IERR)
     IF(IERR.NE.0) GOTO 1
+    IF(NSAMAX_WR.GT.NSMAX) NSAMAX_WR=NSMAX
+    NSAMAX_DP=NSAMAX_WR
     CALl DP_CHEK(IERR)
     IF(IERR.NE.0) GOTO 1
     IF(MODE.EQ.0) GOTO 1

@@ -23,6 +23,7 @@ CONTAINS
     REAL(rkind):: RK,PABSN
     INTEGER:: NRAY,nstp,nsa
 
+    nsamax_dp=nsamax_wr
     CALL GUTIME(TIME1)
     DO NRAY=1,NRAYMAX
        nray_exec=nray
@@ -894,6 +895,7 @@ CONTAINS
                 ESTERR,NDE,IER,WORK0,WORK1,WORK2,WORK3,WORK4)
        IF (IER .NE. 0) THEN
           WRITE(6,'(A,2I6)') 'XX wrrkft_rkf: NSTP,IER=',NSTP,IER
+          nstp_end=nstp-1
           RETURN
        ENDIF
 
@@ -931,6 +933,7 @@ CONTAINS
        ENDIF
     END DO
     nstp_end=NSTPLIM
+    WRITE(6,*) nstplim
      
 8000 CONTINUE
     IF(YN(7,nstp_end).LT.0.D0) YN(7,nstp_end)=0.D0

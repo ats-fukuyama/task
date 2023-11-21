@@ -89,6 +89,7 @@ MODULE wrcomm
   REAL(rkind),ALLOCATABLE:: &
        pos_pwrmax_rl(:),pwrmax_rl(:)
   reaL(rkind):: pwr_tot
+  INTEGER:: INITIAL_DRV
 
   TYPE wr_nray_status_type
      INTEGER:: nray,nstp
