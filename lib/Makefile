@@ -64,7 +64,7 @@ check :
 	ftnchek $(SRCSFREE) $(SRCSFIXED) $(MDSPLUS) | less
 
 clean:
-	-rm -f core* a.out $(OBJDIR)/*.o $(OBJDIR)/*/*.o $(MOD)/*.mod $(MOD)/*/*.mod *.a ./*~ ./#* $(MOD)/*.mod
+	-rm -f core* a.out *.o */*.o libgrf/*.o libufile/*.o $(OBJDIR)/*.o $(OBJDIR)/*/*.o $(MOD)/*.mod $(MOD)/*/*.mod *.a ./*~ ./#* $(MOD)/*.mod
 	-rm -f testairy testbes testell testfem testfem_func testgrd testgrf testqsort testspl testspl3d testpol testduo testrk testtri
 
 veryclean: clean

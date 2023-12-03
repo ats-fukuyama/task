@@ -105,7 +105,7 @@ tr3: $(LIBS3) $(OBJDIR)/trmain.o
 	$(FLINKER) $(OBJDIR)/trmain.o $(LIBS3) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean : 
-	-rm -f ./#* ./*~ $(OBJDIR)/*.o $(OBJDIR)/*/*.o $(MOD)/*.mod $(MOD)/*/*.mod
+	-rm -f ./#* ./*~ ./*.a ./*.o $(OBJDIR)/*.o $(OBJDIR)/*/*.o $(MOD)/*.mod $(MOD)/*/*.mod
 
 veryclean : clean
 	-rm -f tr2 tr3

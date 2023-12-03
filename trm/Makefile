@@ -15,14 +15,14 @@ FFLAGS = $(DFLAGS)
 
 OBJDIR=./obj
 
+MODINCLUDE= -I./$(MOD) -I../trmlib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
+            -I../equ/$(MOD) -I../lib/$(MOD) -I../mtxp/$(MOD) \
+            -I../../bpsd/$(MOD)
+
 ${OBJDIR}/%.o:%.f
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 ${OBJDIR}/%.o:%.f90
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
-
-MODINCLUDE= -I./$(MOD) -I../trmlib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
-            -I../lib/$(MOD) -I../mtxp/$(MOD) \
-            -I../../bpsd/$(MOD)
 
 SRCM=trcomm.f90 trbpsd.f90
 SRCS=trinit.f90 trparm.f90 trview.f90 \

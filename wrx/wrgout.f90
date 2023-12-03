@@ -1269,9 +1269,9 @@ CONTAINS
                                CALL DRAWPT2D(gdclip(x),gdclip(y))
                             END DO
                          END IF ! pc_rad2>0
-                      END IF ! cyclotron resonance condition
+                      END IF ! cyclotron res
                    END DO ! nc
-                END IF ! anpara
+                END IF ! npara
              END IF ! nstp
           END DO ! i
        END DO ! nray
@@ -1366,7 +1366,8 @@ CONTAINS
                          line_pat=6
                       END SELECT
                       pc_org=rnpara/(1.D0-rnpara**2)*nc*omegac/omega
-                      IF(nc*omegac/omega+rnpara*pc_org.GT.1.D0) THEN
+                      IF(nc*omegac/omega+rnpara*pc_org.GT. &
+                           SQRT(1.D0+pc_org**2)) THEN
                          pc_rad2=((nc*omegac/omega)**2-(1.D0-rnpara**2)) &
                                  /(1-rnpara**2)**2
                          IF(pc_rad2.GT.0.D0) THEN
