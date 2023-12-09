@@ -858,7 +858,7 @@
                VGR1(NR,1) = FBHM(WEXB(NR),AGITG,S(NR))
             ENDIF
 
-          CASE(130:139)
+          CASE(130:139)  ! CDBM defined in trcdbm.f90
 
             RS=RA*RG(NR)
             RKAPL=RKPRHO(NR)

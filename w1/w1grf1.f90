@@ -337,7 +337,8 @@ CONTAINS
 !     ****** 2-D GRAPHIC ROUTINE ******
 
   SUBROUTINE W1GR2DW(MODE_2D)
-    USE w1comm,ONLY: rkind,XAM,NXMAX,NZMAX,NXPRNT,CE2DA,PANT,RB,ZA,RZ
+    USE w1comm,ONLY: rkind,XAM,NXMAX,NZMAX,NXPRNT,CE2DA,PANT,RB,ZA,RZ, &
+         xgmin,xgmax,ygmin,ygmax
     USE libgrf
     IMPLICIT NONE
     INTEGER,INTENT(IN):: MODE_2D
@@ -376,11 +377,11 @@ CONTAINS
     END DO
 
     CALL GRD2D(1,GX,GZ,GFR,NXMAX,NXMAX,NZMAX,'@Re(Ex)@', &
-               XMIN=-RB/3.d0,XMAX=RB,YMIN=0.D0,YMAX=RZ, &
+               XMIN=xgmin,XMAX=xgmax,YMIN=ygmin,YMAX=ygmax, &
                GPXMIN=2.D0,GPXMAX=12.D0,GPYMIN=2.D0,GPYMAX=17.D0, &
                NLMAX=30,LINE_THICKNESS=THIN,MODE_2D=MODE_2D)
     CALL GRD2D(2,GX,GZ,GFI,NXMAX,NXMAX,NZMAX,'@Im(Ex)@', &
-               XMIN=-RB/3.D0,XMAX=RB,YMIN=0.D0,YMAX=RZ, &
+               XMIN=xgmin,XMAX=xgmax,YMIN=ygmin,YMAX=ygmax, &
                GPXMIN=14.D0,GPXMAX=24.D0,GPYMIN=2.D0,GPYMAX=17.D0, &
                NLMAX=30,LINE_THICKNESS=THIN,MODE_2D=MODE_2D)
 
@@ -396,11 +397,11 @@ CONTAINS
     END DO
 
     CALL GRD2D(3,GX,GZ,GFR,NXMAX,NXMAX,NZMAX,'@Re(Ey)@', &
-               XMIN=-RB/3.D0,XMAX=RB,YMIN=0.D0,YMAX=RZ, &
+               XMIN=xgmin,XMAX=xgmax,YMIN=ygmin,YMAX=ygmax, &
                GPXMIN=2.D0,GPXMAX=12.D0,GPYMIN=2.D0,GPYMAX=17.D0, &
                LINE_THICKNESS=THICK,MODE_2D=MODE_2D)
     CALL GRD2D(4,GX,GZ,GFI,NXMAX,NXMAX,NZMAX,'@Im(Ey)@', &
-               XMIN=-RB/3.D0,XMAX=RB,YMIN=0.D0,YMAX=RZ, &
+               XMIN=xgmin,XMAX=xgmax,YMIN=ygmin,YMAX=ygmax, &
                GPXMIN=14.D0,GPXMAX=24.D0,GPYMIN=2.D0,GPYMAX=17.D0, &
                LINE_THICKNESS=THICK,MODE_2D=MODE_2D)
 
@@ -416,11 +417,11 @@ CONTAINS
     END DO
 
     CALL GRD2D(1,GX,GZ,GFR,NXMAX,NXMAX,NZMAX,'@Re(Ez)@', &
-               XMIN=-RB/3.D0,XMAX=RB,YMIN=0.D0,YMAX=RZ, &
+               XMIN=xgmin,XMAX=xgmax,YMIN=ygmin,YMAX=ygmax, &
                GPXMIN=2.D0,GPXMAX=12.D0,GPYMIN=2.D0,GPYMAX=17.D0, &
                LINE_THICKNESS=THICK,MODE_2D=MODE_2D)
     CALL GRD2D(2,GX,GZ,GFI,NXMAX,NXMAX,NZMAX,'@Im(Ez)@', &
-               XMIN=-RB/3.D0,XMAX=RB,YMIN=0.D0,YMAX=RZ, &
+               XMIN=xgmin,XMAX=xgmax,YMIN=ygmin,YMAX=ygmax, &
                GPXMIN=14.D0,GPXMAX=24.D0,GPYMIN=2.D0,GPYMAX=17.D0, &
                LINE_THICKNESS=THICK,MODE_2D=MODE_2D)
 

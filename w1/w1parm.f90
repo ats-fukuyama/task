@@ -9,7 +9,8 @@ Module w1parm
        NXMAX,NZMAX,NPRINT,NFILE,NGRAPH,NLOOP,NSYM, &
        NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NGDSP,MODELN, &
        EPSH,ZEFF,WVYSIZ,NCDTYP,NXABS,IELEC, &
-       MDLWG,MDLWGS,WGZ1,WGZ2,WGAMP,WGNZ,job_id,nfile_data
+       MDLWG,MDLWGS,WGZ1,WGZ2,WGAMP,WGNZ,job_id,nfile_data, &
+       xgmin,xgmax,ygmin,ygmax
   
   PRIVATE
   PUBLIC w1_parm
@@ -93,7 +94,8 @@ CONTAINS
          '        NXMAX,NZMAX,NPRINT,NFILE,NGRAPH,NLOOP,NSYM,', &
          '        NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NGDSP,MODELN,', &
          '        EPSH,ZEFF,WVYSIZ,NCDTYP,NXABS,IELEC', &
-         '        MDLWG,MDLWGS,WGZ1,WGZ2,WGAMP,WGNZ,job_id,nfile_data'
+         '        MDLWG,MDLWGS,WGZ1,WGZ2,WGAMP,WGNZ,job_id,nfile_data', &
+         '        xgmin,xgmax,ygmin,ygmax'
     RETURN
 
   END SUBROUTINE w1_plst
@@ -140,7 +142,9 @@ CONTAINS
                  'EPSH  ',EPSH  ,'ZEFF  ',ZEFF, &
                  'WVYSIZ',WVYSIZ,'XDMAX ',XDMAX, &
                  'WGZ1  ',WGZ1  ,'WGZ1  ',WGZ2,  &
-                 'WGAMP ',WGAMP ,'WGNZ  ',WGNZ
+                 'WGAMP ',WGAMP ,'WGNZ  ',WGNZ, &
+                 'xgmin ',xgmin ,'xgmax ',xgmax, &
+                 'ygmin ',ygmin ,'ygmax ',ygmax
 
     WRITE(6,'(A)') '     ', &
           '  NS/IELEC   PA/PZ      PN/PNS    PTPR/PTS     PTPP/PU    PZCL'

@@ -288,6 +288,13 @@ CONTAINS
       job_id='test_job'
       nfile_data=28
 
+      ! --- graphic parameters ---  for 2D plot
+
+      xgmin=-RB
+      xgmax= RB
+      ygmin= 0.D0
+      ygmax= RZ
+
     RETURN
   END SUBROUTINE w1_init
 END MODULE w1init
