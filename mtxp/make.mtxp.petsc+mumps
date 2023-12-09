@@ -20,7 +20,7 @@ LIB_MTX_MUMPS=$(LIBMTXMPI) ../mtxp/libmtxmumps.o
 LIBX_MTX_BND=$(LIB_MTX_BND)
 LIBX_MTX_PCG=$(LIB_MTX_PCG)
 LIBX_MTX_KSP=$(LIB_MTX_KSP) $(PETSC_KSP_LIB)
-LIBX_MTX_MUMPS=$(LIB_MTX_MUMPS) $(PETSC_KSP_LIB)
+LIBX_MTX_MUMPS=$(LIB_MTX_MUMPS) $(PETSC_KSP_LIB) $(MUMPS_LIB)
 
 ### PART 2: Selection of default setup ###
 ###            overwritten in Makefile in each directory ###
