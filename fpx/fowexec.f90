@@ -598,14 +598,17 @@ contains
     DL(NM) = 0.d0
     do alpha = 1, 3
       do si = -1, 1, 2
-        D_term = -1.d0*Dfow(alpha,alpha,sign_to_index(si)-1,0,loc)*DIVD(alpha,alpha)
-        F_term = -1.d0*si*Ffow(sign_to_index(si),alpha)*w(si,alpha,0,sign_to_index(si)-1,0,loc)*DIVF(alpha)
+         D_term = -1.d0*Dfow(alpha,alpha,sign_to_index(si)-1,0,loc) &
+              *DIVD(alpha,alpha)
+         F_term = -1.d0*si*Ffow(sign_to_index(si),alpha) &
+              *w(si,alpha,0,sign_to_index(si)-1,0,loc)*DIVF(alpha)
         dl(nm) = dl(nm) + (D_term + F_term)/JI(nth,np,nr,nsa)
       end do
     end do
     if ( nth == nth_pnc(nsa) .and. theta_pnc(np,nr,nsa) /= NO_PINCH_ORBIT ) then
       D_term = Dfow(2,2,0,0,loc)*DIVD(2,2)*IBCflux_ratio(np,nr,nsa)
-      F_term = -1.d0*Ffow(1,2)*w(-1,2,0,0,0,loc)*DIVF(2)*IBCflux_ratio(np,nr,nsa)
+      F_term = -1.d0*Ffow(1,2)*w(-1,2,0,0,0,loc)*DIVF(2) &
+           *IBCflux_ratio(np,nr,nsa)
       dl(nm) = dl(nm) + (D_term + F_term)/JI(nth,np,nr,nsa)
 
     end if

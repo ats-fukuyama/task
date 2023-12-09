@@ -247,7 +247,9 @@
 
       IMPLICIT NONE
       integer:: NTH, NP, NR, NSA, NM, NRS, NPS
-      REAL(rkind),dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND), &
+      REAL(rkind), &
+           dimension(NTHMAX, &
+           NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND), &
            intent(IN):: func_in
 
       IF(NRSTART.eq.1)THEN

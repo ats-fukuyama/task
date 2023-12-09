@@ -23,16 +23,24 @@
       ENDIF
 
       REWIND(21)
-      WRITE(21) NRMAX,NPMAX,NTHMAX,NSAMAX
+      WRITE(21) NRMAX,NPMAX,NTHMAX,NSAMAX,NSBMAX,NSMAX
       WRITE(21) DELR,DELTH,RMIN,RMAX
       DO NSA=1,NSAMAX
-         NS=NS_NSA(NSA)
          WRITE(21) NS_NSA(NSA)
          WRITE(21) DELP(NS)
          WRITE(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
-         WRITE(21) (((FNS(NTH,NP,NR,NSA),NTH=1,NTHMAX), &
-                      NP=1,NPMAX),NR=1,NRMAX)
+      END DO
+      DO NS=1,NSMAX
+         WRITE(21) DELP(NS),pmax(NS),Emax(NS)
+      END DO
+      DO NSA=1,NSAMAX
+         DO NR=1,NRMAX
+            DO NP=1,NPMAX
+               WRITE(21) (FNS(NTH,NP,NR,NSA),NTH=1,NTHMAX)
+            END DO
+         END DO
       ENDDO
+      
       CLOSE(21)
 
       WRITE(6,*) '# DATA WAS SUCCESSFULLY SAVED TO THE FILE.'
