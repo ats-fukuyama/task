@@ -122,5 +122,3 @@ veryclean: clean
 	(cd dpseki; make veryclean)
 	(cd wmseki; make veryclean)
 	(cd wiq; make veryclean)
-	(cd equx; make veryclean)
-
