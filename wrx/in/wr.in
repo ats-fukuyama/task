@@ -50,7 +50,7 @@ UUIN(1)=4*1.D0
 MODEWIN(1)=4*1
 KNAMWR='wr.data'
 idebug_wr(4)=1
-&end
+/
 v
 r
 /
