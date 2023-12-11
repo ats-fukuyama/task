@@ -11,7 +11,7 @@ CONTAINS
 
   SUBROUTINE WR_PARM(MODE,KIN,IERR)
 
-!     MODE=0 : standard namelinst input
+!     MODE=0 : standard namelist input
 !     MODE=1 : namelist file input
 !     MODE=2 : namelist line input
 
@@ -27,7 +27,8 @@ CONTAINS
 
     USE dpparm,ONLY: dp_chek
     USE dpcomm,ONLY: nsamax_dp
-    USE wrcomm,ONLY: nsamax_wr,nsmax
+!    USE wrcomm,ONLY: nsamax_wr,nsmax
+    USE wrcomm
     USE libkio
     IMPLICIT NONE
     INTEGER,INTENT(IN):: MODE
@@ -36,17 +37,15 @@ CONTAINS
     EXTERNAL EQCHEK
 
     IERR=0
-
 1   CALL TASK_PARM(MODE,'WR',KIN,WRNLIN,WRPLST,IERR)
     IF(IERR.NE.0) RETURN
 
     CALl EQCHEK(IERR)
-    IF(IERR.NE.0) GOTO 1
+    IF(IERR.NE.0) RETURN
     IF(NSAMAX_WR.GT.NSMAX) NSAMAX_WR=NSMAX
     NSAMAX_DP=NSAMAX_WR
     CALl DP_CHEK(IERR)
-    IF(IERR.NE.0) GOTO 1
-    IF(MODE.EQ.0) GOTO 1
+    IF(MODE.EQ.0.AND.IERR.NE.0) GOTO 1
 
     RETURN
   END SUBROUTINE WR_PARM
