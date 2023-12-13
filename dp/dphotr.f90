@@ -68,7 +68,7 @@ CONTAINS
     COMPLEX(rkind):: CINTG231,CINTG232,CINTG233
     COMPLEX(rkind):: CSM11,CSM12,CSM13,CSM22,CSM23,CSM33
 
-    NS=NS_NSA_DP(NS)
+    NS=NS_NSA_DP(NSA)
       NHMAX=MAX(ABS(NCMIN(NS)),ABS(NCMAX(NS)),2)+2
       ALLOCATE(ADJ(0:NHMAX),ADJD(0:NHMAX))
       DELPL  = 0.5D0
@@ -87,7 +87,7 @@ CONTAINS
 
       DO NTH=1,NTHMAX_DP
       DO NP=1,NPMAX_DP-1
-         DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP(NS)
+         DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP(NSA)
       ENDDO
       ENDDO
       DO NP=1,NPMAX_DP
@@ -239,7 +239,7 @@ CONTAINS
 
          CPART2= DFT(NP,NTH)*PM(NP,NSA)*PM(NP,NSA) &
                             *TSNG(NTH)*TSNG(NTH) &
-                *(TCSG(NTH)-CKPRW*PM(NP,NS)/RGMM(NP,NSA)) &
+                *(TCSG(NTH)-CKPRW*PM(NP,NSA)/RGMM(NP,NSA)) &
                 *DELTH*DELP(NSA)
 
          CINTG211= CINTG211 + CSM11*CPART2
