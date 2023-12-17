@@ -12,7 +12,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER:: nobt
 
-    modelg=3
+!    modelg=3
     
     nobt_max=1                ! number of orbits
     nstp_max=10000            ! maximum number of orbit step

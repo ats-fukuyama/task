@@ -10,7 +10,7 @@ INCLUDE_MTX_PETSC=-I${PETSC_DIR}/include -I${PETSC_DIR}/include/petsc -I${PETSC_
 
 LIBMTXMPI=../mtxp/libmtxmpi.o
 
-MUMPS_LIB=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lparmetis -lmetis -llapack -lblas ../lib/libtask.a
+MUMPS_LIB=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lparmetis -lmetis -lflapack -lfblas
 
 LIB_MTX_BND=$(LIBMTXMPI) ../mtxp/libmtxbndmpi.o
 LIB_MTX_PCG=$(LIBMTXMPI) ../mtxp/libmtxpcgmpi.o

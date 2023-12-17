@@ -227,6 +227,8 @@ CONTAINS
     RETURN
   END FUNCTION BESEKNX
 
+  ! *** Bessel function array from n=0 to N (>0) ***
+
   SUBROUTINE BESJNV(N,X,V,IERR)
     IMPLICIT NONE
     INTEGER,INTENT(IN):: N
