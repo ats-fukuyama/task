@@ -55,7 +55,7 @@ p{45mm}p{35mm}p{30mm}p{120mm}}}{\end{tabular}\par\bigskip}
 \vspace*{-40mm}
 
 \begin{flushright}\LARGE
-  2022/01/12
+  2023/12/18
 \end{flushright}
 \vspace{20mm}
 
@@ -114,9 +114,11 @@ Professor Emeritus, Kyoto University
   \item
     Command\_Line\_Tools: various Unix commands for development
   \item
-    Input command on terminal
+    Corresponding to the version of Xcode
   \item
     \ttype{xcode-select --install}
+  \item
+    or download from Apple Developer site
   \end{itemize}
 \item
   \emA{Install XQartz}
@@ -125,10 +127,9 @@ Professor Emeritus, Kyoto University
     Download and install XQartz from https://www.xquartz.org
   \end{itemize}
 \item
-  \emA{Install java}
+  \emA{Install java} (when necessary)
   \begin{itemize}
   \item
-    Download and install java from \\
     https://www.java.com/en/download/mac\_download.jsp
   \end{itemize}
 \end{itemize}
@@ -140,69 +141,106 @@ Professor Emeritus, Kyoto University
   \emA{Install Macports}
   \begin{itemize}
   \item
-    Download the latest macports binary from https://www.macports.org
+    Macports site: https://www.macports.org
   \item
     Select tab: Installing MacPorts
   \item
-    Quickstart: download and install MacPorts installer for appropriate macOS
-    version
+    Download the MacPorts installer for appropriate macOS version
   \item
-    MacPorts is mostly installed at /opt/local
+    Run the  MacPorts installer
+  \end{itemize}
+\item
+  \emA{Set environmental variables in \$HOME/.zprofile}
+  \begin{itemize}
   \item
-    Update to the latest Macports
-    \begin{itemize}
-    \item
-      \ttype{sudo port selfupdate}
-    \item
-      \ttype{sudo port upgrade outdated}
-    \end{itemize}
+    \emAs{Add} export PATH=/opt/local/bin:\$PATH \emAs{in .zprofile}
+  \item
+    \emAs{Add} export MANPATH=/opt/local/man:\$MANPATH \emAs{in .zprofile}
   \end{itemize}
 \item
   \emA{Install compiler and related modules}
   \begin{itemize}
   \item
-    gfortran: \ttype{sudo port install gcc12}
+    \ttype{sudo port install gmake cmake imake gcc13 mpich}
   \item
-    mpich: \ttype{sudo port install mpich}
+    \ttype{sudo port select gcc mp-gcc13}
   \item
-    others: \ttype{sudo port install gmake cmake imake}
+    \ttype{sudo port select mpi mpich-mp-fortran}
   \end{itemize}
 \end{itemize}
 
-\title{In case of macOS major version-up}
+\title{Preparation for macOS (3)}
 \begin{itemize}
-\item
-  \emA{macOS major version-up}: e.g. 13.3 \s 14.0
-\item
-  \emA{Update Xcode}
-  \begin{itemize}
   \item
-    Use App Store to update Xcode for the new version of macOS
-  \end{itemize}
-\item
-  \emA{Update Command\_Line\_Tools}
-  \begin{itemize}
-  \item
-    \ttype{xcode-select --install}
-  \end{itemize}
-\item
-  \emA{Update Macports}
-  \begin{itemize}
-  \item
-    Download and install the Macports binary for the new version of
-    macOS from https://www.macports.org
-  \item
-    It may take a few days before the binary for the new
-    version of macOS becomes available.
-  \item
-    Update the installed ports for the new Macports binary
+    \emA{To update Macports}: (If rsync is available)
     \begin{itemize}
     \item
       \ttype{sudo port selfupdate}
     \item
       \ttype{sudo port upgrade outdated}
     \end{itemize}
+  \item
+    \emA{If rsync is not available}, port selfupdate will hang up.
+    \begin{itemize}
+    \item
+      See \emBs{https://trac.macports.org/wiki/howto/SyncingWithGit}
+    \item
+      \emA{Create the source list}
+      \begin{itemize}  
+      \item
+        Download the source list in MacPorts server by git clone
+      \item
+        Modify macports config to read the source list
+      \end{itemize}
+    \item
+      \emA{Find outdated ports and upgrade them}
+      \begin{itemize}
+      \item
+        Update the source list by git pull
+      \item
+        Sync installed with the source list and select outdated (takes long)
+      \item
+        \ttype{sudo port upgrade outdated}
+      \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+  \title{In case of macOS major version-up}
+\begin{itemize}
+\item
+  \emA{macOS major version-up}: e.g. 14.3 \s 15.0
+\item
+  \emA{Update Xcode and Command\_Line\_Tools} for the new version
+\item
+  \emA{Install a new Macports binary} for the new version
+\item
+  \emA{Migrate Macports}: make ports list, uninstall ports, reinstall ports
+  \begin{itemize}
+  \item
+    \ttype{port -qv installed > myports.txt}
+  \item
+    \ttype{port echo requested | cut -d ' ' -f 1 | uniq >
+      requested.txt}
+  \item
+    \ttype{sudo port -f uninstall installed}
+  \item
+    \ttype{sudo port reclaim}
+  \item
+    \ttype{curl -L -O
+      {\normalsize https://github.com/macports/macports-contrib/raw/master/restore\_ports/restore\_ports.tcl}}
+  \item
+    \ttype{chmod +x restore\_ports.tcl}
+  \item
+    \ttype{xattr -d com.apple.quarantine restore\_ports.tcl}
+  \item
+    \ttype{sudo ./restore\_ports.tcl myports.txt}
+  \item
+    \ttype{sudo port unsetrequested installed}
+  \item
+    \ttype{xargs sudo port setrequested < requested.txt}
   \end{itemize}
+\item
+  \emB{See more detail in https://trac.macports.org/wiki/Migration}
 \end{itemize}
 
 \title{Preparation for Ubuntu}
@@ -210,9 +248,9 @@ Professor Emeritus, Kyoto University
 \item
   \emA{Install required modules}
 \begin{verbatim}
-sudo apt-get install gfortran-12
-sudo apt-get install gcc-12
-sudo apt-get install g++-12
+sudo apt-get install gfortran-13
+sudo apt-get install gcc-13
+sudo apt-get install g++-13
 
 sudo apt-get install git
 sudo apt-get install xorg-dev
