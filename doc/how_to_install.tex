@@ -415,23 +415,24 @@ Data is saved in \$HOME/.gitconfig
 \item
 \emBs{git clone https://bpsi.nucleng.kyoto-u.ac.jp/pub/git/bpsd.git}
 \item
-\emBs{git clone https://bpsi.nucleng.kyoto-u.ac.jp/pub/git/task.git}
+\emBs{git clone https://bpsi.nucleng.kyoto-u.ac.jp/pub/git/task.git -b
+develop}
 \end{itemize}
 \item
 \emA{Download TASK and necessary libraries} for download and upload
 \begin{itemize}
 \item
-\emBs{git clone ssh://username@bpsi.nucleng.kyoto-u.ac.jp/pub/git/gsaf.git}
+\emBs{git clone ssh://bpsi.nucleng.kyoto-u.ac.jp/pub/git/gsaf.git}
 \item
-\emBs{git clone ssh://username@bpsi.nucleng.kyoto-u.ac.jp/pub/git/bpsd.git}
+\emBs{git clone ssh://bpsi.nucleng.kyoto-u.ac.jp/pub/git/bpsd.git}
 \item
-\emBs{git clone ssh://username@bpsi.nucleng.kyoto-u.ac.jp/pub/git/task.git}
+\emBs{git clone ssh://bpsi.nucleng.kyoto-u.ac.jp/pub/git/task.git -b develop}
 \item
-  \emBs{username@} can be omitted if the usernames at remote and local
-  are same.
+  \emBs{bpsi} should be replaced by \emBs{username@bpsi} when the
+  local and remote usernames are different.
 \end{itemize}
 \item
-\emC{Three directories are created}
+\emC{Three directories will be created}
 \begin{itemize}
 \item
 \emB{gsaf}: graphic library
@@ -515,12 +516,12 @@ Data is saved in \$HOME/.gitconfig
 \title{Install TASK (5)}
 \begin{itemize}
 \item
-\emA{Use the latest develop branch and setup files, make.header and make.mtxp}
+\emA{Confirm the branch is develop and setup make.header}
 \begin{itemize}
 \item
 \emBs{cd task}
 \item
-\emBs{git checkout -t -b develop origin/develop}
+\emBs{git branch} \quad (indicated branch should be develop)
 \item
 \emBs{cp make.header.org make.header}
 \item
@@ -546,7 +547,7 @@ Data is saved in \$HOME/.gitconfig
 \item
   Single processing without MPI: \emBs{make.mtxp.nompi}
 \item
-  Single processing with MPI: \emBs{make.mtxp.mpi}
+  Multi processing with single matrix solver:: \emBs{make.mtxp.mpi}
 \item
   Multi processing with parallel real matrix solver: \emBs{make.mtxp.petsc}
 \item
@@ -554,7 +555,7 @@ Data is saved in \$HOME/.gitconfig
   \emBs{make.mtxp.petsc+mumps}
 \end{itemize}
 \item
-  \emA{Module using parallel matrix solver}
+  \emA{Modules using parallel matrix solver}
   \begin{itemize}
   \item
     \emB{Real}: fp, ti, pic, t2
