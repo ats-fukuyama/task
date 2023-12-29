@@ -1,17 +1,27 @@
-!     $Id: wfprof.f90,v 1.6 2011/12/15 19:06:55 maruyama Exp $
+! wfprof.f90
 
+MODULE wfprof
+
+  PRIVATE
+  PUBLIC wf_bpsi  ! 
+  PUBLIC wf_psic  ! circular coil
+  PUBLIC wf_smag  ! set magnetic field
+  PUBLIC wf_sden  ! set density and temperature profile
+  PUBLIC wf_coll  ! set collision frequency
+
+CONTAINS
+  
 !     ****** set psi ******
+  
+  SUBROUTINE wf_bpsi(R,Z,PSI)
 
-SUBROUTINE wf_bpsi(R,Z,PSI)
-
-  USE wfcomm,ONLY: rkind,PI,ZBB,RMIR,BB,MODELG,MODELB,NCOILMAX, &
-       RCOIL,ZCOIL,BCOIL,Hpitch1,HA1,rkind
+  USE wfcomm
   USE libbes,ONLY: BESINX
   IMPLICIT NONE
   REAL(rkind),INTENT(IN) :: R,Z
   REAL(rkind),INTENT(OUT):: PSI
   INTEGER:: NCOIL
-  REAL(rkind):: A0,A1,RL,ZL,WFPSIC,XH1,YH1,PSIG
+  REAL(rkind):: A0,A1,RL,ZL,XH1,YH1,PSIG
 
   SELECT CASE(MODELG)
   CASE(0)  ! slab
@@ -44,7 +54,7 @@ SUBROUTINE wf_bpsi(R,Z,PSI)
          PSI=0.D0
          DO NCOIL=1,NCOILMAX
             IF(R.NE.0.D0) THEN
-               PSI=PSI+BCOIL(NCOIL)*WFPSIC(R,Z-ZCOIL(NCOIL),RCOIL(NCOIL))
+               PSI=PSI+BCOIL(NCOIL)*wf_psic(R,Z-ZCOIL(NCOIL),RCOIL(NCOIL))
             ENDIF
          ENDDO
      END SELECT
@@ -53,14 +63,14 @@ SUBROUTINE wf_bpsi(R,Z,PSI)
   CASE(11)   ! straight helical
      XH1=Hpitch1*R
      YH1=Hpitch1*Z
-     PSI=(XH1**2+YH1**2+2.D0*HA1*(XH1**2-YH1**2))
+     PSI=(XH1**2+YH1**2+2.D0*Hpitch2*(XH1**2-YH1**2))
   END SELECT
   RETURN
 END SUBROUTINE wf_bpsi
 
 !   --- psi function for circular coil ---
 
-  FUNCTION WFPSIC(RL,ZL,RC)
+  FUNCTION wf_psic(RL,ZL,RC)
 
 !        R*A_psi
 
@@ -68,21 +78,21 @@ END SUBROUTINE wf_bpsi
     USE libell,ONLY: ELLFC,ELLEC
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: RL,ZL,RC
-    REAL(rkind):: WFPSIC
+    REAL(rkind):: wf_psic
     REAL(rkind):: RX,RK
     INTEGER:: IERR1,IERR2
 
     RX=SQRT(RC**2+RL**2+ZL**2+2.D0*RC*RL)
     RK=SQRT(4.D0*RC*RL)/RX
-    WFPSIC=(RC/PI)*RX &
-          *((1.D0-0.5D0*RK**2)*ELLFC(RK,IERR1)-ELLEC(RK,IERR2))
+    wf_psic=(RC/PI)*RX &
+           *((1.D0-0.5D0*RK**2)*ELLFC(RK,IERR1)-ELLEC(RK,IERR2))
     RETURN
-  END FUNCTION WFPSIC
+  END FUNCTION wf_psic
 
 
 !     ****** set magnetic field ******
 
-SUBROUTINE WFSMAG(R,Z,BABS,AL)
+SUBROUTINE wf_smag(R,Z,BABS,AL)
 
   USE wfcomm,ONLY: MODELG,rkind
   USE plload
@@ -105,7 +115,7 @@ SUBROUTINE WFSMAG(R,Z,BABS,AL)
      AL(3)=BZ/BABS
   END SELECT
   RETURN
-END SUBROUTINE WFSMAG
+END SUBROUTINE wf_smag
 
 SUBROUTINE WFSMAG0(R,Z,BABS,AL)
 
@@ -182,7 +192,7 @@ END SUBROUTINE WFSMAG2
 
 !     ****** set density & collision frequency ******
 
-SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
+SUBROUTINE wf_sden(R,Z,RN,RTPR,RTPP,RZCL)
 
   use wfcomm,ONLY: modelg,nsm,nsmax,mdamp,rkind, &
        model_coll_enhance,factor_coll_enhance, &
@@ -209,7 +219,7 @@ SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
         RTPP(NSMAX)=1.D0
         RU(NSMAX)=0.D0
      END IF
-     CALL WFCOLL(rn,rtpr,rtpp,rzcl,0)
+     CALL wf_coll(rn,rtpr,rtpp,rzcl,0)
      SELECT CASE(model_coll_enhance)
      CASE(1)
         arg=(R-xpos_coll_enhance)**2/xwidth_coll_enhance**2
@@ -239,7 +249,7 @@ SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
      END IF
   END SELECT
   RETURN
-END SUBROUTINE WFSDEN
+END SUBROUTINE wf_sden
 
 SUBROUTINE WFSDEN0(R,Z,RN,RTPR,RTPP,RZCL)
 
@@ -283,7 +293,7 @@ SUBROUTINE WFSDEN0(R,Z,RN,RTPR,RTPP,RZCL)
                 +(ptpp_corner(3,ns)-ptpp_corner(1,ns))*zfactor**2
      END DO
   END SELECT
-  CALL WFCOLL(rn,rtpr,rtpp,rzcl,0)
+  CALL wf_coll(rn,rtpr,rtpp,rzcl,0)
 
   RETURN
 END SUBROUTINE WFSDEN0
@@ -297,40 +307,35 @@ SUBROUTINE WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
   real(rkind),intent(in) :: R,Z
   real(rkind),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
   real(rkind) :: LR,LZ
-  real(rkind) :: FACT,PSI
+  real(rkind) :: PSI
 
   ! --- set FACT ---
 
-  if(MODELP.eq.0) then
-     FACT=1.D0
-  else
-     LR=R-RR
-     LZ=Z
-     call PLSPSI(LR,LZ,PSI)
-     if(PSI.lt.1.D0) then
-        if(MODELP.eq.1) then
-           FACT=1.D0
-        elseif(MODELP.eq.2) then
-           FACT=1.D0-PSI
-        else
-           write(6,*) 'XX WDSDEN: UNKNOWN MODELP = ',MODELP
-        endif
-     else
-        FACT=0.D0
-     endif
-  end if
+  LR=R-RR
+  LZ=Z
+  CALL PLSPSI(LR,LZ,PSI)
 
   ! --- set density at NODE NN ---
 
-  do NS=1,NSMAX
-     RN(NS)  =(PN(NS)-PNS(NS))*FACT+PNS(NS)
-     RTPR(NS)=PTPR(NS)
-     RTPP(NS)=PTPP(NS)
-  enddo
+  DO NS=1,NSMAX
+     IF(PSI.LT.1.D0) THEN
+        RN(NS)=(PN(NS)-PNS(NS))*(1.D0-PSI)+PNS(NS)
+        RTPR(NS)=(PTPR(NS)-PTS(NS))*(1.D0-PSI)+PTS(NS)
+        RTPP(NS)=(PTPP(NS)-PTS(NS))*(1.D0-PSI)+PTS(NS)
+     ELSE
+        IF(MODELN.EQ.0) THEN
+           RN(NS)=0.D0
+        ELSE
+           RN(NS)=PNS(NS)
+        END IF
+     END IF
+     RTPR(NS)=PTS(NS)
+     RTPP(NS)=PTS(NS)
+  ENDDO
 
   ! --- set collision frequency ---
   
-  CALL WFCOLL(rn,rtpr,rtpp,rzcl,0)
+  CALL wf_coll(rn,rtpr,rtpp,rzcl,0)
 
 !  WRITE(6,*) 'ZND= ',ZND(IN)
 !  WRITE(6,*) 'RN = ',RN(1),RN(2)
@@ -343,7 +348,7 @@ SUBROUTINE WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
   RETURN
 END SUBROUTINE WFSDEN2
 
-SUBROUTINE WFCOLL(rn,rtpr,rtpp,rzcl,id)
+SUBROUTINE wf_coll(rn,rtpr,rtpp,rzcl,id)
   USE wfcomm
   IMPLICIT NONE
   REAL(rkind),INTENT(IN):: rn(NSM),rtpr(NSM),rtpp(NSM)
@@ -419,4 +424,6 @@ SUBROUTINE WFCOLL(rn,rtpr,rtpp,rzcl,id)
      ENDDO
   ENDIF
   RETURN
-END SUBROUTINE WFCOLL
+END SUBROUTINE wf_coll
+
+END MODULE wfprof

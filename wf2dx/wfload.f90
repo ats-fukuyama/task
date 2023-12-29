@@ -1,8 +1,9 @@
-! ***** FILE IO *****
+! wfload.f90
 
-! ***** Module for WG E filed data *****
 
 MODULE wfwg1D
+
+  ! ***** Module for WG E filed data *****
 
   USE bpsd_kinds
   INTEGER(ikind):: NYMAX
@@ -15,7 +16,8 @@ END MODULE wfwg1D
 MODULE wfload
 
   PRIVATE
-  PUBLIC wf_load_wg,wf_read_wg
+  PUBLIC wf_load_wg
+  PUBLIC wf_read_wg
 
 CONTAINS
 
@@ -23,7 +25,7 @@ CONTAINS
 
   SUBROUTINE wf_load_wg(ierr)
 
-      USE bpsd_kinds
+    USE bpsd_kinds
       USE plcomm,ONLY: idebug
       USE wfcomm,ONLY: KNAMWG,RKZ
       USE wfwg1D
@@ -155,11 +157,11 @@ CONTAINS
       END IF
 
       RETURN
-    END SUBROUTINE wf_load_wg
+  END SUBROUTINE wf_load_wg
 
 !     ***** 2D density and temperature profile *****
 
-    SUBROUTINE wf_read_wg(Y,CEX,CEY,CEZ,IERR)
+  SUBROUTINE wf_read_wg(Y,CEX,CEY,CEZ,IERR)
 
       USE bpsd_kinds
       USE wfwg1D
@@ -192,8 +194,7 @@ CONTAINS
       IF(IERL.NE.0) IERR=8006
       CEZ=DCMPLX(-ER,-EI)
          
-      RETURN
-    END SUBROUTINE wf_read_wg
+    RETURN
+  END SUBROUTINE wf_read_wg
 
-
-  END MODULE wfload
+END MODULE wfload

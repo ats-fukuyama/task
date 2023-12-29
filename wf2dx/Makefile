@@ -26,9 +26,10 @@ MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
 
 SRCS = 	wfcomm.f90 femmeshprep.f90 feminterpolate.f90 \
         wfinit.f90 wfparm.f90 wfload.f90 wfprof.f90 \
-        wfdiv_rect.f90 wfdiv_circle.f90 wfdiv.f90 wflib.f90 wfsub.f90 \
-        wfindx.f90 wfsort.f90 wfgsub.f90 wfant.f90 wfwave.f90 \
-	wfsolv.f90 wfgout.f90 wfmenu.f90
+        wfsub.f90 wfsort.f90 wfindex.f90 wfgsub.f90 \
+	wfdiv_rect.f90 wfdiv_circle.f90 wfdiv.f90 \
+        wfant.f90 wfsolv.f90 \
+	wfwave.f90 wfgout.f90 wfmenu.f90
 
 OBJS = $(addprefix $(OBJDIR)/, $(SRCS:.f90=.o))
 
@@ -86,7 +87,7 @@ $(OBJDIR)/wfnas.o: wfnas.f90 wfcomm.f90
 $(OBJDIR)/wfsort.o: wfsort.f90 wfcomm.f90
 $(OBJDIR)/wffile.o: wffile.f90 wfcomm.f90
 $(OBJDIR)/wfload.o: wfload.f90 wfcomm.f90
-$(OBJDIR)/wfindx.o: wfindx.f90 wfcomm.f90
+$(OBJDIR)/wfindex.o: wfindex.f90 wfcomm.f90
 $(OBJDIR)/wfgout.o: wfgout.f90 wfcomm.f90 feminterpolate.f90
 $(OBJDIR)/wfgsub.o: wfgsub.f90 wfcomm.f90
 $(OBJDIR)/wfefwg.o: wfefwg.f90 wfcomm.f90

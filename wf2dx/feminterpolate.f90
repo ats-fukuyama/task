@@ -17,7 +17,6 @@ MODULE feminterpolate
   PUBLIC fem_setup_zone
   PUBLIC fem_find_nelm_for_xy
   PUBLIC fem_interpolate_xy
-  PUBLIC fem_linear_interpolate
 
 CONTAINS
 
@@ -25,13 +24,10 @@ CONTAINS
   
   SUBROUTINE fem_setup_zone
 
-    USE wfcomm, &
-         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
-         xnode=>rnode,ynode=>znode
+    USE wfcomm
     USE femmeshprep
     IMPLICIT NONE
-    INTEGER:: nelm,node,nside
-    INTEGER:: nx_min,nx_max,ny_min,ny_max,nx,ny
+    INTEGER:: nelm,node,nside,nx_min,nx_max,ny_min,ny_max,nx,ny
     REAL(rkind):: xmin,xmax,ymin,ymax
     
     IF(ALLOCATED(ncount_max_nxzone_nyzone)) THEN
@@ -131,9 +127,7 @@ CONTAINS
   END SUBROUTINE fem_setup_zone
 
   SUBROUTINE xyrange_nelm(nelm,xmin,xmax,ymin,ymax)
-    USE wfcomm, &
-         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
-         xnode=>rnode,ynode=>znode
+    USE wfcomm
     USE femmeshprep
     IMPLICIT NONE
     INTEGER,INTENT(IN):: nelm
@@ -165,15 +159,14 @@ CONTAINS
   !                         set nelm=0 and exit
   
   SUBROUTINE fem_find_nelm_for_xy(x,y,nelm)
-    USE wfcomm, &
-         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
-         xnode=>rnode,ynode=>znode
+    USE wfcomm
     USE femmeshprep
     USE libmpi
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: x,y
     INTEGER,INTENT(INOUT):: nelm
-    INTEGER:: nside,nseg,node1,node2,nelm1,nside1,nseg1,nelm2
+    INTEGER:: nseg,nseg1
+    INTEGER:: nside,node1,node2,nelm1,nside1,nelm2
     INTEGER:: nxzone,nyzone,ncount
     INTEGER:: nelm_ncount
     REAL(rkind):: xc,yc,x1,y1,x2,y2,xc1,yc1
@@ -269,9 +262,7 @@ CONTAINS
   ! Check (x,y) in nelm or not: left-hand-side of all sides or on any side
   
   FUNCTION xy_in_nelm(x,y,nelm)
-    USE wfcomm, &
-         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
-         xnode=>rnode,ynode=>znode
+    USE wfcomm
     USE femmeshprep
     IMPLICIT NONE
     LOGICAL:: xy_in_nelm
@@ -355,15 +346,14 @@ CONTAINS
 
 
   SUBROUTINE fem_interpolate_xy(x,y,f,f_nelm,id)
-    USE wfcomm, &
-         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
-         xnode=>rnode,ynode=>znode
+    USE wfcomm
+    USE femmeshprep
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: x,y
     REAL(rkind),INTENT(OUT):: f
     REAL(rkind),INTENT(IN):: f_nelm(nelm_max)
-    INTEGER,SAVE:: nelm_save=0
     INTEGER,INTENT(IN):: id  ! 0 for new search, 1: use nelm previous search
+    INTEGER,SAVE:: nelm_save=0
     INTEGER:: nelm
 
     IF(id.EQ.0) THEN
@@ -380,28 +370,17 @@ CONTAINS
        nelm_save=nelm
     END IF
 
-!    IF(model_interpolation.GT.2.OR.model_interpolation.EQ.0) THEN
+    SELECT CASE(model_interpolation)
+    CASE(0)
        f=f_nelm(nelm)
-!    ELSE
-!       SELECT CASE(model_interpolation)
-!       CASE(1) ! linear interpolation (discontinuous)
-!          CALL fem_grad_f(nelm,f_nelm,dfx,dfy)
-!!          WRITE(29,'(A,I5,1P5E12.4)') 'nelm,f,dfx,dfy=', &
-!!               nelm,f_nelm(nelm),dfx,x-xcenter_nelm(nelm), &
-!!                                 dfy,y-ycenter_nelm(nelm)
-!          f=f_nelm(nelm)+dfx*(x-xcenter_nelm(nelm)) &
-!                        +dfy*(y-ycenter_nelm(nelm))
-!       CASE(2) ! linear interpolation (continuouas)
-!          CALL fem_linear_interporate(x,y,nelm,f_nelm,f)
-!       END SELECT
-!    END IF
+    CASE(1) ! linear interpolation (continuous)
+       CALL fem_linear_interporate(x,y,nelm,f_nelm,f)
+    END SELECT
     RETURN
   END SUBROUTINE fem_interpolate_xy
 
   SUBROUTINE fem_linear_interporate(x,y,nelm,f_nelm,f)
-    USE wfcomm, &
-         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
-         xnode=>rnode,ynode=>znode
+    USE wfcomm
     USE femmeshprep
     USE libinv
     IMPLICIT NONE

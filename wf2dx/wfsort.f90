@@ -1,74 +1,86 @@
-!     $Id: wfsort.f90,v 1.2 2011/07/19 17:54:28 maruyama Exp $
+! wfsort.f90
+
+MODULE wfsort
+
+  PRIVATE
+  PUBLIC wf_sort
+  PUBLIC wf_sort_subst
+  PUBLIC wf_sort_exchange
+  PUBLIC wf_eval_index
+  PUBLIC wf_eval_index_max
+  PUBLIC wf_eval_index_min
+
+CONTAINS
 
 !     ***** SLAVE ROUTINE FOR WFSORT: FOR SUBSTITUTION *****
 
-SUBROUTINE WFSRTS(I,J)
+SUBROUTINE wf_sort_subst(I,J)
   
   use wfcomm
   implicit none
-  integer :: NDELMX(3),I,J,IVELMX,IDELMX,KAELMX
-  SAVE IVELMX,IDELMX,KAELMX,NDELMX
+  integer :: node_nside_nelmX(3),I,J,IVELMX,IDELMX,KAELMX
+  SAVE IVELMX,IDELMX,KAELMX,node_nside_nelmX
   
   IF(I.EQ.0) THEN
      IVELM(J)=IVELMX
      IDELM(J)=IDELMX
      KAELM(J)=KAELMX
-     NDELM(1,J)=NDELMX(1)
-     NDELM(2,J)=NDELMX(2)
-     NDELM(3,J)=NDELMX(3)
+     node_nside_nelm(1,J)=node_nside_nelmX(1)
+     node_nside_nelm(2,J)=node_nside_nelmX(2)
+     node_nside_nelm(3,J)=node_nside_nelmX(3)
   ELSEIF(J.EQ.0) THEN
      IVELMX=IVELM(I)
      IDELMX=IDELM(I)
      KAELMX=KAELM(I)
-     NDELMX(1)=NDELM(1,I)
-     NDELMX(2)=NDELM(2,I)
-     NDELMX(3)=NDELM(3,I)
+     node_nside_nelmX(1)=node_nside_nelm(1,I)
+     node_nside_nelmX(2)=node_nside_nelm(2,I)
+     node_nside_nelmX(3)=node_nside_nelm(3,I)
   ELSE
      IVELM(J)=IVELM(I)
      IDELM(J)=IDELM(I)
      KAELM(J)=KAELM(I)
-     NDELM(1,J)=NDELM(1,I)
-     NDELM(2,J)=NDELM(2,I)
-     NDELM(3,J)=NDELM(3,I)
+     node_nside_nelm(1,J)=node_nside_nelm(1,I)
+     node_nside_nelm(2,J)=node_nside_nelm(2,I)
+     node_nside_nelm(3,J)=node_nside_nelm(3,I)
   ENDIF
   RETURN
-END SUBROUTINE WFSRTS
+END SUBROUTINE wf_sort_subst
 
 !     ***** SLAVE ROUTINE FOR WFSORT: FOR EXCANGE *****
 
-SUBROUTINE WFSRTX(I,J)
+SUBROUTINE wf_sort_exchange(I,J)
         
   use wfcomm
   implicit none
-  integer :: NDELMX(3),IVELMX,I,IDELMX,KAELMX,J
+  integer :: node_nside_nelmX(3),IVELMX,I,IDELMX,KAELMX,J
       
   IVELMX=IVELM(I)
   IDELMX=IDELM(I)
   KAELMX=KAELM(I)
-  NDELMX(1)=NDELM(1,I)
-  NDELMX(2)=NDELM(2,I)
-  NDELMX(3)=NDELM(3,I)
+  node_nside_nelmX(1)=node_nside_nelm(1,I)
+  node_nside_nelmX(2)=node_nside_nelm(2,I)
+  node_nside_nelmX(3)=node_nside_nelm(3,I)
 
   IVELM(I)=IVELM(J)
   IDELM(I)=IDELM(J)
   KAELM(I)=KAELM(J)
-  NDELM(1,I)=NDELM(1,J)
-  NDELM(2,I)=NDELM(2,J)
-  NDELM(3,I)=NDELM(3,J)
+  node_nside_nelm(1,I)=node_nside_nelm(1,J)
+  node_nside_nelm(2,I)=node_nside_nelm(2,J)
+  node_nside_nelm(3,I)=node_nside_nelm(3,J)
 
   IVELM(J)=IVELMX
   IDELM(J)=IDELMX
   KAELM(J)=KAELMX
-  NDELM(1,J)=NDELMX(1)
-  NDELM(2,J)=NDELMX(2)
-  NDELM(3,J)=NDELMX(3)
+  node_nside_nelm(1,J)=node_nside_nelmX(1)
+  node_nside_nelm(2,J)=node_nside_nelmX(2)
+  node_nside_nelm(3,J)=node_nside_nelmX(3)
   
   RETURN
-END SUBROUTINE WFSRTX
+END SUBROUTINE wf_sort_exchange
 
 !     ***** QUICK SORT BASED ON NUM RECIPE *****
 
-SUBROUTINE WFSORT(N,ARR,SUB,SUBX)
+SUBROUTINE wf_sort(N,ARR,SUB,SUBX)
 
   USE bpsd_kinds,ONLY: rkind
   implicit none
@@ -157,11 +169,11 @@ SUBROUTINE WFSORT(N,ARR,SUB,SUBX)
      ENDIF
   ENDIF
   GOTO 1
-END SUBROUTINE WFSORT
+END SUBROUTINE wf_sort
 
-!     ***** LOCATE INDEX *****
+!     ***** evaluate INDEX *****
 
-SUBROUTINE WFLCAT(XX,N,X,J)
+SUBROUTINE wf_eval_index(XX,N,X,J)
 
   USE bpsd_kinds,ONLY: rkind
   implicit none
@@ -181,11 +193,11 @@ SUBROUTINE WFLCAT(XX,N,X,J)
   ENDIF
   J=JL
   RETURN
-END SUBROUTINE WFLCAT
+END SUBROUTINE wf_eval_index
 
-!     ***** LOCATE INDEX MAXIMUM LOWER THAN VALUE *****
+!     ***** evaluate index MAXIMUM LOWER THAN VALUE *****
 
-SUBROUTINE WFLCAT_MAX(XX,N,X,J)
+SUBROUTINE wf_eval_index_max(XX,N,X,J)
 
   USE bpsd_kinds,ONLY: rkind
   implicit none
@@ -215,11 +227,11 @@ SUBROUTINE WFLCAT_MAX(XX,N,X,J)
      ENDIF
   ENDIF
   RETURN
-END SUBROUTINE WFLCAT_MAX
+END SUBROUTINE wf_eval_index_max
 
-!     ***** LOCATE INDEX MINIMUM HIGHER THAN VALUE *****
+!     ***** evaluate index MINIMUM HIGHER THAN VALUE *****
 
-SUBROUTINE WFLCAT_MIN(XX,N,X,J)
+SUBROUTINE wf_eval_index_min(XX,N,X,J)
 
   USE bpsd_kinds,ONLY: rkind
   implicit none
@@ -249,4 +261,5 @@ SUBROUTINE WFLCAT_MIN(XX,N,X,J)
      ENDIF
   ENDIF
   RETURN
-END SUBROUTINE WFLCAT_MIN
+END SUBROUTINE wf_eval_index_min
+END MODULE wfsort

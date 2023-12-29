@@ -2,9 +2,7 @@
   
 MODULE wfdiv_circle
 
-  USE wfcomm, &
-       nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
-       xnode=>rnode,ynode=>znode,itype_mesh=>iddiv
+  USE wfcomm
 
   REAL(rkind):: r_max=1.D0
   REAL(rkind):: x_origin=0.D0
@@ -65,7 +63,7 @@ CONTAINS
        node=node+nthmax_nr(nr)
     END DO
     node_max=node
-    CALL wfelm_allocate
+    CALL wf_node_allocate
 
     ! --- set nelm_max ---
 
@@ -74,7 +72,7 @@ CONTAINS
        nelm=nelm+nthmax_nr(nr)+nthmax_nr(nr+1)
     END DO
     nelm_max=nelm
-    CALL wfelm_allocate
+    CALL wf_nelm_allocate
 
     ! --- set node coordinates ---
   

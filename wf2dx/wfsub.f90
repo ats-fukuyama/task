@@ -1,33 +1,31 @@
+! wfsub.f90
+
+MODULE wfsub
+
+  PRIVATE
+  PUBLIC wf_set_node_range
+  PUBLIC wf_set_elm_area
+!  PUBLIC wfclass
+  PUBLIC wf_set_weight
+  PUBLIC wf_set_abc
+  PUBLIC wf_set_node
+  PUBLIC wf_set_aif
+  PUBLIC wf_set_aie
+  PUBLIC wf_set_ewg
+  PUBLIC wf_set_lside
+  PUBLIC wf_cross
+  PUBLIC wf_fieldcr
+  PUBLIC wf_fieldcz
+  PUBLIC wf_fieldcp
+  
+
+CONTAINS
+
 !     $Id: wfsub.f90,v 1.16 2011/11/16 09:18:22 maruyama Exp $
-
-!    ******* SET MLEN *******
-
-SUBROUTINE wf_defmlen
-
-  use wfcomm
-  implicit none
-  integer :: NSD,NN
-
-  NBSID=0
-  do NSD=1,NSDMAX
-     if(KASID(NSD).eq.1) NBSID=NBSID+1
-  end do
-
-  NBNOD=0
-  do NN=1,NNMAX
-     if(KANOD(NN).eq.1) NBNOD=NBNOD+1
-  end do
-
-  MLEN=NSDMAX+NNMAX-NBSID-NBNOD
-
-  call wfslv_allocate
-
-  RETURN
-END SUBROUTINE wf_defmlen
 
 !     ****** SETUP NODE RANGE ******
 
-SUBROUTINE WFSLIM
+SUBROUTINE wf_set_node_range
 
   use wfcomm
   implicit none
@@ -35,44 +33,40 @@ SUBROUTINE WFSLIM
   integer :: IN
   real(rkind) :: LNODE
 
-  RNDMIN=RNODE(1)
-  RNDMAX=RNODE(1)
-  ZNDMIN=ZNODE(1)
-  ZNDMAX=ZNODE(1)
+  RNDMIN=xnode(1)
+  RNDMAX=xnode(1)
+  ZNDMIN=ynode(1)
+  ZNDMAX=ynode(1)
   SELECT CASE(MODELG)
   CASE(0,1,12)
-     LNODE=SQRT(RNODE(1)**2+ZNODE(1)**2)
+     LNODE=SQRT(xnode(1)**2+ynode(1)**2)
   CASE(2)
-     LNODE=SQRT((RNODE(1)-RR)**2+ZNODE(1)**2)
-  CASE DEFAULT
-     WRITE(6,'(A,I6)') 'XX wfslim: Undefined modelg: modelg=',modelg
-     STOP
+     LNODE=SQRT((xnode(1)-RR)**2+ynode(1)**2)
   END SELECT
   LNDMIN=LNODE
   LNDMAX=LNODE
      
-  DO IN=2,NNMAX
-     RNDMIN=MIN(RNDMIN,RNODE(IN))
-     RNDMAX=MAX(RNDMAX,RNODE(IN))
-     ZNDMIN=MIN(ZNDMIN,ZNODE(IN))
-     ZNDMAX=MAX(ZNDMAX,ZNODE(IN))
+  DO IN=2,node_max
+     RNDMIN=MIN(RNDMIN,xnode(IN))
+     RNDMAX=MAX(RNDMAX,xnode(IN))
+     ZNDMIN=MIN(ZNDMIN,ynode(IN))
+     ZNDMAX=MAX(ZNDMAX,ynode(IN))
      SELECT CASE(MODELG)
      CASE(0,1,11,12)
-        LNODE=SQRT(RNODE(IN)**2+ZNODE(IN)**2)
+        LNODE=SQRT(xnode(IN)**2+ynode(IN)**2)
      CASE(2)
-        LNODE=SQRT((RNODE(IN)-RR)**2+ZNODE(IN)**2)
+        LNODE=SQRT((xnode(IN)-RR)**2+ynode(IN)**2)
      END SELECT
      LNDMIN=MIN(LNDMIN,LNODE)
      LNDMAX=MAX(LNDMAX,LNODE)
   ENDDO
-  IF(nrank.EQ.0) write(6,'(A,1p4E12.4)') ':wfsub:',RNDMIN,RNDMAX,ZNDMIN,ZNDMAX
 
   RETURN
-END SUBROUTINE WFSLIM
+END SUBROUTINE wf_set_node_range
 
 !     ****** SETUP ELEMENT AREA ******
 
-SUBROUTINE WFSELM
+SUBROUTINE wf_set_elm_area
 
   use wfcomm
   implicit none
@@ -80,9 +74,9 @@ SUBROUTINE WFSELM
   integer :: NE
   real(rkind) :: RE(3),ZE(3),S
 
-  do NE=1,NEMAX
+  do NE=1,nelm_max
 
-     call WFNODE(NE,RE,ZE)
+     call wf_set_node(NE,RE,ZE)
      S=RE(1)*(ZE(2)-ZE(3))+RE(2)*(ZE(3)-ZE(1))+RE(3)*(ZE(1)-ZE(2))
 
      if(S.LE.0.D0) THEN
@@ -99,7 +93,7 @@ SUBROUTINE WFSELM
   end do
 
   RETURN
-END SUBROUTINE WFSELM
+END SUBROUTINE wf_set_elm_area
 
 !     ******* Classify point location *******
 
@@ -123,7 +117,7 @@ SUBROUTINE WFCLASS(NE,R,Z,WGT,IND)
   integer,intent(out) :: IND
   REAL(rkind),PARAMETER:: eps=1.D-12
 
-  CALL WFWGT(NE,R,Z,WGT)
+  CALL wf_set_weight(NE,R,Z,WGT)
 
   IF(WGT(1).GT.eps) THEN
      IF(WGT(2).GT.eps) THEN
@@ -160,7 +154,7 @@ END SUBROUTINE WFCLASS
 !     ******* WEIGHT CALCULATION *******
 !     WEIGHT MEANS AREA COORDINATE
 
-SUBROUTINE WFWGT(NE,R,Z,WGT)
+SUBROUTINE wf_set_weight(NE,R,Z,WGT)
   
   use wfcomm
   implicit none
@@ -170,19 +164,19 @@ SUBROUTINE WFWGT(NE,R,Z,WGT)
   real(rkind),intent(out):: WGT(3)
   real(rkind) :: A(3),B(3),C(3)
   
-  call WFABC(NE,A,B,C)
+  call wf_set_abc(NE,A,B,C)
 
   DO IN=1,3
      WGT(IN)=A(IN)+B(IN)*R+C(IN)*Z
   ENDDO
 
   RETURN
-END SUBROUTINE WFWGT
+END SUBROUTINE wf_set_weight
 
 !     ******* A,B,C CALCULATION *******
 !     A,B,C ARE USED BY AREA COORDINATE 
 
-SUBROUTINE WFABC(NE,A,B,C)
+SUBROUTINE wf_set_abc(NE,A,B,C)
 
   use wfcomm
   implicit none
@@ -191,7 +185,7 @@ SUBROUTINE WFABC(NE,A,B,C)
   real(rkind),intent(out)::A(3),B(3),C(3) 
   real(rkind) :: RE(3),ZE(3),S
   
-  CALL WFNODE(NE,RE,ZE)
+  CALL wf_set_node(NE,RE,ZE)
   S=SELM(NE)
 
   do I=1,3
@@ -206,11 +200,11 @@ SUBROUTINE WFABC(NE,A,B,C)
   end do
     
   RETURN
-END SUBROUTINE WFABC
+END SUBROUTINE wf_set_abc
 
 !     ******* TOTAL COORDINATE - LOCAL COORDINATE *******
 
-SUBROUTINE WFNODE(NE,RE,ZE)
+SUBROUTINE wf_set_node(NE,RE,ZE)
   
   use wfcomm
   implicit none
@@ -219,22 +213,21 @@ SUBROUTINE WFNODE(NE,RE,ZE)
   real(rkind),intent(out):: RE(3),ZE(3)
   
   DO IN=1,3
-     NN=NDELM(IN,NE)
-     RE(IN)=RNODE(NN)
-     ZE(IN)=ZNODE(NN)
+     NN=node_nside_nelm(IN,NE)
+     RE(IN)=xnode(NN)
+     ZE(IN)=ynode(NN)
   END DO
 
   RETURN
-END SUBROUTINE WFNODE
+END SUBROUTINE wf_set_node
 
 !     *******  INITIALISE SURFACE INTEGRAL OF ELEMENT FUNCTION *******
 
-SUBROUTINE SETAIF
+SUBROUTINE wf_set_aif
 
   use wfcomm
   implicit none
   integer :: ID(3,3),I,L1,L2,L3,J,K
-  real(rkind) :: AIF
 
   DATA ID/1,3*0,1,3*0,1/
   
@@ -258,7 +251,7 @@ SUBROUTINE SETAIF
   ENDDO
  
   RETURN
-END SUBROUTINE SETAIF
+END SUBROUTINE wf_set_aif
 
 !     ******* SURFACE INTEGRAL OF ELEMENT FUNCTION *******
 !     KAI(X) = X! (X FACTORIAL)
@@ -279,12 +272,11 @@ END FUNCTION AIF
 
 !     *******  INITIALISE LINE INTEGRAL OF ELEMENT FUNCTION *******
 
-SUBROUTINE SETAIE
+SUBROUTINE wf_set_aie
 
   use wfcomm
   implicit none
   integer :: ID(3,3),I,L1,L2,L3,J,K
-  real(rkind) :: AIE
 
   DATA ID/1,0,0,0,1,0,0,0,1/
   
@@ -308,7 +300,7 @@ SUBROUTINE SETAIE
   ENDDO
  
   RETURN
-END SUBROUTINE SETAIE
+END SUBROUTINE wf_set_aie
 
 !     ******* LINE INTEGRAL OF ELEMENT FUNCTION *******
 !     KAI(X) = X! (X FACTORIAL)
@@ -327,230 +319,16 @@ FUNCTION AIE(L1,L2,L3)
   RETURN
 END FUNCTION AIE
 
-!     ****** Set Boundary Attribute for Side and Node ******
 
-SUBROUTINE wf_setbdy(IERR)
+!     ***** SET BOUNDARY ELECTRIC FIELD *****
 
-  use wfcomm
-  implicit none
-  integer,intent(out) :: IERR
-  integer :: ISD,NSD,NE
-  integer :: NN1,NN2,NN3,NSD1,NSD2,NSD3
-  integer :: NEL,NSDL
-
-! ----- SET NSDMAX & KNELM -----
-! NBSID :: Number of Boundary Side
-! KNELM(ISD,NE) :: THE ELEMENT WHICH SHARE THE SIDE (ISD,NE)
-!                  IF KNELM.EQ.0, SIDE IS BOUNDARY
-
-  if(nrank.eq.0) WRITE(6,*) '------- SETBDY set NSDMAX & KNELM start ---'
-
-!  WRITE(6,'(A,2I8)') 'NEMAX,NNMAX=',NEMAX,NNMAX
-  NBSID=0
-  DO NE=1,NEMAX
-     NN1=NDELM(1,NE)
-     NN2=NDELM(2,NE)
-     NN3=NDELM(3,NE)
-     CALL EFINDS(NE,NN1,NN2,KNELM(1,NE))
-     CALL EFINDS(NE,NN2,NN3,KNELM(2,NE))
-     CALL EFINDS(NE,NN3,NN1,KNELM(3,NE))
-     IF(KNELM(1,NE).EQ.0) NBSID=NBSID+1
-     IF(KNELM(2,NE).EQ.0) NBSID=NBSID+1
-     IF(KNELM(3,NE).EQ.0) NBSID=NBSID+1
-!     IF(nrank.EQ.0.AND.MOD(NE-1,100).EQ.0) &
-!          WRITE(6,'(A,7I8)') 'SETBDY NE,NNs,NEs:', &
-!          NE,NN1,NN2,NN3,KNELM(1,NE),KNELM(2,NE),KNELM(3,NE)
-  ENDDO
-  NSDMAX=(3*NEMAX-NBSID)/2+NBSID
-
-  call wfsid_allocate
-
-!  ----- SET NSDELM -----
-!  KANOD :: IF NODE IS ON THE BOUNDARY, 1
-
-  if(nrank.eq.0) WRITE(6,*) '------- SETBDY set NSDELM start ---'
-
-  NSD=0
-
-  DO NE=1,NEMAX
-     NN1=NDELM(1,NE)
-     NN2=NDELM(2,NE)
-     NN3=NDELM(3,NE)
-
-! --- CREATE FOR THE FIRST TIME, SIDE IS NEW ---
-
-     IF(KNELM(1,NE).GE.NE) THEN
-        KANOD(NN1)=0
-        KANOD(NN2)=0
-        NSD=NSD+1
-        NSDELM(1,NE)=NSD
-        IF(NSD.LE.NSDMAX) THEN
-           INSID(NSD)=1
-           NESID(NSD)=NE
-           NDSID(1,NSD)=NN1
-           NDSID(2,NSD)=NN2
-        ENDIF
-     ENDIF
-     IF(KNELM(2,NE).GE.NE) THEN
-        KANOD(NN2)=0
-        KANOD(NN3)=0
-        NSD=NSD+1
-        NSDELM(2,NE)=NSD
-        IF(NSD.LE.NSDMAX) THEN
-           INSID(NSD)=2
-           NESID(NSD)=NE
-           NDSID(1,NSD)=NN2
-           NDSID(2,NSD)=NN3
-        ENDIF
-     ENDIF
-     IF(KNELM(3,NE).GE.NE) THEN
-        KANOD(NN3)=0
-        KANOD(NN1)=0
-        NSD=NSD+1
-        NSDELM(3,NE)=NSD
-        IF(NSD.LE.NSDMAX) THEN
-           INSID(NSD)=3
-           NESID(NSD)=NE
-           NDSID(1,NSD)=NN3
-           NDSID(2,NSD)=NN1
-        ENDIF
-     ENDIF
-
-! --- ALREADY CREATED ---
-
-     IF(KNELM(1,NE).LT.NE.AND.KNELM(1,NE).GT.0) THEN
-        NEL=KNELM(1,NE)
-        DO ISD=1,3
-           NSDL=ABS(NSDELM(ISD,NEL))
-           IF (NSDL.NE.0) THEN
-              IF  ((NDSID(1,NSDL).EQ.NN1).AND.&
-                  &(NDSID(2,NSDL).EQ.NN2)) THEN
-                 NSDELM(1,NE)=NSDL
-              ELSEIF((NDSID(1,NSDL).EQ.NN2).AND.&
-                   & (NDSID(2,NSDL).EQ.NN1)) THEN
-                 NSDELM(1,NE)=-NSDL
-              END IF
-           ENDIF
-        ENDDO
-     ENDIF
-     IF(KNELM(2,NE).LT.NE.AND.KNELM(2,NE).GT.0) THEN
-        NEL=KNELM(2,NE)
-        DO ISD=1,3
-           NSDL=ABS(NSDELM(ISD,NEL))
-           IF (NSDL.NE.0) THEN
-              IF  ((NDSID(1,NSDL).EQ.NN2).AND.&
-                  &(NDSID(2,NSDL).EQ.NN3)) THEN
-                 NSDELM(2,NE)=NSDL
-              ELSEIF((NDSID(1,NSDL).EQ.NN3).AND.&
-                   & (NDSID(2,NSDL).EQ.NN2)) THEN
-                 NSDELM(2,NE)=-NSDL
-              ENDIF
-           ENDIF
-        ENDDO
-     ENDIF
-     IF(KNELM(3,NE).LT.NE.AND.KNELM(3,NE).GT.0) THEN
-        NEL=KNELM(3,NE)
-        DO ISD=1,3
-           NSDL=ABS(NSDELM(ISD,NEL))
-           IF (NSDL.NE.0) THEN
-              IF  ((NDSID(1,NSDL).EQ.NN3).AND.&
-                  &(NDSID(2,NSDL).EQ.NN1)) THEN
-                 NSDELM(3,NE)=NSDL
-              ELSEIF((NDSID(1,NSDL).EQ.NN1).AND.&
-                   & (NDSID(2,NSDL).EQ.NN3)) THEN
-                 NSDELM(3,NE)=-NSDL
-              ENDIF
-           END IF
-        ENDDO
-     ENDIF
-
-! --- SIDE IS ON THE BOUNDARY, SIDE IS NEW ---
-
-     IF(KNELM(1,NE).EQ.0) THEN
-        KANOD(NN1)=1
-        KANOD(NN2)=1
-        NSD=NSD+1
-        NSDELM(1,NE)=NSD
-        IF(NSD.LE.NSDMAX) THEN
-           INSID(NSD)=1
-           NESID(NSD)=NE
-           NDSID(1,NSD)=NN1
-           NDSID(2,NSD)=NN2
-        ENDIF
-     ENDIF
-     IF(KNELM(2,NE).EQ.0) THEN
-        KANOD(NN2)=1
-        KANOD(NN3)=1
-        NSD=NSD+1
-        NSDELM(2,NE)=NSD
-        IF(NSD.LE.NSDMAX) THEN
-           INSID(NSD)=2
-           NESID(NSD)=NE
-           NDSID(1,NSD)=NN2
-           NDSID(2,NSD)=NN3
-        ENDIF
-     ENDIF
-     IF(KNELM(3,NE).EQ.0) THEN
-        KANOD(NN3)=1
-        KANOD(NN1)=1
-        NSD=NSD+1
-        NSDELM(3,NE)=NSD
-        IF(NSD.LE.NSDMAX) THEN
-           INSID(NSD)=3
-           NESID(NSD)=NE
-           NDSID(1,NSD)=NN3
-           NDSID(2,NSD)=NN1
-        ENDIF
-     ENDIF
-  ENDDO
-
-  
-!  DO NSD=1,NSDMAX
-!     write(*,*) "NESID,INSID,NSD",NESID(NSD),INSID(NSD),NSD
-!  ENDDO
-
-!  DO NE=1,NEMAX
-!     DO I=1,3
-!        write(*,*) "NE,I,NSDELM",NE,I,NSDELM(I,NE)
-!     end DO
-!  end DO
-
-!    DO NE=1,NEMAX
-!     DO I=1,3
-!        write(*,*) "NE,I,KNELM",NE,I,KNELM(I,NE)
-!     end DO
-!  end DO
-
- ! ----- SET KASID -----
-
-  if(nrank.eq.0) WRITE(6,*) '------- SETBDY set KASID start ---'
-
-  DO NSD=1,NSDMAX
-     KASID(NSD)=0
-  ENDDO
-
-  DO NE=1,NEMAX
-     NSD1=ABS(NSDELM(1,NE))
-     NSD2=ABS(NSDELM(2,NE))
-     NSD3=ABS(NSDELM(3,NE))
-     IF(KNELM(1,NE).EQ.0) KASID(NSD1)=1
-     IF(KNELM(2,NE).EQ.0) KASID(NSD2)=1
-     IF(KNELM(3,NE).EQ.0) KASID(NSD3)=1
-  ENDDO
-  
-  IERR=0
-  RETURN
-END SUBROUTINE wf_setbdy
-
-!     ***** SET Waveguide ELECTRIC FIELD *****
-
-SUBROUTINE wf_setewg
+SUBROUTINE wf_set_ewg
 
   USE wfcomm
   USE wfload,ONLY: wf_read_wg 
   implicit none
-  INTEGER:: NSD,NN1,NN2,NN,NBSD,NBND,IERR
-  REAL(rkind):: ANGLE,R,Z,PHASE,PROD,FACTOR,SN
+  INTEGER:: nseg,NN1,NN2,NN,NBSD,NBND,IERR
+  REAL(rkind):: ANGLE,X,Y,PHASE,PROD,FACTOR,SN
   COMPLEX(rkind):: CEX,CEY,CEZ
   REAL(rkind),PARAMETER:: EPSWG=1.D-12
 
@@ -558,66 +336,73 @@ SUBROUTINE wf_setewg
 
 ! --- WG Electric field on boundary side ---  
 
-  NBSID=0
-  DO NSD=1,NSDMAX
-     IF(KASID(NSD).EQ.1) NBSID=NBSID+1
+  nseg_bdy_max=0
+  DO nseg=1,nseg_max
+     IF(KASID(nseg).EQ.1) nseg_bdy_max=nseg_bdy_max+1
   END DO
-  IF(nrank.EQ.0) write(6,*) 'NBSID=',NBSID
+  IF(nrank.EQ.0) write(6,*) '## setewg: nseg_bdy_max=',nseg_bdy_max
   IF(ALLOCATED(NSDBS)) DEALLOCATE(NSDBS)
   IF(ALLOCATED(CEBSD)) DEALLOCATE(CEBSD)
-  ALLOCATE(NSDBS(NBSID))
-  ALLOCATE(CEBSD(NBSID))
-  ALLOCATE(PFLUXBDY(NBSID))
-  NBSID=0
-  DO NSD=1,NSDMAX
-     IF(KASID(NSD).EQ.1) THEN
-        NBSID=NBSID+1
-        NSDBS(NBSID)=NSD
-        KBSID(NSD)=NBSID
+  ALLOCATE(NSDBS(nseg_bdy_max))
+  ALLOCATE(CEBSD(nseg_bdy_max))
+  nseg_bdy_max=0
+  DO nseg=1,nseg_max
+     IF(KASID(nseg).EQ.1) THEN
+        nseg_bdy_max=nseg_bdy_max+1
+        NSDBS(nseg_bdy_max)=nseg
+        KBSID(nseg)=nseg_bdy_max
      ELSE
-        KBSID(NSD)=0
+        KBSID(nseg)=0
      END IF
   END DO
-  DO NBSD=1,NBSID
-     NSD=NSDBS(NBSD)
-     NN1=NDSID(1,NSD)
-     NN2=NDSID(2,NSD)
-     R=0.5D0*(RNODE(NN1)+RNODE(NN2))
-     Z=0.5D0*(ZNODE(NN1)+ZNODE(NN2))
+  DO NBSD=1,nseg_bdy_max
+     nseg=NSDBS(NBSD)
+     NN1=node_nseg(1,nseg)
+     NN2=node_nseg(2,nseg)
+     X=0.5D0*(xnode(NN1)+xnode(NN2))
+     Y=0.5D0*(ynode(NN1)+ynode(NN2))
      SELECT CASE(MODELWG)
      CASE(0,1)
-        IF((R.GE.R1WG).AND.(R.LE.R2WG).AND. &
-           (Z.GE.Z1WG).AND.(Z.LE.Z2WG)) THEN
-           PROD=(R2WG-R1WG)*(RNODE(NN2)-RNODE(NN1)) &
-               +(Z2WG-Z1WG)*(ZNODE(NN2)-ZNODE(NN1))
-           IF(ABS(R1WG-R2WG).LT.1.D-8) THEN
-              FACTOR=(Z-0.5D0*(Z1WG+Z2WG))**2/(Z1WG-Z2WG)**2
-           ELSE IF(ABS(Z1WG-Z2WG).LT.1.D-8) THEN
-              FACTOR=(R-0.5D0*(R1WG+R2WG))**2/(R1WG-R2WG)**2
+        IF((X.GE.X1WG).AND.(X.LE.X2WG).AND. &
+           (Y.GE.Y1WG).AND.(Y.LE.Y2WG)) THEN
+           WRITE(6,'(A,2ES12.4)') 'X,Y in WG:',X,Y
+           PROD=(X2WG-X1WG)*(xnode(NN2)-xnode(NN1)) &
+               +(Y2WG-Y1WG)*(ynode(NN2)-ynode(NN1))
+           IF(ABS(X1WG-X2WG).LT.1.D-8) THEN
+              FACTOR=(Y-0.5D0*(Y1WG+Y2WG))**2/(Y1WG-Y2WG)**2
+           ELSE IF(ABS(Y1WG-Y2WG).LT.1.D-8) THEN
+              FACTOR=(X-0.5D0*(X1WG+X2WG))**2/(X1WG-X2WG)**2
            ELSE
-              FACTOR=(R-0.5D0*(R1WG+R2WG))**2/(R1WG-R2WG)**2 &
-                    +(Z-0.5D0*(Z1WG+Z2WG))**2/(Z1WG-Z2WG)**2
+              FACTOR=(X-0.5D0*(X1WG+X2WG))**2/(X1WG-X2WG)**2 &
+                    +(Y-0.5D0*(Y1WG+Y2WG))**2/(Y1WG-Y2WG)**2
            END IF
-           SN=SQRT((R   -R1WG)**2+(Z   -Z1WG)**2) &
-             /SQRT((R2WG-R1WG)**2+(Z2WG-Z1WG)**2) ! SN=0 at 1, 1 at 2
+           SN=SQRT((X   -X1WG)**2+(Y   -Y1WG)**2) &
+             /SQRT((X2WG-X1WG)**2+(Y2WG-Y1WG)**2) ! SN=0 at 1, 1 at 2
            PHASE=(PH1WG+(PH2WG-PH1WG)*SN+DPHWG*4.D0*SN*(1.D0-SN))*PI/180.D0
-           CEBSD(NBSD)= AMPWG*EXP(CII*PHASE)*(COS(ANGLE)+CII*ELPWG*SIN(ANGLE))
+           CEBSD(NBSD)= AMPWG*EXP(CII*PHASE)*(SIN(ANGLE)-CII*ELPWG*COS(ANGLE))
            IF(MODELWG.EQ.1) CEBSD(NBSD)=CEBSD(NBSD)*EXP(-10.D0*FACTOR)
            IF(PROD.GT.0.D0) CEBSD(NBSD)=-CEBSD(NBSD)
-           IF(nrank.EQ.0) &
-                WRITE(23,'(A,2I8,1P5E12.4)') &
-                'SD:',NSD,NBSD,CEBSD(NBSD),AMPWG,PHASE,ANGLE
+           WRITE(71,'(A,2I6,3ES12.4)') 'nbsd:',NBSD,nseg,X,Y,FACTOR
+           WRITE(71,'(A,4ES12.4)')     '     ',SN,PHASE,EXP(CII*PHASE)
+           WRITE(71,'(A,4ES12.4)') &
+                '     ',ANGLE,ELPWG,(SIN(ANGLE)-CII*ELPWG*COS(ANGLE))
+           WRITE(71,'(A,4ES12.4)') &
+                '     ',AMPWG,EXP(-10.D0*FACTOR),CEBSD(NBSD)
+           IF(nrank.EQ.0.AND.idebug.EQ.3) &
+                WRITE(6,'(A,2I8,1P5E12.4)') &
+                'SD:',nseg,NBSD,CEBSD(NBSD),AMPWG,PHASE,ANGLE
         ELSE
            CEBSD(NBSD)=(0.D0,0.D0)
         END IF
      CASE(12)
-        IF((R.GE.R1WG-EPSWG).AND.(R.LE.R2WG+EPSWG).AND. &
-           (Z.GE.Z1WG-EPSWG).AND.(Z.LE.Z2WG+EPSWG)) THEN
-           PROD=(R2WG-R1WG)*(RNODE(NN2)-RNODE(NN1)) &
-               +(Z2WG-Z1WG)*(ZNODE(NN2)-ZNODE(NN1))
-           CALL wf_read_wg(Z,CEX,CEY,CEZ,IERR)
-           IF(nrank.EQ.0) write(23,'(A,1P6E12.4)') 'R,Z,CEY=', &
-                                    R,Z,CEY,PROD,ZNODE(NN2)-ZNODE(NN1)
+        IF((X.GE.X1WG-EPSWG).AND.(X.LE.X2WG+EPSWG).AND. &
+           (Y.GE.Y1WG-EPSWG).AND.(Y.LE.Y2WG+EPSWG)) THEN
+           PROD=(X2WG-X1WG)*(xnode(NN2)-xnode(NN1)) &
+               +(Y2WG-Y1WG)*(ynode(NN2)-ynode(NN1))
+           CALL wf_read_wg(Y,CEX,CEY,CEZ,IERR)
+           IF(nrank.EQ.0.AND.idebug.EQ.3) &
+                write(6,'(A,1P6E12.4)') 'R,Z,CEY=', &
+                                    X,Y,CEY,PROD,ynode(NN2)-ynode(NN1)
 !!!           IF(PROD.GT.0.D0) CEY=-CEY
            CEBSD(NBSD)=AMPWG*CEY
         ELSE
@@ -628,57 +413,64 @@ SUBROUTINE wf_setewg
 
 ! --- WG Electric field on boundary node ---  
 
-  NBNOD=0
-  DO NN=1,NNMAX
-     IF(KANOD(NN).EQ.1) NBNOD=NBNOD+1
+  node_bdy_max=0
+  DO NN=1,node_max
+     IF(KANOD(NN).EQ.1) node_bdy_max=node_bdy_max+1
   END DO
-  IF(nrank.EQ.0) write(6,*) 'NBNOD=',NBNOD
+  IF(nrank.EQ.0) write(6,*) '## setewg: node_bdy_max=',node_bdy_max
   IF(ALLOCATED(NNDBS)) DEALLOCATE(NNDBS)
   IF(ALLOCATED(CEBND)) DEALLOCATE(CEBND)
-  ALLOCATE(NNDBS(NBNOD))
-  ALLOCATE(CEBND(NBNOD))
-  NBNOD=0
-  DO NN=1,NNMAX
+  ALLOCATE(NNDBS(node_bdy_max))
+  ALLOCATE(CEBND(node_bdy_max))
+  node_bdy_max=0
+  DO NN=1,node_max
      IF(KANOD(NN).EQ.1) THEN
-        NBNOD=NBNOD+1
-        NNDBS(NBNOD)=NN
-        KBNOD(NN)=NBNOD
+        node_bdy_max=node_bdy_max+1
+        NNDBS(node_bdy_max)=NN
+        KBNOD(NN)=node_bdy_max
      ELSE
         KBNOD(NN)=0
      END IF
   END DO
-  DO NBND=1,NBNOD
+  DO NBND=1,node_bdy_max
      NN=NNDBS(NBND)
-     R=RNODE(NN)
-     Z=ZNODE(NN)
+     X=xnode(NN)
+     Y=ynode(NN)
      SELECT CASE(MODELWG)
      CASE(0,1)
-        IF((R.GE.R1WG).AND.(R.LE.R2WG).AND. &
-           (Z.GE.Z1WG).AND.(Z.LE.Z2WG)) THEN
-           IF(ABS(R1WG-R2WG).LT.1.D-8) THEN
-              FACTOR=(Z-0.5D0*(Z1WG+Z2WG))**2/(Z1WG-Z2WG)**2
-           ELSE IF(ABS(Z1WG-Z2WG).LT.1.D-8) THEN
-              FACTOR=(R-0.5D0*(R1WG+R2WG))**2/(R1WG-R2WG)**2
+        IF((X.GE.X1WG).AND.(X.LE.X2WG).AND. &
+           (Y.GE.Y1WG).AND.(Y.LE.Y2WG)) THEN
+           IF(ABS(X1WG-X2WG).LT.1.D-8) THEN
+              FACTOR=(Y-0.5D0*(Y1WG+Y2WG))**2/(Y1WG-Y2WG)**2
+           ELSE IF(ABS(Y1WG-Y2WG).LT.1.D-8) THEN
+              FACTOR=(x-0.5D0*(X1WG+X2WG))**2/(X1WG-X2WG)**2
            ELSE
-              FACTOR=(R-0.5D0*(R1WG+R2WG))**2/(R1WG-R2WG)**2 &
-                    +(Z-0.5D0*(Z1WG+Z2WG))**2/(Z1WG-Z2WG)**2
+              FACTOR=(X-0.5D0*(X1WG+X2WG))**2/(X1WG-X2WG)**2 &
+                    +(Y-0.5D0*(Y1WG+Y2WG))**2/(Y1WG-Y2WG)**2
            END IF
-           SN=SQRT((R   -R1WG)**2+(Z   -Z1WG)**2) &
-                /SQRT((R2WG-R1WG)**2+(Z2WG-Z1WG)**2) ! SN=0 at 1, 1 at 2
+           SN=SQRT((X   -X1WG)**2+(Y   -Y1WG)**2) &
+                /SQRT((X2WG-X1WG)**2+(Y2WG-Y1WG)**2) ! SN=0 at 1, 1 at 2
            PHASE=(PH1WG+(PH2WG-PH1WG)*SN+DPHWG*4.D0*SN*(1.D0-SN))*PI/180.D0
-           CEBND(NBND)= AMPWG*EXP(CII*PHASE)*(SIN(ANGLE)-CII*ELPWG*COS(ANGLE))
+           CEBND(NBND)= AMPWG*EXP(CII*PHASE)*(COS(ANGLE)+CII*ELPWG*SIN(ANGLE))
            IF(MODELWG.EQ.1) CEBND(NBND)=CEBND(NBND)*EXP(-10.D0*FACTOR)
-           IF(nrank.EQ.0) &
-                WRITE(23,'(A,2I8,1P5E12.4)') &
+           WRITE(71,'(A,2I6,3ES12.4)') 'nbnd:',NBND,NN,X,Y,FACTOR
+           WRITE(71,'(A,4ES12.4)')     '     ',SN,PHASE,EXP(CII*PHASE)
+           WRITE(71,'(A,4ES12.4)') &
+                '     ',ANGLE,ELPWG,(COS(ANGLE)+CII*ELPWG*SIN(ANGLE))
+           WRITE(71,'(A,4ES12.4)') &
+                '     ',AMPWG,EXP(-10.D0*FACTOR),CEBND(NBND)
+           IF(nrank.EQ.0.AND.idebug.EQ.3) &
+                WRITE(6,'(A,2I8,1P5E12.4)') &
                 'ND:',NN,NBND,CEBND(NBND),AMPWG,PHASE,ANGLE
         ELSE
            CEBND(NBND)=(0.D0,0.D0)
         END IF
      CASE(12)
-        IF((R.GE.R1WG-EPSWG).AND.(R.LE.R2WG+EPSWG).AND. &
-           (Z.GE.Z1WG-EPSWG).AND.(Z.LE.Z2WG+EPSWG)) THEN
-           CALL wf_read_wg(Z,CEX,CEY,CEZ,IERR)
-           IF(nrank.EQ.0) write(23,'(A,1P4E12.4)') 'R,Z,CEZ=',R,Z,CEZ
+        IF((X.GE.X1WG-EPSWG).AND.(X.LE.X2WG+EPSWG).AND. &
+           (Y.GE.Y1WG-EPSWG).AND.(Y.LE.Y2WG+EPSWG)) THEN
+           CALL wf_read_wg(Y,CEX,CEY,CEZ,IERR)
+           IF(nrank.EQ.0.AND.idebug.EQ.3) &
+                write(6,'(A,1P4E12.4)') 'X,Y,CEZ=',X,Y,CEZ
            CEBND(NBND)=AMPWG*CEZ
         ELSE
            CEBND(NBND)=(0.D0,0.D0)
@@ -686,197 +478,38 @@ SUBROUTINE wf_setewg
      END SELECT
      END DO
   RETURN
-END SUBROUTINE wf_setewg
+END SUBROUTINE wf_set_ewg
 
 !     ***** SET LENGTH OF SIDE *****
 
-SUBROUTINE wf_setlsd
+SUBROUTINE wf_set_lside
   use wfcomm
   implicit none
 
-  integer :: NSD,ND1,ND2
+  integer :: nseg,ND1,ND2
   real(rkind) :: R1,R2,Z1,Z2,L
 
-  do NSD=1,NSDMAX
-     LSID(NSD)=0.d0
+  do nseg=1,nseg_max
+     LSID(nseg)=0.d0
   end do
 
-  do NSD=1,NSDMAX
-     ND1=NDSID(1,NSD)
-     ND2=NDSID(2,NSD)
-     R1 =RNODE(ND1)
-     R2 =RNODE(ND2)
-     Z1 =ZNODE(ND1)
-     Z2 =ZNODE(ND2)
+  do nseg=1,nseg_max
+     ND1=node_nseg(1,nseg)
+     ND2=node_nseg(2,nseg)
+     R1 =xnode(ND1)
+     R2 =xnode(ND2)
+     Z1 =ynode(ND1)
+     Z2 =ynode(ND2)
 
      L =SQRT((R2-R1)**2+(Z2-Z1)**2)
-     LSID(NSD)=L
+     LSID(nseg)=L
   end do
   return
-end SUBROUTINE wf_setlsd
-
-!     ****** MODIFY ANTENNA DATA ******
-
-SUBROUTINE wf_modant(IERR)
-  
-  use wfcomm
-  implicit none
-
-  integer,intent(out) :: IERR
-  integer :: NE,NA,NSD,L,KN,LS,N,ID,NENEXT,NENEW
-  real(rkind) :: RC,ZC
-
-  NE=0
-  DO NA=1,NAMAX
-     CALL FEP(RJ0(1,NA),ZJ0(1,NA),NE)
-     IF(nrank.EQ.0) &
-          WRITE(6,'(A,I5,1P2E12.4,I5)') 'NA,RJ0,ZJ0=',NA,RJ0(1,NA),ZJ0(1,NA),NE
-!    outside starting point
-
-     IF(NE.EQ.0) THEN
-        IF(JNUM0(NA).EQ.1) GOTO 8500 ! error: one point and outside
-        DO NSD=1,NSDMAX              ! look for crossing boundary
-           L =INSID(NSD)
-           NE=NESID(NSD)
-           KN=KNELM(L,NE)
-
-           IF(KN.eq.0) THEN 
-              CALL CROS(RJ0(1,NA),ZJ0(1,NA),&
-                   &    RJ0(2,NA),ZJ0(2,NA),&
-                   &    NE,L,RC,ZC,IERR)
-              IF(IERR.EQ.0) THEN
-                 LS=L
-                 GOTO 1000   ! crossing point on boundary found
-              ENDIF
-           ENDIF
-
-        ENDDO
-        GOTO 8000 ! error: no crossing boundary found
-        
-1000    CONTINUE  ! set starting point (N=1)
-        N=1
-        RJ(N,NA)=RC
-        ZJ(N,NA)=ZC
-        JELMT(N,NA)=NE
-        IF(IDEBUG.EQ.3) THEN
-           if(nrank.eq.0) WRITE(6,'(A,3I8,1P3E12.4)') 'NA,N,NE,R,Z:1=' ,&
-                &NA,N,NE,RJ(N,NA),ZJ(N,NA)
-        ENDIF
-
-!    inside starting point
-
-     ELSE
-        N=1
-        RJ(N,NA)=RJ0(1,NA)
-        ZJ(N,NA)=ZJ0(1,NA)
-        JELMT(N,NA)=NE
-        IF(IDEBUG.EQ.3) THEN
-           if(nrank.eq.0) WRITE(6,'(A,3I8,1P3E12.4)') 'NA,N,NE,R,Z:2=',&
-                &NA,N,NE,RJ(N,NA),ZJ(N,NA)
-        ENDIF
-        LS=0
-     ENDIF
-     
-     DO ID=2,JNUM0(NA)
-        NENEXT=NE
-        CALL FEP(RJ0(ID,NA),ZJ0(ID,NA),NENEXT)
-3000    CONTINUE
-        IF(NENEXT.EQ.NE) GOTO 4500 ! next antenna node in the same element
-        DO L=1,3                   ! look for crossing point
-           IF(L.NE.LS) THEN
-              CALL CROS(RJ (N ,NA),ZJ (N ,NA),&
-                   &    RJ0(ID,NA),ZJ0(ID,NA),&
-                   &         NE,L,RC,ZC,IERR)
-              IF(IERR.EQ.0) THEN
-                 LS=L
-                 GOTO 4000 ! crossing point found
-              ENDIF
-           ENDIF
-        ENDDO
-        GOTO 8100 
-        
-4000    IF(N+1.GT.NJM) GOTO 8200 ! error: number of antenna nodes overflow 
-        N=N+1
-        RJ(N,NA)=RC
-        ZJ(N,NA)=ZC
-        JELMT(N,NA)=NE
-        IF(IDEBUG.EQ.3) THEN
-           if(nrank.eq.0) WRITE(6,'(A,3I8,1P3E12.4)') 'NA,N,NE,R,Z:3=',&
-                &NA,N,NE,RJ(N,NA),ZJ(N,NA)
-        ENDIF
-        NENEW=KNELM(LS,NE) ! look for neighboring element
-        IF(NENEW.GT.0) THEN ! element found
-           DO L=1,3
-              IF(KNELM(L,NENEW).EQ.NE) LS=L
-           ENDDO
-           NE=NENEW         ! set side LS and element NE
-        ELSE
-           IF(ID.EQ.JNUM0(NA).AND.NENEXT.LE.0) GOTO 6000 ! last point outside
-           GOTO 8400 ! error: cross point to outside
-        ENDIF
-        GOTO 3000 ! look for next cross point 
-        
-4500    IF(N+1.GT.NJM) GOTO 8200 ! error: number of antenna nodes overflow 
-        N=N+1
-        RJ(N,NA)=RJ0(ID,NA)
-        ZJ(N,NA)=ZJ0(ID,NA)
-        JELMT(N,NA)=NE
-        LS=0
-        IF(IDEBUG.EQ.3) THEN
-           if(nrank.eq.0) WRITE(6,'(A,3I8,1P3E12.4)') 'NA,N,NE,R,Z:4=',&
-                & NA,N,NE,RJ(N,NA),ZJ(N,NA)
-        ENDIF
-     ENDDO
-     
-6000 JNUM(NA)=N
-  ENDDO
-  IERR=0
-  RETURN
-  
-8000 IERR=8000
-  JNUM(NA)=N
-  if(nrank.eq.0) WRITE(6,800) IERR,NA,N
-800 FORMAT(' ','## MODANT ERROR : IERR = ',I5/&
-         & ' ','                : CANNOT FIND BOUNDARY POINT'/&
-         & ' ','                : NA,N=',2I7)
-  JNUM(NA)=N
-  RETURN
-  
-8100 IERR=8100
-  if(nrank.eq.0) WRITE(6,810) IERR,NA,ID,N
-810 FORMAT(' ','## MODANT ERROR : IERR = ',I5/&
-         & ' ','                : CANNOT FIND NEXT CROSSPOINT'/&
-         & ' ','                : NA,ID,N =',3I7)
-  JNUM(NA)=N
-  RETURN
-  
-8200 if(nrank.eq.0) WRITE(6,820) NA,ID,N,NJM
-820 FORMAT(' ','## MODANT ERROR : N.GT.NJM '/&
-         & ' ','                : NA,ID,N,NJM = ',4I7)
-  IERR=8200
-  JNUM(NA)=N
-  RETURN
-  
-8400 IERR=8400
-  if(nrank.eq.0) WRITE(6,840) IERR,NA,ID,NE,N
-840 FORMAT(' ','## MODANT ERROR : IERR =',I5/&
-         & ' ','                : ABMORMAL END OF ANTENNA DATA '/&
-         & ' ','                : NA,ID,NE,N = ',4I7)
-  JNUM(NA)=N
-  IERR=8400
-  RETURN
-  
-8500 IERR=8500
-  if(nrank.eq.0) WRITE(6,850) IERR,NA,NE,JNUM0(NA)
-850 FORMAT(' ','## MODANT ERROR : IERR = ',I5/&
-         & ' ','                : NA,NE,JNUM0 = ',3I7)
-  RETURN
-  
-END SUBROUTINE wf_modant
+end SUBROUTINE wf_set_lside
 
 !     ******* CALCULATE POINT OF INTERSECTION *******
 
-SUBROUTINE CROS(R1,Z1,R2,Z2,IE,L,RC,ZC,IERR)
+SUBROUTINE wf_cross(R1,Z1,R2,Z2,IE,L,RC,ZC,IERR)
   
   use wfcomm
   implicit none
@@ -891,12 +524,12 @@ SUBROUTINE CROS(R1,Z1,R2,Z2,IE,L,RC,ZC,IERR)
   
   M=L+1
   if(M.gt.3) M=M-3
-  N1=NDELM(L,IE)
-  N2=NDELM(M,IE)
-  R3=RNODE(N1)
-  Z3=ZNODE(N1)
-  R4=RNODE(N2)
-  Z4=ZNODE(N2)
+  N1=node_nside_nelm(L,IE)
+  N2=node_nside_nelm(M,IE)
+  R3=xnode(N1)
+  Z3=ynode(N1)
+  R4=xnode(N2)
+  Z4=ynode(N2)
 
   R12=R1-R2
   Z12=Z1-Z2
@@ -921,32 +554,32 @@ SUBROUTINE CROS(R1,Z1,R2,Z2,IE,L,RC,ZC,IERR)
 
 9100 IERR=9100
   RETURN
-END SUBROUTINE CROS
+END SUBROUTINE wf_cross
 
 !     ****** COMPLEX VALUE FIELD AT ELEMENT(NE),POINT(R,Z) [R]******
 
-SUBROUTINE FIELDCR(NE,R,Z,CVALUE,CE)
+SUBROUTINE wf_fieldcr(NE,R,Z,CVALUE,CE)
 
   use wfcomm
   implicit none
   integer,intent(in) :: NE
-  integer :: ISD,M,N,NSD
+  integer :: ISD,M,N,nseg
   real(rkind),intent(in) :: R,Z
   real(rkind) :: A(3),B(3),C(3),AW(3),BW(3),WEIGHT,L
-  complex(rkind),intent(in) :: CVALUE(NSDMAX)
+  complex(rkind),intent(in) :: CVALUE(nseg_max)
   complex(rkind):: CF
   complex(rkind),intent(out) :: CE
 
-  CALL WFABC(NE,A,B,C)
+  CALL wf_set_abc(NE,A,B,C)
   do ISD=1,3
-     NSD=ABS(NSDELM(ISD,NE))
+     nseg=ABS(nseg_nside_nelm(ISD,NE))
      IF(MODELWF.EQ.0) THEN
-        L=LSID(NSD)
+        L=LSID(nseg)
      ELSE
-        IF(NSDELM(ISD,NE).GT.0.D0) THEN
-           L=LSID(NSD)
+        IF(nseg_nside_nelm(ISD,NE).GT.0.D0) THEN
+           L=LSID(nseg)
         ELSE
-           L=-LSID(NSD)
+           L=-LSID(nseg)
         END IF
      END IF
 
@@ -959,46 +592,46 @@ SUBROUTINE FIELDCR(NE,R,Z,CVALUE,CE)
   CE=(0.d0,0.d0)
 
   DO ISD=1,3
-     NSD=NSDELM(ISD,NE)
-     if(NSD.lt.0) then
-        NSD=-NSD
-        CF=-CVALUE(NSD)
+     nseg=nseg_nside_nelm(ISD,NE)
+     if(nseg.lt.0) then
+        nseg=-nseg
+        CF=-CVALUE(nseg)
      else
-        CF=CVALUE(NSD)
+        CF=CVALUE(nseg)
      end if
      WEIGHT=AW(ISD)-BW(ISD)*Z
      CE=CE+WEIGHT*CF
      IF(idebug.EQ.-1) &
-          WRITE(6,'(A,I6,I4,I6,1P5E12.4)') 'FR:',NE,ISD,NSD,weight,CF,CE
+          WRITE(6,'(A,I10,I5,1P5E12.4)') 'FR:',NE,ISD,weight,CF,CE
   END DO
 
   RETURN
-END SUBROUTINE FIELDCR
+END SUBROUTINE wf_fieldcr
 
 !     ****** COMPLEX VALUE FIELD AT ELEMENT(NE),POINT(R,Z) [Z]******
 
-SUBROUTINE FIELDCZ(NE,R,Z,CVALUE,CE)
+SUBROUTINE wf_fieldcz(NE,R,Z,CVALUE,CE)
 
   use wfcomm
   implicit none
   integer,intent(in) :: NE
-  integer :: ISD,M,N,NSD
+  integer :: ISD,M,N,nseg
   real(rkind),intent(in) :: R,Z
   real(rkind) :: A(3),B(3),C(3),BW(3),CW(3),WEIGHT,L
-  complex(rkind),intent(in) :: CVALUE(NSDMAX)
+  complex(rkind),intent(in) :: CVALUE(nseg_max)
   complex(rkind):: CF
   complex(rkind),intent(out) :: CE
 
-  CALL WFABC(NE,A,B,C)
+  CALL wf_set_abc(NE,A,B,C)
   do ISD=1,3
-     NSD=ABS(NSDELM(ISD,NE))
+     nseg=ABS(nseg_nside_nelm(ISD,NE))
      IF(MODELWF.EQ.0) THEN
-        L=LSID(NSD)
+        L=LSID(nseg)
      ELSE
-        IF(NSDELM(ISD,NE).GT.0.D0) THEN
-           L=LSID(NSD)
+        IF(nseg_nside_nelm(ISD,NE).GT.0.D0) THEN
+           L=LSID(nseg)
         ELSE
-           L=-LSID(NSD)
+           L=-LSID(nseg)
         END IF
      END IF
      
@@ -1011,23 +644,23 @@ SUBROUTINE FIELDCZ(NE,R,Z,CVALUE,CE)
   CE=(0.d0,0.d0)
 
   DO ISD=1,3
-     NSD=NSDELM(ISD,NE)
-     if(NSD.lt.0) then
-        NSD=-NSD
-        CF=-CVALUE(NSD)
+     nseg=nseg_nside_nelm(ISD,NE)
+     if(nseg.lt.0) then
+        nseg=-nseg
+        CF=-CVALUE(nseg)
      else
-        CF=CVALUE(NSD)
+        CF=CVALUE(nseg)
      end if
      WEIGHT=-CW(ISD)+BW(ISD)*R
      CE=CE+WEIGHT*CF
   END DO
 
   RETURN
-END SUBROUTINE FIELDCZ
+END SUBROUTINE wf_fieldcz
 
 !     ****** COMPLEX VALUE FIELD AT ELEMENT(NE),POINT(R,Z) [PHI] ******
 
-SUBROUTINE FIELDCP(NE,R,Z,CVALUE,CE)
+SUBROUTINE wf_fieldcp(NE,R,Z,CVALUE,CE)
 
   use wfcomm
   implicit none
@@ -1035,148 +668,21 @@ SUBROUTINE FIELDCP(NE,R,Z,CVALUE,CE)
   integer :: NN,IN
   real(rkind),intent(in) :: R,Z
   real(rkind) :: A(3),B(3),C(3),WEIGHT(3)
-  complex(rkind),intent(in) :: CVALUE(NNMAX)
+  complex(rkind),intent(in) :: CVALUE(node_max)
   complex(rkind):: CF
   complex(rkind),intent(out) :: CE
 
-  CALL WFABC(NE,A,B,C)
-  CALL WFWGT(NE,R,Z,WEIGHT)
+  CALL wf_set_abc(NE,A,B,C)
+  CALL wf_set_weight(NE,R,Z,WEIGHT)
   CE=(0.d0,0.d0)
 
   DO IN=1,3
-     NN=NDELM(IN,NE)
+     NN=node_nside_nelm(IN,NE)
      CF=CVALUE(NN)
      CE=CE+WEIGHT(IN)*CF
   END DO
 
   RETURN
-END SUBROUTINE FIELDCP
+END SUBROUTINE wf_fieldcp
 
-!     ****** REAL VALUE FIELD AT ELEMENT(NE),POINT(R,Z) [R]******
-
-SUBROUTINE FIELDRR(NE,R,Z,FA,F)
-
-  use wfcomm
-  implicit none
-  integer,intent(in) :: NE
-  integer :: ISD,M,N,NSD
-  real(rkind),intent(in) :: R,Z
-  real(rkind) :: A(3),B(3),C(3),AW(3),BW(3),WEIGHT,L
-  REAL(rkind),intent(in) :: FA(NSDMAX)
-  REAL(rkind):: FL
-  REAL(rkind),intent(out) :: F
-
-  CALL WFABC(NE,A,B,C)
-  do ISD=1,3
-     NSD=ABS(NSDELM(ISD,NE))
-     IF(MODELWF.EQ.0) THEN
-        L=LSID(NSD)
-     ELSE
-        IF(NSDELM(ISD,NE).GT.0.D0) THEN
-           L=LSID(NSD)
-        ELSE
-           L=-LSID(NSD)
-        END IF
-     END IF
-
-     M=ISD
-     N=ISD+1
-     IF(N.gt.3) N=N-3
-     AW(ISD)=L*(A(M)*B(N)-A(N)*B(M))
-     BW(ISD)=L*(B(M)*C(N)-B(N)*C(M))
-  end do
-
-  F=0.D0
-  DO ISD=1,3
-     NSD=NSDELM(ISD,NE)
-     if(NSD.lt.0) then
-        NSD=-NSD
-        FL=-FA(NSD)
-     else
-        FL=FA(NSD)
-     end if
-     WEIGHT=AW(ISD)-BW(ISD)*Z
-     F=F+WEIGHT*FL
-     IF(idebug.EQ.-1) &
-          WRITE(6,'(A,I6,I4,I6,1P3E12.4)') 'FR:',NE,ISD,NSD,weight,FL,F
-  END DO
-
-  RETURN
-END SUBROUTINE FIELDRR
-
-!     ****** REAL VALUE FIELD AT ELEMENT(NE),POINT(R,Z) [Z]******
-
-SUBROUTINE FIELDRZ(NE,R,Z,FA,F)
-
-  use wfcomm
-  implicit none
-  integer,intent(in) :: NE
-  integer :: ISD,M,N,NSD
-  real(rkind),intent(in) :: R,Z
-  real(rkind) :: A(3),B(3),C(3),BW(3),CW(3),WEIGHT,L
-  REAL(rkind),intent(in) :: FA(NSDMAX)
-  REAL(rkind):: FL
-  REAL(rkind),intent(out) :: F
-
-  CALL WFABC(NE,A,B,C)
-  do ISD=1,3
-     NSD=ABS(NSDELM(ISD,NE))
-     IF(MODELWF.EQ.0) THEN
-        L=LSID(NSD)
-     ELSE
-        IF(NSDELM(ISD,NE).GT.0.D0) THEN
-           L=LSID(NSD)
-        ELSE
-           L=-LSID(NSD)
-        END IF
-     END IF
-     
-     M=ISD
-     N=ISD+1
-     IF(N.gt.3) N=N-3
-     BW(ISD)=L*(B(M)*C(N)-B(N)*C(M))
-     CW(ISD)=L*(C(M)*A(N)-C(N)*A(M))
-  end do
-
-  F=0.D0
-  DO ISD=1,3
-     NSD=NSDELM(ISD,NE)
-     if(NSD.lt.0) then
-        NSD=-NSD
-        FL=-FA(NSD)
-     else
-        FL=FA(NSD)
-     end if
-     WEIGHT=-CW(ISD)+BW(ISD)*R
-     F=F+WEIGHT*FL
-  END DO
-
-  RETURN
-END SUBROUTINE FIELDRZ
-
-!     ****** REAL VALUE FIELD AT ELEMENT(NE),POINT(R,Z) [PHI] ******
-
-SUBROUTINE FIELDRP(NE,R,Z,FA,F)
-
-  use wfcomm
-  implicit none
-  integer,intent(in) :: NE
-  integer :: NN,IN
-  real(rkind),intent(in) :: R,Z
-  real(rkind) :: A(3),B(3),C(3),WEIGHT(3)
-  REAL(rkind),intent(in) :: FA(NNMAX)
-  REAL(rkind):: FL
-  REAL(rkind),intent(out) :: F
-
-  CALL WFABC(NE,A,B,C)
-  CALL WFWGT(NE,R,Z,WEIGHT)
-
-  F=0.D0
-  DO IN=1,3
-     NN=NDELM(IN,NE)
-     FL=FA(NN)
-     F=F+WEIGHT(IN)*FL
-  END DO
-
-  RETURN
-END SUBROUTINE FIELDRP
+END MODULE wfsub

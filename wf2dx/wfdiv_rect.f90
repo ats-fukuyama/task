@@ -2,16 +2,14 @@
   
 MODULE wfdiv_rect
 
-  USE wfcomm, &
-       nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
-       xnode=>rnode,ynode=>znode,itype_mesh=>iddiv
+  USE wfcomm
 
   REAL(rkind):: xr_min=0.D0
-  REAL(rkind):: xr_max=0.D0
+  REAL(rkind):: xr_max=1.D0
   REAL(rkind):: yr_min=0.D0
-  REAL(rkind):: yr_max=0.D0
-  REAL(rkind):: del_xr=1.D0
-  REAL(rkind):: del_yr=1.D0
+  REAL(rkind):: yr_max=1.D0
+  REAL(rkind):: del_xr=1.D-2
+  REAL(rkind):: del_yr=1.D-2
 
   PRIVATE
   PUBLIC wf_div_rect_input
@@ -68,11 +66,11 @@ CONTAINS
     IF(MOD(nyr_max,2).EQ.0) nyr_max=nyr_max+1 ! nyr_max should be odd number
     dyr=DBLE(yr_len/(nyr_max-1))
     node_max=nxr_max*nyr_max
-    CALL wfelm_allocate
+    CALL wf_node_allocate
 
     ! --- set nelm_max ---
     nelm_max=2*(nxr_max-1)*(nyr_max-1)
-    CALL wfelm_allocate
+    CALL wf_nelm_allocate
 
     ! --- set node coordinates ---
 

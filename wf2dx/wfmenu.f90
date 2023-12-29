@@ -1,16 +1,25 @@
-subroutine wfmenu
+! wfmenu.f90
+
+MODULE wfmenu
+
+  PRIVATE
+  PUBLIC wf_menu
+
+CONTAINS
+
+  SUBROUTINE wf_menu
 
   use libmpi
   use wfcomm
+  USE plparm
+  USE dpparm
   USE wfparm
-  USE wfdiv
-  USE wfwaveC
-  USE wfwaveK
   USE plload, ONLY: pl_load
   USE wfload, ONLY: wf_load_wg
-  USE femmeshprep
-  USE feminterpolate
-  USE wftest
+  USE wfdiv
+  USE wfant
+  USE wfwave
+  USE wfgout
   USE libkio
   implicit none
   
@@ -22,8 +31,8 @@ subroutine wfmenu
 1 continue
 
   IF(nrank.EQ.0) THEN
-     WRITE(6,*) '## INPUT: P,V:PARM  D:DIV  A:ANT', &
-                         ' R,C:WAVE G:GRAPH  S,L:FILE  Q:QUIT'
+     WRITE(6,*) '## INPUT: P,V:parm  D:div  A:ant', &
+                         ' R:run C:check G:graph  S,L:file  Q:QUIT'
      CALL TASK_KLIN(LINE,KID,MODE,WF_PARM)
   END IF
   call mtx_barrier
@@ -34,6 +43,8 @@ subroutine wfmenu
 
   if     (KID.eq.'P') then
      if(nrank.eq.0) call wf_parm(0,'wf',IERR)
+     call pl_broadcast
+     call dp_broadcast
      call wfparm_broadcast
      goto 1
   elseif (KID.eq.'V') then
@@ -41,34 +52,19 @@ subroutine wfmenu
   elseif (KID.eq.'D') then
      call wf_div
   elseif (KID.eq.'A') then
-!     if (NNMAX.eq.0) call WFRELM(ID)
-     call WFANT
+     call wf_ant
   elseif (KID.eq.'C') then
-     SELECT CASE(model_dielectric)
-     CASE(1)
-        CALL wf_wpre_cold(ierr)
-     CASE(3)
-        CALL wf_wpre_kinetic(ierr)
-     END SELECT
+     call wf_wpre(IERR)
   elseif (KID.eq.'R') then
-     SELECT CASE(model_dielectric)
-     CASE(1)
-        CALL wf_wave_cold
-     CASE(3)
-        CALL wf_wave_kinetic
-     END SELECT
+     call wf_wave
   elseif (KID.eq.'G') then
-     if (nrank.eq.0) call WFGOUT
-!  elseif (KID.eq.'S') then
-!     call WFWFLD
+     if (nrank.eq.0) call wf_gout
   elseif (KID.eq.'L') then
      IDEBUG_SAVE=IDEBUG
      IDEBUG=1
      CALL pl_load(ierr)
      CALL wf_load_wg(ierr)
      IDEBUG=IDEBUG_SAVE
-  elseif (KID.eq.'T') then
-     if(nrank.eq.0) call wf_test
   elseif (KID.eq.'?') then
      if(nrank.eq.0) call WFINFO
   elseif (KID.eq.'Q') then
@@ -78,14 +74,22 @@ subroutine wfmenu
   goto 1
 
 9000 continue
+  if(node_max_save.ne.0) call wf_node_deallocate
+  if(nelm_max_save.ne.0) call wf_nelm_deallocate
+  if(nseg_max_save.ne.0) call wf_nseg_deallocate
+  if(nelm_max_sort_save.NE.0) call wf_sort_deallocate
+  if(nelm_max_solve_save.ne.0) call wf_solve_deallocate
+  if(node_max_field_save.ne.0) call wf_field_deallocate
+  if(ngxmax_save.ne.0) call wf_win_deallocate
   return
-end subroutine wfmenu
+end subroutine wf_menu
 
 !     ***** DEBUG INFORMATION ROUTINE *****
 
 subroutine WFINFO
   
   use wfcomm
+  USE wfindex
   USE libchar
   implicit none
   integer   :: IE,IN,NN,NE,IA,IS,NSD
@@ -110,8 +114,8 @@ subroutine WFINFO
      write(6,'(A)') '   NN           R           Z  KA'
      write(6,*)     '---------------------------------'
      do IN=1,3
-        NN=NDELM(IN,IE)
-        write(6,'(I5,1P2E12.4,1X,I3)') NN,RNODE(NN),ZNODE(NN),KANOD(NN)
+        NN=node_nside_nelm(IN,IE)
+        write(6,'(I5,1P2E12.4,1X,I3)') NN,xnode(NN),ynode(NN),KANOD(NN)
      end do
      goto 8002
      
@@ -119,14 +123,14 @@ subroutine WFINFO
 8003 write(6,*) '## INPUT: Node number '
      read(5,*,ERR=8003,END=8001) NN
      if(NN.eq.0) goto 8001
-     write(6,'(A,1P2E12.4,I5)') '   RNODE,ZNODE,KA =',&
-          RNODE(NN),ZNODE(NN),KANOD(NN)
+     write(6,'(A,1P2E12.4,I5)') '   xnode,ynode,KA =',&
+          xnode(NN),ynode(NN),KANOD(NN)
      write(6,*) '---------------------------'
      write(6,*) '  Sides including this node'
      write(6,*) '---------------------------'
-     do NSD=1,NSDMAX
+     do NSD=1,nseg_max
         do IN=1,2
-           if(NDSID(IN,NSD).eq.NN) then
+           if(node_nseg(IN,NSD).eq.NN) then
               write(6,'(A,2I8)') '   NSD,IN =',&
                    NSD,IN
            end if
@@ -154,26 +158,26 @@ subroutine WFINFO
 8006 write(6,*) '## INPUT: NE,R,Z'
      read(5,*,ERR=8006,END=8001) NE,R,Z
      if(NE.le.0) goto 8001
-     if(NE.gt.NEMAX) NE=NEMAX
-     call FEP(R,Z,NE)
+     if(NE.gt.nelm_max) NE=nelm_max
+     call wf_fep(R,Z,NE)
      write(6,*) '   NE =',NE
      if(NE.ne.0) then
         write(6,*) '  NODE=',&
-             NDELM(1,NE),NDELM(2,NE),NDELM(3,NE)
+             node_nside_nelm(1,NE),node_nside_nelm(2,NE),node_nside_nelm(3,NE)
      end if
      goto 8006
      
   elseif(KID.eq.'V') then
-     do NN=1,NNMAX
+     do NN=1,node_max
         if(KANOD(NN).gt.0) then
            write(6,'(I5,1P3E12.4)')&
-                NN,RNODE(NN),ZNODE(NN)
+                NN,xnode(NN),ynode(NN)
         end if
      end do
 
   elseif(KID.eq.'S') then
-     do NSD=1,NSDMAX
-        write(6,*) NSD,NDSID(1,NSD),NDSID(2,NSD),KASID(NSD)
+     do NSD=1,nseg_max
+        write(6,*) NSD,node_nseg(1,NSD),node_nseg(2,NSD),KASID(NSD)
      end do
      
   elseif(KID.eq.'X') then
@@ -183,3 +187,5 @@ subroutine WFINFO
 
 9000 return
 end subroutine WFINFO
+
+END MODULE wfmenu

@@ -2,9 +2,9 @@
 
 MODULE femmeshprep
 
-  USE wfcomm,ONLY: rkind
-  LOGICAL:: fem_mesh_allocated=.FALSE.
-  INTEGER:: nseg_max,nside_max
+  USE wfcomm,ONLY: rkind,long
+!  INTEGER:: nseg_max
+  INTEGER:: nside_max
   INTEGER:: nelm_node_max
   REAL(rkind):: xnode_min,xnode_max,ynode_min,ynode_max
   REAL(rkind):: vol_tot
@@ -12,38 +12,40 @@ MODULE femmeshprep
   REAL(rkind),ALLOCATABLE:: xcenter_nelm(:),ycenter_nelm(:)
   REAL(rkind),ALLOCATABLE:: vol_nelm(:)
   REAL(rkind),ALLOCATABLE:: xcenter_nseg(:),ycenter_nseg(:)
-  INTEGER,ALLOCATABLE:: node_nseg(:,:),nelm_nseg(:,:)
+!  INTEGER,ALLOCATABLE:: node_nseg(:,:)
+  INTEGER,ALLOCATABLE:: nelm_nseg(:,:)
   INTEGER,ALLOCATABLE:: idir_nside_nelm(:,:),idseg_nseg(:)
-  INTEGER,ALLOCATABLE:: nseg_nside_nelm(:,:)
-  INTEGER,ALLOCATABLE:: nelm1_nside_nelm(:,:),nside1_nside_nelm(:,:)
+!  INTEGER,ALLOCATABLE:: nseg_nside_nelm(:,:)
+  INTEGER,ALLOCATABLE:: nelm1_nside_nelm(:,:)
+  INTEGER,ALLOCATABLE:: nside1_nside_nelm(:,:)
   INTEGER,ALLOCATABLE:: nelm_nangle_node(:,:),nelm_max_node(:)
 
 ! --- prepartion of mesh related variables ---
 
   PUBLIC fem_meshprep
+  
+  INTEGER:: nelm_max_mesh_save=0
+  INTEGER:: nseg_max_mesh_save=0
+  INTEGER:: nside_max_mesh_save=0
 
 CONTAINS
 
   SUBROUTINE fem_mesh_allocate
-    USE wfcomm, &
-         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
-         xnode=>rnode,ynode=>znode
+    USE wfcomm
     IMPLICIT NONE
-    INTEGER,SAVE:: nseg_max_save=0,nside_max_save=0,nelm_max_save=0
 
-    IF(fem_mesh_allocated) THEN
-       IF((nseg_max .EQ.nseg_max_save ).AND. &
-          (nside_max.EQ.nside_max_save).AND. &
-          (nelm_max .EQ.nelm_max_save )) RETURN
-       CALL fem_mesh_deallocate
-    ENDIF
+    IF((nelm_max .EQ.nelm_max_mesh_save ).AND. &
+       (nseg_max .EQ.nseg_max_mesh_save ).AND. &
+       (nside_max.EQ.nside_max_mesh_save)) RETURN
+    IF(nelm_max_mesh_save.NE.0) CALL fem_mesh_deallocate
 
     ALLOCATE(xcenter_nelm(nelm_max),ycenter_nelm(nelm_max))
     ALLOCATE(vol_nelm(nelm_max))
     ALLOCATE(xcenter_nseg(nseg_max),ycenter_nseg(nseg_max))
     ALLOCATE(idseg_nseg(nseg_max))
-    ALLOCATE(nelm_nseg(2,nseg_max),node_nseg(2,nseg_max))
-    ALLOCATE(nseg_nside_nelm(nside_max,nelm_max))
+    ALLOCATE(nelm_nseg(2,nseg_max))
+!    ALLOCATE(node_nseg(2,nseg_max))
+!    ALLOCATE(nseg_nside_nelm(nside_max,nelm_max))
     ALLOCATE(idir_nside_nelm(nside_max,nelm_max))
     ALLOCATE(nelm1_nside_nelm(nside_max,nelm_max))
     ALLOCATE(nside1_nside_nelm(nside_max,nelm_max))
@@ -53,32 +55,32 @@ CONTAINS
     IF(nrank.eq.0) WRITE(6,'(A,3I8)') '   nelm_max,nseg_max,nside_max=', &
                                           nelm_max,nseg_max,nside_max
 
-    nseg_max_save =nseg_max
-    nside_max_save=nside_max
-    nelm_max_save =nelm_max
+    nelm_max_mesh_save =nelm_max
+    nseg_max_mesh_save =nseg_max
+    nside_max_mesh_save=nside_max
 
-    fem_mesh_allocated=.TRUE.
     RETURN
   END SUBROUTINE fem_mesh_allocate
 
   SUBROUTINE fem_mesh_deallocate
-    USE wfcomm, &
-         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
-         xnode=>rnode,ynode=>znode
+    USE wfcomm
     IMPLICIT NONE
 
     DEALLOCATE(xcenter_nelm,ycenter_nelm)
     DEALLOCATE(vol_nelm)
     DEALLOCATE(xcenter_nseg,ycenter_nseg)
     DEALLOCATE(idseg_nseg)
-    DEALLOCATE(nelm_nseg,node_nseg)
-    DEALLOCATE(nseg_nside_nelm)
+    DEALLOCATE(nelm_nseg)
+!    DEALLOCATE(node_nseg)
+!    DEALLOCATE(nseg_nside_nelm)
     DEALLOCATE(idir_nside_nelm)
     DEALLOCATE(nelm1_nside_nelm)
     DEALLOCATE(nside1_nside_nelm)
     DEALLOCATE(nelm_max_node)
+    nelm_max_mesh_save =0
+    nseg_max_mesh_save =0
+    nside_max_mesh_save=0
 
-    fem_mesh_allocated=.FALSE.
     RETURN
   END SUBROUTINE fem_mesh_deallocate
 
@@ -86,20 +88,19 @@ CONTAINS
   SUBROUTINE fem_meshprep
 !**********************************************************************
 
-    USE wfcomm, &
-         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
-         xnode=>rnode,ynode=>znode
+    USE wfcomm
     IMPLICIT NONE
-    INTEGER,ALLOCATABLE:: node_nsega(:,:),nsega_nside_nelm(:,:)
+    INTEGER,ALLOCATABLE:: node_nsega(:,:)
+    INTEGER,ALLOCATABLE:: nsega_nside_nelm(:,:)
     INTEGER,ALLOCATABLE:: nsega_pair(:),nsega_nseg(:),nseg_nsega(:)
     INTEGER,ALLOCATABLE:: ncount_max_nxzone_nyzone(:,:)
     INTEGER,ALLOCATABLE:: nsega_ncount_nxzone_nyzone(:,:,:)
     INTEGER,ALLOCATABLE:: nelm_nsega(:),nside_nsega(:)
     REAL(rkind),ALLOCATABLE:: xcenter_nsega(:),ycenter_nsega(:)
-    INTEGER:: nelm,nseg_all,nside,nseg,nsega,nsega1,nelm1,nside1
-    INTEGER:: node
-    INTEGER:: n1,n2,n3
-    INTEGER:: ncount,ncount_zone_max
+    INTEGER:: nseg,nsega,nseg_all,nsega1
+    INTEGER:: nelm,nside,n1,n2,n3
+    INTEGER:: nelm1,nside1
+    INTEGER:: node,ncount,ncount_zone_max
     INTEGER:: nx,ny
     REAL(rkind):: x,y,xc,yc,xc1,yc1,xlen_zone,ylen_zone
     REAL(rkind):: x1,y1,x2,y2,x3,y3,xg,yg,s,v,xgsum,ygsum,vsum
@@ -276,6 +277,8 @@ CONTAINS
     END DO
     nseg_max=nseg
 
+    CALL wf_nseg_allocate
+
 !   --- allocate fluid mesh variables ---
 
     CALL fem_mesh_allocate
@@ -385,9 +388,7 @@ CONTAINS
   !   --- setup nelm_node ---
 
   SUBROUTINE fem_setup_nelm_node
-    USE wfcomm, &
-         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
-         xnode=>rnode,ynode=>znode
+    USE wfcomm
     IMPLICIT NONE
     INTEGER:: nelm,nside,node
 

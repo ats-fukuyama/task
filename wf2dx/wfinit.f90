@@ -2,7 +2,10 @@
 
 MODULE WFINIT
 
-! **** INITIALIZE AND UPDATE INPUT PARAMETERS ******
+  ! **** INITIALIZE AND UPDATE INPUT PARAMETERS ******
+
+  PRIVATE
+  PUBLIC wf_init
 
 CONTAINS
 
@@ -10,9 +13,10 @@ CONTAINS
 
   SUBROUTINE WF_INIT
 
-    use wfcomm
+    USE wfcomm
+    USE plcomm
     implicit none
-    integer :: NA,NM,NS
+    integer :: nant,NM,NS,id
 
 !     *** CONTROL PARAMETERS ***
 !
@@ -20,27 +24,10 @@ CONTAINS
 !              * 0 : exp(-i omega t)
 !                1 : exp( j omega t)
 
-!        MODELD = Dielectric Tensor Model
-!              * 0 : Cold
-
-!        MODELP = Density Profile
-!                0 : Flat
-!                1 : Step function with radius R/RA 
-!              * 2 : Parabolic with radius R/RA
-
-!   model_dielectric: model of dielectric
-!                1 : cold plasma
-!                2 : warm plasma (k_para ~ n_phi/R)
-!                3 : kinetic plasma
-    
     CALL pl_allocate_ns
 
     MODELI=0
     MODELG=2
-    MODELD=0
-    MODELP=2
-
-    model_dielectric=1
 
 !        KFNAME: File name of element data
 !        KFNAMA: File name of antenna data
@@ -99,18 +86,27 @@ CONTAINS
 
 !     *** ANTENNA PARAMETERS ***
 !
-!        NAMAX : Number of antennae
-!        AJ    : Antenna current density                       (A/m)
-!        APH   : Antenna phase                              (degree)
-!        AWD   : Antenna width in (z, phi, Z) direction     (degree)
-!        APOS  : Antenna position in (z, phi, Z) direction  (degree)
+!        nant_max : Number of antennae
+!        AJ(NAM)    : Antenna current density                       (A/m)
+!        APH(NAM)   : Antenna phase                              (degree)
+!        AWD(NAM)   : Antenna width in (z, phi, Z) direction     (degree)
+!        APOS(NAM)  : Antenna position in (z, phi, Z) direction  (degree)
+!        PIN(AM)   : Input Power (W)
+!        RD(NAM)    : Antenna radius (m)
+!        THETJ1(NAM): Start angle of arc antenna (degree)
+!        THETJ2(NAM): End angle of arc antenna (degree)
+!        nant_point_max(NAM) : Number of primary grid points of antenna
 
-    NAMAX=0
-    DO NA=1,NAM
-       AJ(NA)   = 1.D0
-       APH(NA)  = 0.D0
-       AWD(NA)  = 0.D0
-       APOS(NA) = 0.D0
+    nant_max=0
+    DO nant=1,NAM
+       AJ(nant)            = 1.D0
+       APH(nant)           = 0.D0
+       AWD(nant)           = 0.D0
+       APOS(nant)          = 0.D0
+       PIN(nant)           = 1.D0
+       RD(nant)            = 0.1855D0
+       THETJ1(nant)        = 40.D0
+       THETJ2(nant)        =-40.D0
     ENDDO
 
 !     *** PLASMA PARAMETERS ***
@@ -191,9 +187,12 @@ CONTAINS
     ypos_coll_enhance  =0.D0
     ywidth_coll_enhance=0.01D0
 
-  !     *** MEDIUM PARAMETERS ***
+    !     *** interpolation level ***
+    !                   0: element center value
+    !                   1: local linear interpolation
+    model_interpolation=1
 
-    call wfmed_allocate
+    !     *** MEDIUM PARAMETERS ***
 
     NMMAX=0
     DO NM=1,NMM
@@ -202,7 +201,7 @@ CONTAINS
        SIGDM(NM)=0.D0
     ENDDO
   
-    NBMAX=0
+!    NBMAX=0
 
 !     *** OUTPUT PARAMETERS ***
 !
@@ -242,8 +241,8 @@ CONTAINS
 
 !     *** variable_sort parameters ***
 
-   sort_weight_x=1.D0
-   sort_weight_y=1.D0
+    sort_weight_x=1.D0
+    sort_weight_y=1.D0
 
 !     *** DIVIDER PARAMETERS ***
 
@@ -259,26 +258,13 @@ CONTAINS
     BDZMIN =-0.5d0
     BDZMAX = 0.5d0
 
-!     *** ANTENNA SHAPE PARAMETERS ***
-
-!        PIN   : Input Power (W)
-!        RD    : Antenna radius (m)
-!        THETJ1: Start angle of arc antenna (degree)
-!        THETJ2: End angle of arc antenna (degree)
-!        NJMAX : Number of primary grid points of antenna
-
-    PIN    = 1.D0
-    RD     = 0.1855D0
-    THETJ1 = 40.D0
-    THETJ2 =-40.D0
-    NJMAX  = 41
 
     MODELWG=1         ! Profile: 0: step function, 1: gaussian
                       !         12: read file
-    R1WG=0.5D0
-    Z1WG=0.0D0
-    R2WG=0.5D0
-    Z2WG=0.05D0
+    X1WG=0.5D0
+    Y1WG=0.0D0
+    X2WG=0.5D0
+    Y2WG=0.05D0
     PH1WG=0.D0
     PH2WG=180.D0
     AMPWG=0.D0        ! Amplitude of waveguide electric field
@@ -294,9 +280,9 @@ CONTAINS
 
 !     *** GRAPHICS PARAMETER ***
 
-    NGXMAX = 101
-    NGYMAX = 101
-    NGVMAX = 101  
+    NGXMAX = 31
+    NGYMAX = 31
+    NGVMAX = 31  
 
     GFACTOR= 0.5
 
@@ -307,10 +293,16 @@ CONTAINS
 
     tolerance = 1.D-8
 
-!     *** DEBUG CONTROL PARAMETER ***
-    ! --- idebug=3 : wg e-field output ---
+    !     *** DEBUG CONTROL PARAMETER ***
+    
+    ! --- idebuga( 1) : wfdiv
+    ! --- idebuga( 2) : wfant
+    ! --- idebuga( 3) : wg e-field output ---
+    ! --- idebuga( 4) : wfindex
 
-    IDEBUG = 0
+    DO id=1,idebuga_max
+       idebuga(id)=0
+    END DO
 
 !     *** LOAD FILE NAME ***
 
@@ -319,10 +311,10 @@ CONTAINS
 
 !     *** INITIALIZATION PARAMETERS (DO NOT MODIFY) ***
 
-    NNMAX  = 0
-    nemax=0
-    nsdmax=0
-    mlen=0
+    node_max  = 0
+    nelm_max=0
+    nseg_bdy_max=0
+    mtx_len=0
     rdamp_min=0.D0
     rdamp_max=0.D0
     zdamp_min=0.D0
@@ -337,5 +329,5 @@ CONTAINS
     MODELWF=0         ! side field: 0: positive 1: alternative
 
     RETURN
-END SUBROUTINE WF_INIT
+  END SUBROUTINE WF_INIT
 END MODULE WFINIT

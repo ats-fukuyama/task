@@ -1,41 +1,40 @@
 ! wfdiv.f90
 
-!     ######### /TASK/WF2D/WFDIV ########
+MODULE wfdiv
+
+!     ######### /TASK/WF2/WFDIV ########
 !
 !      MESH DATA GENERATION PROGRAM
 !
 !     #################################
 
-MODULE wfdiv
-
   PRIVATE
   PUBLIC wf_div
 
 CONTAINS
-
-  SUBROUTINE wf_div
-
-    USE wfcomm
-    USE wfparm
-    USE wfdiv_rect
-    USE wfdiv_circle
-    USE libmpi
-    USE libchar
   
-    IMPLICIT NONE
-    INTEGER   :: NE,NN,IERR
-    CHARACTER :: KID*1
+  subroutine wf_div
 
-1   continue
+  use libmpi
+  USE libchar
+  use wfcomm
+  use wfparm
+  USE wfindex
+  USE wfgsub
+  implicit none
+  integer   :: NE,NN,IERR
+  character :: KID*1
 
-    if (nrank.eq.0) then  
-       write(6,*) '## INPUT: D/DIV  G/DRAW  P,V/PARM ',&
-                  'S/SAVE  L/LOAD  W/LIST  X/EXIT'
-       read(5,'(A1)',ERR=1,END=9000) KID
-       call toupper(KID)
-    end if
-    call mtx_barrier
-    call mtx_broadcast_character(KID,1)
+1 continue
+
+  if (nrank.eq.0) then  
+     write(6,*) '## INPUT: D/DIV  G/DRAW  P,V/PARM ',&
+                          'S/SAVE  L/LOAD  W/LIST  X/EXIT'
+     read(5,'(A1)',ERR=1,END=9000) KID
+     call toupper(KID)
+  end if
+  call mtx_barrier
+  call mtx_broadcast_character(KID,1)
   
   if(KID.eq.'D') then
      NZMH = NZM/2
@@ -52,42 +51,79 @@ CONTAINS
      call mtx_barrier
      call mtx_broadcast_character(KID,1)
 
-     IF(nrank.EQ.0) THEN
-        IF(KID.EQ.'X') THEN
-           CALL wf_div_rect_input
-        ELSEIF(KID.EQ.'C') THEN
-           CALL wf_div_circle_input
-        END IF
-     END IF
-     CALL wfdiv_broadcast
-     
-     IF(KID.EQ.'X') THEN
-        CALL wf_div_rect_exec
-     ELSEIF(KID.EQ.'C') THEN
-        CALL wf_div_circle_exec
-     END IF
+     if(nrank.eq.0)then
+        if(KID.eq.'X') then
+3          write(6,'(A,4F10.4)') '## DIV:   BDRMIN,BDRMAX,BDZMIN,BDZMAX = ',&
+                                            BDRMIN,BDRMAX,BDZMIN,BDZMAX
+           write(6,'(A)')        '## INPUT: BDRMIN,BDRMAX,BDZMIN,BDZMAX ? '
+           read(5,*,ERR=3,END=2)            BDRMIN,BDRMAX,BDZMIN,BDZMAX
+           write(6,'(A,4F10.4)') '## DIV:   BDRMIN,BDRMAX,BDZMIN,BDZMAX = ',&
+                                            BDRMIN,BDRMAX,BDZMIN,BDZMAX
+4          write(6,'(A,2F10.4)') '## DIV:   DELR,DELZ = ',DELR,DELZ
+           write(6,'(A)')        '## INPUT: DELR,DELZ ? '
+           read(5,*,ERR=4,END=2) DELR,DELZ
+           write(6,'(A,2F10.4)') '## DIV:   DELR,DELZ = ',DELR,DELZ
+           write(6,'(A)')        '## INPUT: DELR,DELZ ? '
+           if(abs(DELR).le.1.d-6.or.abs(DELZ).le.1.d-6) goto 2
+           itype_mesh=1
+           r_corner(1)=BDRMIN
+           z_corner(1)=BDZMIN
+           r_corner(2)=BDRMAX
+           z_corner(2)=BDZMIN
+           r_corner(3)=BDRMIN
+           z_corner(3)=BDZMAX
+           
+        elseif(KID.eq.'C') then
+5          write(6,'(A15,F10.4)') '## DIV:   RB = ',RB
+           write(6,'(A15)')       '## INPUT: RB ? '
+           read(5,*,ERR=5,END=2) RB
+           BDRMIN=-RB
+           BDRMAX= RB
+           BDZMIN=-RB
+           BDZMAX= RB
+6          write(6,'(A17,F10.4)') '## DIV:   DELR = ',DELR
+           write(6,'(A17)')       '## INPUT: DELR ? '
+           read(5,*,ERR=6,END=2) DELR
+           if(abs(DELR).le.1.D-6) goto 2
+           itype_mesh=2
+           r_corner(1)=BDRMIN
+           z_corner(1)=BDZMIN
+           r_corner(2)=BDRMAX
+           z_corner(2)=BDZMIN
+           r_corner(3)=BDRMIN
+           z_corner(3)=BDZMAX
 
-     if(nrank.eq.0) write(6,*) '--- WFINDX start ---'
-     call WFINDX
+        end if
+
+     end if
+
+     call wfdiv_broadcast
+     if(KID.eq.'X') then
+        call SETNODX
+     elseif(KID.eq.'C') then
+        call SETNODC
+     end if
+
+     if(nrank.eq.0) write(6,*) '--- WFINDEX start ---'
+     call wf_index
      if(nrank.eq.0) write(6,*) '--- WFFEPI start ---'
-     call WFFEPI
+     call wf_set_fep
   
      NKMAX=1
-     do NE=1,NEMAX
+     do NE=1,nelm_max
         KAELM(NE)=1
      end do
      NMKA(1)=0
      NMMAX=0
      
-     NBMAX=0
-     do NN=1,NNMAX
+     do NN=1,node_max
         KANOD(NN)=0
      end do
     
   elseif(KID.eq.'G') then
      if (nrank.eq.0) then
         NWXMAX=0
-        call WFGDIV
+        call wf_gr_element
      end if
      
   elseif(KID.eq.'W') then
@@ -115,6 +151,271 @@ CONTAINS
   return
 end subroutine wf_div
 
+! *** rectangular mesh ***
+
+subroutine SETNODX
+  
+  use wfcomm
+  implicit none
+
+  integer :: NN,NE
+  integer :: NN1,NN2,NN3,NN4
+  integer :: NR,NZ
+  integer :: NRMAX,NZMAX
+  real(rkind) :: DR,DZ,BDRLEN,BDZLEN
+
+  BDRLEN=BDRMAX-BDRMIN
+  BDZLEN=BDZMAX-BDZMIN
+
+  ! --- set node_max ---
+  NRMAX=NINT(BDRLEN/DELR)
+  if(MOD(NRMAX,2).eq.0) NRMAX=NRMAX+1
+  DR=DBLE(BDRLEN/(NRMAX-1))
+  NZMAX=NINT(BDZLEN/DELZ)
+  if(MOD(NZMAX,2).eq.0) NZMAX=NZMAX+1
+  DZ=DBLE(BDZLEN/(NZMAX-1))
+  node_max=NRMAX*NZMAX
+  call wf_node_allocate
+
+  ! --- set nelm_max ---
+  nelm_max=2*(NRMAX-1)*(NZMAX-1)
+  call wf_nelm_allocate
+
+  ! --- set node ---
+  NN=0
+  do NZ=1,NZMAX
+     do NR=1,NRMAX
+        NN=NN+1
+        xnode(NN)=BDRMIN+DR*(NR-1)
+        ynode(NN)=BDZMIN+DZ*(NZ-1)
+     end do
+  end do
+  
+  ! --- set element ---
+  NE=0
+  do NZ=1,NZMAX-1
+     do NR=1,NRMAX-1
+        NN1=NR+NRMAX*(NZ-1)
+        NN2=NR+NRMAX*(NZ-1)+1
+        NN3=NR+NRMAX*NZ+1
+        NN4=NR+NRMAX*NZ
+
+        if(NR.le.NRMAX/2) then
+           if(NZ.le.NZMAX/2) then
+              NE=NE+1
+              node_nside_nelm(1,NE)=NN1
+              node_nside_nelm(2,NE)=NN3
+              node_nside_nelm(3,NE)=NN4         
+              NE=NE+1
+              node_nside_nelm(1,NE)=NN1
+              node_nside_nelm(2,NE)=NN2
+              node_nside_nelm(3,NE)=NN3
+           else
+              NE=NE+1
+              node_nside_nelm(1,NE)=NN1
+              node_nside_nelm(2,NE)=NN2
+              node_nside_nelm(3,NE)=NN4         
+              NE=NE+1
+              node_nside_nelm(1,NE)=NN2
+              node_nside_nelm(2,NE)=NN3
+              node_nside_nelm(3,NE)=NN4
+           end if
+        else
+           if(NZ.le.NZMAX/2) then
+              NE=NE+1
+              node_nside_nelm(1,NE)=NN1
+              node_nside_nelm(2,NE)=NN2
+              node_nside_nelm(3,NE)=NN4
+              NE=NE+1
+              node_nside_nelm(1,NE)=NN2
+              node_nside_nelm(2,NE)=NN3
+              node_nside_nelm(3,NE)=NN4
+           else
+              NE=NE+1
+              node_nside_nelm(1,NE)=NN1
+              node_nside_nelm(2,NE)=NN3
+              node_nside_nelm(3,NE)=NN4
+              NE=NE+1
+              node_nside_nelm(1,NE)=NN1
+              node_nside_nelm(2,NE)=NN2
+              node_nside_nelm(3,NE)=NN3
+           end if
+        end if
+     end do
+  end do
+  return
+end subroutine SETNODX
+
+! *** circular mesh ***
+
+subroutine SETNODC
+
+  use wfcomm
+  implicit none
+
+  integer :: NN,NE
+  integer :: NN1,NN2,NN3,NN4
+  integer :: NR,NTH,NTH1
+  integer :: NRMAX
+  integer,dimension(:),pointer :: NTHMAX
+  real(rkind) :: RRING,THETA,DR
+
+  ! --- set the number of rings ---
+                                
+  NRMAX=NINT(RB/DELR)+1
+  DR=DBLE(RB/(NRMAX-1))
+  allocate(NTHMAX(NRMAX))
+
+  ! --- set node_max & NTHMAX---
+                                     
+  NN=1
+  NTHMAX(1)=1
+  do NR=2,NRMAX
+     NTHMAX(NR)=(NR-1)*6
+     DO NTH=1,NTHMAX(NR)
+        NN=NN+1
+     end DO
+  end do
+  node_max=NN
+  call wf_node_allocate
+
+  ! --- set nelm_max ---
+
+  NE=0
+  do NR=1,NRMAX-1
+     NE=NE+6*(2*NR-1)
+  end do
+  nelm_max=NE
+  call wf_nelm_allocate
+
+  ! --- set node ---
+  NN=1
+  NR=1
+  xnode(1)=0.d0
+  ynode(1)=0.d0
+
+  DO NR=2,NRMAX
+     RRING=DR*DBLE(NR-1)
+     DO NTH=1,NTHMAX(NR)
+        NN=NN+1
+        THETA=DBLE(NTH-1)*2.d0*PI/DBLE(NTHMAX(NR))
+        xnode(NN)=RRING*COS(THETA)
+        ynode(NN)=RRING*SIN(THETA)
+     END DO
+  END DO
+
+  node_max=NN
+
+  IF(modelg.EQ.2) THEN
+     DO NN=1,node_max
+        xnode(NN)=xnode(NN)+RR
+     END DO
+  END IF
+  
+  ! --- set element ---
+  
+  NE=0
+  NR=1
+
+  NN1=1
+  NN2=2
+  NN3=3
+  NN4=4
+
+  NE=NE+1
+  node_nside_nelm(1,NE)=NN1
+  node_nside_nelm(2,NE)=NN2
+  node_nside_nelm(3,NE)=NN3
+  NE=NE+1
+  node_nside_nelm(1,NE)=NN1
+  node_nside_nelm(2,NE)=NN3
+  node_nside_nelm(3,NE)=NN4
+
+  NN1=1
+  NN2=4
+  NN3=5
+  NN4=6
+
+  NE=NE+1
+  node_nside_nelm(1,NE)=NN1
+  node_nside_nelm(2,NE)=NN2
+  node_nside_nelm(3,NE)=NN3
+  NE=NE+1
+  node_nside_nelm(1,NE)=NN1
+  node_nside_nelm(2,NE)=NN3
+  node_nside_nelm(3,NE)=NN4
+
+  NN1=1
+  NN2=6
+  NN3=7
+  NN4=2
+
+  NE=NE+1
+  node_nside_nelm(1,NE)=NN1
+  node_nside_nelm(2,NE)=NN2
+  node_nside_nelm(3,NE)=NN3
+  NE=NE+1
+  node_nside_nelm(1,NE)=NN1
+  node_nside_nelm(2,NE)=NN3
+  node_nside_nelm(3,NE)=NN4
+
+  DO NR=2,NRMAX-1
+
+     NTH=0
+     NTH1=0
+     
+1    continue
+     
+     NTH=NTH+1
+     NTH1=NTH1+1
+     
+     NN1=NTH +INNODE(NR)
+     NN2=NTH1+INNODE(NR+1)
+     NN3=NTH1+INNODE(NR+1)+1
+     NN4=NTH +INNODE(NR)  +1
+     if(NTH.eq.NTHMAX(NR)) NN4=NN4-NTHMAX(NR)
+     
+     NE=NE+1
+     node_nside_nelm(1,NE)=NN1
+     node_nside_nelm(2,NE)=NN2
+     node_nside_nelm(3,NE)=NN3
+     NE=NE+1
+     node_nside_nelm(1,NE)=NN1
+     node_nside_nelm(2,NE)=NN3
+     node_nside_nelm(3,NE)=NN4
+     
+     if (mod(NTH,NR-1).eq.0) then
+        NE=NE+1
+        NN1=NTH +INNODE(NR)  +1
+        NN2=NTH1+INNODE(NR+1)+1
+        NN3=NTH1+INNODE(NR+1)+2
+        if(NTH.eq.NTHMAX(NR)) NN1=NN1-NTHMAX(NR)
+        if(NTH1+1.eq.NTHMAX(NR+1)) NN3=NN3-NTHMAX(NR+1)
+        node_nside_nelm(1,NE)=NN1
+        node_nside_nelm(2,NE)=NN2
+        node_nside_nelm(3,NE)=NN3
+        NTH1=NTH1+1
+        
+     end if
+           
+     if (NTH1.lt.NTHMAX(NR+1)) goto 1
+  END DO
+
+  return
+end subroutine SETNODC
+
+! ***** the number of innner-ring-nodes *****
+
+function INNODE(NR)
+  implicit none
+  integer :: NR,INNODE
+
+  INNODE=3*(NR-1)*(NR-2)+1
+
+  return
+end function INNODE
+
+
 !     ****** List Element Data ******
 subroutine WFLDIV
 
@@ -122,64 +423,63 @@ subroutine WFLDIV
   implicit none
   integer :: I,J,NE,ISD,NSD_1,NSD_2
 
-  write(6,100) NNMAX,(I,RNODE(I),ZNODE(I),I=1,NNMAX)
-100 format(/' ','NODE DATA',7X,'NNMAX=',I6/&
-            ' ',8X,'RNODE',10X,'ZNODE'/&
+  write(6,100) node_max,(I,xnode(I),ynode(I),I=1,node_max)
+100 format(/' ','NODE DATA',7X,'node_max=',I6/&
+            ' ',8X,'xnode',10X,'ynode'/&
            (' ',I6,1P2E13.4))
 
   write(6,*) '----------------------------------------------'
-  write(6,200) NSDMAX,(I,NDSID(1,I),NDSID(2,I),I=1,NSDMAX)
-200 format(/' ','SIDE DATA',7X,'NSDMAX=',I6/&
+  write(6,200) nseg_max,(I,node_nseg(1,I),node_nseg(2,I),I=1,nseg_max)
+200 format(/' ','SIDE DATA',7X,'nseg_max=',I6/&
             ' ',10X,'ND1',4X,'ND2',10X,'ND1',4X,'ND2'/&
            (' ',2(I6,'(',2I6,')')))
 
   write(6,*) '----------------------------------------------'
-  write(6,300) NEMAX,(I,(NDELM(J,I),J=1,3),I=1,NEMAX)
-300 format(' ','ELEMENT NODE DATA',5X,'NEMAX=',I6/&
+  write(6,300) nelm_max,(I,(node_nside_nelm(J,I),J=1,3),I=1,nelm_max)
+300 format(' ','ELEMENT NODE DATA',5X,'nelm_max=',I6/&
           (' ',2(I5,'(',3I5,')',2X)))
   
   write(6,*) '----------------------------------------------'
   write(6,*) ' ELEMENT SIDE DATA'
-  do NE=1,NEMAX-1,2
+  do NE=1,nelm_max-1,2
      write(6,'(2(A,I4,A,2X))') 'NE=',NE,  '   NSD   ND1   ND2',&
                                'NE=',NE+1,'   NSD   ND1   ND2'
      do ISD=1,3
-        NSD_1=NSDELM(ISD,NE  )
-        NSD_2=NSDELM(ISD,NE+1)
+        NSD_1=nseg_nside_nelm(ISD,NE  )
+        NSD_2=nseg_nside_nelm(ISD,NE+1)
         if(NSD_1.ge.0) then
            if(NSD_2.ge.0) then
               write(6,'(7X,3I6,9X,4I6)')&
-                   NSD_1,NDSID(1,NSD_1),NDSID(2,NSD_1),&
-                   NSD_2,NDSID(1,NSD_2),NDSID(2,NSD_2)
+                   NSD_1,node_nseg(1,NSD_1),node_nseg(2,NSD_1),&
+                   NSD_2,node_nseg(1,NSD_2),node_nseg(2,NSD_2)
            else
               NSD_2=-NSD_2
               write(6,'(7X,3I6,9X,4I6)')&
-                   NSD_1,NDSID(1,NSD_1),NDSID(2,NSD_1),&
-                   NSD_2,NDSID(2,NSD_2),NDSID(1,NSD_2)
+                   NSD_1,node_nseg(1,NSD_1),node_nseg(2,NSD_1),&
+                   NSD_2,node_nseg(2,NSD_2),node_nseg(1,NSD_2)
            end if
         else
            NSD_1=-NSD_1
            if(NSD_2.ge.0) then
               write(6,'(7X,3I6,9X,4I6)')&
-                   NSD_1,NDSID(2,NSD_1),NDSID(1,NSD_1),&
-                   NSD_2,NDSID(1,NSD_2),NDSID(2,NSD_2)
+                   NSD_1,node_nseg(2,NSD_1),node_nseg(1,NSD_1),&
+                   NSD_2,node_nseg(1,NSD_2),node_nseg(2,NSD_2)
            else
               NSD_2=-NSD_2
               write(6,'(7X,3I6,9X,4I6)')&
-                   NSD_1,NDSID(2,NSD_1),NDSID(1,NSD_1),&
-                   NSD_2,NDSID(2,NSD_2),NDSID(1,NSD_2)
+                   NSD_1,node_nseg(2,NSD_1),node_nseg(1,NSD_1),&
+                   NSD_2,node_nseg(2,NSD_2),node_nseg(1,NSD_2)
            end if
         end if
      end do
   end do
 
   write(6,*) '----------------------------------------------'
-  write(6,500) MLEN,(I,KANOD(I),I=1,NNMAX)
-500 format(' ','BOUNDARY NODE DATA',4X,'MLEN=',I4/&
+  write(6,500) mtx_len,(I,KANOD(I),I=1,node_max)
+500 format(' ','BOUNDARY NODE DATA',4X,'mtx_len=',I4/&
           (' ',4(I5,'(',I1,') ')))
   return
 end subroutine WFLDIV
-
 
 !-- broadcast data --
 subroutine wfdiv_broadcast
