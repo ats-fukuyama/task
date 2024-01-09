@@ -23,7 +23,7 @@
 
       USE TRCOMM, ONLY : &
            ADDW, ADDWD, ADDWP, AKDW, AKDWD, AKDWP, AR1RHO, AR2RHO, AVDW, &
-           AVKDW, BB, CDH, DR, MDDW, MDLEOI, MDLEQN, MDLEQT, MDLKAI, MDLUF, &
+           AVKDW, BB, CDH, DR, MDLDW, MDLEOI, MDLEQN, MDLEQT, MDLKAI, MDLUF, &
            NGLF, NRMAX, NSM, NSMAX, PA, PHIA, PI, PZ, Q0, QP, RA, RG, RKAP, &
            RKPRHO, RM, RMJRHO, RMNRHO, RN, RNF, RR, RT, VPAR, VPRP, VTOR, &
            WEXB, WROT, ZEFF, ALPHA, rkind
@@ -40,7 +40,7 @@
            qe, qi, qn, rmajor_exp, x_alpha, zimp_exp, zpne_in, &
            zpni_in, zpte_in, zpti_in
 
-      MDDW=1
+      MDLDW=1
 !     INPUTS
       leigen=1        ! 1 for tomsqz, 0 for cgg solver
       IF(MDLUF.NE.0.AND.NSMAX.GT.2) THEN
@@ -456,7 +456,7 @@
 !***********************************************************************
 
       USE TRCOMM, ONLY : &
-           AR1RHOG, AR2RHOG, BB, DR, EPSRHO, MDDW, MDLKAI, MDLTPF, &
+           AR1RHOG, AR2RHOG, BB, DR, EPSRHO, MDLDW, MDLKAI, MDLTPF, &
            NRMAX, NT, PA, PNSS, PTS, PZ, QP, RA, RHOG, RHOM, RJCB, RKAP, &
            RKEV, RMU0, RN, RR, RT, WEXB, S, rkind
       USE libitp
@@ -470,7 +470,7 @@
            tauzl, tel, wexbl, zl
       REAL(rkind),DIMENSION(5):: CHEL, CHIL, CHQL, DL, DQL
 
-      MDDW=1
+      MDLDW=1
       IF(NT.EQ.0) THEN
          IST=1
       ELSE
@@ -1018,7 +1018,7 @@
 !     ***********************************************************
 
       SUBROUTINE IFSPPPL_DRIVER(NSTM,NRMAX,RN,RR,DR,RJCB,RHOG,RHOM,QP, &
-           S,EPSRHO,RKPRHOG,RT,BB,AMM,AME,PNSS,PTS,RNFL,RBEEDG,MDLUF,NSMAX, &
+           S,EPSRHO,RKPRHOG,RT,BB,AMP,AME,PNSS,PTS,RNFL,RBEEDG,MDLUF,NSMAX, &
            AR1RHOG,AR2RHOG,AKDW)
 
       USE trcomm,ONLY: rkind
@@ -1026,7 +1026,7 @@
       IMPLICIT NONE
 
       INTEGER,INTENT(IN):: NSTM,NRMAX,MDLUF,NSMAX
-      REAL(rkind)   ,INTENT(IN):: RR,DR,BB,AMM,AME,RBEEDG
+      REAL(rkind)   ,INTENT(IN):: RR,DR,BB,AMP,AME,RBEEDG
       REAL(rkind),DIMENSION(NRMAX,NSMAX),INTENT(IN):: RN, RT
       REAL(rkind),DIMENSION(NRMAX),INTENT(IN):: &
            RJCB,RHOG,RHOM,QP,S,EPSRHO,RKPRHOG,RNFL,AR1RHOG,AR2RHOG
@@ -1075,7 +1075,7 @@
          zshat  = SNGL(S(NR))
          zeps   = SNGL(EPSRHO(NR))
          zkappa = SNGL(RKPRHOG(NR))
-         gnu    = SNGL((AME/AMM)*1.5625D-15*RN(NR,2)*1D20/RT(NR,1)**1.5D0)
+         gnu    = SNGL((AME/AMP)*1.5625D-15*RN(NR,2)*1D20/RT(NR,1)**1.5D0)
 !         gnu    = 2.1*rmajor*ne19/(tekev**1.5 * tikev**0.5)
          gtau   = SNGL( (RT(NR+1,2)+RT(NR,2))/(RT(NR+1,1)+RT(NR,1)))
 
@@ -1116,7 +1116,7 @@
          zshat  = SNGL(S(NR))
          zeps   = SNGL(EPSRHO(NR))
          zkappa = SNGL(RKPRHOG(NR))
-         gnu    = SNGL((AME/AMM)*1.5625D-15*RN(NR,2)*1D20/RT(NR,1)**1.5D0)
+         gnu    = SNGL((AME/AMP)*1.5625D-15*RN(NR,2)*1D20/RT(NR,1)**1.5D0)
          gtau   = SNGL(PTS(2)/PTS(1))
 
          ne19   = SNGL(PNSS(1)*1.D1)

@@ -1,32 +1,31 @@
 MODULE trcomm_constants
-  USE bpsd_kinds,ONLY: rkind
+  USE task_kinds,ONLY: rkind
+  USE task_constants
   IMPLICIT NONE
   
-  REAL(rkind), PARAMETER :: PI   = 3.14159265358979323846D0
-  REAL(rkind), PARAMETER :: AEE  = 1.602176487D-19
-  REAL(rkind), PARAMETER :: AME  = 9.10938215D-31
-  REAL(rkind), PARAMETER :: AMM  = 1.672621637D-27
-  REAL(rkind), PARAMETER :: VC   = 2.99792458D8
-  REAL(rkind), PARAMETER :: RMU0 = 4.D0*PI*1.D-7
-  REAL(rkind), PARAMETER :: EPS0 = 1.D0/(VC*VC*RMU0)
-  REAL(rkind), PARAMETER :: RKEV = AEE*1.D3
-
-  INTEGER, PARAMETER :: NSMM=100 ! Max number of species for namelist input
-  INTEGER, PARAMETER :: NSM=4
-  INTEGER, PARAMETER :: NSZM=2
-  INTEGER, PARAMETER :: NSNM=2
-  INTEGER, PARAMETER :: NFM=2
-  INTEGER, PARAMETER :: NTM =10001
-  INTEGER, PARAMETER :: NGM=1001
-  INTEGER, PARAMETER :: NCGM=23
-  INTEGER, PARAMETER :: NCTM=110
-  INTEGER, PARAMETER :: NCRTM=67
-  INTEGER, PARAMETER :: NSTM=8
-  INTEGER, PARAMETER :: NEQM=3*NSTM+1
-  INTEGER, PARAMETER :: NLM =1001
+  INTEGER, PARAMETER :: NSMM=100   ! Max number of species for namelist input
+  INTEGER, PARAMETER :: NSM=4      ! Max number of bulk ion species
+  INTEGER, PARAMETER :: NSZM=2     ! Max number of impurity ions species
+  INTEGER, PARAMETER :: NSNM=2     ! Max number of neutral species
+  INTEGER, PARAMETER :: NFM=2      ! Max number of fast ion species
+  INTEGER, PARAMETER :: NTM=10001  ! Max number of time steps to save globals
+  INTEGER, PARAMETER :: NGM=1001   ! Max number of time steps to save profiles
+  INTEGER, PARAMETER :: NCTM=110   ! Max number of save variables in globals
+  INTEGER, PARAMETER :: NCGM=23    ! Max number of save variables in profiles
+  INTEGER, PARAMETER :: NCRTM=67   ! Max number of save variables in profiles
+  INTEGER, PARAMETER :: NSTM=NSM+NSZM+NSNM ! number of thermal species
+  INTEGER, PARAMETER :: NEQM=3*NSTM+1      ! number of equations
+  INTEGER, PARAMETER :: NLM =1001  ! Max number of NBI path sections
   INTEGER, PARAMETER :: NTUM=1001  ! Size of ufile data
   INTEGER, PARAMETER :: NRUM=102   ! Size of ufile data
-  INTEGER, PARAMETER :: NPSCM = 10 ! Maximum number of particle source
+  INTEGER, PARAMETER :: NPSCM = 4  ! Maximum number of particle source
+  INTEGER, PARAMETER :: NNBM = 4   ! Maximum number of NBI source
+  INTEGER, PARAMETER :: NECM = 4   ! Maximum number of ECRF source
+  INTEGER, PARAMETER :: NLHM = 4   ! Maximum number of LHRF source
+  INTEGER, PARAMETER :: NICM = 4   ! Maximum number of ICRF source
+  INTEGER, PARAMETER :: NPELM = 4  ! Maximum number of PELLET source
+
+  REAL(rkind), PARAMETER :: RKEV=AEE*1.D3
 
 END MODULE trcomm_constants
 
@@ -35,62 +34,171 @@ MODULE trcomm_parm
   USE trcomm_constants
   IMPLICIT NONE
 
-!     ****** INPUT PARAMETERS ******
-! TRPRM
-  REAL(rkind)   :: &
-       RR, RA, RB, RKAP, RDLT, BB, RIPS, RIPE, RIPSS, PHIA, PNC, PNFE, PNNU, &
-       PNNUS, PROFN1, PROFN2, PROFT1, PROFT2, PROFU1, PROFU2, &
-       PROFNU1, PROFNU2, PROFJ1, &
-       PROFJ2, AD0, AV0, CNP, CNH, CDP, CDH, CNN, CWEB, DT, EPSLTR, &
-       CHP, CK0, CK1, CKALFA, CKBETA, CKGUMA, CNB, CALF, CSPRS, TSST, &
-       SYNCABS, SYNCSELF
-  REAL(rkind), DIMENSION(6) :: &
-       ALP
-  REAL(rkind), DIMENSION(8) :: &
-       CDW
+  ! ****** INPUT PARAMETERS ******
+  
+  ! === configuration parameters ===
+
+  INTEGER:: MODELG,NTEQIT
+
+  ! === device parameters for MODELG=2 ===
+
+  REAL(rkind):: RR,RA,RB,RKAP,RDLT,BB,RIPS,RIPE
+
+  ! === plasma parameters ===
+
+  INTEGER:: NSMAX,NSZMAX,NSNMAX
+  CHARACTER(LEN=2),DImeNSION(NSMM):: &
+       KID_NS
+  INTEGER,DIMENSION(NSMM):: &
+       ID_NS,NPA
   REAL(rkind), DIMENSION(NSMM) :: &
        PA,PZ,PN,PNS,PT,PTS,PU,PUS
-  INTEGER, DIMENSION(NSMM) :: &
-       NPA
-  INTEGER  :: &
-       NRMAX, NSMAX, NSZMAX, NSNMAX
-  INTEGER:: &
-       LMAXTR, MDLKAI, MDLETA, MDLAD, MDLAVK, MDLKNC, MDLTPF, &
-       NTMAX, NTSTEP, NGTSTP, NGRSTP, NGPST, MODELG,MDLDSK,MDTC, &
-       MDLPR
-  INTEGER:: &
-       model_prof
-  CHARACTER(LEN=128):: &
-       knam_prof
+  
+  ! === profile parameters ===
 
-  REAL(rkind)   :: &
-       TPRST, PBSCD, &
-       PNBTOT, PNBR0, PNBRW, PNBCD, PNBVY, PNBVW, PNBENG, PNBRTG, &
-       PECTOT, PECR0, PECRW, PECCD, PECTOE, PECNPR, &
-       PLHTOT, PLHR0, PLHRW, PLHCD, PLHTOE, PLHNPR, &
-       PICTOT, PICR0, PICRW, PICCD, PICTOE, PICNPR, &
-       PELTOT, PELR0, PELRW, PELRAD, PELVEL, PELTIM, &
-       pellet_time_start,pellet_time_interval, &
-       ELMWID, ELMDUR
-  INTEGER:: &
-       number_of_pellet_repeat
-  REAL(rkind), DIMENSION(NSMM) :: &
-       PELPAT, ELMNRD, ELMTRD, ELMENH
-  REAL(rkind), DIMENSION(NPSCM) :: &
-       PSCTOT,PSCR0,PSCRW
-  INTEGER, DIMENSION(NPSCM) :: &
-       NSPSC
-  INTEGER:: &
-       MDLNB, MDLEC, MDLLH, MDLIC, MDLCD, MDLPEL, MDLJBS, MDLST, MDLNF, &
-       IZERO, MDLELM, MDLPSC, NPSCMAX, MDLIMP, NRNBMAX, NPRINT
+  INTEGER:: model_prof
+  CHARACTER(LEN=128):: knam_prof
+  REAL(rkind):: &
+       PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
+       PROFNU1,PROFNU2,PROFJ1,PROFJ2
+  REAL(rkind):: ALP(6)
+  INTEGER:: model_nfixed,model_tfixed
+  CHARACTER(LEN=128):: knam_nfixed,knam_tfixed
 
-  INTEGER:: &
-       model_nfixed,model_tfixed
+  ! === impurity and neutral parameters ===
+
+  INTEGER:: MDLIMP,MDLNI
+  REAL(rkind):: PNC,PNFE,PNNU,PNNUS
+  
+  ! === transport model parameters ===
+
+  INTEGER:: MDLKAI
+  INTEGER:: MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,MDLTPF
+
+  ! === NCLASS switch ===
+  
+  INTEGER:: MDLNCL,NSLMAX
+
+  ! === Turbulence model switch ===
+  
+  INTEGER:: MDLWLD,MDLCD05,MDLDW
+  INTEGER:: MDLTC
+
+  ! === Transport parameters ===
+  
+  REAL(rkind):: AD0,AV0,CNP,CNH,CDP,CDH,CNN,CDW(8)
+  REAL(rkind):: CHP,CK0,CK1,CWEB,CALF,CKALFA,CKBETA,CKGUMA
+
+  ! ==- radial electric field model parameter ===
+
+  INTEGER:: MDLER
+
+  ! === Edge model parameter ===
+
+  INTEGER:: MDLEDGE,NREDGE
+  REAL(rkind):: CSPRS,RHOA
+
+  ! == ELM MODEL parameters ===
+
+  INTEGER:: MDLElM
+  REAL(rkind)   :: ELMWID,ELMDUR  
+  REAL(rkind),DIMENSION(NSMM) :: ELMNRD,ELMTRD,ELMENH
+
+  ! === fusion reaction parameter ===
+
+  INTEGER:: MDLNF
+
+  ! === radiation parameter ===
+
+  INTEGER:: MDLPR
+  REAL(rkind):: SYNCABS,SYNCSELF
+
+  ! === Source parameters: NB,EC,LH,IC,PEL,PSC ===
+
+  INTEGER:: NNBMAX,MDLNB(nnbm)
+  REAL(rkind),DIMENSION(nnbm):: &
+       PNBIN,PNBR0,PNBRW,PNBCD,PNBVY,PNBVW,PNBENG,PNBRTG
+  INTEGER,DIMENSION(nnbm):: &
+       NRNBMAX
+
+  INTEGER:: NECMAX,MDLEC(necm)
+  REAL(rkind),DIMENSION(necm):: &
+       PECIN,PECR0,PECRW,PECCD,PECTOE,PECNPR
+  
+  INTEGER:: NLHMAX,MDLLH(nlhm)
+  REAL(rkind),DIMENSION(nlhm):: &
+       PLHIN,PLHR0,PLHRW,PLHCD,PLHTOE,PLHNPR
+  
+  INTEGER:: NICMAX,MDLIC(nicm)
+  REAL(rkind),DIMENSION(nicm):: &
+       PICIN,PICR0,PICRW,PICCD,PICTOE,PICNPR
+
+  INTEGER:: NPELMAX,MDLPEL,number_of_pellet_repeat
+  REAL(rkind):: &
+       PELIN,PELR0,PELRW,PELRAD,PELVEL,PELTIM, &
+       pellet_time_start,pellet_time_interval
+  REAL(rkind),DIMENSION(nsmm):: &
+       PELPAT
+!  INTEGER:: NPELMAX,MDLPEL(npelm),number_of_pellet_repeat(npelm)
+!  REAL(rkind),DIMENSION(npelm):: &
+!       PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM, &
+!       pellet_time_start,pellet_time_interval
+!  REAL(rkind),DIMENSION(nsmm,npelm):: &
+!       PELPAT
+  
+  INTEGER:: NPSCMAX,MDLPSC(npscm),NSPSC(npscm)
+  REAL(rkind), DIMENSION(npscm) :: &
+       PSCIN,PSCR0,PSCRW
+
+  ! === current drive parameters ===
+
+  INTEGER:: MDLCD
+  REAL(rkind):: PBSCD
+
+  ! === sawtooth parameters ===
+
+  INTEGER:: MDLST,IZERO,NGPST
+  REAL(rkind):: TPRST,TSST
+
+  ! === experimental data parameters ===
+
+  INTEGER:: MDLUF,MDLXP,MODEP
+
+  ! === current profile switch ===
+
+  INTEGER:: MDLJQ
+
+  ! === flux switch ===
+
+  INTEGER:: MDLFLX
+
+  ! === simulation parameter ===
+
+  REAL(rkind):: DT
+  INTEGER:: NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP
+  REAL(rkind):: EPSLTR
+  INTEGER:: LMAXTR
+
+  ! === equation selection parameter ===
+
+  INTEGER:: MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0,MDLEQE,MDLEOI
+
+  ! === LAPACK parameter ===
+
+  INTEGER:: MDLPCK
+
+  ! === DATA file name ===
+
+  CHARACTER(LEN=80) :: KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG,KFNTXT,KFNCVS
+  
+  ! === UFILE file name ===
+  
+  CHARACTER(LEN=80) :: KUFDIR,KUFDEV,KUFDCG
 
 END MODULE trcomm_parm
 
 MODULE trcomx
-  USE bpsd_kinds,ONLY: rkind
+  USE task_kinds,ONLY: rkind
   IMPLICIT NONE
   REAL(rkind), DIMENSION(:,:,:),ALLOCATABLE :: A, B, C
   REAL(rkind), DIMENSION(:,:)  ,ALLOCATABLE :: D
@@ -149,11 +257,11 @@ MODULE trcomm
   REAL   :: &
        GTCPU1
   REAL(rkind)   :: &
-       T, TST, TPRE, WPPRE, RIP, DR, FKAP, RHOA, RIPA, VSEC, RDPS,DIPDT
+       T, TST, TPRE, WPPRE, RIP, DR, FKAP, RIPA, VSEC, RDPS,DIPDT
   REAL(rkind), DIMENSION(:),ALLOCATABLE :: & ! (NSTM)
        PNSS
   INTEGER:: &
-       NT, NRAMAX, NROMAX, NREDGE, NTMAX_SAVE, IREAD
+       NT, NRAMAX, NROMAX, NTMAX_SAVE, IREAD
   INTEGER:: &
        NEQMAXM, NVM, MWM, MLM, NRMP, NGLF, LDAB
   INTEGER:: &
@@ -199,6 +307,8 @@ MODULE trcomm
        AJ, AJOH, EZOH, QP, AJTOR, AJNB, AJRF, AJBS, QPINV, PNB, SNB, &
        PBIN, PNF, SNF, PFIN, POH, PRB, PRC, PRL, PRSUM, &
        PCX, PIE, SIE, SCX, TSIE, TSCX
+  REAL(rkind), DIMENSION(:,:),   ALLOCATABLE :: & ! (NSCM,NRM)
+       SNB_NNB,PNB_NNB,AJNB_NNB,PEC_NEC,PLH_NLH,PIC_NIC
   REAL(rkind), DIMENSION(:,:),   ALLOCATABLE :: & ! (NRM,NSTM)
        PIN, SSIN, PBCL, PFCL, PRF, SPE
   REAL(rkind), DIMENSION(:,:),   ALLOCATABLE :: & ! (NRM,NSM)
@@ -207,6 +317,10 @@ MODULE trcomm
        AJRFV
   REAL(rkind), DIMENSION(:,:,:), ALLOCATABLE :: & ! (NRM,NSTM,3)
        PRFV
+  REAL(rkind):: &
+       PECTOT,PLHTOT,PICTOT,PNBTOT,PELTOT,PSCTOT
+  REAL(rkind),ALLOCATABLE:: &
+       PBIN_NNB(:,:),PBCL_NNB(:,:,:)
 
 !     ****** COEFFICIENT VARIABLES ******
 ! TRCEF
@@ -275,9 +389,6 @@ MODULE trcomm
        QRHO
 
 !     ****** LOG FILE NAME ******
-! TRNAM
-  CHARACTER(LEN=80) :: KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG,KFNTXT,KFNCVS
-  CHARACTER(LEN=80) :: knam_nfixed,knam_tfixed
 ! TRCOM2
   CHARACTER(LEN=80) :: KXNDEV,KXNDCG,KXNID
   CHARACTER(LEN=80) :: KDIRW1,KDIRW2
@@ -296,15 +407,12 @@ MODULE trcomm
        VV,DD
   REAL(rkind), DIMENSION(:,:,:,:),ALLOCATABLE :: & ! (NVM,NVM,2,3)
        VI,DI
-  INTEGER                      :: NTEQIT
 
 !     ****** MODEL SELECTION VARIABLES ******
 ! TRMDS
   REAL(rkind)     :: SUMPBM
-  INTEGER  :: &
-       NEQMAX, MDLEQB, MDLEQN, MDLEQT, MDLEQU, MDLEQZ, MDLEQ0, MDLEQE, &
-       MDLEOI, NSCMAX, NSTMAX, MDLWLD, MDDIAG, MDDW, MDLFLX, MDLER, MDCD05, &
-       MDEDGE
+  INTEGER:: &
+       NEQMAX,NSCMAX,NSTMAX,MDDIAG
   INTEGER, DIMENSION(:)  ,ALLOCATABLE :: & ! (NEQM)
        NSS, NSV, NNS, NST
   INTEGER, DIMENSION(:,:),ALLOCATABLE :: & ! (0:NSTM,0:3)
@@ -320,7 +428,6 @@ MODULE trcomm
        AKNCP, AKNCT, ADNCP, ADNCT, AKLP, AKLD, ADLP, ADLD
   REAL(rkind), DIMENSION(:,:,:),ALLOCATABLE :: & !  (NRM,5,NSM)
        RGFLS,   RQFLS
-  INTEGER :: MDNCLS, NSLMAX
 
 !     ****** STORED VARIABLES FOR UFILE ******
 ! TRSVU
@@ -338,13 +445,10 @@ MODULE trcomm
 !     ****** UFILE CONTROL ******
 ! TRUFL
   REAL(rkind)    :: TIME_INT
-  INTEGER :: MDLXP,MDLUF,MODEP,MDNI,MDCURT,MDNM1,MDLJQ,MDPHIA,NTS
-  CHARACTER(LEN=80) :: KUFDIR,KUFDEV,KUFDCG
+  INTEGER :: MDCURT,MDNM1,NTS
+  INTEGER:: MDPHIA=0
+  REAL(rkind)    :: PHIA=0.D0
   
-!     ****** LAPACK ******
-! TRLPCK
-  INTEGER :: MDLPCK
-
 ! fixed profile variables
   REAL(rkind):: time_initial_nfixed,time_initial_tfixed
 
@@ -384,6 +488,10 @@ MODULE trcomm
     INTEGER,SAVE:: nsmax_save=0
     INTEGER,SAVE:: nszmax_save=0
     INTEGER,SAVE:: nsnmax_save=0
+    INTEGER,SAVE:: nnbmax_save=0
+    INTEGER,SAVE:: necmax_save=0
+    INTEGER,SAVE:: nlhmax_save=0
+    INTEGER,SAVE:: nicmax_save=0
 
     ierr = 0
 
@@ -391,6 +499,10 @@ MODULE trcomm
        nsmax==nsmax_save .and. &
        nszmax==nszmax_save .and. &
        nsnmax==nsnmax_save .and. &
+       nnbmax==nnbmax_save .and. &
+       necmax==necmax_save .and. &
+       nlhmax==nlhmax_save .and. &
+       nicmax==nicmax_save .and. &
        ALLOCATED(PNSS)) return
     if(ALLOCATED(PNSS)) call DEALLOCATE_TRCOMM
 
@@ -445,9 +557,24 @@ MODULE trcomm
       IF(IERR.NE.0) GOTO 900
     ALLOCATE(AJRF(NRMAX),AJBS(NRMAX),PNB(NRMAX),SNB(NRMAX),STAT=IERR)
       IF(IERR.NE.0) GOTO 900
+    ALLOCATE(SNB_NNB(NNBMAX,NRMAX),STAT=IERR)
+      IF(IERR.NE.0) GOTO 900
+    ALLOCATE(PNB_NNB(NNBMAX,NRMAX),STAT=IERR)
+      IF(IERR.NE.0) GOTO 900
+    ALLOCATE(AJNB_NNB(NNBMAX,NRMAX),STAT=IERR)
+      IF(IERR.NE.0) GOTO 900
+    ALLOCATE(PEC_NEC(NECMAX,NRMAX),STAT=IERR)
+      IF(IERR.NE.0) GOTO 900
+    ALLOCATE(PLH_NLH(NLHMAX,NRMAX),STAT=IERR)
+      IF(IERR.NE.0) GOTO 900
+    ALLOCATE(PIC_NIC(NICMAX,NRMAX),STAT=IERR)
+      IF(IERR.NE.0) GOTO 900
+    
     ALLOCATE(SPSC(NRMAX,NSM),STAT=IERR)
       IF(IERR.NE.0) GOTO 900
     ALLOCATE(PBIN(NRMAX),PNF(NRMAX),SNF(NRMAX),PFIN(NRMAX),STAT=IERR)
+      IF(IERR.NE.0) GOTO 900
+    ALLOCATE(PBIN_NNB(NNBMAX,NRMAX),PBCL_NNB(NNBMAX,NRMAX,4))
       IF(IERR.NE.0) GOTO 900
     ALLOCATE(POH(NRMAX),PRB(NRMAX),PRC(NRMAX),PRSUM(NRMAX),STAT=IERR)
       IF(IERR.NE.0) GOTO 900
@@ -602,6 +729,10 @@ MODULE trcomm
     nsmax_save = nsmax
     nszmax_save = nszmax
     nsnmax_save = nsnmax
+    nnbmax_save = nnbmax
+    necmax_save = necmax
+    nlhmax_save = nlhmax
+    nicmax_save = nicmax
     return
 
  900 continue
@@ -624,6 +755,8 @@ MODULE trcomm
     DEALLOCATE(VEXBP,WEXBP)
     DEALLOCATE(AJ,AJOH, EZOH,QP,AJTOR,AJNB,AJRF,AJBS,QPINV)
     DEALLOCATE(PNB,SNB,PBIN,PNF,SNF,PFIN,POH,PRB,PRC,PRL,PRSUM,PCX,PIE)
+    DEALLOCATE(PBIN_NNB,PBCL_NNB)
+    DEALLOCATE(SNB_NNB,PNB_NNB,AJNB_NNB,PEC_NEC,PLH_NLH,PIC_NIC)
     DEALLOCATE(SIE,SCX,TSIE,TSCX,PIN,SSIN,PBCL, SPE)
     DEALLOCATE(PFCL,PRF,PRFV,AJRFV,RGFLX)
     DEALLOCATE(ETA,S,ALPHA,RKCV,TAUB,TAUF,TAUK,AK,AVK,AD,AV)
@@ -922,4 +1055,3 @@ MODULE trcomm
   END SUBROUTINE open_trcomm
 
 END MODULE trcomm
-

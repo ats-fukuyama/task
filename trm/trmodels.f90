@@ -13,7 +13,7 @@ CONTAINS
                          ADFFI,ACHIE,ACHII,ACHIEB,ACHIIB,ACHIEGB,ACHIIGB, &
                          ierr)
     USE trcomm, ONLY: &
-         rkind,RT,NRMAX,MDLKAI,RKEV,AMM
+         rkind,RT,NRMAX,MDLKAI,RKEV,AMP
     USE mixed_Bohm_gyro_Bohm, ONLY: mixed_model
     IMPLICIT NONE
     REAL(rkind),INTENT(IN) :: &
@@ -54,13 +54,13 @@ CONTAINS
        EXBfactor=1.D0
     CASE(142)
        lflowshear=0
-       VTI=SQRT(2.D0*TIL*RKEV/(PAL*AMM))
+       VTI=SQRT(2.D0*TIL*RKEV/(PAL*AMP))
        GAMMA0=VTI/(QPL*RRL)
        SHRfactor=1.D0
        EXBfactor=1.D0/(1.D0+(WEXBL/GAMMA0)**2)
     CASE(143)
        lflowshear=0
-       VTI=SQRT(2.D0*TIL*RKEV/(PAL*AMM))
+       VTI=SQRT(2.D0*TIL*RKEV/(PAL*AMP))
        GAMMA0=VTI/(QPL*RRL)
        SHRfactor=1.D0/MAX(1.D0,(SL-0.5d0)**2)
        EXBfactor=1.D0/(1.D0+(WEXBL/GAMMA0)**2)

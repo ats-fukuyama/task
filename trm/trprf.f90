@@ -6,123 +6,175 @@
 
       SUBROUTINE TRPWRF
 
-      USE TRCOMM, ONLY : AJRF, AJRFV, AME, DR, DVRHO, EPSRHO, NRMAX, PECCD, PECNPR, PECR0, PECRW, PECTOE, PECTOT, PICCD, &
-     &                   PICNPR, PICR0, PICRW, PICTOE, PICTOT, PLHCD, PLHNPR, PLHR0, PLHRW, PLHTOE, PLHTOT, PRF, PRFV,   &
-     &                   RA, RKEV, RM, RN, RT, VC, ZEFF, rkind
+        USE TRCOMM, ONLY : &
+             AJRF, AJRFV, AME, DR, DVRHO, EPSRHO, NRMAX, PECCD, PECNPR, &
+             PECR0, PECRW, PECTOE, PECIN, PICCD, PICNPR, PICR0, PICRW, &
+             PICTOE, PICIN, PLHCD, PLHNPR, PLHR0, PLHRW, PLHTOE, PLHIN, &
+             PRF, PRFV, RA, RKEV, RM, RN, RT, VC, ZEFF, rkind, &
+             PEC_NEC,PLH_NLH,PIC_NIC,PECTOT,PLHTOT,PICTOT, &
+             NECMAX,NLHMAX,NICMAX,AJRFV,PRFV
       IMPLICIT NONE
-      REAL(rkind)   :: EFCDEC, EFCDIC, EFCDLH, FACT, PEC0, PECL, PIC0, PICL, PLH0, PLHL, PLHR0L, RLNLMD, SUMEC, SUMIC, SUMLH, &
-     &             VPHEC, VPHIC, VPHLH, VTE, VTEP
-      INTEGER:: NR
+      REAL(rkind)   :: &
+           EFCDEC, EFCDIC, EFCDLH, FACT, PEC0, PECL, PIC0, PICL, PLH0, &
+           PLHL, PLHR0L, RLNLMD, SUMEC, SUMIC, SUMLH, VPHEC, VPHIC, VPHLH, &
+           VTE, VTEP
+      INTEGER:: NR,NEC,NLH,NIC
       REAL(rkind)   :: TRCDEF
 
+      PECTOT=0.D0
+      PLHTOT=0.D0
+      PICTOT=0.D0
+      DO NEC=1,NECMAX
+         PECTOT=PECTOT+PECIN(NEC)
+      END DO
+      DO NLH=1,NLHMAX
+         PLHTOT=PLHTOT+PLHIN(NEC)
+      END DO
+      DO NIC=1,NICMAX
+         PICTOT=PICTOT+PICIN(NEC)
+      END DO
+      IF(PECTOT+PLHTOT+PICTOT.LE.0.D0) THEN
+         PRF(1:NRMAX,1)=0.D0
+         PRF(1:NRMAX,2)=0.D0
+         PRF(1:NRMAX,3)=0.D0
+         AJRF(1:NRMAX)=0.D0
+         DO NEC=1,NECMAX
+            PEC_NEC(NEC,1:NRMAX)=0.D0
+         END DO
+         DO NLH=1,NLHMAX
+            PLH_NLH(NLH,1:NRMAX)=0.D0
+         END DO
+         DO NIC=1,NICMAX
+            PIC_NIC(NIC,1:NRMAX)=0.D0
+         END DO
+         RETURN
+      END IF
 
-      IF(PECTOT+PLHTOT+PICTOT.LE.0.D0) RETURN
+      DO NR=1,NRMAX
+         PRFV(NR,1,1)=0.D0
+         PRFV(NR,2,1)=0.D0
+         AJRFV(NR,1)=0.D0
+      END DO
+      
+      DO NEC=1,NECMAX
+         SUMEC = 0.D0
+         DO NR=1,NRMAX
+            SUMEC = SUMEC + DEXP(-((RA*RM(NR)-PECR0(NEC) ) &
+                                  /PECRW(NEC))**2)*DVRHO(NR)*DR
+         END DO
+         PEC0 = PECIN(NEC)*1.D6/SUMEC
+         DO NR=1,NRMAX
+            PECL = PEC0*DEXP(-((RA*RM(NR)-PECR0(NEC))/PECRW(NEC))**2)
+            PRFV(NR,1,1)=PRFV(NR,1,1)+      PECTOE(NEC) *PECL
+            PRFV(NR,2,1)=PRFV(NR,2,1)+(1.D0-PECTOE(NEC))*PECL
 
-      IF(PLHR0.LT.0.D0) THEN
-         VPHLH=VC/(PLHNPR*ABS(PLHR0))
-         DO NR=NRMAX,1,-1
+            RLNLMD=16.1D0 - 1.15D0*LOG10(RN(NR,1))  + 2.30D0*LOG10(RT(NR,1))
             VTE=SQRT(ABS(RT(NR,1))*RKEV/AME)
-            IF(VTE.GT.VPHLH) THEN
-               IF(NR.EQ.NRMAX) THEN
-                  PLHR0L=RA
+
+            IF(PECCD(NEC).NE.0.D0) THEN
+               VPHEC=VC/(VTE*PECNPR(NEC))
+               IF(PECNPR(NEC).LE.1.D0) THEN
+                  EFCDEC=0.D0
                ELSE
-                  VTEP=SQRT(ABS(RT(NR+1,1))*RKEV/AME)
-                  FACT=(VTE-VPHLH)/(VTE-VTEP)
-                  PLHR0L=(FACT*RM(NR+1)+(1.D0-FACT)*RM(NR))*RA
+                  EFCDEC=TRCDEF(VPHEC,ZEFF(NR),0.D0,EPSRHO(NR),0)
                ENDIF
-               GOTO 6
-            ENDIF
-         ENDDO
-         PLHR0L=0.D0
-    6    CONTINUE
-!         WRITE(6,*) '*** PLHR0L = ',PLHR0L
-      ELSE
-         PLHR0L=PLHR0
-         VPHLH=VC/PLHNPR
-      ENDIF
-
-      SUMEC = 0.D0
-      SUMLH = 0.D0
-      SUMIC = 0.D0
-      DO NR=1,NRMAX
-         SUMEC = SUMEC + DEXP(-((RA*RM(NR)-PECR0 )/PECRW)**2)*DVRHO(NR)*DR
-         SUMLH = SUMLH + DEXP(-((RA*RM(NR)-PLHR0L)/PLHRW)**2)*DVRHO(NR)*DR
-         SUMIC = SUMIC + DEXP(-((RA*RM(NR)-PICR0 )/PICRW)**2)*DVRHO(NR)*DR
-      ENDDO
-
-      PEC0 = PECTOT*1.D6/SUMEC
-      PLH0 = PLHTOT*1.D6/SUMLH
-      PIC0 = PICTOT*1.D6/SUMIC
-
-!      IF(ABS(PLHNPR).LE.1.D0) THEN
-!         NLH=PLHR0/DR+1.D0
-!         RTLH=((RM(NLH+1)-PLHR0)*RT(NLH,1)
-!     &        +(PLHR0-RM(NLH))*RT(NLH+1,1))/DR
-!         VTLH=SQRT(RTLH*RKEV/AME)
-!         VPHLH=VTLH/ABS(PLHNPR)
-!         IF(VPHLH.GT.VC) VPHLH=VC
-!         IF(PLHNPR.LT.0.D0) VPHLH=-VPHLH
-!         WRITE(6,*) '** PLHNPR = ',VC/VPHLH
-!      ELSE
-!         VPHLH=VC/PLHNPR
-!      ENDIF
-
-      DO NR=1,NRMAX
-         PECL = PEC0*DEXP(-((RA*RM(NR)-PECR0)/PECRW)**2)
-         PLHL = PLH0*DEXP(-((RA*RM(NR)-PLHR0L)/PLHRW)**2)
-         PICL = PIC0*DEXP(-((RA*RM(NR)-PICR0)/PICRW)**2)
-         PRF (NR,1  )=PECTOE*PECL + PLHTOE*PLHL  +PICTOE*PICL
-         PRFV(NR,1,1)=PECTOE*PECL
-         PRFV(NR,1,2)=PLHTOE*PLHL
-         PRFV(NR,1,3)=PICTOE*PICL
-         PRF (NR,2  )=(1.D0-PECTOE)*PECL +(1.D0-PLHTOE)*PLHL  +(1.D0-PICTOE)*PICL
-         PRFV(NR,2,1)=(1.D0-PECTOE)*PECL
-         PRFV(NR,2,2)=(1.D0-PLHTOE)*PLHL
-         PRFV(NR,2,3)=(1.D0-PICTOE)*PICL
-
-         RLNLMD=16.1D0 - 1.15D0*LOG10(RN(NR,1))  + 2.30D0*LOG10(RT(NR,1))
-         VTE=SQRT(ABS(RT(NR,1))*RKEV/AME)
-
-         IF(PECCD.NE.0.D0) THEN
-            VPHEC=VC/(VTE*PECNPR)
-            IF(PECNPR.LE.1.D0) THEN
+            ELSE
                EFCDEC=0.D0
-            ELSE
-               EFCDEC=TRCDEF(VPHEC,ZEFF(NR),0.D0,EPSRHO(NR),0)
             ENDIF
+            AJRFV(NR,1)=AJRFV(NR,1)+0.384D0*RT(NR,1)/(RN(NR,1)*RLNLMD) &
+                 *(PECCD(NEC)*PECTOE(NEC)*EFCDEC*PECL)
+         END DO
+      END DO
+
+      DO NLH=1,NLHMAX
+         IF(PLHR0(NLH).LT.0.D0) THEN
+            VPHLH=VC/(PLHNPR(NLH)*ABS(PLHR0(NLH)))
+            DO NR=NRMAX,1,-1
+               VTE=SQRT(ABS(RT(NR,1))*RKEV/AME)
+               IF(VTE.GT.VPHLH) THEN
+                  IF(NR.EQ.NRMAX) THEN
+                     PLHR0L=RA
+                  ELSE
+                     VTEP=SQRT(ABS(RT(NR+1,1))*RKEV/AME)
+                     FACT=(VTE-VPHLH)/(VTE-VTEP)
+                     PLHR0L=(FACT*RM(NR+1)+(1.D0-FACT)*RM(NR))*RA
+                  ENDIF
+                  GOTO 6
+               ENDIF
+            ENDDO
+            PLHR0L=0.D0
+6           CONTINUE
+            !         WRITE(6,*) '*** PLHR0L = ',PLHR0L
          ELSE
-            EFCDEC=0.D0
+            PLHR0L=PLHR0(NLH)
+            VPHLH=VC/PLHNPR(NLH)
          ENDIF
-         IF(PLHCD.NE.0.D0) THEN
-            IF(ABS(VPHLH).GT.VC) THEN
+
+         SUMLH = 0.D0
+         DO NR=1,NRMAX
+            SUMLH = SUMLH + DEXP(-((RA*RM(NR)-PLHR0L) &
+                                   /PLHRW(NLH))**2)*DVRHO(NR)*DR
+         ENDDO
+         PLH0 = PLHIN(NLH)*1.D6/SUMLH
+
+         DO NR=1,NRMAX
+            PLHL = PLH0*DEXP(-((RA*RM(NR)-PLHR0L)/PLHRW(NLH))**2)
+            PRFV(NR,1,2)=PRFV(NR,1,2)+PLHTOE(NLH)*PLHL
+            PRFV(NR,2,2)=PRFV(NR,2,2)+(1.D0-PLHTOE(NLH))*PLHL
+
+            RLNLMD=16.1D0 - 1.15D0*LOG10(RN(NR,1))  + 2.30D0*LOG10(RT(NR,1))
+            VTE=SQRT(ABS(RT(NR,1))*RKEV/AME)
+
+            IF(PLHCD(NLH).NE.0.D0) THEN
+               IF(ABS(VPHLH).GT.VC) THEN
+                  EFCDLH=0.D0
+               ELSE
+                  EFCDLH=TRCDEF(VPHLH/VTE,ZEFF(NR),0.D0,EPSRHO(NR),0)
+               ENDIF
+            ELSE
                EFCDLH=0.D0
-            ELSE
-               EFCDLH=TRCDEF(VPHLH/VTE,ZEFF(NR),0.D0,EPSRHO(NR),0)
             ENDIF
-         ELSE
-            EFCDLH=0.D0
-         ENDIF
-         IF(PICCD.NE.0.D0) THEN
-            VPHIC=VC/(VTE*PICNPR)
-            IF(PICNPR.LE.1.D0) THEN
+            AJRFV(NR,2)=AJRFV(NR,2)+0.384D0*RT(NR,1)/(RN(NR,1)*RLNLMD) &
+                 *(PLHCD(NLH)*PLHTOE(NLH)*EFCDLH*PLHL)
+         END DO
+      END DO
+      
+      DO NIC=1,NICMAX
+         SUMIC = 0.D0
+         DO NR=1,NRMAX
+            SUMIC = SUMIC + DEXP(-((RA*RM(NR)-PICR0(NIC) ) &
+                                  /PICRW(NIC))**2)*DVRHO(NR)*DR
+         ENDDO
+         PIC0 = PICIN(NIC)*1.D6/SUMIC
+
+         DO NR=1,NRMAX
+            PICL = PIC0*DEXP(-((RA*RM(NR)-PICR0(NIC))/PICRW(NIC))**2)
+            PRFV(NR,1,3)=PRFV(NR,1,3)+PICTOE(NIC)*PICL
+            PRFV(NR,2,3)=PRFV(NR,2,3)+(1.D0-PICTOE(NIC))*PICL
+
+            RLNLMD=16.1D0 - 1.15D0*LOG10(RN(NR,1))  + 2.30D0*LOG10(RT(NR,1))
+            VTE=SQRT(ABS(RT(NR,1))*RKEV/AME)
+
+            IF(PICCD(NIC).NE.0.D0) THEN
+               VPHIC=VC/(VTE*PICNPR(NIC))
+               IF(PICNPR(NIC).LE.1.D0) THEN
+                  EFCDIC=0.D0
+               ELSE
+                  EFCDIC=TRCDEF(VPHIC,ZEFF(NR),0.D0,EPSRHO(NR),1)
+               ENDIF
+            ELSE
                EFCDIC=0.D0
-            ELSE
-               EFCDIC=TRCDEF(VPHIC,ZEFF(NR),0.D0,EPSRHO(NR),1)
             ENDIF
-         ELSE
-            EFCDIC=0.D0
-         ENDIF
-         AJRFV(NR,1)=0.384D0*RT(NR,1)/(RN(NR,1)*RLNLMD) &
-                    *(PECCD*PECTOE*EFCDEC*PECL)
-         AJRFV(NR,2)=0.384D0*RT(NR,1)/(RN(NR,1)*RLNLMD) &
-                    *(PLHCD*PLHTOE*EFCDLH*PLHL)
-         AJRFV(NR,3)=0.384D0*RT(NR,1)/(RN(NR,1)*RLNLMD) &
-                    *(PICCD*PICTOE*EFCDIC*PICL)
-         AJRF(NR)   =0.384D0*RT(NR,1)/(RN(NR,1)*RLNLMD) &
-                    *(PECCD*PECTOE*EFCDEC*PECL &
-                    + PLHCD*PLHTOE*EFCDLH*PLHL          &
-                    + PICCD*PICTOE*EFCDIC*PICL)
-      ENDDO
+            AJRFV(NR,3)=AJRFV(NR,3)+0.384D0*RT(NR,1)/(RN(NR,1)*RLNLMD) &
+                       *(PICCD(NIC)*PICTOE(NIC)*EFCDIC*PICL)
+         END DO
+      END DO
+
+      DO NR=1,NRMAX
+         PRF(NR,1)=PRFV(NR,1,1)+PRFV(NR,1,2)+PRFV(NR,1,3)
+         PRF(NR,2)=PRFV(NR,2,1)+PRFV(NR,2,2)+PRFV(NR,2,3)
+         AJRF(NR)=AJRFV(NR,1)+AJRFV(NR,2)+AJRFV(NR,3)
+      END DO
 
       RETURN
       END SUBROUTINE TRPWRF

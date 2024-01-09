@@ -7,21 +7,21 @@
       SUBROUTINE TRNFDT
 
       USE TRCOMM, ONLY : &
-           AME, AMM, ANC, ANFE, MDLNF, NRMAX, PA, PBIN, PFCL, &
+           AME, AMP, ANC, ANFE, MDLNF, NRMAX, PA, PBIN, PFCL, &
            PFIN, PI, PNBENG, PNF, PZ, PZC, PZFE, RKEV, &
-           RN, RNF, RT, RTF, RW, SNF, TAUF, rkind
+           RN, RNF, RT, RTF, RW, SNF, TAUF, rkind, PBIN_NNB, NNBMAX
       IMPLICIT NONE
 !      INCLUDE 'trcomm.inc'
       REAL(rkind)   :: &
            AMA, AMD, AMT, ANE, EC, HYF, P1, PTNT, SS, SSB, TAUS, &
            TD, TE, TT, VC3, VCA3, VCD3, VCR, VCT3, VF, WF, ZEFFM
-      INTEGER:: NR
+      INTEGER:: NR,NNB
       REAL(rkind)   :: SIGMAM, COULOG, SIGMAB, HY   !FUNCTION
 
 
-      AMD=PA(2)*AMM
-      AMT=PA(3)*AMM
-      AMA=PA(4)*AMM
+      AMD=PA(2)*AMP
+      AMT=PA(3)*AMP
+      AMA=PA(4)*AMP
       VF =SQRT(2.D0*3.5D3 *RKEV/AMA)
 
       DO NR=1,NRMAX
@@ -39,8 +39,11 @@
                     +PZFE(NR)*PZFE(NR)*ANFE(NR)/52.D0)/ANE
             EC  = 14.8D0*TE*PA(2)*ZEFFM**(2.D0/3.D0)
             TAUS= 0.2D0*PA(2)*ABS(TE)**1.5D0 /(PZ(2)**2*ANE*COULOG(1,2,ANE,TE))
-            PTNT= PBIN(NR)*TAUS/(RN(NR,2)*1.D20*PNBENG*RKEV)
-            SSB = SIGMAB(PNBENG,EC,TT,PTNT)
+            SSB=0.D0
+            DO NNB=1,NNBMAX
+               PTNT= PBIN_NNB(NNB,NR)*TAUS/(RN(NR,2)*1.D20*PNBENG(NNB)*RKEV)
+               SSB = SSB+SIGMAB(PNBENG(NNB),EC,TT,PTNT)
+            END DO
          ELSE
             SSB=0.D0
          ENDIF
@@ -212,7 +215,7 @@
       SUBROUTINE TRNFDHe3
 
       USE TRCOMM, ONLY : &
-           AME, AMM, MDLNF, NRMAX, PA, PFCL, &
+           AME, AMP, MDLNF, NRMAX, PA, PFCL, &
            PFIN, PI, PNF, PZ, RKEV, &
            RN, RNF, RT, RTF, RW, SNF, TAUF, rkind
       IMPLICIT NONE
@@ -222,9 +225,9 @@
       INTEGER:: NR
       REAL(rkind)   :: SIGMADHe3, COULOG, HY   !FUNCTION
 
-      AMD=  PA(2)*AMM
-      AMHe3=PA(3)*AMM
-      AMA=  PA(4)*AMM
+      AMD=  PA(2)*AMP
+      AMHe3=PA(3)*AMP
+      AMA=  PA(4)*AMP
       VF =SQRT(2.D0*3.6D3 *RKEV/AMA)
 
       DO NR=1,NRMAX

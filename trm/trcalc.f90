@@ -9,7 +9,7 @@
 
       USE TRCOMM, ONLY : AJBS, AJRF, AJRFV, AR1RHOG, ARRHOG, &
            BP, DT, MDLEQ0, &
-           MDLJBS, MDLNF, MDLUF, MDLPR, MDNCLS, NRAMAX, NRMAX, &
+           MDLJBS, MDLNF, MDLUF, MDLPR, MDLNCL, NRAMAX, NRMAX, &
            NROMAX, NSM, NSMAX, PBCL, PBIN, PCX, PELTIM, PEX, PFCL, PFIN, &
            PI, PIE, PIN, PN, PNB, PNF, POH, PRB, PRC, PRF, PRFV, PRL, PRSUM, &
            Q0, QP, RDP, RG, RHOA, RR, SCX, SEX, SIE, SNB, SNF, SPE, SSIN, &
@@ -99,7 +99,7 @@
 
       IF(MDLPR.GT.0) CALL TR_CYTRAN
 
-      IF(MDNCLS.NE.0) THEN
+      IF(MDLNCL.NE.0) THEN
          CALL TR_NCLASS(IERR)
          IF(IERR.NE.0) RETURN
       ENDIF
@@ -110,7 +110,7 @@
       IF(MDLUF.NE.1.AND.MDLUF.NE.3) CALL TRPWRF
       CALL TRPWNB
 
-      IF(MDNCLS.NE.0) THEN
+      IF(MDLNCL.NE.0) THEN
          CALL TRAJBS_NCLASS
       ELSE
          select case(MDLJBS)
@@ -201,7 +201,7 @@
 
       SUBROUTINE TRERAD
 
-      USE TRCOMM, ONLY : AEE, AMM, BB, BP, DR, EPSRHO, ER, MDLER, NRMAX, &
+      USE TRCOMM, ONLY : AEE, AMP, BB, BP, DR, EPSRHO, ER, MDLER, NRMAX, &
            & PA, PADD, PBM, PNSS, PTS, PZ, QP, RHOG, RHOM, &
            & RJCB, RKEV, RN, RNF, RT, SUMPBM, VPOL, VTOR, rkind
       USE libitp
@@ -250,8 +250,8 @@
                RLNI = -(LOG(RN(NR+1,2))-LOG(RN(NR,2)))*DRL
                RLTI = -(LOG(RT(NR+1,2))-LOG(RT(NR,2)))*DRL
             ENDIF
-            CS = SQRT(TEL*RKEV/(PA(2)*AMM))
-            RHO_S = CS*PA(2)*AMM/(PZ(2)*AEE*BB)
+            CS = SQRT(TEL*RKEV/(PA(2)*AMP))
+            RHO_S = CS*PA(2)*AMP/(PZ(2)*AEE*BB)
             ER(NR) =-BB*( (TIL/TEL)*RHO_S*CS*(RLNI+ALPHA_NEO*RLTI)-EPS/QP(NR)*VTOR(NR))
          ENDIF
       ENDDO
@@ -634,11 +634,11 @@
          DPI=(RPIP-RPIM)*DRL
          TI =0.5D0*(RNTP/RNP+RNTM/RNM)
          DTI=(RNTP/RNP-RNTM/RNM)*DRL
-!         VTI=SQRT(ABS(TI)*RKEV/AMM)
+!         VTI=SQRT(ABS(TI)*RKEV/AMP)
 
 !         ANE=0.5D0*(RN(NR+1,1)+RN(NR,1))
 !         rLnLam=17.3D0-DLOG(ANE)*0.5D0+DLOG(ABS(TI))*1.5D0
-!         TAUI=12.D0*PI*SQRT(PI)*EPS0**2*SQRT(AMM)
+!         TAUI=12.D0*PI*SQRT(PI)*EPS0**2*SQRT(AMP)
 !     &             *(ABS(TI)*RKEV)**1.5D0/(ANI(NR)*1.D20
 !     &             *ZEFFL**4*AEE**4*rLnLam)
 
@@ -736,11 +736,11 @@
          DPI=(RPIP-RPIM)*DRL
          TI =0.5D0*(RNTP/RNP+RNTM/RNM)
          DTI=(RNTP/RNP-RNTM/RNM)*DRL
-!         VTI=SQRT(ABS(TI)*RKEV/AMM)
+!         VTI=SQRT(ABS(TI)*RKEV/AMP)
 
 !         ANE=PNSS(1)
 !         rLnLam=17.3D0-DLOG(ANE)*0.5D0+DLOG(ABS(TI))*1.5D0
-!         TAUI=12.D0*PI*SQRT(PI)*EPS0**2*SQRT(AMM)
+!         TAUI=12.D0*PI*SQRT(PI)*EPS0**2*SQRT(AMP)
 !     &             *(ABS(TI)*RKEV)**1.5D0/(ANI(NR)*1.D20
 !     &             *ZEFFL**4*AEE**4*rLnLam)
 
@@ -811,7 +811,7 @@
 
       SUBROUTINE TRAJBS
 
-      USE TRCOMM, ONLY : AJBS, AME, AMM, BB, BP, DR, EPSRHO, NRMAX, NSMAX, PA, PBSCD, PNSS, PTS, PZ, QP, RHOG, RHOM, &
+      USE TRCOMM, ONLY : AJBS, AME, AMP, BB, BP, DR, EPSRHO, NRMAX, NSMAX, PA, PBSCD, PNSS, PTS, PZ, QP, RHOG, RHOM, &
      &                   RJCB, RKEV, RN, RR, RT, ZEFF, rkind
       USE libitp
       IMPLICIT NONE
@@ -835,9 +835,9 @@
 
       IF(PBSCD.LE.0.D0) RETURN
 
-      AMD=PA(2)*AMM
-      AMT=PA(3)*AMM
-      AMA=PA(4)*AMM
+      AMD=PA(2)*AMP
+      AMT=PA(3)*AMP
+      AMA=PA(4)*AMP
 
       DO NR=1,NRMAX-1
 
@@ -1379,12 +1379,12 @@
 !     ZL   : ion charge number
 !     PAL  : ion atomic number
 
-      USE TRCOMM, ONLY : AEE, AMM, EPS0, PI, RKEV, rkind
+      USE TRCOMM, ONLY : AEE, AMP, EPS0, PI, RKEV, rkind
       IMPLICIT NONE
       REAL(rkind):: ANEL, ANIL, PAL, TIL, ZL, FTAUI
       REAL(rkind):: COEF, COULOG
 
-      COEF = 12.D0*PI*SQRT(PI)*EPS0**2*SQRT(PAL*AMM)/(AEE**4*1.D20)
+      COEF = 12.D0*PI*SQRT(PI)*EPS0**2*SQRT(PAL*AMP)/(AEE**4*1.D20)
       FTAUI = COEF*(TIL*RKEV)**1.5D0/(ANIL*ZL**4*COULOG(2,2,ANEL,TIL))
 
       RETURN

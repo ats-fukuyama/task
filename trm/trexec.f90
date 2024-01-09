@@ -16,9 +16,9 @@ CONTAINS
       SUBROUTINE tr_exec(DT,IERR)
 
       USE TRCOMM, ONLY : &
-     &   AJ, AJU, AMM, ANC, ANFE, ANNU, AX, AY, AZ, BB, &
+     &   AJ, AJU, AMP, ANC, ANFE, ANNU, AX, AY, AZ, BB, &
      &   DR, DVRHO, DVRHOG, EPSLTR, LDAB, LMAXTR, MDLEQB, MDLEQE, &
-     &   MDLEQN, MDLPCK, MDLUF, MDTC, MLM, NEQMAX, NFM, &
+     &   MDLEQN, MDLPCK, MDLUF, MDLTC, MLM, NEQMAX, NFM, &
      &   NRAMAX, NRMAX, NROMAX, NSM, NSMAX, NSS, NST, NSV, &
      &   NTUM, &
      &   PA, PZ, PZC, PZFE, PN, RDP, RHOA, RIP, RIPU, RM, &
@@ -55,7 +55,7 @@ CONTAINS
 !     /* Store Variables for Convergence Check */
       forall(J=1:NEQMAX,NR=1:NRMAX) XX(NEQMAX*(NR-1)+J) = XV(J,NR)
       YY(1:NFM,1:NRMAX) = YV(1:NFM,1:NRMAX)
-      IF(MDTC.NE.0) ZZ(1:NSMAX,1:NRMAX) = ZV(1:NSMAX,1:NRMAX)
+      IF(MDLTC.NE.0) ZZ(1:NSMAX,1:NRMAX) = ZV(1:NSMAX,1:NRMAX)
 
  2000 CONTINUE
 
@@ -107,7 +107,7 @@ CONTAINS
 !    /* Solve equation for fast particl
 
       Y(1:NFM,1:NRMAX) = Y(1:NFM,1:NRMAX)/AY(1:NFM,1:NRMAX)
-      IF(MDTC.NE.0) Z(1:NSMAX,1:NRMAX) = Z(1:NSMAX,1:NRMAX)/AZ(1:NSMAX,1:NRMAX)
+      IF(MDLTC.NE.0) Z(1:NSMAX,1:NRMAX) = Z(1:NSMAX,1:NRMAX)/AZ(1:NSMAX,1:NRMAX)
 
 !     /* Convergence check */
 
@@ -119,7 +119,7 @@ CONTAINS
          IF (ABS(Y(J,NR)-YY(J,NR)).GT.EPSLTR*ABS(Y(J,NR))) GOTO 3000
       ENDDO
       ENDDO
-      IF(MDTC.NE.0) THEN
+      IF(MDLTC.NE.0) THEN
          DO J=1,NSMAX
          DO NR=1,NRMAX
             IF (ABS(Z(J,NR)-ZZ(J,NR)).GT.EPSLTR*ABS(Z(J,NR))) GOTO 3000
@@ -141,7 +141,7 @@ CONTAINS
          YY(J,NR) = Y(J,NR)
       ENDDO
       ENDDO
-      IF(MDTC.NE.0) THEN
+      IF(MDLTC.NE.0) THEN
          DO J=1,NSMAX
          DO NR=1,NRMAX
             ZZ(J,NR) = Z(J,NR)
@@ -304,10 +304,10 @@ CONTAINS
                   RU(NR,NSSN) = 0.D0
                ELSE
                   IF(NSTN.EQ.0) THEN
-                     RU(NR,NSSN) = XV(NEQ,NR)/(PA(NSSN)*AMM*RN(NR,NSSN))
+                     RU(NR,NSSN) = XV(NEQ,NR)/(PA(NSSN)*AMP*RN(NR,NSSN))
                   ELSE
                      RU(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
-                          + X(NEQRMAX*(NR-1)+NSTN))/(PA(NSSN)*AMM*RN(NR,NSSN))
+                          + X(NEQRMAX*(NR-1)+NSTN))/(PA(NSSN)*AMP*RN(NR,NSSN))
                   ENDIF
                END IF
             ENDIF
@@ -380,7 +380,7 @@ CONTAINS
       ENDDO
 
       YV(1:NFM,1:NRMAX) = Y(1:NFM,1:NRMAX)
-      IF(MDTC.NE.0) ZV(1:NSMAX,1:NRMAX) = Z(1:NSMAX,1:NRMAX)
+      IF(MDLTC.NE.0) ZV(1:NSMAX,1:NRMAX) = Z(1:NSMAX,1:NRMAX)
 
 !     /* Making New Physical Variables */
 
@@ -405,7 +405,7 @@ CONTAINS
 
       CALL TRCALC(IERR)
       IF(IERR.NE.0) RETURN
-      IF(MDTC.NE.0) THEN
+      IF(MDLTC.NE.0) THEN
          CALL TRXTOA_AKDW
          CALL TRCFDW_AKDW
       ENDIF
@@ -475,7 +475,7 @@ CONTAINS
 
       USE TRCOMM, ONLY : AEE, AKDW, AMZ, AX, AY, AZ, DD, DI, DT, &
      &                   DVRHOG, EPS0, LDAB, MDLCD, MDLEQB, MDLPCK, MDLUF, &
-     &                   MDTC, MLM, NEA, NEQM, NEQMAX, NRMAX, NSMAX, &
+     &                   MDLTC, MLM, NEA, NEQM, NEQMAX, NRMAX, NSMAX, &
      &                   NSS, NST, NTUM, NVM, PI, PNB, PNF, RA, RIP, RIPA, &
      &                   RKEV, RMU0, RN, RR, RT, RTM, T, TAUB, TAUF, TAUK, &
      &                   VI, VV, X, XV, Y, YV, Z, ZV, RDPS, &
@@ -592,7 +592,7 @@ CONTAINS
       Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(NR)*DT/(RKEV*1.D20)
       AY(1,NR)=1.D0+ADV/TAUB(NR)
       AY(2,NR)=1.D0+ADV/TAUF(NR)
-      IF(MDTC.NE.0) THEN
+      IF(MDLTC.NE.0) THEN
          DO NS=1,NSMAX
             Z(NS,NR)=(1.D0-PRV/TAUK(NR))*ZV(NS,NR)+AKDW(NR,NS)*DT/TAUK(NR)
             AZ(NS,NR)=1.D0+ADV/TAUK(NR)
@@ -656,7 +656,7 @@ CONTAINS
          Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(NR)*DT/(RKEV*1.D20)
          AY(1,NR)=1.D0+ADV/TAUB(NR)
          AY(2,NR)=1.D0+ADV/TAUF(NR)
-         IF(MDTC.NE.0) THEN
+         IF(MDLTC.NE.0) THEN
             DO NS=1,NSMAX
                Z(NS,NR)=(1.D0-PRV/TAUK(NR))*ZV(NS,NR)+AKDW(NR,NS)*DT/TAUK(NR)
                AZ(NS,NR)=1.D0+ADV/TAUK(NR)
@@ -722,7 +722,7 @@ CONTAINS
       Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(NR)*DT/(RKEV*1.D20)
       AY(1,NR)=1.D0+ADV/TAUB(NR)
       AY(2,NR)=1.D0+ADV/TAUF(NR)
-      IF(MDTC.NE.0) THEN
+      IF(MDLTC.NE.0) THEN
          DO NS=1,NSMAX
             Z(NS,NR)=(1.D0-PRV/TAUK(NR))*ZV(NS,NR)+AKDW(NR,NS)*DT/TAUK(NR)
             AZ(NS,NR)=1.D0+ADV/TAUK(NR)
@@ -974,7 +974,7 @@ CONTAINS
 
       SUBROUTINE TRATOX
 
-      USE TRCOMM, ONLY : AKDW, AMM, MDTC, NEQMAX, NRMAX, NSMAX, NSS, NSV, PA, RDP, RN, RT, RU, RW, XV, YV, ZV
+      USE TRCOMM, ONLY : AKDW, AMP, MDLTC, NEQMAX, NRMAX, NSMAX, NSS, NSV, PA, RDP, RN, RT, RU, RW, XV, YV, ZV
       IMPLICIT NONE
       INTEGER:: NEQ, NR, NS, NSSN, NSVN
 
@@ -990,13 +990,13 @@ CONTAINS
             ELSEIF(NSVN.EQ.2) THEN
                XV(NEQ,NR) = RN(NR,NSSN)*RT(NR,NSSN)
             ELSEIF(NSVN.EQ.3) THEN
-               XV(NEQ,NR) = PA(NSSN)*AMM*RN(NR,NSSN)*RU(NR,NSSN)
+               XV(NEQ,NR) = PA(NSSN)*AMP*RN(NR,NSSN)*RU(NR,NSSN)
             ENDIF
          ENDDO
          YV(  1,NR) = RW(NR,1)
          YV(  2,NR) = RW(NR,2)
       ENDDO
-      IF(MDTC.NE.0) THEN
+      IF(MDLTC.NE.0) THEN
          DO NR=1,NRMAX
             DO NS=1,NSMAX
                ZV(NS,NR) = AKDW(NR,NS)
@@ -1016,8 +1016,8 @@ CONTAINS
       SUBROUTINE TRXTOA
 
       USE TRCOMM, ONLY : &
-           AKDW, AMM, ANC, ANFE, ANNU, DR, MDLEQE, MDLEQN, MDLEQT, &
-           MDTC, NEQMAX, NRMAX, NROMAX, NSM, NSMAX, NSS, NST, NSV, &
+           AKDW, AMP, ANC, ANFE, ANNU, DR, MDLEQE, MDLEQN, MDLEQT, &
+           MDLTC, NEQMAX, NRMAX, NROMAX, NSM, NSMAX, NSS, NST, NSV, &
            PA, PZ, PZC, PZFE, RDP, RN, RPSI, RT, RU, RW, RM, T, pn, &
            XV, YV, ZV, RDPVRHOG, DVRHOG, rkind, &
            model_nfixed,model_tfixed
@@ -1138,7 +1138,7 @@ CONTAINS
                IF(RN(NR,NSSN).LT.1.D-70) THEN
                   RU(NR,NSSN) = 0.D0
                ELSE
-                  RU(NR,NSSN) = XV(NEQ,NR)/(PA(NSSN)*AMM*RN(NR,NSSN))
+                  RU(NR,NSSN) = XV(NEQ,NR)/(PA(NSSN)*AMP*RN(NR,NSSN))
                END IF
             ENDIF
          ENDDO
@@ -1161,7 +1161,7 @@ CONTAINS
 
       ENTRY TRXTOA_AKDW
 
-      IF(MDTC.NE.0) THEN
+      IF(MDLTC.NE.0) THEN
          DO NR=1,NRMAX
             DO NS=1,NSMAX
                AKDW(NR,NS) = ZV(NS,NR)
@@ -1308,7 +1308,7 @@ CONTAINS
          NSSN=NSS(NEQ)
          NSVN=NSV(NEQ)
          IF(NSSN.NE.0) THEN
-            RTM(NSSN)=RT(NR,NSSN)*RKEV/(PA(NSSN)*AMM)
+            RTM(NSSN)=RT(NR,NSSN)*RKEV/(PA(NSSN)*AMP)
             IF(RTM(NSSN).LE.0.D0) THEN
                WRITE(6,'(A,2I6,2ES12.4)') &
                     'XX negative RTM:',nr,nssn,RT(NR,NSSN),RTM(NSSN)

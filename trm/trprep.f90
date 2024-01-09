@@ -122,9 +122,9 @@ CONTAINS
   SUBROUTINE TR_EQS_SELECT(INIT)
 
     USE TRCOMM, ONLY : &
-         AMM, AMZ, MDDIAG, MDLEOI, MDLEQ0, MDLEQB, MDLEQE, MDLEQN, &
+         AMP, AMZ, MDDIAG, MDLEOI, MDLEQ0, MDLEQB, MDLEQE, MDLEQN, &
          MDLEQT, MDLEQU, MDLEQZ, MDLKAI, MDLUF, &
-         MDLWLD, MDNCLS, NEA, NEQM, NEQMAX, NEQMAXM, NNS, NREDGE, &
+         MDLWLD, MDLNCL, NEA, NEQM, NEQMAX, NEQMAXM, NNS, NREDGE, &
          NRMAX, NSCMAX, NSLMAX, NSM, NSMAX,      &
          NSNMAX, NSS, NST, NSTM, NSTMAX, NSV, NSZMAX, PA, PZ, RGFLS, RQFLS, &
          INS
@@ -287,7 +287,7 @@ CONTAINS
 
       DO NS=1,NSMAX
          IF(PZ(NS).NE.0.D0) THEN
-            AMZ(NS)=PA(NS)*AMM/PZ(NS)**2
+            AMZ(NS)=PA(NS)*AMP/PZ(NS)**2
          ELSE
             AMZ(NS)=0.D0
          ENDIF
@@ -325,7 +325,7 @@ CONTAINS
 !     |   3   |   o   |   o   |
 !     |-----------------------|
 
-      IF(MDNCLS.EQ.0) THEN
+      IF(MDLNCL.EQ.0) THEN
          IF(MDANOM.EQ.1) THEN
             MDDIAG=2
          ELSE
@@ -356,14 +356,14 @@ CONTAINS
 
       SUBROUTINE TR_TABLE(NS,NEQ,NSW,IND,INDH,INDHD)
 
-      USE TRCOMM, ONLY : AME, AMM, MDLEQE, NEQMAX, NNS, NSMAX, NSS, NSV, PA, rkind
+      USE TRCOMM, ONLY : AME, AMP, MDLEQE, NEQMAX, NNS, NSMAX, NSS, NSV, PA, rkind
       IMPLICIT NONE
       INTEGER,INTENT(IN)   :: NS, NSW
       INTEGER,INTENT(INOUT):: NEQ, IND, INDH, INDHD
       INTEGER :: NEQI, NEQII, NNSN, NSVN
       REAL(rkind)    :: REM
 
-      REM=AME/AMM
+      REM=AME/AMP
       IF(NS.LE.NSMAX) THEN
          IF(ABS(PA(NS)-REM).LE.1.D-10) THEN
 !     electron

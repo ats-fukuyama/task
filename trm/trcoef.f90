@@ -19,9 +19,9 @@
       SUBROUTINE TRCFDW
 
       USE TRCOMM, ONLY : &
-           AEE, ADDW, AGMP, AKDW, AME, AMM, AR1RHOG, AR2RHOG, BB, CALF, CDW, &
+           AEE, ADDW, AGMP, AKDW, AME, AMP, AR1RHOG, AR2RHOG, BB, CALF, CDW, &
            CK0,CK1, CKALFA, CKBETA, CKGUMA, CWEB, DR, EPS0, EPSRHO, ER, EZOH, &
-           KGR1, KGR2, KGR3, KGR4, MDCD05, MDLKAI, MDLUF, MDTC, NRMAX, NSM, &
+           KGR1, KGR2, KGR3, KGR4, MDLCD05, MDLKAI, MDLUF, MDLTC, NRMAX, NSM, &
            NSMAX, NSTM, PA, PADD, PBM, PI, PNSS, PTS, PZ, Q0, QP, RA, RDPS, &
            RG, RHOG, RHOM, RJCB, RKAP, RKEV, RKPRHO, RKPRHOG, RM, RMU0, RN, &
            RNF, RR, RT, RW, S, ALPHA, RKCV, SUMPBM, TAUK, VC, VEXB, VGR1, &
@@ -59,9 +59,9 @@
       INTEGER:: MODEL,ierr
       REAL(rkind),DIMENSION(NRMAX):: S_HM
 
-      AMD=PA(2)*AMM
-      AMT=PA(3)*AMM
-      AMA=PA(4)*AMM
+      AMD=PA(2)*AMP
+      AMT=PA(3)*AMP
+      AMA=PA(4)*AMP
       OMEGAD = PZ(2)*AEE*BB/AMD
 
       select case(MDLKAI)
@@ -159,7 +159,7 @@
 
       DO NR=1,NRMAX
 !     characteristic time of temporal change of transport coefficients
-         TAUK(NR)=QP(NR)*RR/SQRT(RT(NR,2)*RKEV/(PA(2)*AMM))*DBLE(MDTC)
+         TAUK(NR)=QP(NR)*RR/SQRT(RT(NR,2)*RKEV/(PA(2)*AMP))*DBLE(MDLTC)
 !         DRL=RJCB(NR)/DR
          DRL=1.D0/(DR*RA)
          EPS=EPSRHO(NR)
@@ -511,7 +511,7 @@
                DEDW = CK0*2.5D0*OMEGAS/PPK**2 &
      &               *(SQRT(EPS)*MIN(FDREV,EPS*OMEGAS/ANYUE)+OMEGAS/OMEGATT*MAX(1.D0,ANYUE/OMEGATT))
                RGL   = 2.5D0*OMEGAS*HETA*SQRT(2.D0*ABS(TI)*ABS(ETAI)*ABS(CLN)/(TE*RRSTAR))
-               AMD=PA(2)*AMM
+               AMD=PA(2)*AMP
                TAUD = FTAUI(ANE,ANDX,TD,PZ(2),PA(2))
                RNUZ= 1.D0/(TAUD*SQRT(EPS))
                XCHI1=SQRT(RNUZ)/(SQRT(RNUZ)+SQRT(RGL))
@@ -567,7 +567,7 @@
                ELSE
                   DKAI=1.5D-1*(ABS(DTE)/TE +2.D0*ABS(DNE)/ANE) &
                        *SQRT(TE/TI)*(1.D0/EPS)*(QL**2/(DQ*BB*SQRT(RR)))*VC**2 &
-                       *SQRT(RMU0*1.5D0*AMM)*(1.D0-CRTCL/ABS(DTE))
+                       *SQRT(RMU0*1.5D0*AMP)*(1.D0-CRTCL/ABS(DTE))
                ENDIF
                AKDW(NR,1)=                  DKAI
                AKDW(NR,2)=ZEFFL*SQRT(TE/TD)*DKAI
@@ -619,7 +619,7 @@
             case(31)
                ALPHAL=ALPHA(NR)*CALF
                FS=TRCOFS(S(NR),ALPHAL,RKCV(NR))
-               IF(MDCD05.NE.0) &
+               IF(MDLCD05.NE.0) &
                     FS=FS*(2.D0*SQRT(RKPRHO(NR))/(1.D0+RKPRHO(NR)**2))**1.5D0
                AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
@@ -627,7 +627,7 @@
                ALPHAL=ALPHA(NR)*CALF
                FS=TRCOFS(S(NR),ALPHAL,RKCV(NR))
                FS=FS*RG1
-               IF(MDCD05.NE.0) &
+               IF(MDLCD05.NE.0) &
                     FS=FS*(2.D0*SQRT(RKPRHO(NR))/(1.D0+RKPRHO(NR)**2))**1.5D0
                AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
@@ -843,9 +843,9 @@
                NR08=INT(0.8D0*NRMAX)
                CHIB  = (ABS(DPERHO*1.D3)/(ANE*BB))*QL*QL*((RT(NR08,1)-RT(NRMAX,1))/RT(NRMAX,1))
                RHOS  = 1.02D-4*SQRT(PA(2)*TE*1.D3/PZ(2))/(RA*BB)
-!               RHOS  = SQRT(2.D0*AMM/AEE)*SQRT(PA(2)*TE*1.D3)/(PZ(2)*RA*BB)
+!               RHOS  = SQRT(2.D0*AMP/AEE)*SQRT(PA(2)*TE*1.D3)/(PZ(2)*RA*BB)
                CHIGB = RHOS*ABS(DTERHO*1.D3)/BB
-               CS    = SQRT(ABS(TE*RKEV/(PA(2)*AMM)))
+               CS    = SQRT(ABS(TE*RKEV/(PA(2)*AMP)))
                ALNI  = ABS(DND/ANDX)
                ALTI  = ABS(DTD/TD)
                AGITG = 0.1D0*CS/RA*SQRT(RA*ALNI+RA*ALTI)*SQRT(TD/TE)
@@ -928,7 +928,7 @@
             AKDW(NR,4)=AKDWIL
 
             VGR1(NR,1)=ER(NR)
-            VTIL=SQRT(2.D0*TI*RKEV/(PAL*AMM))
+            VTIL=SQRT(2.D0*TI*RKEV/(PAL*AMP))
             GAMMA0=VTIL/(QP(NR)*RR)
             EXBfactor=1.D0/(1.D0+(WEXBP(NR)/GAMMA0)**2)
             SHRfactor=1.D0/MAX(1.D0,(S(NR)-0.5d0)**2)
@@ -1028,7 +1028,7 @@
 
             PNI=ANDX+ANT+ANA
             DO NS=2,NSMAX
-               AMI=PA(NS)*AMM
+               AMI=PA(NS)*AMP
                VA=SQRT(BB**2/(RMU0*ANE*1.D20*AMI))
                WE1=-QL*RR/(SL*VA)*DVE
                RG1=CWEB*FEXB(ABS(WE1),S(NR),ALPHA(NR))
@@ -1088,7 +1088,7 @@
          CALL AITKEN(1.D0,RBEEDG,RM,RNF(:,1),2,NRMAX)
          RBEEDG=RBEEDG/PNSS(1)
          CALL IFSPPPL_DRIVER(NSTM,NRMAX,RN,RR,DR,RJCB,RHOG,RHOM, &
-              QP,S,EPSRHO,RKPRHOG,RT,BB,AMM,AME,PNSS,PTS,RNF(1:NRMAX,1), &
+              QP,S,EPSRHO,RKPRHOG,RT,BB,AMP,AME,PNSS,PTS,RNF(1:NRMAX,1), &
               RBEEDG,MDLUF,NSMAX,AR1RHOG,AR2RHOG,AKDW)
       ELSEIF(MDLKAI.EQ.63.OR.MDLKAI.EQ.64) THEN
          CALL WEILAND_DRIVER
@@ -1102,8 +1102,8 @@
       SUBROUTINE TRCFNC
 
       USE TRCOMM, ONLY : AEE, AK, AKDW, AKDWD, AKDWP, AKLD, AKLP,&
-           & AKNC, AKNCP, AKNCT, AME, AMM, BB, BP, CDH, CNH, CSPRS,&
-           & EPSRHO, MDDIAG, MDEDGE, MDLKNC, MDLUF, NREDGE, NRMAX,&
+           & AKNC, AKNCP, AKNCT, AME, AMP, BB, BP, CDH, CNH, CSPRS,&
+           & EPSRHO, MDDIAG, MDLEDGE, MDLKNC, MDLUF, NREDGE, NRMAX,&
            & NSLMAX, NSM, PA, PNSS, PTS, PZ, QP, RA, RG, RKEV, RN, RR&
            &, RT, ZEFF, NSMAX, rkind
       IMPLICIT NONE
@@ -1126,11 +1126,11 @@
 !      DATA RK33,RA33,RB33,RC33/1.83D0,0.68D0,0.32D0,0.66D0/
 !!      DATA RK2 ,RA2 ,RB2 ,RC2 /0.66D0,1.03D0,0.31D0,0.74D0/
 
-      AMD=PA(2)*AMM
+      AMD=PA(2)*AMP
       AMT=AMD
       AMA=AMD
-      IF(NSMAX.GE.3) AMT=PA(3)*AMM
-      IF(NSMAX.GE.4) AMA=PA(4)*AMM
+      IF(NSMAX.GE.3) AMT=PA(3)*AMP
+      IF(NSMAX.GE.4) AMA=PA(4)*AMP
 
       DO NR=1,NRMAX
          IF(NR.EQ.NRMAX) THEN
@@ -1270,15 +1270,15 @@
 
       ENTRY TRCFDW_AKDW
 
-      IF(MDEDGE.EQ.1) CDHSV=CDH
+      IF(MDLEDGE.EQ.1) CDHSV=CDH
       DO NR=1,NRMAX
-         IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDH=CSPRS
+         IF(MDLEDGE.EQ.1.AND.NR.GE.NREDGE) CDH=CSPRS
          DO NS=1,NSM
             AKDW(NR,NS) = CDH*AKDW(NR,NS)
             AK(NR,NS) = AKDW(NR,NS)+CNH*AKNC(NR,NS)
          ENDDO
       ENDDO
-      IF(MDEDGE.EQ.1) CDH=CDHSV
+      IF(MDLEDGE.EQ.1) CDH=CDHSV
 
 !     ***** OFF-DIAGONAL TRANSPORT COEFFICIENTS *****
 
@@ -1302,7 +1302,7 @@
          ENDDO
       case(2)
          DO NR=1,NRMAX
-            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDH=CSPRS
+            IF(MDLEDGE.EQ.1.AND.NR.GE.NREDGE) CDH=CSPRS
             DO NS=1,NSLMAX
                DO NS1=1,NSLMAX
                   IF(NS.EQ.NS1) THEN
@@ -1317,7 +1317,7 @@
          ENDDO
       case(3)
          DO NR=1,NRMAX
-            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDH=CSPRS
+            IF(MDLEDGE.EQ.1.AND.NR.GE.NREDGE) CDH=CSPRS
             DO NS=1,NSLMAX
                DO NS1=1,NSLMAX
                   AKLP(NR,NS,NS1)= CDH*  AKDWP(NR,NS,NS1)+CNH*( AKNCT(NR,NS,NS1)+AKNCP(NR,NS,NS1))
@@ -1326,7 +1326,7 @@
             ENDDO
          ENDDO
       end select
-      IF(MDEDGE.EQ.1) CDH=CDHSV
+      IF(MDLEDGE.EQ.1) CDH=CDHSV
 !
       RETURN
       END SUBROUTINE TRCFNC
@@ -1335,7 +1335,7 @@
 
       SUBROUTINE TRCFET
 
-      USE TRCOMM, ONLY : AEE, AME, BB, BP, EPS0, EPSRHO, ETA, ETANC, MDLETA, MDLTPF, MDNCLS, NRMAX, NT, PI, Q0, QP, RKEV, &
+      USE TRCOMM, ONLY : AEE, AME, BB, BP, EPS0, EPSRHO, ETA, ETANC, MDLETA, MDLTPF, MDLNCL, NRMAX, NT, PI, Q0, QP, RKEV, &
      &                   RN, RR, RT, ZEFF, rkind
       IMPLICIT NONE
       INTEGER:: NR
@@ -1439,7 +1439,7 @@
 
 !        ****** NEOCLASSICAL RESISTIVITY BY NCLASS  ******
 
-      IF(NT.NE.0.AND.MDNCLS.NE.0) ETA(1:NRMAX)=ETANC(1:NRMAX)
+      IF(NT.NE.0.AND.MDLNCL.NE.0) ETA(1:NRMAX)=ETANC(1:NRMAX)
 
       RETURN
       END SUBROUTINE TRCFET
@@ -1448,9 +1448,9 @@
 
       SUBROUTINE TRCFAD
 
-      USE TRCOMM, ONLY : AD, AD0, ADDW, ADDWD, ADDWP, ADLD, ADLP, ADNC, ADNCP, ADNCT, AEE, AKDW, ALP, AME, AMM, AV, AV0,    &
+      USE TRCOMM, ONLY : AD, AD0, ADDW, ADDWD, ADDWP, ADLD, ADLP, ADNC, ADNCP, ADNCT, AEE, AKDW, ALP, AME, AMP, AV, AV0,    &
      &                   AVDW, AVK, AVKDW, AVKNC, AVNC, BB, BP, CDH, CDP, CHP, CNH, CNN, CNP, CSPRS, EPSRHO, EZOH, MDDIAG,  &
-     &                   MDDW, MDEDGE, MDLAD, MDLAVK, MDNCLS, NREDGE, NRMAX, NSLMAX, NSM, PA, PN, PNSS, PROFN1, PROFN2, PTS,&
+     &                   MDLDW, MDLEDGE, MDLAD, MDLAVK, MDLNCL, NREDGE, NRMAX, NSLMAX, NSM, PA, PN, PNSS, PROFN1, PROFN2, PTS,&
      &                   PZ, QP, RA, RHOG, RKEV, RN, RM, RR, RT, ZEFF, rkind
       IMPLICIT NONE
       INTEGER:: NR, NS, NS1, NA, NB
@@ -1469,13 +1469,13 @@
 !        ****** AD : PARTICLE DIFFUSION ******
 !        ****** AV : PARTICLE PINCH ******
 
-      IF(MDEDGE.EQ.1) CDPSV=CDP
+      IF(MDLEDGE.EQ.1) CDPSV=CDP
       DO NR=1,NRMAX
          AVDW(NR,1:NSM) = 0.D0
          ADDW(NR,1:NSM) = 0.D0
       END DO
 
-      IF(MDNCLS.EQ.0) THEN
+      IF(MDLNCL.EQ.0) THEN
       select case(MDLAD)
       case(1)
          DO NR=1,NRMAX
@@ -1561,7 +1561,7 @@
                TE  = 0.5D0*(RT(NR+1,1)+RT(NR  ,1))
             ENDIF
 
-            IF(MDDW.EQ.0) ADDW(NR,1:NSM) = AD0*AKDW(NR,1:NSM)
+            IF(MDLDW.EQ.0) ADDW(NR,1:NSM) = AD0*AKDW(NR,1:NSM)
 
             ZEFFL = ZEFF(NR)
             BPL   = BP(NR)
@@ -1581,7 +1581,7 @@
 
             RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)+(EPSS*RC11)**2/RB11*RNUE/(1.D0+RC11*RNUE*EPSS))
 
-            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
+            IF(MDLEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             AVNC(NR,1:NSM) = -(RK13E*SQRT(EPS)*EZOHL)/BPL/H
             ADNC(NR,1:NSM) = SQRT(EPS)*RHOE2/TAUE*RK11E
             AD  (NR,1:NSM) = CDP*ADDW(NR,1:NSM)+CNP*ADNC(NR,1:NSM)
@@ -1602,7 +1602,7 @@
                TE  = 0.5D0*(RT(NR+1,1)+RT(NR  ,1))
             ENDIF
 
-            IF(MDDW.EQ.0) ADDW(NR,1:NSM) = AD0*AKDW(NR,1:NSM)
+            IF(MDLDW.EQ.0) ADDW(NR,1:NSM) = AD0*AKDW(NR,1:NSM)
 
             ZEFFL = ZEFF(NR)
             BPL   = BP(NR)
@@ -1622,7 +1622,7 @@
 
             RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)+(EPSS*RC11)**2/RB11*RNUE/(1.D0+RC11*RNUE*EPSS))
 
-            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
+            IF(MDLEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             AVNC(NR,1:NSM) =-(RK13E*SQRT(EPS)*EZOHL)/BPL/H
             ADNC(NR,1:NSM) = SQRT(EPS)*RHOE2/TAUE*RK11E
             AVDW(NR,1:NSM) =-AV0*ADDW(NR,1:NSM)*RHOG(NR)/RA
@@ -1645,18 +1645,18 @@
          AVDW(1:NRMAX,1:NSM)=0.D0
       end select
       ENDIF
-      IF(MDEDGE.EQ.1) CDP=CDPSV
+      IF(MDLEDGE.EQ.1) CDP=CDPSV
 
 !     ***** NET PARTICLE PINCH *****
 
       DO NS=1,NSLMAX
          DO NR=1,NRMAX
-            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
+            IF(MDLEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             AD(NR,NS)=CNP*ADNC(NR,NS)+CDP*ADDW(NR,NS)
             AV(NR,NS)=CNP*AVNC(NR,NS)+CDP*AVDW(NR,NS)
          ENDDO
       ENDDO
-      IF(MDEDGE.EQ.1) CDP=CDPSV
+      IF(MDLEDGE.EQ.1) CDP=CDPSV
 
 !     ***** OFF-DIAGONAL TRANSPORT COEFFICIENTS *****
 
@@ -1666,9 +1666,9 @@
       select case(MDDIAG)
       case(1)
          DO NR=1,NRMAX
-            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
+            IF(MDLEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             DO NS=1,NSLMAX
-               IF(MDDW.EQ.0) ADDW(NR,NS) = AD0*AKDW(NR,NS)
+               IF(MDLDW.EQ.0) ADDW(NR,NS) = AD0*AKDW(NR,NS)
                DO NS1=1,NSLMAX
                   IF(NS.EQ.NS1) THEN
                      ADLD(NR,NS,NS1)= CDP*  ADDW(NR,NS) +CNP*(-ADNCT(NR,NS,NS1))
@@ -1682,7 +1682,7 @@
          ENDDO
       case(2)
          DO NR=1,NRMAX
-            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
+            IF(MDLEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             DO NS=1,NSLMAX
                DO NS1=1,NSLMAX
                   IF(NS.EQ.NS1) THEN
@@ -1697,7 +1697,7 @@
          ENDDO
       case(3)
          DO NR=1,NRMAX
-            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
+            IF(MDLEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             DO NS=1,NSLMAX
                DO NS1=1,NSLMAX
                   ADLD(NR,NS,NS1)= CDP*ADDWD(NR,NS,NS1)+CNP*(-ADNCT(NR,NS,NS1))
@@ -1706,7 +1706,7 @@
             ENDDO
          ENDDO
       end select
-      IF(MDEDGE.EQ.1) CDP=CDPSV
+      IF(MDLEDGE.EQ.1) CDP=CDPSV
 
 !     /* for nuetral deuterium */
 
@@ -1730,9 +1730,9 @@
          SGMNI=2.D0*EXP(SUMA)*1.D-4
          SGMNN=2.D0*EXP(SUMB)*1.D-4
 
-         VNI=SQRT(RT(NR,2)*RKEV/(PA(2)*AMM))
-         VNC=SQRT(0.025D-3*RKEV/(PA(7)*AMM))
-         VNH=SQRT(RT(NR,2)*RKEV/(PA(8)*AMM))
+         VNI=SQRT(RT(NR,2)*RKEV/(PA(2)*AMP))
+         VNC=SQRT(0.025D-3*RKEV/(PA(7)*AMP))
+         VNH=SQRT(RT(NR,2)*RKEV/(PA(8)*AMP))
          CFNCI =RN(NR,2)*1.D20*SGMNI*VNI
          CFNCNC=RN(NR,7)*1.D20*SGMNN*VNC
          CFNCNH=RN(NR,8)*1.D20*SGMNN*VNH
@@ -1750,9 +1750,9 @@
 
 !     --- NEOCLASSICAL PART ---
 
-      IF(MDNCLS.EQ.0) THEN
+      IF(MDLNCL.EQ.0) THEN
 !     NCLASS has already calculated neoclassical heat pinch(AVKNC)
-!     beforehand if MDNCLS=1 so that MDLAVK becomes no longer valid.
+!     beforehand if MDLNCL=1 so that MDLAVK becomes no longer valid.
       select case(MDLAVK)
       case(1)
          DO NS=1,NSM
@@ -1788,7 +1788,7 @@
             EPS   = EPSRHO(NR)
             EPSS  = SQRT(EPS)**3
             VTE   = SQRT(TE*RKEV/AME)
-            VTD   = SQRT(TD*RKEV/(PA(2)*AMM))
+            VTD   = SQRT(TD*RKEV/(PA(2)*AMP))
             TAUE  = FTAUE(ANE,ANI,TE,ZEFFL)
             TAUD  = FTAUI(ANE,ANI,TD,PZ(2),PA(2))
             RNUE  = ABS(QPL)*RR/(TAUE*VTE*EPSS)

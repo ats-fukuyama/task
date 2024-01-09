@@ -71,29 +71,35 @@
 
       SUBROUTINE TRPELB
 
-      USE TRCOMM, ONLY : AEE, AME, AMM, ANC, ANFE, DR, DVRHO, NRMAX,&
-           & NSM, PA, PELPAT, PELRAD, PELVEL, PI, PNBENG, PZ, PZC,&
-           & PZFE, RA, RKEV, RN, RPE, RT, SNB, SNF, SPE, rkind
+      USE TRCOMM, ONLY : AEE, AME, AMP, ANC, ANFE, DR, DVRHO, NRMAX,&
+           NSM, PA, PELPAT, PELRAD, PELVEL, PI, PNBENG, PZ, PZC,&
+           PZFE, RA, RKEV, RN, RPE, RT, SNB, SNF, SPE, rkind, &
+           NNBMAX,SNB_NNB
       IMPLICIT NONE
-      REAL(rkind)    :: A1, A2, A3, AMA, AMB, AMD, AMP, AMT, ANE,&
+      REAL(rkind)    :: A1, A2, A3, AMA, AMB, AMD, AMPEL, AMT, ANE,&
            & ANFAST, ANS, B1, B2, B3, EFAST, P1, P2, PAP, QFAST, ROS,&
-           & RP, RPDOT, RPPRE, SPEL, TAUS, TE, VB, VCR, VF
-      INTEGER :: NR, NS
+           & RP, RPDOT, RPPRE, SPEL, TAUS, TE, VCR, VF, SUM
+      REAL(rkind),ALLOCATABLE:: VB_NNB(:)
+      INTEGER :: NR, NS, NNB
       REAL(rkind)    :: COULOG   ! FUNCTION
+
+      IF(NNBMAX.GT.0) ALLOCATE(VB_NNB(NNBMAX))
 
       NR = NRMAX
       RP = PELRAD
       PAP= PA(2)*PELPAT(2)+PA(3)*PELPAT(3)+PA(4)*PELPAT(4)
       ROS= 89.D0*PAP
-      AMP= AMM*PAP
+      AMPEL= AMP*PAP
 
-      AMD = PA(2)*AMM
-      AMT = PA(3)*AMM
-      AMA = PA(4)*AMM
-      AMB = PA(2)*AMM
-      ANS = ROS/AMP*1.D-20
+      AMD = PA(2)*AMP
+      AMT = PA(3)*AMP
+      AMA = PA(4)*AMP
+      AMB = PA(2)*AMP
+      ANS = ROS/AMPEL*1.D-20
       VF  = SQRT(2.D0*3.5D3*RKEV/AMA)
-      VB  = SQRT(2.D0*PNBENG*RKEV/AMB)
+      DO NNB=1,NNBMAX
+         VB_NNB(NNB)  = SQRT(2.D0*PNBENG(NNB)*RKEV/AMB)
+      END DO
 
  1000 ANE=RN(NR,1)
       TE=RT(NR,1)
@@ -105,23 +111,35 @@
 
       TAUS = 0.2D0*PA(2)*ABS(TE)**1.5D0 /(PZ(2)**2*ANE*COULOG(1,2,ANE,TE))
 
-      ANFAST=(SNB(NR)*LOG(1.D0+(VB/VCR)**3) &
-            + SNF(NR)*LOG(1.D0+(VF/VCR)**3))*TAUS/3.D0
-
-      A1   = SNB(NR)*(0.5D0*AMB*VCR*VCR/AEE)**3
+      ANFAST=SNF(NR)*LOG(1.D0+(VF/VCR)**3)
+      DO NNB=1,NNBMAX
+         ANFAST=ANFAST+SNB_NNB(NNB,NR)*LOG(1.D0+(VB_NNB(NNB)/VCR)**3)
+      END DO
+      ANFAST=ANFAST*TAUS/3.D0
+      
       B1   = SNF(NR)*(0.5D0*AMA*VCR*VCR/AEE)**3
-      A2   = 0.5D0*(VB/VCR)**6-(VB/VCR)**3+LOG(1.D0+(VB/VCR)**3)
       B2   = 0.5D0*(VF/VCR)**6-(VF/VCR)**3+LOG(1.D0+(VF/VCR)**3)
-      P2   = (A1*A2+B1*B2)*TAUS/3.D0
+      SUM=0.D0
+      DO NNB=1,NNBMAX
+         A1   = SNB_NNB(NNB,NR)*(0.5D0*AMB*VCR*VCR/AEE)**3
+         A2   = 0.5D0*(VB_NNB(NNB)/VCR)**6 &
+              -(VB_NNB(NNB)/VCR)**3+LOG(1.D0+(VB_NNB(NNB)/VCR)**3)
+         SUM=SUM+A1*A2
+      END DO
+      P2   = (B1*B2+SUM)*TAUS/3.D0
 
       EFAST= (P2/ANFAST)**(1.D0/3.D0)
 
-      A3   = SNB(NR)*1.D20*AMB*((VB/VCR)**3-LOG(1.D0+(VB/VCR)**3))
+      A3=0.D0
+      DO NNB=1,NNBMAX
+         A3=A3+SNB_NNB(NNB,NR)*1.D20*AMB &
+              *((VB_NNB(NNB)/VCR)**3-LOG(1.D0+(VB_NNB(NNB)/VCR)**3))
+      END DO
       B3   = SNF(NR)*1.D20*AMA*((VF/VCR)**3-LOG(1.D0+(VF/VCR)**3))
 
       QFAST= (A3+B3)*TAUS*VCR**3/(AEE*24.D0)
 
-      RPDOT= 4.55D6*(2.D0*AMP)**(2.D0/3.D0)*QFAST**(1.D0/3.D0) &
+      RPDOT= 4.55D6*(2.D0*AMPEL)**(2.D0/3.D0)*QFAST**(1.D0/3.D0) &
      &       *EFAST**0.4D0*RP**(-2.D0/3.D0)/ROS
 
       RPPRE=RP
@@ -159,10 +177,10 @@
 
       SUBROUTINE TRPELC
 
-      USE TRCOMM, ONLY : AMM, DR, DVRHO, NRMAX, NSMAX, PA, PELPAT,&
+      USE TRCOMM, ONLY : AMP, DR, DVRHO, NRMAX, NSMAX, PA, PELPAT,&
            & PELRAD, PELVEL, PI, RA, RN, RT, SPE, rkind
       IMPLICIT NONE
-      REAL(rkind)    :: ADIVE, AMP, ANA, ANE, ANP, PAP, PP, ROS, RP,&
+      REAL(rkind)    :: ADIVE, AMPEL, ANA, ANE, ANP, PAP, PP, ROS, RP,&
            & RPDOT, RPE, RPPRE, SPEL, TE
       INTEGER :: NR
 
@@ -170,9 +188,9 @@
       RP = PELRAD
       PAP= PA(2)*PELPAT(2)+PA(3)*PELPAT(3)+PA(4)*PELPAT(4)
       ROS= 89.D0*PAP
-      AMP= AMM*PAP
+      AMPEL= AMP*PAP
 
-      ANP = ROS/AMP*1.D-20
+      ANP = ROS/AMPEL*1.D-20
 
   100 ANE=RN(NR,1)
       ANA=RN(NR,4)

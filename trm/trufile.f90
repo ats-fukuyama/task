@@ -7,11 +7,11 @@
 
       SUBROUTINE TR_UFILE_CONTROL(NSW)
 
-!     MDNI is a parameter that can control which data is used
+!     MDLNI is a parameter that can control which data is used
 !     to determine bulk density, impurity density or effective
 !     charge number among those data.
-!     If all the data above do not exist, MDNI is set to zero
-!     automatically regardless of original MDNI.
+!     If all the data above do not exist, MDLNI is set to zero
+!     automatically regardless of original MDLNI.
 !           0 : NSMAX=2, ne=ni
 !           1 : calculate nimp and ni profiles from NE, ZIMP and ZEFFR
 !           2 : calculate nimp and zeff profiles from NE, ZIMP and NM1
@@ -23,7 +23,7 @@
 !     of charge neutrality.
 
       USE TRCOMM, ONLY : &
-           AD0, CDP, CNP, KUFDCG, KUFDEV, MDLFLX, MDNI, NEQMAX, NRAMAX, &
+           AD0, CDP, CNP, KUFDCG, KUFDEV, MDLFLX, MDLNI, NEQMAX, NRAMAX, &
            NRMAX, NROMAX, NSMAX, NST
       
       IMPLICIT NONE
@@ -35,7 +35,7 @@
 
          select case(MDSLCT)
          case(0)
-            MDNI=0
+            MDLNI=0
             NEQL=0
             DO NEQ=1,NEQMAX
                IF(NST(NEQ).NE.0) NEQL=NEQL+1
@@ -46,17 +46,17 @@
                NSMAX=2
             ENDIF
          case(1)
-            IF(MDNI.EQ.2.OR.MDNI.EQ.3) MDNI=1
+            IF(MDLNI.EQ.2.OR.MDLNI.EQ.3) MDLNI=1
          case(2)
-            IF(MDNI.EQ.1.OR.MDNI.EQ.3) MDNI=2
+            IF(MDLNI.EQ.1.OR.MDLNI.EQ.3) MDLNI=2
          case(3)
-            IF(MDNI.EQ.3) MDNI=1
+            IF(MDLNI.EQ.3) MDLNI=1
          case(4)
-            IF(MDNI.EQ.1.OR.MDNI.EQ.2) MDNI=3
+            IF(MDLNI.EQ.1.OR.MDLNI.EQ.2) MDLNI=3
          case(5)
-            IF(MDNI.EQ.2) MDNI=1
+            IF(MDLNI.EQ.2) MDLNI=1
          case(6)
-            IF(MDNI.EQ.1) MDNI=2
+            IF(MDLNI.EQ.1) MDLNI=2
          end select
 
          IF(MDLFLX.NE.0) THEN
@@ -91,7 +91,7 @@
 
       SUBROUTINE CHECK_IMPURITY(MDSLCT)
 
-      USE TRCOMM, ONLY : KUFDCG, KUFDEV, MDNI, KDIRX, NMCHK
+      USE TRCOMM, ONLY : KUFDCG, KUFDEV, MDLNI, KDIRX, NMCHK
       IMPLICIT NONE
       INTEGER, INTENT(OUT):: MDSLCT
       INTEGER             :: IKDIRX, IKNDCG, IKNDEV, KL2
@@ -107,7 +107,7 @@
       KDIRR2=KDIRX(1:IKDIRX)//KUFDEV(1:IKNDEV)//'2d'//KUFDCG(1:IKNDCG)//'.'
       KL2 = len_trim(KDIRR2)
 
-      IF(MDNI.LT.0.OR.MDNI.GT.3) MDNI=0
+      IF(MDLNI.LT.0.OR.MDLNI.GT.3) MDLNI=0
       MDSLCT=0
 
       KFID='ZEFFR'
@@ -146,7 +146,7 @@
       SUBROUTINE TR_STEADY_UFILE
 
       USE TRCOMM, ONLY : ABRHOU, AJNBU, AJU, AR1RHOU, AR2RHOU, ARRHOU, BB, BBU, BPU, DR, DVRHOU, KUFDCG, KUFDEV, MDLJQ, MDLXP, &
-     &                   MDNI, MDPHIA, NRAMAX, NRMAX, NRMP, NRUM, NTS, NTUM, PBMU, PECU, PHIA, PHIAU, PICU, PN, PNBU, PNS,&
+     &                   MDLNI, MDPHIA, NRAMAX, NRMAX, NRMP, NRUM, NTS, NTUM, PBMU, PECU, PHIA, PHIAU, PICU, PN, PNBU, PNS,&
      &                   PNSA, POHU, PRLU, PT, PTS, PTSA, PZ, QPU, RA, RAU, RHOA, RIPE, RIPS, RIPU, RKAP, RKAPU, RKPRHOU,      &
      &                   RMJRHOU, RMNRHOU, RNFU, RNU, RNU_ORG, RR, RRU, RT, RTU, SNBU, SWLU, TIME_INT, TTRHOU, VOLAU, WROTU,   &
      &                   ZEFFU, ZEFFU_ORG, rkind, &
@@ -321,8 +321,8 @@
       RNU(1,1:NRMAX,2)     = FAS(1:NRMAX)
       RNU_ORG(1,1:NRMAX,1) = FAS(1:NRMAX)
       RNU_ORG(1,1:NRMAX,2) = FAS(1:NRMAX)
-      ZEFFU(1,1:NRMAX)     = 1.D0 ! in case of MDNI=0
-      ZEFFU_ORG(1,1:NRMAX) = 1.D0 ! in case of MDNI=0
+      ZEFFU(1,1:NRMAX)     = 1.D0 ! in case of MDLNI=0
+      ZEFFU_ORG(1,1:NRMAX) = 1.D0 ! in case of MDLNI=0
       PN(1)  =RNU(1,1,1)
       PN(2)  =RNU(1,1,2)
       PN(3)  =1.D-7
@@ -367,7 +367,7 @@
       CALL UF2DSP(KFID,KUFDEV,KUFDCG,DR,PNM1,PNM2,FAS,AMP,RHOA,NRAMAX,NRMAX,MDLXP,IERR)
       DO NR=1,NRMAX
          IF(NMCHK.EQ.0) THEN
-            IF(MDNI.NE.0) RNU(1,NR,2)=FAS(NR)
+            IF(MDLNI.NE.0) RNU(1,NR,2)=FAS(NR)
             IF(IERR.EQ.0) RNU_ORG(1,NR,2)=FAS(NR)
             RNU_ORG(1,NR,4)=0.D0
          ELSE
@@ -377,7 +377,7 @@
       IF(NMCHK.GE.1) THEN
          KFID='NM2'
          CALL UF2DSP(KFID,KUFDEV,KUFDCG,DR,PNM3,PNM4,FAS,AMP,RHOA,NRAMAX,NRMAX,MDLXP,IERR)
-         IF(MDNI.NE.0) RNU(1,1:NRMAX,2)=FAS(1:NRMAX)+RNU_ORG(1,1:NRMAX,4)
+         IF(MDLNI.NE.0) RNU(1,1:NRMAX,2)=FAS(1:NRMAX)+RNU_ORG(1,1:NRMAX,4)
          RNU_ORG(1,1:NRMAX,2)=FAS(1:NRMAX)
          PNM1=PNM1+PNM3
          PNM2=PNM2+PNM4
@@ -385,7 +385,7 @@
       IF(NMCHK.GE.2) THEN
          KFID='NM3'
          CALL UF2DSP(KFID,KUFDEV,KUFDCG,DR,PNM5,PNM6,FAS,AMP,RHOA,NRAMAX,NRMAX,MDLXP,IERR)
-         IF(MDNI.NE.0) RNU(1,1:NRMAX,2)=RNU(1,1:NRMAX,2)+FAS(1:NRMAX)
+         IF(MDLNI.NE.0) RNU(1,1:NRMAX,2)=RNU(1,1:NRMAX,2)+FAS(1:NRMAX)
          RNU_ORG(1,1:NRMAX,4)=RNU_ORG(1,1:NRMAX,4)+FAS(1:NRMAX)
          PNM1=PNM1+PNM5
          PNM2=PNM2+PNM6
@@ -394,16 +394,16 @@
       AMP=1.D0
       KFID='ZEFFR'
       CALL UF2DSP(KFID,KUFDEV,KUFDCG,DR,PZEF1,PZEF2,FAS,AMP,RHOA,NRAMAX,NRMAX,MDLXP,IERR)
-      IF(MDNI.NE.0) ZEFFU(1,1:NRMAX)=FAS(1:NRMAX)
+      IF(MDLNI.NE.0) ZEFFU(1,1:NRMAX)=FAS(1:NRMAX)
       ZEFFU_ORG(1,1:NRMAX)=FAS(1:NRMAX)
 
       AMP=1.D-20
       KFID='NIMP'
       CALL UF2DSP(KFID,KUFDEV,KUFDCG,DR,PNIMP1,PNIMP2,FAS,AMP,RHOA,NRAMAX,NRMAX,MDLXP,IERR)
-      IF(MDNI.NE.0) RNU(1,1:NRMAX,3)=FAS(1:NRMAX)
+      IF(MDLNI.NE.0) RNU(1,1:NRMAX,3)=FAS(1:NRMAX)
       RNU_ORG(1,1:NRMAX,3)=FAS(1:NRMAX)
 
-      select case(MDNI)
+      select case(MDLNI)
       case(1)
          
       DO NR=1,NRMAX
@@ -462,13 +462,13 @@
       end select
       IF(PNS(3).LE.1.D-8) PNS(3)=1.D-8
 
-      IF(MDNI.NE.0) THEN
+      IF(MDLNI.NE.0) THEN
 !     check whether density developed is appropriate (positive) or not
       DO NR=1,NRMAX
          IF(RNU(1,NR,2).LE.0.D0.OR.RNU(1,NR,3).LE.0.D0) THEN
-            WRITE(6,*)'XX TR_STEADY_UFILE: DENSITY NEGATIVE: WRONG MDNI=',MDNI
-            MDNI=MDNI+1
-            IF(MDNI.LE.3) THEN
+            WRITE(6,*)'XX TR_STEADY_UFILE: DENSITY NEGATIVE: WRONG MDLNI=',MDLNI
+            MDLNI=MDLNI+1
+            IF(MDLNI.LE.3) THEN
                GOTO 100
             ELSE
                STOP
@@ -696,7 +696,7 @@
       USE TRCOMM, ONLY : &
            NTUM, DT, NT, RKAP, RKAPU, RR, RRU, RA, RAU, BB, BBU, PHIA, &
            PHIAU, PNBIU, VOLAU, RMJRHOU, NRMAX, RHOA, NROMAX, MDLUF, MDLEQN, &
-           RNU, RN, MDNI, MDLEOI, RTU, RT, QPU, QP, KUFDEV, PEX, PNBU, PICU, &
+           RNU, RN, MDLNI, MDLEOI, RTU, RT, QPU, QP, KUFDEV, PEX, PNBU, PICU, &
            PECU, PRF, WROTU, TTRHOU, DVRHOU, ABRHOU, ARRHOU, AR1RHOU, &
            AR2RHOU, RMNRHOU, RKPRHOU, WROT, VTOR, TTRHO, DVRHO, ABRHO, &
            ARRHO, AR1RHO, AR2RHO, RMJRHO, RMNRHO, RKPRHO, MDPHIA, PI, RJCB, &
@@ -740,7 +740,7 @@
             CALL TIMESPL(TSL,RNDL ,TMU,RNU(1:NTUM,NR,2),NTXMAX,NTUM,IERR)
             RN(NR,1)=RNEL
             RN(NR,2)=RNDL
-            IF(MDNI.NE.0) THEN
+            IF(MDLNI.NE.0) THEN
                CALL TIMESPL(TSL,RNIL ,TMU,RNU(1:NTUM,NR,3),NTXMAX,NTUM,IERR)
                RN(NR,3)=RNIL
             ENDIF
@@ -968,7 +968,7 @@
             PNSA(NS)=PNSAL
             PTSA(NS)=PTSAL
          ENDDO
-         IF(MDNI.NE.0) THEN
+         IF(MDLNI.NE.0) THEN
             NS=3
             CALL TIMESPL(TSL,PNSL ,TMU,PNSU (1:NTUM,NS),NTXMAX,NTUM,IERR)
             CALL TIMESPL(TSL,PTSL ,TMU,PTSU (1:NTUM,NS),NTXMAX,NTUM,IERR)
@@ -990,7 +990,7 @@
                RT(NR,3)= RTDL
                RT(NR,4)=(RTDL-RTDM)*PROF+RTDM
             ENDDO
-            IF(MDNI.EQ.0) THEN
+            IF(MDLNI.EQ.0) THEN
                DO NR=NRAMAX+1,NRMAX
                   CALL TIMESPL(TSL,RTDL,TMU,RTU(1:NTUM,NR,2),NTXMAX,NTUM,IERR)
                   PROF    =(1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
@@ -1055,7 +1055,7 @@
       SUBROUTINE TR_UFREAD_S
 
       USE TRCOMM, ONLY : ABRHO, ABRHOU, ANC, ANFE, AR1RHO, AR1RHOG, AR1RHOU, AR2RHO, AR2RHOU, ARRHO, ARRHOG, ARRHOU, BB, BBU, &
-     &                   BP, DR, DVRHO, DVRHOG, DVRHOU, MDLEOI, MDLEQN, MDNI, MDPHIA, NRAMAX, NRMAX, NROMAX, NSM, NTS, PECU,  &
+     &                   BP, DR, DVRHO, DVRHOG, DVRHOU, MDLEOI, MDLEQN, MDLNI, MDPHIA, NRAMAX, NRMAX, NROMAX, NSM, NTS, PECU,  &
      &                   PEX, PHIA, PHIAU, PI, PICU, PNBU, PNC, PNFE, PNS, PNSA, PNSS, PNSSA, PRF, PZ, PZC, PZFE, QP, RA, RAU,&
      &                   RDP, RG, RHOA, RHOG, RHOM, RJCB, RKAP, RKAPU, RKPRHO, RKPRHOU, RM, RMJRHO, RMJRHOU, RMNRHO, RMNRHOU, &
      &                   RN, RNF, RNFU, RNU, RR, RRU, RT, RTU, TTRHO, TTRHOG, TTRHOU, VOLAU, VTOR, WROT, WROTU, RDPVRHOG, rkind, INS
@@ -1078,7 +1078,7 @@
          IF(MDLEQN.EQ.0) THEN
             RN(NR,1)=RNU(1,NR,1)
             RN(NR,2)=RNU(1,NR,2)
-            IF(MDNI.NE.0) RN(NR,3)=RNU(1,NR,3)
+            IF(MDLNI.NE.0) RN(NR,3)=RNU(1,NR,3)
          ENDIF
          IF(INS.NE.0) THEN
             IF(MDLEOI.EQ.1) THEN

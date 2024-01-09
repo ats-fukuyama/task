@@ -6,26 +6,55 @@
 
       SUBROUTINE TRPWNB
 
-      USE TRCOMM, ONLY : MDLNB, NRMAX, SNB, TAUB
+        USE TRCOMM, ONLY : &
+             MDLNB, NRMAX, SNB, PNB, TAUB, SNB_NNB, PNB_NNB, NNBMAX, &
+             AJNB, AJNB_NNB, PBIN, PBCL, PBIN_NNB, PBCL_NNB
+             
       IMPLICIT NONE
+      INTEGER:: NNB,NR
 
-      IF(MDLNB.EQ.0) THEN
-         TAUB(1:NRMAX)=1.D0
-      ELSEIF(MDLNB.EQ.1) THEN
-         CALL TRNBIA
-         SNB(1:NRMAX)=0.D0
-         CALL TRAJNB
-      ELSEIF(MDLNB.EQ.2) THEN
-         CALL TRNBIA
-         CALL TRAJNB
-      ELSEIF(MDLNB.EQ.3) THEN
-         CALL TRNBIB
-         SNB(1:NRMAX)=0.D0
-         CALL TRAJNB
-      ELSEIF(MDLNB.EQ.4) THEN
-         CALL TRNBIB
-         CALL TRAJNB
-      ENDIF
+      DO NNB=1,NNBMAX
+         IF(MDLNB(NNB).EQ.0) THEN
+            TAUB(1:NRMAX)=1.D0
+         ELSEIF(MDLNB(NNB).EQ.1) THEN
+            CALL TRNBIA(NNB)
+            SNB_NNB(NNB,1:NRMAX)=0.D0
+            CALL TRAJNB(NNB)
+         ELSEIF(MDLNB(NNB).EQ.2) THEN
+            CALL TRNBIA(NNB)
+            CALL TRAJNB(NNB)
+         ELSEIF(MDLNB(NNB).EQ.3) THEN
+            CALL TRNBIB(NNB)
+            SNB_NNB(NNB,1:NRMAX)=0.D0
+            CALL TRAJNB(NNB)
+         ELSEIF(MDLNB(NNB).EQ.4) THEN
+            CALL TRNBIB(NNB)
+            CALL TRAJNB(NNB)
+         ENDIF
+      END DO
+
+      DO NR=1,NRMAX
+         PBIN(1:NRMAX)=0.D0
+         PBCL(1:NRMAX,1:4)=0.D0
+         DO NNB=1,NNBMAX
+            PBIN(NR)=PBIN(NR)+PBIN_NNB(NNB,NR)
+            PBCL(NR,1)=PBCL(NR,1)+PBCL_NNB(NNB,NR,1)
+            PBCL(NR,2)=PBCL(NR,2)+PBCL_NNB(NNB,NR,2)
+            PBCL(NR,3)=PBCL(NR,3)+PBCL_NNB(NNB,NR,3)
+            PBCL(NR,4)=PBCL(NR,4)+PBCL_NNB(NNB,NR,4)
+         END DO
+      END DO
+
+      DO NR=1,NRMAX
+         SNB(NR)=0.D0
+         PNB(NR)=0.D0
+         AJNB(NR)=0.D0
+         DO NNB=1,NNBMAX
+            SNB(NR)=SNB(NR)+SNB_NNB(NNB,NR)
+            PNB(NR)=PNB(NR)+PNB_NNB(NNB,NR)
+            AJNB(NR)=AJNB(NR)+AJNB_NNB(NNB,NR)
+         END DO
+      END DO
       RETURN
       END SUBROUTINE TRPWNB
 
@@ -35,26 +64,34 @@
 
 !     ***********************************************************
 
-      SUBROUTINE TRNBIA
+      SUBROUTINE TRNBIA(NNB)
 
-      USE TRCOMM, ONLY : DR, DVRHO, NRMAX, PNB, PNBENG, PNBR0, PNBRW, PNBTOT, RA, &
-           &             RKEV, RM, SNB, rkind
+        USE TRCOMM, ONLY : &
+             DR, DVRHO, NRMAX, PNBENG, PNBR0, PNBRW, PNBIN, RA, &
+             RKEV, RM, rkind, SNB_NNB, PNB_NNB, NNBMAX
       IMPLICIT NONE
+      INTEGER,INTENT(IN):: NNB
       INTEGER:: NR
       REAL(rkind)   :: PNB0, SUM
 
-      IF(PNBTOT.LE.0.D0) RETURN
+      IF(PNBIN(NNB).LE.0.D0) THEN
+         DO NR=1,NRMAX
+            PNB_NNB(NNB,NR)=0.D0
+            SNB_NNB(NNB,NR)=0.D0
+         ENDDO
+         RETURN
+      END IF
 
       SUM = 0.D0
       DO NR=1,NRMAX
-         SUM=SUM+DEXP(-((RA*RM(NR)-PNBR0)/PNBRW)**2)*DVRHO(NR)*DR
+         SUM=SUM+DEXP(-((RA*RM(NR)-PNBR0(NNB))/PNBRW(NNB))**2)*DVRHO(NR)*DR
       ENDDO
 
-      PNB0=PNBTOT*1.D6/SUM
+      PNB0=PNBIN(NNB)*1.D6/SUM
 
       DO NR=1,NRMAX
-         PNB(NR)=PNB0*DEXP(-((RA*RM(NR)-PNBR0)/PNBRW)**2)
-         SNB(NR)=PNB(NR)/(PNBENG*RKEV)*1.D-20
+         PNB_NNB(NNB,NR)=PNB0*DEXP(-((RA*RM(NR)-PNBR0(NNB))/PNBRW(NNB))**2)
+         SNB_NNB(NNB,NR)=PNB_NNB(NNB,NR)/(PNBENG(NNB)*RKEV)*1.D-20
       ENDDO
 
       RETURN
@@ -66,48 +103,56 @@
 
 !     ***********************************************************
 
-      SUBROUTINE TRNBIB
+      SUBROUTINE TRNBIB(NNB)
 
-      USE TRCOMM, ONLY : GPNB, NRMAX, PNB, PNBENG, PNBRTG, PNBRW, PNBTOT, PNBVW, PNBVY, &
-           &             RKEV, RTG, SNB, NRNBMAX, rkind
-      IMPLICIT NONE
-      INTEGER:: I, J, NRNB
+        USE TRCOMM, ONLY : &
+             GPNB, NRMAX, PNBENG, PNBRTG, PNBRW, PNBIN, PNBVW, PNBVY, &
+             RKEV, RTG, NRNBMAX, rkind, SNB_NNB, PNB_NNB, NNBMAX
+        IMPLICIT NONE
+        INTEGER,INTENT(IN):: NNB
+      INTEGER:: I, J, NRNB, NR
       INTEGER,SAVE:: NRNBMAX_save=0
       REAL(rkind)   ::DRTG, DVY, RDD, VY,sum,x
       REAL(rkind),ALLOCATABLE :: AR(:)
 
-      IF(PNBTOT.LE.0.D0) RETURN
+      IF(PNBIN(NNB).LE.0.D0) THEN
+         DO NR=1,NRMAX
+            PNB_NNB(NNB,NR)=0.D0
+            SNB_NNB(NNB,NR)=0.D0
+         ENDDO
+         RETURN
+      END IF
 
-      ALLOCATE(AR(NRNBMAX))
-      IF(NRNBMAX.NE.NRNBMAX_save) THEN
+      ALLOCATE(AR(NRNBMAX(NNB)))
+      IF(NRNBMAX(NNB).NE.NRNBMAX_save) THEN
          IF(ALLOCATED(GPNB)) DEALLOCATE(GPNB)
-         ALLOCATE(GPNB(4*NRMAX,NRNBMAX))
+         ALLOCATE(GPNB(4*NRMAX,NRNBMAX(NNB)))
          sum=0.D0
-         DO NRNB=1,NRNBMAX
-            x=2.D0*(DBLE(NRNB)/DBLE(NRNBMAX+1)-0.5D0)  ! -1.0..1.0
+         DO NRNB=1,NRNBMAX(NNB)
+            x=2.D0*(DBLE(NRNB)/DBLE(NRNBMAX(NNB)+1)-0.5D0)  ! -1.0..1.0
             AR(NRNB)=EXP(-3.D0*x**2)
             sum=sum+AR(NRNB)
          END DO
-         DO NRNB=1,NRNBMAX
+         DO NRNB=1,NRNBMAX(NNB)
             AR(NRNB)=AR(NRNB)/sum
          END DO
-         NRNBMAX_save=NRNBMAX
+         NRNBMAX_save=NRNBMAX(NNB)
       END IF
-      SNB(1:NRMAX) = 0.D0
-      GPNB(1:4*NRMAX,1:NRNBMAX) = 0.0
+      SNB_NNB(NNB,1:NRMAX) = 0.D0
+      GPNB(1:4*NRMAX,1:NRNBMAX(NNB)) = 0.0
 
-      DRTG=2.D0*PNBRW/NRNBMAX
-      DVY =2.D0*PNBVW/NRNBMAX
-      DO I=1,NRNBMAX
-         DO J=1,NRNBMAX
+      DRTG=2.D0*PNBRW(NNB)/NRNBMAX(NNB)
+      DVY =2.D0*PNBVW(NNB)/NRNBMAX(NNB)
+      DO I=1,NRNBMAX(NNB)
+         DO J=1,NRNBMAX(NNB)
             RDD=AR(J)*AR(I)
-            RTG(J)=PNBRTG-PNBRW+0.5D0*DRTG+DRTG*(J-1)
-            VY    =PNBVY -PNBVW+0.5D0*DVY +DVY *(I-1)
-            CALL TRNBPB(J,RTG(J),VY,RDD)
+            RTG(J)=PNBRTG(NNB)-PNBRW(NNB)+0.5D0*DRTG+DRTG*(J-1)
+            VY    =PNBVY(NNB) -PNBVW(NNB)+0.5D0*DVY +DVY *(I-1)
+            CALL TRNBPB(J,RTG(J),VY,RDD,NNB)
          ENDDO
       ENDDO
 
-      PNB(1:NRMAX) = SNB(1:NRMAX)*1.D20*PNBENG*RKEV
+      PNB_NNB(NNB,1:NRMAX) = SNB_NNB(NNB,1:NRMAX)*1.D20*PNBENG(NNB)*RKEV
       DEALLOCATE(AR)
 
       RETURN
@@ -119,7 +164,7 @@
 
 !     ***********************************************************
 
-      SUBROUTINE TRNBPB(J,R0,VY,RDD)
+      SUBROUTINE TRNBPB(J,R0,VY,RDD,NNB)
 
 !     J   (in): J-th NBI
 !     R0  (in): tangential radius of NBI beam (m)
@@ -131,19 +176,21 @@
 !           1 : beam energy has not decreased at stopping condition yet
 !           2 : median center of beam line
 
-      USE TRCOMM, ONLY : ANC, ANFE, DR, DVRHO, GBAN, GBL, GBP1, GBR, GBRH, GPNB, &
-           &             NLMAX, NRMAX, PNBENG, PNBTOT, PZC, &
-           &             PZFE, RA, RG, RKEV, RN, RR, RT, SNB, rkind
+        USE TRCOMM, ONLY : &
+             ANC, ANFE, DR, DVRHO, GBAN, GBL, GBP1, GBR, GBRH, GPNB, &
+             NLMAX, NRMAX, PNBENG, PNBIN, PZC, &
+             PZFE, RA, RG, RKEV, RN, RR, RT, SNB_NNB, rkind
       IMPLICIT NONE
-      integer, intent(in) :: J
+      integer, intent(in) :: J,NNB
       real(rkind), intent(in) :: R0, VY, RDD
       INTEGER:: I, IB, IDL, IM, KL
-      REAL(rkind)   :: ANL, ANL0, COST, COSTV, DCX, DEX, DFX, DL, DOX, DRG, P1, P1SUM, &
-           &       RADIUS1, RADIUS2, RADIUSG, &
-     &             RAL, RG1, RG2, SGM, SUML, TEX, XL, ZCX, ZFX, ZOX
+      REAL(rkind)   :: &
+           ANL, ANL0, COST, COSTV, DCX, DEX, DFX, DL, DOX, DRG, P1, P1SUM, &
+           RADIUS1, RADIUS2, RADIUSG, &
+           RAL, RG1, RG2, SGM, SUML, TEX, XL, ZCX, ZFX, ZOX
       REAL   :: GUCLIP   ! GSAF
 
-      IF(PNBTOT <= 0.D0) RETURN
+      IF(PNBIN(NNB) <= 0.D0) RETURN
 
 !  COSTV : cosine between midplane and vertical position of NB
       COSTV=SQRT(RA**2-VY**2)/RA
@@ -158,7 +205,7 @@
 !  ANL : beam intensity [num/s]
 !        (the number of beam particles per unit length
 !         divided by thier velocity)
-      ANL=RDD*PNBTOT*1.D6/(PNBENG*RKEV*1.D20)
+      ANL=RDD*PNBIN(NNB)*1.D6/(PNBENG(NNB)*RKEV*1.D20)
 !  IB : number of vertical grid point from midplane to NB injection point,
 !       which defines innermost radial grid point of the heating region for each NB chord
       IB = INT(ABS(VY/(DR*RA)))+1
@@ -232,7 +279,7 @@
       GBAN(IDL,J)=GUCLIP(ANL)
 
       ! Calculate beam stopping cross-section
-      CALL TRBSCS(DEX,TEX,PNBENG,DCX,DFX,DOX,ZCX,ZFX,ZOX,SGM)
+      CALL TRBSCS(DEX,TEX,PNBENG(NNB),DCX,DFX,DOX,ZCX,ZFX,ZOX,SGM)
 
       P1=(DEX*0.1D0)*SGM*ANL*DL
       GBP1(IDL,J)=GUCLIP(P1)
@@ -282,7 +329,7 @@
       ENDIF
 
 !  NB source flux (Half mesh)
-      SNB(IM) = SNB(IM)+P1/(DVRHO(IM)*DR)
+      SNB_NNB(NNB,IM) = SNB_NNB(NNB,IM)+P1/(DVRHO(IM)*DR)
 !!$      IF(IM.GT.1) SNB(IM-1) = SNB(IM-1)+0.25D0*P1/(DVRHO(IM-1)*DR)
 !!$      IF(IM.GT.1.AND.IM.LT.NRMAX) THEN
 !!$         SNB(IM  ) = SNB(IM  )+0.5D0 *P1/(DVRHO(IM  )*DR)
@@ -293,13 +340,13 @@
 
 !  for graphics
       IF(I > 0) THEN
-         GPNB(IM        ,J)=GUCLIP(P1/(DVRHO(IM)*DR)*1.D20*PNBENG*RKEV)
+         GPNB(IM        ,J)=GUCLIP(P1/(DVRHO(IM)*DR)*1.D20*PNBENG(NNB)*RKEV)
       ELSEIF(I < -1 .AND. I >= -NRMAX) THEN
-         GPNB(IM+  NRMAX,J)=GUCLIP(P1/(DVRHO(IM)*DR)*1.D20*PNBENG*RKEV)
+         GPNB(IM+  NRMAX,J)=GUCLIP(P1/(DVRHO(IM)*DR)*1.D20*PNBENG(NNB)*RKEV)
       ELSEIF(I <= -NRMAX-1 .AND. I >= -2*NRMAX) THEN
-         GPNB(IM+2*NRMAX,J)=GUCLIP(P1/(DVRHO(IM)*DR)*1.D20*PNBENG*RKEV)
+         GPNB(IM+2*NRMAX,J)=GUCLIP(P1/(DVRHO(IM)*DR)*1.D20*PNBENG(NNB)*RKEV)
       ELSE
-         GPNB(IM+3*NRMAX,J)=GUCLIP(P1/(DVRHO(IM)*DR)*1.D20*PNBENG*RKEV)
+         GPNB(IM+3*NRMAX,J)=GUCLIP(P1/(DVRHO(IM)*DR)*1.D20*PNBENG(NNB)*RKEV)
       ENDIF
 
 !      WRITE(6,'(4(1X,I4),4F15.7)') J,I,KL,IM,SUML,DL,ANL,P1
@@ -420,26 +467,28 @@
 
 !     ***********************************************************
 
-      SUBROUTINE TRAJNB
+      SUBROUTINE TRAJNB(NNB)
 
         USE TRCOMM, ONLY : &
-             AEE, AJNB, AME, AMM, ANC, ANFE, EPS0, EPSRHO, MDLUF, NRMAX, &
-             PA, PBCL, PBIN, PI, PNBCD, PNBENG, &
-             PZ, PZC, PZFE, RKEV, RN, RNF, RT, RTF, RW, TAUB, ZEFF, rkind
-      IMPLICIT NONE
+             AEE, AJNB, AME, AMP, ANC, ANFE, EPS0, EPSRHO, MDLUF, NRMAX, &
+             PA, PBCL, PBIN, PI, PNBCD, PNBENG, AJNB_NNB, &
+             PZ, PZC, PZFE, RKEV, RN, RNF, RT, RTF, RW, TAUB, ZEFF, rkind, &
+             PBIN_NNB,PBCL_NNB
+        IMPLICIT NONE
+        INTEGER,INTENT(IN):: NNB
       REAL(rkind)    :: AMA, AMB, AMD, AMT, ANE, COULOG, EC, EPS, HY, HYB, &
            P2, P3, P4, PAB, PZB, TAUS, TAUS0, TE, VB, VC3,  &
            VCA3, VCD3, VCR, VCT3, VE, WB, XB, ZEFFM, ZN
       INTEGER :: NR
 
 
-      AMD=AMM*PA(2)
-      AMT=AMM*PA(3)
-      AMA=AMM*PA(4)
-      AMB=AMM*PA(2)
+      AMD=AMP*PA(2)
+      AMT=AMP*PA(3)
+      AMA=AMP*PA(4)
+      AMB=AMP*PA(2)
       PAB=PA(2)
       PZB=PZ(2)
-      VB=SQRT(2.D0*PNBENG*RKEV/AMB)
+      VB=SQRT(2.D0*PNBENG(NNB)*RKEV/AMB)
 
       IF(MDLUF.NE.0) THEN
       DO NR=1,NRMAX
@@ -479,7 +528,7 @@
          HYB  = HY(VB/VCR)
          TAUS = 0.2D0*PAB*ABS(TE)**1.5D0/(PZ(2)**2*ANE*COULOG(1,2,ANE,TE))
          TAUB(NR) = 0.5D0*TAUS*(1.D0-HYB)
-         RNF(NR,1)= 2.D0*LOG(1.D0+(VB/VCR)**3)*WB/(3.D0*(1.D0-HYB)*PNBENG)
+         RNF(NR,1)= 2.D0*LOG(1.D0+(VB/VCR)**3)*WB/(3.D0*(1.D0-HYB)*PNBENG(NNB))
          ENDIF
 
          IF(RNF(NR,1).GT.0.D0) THEN
@@ -488,14 +537,14 @@
          ELSE
             RTF(NR,1)= 0.D0
          ENDIF
-         PBIN(NR)   = WB*RKEV*1.D20/TAUB(NR)
-         PBCL(NR,1) =   (1.D0-HYB)*PBIN(NR)
-         PBCL(NR,2) = VCD3/VC3*HYB*PBIN(NR)
-         PBCL(NR,3) = VCT3/VC3*HYB*PBIN(NR)
-         PBCL(NR,4) = VCA3/VC3*HYB*PBIN(NR)
+         PBIN_NNB(NNB,NR)   = WB*RKEV*1.D20/TAUB(NR)
+         PBCL_NNB(NNB,NR,1) =   (1.D0-HYB)*PBIN(NR)
+         PBCL_NNB(NNB,NR,2) = VCD3/VC3*HYB*PBIN(NR)
+         PBCL_NNB(NNB,NR,3) = VCT3/VC3*HYB*PBIN(NR)
+         PBCL_NNB(NNB,NR,4) = VCA3/VC3*HYB*PBIN(NR)
       ENDDO
 
-      IF(PNBCD.LE.0.D0) RETURN
+      IF(PNBCD(NNB).LE.0.D0) RETURN
 
 !     D. R .Mikkelsen and C. E. Singer, Nucl. Tech. - Fusion 4 237 (1983)
 !        xi_0 corresponds to PNBCD
@@ -521,14 +570,14 @@
      &           +PZC(NR) *PZC(NR) *ANC(NR)/12.D0 &
      &           +PZFE(NR)*PZFE(NR)*ANFE(NR)/52.D0)/ANE
          EC  = 14.8D0*TE*PAB*ZEFFM**(2.D0/3.D0)
-         VCR = VB*SQRT(ABS(EC)/PNBENG)
+         VCR = VB*SQRT(ABS(EC)/PNBENG(NNB))
          P2  = (1.55D0+0.85D0/ZEFF(NR))*SQRT(EPS) &
      &        -(0.2D0+1.55D0/ZEFF(NR))*EPS
          XB  = VB/VCR
          ZN  = 0.8D0*ZEFF(NR)/PAB
          P3  = XB*XB/(4.D0+3.D0*ZN+XB*XB*(XB+1.39D0+0.61D0*ZN**0.7D0))
 
-         AJNB(NR) = PNBCD*2.D0*AEE*PZB*TAUS/(AMB*VCR) &
+         AJNB_NNB(NNB,NR) = PNBCD(NNB)*2.D0*AEE*PZB*TAUS/(AMB*VCR) &
      &            *(1.D0-PZB*(1.D0-P2)/ZEFF(NR))*P3*PBIN(NR)
       ENDIF
       ENDDO

@@ -454,7 +454,7 @@
       SUBROUTINE TRGRR7(INQ)
 
       USE TRCOMM, ONLY : AK, AKDW, AKLP, AKNC, DR, GRG, GYR, MDLUF,&
-           & MDNCLS, NRMAX, NRMP, NSM, NSMAX, PNSS, PTS, RHOG, RHOM,&
+           & MDLNCL, NRMAX, NRMP, NSM, NSMAX, PNSS, PTS, RHOG, RHOM,&
            & RJCB, RKEV, RN, RQFLS, RT, VGR1, rkind
       USE libitp
       IMPLICIT NONE
@@ -476,7 +476,7 @@
       GYR(1,3) = 0.0
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,3,'@G,s,alpha vs r@',2+INQ)
 
-      IF(MDNCLS.EQ.0) THEN
+      IF(MDLNCL.EQ.0) THEN
 
       IF(MDLUF.EQ.0) THEN
          DO NR=1,NRMAX
@@ -691,7 +691,7 @@
       SUBROUTINE TRGRR9(INQ)
 
       USE TRCOMM, ONLY : AD, ADDW, ADNCG, AV, AVK, AVNCG, CDP, CNP,&
-           & DR, GRG, GRM, GYR, MDNCLS, NRMAX, NRMP, NSM, NSMAX, PNSS&
+           & DR, GRG, GRM, GYR, MDLNCL, NRMAX, NRMP, NSM, NSMAX, PNSS&
            &, RGFLS, RHOG, RHOM, RJCB, RN, TAUB, TAUF, rkind
       USE libitp
       IMPLICIT NONE
@@ -703,7 +703,7 @@
 
       CALL PAGES
 
-      IF(MDNCLS.EQ.0) THEN
+      IF(MDLNCL.EQ.0) THEN
          DO NS=1,NSMAX
             DO NR=1,NRMAX
                GYR(NR+1,NS) = GUCLIP(AD(NR,NS))
@@ -738,7 +738,7 @@
       ENDIF
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,NSMAX,'@AD [m$+2$=/s]  vs r@',2+INQ)
 
-      IF(MDNCLS.EQ.0) THEN
+      IF(MDLNCL.EQ.0) THEN
          DO NS=1,NSMAX
             DO NR=1,NRMAX
                GYR(NR+1,NS) = GUCLIP(AV(NR,NS))

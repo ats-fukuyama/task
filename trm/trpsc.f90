@@ -6,14 +6,17 @@
 
       SUBROUTINE TRPSC
 
-      USE TRCOMM, ONLY : MDLPSC
+      USE TRCOMM, ONLY : MDLPSC,NPSCMAX
       IMPLICIT NONE
+      INTEGER:: NPSC
 
-      IF(MDLPSC.EQ.0) RETURN
+      DO NPSC=1,NPSCMAX
+         IF(MDLPSC(NPSC).NE.0) GO TO 100
+      END DO
+      RETURN
 
-      IF(MDLPSC.EQ.1) THEN
-         CALL TRPSCA
-      ENDIF
+100   CONTINUE
+      CALL TRPSCA
 
       RETURN
       END  SUBROUTINE TRPSC
@@ -27,11 +30,13 @@
       SUBROUTINE TRPSCA
 
       USE TRCOMM, ONLY : DR, RA, RM, DVRHO, NRMAX, PZ, &
-           NPSCMAX, PSCTOT, PSCR0, PSCRW, NSPSC, SPSC, rkind
+           NPSCMAX, PSCIN, PSCR0, PSCRW, NSPSC, SPSC, rkind, NSMAX
       IMPLICIT NONE
       REAL(rkind)    :: SSUM, S0, SPSCL
       INTEGER :: NR, NS, NPSC
-
+      
+      SPSC(1:NRMAX,1:NSMAX)=0.D0
+      
       DO NPSC=1,NPSCMAX
          SSUM = 0.D0
          DO NR=1,NRMAX
@@ -39,7 +44,7 @@
                      *DVRHO(NR)*DR
          ENDDO
 
-         S0 = PSCTOT(NPSC)/SSUM
+         S0 = PSCIN(NPSC)/SSUM
          NS = NSPSC(NPSC)
 
          DO NR=1,NRMAX
