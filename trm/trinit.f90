@@ -513,7 +513,7 @@ CONTAINS
       !       2 : GAUSSIAN
       !       3 : PENCIL BEAM (NO PARTICLE SOURCE)
       !       4 : PENCIL BEAM
-      !  PNBTOT(nnbm) : NBI TOTAL INPUT POWER (MW)
+      !  PNBIN(nnbm) : NBI TOTAL INPUT POWER (MW)
       !  PNBR0(nnbm)  : RADIAL POSITION OF NBI POWER DEPOSITION (M)
       !  PNBRW(nnbm)  : RADIAL WIDTH OF NBI POWER DEPOSITION (M)
       !  PNBVY(nnbm)  : VERTICAL POSITION OF NBI (M)
@@ -546,7 +546,7 @@ CONTAINS
 
       !  NECMAX       : number of EC source   (MAX=necm)
       !  MDLEC(necm)  : ECRF MODEL
-      !  PECIN(necm) : ECRF INPUT POWER (MW)
+      !  PECIN(necm)  : ECRF INPUT POWER (MW)
       !  PECR0(necm)  : RADIAL POSITION OF POWER DEPOSITION (M)
       !  PECRW(necm)  : RADIAL WIDTH OF POWER DEPOSITION (M)
       !  PECTOE(necm) : POWER PARTITION TO ELECTRON

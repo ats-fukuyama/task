@@ -14,7 +14,6 @@ CONTAINS
   USE libchar
   use wfcomm
   use wfparm
-  USE wfwave
   USE wfgsub
   implicit none
   integer   :: IERR,nant,npoint

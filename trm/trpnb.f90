@@ -8,7 +8,7 @@
 
         USE TRCOMM, ONLY : &
              MDLNB, NRMAX, SNB, PNB, TAUB, SNB_NNB, PNB_NNB, NNBMAX, &
-             AJNB, AJNB_NNB, PBIN, PBCL, PBIN_NNB, PBCL_NNB
+             AJNB, AJNB_NNB, PBIN, PBCL
              
       IMPLICIT NONE
       INTEGER:: NNB,NR
@@ -16,34 +16,29 @@
       DO NNB=1,NNBMAX
          IF(MDLNB(NNB).EQ.0) THEN
             TAUB(1:NRMAX)=1.D0
+            PNB_NNB(NNB,1:NRMAX)=0.D0
+            SNB_NNB(NNB,1:NRMAX)=0.D0
          ELSEIF(MDLNB(NNB).EQ.1) THEN
             CALL TRNBIA(NNB)
             SNB_NNB(NNB,1:NRMAX)=0.D0
-            CALL TRAJNB(NNB)
          ELSEIF(MDLNB(NNB).EQ.2) THEN
             CALL TRNBIA(NNB)
-            CALL TRAJNB(NNB)
          ELSEIF(MDLNB(NNB).EQ.3) THEN
             CALL TRNBIB(NNB)
             SNB_NNB(NNB,1:NRMAX)=0.D0
-            CALL TRAJNB(NNB)
          ELSEIF(MDLNB(NNB).EQ.4) THEN
             CALL TRNBIB(NNB)
-            CALL TRAJNB(NNB)
          ENDIF
       END DO
+      CALL TRAJNB
 
-      DO NR=1,NRMAX
-         PBIN(1:NRMAX)=0.D0
-         PBCL(1:NRMAX,1:4)=0.D0
-         DO NNB=1,NNBMAX
-            PBIN(NR)=PBIN(NR)+PBIN_NNB(NNB,NR)
-            PBCL(NR,1)=PBCL(NR,1)+PBCL_NNB(NNB,NR,1)
-            PBCL(NR,2)=PBCL(NR,2)+PBCL_NNB(NNB,NR,2)
-            PBCL(NR,3)=PBCL(NR,3)+PBCL_NNB(NNB,NR,3)
-            PBCL(NR,4)=PBCL(NR,4)+PBCL_NNB(NNB,NR,4)
-         END DO
-      END DO
+!      WRITE(6,'(A,2I6)') 'nnb,mdlnb=',1,MDLNB(1),2,MDLNB(2)
+!      DO NR=1,NRMAX
+!         WRITE(6,'(A,I6,4ES12.4)') 'NB:',NR, &
+!              SNB_NNB(1,NR),PNB_NNB(1,NR),SNB_NNB(2,NR),PNB_NNB(2,NR)
+!         WRITE(6,'(A,I6,4ES12.4)') 'PB:',NR, &
+!              PBIN(NR),PBCL(NR,1),PBIN(NR),PBCL(NR,1)
+!      END DO
 
       DO NR=1,NRMAX
          SNB(NR)=0.D0
@@ -467,19 +462,18 @@
 
 !     ***********************************************************
 
-      SUBROUTINE TRAJNB(NNB)
+      SUBROUTINE TRAJNB
 
         USE TRCOMM, ONLY : &
              AEE, AJNB, AME, AMP, ANC, ANFE, EPS0, EPSRHO, MDLUF, NRMAX, &
-             PA, PBCL, PBIN, PI, PNBCD, PNBENG, AJNB_NNB, &
+             PA, PBCL, PBIN, PI, PNBCD, PNBENG, &
              PZ, PZC, PZFE, RKEV, RN, RNF, RT, RTF, RW, TAUB, ZEFF, rkind, &
-             PBIN_NNB,PBCL_NNB
+             NNBMAX, PNB_NNB
         IMPLICIT NONE
-        INTEGER,INTENT(IN):: NNB
       REAL(rkind)    :: AMA, AMB, AMD, AMT, ANE, COULOG, EC, EPS, HY, HYB, &
            P2, P3, P4, PAB, PZB, TAUS, TAUS0, TE, VB, VC3,  &
-           VCA3, VCD3, VCR, VCT3, VE, WB, XB, ZEFFM, ZN
-      INTEGER :: NR
+           VCA3, VCD3, VCR, VCT3, VE, WB, XB, ZEFFM, ZN, PB
+      INTEGER :: NR,NNB
 
 
       AMD=AMP*PA(2)
@@ -488,10 +482,21 @@
       AMB=AMP*PA(2)
       PAB=PA(2)
       PZB=PZ(2)
-      VB=SQRT(2.D0*PNBENG(NNB)*RKEV/AMB)
 
       IF(MDLUF.NE.0) THEN
       DO NR=1,NRMAX
+         VB=0.D0
+         PB=0.D0
+         DO NNB=1,NNBMAX
+            VB=VB+PNB_NNB(NNB,NR)*SQRT(2.D0*PNBENG(NNB)*RKEV/AMB)
+            PB=PB+PNB_NNB(NNB,NR)
+         END DO
+         IF(PB.NE.0.D0) THEN
+            VB=VB/PB
+         ELSE
+            VB=SQRT(2.D0*PNBENG(1)*RKEV/AMB)
+         END IF
+         
          ANE=RN(NR,1)
          TE =RT(NR,1)
          IF(ANE.EQ.0.D0) THEN
@@ -511,6 +516,18 @@
       ENDDO
       ELSE
       DO NR=1,NRMAX
+         VB=0.D0
+         PB=0.D0
+         DO NNB=1,NNBMAX
+            VB=VB+PNB_NNB(NNB,NR)*SQRT(2.D0*PNBENG(NNB)*RKEV/AMB)
+            PB=PB+PNB_NNB(NNB,NR)
+         END DO
+         IF(PB.NE.0.D0) THEN
+            VB=VB/PB
+         ELSE
+            VB=SQRT(2.D0*PNBENG(1)*RKEV/AMB)
+         END IF
+         
          ANE=RN(NR,1)
          TE =RT(NR,1)
 !         WB =RW(NR,1)*1.5D0
@@ -537,11 +554,11 @@
          ELSE
             RTF(NR,1)= 0.D0
          ENDIF
-         PBIN_NNB(NNB,NR)   = WB*RKEV*1.D20/TAUB(NR)
-         PBCL_NNB(NNB,NR,1) =   (1.D0-HYB)*PBIN(NR)
-         PBCL_NNB(NNB,NR,2) = VCD3/VC3*HYB*PBIN(NR)
-         PBCL_NNB(NNB,NR,3) = VCT3/VC3*HYB*PBIN(NR)
-         PBCL_NNB(NNB,NR,4) = VCA3/VC3*HYB*PBIN(NR)
+         PBIN(NR)   = WB*RKEV*1.D20/TAUB(NR)
+         PBCL(NR,1) = (1.D0-HYB)*PBIN(NR)
+         PBCL(NR,2) = VCD3/VC3*HYB*PBIN(NR)
+         PBCL(NR,3) = VCT3/VC3*HYB*PBIN(NR)
+         PBCL(NR,4) = VCA3/VC3*HYB*PBIN(NR)
       ENDDO
 
       IF(PNBCD(NNB).LE.0.D0) RETURN
@@ -572,13 +589,21 @@
          EC  = 14.8D0*TE*PAB*ZEFFM**(2.D0/3.D0)
          VCR = VB*SQRT(ABS(EC)/PNBENG(NNB))
          P2  = (1.55D0+0.85D0/ZEFF(NR))*SQRT(EPS) &
-     &        -(0.2D0+1.55D0/ZEFF(NR))*EPS
+              -(0.2D0+1.55D0/ZEFF(NR))*EPS
          XB  = VB/VCR
          ZN  = 0.8D0*ZEFF(NR)/PAB
          P3  = XB*XB/(4.D0+3.D0*ZN+XB*XB*(XB+1.39D0+0.61D0*ZN**0.7D0))
 
-         AJNB_NNB(NNB,NR) = PNBCD(NNB)*2.D0*AEE*PZB*TAUS/(AMB*VCR) &
-     &            *(1.D0-PZB*(1.D0-P2)/ZEFF(NR))*P3*PBIN(NR)
+         VB=0.D0
+         PB=0.D0
+         DO NNB=1,NNBMAX
+            VB=VB+PNBCD(NNB)*PNB_NNB(NNB,NR)
+            PB=PB+PNB_NNB(NNB,NR)
+         END DO
+         VB=VB/PB
+         
+         AJNB(NR) = VB*2.D0*AEE*PZB*TAUS/(AMB*VCR) &
+              *(1.D0-PZB*(1.D0-P2)/ZEFF(NR))*P3*PBIN(NR)
       ENDIF
       ENDDO
 

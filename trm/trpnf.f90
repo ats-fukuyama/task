@@ -9,12 +9,12 @@
       USE TRCOMM, ONLY : &
            AME, AMP, ANC, ANFE, MDLNF, NRMAX, PA, PBIN, PFCL, &
            PFIN, PI, PNBENG, PNF, PZ, PZC, PZFE, RKEV, &
-           RN, RNF, RT, RTF, RW, SNF, TAUF, rkind, PBIN_NNB, NNBMAX
+           RN, RNF, RT, RTF, RW, SNF, TAUF, rkind, NNBMAX, PNB_NNB
       IMPLICIT NONE
 !      INCLUDE 'trcomm.inc'
       REAL(rkind)   :: &
            AMA, AMD, AMT, ANE, EC, HYF, P1, PTNT, SS, SSB, TAUS, &
-           TD, TE, TT, VC3, VCA3, VCD3, VCR, VCT3, VF, WF, ZEFFM
+           TD, TE, TT, VC3, VCA3, VCD3, VCR, VCT3, VF, WF, ZEFFM, PB
       INTEGER:: NR,NNB
       REAL(rkind)   :: SIGMAM, COULOG, SIGMAB, HY   !FUNCTION
 
@@ -40,10 +40,17 @@
             EC  = 14.8D0*TE*PA(2)*ZEFFM**(2.D0/3.D0)
             TAUS= 0.2D0*PA(2)*ABS(TE)**1.5D0 /(PZ(2)**2*ANE*COULOG(1,2,ANE,TE))
             SSB=0.D0
+            PB=0.D0
             DO NNB=1,NNBMAX
-               PTNT= PBIN_NNB(NNB,NR)*TAUS/(RN(NR,2)*1.D20*PNBENG(NNB)*RKEV)
-               SSB = SSB+SIGMAB(PNBENG(NNB),EC,TT,PTNT)
+               PTNT= PBIN(NR)*TAUS/(RN(NR,2)*1.D20*PNBENG(NNB)*RKEV)
+               SSB = SSB+PNB_NNB(NNB,NR)*SIGMAB(PNBENG(NNB),EC,TT,PTNT)
+               PB  = PB +PNB_NNB(NNB,NR)
             END DO
+            IF(PB.NE.0.D0) THEN
+               SSB=SSB/PB
+            ELSE
+               SSB=0.D0
+            END IF
          ELSE
             SSB=0.D0
          ENDIF
@@ -240,7 +247,6 @@
          PNF(NR) = SNF(NR)*(3.5D3+14.7D3)*RKEV*1.D20  ! proton energy added
                                                       ! for simplicity
          IF(MOD(MDLNF,2).EQ.1) SNF(NR) = 0.D0
-         WRITE(6,*) NR,PNF(NR)
       ENDDO
 
       DO NR=1,NRMAX
@@ -267,7 +273,6 @@
          PFCL(NR,2)=(VCD3 /VC3)*HYF*PFIN(NR)
          PFCL(NR,3)=(VCHe3/VC3)*HYF*PFIN(NR)
          PFCL(NR,4)=(VCA3 /VC3)*HYF*PFIN(NR)
-         WRITE(6,*) NR,PFCL(NR,1)
       ENDDO
 
       RETURN

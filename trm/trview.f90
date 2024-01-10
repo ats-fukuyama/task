@@ -52,7 +52,7 @@ CONTAINS
       WRITE(6,603) 'MDLEDGE',MDLEDGE,'CSPRS ',CSPRS, 'CNN   ',CNN
       WRITE(6,601) 'CNP   ',CNP,   'CNH   ',CNH,   'CDP   ',CDP,   'CDH   ',CDH
       WRITE(6,601) 'AD0   ',AD0,   'CHP   ',CHP,   'CWEB  ',CWEB,  'CALF  ',CALF
-      WRITE(6,631)     'model_prof  ',model_prof
+      WRITE(6,630)     'model_prof  ',model_prof
       WRITE(6,'(A,A)') 'knam_prof   ',knam_prof
       IF((MDLKAI.GE.1.AND.MDLKAI.LT.10).OR.ID.EQ.1) &
          WRITE(6,601) 'CKALFA',CKALFA,'CKBETA',CKBETA,'CKGUMA',CKGUMA
@@ -75,7 +75,6 @@ CONTAINS
       END IF
 !         WRITE(6,601) 'PNNU  ',PNNU,  'PNNUS ',PNNUS
 
-      IF(ID.EQ.1) THEN
          DO NNB=1,NNBMAX
             IF(PNBIN(NNB).GT.0.D0) THEN
                WRITE(6,632) NNB, &
@@ -97,8 +96,8 @@ CONTAINS
          DO NNB=1,NNBMAX
             IF(PNBIN(NNB).GT.0.D0) THEN
                WRITE(6,632) NNB, &
-                    'NRNBMAX ',NRNBMAX, &
-                    'PNBCD ',PNBCD(nnb)
+                    'NRNBMAX ',NRNBMAX(nnb), &
+                    'PNBCD   ',PNBCD(nnb)
             END IF
          END DO
 
@@ -155,9 +154,8 @@ CONTAINS
                     'PICNPR',PICNPR(NIC)
             ENDIF
          END DO
-      ENDIF
 
-      IF((PELIN.GT.0.D0).OR.(ID.EQ.1)) THEN
+      IF(PELIN.GT.0.D0) THEN
          WRITE(6,632) 1, &
               'MDLPEL',MDLPEL, &
               'PELIN ',PELIN, &
@@ -167,7 +165,6 @@ CONTAINS
                  'PELRAD',PELRAD, &
                  'PELVEL',PELVEL, &
                  'PELTIM',PELTIM
-         END IF
          WRITE(6,'(A24,4ES12.4)') &
               'pellet_time_start', &
                pellet_time_start
@@ -178,9 +175,10 @@ CONTAINS
               'number_of_pellet_repeat', &
                number_of_pellet_repeat
          DO NS=1,NSMAX
-            WRITE(6,'(A7,I2,A3)') 'PELPAT(',NS,'): ', &
+            WRITE(6,'(A7,I2,A3,ES12.4)') 'PELPAT(',NS,'): ', &
                  PELPAT(NS)
          END DO
+         ENDIF
 
 !      idx=0
 !      DO NPEL=1,NPELMAX
@@ -225,17 +223,17 @@ CONTAINS
          END IF
       END DO
  
-      IF((MDLPR.GE.1).OR.(ID.EQ.1)) THEN
+      IF(MDLPR.GE.1) THEN
          WRITE(6,623) 'MDLPR   ',MDLPR,   'SYNCABS ',SYNCABS, &
                       'SYNCSELF',SYNCSELF
       ENDIF
 
-      WRITE(6,'(A,A)') 'KNAMEQ =',knameq
-      WRITE(6,'(A,A)') 'KNAMEQ2=',knameq2
-      WRITE(6,'(A,A)') 'KNAMTR =',knamtr
-      WRITE(6,'(A,A)') 'KFNLOG =',kfnlog
-      WRITE(6,'(A,A)') 'KFNTXT =',kfntxt
-      WRITE(6,'(A,A)') 'KFNCVS =',kfncvs
+      WRITE(6,'(A,A)') 'KNAMEQ =',TRIM(knameq)
+      WRITE(6,'(A,A)') 'KNAMEQ2=',TRIM(knameq2)
+      WRITE(6,'(A,A)') 'KNAMTR =',TRIM(knamtr)
+      WRITE(6,'(A,A)') 'KFNLOG =',TRIM(kfnlog)
+      WRITE(6,'(A,A)') 'KFNTXT =',TRIM(kfntxt)
+      WRITE(6,'(A,A)') 'KFNCVS =',TRIM(kfncvs)
 
       RETURN
 
@@ -254,7 +252,8 @@ CONTAINS
               2X,A8,'=',I5,4X   :2X,A8,'=',I5)
 623   FORMAT(' ',A8,'=',I7,4X   :2X,A8,'=',1PE11.3: &
               2X,A8,'=',1PE11.3)
-631   FORMAT(' ',A12,'=',ES11.3)
+630   FORMAT(' ',A12,'=',I12)
+631   FORMAT(' ',A12,'=',ES12.4)
 632   FORMAT(' ',I2,1X,A6,I8,4X,3(1X,A6,ES12.4))
 633   FORMAT(' ',I2,4(1X,A6,ES12.4))
     END SUBROUTINE tr_view
