@@ -1,11 +1,11 @@
 subroutine wfmenu
 
+  use libmpi
   use wfcomm
   USE wfparm
   USE plload, ONLY: pl_load
   USE wfload, ONLY: wf_load_wg
   USE libkio
-  use libmpi
   implicit none
   
   integer  :: MODE
@@ -39,7 +39,7 @@ subroutine wfmenu
      call WFANT
   elseif (KID.eq.'C') then
      call WFWPRE(IERR)
-  elseif (KID.eq.'W') then
+  elseif (KID.eq.'R') then
      call WFWAVE
   elseif (KID.eq.'G') then
      if (nrank.eq.0) call WFGOUT
@@ -71,7 +71,7 @@ subroutine WFINFO
   USE libchar
   implicit none
   integer   :: IE,IN,NN,NE,IA,IS,NSD
-  real(8)   :: R,Z
+  real(rkind)   :: R,Z
   character :: KID*1
   
 8001 continue

@@ -2,22 +2,24 @@
 !
 !     ######### /TASK/WF2/WFANT ########
 !
-!      ANTENNA DATA GENERATION PROGRAM
+!      ANTENNA DATA GsENERATION PROGRAM
 !
 !     #################################
 
 SUBROUTINE WFANT
 
   use libmpi
+  USE libchar
   use wfcomm
   use wfparm
-  USE libchar
+  USE femmesh
   implicit none
   integer   :: IERR,NA,N
   character :: KID*1
 
-  if (nrank.eq.0) WRITE(6,*) '--- SETBDY start ---'
-  CALL SETBDY(IERR)
+  if (nrank.eq.0) WRITE(6,*) '--- fem_set_bdy start ---'
+  CALL fem_set_nseg
+  CALL fem_set_nbdy
   IF(IERR.NE.0) RETURN
 
 1 continue
@@ -35,7 +37,7 @@ SUBROUTINE WFANT
      CALL WFDEFA
 
   ELSEIF(KID.EQ.'G') THEN
-     if (nrank.eq.0) CALL WFPLTA
+     if (nrank.eq.0) CALL wf_gr_antenna
 
   ELSEIF(KID.EQ.'P') THEN
      if (nrank.eq.0) CALL WF_PARM(0,'wf',IERR)
@@ -75,11 +77,11 @@ END SUBROUTINE WFANT
 SUBROUTINE WFDEFA
 
   use libmpi
-  use wfcomm
   USE libchar
+  use wfcomm
   implicit none
   integer   :: NA,NJ,IERR
-  real(8)   :: DEGN,DTHETA,THETA,R,Z
+  real(rkind)   :: DEGN,DTHETA,THETA,R,Z
   character KID*1
 
   DEGN=PI/180.D0
@@ -192,7 +194,7 @@ subroutine wfant_broadcast
   implicit none
   
   integer :: NA,NJ
-  real(8),dimension(NJM)::ddatar,ddataz
+  real(rkind),dimension(NJM)::ddatar,ddataz
 
   call mtx_broadcast1_integer(NAMAX)
 

@@ -98,28 +98,25 @@ CONTAINS
     SUBROUTINE plplst
 
       implicit none
-      WRITE(6,601)
-      RETURN
 
-  601 FORMAT(' ','# &PL : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,'/ &
-             9X,'RMIR,ZBB,Hpitch1,Hpitch2,RRCH,RCOI,ZCOIL,BCOIL,NCOILMAX,'/ &
-             9X,'NSMAX,PA,PZ,PN,PNS,PTPR,PTPP,PTS,'/ &
-             9X,'PU,PUS,PUPR,PUPP,PNUC,PZCL,'/ &
-             9X,'ID_NS,KID_NS,'/ &
-             9X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'/ &
-             9X,'r_corner,z_corner,br_corner,bz_corner,bt_corner,'/ &
-             9X,'pn_corner,ptpr_corner,ptpp_corner,'/ &
-             9X,'profn_travis_g,profn_travis_h,profn_travis_p,'/ &
-             9X,'profn_travis_q,profn_travis_w,proft_travis_g,'/ &
-             9X,'proft_travis_h,proft_travis_p,proft_travis_q,'/ &
-             9X,'proft_travis_w,'/ &
-             9X,'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,'/ &
-             9X,'PPN0,PTN0,RFCL,BAXIS_SCALED,'/ &
-             9X,'MODELG,MODELB,MODELN,MODELQ,'/ &
-             9X,'model_coll,MODEL_PROF,MODEL_NPROF,'/ &
-             9X,'RHOGMN,RHOGMX,'/ &
-             9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2'/ &
-             9X,'MODEFW,MODEFR,IDEBUG,mdlplw')
+      WRITE(6,*) '&PL : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,'
+      WRITE(6,*) 'RMIR,ZBB,Hpitch1,Hpitch2,RRCH,RCOI,ZCOIL,BCOIL,NCOILMAX,'
+      WRITE(6,*) 'NSMAX,PA,PZ,PN,PNS,PTPR,PTPP,PTS,'
+      WRITE(6,*) 'PU,PUS,PUPR,PUPP,PNUC,PZCL,ID_NS,KID_NS,'
+      WRITE(6,*) 'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'
+      WRITE(6,*) 'r_corner,z_corner,br_corner,bz_corner,bt_corner,'
+      WRITE(6,*) 'pn_corner,ptpr_corner,ptpp_corner,'
+      WRITE(6,*) 'profn_travis_g,profn_travis_h,profn_travis_p,'
+      WRITE(6,*) 'profn_travis_q,profn_travis_w,proft_travis_g,'
+      WRITE(6,*) 'proft_travis_h,proft_travis_p,proft_travis_q,'
+      WRITE(6,*) 'proft_travis_w,'
+      WRITE(6,*) 'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,'
+      WRITE(6,*) 'PPN0,PTN0,RFCL,BAXIS_SCALED,'
+      WRITE(6,*) 'MODELG,MODELB,MODELN,MODELQ,'
+      WRITE(6,*) 'model_coll,MODEL_PROF,MODEL_NPROF,RHOGMN,RHOGMX,'
+      WRITE(6,*) 'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2'
+      WRITE(6,*) 'MODEFW,MODEFR,IDEBUG,mdlplw'
+      RETURN
     END SUBROUTINE plplst
 
 !     ****** CHECK INPUT PARAMETER ******

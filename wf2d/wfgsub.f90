@@ -8,8 +8,8 @@ SUBROUTINE WFGWIN(NW,NWMAX,PXMIN,PXMAX,PYMIN,PYMAX)
   implicit none
   integer,intent(in) :: NW,NWMAX
   integer :: NWW,NWYMAX,MIN,NWX,NWY
-  real(8),intent(out) :: PXMIN,PXMAX,PYMIN,PYMAX
-  real(8) :: DXLEN,DYLEN,DRATIO,PXLEN,PYLEN
+  real(rkind),intent(out) :: PXMIN,PXMAX,PYMIN,PYMAX
+  real(rkind) :: DXLEN,DYLEN,DRATIO,PXLEN,PYLEN
 
   DXLEN= RNDMAX-RNDMIN
   DYLEN= ZNDMAX-ZNDMIN
@@ -61,17 +61,17 @@ END SUBROUTINE WFGWIN
 SUBROUTINE PWRPLOT(NS)
 
   use wfcomm
+  USE libgrf
   implicit none
 
   integer,intent(in) :: NS
   integer    :: IE,NGX,NGY
-  real(4)    :: GCLIP
-  real(8)    :: X,Y
+  real(rkind)    :: X,Y
   integer    :: I,J,K,IN
-  real(8)    :: PABS
-  real(8)    :: RW,WGT(3)
-  complex(8) :: DTENS(NSM,3,3,3)
-  complex(8) :: CIWE,CTENS(3,3),CER,CEP,CEZ,JP(3)
+  real(rkind)    :: PABS
+  real(rkind)    :: RW,WGT(3)
+  complex(rkind) :: DTENS(NSM,3,3,3)
+  complex(rkind) :: CIWE,CTENS(3,3),CER,CEP,CEZ,JP(3)
 
   ! JP: plasma current
   ! --- initialize ---
@@ -121,7 +121,7 @@ SUBROUTINE PWRPLOT(NS)
                           +JP(2)*conjg(CEP)&
                           +JP(3)*conjg(CEZ))
            IF(ABS(PABS).LE.1.D-20) PABS=0.D0
-           GZ(NGX,NGY)=GCLIP(PABS)
+           GZ(NGX,NGY)=gdclip(PABS)
 
 !        write(6,'(A,3I8,1P3E12.4)') 'NGX,NGY,IE,X,Y,PABS=',NGX,NGY,IE,X,Y,PABS
         ENDIF
@@ -136,22 +136,22 @@ END SUBROUTINE PWRPLOT
 SUBROUTINE NPLOT
 
   use wfcomm
+  USE libgrf
   implicit none
   
   integer :: NGX,NGY,NE
-  real(4) :: GCLIP
-  real(8) :: DX,DY,X,Y
-  real(8) :: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
+  real(rkind) :: DX,DY,X,Y
+  real(rkind) :: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
   
   NE=0
 
   DY=(ZNDMAX-ZNDMIN)/(NGYMAX-1)
   DX=(RNDMAX-RNDMIN)/(NGXMAX-1)
   DO NGX=1,NGXMAX
-     G2X(NGX)=GCLIP(RNDMIN+DX*(NGX-1))
+     G2X(NGX)=gdclip(RNDMIN+DX*(NGX-1))
   ENDDO
   DO NGY=1,NGYMAX
-     G2Y(NGY)=GCLIP(ZNDMIN+DY*(NGY-1))
+     G2Y(NGY)=gdclip(ZNDMIN+DY*(NGY-1))
   ENDDO
 
   DO NGY=1,NGYMAX
@@ -163,7 +163,7 @@ SUBROUTINE NPLOT
            GZ(NGX,NGY)=0.0
         ELSE
            CALL WFSDEN(X,Y,RN,RTPR,RTPP,RZCL)
-           GZ(NGX,NGY)=GCLIP(RN(1)*1.d20)
+           GZ(NGX,NGY)=gdclip(RN(1)*1.d20)
         end IF
      end DO
   end DO
@@ -176,30 +176,31 @@ END SUBROUTINE NPLOT
 SUBROUTINE WFGPPC(NW,NWMAX,KWD)
   
   use wfcomm
+  USE libgrf
   implicit none
   integer,intent(in) :: NW,NWMAX
   integer :: NGX,NGY,ISTEP
-  real(4) :: GXMIN,GCLIP,GXMAX,GYMIN,GYMAX,GPYMIN,GPYMAX
-  real(4) :: GPXMIN,GPXMAX,GSXMIN,GSXMAX,GXSCAL,GSYMIN,GYSCAL
-  real(4) :: GXORG,GYORG,GZMIN,GZMAX,GQZMIN,GQZMAX,GZSCAL,GZDEL,GZORG,GXPOS,GYPOS
-  real(8) :: XMIN,XMAX,YMIN,YMAX,PXMIN,PXMAX,PYMIN,PYMAX
-  real(8) :: DXLEN,DYLEN,DRATIO,PRATIO
-  real(8) :: PXMID,PYLEN,PXLEN,PYMID,DX,DY
-  real(8) :: n_para
+  real :: GXMIN,GXMAX,GYMIN,GYMAX,GPYMIN,GPYMAX
+  real :: GPXMIN,GPXMAX,GSXMIN,GSXMAX,GXSCAL,GSYMIN,GYSCAL
+  real :: GXORG,GYORG,GZMIN,GZMAX,GQZMIN,GQZMAX,GZSCAL,GZDEL,GZORG,GXPOS,GYPOS
+  real(rkind) :: XMIN,XMAX,YMIN,YMAX,PXMIN,PXMAX,PYMIN,PYMAX
+  real(rkind) :: DXLEN,DYLEN,DRATIO,PRATIO
+  real(rkind) :: PXMID,PYLEN,PXLEN,PYMID,DX,DY
+  real(rkind) :: n_para
   character,intent(in):: KWD*(NCHM)
 
   integer :: NS,NSDO
-  real(8) :: X,Y,WC(NSMAX),WP(NSMAX),WW
-  real(8) :: BABS,AL(3),RTPR(NSM),RTPP(NSM),RZCL(NSM),RN(NSM)
-  REAL(4) :: GTCO_MAX,GTCR_MAX,GTHR_MAX,GTRC_MAX,GTLC_MAX
+  real(rkind) :: X,Y,WC(NSMAX),WP(NSMAX),WW
+  real(rkind) :: BABS,AL(3),RTPR(NSM),RTPP(NSM),RZCL(NSM),RN(NSM)
+  REAL :: GTCO_MAX,GTCR_MAX,GTHR_MAX,GTRC_MAX,GTLC_MAX
   INTEGER :: NBSD,NSD,NN1,NN2
-  REAL(4) :: R1,Z1,R2,Z2
+  REAL :: R1,Z1,R2,Z2
 
-  REAL(8),DIMENSION(:,:),ALLOCATABLE:: TCO,TCR,THR,TRC,TLC
-  real(4) :: GUCLIP
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: TCO,TCR,THR,TRC,TLC
+  real :: GUCLIP
   integer,DIMENSION (:,:,:),ALLOCATABLE :: KA
-  real(4),DIMENSION (:),ALLOCATABLE :: GAX,GAY
-  real(4),DIMENSION (:,:),ALLOCATABLE :: GTCO,GTCR,GTHR,GTRC,GTLC
+  real,DIMENSION (:),ALLOCATABLE :: GAX,GAY
+  real,DIMENSION (:,:),ALLOCATABLE :: GTCO,GTCR,GTHR,GTRC,GTLC
 
   IF(NWMAX.LE.0) RETURN
 
@@ -222,37 +223,37 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
   DYLEN= YMAX-YMIN
   DRATIO=DYLEN/DXLEN
   PRATIO=(PYMAX-PYMIN-1.5D0)/(PXMAX-PXMIN-0.6D0)
-  GXMIN=GCLIP(XMIN)
-  GXMAX=GCLIP(XMAX)
-  GYMIN=GCLIP(YMIN)
-  GYMAX=GCLIP(YMAX)
+  GXMIN=gdclip(XMIN)
+  GXMAX=gdclip(XMAX)
+  GYMIN=gdclip(YMIN)
+  GYMAX=gdclip(YMAX)
   IF(DRATIO.GT.PRATIO) THEN
-     GPYMIN=GCLIP(PYMIN)+1.5
-     GPYMAX=GCLIP(PYMAX)
+     GPYMIN=gdclip(PYMIN)+1.5
+     GPYMAX=gdclip(PYMAX)
      PXMID=0.5D0*(PXMIN+PXMAX)
      PYLEN=PYMAX-PYMIN-1.5D0
      PXLEN=PYLEN/DRATIO
-     GPXMIN=GCLIP(PXMID-0.5D0*PXLEN)
-     GPXMAX=GCLIP(PXMID+0.5D0*PXLEN)
+     GPXMIN=gdclip(PXMID-0.5D0*PXLEN)
+     GPXMAX=gdclip(PXMID+0.5D0*PXLEN)
   ELSE
-     GPXMIN=GCLIP(PXMIN)+0.3
-     GPXMAX=GCLIP(PXMAX)-0.3
+     GPXMIN=gdclip(PXMIN)+0.3
+     GPXMAX=gdclip(PXMAX)-0.3
      PYMID=0.5D0*(PYMIN+PYMAX+1.5D0)
      PXLEN=PXMAX-PXMIN-0.6D0
      PYLEN=PXLEN*DRATIO
-     GPYMIN=GCLIP(PYMID-0.5D0*PYLEN)
-     GPYMAX=GCLIP(PYMID+0.5D0*PYLEN)
+     GPYMIN=gdclip(PYMID-0.5D0*PYLEN)
+     GPYMAX=gdclip(PYMID+0.5D0*PYLEN)
   ENDIF
 
   ! --- set GAX,GAY ---
   
   DX=(XMAX-XMIN)/(NGXMAX-1)
   DO NGX=1,NGXMAX
-     GAX(NGX)=GCLIP(XMIN+(NGX-1)*DX)
+     GAX(NGX)=gdclip(XMIN+(NGX-1)*DX)
   ENDDO
   DY=(YMAX-YMIN)/(NGYMAX-1)
   DO NGY=1,NGYMAX
-     GAY(NGY)=GCLIP(YMIN+(NGY-1)*DY)
+     GAY(NGY)=gdclip(YMIN+(NGY-1)*DY)
   ENDDO
 
   ! --- scaling X,Y ---
@@ -285,7 +286,7 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
 !!! the following should be corrected by including poloidal magnetic field
      SELECT CASE(MODELG)
      CASE(0,12)
-        n_para=RKZ*VC/WW
+        n_para=0.D0
      CASE(1)
         n_para=NPH*VC/(RA*WW)
      CASE(2:6)
@@ -312,7 +313,7 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
               WC(NSDO)=PZ(NSDO)*AEE*BABS/(PA(NSDO)*AMP*WW)
            end DO
 
-           TCR(NGX,NGY)=WC(NS)**2
+           TCR(NGX,NGY)=WC(1)**2
            TCO(NGX,NGY)=1.D0
            THR(NGX,NGY)=1.D0
            TRC(NGX,NGY)=1.D0
@@ -323,7 +324,7 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
               TRC(NGX,NGY)=TRC(NGX,NGY)-WP(NSDO)/(1.D0+WC(NSDO))
               TLC(NGX,NGY)=TLC(NGX,NGY)-WP(NSDO)/(1.D0-WC(NSDO))
            end do
-           
+
            GTCR(NGX,NGY)=GUCLIP(1.D0-TCR(NGX,NGY))
            GTCO(NGX,NGY)=GUCLIP(TCO(NGX,NGY))
            GTHR(NGX,NGY)=GUCLIP(THR(NGX,NGY))
@@ -403,7 +404,7 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
 
   CALL GMNMX2(GZ,NGXMAX,1,NGXMAX,1,1,NGYMAX,1,GZMIN,GZMAX)
   CALL GQSCAL(GZMIN,GZMAX,GQZMIN,GQZMAX,GZSCAL)
-  GZDEL=GFACTOR*GZSCAL
+  GZDEL=REAL(GFACTOR)*GZSCAL
   IF(GZDEL.EQ.0.0) GOTO 1000
   ISTEP=INT((GZMAX-GZMIN)/GZDEL)
   
@@ -437,10 +438,10 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
      NSD=NSDBS(NBSD)
      NN1=NDSID(1,NSD)
      NN2=NDSID(2,NSD)
-     R1=RNODE(NN1)
-     Z1=ZNODE(NN1)
-     R2=RNODE(NN2)
-     Z2=ZNODE(NN2)
+     R1=guclip(RNODE(NN1))
+     Z1=guclip(ZNODE(NN1))
+     R2=guclip(RNODE(NN2))
+     Z2=guclip(ZNODE(NN2))
      CALL MOVE2D(R1,Z1)
      CALL DRAW2D(R2,Z2)
   END DO
@@ -476,20 +477,21 @@ END SUBROUTINE WFGPPC
 SUBROUTINE WFGPFC(NW,NWMAX,KWD)
 
   use wfcomm
+  USE libgrf
   implicit none
   integer,parameter :: NSTEPM=101
   integer,parameter :: NRGBA=5
   integer,parameter :: NRGBB=7
   integer,intent(in):: NWMAX,NW
   integer :: NGX,NGY,ISTEP,I
-  real(8) :: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
-  real(8) :: DXLEN,DYLEN,DRATIO,PRATIO
-  real(8) :: PXMID,PYLEN,PXLEN,PYMID,DX,DY
-  real(4) :: GXMIN,GXMAX,GCLIP,GYMIN,GYMAX,GPYMIN,GPYMAX,GPXMIN,GPXMAX
-  real(4) :: GSXMAX,GSXMIN,GXSCAL,GSYMIN,GYSCAL,GXORG,GYORG,GZMIN,GZMAX,GZA
-  real(4) :: GDZ,GFACT,GXPOS,GYPOS
-  real(4) :: GAX(NGXMAX),GAY(NGYMAX),GZL(NSTEPM),GRGBL(3,0:NSTEPM)
-  real(4) :: GRGBA(3,NRGBA),GLA(NRGBA),GRGBB(3,NRGBB),GLB(NRGBB)
+  real(rkind) :: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
+  real(rkind) :: DXLEN,DYLEN,DRATIO,PRATIO
+  real(rkind) :: PXMID,PYLEN,PXLEN,PYMID,DX,DY
+  real :: GXMIN,GXMAX,GYMIN,GYMAX,GPYMIN,GPYMAX,GPXMIN,GPXMAX
+  real :: GSXMAX,GSXMIN,GXSCAL,GSYMIN,GYSCAL,GXORG,GYORG,GZMIN,GZMAX,GZA
+  real :: GDZ,GFACT,GXPOS,GYPOS
+  real :: GAX(NGXMAX),GAY(NGYMAX),GZL(NSTEPM),GRGBL(3,0:NSTEPM)
+  real :: GRGBA(3,NRGBA),GLA(NRGBA),GRGBB(3,NRGBB),GLB(NRGBB)
   character,intent(in) :: KWD*(NCHM)
 
   DATA GRGBA/0.0,0.0,1.0,&
@@ -520,35 +522,35 @@ SUBROUTINE WFGPFC(NW,NWMAX,KWD)
   DYLEN= YMAX-YMIN
   DRATIO=DYLEN/DXLEN
   PRATIO=(PYMAX-PYMIN-1.5D0)/(PXMAX-PXMIN-0.6D0)
-  GXMIN=GCLIP(XMIN)
-  GXMAX=GCLIP(XMAX)
-  GYMIN=GCLIP(YMIN)
-  GYMAX=GCLIP(YMAX)
+  GXMIN=gdclip(XMIN)
+  GXMAX=gdclip(XMAX)
+  GYMIN=gdclip(YMIN)
+  GYMAX=gdclip(YMAX)
   IF(DRATIO.GT.PRATIO) THEN
-     GPYMIN=GCLIP(PYMIN)+1.5
-     GPYMAX=GCLIP(PYMAX)
+     GPYMIN=gdclip(PYMIN)+1.5
+     GPYMAX=gdclip(PYMAX)
      PXMID=0.5D0*(PXMIN+PXMAX)
      PYLEN=PYMAX-PYMIN-1.5D0
      PXLEN=PYLEN/DRATIO
-     GPXMIN=GCLIP(PXMID-0.5D0*PXLEN)
-     GPXMAX=GCLIP(PXMID+0.5D0*PXLEN)
+     GPXMIN=gdclip(PXMID-0.5D0*PXLEN)
+     GPXMAX=gdclip(PXMID+0.5D0*PXLEN)
   ELSE
-     GPXMIN=GCLIP(PXMIN)+0.3
-     GPXMAX=GCLIP(PXMAX)-0.3
+     GPXMIN=gdclip(PXMIN)+0.3
+     GPXMAX=gdclip(PXMAX)-0.3
      PYMID=0.5D0*(PYMIN+PYMAX+1.5D0)
      PXLEN=PXMAX-PXMIN-0.6D0
      PYLEN=PXLEN*DRATIO
-     GPYMIN=GCLIP(PYMID-0.5D0*PYLEN)
-     GPYMAX=GCLIP(PYMID+0.5D0*PYLEN)
+     GPYMIN=gdclip(PYMID-0.5D0*PYLEN)
+     GPYMAX=gdclip(PYMID+0.5D0*PYLEN)
   ENDIF
   
   DX=(XMAX-XMIN)/(NGXMAX-1)
   DO NGX=1,NGXMAX
-     GAX(NGX)=GCLIP(XMIN+(NGX-1)*DX)
+     GAX(NGX)=gdclip(XMIN+(NGX-1)*DX)
   ENDDO
   DY=(YMAX-YMIN)/(NGYMAX-1)
   DO NGY=1,NGYMAX
-     GAY(NGY)=GCLIP(YMIN+(NGY-1)*DY)
+     GAY(NGY)=gdclip(YMIN+(NGY-1)*DY)
   ENDDO
   
   CALL GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GXSCAL)
@@ -654,17 +656,18 @@ END SUBROUTINE WFGPFC
 SUBROUTINE WFGPBC(NW,NWMAX,KWD)
   
   use wfcomm
+  USE libgrf
   implicit none
   integer,intent(in) :: NWMAX,NW
   integer,DIMENSION(:,:,:),ALLOCATABLE :: KA
   integer :: NGX,NGY
-  real(4) :: GAX(NGXMAX),GAY(NGYMAX),GXMIN,GCLIP,GXMAX,GYMIN,GYMAX
-  real(4) :: GPYMIN,GPYMAX,GPXMIN,GPXMAX
-  real(8) :: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
-  real(8) :: DXLEN,DYLEN,DRATIO,PRATIO
-  real(8) :: PXMID,PYLEN,PXLEN,PYMID,DX,DY
-  real(4) :: GSXMIN,GSXMAX,GXSCAL,GSYMIN,GYSCAL,GXORG,GYORG,GZMIN,GZMAX,GSZMIN
-  real(4) :: GSZMAX,GZSCAL,GZORG,GXL,GYL,GZL,GPHI,GTHETA,GRADIUS,GXPOS,GYPOS,GZA
+  real :: GAX(NGXMAX),GAY(NGYMAX),GXMIN,GXMAX,GYMIN,GYMAX
+  real :: GPYMIN,GPYMAX,GPXMIN,GPXMAX
+  real(rkind) :: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
+  real(rkind) :: DXLEN,DYLEN,DRATIO,PRATIO
+  real(rkind) :: PXMID,PYLEN,PXLEN,PYMID,DX,DY
+  real :: GSXMIN,GSXMAX,GXSCAL,GSYMIN,GYSCAL,GXORG,GYORG,GZMIN,GZMAX,GSZMIN
+  real :: GSZMAX,GZSCAL,GZORG,GXL,GYL,GZL,GPHI,GTHETA,GRADIUS,GXPOS,GYPOS,GZA
   EXTERNAL R2W2B
   character,intent(in) :: KWD*(NCHM)
 
@@ -682,35 +685,35 @@ SUBROUTINE WFGPBC(NW,NWMAX,KWD)
   DYLEN= YMAX-YMIN
   DRATIO=DYLEN/DXLEN
   PRATIO=(PYMAX-PYMIN-1.5D0)/(PXMAX-PXMIN-0.6D0)
-  GXMIN=GCLIP(XMIN)
-  GXMAX=GCLIP(XMAX)
-  GYMIN=GCLIP(YMIN)
-  GYMAX=GCLIP(YMAX)
+  GXMIN=gdclip(XMIN)
+  GXMAX=gdclip(XMAX)
+  GYMIN=gdclip(YMIN)
+  GYMAX=gdclip(YMAX)
   IF(DRATIO.GT.PRATIO) THEN
-     GPYMIN=GCLIP(PYMIN)+1.5
-     GPYMAX=GCLIP(PYMAX)
+     GPYMIN=gdclip(PYMIN)+1.5
+     GPYMAX=gdclip(PYMAX)
      PXMID=0.5D0*(PXMIN+PXMAX)
      PYLEN=PYMAX-PYMIN-1.5D0
      PXLEN=PYLEN/DRATIO
-     GPXMIN=GCLIP(PXMID-0.5D0*PXLEN)
-     GPXMAX=GCLIP(PXMID+0.5D0*PXLEN)
+     GPXMIN=gdclip(PXMID-0.5D0*PXLEN)
+     GPXMAX=gdclip(PXMID+0.5D0*PXLEN)
   ELSE
-     GPXMIN=GCLIP(PXMIN)+0.3
-     GPXMAX=GCLIP(PXMAX)-0.3
+     GPXMIN=gdclip(PXMIN)+0.3
+     GPXMAX=gdclip(PXMAX)-0.3
      PYMID=0.5D0*(PYMIN+PYMAX+1.5D0)
      PXLEN=PXMAX-PXMIN-0.6D0
      PYLEN=PXLEN*DRATIO
-     GPYMIN=GCLIP(PYMID-0.5D0*PYLEN)
-     GPYMAX=GCLIP(PYMID+0.5D0*PYLEN)
+     GPYMIN=gdclip(PYMID-0.5D0*PYLEN)
+     GPYMAX=gdclip(PYMID+0.5D0*PYLEN)
   ENDIF
   
   DX=(XMAX-XMIN)/(NGXMAX-1)
   DO NGX=1,NGXMAX
-     GAX(NGX)=GCLIP(XMIN+(NGX-1)*DX)
+     GAX(NGX)=gdclip(XMIN+(NGX-1)*DX)
   ENDDO
   DY=(YMAX-YMIN)/(NGYMAX-1)
   DO NGY=1,NGYMAX
-     GAY(NGY)=GCLIP(YMIN+(NGY-1)*DY)
+     GAY(NGY)=gdclip(YMIN+(NGY-1)*DY)
   ENDDO
   
   CALL GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GXSCAL)
@@ -803,13 +806,14 @@ END SUBROUTINE WFGPBC
 SUBROUTINE WFGPFR(NW,NWMAX,KWD)
   
   use wfcomm
+  USE libgrf
   implicit none
   integer,intent(in) :: NWMAX,NW
-  integer :: IPAT(3),NGMAX,NG,NGVLEN
-  real(8) :: PXMIN,PYMIN,PXMAX,PYMAX,PRATIO,PXLEN,PYLEN,PXMID
-  real(4) :: GPXMIN,GCLIP
-  real(4) :: GXMIN1,GXMAX1,GYMIN1,GYMAX1,GXMIN,GXMAX,GXSTEP,GYMIN,GYMAX,GYSTEP
-  real(4) :: GXORG,GYORG,GPXMAX,GPYMIN,GPYMAX,GXPOS,GYPOS
+  integer :: IPAT(3),NGMAX,NG
+  real(rkind) :: PXMIN,PYMIN,PXMAX,PYMAX,PRATIO,PXLEN,PYLEN,PXMID
+  real :: GPXMIN
+  real :: GXMIN1,GXMAX1,GYMIN1,GYMAX1,GXMIN,GXMAX,GXSTEP,GYMIN,GYMAX,GYSTEP
+  real :: GXORG,GYORG,GPXMAX,GPYMIN,GPYMAX,GXPOS,GYPOS
   character,intent(in) :: KWD*(NCHM)
   DATA IPAT/0,2,4/
   
@@ -828,10 +832,10 @@ SUBROUTINE WFGPFR(NW,NWMAX,KWD)
      PXMAX=PXMID+0.5D0*PXLEN
   ENDIF
 
-  GPXMIN=GCLIP(PXMIN)+2.2
-  GPXMAX=GCLIP(PXMAX)-0.3
-  GPYMIN=GCLIP(PYMIN)+1.5
-  GPYMAX=GCLIP(PYMAX)
+  GPXMIN=gdclip(PXMIN)+2.2
+  GPXMAX=gdclip(PXMAX)-0.3
+  GPYMIN=gdclip(PYMIN)+1.5
+  GPYMAX=gdclip(PYMAX)
   
   IF(KWD(1:1).EQ.'E')THEN!.OR.&
 !  &  KWD(1:1).EQ.'D'.OR.&
@@ -868,8 +872,8 @@ SUBROUTINE WFGPFR(NW,NWMAX,KWD)
   IF(GYMIN*GYMAX.LT.0.0) THEN
      CALL GSCALE(0.0,0.0,GYORG,100*GYSTEP,0.0,0)
   ENDIF
-  CALL GVALUE(GXORG,4*GXSTEP,0.0,0.0,NGVLEN(4*GXSTEP))
-  CALL GVALUE(0.0,0.0,GYORG,2*GYSTEP,NGVLEN(2*GYSTEP))
+  CALL GVALUE(GXORG,4*GXSTEP,0.0,0.0,NGSLEN(4*GXSTEP))
+  CALL GVALUE(0.0,0.0,GYORG,2*GYSTEP,NGSLEN(2*GYSTEP))
   
   DO NG=1,NGMAX
      if(NG.eq.1) CALL SETLIN(0,0,7) !Real part
@@ -885,9 +889,9 @@ SUBROUTINE WFGPFR(NW,NWMAX,KWD)
   CALL MOVE(GXPOS,GYPOS)
   CALL TEXT(KWD(1:2),2)
   IF(KWD(3:3).EQ.'X') THEN
-     CALL TEXT('(X): Y=',9)
+     CALL TEXT('(X): Y=',8)
   ELSE IF(KWD(3:3).EQ.'Y') THEN
-     CALL TEXT('(Y): X=',9)
+     CALL TEXT('(Y): X=',8)
   ENDIF
   CALL TEXT(KWD(4:NCHM),NCHM-3)
   RETURN
@@ -895,23 +899,23 @@ END SUBROUTINE WFGPFR
 
 !     ****** DRAW PARAMETER ON GRAPHIC SCREEN ******
 
-SUBROUTINE WFGPRM
+SUBROUTINE wf_gdraw_parm
   
   use wfcomm
   implicit none
   integer :: NA,NB,L,NS!,NK,NM
-  real(8) :: REST(NAM),REAT(NAM),WW,RNZ
-  real(4) :: GXMIN,GYMAX,GRCHH,GDX,GDY,GXL,GYL
-  real(8) :: SRFR(NMDM,NBM),SRFI(NMDM,NBM),SRFL(NMDM,NBM)
+  real(rkind) :: REST(NAM),REAT(NAM),WW,RNZ
+  real :: GXMIN,GYMAX,GRCHH,GDX,GDY,GXL,GYL
+  real(rkind) :: SRFR(NMDM,NBM),SRFI(NMDM,NBM),SRFL(NMDM,NBM)
   
   DO NA=1,NAMAX
      REST(NA)=DBLE(CIMP(NA))
-     REAT(NA)=IMAG(CIMP(NA))
+     REAT(NA)=AIMAG(CIMP(NA))
   ENDDO
   DO NB=1,NBMAX
      DO L=1,NMBDY(NB)
         SRFR(L,NB)=DBLE(CRFL(L,NB))
-        SRFI(L,NB)=IMAG(CRFL(L,NB))
+        SRFI(L,NB)=AIMAG(CRFL(L,NB))
         SRFL(L,NB)=ABS(CRFL(L,NB))**2
      ENDDO
   ENDDO
@@ -993,7 +997,7 @@ SUBROUTINE WFGPRM
 !      CALL NUMBD(TSPWR,'(1PE10.3)',10)
 
   GXL=GXMIN
-  GYL=GYL+GDY
+!  GYL=GYL+GDY
   
 !  CALL MOVE(GXL,GYL)
 !  CALL TEXT(' NK',3)
@@ -1092,83 +1096,150 @@ SUBROUTINE WFGPRM
   ENDIF
   
   RETURN
-END SUBROUTINE WFGPRM
+END SUBROUTINE wf_gdraw_parm
 
 !     ****** Draw Vessel Boundary ******
 
-SUBROUTINE WFGBDY
+SUBROUTINE wf_gdraw_wall
 
   use wfcomm
   RETURN
-END SUBROUTINE WFGBDY
+END SUBROUTINE wf_gdraw_wall
 
 !     ****** Draw Plasma Boundary ******
 
-SUBROUTINE WFGPLA
+SUBROUTINE wf_gdraw_plasma
   
   use wfcomm
+  USE libgrf
   implicit none
   integer :: NPMAX,I
-  real(8) :: DTH,THETA
-  real(4) :: GXL,GCLIP,GYL
+  real(rkind) :: DTH,THETA
+  real :: GXL,GYL
   
   NPMAX=100
   DTH=2.D0*PI/NPMAX
-  GXL=GCLIP(RA+RR)
+  GXL=gdclip(RA+RR)
   GYL=0.0
-  CALL MOVE(GXL,GYL)
+  CALL MOVE2D(GXL,GYL)
   DO I=1,NPMAX
      THETA=DTH*I
-     GXL=GCLIP(RA*COS(THETA)+RR)
-     GYL=GCLIP(RA*SIN(THETA))
-     CALL DRAW(GXL,GYL)
+     GXL=gdclip(RA*COS(THETA)+RR)
+     GYL=gdclip(RA*SIN(THETA))
+     CALL DRAW2D(GXL,GYL)
   END DO
   RETURN
-END SUBROUTINE WFGPLA
+END SUBROUTINE wf_gdraw_plasma
 
-!     ****** Draw Antenna Path ******
+!     ****** Draw Antenna ******
 
-SUBROUTINE WFGANT
+SUBROUTINE wf_gr_antenna
 
   use wfcomm
+  USE libgrf
+  implicit none
+  integer :: NTEMP
+  real(rkind) :: YMIN,YMAX,XMIN,XMAX
+  real(rkind) :: DXLEN,DYLEN,DRATIO,XMID,XLEN,YMID,YLEN
+  REAL(rkind):: xnode_min,xnode_max,ynode_min,ynode_max
+
+  xnode_min=RNDMIN
+  xnode_max=RNDMAX
+  ynode_min=ZNDMIN
+  ynode_max=ZNDMAX
+
+  DXLEN= xnode_max-xnode_min
+  DYLEN= ynode_max-ynode_min
+  DRATIO=DYLEN/DXLEN
+
+  IF(DRATIO.GT.0.75D0) THEN
+     YMIN=ynode_min-0.02D0*DYLEN
+     YMAX=ynode_max+0.02D0*DYLEN
+     XMID=0.5D0*(xnode_min+xnode_max)
+     XLEN=DYLEN/0.75D0
+     XMIN=XMID-0.5D0*XLEN
+     XMAX=XMID+0.5D0*XLEN
+  ELSE
+     XMIN=xnode_min-0.02D0*DXLEN
+     XMAX=xnode_max+0.02D0*DXLEN
+     YMID=0.5D0*(ynode_min+ynode_max)
+     YLEN=DXLEN*0.75D0
+     YMIN=YMID-0.5D0*YLEN
+     YMAX=YMID+0.5D0*YLEN
+  ENDIF
+  
+  CALL PAGES
+  CALL wf_gdraw_parm_ant
+  CALL grd2d_frame_start(0,XMIN,XMAX,YMIN,YMAX, &
+       XSCALE_ZERO=0,YSCALE_ZERO=0)
+  CALL SETLIN(0,0,4)
+  IF(NDRAWA.LE.1) THEN
+     CALL wf_gdraw_wall
+  ELSE
+     NTEMP=NDRAWD
+     NDRAWD=NDRAWA-1
+     CALL wf_gdraw_element
+     NDRAWD=NTEMP
+  ENDIF
+  
+  CALL SETLIN(0,0,4)
+  CALL wf_gdraw_plasma
+
+  WRITE(6,*) '@@@ point 1'
+  CALL SETLIN(0,0,6)
+  CALL wf_gdraw_antenna
+  CALL grd2d_frame_end
+  WRITE(6,*) '@@@ point 2'
+  
+  CALL PAGEE
+  RETURN
+END SUBROUTINE wf_gr_antenna
+
+SUBROUTINE wf_gdraw_antenna
+
+  use wfcomm
+  USE libgrf
   implicit none
   integer :: NA,I
-  real(4) :: GXL,GCLIP,GYL
+  real :: GXL,GYL
 
   IF(NDRAWA.EQ.0) THEN
      DO NA=1,NAMAX
-        GXL=GCLIP(RJ0(1,NA))
-        GYL=GCLIP(ZJ0(1,NA))
-        CALL MOVE(GXL,GYL)
+        GXL=gdclip(RJ0(1,NA))
+        GYL=gdclip(ZJ0(1,NA))
+        CALL MOVE2D(GXL,GYL)
         DO I=2,JNUM0(NA)
-           GXL=GCLIP(RJ0(I,NA))
-           GYL=GCLIP(ZJ0(I,NA))
-           CALL DRAW(GXL,GYL)
+           GXL=gdclip(RJ0(I,NA))
+           GYL=gdclip(ZJ0(I,NA))
+           CALL DRAW2D(GXL,GYL)
+           WRITE(6,*) I,GXL,GYL
         END DO
      END DO
   ELSE
      DO NA=1,NAMAX
-        GXL=GCLIP(RJ(1,NA))
-        GYL=GCLIP(ZJ(1,NA))
-        CALL MOVE(GXL,GYL)
+        GXL=gdclip(RJ(1,NA))
+        GYL=gdclip(ZJ(1,NA))
+        CALL MOVE2D(GXL,GYL)
         DO I=2,JNUM(NA)
-           GXL=GCLIP(RJ(I,NA))
-           GYL=GCLIP(ZJ(I,NA))
-           CALL DRAW(GXL,GYL)
+           GXL=gdclip(RJ(I,NA))
+           GYL=gdclip(ZJ(I,NA))
+           CALL DRAW2D(GXL,GYL)
+           WRITE(6,*) I,GXL,GYL
         END DO
      END DO
   ENDIF
   RETURN
-END SUBROUTINE WFGANT
+END SUBROUTINE wf_gdraw_antenna
 
 !     ****** Draw Element Data ******
 
-SUBROUTINE WFGELM
+SUBROUTINE wf_gdraw_element
 
   use wfcomm
+  USE libgrf
   implicit none
   integer :: IE,IN1,IN2,IN3,IEL,IN,INL
-  real(4) :: GX1,GX2,GX3,GY1,GY2,GY3,GCLIP,GXC,GYC
+  real :: GX1,GX2,GX3,GY1,GY2,GY3,GXC,GYC
   
   CALL SETCHR(0.2,0.15,0.2,0.,-30.)
   
@@ -1176,71 +1247,72 @@ SUBROUTINE WFGELM
      IN1=NDELM(1,IE)
      IN2=NDELM(2,IE)
      IN3=NDELM(3,IE)
-     GX1=GCLIP(RNODE(IN1))
-     GY1=GCLIP(ZNODE(IN1))
-     GX2=GCLIP(RNODE(IN2))
-     GY2=GCLIP(ZNODE(IN2))
-     GX3=GCLIP(RNODE(IN3))
-     GY3=GCLIP(ZNODE(IN3))
+     GX1=gdclip(RNODE(IN1))
+     GY1=gdclip(ZNODE(IN1))
+     GX2=gdclip(RNODE(IN2))
+     GY2=gdclip(ZNODE(IN2))
+     GX3=gdclip(RNODE(IN3))
+     GY3=gdclip(ZNODE(IN3))
      IF (GX1.GT.GX2) THEN
-        CALL MOVE(GX2,GY2)
-        CALL DRAW(GX1,GY1)
+        CALL MOVE2D(GX2,GY2)
+        CALL DRAW2D(GX1,GY1)
      ELSE
-        CALL MOVE(GX1,GY1)
-        CALL DRAW(GX2,GY2)
+        CALL MOVE2D(GX1,GY1)
+        CALL DRAW2D(GX2,GY2)
      END IF
      IF (GX2.GT.GX3) THEN
-        CALL MOVE(GX3,GY3)
-        CALL DRAW(GX2,GY2)
+        CALL MOVE2D(GX3,GY3)
+        CALL DRAW2D(GX2,GY2)
      ELSE
-        CALL MOVE(GX2,GY2)
-        CALL DRAW(GX3,GY3)
+        CALL MOVE2D(GX2,GY2)
+        CALL DRAW2D(GX3,GY3)
      END IF
      IF (GX3.GT.GX1) THEN
-        CALL MOVE(GX1,GY1)
-        CALL DRAW(GX3,GY3)
+        CALL MOVE2D(GX1,GY1)
+        CALL DRAW2D(GX3,GY3)
      ELSE
-        CALL MOVE(GX3,GY3)
-        CALL DRAW(GX1,GY1)
+        CALL MOVE2D(GX3,GY3)
+        CALL DRAW2D(GX1,GY1)
      END IF
      
      IF(NDRAWD.GE.2) THEN
         GXC=(GX1+GX2+GX3)/3.
         GYC=(GY1+GY2+GY3)/3.
         IEL=IE
-        CALL GNUMBI(GXC,GYC,IEL,2)
+        CALL GNUMBI2D(GXC,GYC,IEL,2)
      ENDIF
   ENDDO
   
   IF(NDRAWD.GE.3) THEN
      CALL SETCHS(0.2,0.)
      DO IN=1,NNMAX
-        GX1=GCLIP(RNODE(IN))
-        GY1=GCLIP(ZNODE(IN))
+        GX1=gdclip(RNODE(IN))
+        GY1=gdclip(ZNODE(IN))
         INL=IN
-        CALL GNUMBI(GX1,GY1,INL,0)
+        CALL GNUMBI2D(GX1,GY1,INL,0)
      END DO
   ENDIF
   
   RETURN
-END SUBROUTINE WFGELM
+END SUBROUTINE wf_gdraw_element
 
 !     ****** Draw Element Data ******
 
 SUBROUTINE WFGNAS!(ID)
   
   use wfcomm
+  USE libgrf
   implicit none
 !  integer :: ID
-  real(8) :: PXMIN,PXMAX,PYMIN,PYMAX
-  real(4) :: GPXMIN,GCLIP,GPXMAX,GPYMIN,GPYMAX,GYMIN,GYMAX,GXMIN,GXMAX
-  real(8) :: DXLEN,DYLEN,DRATIO,PRATIO,XMID,XLEN,YMID,YLEN
+  real(rkind) :: PXMIN,PXMAX,PYMIN,PYMAX
+  real :: GPXMIN,GPXMAX,GPYMIN,GPYMAX,GYMIN,GYMAX,GXMIN,GXMAX
+  real(rkind) :: DXLEN,DYLEN,DRATIO,PRATIO,XMID,XLEN,YMID,YLEN
   
   CALL WFGWIN(1,1,PXMIN,PXMAX,PYMIN,PYMAX)
-  GPXMIN=GCLIP(PXMIN)
-  GPXMAX=GCLIP(PXMAX)
-  GPYMIN=GCLIP(PYMIN)+1.0
-  GPYMAX=GCLIP(PYMAX)+1.0
+  GPXMIN=gdclip(PXMIN)
+  GPXMAX=gdclip(PXMAX)
+  GPYMIN=gdclip(PYMIN)+1.0
+  GPYMAX=gdclip(PYMAX)+1.0
   
   DXLEN= RNDMAX-RNDMIN+0.5D0*(ZNDMAX-ZNDMIN)
   !!!! TO BE MODIFIED?
@@ -1248,23 +1320,23 @@ SUBROUTINE WFGNAS!(ID)
   DRATIO=DYLEN/DXLEN
   PRATIO=(PYMAX-PYMIN)/(PXMAX-PXMIN)
   IF(DRATIO.GT.PRATIO) THEN
-     GYMIN=GCLIP(0.5D0*ZNDMIN)
-     GYMAX=GCLIP(0.5D0*ZNDMAX)
+     GYMIN=gdclip(0.5D0*ZNDMIN)
+     GYMAX=gdclip(0.5D0*ZNDMAX)
      XMID=0.5D0*(RNDMIN+RNDMAX+0.5D0*(ZNDMAX+ZNDMIN))
      XLEN=DYLEN/PRATIO
-     GXMIN=GCLIP(XMID-0.5D0*XLEN)
-     GXMAX=GCLIP(XMID+0.5D0*XLEN)
+     GXMIN=gdclip(XMID-0.5D0*XLEN)
+     GXMAX=gdclip(XMID+0.5D0*XLEN)
   ELSE
-     GXMIN=GCLIP(RNDMIN+0.5D0*ZNDMIN)
-     GXMAX=GCLIP(RNDMAX+0.5D0*ZNDMIN)
+     GXMIN=gdclip(RNDMIN+0.5D0*ZNDMIN)
+     GXMAX=gdclip(RNDMAX+0.5D0*ZNDMIN)
      YMID=0.5D0*(0.5D0*(ZNDMAX+ZNDMIN))
      YLEN=DXLEN*PRATIO
-     GYMIN=GCLIP(YMID-0.5D0*YLEN)
-     GYMAX=GCLIP(YMID+0.5D0*YLEN)
+     GYMIN=gdclip(YMID-0.5D0*YLEN)
+     GYMAX=gdclip(YMID+0.5D0*YLEN)
   ENDIF
   
   CALL PAGES
-  CALL WFPRME
+  CALL wf_gdraw_element
   CALL SETVEW(GPXMIN,GPXMAX,GPYMIN,GPYMAX,&
        &      GXMIN ,GXMAX ,GYMIN ,GYMAX )
   !     &            GXMIN,GXMAX,GYMIN,GYMAX)
@@ -1280,225 +1352,258 @@ END SUBROUTINE WFGNAS
 
 !     ****** Draw Element Data ******
 
-SUBROUTINE WFGDIV
+SUBROUTINE wf_gr_element
 
   use wfcomm
+  USE libgrf
   implicit none
-  real(8) :: PXMIN,PXMAX,PYMIN,PYMAX
-  real(4) :: GPXMIN,GCLIP,GPXMAX,GPYMIN,GPYMAX,GYMIN,GYMAX,GXMIN,GXMAX
-  real(8) :: DXLEN,DYLEN,DRATIO,PRATIO,XMID,XLEN,YMID,YLEN
-  
-  CALL WFGWIN(1,1,PXMIN,PXMAX,PYMIN,PYMAX)
-  GPXMIN=GCLIP(PXMIN)
-  GPXMAX=GCLIP(PXMAX)
-  GPYMIN=GCLIP(PYMIN)+1.0
-  GPYMAX=GCLIP(PYMAX)+1.0
-  
-  DXLEN= RNDMAX-RNDMIN
-  DYLEN= ZNDMAX-ZNDMIN
-  DRATIO=DYLEN/DXLEN
-  PRATIO=(PYMAX-PYMIN)/(PXMAX-PXMIN)
+  real(rkind) :: YMIN,YMAX,XMIN,XMAX
+  real(rkind) :: DXLEN,DYLEN,DRATIO,XMID,XLEN,YMID,YLEN
+  REAL(rkind):: xnode_min,xnode_max,ynode_min,ynode_max
 
-  IF(DRATIO.GT.PRATIO) THEN
-     GYMIN=GCLIP(ZNDMIN)
-     GYMAX=GCLIP(ZNDMAX)
-     XMID=0.5D0*(RNDMIN+RNDMAX)
-     XLEN=DYLEN/PRATIO
-     GXMIN=GCLIP(XMID-0.5D0*XLEN)
-     GXMAX=GCLIP(XMID+0.5D0*XLEN)
+  xnode_min=RNDMIN
+  xnode_max=RNDMAX
+  ynode_min=ZNDMIN
+  ynode_max=ZNDMAX
+
+  
+  DXLEN= xnode_max-xnode_min
+  DYLEN= ynode_max-ynode_min
+  DRATIO=DYLEN/DXLEN
+
+  IF(DRATIO.GT.0.75D0) THEN
+     YMIN=ynode_min
+     YMAX=ynode_max
+     XMID=0.5D0*(xnode_min+xnode_max)
+     XLEN=DYLEN/0.75D0
+     XMIN=XMID-0.5D0*XLEN
+     XMAX=XMID+0.5D0*XLEN
   ELSE
-     GXMIN=GCLIP(RNDMIN)
-     GXMAX=GCLIP(RNDMAX)
-     YMID=0.5D0*(ZNDMIN+ZNDMAX)
-     YLEN=DXLEN*PRATIO
-     GYMIN=GCLIP(YMID-0.5D0*YLEN)
-     GYMAX=GCLIP(YMID+0.5D0*YLEN)
+     XMIN=xnode_min
+     XMAX=xnode_max
+     YMID=0.5D0*(ynode_min+ynode_max)
+     YLEN=DXLEN*0.75D0
+     YMIN=YMID-0.5D0*YLEN
+     YMAX=YMID+0.5D0*YLEN
   ENDIF
+  WRITE(6,'(A,5ES12.4)') 'x,y,R:',XMIN,XMAX,YMIN,YMAX
   
   CALL PAGES
-  CALL WFPRME
-  CALL SETVEW(GPXMIN,GPXMAX,GPYMIN,GPYMAX,GXMIN,GXMAX,GYMIN,GYMAX)
-  write(6,'(A,1P4E12.4)') 'GX/GY MIN/MAX=',GXMIN,GXMAX,GYMIN,GYMAX
-  
-  CALL SETLIN(0,0,7)
+  CALL wf_gdraw_parm_elm
+  CALL grd2d_frame_start(0,XMIN,XMAX,YMIN,YMAX, &
+       XSCALE_ZERO=0,YSCALE_ZERO=0)
+
   IF(NDRAWD.EQ.0) THEN
-     CALL WFGBDY
+     CALL wf_gdraw_wall
   ELSE
-     CALL WFGELM
+     CALL wf_gdraw_element
   ENDIF
   
+  CALL grd2d_frame_end
   CALL PAGEE
   RETURN
-END SUBROUTINE WFGDIV
+END SUBROUTINE wf_gr_element
 
 !     ****** Draw Element Paramters ******
 
-SUBROUTINE WFPRME
+SUBROUTINE wf_gdraw_parm_elm
 
   use wfcomm
   implicit none
-  real(4) :: GXMIN,GYMAX,GDY,GXL,GYL
+  real :: GXMIN,GYMAX,GDY,GXL,GYL
   
-  GXMIN=20.
-  GYMAX=17.
-  CALL SETCHS(0.3,0.)
-  GDY=1.5*0.3
+  GXMIN=4.0
+  GYMAX=17.8
+  CALL SETCHS(0.25,0.)
+  GDY=0.3
   
   GXL=GXMIN
   GYL=GYMAX
   CALL MOVE(GXL,GYL)
-  CALL TEXT('NNMAX=',6)
+  CALL TEXT('node_max=',9)
   CALL NUMBI(NNMAX,'(I8)',8)
   
   GYL=GYL-GDY
   CALL MOVE(GXL,GYL)
-  CALL TEXT('NEMAX=',6)
+  CALL TEXT('nelm_max=',9)
   CALL NUMBI(NEMAX,'(I8)',8)
   
   GYL=GYL-GDY
   CALL MOVE(GXL,GYL)
-  CALL TEXT('NBMAX=',6)
-  CALL NUMBI(NBMAX,'(I8)',8)
-  
-  GYL=GYL-GDY
-  CALL MOVE(GXL,GYL)
-!  CALL TEXT('MBND =',6)
-!  CALL NUMBI(MBND,'(I8)',8)
-  
-  GYL=GYL-GDY
-  CALL MOVE(GXL,GYL)
-  CALL TEXT('MLEN =',6)
+  CALL TEXT('mtx_len= ',9)
   CALL NUMBI(MLEN,'(I8)',8)
   RETURN
-END SUBROUTINE WFPRME
-
-!     ****** Draw Antenna ******
-
-SUBROUTINE WFPLTA
-
-  use wfcomm
-  implicit none
-  integer :: NTEMP
-  real(8) :: PXMIN,PXMAX,PYMIN,PYMAX
-  real(4) :: GYMIN,GYMAX,GXMIN,GXMAX,GPXMIN,GCLIP,GPXMAX,GPYMIN,GPYMAX
-  real(8) :: DXLEN,DYLEN,DRATIO,PRATIO,XMID,XLEN,YMID,YLEN
-
-  CALL WFGWIN(1,1,PXMIN,PXMAX,PYMIN,PYMAX)
-  GPXMIN=GCLIP(PXMIN)
-  GPXMAX=GCLIP(PXMAX)
-  GPYMIN=GCLIP(PYMIN)+1.0
-  GPYMAX=GCLIP(PYMAX)+1.0
-  
-  DXLEN= RNDMAX-RNDMIN
-  DYLEN= ZNDMAX-ZNDMIN
-  DRATIO=DYLEN/DXLEN
-  PRATIO=(PYMAX-PYMIN)/(PXMAX-PXMIN)
-  IF(DRATIO.GT.PRATIO) THEN
-     GYMIN=GCLIP(ZNDMIN)
-     GYMAX=GCLIP(ZNDMAX)
-     XMID=0.5D0*(RNDMIN+RNDMAX)
-     XLEN=DYLEN/PRATIO
-     GXMIN=GCLIP(XMID-0.5D0*XLEN)
-     GXMAX=GCLIP(XMID+0.5D0*XLEN)
-  ELSE
-     GXMIN=GCLIP(RNDMIN)
-     GXMAX=GCLIP(RNDMAX)
-     YMID=0.5D0*(ZNDMIN+ZNDMAX)
-     YLEN=DXLEN*PRATIO
-     GYMIN=GCLIP(YMID-0.5D0*YLEN)
-     GYMAX=GCLIP(YMID+0.5D0*YLEN)
-  ENDIF
-  
-  CALL PAGES
-  CALL WFPRMJ
-  CALL SETVEW(GPXMIN,GPXMAX,GPYMIN,GPYMAX,GXMIN,GXMAX,GYMIN,GYMAX)
-  
-  CALL SETLIN(0,0,4)
-  IF(NDRAWA.LE.1) THEN
-     CALL WFGBDY
-  ELSE
-     NTEMP=NDRAWD
-     NDRAWD=NDRAWA-1
-     CALL WFGELM
-     NDRAWD=NTEMP
-  ENDIF
-  
-  CALL SETLIN(0,0,5)
-  CALL WFGPLA
-  
-  CALL SETLIN(0,0,6)
-  CALL WFGANT
-  
-  CALL PAGEE
-  RETURN
-END SUBROUTINE WFPLTA
+END SUBROUTINE wf_gdraw_parm_elm
 
 !     ****** Draw Antenna Paramters ******
 
-SUBROUTINE WFPRMJ
+SUBROUTINE wf_gdraw_parm_ant
 
   use wfcomm
   implicit none
   integer :: NA
-  real(4) :: GXMIN,GYMAX,GDY,GXL,GYL
+  real :: GXMIN,GYMAX,GDY,GXL,GYL
 
-  GXMIN=20.
-  GYMAX=17.
-  CALL SETCHS(0.3,0.)
-  GDY=1.5*0.3
+  GXMIN=4.0
+  GYMAX=17.8
+  CALL SETCHS(0.25,0.)
+  GDY=0.3
   
   GXL=GXMIN
   GYL=GYMAX
   CALL MOVE(GXL,GYL)
-  CALL TEXT('NNMAX=',6)
-  CALL NUMBI(NNMAX,'(I8)',8)
+  CALL TEXT('JNUM0=',6)
+  GXL=GXL+1.5
+  DO NA=1,NAMAX
+     CALL MOVE(GXL,GYL)
+     CALL NUMBI(JNUM0(NA),'(I4)',4)
+     GXL=GXL+1.0
+  END DO
+  GXMIN=4.0
+  GYMAX=17.8
+  CALL SETCHS(0.25,0.)
+  GDY=0.3
   
-  GYL=GYL-GDY
-  CALL MOVE(GXL,GYL)
-  CALL TEXT('NEMAX=',6)
-  CALL NUMBI(NEMAX,'(I8)',8)
-  
-  GYL=GYL-GDY
-  CALL MOVE(GXL,GYL)
-  CALL TEXT('NBMAX=',6)
-  CALL NUMBI(NBMAX,'(I8)',8)
-  
-  GYL=GYL-GDY
-  CALL MOVE(GXL,GYL)
-!  CALL TEXT('MBND =',6)
-!  CALL NUMBI(MBND,'(I8)',8)
-  
-  GYL=GYL-GDY
-  CALL MOVE(GXL,GYL)
-  CALL TEXT('MLEN =',6)
-  CALL NUMBI(MLEN,'(I8)',8)
-  
+  GXL=GXMIN
   GYL=GYL-GDY
   CALL MOVE(GXL,GYL)
   CALL TEXT('JNUM =',6)
-  GXL=GXL+6*0.3
+  GXL=GXL+1.5
   DO NA=1,NAMAX
      CALL MOVE(GXL,GYL)
-     CALL NUMBI(JNUM(NA),'(I5)',5)
-     GYL=GYL-GDY
+     CALL NUMBI(JNUM(NA),'(I4)',4)
+     GXL=GXL+1.0
   END DO
   RETURN
-END SUBROUTINE WFPRMJ
+END SUBROUTINE wf_gdraw_parm_ant
+
+!     ****** Draw Waveguide ******
+
+SUBROUTINE wf_gr_waveguide
+
+  use wfcomm
+  USE libgrf
+  implicit none
+  integer :: NTEMP
+  real(rkind) :: YMIN,YMAX,XMIN,XMAX
+  real(rkind) :: DXLEN,DYLEN,DRATIO,XMID,XLEN,YMID,YLEN
+  REAL(rkind):: xnode_min,xnode_max,ynode_min,ynode_max
+
+  xnode_min=RNDMIN
+  xnode_max=RNDMAX
+  ynode_min=ZNDMIN
+  ynode_max=ZNDMAX
+
+  DXLEN= xnode_max-xnode_min
+  DYLEN= ynode_max-ynode_min
+  DRATIO=DYLEN/DXLEN
+
+  IF(DRATIO.GT.0.75D0) THEN
+     YMIN=ynode_min-0.02D0*DYLEN
+     YMAX=ynode_max+0.02D0*DYLEN
+     XMID=0.5D0*(xnode_min+xnode_max)
+     XLEN=DYLEN/0.75D0
+     XMIN=XMID-0.5D0*XLEN
+     XMAX=XMID+0.5D0*XLEN
+  ELSE
+     XMIN=xnode_min-0.02D0*DXLEN
+     XMAX=xnode_max+0.02D0*DXLEN
+     YMID=0.5D0*(ynode_min+ynode_max)
+     YLEN=DXLEN*0.75D0
+     YMIN=YMID-0.5D0*YLEN
+     YMAX=YMID+0.5D0*YLEN
+  ENDIF
+  
+!  CALL PAGES
+  CALL wf_gdraw_parm_waveguide
+  CALL grd2d_frame_start(0,XMIN,XMAX,YMIN,YMAX, &
+       XSCALE_ZERO=0,YSCALE_ZERO=0)
+  
+  CALL SETLIN(0,0,4)
+  IF(NDRAWA.LE.1) THEN
+     CALL wf_gdraw_wall
+  ELSE
+     NTEMP=NDRAWD
+     NDRAWD=NDRAWA-1
+     CALL wf_gdraw_element
+     NDRAWD=NTEMP
+  ENDIF
+  
+  CALL SETLIN(0,0,5)
+  CALL wf_gdraw_plasma
+  
+  CALL SETLIN(0,0,6)
+  CALL wf_gdraw_waveguide
+  CALL grd2d_frame_end
+  
+!  CALL PAGEE
+  RETURN
+END SUBROUTINE wf_gr_waveguide
+
+!     ****** Draw Waveguide ******
+
+SUBROUTINE wf_gdraw_waveguide
+
+  use wfcomm
+  USE libgrf
+  implicit none
+  real :: GXL,GYL
+  REAL(rkind):: xwg_min,xwg_max,ywg_min,ywg_max
+
+  xwg_min=R1WG
+  xwg_max=R2WG
+  ywg_min=Z1WG
+  ywg_max=Z2WG
+  
+  GXL=gdclip(xwg_min)
+  GYL=gdclip(ywg_min)
+  CALL MOVE2D(GXL,GYL)
+  GXL=gdclip(xwg_max)
+  CALL DRAW2D(GXL,GYL)
+  GYL=gdclip(ywg_max)
+  CALL DRAW2D(GXL,GYL)
+  GXL=gdclip(xwg_min)
+  CALL DRAW2D(GXL,GYL)
+  GYL=gdclip(ywg_min)
+  CALL DRAW2D(GXL,GYL)
+  RETURN
+END SUBROUTINE wf_gdraw_waveguide
+
+!     ****** Draw Waveguide Paramters ******
+
+SUBROUTINE wf_gdraw_parm_waveguide
+
+  use wfcomm
+  implicit none
+  real :: GXMIN,GYMAX,GDY,GXL,GYL
+
+  GXMIN=4.0
+  GYMAX=17.8
+  CALL SETCHS(0.25,0.)
+  GDY=0.3
+  
+  GXL=GXMIN
+  GYL=GYMAX
+  CALL MOVE(GXL,GYL)
+  CALL TEXT('RF   =',6)
+  CALL NUMBD(RF,'(ES10.3)',10)
+  
+  GYL=GYL-GDY
+  CALL MOVE(GXL,GYL)
+  CALL TEXT('NPH  =',6)
+  CALL NUMBI(NPH,'(I10)',10)
+  
+END SUBROUTINE wf_gdraw_parm_waveguide
 
 SUBROUTINE WFGMESH
   USE wfcomm
+  USE libgrf
   IMPLICIT NONE
   INTEGER,SAVE:: NGXMAX_SAVE=0,NGYMAX_SAVE=0
-  REAL(8),SAVE:: RNDMIN_SAVE=0.D0,RNDMAX_SAVE=0.D0
-  REAL(8),SAVE:: ZNDMIN_SAVE=0.D0,ZNDMAX_SAVE=0.D0
-  REAL(8):: DX,DY,X,Y
+  REAL(rkind),SAVE:: RNDMIN_SAVE=0.D0,RNDMAX_SAVE=0.D0
+  REAL(rkind),SAVE:: ZNDMIN_SAVE=0.D0,ZNDMAX_SAVE=0.D0
+  REAL(rkind):: DX,DY,X,Y
   INTEGER:: NGX,NGY,IE
-  INTERFACE
-     FUNCTION GCLIP(X)
-       REAL(4):: GCLIP
-       REAL(8):: X
-     END FUNCTION GCLIP
-  END INTERFACE
 
   IF(NGXMAX.NE.NGXMAX_SAVE.OR. &
      NGYMAX.NE.NGYMAX_SAVE.OR. &
@@ -1510,10 +1615,10 @@ SUBROUTINE WFGMESH
      DY=(ZNDMAX-ZNDMIN)/(NGYMAX-1)
      DX=(RNDMAX-RNDMIN)/(NGXMAX-1)
      DO NGX=1,NGXMAX
-        G2X(NGX)=GCLIP(RNDMIN+DX*(NGX-1))
+        G2X(NGX)=gdclip(RNDMIN+DX*(NGX-1))
      ENDDO
      DO NGY=1,NGYMAX
-        G2Y(NGY)=GCLIP(ZNDMIN+DY*(NGY-1))
+        G2Y(NGY)=gdclip(ZNDMIN+DY*(NGY-1))
      ENDDO
      DO NGY=1,NGYMAX
         Y=ZNDMIN+DY*(NGY-1)

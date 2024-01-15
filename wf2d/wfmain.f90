@@ -24,6 +24,7 @@
 program wfmain
   
   USE wfcomm
+  USE plinit
   USE wfinit
   USE wfparm
   USE libmtx
@@ -33,7 +34,6 @@ program wfmain
   ! --- initialize ---
   call mtx_initialize
   call allocate_init
-  open(33,file='wf2-temp')
   iddiv=0
 
   if(nrank.eq.0) then
@@ -42,6 +42,9 @@ program wfmain
   end if
 
   call setaif
+  call setaie
+  CALL pl_init
+  CALL eqinit
   call wf_init
 
   if (nrank.eq.0) call wf_parm(1,'wfparm',IERR)
@@ -52,7 +55,6 @@ program wfmain
 
   ! --- finalize ---
 
-  close(33) 
   if(nrank.eq.0) call gsclos
   if(NFOPEN.ne.0) close(26)
   if(elminit.ne.0) call wfelm_deallocate

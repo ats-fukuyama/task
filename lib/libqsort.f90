@@ -15,7 +15,12 @@ MODULE libqsort
   USE task_kinds
   IMPLICIT NONE
   PRIVATE
-  PUBLIC :: qsort_ic,qsort_lc,qsort_di,qsort_dl,qsort_ii,qsort_li
+  PUBLIC :: qsort_ic
+  PUBLIC :: qsort_lc
+  PUBLIC :: qsort_di
+  PUBLIC :: qsort_dl
+  PUBLIC :: qsort_ii
+  PUBLIC :: qsort_li
 
 CONTAINS
 
