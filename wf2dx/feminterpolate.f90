@@ -426,7 +426,7 @@ CONTAINS
     sum_of_weight=0.D0
     sum_of_f_weight=0.D0
     DO nangl=1,nelm_max_node(node1)
-       nelm1=nelm_nangle_node(nangl,node1)
+       nelm1=nelm_ndir_node(nangl,node1)
        weight=1.D0/((x1-xcenter_nelm(nelm1))**2 &
                    +(y1-ycenter_nelm(nelm1))**2)
        sum_of_weight=sum_of_weight+weight
@@ -437,7 +437,7 @@ CONTAINS
     sum_of_weight=0.D0
     sum_of_f_weight=0.D0
     DO nangl=1,nelm_max_node(node2)
-       nelm2=nelm_nangle_node(nangl,node2)
+       nelm2=nelm_ndir_node(nangl,node2)
        weight=1.D0/((x2-xcenter_nelm(nelm2))**2 &
                    +(y2-ycenter_nelm(nelm2))**2)
        sum_of_weight=sum_of_weight+weight

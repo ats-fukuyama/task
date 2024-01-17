@@ -77,21 +77,29 @@ CONTAINS
            NS_NSA_DP,PMAX_dp,EMAX_dp,RHON_MIN,RHON_MAX, &
            NPMAX_DP,NTHMAX_DP,NRMAX_DP,NSAMAX_DP, &
            !
-           MODELI,KFNAME,KFNAMA,KFNAMF,KFNAMN,KFNAMB,KNAMWG, &
-           RF,RKZ,NPH,nant_max,AJ,APH,AWD,APOS,PIN,RD,THETJ1,THETJ2, &
-           modelwg,modelwf,&
-           x1wg,y1wg,x2wg,y2wg,ph1WG,ph2wg,ampwg,angwg,elpwg,dphwg, &
-           MDAMP,WDAMP,FDAMP,rdamp_min,rdamp_max,zdamp_min,zdamp_max, &
+           model_config,model_shape, &
+           xdiv_min,xdiv_max,ydiv_min,ydiv_max,delx,dely, &
+           rdiv_min,rdiv_max,thdiv_min,thdiv_max, &
+           RF,RKZ,nph,nant_max,AJ,APH,AWD,APOS,PIN,RD,THETJ1,THETJ2, &
+           model_wg,model_wf,&
+           xwg_min,xwg_max,ywg_min,ywg_max, &
+           phase_wg_min,phase_wg_cen,phase_wg_max, &
+           amp_wg,angle_wg,ellip_wg, &
+           model_damp,xdamp_min,xdamp_max,ydamp_min,ydamp_max, &
+           thdamp_min,thdamp_max,width_damp,factor_damp, &
            model_coll_enhance,factor_coll_enhance, &
            xpos_coll_enhance,xwidth_coll_enhance, &
            ypos_coll_enhance,ywidth_coll_enhance, &
-           model_interpolation,nmmax,nkmax,epsdm,amudm,sigdm,nmka, &
-!           nbmax,nbpmax,KABDY,PHIBDY,RESBDY,PWRBDY,PHABDY, &
-!           XGBDY,YGBDY,ZGBDY,XNBDY,YNBDY,ZNBDY,XPBDY,YPBDY,ZPBDY,SZBDY, &
-!           NDBDY,NMBDY,NENBP,NDNBP, &
+           model_interpolation, &
+           nmed_max,model_nmed,epsilon_nmed,amu_nmed,sigma_nmed, &
+           xmin_nmed,xmax_nmed,ymin_nmed,ymax_nmed, &
+           rmin_nmed,rmax_nmed,thmin_nmed,thmax_nmed, &
            nprint,ngraph,ndrawd,ndraws,ndrawa,ndrawe,ndrawv, &
-           sort_weight_x,sort_weight_y,delr,delz,bdrmin,bdrmax,bdzmin,bdzmax, &
-           ngxmax,ngymax,ngvmax,gfactor,nxzone_max,nyzone_max,tolerance,idebuga
+           sort_weight_x,sort_weight_y, &
+           ngxmax,ngymax,ngvmax,gaspect,nxzone_max,nyzone_max, &
+           tolerance,modeli, &
+           KFNAME,KFNAMA,KFNAMF,KFNAMB,KNAMWG, &
+           idebuga
 
     IERR=0
     
@@ -125,9 +133,10 @@ CONTAINS
        IERR=1
     ENDIF
 
-    IF(nant_max.GT.NAM) THEN
-       WRITE(6,*) '## nant_max .GT. NAM : nant_max =',nant_max,'  NAM = ',NAM
-       nant_max=NAM
+    IF(nant_max.GT.nantm) THEN
+       WRITE(6,*) '## nant_max .GT. nantm : nant_max =',nant_max, &
+            '  nantm = ',nantm
+       nant_max=nantm
        IERR=1
     ENDIF
 
@@ -171,21 +180,23 @@ CONTAINS
     WRITE(6,*) 'NPMAX_DP,NTHMAX_DP,NRMAX_DP,NSAMAX_DP,'
 
     WRITE(6,*) 'MODELI,KFNAME,KFNAMA,KFNAMF,KFNAMB,KNAMWG,'
-    WRITE(6,*) 'RF,RKZ,NPH,nant_max,AJ,APH,AWD,APOS,modelwg,modelwf,'
+    WRITE(6,*) 'RF,RKZ,NPH,nant_max,AJ,APH,AWD,APOS,model_wg,model_wf,'
     WRITE(6,*) 'PIN,RD,THETJ1,THETJ2,'
-    WRITE(6,*) 'x1wg,y1wg,x2wg,y2wg,ph1WG,ph2wg,ampwg,angwg,elpwg,dphwg,'
-    WRITE(6,*) 'MDAMP,WDAMP,FDAMP,rdamp_min,rdamp_max,zdamp_min,zdamp_max,'
+    WRITE(6,*) 'xwg_min,xwg_max,ywg_min,ywg_max,phwg_min,phwg_cen,phwg_max,'
+    WRITE(6,*) 'amp_wg,angle_wg,ellip_wg,'
+    WRITE(6,*) 'model_damp,xdamp_min,xdamp_max,ydamp_min,ydamp_max,'
+    WRITE(6,*) 'thdamp_min,thdamp_max,width_damp,factor_damp,'
     WRITE(6,*) 'model_coll_enhance,factor_coll_enhance,'
     WRITE(6,*) 'xpos_coll_enhance,xwidth_coll_enhance,'
     WRITE(6,*) 'ypos_coll_enhance,ywidth_coll_enhance,'
-    WRITE(6,*) 'model_interpolation,nmmax,nkmax,epsdm,amudm,sigdm,nmka,'
-!    WRITE(6,*) 'nbmax,nbpmax,KABDY,PHIBDY,RESBDY,PWRBDY,PHABDY,'
-!    WRITE(6,*) 'XGBDY,YGBDY,ZGBDY,XNBDY,YNBDY,ZNBDY,XPBDY,YPBDY,ZPBDY,'
-!    WRITE(6,*) 'SZBDY,NDBDY,NMBDY,NENBP,NDNBP'
+    WRITE(6,*) 'model_interpolation,'
+    WRITE(6,*) 'nmed_max,model_nmed,epsilon_nmed,amu_nmed,sigma_nmed,'
+    WRITE(6,*) 'xmin_nmed,xmax_nmed,ymin_nmed,ymax_nmed,'
+    WRITE(6,*) 'rmin_nmed,rmax_nmed,thmin_nmed,thmax_nmed,'
     WRITE(6,*) 'nprint,ngraph,ndrawd,ndraws,ndrawa,ndrawe,ndrawv,'
     WRITE(6,*) 'sort_weight_x,sort_weight_y,'
     WRITE(6,*) 'delr,delz,bdrmin,bdrmax,bdzmin,bdzmax,'
-    WRITE(6,*) 'ngxmax,ngymax,ngvmax,gfactor,nxzone_max,nyzone_max,'
+    WRITE(6,*) 'ngxmax,ngymax,ngvmax,gaspect,nxzone_max,nyzone_max,'
     WRITE(6,*) 'tolerance,idebuga'
     RETURN
   END SUBROUTINE wf_namelist
@@ -196,7 +207,7 @@ CONTAINS
   
     use wfcomm
     implicit none
-    integer :: NA,NM
+    integer :: nant,nmed
 
     write(6,*) '*** WF2D PARAMETERS ***'
 
@@ -204,7 +215,6 @@ CONTAINS
     WRITE(6,'(A10,A)')  'KFNAME=   ',TRIM(KFNAME)
     WRITE(6,'(A10,A)')  'KFNAMA=   ',TRIM(KFNAMA)
     WRITE(6,'(A10,A)')  'KFNAMF=   ',TRIM(KFNAMF)
-    WRITE(6,'(A10,A)')  'KFNAMN=   ',TRIM(KFNAMN)
     WRITE(6,'(A10,A)')  'KFNAMB=   ',TRIM(KFNAMB)
     WRITE(6,'(A10,A)')  'KNAMWG=   ',TRIM(KNAMWG)
 
@@ -217,30 +227,34 @@ CONTAINS
        WRITE(6,'(A10,I12)')     'nant_max=    ',nant_max
        WRITE(6,*) '      AJ         APH        AWD        APOS'
        WRITE(6,*) '     PIN          RD     THETJ1      THETJ2'
-       DO NA=1,nant_max
-          WRITE(6,610) NA,AJ(NA),APH(NA),AWD(NA),APOS(NA)
+       DO nant=1,nant_max
+          WRITE(6,610) nant,AJ(nant),APH(nant),AWD(nant),APOS(nant)
        ENDDO
-       DO NA=1,nant_max
-          WRITE(6,610) NA,PIN(NA),RD(NA),THETJ1(NA),THETJ2(NA)
+       DO nant=1,nant_max
+          WRITE(6,610) nant,PIN(nant),RD(nant),THETJ1(nant),THETJ2(nant)
        ENDDO
     ENDIF
 
-    IF(AMPWG.GT.0.D0) THEN
-       WRITE(6,601) 'X1WG  ',X1WG  ,'Y1WG  ',Y1WG  , &
-                    'X2WG  ',X2WG  ,'X2WG  ',Y2WG
-       WRITE(6,601) 'PH1WG ',PH1WG ,'PH2WG ',PH2WG , &
-                    'AMPWG ',AMPWG ,'ANGWG ',ANGWG
-       WRITE(6,601) 'ELPWG ',ELPWG ,'DPHWG ',DPHWG
-       WRITE(6,605) 'MODELWG',MODELWG,'MODELWF',MODELWF
+    IF(amp_wg.GT.0.D0) THEN
+       WRITE(6,611) 'xwg_min   ',xwg_min, 'xwg_max   ',xwg_max
+       WRITE(6,611) 'ywg_min   ',ywg_min, 'ywg_max   ',ywg_max
+       WRITE(6,603) 'phase_wg_min',phase_wg_min, &
+                    'phase_wg_cen',phase_wg_cen
+       WRITE(6,603) 'phase_wg_max',phase_wg_max
+       WRITE(6,611) 'amp_wg    ',amp_wg,   'angle_wg ',angle_wg
+       WRITE(6,611) 'ellip_wg  ',ellip_wg
+       WRITE(6,605) 'model_wg  ',model_wg,'model_wf  ',model_wf
     END IF
   
-    WRITE(6,'(A10,I12)')     'MDAMP     ',MDAMP
-    WRITE(6,'(A10,ES12.4)')  'WDAMP=    ',WDAMP
-    WRITE(6,'(A10,ES12.4)')  'FDAMP=    ',FDAMP
-    WRITE(6,'(A10,ES12.4)')  'rdamp_min=',rdamp_min
-    WRITE(6,'(A10,ES12.4)')  'rdamp_max=',rdamp_max
-    WRITE(6,'(A10,ES12.4)')  'zdamp_min=',zdamp_min
-    WRITE(6,'(A10,ES12.4)')  'zdamp_max=',zdamp_max
+    WRITE(6,'(A12,I12)')     'model_damp =',model_damp
+    WRITE(6,'(A12,ES12.4)')  'xdamp_min  =',xdamp_min
+    WRITE(6,'(A12,ES12.4)')  'xdamp_max  =',xdamp_max
+    WRITE(6,'(A12,ES12.4)')  'ydamp_min  =',ydamp_min
+    WRITE(6,'(A12,ES12.4)')  'ydamp_max  =',ydamp_max
+    WRITE(6,'(A12,ES12.4)')  'thdamp_min =',thdamp_min
+    WRITE(6,'(A12,ES12.4)')  'thdamp_max =',thdamp_max
+    WRITE(6,'(A10,ES12.4)')  'width_damp =',width_damp
+    WRITE(6,'(A10,ES12.4)')  'factor_damp=',factor_damp
 
     WRITE(6,'(A24,I4,8X,A24,ES12.4)') &
             'model_coll_enhance     =',model_coll_enhance, &
@@ -254,10 +268,19 @@ CONTAINS
 
     WRITE(6,'(A24,I8)') 'model_interpolation    =',model_interpolation
 
-    DO NM=1,NMMAX
-       IF(NM.EQ.1) &
-            WRITE(6,'(A)') '  NM       epsdm       amudm       sigdm    nmka'
-       WRITE(6,'(I4,3ES12.4,I8)') nm,epsdm(nm),amudm(nm),sigdm(nm),nmka(nm)
+    DO nmed=1,nmed_max
+       IF(nmed.EQ.1) THEN
+          WRITE(6,'(A)') 'nmed  model_nmed     epsilon         amu       sigma'
+          WRITE(6,'(A)') 'nmed        xmin        xmax        ymin        ymax'
+          WRITE(6,'(A)') 'nmed        rmin        rmax       thmin       thmax'
+       END IF
+       WRITE(6,'(I4,I8,4X,4ES12.4)') &
+            nmed,model_nmed(nmed),epsilon_nmed(nmed),amu_nmed(nmed), &
+            sigma_nmed(nmed)
+       WRITE(6,'(I4,4ES12.4)') &
+           nmed,xmin_nmed(nmed),xmax_nmed(nmed),ymin_nmed(nmed),ymax_nmed(nmed)
+       WRITE(6,'(I4,4ES12.4)') &
+         nmed,rmin_nmed(nmed),rmax_nmed(nmed),thmin_nmed(nmed),thmax_nmed(nmed)
     END DO
 
     
@@ -269,23 +292,21 @@ CONTAINS
                  'NDRAWV',NDRAWV
     WRITE(6,604) 'NGXMAX',NGXMAX,'NGYMAX',NGYMAX,&
                  'NGVMAX',NGVMAX
-    WRITE(6,602) 'gfactor   ',gfactor
+    WRITE(6,602) 'gaspect   ',gaspect
 
     WRITE(6,*) '***** control *****'
     
     WRITE(6,602) 'tolerance ',tolerance
     WRITE(6,603) 'sort_weight_x   ',sort_weight_x, &
                  'sort_weight_y   ',sort_weight_y
-    WRITE(6,602) 'delr      ',delr,      'delz      ',delz
-    WRITE(6,602) 'bdrmin    ',bdrmin,    'bdrmax    ',bdrmax
-    WRITE(6,602) 'bdzmin    ',bdzmin,    'bdzmax    ',bdzmax
+    WRITE(6,602) 'gaspect   ',gaspect
     WRITE(6,'(A24,I12,4X,A24,I12)') &
          'nxzone_max             =',nxzone_max, &
          'nyzone_max             =',nyzone_max
   RETURN
   
-601 FORMAT(' ',A6,'=',ES12.4:1X,A6,'=',ES12.4:&
-         &  1X,A6,'=',ES12.4:1X,A6,'=',ES12.4)
+!601 FORMAT(' ',A6,'=',ES12.4:1X,A6,'=',ES12.4:&
+!         &  1X,A6,'=',ES12.4:1X,A6,'=',ES12.4)
 602 FORMAT(' ',A10,'=',ES12.4:2X,A10,'=',ES12.4:&
          &  2X,A10,'=',ES12.4)
 603 FORMAT(' ',A16,'=',1PE12.4:2X,A16,'=',1PE12.4)
@@ -295,6 +316,8 @@ CONTAINS
 605 FORMAT(' ',A10,'=',I6    :2X,A10,'=',I6    :&
           & 2X,A10,'=',I6    :2X,A10,'=',I6)
 610 FORMAT(' ',I2,7(1PE11.3))
+611 FORMAT(' ',A10,'=',ES12.4:1X,A10,'=',ES12.4:&
+            1X,A10,'=',ES12.4)
 
 END SUBROUTINE wf_view
 
@@ -306,128 +329,144 @@ SUBROUTINE wfparm_broadcast
   USE wfcomm
   IMPLICIT NONE
 
-  INTEGER,DIMENSION(23) :: idata
-  REAL(rkind),DIMENSION(36) :: ddata
+  INTEGER,DIMENSION(50) :: idata
+  REAL(rkind),DIMENSION(100) :: ddata
   
 ! ---  broadcast integer data -----
 
-  idata(1) =MODELI
-  idata(2) =NPH
-  idata(3) =nant_max
-  idata(5) =MODELWG
-  idata(6) =MODELWF
-  idata(7) =MDAMP
+  idata(1) =model_config
+  idata(2) =model_shape
+  idata(3) =nph
+  idata(4) =nant_max
+  idata(5) =model_wg
+  idata(6) =model_wf
+  idata(7) =model_damp
   idata(8) =model_coll_enhance
   idata(9) =model_interpolation
-  idata(10)=nmmax
-  idata(11)=nkmax
-  idata(12)=nprint
-  idata(13)=ngraph
-  idata(14)=ndrawd
-  idata(15)=ndraws
-  idata(16)=ndrawa
-  idata(17)=ndrawe
-  idata(18)=ndrawv
-  idata(19)=ngxmax
-  idata(20)=ngymax
-  idata(21)=ngvmax
-  idata(22)=nxzone_max
-  idata(23)=nyzone_max
+  idata(10)=nmed_max
+  idata(11)=nprint
+  idata(12)=ngraph
+  idata(13)=ndrawd
+  idata(14)=ndraws
+  idata(15)=ndrawa
+  idata(16)=ndrawe
+  idata(17)=ndrawv
+  idata(18)=ngxmax
+  idata(19)=ngymax
+  idata(20)=ngvmax
+  idata(21)=nxzone_max
+  idata(22)=nyzone_max
+  idata(23)=modeli
   
   call mtx_broadcast_integer(idata,23)
   
-  MODELI=idata(1)
-  NPH=idata(2)
-  nant_max=idata(3)
-  MODELWG=idata(5)
-  MODELWF=idata(6)
-  MDAMP=idata(7)
+  model_config=idata(1)
+  model_shape=idata(2)
+  nph=idata(3)
+  nant_max=idata(4)
+  model_wg=idata(5)
+  model_wf=idata(6)
+  model_damp=idata(7)
   model_coll_enhance=idata(8)
   model_interpolation=idata(9)
-  nmmax=idata(10)
-  nkmax=idata(11)
-  nprint=idata(12)
-  ngraph=idata(13)
-  ndrawd=idata(14)
-  ndraws=idata(15)
-  ndrawa=idata(16)
-  ndrawe=idata(17)
-  ndrawv=idata(18)
-  ngxmax=idata(19)
-  ngymax=idata(20)
-  ngvmax=idata(21)
-  nxzone_max=idata(22)
-  nyzone_max=idata(23)
+  nmed_max=idata(10)
+  nprint=idata(11)
+  ngraph=idata(12)
+  ndrawd=idata(13)
+  ndraws=idata(14)
+  ndrawa=idata(15)
+  ndrawe=idata(16)
+  ndrawv=idata(17)
+  ngxmax=idata(18)
+  ngymax=idata(19)
+  ngvmax=idata(20)
+  nxzone_max=idata(21)
+  nyzone_max=idata(22)
+  modeli=idata(23)
 
 ! ----- broadcast real(8) data ------
 
-  ddata(1) =RF
-  ddata(2) =RKZ
-  ddata(3) =x1wg
-  ddata(4) =y1wg
-  ddata(5) =x2wg
-  ddata(6) =y2wg
-  ddata(7) =ph1wg
-  ddata(8) =ph2wg
-  ddata(9) =ampwg
-  ddata(10)=angwg
-  ddata(11)=elpwg
-  ddata(12)=dphwg
-  ddata(13)=wdamp
-  ddata(14)=fdamp
-  ddata(15)=rdamp_min
-  ddata(16)=rdamp_max
-  ddata(17)=zdamp_min
-  ddata(18)=zdamp_max
-  ddata(19)=factor_coll_enhance
-  ddata(20)=xpos_coll_enhance
-  ddata(21)=xwidth_coll_enhance
-  ddata(22)=ypos_coll_enhance
-  ddata(23)=sort_weight_x
-  ddata(24)=sort_weight_y
-  ddata(25)=delr
-  ddata(26)=delz
-  ddata(27)=bdrmin
-  ddata(28)=bdrmax
-  ddata(29)=bdzmin
-  ddata(30)=bdzmax
-  ddata(31)=gfactor
-  ddata(32)=tolerance
+  ddata(1) =xdiv_min
+  ddata(2) =xdiv_max
+  ddata(3) =ydiv_min
+  ddata(4) =ydiv_max
+  ddata(5) =delx
+  ddata(6) =dely
+  ddata(7) =rdiv_min
+  ddata(8) =rdiv_max
+  ddata(9) =thdiv_min
+  ddata(10) =thdiv_max
+  ddata(11) =RF
+  ddata(12) =RKZ
+  ddata(13) =xwg_min
+  ddata(14) =xwg_max
+  ddata(15) =ywg_min
+  ddata(16) =ywg_max
+  ddata(17) =phase_wg_min
+  ddata(18) =phase_wg_cen
+  ddata(19) =phase_wg_max
+  ddata(20)=amp_wg
+  ddata(21)=angle_wg
+  ddata(22)=ellip_wg
+  ddata(23)=xdamp_min
+  ddata(24)=xdamp_max
+  ddata(25)=ydamp_min
+  ddata(26)=ydamp_max
+  ddata(27)=thdamp_min
+  ddata(28)=thdamp_max
+  ddata(29)=width_damp
+  ddata(30)=factor_damp
+  ddata(31)=factor_coll_enhance
+  ddata(32)=xpos_coll_enhance
+  ddata(33)=xwidth_coll_enhance
+  ddata(34)=ypos_coll_enhance
+  ddata(35)=ywidth_coll_enhance
+  ddata(36)=sort_weight_x
+  ddata(37)=sort_weight_y
+  ddata(38)=gaspect
+  ddata(39)=tolerance
 
-  call mtx_broadcast_real8(ddata,32)
+  call mtx_broadcast_real8(ddata,39)
   
-  RF=ddata(1)
-  RKZ=ddata(2)
-  x1wg=ddata(3)
-  y1wg=ddata(4)
-  x2wg=ddata(5)
-  y2wg=ddata(6)
-  ph1wg=ddata(7)
-  ph2wg=ddata(8)
-  ampwg=ddata(9)
-  angwg=ddata(10)
-  elpwg=ddata(11)
-  dphwg=ddata(12)
-  wdamp=ddata(13)
-  fdamp=ddata(14)
-  rdamp_min=ddata(15)
-  rdamp_max=ddata(16)
-  zdamp_min=ddata(17)
-  zdamp_max=ddata(18)
-  factor_coll_enhance=ddata(19)
-  xpos_coll_enhance=ddata(20)
-  xwidth_coll_enhance=ddata(21)
-  ypos_coll_enhance=ddata(22)
-  sort_weight_x=ddata(23)
-  sort_weight_y=ddata(24)
-  delr=ddata(25)
-  delz=ddata(26)
-  bdrmin=ddata(27)
-  bdrmax=ddata(28)
-  bdzmin=ddata(29)
-  bdzmax=ddata(30)
-  gfactor=ddata(31)
-  tolerance=ddata(32)
+  xdiv_min=ddata(1)
+  xdiv_max=ddata(2)
+  ydiv_min=ddata(3)
+  ydiv_max=ddata(4)
+  delx=ddata(5)
+  dely=ddata(6)
+  rdiv_min=ddata(7)
+  rdiv_max=ddata(8)
+  thdiv_min=ddata(9)
+  thdiv_max=ddata(10)
+  RF=ddata(11)
+  RKZ=ddata(12)
+  xwg_min=ddata(13)
+  xwg_max=ddata(14)
+  ywg_min=ddata(15)
+  ywg_max=ddata(16)
+  phase_wg_min=ddata(17)
+  phase_wg_cen=ddata(18)
+  phase_wg_max=ddata(19)
+  amp_wg=ddata(20)
+  angle_wg=ddata(21)
+  ellip_wg=ddata(21)
+  xdamp_min=ddata(23)
+  xdamp_max=ddata(24)
+  ydamp_min=ddata(25)
+  ydamp_max=ddata(26)
+  thdamp_min=ddata(27)
+  thdamp_max=ddata(28)
+  width_damp=ddata(29)
+  factor_damp=ddata(30)
+  factor_coll_enhance=ddata(31)
+  xpos_coll_enhance=ddata(32)
+  xwidth_coll_enhance=ddata(33)
+  ypos_coll_enhance=ddata(34)
+  ywidth_coll_enhance=ddata(35)
+  sort_weight_x=ddata(36)
+  sort_weight_y=ddata(37)
+  gaspect=ddata(38)
+  tolerance=ddata(39)
 
   call mtx_broadcast_real8(AJ,nant_max)
   call mtx_broadcast_real8(APH,nant_max)
@@ -438,32 +477,18 @@ SUBROUTINE wfparm_broadcast
   call mtx_broadcast_real8(THETJ1,nant_max)
   call mtx_broadcast_real8(THETJ2,nant_max)
   
-  call mtx_broadcast_real8(epsdm,nmmax)
-  call mtx_broadcast_real8(amudm,nmmax)
-  call mtx_broadcast_real8(sigdm,nmmax)
-  
-!  call mtx_broadcast_integer(nbpmax,nbmax)
-!  call mtx_broadcast_integer(kabdy,nbmax)
-!  call mtx_broadcast_real8(phibdy,nbmax)
-!  call mtx_broadcast_real8(resbdy,nbmax)
-!  call mtx_broadcast_real8(pwrbdy,nbmax)
-!  call mtx_broadcast_real8(phabdy,nbmax)
-!  call mtx_broadcast_real8(xgbdy,nbmax)
-!  call mtx_broadcast_real8(ygbdy,nbmax)
-!  call mtx_broadcast_real8(zgbdy,nbmax)
-!  call mtx_broadcast_real8(xnbdy,3*nbmax)
-!  call mtx_broadcast_real8(ynbdy,3*nbmax)
-!  call mtx_broadcast_real8(znbdy,3*nbmax)
-!  call mtx_broadcast_real8(xpbdy,nbmax)
-!  call mtx_broadcast_real8(ypbdy,nbmax)
-!  call mtx_broadcast_real8(zpbdy,nbmax)
-!  call mtx_broadcast_real8(szbdy,2*nbmax)
-!  call mtx_broadcast_integer(ndbdy,nbmax)
-!  call mtx_broadcast_integer(nmbdy,nbmax)
-!  DO nb=1,nbmax
-!     call mtx_broadcast_integer(nenbp(1,nb),nbpmax)
-!     call mtx_broadcast_integer(ndnbp(1,nb),nbpmax)
-!  END DO
+  call mtx_broadcast_integer(model_nmed,nmed_max)
+  call mtx_broadcast_real8(epsilon_nmed,nmed_max)
+  call mtx_broadcast_real8(amu_nmed,nmed_max)
+  call mtx_broadcast_real8(sigma_nmed,nmed_max)
+  call mtx_broadcast_real8(xmin_nmed,nmed_max)
+  call mtx_broadcast_real8(xmax_nmed,nmed_max)
+  call mtx_broadcast_real8(ymin_nmed,nmed_max)
+  call mtx_broadcast_real8(ymax_nmed,nmed_max)
+  call mtx_broadcast_real8(rmin_nmed,nmed_max)
+  call mtx_broadcast_real8(rmax_nmed,nmed_max)
+  call mtx_broadcast_real8(thmin_nmed,nmed_max)
+  call mtx_broadcast_real8(thmax_nmed,nmed_max)
   
   call mtx_broadcast_integer(idebuga,idebuga_max)
 
@@ -472,9 +497,7 @@ SUBROUTINE wfparm_broadcast
   call mtx_broadcast_character(KFNAME,80)
   call mtx_broadcast_character(KFNAMA,80)
   call mtx_broadcast_character(KFNAMF,80)
-  call mtx_broadcast_character(KFNAMN,80)
   call mtx_broadcast_character(KFNAMB,80)
-
   call mtx_broadcast_character(KNAMWG,80)
 
   IF(MODELI.EQ.0) THEN

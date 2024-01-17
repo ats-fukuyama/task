@@ -34,7 +34,7 @@ SUBROUTINE wf_gout
   USE libchar
   implicit none
 
-  integer :: NL,NWD,NCH,NWMAX,NW
+  integer :: NL,NWD,NCH,NWMAX,NW,idraw_parm
   CHARACTER KLINE*80,KWORD*(NCHM),KWD*(NCHM),KID*1,KTAIL*7
   CHARACTER KG1*1,KG2*1
   DIMENSION KWORD(NWDM)
@@ -44,16 +44,18 @@ SUBROUTINE wf_gout
 
   if(NDRAWV.eq.1)  call wf_g2d_vector
 
-  IF(RNDMAX.EQ.RNDMIN) THEN
+  IF(xnode_max.EQ.xnode_min) THEN
      WRITE(6,*) 'XX NO DATA IS LOADED FOR GRAPHICS'
      GOTO 9000
   ENDIF
   
 1 WRITE(6,*) '# INPUT : E,X/Y/Z,R/I/A'
-  WRITE(6,*) '          P,1/2,C  N  A  W  X=EXIT'
+  WRITE(6,*) '          Xyz/Yxz/Zxy/A9 0-9 V,0-9, L'
+  WRITE(6,*) '          P,1/2  N  A  W  X=EXIT'
   CALL GUFLSH
   READ(5,'(A80)',ERR=1,END=9000) KLINE
   NWXMAX=0
+  idraw_parm=0
   
 9 NL=0
   NWD=0
@@ -74,7 +76,8 @@ SUBROUTINE wf_gout
   ENDIF
   GOTO 10
   
-20 NWMAX=NWD
+20 CONTINUE
+  NWMAX=NWD
   KWD=KWORD(1)
   KG1=KWD(1:1)
   KG2=KWD(2:2)
@@ -130,6 +133,7 @@ SUBROUTINE wf_gout
            WRITE(6,*) 'XX UNKNOWN KID2:',KID
            GOTO 1000
         ENDIF
+        idraw_parm=1
 
      ELSE IF(KID.eq.'P') THEN
         KID=KWD(2:2)
@@ -143,6 +147,8 @@ SUBROUTINE wf_gout
            WRITE(6,*) 'XX UNKNOWN KID2:',KID
            GOTO 1000
         ENDIF
+        idraw_parm=1
+
      ELSE IF(KID.EQ.'N') THEN
         CALL wf_gden
      ELSE IF(KID.EQ.'A') THEN
@@ -187,7 +193,7 @@ SUBROUTINE wf_gout
 
 1000 continue
   IF(NGRAPH.GE.1) THEN
-     CALL wf_gdraw_parm
+     IF(idraw_parm.EQ.1) CALL wf_gdraw_parm
      CALL PAGEE
   ENDIF
   GOTO 1     
@@ -247,9 +253,9 @@ SUBROUTINE wf_gpwr(NS)
            end do
 
            ! --- calculate power absorption ---
-           call wf_fieldcr(IE,X,Y,CESD,CER)
-           call wf_fieldcp(IE,X,Y,CEND,CEP)
-           call wf_fieldcz(IE,X,Y,CESD,CEZ)
+           call wf_fieldcr(IE,X,Y,CESD_nseg,CER)
+           call wf_fieldcp(IE,X,Y,CEND_node,CEP)
+           call wf_fieldcz(IE,X,Y,CESD_nseg,CEZ)
 
            JP  =(0.d0,0.d0)
            PABS=0.d0
@@ -290,19 +296,19 @@ SUBROUTINE wf_gden
   
   NE=0
 
-  DY=(ZNDMAX-ZNDMIN)/(NGYMAX-1)
-  DX=(RNDMAX-RNDMIN)/(NGXMAX-1)
+  DY=(ynode_max-ynode_min)/(NGYMAX-1)
+  DX=(xnode_max-xnode_min)/(NGXMAX-1)
   DO NGX=1,NGXMAX
-     G2X(NGX)=gdclip(RNDMIN+DX*(NGX-1))
+     G2X(NGX)=gdclip(xnode_min+DX*(NGX-1))
   ENDDO
   DO NGY=1,NGYMAX
-     G2Y(NGY)=gdclip(ZNDMIN+DY*(NGY-1))
+     G2Y(NGY)=gdclip(ynode_min+DY*(NGY-1))
   ENDDO
 
   DO NGY=1,NGYMAX
-     Y=ZNDMIN+DY*(NGY-1)
+     Y=ynode_min+DY*(NGY-1)
      DO NGX=1,NGXMAX
-        X=RNDMIN+DX*(NGX-1)
+        X=xnode_min+DX*(NGX-1)
         CALL wf_fep(X,Y,NE)
         IF(NE.EQ.0) THEN
            GZ(NGX,NGY)=0.0
@@ -493,8 +499,8 @@ SUBROUTINE wf_g2d_contour(NW,NWMAX,KWD)
   real(rkind) :: X,Y,WC(NSMAX),WP(NSMAX),WW
   real(rkind) :: BABS,AL(3),RTPR(NSM),RTPP(NSM),RZCL(NSM),RN(NSM)
   REAL :: GTCO_MAX,GTCR_MAX,GTHR_MAX,GTRC_MAX,GTLC_MAX
-  INTEGER :: NBSD,NSD,NN1,NN2
-  REAL :: R1,Z1,R2,Z2
+  INTEGER :: nbdy,nseg,node1,node2
+  REAL :: X1,Y1,X2,Y2
 
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: TCO,TCR,THR,TRC,TLC
   real :: GUCLIP
@@ -515,10 +521,10 @@ SUBROUTINE wf_g2d_contour(NW,NWMAX,KWD)
 
   CALL wf_gwin_range(NW,NWMAX,PXMIN,PXMAX,PYMIN,PYMAX)
   
-  XMIN = RNDMIN
-  XMAX = RNDMAX
-  YMIN = ZNDMIN
-  YMAX = ZNDMAX  
+  XMIN = xnode_min
+  XMAX = xnode_max
+  YMIN = ynode_min
+  YMAX = ynode_max  
   DXLEN= XMAX-XMIN
   DYLEN= YMAX-YMIN
   DRATIO=DYLEN/DXLEN
@@ -600,9 +606,9 @@ SUBROUTINE wf_g2d_contour(NW,NWMAX,KWD)
      GTLC_MAX=0.D0
 
      DO NGY=1,NGYMAX
-        Y=ZNDMIN+DY*(NGY-1)
+        Y=ynode_min+DY*(NGY-1)
         DO NGX=1,NGXMAX
-           X=RNDMIN+DX*(NGX-1)
+           X=xnode_min+DX*(NGX-1)
 
            CALL wf_smag(X,Y,BABS,AL)
            CALL wf_sden(X,Y,RN,RTPR,RTPP,RZCL)
@@ -704,7 +710,7 @@ SUBROUTINE wf_g2d_contour(NW,NWMAX,KWD)
 
   CALL GMNMX2(GZ,NGXMAX,1,NGXMAX,1,1,NGYMAX,1,GZMIN,GZMAX)
   CALL GQSCAL(GZMIN,GZMAX,GQZMIN,GQZMAX,GZSCAL)
-  GZDEL=REAL(GFACTOR)*GZSCAL
+  GZDEL=REAL(gaspect)*GZSCAL
   IF(GZDEL.EQ.0.0) GOTO 1000
   ISTEP=INT((GZMAX-GZMIN)/GZDEL)
   
@@ -734,16 +740,16 @@ SUBROUTINE wf_g2d_contour(NW,NWMAX,KWD)
 
 1000 CONTINUE
   CALL SETLIN(0,2,7)
-  DO NBSD=1,nseg_bdy_max
-     NSD=NSDBS(NBSD)
-     NN1=node_nseg(1,NSD)
-     NN2=node_nseg(2,NSD)
-     R1=guclip(xnode(NN1))
-     Z1=guclip(ynode(NN1))
-     R2=guclip(xnode(NN2))
-     Z2=guclip(ynode(NN2))
-     CALL MOVE2D(R1,Z1)
-     CALL DRAW2D(R2,Z2)
+  DO nbdy=1,nbdy_max
+     nseg=nseg_nbdy(nbdy)
+     node1=node_nseg(1,nseg)
+     node2=node_nseg(2,nseg)
+     X1=guclip(xnode(node1))
+     Y1=guclip(ynode(node1))
+     Y2=guclip(xnode(node2))
+     Y2=guclip(ynode(node2))
+     CALL MOVE2D(X1,Y1)
+     CALL DRAW2D(X2,Y2)
   END DO
 
   CALL SETLIN(0,0,7)
@@ -814,10 +820,10 @@ SUBROUTINE wf_g2d_paint(NW,NWMAX,KWD)
   
   CALL wf_gwin_range(NW,NWMAX,PXMIN,PXMAX,PYMIN,PYMAX)
   
-  XMIN = RNDMIN
-  XMAX = RNDMAX
-  YMIN = ZNDMIN
-  YMAX = ZNDMAX
+  XMIN = xnode_min
+  XMAX = xnode_max
+  YMIN = ynode_min
+  YMAX = ynode_max
   
   DXLEN= XMAX-XMIN
   DYLEN= YMAX-YMIN
@@ -978,10 +984,10 @@ SUBROUTINE wf_g2d_birdeye(NW,NWMAX,KWD)
   ALLOCATE(KA(8,NGXMAX,NGYMAX))
   CALL wf_gwin_range(NW,NWMAX,PXMIN,PXMAX,PYMIN,PYMAX)
   
-  XMIN = RNDMIN
-  XMAX = RNDMAX
-  YMIN = ZNDMIN
-  YMAX = ZNDMAX
+  XMIN = xnode_min
+  XMAX = xnode_max
+  YMIN = ynode_min
+  YMAX = ynode_max
   
   DXLEN= XMAX-XMIN
   DYLEN= YMAX-YMIN
@@ -1156,52 +1162,52 @@ SUBROUTINE wf_g2d_vector
   USE libgrf
   implicit none
 
-  integer :: IE,NGX,NGY
+  integer :: nelm,NGX,NGY
   complex(rkind):: CE
   real(rkind):: DX,DY,X,Y
-  real(rkind),dimension(:,:),ALLOCATABLE::GZ_r,GZ_z
+  real(rkind),dimension(:,:),ALLOCATABLE::GZ_x,GZ_y
 
-  allocate(GZ_r(NGXMAX,NGYMAX),GZ_z(NGXMAX,NGYMAX))
-  IE=0
+  allocate(GZ_x(NGXMAX,NGYMAX),GZ_y(NGXMAX,NGYMAX))
+  nelm=0
 
-  DY=(ZNDMAX-ZNDMIN)/(NGYMAX-1)
-  DX=(RNDMAX-RNDMIN)/(NGXMAX-1)
+  DY=(ynode_max-ynode_min)/(NGYMAX-1)
+  DX=(xnode_max-xnode_min)/(NGXMAX-1)
   DO NGX=1,NGXMAX
-     G2X(NGX)=gdclip(RNDMIN+DX*(NGX-1))
+     G2X(NGX)=gdclip(xnode_min+DX*(NGX-1))
   ENDDO
   DO NGY=1,NGYMAX
-     G2Y(NGY)=gdclip(ZNDMIN+DY*(NGY-1))
+     G2Y(NGY)=gdclip(ynode_min+DY*(NGY-1))
   ENDDO
   DO NGY=1,NGYMAX
-     Y=ZNDMIN+DY*(NGY-1)
+     Y=ynode_min+DY*(NGY-1)
      DO NGX=1,NGXMAX
-        X=RNDMIN+DX*(NGX-1)
-        CALL wf_fep(X,Y,IE)
-        IF(IE.EQ.0) THEN
-           GZ_r(NGX,NGY)=0.0
-           GZ_z(NGX,NGY)=0.0
+        X=xnode_min+DX*(NGX-1)
+        CALL wf_fep(X,Y,nelm)
+        IF(nelm.EQ.0) THEN
+           GZ_x(NGX,NGY)=0.0
+           GZ_y(NGX,NGY)=0.0
         ELSE
-           CALL wf_fieldcr(IE,X,Y,CESD,CE)
-           GZ_r(NGX,NGY)=gdclip(AIMAG(CE))
-           CALL wf_fieldcz(IE,X,Y,CESD,CE)
-           GZ_z(NGX,NGY)=gdclip(AIMAG(CE))
+           CALL wf_fieldcr(nelm,X,Y,CESD_nseg,CE)
+           GZ_x(NGX,NGY)=gdclip(AIMAG(CE))
+           CALL wf_fieldcz(nelm,X,Y,CESD_nseg,CE)
+           GZ_y(NGX,NGY)=gdclip(AIMAG(CE))
        ENDIF
      END DO
   ENDDO
   
   open(100,file="vfield")
-  write(100,'(7X,A2,15X,A2,15X,A2,15X,A2)') " r"," z","Er","Ez"
+  write(100,'(7X,A2,15X,A2,15X,A2,15X,A2)') " x"," y","Ex","Ey"
   DO NGY=1,NGYMAX
-     Y=ZNDMIN+DY*(NGY-1)
+     Y=ynode_max+DY*(NGY-1)
      DO NGX=1,NGXMAX
-        X=RNDMIN+DX*(NGX-1)
+        X=xnode_max+DX*(NGX-1)
         write(100,'(E16.8,1X,E16.8,1X,E16.8,1X,E16.8)') &
-             X,Y,GZ_r(NGX,NGY),GZ_z(NGX,NGY)
+             X,Y,GZ_x(NGX,NGY),GZ_y(NGX,NGY)
      end DO
   end DO
   close(100)
 
-  deallocate(GZ_r,GZ_z)
+  deallocate(GZ_x,GZ_y)
   return
 end subroutine wf_g2d_vector
 

@@ -31,8 +31,6 @@ CONTAINS
   if (nrank.eq.0) write(6,*) '--- wf_wpre start ---'
   call wf_wpre(IERR)
   if(IERR.ne.0) goto 9000
-
-  CALL wf_field_allocate
   
   if (nrank.eq.0) write(6,*) '--- wf_cvcalc start ---'
   call wf_cvcalc
@@ -151,27 +149,27 @@ CONTAINS
     USE wfsolv
     USE wfsub
   implicit none
-  integer    :: NE,NA,IJ,IV,I
+  integer    :: nelm,nant,IV,I,np
   real(rkind)    :: RW,PHASE,MU(3,3,6),A(3),B(3),C(3)
-  real(rkind)    :: R1,Z1,R2,Z2,LIF(3),R21,Z21
+  real(rkind)    :: x1,y1,x2,y2,LIF(3),x21,y21
   complex(rkind) :: CJ(3),CVJ
 
   RW=2.D0*PI*RF*1.D6
 
-  DO NE=1,nelm_max
+  DO nelm=1,nelm_max
      DO IV=1,6
-        CVTOT(IV,NE)=(0.d0,0.d0)
+        CVTOT(IV,nelm)=(0.d0,0.d0)
      ENDDO
   ENDDO
   
-  DO NA=1,nant_max
-     PHASE =APH(NA)*PI/180.D0
-     CVJ=CII*RW*RMU0*AJ(NA)*EXP(CII*(PHASE))
-     IF(JNUM(NA).EQ.1) THEN
-        NE=JELMT(1,NA)
-        CALL wf_set_abc(NE,A,B,C)
-        R1=RJ(1,NA)
-        Z1=ZJ(1,NA)
+  DO nant=1,nant_max
+     PHASE =APH(nant)*PI/180.D0
+     CVJ=CII*RW*RMU0*AJ(nant)*EXP(CII*(PHASE))
+     IF(np_max_nant(nant).EQ.1) THEN
+        nelm=nelm_np_nant(1,nant)
+        CALL wf_set_abc(nelm,A,B,C)
+        x1=x_np_nant(1,nant)
+        y1=y_np_nant(1,nant)
         CJ(1)=0.D0
         CJ(2)=CVJ*RR
         CJ(3)=0.D0
@@ -179,55 +177,55 @@ CONTAINS
         CASE(0,12)
            do I=1,3
               LIF(I)=A(I)*RR &
-                    +B(I)*R1*RR &
-                    +C(I)*Z1*RR
+                    +B(I)*x1*RR &
+                    +C(I)*y1*RR
            end do
         CASE(1:10,13)
            do I=1,3
-              LIF(I)=A(I)*R1 &
-                    +B(I)*R1*R1 &
-                    +C(I)*Z1*R1
+              LIF(I)=A(I)*x1 &
+                    +B(I)*x1*x1 &
+                    +C(I)*y1*x1
            end do
         END SELECT
-        call wf_mutensr(NE,MU)
+        call wf_mutensr(nelm,MU)
         do I=1,3
            do IV=1,6
-              CVTOT(IV,NE)= CVTOT(IV,NE)&
+              CVTOT(IV,nelm)= CVTOT(IV,nelm)&
                            +LIF(I)*( MU(I,1,IV)*CJ(1)&
                                     +MU(I,2,IV)*CJ(2)&
                                     +MU(I,3,IV)*CJ(3))
            end do
         end do
      ELSE
-     DO IJ=2,JNUM(NA)
-        NE=JELMT(IJ,NA)
-        CALL wf_set_abc(NE,A,B,C)
-        R1=RJ(IJ-1,NA)
-        Z1=ZJ(IJ-1,NA)
-        R2=RJ(IJ,NA)
-        Z2=ZJ(IJ,NA)
-        R21=R2-R1
-        Z21=Z2-Z1
+     DO np=2,np_max_nant(nant)
+        nelm=nelm_np_nant(np,nant)
+        CALL wf_set_abc(nelm,A,B,C)
+        x1=x_np_nant(np-1,nant)
+        y1=y_np_nant(np-1,nant)
+        x2=x_np_nant(np,nant)
+        y2=y_np_nant(np,nant)
+        x21=x2-x1
+        y21=y2-y1
 
-        CJ(1)=CVJ*R21  
+        CJ(1)=CVJ*x21  
         CJ(2)=(0.d0,0.d0) 
-        CJ(3)=CVJ*Z21  
+        CJ(3)=CVJ*y21  
 
         SELECT CASE(MODELG)
         CASE(0,12)
            do I=1,3
               LIF(I)=A(I)*RR &
-                    +B(I)*(R1+R2)*RR/2.D0 &
-                    +C(I)*(Z1+Z2)*RR/2.D0
+                    +B(I)*(x1+x2)*RR/2.D0 &
+                    +C(I)*(y1+y2)*RR/2.D0
            end do
         CASE(1:10,13)
            do I=1,3
-              LIF(I)=A(I)*(R1+R2)/2.d0 &
-                    +B(I)*(R2**2+R1*R2+R1**2)/3.d0 &
-                    +C(I)*(R2*Z1+Z2*R1+2.d0*R2*Z2+2.d0*R1*Z1)/6.d0
+              LIF(I)=A(I)*(x1+x2)/2.d0 &
+                    +B(I)*(x2**2+x1*x2+x1**2)/3.d0 &
+                    +C(I)*(x2*y1+y2*x1+2.d0*x2*y2+2.d0*x1*y1)/6.d0
            end do
         END SELECT
-        call wf_mutensr(NE,MU)
+        call wf_mutensr(nelm,MU)
 
 !        WRITE(16,*) NE
 !        DO I=1,3
@@ -238,7 +236,7 @@ CONTAINS
 
         do I=1,3
            do IV=1,6
-              CVTOT(IV,NE)= CVTOT(IV,NE)&
+              CVTOT(IV,nelm)= CVTOT(IV,nelm)&
                            +LIF(I)*( MU(I,1,IV)*CJ(1)&
                                     +MU(I,2,IV)*CJ(2)&
                                     +MU(I,3,IV)*CJ(3))
@@ -275,40 +273,40 @@ CONTAINS
 
   use wfcomm
   implicit none
-  integer :: NN,NSD,NV
+  integer :: node,nseg,nvar
 
-  DO NSD=1,nseg_max
-     CESD(NSD)=(0.d0,0.d0)
+  DO nseg=1,nseg_max
+     CESD_nseg(nseg)=(0.d0,0.d0)
   ENDDO
-  DO NN=1,node_max
-     CEND(NN) =(0.d0,0.d0)
+  DO node=1,node_max
+     CEND_node(node) =(0.d0,0.d0)
   END DO
 
-  DO NSD=1,nseg_max
-     NV=NVNSD(NSD)
-     if (NV.eq.0) then
-        IF(KBSID(NSD).NE.0) THEN
-           CESD(NSD)=CEBSD(KBSID(NSD))
+  DO nseg=1,nseg_max
+     nvar=nvar_nseg(nseg)
+     if (nvar.eq.0) then
+        IF(nbdy_nseg(nseg).NE.0) THEN
+           CESD_nseg(nseg)=CESD_nbdy(nbdy_nseg(nseg))
         ELSE
-           CESD(NSD)=(0.d0,0.d0)
+           CESD_nseg(nseg)=(0.d0,0.d0)
         END IF
      else
-        CESD(NSD)=CSV(NV)
+        CESD_nseg(nseg)=CSV(nvar)
      end if
-!     if(nrank.eq.0) write(6,*) NSD,CESD(NSD),KASID(NSD)
+!     if(nrank.eq.0) write(6,*) nseg,CESD_nseg(nseg),nbdy_nseg(nseg)
   END DO
-  DO NN=1,node_max
-     NV=NVNN(NN)
-     if (NV.eq.0) then
-        IF(KBNOD(NN).NE.0) THEN
-           CEND(NN)=CEBND(KBNOD(NN))
+  DO node=1,node_max
+     nvar=nvar_node(node)
+     if (nvar.eq.0) then
+        IF(nbdy_node(node).NE.0) THEN
+           CEND_node(node)=CEND_nbdy(nbdy_node(node))
         ELSE
-           CEND(NN)=(0.d0,0.d0)
+           CEND_node(node)=(0.d0,0.d0)
         END IF
      else
-        CEND(NN)=CSV(NV)
+        CEND_node(node)=CSV(nvar)
      end if
-!     if(nrank.eq.0) write(6,*) NN,CEND(NN),KANOD(NN)
+!     if(nrank.eq.0) write(6,*) node,CEND_node(node),mode_node(node)
   END DO
  
   RETURN
@@ -324,10 +322,9 @@ END SUBROUTINE wf_calfld
   USE libmpi
   implicit none
 
-  integer    :: NE,IN,NN,NSD,NS
+  integer    :: nelm,IN,node,nseg,ns,nside
   integer    :: I,J,K,II,JJ
-  real(rkind),dimension(:,:),ALLOCATABLE:: PABS
-  real(rkind)    :: RW,S,MU(3,3,6),R(3),Z(3)
+  real(rkind)    :: RW,S,MU(3,3,6),x(3),y(3)
   complex(rkind) :: DTENS(NSM,3,3,3),CTENS(NSM,3,3,3)
   complex(rkind) :: CIWE,CINT(NSM,6,6),CE(6)
   INTEGER,ALLOCATABLE:: nelm_len_nrank(:),nelm_pos_nrank(:)
@@ -350,23 +347,21 @@ END SUBROUTINE wf_calfld
      ipos=ipos+nelm_len_nrank(n)
   END DO
   IF(ipos.NE.nelm_max) THEN
-     WRITE(6,'(A,2I8)') 'XX ne parallel error: nelm_max,ipos=',nelm_max,ipos
+     WRITE(6,'(A,2I8)') 'XX wf_pwrabs error: nelm_max,ipos=',nelm_max,ipos
      STOP
   END IF
 
   ! --- initialize ---
   
-  allocate(PABS(NSMAX,nelm_max))
-  
   RW=2.D0*PI*RF*1.D6
   CIWE=CII*RW*EPS0
 
-  do NE=nelm_pos_nrank(nrank)+1,nelm_pos_nrank(nrank)+nelm_len_nrank(nrank)
-     S=SELM(NE)
+  do nelm=nelm_pos_nrank(nrank)+1,nelm_pos_nrank(nrank)+nelm_len_nrank(nrank)
+     S=area_nelm(nelm)
 
      ! --- calculate conductivity tensor ---
 
-     call wf_dtensr(NE,DTENS)
+     call wf_dtensr(nelm,DTENS)
      do NS=1,NSMAX
         do IN=1,3
            do J=1,3
@@ -377,8 +372,8 @@ END SUBROUTINE wf_calfld
         end do
      end do
 
-     call wf_set_node(NE,R,Z)
-     call wf_mutensr(NE,MU)
+     call wf_set_node(nelm,x,y)
+     call wf_mutensr(nelm,MU)
      
      CINT=0.d0
 
@@ -428,7 +423,7 @@ END SUBROUTINE wf_calfld
                                            +MU(I,2,II)*CTENS(NS,J,2,3)&
                                            +MU(I,3,II)*CTENS(NS,J,3,3))&
                                            *MU(K,3,JJ))&
-                                          *R(J)*S*AIF3(I,J,K)
+                                          *x(J)*S*AIF3(I,J,K)
                        end do
                     end do
                  end do
@@ -437,25 +432,25 @@ END SUBROUTINE wf_calfld
         END SELECT
      end do
 
-     do I=1,3
-        NSD=nseg_nside_nelm(I,NE)
-        if(NSD.lt.0) then
-           NSD=-NSD
-           CE(I)=-CESD(NSD)
+     do nside=1,3
+        nseg=nseg_nside_nelm(nside,nelm)
+        if(nseg.lt.0) then
+           nseg=-nseg
+           CE(I)=-CESD_nseg(nseg)
         else
-           CE(I)=CESD(NSD)
+           CE(I)=CESD_nseg(nseg)
         end if
      end do
-     do I=1,3
-        NN=node_nside_nelm(I,NE)
-        CE(I+3)=CEND(NN)
+     do nside=1,3
+        node=node_nside_nelm(nside,nelm)
+        CE(I+3)=CEND_node(node)
      end do
 
-     do NS=1,NSMAX
-        PABS(NS,NE)=0.d0
+     do ns=1,NSMAX
+        pabs_ns_nelm(ns,nelm)=0.d0
         do JJ=1,6
            do II=1,6
-              PABS(NS,NE)=PABS(NS,NE)&
+              pabs_ns_nelm(ns,nelm)=pabs_ns_nelm(ns,nelm) &
                             +0.5d0*real(CONJG(CE(II))*CINT(NS,II,JJ)*CE(JJ))
            end do
         end do
@@ -468,25 +463,23 @@ END SUBROUTINE wf_calfld
   ndata=nelm_len_nrank(nrank)
   ALLOCATE(rdata(ndata),rdata_tot(nelm_max))
   DO ns=1,nsmax
-     rdata(1:ndata)=pabs(ns,nelm1:nelm2)
+     rdata(1:ndata)=pabs_ns_nelm(ns,nelm1:nelm2)
      CALL mtx_allgatherv_real8(rdata,ndata,rdata_tot,nelm_max, &
           nelm_len_nrank,nelm_pos_nrank)
-     pabs(ns,1:nelm_max)=rdata_tot(1:nelm_max)
+     pabs_ns_nelm(ns,1:nelm_max)=rdata_tot(1:nelm_max)
   END DO
 
-  do NS=1,NSMAX
-     PABST(NS)=0.d0
-     do NE=1,nelm_max
-        PABST(NS)=PABST(NS)+PABS(NS,NE)
+  do ns=1,NSMAX
+     pabs_ns(ns)=0.d0
+     do nelm=1,nelm_max
+        pabs_ns(ns)=pabs_ns(ns)+pabs_ns_nelm(ns,nelm)
      end do
   end do
 
-  PABSTT=0.D0
-  DO NS=1,NSMAX
-     PABSTT=PABSTT+PABST(NS)
+  pabs_tot=0.D0
+  DO ns=1,NSMAX
+     pabs_tot=pabs_tot+pabs_ns(ns)
   END DO
-
-  deallocate(PABS)
 
   RETURN
 END SUBROUTINE wf_pwrabs
@@ -500,67 +493,67 @@ END SUBROUTINE wf_pwrabs
     USE wfsub
   implicit none
 
-  integer    :: NE,NA,I,NN,IV
-  integer    :: IJ,NSD
+  integer    :: nelm,nant,node,nseg
+  integer    :: nside,I,IV,np
   real(rkind)    :: PHASE,RW,LIF(3),A(3),B(3),C(3)
-  real(rkind)    :: R1,R2,Z1,Z2,R21,Z21,MU(3,3,6)
+  real(rkind)    :: x1,x2,y1,y2,x21,y21,MU(3,3,6)
   complex(rkind) :: CE(6),CJ(3),CVJ
 
   ! --- initialize ---
 
   RW=2.D0*PI*RF*1.D6
 
-  do NA=1,nant_max
-     PHASE =APH(NA)*PI/180.D0
-     CVJ=AJ(NA)*EXP(CII*(PHASE))
-     CIMP(NA)=(0.d0,0.d0)
-     do IJ=2,JNUM(NA)
-        NE=JELMT(IJ,NA)
-        R1=RJ(IJ-1,NA)
-        Z1=ZJ(IJ-1,NA)
-        R2=RJ(IJ,NA)
-        Z2=ZJ(IJ,NA)
-        R21=R2-R1
-        Z21=Z2-Z1
-        CJ(1)=CVJ*R21
+  do nant=1,nant_max
+     PHASE =APH(nant)/180.D0
+     CVJ=AJ(nant)*EXP(CII*(PHASE))
+     cimp_nant(nant)=(0.d0,0.d0)
+     do np=2,np_max_nant(nant)
+        nelm=nelm_np_nant(np,nant)
+        x1=x_np_nant(np-1,nant)
+        y1=y_np_nant(np-1,nant)
+        x2=x_np_nant(np,nant)
+        y2=y_np_nant(np,nant)
+        x21=x2-x1
+        y21=y2-y1
+        CJ(1)=CVJ*x21
         CJ(2)=(0.d0,0.d0)
-        CJ(3)=CVJ*Z21
+        CJ(3)=CVJ*y21
 
-        call wf_set_abc(NE,A,B,C)
+        call wf_set_abc(nelm,A,B,C)
 
         SELECT CASE(MODELG)
         CASE(0,12)
            do I=1,3
               LIF(I)= A(I)*RR &
-                     +B(I)*RR*(R2+R1)/2.d0 &
-                     +C(I)*RR*(Z1+Z2)/2.d0           
+                     +B(I)*RR*(x2+x1)/2.d0 &
+                     +C(I)*RR*(y1+y2)/2.d0           
            end do
         CASE(1:10,13)
            do I=1,3
-              LIF(I)= A(I)*(R1+R2)/2.d0 &
-                     +B(I)*(R2**2+R1*R2+R1**2)/3.d0 &
-                     +C(I)*(R2*Z1+Z2*R1+2.d0*R2*Z2+2.d0*R1*Z1)/6.d0           
+              LIF(I)= A(I)*(x1+x2)/2.d0 &
+                     +B(I)*(x2**2+x1*x2+x1**2)/3.d0 &
+                     +C(I)*(x2*y1+y2*x1+2.d0*x2*y2+2.d0*x1*y1)/6.d0           
            end do
         END SELECT
-        do I=1,3
-        NSD=nseg_nside_nelm(I,NE)
-        if(NSD.lt.0) then
-           NSD=-NSD
-           CE(I)=-CESD(NSD)
+        do nside=1,3
+           nseg=nseg_nside_nelm(nside,nelm)
+           if(nseg.lt.0) then
+              nseg=-nseg
+              CE(I)=-CESD_nseg(nseg)
            else
-           CE(I)=CESD(NSD)
+              CE(I)= CESD_nseg(nseg)
            end if
         end do
-        do I=1,3
-           NN=node_nside_nelm(I,NE)
-           CE(I+3)=CEND(NN)
+        do nside=1,3
+           node=node_nside_nelm(nside,nelm)
+           CE(I+3)=CEND_node(node)
         end do
 
-        call wf_mutensr(NE,MU)
+        call wf_mutensr(nelm,MU)
 
         do I=1,3
            do IV=1,6
-              CIMP(NA)=CIMP(NA)&
+              cimp_nant(nant)=cimp_nant(nant)&
                          -0.5d0*LIF(I)*CONJG(CE(IV))&
                                       *( MU(I,1,IV)*CJ(1)&
                                         +MU(I,2,IV)*CJ(2)&
@@ -571,10 +564,9 @@ END SUBROUTINE wf_pwrabs
      end do
   end do
 
-  CTIMP=(0.d0,0.d0)
-
-  do NA=1,nant_max
-     CTIMP=CTIMP+CIMP(NA)
+  cimp_tot=(0.d0,0.d0)
+  do nant=1,nant_max
+     cimp_tot=cimp_tot+cimp_nant(nant)
   end do
 
   RETURN
@@ -586,7 +578,7 @@ END SUBROUTINE wf_pwrrad
 
     USE wfcomm
     IMPLICIT NONE
-    INTEGER:: NS,NA
+    INTEGER:: NS,nant
 
     IF(NPRINT.LT.1) RETURN
     IF(nrank.NE.0) RETURN
@@ -598,12 +590,12 @@ END SUBROUTINE wf_pwrrad
 !         1H ,'EMAX   =',1PE12.4 &
 !         ,3X ,'PNMAX  =',1PE12.4)
 
-    WRITE(6,120) DBLE(CTIMP),PABSTT
+    WRITE(6,120) DBLE(cimp_tot),pabs_tot
 120 FORMAT(1H ,'RADIATED POWER =',1PE12.4/ &
          1H ,'ABSORBED POWER =',1PE12.4)
 
-    DO NS=1,NSMAX
-       WRITE(6,126) NS,PABST(NS)
+    DO ns=1,NSMAX
+       WRITE(6,126) NS,pabs_ns(ns)
 126    FORMAT(1H ,'      PABS(',I2,') =',1PE12.4)
     END DO
 
@@ -611,9 +603,10 @@ END SUBROUTINE wf_pwrrad
 130 FORMAT(1H ,' I JNUM', '  AJ(I)','  APH(I)','  AWD(I)', &
             ' APOS(I)',' XJ(I)','  YJ(I)', &
             8X,'LOADING IMP.[ohm]')
-    DO NA=1,nant_max
-       WRITE(6,140) NA,JNUM(NA),AJ(NA),APH(NA),AWD(NA),APOS(NA), &
-                               RJ(1,NA),ZJ(1,NA),CIMP(NA)
+    DO nant=1,nant_max
+       WRITE(6,140) nant,np_max_nant(nant), &
+            AJ(nant),APH(nant),AWD(nant),APOS(nant), &
+            x_np_nant(1,nant),y_np_nant(1,nant),cimp_nant(nant)
 140    FORMAT(1H ,I2,I3,0PF8.2,F8.2,1X,4F7.4,2X,'(',1P2E12.4,')')
     END DO
 
@@ -631,38 +624,42 @@ END SUBROUTINE wf_pwrrad
   use wfcomm
   implicit none
 
-  integer :: I,J,NA
+  integer :: nelm,np,np0,nside,nant,node
 
   IF(NPRINT.LT.3) RETURN
   IF(nrank.NE.0) RETURN
      
   WRITE(6,110) node_max
 110 FORMAT(/' ','NODE DATA     : #### node_max =',I5,' ####'/&
-         &       ' ',2('  node_max',' KANOD',&
-         &       9X,'R',14X,'Z',9X))
-  WRITE(6,115) (I,KANOD(I),xnode(I),ynode(I),&
-       &              I=1,node_max)
+            ' ',2('  node_max',' mode_node',&
+                9X,'X',14X,'Y',9X))
+  WRITE(6,115) (node,mode_node(node),xnode(node),ynode(node),&
+       &              node=1,node_max)
 115 FORMAT((' ',2(2I6,2X,1P2E15.7,2X)))
   
-  WRITE(6,120) nelm_max,(I,(node_nside_nelm(J,I),J=1,3),I=1,nelm_max)
+  WRITE(6,120) nelm_max,(nelm,(node_nside_nelm(nside,nelm),nside=1,3), &
+       nelm=1,nelm_max)
 120 FORMAT(/' ','ELEMENT DATA  : #### nelm_max =',I5,' ####'/&
          &      (' ',4(I6,'(',3I5,')',2X)))
   
-  WRITE(6,125) nelm_max,(I,(nseg_nside_nelm(J,I),J=1,3),I=1,nelm_max)
+  WRITE(6,125) nelm_max,(nelm,(nseg_nside_nelm(nside,nelm),nside=1,3), &
+       nelm=1,nelm_max)
 125 FORMAT(/' ','SIDE    DATA  : #### nelm_max =',I5,' ####'/&
          &      (' ',2(I8,'(',3I8,')',2X)))
   
-  DO NA=1,nant_max
-     WRITE(6,140) NA,JNUM0(NA)
-140  FORMAT(/' ','ORIGINAL ANTENNA DATA : NA =',I5,' JNUM0 =',I5/&
+  DO nant=1,nant_max
+     WRITE(6,140) nant,np0_max_nant(nant)
+140  FORMAT(/' ','ORIGINAL ANTENNA DATA : nant =',I5,' JNUM0 =',I5/&
           &          ' ',2('  NO.',13X,' RJ0',11X,' ZJ0',6X))
-     WRITE(6,150) (I,RJ0(I,NA),ZJ0(I,NA),I=1,JNUM0(NA))
+     WRITE(6,150) (np0,x_np0_nant(np0,nant),y_np0_nant(np0,nant), &
+          np0=1,np0_max_nant(nant))
 150  FORMAT((' ',2(I5,8X,1P2E15.7)))
      
-     WRITE(6,154) NA,JNUM(NA)
-154  FORMAT(/' ','MODIFIED ANTENNA DATA : NA =',I5,' JNUM  =',I5/&
+     WRITE(6,154) nant,np_max_nant(nant)
+154  FORMAT(/' ','MODIFIED ANTENNA DATA : nant =',I5,' JNUM  =',I5/&
           &          ' ',2('  NO.',' JELM',8X,' JR ',11X,' JZ ',6X))
-     WRITE(6,156) (I,JELMT(I,NA),RJ(I,NA),ZJ(I,NA),I=1,JNUM(NA))
+     WRITE(6,156) (np,np_max_nant(nant), &
+          x_np_nant(np,nant),y_np_nant(np,nant),np=1,np_max_nant(nant))
 156  FORMAT((' ',2(2I5,3X,1P2E15.7)))
   ENDDO
   

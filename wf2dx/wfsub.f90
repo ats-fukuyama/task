@@ -5,7 +5,7 @@ MODULE wfsub
   PRIVATE
   PUBLIC wf_set_node_range
   PUBLIC wf_set_elm_area
-!  PUBLIC wfclass
+  PUBLIC wf_classify_xy
   PUBLIC wf_set_weight
   PUBLIC wf_set_abc
   PUBLIC wf_set_node
@@ -33,32 +33,32 @@ SUBROUTINE wf_set_node_range
   integer :: IN
   real(rkind) :: LNODE
 
-  RNDMIN=xnode(1)
-  RNDMAX=xnode(1)
-  ZNDMIN=ynode(1)
-  ZNDMAX=ynode(1)
+  xnode_min=xnode(1)
+  xnode_max=xnode(1)
+  ynode_min=ynode(1)
+  ynode_max=ynode(1)
   SELECT CASE(MODELG)
   CASE(0,1,12)
      LNODE=SQRT(xnode(1)**2+ynode(1)**2)
   CASE(2)
      LNODE=SQRT((xnode(1)-RR)**2+ynode(1)**2)
   END SELECT
-  LNDMIN=LNODE
-  LNDMAX=LNODE
+  len_min=LNODE
+  len_max=LNODE
      
   DO IN=2,node_max
-     RNDMIN=MIN(RNDMIN,xnode(IN))
-     RNDMAX=MAX(RNDMAX,xnode(IN))
-     ZNDMIN=MIN(ZNDMIN,ynode(IN))
-     ZNDMAX=MAX(ZNDMAX,ynode(IN))
+     xnode_min=MIN(xnode_min,xnode(IN))
+     xnode_max=MAX(xnode_max,xnode(IN))
+     ynode_min=MIN(ynode_min,ynode(IN))
+     ynode_max=MAX(ynode_max,ynode(IN))
      SELECT CASE(MODELG)
      CASE(0,1,11,12)
         LNODE=SQRT(xnode(IN)**2+ynode(IN)**2)
      CASE(2)
         LNODE=SQRT((xnode(IN)-RR)**2+ynode(IN)**2)
      END SELECT
-     LNDMIN=MIN(LNDMIN,LNODE)
-     LNDMAX=MAX(LNDMAX,LNODE)
+     len_min=MIN(len_min,LNODE)
+     len_max=MAX(len_max,LNODE)
   ENDDO
 
   RETURN
@@ -88,7 +88,7 @@ SUBROUTINE wf_set_elm_area
         end if
      end if
      
-     SELM(NE)=0.5D0*S
+     area_nelm(NE)=0.5D0*S
 
   end do
 
@@ -97,7 +97,7 @@ END SUBROUTINE wf_set_elm_area
 
 !     ******* Classify point location *******
 
-SUBROUTINE WFCLASS(NE,R,Z,WGT,IND)
+SUBROUTINE wf_classify_xy(NE,x,y,WGT,IND)
 !
 !   IND = 0 : point inside the element
 !         1 : on the edge 1
@@ -112,12 +112,12 @@ SUBROUTINE WFCLASS(NE,R,Z,WGT,IND)
   use wfcomm
   implicit none
   integer,intent(in) :: NE
-  real(rkind),intent(in) :: R,Z
+  real(rkind),intent(in) :: x,y
   real(rkind),intent(out):: WGT(3)
   integer,intent(out) :: IND
   REAL(rkind),PARAMETER:: eps=1.D-12
 
-  CALL wf_set_weight(NE,R,Z,WGT)
+  CALL wf_set_weight(NE,x,y,WGT)
 
   IF(WGT(1).GT.eps) THEN
      IF(WGT(2).GT.eps) THEN
@@ -149,7 +149,7 @@ SUBROUTINE WFCLASS(NE,R,Z,WGT,IND)
      END IF
   END IF
   RETURN
-END SUBROUTINE WFCLASS
+END SUBROUTINE wf_classify_xy
 
 !     ******* WEIGHT CALCULATION *******
 !     WEIGHT MEANS AREA COORDINATE
@@ -186,7 +186,7 @@ SUBROUTINE wf_set_abc(NE,A,B,C)
   real(rkind) :: RE(3),ZE(3),S
   
   CALL wf_set_node(NE,RE,ZE)
-  S=SELM(NE)
+  S=area_nelm(NE)
 
   do I=1,3
      J=I+1
@@ -327,153 +327,126 @@ SUBROUTINE wf_set_ewg
   USE wfcomm
   USE wfload,ONLY: wf_read_wg 
   implicit none
-  INTEGER:: nseg,NN1,NN2,NN,NBSD,NBND,IERR
+  INTEGER:: nseg,node1,node2,node,nbdy,IERR
   REAL(rkind):: ANGLE,X,Y,PHASE,PROD,FACTOR,SN
   COMPLEX(rkind):: CEX,CEY,CEZ
   REAL(rkind),PARAMETER:: EPSWG=1.D-12
 
-  ANGLE=ANGWG*PI/180.D0
+  ANGLE=angle_wg*PI/180.D0
 
 ! --- WG Electric field on boundary side ---  
 
-  nseg_bdy_max=0
-  DO nseg=1,nseg_max
-     IF(KASID(nseg).EQ.1) nseg_bdy_max=nseg_bdy_max+1
-  END DO
-  IF(nrank.EQ.0) write(6,*) '## setewg: nseg_bdy_max=',nseg_bdy_max
-  IF(ALLOCATED(NSDBS)) DEALLOCATE(NSDBS)
-  IF(ALLOCATED(CEBSD)) DEALLOCATE(CEBSD)
-  ALLOCATE(NSDBS(nseg_bdy_max))
-  ALLOCATE(CEBSD(nseg_bdy_max))
-  nseg_bdy_max=0
-  DO nseg=1,nseg_max
-     IF(KASID(nseg).EQ.1) THEN
-        nseg_bdy_max=nseg_bdy_max+1
-        NSDBS(nseg_bdy_max)=nseg
-        KBSID(nseg)=nseg_bdy_max
-     ELSE
-        KBSID(nseg)=0
-     END IF
-  END DO
-  DO NBSD=1,nseg_bdy_max
-     nseg=NSDBS(NBSD)
-     NN1=node_nseg(1,nseg)
-     NN2=node_nseg(2,nseg)
-     X=0.5D0*(xnode(NN1)+xnode(NN2))
-     Y=0.5D0*(ynode(NN1)+ynode(NN2))
-     SELECT CASE(MODELWG)
+  DO nbdy=1,nbdy_max
+     nseg=nseg_nbdy(nbdy)
+     node1=node_nseg(1,nseg)
+     node2=node_nseg(2,nseg)
+     X=0.5D0*(xnode(node1)+xnode(node2))
+     Y=0.5D0*(ynode(node1)+ynode(node2))
+     SELECT CASE(model_wg)
      CASE(0,1)
-        IF((X.GE.X1WG).AND.(X.LE.X2WG).AND. &
-           (Y.GE.Y1WG).AND.(Y.LE.Y2WG)) THEN
-           WRITE(6,'(A,2ES12.4)') 'X,Y in WG:',X,Y
-           PROD=(X2WG-X1WG)*(xnode(NN2)-xnode(NN1)) &
-               +(Y2WG-Y1WG)*(ynode(NN2)-ynode(NN1))
-           IF(ABS(X1WG-X2WG).LT.1.D-8) THEN
-              FACTOR=(Y-0.5D0*(Y1WG+Y2WG))**2/(Y1WG-Y2WG)**2
-           ELSE IF(ABS(Y1WG-Y2WG).LT.1.D-8) THEN
-              FACTOR=(X-0.5D0*(X1WG+X2WG))**2/(X1WG-X2WG)**2
+        IF((X.GE.xwg_min).AND.(X.LE.xwg_max).AND. &
+           (Y.GE.ywg_min).AND.(Y.LE.ywg_max)) THEN
+           PROD=(xwg_max-xwg_min)*(xnode(node2)-xnode(node1)) &
+               +(ywg_max-ywg_min)*(ynode(node2)-ynode(node1))
+           IF(ABS(xwg_max-xwg_min).LT.1.D-8) THEN
+              FACTOR=(Y-0.5D0*(ywg_min+ywg_max))**2/(ywg_max-ywg_min)**2
+           ELSE IF(ABS(ywg_max-ywg_min).LT.1.D-8) THEN
+              FACTOR=(X-0.5D0*(xwg_min+xwg_max))**2/(xwg_max-xwg_min)**2
            ELSE
-              FACTOR=(X-0.5D0*(X1WG+X2WG))**2/(X1WG-X2WG)**2 &
-                    +(Y-0.5D0*(Y1WG+Y2WG))**2/(Y1WG-Y2WG)**2
+              FACTOR=(X-0.5D0*(xwg_min+xwg_max))**2/(xwg_max-xwg_min)**2 &
+                    +(Y-0.5D0*(ywg_min+ywg_max))**2/(ywg_max-ywg_min)**2
            END IF
-           SN=SQRT((X   -X1WG)**2+(Y   -Y1WG)**2) &
-             /SQRT((X2WG-X1WG)**2+(Y2WG-Y1WG)**2) ! SN=0 at 1, 1 at 2
-           PHASE=(PH1WG+(PH2WG-PH1WG)*SN+DPHWG*4.D0*SN*(1.D0-SN))*PI/180.D0
-           CEBSD(NBSD)= AMPWG*EXP(CII*PHASE)*(SIN(ANGLE)-CII*ELPWG*COS(ANGLE))
-           IF(MODELWG.EQ.1) CEBSD(NBSD)=CEBSD(NBSD)*EXP(-10.D0*FACTOR)
-           IF(PROD.GT.0.D0) CEBSD(NBSD)=-CEBSD(NBSD)
-           WRITE(71,'(A,2I6,3ES12.4)') 'nbsd:',NBSD,nseg,X,Y,FACTOR
+           SN=SQRT((X   -xwg_min)**2+(Y   -ywg_min)**2) &
+             /SQRT((xwg_max-xwg_min)**2+(ywg_max-ywg_min)**2) ! SN=0-1
+           PHASE=phase_wg_min+(phase_wg_max-phase_wg_min)*SN &
+                +(phase_wg_cen-0.5D0*(phase_wg_min+phase_wg_max))*4.D0*SN*(1.D0-SN)
+           CESD_nbdy(nbdy)= amp_wg*EXP(CII*PHASE)*(SIN(ANGLE)-CII*ellip_wg*COS(ANGLE))
+           IF(model_wg.EQ.1) CESD_nbdy(nbdy)=CESD_nbdy(nbdy)*EXP(-10.D0*FACTOR)
+           IF(PROD.GT.0.D0) CESD_nbdy(nbdy)=-CESD_nbdy(nbdy)
+           WRITE(71,'(A,2I6,3ES12.4)') 'nbsd:',nbdy,nseg,X,Y,FACTOR
            WRITE(71,'(A,4ES12.4)')     '     ',SN,PHASE,EXP(CII*PHASE)
            WRITE(71,'(A,4ES12.4)') &
-                '     ',ANGLE,ELPWG,(SIN(ANGLE)-CII*ELPWG*COS(ANGLE))
+                '     ',ANGLE,ellip_wg,(SIN(ANGLE)-CII*ellip_wg*COS(ANGLE))
            WRITE(71,'(A,4ES12.4)') &
-                '     ',AMPWG,EXP(-10.D0*FACTOR),CEBSD(NBSD)
+                '     ',amp_wg,EXP(-10.D0*FACTOR),CESD_nbdy(nbdy)
            IF(nrank.EQ.0.AND.idebug.EQ.3) &
                 WRITE(6,'(A,2I8,1P5E12.4)') &
-                'SD:',nseg,NBSD,CEBSD(NBSD),AMPWG,PHASE,ANGLE
+                'SD:',nseg,nbdy,CEND_nbdy(nbdy),amp_wg,PHASE,ANGLE
         ELSE
-           CEBSD(NBSD)=(0.D0,0.D0)
+           CESD_nbdy(nbdy)=(0.D0,0.D0)
         END IF
      CASE(12)
-        IF((X.GE.X1WG-EPSWG).AND.(X.LE.X2WG+EPSWG).AND. &
-           (Y.GE.Y1WG-EPSWG).AND.(Y.LE.Y2WG+EPSWG)) THEN
-           PROD=(X2WG-X1WG)*(xnode(NN2)-xnode(NN1)) &
-               +(Y2WG-Y1WG)*(ynode(NN2)-ynode(NN1))
+        IF((X.GE.xwg_min).AND.(X.LE.xwg_max).AND. &
+           (Y.GE.ywg_min).AND.(Y.LE.ywg_max)) THEN
+           PROD=(xwg_max-xwg_min)*(xnode(node2)-xnode(node1)) &
+               +(ywg_max-ywg_min)*(ynode(node2)-ynode(node1))
            CALL wf_read_wg(Y,CEX,CEY,CEZ,IERR)
            IF(nrank.EQ.0.AND.idebug.EQ.3) &
                 write(6,'(A,1P6E12.4)') 'R,Z,CEY=', &
-                                    X,Y,CEY,PROD,ynode(NN2)-ynode(NN1)
+                                    X,Y,CEY,PROD,ynode(node2)-ynode(node1)
 !!!           IF(PROD.GT.0.D0) CEY=-CEY
-           CEBSD(NBSD)=AMPWG*CEY
+           CESD_nbdy(nbdy)=amp_wg*CEY
         ELSE
-           CEBSD(NBSD)=(0.D0,0.D0)
+           CESD_nbdy(nbdy)=(0.D0,0.D0)
         END IF
      END SELECT
   END DO
 
 ! --- WG Electric field on boundary node ---  
 
-  node_bdy_max=0
-  DO NN=1,node_max
-     IF(KANOD(NN).EQ.1) node_bdy_max=node_bdy_max+1
-  END DO
-  IF(nrank.EQ.0) write(6,*) '## setewg: node_bdy_max=',node_bdy_max
-  IF(ALLOCATED(NNDBS)) DEALLOCATE(NNDBS)
-  IF(ALLOCATED(CEBND)) DEALLOCATE(CEBND)
-  ALLOCATE(NNDBS(node_bdy_max))
-  ALLOCATE(CEBND(node_bdy_max))
-  node_bdy_max=0
-  DO NN=1,node_max
-     IF(KANOD(NN).EQ.1) THEN
-        node_bdy_max=node_bdy_max+1
-        NNDBS(node_bdy_max)=NN
-        KBNOD(NN)=node_bdy_max
+  nbdy=0
+  DO node=1,node_max
+     IF(mode_node(node).EQ.1) THEN
+        nbdy=nbdy+1
+        node_nbdy(nbdy)=node
+        nbdy_node(node)=nbdy
      ELSE
-        KBNOD(NN)=0
+        nbdy_node(node)=0
      END IF
   END DO
-  DO NBND=1,node_bdy_max
-     NN=NNDBS(NBND)
-     X=xnode(NN)
-     Y=ynode(NN)
-     SELECT CASE(MODELWG)
+  DO nbdy=1,nbdy_max
+     node=node_nbdy(nbdy)
+     X=xnode(node)
+     Y=ynode(node)
+     SELECT CASE(model_wg)
      CASE(0,1)
-        IF((X.GE.X1WG).AND.(X.LE.X2WG).AND. &
-           (Y.GE.Y1WG).AND.(Y.LE.Y2WG)) THEN
-           IF(ABS(X1WG-X2WG).LT.1.D-8) THEN
-              FACTOR=(Y-0.5D0*(Y1WG+Y2WG))**2/(Y1WG-Y2WG)**2
-           ELSE IF(ABS(Y1WG-Y2WG).LT.1.D-8) THEN
-              FACTOR=(x-0.5D0*(X1WG+X2WG))**2/(X1WG-X2WG)**2
+        IF((X.GE.xwg_min).AND.(X.LE.xwg_max).AND. &
+           (Y.GE.ywg_min).AND.(Y.LE.ywg_max)) THEN
+           IF(ABS(xwg_max-xwg_min).LT.1.D-8) THEN
+              FACTOR=(y-0.5D0*(ywg_min+ywg_max))**2/(ywg_max-ywg_min)**2
+           ELSE IF(ABS(ywg_max-ywg_min).LT.1.D-8) THEN
+              FACTOR=(x-0.5D0*(xwg_min+xwg_max))**2/(xwg_max-xwg_min)**2
            ELSE
-              FACTOR=(X-0.5D0*(X1WG+X2WG))**2/(X1WG-X2WG)**2 &
-                    +(Y-0.5D0*(Y1WG+Y2WG))**2/(Y1WG-Y2WG)**2
+              FACTOR=(X-0.5D0*(xwg_min+xwg_max))**2/(xwg_max-xwg_min)**2 &
+                    +(Y-0.5D0*(ywg_min+ywg_max))**2/(ywg_max-ywg_min)**2
            END IF
-           SN=SQRT((X   -X1WG)**2+(Y   -Y1WG)**2) &
-                /SQRT((X2WG-X1WG)**2+(Y2WG-Y1WG)**2) ! SN=0 at 1, 1 at 2
-           PHASE=(PH1WG+(PH2WG-PH1WG)*SN+DPHWG*4.D0*SN*(1.D0-SN))*PI/180.D0
-           CEBND(NBND)= AMPWG*EXP(CII*PHASE)*(COS(ANGLE)+CII*ELPWG*SIN(ANGLE))
-           IF(MODELWG.EQ.1) CEBND(NBND)=CEBND(NBND)*EXP(-10.D0*FACTOR)
-           WRITE(71,'(A,2I6,3ES12.4)') 'nbnd:',NBND,NN,X,Y,FACTOR
+           SN=SQRT((X   -xwg_min)**2+(Y   -ywg_min)**2) &
+             /SQRT((xwg_max-xwg_min)**2+(ywg_max-ywg_min)**2) ! SN=0-1
+           PHASE=phase_wg_min+(phase_wg_max-phase_wg_min)*SN &
+                +(phase_wg_cen-0.5D0*(phase_wg_min+phase_wg_max))*4.D0*SN*(1.D0-SN)
+           CEND_nbdy(nbdy)= amp_wg*EXP(CII*PHASE)*(COS(ANGLE)+CII*ellip_wg*SIN(ANGLE))
+           IF(model_wg.EQ.1) CEND_nbdy(nbdy)=CEND_nbdy(nbdy)*EXP(-10.D0*FACTOR)
+           WRITE(71,'(A,2I6,3ES12.4)') 'nbdy:',nbdy,node,X,Y,FACTOR
            WRITE(71,'(A,4ES12.4)')     '     ',SN,PHASE,EXP(CII*PHASE)
            WRITE(71,'(A,4ES12.4)') &
-                '     ',ANGLE,ELPWG,(COS(ANGLE)+CII*ELPWG*SIN(ANGLE))
+                '     ',ANGLE,ellip_wg,(COS(ANGLE)+CII*ellip_wg*SIN(ANGLE))
            WRITE(71,'(A,4ES12.4)') &
-                '     ',AMPWG,EXP(-10.D0*FACTOR),CEBND(NBND)
+                '     ',amp_wg,EXP(-10.D0*FACTOR),CEND_nbdy(nbdy)
            IF(nrank.EQ.0.AND.idebug.EQ.3) &
                 WRITE(6,'(A,2I8,1P5E12.4)') &
-                'ND:',NN,NBND,CEBND(NBND),AMPWG,PHASE,ANGLE
+                'node:',node,nbdy,CEND_nbdy(nbdy),amp_wg,PHASE,ANGLE
         ELSE
-           CEBND(NBND)=(0.D0,0.D0)
+           CEND_nbdy(nbdy)=(0.D0,0.D0)
         END IF
      CASE(12)
-        IF((X.GE.X1WG-EPSWG).AND.(X.LE.X2WG+EPSWG).AND. &
-           (Y.GE.Y1WG-EPSWG).AND.(Y.LE.Y2WG+EPSWG)) THEN
+        IF((X.GE.xwg_min).AND.(X.LE.xwg_max).AND. &
+           (Y.GE.ywg_min).AND.(Y.LE.ywg_max)) THEN
            CALL wf_read_wg(Y,CEX,CEY,CEZ,IERR)
            IF(nrank.EQ.0.AND.idebug.EQ.3) &
                 write(6,'(A,1P4E12.4)') 'X,Y,CEZ=',X,Y,CEZ
-           CEBND(NBND)=AMPWG*CEZ
+           CEND_nbdy(nbdy)=amp_wg*CEZ
         ELSE
-           CEBND(NBND)=(0.D0,0.D0)
+           CEND_nbdy(nbdy)=(0.D0,0.D0)
         END IF
      END SELECT
      END DO
@@ -490,7 +463,7 @@ SUBROUTINE wf_set_lside
   real(rkind) :: R1,R2,Z1,Z2,L
 
   do nseg=1,nseg_max
-     LSID(nseg)=0.d0
+     len_nseg(nseg)=0.d0
   end do
 
   do nseg=1,nseg_max
@@ -502,7 +475,7 @@ SUBROUTINE wf_set_lside
      Z2 =ynode(ND2)
 
      L =SQRT((R2-R1)**2+(Z2-Z1)**2)
-     LSID(nseg)=L
+     len_nseg(nseg)=L
   end do
   return
 end SUBROUTINE wf_set_lside
@@ -558,14 +531,14 @@ END SUBROUTINE wf_cross
 
 !     ****** COMPLEX VALUE FIELD AT ELEMENT(NE),POINT(R,Z) [R]******
 
-SUBROUTINE wf_fieldcr(NE,R,Z,CVALUE,CE)
+SUBROUTINE wf_fieldcr(NE,x,y,CVALUE,CE)
 
   use wfcomm
   implicit none
   integer,intent(in) :: NE
   integer :: ISD,M,N,nseg
-  real(rkind),intent(in) :: R,Z
-  real(rkind) :: A(3),B(3),C(3),AW(3),BW(3),WEIGHT,L
+  real(rkind),intent(in) :: x,y
+  real(rkind) :: A(3),B(3),C(3),AW(3),BW(3),WEIGHT,len
   complex(rkind),intent(in) :: CVALUE(nseg_max)
   complex(rkind):: CF
   complex(rkind),intent(out) :: CE
@@ -573,21 +546,21 @@ SUBROUTINE wf_fieldcr(NE,R,Z,CVALUE,CE)
   CALL wf_set_abc(NE,A,B,C)
   do ISD=1,3
      nseg=ABS(nseg_nside_nelm(ISD,NE))
-     IF(MODELWF.EQ.0) THEN
-        L=LSID(nseg)
+     IF(model_wf.EQ.0) THEN
+        len=len_nseg(nseg)
      ELSE
         IF(nseg_nside_nelm(ISD,NE).GT.0.D0) THEN
-           L=LSID(nseg)
+           len=len_nseg(nseg)
         ELSE
-           L=-LSID(nseg)
+           len=-len_nseg(nseg)
         END IF
      END IF
 
      M=ISD
      N=ISD+1
      IF(N.gt.3) N=N-3
-     AW(ISD)=L*(A(M)*B(N)-A(N)*B(M))
-     BW(ISD)=L*(B(M)*C(N)-B(N)*C(M))
+     AW(ISD)=len*(A(M)*B(N)-A(N)*B(M))
+     BW(ISD)=len*(B(M)*C(N)-B(N)*C(M))
   end do
   CE=(0.d0,0.d0)
 
@@ -599,7 +572,7 @@ SUBROUTINE wf_fieldcr(NE,R,Z,CVALUE,CE)
      else
         CF=CVALUE(nseg)
      end if
-     WEIGHT=AW(ISD)-BW(ISD)*Z
+     WEIGHT=AW(ISD)-BW(ISD)*y
      CE=CE+WEIGHT*CF
      IF(idebug.EQ.-1) &
           WRITE(6,'(A,I10,I5,1P5E12.4)') 'FR:',NE,ISD,weight,CF,CE
@@ -608,16 +581,16 @@ SUBROUTINE wf_fieldcr(NE,R,Z,CVALUE,CE)
   RETURN
 END SUBROUTINE wf_fieldcr
 
-!     ****** COMPLEX VALUE FIELD AT ELEMENT(NE),POINT(R,Z) [Z]******
+!     ****** COMPLEX VALUE FIELD AT ELEMENT(NE),POINT(x,y) [Z]******
 
-SUBROUTINE wf_fieldcz(NE,R,Z,CVALUE,CE)
+SUBROUTINE wf_fieldcz(NE,x,y,CVALUE,CE)
 
   use wfcomm
   implicit none
   integer,intent(in) :: NE
   integer :: ISD,M,N,nseg
-  real(rkind),intent(in) :: R,Z
-  real(rkind) :: A(3),B(3),C(3),BW(3),CW(3),WEIGHT,L
+  real(rkind),intent(in) :: x,y
+  real(rkind) :: A(3),B(3),C(3),BW(3),CW(3),WEIGHT,len
   complex(rkind),intent(in) :: CVALUE(nseg_max)
   complex(rkind):: CF
   complex(rkind),intent(out) :: CE
@@ -625,21 +598,21 @@ SUBROUTINE wf_fieldcz(NE,R,Z,CVALUE,CE)
   CALL wf_set_abc(NE,A,B,C)
   do ISD=1,3
      nseg=ABS(nseg_nside_nelm(ISD,NE))
-     IF(MODELWF.EQ.0) THEN
-        L=LSID(nseg)
+     IF(model_wf.EQ.0) THEN
+        len=len_nseg(nseg)
      ELSE
         IF(nseg_nside_nelm(ISD,NE).GT.0.D0) THEN
-           L=LSID(nseg)
+           len=len_nseg(nseg)
         ELSE
-           L=-LSID(nseg)
+           len=-len_nseg(nseg)
         END IF
      END IF
      
      M=ISD
      N=ISD+1
      IF(N.gt.3) N=N-3
-     BW(ISD)=L*(B(M)*C(N)-B(N)*C(M))
-     CW(ISD)=L*(C(M)*A(N)-C(N)*A(M))
+     BW(ISD)=len*(B(M)*C(N)-B(N)*C(M))
+     CW(ISD)=len*(C(M)*A(N)-C(N)*A(M))
   end do
   CE=(0.d0,0.d0)
 
@@ -651,7 +624,7 @@ SUBROUTINE wf_fieldcz(NE,R,Z,CVALUE,CE)
      else
         CF=CVALUE(nseg)
      end if
-     WEIGHT=-CW(ISD)+BW(ISD)*R
+     WEIGHT=-CW(ISD)+BW(ISD)*x
      CE=CE+WEIGHT*CF
   END DO
 

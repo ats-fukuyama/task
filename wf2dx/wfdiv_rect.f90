@@ -38,13 +38,14 @@ CONTAINS
          '## DIV:   del_xr,del_yr = ',del_xr,del_yr
     IF(ABS(del_xr).LE.1.D-6.OR.ABS(del_yr).LE.1.D-6) GOTO 2
     
-    itype_mesh=1
+    mode_mesh=1
 
 9   CONTINUE
     RETURN
   END SUBROUTINE wf_div_rect_input
            
   SUBROUTINE wf_div_rect_exec
+    USE femcomm
     IMPLICIT NONE
 
     INTEGER :: node,nelm
@@ -66,11 +67,11 @@ CONTAINS
     IF(MOD(nyr_max,2).EQ.0) nyr_max=nyr_max+1 ! nyr_max should be odd number
     dyr=DBLE(yr_len/(nyr_max-1))
     node_max=nxr_max*nyr_max
-    CALL wf_node_allocate
 
     ! --- set nelm_max ---
     nelm_max=2*(nxr_max-1)*(nyr_max-1)
-    CALL wf_nelm_allocate
+
+    CALL fem_base_allocate
 
     ! --- set node coordinates ---
 

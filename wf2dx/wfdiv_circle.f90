@@ -32,13 +32,14 @@ CONTAINS
     READ(5,*,ERR=2,END=1)del_r
     IF(ABS(del_r).LE.1.D-6) goto 2
     
-    itype_mesh=2
+    mode_mesh=2
     
 9   CONTINUE
     RETURN
   END SUBROUTINE wf_div_circle_input
            
   SUBROUTINE wf_div_circle_exec
+    USE femcomm
     IMPLICIT NONE
 
     INTEGER :: node,nelm
@@ -63,7 +64,6 @@ CONTAINS
        node=node+nthmax_nr(nr)
     END DO
     node_max=node
-    CALL wf_node_allocate
 
     ! --- set nelm_max ---
 
@@ -72,7 +72,8 @@ CONTAINS
        nelm=nelm+nthmax_nr(nr)+nthmax_nr(nr+1)
     END DO
     nelm_max=nelm
-    CALL wf_nelm_allocate
+    
+    CALL fem_base_allocate
 
     ! --- set node coordinates ---
   

@@ -32,7 +32,7 @@ SUBROUTINE wf_ctog_side(ID,KWD)
   CHARACTER  :: KID*1
 
   real(rkind) :: theta
-  complex(rkind)::CE_R,CE_Z
+  complex(rkind)::CE_x,CE_y
 
   KID=KWD(3:3)
   IE=0
@@ -53,44 +53,44 @@ SUBROUTINE wf_ctog_side(ID,KWD)
               GZ(NGX,NGY)=0.0
            ELSE
               IF(ID.eq.1) THEN
-                 CALL wf_fieldcr(IE,X,Y,CESD,CE)
+                 CALL wf_fieldcr(IE,X,Y,CESD_nseg,CE)
               ELSE IF(ID.eq.3) THEN
-                 CALL wf_fieldcz(IE,X,Y,CESD,CE)
+                 CALL wf_fieldcz(IE,X,Y,CESD_nseg,CE)
               ELSEIF(ID.eq.4.or.ID.eq.6) THEN
                  theta=datan2(Y,(X-RR))
-                 CALL wf_fieldcr(IE,X,Y,CESD,CE)
-                 CE_R=CE
-                 CALL wf_fieldcz(IE,X,Y,CESD,CE)
-                 CE_Z=CE
+                 CALL wf_fieldcr(IE,X,Y,CESD_nseg,CE)
+                 CE_x=CE
+                 CALL wf_fieldcz(IE,X,Y,CESD_nseg,CE)
+                 CE_y=CE
                  if(ID.eq.4) then
-                    CE=-CE_R*cos(theta)-CE_Z*sin(theta)
+                    CE=-CE_x*cos(theta)-CE_y*sin(theta)
                  elseif(ID.eq.6) then
-                    CE= CE_R*sin(theta)-CE_Z*cos(theta)
+                    CE= CE_x*sin(theta)-CE_y*cos(theta)
                  end if
               ENDIF
               IF(ABS(CE).LT.1.D-12) CE=(0.D0,0.D0)
 !              IF(Y.GT.0.3D0.AND.Y.LT.0.5D0) THEN
 !              N1=nseg_nside_nelm(1,IE)
 !              IF(N1.GT.0) THEN
-!                 CE1=CESD(N1)
+!                 CE1=CESD_nseg(N1)
 !              ELSE
-!                 CE1=-CESD(-N1)
+!                 CE1=-CESD_nseg(-N1)
 !              END IF
 !              N2=nseg_nside_nelm(2,IE)
 !              IF(N2.GT.0) THEN
-!                 CE2=CESD(N2)
+!                 CE2=CESD_nseg(N2)
 !              ELSE
-!                 CE2=-CESD(-N2)
+!                 CE2=-CESD_nseg(-N2)
 !              END IF
 !              N3=nseg_nside_nelm(3,IE)
 !              IF(N3.GT.0) THEN
-!                 CE3=CESD(N3)
+!                 CE3=CESD_nseg(N3)
 !              ELSE
-!                 CE3=-CESD(-N3)
+!                 CE3=-CESD_nseg(-N3)
 !              END IF
              
 !              IF(ABS(CE).NE.0.D0) THEN
-!                 WRITE(6,'(A,I12,1P5E12.4)') 'CESD:',IE,X,Y,CE
+!                 WRITE(6,'(A,I12,1P5E12.4)') 'CESD_nseg:',IE,X,Y,CE
 !                 WRITE(6,'(A,1P6E12.4)')     '     ', CE1,CE2,CE3
 !                 WRITE(6,'(A,1P6E12.4)')     '     ', &
 !                      xnode(node_nside_nelm(1,IE)),ynode(node_nside_nelm(1,IE)), &
@@ -115,9 +115,9 @@ SUBROUTINE wf_ctog_side(ID,KWD)
 
   elseif(KID.eq.'X') then
      READ(KWD(4:NCHM),*,ERR=9000) YPOS
-     DX=(RNDMAX-RNDMIN)/(NGVMAX-1)
+     DX=(xnode_max-xnode_min)/(NGVMAX-1)
      DO NGV=1,NGVMAX
-        X=RNDMIN+DX*(NGV-1)
+        X=xnode_min+DX*(NGV-1)
         CALL fem_find_nelm_for_xy(x,ypos,ie)
         IF(IE.EQ.0) THEN
            GX(NGV)=gdclip(X)
@@ -126,19 +126,19 @@ SUBROUTINE wf_ctog_side(ID,KWD)
            GV(NGV,3)=0.0
         ELSE
            IF(ID.eq.1) THEN
-              CALL wf_fieldcr(IE,X,YPOS,CESD,CE)
+              CALL wf_fieldcr(IE,X,YPOS,CESD_nseg,CE)
            ELSE IF(ID.eq.3) THEN
-              CALL wf_fieldcz(IE,X,YPOS,CESD,CE)
+              CALL wf_fieldcz(IE,X,YPOS,CESD_nseg,CE)
            ELSEIF(ID.eq.4.or.ID.eq.6) THEN
               theta=datan2(Y,(X-RR))
-              CALL wf_fieldcr(IE,X,Y,CESD,CE)
-              CE_R=CE
-              CALL wf_fieldcz(IE,X,Y,CESD,CE)
-              CE_Z=CE
+              CALL wf_fieldcr(IE,X,Y,CESD_nseg,CE)
+              CE_x=CE
+              CALL wf_fieldcz(IE,X,Y,CESD_nseg,CE)
+              CE_y=CE
               if(ID.eq.4) then
-                 CE=-CE_R*cos(theta)-CE_Z*sin(theta)
+                 CE=-CE_x*cos(theta)-CE_y*sin(theta)
               elseif(ID.eq.6) then
-                 CE= CE_R*sin(theta)-CE_Z*cos(theta)
+                 CE= CE_x*sin(theta)-CE_y*cos(theta)
               end if
            ENDIF
            IF(ABS(CE).LT.1.D-12) CE=(0.D0,0.D0)
@@ -148,10 +148,10 @@ SUBROUTINE wf_ctog_side(ID,KWD)
            GV(NGV,3)=gdclip(ABS(CE))
         ENDIF
 !        IF(ABS(CE).NE.0.D0) THEN
-!           WRITE(6,'(A,I12,1P5E12.4)') 'CESD:',IE,X,YPOS,CE
+!           WRITE(6,'(A,I12,1P5E12.4)') 'CESD_nseg:',IE,X,YPOS,CE
 !           WRITE(6,'(A,1P6E12.4)')     '     ', &
-!                CESD(ABS(nseg_nside_nelm(1,IE))),CESD(ABS(nseg_nside_nelm(2,IE))), &
-!                CESD(ABS(nseg_nside_nelm(3,IE)))
+!                CESD_nseg(ABS(nseg_nside_nelm(1,IE))),CESD_nseg(ABS(nseg_nside_nelm(2,IE))), &
+!                CESD_nseg(ABS(nseg_nside_nelm(3,IE)))
 !           WRITE(6,'(A,1P6E12.4)')     '     ', &
 !                xnode(node_nside_nelm(1,IE)),ynode(node_nside_nelm(1,IE)), &
 !                xnode(node_nside_nelm(2,IE)),ynode(node_nside_nelm(2,IE)), &
@@ -163,9 +163,9 @@ SUBROUTINE wf_ctog_side(ID,KWD)
 
   else if(KID.eq.'Y') then
      READ(KWD(4:NCHM),*,ERR=9000) XPOS
-     DY=(ZNDMAX-ZNDMIN)/(NGVMAX-1)
+     DY=(ynode_max-ynode_min)/(NGVMAX-1)
      DO NGV=1,NGVMAX
-        Y=ZNDMIN+DY*(NGV-1)
+        Y=ynode_min+DY*(NGV-1)
         IF(Y.GT.0.4D0.AND.Y.LT.0.41D0) THEN
            idebug=-1
         ELSE
@@ -179,43 +179,43 @@ SUBROUTINE wf_ctog_side(ID,KWD)
            GV(NGV,3)=0.0
         ELSE
            IF(ID.eq.1) THEN
-              CALL wf_fieldcr(IE,XPOS,Y,CESD,CE)
+              CALL wf_fieldcr(IE,XPOS,Y,CESD_nseg,CE)
            ELSE IF(ID.eq.3) THEN
-              CALL wf_fieldcz(IE,XPOS,Y,CESD,CE)
+              CALL wf_fieldcz(IE,XPOS,Y,CESD_nseg,CE)
            ELSEIF(ID.eq.4.or.ID.eq.6) THEN
               theta=datan2(Y,(X-RR))
-              CALL wf_fieldcr(IE,X,Y,CESD,CE)
-              CE_R=CE
-              CALL wf_fieldcz(IE,X,Y,CESD,CE)
-              CE_Z=CE
+              CALL wf_fieldcr(IE,X,Y,CESD_nseg,CE)
+              CE_x=CE
+              CALL wf_fieldcz(IE,X,Y,CESD_nseg,CE)
+              CE_y=CE
               if(ID.eq.4) then
-                 CE=-CE_R*cos(theta)-CE_Z*sin(theta)
+                 CE=-CE_x*cos(theta)-CE_y*sin(theta)
               elseif(ID.eq.6) then
-                 CE= CE_R*sin(theta)-CE_Z*cos(theta)
+                 CE= CE_x*sin(theta)-CE_y*cos(theta)
               end if
            ENDIF
 !              IF(idebug.EQ.-1) THEN
 !              N1=nseg_nside_nelm(1,IE)
 !              IF(N1.GT.0) THEN
-!                 CE1=CESD(N1)
+!                 CE1=CESD_nseg(N1)
 !              ELSE
-!                 CE1=-CESD(-N1)
+!                 CE1=-CESD_nseg(-N1)
 !              END IF
 !              N2=nseg_nside_nelm(2,IE)
 !              IF(N2.GT.0) THEN
-!                 CE2=CESD(N2)
+!                 CE2=CESD_nseg(N2)
 !              ELSE
-!                 CE2=-CESD(-N2)
+!                 CE2=-CESD_nseg(-N2)
 !              END IF
 !              N3=nseg_nside_nelm(3,IE)
 !              IF(N3.GT.0) THEN
-!                 CE3=CESD(N3)
+!                 CE3=CESD_nseg(N3)
 !              ELSE
-!                 CE3=-CESD(-N3)
+!                 CE3=-CESD_nseg(-N3)
 !              END IF
              
 !              IF(ABS(CE).NE.0.D0) THEN
-!                 WRITE(6,'(A,I12,1P5E12.4)') 'CESD:',IE,XPOS,Y,CE
+!                 WRITE(6,'(A,I12,1P5E12.4)') 'CESD_nseg:',IE,XPOS,Y,CE
 !                 WRITE(6,'(A,1P6E12.4)')     '     ', CE1,CE2,CE3
 !                 WRITE(6,'(A,1P6E12.4)')     '     ', &
 !                      xnode(node_nside_nelm(1,IE)),ynode(node_nside_nelm(1,IE)), &
@@ -272,17 +272,17 @@ SUBROUTINE wf_ctog_node(ID,KWD)
               GZ(NGX,NGY)=0.0
            ELSE
               IF(ID.eq.2) THEN
-                 CALL wf_fieldcp(IE,X,Y,CEND,CE)
+                 CALL wf_fieldcp(IE,X,Y,CEND_node,CE)
               ! -----------
               ELSEIF(ID.eq.5) THEN
-                 CALL wf_fieldcp(IE,X,Y,CEND,CE)
+                 CALL wf_fieldcp(IE,X,Y,CEND_node,CE)
                  CE=-CE
               ENDIF
               IF(ABS(CE).LT.1.D-12) CE=(0.D0,0.D0)
 !              IF(ABS(CE).NE.0.D0) THEN
-!                 WRITE(6,'(A,I12,1P5E12.4)') 'CEND:',IE,X,Y,CE
+!                 WRITE(6,'(A,I12,1P5E12.4)') 'CEND_node:',IE,X,Y,CE
 !                 WRITE(6,'(A,1P6E12.4)')     '     ', &
-!                      CEND(node_nside_nelm(1,IE)),CEND(node_nside_nelm(2,IE)),CEND(node_nside_nelm(3,IE))
+!                      CEND_node(node_nside_nelm(1,IE)),CEND_node(node_nside_nelm(2,IE)),CEND_node(node_nside_nelm(3,IE))
 !                 WRITE(6,'(A,1P6E12.4)')     '     ', &
 !                      xnode(node_nside_nelm(1,IE)),ynode(node_nside_nelm(1,IE)), &
 !                      xnode(node_nside_nelm(2,IE)),ynode(node_nside_nelm(2,IE)), &
@@ -305,9 +305,9 @@ SUBROUTINE wf_ctog_node(ID,KWD)
 
   elseif(KID.eq.'X') then
      READ(KWD(4:NCHM),*,ERR=9000) YPOS
-     DX=(RNDMAX-RNDMIN)/(NGVMAX-1)
+     DX=(xnode_max-xnode_min)/(NGVMAX-1)
      DO NGV=1,NGVMAX
-        X=RNDMIN+DX*(NGV-1)
+        X=xnode_min+DX*(NGV-1)
         CALL fem_find_nelm_for_xy(x,ypos,ie)
         IF(IE.EQ.0) THEN
            GX(NGV)=gdclip(X)
@@ -316,9 +316,9 @@ SUBROUTINE wf_ctog_node(ID,KWD)
            GV(NGV,3)=0.0
         ELSE
            IF(ID.eq.2) THEN
-              CALL wf_fieldcp(IE,X,YPOS,CEND,CE)
+              CALL wf_fieldcp(IE,X,YPOS,CEND_node,CE)
            ELSE IF(ID.eq.5) THEN
-              CALL wf_fieldcp(IE,X,YPOS,CEND,CE)
+              CALL wf_fieldcp(IE,X,YPOS,CEND_node,CE)
               CE=-CE
            ENDIF
            IF(ABS(CE).LT.1.D-12) CE=(0.D0,0.D0)
@@ -328,9 +328,9 @@ SUBROUTINE wf_ctog_node(ID,KWD)
            GV(NGV,3)=gdclip(ABS(CE))
         ENDIF
 !        IF(ABS(CE).NE.0.D0) THEN
-!           WRITE(6,'(A,I12,1P5E12.4)') 'CEND:',IE,X,Y,CE
+!           WRITE(6,'(A,I12,1P5E12.4)') 'CEND_node:',IE,X,Y,CE
 !           WRITE(6,'(A,1P6E12.4)')     '     ', &
-!                CEND(node_nside_nelm(1,IE)),CEND(node_nside_nelm(2,IE)),CEND(node_nside_nelm(3,IE))
+!                CEND_node(node_nside_nelm(1,IE)),CEND_node(node_nside_nelm(2,IE)),CEND_node(node_nside_nelm(3,IE))
 !           WRITE(6,'(A,1P6E12.4)')     '     ', &
 !                xnode(node_nside_nelm(1,IE)),ynode(node_nside_nelm(1,IE)), &
 !                xnode(node_nside_nelm(2,IE)),ynode(node_nside_nelm(2,IE)), &
@@ -339,9 +339,9 @@ SUBROUTINE wf_ctog_node(ID,KWD)
      ENDDO
   else if(KID.eq.'Y') then
      READ(KWD(4:NCHM),*,ERR=9000) XPOS
-     DY=(ZNDMAX-ZNDMIN)/(NGVMAX-1)
+     DY=(ynode_max-ynode_min)/(NGVMAX-1)
      DO NGV=1,NGVMAX
-        Y=ZNDMIN+DY*(NGV-1)
+        Y=ynode_min+DY*(NGV-1)
         CALL fem_find_nelm_for_xy(xpos,y,ie)
         IF(IE.EQ.0) THEN
            GX(NGV)=gdclip(Y)
@@ -350,9 +350,9 @@ SUBROUTINE wf_ctog_node(ID,KWD)
            GV(NGV,3)=0.0
         ELSE
            IF(ID.eq.2) THEN
-              CALL wf_fieldcp(IE,XPOS,Y,CEND,CE)
+              CALL wf_fieldcp(IE,XPOS,Y,CEND_node,CE)
            ELSE IF(ID.eq.5) THEN
-              CALL wf_fieldcz(IE,XPOS,Y,CEND,CE)
+              CALL wf_fieldcz(IE,XPOS,Y,CEND_node,CE)
               CE=-CE
            ENDIF
            IF(ABS(CE).LT.1.D-12) CE=(0.D0,0.D0)
@@ -362,9 +362,9 @@ SUBROUTINE wf_ctog_node(ID,KWD)
            GV(NGV,3)=gdclip(ABS(CE))
         ENDIF
 !        IF(ABS(CE).NE.0.D0) THEN
-!           WRITE(6,'(A,I12,1P5E12.4)') 'CEND:',IE,X,Y,CE
+!           WRITE(6,'(A,I12,1P5E12.4)') 'CEND_node:',IE,X,Y,CE
 !           WRITE(6,'(A,1P6E12.4)')     '     ', &
-!                CEND(node_nside_nelm(1,IE)),CEND(node_nside_nelm(2,IE)),CEND(node_nside_nelm(3,IE))
+!                CEND_node(node_nside_nelm(1,IE)),CEND_node(node_nside_nelm(2,IE)),CEND_node(node_nside_nelm(3,IE))
 !           WRITE(6,'(A,1P6E12.4)')     '     ', &
 !                xnode(node_nside_nelm(1,IE)),ynode(node_nside_nelm(1,IE)), &
 !                xnode(node_nside_nelm(2,IE)),ynode(node_nside_nelm(2,IE)), &
@@ -388,8 +388,8 @@ SUBROUTINE wf_gwin_range(NW,NWMAX,PXMIN,PXMAX,PYMIN,PYMAX)
   real(rkind),intent(out) :: PXMIN,PXMAX,PYMIN,PYMAX
   real(rkind) :: DXLEN,DYLEN,DRATIO,PXLEN,PYLEN
 
-  DXLEN= RNDMAX-RNDMIN
-  DYLEN= ZNDMAX-ZNDMIN
+  DXLEN= xnode_max-xnode_min
+  DYLEN= ynode_max-ynode_min
   DRATIO=DYLEN/DXLEN
   
   IF(NWXMAX.EQ.0) THEN
@@ -441,12 +441,12 @@ SUBROUTINE wf_gdraw_parm
   use wfcomm
   implicit none
   integer :: nant,NS
-  real(rkind) :: REST(NAM),REAT(NAM),WW,RNZ
+  real(rkind) :: REST(nantm),REAT(nantm),WW,RNZ
   real :: GXMIN,GYMAX,GRCHH,GDX,GDY,GXL,GYL
   
   DO nant=1,nant_max
-     REST(nant)=DBLE(CIMP(nant))
-     REAT(nant)=AIMAG(CIMP(nant))
+     REST(nant)=DBLE(cimp_nant(nant))
+     REAT(nant)=AIMAG(cimp_nant(nant))
   ENDDO
   
   GXMIN=0.0
@@ -498,27 +498,27 @@ SUBROUTINE wf_gdraw_parm
   GXL=GXL+GRCHH
   GYL=GYL+GDY
   CALL MOVE(GXL,GYL)
-  CALL TEXT('node_max=',6)
+  CALL TEXT('node =',6)
   CALL NUMBI(node_max,'(I8)',8)
   
   GXL=GXL+GDX
   CALL MOVE(GXL,GYL)
   CALL TEXT('R,Z MAX=',8)
-  CALL NUMBD(RNDMAX,'(F7.3)',7)
-  CALL NUMBD(ZNDMAX,'(F7.3)',7)
+  CALL NUMBD(xnode_max,'(F7.3)',7)
+  CALL NUMBD(ynode_max,'(F7.3)',7)
   
   GXL=GXMIN
   GXL=GXL+GRCHH
   GYL=GYL+GDY
   CALL MOVE(GXL,GYL)
-  CALL TEXT('nelm_max=',9)
+  CALL TEXT('nelm =',6)
   CALL NUMBI(nelm_max,'(I8)',8)
   
   GXL=GXL+GDX
   CALL MOVE(GXL,GYL)
   CALL TEXT('R,Z MIN=',8)
-  CALL NUMBD(RNDMIN,'(F7.3)',7)
-  CALL NUMBD(ZNDMIN,'(F7.3)',7)
+  CALL NUMBD(xnode_min,'(F7.3)',7)
+  CALL NUMBD(ynode_min,'(F7.3)',7)
 
 !      GXL=GXL+GDX
 !      CALL MOVE(GXL,GYL)
@@ -576,7 +576,7 @@ SUBROUTINE wf_gdraw_parm
            CALL NUMBD(PN(NS),   '(1PE10.3)',10)
         ENDIF
         CALL NUMBD(PZCL(NS) ,'(1PE10.3)',10)
-        CALL NUMBD(PABST(NS),'(1PE10.3)',10)
+        CALL NUMBD(pabs_ns(NS),'(1PE10.3)',10)
      ENDDO
   ENDIF
   
@@ -650,23 +650,23 @@ SUBROUTINE wf_gdraw_antenna
 
   IF(NDRAWA.EQ.0) THEN
      DO nant=1,nant_max
-        GXL=gdclip(RJ0(1,nant))
-        GYL=gdclip(ZJ0(1,nant))
+        GXL=gdclip(x_np0_nant(1,nant))
+        GYL=gdclip(y_np0_nant(1,nant))
         CALL MOVE2D(GXL,GYL)
-        DO npoint=2,JNUM0(nant)
-           GXL=gdclip(RJ0(npoint,nant))
-           GYL=gdclip(ZJ0(npoint,nant))
+        DO npoint=2,np0_max_nant(nant)
+           GXL=gdclip(x_np0_nant(npoint,nant))
+           GYL=gdclip(y_np0_nant(npoint,nant))
            CALL DRAW2D(GXL,GYL)
         END DO
      END DO
   ELSE
      DO nant=1,nant_max
-        GXL=gdclip(RJ(1,nant))
-        GYL=gdclip(ZJ(1,nant))
+        GXL=gdclip(x_np_nant(1,nant))
+        GYL=gdclip(y_np_nant(1,nant))
         CALL MOVE2D(GXL,GYL)
-        DO npoint=2,JNUM(nant)
-           GXL=gdclip(RJ(npoint,nant))
-           GYL=gdclip(ZJ(npoint,nant))
+        DO npoint=2,np_max_nant(nant)
+           GXL=gdclip(x_np_nant(npoint,nant))
+           GYL=gdclip(y_np_nant(npoint,nant))
            CALL DRAW2D(GXL,GYL)
         END DO
      END DO
@@ -683,16 +683,16 @@ SUBROUTINE wf_gdraw_waveguide
   implicit none
   real :: GXL,GYL
 
-  GXL=gdclip(x1wg)
-  GYL=gdclip(y1wg)
+  GXL=gdclip(xwg_min)
+  GYL=gdclip(ywg_min)
   CALL MOVE2D(GXL,GYL)
-  GXL=gdclip(x2wg)
+  GXL=gdclip(xwg_max)
   CALL DRAW2D(GXL,GYL)
-  GYL=gdclip(y2wg)
+  GYL=gdclip(ywg_max)
   CALL DRAW2D(GXL,GYL)
-  GXL=gdclip(x1wg)
+  GXL=gdclip(xwg_min)
   CALL DRAW2D(GXL,GYL)
-  GYL=gdclip(y1wg)
+  GYL=gdclip(ywg_min)
   CALL DRAW2D(GXL,GYL)
   RETURN
 END SUBROUTINE wf_gdraw_waveguide
@@ -772,21 +772,21 @@ SUBROUTINE wf_gr_element
   real(rkind) :: YMIN,YMAX,XMIN,XMAX
   real(rkind) :: DXLEN,DYLEN,DRATIO,XMID,XLEN,YMID,YLEN
   
-  DXLEN= RNDMAX-RNDMIN
-  DYLEN= ZNDMAX-ZNDMIN
+  DXLEN= xnode_max-xnode_min
+  DYLEN= ynode_max-ynode_min
   DRATIO=DYLEN/DXLEN
 
   IF(DRATIO.GT.0.75D0) THEN
-     YMIN=ZNDMIN
-     YMAX=ZNDMAX
-     XMID=0.5D0*(RNDMIN+RNDMAX)
+     YMIN=ynode_min
+     YMAX=ynode_max
+     XMID=0.5D0*(xnode_min+xnode_max)
      XLEN=DYLEN/0.75D0
      XMIN=XMID-0.5D0*XLEN
      XMAX=XMID+0.5D0*XLEN
   ELSE
-     XMIN=RNDMIN
-     XMAX=RNDMAX
-     YMID=0.5D0*(ZNDMIN+ZNDMAX)
+     XMIN=xnode_min
+     XMAX=xnode_max
+     YMID=0.5D0*(ynode_min+ynode_max)
      YLEN=DXLEN*0.75D0
      YMIN=YMID-0.5D0*YLEN
      YMAX=YMID+0.5D0*YLEN
@@ -852,21 +852,21 @@ SUBROUTINE wf_gr_antenna
   real(rkind) :: YMIN,YMAX,XMIN,XMAX
   real(rkind) :: DXLEN,DYLEN,DRATIO,XMID,XLEN,YMID,YLEN
 
-  DXLEN= RNDMAX-RNDMIN
-  DYLEN= ZNDMAX-ZNDMIN
+  DXLEN= xnode_max-xnode_min
+  DYLEN= ynode_max-ynode_min
   DRATIO=DYLEN/DXLEN
 
   IF(DRATIO.GT.0.75D0) THEN
-     YMIN=ZNDMIN
-     YMAX=ZNDMAX
-     XMID=0.5D0*(RNDMIN+RNDMAX)
+     YMIN=ynode_min-0.02D0*DYLEN
+     YMAX=ynode_max+0.02D0*DYLEN
+     XMID=0.5D0*(xnode_min+xnode_max)
      XLEN=DYLEN/0.75D0
      XMIN=XMID-0.5D0*XLEN
      XMAX=XMID+0.5D0*XLEN
   ELSE
-     XMIN=RNDMIN
-     XMAX=RNDMAX
-     YMID=0.5D0*(ZNDMIN+ZNDMAX)
+     XMIN=xnode_min-0.02D0*DXLEN
+     XMAX=xnode_max+0.02D0*DXLEN
+     YMID=0.5D0*(ynode_min+ynode_max)
      YLEN=DXLEN*0.75D0
      YMIN=YMID-0.5D0*YLEN
      YMAX=YMID+0.5D0*YLEN
@@ -909,28 +909,28 @@ SUBROUTINE wf_gr_waveguide
   real(rkind) :: YMIN,YMAX,XMIN,XMAX
   real(rkind) :: DXLEN,DYLEN,DRATIO,XMID,XLEN,YMID,YLEN
 
-  DXLEN= RNDMAX-RNDMIN
-  DYLEN= ZNDMAX-ZNDMIN
+  DXLEN= xnode_max-xnode_min
+  DYLEN= ynode_max-ynode_min
   DRATIO=DYLEN/DXLEN
 
   IF(DRATIO.GT.0.75D0) THEN
-     YMIN=ZNDMIN
-     YMAX=ZNDMAX
-     XMID=0.5D0*(RNDMIN+RNDMAX)
+     YMIN=ynode_min-0.02D0*DYLEN
+     YMAX=ynode_max+0.02D0*DYLEN
+     XMID=0.5D0*(xnode_min+xnode_max)
      XLEN=DYLEN/0.75D0
      XMIN=XMID-0.5D0*XLEN
      XMAX=XMID+0.5D0*XLEN
   ELSE
-     XMIN=RNDMIN
-     XMAX=RNDMAX
-     YMID=0.5D0*(ZNDMIN+ZNDMAX)
+     XMIN=xnode_min-0.02D0*DXLEN
+     XMAX=xnode_max+0.02D0*DXLEN
+     YMID=0.5D0*(ynode_min+ynode_max)
      YLEN=DXLEN*0.75D0
      YMIN=YMID-0.5D0*YLEN
      YMAX=YMID+0.5D0*YLEN
   ENDIF
   
 !  CALL PAGES
-  CALL wf_gdraw_parm_ant
+  CALL wf_gdraw_parm_waveguide
   CALL grd2d_frame_start(0,XMIN,XMAX,YMIN,YMAX, &
        XSCALE_ZERO=0,YSCALE_ZERO=0)
   
@@ -961,7 +961,6 @@ SUBROUTINE wf_gdraw_parm_ant
 
   use wfcomm
   implicit none
-  integer :: NA
   real :: GXMIN,GYMAX,GDY,GXL,GYL
 
   GXMIN=4.0
@@ -972,26 +971,47 @@ SUBROUTINE wf_gdraw_parm_ant
   GXL=GXMIN
   GYL=GYMAX
   CALL MOVE(GXL,GYL)
-  CALL TEXT('node_max=',6)
+  CALL TEXT('node_max=',9)
   CALL NUMBI(node_max,'(I8)',8)
   
   GYL=GYL-GDY
   CALL MOVE(GXL,GYL)
-  CALL TEXT('nelm_max=',9)
+  CALL TEXT('RF  =',9)
   CALL NUMBI(nelm_max,'(I8)',8)
   
   GXL= 8.0
   GYL=17.8
   CALL MOVE(GXL,GYL)
-  CALL TEXT('JNUM =',6)
-  GXL=GXL+6*0.3
-  DO NA=1,nant_max
-     CALL MOVE(GXL,GYL)
-     CALL NUMBI(JNUM(NA),'(I5)',5)
-     GYL=GYL-GDY
-  END DO
+  CALL TEXT('NPH     =',9)
+  CALL NUMBI(NPH,'(I8)',8)
   RETURN
 END SUBROUTINE wf_gdraw_parm_ant
+
+!     ****** Draw Waveguide Paramters ******
+
+SUBROUTINE wf_gdraw_parm_waveguide
+
+  use wfcomm
+  implicit none
+  real :: GXMIN,GYMAX,GDY,GXL,GYL
+
+  GXMIN=4.0
+  GYMAX=17.8
+  CALL SETCHS(0.25,0.)
+  GDY=0.3
+  
+  GXL=GXMIN
+  GYL=GYMAX
+  CALL MOVE(GXL,GYL)
+  CALL TEXT('RF   =',6)
+  CALL NUMBD(RF,'(ES10.3)',10)
+  
+  GYL=GYL-GDY
+  CALL MOVE(GXL,GYL)
+  CALL TEXT('NPH  =',6)
+  CALL NUMBI(NPH,'(I10)',10)
+  
+END SUBROUTINE wf_gdraw_parm_waveguide
 
 SUBROUTINE wf_gen_elm_mesh
   USE wfcomm
@@ -999,40 +1019,40 @@ SUBROUTINE wf_gen_elm_mesh
   USE libgrf
   IMPLICIT NONE
   INTEGER,SAVE:: NGXMAX_mesh_SAVE=0,NGYMAX_mesh_SAVE=0
-  REAL(rkind),SAVE:: RNDMIN_mesh_SAVE=0.D0,RNDMAX_mesh_SAVE=0.D0
-  REAL(rkind),SAVE:: ZNDMIN_mesh_SAVE=0.D0,ZNDMAX_mesh_SAVE=0.D0
+  REAL(rkind),SAVE:: xnode_min_mesh_SAVE=0.D0,xnode_max_mesh_SAVE=0.D0
+  REAL(rkind),SAVE:: ynode_min_mesh_SAVE=0.D0,ynode_max_mesh_SAVE=0.D0
   REAL(rkind):: DX,DY,X,Y
   INTEGER:: NGX,NGY,IE
 
   IF(NGXMAX.NE.NGXMAX_mesh_SAVE.OR. &
      NGYMAX.NE.NGYMAX_mesh_SAVE.OR. &
-     RNDMIN.NE.RNDMIN_mesh_SAVE.OR. &
-     RNDMAX.NE.RNDMAX_mesh_SAVE.OR. &
-     ZNDMIN.NE.ZNDMIN_mesh_SAVE.OR. &
-     ZNDMAX.NE.ZNDMAX_mesh_SAVE) THEN
+     xnode_min.NE.xnode_min_mesh_SAVE.OR. &
+     xnode_max.NE.xnode_max_mesh_SAVE.OR. &
+     ynode_min.NE.ynode_min_mesh_SAVE.OR. &
+     ynode_max.NE.ynode_max_mesh_SAVE) THEN
      IE=0
-     DY=(ZNDMAX-ZNDMIN)/(NGYMAX-1)
-     DX=(RNDMAX-RNDMIN)/(NGXMAX-1)
+     DY=(ynode_max-ynode_min)/(NGYMAX-1)
+     DX=(xnode_max-xnode_min)/(NGXMAX-1)
      DO NGX=1,NGXMAX
-        G2X(NGX)=gdclip(RNDMIN+DX*(NGX-1))
+        G2X(NGX)=gdclip(xnode_min+DX*(NGX-1))
      ENDDO
      DO NGY=1,NGYMAX
-        G2Y(NGY)=gdclip(ZNDMIN+DY*(NGY-1))
+        G2Y(NGY)=gdclip(ynode_min+DY*(NGY-1))
      ENDDO
      DO NGY=1,NGYMAX
-        Y=ZNDMIN+DY*(NGY-1)
+        Y=ynode_min+DY*(NGY-1)
         DO NGX=1,NGXMAX
-           X=RNDMIN+DX*(NGX-1)
+           X=xnode_min+DX*(NGX-1)
            CALL wf_fep(X,Y,IE)
            IEGZ(NGX,NGY)=IE
         END DO
      END DO
      NGXMAX_mesh_SAVE=NGXMAX
      NGYMAX_mesh_SAVE=NGYMAX
-     RNDMIN_mesh_SAVE=RNDMIN
-     RNDMAX_mesh_SAVE=RNDMAX
-     ZNDMIN_mesh_SAVE=ZNDMIN
-     ZNDMAX_mesh_SAVE=ZNDMAX
+     xnode_min_mesh_SAVE=xnode_min
+     xnode_max_mesh_SAVE=xnode_max
+     ynode_min_mesh_SAVE=ynode_min
+     ynode_max_mesh_SAVE=ynode_max
   END IF
   RETURN
 END SUBROUTINE wf_gen_elm_mesh

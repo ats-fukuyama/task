@@ -37,7 +37,6 @@ CONTAINS
   call mtx_broadcast_character(KID,1)
   
   if(KID.eq.'D') then
-     NZMH = NZM/2
 
 2    continue
 
@@ -53,45 +52,49 @@ CONTAINS
 
      if(nrank.eq.0)then
         if(KID.eq.'X') then
-3          write(6,'(A,4F10.4)') '## DIV:   BDRMIN,BDRMAX,BDZMIN,BDZMAX = ',&
-                                            BDRMIN,BDRMAX,BDZMIN,BDZMAX
-           write(6,'(A)')        '## INPUT: BDRMIN,BDRMAX,BDZMIN,BDZMAX ? '
-           read(5,*,ERR=3,END=2)            BDRMIN,BDRMAX,BDZMIN,BDZMAX
-           write(6,'(A,4F10.4)') '## DIV:   BDRMIN,BDRMAX,BDZMIN,BDZMAX = ',&
-                                            BDRMIN,BDRMAX,BDZMIN,BDZMAX
-4          write(6,'(A,2F10.4)') '## DIV:   DELR,DELZ = ',DELR,DELZ
-           write(6,'(A)')        '## INPUT: DELR,DELZ ? '
-           read(5,*,ERR=4,END=2) DELR,DELZ
-           write(6,'(A,2F10.4)') '## DIV:   DELR,DELZ = ',DELR,DELZ
-           write(6,'(A)')        '## INPUT: DELR,DELZ ? '
-           if(abs(DELR).le.1.d-6.or.abs(DELZ).le.1.d-6) goto 2
-           itype_mesh=1
-           r_corner(1)=BDRMIN
-           z_corner(1)=BDZMIN
-           r_corner(2)=BDRMAX
-           z_corner(2)=BDZMIN
-           r_corner(3)=BDRMIN
-           z_corner(3)=BDZMAX
+3          write(6,'(A,4F10.4)') &
+                '## DIV:   xdiv_min,xdiv_max,ydiv_min,ynode_max = ', &
+                           xdiv_min,xdiv_max,ydiv_min,ynode_max
+           write(6,'(A)') &
+                '## INPUT: xdiv_min,xdiv_max,ydiv_min,ynode_max ? '
+           read(5,*,ERR=3,END=2) &
+                           xdiv_min,xdiv_max,ydiv_min,ynode_max
+           write(6,'(A,4F10.4)') &
+                '## DIV:   xdiv_min,xdiv_max,ydiv_min,ynode_max = ', &
+                           xdiv_min,xdiv_max,ydiv_min,ynode_max
+4          write(6,'(A,2F10.4)') '## DIV:   delx,dely = ',delx,dely
+           write(6,'(A)')        '## INPUT: delx,dely ? '
+           read(5,*,ERR=4,END=2) delx,dely
+           write(6,'(A,2F10.4)') '## DIV:   delx,dely = ',delx,dely
+           write(6,'(A)')        '## INPUT: delx,dely ? '
+           if(abs(delx).le.1.d-6.or.abs(dely).le.1.d-6) goto 2
+           mode_mesh=1
+           r_corner(1)=xdiv_min
+           z_corner(1)=ydiv_min
+           r_corner(2)=xdiv_max
+           z_corner(2)=ydiv_min
+           r_corner(3)=xdiv_min
+           z_corner(3)=ynode_max
            
         elseif(KID.eq.'C') then
 5          write(6,'(A15,F10.4)') '## DIV:   RB = ',RB
            write(6,'(A15)')       '## INPUT: RB ? '
            read(5,*,ERR=5,END=2) RB
-           BDRMIN=-RB
-           BDRMAX= RB
-           BDZMIN=-RB
-           BDZMAX= RB
-6          write(6,'(A17,F10.4)') '## DIV:   DELR = ',DELR
-           write(6,'(A17)')       '## INPUT: DELR ? '
-           read(5,*,ERR=6,END=2) DELR
-           if(abs(DELR).le.1.D-6) goto 2
-           itype_mesh=2
-           r_corner(1)=BDRMIN
-           z_corner(1)=BDZMIN
-           r_corner(2)=BDRMAX
-           z_corner(2)=BDZMIN
-           r_corner(3)=BDRMIN
-           z_corner(3)=BDZMAX
+           xdiv_min=-RB
+           xdiv_max= RB
+           ydiv_min=-RB
+           ynode_max= RB
+6          write(6,'(A17,F10.4)') '## DIV:   delx = ',delx
+           write(6,'(A17)')       '## INPUT: delx ? '
+           read(5,*,ERR=6,END=2) delx
+           if(abs(delx).le.1.D-6) goto 2
+           mode_mesh=2
+           r_corner(1)=xdiv_min
+           z_corner(1)=ydiv_min
+           r_corner(2)=xdiv_max
+           z_corner(2)=ydiv_min
+           r_corner(3)=xdiv_min
+           z_corner(3)=ynode_max
 
         end if
 
@@ -104,20 +107,25 @@ CONTAINS
         call SETNODC
      end if
 
+!     CALL wf_set_bdy(ierr)
+!     IF(ierr.NE.0) THEN
+!        WRITE(6,*) 'XX wf_div: wf_set_bdy error:',ierr
+!        STOP
+!     END IF
+     
+     CALL fem_mesh_allocate
      if(nrank.eq.0) write(6,*) '--- WFINDEX start ---'
      call wf_index
      if(nrank.eq.0) write(6,*) '--- WFFEPI start ---'
      call wf_set_fep
   
-     NKMAX=1
      do NE=1,nelm_max
-        KAELM(NE)=1
+        nmed_nelm(NE)=1
      end do
-     NMKA(1)=0
-     NMMAX=0
+     nmed_max=1
      
      do NN=1,node_max
-        KANOD(NN)=0
+        mode_node(NN)=0
      end do
     
   elseif(KID.eq.'G') then
@@ -158,87 +166,85 @@ subroutine SETNODX
   use wfcomm
   implicit none
 
-  integer :: NN,NE
-  integer :: NN1,NN2,NN3,NN4
-  integer :: NR,NZ
-  integer :: NRMAX,NZMAX
-  real(rkind) :: DR,DZ,BDRLEN,BDZLEN
+  integer :: node,nelm
+  integer :: node1,node2,node3,node4
+  integer :: NX,NY
+  integer :: NXMAX,NYMAX
+  real(rkind) :: dx,dy,xlen,ylen
 
-  BDRLEN=BDRMAX-BDRMIN
-  BDZLEN=BDZMAX-BDZMIN
+  xlen=xdiv_max-xdiv_min
+  ylen=ynode_max-ydiv_min
 
   ! --- set node_max ---
-  NRMAX=NINT(BDRLEN/DELR)
-  if(MOD(NRMAX,2).eq.0) NRMAX=NRMAX+1
-  DR=DBLE(BDRLEN/(NRMAX-1))
-  NZMAX=NINT(BDZLEN/DELZ)
-  if(MOD(NZMAX,2).eq.0) NZMAX=NZMAX+1
-  DZ=DBLE(BDZLEN/(NZMAX-1))
-  node_max=NRMAX*NZMAX
-  call wf_node_allocate
+  nxmax=NINT(xlen/delx)
+  if(MOD(nxmax,2).eq.0) nxmax=nxmax+1
+  dx=DBLE(xlen/(nxmax-1))
+  nymax=NINT(ylen/dely)
+  if(MOD(nymax,2).eq.0) nymax=nymax+1
+  dy=DBLE(ylen/(nxmax-1))
+  node_max=nxmax*nymax
 
   ! --- set nelm_max ---
-  nelm_max=2*(NRMAX-1)*(NZMAX-1)
-  call wf_nelm_allocate
+  nelm_max=2*(nxmax-1)*(nymax-1)
 
   ! --- set node ---
-  NN=0
-  do NZ=1,NZMAX
-     do NR=1,NRMAX
-        NN=NN+1
-        xnode(NN)=BDRMIN+DR*(NR-1)
-        ynode(NN)=BDZMIN+DZ*(NZ-1)
+  node=0
+  do ny=1,nymax
+     do nx=1,nxmax
+        node=node+1
+        xnode(node)=xdiv_min+dx*(nx-1)
+        ynode(node)=ydiv_min+dy*(ny-1)
      end do
   end do
   
   ! --- set element ---
-  NE=0
-  do NZ=1,NZMAX-1
-     do NR=1,NRMAX-1
-        NN1=NR+NRMAX*(NZ-1)
-        NN2=NR+NRMAX*(NZ-1)+1
-        NN3=NR+NRMAX*NZ+1
-        NN4=NR+NRMAX*NZ
+  nelm=0
+  do ny=1,nymax-1
+     do nx=1,nxmax-1
+        node1=nx+nxmax*(ny-1)
+        node2=nx+nxmax*(ny-1)+1
+        node3=nx+nxmax*ny+1
+        node4=nx+nxmax*ny
 
-        if(NR.le.NRMAX/2) then
-           if(NZ.le.NZMAX/2) then
-              NE=NE+1
-              node_nside_nelm(1,NE)=NN1
-              node_nside_nelm(2,NE)=NN3
-              node_nside_nelm(3,NE)=NN4         
-              NE=NE+1
-              node_nside_nelm(1,NE)=NN1
-              node_nside_nelm(2,NE)=NN2
-              node_nside_nelm(3,NE)=NN3
+        if(nx.le.nxmax/2) then
+           if(ny.le.nymax/2) then
+              nelm=nelm+1
+              node_nside_nelm(1,nelm)=node1
+              node_nside_nelm(2,nelm)=node3
+              node_nside_nelm(3,nelm)=node4         
+              nelm=nelm+1
+              node_nside_nelm(1,nelm)=node1
+              node_nside_nelm(2,nelm)=node2
+              node_nside_nelm(3,nelm)=node3
            else
-              NE=NE+1
-              node_nside_nelm(1,NE)=NN1
-              node_nside_nelm(2,NE)=NN2
-              node_nside_nelm(3,NE)=NN4         
-              NE=NE+1
-              node_nside_nelm(1,NE)=NN2
-              node_nside_nelm(2,NE)=NN3
-              node_nside_nelm(3,NE)=NN4
+              nelm=nelm+1
+              node_nside_nelm(1,nelm)=node1
+              node_nside_nelm(2,nelm)=node2
+              node_nside_nelm(3,nelm)=node4         
+              nelm=nelm+1
+              node_nside_nelm(1,nelm)=node2
+              node_nside_nelm(2,nelm)=node3
+              node_nside_nelm(3,nelm)=node4
            end if
         else
-           if(NZ.le.NZMAX/2) then
-              NE=NE+1
-              node_nside_nelm(1,NE)=NN1
-              node_nside_nelm(2,NE)=NN2
-              node_nside_nelm(3,NE)=NN4
-              NE=NE+1
-              node_nside_nelm(1,NE)=NN2
-              node_nside_nelm(2,NE)=NN3
-              node_nside_nelm(3,NE)=NN4
+           if(ny.le.nymax/2) then
+              nelm=nelm+1
+              node_nside_nelm(1,nelm)=node1
+              node_nside_nelm(2,nelm)=node2
+              node_nside_nelm(3,nelm)=node4
+              nelm=nelm+1
+              node_nside_nelm(1,nelm)=node2
+              node_nside_nelm(2,nelm)=node3
+              node_nside_nelm(3,nelm)=node4
            else
-              NE=NE+1
-              node_nside_nelm(1,NE)=NN1
-              node_nside_nelm(2,NE)=NN3
-              node_nside_nelm(3,NE)=NN4
-              NE=NE+1
-              node_nside_nelm(1,NE)=NN1
-              node_nside_nelm(2,NE)=NN2
-              node_nside_nelm(3,NE)=NN3
+              nelm=nelm+1
+              node_nside_nelm(1,nelm)=node1
+              node_nside_nelm(2,nelm)=node3
+              node_nside_nelm(3,nelm)=node4
+              nelm=nelm+1
+              node_nside_nelm(1,nelm)=node1
+              node_nside_nelm(2,nelm)=node2
+              node_nside_nelm(3,nelm)=node3
            end if
         end if
      end do
@@ -253,8 +259,8 @@ subroutine SETNODC
   use wfcomm
   implicit none
 
-  integer :: NN,NE
-  integer :: NN1,NN2,NN3,NN4
+  integer :: node,nelm
+  integer :: node1,node2,node3,node4
   integer :: NR,NTH,NTH1
   integer :: NRMAX
   integer,dimension(:),pointer :: NTHMAX
@@ -262,102 +268,102 @@ subroutine SETNODC
 
   ! --- set the number of rings ---
                                 
-  NRMAX=NINT(RB/DELR)+1
+  NRMAX=NINT(RB/delx)+1
   DR=DBLE(RB/(NRMAX-1))
   allocate(NTHMAX(NRMAX))
 
   ! --- set node_max & NTHMAX---
                                      
-  NN=1
+  node=1
   NTHMAX(1)=1
   do NR=2,NRMAX
      NTHMAX(NR)=(NR-1)*6
      DO NTH=1,NTHMAX(NR)
-        NN=NN+1
+        node=node+1
      end DO
   end do
-  node_max=NN
-  call wf_node_allocate
+  node_max=node
 
   ! --- set nelm_max ---
 
-  NE=0
+  nelm=0
   do NR=1,NRMAX-1
-     NE=NE+6*(2*NR-1)
+     nelm=nelm+6*(2*NR-1)
   end do
-  nelm_max=NE
-  call wf_nelm_allocate
+  nelm_max=nelm
+
+ CALL fem_base_allocate
 
   ! --- set node ---
-  NN=1
   NR=1
-  xnode(1)=0.d0
-  ynode(1)=0.d0
+  node=1
+  xnode(node)=0.d0
+  ynode(node)=0.d0
 
   DO NR=2,NRMAX
      RRING=DR*DBLE(NR-1)
      DO NTH=1,NTHMAX(NR)
-        NN=NN+1
+        node=node+1
         THETA=DBLE(NTH-1)*2.d0*PI/DBLE(NTHMAX(NR))
-        xnode(NN)=RRING*COS(THETA)
-        ynode(NN)=RRING*SIN(THETA)
+        xnode(node)=RRING*COS(THETA)
+        ynode(node)=RRING*SIN(THETA)
      END DO
   END DO
 
-  node_max=NN
+  node_max=node
 
   IF(modelg.EQ.2) THEN
-     DO NN=1,node_max
-        xnode(NN)=xnode(NN)+RR
+     DO node=1,node_max
+        xnode(node)=xnode(node)+RR
      END DO
   END IF
   
   ! --- set element ---
   
-  NE=0
+  nelm=0
   NR=1
 
-  NN1=1
-  NN2=2
-  NN3=3
-  NN4=4
+  node1=1
+  node2=2
+  node3=3
+  node4=4
 
-  NE=NE+1
-  node_nside_nelm(1,NE)=NN1
-  node_nside_nelm(2,NE)=NN2
-  node_nside_nelm(3,NE)=NN3
-  NE=NE+1
-  node_nside_nelm(1,NE)=NN1
-  node_nside_nelm(2,NE)=NN3
-  node_nside_nelm(3,NE)=NN4
+  nelm=nelm+1
+  node_nside_nelm(1,nelm)=node1
+  node_nside_nelm(2,nelm)=node2
+  node_nside_nelm(3,nelm)=node3
+  nelm=nelm+1
+  node_nside_nelm(1,nelm)=node1
+  node_nside_nelm(2,nelm)=node3
+  node_nside_nelm(3,nelm)=node4
 
-  NN1=1
-  NN2=4
-  NN3=5
-  NN4=6
+  node1=1
+  node2=4
+  node3=5
+  node4=6
 
-  NE=NE+1
-  node_nside_nelm(1,NE)=NN1
-  node_nside_nelm(2,NE)=NN2
-  node_nside_nelm(3,NE)=NN3
-  NE=NE+1
-  node_nside_nelm(1,NE)=NN1
-  node_nside_nelm(2,NE)=NN3
-  node_nside_nelm(3,NE)=NN4
+  nelm=nelm+1
+  node_nside_nelm(1,nelm)=node1
+  node_nside_nelm(2,nelm)=node2
+  node_nside_nelm(3,nelm)=node3
+  nelm=nelm+1
+  node_nside_nelm(1,nelm)=node1
+  node_nside_nelm(2,nelm)=node3
+  node_nside_nelm(3,nelm)=node4
 
-  NN1=1
-  NN2=6
-  NN3=7
-  NN4=2
+  node1=1
+  node2=6
+  node3=7
+  node4=2
 
-  NE=NE+1
-  node_nside_nelm(1,NE)=NN1
-  node_nside_nelm(2,NE)=NN2
-  node_nside_nelm(3,NE)=NN3
-  NE=NE+1
-  node_nside_nelm(1,NE)=NN1
-  node_nside_nelm(2,NE)=NN3
-  node_nside_nelm(3,NE)=NN4
+  nelm=nelm+1
+  node_nside_nelm(1,nelm)=node1
+  node_nside_nelm(2,nelm)=node2
+  node_nside_nelm(3,nelm)=node3
+  nelm=nelm+1
+  node_nside_nelm(1,nelm)=node1
+  node_nside_nelm(2,nelm)=node3
+  node_nside_nelm(3,nelm)=node4
 
   DO NR=2,NRMAX-1
 
@@ -369,31 +375,31 @@ subroutine SETNODC
      NTH=NTH+1
      NTH1=NTH1+1
      
-     NN1=NTH +INNODE(NR)
-     NN2=NTH1+INNODE(NR+1)
-     NN3=NTH1+INNODE(NR+1)+1
-     NN4=NTH +INNODE(NR)  +1
-     if(NTH.eq.NTHMAX(NR)) NN4=NN4-NTHMAX(NR)
+     node1=NTH +INNODE(NR)
+     node2=NTH1+INNODE(NR+1)
+     node3=NTH1+INNODE(NR+1)+1
+     node4=NTH +INNODE(NR)  +1
+     if(NTH.eq.NTHMAX(NR)) node4=node4-NTHMAX(NR)
      
-     NE=NE+1
-     node_nside_nelm(1,NE)=NN1
-     node_nside_nelm(2,NE)=NN2
-     node_nside_nelm(3,NE)=NN3
-     NE=NE+1
-     node_nside_nelm(1,NE)=NN1
-     node_nside_nelm(2,NE)=NN3
-     node_nside_nelm(3,NE)=NN4
+     nelm=nelm+1
+     node_nside_nelm(1,nelm)=node1
+     node_nside_nelm(2,nelm)=node2
+     node_nside_nelm(3,nelm)=node3
+     nelm=nelm+1
+     node_nside_nelm(1,nelm)=node1
+     node_nside_nelm(2,nelm)=node3
+     node_nside_nelm(3,nelm)=node4
      
      if (mod(NTH,NR-1).eq.0) then
-        NE=NE+1
-        NN1=NTH +INNODE(NR)  +1
-        NN2=NTH1+INNODE(NR+1)+1
-        NN3=NTH1+INNODE(NR+1)+2
-        if(NTH.eq.NTHMAX(NR)) NN1=NN1-NTHMAX(NR)
-        if(NTH1+1.eq.NTHMAX(NR+1)) NN3=NN3-NTHMAX(NR+1)
-        node_nside_nelm(1,NE)=NN1
-        node_nside_nelm(2,NE)=NN2
-        node_nside_nelm(3,NE)=NN3
+        nelm=nelm+1
+        node1=NTH +INNODE(NR)  +1
+        node2=NTH1+INNODE(NR+1)+1
+        node3=NTH1+INNODE(NR+1)+2
+        if(NTH.eq.NTHMAX(NR)) node1=node1-NTHMAX(NR)
+        if(NTH1+1.eq.NTHMAX(NR+1)) node3=node3-NTHMAX(NR+1)
+        node_nside_nelm(1,nelm)=node1
+        node_nside_nelm(2,nelm)=node2
+        node_nside_nelm(3,nelm)=node3
         NTH1=NTH1+1
         
      end if
@@ -475,7 +481,7 @@ subroutine WFLDIV
   end do
 
   write(6,*) '----------------------------------------------'
-  write(6,500) mtx_len,(I,KANOD(I),I=1,node_max)
+  write(6,500) mtx_len,(I,mode_node(I),I=1,node_max)
 500 format(' ','BOUNDARY NODE DATA',4X,'mtx_len=',I4/&
           (' ',4(I5,'(',I1,') ')))
   return
@@ -491,24 +497,24 @@ subroutine wfdiv_broadcast
   real(rkind),dimension(7) :: rdata
 
   if (nrank.eq.0) then
-     rdata(1)=BDRMIN
-     rdata(2)=BDRMAX
-     rdata(3)=BDZMIN
-     rdata(4)=BDZMAX
-     rdata(5)=DELR
-     rdata(6)=DELZ
+     rdata(1)=xdiv_min
+     rdata(2)=xdiv_max
+     rdata(3)=ydiv_min
+     rdata(4)=ynode_max
+     rdata(5)=delx
+     rdata(6)=dely
      rdata(7)=RB
   end if
   
   call mtx_barrier
   call mtx_broadcast_real8(rdata,7)
 
-  BDRMIN=rdata(1)
-  BDRMAX=rdata(2)
-  BDZMIN=rdata(3)
-  BDZMAX=rdata(4)
-  DELR  =rdata(5)
-  DELZ  =rdata(6)
+  xdiv_min=rdata(1)
+  xdiv_max=rdata(2)
+  ydiv_min=rdata(3)
+  ynode_max=rdata(4)
+  delx  =rdata(5)
+  dely  =rdata(6)
   RB    =rdata(7)
 
   call mtx_broadcast_real8(r_corner,3)

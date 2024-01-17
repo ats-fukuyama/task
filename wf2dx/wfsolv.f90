@@ -17,19 +17,20 @@ SUBROUTINE wf_defmlen
 
   use wfcomm
   implicit none
-  integer :: NSD,NN
 
-  nseg_bdy_max=0
-  do NSD=1,nseg_max
-     if(KASID(NSD).eq.1) nseg_bdy_max=nseg_bdy_max+1
-  end do
+!  nbdy_max=0
+!  do NSD=1,nseg_max
+!     if(KASID(NSD).eq.1) nbdy_max=nbdy_max+1
+!  end do
 
-  node_bdy_max=0
-  do NN=1,node_max
-     if(KANOD(NN).eq.1) node_bdy_max=node_bdy_max+1
-  end do
+!  nbdy_max=0
+!  do NN=1,node_max
+!     if(mode_node(NN).eq.1) nbdy_max=nbdy_max+1
+!  end do
 
-  mtx_len=nseg_max+node_max-nseg_bdy_max-node_bdy_max
+!  mtx_len=nseg_max+node_max-nbdy_max-nbdy_max
+  
+  mtx_len=nseg_max+node_max-2*nbdy_max
 
   call wf_solve_allocate
 
@@ -45,11 +46,10 @@ SUBROUTINE wf_cvsolv
   use libmtx
   use libqsort
   implicit none
-  integer :: ISD,NSD,nnd,nnd1,nnd2
-  integer :: NE,NN,nv,nvmax
+  integer :: nelm,node,nseg,nvar,nvar_max,nbdy
+  INTEGER:: node1,node2,nside
   integer :: I,J,KK,LL
-  integer :: JNSD,JNN,INSD,INN
-  integer :: IN,INV,JNV,KB
+  integer :: nsegI,nsegJ,nodeI,nodeJ,nvarI,nvarJ
   integer :: itype
   integer :: its
   integer :: JMIN,JMAX,MILEN,MJLEN
@@ -61,15 +61,15 @@ SUBROUTINE wf_cvsolv
   complex(rkind):: CEB
   complex(rkind),dimension(:),ALLOCATABLE :: CRVP,CEQP
   integer,dimension(:),ALLOCATABLE :: NSEQ
-  REAL(rkind),DIMENSION(:),ALLOCATABLE:: VAL_SORT
-  INTEGER,DIMENSION(:),ALLOCATABLE:: NV_SORT
-  INTEGER,DIMENSION(:),ALLOCATABLE:: ntyp_nv,nnsd_nv
-  INTEGER:: IX,IY,nv_old
+  REAL(rkind),DIMENSION(:),ALLOCATABLE:: value_sort
+  INTEGER,DIMENSION(:),ALLOCATABLE:: nvar_sort
+  INTEGER,DIMENSION(:),ALLOCATABLE:: ntype_nvar,npos_nvar
+  INTEGER:: IX,IY,nvar_old
 
   ! ----- initialize ------
   
-  do NV=1,mtx_len
-     CSV(NV) =(0.d0,0.d0)
+  do nvar=1,mtx_len
+     CSV(nvar) =(0.d0,0.d0)
   end do
 
   ! --- decide istart,iend ---
@@ -80,203 +80,201 @@ SUBROUTINE wf_cvsolv
 
   ! ----- set NV_NSD & NV_NN -----
 
-  ALLOCATE(ntyp_nv(node_max+nseg_max),nnsd_nv(node_max+nseg_max))
+  ALLOCATE(ntype_nvar(node_max+nseg_max))
+  ALLOCATE(npos_nvar(node_max+nseg_max))
 
-  NV=0
-  do NSD=1,nseg_max
-     if(KASID(NSD).eq.1) then
-        NVNSD(NSD)=0
-     else
-        NV=NV+1
-        NVNSD(NSD)=NV
-        NTYP_NV(NV)=2
-        NNSD_NV(NV)=NSD
-     end if
-  end do
-  do NN=1,node_max
-     if(KANOD(NN).eq.1) then
-        NVNN(NN)=0
-     else
-        NV=NV+1
-        NVNN(NN)=NV
-        NTYP_NV(NV)=1
-        NNSD_NV(NV)=NN
-     end if
-  end do
-  NVMAX=NV
-
-  ALLOCATE(NV_SORT(NVMAX),VAL_SORT(NVMAX))
-
-  DO NV=1,NVMAX
-     IF(NTYP_NV(NV).EQ.1) THEN
-        NN=NNSD_NV(NV)
-        X=xnode(NN)
-        Y=ynode(NN)
-        VAL=sort_weight_x*X+sort_weight_y*Y
+  nvar=0
+  DO nseg=1,nseg_max
+     IF(mode_nseg(nseg).EQ.1) THEN
+        nvar_nseg(nseg)=0
      ELSE
-        NSD=NNSD_NV(NV)
-        NND1=node_nseg(1,NSD)
-        NND2=node_nseg(2,NSD)
-        X=0.5D0*(xnode(NND1)+xnode(NND2))
-        Y=0.5D0*(ynode(NND1)+ynode(NND2))
+        nvar=nvar+1
+        nvar_nseg(nseg)=nvar
+        ntype_nvar(nvar)=2
+        npos_nvar(nvar)=nseg
      END IF
-     VAL=sort_weight_x*X+sort_weight_y*Y
-     nv_sort(NV)=NV
-     val_sort(NV)=VAL
+  END DO
+  DO node=1,node_max
+     IF(mode_node(node).EQ.1) THEN
+        nvar_node(node)=0
+     ELSE
+        nvar=nvar+1
+        nvar_node(node)=nvar
+        ntype_nvar(nvar)=1
+        npos_nvar(nvar)=node
+     END IF
+  END DO
+  nvar_max=nvar
+
+  ALLOCATE(nvar_sort(nvar_max),value_sort(nvar_max))
+
+  DO nvar=1,nvar_max
+     IF(ntype_nvar(nvar).EQ.1) THEN
+        node=npos_nvar(nvar)
+        x=xnode(node)
+        y=ynode(node)
+     ELSE
+        nseg=npos_nvar(nvar)
+        node1=node_nseg(1,nseg)
+        node2=node_nseg(2,nseg)
+        x=0.5D0*(xnode(node1)+xnode(node2))
+        y=0.5D0*(ynode(node1)+ynode(node2))
+     END IF
+     val=sort_weight_x*x+sort_weight_y*y
+     nvar_sort(nvar)=nvar
+     value_sort(nvar)=val
   END DO
 
-!  CALL qsort_dl(val_sort,nv_sort)
-  CALL qsort_di(val_sort,nv_sort)
+!  CALL qsort_dl(value_sort,nv_sort)
+  CALL qsort_di(value_sort,nvar_sort)
 
-  DO nv=1,nvmax
-     nv_old=nv_sort(nv)
-     IF(ntyp_nv(nv_old).EQ.1) THEN
-        nnd=nnsd_nv(nv_old)
-        nvnn(nnd)=nv
-!        X=xnode(nnd)
-!        Y=ynode(nnd)
-!        VAL=sort_weight_x+sort_weight_y*Y
-!        write(21,'(I10,A,I10,1P3E12.4)') nv,' node ',nnd,X,Y,VAL
+  DO nvar=1,nvar_max
+     nvar_old=nvar_sort(nvar)
+     IF(ntype_nvar(nvar_old).EQ.1) THEN
+        node=npos_nvar(nvar_old)
+        nvar_node(node)=nvar
+!        X=xnode(node)
+!        Y=ynode(node)
+!        VAL=sort_weight_x*x+sort_weight_y*y
+!        write(21,'(I10,A,I10,1P3E12.4)') nvar,' node ',node,x,y,val
      ELSE
-        nsd=nnsd_nv(nv_old)
-        nvnsd(nsd)=nv
-!        NND1=node_nseg(1,NSD)
-!        NND2=node_nseg(2,NSD)
-!        X=0.5D0*(xnode(NND1)+xnode(NND2))
-!        Y=0.5D0*(ynode(NND1)+ynode(NND2))
-!        VAL=sort_weight_x*X+sort_weight_y*Y
-!        write(21,'(I10,A,I10,1P3E12.4)') nv,' side ',nsd,X,Y,VAL
+        nseg=npos_nvar(nvar_old)
+        nvar_nseg(nseg)=nvar
+!        x=xcenter_nseg(nseg)
+!        y_ysenter_nseg(nseg)
+!        VAL=sort_weight_x*x+sort_weight_y*y
+!        write(21,'(I10,A,I10,1P3E12.4)') nvar,' nseg ',nseg,x,y,val
      END IF
   END DO
      
-  DEALLOCATE(NV_SORT,VAL_SORT,ntyp_nv,nnsd_nv)
+  DEALLOCATE(nvar_sort,value_sort,ntype_nvar,npos_nvar)
 
 !  do NSD=1,nseg_max
 !     write(*,*) NSD,KASID(NSD),NV_NSD(NSD)
 !  end do
 !  do NN=1,node_max
-!     write(*,*) NN,KANOD(NN),NV_NN(NN)
+!     write(*,*) NN,mode_node(NN),NV_NN(NN)
 !  end do
 
   ! ----- set NEFLAG ------
 
-  allocate(NEFLAG(nelm_max))
-  do NE=1,nelm_max
-     NEFLAG(NE)=0
-  end do
+  ALLOCATE(NEFLAG(nelm_max))
+  DO nelm=1,nelm_max
+     NEFLAG(nelm)=0
+  END DO
 
-  do NE=1,nelm_max
-     do ISD=1,3
-        NSD=ABS(nseg_nside_nelm(ISD,NE))
-        NV=NVNSD(NSD)
-        if(NV.ge.istart.and.&
-           NV.le.iend ) then
-           NEFLAG(NE)=1
-        end if
-     end do
+  DO nelm=1,nelm_max
+     DO nside=1,3
+        nseg=ABS(nseg_nside_nelm(nside,nelm))
+        nvar=nvar_nseg(nseg)
+        IF(nvar.GE.istart.AND.&
+           nvar.LE.iend ) then
+           NEFLAG(nelm)=1
+        END IF
+     END DO
 
-     if(NEFLAG(NE).eq.0) then
-        do IN=1,3
-           NN=node_nside_nelm(IN,NE)
-           NV=NVNN(NN)
-           if(NV.ge.istart.and.&
-              NV.le.iend) then
-              NEFLAG(NE)=1
-           end if
-        end do
-     end if
+     IF(NEFLAG(nelm).eq.0) then
+        DO nside=1,3
+           node=node_nside_nelm(nside,nelm)
+           nvar=nvar_node(node)
+           IF(nvar.GE.istart.AND.&
+              nvar.LE.iend) THEN
+              NEFLAG(nelm)=1
+           END IF
+        END DO
+     END IF
 
-  end do
+  END DO
 
   ! ----- set MJLEN -----
 
   JMIN=mtx_len
   JMAX=0
-  do NE=1,nelm_max
+  DO nelm=1,nelm_max
 
-     if(NEFLAG(NE).eq.0) goto 8100
+     IF(NEFLAG(nelm).EQ.0) GOTO 8100
 
      LL=0
      DO J=1,6
-        if(J.ge.1.and.J.le.3) then
-           JNSD=ABS(nseg_nside_nelm(J,NE))
-           JNV =NVNSD(JNSD)
+        IF(J.GE.1.AND.J.LE.3) THEN
+           nsegJ=ABS(nseg_nside_nelm(J,nelm))
+           nvarJ=nvar_nseg(nsegJ)
         else
-           JNN=node_nside_nelm(J-3,NE)
-           JNV=NVNN(JNN)
+           nodeJ=node_nside_nelm(J-3,nelm)
+           nvarJ=nvar_node(nodeJ)
         end if
-        if (JNV.eq.0) goto 8110
-        LL=JNV
+        if (nvarJ.eq.0) goto 8110
+        LL=nvarJ
 
         KK=0
         DO I=1,6
-           if(I.ge.1.and.I.le.3) then
-              INSD=ABS(nseg_nside_nelm(I,NE))
-              INV=NVNSD(INSD)
-           else
-              INN=node_nside_nelm(I-3,NE)
-              INV=NVNN(INN)
-           end if
-           if(INV.eq.0) goto 8120
-           KK=INV
+           IF(I.GE.1.AND.I.LE.3) THEN
+              nsegI=ABS(nseg_nside_nelm(I,nelm))
+              nvarI=nvar_nseg(nsegI)
+           ELSE
+              nodeI=node_nside_nelm(I-3,nelm)
+              nvarI=nvar_node(nodeI)
+           END IF
+           IF(nvarI.EQ.0) GOTO 8120
+           KK=nvarI
 
-           if((KK.ge.istart).and.&
-              (KK.le.iend  )) then
-              if(LL.lt.JMIN) JMIN=LL
-              if(LL.gt.JMAX) JMAX=LL
-           end if
+           IF((KK.GE.istart).AND.&
+              (KK.LE.iend  )) THEN
+              IF(LL.LT.JMIN) JMIN=LL
+              IF(LL.GT.JMAX) JMAX=LL
+           END IF
 
-8120       continue
+8120       CONTINUE
         ENDDO
-8110    continue
+8110    CONTINUE
      ENDDO
      
-8100 continue
-  end do
+8100 CONTINUE
+  END do
 
 ! ------ Count non-zero component -------
 
   NNZ=0
 
-  DO NE=1,nelm_max
-     IF(NEFLAG(NE).NE.0) THEN
+  DO nelm=1,nelm_max
+     IF(NEFLAG(nelm).NE.0) THEN
 
         LL=0
         DO J=1,6
-           IF(J.ge.1.and.J.le.3) then
-              JNSD=nseg_nside_nelm(J,NE)
-              if(JNSD.lt.0) then
-                 JNSD=-JNSD
-              end if
-              JNV =NVNSD(JNSD)
-           else
-              JNN=node_nside_nelm(J-3,NE)
-              JNV=NVNN(JNN)
+           IF(J.GE.1.AND.J.LE.3) THEN
+              nsegJ=nseg_nside_nelm(J,nelm)
+              IF(nsegJ.LT.0) THEN
+                 nsegJ=-nsegJ
+              END IF
+              nvarJ =nvar_nseg(nsegJ)
+           ELSE
+              nodeJ=node_nside_nelm(J-3,nelm)
+              nvarJ=nvar_node(nodeJ)
            END IF
-           LL=JNV
+           LL=nvarJ
 
-           if ((LL.GE.JMIN).AND.(LL.LE.JMAX)) THEN
+           IF ((LL.GE.JMIN).AND.(LL.LE.JMAX)) THEN
 
               KK=0
               DO I=1,6
-                 if(I.ge.1.and.I.le.3) then
-                    INSD=nseg_nside_nelm(I,NE)
-                    if(INSD.lt.0) then
-                       INSD=-INSD
-                    end if
-                    INV =NVNSD(INSD)
-                 else
-                    INN=node_nside_nelm(I-3,NE)
-                    INV=NVNN(INN)
-                 end if
-                 KK=INV
+                 IF(I.GE.1.AND.I.LE.3) THEN
+                    nsegI=nseg_nside_nelm(I,nelm)
+                    IF(nsegI.LT.0) THEN
+                       nsegI=-nsegI
+                    END IF
+                    nvarI =nvar_nseg(nsegI)
+                 ELSE
+                    nodeI=node_nside_nelm(I-3,nelm)
+                    nvarI=nvar_node(nodeI)
+                 END IF
+                 KK=nvarI
 
-                 if((KK.ge.istart).and.&
-                      (KK.le.iend  )) then
+                 IF((KK.GE.istart).AND.&
+                      (KK.LE.iend  )) THEN
                     NNZ=NNZ+1
-                 end if
+                 END IF
               END DO
-           END if
+           END IF
         ENDDO
      END IF
   END DO
@@ -300,9 +298,9 @@ SUBROUTINE wf_cvsolv
 
   NNZ=0
 
-  do NE=1,nelm_max
-     if(NEFLAG(NE).eq.0) goto 8000
-     CALL wf_cmcalc(NE)
+  DO nelm=1,nelm_max
+     IF(NEFLAG(nelm).EQ.0) GOTO 8000
+     CALL wf_cmcalc(nelm)
      
 !    === ASSEMBLY ===
 !    If KK (or LL) is out of assigned range,  
@@ -312,39 +310,39 @@ SUBROUTINE wf_cvsolv
      LL=0
      DO J=1,6
         ORIENTJ=1
-        if(J.ge.1.and.J.le.3) then
-           JNSD=nseg_nside_nelm(J,NE)
-           if(JNSD.lt.0) then
-              JNSD=-JNSD
+        IF(J.GE.1.AND.J.LE.3) THEN
+           nsegJ=nseg_nside_nelm(J,nelm)
+           IF(nsegJ.LT.0) THEN
+              nsegJ=-nsegJ
               ORIENTJ=-1
-           end if
-           JNV =NVNSD(JNSD)
-        else
-           JNN=node_nside_nelm(J-3,NE)
-           JNV=NVNN(JNN)
+           END IF
+           nvarJ =nvar_nseg(nsegJ)
+        ELSE
+           nodeJ=node_nside_nelm(J-3,nelm)
+           nvarJ=nvar_node(nodeJ)
         end if
-        LL=JNV
+        LL=nvarJ
 
-        if ((LL.GE.JMIN).AND.(LL.LE.JMAX)) THEN
+        IF ((LL.GE.JMIN).AND.(LL.LE.JMAX)) THEN
 
            KK=0
            DO I=1,6
               ORIENTI=1
-              if(I.ge.1.and.I.le.3) then
-                 INSD=nseg_nside_nelm(I,NE)
-                 if(INSD.lt.0) then
-                    INSD=-INSD
+              IF(I.GE.1.AND.I.LE.3) THEN
+                 nsegI=nseg_nside_nelm(I,nelm)
+                 IF(nsegI.LT.0) THEN
+                    nsegI=-nsegI
                     ORIENTI=-1
-                 end if
-                 INV =NVNSD(INSD)
-              else
-                 INN=node_nside_nelm(I-3,NE)
-                 INV=NVNN(INN)
-              end if
-              KK=INV
-              if((KK.ge.istart).and.&
-                   (KK.le.iend  )) then
-                 if(abs(CM(I,J)).ne.0.d0) THEN 
+                 END IF
+                 nvarI =nvar_nseg(nsegI)
+              ELSE
+                 node=node_nside_nelm(I-3,nelm)
+                 nvarI=nvar_node(nodeI)
+              END IF
+              KK=nvarI
+              IF((KK.GE.istart).AND.&
+                 (KK.LE.iend  )) THEN
+                 IF(ABS(CM(I,J)).NE.0.d0) THEN 
                     NNZ=NNZ+1
                     IX=KK-istart
                     IY=MJLEN
@@ -361,42 +359,42 @@ SUBROUTINE wf_cvsolv
      LL=0
      DO J=1,6
         ORIENTJ=1
-        if(J.ge.1.and.J.le.3) then
-           JNSD=nseg_nside_nelm(J,NE)
-           if(JNSD.lt.0) then
-              JNSD=-JNSD
+        IF(J.GE.1.AND.J.LE.3) THEN
+           nsegJ=nseg_nside_nelm(J,nelm)
+           IF(nsegJ.LT.0) THEN
+              nsegJ=-nsegJ
               ORIENTJ=-1
-           end if
-           KB =KBSID(JNSD)
-           IF(KB.NE.0) CEB=CEBSD(KB)
-        else
-           JNN=node_nside_nelm(J-3,NE)
-           KB=KBNOD(JNN)
-           IF(KB.NE.0) CEB=CEBND(KB)
-        end if
+           END IF
+           nbdy =nbdy_nseg(nsegJ)
+           IF(nbdy.NE.0) CEB=CESD_nbdy(nbdy)
+        ELSE
+           nodeJ=node_nside_nelm(J-3,nelm)
+           nbdy=nbdy_node(nodeJ)
+           IF(nbdy.NE.0) CEB=CEND_nbdy(nbdy)
+        END IF
 
-        IF(KB.NE.0) THEN
+        IF(nbdy.NE.0) THEN
            IF(ABS(CEB).GT.0.D0) THEN
               KK=0
               DO I=1,6
                  ORIENTI=1
-                 if(I.ge.1.and.I.le.3) then
-                    INSD=nseg_nside_nelm(I,NE)
-                    if(INSD.lt.0) then
-                       INSD=-INSD
+                 IF(I.GE.1.AND.I.LE.3) THEN
+                    nsegI=nseg_nside_nelm(I,nelm)
+                    IF(nsegI.LT.0) THEN
+                       nsegI=-nsegI
                        ORIENTI=-1
-                    end if
-                    INV =NVNSD(INSD)
-                 else
-                    INN=node_nside_nelm(I-3,NE)
-                    INV=NVNN(INN)
-                 end if
-                 KK=INV
-                 if((KK.ge.istart).and.&
-                      (KK.le.iend  )) then
+                    END IF
+                    nvarI=nvar_nseg(nsegI)
+                 ELSE
+                    nodeI=node_nside_nelm(I-3,nelm)
+                    nvarI=nvar_node(nodeI)
+                 END IF
+                 KK=nvarI
+                 IF((KK.GE.istart).AND.&
+                      (KK.LE.iend  )) THEN
                     CRVP(KK-istart+1)=CRVP(KK-istart+1) &
                          -ORIENTI*ORIENTJ*CM(I,J)*CEB
-                 end if
+                 END IF
               END DO
            END IF
         END IF
@@ -407,32 +405,32 @@ SUBROUTINE wf_cvsolv
      KK=0
      DO I=1,6
         ORIENTI=1
-        if(I.ge.1.and.I.le.3) then
-           INSD=nseg_nside_nelm(I,NE)
-           if(INSD.lt.0) then
-              INSD=-INSD
+        IF(I.GE.1.AND.I.LE.3) THEN
+           nsegI=nseg_nside_nelm(I,nelm)
+           IF(nsegI.LT.0) THEN
+              nsegI=-nsegI
               ORIENTI=-1
-           end if
-           INV =NVNSD(INSD)
-        else
-           INN=node_nside_nelm(I-3,NE)
-           INV=NVNN(INN)
-        end if
-        KK=INV
-        if((KK.ge.istart).and.&
-           (KK.le.iend  )) then
-           CRVP(KK-istart+1)=CRVP(KK-istart+1)+ORIENTI*CVTOT(I,NE)
-        end if
+           END IF
+           nvarI =nvar_nseg(nsegI)
+        ELSE
+           nodeI=node_nside_nelm(I-3,nelm)
+           nvarI=nvar_node(nodeI)
+        END IF
+        KK=nvarI
+        IF((KK.GE.istart).AND.&
+           (KK.LE.iend  )) THEN
+           CRVP(KK-istart+1)=CRVP(KK-istart+1)+ORIENTI*CVTOT(I,nelm)
+        END IF
      ENDDO
 
-8000 continue
-  end do
+8000 CONTINUE
+  END DO
 
-  IF(nrank.EQ.0) write(6,*) 'wfsolv: sort started'
+  IF(nrank.EQ.0) WRITE(6,*) 'wfsolv: sort started'
   CALL qsort_ic(NSEQ,CEQP)
   !  CALL qsort_lc(NSEQ,CEQP)
   
-  IF(nrank.EQ.0) write(6,*) 'wfsolv: reduction started'
+  IF(nrank.EQ.0) WRITE(6,*) 'wfsolv: reduction started'
   NNZME=1
   DO NNZ=2,NNZMAX
      IF(NSEQ(NNZ).EQ.NSEQ(NNZME)) THEN
@@ -444,47 +442,47 @@ SUBROUTINE wf_cvsolv
      END IF
   END DO
 
-  if(nrank.eq.0) write(6,'(A77)') &
+  IF(nrank.EQ.0) WRITE(6,'(A77)') &
   '      nrank     istart       iend      MILEN      MJLEN     NNZMAX      NNZME'
-  call mtx_barrier
-  write(6,'(7I11)') nrank,istart,iend,iend-istart+1, &
+  CALL mtx_barrier
+  WRITE(6,'(7I11)') nrank,istart,iend,iend-istart+1, &
                     JMAX-JMIN+1,NNZMAX,NNZME
 
   ! ----- initialize for parallel computing -----
 
   itype = 0
-  call mtxc_setup(mtx_len,istart,iend,nzmax=NNZME)
+  CALL mtxc_setup(mtx_len,istart,iend,nzmax=NNZME)
 
-  do NNZ=1,NNZME
+  DO NNZ=1,NNZME
      IF(ABS(CEQP(NNZ)).GT.0.D0) THEN
         i=NSEQ(NNZ)/MJLEN
         j=NSEQ(NNZ)-i*MJLEN
-        if(i.lt.0.OR.i.GT.iend-istart) then
+        IF(i.LT.0.OR.i.GT.iend-istart) THEN
            WRITE(6,'(A/6I12)') 'NNZ,NSEQ(NNZ),i,istart,i+istart,iend=', &
                                NNZ,NSEQ(NNZ),i,istart,i+istart,iend
            STOP
-        END if
-        call mtxc_set_matrix(i+istart,j+jmin,CEQP(NNZ))
+        END IF
+        CALL mtxc_set_matrix(i+istart,j+jmin,CEQP(NNZ))
      END IF
-  end do
+  END DO
 
-  do i=istart,iend
-     call mtxc_set_source(i,CRVP(i-istart+1))
-  end do
+  DO i=istart,iend
+     CALL mtxc_set_source(i,CRVP(i-istart+1))
+  END DO
 
-  call GUTIME(cputime1)
+  CALL GUTIME(cputime1)
 
-  call mtxc_solve(itype,tolerance,its)
+  CALL mtxc_solve(itype,tolerance,its)
   !zmumps always return "its = 0"
-  if(nrank.eq.0) write(6,*) 'Iteration Number=',its
+  IF(nrank.EQ.0) WRITE(6,*) 'Iteration Number=',its
 
-  call GUTIME(cputime2)
+  CALL GUTIME(cputime2)
 
-  call mtxc_gather_vector(CSV)
+  CALL mtxc_gather_vector(CSV)
 
-  deallocate(CEQP,NSEQ,CRVP)
-  deallocate(NEFLAG)
-  call mtxc_cleanup
+  DEALLOCATE(CEQP,NSEQ,CRVP)
+  DEALLOCATE(NEFLAG)
+  CALL mtxc_cleanup
   RETURN
 END SUBROUTINE wf_cvsolv
 
@@ -517,44 +515,44 @@ END SUBROUTINE wf_cvsolv
 
 !     ****** LOCAL ELEMENT MATRIX : volume integral ******
 
-  SUBROUTINE cmcalcv(ne)
+  SUBROUTINE cmcalcv(nelm)
 
     use wfcomm
     USE wfsub
   implicit none
-  integer,intent(in) :: NE 
-  integer :: I,J,K,M,N,ISD,NSD
+  integer,intent(in) :: nelm
+  integer :: I,J,K,M,N,nside,nseg
   complex(rkind) :: CM1(3,3)
   real(rkind) :: S,L(3)
   real(rkind) :: A(3),B(3),C(3),AW(3),BW(3),CW(3)
-  real(rkind) :: R(3),Z(3)
+  real(rkind) :: x(3),y(3)
 
   ! --- initialize ---
 
-  S=SELM(NE)
-  call wf_set_abc(NE,A,B,C)
-  call wf_set_node(NE,R,Z)
+  S=area_nelm(nelm)
+  CALL wf_set_abc(nelm,A,B,C)
+  CALL wf_set_node(nelm,x,y)
 
-  do ISD=1,3
-     NSD=ABS(nseg_nside_nelm(ISD,NE))
-     IF(MODELWF.EQ.0) THEN
-        L(ISD)=LSID(NSD)
+  do nside=1,3
+     nseg=ABS(nseg_nside_nelm(nside,nelm))
+     IF(model_wf.EQ.0) THEN
+        L(nside)=len_nseg(nseg)
      ELSE
-        IF(nseg_nside_nelm(ISD,NE).GT.0.D0) THEN
-           L(ISD)=LSID(NSD)
+        IF(nseg_nside_nelm(nside,nelm).GT.0.D0) THEN
+           L(nside)=len_nseg(nseg)
         ELSE
-           L(ISD)=-LSID(NSD)
+           L(nside)=-len_nseg(nseg)
         END IF
      END IF
   end do
 
-  do ISD=1,3
-     M=ISD
-     N=ISD+1
+  DO nside=1,3
+     M=nside
+     N=nside+1
      if(N.gt.3) N=N-3
-     AW(ISD)=L(ISD)*(A(M)*B(N)-A(N)*B(M))
-     BW(ISD)=L(ISD)*(B(M)*C(N)-B(N)*C(M))
-     CW(ISD)=L(ISD)*(C(M)*A(N)-C(N)*A(M))
+     AW(nside)=L(nside)*(A(M)*B(N)-A(N)*B(M))
+     BW(nside)=L(nside)*(B(M)*C(N)-B(N)*C(M))
+     CW(nside)=L(nside)*(C(M)*A(N)-C(N)*A(M))
   end do
 
   ! ----- rotErotF term -----
@@ -574,9 +572,9 @@ END SUBROUTINE wf_cvsolv
            do I=1,3
               CM1(I,J)=CM1(I,J) &
                       +(RKZ**2)*RR &
-                       *( AW(I)*AW(J)-(AW(I)*BW(J)+AW(J)*BW(I))*Z(K) &
-                         +CW(I)*CW(J)-(BW(I)*CW(J)+BW(J)*CW(I))*R(K) &
-                         +BW(I)*BW(J)*(R(K)**2+Z(K)**2)) &
+                       *( AW(I)*AW(J)-(AW(I)*BW(J)+AW(J)*BW(I))*y(K) &
+                         +CW(I)*CW(J)-(BW(I)*CW(J)+BW(J)*CW(I))*x(K) &
+                         +BW(I)*BW(J)*(x(K)**2+y(K)**2)) &
                        *S*AIF1(K) &
                       +4.d0*BW(I)*BW(J)*RR*S*AIF1(K)
            end do
@@ -587,12 +585,12 @@ END SUBROUTINE wf_cvsolv
         do J=1,3
            do I=1,3
               CM1(I,J)=CM1(I,J) &
-                      +(real(NPH)**2)/R(K) &
-                       *( AW(I)*AW(J)-(AW(I)*BW(J)+AW(J)*BW(I))*Z(K) &
-                         +CW(I)*CW(J)-(BW(I)*CW(J)+BW(J)*CW(I))*R(K) &
-                         +BW(I)*BW(J)*(R(K)**2+Z(K)**2)) &
+                      +(real(NPH)**2)/x(K) &
+                       *( AW(I)*AW(J)-(AW(I)*BW(J)+AW(J)*BW(I))*y(K) &
+                         +CW(I)*CW(J)-(BW(I)*CW(J)+BW(J)*CW(I))*x(K) &
+                         +BW(I)*BW(J)*(x(K)**2+y(K)**2)) &
                        *S*AIF1(K) &
-                      +4.d0*BW(I)*BW(J)*R(K)*S*AIF1(K)
+                      +4.d0*BW(I)*BW(J)*x(K)*S*AIF1(K)
            end do
         end do
      end do
@@ -619,9 +617,9 @@ END SUBROUTINE wf_cvsolv
               CM1(I,J)=CM1(I,J) &
                       +(CII*RKZ*RR) &
                        *(-B(I) &
-                          *(AW(J)-BW(J)*Z(K)) &
+                          *(AW(J)-BW(J)*y(K)) &
                          +C(I) &
-                          *(CW(J)-BW(J)*R(K))) &
+                          *(CW(J)-BW(J)*x(K))) &
                        *S*AIF1(K)
            end do
         end do
@@ -634,13 +632,13 @@ END SUBROUTINE wf_cvsolv
 !
                        +(CII*real(NPH)) &
                        *(-B(I) &
-                          *(AW(J)-BW(J)*Z(K)) &
+                          *(AW(J)-BW(J)*y(K)) &
                          +C(I) &
-                          *(CW(J)-BW(J)*R(K))) &
+                          *(CW(J)-BW(J)*x(K))) &
                        *S*AIF1(K)&
 !
                       +(CII*real(NPH))&
-                       *(-(AW(J)-BW(J)*Z(K))/R(K))&
+                       *(-(AW(J)-BW(J)*y(K))/x(K))&
                        *S*AIF2(I,K)
            end do
         end do
@@ -669,9 +667,9 @@ END SUBROUTINE wf_cvsolv
               CM1(I,J)=CM1(I,J) &
                       -(CII*RKZ*RR) &
                        *(-B(J) &
-                          *(AW(I)-BW(I)*Z(K)) &
+                          *(AW(I)-BW(I)*y(K)) &
                          +C(J)&
-                          *(CW(I)-BW(I)*R(K))) &
+                          *(CW(I)-BW(I)*x(K))) &
                         *S*AIF1(K)
            end do
         end do
@@ -684,13 +682,13 @@ END SUBROUTINE wf_cvsolv
 !
                       -(CII*real(NPH)) &
                        *(-B(J) &
-                          *(AW(I)-BW(I)*Z(K)) &
+                          *(AW(I)-BW(I)*y(K)) &
                          +C(J)&
-                          *(CW(I)-BW(I)*R(K))) &
+                          *(CW(I)-BW(I)*x(K))) &
                         *S*AIF1(K) &
 !
                       -(CII*real(NPH)) &
-                       *(-(AW(I)-BW(I)*Z(K))/R(K)) &
+                       *(-(AW(I)-BW(I)*y(K))/x(K)) &
                         *S*AIF2(J,K)
            end do
         end do
@@ -728,10 +726,10 @@ END SUBROUTINE wf_cvsolv
         do J=1,3
            do I=1,3
               CM1(I,J)=CM1(I,J) &
-                      +(B(I)*B(J)+C(I)*C(J))*R(K)*S*AIF1(K) &
+                      +(B(I)*B(J)+C(I)*C(J))*x(K)*S*AIF1(K) &
                       +B(J)*S*AIF2(I,K) &
                       +B(I)*S*AIF2(J,K) &
-                      +1.D0/(R(K))*S*AIF3(I,J,K)
+                      +1.D0/(x(K))*S*AIF3(I,J,K)
            end do
         end do
      end do
@@ -747,79 +745,79 @@ END SUBROUTINE wf_cvsolv
 
 !     ****** LOCAL ELEMENT MATRIX : Surface integral ******
 
-  SUBROUTINE cmcalcs(ne)
+  SUBROUTINE cmcalcs(nelm)
 
     use wfcomm
     USE wfsub
   implicit none
-  integer,intent(in) :: NE 
-  integer :: I,J,K,I1,J1,K1,ID,ISD,NSD,IND(2),ND1,ND2
-  real(rkind) :: S,L(3),RN,ZN
+  integer,intent(in) :: nelm
+  integer :: I,J,K,I1,J1,K1,ID,nside,nseg,IND(2),node1,node2
+  real(rkind) :: S,L(3),xn,yn
   real(rkind) :: A(3),B(3),C(3),AW(3),BW(3),CW(3)
-  real(rkind) :: R(3),Z(3)
+  real(rkind) :: x(3),y(3)
   COMPLEX(rkind):: CTEMP
 
   ! --- if no boundary side, return ---
 
   ID=0
-  DO ISD=1,3
-     NSD=ABS(nseg_nside_nelm(ISD,NE))
-     IF(KASID(NSD).EQ.1) ID=1
+  DO nside=1,3
+     nseg=ABS(nseg_nside_nelm(nside,nelm))
+     IF(mode_nseg(nseg).EQ.1) ID=1
   END DO
   IF(ID.EQ.0) RETURN
 
   ! --- initialize ---
 
-  S=SELM(NE)
-  call wf_set_abc(NE,A,B,C)
-  call wf_set_node(NE,R,Z)
+  S=area_nelm(nelm)
+  call wf_set_abc(nelm,A,B,C)
+  call wf_set_node(nelm,x,y)
 
-  DO ISD=1,3
-     NSD=ABS(nseg_nside_nelm(ISD,NE))
-     IF(KASID(NSD).EQ.1) THEN
-        IF(MODELWF.EQ.0) THEN
-           L(ISD)=LSID(NSD)
+  DO nside=1,3
+     nseg=ABS(nseg_nside_nelm(nside,nelm))
+     IF(mode_nseg(nseg).EQ.1) THEN
+        IF(model_wf.EQ.0) THEN
+           L(nside)=len_nseg(nseg)
         ELSE
-           IF(nseg_nside_nelm(ISD,NE).GT.0.D0) THEN
-              L(ISD)=LSID(NSD)
+           IF(nseg_nside_nelm(nside,nelm).GT.0.D0) THEN
+              L(nside)=len_nseg(nseg)
            ELSE
-              L(ISD)=-LSID(NSD)
+              L(nside)=-len_nseg(nseg)
            END IF
         END IF
 
-        ND1=ISD
-        ND2=ISD+1
-        IF(ND2.GT.3) ND2=ND2-3
-        AW(ISD)=L(ISD)*(A(ND1)*B(ND2)-A(ND2)*B(ND1))
-        BW(ISD)=L(ISD)*(B(ND1)*C(ND2)-B(ND2)*C(ND1))
-        CW(ISD)=L(ISD)*(C(ND1)*A(ND2)-C(ND2)*A(ND1))
+        node1=nside
+        node2=nside+1
+        IF(node2.GT.3) node2=node2-3
+        AW(nside)=L(nside)*(A(node1)*B(node2)-A(node2)*B(node1))
+        BW(nside)=L(nside)*(B(node1)*C(node2)-B(node2)*C(node1))
+        CW(nside)=L(nside)*(C(node1)*A(node2)-C(node2)*A(node1))
      END IF
   END DO
 
-  DO ISD=1,3
-     NSD=ABS(nseg_nside_nelm(ISD,NE))
-     IF(KASID(NSD).EQ.1) THEN
+  DO nside=1,3
+     nseg=ABS(nseg_nside_nelm(nside,nelm))
+     IF(mode_nseg(nseg).EQ.1) THEN
 
-        IND(1)=ISD
-        IND(2)=ISD+1
+        IND(1)=nside
+        IND(2)=nside+1
         IF(IND(2).GT.3) IND(2)=IND(2)-3
-        RN= (Z(IND(2))-Z(IND(1)))/L(ISD)
-        ZN=-(R(IND(2))-R(IND(1)))/L(ISD)
+        xn= (y(IND(2))-y(IND(1)))/L(nside)
+        yn=-(x(IND(2))-x(IND(1)))/L(nside)
 
   ! ----- rotErotF term -----
 
   ! --- E1F1 ---
 
-        I=ISD
-        J=ISD
+        I=nside
+        J=nside
         SELECT CASE(MODELG)
         CASE(0,12)
            DO K1=1,2
               K=IND(K1)
               CTEMP=CM(I,J)
               CM(I,J)=CM(I,J) &
-                      -2.D0*BW(J)*(ZN*(AW(I)-BW(I)*Z(K)) &
-                                  +RN*(CW(I)-BW(I)*R(K)))*RR*L(ISD)*AIE1(K)
+                      -2.D0*BW(J)*(yn*(AW(I)-BW(I)*y(K)) &
+                                  +xn*(CW(I)-BW(I)*x(K)))*RR*L(nside)*AIE1(K)
 !                    WRITE(21,'(A,I10,3I5,1P4E12.4)') &
 !                         'CM:',NE,I,J,K,CM(I,J),CM(I,J)-CTEMP
 !                    WRITE(21,'(5X,1P5E12.4)') &
@@ -831,14 +829,14 @@ END SUBROUTINE wf_cvsolv
            DO K1=1,2
               K=IND(K1)
               CM(I,J)=CM(I,J) &
-                      -2.D0*BW(J)*(ZN*(AW(I)-BW(I)*Z(K)) &
-                                  +RN*(CW(I)-BW(I)*R(K)))*R(K)*L(ISD)*AIE1(K)
+                      -2.D0*BW(J)*(yn*(AW(I)-BW(I)*y(K)) &
+                                  +xn*(CW(I)-BW(I)*x(K)))*x(K)*L(nside)*AIE1(K)
            END DO
         END SELECT
 
   ! --- E2F1 --- 
 
-        I=ISD
+        I=nside
         DO J1=1,2
            J=IND(J1)
            SELECT CASE(MODELG)
@@ -848,18 +846,18 @@ END SUBROUTINE wf_cvsolv
                  CTEMP=CM(I,J+3)
                  CM(I,J+3)=CM(I,J+3) &
                           +CII*RKZ*RR &
-                           *(-ZN*(-CW(J)+BW(J)*R(K)) &
-                             -RN*( AW(J)-BW(J)*Z(K)))*L(ISD)*AIE2(J,K)
+                           *(-yn*(-CW(J)+BW(J)*x(K)) &
+                             -xn*( AW(J)-BW(J)*y(K)))*L(nside)*AIE2(J,K)
                     WRITE(21,'(A,I10,3I5,1P4E12.4)') &
-                         'CM:',NE,I,J+3,K,CM(I,J+3),CM(I,J+3)-CTEMP
+                         'CM:',nelm,I,J+3,K,CM(I,J+3),CM(I,J+3)-CTEMP
               END DO
            CASE(1:10,13)
               DO K1=1,2
                  K=IND(K1)
                  CM(I,J+3)=CM(I,J+3) &
                           +CII*NPH &
-                           *(-ZN*(-CW(J)+BW(J)*R(K)) &
-                             -RN*( AW(J)-BW(J)*Z(K)))*L(ISD)*AIE2(J,K)
+                           *(-yn*(-CW(J)+BW(J)*x(K)) &
+                             -xn*( AW(J)-BW(J)*y(K)))*L(nside)*AIE2(J,K)
               END DO
            END SELECT
         END DO
@@ -876,18 +874,18 @@ END SUBROUTINE wf_cvsolv
                     K=IND(K1)
                     CTEMP=CM(I+3,J+3)
                     CM(I+3,J+3)=CM(I+3,J+3) &
-                               +(RN*B(J)+ZN*C(J))*RR &
-                                *L(ISD)*AIE3(I,J,K)
+                               +(xn*B(J)+yn*C(J))*RR &
+                                *L(nside)*AIE3(I,J,K)
                     WRITE(21,'(A,I10,3I5,1P4E12.4)') &
-                         'CM:',NE,I+3,J+3,K,CM(I+3,J+3),CM(I+3,J+3)-CTEMP
+                         'CM:',nelm,I+3,J+3,K,CM(I+3,J+3),CM(I+3,J+3)-CTEMP
                  END DO
               CASE(1:10,13)
                  DO K1=1,2
                     K=IND(K1)
                     CM(I+3,J+3)=CM(I+3,J+3) &
-                               +((RN*B(J)+ZN*C(J))*R(K) &
-                                 +RN*(A(J)+B(J)*R(K)+C(J)*Z(K))) &
-                                *L(ISD)*AIE3(I,J,K)
+                               +((xn*B(J)+yn*C(J))*x(K) &
+                                 +xn*(A(J)+B(J)*x(K)+C(J)*y(K))) &
+                                *L(nside)*AIE3(I,J,K)
                  END DO
               END SELECT
            END DO
@@ -900,17 +898,17 @@ END SUBROUTINE wf_cvsolv
 
 !     ****** LOCAL ELEMENT MATRIX : Surface integral ******
 
-  SUBROUTINE cmcalcp(ne)
+  SUBROUTINE cmcalcp(nelm)
 
     use wfcomm
     USE wfsub
   implicit none
-  integer,intent(in) :: NE 
+  integer,intent(in) :: nelm
   integer :: I,J,K,NS,IN,JJ,II
   real(rkind) :: RW,WC,WC2
   real(rkind) :: S
   real(rkind) :: A(3),B(3),C(3)
-  real(rkind) :: R(3),Z(3),MU(3,3,6)
+  real(rkind) :: x(3),y(3),MU(3,3,6)
   COMPLEX(rkind):: CM2(6,6)
   complex(rkind) :: DTENS(NSM,3,3,3)
   complex(rkind) :: DTENST(3,3,3)
@@ -921,14 +919,14 @@ END SUBROUTINE wf_cvsolv
   WC=RW/VC
   WC2=WC**2
 
-  S=SELM(NE)  
-  call wf_set_abc(NE,A,B,C)
-  call wf_set_node(NE,R,Z)
+  S=area_nelm(nelm)  
+  call wf_set_abc(nelm,A,B,C)
+  call wf_set_node(nelm,x,y)
 
   ! ----- dielectric tensor term -----
 
-  call wf_dtensr(NE,DTENS)
-  call wf_mutensr(NE,MU)
+  call wf_dtensr(nelm,DTENS)
+  call wf_mutensr(nelm,MU)
 
   DO J=1,6
      DO I=1,6
@@ -1005,7 +1003,7 @@ END SUBROUTINE wf_cvsolv
                                   +MU(I,2,II)*DTENST(J,2,3)&
                                   +MU(I,3,II)*DTENST(J,3,3))&
                                   *MU(K,3,JJ))&
-                                 *R(J)*S*AIF3(I,J,K)
+                                 *x(J)*S*AIF3(I,J,K)
                  end do
               end do
            end do
@@ -1035,17 +1033,17 @@ END SUBROUTINE cmcalcp
 
 !     ****** DIELECTRIC TENSOR ******
 
-  subroutine wf_dtensr(NE,DTENS)
+  subroutine wf_dtensr(nelm,DTENS)
 
     use wfcomm
     USE wfprof
   implicit none
-  integer,intent(in) :: NE
+  integer,intent(in) :: nelm
   integer :: IN,I,J,ID
   complex(rkind),intent(out):: DTENS(NSM,3,3,3)
-  integer    :: NS,NN
-  real(rkind)    :: R,Z,WW,WP(NSM),WC(NSM),BABS,AL(3),RN(NSM),RTPR(NSM)
-  real(rkind)    :: RTPP(NSM),RZCL(NSM),FP,FR,FZ,DR,DZ,F
+  integer    :: NS,node
+  real(rkind)    :: x,y,WW,WP(NSM),WC(NSM),BABS,AL(3),RN(NSM),RTPR(NSM)
+  real(rkind)    :: RTPP(NSM),RZCL(NSM),FP,FR,FZ,dx,dy,F
   complex(rkind) :: CWP,CWC,CDT0,CDX0,CDP0,CDT,CDP,CDX,CDAMP
   complex(rkind) :: CRR,CRP,CRZ,CPR,CPP,CPZ,CZR,CZP,CZZ
 
@@ -1064,7 +1062,6 @@ END SUBROUTINE cmcalcp
   WW=2.D0*PI*RF*1.D6
 
   DO NS=1,NSMAX
-!     WRITE(6,'(I8,1P2E12.4)') NS,PA(NS),PZ(NS)
      WP(NS)=PZ(NS)*PZ(NS)*AEE*AEE*1.D20/(PA(NS)*AMP*EPS0*WW*WW)
      WC(NS)=PZ(NS)*AEE/(PA(NS)*AMP*WW)
   ENDDO
@@ -1073,16 +1070,16 @@ END SUBROUTINE cmcalcp
 
   do IN=1,3
      
-     NN=node_nside_nelm(IN,NE)
-     R=xnode(NN)
-     Z=ynode(NN)
+     node=node_nside_nelm(IN,nelm)
+     x=xnode(node)
+     y=ynode(node)
      
-     CALL wf_smag(R,Z,BABS,AL)
+     CALL wf_smag(x,y,BABS,AL)
      FR=AL(1)
      FP=AL(2)
      FZ=AL(3)
      
-     CALL wf_sden(R,Z,RN,RTPR,RTPP,RZCL)
+     CALL wf_sden(x,y,RN,RTPR,RTPP,RZCL)
 
      do NS=1,NSMAX
         
@@ -1119,51 +1116,67 @@ END SUBROUTINE cmcalcp
      END do
 
 
-     IF(WDAMP.GT.0.D0) THEN
+     IF(width_damp.GT.0.D0) THEN
         CDAMP=CII*PZCL(NSMAX)
-        F=FDAMP
-        IF(R-BDRMIN.LT.WDAMP) THEN
+        F=factor_damp
+        IF(x-xnode_min.LT.width_damp) THEN
            ID=1
-           IF(MDAMP.EQ.1.AND. &
-              Z.GT.ZDAMP_MIN.AND.Z.LT.ZDAMP_MAX) ID=0
+           IF(model_damp.EQ.1.AND. &
+              y.GT.ydamp_min.AND. &
+              y.LT.ydamp_max) ID=0
            IF(ID.EQ.1) THEN
-              DR=R-BDRMIN
-!              DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DR)/(DR-CDAMP)
-              DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DR)/(DR-CDAMP)
-              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DR)/(DR-CDAMP)
+              dx=x-xnode_min
+         !    DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1) &
+         !         +F*(width_damp-dx)/(dx-CDAMP)
+              DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2) &
+                   +F*(width_damp-dx)/(dx-CDAMP)
+              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3) &
+                   +F*(width_damp-Dx)/(dx-CDAMP)
            END IF
         END IF
-        IF(BDRMAX-R.LT.WDAMP) THEN
+        IF(xnode_max-x.LT.width_damp) THEN
            ID=1
-           IF(MDAMP.EQ.2.AND. &
-              Z.GT.ZDAMP_MIN.AND.Z.LT.ZDAMP_MAX) ID=0
+           IF(model_damp.EQ.2.AND. &
+              y.GT.ydamp_min.AND. &
+              y.LT.ydamp_max) ID=0
            IF(ID.EQ.1) THEN
-              DR=BDRMAX-R
-!              DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DR)/(DR-CDAMP)
-              DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DR)/(DR-CDAMP)
-              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DR)/(DR-CDAMP)
+              Dx=xnode_max-x
+   !          DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1) &
+   !               +F*(width_damp-Dx)/(Dx-CDAMP)
+              DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2) &
+                   +F*(width_damp-dx)/(dx-CDAMP)
+              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3) &
+                   +F*(width_damp-dx)/(dx-CDAMP)
            END IF
         END IF
-        IF(Z-BDZMIN.LT.WDAMP) THEN
+        IF(y-ynode_min.LT.width_damp) THEN
            ID=1
-           IF(MDAMP.EQ.3.AND. &
-              R.GT.RDAMP_MIN.AND.R.LT.RDAMP_MAX) ID=0
+           IF(model_damp.EQ.3.AND. &
+              x.GT.xdamp_min.AND.&
+              x.LT.xdamp_max) ID=0
            IF(ID.EQ.1) THEN
-              DZ=Z-BDZMIN
-              DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DZ)/(DZ-CDAMP)
-              DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DZ)/(DZ-CDAMP)
-!              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DZ)/(DZ-CDAMP)
+              dy=y-ynode_min
+              DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1) &
+                   +F*(width_damp-dy)/(dy-CDAMP)
+              DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2) &
+                   +F*(width_damp-dy)/(dy-CDAMP)
+            ! DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3) &
+            !      +F*(width_damp-dy)/(dy-CDAMP)
            END IF
         END IF
-        IF(BDZMAX-Z.LT.WDAMP) THEN
+        IF(ynode_max-y.LT.width_damp) THEN
            ID=1
-           IF(MDAMP.EQ.4.AND. &
-              R.GT.RDAMP_MIN.AND.R.LT.RDAMP_MAX) ID=0
+           IF(model_damp.EQ.4.AND. &
+              x.GT.xdamp_min.AND. &
+              x.LT.xdamp_max) ID=0
            IF(ID.EQ.1) THEN
-              DZ=BDZMAX-Z
-              DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DZ)/(DZ-CDAMP)
-              DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DZ)/(DZ-CDAMP)
-!              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DZ)/(DZ-CDAMP)
+              dy=ynode_max-y
+              DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1) &
+                   +F*(width_damp-dy)/(dy-CDAMP)
+              DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2) &
+                   +F*(width_damp-dy)/(dy-CDAMP)
+            ! DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3) &
+            !      +F*(width_damp-dy)/(dy-CDAMP)
            END IF
         END IF
      END IF
@@ -1174,30 +1187,30 @@ END SUBROUTINE cmcalcp
 
 !     ***** INTERPOLATION TENSOR *****
 
-  subroutine wf_mutensr(NE,MU)
+  subroutine wf_mutensr(nelm,MU)
 
     use wfcomm
     USE wfsub
   implicit none
-  integer,intent(in) :: NE
-  integer :: ISD,NSD,I,J,K
+  integer,intent(in) :: nelm
+  integer :: nside,nseg,I,J,K
   real(rkind),intent(out)::MU(3,3,6)
   real(rkind) :: A(3),B(3),C(3),L(3)
 
-  do ISD=1,3
-     NSD=ABS(nseg_nside_nelm(ISD,NE))
-     IF(MODELWF.EQ.0) THEN
-        L(ISD)=LSID(NSD)
+  do nside=1,3
+     nseg=ABS(nseg_nside_nelm(nseg,nelm))
+     IF(model_wf.EQ.0) THEN
+        L(nside)=len_nseg(nseg)
      ELSE
-        IF(nseg_nside_nelm(ISD,NE).GT.0.D0) THEN
-           L(ISD)=LSID(NSD)
+        IF(nseg_nside_nelm(nside,nelm).GT.0.D0) THEN
+           L(nside)=len_nseg(nseg)
         ELSE
-           L(ISD)=-LSID(NSD)
+           L(nside)=-len_nseg(nseg)
         END IF
      END IF
   end do
 
-  call wf_set_abc(NE,A,B,C)
+  call wf_set_abc(nelm,A,B,C)
 
   do K=1,6
      do J=1,3

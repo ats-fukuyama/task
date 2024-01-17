@@ -16,89 +16,99 @@ CONTAINS
     USE wfcomm
     USE plcomm
     implicit none
-    integer :: nant,NM,NS,id
+    integer :: nant,ns,nmed,id
 
-!     *** CONTROL PARAMETERS ***
-!
-!        MODELI = Definition of imaginary unit
-!              * 0 : exp(-i omega t)
-!                1 : exp( j omega t)
+    ! === Configuration parameters for wfdiv ===
 
-    CALL pl_allocate_ns
+    model_config = 1 ! coordinates type
+    !                   1 : rectangular (x,y)
+    !                   2 : torus (r,z)
+    !                   3 : cylinder (z,r)
+    
+    model_shape = 1  ! boundary shape type
+    !                   1 : rectabgular
+    !                   2 : circle
+    !                   3 : arc
+    !                  11 : toroidal equilibrium (eq)
+    !                  12 : rectangular mesh file
 
-    MODELI=0
-    MODELG=2
+    ! --- model shape = 1 (rectangular) ---
+    
+    xdiv_min=0.D0
+    xdiv_max=1.D0
+    ydiv_min=0.D0
+    ydiv_max=1.D0
 
-!        KFNAME: File name of element data
-!        KFNAMA: File name of antenna data
-!        KFNAMF: File name of field data
-!        KFNAMB: File name of buffer
+    delx=0.01D0  ! typical division length
+    dely=0.01D0  ! typical division length
 
-    KFNAME = 'elm-data'
-    KFNAMA = 'ant-data'
-    KFNAMF = 'fld-data'
-    KFNAMB = '/tmp/wfx-buffer'
+    ! --- model shape = 2 (circular) --- DEFINED in plcomm
 
-!     *** INITIAL PARAMETERS FOR DIVIDE ***
+    ! RR=3.D0      ! major radius
+    ! RB=1.2D0     ! wall radius
+    ! RKAP=1.D0    ! elongation
+    ! RDLT=0.D0    ! triangularity
 
-!     NRM,NZM: PARAMETER FOR WFDIV
+    ! --- model shape = 3 (arc) ---
+    
+    rdiv_min=1.5D0
+    rdiv_max=4.5D0
+    thdiv_min=0.D0
+    thdiv_max=90.D0
 
-    NRM = 1001
-    NZM = 1001
+    ! === magnetic field parameter ===
 
-!     *** CONFIGURATION PARAMETERS ***
+    ! --- typcal magnetic field ---  DEFINED in pl/plcomm
 
-!        BB    : Magnetic field at center                        (T)
-!        RR    : Plasma major radius                             (m)
-!        RA    : Plasma minor radius                             (m)
+    ! BB = 1.D0
+    ! Q0 = 1.D0
+    ! QA = 3.D0
+    ! RIP   = 3.D0
+    ! PROFJ = 2.D0
 
-    BB     = 0.072D0
-    RR     = 0.22D0
-    RA     = 0.16D0
+    ! --- coil parameters for cylindrical configuration --- DEFINED in plcomm
 
-!     *** CIRCULAR COIL/STRAIGHT ROD PARAMETERS (MODELB=1) ***
-!
-!        NCOILMAX : Number of coils
-!        RCOIL : Radial position of coil current               (m)
-!        ZCOIL : Axial position of coil current                (m)
-!        BCOIL : Magnetic field on axis, center of coil        (T)
+    !        ncoil_max : Number of coils
+    !        rcoil(ncoilm) : r position of coil current [m]
+    !        zcoil(ncoilm) : z position of coil current [m]
+    !        bcoil(ncoim)  : maximum magnetic field on axis [T]
 
-    NCOILMAX  = 0
-    RCOIL(1)  = 0.35D0
-    ZCOIL(1)  = 0.D0
-    BCOIL(1)  = 0.001D0
-    RCOIL(2)  = 0.35D0
-    ZCOIL(2)  = 0.05D0
-    BCOIL(2)  =-0.001D0
-    RCOIL(3)  = 0.35D0
-    ZCOIL(3)  =-0.05D0
-    BCOIL(3)  =-0.001D0
+    ! ncoil_max = 3
+    ! rcoil(1)  = 0.35D0
+    ! zcoil(1)  = 0.D0
+    ! bcoil(1)  = 0.001D0
+    ! rcoil(2)  = 0.35D0
+    ! zcoil(2)  = 0.05D0
+    ! bcoil(2)  =-0.001D0
+    ! rcoil(3)  = 0.35D0
+    ! zcoil(3)  =-0.05D0
+    ! bcoil(3)  =-0.001D0
 
-!     *** RF PARAMETERS ***
-!
-!        RF    : Wave frequency                               (MHz)
-!        NPH   : Toroidal Mode Number for modelg=1,2
-!        RKZ   : Vertical wave number for modelg=0,12         (1/m)
+    ! === RF PARAMETERS ===
+
+    !        RF    : Wave frequency                               (MHz)
+    !        NPH   : Toroidal Mode Number for modelg=1,2
+    !        RKZ   : Vertical wave number for modelg=0,12         (1/m)
 
     RF     = 5000.D0
-    NPH    = 0
     RKZ    = 0.D0
+    NPH    = 0
 
-!     *** ANTENNA PARAMETERS ***
-!
-!        nant_max : Number of antennae
-!        AJ(NAM)    : Antenna current density                       (A/m)
-!        APH(NAM)   : Antenna phase                              (degree)
-!        AWD(NAM)   : Antenna width in (z, phi, Z) direction     (degree)
-!        APOS(NAM)  : Antenna position in (z, phi, Z) direction  (degree)
-!        PIN(AM)   : Input Power (W)
-!        RD(NAM)    : Antenna radius (m)
-!        THETJ1(NAM): Start angle of arc antenna (degree)
-!        THETJ2(NAM): End angle of arc antenna (degree)
-!        nant_point_max(NAM) : Number of primary grid points of antenna
+    ! --- ANTENNA PARAMETERS ---
+    !
+    !        nant_max : Number of antennae
+    !        AJ(nantm)    : Antenna current density                       (A/m)
+    !        APH(nantm)   : Antenna phase                              (degree)
+    !        AWD(nantm)   : Antenna width in (z, phi, Z) direction     (degree)
+    !        APOS(nantm)  : Antenna position in (z, phi, Z) direction  (degree)
+    !        PIN(AM)   : Input Power (W)
+    !        RD(nantm)    : Antenna radius (m)
+    !        THETJ1(nantm): Start angle of arc antenna (degree)
+    !        THETJ2(nantm): End angle of arc antenna (degree)
+    !        nant_point_max(nantm) : Number of primary grid points of antenna
 
     nant_max=0
-    DO nant=1,NAM
+    DO nant=1,nantm
        AJ(nant)            = 1.D0
        APH(nant)           = 0.D0
        AWD(nant)           = 0.D0
@@ -109,17 +119,65 @@ CONTAINS
        THETJ2(nant)        =-40.D0
     ENDDO
 
-!     *** PLASMA PARAMETERS ***
-!
-!        NSMAX : Number of particle species
-!        PA    : Mass number
-!        PZ    : Charge number
-!        PN    : Density at center                     (1.0E20/m**3)
-!        PNS   : Density on plasma surface             (1.0E20/m**3)
-!        PTPR  : Parallel temperature at center                (keV)
-!        PTPP  : Perpendicular temperature at center           (keV)
-!        PTS   : Temperature on surface                        (keV)
-!        PZCL  : Ratio of collision frequency to wave frequency
+    ! === waveguide antenna parameter ===
+
+    model_wg=1   ! antenna model
+    !              0   : line, step
+    !              1   : line, gaussian
+    !              6   : arc, step
+    !              7   : arc, gaussian
+    !             12:    read file
+    
+    xwg_min=0.5D0        ! waveguide range in xy
+    xwg_max=0.5D0
+    ywg_min=0.0D0
+    ywg_max=0.05D0
+    thwg_min=-30.D0      ! waveguide range in poloidal angle
+    thwg_max= 30.D0
+    
+    phase_wg_min=0.D0    ! wave phase
+    phase_wg_cen=90.D0
+    phase_wg_max=180.D0
+
+    amp_wg=0.D0      ! Amplitude of waveguide electric field
+    angle_wg=0.D0    ! Polarization angle wrt z axis (degree)
+    ellip_wg=0.D0    ! Polarization ellipticity
+
+    !   Edge damping region (absorption ns=NSMAX)
+    !      model_damp = 0 : no damping region
+    !                damping region in all direction except waveguide mouth
+    !             1: no damp on the wall x=xdiv_min, ydamp_min<y<ydamp_max 
+    !             2: no damp on the wall x=xdiv_max, ydamp_min<y<ydamp_max 
+    !             3: no damp on the wall y=ydiv_min, xdamp_min<x<xdamp_max 
+    !             4: no damp on the wall y=ydiv_max, xdamp_min<x<rdamp_max
+    !             5: no damp on the wall RS=RB, thdamp_min<theta<thdamp_max
+    !      width_mdap  : width of damping region [m]
+    !      factor_damp : damping factor (0 < DX=|x-wall| < width)
+    !                       epsilon=factor*(width-DX)/(DX+CI*PZCL(NSMAX))
+
+    model_damp=0
+    xdamp_min=0.D0
+    xdamp_max=0.D0
+    ydamp_min=0.D0
+    ydamp_max=0.D0
+    thdamp_min=0.D0
+    thdamp_max=0.D0
+
+    width_damp=0.D0
+    factor_damp=0.3D0
+
+    ! === PLASMA PARAMETERS ===
+
+    !     NSMAX : Number of particle species
+    !                  (when model_damp.NE.0, ns=nsmax for wall damp)
+    !     PA    : Mass number
+    !     PZ    : Charge number
+    !     PN    : Density at center                     (1.0E20/m**3)
+    !     PNS   : Density on plasma surface             (1.0E20/m**3)
+    !     PTPR  : Parallel temperature at center                (keV)
+    !     PTPP  : Perpendicular temperature at center           (keV)
+    !     PTS   : Temperature on surface                        (keV)
+    !     PZCL  : Ratio of collision frequency to wave frequency
 
     NSMAX= 2
     IF(NSMAX.GT.NSM) NSMAX=NSM
@@ -145,39 +203,29 @@ CONTAINS
     ENDIF
   
     DO NS=3,NSM
-       PA(NSM)  = 1.0D0
-       PZ(NSM)  = 1.0D0
-       PN(NSM)  = 0.0D0
-       PNS(NSM) = 0.0D0
-       PTPR(NSM)= 1.0D0
-       PTPP(NSM)= 1.0D0
-       PTS(NSM) = 0.1D0
-       PZCL(NSM)= 3.0D-3
+       PA(NS)  = 1.0D0
+       PZ(NS)  = 1.0D0
+       PN(NS)  = 0.0D0
+       PNS(NS) = 0.0D0
+       PTPR(NS)= 1.0D0
+       PTPP(NS)= 1.0D0
+       PTS(NS) = 0.1D0
+       PZCL(NS)= 3.0D-3
     END DO
 
-!   Edge damping region (absorption ns=NSMAX)
-!      MDAMP=0 : no damping region
-!           <>0: damping region in all direction except wg layer
-!             1: no damp in the region r=rmin, zdamp_min<z<zdamp_max 
-!             2: no damp in the region r=rmax, zdamp_min<z<zdamp_max 
-!             3: no damp in the region z=zmin, rdamp_min<r<rdamp_max 
-!             4: no damp in the region z=zmax, rdamp_min<r<rdamp_max 
-!      WDAMP   : width of damping region [m]
-!      FDAMP   : damping factor
-!                       epsilon=FDAMP*(WDAMP-DX)/(DX+CI*PZCL(NSMAX))
-!      PZCL(NSMAX): damping factor: PN(NSMAX)=0
+    !  PPN0   : Neutral pressure (Pa)  1 Torr = 1 mmHg = 133.322 Pa
+    !  PTN0   : Initial neutral temperarure (eV)
 
-    MDAMP=0
-    WDAMP=0.D0
-    FDAMP=0.3D0
+    PPN0   = 3.0D0
+    PTN0   = 0.03D0
 
     ! *** collision enhancement near a layer ***
     !  model_coll_enhance:  0: no enhancement, 1: layer in x, 2: layer in y
     !  factor_coll_enhance: enhancement factor (0.D0: no enhancement)
-    !  xpos_coll_enhance:   center position of the layer in x (R)
-    !  xwidth_coll_enhance: Gaussian width in x (R)
-    !  ypos_coll_enhance:   center position of the layer in y (Z)
-    !  ywidth_coll_enhance: Gaussian width in y (Z)
+    !  xpos_coll_enhance:   center position of the layer in x
+    !  xwidth_coll_enhance: Gaussian width in x
+    !  ypos_coll_enhance:   center position of the layer in y
+    !  ywidth_coll_enhance: Gaussian width in y
     !       rzcl=rzcl_original*(1.D0+factor*exp(-(x-xpos)**2/xwidth**2))
 
     model_coll_enhance=0
@@ -187,113 +235,119 @@ CONTAINS
     ypos_coll_enhance  =0.D0
     ywidth_coll_enhance=0.01D0
 
-    !     *** interpolation level ***
-    !                   0: element center value
-    !                   1: local linear interpolation
+    ! *** interpolation level ***
+    !   model_interpolation: 0: element center value
+    !                        1: local linear interpolation
+
     model_interpolation=1
 
-    !     *** MEDIUM PARAMETERS ***
+    ! *** MEDIUM PARAMETERS ***
+    !   nmed_max : maximum number of medium type
+    !   epsilon_nmed : electric permittivity
+    !   amu_nmed     : magnetic permeability
+    !   sig_nmed     : electric conductivity
 
-    NMMAX=0
-    DO NM=1,NMM
-       EPSDM(NM)=1.D0
-       AMUDM(NM)=1.D0
-       SIGDM(NM)=0.D0
+    nmed_max=0
+    DO nmed=1,nmedm
+       model_nmed(nmedm)=0
+       epsilon_nmed(nmed)=1.D0
+       amu_nmed(nmed)=1.D0
+       sigma_nmed(nmed)=0.D0
+       xmin_nmed(nmed)=0.D0
+       xmax_nmed(nmed)=0.D0
+       ymin_nmed(nmed)=0.D0
+       ymax_nmed(nmed)=0.D0
+       rmin_nmed(nmed)=0.D0
+       rmax_nmed(nmed)=0.D0
+       thmin_nmed(nmed)=0.D0
+       thmax_nmed(nmed)=0.D0
     ENDDO
   
-!    NBMAX=0
+    ! === OUTPUT PARAMETERS ===
 
-!     *** OUTPUT PARAMETERS ***
-!
-!        NPRINT: Print output parameter
-!                0 : No output
-!              * 1 : Parameter and global field data
-!                2 : Local field data
-!                3 : Element data
-!        NDRAWD: Drawing parameter for elemendt divider
-!                0 : Boundary shape
-!              * 1 : Element shape
-!                2 : Element shape + Element number
-!                3 : Element shape + Element number + Node number
-!        NDRAWA: Drawing parameter for antenna generater
-!                0 : Antenna primary data
-!                1 : Antenna secondary data
-!              * 2 : Antenna secondary data + Element shape
-!        NDRAWE: Drawing parameter for electric field profile
-!              * 0 : cylinder (r,phi,z)
-!                1 : toroidal (r,theta,phi)
-!        NDRAWV: Vector field output parameter
-!              * 0 : No output
-!                1 : 2D Vector field in poloidal cross section
-!        NGRAPH: Drawing parameter for field data
-!               -1 : binary file output
-!                0 : text file output
-!              * 1 : Contour plot
-!                2 : Paint plot
-!                3-6 : Bird's eye view from four directions
+    !   NPRINT: Print output parameter
+    !            0 : No output
+    !          * 1 : Parameter and global field data
+    !            2 : Local field data
+    !            3 : Element data
+    !   NDRAWD: Drawing parameter for elemendt divider
+    !            0 : Boundary shape
+    !          * 1 : Element shape
+    !            2 : Element shape + Element number
+    !            3 : Element shape + Element number + Node number
+    !   NDRAWA: Drawing parameter for antenna generater
+    !            0 : Antenna primary data
+    !            1 : Antenna secondary data
+    !          * 2 : Antenna secondary data + Element shape
+    !   NDRAWE: Drawing parameter for electric field profile
+    !          * 0 : cylinder (r,phi,z)
+    !            1 : toroidal (r,theta,phi)
+    !   NDRAWV: Vector field output parameter
+    !          * 0 : No output
+    !            1 : 2D Vector field in poloidal cross section
+    !   NGRAPH: Drawing parameter for field data
+    !           -1 : binary file output
+    !            0 : text file output
+    !          * 1 : Contour plot
+    !            2 : Paint plot
+    !            3-6 : Bird's eye view from four directions
 
-    NPRINT = 1
-    NDRAWD = 1
-    NDRAWA = 2
-    NDRAWE = 0
-    NDRAWV = 0
-    NGRAPH = 1
+    nprint = 1
+    ndrawd = 1
+    ndrawa = 2
+    ndrawe = 0
+    ndrawv = 0
+    ngraph = 1
 
-!     *** variable_sort parameters ***
+    ! === variable_sort weight parameters ===
 
     sort_weight_x=1.D0
     sort_weight_y=1.D0
 
-!     *** DIVIDER PARAMETERS ***
 
-!        RB    : Boundary radius (m)
-!        DELR  : Typical element size in r direction (m)
-!        DELZ  : Typical element size in z direction (m)
+    ! === GRAPHICS PARAMETER ===
 
-    RB     = 0.2D0
-    DELR   = 0.05D0
-    DELZ   = 0.05D0
-    BDRMIN = 0.01d0
-    BDRMAX = 0.5d0
-    BDZMIN =-0.5d0
-    BDZMAX = 0.5d0
+    ngxmax = 31
+    ngymax = 31
+    ngvmax = 31  
 
-
-    MODELWG=1         ! Profile: 0: step function, 1: gaussian
-                      !         12: read file
-    X1WG=0.5D0
-    Y1WG=0.0D0
-    X2WG=0.5D0
-    Y2WG=0.05D0
-    PH1WG=0.D0
-    PH2WG=180.D0
-    AMPWG=0.D0        ! Amplitude of waveguide electric field
-    ANGWG=0.D0        ! Polarization angle wrt z axis
-    ELPWG=0.D0        ! Polarization ellipticity
-    DPHWG=0.D0        ! Phase curvature for focusing
-
-!     PPN0   : Neutral pressure (Pa)  1 Torr = 1 mmHg = 133.322 Pa
-!     PTN0   : Initial neutral temperarure (eV)
-
-    PPN0   = 3.0D0
-    PTN0   = 0.03D0
-
-!     *** GRAPHICS PARAMETER ***
-
-    NGXMAX = 31
-    NGYMAX = 31
-    NGVMAX = 31  
-
-    GFACTOR= 0.5
+    gaspect= 1.0
 
     nxzone_max=100
     nyzone_max=100
 
-!     *** Numerical computation parameter ***
+    ! === Numerical computation parameter ===
 
     tolerance = 1.D-8
 
-    !     *** DEBUG CONTROL PARAMETER ***
+    ! === seg field parity ===
+
+    model_wf = 0
+
+    ! === CONTROL PARAMETERS ===
+
+    !   MODELI = Definition of imaginary unit
+    !      * 0 : exp(-i omega t)
+    !        1 : exp( j omega t)
+
+
+    MODELI=0
+
+    !   KFNAME: File name of element data
+    !   KFNAMA: File name of antenna data
+    !   KFNAMF: File name of field data
+    !   KFNAMB: File name of buffer
+
+    KFNAME = 'elm-data'
+    KFNAMA = 'ant-data'
+    KFNAMF = 'fld-data'
+    KFNAMB = '/tmp/wfx-buffer'
+
+!     *** LOAD FILE NAME ***
+
+    KNAMWG=' '
+
+    ! === DEBUG CONTROL PARAMETER ===
     
     ! --- idebuga( 1) : wfdiv
     ! --- idebuga( 2) : wfant
@@ -303,30 +357,6 @@ CONTAINS
     DO id=1,idebuga_max
        idebuga(id)=0
     END DO
-
-!     *** LOAD FILE NAME ***
-
-    KNAMPF=' '
-    KNAMWG=' '
-
-!     *** INITIALIZATION PARAMETERS (DO NOT MODIFY) ***
-
-    node_max  = 0
-    nelm_max=0
-    nseg_bdy_max=0
-    mtx_len=0
-    rdamp_min=0.D0
-    rdamp_max=0.D0
-    zdamp_min=0.D0
-    zdamp_max=0.D0
-
-    NFOPEN = 0
-    RNDMIN = 0.D0
-    RNDMAX = 0.D0
-
-    NDFILE=25
-
-    MODELWF=0         ! side field: 0: positive 1: alternative
 
     RETURN
   END SUBROUTINE WF_INIT

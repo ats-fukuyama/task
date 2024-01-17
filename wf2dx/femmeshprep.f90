@@ -2,87 +2,10 @@
 
 MODULE femmeshprep
 
-  USE wfcomm,ONLY: rkind,long
-!  INTEGER:: nseg_max
-  INTEGER:: nside_max
-  INTEGER:: nelm_node_max
-  REAL(rkind):: xnode_min,xnode_max,ynode_min,ynode_max
-  REAL(rkind):: vol_tot
-  INTEGER,ALLOCATABLE:: nside_max_nelm(:)
-  REAL(rkind),ALLOCATABLE:: xcenter_nelm(:),ycenter_nelm(:)
-  REAL(rkind),ALLOCATABLE:: vol_nelm(:)
-  REAL(rkind),ALLOCATABLE:: xcenter_nseg(:),ycenter_nseg(:)
-!  INTEGER,ALLOCATABLE:: node_nseg(:,:)
-  INTEGER,ALLOCATABLE:: nelm_nseg(:,:)
-  INTEGER,ALLOCATABLE:: idir_nside_nelm(:,:),idseg_nseg(:)
-!  INTEGER,ALLOCATABLE:: nseg_nside_nelm(:,:)
-  INTEGER,ALLOCATABLE:: nelm1_nside_nelm(:,:)
-  INTEGER,ALLOCATABLE:: nside1_nside_nelm(:,:)
-  INTEGER,ALLOCATABLE:: nelm_nangle_node(:,:),nelm_max_node(:)
-
-! --- prepartion of mesh related variables ---
-
+  PRIVATE
   PUBLIC fem_meshprep
-  
-  INTEGER:: nelm_max_mesh_save=0
-  INTEGER:: nseg_max_mesh_save=0
-  INTEGER:: nside_max_mesh_save=0
 
-CONTAINS
-
-  SUBROUTINE fem_mesh_allocate
-    USE wfcomm
-    IMPLICIT NONE
-
-    IF((nelm_max .EQ.nelm_max_mesh_save ).AND. &
-       (nseg_max .EQ.nseg_max_mesh_save ).AND. &
-       (nside_max.EQ.nside_max_mesh_save)) RETURN
-    IF(nelm_max_mesh_save.NE.0) CALL fem_mesh_deallocate
-
-    ALLOCATE(xcenter_nelm(nelm_max),ycenter_nelm(nelm_max))
-    ALLOCATE(vol_nelm(nelm_max))
-    ALLOCATE(xcenter_nseg(nseg_max),ycenter_nseg(nseg_max))
-    ALLOCATE(idseg_nseg(nseg_max))
-    ALLOCATE(nelm_nseg(2,nseg_max))
-!    ALLOCATE(node_nseg(2,nseg_max))
-!    ALLOCATE(nseg_nside_nelm(nside_max,nelm_max))
-    ALLOCATE(idir_nside_nelm(nside_max,nelm_max))
-    ALLOCATE(nelm1_nside_nelm(nside_max,nelm_max))
-    ALLOCATE(nside1_nside_nelm(nside_max,nelm_max))
-    ALLOCATE(nelm_max_node(nelm_max))
-
-    IF(nrank.eq.0) WRITE(6,'(A)') '## fem_mesh_allocated'
-    IF(nrank.eq.0) WRITE(6,'(A,3I8)') '   nelm_max,nseg_max,nside_max=', &
-                                          nelm_max,nseg_max,nside_max
-
-    nelm_max_mesh_save =nelm_max
-    nseg_max_mesh_save =nseg_max
-    nside_max_mesh_save=nside_max
-
-    RETURN
-  END SUBROUTINE fem_mesh_allocate
-
-  SUBROUTINE fem_mesh_deallocate
-    USE wfcomm
-    IMPLICIT NONE
-
-    DEALLOCATE(xcenter_nelm,ycenter_nelm)
-    DEALLOCATE(vol_nelm)
-    DEALLOCATE(xcenter_nseg,ycenter_nseg)
-    DEALLOCATE(idseg_nseg)
-    DEALLOCATE(nelm_nseg)
-!    DEALLOCATE(node_nseg)
-!    DEALLOCATE(nseg_nside_nelm)
-    DEALLOCATE(idir_nside_nelm)
-    DEALLOCATE(nelm1_nside_nelm)
-    DEALLOCATE(nside1_nside_nelm)
-    DEALLOCATE(nelm_max_node)
-    nelm_max_mesh_save =0
-    nseg_max_mesh_save =0
-    nside_max_mesh_save=0
-
-    RETURN
-  END SUBROUTINE fem_mesh_deallocate
+  CONTAINS
 
 !**********************************************************************
   SUBROUTINE fem_meshprep
@@ -90,6 +13,9 @@ CONTAINS
 
     USE wfcomm
     IMPLICIT NONE
+
+    ! === allocatable arrays related to nsega ===
+    
     INTEGER,ALLOCATABLE:: node_nsega(:,:)
     INTEGER,ALLOCATABLE:: nsega_nside_nelm(:,:)
     INTEGER,ALLOCATABLE:: nsega_pair(:),nsega_nseg(:),nseg_nsega(:)
@@ -97,26 +23,38 @@ CONTAINS
     INTEGER,ALLOCATABLE:: nsega_ncount_nxzone_nyzone(:,:,:)
     INTEGER,ALLOCATABLE:: nelm_nsega(:),nside_nsega(:)
     REAL(rkind),ALLOCATABLE:: xcenter_nsega(:),ycenter_nsega(:)
+    
     INTEGER:: nseg,nsega,nseg_all,nsega1
     INTEGER:: nelm,nside,n1,n2,n3
+    INTEGER:: node1,node2,node3,nbdy
     INTEGER:: nelm1,nside1
     INTEGER:: node,ncount,ncount_zone_max
-    INTEGER:: nx,ny
+    INTEGER:: nx,ny,i
     REAL(rkind):: x,y,xc,yc,xc1,yc1,xlen_zone,ylen_zone
-    REAL(rkind):: x1,y1,x2,y2,x3,y3,xg,yg,s,v,xgsum,ygsum,vsum
-    REAL(rkind):: sfactor,vfactor
+    REAL(rkind):: x1,y1,x2,y2,x3,y3,xg,yg,s,v,xgsum,ygsum,ssum,vsum
 
-    nxzone_max=100
-    nyzone_max=100
+    ! --- initialize nside_nelm ---
 
-! --- initialize nside_nelm ---
-
-    IF(ALLOCATED(nside_max_nelm)) DEALLOCATE(nside_max_nelm)
-    ALLOCATE(nside_max_nelm(nelm_max))
     DO nelm=1,nelm_max
-       nside_max_nelm(nelm)=3
+       nside_max_nelm(nelm)=nside_max
     END DO
-    nside_max=3
+    
+  nbdy=0
+  DO nelm=1,nelm_max
+     node1=node_nside_nelm(1,nelm)
+     node2=node_nside_nelm(2,nelm)
+     node3=node_nside_nelm(3,nelm)
+     CALL wf_find_elm(nelm,node1,node2,nelm1_nside_nelm(1,nelm))
+     CALL wf_find_elm(nelm,node2,node3,nelm1_nside_nelm(2,nelm))
+     CALL wf_find_elm(nelm,node3,node1,nelm1_nside_nelm(3,nelm))
+     IF(nelm1_nside_nelm(1,nelm).EQ.0) nbdy=nbdy+1
+     IF(nelm1_nside_nelm(2,nelm).EQ.0) nbdy=nbdy+1
+     IF(nelm1_nside_nelm(3,nelm).EQ.0) nbdy=nbdy+1
+  ENDDO
+  nbdy_max=nbdy
+  nseg_max=(3*nelm_max-nbdy_max)/2+nbdy_max
+
+    CALL fem_mesh_allocate
     
 ! --- Evaluate min and max of xnode and ynode of active elements ---
 
@@ -214,7 +152,17 @@ CONTAINS
     ! Set nelm of elements in a zone
 
     ALLOCATE(nsega_ncount_nxzone_nyzone(ncount_zone_max,nxzone_max,nyzone_max))
-    
+
+    WRITE(6,*) 'xnode_min=',xnode_min
+    WRITE(6,*) 'xnode_max=',xnode_max
+    WRITE(6,*) 'ynode_min=',ynode_min
+    WRITE(6,*) 'ynode_max=',ynode_max
+    WRITE(6,*) 'xlen_zone=',xlen_zone
+    WRITE(6,*) 'ylen_zone=',ylen_zone
+    WRITE(6,*) 'nxzone_max=',nxzone_max
+    WRITE(6,*) 'nyzone_max=',nyzone_max
+    WRITE(6,*) 'nseg_all  =',nseg_all
+
     ncount_max_nxzone_nyzone(1:nxzone_max,1:nyzone_max)=0
     DO nsega=1,nseg_all
        xc=xcenter_nsega(nsega)
@@ -254,10 +202,15 @@ CONTAINS
              IF(ABS(xc-xc1).LE.1.D-80.AND.ABS(yc-yc1).LE.1.D-80) THEN
                 nsega_pair(nsega)=nsega1
                 nsega_pair(nsega1)=-nsega
+                WRITE(63,'(I6,4ES12.4,2I6)') nsega,xc,yc,xc1,yc1,ncount,nsega1
                 EXIT
              END IF
           ENDIF
        END DO
+    END DO
+
+    DO nsega=1,nseg_all-10,10
+       WRITE(62,'(I6,2X,10I6)') nsega,(nsega_pair(nsega+i),i=0,9)
     END DO
 
 !    --- asign new nseg ---
@@ -274,12 +227,18 @@ CONTAINS
           nseg_nsega(nsega)=nseg
           nsega_nseg(nseg)=nsega
        END IF
+       WRITE(61,*) 'nsega,nseg=',nsega,nseg,nsega_pair(nsega)
     END DO
-    nseg_max=nseg
-
-    CALL wf_nseg_allocate
+    IF(nseg.NE.nseg_max) THEN
+       WRITE(6,*) &
+            'XX fem_mesh_prep: nsega_pair error: nseg,nseg_max=',nseg,nseg_max
+       STOP
+    END IF
 
 !   --- allocate fluid mesh variables ---
+
+    WRITE(6,*) 'nse_max=',nseg_max
+    WRITE(6,*) 'nse_all=',nseg_all
 
     CALL fem_mesh_allocate
 
@@ -291,19 +250,23 @@ CONTAINS
        ycenter_nseg(nseg)=ycenter_nsega(nsega)
        node_nseg(1,nseg)=node_nsega(1,nsega)
        node_nseg(2,nseg)=node_nsega(2,nsega)
+
        nelm=nelm_nsega(nsega)
        nside=nside_nsega(nsega)
        nelm_nseg(1,nseg)=nelm
+       nside_nseg(1,nseg)=nside
        nseg_nside_nelm(nside,nelm)=nseg
        nsega1=ABS(nsega_pair(nsega))
        IF(nsega1.NE.0) THEN
           nelm1=nelm_nsega(nsega1)
           nside1=nside_nsega(nsega1)
           nelm_nseg(2,nseg)=nelm1
+          nside_nseg(2,nseg)=nside1
+          nseg_nside_nelm(nside1,nelm1)=-nseg
           nelm1_nside_nelm(nside,nelm)=nelm1
-          nseg_nside_nelm(nside1,nelm1)=nseg
           nelm1_nside_nelm(nside1,nelm1)=nelm
        ELSE
+          nside_nseg(2,nseg)=0
           nelm_nseg(2,nseg)=0
           nelm1_nside_nelm(nside,nelm)=0
        END IF
@@ -316,24 +279,15 @@ CONTAINS
     DEALLOCATE(nelm_nsega,nside_nsega)
     DEALLOCATE(node_nsega,nsega_nside_nelm)
 
-! --- modelg = 0: rectanglar coordinates: 2D (volume means area)
-! --- modelg = 1: cylindrical and toroidal coordinates: 3D
-
-    IF(modelg.EQ.0) THEN
-       sfactor=1.D0
-       vfactor=0.D0
-    ELSE
-       sfactor=0.D0
-       vfactor=1.D0
-    END IF
-
 ! --- define elemnt center position: xcenter_nelm,ycenter_belm
 ! --- define volume of element: vol_nelm
 
+    area_tot=0.D0
     vol_tot=0.D0
     DO nelm=1,nelm_max
        xgsum=0.D0
        ygsum=0.D0
+       ssum=0.D0
        vsum=0.D0
        DO nside=2,nside_max_nelm(nelm)-1
           n1=node_nside_nelm(1,nelm)
@@ -346,23 +300,33 @@ CONTAINS
           x3=xnode(n3)
           y3=ynode(n3)
           s=0.5D0*((x2-x1)*(y3-y1)-(x3-x1)*(y2-y1))
-          v=2.D0*pi*(x1+x2+x3)*s/3.D0
-          xg=sfactor*(x1+x2+x3)*s/3.D0 &
-            +vfactor*2.D0*pi*(x1*x1+x1*x2+x2*x2+x2*x3+x3*x3+x3*x1)*s/6.D0
-          yg=sfactor*(y1+y2+y3)*s/3.D0 &
-            +vfactor*2.D0*pi*(2.D0*x1*y1     +x1*y2     +x1*y3 &
-                                  +x2*y1+2.D0*x2*y2     +x2*y3 &
-                                  +x3*y1     +x3*y2+2.D0*x3*y3)*s/12.D0
+          SElECT CASE(model_config)
+          CASE(1)
+             v= s
+             xg=(x1+x2+x3)*s/3.D0
+             yg=(y1+y2+y3)*s/3.D0
+          CASE(2)
+             v= 2.D0*pi*(x1+x2+x3)*s/3.D0
+             xg=2.D0*pi*(x1*x1+x1*x2+x2*x2+x2*x3+x3*x3+x3*x1)*s/6.D0
+             yg=2.D0*pi*(2.D0*x1*y1     +x1*y2     +x1*y3 &
+                             +x2*y1+2.D0*x2*y2     +x2*y3 &
+                             +x3*y1     +x3*y2+2.D0*x3*y3)*s/12.D0
+          CASE(3)
+             v= 2.D0*pi*(y1+y2+y3)*s/3.D0
+             xg=2.D0*pi*(2.D0*x1*y1     +x1*y2     +x1*y3 &
+                             +x2*y1+2.D0*x2*y2     +x2*y3 &
+                             +x3*y1     +x3*y2+2.D0*x3*y3)*s/12.D0
+             yg=2.D0*pi*(y1*y1+y1*y2+y2*y2+y2*y3+y3*y3+y3*y1)*s/6.D0
+          END SElECT
           xgsum=xgsum+xg
           ygsum=ygsum+yg
-          vsum=vsum+sfactor*s+vfactor*v
+          ssum= ssum +s
+          vsum= vsum +v
        END DO
        xcenter_nelm(nelm)=xgsum/vsum
        ycenter_nelm(nelm)=ygsum/vsum
-!       IF(nprint.EQ.4.AND.MOD(nelm,10).EQ.0) THEN
-!          WRITE(6,'(A,I8,1P3E12.4)') 'nelm,vol_disk,vol_calc,diff=', &
-!               nelm,vol_nelm(nelm),vsum,vol_nelm(nelm)-vsum
-!       END IF
+       area_nelm(nelm)=ssum
+       area_tot=area_tot+ssum
        vol_nelm(nelm)=vsum
        vol_tot=vol_tot+vsum
     END DO
@@ -378,12 +342,52 @@ CONTAINS
           WRITE(6,'(A,I8,1P3E12.4)') 'nelm,xc,yc,v=', &
                nelm,xcenter_nelm(nelm),ycenter_nelm(nelm),vol_nelm(nelm)
        END DO
-       WRITE(6,'(A,1PE12.4)') 'vol_tot=', vol_tot
+       WRITE(6,'(A,1PE12.4)') 'area_tot=', area_tot
+       WRITE(6,'(A,1PE12.4)') 'vol_tot= ', vol_tot
     END IF
 
     CALL fem_setup_nelm_node
     RETURN
   END SUBROUTINE fem_meshprep
+
+!     ******* FIND ELEMENT INCLUDING NODES N1,N2 *******
+
+SUBROUTINE wf_find_elm(nelm_s,node1,node2,nelm)
+
+  use wfcomm
+  implicit none
+  integer,intent(in):: nelm_s,node1,node2
+  integer,intent(out):: nelm
+  integer :: I,J,K,L,node1L,node2L
+
+  IF(nelm_s.LT.0.OR.nelm_s.GT.nelm_max) GOTO 9000
+  DO I=1,MAX(nelm_max-nelm_s,nelm_s)
+     DO J=1,2
+        IF(J.EQ.1) THEN
+           nelm=nelm_s+I
+        ELSE
+           nelm=nelm_s-I
+        ENDIF
+        IF(nelm.GE.1.AND.nelm.LE.nelm_max) THEN
+           DO K=1,3
+              node1L=node_nside_nelm(K,nelm)
+              IF(node1L.EQ.node1) THEN
+                 DO L=1,3
+                    node2L=node_nside_nelm(L,nelm)
+                    IF(node2L.EQ.node2) RETURN
+                 ENDDO
+              ENDIF
+           ENDDO
+        ENDIF
+     ENDDO
+  ENDDO
+  
+  nelm=0
+  RETURN
+  
+9000 nelm=0
+  RETURN
+END SUBROUTINE wf_find_elm
 
   !   --- setup nelm_node ---
 
@@ -392,6 +396,9 @@ CONTAINS
     IMPLICIT NONE
     INTEGER:: nelm,nside,node
 
+    IF(ALLOCATED(nelm_max_node)) DEALLOCATE(nelm_max_node)
+    ALLOCATE(nelm_max_node(node_max))
+    
     nelm_max_node(1:node_max)=0
     DO nelm=1,nelm_max
        DO nside=1,nside_max_nelm(nelm)
@@ -407,15 +414,15 @@ CONTAINS
     IF(nrank.EQ.0) &
          WRITE(6,*) '-- fem_setup_nelm_node: nelm_node_max=',nelm_node_max
 
-    IF(ALLOCATED(nelm_nangle_node)) DEALLOCATE(nelm_nangle_node)
-    ALLOCATE(nelm_nangle_node(nelm_node_max,node_max))
+    IF(ALLOCATED(nelm_ndir_node)) DEALLOCATE(nelm_ndir_node)
+    ALLOCATE(nelm_ndir_node(nelm_node_max,node_max))
 
     nelm_max_node(1:node_max)=0
     DO nelm=1,nelm_max
        DO nside=1,nside_max_nelm(nelm)
           node=node_nside_nelm(nside,nelm)
           nelm_max_node(node)=nelm_max_node(node)+1
-          nelm_nangle_node(nelm_max_node(node),node)=nelm
+          nelm_ndir_node(nelm_max_node(node),node)=nelm
        END DO
     END DO
     RETURN

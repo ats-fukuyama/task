@@ -18,27 +18,27 @@ SUBROUTINE wf_sort_subst(I,J)
   
   use wfcomm
   implicit none
-  integer :: node_nside_nelmX(3),I,J,IVELMX,IDELMX,KAELMX
-  SAVE IVELMX,IDELMX,KAELMX,node_nside_nelmX
+  integer :: node_nside_nelmX(3),I,J,iv_nelmX,id_nelmX,nmed_nelmX
+  SAVE iv_nelmX,id_nelmX,nmed_nelmX,node_nside_nelmX
   
   IF(I.EQ.0) THEN
-     IVELM(J)=IVELMX
-     IDELM(J)=IDELMX
-     KAELM(J)=KAELMX
+     iv_nelm(J)=iv_nelmX
+     id_nelm(J)=id_nelmX
+     nmed_nelm(J)=nmed_nelmX
      node_nside_nelm(1,J)=node_nside_nelmX(1)
      node_nside_nelm(2,J)=node_nside_nelmX(2)
      node_nside_nelm(3,J)=node_nside_nelmX(3)
   ELSEIF(J.EQ.0) THEN
-     IVELMX=IVELM(I)
-     IDELMX=IDELM(I)
-     KAELMX=KAELM(I)
+     iv_nelmX=iv_nelm(I)
+     id_nelmX=id_nelm(I)
+     nmed_nelmX=nmed_nelm(I)
      node_nside_nelmX(1)=node_nside_nelm(1,I)
      node_nside_nelmX(2)=node_nside_nelm(2,I)
      node_nside_nelmX(3)=node_nside_nelm(3,I)
   ELSE
-     IVELM(J)=IVELM(I)
-     IDELM(J)=IDELM(I)
-     KAELM(J)=KAELM(I)
+     iv_nelm(J)=iv_nelm(I)
+     id_nelm(J)=id_nelm(I)
+     nmed_nelm(J)=nmed_nelm(I)
      node_nside_nelm(1,J)=node_nside_nelm(1,I)
      node_nside_nelm(2,J)=node_nside_nelm(2,I)
      node_nside_nelm(3,J)=node_nside_nelm(3,I)
@@ -52,28 +52,28 @@ SUBROUTINE wf_sort_exchange(I,J)
         
   use wfcomm
   implicit none
-  integer :: node_nside_nelmX(3),IVELMX,I,IDELMX,KAELMX,J
+  integer :: node_nside_nelm_temp(3),iv_nelmX,I,id_nelmX,nmed_nelm_temp,J
       
-  IVELMX=IVELM(I)
-  IDELMX=IDELM(I)
-  KAELMX=KAELM(I)
-  node_nside_nelmX(1)=node_nside_nelm(1,I)
-  node_nside_nelmX(2)=node_nside_nelm(2,I)
-  node_nside_nelmX(3)=node_nside_nelm(3,I)
+  iv_nelmX=iv_nelm(I)
+  id_nelmX=id_nelm(I)
+  nmed_nelm_temp=nmed_nelm(I)
+  node_nside_nelm_temp(1)=node_nside_nelm(1,I)
+  node_nside_nelm_temp(2)=node_nside_nelm(2,I)
+  node_nside_nelm_temp(3)=node_nside_nelm(3,I)
 
-  IVELM(I)=IVELM(J)
-  IDELM(I)=IDELM(J)
-  KAELM(I)=KAELM(J)
+  iv_nelm(I)=iv_nelm(J)
+  id_nelm(I)=id_nelm(J)
+  nmed_nelm(I)=nmed_nelm(J)
   node_nside_nelm(1,I)=node_nside_nelm(1,J)
   node_nside_nelm(2,I)=node_nside_nelm(2,J)
   node_nside_nelm(3,I)=node_nside_nelm(3,J)
 
-  IVELM(J)=IVELMX
-  IDELM(J)=IDELMX
-  KAELM(J)=KAELMX
-  node_nside_nelm(1,J)=node_nside_nelmX(1)
-  node_nside_nelm(2,J)=node_nside_nelmX(2)
-  node_nside_nelm(3,J)=node_nside_nelmX(3)
+  iv_nelm(J)=iv_nelmX
+  id_nelm(J)=id_nelmX
+  nmed_nelm(J)=nmed_nelm_temp
+  node_nside_nelm(1,J)=node_nside_nelm_temp(1)
+  node_nside_nelm(2,J)=node_nside_nelm_temp(2)
+  node_nside_nelm(3,J)=node_nside_nelm_temp(3)
   
   RETURN
 END SUBROUTINE wf_sort_exchange
@@ -134,6 +134,7 @@ SUBROUTINE wf_sort(N,ARR,SUB,SUBX)
         ARR(L)=TEMP
         CALl SUBX(L+1,L)
      ENDIF
+
      I=L+1
      J=IR
      A=ARR(L)
