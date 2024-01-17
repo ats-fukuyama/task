@@ -24,7 +24,7 @@ MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
             -I../dp/$(MOD) -I../lib/$(MOD) -I../mtxp/$(MOD) \
             -I../../bpsd/$(MOD)
 
-SRCS = 	wfcomm.f90 femmeshprep.f90 feminterpolate.f90 \
+SRCS = 	femcomm.f90 wfcomm.f90 femmeshprep.f90 feminterpolate.f90 \
         wfinit.f90 wfparm.f90 wfload.f90 wfprof.f90 \
         wfsub.f90 wfsort.f90 wfindex.f90 wfgsub.f90 \
 	wfdiv_rect.f90 wfdiv_circle.f90 wfdiv.f90 \
@@ -73,7 +73,8 @@ clean:
 veryclean: clean
 	rm -f wf
 
-$(OBJDIR)/wfcomm.o: wfcomm.f90 ../pl/plcomm.f90
+$(OBJDIR)/femcomm.o: femcomm.f90
+$(OBJDIR)/wfcomm.o: femcomm.f90 wfcomm.f90 ../pl/plcomm.f90
 $(OBJDIR)/wfmain.o: wfmain.f90 wfcomm.f90
 $(OBJDIR)/wfmenu.o: wfmenu.f90 wfcomm.f90
 $(OBJDIR)/wfinit.o: wfinit.f90 wfcomm.f90
