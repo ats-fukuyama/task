@@ -1,0 +1,55 @@
+0
+f
+wf.QUEST03.gs
+c
+RR=0.64
+RB=0.48
+RA=0.4
+RD=0.45
+BB=0.25
+nsmax=4
+PA=5.4462e-4,5.4462e-4,1.0,1.0
+PZ=-1.0,-1.0,1.0,1.0
+PN=0.0,0.0000,0.00,0.D0
+PNS=0.0000,0.000000,0.000000,0.D0
+PTPR=0.3,50,0.3,0.3
+PTPP=0.3,50,0.3,0.3
+PTS=0.01,1,0.01,0.01
+PZCL=3.D-3,3.D-3,3.D-3,3.D-3
+NDRAWE=1
+NGRAPH=1
+NGXMAX=201
+NGYMAX=201
+GFACTOR=0.5
+RF=8560
+NPH=5
+modelwg=1
+xwg_min=1.02D0
+xwg_max=1.13D0
+ywg_min=-0.2D0
+ywg_max= 0.0D0
+ampwg=1.D0
+ph1wg=0.D0
+ph2wg=0.D0
+angwg=90.D0
+mdamp=5
+wdamp= 0.1000
+fdamp= 2.0000
+zdamp_min=-0.100
+zdamp_max= 0.146
+
+idebug=3
+v
+d
+d
+c
+0.48
+0.009
+g
+x
+r
+g
+w
+ME
+x
+q
