@@ -1,8 +1,6 @@
 ! wfcomm.f90
 
-MODULE wfcomm
-
-  !   Define and allocate global variables
+module wfcomm
 
   !   nelm_max=>NEMAX
   !   node_max=>NNMAX
@@ -23,10 +21,15 @@ MODULE wfcomm
   !   mode_node=>KANOD
   !   nelm1_nside_nelm=>KNELM
   !   nside1_nside_nelm=>KSELM
+  !
+  !   nbdy_max=NBMAX
+
+
+  !   Define and allocate global variables
 
   use bpsd
   use plcomm
-  use dpcomm_parm
+  USE dpcomm_parm
   use commpi
   implicit none
 
@@ -142,7 +145,7 @@ MODULE wfcomm
                                                 ! length of side
   integer(ikind),dimension(:,:),ALLOCATABLE :: NDSID      !(2,NSDMAX)
                                                 ! node number of side
-  integer(ikind),dimension(:,:)  ,ALLOCATABLE :: INSID,NESID!(2,NSDMAX) 
+  integer(ikind),dimension(:)  ,ALLOCATABLE :: INSID,NESID!(NSDMAX) 
                                                 ! side number in a element
                                                 ! element number of a side
   integer(ikind),dimension(:)  ,ALLOCATABLE :: KASID,KBSID!(NSDMAX) 
@@ -163,10 +166,7 @@ MODULE wfcomm
   integer(ikind):: NMMAX,NKMAX
   real(rkind)   ,dimension(:),ALLOCATABLE :: EPSDM,AMUDM,SIGDM !(NMMAX)
   integer(ikind),dimension(:),ALLOCATABLE :: NMKA              !(NKMAX)
-
-  INTEGER:: nbdy_max
-  INTEGER,ALLOCATABLE:: nseg_nbdy(:),nbdy_nseg(:)
-  
+        
 !       /WFBDY/
   integer(ikind):: NBMAX
   integer(ikind),dimension(:)  ,ALLOCATABLE :: KABDY             !(NBMAX)
@@ -332,7 +332,7 @@ contains
     implicit none
 
     deallocate(RNODE,ZNODE,KANOD,KBNOD,SELM,KAELM)
-    deallocate(REMIN,ZEMIN,REMAX,ZEMAX,NDELM,KNELM,KSELM,NVNN)
+    deallocate(REMIN,ZEMIN,REMAX,ZEMAX,NDELM,KNELM,NVNN)
 
     return
   end subroutine wfelm_deallocate
@@ -350,8 +350,8 @@ contains
        end if
     end if
 
-    allocate(NDSID(2,NSDMAX),KASID(NSDMAX),KBSID(NSDMAX),INSID(2,NSDMAX))
-    allocate(NESID(2,NSDMAX),NSDELM(3,NEMAX),LSID(NSDMAX),NVNSD(NSDMAX))
+    allocate(NDSID(2,NSDMAX),KASID(NSDMAX),KBSID(NSDMAX),INSID(NSDMAX))
+    allocate(NESID(NSDMAX),NSDELM(3,NEMAX),LSID(NSDMAX),NVNSD(NSDMAX))
 
     NSDMAX_save = NSDMAX
     sidinit = 1

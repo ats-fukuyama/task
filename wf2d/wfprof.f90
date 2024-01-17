@@ -48,6 +48,8 @@ SUBROUTINE WFBPSI(R,Z,PSI)
             ENDIF
          ENDDO
      END SELECT
+  CASE(2)   ! simple toroidal
+     PSI=BB*PI*((R-RR)**2+Z**2)
   CASE(3,5,6,8,9)   ! toroidal
      PSI=PSIG(R,Z)
   CASE(11)   ! straight helical
@@ -137,8 +139,10 @@ SUBROUTINE WFSMAG2(R,Z,BABS,AL)
   use wfcomm
   USE plprof
   implicit none
+  integer :: I
   real(rkind),intent(in) :: R,Z
   real(rkind),intent(out):: BABS,AL(3)
+  real(rkind) :: BLO(3),LR,LZ
   TYPE(pl_mag_type):: MAG
 
   CALL pl_mag(R,0.D0,Z,mag)
@@ -158,6 +162,7 @@ SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
        model_coll_enhance,factor_coll_enhance, &
        xpos_coll_enhance,xwidth_coll_enhance, &
        ypos_coll_enhance,ywidth_coll_enhance,pzcl
+
   USE plprof
   USE plprofw
   use plload
@@ -171,9 +176,9 @@ SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
 
   SELECT CASE(MODELG)
   CASE(0)
-     CALL wfsden0(R,Z,RN,RTPR,RTPP,RZCL)
+     CALL WFSDEN0(R,Z,RN,RTPR,RTPP,RZCL)
   CASE(1,2)
-     CALL wfsden2(R,Z,RN,RTPR,RTPP,RZCL)
+     CALL WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
   CASE(3:10)
      CALL pl_mag(R,0.D0,Z,mag)
      rhon=mag%rhon
@@ -189,9 +194,10 @@ SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
   CASE(12)
      CALL pl_read_p2D(R,Z,RN,RTPR,RTPP,RU,IERR)
   END SELECT
-  
+
   IF(model_coll_enhance.NE.0) THEN
      CALL WFCOLL(rn,rtpr,rtpp,rzcl,0)
+
      SELECT CASE(model_coll_enhance)
      CASE(1)
         arg=(R-xpos_coll_enhance)**2/xwidth_coll_enhance**2
@@ -210,19 +216,18 @@ SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
      CASE DEFAULT
         factor=1.D0
      END SELECT
-
+     
      DO NS=1,NSMAX
         RZCL(NS)=RZCL(NS)*factor
      END DO
   END IF
-
+  
   IF(mdamp.NE.0) THEN
      RN(NSMAX)=0.D0
      RTPR(NSMAX)=1.D0
      RTPP(NSMAX)=1.D0
      RZCL(NSMAX)=PZCL(NSMAX)
   END IF
-
   RETURN
 END SUBROUTINE WFSDEN
 

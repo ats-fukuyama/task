@@ -71,7 +71,7 @@ subroutine WFWPRE(IERR)
 
   IERR=0
 
-  CALL fem_mesh_prep
+  CALL fem_mesh
 
   CALL fem_setup_zone
 
@@ -99,11 +99,9 @@ subroutine WFWPRE(IERR)
 
   call LPELMT
 
-  if (nrank.eq.0) write(6,*) '----- fem_set_nseg start ---'
-  call fem_set_nseg
-
-  if (nrank.eq.0) write(6,*) '----- fem_set_nbdy start ---'
-  call fem_set_nbdy
+  if (nrank.eq.0) write(6,*) '----- SETBDY start ---'
+  call SETBDY(IERR)
+  if(IERR.ne.0) return
 
   if (nrank.eq.0) write(6,*) '----- SETLSD start ---'
   call SETLSD
@@ -112,7 +110,7 @@ subroutine WFWPRE(IERR)
   call MODANT(IERR)
   if(IERR.ne.0) return
   
-  if (nrank.eq.0) write(6,*) '----- wf_set_ewg start ---'
+  if (nrank.eq.0) write(6,*) '----- SETEWG start ---'
   call wf_set_ewg
   if(IERR.ne.0) return
   
@@ -138,7 +136,7 @@ subroutine DTENSR(NE,DTENS)
   integer    :: NS,NN
   real(rkind)    :: R,Z,WW,WP(NSM),WC(NSM),BABS,AL(3),RN(NSM),RTPR(NSM)
   real(rkind)    :: RTPP(NSM),RZCL(NSM),FP,FR,FZ,DR,DZ,F
-  real(rkind)    :: RS,DRS,TH
+  REAL(rkind)    :: RS,DRS,TH
   complex(rkind) :: CWP,CWC,CDT0,CDX0,CDP0,CDT,CDP,CDX,CDAMP
   complex(rkind) :: CRR,CRP,CRZ,CPR,CPP,CPZ,CZR,CZP,CZZ
 
@@ -211,6 +209,7 @@ subroutine DTENSR(NE,DTENS)
 
      END do
 
+
      SELECT CASE(MDAMP)
      CASE(1,2,3,4)
         CDAMP=CII*PZCL(NSMAX)
@@ -259,8 +258,7 @@ subroutine DTENSR(NE,DTENS)
 !              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DZ)/(DZ-CDAMP)
            END IF
         END IF
-        
-     CASE(5)
+     CASE(5,6)
         CDAMP=CII*PZCL(NSMAX)
         F=FDAMP
         RS=SQRT((R-RR)**2+Z**2)
@@ -278,8 +276,8 @@ subroutine DTENSR(NE,DTENS)
      END SELECT
   END DO
 
-  return
-end subroutine DTENSR
+  RETURN
+END SUBROUTINE DTENSR
 
 !     ***** INTERPOLATION TENSOR *****
 

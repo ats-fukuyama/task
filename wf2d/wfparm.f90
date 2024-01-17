@@ -79,7 +79,7 @@ CONTAINS
                   mdamp,rdamp_min,rdamp_max,zdamp_min,zdamp_max, &
                   thdamp_min,thdamp_max, &
                   NCOILMAX,RCOIL,ZCOIL,BCOIL, &
-                  nxzone_max,nyzone_max
+                  nxzone_max,nyzone_max,idebuga
     IERR=0
     
     READ(NID,WF,IOSTAT=IST,ERR=9800,END=9900)
@@ -165,7 +165,7 @@ CONTAINS
        WRITE(6,*) '     mdamp,rdamp_min,rdamp_max,zdamp_min,zdamp_max,'
        WRITE(6,*) '     thrdamp_min,thdamp_max,'
        WRITE(6,*) '     NCOILMAX,RCOIL,ZCOIL,BCOIL,'
-       WRITE(6,*) '     nxzone_max,nyzone_max '
+       WRITE(6,*) '     nxzone_max,nyzone_max,idebuga '
     end if
     RETURN
   END SUBROUTINE WFPLST
@@ -176,7 +176,7 @@ CONTAINS
   
     use wfcomm
     implicit none
-    integer :: NA,NS,NC,ID
+    integer :: NA,NS,NC,ID,i
     REAL(rkind):: RZCL(NSMAX)
 
     write(6,*) '*** USED PARAMETERS ***'
@@ -288,6 +288,11 @@ CONTAINS
   WRITE(6,602) 'zdamp_min ',zdamp_min, 'zdamp_max ',zdamp_max
   WRITE(6,602) 'thdamp_min',thdamp_min,'thdamp_max',thdamp_max
   WRITE(6,605) 'nxzone_max',nxzone_max,'nyzone_max',nyzone_max
+
+  DO i=1,100
+     IF(idebuga(I).NE.0) &
+          WRITE(6,'(A,I3,A,I4)') 'idebuga(',i,')=',idebuga(i)
+  END DO
   RETURN
   
 601 FORMAT(' ',A6,'=',1PE11.3:2X,A6,'=',1PE11.3:&

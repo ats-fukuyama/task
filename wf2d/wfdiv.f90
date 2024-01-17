@@ -9,7 +9,6 @@ subroutine WFDIV
   USE libchar
   use wfcomm
   use wfparm
-  USE femmesh
   implicit none
   integer   :: NE,NN,IERR
   character :: KID*1
@@ -97,7 +96,7 @@ subroutine WFDIV
      call WFINDX
      if(nrank.eq.0) write(6,*) '--- WFFEPI start ---'
      call WFFEPI
-
+  
      NKMAX=1
      do NE=1,NEMAX
         KAELM(NE)=1
@@ -110,14 +109,6 @@ subroutine WFDIV
         KANOD(NN)=0
      end do
     
-     if(nrank.eq.0) write(6,*) '--- fem_mesh start ---'
-
-     CALL fem_mesh_prep
-     CALL fem_set_nseg
-     CALL fem_set_nbdy
-  
-     if(nrank.eq.0) write(6,*) '--- fem_mesh end ---'
-
   elseif(KID.eq.'G') then
      if (nrank.eq.0) then
         NWXMAX=0
@@ -436,24 +427,24 @@ subroutine WFLDIV
         NSD_2=NSDELM(ISD,NE+1)
         if(NSD_1.ge.0) then
            if(NSD_2.ge.0) then
-              write(6,'(A2,5X,3I6,9X,4I6)') '++', &
+              write(6,'(7X,3I6,9X,4I6)')&
                    NSD_1,NDSID(1,NSD_1),NDSID(2,NSD_1),&
                    NSD_2,NDSID(1,NSD_2),NDSID(2,NSD_2)
            else
               NSD_2=-NSD_2
-              write(6,'(A2,5X,3I6,9X,4I6)') '+-', &
+              write(6,'(7X,3I6,9X,4I6)')&
                    NSD_1,NDSID(1,NSD_1),NDSID(2,NSD_1),&
                    NSD_2,NDSID(2,NSD_2),NDSID(1,NSD_2)
            end if
         else
            NSD_1=-NSD_1
            if(NSD_2.ge.0) then
-              write(6,'(A2,5X,3I6,9X,4I6)') '-+', &
+              write(6,'(7X,3I6,9X,4I6)')&
                    NSD_1,NDSID(2,NSD_1),NDSID(1,NSD_1),&
                    NSD_2,NDSID(1,NSD_2),NDSID(2,NSD_2)
            else
               NSD_2=-NSD_2
-              write(6,'(A2,5X,3I6,9X,4I6)') '--', &
+              write(6,'(7X,3I6,9X,4I6)')&
                    NSD_1,NDSID(2,NSD_1),NDSID(1,NSD_1),&
                    NSD_2,NDSID(2,NSD_2),NDSID(1,NSD_2)
            end if
@@ -462,12 +453,9 @@ subroutine WFLDIV
   end do
 
   write(6,*) '----------------------------------------------'
-  WRITE(6,'(A,I6)') 'MLEN=',MLEN
-
-!  DO NSD=1,NSDMAX
-!     write(6,'(A,5I6)') 'nsd,nelem,nside,nodes:', &
-!          NSD,NESID(NSD),INSID(NSD),NDSID(1,NSD),NDSID(2,NSD)
-!  END DO
+  write(6,500) MLEN,(I,KANOD(I),I=1,NNMAX)
+500 format(' ','BOUNDARY NODE DATA',4X,'MLEN=',I4/&
+          (' ',4(I5,'(',I1,') ')))
   return
 end subroutine WFLDIV
 

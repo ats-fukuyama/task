@@ -2,7 +2,7 @@
 !
 !     ######### /TASK/WF2/WFANT ########
 !
-!      ANTENNA DATA GsENERATION PROGRAM
+!      ANTENNA DATA GENERATION PROGRAM
 !
 !     #################################
 
@@ -12,14 +12,12 @@ SUBROUTINE WFANT
   USE libchar
   use wfcomm
   use wfparm
-  USE femmesh
   implicit none
   integer   :: IERR,NA,N
   character :: KID*1
 
-  if (nrank.eq.0) WRITE(6,*) '--- fem_set_bdy start ---'
-  CALL fem_set_nseg
-  CALL fem_set_nbdy
+  if (nrank.eq.0) WRITE(6,*) '--- SETBDY start ---'
+  CALL SETBDY(IERR)
   IF(IERR.NE.0) RETURN
 
 1 continue

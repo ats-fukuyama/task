@@ -79,7 +79,6 @@ $(OBJDIR)/wfmenu.o: wfmenu.f90 wfcomm.f90
 $(OBJDIR)/wfinit.o: wfinit.f90 wfcomm.f90
 $(OBJDIR)/wfdiv.o: wfdiv.f90 wfcomm.f90
 $(OBJDIR)/wfant.o: wfant.f90 wfcomm.f90
-$(OBJDIR)/wfwg.o: wfwg.f90 wfcomm.f90
 $(OBJDIR)/wfwave.o: wfwave.f90 wfcomm.f90
 $(OBJDIR)/wfsolv.o: wfsolv.f90 wfcomm.f90
 $(OBJDIR)/wfprof.o: wfprof.f90 wfcomm.f90
@@ -90,7 +89,12 @@ $(OBJDIR)/wfload.o: wfload.f90 wfcomm.f90
 $(OBJDIR)/wfindx.o: wfindx.f90 wfcomm.f90
 $(OBJDIR)/wfgout.o: wfgout.f90 wfcomm.f90 feminterpolate.f90
 $(OBJDIR)/wfgsub.o: wfgsub.f90 wfcomm.f90
+$(OBJDIR)/wfwg.o: wfwg.f90 wfcomm.f90
 $(OBJDIR)/wfgdum.o: wfgdum.f90
+#	$(FCFREE) $(FFLAGS) -c $< 
 $(OBJDIR)/wflib.o: wflib.f90 wfcomm.f90
+#	$(FCFREE) $(FFLAGS) -c $< $(MODDIR) $(MODINCLUDE)
+$(OBJDIR)/wfbes.o: wfbes.f90
+#	$(FCFREE) $(FFLAGS) -c $< 
 $(OBJDIR)/feminterpolate.o: feminterpolate.f90 wfcomm.f90
 $(OBJDIR)/femmesh.o: femmesh.f90 wfcomm.f90

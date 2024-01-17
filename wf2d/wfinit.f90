@@ -331,6 +331,7 @@ CONTAINS
 
 !     *** INITIALIZATION PARAMETERS (DO NOT MODIFY) ***
 
+    nrank=0
     NNMAX  = 0
     nemax=0
     nsdmax=0

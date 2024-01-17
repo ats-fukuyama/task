@@ -13,7 +13,7 @@ SUBROUTINE WFGOUT
   implicit none
 
   integer :: NL,NWD,NCH,NWMAX,NW
-  CHARACTER KLINE*80,KWORD*(NCHM),KWD*(NCHM),KID*1,KTAIL*7
+  CHARACTER KLINE*256,KWORD*(NCHM),KWD*(NCHM),KID*1,KTAIL*7
   CHARACTER KG1*1,KG2*1
   INTEGER:: idraw_parm
   DIMENSION KWORD(NWDM)
@@ -32,14 +32,14 @@ SUBROUTINE WFGOUT
   WRITE(6,*) '          Xyz/Yxz/Zxy/A9 0-9 V,0-9, L'
   WRITE(6,*) '          P/F,1/2,CXx/CYy/CZz/Xyz/Yxz/Zxy  X=EXIT'
   CALL GUFLSH
-  READ(5,'(A80)',ERR=1,END=9000) KLINE
+  READ(5,'(A256)',ERR=1,END=9000) KLINE
   NWXMAX=0
   idraw_parm=0
   
 9 NL=0
   NWD=0
   NCH=0
-10 IF(NL.GE.80) GOTO 20
+10 IF(NL.GE.256) GOTO 20
   NL=NL+1
   KID=KLINE(NL:NL)
   CALL toupper(KID)
@@ -238,6 +238,7 @@ SUBROUTINE WFCTOGSD(ID,KWD)
                  end if
               ENDIF
               IF(ABS(CE).LT.1.D-12) CE=(0.D0,0.D0)
+
 !              IF(Y.GT.0.3D0.AND.Y.LT.0.5D0) THEN
 !              N1=NSDELM(1,IE)
 !              IF(N1.GT.0) THEN

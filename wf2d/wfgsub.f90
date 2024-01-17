@@ -1185,11 +1185,9 @@ SUBROUTINE wf_gr_antenna
   CALL SETLIN(0,0,4)
   CALL wf_gdraw_plasma
 
-  WRITE(6,*) '@@@ point 1'
   CALL SETLIN(0,0,6)
   CALL wf_gdraw_antenna
   CALL grd2d_frame_end
-  WRITE(6,*) '@@@ point 2'
   
   CALL PAGEE
   RETURN

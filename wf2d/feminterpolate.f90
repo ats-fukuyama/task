@@ -6,12 +6,12 @@ MODULE feminterpolate
 ! INTEGER:: nxzone_max,nyzone_max   ! maximum division of zoning in x and y
 
   USE wfcomm,ONLY: rkind
-  INTEGER:: ncount_zone_max         ! maximum number of elements in a zone
-  REAL(rkind):: xlen_zone,ylen_zone ! length of rectangular zone in x or y
-  INTEGER,ALLOCATABLE:: ncount_max_nxzone_nyzone(:,:)
-                                 ! number of elements in a zone
-  INTEGER,ALLOCATABLE:: nelm_ncount_nxzone_nyzone(:,:,:)
-                                 ! nelm for ncount in a zone
+!  INTEGER:: ncount_zone_max         ! maximum number of elements in a zone
+!  REAL(rkind):: xlen_zone,ylen_zone ! length of rectangular zone in x or y
+!  INTEGER,ALLOCATABLE:: ncount_max_nxzone_nyzone(:,:)
+!                                 ! number of elements in a zone
+!  INTEGER,ALLOCATABLE:: nelm_ncount_nxzone_nyzone(:,:,:)
+!                                 ! nelm for ncount in a zone
   
   PRIVATE
   PUBLIC fem_setup_zone
@@ -24,17 +24,20 @@ CONTAINS
   
   SUBROUTINE fem_setup_zone
 
+    USE wfcomm, &
+         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
+         xnode=>rnode,ynode=>znode
     USE femmesh
     IMPLICIT NONE
     INTEGER:: nelm,node,nside,nx_min,nx_max,ny_min,ny_max,nx,ny
     REAL(rkind):: xmin,xmax,ymin,ymax
     
-    IF(ALLOCATED(ncount_max_nxzone_nyzone)) THEN
-       DEALLOCATE(ncount_max_nxzone_nyzone)
-       DEALLOCATE(nelm_ncount_nxzone_nyzone)
-    END IF
-    ALLOCATE(ncount_max_nxzone_nyzone(nxzone_max,nyzone_max))
-    ncount_max_nxzone_nyzone(1:nxzone_max,1:nyzone_max)=0
+!    IF(ALLOCATED(ncount_max_nxzone_nyzone)) THEN
+!       DEALLOCATE(ncount_max_nxzone_nyzone)
+!       DEALLOCATE(nelm_ncount_nxzone_nyzone)
+!    END IF
+!    ALLOCATE(ncount_max_nxzone_nyzone(nxzone_max,nyzone_max))
+!    ncount_max_nxzone_nyzone(1:nxzone_max,1:nyzone_max)=0
 
     xlen_zone=(xnode_max-xnode_min)/nxzone_max
     ylen_zone=(ynode_max-ynode_min)/nyzone_max
@@ -126,6 +129,9 @@ CONTAINS
   END SUBROUTINE fem_setup_zone
 
   SUBROUTINE xyrange_nelm(nelm,xmin,xmax,ymin,ymax)
+    USE wfcomm, &
+         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
+         xnode=>rnode,ynode=>znode
     USE femmesh
     IMPLICIT NONE
     INTEGER,INTENT(IN):: nelm
@@ -157,6 +163,9 @@ CONTAINS
   !                         set nelm=0 and exit
   
   SUBROUTINE fem_find_nelm_for_xy(x,y,nelm)
+    USE wfcomm, &
+         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
+         xnode=>rnode,ynode=>znode
     USE femmesh
     USE libmpi
     IMPLICIT NONE
@@ -188,6 +197,7 @@ CONTAINS
           ELSE
              node2=node_nside_nelm(nside+1,nelm)
           END IF
+
           x1=xnode(node1)-xc
           y1=ynode(node1)-yc
           x2=xnode(node2)-xc
@@ -259,6 +269,9 @@ CONTAINS
   ! Check (x,y) in nelm or not: left-hand-side of all sides or on any side
   
   FUNCTION xy_in_nelm(x,y,nelm)
+    USE wfcomm, &
+         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
+         xnode=>rnode,ynode=>znode
     USE femmesh
     IMPLICIT NONE
     LOGICAL:: xy_in_nelm
@@ -342,6 +355,9 @@ CONTAINS
 
 
   SUBROUTINE fem_interpolate_xy(x,y,f,f_nelm,id)
+    USE wfcomm, &
+         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
+         xnode=>rnode,ynode=>znode
     USE femmesh
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: x,y
@@ -350,7 +366,7 @@ CONTAINS
     INTEGER,INTENT(IN):: id  ! 0 for new search, 1: use nelm previous search
     INTEGER,SAVE:: nelm_save=0
     INTEGER:: nelm
-    REAL(rkind):: dfx,dfy
+!    REAL(rkind):: dfx,dfy
 
     IF(id.EQ.0) THEN
        nelm=0
@@ -383,6 +399,9 @@ CONTAINS
   END SUBROUTINE fem_interpolate_xy
 
   SUBROUTINE fem_linear_interporate(x,y,nelm,f_nelm,f)
+    USE wfcomm, &
+         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
+         xnode=>rnode,ynode=>znode
     USE femmesh
     USE libinv
     IMPLICIT NONE

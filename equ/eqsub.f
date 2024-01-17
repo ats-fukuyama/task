@@ -2326,6 +2326,8 @@ c-----
        zrsu(nzsu)=r1
        zzsu(nzsu)=z1
        zcsu(nzsu)=bp1
+       WRITE(60,'(A,I6,3ES12.4,6I6)') 
+     & 'nzsu:',nzsu,r1,z1,bp1,ir,nrm,iz,nzm,i,ist
 c-----
        if(ir.le.1.or.ir.ge.nrm.or.iz.le.1.or.iz.ge.nzm)istop=1
        if(iudsym.eq.1.and.iz.gt.nzh)istop=1

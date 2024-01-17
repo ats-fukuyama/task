@@ -299,6 +299,222 @@ FUNCTION AIE(L1,L2,L3)
   RETURN
 END FUNCTION AIE
 
+!     ****** Set Boundary Attribute for Side and Node ******
+
+SUBROUTINE SETBDY(IERR)
+
+  use wfcomm
+  implicit none
+  integer,intent(out) :: IERR
+  integer :: ISD,NSD,NE
+  integer :: NN1,NN2,NN3,NSD1,NSD2,NSD3
+  integer :: NEL,NSDL
+
+! ----- SET NSDMAX & KNELM -----
+! NBSID :: Number of Boundary Side
+! KNELM(ISD,NE) :: THE ELEMENT WHICH SHARE THE SIDE (ISD,NE)
+!                  IF KNELM.EQ.0, SIDE IS BOUNDARY
+
+  if(nrank.eq.0) WRITE(6,*) '------- SETBDY set NSDMAX & KNELM start ---'
+
+!  WRITE(6,'(A,2I8)') 'NEMAX,NNMAX=',NEMAX,NNMAX
+  NBSID=0
+  DO NE=1,NEMAX
+     NN1=NDELM(1,NE)
+     NN2=NDELM(2,NE)
+     NN3=NDELM(3,NE)
+     CALL EFINDS(NE,NN1,NN2,KNELM(1,NE))
+     CALL EFINDS(NE,NN2,NN3,KNELM(2,NE))
+     CALL EFINDS(NE,NN3,NN1,KNELM(3,NE))
+     IF(KNELM(1,NE).EQ.0) NBSID=NBSID+1
+     IF(KNELM(2,NE).EQ.0) NBSID=NBSID+1
+     IF(KNELM(3,NE).EQ.0) NBSID=NBSID+1
+!     IF(nrank.EQ.0.AND.MOD(NE-1,100).EQ.0) &
+!          WRITE(6,'(A,7I8)') 'SETBDY NE,NNs,NEs:', &
+!          NE,NN1,NN2,NN3,KNELM(1,NE),KNELM(2,NE),KNELM(3,NE)
+  ENDDO
+  NSDMAX=(3*NEMAX-NBSID)/2+NBSID
+
+  call wfsid_allocate
+
+!  ----- SET NSDELM -----
+!  KANOD :: IF NODE IS ON THE BOUNDARY, 1
+
+  if(nrank.eq.0) WRITE(6,*) '------- SETBDY set NSDELM start ---'
+
+  NSD=0
+
+  DO NE=1,NEMAX
+     NN1=NDELM(1,NE)
+     NN2=NDELM(2,NE)
+     NN3=NDELM(3,NE)
+
+! --- CREATE FOR THE FIRST TIME, SIDE IS NEW ---
+
+     IF(KNELM(1,NE).GE.NE) THEN
+        KANOD(NN1)=0
+        KANOD(NN2)=0
+        NSD=NSD+1
+        NSDELM(1,NE)=NSD
+        IF(NSD.LE.NSDMAX) THEN
+           INSID(NSD)=1
+           NESID(NSD)=NE
+           NDSID(1,NSD)=NN1
+           NDSID(2,NSD)=NN2
+        ENDIF
+     ENDIF
+     IF(KNELM(2,NE).GE.NE) THEN
+        KANOD(NN2)=0
+        KANOD(NN3)=0
+        NSD=NSD+1
+        NSDELM(2,NE)=NSD
+        IF(NSD.LE.NSDMAX) THEN
+           INSID(NSD)=2
+           NESID(NSD)=NE
+           NDSID(1,NSD)=NN2
+           NDSID(2,NSD)=NN3
+        ENDIF
+     ENDIF
+     IF(KNELM(3,NE).GE.NE) THEN
+        KANOD(NN3)=0
+        KANOD(NN1)=0
+        NSD=NSD+1
+        NSDELM(3,NE)=NSD
+        IF(NSD.LE.NSDMAX) THEN
+           INSID(NSD)=3
+           NESID(NSD)=NE
+           NDSID(1,NSD)=NN3
+           NDSID(2,NSD)=NN1
+        ENDIF
+     ENDIF
+
+! --- ALREADY CREATED ---
+
+     IF(KNELM(1,NE).LT.NE.AND.KNELM(1,NE).GT.0) THEN
+        NEL=KNELM(1,NE)
+        DO ISD=1,3
+           NSDL=ABS(NSDELM(ISD,NEL))
+           IF (NSDL.NE.0) THEN
+              IF  ((NDSID(1,NSDL).EQ.NN1).AND.&
+                  &(NDSID(2,NSDL).EQ.NN2)) THEN
+                 NSDELM(1,NE)=NSDL
+              ELSEIF((NDSID(1,NSDL).EQ.NN2).AND.&
+                   & (NDSID(2,NSDL).EQ.NN1)) THEN
+                 NSDELM(1,NE)=-NSDL
+              END IF
+           ENDIF
+        ENDDO
+     ENDIF
+     IF(KNELM(2,NE).LT.NE.AND.KNELM(2,NE).GT.0) THEN
+        NEL=KNELM(2,NE)
+        DO ISD=1,3
+           NSDL=ABS(NSDELM(ISD,NEL))
+           IF (NSDL.NE.0) THEN
+              IF  ((NDSID(1,NSDL).EQ.NN2).AND.&
+                  &(NDSID(2,NSDL).EQ.NN3)) THEN
+                 NSDELM(2,NE)=NSDL
+              ELSEIF((NDSID(1,NSDL).EQ.NN3).AND.&
+                   & (NDSID(2,NSDL).EQ.NN2)) THEN
+                 NSDELM(2,NE)=-NSDL
+              ENDIF
+           ENDIF
+        ENDDO
+     ENDIF
+     IF(KNELM(3,NE).LT.NE.AND.KNELM(3,NE).GT.0) THEN
+        NEL=KNELM(3,NE)
+        DO ISD=1,3
+           NSDL=ABS(NSDELM(ISD,NEL))
+           IF (NSDL.NE.0) THEN
+              IF  ((NDSID(1,NSDL).EQ.NN3).AND.&
+                  &(NDSID(2,NSDL).EQ.NN1)) THEN
+                 NSDELM(3,NE)=NSDL
+              ELSEIF((NDSID(1,NSDL).EQ.NN1).AND.&
+                   & (NDSID(2,NSDL).EQ.NN3)) THEN
+                 NSDELM(3,NE)=-NSDL
+              ENDIF
+           END IF
+        ENDDO
+     ENDIF
+
+! --- SIDE IS ON THE BOUNDARY, SIDE IS NEW ---
+
+     IF(KNELM(1,NE).EQ.0) THEN
+        KANOD(NN1)=1
+        KANOD(NN2)=1
+        NSD=NSD+1
+        NSDELM(1,NE)=NSD
+        IF(NSD.LE.NSDMAX) THEN
+           INSID(NSD)=1
+           NESID(NSD)=NE
+           NDSID(1,NSD)=NN1
+           NDSID(2,NSD)=NN2
+        ENDIF
+     ENDIF
+     IF(KNELM(2,NE).EQ.0) THEN
+        KANOD(NN2)=1
+        KANOD(NN3)=1
+        NSD=NSD+1
+        NSDELM(2,NE)=NSD
+        IF(NSD.LE.NSDMAX) THEN
+           INSID(NSD)=2
+           NESID(NSD)=NE
+           NDSID(1,NSD)=NN2
+           NDSID(2,NSD)=NN3
+        ENDIF
+     ENDIF
+     IF(KNELM(3,NE).EQ.0) THEN
+        KANOD(NN3)=1
+        KANOD(NN1)=1
+        NSD=NSD+1
+        NSDELM(3,NE)=NSD
+        IF(NSD.LE.NSDMAX) THEN
+           INSID(NSD)=3
+           NESID(NSD)=NE
+           NDSID(1,NSD)=NN3
+           NDSID(2,NSD)=NN1
+        ENDIF
+     ENDIF
+  ENDDO
+
+  
+!  DO NSD=1,NSDMAX
+!     write(*,*) "NESID,INSID,NSD",NESID(NSD),INSID(NSD),NSD
+!  ENDDO
+
+!  DO NE=1,NEMAX
+!     DO I=1,3
+!        write(*,*) "NE,I,NSDELM",NE,I,NSDELM(I,NE)
+!     end DO
+!  end DO
+
+!    DO NE=1,NEMAX
+!     DO I=1,3
+!        write(*,*) "NE,I,KNELM",NE,I,KNELM(I,NE)
+!     end DO
+!  end DO
+
+ ! ----- SET KASID -----
+
+  if(nrank.eq.0) WRITE(6,*) '------- SETBDY set KASID start ---'
+
+  DO NSD=1,NSDMAX
+     KASID(NSD)=0
+  ENDDO
+
+  DO NE=1,NEMAX
+     NSD1=ABS(NSDELM(1,NE))
+     NSD2=ABS(NSDELM(2,NE))
+     NSD3=ABS(NSDELM(3,NE))
+     IF(KNELM(1,NE).EQ.0) KASID(NSD1)=1
+     IF(KNELM(2,NE).EQ.0) KASID(NSD2)=1
+     IF(KNELM(3,NE).EQ.0) KASID(NSD3)=1
+  ENDDO
+  
+  IERR=0
+  RETURN
+END SUBROUTINE SETBDY
+
+
 !     ***** SET LENGTH OF SIDE *****
 
 SUBROUTINE SETLSD
@@ -347,9 +563,8 @@ SUBROUTINE MODANT(IERR)
      IF(NE.EQ.0) THEN
         IF(JNUM0(NA).EQ.1) GOTO 8500 ! error: one point and outside
         DO NSD=1,NSDMAX              ! look for crossing boundary
-           L =INSID(1,NSD)
-           NE=NESID(1,NSD)
-           WRITE(6,*) 'NSD,L,NE=',NSD,L,NE
+           L =INSID(NSD)
+           NE=NESID(NSD)
            KN=KNELM(L,NE)
 
            IF(KN.eq.0) THEN 
