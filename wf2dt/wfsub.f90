@@ -37,7 +37,6 @@ SUBROUTINE WFSLIM
      LNDMIN=MIN(LNDMIN,LNODE)
      LNDMAX=MAX(LNDMAX,LNODE)
   ENDDO
-  IF(nrank.EQ.0) write(6,'(A,1p4E12.4)') ':wfsub:',RNDMIN,RNDMAX,ZNDMIN,ZNDMAX
 
   RETURN
 END SUBROUTINE WFSLIM
@@ -49,9 +48,11 @@ SUBROUTINE WFSELM
   use wfcomm
   implicit none
 
-  integer :: NE
+  integer :: NE,ncount
   real(rkind) :: RE(3),ZE(3),S
 
+  WRITE(6,*) 'ndelm:',ndelm(1,1),ndelm(2,1),ndelm(3,1)
+  ncount=0
   do NE=1,NEMAX
 
      call WFNODE(NE,RE,ZE)
@@ -60,9 +61,12 @@ SUBROUTINE WFSELM
      if(S.LE.0.D0) THEN
         if(nrank.eq.0) then
            write(6,'(A,I5)') 'NEGATIVE S: NE=',NE
-           write(6,'(A,1P,3E12.4)') 'NODE 1 = ',RE(1),ZE(1)
-           write(6,'(A,1P,3E12.4)') 'NODE 2 = ',RE(2),ZE(2)
-           write(6,'(A,1P,3E12.4)') 'NODE 3 = ',RE(3),ZE(3)
+           write(6,'(A,I6,2ES12.4)') 'NODE 1 = ',NDELM(1,NE),RE(1),ZE(1)
+           write(6,'(A,I6,2ES12.4)') 'NODE 2 = ',NDELM(2,NE),RE(2),ZE(2)
+           write(6,'(A,I6,2ES12.4)') 'NODE 3 = ',NDELM(3,NE),RE(3),ZE(3)
+           
+           ncount=ncount+1
+           IF(ncount.GE.10) STOP
         end if
      end if
      

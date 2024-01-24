@@ -1,8 +1,11 @@
+! wfdiv.f90
+
 !     ######### /TASK/WF2/WFDIV ########
 !
 !      MESH DATA GENERATION PROGRAM
 !
 !     #################################
+
 subroutine WFDIV
 
   use libmpi
@@ -10,8 +13,8 @@ subroutine WFDIV
   use wfcomm
   use wfparm
   implicit none
-  integer   :: NE,NN,IERR
-  character :: KID*1
+  integer   :: NE,NN,IERR,mode,nlayer
+  character :: KID*1,ch*1,char_mode
 
 1 continue
 
@@ -31,16 +34,20 @@ subroutine WFDIV
 
      KID=""
      if (nrank.eq.0) then
-        write(6,'(A24)') '## TYPE: X/RECT C/CIRCLE'
+        write(6,'(A)') '## TYPE: X/square C/circle L/layer A/arc'
         read(5,'(A1)') KID
         call toupper(KID)
-        if (KID.ne."X".and.KID.ne."C") goto 2
+        if (KID.ne."X".AND. &
+            KID.ne."C".AND. &
+            KID.NE."L".AND. &
+            KID.NE."A") goto 2
      end if
      call mtx_barrier
      call mtx_broadcast_character(KID,1)
 
-     if(nrank.eq.0)then
-        if(KID.eq.'X') then
+     IF(nrank.EQ.0)THEN
+        SELECT CASE(KID)
+        CASE('X')
 3          write(6,'(A,4F10.4)') '## DIV:   BDRMIN,BDRMAX,BDZMIN,BDZMAX = ',&
                                             BDRMIN,BDRMAX,BDZMIN,BDZMAX
            write(6,'(A)')        '## INPUT: BDRMIN,BDRMAX,BDZMIN,BDZMAX ? '
@@ -61,7 +68,7 @@ subroutine WFDIV
            r_corner(3)=BDRMIN
            z_corner(3)=BDZMAX
            
-        elseif(KID.eq.'C') then
+        CASE('C')
 5          write(6,'(A15,F10.4)') '## DIV:   RB = ',RB
            write(6,'(A15)')       '## INPUT: RB ? '
            read(5,*,ERR=5,END=2) RB
@@ -81,16 +88,90 @@ subroutine WFDIV
            r_corner(3)=BDRMIN
            z_corner(3)=BDZMAX
 
-        end if
+        CASE('L')
+11         CONTINUE
+           WRITE(6,'(A)') '## Layers: uniform in X or Y?'
+           READ(5,*,ERR=11,END=2) ch
+           CALL toupper(ch)
+           SELECT CASE(ch)
+           CASE('X')
+              mode=1
+              char_mode='x'
+           CASE('Y')
+              mode=2
+              char_mode='y'
+           CASE default
+              WRITE(6,*) 'XX input error: X or Y'
+              GO TO 11
+           END SELECT
+12         CONTINUE
+           WRITE(6,'(A)') '## Number of layers?'
+           READ(5,*,ERR=12,END=11) nlayer_max
+           IF(nlayer_max.LE.0) THEN
+              WRITE(6,*) 'XX Input number of layers:'
+              GOTO 12
+           END IF
+           
+           ALLOCATE(posl_nlayer(nlayer_max+1))
+           ALLOCATE(thickness_nlayer(nlayer_max))
+           
+13         CONTINUE
+           WRITE(6,'(A,A1,A)') &
+                '# input minimum ',char_mode,' of layer 1?'
+           READ(5,*,ERR=13,END=12) posl_nlayer(1)
+           DO nlayer=1,nlayer_max
+              WRITE(6,'(A,A1,A,I4,A)') &
+                   '# input maximum ',char_mode,' of layer ', &
+                   nlayer,' and the step size?'
+              READ(5,*,ERR=13,END=12) &
+                   posl_nlayer(nlayer+1),thickness_nlayer(nlayer)
+              IF(thickness_nlayer(nlayer).LE.0.D0) THEN
+                 WRITE(6,*) 'XX wfdiv_L: wrong thickness:', &
+                      thickness_nlayer(nlayer)
+                 GO TO 11
+              END IF
+                 
+           END DO
+14         CONTINUE
 
-     end if
+           SELECT CASE(mode)
+           CASE(1)
+15            CONTINUE
+              WRITE(6,'(A,3ES12.4)') &
+                   '# input y minimum, y maximum, and step size:',&
+                   pos_min,pos_max,step_size
+              READ(5,*,ERR=15,END=14) pos_min,pos_max,step_size
+           CASE(2)
+16            CONTINUE
+              WRITE(6,'(A,3ES12.4)') &
+                   '# input x minimum and x maximum, and step size:', &
+                   pos_min,pos_max,step_size
+              READ(5,*,ERR=16,END=14) pos_min,pos_max,step_size
+           END SELECT
 
-     call wfdiv_broadcast
-     if(KID.eq.'X') then
-        call SETNODX
-     elseif(KID.eq.'C') then
-        call SETNODC
-     end if
+           IF(step_size.LE.0.D0) THEN
+              WRITE(6,*) 'XX wfdiv_L: wrong step_size:',step_size
+              GO TO 14
+           END IF
+
+           DO nlayer=1,nlayer_max
+              WRITE(6,'(A,I4,3ES12.3)') 'nlayer:', &
+                   nlayer,posl_nlayer(nlayer),posl_nlayer(nlayer+1), &
+                   thickness_nlayer(nlayer)
+           END DO
+           WRITE(6,'(A,3ES12.4)') 'pos_min,max,step_size=', &
+                pos_min,pos_max,step_size
+        END SELECT
+     END IF
+
+     CALL wfdiv_broadcast
+     IF(KID.EQ.'X') THEN
+        CALL SETNODX
+     ELSEIF(KID.EQ.'C') THEN
+        CALL SETNODC
+     ELSEIF(KID.EQ.'L') THEN
+        CALL set_node_L(mode)
+     END IF
 
      if(nrank.eq.0) write(6,*) '--- WFINDX start ---'
      call WFINDX
@@ -141,6 +222,7 @@ subroutine WFDIV
 end subroutine WFDIV
 
 ! *** rectangular mesh ***
+
 subroutine SETNODX
   
   use wfcomm
@@ -166,8 +248,8 @@ subroutine SETNODX
 
   ! --- set NEMAX ---
   NEMAX=2*(NRMAX-1)*(NZMAX-1)
-  call wfelm_allocate
-  call wfelm_allocate
+  call wf_node_allocate
+  call wf_elm_allocate
 
   ! --- set node ---
   NN=0
@@ -235,6 +317,7 @@ subroutine SETNODX
 end subroutine SETNODX
 
 ! *** circular mesh ***
+
 subroutine SETNODC
 
   use wfcomm
@@ -272,8 +355,8 @@ subroutine SETNODC
      NE=NE+6*(2*NR-1)
   end do
   NEMAX=NE
-  call wfelm_allocate
-  call wfelm_allocate
+  call wf_node_allocate
+  call wf_elm_allocate
 
   ! --- set node ---
   NN=1
@@ -381,7 +464,239 @@ subroutine SETNODC
   END DO
 
   return
-end subroutine SETNODC
+  end subroutine SETNODC
+
+  ! *** layered mesh ***
+
+  SUBROUTINE set_node_L(mode)
+    USE wfcomm,nelm_max=>NEMAX,node_max=>NNMAX,xnode=>RNODE,ynode=>ZNODE, &
+         xnode_min=>BDRMIN,xnode_max=>BDRMAX, &
+         ynode_min=>BDZMIN,ynode_max=>BDZMAX, &
+         node_nside_nelm=>NDELM
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: mode
+    INTEGER,ALLOCATABLE:: nposl_nlayer(:)
+    REAL(rkind),ALLOCATABLE:: pos_nposl(:)
+    REAL(rkind),ALLOCATABLE:: pos_npos(:)
+    INTEGER:: nlayer,nelm,node,node_base,npos,npos_half
+    INTEGER:: nposl,nposl_half,nposl_base,nposl_total
+    REAL(rkind):: pos,thickness,x,y
+
+    ALLOCATE(nposl_nlayer(nlayer_max))
+    
+    nposl_total=1
+    DO nlayer=1,nlayer_max
+       nposl_nlayer(nlayer) &
+            =NINT((posl_nlayer(nlayer+1)-posl_nlayer(nlayer)) &
+            /thickness_nlayer(nlayer))
+       IF(MOD(nposl_nlayer(nlayer),2).EQ.1) &
+            nposl_nlayer(nlayer)=nposl_nlayer(nlayer)+1 ! nposl_nlayer: even
+       nposl_total=nposl_total+nposl_nlayer(nlayer)
+    END DO   ! odd nposl_total
+
+!    WRITE(6,'(A,I6)') 'nposl_total=',nposl_total
+!    DO nlayer=1,nlayer_max
+!       WRITE(6,'(A,2I6)') 'nlayer,nposl:',nlayer,nposl_nlayer(nlayer)
+!    END DO
+              
+    ALLOCATE(pos_nposl(nposl_total))
+    
+    nposl=1
+    pos=posl_nlayer(1)
+    pos_nposl(nposl)=pos
+    DO nlayer=1,nlayer_max
+       thickness=(posl_nlayer(nlayer+1)-posl_nlayer(nlayer)) &
+            /nposl_nlayer(nlayer)
+       WRITE(6,'(A,2I6,2ES12.4)') 'nlayer,nposl,pos,thick:', &
+            nlayer,nposl,pos,thickness
+       DO npos=1,nposl_nlayer(nlayer)
+          nposl=nposl+1
+          pos=pos+thickness
+          pos_nposl(nposl)=pos
+       END DO
+       pos=posl_nlayer(nlayer+1)
+       pos_nposl(nposl)=pos
+    END DO
+
+    DO nposl=1,nposl_total
+       WRITE(6,'(A,I6,ES12.4)') 'nposl,pos:', &
+            nposl,pos_nposl(nposl)
+    END DO
+                 
+    npos_max=NINT((pos_max-pos_min)/step_size)
+    IF(MOD(npos_max,2).EQ.0) npos_max=npos_max+1  ! odd npos_max
+    WRITE(6,'(A,I6)') 'npos_max=',npos_max
+    ALLOCATE(pos_npos(npos_max))
+    DO npos=1,npos_max-1
+       pos_npos(npos)=pos_min+(pos_max-pos_min)*(npos-1)/(npos_max-1)
+    END DO
+    pos_npos(npos_max)=pos_max
+
+    DO npos=1,npos_max
+       WRITE(6,'(A,I6,2ES12.4)') 'npos,pos:',npos,pos_npos(npos)
+    END DO
+
+    node_max=nposl_total*npos_max
+    nelm_max=2*(nposl_total-1)*(npos_max-1)
+    WRITE(6,*) 'node_max=',node_max
+    WRITE(6,*) 'nelm_max=',nelm_max
+
+    CALL wf_node_allocate
+    CALL wf_elm_allocate
+
+    SELECT CASE(mode)
+    CASE(1)
+       node=0
+       DO nposl=1,nposl_total
+          x=pos_nposl(nposl)
+          DO npos=1,npos_max
+             node=node+1
+             xnode(node)=x
+             ynode(node)=pos_npos(npos)
+          END DO
+       END DO
+    CASE(2)
+       node=0
+       DO nposl=1,nposl_total
+          y=pos_nposl(nposl+1)
+          DO npos=1,npos_max
+             node=node+1
+             xnode(node)=pos_npos(npos)
+             ynode(node)=y
+          END DO
+       END DO
+    END SELECT
+
+    WRITE(6,*) 'node_max,node:',node_max,node
+
+    SELECT CASE(mode)
+    CASE(1)
+       npos_half=(npos_max-1)/2
+       nposl_base=0
+       nelm=0
+       DO nlayer=1,nlayer_max
+          nposl_half=nposl_nlayer(nlayer)/2
+          DO nposl=nposl_base+1,nposl_base+nposl_half
+             node_base=npos_max*(nposl-1)
+             DO npos=2,npos_half
+                nelm=nelm+1
+                node_nside_nelm(1,nelm)=node_base+npos-1
+                node_nside_nelm(3,nelm)=node_base+npos_max+npos
+                node_nside_nelm(2,nelm)=node_base+npos_max+npos-1
+                nelm=nelm+1
+                node_nside_nelm(1,nelm)=node_base+npos-1
+                node_nside_nelm(3,nelm)=node_base+npos
+                node_nside_nelm(2,nelm)=node_base+npos_max+npos
+             END DO
+             DO npos=npos_half+1,npos_max
+                nelm=nelm+1
+                node_nside_nelm(1,nelm)=node_base+npos-1
+                node_nside_nelm(3,nelm)=node_base+npos
+                node_nside_nelm(2,nelm)=node_base+npos_max+npos-1
+                nelm=nelm+1
+                node_nside_nelm(1,nelm)=node_base+npos
+                node_nside_nelm(3,nelm)=node_base+npos_max+npos
+                node_nside_nelm(2,nelm)=node_base+npos_max+npos-1
+             END DO
+          END DO
+          DO nposl=nposl_base+nposl_half+1,nposl_base+2*nposl_half
+             node_base=npos_max*(nposl-1)
+             DO npos=2,npos_half
+                nelm=nelm+1
+                node_nside_nelm(1,nelm)=node_base+npos-1
+                node_nside_nelm(3,nelm)=node_base+npos
+                node_nside_nelm(2,nelm)=node_base+npos_max+npos-1
+                nelm=nelm+1
+                node_nside_nelm(1,nelm)=node_base+npos
+                node_nside_nelm(3,nelm)=node_base+npos_max+npos
+                node_nside_nelm(2,nelm)=node_base+npos_max+npos-1
+             END DO
+             DO npos=npos_half+1,npos_max
+                nelm=nelm+1
+                node_nside_nelm(1,nelm)=node_base+npos-1
+                node_nside_nelm(3,nelm)=node_base+npos_max+npos
+                node_nside_nelm(2,nelm)=node_base+npos_max+npos-1
+                nelm=nelm+1
+                node_nside_nelm(1,nelm)=node_base+npos-1
+                node_nside_nelm(3,nelm)=node_base+npos
+                node_nside_nelm(2,nelm)=node_base+npos_max+npos
+             END DO
+          END DO
+          nposl_base=nposl_base+nposl_nlayer(nlayer)
+       END DO
+    CASE(2)
+       npos_half=(npos_max-1)/2
+       nposl_base=0
+       nelm=0
+       DO nlayer=1,nlayer_max
+          nposl_half=nposl_nlayer(nlayer)/2
+          DO nposl=nposl_base+1,nposl_base+nposl_half
+             node_base=npos_max*(nposl-1)
+             DO npos=2,npos_half
+                nelm=nelm+1
+                node_nside_nelm(1,nelm)=node_base+npos-1
+                node_nside_nelm(2,nelm)=node_base+npos_max+npos
+                node_nside_nelm(3,nelm)=node_base+npos_max+npos-1
+                nelm=nelm+1
+                node_nside_nelm(1,nelm)=node_base+npos-1
+                node_nside_nelm(2,nelm)=node_base+npos
+                node_nside_nelm(3,nelm)=node_base+npos_max+npos
+             END DO
+             DO npos=npos_half+1,npos_max
+                nelm=nelm+1
+                node_nside_nelm(1,nelm)=node_base+npos-1
+                node_nside_nelm(2,nelm)=node_base+npos
+                node_nside_nelm(3,nelm)=node_base+npos_max+npos-1
+                nelm=nelm+1
+                node_nside_nelm(1,nelm)=node_base+npos
+                node_nside_nelm(2,nelm)=node_base+npos_max+npos
+                node_nside_nelm(3,nelm)=node_base+npos_max+npos-1
+             END DO
+          END DO
+          DO nposl=nposl_base+nposl_half+1,nposl_base+2*nposl_half
+             node_base=npos_max*(nposl-1)
+             DO npos=2,npos_half
+                nelm=nelm+1
+                node_nside_nelm(1,nelm)=node_base+npos-1
+                node_nside_nelm(2,nelm)=node_base+npos
+                node_nside_nelm(3,nelm)=node_base+npos_max+npos-1
+                nelm=nelm+1
+                node_nside_nelm(1,nelm)=node_base+npos
+                node_nside_nelm(2,nelm)=node_base+npos_max+npos
+                node_nside_nelm(3,nelm)=node_base+npos_max+npos-1
+             END DO
+             DO npos=npos_half+1,npos_max
+                nelm=nelm+1
+                node_nside_nelm(1,nelm)=node_base+npos-1
+                node_nside_nelm(2,nelm)=node_base+npos_max+npos
+                node_nside_nelm(3,nelm)=node_base+npos_max+npos-1
+                nelm=nelm+1
+                node_nside_nelm(1,nelm)=node_base+npos-1
+                node_nside_nelm(2,nelm)=node_base+npos
+                node_nside_nelm(3,nelm)=node_base+npos_max+npos
+             END DO
+          END DO
+          nposl_base=nposl_base+nposl_nlayer(nlayer)
+       END DO
+    END SELECT
+    WRITE(6,*) 'nelm_max,nelm=',nelm_max,nelm
+
+    SELECT CASE(mode)
+    CASE(1)
+       xnode_min=pos_npos(1)
+       xnode_max=pos_npos(npos_max)
+       ynode_min=pos_nposl(1)
+       ynode_max=pos_nposl(nposl_total)
+    CASE(2)
+       xnode_min=pos_nposl(1)
+       xnode_max=pos_nposl(nposl_total)
+       ynode_min=pos_npos(1)
+       ynode_max=pos_npos(npos_max)
+    END SELECT
+    RETURN
+  END SUBROUTINE set_node_L
+
+  
 
 ! ***** the number of innner-ring-nodes *****
 function INNODE(NR)

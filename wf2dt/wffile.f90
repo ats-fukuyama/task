@@ -88,9 +88,9 @@ SUBROUTINE WFRELM(ID)
   IF(KID.EQ.'PAF-ELM0-V01') THEN
      ID=0
      
-     call wfelm_allocate
      READ(25,ERR=9100,END=9200) NNMAX,NEMAX
-     call wfelm_allocate
+     call wf_node_allocate
+     call wf_elm_allocate
      
      READ(25,ERR=9100,END=9200) (XND(I),YND(I),ZND(I),I=1,NNMAX)
      READ(25,ERR=9100,END=9200) ((NDELM(J,I),J=1,3),I=1,NEMAX)

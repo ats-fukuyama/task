@@ -12,6 +12,9 @@ subroutine wfmenu
   integer  :: IERR
   character:: KID*1,LINE*80
   INTEGER:: IDEBUG_SAVE
+  INTEGER:: input_error_count
+
+  input_error_count=0
 
 1 continue
 
@@ -24,6 +27,15 @@ subroutine wfmenu
 
   call mtx_broadcast1_character(KID)
   call mtx_broadcast1_integer(MODE)
+  IF(MODE.EQ.3) THEN
+     input_error_count=input_error_count+1
+     IF(input_error_count.GT.10) THEN
+        WRITE(6,*) 'XX input error count exceeds limit!!'
+        STOP
+     END IF
+  ELSE
+     input_error_count=0
+  END IF
   if(MODE.ne.1) goto 1
 
   if     (KID.eq.'P') then

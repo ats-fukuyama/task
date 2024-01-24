@@ -57,7 +57,8 @@ program wfmain
 
   if(nrank.eq.0) call gsclos
   if(NFOPEN.ne.0) close(26)
-  if(elminit.ne.0) call wfelm_deallocate
+  CALL wf_elm_deallocate
+  CALL wf_node_deallocate
   if(sidinit.ne.0) call wfsid_deallocate
   if(srtinit.ne.0) call wfsrt_deallocate
 !  if(medinit.ne.0) call wfmed_deallocate

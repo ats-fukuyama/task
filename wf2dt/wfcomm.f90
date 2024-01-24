@@ -73,6 +73,10 @@ module wfcomm
 !       /WFPRD/
   real(rkind):: BDRMIN,BDRMAX,BDZMIN,BDZMAX
   real(rkind):: DELR,DELZ
+  INTEGER:: nlayer_max,npos_max
+  REAL(rkind),ALLOCATABLE:: posl_nlayer(:),thickness_nlayer(:)
+  REAL(rkind):: pos_min,pos_max,step_size
+  
   real(rkind):: RD,THETJ1,THETJ2
   integer(ikind):: NJMAX
   real(rkind),dimension(NAM):: AJ,APH,APOS,AWD
@@ -261,48 +265,58 @@ contains
 !    end if
 !    return
 !  end subroutine wfdiv_deallocate
-! ----
-  subroutine wfelm_allocate
-    implicit none
-    integer,save :: NNMAX_save,NEMAX_save
+  ! ----
+  
+  SUBROUTINE wf_node_allocate
+    IMPLICIT NONE
+    INTEGER,SAVE :: NNMAX_save=0
 
-    if((elminit.eq.0).or.&
-      &(elminit.eq.2)) then
+    IF(NNMAX.EQ.NNMAX_save) THEN
+       RETURN
+    ELSE
+       CALL wf_node_deallocate
+       NNMAX_save=0
+    END IF
 
-       if(elminit.eq.2) then
-          if((NNMAX.eq.NNMAX_save).and.&
-            &(NEMAX.eq.NEMAX_save)) then
-             return
-          else
-             call wfelm_deallocate
-          end if
-       end if
+    ALLOCATE(RNODE(NNMAX),ZNODE(NNMAX),KANOD(NNMAX),KBNOD(NNMAX))
+    ALLOCATE(NVNN(NNMAX))
+    NNMAX_save = NNMAX
+    RETURN
+  END SUBROUTINE wf_node_allocate
+    
+  SUBROUTINE wf_node_deallocate
+    IMPLICIT NONE
+    IF(.NOT.ALLOCATED(RNODE)) RETURN
+    DEALLOCATE(RNODE,ZNODE,KANOD,KBNOD,NVNN)
+    RETURN
+  END SUBROUTINE wf_node_deallocate
 
-       allocate(RNODE(NNMAX),ZNODE(NNMAX),KANOD(NNMAX),KBNOD(NNMAX))
-       ALLOCATE(NVNN(NNMAX))
-       elminit = 1
-       NNMAX_save = NNMAX
+  SUBROUTINE wf_elm_allocate
+    IMPLICIT NONE
+    INTEGER,SAVE :: NEMAX_save
 
-    else if(elminit.eq.1) then
-       allocate(SELM(NEMAX),KAELM(NEMAX))
-       allocate(REMIN(NEMAX),ZEMIN(NEMAX))
-       allocate(REMAX(NEMAX),ZEMAX(NEMAX))
-       allocate(NDELM(3,NEMAX),KNELM(3,NEMAX))
-       elminit = 2
-       NEMAX_save = NEMAX
-    end if
+    IF(NEMAX.EQ.NEMAX_save) THEN
+       RETURN
+    ELSE
+       CALL wf_elm_deallocate
+       NEMAX_save=0
+    END IF
 
-    return
-  end subroutine wfelm_allocate
-!----
-  subroutine wfelm_deallocate
-    implicit none
+    ALLOCATE(SELM(NEMAX),KAELM(NEMAX))
+    ALLOCATE(REMIN(NEMAX),ZEMIN(NEMAX))
+    ALLOCATE(REMAX(NEMAX),ZEMAX(NEMAX))
+    ALLOCATE(NDELM(3,NEMAX),KNELM(3,NEMAX))
+    NEMAX_save = NEMAX
+    RETURN
+  END SUBROUTINE wf_elm_allocate
 
-    deallocate(RNODE,ZNODE,KANOD,KBNOD,SELM,KAELM)
-    deallocate(REMIN,ZEMIN,REMAX,ZEMAX,NDELM,KNELM,NVNN)
-
-    return
-  end subroutine wfelm_deallocate
+  SUBROUTINE wf_elm_deallocate
+    IMPLICIT NONE
+    IF(.NOT.ALLOCATED(KAELM)) RETURN
+    DEALLOCATE(KAELM,REMIN,ZEMIN,REMAX,ZEMAX,NDELM,KNELM)
+    RETURN
+  END SUBROUTINE wf_elm_deallocate
+  
 !----
   subroutine wfsid_allocate
     implicit none

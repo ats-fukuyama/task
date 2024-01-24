@@ -365,7 +365,7 @@ CONTAINS
     INTEGER,INTENT(IN):: id  ! 0 for new search, 1: use nelm previous search
     INTEGER,SAVE:: nelm_save=0
     INTEGER:: nelm
-    REAL(rkind):: dfx,dfy
+!    REAL(rkind):: dfx,dfy
 
     IF(id.EQ.0) THEN
        nelm=0
@@ -384,13 +384,13 @@ CONTAINS
     SELECT CASE(model_interpolation)
     CASE(0)
        f=f_nelm(nelm)
-    CASE(1) ! linear interpolation (discontinuous)
-!       CALL fem_grad_f(nelm,f_nelm,dfx,dfy)
+!    CASE(1) ! linear interpolation (discontinuous)
+!!       CALL fem_grad_f(nelm,f_nelm,dfx,dfy)
 !!          WRITE(29,'(A,I5,1P5E12.4)') 'nelm,f,dfx,dfy=', &
 !!               nelm,f_nelm(nelm),dfx,x-xcenter_nelm(nelm), &
 !!                                 dfy,y-ycenter_nelm(nelm)
-       f=f_nelm(nelm)+dfx*(x-xcenter_nelm(nelm)) &
-                     +dfy*(y-ycenter_nelm(nelm))
+!!       f=f_nelm(nelm)+dfx*(x-xcenter_nelm(nelm)) &
+!!                     +dfy*(y-ycenter_nelm(nelm))
     CASE(2) ! linear interpolation (continuouas)
        CALL fem_linear_interporate(x,y,nelm,f_nelm,f)
     END SELECT

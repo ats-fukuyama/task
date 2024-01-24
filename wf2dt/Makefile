@@ -11,8 +11,8 @@ include ../mtxp/make.mtxp
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS) -Wall
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS) -Wall
 
 OBJDIR   = ./obj
 ${OBJDIR}/%.o:%.f
