@@ -447,7 +447,7 @@ CONTAINS
 
       !  ==== EDGE MODEL ====
 
-      !  MDEDGE: model parameter for plasma edge model0
+      !  MDLEDGE: model parameter for plasma edge model0
       !      0 : off
       !      1 : simple edge model (set factor to CSPRS outside NREDGE)
       !  RHOA  : EDGE OF CALCULATE REGION (NORMALIZED SMALL RADIUS)
@@ -531,7 +531,7 @@ CONTAINS
       NNBMAX=1
       DO NNB=1,NNBM
          MDLNB(NNB)  = 1
-         PNBIN(NNB) = 0.D0
+         PNBIN(NNB)  = 0.D0
          PNBR0(NNB)  = 0.D0
          PNBRW(NNB)  = 0.5D0
          PNBVY(NNB)  = 0.D0
@@ -556,7 +556,7 @@ CONTAINS
       NECMAX=1
       DO NEC=1,NECM
          MDLEC(NEC)  = 0
-         PECIN(NEC) = 0.D0
+         PECIN(NEC)  = 0.D0
          PECR0(NEC)  = 0.D0
          PECRW(NEC)  = 0.2D0
          PECTOE(NEC) = 1.D0
@@ -578,7 +578,7 @@ CONTAINS
       NLHMAX=1
       DO NLH=1,NLHM
          MDLLH(NLH)  = 0
-         PLHIN(NLH) = 0.D0
+         PLHIN(NLH)  = 0.D0
          PLHR0(NLH)  = 0.D0
          PLHRW(NLH)  = 0.2D0
          PLHTOE(NLH) = 1.D0
@@ -599,7 +599,7 @@ CONTAINS
       NICMAX=1
       DO NIC=1,NICM
          MDLIC(NIC)  = 0
-         PICIN(NIC) = 0.D0
+         PICIN(NIC)  = 0.D0
          PICR0(NIC)  = 0.D0
          PICRW(NIC)  = 0.5D0
          PICTOE(NIC) = 0.5D0
@@ -625,7 +625,7 @@ CONTAINS
 
       NPELMAX=1
       MDLPEL= 1
-      PELIN= 0.D0
+      PELIN = 0.D0
       PELR0 = 0.D0
       PELRW = 0.5D0
       PELRAD= 0.D0
@@ -675,7 +675,7 @@ CONTAINS
       NPSCMAX = 1
       DO NPSC=1,NPSCM
          MDLPSC(NPSC) = 0
-         PSCIN(NPSC) = 0.D0
+         PSCIN(NPSC)  = 0.D0
          PSCR0(NPSC)  = 0.D0
          PSCRW(NPSC)  = 0.5D0
          NSPSC(NPSC)  = 2

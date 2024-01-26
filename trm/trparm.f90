@@ -57,7 +57,7 @@ CONTAINS
       INTEGER,INTENT(OUT):: IST, IERR
 
       NAMELIST /TR/ &
-           RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RHOA, &
+           RR,RA,RB,RKAP,RDLT,BB,RIPS,RIPE,RHOA, &
            NSMAX,NSZMAX,NSNMAX, &
            PA,PZ,PN,PNS,PT,PTS,PU,PUS, &
            MDLIMP,PNC,PNFE,PNNU,PNNUS, &
@@ -91,7 +91,7 @@ CONTAINS
            MDLELM,ELMWID,ELMDUR,ELMNRD,ELMTRD,ELMENH, &
            MDLTC,MDLPCK,model_nfixed,model_tfixed, &
            KUFDIR,KUFDev,KUFDCG, &
-           KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG,KFNTXT,KFNCVS
+           KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG,KFNTXT,KFNCVS &
 
       IF(NID.GE.0) THEN
          READ(NID,TR,IOSTAT=IST,ERR=9800,END=9900)
@@ -114,7 +114,7 @@ CONTAINS
       WRITE(6,601)
       RETURN
 
-  601 FORMAT(' ','# &TR : RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RHOA'/ &
+  601 FORMAT(' ','# &TR : RR,RA,RB,RKAP,RDLT,BB,RIPS,RIPE,RHOA'/ &
              ' ',8X,'(PA,PZ,PN,PNS,PT,PTS:NSM)'/ &
              ' ',8X,'PNC,PNFE,PNNU,PNNUS'/ &
              ' ',8X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2'/ &
@@ -141,7 +141,6 @@ CONTAINS
              ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ,MDLTC,MDLPCK'/ &
              ' ',8X,'KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG,KFNTXT,KFNCVS,'/ &
              ' ',8X,'MDLPSC,NPSCMAX,PSCIN,PSCR0,PSCRW,NSPSC'/ &
-             ' ',8X,'RB,NPRINT'/ &
              ' ',8X,'knam_nfixed,knam_tfixed'/ &
              ' ',8X,'model_nfixed,model_tfixed')
     END SUBROUTINE trplst
