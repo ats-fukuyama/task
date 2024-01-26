@@ -266,9 +266,10 @@ CONTAINS
                      END IF
                      IF(RT(NR,NSSN).LE.0.D0) THEN
                         WRITE(6,'(A,2I6,ES12.4)') &
-                             'XX TRXTOA: negative rt: nr,ns,rt: ', &
+                             'XX TRXTOA1: negative rt: nr,ns,rt: ', &
                              nr,nssn,RT(NR,NSSN)
-                        RT(NR,NSSN)=-RT(NR,NSSN)
+                        ICHCK=1
+!                        RT(NR,NSSN)=-RT(NR,NSSN)
                      END IF
                   END IF
 !                  IF(NSTN.EQ.0) THEN
@@ -295,8 +296,9 @@ CONTAINS
 !                     ENDIF
                   IF(RT(NR,NSSN).LE.0.D0) THEN
                      WRITE(6,'(A,2I6,ES12.4)') &
-                          'XX TRXTOA: negative RT:',NR,NSSN,RT(NR,NSSN)
-                     RT(NR,NSSN)=ABS(RT(NR,NSSN))
+                          'XX TRXTOA2: negative RT:',NR,NSSN,RT(NR,NSSN)
+                     ICHCK=1
+!                     RT(NR,NSSN)=ABS(RT(NR,NSSN))
                   END IF
                END IF
             ELSEIF(NSVN.EQ.3) THEN
@@ -321,8 +323,8 @@ CONTAINS
       ENDDO
 
 6000  CONTINUE
-      
-      CALL TRCHCK(ICHCK)
+
+      IF(ICHCK.EQ.0) CALL TRCHCK(ICHCK)
       IF(ICHCK.EQ.1) THEN
          CALL TRGLOB
          CALL TRATOT
@@ -384,7 +386,7 @@ CONTAINS
 
 !     /* Making New Physical Variables */
 
-      CALL TRXTOA
+      IF(ICHCK.EQ.0) CALL TRXTOA
 
 !      CALL TR_EDGE_SELECTOR(1)
 
@@ -1027,9 +1029,10 @@ CONTAINS
            tr_prof_nfixed,tr_prof_tfixed
       IMPLICIT NONE
       INTEGER:: N,NEQ,NEQ1,NR,NS,NSSN,NSSN1,NSVN,NSVN1,NSTN,NSTN1
-      INTEGER:: id_nfixed,id_tfixed
+      INTEGER:: id_nfixed,id_tfixed,ICHECK
       REAL(rkind)   :: SUM,rne_local,rt_local
 
+      ICHECK=0
       id_nfixed=0
       id_tfixed=0
       IF(model_nfixed.EQ.1) THEN
@@ -1110,9 +1113,10 @@ CONTAINS
                      END IF
                      IF(RT(NR,NSSN).LE.0.D0) THEN
                         WRITE(6,'(A,2I6,ES12.4)') &
-                             'XX TRXTOA: negative rt: nr,ns,rt: ', &
+                             'XX TRXTOA3: negative rt: nr,ns,rt: ', &
                              nr,nssn,RT(NR,NSSN)
-                        RT(NR,NSSN)=-RT(NR,NSSN)
+                        ICHECK=1
+!                        RT(NR,NSSN)=-RT(NR,NSSN)
                      END IF
                   END IF
 !                  IF(NSSN.NE.NSM) THEN
@@ -1130,8 +1134,9 @@ CONTAINS
 !                  END IF
                   IF(RT(NR,NSSN).LE.0.D0) THEN
                      WRITE(6,'(A,2I6,ES12.4)') &
-                          'XX TRXTOA: negative RT:',NR,NSSN,RT(NR,NSSN)
-                     RT(NR,NSSN)=ABS(RT(NR,NSSN))
+                          'XX TRXTOA4: negative RT:',NR,NSSN,RT(NR,NSSN)
+                        ICHECK=1
+!                     RT(NR,NSSN)=ABS(RT(NR,NSSN))
                   END IF
                END IF
             ELSEIF(NSVN.EQ.3) THEN
