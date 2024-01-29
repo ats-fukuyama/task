@@ -468,14 +468,17 @@
              AEE, AJNB, AME, AMP, ANC, ANFE, EPS0, EPSRHO, MDLUF, NRMAX, &
              PA, PBCL, PBIN, PI, PNBCD, PNBENG, &
              PZ, PZC, PZFE, RKEV, RN, RNF, RT, RTF, RW, TAUB, ZEFF, rkind, &
-             NNBMAX, PNB_NNB
+             NNBMAX, PNB_NNB, T
         IMPLICIT NONE
       REAL(rkind)    :: AMA, AMB, AMD, AMT, ANE, COULOG, EC, EPS, HY, HYB, &
            P2, P3, P4, PAB, PZB, TAUS, TAUS0, TE, VB, VC3,  &
-           VCA3, VCD3, VCR, VCT3, VE, WB, XB, ZEFFM, ZN, PB
-      INTEGER :: NR,NNB
+           VCA3, VCD3, VCR, VCT3, VE, WB, XB, ZEFFM, ZN, PB, EF
+      REAL(rkind),SAVE:: T_save=0.D0,PCD_save=0.D0
+      INTEGER :: NR,NNB,ID
 
-
+      ! If restarted, CD factor is reduced to zero
+      IF(T.LT.T_save) PCD_save=0.D0
+      
       AMD=AMP*PA(2)
       AMT=AMP*PA(3)
       AMA=AMP*PA(4)
@@ -483,7 +486,7 @@
       PAB=PA(2)
       PZB=PZ(2)
 
-      IF(MDLUF.NE.0) THEN
+   IF(MDLUF.NE.0) THEN
       DO NR=1,NRMAX
          VB=0.D0
          PB=0.D0
@@ -514,7 +517,7 @@
          TAUB(NR) = 0.5D0*TAUS*(1.D0-HYB)
          ENDIF
       ENDDO
-      ELSE
+   ELSE
       DO NR=1,NRMAX
          VB=0.D0
          PB=0.D0
@@ -536,16 +539,17 @@
             P4=0.D0
             TAUS=0.D0
          ELSE
-         P4 = 3.D0*SQRT(0.5D0*PI)*AME/ANE*(ABS(TE)*RKEV/AME)**1.5D0
-         VCD3 = P4*RN(NR,2)*PZ(2)**2/AMD
-         VCT3 = P4*RN(NR,3)*PZ(3)**2/AMT
-         VCA3 = P4*RN(NR,4)*PZ(4)**2/AMA
-         VC3  = VCD3+VCT3+VCA3
-         VCR  = VC3**(1.D0/3.D0)
-         HYB  = HY(VB/VCR)
-         TAUS = 0.2D0*PAB*ABS(TE)**1.5D0/(PZ(2)**2*ANE*COULOG(1,2,ANE,TE))
-         TAUB(NR) = 0.5D0*TAUS*(1.D0-HYB)
-         RNF(NR,1)= 2.D0*LOG(1.D0+(VB/VCR)**3)*WB/(3.D0*(1.D0-HYB)*PNBENG(NNB))
+            P4 = 3.D0*SQRT(0.5D0*PI)*AME/ANE*(ABS(TE)*RKEV/AME)**1.5D0
+            VCD3 = P4*RN(NR,2)*PZ(2)**2/AMD
+            VCT3 = P4*RN(NR,3)*PZ(3)**2/AMT
+            VCA3 = P4*RN(NR,4)*PZ(4)**2/AMA
+            VC3  = VCD3+VCT3+VCA3
+            VCR  = VC3**(1.D0/3.D0)
+            HYB  = HY(VB/VCR)
+            TAUS = 0.2D0*PAB*ABS(TE)**1.5D0/(PZ(2)**2*ANE*COULOG(1,2,ANE,TE))
+            TAUB(NR) = 0.5D0*TAUS*(1.D0-HYB)
+            RNF(NR,1)= 2.D0*LOG(1.D0+(VB/VCR)**3)*WB &
+                 /(3.D0*(1.D0-HYB)*PNBENG(NNB))
          ENDIF
 
          IF(RNF(NR,1).GT.0.D0) THEN
@@ -561,14 +565,19 @@
          PBCL(NR,4) = VCA3/VC3*HYB*PBIN(NR)
       ENDDO
 
-      IF(PNBCD(NNB).LE.0.D0) RETURN
+      ! Check 
+      ID=0
+      DO NNB=1,NNBMAX
+         IF(PNBCD(NNB).GT.0.D0) ID=1
+      END DO
+      IF(ID.EQ.0) RETURN
 
 !     D. R .Mikkelsen and C. E. Singer, Nucl. Tech. - Fusion 4 237 (1983)
 !        xi_0 corresponds to PNBCD
 !        H(r)*P_b/V_p corresponds to PBIN(NR)
 !
       TAUS0=6.D0*PI*SQRT(2.D0*PI)*EPS0**2*AMB*AME &
-     &     /(1.D20*AEE**4*PZB**2*COULOG(1,2,ANE,TE))
+           /(1.D20*AEE**4*PZB**2*COULOG(1,2,ANE,TE))
       DO NR=1,NRMAX
          ANE=RN(NR,1)
          TE =RT(NR,1)
@@ -580,31 +589,32 @@
             XB=0.D0
             AJNB(NR)=0.D0
          ELSE
-         TAUS=TAUS0*VE**3/ANE
-         ZEFFM = (PZ(2)  *PZ(2)  *RN(NR,2)/PA(2) &
-     &           +PZ(3)  *PZ(3)  *RN(NR,3)/PA(3) &
-     &           +PZ(4)  *PZ(4)  *RN(NR,3)/PA(4) &
-     &           +PZC(NR) *PZC(NR) *ANC(NR)/12.D0 &
-     &           +PZFE(NR)*PZFE(NR)*ANFE(NR)/52.D0)/ANE
-         EC  = 14.8D0*TE*PAB*ZEFFM**(2.D0/3.D0)
-         VCR = VB*SQRT(ABS(EC)/PNBENG(NNB))
-         P2  = (1.55D0+0.85D0/ZEFF(NR))*SQRT(EPS) &
-              -(0.2D0+1.55D0/ZEFF(NR))*EPS
-         XB  = VB/VCR
-         ZN  = 0.8D0*ZEFF(NR)/PAB
-         P3  = XB*XB/(4.D0+3.D0*ZN+XB*XB*(XB+1.39D0+0.61D0*ZN**0.7D0))
+            TAUS=TAUS0*VE**3/ANE
+            ZEFFM = (PZ(2)  *PZ(2)  *RN(NR,2)/PA(2) &
+                    +PZ(3)  *PZ(3)  *RN(NR,3)/PA(3) &
+                    +PZ(4)  *PZ(4)  *RN(NR,3)/PA(4) &
+                    +PZC(NR) *PZC(NR) *ANC(NR)/12.D0 &
+                    +PZFE(NR)*PZFE(NR)*ANFE(NR)/52.D0)/ANE
+            EC  = 14.8D0*TE*PAB*ZEFFM**(2.D0/3.D0)
+            VCR = VB*SQRT(ABS(EC)/PNBENG(NNB))
+            P2  = (1.55D0+0.85D0/ZEFF(NR))*SQRT(EPS) &
+                 -(0.2D0+1.55D0/ZEFF(NR))*EPS
+            XB  = VB/VCR
+            ZN  = 0.8D0*ZEFF(NR)/PAB
+            P3  = XB*XB/(4.D0+3.D0*ZN+XB*XB*(XB+1.39D0+0.61D0*ZN**0.7D0))
 
-         VB=0.D0
-         PB=0.D0
-         DO NNB=1,NNBMAX
-            VB=VB+PNBCD(NNB)*PNB_NNB(NNB,NR)
-            PB=PB+PNB_NNB(NNB,NR)
-         END DO
-         VB=VB/PB
-         
-         AJNB(NR) = VB*2.D0*AEE*PZB*TAUS/(AMB*VCR) &
-              *(1.D0-PZB*(1.D0-P2)/ZEFF(NR))*P3*PBIN(NR)
-      ENDIF
+            EF=0.D0
+            PB=0.D0
+            DO NNB=1,NNBMAX
+               EF=EF+PNBCD(NNB)*PNB_NNB(NNB,NR)
+               PB=PB+PNB_NNB(NNB,NR)
+            END DO
+            ! If NB input exists, CD efficiency reevaludated
+            IF(PB.GT.0.D0) PCD_save=EF/PB
+
+            AJNB(NR) = PCD_save*2.D0*AEE*PZB*TAUS/(AMB*VCR) &
+                      *(1.D0-PZB*(1.D0-P2)/ZEFF(NR))*P3*PBIN(NR)
+         ENDIF
       ENDDO
 
       ENDIF

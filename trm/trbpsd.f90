@@ -373,7 +373,6 @@ CONTAINS
          RIPS = RIP
          RIPE = RIP
       endif
-
       endif
 
       return
