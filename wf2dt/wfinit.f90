@@ -257,6 +257,16 @@ CONTAINS
     BDZMIN =-0.5d0
     BDZMAX = 0.5d0
 
+    nlayer_max=1
+    posl_nlayer(1)=0.D0
+    posl_nlayer(2)=0.5D0
+    posl_nlayer(3:NLM+1)=0.5D0
+    step_size_nlayer(1)=0.01D0
+    step_size_nlayer(2:NLM)=0.01D0
+    pos_min=0.D0
+    pos_max=1.D0
+    step_size=0.01D0
+
 !     *** ANTENNA SHAPE PARAMETERS ***
 
 !        PIN   : Input Power (W)

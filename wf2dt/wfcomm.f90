@@ -25,7 +25,7 @@ module wfcomm
   integer,parameter::  NMDM = 10
   integer,parameter::  NCNM = 12+NMDM
 
-  integer,parameter::   NBM = 100  ! Maximum number of boundary type
+  integer,parameter::   NLM = 20  ! Maximum number of layers
   integer,parameter::   NKM = 100  ! Maximum number of material type
   integer,parameter::   NMM = 100  ! Maximum number of medium type
   integer,parameter::   NAM =   8  ! Maximum number of antenna
@@ -73,8 +73,8 @@ module wfcomm
 !       /WFPRD/
   real(rkind):: BDRMIN,BDRMAX,BDZMIN,BDZMAX
   real(rkind):: DELR,DELZ
-  INTEGER:: nlayer_max,npos_max
-  REAL(rkind),ALLOCATABLE:: posl_nlayer(:),thickness_nlayer(:)
+  INTEGER:: nlayer_max
+  REAL(rkind):: posl_nlayer(NLM+1),step_size_nlayer(NLM)
   REAL(rkind):: pos_min,pos_max,step_size
   
   real(rkind):: RD,THETJ1,THETJ2

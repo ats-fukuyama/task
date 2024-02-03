@@ -51,7 +51,6 @@ SUBROUTINE WFSELM
   integer :: NE,ncount
   real(rkind) :: RE(3),ZE(3),S
 
-  WRITE(6,*) 'ndelm:',ndelm(1,1),ndelm(2,1),ndelm(3,1)
   ncount=0
   do NE=1,NEMAX
 

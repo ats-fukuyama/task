@@ -69,6 +69,7 @@ subroutine WFDIV
            z_corner(3)=BDZMAX
            
         CASE('C')
+           
 5          write(6,'(A15,F10.4)') '## DIV:   RB = ',RB
            write(6,'(A15)')       '## INPUT: RB ? '
            read(5,*,ERR=5,END=2) RB
@@ -105,15 +106,12 @@ subroutine WFDIV
               GO TO 11
            END SELECT
 12         CONTINUE
-           WRITE(6,'(A)') '## Number of layers?'
+           WRITE(6,'(A,I4,A)') '## Number of layers? (Max=',NLM,')'
            READ(5,*,ERR=12,END=11) nlayer_max
-           IF(nlayer_max.LE.0) THEN
+           IF(nlayer_max.LE.0.OR.nlayer_max.GT.NLM) THEN
               WRITE(6,*) 'XX Input number of layers:'
               GOTO 12
            END IF
-           
-           ALLOCATE(posl_nlayer(nlayer_max+1))
-           ALLOCATE(thickness_nlayer(nlayer_max))
            
 13         CONTINUE
            WRITE(6,'(A,A1,A)') &
@@ -124,10 +122,10 @@ subroutine WFDIV
                    '# input maximum ',char_mode,' of layer ', &
                    nlayer,' and the step size?'
               READ(5,*,ERR=13,END=12) &
-                   posl_nlayer(nlayer+1),thickness_nlayer(nlayer)
-              IF(thickness_nlayer(nlayer).LE.0.D0) THEN
-                 WRITE(6,*) 'XX wfdiv_L: wrong thickness:', &
-                      thickness_nlayer(nlayer)
+                   posl_nlayer(nlayer+1),step_size_nlayer(nlayer)
+              IF(step_size_nlayer(nlayer).LE.0.D0) THEN
+                 WRITE(6,*) 'XX wfdiv_L: wrong step_size:', &
+                      step_size_nlayer(nlayer)
                  GO TO 11
               END IF
                  
@@ -154,13 +152,13 @@ subroutine WFDIV
               GO TO 14
            END IF
 
-           DO nlayer=1,nlayer_max
-              WRITE(6,'(A,I4,3ES12.3)') 'nlayer:', &
-                   nlayer,posl_nlayer(nlayer),posl_nlayer(nlayer+1), &
-                   thickness_nlayer(nlayer)
-           END DO
-           WRITE(6,'(A,3ES12.4)') 'pos_min,max,step_size=', &
-                pos_min,pos_max,step_size
+!           DO nlayer=1,nlayer_max
+!              WRITE(6,'(A,I4,3ES12.3)') 'nlayer:', &
+!                   nlayer,posl_nlayer(nlayer),posl_nlayer(nlayer+1), &
+!                   step_size_nlayer(nlayer)
+!           END DO
+!           WRITE(6,'(A,3ES12.4)') 'pos_min,max,step_size=', &
+!                pos_min,pos_max,step_size
 
            iddiv=3
            SELECT CASE(mode)
@@ -184,15 +182,18 @@ subroutine WFDIV
            z_corner(3)=BDZMAX
         END SELECT
      END IF
-     WRITE(6,'(A,4ES12.4)') &
-          'BDRMIN,BDRMAX,BDZMIN,BDZMAX=',BDRMIN,BDRMAX,BDZMIN,BDZMAX
+!     WRITE(6,'(A,4ES12.4)') &
+!          'BDRMIN,BDRMAX,BDZMIN,BDZMAX=',BDRMIN,BDRMAX,BDZMIN,BDZMAX
 
      CALL wfdiv_broadcast
+
      IF(KID.EQ.'X') THEN
         CALL SETNODX
      ELSEIF(KID.EQ.'C') THEN
         CALL SETNODC
      ELSEIF(KID.EQ.'L') THEN
+        call mtx_barrier
+        call mtx_broadcast1_integer(mode)
         CALL set_node_L(mode)
      END IF
 
@@ -502,16 +503,18 @@ subroutine SETNODC
     REAL(rkind),ALLOCATABLE:: pos_nposl(:)
     REAL(rkind),ALLOCATABLE:: pos_npos(:)
     INTEGER:: nlayer,nelm,node,node_base,npos,npos_half
-    INTEGER:: nposl,nposl_half,nposl_base,nposl_total
-    REAL(rkind):: pos,thickness,x,y
+    INTEGER:: nposl,nposl_half,nposl_base,nposl_total,npos_max
+    REAL(rkind):: pos,step_size_nl,x,y
 
+    npos_max=NINT((pos_max-pos_min)/step_size)
+    
     ALLOCATE(nposl_nlayer(nlayer_max))
     
     nposl_total=1
     DO nlayer=1,nlayer_max
        nposl_nlayer(nlayer) &
             =NINT((posl_nlayer(nlayer+1)-posl_nlayer(nlayer)) &
-            /thickness_nlayer(nlayer))
+            /step_size_nlayer(nlayer))
        IF(nposl_nlayer(nlayer).LE.1) nposl_nlayer(nlayer)=2
        IF(MOD(nposl_nlayer(nlayer),2).EQ.1) &
             nposl_nlayer(nlayer)=nposl_nlayer(nlayer)+1 ! nposl_nlayer: even
@@ -529,43 +532,43 @@ subroutine SETNODC
     pos=posl_nlayer(1)
     pos_nposl(nposl)=pos
     DO nlayer=1,nlayer_max
-       thickness=(posl_nlayer(nlayer+1)-posl_nlayer(nlayer)) &
+       step_size_nl=(posl_nlayer(nlayer+1)-posl_nlayer(nlayer)) &
             /nposl_nlayer(nlayer)
-       WRITE(6,'(A,2I6,2ES12.4)') 'nlayer,nposl,pos,thick:', &
-            nlayer,nposl,pos,thickness
+!       WRITE(6,'(A,2I6,2ES12.4)') 'nlayer,nposl,pos,thick:', &
+!            nlayer,nposl,pos,step_size_nl
        DO npos=1,nposl_nlayer(nlayer)
           nposl=nposl+1
-          pos=pos+thickness
+          pos=pos+step_size_nl
           pos_nposl(nposl)=pos
        END DO
        pos=posl_nlayer(nlayer+1)
        pos_nposl(nposl)=pos
     END DO
-       WRITE(6,'(A,2I6,2ES12.4)') 'nlayer,nposl,pos,thick:', &
-            nlayer_max+1,nposl,pos,thickness
+!       WRITE(6,'(A,2I6,2ES12.4)') 'nlayer,nposl,pos,thick:', &
+!            nlayer_max+1,nposl,pos,step_size
 
-    DO nposl=1,nposl_total
-       WRITE(6,'(A,I6,ES12.4)') 'nposl,pos:', &
-            nposl,pos_nposl(nposl)
-    END DO
+!    DO nposl=1,nposl_total
+!       WRITE(6,'(A,I6,ES12.4)') 'nposl,pos:', &
+!            nposl,pos_nposl(nposl)
+!    END DO
                  
     npos_max=NINT((pos_max-pos_min)/step_size)
     IF(MOD(npos_max,2).EQ.0) npos_max=npos_max+1  ! odd npos_max
-    WRITE(6,'(A,I6)') 'npos_max=',npos_max
+ !   WRITE(6,'(A,I6)') 'npos_max=',npos_max
     ALLOCATE(pos_npos(npos_max))
     DO npos=1,npos_max-1
        pos_npos(npos)=pos_min+(pos_max-pos_min)*(npos-1)/(npos_max-1)
     END DO
     pos_npos(npos_max)=pos_max
 
-    DO npos=1,npos_max
-       WRITE(6,'(A,I6,2ES12.4)') 'npos,pos:',npos,pos_npos(npos)
-    END DO
+!    DO npos=1,npos_max
+!       WRITE(6,'(A,I6,2ES12.4)') 'npos,pos:',npos,pos_npos(npos)
+!    END DO
 
     node_max=nposl_total*npos_max
     nelm_max=2*(nposl_total-1)*(npos_max-1)
-    WRITE(6,*) 'node_max=',node_max
-    WRITE(6,*) 'nelm_max=',nelm_max
+    IF(nrank.EQ.0) WRITE(6,*) 'node_max=',node_max
+    IF(nrank.EQ.0) WRITE(6,*) 'nelm_max=',nelm_max
 
     CALL wf_node_allocate
     CALL wf_elm_allocate
@@ -593,7 +596,7 @@ subroutine SETNODC
        END DO
     END SELECT
 
-    WRITE(6,*) 'node_max,node:',node_max,node
+!    WRITE(6,*) 'node_max,node:',node_max,node
 
     SELECT CASE(mode)
     CASE(1)
@@ -705,7 +708,7 @@ subroutine SETNODC
           nposl_base=nposl_base+nposl_nlayer(nlayer)
        END DO
     END SELECT
-    WRITE(6,*) 'nelm_max,nelm=',nelm_max,nelm
+!    WRITE(6,*) 'nelm_max,nelm=',nelm_max,nelm
 
     RETURN
   END SUBROUTINE set_node_L
@@ -795,7 +798,17 @@ subroutine wfdiv_broadcast
   use libmpi
   implicit none
 
-  real(rkind),dimension(7) :: rdata
+  INTEGER:: idata(1)
+  real(rkind):: rdata(10)
+
+  IF(nrank.EQ.0) THEN
+     idata(1)=nlayer_max
+  END IF
+
+  call mtx_barrier
+  call mtx_broadcast_integer(idata,1)
+  nlayer_max=idata(1)
+     
 
   if (nrank.eq.0) then
      rdata(1)=BDRMIN
@@ -805,10 +818,13 @@ subroutine wfdiv_broadcast
      rdata(5)=DELR
      rdata(6)=DELZ
      rdata(7)=RB
+     rdata(8)=pos_min
+     rdata(9)=pos_max
+     rdata(10)=step_size
   end if
   
   call mtx_barrier
-  call mtx_broadcast_real8(rdata,7)
+  call mtx_broadcast_real8(rdata,10)
 
   BDRMIN=rdata(1)
   BDRMAX=rdata(2)
@@ -817,9 +833,16 @@ subroutine wfdiv_broadcast
   DELR  =rdata(5)
   DELZ  =rdata(6)
   RB    =rdata(7)
+  pos_min=rdata(8)
+  pos_max=rdata(9)
+  step_size=rdata(10)
 
   call mtx_broadcast_real8(r_corner,3)
   call mtx_broadcast_real8(z_corner,3)
+
+  call mtx_barrier
+  call mtx_broadcast_real8(posl_nlayer,nlayer_max+1)
+  call mtx_broadcast_real8(step_size_nlayer,nlayer_max)
 
   return 
 end subroutine wfdiv_broadcast

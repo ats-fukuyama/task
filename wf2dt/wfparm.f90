@@ -64,6 +64,8 @@ CONTAINS
                   KNAMPF,KNAMWG, &
                   BDRMIN,BDRMAX,BDZMIN,BDZMAX,&
                   DELR,DELZ,&
+                  nlayer_max,posl_nlayer,step_size_nlayer, &
+                  pos_min,pos_max,step_size, &
                   PIN,RD,THETJ1,THETJ2,NJMAX,&
                   R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG, &
                   AMPWG,ANGWG,ELPWG,DPHWG,MODELWG,MODELWF, &
@@ -142,6 +144,8 @@ CONTAINS
        WRITE(6,*) '     KNAMPF,KNAMWG,'
        WRITE(6,*) '     BXMIN,BXMAX,BYMIN,BYMAX,BZMIN,BZMAX,'
        WRITE(6,*) '     DELR,DELZ,'
+       WRITE(6,*) '     nlayer_max,posl_nlayer,step_size_nlayer,'
+       WRITE(6,*) '     pos_min,pos_max,step_size,'
        WRITE(6,*) '     PIN,RD,THETJ1,THETJ2,NJMAX,ZANT,ZWALL,'
        WRITE(6,*) '     R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,'
        WRITE(6,*) '     AMPWG,ANGWG,ELPWG,DPHWG,MODELWG,MODELWF,'

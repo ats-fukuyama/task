@@ -18,8 +18,6 @@ subroutine WFWAVE
   call WFWPRE(IERR)
   if(IERR.ne.0) goto 9000
 
-  WRITE(6,'(A,4ES12.4)') &
-       'BDRMIN,BDRMAX,BDZMIN,BDZMAX=',BDRMIN,BDRMAX,BDZMIN,BDZMAX
   if (nrank.eq.0) write(6,*) '--- CVCALC start ---'
   call CVCALC
   
@@ -87,7 +85,7 @@ subroutine WFWPRE(IERR)
         HA1=RGAMMA*BESKNX(1,2.D0*RGAMMA)+BESKNX(2,2.D0*RGAMMA)
      ENDIF
      RKAP=SQRT((1.D0+2.D0*HA1)/(1.D0-2.D0*HA1))
-     WRITE(6,'(A,1P2E12.4)') 'HA1,RKAP=',HA1,RKAP
+     IF(nrank.EQ.0) WRITE(6,'(A,1P2E12.4)') 'HA1,RKAP=',HA1,RKAP
   ENDIF
   
 
