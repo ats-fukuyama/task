@@ -12,7 +12,7 @@ CONTAINS
 
     use wfcomm
     implicit none
-    integer :: NA,NM,NS
+    integer :: NA,NM,NS,nlayer
 
 !     *** CONTROL PARAMETERS ***
 !
@@ -248,8 +248,39 @@ CONTAINS
     BDRMAX = 0.5d0
     BDZMIN =-0.5d0
     BDZMAX = 0.5d0
+    
+    ! *** div_arch ***
 
-!     *** ANTENNA SHAPE PARAMETERS ***
+    rmin_div = 2.D0         ! RR-RB [m]
+    rmax_div = 4.D0         ! RR+RB [m]
+    thmin_div =  0.D0       ! minimum toridal angle [deg]
+    thmax_div = 90.D0       ! maximum toridal angle [deg]
+    delr_div = 0.05D0       ! radial step size [m]
+    delth_div =  2.D0       ! toroidal angle step size [deg]
+
+    ! *** div_layer ***
+
+    nlayer_max = 3  ! number of layer blocks
+    ch_layer_mode = 'x'  ! direction of layers alignment (x or y)
+    posl_nlayer(1)=0.0D0 ! position of layer block boundary [m]
+    posl_nlayer(2)=0.9D0
+    posl_nlayer(3)=1.1D0
+    posl_nlayer(4)=2.0D0
+    thickness_nlayer(1)=0.05D0 ! thickness of a layer in a block [m]
+    thickness_nlayer(2)=0.01D0
+    thickness_nlayer(3)=0.05D0
+    DO nlayer=5,NLM+1
+       posl_nlayer(nlayer)=0.D0
+    END DO
+    DO nlayer=4,NLM
+       thickness_nlayer(nlayer)=0.1D0
+    END DO
+    pos_min = 0.D0       ! minimum pos along layers [m]
+    pos_max = 1.D0       ! maximum pos along layers [m]
+    step_size = 0.05D0   ! step size along layers [m]
+
+
+    !     *** ANTENNA SHAPE PARAMETERS ***
 
 !        PIN   : Input Power (W)
 !        RD    : Antenna radius (m)

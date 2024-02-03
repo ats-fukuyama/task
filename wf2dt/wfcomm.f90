@@ -139,22 +139,22 @@ module wfcomm
   integer(ikind),dimension(:),ALLOCATABLE :: NMKA              !(NKMAX)
         
 !       /WFBDY/
-  integer(ikind):: NBMAX
-  integer(ikind),dimension(:)  ,ALLOCATABLE :: KABDY             !(NBMAX)
-  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: PHIBDY,RESBDY     !(NBMAX)
-  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: PWRBDY,PHABDY     !(NBMAX)
-  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: XGBDY,YGBDY,ZGBDY !(NBMAX)
-  real(rkind)   ,dimension(:,:),ALLOCATABLE :: XNBDY,YNBDY,ZNBDY !(3,NBMAX)
-  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: XPBDY,YPBDY,ZPBDY !(NBMAX)
-  real(rkind)   ,dimension(:,:),ALLOCATABLE :: SZBDY             !(2,NBMAX)
-  integer(ikind),dimension(:)  ,ALLOCATABLE :: NDBDY,NMBDY,NBPMAX!(NBMAX)
-  integer(ikind),dimension(:,:),ALLOCATABLE :: NENBP,NDNBP       !(NBPM,NBMAX)
+!  integer(ikind):: NBMAX
+!  integer(ikind),dimension(:)  ,ALLOCATABLE :: KABDY             !(NBMAX)
+!  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: PHIBDY,RESBDY     !(NBMAX)
+!  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: PWRBDY,PHABDY     !(NBMAX)
+!  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: XGBDY,YGBDY,ZGBDY !(NBMAX)
+!  real(rkind)   ,dimension(:,:),ALLOCATABLE :: XNBDY,YNBDY,ZNBDY !(3,NBMAX)
+!  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: XPBDY,YPBDY,ZPBDY !(NBMAX)
+!  real(rkind)   ,dimension(:,:),ALLOCATABLE :: SZBDY             !(2,NBMAX)
+!  integer(ikind),dimension(:)  ,ALLOCATABLE :: NDBDY,NMBDY,NBPMAX!(NBMAX)
+!  integer(ikind),dimension(:,:),ALLOCATABLE :: NENBP,NDNBP       !(NBPM,NBMAX)
 
   INTEGER(ikind),DIMENSION(:),ALLOCATABLE:: NSDBS,NNDBS
   COMPLEX(rkind),DIMENSION(:),ALLOCATABLE:: CEBSD,CEBND
         
 !       /WFSLV/
-  integer(ikind):: MLEN,NNBMAX
+  integer(ikind):: MLEN !,NNBMAX
   integer(ikind):: NMDMAX
   complex(rkind):: CM(6,6)
   complex(rkind),dimension(:)  ,ALLOCATABLE :: CSV    !(MLEN)
@@ -172,7 +172,7 @@ module wfcomm
   complex(rkind),dimension(:,:),ALLOCATABLE :: CBF,CBP!(3,NNM)
   real(rkind)   ,dimension(:)  ,ALLOCATABLE :: EMAX   !(4)
   real(rkind)::ETMAX,PNMAX
-  complex(rkind),dimension(:,:),ALLOCATABLE :: CRFL!(NMDM,NBM)
+!  complex(rkind),dimension(:,:),ALLOCATABLE :: CRFL!(NMDM,NBM)
        
 !       /WFPWR/
   real(rkind):: PABSTT
@@ -293,7 +293,7 @@ contains
 
   SUBROUTINE wf_elm_allocate
     IMPLICIT NONE
-    INTEGER,SAVE :: NEMAX_save
+    INTEGER,SAVE :: NEMAX_save=0
 
     IF(NEMAX.EQ.NEMAX_save) THEN
        RETURN
@@ -320,7 +320,8 @@ contains
 !----
   subroutine wfsid_allocate
     implicit none
-    integer,save :: NSDMAX_save,NEMAX_save
+    integer,save :: NSDMAX_save=0
+    INTEGER,SAVE:: NEMAX_save=0
 
     if(sidinit.eq.1) then
        if((NSDMAX.eq.NSDMAX_save).and.&
@@ -328,6 +329,8 @@ contains
           return
        else
           call wfsid_deallocate
+          NSDMAX=0
+          NEMAX=0
        end if
     end if
 
@@ -335,6 +338,7 @@ contains
     allocate(NESID(NSDMAX),NSDELM(3,NEMAX),LSID(NSDMAX),NVNSD(NSDMAX))
 
     NSDMAX_save = NSDMAX
+    NEMAX_save = NEMAX
     sidinit = 1
     
     return
@@ -350,13 +354,14 @@ contains
 !-----
   subroutine wfsrt_allocate
     implicit none
-    integer,save :: NEMAX_save
+    integer,save :: NEMAX_save=0
     
     if(srtinit.eq.1) then
        if(NEMAX.eq.NEMAX_save) then
           return
        else
           call wfsrt_deallocate
+          NEMAX_save=0
        end if
     end if
 
@@ -440,7 +445,8 @@ contains
 !-----
   subroutine wfslv_allocate
     implicit none
-    integer,save :: NEMAX_save,MLEN_save
+    integer,save :: NEMAX_save=0
+    integer,save :: MLEN_save=0
     integer,save :: slvinit = 0
 
     if(slvinit.eq.1) then
@@ -449,6 +455,8 @@ contains
           return
        else
           call wfslv_deallocate
+          NEMAX_save=0
+          MLEN_save=0
        end if
     end if
 
@@ -470,25 +478,31 @@ contains
 !-----
   subroutine wffld_allocate
     implicit none
-    integer,save :: NSDMAX_save,NNMAX_save,NMDMAX_save,NBMAX_save
+    integer,save :: NSDMAX_save=0
+    integer,save :: NNMAX_save=0
+    integer,save :: NMDMAX_save=0
 
     if(fldinit.eq.1) then
        if((NSDMAX.eq.NSDMAX_save).and.&
          &( NNMAX.eq. NNMAX_save).and.&
-         &(NMDMAX.eq.NMDMAX_save).and.&
-         &( NBMAX.eq. NBMAX_save)) then
+         &(NMDMAX.eq.NMDMAX_save)) THEN
+!          .and.&
+!         &( NBMAX.eq. NBMAX_save)) then
           return
        else
           call wffld_deallocate
+          NSDMAX_save=0
+          NNMAX_save=0
+          NMDMAX_save=0
        end if
     end if
     allocate(CESD(NSDMAX),CEND(NNMAX))!,CEP(3,NNMAX))
-    allocate(CBF(3,NNMAX),CBP(3,NNMAX),EMAX(4),CRFL(NMDMAX,NBMAX))
+    allocate(CBF(3,NNMAX),CBP(3,NNMAX),EMAX(4))   !,CRFL(NMDMAX,NBMAX))
 
     NSDMAX_save = NSDMAX
      NNMAX_save = NNMAX
     NMDMAX_save = NMDMAX
-     NBMAX_save = NBMAX
+!     NBMAX_save = NBMAX
     fldinit = 1
 
     return
@@ -497,7 +511,7 @@ contains
   subroutine wffld_deallocate
     implicit none
 
-    deallocate(CESD,CEND,CBF,CBP,EMAX,CRFL)!,CEP)
+    deallocate(CESD,CEND,CBF,CBP,EMAX) !,CRFL)!,CEP)
 
     return
   end subroutine wffld_deallocate

@@ -4,7 +4,7 @@ MODULE femmeshprep
 
   USE wfcomm,ONLY: rkind,long
   LOGICAL:: fem_mesh_allocated=.FALSE.
-  INTEGER(long):: nseg_max
+!  INTEGER(long):: nseg_max
   INTEGER:: nside_max
   INTEGER:: nelm_node_max
   REAL(rkind):: xnode_min,xnode_max,ynode_min,ynode_max
@@ -19,6 +19,8 @@ MODULE femmeshprep
   INTEGER,ALLOCATABLE:: nelm1_nside_nelm(:,:)
   INTEGER,ALLOCATABLE:: nside1_nside_nelm(:,:)
   INTEGER,ALLOCATABLE:: nelm_nangle_node(:,:),nelm_max_node(:)
+  REAL(rkind):: xlen_zone,ylen_zone ! length of rectangular zone in x or y
+  INTEGER:: ncount_zone_max         ! maximum number of elements in a zone
 
 ! --- prepartion of mesh related variables ---
 
@@ -29,7 +31,7 @@ CONTAINS
   SUBROUTINE fem_mesh_allocate
     USE wfcomm, &
          nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
-         xnode=>rnode,ynode=>znode
+         xnode=>rnode,ynode=>znode,nseg_max=>nsdmax
     IMPLICIT NONE
     INTEGER(long),SAVE:: nseg_max_save=0,nside_max_save=0,nelm_max_save=0
 
@@ -90,7 +92,7 @@ CONTAINS
 
     USE wfcomm, &
          nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
-         xnode=>rnode,ynode=>znode
+         xnode=>rnode,ynode=>znode,nseg_max=>nsdmax
     IMPLICIT NONE
     INTEGER,ALLOCATABLE:: node_nsega(:,:)
     INTEGER(long),ALLOCATABLE:: nsega_nside_nelm(:,:)
@@ -102,9 +104,9 @@ CONTAINS
     INTEGER(long):: nseg,nsega,nseg_all,nsega1
     INTEGER:: nelm,nside,n1,n2,n3
     INTEGER:: nelm1,nside1
-    INTEGER:: node,ncount,ncount_zone_max
+    INTEGER:: node,ncount
     INTEGER:: nx,ny
-    REAL(rkind):: x,y,xc,yc,xc1,yc1,xlen_zone,ylen_zone
+    REAL(rkind):: x,y,xc,yc,xc1,yc1
     REAL(rkind):: x1,y1,x2,y2,x3,y3,xg,yg,s,v,xgsum,ygsum,vsum
     REAL(rkind):: sfactor,vfactor
 
@@ -236,6 +238,8 @@ CONTAINS
     ALLOCATE(nsega_nseg(nseg_all),nseg_nsega(nseg_all))
     ALLOCATE(nsega_pair(nseg_all))
 
+    WRITE(6,*) '## nsega_pair start'
+    
     DO nsega=1,nseg_all
        nsega_pair(nsega)=0
     END DO
@@ -250,7 +254,7 @@ CONTAINS
 
        DO ncount=1,ncount_max_nxzone_nyzone(nx,ny)
           nsega1=nsega_ncount_nxzone_nyzone(ncount,nx,ny)          
-          IF(nsega_pair(nsega1).EQ.0) THEN
+          IF(nsega.NE.nsega1.AND.nsega_pair(nsega1).EQ.0) THEN
              xc1=xcenter_nsega(nsega1)
              yc1=ycenter_nsega(nsega1)
              IF(ABS(xc-xc1).LE.1.D-80.AND.ABS(yc-yc1).LE.1.D-80) THEN
@@ -371,8 +375,8 @@ CONTAINS
        DO nelm=1,nelm_max
           WRITE(6,'(A,I6,2X,4I6,2X,4I6)') 'nelm,node,nseg=', &
                nelm, &
-               (node_nside_nelm(nside,nelm),nside=1,4), &
-               (nseg_nside_nelm(nside,nelm),nside=1,4)
+               (node_nside_nelm(nside,nelm),nside=1,3), &
+               (nseg_nside_nelm(nside,nelm),nside=1,3)
        END DO
        DO nelm=1,nelm_max
           WRITE(6,'(A,I8,1P3E12.4)') 'nelm,xc,yc,v=', &

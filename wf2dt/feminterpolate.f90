@@ -6,8 +6,8 @@ MODULE feminterpolate
 ! INTEGER:: nxzone_max,nyzone_max   ! maximum division of zoning in x and y
 
   USE wfcomm,ONLY: rkind
-  INTEGER:: ncount_zone_max         ! maximum number of elements in a zone
-  REAL(rkind):: xlen_zone,ylen_zone ! length of rectangular zone in x or y
+!  INTEGER:: ncount_zone_max         ! maximum number of elements in a zone
+!  REAL(rkind):: xlen_zone,ylen_zone ! length of rectangular zone in x or y
   INTEGER,ALLOCATABLE:: ncount_max_nxzone_nyzone(:,:)
                                  ! number of elements in a zone
   INTEGER,ALLOCATABLE:: nelm_ncount_nxzone_nyzone(:,:,:)

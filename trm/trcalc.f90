@@ -13,7 +13,7 @@
            NROMAX, NSM, NSMAX, PBCL, PBIN, PCX, PELTIM, PEX, PFCL, PFIN, &
            PI, PIE, PIN, PN, PNB, PNF, POH, PRB, PRC, PRF, PRFV, PRL, PRSUM, &
            Q0, QP, RDP, RG, RHOA, RR, SCX, SEX, SIE, SNB, SNF, SPE, SSIN, &
-           T, TAUF, TTRHOG, RDPVRHOG, SPSC, &
+           T, TAUF, TTRHOG, RDPVRHOG, SPSC, NSTMAX, NSZMAX, &
            pellet_time_start,pellet_time_interval, &
            number_of_pellet_repeat,icount_of_pellet
       USE tr_cytran_mod
@@ -141,24 +141,23 @@
 
       DO NR=1,NRMAX
          IF(MDLEQ0.EQ.0) THEN
-            DO NS=1,NSMAX
-               SELECT CASE(NS)
-               CASE(1)
+            DO NS=1,NSTMAX
+               IF(NS.EQ.1) THEN
                   SSIN(NR,1)= SIE(NR) &
                                      +SNB(NR)+SEX(NR,1)+SPSC(NR,1)
-               CASE(2)
+               ELSEIF(NS.LE.NSMAX.AND.NS.EQ.2) THEN
                   SSIN(NR,2)= PN(2)*SIE(NR)/(PN(2)+PN(3)) &
                              -SNF(NR)+SNB(NR)+SEX(NR,2)+SPSC(NR,2)
-               CASE(3)
+               ELSEIF(NS.LE.NSMAX.AND.NS.EQ.3) THEN
                   SSIN(NR,3)= PN(3)*SIE(NR)/(PN(2)+PN(3)) &
                              -SNF(NR)        +SEX(NR,3)+SPSC(NR,3)
-               CASE(4)
+               ELSEIF(NS.LE.NSMAX.AND.NS.EQ.4) THEN
                   SSIN(NR,4)= SNF(NR)        +SEX(NR,4)+SPSC(NR,4)
-               CASE(7)
-                  SSIN(NR,7)=-SIE(NR)        -SCX(NR)
-               CASE(8)
-                  SSIN(NR,8)=         SNB(NR)+SCX(NR)
-               END SELECT
+               ELSEIF(NS.EQ.NSMAX+NSZMAX+1) THEN
+                  SSIN(NR,NSMAX+NSZMAX+1)=-SIE(NR)        -SCX(NR)
+               ELSEIF(NS.EQ.NSMAX+NSZMAX+2) THEN
+                  SSIN(NR,NSMAX+NSZMAX+2)=         SNB(NR)+SCX(NR)
+               END IF
             END DO
          ELSEIF(MDLEQ0.EQ.1) THEN
             DO NS=1,NSMAX

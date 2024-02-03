@@ -200,7 +200,7 @@ CONTAINS
        SIGDM(NM)=0.D0
     ENDDO
   
-    NBMAX=0
+!    NBMAX=0
 
 !     *** OUTPUT PARAMETERS ***
 !

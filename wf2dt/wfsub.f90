@@ -947,8 +947,6 @@ SUBROUTINE FIELDCR(NE,R,Z,CVALUE,CE)
      end if
      WEIGHT=AW(ISD)-BW(ISD)*Z
      CE=CE+WEIGHT*CF
-     IF(idebug.EQ.-1) &
-          WRITE(6,'(A,I10,I5,1P5E12.4)') 'FR:',NE,ISD,weight,CF,CE
   END DO
 
   RETURN

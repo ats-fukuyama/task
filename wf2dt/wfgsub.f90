@@ -903,21 +903,14 @@ SUBROUTINE WFGPRM
   
   use wfcomm
   implicit none
-  integer :: NA,NB,L,NS!,NK,NM
+  integer :: NA,NS!,L,NK,NM
   real(rkind) :: REST(NAM),REAT(NAM),WW,RNZ
   real :: GXMIN,GYMAX,GRCHH,GDX,GDY,GXL,GYL
-  real(rkind) :: SRFR(NMDM,NBM),SRFI(NMDM,NBM),SRFL(NMDM,NBM)
+!  real(rkind) :: SRFR(NMDM,NBM),SRFI(NMDM,NBM),SRFL(NMDM,NBM)
   
   DO NA=1,NAMAX
      REST(NA)=DBLE(CIMP(NA))
      REAT(NA)=AIMAG(CIMP(NA))
-  ENDDO
-  DO NB=1,NBMAX
-     DO L=1,NMBDY(NB)
-        SRFR(L,NB)=DBLE(CRFL(L,NB))
-        SRFI(L,NB)=AIMAG(CRFL(L,NB))
-        SRFL(L,NB)=ABS(CRFL(L,NB))**2
-     ENDDO
   ENDDO
   
   GXMIN=0.0
@@ -1070,28 +1063,6 @@ SUBROUTINE WFGPRM
         CALL NUMBD(APH(NA),'(F7.1)',7)
         CALL NUMBD(REST(NA),'(1PE11.3)',11)
         CALL NUMBD(REAT(NA),'(1PE11.3)',11)
-     ENDDO
-  ELSEIF(NBMAX.GT.0) THEN
-     CALL MOVE(GXL,GYL)
-     CALL TEXT('NB',2)
-     CALL TEXT(' MD',3)
-     CALL TEXT('  Real   ',10)
-     CALL TEXT('  Imag   ',10)
-     CALL TEXT('  REFL     ',11)
-     
-     DO NB=1,NBMAX
-        IF(KABDY(NB).GE.8) THEN
-           DO L=1,NMBDY(NB)
-              GXL=GXMIN+45.*GRCHH
-              GYL=GYL+GDY
-              CALL MOVE(GXL,GYL)
-              CALL NUMBI(NB,'(I2)',2)
-              CALL NUMBI(L,'(I3)',3)
-              CALL NUMBD(SRFR(L,NB),'(1PE10.2)',10)
-              CALL NUMBD(SRFI(L,NB),'(1PE10.2)',10)
-              CALL NUMBD(SRFL(L,NB),'(1PE11.3)',11)
-           ENDDO
-        ENDIF
      ENDDO
   ENDIF
   
@@ -1366,11 +1337,6 @@ SUBROUTINE WFPRME
   
   GYL=GYL-GDY
   CALL MOVE(GXL,GYL)
-  CALL TEXT('NBMAX=',6)
-  CALL NUMBI(NBMAX,'(I8)',8)
-  
-  GYL=GYL-GDY
-  CALL MOVE(GXL,GYL)
 !  CALL TEXT('MBND =',6)
 !  CALL NUMBI(MBND,'(I8)',8)
   
@@ -1467,11 +1433,6 @@ SUBROUTINE WFPRMJ
   CALL MOVE(GXL,GYL)
   CALL TEXT('NEMAX=',6)
   CALL NUMBI(NEMAX,'(I8)',8)
-  
-  GYL=GYL-GDY
-  CALL MOVE(GXL,GYL)
-  CALL TEXT('NBMAX=',6)
-  CALL NUMBI(NBMAX,'(I8)',8)
   
   GYL=GYL-GDY
   CALL MOVE(GXL,GYL)

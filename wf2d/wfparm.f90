@@ -65,6 +65,9 @@ CONTAINS
                   KNAMPF,KNAMWG, &
                   BDRMIN,BDRMAX,BDZMIN,BDZMAX,&
                   DELR,DELZ,&
+                  rmin_div,rmax_div,thmin_div,thmax_div,delr_div,delth_div, &
+                  nlayer_max,ch_layer_mode,posl_nlayer,thickness_nlayer, &
+                  pos_min,pos_max,step_size, &
                   PIN,RD,THETJ1,THETJ2,NJMAX,&
                   R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG, &
                   AMPWG,ANGWG,ELPWG,DPHWG,MODELWG, &
@@ -150,7 +153,10 @@ CONTAINS
        WRITE(6,*) '     KFNAME,KFNAMA,KFNAMF,KFNAMN,KFNAMB,'
        WRITE(6,*) '     KNAMPF,KNAMWG,'
        WRITE(6,*) '     BXMIN,BXMAX,BYMIN,BYMAX,BZMIN,BZMAX,'
-       WRITE(6,*) '     DELR,DELZ,'
+       WRITE(6,*) '     DELR,DELZ,delr_div,delth_div,'
+       WRITE(6,*) '     rmin_div,rmax_div,thmin_div,thmax_div,'
+       WRITE(6,*) '     nlayer_max,ch_layer_mode,posl_nlayer,'
+       WRITE(6,*) '     thickness_nlayer,pos_min,pos_max,step_size,'
        WRITE(6,*) '     PIN,RD,THETJ1,THETJ2,NJMAX,ZANT,ZWALL,'
        WRITE(6,*) '     R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,'
        WRITE(6,*) '     AMPWG,ANGWG,ELPWG,DPHWG,MODELWG,'
@@ -320,7 +326,7 @@ SUBROUTINE wfparm_broadcast
   IMPLICIT NONE
 
   INTEGER,DIMENSION(24) :: idata
-  REAL(rkind),DIMENSION(49) :: ddata
+  REAL(rkind),DIMENSION(58) :: ddata
   
 ! ---  broadcast integer data -----
 
@@ -331,7 +337,7 @@ SUBROUTINE wfparm_broadcast
      idata(4) =MODELG
      idata(5) =MODELB
      idata(6) =MODELD
-     idata(7) =0
+     idata(7) =nlayer_max
      idata(8) =MODELN
      idata(9) =NPRINT
      idata(10)=NDRAWD
@@ -359,7 +365,7 @@ SUBROUTINE wfparm_broadcast
   MODELG=idata(4)
   MODELB=idata(5)
   MODELD=idata(6)
-!  MODELP=idata(7)
+  nlayer_max=idata(7)
   MODELN=idata(8)
   NPRINT=idata(9)
   NDRAWD=idata(10)
@@ -430,9 +436,18 @@ SUBROUTINE wfparm_broadcast
      ddata(47)=phase_wg_cen
      ddata(48)=phase_wg_max
      ddata(49)=gauss_wg
+     ddata(50)=rmin_div
+     ddata(51)=rmax_div
+     ddata(52)=thmin_div
+     ddata(53)=thmax_div
+     ddata(54)=delr_div
+     ddata(55)=delth_div
+     ddata(56)=pos_min
+     ddata(57)=pos_max
+     ddata(58)=step_size
   end if
 
-  call mtx_broadcast_real8(ddata,49)
+  call mtx_broadcast_real8(ddata,58)
   
   BB    =ddata(1)
   RA    =ddata(2)
@@ -483,6 +498,15 @@ SUBROUTINE wfparm_broadcast
   phase_wg_cen=ddata(47)
   phase_wg_max=ddata(48)
   gauss_wg=ddata(49)
+  rmin_div=ddata(50)
+  rmax_div=ddata(51)
+  thmin_div=ddata(52)
+  thmax_div=ddata(53)
+  delr_div=ddata(54)
+  delth_div=ddata(55)
+  pos_min=ddata(56)
+  pos_max=ddata(57)
+  step_size=ddata(58)
 
   call mtx_broadcast_integer(MODELP,nsmax)
   call mtx_broadcast_real8(AJ  ,8)
@@ -506,6 +530,8 @@ SUBROUTINE wfparm_broadcast
   call mtx_broadcast_real8(RCOIL,NCOILMAX)
   call mtx_broadcast_real8(ZCOIL,NCOILMAX)
   call mtx_broadcast_real8(BCOIL,NCOILMAX)
+  call mtx_broadcast_real8(posl_nlayer,NLM+1)
+  call mtx_broadcast_real8(thickness_nlayer,NLM)
 
 ! ------ broadcast character ------
 
@@ -517,6 +543,7 @@ SUBROUTINE wfparm_broadcast
 
   call mtx_broadcast_character(KNAMPF,80)
   call mtx_broadcast_character(KNAMWG,80)
+  call mtx_broadcast_character(ch_layer_mode,1)
 
   IF(MODELI.EQ.0) THEN
      CII=CI

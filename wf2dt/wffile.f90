@@ -1,12 +1,72 @@
 !     $Id: wffile.f90,v 1.1 2011/07/19 07:16:11 maruyama Exp $
 
+!     ******* OUTPUT FORMATTED ELEMENT DATA *******
+
+SUBROUTINE WFFELM(ID)
+
+  use wfcomm
+  implicit none
+  integer :: IST,ID,I,J,NM
+  CHARACTER KNAME*32
+  LOGICAL LEX
+  
+1 WRITE(6,*) '## ENTER ELEMENT FILE NAME: ',KFNAME
+  READ(5,'(A32)',ERR=1,END=9000) KNAME
+  IF(KNAME(1:2).NE.'/ ') KFNAME=KNAME
+  INQUIRE(FILE=KFNAME,EXIST=LEX)
+  IF(LEX) THEN
+     OPEN(25,FILE=KFNAME,IOSTAT=IST,STATUS='OLD',ERR=10,&
+          &        FORM='FORMATTED')
+     WRITE(6,*) '## OLD FILE (',KFNAME,') IS ASSIGNED FOR OUTPUT.'
+     GOTO 30
+10   WRITE(6,*) 'XX OLD FILE OPEN ERROR : IOSTAT = ',IST
+     GOTO 1
+  ELSE
+     OPEN(25,FILE=KFNAME,IOSTAT=IST,STATUS='NEW',ERR=20,&
+          &        FORM='FORMATTED')
+     WRITE(6,*) '## NEW FILE (',KFNAME,') IS CREATED FOR OUTPUT.'
+     GOTO 30
+20   WRITE(6,*) 'XX NEW FILE OPEN ERROR : IOSTAT = ',IST
+     GOTO 1
+  ENDIF
+  
+30 REWIND 25
+  IF(ID.EQ.0) THEN
+     WRITE(25,'(A)') 'PAF-ELM0-V01'
+     WRITE(25,'(A,2I8)') 'NNMAX,NEMAX=',NNMAX,NEMAX
+     WRITE(25,'(A,I8,2ES12.4)') ('node:',I,RNODE(I),ZNODE(I),I=1,NNMAX)
+     WRITE(25,'(A,I8,2X,3I8)')  ('nelm:',I,(NDELM(J,I),J=1,3),I=1,NEMAX)
+  ELSEIF(ID.EQ.1) THEN
+     WRITE(25,'(A)') 'PAF-ELM1-V01'
+     WRITE(25,'(A,3I8)') 'NNMAX,NEMAX,NMMAX:',NNMAX,NEMAX,NMMAX
+     WRITE(25,'(A,I8,2ES12.4,I4)') &
+          ('node:',I,RNODE(I),ZNODE(I),KANOD(I),I=1,NNMAX)
+     WRITE(25,'(A,I8,2X,3I8,2X,3I8,2X,I4)') &
+          ('nelm:',I,(NDELM(J,I),J=1,3),(KNELM(J,I),J=1,3),KAELM(I),I=1,NEMAX)
+     WRITE(25,'(A,I8,3ES12.4)') &
+          ('medm:',NM,EPSDM(NM),AMUDM(NM),SIGDM(NM),NM=1,NMMAX)
+!     WRITE(25) (KABDY(NB),PHIBDY(NB),RESBDY(NB),&
+!          &              PWRBDY(NB),PHABDY(NB),          &
+!          &              XGBDY(NB),YGBDY(NB),ZGBDY(NB),  &
+!          &              (XNBDY(I,NB),YNBDY(I,NB),       &
+!          &               ZNBDY(I,NB),I=1,3),            &
+!          &              XPBDY(NB),YPBDY(NB),ZPBDY(NB),  &
+!          &              SZBDY(1,NB),SZBDY(2,NB),NB=1,NBMAX)
+  ENDIF
+  CLOSE(25)
+  
+  WRITE(6,*) '## ELEMENT DATA SAVED IN FILE: ',KFNAME
+
+9000 RETURN
+END SUBROUTINE WFFELM
+
 !     ******* OUTPUT ELEMENT DATA *******
 
 SUBROUTINE WFWELM(ID)
 
   use wfcomm
   implicit none
-  integer :: IST,ID,I,J,NM,NB
+  integer :: IST,ID,I,J,NM
   CHARACTER KNAME*32
   LOGICAL LEX
   
@@ -34,24 +94,24 @@ SUBROUTINE WFWELM(ID)
   IF(ID.EQ.0) THEN
      WRITE(25) 'PAF-ELM0-V01'
      WRITE(25) NNMAX,NEMAX
-     WRITE(25) (XND(I),YND(I),ZND(I),I=1,NNMAX)
+     WRITE(25) (RNODE(I),ZNODE(I),I=1,NNMAX)
      WRITE(25) ((NDELM(J,I),J=1,3),I=1,NEMAX)
   ELSEIF(ID.EQ.1) THEN
      WRITE(25) 'PAF-ELM1-V01'
-     WRITE(25) NNMAX,NEMAX,NMMAX,NBMAX
-     WRITE(25) (XND(I),YND(I),ZND(I),I=1,NNMAX)
+     WRITE(25) NNMAX,NEMAX,NMMAX
+     WRITE(25) (RNODE(I),ZNODE(I),I=1,NNMAX)
      WRITE(25) (KANOD(I),I=1,NNMAX)
      WRITE(25) ((NDELM(J,I),J=1,3),I=1,NEMAX)
      WRITE(25) ((KNELM(J,I),J=1,3),I=1,NEMAX)
      WRITE(25) (KAELM(I),I=1,NEMAX)
      WRITE(25) (EPSDM(NM),AMUDM(NM),SIGDM(NM),NM=1,NMMAX)
-     WRITE(25) (KABDY(NB),PHIBDY(NB),RESBDY(NB),&
-          &              PWRBDY(NB),PHABDY(NB),          &
-          &              XGBDY(NB),YGBDY(NB),ZGBDY(NB),  &
-          &              (XNBDY(I,NB),YNBDY(I,NB),       &
-          &               ZNBDY(I,NB),I=1,3),            &
-          &              XPBDY(NB),YPBDY(NB),ZPBDY(NB),  &
-          &              SZBDY(1,NB),SZBDY(2,NB),NB=1,NBMAX)
+!     WRITE(25) (KABDY(NB),PHIBDY(NB),RESBDY(NB),&
+!          &              PWRBDY(NB),PHABDY(NB),          &
+!          &              XGBDY(NB),YGBDY(NB),ZGBDY(NB),  &
+!          &              (XNBDY(I,NB),YNBDY(I,NB),       &
+!          &               ZNBDY(I,NB),I=1,3),            &
+!          &              XPBDY(NB),YPBDY(NB),ZPBDY(NB),  &
+!          &              SZBDY(1,NB),SZBDY(2,NB),NB=1,NBMAX)
   ENDIF
   CLOSE(25)
   
@@ -66,7 +126,7 @@ SUBROUTINE WFRELM(ID)
 
   use wfcomm
   implicit none
-  integer :: IST,I,J,NE,NN,NM,NB,ID,idata(2)
+  integer :: IST,I,J,NE,NN,NM,ID
   LOGICAL LEX
   CHARACTER KID*12
 
@@ -92,7 +152,7 @@ SUBROUTINE WFRELM(ID)
      call wf_node_allocate
      call wf_elm_allocate
      
-     READ(25,ERR=9100,END=9200) (XND(I),YND(I),ZND(I),I=1,NNMAX)
+     READ(25,ERR=9100,END=9200) (rnode(I),znode(I),I=1,NNMAX)
      READ(25,ERR=9100,END=9200) ((NDELM(J,I),J=1,3),I=1,NEMAX)
 
      CALL WFINDX
@@ -105,30 +165,29 @@ SUBROUTINE WFRELM(ID)
      NMKA(1)=0
      NMMAX=0
      
-     NBMAX=0
      DO NN=1,NNMAX
         KANOD(NN)=0
      ENDDO
 
   ELSEIF(KID.EQ.'PAF-ELM1-V01') THEN
      ID=1
-     READ(25,ERR=9100,END=9200) NNMAX,NEMAX,NMMAX,NBMAX
-     call wfelm_allocate
+     READ(25,ERR=9100,END=9200) NNMAX,NEMAX,NMMAX
+     call wf_elm_allocate
      
-     READ(25,ERR=9100,END=9200) (XND(I),YND(I),ZND(I),I=1,NNMAX)
+     READ(25,ERR=9100,END=9200) (rnode(I),znode(I),I=1,NNMAX)
      READ(25,ERR=9100,END=9200) (KANOD(I),I=1,NNMAX)
      READ(25,ERR=9100,END=9200) ((NDELM(J,I),J=1,3),I=1,NEMAX)
      READ(25,ERR=9100,END=9200) ((KNELM(J,I),J=1,3),I=1,NEMAX)
      READ(25,ERR=9100,END=9200) (KAELM(I),I=1,NEMAX)
      READ(25,ERR=9100,END=9200) (EPSDM(NM),AMUDM(NM),SIGDM(NM),&
           &                              NM=1,NMMAX)
-     READ(25,ERR=9100,END=9200) (KABDY(NB),PHIBDY(NB),RESBDY(NB),&
-          &                               PWRBDY(NB),PHABDY(NB),&
-          &                               XGBDY(NB),YGBDY(NB),ZGBDY(NB),&
-          &                               (XNBDY(I,NB),YNBDY(I,NB),&
-          &                                ZNBDY(I,NB),I=1,3),&
-          &                               XPBDY(NB),YPBDY(NB),ZPBDY(NB),&
-          &                               SZBDY(1,NB),SZBDY(2,NB),NB=1,NBMAX)
+!     READ(25,ERR=9100,END=9200) (KABDY(NB),PHIBDY(NB),RESBDY(NB),&
+!          &                               PWRBDY(NB),PHABDY(NB),&
+!          &                               XGBDY(NB),ZGBDY(NB),&
+!          &                               (XNBDY(I,NB),&
+!          &                                ZNBDY(I,NB),I=1,3),&
+!          &                               XPBDY(NB),ZPBDY(NB),&
+!          &                               SZBDY(1,NB),SZBDY(2,NB),NB=1,NBMAX)
   ELSE
      ID=9999
      if(nrank.eq.0) WRITE(6,*) 'XX INVALID ELEMENT DATA : KID = ',KID
@@ -182,8 +241,8 @@ SUBROUTINE WFWANT
 200 FORMAT(I6)
   DO NA=1,NAMAX
      WRITE(24,200) JNUM0(NA)
-     WRITE(24,300) (XJ0(I,NA),YJ0(I,NA),ZJ0(I,NA),I=1,JNUM0(NA))
-300  FORMAT(3E23.15)
+     WRITE(24,300) (RJ0(I,NA),ZJ0(I,NA),I=1,JNUM0(NA))
+300  FORMAT(2E23.15)
   END DO
   CLOSE(24)
   
@@ -214,15 +273,14 @@ SUBROUTINE WFRANT
      GOTO 9000
   ENDIF
   
-30 READ(24,150,ERR=9100,END=9200) NAMAX
-150 FORMAT(I6)
+30 READ(24,'(I8)',ERR=9100,END=9200) NAMAX
   IF(NAMAX.LT.1.OR.NAMAX.GT.NAM) THEN
      if(nrank.eq.0) WRITE(6,*) 'XX INVALID ANTENNA DATA: NAMAX,NAM = ',NAMAX,NAM
      GOTO 9000
   ENDIF
   
   DO NA=1,NAMAX
-     READ(24,150,ERR=9100,END=9200) JNUM0(NA)
+     READ(24,'(I8)',ERR=9100,END=9200) JNUM0(NA)
      IF(JNUM0(NA).GT.NJM.OR.JNUM0(NA).LT.1) THEN
         if(nrank.eq.0) WRITE(6,*) 'XX INVALID ANTENNA DATA: NA,JNUM0,NJM =',&
              &                 NA,JNUM0(NA),NJM
@@ -230,8 +288,8 @@ SUBROUTINE WFRANT
      ENDIF
      
      READ(24,250,ERR=9100,END=9200) &
-          &       (XJ0(I,NA),YJ0(I,NA),ZJ0(I,NA),I=1,JNUM0(NA))
-250  FORMAT(3E23.15)
+                 (RJ0(I,NA),ZJ0(I,NA),I=1,JNUM0(NA))
+250  FORMAT(2ES12.4)
   END DO
   CLOSE(24)
   
@@ -251,8 +309,9 @@ END SUBROUTINE WFRANT
 SUBROUTINE WFWFLD
 
   use wfcomm
+  USE femmeshprep
   implicit none
-  integer :: IST,M
+  integer :: IST,NN,NSD
   CHARACTER KNAME*32
   LOGICAL LEX
 
@@ -263,15 +322,19 @@ SUBROUTINE WFWFLD
      IF(KNAME(1:2).NE.'/ ') KFNAMF=KNAME
      INQUIRE(FILE=KFNAMF,EXIST=LEX)
      IF(LEX) THEN
+!        OPEN(26,FILE=KFNAMF,IOSTAT=IST,STATUS='OLD',ERR=10,&
+!             &        FORM='UNFORMATTED')
         OPEN(26,FILE=KFNAMF,IOSTAT=IST,STATUS='OLD',ERR=10,&
-             &        FORM='UNFORMATTED')
+             &        FORM='FORMATTED')
         WRITE(6,*) '## OLD FILE (',KFNAMF,') IS ASSIGNED FOR OUTPUT.'
         GOTO 30
 10      WRITE(6,*) 'XX OLD FILE OPEN ERROR : IOSTAT = ',IST
         GOTO 1
      ELSE
+!        OPEN(26,FILE=KFNAMF,IOSTAT=IST,STATUS='NEW',ERR=20,&
+!             FORM='UNFORMATTED')
         OPEN(26,FILE=KFNAMF,IOSTAT=IST,STATUS='NEW',ERR=20,&
-             &        FORM='UNFORMATTED')
+             FORM='FORMATTED')
         WRITE(6,*) '## NEW FILE (',KFNAMF,') IS CREATED FOR OUTPUT.'
         GOTO 30
 20      WRITE(6,*) 'XX NEW FILE OPEN ERROR : IOSTAT = ',IST
@@ -280,9 +343,22 @@ SUBROUTINE WFWFLD
 30   NFOPEN=1
      
   ENDIF
+
+  WRITE(26,'(A,I8)') 'NSDMAX:',NSDMAX
+  DO NSD=1,NSDMAX
+     WRITE(26,'(A,I8,2ES12.4,4X,2ES12.4)') &
+          'NSD:',NSD,xcenter_nseg(NSD),ycenter_nseg(NSD),CESD(NSD)
+  END DO
+
+  WRITE(26,'(A,I8)') 'NNMAX:',NNMAX
+  DO NN=1,NNMAX
+     WRITE(26,'(A,I8,2ES12.4,4X,2ES12.4)') &
+          'NND:',NN,rnode(NN),znode(NN),CEND(NN)
+  END DO
+  CLOSE(26)
   
-  WRITE(26) MLEN
-  WRITE(26) (CSV(M),M=1,MLEN)
+!  WRITE(26) MLEN
+!  WRITE(26) (CSV(M),M=1,MLEN)
   
   WRITE(6,*) '## FIELD DATA SAVED IN FILE: ',KFNAMF
   
@@ -326,8 +402,8 @@ SUBROUTINE WFRFLD
   CALL CALFLD
   CALL PWRABS
   CALL PWRRAD
-  CALL TERMEP
-  CALL WFCALB
+!  CALL TERMEP
+!  CALL WFCALB
   CALL LPEFLD
   
 9000 RETURN

@@ -161,8 +161,31 @@ subroutine WFDIV
            END DO
            WRITE(6,'(A,3ES12.4)') 'pos_min,max,step_size=', &
                 pos_min,pos_max,step_size
+
+           iddiv=3
+           SELECT CASE(mode)
+           CASE(1)
+              BDRMIN=posl_nlayer(1)
+              BDRMAX=posl_nlayer(nlayer_max+1)
+              BDZMIN=pos_min
+              BDZMAX=pos_max
+           CASE(2)
+              BDZMIN=posl_nlayer(1)
+              BDZMAX=posl_nlayer(nlayer_max+1)
+              BDRMIN=pos_min
+              BDRMAX=pos_max
+           END SELECT
+           
+           r_corner(1)=BDRMIN
+           z_corner(1)=BDZMIN
+           r_corner(2)=BDRMAX
+           z_corner(2)=BDZMIN
+           r_corner(3)=BDRMIN
+           z_corner(3)=BDZMAX
         END SELECT
      END IF
+     WRITE(6,'(A,4ES12.4)') &
+          'BDRMIN,BDRMAX,BDZMIN,BDZMAX=',BDRMIN,BDRMAX,BDZMIN,BDZMAX
 
      CALL wfdiv_broadcast
      IF(KID.EQ.'X') THEN
@@ -185,7 +208,7 @@ subroutine WFDIV
      NMKA(1)=0
      NMMAX=0
      
-     NBMAX=0
+!     NBMAX=0
      do NN=1,NNMAX
         KANOD(NN)=0
      end do
@@ -489,6 +512,7 @@ subroutine SETNODC
        nposl_nlayer(nlayer) &
             =NINT((posl_nlayer(nlayer+1)-posl_nlayer(nlayer)) &
             /thickness_nlayer(nlayer))
+       IF(nposl_nlayer(nlayer).LE.1) nposl_nlayer(nlayer)=2
        IF(MOD(nposl_nlayer(nlayer),2).EQ.1) &
             nposl_nlayer(nlayer)=nposl_nlayer(nlayer)+1 ! nposl_nlayer: even
        nposl_total=nposl_total+nposl_nlayer(nlayer)
@@ -517,6 +541,8 @@ subroutine SETNODC
        pos=posl_nlayer(nlayer+1)
        pos_nposl(nposl)=pos
     END DO
+       WRITE(6,'(A,2I6,2ES12.4)') 'nlayer,nposl,pos,thick:', &
+            nlayer_max+1,nposl,pos,thickness
 
     DO nposl=1,nposl_total
        WRITE(6,'(A,I6,ES12.4)') 'nposl,pos:', &
@@ -681,18 +707,6 @@ subroutine SETNODC
     END SELECT
     WRITE(6,*) 'nelm_max,nelm=',nelm_max,nelm
 
-    SELECT CASE(mode)
-    CASE(1)
-       xnode_min=pos_npos(1)
-       xnode_max=pos_npos(npos_max)
-       ynode_min=pos_nposl(1)
-       ynode_max=pos_nposl(nposl_total)
-    CASE(2)
-       xnode_min=pos_nposl(1)
-       xnode_max=pos_nposl(nposl_total)
-       ynode_min=pos_npos(1)
-       ynode_max=pos_npos(npos_max)
-    END SELECT
     RETURN
   END SUBROUTINE set_node_L
 

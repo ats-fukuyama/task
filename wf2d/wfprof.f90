@@ -139,10 +139,8 @@ SUBROUTINE WFSMAG2(R,Z,BABS,AL)
   use wfcomm
   USE plprof
   implicit none
-  integer :: I
   real(rkind),intent(in) :: R,Z
   real(rkind),intent(out):: BABS,AL(3)
-  real(rkind) :: BLO(3),LR,LZ
   TYPE(pl_mag_type):: MAG
 
   CALL pl_mag(R,0.D0,Z,mag)

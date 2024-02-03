@@ -21,8 +21,6 @@ MODULE femmesh
   INTEGER,ALLOCATABLE:: nelm_nangle_node(:,:),nelm_max_node(:)
   INTEGER,ALLOCATABLE:: ncount_max_nxzone_nyzone(:,:)
   INTEGER,ALLOCATABLE:: nelm_ncount_nxzone_nyzone(:,:,:)
-  REAL(rkind):: xlen_zone,ylen_zone
-  INTEGER:: ncount_zone_max
 
 ! --- prepartion of mesh related variables ---
 
@@ -105,7 +103,7 @@ CONTAINS
     INTEGER:: nseg,nsega,nseg_all,nsega1
     INTEGER:: nelm,nside,n1,n2,n3
     INTEGER:: nelm1,nside1
-    INTEGER:: node,ncount,ncount_zone_max
+    INTEGER:: node,ncount
     INTEGER:: nx,ny
     REAL(rkind):: x,y,xc,yc,xc1,yc1
     REAL(rkind):: x1,y1,x2,y2,x3,y3,xg,yg,s,v,xgsum,ygsum,vsum

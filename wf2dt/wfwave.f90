@@ -18,6 +18,8 @@ subroutine WFWAVE
   call WFWPRE(IERR)
   if(IERR.ne.0) goto 9000
 
+  WRITE(6,'(A,4ES12.4)') &
+       'BDRMIN,BDRMAX,BDZMIN,BDZMAX=',BDRMIN,BDRMAX,BDZMIN,BDZMAX
   if (nrank.eq.0) write(6,*) '--- CVCALC start ---'
   call CVCALC
   
@@ -117,8 +119,6 @@ subroutine WFWPRE(IERR)
   call DEFMLEN
   
   call wffld_allocate
-
-  if (nrank.eq.0) call WF_VIEW
 
   return
 end subroutine WFWPRE
@@ -798,8 +798,8 @@ SUBROUTINE CMCALCS(NE)
                           +CII*RKZ*RR &
                            *(-ZN*(-CW(J)+BW(J)*R(K)) &
                              -RN*( AW(J)-BW(J)*Z(K)))*L(ISD)*AIE2(J,K)
-                    WRITE(21,'(A,I10,3I5,1P4E12.4)') &
-                         'CM:',NE,I,J+3,K,CM(I,J+3),CM(I,J+3)-CTEMP
+!                    WRITE(21,'(A,I10,3I5,1P4E12.4)') &
+!                         'CM:',NE,I,J+3,K,CM(I,J+3),CM(I,J+3)-CTEMP
               END DO
            CASE(1:10,13)
               DO K1=1,2
@@ -826,8 +826,8 @@ SUBROUTINE CMCALCS(NE)
                     CM(I+3,J+3)=CM(I+3,J+3) &
                                +(RN*B(J)+ZN*C(J))*RR &
                                 *L(ISD)*AIE3(I,J,K)
-                    WRITE(21,'(A,I10,3I5,1P4E12.4)') &
-                         'CM:',NE,I+3,J+3,K,CM(I+3,J+3),CM(I+3,J+3)-CTEMP
+!                    WRITE(21,'(A,I10,3I5,1P4E12.4)') &
+!                         'CM:',NE,I+3,J+3,K,CM(I+3,J+3),CM(I+3,J+3)-CTEMP
                  END DO
               CASE(1:10,13)
                  DO K1=1,2

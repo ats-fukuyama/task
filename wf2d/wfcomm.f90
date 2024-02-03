@@ -51,6 +51,8 @@ module wfcomm
   integer,parameter::  NMDM = 10
   integer,parameter::  NCNM = 12+NMDM
 
+  INTEGER,PARAMETER::  NLM = 11    ! maximum number of layers in divider
+  
   integer,parameter::   NBM = 100  ! Maximum number of boundary type
   integer,parameter::   NKM = 100  ! Maximum number of material type
   integer,parameter::   NMM = 100  ! Maximum number of medium type
@@ -101,6 +103,15 @@ module wfcomm
 !       /WFPRD/
   real(rkind):: BDRMIN,BDRMAX,BDZMIN,BDZMAX
   real(rkind):: DELR,DELZ
+
+  REAL(rkind):: rmin_div,rmax_div,thmin_div,thmax_div
+  REAL(rkind):: delr_div,delth_div
+  
+  INTEGER:: nlayer_max
+  character(LEN=1):: ch_layer_mode
+  REAL(rkind):: posl_nlayer(NLM+1),thickness_nlayer(NLM)
+  REAL(rkind):: pos_min,pos_max,step_size
+  
   real(rkind):: RD,THETJ1,THETJ2
   integer(ikind):: NJMAX
   real(rkind),dimension(NAM):: AJ,APH,APOS,AWD
@@ -257,7 +268,8 @@ module wfcomm
   integer(ikind):: srfinit,slvinit,fldinit,pwrinit,nasinit,wininit
 
 ! --- fem module variables ---
-  INTEGER(ikind):: nxzone_max,nyzone_max
+  INTEGER(ikind):: nxzone_max,nyzone_max,ncount_zone_max
+  REAL(rkind):: xlen_zone,ylen_zone ! length of rectangular zone in x or y 
 
 ! -----------------------------------------------------------------
 
@@ -295,47 +307,58 @@ contains
 !    return
 !  end subroutine wfdiv_deallocate
 ! ----
-  subroutine wfelm_allocate
-    implicit none
-    integer,save :: NNMAX_save,NEMAX_save
 
-    if((elminit.eq.0).or.&
-      &(elminit.eq.2)) then
 
-       if(elminit.eq.2) then
-          if((NNMAX.eq.NNMAX_save).and.&
-            &(NEMAX.eq.NEMAX_save)) then
-             return
-          else
-             call wfelm_deallocate
-          end if
-       end if
+  SUBROUTINE wf_node_allocate
+    IMPLICIT NONE
+    INTEGER,SAVE :: NNMAX_save=0
 
-       allocate(RNODE(NNMAX),ZNODE(NNMAX),KANOD(NNMAX),KBNOD(NNMAX))
-       ALLOCATE(NVNN(NNMAX))
-       elminit = 1
-       NNMAX_save = NNMAX
+    IF(NNMAX.EQ.NNMAX_save) THEN
+       RETURN
+    ELSE
+       CALL wf_node_deallocate
+       NNMAX_save=0
+    END IF
 
-    else if(elminit.eq.1) then
-       allocate(SELM(NEMAX),KAELM(NEMAX))
-       allocate(REMIN(NEMAX),ZEMIN(NEMAX))
-       allocate(REMAX(NEMAX),ZEMAX(NEMAX))
-       allocate(NDELM(3,NEMAX),KNELM(3,NEMAX),KSELM(3,NEMAX))
-       elminit = 2
-       NEMAX_save = NEMAX
-    end if
+    ALLOCATE(RNODE(NNMAX),ZNODE(NNMAX),KANOD(NNMAX),KBNOD(NNMAX))
+    ALLOCATE(NVNN(NNMAX))
+    NNMAX_save = NNMAX
+    RETURN
+  END SUBROUTINE wf_node_allocate
+    
+  SUBROUTINE wf_node_deallocate
+    IMPLICIT NONE
+    IF(.NOT.ALLOCATED(RNODE)) RETURN
+    DEALLOCATE(RNODE,ZNODE,KANOD,KBNOD,NVNN)
+    RETURN
+  END SUBROUTINE wf_node_deallocate
 
-    return
-  end subroutine wfelm_allocate
-!----
-  subroutine wfelm_deallocate
-    implicit none
+  SUBROUTINE wf_elm_allocate
+    IMPLICIT NONE
+    INTEGER,SAVE :: NEMAX_save
 
-    deallocate(RNODE,ZNODE,KANOD,KBNOD,SELM,KAELM)
-    deallocate(REMIN,ZEMIN,REMAX,ZEMAX,NDELM,KNELM,NVNN)
+    IF(NEMAX.EQ.NEMAX_save) THEN
+       RETURN
+    ELSE
+       CALL wf_elm_deallocate
+       NEMAX_save=0
+    END IF
 
-    return
-  end subroutine wfelm_deallocate
+    ALLOCATE(SELM(NEMAX),KAELM(NEMAX))
+    ALLOCATE(REMIN(NEMAX),ZEMIN(NEMAX))
+    ALLOCATE(REMAX(NEMAX),ZEMAX(NEMAX))
+    ALLOCATE(NDELM(3,NEMAX),KNELM(3,NEMAX))
+    NEMAX_save = NEMAX
+    RETURN
+  END SUBROUTINE wf_elm_allocate
+
+  SUBROUTINE wf_elm_deallocate
+    IMPLICIT NONE
+    IF(.NOT.ALLOCATED(KAELM)) RETURN
+    DEALLOCATE(KAELM,REMIN,ZEMIN,REMAX,ZEMAX,NDELM,KNELM)
+    RETURN
+  END SUBROUTINE wf_elm_deallocate
+  
 !----
   subroutine wfsid_allocate
     implicit none
