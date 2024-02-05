@@ -53,7 +53,6 @@ module wfcomm
 
   INTEGER,PARAMETER::  NLM = 11    ! maximum number of layers in divider
   
-  integer,parameter::   NBM = 100  ! Maximum number of boundary type
   integer,parameter::   NKM = 100  ! Maximum number of material type
   integer,parameter::   NMM = 100  ! Maximum number of medium type
   integer,parameter::   NAM =   8  ! Maximum number of antenna
@@ -82,6 +81,7 @@ module wfcomm
   integer(ikind):: MODELD
   REAL(rkind):: sort_weight_x,sort_weight_y
   REAL(rkind):: PSIA
+
   real(rkind):: R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,AMPWG,ANGWG,ELPWG,DPHWG
   REAL(rkind):: th_wg_min,th_wg_max,phase_wg_min,phase_wg_cen,phase_wg_max
   REAL(rkind):: gauss_wg
@@ -119,35 +119,35 @@ module wfcomm
   real(rkind):: WDAMP,FDAMP,rdamp_min,rdamp_max,zdamp_min,zdamp_max
   real(rkind):: thdamp_min,thdamp_max
 
-  Integer:: idebuga(100)
+  Integer:: idebug_wf(100)
 
 !       /WFDIV/
-  integer(ikind):: iddiv
+  integer(ikind):: mode_div
          
 !       /WFELM/
-  integer(ikind):: NNMAX,NEMAX,NBNOD,NBSID
-  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: RNODE,ZNODE !(NNMAX)
+  integer(ikind):: node_max,nelm_max,NBNOD,NBSID
+  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: RNODE,ZNODE !(node_max)
                                                 ! poisition of node
-  integer(ikind),dimension(:)  ,ALLOCATABLE :: KANOD,KBNOD !(NNMAX)
+  integer(ikind),dimension(:)  ,ALLOCATABLE :: KANOD,KBNOD !(node_max)
                                                 ! if boundary
                                                 !  KANOD=1
                                                 !  KBNOD=boundary node number
-  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: SELM        !(NEMAX)
+  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: SELM        !(nelm_max)
                                                 ! area of element
-  integer(ikind),dimension(:)  ,ALLOCATABLE :: KAELM !(NEMAX)
+  integer(ikind),dimension(:)  ,ALLOCATABLE :: KAELM !(nelm_max)
                                                 ! KAELM=dielectric id number
-  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: REMIN,ZEMIN !(NEMAX)
-  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: REMAX,ZEMAX !(NEMAX)
+  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: REMIN,ZEMIN !(nelm_max)
+  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: REMAX,ZEMAX !(nelm_max)
                                                 ! range of element area
-  integer(ikind),dimension(:,:),ALLOCATABLE :: NDELM       !(3,NEMAX)
+  integer(ikind),dimension(:,:),ALLOCATABLE :: NDELM       !(3,nelm_max)
                                                 ! node number of element
-  integer(ikind),dimension(:,:),ALLOCATABLE :: KNELM       !(3,NEMAX)
+  integer(ikind),dimension(:,:),ALLOCATABLE :: KNELM       !(3,nelm_max)
                                                 ! element number of adjascent
-  integer(ikind),dimension(:,:),ALLOCATABLE :: KSELM       !(3,NEMAX)
+  integer(ikind),dimension(:,:),ALLOCATABLE :: KSELM       !(3,nelm_max)
                                                 ! sude number of adjascent
-  integer(ikind),dimension(:,:),ALLOCATABLE :: NSDELM     !(3,NEMAX)
+  integer(ikind),dimension(:,:),ALLOCATABLE :: NSDELM     !(3,nelm_max)
                                                 ! side number of element
-  integer(ikind),dimension(:)  ,ALLOCATABLE :: NVNN        !(NNMAX)
+  integer(ikind),dimension(:)  ,ALLOCATABLE :: NVNN        !(node_max)
                                                 ! variable number of node E
         
 !       /WFSID/
@@ -167,11 +167,11 @@ module wfcomm
                                                 ! variable number of side E
         
 !       /WFSRT/
-  real(rkind)   ,dimension(:),ALLOCATABLE :: SINDEX       !(NEMAX)
-  integer(ikind),dimension(:),ALLOCATABLE :: IVELM,IWELM  !(NEMAX)  
-  integer(ikind),dimension(:),ALLOCATABLE :: IDELM        !(NEMAX)
-  real(rkind)   ,dimension(:),ALLOCATABLE :: SINDEX_MIN   !(NEMAX)
-  real(rkind)   ,dimension(:),ALLOCATABLE :: SINDEX_MAX   !(NEMAX)
+  real(rkind)   ,dimension(:),ALLOCATABLE :: SINDEX       !(nelm_max)
+  integer(ikind),dimension(:),ALLOCATABLE :: IVELM,IWELM  !(nelm_max)  
+  integer(ikind),dimension(:),ALLOCATABLE :: IDELM        !(nelm_max)
+  real(rkind)   ,dimension(:),ALLOCATABLE :: SINDEX_MIN   !(nelm_max)
+  real(rkind)   ,dimension(:),ALLOCATABLE :: SINDEX_MAX   !(nelm_max)
         
 !       /WFMED/
   integer(ikind):: NMMAX,NKMAX
@@ -179,26 +179,26 @@ module wfcomm
   integer(ikind),dimension(:),ALLOCATABLE :: NMKA              !(NKMAX)
         
 !       /WFBDY/
-  integer(ikind):: NBMAX
-  integer(ikind),dimension(:)  ,ALLOCATABLE :: KABDY             !(NBMAX)
-  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: PHIBDY,RESBDY     !(NBMAX)
-  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: PWRBDY,PHABDY     !(NBMAX)
-  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: XGBDY,YGBDY,ZGBDY !(NBMAX)
-  real(rkind)   ,dimension(:,:),ALLOCATABLE :: XNBDY,YNBDY,ZNBDY !(3,NBMAX)
-  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: XPBDY,YPBDY,ZPBDY !(NBMAX)
-  real(rkind)   ,dimension(:,:),ALLOCATABLE :: SZBDY             !(2,NBMAX)
-  integer(ikind),dimension(:)  ,ALLOCATABLE :: NDBDY,NMBDY,NBPMAX!(NBMAX)
-  integer(ikind),dimension(:,:),ALLOCATABLE :: NENBP,NDNBP       !(NBPM,NBMAX)
+!  integer(ikind):: NBMAX
+!  integer(ikind),dimension(:)  ,ALLOCATABLE :: KABDY             !(NBMAX)
+!  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: PHIBDY,RESBDY     !(NBMAX)
+!  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: PWRBDY,PHABDY     !(NBMAX)
+!  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: XGBDY,YGBDY,ZGBDY !(NBMAX)
+!  real(rkind)   ,dimension(:,:),ALLOCATABLE :: XNBDY,YNBDY,ZNBDY !(3,NBMAX)
+!  real(rkind)   ,dimension(:)  ,ALLOCATABLE :: XPBDY,YPBDY,ZPBDY !(NBMAX)
+!  real(rkind)   ,dimension(:,:),ALLOCATABLE :: SZBDY             !(2,NBMAX)
+!  integer(ikind),dimension(:)  ,ALLOCATABLE :: NDBDY,NMBDY,NBPMAX!(NBMAX)
+!  integer(ikind),dimension(:,:),ALLOCATABLE :: NENBP,NDNBP       !(NBPM,NBMAX)
 
   INTEGER(ikind),DIMENSION(:),ALLOCATABLE:: NSDBS,NNDBS
   COMPLEX(rkind),DIMENSION(:),ALLOCATABLE:: CEBSD,CEBND
         
 !       /WFSLV/
-  integer(ikind):: MLEN,NNBMAX
+  integer(ikind):: MLEN !,NNBMAX
   integer(ikind):: NMDMAX
   complex(rkind):: CM(6,6)
   complex(rkind),dimension(:)  ,ALLOCATABLE :: CSV    !(MLEN)
-  complex(rkind),dimension(:,:),ALLOCATABLE :: CVTOT  !(6,NEMAX)
+  complex(rkind),dimension(:,:),ALLOCATABLE :: CVTOT  !(6,nelm_max)
   complex(rkind),dimension(:)  ,ALLOCATABLE :: CQQ    !(MBND)
 
 !       /WFAIF/
@@ -212,17 +212,17 @@ module wfcomm
   complex(rkind),dimension(:,:),ALLOCATABLE :: CBF,CBP!(3,NNM)
   real(rkind)   ,dimension(:)  ,ALLOCATABLE :: EMAX   !(4)
   real(rkind)::ETMAX,PNMAX
-  complex(rkind),dimension(:,:),ALLOCATABLE :: CRFL!(NMDM,NBM)
+!  complex(rkind),dimension(:,:),ALLOCATABLE :: CRFL!(NMDM,NBM)
        
 !       /WFPWR/
   real(rkind):: PABSTT
   real(rkind),dimension(NSM):: PABST
 !  real(rkind),dimension(:)  ,ALLOCATABLE :: PABSS !(NSM)
 !  real(rkind),dimension(:)  ,ALLOCATABLE :: PABSK !(NKMAX)
-!  real(rkind),dimension(:)  ,ALLOCATABLE :: PABSTN!(NNMAX)
-!  real(rkind),dimension(:,:),ALLOCATABLE :: PABSSN!(NNMAX,NSM)
-!  real(rkind),dimension(:,:),ALLOCATABLE :: PABSKN!(NNMAX,NKMAX)
-!  real(rkind),dimension(:,:),ALLOCATABLE :: PFV   !(NNMAX,3)
+!  real(rkind),dimension(:)  ,ALLOCATABLE :: PABSTN!(node_max)
+!  real(rkind),dimension(:,:),ALLOCATABLE :: PABSSN!(node_max,NSM)
+!  real(rkind),dimension(:,:),ALLOCATABLE :: PABSKN!(node_max,NKMAX)
+!  real(rkind),dimension(:,:),ALLOCATABLE :: PFV   !(node_max,3)
         
 !       /WFANT/
   integer(ikind),dimension(NAM)    :: JNUM0
@@ -235,7 +235,7 @@ module wfcomm
         
 !       /WFNAS/
 !  real(rkind):: FACT_LEN
-!  integer(ikind),dimension(:),ALLOCATABLE :: IDND !(NNMAX)
+!  integer(ikind),dimension(:),ALLOCATABLE :: IDND !(node_max)
 !  real(rkind)   ,dimension(:),ALLOCATABLE :: EX1WG,EY1WG,EZ1WG!(NBMAX)
 !  real(rkind)   ,dimension(:),ALLOCATABLE :: EX2WG,EY2WG,EZ2WG!(NBMAX)
 !  real(rkind)   ,dimension(:),ALLOCATABLE :: PWRWG,PHAWG!(NBMAX)
@@ -311,18 +311,18 @@ contains
 
   SUBROUTINE wf_node_allocate
     IMPLICIT NONE
-    INTEGER,SAVE :: NNMAX_save=0
+    INTEGER,SAVE :: node_max_save=0
 
-    IF(NNMAX.EQ.NNMAX_save) THEN
+    IF(node_max.EQ.node_max_save) THEN
        RETURN
     ELSE
        CALL wf_node_deallocate
-       NNMAX_save=0
+       node_max_save=0
     END IF
 
-    ALLOCATE(RNODE(NNMAX),ZNODE(NNMAX),KANOD(NNMAX),KBNOD(NNMAX))
-    ALLOCATE(NVNN(NNMAX))
-    NNMAX_save = NNMAX
+    ALLOCATE(RNODE(node_max),ZNODE(node_max),KANOD(node_max),KBNOD(node_max))
+    ALLOCATE(NVNN(node_max))
+    node_max_save = node_max
     RETURN
   END SUBROUTINE wf_node_allocate
     
@@ -335,20 +335,20 @@ contains
 
   SUBROUTINE wf_elm_allocate
     IMPLICIT NONE
-    INTEGER,SAVE :: NEMAX_save
+    INTEGER,SAVE :: nelm_max_save=0
 
-    IF(NEMAX.EQ.NEMAX_save) THEN
+    IF(nelm_max.EQ.nelm_max_save) THEN
        RETURN
     ELSE
        CALL wf_elm_deallocate
-       NEMAX_save=0
+       nelm_max_save=0
     END IF
 
-    ALLOCATE(SELM(NEMAX),KAELM(NEMAX))
-    ALLOCATE(REMIN(NEMAX),ZEMIN(NEMAX))
-    ALLOCATE(REMAX(NEMAX),ZEMAX(NEMAX))
-    ALLOCATE(NDELM(3,NEMAX),KNELM(3,NEMAX))
-    NEMAX_save = NEMAX
+    ALLOCATE(SELM(nelm_max),KAELM(nelm_max))
+    ALLOCATE(REMIN(nelm_max),ZEMIN(nelm_max))
+    ALLOCATE(REMAX(nelm_max),ZEMAX(nelm_max))
+    ALLOCATE(NDELM(3,nelm_max),KNELM(3,nelm_max))
+    nelm_max_save = nelm_max
     RETURN
   END SUBROUTINE wf_elm_allocate
 
@@ -362,21 +362,25 @@ contains
 !----
   subroutine wfsid_allocate
     implicit none
-    integer,save :: NSDMAX_save,NEMAX_save
+    integer,save :: NSDMAX_save=0
+    integer,save :: nelm_max_save=0
 
     if(sidinit.eq.1) then
        if((NSDMAX.eq.NSDMAX_save).and.&
-         &( NEMAX.eq. NEMAX_save)) then
+         &( nelm_max.eq. nelm_max_save)) then
           return
        else
           call wfsid_deallocate
+          NSDMAX_save=0
+          nelm_max_save=0
        end if
     end if
 
     allocate(NDSID(2,NSDMAX),KASID(NSDMAX),KBSID(NSDMAX),INSID(NSDMAX))
-    allocate(NESID(NSDMAX),NSDELM(3,NEMAX),LSID(NSDMAX),NVNSD(NSDMAX))
+    allocate(NESID(NSDMAX),NSDELM(3,nelm_max),LSID(NSDMAX),NVNSD(NSDMAX))
 
     NSDMAX_save = NSDMAX
+    nelm_max_save = nelm_max
     sidinit = 1
     
     return
@@ -392,20 +396,21 @@ contains
 !-----
   subroutine wfsrt_allocate
     implicit none
-    integer,save :: NEMAX_save
+    integer,save :: nelm_max_save=0
     
     if(srtinit.eq.1) then
-       if(NEMAX.eq.NEMAX_save) then
+       if(nelm_max.eq.nelm_max_save) then
           return
        else
           call wfsrt_deallocate
+          nelm_max_save=0
        end if
     end if
 
-    allocate(SINDEX(NEMAX),IVELM(NEMAX),IWELM(NEMAX),IDELM(NEMAX))
-    allocate(SINDEX_MIN(NEMAX),SINDEX_MAX(NEMAX))
+    allocate(SINDEX(nelm_max),IVELM(nelm_max),IWELM(nelm_max),IDELM(nelm_max))
+    allocate(SINDEX_MIN(nelm_max),SINDEX_MAX(nelm_max))
 
-    NEMAX_save = NEMAX
+    nelm_max_save = nelm_max
     srtinit = 1
     
     return
@@ -446,7 +451,7 @@ contains
 
 !     if(bdyinit.eq.0) then
 !        NBMAX = NBM
-!        NBPM  = NEMAX
+!        NBPM  = nelm_max
 !     end if
 
 !     if(bdyinit.eq.1) then
@@ -482,21 +487,24 @@ contains
 !-----
   subroutine wfslv_allocate
     implicit none
-    integer,save :: NEMAX_save,MLEN_save
+    integer,save :: nelm_max_save=0
+    integer,save :: MLEN_save=0
     integer,save :: slvinit = 0
 
     if(slvinit.eq.1) then
-       if((NEMAX .eq. NEMAX_save).and.&
+       if((nelm_max .eq. nelm_max_save).and.&
          &(MLEN  .eq.  MLEN_save)) then
           return
        else
           call wfslv_deallocate
+          nelm_max_save=0
+          MLEN_save=0
        end if
     end if
 
-    allocate(CSV(MLEN),CVTOT(6,NEMAX))
+    allocate(CSV(MLEN),CVTOT(6,nelm_max))
     slvinit = 1
-    NEMAX_save = NEMAX
+    nelm_max_save = nelm_max
     MLEN_save = MLEN
 
     return
@@ -512,25 +520,28 @@ contains
 !-----
   subroutine wffld_allocate
     implicit none
-    integer,save :: NSDMAX_save,NNMAX_save,NMDMAX_save,NBMAX_save
+    integer,save :: NSDMAX_save=0
+    integer,save :: node_max_save=0
+    integer,save :: NMDMAX_save=0
 
     if(fldinit.eq.1) then
        if((NSDMAX.eq.NSDMAX_save).and.&
-         &( NNMAX.eq. NNMAX_save).and.&
-         &(NMDMAX.eq.NMDMAX_save).and.&
-         &( NBMAX.eq. NBMAX_save)) then
+          ( node_max.eq. node_max_save).and.&
+          (NMDMAX.eq.NMDMAX_save)) THEN
           return
        else
           call wffld_deallocate
+          NSDMAX_save=0
+          node_max_save=0
+          NMDMAX_save=0
        end if
     end if
-    allocate(CESD(NSDMAX),CEND(NNMAX))!,CEP(3,NNMAX))
-    allocate(CBF(3,NNMAX),CBP(3,NNMAX),EMAX(4),CRFL(NMDMAX,NBMAX))
+    allocate(CESD(NSDMAX),CEND(node_max))!,CEP(3,node_max))
+    allocate(CBF(3,node_max),CBP(3,node_max),EMAX(4)) !,CRFL(NMDMAX,NBMAX))
 
     NSDMAX_save = NSDMAX
-     NNMAX_save = NNMAX
+    node_max_save  = node_max
     NMDMAX_save = NMDMAX
-     NBMAX_save = NBMAX
     fldinit = 1
 
     return
@@ -539,29 +550,29 @@ contains
   subroutine wffld_deallocate
     implicit none
 
-    deallocate(CESD,CEND,CBF,CBP,EMAX,CRFL)!,CEP)
+    deallocate(CESD,CEND,CBF,CBP,EMAX)! ,CRFL,CEP)
 
     return
   end subroutine wffld_deallocate
 !-----
 !  subroutine wfpwr_allocate
 !    implicit none
-!    integer,save :: NKMAX_save,NNMAX_save
+!    integer,save :: NKMAX_save,node_max_save
 
 !    if(pwrinit.eq.1)then
 !       if((NKMAX.eq.NKMAX_save).and.&
-!         &(NNMAX.eq.NNMAX_save)) then
+!         &(node_max.eq.node_max_save)) then
 !          return
 !       else
 !          call wfpwr_deallocate
 !       end if
 !    end if
     
-!    allocate(PABSS(NSM),PABSK(NKMAX),PABSTN(NNMAX))
-!    allocate(PABSSN(NNMAX,NSM),PABSKN(NNMAX,NKMAX),PFV(NNMAX,3))
+!    allocate(PABSS(NSM),PABSK(NKMAX),PABSTN(node_max))
+!    allocate(PABSSN(node_max,NSM),PABSKN(node_max,NKMAX),PFV(node_max,3))
 
 !    NKMAX_save = NKMAX
-!    NNMAX_save = NNMAX
+!    node_max_save = node_max
 !    pwrinit = 1
 
 !    return
@@ -577,12 +588,12 @@ contains
 !-----
 !   subroutine wfnas_allocate
 !     implicit none
-!     integer,save :: NNMAX_save,NBMAX_save,NKMAX_save,NMMAX_save
+!     integer,save :: node_max_save,NBMAX_save,NKMAX_save,NMMAX_save
 
 !     if(nasinit.eq.0) NBMAX = NBM
 
 !     if(nasinit.eq.1) then
-!        if((NNMAX.eq.NNMAX_save).and.&
+!        if((node_max.eq.node_max_save).and.&
 !          &(NBMAX.eq.NBMAX_save).and.&
 !          &(NKMAX.eq.NKMAX_save).and.&
 !          &(NMMAX.eq.NMMAX_save)) then
@@ -592,14 +603,14 @@ contains
 !        end if
 !     end if
 
-!     allocate(IDND(NNMAX))
+!     allocate(IDND(node_max))
 !     allocate(EX1WG(NBMAX),EY1WG(NBMAX),EZ1WG(NBMAX))
 !     allocate(EX2WG(NBMAX),EY2WG(NBMAX),EZ2WG(NBMAX))
 !     allocate(PWRWG(NBMAX),PHAWG(NBMAX),IDKA(NKMAX))
 !     allocate(IDMAT(NMMAX),IDBDY(NBMAX))
 !     allocate(KDKA(NKMAX),KDMAT(NMMAX),KDBDY(NBMAX))
 
-!     NNMAX_save = NNMAX
+!     node_max_save = node_max
 !     NBMAX_save = NBMAX
 !     NKMAX_save = NKMAX
 !     NMMAX_save = NMMAX
@@ -617,7 +628,9 @@ contains
 !-----
   subroutine wfwin_allocate
     implicit none
-    integer,save :: NGXMAX_save,NGYMAX_save,NGVMAX_save
+    integer,save :: NGXMAX_save=0
+    integer,save :: NGYMAX_save=0
+    integer,save :: NGVMAX_save=0
 
     if(wininit.eq.1) then
        if((NGXMAX.eq.NGXMAX_save).and.&
@@ -626,6 +639,9 @@ contains
           return
        else
           call wfwin_deallocate
+          NGXMAX_save=0
+          NGYMAX_save=0
+          NGVMAX_save=0
        end if
     end if
 

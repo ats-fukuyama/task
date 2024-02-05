@@ -30,7 +30,7 @@ CONTAINS
 
   SUBROUTINE fem_mesh_allocate
     USE wfcomm, &
-         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
+         node_nside_nelm=>ndelm, &
          xnode=>rnode,ynode=>znode
     IMPLICIT NONE
     INTEGER,SAVE:: nseg_max_save=0,nside_max_save=0,nelm_max_save=0
@@ -67,7 +67,7 @@ CONTAINS
 
   SUBROUTINE fem_mesh_deallocate
     USE wfcomm, &
-         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
+         node_nside_nelm=>ndelm, &
          xnode=>rnode,ynode=>znode
     IMPLICIT NONE
 
@@ -91,7 +91,7 @@ CONTAINS
 !**********************************************************************
 
     USE wfcomm, &
-         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
+         node_nside_nelm=>ndelm, &
          xnode=>rnode,ynode=>znode
     IMPLICIT NONE
     INTEGER,ALLOCATABLE:: node_nsega(:,:)
@@ -392,7 +392,7 @@ CONTAINS
 
   SUBROUTINE fem_setup_nelm_node
     USE wfcomm, &
-         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
+         node_nside_nelm=>ndelm, &
          xnode=>rnode,ynode=>znode
     IMPLICIT NONE
     INTEGER:: nelm,nside,node

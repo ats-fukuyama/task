@@ -82,7 +82,8 @@ CONTAINS
                   mdamp,rdamp_min,rdamp_max,zdamp_min,zdamp_max, &
                   thdamp_min,thdamp_max, &
                   NCOILMAX,RCOIL,ZCOIL,BCOIL, &
-                  nxzone_max,nyzone_max,idebuga
+                  nxzone_max,nyzone_max,idebug_wf
+    
     IERR=0
     
     READ(NID,WF,IOSTAT=IST,ERR=9800,END=9900)
@@ -171,7 +172,7 @@ CONTAINS
        WRITE(6,*) '     mdamp,rdamp_min,rdamp_max,zdamp_min,zdamp_max,'
        WRITE(6,*) '     thrdamp_min,thdamp_max,'
        WRITE(6,*) '     NCOILMAX,RCOIL,ZCOIL,BCOIL,'
-       WRITE(6,*) '     nxzone_max,nyzone_max,idebuga '
+       WRITE(6,*) '     nxzone_max,nyzone_max,idebug_wf '
     end if
     RETURN
   END SUBROUTINE WFPLST
@@ -195,10 +196,10 @@ CONTAINS
   
     write(6,*) '***** DIV *****'
     write(6,'(5A10)') &  
-         '     NNMAX','     NEMAX', &
+         '  node_max','  nelm_max', &
          '    NSDMAX','      MLEN'
     write(6,'(5I10)') &
-         NNMAX,NEMAX,NSDMAX,MLEN
+         node_max,nelm_max,NSDMAX,MLEN
 
     IF(NCOILMAX.GT.0) THEN
        WRITE(6,'(A,I5)') 'NCOILMAX=',NCOILMAX
@@ -296,8 +297,8 @@ CONTAINS
   WRITE(6,605) 'nxzone_max',nxzone_max,'nyzone_max',nyzone_max
 
   DO i=1,100
-     IF(idebuga(I).NE.0) &
-          WRITE(6,'(A,I3,A,I4)') 'idebuga(',i,')=',idebuga(i)
+     IF(idebug_wf(I).NE.0) &
+          WRITE(6,'(A,I3,A,I4)') 'idebug_wf(',i,')=',idebug_wf(i)
   END DO
   RETURN
   

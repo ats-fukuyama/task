@@ -347,7 +347,7 @@ SUBROUTINE CVCALC
 
   RW=2.D0*PI*RF*1.D6
 
-  DO NE=1,NEMAX
+  DO NE=1,nelm_max
      DO IV=1,6
         CVTOT(IV,NE)=(0.d0,0.d0)
      ENDDO
@@ -446,7 +446,7 @@ SUBROUTINE CVCALC
      END IF
   end DO
 
-!  do NE=1,NEMAX
+!  do NE=1,nelm_max
 !     do IV=1,6
 !        if(nrank.eq.0.and.CVTOT(IV,NE).ne.(0.d0,0.d0)) &
 !                                   & write(16,*) NE,IV,CVTOT(IV,NE)
@@ -1009,7 +1009,7 @@ SUBROUTINE CALFLD
   DO NSD=1,NSDMAX
      CESD(NSD)=(0.d0,0.d0)
   ENDDO
-  DO NN=1,NNMAX
+  DO NN=1,node_max
      CEND(NN) =(0.d0,0.d0)
   END DO
 
@@ -1026,7 +1026,7 @@ SUBROUTINE CALFLD
      end if
 !     if(nrank.eq.0) write(6,*) NSD,CESD(NSD),KASID(NSD)
   END DO
-  DO NN=1,NNMAX
+  DO NN=1,node_max
      NV=NVNN(NN)
      if (NV.eq.0) then
         IF(KBNOD(NN).NE.0) THEN
@@ -1062,8 +1062,8 @@ SUBROUTINE PWRABS
   INTEGER:: ipos,n,nblk,ndata,nelm1,nelm2,nsize_high,nsize_low
 
   ALLOCATE(nelm_len_nrank(0:nsize-1),nelm_pos_nrank(0:nsize-1))
-  nblk=nemax/nsize
-  nsize_high=nemax-nblk*nsize
+  nblk=nelm_max/nsize
+  nsize_high=nelm_max-nblk*nsize
   nsize_low=nsize-nsize_high
   ipos=0
   DO n=0,nsize_high-1
@@ -1076,14 +1076,14 @@ SUBROUTINE PWRABS
      nelm_pos_nrank(n)=ipos
      ipos=ipos+nelm_len_nrank(n)
   END DO
-  IF(ipos.NE.nemax) THEN
-     WRITE(6,'(A,2I8)') 'XX ne parallel error: nemax,ipos=',nemax,ipos
+  IF(ipos.NE.nelm_max) THEN
+     WRITE(6,'(A,2I8)') 'XX ne parallel error: nelm_max,ipos=',nelm_max,ipos
      STOP
   END IF
 
   ! --- initialize ---
   
-  allocate(PABS(NSMAX,NEMAX))
+  allocate(PABS(NSMAX,nelm_max))
   
   RW=2.D0*PI*RF*1.D6
   CIWE=CII*RW*EPS0
@@ -1193,17 +1193,17 @@ SUBROUTINE PWRABS
   nelm1=nelm_pos_nrank(nrank)+1
   nelm2=nelm_pos_nrank(nrank)+nelm_len_nrank(nrank)
   ndata=nelm_len_nrank(nrank)
-  ALLOCATE(rdata(ndata),rdata_tot(nemax))
+  ALLOCATE(rdata(ndata),rdata_tot(nelm_max))
   DO ns=1,nsmax
      rdata(1:ndata)=pabs(ns,nelm1:nelm2)
-     CALL mtx_allgatherv_real8(rdata,ndata,rdata_tot,nemax, &
+     CALL mtx_allgatherv_real8(rdata,ndata,rdata_tot,nelm_max, &
           nelm_len_nrank,nelm_pos_nrank)
-     pabs(ns,1:nemax)=rdata_tot(1:nemax)
+     pabs(ns,1:nelm_max)=rdata_tot(1:nelm_max)
   END DO
 
   do NS=1,NSMAX
      PABST(NS)=0.d0
-     do NE=1,NEMAX
+     do NE=1,nelm_max
         PABST(NS)=PABST(NS)+PABS(NS,NE)
      end do
   end do
@@ -1361,20 +1361,20 @@ SUBROUTINE LPELMT
   IF(NPRINT.LT.3) RETURN
   IF(nrank.NE.0) RETURN
      
-  WRITE(6,110) NNMAX
-110 FORMAT(/' ','NODE DATA     : #### NNMAX =',I5,' ####'/&
-         &       ' ',2('  NNMAX',' KANOD',&
+  WRITE(6,110) node_max
+110 FORMAT(/' ','NODE DATA     : #### node_max =',I5,' ####'/&
+         &       ' ',2('  node_max',' KANOD',&
          &       9X,'R',14X,'Z',9X))
   WRITE(6,115) (I,KANOD(I),RNODE(I),ZNODE(I),&
-       &              I=1,NNMAX)
+       &              I=1,node_max)
 115 FORMAT((' ',2(2I6,2X,1P2E15.7,2X)))
   
-  WRITE(6,120) NEMAX,(I,(NDELM(J,I),J=1,3),I=1,NEMAX)
-120 FORMAT(/' ','ELEMENT DATA  : #### NEMAX =',I5,' ####'/&
+  WRITE(6,120) nelm_max,(I,(NDELM(J,I),J=1,3),I=1,nelm_max)
+120 FORMAT(/' ','ELEMENT DATA  : #### nelm_max =',I5,' ####'/&
          &      (' ',4(I6,'(',3I5,')',2X)))
   
-  WRITE(6,125) NEMAX,(I,(NSDELM(J,I),J=1,3),I=1,NEMAX)
-125 FORMAT(/' ','SIDE    DATA  : #### NEMAX =',I5,' ####'/&
+  WRITE(6,125) nelm_max,(I,(NSDELM(J,I),J=1,3),I=1,nelm_max)
+125 FORMAT(/' ','SIDE    DATA  : #### nelm_max =',I5,' ####'/&
          &      (' ',2(I8,'(',3I8,')',2X)))
   
   DO NA=1,NAMAX

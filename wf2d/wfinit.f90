@@ -192,8 +192,6 @@ CONTAINS
        SIGDM(NM)=0.D0
     ENDDO
   
-    NBMAX=0
-
 !     *** OUTPUT PARAMETERS ***
 !
 !        NPRINT: Print output parameter
@@ -358,15 +356,18 @@ CONTAINS
     !       80: file io
     !       90: miscellaneous
 
-    idebuga(1:100)=0
+    idebug_wf(1:100)=0
 
 !     *** INITIALIZATION PARAMETERS (DO NOT MODIFY) ***
 
     nrank=0
-    NNMAX  = 0
-    nemax=0
+    node_max  = 0
+    nelm_max=0
     nsdmax=0
     mlen=0
+
+    mode_div=1
+
     rdamp_min=0.D0
     rdamp_max=0.D0
     zdamp_min=0.D0
@@ -375,6 +376,7 @@ CONTAINS
     NFOPEN = 0
     RNDMIN = 0.D0
     RNDMAX = 0.D0
+    mode_div=1
 
     NDFILE=25
 

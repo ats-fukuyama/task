@@ -35,7 +35,7 @@ subroutine wfmenu
   elseif (KID.eq.'D') then
      call WFDIV
   elseif (KID.eq.'A') then
-!     if (NNMAX.eq.0) call WFRELM(ID)
+!     if (node_max.eq.0) call WFRELM(ID)
      call WFANT
   elseif (KID.eq.'C') then
      call WFWPRE(IERR)
@@ -136,7 +136,7 @@ subroutine WFINFO
 8006 write(6,*) '## INPUT: NE,R,Z'
      read(5,*,ERR=8006,END=8001) NE,R,Z
      if(NE.le.0) goto 8001
-     if(NE.gt.NEMAX) NE=NEMAX
+     if(NE.gt.nelm_max) NE=nelm_max
      call FEP(R,Z,NE)
      write(6,*) '   NE =',NE
      if(NE.ne.0) then
@@ -146,7 +146,7 @@ subroutine WFINFO
      goto 8006
      
   elseif(KID.eq.'V') then
-     do NN=1,NNMAX
+     do NN=1,node_max
         if(KANOD(NN).gt.0) then
            write(6,'(I5,1P3E12.4)')&
                 NN,RNODE(NN),ZNODE(NN)

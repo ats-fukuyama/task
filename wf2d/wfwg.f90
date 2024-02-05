@@ -73,7 +73,7 @@ CONTAINS
              IF(MODELWG.EQ.1) CEBSD0=CEBSD0*EXP(-10.D0*FACTOR)
              ! IF(PROD.GT.0.D0) CEBSD0=-CEBSD0
              CEBSD(NBSD)=CEBSD0
-             IF(nrank.EQ.0.AND.idebuga(41).EQ.1) &
+             IF(nrank.EQ.0.AND.idebug_wf(41).EQ.1) &
                   WRITE(6,'(A,2I8,1P5E12.4)') &
                   'SD:',NSD,NBSD,CEBSD(NBSD),factor,PHASE,ANGLE
           ELSE
@@ -97,7 +97,7 @@ CONTAINS
                 CEBSD0=CEBSD0*EXP(-gauss_wg*4.D0*factor*(1.D0-factor))
              END IF
              CEBSD(NBSD)=CEBSD0
-             IF(nrank.EQ.0.AND.idebuga(41).EQ.1) THEN
+             IF(nrank.EQ.0.AND.idebug_wf(41).EQ.1) THEN
 !                WRITE(6,'(A,3ES12.4)') '*th_wg:',th_wg,th_wg_min,th_wg_max
                 WRITE(6,'(A,2I8,1P5E12.4)') &
                      'SD:',NSD,NBSD,CEBSD(NBSD),factor,PHASE, &
@@ -112,7 +112,7 @@ CONTAINS
              PROD=(R2WG-R1WG)*(RNODE(NN2)-RNODE(NN1)) &
                   +(Z2WG-Z1WG)*(ZNODE(NN2)-ZNODE(NN1))
              CALL wf_read_wg(Z,CEX,CEY,CEZ,IERR)
-             IF(nrank.EQ.0.AND.idebuga(41).EQ.1) &
+             IF(nrank.EQ.0.AND.idebug_wf(41).EQ.1) &
                   write(6,'(A,1P6E12.4)') 'R,Z,CEY=', &
                   R,Z,CEY,PROD,ZNODE(NN2)-ZNODE(NN1)
 !!!           IF(PROD.GT.0.D0) CEY=-CEY
@@ -126,7 +126,7 @@ CONTAINS
     ! --- WG Electric field on boundary node ---  
 
     NBNOD=0
-    DO NN=1,NNMAX
+    DO NN=1,node_max
        IF(KANOD(NN).EQ.1) NBNOD=NBNOD+1
     END DO
     IF(ALLOCATED(NNDBS)) DEALLOCATE(NNDBS)
@@ -134,7 +134,7 @@ CONTAINS
     ALLOCATE(NNDBS(NBNOD))
     ALLOCATE(CEBND(NBNOD))
     NBNOD=0
-    DO NN=1,NNMAX
+    DO NN=1,node_max
        IF(KANOD(NN).EQ.1) THEN
           NBNOD=NBNOD+1
           NNDBS(NBNOD)=NN
@@ -166,7 +166,7 @@ CONTAINS
                   *(SIN(ANGLE)-CII*ELPWG*COS(ANGLE))
              IF(MODELWG.EQ.1) CEBND0=CEBND0*EXP(-10.D0*FACTOR)
              CEBND(NBND)=CEBND0
-             IF(nrank.EQ.0.AND.idebuga(41).EQ.1) &
+             IF(nrank.EQ.0.AND.idebug_wf(41).EQ.1) &
                   WRITE(6,'(A,2I8,1P5E12.4)') &
                   'ND:',NN,NBND,CEBND(NBND),factor,PHASE,ANGLE
           ELSE
@@ -186,7 +186,7 @@ CONTAINS
                 CEBND0=CEBND0*EXP(-gauss_wg*4.D0*factor*(1.D0-factor))
              END IF
              CEBND(NBND)=CEBND0
-             IF(nrank.EQ.0.AND.idebuga(41).EQ.1) THEN
+             IF(nrank.EQ.0.AND.idebug_wf(41).EQ.1) THEN
 !                WRITE(6,'(A,3ES12.4)') '*th_wg:',th_wg,th_wg_min,th_wg_max
                 WRITE(6,'(A,2I8,1P5E12.4)') &
                      'ND:',NN,NBND,CEBND(NBND),factor,PHASE, &
@@ -199,7 +199,7 @@ CONTAINS
           IF((R.GE.R1WG-EPSWG).AND.(R.LE.R2WG+EPSWG).AND. &
                (Z.GE.Z1WG-EPSWG).AND.(Z.LE.Z2WG+EPSWG)) THEN
              CALL wf_read_wg(Z,CEX,CEY,CEZ,IERR)
-             IF(nrank.EQ.0.AND.idebuga(41).EQ.1) &
+             IF(nrank.EQ.0.AND.idebug_wf(41).EQ.1) &
                   write(6,'(A,1P4E12.4)') 'R,Z,CEZ=',R,Z,CEZ
              CEBND(NBND)=AMPWG*CEZ
           ELSE

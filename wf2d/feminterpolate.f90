@@ -25,7 +25,7 @@ CONTAINS
   SUBROUTINE fem_setup_zone
 
     USE wfcomm, &
-         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
+         node_nside_nelm=>ndelm, &
          xnode=>rnode,ynode=>znode
     USE femmesh
     IMPLICIT NONE
@@ -130,7 +130,7 @@ CONTAINS
 
   SUBROUTINE xyrange_nelm(nelm,xmin,xmax,ymin,ymax)
     USE wfcomm, &
-         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
+         node_nside_nelm=>ndelm, &
          xnode=>rnode,ynode=>znode
     USE femmesh
     IMPLICIT NONE
@@ -164,7 +164,7 @@ CONTAINS
   
   SUBROUTINE fem_find_nelm_for_xy(x,y,nelm)
     USE wfcomm, &
-         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
+         node_nside_nelm=>ndelm, &
          xnode=>rnode,ynode=>znode
     USE femmesh
     USE libmpi
@@ -270,7 +270,7 @@ CONTAINS
   
   FUNCTION xy_in_nelm(x,y,nelm)
     USE wfcomm, &
-         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
+         node_nside_nelm=>ndelm, &
          xnode=>rnode,ynode=>znode
     USE femmesh
     IMPLICIT NONE
@@ -356,7 +356,7 @@ CONTAINS
 
   SUBROUTINE fem_interpolate_xy(x,y,f,f_nelm,id)
     USE wfcomm, &
-         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
+         node_nside_nelm=>ndelm, &
          xnode=>rnode,ynode=>znode
     USE femmesh
     IMPLICIT NONE
@@ -400,7 +400,7 @@ CONTAINS
 
   SUBROUTINE fem_linear_interporate(x,y,nelm,f_nelm,f)
     USE wfcomm, &
-         nelm_max=>nemax,node_max=>nnmax,node_nside_nelm=>ndelm, &
+         node_nside_nelm=>ndelm, &
          xnode=>rnode,ynode=>znode
     USE femmesh
     USE libinv

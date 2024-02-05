@@ -889,9 +889,9 @@ SUBROUTINE WFGPFR(NW,NWMAX,KWD)
   CALL MOVE(GXPOS,GYPOS)
   CALL TEXT(KWD(1:2),2)
   IF(KWD(3:3).EQ.'X') THEN
-     CALL TEXT('(X): Y=',8)
+     CALL TEXT('(X): Y=',7)
   ELSE IF(KWD(3:3).EQ.'Y') THEN
-     CALL TEXT('(Y): X=',8)
+     CALL TEXT('(Y): X=',7)
   ENDIF
   CALL TEXT(KWD(4:NCHM),NCHM-3)
   RETURN
@@ -903,21 +903,14 @@ SUBROUTINE wf_gdraw_parm
   
   use wfcomm
   implicit none
-  integer :: NA,NB,L,NS!,NK,NM
+  integer :: NA,NS
   real(rkind) :: REST(NAM),REAT(NAM),WW,RNZ
   real :: GXMIN,GYMAX,GRCHH,GDX,GDY,GXL,GYL
-  real(rkind) :: SRFR(NMDM,NBM),SRFI(NMDM,NBM),SRFL(NMDM,NBM)
+!  real(rkind) :: SRFR(NMDM,NBM),SRFI(NMDM,NBM),SRFL(NMDM,NBM)
   
   DO NA=1,NAMAX
      REST(NA)=DBLE(CIMP(NA))
      REAT(NA)=AIMAG(CIMP(NA))
-  ENDDO
-  DO NB=1,NBMAX
-     DO L=1,NMBDY(NB)
-        SRFR(L,NB)=DBLE(CRFL(L,NB))
-        SRFI(L,NB)=AIMAG(CRFL(L,NB))
-        SRFL(L,NB)=ABS(CRFL(L,NB))**2
-     ENDDO
   ENDDO
   
   GXMIN=0.0
@@ -969,8 +962,8 @@ SUBROUTINE wf_gdraw_parm
   GXL=GXL+GRCHH
   GYL=GYL+GDY
   CALL MOVE(GXL,GYL)
-  CALL TEXT('NNMAX=',6)
-  CALL NUMBI(NNMAX,'(I8)',8)
+  CALL TEXT('node_max=',9)
+  CALL NUMBI(node_max,'(I8)',8)
   
   GXL=GXL+GDX
   CALL MOVE(GXL,GYL)
@@ -982,8 +975,8 @@ SUBROUTINE wf_gdraw_parm
   GXL=GXL+GRCHH
   GYL=GYL+GDY
   CALL MOVE(GXL,GYL)
-  CALL TEXT('NEMAX=',6)
-  CALL NUMBI(NEMAX,'(I8)',8)
+  CALL TEXT('nelm_max=',9)
+  CALL NUMBI(nelm_max,'(I8)',8)
   
   GXL=GXL+GDX
   CALL MOVE(GXL,GYL)
@@ -1070,28 +1063,6 @@ SUBROUTINE wf_gdraw_parm
         CALL NUMBD(APH(NA),'(F7.1)',7)
         CALL NUMBD(REST(NA),'(1PE11.3)',11)
         CALL NUMBD(REAT(NA),'(1PE11.3)',11)
-     ENDDO
-  ELSEIF(NBMAX.GT.0) THEN
-     CALL MOVE(GXL,GYL)
-     CALL TEXT('NB',2)
-     CALL TEXT(' MD',3)
-     CALL TEXT('  Real   ',10)
-     CALL TEXT('  Imag   ',10)
-     CALL TEXT('  REFL     ',11)
-     
-     DO NB=1,NBMAX
-        IF(KABDY(NB).GE.8) THEN
-           DO L=1,NMBDY(NB)
-              GXL=GXMIN+45.*GRCHH
-              GYL=GYL+GDY
-              CALL MOVE(GXL,GYL)
-              CALL NUMBI(NB,'(I2)',2)
-              CALL NUMBI(L,'(I3)',3)
-              CALL NUMBD(SRFR(L,NB),'(1PE10.2)',10)
-              CALL NUMBD(SRFI(L,NB),'(1PE10.2)',10)
-              CALL NUMBD(SRFL(L,NB),'(1PE11.3)',11)
-           ENDDO
-        ENDIF
      ENDDO
   ENDIF
   
@@ -1210,7 +1181,7 @@ SUBROUTINE wf_gdraw_antenna
            GXL=gdclip(RJ0(I,NA))
            GYL=gdclip(ZJ0(I,NA))
            CALL DRAW2D(GXL,GYL)
-           WRITE(6,*) I,GXL,GYL
+!           WRITE(6,*) I,GXL,GYL
         END DO
      END DO
   ELSE
@@ -1222,7 +1193,7 @@ SUBROUTINE wf_gdraw_antenna
            GXL=gdclip(RJ(I,NA))
            GYL=gdclip(ZJ(I,NA))
            CALL DRAW2D(GXL,GYL)
-           WRITE(6,*) I,GXL,GYL
+!           WRITE(6,*) I,GXL,GYL
         END DO
      END DO
   ENDIF
@@ -1241,7 +1212,7 @@ SUBROUTINE wf_gdraw_element
   
   CALL SETCHR(0.2,0.15,0.2,0.,-30.)
   
-  DO IE=1,NEMAX
+  DO IE=1,nelm_max
      IN1=NDELM(1,IE)
      IN2=NDELM(2,IE)
      IN3=NDELM(3,IE)
@@ -1283,7 +1254,7 @@ SUBROUTINE wf_gdraw_element
   
   IF(NDRAWD.GE.3) THEN
      CALL SETCHS(0.2,0.)
-     DO IN=1,NNMAX
+     DO IN=1,node_max
         GX1=gdclip(RNODE(IN))
         GY1=gdclip(ZNODE(IN))
         INL=IN
@@ -1419,12 +1390,12 @@ SUBROUTINE wf_gdraw_parm_elm
   GYL=GYMAX
   CALL MOVE(GXL,GYL)
   CALL TEXT('node_max=',9)
-  CALL NUMBI(NNMAX,'(I8)',8)
+  CALL NUMBI(node_max,'(I8)',8)
   
   GYL=GYL-GDY
   CALL MOVE(GXL,GYL)
   CALL TEXT('nelm_max=',9)
-  CALL NUMBI(NEMAX,'(I8)',8)
+  CALL NUMBI(nelm_max,'(I8)',8)
   
   GYL=GYL-GDY
   CALL MOVE(GXL,GYL)

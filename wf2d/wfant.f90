@@ -123,13 +123,14 @@ SUBROUTINE WFDEFA
            READ(5,*,ERR=4,END=2) THETJ1,THETJ2,RD,NJMAX
 
            THETA=DEGN*THETJ1
-           if(iddiv.eq.1) then
+           SELECT CASE(mode_div)
+           CASE(1,3)
               RJ0(1,NA)=RD*COS(THETA)+2.0d0*RD
-              ZJ0(1,NA)=RD*SIN(THETA)             
-           elseif(iddiv.eq.2) then
+              ZJ0(1,NA)=RD*SIN(THETA)
+           CASE(2,4,5)
               RJ0(1,NA)=1.5D0*RD*COS(THETA)
               ZJ0(1,NA)=1.5D0*RD*SIN(THETA)
-           end if
+           END SELECT
            DTHETA=(THETJ2-THETJ1)/(NJMAX-3)
            DO NJ=2,NJMAX-1
               THETA=DEGN*(DTHETA*(NJ-2)+THETJ1)
@@ -137,13 +138,14 @@ SUBROUTINE WFDEFA
               ZJ0(NJ,NA)=RD*SIN(THETA)
            END DO
            THETA=DEGN*THETJ2
-           if(iddiv.eq.1) then
+           SELECT CASE(mode_div)
+           CASE(1,3)
               RJ0(NJMAX,NA)=RD*COS(THETA)+2.0d0*RD
               ZJ0(NJMAX,NA)=RD*SIN(THETA)
-           elseif(iddiv.eq.2) then
+           CASE(2,4,5)
               RJ0(NJMAX,NA)=1.5D0*RD*COS(THETA)
               ZJ0(NJMAX,NA)=1.5D0*RD*SIN(THETA)
-           end if
+           END SELECT
            JNUM0(NA)=NJMAX
            
         ELSEIF(KID.EQ.'P') THEN

@@ -23,7 +23,7 @@ SUBROUTINE WFSLIM
   LNDMIN=LNODE
   LNDMAX=LNODE
      
-  DO IN=2,NNMAX
+  DO IN=2,node_max
      RNDMIN=MIN(RNDMIN,RNODE(IN))
      RNDMAX=MAX(RNDMAX,RNODE(IN))
      ZNDMIN=MIN(ZNDMIN,ZNODE(IN))
@@ -52,7 +52,7 @@ SUBROUTINE WFSELM
   integer :: NE
   real(rkind) :: RE(3),ZE(3),S
 
-  do NE=1,NEMAX
+  do NE=1,nelm_max
 
      call WFNODE(NE,RE,ZE)
      S=RE(1)*(ZE(2)-ZE(3))+RE(2)*(ZE(3)-ZE(1))+RE(3)*(ZE(1)-ZE(2))
@@ -317,9 +317,9 @@ SUBROUTINE SETBDY(IERR)
 
   if(nrank.eq.0) WRITE(6,*) '------- SETBDY set NSDMAX & KNELM start ---'
 
-!  WRITE(6,'(A,2I8)') 'NEMAX,NNMAX=',NEMAX,NNMAX
+!  WRITE(6,'(A,2I8)') 'nelm_max,node_max=',nelm_max,node_max
   NBSID=0
-  DO NE=1,NEMAX
+  DO NE=1,nelm_max
      NN1=NDELM(1,NE)
      NN2=NDELM(2,NE)
      NN3=NDELM(3,NE)
@@ -333,7 +333,7 @@ SUBROUTINE SETBDY(IERR)
 !          WRITE(6,'(A,7I8)') 'SETBDY NE,NNs,NEs:', &
 !          NE,NN1,NN2,NN3,KNELM(1,NE),KNELM(2,NE),KNELM(3,NE)
   ENDDO
-  NSDMAX=(3*NEMAX-NBSID)/2+NBSID
+  NSDMAX=(3*nelm_max-NBSID)/2+NBSID
 
   call wfsid_allocate
 
@@ -344,7 +344,7 @@ SUBROUTINE SETBDY(IERR)
 
   NSD=0
 
-  DO NE=1,NEMAX
+  DO NE=1,nelm_max
      NN1=NDELM(1,NE)
      NN2=NDELM(2,NE)
      NN3=NDELM(3,NE)
@@ -481,13 +481,13 @@ SUBROUTINE SETBDY(IERR)
 !     write(*,*) "NESID,INSID,NSD",NESID(NSD),INSID(NSD),NSD
 !  ENDDO
 
-!  DO NE=1,NEMAX
+!  DO NE=1,nelm_max
 !     DO I=1,3
 !        write(*,*) "NE,I,NSDELM",NE,I,NSDELM(I,NE)
 !     end DO
 !  end DO
 
-!    DO NE=1,NEMAX
+!    DO NE=1,nelm_max
 !     DO I=1,3
 !        write(*,*) "NE,I,KNELM",NE,I,KNELM(I,NE)
 !     end DO
@@ -501,7 +501,7 @@ SUBROUTINE SETBDY(IERR)
      KASID(NSD)=0
   ENDDO
 
-  DO NE=1,NEMAX
+  DO NE=1,nelm_max
      NSD1=ABS(NSDELM(1,NE))
      NSD2=ABS(NSDELM(2,NE))
      NSD3=ABS(NSDELM(3,NE))
@@ -862,7 +862,7 @@ SUBROUTINE FIELDCP(NE,R,Z,CVALUE,CE)
   integer :: NN,IN
   real(rkind),intent(in) :: R,Z
   real(rkind) :: A(3),B(3),C(3),WEIGHT(3)
-  complex(rkind),intent(in) :: CVALUE(NNMAX)
+  complex(rkind),intent(in) :: CVALUE(node_max)
   complex(rkind):: CF
   complex(rkind),intent(out) :: CE
 

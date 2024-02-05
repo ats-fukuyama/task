@@ -27,7 +27,7 @@ SUBROUTINE WFINDX
 
   CALL WFSLIM
   call wfsrt_allocate
-  DO NE=1,NEMAX
+  DO NE=1,nelm_max
      RC=0.D0
      ZC=0.D0
      DO IN=1,3
@@ -38,32 +38,32 @@ SUBROUTINE WFINDX
      SINDEX(NE)=FINDEX(0.333D0*RC,0.333D0*ZC)
   ENDDO
   
-  DO NE=1,NEMAX
+  DO NE=1,nelm_max
      IVELM(NE)=NE
      IDELM(NE)=0
      KAELM(NE)=0
   ENDDO
 
-!  DO NE=1,NEMAX
+!  DO NE=1,nelm_max
 !     WRITE(6,'(A,2I8,1P,E12.4)') & 
 !          &        'NE,IV,SINDEX=',NE,IVELM(NE),SINDEX(NE)
 !  ENDDO
 
-  CALL WFSORT(NEMAX,SINDEX,WFSRTS,WFSRTX)
+  CALL WFSORT(nelm_max,SINDEX,WFSRTS,WFSRTX)
 
-  DO NE=1,NEMAX
+  DO NE=1,nelm_max
      IWELM(NE)=0
   ENDDO
-  DO NE=1,NEMAX
+  DO NE=1,nelm_max
      IWELM(IVELM(NE))=NE
   ENDDO
 
-!  DO NE=1,NEMAX
+!  DO NE=1,nelm_max
 !     WRITE(6,'(A,3I8,1P,E12.4)') &
 !          &        'NE,IV,IW,SINDEX=',NE,IVELM(NE),IWELM(NE),SINDEX(NE)
 !  ENDDO
 
-  DO NE=1,NEMAX
+  DO NE=1,nelm_max
      if (nrank.eq.0) then
         IF(IWELM(NE).EQ.0) WRITE(6,*) 'XXXX IWELM UNDEFINED'
      end if
@@ -85,7 +85,7 @@ SUBROUTINE WFFEPI
   real(rkind) :: SINDXL(3),RNDL(3),ZNDL(3),FINDEX
   real(rkind) :: SMAX,SMIN
 
-  DO NE=1,NEMAX
+  DO NE=1,nelm_max
      DO IN=1,3
         NN=NDELM(IN,NE)
         SINDXL(IN)=FINDEX(RNODE(NN),ZNODE(NN))
@@ -101,12 +101,12 @@ SUBROUTINE WFFEPI
   ENDDO
   
   SMAX=SINDEX_MAX(1)
-  DO NE=1,NEMAX
+  DO NE=1,nelm_max
      IF(SINDEX_MAX(NE).GT.SMAX) SMAX=SINDEX_MAX(NE)
      SINDEX_MAX(NE)=SMAX
   ENDDO
-  SMIN=SINDEX_MIN(NEMAX)
-  DO NE=NEMAX,1,-1
+  SMIN=SINDEX_MIN(nelm_max)
+  DO NE=nelm_max,1,-1
      IF(SINDEX_MIN(NE).LT.SMIN) SMIN=SINDEX_MIN(NE)
      SINDEX_MIN(NE)=SMIN
   ENDDO
@@ -124,15 +124,15 @@ SUBROUTINE EFINDS(IES,N1,N2,IE)
   integer,intent(out):: IE
   integer :: I,J,K,ND1,L,ND2
 
-  IF(IES.LT.0.OR.IES.GT.NEMAX) GOTO 9000
-  DO I=1,MAX(NEMAX-IES,IES)
+  IF(IES.LT.0.OR.IES.GT.nelm_max) GOTO 9000
+  DO I=1,MAX(nelm_max-IES,IES)
      DO J=1,2
         IF(J.EQ.1) THEN
            IE=IES+I
         ELSE
            IE=IES-I
         ENDIF
-        IF(IE.GE.1.AND.IE.LE.NEMAX) THEN
+        IF(IE.GE.1.AND.IE.LE.nelm_max) THEN
            DO K=1,3
               ND1=NDELM(K,IE)
               IF(ND1.EQ.N1) THEN
@@ -174,7 +174,7 @@ SUBROUTINE FEP(R,Z,IE)
      
 1000 CONTINUE
      ICOUNT=ICOUNT+1
-     IF(ICOUNT.GT.NEMAX/3)  GOTO 2000 ! Could not find, try another method
+     IF(ICOUNT.GT.nelm_max/3)  GOTO 2000 ! Could not find, try another method
 
      CALL WFWGT(IE,R,Z,WGT)
 
@@ -213,16 +213,16 @@ SUBROUTINE FEP(R,Z,IE)
 
 2000 SIDX=FINDEX(R,Z)
   IF(SIDX.GE.SINDEX_MIN(1)) THEN
-     IF(SIDX.GT.SINDEX_MIN(NEMAX)) THEN
-        NELMAX=NEMAX
+     IF(SIDX.GT.SINDEX_MIN(nelm_max)) THEN
+        NELMAX=nelm_max
      ELSE
-        CALL WFLCAT_MIN(SINDEX_MIN,NEMAX,SIDX,NELMAX)
+        CALL WFLCAT_MIN(SINDEX_MIN,nelm_max,SIDX,NELMAX)
      ENDIF
-     IF(SIDX.LE.SINDEX_MAX(NEMAX)) THEN
+     IF(SIDX.LE.SINDEX_MAX(nelm_max)) THEN
         IF(SIDX.LT.SINDEX_MAX(1)) THEN
            NELMIN=1
         ELSE
-           CALL WFLCAT_MIN(SINDEX_MAX,NEMAX,SIDX,NELMIN)
+           CALL WFLCAT_MIN(SINDEX_MAX,nelm_max,SIDX,NELMIN)
         ENDIF
         
         IES=(NELMIN+NELMAX)/2
@@ -231,7 +231,7 @@ SUBROUTINE FEP(R,Z,IE)
            DO J=1,2
               IDELT=-IDELT
               IE=IES+IDELT
-              IF(IE.GE.1.AND.IE.LE.NEMAX) THEN
+              IF(IE.GE.1.AND.IE.LE.nelm_max) THEN
                  IF(R.GE.REMIN(IE).AND.R.LE.REMAX(IE).AND.&
                   & Z.GE.ZEMIN(IE).AND.Z.LE.ZEMAX(IE)) THEN
                     CALL WFWGT(IE,R,Z,WGT)

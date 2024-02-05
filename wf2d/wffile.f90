@@ -33,17 +33,17 @@ SUBROUTINE WFWELM(ID)
 30 REWIND 25
   IF(ID.EQ.0) THEN
      WRITE(25) 'PAF-ELM0-V01'
-     WRITE(25) NNMAX,NEMAX
-     WRITE(25) (XND(I),YND(I),ZND(I),I=1,NNMAX)
-     WRITE(25) ((NDELM(J,I),J=1,3),I=1,NEMAX)
+     WRITE(25) node_max,nelm_max
+     WRITE(25) (XND(I),YND(I),ZND(I),I=1,node_max)
+     WRITE(25) ((NDELM(J,I),J=1,3),I=1,nelm_max)
   ELSEIF(ID.EQ.1) THEN
      WRITE(25) 'PAF-ELM1-V01'
-     WRITE(25) NNMAX,NEMAX,NMMAX,NBMAX
-     WRITE(25) (XND(I),YND(I),ZND(I),I=1,NNMAX)
-     WRITE(25) (KANOD(I),I=1,NNMAX)
-     WRITE(25) ((NDELM(J,I),J=1,3),I=1,NEMAX)
-     WRITE(25) ((KNELM(J,I),J=1,3),I=1,NEMAX)
-     WRITE(25) (KAELM(I),I=1,NEMAX)
+     WRITE(25) node_max,nelm_max,NMMAX,NBMAX
+     WRITE(25) (XND(I),YND(I),ZND(I),I=1,node_max)
+     WRITE(25) (KANOD(I),I=1,node_max)
+     WRITE(25) ((NDELM(J,I),J=1,3),I=1,nelm_max)
+     WRITE(25) ((KNELM(J,I),J=1,3),I=1,nelm_max)
+     WRITE(25) (KAELM(I),I=1,nelm_max)
      WRITE(25) (EPSDM(NM),AMUDM(NM),SIGDM(NM),NM=1,NMMAX)
      WRITE(25) (KABDY(NB),PHIBDY(NB),RESBDY(NB),&
           &              PWRBDY(NB),PHABDY(NB),          &
@@ -89,37 +89,37 @@ SUBROUTINE WFRELM(ID)
      ID=0
      
      call wfelm_allocate
-     READ(25,ERR=9100,END=9200) NNMAX,NEMAX
+     READ(25,ERR=9100,END=9200) node_max,nelm_max
      call wfelm_allocate
      
-     READ(25,ERR=9100,END=9200) (XND(I),YND(I),ZND(I),I=1,NNMAX)
-     READ(25,ERR=9100,END=9200) ((NDELM(J,I),J=1,3),I=1,NEMAX)
+     READ(25,ERR=9100,END=9200) (XND(I),YND(I),ZND(I),I=1,node_max)
+     READ(25,ERR=9100,END=9200) ((NDELM(J,I),J=1,3),I=1,nelm_max)
 
      CALL WFINDX
      CALL WFFEPI
      
      NKMAX=1
-     DO NE=1,NEMAX
+     DO NE=1,nelm_max
         KAELM(NE)=1
      ENDDO
      NMKA(1)=0
      NMMAX=0
      
      NBMAX=0
-     DO NN=1,NNMAX
+     DO NN=1,node_max
         KANOD(NN)=0
      ENDDO
 
   ELSEIF(KID.EQ.'PAF-ELM1-V01') THEN
      ID=1
-     READ(25,ERR=9100,END=9200) NNMAX,NEMAX,NMMAX,NBMAX
+     READ(25,ERR=9100,END=9200) node_max,nelm_max,NMMAX,NBMAX
      call wfelm_allocate
      
-     READ(25,ERR=9100,END=9200) (XND(I),YND(I),ZND(I),I=1,NNMAX)
-     READ(25,ERR=9100,END=9200) (KANOD(I),I=1,NNMAX)
-     READ(25,ERR=9100,END=9200) ((NDELM(J,I),J=1,3),I=1,NEMAX)
-     READ(25,ERR=9100,END=9200) ((KNELM(J,I),J=1,3),I=1,NEMAX)
-     READ(25,ERR=9100,END=9200) (KAELM(I),I=1,NEMAX)
+     READ(25,ERR=9100,END=9200) (XND(I),YND(I),ZND(I),I=1,node_max)
+     READ(25,ERR=9100,END=9200) (KANOD(I),I=1,node_max)
+     READ(25,ERR=9100,END=9200) ((NDELM(J,I),J=1,3),I=1,nelm_max)
+     READ(25,ERR=9100,END=9200) ((KNELM(J,I),J=1,3),I=1,nelm_max)
+     READ(25,ERR=9100,END=9200) (KAELM(I),I=1,nelm_max)
      READ(25,ERR=9100,END=9200) (EPSDM(NM),AMUDM(NM),SIGDM(NM),&
           &                              NM=1,NMMAX)
      READ(25,ERR=9100,END=9200) (KABDY(NB),PHIBDY(NB),RESBDY(NB),&

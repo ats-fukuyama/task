@@ -14,11 +14,11 @@ SUBROUTINE DEFMLEN
   end do
 
   NBNOD=0
-  do NN=1,NNMAX
+  do NN=1,node_max
      if(KANOD(NN).eq.1) NBNOD=NBNOD+1
   end do
 
-  MLEN=NSDMAX+NNMAX-NBSID-NBNOD
+  MLEN=NSDMAX+node_max-NBSID-NBNOD
 
   call wfslv_allocate
 
@@ -69,7 +69,7 @@ SUBROUTINE CVSOLV
 
   ! ----- set NV_NSD & NV_NN -----
 
-  ALLOCATE(ntyp_nv(nnmax+nsdmax),nnsd_nv(nnmax+nsdmax))
+  ALLOCATE(ntyp_nv(node_max+nsdmax),nnsd_nv(node_max+nsdmax))
 
   NV=0
   do NSD=1,NSDMAX
@@ -82,7 +82,7 @@ SUBROUTINE CVSOLV
         NNSD_NV(NV)=NSD
      end if
   end do
-  do NN=1,NNMAX
+  do NN=1,node_max
      if(KANOD(NN).eq.1) then
         NVNN(NN)=0
      else
@@ -142,18 +142,18 @@ SUBROUTINE CVSOLV
 !  do NSD=1,NSDMAX
 !     write(*,*) NSD,KASID(NSD),NV_NSD(NSD)
 !  end do
-!  do NN=1,NNMAX
+!  do NN=1,node_max
 !     write(*,*) NN,KANOD(NN),NV_NN(NN)
 !  end do
 
   ! ----- set NEFLAG ------
 
-  allocate(NEFLAG(NEMAX))
-  do NE=1,NEMAX
+  allocate(NEFLAG(nelm_max))
+  do NE=1,nelm_max
      NEFLAG(NE)=0
   end do
 
-  do NE=1,NEMAX
+  do NE=1,nelm_max
      do ISD=1,3
         NSD=ABS(NSDELM(ISD,NE))
         NV=NVNSD(NSD)
@@ -180,7 +180,7 @@ SUBROUTINE CVSOLV
 
   JMIN=MLEN
   JMAX=0
-  do NE=1,NEMAX
+  do NE=1,nelm_max
 
      if(NEFLAG(NE).eq.0) goto 8100
 
@@ -226,7 +226,7 @@ SUBROUTINE CVSOLV
 
   NNZ=0
 
-  DO NE=1,NEMAX
+  DO NE=1,nelm_max
      IF(NEFLAG(NE).NE.0) THEN
 
         LL=0
@@ -288,7 +288,7 @@ SUBROUTINE CVSOLV
 
   NNZ=0
 
-  do NE=1,NEMAX
+  do NE=1,nelm_max
      if(NEFLAG(NE).eq.0) goto 8000
      CALL CMCALC(NE)
      
