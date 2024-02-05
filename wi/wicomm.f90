@@ -53,7 +53,7 @@ MODULE wicomm
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        XGRID
   COMPLEX(rkind),DIMENSION(:),ALLOCATABLE:: &
-       CFY,CSO,CWP,CWE,CPOWER,CBZ
+       CFY,CSO,CWP,CWE,CPOWER,CBX,CBY
   COMPLEX(rkind),DIMENSION(:,:),ALLOCATABLE:: &
        CU,CK
 
@@ -78,6 +78,7 @@ CONTAINS
     ALLOCATE(CK(mwid,mlen),CSO(mlen))
     ALLOCATE(CWP(0:nxmax),CWE(0:nxmax))
     ALLOCATE(CPOWER(0:nxmax))
+    ALLOCATE(CBX(0:nxmax),CBY(0:nxmax))
 
     nxmax_save=nxmax
     nwmax_save=nwmax
@@ -96,6 +97,8 @@ CONTAINS
     IF(ALLOCATED(cwp)) DEALLOCATE(cwp)
     IF(ALLOCATED(cwe)) DEALLOCATE(cwe)
     IF(ALLOCATED(cpower)) DEALLOCATE(cpower)
+    IF(ALLOCATED(cbx)) DEALLOCATE(cbx)
+    IF(ALLOCATED(cby)) DEALLOCATE(cby)
 
     RETURN
   END SUBROUTINE wi_deallocate
