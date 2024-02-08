@@ -124,9 +124,14 @@ CONTAINS
 !              4 : Write data every 1000 step
 !              5 : Write data every 10000 step
 
-!     MDLWRF : type of WRFDRV
-!              0 : original    DS
-!              1 : corrected   DOMG
+      !     model_fdrv: type of driver to calculate del D/del r, del D/del k
+      !        1 : original driver
+      !        2 : new driver on 2023/09/03
+      !        3 : new driver on 2023/11/21
+      
+      !     model_fdrv_ds: definition of ds in driver wrfdrv
+      !        0 : original    DS
+      !        1 : corrected   DOMG
       
 !     nres_type : plot type of resonance curves
 !              0 : power abs density (max, 50% for nres_max=3)
@@ -157,7 +162,9 @@ CONTAINS
       MDLWRP = 1
       MDLWRQ = 1
       MDLWRW = 0
-      MDLWRF = 0
+
+      model_fdrv = 3
+      model_fdrv_ds = 0
 
       nres_type = 0
       nres_max = 3

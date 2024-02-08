@@ -28,8 +28,9 @@ CONTAINS
     WRITE(6,601) 'LMAXNW',LMAXNW
     WRITE(6,601) 'MDLWRI',MDLWRI,'MDLWRG',MDLWRG, &
                  'MDLWRP',MDLWRP
-    WRITE(6,601) 'MDLWRQ',MDLWRQ,'MDLWRW',MDLWRW, &
-                 'MDLWRF',MDLWRF
+    WRITE(6,601) 'MDLWRQ',MDLWRQ,'MDLWRW',MDLWRW
+    WRITE(6,605) 'model_fdrv      ',model_fdrv, &
+                 'model_fdrv_ds   ',model_fdrv_ds
     WRITE(6,603) 'nres_max    ',nres_max, &
                  'nres_type   ',nres_type,&
                  'mode_beam   ',mode_beam
@@ -58,5 +59,7 @@ CONTAINS
 603 FORMAT(1H ,A12,'=',I8,4X  :1X,A12,'=',I8,4X  : &
             1X,A12,'=',I8)
 604 FORMAT(1H ,A16'=',ES12.4:2X,A16,'=',ES12.4)
+605 FORMAT(1H ,A16,'=',I4,4X  :1X,A16,'=',I4,4X  : &
+            1X,A16,'=',I4)
   END SUBROUTINE WR_VIEW
 END MODULE wrview

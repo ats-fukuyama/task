@@ -16,6 +16,7 @@ MODULE wrsub
   PUBLIC wrcalk
   PUBLIC wrcale_i
   PUBLIC wrcale_xyz
+  PUBLIC wr_write_line
 
 CONTAINS
 
@@ -823,5 +824,77 @@ CONTAINS
               +ABS(CUEZ)**2*(1.D0-mag%bnz**2))
     RETURN
   END SUBROUTINE WRCALE_XYZ
+
+  ! --- write line ---
+  
+  SUBROUTINE wr_write_line(NSTP,X,Y,PABS)
+    USE wrcomm
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: NSTP
+    REAL(rkind),INTENT(IN):: X,Y(NEQ),PABS
+    REAL(rkind):: RL,PHIL,ZL,RKRL
+    INTEGER:: ID
+    INTEGER,SAVE:: NSTP_SAVE=-1
+
+    IF(MDLWRW.EQ.0) RETURN
+
+    IF(NSTP.EQ.0) THEN
+       IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
+          WRITE(6,'(A,A)') &
+               '      S          X        ANG          Z    ', &
+               '     RX          W       PABS'
+       ELSE IF(MODELG.EQ.11) THEN
+          WRITE(6,'(A,A)') &
+               '      S          X          Y          Z    ', &
+               '     RX          W       PABS'
+       ELSE
+          WRITE(6,'(A,A)') &
+               '      S          R        PHI          Z    ', &
+               '    RKR          W       PABS'
+       ENDIF
+    END IF
+
+    IF(NSTP.EQ.0) THEN
+       ID=1
+    ELSE
+       ID=0
+       SELECT CASE(MDLWRW)
+       CASE(1)
+          ID=1
+       CASE(2)
+          IF(MOD(NSTP,10).EQ.0) ID=1
+       CASE(3)
+          IF(MOD(NSTP,100).EQ.0) ID=1
+       CASE(4)
+          IF(MOD(NSTP,1000).EQ.0) ID=1
+       CASE(5)
+          IF(MOD(NSTP,10000).EQ.0) ID=1
+       END SELECT
+!       IF(NSTP.EQ.NSTP_SAVE) ID=0
+    END IF
+    
+    IF(ID.EQ.1) THEN
+       IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
+          RL  =Y(1)
+          PHIL=ASIN(Y(2)/(2.D0*PI*RR))
+          ZL  =Y(3)
+          RKRL=Y(4)
+       ELSE IF(MODELG.EQ.11) THEN
+          RL  =Y(1)
+          PHIL=Y(2)
+          ZL  =Y(3)
+          RKRL=Y(4)
+       ELSE
+          RL  =SQRT(Y(1)**2+Y(2)**2)
+          PHIL=ATAN2(Y(2),Y(1))
+          ZL  =Y(3)
+          RKRL=(Y(4)*Y(1)+Y(5)*Y(2))/RL
+       ENDIF
+       WRITE(6,'(7ES11.3)') X,RL,PHIL,ZL,RKRL,Y(7),PABS
+       IF(idebug_wr(10).NE.0) &
+            WRITE(6,'(11X,6ES11.3)') Y(1),Y(2),Y(3),Y(4),Y(5),Y(6)
+       NSTP_SAVE=NSTP
+    END IF
+  END SUBROUTINE wr_write_line
 
 END MODULE wrsub

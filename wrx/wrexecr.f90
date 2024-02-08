@@ -66,7 +66,7 @@ CONTAINS
   SUBROUTINE wr_setup_start_point(NRAY,YN,nstp,IERR)
 
     USE wrcomm
-    USE wrsub,ONLY: wrcale,wrcale_xyz,wr_cold_rkperp,wr_newton
+    USE wrsub,ONLY: wrcale,wrcale_xyz,wr_cold_rkperp,wr_newton,wr_write_line
     USE plprof,ONLY: pl_mag_type,pl_mag,pl_prf_type,pl_prof
     USE plprofw,ONLY: pl_prfw_type,pl_profw
     IMPLICIT NONE
@@ -428,7 +428,8 @@ CONTAINS
 
   SUBROUTINE wr_exec_single_ray(NRAY,YN,nstp,IERR)
     USE wrcomm
-    USE wrsub,ONLY: wrcale,wrcale_xyz,wr_cold_rkperp,wr_newton
+    USE wroxb,ONLY: WRRKFT_RKF_OXB
+    USE wrsub,ONLY: wrcale,wrcale_xyz,wr_cold_rkperp,wr_newton,wr_write_line
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NRAY
     INTEGER,INTENT(INOUT):: nstp
@@ -476,6 +477,8 @@ CONTAINS
        CALL WRSYMP(nstp,RAYS(:,:,NRAY),nstp_end)
     ELSEIF(MDLWRQ.EQ.5) THEN
        CALL WRRKFT_ODE(nstp,RAYS(:,:,NRAY),nstp_end)
+    ELSEIF(MDLWRQ.EQ.6) THEN
+       CALL WRRKFT_RKF_OXB(nstp,RAYS(:,:,NRAY),nstp_end)
     ELSE
        WRITE(6,*) 'XX WRCALC: unknown MDLWRQ =', MDLWRQ
        IERR=1
@@ -502,7 +505,9 @@ CONTAINS
     USE wrcomm
     USE pllocal
     USE plprof,ONLY: PL_MAG_OLD
+    USE wrfdrv
     USE librk
+    USE wrsub,ONLY: wr_write_line
     IMPLICIT NONE
     INTEGER,INTENT(INOUT):: nstp_start
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
@@ -526,7 +531,7 @@ CONTAINS
 
     DO NSTP = nstp_start+1,NSTPLIM
        PW=Y(7)
-       CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
+       CALL ODERK(7,wr_fdrv,X0,XE,1,Y,YM,WORK)
 
        YN(0,NSTP)=XE
        DO I=1,7
@@ -575,9 +580,11 @@ CONTAINS
   SUBROUTINE WRRKFT_WITHD0(nstp_start,YN,nstp_end)
 
     USE wrcomm
-    USE wrsub,ONLY: DISPXR,WRMODNWTN
+    USE wrsub,ONLY: DISPXR,WRMODNWTN,wr_write_line
+
     USE pllocal
     USE plprof,ONLY:PL_MAG_OLD
+    USE wrfdrv
     USE librk
     IMPLICIT NONE
     INTEGER,INTENT(INOUT):: nstp_start
@@ -617,7 +624,7 @@ CONTAINS
 
     DO NSTP = nstp_start+1,NSTPLIM
        PW=Y(7)
-       CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
+       CALL ODERK(7,wr_fdrv,X0,XE,1,Y,YM,WORK)
 
        IF(idebug_wr(11).NE.0) THEN
           WRITE(6,'(A,I8)') '*** idebug_wr(11): wrrkft_withd0: nstp=',nstp
@@ -682,7 +689,9 @@ CONTAINS
     USE wrcomm
     USE pllocal
     USE plprof,ONLY:PL_MAG_OLD
+    USE wrfdrv
     USE librk
+    USE wrsub,ONLY: wr_write_line
     IMPLICIT NONE
     INTEGER,INTENT(INOUT):: nstp_start
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
@@ -706,7 +715,7 @@ CONTAINS
 
     DO NSTP = nstp_start+1,NSTPLIM
        PW=Y(7)
-       CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
+       CALL ODERK(7,wr_fdrv,X0,XE,1,Y,YM,WORK)
        
        YN(0,NSTP)=XE
        DO I=1,7
@@ -754,9 +763,11 @@ CONTAINS
   SUBROUTINE WRRKFT_WITHMC(nstp_start,YN,nstp_end)
 
     USE wrcomm
-    USE wrsub,ONLY: DISPXR,WRMODCONV,WRMODNWTN
+    USE wrsub,ONLY: DISPXR,WRMODCONV,WRMODNWTN,wr_write_line
+
     USE pllocal
     USE plprof,ONLY:PL_MAG_OLD
+    USE wrfdrv
     USE librk
     IMPLICIT NONE
     INTEGER,INTENT(INOUT):: nstp_start
@@ -786,7 +797,7 @@ CONTAINS
 
     DO NSTP = nstp_start+1,NSTPLIM
        PW=Y(7)
-       CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
+       CALL ODERK(7,wr_fdrv,X0,XE,1,Y,YM,WORK)
        
        DELTA=DISPXR(YM(1),YM(2),YM(3),YM(4),YM(5),YM(6),omega)
 
@@ -856,8 +867,10 @@ CONTAINS
   SUBROUTINE WRRKFT_RKF(nstp_start,YN,nstp_end)
 
     USE wrcomm
-    USE librkf
     USE plprof,ONLY: pl_mag_old
+    USE wrfdrv
+    USE librkf
+    USE wrsub,ONLY: wr_write_line
     IMPLICIT NONE
     INTEGER,INTENT(INOUT):: nstp_start
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
@@ -891,7 +904,7 @@ CONTAINS
 
     DO NSTP = nstp_start+1,NSTPLIM
        PW=Y(7)
-       CALL RKF(7,WRFDRV,X0,XE,Y,INIT,RELERR,ABSERR,YM, &
+       CALL RKF(7,wr_fdrv,X0,XE,Y,INIT,RELERR,ABSERR,YM, &
                 ESTERR,NDE,IER,WORK0,WORK1,WORK2,WORK3,WORK4)
        IF (IER .NE. 0) THEN
           WRITE(6,'(A,2I6)') 'XX wrrkft_rkf: NSTP,IER=',NSTP,IER
@@ -949,7 +962,9 @@ CONTAINS
     USE wrcomm
     USE pllocal
     USE plprof,ONLY: PL_MAG_OLD,PL_PROF_OLD
+    USE wrfdrv
     USE libsympl
+    USE wrsub,ONLY: wr_write_line
     IMPLICIT NONE
     INTEGER,INTENT(INOUT):: nstp_start
     REAL(rkind),INTENT(OUT):: YN(0:NEQ,0:NSTPMAX)
@@ -975,8 +990,8 @@ CONTAINS
 
     DO NSTP = nstp_start+1,NSTPLIM
        PW=Y(7)
-       CALL SYMPLECTIC(Y,DELS,WRFDRVR,6,NLPMAX,EPS,NLP,ERROR,IERR)
-       CALL WRFDRV(0.D0,Y,F)
+       CALL SYMPLECTIC(Y,DELS,wr_fdrvr,6,NLPMAX,EPS,NLP,ERROR,IERR)
+       CALL wr_fdrv(0.D0,Y,F)
        X=X+DELS
 
        YN(0,NSTP)=X
@@ -1021,373 +1036,5 @@ CONTAINS
     RETURN
   END SUBROUTINE WRSYMP
 
-!  --- slave routine for ray tracing ---
-
-!  Y(1)=X
-!  Y(2)=Y
-!  Y(3)=Z
-!  Y(4)=RKX
-!  Y(5)=RKY
-!  Y(6)=RKZ
-!  Y(7)=W
-
-  SUBROUTINE WRFDRV(X,Y,F)
-
-    USE wrcomm
-    USE wrsub,ONLY: DISPXR,DISPXI
-    IMPLICIT NONE
-    REAL(rkind),INTENT(IN):: X,Y(NEQ)
-    REAL(rkind),INTENT(OUT):: F(7)
-    REAL(rkind):: VV,TT,RF,XP,YP,ZP,RKXP,RKYP,RKZP,UU,OMG,ROMG
-    REAL(rkind):: DROMG,DRXP,DRYP,DRZP,DRKXP,DRKYP,DRKZP
-    REAL(rkind):: DOMG,DXP,DYP,DZP,DKXP,DKYP,DKZP,DS
-    REAL(rkind):: VX,VY,VZ,VKX,VKY,VKZ,VDU
-    REAL(rkind):: DUMMY,delk
-    REAL(rkind),SAVE:: DXP_save,DYP_save,DZP_save
-    REAL(rkind),SAVE:: DKXP_save,DKYP_save,DKZP_save
-
-    VV=DELDER
-    TT=DELDER
-    DUMMY=X
-
-    RF=wr_nray_status%RF
-    XP=Y(1)
-    YP=Y(2)
-    ZP=Y(3)
-    RKXP=Y(4)
-    RKYP=Y(5)
-    RKZP=Y(6)
-    UU=Y(7)
-
-    OMG=2.D6*PI*RF
-    DROMG=MAX(ABS(OMG)*VV,TT)
-
-    IF(INITIAL_DRV.EQ.0) THEN
-       DRXP=MAX(dels*VV,TT)
-       DRYP=MAX(dels*VV,TT)
-       DRZP=MAX(dels*VV,TT)
-       delk=SQRT(RKXP**2+RKYP**2+RKZP**2)
-       DRKXP=MAX(delk*VV,TT)
-       DRKYP=MAX(delk*VV,TT)
-       DRKZP=MAX(delk*VV,TT)
-       INITIAL_DRV=1
-    ELSE
-       DRXP=MAX(DXP_save*VV,TT)
-       DRYP=MAX(DYP_save*VV,TT)
-       DRZP=MAX(DZP_save*VV,TT)
-       DRKXP=MAX(DKXP_save*VV,TT)
-       DRKYP=MAX(DKYP_save*VV,TT)
-       DRKZP=MAX(DKZP_save*VV,TT)
-    END IF
-
-    DOMG=(DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP,OMG+DROMG) &
-         -DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP,OMG-DROMG))/(2.D0*DROMG)
-    DXP =(DISPXR(XP+DRXP,YP,ZP,RKXP,RKYP,RKZP,OMG) &
-         -DISPXR(XP-DRXP,YP,ZP,RKXP,RKYP,RKZP,OMG))/(2.D0*DRXP)
-    DYP =(DISPXR(XP,YP+DRYP,ZP,RKXP,RKYP,RKZP,OMG) &
-         -DISPXR(XP,YP-DRYP,ZP,RKXP,RKYP,RKZP,OMG))/(2.D0*DRYP)
-    DZP =(DISPXR(XP,YP,ZP+DRZP,RKXP,RKYP,RKZP,OMG) &
-         -DISPXR(XP,YP,ZP-DRZP,RKXP,RKYP,RKZP,OMG))/(2.D0*DRZP)
-    DKXP=(DISPXR(XP,YP,ZP,RKXP+DRKXP,RKYP,RKZP,OMG) &
-         -DISPXR(XP,YP,ZP,RKXP-DRKXP,RKYP,RKZP,OMG))/(2.D0*DRKXP)
-    DKYP=(DISPXR(XP,YP,ZP,RKXP,RKYP+DRKYP,RKZP,OMG) &
-         -DISPXR(XP,YP,ZP,RKXP,RKYP-DRKYP,RKZP,OMG))/(2.D0*DRKYP)
-    DKZP=(DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP+DRKZP,OMG) &
-         -DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP-DRKZP,OMG))/(2.D0*DRKZP)
-
-    SELECT CASE(MDLWRF)
-    CASE(0)
-       IF(DOMG.GT.0.D0) THEN
-          DS= SQRT(DKXP**2+DKYP**2+DKZP**2)
-       ELSE
-          DS=-SQRT(DKXP**2+DKYP**2+DKZP**2)
-       ENDIF
-    CASE(1)
-       DS=DOMG
-    END SELECT
-
-    VX   =-DKXP/DS
-    VY   =-DKYP/DS
-    VZ   =-DKZP/DS
-
-    VKX  = DXP/DS
-    VKY  = DYP/DS
-    VKZ  = DZP/DS
-
-    VDU  =-2.D0*ABS(DISPXI(XP,YP,ZP,RKXP,RKYP,RKZP,OMG)/DS)
-
-    F(1)=VX
-    F(2)=VY
-    F(3)=VZ
-    F(4)=VKX
-    F(5)=VKY
-    F(6)=VKZ
-    IF(UU.LT.0.D0) THEN
-       F(7)=0.D0
-    ELSE
-       F(7)=VDU*UU 
-    ENDIF
-
-    DXP_save=VX*DS
-    DYP_save=VY*DS
-    DZP_save=VZ*DS
-    DKXP_save=VKX*DS
-    DKYP_save=VKY*DS
-    DKZP_save=VKZ*DS
-
-    IF(idebug_wr(12).NE.0) THEN
-       WRITE(26,'(A)') '*** idebug_wr(12): wrfdrv'
-       WRITE(26,'(A,4ES12.4)') 'x7ds:',X,Y(7),F(7),DS
-       WRITE(26,'(A,6ES12.4)') 'y   :',Y(1),Y(2),Y(3),Y(4),Y(5),Y(6)
-       WRITE(26,'(A,6ES12.4)') 'f   :',F(1),F(2),F(3),F(4),F(5),F(6)
-    END IF
-    RETURN
-  END SUBROUTINE WRFDRV
-
-!  --- slave routine for ray tracing ---
-
-!  Y(1)=X
-!  Y(2)=Y
-!  Y(3)=Z
-!  Y(4)=RKX
-!  Y(5)=RKY
-!  Y(6)=RKZ
-!  Y(7)=W
-
-  SUBROUTINE WRFDRV_ORG(X,Y,F)
-
-    USE wrcomm
-    USE wrsub,ONLY: DISPXR,DISPXI
-    IMPLICIT NONE
-    REAL(rkind),INTENT(IN):: X,Y(NEQ)
-    REAL(rkind),INTENT(OUT):: F(7)
-    REAL(rkind):: VV,TT,RF,XP,YP,ZP,RKXP,RKYP,RKZP,UU,OMG,ROMG
-    REAL(rkind):: RXP,RYP,RZP,RRKXP,RRKYP,RRKZP
-    REAL(rkind):: DOMG,DXP,DYP,DZP,DKXP,DKYP,DKZP,DS
-    REAL(rkind):: VX,VY,VZ,VKX,VKY,VKZ,VDU
-    REAL(rkind):: DUMMY,AVR,AVKR
-
-      VV=DELDER
-      TT=DELDER
-      DUMMY=X
-
-      RF=wr_nray_status%RF
-      XP=Y(1)
-      YP=Y(2)
-      ZP=Y(3)
-      RKXP=Y(4)
-      RKYP=Y(5)
-      RKZP=Y(6)
-      UU=Y(7)
-      OMG=2.D6*PI*RF
-      ROMG=MAX(ABS(OMG)*VV,TT)
-      AVR=dels
-      RXP=MAX(AVR*VV,TT)
-      RYP=MAX(AVR*VV,TT)
-      RZP=MAX(AVR*VV,TT)
-      AVKR=dels*SQRT(RKXP**2+RKYP**2+RKZP**2)/SQRT(XP**2+YP**2+ZP**2)
-      RRKXP=MAX(AVKR*VV,TT)
-      RRKYP=MAX(AVKR*VV,TT)
-      RRKZP=MAX(AVKR*VV,TT)
-
-      DOMG=(DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP,OMG+ROMG) &
-           -DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP,OMG-ROMG))/(2.D0*ROMG)
-      DXP =(DISPXR(XP+RXP,YP,ZP,RKXP,RKYP,RKZP,OMG) &
-           -DISPXR(XP-RXP,YP,ZP,RKXP,RKYP,RKZP,OMG))/(2.D0*RXP)
-      DYP =(DISPXR(XP,YP+RYP,ZP,RKXP,RKYP,RKZP,OMG) &
-           -DISPXR(XP,YP-RYP,ZP,RKXP,RKYP,RKZP,OMG))/(2.D0*RYP)
-      DZP =(DISPXR(XP,YP,ZP+RZP,RKXP,RKYP,RKZP,OMG) &
-           -DISPXR(XP,YP,ZP-RZP,RKXP,RKYP,RKZP,OMG))/(2.D0*RZP)
-      DKXP=(DISPXR(XP,YP,ZP,RKXP+RRKXP,RKYP,RKZP,OMG) &
-           -DISPXR(XP,YP,ZP,RKXP-RRKXP,RKYP,RKZP,OMG))/(2.D0*RRKXP)
-      DKYP=(DISPXR(XP,YP,ZP,RKXP,RKYP+RRKYP,RKZP,OMG) &
-           -DISPXR(XP,YP,ZP,RKXP,RKYP-RRKYP,RKZP,OMG))/(2.D0*RRKYP)
-      DKZP=(DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP+RRKZP,OMG) &
-           -DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP-RRKZP,OMG))/(2.D0*RRKZP)
-
-      SELECT CASE(MDLWRF)
-      CASE(0)
-         IF(DOMG.GT.0.D0) THEN
-            DS= SQRT(DKXP**2+DKYP**2+DKZP**2)
-         ELSE
-            DS=-SQRT(DKXP**2+DKYP**2+DKZP**2)
-         ENDIF
-      CASE(1)
-         DS=DOMG
-      END SELECT
-
-      VX   =-DKXP/DS
-      VY   =-DKYP/DS
-      VZ   =-DKZP/DS
-
-      VKX  = DXP/DS
-      VKY  = DYP/DS
-      VKZ  = DZP/DS
-
-      VDU  =-2.D0*ABS(DISPXI(XP,YP,ZP,RKXP,RKYP,RKZP,OMG)/DS)
-
-      F(1)=VX
-      F(2)=VY
-      F(3)=VZ
-      F(4)=VKX
-      F(5)=VKY
-      F(6)=VKZ
-      IF(UU.LT.0.D0) THEN
-         F(7)=0.D0
-      ELSE
-         F(7)=VDU*UU 
-      ENDIF
-
-      IF(idebug_wr(12).NE.0) THEN
-         WRITE(26,'(A)') '*** idebug_wr(12): wrfdrv'
-         WRITE(26,'(A,4ES12.4)') 'x7ds:',X,Y(7),F(7),DS
-         WRITE(26,'(A,6ES12.4)') 'y   :',Y(1),Y(2),Y(3),Y(4),Y(5),Y(6)
-         WRITE(26,'(A,6ES12.4)') 'f   :',F(1),F(2),F(3),F(4),F(5),F(6)
-      END IF
-      RETURN
-  END SUBROUTINE WRFDRV_ORG
-
-!  --- slave routine for symplectic method ---
-
-  SUBROUTINE WRFDRVR(Y,F) 
-
-    USE wrcomm
-    USE wrsub,ONLY: DISPXR
-    IMPLICIT NONE
-    REAL(rkind),INTENT(IN):: Y(6)
-    REAL(rkind),INTENT(OUT):: F(6)
-    REAL(rkind):: VV,TT,RF,XP,YP,ZP,RKXP,RKYP,RKZP,OMG,ROMG
-    REAL(rkind):: RXP,RYP,RZP,RRKXP,RRKYP,RRKZP
-    REAL(rkind):: DOMG,DXP,DYP,DZP,DKXP,DKYP,DKZP,DS
-    REAL(rkind):: VX,VY,VZ,VKX,VKY,VKZ
-
-      VV=DELDER
-      TT=DELDER
-
-      RF=wr_nray_status%RF
-      XP=Y(1)
-      YP=Y(2)
-      ZP=Y(3)
-      RKXP=Y(4)
-      RKYP=Y(5)
-      RKZP=Y(6)
-      OMG=2.D6*PI*RF
-      ROMG=MAX(ABS(OMG)*VV,TT)
-      RXP=MAX(ABS(XP)*VV,TT)
-      RYP=MAX(ABS(YP)*VV,TT)
-      RZP=MAX(ABS(ZP)*VV,TT)
-      RRKXP=MAX(ABS(RKXP)*VV,TT)
-      RRKYP=MAX(ABS(RKYP)*VV,TT)
-      RRKZP=MAX(ABS(RKZP)*VV,TT)
-
-      DOMG=(DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP,OMG+ROMG) &
-           -DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP,OMG-ROMG))/(2.D0*ROMG)
-      DXP =(DISPXR(XP+RXP,YP,ZP,RKXP,RKYP,RKZP,OMG) &
-           -DISPXR(XP-RXP,YP,ZP,RKXP,RKYP,RKZP,OMG))/(2.D0*RXP)
-      DYP =(DISPXR(XP,YP+RYP,ZP,RKXP,RKYP,RKZP,OMG) &
-           -DISPXR(XP,YP-RYP,ZP,RKXP,RKYP,RKZP,OMG))/(2.D0*RYP)
-      DZP =(DISPXR(XP,YP,ZP+RZP,RKXP,RKYP,RKZP,OMG) &
-           -DISPXR(XP,YP,ZP-RZP,RKXP,RKYP,RKZP,OMG))/(2.D0*RZP)
-      DKXP=(DISPXR(XP,YP,ZP,RKXP+RRKXP,RKYP,RKZP,OMG) &
-           -DISPXR(XP,YP,ZP,RKXP-RRKXP,RKYP,RKZP,OMG))/(2.D0*RRKXP)
-      DKYP=(DISPXR(XP,YP,ZP,RKXP,RKYP+RRKYP,RKZP,OMG) &
-           -DISPXR(XP,YP,ZP,RKXP,RKYP-RRKYP,RKZP,OMG))/(2.D0*RRKYP)
-      DKZP=(DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP+RRKZP,OMG) &
-           -DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP-RRKZP,OMG))/(2.D0*RRKZP)
-
-      IF(DOMG.GT.0.D0) THEN
-         DS= SQRT(DKXP**2+DKYP**2+DKZP**2)
-      ELSE
-         DS=-SQRT(DKXP**2+DKYP**2+DKZP**2)
-      ENDIF
-
-      VX   =-DKXP/DS
-      VY   =-DKYP/DS
-      VZ   =-DKZP/DS
-
-      VKX  = DXP/DS
-      VKY  = DYP/DS
-      VKZ  = DZP/DS
-
-      F(1)=VX
-      F(2)=VY
-      F(3)=VZ
-      F(4)=VKX
-      F(5)=VKY
-      F(6)=VKZ
-      RETURN
-  END SUBROUTINE WRFDRVR
-
-  ! --- write line ---
-  
-  SUBROUTINE wr_write_line(NSTP,X,Y,PABS)
-    USE wrcomm
-    IMPLICIT NONE
-    INTEGER,INTENT(IN):: NSTP
-    REAL(rkind),INTENT(IN):: X,Y(NEQ),PABS
-    REAL(rkind):: RL,PHIL,ZL,RKRL
-    INTEGER:: ID
-    INTEGER,SAVE:: NSTP_SAVE=-1
-
-    IF(MDLWRW.EQ.0) RETURN
-
-    IF(NSTP.EQ.0) THEN
-       IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
-          WRITE(6,'(A,A)') &
-               '      S          X        ANG          Z    ', &
-               '     RX          W       PABS'
-       ELSE IF(MODELG.EQ.11) THEN
-          WRITE(6,'(A,A)') &
-               '      S          X          Y          Z    ', &
-               '     RX          W       PABS'
-       ELSE
-          WRITE(6,'(A,A)') &
-               '      S          R        PHI          Z    ', &
-               '    RKR          W       PABS'
-       ENDIF
-    END IF
-
-    IF(NSTP.EQ.0) THEN
-       ID=1
-    ELSE
-       ID=0
-       SELECT CASE(MDLWRW)
-       CASE(1)
-          ID=1
-       CASE(2)
-          IF(MOD(NSTP,10).EQ.0) ID=1
-       CASE(3)
-          IF(MOD(NSTP,100).EQ.0) ID=1
-       CASE(4)
-          IF(MOD(NSTP,1000).EQ.0) ID=1
-       CASE(5)
-          IF(MOD(NSTP,10000).EQ.0) ID=1
-       END SELECT
-!       IF(NSTP.EQ.NSTP_SAVE) ID=0
-    END IF
-    
-    IF(ID.EQ.1) THEN
-       IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
-          RL  =Y(1)
-          PHIL=ASIN(Y(2)/(2.D0*PI*RR))
-          ZL  =Y(3)
-          RKRL=Y(4)
-       ELSE IF(MODELG.EQ.11) THEN
-          RL  =Y(1)
-          PHIL=Y(2)
-          ZL  =Y(3)
-          RKRL=Y(4)
-       ELSE
-          RL  =SQRT(Y(1)**2+Y(2)**2)
-          PHIL=ATAN2(Y(2),Y(1))
-          ZL  =Y(3)
-          RKRL=(Y(4)*Y(1)+Y(5)*Y(2))/RL
-       ENDIF
-       WRITE(6,'(7ES11.3)') X,RL,PHIL,ZL,RKRL,Y(7),PABS
-       IF(idebug_wr(10).NE.0) &
-            WRITE(6,'(11X,6ES11.3)') Y(1),Y(2),Y(3),Y(4),Y(5),Y(6)
-       NSTP_SAVE=NSTP
-    END IF
-  END SUBROUTINE wr_write_line
 
 END MODULE wrexecr
