@@ -145,7 +145,7 @@ CONTAINS
 
       EPSRAY = 1.D-4
       DELRAY = 1.D-3
-      DELDER = 1.D-3
+      DELDER = 1.D-6
 
       EPSD0  = 1.D-4
 
