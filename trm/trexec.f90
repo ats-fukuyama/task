@@ -590,8 +590,8 @@ CONTAINS
 
 !     ***** Evolution of fast ion components *****
 
-      Y(1,NR)=(1.D0-PRV/TAUB(NR))*YV(1,NR)+PNB(NR)*DT/(RKEV*1.D20)
-      Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(NR)*DT/(RKEV*1.D20)
+      Y(1,NR)=(1.D0-PRV/TAUB(NR))*YV(1,NR)+PNB(2,NR)*DT/(RKEV*1.D20)
+      Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(4,NR)*DT/(RKEV*1.D20)
       AY(1,NR)=1.D0+ADV/TAUB(NR)
       AY(2,NR)=1.D0+ADV/TAUF(NR)
       IF(MDLTC.NE.0) THEN
@@ -654,8 +654,8 @@ CONTAINS
 
 !     ***** Evolution of fast ion components *****
 
-         Y(1,NR)=(1.D0-PRV/TAUB(NR))*YV(1,NR)+PNB(NR)*DT/(RKEV*1.D20)
-         Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(NR)*DT/(RKEV*1.D20)
+         Y(1,NR)=(1.D0-PRV/TAUB(NR))*YV(1,NR)+PNB(2,NR)*DT/(RKEV*1.D20)
+         Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(4,NR)*DT/(RKEV*1.D20)
          AY(1,NR)=1.D0+ADV/TAUB(NR)
          AY(2,NR)=1.D0+ADV/TAUF(NR)
          IF(MDLTC.NE.0) THEN
@@ -720,8 +720,8 @@ CONTAINS
 
 !     ***** Evolution of fast ion components *****
 
-      Y(1,NR)=(1.D0-PRV/TAUB(NR))*YV(1,NR)+PNB(NR)*DT/(RKEV*1.D20)
-      Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(NR)*DT/(RKEV*1.D20)
+      Y(1,NR)=(1.D0-PRV/TAUB(NR))*YV(1,NR)+PNB(2,NR)*DT/(RKEV*1.D20)
+      Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(4,NR)*DT/(RKEV*1.D20)
       AY(1,NR)=1.D0+ADV/TAUB(NR)
       AY(2,NR)=1.D0+ADV/TAUF(NR)
       IF(MDLTC.NE.0) THEN
@@ -1224,55 +1224,63 @@ CONTAINS
 
       SUBROUTINE TRCHCK(ICHCK)
 
-      USE TRCOMM, ONLY : NEQMAX, NRMAX, NSS, NSV, NT, RT
+      USE TRCOMM, ONLY : NEQMAX, NRMAX, NSS, NSV, NT, RT,RN
       IMPLICIT NONE
       INTEGER,INTENT(OUT):: ICHCK
       INTEGER :: IND, NEQ, NR, NSSN
 
       ICHCK = 0
       DO NEQ=1,NEQMAX
+         IF(NSV(NEQ).EQ.1) THEN
+            DO NR=1,NRMAX
+               IF(RN(NR,NSS(NEQ)).LT.0.D0) THEN
+                  write(6,*) 'RN:',NT,NR,NEQ,NSS(NEQ),RN(NR,NSS(NEQ))
+                  ICHCK=1
+               END IF
+            END DO
+         END IF
          IF(NSV(NEQ).EQ.2) THEN
             DO NR=1,NRMAX
-               IF(RT(NR,NSS(NEQ)).LT.0.D0) &
-                    & write(6,*) NT,NR,NEQ,NSS(NEQ),RT(NR,NSS(NEQ))
-               IF(RT(NR,NSS(NEQ)).LT.0.D0) GOTO 100
+               IF(RT(NR,NSS(NEQ)).LT.0.D0) THEN
+                  write(6,*) 'RT:',NT,NR,NEQ,NSS(NEQ),RT(NR,NSS(NEQ))
+                  ICHCK=1
+               END IF
             ENDDO
          ENDIF
       ENDDO
-      GOTO 9000
+!      IF(ICHCK.EQ.0) GOTO 9000
 
-  100 CONTINUE
-      IND=0
-      WRITE(6,*) 'XX ERROR : NEGATIVE TEMPERATURE AT STEP ',NT
-      DO NEQ=1,NEQMAX
-         NSSN=NSS(NEQ)
-         IF(NSSN.EQ.1.AND.IND.NE.1) THEN
-            WRITE(6,*) '     TE (',NR,')=',RT(NR,NSSN)
-            IND=1
-         ELSEIF(NSSN.EQ.2.AND.IND.NE.2) THEN
-            WRITE(6,*) '     TD (',NR,')=',RT(NR,NSSN)
-            IND=2
-         ELSEIF(NSSN.EQ.3.AND.IND.NE.3) THEN
-            WRITE(6,*) '     TT (',NR,')=',RT(NR,NSSN)
-            IND=3
-         ELSEIF(NSSN.EQ.4.AND.IND.NE.4) THEN
-            WRITE(6,*) '     TA (',NR,')=',RT(NR,NSSN)
-            IND=4
-         ELSEIF(NSSN.EQ.5.AND.IND.NE.5) THEN
-            WRITE(6,*) '     TI1(',NR,')=',RT(NR,NSSN)
-            IND=5
-         ELSEIF(NSSN.EQ.6.AND.IND.NE.6) THEN
-            WRITE(6,*) '     TI2(',NR,')=',RT(NR,NSSN)
-            IND=6
+!      IND=0
+!      WRITE(6,*) 'XX ERROR : NEGATIVE TEMPERATURE AT STEP ',NT
+!      DO NEQ=1,NEQMAX
+!         NSSN=NSS(NEQ)
+!         IF(NSSN.EQ.1.AND.IND.NE.1) THEN
+!            WRITE(6,*) '     TE (',NR,')=',RT(NR,NSSN)
+!            IND=1
+!         ELSEIF(NSSN.EQ.2.AND.IND.NE.2) THEN
+!            WRITE(6,*) '     TD (',NR,')=',RT(NR,NSSN)
+!            IND=2
+!         ELSEIF(NSSN.EQ.3.AND.IND.NE.3) THEN
+!            WRITE(6,*) '     TT (',NR,')=',RT(NR,NSSN)
+!            IND=3
+!         ELSEIF(NSSN.EQ.4.AND.IND.NE.4) THEN
+!            WRITE(6,*) '     TA (',NR,')=',RT(NR,NSSN)
+!            IND=4
+!         ELSEIF(NSSN.EQ.5.AND.IND.NE.5) THEN
+!            WRITE(6,*) '     TI1(',NR,')=',RT(NR,NSSN)
+!            IND=5
+!         ELSEIF(NSSN.EQ.6.AND.IND.NE.6) THEN
+!            WRITE(6,*) '     TI2(',NR,')=',RT(NR,NSSN)
+!            IND=6
 !         ELSEIF(NSSN.EQ.7.AND.IND.NE.7) THEN
 !            WRITE(6,*) '     TNC(',NR,')=',RT(NR,NSSN)
 !            IND=7
 !         ELSEIF(NSSN.EQ.8.AND.IND.NE.8) THEN
 !            WRITE(6,*) '     TNH(',NR,')=',RT(NR,NSSN)
 !            IND=8
-         ENDIF
-      ENDDO
-      ICHCK=1
+!         ENDIF
+!      ENDDO
+!      ICHCK=1
 
  9000 RETURN
       END SUBROUTINE TRCHCK

@@ -8,10 +8,10 @@
 
         USE TRCOMM, ONLY : &
              MDLNB, NRMAX, SNB, PNB, TAUB, SNB_NNB, PNB_NNB, NNBMAX, &
-             AJNB, AJNB_NNB, PBIN, PBCL
+             AJNB, AJNB_NNB, PBIN, PBCL,NSMAX,NSPNB
              
       IMPLICIT NONE
-      INTEGER:: NNB,NR
+      INTEGER:: NNB,NR,NS
 
       DO NNB=1,NNBMAX
          IF(MDLNB(NNB).EQ.0) THEN
@@ -41,12 +41,15 @@
 !      END DO
 
       DO NR=1,NRMAX
-         SNB(NR)=0.D0
-         PNB(NR)=0.D0
+         DO NS=1,NSMAX
+            SNB(NS,NR)=0.D0
+            PNB(NS,NR)=0.D0
+         END DO
          AJNB(NR)=0.D0
          DO NNB=1,NNBMAX
-            SNB(NR)=SNB(NR)+SNB_NNB(NNB,NR)
-            PNB(NR)=PNB(NR)+PNB_NNB(NNB,NR)
+            NS=NSPNB(NNB)
+            SNB(NS,NR)=SNB(NS,NR)+SNB_NNB(NNB,NR)
+            PNB(NS,NR)=PNB(NS,NR)+PNB_NNB(NNB,NR)
             AJNB(NR)=AJNB(NR)+AJNB_NNB(NNB,NR)
          END DO
       END DO

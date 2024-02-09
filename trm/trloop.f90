@@ -46,7 +46,7 @@ CONTAINS
 
       CALL tr_exec(DT,IERR)
       IF(IERR.NE.0) GOTO 9000
-
+      
       DO nr=1,nrmax
          QPINV(nr)=(4.D0*PI**2*RDPVRHOG(nr))/(TTRHOG(nr)*ARRHOG(nr))
       END DO

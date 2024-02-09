@@ -152,9 +152,18 @@
 
 !     *** Ohmic, NBI and fusion powers ***
 
+      DO NR=1,NRMAX
+         PNBNR(NR)=0.D0
+         PNFNR(NR)=0.D0
+         DO NS=1,NSMAX
+            PNBNR(NR)=PNBNR(NR)+PNB(NS,NR)
+            PNFNR(NR)=PNFNR(NR)+PNF(NS,NR)
+         END DO
+      END DO
+            
       POHT = SUM(POH(1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
-      PNBT = SUM(PNB(1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
-      PNFT = SUM(PNF(1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
+      PNBT = SUM(PNBNR(1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
+      PNFT = SUM(PNFNR(1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
 
 !     *** External power typically for NBI from exp. data ***
 
@@ -252,8 +261,8 @@
 !     *** Ionization, fusion and NBI fuelling ***
 
       SIET = SUM(SIE(1:NRMAX)*DVRHO(1:NRMAX))*DR
-      SNFT = SUM(SNF(1:NRMAX)*DVRHO(1:NRMAX))*DR
-      SNBT = SUM(SNB(1:NRMAX)*DVRHO(1:NRMAX))*DR
+      SNFT = SUM(SNF(4,1:NRMAX)*DVRHO(1:NRMAX))*DR
+      SNBT = SUM(SNB(2,1:NRMAX)*DVRHO(1:NRMAX))*DR
 
 !     *** Pellet injection fuelling ***
 
@@ -352,18 +361,19 @@
       SUBROUTINE TRATOT
 
       USE TRCOMM, ONLY : &
-           & AJ, AJBS, AJBST, AJNB, AJNBT, AJOH, AJOHT, AJRF, AJRFT, AJRFV, &
-           & AJT, AJTTOR, AK, AKDW, ALI, ANC, ANF0, ANFAV, ANFE, ANLAV, &
-           & ANS0, ANSAV, AR1RHO, AR2RHO, BB, BETA, BETA0, BETAA, BETAP, &
-           & BETAP0, BETAPA, BP, DR, DVRHO, ER, ETA, EZOH, GVRT, GT, GVT, &
-           & H98Y2, NGT, NRAMAX, NRMAX, NROMAX, NTM, PBCLT, PBINT, & 
-           & PCX, PCXT, PEX, PEXT, PFCLT, PFINT, PI, PIE, PIET, PINT, PLT, &
-           & PNB, PNBT, PNF, PNFT, POH, POHT, POUT, PRF, PRFT, PRFV, PRFVT, &
-           & PRL, PRLT, Q0, QF, QP, RA, RHOA, RIP, RKAP, RKPRHO, RM, RMJRHO, &
-           & RMNRHO, RN, RPSI, RQ1, RR, RT, RW, S, ALPHA, SIET, SINT, SLT, &
-           & SNBT, SNFT, SOUT, T, TAUE1, TAUE2, TAUE89, TAUE98, TF0, TFAV, &
-           & TS0, TSAV, VLOOP, VPOL, VTOR, WBULKT, WFT, WPDOT, WPT, WST, &
-           & WTAILT, ZEFF, ZEFF0, RKCV, PRBT, PRCT, PRSUMT, rkind
+           AJ, AJBS, AJBST, AJNB, AJNBT, AJOH, AJOHT, AJRF, AJRFT, AJRFV, &
+           AJT, AJTTOR, AK, AKDW, ALI, ANC, ANF0, ANFAV, ANFE, ANLAV, &
+           ANS0, ANSAV, AR1RHO, AR2RHO, BB, BETA, BETA0, BETAA, BETAP, &
+           BETAP0, BETAPA, BP, DR, DVRHO, ER, ETA, EZOH, GVRT, GT, GVT, &
+           H98Y2, NGT, NRAMAX, NRMAX, NROMAX, NTM, PBCLT, PBINT, & 
+           PCX, PCXT, PEX, PEXT, PFCLT, PFINT, PI, PIE, PIET, PINT, PLT, &
+           PNB, PNBT, PNF, PNFT, POH, POHT, POUT, PRF, PRFT, PRFV, PRFVT, &
+           PRL, PRLT, Q0, QF, QP, RA, RHOA, RIP, RKAP, RKPRHO, RM, RMJRHO, &
+           RMNRHO, RN, RPSI, RQ1, RR, RT, RW, S, ALPHA, SIET, SINT, SLT, &
+           SNBT, SNFT, SOUT, T, TAUE1, TAUE2, TAUE89, TAUE98, TF0, TFAV, &
+           TS0, TSAV, VLOOP, VPOL, VTOR, WBULKT, WFT, WPDOT, WPT, WST, &
+           WTAILT, ZEFF, ZEFF0, RKCV, PRBT, PRCT, PRSUMT, rkind, &
+           PNBNR, PNFNR
       USE libspl1d
       IMPLICIT NONE
       INTEGER:: IERR, NR
@@ -529,12 +539,12 @@
          GVRT(NR,NGT,12) = GUCLIP(AJRF(NR))
          GVRT(NR,NGT,13) = GUCLIP(AJBS(NR))
 
-         GVRT(NR,NGT,14) = GUCLIP(POH(NR)+PNB(NR)+PNF(NR) &
+         GVRT(NR,NGT,14) = GUCLIP(POH(NR)+PNBNR(NR)+PNFNR(NR) &
      &                         +PEX(NR,1)+PEX(NR,2)+PEX(NR,3)+PEX(NR,4) &
      &                         +PRF(NR,1)+PRF(NR,2)+PRF(NR,3)+PRF(NR,4))
          GVRT(NR,NGT,15) = GUCLIP(POH(NR))
-         GVRT(NR,NGT,16) = GUCLIP(PNB(NR))
-         GVRT(NR,NGT,17) = GUCLIP(PNF(NR))
+         GVRT(NR,NGT,16) = GUCLIP(PNBNR(NR))
+         GVRT(NR,NGT,17) = GUCLIP(PNFNR(NR))
          GVRT(NR,NGT,18) = GUCLIP(PRF(NR,1))
          GVRT(NR,NGT,19) = GUCLIP(PRF(NR,2))
          GVRT(NR,NGT,20) = GUCLIP(PRF(NR,3))
@@ -545,11 +555,7 @@
          GVRT(NR,NGT,25) = GUCLIP(PEX(NR,1))
          GVRT(NR,NGT,26) = GUCLIP(PEX(NR,2))
 
-!         IF (NR.EQ.1) THEN
-!            GVRT(NR,NGT,27) = GUCLIP(Q0)
-!         ELSE
-            GVRT(NR,NGT,27) = GUCLIP(QP(NR))
-!         ENDIF
+         GVRT(NR,NGT,27) = GUCLIP(QP(NR))
          GVRT(NR,NGT,28) = GUCLIP(EZOH(NR))
          GVRT(NR,NGT,29) = GUCLIP(BETA(NR))
          GVRT(NR,NGT,30) = GUCLIP(BETAP(NR))
@@ -598,6 +604,15 @@
          GVRT(NR,NGT,65) = GUCLIP(ALPHA(NR))
          GVRT(NR,NGT,66) = GUCLIP(TRCOFS(S(NR),ALPHA(NR),RKCV(NR)))
          GVRT(NR,NGT,67) = GUCLIP(2.D0*PI/QP(NR))
+         
+         GVRT(NR,NGT,68) = GUCLIP(PNB(1,NR))
+         GVRT(NR,NGT,69) = GUCLIP(PNB(2,NR))
+         GVRT(NR,NGT,70) = GUCLIP(PNB(3,NR))
+         GVRT(NR,NGT,71) = GUCLIP(PNB(4,NR))
+         GVRT(NR,NGT,72) = GUCLIP(PNF(1,NR))
+         GVRT(NR,NGT,73) = GUCLIP(PNF(2,NR))
+         GVRT(NR,NGT,74) = GUCLIP(PNF(3,NR))
+         GVRT(NR,NGT,75) = GUCLIP(PNF(4,NR))
 
       ENDDO
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX

@@ -62,7 +62,6 @@ clean:
 	(cd dpseki; make clean)
 	(cd wmseki; make clean)
 	(cd wiq; make clean)
-	(cd equx; make clean)
 
 	rm -f core a.out *.o ./*~
 

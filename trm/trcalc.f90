@@ -28,8 +28,8 @@
       IERR=0
 
       SIE(1:NRMAX)=0.D0
-      SNF(1:NRMAX)=0.D0
-      SNB(1:NRMAX)=0.D0
+      SNF(1:NSMAX,1:NRMAX)=0.D0
+      SNB(1:NSMAX,1:NRMAX)=0.D0
       POH(1:NRMAX)=0.D0
       PIE(1:NRMAX)=0.D0
       PCX(1:NRMAX)=0.D0
@@ -37,8 +37,8 @@
       PRC(1:NRMAX)=0.D0
       PRL(1:NRMAX)=0.D0
       PRSUM(1:NRMAX)=0.D0
-      PNB(1:NRMAX)=0.D0
-      PNF(1:NRMAX)=0.D0
+      PNB(1:NSMAX,1:NRMAX)=0.D0
+      PNF(1:NSMAX,1:NRMAX)=0.D0
       PBIN(1:NRMAX)=0.D0
       PFIN(1:NRMAX)=0.D0
 !      AJNB(1:NRMAX)=0.D0
@@ -142,38 +142,41 @@
       DO NR=1,NRMAX
          IF(MDLEQ0.EQ.0) THEN
             DO NS=1,NSTMAX
-               IF(NS.EQ.1) THEN
-                  SSIN(NR,1)= SIE(NR) &
-                                     +SNB(NR)+SEX(NR,1)+SPSC(NR,1)
-               ELSEIF(NS.LE.NSMAX.AND.NS.EQ.2) THEN
-                  SSIN(NR,2)= PN(2)*SIE(NR)/(PN(2)+PN(3)) &
-                             -SNF(NR)+SNB(NR)+SEX(NR,2)+SPSC(NR,2)
-               ELSEIF(NS.LE.NSMAX.AND.NS.EQ.3) THEN
-                  SSIN(NR,3)= PN(3)*SIE(NR)/(PN(2)+PN(3)) &
-                             -SNF(NR)        +SEX(NR,3)+SPSC(NR,3)
-               ELSEIF(NS.LE.NSMAX.AND.NS.EQ.4) THEN
-                  SSIN(NR,4)= SNF(NR)        +SEX(NR,4)+SPSC(NR,4)
+               IF(NS.LE.NSMAX) THEN
+                  SELECT CASE(NS)
+                  CASE(1)
+                     SSIN(NR,1)= SIE(NR) &
+                          +SNB(1,NR)+SEX(NR,1)+SPSC(NR,1)
+                  CASE(2)
+                     SSIN(NR,2)= PN(2)*SIE(NR)/(PN(2)+PN(3)) &
+                          -SNF(2,NR)+SNB(2,NR)+SEX(NR,2)+SPSC(NR,2)
+                  CASE(3)
+                     SSIN(NR,3)= PN(3)*SIE(NR)/(PN(2)+PN(3)) &
+                          -SNF(3,NR)+SNB(3,NR)+SEX(NR,3)+SPSC(NR,3)
+                  CASE(4)
+                     SSIN(NR,4)= SNF(4,NR)+SNB(4,NR)+SEX(NR,4)+SPSC(NR,4)
+                  END SELECT
                ELSEIF(NS.EQ.NSMAX+NSZMAX+1) THEN
                   SSIN(NR,NSMAX+NSZMAX+1)=-SIE(NR)        -SCX(NR)
                ELSEIF(NS.EQ.NSMAX+NSZMAX+2) THEN
-                  SSIN(NR,NSMAX+NSZMAX+2)=         SNB(NR)+SCX(NR)
+                  SSIN(NR,NSMAX+NSZMAX+2)=                +SCX(NR)
                END IF
             END DO
          ELSEIF(MDLEQ0.EQ.1) THEN
             DO NS=1,NSMAX
                SELECT CASE(NS)
                CASE(1)
-                  SSIN(NR,1)=         SNB(NR)+SEX(NR,1)+SPSC(NR,1)
+                  SSIN(NR,1)=          SNB(1,NR)+SEX(NR,1)+SPSC(NR,1)
                CASE(2)
-                  SSIN(NR,2)=-SNF(NR)+SNB(NR)+SEX(NR,2)+SPSC(NR,2)
+                  SSIN(NR,2)=SNF(2,NR)+SNB(2,NR)+SEX(NR,2)+SPSC(NR,2)
                CASE(3)
-                  SSIN(NR,3)=-SNF(NR)        +SEX(NR,3)+SPSC(NR,3)
+                  SSIN(NR,3)=SNF(3,NR)+SNB(3,NR)+SEX(NR,3)+SPSC(NR,3)
                CASE(4)
-                  SSIN(NR,4)= SNF(NR)        +SEX(NR,4)+SPSC(NR,4)
+                  SSIN(NR,4)=SNF(4,NR)+SNB(4,NR)+SEX(NR,4)+SPSC(NR,4)
                CASE(7)
                   SSIN(NR,7)=0.D0
                CASE(8)
-                  SSIN(NR,8)=         SNB(NR)
+                  SSIN(NR,8)=0.D0
                END SELECT
             END DO
          ENDIF
@@ -201,7 +204,7 @@
 
       USE TRCOMM, ONLY : AEE, AMP, BB, BP, DR, EPSRHO, ER, MDLER, NRMAX, &
            & PA, PADD, PBM, PNSS, PTS, PZ, QP, RHOG, RHOM, &
-           & RJCB, RKEV, RN, RNF, RT, SUMPBM, VPOL, VTOR, rkind
+           & RJCB, RKEV, RN, RNF, RT, SUMPBM, VPOL, VTOR, rkind,NT
       USE libitp
       IMPLICIT NONE
       INTEGER:: NR
@@ -240,15 +243,17 @@
             IF(NR.EQ.NRMAX) THEN
                TEL = PTS(1)
                TIL = PTS(2)
-               RLNI = -DERIV3P(PNSS(2),RN(NR,2),RN(NR-1,2),RHOG(NR),RHOM(NR),RHOM(NR-1))/PNSS(2)
-               RLTI = -DERIV3P(PTS(2),RT(NR,2),RT(NR-1,2),RHOG(NR),RHOM(NR),RHOM(NR-1))/PTS(2)
+               RLNI = -DERIV3P(PNSS(2),RN(NR,2),RN(NR-1,2), &
+                    RHOG(NR),RHOM(NR),RHOM(NR-1))/PNSS(2)
+               RLTI = -DERIV3P(PTS(2),RT(NR,2),RT(NR-1,2), &
+                    RHOG(NR),RHOM(NR),RHOM(NR-1))/PTS(2)
             ELSE
                TEL = 0.5D0*(RT(NR,1)+RT(NR+1,1))
                TIL = 0.5D0*(RT(NR,2)+RT(NR+1,2))
-               RLNI = -(LOG(RN(NR+1,2))-LOG(RN(NR,2)))*DRL
-               RLTI = -(LOG(RT(NR+1,2))-LOG(RT(NR,2)))*DRL
+               RLNI = -(LOG(ABS(RN(NR+1,2)))-LOG(ABS(RN(NR,2))))*DRL
+               RLTI = -(LOG(ABS(RT(NR+1,2)))-LOG(ABS(RT(NR,2))))*DRL
             ENDIF
-            CS = SQRT(TEL*RKEV/(PA(2)*AMP))
+            CS = SQRT(ABS(TEL)*RKEV/(PA(2)*AMP))
             RHO_S = CS*PA(2)*AMP/(PZ(2)*AEE*BB)
             ER(NR) =-BB*( (TIL/TEL)*RHO_S*CS*(RLNI+ALPHA_NEO*RLTI)-EPS/QP(NR)*VTOR(NR))
          ENDIF

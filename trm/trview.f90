@@ -95,8 +95,9 @@ CONTAINS
          END DO
          DO NNB=1,NNBMAX
             IF(PNBIN(NNB).GT.0.D0) THEN
-               WRITE(6,632) NNB, &
+               WRITE(6,634) NNB, &
                     'NRNBMAX ',NRNBMAX(nnb), &
+                    'NSPNB   ',NSPNB(nnb), &
                     'PNBCD   ',PNBCD(nnb)
             END IF
          END DO
@@ -256,5 +257,6 @@ CONTAINS
 631   FORMAT(' ',A12,'=',ES12.4)
 632   FORMAT(' ',I2,1X,A6,I8,4X,3(1X,A6,ES12.4))
 633   FORMAT(' ',I2,4(1X,A6,ES12.4))
+634   FORMAT(' ',I2,2(1X,A6,I8,4X),2(1X,A6,ES12.4))
     END SUBROUTINE tr_view
 END MODULE trview

@@ -112,7 +112,7 @@ CONTAINS
             VCL(11)=RT(NR,2) !Ti
             VCL(12)=(PIN(NR,2)+PIN(NR,3)+PIN(NR,4))*1.D-6 !Pi
             VCL(13)=PIN(NR,1)*1.D-6 !Pe
-            VCL(14)=(POH(NR)+PNB(NR)+PNF(NR) &
+            VCL(14)=(POH(NR)+PNBNR(NR)+PNFNR(NR) &
                    +PEX(NR,1)+PEX(NR,2)+PEX(NR,3)+PEX(NR,4) &
                    +PRF(NR,1)+PRF(NR,2)+PRF(NR,3)+PRF(NR,4))*1.D-6 ! Paux
             VCL(15)= PRF(NR,1)*1.D-6                         ! HICe
@@ -170,7 +170,7 @@ CONTAINS
             VCL(12)=AJOH(NR)
             VCL(13)=QP(NR)
             VCL(14)=POH(NR)
-            VCL(15)=PNB(NR)
+            VCL(15)=PNBNR(NR)
             WRITE(NFL,'(14(1PE13.6,","),1PE13.6)') (VCL(N),N=1,15)
          END DO
          GO TO 1

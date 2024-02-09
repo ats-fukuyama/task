@@ -9,7 +9,8 @@
       USE TRCOMM, ONLY : &
            AME, AMP, ANC, ANFE, MDLNF, NRMAX, PA, PBIN, PFCL, &
            PFIN, PI, PNBENG, PNF, PZ, PZC, PZFE, RKEV, &
-           RN, RNF, RT, RTF, RW, SNF, TAUF, rkind, NNBMAX, PNB_NNB
+           RN, RNF, RT, RTF, RW, SNF, TAUF, rkind, NNBMAX, PNB_NNB, &
+           NSMAX
       IMPLICIT NONE
 !      INCLUDE 'trcomm.inc'
       REAL(rkind)   :: &
@@ -25,6 +26,8 @@
       VF =SQRT(2.D0*3.5D3 *RKEV/AMA)
 
       DO NR=1,NRMAX
+         SNF(1:NSMAX,NR)=0.D0
+         PNF(1:NSMAX,NR)=0.D0
          ANE= RN(NR,1)
          TE = RT(NR,1)
          TD = RT(NR,2)
@@ -54,9 +57,11 @@
          ELSE
             SSB=0.D0
          ENDIF
-         SNF(NR) = (SS+SSB)*RN(NR,2)*RN(NR,3)*1.D20
-         PNF(NR) = SNF(NR)*3.5D3*RKEV*1.D20
-         IF(MOD(MDLNF,2).EQ.1) SNF(NR) = 0.D0
+         SNF(4,NR) = (SS+SSB)*RN(NR,2)*RN(NR,3)*1.D20
+         PNF(4,NR) = SNF(4,NR)*3.5D3*RKEV*1.D20
+         IF(MOD(MDLNF,2).EQ.1) SNF(4,NR)=0.D0
+         SNF(2,NR) =-SNF(4,NR)
+         SNF(3,NR) =-SNF(4,NR)
       ENDDO
 
       DO NR=1,NRMAX
@@ -224,7 +229,7 @@
       USE TRCOMM, ONLY : &
            AME, AMP, MDLNF, NRMAX, PA, PFCL, &
            PFIN, PI, PNF, PZ, RKEV, &
-           RN, RNF, RT, RTF, RW, SNF, TAUF, rkind
+           RN, RNF, RT, RTF, RW, SNF, TAUF, rkind, NSMAX
       IMPLICIT NONE
       REAL(rkind)   :: &
            AMA, AMD, AMHe3, ANE, HYF, P1, SS, TAUS, &
@@ -238,15 +243,19 @@
       VF =SQRT(2.D0*3.6D3 *RKEV/AMA)
 
       DO NR=1,NRMAX
+         SNF(1:NSMAX,NR)=0.D0
+         PNF(1:NSMAX,NR)=0.D0
          ANE  = RN(NR,1)
          TE   = RT(NR,1)
          TD   = RT(NR,2)
          THe3 = RT(NR,3)
          SS = SIGMADHe3(TD,THe3)
-         SNF(NR) = SS*RN(NR,2)*RN(NR,3)*1.D20
-         PNF(NR) = SNF(NR)*(3.5D3+14.7D3)*RKEV*1.D20  ! proton energy added
-                                                      ! for simplicity
-         IF(MOD(MDLNF,2).EQ.1) SNF(NR) = 0.D0
+         SNF(4,NR) = SS*RN(NR,2)*RN(NR,3)*1.D20
+         PNF(4,NR) = SNF(4,NR)*(3.5D3+14.7D3)*RKEV*1.D20  ! proton energy added
+                                                        ! for simplicity
+         IF(MOD(MDLNF,2).EQ.1) SNF(4,NR) = 0.D0
+         SNF(2,NR) =-SNF(4,NR)
+         SNF(3,NR) =-SNF(4,NR)
       ENDDO
 
       DO NR=1,NRMAX

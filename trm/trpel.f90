@@ -111,13 +111,13 @@
 
       TAUS = 0.2D0*PA(2)*ABS(TE)**1.5D0 /(PZ(2)**2*ANE*COULOG(1,2,ANE,TE))
 
-      ANFAST=SNF(NR)*LOG(1.D0+(VF/VCR)**3)
+      ANFAST=SNF(4,NR)*LOG(1.D0+(VF/VCR)**3)
       DO NNB=1,NNBMAX
          ANFAST=ANFAST+SNB_NNB(NNB,NR)*LOG(1.D0+(VB_NNB(NNB)/VCR)**3)
       END DO
       ANFAST=ANFAST*TAUS/3.D0
       
-      B1   = SNF(NR)*(0.5D0*AMA*VCR*VCR/AEE)**3
+      B1   = SNF(4,NR)*(0.5D0*AMA*VCR*VCR/AEE)**3
       B2   = 0.5D0*(VF/VCR)**6-(VF/VCR)**3+LOG(1.D0+(VF/VCR)**3)
       SUM=0.D0
       DO NNB=1,NNBMAX
@@ -135,7 +135,7 @@
          A3=A3+SNB_NNB(NNB,NR)*1.D20*AMB &
               *((VB_NNB(NNB)/VCR)**3-LOG(1.D0+(VB_NNB(NNB)/VCR)**3))
       END DO
-      B3   = SNF(NR)*1.D20*AMA*((VF/VCR)**3-LOG(1.D0+(VF/VCR)**3))
+      B3   = SNF(4,NR)*1.D20*AMA*((VF/VCR)**3-LOG(1.D0+(VF/VCR)**3))
 
       QFAST= (A3+B3)*TAUS*VCR**3/(AEE*24.D0)
 

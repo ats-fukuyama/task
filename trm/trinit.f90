@@ -526,6 +526,7 @@ CONTAINS
       !  PNBCD(nnbm)  : CURRENT DRIVE FACTOR
       !             0 : off
       !             0 to 1: ratio of v_parallel to v
+      !  NSPNB(nnbm)  : Particle species number
       !  NRNBMAX(nnbm): number of division of NB profile      
 
       NNBMAX=1
@@ -539,6 +540,7 @@ CONTAINS
          PNBENG(NNB) = 80.D0
          PNBRTG(NNB) = 3.D0
          PNBCD(NNB)  = 1.D0
+         NSPNB(NNB)  = 2
          NRNBMAX(NNB)=10
       END DO
 
