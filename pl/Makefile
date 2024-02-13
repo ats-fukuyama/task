@@ -56,7 +56,7 @@ libs:
 	(cd ../mtxp; make)
 	(cd ../eq; make libeq.a)
 
-pl : libs libpl.a plmain.o
+pl : libs $(LIB_MTX) libpl.a plmain.o
 	$(FLINKER) plmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean:
