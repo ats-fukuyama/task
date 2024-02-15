@@ -176,16 +176,20 @@ CONTAINS
       pne_threshold=1.D-3
       bdr_threshold=1.5
 
-      ! Rmax_wr: maximum of R for ray calculation, if 0, set RR+F*RA
-      ! Rmin_wr: minimum of R for ray calculation, if 0, set RR-F*RA >1.D-6
-      ! Zmax_wr: maximum of Z for ray calculation, if 0, set RR+F*rkap*RA
-      ! Zmin_wr: minimum of Z for ray calculation, if 0, set RR-F*rkap*RA
-      ! ra_wr:   maximum minor radius for plot
+      ! For F=bdr_threshold.GT.0.D0
+      !    Rmax_wr: maximum of R for ray calculation, rmax_wr=RR+F*RA
+      !    Rmin_wr: minimum of R for ray calculation, rmin_wr,RR-F*RA
+      !    Zmax_wr: maximum of Z for ray calculation, zmax_wr, F*rkap*RA
+      !    Zmin_wr: minimum of Z for ray calculation, zmin_wr,-F*rkap*RA
+      ! For F=bdr_threshold.EQ.0.D0
+      !    given Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr are used
 
-      Rmax_wr=0.D0
-      Rmin_wr=0.D0
-      Zmax_wr=0.D0
-      Zmin_wr=0.D0
+      Rmax_wr=RR+bdr_threshold*RA
+      Rmin_wr=RR-bdr_threshold+RA
+      Zmax_wr= bdr_threshold*RKAP*RA
+      Zmin_wr=-bdr_threshold*RKAP*RA
+
+      ! ra_wr:   maximum minor radius for plot
       ra_wr=1.1D0
 
       ! wr ascii data file
