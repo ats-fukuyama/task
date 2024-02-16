@@ -66,7 +66,8 @@ CONTAINS
   SUBROUTINE wr_setup_start_point(NRAY,YN,nstp,IERR)
 
     USE wrcomm
-    USE wrsub,ONLY: wrcale,wrcale_xyz,wr_cold_rkperp,wr_newton,wr_write_line
+    USE wrsub,ONLY: wrcale,wrcale_xyz,wr_cold_rkperp,wr_newton, &
+         wr_write_line,wr_cal_ep
     USE plprof,ONLY: pl_mag_type,pl_mag,pl_prf_type,pl_prof
     USE plprofw,ONLY: pl_prfw_type,pl_profw
     IMPLICIT NONE
@@ -79,7 +80,7 @@ CONTAINS
     TYPE(pl_prf_type),DIMENSION(nsmax):: plf
     REAL(rkind):: RF,RP,ZP,PHI,ANGT,ANGP,RNK,UU
     INTEGER:: MODEW,mode
-    REAL(rkind):: XP,YP,s,deg,factor,omega_pe2,rne,arg
+    REAL(rkind):: XP,YP,s,deg,factor,omega_pe2,rne,arg,err
     REAL(rkind):: rhon,rkpara,rkperp_1,rkperp_2
     REAL(rkind):: rk,rk_x,rk_y,rk_z,dXP,dYP,dZP
     REAL(rkind):: ub_x,ub_y,ub_z,ub_R,ub_phi
@@ -89,7 +90,8 @@ CONTAINS
     REAL(rkind):: rk_x1,rk_y1,rk_z1,rk_R1,rk_phi1
     REAL(rkind):: rk_x2,rk_y2,rk_z2,rk_R2,rk_phi2
     REAL(rkind):: alpha_1,alpha_2,diff_1,diff_2
-
+    COMPLEX(rkind):: cepola(3),cenorm(3)
+    
     IERR=0
     deg=PI/180.D0
 
@@ -420,7 +422,15 @@ CONTAINS
     YN(6,nstp)= rk_z
     YN(7,nstp)= UU
     YN(8,nstp)= 0.D0
-          
+
+    IF(idebug_wr(7).NE.0) THEN
+       CALL wr_cal_ep(nstp,nray,cepola,cenorm,err)
+       WRITE(6,'(A,2i6)') 'polarization: nstp,nray=',nstp,nray
+       WRITE(6,'(A,6ES12.4)') 'CEXYZ:',cepola(1),cepola(2),cepola(3)
+       WRITE(6,'(A,6ES12.4)') 'CEOXP:',cenorm(1),cenorm(2),cenorm(3)
+       WRITE(6,'(A,6ES12.4)') &
+            'CEOXP-ABS:',ABS(cenorm(1)),ABS(cenorm(2)),ABS(cenorm(3))
+    END IF
     RETURN
   END SUBROUTINE wr_setup_start_point
 

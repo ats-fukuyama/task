@@ -12,7 +12,7 @@ MODULE wrsub
   PUBLIC dispxr
   PUBLIC dispxi
   PUBLIC wrcale
-  PUBLIC wrcalep
+  PUBLIC wr_cal_ep
   PUBLIC wrcalk
   PUBLIC wrcale_i
   PUBLIC wrcale_xyz
@@ -612,7 +612,7 @@ CONTAINS
 
 !  ----- calculate polarization along ray -----
 
-  SUBROUTINE wrcalep(nstp,nray,cepola,cenorm,err)
+  SUBROUTINE wr_cal_ep(nstp,nray,cepola,cenorm,err)
 
     USE wrcomm
     USE plprof,ONLY: pl_mag_type,pl_mag
@@ -649,7 +649,7 @@ CONTAINS
     kny=rky/rk
     knz=rkz/rk
 
-    r3x=knx              ! r3 = bn
+    r3x=knx              ! r3 = kn
     r3y=kny
     r3z=knz
     r2x=bny*knz-bnz*kny  ! r2 = bn x kn
@@ -682,7 +682,7 @@ CONTAINS
     cenorm(2)=cenorm(2)*cphase
     cenorm(3)=cenorm(3)*cphase
     RETURN
-  END SUBROUTINE wrcalep
+  END SUBROUTINE wr_cal_ep
 
 !  ----- calculate wave number along ray -----
 

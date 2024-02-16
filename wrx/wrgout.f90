@@ -801,7 +801,7 @@ CONTAINS
   SUBROUTINE WRGRF5
 
     USE wrcomm
-    USE wrsub,ONLY: wrcalep
+    USE wrsub,ONLY: wr_cal_ep
     USE libgrf
     IMPLICIT NONE
     INTEGER:: NRAY,NSTP,NSTP_PLMAX,NSTP1,NSTP2,NSTP3,NSTP4,i
@@ -830,7 +830,7 @@ CONTAINS
        NSTP3=NSTP_PLMAX
        NSTP4=NSTPMAX_NRAY(NRAY)
        
-       CALL wrcalep(nstp1,nray,cepola,cenorm,err)
+       CALL wr_cal_ep(nstp1,nray,cepola,cenorm,err)
        IF(idebug_wr(90).NE.0) THEN
           WRITE(6,'(A,I4,I8,1PE12.4)') 'nray,nstp,R=',nray,nstp1, &
                SQRT(rays(1,nstp1,nray)**2+rays(2,nstp1,nray)**2)
@@ -838,7 +838,7 @@ CONTAINS
           WRITE(6,'(A,1P6E12.4)')    'ceoxp=',(cenorm(i),i=1,3)
        END IF
 
-       CALL wrcalep(nstp2,nray,cepola,cenorm,err)
+       CALL wr_cal_ep(nstp2,nray,cepola,cenorm,err)
        IF(idebug_wr(90).NE.0) THEN
           WRITE(6,'(A,I4,I8,1PE12.4)') 'nray,nstp,R=',nray,nstp2, &
                SQRT(rays(1,nstp2,nray)**2+rays(2,nstp2,nray)**2)
@@ -846,7 +846,7 @@ CONTAINS
           WRITE(6,'(A,1P6E12.4)')    'ceoxp=',(cenorm(i),i=1,3)
        END IF
        
-       CALL wrcalep(nstp3,nray,cepola,cenorm,err)
+       CALL wr_cal_ep(nstp3,nray,cepola,cenorm,err)
        IF(idebug_wr(90).NE.0) THEN
           WRITE(6,'(A,I4,I8,1PE12.4)') 'nray,nstp,R=',nray,nstp3, &
                SQRT(rays(1,nstp3,nray)**2+rays(2,nstp3,nray)**2)
@@ -854,7 +854,7 @@ CONTAINS
           WRITE(6,'(A,1P6E12.4)')    'ceoxp=',(cenorm(i),i=1,3)
        END IF
        
-       CALL wrcalep(nstp4,nray,cepola,cenorm,err)
+       CALL wr_cal_ep(nstp4,nray,cepola,cenorm,err)
        IF(idebug_wr(90).NE.0) THEN
           WRITE(6,'(A,I4,I8,1PE12.4)') 'nray,nstp,R=',nray,nstp4, &
                SQRT(rays(1,nstp4,nray)**2+rays(2,nstp4,nray)**2)
@@ -885,7 +885,7 @@ CONTAINS
                '## nray,ntmax:',nray,nstpmax+1,NSTPMAX_NRAY(NRAY)+1
        END IF
        DO NSTP=0,NSTPMAX_NRAY(NRAY)
-          CALL wrcalep(nstp,nray,cepola,cenorm,err)
+          CALL wr_cal_ep(nstp,nray,cepola,cenorm,err)
           gepola(1,nstp+1,3*(nray-1)+1)= REAL(cenorm(1))
           gepola(2,nstp+1,3*(nray-1)+1)=AIMAG(cenorm(1))
           gepola(1,nstp+1,3*(nray-1)+2)= REAL(cenorm(2))
