@@ -2,7 +2,11 @@
 
 Module wigout
   PRIVATE
-  PUBLIC wi_gout,wi_mesh,wi_gra1
+  PUBLIC wi_gout
+  PUBLIC wi_mesh
+  PUBLIC wi_gra1
+  PUBLIC wi_gra2
+  PUBLIC wi_gra3
  
   interface
      real function GUCLIP(X)
@@ -22,7 +26,7 @@ CONTAINS
     USE wiparm
     USE libgrf
     IMPLICIT NONE
-    CHARACTER(LEN=1):: kch
+    CHARACTER(LEN=2):: kch
     INTEGER:: IERR
 
     ierr=0
@@ -371,7 +375,9 @@ CONTAINS
     REAL:: SCALX,SCALF,SCALE,SCALP
     REAL(rkind):: ANB
     REAL(rkind):: R,T,S
-    INTEGER:: J,JD
+    INTEGER:: NXABMAX
+    REAL(rkind):: ABYMAX,HABYMAX,ABY,ABY1,ABY2,XHAB
+    INTEGER:: J,JD,NX
     EXTERNAL PAGES,SETLIN,SETCHS,SETFNT,GMNMX1,GQSCAL,PAGEE
     EXTERNAL GDEFIN,GFRAME,GSCALE,GVALUE,GPLOTP,MOVE,TEXT,NUMBI,NUMBD
     
@@ -391,8 +397,28 @@ CONTAINS
     END DO
     J=NXMAX+1
     JD=2*(J-1) 
-    CBX(J)=(CFY(JD+1)-CFY(JD-1))/(xgrid(1)-xgrid(J-2))
-    CBY(J)=(CFY(JD+2)-CFY(JD  ))/(xgrid(1)-xgrid(J-2))
+    CBX(J)=(CFY(JD+1)-CFY(JD-1))/(xgrid(J-1)-xgrid(J-2))
+    CBY(J)=(CFY(JD+2)-CFY(JD  ))/(xgrid(J-1)-xgrid(J-2))
+
+    ABYMAX=0.D0
+    NXABMAX=1
+    DO NX=1,NXMAX+1
+       ABY=ABS(CBY(NX))
+       IF(ABY.GT.ABYMAX) THEN
+          ABYMAX=ABY
+          NXABMAX=NX
+       END IF
+    END DO
+    WRITE(6,'(A,I6,2ES12.4)') 'ABS(BY)-max: ',NXABMAX,xgrid(NXABMAX),ABYMAX
+    HABYMAX=0.5D0*ABYMAX
+    DO NX=1,NXMAX
+       ABY1=ABS(CBY(NX))
+       ABY2=ABS(CBY(NX+1))
+       IF((ABY1-HABYMAX)*(ABY2-HABYMAX).LT.0.D0) THEN
+          XHAB=xgrid(NX)+(HABYMAX-ABY1)/(ABY2-ABY1)*(xgrid(NX+1)-xgrid(NX))
+          WRITE(6,'(A,I6,2ES12.4)') 'ABS(BY)-half:',NX,XHAB,HABYMAX
+       END IF
+    END DO
 
     DO J=1,NXMAX+1
        SCR(J)=GUCLIP(REAL(CBX(J)))
@@ -510,9 +536,9 @@ CONTAINS
     S=AIMAG(CZ)
     CALL NUMBD(S,'(F9.5)',9)
     CALL MOVE(6.0,17.2)
-    CALL TEXT('< CBY >',7)
-    CALL MOVE(6.0,8.2)
     CALL TEXT('< CBX >',7)
+    CALL MOVE(6.0,8.2)
+    CALL TEXT('< CBY >',7)
     CALL MOVE(19.4,8.2)
     CALL TEXT('< POWER >',9)
     CALL PAGEE

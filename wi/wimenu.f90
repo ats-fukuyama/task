@@ -14,8 +14,8 @@ CONTAINS
     USE wiprep,ONLY: wi_prep
     USE wiexec,ONLY: wi_exec
     USE wiscan,ONLY: wi_scan
-    USE wigout,ONLY: wi_gout,wi_mesh
-    USE wimeasure,ONLY: wi_measure_pabs
+    USE wigout,ONLY: wi_gout,wi_mesh,wi_gra1,wi_gra3
+    USE wimeasure,ONLY: wi_measure_pabs,wi_measure_EB
     USE libkio
     USE libgrf
 
@@ -101,8 +101,21 @@ CONTAINS
        ELSE
           CALL wi_gout
        END IF
+    ELSEIF(kid.EQ.'E') THEN
+       IF(INIT.EQ.0) THEN
+          WRITE(6,*) 'XX data is not ready or destroyed'
+       ELSE
+          CALL wi_gra1
+       END IF
+    ELSEIF(kid.EQ.'B') THEN
+       IF(INIT.EQ.0) THEN
+          WRITE(6,*) 'XX data is not ready or destroyed'
+       ELSE
+          CALL wi_gra3
+       END IF
     ELSEIF(kid.EQ.'U') THEN
        CALL wi_measure_pabs
+       CALL wi_measure_EB
     ELSEIF(kid.EQ.'M') THEN
        IF(INIT.EQ.0) THEN
           WRITE(6,*) 'XX xgrid is not ready or destroyed'
