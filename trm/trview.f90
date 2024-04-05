@@ -67,7 +67,8 @@ CONTAINS
       WRITE(6,601) 'DT    ',DT,    'EPSLTR',EPSLTR,'TSST  ',TSST,  'TPRST ',TPRST
       WRITE(6,602) 'LMAXTR',LMAXTR,'NRMAX ',NRMAX, 'NTMAX ',NTMAX, 'NTSTEP',NTSTEP
       WRITE(6,602) 'NGRSTP',NGRSTP,'NGTSTP',NGTSTP,'NGPST ',NGPST, 'IZERO ',IZERO
-      WRITE(6,602) 'MDLST ',MDLST, 'MDLCD ',MDLCD, 'MDLNF ',MDLNF
+      WRITE(6,602) 'MDLST ',MDLST, 'MDLCD ',MDLCD
+      WRITE(6,630) 'model_nnf   ',model_nnf
 
       IF(MDLIMP.GT.0) THEN
          WRITE(6,602) 'MDLIMP',MDLIMP
@@ -78,7 +79,7 @@ CONTAINS
          DO NNB=1,NNBMAX
             IF(PNBIN(NNB).GT.0.D0) THEN
                WRITE(6,632) NNB, &
-                    'MDLNB ',MDLNB(nnb), &
+                    'model_nnb',model_nnb(nnb), &
                     'PNBIN ',PNBIN(NNB), &
                     'PNBR0 ',PNBR0(NNB), &
                     'PNBRW ',PNBRW(nnb)
@@ -96,9 +97,9 @@ CONTAINS
          DO NNB=1,NNBMAX
             IF(PNBIN(NNB).GT.0.D0) THEN
                WRITE(6,634) NNB, &
-                    'NRNBMAX ',NRNBMAX(nnb), &
-                    'NSPNB   ',NSPNB(nnb), &
-                    'PNBCD   ',PNBCD(nnb)
+                    'nrmax_nnb',nrmax_nnb(nnb), &
+                    'ns_nnb   ',ns_nnb(nnb), &
+                    'PNBCD ',PNBCD(nnb)
             END IF
          END DO
 
@@ -156,30 +157,32 @@ CONTAINS
             ENDIF
          END DO
 
-      IF(PELIN.GT.0.D0) THEN
-         WRITE(6,632) 1, &
-              'MDLPEL',MDLPEL, &
-              'PELIN ',PELIN, &
-              'PELR0 ',PELR0, &
-              'PELRW ',PELRW
-         WRITE(6,633) 1, &
-                 'PELRAD',PELRAD, &
-                 'PELVEL',PELVEL, &
-                 'PELTIM',PELTIM
-         WRITE(6,'(A24,4ES12.4)') &
-              'pellet_time_start', &
-               pellet_time_start
-         WRITE(6,'(A24,4ES12.4)') &
-              'pellet_time_interval', &
-               pellet_time_interval
-         WRITE(6,'(A24,4I12)') &
-              'number_of_pellet_repeat', &
-               number_of_pellet_repeat
-         DO NS=1,NSMAX
-            WRITE(6,'(A7,I2,A3,ES12.4)') 'PELPAT(',NS,'): ', &
-                 PELPAT(NS)
+         DO npel=1,npelmax
+            IF(PELIN(npel).GT.0.D0) THEN
+               WRITE(6,632) npel, &
+                    'MDLPEL',MDLPEL(npel), &
+                    'PELIN ',PELIN(npel), &
+                    'PELR0 ',PELR0(npel), &
+                    'PELRW ',PELRW(npel)
+               WRITE(6,633) npel, &
+                    'PELRAD',PELRAD(npel), &
+                    'PELVEL',PELVEL(npel), &
+                    'PELTIM',PELTIM(npel)
+               WRITE(6,'(A24,4ES12.4)') &
+                    'pellet_time_start', &
+                    pellet_time_start(npel)
+               WRITE(6,'(A24,4ES12.4)') &
+                    'pellet_time_interval', &
+                    pellet_time_interval(npel)
+               WRITE(6,'(A24,4I12)') &
+                    'number_of_pellet_repeat', &
+                    number_of_pellet_repeat(npel)
+               DO NS=1,NSMAX
+                  WRITE(6,'(A7,I2,A3,ES12.4)') 'PELPAT(',NS,'): ', &
+                       PELPAT(NS,npel)
+               END DO
+            END IF
          END DO
-         ENDIF
 
 !      idx=0
 !      DO NPEL=1,NPELMAX
@@ -255,8 +258,8 @@ CONTAINS
               2X,A8,'=',1PE11.3)
 630   FORMAT(' ',A12,'=',I12)
 631   FORMAT(' ',A12,'=',ES12.4)
-632   FORMAT(' ',I2,1X,A6,I8,4X,3(1X,A6,ES12.4))
+632   FORMAT(' ',I2,1X,A9,I5,4X,3(1X,A6,ES12.4))
 633   FORMAT(' ',I2,4(1X,A6,ES12.4))
-634   FORMAT(' ',I2,2(1X,A6,I8,4X),2(1X,A6,ES12.4))
+634   FORMAT(' ',I2,2(1X,A9,I5,4X),2(1X,A6,ES12.4))
     END SUBROUTINE tr_view
 END MODULE trview

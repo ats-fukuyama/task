@@ -1,53 +1,86 @@
+! trpnf.f90
+
+MODULE trpnf
+
+  PRIVATE
+  PUBLIC tr_pnf
+
+CONTAINS
+
+  SUBROUTINE tr_pnf
+
+    USE trcomm
+    IMPLICIT NONE
+    INTEGER:: nnf,nr
+
+    DO NR=1,NRMAX
+       SNF_NSNR(1:NSMAX,NR)=0.D0
+       PNF_NSNR(1:NSMAX,NR)=0.D0
+    END DO
+    
+    DO nnf=1,nnfmax
+       SELECT CASE(model_nnf(nnf))
+       CASE(0)
+          TAUF(nnf,1:NRMAX)=1.D0
+       CASE(1:4)
+          CALL TRNFDT(nnf)
+       CASE(5:6)
+          CALL TRNFDHE3(nnf)
+       END SELECT
+    END DO
+    RETURN
+  END SUBROUTINE tr_pnf
+
 !     ***********************************************************
 
 !           Nuclear reaction (DT)
 
 !     ***********************************************************
 
-      SUBROUTINE TRNFDT
-
-      USE TRCOMM, ONLY : &
-           AME, AMP, ANC, ANFE, MDLNF, NRMAX, PA, PBIN, PFCL, &
-           PFIN, PI, PNBENG, PNF, PZ, PZC, PZFE, RKEV, &
-           RN, RNF, RT, RTF, RW, SNF, TAUF, rkind, NNBMAX, PNB_NNB, &
-           NSMAX
-      IMPLICIT NONE
-!      INCLUDE 'trcomm.inc'
-      REAL(rkind)   :: &
-           AMA, AMD, AMT, ANE, EC, HYF, P1, PTNT, SS, SSB, TAUS, &
-           TD, TE, TT, VC3, VCA3, VCD3, VCR, VCT3, VF, WF, ZEFFM, PB
-      INTEGER:: NR,NNB
-      REAL(rkind)   :: SIGMAM, COULOG, SIGMAB, HY   !FUNCTION
 
 
-      AMD=PA(2)*AMP
-      AMT=PA(3)*AMP
-      AMA=PA(4)*AMP
-      VF =SQRT(2.D0*3.5D3 *RKEV/AMA)
+  SUBROUTINE TRNFDT(nnf)
+
+    USE TRCOMM
+    IMPLICIT NONE
+    INteGER,INTENT(IN):: nnf
+    REAL(rkind)   :: &
+         ANE, EC, HYF, P1, PTNT, SS, SSB, TAUS, &
+         TD, TE, TT, VC3, VCA3, VCD3, VCR, VCT3, VF, WF, ZEFFM, PB
+    INTEGER:: NR,NNB,NS_beam
+    REAL(rkind)   :: SIGMAM, COULOG, SIGMAB, HY   !FUNCTION
+
+    VF =SQRT(2.D0*3.5D3 *RKEV/AMA) ! alpha velocity
 
       DO NR=1,NRMAX
-         SNF(1:NSMAX,NR)=0.D0
-         PNF(1:NSMAX,NR)=0.D0
-         ANE= RN(NR,1)
-         TE = RT(NR,1)
-         TD = RT(NR,2)
-         TT = RT(NR,3)
-!         WRITE(6,*) NR,TD,TT
+         SNF_NSNR(1:NSMAX,NR)=0.D0
+         PNF_NSNR(1:NSMAX,NR)=0.D0
+         ANE= RN(NR,NS_e)
+         TE = RT(NR,NS_e)
+         TD = RT(NR,NS_D)
+         TT = RT(NR,NS_T)
          SS = SIGMAM(TD,TT)
-         IF(MDLNF.GE.3) THEN
-            ZEFFM = (PZ(2)*PZ(2)*RN(NR,2)/PA(2) &
-                    +PZ(3)*PZ(3)*RN(NR,3)/PA(3) &
-                    +PZ(4)*PZ(4)*RN(NR,4)/PA(4) &
+         IF(model_nnf(nnf).GE.3) THEN
+            ZEFFM = (PZ(NS_D)*PZ(NS_D)*RN(NR,NS_D)/PA(NS_D) &
+                    +PZ(NS_T)*PZ(NS_T)*RN(NR,NS_T)/PA(NS_T) &
+                    +PZ(NS_A)*PZ(NS_A)*RN(NR,NS_A)/PA(NS_A) &
                     +PZC(NR)*PZC(NR) *ANC(NR) /12.D0 &
                     +PZFE(NR)*PZFE(NR)*ANFE(NR)/52.D0)/ANE
-            EC  = 14.8D0*TE*PA(2)*ZEFFM**(2.D0/3.D0)
-            TAUS= 0.2D0*PA(2)*ABS(TE)**1.5D0 /(PZ(2)**2*ANE*COULOG(1,2,ANE,TE))
             SSB=0.D0
             PB=0.D0
             DO NNB=1,NNBMAX
-               PTNT= PBIN(NR)*TAUS/(RN(NR,2)*1.D20*PNBENG(NNB)*RKEV)
-               SSB = SSB+PNB_NNB(NNB,NR)*SIGMAB(PNBENG(NNB),EC,TT,PTNT)
-               PB  = PB +PNB_NNB(NNB,NR)
+               NS_beam=ns_nnb(nnb)
+               ! Critiral energy: (5.43) Takamura     
+               EC  = 14.8D0*TE*PA(NS_beam)*ZEFFM**(2.D0/3.D0)
+               ! Ion-electron slowing time: (3.22) Takamura: 
+               TAUS= 0.2D0*PA(NS_beam)*ABS(TE)**1.5D0 &
+                    /(PZ(NS_beam)**2*ANE*COULOG(1,NS_beam,ANE,TE))
+               ! weight factor in SIGMAB 
+               PTNT= PNB_NNBNR(nnb,NR)*TAUS &
+                    /(RN(NR,NS_beam)*1.D20*PNBENG(NNB)*RKEV)
+               ! fusion reaction rate
+               SSB = SSB+PNB_NNBNR(NNB,NR)*SIGMAB(PNBENG(NNB),EC,TT,PTNT)
+               PB  = PB +PNB_NNBNR(NNB,NR)
             END DO
             IF(PB.NE.0.D0) THEN
                SSB=SSB/PB
@@ -57,11 +90,11 @@
          ELSE
             SSB=0.D0
          ENDIF
-         SNF(4,NR) = (SS+SSB)*RN(NR,2)*RN(NR,3)*1.D20
-         PNF(4,NR) = SNF(4,NR)*3.5D3*RKEV*1.D20
-         IF(MOD(MDLNF,2).EQ.1) SNF(4,NR)=0.D0
-         SNF(2,NR) =-SNF(4,NR)
-         SNF(3,NR) =-SNF(4,NR)
+         SNF_NSNR(NS_A,NR) = (SS+SSB)*RN(NR,2)*RN(NR,3)*1.D20
+         PNF_NSNR(NS_A,NR) = SNF_NSNR(NS_A,NR)*3.5D3*RKEV*1.D20
+         IF(MOD(model_nnf(nnf),2).EQ.1) SNF_NSNR(NS_A,NR)=0.D0
+         SNF_NSNR(NS_D,NR) =-SNF_NSNR(NS_A,NR)
+         SNF_NSNR(NS_T,NR) =-SNF_NSNR(NS_A,NR)
       ENDDO
 
       DO NR=1,NRMAX
@@ -76,14 +109,14 @@
          VCR  = VC3**(1.D0/3.D0)
          HYF=HY(VF/VCR)
          TAUS = 0.2D0*PA(4)*ABS(TE)**1.5D0 /(PZ(4)**2*ANE*COULOG(1,2,ANE,TE))
-         TAUF(NR)= 0.5D0*TAUS*(1.D0-HYF)
+         TAUF(NNF,NR)= 0.5D0*TAUS*(1.D0-HYF)
          RNF(NR,2)= 2.D0*LOG(1.D0+(VF/VCR)**3)*WF /(3.D0*(1.D0-HYF)*3.5D3)
          IF(RNF(NR,2).GT.0.D0) THEN
             RTF(NR,2)= WF/RNF(NR,2)
          ELSE
             RTF(NR,2)= 0.D0
          ENDIF
-         PFIN(NR) = WF*RKEV*1.D20/TAUF(NR)
+         PFIN(NR) = WF*RKEV*1.D20/TAUF(nnf,NR)
          PFCL(NR,1)=    (1.D0-HYF)*PFIN(NR)
          PFCL(NR,2)=(VCD3/VC3)*HYF*PFIN(NR)
          PFCL(NR,3)=(VCT3/VC3)*HYF*PFIN(NR)
@@ -133,6 +166,7 @@
       REAL(rkind) TD,SIGMAMDD
       REAL(rkind) TI,H,ARG
 
+      TI=TD
       H  = TI/37.D0 + 5.45D0/(3.D0+TI*(1.D0+(TI/37.5D0)**2.8D0))
       ARG= -20.D0/TI**(1.D0/3.D0)
       IF(ARG.GE.-100.D0)  THEN
@@ -214,9 +248,10 @@
 
       X=XX/XC
       SIGMBS=((RGG-0.97D0*RGL)/3.D0+XC*RGL/6.D0)*LOG(X*X*X+1.D0) &
-     &      +XC*RGL*(X-LOG(X+1.D0)/2.D0 -ATAN((2.D0*X-1.D0)/SQRT(3.D0))/SQRT(3.D0))
+           +XC*RGL*(X-LOG(X+1.D0)/2.D0 &
+                   -ATAN((2.D0*X-1.D0)/SQRT(3.D0))/SQRT(3.D0))
       RETURN
-      END FUNCTION SIGMBS
+    END FUNCTION SIGMBS
 
 !     ***********************************************************
 
@@ -224,64 +259,61 @@
 
 !     ***********************************************************
 
-      SUBROUTINE TRNFDHe3
+    SUBROUTINE TRNFDHe3(NNF)
 
-      USE TRCOMM, ONLY : &
-           AME, AMP, MDLNF, NRMAX, PA, PFCL, &
-           PFIN, PI, PNF, PZ, RKEV, &
-           RN, RNF, RT, RTF, RW, SNF, TAUF, rkind, NSMAX
+      USE TRCOMM
       IMPLICIT NONE
+      INTEGER,INTENT(IN):: NNF
       REAL(rkind)   :: &
-           AMA, AMD, AMHe3, ANE, HYF, P1, SS, TAUS, &
+           ANE, HYF, P1, SS, TAUS, &
            TD, TE, THe3, VC3, VCA3, VCD3, VCR, VCHe3, VF, WF
       INTEGER:: NR
       REAL(rkind)   :: SIGMADHe3, COULOG, HY   !FUNCTION
 
-      AMD=  PA(2)*AMP
-      AMHe3=PA(3)*AMP
-      AMA=  PA(4)*AMP
       VF =SQRT(2.D0*3.6D3 *RKEV/AMA)
 
       DO NR=1,NRMAX
-         SNF(1:NSMAX,NR)=0.D0
-         PNF(1:NSMAX,NR)=0.D0
-         ANE  = RN(NR,1)
-         TE   = RT(NR,1)
-         TD   = RT(NR,2)
-         THe3 = RT(NR,3)
+         SNF_NSNR(1:NSMAX,NR)=0.D0
+         PNF_NSNR(1:NSMAX,NR)=0.D0
+         ANE  = RN(NR,NS_e)
+         TE   = RT(NR,NS_e)
+         TD   = RT(NR,NS_D)
+         THe3 = RT(NR,NS_He3)
          SS = SIGMADHe3(TD,THe3)
-         SNF(4,NR) = SS*RN(NR,2)*RN(NR,3)*1.D20
-         PNF(4,NR) = SNF(4,NR)*(3.5D3+14.7D3)*RKEV*1.D20  ! proton energy added
-                                                        ! for simplicity
-         IF(MOD(MDLNF,2).EQ.1) SNF(4,NR) = 0.D0
-         SNF(2,NR) =-SNF(4,NR)
-         SNF(3,NR) =-SNF(4,NR)
+         SNF_NSNR(NS_A,NR) = SS*RN(NR,NS_D)*RN(NR,NS_T)*1.D20
+         PNF_NSNR(NS_A,NR) = SNF_NSNR(NS_A,NR)*(3.5D3+14.7D3)*RKEV*1.D20
+             ! proton energy added
+             ! for simplicity
+         IF(MOD(model_nnf(nnf),2).EQ.1) SNF_NSNR(NS_A,NR) = 0.D0
+         SNF_NSNR(NS_D,NR)   =-SNF_NSNR(NS_A,NR)
+         SNF_NSNR(NS_He3,NR) =-SNF_NSNR(NS_A,NR)
       ENDDO
 
       DO NR=1,NRMAX
-         ANE= RN(NR,1)
-         TE = RT(NR,1)
-         WF = RW(NR,2)
+         ANE= RN(NR,NS_e)
+         TE = RT(NR,NS_e)
+         WF = RW(NR,NNBMAX+NNF)
          P1   = 3.D0*SQRT(0.5D0*PI)*AME/ANE *(ABS(TE)*RKEV/AME)**1.5D0
-         VCD3  = P1*RN(NR,2)*PZ(2)**2/AMD
-         VCHe3 = P1*RN(NR,3)*PZ(3)**2/AMHe3
-         VCA3  = P1*RN(NR,4)*PZ(4)**2/AMA
+         VCD3  = P1*RN(NR,NS_D)*PZ(NS_D)**2/AMD
+         VCHe3 = P1*RN(NR,NS_He3)*PZ(NS_He3)**2/AMHe3
+         VCA3  = P1*RN(NR,NS_A)*PZ(NS_A)**2/AMA
          VC3  = VCD3+VCHe3+VCA3
          VCR  = VC3**(1.D0/3.D0)
          HYF=HY(VF/VCR)
          TAUS = 0.2D0*PA(4)*ABS(TE)**1.5D0 /(PZ(4)**2*ANE*COULOG(1,2,ANE,TE))
-         TAUF(NR)= 0.5D0*TAUS*(1.D0-HYF)
-         RNF(NR,2)= 2.D0*LOG(1.D0+(VF/VCR)**3)*WF /(3.D0*(1.D0-HYF)*3.6D3)
-         IF(RNF(NR,2).GT.0.D0) THEN
-            RTF(NR,2)= WF/RNF(NR,2)
+         TAUF(nnf,NR)= 0.5D0*TAUS*(1.D0-HYF)
+         RNF(NR,NNBMAX+NNF) &
+              = 2.D0*LOG(1.D0+(VF/VCR)**3)*WF /(3.D0*(1.D0-HYF)*3.6D3)
+         IF(RNF(NR,NNBMAX+NNF).GT.0.D0) THEN
+            RTF(NR,NNBMAX+NNF)= WF/RNF(NR,NNBMAX+NNF)
          ELSE
-            RTF(NR,2)= 0.D0
+            RTF(NR,NNBMAX+NNF)= 0.D0
          ENDIF
-         PFIN(NR) = WF*RKEV*1.D20/TAUF(NR)
-         PFCL(NR,1)=    (1.D0-HYF)*PFIN(NR)
-         PFCL(NR,2)=(VCD3 /VC3)*HYF*PFIN(NR)
-         PFCL(NR,3)=(VCHe3/VC3)*HYF*PFIN(NR)
-         PFCL(NR,4)=(VCA3 /VC3)*HYF*PFIN(NR)
+         PFIN(NR) = WF*RKEV*1.D20/TAUF(nnf,NR)
+         PFCL(NR,NS_e)  =            (1.D0-HYF)*PFIN(NR)
+         PFCL(NR,NS_D)  =(VCD3 /VC3)*HYF*PFIN(NR)
+         PFCL(NR,NS_He3)=(VCHe3/VC3)*HYF*PFIN(NR)
+         PFCL(NR,NS_A)  =(VCA3 /VC3)*HYF*PFIN(NR)
       ENDDO
 
       RETURN
@@ -333,3 +365,4 @@
       ENDIF
       RETURN
       END FUNCTION SIGMADHe3
+    END MODULE trpnf

@@ -97,7 +97,7 @@ CONTAINS
                              CHIIKB,DIFHKB,CHIEKB,DIFZKB,IERR)
     USE trcomm, ONLY: &
          rkind,PA,PZ,RN,PNSS,RT,PTS,RA,RR,NRMAX,MDLKAI,RM,RG,RNF, &
-         PZC,ANC,PZFE,ANFE,QP,BB,WEXBP,RKPRHO,S,NSMAX,NFM
+         PZC,ANC,PZFE,ANFE,QP,BB,WEXBP,RKPRHO,S,NSMAX,NFMAX
     USE modmmm95
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NR
@@ -127,7 +127,7 @@ CONTAINS
     REAL:: cswitch(25), fig(4), frb(4), fkb(4)
     INTEGER:: NS,NF
     REAL(rkind),DIMENSION(NSMAX):: RNL,RNTL,DRNL,DRNTL
-    REAL(rkind),DIMENSION(NFM):: RNFL,DRNFL
+    REAL(rkind),DIMENSION(NFMAX):: RNFL,DRNFL
     REAL(rkind):: PZCL,PZFEL,AMCL,AMFEL
     REAL(rkind):: PNEL,PNTEL,PNHL,PNZL,ANCL,ANFEL,PNFL,PTEL,PTIL
     REAL(rkind):: PNIL,PNTIL,ZEFFL,ZNIL,ZZL,AMZL,AMHL,AMIL,QPL,BBL,WEXBL,RSL
@@ -141,7 +141,7 @@ CONTAINS
           DRNTL(NS)=(PNSS(NS)*PTS(NS) &
                     -RN(NRMAX,NS)*RT(NRMAX,NS))/(RA-RM(NRMAX))
        END DO
-       DO NF=1,NFM
+       DO NF=1,NFMAX
           RNFL(NF)=0.D0
           DRNFL(NF)=(0.D0-RNF(NRMAX,NF))/(RA-RM(NRMAX))
        END DO
@@ -158,7 +158,7 @@ CONTAINS
           DRNTL(NS)=     (RN(NR+1,NS)*RT(NR+1,NS) &
                          -RN(NR,  NS)*RT(NR,  NS))/(RM(NR+1)-RM(NR))
        END DO
-       DO NF=1,NFM
+       DO NF=1,NFMAX
           RNFL(NF)=0.5D0*(RNF(NR+1,NF)+RNF(NR,NF))
           DRNFL(NF)=     (RNF(NR+1,NF)-RNF(NR,NF))/(RM(NR+1)-RM(NR))
        END DO
@@ -332,7 +332,7 @@ CONTAINS
                              IERR)
     USE trcomm, ONLY: &
          rkind,PA,PZ,RN,PNSS,RT,PTS,RA,RR,NRMAX,MDLKAI,RM,RG,RNF, &
-         PZC,ANC,PZFE,ANFE,QP,BB,WEXBP,RKPRHO,S,NSMAX,NFM
+         PZC,ANC,PZFE,ANFE,QP,BB,WEXBP,RKPRHO,S,NSMAX,NFMAX
     USE modmmm7_1
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NR
@@ -363,7 +363,7 @@ CONTAINS
 
     INTEGER:: NS,NFL,jz
     REAL(rkind),DIMENSION(NSMAX):: RNL,RNTL,DRNL,DRNTL
-    REAL(rkind),DIMENSION(NFM):: RNFL,DRNFL
+    REAL(rkind),DIMENSION(NFMAX):: RNFL,DRNFL
     REAL(rkind):: PZCL,PZFEL,AMCL,AMFEL
     REAL(rkind):: PNEL,PNTEL,PNHL,PNZL,ANCL,ANFEL,PNFL,PTEL,PTIL
     REAL(rkind):: PNIL,PNTIL,ZEFFL,ZNIL,ZZL,AMZL,AMHL,AMIL,QPL,BBL,WEXBL,RSL
@@ -377,7 +377,7 @@ CONTAINS
           DRNTL(NS)=(PNSS(NS)*PTS(NS) &
                     -RN(NRMAX,NS)*RT(NRMAX,NS))/(RA-RM(NRMAX))
        END DO
-       DO NFL=1,NFM
+       DO NFL=1,NFMAX
           RNFL(NFL)=0.D0
           DRNFL(NFL)=(0.D0-RNF(NRMAX,NFL))/(RA-RM(NRMAX))
        END DO
@@ -394,7 +394,7 @@ CONTAINS
           DRNTL(NS)=     (RN(NR+1,NS)*RT(NR+1,NS) &
                          -RN(NR,  NS)*RT(NR,  NS))/(RM(NR+1)-RM(NR))
        END DO
-       DO NFL=1,NFM
+       DO NFL=1,NFMAX
           RNFL(NFL)=0.5D0*(RNF(NR+1,NFL)+RNF(NR,NFL))
           DRNFL(NFL)=     (RNF(NR+1,NFL)-RNF(NR,NFL))/(RM(NR+1)-RM(NR))
        END DO

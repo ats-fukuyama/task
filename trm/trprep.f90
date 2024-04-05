@@ -18,6 +18,14 @@ CONTAINS
     INTEGER,INTENT(OUT):: ierr
     INTEGER:: nr,ns
 
+    NS_e=1
+    NS_D=2
+    NS_T=3
+    NS_A=4
+    NS_He3=0
+    NS_C=7
+    NS_Fe=8
+    
       CALL ALLOCATE_TRCOMM(IERR)
       IF(IERR.NE.0) RETURN
 

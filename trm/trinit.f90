@@ -17,7 +17,7 @@ CONTAINS
 
       USE trcomm_parm
       IMPLICIT NONE
-      INTEGER NS, NNB, NEC, NLH, NIC, NPEL, NPSC
+      INTEGER NS,NNB,NEC,NLH,NIC,NPEL,NPSC,nnf
 
       !  ==== Configuration parameters ====
 
@@ -251,7 +251,7 @@ CONTAINS
       !  *** 130..134 : CDBM model                       ***
       !  *** 140..143 : Mixed Boam and gyroBohm model    ***
       !  *** 150..151 : mmm95 model                      ***
-      !  *** 160..152 : mmm7_1 model (ETG not included)  ***
+      !  *** 160..162 : mmm7_1 model (ETG not included)  ***
 
       !  ***  MDLKAI.EQ. 0   : CONSTANT*(1+A*rho^2)
       !                   1   : CONSTANT/(1-A*rho^2)
@@ -478,7 +478,7 @@ CONTAINS
 
       !  ==== FUSION REACTION PARAMETERS ====
 
-      !  MDLNF  : FUSION REACTION MODEL TYPE
+      !  model_nnf  : FUSION REACTION MODEL TYPE
       !        0:OFF
       !        1:ON (DT) without particle source
       !        2:ON (DT) with particle source
@@ -487,7 +487,10 @@ CONTAINS
       !        5:ON (DHe3) without particle source
       !        6:ON (DHe3) with particle source
 
-      MDLNF  = 0
+      nnfmax=1
+      DO nnf=1,nnfm
+         model_nnf(nnf)  = 0
+      END DO
 
       !     ==== RADIATION ====
 
@@ -531,7 +534,9 @@ CONTAINS
 
       NNBMAX=1
       DO NNB=1,NNBM
-         MDLNB(NNB)  = 1
+         model_nnb(nnb) = 1
+         ns_nnb(nnb)    = 2
+         nrmax_nnb(nnb) = 10
          PNBIN(NNB)  = 0.D0
          PNBR0(NNB)  = 0.D0
          PNBRW(NNB)  = 0.5D0
@@ -540,8 +545,6 @@ CONTAINS
          PNBENG(NNB) = 80.D0
          PNBRTG(NNB) = 3.D0
          PNBCD(NNB)  = 1.D0
-         NSPNB(NNB)  = 2
-         NRNBMAX(NNB)=10
       END DO
 
       !  ==== ECRF PARAMETERS ====
@@ -626,22 +629,22 @@ CONTAINS
       !  number_of_pellet_repeat(npelm) : max. repeat count of pellet injection
 
       NPELMAX=1
-      MDLPEL= 1
-      PELIN = 0.D0
-      PELR0 = 0.D0
-      PELRW = 0.5D0
-      PELRAD= 0.D0
-      PELVEL= 0.D0
-      PELTIM= -10.D0
-
-      PELPAT(1) = 1.0D0
-      PELPAT(2) = 1.0D0
-      DO NS=3,NSMM
-         PELPAT(NS) = 0.0D0
-      ENDDO
-      pellet_time_start=0.D0
-      pellet_time_interval=1.D0
-      number_of_pellet_repeat=0
+      DO npel=1,npelm
+         PELIN(npel) = 0.D0
+         PELR0(npel) = 0.D0
+         PELRW(npel) = 0.5D0
+         PELRAD(npel)= 0.D0
+         PELVEL(npel)= 0.D0
+         PELTIM(npel)= -10.D0
+         pellet_time_start(npel)=0.D0
+         pellet_time_interval(npel)=1.D0
+         DO NS=1,NSM
+            PELPAT(NS,npel) = 0.0D0
+         END DO
+         PELPAT(2,npel) = 1.0D0
+         MDLPEL(npel)= 1
+         number_of_pellet_repeat(npel)=0
+      END DO
       
 !      NPELMAX=1
 !      DO NPEL=1,NPELM

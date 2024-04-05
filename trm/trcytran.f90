@@ -4,12 +4,12 @@ MODULE tr_cytran_mod
 ! Interface of TASK/TR with CYTRAN_MOD
 !-------------------------------------
 
-USE bpsd_kinds
-use cytran_mod
-
 CONTAINS
 
 SUBROUTINE tr_cytran
+
+USE bpsd_kinds
+use cytran_mod
 
 USE trcomm, ONLY: &
      nrmax,rn,rt,abb1rho,pvolrhog,psurrhog,prc,syncabs,syncself,aee

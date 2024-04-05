@@ -45,7 +45,7 @@ CONTAINS
             RT(NR,NS)=0.D0
             RU(NR,NS)=0.D0
          END DO
-         DO NF=1,NFM
+         DO NF=1,NFMAX
             RW(NR,NF)=0.D0
             RNF(NR,NF)=0.D0
             RTF(NR,NF)=0.D0
@@ -129,7 +129,7 @@ CONTAINS
          PEX(NR,1:NSM) = 0.D0
          SEX(NR,1:NSM) = 0.D0
          PRF(NR,1:NSM) = 0.D0
-         RNF(NR,1:NFM) = 0.D0
+         RNF(NR,1:NFMAX) = 0.D0
          PBM(NR)=0.D0
          WROT(NR)=0.D0
          VTOR(NR)=0.D0
@@ -143,7 +143,7 @@ CONTAINS
             ANNU(NR)=0.D0
          ENDIF
 
-         RW(NR,1:NFM) = 0.D0
+         RW(NR,1:NFMAX) = 0.D0
 
          SUMPBM=SUMPBM+PBM(NR)
       ENDDO

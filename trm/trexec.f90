@@ -18,7 +18,7 @@ CONTAINS
       USE TRCOMM, ONLY : &
      &   AJ, AJU, AMP, ANC, ANFE, ANNU, AX, AY, AZ, BB, &
      &   DR, DVRHO, DVRHOG, EPSLTR, LDAB, LMAXTR, MDLEQB, MDLEQE, &
-     &   MDLEQN, MDLPCK, MDLUF, MDLTC, MLM, NEQMAX, NFM, &
+     &   MDLEQN, MDLPCK, MDLUF, MDLTC, MLM, NEQMAX, NFMAX, &
      &   NRAMAX, NRMAX, NROMAX, NSM, NSMAX, NSS, NST, NSV, &
      &   NTUM, &
      &   PA, PZ, PZC, PZFE, PN, RDP, RHOA, RIP, RIPU, RM, &
@@ -41,7 +41,7 @@ CONTAINS
       REAL(rkind):: rne_local,rt_local
       INTEGER,DIMENSION(NEQMAXM*NRMAX) :: IPIV
       REAL(rkind),DIMENSION(NEQMAXM*NRMAX)    :: XX
-      REAL(rkind),DIMENSION(2,NRMAX)  :: YY
+      REAL(rkind),DIMENSION(NFMAX,NRMAX)  :: YY
       REAL(rkind),DIMENSION(NSMAX,NRMAX):: ZZ
 
       IERR=0
@@ -54,7 +54,7 @@ CONTAINS
 
 !     /* Store Variables for Convergence Check */
       forall(J=1:NEQMAX,NR=1:NRMAX) XX(NEQMAX*(NR-1)+J) = XV(J,NR)
-      YY(1:NFM,1:NRMAX) = YV(1:NFM,1:NRMAX)
+      YY(1:NFMAX,1:NRMAX) = YV(1:NFMAX,1:NRMAX)
       IF(MDLTC.NE.0) ZZ(1:NSMAX,1:NRMAX) = ZV(1:NSMAX,1:NRMAX)
 
  2000 CONTINUE
@@ -106,7 +106,7 @@ CONTAINS
 
 !    /* Solve equation for fast particl
 
-      Y(1:NFM,1:NRMAX) = Y(1:NFM,1:NRMAX)/AY(1:NFM,1:NRMAX)
+      Y(1:NFMAX,1:NRMAX) = Y(1:NFMAX,1:NRMAX)/AY(1:NFMAX,1:NRMAX)
       IF(MDLTC.NE.0) Z(1:NSMAX,1:NRMAX) = Z(1:NSMAX,1:NRMAX)/AZ(1:NSMAX,1:NRMAX)
 
 !     /* Convergence check */
@@ -114,7 +114,7 @@ CONTAINS
       DO I=1,NEQRMAX*NRMAX
          IF (ABS(X(I)-XX(I)).GT.EPSLTR*ABS(X(I))) GOTO 3000
       ENDDO
-      DO J=1,NFM
+      DO J=1,NFMAX
       DO NR=1,NRMAX
          IF (ABS(Y(J,NR)-YY(J,NR)).GT.EPSLTR*ABS(Y(J,NR))) GOTO 3000
       ENDDO
@@ -136,7 +136,7 @@ CONTAINS
       DO I=1,NEQRMAX*NRMAX
          XX(I) = X(I)
       ENDDO
-      DO J=1,NFM
+      DO J=1,NFMAX
       DO NR=1,NRMAX
          YY(J,NR) = Y(J,NR)
       ENDDO
@@ -381,7 +381,7 @@ CONTAINS
          ENDIF
       ENDDO
 
-      YV(1:NFM,1:NRMAX) = Y(1:NFM,1:NRMAX)
+      YV(1:NFMAX,1:NRMAX) = Y(1:NFMAX,1:NRMAX)
       IF(MDLTC.NE.0) ZV(1:NSMAX,1:NRMAX) = Z(1:NSMAX,1:NRMAX)
 
 !     /* Making New Physical Variables */
@@ -475,19 +475,13 @@ CONTAINS
 
       SUBROUTINE TRMTRX(NEQRMAX)
 
-      USE TRCOMM, ONLY : AEE, AKDW, AMZ, AX, AY, AZ, DD, DI, DT, &
-     &                   DVRHOG, EPS0, LDAB, MDLCD, MDLEQB, MDLPCK, MDLUF, &
-     &                   MDLTC, MLM, NEA, NEQM, NEQMAX, NRMAX, NSMAX, &
-     &                   NSS, NST, NTUM, NVM, PI, PNB, PNF, RA, RIP, RIPA, &
-     &                   RKEV, RMU0, RN, RR, RT, RTM, T, TAUB, TAUF, TAUK, &
-     &                   VI, VV, X, XV, Y, YV, Z, ZV, RDPS, &
-     &                   ABVRHOG, rkind
+      USE TRCOMM
       USE TRCOMX
       USE trfixed
       IMPLICIT NONE
       INTEGER, INTENT(INOUT):: NEQRMAX
-      INTEGER:: KL, MV, MVV, MW, MWMAX, NEQ, NEQ1, NR, NS, NS1, NSTN, NSW, &
-     &             NV, NW
+      INTEGER:: KL, MV, MVV, MW, MWMAX, NEQ, NEQ1, NR
+      INTEGER:: NS, NS1, NSTN, NSW, NV, NW, NNB, NNF
       REAL(rkind)   :: ADV, C1, COEF, COULOG, DV53, FADV, PRV, RDPA, RLP
 
 ! Boundary condition for magnetic diffusion equation
@@ -590,10 +584,17 @@ CONTAINS
 
 !     ***** Evolution of fast ion components *****
 
-      Y(1,NR)=(1.D0-PRV/TAUB(NR))*YV(1,NR)+PNB(2,NR)*DT/(RKEV*1.D20)
-      Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(4,NR)*DT/(RKEV*1.D20)
-      AY(1,NR)=1.D0+ADV/TAUB(NR)
-      AY(2,NR)=1.D0+ADV/TAUF(NR)
+      DO NNB=1,NNBMAX
+         Y(NNB,NR)=(1.D0-PRV/TAUB(NNB,NR))*YV(NNB,NR) &
+              +PNB_NNBNR(NNB,NR)*DT/(RKEV*1.D20)
+         AY(NNB,NR)=1.D0+ADV/TAUB(NNB,NR)
+      END DO
+      DO NNF=1,NNFMAX
+         Y(NNBMAX+NNF,NR)=(1.D0-PRV/TAUF(NNF,NR))*YV(NNBMAX+NNF,NR) &
+              +PNF_NNFNR(NNF,NR)*DT/(RKEV*1.D20)
+         AY(NNBMAX+NNF,NR)=1.D0+ADV/TAUF(NNF,NR)
+      END DO
+      
       IF(MDLTC.NE.0) THEN
          DO NS=1,NSMAX
             Z(NS,NR)=(1.D0-PRV/TAUK(NR))*ZV(NS,NR)+AKDW(NR,NS)*DT/TAUK(NR)
@@ -646,18 +647,25 @@ CONTAINS
          DO NW=1,NEQMAX
          DO NV=1,NEQMAX
             X(NEQMAX*(NR-1)+NV) = X(NEQMAX*(NR-1)+NV) &
-     &                          +PRV*(A(NV,NW,NR)*XV(NW,NR-1) &
-     &                               +B(NV,NW,NR)*XV(NW,NR  ) &
-     &                               +C(NV,NW,NR)*XV(NW,NR+1))
+                                +PRV*(A(NV,NW,NR)*XV(NW,NR-1) &
+                                     +B(NV,NW,NR)*XV(NW,NR  ) &
+                                     +C(NV,NW,NR)*XV(NW,NR+1))
          ENDDO
          ENDDO
 
 !     ***** Evolution of fast ion components *****
 
-         Y(1,NR)=(1.D0-PRV/TAUB(NR))*YV(1,NR)+PNB(2,NR)*DT/(RKEV*1.D20)
-         Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(4,NR)*DT/(RKEV*1.D20)
-         AY(1,NR)=1.D0+ADV/TAUB(NR)
-         AY(2,NR)=1.D0+ADV/TAUF(NR)
+         DO NNB=1,NNBMAX
+            Y(NNB,NR)=(1.D0-PRV/TAUB(NNB,NR))*YV(NNB,NR) &
+                 +PNB_NSNNBNR(NS_NNB(NNB),NNB,NR)*DT/(RKEV*1.D20)
+            AY(NNB,NR)=1.D0+ADV/TAUB(NNB,NR)
+         END DO
+         DO NNF=1,NNFMAX
+            Y(NNBMAX+NNF,NR)=(1.D0-PRV/TAUF(NNF,NR))*YV(NNBMAX+NNF,NR) &
+                 +PNF_NSNNFNR(NS_NNF(NNF),NNF,NR)*DT/(RKEV*1.D20)
+            AY(NNBMAX+NNF,NR)=1.D0+ADV/TAUF(NNF,NR)
+         END DO
+
          IF(MDLTC.NE.0) THEN
             DO NS=1,NSMAX
                Z(NS,NR)=(1.D0-PRV/TAUK(NR))*ZV(NS,NR)+AKDW(NR,NS)*DT/TAUK(NR)
@@ -720,10 +728,16 @@ CONTAINS
 
 !     ***** Evolution of fast ion components *****
 
-      Y(1,NR)=(1.D0-PRV/TAUB(NR))*YV(1,NR)+PNB(2,NR)*DT/(RKEV*1.D20)
-      Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(4,NR)*DT/(RKEV*1.D20)
-      AY(1,NR)=1.D0+ADV/TAUB(NR)
-      AY(2,NR)=1.D0+ADV/TAUF(NR)
+      DO NNB=1,NNBMAX
+         Y(NNB,NR)=(1.D0-PRV/TAUB(NNB,NR))*YV(NNB,NR) &
+              +PNB_NSNNBNR(NS_NNB(NNB),NNB,NR)*DT/(RKEV*1.D20)
+         AY(NNB,NR)=1.D0+ADV/TAUB(NNB,NR)
+      END DO
+      DO NNF=1,NNFMAX
+         Y(NNBMAX+NNF,NR)=(1.D0-PRV/TAUF(NNF,NR))*YV(NNBMAX+NNF,NR) &
+              +PNF_NSNNFNR(NS_NNF(NNF),NNF,NR)*DT/(RKEV*1.D20)
+         AY(NNBMAX+NNF,NR)=1.D0+ADV/TAUF(NNF,NR)
+      END DO
       IF(MDLTC.NE.0) THEN
          DO NS=1,NSMAX
             Z(NS,NR)=(1.D0-PRV/TAUK(NR))*ZV(NS,NR)+AKDW(NR,NS)*DT/TAUK(NR)

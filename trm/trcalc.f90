@@ -7,29 +7,23 @@
 
       SUBROUTINE TRCALC(IERR)
 
-      USE TRCOMM, ONLY : AJBS, AJRF, AJRFV, AR1RHOG, ARRHOG, &
-           BP, DT, MDLEQ0, &
-           MDLJBS, MDLNF, MDLUF, MDLPR, MDLNCL, NRAMAX, NRMAX, &
-           NROMAX, NSM, NSMAX, PBCL, PBIN, PCX, PELTIM, PEX, PFCL, PFIN, &
-           PI, PIE, PIN, PN, PNB, PNF, POH, PRB, PRC, PRF, PRFV, PRL, PRSUM, &
-           Q0, QP, RDP, RG, RHOA, RR, SCX, SEX, SIE, SNB, SNF, SPE, SSIN, &
-           T, TAUF, TTRHOG, RDPVRHOG, SPSC, NSTMAX, NSZMAX, &
-           pellet_time_start,pellet_time_interval, &
-           number_of_pellet_repeat,icount_of_pellet
+      USE trcomm_constants
+      USE TRCOMM
+      USE trpnf
       USE tr_cytran_mod
       USE libitp
       IMPLICIT NONE
       INTEGER,INTENT(OUT)    :: IERR
-      INTEGER                :: NR,NS
-      REAL(rkind),SAVE:: pellet_time_start_save=-1.D0
-      REAL(rkind):: t_pellet
+      INTEGER                :: NR,NS,npel
+      REAL(rkind):: t_pellet(npelmax)
+      REAL(rkind),SAVE:: pellet_time_start_save(1:npelm)=-1.D0
 
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       IERR=0
 
       SIE(1:NRMAX)=0.D0
-      SNF(1:NSMAX,1:NRMAX)=0.D0
-      SNB(1:NSMAX,1:NRMAX)=0.D0
+      SNF_NSNR(1:NSMAX,1:NRMAX)=0.D0
+      SNB_NSNR(1:NSMAX,1:NRMAX)=0.D0
       POH(1:NRMAX)=0.D0
       PIE(1:NRMAX)=0.D0
       PCX(1:NRMAX)=0.D0
@@ -37,11 +31,8 @@
       PRC(1:NRMAX)=0.D0
       PRL(1:NRMAX)=0.D0
       PRSUM(1:NRMAX)=0.D0
-      PNB(1:NSMAX,1:NRMAX)=0.D0
-      PNF(1:NSMAX,1:NRMAX)=0.D0
-      PBIN(1:NRMAX)=0.D0
-      PFIN(1:NRMAX)=0.D0
-!      AJNB(1:NRMAX)=0.D0
+      PNB_NSNR(1:NSMAX,1:NRMAX)=0.D0
+      PNF_NSNR(1:NSMAX,1:NRMAX)=0.D0
       AJRFV(1:NRMAX,1)=0.D0
       AJRFV(1:NRMAX,2)=0.D0
       AJRFV(1:NRMAX,3)=0.D0
@@ -64,34 +55,41 @@
       ENDIF
 
       BP(1:NRMAX)=AR1RHOG(1:NRMAX)*RDP(1:NRMAX)/RR
-      QP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)/(4.D0*PI**2*RDPVRHOG(1:NRMAX))
+      QP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX) &
+           /(4.D0*PI**2*RDPVRHOG(1:NRMAX))
       Q0=FCTR(RG(1),RG(2),QP(1),QP(2))
 
 !     *** RADIAL ELECTRIC FIELD ***
 
       CALL TRERAD
 
-      IF(pellet_time_start.NE.pellet_time_start_save) THEN
-         icount_of_pellet=0
-         pellet_time_start_save=pellet_time_start
+      DO npel=1,npelmax
+         IF(pellet_time_start(npel).NE.pellet_time_start_save(npel)) THEN
+            icount_of_pellet(npel)=0
+            pellet_time_start_save(npel)=pellet_time_start(npel)
 !         WRITE(6,'(A,I6,2ES12.4)') &
 !              '# pellet setup:',icount_of_pellet,pellet_time_start,t
-      END IF
-      IF(T.GT.pellet_time_start-0.5D0*DT) THEN
-         IF(icount_of_pellet.LT.number_of_pellet_repeat) THEN
-            t_pellet=pellet_time_start+icount_of_pellet*pellet_time_interval
+         END IF
+         IF(T.GT.pellet_time_start(npel)-0.5D0*DT) THEN
+            IF(icount_of_pellet(npel).LT.number_of_pellet_repeat(npel)) THEN
+               t_pellet(npel)=pellet_time_start(npel) &
+                    +icount_of_pellet(npel)*pellet_time_interval(npel)
 !            WRITE(6,'(A,3ES12.4)') '# t_pellet:', &
 !                 T,t_pellet-0.5D0*DT,t_pellet+0.5D0*DT
-            IF(T.GT.t_pellet-0.5D0*DT.AND.T.LE.t_pellet+0.5D0*DT) THEN
-               CALL TRPELT
-               icount_of_pellet=icount_of_pellet+1
-               WRITE(6,'(A,I6,2ES12.4)') &
-                    '# pellet injected:',icount_of_pellet,T,t_pellet
+               IF(T.GT.t_pellet(npel)-0.5D0*DT.AND. &
+                  T.LE.t_pellet(npel)+0.5D0*DT) THEN
+                  CALL TRPELT(npel)
+                  icount_of_pellet(npel)=icount_of_pellet(npel)+1
+                  WRITE(6,'(A,2I6,2ES12.4)') &
+                       '# pellet injected:',npel,icount_of_pellet(npel), &
+                       T,t_pellet(npel)
+               ENDIF
             ENDIF
-         ENDIF
-      END IF
+         END IF
             
-      IF(T.LT.PELTIM+0.5D0*DT.AND. T.GE.PELTIM-0.5D0*DT) CALL TRPELT
+         IF(T.LT.PELTIM(npel)+0.5D0*DT.AND. &
+            T.GE.PELTIM(npel)-0.5D0*DT) CALL TRPELT(npel)
+      END DO
 
       CALL TRPSC
 
@@ -128,14 +126,7 @@
          end select
       ENDIF
 
-      SELECT CASE(MDLNF)
-      CASE(0)
-         TAUF(1:NRMAX)=1.D0
-      CASE(1:4)
-         CALL TRNFDT
-      CASE(5:6)
-         CALL TRNFDHE3
-      END SELECT
+      CALL tr_pnf
       
       CALL TRAJOH
 
@@ -143,19 +134,21 @@
          IF(MDLEQ0.EQ.0) THEN
             DO NS=1,NSTMAX
                IF(NS.LE.NSMAX) THEN
-                  SELECT CASE(NS)
-                  CASE(1)
-                     SSIN(NR,1)= SIE(NR) &
-                          +SNB(1,NR)+SEX(NR,1)+SPSC(NR,1)
-                  CASE(2)
-                     SSIN(NR,2)= PN(2)*SIE(NR)/(PN(2)+PN(3)) &
-                          -SNF(2,NR)+SNB(2,NR)+SEX(NR,2)+SPSC(NR,2)
-                  CASE(3)
-                     SSIN(NR,3)= PN(3)*SIE(NR)/(PN(2)+PN(3)) &
-                          -SNF(3,NR)+SNB(3,NR)+SEX(NR,3)+SPSC(NR,3)
-                  CASE(4)
-                     SSIN(NR,4)= SNF(4,NR)+SNB(4,NR)+SEX(NR,4)+SPSC(NR,4)
-                  END SELECT
+                  IF(NS.EQ.NS_e) THEN
+                     SSIN(NR,NS_e)= SIE(NR) &
+                          +SNB_NSNR(NS_e,NR)+SEX(NR,NS_e)+SPSC(NR,NS_e)
+                  ELSE IF(NS.EQ.NS_D) THEN
+                     SSIN(NR,NS_D)= PN(NS_D)*SIE(NR)/(PN(NS_D)+PN(NS_T)) &
+                          -SNF_NSNR(NS_D,NR)+SNB_NSNR(NS_D,NR) &
+                          +SEX(NR,NS_D)+SPSC(NR,NS_D)
+                  ELSE IF(NS.EQ.NS_T) THEN
+                     SSIN(NR,NS_T)= PN(NS_T)*SIE(NR)/(PN(NS_D)+PN(NS_T)) &
+                          -SNF_NSNR(NS_T,NR)+SNB_NSNR(NS_T,NR) &
+                          +SEX(NR,NS_T)+SPSC(NR,NS_T)
+                  ELSE IF(NS.EQ.NS_A) THEN
+                     SSIN(NR,NS_A)= SNF_NSNR(NS_A,NR)+SNB_NSNR(NS_A,NR) &
+                          +SEX(NR,NS_A)+SPSC(NR,NS_A)
+                  END IF
                ELSEIF(NS.EQ.NSMAX+NSZMAX+1) THEN
                   SSIN(NR,NSMAX+NSZMAX+1)=-SIE(NR)        -SCX(NR)
                ELSEIF(NS.EQ.NSMAX+NSZMAX+2) THEN
@@ -164,29 +157,32 @@
             END DO
          ELSEIF(MDLEQ0.EQ.1) THEN
             DO NS=1,NSMAX
-               SELECT CASE(NS)
-               CASE(1)
-                  SSIN(NR,1)=          SNB(1,NR)+SEX(NR,1)+SPSC(NR,1)
-               CASE(2)
-                  SSIN(NR,2)=SNF(2,NR)+SNB(2,NR)+SEX(NR,2)+SPSC(NR,2)
-               CASE(3)
-                  SSIN(NR,3)=SNF(3,NR)+SNB(3,NR)+SEX(NR,3)+SPSC(NR,3)
-               CASE(4)
-                  SSIN(NR,4)=SNF(4,NR)+SNB(4,NR)+SEX(NR,4)+SPSC(NR,4)
-               CASE(7)
-                  SSIN(NR,7)=0.D0
-               CASE(8)
-                  SSIN(NR,8)=0.D0
-               END SELECT
+               IF(NS.EQ.NS_e) THEN
+                  SSIN(NR,NS_e)=          SNB_NSNR(NS_e,NR) &
+                       +SEX(NR,NS_e)+SPSC(NR,NS_e)
+               ELSEIF(NS.EQ.NS_D) THEN
+                  SSIN(NR,NS_D)=SNF_NSNR(NS_D,NR)+SNB_NSNR(NS_D,NR) &
+                       +SEX(NR,NS_D)+SPSC(NR,NS_D)
+               ELSEIF(NS.EQ.NS_T) THEN
+                  SSIN(NR,NS_T)=SNF_NSNR(NS_T,NR)+SNB_NSNR(NS_T,NR) &
+                       +SEX(NR,NS_T)+SPSC(NR,NS_T)
+               ELSEIF(NS.EQ.NS_A) THEN
+                  SSIN(NR,NS_A)=SNF_NSNR(NS_A,NR)+SNB_NSNR(NS_A,NR) &
+                       +SEX(NR,NS_A)+SPSC(NR,NS_A)
+               ELSE IF(NS.EQ.NS_C) THEN
+                  SSIN(NR,NS_C)=0.D0
+               ELSE IF(NS.EQ.NS_Fe) THEN
+                  SSIN(NR,NS_Fe)=0.D0
+               END IF
             END DO
          ENDIF
-         PIN(NR,1)=PBCL(NR,1)+PFCL(NR,1)+PRF(NR,1) &
-              &   +POH(NR)-PRSUM(NR)-PIE(NR)+PEX(NR,1)
-         PIN(NR,2)=PBCL(NR,2)+PFCL(NR,2)+PRF(NR,2) &
-              &   -PN(2)*PCX(NR)/(PN(2)+PN(3))+PEX(NR,2)
-         PIN(NR,3)=PBCL(NR,3)+PFCL(NR,3)+PRF(NR,3) &
-              &   -PN(3)*PCX(NR)/(PN(2)+PN(3))+PEX(NR,3)
-         PIN(NR,4)=PBCL(NR,4)+PFCL(NR,4)+PRF(NR,4)+PEX(NR,4)
+         PIN(NR,NS_e)=PBCL(NR,NS_e)+PFCL(NR,NS_e)+PRF(NR,NS_e) &
+              +POH(NR)-PRSUM(NR)-PIE(NR)+PEX(NR,NS_e)
+         PIN(NR,NS_D)=PBCL(NR,NS_D)+PFCL(NR,NS_D)+PRF(NR,NS_D) &
+              -PN(NS_D)*PCX(NR)/(PN(NS_D)+PN(NS_T))+PEX(NR,NS_D)
+         PIN(NR,NS_T)=PBCL(NR,NS_T)+PFCL(NR,NS_T)+PRF(NR,NS_T) &
+              -PN(NS_D)*PCX(NR)/(PN(NS_D)+PN(NS_T))+PEX(NR,NS_T)
+         PIN(NR,NS_A)=PBCL(NR,NS_A)+PFCL(NR,NS_A)+PRF(NR,NS_A)+PEX(NR,NS_A)
       ENDDO
 
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX
@@ -1325,6 +1321,8 @@
       INTEGER:: NS1,NS2
       REAL(rkind)   :: ANEL,TL,COULOG
 
+      ! Coulomb log: Tokamaks 2Ed. p.661
+      
       IF(NS1.EQ.1.AND.NS2.EQ.1) THEN
          COULOG=14.9D0-0.5D0*LOG(ANEL)+LOG(TL)
       ELSE

@@ -11,6 +11,7 @@
       USE libitp
       IMPLICIT NONE
       INTEGER:: NEQ, NF, NMK, NR, NRL, NS, NSSN, NSSN1, NSVN, NSVN1, NSW, NW
+      INTEGER:: NNB
       REAL(rkind)   :: ANFSUM, C83, DRH, DV53, PAI, PLST, RNSUM, RNTSUM, &
            & RTSUM, RWSUM, SLST, SUMM, SUML, SUMP, VOL, WPOL
       REAL(rkind),DIMENSION(NRMAX):: DSRHO
@@ -29,7 +30,8 @@
       SUMP=0.D0
       VOL =0.D0
       DO NR=1,NRMAX-1
-         SUML = (SUM(RN(NR,1:NSM)*RT(NR,1:NSM)) + SUM(RW(NR,1:NFM)))*RKEV*1.D20
+         SUML = (SUM(RN(NR,1:NSM)*RT(NR,1:NSM))  &
+               + SUM(RW(NR,1:NFMAX)))*RKEV*1.D20
 
 !!         DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RMJRHO(NR))
          DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RR)
@@ -44,7 +46,8 @@
       ENDDO
 
       NR=NRMAX
-         SUML = (SUM(RN(NR,1:NSM)*RT(NR,1:NSM)) + SUM(RW(NR,1:NFM)))*RKEV*1.D20
+      SUML = (SUM(RN(NR,1:NSM)*RT(NR,1:NSM)) &
+            + SUM(RW(NR,1:NFMAX)))*RKEV*1.D20
 
 !!         DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RMJRHO(NR))
          DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RR)
@@ -115,7 +118,7 @@
             TFAV(NF)  = 0.D0
             TF0(NF)   = 0.D0
       ELSE
-         DO NF=1,NFM
+         DO NF=1,NFMAX
             ANFSUM=0.D0
             RWSUM=0.D0
             DO NR=1,NRMAX
@@ -261,8 +264,15 @@
 !     *** Ionization, fusion and NBI fuelling ***
 
       SIET = SUM(SIE(1:NRMAX)*DVRHO(1:NRMAX))*DR
-      SNFT = SUM(SNF(4,1:NRMAX)*DVRHO(1:NRMAX))*DR
-      SNBT = SUM(SNB(2,1:NRMAX)*DVRHO(1:NRMAX))*DR
+      IF(NSMAX.GE.4) THEN
+         SNFT=SUM(SNF(4,1:NRMAX)*DVRHO(1:NRMAX))*DR
+      ELSE
+         SNFT=0.D0
+      END IF
+      SNBT=0.D0
+      DO NNB=1,NNBMAX
+         SNBT = SNBT+SUM(SNB(NSPNB(NNB),1:NRMAX)*DVRHO(1:NRMAX))*DR
+      END DO
 
 !     *** Pellet injection fuelling ***
 
@@ -277,7 +287,7 @@
       PRFST =SUM(PRFT(1:NSM))
       PLST  =SUM(PLT(1:NSM))
       SLST  =SUM(SLT(1:NSM))
-      WTAILT=SUM(WFT(1:NFM))
+      WTAILT=SUM(WFT(1:NFMAX))
 
       WPT =WBULKT+WTAILT
       PINT=POHT+PNBT+PRFST+PNFT+PEXST
@@ -360,21 +370,8 @@
 
       SUBROUTINE TRATOT
 
-      USE TRCOMM, ONLY : &
-           AJ, AJBS, AJBST, AJNB, AJNBT, AJOH, AJOHT, AJRF, AJRFT, AJRFV, &
-           AJT, AJTTOR, AK, AKDW, ALI, ANC, ANF0, ANFAV, ANFE, ANLAV, &
-           ANS0, ANSAV, AR1RHO, AR2RHO, BB, BETA, BETA0, BETAA, BETAP, &
-           BETAP0, BETAPA, BP, DR, DVRHO, ER, ETA, EZOH, GVRT, GT, GVT, &
-           H98Y2, NGT, NRAMAX, NRMAX, NROMAX, NTM, PBCLT, PBINT, & 
-           PCX, PCXT, PEX, PEXT, PFCLT, PFINT, PI, PIE, PIET, PINT, PLT, &
-           PNB, PNBT, PNF, PNFT, POH, POHT, POUT, PRF, PRFT, PRFV, PRFVT, &
-           PRL, PRLT, Q0, QF, QP, RA, RHOA, RIP, RKAP, RKPRHO, RM, RMJRHO, &
-           RMNRHO, RN, RPSI, RQ1, RR, RT, RW, S, ALPHA, SIET, SINT, SLT, &
-           SNBT, SNFT, SOUT, T, TAUE1, TAUE2, TAUE89, TAUE98, TF0, TFAV, &
-           TS0, TSAV, VLOOP, VPOL, VTOR, WBULKT, WFT, WPDOT, WPT, WST, &
-           WTAILT, ZEFF, ZEFF0, RKCV, PRBT, PRCT, PRSUMT, rkind, &
-           PNBNR, PNFNR
-      USE libspl1d
+        USE TRCOMM
+        USE libspl1d
       IMPLICIT NONE
       INTEGER:: IERR, NR
       REAL(rkind)   :: RMN, F0D
@@ -605,14 +602,14 @@
          GVRT(NR,NGT,66) = GUCLIP(TRCOFS(S(NR),ALPHA(NR),RKCV(NR)))
          GVRT(NR,NGT,67) = GUCLIP(2.D0*PI/QP(NR))
          
-         GVRT(NR,NGT,68) = GUCLIP(PNB(1,NR))
-         GVRT(NR,NGT,69) = GUCLIP(PNB(2,NR))
-         GVRT(NR,NGT,70) = GUCLIP(PNB(3,NR))
-         GVRT(NR,NGT,71) = GUCLIP(PNB(4,NR))
-         GVRT(NR,NGT,72) = GUCLIP(PNF(1,NR))
-         GVRT(NR,NGT,73) = GUCLIP(PNF(2,NR))
-         GVRT(NR,NGT,74) = GUCLIP(PNF(3,NR))
-         GVRT(NR,NGT,75) = GUCLIP(PNF(4,NR))
+         IF(NSMAX.GE.1) GVRT(NR,NGT,68) = GUCLIP(PNB(1,NR))
+         IF(NSMAX.GE.2) GVRT(NR,NGT,69) = GUCLIP(PNB(2,NR))
+         IF(NSMAX.GE.3) GVRT(NR,NGT,70) = GUCLIP(PNB(3,NR))
+         IF(NSMAX.GE.4) GVRT(NR,NGT,71) = GUCLIP(PNB(4,NR))
+         IF(NSMAX.GE.1) GVRT(NR,NGT,72) = GUCLIP(PNF(1,NR))
+         IF(NSMAX.GE.2) GVRT(NR,NGT,73) = GUCLIP(PNF(2,NR))
+         IF(NSMAX.GE.3) GVRT(NR,NGT,74) = GUCLIP(PNF(3,NR))
+         IF(NSMAX.GE.4) GVRT(NR,NGT,75) = GUCLIP(PNF(4,NR))
 
       ENDDO
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX
