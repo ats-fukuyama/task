@@ -30,24 +30,23 @@ SRCS=trinit.f90 trparm.f90 trview.f90 \
      trufsub.f90 tr_ufile_task.f90 tr_ufile_topics.f90 trufile.f90 \
      trncls.f90 trcytran.f90 \
      trfile.f90 trhelp.f90 \
+     trpnf.f90 \
      trexec.f90 trcalc.f90 \
      tradat.f90 trmodels.f90 trcoef.f90 tritg.f90 \
-     trrslt.f90 trpnb.f90 trprf.f90 trpnf.f90 trpel.f90 trpsc.f90 trmdlt.f90 \
+     trrslt.f90 trpnb.f90 trprf.f90 trpel.f90 trpsc.f90 trmdlt.f90 \
      trgout.f90 trgrar.f90 trgrat.f90 trgrap.f90 trgrae.f90 \
      trgrad.f90 trgram.f90 trgsub.f90 trfout.f90 \
      trloop.f90 trmenu.f90
 
 SRC2D=trg2d.f90
-SRC3S=trg3d.f90
+SRC3D=trg3d.f90
 
 OBJM=$(addprefix $(OBJDIR)/, $(SRCM:.f90=.o))
-OBJE=$(addprefix $(OBJDIR)/, $(SRCE:.f=.o))
-OBJL=$(addprefix $(OBJDIR)/, $(SRCL:.f=.o))
 OBJS=$(addprefix $(OBJDIR)/, $(SRCS:.f90=.o))
 OBJ2D=$(addprefix $(OBJDIR)/, $(SRC2D:.f90=.o))
 OBJ3D=$(addprefix $(OBJDIR)/, $(SRC3D:.f90=.o))
 
-OBJTR=$(OBJM) $(OBJE) $(OBJL) $(OBJS)
+OBJTR=$(OBJM) $(OBJS)
 
 LIBS=../trmlib/libtrm.a ../eq/libeq.a ../pl/libpl.a ../lib/libmds.a \
      ../lib/libtask.a ../lib/libgrf.a  ../../bpsd/libbpsd.a
