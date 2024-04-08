@@ -1,0 +1,63 @@
+1. To start dp
+
+   Use xterm window to show the dispersion relation in a graph.
+
+[dp] ./dp
+ ## TASK/DP 2019/04/04
+ # Welcome to GSAF
+ # INPUT DISPLAY TYPE : 1)512x380 2)640x475 3)768x570 4)896x665 5)1024x760
+                        6)1280x950 7)xterm 8)versaterm 9)online 0)quiet)
+5
+ # INPUT : (C)ONTINUE,(O)PTION,(F)ILE,(H)ELP,(Q)UIT
+c
+ ## DP MENU: P,V/PARM  D0,D1,D2,D3,D4,D5,D6/DISP F/ROOT T,B/TEST ?/HELP Q/QUIT
+
+2. To show input commands
+
+Input "?" and Enter
+
+Menu Help:  D=the determinant of dispersion matrix
+D0: Show D for various plasma model, 
+D1: Draw D as a function of one parameter, omega, k
+D2: Draw contour of D=0 on 2D parameter plane
+D3: Draw contours of D=0 on 2D for various density
+D4: Draw disp curv D=0 and plot with imag on (omega,*)
+D5: Plot D=0 with imag color
+D6: Plot D=0 with shifted imag with color
+F : Find a root of D=0
+T : show D for various plasma model for EC waves
+B : show D for various plasma model for EC waves
+ 
+P : parameter input through namelist
+V : show input parameters
+? : this helpmessage
+Q : end of this run.
+
+3. To show local dispersion relation (omega vs k_para)
+
+Input "D2" and Enter
+
+ ## SELECT : XY : W/RF X/KX Y/KY Z/KZ 1/X 2/Y 3/Z: P,D,V/PARM 0/EXIT
+
+Input two characters for x-axis and y-axis
+    x-axis : perpendicular direction
+    y-axis : parallel direction
+
+For omega vs k_para, input "yw"
+
+ INPUT X-AXIS: RKY1,RKY2,NGXMAX  0.0000E+00  1.6000E+03      51
+
+three input parameters, k_para_min, k_para_max, number of points
+k_para: parallel wave number in [m^{-1}]
+to change parameters, input three parameters e.g. "0.0,160.0,101"
+for default values, input "/"
+
+ INPUT Y-AXIS: RF1,RF2,NGYMAX  8.0000E+04  1.6000E+04      51
+ 
+three input parameters, freq_min, freq_max, number of points
+freq: wave frequency in [MHz]
+to change parameters, input three parameters e.g. "0.0,160.0,101"
+for default values, input "/"
+
+
+    
