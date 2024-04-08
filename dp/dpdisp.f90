@@ -1,7 +1,12 @@
 MODULE dpdisp
 
   PRIVATE
-  PUBLIC CFDISP,CFDISPR,DP_DISP,DP_DTNS_XYZ,DP_DTNS_PZP,DPCOLD_RKPERP
+  PUBLIC CFDISP        ! Determinant of dispersion tensro
+  PUBLIC CFDISPR       ! Real part of CFDISP
+  PUBLIC DP_DISP       ! calculate dispersion tensor
+  PUBLIC DP_DTNS_XYZ   ! calculate dielectric tensor for (kx,ky,kz,x,y,z)
+  PUBLIC DP_DTNS_PZP   ! calculate dielectric tensor for (kpara,kperp,mag,plfw)
+  PUBLIC DPCOLD_RKPERP
 
 CONTAINS
 
@@ -49,7 +54,6 @@ CONTAINS
   END FUNCTION CFDISP
 
 !     ****** CALCULATE REAL PART OF DETERMINANT OF DISPERSION TENSOR ******
-
 
   FUNCTION CFDISPR(CRF,CKX,CKY,CKZ,XPOS,YPOS,ZPOS)
     USE dpcomm

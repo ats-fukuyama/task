@@ -4,6 +4,7 @@ MODULE libkio
 
   PRIVATE
   PUBLIC TASK_KLIN
+  PUBLIC TASK_KLINN
   PUBLIC TASK_KLIN2
   PUBLIC TASK_PARM
 
@@ -65,6 +66,63 @@ CONTAINS
       RETURN
       END SUBROUTINE TASK_KLIN
 
+!     ***** INPUT KID or LINE *****
+!                   MODE=0: LINE INPUT
+!                        1: KID INPUT (first one char: 0-9,a-z,A-Z,#,?,!)
+!                        2: PARM INPUT
+!                        3: ERROR INPUT
+
+      SUBROUTINE TASK_KLINN(LINE,KID,MODE,XXPARM)
+
+      USE libchar
+      IMPLICIT NONE
+      INTEGER, INTENT(OUT)  :: MODE
+      CHARACTER(LEN=80),INTENT(OUT) :: LINE
+      CHARACTER(LEN=1), INTENT(OUT) :: KID
+      INTEGER  :: I, ID, IERR, IKID
+      EXTERNAL XXPARM
+
+      READ(5,'(A80)',ERR=2,END=3) LINE    ! read one line
+
+      KID=LINE(1:1)                  ! if first char is '!'
+      IF(KID.EQ.'!') THEN           ! comment input
+         MODE=0
+         RETURN
+      END IF
+
+      ID=0                                ! if "=" is included, namelist
+      DO I=1,80
+         IF(LINE(I:I).EQ.'=') ID=1
+      ENDDO
+      IF(ID.EQ.1) THEN
+         CALL XXPARM(2,LINE,IERR)
+         MODE=2
+         RETURN
+      ENDIF
+
+      KID=LINE(1:1)                  ! if first char is lower-case, captalized
+      CALL toupper(KID)
+
+      IF((KID.GE.'A'.AND.KID.LE.'Z').OR. &
+         (KID.GE.'1'.AND.KID.LE.'9').OR. &
+          KID.EQ.'?'.OR.KID.EQ.'#'.OR.KID.EQ.'!') THEN  ! one char input
+         MODE=1
+         RETURN
+      ENDIF
+
+      KID=' '                                           ! line input
+      MODE=0
+      RETURN
+
+    2 WRITE(6,'(A)') 'XX INPUT ERROR !'
+      MODE=3
+      RETURN
+
+    3 KID='Q'
+      MODE=1
+      RETURN
+    END SUBROUTINE TASK_KLINN
+    
 !     ***** INPUT KID (2 chars)  or LINE *****
 !                   MODE=0: LINE INPUT
 !                        1: KID INPUT (first two chars: a-z,A-Z,#,?,!)

@@ -14,16 +14,18 @@ CONTAINS
     USE PLPARM,ONLY: pl_parm,pl_view
     USE dpparm
     USE dpdisp
+    USE libkio,ONLY: task_klin2
     USE libchar
     IMPLICIT NONE
     REAL,ALLOCATABLE:: GX(:),GY(:),GZ(:,:)
     REAL(rkind),ALLOCATABLE:: Z(:,:)
     INTEGER,ALLOCATABLE:: KA(:,:,:)
     TYPE(pl_mag_type):: mag
+    CHARACTER(LEN=80):: LINE
     CHARACTER(LEN=2):: KID
     CHARACTER(LEN=1):: KID1,KID2
     INTEGER,SAVE:: INIT=0
-    INTEGER:: NX,NY,NS,NY1,NY2,NX1,NX2,NGULEN,IERR
+    INTEGER:: NX,NY,NS,NY1,NY2,NX1,NX2,NGULEN,IERR,MODE
     INTEGER:: NGXMAX_SAVE,NGYMAX_SAVE
     REAL(rkind):: XMIN,XMAX,YMIN,YMAX,DX,DY,Y,X,FACTY,FACTX,DZY,DZX,DZ2
     REAL(rkind):: RX,RY,RZ
@@ -40,19 +42,18 @@ CONTAINS
          INIT=1
       ENDIF
 
-    1 WRITE(6,*)'## SELECT : XY : W/RF X/KX Y/KY Z/KZ 1/X 2/Y 3/Z: ', &
-                'P,D,V/PARM 0/EXIT'
-      READ(5,*,ERR=1,END=9000) KID
+1     CONTINUE
+      WRITE(6,*)'## SELECT : XY : W/RF X/KX Y/KY Z/KZ 1/X 2/Y 3/Z: ', &
+           'P,V/PARM Q/EXIT'
+      CALL TASK_KLIN2(LINE,KID,MODE,DP_PARM)
+      IF(MODE.NE.1) GO TO 1
       KID1=KID(1:1)
       KID2=KID(2:2)
       CALL toupper(KID1)
       CALL toupper(KID2)
-      IF(KID1.EQ.'0') THEN
+      IF(KID1.EQ.'Q') THEN
          GOTO 9000
       ELSEIF(KID1.EQ.'P') THEN
-         CALL PL_PARM(0,'PL',IERR)
-         GOTO 1
-      ELSEIF(KID1.EQ.'D') THEN
          CALL DP_PARM(0,'DP',IERR)
          GOTO 1
       ELSEIF(KID1.EQ.'V') THEN
@@ -255,6 +256,7 @@ CONTAINS
             DO NS=1,NSMAX
                CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
 !               CD=CD*(1.D0-CWC)
+!               CD=CD*(1.D0-CWC**2)
             ENDDO
 
             GX(NX)=GUCLIP(X)
@@ -381,7 +383,7 @@ CONTAINS
       CALL NUMBD(RZ0,'(1PE11.3)',11)
       CALL PAGEE
       DEALLOCATE(GX,GY,GZ,Z,KA)
-      GOTO 2
+      GOTO 1
 
  9000 RETURN
   END SUBROUTINE DP_CONT2
@@ -396,16 +398,18 @@ CONTAINS
     USE plinit
     USE dpparm
     USE dpdisp
+    USE libkio
     USE libchar
     IMPLICIT NONE
     REAL,ALLOCATABLE:: GX(:),GY(:),GZ(:,:,:)
     REAL(rkind),ALLOCATABLE:: Z(:,:,:),PNSAVE(:),PNNGP(:)
     INTEGER,ALLOCATABLE:: KA(:,:,:)
     TYPE(pl_mag_type):: mag
+    CHARACTER(LEN=80):: LINE
     CHARACTER(LEN=2):: KID
     CHARACTER(LEN=1):: KID1,KID2
     INTEGER,SAVE:: INIT=0
-    INTEGER:: NS,NGP,NY,NX,NY1,NY2,NX1,NX2,IERR,NGULEN
+    INTEGER:: NS,NGP,NY,NX,NY1,NY2,NX1,NX2,IERR,NGULEN,MODE
     REAL(rkind):: XMIN,XMAX,YMIN,YMAX,DX,DY,Y,X,FACTY,FACTX,DZY,DZX,DZ2
     COMPLEX(rkind):: CRF,CKX,CKY,CKZ,CD,CW,CWC
     REAL:: GUCLIP
@@ -424,8 +428,10 @@ CONTAINS
          INIT=1
       ENDIF
 
-    1 WRITE(6,*)'## SELECT : XY : W/RF X/KX Y/KY Z/KZ : P,V/PARM Q/END'
-      READ(5,*,ERR=1,END=9000) KID
+1     CONTINUE
+      WRITE(6,*)'## SELECT : XY : W/RF X/KX Y/KY Z/KZ : P,V/PARM Q/END'
+      CALL TASK_KLIN2(LINE,KID,MODE,DP_PARM)
+      IF(MODE.NE.1) GO TO 1
       KID1=KID(1:1)
       KID2=KID(2:2)
       CALL toupper(KID1)
@@ -441,12 +447,20 @@ CONTAINS
       ENDIF
 
     2 IF(KID1.EQ.'W') THEN
+         XMIN=RF1
+         XMAX=RF2
          WRITE(6,*) ' INPUT X-AXIS: RF1,RF2,NGXMAX'
       ELSE IF(KID1.EQ.'X') THEN
+         XMIN=RKX1
+         XMAX=RKX2
          WRITE(6,*) ' INPUT X-AXIS: RKX1,RKX2,NGXMAX'
       ELSE IF(KID1.EQ.'Y') THEN
+         XMIN=RKY1
+         XMAX=RKY2
          WRITE(6,*) ' INPUT X-AXIS: RKY1,RKY2,NGXMAX'
       ELSE IF(KID1.EQ.'Z') THEN
+         XMIN=RKZ1
+         XMAX=RKZ2
          WRITE(6,*) ' INPUT X-AXIS: RKZ1,RKZ2,NGXMAX'
       ELSE
          WRITE(6,*) 'XX UNKNOWN KID1'

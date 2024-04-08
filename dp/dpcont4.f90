@@ -16,6 +16,7 @@ CONTAINS
     USE dpparm
     USE dpdisp
     USE dpglib
+    USE libkio
     USE libchar
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NID_
@@ -27,6 +28,7 @@ CONTAINS
     REAL(rkind),ALLOCATABLE:: XA(:),RFA(:),RFIA(:)
     TYPE(pl_mag_type):: mag
     TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
+    CHARACTER(LEN=80):: LINE
     CHARACTER(LEN=1):: KID
     INTEGER,SAVE:: INIT=0
     INTEGER:: NID
@@ -38,7 +40,7 @@ CONTAINS
     COMPLEX(rkind):: CRF,CKX,CKY,CKZ,CD,CD0,CD1
     REAL:: GUCLIP,F
     REAL:: GXMIN,GXMAX,GYMIN,GYMAX,GXSMN,GXSMX,GSCALX,GYSMN,GYSMX,GSCALY
-    INTEGER:: ncount,ncount_max
+    INTEGER:: ncount,ncount_max,MODE
     REAL(rkind):: vmin,vmax
     EXTERNAL PAGES,SETLIN,SETCHS,GMNMX1,GQSCAL,MOVE,TEXT,NUMBD,PAGEE
     EXTERNAL GDEFIN,GFRAME,GSCALE,GVALUE,CONTQ2,SETMKS,SETRGB,MARK2D
@@ -49,9 +51,11 @@ CONTAINS
       ENDIF
       NID=NID_
 
-    1 WRITE(6,*)'## SELECT: X-var: 1/KX 2/KY 3/KZ 4/X 5/Y 6/Z 7/K: ', &
+1     CONTINUE
+      WRITE(6,*)'## SELECT: X-var: 1/KX 2/KY 3/KZ 4/X 5/Y 6/Z 7/K: ', &
                 'P,D,V/parm A,B/C/type X/EXIT'
-      READ(5,*,ERR=1,END=9000) KID
+      CALL TASK_KLINN(LINE,KID,MODE,DP_PARM)
+      IF(MODE.NE.1) GO TO 1
       CALL toupper(KID)
       IF(KID.EQ.'X') THEN
          GOTO 9000
@@ -113,7 +117,7 @@ CONTAINS
          GOTO 1
       ENDIF
       NGXMAX_SAVE=NGXMAX
-      READ(5,*,ERR=2,END=1) XMIN,XMAX,NGXMAX
+      READ(5,*,ERR=1,END=1) XMIN,XMAX,NGXMAX
       IF(NGXMAX.LE.0) THEN
          NGXMAX=NGXMAX_SAVE
          GOTO 1
@@ -486,7 +490,7 @@ CONTAINS
 
       DEALLOCATE(NXA,XA,RFA,RFIA)
       DEALLOCATE(GX,GY,GZ,Z,KA,RFNORM,RKNORM)
-      GOTO 2
+      GOTO 1
 
  9000 RETURN
     END SUBROUTINE DP_CONT4
