@@ -330,9 +330,7 @@
 
       SUBROUTINE TRAJBSSAUTER
 
-      USE TRCOMM, ONLY : AJBS, BB, DR, EPSRHO, MDLTPF, NRMAX, NSMAX,&
-           & PADD, PBSCD, PNSS, PTS, PZ, QP, RDP, RHOG, RHOM, RKEV,&
-           & RN, RPE, RR, RT, RW, TTRHOG, ZEFF, rkind
+      USE TRCOMM
       USE libitp
       IMPLICIT NONE
       INTEGER:: NR, NS
@@ -365,8 +363,10 @@
             RNTM=RNTM+RN(NR  ,NS)*RT(NR  ,NS)
             RNM =RNM +RN(NR  ,NS)
          ENDDO
-         RNTP=RNTP+RW(NR+1,1)+RW(NR+1,2)
-         RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
+         IF(NFMAX.GT.0) THEN
+            RNTP=RNTP+RW(NR+1,1)+RW(NR+1,2)
+            RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
+         END IF
          RPIP=RNTP+PADD(NR+1)
          RPIM=RNTM+PADD(NR  )
 
@@ -453,7 +453,9 @@
             RNTM=RNTM+RN(NR-1,NS)*RT(NR-1,NS)+RN(NR  ,NS)*RT(NR  ,NS)
             RNM =RNM +RN(NR-1,NS)+RN(NR  ,NS)
          ENDDO
-         RNTM=RNTM+RW(NR-1,1)+RW(NR-1,2)+RW(NR  ,1)+RW(NR  ,2)
+         IF(NFMAX.GT.0) THEN
+            RNTM=RNTM+RW(NR-1,1)+RW(NR-1,2)+RW(NR  ,1)+RW(NR  ,2)
+         END IF
          RPIP=RNTP
          RPIM=RNTM+PADD(NR-1)+PADD(NR  )
          RNTM=0.5D0*RNTM

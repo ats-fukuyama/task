@@ -18,14 +18,7 @@
 
       SUBROUTINE TRCFDW
 
-      USE TRCOMM, ONLY : &
-           AEE, ADDW, AGMP, AKDW, AME, AMP, AR1RHOG, AR2RHOG, BB, CALF, CDW, &
-           CK0,CK1, CKALFA, CKBETA, CKGUMA, CWEB, DR, EPS0, EPSRHO, ER, EZOH, &
-           KGR1, KGR2, KGR3, KGR4, MDLCD05, MDLKAI, MDLUF, MDLTC, NRMAX, NSM, &
-           NSMAX, NSTM, PA, PADD, PBM, PI, PNSS, PTS, PZ, Q0, QP, RA, RDPS, &
-           RG, RHOG, RHOM, RJCB, RKAP, RKEV, RKPRHO, RKPRHOG, RM, RMU0, RN, &
-           RNF, RR, RT, RW, S, ALPHA, RKCV, SUMPBM, TAUK, VC, VEXB, VGR1, &
-           VGR2, VGR3, VGR4, WEXB, ZEFF, VEXBP, WEXBP, BP, rkind
+      USE TRCOMM
       USE trcdbm
       USE trmodels,ONLY: mbgb_driver,mmm95_driver,mmm71_driver
       USE libitp
@@ -35,8 +28,8 @@
       INTEGER:: &
            NS, NR08, NR, I
       REAL(rkind)   :: &
-           AEI, AGITG, AKDWEL, AKDWIL, AKDWL, ALPHAL, ALNI, ALTI, AMA, AMD, &
-           AMI, AMT, ANA, ANDX, ANE, ANT, ANYUE, ARG, CHIB, CHIGB, CLN, CLPE, &
+           AEI, AGITG, AKDWEL, AKDWIL, AKDWL, ALPHAL, ALNI, ALTI, &
+           AMI, ANA, ANDX, ANE, ANT, ANYUE, ARG, CHIB, CHIGB, CLN, CLPE, &
            CLS, CLT, CRTCL, CS, DEDW, DELTA2, DIDW, DKAI, DND, DNE, &
            DPE, DPERHO, DPP, DQ, DRL, DTD, DTE, DTERHO, DTI, DVE, EPS, ETAC, &
            ETAI, EZOHL, F, FBHM, FDREV, FEXB, FS, FTAUE, FTAUI, HETA, OMEGAD, &
@@ -59,10 +52,7 @@
       INTEGER:: MODEL,ierr
       REAL(rkind),DIMENSION(NRMAX):: S_HM
 
-      AMD=PA(2)*AMP
-      AMT=PA(3)*AMP
-      AMA=PA(4)*AMP
-      OMEGAD = PZ(2)*AEE*BB/AMD
+      OMEGAD = PZ(NS_D)*AEE*BB/AMD
 
       select case(MDLKAI)
       case(0:9)
@@ -187,7 +177,9 @@
                RNTM=RNTM+RN(NR-1,NS)*RT(NR-1,NS)+RN(NR  ,NS)*RT(NR  ,NS)
                RNM =RNM +RN(NR-1,NS)+RN(NR  ,NS)
             ENDDO
-            RNTM= RNTM+RW(NR-1,1)+RW(NR-1,2)+RW(NR  ,1)+RW(NR  ,2)
+            IF(NFMAX.GT.0) THEN
+               RNTM= RNTM+RW(NR-1,1)+RW(NR-1,2)+RW(NR  ,1)+RW(NR  ,2)
+            END IF
             RPP = RNTP+PNSS(1)   *PTS(1)
             RPM = RNTM+RN(NR-1,1)*RT(NR-1,1)+RN(NR  ,1)*RT(NR  ,1)+PADD(NR-1)+PADD(NR)
             RPEP= PNSS(1)   *PTS(1)
@@ -226,9 +218,11 @@
                RNTM=RNTM+RN(NR  ,NS)*RT(NR  ,NS)
                RNM =RNM +RN(NR  ,NS)
             ENDDO
-!     incremental presssure and density for fast particles
-            RNTP= RNTP+RW(NR+1,1)+RW(NR+1,2)
-            RNTM= RNTM+RW(NR  ,1)+RW(NR  ,2)
+            !     incremental presssure and density for fast particles
+            IF(NFMAX.GT.0) THEN
+               RNTP= RNTP+RW(NR+1,1)+RW(NR+1,2)
+               RNTM= RNTM+RW(NR  ,1)+RW(NR  ,2)
+            END IF
 !     incremental presssure and density for electron
             RPP = RNTP+RN(NR+1,1)*RT(NR+1,1)+PADD(NR+1)
             RPM = RNTM+RN(NR  ,1)*RT(NR  ,1)+PADD(NR  )
@@ -511,7 +505,6 @@
                DEDW = CK0*2.5D0*OMEGAS/PPK**2 &
      &               *(SQRT(EPS)*MIN(FDREV,EPS*OMEGAS/ANYUE)+OMEGAS/OMEGATT*MAX(1.D0,ANYUE/OMEGATT))
                RGL   = 2.5D0*OMEGAS*HETA*SQRT(2.D0*ABS(TI)*ABS(ETAI)*ABS(CLN)/(TE*RRSTAR))
-               AMD=PA(2)*AMP
                TAUD = FTAUI(ANE,ANDX,TD,PZ(2),PA(2))
                RNUZ= 1.D0/(TAUD*SQRT(EPS))
                XCHI1=SQRT(RNUZ)/(SQRT(RNUZ)+SQRT(RGL))
@@ -1125,12 +1118,6 @@
 !      DATA RK23,RA23,RB23,RC23/4.19D0,0.57D0,0.61D0,0.61D0/
 !      DATA RK33,RA33,RB33,RC33/1.83D0,0.68D0,0.32D0,0.66D0/
 !!      DATA RK2 ,RA2 ,RB2 ,RC2 /0.66D0,1.03D0,0.31D0,0.74D0/
-
-      AMD=PA(2)*AMP
-      AMT=AMD
-      AMA=AMD
-      IF(NSMAX.GE.3) AMT=PA(3)*AMP
-      IF(NSMAX.GE.4) AMA=PA(4)*AMP
 
       DO NR=1,NRMAX
          IF(NR.EQ.NRMAX) THEN

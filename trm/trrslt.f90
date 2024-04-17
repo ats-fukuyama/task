@@ -424,17 +424,19 @@
       GVT(NGT,19) = GUCLIP(WST(3))
       GVT(NGT,20) = GUCLIP(WST(4))
 
-      GVT(NGT,21) = GUCLIP(ANF0(1))
-      GVT(NGT,22) = GUCLIP(ANF0(2))
-      GVT(NGT,23) = GUCLIP(ANFAV(1))
-      GVT(NGT,24) = GUCLIP(ANFAV(2))
-      GVT(NGT,25) = GUCLIP(TF0(1))
-      GVT(NGT,26) = GUCLIP(TF0(2))
-      GVT(NGT,27) = GUCLIP(TFAV(1))
-      GVT(NGT,28) = GUCLIP(TFAV(2))
+      IF(NFMAX.GT.0) THEN
+         GVT(NGT,21) = GUCLIP(ANF0(1))
+         GVT(NGT,22) = GUCLIP(ANF0(2))
+         GVT(NGT,23) = GUCLIP(ANFAV(1))
+         GVT(NGT,24) = GUCLIP(ANFAV(2))
+         GVT(NGT,25) = GUCLIP(TF0(1))
+         GVT(NGT,26) = GUCLIP(TF0(2))
+         GVT(NGT,27) = GUCLIP(TFAV(1))
+         GVT(NGT,28) = GUCLIP(TFAV(2))
 
-      GVT(NGT,29) = GUCLIP(WFT(1))
-      GVT(NGT,30) = GUCLIP(WFT(2))
+         GVT(NGT,29) = GUCLIP(WFT(1))
+         GVT(NGT,30) = GUCLIP(WFT(2))
+      END IF
       GVT(NGT,31) = GUCLIP(WBULKT)
       GVT(NGT,32) = GUCLIP(WTAILT)
       GVT(NGT,33) = GUCLIP(WPT)
@@ -588,7 +590,9 @@
          GVRT(NR,NGT,43) = GUCLIP(AJRFV(NR,2))
          GVRT(NR,NGT,44) = GUCLIP(AJRFV(NR,3))
 
-         GVRT(NR,NGT,45) = GUCLIP(RW(NR,1)+RW(NR,2))
+         IF(NFMAX.GT.0) THEN
+            GVRT(NR,NGT,45) = GUCLIP(RW(NR,1)+RW(NR,2))
+         END IF
          GVRT(NR,NGT,46) = GUCLIP(ANC(NR)+ANFE(NR))
          GVRT(NR,NGT,47) = GUCLIP(BP(NR))
          GVRT(NR,NGT,48) = GUCLIP(RPSI(NR))

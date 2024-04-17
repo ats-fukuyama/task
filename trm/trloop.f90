@@ -44,7 +44,7 @@ CONTAINS
 
  1000 CONTINUE
 
-      CALL tr_exec(DT,IERR)
+      CALL tr_exec(IERR)
       IF(IERR.NE.0) GOTO 9000
       
       DO nr=1,nrmax

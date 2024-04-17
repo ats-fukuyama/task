@@ -70,70 +70,94 @@ CONTAINS
       !  PU(NS) : INITIAL TOROIDAL VELOCITY ON AXIS (KEV)
       !  PUS(NS): INITIAL TOROIDAL VELOCITY ON SURFACE (KEV)
 
+      !  Single ion : NS=1:e 2:D
+      !  DT         : NS=1:e 2:D 3:T 4:He4
+      !  DD+DD+DHe3 : NS=1:e 2:D 3:T 4:He4 5:H 6:He3
+
       NSMAX=2
       NSZMAX=0  ! the number of impurities
       NSNMAX=2  ! the number of neutrals, 0 or 2 fixed
 
+      NS_e=1
       KID_NS(1)= ' e'
-      ID_NS(1)= -1
-      NPA(1)  = 0
-      PA(1)   = AME/AMP
-      PZ(1)   =-1.D0
-      PN(1)   = 0.5D0
-      PNS(1)  = 0.05D0
-      PT(1)   = 1.5D0
-      PTS(1)  = 0.05D0
-      PU(1)   = 0.D0
-      PUS(1)  = 0.D0
+      ID_NS(1) = -1
+      NPA(1)   = 0
+      PA(1)    = AME/AMP
+      PZ(1)    =-1.D0
 
+      NS_D=2
       KID_NS(2)= ' D'
-      ID_NS(2)= 1
-      NPA(2)  = 1
-      PA(2)   = 2.D0
-      PZ(2)   = 1.D0
-      PN(2)   = 0.5D0
-      PNS(2)  = 0.05D0
-      PT(2)   = 1.5D0
-      PTS(2)  = 0.05D0
-      PU(2)   = 0.D0
-      PUS(2)  = 0.D0
+      ID_NS(2) = 1
+      NPA(2)   = 1
+      PA(2)    = 2.D0
+      PZ(2)    = 1.D0
 
+      NS_T=3
       KID_NS(3)= ' T'
-      ID_NS(3)= 1
-      NPA(3)  = 1
-      PA(3)   = 3.D0
-      PZ(3)   = 1.D0
-      PN(3)   = 0.D0
-      PNS(3)  = 0.D0
-      PT(3)   = 1.5D0
-      PTS(3)  = 0.05D0
-      PU(3)   = 0.D0
-      PUS(3)  = 0.D0
+      ID_NS(3) = 1
+      NPA(3)   = 1
+      PA(3)    = 3.D0
+      PZ(3)    = 1.D0
 
+      NS_A=4
       KID_NS(4)= 'He'
-      ID_NS(4)= 1
-      NPA(4)  = 2
-      PA(4)   = 4.D0
-      PZ(4)   = 2.D0
-      PN(4)   = 0.D0
-      PNS(4)  = 0.D0
-      PT(4)   = 1.5D0
-      PTS(4)  = 0.05D0
-      PU(4)   = 0.D0
-      PUS(4)  = 0.D0
+      ID_NS(4) = 1
+      NPA(4)   = 2
+      PA(4)    = 4.D0
+      PZ(4)    = 2.D0
 
-      DO NS=5,NSMM
+      NS_H=5
+      KID_NS(5)= ' H'
+      ID_NS(5) = 1
+      NPA(5)   = 1
+      PA(5)    = 1.D0
+      PZ(5)    = 1.D0
+
+      NS_He3=6
+      KID_NS(6)= 'He'
+      ID_NS(6) = 1
+      NPA(6)   = 2
+      PA(6)    = 3.D0
+      PZ(6)    = 2.D0
+
+      NS_C=7
+      KID_NS(7)= ' C'
+      ID_NS(7) = 1
+      NPA(7)   = 6
+      PA(7)    = 12.D0
+      PZ(7)    = 6.D0
+
+      NS_Fe=8
+      KID_NS(8)= 'Fe'
+      ID_NS(8) = 1
+      NPA(8)   = 26
+      PA(8)    = 56.D0
+      PZ(8)    = 26.D0
+
+      DO NS=9,NSM
          KID_NS(NS)= ' H'
-         ID_NS(5)= 1
-         NPA(5)  = 1
-         PA(NS)  = 1.D0
-         PZ(NS)  = 0.D0
-         PN(NS)  = 0.D0
-         PNS(NS) = 0.D0
-         PT(NS)  = 1.D0
-         PTS(NS) = 0.1D0
-         PU(NS)  = 0.D0
-         PUS(NS) = 0.D0
+         ID_NS(NS) = 1
+         NPA(NS)   = 1
+         PA(NS)    = 1.D0
+         PZ(NS)    = 1.D0
+      END DO
+
+      DO NS=1,2
+         PN(NS)   = 0.5D0
+         PNS(NS)  = 0.05D0
+         PT(NS)   = 1.5D0
+         PTS(NS)  = 0.05D0
+         PU(NS)   = 0.D0
+         PUS(NS)  = 0.D0
+      END DO
+
+      DO NS=3,NSM
+         PN(NS)   = 0.D0
+         PNS(NS)  = 0.0D0
+         PT(NS)   = 1.5D0
+         PTS(NS)  = 0.05D0
+         PU(NS)   = 0.D0
+         PUS(NS)  = 0.D0
       END DO
 
       !    ==== PROFILE PARAMETERS ====
@@ -478,18 +502,37 @@ CONTAINS
 
       !  ==== FUSION REACTION PARAMETERS ====
 
+      !  nnfmax : number of fusion product id
       !  model_nnf  : FUSION REACTION MODEL TYPE
       !        0:OFF
-      !        1:ON (DT) without particle source
-      !        2:ON (DT) with particle source
-      !        3:ON (DT) with NB beam component without particle source
-      !        4:ON (DT) with NB beam component particle source
-      !        5:ON (DHe3) without particle source
-      !        6:ON (DHe3) with particle source
+      !        1:ON He4 (DT) without particle source
+      !        2:ON He4 (DT) with particle source
+      !        3:ON He4 (DT) with NB beam component without particle source
+      !        4:ON He4 (DT) with NB beam component particle source
+      !       11:ON H   (DD) without particle source
+      !       12:ON H   (DD) with particle source
+      !       13:ON H   (DD) with NB beam component without particle source
+      !       14:ON H   (DD) with NB beam component particle source
+      !       21:ON D   (DD) without particle source
+      !       22:ON D   (DD) with particle source
+      !       23:ON D   (DD) with NB beam component without particle source
+      !       24:ON D   (DD) with NB beam component particle source
+      !       31:ON He3 (DD) without particle source
+      !       32:ON He3 (DD) with particle source
+      !       33:ON He3 (DD) with NB beam component without particle source
+      !       34:ON He3 (DD) with NB beam component particle source
+      !       41:ON H   (DHe3) without particle source
+      !       42:ON H   (DHe3) with particle source
+      !       43:ON H   (DHe3) with NB beam component without particle source
+      !       44:ON H   (DHe3) with NB beam component particle source
+      !       51:ON He4 (DHe3) without particle source
+      !       52:ON He4 (DHe3) with particle source
+      !       53:ON He4 (DHe3) with NB beam component without particle source
+      !       54:ON He4 (DHe3) with NB beam component particle source
 
-      nnfmax=1
+      nnfmax=0
       DO nnf=1,nnfm
-         model_nnf(nnf)  = 0
+         model_nnf(nnf)  = 1
       END DO
 
       !     ==== RADIATION ====
@@ -510,7 +553,7 @@ CONTAINS
       !  ==== NBI HEATING PARAMETERS ====
 
       !  NNBMAX       : number of NBI beam (MAX=nnbm)
-      !  MDLNB(nnbm)  : NBI MODEL TYPE
+      !  model_nnb(nnbm)  : NBI MODEL TYPE
       !       0 : OFF
       !       1 : GAUSSIAN (NO PARTICLE SOURCE)
       !       2 : GAUSSIAN
@@ -529,12 +572,12 @@ CONTAINS
       !  PNBCD(nnbm)  : CURRENT DRIVE FACTOR
       !             0 : off
       !             0 to 1: ratio of v_parallel to v
-      !  NSPNB(nnbm)  : Particle species number
-      !  NRNBMAX(nnbm): number of division of NB profile      
+      !  ns_nnb(nnbm)  : Particle species number
+      !  nrmax_nnb(nnbm): number of division of NB profile      
 
-      NNBMAX=1
+      NNBMAX=0
       DO NNB=1,NNBM
-         model_nnb(nnb) = 1
+         model_nnb(nnb) = 1    ! 
          ns_nnb(nnb)    = 2
          nrmax_nnb(nnb) = 10
          PNBIN(NNB)  = 0.D0

@@ -16,15 +16,17 @@ CONTAINS
     USE trfixed
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
-    INTEGER:: nr,ns
+    INTEGER:: nr,ns,nnf
 
-    NS_e=1
-    NS_D=2
-    NS_T=3
-    NS_A=4
-    NS_He3=0
-    NS_C=7
-    NS_Fe=8
+    NFMAX=NNBMAX+NNFMAX
+    DO NNF=1,NNFMAX
+       IF(model_nnf(nnf).GE. 1.AND.model_nnf(nnf).LT.10) ns_nnf(nnf)=NS_A
+       IF(model_nnf(nnf).GE.11.AND.model_nnf(nnf).LT.20) ns_nnf(nnf)=NS_H
+       IF(model_nnf(nnf).GE.21.AND.model_nnf(nnf).LT.30) ns_nnf(nnf)=NS_D
+       IF(model_nnf(nnf).GE.31.AND.model_nnf(nnf).LT.40) ns_nnf(nnf)=NS_He3
+       IF(model_nnf(nnf).GE.41.AND.model_nnf(nnf).LT.50) ns_nnf(nnf)=NS_H
+       IF(model_nnf(nnf).GE.51.AND.model_nnf(nnf).LT.60) ns_nnf(nnf)=NS_A
+    END DO
 
       CALL ALLOCATE_TRCOMM(IERR)
       IF(IERR.NE.0) RETURN
@@ -129,13 +131,7 @@ CONTAINS
 
   SUBROUTINE TR_EQS_SELECT(INIT)
 
-    USE TRCOMM, ONLY : &
-         AMP, AMZ, MDDIAG, MDLEOI, MDLEQ0, MDLEQB, MDLEQE, MDLEQN, &
-         MDLEQT, MDLEQU, MDLEQZ, MDLKAI, MDLUF, &
-         MDLWLD, MDLNCL, NEA, NEQM, NEQMAX, NEQMAXM, NNS, NREDGE, &
-         NRMAX, NSCMAX, NSLMAX, NSM, NSMAX,      &
-         NSNMAX, NSS, NST, NSTM, NSTMAX, NSV, NSZMAX, PA, PZ, RGFLS, RQFLS, &
-         INS
+    USE TRCOMM
     IMPLICIT NONE
     INTEGER,INTENT(IN) :: INIT
     INTEGER:: IND, INDH, INDHD, MDANOM, MDSLCT, NEQ, NEQ1, NEQI
@@ -160,20 +156,7 @@ CONTAINS
          ENDIF
       ENDIF
       NSSMAX=NSMAX
-      IF(MDLUF.NE.0) THEN
-         CALL CHECK_IMPURITY(MDSLCT)
-         IF(MDSLCT.EQ.0) THEN
-            IF(NSMAX.EQ.1) THEN
-               INS=1
-               NSMAX=2
-            ENDIF
-         ELSE
-            IF(NSMAX.EQ.1) INS=2
-            NSMAX=3
-!            PA(3)=12.D0
-!            PZ(3)=6.D0
-         ENDIF
-      ENDIF
+
 !     *** for NCLASS ***
       IF(NSMAX.EQ.1) THEN
          NSLMAX=2
@@ -182,11 +165,6 @@ CONTAINS
       ENDIF
 !     ***
 
-!      IF(MDLEQT.EQ.0) THEN
-!         NEQMAX=MDLEQB+(MDLEQN+MDLEQT+MDLEQU)*2+MDLEQ0*NSNMAX+MDLEQZ*NSZMAX
-!      ELSEIF(MDLEQT.EQ.1) THEN
-!         NEQMAX=MDLEQB+2+(MDLEQT+MDLEQU)*2+MDLEQ0*NSNMAX+MDLEQZ*NSZMAX
-!      ENDIF
       IF(MDLEQT.EQ.0) THEN
          NEQMAX=MDLEQB+(MDLEQN+MDLEQT+MDLEQU)*NSMAX+MDLEQ0*NSNMAX+MDLEQZ*NSZMAX
       ELSEIF(MDLEQT.EQ.1) THEN

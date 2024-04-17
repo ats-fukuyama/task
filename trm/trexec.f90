@@ -13,29 +13,18 @@ CONTAINS
 
 !     ***********************************************************
 
-      SUBROUTINE tr_exec(DT,IERR)
+      SUBROUTINE tr_exec(IERR)
 
-      USE TRCOMM, ONLY : &
-     &   AJ, AJU, AMP, ANC, ANFE, ANNU, AX, AY, AZ, BB, &
-     &   DR, DVRHO, DVRHOG, EPSLTR, LDAB, LMAXTR, MDLEQB, MDLEQE, &
-     &   MDLEQN, MDLPCK, MDLUF, MDLTC, MLM, NEQMAX, NFMAX, &
-     &   NRAMAX, NRMAX, NROMAX, NSM, NSMAX, NSS, NST, NSV, &
-     &   NTUM, &
-     &   PA, PZ, PZC, PZFE, PN, RDP, RHOA, RIP, RIPU, RM, &
-     &   RMU0, RN, RT, RU, RW, T, TTRHO, TTRHOG, &
-     &   VLOOP, VSEC, X, XV, Y, YV, Z, ZV ,NEQMAXM, DIPDT, &
-         RDPVRHOG, abvrhog, rkind, &
-         TMU, TMU1, NTXMAX, NTXMAX1, model_nfixed, model_tfixed
+      USE TRCOMM
       USE trcomx
       USE trfixed
       USE libbnd
       USE libitp
       IMPLICIT NONE
-      REAL(rkind),INTENT(IN) :: DT
       INTEGER,INTENT(OUT) :: IERR
       INTEGER:: I, ICHCK, INFO, J, L, LDB, M, MWRMAX, &
            N, NEQ, NEQ1, NEQRMAX, NR, NRHS, NSSN, NSSN1, &
-           NSTN, NSTN1, NSVN, NSVN1, KL, KU
+           NSTN, NSTN1, NSVN, NSVN1, KL, KU, NF
       INTEGER:: id_nfixed,id_tfixed
       REAL(rkind)   :: AJL, FACTOR0, FACTORM, FACTORP, TSL
       REAL(rkind):: rne_local,rt_local
@@ -54,7 +43,7 @@ CONTAINS
 
 !     /* Store Variables for Convergence Check */
       forall(J=1:NEQMAX,NR=1:NRMAX) XX(NEQMAX*(NR-1)+J) = XV(J,NR)
-      YY(1:NFMAX,1:NRMAX) = YV(1:NFMAX,1:NRMAX)
+      IF(NFMAX.GT.0) YY(1:NFMAX,1:NRMAX) = YV(1:NFMAX,1:NRMAX)
       IF(MDLTC.NE.0) ZZ(1:NSMAX,1:NRMAX) = ZV(1:NSMAX,1:NRMAX)
 
  2000 CONTINUE
@@ -106,8 +95,10 @@ CONTAINS
 
 !    /* Solve equation for fast particl
 
-      Y(1:NFMAX,1:NRMAX) = Y(1:NFMAX,1:NRMAX)/AY(1:NFMAX,1:NRMAX)
-      IF(MDLTC.NE.0) Z(1:NSMAX,1:NRMAX) = Z(1:NSMAX,1:NRMAX)/AZ(1:NSMAX,1:NRMAX)
+      IF(NFMAX.GT.0) &
+           Y(1:NFMAX,1:NRMAX) = Y(1:NFMAX,1:NRMAX)/AY(1:NFMAX,1:NRMAX)
+      IF(MDLTC.NE.0) &
+           Z(1:NSMAX,1:NRMAX) = Z(1:NSMAX,1:NRMAX)/AZ(1:NSMAX,1:NRMAX)
 
 !     /* Convergence check */
 
@@ -115,9 +106,9 @@ CONTAINS
          IF (ABS(X(I)-XX(I)).GT.EPSLTR*ABS(X(I))) GOTO 3000
       ENDDO
       DO J=1,NFMAX
-      DO NR=1,NRMAX
-         IF (ABS(Y(J,NR)-YY(J,NR)).GT.EPSLTR*ABS(Y(J,NR))) GOTO 3000
-      ENDDO
+         DO NR=1,NRMAX
+            IF (ABS(Y(J,NR)-YY(J,NR)).GT.EPSLTR*ABS(Y(J,NR))) GOTO 3000
+         ENDDO
       ENDDO
       IF(MDLTC.NE.0) THEN
          DO J=1,NSMAX
@@ -137,9 +128,9 @@ CONTAINS
          XX(I) = X(I)
       ENDDO
       DO J=1,NFMAX
-      DO NR=1,NRMAX
-         YY(J,NR) = Y(J,NR)
-      ENDDO
+         DO NR=1,NRMAX
+            YY(J,NR) = Y(J,NR)
+         ENDDO
       ENDDO
       IF(MDLTC.NE.0) THEN
          DO J=1,NSMAX
@@ -318,8 +309,9 @@ CONTAINS
             ANNU(NR)=RN(NR,7)+RN(NR,8)
          END IF
 !!!         BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
-         RW(NR,1)  = 0.5D0*(YV(1,NR)+Y(1,NR))
-         RW(NR,2)  = 0.5D0*(YV(2,NR)+Y(2,NR))
+         DO NF=1,NFMAX
+            RW(NR,NF)  = 0.5D0*(YV(NF,NR)+Y(NF,NR))
+         END DO
       ENDDO
 
 6000  CONTINUE
@@ -381,7 +373,7 @@ CONTAINS
          ENDIF
       ENDDO
 
-      YV(1:NFMAX,1:NRMAX) = Y(1:NFMAX,1:NRMAX)
+      IF(NFMAX.GT.0) YV(1:NFMAX,1:NRMAX) = Y(1:NFMAX,1:NRMAX)
       IF(MDLTC.NE.0) ZV(1:NSMAX,1:NRMAX) = Z(1:NSMAX,1:NRMAX)
 
 !     /* Making New Physical Variables */
@@ -990,9 +982,9 @@ CONTAINS
 
       SUBROUTINE TRATOX
 
-      USE TRCOMM, ONLY : AKDW, AMP, MDLTC, NEQMAX, NRMAX, NSMAX, NSS, NSV, PA, RDP, RN, RT, RU, RW, XV, YV, ZV
+     USE TRCOMM
       IMPLICIT NONE
-      INTEGER:: NEQ, NR, NS, NSSN, NSVN
+      INTEGER:: NEQ, NR, NS, NSSN, NSVN,NF
 
 
       DO NR=1,NRMAX
@@ -1009,8 +1001,9 @@ CONTAINS
                XV(NEQ,NR) = PA(NSSN)*AMP*RN(NR,NSSN)*RU(NR,NSSN)
             ENDIF
          ENDDO
-         YV(  1,NR) = RW(NR,1)
-         YV(  2,NR) = RW(NR,2)
+         DO NF=1,NFMAX
+            YV(NF,NR) = RW(NR,NF)
+         END DO
       ENDDO
       IF(MDLTC.NE.0) THEN
          DO NR=1,NRMAX
@@ -1031,18 +1024,13 @@ CONTAINS
 
       SUBROUTINE TRXTOA
 
-      USE TRCOMM, ONLY : &
-           AKDW, AMP, ANC, ANFE, ANNU, DR, MDLEQE, MDLEQN, MDLEQT, &
-           MDLTC, NEQMAX, NRMAX, NROMAX, NSM, NSMAX, NSS, NST, NSV, &
-           PA, PZ, PZC, PZFE, RDP, RN, RPSI, RT, RU, RW, RM, T, pn, &
-           XV, YV, ZV, RDPVRHOG, DVRHOG, rkind, &
-           model_nfixed,model_tfixed
+      USE TRCOMM
       USE trfixed, ONLY: &
            time_nfixed,time_tfixed, &
            rho_min_nfixed,rho_max_nfixed,rho_min_tfixed,rho_max_tfixed, &
            tr_prof_nfixed,tr_prof_tfixed
       IMPLICIT NONE
-      INTEGER:: N,NEQ,NEQ1,NR,NS,NSSN,NSSN1,NSVN,NSVN1,NSTN,NSTN1
+      INTEGER:: N,NEQ,NEQ1,NR,NS,NSSN,NSSN1,NSVN,NSVN1,NSTN,NSTN1,NF
       INTEGER:: id_nfixed,id_tfixed,ICHECK
       REAL(rkind)   :: SUM,rne_local,rt_local
 
@@ -1161,8 +1149,9 @@ CONTAINS
                END IF
             ENDIF
          ENDDO
-         RW(NR,1) = YV(1,NR)
-         RW(NR,2) = YV(2,NR)
+         DO NF=1,NFMAX
+            RW(NR,NF) = YV(NF,NR)
+         END DO
          IF(NSMAX.GE.8) THEN
             ANNU(NR) = RN(NR,7)+RN(NR,8)
          END IF
