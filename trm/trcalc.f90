@@ -40,8 +40,8 @@
       AJBS(1:NRMAX)=0.D0
       SPSC(1:NRMAX,1:NSMAX)=0.D0
       SPE(1:NRMAX,1:NSMAX)=0.D0
-      PBCL(1:NRMAX,1:NSMAX)=0.D0
-      PFCL(1:NRMAX,1:NSMAX)=0.D0
+      PNBCL_NSNNBNR(1:NSMAX,1:NNBMAX,1:NRMAX)=0.D0
+      PNFCL_NSNNFNR(1:NSMAX,1:NNFMAX,1:NRMAX)=0.D0
       IF(MDLUF.NE.0) THEN
          PRFV(1:NRMAX,3:NSM,1)=0.D0
          PRFV(1:NRMAX,3:NSM,2)=0.D0
@@ -176,13 +176,22 @@
                END IF
             END DO
          ENDIF
-         PIN(NR,NS_e)=PBCL(NR,NS_e)+PFCL(NR,NS_e)+PRF(NR,NS_e) &
+         IF(NS_e.LE.NSMAX) &
+              PIN(NR,NS_e)=PNBCL_NSNR(NS_e,NR)+PNFCL_NSNR(NS_e,NR) &
+              +PRF(NR,NS_e) &
               +POH(NR)-PRSUM(NR)-PIE(NR)+PEX(NR,NS_e)
-         PIN(NR,NS_D)=PBCL(NR,NS_D)+PFCL(NR,NS_D)+PRF(NR,NS_D) &
+         IF(NS_D.LE.NSMAX) &
+              PIN(NR,NS_D)=PNBCL_NSNR(NS_D,NR)+PNFCL_NSNR(NS_D,NR) &
+              +PRF(NR,NS_D) &
               -PN(NS_D)*PCX(NR)/(PN(NS_D)+PN(NS_T))+PEX(NR,NS_D)
-         PIN(NR,NS_T)=PBCL(NR,NS_T)+PFCL(NR,NS_T)+PRF(NR,NS_T) &
+         IF(NS_T.LE.NSMAX) &
+              PIN(NR,NS_T)=PNBCL_NSNR(NS_T,NR)+PNFCL_NSNR(NS_T,NR) &
+              +PRF(NR,NS_T) &
               -PN(NS_D)*PCX(NR)/(PN(NS_D)+PN(NS_T))+PEX(NR,NS_T)
-         PIN(NR,NS_A)=PBCL(NR,NS_A)+PFCL(NR,NS_A)+PRF(NR,NS_A)+PEX(NR,NS_A)
+         IF(NS_A.LE.NSMAX) &
+              PIN(NR,NS_A)=PNBCL_NSNR(NS_A,NR)+PNFCL_NSNR(NS_A,NR) &
+              +PRF(NR,NS_A) &
+              +PEX(NR,NS_A)
       ENDDO
 
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX

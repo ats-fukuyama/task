@@ -25,7 +25,7 @@ CONTAINS
     NS_He3=0
     NS_C=7
     NS_Fe=8
-    
+
       CALL ALLOCATE_TRCOMM(IERR)
       IF(IERR.NE.0) RETURN
 

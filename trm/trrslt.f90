@@ -11,7 +11,7 @@
       USE libitp
       IMPLICIT NONE
       INTEGER:: NEQ, NF, NMK, NR, NRL, NS, NSSN, NSSN1, NSVN, NSVN1, NSW, NW
-      INTEGER:: NNB
+      INTEGER:: NNB,NNF
       REAL(rkind)   :: ANFSUM, C83, DRH, DV53, PAI, PLST, RNSUM, RNTSUM, &
            & RTSUM, RWSUM, SLST, SUMM, SUML, SUMP, VOL, WPOL
       REAL(rkind),DIMENSION(NRMAX):: DSRHO
@@ -156,17 +156,17 @@
 !     *** Ohmic, NBI and fusion powers ***
 
       DO NR=1,NRMAX
-         PNBNR(NR)=0.D0
-         PNFNR(NR)=0.D0
+         PNB_NR(NR)=0.D0
+         PNF_NR(NR)=0.D0
          DO NS=1,NSMAX
-            PNBNR(NR)=PNBNR(NR)+PNB(NS,NR)
-            PNFNR(NR)=PNFNR(NR)+PNF(NS,NR)
+            PNB_NR(NR)=PNB_NR(NR)+PNB_NSNR(NS,NR)
+            PNF_NR(NR)=PNF_NR(NR)+PNF_NSNR(NS,NR)
          END DO
       END DO
             
       POHT = SUM(POH(1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
-      PNBT = SUM(PNBNR(1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
-      PNFT = SUM(PNFNR(1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
+      PNBT = SUM(PNB_NR(1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
+      PNFT = SUM(PNF_NR(1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
 
 !     *** External power typically for NBI from exp. data ***
 
@@ -185,18 +185,34 @@
 
 !     *** Total NBI power distributed on electrons and bulk ions ***
 
-      PBINT = SUM(PBIN(1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
-      DO NS=1,NSM
-         PBCLT(NS) = SUM(PBCL(1:NRMAX,NS)*DVRHO(1:NRMAX))*DR/1.D6
-      ENDDO
+      PNBINT=0.D0
+      DO NNB=1,NNBMAX
+         PNBINT = PNBINT &
+              +SUM(PNBIN_NNBNR(NNB,1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
+      END DO
+      DO NS=1,NSMAX
+         PNBCLT(NS)=0.D0
+         DO NNB=1,NNBMAX
+            PNBCLT(NS) = PNBCLT(NS) &
+                 +SUM(PNBCL_NSNNBNR(NS,NNB,1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
+         ENDDO
+      END DO
 
 !     *** Total RF power distributed on electrons and bulk ions ***
 
-      PFINT = SUM(PFIN(1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
-      DO NS=1,NSM
-         PFCLT(NS) = SUM(PFCL(1:NRMAX,NS)*DVRHO(1:NRMAX))*DR/1.D6
-      ENDDO
-
+      PNFINT=0.D0
+      DO NNF=1,NNFMAX
+         PNFINT = PNFINT &
+              +SUM(PNFIN_NNFNR(NNF,1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
+      END DO
+      DO NS=1,NSMAX
+         PNFCLT(NS)=0.D0
+         DO NNF=1,NNFMAX
+            PNFCLT(NS) = PNFCLT(NS) &
+                 +SUM(PNFCL_NSNNFNR(NS,NNF,1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
+         ENDDO
+      END DO
+      
 !     *** Radiation, charge exchange and ionization losses ***
 
       PRBT  = SUM(PRB(1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
@@ -264,15 +280,14 @@
 !     *** Ionization, fusion and NBI fuelling ***
 
       SIET = SUM(SIE(1:NRMAX)*DVRHO(1:NRMAX))*DR
-      IF(NSMAX.GE.4) THEN
-         SNFT=SUM(SNF(4,1:NRMAX)*DVRHO(1:NRMAX))*DR
-      ELSE
-         SNFT=0.D0
-      END IF
       SNBT=0.D0
-      DO NNB=1,NNBMAX
-         SNBT = SNBT+SUM(SNB(NSPNB(NNB),1:NRMAX)*DVRHO(1:NRMAX))*DR
+      SNFT=0.D0
+      DO NS=1,NSMAX
+         SNB_NS(NS)=SUM(SNB_NSNR(NS,1:NRMAX)*DVRHO(1:NRMAX))*DR
+         SNF_NS(NS)=SUM(SNF_NSNR(NS,1:NRMAX)*DVRHO(1:NRMAX))*DR
       END DO
+      SNBT=SUM(SNB_NS(1:NSMAX))
+      SNFT=SUM(SNF_NS(1:NSMAX))
 
 !     *** Pellet injection fuelling ***
 
@@ -439,16 +454,16 @@
       GVT(NGT,45) = GUCLIP(PRFT(4))
       GVT(NGT,46) = GUCLIP(PNFT)
 
-      GVT(NGT,47) = GUCLIP(PBINT)
-      GVT(NGT,48) = GUCLIP(PBCLT(1))
-      GVT(NGT,49) = GUCLIP(PBCLT(2))
-      GVT(NGT,50) = GUCLIP(PBCLT(3))
-      GVT(NGT,51) = GUCLIP(PBCLT(4))
-      GVT(NGT,52) = GUCLIP(PFINT)
-      GVT(NGT,53) = GUCLIP(PFCLT(1))
-      GVT(NGT,54) = GUCLIP(PFCLT(2))
-      GVT(NGT,55) = GUCLIP(PFCLT(3))
-      GVT(NGT,56) = GUCLIP(PFCLT(4))
+      GVT(NGT,47) = GUCLIP(PNBINT)
+      GVT(NGT,48) = GUCLIP(PNBCLT(1))
+      GVT(NGT,49) = GUCLIP(PNBCLT(2))
+      GVT(NGT,50) = GUCLIP(PNBCLT(3))
+      GVT(NGT,51) = GUCLIP(PNBCLT(4))
+      GVT(NGT,52) = GUCLIP(PNFINT)
+      GVT(NGT,53) = GUCLIP(PNFCLT(1))
+      GVT(NGT,54) = GUCLIP(PNFCLT(2))
+      GVT(NGT,55) = GUCLIP(PNFCLT(3))
+      GVT(NGT,56) = GUCLIP(PNFCLT(4))
 
       GVT(NGT,57) = GUCLIP(POUT)
       GVT(NGT,58) = GUCLIP(PCXT)
@@ -536,12 +551,12 @@
          GVRT(NR,NGT,12) = GUCLIP(AJRF(NR))
          GVRT(NR,NGT,13) = GUCLIP(AJBS(NR))
 
-         GVRT(NR,NGT,14) = GUCLIP(POH(NR)+PNBNR(NR)+PNFNR(NR) &
+         GVRT(NR,NGT,14) = GUCLIP(POH(NR)+PNB_NR(NR)+PNF_NR(NR) &
      &                         +PEX(NR,1)+PEX(NR,2)+PEX(NR,3)+PEX(NR,4) &
      &                         +PRF(NR,1)+PRF(NR,2)+PRF(NR,3)+PRF(NR,4))
          GVRT(NR,NGT,15) = GUCLIP(POH(NR))
-         GVRT(NR,NGT,16) = GUCLIP(PNBNR(NR))
-         GVRT(NR,NGT,17) = GUCLIP(PNFNR(NR))
+         GVRT(NR,NGT,16) = GUCLIP(PNB_NR(NR))
+         GVRT(NR,NGT,17) = GUCLIP(PNF_NR(NR))
          GVRT(NR,NGT,18) = GUCLIP(PRF(NR,1))
          GVRT(NR,NGT,19) = GUCLIP(PRF(NR,2))
          GVRT(NR,NGT,20) = GUCLIP(PRF(NR,3))
@@ -602,14 +617,14 @@
          GVRT(NR,NGT,66) = GUCLIP(TRCOFS(S(NR),ALPHA(NR),RKCV(NR)))
          GVRT(NR,NGT,67) = GUCLIP(2.D0*PI/QP(NR))
          
-         IF(NSMAX.GE.1) GVRT(NR,NGT,68) = GUCLIP(PNB(1,NR))
-         IF(NSMAX.GE.2) GVRT(NR,NGT,69) = GUCLIP(PNB(2,NR))
-         IF(NSMAX.GE.3) GVRT(NR,NGT,70) = GUCLIP(PNB(3,NR))
-         IF(NSMAX.GE.4) GVRT(NR,NGT,71) = GUCLIP(PNB(4,NR))
-         IF(NSMAX.GE.1) GVRT(NR,NGT,72) = GUCLIP(PNF(1,NR))
-         IF(NSMAX.GE.2) GVRT(NR,NGT,73) = GUCLIP(PNF(2,NR))
-         IF(NSMAX.GE.3) GVRT(NR,NGT,74) = GUCLIP(PNF(3,NR))
-         IF(NSMAX.GE.4) GVRT(NR,NGT,75) = GUCLIP(PNF(4,NR))
+         IF(NSMAX.GE.1) GVRT(NR,NGT,68) = GUCLIP(PNB_NSNR(1,NR))
+         IF(NSMAX.GE.2) GVRT(NR,NGT,69) = GUCLIP(PNB_NSNR(2,NR))
+         IF(NSMAX.GE.3) GVRT(NR,NGT,70) = GUCLIP(PNB_NSNR(3,NR))
+         IF(NSMAX.GE.4) GVRT(NR,NGT,71) = GUCLIP(PNB_NSNR(4,NR))
+         IF(NSMAX.GE.1) GVRT(NR,NGT,72) = GUCLIP(PNF_NSNR(1,NR))
+         IF(NSMAX.GE.2) GVRT(NR,NGT,73) = GUCLIP(PNF_NSNR(2,NR))
+         IF(NSMAX.GE.3) GVRT(NR,NGT,74) = GUCLIP(PNF_NSNR(3,NR))
+         IF(NSMAX.GE.4) GVRT(NR,NGT,75) = GUCLIP(PNF_NSNR(4,NR))
 
       ENDDO
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX
@@ -743,14 +758,14 @@
 
          WRITE(6,604) PINT,POHT,PNBT,PNFT, &
      &                PRFT(1),PRFT(2),PRFT(3),PRFT(4), &
-     &                PBINT,PFINT,AJ(1)*1.D-6, &
+     &                PNBINT,PNFINT,AJ(1)*1.D-6, &
      &                PBCLT(1),PBCLT(2),PBCLT(3),PBCLT(4), &
      &                PFCLT(1),PFCLT(2),PFCLT(3),PFCLT(4), &
      &                POUT,PRSUMT,PCXT,PIET, &
      &                PLT(1),PLT(2),PLT(3),PLT(4), &
                       PRBT,PRCT,PRLT
   604    FORMAT(' ',3X,'PINT  =',1PD10.3,'  POHT  =',1PD10.3, &
-     &               '  PNBT  =',1PD10.3,'  PNFTE =',1PD10.3/ &
+     &               '  PNBT  =',1PD10.3,'  PNFT  =',1PD10.3/ &
      &          ' ',3X,'PRFTE =',1PD10.3,'  PRFTD =',1PD10.3, &
      &               '  PRFTT =',1PD10.3,'  PRFTA =',1PD10.3/ &
      &          ' ',3X,'PBIN  =',1PD10.3,'  PFIN  =',1PD10.3, &

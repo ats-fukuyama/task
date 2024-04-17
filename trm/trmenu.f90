@@ -19,6 +19,7 @@ CONTAINS
       USE trfile
       USE trgout
       USE trfout
+      USE trpnf
       
       USE libfio
       USE libkio
@@ -29,7 +30,6 @@ CONTAINS
       CHARACTER(LEN=1) :: KID
       CHARACTER(LEN=80):: LINE
       INTEGER:: NR,NS,NF,NTYPE,id_loop
-      REAL(rkind):: SIGMAM
 
 !     ------ SELECTION OF TASK TYPE ------
 

@@ -4,6 +4,13 @@ MODULE trpnf
 
   PRIVATE
   PUBLIC tr_pnf
+  PUBLIC trnfdt
+  PUBLIC trnfdd
+  PUBLIC sigmam   ! DT Maxwellian
+  PUBLIC sigmab   ! DD Slowing down dsitribution
+  PUBLIC sigmbs   ! DD Slowing down dsitribution
+  PUBLIC trnfdhe3
+  PUBLIC sigmadhe3 ! DHe3 Maxwellian
 
 CONTAINS
 
@@ -11,12 +18,10 @@ CONTAINS
 
     USE trcomm
     IMPLICIT NONE
-    INTEGER:: nnf,nr
+    INTEGER:: ns,nnf,nr
 
-    DO NR=1,NRMAX
-       SNF_NSNR(1:NSMAX,NR)=0.D0
-       PNF_NSNR(1:NSMAX,NR)=0.D0
-    END DO
+    SNF_NSNNFNR(1:NSMAX,1:NNFMAX,1:NRMAX)=0.D0
+    PNF_NSNNFNR(1:NSMAX,1:NNFMAX,1:NRMAX)=0.D0
     
     DO nnf=1,nnfmax
        SELECT CASE(model_nnf(nnf))
@@ -24,10 +29,24 @@ CONTAINS
           TAUF(nnf,1:NRMAX)=1.D0
        CASE(1:4)
           CALL TRNFDT(nnf)
-       CASE(5:6)
-          CALL TRNFDHE3(nnf)
+       CASE(11:14)
+!          CALL TRNFDD(nnf-10)
+       CASE(21:24)
+          CALL TRNFDHE3(nnf-20)
        END SELECT
     END DO
+
+    DO NR=1,NRMAX
+       DO NS=1,NSMAX
+          SNF_NSNR(NS,NR)=0.D0
+          PNF_NSNR(NS,NR)=0.D0
+          DO NNF=1,NNFMAX
+             SNF_NSNR(NS,NR)=SNF_NSNR(NS,NR)+SNF_NSNNFNR(NS,NNF,NR)
+             PNF_NSNR(NS,NR)=PNF_NSNR(NS,NR)+PNF_NSNNFNR(NS,NNF,NR)
+          END DO
+       END DO
+    END DO
+    
     RETURN
   END SUBROUTINE tr_pnf
 
@@ -36,8 +55,6 @@ CONTAINS
 !           Nuclear reaction (DT)
 
 !     ***********************************************************
-
-
 
   SUBROUTINE TRNFDT(nnf)
 
@@ -48,13 +65,13 @@ CONTAINS
          ANE, EC, HYF, P1, PTNT, SS, SSB, TAUS, &
          TD, TE, TT, VC3, VCA3, VCD3, VCR, VCT3, VF, WF, ZEFFM, PB
     INTEGER:: NR,NNB,NS_beam
-    REAL(rkind)   :: SIGMAM, COULOG, SIGMAB, HY   !FUNCTION
+    REAL(rkind)   :: COULOG, HY   !FUNCTION
 
     VF =SQRT(2.D0*3.5D3 *RKEV/AMA) ! alpha velocity
 
       DO NR=1,NRMAX
-         SNF_NSNR(1:NSMAX,NR)=0.D0
-         PNF_NSNR(1:NSMAX,NR)=0.D0
+         SNF_NSNNFNR(1:NSMAX,NNF,NR)=0.D0
+         PNF_NSNNFNR(1:NSMAX,NNF,NR)=0.D0
          ANE= RN(NR,NS_e)
          TE = RT(NR,NS_e)
          TD = RT(NR,NS_D)
@@ -90,17 +107,18 @@ CONTAINS
          ELSE
             SSB=0.D0
          ENDIF
-         SNF_NSNR(NS_A,NR) = (SS+SSB)*RN(NR,2)*RN(NR,3)*1.D20
-         PNF_NSNR(NS_A,NR) = SNF_NSNR(NS_A,NR)*3.5D3*RKEV*1.D20
-         IF(MOD(model_nnf(nnf),2).EQ.1) SNF_NSNR(NS_A,NR)=0.D0
-         SNF_NSNR(NS_D,NR) =-SNF_NSNR(NS_A,NR)
-         SNF_NSNR(NS_T,NR) =-SNF_NSNR(NS_A,NR)
+         SNF_NSNNFNR(NS_A,NNF,NR) = (SS+SSB)*RN(NR,2)*RN(NR,3)*1.D20
+         PNF_NSNNFNR(NS_A,NNF,NR) = SNF_NSNNFNR(NS_A,NNF,NR)*3.5D3*RKEV*1.D20
+         IF(MOD(model_nnf(nnf),2).EQ.1) &
+              SNF_NSNNFNR(NS_A,NNF,NR)=0.D0
+         SNF_NSNNFNR(NS_D,NNF,NR) =-SNF_NSNNFNR(NS_A,NNF,NR)
+         SNF_NSNNFNR(NS_T,NNF,NR) =-SNF_NSNNFNR(NS_A,NNF,NR)
       ENDDO
 
       DO NR=1,NRMAX
-         ANE= RN(NR,1)
-         TE = RT(NR,1)
-         WF = RW(NR,2)
+         ANE= RN(NR,NS_e)
+         TE = RT(NR,NS_e)
+         WF = RW(NR,NNBMAX+NNF)
          P1   = 3.D0*SQRT(0.5D0*PI)*AME/ANE *(ABS(TE)*RKEV/AME)**1.5D0
          VCD3 = P1*RN(NR,2)*PZ(2)**2/AMD
          VCT3 = P1*RN(NR,3)*PZ(3)**2/AMT
@@ -110,17 +128,18 @@ CONTAINS
          HYF=HY(VF/VCR)
          TAUS = 0.2D0*PA(4)*ABS(TE)**1.5D0 /(PZ(4)**2*ANE*COULOG(1,2,ANE,TE))
          TAUF(NNF,NR)= 0.5D0*TAUS*(1.D0-HYF)
-         RNF(NR,2)= 2.D0*LOG(1.D0+(VF/VCR)**3)*WF /(3.D0*(1.D0-HYF)*3.5D3)
-         IF(RNF(NR,2).GT.0.D0) THEN
-            RTF(NR,2)= WF/RNF(NR,2)
+         RNF(NR,NNBMAX+NNF) &
+              = 2.D0*LOG(1.D0+(VF/VCR)**3)*WF /(3.D0*(1.D0-HYF)*3.5D3)
+         IF(RNF(NR,NNBMAX+NNF).GT.0.D0) THEN
+            RTF(NR,NNBMAX+NNF)= WF/RNF(NR,2)
          ELSE
-            RTF(NR,2)= 0.D0
+            RTF(NR,NNBMAX+NNF)= 0.D0
          ENDIF
-         PFIN(NR) = WF*RKEV*1.D20/TAUF(nnf,NR)
-         PFCL(NR,1)=    (1.D0-HYF)*PFIN(NR)
-         PFCL(NR,2)=(VCD3/VC3)*HYF*PFIN(NR)
-         PFCL(NR,3)=(VCT3/VC3)*HYF*PFIN(NR)
-         PFCL(NR,4)=(VCA3/VC3)*HYF*PFIN(NR)
+         PNFIN_NNFNR(NNF,NR) = WF*RKEV*1.D20/TAUF(nnf,NR)
+         PNFCL_NSNNFNR(NS_e,NNF,NR)=    (1.D0-HYF)*PNFIN_NNFNR(NNF,NR)
+         PNFCL_NSNNFNR(NS_D,NNF,NR)=(VCD3/VC3)*HYF*PNFIN_NNFNR(NNF,NR)
+         PNFCL_NSNNFNR(NS_T,NNF,NR)=(VCT3/VC3)*HYF*PNFIN_NNFNR(NNF,NR)
+         PNFCL_NSNNFNR(NS_A,NNF,NR)=(VCA3/VC3)*HYF*PNFIN_NNFNR(NNF,NR)
       ENDDO
 
       RETURN
@@ -198,7 +217,6 @@ CONTAINS
       USE trcomm,ONLY: rkind
       IMPLICIT NONE
       REAL(rkind) EB,EC,TI,PTNT,SIGMAB
-      REAL(rkind) SIGMBS
       REAL(rkind) XB,XC,AG1,AG2,AG3,AL1,AL2,AL3,X1,X2,X3,X4,SA
 
       XB=SQRT(EB/127.D0)
@@ -268,7 +286,7 @@ CONTAINS
            ANE, HYF, P1, SS, TAUS, &
            TD, TE, THe3, VC3, VCA3, VCD3, VCR, VCHe3, VF, WF
       INTEGER:: NR
-      REAL(rkind)   :: SIGMADHe3, COULOG, HY   !FUNCTION
+      REAL(rkind)   :: COULOG, HY   !FUNCTION
 
       VF =SQRT(2.D0*3.6D3 *RKEV/AMA)
 
@@ -309,11 +327,11 @@ CONTAINS
          ELSE
             RTF(NR,NNBMAX+NNF)= 0.D0
          ENDIF
-         PFIN(NR) = WF*RKEV*1.D20/TAUF(nnf,NR)
-         PFCL(NR,NS_e)  =            (1.D0-HYF)*PFIN(NR)
-         PFCL(NR,NS_D)  =(VCD3 /VC3)*HYF*PFIN(NR)
-         PFCL(NR,NS_He3)=(VCHe3/VC3)*HYF*PFIN(NR)
-         PFCL(NR,NS_A)  =(VCA3 /VC3)*HYF*PFIN(NR)
+         PNFIN_NNFNR(NNF,NR) = WF*RKEV*1.D20/TAUF(nnf,NR)
+         PNFCL_NSNNFNR(NS_e,  NNF,NR)  =     (1.D0-HYF)*PNFIN_NNFNR(NNF,NR)
+         PNFCL_NSNNFNR(NS_D,  NNF,NR)  =(VCD3 /VC3)*HYF*PNFIN_NNFNR(NNF,NR)
+         PNFCL_NSNNFNR(NS_He3,NNF,NR)  =(VCHe3/VC3)*HYF*PNFIN_NNFNR(NNF,NR)
+         PNFCL_NSNNFNR(NS_A,  NNF,NR)  =(VCA3 /VC3)*HYF*PNFIN_NNFNR(NNF,NR)
       ENDDO
 
       RETURN
@@ -365,4 +383,4 @@ CONTAINS
       ENDIF
       RETURN
       END FUNCTION SIGMADHe3
-    END MODULE trpnf
+END MODULE trpnf

@@ -54,8 +54,7 @@
 
       SUBROUTINE TRGRR1(INQ)
 
-        USE TRCOMM, ONLY : &
-             GRM,GYR,MDLEQ0,MDLNF,NFMAX,NRMAX,NRMP,NSM,RKEV,RN,RNF,RT
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: INQ
       INTEGER :: NF, NR, NS
@@ -63,21 +62,13 @@
 
       CALL PAGES
 
-      IF(MDLNF.EQ.0) THEN
-         DO NS=1,2
-            DO NR=1,NRMAX
-               GYR(NR,NS) = GUCLIP(RN(NR,NS))
-            ENDDO
+      DO NS=1,NSMAX
+         DO NR=1,NRMAX
+            GYR(NR,NS) = GUCLIP(RN(NR,NS))
          ENDDO
-         CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,'@NE,ND [10$+20$=/m$+3$=]  vs r@',2+INQ)
-      ELSE
-         DO NS=1,NSM
-            DO NR=1,NRMAX
-               GYR(NR,NS) = GUCLIP(RN(NR,NS))
-            ENDDO
-         ENDDO
-         CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSM, '@NE,ND,NT,NA [10$+20$=/m$+3$=]  vs r@',2+INQ)
-      ENDIF
+      ENDDO
+      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSMAX, &
+           '@n(NS) [10$+20$=/m$+3$=]  vs r@',2+INQ)
 
       IF(MDLEQ0.EQ.0) THEN
          DO NF=1,NFMAX
@@ -93,30 +84,25 @@
             GYR(NR,2) = GUCLIP(RN(NR,8)*1.D5)
          ENDDO
          CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,2, &
-     &        '@NNC [10$+15$=/m$+3$=], NNH [10$+15$=/m$+3$=]  vs r@',2+INQ)
+              '@NNC [10$+15$=/m$+3$=], NNH [10$+15$=/m$+3$=]  vs r@',2+INQ)
       ENDIF
 
-      DO NS=1,NSM
+      DO NS=1,NSMAX
       DO NR=1,NRMAX
          GYR(NR,NS) = GUCLIP(RT(NR,NS))
       ENDDO
       ENDDO
-      IF(MDLNF.EQ.0) THEN
-         CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,'@TE,TD [keV]  vs r@',2+INQ)
-      ELSE
-         CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM,'@TE,TD,TT,TA [keV]  vs r@',2+INQ)
-      ENDIF
+      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSMAX, &
+           '@T(NS) [keV]  vs r@',2+INQ)
 
-      DO NS=1,NSM
+      DO NS=1,NSMAX
       DO NR=1,NRMAX
          GYR(NR,NS) =  GUCLIP(RN(NR,NS)*RT(NR,NS)*RKEV*1.D14)
       ENDDO
       ENDDO
-      IF(MDLNF.EQ.0) THEN
-         CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,'@PE,PD [MPa]  vs r@',2+INQ)
-      ELSE
-         CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM, '@PE,PD,PT,PA [MPa]  vs r@',2+INQ)
-      ENDIF
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSMAX, &
+           '@P(ns) [MPa]  vs r@',2+INQ)
+
       CALL TRGRTM
       CALL PAGEE
       RETURN
@@ -130,9 +116,7 @@
 
       SUBROUTINE TRGRR2(INQ)
 
-      USE TRCOMM, ONLY : &
-           AK, AKNC,AKDW, GRG, GRM, GYR, NRMAX, NRMP, NSM, PNBNR, PNFNR, POH, &
-           PRF, PRB, PRC, PRL, PRSUM, PCX, PIE, PEX 
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: INQ
       INTEGER :: NS, NR
@@ -143,8 +127,8 @@
 
       DO NR=1,NRMAX
          GYR(NR,1) = GUCLIP(POH(NR) * 1.D-6)
-         GYR(NR,2) = GUCLIP(PNBNR(NR) * 1.D-6)
-         GYR(NR,3) = GUCLIP(PNFNR(NR) * 1.D-6)
+         GYR(NR,2) = GUCLIP(PNB_NR(NR) * 1.D-6)
+         GYR(NR,3) = GUCLIP(PNF_NR(NR) * 1.D-6)
          GYR(NR,4) = GUCLIP(PRSUM(NR) * 1.D-6)
       ENDDO
       DO NS=1,NSM
@@ -201,8 +185,7 @@
 
       SUBROUTINE TRGRR3(INQ)
 
-        USE TRCOMM, ONLY : &
-             GRM,GYR,NFMAX,NRMAX,NRMP,NSM,PBCL,PBIN,PFCL,PFIN,RKEV,RTF,RW
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: INQ
       INTEGER :: NF, NR, NS
@@ -227,24 +210,26 @@
            '@WB,WF [MJ]  vs r@',2+INQ)
 
       DO NR=1,NRMAX
-         GYR(NR,1) = GUCLIP(PBIN(NR)   * 1.D-6)
+         GYR(NR,1) = GUCLIP(SUM(PNBIN_NNBNR(1:NNBMAX,NR))* 1.D-6)
       ENDDO
-      DO NS=1,NSM
+      DO NS=1,NSMAX
       DO NR=1,NRMAX
-         GYR(NR,NS+1) = GUCLIP(PBCL(NR,NS)   * 1.D-6)
+         GYR(NR,NS+1) = GUCLIP(SUM(PNBCL_NSNNBNR(NS,1:NNBMAX,NR))*1.D-6)
       ENDDO
       ENDDO
-      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM+1,'@PBIN,PBCL [MW/m$+3$=]  vs r@',2+INQ)
+      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSMAX+1, &
+           '@PNBIN,PNBCL [MW/m$+3$=]  vs r@',2+INQ)
 
       DO NR=1,NRMAX
-         GYR(NR,1) = GUCLIP(PFIN(NR) * 1.D-6)
+         GYR(NR,1) = GUCLIP(SUM(PNFIN_NNFNR(1:NNFMAX,NR))*1.D-6)
       ENDDO
       DO NS=1,NSM
       DO NR=1,NRMAX
-         GYR(NR,NS+1) = GUCLIP(PFCL(NR,NS) * 1.D-6)
+         GYR(NR,NS+1) = GUCLIP(SUM(PNFCL_NSNNFNR(NR,1:NNFMAX,NS))*1.D-6)
       ENDDO
       ENDDO
-      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM+1,'@PFIN,PFCL [MW/m$+3$=]  vs r@',2+INQ)
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM+1, &
+           '@PNFIN,PNFCL [MW/m$+3$=]  vs r@',2+INQ)
 
       CALL TRGRTM
       CALL PAGEE
@@ -260,8 +245,7 @@
 
       SUBROUTINE TRGRR4(INQ)
 
-      USE TRCOMM, ONLY : AJ, AJBS, AJNB, AJOH, AJRF, ETA, EZOH, GRG, GRM, GYR, NRMAX, NRMP, Q0, QP
-      IMPLICIT NONE
+      USE TRCOMM
       INTEGER,INTENT(IN) :: INQ
       INTEGER :: NR
       REAL    :: GUCLIP, GLOG
@@ -317,7 +301,7 @@
 
       SUBROUTINE TRGRR5(INQ)
 
-      USE TRCOMM, ONLY : GRM, GYR, NRMAX, NRMP, PZC, PZFE, VPOL, VTOR, ZEFF
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: INQ
       INTEGER :: NR
@@ -374,8 +358,7 @@
 
       SUBROUTINE TRGRR6(INQ)
 
-      USE TRCOMM, ONLY : GRM, GYR, MDLUF, NRMAX, NRMP, NSM, PIN, &
-           SCX, SEX, SIE, SNBU, SSIN, SWLU, NSMAX, SPSC
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: INQ
       INTEGER :: NR, NS
@@ -459,9 +442,7 @@
 
       SUBROUTINE TRGRR7(INQ)
 
-      USE TRCOMM, ONLY : AK, AKDW, AKLP, AKNC, DR, GRG, GYR, MDLUF,&
-           & MDLNCL, NRMAX, NRMP, NSM, NSMAX, PNSS, PTS, RHOG, RHOM,&
-           & RJCB, RKEV, RN, RQFLS, RT, VGR1, rkind
+      USE TRCOMM
       USE libitp
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: INQ
@@ -632,8 +613,7 @@
 
       SUBROUTINE TRGRR8(INQ)
 
-      USE TRCOMM, ONLY : GRG, GYR, KGR1, KGR2, KGR3, KGR4, NRMAX, NRMP, &
-           VGR1, VGR2, VGR3, VGR4
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: INQ
       INTEGER :: NR
@@ -696,13 +676,11 @@
 
       SUBROUTINE TRGRR9(INQ)
 
-      USE TRCOMM, ONLY : AD, ADDW, ADNCG, AV, AVK, AVNCG, CDP, CNP,&
-           & DR, GRG, GRM, GYR, MDLNCL, NRMAX, NRMP, NSM, NSMAX, PNSS&
-           &, RGFLS, RHOG, RHOM, RJCB, RN, TAUB, TAUF, rkind
+      USE TRCOMM
       USE libitp
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: INQ
-      INTEGER :: MODE, NR, NS
+      INTEGER :: MODE, NR, NS, NNB, NNF
       REAL(rkind), DIMENSION(NRMP,NSMAX):: RGFLSUM
       REAL(rkind), DIMENSION(NRMAX,NSMAX) :: DNN
       REAL  :: GUCLIP
@@ -770,10 +748,15 @@
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,NSMAX,'@AVK [m/s]  vs r@',2+INQ)
 
       DO NR=1,NRMAX
-         GYR(NR,1) = GUCLIP(TAUB(NR))
-         GYR(NR,2) = GUCLIP(TAUF(NR))
-      ENDDO
-      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,'@TAUB,TAUF [s]  vs r@',2+INQ)
+         DO NNB=1,NNBMAX
+            GYR(NR,NNB) = GUCLIP(TAUB(NNB,NR))
+         END DO
+         DO NNF=1,NNFMAX
+            GYR(NR,NNBMAX+NNF) = GUCLIP(TAUF(NNF,NR))
+         ENDDO
+      END DO
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NNBMAX+NNFMAX, &
+           '@TAUB,TAUF [s]  vs r@',2+INQ)
 
       CALL TRGRTM
       CALL PAGEE
@@ -789,8 +772,7 @@
 
       SUBROUTINE TRGRRA(INQ)
 
-      USE TRCOMM, ONLY : BETA, BETA0, BETAL, BETAP, BETAP0, BETAPL, BETAQ, BETAQ0, GRG, GRM, GYR, NRMAX, NRMP, NSM, PCX, &
-     &                   PEX, PIE, PNBNR, PNFNR, POH, PRF, PRL
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: INQ
       INTEGER :: NS, NR
@@ -801,8 +783,8 @@
 
       DO NR=1,NRMAX
          GYR(NR,1) = GUCLIP(POH(NR) * 1.D-6)
-         GYR(NR,2) = GUCLIP(PNBNR(NR) * 1.D-6)
-         GYR(NR,3) = GUCLIP(PNFNR(NR) * 1.D-6)
+         GYR(NR,2) = GUCLIP(PNB_NR(NR) * 1.D-6)
+         GYR(NR,3) = GUCLIP(PNF_NR(NR) * 1.D-6)
       ENDDO
       DO NS=1,NSM
       DO NR=1,NRMAX
@@ -852,51 +834,54 @@
 
       SUBROUTINE TRGRRB(INQ)
 
-        USE TRCOMM, ONLY : &
-             GRG, GRM, GYR, NRMAX, NRMP, NSM,PNB,PNF,SNB,SNF
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: INQ
-      INTEGER :: NS, NR
+      INTEGER :: NS,NR,NNB,NNF
       REAL    :: GUCLIP
 
 
       CALL PAGES
 
-      DO NR=1,NRMAX
-         GYR(NR,1) = GUCLIP(PNB(1,NR) * 1.D-6)
-         GYR(NR,2) = GUCLIP(PNB(2,NR) * 1.D-6)
-         GYR(NR,3) = GUCLIP(PNB(3,NR) * 1.D-6)
-         GYR(NR,4) = GUCLIP(PNB(4,NR) * 1.D-6)
-      ENDDO
-      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,4, &
-           '@PNB1,2,3,4, [MW/m$+3$=]  vs r@',2+INQ)
+      IF(NNBMAX.GT.0) THEN
+         DO NR=1,NRMAX
+            DO NNB=1,NNBMAX
+               GYR(NR,NNB) = GUCLIP(PNB_NNBNR(NNB,NR) * 1.D-6)
+            END DO
+         ENDDO
+         CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NNBMAX, &
+              '@PNB_NNB [MW/m$+3$=]  vs r@',2+INQ)
+      END IF
 
-      DO NR=1,NRMAX
-         GYR(NR,1) = GUCLIP(PNF(1,NR) * 1.D-6)
-         GYR(NR,2) = GUCLIP(PNF(2,NR) * 1.D-6)
-         GYR(NR,3) = GUCLIP(PNF(3,NR) * 1.D-6)
-         GYR(NR,4) = GUCLIP(PNF(4,NR) * 1.D-6)
-      ENDDO
-      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,4, &
-     &            '@PNF1,2,3,4 [MW/m$+3$=]  vs r@',2+INQ)
+      IF(NNFMAX.GT.0) THEN
+         DO NR=1,NRMAX
+            DO NNF=1,NNFMAX
+               GYR(NR,NNF) = GUCLIP(PNF_NNFNR(NNF,NR) * 1.D-6)
+            END DO
+         END DO
+         CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,NNFMAX, &
+              '@PNF_NNF [MW/m$+3$=]  vs r@',2+INQ)
+      END IF
 
-      DO NR=1,NRMAX
-         GYR(NR,1) = GUCLIP(SNB(1,NR))
-         GYR(NR,2) = GUCLIP(SNB(2,NR))
-         GYR(NR,3) = GUCLIP(SNB(3,NR))
-         GYR(NR,4) = GUCLIP(SNB(4,NR))
-      ENDDO
-      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,4, &
-           '@SNB1,2,3,4 vs r@',2+INQ)
+      IF(NNBMAX.GT.0) THEN
+         DO NR=1,NRMAX
+            DO NNB=1,NNBMAX
+               GYR(NR,NNB) = GUCLIP(SNB_NNBNR(NNB,NR))
+            END DO
+         ENDDO
+         CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,NNBMAX, &
+              '@SNB_NNB vs r@',2+INQ)
+      END IF
 
-      DO NR=1,NRMAX
-         GYR(NR,1) = GUCLIP(SNF(1,NR))
-         GYR(NR,2) = GUCLIP(SNF(2,NR))
-         GYR(NR,3) = GUCLIP(SNF(3,NR))
-         GYR(NR,4) = GUCLIP(SNF(4,NR))
-      ENDDO
-      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,4, &
-           '@SNF1,2,3,4  vs r@',2+INQ)
+      IF(NNFMAX.GT.0) THEN
+         DO NR=1,NRMAX
+            DO NNF=1,NNFMAX
+               GYR(NR,NNF) = GUCLIP(SNF_NNFNR(NNF,NR))
+            END DO
+         ENDDO
+         CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,NNFMAX, &
+              '@SNF1,2,3,4  vs r@',2+INQ)
+      END IF
 
       CALL TRGRTM
       CALL PAGEE
@@ -911,7 +896,7 @@
 
       SUBROUTINE TRGRY1(INQ)
 
-      USE TRCOMM, ONLY : AK, GYR, NRMAX, NRMP, QP, RT, VGR1
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: INQ
       INTEGER :: NR
@@ -963,7 +948,7 @@
 
       SUBROUTINE TRGRN0(K2,INQ)
 
-      USE TRCOMM, ONLY : NRAMAX, NRMAX, NROMAX, RHOA
+      USE TRCOMM
       IMPLICIT NONE
       CHARACTER(LEN=1),INTENT(IN) :: K2
       INTEGER,      INTENT(IN) :: INQ
@@ -993,7 +978,7 @@
 
       SUBROUTINE TRGRN1(INQ)
 
-      USE TRCOMM, ONLY : GPNB, GRM, GYR, NRMAX, NRMP, RTG
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: INQ
       INTEGER :: NR
@@ -1056,7 +1041,7 @@
 
       SUBROUTINE TRGRN2(INQ)
 
-      USE TRCOMM, ONLY : GPNB, GRM, GYR, NRMAX, NRMP, RTG
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: INQ
       INTEGER :: NR
@@ -1118,7 +1103,7 @@
 
       SUBROUTINE TRGRN3(INQ)
 
-      USE TRCOMM, ONLY : GPNB, GRM, GYR, NRMAX, NRMP, RTG
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: INQ
       INTEGER :: NR
@@ -1161,7 +1146,7 @@
 
       SUBROUTINE TRGRN4(INQ)
 
-      USE TRCOMM, ONLY : GBAN, GBL, GBP1, GBR, GBRH, NLM, NLMAX, RTG
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: INQ
       INTEGER :: NA, NL
@@ -1229,7 +1214,7 @@
 
       SUBROUTINE TRGRN5(INQ)
 
-      USE TRCOMM, ONLY : GBAN, GBL, GBP1, GBR, GBRH, NLM, NLMAX, RTG
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: INQ
       INTEGER :: NA, NL
@@ -1298,7 +1283,7 @@
 
       SUBROUTINE TRGRN6(INQ)
 
-      USE TRCOMM, ONLY : GBAN, GBL, GBP1, GBR, GBRH, NLM, NLMAX, RTG
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: INQ
       INTEGER :: NA, NL
