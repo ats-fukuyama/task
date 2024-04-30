@@ -7,26 +7,23 @@
 
       SUBROUTINE TRCALC(IERR)
 
-      USE TRCOMM, ONLY : AJBS, AJRF, AJRFV, AR1RHOG, ARRHOG, &
-           BP, DT, MDLEQ0, &
-           model_chi_nc,model_dp_nc,model_vk_nc,model_vp_nc, &
-           model_bs, model_eta, MDLNF, MDLPR, NRAMAX, NRMAX, &
-           NROMAX, NSM, NSMAX, PBCL, PBIN, PCX, PELTIM, PEX, PFCL, PFIN, &
-           PI, PIE, PIN, PN, PNB, PNF, POH, PRB, PRC, PRF, PRFV, PRL, PRSUM, &
-           Q0, QP, RDP, RG, RHOA, RR, SCX, SEX, SIE, SNB, SNF, SPE, SSIN, &
-           T, TAUF, TTRHOG, RDPVRHOG, SPSC
+      USE trcomm_constants
+      USE TRCOMM
+      USE trpnf
       USE tr_cytran_mod
       USE libitp
       IMPLICIT NONE
       INTEGER,INTENT(OUT)    :: IERR
-      INTEGER                :: NR,NS
+      INTEGER                :: NR,NS,npel
+      REAL(rkind):: t_pellet(npelmax)
+      REAL(rkind),SAVE:: pellet_time_start_save(1:npelm)=-1.D0
 
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       IERR=0
 
       SIE(1:NRMAX)=0.D0
-      SNF(1:NRMAX)=0.D0
-      SNB(1:NRMAX)=0.D0
+      SNF_NSNR(1:NSMAX,1:NRMAX)=0.D0
+      SNB_NSNR(1:NSMAX,1:NRMAX)=0.D0
       POH(1:NRMAX)=0.D0
       PIE(1:NRMAX)=0.D0
       PCX(1:NRMAX)=0.D0
@@ -34,11 +31,8 @@
       PRC(1:NRMAX)=0.D0
       PRL(1:NRMAX)=0.D0
       PRSUM(1:NRMAX)=0.D0
-      PNB(1:NRMAX)=0.D0
-      PNF(1:NRMAX)=0.D0
-      PBIN(1:NRMAX)=0.D0
-      PFIN(1:NRMAX)=0.D0
-!      AJNB(1:NRMAX)=0.D0
+      PNB_NSNR(1:NSMAX,1:NRMAX)=0.D0
+      PNF_NSNR(1:NSMAX,1:NRMAX)=0.D0
       AJRFV(1:NRMAX,1)=0.D0
       AJRFV(1:NRMAX,2)=0.D0
       AJRFV(1:NRMAX,3)=0.D0
@@ -46,22 +40,49 @@
       AJBS(1:NRMAX)=0.D0
       SPSC(1:NRMAX,1:NSMAX)=0.D0
       SPE(1:NRMAX,1:NSMAX)=0.D0
-      PBCL(1:NRMAX,1:NSMAX)=0.D0
-      PFCL(1:NRMAX,1:NSMAX)=0.D0
+      PNBCL_NSNNBNR(1:NSMAX,1:NNBMAX,1:NRMAX)=0.D0
+      PNFCL_NSNNFNR(1:NSMAX,1:NNFMAX,1:NRMAX)=0.D0
       PRFV(1:NRMAX,1:NSM,1)=0.D0
       PRFV(1:NRMAX,1:NSM,2)=0.D0
       PRFV(1:NRMAX,1:NSM,3)=0.D0
       PRF(1:NRMAX,1:NSM)=0.D0
 
       BP(1:NRMAX)=AR1RHOG(1:NRMAX)*RDP(1:NRMAX)/RR
-      QP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)/(4.D0*PI**2*RDPVRHOG(1:NRMAX))
+      QP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX) &
+           /(4.D0*PI**2*RDPVRHOG(1:NRMAX))
       Q0=FCTR(RG(1),RG(2),QP(1),QP(2))
 
 !     *** RADIAL ELECTRIC FIELD ***
 
       CALL TRERAD
 
-      IF(T.LT.PELTIM+0.5D0*DT.AND. T.GE.PELTIM-0.5D0*DT) CALL TRPELT
+      DO npel=1,npelmax
+         IF(pellet_time_start(npel).NE.pellet_time_start_save(npel)) THEN
+            icount_of_pellet(npel)=0
+            pellet_time_start_save(npel)=pellet_time_start(npel)
+!         WRITE(6,'(A,I6,2ES12.4)') &
+!              '# pellet setup:',icount_of_pellet,pellet_time_start,t
+         END IF
+         IF(T.GT.pellet_time_start(npel)-0.5D0*DT) THEN
+            IF(icount_of_pellet(npel).LT.number_of_pellet_repeat(npel)) THEN
+               t_pellet(npel)=pellet_time_start(npel) &
+                    +icount_of_pellet(npel)*pellet_time_interval(npel)
+!            WRITE(6,'(A,3ES12.4)') '# t_pellet:', &
+!                 T,t_pellet-0.5D0*DT,t_pellet+0.5D0*DT
+               IF(T.GT.t_pellet(npel)-0.5D0*DT.AND. &
+                  T.LE.t_pellet(npel)+0.5D0*DT) THEN
+                  CALL TRPELT(npel)
+                  icount_of_pellet(npel)=icount_of_pellet(npel)+1
+                  WRITE(6,'(A,2I6,2ES12.4)') &
+                       '# pellet injected:',npel,icount_of_pellet(npel), &
+                       T,t_pellet(npel)
+               ENDIF
+            ENDIF
+         END IF
+            
+         IF(T.LT.PELTIM(npel)+0.5D0*DT.AND. &
+            T.GE.PELTIM(npel)-0.5D0*DT) CALL TRPELT(npel)
+      END DO
 
       CALL TRPSC
 
@@ -69,103 +90,101 @@
 
       IF(MDLPR.GT.0) CALL TR_CYTRAN
 
+      IF(MDLNCL.NE.0) THEN
+         CALL TR_NCLASS(IERR)
+         IF(IERR.NE.0) RETURN
+      ENDIF
 
-
-
-
-
-
-
-      IF(model_chi_nc.EQ.1.OR. &
-         model_dp_nc.EQ.1.OR. &
-         model_vk_nc.EQ.1.OR. &
-         model_vp_nc.EQ.1.OR. &
-         model_eta.EQ.1 .OR. &
-         model_bs.EQ.1) THEN
-         CALL TR_NCLASS(ierr)
-         IF(ierr.NE.0) THEN
-            WRITE(6,'(A,I6)') 'XX trcalc: tr_nclass: ierr=',ierr
-            RETURN
-         END IF
-      END IF
-         
       CALL TRCOEF
       CALL TRLOSS
       CALL TRPWRF
       CALL TRPWNB
 
-      SELECT CASE(model_bs)
-      CASE(1)
+      IF(MDLNCL.NE.0) THEN
          CALL TRAJBS_NCLASS
-      CASE(2)
-         CALL TRAJBS
-      CASE(3)
-         CALL TRAJBS
-      CASE(4)
-         CALL TRAJBSNEW
-      CASE(5)
-         CALL TRAJBSSAUTER
-      CASE DEFAULT
-         CALL TRAJBS
-      END SELECT
+      ELSE
+         select case(MDLJBS)
+         case(1)
+            CALL TRAJBS
+         case(2)
+            CALL TRAJBS
+         case(3)
+            CALL TRAJBS
+         case(4)
+            CALL TRAJBSNEW
+         case(5)
+            CALL TRAJBSSAUTER
+         case default
+            CALL TRAJBS
+         end select
+      ENDIF
 
-      SELECT CASE(MDLNF)
-      CASE(0)
-         TAUF(1:NRMAX)=1.D0
-      CASE(1:4)
-         CALL TRNFDT
-      CASE(5:6)
-         CALL TRNFDHE3
-      END SELECT
+      CALL tr_pnf
       
       CALL TRAJOH
 
       DO NR=1,NRMAX
          IF(MDLEQ0.EQ.0) THEN
-            DO NS=1,NSMAX
-               SELECT CASE(NS)
-               CASE(1)
-                  SSIN(NR,1)= SIE(NR) &
-                                     +SNB(NR)+SEX(NR,1)+SPSC(NR,1)
-               CASE(2)
-                  SSIN(NR,2)= PN(2)*SIE(NR)/(PN(2)+PN(3)) &
-                             -SNF(NR)+SNB(NR)+SEX(NR,2)+SPSC(NR,2)
-               CASE(3)
-                  SSIN(NR,3)= PN(3)*SIE(NR)/(PN(2)+PN(3)) &
-                             -SNF(NR)        +SEX(NR,3)+SPSC(NR,3)
-               CASE(4)
-                  SSIN(NR,4)= SNF(NR)        +SEX(NR,4)+SPSC(NR,4)
-               CASE(7)
-                  SSIN(NR,7)=-SIE(NR)        -SCX(NR)
-               CASE(8)
-                  SSIN(NR,8)=         SNB(NR)+SCX(NR)
-               END SELECT
+            DO NS=1,NSTMAX
+               IF(NS.LE.NSMAX) THEN
+                  IF(NS.EQ.NS_e) THEN
+                     SSIN(NR,NS_e)= SIE(NR) &
+                          +SNB_NSNR(NS_e,NR)+SEX(NR,NS_e)+SPSC(NR,NS_e)
+                  ELSE IF(NS.EQ.NS_D) THEN
+                     SSIN(NR,NS_D)= PN(NS_D)*SIE(NR)/(PN(NS_D)+PN(NS_T)) &
+                          -SNF_NSNR(NS_D,NR)+SNB_NSNR(NS_D,NR) &
+                          +SEX(NR,NS_D)+SPSC(NR,NS_D)
+                  ELSE IF(NS.EQ.NS_T) THEN
+                     SSIN(NR,NS_T)= PN(NS_T)*SIE(NR)/(PN(NS_D)+PN(NS_T)) &
+                          -SNF_NSNR(NS_T,NR)+SNB_NSNR(NS_T,NR) &
+                          +SEX(NR,NS_T)+SPSC(NR,NS_T)
+                  ELSE IF(NS.EQ.NS_A) THEN
+                     SSIN(NR,NS_A)= SNF_NSNR(NS_A,NR)+SNB_NSNR(NS_A,NR) &
+                          +SEX(NR,NS_A)+SPSC(NR,NS_A)
+                  END IF
+               ELSEIF(NS.EQ.NSMAX+NSZMAX+1) THEN
+                  SSIN(NR,NSMAX+NSZMAX+1)=-SIE(NR)        -SCX(NR)
+               ELSEIF(NS.EQ.NSMAX+NSZMAX+2) THEN
+                  SSIN(NR,NSMAX+NSZMAX+2)=                +SCX(NR)
+               END IF
             END DO
          ELSEIF(MDLEQ0.EQ.1) THEN
             DO NS=1,NSMAX
-               SELECT CASE(NS)
-               CASE(1)
-                  SSIN(NR,1)=         SNB(NR)+SEX(NR,1)+SPSC(NR,1)
-               CASE(2)
-                  SSIN(NR,2)=-SNF(NR)+SNB(NR)+SEX(NR,2)+SPSC(NR,2)
-               CASE(3)
-                  SSIN(NR,3)=-SNF(NR)        +SEX(NR,3)+SPSC(NR,3)
-               CASE(4)
-                  SSIN(NR,4)= SNF(NR)        +SEX(NR,4)+SPSC(NR,4)
-               CASE(7)
-                  SSIN(NR,7)=0.D0
-               CASE(8)
-                  SSIN(NR,8)=         SNB(NR)
-               END SELECT
+               IF(NS.EQ.NS_e) THEN
+                  SSIN(NR,NS_e)=          SNB_NSNR(NS_e,NR) &
+                       +SEX(NR,NS_e)+SPSC(NR,NS_e)
+               ELSEIF(NS.EQ.NS_D) THEN
+                  SSIN(NR,NS_D)=SNF_NSNR(NS_D,NR)+SNB_NSNR(NS_D,NR) &
+                       +SEX(NR,NS_D)+SPSC(NR,NS_D)
+               ELSEIF(NS.EQ.NS_T) THEN
+                  SSIN(NR,NS_T)=SNF_NSNR(NS_T,NR)+SNB_NSNR(NS_T,NR) &
+                       +SEX(NR,NS_T)+SPSC(NR,NS_T)
+               ELSEIF(NS.EQ.NS_A) THEN
+                  SSIN(NR,NS_A)=SNF_NSNR(NS_A,NR)+SNB_NSNR(NS_A,NR) &
+                       +SEX(NR,NS_A)+SPSC(NR,NS_A)
+               ELSE IF(NS.EQ.NS_C) THEN
+                  SSIN(NR,NS_C)=0.D0
+               ELSE IF(NS.EQ.NS_Fe) THEN
+                  SSIN(NR,NS_Fe)=0.D0
+               END IF
             END DO
          ENDIF
-         PIN(NR,1)=PBCL(NR,1)+PFCL(NR,1)+PRF(NR,1) &
-              &   +POH(NR)-PRSUM(NR)-PIE(NR)+PEX(NR,1)
-         PIN(NR,2)=PBCL(NR,2)+PFCL(NR,2)+PRF(NR,2) &
-              &   -PN(2)*PCX(NR)/(PN(2)+PN(3))+PEX(NR,2)
-         PIN(NR,3)=PBCL(NR,3)+PFCL(NR,3)+PRF(NR,3) &
-              &   -PN(3)*PCX(NR)/(PN(2)+PN(3))+PEX(NR,3)
-         PIN(NR,4)=PBCL(NR,4)+PFCL(NR,4)+PRF(NR,4)+PEX(NR,4)
+         IF(NS_e.LE.NSMAX) &
+              PIN(NR,NS_e)=PNBCL_NSNR(NS_e,NR)+PNFCL_NSNR(NS_e,NR) &
+              +PRF(NR,NS_e) &
+              +POH(NR)-PRSUM(NR)-PIE(NR)+PEX(NR,NS_e)
+         IF(NS_D.LE.NSMAX) &
+              PIN(NR,NS_D)=PNBCL_NSNR(NS_D,NR)+PNFCL_NSNR(NS_D,NR) &
+              +PRF(NR,NS_D) &
+              -PN(NS_D)*PCX(NR)/(PN(NS_D)+PN(NS_T))+PEX(NR,NS_D)
+         IF(NS_T.LE.NSMAX) &
+              PIN(NR,NS_T)=PNBCL_NSNR(NS_T,NR)+PNFCL_NSNR(NS_T,NR) &
+              +PRF(NR,NS_T) &
+              -PN(NS_D)*PCX(NR)/(PN(NS_D)+PN(NS_T))+PEX(NR,NS_T)
+         IF(NS_A.LE.NSMAX) &
+              PIN(NR,NS_A)=PNBCL_NSNR(NS_A,NR)+PNFCL_NSNR(NS_A,NR) &
+              +PRF(NR,NS_A) &
+              +PEX(NR,NS_A)
       ENDDO
 
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX
@@ -181,9 +200,9 @@
 
       SUBROUTINE TRERAD
 
-      USE TRCOMM, ONLY : AEE, AMM, BB, BP, DR, EPSRHO, ER, MDLER, NRMAX, &
+      USE TRCOMM, ONLY : AEE, AMP, BB, BP, DR, EPSRHO, ER, MDLER, NRMAX, &
            & PA, PADD, PBM, PNSS, PTS, PZ, QP, RHOG, RHOM, &
-           & RJCB, RKEV, RN, RNF, RT, SUMPBM, VPOL, VTOR, rkind
+           & RJCB, RKEV, RN, RNF, RT, SUMPBM, VPOL, VTOR, rkind,NT
       USE libitp
       IMPLICIT NONE
       INTEGER:: NR
@@ -222,16 +241,18 @@
             IF(NR.EQ.NRMAX) THEN
                TEL = PTS(1)
                TIL = PTS(2)
-               RLNI = -DERIV3P(PNSS(2),RN(NR,2),RN(NR-1,2),RHOG(NR),RHOM(NR),RHOM(NR-1))/PNSS(2)
-               RLTI = -DERIV3P(PTS(2),RT(NR,2),RT(NR-1,2),RHOG(NR),RHOM(NR),RHOM(NR-1))/PTS(2)
+               RLNI = -DERIV3P(PNSS(2),RN(NR,2),RN(NR-1,2), &
+                    RHOG(NR),RHOM(NR),RHOM(NR-1))/PNSS(2)
+               RLTI = -DERIV3P(PTS(2),RT(NR,2),RT(NR-1,2), &
+                    RHOG(NR),RHOM(NR),RHOM(NR-1))/PTS(2)
             ELSE
                TEL = 0.5D0*(RT(NR,1)+RT(NR+1,1))
                TIL = 0.5D0*(RT(NR,2)+RT(NR+1,2))
-               RLNI = -(LOG(RN(NR+1,2))-LOG(RN(NR,2)))*DRL
-               RLTI = -(LOG(RT(NR+1,2))-LOG(RT(NR,2)))*DRL
+               RLNI = -(LOG(ABS(RN(NR+1,2)))-LOG(ABS(RN(NR,2))))*DRL
+               RLTI = -(LOG(ABS(RT(NR+1,2)))-LOG(ABS(RT(NR,2))))*DRL
             ENDIF
-            CS = SQRT(TEL*RKEV/(PA(2)*AMM))
-            RHO_S = CS*PA(2)*AMM/(PZ(2)*AEE*BB)
+            CS = SQRT(ABS(TEL)*RKEV/(PA(2)*AMP))
+            RHO_S = CS*PA(2)*AMP/(PZ(2)*AEE*BB)
             ER(NR) =-BB*( (TIL/TEL)*RHO_S*CS*(RLNI+ALPHA_NEO*RLTI)-EPS/QP(NR)*VTOR(NR))
          ENDIF
       ENDDO
@@ -302,9 +323,7 @@
 
       SUBROUTINE TRAJBSSAUTER
 
-      USE TRCOMM, ONLY : AJBS, BB, DR, EPSRHO, model_tpfrac, NRMAX, NSMAX,&
-           & PADD, PBSCD, PNSS, PTS, PZ, QP, RDP, RHOG, RHOM, RKEV,&
-           & RN, RPE, RR, RT, RW, TTRHOG, ZEFF, rkind
+      USE TRCOMM
       USE libitp
       IMPLICIT NONE
       INTEGER:: NR, NS
@@ -337,8 +356,10 @@
             RNTM=RNTM+RN(NR  ,NS)*RT(NR  ,NS)
             RNM =RNM +RN(NR  ,NS)
          ENDDO
-         RNTP=RNTP+RW(NR+1,1)+RW(NR+1,2)
-         RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
+         IF(NFMAX.GT.0) THEN
+            RNTP=RNTP+RW(NR+1,1)+RW(NR+1,2)
+            RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
+         END IF
          RPIP=RNTP+PADD(NR+1)
          RPIM=RNTM+PADD(NR  )
 
@@ -380,7 +401,7 @@
          RNUE=6.921D-18*QL*RR*ANE*1.D20*ZEFFL*rLnLame /(ABS(TE*1.D3)**2*EPSS)
 
          RPE=PE/(PE+PPI)
-         FT=FTPF(model_tpfrac,EPS)
+         FT=FTPF(MDLTPF,EPS)
 
 !         F33TEFF=FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE)+0.45D0*(1.D0-FT)*RNUE/ZEFFL**1.5)
          F31TEFF=FT/(1.D0+(1.D0-0.1D0*FT)*SQRT(RNUE)   +0.5D0*(1.D0-FT)*RNUE/ZEFFL)
@@ -425,7 +446,9 @@
             RNTM=RNTM+RN(NR-1,NS)*RT(NR-1,NS)+RN(NR  ,NS)*RT(NR  ,NS)
             RNM =RNM +RN(NR-1,NS)+RN(NR  ,NS)
          ENDDO
-         RNTM=RNTM+RW(NR-1,1)+RW(NR-1,2)+RW(NR  ,1)+RW(NR  ,2)
+         IF(NFMAX.GT.0) THEN
+            RNTM=RNTM+RW(NR-1,1)+RW(NR-1,2)+RW(NR  ,1)+RW(NR  ,2)
+         END IF
          RPIP=RNTP
          RPIM=RNTM+PADD(NR-1)+PADD(NR  )
          RNTM=0.5D0*RNTM
@@ -472,7 +495,7 @@
          RNUE=6.921D-18*QL*RR*ANE*1.D20*ZEFFL*rLnLame /(ABS(TE*1.D3)**2*EPSS)
 !
          RPE=PE/(PE+PPI)
-         FT=FTPF(model_tpfrac,EPS)
+         FT=FTPF(MDLTPF,EPS)
 
 !     F33TEFF=FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE)+0.45D0*(1.D0-FT)*RNUE/ZEFFL**1.5)
          F31TEFF=FT/(1.D0+(1.D0-0.1D0*FT)*SQRT(RNUE)   +0.5D0*(1.D0-FT)*RNUE/ZEFFL)
@@ -614,11 +637,11 @@
          DPI=(RPIP-RPIM)*DRL
          TI =0.5D0*(RNTP/RNP+RNTM/RNM)
          DTI=(RNTP/RNP-RNTM/RNM)*DRL
-!         VTI=SQRT(ABS(TI)*RKEV/AMM)
+!         VTI=SQRT(ABS(TI)*RKEV/AMP)
 
 !         ANE=0.5D0*(RN(NR+1,1)+RN(NR,1))
 !         rLnLam=17.3D0-DLOG(ANE)*0.5D0+DLOG(ABS(TI))*1.5D0
-!         TAUI=12.D0*PI*SQRT(PI)*EPS0**2*SQRT(AMM)
+!         TAUI=12.D0*PI*SQRT(PI)*EPS0**2*SQRT(AMP)
 !     &             *(ABS(TI)*RKEV)**1.5D0/(ANI(NR)*1.D20
 !     &             *ZEFFL**4*AEE**4*rLnLam)
 
@@ -644,7 +667,7 @@
 
 !         RNUE=QL*RR/(TAUE*VTE*EPSS)
 
-!         FT=FTPF(model_tpfrac,EPS)
+!         FT=FTPF(MDLTPF,EPS)
          FT=(1.46D0*SQRT(EPS)+2.4D0*EPS)/(1.D0-EPS)**1.5D0
 
 !         DDX=2.4D0+5.4D0*FT+2.6D0*FT**2
@@ -716,11 +739,11 @@
          DPI=(RPIP-RPIM)*DRL
          TI =0.5D0*(RNTP/RNP+RNTM/RNM)
          DTI=(RNTP/RNP-RNTM/RNM)*DRL
-!         VTI=SQRT(ABS(TI)*RKEV/AMM)
+!         VTI=SQRT(ABS(TI)*RKEV/AMP)
 
 !         ANE=PNSS(1)
 !         rLnLam=17.3D0-DLOG(ANE)*0.5D0+DLOG(ABS(TI))*1.5D0
-!         TAUI=12.D0*PI*SQRT(PI)*EPS0**2*SQRT(AMM)
+!         TAUI=12.D0*PI*SQRT(PI)*EPS0**2*SQRT(AMP)
 !     &             *(ABS(TI)*RKEV)**1.5D0/(ANI(NR)*1.D20
 !     &             *ZEFFL**4*AEE**4*rLnLam)
 
@@ -747,7 +770,7 @@
 
 !         RNUE=QL*RR/(TAUE*VTE*EPSS)
 
-!         FT=FTPF(model_tpfrac,EPS)
+!         FT=FTPF(MDLTPF,EPS)
          FT=(1.46D0*SQRT(EPS)+2.4D0*EPS)/(1.D0-EPS)**1.5D0
 
 !         DDX=2.4D0+5.4D0*FT+2.6D0*FT**2
@@ -791,7 +814,7 @@
 
       SUBROUTINE TRAJBS
 
-      USE TRCOMM, ONLY : AJBS, AME, AMM, BB, BP, DR, EPSRHO, NRMAX, NSMAX, PA, PBSCD, PNSS, PTS, PZ, QP, RHOG, RHOM, &
+      USE TRCOMM, ONLY : AJBS, AME, AMP, BB, BP, DR, EPSRHO, NRMAX, NSMAX, PA, PBSCD, PNSS, PTS, PZ, QP, RHOG, RHOM, &
      &                   RJCB, RKEV, RN, RR, RT, ZEFF, rkind
       USE libitp
       IMPLICIT NONE
@@ -815,9 +838,9 @@
 
       IF(PBSCD.LE.0.D0) RETURN
 
-      AMD=PA(2)*AMM
-      AMT=PA(3)*AMM
-      AMA=PA(4)*AMM
+      AMD=PA(2)*AMP
+      AMT=PA(3)*AMP
+      AMA=PA(4)*AMP
 
       DO NR=1,NRMAX-1
 
@@ -1005,14 +1028,12 @@
 
       SUBROUTINE TRAJOH
 
-      USE TRCOMM, ONLY : &
-           AJ, AJBS, AJNB, AJOH, AJRF, AJTOR, BB, DR, DVRHO, ETA, EZOH, &
-           MDLEQB, MDLJQ, NRMAX, POH, RMU0, RR, TTRHO, TTRHOG, &
-           RDPVRHOG, PI,abvrhog, rkind
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER:: NR
       REAL(rkind)   :: FACTOR0, FACTORM, FACTORP
 
+      IF(MDLEQB.EQ.1.OR.MDLJQ.EQ.1) THEN
       NR=1
          FACTOR0=TTRHO(NR)**2/(RMU0*BB*DVRHO(NR))
          FACTORP=ABVRHOG(NR  )/TTRHOG(NR  )
@@ -1033,14 +1054,11 @@
          FACTORP=ABVRHOG(NR  )
          AJTOR(NR) =FACTOR0*(FACTORP*RDPVRHOG(NR)-FACTORM*RDPVRHOG(NR-1))/DR
       ENDDO
+      ENDIF
 
       AJOH(1:NRMAX) = AJ(1:NRMAX)-(AJNB(1:NRMAX)+AJRF(1:NRMAX)+AJBS(1:NRMAX))
       EZOH(1:NRMAX) = ETA(1:NRMAX)*AJOH(1:NRMAX)
-!!!      IF(KUFDEV.EQ.'lhd') THEN
-!!!         POH(1:NRMAX)  = 0.D0
-!!!      ELSE
-         POH(1:NRMAX)  = EZOH(1:NRMAX)*AJOH(1:NRMAX)
-!!!      ENDIF
+      POH(1:NRMAX)  = EZOH(1:NRMAX)*AJOH(1:NRMAX)
 
       RETURN
       END SUBROUTINE TRAJOH
@@ -1053,8 +1071,7 @@
 
       SUBROUTINE TRSAWT
 
-      USE TRCOMM, ONLY : AR1RHOG, ARRHOG, BP, DR, DVRHO, DVRHOG, MDLST, NRMAX, NSMAX, PI, QP, RDP, RG, RM, RN, RR, RT, &
-     &                   T, TTRHOG, RDPVRHOG, rkind
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER:: IONE, IZEROX, LN, LQ, LT, NR, NS
       REAL(rkind)   :: RNN, RTN, SUML, SUML1, SUML2
@@ -1300,6 +1317,8 @@
       INTEGER:: NS1,NS2
       REAL(rkind)   :: ANEL,TL,COULOG
 
+      ! Coulomb log: Tokamaks 2Ed. p.661
+      
       IF(NS1.EQ.1.AND.NS2.EQ.1) THEN
          COULOG=14.9D0-0.5D0*LOG(ANEL)+LOG(TL)
       ELSE
@@ -1357,12 +1376,12 @@
 !     ZL   : ion charge number
 !     PAL  : ion atomic number
 
-      USE TRCOMM, ONLY : AEE, AMM, EPS0, PI, RKEV, rkind
+      USE TRCOMM, ONLY : AEE, AMP, EPS0, PI, RKEV, rkind
       IMPLICIT NONE
       REAL(rkind):: ANEL, ANIL, PAL, TIL, ZL, FTAUI
       REAL(rkind):: COEF, COULOG
 
-      COEF = 12.D0*PI*SQRT(PI)*EPS0**2*SQRT(PAL*AMM)/(AEE**4*1.D20)
+      COEF = 12.D0*PI*SQRT(PI)*EPS0**2*SQRT(PAL*AMP)/(AEE**4*1.D20)
       FTAUI = COEF*(TIL*RKEV)**1.5D0/(ANIL*ZL**4*COULOG(2,2,ANEL,TIL))
 
       RETURN

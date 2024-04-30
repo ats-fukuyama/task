@@ -3,7 +3,9 @@
 MODULE trprof
 
   PRIVATE
-  PUBLIC tr_prof,tr_prof_impurity,tr_prof_current
+  PUBLIC tr_prof
+  PUBLIC tr_prof_impurity
+  PUBLIC tr_prof_current
 
 CONTAINS
 
@@ -16,10 +18,17 @@ CONTAINS
     SUBROUTINE tr_prof
 
       USE trcomm
+      USE trfixed
+      USE libfio
+      USE libspl1d
       IMPLICIT NONE
       INTEGER:: NR, NS, NF
       REAL(rkind) :: PROF,qsurf,qaxis
-
+      REAL(rkind),ALLOCATABLE:: &
+           rs_prof(:),rn_prof(:),rdn_prof(:),uprof(:,:)
+      INTEGER:: nrmax_prof,ierr,i
+      REAL(rkind):: R1,RN1
+      
       CALL TR_EDGE_DETERMINER(0)
       CALL TR_EDGE_SELECTOR(0)
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
@@ -36,22 +45,91 @@ CONTAINS
             RT(NR,NS)=0.D0
             RU(NR,NS)=0.D0
          END DO
-         DO NF=1,NFM
+         DO NF=1,NFMAX
             RW(NR,NF)=0.D0
             RNF(NR,NF)=0.D0
             RTF(NR,NF)=0.D0
          END DO
+      END DO
 
-         PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-         RN(NR,1:NSM) = (PN(1:NSM)-PNS(1:NSM))*PROF+PNS(1:NSM)
+      SELECT CASE(model_prof)
+      CASE(11)
+         CALL FROPEN(21,knam_prof,1,0,'PN',ierr)
+         IF(ierr.NE.0) THEN
+            WRITE(6,'(A,I8)') &
+                 'XX file open error: knam_prof: ierr=',ierr
+            STOP
+         END IF
+         I=0
+         READ(21,'(A)')
+100      CONTINUE
+         I=I+1
+         READ(21,*,ERR=190,END=200) R1,RN1
+         GO TO 100
+190      WRITE(6,*) 'XX prof error'
+         STOP
+200      WRITE(6,'(A,I6)') '## prof_data size=',I-1
+         nrmax_prof=I-1
+         ALLOCATE(rs_prof(nrmax_prof),rn_prof(nrmax_prof))
+         REWIND(21)
+         READ(21,'(A)')
+300      CONTINUE
+         DO I=1,nrmax_prof
+            READ(21,*,ERR=390,END=400) rs_prof(I),rn_prof(I)
+            rn_prof(I)=rn_PROF(I)*1.D-20
+            WRITE(6,'(A,I8,2ES12.4)') 'read:',I,rs_prof(I),rn_prof(I)
+         END DO
+         GOTO 400
+390      WRITE(6,*) 'XX prof data error'
+         STOP
+               
+400      CONTINUE
+         WRITE(6,*) nrmax_prof,rs_prof(1),rs_prof(nrmax_prof)
+         ALLOCATE(rdn_prof(nrmax_prof))
+         ALLOCATE(uprof(4,nrmax_prof))
+         rdn_prof(1)=0.D0
+         CALL SPL1D(rs_prof,rn_prof,rdn_prof,uprof,nrmax_prof,1,ierr)
+         WRITE(6,*) nrmax_prof,rs_prof(1),rs_prof(nrmax_prof)
+         IF(ierr.NE.0) THEN
+            WRITE(6,*) 'XX prof spline error !'
+            STOP
+         END IF
+      END SELECT
 
-         PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-         RT(NR,1:NSM) = (PT(1:NSM)-PTS(1:NSM))*PROF+PTS(1:NSM)
+      DO nr=1,nrmax
+         SELECT CASE(model_prof)
+         CASE(11)
+            CALL SPL1DF(RM(nr),RN(nr,1),rs_prof,uprof,nrmax_prof,ierr)
+            IF(ierr.NE.0) THEN
+               WRITE(6,*) nr,RM(nr),rs_prof(1),rs_prof(nrmax_prof)
+               WRITE(6,*) 'XX prof splinef error !',ierr
+               STOP
+            END IF
+            DO ns=2,nsmax
+               RN(nr,ns)=PN(ns)/PN(1)*RN(nr,1)
+            END DO
+            WRITE(6,'(A,I6,5ES12.4)') &
+                 'prof: ',nr,RM(nr),RN(nr,1),RN(nr,2),RN(nr,3),RN(nr,4)
+            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
+            RN(NR,1:NSM) = (PN(1:NSM)-PNS(1:NSM))*PROF+PNS(1:NSM)
+            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
+            RT(NR,1:NSM) = (PT(1:NSM)-PTS(1:NSM))*PROF+PTS(1:NSM)
+            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFU1)**PROFU2
+            RU(NR,1:NSM) = (PU(1:NSM)-PUS(1:NSM))*PROF+PUS(1:NSM)
+            
+         CASE default
+            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
+            RN(NR,1:NSM) = (PN(1:NSM)-PNS(1:NSM))*PROF+PNS(1:NSM)
+            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
+            RT(NR,1:NSM) = (PT(1:NSM)-PTS(1:NSM))*PROF+PTS(1:NSM)
+            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFU1)**PROFU2
+            RU(NR,1:NSM) = (PU(1:NSM)-PUS(1:NSM))*PROF+PUS(1:NSM)
+         END SELECT
 
          PEX(NR,1:NSM) = 0.D0
          SEX(NR,1:NSM) = 0.D0
          PRF(NR,1:NSM) = 0.D0
-         RNF(NR,1:NFM) = 0.D0
+         RNF(NR,1:NFMAX) = 0.D0
          PBM(NR)=0.D0
          WROT(NR)=0.D0
          VTOR(NR)=0.D0
@@ -65,11 +143,89 @@ CONTAINS
             ANNU(NR)=0.D0
          ENDIF
 
-         RW(NR,1:NFM) = 0.D0
+         RW(NR,1:NFMAX) = 0.D0
 
          SUMPBM=SUMPBM+PBM(NR)
       ENDDO
-!      CALL PLDATA_SETR(RG,RM)
+
+      SELECT CASE(model_nfixed)
+      CASE(1)
+         CALL tr_prep_nfixed
+         IF(time_nfixed(1).LE.0.D0) THEN
+            DO nr=1,nrmax
+               CALL tr_prof_nfixed(rm(nr),t,rn(nr,1))
+               DO ns=2,nsmax
+                  rn(nr,ns)=pn(ns)/(pz(ns)*pn(1))*rn(nr,1)
+                  IF(ns.EQ.2) WRITE(6,'(I6,3ES12.4)') nr,rm(nr),rn(nr,1),rn(nr,2)
+               END DO
+            END DO
+            CALL tr_prof_nfixed(1.D0,t,pns(1))
+            pnss(1)=pns(1)
+            DO ns=2,nsmax
+               pns(ns)=pn(ns)/(pz(ns)*pn(1))*pns(1)
+               pnss(ns)=pns(ns)
+            END DO
+         END IF
+      CASE(2)
+         CALL tr_prep_nfixed
+         IF(time_nfixed(1).LE.0.D0) THEN
+            DO nr=1,nrmax
+               IF((rm(nr).GE.rho_min_nfixed).AND. &
+                  (rm(nr).LE.rho_max_nfixed)) THEN
+                  CALL tr_prof_nfixed(rm(nr),t,rn(nr,1))
+                  DO ns=2,nsmax
+                     rn(nr,ns)=pn(ns)/(pz(ns)*pn(1))*rn(nr,1)
+                  END DO
+               END IF
+            END DO
+            CALL tr_prof_nfixed(1.D0,t,pns(1))
+            pnss(1)=pns(1)
+            DO ns=2,nsmax
+               pns(ns)=pn(ns)/(pz(ns)*pn(1))*pns(1)
+               pnss(ns)=pns(1)
+            END DO
+         END IF
+      END SELECT
+      SELECT CASE(model_tfixed)
+      CASE(1)
+         CALL tr_prep_tfixed
+         IF(time_tfixed(1).LE.0.D0) THEN
+            DO nr=1,nrmax
+               CALL tr_prof_tfixed(rm(nr),t,rt(nr,1))
+               DO ns=2,nsmax
+                  rt(nr,ns)=rt(nr,1)
+               END DO
+            END DO
+            CALL tr_prof_tfixed(1.D0,t,pts(1))
+            DO ns=2,nsmax
+               pts(ns)=pts(1)
+            END DO
+         END IF
+      CASE(2)
+         CALL tr_prep_tfixed
+         IF(time_tfixed(1).LE.0.D0) THEN
+            DO nr=1,nrmax
+               IF((rm(nr).GE.rho_min_tfixed).AND. &
+                  (rm(nr).LE.rho_max_tfixed)) THEN
+                  CALL tr_prof_tfixed(rm(nr),t,rt(nr,1))
+                  DO ns=2,nsmax
+                     rt(nr,ns)=rt(nr,1)
+                  END DO
+               END IF
+            END DO
+            CALL tr_prof_tfixed(1.D0,t,pts(1))
+            DO ns=2,nsmax
+               pts(ns)=pts(1)
+            END DO
+         END IF
+      END SELECT
+
+!      WRITE(6,*) model_nfixed,model_tfixed,time_nfixed(1),time_tfixed(1)
+!      DO nr=1,nrmax
+!         WRITE(6,'(I6,5ES12.4)') nr,rm(nr),rn(nr,1),rn(nr,2),rt(nr,1),rt(nr,2)
+!      END DO
+!      WRITE(6,'(I6,5ES12.4)') nrmax+1,1.D0,pnss(1),pnss(2),pts(1),pts(2)
+
       CALL TR_EDGE_DETERMINER(1)
       CALL TR_EDGE_SELECTOR(1)
 
@@ -79,6 +235,9 @@ CONTAINS
          qpinv(nr)=1.D0/(qaxis+(qsurf-qaxis)*RG(nr)**2)
       END DO
 
+!      DO nr=1,nrmax
+!         WRITE(6,'(I6,5ES12.4)') nr,rm(nr),rn(nr,1),rn(nr,2),rt(nr,1),rt(nr,2)
+!      END DO
     END SUBROUTINE tr_prof
 
 
@@ -117,26 +276,26 @@ CONTAINS
 
 !     *** Dilution of ION due to IMPURITY DENSITY ***
 
-      DO NR=1,NRMAX
-         ANI = SUM(PZ(2:NSMAX)*RN(NR,2:NSMAX))     ! main ion charge density
-         ANZ = PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)   ! imputity ion charge den
-         DILUTE = 1.D0-ANZ/ANI                     ! dilution factor
-         IF(DILUTE.LT.0.D0) THEN
-            WRITE(6,*) 'XX trprof: negative DILUTE: reduce PNC/PNFE'
-            STOP
-         END IF
-         RN(NR,2:NSMAX) = RN(NR,2:NSMAX)*DILUTE    ! main ions diluted
-      ENDDO
-      PNSS(1)=PNS(1)
-      PNSS(2:NSMAX)=PNS(2:NSMAX)*DILUTE
-      PNSS(7)=PNS(7)
-      PNSS(8)=PNS(8)
-      IF(RHOA.NE.1.D0) THEN
-         PNSSA(1)=PNSA(1)
-         PNSSA(2:NSMAX)=PNSA(2:NSMAX)*DILUTE
-         PNSSA(7)=PNSA(7)
-         PNSSA(8)=PNSA(8)
-      ENDIF
+         DO NR=1,NRMAX
+            ANI = SUM(PZ(2:NSMAX)*RN(NR,2:NSMAX))     ! main ion charge density
+            ANZ = PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)   ! imputity ion charge den
+            DILUTE = 1.D0-ANZ/ANI                     ! dilution factor
+            IF(DILUTE.LT.0.D0) THEN
+               WRITE(6,*) 'XX trprof: negative DILUTE: reduce PNC/PNFE'
+               STOP
+            END IF
+            RN(NR,2:NSMAX) = RN(NR,2:NSMAX)*DILUTE    ! main ions diluted
+         ENDDO
+         PNSS(1)=PNS(1)
+         PNSS(2:NSMAX)=PNS(2:NSMAX)*DILUTE
+         PNSS(7)=PNS(7)
+         PNSS(8)=PNS(8)
+         IF(RHOA.NE.1.D0) THEN
+            PNSSA(1)=PNSA(1)
+            PNSSA(2:NSMAX)=PNSA(2:NSMAX)*DILUTE
+            PNSSA(7)=PNSA(7)
+            PNSSA(8)=PNSA(8)
+         ENDIF
       CALL TRZEFF
 
     END SUBROUTINE tr_prof_impurity
@@ -152,6 +311,8 @@ CONTAINS
       REAL(rkind), DIMENSION(NRMAX) :: DSRHO
       REAL(rkind) :: FACT,FACTOR0,FACTORM,FACTORP,PROF
       REAL(rkind) :: SUML
+
+!     *** THIS MODEL ASSUMES GIVEN JZ PROFILE ***
 
          DO NR=1,NRMAX
             IF((1.D0-RM(NR)**ABS(PROFJ1)).LE.0.D0) THEN
@@ -196,15 +357,16 @@ CONTAINS
          AJ(1:NRMAX)  =AJOH(1:NRMAX)
          BP(1:NRMAX)  =FACT*BP(1:NRMAX)
          QP(1:NRMAX)  =TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX) &
-                      /(4.D0*PI**2*RDPVRHOG(1:NRMAX))
+              /(4.D0*PI**2*RDPVRHOG(1:NRMAX))
+         
          Q0=(20.D0*QP(1)-23.D0*QP(2)+8.D0*QP(3))/5.D0
 
 !     *** THIS MODEL ASSUMES CONSTANT EZ ***
 
-      IF(PROFJ1.LE.0.D0.OR.MDNCLS.EQ.1) THEN
+      IF(PROFJ1.LE.0.D0.OR.MDLNCL.EQ.1) THEN
          CALL TRZEFF
          CALL TRCFET
-         IF(PROFJ1.GT.0.D0.AND.MDNCLS.EQ.1) GOTO 2000
+         IF(PROFJ1.GT.0.D0.AND.MDLNCL.EQ.1) GOTO 2000
 
          AJOH(1:NRMAX)=1.D0/ETA(1:NRMAX)
          AJ(1:NRMAX)  =1.D0/ETA(1:NRMAX)
@@ -264,13 +426,13 @@ CONTAINS
 !        NSW = 0: store edge value; substitute rhoa value
 !              1: restore original edge value
 
-      USE TRCOMM, ONLY : NRAMAX, NSM, NSTM, PNSS, PNSSA, PTS, PTSA, RHOA, RN, RT, PNSSO,PTSO,PNSSAO,PTSAO
-      IMPLICIT NONE
+      USE TRCOMM
       INTEGER, INTENT(IN) :: NSW
       INTEGER :: NS
 
       IF(RHOA.EQ.1.D0) RETURN
 
+      IF(MDLUF.EQ.0) THEN
          IF(NSW.EQ.0) THEN
             DO NS=1,NSM
                PNSSO(NS)=PNSS(NS)
@@ -279,6 +441,12 @@ CONTAINS
                PNSS (NS)=PNSSAO(NS)
                PTS  (NS)=PTSAO (NS)
             ENDDO
+         ELSE
+            DO NS=1,NSM
+               PNSS (NS)=PNSSO(NS)
+               PTS  (NS)=PTSO (NS)
+            ENDDO
+         ENDIF
       ELSE
          IF(NSW.EQ.0) THEN
             DO NS=1,NSM
@@ -299,7 +467,7 @@ CONTAINS
 !
       ENTRY TR_EDGE_DETERMINER(NSW)
 
-      IF(RHOA.NE.1.D0) THEN
+      IF(MDLUF.EQ.0.AND.RHOA.NE.1.D0) THEN
          IF(NSW.EQ.0) THEN
             DO NS=1,NSM
                PNSSAO(NS)=PNSS(NS)
@@ -316,5 +484,6 @@ CONTAINS
       ENDIF
 
       RETURN
-      END SUBROUTINE TR_EDGE_SELECTOR
-    END MODULE trprof
+    END SUBROUTINE TR_EDGE_SELECTOR
+
+  END MODULE trprof

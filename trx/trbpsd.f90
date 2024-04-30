@@ -3,7 +3,6 @@
 MODULE trbpsd
 
   USE bpsd
-  USE trmeshsub
   type(bpsd_device_type),  private,save :: device
   type(bpsd_species_type), private,save :: species
   type(bpsd_equ1D_type),   private,save :: equ1D
@@ -11,9 +10,7 @@ MODULE trbpsd
   type(bpsd_plasmaf_type), private,save :: plasmaf
   LOGICAL, PRIVATE, SAVE :: tr_bpsd_init_flag = .TRUE.
   PRIVATE
-  PUBLIC tr_bpsd_init
-  PUBLIC tr_bpsd_get
-  PUBLIC tr_bpsd_put
+  PUBLIC tr_bpsd_init,tr_bpsd_get,tr_bpsd_put
 
 CONTAINS
 
@@ -102,6 +99,7 @@ CONTAINS
 
       plasmaf%rho(1)=0.d0
       do nr=1,nrmax
+         WRITE(6,*) '@@@ point 2641:',nr,rg(nr),rm(nr)
          plasmaf%rho(nr+1)=rg(nr)
       enddo
 
@@ -126,7 +124,10 @@ CONTAINS
       device%ip=RIP
       device%elip=RKAP
       device%trig=RDLT
+
+      WRITE(6,*) '@@@ poinr @@@261:',ierr
       call bpsd_put_data(device,ierr)
+      WRITE(6,*) '@@@ poinr @@@262:',ierr
 
       plasmaf%time=t
       do ns=1,nsmax
@@ -137,6 +138,7 @@ CONTAINS
          call mesh_convert_mtog(ru(1:nrmax,ns),temp(1:plasmaf%nrmax,ns,3), &
                                 nrmax)
       enddo
+      WRITE(6,*) '@@@ poinr @@@263:',ierr
       do nr=1,plasmaf%nrmax
          do ns=1,plasmaf%nsmax
             plasmaf%data(nr,ns)%density=temp(nr,ns,1)*1.d20
@@ -148,6 +150,7 @@ CONTAINS
          enddo
       enddo
 
+      WRITE(6,*) '@@@ poinr @@@264:',ierr,plasmaf%rho(3),plasmaf%rho(2)
       do nr=1,nrmax
          plasmaf%qinv(nr+1)=qpinv(nr)
       enddo
@@ -155,7 +158,9 @@ CONTAINS
      &                -(plasmaf%rho(2))**2*plasmaf%qinv(3)) &
      &               /((plasmaf%rho(3))**2-(plasmaf%rho(2))**2)
 
+      WRITE(6,*) '@@@ poinr @@@265:',ierr
       call bpsd_put_data(plasmaf,ierr)
+      WRITE(6,*) '@@@ poinr @@@266:',ierr
       return
   END SUBROUTINE tr_bpsd_put
 
@@ -376,10 +381,137 @@ CONTAINS
          RIPS = RIP
          RIPE = RIP
       endif
-
       endif
 
       return
   END SUBROUTINE tr_bpsd_get
+
+!     ----- convert half mesh to origin + grid mesh -----
+!
+!       Suppose that rho derivative of data be zero
+!          at the axis and the boundary
+!       datag(1) at rho = 0 and datag(nrmax+1) at rho = 1
+
+      subroutine mesh_convert_mtog(datam,datag,nrmax)
+
+      implicit none
+      integer, intent(in)  :: nrmax
+      real(rkind),    intent(in)  :: datam(nrmax)
+      real(rkind),    intent(out) :: datag(nrmax+1)
+
+      datag(1)       = (9.d0*datam(1)-datam(2))/8.d0
+      datag(2:nrmax) = 0.5d0 * (datam(1:nrmax-1) + datam(2:nrmax))
+      datag(nrmax+1) = (4.d0*datam(nrmax)-datam(nrmax-1))/3.d0
+
+      return
+      end subroutine mesh_convert_mtog
+
+!     ----- convert origin + grid mesh to half mesh -----
+!
+!       just invert mesh_convert_gtom
+      !!! CAUTION !!!=======================================================!
+      !  This routine should be used only in case that one reconverts       !
+      !   data converted by "mesh_convert_mtog" routine.                    !
+      !  In any other case, one should use "data_interpolate_gtom" routine. !
+      !=====================================================================!
+
+      subroutine mesh_convert_gtom(datag,datam,nrmax)
+
+      implicit none
+      integer, intent(in)  :: nrmax
+      real(rkind),    intent(in)  :: datag(nrmax+1)
+      real(rkind),    intent(out) :: datam(nrmax)
+      real(rkind) :: c11=9.d0/8.d0,c12=-1.d0/8.d0,c21=0.5d0,c22=0.5d0
+      real(rkind) :: det,a11,a12,a21,a22
+
+      det=c11*c22-c12*c21
+      a11= c22/det
+      a12=-c12/det
+      a21=-c21/det
+      a22= c11/det
+      datam(1)=a11*datag(1)+a12*datag(2)
+      datam(2)=a21*datag(1)+a22*datag(2)
+      datam(3:nrmax) = 2.d0 * datag(3:nrmax) - datam(2:nrmax-1)
+      return
+      end subroutine mesh_convert_gtom
+
+!     ----- convert half mesh to origin + grid mesh -----
+!
+!       Suppose that data be zero at the axis
+!          and rho derivative of data be zero at the boundary
+
+      subroutine mesh_convert_mtog0(datam,datag,nrmax)
+
+      implicit none
+      integer, intent(in)  :: nrmax
+      real(rkind),    intent(in)  :: datam(nrmax)
+      real(rkind),    intent(out) :: datag(nrmax+1)
+
+      datag(1)       = 0.d0
+      datag(2:nrmax) = 0.5d0 * (datam(1:nrmax-1) + datam(2:nrmax))
+      datag(nrmax+1) = (4.d0*datam(nrmax)-datam(nrmax-1))/3.d0
+
+      return
+      end subroutine mesh_convert_mtog0
+
+!     ----- convert origin + grid mesh to half mesh -----
+!
+!       just invert mesh_convert_mtog0
+      !!! CAUTION !!!========================================================!
+      !  This routine should be used only in case that one reconverts        !
+      !   data converted by "mesh_convert_mtog" routine.                     !
+      !  In any other case, one should use "data_interpolate_gtom0" routine. !
+      !======================================================================!
+
+      subroutine mesh_convert_gtom0(datag,datam,nrmax)
+
+      implicit none
+      integer, intent(in)  :: nrmax
+      real(rkind),    intent(in)  :: datag(nrmax+1)
+      real(rkind),    intent(out) :: datam(nrmax)
+      real(rkind) :: c11=9.d0/8.d0,c12=-1.d0/8.d0,c21=0.5d0,c22=0.5d0
+      real(rkind) :: det,a11,a12,a21,a22
+
+      det=c11*c22-c12*c21
+      a11= c22/det
+      a12=-c12/det
+      a21=-c21/det
+      a22= c11/det
+      datam(1)=0.5d0*datag(2)
+      datam(2:nrmax) = 2.d0 * datag(2:nrmax) - datam(1:nrmax-1)
+      return
+      end subroutine mesh_convert_gtom0
+
+!     ----- interpolate data on half mesh from full data on grid -----
+
+      subroutine data_interpolate_gtom_full(datag,datam,nrmax)
+
+      implicit none
+      integer, intent(in)  :: nrmax
+      real(rkind),    intent(in)  :: datag(nrmax+1)
+      real(rkind),    intent(out) :: datam(nrmax)
+
+      datam(1:nrmax) = 0.5d0 * (datag(1:nrmax) + datag(2:nrmax+1))
+
+      return
+      end subroutine data_interpolate_gtom_full
+
+!     ----- interpolate data on half mesh
+!              from data on grid except the axis -----
+
+      subroutine data_interpolate_gtom(datag,datam,nrmax)
+
+      implicit none
+      integer, intent(in)  :: nrmax
+      real(rkind),    intent(in)  :: datag(nrmax+1)
+      real(rkind),    intent(out) :: datam(nrmax)
+
+      ! linear extrapolation
+      datam(1) = 1.5d0 * datag(2) - 0.5d0 * datag(3)
+
+      datam(2:nrmax) = 0.5d0 * (datag(2:nrmax) + datag(3:nrmax+1))
+
+      return
+      end subroutine data_interpolate_gtom
 
     end module trbpsd

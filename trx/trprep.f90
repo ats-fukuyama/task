@@ -10,24 +10,32 @@ CONTAINS
   SUBROUTINE tr_prep(ierr)
 
     USE trcomm
-    USE trcom0, ONLY : NSTM
-    USE trcom1, ONLY : NTAMAX,KDIRX
     USE trprof
     USE trbpsd
     USE trmetric
+    USE trfixed
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
+    INTEGER:: nr,ns,nnf
+
+    NFMAX=NNBMAX+NNFMAX
+    DO NNF=1,NNFMAX
+       IF(model_nnf(nnf).GE. 1.AND.model_nnf(nnf).LT.10) ns_nnf(nnf)=NS_A
+       IF(model_nnf(nnf).GE.11.AND.model_nnf(nnf).LT.20) ns_nnf(nnf)=NS_H
+       IF(model_nnf(nnf).GE.21.AND.model_nnf(nnf).LT.30) ns_nnf(nnf)=NS_D
+       IF(model_nnf(nnf).GE.31.AND.model_nnf(nnf).LT.40) ns_nnf(nnf)=NS_He3
+       IF(model_nnf(nnf).GE.41.AND.model_nnf(nnf).LT.50) ns_nnf(nnf)=NS_H
+       IF(model_nnf(nnf).GE.51.AND.model_nnf(nnf).LT.60) ns_nnf(nnf)=NS_A
+    END DO
 
       CALL ALLOCATE_TRCOMM(IERR)
       IF(IERR.NE.0) RETURN
 
       CALL TR_EQS_SELECT(0)
 
+      NROMAX=NRMAX
       NRAMAX=INT(RHOA*NRMAX)
       DR = 1.D0/DBLE(NRMAX)
-
-      NROMAX=NRMAX
-      NRMAX=NRAMAX
 
       NT    = 0
       T     = 0.D0
@@ -38,6 +46,10 @@ CONTAINS
       NGT   = 0
       NGST  = 0
       RIP   = RIPS
+
+      icount_of_pellet=0
+
+!     *** set initial profile ***
 
       CALL tr_prof
 
@@ -94,13 +106,7 @@ CONTAINS
 
   SUBROUTINE TR_EQS_SELECT(INIT)
 
-    USE TRCOMM, ONLY : &
-         AMM, AMZ, MDDIAG, MDLEOI, MDLEQ0, MDLEQB, MDLEQE, MDLEQN, &
-         MDLEQT, MDLEQU, MDLEQZ, model_chi_tb, &
-         MDLWLD, MDNCLS, NEA, NEQM, NEQMAX, NEQMAXM, NNS, NREDGE, &
-         NRMAX, NSCMAX, NSLMAX, NSM, NSMAX,      &
-         NSNMAX, NSS, NST, NSTM, NSTMAX, NSV, NSZMAX, PA, PZ, RGFLS, RQFLS
-    USE TRCOM1, ONLY : INS
+    USE TRCOMM
     IMPLICIT NONE
     INTEGER,INTENT(IN) :: INIT
     INTEGER:: IND, INDH, INDHD, MDANOM, MDSLCT, NEQ, NEQ1, NEQI
@@ -134,11 +140,6 @@ CONTAINS
       ENDIF
 !     ***
 
-!      IF(MDLEQT.EQ.0) THEN
-!         NEQMAX=MDLEQB+(MDLEQN+MDLEQT+MDLEQU)*2+MDLEQ0*NSNMAX+MDLEQZ*NSZMAX
-!      ELSEIF(MDLEQT.EQ.1) THEN
-!         NEQMAX=MDLEQB+2+(MDLEQT+MDLEQU)*2+MDLEQ0*NSNMAX+MDLEQZ*NSZMAX
-!      ENDIF
       IF(MDLEQT.EQ.0) THEN
          NEQMAX=MDLEQB+(MDLEQN+MDLEQT+MDLEQU)*NSMAX+MDLEQ0*NSNMAX+MDLEQZ*NSZMAX
       ELSEIF(MDLEQT.EQ.1) THEN
@@ -247,7 +248,7 @@ CONTAINS
 
       DO NS=1,NSMAX
          IF(PZ(NS).NE.0.D0) THEN
-            AMZ(NS)=PA(NS)*AMM/PZ(NS)**2
+            AMZ(NS)=PA(NS)*AMP/PZ(NS)**2
          ELSE
             AMZ(NS)=0.D0
          ENDIF
@@ -270,7 +271,7 @@ CONTAINS
 
 !     CHECK WHETHER TURBULENT TRANSPORT MODEL HAS OFF-DIAGONAL PARTS
 
-      IF(model_chi_tb.EQ.61.OR.(model_chi_tb.EQ.63.AND.MDLWLD.EQ.1)) THEN
+      IF(MDLKAI.EQ.61.OR.(MDLKAI.EQ.63.AND.MDLWLD.EQ.1)) THEN
          MDANOM=1
       ELSE
          MDANOM=0
@@ -285,7 +286,7 @@ CONTAINS
 !     |   3   |   o   |   o   |
 !     |-----------------------|
 
-      IF(MDNCLS.EQ.0) THEN
+      IF(MDLNCL.EQ.0) THEN
          IF(MDANOM.EQ.1) THEN
             MDDIAG=2
          ELSE
@@ -316,14 +317,14 @@ CONTAINS
 
       SUBROUTINE TR_TABLE(NS,NEQ,NSW,IND,INDH,INDHD)
 
-      USE TRCOMM, ONLY : AME, AMM, MDLEQE, NEQMAX, NNS, NSMAX, NSS, NSV, PA, rkind
+      USE TRCOMM, ONLY : AME, AMP, MDLEQE, NEQMAX, NNS, NSMAX, NSS, NSV, PA, rkind
       IMPLICIT NONE
       INTEGER,INTENT(IN)   :: NS, NSW
       INTEGER,INTENT(INOUT):: NEQ, IND, INDH, INDHD
       INTEGER :: NEQI, NEQII, NNSN, NSVN
       REAL(rkind)    :: REM
 
-      REM=AME/AMM
+      REM=AME/AMP
       IF(NS.LE.NSMAX) THEN
          IF(ABS(PA(NS)-REM).LE.1.D-10) THEN
 !     electron

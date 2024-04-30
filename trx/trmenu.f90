@@ -13,11 +13,14 @@ CONTAINS
 
       USE trcomm
       USE trparm
+      USE trview
       USE trprep
       USE trloop
       USE trfile
       USE trgout
       USE trfout
+      USE trpnf
+      
       USE libfio
       USE libkio
       USE libchar
@@ -38,14 +41,13 @@ CONTAINS
               & 'D/DATA  H/HELP  Q/QUIT')
       ELSEIF(INIT.EQ.1) THEN
          WRITE(6,602)
-  602    FORMAT('## TR MENU: G/GRAPH  '/ &
-              & '            P,V,U/PARM  R/RUN  L/LOAD  ', &
+  602    FORMAT('## TR MENU: G/GRAPH  ', &
+              & '            P,V,U/PARM  R/RUN  L/LOAD  '/ &
               & 'D/DATA  H/HELP  Q/QUIT')
       ELSE
          WRITE(6,603)
-  603    FORMAT('## TR MENU: C/CONT  G/GRAPH  W,F/WRITE  ', &
-              & 'S/SAVE  O/UFILEOUT'/ &
-              & '            P,V,U/PARM  R/RUN  L/LOAD  ',&
+  603    FORMAT('## TR MENU: C/CONT  G/GRAPH  W,F/WRITE ', &
+              & 'S/SAVE  P,V,U/PARM  R/RUN  L/LOAD  '/ &
               & 'D/DATA  H/HELP  Q/QUIT')
       ENDIF
 
@@ -60,17 +62,24 @@ CONTAINS
          CALL tr_view(1)
 
       ELSE IF(KID.EQ.'L') THEN
+         CALL tr_prep(ierr)
+         if(ierr.ne.0) GO TO 1
          CALL tr_load
          INIT=2
+         id_loop=0
+         NT=0
       ELSE IF(KID.EQ.'S'.AND.INIT.EQ.2) THEN
          CALL tr_save
 
       ELSE IF(KID.EQ.'R') THEN
          id_loop=0
+         WRITE(6,*) '@@@ point 1'
          CALL tr_prep(ierr)
+         WRITE(6,*) '@@@ point 2'
          if(ierr.ne.0) GO TO 1
 
          CALL tr_loop(ierr)
+         WRITE(6,*) '@@@ point 3'
          IF(ierr.NE.0) id_loop=1
          
          INIT=2
@@ -126,10 +135,10 @@ CONTAINS
             GO TO 4
          END SELECT
             IF(IERR.NE.0) GO TO 4
-            WRITE(26) NRMAX,NSMAX,NFM
+            WRITE(26) NRMAX,NSMAX,NFMAX
             WRITE(26) (RM(NR),RG(NR),NR=1,NRMAX)
             WRITE(26) ((RN(NR,NS),RT(NR,NS),NR=1,NRMAX),NS=1,NSMAX)
-            WRITE(26) ((RW(NR,NF),RNF(NR,NF),RTF(NR,NF),NR=1,NRMAX),NF=1,NFM)
+            WRITE(26) ((RW(NR,NF),RNF(NR,NF),RTF(NR,NF),NR=1,NRMAX),NF=1,NFMAX)
             CLOSE(26)
             WRITE(6,'(A,I1)') '## Data saved in trdata',NTYPE
          GO TO 4
@@ -151,8 +160,13 @@ CONTAINS
 !         INIT=1
 ! 200607 end delete
 
-      ELSE IF(KID.EQ.'O'.AND.INIT.EQ.2) THEN
-         CALL TRXOUT
+      ELSE IF(KID.EQ.'B') THEN
+7777     CONTINUE
+         WRITE(6,*) '## INPUT T'
+         READ(5,*,END=7779) T
+         WRITE(6,*) '   sigma=',SIGMAM(T,T)
+         GOTO 7777
+7779     CONTINUE
       ELSE IF(KID.EQ.'H') THEN
          CALL TRHELP('M')
       ELSE IF(KID.EQ.'Q') THEN
@@ -166,7 +180,7 @@ CONTAINS
 
       GOTO 1
 
- 9000 CONTINUE
+9000  CONTINUE
       RETURN
       END SUBROUTINE tr_menu
     END MODULE trmenu

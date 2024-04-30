@@ -16,7 +16,6 @@ CONTAINS
   SUBROUTINE tr_loop(ierr)
 
       USE TRCOMM
-      USE TRCOM1, ONLY : NTAMAX
       USE trbpsd, ONLY: tr_bpsd_put, tr_bpsd_get
       USE trexec
       USE libitp
@@ -25,23 +24,29 @@ CONTAINS
       INTEGER,INTENT(OUT):: IERR
       INTEGER:: nr
 
+      WRITE(6,*) '@@@ point 21'
       ierr=0
       IF(NT.GE.NTMAX) GOTO 9000
+
       CALL tr_eval(NT,IERR)
+      WRITE(6,*) '@@@ point 22:',ierr
       IF(IERR.NE.0) GOTO 9000
 
       RIP=RIPS
       IF(NTMAX.NE.0) DIPDT=(RIPE-RIPS)/(DBLE(NTMAX)*DT)
       write(6,'(A,1P4E12.4)') "**RIP,RIPS,RIPE,DIP=",RIP,RIPS,RIPE,DIPDT
 
+      WRITE(6,*) '@@@ point 23:',ierr
       call tr_bpsd_get(ierr)
+      WRITE(6,*) '@@@ point 24:',ierr
       if(ierr.ne.0) GOTO 9000
 
  1000 CONTINUE
 
-      CALL tr_exec(DT,IERR)
+      CALL tr_exec(IERR)
+      WRITE(6,*) '@@@ point 25:',ierr
       IF(IERR.NE.0) GOTO 9000
-
+      
       DO nr=1,nrmax
          QPINV(nr)=(4.D0*PI**2*RDPVRHOG(nr))/(TTRHOG(nr)*ARRHOG(nr))
       END DO
@@ -54,8 +59,10 @@ CONTAINS
          CALL TRSAWT
          TST=0.D0
       ENDIF
+      WRITE(6,*) '@@@ point 26:',ierr
 
       call tr_bpsd_put(IERR)
+      WRITE(6,*) '@@@ point 27:',ierr
       if(ierr.ne.0) GOTO 9000
       NT=NT+1
 
@@ -72,18 +79,17 @@ CONTAINS
          ENDIF
       ENDIF
       call tr_bpsd_get(IERR)
+      WRITE(6,*) '@@@ point 28:',ierr
       if(ierr.ne.0) return
 
       CALL tr_eval(NT,IERR)
+      WRITE(6,*) '@@@ point 29:',ierr
       IF(IERR.NE.0) GOTO 9000
-
-!     ***
 
       IF(NT.LT.NTMAX) GOTO 1000
 
 9000  CONTINUE
       RIPS=RIPE
-
       RETURN
     END SUBROUTINE tr_loop
   END MODULE trloop

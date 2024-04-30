@@ -1,5 +1,5 @@
-!     ***********************************************************
 
+!     ***********************************************************
 !           GRAPHIC : CONTROL ROUTINE
 
 !     ***********************************************************
@@ -83,16 +83,15 @@
 
       SUBROUTINE TRGRT1
 
-      USE TRCOMM, ONLY : GT, GVRT, GRM, RTU, NGT, NTM, NRMAX, rkind
-      USE TRCOM1, ONLY : TMU, NTXMAX, NTUM
+      USE TRCOMM
       USE libitp
       IMPLICIT NONE
       INTEGER :: I, NR, IERR
       REAL,DIMENSION(NTM,NRMAX) :: GYL
       REAL(rkind) :: TSL, RTEL, RTDL
       REAL :: GUCLIP
-      CALL PAGES
 
+      CALL PAGES
       DO I=1,NGT
          GYL(I,1:NRMAX) = GVRT(1:NRMAX,I, 1)
       ENDDO
@@ -281,7 +280,7 @@
 
       SUBROUTINE TRGRT6(INQ)
 
-      USE TRCOMM, ONLY : GT, GVT, GYT, MDLNF, NGT, NTM
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER, INTENT(IN):: INQ
 
@@ -333,11 +332,12 @@
       GYT(1:NGT,4)=GVT(1:NGT,12)
       CALL TRGR1D(15.0,24.0, 5.4, 8.4,GT,GYT,NTM,NGT,4,'@TE0,TD0,TT0,TA0 [keV]  vs t@',2+INQ)
 
-      IF(MDLNF.EQ.0) THEN
+      IF(NNFMAX.EQ.0) THEN
          GYT(1:NGT,1)=GVT(1:NGT,1)
          GYT(1:NGT,2)=GVT(1:NGT,5)
          GYT(1:NGT,3)=GVT(1:NGT,104)
-         CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,3,'@NE0,<NE>,<NEL> [10$+20$=/m$+3$=]  vs t@',2+INQ)
+         CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,3, &
+              '@NE0,<NE>,<NEL> [10$+20$=/m$+3$=]  vs t@',2+INQ)
       ELSE
          GYT(1:NGT,1)=GVT(1:NGT,1)
          GYT(1:NGT,2)=GVT(1:NGT,2)
@@ -347,7 +347,8 @@
          GYT(1:NGT,6)=GVT(1:NGT,6)
          GYT(1:NGT,7)=GVT(1:NGT,7)
          GYT(1:NGT,8)=GVT(1:NGT,8)
-         CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,8,'@NE0,ND0,NT0,NA0,<> [10$+20$=/m$+3$=]  vs t@',2+INQ)
+         CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,8, &
+              '@NE0,ND0,NT0,NA0,<> [10$+20$=/m$+3$=]  vs t@',2+INQ)
       ENDIF
 
       CALL PAGEE

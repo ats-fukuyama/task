@@ -112,7 +112,7 @@ CONTAINS
             VCL(11)=RT(NR,2) !Ti
             VCL(12)=(PIN(NR,2)+PIN(NR,3)+PIN(NR,4))*1.D-6 !Pi
             VCL(13)=PIN(NR,1)*1.D-6 !Pe
-            VCL(14)=(POH(NR)+PNB(NR)+PNF(NR) &
+            VCL(14)=(POH(NR)+PNB_NR(NR)+PNF_NR(NR) &
                    +PEX(NR,1)+PEX(NR,2)+PEX(NR,3)+PEX(NR,4) &
                    +PRF(NR,1)+PRF(NR,2)+PRF(NR,3)+PRF(NR,4))*1.D-6 ! Paux
             VCL(15)= PRF(NR,1)*1.D-6                         ! HICe
@@ -170,7 +170,7 @@ CONTAINS
             VCL(12)=AJOH(NR)
             VCL(13)=QP(NR)
             VCL(14)=POH(NR)
-            VCL(15)=PNB(NR)
+            VCL(15)=PNB_NR(NR)
             WRITE(NFL,'(14(1PE13.6,","),1PE13.6)') (VCL(N),N=1,15)
          END DO
          GO TO 1
@@ -270,7 +270,7 @@ CONTAINS
       WRITE(NFL,'(I4,A,A,A)') ID,':',KSTR,'(t)'
       WRITE(NFL,'(A,I8)') 'DIM=',1
       WRITE(NFL,'(A,I8)') 'NUM=',NTLMAX
-      WRITE(NFL,'(1P2E15.7)') (GT(NTL),GF(NTL,ID),NTL=1,NTLMAX)
+      WRITE(NFL,'(ES15.7,",",ES15.7)') (GT(NTL),GF(NTL,ID),NTL=1,NTLMAX)
       IF(NFL.NE.6) WRITE(6,'(I4,A,A,A,I6,A)') ID,':',KSTR,'(',NTLMAX,'): fout'
       RETURN
       END SUBROUTINE TRF1DGT
@@ -286,15 +286,17 @@ CONTAINS
       REAL,DIMENSION(NRMAX,NTM,NCRTM),INTENT(IN):: GF
       CHARACTER(LEN=4):: KSTR
       INTEGER:: NR,NTL
+      CHARACTER(LEN=80):: FMT
       
       CALL GETKRT(ID,KSTR)
       WRITE(NFL,'(I4,A,A,A)') ID,':',KSTR,'(r,t)'
       WRITE(NFL,'(A,I8)') 'DIM=',2
       WRITE(NFL,'(A,2I8)') 'NUM=',NRMAX,NTLMAX
-      WRITE(NFL,'(1P5E15.7)') (GR(NR),NR=1,NRMAX)
-      WRITE(NFL,'(1P5E15.7)') (GT(NTL),NTL=1,NTLMAX)
+      WRITE(FMT,'(A,I8,A)') '(",",ES15.7,',NRMAX,'(",",ES15.7))' 
+      WRITE(NFL,FMT) (GR(NR),NR=1,NRMAX)
+      WRITE(FMT,'(A,I8,A)') '(ES15.7,",",ES15.7,',NRMAX,'(",",ES15.7))'
       DO NTL=1,NTLMAX
-         WRITE(NFL,'(1P5E15.7)') (GF(NR,NTL,ID),NR=1,NRMAX)
+         WRITE(NFL,FMT) GT(NTL),(GF(NR,NTL,ID),NR=1,NRMAX)
       ENDDO
       IF(NFL.NE.6) WRITE(6,'(I4,A,A,A,I4,A,I6,A)') &
            ID,':',KSTR,'(',NRMAX,',',NTLMAX,'): fout'

@@ -205,7 +205,7 @@
      &' ','  ALP(1) : RAIDUS REDUCTION FACTOR'/                     &
      &' ','  ALP(2) : MASS WEIGHTING FACTOR OF AD'/                 &
      &' ','  ALP(3) : CHARGE WEIGHTING FACTOR OF ADL'/              &
-     &' ','  model_chi_tb : DW TRANSPORT MODEL TYPE'/               &
+     &' ','  MDLKAI : DW TRANSPORT MODEL TYPE'/                     &
      &' ','           0:GYRO-BOHM  1:ETAC=1  2:ROMANELLI 3 :ITOH'/  &
      &' ','  MDLETA : RESISTIVITY MODEL TYPE'/                      &
      &' ','           0:CLASSICAL 1:NEOCLASSICAL'/                  &

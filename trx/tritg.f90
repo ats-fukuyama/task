@@ -21,12 +21,7 @@
 !     Output transport coefficients              : grid
 !   *************************************************************
 
-      USE TRCOMM, ONLY : &
-           ADDW, ADDWD, ADDWP, AKDW, AKDWD, AKDWP, AR1RHO, AR2RHO, AVDW, &
-           AVKDW, BB, CDH, DR, MDDW, MDLEOI, MDLEQN, MDLEQT, model_chi_tb, &
-           NGLF, NRMAX, NSM, NSMAX, PA, PHIA, PI, PZ, Q0, QP, RA, RG, RKAP, &
-           RKPRHO, RM, RMJRHO, RMNRHO, RN, RNF, RR, RT, VPAR, VPRP, VTOR, &
-           WEXB, WROT, ZEFF, ALPHA, rkind
+      USE TRCOMM
       USE libitp
       IMPLICIT NONE
       INCLUDE 'trglf.inc'
@@ -40,7 +35,7 @@
            qe, qi, qn, rmajor_exp, x_alpha, zimp_exp, zpne_in, &
            zpni_in, zpte_in, zpti_in
 
-      MDDW=1
+      MDLDW=1
 !     INPUTS
       leigen=1        ! 1 for tomsqz, 0 for cgg solver
       nroot=8
@@ -132,11 +127,7 @@
          rho(jm)=RM(jm) ! norm. toroidal flux surf. label
       ENDDO
 
-      IF(PHIA.EQ.0.D0) THEN
-         arho_exp=SQRT(RKAP)*RA ! rho at last closed flux surface [m]
-      ELSE
-         arho_exp=SQRT(PHIA/(PI*bt_exp))
-      ENDIF
+      arho_exp=SQRT(RKAP)*RA ! rho at last closed flux surface [m]
 
       rmin_exp(0)=0.D0
       CALL AITKEN(RM(1),rmin_exp(1),RG,RMNRHO,1,NRMAX)
@@ -175,7 +166,7 @@
       x_alpha=1.D0       ! alpha stabilization (0=off,>0=on)
       i_delay=0          ! default(usually recommended)
 
-      IF(model_chi_tb.EQ.60) THEN
+      IF(MDLKAI.EQ.60) THEN
 !     +++ Normal type +++
 
          igrad=0         ! compute gradients (1=input gradients)
@@ -222,7 +213,7 @@
             ENDDO
          ENDDO
 
-      ELSEIF(model_chi_tb.EQ.61) THEN
+      ELSEIF(MDLKAI.EQ.61) THEN
 !     +++ D-V (diffusion convection) method +++
 
          igrad=1  ! compute gradients (1=input gradients)
@@ -448,7 +439,7 @@
 !***********************************************************************
 
       USE TRCOMM, ONLY : &
-           AR1RHOG, AR2RHOG, BB, DR, EPSRHO, MDDW, model_chi_tb, model_tpfrac, &
+           AR1RHOG, AR2RHOG, BB, DR, EPSRHO, MDLDW, MDLKAI, MDLTPF, &
            NRMAX, NT, PA, PNSS, PTS, PZ, QP, RA, RHOG, RHOM, RJCB, RKAP, &
            RKEV, RMU0, RN, RR, RT, WEXB, S, rkind
       USE libitp
@@ -462,7 +453,7 @@
            tauzl, tel, wexbl, zl
       REAL(rkind),DIMENSION(5):: CHEL, CHIL, CHQL, DL, DQL
 
-      MDDW=1
+      MDLDW=1
       IF(NT.EQ.0) THEN
          IST=1
       ELSE
@@ -495,7 +486,7 @@
          EEL   =       SLNEL/SLTEL
          TAUL  = (RT(NR+1,1)+RT(NR,1))/(RT(NR+1,2)+RT(NR,2))
          FLL   = 1.D-1
-         FTL   = FTPF(model_tpfrac,EPS)
+         FTL   = FTPF(MDLTPF,EPS)
          BQL   = (RN(NR+1,3)+RN(NR,3))/(RN(NR+1,1)+RN(NR,1))
          EQL   =       SLNQL/SLTQL
          ENQL  = 2.D0*(SLNQL/SLBL )
@@ -509,7 +500,7 @@
 
          RGKL  = AR1RHOG(NR)/(RA*AR2RHOG(NR))
          WEXBL = WEXB(NR)
-         IF(model_chi_tb.EQ.64) THEN
+         IF(MDLKAI.EQ.64) THEN
             SHAT  = SQRT(2.D0*SL-1.D0+RKAP**2*(SL-1.D0)**2)
             FLS   = (0.7D0+2.4D0/(7.14D0*QL*SHAT+0.1D0))*FLL
             FLL   = 2.D0*FLS/(1.D0+1.D0/TAUL)
@@ -556,7 +547,7 @@
          EEL   =       SLNEL/SLTEL
          TAUL  = PTS(1)/PTS(2)
          FLL   = 1.D-1
-         FTL   = FTPF(model_tpfrac,EPS)
+         FTL   = FTPF(MDLTPF,EPS)
          BQL   = PNSS(3)/PNSS(1)
          EQL   =       SLNQL/SLTQL
          ENQL  = 2.D0*(SLNQL/SLBL )
@@ -569,7 +560,7 @@
 
          RGKL  = AR1RHOG(NR)/(RA*AR2RHOG(NR))
          WEXBL = WEXB(NR)
-         IF(model_chi_tb.EQ.64) THEN
+         IF(MDLKAI.EQ.64) THEN
             SHAT  = SQRT(2.D0*SL-1.D0+RKAP**2*(SL-1.D0)**2)
             FLS   = (0.7D0+2.4D0/(7.14D0*QL*SHAT+0.1D0))*FLL
             FLL   = 2.D0*FLS/(1.D0+1.D0/TAUL)
@@ -1010,7 +1001,7 @@
 !     ***********************************************************
 
       SUBROUTINE IFSPPPL_DRIVER(NSTM,NRMAX,RN,RR,DR,RJCB,RHOG,RHOM,QP, &
-           S,EPSRHO,RKPRHOG,RT,BB,AMM,AME,PNSS,PTS,RNFL,RBEEDG,NSMAX, &
+           S,EPSRHO,RKPRHOG,RT,BB,AMP,AME,PNSS,PTS,RNFL,RBEEDG,NSMAX, &
            AR1RHOG,AR2RHOG,AKDW)
 
       USE trcomm,ONLY: rkind
@@ -1018,7 +1009,7 @@
       IMPLICIT NONE
 
       INTEGER,INTENT(IN):: NSTM,NRMAX,NSMAX
-      REAL(rkind)   ,INTENT(IN):: RR,DR,BB,AMM,AME,RBEEDG
+      REAL(rkind)   ,INTENT(IN):: RR,DR,BB,AMP,AME,RBEEDG
       REAL(rkind),DIMENSION(NRMAX,NSMAX),INTENT(IN):: RN, RT
       REAL(rkind),DIMENSION(NRMAX),INTENT(IN):: &
            RJCB,RHOG,RHOM,QP,S,EPSRHO,RKPRHOG,RNFL,AR1RHOG,AR2RHOG
@@ -1063,7 +1054,7 @@
          zshat  = SNGL(S(NR))
          zeps   = SNGL(EPSRHO(NR))
          zkappa = SNGL(RKPRHOG(NR))
-         gnu    = SNGL((AME/AMM)*1.5625D-15*RN(NR,2)*1D20/RT(NR,1)**1.5D0)
+         gnu    = SNGL((AME/AMP)*1.5625D-15*RN(NR,2)*1D20/RT(NR,1)**1.5D0)
 !         gnu    = 2.1*rmajor*ne19/(tekev**1.5 * tikev**0.5)
          gtau   = SNGL( (RT(NR+1,2)+RT(NR,2))/(RT(NR+1,1)+RT(NR,1)))
 
@@ -1100,7 +1091,7 @@
          zshat  = SNGL(S(NR))
          zeps   = SNGL(EPSRHO(NR))
          zkappa = SNGL(RKPRHOG(NR))
-         gnu    = SNGL((AME/AMM)*1.5625D-15*RN(NR,2)*1D20/RT(NR,1)**1.5D0)
+         gnu    = SNGL((AME/AMP)*1.5625D-15*RN(NR,2)*1D20/RT(NR,1)**1.5D0)
          gtau   = SNGL(PTS(2)/PTS(1))
 
          ne19   = SNGL(PNSS(1)*1.D1)

@@ -7,8 +7,7 @@
 
       SUBROUTINE TRZEFF
 
-      USE TRCOMM, ONLY : &
-           ANC,ANFE,MDLEQN,NRMAX,PZ,PZC,PZFE,RN,RT,ZEFF,NSMAX,MDLIMP,rkind
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER:: NR,NS
       REAL(rkind)   :: TE,TRZEC,TRZEFE,RNE
@@ -70,26 +69,28 @@
            BC40=-3.412166D+01, BC41= 1.250454D+02, BC42=-1.550822D+02, &
            BC43= 9.568297D+01, BC44=-2.937297D+01, BC45= 3.589667D+00
 
-      TEL = LOG10(TE)
       IF(TE.LE.3.D-3) THEN
          TRZEC=0.D0
-      ELSEIF(TE.LE.2.D-2) THEN
-         TRZEC= BC00+(BC01*TEL)+(BC02*TEL**2)+(BC03*TEL**3) &
-                    +(BC04*TEL**4)+(BC05*TEL**5)
-      ELSEIF(TE.LE.0.2D0) THEN
-         TRZEC= BC10+(BC11*TEL)+(BC12*TEL**2)+(BC13*TEL**3) &
-                    +(BC14*TEL**4)+(BC15*TEL**5)
-      ELSEIF(TE.LE.2.D0) THEN
-         TRZEC= BC20+(BC21*TEL)+(BC22*TEL**2)+(BC23*TEL**3) &
-                    +(BC24*TEL**4)+(BC25*TEL**5)
-      ELSEIF(TE.LE.20.D0) THEN
-         TRZEC= BC30+(BC31*TEL)+(BC32*TEL**2)+(BC33*TEL**3) &
-                    +(BC34*TEL**4)+(BC35*TEL**5)
-      ELSEIF(TE.LE.100.D0) THEN
-         TRZEC= BC40+(BC41*TEL)+(BC42*TEL**2)+(BC43*TEL**3) &
-                    +(BC44*TEL**4)+(BC45*TEL**5)
       ELSE
-         TRZEC= 6.D0
+         TEL = LOG10(TE)
+         IF(TE.LE.2.D-2) THEN
+            TRZEC= BC00+(BC01*TEL)+(BC02*TEL**2)+(BC03*TEL**3) &
+                       +(BC04*TEL**4)+(BC05*TEL**5)
+         ELSEIF(TE.LE.0.2D0) THEN
+            TRZEC= BC10+(BC11*TEL)+(BC12*TEL**2)+(BC13*TEL**3) &
+                       +(BC14*TEL**4)+(BC15*TEL**5)
+         ELSEIF(TE.LE.2.D0) THEN
+            TRZEC= BC20+(BC21*TEL)+(BC22*TEL**2)+(BC23*TEL**3) &
+                       +(BC24*TEL**4)+(BC25*TEL**5)
+         ELSEIF(TE.LE.20.D0) THEN
+            TRZEC= BC30+(BC31*TEL)+(BC32*TEL**2)+(BC33*TEL**3) &
+                       +(BC34*TEL**4)+(BC35*TEL**5)
+         ELSEIF(TE.LE.100.D0) THEN
+            TRZEC= BC40+(BC41*TEL)+(BC42*TEL**2)+(BC43*TEL**3) &
+                       +(BC44*TEL**4)+(BC45*TEL**5)
+         ELSE
+            TRZEC= 6.D0
+         END IF
       ENDIF
 
       RETURN
@@ -115,26 +116,26 @@
       REAL(rkind):: BF40= 2.122081D+01, BF41= 6.891607D+00, BF42=-4.076853D+00, &
                 BF43= 1.577171D+00, BF44=-5.139468D-01, BF45= 8.934176D-02
 
-      TEL = LOG10(TE)
-
       IF(TE.LE.3.D-3) THEN
          TRZEFE=0.D0
-      ELSEIF(TE.LE.0.2D0) THEN
-         TRZEFE = BF10+(BF11*TEL)+(BF12*TEL**2)+(BF13*TEL**3) &
-                      +(BF14*TEL**4)+(BF15*TEL**5)
-      ELSEIF(TE.LE.2.D0) THEN
-         TRZEFE = BF20+(BF21*TEL)+(BF22*TEL**2)+(BF23*TEL**3) &
-                      +(BF24*TEL**4)+(BF25*TEL**5)
-      ELSEIF(TE.LE.20.D0) THEN
-         TRZEFE = BF30+(BF31*TEL)+(BF32*TEL**2)+(BF33*TEL**3) &
-                      +(BF34*TEL**4)+(BF35*TEL**5)
-      ELSEIF(TE.LE.100.D0) THEN
-         TRZEFE = BF40+(BF41*TEL)+(BF42*TEL**2)+(BF43*TEL**3) &
-                      +(BF44*TEL**4)+(BF45*TEL**5)
       ELSE
-         TRZEFE = 26.D0
-      ENDIF
-
+         TEL = LOG10(TE)
+         IF(TE.LE.0.2D0) THEN
+            TRZEFE = BF10+(BF11*TEL)+(BF12*TEL**2)+(BF13*TEL**3) &
+                         +(BF14*TEL**4)+(BF15*TEL**5)
+         ELSEIF(TE.LE.2.D0) THEN
+            TRZEFE = BF20+(BF21*TEL)+(BF22*TEL**2)+(BF23*TEL**3) &
+                         +(BF24*TEL**4)+(BF25*TEL**5)
+         ELSEIF(TE.LE.20.D0) THEN
+            TRZEFE = BF30+(BF31*TEL)+(BF32*TEL**2)+(BF33*TEL**3) &
+                         +(BF34*TEL**4)+(BF35*TEL**5)
+         ELSEIF(TE.LE.100.D0) THEN
+            TRZEFE = BF40+(BF41*TEL)+(BF42*TEL**2)+(BF43*TEL**3) &
+                         +(BF44*TEL**4)+(BF45*TEL**5)
+         ELSE
+            TRZEFE = 26.D0
+         ENDIF
+      END IF
       RETURN
       END FUNCTION TRZEFE
 
@@ -160,28 +161,32 @@
       REAL(rkind):: AC40=-2.476796D+01, AC41= 9.408181D+00, AC42=-9.657446D+00, &
                 AC43= 4.999161D+00, AC44=-1.237382D+00, AC45= 1.160610D-01
 
-      TEL = LOG10(TE)
-      IF(TE.LE.3.D-3) THEN
-         TEL=LOG10(3.D-3)
-         ARG=AC00+(AC01*TEL)+(AC02*TEL**2)+(AC03*TEL**3) &
-                            +(AC04*TEL**4)+(AC05*TEL**5)
-      ELSEIF(TE.LE.2.D-2) THEN
-         ARG=AC00+(AC01*TEL)+(AC02*TEL**2)+(AC03*TEL**3) &
-                            +(AC04*TEL**4)+(AC05*TEL**5)
-      ELSEIF(TE.LE.0.2D0) THEN
-         ARG=AC10+(AC11*TEL)+(AC12*TEL**2)+(AC13*TEL**3) &
-                            +(AC14*TEL**4)+(AC15*TEL**5)
-      ELSEIF(TE.LE.2.D0) THEN
-         ARG=AC20+(AC21*TEL)+(AC22*TEL**2)+(AC23*TEL**3) &
-                            +(AC24*TEL**4)+(AC25*TEL**5)
-      ELSEIF(TE.LE.20.D0) THEN
-         ARG=AC30+(AC31*TEL)+(AC32*TEL**2)+(AC33*TEL**3) &
-                            +(AC34*TEL**4)+(AC35*TEL**5)
-      ELSEIF(TE.LE.1.D2) THEN
-         ARG=AC40+(AC41*TEL)+(AC42*TEL**2)+(AC43*TEL**3) &
-                            +(AC44*TEL**4)+(AC45*TEL**5)
-      ENDIF
-      TRRPC = 10.D0**(ARG-13.D0)
+      IF(TE.LE.0.D0) THEN
+         TRRPC=0.D0
+      ELSE
+         TEL = LOG10(TE)
+         IF(TE.LE.3.D-3) THEN
+            TEL=LOG10(3.D-3)
+            ARG=AC00+(AC01*TEL)+(AC02*TEL**2)+(AC03*TEL**3) &
+                               +(AC04*TEL**4)+(AC05*TEL**5)
+         ELSEIF(TE.LE.2.D-2) THEN
+            ARG=AC00+(AC01*TEL)+(AC02*TEL**2)+(AC03*TEL**3) &
+                               +(AC04*TEL**4)+(AC05*TEL**5)
+         ELSEIF(TE.LE.0.2D0) THEN
+            ARG=AC10+(AC11*TEL)+(AC12*TEL**2)+(AC13*TEL**3) &
+                               +(AC14*TEL**4)+(AC15*TEL**5)
+         ELSEIF(TE.LE.2.D0) THEN
+            ARG=AC20+(AC21*TEL)+(AC22*TEL**2)+(AC23*TEL**3) &
+                               +(AC24*TEL**4)+(AC25*TEL**5)
+         ELSEIF(TE.LE.20.D0) THEN
+            ARG=AC30+(AC31*TEL)+(AC32*TEL**2)+(AC33*TEL**3) &
+                               +(AC34*TEL**4)+(AC35*TEL**5)
+         ELSEIF(TE.LE.1.D2) THEN
+            ARG=AC40+(AC41*TEL)+(AC42*TEL**2)+(AC43*TEL**3) &
+                               +(AC44*TEL**4)+(AC45*TEL**5)
+         ENDIF
+         TRRPC = 10.D0**(ARG-13.D0)
+      END IF
 
       RETURN
       END FUNCTION TRRPC
@@ -206,25 +211,32 @@
       REAL(rkind)::AF40=-2.453957D+01, AF41= 1.795222D+01, AF42=-2.356360D+01, &
                AF43= 1.484503D+01, AF44=-4.542323D+00, AF45= 5.477462D-01
 
-      TEL = LOG10(TE)
-      IF(TE.LE.3.D-3) THEN
-         TEL=LOG10(3.D-3)
-         ARG=AF10+(AF11*TEL)+(AF12*TEL**2)+(AF13*TEL**3) &
-                            +(AF14*TEL**4)+(AF15*TEL**5)
-      ELSEIF(TE.LE.0.2D0) THEN
-         ARG=AF10+(AF11*TEL)+(AF12*TEL**2)+(AF13*TEL**3) &
-                            +(AF14*TEL**4)+(AF15*TEL**5)
-      ELSEIF(TE.LE.2.D0) THEN
-         ARG=AF20+(AF21*TEL)+(AF22*TEL**2)+(AF23*TEL**3) &
-                            +(AF24*TEL**4)+(AF25*TEL**5)
-      ELSEIF(TE.LE.20.D0) THEN
-         ARG=AF30+(AF31*TEL)+(AF32*TEL**2)+(AF33*TEL**3) &
-                            +(AF34*TEL**4)+(AF35*TEL**5)
-      ELSEIF(TE.LE.1.D2) THEN
-         ARG=AF40+(AF41*TEL)+(AF42*TEL**2)+(AF43*TEL**3) &
-                            +(AF44*TEL**4)+(AF45*TEL**5)
-      ENDIF
-      TRRPFE = 10.D0**(ARG-13.D0)
+      IF(TE.LE.0.D0) THEN
+         TRRPFE = 0.D0
+      ELSE
+         TEL = LOG10(TE)
+         IF(TE.LE.3.D-3) THEN
+            TEL=LOG10(3.D-3)
+            ARG=AF10+(AF11*TEL)+(AF12*TEL**2)+(AF13*TEL**3) &
+                               +(AF14*TEL**4)+(AF15*TEL**5)
+         ELSEIF(TE.LE.0.2D0) THEN
+            ARG=AF10+(AF11*TEL)+(AF12*TEL**2)+(AF13*TEL**3) &
+                               +(AF14*TEL**4)+(AF15*TEL**5)
+         ELSEIF(TE.LE.2.D0) THEN
+            ARG=AF20+(AF21*TEL)+(AF22*TEL**2)+(AF23*TEL**3) &
+                               +(AF24*TEL**4)+(AF25*TEL**5)
+         ELSEIF(TE.LE.20.D0) THEN
+            ARG=AF30+(AF31*TEL)+(AF32*TEL**2)+(AF33*TEL**3) &
+                               +(AF34*TEL**4)+(AF35*TEL**5)
+         ELSEIF(TE.LE.1.D2) THEN
+            ARG=AF40+(AF41*TEL)+(AF42*TEL**2)+(AF43*TEL**3) &
+                    +(AF44*TEL**4)+(AF45*TEL**5)
+         ELSE
+            ARG=AF40+(AF41*TEL)+(AF42*TEL**2)+(AF43*TEL**3) &
+                 +(AF44*TEL**4)+(AF45*TEL**5)
+         END IF
+         TRRPFE = 10.D0**(ARG-13.D0)
+      END IF
 
       RETURN
       END FUNCTION TRRPFE
@@ -237,10 +249,7 @@
 
       SUBROUTINE TRLOSS
 
-      USE TRCOMM, ONLY : AEE, ANC, ANFE, ANNU, DT, KUFDEV, MDLPR, &
-           NRMAX, NT, NTUM, PCX, PIE, PRB, PRC, PRSUM, PRL, PRLU, RKEV, RN, &
-           RT, SCX, SIE, TSCX, TSIE,NSMAX, rkind
-      USE TRCOM1, ONLY : NTAMAX, NTXMAX, PNBI, TMU
+      USE TRCOMM
       USE tr_cytran_mod, ONLY: tr_cytran
       USE libitp
       IMPLICIT NONE

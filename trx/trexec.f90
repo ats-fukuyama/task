@@ -13,43 +13,38 @@ CONTAINS
 
 !     ***********************************************************
 
-      SUBROUTINE tr_exec(DT,IERR)
+      SUBROUTINE tr_exec(IERR)
 
-      USE TRCOMM, ONLY : &
-     &   AJ, AJU, AMM, ANC, ANFE, ANNU, AX, AY, AZ, BB, &
-     &   DR, DVRHO, DVRHOG, EPSLTR, LDAB, LMAXTR, MDLEQB, MDLEQE, &
-     &   MDLEQN, MDLPCK, MLM, NEQMAX, NFM, &
-     &   NRAMAX, NRMAX, NROMAX, NSM, NSMAX, NSS, NST, NSV, &
-     &   NTUM, &
-     &   PA, PZ, PZC, PZFE, RDP, RHOA, RIP, RIPU, &
-     &   RMU0, RN, RT, RU, RW, T, TTRHO, TTRHOG, &
-     &   VLOOP, VSEC, X, XV, Y, YV, Z, ZV ,NEQMAXM, DIPDT, &
-         RDPVRHOG, abvrhog, rkind
-      USE TRCOM1, ONLY : TMU, TMU1, NTXMAX, NTXMAX1
+      USE TRCOMM
+      USE trcomx
+      USE trfixed
       USE libbnd
       USE libitp
       IMPLICIT NONE
-      REAL(rkind),INTENT(IN) :: DT
       INTEGER,INTENT(OUT) :: IERR
       INTEGER:: I, ICHCK, INFO, J, L, LDB, M, MWRMAX, &
            N, NEQ, NEQ1, NEQRMAX, NR, NRHS, NSSN, NSSN1, &
-           NSTN, NSTN1, NSVN, NSVN1, KL, KU
+           NSTN, NSTN1, NSVN, NSVN1, KL, KU, NF
+      INTEGER:: id_nfixed,id_tfixed
       REAL(rkind)   :: AJL, FACTOR0, FACTORM, FACTORP, TSL
+      REAL(rkind):: rne_local,rt_local
       INTEGER,DIMENSION(NEQMAXM*NRMAX) :: IPIV
       REAL(rkind),DIMENSION(NEQMAXM*NRMAX)    :: XX
-      REAL(rkind),DIMENSION(2,NRMAX)  :: YY
+      REAL(rkind),DIMENSION(NFMAX,NRMAX)  :: YY
       REAL(rkind),DIMENSION(NSMAX,NRMAX):: ZZ
 
       IERR=0
       ICHCK=0
 
       L=0
+
 !     /* Setting New Variables */
       CALL TRATOX
 
 !     /* Store Variables for Convergence Check */
       forall(J=1:NEQMAX,NR=1:NRMAX) XX(NEQMAX*(NR-1)+J) = XV(J,NR)
-      YY(1:NFM,1:NRMAX) = YV(1:NFM,1:NRMAX)
+      IF(NFMAX.GT.0) YY(1:NFMAX,1:NRMAX) = YV(1:NFMAX,1:NRMAX)
+      IF(MDLTC.NE.0) ZZ(1:NSMAX,1:NRMAX) = ZV(1:NSMAX,1:NRMAX)
 
  2000 CONTINUE
 
@@ -100,18 +95,28 @@ CONTAINS
 
 !    /* Solve equation for fast particl
 
-      Y(1:NFM,1:NRMAX) = Y(1:NFM,1:NRMAX)/AY(1:NFM,1:NRMAX)
+      IF(NFMAX.GT.0) &
+           Y(1:NFMAX,1:NRMAX) = Y(1:NFMAX,1:NRMAX)/AY(1:NFMAX,1:NRMAX)
+      IF(MDLTC.NE.0) &
+           Z(1:NSMAX,1:NRMAX) = Z(1:NSMAX,1:NRMAX)/AZ(1:NSMAX,1:NRMAX)
 
 !     /* Convergence check */
 
       DO I=1,NEQRMAX*NRMAX
          IF (ABS(X(I)-XX(I)).GT.EPSLTR*ABS(X(I))) GOTO 3000
       ENDDO
-      DO J=1,NFM
-      DO NR=1,NRMAX
-         IF (ABS(Y(J,NR)-YY(J,NR)).GT.EPSLTR*ABS(Y(J,NR))) GOTO 3000
+      DO J=1,NFMAX
+         DO NR=1,NRMAX
+            IF (ABS(Y(J,NR)-YY(J,NR)).GT.EPSLTR*ABS(Y(J,NR))) GOTO 3000
+         ENDDO
       ENDDO
-      ENDDO
+      IF(MDLTC.NE.0) THEN
+         DO J=1,NSMAX
+         DO NR=1,NRMAX
+            IF (ABS(Z(J,NR)-ZZ(J,NR)).GT.EPSLTR*ABS(Z(J,NR))) GOTO 3000
+         ENDDO
+         ENDDO
+      ENDIF
 
       GOTO 4000
 
@@ -122,11 +127,36 @@ CONTAINS
       DO I=1,NEQRMAX*NRMAX
          XX(I) = X(I)
       ENDDO
-      DO J=1,NFM
-      DO NR=1,NRMAX
-         YY(J,NR) = Y(J,NR)
+      DO J=1,NFMAX
+         DO NR=1,NRMAX
+            YY(J,NR) = Y(J,NR)
+         ENDDO
       ENDDO
-      ENDDO
+      IF(MDLTC.NE.0) THEN
+         DO J=1,NSMAX
+         DO NR=1,NRMAX
+            ZZ(J,NR) = Z(J,NR)
+         ENDDO
+         ENDDO
+      ENDIF
+
+!      CALL TRXTOA
+!      GO TO 6000
+
+      id_nfixed=0
+      id_tfixed=0
+      IF(model_nfixed.EQ.1) THEN
+         IF(t.GE.time_nfixed(1)) id_nfixed=1
+      END IF
+      IF(model_nfixed.EQ.2) THEN
+         IF(t.GE.time_nfixed(1)) id_nfixed=2
+      END IF
+      IF(model_tfixed.EQ.1) THEN
+         IF(t.GE.time_tfixed(1)) id_tfixed=1
+      END IF
+      IF(model_tfixed.EQ.2) THEN
+         IF(t.GE.time_tfixed(1)) id_tfixed=2
+      END IF
 
       DO NR=1,NRMAX
          DO NEQ=1,NEQMAX
@@ -148,111 +178,145 @@ CONTAINS
                RDPVRHOG(NR) = RDP(NR) / DVRHOG(NR)
             ELSEIF(NSVN.EQ.1) THEN
                IF(MDLEQN.NE.0) THEN
-                  IF(NSSN.EQ.1.AND.MDLEQE.EQ.0) THEN
-                     RN(NR,NSSN) = 0.D0
-                     DO NEQ1=1,NEQMAX
-                        NSSN1=NSS(NEQ1)
-                        NSVN1=NSV(NEQ1)
-                        NSTN1=NST(NEQ1)
-                        IF(NSVN1.EQ.1.AND.NSSN1.NE.1) THEN
-                           IF(NSTN1.EQ.0) THEN
-                              RN(NR,NSSN) = RN(NR,NSSN) &
-                                   + PZ(NSSN1)*XV(NEQ1,NR)
-                           ELSE
-                              RN(NR,NSSN) = RN(NR,NSSN) &
-                                   + PZ(NSSN1)*0.5D0*(XV(NEQ1,NR) &
-                                                   +X(NEQRMAX*(NR-1)+NSTN1))
-                           ENDIF
-                        ENDIF
-                     ENDDO
-                     RN(NR,NSSN) = RN(NR,NSSN) &
-                          +PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
-                  ELSEIF(NSSN.EQ.1.AND.MDLEQE.EQ.1) THEN
-                     RN(NR,NSSN) = 0.5D0*(XV(NEQ,NR)+X(NEQRMAX*(NR-1)+NEQ))
-                  ELSEIF(NSSN.EQ.2.AND.MDLEQE.EQ.2) THEN
-                     RN(NR,NSSN) = 0.D0
-                     DO NEQ1=1,NEQMAX
-                        NSSN1=NSS(NEQ1)
-                        NSVN1=NSV(NEQ1)
-                        NSTN1=NST(NEQ1)
-                        IF(NSVN1.EQ.1.AND.NSSN1.NE.2) THEN
-                           IF(NSTN1.EQ.0) THEN
-                              RN(NR,NSSN) = RN(NR,NSSN) &
-                                   +ABS(PZ(NSSN1))*XV(NEQ1,NR)
-                           ELSE
-                              RN(NR,NSSN) = RN(NR,NSSN) &
-                                   +ABS(PZ(NSSN1))*0.5D0*(XV(NEQ1,NR) &
-                                   +X(NEQRMAX*(NR-1)+NSTN1))
-                           ENDIF
-                        ENDIF
-                     ENDDO
-                     RN(NR,NSSN) = RN(NR,NSSN) &
-                          +PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
-                  ELSE
-                     IF(NSTN.EQ.0) THEN
-                        RN(NR,NSSN) = XV(NEQ,NR)
+                  IF(id_nfixed.EQ.1.OR. &
+                    (id_nfixed.EQ.2.AND. &
+                     rm(nr).GE.rho_min_nfixed.AND. &
+                     rm(nr).LE.rho_max_nfixed)) THEN
+                     CALL tr_prof_nfixed(rm(nr),t,rne_local)
+                     IF(nssn.EQ.1) THEN
+                        rn(nr,nssn)=rne_local
                      ELSE
-                        RN(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
-                                            + X(NEQRMAX*(NR-1)+NSTN))
+                        rn(nr,nssn)=pn(nssn)*rne_local/(pz(nssn)*pn(1))
+                     END IF
+                  ELSE
+                     IF(NSSN.EQ.1.AND.MDLEQE.EQ.0) THEN
+                        RN(NR,NSSN) = 0.D0
+                        DO NEQ1=1,NEQMAX
+                           NSSN1=NSS(NEQ1)
+                           NSVN1=NSV(NEQ1)
+                           NSTN1=NST(NEQ1)
+                           IF(NSVN1.EQ.1.AND.NSSN1.NE.1) THEN
+                              IF(NSTN1.EQ.0) THEN
+                                 RN(NR,NSSN) = RN(NR,NSSN) &
+                                      + PZ(NSSN1)*XV(NEQ1,NR)
+                              ELSE
+                                 RN(NR,NSSN) = RN(NR,NSSN) &
+                                      + PZ(NSSN1)*0.5D0*(XV(NEQ1,NR) &
+                                      + X(NEQRMAX*(NR-1)+NSTN1))
+                              ENDIF
+                           ENDIF
+                        ENDDO
+                        RN(NR,NSSN) = RN(NR,NSSN) &
+                             +PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
+                     ELSEIF(NSSN.EQ.1.AND.MDLEQE.EQ.1) THEN
+                        RN(NR,NSSN) = 0.5D0*(XV(NEQ,NR)+X(NEQRMAX*(NR-1)+NEQ))
+                     ELSEIF(NSSN.EQ.2.AND.MDLEQE.EQ.2) THEN
+                        RN(NR,NSSN) = 0.D0
+                        DO NEQ1=1,NEQMAX
+                           NSSN1=NSS(NEQ1)
+                           NSVN1=NSV(NEQ1)
+                           NSTN1=NST(NEQ1)
+                           IF(NSVN1.EQ.1.AND.NSSN1.NE.2) THEN
+                              IF(NSTN1.EQ.0) THEN
+                                 RN(NR,NSSN) = RN(NR,NSSN) &
+                                      +ABS(PZ(NSSN1))*XV(NEQ1,NR)
+                              ELSE
+                                 RN(NR,NSSN) = RN(NR,NSSN) &
+                                      +ABS(PZ(NSSN1))*0.5D0*(XV(NEQ1,NR) &
+                                      +X(NEQRMAX*(NR-1)+NSTN1))
+                              ENDIF
+                           ENDIF
+                        ENDDO
+                        RN(NR,NSSN) = RN(NR,NSSN) &
+                             +PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
+                     ELSE
+                        IF(NSTN.EQ.0) THEN
+                           RN(NR,NSSN) = XV(NEQ,NR)
+                        ELSE
+                           RN(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
+                                + X(NEQRMAX*(NR-1)+NSTN))
+                        ENDIF
                      ENDIF
                   ENDIF
+               END IF
+            ELSEIF(NSVN.EQ.2) THEN
+               IF(id_tfixed.EQ.1.OR. &
+                 (id_tfixed.EQ.2.AND. &
+                  RM(nr).GE.rho_min_tfixed.AND. &
+                  RM(nr).LE.rho_max_tfixed)) THEN
+                  CALL tr_prof_tfixed(rm(nr),t,rt_local)
+                  RT(nr,nssn)=rt_local
+               ELSE
+                  IF(RN(NR,NSSN).LT.1.D-70) THEN
+                     RT(NR,NSSN) = 0.03D0
+                  ELSE
+                     IF(RN(NR,NSSN).LT.1.D-70) THEN
+                        RT(NR,NSSN)=0.03D0
+                     ELSE
+                        RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
+                     END IF
+                     IF(RT(NR,NSSN).LE.0.D0) THEN
+                        WRITE(6,'(A,2I6,ES12.4)') &
+                             'XX TRXTOA1: negative rt: nr,ns,rt: ', &
+                             nr,nssn,RT(NR,NSSN)
+                        ICHCK=1
+!                        RT(NR,NSSN)=-RT(NR,NSSN)
+                     END IF
+                  END IF
+!                  IF(NSTN.EQ.0) THEN
+!                     IF(RN(NR,NSM).LT.1.D-70) THEN
+!                        RT(NR,NSM) = 0.D0
+!                     ELSE
+!                        IF(NSSN.NE.NSM) THEN
+!                           RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
+!                        ELSE
+!                           RT(NR,NSM) = XV(NEQ,NR)/RN(NR,NSM)
+!                        ENDIF
+!                     ENDIF
+!                  ELSE
+!                     IF(RN(NR,NSM).LT.1.D-70) THEN
+!                        RT(NR,NSM) = 0.03D0
+!                     ELSE
+!                        IF(NSSN.NE.NSM) THEN
+!                           RT(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
+!                                +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSSN)
+!                        ELSE
+!                           RT(NR,NSM) = 0.5D0*(XV(NEQ,NR) &
+!                                +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSM)
+!                        ENDIF
+!                     ENDIF
+                  IF(RT(NR,NSSN).LE.0.D0) THEN
+                     WRITE(6,'(A,2I6,ES12.4)') &
+                          'XX TRXTOA2: negative RT:',NR,NSSN,RT(NR,NSSN)
+                     ICHCK=1
+!                     RT(NR,NSSN)=ABS(RT(NR,NSSN))
+                  END IF
+               END IF
+            ELSEIF(NSVN.EQ.3) THEN
+               IF(RN(NR,NSSN).LT.1.D-70) THEN
+                  RU(NR,NSSN) = 0.D0
                ELSE
                   IF(NSTN.EQ.0) THEN
-                     RN(NR,NSSN) = XV(NEQ,NR)
+                     RU(NR,NSSN) = XV(NEQ,NR)/(PA(NSSN)*AMP*RN(NR,NSSN))
                   ELSE
-                     RN(NR,NSSN) = 0.5D0*(XV(NEQ,NR) +  X(NEQRMAX*(NR-1)+NSTN))
+                     RU(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
+                          + X(NEQRMAX*(NR-1)+NSTN))/(PA(NSSN)*AMP*RN(NR,NSSN))
                   ENDIF
-               ENDIF
-            ELSEIF(NSVN.EQ.2) THEN
-               IF(NSTN.EQ.0) THEN
-                  IF(NSSN.NE.NSM) THEN
-                     RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
-!                     write(6,'(A,2I5,1P3E12.4)') '-1- ',NR,NSSN, &
-!                     & XV(NEQ,NR),RN(NR,NSSN),RT(NR,NSSN)
-                  ELSE
-                     IF(RN(NR,NSM).LT.1.D-70) THEN
-                        RT(NR,NSM) = 0.D0
-                     ELSE
-                        RT(NR,NSM) = XV(NEQ,NR)/RN(NR,NSM)
-                     ENDIF
-                  ENDIF
-               ELSE
-                  IF(NSSN.NE.NSM) THEN
-                     RT(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
-                                         +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSSN)
-!                     write(6,'(A,3I5,1P4E12.4)') &
-!                             '-2- ',NR,NSSN,NSTN, &
-!                              XV(NEQ,NR),RN(NR,NSSN),RT(NR,NSSN),&
-!                              X(NEQRMAX*(NR-1)+NSTN)
-                  ELSE
-                     IF(RN(NR,NSM).LT.1.D-70) THEN
-                        RT(NR,NSM) = 0.D0
-                     ELSE
-                        RT(NR,NSM) = 0.5D0*(XV(NEQ,NR) &
-                             +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSM)
-!                     write(6,'(A,2I5,1P3E12.4)') '-3- ',NR,NSM, &
-!                     & XV(NEQ,NR),RN(NR,NSM),RT(NR,NSM)
-                     ENDIF
-                  ENDIF
-               ENDIF
-            ELSEIF(NSVN.EQ.3) THEN
-               IF(NSTN.EQ.0) THEN
-                  RU(NR,NSSN) = XV(NEQ,NR)/(PA(NSSN)*AMM*RN(NR,NSSN))
-               ELSE
-                  RU(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
-                       + X(NEQRMAX*(NR-1)+NSTN))/(PA(NSSN)*AMM*RN(NR,NSSN))
-               ENDIF
+               END IF
             ENDIF
          END DO
          IF(NSMAX.GE.8) THEN
             ANNU(NR)=RN(NR,7)+RN(NR,8)
          END IF
 !!!         BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
-         RW(NR,1)  = 0.5D0*(YV(1,NR)+Y(1,NR))
-         RW(NR,2)  = 0.5D0*(YV(2,NR)+Y(2,NR))
+         DO NF=1,NFMAX
+            RW(NR,NF)  = 0.5D0*(YV(NF,NR)+Y(NF,NR))
+         END DO
       ENDDO
 
-      CALL TRCHCK(ICHCK)
+6000  CONTINUE
+
+      IF(ICHCK.EQ.0) CALL TRCHCK(ICHCK)
       IF(ICHCK.EQ.1) THEN
          CALL TRGLOB
          CALL TRATOT
@@ -274,8 +338,6 @@ CONTAINS
       VSEC=VSEC+VLOOP*DT
       RIP=RIP+DIPDT*DT
 
-!      write(6,'(A,1P4E12.4)') "T,RIP,RIPE,DIP=",T,RIP,RIPE,DIPDT*DT
-
 !     /* Making new XV(NEQ,NR) and YV(NF,NR) */
       DO NEQ=1,NEQMAX
          NSTN=NST(NEQ)
@@ -286,11 +348,12 @@ CONTAINS
          ENDIF
       ENDDO
 
-      YV(1:NFM,1:NRMAX) = Y(1:NFM,1:NRMAX)
+      IF(NFMAX.GT.0) YV(1:NFMAX,1:NRMAX) = Y(1:NFMAX,1:NRMAX)
+      IF(MDLTC.NE.0) ZV(1:NSMAX,1:NRMAX) = Z(1:NSMAX,1:NRMAX)
 
 !     /* Making New Physical Variables */
 
-      CALL TRXTOA
+      IF(ICHCK.EQ.0) CALL TRXTOA
 
 !      CALL TR_EDGE_SELECTOR(1)
 
@@ -311,6 +374,10 @@ CONTAINS
 
       CALL TRCALC(IERR)
       IF(IERR.NE.0) RETURN
+      IF(MDLTC.NE.0) THEN
+         CALL TRXTOA_AKDW
+         CALL TRCFDW_AKDW
+      ENDIF
 
 ! !     *** DATA ACQUISITION FOR SHOWING GRAPH AND STATUS ***
 
@@ -375,18 +442,13 @@ CONTAINS
 
       SUBROUTINE TRMTRX(NEQRMAX)
 
-      USE TRCOMM, ONLY : AEE, AKTB, AMZ, AX, AY, AZ, DD, DI, DT, &
-     &                   DVRHOG, EPS0, LDAB, MDLCD, MDLEQB, MDLPCK, &
-     &                   MLM, NEA, NEQM, NEQMAX, NRMAX, NSMAX, &
-     &                   NSS, NST, NTUM, NVM, PI, PNB, PNF, RA, RIP, RIPA, &
-     &                   RKEV, RMU0, RN, RR, RT, RTM, TAUB, TAUF, TAUK, VI, &
-     &                   VV, X, XV, Y, YV, Z, ZV, RDPS, &
-     &                   ABVRHOG, rkind
-      USE TRCOM1, ONLY : A, B, C, D, PPA, PPB, PPC, RD
+      USE TRCOMM
+      USE TRCOMX
+      USE trfixed
       IMPLICIT NONE
       INTEGER, INTENT(INOUT):: NEQRMAX
-      INTEGER:: KL, MV, MVV, MW, MWMAX, NEQ, NEQ1, NR, NS, NS1, NSTN, NSW, &
-     &             NV, NW
+      INTEGER:: KL, MV, MVV, MW, MWMAX, NEQ, NEQ1, NR
+      INTEGER:: NS, NS1, NSTN, NSW, NV, NW, NNB, NNF
       REAL(rkind)   :: ADV, C1, COEF, COULOG, DV53, FADV, PRV, RDPA, RLP
 
 ! Boundary condition for magnetic diffusion equation
@@ -467,6 +529,9 @@ CONTAINS
       CALL TR_IONIZATION(NR)
       CALL TR_CHARGE_EXCHANGE(NR)
 
+      CALL tr_set_nfixed(nr,t)
+      CALL tr_set_tfixed(nr,t)
+
 !     ***** RHS Vector *****
 
       DO NEQ=1,NEQMAX
@@ -483,10 +548,23 @@ CONTAINS
 
 !     ***** Evolution of fast ion components *****
 
-      Y(1,NR)=(1.D0-PRV/TAUB(NR))*YV(1,NR)+PNB(NR)*DT/(RKEV*1.D20)
-      Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(NR)*DT/(RKEV*1.D20)
-      AY(1,NR)=1.D0+ADV/TAUB(NR)
-      AY(2,NR)=1.D0+ADV/TAUF(NR)
+      DO NNB=1,NNBMAX
+         Y(NNB,NR)=(1.D0-PRV/TAUB(NNB,NR))*YV(NNB,NR) &
+              +PNB_NNBNR(NNB,NR)*DT/(RKEV*1.D20)
+         AY(NNB,NR)=1.D0+ADV/TAUB(NNB,NR)
+      END DO
+      DO NNF=1,NNFMAX
+         Y(NNBMAX+NNF,NR)=(1.D0-PRV/TAUF(NNF,NR))*YV(NNBMAX+NNF,NR) &
+              +PNF_NNFNR(NNF,NR)*DT/(RKEV*1.D20)
+         AY(NNBMAX+NNF,NR)=1.D0+ADV/TAUF(NNF,NR)
+      END DO
+      
+      IF(MDLTC.NE.0) THEN
+         DO NS=1,NSMAX
+            Z(NS,NR)=(1.D0-PRV/TAUK(NR))*ZV(NS,NR)+AKDW(NR,NS)*DT/TAUK(NR)
+            AZ(NS,NR)=1.D0+ADV/TAUK(NR)
+         ENDDO
+      ENDIF
 
 !          +---------------------+
 !    ***   |   NR=2 to NRMAX-1   |   ***
@@ -521,6 +599,9 @@ CONTAINS
          CALL TR_IONIZATION(NR)
          CALL TR_CHARGE_EXCHANGE(NR)
 
+         CALL tr_set_nfixed(nr,t)
+         CALL tr_set_tfixed(nr,t)
+         
 !     ***** RHS Vector *****
 
          DO NEQ=1,NEQMAX
@@ -530,18 +611,31 @@ CONTAINS
          DO NW=1,NEQMAX
          DO NV=1,NEQMAX
             X(NEQMAX*(NR-1)+NV) = X(NEQMAX*(NR-1)+NV) &
-     &                          +PRV*(A(NV,NW,NR)*XV(NW,NR-1) &
-     &                               +B(NV,NW,NR)*XV(NW,NR  ) &
-     &                               +C(NV,NW,NR)*XV(NW,NR+1))
+                                +PRV*(A(NV,NW,NR)*XV(NW,NR-1) &
+                                     +B(NV,NW,NR)*XV(NW,NR  ) &
+                                     +C(NV,NW,NR)*XV(NW,NR+1))
          ENDDO
          ENDDO
 
 !     ***** Evolution of fast ion components *****
 
-         Y(1,NR)=(1.D0-PRV/TAUB(NR))*YV(1,NR)+PNB(NR)*DT/(RKEV*1.D20)
-         Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(NR)*DT/(RKEV*1.D20)
-         AY(1,NR)=1.D0+ADV/TAUB(NR)
-         AY(2,NR)=1.D0+ADV/TAUF(NR)
+         DO NNB=1,NNBMAX
+            Y(NNB,NR)=(1.D0-PRV/TAUB(NNB,NR))*YV(NNB,NR) &
+                 +PNB_NSNNBNR(NS_NNB(NNB),NNB,NR)*DT/(RKEV*1.D20)
+            AY(NNB,NR)=1.D0+ADV/TAUB(NNB,NR)
+         END DO
+         DO NNF=1,NNFMAX
+            Y(NNBMAX+NNF,NR)=(1.D0-PRV/TAUF(NNF,NR))*YV(NNBMAX+NNF,NR) &
+                 +PNF_NSNNFNR(NS_NNF(NNF),NNF,NR)*DT/(RKEV*1.D20)
+            AY(NNBMAX+NNF,NR)=1.D0+ADV/TAUF(NNF,NR)
+         END DO
+
+         IF(MDLTC.NE.0) THEN
+            DO NS=1,NSMAX
+               Z(NS,NR)=(1.D0-PRV/TAUK(NR))*ZV(NS,NR)+AKDW(NR,NS)*DT/TAUK(NR)
+               AZ(NS,NR)=1.D0+ADV/TAUK(NR)
+            ENDDO
+         ENDIF
 !
       ENDDO
 
@@ -579,6 +673,9 @@ CONTAINS
       CALL TR_IONIZATION(NR)
       CALL TR_CHARGE_EXCHANGE(NR)
 
+      CALL tr_set_nfixed(nr,t)
+      CALL tr_set_tfixed(nr,t)
+      
 !     ***** RHS Vector *****
 
       DO NEQ=1,NEQMAX
@@ -595,10 +692,22 @@ CONTAINS
 
 !     ***** Evolution of fast ion components *****
 
-      Y(1,NR)=(1.D0-PRV/TAUB(NR))*YV(1,NR)+PNB(NR)*DT/(RKEV*1.D20)
-      Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(NR)*DT/(RKEV*1.D20)
-      AY(1,NR)=1.D0+ADV/TAUB(NR)
-      AY(2,NR)=1.D0+ADV/TAUF(NR)
+      DO NNB=1,NNBMAX
+         Y(NNB,NR)=(1.D0-PRV/TAUB(NNB,NR))*YV(NNB,NR) &
+              +PNB_NSNNBNR(NS_NNB(NNB),NNB,NR)*DT/(RKEV*1.D20)
+         AY(NNB,NR)=1.D0+ADV/TAUB(NNB,NR)
+      END DO
+      DO NNF=1,NNFMAX
+         Y(NNBMAX+NNF,NR)=(1.D0-PRV/TAUF(NNF,NR))*YV(NNBMAX+NNF,NR) &
+              +PNF_NSNNFNR(NS_NNF(NNF),NNF,NR)*DT/(RKEV*1.D20)
+         AY(NNBMAX+NNF,NR)=1.D0+ADV/TAUF(NNF,NR)
+      END DO
+      IF(MDLTC.NE.0) THEN
+         DO NS=1,NSMAX
+            Z(NS,NR)=(1.D0-PRV/TAUK(NR))*ZV(NS,NR)+AKDW(NR,NS)*DT/TAUK(NR)
+            AZ(NS,NR)=1.D0+ADV/TAUK(NR)
+         ENDDO
+      ENDIF
 
 !     ***** Band Matrix *****
 
@@ -667,7 +776,7 @@ CONTAINS
       SUBROUTINE TR_BAND_GEN(NEQRMAX,ADV)
 
       USE TRCOMM, ONLY : AX, MDLPCK, NEQM, NEQMAX, NRMAX, XV, rkind
-      USE TRCOM1, ONLY : A, B, C, PPA, PPB, PPC, RD
+      USE TRCOMX, ONLY : A, B, C, PPA, PPB, PPC, RD
       IMPLICIT NONE
       INTEGER,INTENT(INOUT):: NEQRMAX
       REAL(rkind)   ,INTENT(IN)   :: ADV
@@ -696,11 +805,6 @@ CONTAINS
          ENDIF
 
          IF(MDLPCK.EQ.0) THEN
-!            forall(NV=1:NEQRMAX,NW=1:NEQRMAX)
-!               AX(  NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = A(NV,NW,NR)
-!               AX(2*NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = B(NV,NW,NR)
-!               AX(3*NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = C(NV,NW,NR)
-!            end forall
             DO NV=1,NEQRMAX
                DO NW=1,NEQRMAX
                   AX(  NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = A(NV,NW,NR)
@@ -850,9 +954,9 @@ CONTAINS
 
       SUBROUTINE TRATOX
 
-      USE TRCOMM, ONLY : AKTB, AMM, NEQMAX, NRMAX, NSMAX, NSS, NSV, PA, RDP, RN, RT, RU, RW, XV, YV, ZV
+     USE TRCOMM
       IMPLICIT NONE
-      INTEGER:: NEQ, NR, NS, NSSN, NSVN
+      INTEGER:: NEQ, NR, NS, NSSN, NSVN,NF
 
 
       DO NR=1,NRMAX
@@ -866,12 +970,20 @@ CONTAINS
             ELSEIF(NSVN.EQ.2) THEN
                XV(NEQ,NR) = RN(NR,NSSN)*RT(NR,NSSN)
             ELSEIF(NSVN.EQ.3) THEN
-               XV(NEQ,NR) = PA(NSSN)*AMM*RN(NR,NSSN)*RU(NR,NSSN)
+               XV(NEQ,NR) = PA(NSSN)*AMP*RN(NR,NSSN)*RU(NR,NSSN)
             ENDIF
          ENDDO
-         YV(  1,NR) = RW(NR,1)
-         YV(  2,NR) = RW(NR,2)
+         DO NF=1,NFMAX
+            YV(NF,NR) = RW(NR,NF)
+         END DO
       ENDDO
+      IF(MDLTC.NE.0) THEN
+         DO NR=1,NRMAX
+            DO NS=1,NSMAX
+               ZV(NS,NR) = AKDW(NR,NS)
+            ENDDO
+         ENDDO
+      ENDIF
 
       RETURN
       END SUBROUTINE TRATOX
@@ -884,15 +996,31 @@ CONTAINS
 
       SUBROUTINE TRXTOA
 
-      USE TRCOMM, ONLY : &
-           AKTB, AMM, ANC, ANFE, ANNU, DR, MDLEQE, MDLEQN, &
-           NEQMAX, NRMAX, NROMAX, NSM, NSMAX, NSS, NSV, &
-           PA, PZ, PZC, PZFE, RDP, RN, RPSI, RT, RU, RW, &
-           XV, YV, ZV, RDPVRHOG, DVRHOG, rkind
+      USE TRCOMM
+      USE trfixed, ONLY: &
+           time_nfixed,time_tfixed, &
+           rho_min_nfixed,rho_max_nfixed,rho_min_tfixed,rho_max_tfixed, &
+           tr_prof_nfixed,tr_prof_tfixed
       IMPLICIT NONE
-      INTEGER:: N, NEQ, NEQ1, NR, NS, NSSN, NSSN1, NSVN, NSVN1
-      REAL(rkind)   :: SUM
+      INTEGER:: N,NEQ,NEQ1,NR,NS,NSSN,NSSN1,NSVN,NSVN1,NSTN,NSTN1,NF
+      INTEGER:: id_nfixed,id_tfixed,ICHECK
+      REAL(rkind)   :: SUM,rne_local,rt_local
 
+      ICHECK=0
+      id_nfixed=0
+      id_tfixed=0
+      IF(model_nfixed.EQ.1) THEN
+         IF(t.GE.time_nfixed(1)) id_nfixed=1
+      END IF
+      IF(model_nfixed.EQ.2) THEN
+         IF(t.GE.time_nfixed(1)) id_nfixed=2
+      END IF
+      IF(model_tfixed.EQ.1) THEN
+         IF(t.GE.time_tfixed(1)) id_tfixed=1
+      END IF
+      IF(model_tfixed.EQ.2) THEN
+         IF(t.GE.time_tfixed(1)) id_tfixed=2
+      END IF
 
       DO NR=1,NRMAX
          DO NEQ=1,NEQMAX
@@ -903,49 +1031,99 @@ CONTAINS
                RDPVRHOG(NR)=RDP(NR) / DVRHOG(NR)
             ELSEIF(NSVN.EQ.1) THEN
                IF(MDLEQN.NE.0) THEN
-                  IF(NSSN.EQ.1.AND.MDLEQE.EQ.0) THEN
-                     RN(NR,NSSN) = 0.D0
-                     DO NEQ1=1,NEQMAX
-                        NSSN1=NSS(NEQ1)
-                        NSVN1=NSV(NEQ1)
-                        IF(NSVN1.EQ.1.AND.NSSN1.NE.1) THEN
-                           RN(NR,NSSN) = RN(NR,NSSN)+ABS(PZ(NSSN1))*XV(NEQ1,NR)
-                        ENDIF
-                     ENDDO
-                     RN(NR,NSSN) = RN(NR,NSSN)+PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
-!     I think the above expression is obsolete.
-                  ELSEIF(NSSN.EQ.2.AND.MDLEQE.EQ.2) THEN
-                     RN(NR,NSSN) = 0.D0
-                     DO NEQ1=1,NEQMAX
-                        NSSN1=NSS(NEQ1)
-                        NSVN1=NSV(NEQ1)
-                        IF(NSVN1.EQ.1.AND.NSSN1.NE.2) THEN
-                           RN(NR,NSSN) = RN(NR,NSSN)+ABS(PZ(NSSN1))*XV(NEQ1,NR)
-                        ENDIF
-                     ENDDO
-                     RN(NR,NSSN) = RN(NR,NSSN)+PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
+                  IF(id_nfixed.EQ.1.OR. &
+                    (id_nfixed.EQ.2.AND. &
+                     rm(nr).GE.rho_min_nfixed.AND. &
+                     rm(nr).LE.rho_max_nfixed)) THEN
+                     CALL tr_prof_nfixed(rm(nr),t,rne_local)
+                     IF(nssn.EQ.1) THEN
+                        rn(nr,nssn)=rne_local
+                     ELSE
+                        rn(nr,nssn)=pn(nssn)*rne_local/(pz(nssn)*pn(1))
+                     END IF
                   ELSE
-                     RN(NR,NSSN) = XV(NEQ,NR)
-                  ENDIF
-               ELSE
-                  RN(NR,NSSN) = XV(NEQ,NR)
+                     IF(NSSN.EQ.1.AND.MDLEQE.EQ.0) THEN
+                        RN(NR,NSSN) = 0.D0
+                        DO NEQ1=1,NEQMAX
+                           NSSN1=NSS(NEQ1)
+                           NSVN1=NSV(NEQ1)
+                           IF(NSVN1.EQ.1.AND.NSSN1.NE.1) THEN
+                              RN(NR,NSSN) = RN(NR,NSSN)+PZ(NSSN1)*XV(NEQ1,NR)
+                           ENDIF
+                        ENDDO
+                        RN(NR,NSSN) = RN(NR,NSSN) &
+                             +PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
+                     ELSEIF(NSSN.EQ.2.AND.MDLEQE.EQ.2) THEN
+                        RN(NR,NSSN) = 0.D0
+                        DO NEQ1=1,NEQMAX
+                           NSSN1=NSS(NEQ1)
+                           NSVN1=NSV(NEQ1)
+                           IF(NSVN1.EQ.1.AND.NSSN1.NE.2) THEN
+                              RN(NR,NSSN) = RN(NR,NSSN)+PZ(NSSN1)*XV(NEQ1,NR)
+                           ENDIF
+                        ENDDO
+                        RN(NR,NSSN) = RN(NR,NSSN) &
+                             +PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
+                     ELSE
+                        RN(NR,NSSN) = XV(NEQ,NR)
+                     ENDIF
+                  END IF
                ENDIF
             ELSEIF(NSVN.EQ.2) THEN
-               IF(NSSN.NE.NSM) THEN
-                  RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
+               IF(id_tfixed.EQ.1.OR. &
+                 (id_tfixed.EQ.2.AND. &
+                  RM(nr).GE.rho_min_tfixed.AND. &
+                  RM(nr).LE.rho_max_tfixed)) THEN
+                  CALL tr_prof_tfixed(rm(nr),t,rt_local)
+                  RT(nr,nssn)=rt_local
                ELSE
-                  IF(RN(NR,NSM).LT.1.D-70) THEN
-                     RT(NR,NSM) = 0.D0
+                  IF(RN(NR,NSSN).LT.1.D-70) THEN
+                     RT(NR,NSSN) = 0.03D0
                   ELSE
-                     RT(NR,NSM) = XV(NEQ,NR)/RN(NR,NSM)
-                  ENDIF
-               ENDIF
+                     IF(RN(NR,NSSN).LT.1.D-70) THEN
+                        RT(NR,NSSN)=0.03D0
+                     ELSE
+                        RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
+                     END IF
+                     IF(RT(NR,NSSN).LE.0.D0) THEN
+                        WRITE(6,'(A,2I6,ES12.4)') &
+                             'XX TRXTOA3: negative rt: nr,ns,rt: ', &
+                             nr,nssn,RT(NR,NSSN)
+                        ICHECK=1
+!                        RT(NR,NSSN)=-RT(NR,NSSN)
+                     END IF
+                  END IF
+!                  IF(NSSN.NE.NSM) THEN
+!                     RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
+!                  ELSE
+!                     IF(RN(NR,NSM).LT.1.D-70) THEN
+!                        RT(NR,NSM) = 0.D0
+!                     ELSE
+!                        IF(RN(NR,NSM).LT.1.D-70) THEN
+!                           RT(NR,NSM)=0.03D0
+!                        ELSE
+!                           RT(NR,NSM) = XV(NEQ,NR)/RN(NR,NSM)
+!                        END IF
+!                     END IF
+!                  END IF
+                  IF(RT(NR,NSSN).LE.0.D0) THEN
+                     WRITE(6,'(A,2I6,ES12.4)') &
+                          'XX TRXTOA4: negative RT:',NR,NSSN,RT(NR,NSSN)
+                        ICHECK=1
+!                     RT(NR,NSSN)=ABS(RT(NR,NSSN))
+                  END IF
+               END IF
             ELSEIF(NSVN.EQ.3) THEN
-               RU(NR,NSSN) = XV(NEQ,NR)/(PA(NSSN)*AMM*RN(NR,NSSN))
+               IF(RN(NR,NSSN).LT.1.D-70) THEN
+                  RU(NR,NSSN) = 0.D0
+               ELSE
+                  RU(NR,NSSN) = XV(NEQ,NR)/(PA(NSSN)*AMP*RN(NR,NSSN))
+               END IF
             ENDIF
          ENDDO
-         RW(NR,1) = YV(1,NR)
-         RW(NR,2) = YV(2,NR)
+         DO NF=1,NFMAX
+            RW(NR,NF) = YV(NF,NR)
+         END DO
          IF(NSMAX.GE.8) THEN
             ANNU(NR) = RN(NR,7)+RN(NR,8)
          END IF
@@ -960,6 +1138,16 @@ CONTAINS
 
       N=NRMAX
 !      CALL PLDATA_SETP(N,RN,RT,RU)
+
+      ENTRY TRXTOA_AKDW
+
+      IF(MDLTC.NE.0) THEN
+         DO NR=1,NRMAX
+            DO NS=1,NSMAX
+               AKDW(NR,NS) = ZV(NS,NR)
+            ENDDO
+         ENDDO
+      ENDIF
 
       RETURN
       END SUBROUTINE TRXTOA
@@ -1011,55 +1199,63 @@ CONTAINS
 
       SUBROUTINE TRCHCK(ICHCK)
 
-      USE TRCOMM, ONLY : NEQMAX, NRMAX, NSS, NSV, NT, RT
+      USE TRCOMM, ONLY : NEQMAX, NRMAX, NSS, NSV, NT, RT,RN
       IMPLICIT NONE
       INTEGER,INTENT(OUT):: ICHCK
       INTEGER :: IND, NEQ, NR, NSSN
 
       ICHCK = 0
       DO NEQ=1,NEQMAX
+         IF(NSV(NEQ).EQ.1) THEN
+            DO NR=1,NRMAX
+               IF(RN(NR,NSS(NEQ)).LT.0.D0) THEN
+                  write(6,*) 'RN:',NT,NR,NEQ,NSS(NEQ),RN(NR,NSS(NEQ))
+                  ICHCK=1
+               END IF
+            END DO
+         END IF
          IF(NSV(NEQ).EQ.2) THEN
             DO NR=1,NRMAX
-               IF(RT(NR,NSS(NEQ)).LT.0.D0) &
-                    & write(6,*) NT,NR,NEQ,NSS(NEQ),RT(NR,NSS(NEQ))
-               IF(RT(NR,NSS(NEQ)).LT.0.D0) GOTO 100
+               IF(RT(NR,NSS(NEQ)).LT.0.D0) THEN
+                  write(6,*) 'RT:',NT,NR,NEQ,NSS(NEQ),RT(NR,NSS(NEQ))
+                  ICHCK=1
+               END IF
             ENDDO
          ENDIF
       ENDDO
-      GOTO 9000
+!      IF(ICHCK.EQ.0) GOTO 9000
 
-  100 CONTINUE
-      IND=0
-      WRITE(6,*) 'XX ERROR : NEGATIVE TEMPERATURE AT STEP ',NT
-      DO NEQ=1,NEQMAX
-         NSSN=NSS(NEQ)
-         IF(NSSN.EQ.1.AND.IND.NE.1) THEN
-            WRITE(6,*) '     TE (',NR,')=',RT(NR,NSSN)
-            IND=1
-         ELSEIF(NSSN.EQ.2.AND.IND.NE.2) THEN
-            WRITE(6,*) '     TD (',NR,')=',RT(NR,NSSN)
-            IND=2
-         ELSEIF(NSSN.EQ.3.AND.IND.NE.3) THEN
-            WRITE(6,*) '     TT (',NR,')=',RT(NR,NSSN)
-            IND=3
-         ELSEIF(NSSN.EQ.4.AND.IND.NE.4) THEN
-            WRITE(6,*) '     TA (',NR,')=',RT(NR,NSSN)
-            IND=4
-         ELSEIF(NSSN.EQ.5.AND.IND.NE.5) THEN
-            WRITE(6,*) '     TI1(',NR,')=',RT(NR,NSSN)
-            IND=5
-         ELSEIF(NSSN.EQ.6.AND.IND.NE.6) THEN
-            WRITE(6,*) '     TI2(',NR,')=',RT(NR,NSSN)
-            IND=6
+!      IND=0
+!      WRITE(6,*) 'XX ERROR : NEGATIVE TEMPERATURE AT STEP ',NT
+!      DO NEQ=1,NEQMAX
+!         NSSN=NSS(NEQ)
+!         IF(NSSN.EQ.1.AND.IND.NE.1) THEN
+!            WRITE(6,*) '     TE (',NR,')=',RT(NR,NSSN)
+!            IND=1
+!         ELSEIF(NSSN.EQ.2.AND.IND.NE.2) THEN
+!            WRITE(6,*) '     TD (',NR,')=',RT(NR,NSSN)
+!            IND=2
+!         ELSEIF(NSSN.EQ.3.AND.IND.NE.3) THEN
+!            WRITE(6,*) '     TT (',NR,')=',RT(NR,NSSN)
+!            IND=3
+!         ELSEIF(NSSN.EQ.4.AND.IND.NE.4) THEN
+!            WRITE(6,*) '     TA (',NR,')=',RT(NR,NSSN)
+!            IND=4
+!         ELSEIF(NSSN.EQ.5.AND.IND.NE.5) THEN
+!            WRITE(6,*) '     TI1(',NR,')=',RT(NR,NSSN)
+!            IND=5
+!         ELSEIF(NSSN.EQ.6.AND.IND.NE.6) THEN
+!            WRITE(6,*) '     TI2(',NR,')=',RT(NR,NSSN)
+!            IND=6
 !         ELSEIF(NSSN.EQ.7.AND.IND.NE.7) THEN
 !            WRITE(6,*) '     TNC(',NR,')=',RT(NR,NSSN)
 !            IND=7
 !         ELSEIF(NSSN.EQ.8.AND.IND.NE.8) THEN
 !            WRITE(6,*) '     TNH(',NR,')=',RT(NR,NSSN)
 !            IND=8
-         ENDIF
-      ENDDO
-      ICHCK=1
+!         ENDIF
+!      ENDDO
+!      ICHCK=1
 
  9000 RETURN
       END SUBROUTINE TRCHCK
@@ -1073,7 +1269,7 @@ CONTAINS
       SUBROUTINE TR_COEF_DECIDE(NR,NSW,DV53)
 
       USE trcomm
-      USE TRCOM1, ONLY : D, RD
+      USE TRCOMX, ONLY : D, RD
       USE libitp
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: NR, NSW
@@ -1099,7 +1295,14 @@ CONTAINS
 
          NSSN=NSS(NEQ)
          NSVN=NSV(NEQ)
-         IF(NSSN.NE.0) RTM(NSSN)=RT(NR,NSSN)*RKEV/(PA(NSSN)*AMM)
+         IF(NSSN.NE.0) THEN
+            RTM(NSSN)=RT(NR,NSSN)*RKEV/(PA(NSSN)*AMP)
+            IF(RTM(NSSN).LE.0.D0) THEN
+               WRITE(6,'(A,2I6,2ES12.4)') &
+                    'XX negative RTM:',nr,nssn,RT(NR,NSSN),RTM(NSSN)
+               RTM(NSSN)=ABS(RTM(NSSN))
+            END IF
+         END IF
 
 !     /* Coefficients of left hand side variables */
 
@@ -1184,13 +1387,13 @@ CONTAINS
                ENDIF
             ELSEIF(NSVN.EQ.1) THEN
                IF(NSW.EQ.2.OR.NSW.NE.NI.AND.NRJ.NE.0) THEN
-                  VV(NEQ,NEQ  ,NMK,NSW)= FA(NI,NSW)*AVP(NRJ,NSSN)
+                  VV(NEQ,NEQ  ,NMK,NSW)= FA(NI,NSW)*AV(NRJ,NSSN)
                   DD(NEQ,NEQ  ,NMK,NSW)= FB(NI,NSW)*AD(NRJ,NSSN)
                ENDIF
             ELSEIF(NSVN.EQ.2) THEN
                IF(NSW.EQ.2.OR.NSW.NE.NI.AND.NRJ.NE.0) THEN
                   IF(MDLFLX.EQ.0) THEN
-                  VV(NEQ,NEQ  ,NMK,NSW)= FA(NI,NSW)*(AVK(NRJ,NSSN)+AVP(NRJ,NSSN)*CC)*DV23
+                  VV(NEQ,NEQ  ,NMK,NSW)= FA(NI,NSW)*(AVK(NRJ,NSSN)+AV(NRJ,NSSN)*CC)*DV23
                   ELSE
                   VV(NEQ,NEQ  ,NMK,NSW)=(FA(NI,NSW)*AVK(NRJ,NSSN)+CC*RGFLX(NRJ,NSSN)/(RNV(NRJ,NSSN)*DR))*DV23
                   ENDIF
@@ -1227,12 +1430,12 @@ CONTAINS
             ELSEIF(NSVN.EQ.1) THEN
                IF(NSSN.EQ.7.OR.NSSN.EQ.8) THEN
                   IF(NSW.EQ.2.OR.NSW.NE.NI.AND.NRJ.NE.0) THEN
-                     VV(NEQ,NEQ  ,NMK,NSW)= FA(NI,NSW)*AVP(NRJ,NSSN)
+                     VV(NEQ,NEQ  ,NMK,NSW)= FA(NI,NSW)*AV(NRJ,NSSN)
                      DD(NEQ,NEQ  ,NMK,NSW)= FB(NI,NSW)*AD(NRJ,NSSN)
                   ENDIF
                ELSE
                IF(NSW.EQ.2.OR.NSW.NE.NI.AND.NRJ.NE.0) THEN
-                  VV(NEQ,NEQ  ,NMK,NSW)= FA(NI,NSW)*(AVP(NRJ,NSSN)+RGFLS(NRJ,5,NSSN)/RNV(NRJ,NSSN))
+                  VV(NEQ,NEQ  ,NMK,NSW)= FA(NI,NSW)*(AV(NRJ,NSSN)+RGFLS(NRJ,5,NSSN)/RNV(NRJ,NSSN))
                   DO NEQ1=1,NEQLMAX
                      NSSN1=NSS(NEQ1)
                      NSVN1=NSV(NEQ1)
@@ -1248,7 +1451,7 @@ CONTAINS
                IF(NSW.EQ.2.OR.NSW.NE.NI.AND.NRJ.NE.0) THEN
                   IF(MDLFLX.EQ.0) THEN
                      VV(NEQ,NEQ  ,NMK,NSW)= FA(NI,NSW)*DV23 &
-     &                    *( AVK(NRJ,NSSN)+AVP(NRJ,NSSN)*CC &
+     &                    *( AVK(NRJ,NSSN)+AV(NRJ,NSSN)*CC &
      &                      +RQFLS(NRJ,5,NSSN)   /RPV(NRJ,NSSN) &
      &                      +RGFLS(NRJ,5,NSSN)*CC/RNV(NRJ,NSSN))
                   ELSE
@@ -1541,7 +1744,7 @@ CONTAINS
       SUBROUTINE TR_IONIZATION(NR)
 
       USE TRCOMM, ONLY : DVRHO, MDLEQ0, NEA, NSMAX, PN, TSIE
-      USE TRCOM1, ONLY : B
+      USE TRCOMX, ONLY : B
       IMPLICIT NONE
 !      INCLUDE 'trcomm.inc'
       INTEGER,INTENT(IN):: NR
@@ -1594,7 +1797,7 @@ CONTAINS
       SUBROUTINE TR_CHARGE_EXCHANGE(NR)
 
       USE TRCOMM, ONLY : DVRHO, MDLEQ0, NEA, TSCX
-      USE TRCOM1, ONLY : B
+      USE TRCOMX, ONLY : B
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: NR
       INTEGER:: NEQ, NV, NW
@@ -1680,4 +1883,4 @@ CONTAINS
       RETURN
       END FUNCTION RPV
 
-END MODULE trexec
+  END MODULE trexec

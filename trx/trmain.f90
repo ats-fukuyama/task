@@ -33,7 +33,7 @@
 !     *                                                             *
 !     ***************************************************************
 
-      USE TRCOMM, ONLY : GTCPU1, NFM, NGM, NSM, NTM
+      USE TRCOMM, ONLY : GTCPU1, NGM, NSM, NTM
       use bpsd
       use plinit,ONLY: pl_init
       use plparm,ONLY: pl_parm

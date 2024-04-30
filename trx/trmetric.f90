@@ -23,6 +23,7 @@ CONTAINS
       integer, intent(out):: ierr
       character(len=80):: line
 
+      CALL trstgf
       CALL trgfrg
 
       if(modelg.eq.3.or.modelg.eq.5.or.modelg.eq.8) then
@@ -61,32 +62,43 @@ CONTAINS
       
 !     ***********************************************************
 
-!           CALCULATING FLUX FROM SOURCE TERM FILES
+!           SET GEOMETRIC FACTOR AT HALF MESH
 
 !     ***********************************************************
 
-      SUBROUTINE FLUX
+      SUBROUTINE TRSTGF
 
-      USE TRCOMM, ONLY : DR, DVRHO, MDLFLX, NRMAX, NSM, PZ, RGFLX, SNBU, SWLU, rkind
+      USE TRCOMM
       IMPLICIT NONE
-      INTEGER:: NR
-      REAL(rkind),DIMENSION(NRMAX)::  SALEL, SALIL
+      INTEGER :: NR
+      REAL(rkind)    :: RKAPS, RHO_A
 
-
-      IF(MDLFLX.EQ.0) THEN
-         RGFLX(1:NRMAX,1:NSM)=0.D0
-      ELSE
+      RKAPS=SQRT(RKAP)
          DO NR=1,NRMAX
-            SALEL(NR)=SNBU(1,NR,1)+SWLU(1,NR)/PZ(2)
-            RGFLX(NR,1)=SUM(SALEL(1:NR)*DVRHO(1:NR))*DR
-            SALIL(NR)=SNBU(1,NR,2)+SWLU(1,NR)
-            RGFLX(NR,2)=SUM(SALIL(1:NR)*DVRHO(1:NR))*DR
-            RGFLX(NR,3:NSM)=0.D0
+            BPRHO(NR)=BP(NR)
+            QRHO(NR)=QP(NR)
+
+            TTRHO(NR)=BB*RR
+            DVRHO(NR)=2.D0*PI*RKAP*RA*RA*2.D0*PI*RR*RM(NR)
+            ABRHO(NR)=1.D0/(RKAPS*RA*RR)**2
+            ABVRHO(NR)=DVRHO(NR)**2*ABRHO(NR)
+            ARRHO(NR)=1.D0/RR**2
+            AR1RHO(NR)=1.D0/(RKAPS*RA)
+            AR2RHO(NR)=1.D0/(RKAPS*RA)**2
+            RMJRHO(NR)=RR
+            RMNRHO(NR)=RA*RG(NR)
+            RKPRHO(NR)=RKAP
+            RJCB(NR)=1.D0/(RKAPS*RA)
+            RHOM(NR)=RM(NR)/RJCB(NR)
+            RHOG(NR)=RG(NR)/RJCB(NR)
+            EPSRHO(NR)=RMNRHO(NR)/RMJRHO(NR)
+            ABB1RHO(NR)=BB*(1.D0+0.25D0*EPSRHO(NR)**2)
+            PVOLRHOG(NR)=PI*RKAP*(RA*RG(NR))**2*2.D0*PI*RR
+            PSURRHOG(NR)=PI*(RKAP+1.D0)*RA*RG(NR)*2.D0*PI*RR
          ENDDO
-      ENDIF
 
       RETURN
-      END SUBROUTINE FLUX
+      END SUBROUTINE TRSTGF
 
 !     ***********************************************************
 
