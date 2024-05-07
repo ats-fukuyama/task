@@ -264,25 +264,25 @@ CONTAINS
                      END IF
                   END IF
 !                  IF(NSTN.EQ.0) THEN
-!                     IF(RN(NR,NSM).LT.1.D-70) THEN
-!                        RT(NR,NSM) = 0.D0
+!                     IF(RN(NR,NSMAX).LT.1.D-70) THEN
+!                        RT(NR,NSMAX) = 0.D0
 !                     ELSE
-!                        IF(NSSN.NE.NSM) THEN
+!                        IF(NSSN.NE.NSMAX) THEN
 !                           RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
 !                        ELSE
-!                           RT(NR,NSM) = XV(NEQ,NR)/RN(NR,NSM)
+!                           RT(NR,NSMAX) = XV(NEQ,NR)/RN(NR,NSMAX)
 !                        ENDIF
 !                     ENDIF
 !                  ELSE
-!                     IF(RN(NR,NSM).LT.1.D-70) THEN
-!                        RT(NR,NSM) = 0.03D0
+!                     IF(RN(NR,NSMAX).LT.1.D-70) THEN
+!                        RT(NR,NSMAX) = 0.03D0
 !                     ELSE
-!                        IF(NSSN.NE.NSM) THEN
+!                        IF(NSSN.NE.NSMAX) THEN
 !                           RT(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
 !                                +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSSN)
 !                        ELSE
-!                           RT(NR,NSM) = 0.5D0*(XV(NEQ,NR) &
-!                                +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSM)
+!                           RT(NR,NSMAX) = 0.5D0*(XV(NEQ,NR) &
+!                                +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSMAX)
 !                        ENDIF
 !                     ENDIF
                   IF(RT(NR,NSSN).LE.0.D0) THEN
@@ -297,10 +297,10 @@ CONTAINS
                   RU(NR,NSSN) = 0.D0
                ELSE
                   IF(NSTN.EQ.0) THEN
-                     RU(NR,NSSN) = XV(NEQ,NR)/(PA(NSSN)*AMP*RN(NR,NSSN))
+                     RU(NR,NSSN) = XV(NEQ,NR)/(PM(NSSN)*AMP*RN(NR,NSSN))
                   ELSE
                      RU(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
-                          + X(NEQRMAX*(NR-1)+NSTN))/(PA(NSSN)*AMP*RN(NR,NSSN))
+                          + X(NEQRMAX*(NR-1)+NSTN))/(PM(NSSN)*AMP*RN(NR,NSSN))
                   ENDIF
                END IF
             ENDIF
@@ -448,7 +448,7 @@ CONTAINS
       IMPLICIT NONE
       INTEGER, INTENT(INOUT):: NEQRMAX
       INTEGER:: KL, MV, MVV, MW, MWMAX, NEQ, NEQ1, NR
-      INTEGER:: NS, NS1, NSTN, NSW, NV, NW, NNB, NNF
+      INTEGER:: NS, NS1, NSTN, NSW, NV, NW, NNB, NNF, NF
       REAL(rkind)   :: ADV, C1, COEF, COULOG, DV53, FADV, PRV, RDPA, RLP
 
 ! Boundary condition for magnetic diffusion equation
@@ -548,15 +548,17 @@ CONTAINS
 
 !     ***** Evolution of fast ion components *****
 
-      DO NNB=1,NNBMAX
-         Y(NNB,NR)=(1.D0-PRV/TAUB(NNB,NR))*YV(NNB,NR) &
-              +PNB_NNBNR(NNB,NR)*DT/(RKEV*1.D20)
-         AY(NNB,NR)=1.D0+ADV/TAUB(NNB,NR)
-      END DO
-      DO NNF=1,NNFMAX
-         Y(NNBMAX+NNF,NR)=(1.D0-PRV/TAUF(NNF,NR))*YV(NNBMAX+NNF,NR) &
-              +PNF_NNFNR(NNF,NR)*DT/(RKEV*1.D20)
-         AY(NNBMAX+NNF,NR)=1.D0+ADV/TAUF(NNF,NR)
+      DO NR=1,NRMAX
+         DO NNB=1,NNBMAX
+            Y(NNB,NR)=(1.D0-PRV/TAUB(NNB,NR))*YV(NNB,NR) &
+                 +PNB_NNBNR(NNB,NR)*DT/(RKEV*1.D20)
+            AY(NNB,NR)=1.D0+ADV/TAUB(NNB,NR)
+         END DO
+         DO NNF=1,NNFMAX
+            Y(NNBMAX+NNF,NR)=(1.D0-PRV/TAUF(NNF,NR))*YV(NNBMAX+NNF,NR) &
+                 +PNF_NNFNR(NNF,NR)*DT/(RKEV*1.D20)
+            AY(NNBMAX+NNF,NR)=1.D0+ADV/TAUF(NNF,NR)
+         END DO
       END DO
       
       IF(MDLTC.NE.0) THEN
@@ -970,7 +972,7 @@ CONTAINS
             ELSEIF(NSVN.EQ.2) THEN
                XV(NEQ,NR) = RN(NR,NSSN)*RT(NR,NSSN)
             ELSEIF(NSVN.EQ.3) THEN
-               XV(NEQ,NR) = PA(NSSN)*AMP*RN(NR,NSSN)*RU(NR,NSSN)
+               XV(NEQ,NR) = PM(NSSN)*AMP*RN(NR,NSSN)*RU(NR,NSSN)
             ENDIF
          ENDDO
          DO NF=1,NFMAX
@@ -1093,16 +1095,16 @@ CONTAINS
 !                        RT(NR,NSSN)=-RT(NR,NSSN)
                      END IF
                   END IF
-!                  IF(NSSN.NE.NSM) THEN
+!                  IF(NSSN.NE.NSMAX) THEN
 !                     RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
 !                  ELSE
-!                     IF(RN(NR,NSM).LT.1.D-70) THEN
-!                        RT(NR,NSM) = 0.D0
+!                     IF(RN(NR,NSMAX).LT.1.D-70) THEN
+!                        RT(NR,NSMAX) = 0.D0
 !                     ELSE
-!                        IF(RN(NR,NSM).LT.1.D-70) THEN
-!                           RT(NR,NSM)=0.03D0
+!                        IF(RN(NR,NSMAX).LT.1.D-70) THEN
+!                           RT(NR,NSMAX)=0.03D0
 !                        ELSE
-!                           RT(NR,NSM) = XV(NEQ,NR)/RN(NR,NSM)
+!                           RT(NR,NSMAX) = XV(NEQ,NR)/RN(NR,NSMAX)
 !                        END IF
 !                     END IF
 !                  END IF
@@ -1117,7 +1119,7 @@ CONTAINS
                IF(RN(NR,NSSN).LT.1.D-70) THEN
                   RU(NR,NSSN) = 0.D0
                ELSE
-                  RU(NR,NSSN) = XV(NEQ,NR)/(PA(NSSN)*AMP*RN(NR,NSSN))
+                  RU(NR,NSSN) = XV(NEQ,NR)/(PM(NSSN)*AMP*RN(NR,NSSN))
                END IF
             ENDIF
          ENDDO
@@ -1296,7 +1298,7 @@ CONTAINS
          NSSN=NSS(NEQ)
          NSVN=NSV(NEQ)
          IF(NSSN.NE.0) THEN
-            RTM(NSSN)=RT(NR,NSSN)*RKEV/(PA(NSSN)*AMP)
+            RTM(NSSN)=RT(NR,NSSN)*RKEV/(PM(NSSN)*AMP)
             IF(RTM(NSSN).LE.0.D0) THEN
                WRITE(6,'(A,2I6,2ES12.4)') &
                     'XX negative RTM:',nr,nssn,RT(NR,NSSN),RTM(NSSN)

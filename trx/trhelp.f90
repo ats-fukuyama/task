@@ -164,7 +164,7 @@
   603 FORMAT( &
      &' ','      ==== PLASMA PARAMETERS ===='/                          &
      &' ','  NSMAX  : NUMBER OF PARTICLE SPECIES (NS=1:ELECTRON)'/      &
-     &' ','  PA(IS) : ATOMIC NUMBER'/                                   &
+     &' ','  PM(IS) : ATOMIC NUMBER'/                                   &
      &' ','  PZ(IS) : CHARGE NUMBER'/                                   &
      &' ','  PN(IS) : INITIAL NUMBER DENSITY ON AXIS (1.E20 M**-3)'/    &
      &' ','  PNS(IS): INITIAL NUMBER DENSITY ON SURFACE (1.E20 M**-3)'/ &

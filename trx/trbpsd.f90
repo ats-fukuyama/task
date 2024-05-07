@@ -39,7 +39,7 @@ CONTAINS
       endif
 
       do ns=1,species%nsmax
-         species%data(ns)%pa=pa(ns)
+         species%data(ns)%pa=pm(ns)
          species%data(ns)%pz=pz(ns)
          species%data(ns)%npa=npa(ns)
       enddo

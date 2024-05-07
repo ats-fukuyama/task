@@ -29,8 +29,6 @@ CONTAINS
       INTEGER:: nrmax_prof,ierr,i
       REAL(rkind):: R1,RN1
       
-      CALL TR_EDGE_DETERMINER(0)
-      CALL TR_EDGE_SELECTOR(0)
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       DO NR=1,NRMAX
          RG(NR) = DBLE(NR)*DR

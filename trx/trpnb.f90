@@ -41,12 +41,18 @@
          DO NS=1,NSMAX
             SNB_NSNR(NS,NR)=0.D0
             PNB_NSNR(NS,NR)=0.D0
+            DO NNB=1,NNBMAX
+               SNB_NSNNBNR(NS,NNB,NR)=0.D0
+               PNB_NSNNBNR(NS,NNB,NR)=0.D0
+            END DO
          END DO
          AJNB(NR)=0.D0
          DO NNB=1,NNBMAX
             NS=NS_NNB(NNB)
             SNB_NSNR(NS,NR)=SNB_NSNR(NS,NR)+SNB_NNBNR(NNB,NR)
             PNB_NSNR(NS,NR)=PNB_NSNR(NS,NR)+PNB_NNBNR(NNB,NR)
+            SNB_NSNNBNR(NS,NNB,NR)=SNB_NNBNR(NNB,NR)
+            PNB_NSNNBNR(NS,NNB,NR)=PNB_NNBNR(NNB,NR)
             AJNB(NR)=AJNB(NR)+AJNB_NNBNR(NNB,NR)
          END DO
       END DO
@@ -461,13 +467,13 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NNB
       REAL(rkind)    :: ANE, AMB, COULOG, EC, EPS, HY, HYB, &
-           P2, P3, P4, PAB, PZB, TAUS, TAUS0, TE, VB, VC3,  &
+           P2, P3, P4, PMB, PZB, TAUS, TAUS0, TE, VB, VC3,  &
            VCA3, VCD3, VCR, VCT3, VE, WB, XB, ZEFFM, ZN, PB, EF
       INTEGER :: NR,NS
 
-      PAB=PA(NS_NNB(NNB))
+      PMB=PM(NS_NNB(NNB))
       PZB=PZ(NS_NNB(NNB))
-      AMB=PAB*AMP
+      AMB=PMB*AMP
       VB=SQRT(2.D0*PNBENG(NNB)*RKEV/AMB)
       
       DO NR=1,NRMAX
@@ -485,7 +491,7 @@
             VC3  = VCD3+VCT3+VCA3
             VCR  = VC3**(1.D0/3.D0)
             HYB  = HY(VB/VCR)
-            TAUS = 0.2D0*PAB*ABS(TE)**1.5D0/(PZ(NS_NNB(NNB))**2*ANE &
+            TAUS = 0.2D0*PMB*ABS(TE)**1.5D0/(PZ(NS_NNB(NNB))**2*ANE &
                  *COULOG(NS_e,NS_NNB(NNB),ANE,TE))
             TAUB(NNB,NR) = 0.5D0*TAUS*(1.D0-HYB)
             RNF(NR,NNB)= 2.D0*LOG(1.D0+(VB/VCR)**3)*WB &
@@ -531,17 +537,17 @@
             AJNB(NR)=0.D0
          ELSE
             TAUS=TAUS0*VE**3/ANE
-            ZEFFM = (PZ(NS_D)  *PZ(NS_D)  *RN(NR,NS_D)/PA(NS_D) &
-                    +PZ(NS_T)  *PZ(NS_T)  *RN(NR,NS_T)/PA(NS_T) &
-                    +PZ(NS_A)  *PZ(NS_A)  *RN(NR,NS_A)/PA(NS_A) &
+            ZEFFM = (PZ(NS_D)  *PZ(NS_D)  *RN(NR,NS_D)/PM(NS_D) &
+                    +PZ(NS_T)  *PZ(NS_T)  *RN(NR,NS_T)/PM(NS_T) &
+                    +PZ(NS_A)  *PZ(NS_A)  *RN(NR,NS_A)/PM(NS_A) &
                     +PZC(NR)   *PZC(NR)   *ANC(NR)/12.D0 &
                     +PZFE(NR)  *PZFE(NR)  *ANFE(NR)/52.D0)/ANE
-            EC  = 14.8D0*TE*PAB*ZEFFM**(2.D0/3.D0)
+            EC  = 14.8D0*TE*PMB*ZEFFM**(2.D0/3.D0)
             VCR = VB*SQRT(ABS(EC)/PNBENG(NNB))
             P2  = (1.55D0+0.85D0/ZEFF(NR))*SQRT(EPS) &
                  -(0.2D0+1.55D0/ZEFF(NR))*EPS
             XB  = VB/VCR
-            ZN  = 0.8D0*ZEFF(NR)/PAB
+            ZN  = 0.8D0*ZEFF(NR)/PMB
             P3  = XB*XB/(4.D0+3.D0*ZN+XB*XB*(XB+1.39D0+0.61D0*ZN**0.7D0))
 
             AJNB_NNBNR(NNB,NR) = PNBCD(NNB)*2.D0*AEE*PZB*TAUS/(AMB*VCR) &

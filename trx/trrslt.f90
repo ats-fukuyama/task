@@ -30,7 +30,7 @@
       SUMP=0.D0
       VOL =0.D0
       DO NR=1,NRMAX-1
-         SUML = (SUM(RN(NR,1:NSM)*RT(NR,1:NSM))  &
+         SUML = (SUM(RN(NR,1:NSMAX)*RT(NR,1:NSMAX))  &
                + SUM(RW(NR,1:NFMAX)))*RKEV*1.D20
 
 !!         DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RMJRHO(NR))
@@ -46,7 +46,7 @@
       ENDDO
 
       NR=NRMAX
-      SUML = (SUM(RN(NR,1:NSM)*RT(NR,1:NSM)) &
+      SUML = (SUM(RN(NR,1:NSMAX)*RT(NR,1:NSMAX)) &
             + SUM(RW(NR,1:NFMAX)))*RKEV*1.D20
 
 !!         DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RMJRHO(NR))
@@ -78,7 +78,7 @@
 !     *** Stored energy                           ***
 
 !     +++ for electron and bulk ions +++
-      DO NS=1,NSM
+      DO NS=1,NSMAX
          RNSUM = SUM(RN(1:NRMAX,NS)*DVRHO(1:NRMAX))
          RTSUM = SUM(RN(1:NRMAX,NS)*RT(1:NRMAX,NS)*DVRHO(1:NRMAX))
          ANSAV(NS) = RNSUM*DR/VOL
@@ -117,7 +117,7 @@
 
 !     *** Line-averaged densities ***
 
-      DO NS=1,NSM
+      DO NS=1,NSMAX
          ANLAV(NS)=SUM(RN(1:NRMAX,NS))*DR
       ENDDO
 
@@ -144,13 +144,13 @@
 
 !     *** External power typically for NBI from exp. data ***
 
-      DO NS=1,NSM
+      DO NS=1,NSMAX
          PEXT(NS) = SUM(PEX(1:NRMAX,NS)*DVRHO(1:NRMAX))*DR/1.D6
       ENDDO
 
 !     *** RF power ***
 
-      DO NS=1,NSM
+      DO NS=1,NSMAX
          PRFVT(NS,1) = SUM(PRFV(1:NRMAX,NS,1)*DVRHO(1:NRMAX))*DR/1.D6
          PRFVT(NS,2) = SUM(PRFV(1:NRMAX,NS,2)*DVRHO(1:NRMAX))*DR/1.D6
          PRFVT(NS,3) = SUM(PRFV(1:NRMAX,NS,3)*DVRHO(1:NRMAX))*DR/1.D6
@@ -265,17 +265,17 @@
 
 !     *** Pellet injection fuelling ***
 
-      DO NS=1,NSM
+      DO NS=1,NSMAX
          SPET(NS) = SUM(SPE(1:NRMAX,NS)*DVRHO(1:NRMAX))*DR/RKAP
       ENDDO
 
 !     *** Input and output sources and powers ***
 
-      WBULKT=SUM(WST(1:NSM))
-      PEXST =SUM(PEXT(1:NSM))
-      PRFST =SUM(PRFT(1:NSM))
-      PLST  =SUM(PLT(1:NSM))
-      SLST  =SUM(SLT(1:NSM))
+      WBULKT=SUM(WST(1:NSMAX))
+      PEXST =SUM(PEXT(1:NSMAX))
+      PRFST =SUM(PRFT(1:NSMAX))
+      PLST  =SUM(PLT(1:NSMAX))
+      SLST  =SUM(SLT(1:NSMAX))
       WTAILT=SUM(WFT(1:NFMAX))
 
       WPT =WBULKT+WTAILT
@@ -312,7 +312,7 @@
 !        H98Y2: H-mode factor
 
 !     volume-averaged isotopic mass number
-      PAI = (PA(2)*ANSAV(2)+PA(3)*ANSAV(3)+PA(4)*ANSAV(4))  /(ANSAV(2)+ANSAV(3)+ANSAV(4))
+      PAI = (PM(2)*ANSAV(2)+PM(3)*ANSAV(3)+PM(4)*ANSAV(4))  /(ANSAV(2)+ANSAV(3)+ANSAV(4))
 
       TAUE89=4.8D-2*(ABS(RIP)**0.85D0)    *(RR**1.2D0) *(RA**0.3D0)  *(RKAP**0.5D0) &
      &             *(ANLAV(1)**0.1D0)*(ABS(BB)**0.2D0) *(PAI**0.5D0) *(PINT**(-0.5D0))
@@ -399,17 +399,17 @@
       GVT(NGT,20) = GUCLIP(WST(4))
 
       IF(NFMAX.GT.0) THEN
-         GVT(NGT,21) = GUCLIP(ANF0(1))
-         GVT(NGT,22) = GUCLIP(ANF0(2))
-         GVT(NGT,23) = GUCLIP(ANFAV(1))
-         GVT(NGT,24) = GUCLIP(ANFAV(2))
-         GVT(NGT,25) = GUCLIP(TF0(1))
-         GVT(NGT,26) = GUCLIP(TF0(2))
-         GVT(NGT,27) = GUCLIP(TFAV(1))
-         GVT(NGT,28) = GUCLIP(TFAV(2))
+         IF(NFMAX.GE.1) GVT(NGT,21) = GUCLIP(ANF0(1))
+         IF(NFMAX.GE.2) GVT(NGT,22) = GUCLIP(ANF0(2))
+         IF(NFMAX.GE.1) GVT(NGT,23) = GUCLIP(ANFAV(1))
+         IF(NFMAX.GE.2) GVT(NGT,24) = GUCLIP(ANFAV(2))
+         IF(NFMAX.GE.1) GVT(NGT,25) = GUCLIP(TF0(1))
+         IF(NFMAX.GE.2) GVT(NGT,26) = GUCLIP(TF0(2))
+         IF(NFMAX.GE.1) GVT(NGT,27) = GUCLIP(TFAV(1))
+         IF(NFMAX.GE.2) GVT(NGT,28) = GUCLIP(TFAV(2))
 
-         GVT(NGT,29) = GUCLIP(WFT(1))
-         GVT(NGT,30) = GUCLIP(WFT(2))
+         IF(NFMAX.GE.1) GVT(NGT,29) = GUCLIP(WFT(1))
+         IF(NFMAX.GE.2) GVT(NGT,30) = GUCLIP(WFT(2))
       END IF
       GVT(NGT,31) = GUCLIP(WBULKT)
       GVT(NGT,32) = GUCLIP(WTAILT)
@@ -564,9 +564,10 @@
          GVRT(NR,NGT,43) = GUCLIP(AJRFV(NR,2))
          GVRT(NR,NGT,44) = GUCLIP(AJRFV(NR,3))
 
-         IF(NFMAX.GT.0) THEN
-            GVRT(NR,NGT,45) = GUCLIP(RW(NR,1)+RW(NR,2))
-         END IF
+         GVRT(NR,NGT,45)=0.D0
+         IF(NFMAX.EQ.1) GVRT(NR,NGT,45) = GUCLIP(RW(NR,1))
+         IF(NFMAX.GE.2) GVRT(NR,NGT,45) = GUCLIP(RW(NR,1)+RW(NR,2))
+
          GVRT(NR,NGT,46) = GUCLIP(ANC(NR)+ANFE(NR))
          GVRT(NR,NGT,47) = GUCLIP(BP(NR))
          GVRT(NR,NGT,48) = GUCLIP(RPSI(NR))

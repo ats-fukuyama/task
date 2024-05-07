@@ -37,10 +37,20 @@ CONTAINS
     END DO
 
     DO NR=1,NRMAX
+       DO NNF=1,NNFMAX
+          SNF_NNFNR(NNF,NR)=0.D0
+          PNF_NNFNR(NNF,NR)=0.D0
+       END DO
        DO NS=1,NSMAX
           SNF_NSNR(NS,NR)=0.D0
           PNF_NSNR(NS,NR)=0.D0
-          DO NNF=1,NNFMAX
+       END DO
+       DO NNF=1,NNFMAX
+          DO NS=1,NSMAX
+             SNF_NNFNR(NNF,NR)=SNF_NNFNR(NNF,NR) &
+                  +SNF_NSNNFNR(NS_NNF(NNF),NNF,NR)
+             PNF_NNFNR(NNF,NR)=PNF_NNFNR(NNF,NR) &
+                  +PNF_NSNNFNR(NS_NNF(NNF),NNF,NR)
              SNF_NSNR(NS,NR)=SNF_NSNR(NS,NR)+SNF_NSNNFNR(NS,NNF,NR)
              PNF_NSNR(NS,NR)=PNF_NSNR(NS,NR)+PNF_NSNNFNR(NS,NNF,NR)
           END DO
@@ -67,7 +77,7 @@ CONTAINS
     INTEGER:: NR,NNB,NS_beam
     REAL(rkind)   :: COULOG, HY   !FUNCTION
 
-    VF =SQRT(2.D0*3.5D3 *RKEV/AMHe ! alpha velocity
+    VF =SQRT(2.D0*3.5D3 *RKEV/AMA) ! alpha velocity
 
       DO NR=1,NRMAX
          SNF_NSNNFNR(1:NSMAX,NNF,NR)=0.D0
@@ -122,7 +132,7 @@ CONTAINS
          P1   = 3.D0*SQRT(0.5D0*PI)*AME/ANE *(ABS(TE)*RKEV/AME)**1.5D0
          VCD3 = P1*RN(NR,2)*PZ(2)**2/AMD
          VCT3 = P1*RN(NR,3)*PZ(3)**2/AMT
-         VCA3 = P1*RN(NR,4)*PZ(4)**2/AMHe
+         VCA3 = P1*RN(NR,4)*PZ(4)**2/AMHe3
          VC3  = VCD3+VCT3+VCA3
          VCR  = VC3**(1.D0/3.D0)
          HYF=HY(VF/VCR)

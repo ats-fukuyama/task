@@ -122,12 +122,12 @@
          GYR(NR,3) = GUCLIP(PNF_NR(NR) * 1.D-6)
          GYR(NR,4) = GUCLIP(PRSUM(NR) * 1.D-6)
       ENDDO
-      DO NS=1,NSM
+      DO NS=1,NSMAX
       DO NR=1,NRMAX
          GYR(NR,NS+4) = GUCLIP((PRF(NR,NS)+PEX(NR,NS)) * 1.D-6)
       ENDDO
       ENDDO
-      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSM+4, &
+      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSMAX+4, &
      &            '@POH,PNB,PNF,PR,PRF [MW/m$+3$=]  vs r@',2+INQ)
 
       DO NR=1,NRMAX
@@ -214,12 +214,12 @@
       DO NR=1,NRMAX
          GYR(NR,1) = GUCLIP(SUM(PNFIN_NNFNR(1:NNFMAX,NR))*1.D-6)
       ENDDO
-      DO NS=1,NSM
+      DO NS=1,NSMAX
       DO NR=1,NRMAX
          GYR(NR,NS+1) = GUCLIP(SUM(PNFCL_NSNNFNR(NR,1:NNFMAX,NS))*1.D-6)
       ENDDO
       ENDDO
-      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM+1, &
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSMAX+1, &
            '@PNFIN,PNFCL [MW/m$+3$=]  vs r@',2+INQ)
 
       CALL TRGRTM
@@ -357,26 +357,27 @@
 
       CALL PAGES
 
-      DO NS=1,NSM
+      DO NS=1,NSMAX
       DO NR=1,NRMAX
          GYR(NR,NS) = GUCLIP(PIN(NR,NS)*1.D-6)
       ENDDO
       ENDDO
-      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSM,'@PIN [MW/m$+3$=]  vs r@',2+INQ)
+      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSMAX,'@PIN [MW/m$+3$=]  vs r@',2+INQ)
 
-         DO NS=1,NSM
+         DO NS=1,NSMAX
             DO NR=1,NRMAX
                GYR(NR,NS) = GUCLIP(SSIN(NR,NS))
             ENDDO
          ENDDO
-         CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM,'@SSIN [/sm$+3$=]  vs r@',2+INQ)
+         CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSMAX, &
+              '@SSIN [/sm$+3$=]  vs r@',2+INQ)
 
-!$$$      DO NS=1,NSM
+!$$$      DO NS=1,NSMAX
 !$$$      DO NR=1,NRMAX
 !$$$         GYR(NR,NS) = GUCLIP(SPE(NR,NS))
 !$$$      ENDDO
 !$$$      ENDDO
-!$$$      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSM,
+!$$$      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSMAX,
 !$$$     &            '@SPE [/m$+3$=]  vs r@',2+INQ)
 
       DO NR=1,NRMAX
@@ -722,12 +723,12 @@
          GYR(NR,2) = GUCLIP(PNB_NR(NR) * 1.D-6)
          GYR(NR,3) = GUCLIP(PNF_NR(NR) * 1.D-6)
       ENDDO
-      DO NS=1,NSM
+      DO NS=1,NSMAX
       DO NR=1,NRMAX
          GYR(NR,NS+3) = GUCLIP((PRF(NR,NS)+PEX(NR,NS)) * 1.D-6)
       ENDDO
       ENDDO
-      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSM+3, &
+      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSMAX+3, &
      &            '@POH,PNB,PNF,PRF [MW/m$+3$=]  vs r@',2+INQ)
 
       DO NR=1,NRMAX
@@ -816,7 +817,7 @@
             END DO
          ENDDO
          CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,NNFMAX, &
-              '@SNF1,2,3,4  vs r@',2+INQ)
+              '@SNF_NNF vs r@',2+INQ)
       END IF
 
       CALL TRGRTM

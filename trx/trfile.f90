@@ -56,7 +56,7 @@ CONTAINS
       WRITE(21) (PELIN(npel),PELR0(npel),PELRW(npel),PELRAD(npel), &
            PELVEL(npel),PELTIM(npel), &
            pellet_time_start(npel),pellet_time_interval(npel), &
-           (PELPAT(ns,npel),ns=1,nsm), &
+           (PELPAT(ns,npel),ns=1,nsmax), &
            MDLPEL(npel),npel=1,npelmax)
       WRITE(21) (PSCIN(npsc),PSCR0(npsc),PSCRW(npsc), &
            MDLPSC(npsc),NSPSC(npsc),npsc=1,npscmax)
@@ -189,7 +189,7 @@ CONTAINS
       READ(21) (PELIN(npel),PELR0(npel),PELRW(npel),PELRAD(npel), &
            PELVEL(npel),PELTIM(npel), &
            pellet_time_start(npel),pellet_time_interval(npel), &
-           (PELPAT(ns,npel),ns=1,nsm), &
+           (PELPAT(ns,npel),ns=1,nsmax), &
            MDLPEL(npel),npel=1,npelmax)
       READ(21) (PSCIN(npsc),PSCR0(npsc),PSCRW(npsc), &
            MDLPSC(npsc),NSPSC(npsc),npsc=1,npscmax)

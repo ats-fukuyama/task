@@ -96,7 +96,7 @@ CONTAINS
                              CHIIRB,DIFHRB,CHIERB,DIFZRB, &
                              CHIIKB,DIFHKB,CHIEKB,DIFZKB,IERR)
     USE trcomm, ONLY: &
-         rkind,PA,PZ,RN,PNSS,RT,PTS,RA,RR,NRMAX,MDLKAI,RM,RG,RNF, &
+         rkind,PM,PZ,RN,PNSS,RT,PTS,RA,RR,NRMAX,MDLKAI,RM,RG,RNF, &
          PZC,ANC,PZFE,ANFE,QP,BB,WEXBP,RKPRHO,S,NSMAX,NFMAX
     USE modmmm95
     IMPLICIT NONE
@@ -189,28 +189,28 @@ CONTAINS
     DTIDR=0.D0
 
     DO NS=1,NSMAX
-       IF(PA(NS).LE.0.01D0) THEN
+       IF(PM(NS).LE.0.01D0) THEN
           PNEL=PNEL+RNL(NS)
           PNTEL=PNTEL+RNTL(NS)
           DNEDR=DNEDR+DRNL(NS)
           DTEDR=DTEDR+DRNTL(NS)
        ELSE
-          IF(PA(NS).LE.3.D0.AND.PZ(NS).EQ.1.D0) THEN  
+          IF(PM(NS).LE.3.D0.AND.PZ(NS).EQ.1.D0) THEN  
              ! 3He+ and 3H+ are not distinguished; waiting for the use of NPA
              PNHL=PNHL+RNL(NS)
-             AMHL=AMHL+PA(NS)*RNL(NS)
+             AMHL=AMHL+PM(NS)*RNL(NS)
              DNHDR=DNHDR+DRNL(NS)
           ELSE
              PNZL=PNZL+RNL(NS)
              ZZL =ZZL +PZ(NS)*RNL(NS)
-             AMZL=AMZL+PA(NS)*RNL(NS)
+             AMZL=AMZL+PM(NS)*RNL(NS)
              DNZDR=DNZDR+DRNL(NS)
           END IF
           ZEFFL=ZEFFL+PZ(NS)*PZ(NS)*RNL(NS)
           ZNIL =ZNIL +PZ(NS)*RNL(NS)
           PNIL =PNIL +RNL(NS)
           PNTIL=PNTIL+RNTL(NS)
-          AMIL =AMIL +PA(NS)*RNL(NS)
+          AMIL =AMIL +PM(NS)*RNL(NS)
           DNIDR=DNIDR+DRNL(NS)
           DTIDR=DTIDR+DRNTL(NS)
        END IF
@@ -331,7 +331,7 @@ CONTAINS
                              CHIIW,DIFHW,CHIEW,CHIIB,DIFHB,CHIEB,CHIEG, &
                              IERR)
     USE trcomm, ONLY: &
-         rkind,PA,PZ,RN,PNSS,RT,PTS,RA,RR,NRMAX,MDLKAI,RM,RG,RNF, &
+         rkind,PM,PZ,RN,PNSS,RT,PTS,RA,RR,NRMAX,MDLKAI,RM,RG,RNF, &
          PZC,ANC,PZFE,ANFE,QP,BB,WEXBP,RKPRHO,S,NSMAX,NFMAX
     USE modmmm7_1
     IMPLICIT NONE
@@ -425,28 +425,28 @@ CONTAINS
     DTIDR=0.D0
 
     DO NS=1,NSMAX
-       IF(PA(NS).LE.0.01D0) THEN
+       IF(PM(NS).LE.0.01D0) THEN
           PNEL=PNEL+RNL(NS)
           PNTEL=PNTEL+RNTL(NS)
           DNEDR=DNEDR+DRNL(NS)
           DTEDR=DTEDR+DRNTL(NS)
        ELSE
-          IF(PA(NS).LE.3.D0.AND.PZ(NS).EQ.1.D0) THEN  
+          IF(PM(NS).LE.3.D0.AND.PZ(NS).EQ.1.D0) THEN  
              ! 3He+ and 3H+ are not distinguished; waiting for the use of NPA
              PNHL=PNHL+RNL(NS)
-             AMHL=AMHL+PA(NS)*RNL(NS)
+             AMHL=AMHL+PM(NS)*RNL(NS)
              DNHDR=DNHDR+DRNL(NS)
           ELSE
              PNZL=PNZL+RNL(NS)
              ZZL =ZZL +PZ(NS)*RNL(NS)
-             AMZL=AMZL+PA(NS)*RNL(NS)
+             AMZL=AMZL+PM(NS)*RNL(NS)
              DNZDR=DNZDR+DRNL(NS)
           END IF
           ZEFFL=ZEFFL+PZ(NS)*PZ(NS)*RNL(NS)
           ZNIL =ZNIL +PZ(NS)*RNL(NS)
           PNIL =PNIL +RNL(NS)
           PNTIL=PNTIL+RNTL(NS)
-          AMIL =AMIL +PA(NS)*RNL(NS)
+          AMIL =AMIL +PM(NS)*RNL(NS)
           DNIDR=DNIDR+DRNL(NS)
           DTIDR=DTIDR+DRNTL(NS)
        END IF

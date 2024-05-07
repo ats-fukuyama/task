@@ -65,7 +65,7 @@
 
       DO NR=1,NRMAX
          SPEL=S0*DEXP(-((RA*RM(NR)-PELR0(npel))/PELRW(npel))**2)
-      DO NS=1,NSM
+      DO NS=1,NSMAX
          SPE_NSNPELNR(NS,NPEL,NR)=PELPAT(NS,npel)*SPEL
       ENDDO
       ENDDO
@@ -101,7 +101,7 @@
       PAP=0.D0
       DO NS=1,NSMAX
          IF(NS.NE.NS_e) THEN
-            PAP=PAP+PA(NS)*PELPAT(NS,npel)
+            PAP=PAP+PM(NS)*PELPAT(NS,npel)
          END IF
       END DO
       ROS= 89.D0*PAP
@@ -113,7 +113,7 @@
       P1   = 3.D0*SQRT(0.5D0*PI)*AME/ANE *(ABS(TE)*RKEV/AME)**1.5D0
       RNZZM=0.D0
       DO NS=1,NSMAX
-         RNZZM=RNZZM+RN(NR,NS)*PZ(NS)**2/(PA(NS)*AMP)
+         RNZZM=RNZZM+RN(NR,NS)*PZ(NS)**2/(PM(NS)*AMP)
       END DO
       VCR=(P1*RNZZM)**(1.D0/3.D0)
 
@@ -123,9 +123,9 @@
       B3=0.D0
       DO NNB=1,NNBMAX
          NSB=NS_NNB(NNB)
-         AMB=PA(NSB)*AMP
+         AMB=PM(NSB)*AMP
          VB=SQRT(2.D0*PNBENG(NNB)*RKEV/AMB)
-         TAUS = 0.2D0*PA(NSB)*ABS(TE)**1.5D0 &
+         TAUS = 0.2D0*PM(NSB)*ABS(TE)**1.5D0 &
               /(PZ(NNB)**2*ANE*COULOG(NS_e,NSB,ANE,TE))
          ANFAST=ANFAST+SNB_NNBNR(NNB,NR)*LOG(1.D0+(VB/VCR)**3)*TAUS/3.D0
          A1=SNB_NNBNR(NNB,NR)*(0.5D0*AMB*VCR*VCR/AEE)**3
@@ -135,8 +135,8 @@
       END DO
       DO NNF=1,NNFMAX
          NSF=NS_NNF(NNF)
-         AMF=PA(NSF)*AMP
-         TAUS = 0.2D0*PA(NSF)*ABS(TE)**1.5D0 &
+         AMF=PM(NSF)*AMP
+         TAUS = 0.2D0*PM(NSF)*ABS(TE)**1.5D0 &
               /(PZ(NSF)**2*ANE*COULOG(NS_e,NSF,ANE,TE))
          ANFAST=ANFAST+SNF_NNFNR(NNF,NR)*LOG(1.D0+(VF/VCR)**3)*TAUS/3.D0
          VF=SQRT(2.D0*ENF_NNF(NNF)*RKEV/AMF)
@@ -167,7 +167,7 @@
 
       SPEL=ANS*RPEL*0.5D0*(RPEL+RPELPRE)*RPELDOT*4.D0*PI*RA &
            /(DVRHO(NR)*PELVEL(npel))
-      DO NS=1,NSM
+      DO NS=1,NSMAX
          SPE(NR,NS)=PELPAT(NS,npel)*SPEL
       ENDDO
 
@@ -200,7 +200,7 @@
       PAP=0.D0
       DO NS=1,NSMAX
          IF(NS.NE.NS_e) THEN
-            PAP=PAP+PA(NS)*PELPAT(NS,npel)
+            PAP=PAP+PM(NS)*PELPAT(NS,npel)
          END IF
       END DO
       ROS= 89.D0*PAP

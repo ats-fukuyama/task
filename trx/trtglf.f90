@@ -226,7 +226,7 @@ CONTAINS
     tglf_ns_in             = nsmax
     tglf_vexb_shear_in     = 0.0        ! ExB velocity shear
     DO ns=1,nsmax
-       tglf_mass_in(ns)       = 0.5D0*PA(ns)
+       tglf_mass_in(ns)       = 0.5D0*PM(ns)
        tglf_zs_in(ns)         = PZ(ns)
        tglf_as_in(ns)         = RN(NR,NS)/RN(NR,1) ! n_s/n_e
        tglf_taus_in(ns)       = RT(NR,NS)/RT(NR,1) ! T_s/T_e

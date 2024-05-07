@@ -7,7 +7,6 @@
 
       SUBROUTINE TRCALC(IERR)
 
-      USE trcomm_constants
       USE TRCOMM
       USE trpnf
       USE tr_cytran_mod
@@ -200,9 +199,7 @@
 
       SUBROUTINE TRERAD
 
-      USE TRCOMM, ONLY : AEE, AMP, BB, BP, DR, EPSRHO, ER, MDLER, NRMAX, &
-           & PA, PADD, PBM, PNSS, PTS, PZ, QP, RHOG, RHOM, &
-           & RJCB, RKEV, RN, RNF, RT, SUMPBM, VPOL, VTOR, rkind,NT
+        USE TRCOMM
       USE libitp
       IMPLICIT NONE
       INTEGER:: NR
@@ -251,8 +248,8 @@
                RLNI = -(LOG(ABS(RN(NR+1,2)))-LOG(ABS(RN(NR,2))))*DRL
                RLTI = -(LOG(ABS(RT(NR+1,2)))-LOG(ABS(RT(NR,2))))*DRL
             ENDIF
-            CS = SQRT(ABS(TEL)*RKEV/(PA(2)*AMP))
-            RHO_S = CS*PA(2)*AMP/(PZ(2)*AEE*BB)
+            CS = SQRT(ABS(TEL)*RKEV/(PM(2)*AMP))
+            RHO_S = CS*PM(2)*AMP/(PZ(2)*AEE*BB)
             ER(NR) =-BB*( (TIL/TEL)*RHO_S*CS*(RLNI+ALPHA_NEO*RLTI)-EPS/QP(NR)*VTOR(NR))
          ENDIF
       ENDDO
@@ -326,7 +323,7 @@
       USE TRCOMM
       USE libitp
       IMPLICIT NONE
-      INTEGER:: NR, NS
+      INTEGER:: NR, NS, NF
       REAL(rkind)   :: ANE, DPE, DPI, DRL, DTE, DTI, EPS, EPSS,&
            & F31TEFF, F32EETEFF, F32EITEFF, F34TEFF, FT, FTPF, PE,&
            & PPI, QL, RL31, RL32, RL34, RLNLAME, RLNLAMII, RNM, RNP,&
@@ -356,10 +353,10 @@
             RNTM=RNTM+RN(NR  ,NS)*RT(NR  ,NS)
             RNM =RNM +RN(NR  ,NS)
          ENDDO
-         IF(NFMAX.GT.0) THEN
-            RNTP=RNTP+RW(NR+1,1)+RW(NR+1,2)
-            RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
-         END IF
+         DO NF=1,NFMAX
+            RNTP=RNTP+RW(NR+1,NF)
+            RNTM=RNTM+RW(NR  ,NF)
+         END DO
          RPIP=RNTP+PADD(NR+1)
          RPIM=RNTM+PADD(NR  )
 
@@ -446,9 +443,9 @@
             RNTM=RNTM+RN(NR-1,NS)*RT(NR-1,NS)+RN(NR  ,NS)*RT(NR  ,NS)
             RNM =RNM +RN(NR-1,NS)+RN(NR  ,NS)
          ENDDO
-         IF(NFMAX.GT.0) THEN
-            RNTM=RNTM+RW(NR-1,1)+RW(NR-1,2)+RW(NR  ,1)+RW(NR  ,2)
-         END IF
+         DO NF=1,NFMAX
+            RNTM=RNTM+RW(NR-1,NF)+RW(NR  ,NF)
+         END DO
          RPIP=RNTP
          RPIM=RNTM+PADD(NR-1)+PADD(NR  )
          RNTM=0.5D0*RNTM
@@ -814,12 +811,11 @@
 
       SUBROUTINE TRAJBS
 
-      USE TRCOMM, ONLY : AJBS, AME, AMP, BB, BP, DR, EPSRHO, NRMAX, NSMAX, PA, PBSCD, PNSS, PTS, PZ, QP, RHOG, RHOM, &
-     &                   RJCB, RKEV, RN, RR, RT, ZEFF, rkind
+      USE TRCOMM
       USE libitp
       IMPLICIT NONE
       INTEGER:: NR
-      REAL(rkind)   :: A, AMA, AMD, AMT, ANA, ANDX, ANE, ANT, BPL, DPA, DPD, DPE, DPT, DRL, DTA, DTD, DTE, DTT, EPS, EPSS, FACT, &
+      REAL(rkind)   :: A, ANDX, ANE, ANT, ANA, BPL, DPA, DPD, DPE, DPT, DRL, DTA, DTD, DTE, DTT, EPS, EPSS, FACT, &
      &             FTAUE, FTAUI, H, PAL, PDL, PEL, PTL, RK13E, RK23E, RK3A, RK3D, RK3T, RNUA, RNUD, RNUE, RNUT, TAL, TAUA,   &
      &             TAUD, TAUE, TAUT, TDL, TEL, TTL, VTA, VTD, VTE, VTT, ZEFFL
       REAL(rkind),DIMENSION(NRMAX):: AJBSL
@@ -837,10 +833,6 @@
 !      DATA RK2 ,RA2 ,RB2 ,RC2 /0.66D0,1.03D0,0.31D0,0.74D0/
 
       IF(PBSCD.LE.0.D0) RETURN
-
-      AMD=PA(2)*AMP
-      AMT=PA(3)*AMP
-      AMA=PA(4)*AMP
 
       DO NR=1,NRMAX-1
 
@@ -861,9 +853,9 @@
          ZEFFL=0.5D0*(ZEFF(NR+1)+ZEFF(NR))
 
          TAUE = FTAUE(ANE,ANDX,TEL,ZEFFL)
-         TAUD = FTAUI(ANE,ANDX,TDL,PZ(2),PA(2))
-         TAUT = FTAUI(ANE,ANT ,TTL,PZ(3),PA(3))
-         TAUA = FTAUI(ANE,ANA ,TAL,PZ(4),PA(4))
+         TAUD = FTAUI(ANE,ANDX,TDL,PZ(2),PM(2))
+         TAUT = FTAUI(ANE,ANT ,TTL,PZ(3),PM(3))
+         TAUA = FTAUI(ANE,ANA ,TAL,PZ(4),PM(4))
 
          VTE=SQRT(TEL*RKEV/AME)
          VTD=SQRT(TDL*RKEV/AMD)
@@ -946,9 +938,9 @@
          ZEFFL=2.D0*ZEFF(NR-1)-ZEFF(NR-2)
 
          TAUE = FTAUE(ANE,ANDX,TEL,ZEFFL)
-         TAUD = FTAUI(ANE,ANDX,TDL,PZ(2),PA(2))
-         TAUT = FTAUI(ANE,ANT ,TTL,PZ(3),PA(3))
-         TAUA = FTAUI(ANE,ANA ,TAL,PZ(4),PA(4))
+         TAUD = FTAUI(ANE,ANDX,TDL,PZ(2),PM(2))
+         TAUT = FTAUI(ANE,ANT ,TTL,PZ(3),PM(3))
+         TAUA = FTAUI(ANE,ANA ,TAL,PZ(4),PM(4))
 
          VTE=SQRT(TEL*RKEV/AME)
          VTD=SQRT(TDL*RKEV/AMD)

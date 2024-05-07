@@ -116,7 +116,7 @@ CONTAINS
        GOTO 102
 
     ELSE IF(KID.EQ.'D') THEN
-4      CONITNUE
+4      CONTINUE
        WRITE(6,*) '## profile data output: 1:type, 0:end'
        READ(5,*,ERR=4,END=1) NTYPE
        IF(NTYPE.EQ.0) GO TO 1
