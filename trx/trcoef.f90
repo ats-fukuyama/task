@@ -1440,20 +1440,18 @@
       INTEGER:: NR, NS, NS1, NA, NB
       REAL(rkind)   :: ANA, ANDX, ANE, ANED, ANI, ANT, BPL, CFNCI, CFNCNC, CFNCNH, CFNHI, CFNHNC, CFNHNH, DPROF, EDCM, EPS, EPSS,&
      &             EZOHL, FTAUE, FTAUI, H, PROF, PROF0, PROF1, PROF2, QPL, RHOE2, RK11E, RK13E, RK23E, RK3D, RNUD, RNUE, RX, &
-     &             SGMNI, SGMNN, SUMA, SUMB, TAUD, TAUE, TD, TE, VNC, VNH, VNI, VTD, VTE, ZEFFL
+     &             SGMNI, SGMNN, SUMA, SUMB, TAUD, TAUE, TD, TE, VNC, VNH, VNI, VTD, VTE, ZEFFL, CDPX
       REAL(rkind),DIMENSION(2):: ACOEF
       REAL(rkind),DIMENSION(5):: BCOEF
       REAL(rkind) :: RK11=1.04D0, RA11=2.01D0, RB11=1.53D0, RC11=0.89D0
       REAL(rkind) :: RK13=2.30D0, RA13=1.02D0, RB13=1.07D0, RC13=1.07D0
       REAL(rkind) :: RK23=4.19D0, RA23=0.57D0, RB23=0.61D0, RC23=0.61D0
-      REAL(rkind),SAVE :: CDPSV
 
 !     ZEFF=1
 
 !        ****** AD : PARTICLE DIFFUSION ******
 !        ****** AV : PARTICLE PINCH ******
 
-      IF(MDLEDGE.EQ.1) CDPSV=CDP
       DO NR=1,NRMAX
          AVDW(NR,1:NSM) = 0.D0
          ADDW(NR,1:NSM) = 0.D0
@@ -1565,10 +1563,13 @@
 
             RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)+(EPSS*RC11)**2/RB11*RNUE/(1.D0+RC11*RNUE*EPSS))
 
-            IF(MDLEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             AVNC(NR,1:NSM) = -(RK13E*SQRT(EPS)*EZOHL)/BPL/H
             ADNC(NR,1:NSM) = SQRT(EPS)*RHOE2/TAUE*RK11E
-            AD  (NR,1:NSM) = CDP*ADDW(NR,1:NSM)+CNP*ADNC(NR,1:NSM)
+            IF(MDLEDGE.EQ.1.AND.NR.GE.NREDGE) THEN
+               AD  (NR,1:NSM) = CSPRS*ADDW(NR,1:NSM)+CNP*ADNC(NR,1:NSM)
+            ELSE
+               AD  (NR,1:NSM) = CDP*ADDW(NR,1:NSM)+CNP*ADNC(NR,1:NSM)
+            END IF
             AVDW(NR,1:NSM) = 0.D0
 
          ENDDO
@@ -1606,7 +1607,6 @@
 
             RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)+(EPSS*RC11)**2/RB11*RNUE/(1.D0+RC11*RNUE*EPSS))
 
-            IF(MDLEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             AVNC(NR,1:NSM) =-(RK13E*SQRT(EPS)*EZOHL)/BPL/H
             ADNC(NR,1:NSM) = SQRT(EPS)*RHOE2/TAUE*RK11E
             AVDW(NR,1:NSM) =-AV0*ADDW(NR,1:NSM)*RHOG(NR)/RA
@@ -1629,18 +1629,22 @@
          AVDW(1:NRMAX,1:NSM)=0.D0
       end select
       ENDIF
-      IF(MDLEDGE.EQ.1) CDP=CDPSV
 
 !     ***** NET PARTICLE PINCH *****
 
-      DO NS=1,NSLMAX
-         DO NR=1,NRMAX
-            IF(MDLEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
-            AD(NR,NS)=CNP*ADNC(NR,NS)+CDP*ADDW(NR,NS)
-            AV(NR,NS)=CNP*AVNC(NR,NS)+CDP*AVDW(NR,NS)
-         ENDDO
+      DO NR=1,NRMAX
+         IF(MDLEDGE.EQ.1.AND.NR.GE.NREDGE) THEN
+            DO NS=1,NSLMAX
+               AD(NR,NS)=CNP*ADNC(NR,NS)+CSPRS*ADDW(NR,NS)
+               AV(NR,NS)=CNP*AVNC(NR,NS)+CSPRS*AVDW(NR,NS)
+            END DO
+         ELSE
+            DO NS=1,NSLMAX
+               AD(NR,NS)=CNP*ADNC(NR,NS)+CDP*ADDW(NR,NS)
+               AV(NR,NS)=CNP*AVNC(NR,NS)+CDP*AVDW(NR,NS)
+            END DO
+         END IF
       ENDDO
-      IF(MDLEDGE.EQ.1) CDP=CDPSV
 
 !     ***** OFF-DIAGONAL TRANSPORT COEFFICIENTS *****
 
@@ -1650,12 +1654,16 @@
       select case(MDDIAG)
       case(1)
          DO NR=1,NRMAX
-            IF(MDLEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
+            IF(MDLEDGE.EQ.1.AND.NR.GE.NREDGE) THEN
+               CDPX=CSPRS
+            ELSE
+               CDPX=CDP
+            END IF
             DO NS=1,NSLMAX
                IF(MDLDW.EQ.0) ADDW(NR,NS) = AD0*AKDW(NR,NS)
                DO NS1=1,NSLMAX
                   IF(NS.EQ.NS1) THEN
-                     ADLD(NR,NS,NS1)= CDP*  ADDW(NR,NS) +CNP*(-ADNCT(NR,NS,NS1))
+                     ADLD(NR,NS,NS1)= CDPX*  ADDW(NR,NS) +CNP*(-ADNCT(NR,NS,NS1))
                      ADLP(NR,NS,NS1)= CNP*( ADNCT(NR,NS,NS1)+ADNCP(NR,NS,NS1))
                   ELSE
                      ADLD(NR,NS,NS1)= CNP*(-ADNCT(NR,NS,NS1))
@@ -1666,31 +1674,40 @@
          ENDDO
       case(2)
          DO NR=1,NRMAX
-            IF(MDLEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
+            IF(MDLEDGE.EQ.1.AND.NR.GE.NREDGE) THEN
+               CDPX=CSPRS
+            ELSE
+               CDPX=CDP
+            END IF
             DO NS=1,NSLMAX
                DO NS1=1,NSLMAX
                   IF(NS.EQ.NS1) THEN
-                     ADLD(NR,NS,NS1)= CDP*ADDWD(NR,NS,NS1)+CNP*ADNC(NR,NS)
-                     ADLP(NR,NS,NS1)= CDP*ADDWP(NR,NS,NS1)
+                     ADLD(NR,NS,NS1)= CDPX*ADDWD(NR,NS,NS1)+CNP*ADNC(NR,NS)
+                     ADLP(NR,NS,NS1)= CDPX*ADDWP(NR,NS,NS1)
                   ELSE
-                     ADLD(NR,NS,NS1)= CDP*ADDWD(NR,NS,NS1)
-                     ADLP(NR,NS,NS1)= CDP*ADDWP(NR,NS,NS1)
+                     ADLD(NR,NS,NS1)= CDPX*ADDWD(NR,NS,NS1)
+                     ADLP(NR,NS,NS1)= CDPX*ADDWP(NR,NS,NS1)
                   ENDIF
                ENDDO
             ENDDO
          ENDDO
       case(3)
          DO NR=1,NRMAX
-            IF(MDLEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
+            IF(MDLEDGE.EQ.1.AND.NR.GE.NREDGE) THEN
+               CDPX=CSPRS
+            ELSE
+               CDPX=CDP
+            END IF
             DO NS=1,NSLMAX
                DO NS1=1,NSLMAX
-                  ADLD(NR,NS,NS1)= CDP*ADDWD(NR,NS,NS1)+CNP*(-ADNCT(NR,NS,NS1))
-                  ADLP(NR,NS,NS1)= CDP*ADDWP(NR,NS,NS1)+CNP*( ADNCT(NR,NS,NS1) +ADNCP(NR,NS,NS1))
+                  ADLD(NR,NS,NS1)= CDPX*ADDWD(NR,NS,NS1) &
+                                  +CNP*(-ADNCT(NR,NS,NS1))
+                  ADLP(NR,NS,NS1)= CDPX*ADDWP(NR,NS,NS1) &
+                                  +CNP*( ADNCT(NR,NS,NS1) +ADNCP(NR,NS,NS1))
                ENDDO
             ENDDO
          ENDDO
       end select
-      IF(MDLEDGE.EQ.1) CDP=CDPSV
 
 !     /* for nuetral deuterium */
 
