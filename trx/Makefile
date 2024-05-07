@@ -26,7 +26,7 @@ ${OBJDIR}/%.o:%.f90
 
 SRCM=trcomm.f90 trbpsd.f90
 SRCS=trinit.f90 trparm.f90 trview.f90 \
-     trmetric.f90 trfixed.f90  trprof.f90 trprep.f90 \
+     trmetric.f90 trfixed.f90 trprof.f90 trprep.f90 \
      trncls.f90 trcytran.f90 \
      trfile.f90 trhelp.f90 \
      trpnf.f90 \
@@ -104,7 +104,7 @@ distclean: clean
 	cd ../eq && make clean
 	cd ../lib && make clean
 
-$(OBJDIR)/trcomm.o : trcomm.f90  
+$(OBJDIR)/trcomm.o : trcomm.f90 ../pl/plcomm.f90 
 $(OBJDIR)/trmain.o : trmain.f90 trcomm.f90  
 $(OBJDIR)/trmenu.o : trmenu.f90 trcomm.f90
 $(OBJDIR)/trinit.o : trinit.f90 trcomm.f90

@@ -2,23 +2,22 @@
 
 MODULE trfixed
 
+  USE trcomm,ONLY: rkind
+
+
   !  *** Define fixed profile of density and temperature ***
 
-  USE task_kinds,ONLY: dp
-
-  PRIVATE
-                                            ! density profile
   INTEGER:: ntime_nfixed_max                ! number of time points
   INTEGER:: ndata_nfixed_max                ! number of coef data
-  REAL(dp),PUBLIC:: rho_min_nfixed,rho_max_nfixed  ! range of fixed profile
-  REAL(dp),PUBLIC,ALLOCATABLE:: time_nfixed(:)     ! time points t_i
-  REAL(dp),ALLOCATABLE:: coef_nfixed(:,:)   ! coef data for t_i<= t <t_{i+1}
+  REAL(rkind):: rho_min_nfixed,rho_max_nfixed  ! range of fixed profile
+  REAL(rkind),ALLOCATABLE:: time_nfixed(:)     ! time points t_i
+  REAL(rkind),ALLOCATABLE:: coef_nfixed(:,:)   ! coef data for t_i<= t <t_{i+1}
                                             ! temperature profile
   INTEGER:: ntime_tfixed_max                ! number of time points
   INTEGER:: ndata_tfixed_max                ! number of coef data
-  REAL(dp),PUBLIC :: rho_min_tfixed,rho_max_tfixed  ! range of fixed profile
-  REAL(dp),PUBLIC,ALLOCATABLE:: time_tfixed(:)     ! time points t_i
-  REAL(dp),ALLOCATABLE:: coef_tfixed(:,:)   ! coef data for t_i<= t <t_{i+1}
+  REAL(rkind) :: rho_min_tfixed,rho_max_tfixed  ! range of fixed profile
+  REAL(rkind),ALLOCATABLE:: time_tfixed(:)     ! time points t_i
+  REAL(rkind),ALLOCATABLE:: coef_tfixed(:,:)   ! coef data for t_i<= t <t_{i+1}
 
   PUBLIC tr_set_nfixed  ! set coef matrix for n
   PUBLIC tr_set_tfixed  ! set coef matrix for nT
@@ -37,8 +36,8 @@ CONTAINS
     USE trcomx
     IMPLICIT NONE
     INTEGER,INTENT(IN):: nr
-    REAL(rkind),INTENT(IN):: time
     REAL(rkind):: rn_local
+    REAL(rkind),INTENT(IN):: time
     INTEGER:: NS,NEQ,NW
 
     IF(model_nfixed.EQ.0) RETURN
@@ -72,7 +71,7 @@ CONTAINS
     END DO
     RETURN
   END SUBROUTINE tr_set_nfixed
-      
+
   !     ***** Routine for fixed temperature profile *****
       
   SUBROUTINE tr_set_tfixed(nr,time)
@@ -119,15 +118,15 @@ CONTAINS
       
   ! *** set fixed density profile ***
   
-  SUBROUTINE tr_prof_nfixed(rho,time,rn)
+  SUBROUTINE tr_prof_nfixed(rho,time,rn_local)
   
-    USE task_kinds,ONLY: dp
+    USE trcomm
     IMPLICIT NONE    
-    REAL(dp),INTENT(IN):: rho,time
-    REAL(dp),INTENT(OUT):: rn
-    REAL(dp):: tr_func_nfixed
-    REAL(dp),ALLOCATABLE:: coef(:)
-    REAL(dp):: factor
+    REAL(rkind),INTENT(IN):: rho,time
+    REAL(rkind),INTENT(OUT):: rn_local
+    REAL(rkind):: tr_func_nfixed
+    REAL(rkind),ALLOCATABLE:: coef(:)
+    REAL(rkind):: factor
     INTEGER:: id,i,ntime
 
     ! --- find time range ---
@@ -163,28 +162,27 @@ CONTAINS
 
     ! --- set local density profile ---
     
-    rn=coef(0) &
+    rn_local=coef(0) &
          +0.5D0*coef(1) &
          *(tanh((1.D0-coef(2)*coef(3)-rho)/coef(3))+1.D0) &
          +coef(4)*(1.D0-rho*rho)**coef(5) &
          +0.5D0*coef(8)*(1.D0-erf((rho-coef(9))/SQRT(2.D0*coef(10))))
-    rn=rn*1.D-20
-    IF(rn.LE.0.D0) rn=1.D-8
+    rn_local=rn_local*1.D-20
+    IF(rn_local.LE.0.D0) rn_local=1.D-8
     RETURN
   END SUBROUTINE tr_prof_nfixed
 
   ! *** set fixed temperature profile ***
   
-  SUBROUTINE tr_prof_tfixed(rho,time,rt)
+  SUBROUTINE tr_prof_tfixed(rho,time,rt_local)
   
-    USE task_kinds,ONLY: dp
-    USE trcomm,ONLY: model_tfixed
+    USE trcomm
     IMPLICIT NONE    
-    REAL(dp),INTENT(IN):: rho,time
-    REAL(dp),INTENT(OUT):: rt
-    REAL(dp):: tr_func_tfixed
-    REAL(dp),ALLOCATABLE:: coef(:)
-    REAL(dp):: factor
+    REAL(rkind),INTENT(IN):: rho,time
+    REAL(rkind),INTENT(OUT):: rt_local
+    REAL(rkind):: tr_func_tfixed
+    REAL(rkind),ALLOCATABLE:: coef(:)
+    REAL(rkind):: factor
     INTEGER:: id,i,ntime
 
     ! --- find time range ---
@@ -224,19 +222,20 @@ CONTAINS
 
     ! --- set temperature profile ---
     
-    rt=coef(0) &
+    rt_local=coef(0) &
          +0.5D0*coef(1) &
          *(tanh((1.D0-coef(2)*coef(3)-rho)/coef(3))+1.D0) &
          +coef(4)*(1.D0-rho*rho)**coef(5) &
          +0.5D0*coef(8)*(1.D0-erf((rho-coef(9))/SQRT(2.D0*coef(10))))
-    rt=rt*1.D-3
+    rt_local=rt_local*1.D-3
+    IF(rt_local.LE.0.D0) rt_local=3.D-5
     RETURN
   END SUBROUTINE tr_prof_tfixed
 
   ! *** read density profile data from file ***
 
   SUBROUTINE tr_prep_nfixed
-    USE trcomm,ONLY: knam_nfixed
+    USE trcomm
     USE libfio
     IMPLICIT NONE
     INTEGER:: nfl,ntime,ndata,ierr
@@ -259,7 +258,7 @@ CONTAINS
   ! *** read temperature profile data from file ***
 
   SUBROUTINE tr_prep_tfixed
-    USE trcomm,ONLY: knam_tfixed
+    USE trcomm
     USE libfio
     IMPLICIT NONE
     INTEGER:: nfl,ntime,ndata,ierr

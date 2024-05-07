@@ -24,7 +24,7 @@
       USE TRCOMM
       USE libitp
       IMPLICIT NONE
-      INCLUDE 'trglf.inc'
+      INCLUDE '../trmlib/glf/trglf.inc'
       REAL(rkind),DIMENSION(NRMAX), INTENT(IN):: S_HM
       INTEGER:: &
            i_delay, idengrad, iglf, igrad, irotstab, j, jm, jmaxm, jmm, &

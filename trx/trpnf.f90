@@ -67,7 +67,7 @@ CONTAINS
     INTEGER:: NR,NNB,NS_beam
     REAL(rkind)   :: COULOG, HY   !FUNCTION
 
-    VF =SQRT(2.D0*3.5D3 *RKEV/AMA) ! alpha velocity
+    VF =SQRT(2.D0*3.5D3 *RKEV/AMHe ! alpha velocity
 
       DO NR=1,NRMAX
          SNF_NSNNFNR(1:NSMAX,NNF,NR)=0.D0
@@ -78,9 +78,9 @@ CONTAINS
          TT = RT(NR,NS_T)
          SS = SIGMAM(TD,TT)
          IF(model_nnf(nnf).GE.3) THEN
-            ZEFFM = (PZ(NS_D)*PZ(NS_D)*RN(NR,NS_D)/PA(NS_D) &
-                    +PZ(NS_T)*PZ(NS_T)*RN(NR,NS_T)/PA(NS_T) &
-                    +PZ(NS_A)*PZ(NS_A)*RN(NR,NS_A)/PA(NS_A) &
+            ZEFFM = (PZ(NS_D)*PZ(NS_D)*RN(NR,NS_D)/PM(NS_D) &
+                    +PZ(NS_T)*PZ(NS_T)*RN(NR,NS_T)/PM(NS_T) &
+                    +PZ(NS_A)*PZ(NS_A)*RN(NR,NS_A)/PM(NS_A) &
                     +PZC(NR)*PZC(NR) *ANC(NR) /12.D0 &
                     +PZFE(NR)*PZFE(NR)*ANFE(NR)/52.D0)/ANE
             SSB=0.D0
@@ -88,9 +88,9 @@ CONTAINS
             DO NNB=1,NNBMAX
                NS_beam=ns_nnb(nnb)
                ! Critiral energy: (5.43) Takamura     
-               EC  = 14.8D0*TE*PA(NS_beam)*ZEFFM**(2.D0/3.D0)
+               EC  = 14.8D0*TE*PM(NS_beam)*ZEFFM**(2.D0/3.D0)
                ! Ion-electron slowing time: (3.22) Takamura: 
-               TAUS= 0.2D0*PA(NS_beam)*ABS(TE)**1.5D0 &
+               TAUS= 0.2D0*PM(NS_beam)*ABS(TE)**1.5D0 &
                     /(PZ(NS_beam)**2*ANE*COULOG(1,NS_beam,ANE,TE))
                ! weight factor in SIGMAB 
                PTNT= PNB_NNBNR(nnb,NR)*TAUS &
@@ -122,11 +122,11 @@ CONTAINS
          P1   = 3.D0*SQRT(0.5D0*PI)*AME/ANE *(ABS(TE)*RKEV/AME)**1.5D0
          VCD3 = P1*RN(NR,2)*PZ(2)**2/AMD
          VCT3 = P1*RN(NR,3)*PZ(3)**2/AMT
-         VCA3 = P1*RN(NR,4)*PZ(4)**2/AMA
+         VCA3 = P1*RN(NR,4)*PZ(4)**2/AMHe
          VC3  = VCD3+VCT3+VCA3
          VCR  = VC3**(1.D0/3.D0)
          HYF=HY(VF/VCR)
-         TAUS = 0.2D0*PA(4)*ABS(TE)**1.5D0 /(PZ(4)**2*ANE*COULOG(1,2,ANE,TE))
+         TAUS = 0.2D0*PM(4)*ABS(TE)**1.5D0 /(PZ(4)**2*ANE*COULOG(1,2,ANE,TE))
          TAUF(NNF,NR)= 0.5D0*TAUS*(1.D0-HYF)
          RNF(NR,NNBMAX+NNF) &
               = 2.D0*LOG(1.D0+(VF/VCR)**3)*WF /(3.D0*(1.D0-HYF)*3.5D3)
@@ -318,7 +318,7 @@ CONTAINS
          VC3  = VCD3+VCHe3+VCA3
          VCR  = VC3**(1.D0/3.D0)
          HYF=HY(VF/VCR)
-         TAUS = 0.2D0*PA(4)*ABS(TE)**1.5D0 /(PZ(4)**2*ANE*COULOG(1,2,ANE,TE))
+         TAUS = 0.2D0*PM(4)*ABS(TE)**1.5D0 /(PZ(4)**2*ANE*COULOG(1,2,ANE,TE))
          TAUF(nnf,NR)= 0.5D0*TAUS*(1.D0-HYF)
          RNF(NR,NNBMAX+NNF) &
               = 2.D0*LOG(1.D0+(VF/VCR)**3)*WF /(3.D0*(1.D0-HYF)*3.6D3)

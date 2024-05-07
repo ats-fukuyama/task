@@ -77,14 +77,7 @@
 !        = 5 error: inversion of flow matrix failed
 !        = 6 error: trapped fraction must be 0.0.le.p_ft.le.1.0
 !***********************************************************************
-      USE TRCOMM,  ONLY : ABB2RHOG,     ADNCG,        ADNCP,        ADNCT,        AIB2RHOG,     AJBSNC,       AJEXNC,      &
-     &         AJOH,      AKNCP,        AKNCT,        AR1RHO,       AR2RHO,       ARHBRHOG,     AVKNC,        AVNC,        &
-     &         AVNCG,     BB,           BP,           CJBSP,        CJBST,        DR,           EPSRHO,       ER,          &
-     &         ETA,       ETANC,        MDLEQZ,       MDLTPF,       NRMAX,        NSLMAX,       NSM,         &
-     &         NSZMAX,    PA,           PADD,         PNSS,         PTS,          PZ,           Q0,           QP,          &
-     &         RA,        RDP,          RG,           RGFLS,        RHOG,         RKAP,         RM,           RN,          &
-     &         RQFLS,     RR,           RT,           TTRHOG,       VPAR,         VPOL,         VPRP,         VTOR
-      USE trcomm,ONLY: rkind
+      USE trcomm
       USE libitp
       IMPLICIT NONE
       INCLUDE '../trmlib/nclass/pamx_mi.inc'
@@ -152,7 +145,7 @@
       ENDDO
       IF(MDLEQZ.NE.0) THEN
          DO NSZ=1,NSZMAX
-           IF(PZ(NSM+NSZ).GE.PZMAX) PZMAX=PZ(NSM+NSZ)
+           IF(PZ(NSMAX+NSZ).GE.PZMAX) PZMAX=PZ(NSMAX+NSZ)
          ENDDO
       ENDIF
       m_z=INT(PZMAX)
@@ -160,10 +153,10 @@
       c_potb=SNGL(RKAP*BB/(2.D0*Q0**2))
       c_potl=SNGL(Q0*RR)
 
-      amu_i(1:NSLMAX)=SNGL(PA(1:NSLMAX))
+      amu_i(1:NSLMAX)=SNGL(PM(1:NSLMAX))
       IF(MDLEQZ.NE.0) THEN
          DO NSZ=1,NSZMAX
-            amu_i(NSLMAX+NSZ)=SNGL(PA(NSM+NSZ))
+            amu_i(NSLMAX+NSZ)=SNGL(PM(NSMAX+NSZ))
          ENDDO
       ENDIF
 
@@ -206,7 +199,7 @@
             ENDDO
             IF(MDLEQZ.NE.0) THEN
                DO NSZ=1,NSZMAX
-                  NS =NSM+NSZ
+                  NS =NSMAX+NSZ
                   NSN=NSLMAX+NSZ
                   temp_i(NSN)=PTS(NS)
                   grt_i(NSN)=DERIV3P(PTS(NS),RT(NR,NS),RT(NR-1,NS), &
@@ -237,7 +230,7 @@
             ENDDO
             IF(MDLEQZ.NE.0) THEN
                DO NSZ=1,NSZMAX
-                  NS =NSM+NSZ
+                  NS =NSMAX+NSZ
                   NSN=NSLMAX+NSZ
                   temp_i(NSN)=0.5D0*(RT(NR+1,NS)+RT(NR,NS))
                   grt_i(NSN)=(RT(NR+1,NS)-RT(NR,NS))/DR
@@ -300,7 +293,7 @@
 !     AVNCG : Off-diagonal part driven pinch and neoclassical pinch
 !             for graphic use only
 
-         DO NS=1,NSM
+         DO NS=1,NSMAX
             CJBSP(NR,NS)=bsjbp_s(NS)
             CJBST(NR,NS)=bsjbt_s(NS)
             ADNCG(NR,NS)=dn_s(NS)/AR2RHO(NR)
@@ -320,7 +313,7 @@
          ENDDO
          IF(MDLEQZ.NE.0) THEN
             DO NSZ=1,NSZMAX
-               NS =NSM+NSZ
+               NS =NSMAX+NSZ
                NSN=NSLMAX+NSZ
                CJBSP(NR,NS)=bsjbp_s(NSN)
                CJBST(NR,NS)=bsjbt_s(NSN)
@@ -349,8 +342,8 @@
             btot=SQRT(btor**2+bpol**2)*btor/ABS(btor)
             DO i=1,m_s
                uthai=utheta_s(1,1,i)+utheta_s(1,2,i)+utheta_s(1,3,i)
-!               IF(DBLE(amu_i(jm_s(i))).eq.PA(2).and.iz.eq.int(PZ(2))) then
-               IF(amu_i(jm_s(i)).eq.PA(2).and.jz_s(i).eq.int(PZ(2))) then
+!               IF(DBLE(amu_i(jm_s(i))).eq.PM(2).and.iz.eq.int(PZ(2))) then
+               IF(amu_i(jm_s(i)).eq.PM(2).and.jz_s(i).eq.int(PZ(2))) then
 !     Poloidal
                   VPOL(NR)=uthai*bpol
 !     Parallel

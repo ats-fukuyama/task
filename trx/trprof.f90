@@ -15,7 +15,7 @@ CONTAINS
 
 !     ***********************************************************
 
-    SUBROUTINE tr_prof
+  SUBROUTINE tr_prof
 
       USE trcomm
       USE trfixed
@@ -110,20 +110,25 @@ CONTAINS
             END DO
             WRITE(6,'(A,I6,5ES12.4)') &
                  'prof: ',nr,RM(nr),RN(nr,1),RN(nr,2),RN(nr,3),RN(nr,4)
-            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-            RN(NR,1:NSM) = (PN(1:NSM)-PNS(1:NSM))*PROF+PNS(1:NSM)
-            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-            RT(NR,1:NSM) = (PT(1:NSM)-PTS(1:NSM))*PROF+PTS(1:NSM)
-            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFU1)**PROFU2
-            RU(NR,1:NSM) = (PU(1:NSM)-PUS(1:NSM))*PROF+PUS(1:NSM)
+            DO ns=1,nsmax
+               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1(NS))**PROFN2(NS)
+               RN(NR,NS) = (PN(NS)-PNS(NS))*PROF+PNS(NS)
+               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1(NS))**PROFT2(NS)
+               RT(NR,NS) = (PT(NS)-PTS(NS))*PROF+PTS(NS)
+               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFU1(NS))**PROFU2(NS)
+               RU(NR,NS) = (PU(NS)-PUS(NS))*PROF+PUS(NS)
+            END DO
             
          CASE default
-            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-            RN(NR,1:NSM) = (PN(1:NSM)-PNS(1:NSM))*PROF+PNS(1:NSM)
-            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-            RT(NR,1:NSM) = (PT(1:NSM)-PTS(1:NSM))*PROF+PTS(1:NSM)
-            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFU1)**PROFU2
-            RU(NR,1:NSM) = (PU(1:NSM)-PUS(1:NSM))*PROF+PUS(1:NSM)
+            
+            DO ns=1,nsmax
+               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1(NS))**PROFN2(NS)
+               RN(NR,NS) = (PN(NS)-PNS(NS))*PROF+PNS(NS)
+               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1(NS))**PROFT2(NS)
+               RT(NR,NS) = (PT(NS)-PTS(NS))*PROF+PTS(NS)
+               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFU1(NS))**PROFU2(NS)
+               RU(NR,NS) = (PU(NS)-PUS(NS))*PROF+PUS(NS)
+            END DO
          END SELECT
 
          PEX(NR,1:NSM) = 0.D0
@@ -135,8 +140,9 @@ CONTAINS
          VTOR(NR)=0.D0
 
          IF(MDLEQ0.EQ.1) THEN
-            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFU1)**PROFU2
+            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFU1(7))**PROFU2(7)
             RN(NR,7) = (PN(7)-PNS(7))*PROF+PNS(7)
+            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFU1(8))**PROFU2(8)
             RN(NR,8) = (PN(8)-PNS(8))*PROF+PNS(8)
             ANNU(NR) = RN(NR,7)+RN(NR,8)
          ELSE
@@ -220,24 +226,12 @@ CONTAINS
          END IF
       END SELECT
 
-!      WRITE(6,*) model_nfixed,model_tfixed,time_nfixed(1),time_tfixed(1)
-!      DO nr=1,nrmax
-!         WRITE(6,'(I6,5ES12.4)') nr,rm(nr),rn(nr,1),rn(nr,2),rt(nr,1),rt(nr,2)
-!      END DO
-!      WRITE(6,'(I6,5ES12.4)') nrmax+1,1.D0,pnss(1),pnss(2),pts(1),pts(2)
-
-      CALL TR_EDGE_DETERMINER(1)
-      CALL TR_EDGE_SELECTOR(1)
-
       qsurf=5.D0*(RA/RR)*(BB/RIPS)
       qaxis=0.5D0*qsurf
       DO nr=1,nrmax
          qpinv(nr)=1.D0/(qaxis+(qsurf-qaxis)*RG(nr)**2)
       END DO
 
-!      DO nr=1,nrmax
-!         WRITE(6,'(I6,5ES12.4)') nr,rm(nr),rn(nr,1),rn(nr,2),rt(nr,1),rt(nr,2)
-!      END DO
     END SUBROUTINE tr_prof
 
 
@@ -414,76 +408,5 @@ CONTAINS
       ENDDO
 
     END SUBROUTINE tr_prof_current
-
-!     ***********************************************************
-
-!           EDGE VALUE SELECTOR
-
-!     ***********************************************************
-
-      SUBROUTINE TR_EDGE_SELECTOR(NSW)
-
-!        NSW = 0: store edge value; substitute rhoa value
-!              1: restore original edge value
-
-      USE TRCOMM
-      INTEGER, INTENT(IN) :: NSW
-      INTEGER :: NS
-
-      IF(RHOA.EQ.1.D0) RETURN
-
-      IF(MDLUF.EQ.0) THEN
-         IF(NSW.EQ.0) THEN
-            DO NS=1,NSM
-               PNSSO(NS)=PNSS(NS)
-               PTSO (NS)=PTS (NS)
-
-               PNSS (NS)=PNSSAO(NS)
-               PTS  (NS)=PTSAO (NS)
-            ENDDO
-         ELSE
-            DO NS=1,NSM
-               PNSS (NS)=PNSSO(NS)
-               PTS  (NS)=PTSO (NS)
-            ENDDO
-         ENDIF
-      ELSE
-         IF(NSW.EQ.0) THEN
-            DO NS=1,NSM
-               PNSSO(NS)=PNSS (NS)
-               PTSO (NS)=PTS  (NS)
-
-               PNSS (NS)=PNSSA(NS)
-               PTS  (NS)=PTSA (NS)
-            ENDDO
-         ELSE
-            DO NS=1,NSM
-               PNSS (NS)=PNSSO(NS)
-               PTS  (NS)=PTSO (NS)
-            ENDDO
-         ENDIF
-      ENDIF
-      RETURN
-!
-      ENTRY TR_EDGE_DETERMINER(NSW)
-
-      IF(MDLUF.EQ.0.AND.RHOA.NE.1.D0) THEN
-         IF(NSW.EQ.0) THEN
-            DO NS=1,NSM
-               PNSSAO(NS)=PNSS(NS)
-               PTSAO (NS)=PTS (NS)
-            ENDDO
-         ELSE
-            DO NS=1,NSM
-               PNSSAO(NS)=RN(NRAMAX,NS)
-               PTSAO (NS)=RT(NRAMAX,NS)
-               PNSSA (NS)=PNSSAO(NS)
-               PTSA  (NS)=PTSAO (NS)
-            ENDDO
-         ENDIF
-      ENDIF
-
-      RETURN
-    END SUBROUTINE TR_EDGE_SELECTOR
 
   END MODULE trprof

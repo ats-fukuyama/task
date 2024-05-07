@@ -15,10 +15,10 @@ CONTAINS
 
       SUBROUTINE tr_set_metric(ierr)
 
-      USE trcomm, ONLY : modelg, nrmax, knameq, knameq2
-      USE trbpsd, ONLY: tr_bpsd_init,tr_bpsd_put,tr_bpsd_get
-      USE equnit, ONLY: eq_parm,eq_prof,eq_calc,eq_load
-      USE plvmec, ONLY: pl_vmec
+      USE trcomm
+      USE trbpsd
+      USE equnit
+      USE plvmec
       implicit none
       integer, intent(out):: ierr
       character(len=80):: line
@@ -108,10 +108,7 @@ CONTAINS
 
       SUBROUTINE TRGFRG
 
-      USE TRCOMM, ONLY : &
-           ABB2RHOG, ABRHO, ABRHOG, AIB2RHOG, AR1RHO, AR1RHOG, AR2RHO, &
-           AR2RHOG, ARHBRHOG, ARRHO, ARRHOG, BB, DVRHO, DVRHOG, EPSRHO, &
-           NRMAX, RG, RKPRHO, RKPRHOG, RM, TTRHO, TTRHOG, ABVRHOG, rkind
+      USE trcomm
       USE libitp
       IMPLICIT NONE
       INTEGER :: NR

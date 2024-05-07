@@ -1,17 +1,33 @@
-MODULE trcomm_constants
-  USE task_kinds,ONLY: rkind
-  USE task_constants
+! trcomm.f90
+
+MODULE trcomm_parm
+
+  USE plcomm,pm=>pa
+  USE commpi
   IMPLICIT NONE
-  
-  INTEGER, PARAMETER :: NSMM=100   ! Max number of species for namelist input
-  INTEGER, PARAMETER :: NSM=4      ! Max number of bulk ion species
+
+! IMPORTED FROM plcomm
+!     RR,RA,RKAP,RDLT,BB,RIP,
+!     NSM,NSMAX,
+!     NPA(NSM),PM(NSM),PZ(NSM),PN(NSM),PNS(NSM),PTPR(NSM),PTPP(NSM),PTS(NSM),
+!     PU(NSM),PUS(NSM),ID_NS(NSM),KID_NS(NSM)
+!     PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2
+!     MODELG,MODELN,MODELQ,MODEL_NPROF
+!     KNAMEQ,KNAMEQ2,KNAMTR
+!     MODEFR,MODEFW,IDEBUG
+!     RHOA,Q0,QA (not an input parameter for tr)
+
+  INTEGER, PARAMETER :: NSAM=6     ! Max number of bulk species
+  INTEGER, PARAMETER :: NSFM=6     ! Max number of fast ion species
   INTEGER, PARAMETER :: NSZM=2     ! Max number of impurity ions species
   INTEGER, PARAMETER :: NSNM=2     ! Max number of neutral species
+
   INTEGER, PARAMETER :: NTM=10001  ! Max number of time steps to save globals
   INTEGER, PARAMETER :: NGM=1001   ! Max number of time steps to save profiles
-  INTEGER, PARAMETER :: NCTM=110   ! Max number of save variables in globals
-  INTEGER, PARAMETER :: NCGM=23    ! Max number of save variables in profiles
+  INTEGER, PARAMETER :: NCTM=120   ! Max number of save variables in globals
+  INTEGER, PARAMETER :: NCGM=30    ! Max number of save variables in profiles
   INTEGER, PARAMETER :: NCRTM=75   ! Max number of save variables in profiles
+  
   INTEGER, PARAMETER :: NSTM=NSM+NSZM+NSNM ! number of thermal species
   INTEGER, PARAMETER :: NEQM=3*NSTM+1      ! number of equations
   INTEGER, PARAMETER :: NLM =1001  ! Max number of NBI path sections
@@ -25,41 +41,24 @@ MODULE trcomm_constants
 
   REAL(rkind), PARAMETER :: RKEV=AEE*1.D3
 
-END MODULE trcomm_constants
-
-MODULE trcomm_parm
-
-  USE trcomm_constants
-  IMPLICIT NONE
-
   ! ****** INPUT PARAMETERS ******
   
   ! === configuration parameters ===
 
-  INTEGER:: MODELG,NTEQIT
-
-  ! === device parameters for MODELG=2 ===
-
-  REAL(rkind):: RR,RA,RB,RKAP,RDLT,BB,RIPS,RIPE
+  INTEGER:: NTEQIT
 
   ! === plasma parameters ===
 
-  INTEGER:: NSMAX,NSZMAX,NSNMAX
-  CHARACTER(LEN=2),DImeNSION(NSMM):: &
-       KID_NS
-  INTEGER,DIMENSION(NSMM):: &
-       ID_NS,NPA
-  REAL(rkind), DIMENSION(NSMM) :: &
-       PA,PZ,PN,PNS,PT,PTS,PU,PUS
+  REAL(rkind),DIMENSION(NSM):: PT
+  REAL(rkind):: RIPS,RIPE
+  INTEGER:: NSAMAX,NSFMAX,NSZMAX,NSNMAX
   INTEGER:: &
        NS_e,NS_D,NS_T,NS_A,NS_H,NS_He3,NS_C,NS_Fe
   
   ! === profile parameters ===
 
-  INTEGER:: model_prof
   CHARACTER(LEN=128):: knam_prof
   REAL(rkind):: &
-       PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
        PROFNU1,PROFNU2,PROFJ1,PROFJ2
   REAL(rkind):: ALP(6)
   INTEGER:: model_nfixed,model_tfixed
@@ -102,7 +101,7 @@ MODULE trcomm_parm
 
   INTEGER:: MDLElM
   REAL(rkind)   :: ELMWID,ELMDUR  
-  REAL(rkind),DIMENSION(NSMM) :: ELMNRD,ELMTRD,ELMENH
+  REAL(rkind),DIMENSION(NSM) :: ELMNRD,ELMTRD,ELMENH
 
   ! === radiation parameter ===
 
@@ -187,12 +186,12 @@ MODULE trcomm_parm
 
   ! === DATA file name ===
 
-  CHARACTER(LEN=80) :: KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG,KFNTXT,KFNCVS
+  CHARACTER(LEN=80) :: KFNLOG,KFNTXT,KFNCVS
   
 END MODULE trcomm_parm
 
 MODULE trcomx ! common for tr solver core
-  USE task_kinds,ONLY: rkind
+  USE trcomm_parm,ONLY: rkind
   IMPLICIT NONE
   REAL(rkind), DIMENSION(:,:,:),ALLOCATABLE :: A, B, C
   REAL(rkind), DIMENSION(:,:)  ,ALLOCATABLE :: D
@@ -251,7 +250,7 @@ MODULE trcomm
   REAL   :: &
        GTCPU1
   REAL(rkind)   :: &
-       T, TST, TPRE, WPPRE, RIP, DR, FKAP, RIPA, VSEC, RDPS,DIPDT
+       T, TST, TPRE, WPPRE, DR, FKAP, RIPA, VSEC, RDPS,DIPDT
   REAL(rkind), DIMENSION(:),ALLOCATABLE :: & ! (NSTM)
        PNSS
   INTEGER:: &
@@ -368,7 +367,7 @@ MODULE trcomm
        PINT, POHT, PNBT, PNFT, PNBINT, PNFINT, POUT, PCXT, PIET, &
        PRBT, PRCT, PRLT, PRSUMT, &
        PEXST, PRFST, SINT, SIET, SNBT, SNFT, SOUT, VLOOP, ALI, RQ1, &
-       RPE, Q0, ZEFF0, QF, WPDOT, TAUE1, TAUE2, TAUE89, TAUE98, H98Y2, &
+       RPE, ZEFF0, QF, WPDOT, TAUE1, TAUE2, TAUE89, TAUE98, H98Y2, &
        BETAP0, BETAPA, BETA0, BETAA, BETAQ0, BETAN
   REAL(rkind), DIMENSION(:), ALLOCATABLE :: &  ! (NSM)
        SPSCT,PNBCLT,PNFCLT
@@ -459,11 +458,6 @@ MODULE trcomm
 
 ! fixed profile variables
   REAL(rkind):: time_initial_nfixed,time_initial_tfixed
-
-!     ************
-!TRPROF
-  REAL(rkind), DIMENSION(:),ALLOCATABLE :: & ! (NSTM)
-       PNSSO,PTSO,PNSSAO,PTSAO
 
 ! *** trcom1 ***
   
@@ -730,9 +724,6 @@ MODULE trcomm
     ALLOCATE(RGFLS(NRMAX,5,NSM),RQFLS(NRMAX,5,NSM),STAT=IERR)
       IF(IERR.NE.0) GOTO 900
 
-    ALLOCATE(PNSSO(NSTM),PTSO(NSTM),PNSSAO(NSTM),PTSAO(NSTM),STAT=IERR)
-      IF(IERR.NE.0) GOTO 900
-
     CALL allocate_trcomx(NEQMAXM,NRMAX)
 
     nrmax_save = nrmax
@@ -794,7 +785,6 @@ MODULE trcomm
     DEALLOCATE(NSS,NSV,NNS,NST,NEA)
     DEALLOCATE(AJBSNC, ETANC, AJEXNC,CJBSP,CJBST,ADNCG,AVNCG)
     DEALLOCATE(AKNCP,AKNCT,ADNCP,ADNCT,AKLP,AKLD,ADLP,ADLD,RGFLS,RQFLS)
-    DEALLOCATE(PNSSO,PTSO,PNSSAO,PTSAO)
 
     CALL deallocate_trcomx
 
@@ -1006,17 +996,9 @@ MODULE trcomm
     IF(ALLOCATED(ADLD     ))     DEALLOCATE(ADLD     )
     IF(ALLOCATED(RGFLS    ))     DEALLOCATE(RGFLS    )
     IF(ALLOCATED(RQFLS    ))     DEALLOCATE(RQFLS    )
-    IF(ALLOCATED(PNSSO    ))     DEALLOCATE(PNSSO    )
-    IF(ALLOCATED(PTSO     ))     DEALLOCATE(PTSO     )
-    IF(ALLOCATED(PNSSAO   ))     DEALLOCATE(PNSSAO   )
-    IF(ALLOCATED(PTSAO    ))     DEALLOCATE(PTSAO    )
 
     RETURN
 
   END SUBROUTINE DEALLOCATE_ERR_TRCOMM
-
-  SUBROUTINE open_trcomm
-    RETURN
-  END SUBROUTINE open_trcomm
 
 END MODULE trcomm

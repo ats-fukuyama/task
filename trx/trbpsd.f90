@@ -7,10 +7,11 @@ MODULE trbpsd
   type(bpsd_species_type), private,save :: species
   type(bpsd_equ1D_type),   private,save :: equ1D
   type(bpsd_metric1D_type),private,save :: metric1D
-  type(bpsd_plasmaf_type), private,save :: plasmaf
+!  type(bpsd_plasmaf_type), private,save :: plasmaf
   LOGICAL, PRIVATE, SAVE :: tr_bpsd_init_flag = .TRUE.
   PRIVATE
   PUBLIC tr_bpsd_init,tr_bpsd_get,tr_bpsd_put
+  type(bpsd_plasmaf_type), public,save :: plasmaf
 
 CONTAINS
 
@@ -99,7 +100,6 @@ CONTAINS
 
       plasmaf%rho(1)=0.d0
       do nr=1,nrmax
-         WRITE(6,*) '@@@ point 2641:',nr,rg(nr),rm(nr)
          plasmaf%rho(nr+1)=rg(nr)
       enddo
 
@@ -125,9 +125,7 @@ CONTAINS
       device%elip=RKAP
       device%trig=RDLT
 
-      WRITE(6,*) '@@@ poinr @@@261:',ierr
       call bpsd_put_data(device,ierr)
-      WRITE(6,*) '@@@ poinr @@@262:',ierr
 
       plasmaf%time=t
       do ns=1,nsmax
@@ -138,7 +136,6 @@ CONTAINS
          call mesh_convert_mtog(ru(1:nrmax,ns),temp(1:plasmaf%nrmax,ns,3), &
                                 nrmax)
       enddo
-      WRITE(6,*) '@@@ poinr @@@263:',ierr
       do nr=1,plasmaf%nrmax
          do ns=1,plasmaf%nsmax
             plasmaf%data(nr,ns)%density=temp(nr,ns,1)*1.d20
@@ -150,7 +147,6 @@ CONTAINS
          enddo
       enddo
 
-      WRITE(6,*) '@@@ poinr @@@264:',ierr,plasmaf%rho(3),plasmaf%rho(2)
       do nr=1,nrmax
          plasmaf%qinv(nr+1)=qpinv(nr)
       enddo
@@ -158,9 +154,7 @@ CONTAINS
      &                -(plasmaf%rho(2))**2*plasmaf%qinv(3)) &
      &               /((plasmaf%rho(3))**2-(plasmaf%rho(2))**2)
 
-      WRITE(6,*) '@@@ poinr @@@265:',ierr
       call bpsd_put_data(plasmaf,ierr)
-      WRITE(6,*) '@@@ poinr @@@266:',ierr
       return
   END SUBROUTINE tr_bpsd_put
 

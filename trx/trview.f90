@@ -34,10 +34,10 @@ CONTAINS
                    'BB    ',BB
 
       WRITE(6,611)
-611   FORMAT(' ','NS',2X, &
-             'PA           PZ      PN(E20)  PNS(E20) ','PT(KEV)  PTS(KEV)')
+611   FORMAT(' ','NS NPA',2X, &
+             'PM          PZ          PN(E20)     PNS(E20)    PT(KEV)     PTS(KEV)')
       DO NS=1,NSMAX
-         WRITE(6,612) NS,PA(NS),PZ(NS),PN(NS),PNS(NS),PT(NS),PTS(NS)
+         WRITE(6,612) NS,NPA(NS),PM(NS),PZ(NS),PN(NS),PNS(NS),PT(NS),PTS(NS)
       ENDDO
 
       WRITE(6,601) 'PROFN1',PROFN1,'PROFT1',PROFT1,'PROFU1',PROFU1,'PROFJ1',PROFJ1
@@ -250,7 +250,7 @@ CONTAINS
               2X,A6,'=',1X,A6,4X:2X,A6,'=',I7)
 605   FORMAT(' ',A6,'=',I7,4X   :2X,A6,'=',I7,4X  : &
               2X,A6,'=',I7,4X   :2X,A6,'=',1PE11.3)
-612   FORMAT(' ',I2,1PD12.4,0P,F8.3,4F9.4)
+612   FORMAT(' ',I2,I4,6F12.3)
 622   FORMAT(' ',A8,'=',I5,4X   :2X,A8,'=',I5,4X  : &
               2X,A8,'=',I5,4X   :2X,A8,'=',I5)
 623   FORMAT(' ',A8,'=',I7,4X   :2X,A8,'=',1PE11.3: &
