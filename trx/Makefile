@@ -80,6 +80,7 @@ libs:
 	(cd ../../bpsd; make libbpsd.a)
 	(cd ../lib; make libtask.a)
 	(cd ../lib; make libgrf.a)
+	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
 	(cd ../trmlib; make libtrm.a)
@@ -126,7 +127,7 @@ $(OBJDIR)/trexec.o : trexec.f90 trcomm.f90 trfixed.f90
 $(OBJDIR)/trpl.o : trpl.f90 trcomm.f90
 $(OBJDIR)/trrslt.o : trrslt.f90 trcomm.f90
 $(OBJDIR)/trcalc.o : trcalc.f90 trcomm.f90
-$(OBJDIR)/trcoef.o : trcoef.f90 trcomm.f90 trglf.inc
+$(OBJDIR)/trcoef.o : trcoef.f90 trcomm.f90
 $(OBJDIR)/trpnb.o  : trpnb.f90  trcomm.f90 
 $(OBJDIR)/trprf.o  : trprf.f90  trcomm.f90 
 $(OBJDIR)/trpnf.o  : trpnf.f90  trcomm.f90 
