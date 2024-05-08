@@ -99,6 +99,7 @@ libs:
 	(cd ../lib; make libtask.a)
 	(cd ../lib; make libgrf.a)
 	(cd ../lib; make libmds.a)
+	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
 

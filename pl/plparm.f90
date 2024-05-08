@@ -3,7 +3,9 @@
 MODULE plparm
 
   PRIVATE
-  PUBLIC pl_parm,pl_view,pl_broadcast
+  PUBLIC pl_parm
+  PUBLIC pl_view
+  PUBLIC pl_broadcast
 
 CONTAINS
 

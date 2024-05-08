@@ -1,2 +1,2 @@
 gstops -ab gs/$1.gs >ps/$1.ps
-ps2pdf ps/$1.ps pdf/$1.pdf 
+ps2pdf ps/$1.ps pdf/$1.pdf

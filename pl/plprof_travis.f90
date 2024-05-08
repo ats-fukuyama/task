@@ -2,7 +2,8 @@ MODULE plprof_travis
 
 PRIVATE
 
-PUBLIC plprof_travis_n,plprof_travis_t
+PUBLIC plprof_travis_n
+PUBLIC plprof_travis_t
 
 CONTAINS
 

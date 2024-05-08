@@ -1,25 +1,5 @@
-
-module def_kind
-  use bpsd, only: rkind,ikind,dp 
-  implicit none
-!  integer(kind=4), parameter :: rkind=8
-!  integer(kind=4), parameter :: ikind=4
-!  integer(kind=4), parameter :: dp=rkind
-end module def_kind
-
-module def_param
-  use def_kind
-  use bpsd, only: zero,half,one,two,pi,twopi,rmu0
-  implicit none
-!  real(kind=rkind),   parameter :: zero=0.0_dp, quat=0.25_dp, half=0.5_dp, one=1.0_dp, two=2.0_dp, c1p5=1.5_dp
-  real(kind=rkind),   parameter :: quat=0.25_dp, c1p5=1.5_dp
-!  real(kind=rkind),   parameter :: pi=3.141592653589793_dp, twopi=pi+pi
-!  real(kind=rkind),   parameter :: dmu0=2.0e-7_dp*twopi                    ! magnetic permeability in vacuum [H/m]=[N/A^2]
-  real(kind=rkind),   parameter :: dmu0=rmu0
-end module def_param
-
 module var_equil3D
-  use def_kind
+  use bpsd, only: rkind,ikind,dp 
   implicit none
 
 !... wout file name

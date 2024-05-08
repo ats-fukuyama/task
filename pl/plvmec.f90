@@ -95,7 +95,7 @@ CONTAINS
 
   SUBROUTINE pl_vmec(file_name,ierr)
 
-    USE task_kinds
+    USE bpsd_kinds
     IMPLICIT NONE
     CHARACTER(LEN=*),INTENT(INOUT):: file_name
     INTEGER,INTENT(OUT):: ierr
@@ -113,8 +113,8 @@ CONTAINS
 !    and so on.
 !                                                  (July 2007, Y.N)
 
-    USE task_kinds
-    USE task_constants
+    USE bpsd_kinds
+    USE bpsd_constants
     USE libfio
     IMPLICIT NONE
 
@@ -521,8 +521,8 @@ CONTAINS
 
   SUBROUTINE put_vmec_bpsd
 
-    USE task_kinds
-    USE task_constants
+    USE bpsd_kinds
+    USE bpsd_constants
     IMPLICIT NONE
     INTEGER       :: ierr, nr, mn
     LOGICAL, SAVE :: init_flag

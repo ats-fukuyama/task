@@ -6,8 +6,8 @@
 
 MODULE platmd
 
-  USE task_kinds
-  USE task_constants
+  USE bpsd_kinds
+  USE bpsd_constants
 
   INTEGER,PARAMETER:: NNM=3
   INTEGER,PARAMETER:: NENM=45
@@ -382,7 +382,7 @@ CONTAINS
     CHARACTER(LEN=1):: KL
     INTERFACE
        FUNCTION FUNC(X)
-         USE task_kinds,ONLY: rkind
+         USE bpsd_kinds,ONLY: rkind
          REAL(rkind):: FUNC
          REAL(rkind),INTENT(IN):: X
        END FUNCTION FUNC

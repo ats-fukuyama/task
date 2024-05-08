@@ -52,7 +52,7 @@ CONTAINS
 
     SUBROUTINE pl_load_xprf(ierr)
 
-      USE plcomm,ONLY: NSMAX,PZ,KNAMPF
+      USE plcomm
       USE plxprf
       USE libspl1d
       IMPLICIT NONE
@@ -114,7 +114,7 @@ CONTAINS
 
     SUBROUTINE pl_read_xprf(Rhol,NS,PNL,PTL)
 
-      USE plcomm,ONLY: PNS,PTS,modeln
+      USE plcomm
       USE plxprf
       USE libspl1d
       IMPLICIT NONE
