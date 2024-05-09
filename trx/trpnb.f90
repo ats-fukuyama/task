@@ -11,22 +11,23 @@
       INTEGER:: NNB,NR,NS
 
       DO NNB=1,NNBMAX
-         IF(model_nnb(NNB).EQ.0) THEN
+         SELECT CASE(model_nnb(NNB))
+         CASE(0)
             TAUB(NNB,1:NRMAX)=1.D0
             PNB_NNBNR(NNB,1:NRMAX)=0.D0
             SNB_NNBNR(NNB,1:NRMAX)=0.D0
-         ELSEIF(model_nnb(NNB).EQ.1) THEN
+         CASE(1)
             CALL TRNBIA(NNB)
             SNB_NNBNR(NNB,1:NRMAX)=0.D0
-         ELSEIF(model_nnb(NNB).EQ.2) THEN
+         CASE(2)
             CALL TRNBIA(NNB)
-         ELSEIF(model_nnb(NNB).EQ.3) THEN
+         CASE(3)
             CALL TRNBIB(NNB)
             SNB_NNBNR(NNB,1:NRMAX)=0.D0
-         ELSEIF(model_nnb(NNB).EQ.4) THEN
+         CASE(4)
             CALL TRNBIB(NNB)
-         ENDIF
-         CALL TRAJNB(NNB)
+         END SELECT
+         CALL TRPBCL(NNB)
       END DO
 
 !      WRITE(6,'(A,2I6)') 'nnb,mdlnb=',1,MDLNB(1),2,MDLNB(2)
@@ -37,22 +38,75 @@
 !              PBIN(NR),PBCL(NR,1),PBIN(NR),PBCL(NR,1)
 !      END DO
 
+      SNBT=0.D0
+      PNBT=0.D0
+      DO NS=1,NSMAX
+         SNB_NS(NS)=0.D0
+         PNB_NS(NS)=0.D0
+      END DO
       DO NR=1,NRMAX
+         SNB_NR(NR)=0.D0
+         PNB_NR(NR)=0.D0
          DO NS=1,NSMAX
             SNB_NSNR(NS,NR)=0.D0
             PNB_NSNR(NS,NR)=0.D0
-            DO NNB=1,NNBMAX
-               SNB_NSNNBNR(NS,NNB,NR)=0.D0
-               PNB_NSNNBNR(NS,NNB,NR)=0.D0
-            END DO
          END DO
-         AJNB(NR)=0.D0
          DO NNB=1,NNBMAX
             NS=NS_NNB(NNB)
+            SNB_NS(NS)=SNB_NS(NS)+SNB_NNBNR(NNB,NR)
+            PNB_NS(NS)=PNB_NS(NS)+PNB_NNBNR(NNB,NR)
             SNB_NSNR(NS,NR)=SNB_NSNR(NS,NR)+SNB_NNBNR(NNB,NR)
             PNB_NSNR(NS,NR)=PNB_NSNR(NS,NR)+PNB_NNBNR(NNB,NR)
-            SNB_NSNNBNR(NS,NNB,NR)=SNB_NNBNR(NNB,NR)
-            PNB_NSNNBNR(NS,NNB,NR)=PNB_NNBNR(NNB,NR)
+         END DO
+         DO NS=1,NSMAX
+            SNB_NR(NR)=SNB_NR(NR)+PZ(NS)*SNB_NSNR(NS,NR)
+            PNB_NR(NR)=PNB_NR(NR)+PNB_NSNR(NS,NR)
+            SNB_NS(NS)=SNB_NS(NS)+SNB_NSNR(NS,NR)
+            PNB_NS(NS)=PNB_NS(NS)+PNB_NSNR(NS,NR)
+         END DO
+         SNBT=SNBT+SNB_NR(NR)
+         PNBT=PNBT+PNB_NR(NR)
+      END DO
+
+      DO NR=1,NRMAX
+         DO NS=1,NSMAX
+            PNBCL_NSNR(NS,NR)=0.D0
+            DO NNB=1,NNBMAX
+               PNBCL_NSNR(NS,NR)=PNBCL_NSNR(NS,NR)+PNBCL_NSNNBNR(NS,NNB,NR)
+            END DO
+         END DO
+         DO NNB=1,NNBMAX
+            PNBCL_NNBNR(NNB,NR)=0.D0
+            DO NS=1,NSMAX
+               PNBCL_NNBNR(NNB,NR)=PNBCL_NNBNR(NNB,NR)+PNBCL_NSNNBNR(NS,NNB,NR)
+            END DO
+         END DO
+      END DO
+      
+      DO NS=1,NSMAX
+         PNBCL_NS(NS)=0.D0
+         DO NR=1,NRMAX
+            PNBCL_NS(NS)=PNBCL_NS(NS)+PNBCL_NSNR(NS,NR)
+         END DO
+      END DO
+      DO NNB=1,NNBMAX
+         PNBCL_NNB(NNB)=0.D0
+         DO NR=1,NRMAX
+            PNBCL_NNB(NNB)=PNBCL_NNB(NNB)+PNBCL_NNBNR(NNB,NR)
+         END DO
+      END DO
+      PNB_TOT=0.D0
+      PNBIN_TOT=0.D0
+      PNBCL_TOT=0.D0
+      DO NNB=1,NNBMAX
+         PNB_TOT=PNB_TOT+PNBIN(NNB)
+         PNBIN_TOT=PNBIN_TOT+PNBIN_NNB(NNB)
+         PNBCL_TOT=PNBCL_TOT+PNBCL_NNB(NNB)
+      END DO
+
+      DO NR=1,NRMAX
+         AJNB(NR)=0.D0
+         DO NNB=1,NNBMAX
             AJNB(NR)=AJNB(NR)+AJNB_NNBNR(NNB,NR)
          END DO
       END DO
@@ -455,13 +509,13 @@
       RETURN
       END SUBROUTINE TRBSCS
 
-!     ***********************************************************
+!     ************************************************************
 
-!          NEUTRAL BEAM DRIVEN CURRENT
+!     NEUTRAL BEAM COLLISIONAL POWER ABSORPTION AND DRIVEN CURRENT
 
-!     ***********************************************************
+!     ************************************************************
 
-      SUBROUTINE TRAJNB(NNB)
+      SUBROUTINE TRPBCL(NNB)
 
       USE TRCOMM
       IMPLICIT NONE
@@ -513,7 +567,7 @@
          IF(NS_A.LE.NSMAX) &
               PNBCL_NSNNBNR(NS_A,NNB,NR) = VCA3/VC3*HYB*PNBIN_NNBNR(NNB,NR)
       END DO
-      
+
       IF(PNBCD(NNB).LE.0.D0) THEN
          AJNB_NNBNR(NNB,1:NRMAX)=0.D0
          RETURN
@@ -557,7 +611,7 @@
       ENDDO
 
       RETURN
-      END SUBROUTINE TRAJNB
+      END SUBROUTINE TRPBCL
 
 !     ***********************************************************
 

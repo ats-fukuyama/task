@@ -623,7 +623,7 @@ CONTAINS
 
          DO NNB=1,NNBMAX
             Y(NNB,NR)=(1.D0-PRV/TAUB(NNB,NR))*YV(NNB,NR) &
-                 +PNB_NSNNBNR(NS_NNB(NNB),NNB,NR)*DT/(RKEV*1.D20)
+                 +PNB_NNBNR(NNB,NR)*DT/(RKEV*1.D20)
             AY(NNB,NR)=1.D0+ADV/TAUB(NNB,NR)
          END DO
          DO NNF=1,NNFMAX
@@ -696,7 +696,7 @@ CONTAINS
 
       DO NNB=1,NNBMAX
          Y(NNB,NR)=(1.D0-PRV/TAUB(NNB,NR))*YV(NNB,NR) &
-              +PNB_NSNNBNR(NS_NNB(NNB),NNB,NR)*DT/(RKEV*1.D20)
+              +PNB_NNBNR(NNB,NR)*DT/(RKEV*1.D20)
          AY(NNB,NR)=1.D0+ADV/TAUB(NNB,NR)
       END DO
       DO NNF=1,NNFMAX

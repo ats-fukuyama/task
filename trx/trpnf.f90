@@ -141,7 +141,7 @@ CONTAINS
          RNF(NR,NNBMAX+NNF) &
               = 2.D0*LOG(1.D0+(VF/VCR)**3)*WF /(3.D0*(1.D0-HYF)*3.5D3)
          IF(RNF(NR,NNBMAX+NNF).GT.0.D0) THEN
-            RTF(NR,NNBMAX+NNF)= WF/RNF(NR,2)
+            RTF(NR,NNBMAX+NNF)= WF/RNF(NR,NNBMAX+NNF)
          ELSE
             RTF(NR,NNBMAX+NNF)= 0.D0
          ENDIF

@@ -59,7 +59,7 @@ pl : libs $(LIB_MTX) libpl.a $(OBJDIR)/plmain.o
 	$(FLINKER) $(OBJDIR)/plmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean:
-	-rm -f core a.out $(OBJDIR)/*.o *.mod ./*~ ./#* *.a $(MOD)/*.mod
+	-rm -f core a.out *.o $(OBJDIR)/*.o *.mod ./*~ ./#* *.a $(MOD)/*.mod
 
 veryclean: clean
 	-rm -f pl

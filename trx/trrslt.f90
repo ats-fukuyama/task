@@ -159,17 +159,9 @@
 
 !     *** Total NBI power distributed on electrons and bulk ions ***
 
-      PNBINT=0.D0
-      DO NNB=1,NNBMAX
-         PNBINT = PNBINT &
-              +SUM(PNBIN_NNBNR(NNB,1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
-      END DO
+      PNBINT=PNBT
       DO NS=1,NSMAX
-         PNBCLT(NS)=0.D0
-         DO NNB=1,NNBMAX
-            PNBCLT(NS) = PNBCLT(NS) &
-                 +SUM(PNBCL_NSNNBNR(NS,NNB,1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
-         ENDDO
+         PNBCLT(NS)=PNBCL_NS(NS)
       END DO
 
 !     *** Total RF power distributed on electrons and bulk ions ***

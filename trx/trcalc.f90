@@ -31,7 +31,6 @@
       PRL(1:NRMAX)=0.D0
       PRSUM(1:NRMAX)=0.D0
       PNB_NSNR(1:NSMAX,1:NRMAX)=0.D0
-      PNF_NSNR(1:NSMAX,1:NRMAX)=0.D0
       AJRFV(1:NRMAX,1)=0.D0
       AJRFV(1:NRMAX,2)=0.D0
       AJRFV(1:NRMAX,3)=0.D0
@@ -39,8 +38,6 @@
       AJBS(1:NRMAX)=0.D0
       SPSC(1:NRMAX,1:NSMAX)=0.D0
       SPE(1:NRMAX,1:NSMAX)=0.D0
-      PNBCL_NSNNBNR(1:NSMAX,1:NNBMAX,1:NRMAX)=0.D0
-      PNFCL_NSNNFNR(1:NSMAX,1:NNFMAX,1:NRMAX)=0.D0
       PRFV(1:NRMAX,1:NSM,1)=0.D0
       PRFV(1:NRMAX,1:NSM,2)=0.D0
       PRFV(1:NRMAX,1:NSM,3)=0.D0
@@ -168,7 +165,6 @@
                END IF
             END DO
          ENDIF
-         IF(NS_e.LE.NSMAX) &
               PIN(NR,NS_e)=PNBCL_NSNR(NS_e,NR)+PNFCL_NSNR(NS_e,NR) &
               +PRF(NR,NS_e) &
               +POH(NR)-PRSUM(NR)-PIE(NR)+PEX(NR,NS_e)
@@ -583,11 +579,10 @@
 
       SUBROUTINE TRAJBSNEW
 
-      USE TRCOMM, ONLY : AJBS, BB, DR, EPSRHO, NRMAX, NSMAX, PADD, PBSCD, PNSS, PTS, PZ, RDP, RHOG, RHOM, RKEV, RN, RT, &
-     &                   RW, TTRHOG, rkind
+      USE TRCOMM
       USE libitp
       IMPLICIT NONE
-      INTEGER:: NR, NS
+      INTEGER:: NR, NS, NF
       REAL(rkind) :: DDD, DDX, DPE, DPI, DRL, DTE, DTI, EPS, FT, PE, PPI, RL31, RL32, RNM, RNP, RNTM, RNTP, RPIM, RPIP, TE, TI
       REAL(rkind),DIMENSION(NRMAX)::  AJBSL, ANI
 
@@ -612,8 +607,10 @@
             RNTM=RNTM+RN(NR  ,NS)*RT(NR  ,NS)
             RNM =RNM +RN(NR  ,NS)
          ENDDO
-         RNTP=RNTP+RW(NR+1,1)+RW(NR+1,2)
-         RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
+         DO NF=1,NFMAX
+            RNTP=RNTP+RW(NR+1,NF)
+            RNTM=RNTM+RW(NR  ,NF)
+         END DO
          RPIP=RNTP+PADD(NR+1)
          RPIM=RNTM+PADD(NR  )
 
