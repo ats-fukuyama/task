@@ -36,27 +36,70 @@ CONTAINS
        END SELECT
     END DO
 
-    DO NR=1,NRMAX
-       DO NNF=1,NNFMAX
-          SNF_NNFNR(NNF,NR)=0.D0
-          PNF_NNFNR(NNF,NR)=0.D0
-       END DO
-       DO NS=1,NSMAX
-          SNF_NSNR(NS,NR)=0.D0
-          PNF_NSNR(NS,NR)=0.D0
-       END DO
-       DO NNF=1,NNFMAX
-          DO NS=1,NSMAX
-             SNF_NNFNR(NNF,NR)=SNF_NNFNR(NNF,NR) &
-                  +SNF_NSNNFNR(NS_NNF(NNF),NNF,NR)
-             PNF_NNFNR(NNF,NR)=PNF_NNFNR(NNF,NR) &
-                  +PNF_NSNNFNR(NS_NNF(NNF),NNF,NR)
-             SNF_NSNR(NS,NR)=SNF_NSNR(NS,NR)+SNF_NSNNFNR(NS,NNF,NR)
-             PNF_NSNR(NS,NR)=PNF_NSNR(NS,NR)+PNF_NSNNFNR(NS,NNF,NR)
-          END DO
-       END DO
-    END DO
-    
+      SNFT=0.D0
+      PNFT=0.D0
+      DO NS=1,NSMAX
+         SNF_NS(NS)=0.D0
+         PNF_NS(NS)=0.D0
+      END DO
+      DO NR=1,NRMAX
+         SNF_NR(NR)=0.D0
+         PNF_NR(NR)=0.D0
+         DO NS=1,NSMAX
+            SNF_NSNR(NS,NR)=0.D0
+            PNF_NSNR(NS,NR)=0.D0
+         END DO
+         DO NNF=1,NNFMAX
+            NS=NS_NNF(NNF)
+            SNF_NS(NS)=SNF_NS(NS)+SNF_NNFNR(NNF,NR)
+            PNF_NS(NS)=PNF_NS(NS)+PNF_NNFNR(NNF,NR)
+            SNF_NSNR(NS,NR)=SNF_NSNR(NS,NR)+SNF_NNFNR(NNF,NR)
+            PNF_NSNR(NS,NR)=PNF_NSNR(NS,NR)+PNF_NNFNR(NNF,NR)
+         END DO
+         DO NS=1,NSMAX
+            SNF_NR(NR)=SNF_NR(NR)+PZ(NS)*SNF_NSNR(NS,NR)
+            PNF_NR(NR)=PNF_NR(NR)+PNF_NSNR(NS,NR)
+            SNF_NS(NS)=SNF_NS(NS)+SNF_NSNR(NS,NR)
+            PNF_NS(NS)=PNF_NS(NS)+PNF_NSNR(NS,NR)
+         END DO
+         SNFT=SNFT+SNF_NR(NR)
+         PNFT=PNFT+PNF_NR(NR)
+      END DO
+
+      DO NR=1,NRMAX
+         DO NS=1,NSMAX
+            PNFCL_NSNR(NS,NR)=0.D0
+            DO NNF=1,NNFMAX
+               PNFCL_NSNR(NS,NR)=PNFCL_NSNR(NS,NR)+PNFCL_NSNNFNR(NS,NNF,NR)
+            END DO
+         END DO
+         DO NNF=1,NNFMAX
+            PNFCL_NNFNR(NNF,NR)=0.D0
+            DO NS=1,NSMAX
+               PNFCL_NNFNR(NNF,NR)=PNFCL_NNFNR(NNF,NR)+PNFCL_NSNNFNR(NS,NNF,NR)
+            END DO
+         END DO
+      END DO
+      
+      DO NS=1,NSMAX
+         PNFCL_NS(NS)=0.D0
+         DO NR=1,NRMAX
+            PNFCL_NS(NS)=PNFCL_NS(NS)+PNFCL_NSNR(NS,NR)
+         END DO
+      END DO
+      DO NNF=1,NNFMAX
+         PNFCL_NNF(NNF)=0.D0
+         DO NR=1,NRMAX
+            PNFCL_NNF(NNF)=PNFCL_NNF(NNF)+PNFCL_NNFNR(NNF,NR)
+         END DO
+      END DO
+      PNF_TOT=0.D0
+      PNFIN_TOT=0.D0
+      PNFCL_TOT=0.D0
+      DO NNF=1,NNFMAX
+         PNFCL_TOT=PNFCL_TOT+PNFCL_NNF(NNF)
+      END DO
+
     RETURN
   END SUBROUTINE tr_pnf
 
