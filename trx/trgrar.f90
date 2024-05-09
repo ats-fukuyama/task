@@ -24,6 +24,7 @@
       IF(K2.EQ.'9') CALL TRGRR9(INQ)
       IF(K2.EQ.'A') CALL TRGRRA(INQ)
       IF(K2.EQ.'B') CALL TRGRRB(INQ)
+      IF(K2.EQ.'C') CALL TRGRRC(INQ)
 
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX
 
@@ -824,6 +825,68 @@
       CALL PAGEE
       RETURN
       END SUBROUTINE TRGRRB
+
+!     ***********************************************************
+
+!           GRAPHIC : RADIAL PROFILE : PNB,PNF,SNB,SNF for NS
+
+!     ***********************************************************
+
+      SUBROUTINE TRGRRC(INQ)
+
+      USE TRCOMM
+      IMPLICIT NONE
+      INTEGER,INTENT(IN) :: INQ
+      INTEGER :: NS,NR
+      REAL    :: GUCLIP
+
+
+      CALL PAGES
+
+      IF(NNBMAX.GT.0) THEN
+         DO NR=1,NRMAX
+            DO NS=1,NSMAX
+               GYR(NR,NS) = GUCLIP(PNB_NSNR(NS,NR) * 1.D-6)
+            END DO
+         ENDDO
+         CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSMAX, &
+              '@PNB_NS [MW/m$+3$=]  vs r@',2+INQ)
+      END IF
+
+      IF(NNFMAX.GT.0) THEN
+         DO NR=1,NRMAX
+            DO NS=1,NSMAX
+               GYR(NR,NS) = GUCLIP(PNF_NSNR(NS,NR) * 1.D-6)
+            END DO
+         END DO
+         CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSMAX, &
+              '@PNF_NS [MW/m$+3$=]  vs r@',2+INQ)
+      END IF
+
+      IF(NNBMAX.GT.0) THEN
+         DO NR=1,NRMAX
+            DO NS=1,NSMAX
+               GYR(NR,NS) = GUCLIP(SNB_NSNR(NS,NR))
+            END DO
+         ENDDO
+         CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,NSMAX, &
+              '@SNB_NS vs r@',2+INQ)
+      END IF
+
+      IF(NNFMAX.GT.0) THEN
+         DO NR=1,NRMAX
+            DO NS=1,NSMAX
+               GYR(NR,NS) = GUCLIP(SNF_NSNR(NS,NR))
+            END DO
+         ENDDO
+         CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,NSMAX, &
+              '@SNF_NS vs r@',2+INQ)
+      END IF
+
+      CALL TRGRTM
+      CALL PAGEE
+      RETURN
+      END SUBROUTINE TRGRRC
 
 !     ***********************************************************
 
