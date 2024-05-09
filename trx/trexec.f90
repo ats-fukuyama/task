@@ -312,6 +312,12 @@ CONTAINS
          DO NF=1,NFMAX
             RW(NR,NF)  = 0.5D0*(YV(NF,NR)+Y(NF,NR))
          END DO
+!         IF(NR.LE.2) THEN
+!            DO NF=1,NFMAX
+!               WRITE(26,'(A12,I4,I3,I3,9X,3ES12.4)') 'YV Y RW:    ', &
+!                    NT,NR,NF,YV(NF,NR),Y(NF,NR),RW(NR,NF)
+!            END DO
+!         END IF
       ENDDO
 
 6000  CONTINUE
@@ -548,7 +554,6 @@ CONTAINS
 
 !     ***** Evolution of fast ion components *****
 
-      DO NR=1,NRMAX
          DO NNB=1,NNBMAX
             Y(NNB,NR)=(1.D0-PRV/TAUB(NNB,NR))*YV(NNB,NR) &
                  +PNB_NNBNR(NNB,NR)*DT/(RKEV*1.D20)
@@ -556,10 +561,13 @@ CONTAINS
          END DO
          DO NNF=1,NNFMAX
             Y(NNBMAX+NNF,NR)=(1.D0-PRV/TAUF(NNF,NR))*YV(NNBMAX+NNF,NR) &
-                 +PNF_NNFNR(NNF,NR)*DT/(RKEV*1.D20)
+                 +PNF_NSNNFNR(NS_NNF(NNF),NNF,NR)*DT/(RKEV*1.D20)
             AY(NNBMAX+NNF,NR)=1.D0+ADV/TAUF(NNF,NR)
+!            IF(NR.LE.2) &
+!                 WRITE(26,'(A12,I4,I3,4ES12.4)') 'YV,PNF,Y,AY:',NT,NR, &
+!                 YV(NNBMAX+NNF,NR),PNF_NNFNR(NNF,NR),Y(NNBMAX+NNF,NR), &
+!                 AY(NNBMAX+NNF,NR)
          END DO
-      END DO
       
       IF(MDLTC.NE.0) THEN
          DO NS=1,NSMAX
@@ -630,6 +638,10 @@ CONTAINS
             Y(NNBMAX+NNF,NR)=(1.D0-PRV/TAUF(NNF,NR))*YV(NNBMAX+NNF,NR) &
                  +PNF_NSNNFNR(NS_NNF(NNF),NNF,NR)*DT/(RKEV*1.D20)
             AY(NNBMAX+NNF,NR)=1.D0+ADV/TAUF(NNF,NR)
+!            IF(NR.LE.2) &
+!                 WRITE(26,'(A12,I4,I3,4ES12.4)') 'YV,PNF,Y,AY:',NT,NR, &
+!                 YV(NNBMAX+NNF,NR),PNF_NNFNR(NNF,NR),Y(NNBMAX+NNF,NR), &
+!                 AY(NNBMAX+NNF,NR)
          END DO
 
          IF(MDLTC.NE.0) THEN

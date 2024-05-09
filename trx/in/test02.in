@@ -1,0 +1,92 @@
+0
+f
+gs/test02.gs
+c
+   modelg=2
+   RR=8.5D0
+   RA=2.42D0
+   RKAP=1.65D0
+   RDLT=0.33D0
+   BB=5.94D0
+   
+   NSMAX=4
+   PN=0.35D0,0.1575D0,0.1575D0,0.0175D0
+   PNS=0.1D0,0.045D0,0.045D0,0.005D0
+   PT=1.0D0,1.0D0,1.0D0,1.0D0
+   PTS=0.1D0,0.1D0,0.1D0,0.1D0
+   PROFN2=0.15D0
+   
+   nnfmax=1
+   model_nnf(1)=4
+
+   PECCD=1.0D0
+   PNBCD=0.5D0,0.5D0
+   PECR0=1.2D0
+   PECRW=0.05D0  
+   PECNPR=5.0D0
+   MDLEDGE=1
+   CSPRS=0.1
+   MDLEQN=1
+   MDLAD=2
+
+   MDLPSC=1
+   NPSCMAX=2
+   NSPSC(1)=2
+   NSPSC(2)=3
+   PSCIN(1)=4.5D0
+   PSCIN(2)=4.5D0
+   PSCR0(1)=2.0
+   PSCR0(2)=2.0
+   PSCRW(1)=0.3
+   PSCRW(2)=0.3
+
+   nnbmax=2
+   model_nnb(1)=2
+   model_nnb(2)=2
+   ns_nnb(1)=2
+   ns_nnb(2)=3
+   PNBENG(1)=1000.D0
+   PNBENG(2)=1000.D0
+   PNBRTG(1)=6.2
+   PNBRTG(2)=6.2
+   PNBR0(1)=0.6
+   PNBR0(2)=1.2
+   PNBRW(1)=0.2
+   PNBRW(2)=0.2
+   NECMAX=1
+   PECIN(1)=0.0
+   
+   NRMAX=50
+   DT=0.0025D0
+   NTSTEP=4000
+   ngrstp=500
+   ngtstp=50
+   NTMAX=20000
+   RIPS=4.5D0
+   RIPE=12.3D0
+   PNBIN(1)=1.0
+   PNBIN(2)=1.0
+r
+   NTMAX=20000
+   PNBIN(1)=35.0
+   PNBIN(2)=35.0
+   MDLPR=1
+c
+g
+t6
+t7
+r1
+r2
+r4
+r7
+r9
+rb
+rc
+g1
+g2
+g3
+g4
+x
+q
+
+

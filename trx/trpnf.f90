@@ -22,6 +22,8 @@ CONTAINS
 
     SNF_NSNNFNR(1:NSMAX,1:NNFMAX,1:NRMAX)=0.D0
     PNF_NSNNFNR(1:NSMAX,1:NNFMAX,1:NRMAX)=0.D0
+    PNFIN_NNFNR(1:NNFMAX,1:NRMAX)=0.D0
+    PNFCL_NSNNFNR(1:NSMAX,1:NNFMAX,1:NRMAX)=0.D0
     
     DO nnf=1,nnfmax
        SELECT CASE(model_nnf(nnf))
@@ -36,69 +38,100 @@ CONTAINS
        END SELECT
     END DO
 
-      SNFT=0.D0
-      PNFT=0.D0
-      DO NS=1,NSMAX
-         SNF_NS(NS)=0.D0
-         PNF_NS(NS)=0.D0
-      END DO
-      DO NR=1,NRMAX
-         SNF_NR(NR)=0.D0
-         PNF_NR(NR)=0.D0
-         DO NS=1,NSMAX
-            SNF_NSNR(NS,NR)=0.D0
-            PNF_NSNR(NS,NR)=0.D0
-         END DO
-         DO NNF=1,NNFMAX
-            NS=NS_NNF(NNF)
-            SNF_NS(NS)=SNF_NS(NS)+SNF_NNFNR(NNF,NR)
-            PNF_NS(NS)=PNF_NS(NS)+PNF_NNFNR(NNF,NR)
-            SNF_NSNR(NS,NR)=SNF_NSNR(NS,NR)+SNF_NNFNR(NNF,NR)
-            PNF_NSNR(NS,NR)=PNF_NSNR(NS,NR)+PNF_NNFNR(NNF,NR)
-         END DO
-         DO NS=1,NSMAX
-            SNF_NR(NR)=SNF_NR(NR)+PZ(NS)*SNF_NSNR(NS,NR)
-            PNF_NR(NR)=PNF_NR(NR)+PNF_NSNR(NS,NR)
-            SNF_NS(NS)=SNF_NS(NS)+SNF_NSNR(NS,NR)
-            PNF_NS(NS)=PNF_NS(NS)+PNF_NSNR(NS,NR)
-         END DO
-         SNFT=SNFT+SNF_NR(NR)
-         PNFT=PNFT+PNF_NR(NR)
-      END DO
+    DO NR=1,NRMAX
+       DO NS=1,NSMAX
+          SNF_NSNR(NS,NR)=0.D0
+          PNF_NSNR(NS,NR)=0.D0
+          DO NNF=1,NNFMAX
+             SNF_NSNR(NS,NR)=SNF_NSNR(NS,NR)+SNF_NSNNFNR(NS,NNF,NR)
+             PNF_NSNR(NS,NR)=PNF_NSNR(NS,NR)+PNF_NSNNFNR(NS,NNF,NR)
+          END DO
+       END DO
+    END DO
+    DO NR=1,NRMAX
+       DO NNF=1,NNFMAX
+          SNF_NNFNR(NNF,NR)=0.D0
+          PNF_NNFNR(NNF,NR)=0.D0
+          DO NS=1,NSMAX
+             SNF_NNFNR(NNF,NR)=SNF_NNFNR(NNF,NR)+SNF_NSNNFNR(NS,NNF,NR)
+             PNF_NNFNR(NNF,NR)=PNF_NNFNR(NNF,NR)+PNF_NSNNFNR(NS,NNF,NR)
+          END DO
+       END DO
+    END DO
+    DO NR=1,NRMAX
+       SNF_NR(NR)=0.D0
+       PNF_NR(NR)=0.D0
+       DO NS=1,NSMAX
+          SNF_NR(NR)=SNF_NR(NR)+SNF_NSNR(NS,NR)
+          PNF_NR(NR)=PNF_NR(NR)+PNF_NSNR(NS,NR)
+       END DO
+    END DO
+    DO NS=1,NSMAX
+       SNF_NS(NS)=0.D0
+       PNF_NS(NS)=0.D0
+       DO NR=1,NRMAX
+          SNF_NS(NS)=SNF_NS(NS)+SNF_NSNR(NS,NR)
+          PNF_NS(NS)=PNF_NS(NS)+PNF_NSNR(NS,NR)
+       END DO
+    END DO
+    DO NNF=1,NNFMAX
+       SNF_NNF(NNF)=0.D0
+       PNF_NNF(NNF)=0.D0
+       DO NR=1,NRMAX
+          SNF_NNF(NNF)=SNF_NNF(NNF)+SNF_NNFNR(NNF,NR)
+          PNF_NNF(NNF)=PNF_NNF(NNF)+PNF_NNFNR(NNF,NR)
+       END DO
+    END DO
+    SNFT=0.D0
+    PNFT=0.D0
+    DO NS=1,NSMAX
+       SNFT=SNFT+SNF_NS(NS)
+       PNFT=PNFT+PNF_NS(NS)
+    END DO
 
-      DO NR=1,NRMAX
-         DO NS=1,NSMAX
-            PNFCL_NSNR(NS,NR)=0.D0
-            DO NNF=1,NNFMAX
-               PNFCL_NSNR(NS,NR)=PNFCL_NSNR(NS,NR)+PNFCL_NSNNFNR(NS,NNF,NR)
-            END DO
-         END DO
-         DO NNF=1,NNFMAX
-            PNFCL_NNFNR(NNF,NR)=0.D0
-            DO NS=1,NSMAX
-               PNFCL_NNFNR(NNF,NR)=PNFCL_NNFNR(NNF,NR)+PNFCL_NSNNFNR(NS,NNF,NR)
-            END DO
-         END DO
-      END DO
+    DO NR=1,NRMAX
+       DO NS=1,NSMAX
+          PNFCL_NSNR(NS,NR)=0.D0
+          DO NNF=1,NNFMAX
+             PNFCL_NSNR(NS,NR)=PNFCL_NSNR(NS,NR)+PNFCL_NSNNFNR(NS,NNF,NR)
+          END DO
+       END DO
+       DO NNF=1,NNFMAX
+          PNFCL_NNFNR(NNF,NR)=0.D0
+          DO NS=1,NSMAX
+             PNFCL_NNFNR(NNF,NR)=PNFCL_NNFNR(NNF,NR)+PNFCL_NSNNFNR(NS,NNF,NR)
+          END DO
+       END DO
+    END DO
       
-      DO NS=1,NSMAX
-         PNFCL_NS(NS)=0.D0
-         DO NR=1,NRMAX
-            PNFCL_NS(NS)=PNFCL_NS(NS)+PNFCL_NSNR(NS,NR)
-         END DO
-      END DO
-      DO NNF=1,NNFMAX
-         PNFCL_NNF(NNF)=0.D0
-         DO NR=1,NRMAX
-            PNFCL_NNF(NNF)=PNFCL_NNF(NNF)+PNFCL_NNFNR(NNF,NR)
-         END DO
-      END DO
-      PNF_TOT=0.D0
-      PNFIN_TOT=0.D0
-      PNFCL_TOT=0.D0
-      DO NNF=1,NNFMAX
-         PNFCL_TOT=PNFCL_TOT+PNFCL_NNF(NNF)
-      END DO
+    DO NS=1,NSMAX
+       PNFCL_NS(NS)=0.D0
+       DO NR=1,NRMAX
+          PNFCL_NS(NS)=PNFCL_NS(NS)+PNFCL_NSNR(NS,NR)
+       END DO
+    END DO
+    DO NNF=1,NNFMAX
+       PNFIN_NNF(NNF)=0.D0
+       PNFCL_NNF(NNF)=0.D0
+       DO NR=1,NRMAX
+          PNFIN_NNF(NNF)=PNFIN_NNF(NNF)+PNFIN_NNFNR(NNF,NR)
+          PNFCL_NNF(NNF)=PNFCL_NNF(NNF)+PNFCL_NNFNR(NNF,NR)
+       END DO
+    END DO
+    DO NR=1,NRMAX
+       PNFIN_NR(NR)=0.D0
+       PNFCL_NR(NR)=0.D0
+       DO NNF=1,NNFMAX
+          PNFIN_NR(NR)=PNFIN_NR(NR)+PNFIN_NNFNR(NNF,NR)
+          PNFCL_NR(NR)=PNFCL_NR(NR)+PNFCL_NNFNR(NNF,NR)
+       END DO
+    END DO
+    PNFIN_TOT=0.D0
+    PNFCL_TOT=0.D0
+    DO NNF=1,NNFMAX
+       PNFIN_TOT=PNFIN_TOT+PNFIN_NNF(NNF)
+       PNFCL_TOT=PNFCL_TOT+PNFCL_NNF(NNF)
+    END DO
 
     RETURN
   END SUBROUTINE tr_pnf
@@ -160,12 +193,20 @@ CONTAINS
          ELSE
             SSB=0.D0
          ENDIF
-         SNF_NSNNFNR(NS_A,NNF,NR) = (SS+SSB)*RN(NR,2)*RN(NR,3)*1.D20
+         SNF_NSNNFNR(NS_A,NNF,NR) = (SS+SSB)*RN(NR,NS_D)*RN(NR,NS_T)*1.D20
          PNF_NSNNFNR(NS_A,NNF,NR) = SNF_NSNNFNR(NS_A,NNF,NR)*3.5D3*RKEV*1.D20
          IF(MOD(model_nnf(nnf),2).EQ.1) &
               SNF_NSNNFNR(NS_A,NNF,NR)=0.D0
          SNF_NSNNFNR(NS_D,NNF,NR) =-SNF_NSNNFNR(NS_A,NNF,NR)
          SNF_NSNNFNR(NS_T,NNF,NR) =-SNF_NSNNFNR(NS_A,NNF,NR)
+         PNF_NSNNFNR(NS_D,NNF,NR) &
+              =-SNF_NSNNFNR(NS_A,NNF,NR)*RT(NR,NS_D)*RKEV*1.D20
+         PNF_NSNNFNR(NS_T,NNF,NR) &
+              =-SNF_NSNNFNR(NS_A,NNF,NR)*RT(NR,NS_T)*RKEV*1.D20
+!         IF(NR.LE.2) &
+!              WRITE(26,'(A12,I4,I3,5E12.4)') 'SS,B,RN,SNF:', &
+!              NT,NR,SS,SSB,RN(NR,2),RN(NR,3), &
+!              SNF_NSNNFNR(NS_A,NNF,NR)
       ENDDO
 
       DO NR=1,NRMAX
@@ -173,13 +214,14 @@ CONTAINS
          TE = RT(NR,NS_e)
          WF = RW(NR,NNBMAX+NNF)
          P1   = 3.D0*SQRT(0.5D0*PI)*AME/ANE *(ABS(TE)*RKEV/AME)**1.5D0
-         VCD3 = P1*RN(NR,2)*PZ(2)**2/AMD
-         VCT3 = P1*RN(NR,3)*PZ(3)**2/AMT
-         VCA3 = P1*RN(NR,4)*PZ(4)**2/AMHe3
+         VCD3 = P1*RN(NR,NS_D)*PZ(NS_D)**2/AMD
+         VCT3 = P1*RN(NR,NS_T)*PZ(NS_T)**2/AMT
+         VCA3 = P1*RN(NR,NS_A)*PZ(NS_A)**2/AMA
          VC3  = VCD3+VCT3+VCA3
          VCR  = VC3**(1.D0/3.D0)
          HYF=HY(VF/VCR)
-         TAUS = 0.2D0*PM(4)*ABS(TE)**1.5D0 /(PZ(4)**2*ANE*COULOG(1,2,ANE,TE))
+         TAUS = 0.2D0*PM(4)*ABS(TE)**1.5D0 &
+              /(PZ(NS_A)**2*ANE*COULOG(1,2,ANE,TE))
          TAUF(NNF,NR)= 0.5D0*TAUS*(1.D0-HYF)
          RNF(NR,NNBMAX+NNF) &
               = 2.D0*LOG(1.D0+(VF/VCR)**3)*WF /(3.D0*(1.D0-HYF)*3.5D3)
@@ -193,6 +235,12 @@ CONTAINS
          PNFCL_NSNNFNR(NS_D,NNF,NR)=(VCD3/VC3)*HYF*PNFIN_NNFNR(NNF,NR)
          PNFCL_NSNNFNR(NS_T,NNF,NR)=(VCT3/VC3)*HYF*PNFIN_NNFNR(NNF,NR)
          PNFCL_NSNNFNR(NS_A,NNF,NR)=(VCA3/VC3)*HYF*PNFIN_NNFNR(NNF,NR)
+         IF(NR.LE.2) &
+              WRITE(26,'(A12,I4,I3,4E12.4)') 'W,NF,TF,TAU:',NT,NR, &
+              RW(NR,NNBMAX+NNF), &
+              RNF(NR,NNBMAX+NNF), &
+              RTF(NR,NNBMAX+NNF), &
+              TAUF(NNF,NR)
       ENDDO
 
       RETURN
