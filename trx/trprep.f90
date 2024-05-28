@@ -62,6 +62,7 @@ CONTAINS
        STOP
     END IF
 
+    
 !     *** CALCULATE METRIC FACTOR ***
 
     CALL tr_set_metric(ierr)

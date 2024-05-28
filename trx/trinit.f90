@@ -74,7 +74,7 @@ CONTAINS
       !  DT         : NS=1:e 2:D 3:T 4:He4
       !  DD+DD+DHe3 : NS=1:e 2:D 3:T 4:He4 5:H 6:He3
 
-      NSMAX=2
+      NSMAX=4
       NSZMAX=0  ! the number of impurities
       NSNMAX=2  ! the number of neutrals, 0 or 2 fixed
 

@@ -79,7 +79,6 @@ CONTAINS
        id_loop=0
        CALL tr_prep(ierr)
        if(ierr.ne.0) GO TO 1
-
        CALL tr_loop(ierr)
        IF(ierr.NE.0) id_loop=1
          

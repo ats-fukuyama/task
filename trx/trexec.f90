@@ -416,6 +416,7 @@ CONTAINS
       INTEGER,INTENT(OUT) :: IERR
       integer:: IDGLOB
 
+
       CALL TRCALC(IERR)
       IF(IERR.ne.0) RETURN
 
