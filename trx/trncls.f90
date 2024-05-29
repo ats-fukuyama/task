@@ -80,9 +80,9 @@
       USE trcomm
       USE libitp
       IMPLICIT NONE
-      INCLUDE '../trmlib/nclass/pamx_mi.inc'
-      INCLUDE '../trmlib/nclass/pamx_ms.inc'
-      INCLUDE '../trmlib/nclass/pamx_mz.inc'
+      INCLUDE '../trlib/nclass/pamx_mi.inc'
+      INCLUDE '../trlib/nclass/pamx_ms.inc'
+      INCLUDE '../trlib/nclass/pamx_mz.inc'
 !      INCLUDE 'trncls.inc'
 !Declaration of input to NCLASS
       INTEGER::                        k_order,  k_potato, m_i,      m_z
@@ -375,9 +375,9 @@
 
       USE trcomm,ONLY: rkind
       IMPLICIT NONE
-      INCLUDE '../trmlib/nclass/pamx_mi.inc'
-      INCLUDE '../trmlib/nclass/pamx_ms.inc'
-      INCLUDE '../trmlib/nclass/pamx_mz.inc'
+      INCLUDE '../trlib/nclass/pamx_mi.inc'
+      INCLUDE '../trlib/nclass/pamx_ms.inc'
+      INCLUDE '../trlib/nclass/pamx_mz.inc'
 !      INCLUDE 'trncls.inc'
 !Declaration of input to NCLASS
       INTEGER::                        k_order,  m_i,      m_z
