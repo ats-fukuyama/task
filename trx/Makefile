@@ -15,7 +15,7 @@ FFLAGS = $(DFLAGS)
 
 OBJDIR=./obj
 
-MODINCLUDE= -I./$(MOD) -I../trmlib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
+MODINCLUDE= -I./$(MOD) -I../trlib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
             -I../equ/$(MOD) -I../lib/$(MOD) -I../mtxp/$(MOD) \
             -I../../bpsd/$(MOD)
 
@@ -27,7 +27,7 @@ ${OBJDIR}/%.o:%.f90
 SRCM=trcomm.f90 trbpsd.f90
 SRCS=trinit.f90 trparm.f90 trview.f90 \
      trmetric.f90 trfixed.f90 trprof.f90 trprep.f90 \
-     trncls.f90 trcytran.f90 \
+     trncls.f90 trcytran.f90 trcoll.f90 \
      trfile.f90 trhelp.f90 \
      trpnf.f90 \
      trexec.f90 trcalc.f90 \
@@ -47,7 +47,7 @@ OBJ3D=$(addprefix $(OBJDIR)/, $(SRC3D:.f90=.o))
 
 OBJTR=$(OBJM) $(OBJS)
 
-LIBS=../trmlib/libtrm.a ../eq/libeq.a ../pl/libpl.a ../lib/libmds.a \
+LIBS=../trlib/libtrm.a ../eq/libeq.a ../pl/libpl.a ../lib/libmds.a \
      ../lib/libtask.a ../lib/libgrf.a  ../../bpsd/libbpsd.a
 LIBS2=libtr2.a $(LIBS)
 LIBS3=libtr3.a $(LIBS)
@@ -73,8 +73,8 @@ libtr3.a: $(OBJTR) $(OBJ3D)
 	(cd ../pl; make libpl.a)
 ../eq/libeq.a:
 	(cd ../eq; make libeq.a)
-../trmlib/libtrm.a:
-	(cd ../trmlib; make libtrm.a)
+../trlib/libtrm.a:
+	(cd ../trlib; make libtrm.a)
 
 libs:
 	(cd ../../bpsd; make libbpsd.a)
@@ -83,7 +83,7 @@ libs:
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
-	(cd ../trmlib; make libtrm.a)
+	(cd ../trlib; make libtrm.a)
 
 tr2: $(LIBS2) $(OBJDIR)/trmain.o 
 	$(FLINKER) $(OBJDIR)/trmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
@@ -118,6 +118,7 @@ $(OBJDIR)/trmetric.o : trmetric.f90 trcomm.f90
 $(OBJDIR)/trfile.o : trfile.f90 trcomm.f90
 $(OBJDIR)/trbpsd.o : trbpsd.f90 trcomm.f90
 $(OBJDIR)/tradat.o : tradat.f90 trcomm.f90
+$(OBJDIR)/trcoll.o : trcoll.f90 trcomm.f90
 $(OBJDIR)/trufile.o : trufile.f90 trcomm.f90
 $(OBJDIR)/tr_ufile_task.o : tr_ufile_task.f90 trcomm.f90
 $(OBJDIR)/tr_ufile_topics.o : tr_ufile_topics.f90 trcomm.f90
@@ -147,8 +148,8 @@ $(OBJDIR)/trg2d.o  : trg2d.f90  trcomm.f90
 $(OBJDIR)/trg3d.o  : trg3d.f90  trcomm.f90 
 $(OBJDIR)/tritg.o  : tritg.f90  trcomm.f90 
 $(OBJDIR)/trmodels.o : trmodels.f90  trcomm.f90 
-$(OBJDIR)/trncls.o : trncls.f90 trcomm.f90 ../trmlib/nclass/pamx_mi.inc \
-           ../trmlib/nclass/pamx_ms.inc ../trmlib/nclass/pamx_mz.inc
+$(OBJDIR)/trncls.o : trncls.f90 trcomm.f90 ../trlib/nclass/pamx_mi.inc \
+           ../trlib/nclass/pamx_ms.inc ../trlib/nclass/pamx_mz.inc
 $(OBJDIR)/trcytran.o: trcytran.f90
 
 $(OBJDIR)/trplot.o  : trplot.f90 trfixed.f90 trcomm.f90
