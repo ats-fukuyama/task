@@ -2,25 +2,10 @@
 
 MODULE WRGOUT
 
-  USE wrcomm,ONLY: rkind
-
   PRIVATE
   PUBLIC wr_gout
 
   INTEGER,PARAMETER:: nlmax_p=10
-!  REAL(rkind),PARAMETER:: line_rgb_nlmax(3,nlmax_p) &
-!       =RESHAPE([1.0D0,0.0D0,0.0D0, &
-!                 1.0D0,0.5D0,0.0D0, &
-!                 1.0D0,0.8D0,0.0D0, &
-!                 0.5D0,0.8D0,0.0D0, &
-!                 0.2D0,0.8D0,0.0D0, &
-!                 0.0D0,0.8D0,0.2D0, &
-!                 0.0D0,0.8D0,0.5D0, &
-!                 0.0D0,0.8D0,1.0D0, &
-!                 0.0D0,0.5D0,1.0D0, &
-!                 0.0D0,0.0D0,1.0D0],[3,10])
-!  INTEGER,PARAMETER:: line_pat_nlmax(nlmax_p)=[ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
-    
   
 CONTAINS
 
@@ -48,47 +33,81 @@ CONTAINS
     END IF
 
 1   WRITE(6,*) &
-         '## INPUT GRAPH TYPE : ray:1,2,3,4,5,6,7 beam:A,B,C,D  P:prof  end:X'
+         '## INPUT GRAPH TYPE : ray:1,2,3,4,5,6,7,8,9 beam:A,B,C,D prof:P  help:?  end:X'
     READ(5,'(A1)',ERR=1,END=9000) KID
     CALL toupper(KID)
 
-    IF(KID.EQ.'1'.AND.NSTAT.GE.1) CALL WRGRF1
-    IF(KID.EQ.'2'.AND.NSTAT.GE.1) CALL WRGRF2
-    IF(KID.EQ.'3'.AND.NSTAT.GE.1) CALL WRGRF3
-    IF(KID.EQ.'4'.AND.NSTAT.GE.1) CALL WRGRF4
-    IF(KID.EQ.'5'.AND.NSTAT.GE.1) CALL WRGRF5
-    IF(KID.EQ.'6'.AND.NSTAT.GE.1) CALL WRGRF6
-    IF((KID.EQ.'7'.OR.KID.EQ.'8').AND.NSTAT.GE.1) THEN
-2      CONTINUE
-       WRITE(6,'(A,2I6)') '## ns,nmax=',ns,nmax
-       READ(5,*,ERR=2,END=1) ns,nmax
-       IF(nmax.NE.nmax_save) THEN
-          IF(ALLOCATED(rhona)) DEALLOCATE(rhona)
-          IF(nmax.GE.1) ALLOCATE(rhona(nmax))
-          nmax_save=nmax
-          rhona(1:nmax)=0.D0
+    IF(mode_beam.EQ.0) THEN
+       IF(KID.EQ.'1'.AND.NSTAT.GE.1) CALL WRGRF1
+       IF(KID.EQ.'2'.AND.NSTAT.GE.1) CALL WRGRF2
+       IF(KID.EQ.'3'.AND.NSTAT.GE.1) CALL WRGRF3
+       IF(KID.EQ.'4'.AND.NSTAT.GE.1) CALL WRGRF4
+       IF(KID.EQ.'5'.AND.NSTAT.GE.1) CALL WRGRF5
+       IF(KID.EQ.'6'.AND.NSTAT.GE.1) CALL WRGRF6
+       IF((KID.EQ.'7'.OR.KID.EQ.'8').AND.NSTAT.GE.1) THEN
+2         CONTINUE
+          WRITE(6,'(A,2I6)') '## ns,nmax=',ns,nmax
+          READ(5,*,ERR=2,END=1) ns,nmax
+          IF(nmax.NE.nmax_save) THEN
+             IF(ALLOCATED(rhona)) DEALLOCATE(rhona)
+             IF(nmax.GE.1) ALLOCATE(rhona(nmax))
+             nmax_save=nmax
+             rhona(1:nmax)=0.D0
+          END IF
+3         CONTINUE
+          WRITE(6,'(A)') '## rhona='
+          WRITE(6,'(10F8.4)') (rhona(n),n=1,nmax)
+          READ(5,*,ERR=3,END=2) (rhona(n),n=1,nmax)
+          IF(KID.EQ.'7') THEN
+             CALL WRGRF7(ns,nmax,rhona)
+          ELSE
+             CALL WRGRF8(ns,nmax,rhona)
+          END IF
        END IF
-3      CONTINUE
-       WRITE(6,'(A)') '## rhona='
-       WRITE(6,'(10F8.4)') (rhona(n),n=1,nmax)
-       READ(5,*,ERR=3,END=2) (rhona(n),n=1,nmax)
-       IF(KID.EQ.'7') THEN
-          CALL WRGRF7(ns,nmax,rhona)
-       ELSE
-          CALL WRGRF8(ns,nmax,rhona)
+       IF(KID.EQ.'9'.AND.NSTAT.GE.1) THEN
+5         CONTINUE
+          WRITE(6,'(A,2I6)') '## ns=',ns
+          READ(5,*,ERR=5,END=1) ns
+          CALL WRGRF9(ns)
        END IF
+    ELSE
+       IF(KID.EQ.'1'.AND.NSTAT.GE.2) CALL WRGRFB1
+       IF(KID.EQ.'2'.AND.NSTAT.GE.2) CALL WRGRFB2
+       IF(KID.EQ.'3'.AND.NSTAT.GE.2) CALL WRGRFB3
+       IF(KID.EQ.'4'.AND.NSTAT.GE.2) CALL WRGRFB4
     END IF
-    IF(KID.EQ.'A'.AND.NSTAT.GE.2) CALL WRGRFB1
-    IF(KID.EQ.'B'.AND.NSTAT.GE.2) CALL WRGRFB2
-    IF(KID.EQ.'C'.AND.NSTAT.GE.2) CALL WRGRFB3
-    IF(KID.EQ.'D'.AND.NSTAT.GE.2) CALL WRGRFB4
     IF(KID.EQ.'P') CALL pl_gout
+    IF(KID.EQ.'?') CALL wr_grf_help
     IF(KID.EQ.'X') GOTO 9000
 
     GOTO 1
 
 9000 RETURN
   END SUBROUTINE WR_GOUT
+
+  SUBROUTINE wr_grf_help
+    IMPLICIT NONE
+
+    WRITE(6,*) 'GRAPH TYPE for ray:'
+    WRITE(6,*) ' 1: poloidal cross section, power vs rhon'
+    WRITE(6,*) ' 2: toroidal overview, power vs R'
+    WRITE(6,*) ' 3: n_para vs rhon, npara_vs R, k_perp vs rhon k_perp vs R'
+    WRITE(6,*) ' 4: k_R vs rhon, k_Z vs rhon, k_phi vs rhon, R*k_phi vs rhon'
+    WRITE(6,*) ' 5: polarization vs rhon'
+    WRITE(6,*) ' 6: resonamce curve on momentum space (normalized by p_th)'
+    WRITE(6,*) ' 7: resonamce curves on momentum space (normalized by p_th)'
+    WRITE(6,*) ' 8: resonamce curves on momentum space (normalized by c)'
+    WRITE(6,*) '     7,8 requires input of species and number of figures'
+    WRITE(6,*) '         then input rhon for each figures'
+    WRITE(6,*) ' 9: magnetic field and cyclotron resonance along ray'
+!    WRITE(6,*) 'GRAPH TYPE for beam:'
+!    WRITE(6,*) ' 1: beam and power vs rhon'
+!    WRITE(6,*) ' 2: beam width vs ray length, beam width vs rhon'
+!    WRITE(6,*) ' 3: '
+!    WRITE(6,*) ' 4: '
+    RETURN
+  END SUBROUTINE wr_grf_help
+    
 
 
 !     ***** POLOIDAL TRAJECTORY AND POWER *****
@@ -398,7 +417,7 @@ CONTAINS
        CALL GPLOTP(GX,GY,1,NSTPMAX_NRAY(NRAY)+1,1,0,0,0)
     ENDDO
 
-!   ----- draw deposition profile vs minor radius -----
+!   ----- draw deposition profile vs major radius -----
 
     DO nray=1,nraymax
        DO nrl=1,nrlmax
@@ -978,7 +997,7 @@ CONTAINS
           CALL wrcalk(nstp,nray,rkpara,rkperp)
           rnpara=rkpara*VC/omega
           IF(ABS(rnpara).LT.1.D0) THEN
-             DO nc=0,ncmax(1)  ! for electron only
+             DO nc=ncmin(1),ncmax(1)  ! for electron only
                 SELECT CASE(ABS(nc))
                 CASE(1)
                    line_pat=0
@@ -1396,6 +1415,284 @@ CONTAINS
 
     CALL pagee
   END SUBROUTINE WRGRF8
+
+    SUBROUTINE WRGRF9(ns)
+
+    USE wrcomm
+    USE plprof,ONLY:PL_MAG_OLD,pl_mag
+    IMPLICIT NONE
+
+    INTEGER,INTENT(IN):: ns
+    REAL:: GKX(NSTPMAX+1,NRAYMAX)
+    REAL:: GKY(NSTPMAX+1,NRAYMAX)
+    INTEGER:: NRAY,NSTP
+    REAL:: GXMIN,GXMAX,GXSTEP
+    REAL:: GYMIN1,GYMAX1,GYMIN,GYMAX,GYSTEP,GYORG
+    REAL(rkind):: XL,YL,ZL,RHON,omega,omegac,rf
+    REAL:: GKXL,GKYL
+    INTEGER:: NC
+    TYPE(pl_mag_type):: mag
+    EXTERNAL GMNMX1,GQSCAL,PAGES,SETCHS,SETFNT,SETLIN,SETRGB,PAGEE
+    EXTERNAL GDEFIN,GFRAME,GSCALE,GVALUE,GPLOTP,CONTP2
+    EXTERNAL MOVE,TEXT
+    INTEGER:: NGULEN
+    REAL:: GUCLIP
+
+    CALL PAGES
+    CALL SETFNT(32)
+    CALL SETCHS(0.25,0.)
+
+!     ----- X AXIS -----
+
+    DO NRAY=1,NRAYMAX
+       DO NSTP=0,NSTPMAX_NRAY(NRAY)
+          XL=RAYS(1,NSTP,NRAY)
+          YL=RAYS(2,NSTP,NRAY)
+          GKX( NSTP+1,NRAY)=SQRT(XL**2+YL**2)
+       ENDDO
+    ENDDO
+    CALL GQSCAL(GUCLIP(RMIN_EQ),GUCLIP(RMAX_eq),GXMIN,GXMAX,GXSTEP)
+
+!     ----- Fig.1 -----
+
+    DO NRAY=1,NRAYMAX
+       DO NSTP=0,NSTPMAX_NRAY(NRAY)
+          XL=RAYS(1,NSTP,NRAY)
+          YL=RAYS(2,NSTP,NRAY)
+          ZL=RAYS(3,NSTP,NRAY)
+          CALL PL_MAG(XL,YL,ZL,MAG)
+          GKY( NSTP+1,NRAY)=GUCLIP(mag%babs)
+       ENDDO
+    ENDDO
+    NRAY=1
+    CALL GMNMX1(GKY(1,NRAY),1,NSTPMAX_NRAY(NRAY)+1,1,GYMIN1,GYMAX1)
+    DO NRAY=2,NRAYMAX
+       CALL GMNMX1(GKY(1,NRAY),1,NSTPMAX_NRAY(NRAY)+1,1,GYMIN,GYMAX)
+       GYMIN1=MIN(GYMIN1,GYMIN)
+       GYMAX1=MAX(GYMAX1,GYMAX)
+    ENDDO
+    CALL GQSCAL(GYMIN1,GYMAX1,GYMIN,GYMAX,GYSTEP)
+
+    CALL SETLIN(0,2,7)
+    CALL MOVE(1.7,16.1)
+    CALL TEXT('B sv R',6)
+    CALL GDEFIN(1.7,11.7,9.0,16.0,GXMIN,GXMAX,GYMIN,GYMAX)
+    CALL GFRAME
+    GYORG=(INT(GYMIN/(2*GYSTEP))+1)*2*GYSTEP
+    CALL GSCALE(GXMIN,GXSTEP,GYORG,GYSTEP,0.1,9)
+    CALL GVALUE(GXMIN,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
+    CALL GVALUE(0.0,0.0,GYORG,2*GYSTEP,NGULEN(2*GYSTEP))
+    DO NRAY=1,NRAYMAX
+       CALL SETLIN(0,0,7-MOD(NRAY-1,5))
+       CALL GPLOTP(GKX(1,NRAY),GKY(1,NRAY),1,NSTPMAX_NRAY(NRAY)+1,1,0,0,0)
+    ENDDO
+
+!     ----- Fig.2 -----
+
+    DO NRAY=1,NRAYMAX
+       RF=RAYIN(1,NRAY)
+       omega=2.D0*PI*RF*1.D6
+       DO NSTP=0,NSTPMAX_NRAY(NRAY)
+          XL=RAYS(1,NSTP,NRAY)
+          YL=RAYS(2,NSTP,NRAY)
+          ZL=RAYS(3,NSTP,NRAY)
+          CALL PL_MAG(XL,YL,ZL,MAG)
+          omegac=PZ(ns)*AEE*mag%babs/(PA(ns)*AMP)
+          GKY( NSTP+1,NRAY)=GUCLIP(omega/omegac)
+       ENDDO
+    ENDDO
+    NRAY=1
+       CALL GMNMX1(GKY(1,NRAY),1,NSTPMAX_NRAY(NRAY)+1,1,GYMIN1,GYMAX1)
+    DO NRAY=2,NRAYMAX
+       CALL GMNMX1(GKY(1,NRAY),1,NSTPMAX_NRAY(NRAY)+1,1,GYMIN,GYMAX)
+       GYMIN1=MIN(GYMIN1,GYMIN)
+       GYMAX1=MAX(GYMAX1,GYMAX)
+    ENDDO
+    CALL GQSCAL(GYMIN1,GYMAX1,GYMIN,GYMAX,GYSTEP)
+
+    CALL SETLIN(0,2,7)
+    CALL MOVE(13.7,16.1)
+    CALL TEXT('omega/omegac vs R',17)
+    CALL GDEFIN(13.7,23.7,9.0,16.0,GXMIN,GXMAX,GYMIN,GYMAX)
+    CALL GFRAME
+    GYORG=(INT(GYMIN/(2*GYSTEP))+1)*2*GYSTEP
+    CALL GSCALE(GXMIN,GXSTEP,GYORG,GYSTEP,0.1,9)
+    CALL GVALUE(GXMIN,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
+    CALL GVALUE(0.0,0.0,GYORG,2*GYSTEP,NGULEN(2*GYSTEP))
+    DO NRAY=1,NRAYMAX
+       CALL SETLIN(0,0,7-MOD(NRAY-1,5))
+       CALL GPLOTP(GKX(1,NRAY),GKY(1,NRAY),1,NSTPMAX_NRAY(NRAY)+1,1,0,0,0)
+    ENDDO
+    
+    DO NRAY=1,NRAYMAX
+       IF(GKY(1,NRAY).LT.GKY(NSTPMAX_NRAY(NRAY),NRAY)) THEN
+          DO NC=NCMIN(ns),NCMAX(ns)
+             DO NSTP=1,NSTPMAX_NRAY(NRAY)-1
+                IF(NC-GKY(NSTP,NRAY).GT.0.D0.AND. &
+                   NC-GKY(NSTP+1,NRAY).LT.0.D0) THEN
+                   ! (GKY(NSTP+1)-GKY(NSTP))/(GKX(NSTP+1)-GKX(NSTP))
+                   ! *(GKXL-GKX(NSTP))+GKY(NSTP)=NC
+                   GKXL=(NC-GKY(NSTP,NRAY)) &
+                        *(GKX(NSTP+1,NRAY)-GKX(NSTP,NRAY)) &
+                        /(GKY(NSTP+1,NRAY)-GKY(NSTP,NRAY))+GKX(NSTP,NRAY)
+                   GKYL=NC
+                   CALL MOVE2D(GKXL,GKYL-0.1)
+                   CALL DRAW2D(GKXL,GKYL+0.1)
+                   CALL GNUMBI2D(GKXL,GKYL+0.2,NC,2)
+                END IF
+             END DO
+          END DO
+       ELSE
+          DO NC=NCMIN(ns),NCMAX(ns)
+             DO NSTP=1,NSTPMAX_NRAY(NRAY)-1
+                IF(NC-GKY(NSTP+1,NRAY).GT.0.D0.AND. &
+                   NC-GKY(NSTP,NRAY).LT.0.D0) THEN
+                   ! (GKY(NSTP)-GKY(NSTP+1))/(GKX(NSTP)-GKX(NSTP+1))
+                   ! *(GKXL-GKX(NSTP+1))+GKY(NSTP+1)=NC
+                   GKXL=(NC-GKY(NSTP+1,NRAY)) &
+                        *(GKX(NSTP,NRAY)-GKX(NSTP+1,NRAY)) &
+                        /(GKY(NSTP,NRAY)-GKY(NSTP+1,NRAY))+GKX(NSTP+1,NRAY)
+                   GKYL=NC
+                   CALL MOVE2D(GKXL,GKYL-0.1)
+                   CALL DRAW2D(GKXL,GKYL+0.1)
+                   CALL GNUMBI2D(GKXL,GKYL+0.2,NC,2)
+                END IF
+             END DO
+          END DO
+       END IF
+    END DO
+    
+!     ----- X AXIS -----
+
+    DO NRAY=1,NRAYMAX
+       DO NSTP=0,NSTPMAX_NRAY(NRAY)
+          XL=RAYS(1,NSTP,NRAY)
+          YL=RAYS(2,NSTP,NRAY)
+          ZL=RAYS(3,NSTP,NRAY)
+          CALL PL_MAG_OLD(XL,YL,ZL,RHON)
+          GKX( NSTP+1,NRAY)=GUCLIP(RHON)
+       ENDDO
+    ENDDO
+    CALL GQSCAL(0.0,GUCLIP(ra_wr),GXMIN,GXMAX,GXSTEP)
+
+!     ----- Fig.3 -----
+
+    DO NRAY=1,NRAYMAX
+       RF=RAYIN(1,NRAY)
+       omega=2.D0*PI*RF*1.D6
+       DO NSTP=0,NSTPMAX_NRAY(NRAY)
+          XL=RAYS(1,NSTP,NRAY)
+          YL=RAYS(2,NSTP,NRAY)
+          ZL=RAYS(3,NSTP,NRAY)
+          CALL PL_MAG(XL,YL,ZL,MAG)
+          GKY( NSTP+1,NRAY)=GUCLIP(mag%babs)
+       ENDDO
+    ENDDO
+    NRAY=1
+       CALL GMNMX1(GKY(1,NRAY),1,NSTPMAX_NRAY(NRAY)+1,1,GYMIN1,GYMAX1)
+    DO NRAY=2,NRAYMAX
+       CALL GMNMX1(GKY(1,NRAY),1,NSTPMAX_NRAY(NRAY)+1,1,GYMIN,GYMAX)
+       GYMIN1=MIN(GYMIN1,GYMIN)
+       GYMAX1=MAX(GYMAX1,GYMAX)
+    ENDDO
+    CALL GQSCAL(GYMIN1,GYMAX1,GYMIN,GYMAX,GYSTEP)
+
+    CALL SETLIN(0,2,7)
+    CALL MOVE(1.7,8.1)
+    CALL TEXT('B vs rhon',5)
+    CALL GDEFIN(1.7,11.7,1.0,8.0,0.0,GXMAX,GYMIN,GYMAX)
+    CALL GFRAME
+    GYORG=(INT(GYMIN/(2*GYSTEP))+1)*2*GYSTEP
+    CALL GSCALE(0.0,GXSTEP,GYORG,GYSTEP,0.1,9)
+    CALL GVALUE(0.0,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
+    CALL GVALUE(0.0,0.0,GYORG,2*GYSTEP,NGULEN(2*GYSTEP))
+    DO NRAY=1,NRAYMAX
+       CALL SETLIN(0,0,7-MOD(NRAY-1,5))
+       CALL GPLOTP(GKX(1,NRAY),GKY(1,NRAY),1,NSTPMAX_NRAY(NRAY)+1,1,0,0,0)
+    ENDDO
+
+!     ----- Fig.2 -----
+
+    DO NRAY=1,NRAYMAX
+       RF=RAYIN(1,NRAY)
+       omega=2.D0*PI*RF*1.D6
+       DO NSTP=0,NSTPMAX_NRAY(NRAY)
+          XL=RAYS(1,NSTP,NRAY)
+          YL=RAYS(2,NSTP,NRAY)
+          ZL=RAYS(3,NSTP,NRAY)
+          CALL PL_MAG(XL,YL,ZL,MAG)
+          omegac=PZ(ns)*AEE*mag%babs/(PA(ns)*AMP)
+          GKY( NSTP+1,NRAY)=GUCLIP(omega/omegac)
+       ENDDO
+    ENDDO
+    NRAY=1
+       CALL GMNMX1(GKY(1,NRAY),1,NSTPMAX_NRAY(NRAY)+1,1,GYMIN1,GYMAX1)
+    DO NRAY=2,NRAYMAX
+       CALL GMNMX1(GKY(1,NRAY),1,NSTPMAX_NRAY(NRAY)+1,1,GYMIN,GYMAX)
+       GYMIN1=MIN(GYMIN1,GYMIN)
+       GYMAX1=MAX(GYMAX1,GYMAX)
+    ENDDO
+    CALL GQSCAL(GYMIN1,GYMAX1,GYMIN,GYMAX,GYSTEP)
+
+    CALL SETLIN(0,2,7)
+    CALL MOVE(13.7,16.1)
+    CALL TEXT('omega/omegac vs R',17)
+    CALL GDEFIN(13.7,23.7,1.0,8.0,0.0,GXMAX,GYMIN,GYMAX)
+    CALL GFRAME
+    GYORG=(INT(GYMIN/(2*GYSTEP))+1)*2*GYSTEP
+    CALL GSCALE(0.0,GXSTEP,GYORG,GYSTEP,0.1,9)
+    CALL GVALUE(0.0,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
+    CALL GVALUE(0.0,0.0,GYORG,2*GYSTEP,NGULEN(2*GYSTEP))
+    DO NRAY=1,NRAYMAX
+       CALL SETLIN(0,0,7-MOD(NRAY-1,5))
+       CALL GPLOTP(GKX(1,NRAY),GKY(1,NRAY),1,NSTPMAX_NRAY(NRAY)+1,1,0,0,0)
+    ENDDO
+    
+    DO NRAY=1,NRAYMAX
+       IF(GKY(1,NRAY).LT.GKY(NSTPMAX_NRAY(NRAY),NRAY)) THEN
+          DO NC=NCMIN(ns),NCMAX(ns)
+             DO NSTP=1,NSTPMAX_NRAY(NRAY)-1
+                IF(NC-GKY(NSTP,NRAY).GT.0.D0.AND. &
+                   NC-GKY(NSTP+1,NRAY).LT.0.D0) THEN
+                   ! (GKY(NSTP+1)-GKY(NSTP))/(GKX(NSTP+1)-GKX(NSTP))
+                   ! *(GKXL-GKX(NSTP))+GKY(NSTP)=NC
+                   GKXL=(NC-GKY(NSTP,NRAY)) &
+                        *(GKX(NSTP+1,NRAY)-GKX(NSTP,NRAY)) &
+                        /(GKY(NSTP+1,NRAY)-GKY(NSTP,NRAY))+GKX(NSTP,NRAY)
+                   GKYL=NC
+                   CALL MOVE2D(GKXL,GKYL-0.1)
+                   CALL DRAW2D(GKXL,GKYL+0.1)
+                   CALL GNUMBI2D(GKXL,GKYL+0.2,NC,2)
+                END IF
+             END DO
+          END DO
+       ELSE
+          DO NC=NCMIN(ns),NCMAX(ns)
+             DO NSTP=1,NSTPMAX_NRAY(NRAY)-1
+                IF(NC-GKY(NSTP+1,NRAY).GT.0.D0.AND. &
+                   NC-GKY(NSTP,NRAY).LT.0.D0) THEN
+                   ! (GKY(NSTP)-GKY(NSTP+1))/(GKX(NSTP)-GKX(NSTP+1))
+                   ! *(GKXL-GKX(NSTP+1))+GKY(NSTP+1)=NC
+                   GKXL=(NC-GKY(NSTP+1,NRAY)) &
+                        *(GKX(NSTP,NRAY)-GKX(NSTP+1,NRAY)) &
+                        /(GKY(NSTP,NRAY)-GKY(NSTP+1,NRAY))+GKX(NSTP+1,NRAY)
+                   GKYL=NC
+                   CALL MOVE2D(GKXL,GKYL-0.1)
+                   CALL DRAW2D(GKXL,GKYL+0.1)
+                   CALL GNUMBI2D(GKXL,GKYL+0.2,NC,2)
+                END IF
+             END DO
+          END DO
+       END IF
+    END DO
+    
+
+    CALL WRGPRM(1)
+    CALL PAGEE
+    RETURN
+  END SUBROUTINE WRGRF9
+
+!     ***** magnetic field along the ray *****
 
   SUBROUTINE setup_nray(rhon,nstp_nray,ierr)
     USE wrcomm

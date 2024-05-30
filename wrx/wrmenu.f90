@@ -34,7 +34,7 @@ CONTAINS
     1 CONTINUE
          IERR=0
          WRITE(6,601)
-  601    FORMAT('## WR MENU: P,V/PARM  R,B/RAY  G/GRAPH  S,L,W/FILE', &
+  601    FORMAT('## WR MENU: P,V/PARM  R/RAY  G/GRAPH  S,L,W/FILE', &
               '  Dn/DISP  F/ROOT  Q/QUIT')
          CALL TASK_KLIN(LINE,KID,MODE,WR_PARM)
 !         IF(MODE.EQ.3) STOP
@@ -49,6 +49,7 @@ CONTAINS
       ELSEIF(KID.EQ.'D') THEN
          CALL wr_prep(ierr)
          IF(ierr.NE.0) GO TO 1
+         WRITE(6,*) '## input NID: 1,2,3'
          READ(LINE(2:),*,ERR=1,END=1) NID
          IF(NID.EQ.1) THEN
             CALL DPGRP1
