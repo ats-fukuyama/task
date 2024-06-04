@@ -112,7 +112,7 @@ CONTAINS
          '## width,xp,xm :', xp-xm,xp,xm
     
     WRITE(6,'(A,3ES12.4)') &
-         '##     max: x,den:',x_max,EXP(-alfa*x_max)
+         '## *** max: x,den:',x_max,EXP(-alfa*x_max)
 
     s0=0.5D0*s_max
     xp=x_nx(nxpos)
@@ -218,7 +218,7 @@ CONTAINS
     WRITE(6,'(A,3ES12.4)') &
          '## spos:', s0,s1,s2
     WRITE(6,'(A,3ES12.4)') &
-         '## x_max, s_max, 2nd deriv:', x_max,s_max,d
+         '## x_max, s_max, density:', x_max,s_max,dexp(-alfa*x_max)
 
     ! position xp and xm where s=0.5D0*s_max
     !   x1   xp    x2

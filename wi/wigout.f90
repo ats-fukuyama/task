@@ -536,9 +536,9 @@ CONTAINS
     S=AIMAG(CZ)
     CALL NUMBD(S,'(F9.5)',9)
     CALL MOVE(6.0,17.2)
-    CALL TEXT('< CBX >',7)
-    CALL MOVE(6.0,8.2)
     CALL TEXT('< CBY >',7)
+    CALL MOVE(6.0,8.2)
+    CALL TEXT('< CBZ >',7)
     CALL MOVE(19.4,8.2)
     CALL TEXT('< POWER >',9)
     CALL PAGEE
