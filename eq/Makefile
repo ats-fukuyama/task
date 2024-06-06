@@ -14,6 +14,7 @@ FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
 MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I../pl/$(MOD) -I../lib/$(MOD)
+OBJDIR=./obj
 
 SRCX = equcom.f90 equread.f90 eqlib.f90
 SRCS = eqbpsd.f eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f \
@@ -57,7 +58,7 @@ all : libs eq
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 libeq.a: $(OBJS) $(OBJ2D)
-	(cd ../pl; make plcomm.o)
+	(cd ../pl; make $(OBJDIR)/plcomm.o)
 	$(LD) $(LDFLAGS) libeq.a $(OBJS) $(OBJ2D)
 libeq3.a: $(OBJS) $(OBJ3D)
 	$(LD) $(LDFLAGS) libeq3.a $(OBJS) $(OBJ3D)
