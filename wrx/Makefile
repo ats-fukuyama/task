@@ -96,28 +96,28 @@ $(OBJDIR)/wrcomm.o: $(WRCOMM)
 $(OBJDIR)/wrmain.o: wrmain.f90 $(WRCOMM) ../pl/plinit.f90 ../pl/plparm.f90 \
 ../dp/dpinit.f90 ../dp/dpparm.f90 wrinit.f90 wrparm.f90 wrmenu.f90
 $(OBJDIR)/wrmenu.o: wrmenu.f90 $(WRCOMM) ../pl/plparm.f90 ../dp/dpparm.f90 \
-../dp/dpcont.f90 wrparm.f90 wrsetup.f90 wrexec.f90 wrprep.f90 wrgout.f90 \
-wrfile.f90 
+../dp/dproot.f90 ../dp/dpcont.f90 wrparm.f90 wrview.f90 wrprep.f90 \
+wrsetup.f90 wrexec.f90 wrgout.f90 wrfile.f90 
 $(OBJDIR)/wrinit.o: wrinit.f90 $(WRCOMM)
-$(OBJDIR)/wrparm.o: wrparm.f90 $(WRCOMM) ../dp/dpparm.f90 
+$(OBJDIR)/wrparm.o: wrparm.f90 $(WRCOMM) ../dp/dpparm.f90
 $(OBJDIR)/wrview.o: wrview.f90 $(WRCOMM)
-$(OBJDIR)/wrprep.o: wrprep.f90 $(WRCOMM)
+$(OBJDIR)/wrprep.o: wrprep.f90 $(WRCOMM) ../dp/dpparm.f90 ../eq/equnit.f
 $(OBJDIR)/wrsetup.o: wrsetup.f90 $(WRCOMM)
-$(OBJDIR)/wrcalpwr.o: wrcalpwr.f90 $(WRCOMM)
-$(OBJDIR)/wrfdrv.o: wrfdrv.f90 $(WRCOMM)
-$(OBJDIR)/wroxb.o: wroxb.f90 $(WRCOMM)
+$(OBJDIR)/wrcalpwr.o: wrcalpwr.f90 $(WRCOMM) ../pl/plprof.f90 \
+../pl/plprof.f90 
+$(OBJDIR)/wrfdrv.o: wrfdrv.f90 $(WRCOMM) wrsub.f90
+$(OBJDIR)/wroxb.o: wroxb.f90 $(WRCOMM) ../pl/plprof.f90 \
+wrfdrv.f90 wrsub.f90 ../dp/dpdisp.f90
 
-$(OBJDIR)/wrexecr.o: wrexecr.f90 $(WRCOMM) ../pl/plprof.f90 ../dp/dpdisp.f90 \
-wrsub.f90 wrcalpwr.f90 wrfdrv.f90
-$(OBJDIR)/wrexecb.o: wrexecb.f90 $(WRCOMM) ../pl/plprof.f90 ../dp/dpdisp.f90 \
+$(OBJDIR)/wrexecr.o: wrexecr.f90 $(WRCOMM) ../pl/plprof.f90 \
+wrsub.f90 wrcalpwr.f90 wrfdrv.f90 wroxb.f90 
+$(OBJDIR)/wrexecb.o: wrexecb.f90 $(WRCOMM) ../pl/plprof.f90 \
 wrsub.f90
 $(OBJDIR)/wrexec.o: wrexec.f90 $(WRCOMM) wrexecr.f90 wrexecb.f90
 
-$(OBJDIR)/wrsetup.o: wrsetup.f90 $(WRCOMM) wrsetupr.f90 wrsetupb.f90
-$(OBJDIR)/wrsub.o: wrsub.f90 $(WRCOMM) ../pl/plprof.f90 ../dp/dppola.f90 \
-../dp/dpdisp.f90
+$(OBJDIR)/wrsetup.o: wrsetup.f90 $(WRCOMM)
+$(OBJDIR)/wrsub.o: wrsub.f90 $(WRCOMM)  ../pl/plprof.f90 \
+../pl/plprofw.f90 ../dp/dpdisp.f90 ../dp/dppola.f90 ../dp/dpdisp.f90
 $(OBJDIR)/wrgout.o: wrgout.f90 $(WRCOMM) ../pl/plprof.f90 ../pl/plgout.f90 \
 wrsub.f90 
-$(OBJDIR)/wrfile.o: wrfile.f90 $(WRCOMM)
-
-$(OBJDIR)/wrfile.o: wrfile.f90
+$(OBJDIR)/wrfile.o: wrfile.f90 $(WRCOMM) wrcalpwr.f90
