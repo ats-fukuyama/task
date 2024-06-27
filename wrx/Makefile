@@ -1,4 +1,4 @@
-### Madefile for wr
+### Makefile for wr
 
 include ../make.header
 include ../mtxp/make.mtxp

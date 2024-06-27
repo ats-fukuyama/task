@@ -1,52 +1,57 @@
-# DEFINE F90
-include compiler.mk
-# SET COMPILER OPTIONS
-ifeq ($(F90), ifort)
-# INTEL - LINKS TO THE IMAS LIBRARY AND INCLUDE DIRECTORY
-  F90FLAGS=-fPIC -fpp -g # FPIC AND PREPROCESSING OPTIONS
-  F90INC=-I. `pkg-config imas-ifort --cflags` -I../lib
-  F90LIB=`pkg-config imas-ifort --libs`
-else ifeq ($(F90), gfortran)
-# GFORTRAN - LINKS TO THE IMAS LIBRARY AND INCLUDE DIRECTORY
-  F90FLAGS=-fPIC -cpp # FPIC AND PREPROCESSING OPTIONS
-  F90INC=-I. `pkg-config imas-gfortran --cflags`
-  F90LIB=`pkg-config imas-gfortran --libs`
-else
-  $(warning Unsupported Fortran compiler $(F90), proceed with care...)
-  F90FLAGS=-fPIC -cpp # FPIC AND PREPROCESSING OPTIONS
-  F90INC=-I. `pkg-config imas-gfortran --cflags`
-  F90LIB=`pkg-config imas-gfortran --libs`
-endif
+### Makefile for task/imas
+
+include ../make.header
+include ../mtxp/make.mtxp
+
+#LIB_MTX=$(LIB_MTX_NOMPI)
+#LIBX_MTX=$(LIBX_MTX_NOMPI)
+#LIB_MTX=$(LIB_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_PCG)
+#LIB_MTX=$(LIB_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIB_MTX=$(LIBXMTX_KSP)
+#LIBX_MTX=$(LIBX_MTX_KSP)
+
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 MOD=mod
-MODINCLUDE = -I./$(MOD) -I../lib/$(MOD)
-F90INCMOD=$(F90INC) $(MODINCLUDE)
+MODINCLUDE= -I./$(MOD) \
+            -I../lib/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
 OBJDIR=./obj
+${OBJDIR}/%.o:%.f90
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+${OBJDIR}/%.o:%.f
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+
+F90INCMOD=$(F90INC) $(MODINCLUDE)
 
 # LIST OF FORTRAN FILES
 OBJS_ACTOR = $(OBJDIR)/wr_imas.o
 OBJS_STDA  = $(OBJDIR)/wr_standalone.o
 
+LIB_AL=`pkg-config --libs --cflags al-fortran`
+
 all: lib exe actor
 
-lib: libwr_imas.a
-
-exe: wr_standalone.exe
-
-orig: wr_original.exe
-
-# STANDALONE COMPILATION
-wr_standalone.exe: libwr_imas.a ${OBJS_STDA}
-	$(F90) ${F90FLAGS} -o wr_standalone.exe ${OBJS_STDA} $(F90LIB) -L. -lwr_imas
-
 # LIBRARY COMPILATION
+lib: libwr_imas.a
 libwr_imas.a: ${OBJS_ACTOR}
 	ar -cr $@ $^
 
+# STANDALONE COMPILATION
+exe: wr_standalone.exe
+wr_standalone.exe: libwr_imas.a ${OBJS_STDA}
+	$(F90) ${F90FLAGS} -o wr_standalone.exe ${OBJS_STDA} $(F90LIB) -L. -lwr_imas
+
+orig: wr_original.exe
+
+
+
 # COMPILE THE ACTOR
 task_wr_actor: libwr_imas_wr.a
-	sed 's/__COMPILER__/${F90}/g'task_wr_template.xml > task_wr.xml
+	sed 's/__COMPILER__/${F90}/g' task_wr_template.xml > task_wr.xml
 	$(FC2K)/bin/fc2k task_wr.xml -nokepler -pyworkspace $(ACTOR_FOLDER)
 
 actor: libphysics_model_level1.a 
