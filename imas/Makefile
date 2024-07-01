@@ -17,6 +17,7 @@ FFLAGS=$(DFLAGS)
 
 MOD=mod
 MODINCLUDE= -I./$(MOD) \
+            -I../pl/$(MOD) -I../eq/$(MOD) \
             -I../lib/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
 OBJDIR=./obj
@@ -25,13 +26,13 @@ ${OBJDIR}/%.o:%.f90
 ${OBJDIR}/%.o:%.f
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-F90INCMOD=$(F90INC) $(MODINCLUDE)
+LIB_AL=`pkg-config --libs --cflags al-fortran`
+F90INCMOD=$(LIB_AL) $(MODINCLUDE)
 
 # LIST OF FORTRAN FILES
 OBJS_ACTOR = $(OBJDIR)/wr_imas.o
 OBJS_STDA  = $(OBJDIR)/wr_standalone.o
 
-LIB_AL=`pkg-config --libs --cflags al-fortran`
 
 all: lib exe actor
 
