@@ -522,7 +522,8 @@ CONTAINS
 
       CALL BESJNV(NMAX,X,BJN,IERR)
       IF(IERR.NE.0) THEN
-         WRITE(6,*) 'XX BESSJN: BESJNV error: IERR=',IERR
+         WRITE(6,'(A,I4,ES12.4,I4)') &
+              'XX BESSJN: BESJNV error: NMAX,X,IERR=',NMAX,X,IERR
          STOP
       END IF
 

@@ -137,6 +137,7 @@ END MODULE wmcomm_parm
 MODULE wmcomm
 
   USE wmcomm_parm
+  USE dpcomm,ONLY: ns_nsa_dp
   USE commpi
   IMPLICIT NONE
 
@@ -276,6 +277,7 @@ CONTAINS
     INTEGER,SAVE:: INIT=0
     INTEGER:: npow
 
+    WRITE(6,*) '@@@ point 0'
     IF(nhhmax.EQ.1) THEN
        IF(nppmax.EQ.1) THEN
           nphmax=1
@@ -312,6 +314,7 @@ CONTAINS
        mlen=mblock_size*(nrmax+2)
     END SELECT
 
+    WRITE(6,*) '@@@ point 01'
     IF(nthmax.EQ.1) THEN
        nthmax_f=1
     ELSE
@@ -340,6 +343,7 @@ CONTAINS
        CALL wm_deallocate
     END IF
 
+    WRITE(6,*) '@@@ point 02'
     ALLOCATE(XR(nrmax+1),XRHO(nrmax+1),XTH(nthmax+1),XTHF(nthmax_f+1))
     ALLOCATE(nph0_npp(nppmax),nph_nhh_npp(nhhmax,nppmax))
     ALLOCATE(CJANT(3,nthmax,nhhmax))
@@ -439,6 +443,7 @@ CONTAINS
 
     ALLOCATE(KACONT(8,nrmax+1,nthmax_f))
 
+    WRITE(6,*) '@@@ point 03'
     nrmax_save=nrmax
     nthmax_save=nthmax
     nhhmax_save=nhhmax

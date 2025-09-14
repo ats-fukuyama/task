@@ -10,16 +10,21 @@ CONTAINS
   SUBROUTINE wr_exec(nstat,ierr)
 
     USE wrcomm
+    USE dpprep
     USE wrexecr
     USE wrexecb
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: nstat,ierr
 
+    nstat=0
     IF(Rmax_wr.EQ.0.D0) Rmax_wr=RR+bdr_threshold*RA
     IF(Rmin_wr.EQ.0.D0) Rmin_wr=RR-bdr_threshold*RA
     IF(Rmin_wr.LT.0.D0) Rmin_wr=0.D0
     IF(Zmax_wr.EQ.0.D0) Zmax_wr= bdr_threshold*rkap*RA
     IF(Zmin_wr.EQ.0.D0) Zmin_wr=-bdr_threshold*rkap*RA
+
+    CALL dp_prep_ns(ierr)
+    IF(ierr.NE.0) RETURN
 
     IF(mode_beam.EQ.0) THEN
        CALL wr_exec_rays(ierr)

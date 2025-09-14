@@ -1168,6 +1168,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       USE dpdisp,ONLY: dp_dtns_pzp
       USE plprofw
       USE plprof
+      USE plcomm_type
       IMPLICIT NONE
       real(8),intent(in):: rho,th,ph
       integer,intent(in):: mm,nn,ns

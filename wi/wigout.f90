@@ -400,25 +400,25 @@ CONTAINS
     CBX(J)=(CFY(JD+1)-CFY(JD-1))/(xgrid(J-1)-xgrid(J-2))
     CBY(J)=(CFY(JD+2)-CFY(JD  ))/(xgrid(J-1)-xgrid(J-2))
 
-    ABYMAX=0.D0
-    NXABMAX=1
-    DO NX=1,NXMAX+1
-       ABY=ABS(CBY(NX))
-       IF(ABY.GT.ABYMAX) THEN
-          ABYMAX=ABY
-          NXABMAX=NX
-       END IF
-    END DO
-    WRITE(6,'(A,I6,2ES12.4)') 'ABS(BY)-max: ',NXABMAX,xgrid(NXABMAX),ABYMAX
-    HABYMAX=0.5D0*ABYMAX
-    DO NX=1,NXMAX
-       ABY1=ABS(CBY(NX))
-       ABY2=ABS(CBY(NX+1))
-       IF((ABY1-HABYMAX)*(ABY2-HABYMAX).LT.0.D0) THEN
-          XHAB=xgrid(NX)+(HABYMAX-ABY1)/(ABY2-ABY1)*(xgrid(NX+1)-xgrid(NX))
-          WRITE(6,'(A,I6,2ES12.4)') 'ABS(BY)-half:',NX,XHAB,HABYMAX
-       END IF
-    END DO
+!    ABYMAX=0.D0
+!    NXABMAX=1
+!    DO NX=1,NXMAX+1
+!       ABY=ABS(CBY(NX))
+!       IF(ABY.GT.ABYMAX) THEN
+!          ABYMAX=ABY
+!          NXABMAX=NX
+!       END IF
+!    END DO
+!    WRITE(6,'(A,I6,2ES12.4)') 'ABS(BY)-max: ',NXABMAX,xgrid(NXABMAX),ABYMAX
+!    HABYMAX=0.5D0*ABYMAX
+!    DO NX=1,NXMAX
+!       ABY1=ABS(CBY(NX))
+!       ABY2=ABS(CBY(NX+1))
+!       IF((ABY1-HABYMAX)*(ABY2-HABYMAX).LT.0.D0) THEN
+!          XHAB=xgrid(NX)+(HABYMAX-ABY1)/(ABY2-ABY1)*(xgrid(NX+1)-xgrid(NX))
+!          WRITE(6,'(A,I6,2ES12.4)') 'ABS(BY)-half:',NX,XHAB,HABYMAX
+!       END IF
+!    END DO
 
     DO J=1,NXMAX+1
        SCR(J)=GUCLIP(REAL(CBX(J)))

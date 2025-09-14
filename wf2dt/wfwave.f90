@@ -125,18 +125,23 @@ end subroutine WFWPRE
 
 subroutine DTENSR(NE,DTENS)
 
-  use wfcomm
+  use wfcomm,xmin_div=>BDRMIN,xmax_div=>BDRMAX, &
+       ymin_div=>BDZMIN,ymax_div=>BDZMAX, &
+       xdamp_min=>RDAMP_MIN,xdamp_max=>RDAMP_MAX, &
+       ydamp_min=>ZDAMP_MIN,ydamp_max=>ZDAMP_MAX
+       
   implicit none
   integer,intent(in) :: NE
   integer :: IN,I,J,ID
   complex(rkind),intent(out):: DTENS(NSM,3,3,3)
   integer    :: NS,NN
-  real(rkind)    :: R,Z,WW,WP(NSM),WC(NSM),BABS,AL(3),RN(NSM),RTPR(NSM)
-  real(rkind)    :: RTPP(NSM),RZCL(NSM),FP,FR,FZ,DR,DZ,F
+  REAL(rkind):: x,y,r,th,del
+  real(rkind)    :: WW,WP(NSM),WC(NSM),BABS,AL(3),RN(NSM),RTPR(NSM)
+  real(rkind)    :: RTPP(NSM),RZCL(NSM),FP,FR,FZ,F
   complex(rkind) :: CWP,CWC,CDT0,CDX0,CDP0,CDT,CDP,CDX,CDAMP
   complex(rkind) :: CRR,CRP,CRZ,CPR,CPP,CPZ,CZR,CZP,CZZ
 
-  ! ----- initialize -----  
+  ! ----- initialize -----
 
   do J=1,3
      do I=1,3
@@ -161,15 +166,15 @@ subroutine DTENSR(NE,DTENS)
   do IN=1,3
      
      NN=NDELM(IN,NE)
-     R=RNODE(NN)
-     Z=ZNODE(NN)
-     
-     CALL WFSMAG(R,Z,BABS,AL)
+     x=RNODE(NN)
+     y=ZNODE(NN)
+
+     CALL WFSMAG(x,y,BABS,AL)
      FR=AL(1)
      FP=AL(2)
      FZ=AL(3)
      
-     CALL WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
+     CALL WFSDEN(x,y,RN,RTPR,RTPP,RZCL)
 
      do NS=1,NSMAX
         
@@ -203,61 +208,91 @@ subroutine DTENSR(NE,DTENS)
         DTENS(NS,IN,3,2)=DTENS(NS,IN,3,2)-CZP
         DTENS(NS,IN,3,3)=DTENS(NS,IN,3,3)-CZZ
 
-     END do
+     END DO
 
 
      IF(WDAMP.GT.0.D0) THEN
-        CDAMP=CII*PZCL(NSMAX)
-        F=FDAMP
-        IF(R-BDRMIN.LT.WDAMP) THEN
-           ID=1
-           IF(MDAMP.EQ.1.AND. &
-              Z.GT.ZDAMP_MIN.AND.Z.LT.ZDAMP_MAX) ID=0
-           IF(ID.EQ.1) THEN
-              DR=R-BDRMIN
-!              DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DR)/(DR-CDAMP)
-              DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DR)/(DR-CDAMP)
-              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DR)/(DR-CDAMP)
+        ID=0
+        SELECT CASE(mode_div)
+        CASE(1,3) ! rect and layer
+           IF(x-xmin_div.LT.WDAMP) THEN
+              ID=1
+              DEL=x-xmin_div
+              IF(MDAMP.EQ.1.AND. &
+                   y.GT.ydamp_min.AND.y.LT.ydamp_max) ID=0
            END IF
-        END IF
-        IF(BDRMAX-R.LT.WDAMP) THEN
-           ID=1
-           IF(MDAMP.EQ.2.AND. &
-              Z.GT.ZDAMP_MIN.AND.Z.LT.ZDAMP_MAX) ID=0
-           IF(ID.EQ.1) THEN
-              DR=BDRMAX-R
-!              DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DR)/(DR-CDAMP)
-              DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DR)/(DR-CDAMP)
-              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DR)/(DR-CDAMP)
+           IF(xmax_div-x.LT.WDAMP) THEN
+              ID=2
+              DEL=xmax_div-x
+              IF(MDAMP.EQ.2.AND. &
+                   y.GT.ydamp_min.AND.y.LT.ydamp_max) ID=0
            END IF
-        END IF
-        IF(Z-BDZMIN.LT.WDAMP) THEN
-           ID=1
-           IF(MDAMP.EQ.3.AND. &
-              R.GT.RDAMP_MIN.AND.R.LT.RDAMP_MAX) ID=0
-           IF(ID.EQ.1) THEN
-              DZ=Z-BDZMIN
-              DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DZ)/(DZ-CDAMP)
-              DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DZ)/(DZ-CDAMP)
-!              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DZ)/(DZ-CDAMP)
+           IF(y-ymin_div.LT.WDAMP) THEN
+              ID=3
+              DEL=y-ymin_div
+              IF(MDAMP.EQ.3.AND. &
+                   x.GT.xdamp_min.AND.x.LT.xdamp_max) ID=0
            END IF
-        END IF
-        IF(BDZMAX-Z.LT.WDAMP) THEN
-           ID=1
-           IF(MDAMP.EQ.4.AND. &
-              R.GT.RDAMP_MIN.AND.R.LT.RDAMP_MAX) ID=0
-           IF(ID.EQ.1) THEN
-              DZ=BDZMAX-Z
-              DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DZ)/(DZ-CDAMP)
-              DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DZ)/(DZ-CDAMP)
-!              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DZ)/(DZ-CDAMP)
+           IF(ymax_div-y.LT.WDAMP) THEN
+              ID=4
+              DEL=ymax_div-y
+              IF(MDAMP.EQ.4.AND. &
+                   x.GT.xdamp_min.AND.x.LT.xdamp_max) ID=0
            END IF
+        CASE(2) ! arc
+           r=SQRT(x**2+y**2)
+           th=ATAN2(y,x)
+           IF(r-rmin_div.LT.WDAMP) THEN
+              ID=1
+              DEL=r-rmin_div
+              IF(MDAMP.EQ.1.AND. &
+                   th.GT.thdamp_min*PI/180.D0.AND. &
+                   th.LT.thdamp_max*PI/180.D0) ID=0
+           END IF
+           IF(rmax_div-r.LT.WDAMP) THEN
+              ID=2
+              DEL=rmax_div-r
+              th=ATAN2(y,x)
+              IF(MDAMP.EQ.2.AND. &
+                   th.GT.thdamp_min*PI/180.D0.AND. &
+                   th.LT.thdamp_max*PI/180.D0) ID=0
+           END IF
+           IF(r*(th-thmin_div*PI/180.D0).LT.WDAMP) THEN
+              ID=3
+              DEL=r*(th-thmin_div*PI/180.D0)
+           END IF
+           IF(r*(thmax_div*PI/180.D0-th).LT.WDAMP) THEN
+              ID=4
+              DEL=r*(thmax_div*PI/180.D0-th)
+           END IF
+        CASE(4) ! circle
+           r=SQRT((x-RR)**2+y**2)
+           IF(rmax_div-r.LT.WDAMP) THEN
+              ID=1
+              DEL=rmax_div-r
+              th=ATAN2(y,x)
+              IF(MDAMP.EQ.2.AND. &
+                   th.GT.thdamp_min.AND.th.LT.thdamp_max) ID=0
+           END IF
+        END SELECT
+!        IF(ID.NE.0) THEN
+!           WRITE(26,'(A,I4,5ES12.4)') 'id,x,y,r,th;',id,x,y,r,th*180.D0/PI,del
+!        END IF
+        IF(ID.NE.0) THEN
+           CDAMP=CII*PZCL(NSMAX)
+           F=FDAMP
+           DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1) &
+                +F*(WDAMP-DEL)/(DEL-CDAMP)
+           DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2) &
+                +F*(WDAMP-DEL)/(DEL-CDAMP)
+           DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3) &
+                +F*(WDAMP-DEL)/(DEL-CDAMP)
         END IF
      END IF
-  end do
+  END DO
 
-  return
-end subroutine DTENSR
+  RETURN
+END SUBROUTINE DTENSR
 
 !     ***** INTERPOLATION TENSOR *****
 
@@ -438,11 +473,12 @@ END SUBROUTINE CVCALC
 
 !     ****** LOCAL ELEMENT MATRIX  ******
 
-SUBROUTINE CMCALC(NE)
+SUBROUTINE CMCALC(NE,CM)
 
   USE wfcomm
   IMPLICIT NONE
   INTEGER,INTENT(IN):: NE
+  COMPLEX(rkind),INTENT(OUT):: CM(6,6)
   INTEGER:: I,J
 
   ! --- initialize CM ---
@@ -453,11 +489,11 @@ SUBROUTINE CMCALC(NE)
      END DO
   END DO
 
-  CALL CMCALCV(NE)
+  CALL CMCALCV(NE,CM)
 
-  CALL CMCALCS(NE)
+  CALL CMCALCS(NE,CM)
 
-  CALL CMCALCP(NE)
+  CALL CMCALCP(NE,CM)
 
   RETURN
 END SUBROUTINE CMCALC
@@ -465,11 +501,12 @@ END SUBROUTINE CMCALC
 
 !     ****** LOCAL ELEMENT MATRIX : volume integral ******
 
-SUBROUTINE CMCALCV(NE)
+SUBROUTINE CMCALCV(NE,CM)
 
   use wfcomm
   implicit none
   integer,intent(in) :: NE 
+  complex(rkind),INTENT(INOUT) :: CM(6,6)
   integer :: I,J,K,M,N,ISD,NSD
   complex(rkind) :: CM1(3,3)
   real(rkind) :: S,L(3)
@@ -694,11 +731,12 @@ END SUBROUTINE CMCALCV
 
 !     ****** LOCAL ELEMENT MATRIX : Surface integral ******
 
-SUBROUTINE CMCALCS(NE)
+SUBROUTINE CMCALCS(NE,CM)
 
   use wfcomm
   implicit none
   integer,intent(in) :: NE 
+  complex(rkind),INTENT(INOUT) :: CM(6,6)
   integer :: I,J,K,I1,J1,K1,ID,ISD,NSD,IND(2),ND1,ND2
   real(rkind) :: S,L(3),RN,ZN
   real(rkind) :: A(3),B(3),C(3),AW(3),BW(3),CW(3)
@@ -846,11 +884,12 @@ END SUBROUTINE CMCALCS
 
 !     ****** LOCAL ELEMENT MATRIX : Surface integral ******
 
-SUBROUTINE CMCALCP(NE)
+SUBROUTINE CMCALCP(NE,CM)
 
   use wfcomm
   implicit none
   integer,intent(in) :: NE 
+  complex(rkind),INTENT(INOUT) :: CM(6,6)
   integer :: I,J,K,NS,IN,JJ,II
   real(rkind) :: RW,WC,WC2
   real(rkind) :: S
@@ -873,6 +912,7 @@ SUBROUTINE CMCALCP(NE)
   ! ----- dielectric tensor term -----
 
   call DTENSR(NE,DTENS)
+
   call MUTENSR(NE,MU)
 
   DO J=1,6
@@ -1033,7 +1073,6 @@ SUBROUTINE PWRABS
 
   integer    :: NE,IN,NN,NSD,NS
   integer    :: I,J,K,II,JJ
-  real(rkind),dimension(:,:),ALLOCATABLE:: PABS
   real(rkind)    :: RW,S,MU(3,3,6),R(3),Z(3)
   complex(rkind) :: DTENS(NSM,3,3,3),CTENS(NSM,3,3,3)
   complex(rkind) :: CIWE,CINT(NSM,6,6),CE(6)
@@ -1062,8 +1101,6 @@ SUBROUTINE PWRABS
   END IF
 
   ! --- initialize ---
-  
-  allocate(PABS(NSMAX,NEMAX))
   
   RW=2.D0*PI*RF*1.D6
   CIWE=CII*RW*EPS0
@@ -1192,8 +1229,6 @@ SUBROUTINE PWRABS
   DO NS=1,NSMAX
      PABSTT=PABSTT+PABST(NS)
   END DO
-
-  deallocate(PABS)
 
   RETURN
 END SUBROUTINE PWRABS

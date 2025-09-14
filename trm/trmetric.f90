@@ -15,10 +15,10 @@ CONTAINS
 
       SUBROUTINE tr_set_metric(ierr)
 
-      USE trcomm, ONLY : modelg, nrmax, knameq, knameq2
-      USE trbpsd, ONLY: tr_bpsd_init,tr_bpsd_put,tr_bpsd_get
-      USE equnit, ONLY: eq_parm,eq_prof,eq_calc,eq_load
-      USE plvmec, ONLY: pl_vmec
+      USE trcomm
+      USE trbpsd
+      USE equnit
+      USE plvmec
       implicit none
       integer, intent(out):: ierr
       character(len=80):: line
@@ -68,46 +68,12 @@ CONTAINS
 
       SUBROUTINE TRSTGF
 
-      USE TRCOMM, ONLY : &
-           ABRHO, ABRHOU, AR1RHO, AR1RHOU, AR2RHO, AR2RHOU, ARRHO, &
-           ARRHOU, BB, BP, BPRHO, DVRHO, DVRHOU, EPSRHO, MDLUF, &
-           MDPHIA, NRMAX, PHIA, PI, QP, QRHO, RA, RG, &
-           RHOG, RHOM, RJCB, RKAP, RKPRHO, RKPRHOU, RM, RMJRHO, &
-           RMJRHOU, RMNRHO, RMNRHOU, RR, TTRHO, TTRHOU, VOLAU, &
-           ABVRHO, PVOLRHOG, PSURRHOG, ABB1RHO, rkind
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER :: NR
       REAL(rkind)    :: RKAPS, RHO_A
 
       RKAPS=SQRT(RKAP)
-      IF(MDLUF.NE.0) THEN
-         DO NR=1,NRMAX
-            TTRHO(NR)=TTRHOU(1,NR)
-            DVRHO(NR)=DVRHOU(1,NR)
-            ABRHO(NR)=ABRHOU(1,NR)
-            ABVRHO(NR)=DVRHO(NR)**2*ABRHO(NR)
-            ARRHO(NR)=ARRHOU(1,NR)
-            AR1RHO(NR)=AR1RHOU(1,NR)
-            AR2RHO(NR)=AR2RHOU(1,NR)
-            RMJRHO(NR)=RMJRHOU(1,NR)
-            RMNRHO(NR)=RMNRHOU(1,NR)
-            RKPRHO(NR)=RKPRHOU(1,NR)
-            IF(MDPHIA.EQ.0) THEN
-!     define rho_a from phi_a data
-               RHO_A=SQRT(PHIA/(PI*BB))
-               RJCB(NR)=1.D0/RHO_A
-               RHOM(NR)=RM(NR)*RHO_A
-               RHOG(NR)=RG(NR)*RHO_A
-            ELSE
-               RHO_A=SQRT(VOLAU(1)/(2.D0*PI**2*RMJRHOU(1,NRMAX)))
-               RJCB(NR)=1.D0/RHO_A
-               RHOM(NR)=RM(NR)/RJCB(NR)
-               RHOG(NR)=RG(NR)/RJCB(NR)
-            ENDIF
-            EPSRHO(NR)=RMNRHO(NR)/RMJRHO(NR)
-         ENDDO
-         CALL FLUX
-      ELSE
          DO NR=1,NRMAX
             BPRHO(NR)=BP(NR)
             QRHO(NR)=QP(NR)
@@ -130,40 +96,9 @@ CONTAINS
             PVOLRHOG(NR)=PI*RKAP*(RA*RG(NR))**2*2.D0*PI*RR
             PSURRHOG(NR)=PI*(RKAP+1.D0)*RA*RG(NR)*2.D0*PI*RR
          ENDDO
-      ENDIF
 
       RETURN
       END SUBROUTINE TRSTGF
-
-
-!     ***********************************************************
-
-!           CALCULATING FLUX FROM SOURCE TERM FILES
-
-!     ***********************************************************
-
-      SUBROUTINE FLUX
-
-      USE TRCOMM, ONLY : DR, DVRHO, MDLFLX, NRMAX, NSM, PZ, RGFLX, SNBU, SWLU, rkind
-      IMPLICIT NONE
-      INTEGER:: NR
-      REAL(rkind),DIMENSION(NRMAX)::  SALEL, SALIL
-
-
-      IF(MDLFLX.EQ.0) THEN
-         RGFLX(1:NRMAX,1:NSM)=0.D0
-      ELSE
-         DO NR=1,NRMAX
-            SALEL(NR)=SNBU(1,NR,1)+SWLU(1,NR)/PZ(2)
-            RGFLX(NR,1)=SUM(SALEL(1:NR)*DVRHO(1:NR))*DR
-            SALIL(NR)=SNBU(1,NR,2)+SWLU(1,NR)
-            RGFLX(NR,2)=SUM(SALIL(1:NR)*DVRHO(1:NR))*DR
-            RGFLX(NR,3:NSM)=0.D0
-         ENDDO
-      ENDIF
-
-      RETURN
-      END SUBROUTINE FLUX
 
 !     ***********************************************************
 
@@ -173,10 +108,7 @@ CONTAINS
 
       SUBROUTINE TRGFRG
 
-      USE TRCOMM, ONLY : &
-           ABB2RHOG, ABRHO, ABRHOG, AIB2RHOG, AR1RHO, AR1RHOG, AR2RHO, &
-           AR2RHOG, ARHBRHOG, ARRHO, ARRHOG, BB, DVRHO, DVRHOG, EPSRHO, &
-           NRMAX, RG, RKPRHO, RKPRHOG, RM, TTRHO, TTRHOG, ABVRHOG, rkind
+      USE trcomm
       USE libitp
       IMPLICIT NONE
       INTEGER :: NR

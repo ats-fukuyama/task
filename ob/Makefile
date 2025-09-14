@@ -2,8 +2,8 @@
 include ../make.header
 include ../mtxp/make.mtxp
 
-LIB_MTX=$(LIB_MTX_BND)
-LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_BND)
+#LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIB_MTX_PCG)
 #LIBX_MTX=$(LIBX_MTX_PCG)
 #LIB_MTX=$(LIB_MTX_MUMPS)
@@ -29,9 +29,7 @@ SRCS = obcomm.f90 obinit.f90 obparm.f90 obview.f90 \
        obprep.f90 obexec.f90 obcalc.f90 obgout.f90 \
        obmenu.f90
 
-SRCX = ../eq/wmeqin.f
-
-OBJS = $(SRCS:.f90=.o) $(SRCX:.f=.o)
+OBJS = $(SRCS:.f90=.o)
 
 LIBS = libob.a  ../eq/libeq.a ../pl/libpl.a \
        ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a
@@ -60,7 +58,7 @@ libs:
 	(cd ../mtxp; make)
 	(cd ../pl; make libpl.a)
 	(cd ../eq; make libeq.a)
-	(cd ../eq; make wmeqin.o)
+	(cd ../eq; make eqgetp.o)
 
 testf: libs libob.a test.o
 	$(FLINKER) test.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
@@ -83,6 +81,6 @@ obprep.o: obprep.f90 $(OBCOMM)
 obcalc.o: obcalc.f90 obprep.f90 obexec.f90 $(OBCOMM)
 obexec.o: obexec.f90 obprep.f90 $(OBCOMM)
 obgout.o: obgout.f90 obprep.f90 ../pl/plgout.f90 ../pl/plprof.f90 $(OBCOMM)
-../eq/wmeqin.o: ../eq/wmeqin.f
+../eq/eqgetp.o: ../eq/eqgetp.f
 obmenu.o: obmenu.f90 obparm.f90 obview.f90 obprep.f90 obcalc.f90 obgout.f90  $(OBCOMM)
 obmain.o: obmain.f90 ../pl/plinit.f90 ../pl/plparm.f90 obinit.f90 obparm.f90 obmenu.f90 $(OBCOMM)

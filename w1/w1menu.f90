@@ -9,7 +9,7 @@ CONTAINS
     USE w1exec,ONLY: w1_exec
     USE w1gdsp,ONLY: w1_gdsp
     USE w1gout,ONLY: w1_gout
-    USE w1file,ONLY: w1_save,w1_load
+    USE w1file,ONLY: w1_save,w1_load,w1_write
     USE libkio
 
     IMPLICIT NONE
@@ -21,9 +21,11 @@ CONTAINS
 1   CONTINUE
     ierr=0
     WRITE(6,'(A)') &
-         '## W1 MENU: P,V/PARM  R/RUN  G/GRAF  D/DISP  S,L/FILE  Q/QUIT'
+         '## W1 MENU: P,V/PARM  R/RUN  G/GRAF  D/DISP  S,L,W/FILE  Q/QUIT'
 
     CALL TASK_KLIN(line,kid,mode,w1_parm)
+    WRITE(6,*) line
+    IF(mode.EQ.3) stop
     IF(mode /= 1) GOTO 1
 !    IF(nxmax.NE.nxmax_save) THEN  ! data structure was modified
 !       INIT=0
@@ -61,6 +63,8 @@ CONTAINS
        ELSE
           INIT=0
        END IF
+    CASE('W')
+       CALL w1_write(ierr)
     CASE('Q')
        GOTO 9000
     CASE DEFAULT

@@ -28,8 +28,7 @@ C         I=1:electron, I=2:Impurity, I=3:ion
 C
 C=======================================================================
 C
-      USE plprof,ONLY: pl_wmxprf,wmspl_prof
-      USE plxprf
+      USE plload,ONLY: pl_load_xprf,pl_read_xprf
       INCLUDE 'wmcomm.inc'
 C
       REAL*8 ZEFFSV, PTSSV(NSM), PNSSV(NSM), PNCTR(NSM), PTCTR(NSM)
@@ -70,13 +69,13 @@ C----  Open profile data file and read
 C----  PRFNE, PRFTE is data at the point divided equally by rho 
 C        defined by toroidal magnetic flux
 C
-      CALL PL_WMXPRF(IERR) ! in pl/plprof.f
+      CALL pl_load_xprf(IERR) ! in pl/plprof.f
 C
 C----  Read density and temperature at the magnetic axis
 C
       NR = 1
       DO NS=1,NSMAX
-         CALL WMSPL_PROF(XRHO(NR),NS,PNCTR(NS),PTCTR(NS))
+         CALL pl_read_xprf(XRHO(NR),NS,PNCTR(NS),PTCTR(NS))
       ENDDO
 C
 C----  Modification for charge neutrality

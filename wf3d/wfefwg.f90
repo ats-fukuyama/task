@@ -843,15 +843,15 @@ SUBROUTINE SETWGB(IERR)
 
   use wfcomm
   implicit none
-  integer :: IERR,M100,M10,M1,NB,NBP,NSF,NE,IN0,IN1,IN2,IN3,NN0,NN1,NN2,NN3,NN
+  integer :: IERR,M100,M10,M1,NB,NBP,NSRF,NE,IN0,IN1,IN2,IN3,NN0,NN1,NN2,NN3,NN
   real(8) :: RL,EPS
 
   DATA EPS/1.D-6/
 
   IERR=0
-  M100=MODELN/100
-  M10=MODELN/10
-  M1=MOD(MODELN,10)
+  M100=model_prof/100
+  M10=model_prof/10
+  M1=MOD(model_prof,10)
   
   IF(M100.EQ.1) THEN
      IF(M1.EQ.0) THEN
@@ -1086,9 +1086,9 @@ SUBROUTINE SETWGB(IERR)
      NBP=0
      IF(NB.EQ.NBMAX.AND.(M1.EQ.4.OR.M1.EQ.5)) THEN
         KABDY(NB)=4
-        DO NSF=1,NSFMAX
-           NE=NESRF(NSF)
-           IN0=INSRF(NSF)
+        DO NSRF=1,NSRFMAX
+           NE=NESRF(NSRF)
+           IN0=INSRF(NSRF)
            IN1=MOD(IN0,4)+1
            IN2=MOD(IN0+1,4)+1
            IN3=MOD(IN0+2,4)+1

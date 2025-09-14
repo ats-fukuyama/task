@@ -98,10 +98,10 @@ SUBROUTINE SETBDY(IERR)
   use wfcomm
   implicit none
 
-  integer :: NSF,NEDO,NE,NN1,NN2,NN3,NN4,I,IERR
+  integer :: NSRF,NEDO,NE,NN1,NN2,NN3,NN4,I,IERR
 !  DATA EPS/0.1D0/
 
-  NSF=0
+  NSRF=0
 
   DO NEDO=1,NEMAX
      NE=NEDO
@@ -114,16 +114,16 @@ SUBROUTINE SETBDY(IERR)
      CALL EFINDK(NE,NN4,NN1,NN2,KNELM(3,NE))
      CALL EFINDK(NE,NN1,NN2,NN3,KNELM(4,NE))
      
-     IF(KNELM(1,NE).EQ.0) NSF=NSF+1
-     IF(KNELM(2,NE).EQ.0) NSF=NSF+1
-     IF(KNELM(3,NE).EQ.0) NSF=NSF+1
-     IF(KNELM(4,NE).EQ.0) NSF=NSF+1
+     IF(KNELM(1,NE).EQ.0) NSRF=NSRF+1
+     IF(KNELM(2,NE).EQ.0) NSRF=NSRF+1
+     IF(KNELM(3,NE).EQ.0) NSRF=NSRF+1
+     IF(KNELM(4,NE).EQ.0) NSRF=NSRF+1
   ENDDO
-  NSFMAX=NSF
+  NSRFMAX=NSRF
 
   CALL wfsrf_allocate
 
-  NSF=0
+  NSRF=0
 
   if(nrank.eq.0) WRITE(6,*) '------- SETBDY set KNELM start ---'
   
@@ -138,93 +138,93 @@ SUBROUTINE SETBDY(IERR)
      CALL EFINDK(NE,NN4,NN1,NN2,KNELM(3,NE))
      CALL EFINDK(NE,NN1,NN2,NN3,KNELM(4,NE))
      
-     !         WRITE(6,'(A,6I8)') 'NE,KNELM=',NE,(KNELM(I,NE),I=1,4),NSF
+     !         WRITE(6,'(A,6I8)') 'NE,KNELM=',NE,(KNELM(I,NE),I=1,4),NSRF
      !         IF(NE.EQ.100) STOP
      
      IF(KNELM(1,NE).EQ.0) THEN
         KANOD(NN2)=1
         KANOD(NN3)=1
         KANOD(NN4)=1
-        NSF=NSF+1
-        IF(NSF.LE.NSFMAX) THEN
-           INSRF(NSF)=1
-           NESRF(NSF)=NE
-           NDSRF(1,NSF)=NN2
-           NDSRF(2,NSF)=NN4
-           NDSRF(3,NSF)=NN3
+        NSRF=NSRF+1
+        IF(NSRF.LE.NSRFMAX) THEN
+           INSRF(NSRF)=1
+           NESRF(NSRF)=NE
+           NDSRF(1,NSRF)=NN2
+           NDSRF(2,NSRF)=NN4
+           NDSRF(3,NSRF)=NN3
         ENDIF
      ENDIF
      IF(KNELM(2,NE).EQ.0) THEN
         KANOD(NN3)=1
         KANOD(NN4)=1
         KANOD(NN1)=1
-        NSF=NSF+1
-        IF(NSF.LE.NSFMAX) THEN
-           INSRF(NSF)=2
-           NESRF(NSF)=NE
-           NDSRF(1,NSF)=NN3
-           NDSRF(2,NSF)=NN4
-           NDSRF(3,NSF)=NN1
+        NSRF=NSRF+1
+        IF(NSRF.LE.NSRFMAX) THEN
+           INSRF(NSRF)=2
+           NESRF(NSRF)=NE
+           NDSRF(1,NSRF)=NN3
+           NDSRF(2,NSRF)=NN4
+           NDSRF(3,NSRF)=NN1
         ENDIF
      ENDIF
      IF(KNELM(3,NE).EQ.0) THEN
         KANOD(NN4)=1
         KANOD(NN1)=1
         KANOD(NN2)=1
-        NSF=NSF+1
-        IF(NSF.LE.NSFMAX) THEN
-           INSRF(NSF)=3
-           NESRF(NSF)=NE
-           NDSRF(1,NSF)=NN4
-           NDSRF(2,NSF)=NN2
-           NDSRF(3,NSF)=NN1
+        NSRF=NSRF+1
+        IF(NSRF.LE.NSRFMAX) THEN
+           INSRF(NSRF)=3
+           NESRF(NSRF)=NE
+           NDSRF(1,NSRF)=NN4
+           NDSRF(2,NSRF)=NN2
+           NDSRF(3,NSRF)=NN1
         ENDIF
      ENDIF
      IF(KNELM(4,NE).EQ.0) THEN
         KANOD(NN1)=1
         KANOD(NN2)=1
         KANOD(NN3)=1
-        NSF=NSF+1
-        IF(NSF.LE.NSFMAX) THEN
-           INSRF(NSF)=4
-           NESRF(NSF)=NE
-           NDSRF(1,NSF)=NN1
-           NDSRF(2,NSF)=NN2
-           NDSRF(3,NSF)=NN3
+        NSRF=NSRF+1
+        IF(NSRF.LE.NSRFMAX) THEN
+           INSRF(NSRF)=4
+           NESRF(NSRF)=NE
+           NDSRF(1,NSRF)=NN1
+           NDSRF(2,NSRF)=NN2
+           NDSRF(3,NSRF)=NN3
         ENDIF
      ENDIF
   ENDDO
   
   DO NE=1,NEMAX
      DO I=1,4
-        NSFELM(I,NE)=0
+        NSRFELM(I,NE)=0
      ENDDO
   ENDDO
-  DO NSF=1,NSFMAX
-     NSFELM(INSRF(NSF),NESRF(NSF))=NSF
+  DO NSRF=1,NSRFMAX
+     NSRFELM(INSRF(NSRF),NESRF(NSRF))=NSRF
   ENDDO
   
   if(nrank.eq.0) WRITE(6,*) '------- SETBDY set KNSRF start ---'
   
-  DO NSF=1,NSFMAX
-     NN1=NDSRF(1,NSF)
-     NN2=NDSRF(2,NSF)
-     NN3=NDSRF(3,NSF)
-     CALL EFINDS(NSF,NN2,NN3,KNSRF(1,NSF))
-     CALL EFINDS(NSF,NN3,NN1,KNSRF(2,NSF))
-     CALL EFINDS(NSF,NN1,NN2,KNSRF(3,NSF))
-     IF(KNSRF(1,NSF).EQ.0) THEN
-        if(nrank.eq.0) WRITE(6,*) 'XX SRF INCONSISTENCY: 1,NSF=',NSF
+  DO NSRF=1,NSRFMAX
+     NN1=NDSRF(1,NSRF)
+     NN2=NDSRF(2,NSRF)
+     NN3=NDSRF(3,NSRF)
+     CALL EFINDS(NSRF,NN2,NN3,KNSRF(1,NSRF))
+     CALL EFINDS(NSRF,NN3,NN1,KNSRF(2,NSRF))
+     CALL EFINDS(NSRF,NN1,NN2,KNSRF(3,NSRF))
+     IF(KNSRF(1,NSRF).EQ.0) THEN
+        if(nrank.eq.0) WRITE(6,*) 'XX SRF INCONSISTENCY: 1,NSRF=',NSRF
      ENDIF
-     IF(KNSRF(2,NSF).EQ.0) THEN
-        if(nrank.eq.0) WRITE(6,*) 'XX SRF INCONSISTENCY: 2,NSF=',NSF
+     IF(KNSRF(2,NSRF).EQ.0) THEN
+        if(nrank.eq.0) WRITE(6,*) 'XX SRF INCONSISTENCY: 2,NSRF=',NSRF
      ENDIF
-     IF(KNSRF(3,NSF).EQ.0) THEN
-        if(nrank.eq.0) WRITE(6,*) 'XX SRF INCONSISTENCY: 3,NSF=',NSF
+     IF(KNSRF(3,NSRF).EQ.0) THEN
+        if(nrank.eq.0) WRITE(6,*) 'XX SRF INCONSISTENCY: 3,NSRF=',NSRF
      ENDIF
-!         WRITE(6,'(A,7I8)') 'NSF,N,K=',NSF,NDSRF(1,NSF),NDSRF(2,NSF),&
-!     &                                     NDSRF(3,NSF),KNSRF(1,NSF),&
-!     &                                     KNSRF(2,NSF),KNSRF(3,NSF)
+!         WRITE(6,'(A,7I8)') 'NSRF,N,K=',NSRF,NDSRF(1,NSRF),NDSRF(2,NSRF),&
+!     &                                     NDSRF(3,NSRF),KNSRF(1,NSRF),&
+!     &                                     KNSRF(2,NSRF),KNSRF(3,NSRF)
   ENDDO
 
 !      DO NN=1,NNMAX
@@ -260,7 +260,7 @@ SUBROUTINE SETSID(IERR)
   implicit none
 
   integer :: NE,I,NSD,NN1,NN2,NEL,IN,ICOUNT,KN,INLNN,ISD
-  integer :: NSDL,INL,NN,NSF,NN3,ND1,ND2,IERR,INSID(4,6)
+  integer :: NSDL,INL,NN,NSRF,NN3,ND1,ND2,IERR,INSID(4,6)
 
   DATA INSID /1,2,3,4, 2,3,1,4, 1,3,4,2, &
      &        1,4,2,3, 2,4,3,1, 3,4,1,2/
@@ -468,41 +468,41 @@ SUBROUTINE SETSID(IERR)
   DO NSD=1,NSDMAX
      KASID(NSD)=0
   ENDDO
-  DO NSF=1,NSFMAX
-     NE=NESRF(NSF)
-     NN1=NDSRF(1,NSF)
-     NN2=NDSRF(2,NSF)
-     NN3=NDSRF(3,NSF)
+  DO NSRF=1,NSRFMAX
+     NE=NESRF(NSRF)
+     NN1=NDSRF(1,NSRF)
+     NN2=NDSRF(2,NSRF)
+     NN3=NDSRF(3,NSRF)
      DO I=1,6
         NSD=ABS(NSDELM(I,NE))
         ND1=NDSID(1,NSD)
         ND2=NDSID(2,NSD)
-!        WRITE(6,'(A,7I8)') 'NSF,NN1,NN2,NN3,NSD,ND1,ND2=', &
-!                        &   NSF,NN1,NN2,NN3,NSD,ND1,ND2
+!        WRITE(6,'(A,7I8)') 'NSRF,NN1,NN2,NN3,NSD,ND1,ND2=', &
+!                        &   NSRF,NN1,NN2,NN3,NSD,ND1,ND2
         IF    (ND1.EQ.NN2.AND.ND2.EQ.NN3) THEN
-           NSDSRF(1,NSF)= NSD
+           NSDSRF(1,NSRF)= NSD
            KASID(NSD)=1
         ELSEIF(ND2.EQ.NN2.AND.ND1.EQ.NN3) THEN
-           NSDSRF(1,NSF)=-NSD
+           NSDSRF(1,NSRF)=-NSD
            KASID(NSD)=1
         ELSEIF(ND1.EQ.NN3.AND.ND2.EQ.NN1) THEN
-           NSDSRF(2,NSF)= NSD
+           NSDSRF(2,NSRF)= NSD
            KASID(NSD)=1
         ELSEIF(ND2.EQ.NN3.AND.ND1.EQ.NN1) THEN
-           NSDSRF(2,NSF)=-NSD
+           NSDSRF(2,NSRF)=-NSD
            KASID(NSD)=1
         ELSEIF(ND1.EQ.NN1.AND.ND2.EQ.NN2) THEN
-           NSDSRF(3,NSF)= NSD
+           NSDSRF(3,NSRF)= NSD
            KASID(NSD)=1
         ELSEIF(ND2.EQ.NN1.AND.ND1.EQ.NN2) THEN
-           NSDSRF(3,NSF)=-NSD
+           NSDSRF(3,NSRF)=-NSD
            KASID(NSD)=1
         ENDIF
      ENDDO
   ENDDO
-!  DO NSF=1,NSFMAX
-!  WRITE(6,'(A,4I8)') 'NSF,NSD1,NSD2,NSD3=', &
-!                  &   NSF,NSDSRF(1,NSF),NSDSRF(2,NSF),NSDSRF(3,NSF)
+!  DO NSRF=1,NSRFMAX
+!  WRITE(6,'(A,4I8)') 'NSRF,NSD1,NSD2,NSD3=', &
+!                  &   NSRF,NSDSRF(1,NSRF),NSDSRF(2,NSRF),NSDSRF(3,NSRF)
 !  ENDDO
 
   IERR=0
@@ -525,7 +525,7 @@ SUBROUTINE MODANT(IERR)
   use wfcomm
   implicit none
 
-  integer :: NE,NA,NSF,L,KN,IERR,LS,N,ID,NENEXT,NENEW
+  integer :: NE,NA,NSRF,L,KN,IERR,LS,N,ID,NENEXT,NENEW
   real(8) :: XC,YC,ZC
   
   NE=0
@@ -536,9 +536,9 @@ SUBROUTINE MODANT(IERR)
 
      IF(NE.EQ.0) THEN
         IF(JNUM0(NA).EQ.1) GOTO 8500
-        DO NSF=1,NSFMAX
-           L=INSRF(NSF)
-           NE=NESRF(NSF)
+        DO NSRF=1,NSRFMAX
+           L=INSRF(NSRF)
+           NE=NESRF(NSRF)
            KN=KNELM(L,NE)
            IF(KN.LE.0) THEN
               CALL CROS(XJ0(1,NA),YJ0(1,NA),ZJ0(1,NA),&
@@ -1098,9 +1098,9 @@ SUBROUTINE WFDUMP(ND)
 
   use wfcomm
   implicit none
-  integer :: ND,NN,NE,I,NB,NSF
+  integer :: ND,NN,NE,I,NB,NSRF
 
-  WRITE(ND,*) NEMAX,NNMAX,NMMAX,NBMAX,NSFMAX
+  WRITE(ND,*) NEMAX,NNMAX,NMMAX,NBMAX,NSRFMAX
   WRITE(ND,*) '***** XND,YND,ZND'
   WRITE(ND,*) (XND(NN),YND(NN),ZND(NN),NN=1,NNMAX)
   WRITE(ND,*) '***** KANOD'
@@ -1132,9 +1132,9 @@ SUBROUTINE WFDUMP(ND)
   WRITE(ND,*) '***** PHABDY,SZBDY'
   WRITE(ND,*) (PHABDY(NB),(SZBDY(I,NB),I=1,2),NB=1,NBMAX)
   WRITE(ND,*) '***** INSRF,NESRF'
-  WRITE(ND,*) (INSRF(NSF),NESRF(NSF),NSF=1,NSFMAX)
+  WRITE(ND,*) (INSRF(NSRF),NESRF(NSRF),NSRF=1,NSRFMAX)
   WRITE(ND,*) '***** NDSRF,KNSRF'
-  WRITE(ND,*) ((NDSRF(I,NSF),KNSRF(I,NSF),I=1,3),NSF=1,NSFMAX)
+  WRITE(ND,*) ((NDSRF(I,NSRF),KNSRF(I,NSRF),I=1,3),NSRF=1,NSRFMAX)
   WRITE(ND,*) '***** MBND,MLEN,NNBMAX'
   WRITE(ND,*) MBND,MLEN,NNBMAX
   WRITE(ND,*) '***** ISDELM,IMLEN,INLEN'

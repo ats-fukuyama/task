@@ -560,10 +560,8 @@ SUBROUTINE SETEWG
      Z=0.5D0*(ZNODE(NN1)+ZNODE(NN2))
      SELECT CASE(MODELWG)
      CASE(0,1)
-!        WRITE(29,'(A,6ES12.4)') 'R,Z:WG:',R,Z,R1WG,R2WG,Z1WG,Z2WG
         IF((R.GE.R1WG).AND.(R.LE.R2WG).AND. &
              (Z.GE.Z1WG).AND.(Z.LE.Z2WG)) THEN
-           WRITE(6,'(A,2ES12.4)') 'R,Z in WG:',R,Z
            PROD=(R2WG-R1WG)*(RNODE(NN2)-RNODE(NN1)) &
                +(Z2WG-Z1WG)*(ZNODE(NN2)-ZNODE(NN1))
            IF(ABS(R1WG-R2WG).LT.1.D-8) THEN
@@ -582,7 +580,7 @@ SUBROUTINE SETEWG
            IF(PROD.GT.0.D0) CEBSD(NBSD)=-CEBSD(NBSD)
            IF(nrank.EQ.0.AND.idebug.EQ.3) &
                 WRITE(6,'(A,2I8,1P5E12.4)') &
-                'SD:',NSD,NBSD,CEBSD(NBSD),AMPWG,PHASE,ANGLE
+                'SD:',NSD,NBSD,R,Z,CEBSD(NBSD),FACTOR
         ELSE
            CEBSD(NBSD)=(0.D0,0.D0)
         END IF
@@ -647,7 +645,7 @@ SUBROUTINE SETEWG
            IF(MODELWG.EQ.1) CEBND(NBND)=CEBND(NBND)*EXP(-10.D0*FACTOR)
            IF(nrank.EQ.0.AND.idebug.EQ.3) &
                 WRITE(6,'(A,2I8,1P5E12.4)') &
-                'ND:',NN,NBND,CEBND(NBND),AMPWG,PHASE,ANGLE
+                'ND:',NN,NBND,R,Z,CEBND(NBND),FACTOR
         ELSE
            CEBND(NBND)=(0.D0,0.D0)
         END IF

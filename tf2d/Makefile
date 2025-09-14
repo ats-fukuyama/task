@@ -1,7 +1,7 @@
 include ../make.header
 include ../mtxp/make.mtxp
-LIB_MTX=$(LIB_MTX_BND)
-LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_BND)
+#LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIB_MTX_PCG)
 #LIBX_MTX=$(LIBX_MTX_PCG)
 #LIB_MTX=$(LIB_MTX_MUMPS)
@@ -53,7 +53,8 @@ libs:
 	(cd ../lib; make libtask.a)
 	(cd ../../bpsd; make libbpsd.a)
 	(cd ../mtxp; make libmtxmpi.o libmtxnompi.o)
-	(cd ../mtxp; make libmtxbnd.o libmtxksp.o libmtxmumps.o)
+	(cd ../mtxp; make)
+#	(cd ../mtxp; make libmtxbnd.o libmtxksp.o libmtxmumps.o)
 
 t2:$(LIBS) t2main.o
 	$(FLINKER)  t2main.o -o $@ $(FFLAGS) $(LIBS)  $(FLIBS) $(LIBX_MTX)

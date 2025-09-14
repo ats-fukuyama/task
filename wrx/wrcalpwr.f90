@@ -34,7 +34,6 @@ CONTAINS
        rlmax=MAX(rlmax,rsu_wr(nsu))
     END DO
 
-
 !     ----- Setup for RADIAL DEPOSITION PROFILE (Minor radius) -----
 
     drs=1.D0/nrsmax
@@ -186,7 +185,7 @@ CONTAINS
        ENDDO
     END DO
 
-       ! --- total power  ---
+    ! --- total power  ---
 
     pwr_tot=0.D0
     DO nsa=1,nsamax_wr
@@ -217,12 +216,7 @@ CONTAINS
        END DO
     END DO
 
-    DO nray=1,nraymax
-       WRITE(6,'(A,I4,A,4ES12.4)') 'nray=',nray, &
-            '    pwr_nsa_nray=',(pwr_nsa_nray(nsa,nray),nsa=1,MIN(nsamax_wr,4))
-    END DO
-    
-       ! --- power divided by division area ---
+    ! --- power divided by division area ---
 
     DO nray=1,nraymax
        DO nrs=1,nrsmax

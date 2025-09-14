@@ -32,7 +32,7 @@ LIBMUMPSX=.
 MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
             -I../dp/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
-SRCFIXED = wmfem_comm.f wmf_hhg.f ../eq/wmeqin.f wmmenu.f wminit.f wmeign.f \
+SRCFIXED = wmfem_comm.f wmf_hhg.f wmmenu.f wminit.f wmeign.f \
        wmexec.f wmloop.f \
        wmxprf.f wmdprf.f \
        wmgout.f wmgsub.f wmdout.f wmfout.f wmtae.f \
@@ -48,7 +48,7 @@ SRCS = $(SRC0)
 
 OBJS = $(SRCFIXED:.f=.o) $(SRCFREE:.f90=.o)
 
-LIBS = libwm.a ../dp/libdp.a ../eq/libeq.a ../pl/libpl.a ../dp/libdp.a \
+LIBS = libwm.a ../dp/libdp.a ../eq/libeq.a ../pl/libpl.a \
        $(LIBMTXP) ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a 
 
 .f.o :

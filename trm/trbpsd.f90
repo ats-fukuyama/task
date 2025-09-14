@@ -7,10 +7,11 @@ MODULE trbpsd
   type(bpsd_species_type), private,save :: species
   type(bpsd_equ1D_type),   private,save :: equ1D
   type(bpsd_metric1D_type),private,save :: metric1D
-  type(bpsd_plasmaf_type), private,save :: plasmaf
+!  type(bpsd_plasmaf_type), private,save :: plasmaf
   LOGICAL, PRIVATE, SAVE :: tr_bpsd_init_flag = .TRUE.
   PRIVATE
   PUBLIC tr_bpsd_init,tr_bpsd_get,tr_bpsd_put
+  type(bpsd_plasmaf_type), public,save :: plasmaf
 
 CONTAINS
 
@@ -123,6 +124,7 @@ CONTAINS
       device%ip=RIP
       device%elip=RKAP
       device%trig=RDLT
+
       call bpsd_put_data(device,ierr)
 
       plasmaf%time=t

@@ -3,11 +3,11 @@
 
       USE fpcomm      
 
-       integer,dimension(:,:),pointer:: I_FIT_temp
-       double precision,dimension(:),pointer:: D_FIT_temp
+       integer,dimension(:,:),ALLOCATABLE:: I_FIT_temp
+       double precision,dimension(:),ALLOCATABLE:: D_FIT_temp
        integer:: npm_fit, nthm_fit, nrm_fit
-       double precision,dimension(:),pointer:: rm_fit
-       double precision,dimension(:),pointer:: weight_r
+       double precision,dimension(:),ALLOCATABLE:: rm_fit
+       double precision,dimension(:),ALLOCATABLE:: weight_r
        double precision:: rho_del_fit
 
        contains
@@ -228,7 +228,7 @@
        integer:: i,j,k
        integer:: NTH, NP, NR, NS
 !       double precision,dimension(NTHMAX,NPMAX,NRMAX):: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
-       double precision,dimension(:,:,:),pointer:: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
+       double precision,dimension(:,:,:),ALLOCATABLE:: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
        double precision:: FACT
 !       double precision,dimension(NRMAX):: power1, power2, power3
 
@@ -323,7 +323,7 @@
        integer:: i,j,k
        integer:: NTH, NP, NR, NS
 !       double precision,dimension(NTHMAX,NPMAX,NRMAX):: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
-       double precision,dimension(:,:,:),pointer:: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
+       double precision,dimension(:,:,:),ALLOCATABLE:: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
        double precision:: FACT
 !       double precision,dimension(NRMAX):: power1, power2, power3
 

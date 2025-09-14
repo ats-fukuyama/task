@@ -70,7 +70,7 @@ CONTAINS
          profn_travis_g,profn_travis_h,profn_travis_p,profn_travis_q, &
          profn_travis_w,proft_travis_g,proft_travis_h,proft_travis_p, &
          proft_travis_q,proft_travis_w, &
-         MODELG,MODELB,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF, &
+         MODELG,MODELB,model_prof,MODELQ,MODEL_PROF,MODEL_NPROF, &
          RHOGMN,RHOGMX, &
          KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
          MODEFR,MODEFW,IDEBUG,mdlplw, &
@@ -115,7 +115,7 @@ CONTAINS
   601 FORMAT(' ','# &OB : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,'/ &
              9X,'RMIR,ZBB,Hpitch1,Hpitch2,RRCH,RCOI,ZCOIL,BCOIL,NCOILMAX,'/ &
              9X,'NSMAX,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PUPR,PUPP,PZCL,'/ &
-             9X,'ID_NS,KID_NS,'/ &
+             9X,'NPA,ID_NS,KID_NS,'/ &
              9X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'/ &
              9X,'r_corner,z_corner,br_corner,bz_corner,bt_corner,'/ &
              9X,'pn_corner,ptpr_corner,ptpp_corner,'/ &

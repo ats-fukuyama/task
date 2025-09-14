@@ -17,6 +17,7 @@ CONTAINS
     USE plprofw
     USE plparm,ONLY: pl_view
     USE dpparm,ONLY: dp_parm,dp_view
+    USE dpprep,ONLY: dp_prep_ns
     USE dproot,ONLY: dp_root,dpgrp1,dpgrp0
     USE dpcont,ONLY: dp_cont2,dp_cont3
     USE dpcont4,ONLY: dp_cont4
@@ -44,6 +45,8 @@ CONTAINS
        CALL DP_VIEW
     ELSEIF(KID.EQ.'D') THEN
        READ(LINE(2:),*,ERR=1,END=1) NID
+       CALL dp_prep_ns(ierr)
+       IF(ierr.NE.0) GO TO 1
        SELECT CASE(NID)
        CASE(0)
           CALL DPGRP0
@@ -59,8 +62,12 @@ CONTAINS
           WRITE(6,*) 'XX DPMENU: unknown NID'
        END SELECT
     ELSEIF(KID.EQ.'F') THEN
+       CALL dp_prep_ns(ierr)
+       IF(ierr.NE.0) GO TO 1
        CALL DP_ROOT
     ELSEIF(KID.EQ.'T') THEN
+       CALL dp_prep_ns(ierr)
+       IF(ierr.NE.0) GO TO 1
        CALL dp_test
        GOTO 1
     ELSEIF(KID.EQ.'?') THEN

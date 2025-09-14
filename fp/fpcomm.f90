@@ -16,7 +16,8 @@ MODULE fpcomm_parm
       integer,parameter:: NRAYM=20
       real(rkind),parameter:: rkev=aee*1.D3
 
-      integer:: NSAMAX,NSBMAX,NS_NSA(NSM),NS_NSB(NSM)
+      INTEGER:: nsamax,nsbmax
+      INTEGER:: ns_nsa(NSM),ns_nsb(NSM)
       integer:: NSA_F1,NTH_F1,NR_F1
       integer:: LMAX_WR
       integer:: NBEAMMAX,NSSPB(NBEAMM),NSSPF
@@ -26,20 +27,27 @@ MODULE fpcomm_parm
       integer:: NTG2STEP,NTG2MIN,NTG2MAX
       integer:: MODELE,MODELA,MODELC(NSM),MODELR,MODELD,MODELS,MODELW(NSM)
       integer:: MODELS_full, MODELS_bt, MODELS_tt
-      integer:: MODEL_DELTA_F(NSM), MODEL_NBCD, MODEL_CD
+      integer:: MODEL_NBCD, MODEL_CD
+      integer:: MODEL_DELTA_F(NSM)
       integer:: MODEL_ne_D,MODELD_RDEP,MODELD_PDEP,MODELD_EDGE,MODELD_PINCH
       integer:: MODELD_BOUNDARY,MODELD_CDBM
       integer:: MODEL_LOSS,MODEL_SYNCH,MODEL_NBI,MODEL_WAVE
+      integer:: MODEL_FOW
       integer:: IMTX,MODEL_KSP,MODEL_PC,LMAXFP,LMAXE
       integer:: NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP
       integer:: MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp,MODEL_LNL
       integer:: MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY,MODEL_SINK,N_IMPU
-      integer:: MODEL_EX_READ_Tn,MODEL_DELTA_F_NI_RATIO, MODEL_DELTA_F_CN
-      integer:: MODEL_BULK_CONST,MODEL_CX_LOSS, MODEL_NF_CS, NF_IDMAX
+      integer:: MODEL_EX_READ_Tn,MODEL_DELTA_F_NI_RATIO
+      integer:: MODEL_BULK_CONST,MODEL_CX_LOSS
       integer:: N_partition_r,N_partition_s,N_partition_p
-      integer:: OUTPUT_TXT_DELTA_F, OUTPUT_TXT_F1, OUTPUT_TXT_BEAM_WIDTH, OUTPUT_TXT_HEAT_PROF
-      integer:: OUTPUT_TXT_BEAM_DENS, OUTPUT_NFID, OUTPUT_BEAM_BIRTH_PROF
-      integer:: NRAYS_WR,NRAYE_WR,MODEL_PROF_POLY, MODEL_BULK_T(NSM), MODEL_Q_PROF
+      integer:: OUTPUT_TXT_DELTA_F, OUTPUT_TXT_F1
+      INTEGER:: OUTPUT_TXT_BEAM_WIDTH, OUTPUT_TXT_HEAT_PROF
+      integer:: OUTPUT_TXT_BEAM_DENS
+      integer:: NRAYS_WR,NRAYE_WR
+      
+      INTEGER:: MODEL_PROF_POLY, MODEL_BULK_T(NSM), MODEL_Q_PROF
+      INTEGER:: MODEL_DELTA_F_CN, MODEL_NF_CS, NF_IDMAX
+      INTEGER:: OUTPUT_NFID, OUTPUT_BEAM_BIRTH_PROF
 
       real(rkind):: PMAX(NSM),PMAX_BB(NSM),PMAX_TT(NSM),EMAX(NSM)
       real(rkind):: R1,DELR1,RMIN,RMAX
@@ -56,6 +64,7 @@ MODULE fpcomm_parm
       real(rkind):: SPFTOT,SPFR0,SPFRW,SPFENG
       real(rkind):: DRR0,DRRS,FACTOR_CDBM,DRR_EDGE,RHO_EDGE,FACTOR_DRR_EDGE
       real(rkind):: FACTOR_PINCH,deltaB_B
+      REAL(rkind):: DRR_em_amp,DRR_em_r0,DRR_em_rw,DRR_em_kdep
       real(rkind),dimension(NSM):: TLOSS, TLOSS_PARA, TLOSS_PERP
       real(rkind):: DELT,RIMPL,EPSFP,EPSM,EPSE,EPSDE,H0DE
       real(rkind):: PGMAX,RGMAX,RGMIN
@@ -63,17 +72,19 @@ MODULE fpcomm_parm
       real(rkind):: time_quench_start,RJPROF1,RJPROF2
       real(rkind):: v_RE,target_zeff,SPITOT,FACT_BULK
       real(rkind):: RN_NEU0, RN_NEUS ! temporal 
-      real(rkind):: NI_RATIO(NSM), DH_RATIO, HHe_RATIO, given_zeff, DT_RATIO
+      real(rkind):: NI_RATIO(NSM)
+      REAL(rkind):: DH_RATIO, HHe_RATIO, given_zeff, DT_RATIO
       real(rkind):: FACT_NRAY(NRAYM)
 
 !     for read experiment data
-      CHARACTER(len=1000):: EG_NAME_TMS, EG_NAME_CX, EG_NAME_HA3, SHOT_NUMBER, EG_PATH
-      real(rkind),dimension(:,:),pointer:: read_tms_double, read_cx_double !!    containers of profile data
-      integer,dimension(:,:),pointer:: read_tms_int
-      real(rkind),dimension(:),pointer:: cte_fit, cti_fit !!    fitting param
-      real(rkind),dimension(:),pointer:: cne_fit !!    fitting param
+      CHARACTER(len=1000):: EG_NAME_TMS, EG_NAME_CX, EG_NAME_HA3
+      CHARACTER(len=1000):: SHOT_NUMBER, EG_PATH
+      real(rkind),dimension(:,:),ALLOCATABLE:: read_tms_double, read_cx_double !!    containers of profile data
+      integer,dimension(:,:),ALLOCATABLE:: read_tms_int
+      real(rkind),dimension(:),ALLOCATABLE:: cte_fit, cti_fit !!    fitting param
+      real(rkind),dimension(:),ALLOCATABLE:: cne_fit !!    fitting param
       integer:: nend_tms, nend_cx !!    # time step
-      real(rkind),dimension(:),pointer:: RNE_EXP, RTE_EXP, RTI_EXP !! container of exp. profile data at TIMEFP
+      real(rkind),dimension(:),ALLOCATABLE:: RNE_EXP, RTE_EXP, RTI_EXP !! container of exp. profile data at TIMEFP
       real(rkind):: time_exp_offset, RNE_EXP_EDGE, RTE_EXP_EDGE, RTI_EXP_EDGE
       real(rkind),dimension(NSM):: Ti_Te_ratio !! container of exp. profile data at TIMEFP
 
@@ -86,11 +97,26 @@ MODULE fpcomm_parm
 
 !     for read FIT3D result
       CHARACTER(len=80):: SV_FILE_NAME_H, SV_FILE_NAME_D
-      double precision,dimension(:),pointer:: time_grid_fit_H, time_grid_fit_D
+      REAL(rkind),dimension(:),ALLOCATABLE:: time_grid_fit_H, time_grid_fit_D
       integer:: ntmax_fit_H, ntmax_fit_D
-      integer,dimension(:,:),pointer:: I_FIT_H, I_FIT_D
-      double precision,dimension(:),pointer:: D_FIT_H, D_FIT_D
-      integer,dimension(:,:),pointer:: number_of_lines_fit_H, number_of_lines_fit_D
+      integer,dimension(:,:),ALLOCATABLE:: I_FIT_H, I_FIT_D
+      REAL(rkind),dimension(:),ALLOCATABLE:: D_FIT_H, D_FIT_D
+      integer,dimension(:,:),ALLOCATABLE:: number_of_lines_fit_H, number_of_lines_fit_D
+
+      ! --- FOW input parameters ---                                            
+
+	integer :: model_obload  
+        integer :: model_mkcsv   
+        integer :: max_stp       
+        integer:: nthpmax
+	CHARACTER(LEN=80):: dir_text_data
+        CHARACTER(LEN=80):: dir_binary_data
+
+CONTAINS
+
+  SUBROUTINE open_fpcomm_parm
+    RETURN
+  END SUBROUTINE open_fpcomm_parm
 
 END module fpcomm_parm
 
@@ -113,17 +139,17 @@ module fpcomm
       integer:: NSASTART,NSAEND,NPSTART,NPEND
       integer:: NPENDWM,NPENDWG,NPSTARTW,NRSTARTW,NRENDWM,NRENDWG
       integer:: MODELD_temp
-      integer,dimension(:),POINTER:: mtxlen,mtxpos
-      integer,dimension(:),POINTER:: savlen
-      integer,dimension(:,:),POINTER:: savpos
-      integer,dimension(:,:),POINTER:: Rank_Partition_Data
+      integer,dimension(:),ALLOCATABLE:: mtxlen,mtxpos
+      integer,dimension(:),ALLOCATABLE:: savlen
+      integer,dimension(:,:),ALLOCATABLE:: savpos
+      integer,dimension(:,:),ALLOCATABLE:: Rank_Partition_Data
 
       integer::ISAVE
       integer,dimension(NSM):: nsb_nsa,nsa_nsb
       real(rkind):: DELR, DELTH
       real(rkind):: TIMEFP
-      real(rkind),dimension(:),POINTER :: DELP
-      real(rkind),dimension(:),POINTER :: &
+      real(rkind),dimension(:),ALLOCATABLE :: DELP
+      real(rkind),dimension(:),ALLOCATABLE :: &
            RNFP0,RNFPS,RTFP0,RTFPS,AMFP,AEFP,PTFP0,VTFP0, &
            AEFD,AMFD,PTFD0,VTFD0,THETA0,RNFD0,RTFD0,RTFDS, &
            RN0_MGI
@@ -134,28 +160,28 @@ module fpcomm
       integer,dimension(6):: NSA1_NF,NSA2_NF,NSB1_NF,NSB2_NF
       real(rkind),dimension(6):: ENG1_NF,ENG2_NF
 
-      real(rkind),dimension(:,:,:),POINTER :: & ! (NTHM,NPM,NRM)
+      real(rkind),dimension(:,:,:),ALLOCATABLE :: & ! (NTHM,NPM,NRM)
            F,F1
-      integer,dimension(:),POINTER :: & ! (NRM)
+      integer,dimension(:),ALLOCATABLE :: & ! (NRM)
            ITL,ITU, ITL_judge, ITLG_judge
-      integer,dimension(:),POINTER :: & ! (NRM)
+      integer,dimension(:),ALLOCATABLE :: & ! (NRM)
            ITLG,ITUG,ITLG_RG,ITUG_RG
-      real(rkind),dimension(:),POINTER :: & ! (NRM)
-           volr
-      real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
+      real(rkind),dimension(:),ALLOCATABLE :: & ! (NRM)
+           volr,arear
+      real(rkind),dimension(:,:),ALLOCATABLE :: & ! (NRM,NSAM)
            rlamdag,ETAMG,ETAMG_RG,ETAGG_RG,RLAMDAG_RG
-      real(rkind),dimension(:),POINTER :: & ! (NRM)
+      real(rkind),dimension(:),ALLOCATABLE :: & ! (NRM)
            RG,RM
-      real(rkind),dimension(:,:),POINTER :: & ! (NPM:NSAM)
+      real(rkind),dimension(:,:),ALLOCATABLE :: & ! (NPM:NSAM)
            PG,PM
-      real(rkind),dimension(:),POINTER :: & ! (NPM)
+      real(rkind),dimension(:),ALLOCATABLE :: & ! (NPM)
            PGB,PMB
-      real(rkind),dimension(:),POINTER :: & ! (NTHM)
+      real(rkind),dimension(:),ALLOCATABLE :: & ! (NTHM)
            THG,THM
-      real(rkind),dimension(:),POINTER :: & ! (NTHM)
+      real(rkind),dimension(:),ALLOCATABLE :: & ! (NTHM)
            RE_PITCH, RLAMDA_NRMAXP1, ETAM_NRMAXP1, ETAG_NRMAXP1
 
-      real(rkind),dimension(:),POINTER :: & ! (NRM)
+      real(rkind),dimension(:),ALLOCATABLE :: & ! (NRM)
            BP,QR,RJ1,E1,RJ2,E2,BPG,BPM,QLM,QLG, &
            EP,EM,EM_W, &
            RN_disrupt, RN_runaway, Rj_ohm, RJ_runaway, conduct_sp, &
@@ -163,40 +189,40 @@ module fpcomm
            RFPL, RFP, RP_crit, RT_quench,RT_quench_f,previous_rate, RJ_bs, &
            previous_rate_p, rn_drei, RJ_bsm, RN_runaway_M, R_djdt, &
            previous_rate_G, previous_rate_p_G, QLM_INIT, QLG_INIT
-      real(rkind),dimension(:),POINTER :: & ! (NRM)
+      real(rkind),dimension(:),ALLOCATABLE :: & ! (NRM)
            EPSRM,EPSRG,EPSRM2,EPSRG2
-      real(rkind),dimension(:),POINTER :: & ! (NRM)
+      real(rkind),dimension(:),ALLOCATABLE :: & ! (NRM)
            EPSRMX,EPSRGX
-      real(rkind),dimension(:,:,:),POINTER :: & ! (NTHM,NPM,NSBM)
+      real(rkind),dimension(:,:,:),ALLOCATABLE :: & ! (NTHM,NPM,NSBM)
            VOLP
-      real(rkind),dimension(:,:),POINTER :: & ! (NTHM,NRMP)
+      real(rkind),dimension(:,:),ALLOCATABLE :: & ! (NTHM,NRMP)
            ETAG,ETAM,RLAMDA,RLAMDC,ETAM_RG,ETAG_RG,RLAMDA_RG,RLAMDC_G
-      real(rkind),dimension(:),POINTER:: & !(NR)
+      real(rkind),dimension(:),ALLOCATABLE:: & !(NR)
            RFSAD,RFSADG, RFSADG_RG, RATIO_NAVMAX, A_chi0, Line_Element
 
-      real(rkind),dimension(:),POINTER :: & ! (NTHM)
+      real(rkind),dimension(:),ALLOCATABLE :: & ! (NTHM)
            SING,COSG,SINM,COSM
 
-      real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSBM)
+      real(rkind),dimension(:,:,:,:),ALLOCATABLE :: & ! (NTHM,NPM,NRM,NSBM)
            FNS
-      real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRS:NRE,NSAM)
+      real(rkind),dimension(:,:,:,:),ALLOCATABLE :: & ! (NTHM,NPM,NRS:NRE,NSAM)
            FNS0,FNSP,FNSM,FNSP_DEL,FNSP_MXWL
-      real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSBM)
+      real(rkind),dimension(:,:,:,:),ALLOCATABLE :: & ! (NTHM,NPM,NRM,NSBM)
            FNS_L
-      real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSBMAX)
+      real(rkind),dimension(:,:,:,:),ALLOCATABLE :: & ! (NTHM,NPM,NRM,NSBMAX)
            FNSB
 
-      real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
+      real(rkind),dimension(:,:),ALLOCATABLE :: & ! (NRM,NSAM)
            RNFP,RTFP,PTFP,VTFP,THETA,DKBSR, POST_tau_ta,RNFP_G,RTFP_G
-      real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSBM)
+      real(rkind),dimension(:,:),ALLOCATABLE :: & ! (NRM,NSBM)
            RNFD,RTFD,PTFD,VTFD, RN_MGI, RN_MGI_G
-      real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSBM,NSAM)
+      real(rkind),dimension(:,:,:),ALLOCATABLE :: & ! (NRM,NSBM,NSAM)
            RNUF,RNUD,LNLAM,POST_LNLAM_f,POST_LNLAM
-      real(rkind),dimension(:,:,:),POINTER :: & ! (NTHM,NPM,NSAM)
+      real(rkind),dimension(:,:,:),ALLOCATABLE :: & ! (NTHM,NPM,NSAM)
            FS0,FS2,FS1
-      real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSAM)
+      real(rkind),dimension(:,:,:,:),ALLOCATABLE :: & ! (NTHM,NPM,NRM,NSAM)
            WEIGHP,WEIGHT,WEIGHR,WEIGHR_G
-      real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSAM)
+      real(rkind),dimension(:,:,:,:),ALLOCATABLE :: & ! (NTHM,NPM,NRM,NSAM)
            DPP,DPT,DTP,DTT,FPP,FTH,DRR,FRR,SPP,PPL, &
            FEPP,FETH,DCPP,DCPT,DCTP,DCTT,FCPP,FCTH, &
            DWPP,DWPT,DWTP,DWTT, &
@@ -208,109 +234,109 @@ module fpcomm
            DWECTP,DWECTT,DWWRTP,DWWRTT,DWWMTP,DWWMTT, &
            DCPPB,DCPTB,FCPPB, &
            FSPP,FSTH,DLPP,FLPP,SPPL,SPPL_CX, SPP_ICRF
-      real(rkind),dimension(:,:,:),POINTER :: SPPD
-      real(rkind),dimension(:,:,:,:,:),POINTER :: &
+      real(rkind),dimension(:,:,:),ALLOCATABLE :: SPPD
+      real(rkind),dimension(:,:,:,:,:),ALLOCATABLE :: &
            DCPP2,DCPT2,DCTP2,DCTT2,FCPP2,FCTH2  !(NTHM,NPM,NRM,NSAM,NSBM)
-      real(rkind),dimension(:,:,:,:,:),POINTER :: &
+      real(rkind),dimension(:,:,:,:,:),ALLOCATABLE :: &
            DCPP2B,DCPT2B,FCPP2B  !(NTHM,NPM,NRM,NSAM,NSBM)
-      real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
+      real(rkind),dimension(:,:),ALLOCATABLE :: & ! (NRM,NSAM)
            RNSL,RJSL,RWSL,RPCSL,RPWSL,RPESL,RLHSL,RFWSL,RECSL,RWS123L, &
            RSPBL,RSPFL,RSPSL,RSPLL,RPDR,RNDR, RTL_BULK, RT_BULK, &
            RWRSL,RWMSL,RJESL, &
            RDIDTL, RJSRL, RPSSL, RPLSL, RSPSL_CX, RSP_ICL, &
            TP_FRACL, TP_FRAC_DELL
-      real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
+      real(rkind),dimension(:,:),ALLOCATABLE :: & ! (NRM,NSAM)
            RNSL_DELF, RWSL_PARA, RWSL_PERP, TP_FRAC, TP_FRAC_DEL
-      real(rkind),dimension(:,:,:),POINTER :: & ! (NPM,NRM,NSAM)
+      real(rkind),dimension(:,:,:),ALLOCATABLE :: & ! (NPM,NRM,NSAM)
            RP_BULK,RPL_BULK
-      real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
+      real(rkind),dimension(:,:,:),ALLOCATABLE :: & ! (NRM,NSAM,NSBM)
            RPCS2L, RPCS2L_DEL
 
-      real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
+      real(rkind),dimension(:,:),ALLOCATABLE :: & ! (NRM,NSAM)
            RPWEC_L,RPWLH_L,RPWFW_L,RPWWR_L,RPWWM_L
 
-      real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
+      real(rkind),dimension(:,:),ALLOCATABLE :: & ! (NRM,NSAM)
            RNS,RJS,RWS,RPCS,RPWS,RPES,RLHS,RFWS,RECS,RWS123, &
            RSPB,RSPF,RSPS,RSPL,RPDRL,RNDRL,RWRS,RWMS,RDIDT,RSP_IC, &
            RJSR,RPSS,RPLS,RJS_M,RSPS_CX, RNS_DELF, RJES
-      real(rkind),dimension(:),POINTER:: RJ_IND !(NRM)
-      real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
+      real(rkind),dimension(:),ALLOCATABLE:: RJ_IND !(NRM)
+      real(rkind),dimension(:,:),ALLOCATABLE :: & ! (NRM,NSAM)
            RNS_DELF_NSA, RWS_DELF_PARA, RWS_DELF_PERP, RWS_PARA, RWS_PERP
-      real(rkind),dimension(:),POINTER :: & ! (NSAM)
+      real(rkind),dimension(:),ALLOCATABLE :: & ! (NSAM)
            RNS_S2
-      real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
+      real(rkind),dimension(:,:,:),ALLOCATABLE :: & ! (NRM,NSAM,NSBM)
            RPCS2, RPCS2_DEL
 
-      real(rkind),dimension(:),POINTER :: & ! (NTG1M)
+      real(rkind),dimension(:),ALLOCATABLE :: & ! (NTG1M)
            PTG,PET,PQT,Q_ENG
-      real(rkind),dimension(:,:),POINTER :: & ! (NTG1M,NSAM)
+      real(rkind),dimension(:,:),ALLOCATABLE :: & ! (NTG1M,NSAM)
            PNT,PWT,PTT,PIT,PPCT,PPWT,PPET,PLHT,PFWT,PECT,PTT3, &
            PITT,PWTT,PWRT,PWMT,PIRT,PPST,PPLT
-      real(rkind),dimension(:,:),POINTER :: & ! (NTG1M,NSAM)
+      real(rkind),dimension(:,:),ALLOCATABLE :: & ! (NTG1M,NSAM)
            PSPT,PSPBT,PSPFT,PSPLT,PSPST
-      real(rkind),dimension(:,:),POINTER :: & ! (NTG1M,NSAM)
+      real(rkind),dimension(:,:),ALLOCATABLE :: & ! (NTG1M,NSAM)
            PNT2,PWT2,PTT2,PIT2,PWTD,PDR,PNDR,PTT_BULK
-      real(rkind),dimension(:,:,:),POINTER :: & ! (NTG1M,NSAM,NSBM)
+      real(rkind),dimension(:,:,:),ALLOCATABLE :: & ! (NTG1M,NSAM,NSBM)
            PPCT2
-      real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSM)
+      real(rkind),dimension(:,:),ALLOCATABLE :: & ! (NRM,NSM)
            RIPP
 
-      real(rkind),dimension(:),POINTER :: & ! (NTG2M)
+      real(rkind),dimension(:),ALLOCATABLE :: & ! (NTG2M)
            RTG
-      real(rkind),dimension(:,:),POINTER :: & ! (NRM,NTG2M)
+      real(rkind),dimension(:,:),ALLOCATABLE :: & ! (NRM,NTG2M)
            RET,RQT,RATE_RUNAWAY
-      real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NTG2M,NSAM)
+      real(rkind),dimension(:,:,:),ALLOCATABLE :: & ! (NRM,NTG2M,NSAM)
            RNT,RWT,RTT,RJT,RPCT,RPWT,RPET,RLHT,RFWT,RECT, &
            RSPBT,RSPFT,RSPLT,RSPST,RPDRT,RNDRT,RTT_BULK,RWRT,RWMT,&
            RATE_RUNAWAY2,RJRT
-      real(rkind),dimension(:,:,:,:),POINTER :: & ! (NRM,NTG2M,NSAM,NSBM)
+      real(rkind),dimension(:,:,:,:),ALLOCATABLE :: & ! (NRM,NTG2M,NSAM,NSBM)
            RPCT2
-      real(rkind),dimension(:,:),POINTER:: & !(NRM, NSAM)
+      real(rkind),dimension(:,:),ALLOCATABLE:: & !(NRM, NSAM)
            RN_TEMP, RT_TEMP, RN_READ, RT_READ, RN_BULK, RT_INIT, RN_INIT
       integer:: NMMAX,NLMAXM
-      integer,dimension(:,:,:),POINTER :: & ! (NTHM,NPM,NRM)
+      integer,dimension(:,:,:),ALLOCATABLE :: & ! (NTHM,NPM,NRM)
            NMA
-      integer,dimension(:),POINTER :: & ! (NMM)
+      integer,dimension(:),ALLOCATABLE :: & ! (NMM)
            NLMAX
-      integer,dimension(:,:),POINTER :: & ! (NMM,NLM)
+      integer,dimension(:,:),ALLOCATABLE :: & ! (NMM,NLM)
            LL
-      real(rkind),dimension(:),POINTER :: & ! (NMM)
+      real(rkind),dimension(:),ALLOCATABLE :: & ! (NMM)
            DL,BM
-      real(rkind),dimension(:,:),POINTER :: & ! (NMM,NLM)
+      real(rkind),dimension(:,:),ALLOCATABLE :: & ! (NMM,NLM)
            AL
-      real(rkind),dimension(:),POINTER :: & ! (NRM*NTHM*NPM)
+      real(rkind),dimension(:),ALLOCATABLE :: & ! (NRM*NTHM*NPM)
            FM, FM_shadow_m, FM_shadow_p!,BMTOT
 
-      real(rkind),dimension(:,:,:,:,:),POINTER :: & 
+      real(rkind),dimension(:,:,:,:,:),ALLOCATABLE :: & 
            SIGMAV_NF ! (NTHMAX+1,NPMAX+1,NTHMAX+1,NPMAX+1,6)
-      real(rkind),dimension(:,:,:),POINTER :: & 
+      real(rkind),dimension(:,:,:),ALLOCATABLE :: & 
            SIGMAV_NF_BT ! (NTHMAX+1,NPMAX+1,2)
-      real(rkind),dimension(:,:,:,:,:),POINTER :: &
+      real(rkind),dimension(:,:,:,:,:),ALLOCATABLE :: &
            SIGMAV_LG ! (0:LLMAX_NF,NPSTART:NPEND,0:LLMAX_NF,NPSTART:NPEND,6)
-      real(rkind),dimension(:,:),POINTER :: &
+      real(rkind),dimension(:,:),ALLOCATABLE :: &
            PL_NF ! (0:LLMAX_NF,NTHMAX)
-      real(rkind),dimension(:,:),POINTER :: & 
+      real(rkind),dimension(:,:),ALLOCATABLE :: & 
            RATE_NF, RATE_NF_BT, RATE_NF_TT ! (NRSTART:NREND,6)
-      real(rkind),dimension(:,:,:,:),POINTER :: & 
+      real(rkind),dimension(:,:,:,:),ALLOCATABLE :: & 
            RATE_NF_D1, RATE_NF_D2 ! (NTHMAX,NPMAX,NRSTART:NREND,6)
-      real(rkind),dimension(:,:),POINTER :: & ! (NPM:NSAM)
+      real(rkind),dimension(:,:),ALLOCATABLE :: & ! (NPM:NSAM)
            PG2,PM2
-      real(rkind),dimension(:),POINTER :: & ! (NSAM)
+      real(rkind),dimension(:),ALLOCATABLE :: & ! (NSAM)
            DEPS_SS, RPDRS, RNDRS,tau_ta0,E_drei0,E_crit0,POST_tau_ta0_f
       integer:: N_IMPL
       real,dimension(10):: gut_comm
-      real(rkind),dimension(:,:),POINTER:: EPTR
+      real(rkind),dimension(:,:),ALLOCATABLE:: EPTR
       real(rkind):: E_EDGEM, SIGP_E, RN_E, RT_E, RLNRL_E
       real(rkind):: pc_runaway, RF_WR
       real(rkind):: Zeff_imp, tauE0_NB_e, tauE0_NB_i, tauE0_NB
-      real(rkind),dimension(:),POINTER:: tau_se, tau_n ! time const NF
+      real(rkind),dimension(:),ALLOCATABLE:: tau_se, tau_n ! time const NF
       integer:: NPC_runaway
       integer:: nt_init, N_f1
       integer:: ierr_g
-      integer,dimension(:,:),POINTER :: & ! (NRM,NSM)
+      integer,dimension(:,:),ALLOCATABLE :: & ! (NRM,NSM)
            NP_BULK, NP_thermal
       real(rkind):: Ebeam0, Ebeam1
-      real(rkind),dimension(:),pointer:: PIP_E
+      real(rkind),dimension(:),ALLOCATABLE:: PIP_E
       contains
 
         subroutine fp_allocate
@@ -930,9 +956,9 @@ module fpcomm
 
         subroutine fp_adjust_ntg1
           implicit none
-          real(rkind),dimension(:),POINTER:: tempA
-          real(rkind),dimension(:,:),POINTER:: tempB
-          real(rkind),dimension(:,:,:),POINTER:: tempC
+          real(rkind),dimension(:),ALLOCATABLE:: tempA
+          real(rkind),dimension(:,:),ALLOCATABLE:: tempB
+          real(rkind),dimension(:,:,:),ALLOCATABLE:: tempC
           integer:: NTG,NSA,NSB,NTG1M_NEW
 
           if(NTG1.GT.NTG1M) then
@@ -1036,7 +1062,7 @@ module fpcomm
 !------
         subroutine fp_adjust_ntg1_A(data,temp,NTG1M_NEW)
           implicit none
-          real(rkind),dimension(:),POINTER:: data,temp
+          real(rkind),dimension(:),ALLOCATABLE:: data,temp
           integer,intent(in):: NTG1M_NEW
           integer NTG1,NTG
          
@@ -1052,7 +1078,7 @@ module fpcomm
 !------
         subroutine fp_adjust_ntg1_B(data,temp,NTG1M_NEW)
           implicit none
-          real(rkind),dimension(:,:),POINTER:: data,temp
+          real(rkind),dimension(:,:),ALLOCATABLE:: data,temp
           integer,intent(in):: NTG1M_NEW
           integer NTG1,NTG,NR,NSA
          
@@ -1072,7 +1098,7 @@ module fpcomm
 !-------
         subroutine fp_adjust_ntg1_C(data,temp,NTG1M_NEW)
           implicit none
-          real(rkind),dimension(:,:,:),POINTER:: data,temp
+          real(rkind),dimension(:,:,:),ALLOCATABLE:: data,temp
           integer,intent(in):: NTG1M_NEW
           integer NTG1,NTG,NR,NSA,NSB
          
@@ -1177,10 +1203,10 @@ module fpcomm
 !------
         subroutine fp_adjust_ntg2
           implicit none
-          real(rkind),dimension(:),POINTER:: temp0
-          real(rkind),dimension(:,:),POINTER:: tempA
-          real(rkind),dimension(:,:,:),POINTER:: tempB
-          real(rkind),dimension(:,:,:,:),POINTER:: tempC
+          real(rkind),dimension(:),ALLOCATABLE:: temp0
+          real(rkind),dimension(:,:),ALLOCATABLE:: tempA
+          real(rkind),dimension(:,:,:),ALLOCATABLE:: tempB
+          real(rkind),dimension(:,:,:,:),ALLOCATABLE:: tempC
           integer:: NTG,NR,NSA,NSB,NTG2M_NEW
 
           if(NTG2.GT.NTG2M) then
@@ -1272,7 +1298,7 @@ module fpcomm
 !-----
         subroutine fp_adjust_ntg2_0(data,temp,NTG2M_NEW)
           implicit none
-          real(rkind),dimension(:),POINTER:: data,temp
+          real(rkind),dimension(:),ALLOCATABLE:: data,temp
           integer,intent(in):: NTG2M_NEW
           integer NTG2,NTG
          
@@ -1288,7 +1314,7 @@ module fpcomm
 !-----
         subroutine fp_adjust_ntg2_A(data,temp,NTG2M_NEW)
           implicit none
-          real(rkind),dimension(:,:),POINTER:: data,temp
+          real(rkind),dimension(:,:),ALLOCATABLE:: data,temp
           integer,intent(in):: NTG2M_NEW
           integer NTG2,NTG,NR
          
@@ -1308,7 +1334,7 @@ module fpcomm
 !------
         subroutine fp_adjust_ntg2_B(data,temp,NTG2M_NEW)
           implicit none
-          real(rkind),dimension(:,:,:),POINTER:: data,temp
+          real(rkind),dimension(:,:,:),ALLOCATABLE:: data,temp
           integer,intent(in):: NTG2M_NEW
           integer NTG2,NTG,NR,NSA
          
@@ -1332,7 +1358,7 @@ module fpcomm
 !--------
         subroutine fp_adjust_ntg2_C(data,temp,NTG2M_NEW)
           implicit none
-          real(rkind),dimension(:,:,:,:),POINTER:: data,temp
+          real(rkind),dimension(:,:,:,:),ALLOCATABLE:: data,temp
           integer,intent(in):: NTG2M_NEW
           integer NTG2,NTG,NR,NSA,NSB
          

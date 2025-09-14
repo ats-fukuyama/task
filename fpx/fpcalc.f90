@@ -7,28 +7,29 @@
 ! ******************************************************************
 !
 
-      MODULE fpcalc
+MODULE fpcalc
 
-      USE fpcomm
-      USE fpmpi
-      USE libmpi
-      USE libspf, ONLY: ERF0,ERF1
-      REAL(rkind):: PMAXC
-      integer:: NSB_ISO
-      REAL(rkind):: THETA0L_C, THETAL_C
-      REAL(rkind):: RTFD0L_C, RTFDL_C, PNFP_C
-      REAL(rkind):: RNFD0L_C, RNFDL_C
+  USE fpcomm
+  USE fpmpi
+  USE libmpi
+  USE libspf, ONLY: ERF0,ERF1
+  REAL(rkind):: PMAXC
+  integer:: NSB_ISO
+  REAL(rkind):: THETA0L_C, THETAL_C
+  REAL(rkind):: RTFD0L_C, RTFDL_C, PNFP_C
+  REAL(rkind):: RNFD0L_C, RNFDL_C
 
-      integer,parameter:: ISW_NOTAIL=0
-      integer,parameter:: MODEL_DE=1
+  integer,parameter:: ISW_NOTAIL=0
+  integer,parameter:: MODEL_DE=1
 
-      contains
+contains
 
 !----------------------------------
 
-      SUBROUTINE FP_CALC
+  SUBROUTINE FP_CALC
 
-      USE libmtx
+    USE libmtx
+    USE fpdebug
       USE fpcalcn, ONLY: FPCALC_NL
       USE fpcalcnr, ONLY: FPCALC_NLR 
       IMPLICIT NONE
@@ -171,7 +172,8 @@
             IF(MODELA.EQ.1) THEN
                CALL FPCALC_LAV(NR,NSA)
             ENDIF
-!     sum up coefficients by species
+
+            !     sum up coefficients by species
             DO NSB=1,NSBMAX
                DO NP=NPSTART,NPENDWG
                   DO NTH=1,NTHMAX

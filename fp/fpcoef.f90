@@ -16,9 +16,9 @@
       USE fpcalr
       USE libmtx
       USE FP_READ_FIT
-      USE FPFUNC
+      USE fplib
 
-!      double precision,parameter::deltaB_B=1.D-4
+      INTEGER,parameter:: MODEL_T_IMP=2
 
       contains
 !-------------------------------------------------------------
@@ -1072,41 +1072,7 @@
 
       END SUBROUTINE CX_LOSS_TERM
 !-------------------------------------------------------------
-      SUBROUTINE update_fnsb_maxwell
 
-      USE fpreadeg
-      IMPLICIT NONE
-      INTEGER:: NS, NR, NP, NTH, NSB
-      double precision:: FL
-
-      IF(MODEL_EX_READ_Tn.eq.0)THEN
-         DO NSB=1, NSBMAX
-            DO NR=NRSTART,NREND
-               NS=NS_NSB(NSB)
-               DO NP=NPSTART,NPEND
-                  FL=FPMXWL(PM(NP,NS),NR,NS)
-                  DO NTH=1,NTHMAX
-                     FNSB(NTH,NP,NR,NS)=FL
-                  END DO
-               ENDDO
-            END DO
-         END DO
-      ELSE
-!      ELSEIF(MODEL_EX_READ_Tn.eq.1)THEN
-         DO NSB=1, NSBMAX
-            NS=NS_NSB(NSB)
-            DO NR=NRSTART,NREND
-               DO NP=NPSTART,NPEND
-                  FL=FPMXWL_EXP(PM(NP,NS),NR,NS)
-                  DO NTH=1,NTHMAX
-                     FNSB(NTH,NP,NR,NSB)=FL
-                  END DO
-               ENDDO
-            END DO
-         END DO
-      END IF
-
-      END SUBROUTINE update_fnsb_maxwell
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !------------------------------------------------------------
       SUBROUTINE NF_RATE_no_SPPF ! MODELS.eq.-2 or -4
@@ -1235,5 +1201,58 @@
 
       END SUBROUTINE ICRF_DELTA_F_SOURCE
 !------------------------------------------------------------
+      FUNCTION FPMXWL_IMP(PML,NR,NSA,N_ion)
+
+        USE libbes, ONLY: BESEKNX
+        implicit none
+        
+      integer,intent(in):: NR,NSA,N_ion
+      integer:: NS
+      real(rkind),intent(in):: PML
+      real(rkind):: rnfp0l,rtfp0l,ptfp0l,RTFD0L
+      real(rkind):: amfpl,rnfpl,rtfpl,fact,ex,theta0l,thetal,z,dkbsl
+      real(rkind):: FPMXWL_IMP, target_Z, target_ne, target_ni
+
+      NS=NS_NSA(NSA)
+      AMFPL=PA(NS)*AMP
+      RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+      RNFP0L=PN(NS)
+      RTFP0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+      PTFP0L=SQRT(RTFD0L*1.D3*AEE*AMFPL)
+
+      target_z=ABS(PZ(NS))
+      target_ni=(SPITOT-RNFP0(1))*RNFP(NR,NSA)/RNFP0(NSA)/target_z
+
+      RNFPL=target_ni
+      
+      IF(MODEL_T_IMP.eq.0)THEN
+         RTFPL=RT_quench(NR)
+      ELSEIF(MODEL_T_IMP.eq.1)THEN
+         RTFPL=( 0.1D0*RT_quench(NR) + 0.9D0*RT_quench_f(NR) )
+      ELSEIF(MODEL_T_IMP.eq.2)THEN
+         RTFPL=( 0.01D0*RT_quench(NR) + 0.99D0*RT_quench_f(NR) )
+      END IF
+
+      IF(MODELR.EQ.0) THEN
+         FACT=RNFPL/SQRT(2.D0*PI*RTFPL/RTFP0L)**3
+         EX=PML**2/(2.D0*RTFPL/RTFP0L)
+         IF(EX.GT.100.D0) THEN
+            FPMXWL_IMP=0.D0
+         ELSE
+            FPMXWL_IMP=FACT*EXP(-EX)
+         ENDIF
+      ELSE
+         THETA0L=THETA0(NS)
+         THETAL=THETA0L*RTFPL/RTFP0L
+         Z=1.D0/THETAL
+            DKBSL=BESEKNX(2,Z)
+            FACT=RNFPL*SQRT(THETA0L)/(4.D0*PI*RTFPL*DKBSL) &
+             *RTFP0L
+            EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
+            FPMXWL_IMP=FACT*EXP(EX)
+      END IF
+
+      RETURN
+    END FUNCTION FPMXWL_IMP
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      END MODULE fpcoef
+  END MODULE fpcoef

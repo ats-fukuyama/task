@@ -25,7 +25,8 @@ FFLAGS=$(OFLAGS)
 MODINCLUDE= -I$(MOD) -I../open-adas/adf11/adf11-lib/$(MOD) \
             -I../adpost/$(MOD) -I../eq/$(MOD) -I../pl/$(MOD) \
             -I../dp/$(MOD) -I../wrx/$(MOD) -I../wmx/$(MOD) \
-            -I../fp/$(MOD) -I../tr/$(MOD) -I../ti/$(MOD) \
+            -I../fp/$(MOD) -I../ob/$(MOD) \
+            -I../tr/$(MOD) -I../ti/$(MOD) \
             -I../mtxp/$(MOD) -I../lib/$(MOD) \
             -I../../bpsd/$(MOD) 
 
@@ -40,7 +41,7 @@ LIBS = ../lib/libmds.a ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a \
        ../pl/libpl.a \
        $(EQLIBS) \
        ../tr/libtr2.a ../dp/libdp.a ../wrx/libwr.a ../wmx/libwm.a \
-       ../fp/libfp.a ../ti/libti.a
+       ../fp/libfp.a ../ob/libob.a ../ti/libti.a
 
 
 all : libs tot
@@ -77,6 +78,8 @@ $(LIB_MTX):
 	(cd ../wmx; make libwm.a)
 ../fp/libfp.a:
 	(cd ../fp; make libfp.a)
+../fp/libob.a:
+	(cd ../ob; make libob.a)
 ../ti/libti.a:
 	(cd ../ti; make libti.a)
 
@@ -96,6 +99,7 @@ libs:
 	(cd ../dp; make libdp.a)
 	(cd ../wrx; make libwr.a)
 	(cd ../wmx; make libwm.a)
+	(cd ../ob; make libob.a)
 	(cd ../fp; make libfp.a)
 	(cd ../ti; make libti.a)
 	make totmenu.o

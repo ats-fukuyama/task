@@ -16,21 +16,21 @@ CONTAINS
   SUBROUTINE wim_gout
 
     USE wimcomm,ONLY: rkind
-    USE wimparm,ONLY: wim_parm
     USE libkio
+    USE libchar
     USE libgrf
     IMPLICIT NONE
-    INTEGER           :: ierr,mode,kid
-    CHARACTER         :: kch
+    INTEGER           :: ierr
+    CHARACTER(LEN=1)  :: kch
     CHARACTER(LEN=80) :: line
 
 1   CONTINUE
     ierr=0
     WRITE(6,'(A)') &
-         '#### WIM GOUT: 1,2,3,4 X/exit'
-    CALL TASK_KLIN(line,kch,mode,wim_parm)
-    IF(mode == 2 .OR. mode == 3) GOTO 1
-
+         '#### WIM GOUT: 1:ERLZn 2:ERLZ 3:EXYZn 4:EXYZ X:exit'
+    READ(5,*,END=9000,ERR=1) kch
+    CALL TOUPPER(kch)
+    
     SELECT CASE(kch)
     CASE('1') ! ER,EL,EZ: scaled
        CALL WIMGRA(1,1)
@@ -68,7 +68,8 @@ CONTAINS
                   PTR1,PTL1,PTR2,PTL2,PT, &
                   PRR1,PRL1,PRR2,PRL2
     COMPLEX(rkind):: CEX,CEY,CBY,CBX,CPRIN,CPLIN,CEP,CEM
-    
+
+    WRITE(6,*) ZMIN,ZMAX
     XMIN=GUCLIP(ZMIN)
     XMAX=GUCLIP(ZMAX)
     NXMAX=NZMAX+1

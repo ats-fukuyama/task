@@ -17,7 +17,7 @@ C
       USE plparm,ONLY: pl_parm
       INCLUDE 'eqcomc.inc'
 C
-      WRITE(6,*) '## TASK/EQ 2009/09/01'
+      WRITE(6,*) '## TASK/EQ 2025/01/24'
       CALL GSOPEN
       OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
 C

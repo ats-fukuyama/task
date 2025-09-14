@@ -344,7 +344,7 @@ C
 C           NR : NODE NUMBER (RADIAL POSITION)
 C           NS : PARTICLE SPECIES 
 C
-      USE plprof,ONLY: pl_mag_type
+      USE plcomm_type,ONLY: pl_mag_type
       USE plprofw,ONLY: pl_profw,pl_prfw_type
       USE dpdisp,ONLY: dp_dtns_pzp
       INCLUDE 'wmcoml.inc'

@@ -1105,6 +1105,7 @@ CONTAINS
       SUBROUTINE wmfem_dielectric(rho,th,ph,mm,nn,ns,fml)
 
       use wmfem_comm
+      USE plcomm_type  
       use plprofw
       use plprof
       USE dptnsr0

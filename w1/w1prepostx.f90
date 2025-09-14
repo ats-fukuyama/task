@@ -127,11 +127,6 @@ CONTAINS
 
     RW=2.D6*PI*RF
 
-!    DX=2.D0*RB/(NXMAX-1)
-!    DO NX=1,NXMAX
-!       XA(NX)=DX*(NX-1)-RB
-!    END DO
-
     NSACM=0
     DO NS=1,NSMAX
        FWC=AEE*PZ(NS)*BB/(AMP*PA(NS))
@@ -148,6 +143,10 @@ CONTAINS
        DO NX=1,NXMAX
           XA(NX)=DBLE(NX-1)*DX-RB
        END DO
+!       DX=RB/DBLE(NXMAX-1)
+!       DO NX=1,NXMAX
+!          XA(NX)=DBLE(NX-1)*DX
+!       END DO
     ELSE
        FVT=AEE*1.D3/(AMP*PA(NSACM))
        FWC=AEE*PZ(NSACM)*BB/(AMP*PA(NSACM))
@@ -288,7 +287,8 @@ CONTAINS
        END SELECT
     ELSE
        RW=2.D6*PI*RF
-       RKWG=WGNZ*RW/VC
+       !       RKWG=WGNZ*RW/VC
+       RKWG=RKZ
        WRITE(6,'(A,1P3E12.4)') 'RF,RW,VC=',RF,RW,VC
        IF(ABS(RKWG).GT.1.E-8) THEN
           WRITE(6,'(A,1P2E12.4)') 'RKWG,LWG=',RKWG,2.D0*PI/RKWG
@@ -365,8 +365,8 @@ CONTAINS
     DO NS=1,NSMAX
        DO NX=1,NXMAX-1
           PABSXZ(NS)  =PABSXZ(NS)  +PABSX(NX,NS)
-          IF(NS.EQ.1) WRITE(21,'(A,I5,1P2E12.4)') &
-               'NX,PABSX,PABSXZ=',NX,PABSX(NX,NS),PABSXZ(NS)
+          IF(NS.EQ.1) WRITE(29,'(A,I5,3ES12.4)') &
+               'NX,XAM,PABSX,PABSXZ=',NX,XAM(NX),PABSX(NX,NS),PABSXZ(NS)
        END DO
     END DO
 

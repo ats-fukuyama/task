@@ -22,7 +22,7 @@
       USE plmenu,ONLY: pl_menu
 
       IMPLICIT none
-      INTEGER(ikind)  :: ierr
+      INTEGER  :: ierr
 
       WRITE(6,*) '## TASK/PL 2019/09/01'
       OPEN(7,STATUS='SCRATCH')

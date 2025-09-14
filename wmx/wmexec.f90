@@ -17,7 +17,7 @@ CONTAINS
     USE wmemfp
     USE wmpout
     USE wmdout,ONLY: wm_dout
-    USE dpparm,ONLY: dpprep
+    USE dpprep,ONLY: dp_prep_fp,dp_prep_ns
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
     INTEGER:: nr
@@ -27,15 +27,21 @@ CONTAINS
     MODEEG=0
     MODELK=1
 
+    WRITE(6,*) '@@@ point 41'
     CALL wm_setg(IERR)
     IF(IERR.NE.0) RETURN
     
-    CALL dpprep(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),IERR)
+    WRITE(6,*) '@@@ point 42'
+    CALL dp_prep_fp(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),IERR)
+    IF(IERR.NE.0) RETURN
+    CALL dp_prep_ns(IERR)
     IF(IERR.NE.0) RETURN
 
+    WRITE(6,*) '@@@ point 43'
     CALL wm_setj(IERR)
     IF(IERR.NE.0) RETURN
 
+    WRITE(6,*) '@@@ point 44'
     CALL wm_setew
 
     IF(mdlwmx.EQ.1) THEN
@@ -48,11 +54,15 @@ CONTAINS
        NR_S=nrmax
     END IF
 
+    WRITE(6,*) '@@@ point 45'
     CALL wm_solv
     
+    WRITE(6,*) '@@@ point 46'
     CALL wm_efield
     CALL wm_bfield
+    WRITE(6,*) '@@@ point 47'
     CALL wm_pabs
+    WRITE(6,*) '@@@ point 48'
     IF(nrank.EQ.0) THEN
        CALL wm_pwrflux
        CALL wm_pwrant
@@ -60,6 +70,7 @@ CONTAINS
     IF(nrank.EQ.0) THEN
        IF(nprint.GE.5) CALL wm_dout(ierr)
     ENDIF
+    WRITE(6,*) '@@@ point 49'
     RETURN
   END SUBROUTINE wm_exec
   

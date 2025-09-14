@@ -3,7 +3,7 @@
 MODULE wrcomm_parm
   USE commpi
   USE plcomm
-  USE dpcomm_parm
+  USE dpcomm
   IMPLICIT NONE
   PUBLIC
 
@@ -17,6 +17,7 @@ MODULE wrcomm_parm
   REAL(rkind):: SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW
   REAL(rkind):: RF,RPI,ZPI,PHII,RNZI,RNPHII,RKR0,UUI,RKRI,RKPHII,RKZI
   REAL(rkind):: RCURVA,RCURVB,RBRADA,RBRADB,NRADMX
+  INTEGER:: mode_wline
   INTEGER:: MODEW,nres_max,nres_type
   REAL(rkind):: pne_threshold,bdr_threshold
   REAL(rkind):: Rmax_wr,Rmin_wr,Zmin_wr,Zmax_wr

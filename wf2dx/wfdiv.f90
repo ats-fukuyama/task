@@ -13,151 +13,141 @@ MODULE wfdiv
 
 CONTAINS
   
-  subroutine wf_div
+  SUBROUTINE wf_div
 
-  use libmpi
-  USE libchar
-  use wfcomm
-  use wfparm
-  USE wfindex
-  USE wfgsub
-  implicit none
-  integer   :: NE,NN,IERR
-  character :: KID*1
+    USE libmpi
+    USE libchar
+    USE wfcomm
+    USE wfparm
+    USE wfdiv_rect
+    USE wfdiv_layer
+    USE wfdiv_circle
+    USE wfdiv_eq
+    USE wfindex
+    USE wfgsub
+    IMPLICIT NONE
+    INTEGER   :: ne,nn,ierr
+    CHARACTER :: kid*1
 
-1 continue
-
-  if (nrank.eq.0) then  
-     write(6,*) '## INPUT: D/DIV  G/DRAW  P,V/PARM ',&
-                          'S/SAVE  L/LOAD  W/LIST  X/EXIT'
-     read(5,'(A1)',ERR=1,END=9000) KID
-     call toupper(KID)
-  end if
-  call mtx_barrier
-  call mtx_broadcast_character(KID,1)
+    ! *** div main menu ***
   
-  if(KID.eq.'D') then
+1   CONTINUE
 
-2    continue
+    IF(nrank.EQ.0) THEN  
+       WRITE(6,*) '## INPUT: D/DIV  G/DRAW  P,V/PARM ',&
+                            'S/SAVE  L/LOAD  W/LIST  X/EXIT'
+       READ(5,'(A1)',ERR=1,END=9000) kid
+       CALL toupper(kid)
+    END IF
+    CALL mtx_barrier
+    CALL mtx_broadcast_character(kid,1)
 
-     KID=""
-     if (nrank.eq.0) then
-        write(6,'(A24)') '## TYPE: X/RECT C/CIRCLE'
-        read(5,'(A1)') KID
-        call toupper(KID)
-        if (KID.ne."X".and.KID.ne."C") goto 2
-     end if
-     call mtx_barrier
-     call mtx_broadcast_character(KID,1)
+    SELECT CASE(kid)
 
-     if(nrank.eq.0)then
-        if(KID.eq.'X') then
-3          write(6,'(A,4F10.4)') &
-                '## DIV:   xdiv_min,xdiv_max,ydiv_min,ynode_max = ', &
-                           xdiv_min,xdiv_max,ydiv_min,ynode_max
-           write(6,'(A)') &
-                '## INPUT: xdiv_min,xdiv_max,ydiv_min,ynode_max ? '
-           read(5,*,ERR=3,END=2) &
-                           xdiv_min,xdiv_max,ydiv_min,ynode_max
-           write(6,'(A,4F10.4)') &
-                '## DIV:   xdiv_min,xdiv_max,ydiv_min,ynode_max = ', &
-                           xdiv_min,xdiv_max,ydiv_min,ynode_max
-4          write(6,'(A,2F10.4)') '## DIV:   delx,dely = ',delx,dely
-           write(6,'(A)')        '## INPUT: delx,dely ? '
-           read(5,*,ERR=4,END=2) delx,dely
-           write(6,'(A,2F10.4)') '## DIV:   delx,dely = ',delx,dely
-           write(6,'(A)')        '## INPUT: delx,dely ? '
-           if(abs(delx).le.1.d-6.or.abs(dely).le.1.d-6) goto 2
-           mode_mesh=1
-           r_corner(1)=xdiv_min
-           z_corner(1)=ydiv_min
-           r_corner(2)=xdiv_max
-           z_corner(2)=ydiv_min
-           r_corner(3)=xdiv_min
-           z_corner(3)=ynode_max
-           
-        elseif(KID.eq.'C') then
-5          write(6,'(A15,F10.4)') '## DIV:   RB = ',RB
-           write(6,'(A15)')       '## INPUT: RB ? '
-           read(5,*,ERR=5,END=2) RB
-           xdiv_min=-RB
-           xdiv_max= RB
-           ydiv_min=-RB
-           ynode_max= RB
-6          write(6,'(A17,F10.4)') '## DIV:   delx = ',delx
-           write(6,'(A17)')       '## INPUT: delx ? '
-           read(5,*,ERR=6,END=2) delx
-           if(abs(delx).le.1.D-6) goto 2
-           mode_mesh=2
-           r_corner(1)=xdiv_min
-           z_corner(1)=ydiv_min
-           r_corner(2)=xdiv_max
-           z_corner(2)=ydiv_min
-           r_corner(3)=xdiv_min
-           z_corner(3)=ynode_max
+    CASE('D')
+       ! *** devider menu ***
 
-        end if
+2      CONTINUE
 
-     end if
-
-     call wfdiv_broadcast
-     if(KID.eq.'X') then
-        call SETNODX
-     elseif(KID.eq.'C') then
-        call SETNODC
-     end if
-
-!     CALL wf_set_bdy(ierr)
-!     IF(ierr.NE.0) THEN
-!        WRITE(6,*) 'XX wf_div: wf_set_bdy error:',ierr
-!        STOP
-!     END IF
+       kid=""
+       IF(nrank.eq.0) THEN
+          WRITE(6,'(A24)') '## Tyoe: R/Rect L/Layer C/Circle E/Eq X/exit'
+          READ(5,'(A1)') kid
+          CALL toupper(kid)
+          CALL mtx_barrier
+          CALL mtx_broadcast_character(kid,1)
+       END IF
      
-     CALL fem_mesh_allocate
-     if(nrank.eq.0) write(6,*) '--- WFINDEX start ---'
-     call wf_index
-     if(nrank.eq.0) write(6,*) '--- WFFEPI start ---'
-     call wf_set_fep
+       SELECT CASE(kid)
+       CASE('R')
+          model_div=1
+       CASE('L')
+          model_div=2
+       CASE('C')
+          model_div=3
+       CASE('E')
+          model_div=4
+       CASE('X')
+          GO TO 9000
+       CASE DEFAULT
+          GO TO 2
+       END SELECT
+
+       IF(nrank.EQ.0) THEN
+          SELECT CASE(model_div)
+          CASE(1)
+             CALL wf_div_rect_input
+          CASE(2)
+             CALL wf_div_layer_input
+          CASE(3)
+             CALL wf_div_circle_input
+          CASE(4)
+             CALL wf_div_eq_input
+          END SELECT
+       END IF
+        
+       CALL wfdiv_broadcast
+
+       SELECT CASE(model_div)
+       CASE(1)
+          CALL wf_div_rect_exec
+       CASE(2)
+          CALL wf_div_layer_exec
+       CASE(3)
+          CALL wf_div_circle_exec
+       CASE(4)
+          CALL wf_div_eq_exec
+       END SELECT
+
+       CALL fem_mesh_allocate
+       IF(nrank.EQ.0) WRITE(6,*) '--- WFINDEX start ---'
+       CALL wf_index
+       IF(nrank.EQ.0) WRITE(6,*) '--- WFFEPI start ---'
+       CALL wf_set_fep
   
-     do NE=1,nelm_max
-        nmed_nelm(NE)=1
-     end do
-     nmed_max=1
+       DO NE=1,nelm_max
+          nmed_nelm(NE)=1
+       END DO
+       nmed_max=1
      
-     do NN=1,node_max
-        mode_node(NN)=0
-     end do
-    
-  elseif(KID.eq.'G') then
-     if (nrank.eq.0) then
-        NWXMAX=0
-        call wf_gr_element
-     end if
+       DO NN=1,node_max
+          mode_node(NN)=0
+       END DO
+
+    CASE('G')
+       ! *** element graph ***
+       IF(nrank.EQ.0) THEN
+          NWXMAX=0
+          CALL wf_gr_element
+       END IF
+
+    CASE('W')
+       ! *** list element data ***
+       IF(nrank.EQ.0) CALL wf_list_element
+       
      
-  elseif(KID.eq.'W') then
-     if (nrank.eq.0) call WFLDIV
+    CASE('L')
+       ! *** load element data ***
+       !     CALL wf_load_element(ierr)
      
-  elseif(KID.eq.'L') then
-     !     call WFRELM(ID)
+    CASE('P')
+       if(nrank.eq.0) call WF_PARM(0,'WF',IERR)
+       call wfparm_broadcast
      
-  elseif(KID.eq.'P') then
-     if(nrank.eq.0) call WF_PARM(0,'WF',IERR)
-     call wfparm_broadcast
+    CASE('V')
+       if (nrank.eq.0) call WF_VIEW
      
-  elseif(KID.eq.'V') then
-     if (nrank.eq.0) call WF_VIEW
+    CASE('S')
+       !     if (nrank.eq.0) call WFWELM(0)
      
-  elseif(KID.eq.'S') then
-     !     if (nrank.eq.0) call WFWELM(0)
-     
-  elseif(KID.eq.'X') then
+    CASE('X')
      goto 9000
-  end if
-  goto 1
+  END SELECT
+  GO TO 1
   
-9000 continue
-  return
-end subroutine wf_div
+9000 CONTINUE
+  RETURN
+END SUBROUTINE wf_div
 
 ! *** rectangular mesh ***
 
@@ -173,13 +163,13 @@ subroutine SETNODX
   real(rkind) :: dx,dy,xlen,ylen
 
   xlen=xdiv_max-xdiv_min
-  ylen=ynode_max-ydiv_min
+  ylen=ydiv_max-ydiv_min
 
   ! --- set node_max ---
-  nxmax=NINT(xlen/delx)
+  nxmax=NINT(xlen/del_xdiv)
   if(MOD(nxmax,2).eq.0) nxmax=nxmax+1
   dx=DBLE(xlen/(nxmax-1))
-  nymax=NINT(ylen/dely)
+  nymax=NINT(ylen/del_ydiv)
   if(MOD(nymax,2).eq.0) nymax=nymax+1
   dy=DBLE(ylen/(nxmax-1))
   node_max=nxmax*nymax
@@ -192,8 +182,8 @@ subroutine SETNODX
   do ny=1,nymax
      do nx=1,nxmax
         node=node+1
-        xnode(node)=xdiv_min+dx*(nx-1)
-        ynode(node)=ydiv_min+dy*(ny-1)
+        xnode(node)=xdiv_min+del_xdiv*(nx-1)
+        ynode(node)=ydiv_min+del_ydiv*(ny-1)
      end do
   end do
   
@@ -268,7 +258,7 @@ subroutine SETNODC
 
   ! --- set the number of rings ---
                                 
-  NRMAX=NINT(RB/delx)+1
+  NRMAX=NINT(RB/del_xdiv)+1
   DR=DBLE(RB/(NRMAX-1))
   allocate(NTHMAX(NRMAX))
 
@@ -423,7 +413,7 @@ end function INNODE
 
 
 !     ****** List Element Data ******
-subroutine WFLDIV
+subroutine wf_list_element
 
   use wfcomm
   implicit none
@@ -485,7 +475,7 @@ subroutine WFLDIV
 500 format(' ','BOUNDARY NODE DATA',4X,'mtx_len=',I4/&
           (' ',4(I5,'(',I1,') ')))
   return
-end subroutine WFLDIV
+end subroutine wf_list_element
 
 !-- broadcast data --
 subroutine wfdiv_broadcast
@@ -500,9 +490,9 @@ subroutine wfdiv_broadcast
      rdata(1)=xdiv_min
      rdata(2)=xdiv_max
      rdata(3)=ydiv_min
-     rdata(4)=ynode_max
-     rdata(5)=delx
-     rdata(6)=dely
+     rdata(4)=ydiv_max
+     rdata(5)=del_xdiv
+     rdata(6)=del_ydiv
      rdata(7)=RB
   end if
   
@@ -512,9 +502,9 @@ subroutine wfdiv_broadcast
   xdiv_min=rdata(1)
   xdiv_max=rdata(2)
   ydiv_min=rdata(3)
-  ynode_max=rdata(4)
-  delx  =rdata(5)
-  dely  =rdata(6)
+  ydiv_max=rdata(4)
+  del_xdiv=rdata(5)
+  del_ydiv=rdata(6)
   RB    =rdata(7)
 
   call mtx_broadcast_real8(r_corner,3)

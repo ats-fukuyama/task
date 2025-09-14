@@ -56,7 +56,7 @@ subroutine wfmenu
   elseif (KID.eq.'G') then
      if (nrank.eq.0) call WFGOUT
   elseif (KID.eq.'S') then
-     call WFWFLD
+     if (nrank.eq.0) call wfsave
   elseif (KID.eq.'L') then
      IDEBUG_SAVE=IDEBUG
      IDEBUG=1

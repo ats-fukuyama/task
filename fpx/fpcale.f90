@@ -26,7 +26,7 @@
 
       CALL GUTIME(gut1)
 
-      IF(MODELD_n_RE.eq.1.and.RN_runaway(1).ge.1.D-40)THEN
+      IF(MODEL_RE_n.eq.1.and.RN_runaway(1).ge.1.D-40)THEN
          CALL N_RE_TRANSPORT_dndt(dndt)
       END IF
 
@@ -53,7 +53,7 @@
 !---- RIGHT HAND SIDE
       DO NR=NRSTART,NREND
          IF(NR.ne.NRMAX)THEN
-            IF(MODELD_n_RE.eq.1.and.RN_runaway(1).ge.1.D-40)THEN
+            IF(MODEL_RE_n.eq.1.and.RN_runaway(1).ge.1.D-40)THEN
                FACTR=QLM(NR)*deltaB_B**2
                FACTP=PI*RR*VC/SQRT(2.D0)
                DR_coef=FACTP*FACTR/(RA**2)
@@ -106,7 +106,7 @@
             a_e=RA
             coef_ln=-LOG(b_wall/(a_e*(1.D0+DELR*0.5D0) ) )*(b_wall/(a_e*DELR))
             E_e=-coef_ln*EP(NRMAX)/(1.D0-coef_ln)
-            IF(MODELD_n_RE.eq.1.and.RN_runaway(1).ge.1.D-40)THEN
+            IF(MODEL_RE_n.eq.1.and.RN_runaway(1).ge.1.D-40)THEN
                FACTR=QLM(NR)*deltaB_B**2
                FACTP=PI*RR*VC/SQRT(2.D0)
                DR_coef=FACTP*FACTR/(RA**2)

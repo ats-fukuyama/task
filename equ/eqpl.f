@@ -199,7 +199,7 @@ c
 !     mut(n)=mut(n)+mutb(n)+muta(n)
       mut(n)=cnmu*mut(n)
       nut(n)=qi(n)
-      write(27,'(I5,1p4e12.4)') n,ro(n),mut(n),nut(n),sit(n)
+!      write(27,'(I5,1p4e12.4)') n,ro(n),mut(n),nut(n),sit(n)
       enddo
 c-----------------------------------------------------------------------
       do n=1,nv

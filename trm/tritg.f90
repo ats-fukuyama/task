@@ -21,15 +21,10 @@
 !     Output transport coefficients              : grid
 !   *************************************************************
 
-      USE TRCOMM, ONLY : &
-           ADDW, ADDWD, ADDWP, AKDW, AKDWD, AKDWP, AR1RHO, AR2RHO, AVDW, &
-           AVKDW, BB, CDH, DR, MDLDW, MDLEOI, MDLEQN, MDLEQT, MDLKAI, MDLUF, &
-           NGLF, NRMAX, NSM, NSMAX, PA, PHIA, PI, PZ, Q0, QP, RA, RG, RKAP, &
-           RKPRHO, RM, RMJRHO, RMNRHO, RN, RNF, RR, RT, VPAR, VPRP, VTOR, &
-           WEXB, WROT, ZEFF, ALPHA, rkind
+      USE TRCOMM
       USE libitp
       IMPLICIT NONE
-      INCLUDE 'trglf.inc'
+      INCLUDE '../trlib/glf/trglf.inc'
       REAL(rkind),DIMENSION(NRMAX), INTENT(IN):: S_HM
       INTEGER:: &
            i_delay, idengrad, iglf, igrad, irotstab, j, jm, jmaxm, jmm, &
@@ -43,11 +38,7 @@
       MDLDW=1
 !     INPUTS
       leigen=1        ! 1 for tomsqz, 0 for cgg solver
-      IF(MDLUF.NE.0.AND.NSMAX.GT.2) THEN
-         nroot=12   ! num. of equations, 8 for default, 12 for imp.
-      ELSE
-         nroot=8
-      ENDIF
+      nroot=8
       iglf=1          ! 0 for original model, 1 for retuned model
       jshoot=0        ! 0 for time-dep code, 1 for shooting code
 !   In case of jshoot=0,
@@ -98,11 +89,7 @@
          rns_m(jm)=RNF(jm,1)*10.D0  ! Nf [^19m^-3]
       ENDDO
 
-      IF(MDLUF.NE.0.AND.NSMAX.GT.2) THEN
-         idengrad=3   ! compute simple dilution (3=actual dilution)
-      ELSE
-         idengrad=2
-      ENDIF
+      idengrad=2
 
       jm=1
          angrotp_exp(jm)  =FCTR(RG(jm),RG(jm+1),WROT(jm),WROT(jm+1))
@@ -140,11 +127,7 @@
          rho(jm)=RM(jm) ! norm. toroidal flux surf. label
       ENDDO
 
-      IF(PHIA.EQ.0.D0) THEN
-         arho_exp=SQRT(RKAP)*RA ! rho at last closed flux surface [m]
-      ELSE
-         arho_exp=SQRT(PHIA/(PI*bt_exp))
-      ENDIF
+      arho_exp=SQRT(RKAP)*RA ! rho at last closed flux surface [m]
 
       rmin_exp(0)=0.D0
       CALL AITKEN(RM(1),rmin_exp(1),RG,RMNRHO,1,NRMAX)
@@ -161,8 +144,8 @@
       ENDDO
       rmajor_exp=RR  ! geometrical major radius of magnetix axis [m]
 
-      zimp_exp=PZ(3)         ! Zimp; finite data is necessary
-      amassimp_exp=PA(3)     ! Aimp; finite data is necessary
+      zimp_exp=PZ(NS_T)         ! Zimp; finite data is necessary
+      amassimp_exp=PA(NS_T)     ! Aimp; finite data is necessary
 
       q_exp(1)=0.5D0*(Q0+QP(1))
       DO jm=2,jmaxm
@@ -178,7 +161,7 @@
          elong_exp(jm)=RKPRHO(jm)    ! local elongation
       ENDDO
 
-      amassgas_exp=PA(2) ! atomic num. of working gas
+      amassgas_exp=PA(NS_D) ! atomic num. of working gas
       alpha_e=1.D0       ! ExB shear stabilization (0=off,>0=on)
       x_alpha=1.D0       ! alpha stabilization (0=off,>0=on)
       i_delay=0          ! default(usually recommended)
@@ -297,7 +280,7 @@
                   AKDWP(j,1,1)=0.D0
                   AVKDW(j,1)  =qe0(j)
                ENDIF
-               DO NS=2,NSM
+               DO NS=2,NSMAX
                   AKDW (j,NS)   =chiii(j)
                   AKDWP(j,NS,NS)=chiii(j)
                   AVKDW(j,NS)   =(qi0(j)/zpti_m(j)-chiii(j))*zpti_m(j)
@@ -322,35 +305,35 @@
                ADDWP(NR,1,1)=ddne(NR)
                AKDWD(NR,1,1)=chien(NR)
                AKDWP(NR,1,1)=chiee(NR)
-               DO NS=2,NSM
+               DO NS=2,NSMAX
                   ADDWD(NR,NS,1)=ddnn(NR)
                   ADDWP(NR,NS,1)=ddni(NR)
                   AKDWD(NR,NS,1)=chien(NR)
                   AKDWP(NR,NS,1)=chiei(NR)
                ENDDO
-               DO NS1=2,NSM
+               DO NS1=2,NSMAX
                   ADDWD(NR,1,NS1)=ddnn(NR)
                   ADDWP(NR,1,NS1)=ddne(NR)
                   AKDWD(NR,1,NS1)=chiin(NR)
                   AKDWP(NR,1,NS1)=chiie(NR)
-                  DO NS=2,NSM
+                  DO NS=2,NSMAX
                      ADDWD(NR,NS,NS1)=ddnn(NR)
                      ADDWP(NR,NS,NS1)=ddni(NR)
                      AKDWD(NR,NS,NS1)=chiin(NR)
                      AKDWP(NR,NS,NS1)=chiii(NR)
                   ENDDO
                ENDDO
-               DO NS=1,NSM
+               DO NS=1,NSMAX
                   ADDW(NR,NS)=ADDWD(NR,NS,NS)
                   AKDW(NR,NS)=AKDWP(NR,NS,NS)
                ENDDO
             ENDDO
             NR=NRMAX
-               ADDWD(NR,1:NSM,1:NSM)=ADDWD(NR-1,1:NSM,1:NSM)
-               ADDWP(NR,1:NSM,1:NSM)=ADDWP(NR-1,1:NSM,1:NSM)
-               AKDWD(NR,1:NSM,1:NSM)=AKDWD(NR-1,1:NSM,1:NSM)
-               AKDWP(NR,1:NSM,1:NSM)=AKDWP(NR-1,1:NSM,1:NSM)
-               DO NS=1,NSM
+               ADDWD(NR,1:NSMAX,1:NSMAX)=ADDWD(NR-1,1:NSMAX,1:NSMAX)
+               ADDWP(NR,1:NSMAX,1:NSMAX)=ADDWP(NR-1,1:NSMAX,1:NSMAX)
+               AKDWD(NR,1:NSMAX,1:NSMAX)=AKDWD(NR-1,1:NSMAX,1:NSMAX)
+               AKDWP(NR,1:NSMAX,1:NSMAX)=AKDWP(NR-1,1:NSMAX,1:NSMAX)
+               DO NS=1,NSMAX
                   ADDW(NR,NS)=ADDWD(NR,NS,NS)
                   AKDW(NR,NS)=AKDWP(NR,NS,NS)
                ENDDO
@@ -362,7 +345,7 @@
                AVDW (NR, 1)=qn0(NR)-ddnn (NR)*zpni_m(NR) &
                                    -ddne (NR)*zpte_m(NR) &
                                    -ddni (NR)*zpti_m(NR)
-               DO NS=2,NSM
+               DO NS=2,NSMAX
                   AVKDW(NR,NS)=qi0(NR)-chiin(NR)*zpni_m(NR) &
                                       -chiie(NR)*zpte_m(NR) &
                                       -chiii(NR)*zpti_m(NR)
@@ -455,11 +438,8 @@
 
 !***********************************************************************
 
-      USE TRCOMM, ONLY : &
-           AR1RHOG, AR2RHOG, BB, DR, EPSRHO, MDLDW, MDLKAI, MDLTPF, &
-           NRMAX, NT, PA, PNSS, PTS, PZ, QP, RA, RHOG, RHOM, RJCB, RKAP, &
-           RKEV, RMU0, RN, RR, RT, WEXB, S, rkind
-      USE libitp
+        USE TRCOMM
+        USE libitp
       IMPLICIT NONE
       INTEGER:: ist, nr
       REAL(rkind)   :: &
@@ -476,8 +456,8 @@
       ELSE
          IST=0
       ENDIF
-      ZL    = PZ(3)
-      AZL   = PA(3)
+      ZL    = PZ(NS_T)
+      AZL   = PA(NS_T)
       COLL  = 1.D0
       ELL   = 1.D0
       RLIST = 1.D0
@@ -485,7 +465,7 @@
       RIWL  = 2.D0
       RISBL = 2.D0
       SEARCH= 2.D0
-      PMA   = PA(2)
+      PMA   = PA(NS_D)
       ROTL  = 1.D0
       EPSA  = RA/RR
       DO NR=1,NRMAX-1
@@ -523,7 +503,7 @@
             FLL   = 2.D0*FLS/(1.D0+1.D0/TAUL)
          ENDIF
 
-!         COEF = PZ(2)**2*AEE**4*1.D20
+!         COEF = PZ(NS_D)**2*AEE**4*1.D20
 !     &         /(6.D0*PI*SQRT(2.D0*PI)*EPS0**2*SQRT(AME)*RKEV**1.5D0)
 !         RLAMB =15.2D0-0.5D0*DLOG(RNL)+DLOG(TEL)
 !         VEI  = COEF*RNL*RLAMB/TEL**1.5D0
@@ -597,13 +577,11 @@
 
       SUBROUTINE WEILAND_COEF(NR,CHIL,CHEL,DL,CHQL,DQL) !,SCHI,SCHE,SD,SCHQ,SDQ)
 
-      USE TRCOMM, ONLY : &
-           ADDW, ADDWD, ADDWP, AKDW, AKDWD, AKDWP, MDLWLD, NSM, PA, rkind
-      IMPLICIT NONE
-      INTEGER  :: NR
-!      REAL(rkind)     :: SCHE, SCHI, SCHQ, SD, SDQ
-      REAL(rkind),DIMENSION(5):: CHEL, CHIL, CHQL, DL, DQL
-      INTEGER:: ns, ns1
+        USE TRCOMM
+        IMPLICIT NONE
+        INTEGER  :: NR
+        REAL(rkind),DIMENSION(5):: CHEL, CHIL, CHQL, DL, DQL
+        INTEGER:: ns, ns1
 
 
 !     The diagonal value of the transport coefficient matrix
@@ -617,40 +595,40 @@
 
 !     It is assumed that De=Di in the followings.
 
-      IF(PA(3).EQ.3.D0) THEN
+      IF(PA(NS_T).EQ.3.D0) THEN
 !         AKDW(NR,1)=SCHE
          AKDW(NR,1)=CHEL(2)
-         DO NS=2,NSM
+         DO NS=2,NSMAX
 !            AKDW(NR,NS)=SCHI
             AKDW(NR,NS)=CHIL(1)
          ENDDO
-         DO NS=1,NSM
+         DO NS=1,NSMAX
 !            ADDW(NR,NS)=SD
             ADDW(NR,NS)=DL(3)
          ENDDO
          IF(MDLWLD.NE.0) THEN
             ADDWD(NR,1,1)=DL(3)
             ADDWP(NR,1,1)=CHEL(3)
-            DO NS=2,NSM
+            DO NS=2,NSMAX
                ADDWD(NR,NS,1)=DL(3)
                ADDWP(NR,NS,1)=CHIL(3)
             ENDDO
             AKDWD(NR,1,1)=DL(2)
             AKDWP(NR,1,1)=CHEL(2)
-            DO NS=2,NSM
+            DO NS=2,NSMAX
                AKDWD(NR,NS,1)=DL(2)
                AKDWP(NR,NS,1)=CHIL(2)
             ENDDO
-            DO NS1=2,NSM
+            DO NS1=2,NSMAX
                ADDWD(NR,1,NS1)=DL(3)
                ADDWP(NR,1,NS1)=CHEL(3)
-               DO NS=2,NSM
+               DO NS=2,NSMAX
                   ADDWD(NR,NS,NS1)=DL(3)
                   ADDWP(NR,NS,NS1)=CHIL(3)
                ENDDO
                AKDWD(NR,1,NS1)=DL(1)
                AKDWP(NR,1,NS1)=CHEL(1)
-               DO NS=2,NSM
+               DO NS=2,NSMAX
                   AKDWD(NR,NS,NS1)=DL(1)
                   AKDWP(NR,NS,NS1)=CHIL(1)
                ENDDO
@@ -671,7 +649,7 @@
             ADDWP(NR,1,1)=CHEL(3)
             ADDWD(NR,2,1)=DL(3)
             ADDWP(NR,2,1)=CHIL(3)
-            DO NS=3,NSM
+            DO NS=3,NSMAX
                ADDWD(NR,NS,1)=DQL(3)
                ADDWP(NR,NS,1)=CHQL(3)
             ENDDO
@@ -679,7 +657,7 @@
             AKDWP(NR,1,1)=CHEL(2)
             AKDWD(NR,2,1)=DL(2)
             AKDWP(NR,2,1)=CHIL(2)
-            DO NS=3,NSM
+            DO NS=3,NSMAX
                AKDWD(NR,NS,1)=DQL(2)
                AKDWP(NR,NS,1)=CHQL(2)
             ENDDO
@@ -687,7 +665,7 @@
             ADDWP(NR,1,2)=CHEL(3)
             ADDWD(NR,2,2)=DL(3)
             ADDWP(NR,2,2)=CHIL(3)
-            DO NS=3,NSM
+            DO NS=3,NSMAX
                ADDWD(NR,NS,2)=DQL(3)
                ADDWP(NR,NS,2)=CHQL(3)
             ENDDO
@@ -695,16 +673,16 @@
             AKDWP(NR,1,2)=CHEL(1)
             AKDWD(NR,2,2)=DL(1)
             AKDWP(NR,2,2)=CHIL(1)
-            DO NS=3,NSM
+            DO NS=3,NSMAX
                AKDWD(NR,NS,2)=DQL(1)
                AKDWP(NR,NS,2)=CHQL(1)
             ENDDO
-            DO NS1=3,NSM
+            DO NS1=3,NSMAX
                ADDWD(NR,1,NS1)=DL(5)
                ADDWP(NR,1,NS1)=CHEL(5)
                ADDWD(NR,2,NS1)=DL(5)
                ADDWP(NR,2,NS1)=CHIL(5)
-               DO NS=3,NSM
+               DO NS=3,NSMAX
                   ADDWD(NR,NS,NS1)=DQL(5)
                   ADDWP(NR,NS,NS1)=CHQL(5)
                ENDDO
@@ -712,7 +690,7 @@
                AKDWP(NR,1,NS1)=CHEL(4)
                AKDWD(NR,2,NS1)=DL(4)
                AKDWP(NR,2,NS1)=CHIL(4)
-               DO NS=3,NSM
+               DO NS=3,NSMAX
                   AKDWD(NR,NS,NS1)=DQL(4)
                   AKDWP(NR,NS,NS1)=CHQL(4)
                ENDDO
@@ -1018,14 +996,14 @@
 !     ***********************************************************
 
       SUBROUTINE IFSPPPL_DRIVER(NSTM,NRMAX,RN,RR,DR,RJCB,RHOG,RHOM,QP, &
-           S,EPSRHO,RKPRHOG,RT,BB,AMP,AME,PNSS,PTS,RNFL,RBEEDG,MDLUF,NSMAX, &
+           S,EPSRHO,RKPRHOG,RT,BB,AMP,AME,PNSS,PTS,RNFL,RBEEDG,NSMAX, &
            AR1RHOG,AR2RHOG,AKDW)
 
       USE trcomm,ONLY: rkind
       USE libitp
       IMPLICIT NONE
 
-      INTEGER,INTENT(IN):: NSTM,NRMAX,MDLUF,NSMAX
+      INTEGER,INTENT(IN):: NSTM,NRMAX,NSMAX
       REAL(rkind)   ,INTENT(IN):: RR,DR,BB,AMP,AME,RBEEDG
       REAL(rkind),DIMENSION(NRMAX,NSMAX),INTENT(IN):: RN, RT
       REAL(rkind),DIMENSION(NRMAX),INTENT(IN):: &
@@ -1061,11 +1039,7 @@
 
       DO NR=1,NRMAX-1
          znine  = SNGL( (RN(NR+1,2)+RN(NR,2)) /(RN(NR+1,1)+RN(NR,1)))
-         IF(MDLUF.NE.0.AND.NSMAX.EQ.3) THEN
-            zncne  = SNGL( (RN(NR+1,3)+RN(NR,3))/(RN(NR+1,1)+RN(NR,1)))
-         ELSE
-            zncne  = 0.0
-         ENDIF
+         zncne  = 0.0
          znbne  = SNGL( (RNFL(NR+1 )+RNFL(NR ))/(RN (NR+1,1)+RN (NR,1)))
          zrlt   =-SNGL(RR/(0.5D0*(RT(NR+1,2)+RT(NR,2))) &
                            *(RT(NR+1,2)-RT(NR,2))/DR*RJCB(NR))
@@ -1102,11 +1076,7 @@
 
       NR=NRMAX
          znine  = SNGL(PNSS(2)/PNSS(1))
-         IF(MDLUF.NE.0.AND.NSMAX.EQ.3) THEN
-            zncne  = SNGL(PNSS(3)/PNSS(1))
-         ELSE
-            zncne  = 0.0
-         ENDIF
+         zncne  = 0.0
          znbne  = SNGL(RBEEDG)
          zrlt   =-SNGL(RR/PTS(2)*DERIV3P(PTS(2),RT(NR,2),RT(NR-1,2), &
                                          RHOG(NR),RHOM(NR),RHOM(NR-1)))

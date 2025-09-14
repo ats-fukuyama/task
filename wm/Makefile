@@ -23,7 +23,7 @@ MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) -I../tr/$(MODE) \
             -I../../bpsd/$(MOD)
 
 SRCS = wmmenu.f wminit.f wmeign.f wmsetg.f \
-       ../eq/wmeqin.f wmprof.f wmdisp.f \
+       wmprof.f wmdisp.f \
        wmsetm.f wmsetf.f wmxprf.f wmdprf.f wmsolv.f \
        wmpout.f wmgout.f wmgsub.f wmdout.f wmfout.f \
        wmexec.f wmloop.f wmtae.f \

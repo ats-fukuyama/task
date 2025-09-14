@@ -149,17 +149,29 @@ CONTAINS
        ierr=0
     ELSE IF(zeta.GT.0.1D0) THEN
        CALL BESJNV(nhmax+2,zeta,temp,ierr)
-       IF(ierr.NE.0) RETURN
+       IF(ierr.NE.0) THEN
+          WRITE(6,'(A,I4,2ES12.4,I4)') &
+               'XX dp_besj_1:',nhmax+2,zeta,temp,ierr
+          RETURN
+       END IF
     ELSE 
        alzeta=LOG10(zeta)
        nh80=NINT(-80.D0/alzeta)
        nh32=NINT(-32.D0/alzeta)
        IF(nhmax+2.LE.nh32) THEN
           CALL BESJNV(nhmax+2,zeta,temp,ierr)
-          IF(ierr.NE.0) RETURN
+          IF(ierr.NE.0) THEN
+             WRITE(6,'(A,I4,2ES12.4,I4)') &
+                  'XX dp_besj_2:',nhmax+2,zeta,temp,ierr
+             RETURN
+          END IF
        ELSE IF(nhmax+2.LE.nh80) THEN
           CALL BESJNV(nh32,zeta,temp,ierr)
-          IF(ierr.NE.0) RETURN
+          IF(ierr.NE.0) THEN
+             WRITE(6,'(A,I4,2ES12.4,I4)') &
+                  'XX dp_besj_3:',nh32,zeta,temp,ierr
+             RETURN
+          END IF
           DO nh=nh32+1,nhmax+2
              temp(nh)=(0.5D0*zeta)**nh/dkaijou(nh)
           END DO

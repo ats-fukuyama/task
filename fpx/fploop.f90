@@ -21,6 +21,7 @@
 
       SUBROUTINE FP_LOOP
 
+      USE fpdebug
       USE fpcoef
       USE fplib
       USE libmtx

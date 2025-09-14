@@ -68,9 +68,9 @@ CONTAINS
 
 ! --- load plasma profile data ---
 
-    IF(MODELN.EQ.7) CALL wm_dprf(IERR)
-    IF(MODELN.EQ.8) CALL wm_xprf(IERR)
-    IF(MODELN.EQ.9) CALL tr_load
+    IF(model_prof.EQ.7) CALL wm_dprf(IERR)
+    IF(model_prof.EQ.8) CALL wm_xprf(IERR)
+    IF(model_prof.EQ.9) CALL tr_load
 
     IF(IERR.NE.0) RETURN
 

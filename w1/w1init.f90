@@ -200,7 +200,7 @@ CONTAINS
 !             1 : WITH    SYMMETRY
 !            -1 : WITH   ASYMMETRY
 !
-!     MODELN:  0: parabolic with pn=0 in SOL
+!     model_prof:  0: parabolic with pn=0 in SOL
 !              1: parabolic with pn=pns in SOL
 !             10: linear with pn=0 in SOL
 !             11: linear with pn=pns in SOL
@@ -232,7 +232,7 @@ CONTAINS
     NZMAX= 1
 
     NMODEL= 5
-    MODELN= 0
+    model_prof= 0
 
     NPRINT= 0
     NFILE = 0
@@ -274,14 +274,14 @@ CONTAINS
 !     WGZ1   : Lower end position of WG [m]
 !     WGZ2   : Upper end position of WG [m]
 !     WGAMP  : Waveguide electric field amplitude [V/m]
-!     WGNZ   : Parallel refractive index
+!     WGKZ   : Parallel wave number of WG
 
       MDLWG  = 0
       MDLWGS = 0
       WGZ1   = 0.05D0
       WGZ2   = 0.15D0
       WGAMP  = 1.D0
-      WGNZ   = 0.2D0
+      WGKZ   = 0.2D0
 
       !     job_id: identifier of job (used in data file nam)
 

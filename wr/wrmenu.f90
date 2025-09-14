@@ -14,6 +14,7 @@ CONTAINS
     USE wrcomm
     USE plparm,ONLY: pl_view
     USE dpparm,ONLY: dp_view
+    USE dpprep,ONLY: dp_prep_ns
     USE dproot,ONLY: dp_root,dpgrp1
     USE dpcont,ONLY: dp_cont2,dp_cont3
     USE wrparm,ONLY: wr_parm
@@ -47,6 +48,8 @@ CONTAINS
          CALL WR_VIEW
       ELSEIF(KID.EQ.'D') THEN
          READ(LINE(2:),*,ERR=1,END=1) NID
+         CALL dp_prep_ns(ierr)
+         IF(ierr.NE.0) GOTO 1
          IF(NID.EQ.1) THEN
             CALL DPGRP1
          ELSEIF(NID.EQ.2) THEN
@@ -57,11 +60,13 @@ CONTAINS
             WRITE(6,*) 'XX WRMENU: unknown NID'
          ENDIF
       ELSEIF(KID.EQ.'F') THEN
+         CALL dp_prep_ns(ierr)
+         IF(ierr.NE.0) GOTO 1
          CALL DP_ROOT
       ELSEIF(KID.EQ.'R') THEN
          CALL wr_allocate
          CALL wr_setup(ierr)
-         IF(ierr.NE.0) GO TO 1
+         IF(ierr.NE.0) GOTO 1
          CALL wr_exec(nstat,ierr)
       ELSEIF(KID.EQ.'G') THEN
          CALL WR_GOUT(NSTAT)

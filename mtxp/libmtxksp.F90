@@ -250,10 +250,16 @@
       SUBROUTINE mtx_set_matrix(i,j,v)
       INTEGER,INTENT(IN):: i,j  ! matrix position i=line, j=row
       REAL(8),INTENT(IN):: v    ! value to be inserted
+      INTEGER:: ia(1),ja(1)
+      REAL(8):: va(1,1)
       INTEGER:: ierr
 
       IF(i.GE.istart+1.AND.i.LE.iend) THEN
-         call MatSetValues(A,ione,i-1,ione,j-1,v,INSERT_VALUES,ierr)
+         ia(1)=i-1
+         ja(1)=j-1
+         va(1,1)=v
+!         call MatSetValues(A,ione,i-1,ione,j-1,v,INSERT_VALUES,ierr)
+         call MatSetValues(A,ione,ia,ione,ja,va,INSERT_VALUES,ierr)
          IF(ierr.NE.0) WRITE(6,*) &
               'XX mtx_set_matrix: MatSetValues: ierr=',ierr
       ELSE
@@ -268,10 +274,15 @@
       SUBROUTINE mtx_set_source(j,v)
       INTEGER,INTENT(IN):: j ! vector positon j=row
       REAL(8),INTENT(IN):: v ! value to be inserted
+      INTEGER:: ja(1)
+      REAL(8):: va(1)
       INTEGER:: ierr
 
       IF(j.GE.istart.AND.j.LE.iend) THEN
-         call VecSetValues(b,ione,j-1,v,INSERT_VALUES,ierr)
+         ja(1)=j-1
+         va(1)=v
+!         call VecSetValues(b,ione,j-1,v,INSERT_VALUES,ierr)
+         call VecSetValues(b,ione,ja,va,INSERT_VALUES,ierr)
          IF(ierr.NE.0) WRITE(6,*) &
               'XX mtx_set_source: VecSetValues: ierr=',ierr
       ELSE
@@ -285,10 +296,15 @@
       SUBROUTINE mtx_set_vector(j,v)
       INTEGER,INTENT(IN):: j ! vector positon j=row
       REAL(8),INTENT(IN):: v ! value to be inserted
+      INTEGER:: ja(1)
+      REAL(8):: va(1)
       INTEGER:: ierr
 
       IF(j.GE.istart.AND.j.LE.iend) THEN
-         call VecSetValues(x,ione,j-1,v,INSERT_VALUES,ierr)
+         ja(1)=j-1
+         va(1)=v
+!         call VecSetValues(x,ione,j-1,v,INSERT_VALUES,ierr)
+         call VecSetValues(x,ione,ja,va,INSERT_VALUES,ierr)
          IF(ierr.NE.0) WRITE(6,*) &
               'XX mtx_set_vector: VecSetValues: ierr=',ierr
       ELSE

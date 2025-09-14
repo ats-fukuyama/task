@@ -67,7 +67,7 @@ contains
       INTEGER,INTENT(OUT) :: ist,ierr
 
       NAMELIST /FP/ &
-           NSMAX,MODELG,MODELN,MODELQ,IDEBUG,MODEFR,MODEFW, &
+           NSMAX,MODELG,model_prof,MODELQ,IDEBUG,MODEFR,MODEFW, &
            RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
            PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
            RHOMIN,QMIN,RHOEDG,RHOITB,RHOGMN,RHOGMX, &
@@ -129,7 +129,7 @@ contains
 
   SUBROUTINE fp_plst
 
-      WRITE(6,*) '&FP : NSMAX,MODELG,MODELN,MODELQ,IDEBUG,MODEFR,MODEFW,'
+      WRITE(6,*) '&FP : NSMAX,MODELG,model_prof,MODELQ,IDEBUG,MODEFR,MODEFW,'
       WRITE(6,*) '      RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,'
       WRITE(6,*) '      PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'
       WRITE(6,*) '      RHOMIN,QMIN,RHOEDG,RHOITB,RHOGMN,RHOGMX,'
@@ -209,7 +209,7 @@ contains
 
       idata( 1)=NSMAX
       idata( 2)=MODELG
-      idata( 3)=MODELN
+      idata( 3)=model_prof
       idata( 4)=MODELQ
       idata( 5)=IDEBUG
       idata( 6)=MODEFR
@@ -220,7 +220,7 @@ contains
       CALL mtx_broadcast_integer(idata,7)
       NSMAX =idata( 1)
       MODELG=idata( 2)
-      MODELN=idata( 3)
+      model_prof=idata( 3)
       MODELQ=idata( 4)
       IDEBUG=idata( 5)
       MODEFR=idata( 6)

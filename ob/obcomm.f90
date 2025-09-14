@@ -3,6 +3,7 @@
 MODULE obcomm_parm
   USE commpi
   USE plcomm_parm
+  USE plcomm_type
   IMPLICIT NONE
   PUBLIC
 

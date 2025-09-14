@@ -29,6 +29,9 @@ CONTAINS
     WRITE(6,601) 'MDLWRI',MDLWRI,'MDLWRG',MDLWRG, &
                  'MDLWRP',MDLWRP
     WRITE(6,601) 'MDLWRQ',MDLWRQ,'MDLWRW',MDLWRW
+    WRITE(6,605) 'mode_wline      ',mode_wline, &
+                 'mode_fig        ',mode_fig, &
+                 'mode_write      ',mode_write
     WRITE(6,605) 'model_fdrv      ',model_fdrv, &
                  'model_fdrv_ds   ',model_fdrv_ds
     WRITE(6,603) 'nres_max    ',nres_max, &
@@ -45,7 +48,11 @@ CONTAINS
     WRITE(6,604) 'pne_threshold   ',pne_threshold, &
                  'bdr_threshold   ',bdr_threshold
     WRITE(6,602) 'Rmax  ',Rmax_wr,'Rmin  ',Rmin_wr, &
-                 'Zmax  ',Zmax_wr,'Zmin  ',Zmin_wr
+         'Zmax  ',Zmax_wr,'Zmin  ',Zmin_wr
+    WRITE(6,*) 'knameq= :',TRIM(knameq)
+    WRITE(6,*) 'knamwr= :',TRIM(knamwr)
+    WRITE(6,*) 'knamwrw=:',TRIM(knamwrw)
+    
     DO i=1,idebug_max
        IF(idebug_wr(i).NE.0) &
           WRITE(6,'(A,I4,A,I4)') 'idebug_wr(',i,')=',idebug_wr(i)

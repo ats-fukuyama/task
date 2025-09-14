@@ -177,7 +177,7 @@ CONTAINS
        END IF
     END DO
 
-    IF(MODELN.EQ.0) THEN
+    IF(model_sigv.EQ.0) THEN
        TE=RNTESUM/RNESUM
        VTE=SQRT(2.D0*TE*AEE/AME)
        SNE=0.88D-20
@@ -187,7 +187,6 @@ CONTAINS
     ENDIF
     SNI=1.D-20
     PNN0=PPN0/(PTN0*AEE)
-
     DO NS=1,NSMAX
        IF(PA(NS).LE.0.1D0) THEN ! electron or positron
           TE=(RTPR(NS)+2.D0*RTPP(NS))*RKEV/3.D0

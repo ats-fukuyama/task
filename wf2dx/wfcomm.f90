@@ -1,6 +1,8 @@
 ! wfcomm.f90
 
-!   Define and allocate global variables
+!   *** Define and allocate global variables ***
+
+!   --- Input parameter definition ---
 
 MODULE wfcomm_parm
 
@@ -11,20 +13,22 @@ MODULE wfcomm_parm
 
   ! === input parameter array size ====
   
-  INTEGER,PARAMETER:: nantm =       8 ! maximum number of antenna
-  INTEGER,PARAMETER:: npointm =  2000 ! maximum number of antenna path points
-  INTEGER,PARAMETER:: nmedm =      10 ! maximum number of medium type
-  INTEGER,PARAMETER:: idebuga_max=100 ! maximum number of debug parameter array
+  INTEGER,PARAMETER:: nantm =        8 ! max number of antenna
+  INTEGER,PARAMETER:: npointm =   1000 ! max number of antenna path points
+  INTEGER,PARAMETER:: nmedm =       20 ! max number of medium type
+  INTEGER,PARAMETER:: nlayerm =    100 ! max number of layers
+  INTEGER,PARAMETER:: idebug_wfm = 100 ! max number of debug param array
 
   ! === wfdiv parameters ===
 
-  INTEGER:: model_config,model_shape
-  
-  ! --- model_config=1 : rectangular ---
+  INTEGER:: model_div
+  INTEGER:: model_config
+  INTEGER:: model_shape
   
   REAL(rkind):: xdiv_min,xdiv_max,ydiv_min,ydiv_max
-  REAL(rkind):: delx,dely
+  REAL(rkind):: del_xdiv,del_ydiv
   REAL(rkind):: rdiv_min,rdiv_max,thdiv_min,thdiv_max
+  REAL(rkind):: del_rdiv,del_thdiv
 
   ! === RF parameters ===
   
@@ -107,7 +111,7 @@ MODULE wfcomm_parm
 
   ! === debug controll parameters ===
 
-  INTEGER:: idebuga(idebuga_max)
+  INTEGER:: idebug_wf(idebug_wfm)
 
 END MODULE wfcomm_parm
 
@@ -182,6 +186,9 @@ MODULE wfcomm
   COMPLEX(rkind) :: cimp_tot
   REAL(rkind),DIMENSION(npointm,nantm):: x_np0_nant,y_np0_nant
   REAL(rkind),DIMENSION(npointm,nantm):: x_np_nant,y_np_nant
+
+  INTEGER:: ncount_zone_max
+  REAL(rkind):: xlen_zone,ylen_zone
         
 !       /WFWIN/
   real(rkind):: len_min,len_max

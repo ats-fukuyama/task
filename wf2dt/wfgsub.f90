@@ -68,7 +68,7 @@ SUBROUTINE PWRPLOT(NS)
   integer    :: IE,NGX,NGY
   real(rkind)    :: X,Y
   integer    :: I,J,K,IN
-  real(rkind)    :: PABS
+  real(rkind)    :: PABSL
   real(rkind)    :: RW,WGT(3)
   complex(rkind) :: DTENS(NSM,3,3,3)
   complex(rkind) :: CIWE,CTENS(3,3),CER,CEP,CEZ,JP(3)
@@ -109,7 +109,7 @@ SUBROUTINE PWRPLOT(NS)
            call FIELDCZ(IE,X,Y,CESD,CEZ)
 
            JP  =(0.d0,0.d0)
-           PABS=0.d0
+           PABSL=0.d0
 
            do K=1,3
               JP(K)= CTENS(K,1)*CER &
@@ -117,11 +117,11 @@ SUBROUTINE PWRPLOT(NS)
                     +CTENS(K,3)*CEZ
            end do
 
-           PABS=0.5d0*real(JP(1)*conjg(CER)&
-                          +JP(2)*conjg(CEP)&
-                          +JP(3)*conjg(CEZ))
-           IF(ABS(PABS).LE.1.D-20) PABS=0.D0
-           GZ(NGX,NGY)=gdclip(PABS)
+           PABSL=0.5d0*real(JP(1)*conjg(CER)&
+                           +JP(2)*conjg(CEP)&
+                           +JP(3)*conjg(CEZ))
+           IF(ABS(PABSL).LE.1.D-20) PABSL=0.D0
+           GZ(NGX,NGY)=gdclip(PABSL)
 
 !        write(6,'(A,3I8,1P3E12.4)') 'NGX,NGY,IE,X,Y,PABS=',NGX,NGY,IE,X,Y,PABS
         ENDIF

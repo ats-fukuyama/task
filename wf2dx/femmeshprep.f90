@@ -28,9 +28,9 @@ MODULE femmeshprep
     INTEGER:: nelm,nside,n1,n2,n3
     INTEGER:: node1,node2,node3,nbdy
     INTEGER:: nelm1,nside1
-    INTEGER:: node,ncount,ncount_zone_max
+    INTEGER:: node,ncount
     INTEGER:: nx,ny,i
-    REAL(rkind):: x,y,xc,yc,xc1,yc1,xlen_zone,ylen_zone
+    REAL(rkind):: x,y,xc,yc,xc1,yc1
     REAL(rkind):: x1,y1,x2,y2,x3,y3,xg,yg,s,v,xgsum,ygsum,ssum,vsum
 
     ! --- initialize nside_nelm ---

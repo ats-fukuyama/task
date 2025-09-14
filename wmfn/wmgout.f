@@ -4,7 +4,7 @@ C     ****** CONTROL GRAPHICS ******
 C
       SUBROUTINE WMGOUT
 C
-      USE equnit_mod
+      USE equnit
       USE libchar
       INCLUDE 'wmcomm.inc'
 C

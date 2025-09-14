@@ -5,8 +5,9 @@ C
       SUBROUTINE WMMENU
 C
 C      use plfile_prof_mod
-      use wmtest
-      USE dpparm,ONLY: dpprep
+      USE wmtest
+      USE dpparm
+      USE dpprep
       USE libkio
       INCLUDE 'wmcomm.inc'
 C
@@ -27,7 +28,7 @@ C
      &      'G,Y/GRAPH T/TAE O/OUT S,W/SAVE Q/QUIT')
             CALL TASK_KLIN(LINE,KID,MODE,WMPARM)
          ENDIF
-         CALL DPPREP(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),IERR) !=====
+         CALL dp_prep_fp(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),IERR) !=====
          CALL mtx_broadcast1_integer(MODE)
          IF(MODE.EQ.2) CALL WMPRBC
       IF(MODE.NE.1) GOTO 1
@@ -42,7 +43,7 @@ C
             KID=' '
          ELSE IF(KID.EQ.'V') THEN
             IF(NRANK.EQ.0) CALL WMVIEW
-            CALL DPPREP(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),IERR) !=====
+            CALL dp_prep_fp(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),IERR) !=====
             CALL mtx_barrier
             KID=' '
 C

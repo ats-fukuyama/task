@@ -33,7 +33,7 @@ SUBROUTINE WFINIT
 !               '2' : Parabolic with radius RA
 !               '3' : Decay in -Z
 !
-!        MODELN = nas-data Process | Waveguide Boundary
+!        model_prof = nas-data Process | Waveguide Boundary
 !               '0' : Neglect WG, Absorbing boundary and material
 !               '1' : Neglect WG and Absorbing boundary
 !               '2' : Include WG but Neglect Absorbing boundary and material
@@ -81,7 +81,7 @@ SUBROUTINE WFINIT
   MODELB=0
   MODELD=0
   MODELP=0
-  MODELN=0
+  model_prof=0
   MODELS=6
   MODELX=0
   MODELA=0
@@ -344,7 +344,7 @@ SUBROUTINE WFPLST
      WRITE(6,*) '&WF: BB,RA,RF,ZPMIN,ZPMAX,ZPLEN,AJ,APH,AWD,APOS,'
      WRITE(6,*) '     PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PPN0,PTN0,'
      WRITE(6,*) '     NSMAX,NAMAX,MODELI,'
-     WRITE(6,*) '     MODELG,MODELB,MODELD,MODELP,MODELN,MODELS,'
+     WRITE(6,*) '     MODELG,MODELB,MODELD,MODELP,model_prof,MODELS,'
      WRITE(6,*) '     POSRES,POSABS,EPSABS,DLTABS,MODELA,MODELX,'
      WRITE(6,*) '     NPRINT,NDRAWD,NDRAWA,NGRAPH,'
      WRITE(6,*) '     KFNAME,KFNAMA,KFNAMF,KFNAMN,KFNAMB,'
@@ -373,7 +373,7 @@ SUBROUTINE WFPARM(KID)
   NAMELIST /WF/ BB,RA,RR,RF,ZPMIN,ZPMAX,ZPLEN,AJ,APH,AWD,APOS,&
                 PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PPN0,PTN0,&
                 NSMAX,NAMAX,MODELI,&
-                MODELG,MODELB,MODELD,MODELP,MODELN,MODELS,&
+                MODELG,MODELB,MODELD,MODELP,model_prof,MODELS,&
                 POSRES,POSABS,EPSABS,DLTABS,MODELA,MODELX,&
                 NPRINT,NDRAWD,NDRAWA,NGRAPH,&
                 KFNAME,KFNAMA,KFNAMF,KFNAMN,KFNAMB,&
@@ -454,7 +454,7 @@ SUBROUTINE WFVIEW
   implicit none
   integer :: NA,NS
 
-  IF(MODELN.EQ.0) THEN
+  IF(model_prof.EQ.0) THEN
      WRITE(6,601) 'BB    ',BB    ,'RA    ',RA    ,&
                   'RF    ',RF
   ELSE
@@ -463,9 +463,9 @@ SUBROUTINE WFVIEW
   
   WRITE(6,'(6X,5A10)') &  
           '     NNMAX','     NEMAX','    NSDMAX',&
-          '    NSFMAX','      MLEN'
+          '   NSRFMAX','      MLEN'
   WRITE(6,'(A4,2X,5I10)') &
-          'USED',NNMAX,NEMAX,NSDMAX,NSFMAX,MLEN
+          'USED',NNMAX,NEMAX,NSDMAX,NSRFMAX,MLEN
   
   IF(NAMAX.GT.0) THEN
      WRITE(6,*) '*** ANT ***'
@@ -488,7 +488,7 @@ SUBROUTINE WFVIEW
   WRITE(6,*) '*** CONTROL ***'
   WRITE(6,604) 'MODELG',MODELG,'MODELB',MODELB,&
                'MODELD',MODELD,'MODELP',MODELP
-  WRITE(6,604) 'MODELN',MODELN,'MODELS',MODELS,&
+  WRITE(6,604) 'model_prof',model_prof,'MODELS',MODELS,&
                'MODELX',MODELX,'MODELA',MODELA
   WRITE(6,604) 'NPRINT',NPRINT,'NDRAWD',NDRAWD,&
                'NDRAWA',NDRAWA,'NGRAPH',NGRAPH
@@ -531,7 +531,7 @@ subroutine wfparm_broadcast
      idata(5) =MODELB
      idata(6) =MODELD
      idata(7) =MODELP
-     idata(8) =MODELN
+     idata(8) =model_prof
      idata(9) =MODELS
      idata(10)=MODELA
      idata(11)=MODELX
@@ -555,7 +555,7 @@ subroutine wfparm_broadcast
   MODELB=idata(5)
   MODELD=idata(6)
   MODELP=idata(7)
-  MODELN=idata(8)
+  model_prof=idata(8)
   MODELS=idata(9)
   MODELA=idata(10)
   MODELX=idata(11)

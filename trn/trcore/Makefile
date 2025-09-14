@@ -10,7 +10,7 @@ include $(TASKDIR)/make.header
 FLAGS=$(DFLAGS)
 
 
-MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
+MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/pl/mod -I $(TASKDIR)/lib/mod \
 	   -I $(TASKDIR)/eq/mod -I ../trgraphics/mod -I ../trmodels/mod  \
 	   -I ../trsources/mod  -I ../trufile/mod -I $(MOD) 
 
@@ -18,7 +18,7 @@ TRLIBS=	../trmodels/trmodelslib.a \
 	../trsources/trsourceslib.a \
 	../trgraphics/trgraphicslib.a \
 	../trufile/trufilelib.a \
-	$(TASKDIR)/plx/pllib.a \
+	$(TASKDIR)/pl/pllib.a \
         $(TASKDIR)/eq/eqlib.a \
         $(TASKDIR)/lib/tasklib.a \
         $(TASKDIR)/lib/mdslib.a \
@@ -39,8 +39,8 @@ OBJS = $(SRCS:.f90=.o)
 	$(FCFREE) $(FFLAGS) -o ../trn $(OBJS) $(TRLIBS) $(FLIBS)
 
 
-$(TASKDIR)/plx/pllib.a:
-	(cd $(TASKDIR)/plx; make pllib.a)
+$(TASKDIR)/pl/pllib.a:
+	(cd $(TASKDIR)/pl; make pllib.a)
 $(TASKDIR)/eq/eqlib.a:
 	(cd $(TASKDIR)/eq; make eqlib.a)
 $(TASKDIR)/lib/tasklib.a:
@@ -56,8 +56,8 @@ clean:
 veryclean:
 	rm -f *.o *.~ *.mod $(MOD)/*.mod
 
-COMMON=trcomm.f90 $(TASKDIR)/plx/plcomm.f90
-trcomm.o: trcomm.f90 $(TASKDIR)/plx/plcomm.f90
+COMMON=trcomm.f90 $(TASKDIR)/pl/plcomm.f90
+trcomm.o: trcomm.f90 $(TASKDIR)/pl/plcomm.f90
 trbpsd.o: trbpsd.f90 $(COMMON)
 trlib.o: trlib.f90 $(COMMON)
 trinit.o: trinit.f90 $(COMMON)

@@ -16,7 +16,7 @@
       USE libmpi
       USE fpcaleind
       USE fpdisrupt
-      USE fpfunc
+      USE fplib
 
       contains
 
@@ -35,7 +35,7 @@
       integer :: ierr,NSA,NS,NR,NP,NTH,id
 !      character(LEN=80)::line 
       real(kind8)::rhon,rhol,rhol1,rhol2,A1,epsl,ql,BT
-      real(kind8),DIMENSION(:),POINTER:: work,workg
+      real(kind8),DIMENSION(:),ALLOCATABLE:: work,workg
       real(kind8):: Rmass, RRTFP, RPTFP,RVTFP, sumEmax, sum_lambda
 
 !     ----- define upper boundary of p from Emax-----
@@ -451,6 +451,7 @@
 
       SUBROUTINE FPCINI
 
+      USE plcomm
       USE plprof
       IMPLICIT NONE
       integer:: NSA, NR, NTH, NP, NS
@@ -521,6 +522,8 @@
       IMPLICIT NONE
       INTEGER:: ierr, NREND1, keys
       INTEGER,DIMENSION(nsize):: ima1,ima2,npa1,npa2,nra1,nra2,nma1,nma2,insa1,insa2
+      WRITE(6,*) NSAMAX
+      WRITE(6,*) N_partition_s
       ierr=0
       
 !     ----- Check nsize -----
@@ -1441,6 +1444,11 @@
       integer,dimension(6):: idata
       integer,dimension(6*nsize):: idata2
 
+      ! --- debug info initialization ---
+
+      ierr_g=0
+      N_f1=0
+      
       CALL GUTIME(gut1)
 
 !     ----- Initialize time counter -----

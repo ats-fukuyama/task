@@ -83,8 +83,7 @@
 
       SUBROUTINE TRGRT1
 
-      USE TRCOMM, ONLY : GT, GVRT, GRM, RTU, NGT, NTM, NRMAX, MDLUF, rkind, &
-                         TMU, NTXMAX, NTUM
+      USE TRCOMM
       USE libitp
       IMPLICIT NONE
       INTEGER :: I, NR, IERR
@@ -112,26 +111,6 @@
          GYL(I,1:NRMAX) = GVRT(1:NRMAX,I, 9) * 1.E-6
       ENDDO
       CALL TRGR1DC( 3.0,12.0, 1.1, 4.1,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX,'@AJ [MA]  vs t@')
-
-      IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
-         DO I=1,NGT
-            TSL = DBLE(GT(I))
-            DO NR=1,NRMAX
-               CALL TIMESPL(TSL,RTEL,TMU,RTU(:,NR,1),NTXMAX,NTUM,IERR)
-               GYL(I,NR) = GUCLIP(RTEL)
-            ENDDO
-         ENDDO
-         CALL TRGR1DC(15.0,24.0,14.0,17.0,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX,'@TE [keV] (XP) vs t@')
-
-         DO I=1,NGT
-            TSL = DBLE(GT(I))
-            DO NR=1,NRMAX
-               CALL TIMESPL(TSL,RTDL,TMU,RTU(:,NR,2),NTXMAX,NTUM,IERR)
-               GYL(I,NR) = GUCLIP(RTDL)
-            ENDDO
-         ENDDO
-         CALL TRGR1DC(15.0,24.0, 9.7,12.7,GT,GRM,GYL,NTM,NGT,NRMAX,NRMAX,'@TD [keV] (XP) vs t@')
-      ENDIF
 
       DO I=1,NGT
          GYL(I,1:NRMAX) = GVRT(1:NRMAX,I,13) * 1.E-6

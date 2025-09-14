@@ -13,7 +13,7 @@ CONTAINS
       INCLUDE '../eq/eqcomc.inc'
       INTEGER,DIMENSION(3):: idata
       REAL(rkind),DIMENSION(11):: ddata
-      REAL(rkind),DIMENSION(:),POINTER:: temp
+      REAL(rkind),DIMENSION(:),ALLOCATABLE:: temp
       INTEGER:: nrg,nzg
 
       idata( 1)=NRGMAX

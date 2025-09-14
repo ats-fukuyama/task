@@ -16,6 +16,7 @@
       USE fpcalwm
       USE fpcalwr
       USE fpcalr
+      USE fpcaldrrem
       USE libbes,ONLY: beseknx
       USE libmtx
       USE fpreadfit3d
@@ -27,6 +28,7 @@
 !-------------------------------------------------------------
       SUBROUTINE FP_COEF(NT)
 
+      USE fpdebug
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NT
       integer:: NSA, NR, NTH, NP, NS
@@ -101,21 +103,17 @@
 
 !     ----- Radial diffusion term -----
 
-      IF(MODELD.NE.0) CALL FP_CALR
-      IF(MODELD.NE.0) THEN
-         NTH=2
-         NP=2
-         NR=NRMAX
-         NSA=1
-         WRITE(6,'(A,4I5,1PE12.4)') &
-              'DRR:',NTH,NP,NR,NSA,DRR(NTH,NP,NR,NSA)
-         NTH=2
-         NP=2
-         NR=NRMAX+1
-         NSA=1
-         WRITE(6,'(A,4I5,1PE12.4)') &
-              'DRR:',NTH,NP,NR,NSA,DRR(NTH,NP,NR,NSA)
-      END IF
+      SELECT CASE(MODELD)
+      CASE(0)
+         CONTINUE
+      CASE(1)
+         CALL fp_calr
+      CASE(2)
+         CALL fp_caldrr_em
+      CASE DEFAULT
+         WRITE(6,*) 'XX Undefined MODELD: modeld=',modeld
+         STOP
+      END SELECT
 
 !     ----- Particle source term -----
 

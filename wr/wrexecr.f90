@@ -50,7 +50,8 @@ CONTAINS
 
     USE wrcomm
     USE wrsub,ONLY: wrcale,wrcale_xyz,wr_cold_rkperp,wrnwtn
-    USE plprof,ONLY: pl_mag_type,pl_mag,pl_prf_type,pl_prof
+    USE plcomm_type,ONLY: pl_mag_type,pl_prf_type
+    USE plprof,ONLY: pl_mag,pl_prof
     USE plprofw,ONLY: pl_prfw_type,pl_profw
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NRAY
@@ -1032,7 +1033,8 @@ CONTAINS
   
   SUBROUTINE wr_write_line(NSTP,X,Y,PABS)
     USE wrcomm
-    USE plprof,ONLY: pl_mag_type,pl_mag,pl_prf_type,pl_prof
+    USE plcomm_type,ONLY: pl_mag_type,pl_prf_type
+    USE plprof,ONLY: pl_mag,pl_prof
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NSTP
     REAL(rkind),INTENT(IN):: X,Y(NEQ),PABS

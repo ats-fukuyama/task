@@ -36,6 +36,8 @@ CONTAINS
     NTSET=0             ! tabulation setup (do no change)
     TMAXST=0.D0         ! tabulation setup (do no change)
 
+    idebug_wim(1)=0     ! 1: draw kernel functions
+
     RETURN
   END SUBROUTINE wim_init
 END MODULE wiminit

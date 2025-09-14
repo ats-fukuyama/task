@@ -164,6 +164,7 @@ SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
   USE plprof
   USE plprofw
   use plload
+  USE plcomm_type
   implicit none
   real(rkind),intent(in) :: R,Z
   real(rkind),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
@@ -245,7 +246,7 @@ SUBROUTINE WFSDEN0(R,Z,RN,RTPR,RTPP,RZCL)
 
   ! --- set DENSITY
 
-  SELECT CASE(MODELN)
+  SELECT CASE(model_prof)
   CASE(0)
      DO ns=1,nsmax
         rn(ns)=pn_corner(1,ns) &

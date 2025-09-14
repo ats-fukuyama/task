@@ -65,7 +65,7 @@ CONTAINS
                   PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
                   RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG, &
                   PPN0,PTN0,RF_PL, &
-                  MODELG,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF, &
+                  MODELG,model_prof,MODELQ,MODEL_PROF,MODEL_NPROF, &
                   RHOGMN,RHOGMX, &
                   KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2, &
                   MODEFW,MODEFR,IDEBUG, &
@@ -77,6 +77,7 @@ CONTAINS
                   NRAYMAX,NSTPMAX,NRSMAX,NRLMAX,LMAXNW, &
                   NPMAX_DP,NTHMAX_DP,NRMAX_DP, &
                   MDLWRI,MDLWRG,MDLWRP,MDLWRQ,MDLWRW,nres_max,nres_type, &
+                  mode_wline, &
                   SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW, &
                   mode_beam,pne_threshold,bdr_threshold, &
                   Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr
@@ -116,7 +117,7 @@ CONTAINS
              9X,'pn_corner,ptpr_corner,ptpp_corner,'/ &
              9X,'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,'/ &
              9X,'PPN0,PTN0,RFCL,'/ &
-             9X,'MODELG,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF,'/ &
+             9X,'MODELG,model_prof,MODELQ,MODEL_PROF,MODEL_NPROF,'/ &
              9X,'RHOGMN,RHOGMX,'/ &
              9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2'/ &
              9X,'MODEFW,MODEFR,IDEBUG'/ &
@@ -129,7 +130,7 @@ CONTAINS
              9X,'NPMAX_DP,NTHMAX_DP,NRMAX_DP,'/ &
              9X,'MDLWRI,MDLWRG,MDLWRP,MDLWRQ,MDLWRW,nres_max,nres_type,'/ &
              9X,'SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW'/ &
-             9X,'mode_beam,pne_threshold,bdr_thershold'/ &
+             9X,'mode_beam,pne_threshold,bdr_thershold,mode_wline'/ &
              9X,'Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr')
   END SUBROUTINE WRPLST
 
@@ -138,7 +139,6 @@ CONTAINS
   SUBROUTINE WR_CHEK(IERR)
 
     USE wrcomm_parm
-    USE dpparm,ONLY: dpprep_local
     USE equnit
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
@@ -180,8 +180,6 @@ CONTAINS
     ELSE
        INITEQ=0
     ENDIF
-
-    CALL DPPREP_LOCAL(IERR)
 
     RETURN
   END SUBROUTINE WR_CHEK

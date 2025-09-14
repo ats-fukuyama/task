@@ -20,6 +20,9 @@ CONTAINS
     USE w1exec9,ONLY: w1_exec9
     USE w1exec10,ONLY: w1_exec10
     USE w1exec11,ONLY: w1_exec11
+    USE w1exec12,ONLY: w1_exec12
+    USE w1exec13,ONLY: w1_exec13
+    USE w1exec14,ONLY: w1_exec14
     IMPLICIT NONE
     REAL(rkind):: DXD,RFSAVE,RKSAVE
     INTEGER:: NS,NL,NZP,IERR,IC,ICL,NX
@@ -147,6 +150,15 @@ CONTAINS
                 IF(IERR.NE.0) GOTO 2000
           CASE(11) ! FEM hot integro-differential (one region, absorbing wall)
              CALL W1_EXEC11(NZP,IERR)
+                IF(IERR.NE.0) GOTO 2000
+          CASE(12) ! FEM cold collsional (one region, absorbing wall, mtxp)
+             CALL W1_EXEC12(NZP,IERR)
+                IF(IERR.NE.0) GOTO 2000
+          CASE(13) ! FEM warm differential (one region, absorbing wall, mtxp)
+             CALL W1_EXEC13(NZP,IERR)
+                IF(IERR.NE.0) GOTO 2000
+          CASE(14) ! FEM hot integro-differential (one region, absorbing wall, mtxp))
+             CALL W1_EXEC14(NZP,IERR)
                 IF(IERR.NE.0) GOTO 2000
           END SELECT
 

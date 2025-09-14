@@ -33,7 +33,7 @@ C         I=1:electron, I=2:Impurity, I=3:ion
 C
 C=======================================================================
 C
-      USE plprof,ONLY: pl_wmxprf,wmspl_prof
+      USE plload,ONLY: pl_load_xprf,pl_read_xprf
       INCLUDE 'wmcomm.inc'
 C
       REAL*8 ZEFFSV, PTSSV(NSM), PNSSV(NSM)
@@ -74,7 +74,7 @@ C----  Open profile data file and read
 C----  PRFNE, PRFTE is data at the point divided equally by rho 
 C        defined by toroidal magnetic flux
 C
-      CALL PL_WMXPRF(IERR) ! in pl/plprof.f
+      CALL pl_load_xprf(IERR) ! in pl/plprof.f
 C
       NRMAX1 = NRMAX
 C
@@ -82,7 +82,7 @@ C----  Set profile data at the point calculated in wm-code.
 C
       DO NR=1,NRMAX1
          DO NS=1,NSMAX
-            CALL WMSPL_PROF(XRHO(NR),NS,PN60(NR,NS),PT60(NR,NS))
+            CALL pl_read_xprf(XRHO(NR),NS,PN60(NR,NS),PT60(NR,NS))
          ENDDO
       ENDDO
 C

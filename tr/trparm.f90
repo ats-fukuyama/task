@@ -107,7 +107,7 @@ CONTAINS
       RETURN
 
   601 FORMAT(' ','# &TR : RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RHOA'/ &
-             ' ',8X,'(PA,PZ,PN,PNS,PT,PTS:NSM)'/ &
+             ' ',8X,'(PM,PZ,PN,PNS,PT,PTS:NSM)'/ &
              ' ',8X,'PNC,PNFE,PNNU,PNNUS'/ &
              ' ',8X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2'/ &
              ' ',8X,'PROFJ1,PROFJ2,ALP'/ &

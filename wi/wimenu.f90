@@ -49,7 +49,6 @@ CONTAINS
     ELSEIF(kid.EQ.'V') THEN
        CALL wi_view
     ELSEIF(kid.EQ.'R') THEN
-       CALL wi_prep
        write(6,'(A,1P4E12.4)')     '## alfa,beta,pn0,any       =', &
                                        alfa,beta,pn0,any
        write(6,'(A,1P3E12.4)')     '## xmin,xmax,dx0 =', &
@@ -64,6 +63,7 @@ CONTAINS
           write(6,'(A,1P4E12.4)')     '## xwint,dxmin,xwmin   =', &
                                           xwint,dxmin,xwmin
        END SELECT
+       CALL wi_prep
        dx0_save  =dx0
        xwint_save=xwint
        dxmin_save=dxmin

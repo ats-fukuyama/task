@@ -55,7 +55,7 @@ p{45mm}p{35mm}p{30mm}p{120mm}}}{\end{tabular}\par\bigskip}
 \vspace*{-40mm}
 
 \begin{flushright}\LARGE
-  2023/12/18
+  2025/02/24
 \end{flushright}
 \vspace{20mm}
 
@@ -88,8 +88,8 @@ Professor Emeritus, Kyoto University
       Install task and related libraries
     \item
       Introduction to the task code
-    \item
-      Install PETSc
+%    \item
+%      Install PETSc
     \end{enumerate}
   \end{minipage}
 \end{center}
@@ -161,11 +161,17 @@ Professor Emeritus, Kyoto University
   \emA{Install compiler and related modules}
   \begin{itemize}
   \item
-    \ttype{sudo port install gmake cmake imake gcc13 mpich}
+    \ttype{sudo port install gmake cmake imake gcc14 mpich}
   \item
-    \ttype{sudo port select gcc mp-gcc13}
+    \ttype{sudo port select gcc mp-gcc14}
   \item
     \ttype{sudo port select mpi mpich-mp-fortran}
+  \end{itemize}
+\item
+  \emA{FFT, parallel matrix solvers and file-access libraries}: if you want
+  \begin{itemize}
+  \item
+    \ttype{sudo port install fftw scalapack superlu mumps petsc hdf5}
   \end{itemize}
 \end{itemize}
 
@@ -248,15 +254,14 @@ Professor Emeritus, Kyoto University
 \item
   \emA{Install required modules}
 \begin{verbatim}
-sudo apt-get install gfortran-13
-sudo apt-get install gcc-13
-sudo apt-get install g++-13
+sudo apt-get install gfortran-14
 
 sudo apt-get install git
 sudo apt-get install xorg-dev
+sudo apt-get install xterm
 sudo apt-get install valgrind
 sudo apt-get install cmake
-sudo apt-get install python
+sudo apt-get install python3
 
 sudo apt-get install mpich
 \end{verbatim}
@@ -411,12 +416,11 @@ Data is saved in \$HOME/.gitconfig
 \emA{Download TASK and necessary libraries} for download only
 \begin{itemize}
 \item
-\emBs{git clone https://bpsi.nucleng.kyoto-u.ac.jp/pub/git/gsaf.git}
+  \emBs{git clone https://bpsi.nucleng.kyoto-u.ac.jp/pub/git/gsaf.git}
 \item
-\emBs{git clone https://bpsi.nucleng.kyoto-u.ac.jp/pub/git/bpsd.git}
+  \emBs{git clone https://bpsi.nucleng.kyoto-u.ac.jp/pub/git/bpsd.git}
 \item
-\emBs{git clone https://bpsi.nucleng.kyoto-u.ac.jp/pub/git/task.git -b
-develop}
+  \emBs{git clone https://bpsi.nucleng.kyoto-u.ac.jp/pub/git/task.git}
 \end{itemize}
 \item
 \emA{Download TASK and necessary libraries} for download and upload
@@ -490,7 +494,7 @@ develop}
     \emBs{make}
   \item
     \emAs{Applications using GSAF library must be started from X11
-      window such as xterm, not from Terminal on macOS.}
+      window such as xterm, not from Terminal on macOS or Windows.}
   \item
     \emBs{./bsctest} 
   \item
@@ -520,6 +524,8 @@ develop}
 \begin{itemize}
 \item
 \emBs{cd task}
+\item
+\emBs{git checkout -t -b develop origin/develop}
 \item
 \emBs{git branch} \quad (indicated branch should be develop)
 \item
@@ -562,11 +568,21 @@ develop}
   \item
     \emB{Complex}: wmx, wf2d, wf2dt, wf2dx, wq
   \end{itemize}
+\end{itemize}
+
+\title{Install TASK (7)}
+\begin{itemize}
 \item
-  \emA{Setup matrix solver library}
+  \emA{Setup matrix solver library}: You have to make in lib directory first.
   \begin{itemize}
   \item
-    \emBs{cd mtxp}
+    \emBs{cd task}
+  \item
+    \emBs{cd lib}
+  \item
+    \emBs{make}
+  \item
+    \emBs{cd ../mtxp}
   \item
     \emBs{cp make.mtxp.XXX make.mtxp}
   \item
@@ -576,7 +592,7 @@ develop}
   \end{itemize}
 \end{itemize}
 
-\title{Install TASK (7)}
+\title{Install TASK (8)}
 \begin{itemize}
 \item
   \emA{Compile modules}:
@@ -755,6 +771,8 @@ Read a namelist file \ttype{XXparm} at the beginning of the program
 Setting by the input line
 \end{itemize}
 \end{itemize}
+
+\end{document}
 
 \title{Install PETSc (1)}
 

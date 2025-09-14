@@ -1,4 +1,4 @@
-!   wrsetup.f
+!   wrsetup.f90
 
 MODULE wrsetup
 

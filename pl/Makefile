@@ -10,8 +10,8 @@ include ../mtxp/make.mtxp
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 OBJDIR=./obj
 
@@ -23,15 +23,17 @@ ${OBJDIR}/%.o:%.f
 ${OBJDIR}/%.o:%.f90
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-SRCS = plvmec.f90 plcomm.f90 plinit.f90 plparm.f90 \
-       platmd.f90 plcoll.f90 \
-       plload.f90 plprof_travis.f90 plprof2d.f90 \
-       plprof.f90 plprofw.f90  \
-       plgout.f90 plmenu.f90
-SRCO = noeqlib.f noequlib.f
+SRCS_NOEQ = plvmec.f90 plcomm.f90 plinit.f90 plparm.f90 \
+            platmd.f90 plcoll.f90 \
+            plprof_TOTAL.f90 plprof_travis.f90 plload.f90 plprep.f90
 
-OBJS=$(addprefix $(OBJDIR)/, $(SRCS:.f90=.o))
-OBJO=$(addprefix $(OBJDIR)/, $(SRCO:.f90=.o))
+SRCS_EQ=plprof2d.f90 \
+     plprof.f90 plprofw.f90  \
+     plgout.f90 plmenu.f90
+
+
+OBJS_NOEQ=$(addprefix $(OBJDIR)/, $(SRCS_NOEQ:.f90=.o))
+OBJS_EQ=$(addprefix $(OBJDIR)/, $(SRCS_EQ:.f90=.o))
 
 LIBS = libpl.a ../eq/libeq.a ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
@@ -45,15 +47,17 @@ all : libs pl
 	(cd ../lib; make libgrf.a)
 ../eq/libeq.a:
 	(cd ../eq; make libeq.a)
-libpl.a: $(OBJS)
-	$(LD) $(LDFLAGS) libpl.a $(OBJS)
+
+libpl.a: $(OBJS_NOEQ) $(OBJS_EQ)
+	$(LD) $(LDFLAGS) libpl.a $(OBJS_NOEQ)
+	(cd ../eq; make clean; make libeq.a)
+	$(LD) $(LDFLAGS) libpl.a $(OBJS_EQ)
 
 libs:
 	(cd ../../bpsd; make libbpsd.a)
 	(cd ../lib; make libtask.a)
 	(cd ../lib; make libgrf.a)
 	(cd ../mtxp; make)
-	(cd ../eq; make libeq.a)
 
 pl : libs $(LIB_MTX) libpl.a $(OBJDIR)/plmain.o
 	$(FLINKER) $(OBJDIR)/plmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
@@ -68,9 +72,12 @@ $(OBJDIR)/plvmec.o: plvmec.f90 ../../bpsd/bpsd_kinds.f90 ../../bpsd/bpsd_constan
 $(OBJDIR)/plcomm.o: plcomm.f90 ../../bpsd/bpsd_kinds.f90 ../../bpsd/bpsd_constants.f90
 $(OBJDIR)/plinit.o: plinit.f90 plcomm.f90
 $(OBJDIR)/plparm.o: plparm.f90 plcomm.f90
+$(OBJDIR)/plprep.o: plprep.f90 plcomm.f90
 $(OBJDIR)/platmd.o: platmd.f90 plcomm.f90
 $(OBJDIR)/plcoll.o: plcoll.f90 plcomm.f90 platmd.f90
 $(OBJDIR)/plload.o: plload.f90 plcomm.f90
+$(OBJDIR)/plprep.o: plprep.f90 plcomm.f90
+$(OBJDIR)/plprof_TOTAL.o: plprof_TOTAL.f90 plcomm.f90
 $(OBJDIR)/plprof_travis.o: plprof_travis.f90 plcomm.f90
 $(OBJDIR)/plprof2d.o: plprof2d.f90 plcoll.f90 plload.f90 plcomm.f90
 $(OBJDIR)/plprof.o: plprof.f90 plcomm.f90 plload.f90 \

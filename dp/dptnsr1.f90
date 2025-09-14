@@ -417,7 +417,11 @@ CONTAINS
 
       WTPR=plfw(NS)%RTPR*1.D3*AEE/(AMP*PA(NS))
       WTPP=plfw(NS)%RTPP*1.D3*AEE/(AMP*PA(NS))
-      WTPX=SQRT(WTPR/WTPP)
+
+      ! correction by R. Seki, 2024-08-07
+      !      WTPX=SQRT(WTPR/WTPP) replaced by WTPX=WTPR/WTPP
+
+      WTPX=WTPP/WTPR
       CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
       DO NH=0,NHMAX
          CALAM(NH)=BESEINX(NH,REAL(CBETA))
@@ -441,9 +445,12 @@ CONTAINS
          CLAM=CALAM(ABS(NC))
          CLAMM=CALAM(ABS(NC-1))
          CLAMP=CALAM(ABS(NC+1))
-         CDLAM=0.5D0*(CLAMM+CLAMP)-CLAM
-         CBLAM=0.5D0*(CLAMM-CLAMP)
+         CDLAM=0.5D0*(CLAMM+CLAMP)-CLAM 
+         !dLAMDBA_n/dlamdba
+         CBLAM=0.5D0*(CLAMM-CLAMP) 
+         ! n*LAMDBA_n/lamdba
 
+         ! DZ(s) = -2[1+sZ(s)]
          CLDISP(1)=CLDISP(1)+CWP*   NC*CBLAM*CFW
          CLDISP(2)=CLDISP(2)+CWP*     (CLAM*CFG-NC*CBLAM*CFW)
          CLDISP(3)=CLDISP(3)-CWP* 2.D0*CBETA*CDLAM*CFW

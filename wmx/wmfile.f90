@@ -81,6 +81,7 @@ CONTAINS
     USE wmexec
     USE libfio
     USE dpparm
+    USE dpprep
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
     INTEGER:: I,MD,ND,NR,NS
@@ -93,7 +94,7 @@ CONTAINS
     CALL wm_setg(IERR)
     IF(IERR.NE.0) RETURN
 
-    CALL dpprep_local(ierr)
+    CALL dp_prep_ns(ierr)
     IF(IERR.NE.0) RETURN
 
     CALL wm_setj(IERR)

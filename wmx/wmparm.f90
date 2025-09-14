@@ -55,14 +55,14 @@ CONTAINS
            NSMAX,NPA,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PZCL, &
            PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
            RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,PPN0,PTN0,RF_PL, &
-           MODELG,MODELB,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF, &
+           MODELG,MODELB,model_prof,MODELQ,MODEL_PROF,MODEL_NPROF, &
            RHOGMN,RHOGMX,MODEFR,MODEFW,IDEBUG, &
            KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,KNAMTR,KNAMEQ2, &
            MODELP,MODELV,NCMIN,NCMAX,PMAX_DP,EMAX_DP, &
            NRMAX,NTHMAX,NHHMAX,NPPMAX, &
            factor_nth,factor_nhh,factor_nph, &
            NRMAX_DP,NTHMAX_DP,NPMAX_DP,NSAMAX_DP,RHON_MIN,RHON_MAX, &
-           NS_NSA_DP,EPSRT,LMAXRT, &
+           EPSRT,LMAXRT, &
            NSUMAX,NSWMAX,B0_FACT, &
            RF,RFI,RD,PRFIN,BETAJ,NTH0,NPH0,NHC, &
            NAMAX,AJ,AEWGT,AEWGZ,APH,THJ1,THJ2,PHJ1,PHJ2,ANTANG, &
@@ -101,12 +101,14 @@ CONTAINS
          '       PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,', &
          '       RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,', &
          '       PPN0,PTN0,RF_PL,', &
-         '       MODELG,MODELB,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF,', &
+         '       MODELG,MODELB,model_prof,MODELQ,MODEL_PROF,MODEL_NPROF,', &
          '       RHOGMN,RHOGMX,MODEFR,MODEFW,IDEBUG,', &
          '       KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,', &
-         '       MODELP,MODELV,NCMIN,NCMAX,PMAX,EMAX,', &
-         '       NPMAX,NTHMAX,NRMAX,NSAMAX,RHON_MIN,RHON_MAX,', &
-         '       NHHMAX,NPPMAX,factor_nth,factor_nhh,factor_nph,', &
+         '       MODELP,MODELV,NCMIN,NCMAX,PMAX_DP,EMAX_DP,', &
+         '       NRMAX,NTHMAX,NHHMAX,NPPMAX,', &
+         '       factor_nth,factor_nhh,factor_nph,', &
+         '       NRMAX_DP,NTHMAX_DP,NRMAX_DP,NSAMAX_DP,RHON_MIN,RHON_MAX,', &
+         '       EPSRT,LMAXRT,', &
          '       NSUMAX,NSWMAX,B0_FACT,', &
          '       RF,RFI,RD,PRFIN,BETAJ,NTH0,NPH0,NHC,', &
          '       NAMAX,AJ,AEWGT,AEWGZ,APH,THJ1,THJ2,PHJ1,PHJ2,ANTANG,', &
@@ -183,11 +185,6 @@ CONTAINS
 
     !----- DP input parameters -----
 
-    nsamax_dp=nsmax
-    DO nsa=1,nsamax_dp
-       ns_nsa_dp(nsa)=nsa
-    END DO
-       
     CALL dp_broadcast
 
     ! --- WM specific input parameters ---

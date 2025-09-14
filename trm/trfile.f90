@@ -30,7 +30,7 @@ CONTAINS
       WRITE(21) NRMAX,NRAMAX,NROMAX,DT,NGPST,TSST
       WRITE(21) NTMAX,NTSTEP,NGTSTP,NGRSTP,NSMAX,NSZMAX,NSNMAX
       WRITE(21) NSS,NSV,NNS,NST,NEA,NEQMAX
-      WRITE(21) RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RHOA,PHIA
+      WRITE(21) RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RHOA
       WRITE(21) PA,PZ,PN,PNS,PT,PTS
       WRITE(21) PNC,PNFE,PNNU,PNNUS
       WRITE(21) PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,PROFJ1,PROFJ2, &
@@ -38,8 +38,8 @@ CONTAINS
       WRITE(21) MDLKAI,MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,MDLTPF,MDLCD05
       WRITE(21) TPRST,MDLST,model_nnf,IZERO
       WRITE(21) MODELG,NTEQIT
-      WRITE(21) MDLXP,MDLUF,MDLNCL,MDLWLD,MDDIAG,MDLDW,MDLFLX,MDLER
-      WRITE(21) KUFDEV,KUFDCG,TIME_INT,MODEP,MDLNI,MDLJQ,MDLTC,MDLPCK
+      WRITE(21) MDLNCL,MDLWLD,MDDIAG,MDLDW,MDLFLX,MDLER
+      WRITE(21) MODEP,MDLNI,MDLJQ,MDLTC,MDLPCK
       WRITE(21) nnbmax,necmax,nlhmax,nicmax,npelmax,npscmax,nnfmax
       WRITE(21) (PNBIN(nnb),PNBR0(nnb),PNBRW(nnb),PNBCD(nnb),PNBVY(nnb), &
            PNBVW(nnb),PNBENG(nnb),PNBRTG(nnb), &
@@ -56,7 +56,7 @@ CONTAINS
       WRITE(21) (PELIN(npel),PELR0(npel),PELRW(npel),PELRAD(npel), &
            PELVEL(npel),PELTIM(npel), &
            pellet_time_start(npel),pellet_time_interval(npel), &
-           (PELPAT(ns,npel),ns=1,nsm), &
+           (PELPAT(ns,npel),ns=1,nsmax), &
            MDLPEL(npel),npel=1,npelmax)
       WRITE(21) (PSCIN(npsc),PSCR0(npsc),PSCRW(npsc), &
            MDLPSC(npsc),NSPSC(npsc),npsc=1,npscmax)
@@ -163,7 +163,7 @@ CONTAINS
         CALL ALLOCATE_TRCOMM(IERR)
         IF(IERR.NE.0) RETURN
       READ(21) NSS,NSV,NNS,NST,NEA,NEQMAX
-      READ(21) RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RHOA,PHIA
+      READ(21) RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RHOA
       READ(21) PA,PZ,PN,PNS,PT,PTS
       READ(21) PNC,PNFE,PNNU,PNNUS
       READ(21) PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,PROFJ1,PROFJ2, &
@@ -171,8 +171,8 @@ CONTAINS
       READ(21) MDLKAI,MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,MDLTPF,MDLCD05
       READ(21) TPRST,MDLST,IZERO
       READ(21) MODELG,NTEQIT
-      READ(21) MDLXP,MDLUF,MDLNCL,MDLWLD,MDDIAG,MDLDW,MDLFLX,MDLER
-      READ(21) KUFDEV,KUFDCG,TIME_INT,MODEP,MDLNI,MDLJQ,MDLTC,MDLPCK
+      READ(21) MDLNCL,MDLWLD,MDDIAG,MDLDW,MDLFLX,MDLER
+      READ(21) MODEP,MDLNI,MDLJQ,MDLTC,MDLPCK
       READ(21) nnbmax,necmax,nlhmax,nicmax,npelmax,npscmax,nnfmax
       READ(21) (PNBIN(nnb),PNBR0(nnb),PNBRW(nnb),PNBCD(nnb),PNBVY(nnb), &
            PNBVW(nnb),PNBENG(nnb),PNBRTG(nnb), &
@@ -189,7 +189,7 @@ CONTAINS
       READ(21) (PELIN(npel),PELR0(npel),PELRW(npel),PELRAD(npel), &
            PELVEL(npel),PELTIM(npel), &
            pellet_time_start(npel),pellet_time_interval(npel), &
-           (PELPAT(ns,npel),ns=1,nsm), &
+           (PELPAT(ns,npel),ns=1,nsmax), &
            MDLPEL(npel),npel=1,npelmax)
       READ(21) (PSCIN(npsc),PSCR0(npsc),PSCRW(npsc), &
            MDLPSC(npsc),NSPSC(npsc),npsc=1,npscmax)

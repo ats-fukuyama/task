@@ -427,7 +427,7 @@
 
       USE fpcomm
       USE libmpi
-      USE fpfunc
+      USE fplib
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR,ID
       INTEGER:: NSB1, NSB2, NSA1, NSA2, NS1, NS2, NTH, NP, VLOC, NS, NSA, NSA_
@@ -489,7 +489,7 @@
 
       USE fpcomm
       USE libmpi
-      USE fpfunc
+      USE fplib
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR,ID
       INTEGER:: NSB1, NSB2, NS1, NS2

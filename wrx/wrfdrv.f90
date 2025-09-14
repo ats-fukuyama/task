@@ -133,17 +133,12 @@ CONTAINS
 
       IF(idebug_wr(12).NE.0) THEN
          WRITE(6,'(A)') '*** idebug_wr(12): wrfdrv'
-         WRITE(6,'(A,3ES12.4)') 'x7:',X,Y(7),F(7)
-         WRITE(6,'(A,6ES12.4)') 'y :',Y(1),Y(2),Y(3),Y(4),Y(5),Y(6)
-         WRITE(6,'(A,6ES12.4)') 'f :',F(1),F(2),F(3),F(4),F(5),F(6)
+         WRITE(6,'(A,6ES12.4)') 'x7ds:',X,Y(7),F(7),DS,ROMG,DOMG
+         WRITE(6,'(A,6ES12.4)') 'y   :',Y(1),Y(2),Y(3),Y(4),Y(5),Y(6)
+         WRITE(6,'(A,6ES12.4)') 'f   :',F(1),F(2),F(3),F(4),F(5),F(6)
+         WRITE(6,'(A,6ES12.4)') 'r   :',RXP,RYP,RZP,RRKXP,RRKYP,RRKZP
+         WRITE(6,'(A,6ES12.4)') 'd   :',DXP,DYP,DZP,DKXP,DKYP,DKZP
       END IF
-    IF(X.GT.1.345D0) THEN
-       WRITE(81,'(A,6ES12.4)') 'x7ds:',X,Y(7),F(7),DS,ROMG,DOMG
-       WRITE(81,'(A,6ES12.4)') 'y   :',Y(1),Y(2),Y(3),Y(4),Y(5),Y(6)
-       WRITE(81,'(A,6ES12.4)') 'f   :',F(1),F(2),F(3),F(4),F(5),F(6)
-       WRITE(81,'(A,6ES12.4)') 'r   :',RXP,RYP,RZP,RRKXP,RRKYP,RRKZP
-       WRITE(81,'(A,6ES12.4)') 'd   :',DXP,DYP,DZP,DKXP,DKYP,DKZP
-    END IF
       RETURN
   END SUBROUTINE wr_fdrv1
 

@@ -6,6 +6,7 @@ MODULE wrfile
   PUBLIC wr_save
   PUBLIC wr_load
   PUBLIC wr_write
+  PUBLIC eccd_write
 
 CONTAINS
 
@@ -189,8 +190,85 @@ CONTAINS
     END DO
     CLOSE(NFL)
 
-    WRITE(6,*) '# DATA WAS SUCCESSFULLY WRITTEN TO THE FILE: ',TRIM(KNAMWRW)
+    WRITE(6,*) '# DATA WAS SUCCESSFULLY WRITTEN TO THE FILE: ',TRIM(KNAMWR)
     RETURN
   END SUBROUTINE wr_write
+  
+!駆動電流計算  
+  SUBROUTINE eccd_write
+
+    USE wrcomm
+    USE libfio
+    USE plcomm !
+    !USE wrexer !
+    USE wrcalpwr !
+    USE plprof
+    IMPLICIT NONE
+    REAL(rkind) :: x, y, z !
+    REAL :: time1, time2 !
+    REAL(rkind) :: RK, PABSN !
+    TYPE(pl_prf_type),DIMENSION(NSMAX) :: plf !次元をNSMAX→NRAYMAXに変更
+    INTEGER:: NFL,IERR,NRAY,I,NSTP
+    INTEGER :: NS !  
+    INTEGER :: nsa, nray_exec !  
+
+    NFL=26
+    CALL FWOPEN(NFL,KNAMWRW,1,MODEFW,'WR',IERR)
+    IF(IERR.NE.0) THEN
+       WRITE(6,*) 'XX wr_write: FWOPEN ERROR: IERR=',IERR
+       RETURN
+    END IF
+          
+    WRITE(NFL,'(I8)') NRAYMAX
+    
+    !吸収パワー
+    !nsamax_dp = nsamax_wr !
+    !CALL GUTIME(TIME1) !
+    DO NRAY=1,NRAYMAX
+       !nray_exec = nray !
+       !omega = 2.D6*PI*RFIN(nray)
+       !rkv = omega / VC
+       !rnv = VC/omega
+       !CALL wr_setup_start_point(NRAY,RAYS(0,0,NRAY),nstp,IERR)
+       !nstpmax_nray(nray)=nstp
+       !IF (IERR.NE.0) CYCLE
+       !CALL wr_exec_single_ray(NRAY,RAYS(0,0,NRAY),nstp,IERR)
+       !nstpmax_nray(nray)=nstp
+       !IF (IERR.NE.0) CYCLE
+
+       !DO nsa=1,nsmax_wr
+          !DO nstp=0,nstpmax_nray(nray)
+             !pwr_nsa_nstp_nray(nsa,nstp,nray)=pwr_nsa_nstp(nsa,nstp,nray)
+             !WRITE(NFL,'(2I8,F12.4)') nstp, nray, pwr_nsa_nstp_nray(nsa,nstp,nray)
+          !END DO
+       !END DO 
+       !=========
+       
+       !WRITE(NFL,'(8ES16.8)') (RAYIN(I,NRAY),I=1,8)
+       WRITE(NFL,'(I8)') NSTPMAX_NRAY(NRAY)
+       DO NSTP=1,NSTPMAX_NRAY(NRAY)
+       
+          !温度と密度用
+          x = RXS(NSTP, NRAY) !
+          y = RYS(NSTP, NRAY) !
+          z = RZS(NSTP, NRAY) !
+          CALL pl_prof3d(x,y,z,plf) !      
+       
+          WRITE(NFL,'(11ES16.8)') &
+               !(RAYS(I,NSTP,NRAY),I=1,8), &
+               RKZS(NSTP,NRAY), &
+               RXS(NSTP,NRAY),RYS(NSTP,NRAY),RZS(NSTP,NRAY), &
+               BNXS(NSTP,NRAY),BNYS(NSTP,NRAY),BNZS(NSTP,NRAY), &
+               BABSS(NSTP,NRAY), &
+               plf(1)%RN, plf(1)%RTPR, plf(1)%RTPP
+               
+       END DO
+    END DO
+    CLOSE(NFL)
+
+    WRITE(6,*) '# DATA WAS SUCCESSFULLY WRITTEN TO THE FILE: ',TRIM(KNAMWR)
+    RETURN
+  END SUBROUTINE eccd_write
+  
 
 END MODULE wrfile

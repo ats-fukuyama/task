@@ -124,14 +124,21 @@ CONTAINS
 !              4 : Write data every 1000 step
 !              5 : Write data every 10000 step
 
-      !     model_fdrv: type of driver to calculate del D/del r, del D/del k
-      !        1 : original driver
-      !        2 : new driver on 2023/09/03
-      !        3 : new driver on 2023/11/21
+!     mode_wline: 0: len,POS,rkr,w,pabs
+!                 1: len,POS,rs, w,pabs
+!     mode_fig: 0: fig.1: RZ,p_rho    fig.2: XY,p_R      :: not yet implemented
+!               1: fig.1: RZ,p_R      fig.2: XY,p_rho
+!     mode_write: 0: wr_write
+!                 1: eccd_write
+
+!     model_fdrv: type of driver to calculate del D/del r, del D/del k
+!        1 : original driver
+!        2 : new driver on 2023/09/03
+!        3 : new driver on 2023/11/21
       
-      !     model_fdrv_ds: definition of ds in driver wrfdrv
-      !        0 : original    DS
-      !        1 : corrected   DOMG
+!     model_fdrv_ds: definition of ds in driver wrfdrv
+!        0 : original    DS
+!        1 : corrected   DOMG
       
 !     nres_type : plot type of resonance curves
 !              0 : power abs density (max, 50% for nres_max=3)
@@ -163,6 +170,10 @@ CONTAINS
       MDLWRQ = 1
       MDLWRW = 0
 
+      mode_wline=0
+      mode_fig=0
+      mode_write=0
+
       model_fdrv = 3
       model_fdrv_ds = 0
 
@@ -193,8 +204,6 @@ CONTAINS
       ra_wr=1.1D0
 
       ! wr ascii data file
-
-      KNAMWRW='wr-text-data'
 
       ! --- debug output contral ---
       !        idebug_wr =  1: initial position, wave number, denisty

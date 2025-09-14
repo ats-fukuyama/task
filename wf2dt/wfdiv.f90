@@ -15,6 +15,8 @@ subroutine WFDIV
   implicit none
   integer   :: NE,NN,IERR,mode,nlayer
   character :: KID*1,ch*1,char_mode
+  INTEGER:: nth,nthmax
+  REAL(rkind):: th,x,y,xmin,xmax,ymin,ymax,dth
 
 1 continue
 
@@ -34,20 +36,22 @@ subroutine WFDIV
 
      KID=""
      if (nrank.eq.0) then
-        write(6,'(A)') '## TYPE: X/square C/circle L/layer A/arc'
+        write(6,'(A)') '## TYPE: R/square A/arc L/Layer C/circle E/eq'
         read(5,'(A1)') KID
         call toupper(KID)
         if (KID.ne."X".AND. &
-            KID.ne."C".AND. &
+            KID.ne."R".AND. &
+            KID.ne."A".AND. &
             KID.NE."L".AND. &
-            KID.NE."A") goto 2
+            KID.NE."C".AND. &
+            KID.NE."E") goto 2
      end if
      call mtx_barrier
      call mtx_broadcast_character(KID,1)
 
      IF(nrank.EQ.0)THEN
         SELECT CASE(KID)
-        CASE('X')
+        CASE('X','R')
 3          write(6,'(A,4F10.4)') '## DIV:   BDRMIN,BDRMAX,BDZMIN,BDZMAX = ',&
                                             BDRMIN,BDRMAX,BDZMIN,BDZMAX
            write(6,'(A)')        '## INPUT: BDRMIN,BDRMAX,BDZMIN,BDZMAX ? '
@@ -60,7 +64,7 @@ subroutine WFDIV
            write(6,'(A,2F10.4)') '## DIV:   DELR,DELZ = ',DELR,DELZ
            write(6,'(A)')        '## INPUT: DELR,DELZ ? '
            if(abs(DELR).le.1.d-6.or.abs(DELZ).le.1.d-6) goto 2
-           iddiv=1
+           mode_div=1
            r_corner(1)=BDRMIN
            z_corner(1)=BDZMIN
            r_corner(2)=BDRMAX
@@ -68,20 +72,56 @@ subroutine WFDIV
            r_corner(3)=BDRMIN
            z_corner(3)=BDZMAX
            
-        CASE('C')
-           
-5          write(6,'(A15,F10.4)') '## DIV:   RB = ',RB
-           write(6,'(A15)')       '## INPUT: RB ? '
-           read(5,*,ERR=5,END=2) RB
-           BDRMIN=-RB
-           BDRMAX= RB
-           BDZMIN=-RB
-           BDZMAX= RB
-6          write(6,'(A17,F10.4)') '## DIV:   DELR = ',DELR
-           write(6,'(A17)')       '## INPUT: DELR ? '
-           read(5,*,ERR=6,END=2) DELR
-           if(abs(DELR).le.1.D-6) goto 2
-           iddiv=2
+        CASE('A')
+13          CONTINUE
+           write(6,'(A,4F10.4)') &
+                '## DIV:   rmin,rmax,thmin,thmax = ',&
+                rmin_div,rmax_div,thmin_div,thmax_div
+           write(6,'(A)') &
+                '## INPUT: rmin,rmax,thmin,thmax ? '
+           read(5,*,ERR=13,END=2) &
+                rmin_div,rmax_div,thmin_div,thmax_div
+           write(6,'(A,4F10.4)') &
+                '## DIV:   rmin,rmax,thmin,yth_ax = ',&
+                rmin_div,rmax_div,thmin_div,thmax_div
+14         CONTINUE
+           write(6,'(A,2F10.4)') &
+                '## DIV:   delr,delth = ',delr_div,delth_div
+           write(6,'(A)') &
+                '## INPUT: delr,delth ? '
+           read(5,*,ERR=14,END=2) delr_div,delth_div
+           write(6,'(A,2F10.4)') &
+                '## DIV:   delr,delth = ',delr_div,delth_div
+           if(abs(delr_div).le.1.d-6.or.abs(delth_div).le.1.d-6) goto 2
+           mode_div=2
+           nthmax=NINT((thmax_div-thmin_div)/delth_div)
+           dth=(thmax_div-thmin_div)/(nthmax-1)
+           th=thmin_div
+           x=rmin_div*COS(th*Pi/180.D0)
+           y=rmin_div*SIN(th*Pi/180.D0)
+           xmin=x
+           xmax=x
+           ymin=y
+           ymax=y
+           DO nth=1,nthmax
+              th=thmin_div+dth*(nth-1)
+              x=rmin_div*COS(th*Pi/180.D0)
+              y=rmin_div*SIN(th*Pi/180.D0)
+              xmin=MIN(xmin,x)
+              xmax=MAX(xmax,x)
+              ymin=MIN(ymin,y)
+              ymax=MAX(ymax,y)
+              x=rmax_div*COS(th*Pi/180.D0)
+              y=rmax_div*SIN(th*Pi/180.D0)
+              xmin=MIN(xmin,x)
+              xmax=MAX(xmax,x)
+              ymin=MIN(ymin,y)
+              ymax=MAX(ymax,y)
+           END DO
+           BDRMIN=xmin
+           BDRMAX=xmax
+           BDZMIN=ymin
+           BDZMAX=ymax
            r_corner(1)=BDRMIN
            z_corner(1)=BDZMIN
            r_corner(2)=BDRMAX
@@ -90,9 +130,9 @@ subroutine WFDIV
            z_corner(3)=BDZMAX
 
         CASE('L')
-11         CONTINUE
-           WRITE(6,'(A)') '## Layers: uniform in X or Y?'
-           READ(5,*,ERR=11,END=2) ch
+31         CONTINUE
+           WRITE(6,'(A)') '## Layers: align in X or Y?'
+           READ(5,*,ERR=31,END=2) ch
            CALL toupper(ch)
            SELECT CASE(ch)
            CASE('X')
@@ -103,53 +143,53 @@ subroutine WFDIV
               char_mode='y'
            CASE default
               WRITE(6,*) 'XX input error: X or Y'
-              GO TO 11
+              GO TO 31
            END SELECT
-12         CONTINUE
+32         CONTINUE
            WRITE(6,'(A,I4,A)') '## Number of layers? (Max=',NLM,')'
-           READ(5,*,ERR=12,END=11) nlayer_max
+           READ(5,*,ERR=32,END=31) nlayer_max
            IF(nlayer_max.LE.0.OR.nlayer_max.GT.NLM) THEN
-              WRITE(6,*) 'XX Input number of layers:'
-              GOTO 12
+              WRITE(6,*) 'XX Input positive number of layers:'
+              GOTO 32
            END IF
            
-13         CONTINUE
+33         CONTINUE
            WRITE(6,'(A,A1,A)') &
                 '# input minimum ',char_mode,' of layer 1?'
-           READ(5,*,ERR=13,END=12) posl_nlayer(1)
+           READ(5,*,ERR=33,END=32) posl_nlayer(1)
            DO nlayer=1,nlayer_max
               WRITE(6,'(A,A1,A,I4,A)') &
                    '# input maximum ',char_mode,' of layer ', &
                    nlayer,' and the step size?'
-              READ(5,*,ERR=13,END=12) &
+              READ(5,*,ERR=33,END=32) &
                    posl_nlayer(nlayer+1),step_size_nlayer(nlayer)
               IF(step_size_nlayer(nlayer).LE.0.D0) THEN
                  WRITE(6,*) 'XX wfdiv_L: wrong step_size:', &
                       step_size_nlayer(nlayer)
-                 GO TO 11
+                 GO TO 33
               END IF
                  
            END DO
-14         CONTINUE
+34         CONTINUE
 
            SELECT CASE(mode)
            CASE(1)
-15            CONTINUE
+35            CONTINUE
               WRITE(6,'(A,3ES12.4)') &
                    '# input y minimum, y maximum, and step size:',&
                    pos_min,pos_max,step_size
-              READ(5,*,ERR=15,END=14) pos_min,pos_max,step_size
+              READ(5,*,ERR=35,END=34) pos_min,pos_max,step_size
            CASE(2)
-16            CONTINUE
+36            CONTINUE
               WRITE(6,'(A,3ES12.4)') &
                    '# input x minimum and x maximum, and step size:', &
                    pos_min,pos_max,step_size
-              READ(5,*,ERR=16,END=14) pos_min,pos_max,step_size
+              READ(5,*,ERR=36,END=34) pos_min,pos_max,step_size
            END SELECT
 
            IF(step_size.LE.0.D0) THEN
               WRITE(6,*) 'XX wfdiv_L: wrong step_size:',step_size
-              GO TO 14
+              GO TO 34
            END IF
 
 !           DO nlayer=1,nlayer_max
@@ -160,7 +200,7 @@ subroutine WFDIV
 !           WRITE(6,'(A,3ES12.4)') 'pos_min,max,step_size=', &
 !                pos_min,pos_max,step_size
 
-           iddiv=3
+           mode_div=3
            SELECT CASE(mode)
            CASE(1)
               BDRMIN=posl_nlayer(1)
@@ -180,6 +220,30 @@ subroutine WFDIV
            z_corner(2)=BDZMIN
            r_corner(3)=BDRMIN
            z_corner(3)=BDZMAX
+
+        CASE('C')
+
+45         CONTINUE
+           write(6,'(A15,F10.4)') '## DIV:   RB = ',RB
+           write(6,'(A15)')       '## INPUT: RB ? '
+           read(5,*,ERR=45,END=2) RB
+46         CONTINUE
+           write(6,'(A17,F10.4)') '## DIV:   DELR = ',DELR
+           write(6,'(A17)')       '## INPUT: DELR ? '
+           read(5,*,ERR=46,END=2) DELR
+           if(abs(DELR).le.1.D-8) goto 2
+           mode_div=4
+           BDRMIN=-RB
+           BDRMAX= RB
+           BDZMIN=-RB
+           BDZMAX= RB
+           r_corner(1)=BDRMIN
+           z_corner(1)=BDZMIN
+           r_corner(2)=BDRMAX
+           z_corner(2)=BDZMIN
+           r_corner(3)=BDRMIN
+           z_corner(3)=BDZMAX
+
         END SELECT
      END IF
 !     WRITE(6,'(A,4ES12.4)') &
@@ -188,13 +252,15 @@ subroutine WFDIV
      CALL wfdiv_broadcast
 
      IF(KID.EQ.'X') THEN
-        CALL SETNODX
-     ELSEIF(KID.EQ.'C') THEN
-        CALL SETNODC
+        CALL set_node_rect
+     ELSEIF(KID.EQ.'A') THEN
+        CALL set_node_arc
      ELSEIF(KID.EQ.'L') THEN
         call mtx_barrier
         call mtx_broadcast1_integer(mode)
-        CALL set_node_L(mode)
+        CALL set_node_layer(mode)
+     ELSEIF(KID.EQ.'C') THEN
+        CALL set_node_circle
      END IF
 
      if(nrank.eq.0) write(6,*) '--- WFINDX start ---'
@@ -247,7 +313,7 @@ end subroutine WFDIV
 
 ! *** rectangular mesh ***
 
-subroutine SETNODX
+subroutine set_node_rect
   
   use wfcomm
   implicit none
@@ -338,161 +404,108 @@ subroutine SETNODX
      end do
   end do
   return
-end subroutine SETNODX
+end subroutine set_node_rect
 
-! *** circular mesh ***
-
-subroutine SETNODC
+subroutine set_node_arc
 
   use wfcomm
   implicit none
 
-  integer :: NN,NE
-  integer :: NN1,NN2,NN3,NN4
-  integer :: NR,NTH,NTH1
-  integer :: NRMAX,INNODE
-  integer,dimension(:),pointer :: NTHMAX
-  real(rkind) :: RRING,THETA,DR
+  integer :: node,nelm
+  integer :: node1,node2,node3,node4
+  integer :: nr,nth
+  integer :: nrmax,nthmax
+  real(rkind) :: rsize,thsize,dr,dth,r,th
 
-  ! --- set the number of rings ---
-                                
-  NRMAX=NINT(RB/DELR)+1
-  DR=DBLE(RB/(NRMAX-1))
-  allocate(NTHMAX(NRMAX))
+  ! --- set NNMAX ---
 
-  ! --- set NNMAX & NTHMAX---
-                                     
-  NN=1
-  NTHMAX(1)=1
-  do NR=2,NRMAX
-     NTHMAX(NR)=(NR-1)*6
-     DO NTH=1,NTHMAX(NR)
-        NN=NN+1
-     end DO
-  end do
-  NNMAX=NN
+  rsize=rmax_div-rmin_div
+  thsize=thmax_div-thmin_div
+
+  nrmax=NINT(rsize/delr_div)+1
+  nthmax=NINT(thsize/delth_div)+1
+
+  IF(MOD(nrmax,2).EQ.0) nrmax=nrmax+1    ! nrmax : odd number
+  dr=DBLE(rsize/(nrmax-1))
+  IF(MOD(nthmax,2).EQ.0) nthmax=nthmax+1 ! nthmax : odd number
+  dth=DBLE(thsize/(nthmax-1))
+  NNMAX=nrmax*nthmax
 
   ! --- set NEMAX ---
-
-  NE=0
-  do NR=1,NRMAX-1
-     NE=NE+6*(2*NR-1)
-  end do
-  NEMAX=NE
-  call wf_node_allocate
-  call wf_elm_allocate
+  NEMAX=2*(nrmax-1)*(nthmax-1)
+  CALL wf_node_allocate
+  CALL wf_elm_allocate
 
   ! --- set node ---
-  NN=1
-  NR=1
-  RNODE(1)=0.d0 + RR
-  ZNODE(1)=0.d0
-
-  do NR=2,NRMAX
-     RRING=DR*DBLE(NR-1)
-     DO NTH=1,NTHMAX(NR)
-        NN=NN+1
-        THETA=DBLE(NTH-1)*2.d0*PI/DBLE(NTHMAX(NR))
-        RNODE(NN)=RRING*cos(THETA) + RR
-        ZNODE(NN)=RRING*sin(THETA)
+  node=0
+  DO nth=1,nthmax
+     DO nr=1,nrmax
+        node=node+1
+        r=rmin_div+dr*(nr-1)
+        th=(thmin_div+dth*(nth-1))*Pi/180.D0
+        RNODE(node)=RR+r*COS(th)
+        ZNODE(node)=   r*SIN(th)
      END DO
-  END do
+  END DO
   
   ! --- set element ---
-  
-  NE=0
-  NR=1
+  nelm=0
+  do nth=1,nthmax-1
+     do nr=1,nrmax-1
+        node1=nr+nrmax*(nth-1)
+        node2=nr+nrmax*(nth-1)+1
+        node3=nr+nrmax*nth+1
+        node4=nr+nrmax*nth
 
-  NN1=1
-  NN2=2
-  NN3=3
-  NN4=4
-
-  NE=NE+1
-  NDELM(1,NE)=NN1
-  NDELM(2,NE)=NN2
-  NDELM(3,NE)=NN3
-  NE=NE+1
-  NDELM(1,NE)=NN1
-  NDELM(2,NE)=NN3
-  NDELM(3,NE)=NN4
-
-  NN1=1
-  NN2=4
-  NN3=5
-  NN4=6
-
-  NE=NE+1
-  NDELM(1,NE)=NN1
-  NDELM(2,NE)=NN2
-  NDELM(3,NE)=NN3
-  NE=NE+1
-  NDELM(1,NE)=NN1
-  NDELM(2,NE)=NN3
-  NDELM(3,NE)=NN4
-
-  NN1=1
-  NN2=6
-  NN3=7
-  NN4=2
-
-  NE=NE+1
-  NDELM(1,NE)=NN1
-  NDELM(2,NE)=NN2
-  NDELM(3,NE)=NN3
-  NE=NE+1
-  NDELM(1,NE)=NN1
-  NDELM(2,NE)=NN3
-  NDELM(3,NE)=NN4
-
-  DO NR=2,NRMAX-1
-
-     NTH=0
-     NTH1=0
-     
-1    continue
-     
-     NTH=NTH+1
-     NTH1=NTH1+1
-     
-     NN1=NTH +INNODE(NR)
-     NN2=NTH1+INNODE(NR+1)
-     NN3=NTH1+INNODE(NR+1)+1
-     NN4=NTH +INNODE(NR)  +1
-     if(NTH.eq.NTHMAX(NR)) NN4=NN4-NTHMAX(NR)
-     
-     NE=NE+1
-     NDELM(1,NE)=NN1
-     NDELM(2,NE)=NN2
-     NDELM(3,NE)=NN3
-     NE=NE+1
-     NDELM(1,NE)=NN1
-     NDELM(2,NE)=NN3
-     NDELM(3,NE)=NN4
-     
-     if (mod(NTH,NR-1).eq.0) then
-        NE=NE+1
-        NN1=NTH +INNODE(NR)  +1
-        NN2=NTH1+INNODE(NR+1)+1
-        NN3=NTH1+INNODE(NR+1)+2
-        if(NTH.eq.NTHMAX(NR)) NN1=NN1-NTHMAX(NR)
-        if(NTH1+1.eq.NTHMAX(NR+1)) NN3=NN3-NTHMAX(NR+1)
-        NDELM(1,NE)=NN1
-        NDELM(2,NE)=NN2
-        NDELM(3,NE)=NN3
-        NTH1=NTH1+1
-        
-     end if
-           
-     if (NTH1.lt.NTHMAX(NR+1)) goto 1
-  END DO
-
+        if(nr.LE.nrmax/2) then
+           if(nth.LE.nthmax/2) then
+              nelm=nelm+1
+              NDELM(1,nelm)=node1
+              NDELM(2,nelm)=node3
+              NDELM(3,nelm)=node4
+              nelm=nelm+1
+              NDELM(1,nelm)=node1
+              NDELM(2,nelm)=node2
+              NDELM(3,nelm)=node3
+           else
+              nelm=nelm+1
+              NDELM(1,nelm)=node1
+              NDELM(2,nelm)=node2
+              NDELM(3,nelm)=node4         
+              nelm=nelm+1
+              NDELM(1,nelm)=node2
+              NDELM(2,nelm)=node3
+              NDELM(3,nelm)=node4
+           end if
+        else
+           if(nth.le.nthmax/2) then
+              nelm=nelm+1
+              NDELM(1,nelm)=node1
+              NDELM(2,nelm)=node2
+              NDELM(3,nelm)=node4
+              nelm=nelm+1
+              NDELM(1,nelm)=node2
+              NDELM(2,nelm)=node3
+              NDELM(3,nelm)=node4
+           else
+              nelm=nelm+1
+              NDELM(1,nelm)=node1
+              NDELM(2,nelm)=node3
+              NDELM(3,nelm)=node4
+              nelm=nelm+1
+              NDELM(1,nelm)=node1
+              NDELM(2,nelm)=node2
+              NDELM(3,nelm)=node3
+           end if
+        end if
+     end do
+  end do
   return
-  end subroutine SETNODC
+end subroutine set_node_arc
 
   ! *** layered mesh ***
 
-  SUBROUTINE set_node_L(mode)
+  SUBROUTINE set_node_layer(mode)
     USE wfcomm,nelm_max=>NEMAX,node_max=>NNMAX,xnode=>RNODE,ynode=>ZNODE, &
          xnode_min=>BDRMIN,xnode_max=>BDRMAX, &
          ynode_min=>BDZMIN,ynode_max=>BDZMAX, &
@@ -711,9 +724,158 @@ subroutine SETNODC
 !    WRITE(6,*) 'nelm_max,nelm=',nelm_max,nelm
 
     RETURN
-  END SUBROUTINE set_node_L
+  END SUBROUTINE set_node_layer
 
-  
+  ! *** circular mesh ***
+
+subroutine set_node_circle
+
+  use wfcomm
+  implicit none
+
+  integer :: NN,NE
+  integer :: NN1,NN2,NN3,NN4
+  integer :: NR,NTH,NTH1
+  integer :: NRMAX,INNODE
+  integer,dimension(:),pointer :: NTHMAX
+  real(rkind) :: RRING,THETA,DR
+
+  ! --- set the number of rings ---
+
+  NRMAX=NINT(RB/DELR)+1
+  DR=DBLE(RB/(NRMAX-1))
+  allocate(NTHMAX(NRMAX))
+
+  ! --- set NNMAX & NTHMAX---
+
+  NN=1
+  NTHMAX(1)=1
+  do NR=2,NRMAX
+     NTHMAX(NR)=(NR-1)*6
+     DO NTH=1,NTHMAX(NR)
+        NN=NN+1
+     end DO
+  end do
+  NNMAX=NN
+
+  ! --- set NEMAX ---
+
+  NE=0
+  do NR=1,NRMAX-1
+     NE=NE+6*(2*NR-1)
+  end do
+  NEMAX=NE
+  call wf_node_allocate
+  call wf_elm_allocate
+
+  ! --- set node ---
+  NN=1
+  NR=1
+  RNODE(1)=0.d0 + RR
+  ZNODE(1)=0.d0
+
+  do NR=2,NRMAX
+     RRING=DR*DBLE(NR-1)
+     DO NTH=1,NTHMAX(NR)
+        NN=NN+1
+        THETA=DBLE(NTH-1)*2.d0*PI/DBLE(NTHMAX(NR))
+        RNODE(NN)=RRING*cos(THETA) + RR
+        ZNODE(NN)=RRING*sin(THETA)
+     END DO
+  END do
+ 
+  ! --- set element ---
+
+  NE=0
+  NR=1
+
+  NN1=1
+  NN2=2
+  NN3=3
+  NN4=4
+
+  NE=NE+1
+  NDELM(1,NE)=NN1
+  NDELM(2,NE)=NN2
+  NDELM(3,NE)=NN3
+  NE=NE+1
+  NDELM(1,NE)=NN1
+  NDELM(2,NE)=NN3
+  NDELM(3,NE)=NN4
+
+  NN1=1
+  NN2=4
+  NN3=5
+  NN4=6
+
+  NE=NE+1
+  NDELM(1,NE)=NN1
+  NDELM(2,NE)=NN2
+  NDELM(3,NE)=NN3
+  NE=NE+1
+  NDELM(1,NE)=NN1
+  NDELM(2,NE)=NN3
+  NDELM(3,NE)=NN4
+
+  NN1=1
+  NN2=6
+  NN3=7
+  NN4=2
+
+  NE=NE+1
+  NDELM(1,NE)=NN1
+  NDELM(2,NE)=NN2
+  NDELM(3,NE)=NN3
+  NE=NE+1
+  NDELM(1,NE)=NN1
+  NDELM(2,NE)=NN3
+  NDELM(3,NE)=NN4
+
+  DO NR=2,NRMAX-1
+
+     NTH=0
+     NTH1=0
+
+1    continue
+
+     NTH=NTH+1
+     NTH1=NTH1+1
+
+     NN1=NTH +INNODE(NR)
+     NN2=NTH1+INNODE(NR+1)
+     NN3=NTH1+INNODE(NR+1)+1
+     NN4=NTH +INNODE(NR)  +1
+     if(NTH.eq.NTHMAX(NR)) NN4=NN4-NTHMAX(NR)
+
+     NE=NE+1
+     NDELM(1,NE)=NN1
+     NDELM(2,NE)=NN2
+     NDELM(3,NE)=NN3
+     NE=NE+1
+     NDELM(1,NE)=NN1
+     NDELM(2,NE)=NN3
+     NDELM(3,NE)=NN4
+
+     if (mod(NTH,NR-1).eq.0) then
+        NE=NE+1
+        NN1=NTH +INNODE(NR)  +1
+        NN2=NTH1+INNODE(NR+1)+1
+        NN3=NTH1+INNODE(NR+1)+2
+        if(NTH.eq.NTHMAX(NR)) NN1=NN1-NTHMAX(NR)
+        if(NTH1+1.eq.NTHMAX(NR+1)) NN3=NN3-NTHMAX(NR+1)
+        NDELM(1,NE)=NN1
+        NDELM(2,NE)=NN2
+        NDELM(3,NE)=NN3
+        NTH1=NTH1+1
+
+     end if
+
+     if (NTH1.lt.NTHMAX(NR+1)) goto 1
+  END DO
+
+  return
+end subroutine set_node_circle
+
 
 ! ***** the number of innner-ring-nodes *****
 function INNODE(NR)

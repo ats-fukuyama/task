@@ -817,7 +817,7 @@ SUBROUTINE WFGPRM
   CALL NUMBI(MODELD,'(I2)',2)
   CALL NUMBI(MODELP,'(I2)',2)
   CALL NUMBI(MODELS,'(I2)',2)
-  CALL NUMBI(MODELN,'(I2)',2)
+  CALL NUMBI(model_prof,'(I2)',2)
   
   GXL=GXMIN
   GYL=GYL+GDY
@@ -1212,7 +1212,7 @@ SUBROUTINE WFGELM3(ID)
   use wfcomm
   USE libgrf
   implicit none
-  integer :: ID,IE,IN1,IN2,IN3,IN4,IN,INL,NSF,ND1,ND2,ND3,NN,KA,IEL
+  integer :: ID,IE,IN1,IN2,IN3,IN4,IN,INL,NSRF,ND1,ND2,ND3,NN,KA,IEL
   real(4) :: GX1,GY1,GX2,GY2,GX3,GY3,GX4,GY4,GXC,GYC
 
 !     ***** DRAW EDGE *****
@@ -1262,10 +1262,10 @@ SUBROUTINE WFGELM3(ID)
 
   ELSEIF(ID.EQ.1) THEN
      CALL SETRGB(0.0,0.0,1.0)
-     DO NSF=1,NSFMAX
-        ND1=NDSRF(1,NSF)
-        ND2=NDSRF(2,NSF)
-        ND3=NDSRF(3,NSF)
+     DO NSRF=1,NSRFMAX
+        ND1=NDSRF(1,NSRF)
+        ND2=NDSRF(2,NSRF)
+        ND3=NDSRF(3,NSRF)
         GX1=gdclip(XND(ND1))
         GY1=gdclip(ZND(ND1)+0.5D0*YND(ND1))
         GX2=gdclip(XND(ND2))

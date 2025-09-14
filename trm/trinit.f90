@@ -58,7 +58,7 @@ CONTAINS
       !  NSZMAX : NUMBER OF IMPURITIES SPECIES
       !  NSNMAX : NUMBER OF NEUTRAL SPECIES
 
-      !  KID_NS(NS): Particle name in two characters
+      !  KID_NS(NS): Particle name in four characters
       !  ID_NS(NS): -1: electron, 0: neutral, 1: ion, 2: fast ion
       !  NPA(NS): Atomic number (0 for electron)
       !  PA(NS) : Mass NUMBER
@@ -70,73 +70,31 @@ CONTAINS
       !  PU(NS) : INITIAL TOROIDAL VELOCITY ON AXIS (KEV)
       !  PUS(NS): INITIAL TOROIDAL VELOCITY ON SURFACE (KEV)
 
-      !  Single ion : NS=1:e 2:D
-      !  DT         : NS=1:e 2:D 3:T 4:He4
-      !  DD+DD+DHe3 : NS=1:e 2:D 3:T 4:He4 5:H 6:He3
-
-      NSMAX=2
+      NSMAX=4
       NSZMAX=0  ! the number of impurities
-      NSNMAX=2  ! the number of neutrals, 0 or 2 fixed
+      NSNMAX=0  ! the number of neutrals
 
       NS_e=1
-      KID_NS(1)= ' e'
-      ID_NS(1) = -1
-      NPA(1)   = 0
-      PA(1)    = AME/AMP
-      PZ(1)    =-1.D0
+      NPA(NS_e)= 0  
+      PA(NS_e) = AME/AMP
+      PZ(NS_e) =-1.D0
 
       NS_D=2
-      KID_NS(2)= ' D'
-      ID_NS(2) = 1
-      NPA(2)   = 1
-      PA(2)    = 2.D0
-      PZ(2)    = 1.D0
+      NPA(NS_D)= 1
+      PA(NS_D) = 2.D0
+      PZ(NS_D) = 1.D0
 
       NS_T=3
-      KID_NS(3)= ' T'
-      ID_NS(3) = 1
-      NPA(3)   = 1
-      PA(3)    = 3.D0
-      PZ(3)    = 1.D0
+      NPA(NS_T)= 1
+      PA(NS_T) = 3.D0
+      PZ(NS_T) = 1.D0
 
-      NS_A=4
-      KID_NS(4)= 'He'
-      ID_NS(4) = 1
-      NPA(4)   = 2
-      PA(4)    = 4.D0
-      PZ(4)    = 2.D0
+      NS_He4=4
+      NPA(NS_He4)= 2
+      PA(NS_He4) = 4.D0
+      PZ(NS_He4) = 2.D0
 
-      NS_H=5
-      KID_NS(5)= ' H'
-      ID_NS(5) = 1
-      NPA(5)   = 1
-      PA(5)    = 1.D0
-      PZ(5)    = 1.D0
-
-      NS_He3=6
-      KID_NS(6)= 'He'
-      ID_NS(6) = 1
-      NPA(6)   = 2
-      PA(6)    = 3.D0
-      PZ(6)    = 2.D0
-
-      NS_C=7
-      KID_NS(7)= ' C'
-      ID_NS(7) = 1
-      NPA(7)   = 6
-      PA(7)    = 12.D0
-      PZ(7)    = 6.D0
-
-      NS_Fe=8
-      KID_NS(8)= 'Fe'
-      ID_NS(8) = 1
-      NPA(8)   = 26
-      PA(8)    = 56.D0
-      PZ(8)    = 26.D0
-
-      DO NS=9,NSM
-         KID_NS(NS)= ' H'
-         ID_NS(NS) = 1
+      DO NS=5,NSM
          NPA(NS)   = 1
          PA(NS)    = 1.D0
          PZ(NS)    = 1.D0
@@ -458,6 +416,8 @@ CONTAINS
       CKALFA = 0.D0
       CKBETA = 0.D0
       CKGUMA = 0.D0
+      ALPHA_MAX= 100.D0 ! maximum alpha for limiting pressure gradient
+      QP_MAX   = 0.D0 ! maximum QP for limiting shear
 
       !  ==== RADIAL ELECTRIC FIELD SWITCH ====
 
@@ -494,7 +454,7 @@ CONTAINS
       MDLELM=0
       ELMWID=1.D0
       ELMDUR=1.D0
-      DO NS=1,NSMM
+      DO NS=1,NSM
          ELMNRD(NS)=1.D0
          ELMTRD(NS)=1.D0
          ELMENH(NS)=1.D0
@@ -530,9 +490,9 @@ CONTAINS
       !       53:ON He4 (DHe3) with NB beam component without particle source
       !       54:ON He4 (DHe3) with NB beam component particle source
 
-      nnfmax=0
+      nnfmax=1
       DO nnf=1,nnfm
-         model_nnf(nnf)  = 1
+         model_nnf(nnf)  = 0
       END DO
 
       !     ==== RADIATION ====
@@ -575,9 +535,9 @@ CONTAINS
       !  ns_nnb(nnbm)  : Particle species number
       !  nrmax_nnb(nnbm): number of division of NB profile      
 
-      NNBMAX=0
+      NNBMAX=1
       DO NNB=1,NNBM
-         model_nnb(nnb) = 1    ! 
+         model_nnb(nnb) = 0
          ns_nnb(nnb)    = 2
          nrmax_nnb(nnb) = 10
          PNBIN(NNB)  = 0.D0
@@ -757,18 +717,8 @@ CONTAINS
 
       !  ==== INPUT FROM EXPERIMENTAL DATA ====
 
-      !  MDLUF :
-      !      0 : not use 
-      !      1 : time evolution
-      !      2 : steady state
-      !      3 : compared with TOPICS
-      !  MDLXP :
-      !      0 : from ufiles
-      !   else : MDSplus
       !  MODEP : initial profile selector for steady-state simulation
 
-      MDLUF=0
-      MDLXP=0
       MODEP=3
 
       !  ==== INITIAL CURRENT PROFILE SWITCH ====
@@ -779,14 +729,6 @@ CONTAINS
       !      2 : no current with experimental Q profile for helical
 
       MDLJQ=0
-
-      !  ==== FLUX SWITCH ====
-
-      !  MDLFLX :
-      !       0 : use diffusion and convection coefficients
-      !       1 : use FLUX term made from source files
-
-      MDLFLX=0
 
       !  ==== Simulateion CONTROL PARAMETERS ====
 
@@ -848,15 +790,6 @@ CONTAINS
       KFNLOG='tr.log'
       KFNTXT='tr.txt'
       KFNCVS='tr.cvs'
-
-      !  ==== DEVICE NAME AND SHOT NUMBER IN UFILE DATA ====
-      !  KUFDIR : UFILE DIRECTORY
-      !  KUFDEV : DEVICE NAME
-      !  KUFDCG : DISCHARGE NUMBER
-
-      KUFDIR='../../../profiledb/profile_data/'
-      KUFDEV='jt60u'
-      KUFDCG='21695'
 
       RETURN
       END SUBROUTINE tr_init

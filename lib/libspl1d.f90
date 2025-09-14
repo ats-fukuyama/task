@@ -64,12 +64,12 @@ CONTAINS
          U(2,1)=2.D0*(DXP+DXM)
          U(3,1)=DXM
       ELSE
-         IF(ID1.EQ.0) THEN
+         IF(ID1.EQ.0) THEN ! ID=0,2
             DXP=X(2)-X(1)
             U(1,1)=0.D0
             U(2,1)=2.D0*DXP
             U(3,1)=DXP
-         ELSE
+         ELSE              ! ID=1,3
             U(1,1)=0.D0
             U(2,1)=1.D0
             U(3,1)=0.D0

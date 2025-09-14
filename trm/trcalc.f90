@@ -7,7 +7,6 @@
 
       SUBROUTINE TRCALC(IERR)
 
-      USE trcomm_constants
       USE TRCOMM
       USE trpnf
       USE tr_cytran_mod
@@ -32,7 +31,6 @@
       PRL(1:NRMAX)=0.D0
       PRSUM(1:NRMAX)=0.D0
       PNB_NSNR(1:NSMAX,1:NRMAX)=0.D0
-      PNF_NSNR(1:NSMAX,1:NRMAX)=0.D0
       AJRFV(1:NRMAX,1)=0.D0
       AJRFV(1:NRMAX,2)=0.D0
       AJRFV(1:NRMAX,3)=0.D0
@@ -40,23 +38,23 @@
       AJBS(1:NRMAX)=0.D0
       SPSC(1:NRMAX,1:NSMAX)=0.D0
       SPE(1:NRMAX,1:NSMAX)=0.D0
-      PNBCL_NSNNBNR(1:NSMAX,1:NNBMAX,1:NRMAX)=0.D0
-      PNFCL_NSNNFNR(1:NSMAX,1:NNFMAX,1:NRMAX)=0.D0
-      IF(MDLUF.NE.0) THEN
-         PRFV(1:NRMAX,3:NSM,1)=0.D0
-         PRFV(1:NRMAX,3:NSM,2)=0.D0
-         PRFV(1:NRMAX,3:NSM,3)=0.D0
-         PRF(1:NRMAX,3:NSM)=0.D0
-      ELSE
-         PRFV(1:NRMAX,1:NSM,1)=0.D0
-         PRFV(1:NRMAX,1:NSM,2)=0.D0
-         PRFV(1:NRMAX,1:NSM,3)=0.D0
-         PRF(1:NRMAX,1:NSM)=0.D0
-      ENDIF
+      PRFV(1:NRMAX,1:NSM,1)=0.D0
+      PRFV(1:NRMAX,1:NSM,2)=0.D0
+      PRFV(1:NRMAX,1:NSM,3)=0.D0
+      PRF(1:NRMAX,1:NSM)=0.D0
 
       BP(1:NRMAX)=AR1RHOG(1:NRMAX)*RDP(1:NRMAX)/RR
       QP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX) &
            /(4.D0*PI**2*RDPVRHOG(1:NRMAX))
+      IF(qp_max.GT.0.D0) THEN
+         DO NR=1,NRMAX
+            IF(QP(NR).GT.qp_max) THEN
+               QP(NR)=qp_max
+            ELSE IF(QP(NR).LT.-qp_max) THEN
+               QP(NR)=-qp_max
+            END IF
+         END DO
+      END IF
       Q0=FCTR(RG(1),RG(2),QP(1),QP(2))
 
 !     *** RADIAL ELECTRIC FIELD ***
@@ -104,7 +102,7 @@
 
       CALL TRCOEF
       CALL TRLOSS
-      IF(MDLUF.NE.1.AND.MDLUF.NE.3) CALL TRPWRF
+      CALL TRPWRF
       CALL TRPWNB
 
       IF(MDLNCL.NE.0) THEN
@@ -139,15 +137,16 @@
                           +SNB_NSNR(NS_e,NR)+SEX(NR,NS_e)+SPSC(NR,NS_e)
                   ELSE IF(NS.EQ.NS_D) THEN
                      SSIN(NR,NS_D)= PN(NS_D)*SIE(NR)/(PN(NS_D)+PN(NS_T)) &
-                          -SNF_NSNR(NS_D,NR)+SNB_NSNR(NS_D,NR) &
+                          +SNF_NSNR(NS_D,NR)+SNB_NSNR(NS_D,NR) &
                           +SEX(NR,NS_D)+SPSC(NR,NS_D)
                   ELSE IF(NS.EQ.NS_T) THEN
                      SSIN(NR,NS_T)= PN(NS_T)*SIE(NR)/(PN(NS_D)+PN(NS_T)) &
-                          -SNF_NSNR(NS_T,NR)+SNB_NSNR(NS_T,NR) &
+                          +SNF_NSNR(NS_T,NR)+SNB_NSNR(NS_T,NR) &
                           +SEX(NR,NS_T)+SPSC(NR,NS_T)
-                  ELSE IF(NS.EQ.NS_A) THEN
-                     SSIN(NR,NS_A)= SNF_NSNR(NS_A,NR)+SNB_NSNR(NS_A,NR) &
-                          +SEX(NR,NS_A)+SPSC(NR,NS_A)
+                  ELSE IF(NS.EQ.NS_He4) THEN
+                     SSIN(NR,NS_He4) &
+                          =SNF_NSNR(NS_He4,NR)+SNB_NSNR(NS_He4,NR) &
+                          +SEX(NR,NS_He4)+SPSC(NR,NS_He4)
                   END IF
                ELSEIF(NS.EQ.NSMAX+NSZMAX+1) THEN
                   SSIN(NR,NSMAX+NSZMAX+1)=-SIE(NR)        -SCX(NR)
@@ -166,9 +165,9 @@
                ELSEIF(NS.EQ.NS_T) THEN
                   SSIN(NR,NS_T)=SNF_NSNR(NS_T,NR)+SNB_NSNR(NS_T,NR) &
                        +SEX(NR,NS_T)+SPSC(NR,NS_T)
-               ELSEIF(NS.EQ.NS_A) THEN
-                  SSIN(NR,NS_A)=SNF_NSNR(NS_A,NR)+SNB_NSNR(NS_A,NR) &
-                       +SEX(NR,NS_A)+SPSC(NR,NS_A)
+               ELSEIF(NS.EQ.NS_He4) THEN
+                  SSIN(NR,NS_He4)=SNF_NSNR(NS_He4,NR)+SNB_NSNR(NS_He4,NR) &
+                       +SEX(NR,NS_He4)+SPSC(NR,NS_He4)
                ELSE IF(NS.EQ.NS_C) THEN
                   SSIN(NR,NS_C)=0.D0
                ELSE IF(NS.EQ.NS_Fe) THEN
@@ -176,7 +175,6 @@
                END IF
             END DO
          ENDIF
-         IF(NS_e.LE.NSMAX) &
               PIN(NR,NS_e)=PNBCL_NSNR(NS_e,NR)+PNFCL_NSNR(NS_e,NR) &
               +PRF(NR,NS_e) &
               +POH(NR)-PRSUM(NR)-PIE(NR)+PEX(NR,NS_e)
@@ -188,10 +186,10 @@
               PIN(NR,NS_T)=PNBCL_NSNR(NS_T,NR)+PNFCL_NSNR(NS_T,NR) &
               +PRF(NR,NS_T) &
               -PN(NS_D)*PCX(NR)/(PN(NS_D)+PN(NS_T))+PEX(NR,NS_T)
-         IF(NS_A.LE.NSMAX) &
-              PIN(NR,NS_A)=PNBCL_NSNR(NS_A,NR)+PNFCL_NSNR(NS_A,NR) &
-              +PRF(NR,NS_A) &
-              +PEX(NR,NS_A)
+         IF(NS_He4.LE.NSMAX) &
+              PIN(NR,NS_He4)=PNBCL_NSNR(NS_He4,NR)+PNFCL_NSNR(NS_He4,NR) &
+              +PRF(NR,NS_He4) &
+              +PEX(NR,NS_He4)
       ENDDO
 
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX
@@ -207,9 +205,7 @@
 
       SUBROUTINE TRERAD
 
-      USE TRCOMM, ONLY : AEE, AMP, BB, BP, DR, EPSRHO, ER, MDLER, NRMAX, &
-           & PA, PADD, PBM, PNSS, PTS, PZ, QP, RHOG, RHOM, &
-           & RJCB, RKEV, RN, RNF, RT, SUMPBM, VPOL, VTOR, rkind,NT
+        USE TRCOMM
       USE libitp
       IMPLICIT NONE
       INTEGER:: NR
@@ -226,10 +222,10 @@
          IF(NR.EQ.NRMAX) THEN
             DPD = DERIV3P(PNSS(2)*PTS(2),RN(NR  ,2)*RT(NR  ,2)-PADD(NR  ), &
      &                    RN(NR-1,2)*RT(NR-1,2)-PADD(NR-1),RHOG(NR),RHOM(NR),RHOM(NR-1))
-            TERM_DP = DPD*RKEV/(PZ(2)*AEE*PNSS(2))
+            TERM_DP = DPD*RKEV/(PZ(NS_D)*AEE*PNSS(2))
          ELSE
             DPD =(  RN(NR+1,2)*RT(NR+1,2)-PADD(NR+1)-(RN(NR  ,2)*RT(NR  ,2)-PADD(NR  )))*DRL
-            TERM_DP = DPD*RKEV/(PZ(2)*AEE*0.5D0*(RN(NR+1,2)+RN(NR,2)))
+            TERM_DP = DPD*RKEV/(PZ(NS_D)*AEE*0.5D0*(RN(NR+1,2)+RN(NR,2)))
          ENDIF
          IF(MDLER.EQ.0) THEN
 !     pressure gradient only
@@ -258,8 +254,8 @@
                RLNI = -(LOG(ABS(RN(NR+1,2)))-LOG(ABS(RN(NR,2))))*DRL
                RLTI = -(LOG(ABS(RT(NR+1,2)))-LOG(ABS(RT(NR,2))))*DRL
             ENDIF
-            CS = SQRT(ABS(TEL)*RKEV/(PA(2)*AMP))
-            RHO_S = CS*PA(2)*AMP/(PZ(2)*AEE*BB)
+            CS = SQRT(ABS(TEL)*RKEV/(PA(NS_D)*AMP))
+            RHO_S = CS*PA(NS_D)*AMP/(PZ(NS_D)*AEE*BB)
             ER(NR) =-BB*( (TIL/TEL)*RHO_S*CS*(RLNI+ALPHA_NEO*RLTI)-EPS/QP(NR)*VTOR(NR))
          ENDIF
       ENDDO
@@ -333,7 +329,7 @@
       USE TRCOMM
       USE libitp
       IMPLICIT NONE
-      INTEGER:: NR, NS
+      INTEGER:: NR, NS, NF
       REAL(rkind)   :: ANE, DPE, DPI, DRL, DTE, DTI, EPS, EPSS,&
            & F31TEFF, F32EETEFF, F32EITEFF, F34TEFF, FT, FTPF, PE,&
            & PPI, QL, RL31, RL32, RL34, RLNLAME, RLNLAMII, RNM, RNP,&
@@ -363,10 +359,10 @@
             RNTM=RNTM+RN(NR  ,NS)*RT(NR  ,NS)
             RNM =RNM +RN(NR  ,NS)
          ENDDO
-         IF(NFMAX.GT.0) THEN
-            RNTP=RNTP+RW(NR+1,1)+RW(NR+1,2)
-            RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
-         END IF
+         DO NF=1,NFMAX
+            RNTP=RNTP+RW(NR+1,NF)
+            RNTM=RNTM+RW(NR  ,NF)
+         END DO
          RPIP=RNTP+PADD(NR+1)
          RPIM=RNTM+PADD(NR  )
 
@@ -387,8 +383,8 @@
          TI =0.5D0*(RNTP/RNP+RNTM/RNM)
          DTI=(RNTP/RNP-RNTM/RNM)*DRL
 
-         rLnLamii=30.D0-LOG(PZ(2)**3*SQRT(ANI(NR)*1.D20)/(ABS(TI*1.D3)**1.5D0))
-         RNUI=4.90D-18*QL*RR*ANI(NR)*1.D20*PZ(2)**4*rLnLamii /(ABS(TI*1.D3)**2*EPSS)
+         rLnLamii=30.D0-LOG(PZ(NS_D)**3*SQRT(ANI(NR)*1.D20)/(ABS(TI*1.D3)**1.5D0))
+         RNUI=4.90D-18*QL*RR*ANI(NR)*1.D20*PZ(NS_D)**4*rLnLamii /(ABS(TI*1.D3)**2*EPSS)
 !
 !     ****** ELECTORON PARAMETER ******
 
@@ -453,9 +449,9 @@
             RNTM=RNTM+RN(NR-1,NS)*RT(NR-1,NS)+RN(NR  ,NS)*RT(NR  ,NS)
             RNM =RNM +RN(NR-1,NS)+RN(NR  ,NS)
          ENDDO
-         IF(NFMAX.GT.0) THEN
-            RNTM=RNTM+RW(NR-1,1)+RW(NR-1,2)+RW(NR  ,1)+RW(NR  ,2)
-         END IF
+         DO NF=1,NFMAX
+            RNTM=RNTM+RW(NR-1,NF)+RW(NR  ,NF)
+         END DO
          RPIP=RNTP
          RPIM=RNTM+PADD(NR-1)+PADD(NR  )
          RNTM=0.5D0*RNTM
@@ -479,10 +475,10 @@
          TI =RNTP/RNP
          DTI=(RNTP/RNP-RNTM/RNM)*DRL
 
-!         WRITE(6,'(A,I6,4ES12.4)') 'rLnLamii:',NR,PZ(2),ANI(NR),TI,QL
+!         WRITE(6,'(A,I6,4ES12.4)') 'rLnLamii:',NR,PZ(NS_D),ANI(NR),TI,QL
 !         WRITE(6,'(A,I6,4ES12.4)') 'RNUI:    ',NR,RR,ANI(NR),rLnLamii,EPSS
-         rLnLamii=30.D0-LOG(PZ(2)**3*SQRT(ANI(NR)*1.D20)/(ABS(TI*1.D3)**1.5D0))
-         RNUI=4.90D-18*QL*RR*ANI(NR)*1.D20*PZ(2)**4*rLnLamii /(ABS(TI*1.D3)**2*EPSS)
+         rLnLamii=30.D0-LOG(PZ(NS_D)**3*SQRT(ANI(NR)*1.D20)/(ABS(TI*1.D3)**1.5D0))
+         RNUI=4.90D-18*QL*RR*ANI(NR)*1.D20*PZ(NS_D)**4*rLnLamii /(ABS(TI*1.D3)**2*EPSS)
 !
 !     ****** ELECTORON PARAMETER ******
 
@@ -593,11 +589,10 @@
 
       SUBROUTINE TRAJBSNEW
 
-      USE TRCOMM, ONLY : AJBS, BB, DR, EPSRHO, NRMAX, NSMAX, PADD, PBSCD, PNSS, PTS, PZ, RDP, RHOG, RHOM, RKEV, RN, RT, &
-     &                   RW, TTRHOG, rkind
+      USE TRCOMM
       USE libitp
       IMPLICIT NONE
-      INTEGER:: NR, NS
+      INTEGER:: NR, NS, NF
       REAL(rkind) :: DDD, DDX, DPE, DPI, DRL, DTE, DTI, EPS, FT, PE, PPI, RL31, RL32, RNM, RNP, RNTM, RNTP, RPIM, RPIP, TE, TI
       REAL(rkind),DIMENSION(NRMAX)::  AJBSL, ANI
 
@@ -622,8 +617,10 @@
             RNTM=RNTM+RN(NR  ,NS)*RT(NR  ,NS)
             RNM =RNM +RN(NR  ,NS)
          ENDDO
-         RNTP=RNTP+RW(NR+1,1)+RW(NR+1,2)
-         RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
+         DO NF=1,NFMAX
+            RNTP=RNTP+RW(NR+1,NF)
+            RNTM=RNTM+RW(NR  ,NF)
+         END DO
          RPIP=RNTP+PADD(NR+1)
          RPIM=RNTM+PADD(NR  )
 
@@ -691,13 +688,13 @@
 !     *** S. P. Hirshman, Phys Fluids 31, 1988 3150 ***
 !     *** cited (H.R. WILSON, Nucl.Fusion 32,no.2,1992 259-263) ***
 
-         DDX=1.414D0*PZ(2)+PZ(2)**2+FT*(0.754D0+2.657D0*PZ(2) &
-     &        +2.D0*PZ(2)**2)+FT**2*(0.348D0+1.243D0*PZ(2)+PZ(2)**2)
-         RL31= FT*(0.754D0+2.210D0*PZ(2)+PZ(2)**2 +FT*(0.348D0+1.243D0*PZ(2)+PZ(2)**2))/DDX
-         RL32=-FT*(0.884D0+2.074D0*PZ(2))/DDX
+         DDX=1.414D0*PZ(NS_D)+PZ(NS_D)**2+FT*(0.754D0+2.657D0*PZ(NS_D) &
+     &        +2.D0*PZ(NS_D)**2)+FT**2*(0.348D0+1.243D0*PZ(NS_D)+PZ(NS_D)**2)
+         RL31= FT*(0.754D0+2.210D0*PZ(NS_D)+PZ(NS_D)**2 +FT*(0.348D0+1.243D0*PZ(NS_D)+PZ(NS_D)**2))/DDX
+         RL32=-FT*(0.884D0+2.074D0*PZ(NS_D))/DDX
          DDD=-1.172D0/(1.D0+0.462D0*FT)
 
-         AJBSL(NR)=-PBSCD*TTRHOG(NR)*PE*1.D20*RKEV*(RL31*((DPE/PE)+(TI/(PZ(2)*TE)) &
+         AJBSL(NR)=-PBSCD*TTRHOG(NR)*PE*1.D20*RKEV*(RL31*((DPE/PE)+(TI/(PZ(NS_D)*TE)) &
      &        *((DPI/PPI)+DDD*(DTI/TI)))+RL32*(DTE/TE))/RDP(NR)/BB
       ENDDO
 
@@ -795,15 +792,15 @@
 !     *** S. P. Hirshman, Phys Fluids 31, 1988 3150 ***
 !     *** cited (H.R. WILSON, Nucl.Fusion 32,no.2,1992 259-263) ***
 
-         DDX=1.414D0*PZ(2)+PZ(2)**2+FT*(0.754D0+2.657D0*PZ(2) &
-     &        +2.D0*PZ(2)**2)+FT**2*(0.348D0+1.243D0*PZ(2)+PZ(2)**2)
-         RL31=FT*( 0.754D0+2.21D0*PZ(2)+PZ(2)**2+FT*(0.348D0+1.243D0 &
-     &            *PZ(2)+PZ(2)**2))/DDX
-         RL32=-FT*(0.884D0+2.074D0*PZ(2))/DDX
+         DDX=1.414D0*PZ(NS_D)+PZ(NS_D)**2+FT*(0.754D0+2.657D0*PZ(NS_D) &
+     &        +2.D0*PZ(NS_D)**2)+FT**2*(0.348D0+1.243D0*PZ(NS_D)+PZ(NS_D)**2)
+         RL31=FT*( 0.754D0+2.21D0*PZ(NS_D)+PZ(NS_D)**2+FT*(0.348D0+1.243D0 &
+     &            *PZ(NS_D)+PZ(NS_D)**2))/DDX
+         RL32=-FT*(0.884D0+2.074D0*PZ(NS_D))/DDX
          DDD=-1.172D0/(1.D0+0.462D0*FT)
 
          AJBSL(NR)=-PBSCD*TTRHOG(NR)*PE*1.D20*RKEV &
-     &        *(RL31*((DPE/PE)+(TI/(PZ(2)*TE))*((DPI/PPI)+DDD*(DTI/TI)))+RL32*(DTE/TE))/RDP(NR)/BB
+     &        *(RL31*((DPE/PE)+(TI/(PZ(NS_D)*TE))*((DPI/PPI)+DDD*(DTI/TI)))+RL32*(DTE/TE))/RDP(NR)/BB
 
       AJBS(1)=0.5D0*AJBSL(1)
       DO NR=2,NRMAX
@@ -821,12 +818,11 @@
 
       SUBROUTINE TRAJBS
 
-      USE TRCOMM, ONLY : AJBS, AME, AMP, BB, BP, DR, EPSRHO, NRMAX, NSMAX, PA, PBSCD, PNSS, PTS, PZ, QP, RHOG, RHOM, &
-     &                   RJCB, RKEV, RN, RR, RT, ZEFF, rkind
+      USE TRCOMM
       USE libitp
       IMPLICIT NONE
       INTEGER:: NR
-      REAL(rkind)   :: A, AMA, AMD, AMT, ANA, ANDX, ANE, ANT, BPL, DPA, DPD, DPE, DPT, DRL, DTA, DTD, DTE, DTT, EPS, EPSS, FACT, &
+      REAL(rkind)   :: A, ANDX, ANE, ANT, ANA, BPL, DPA, DPD, DPE, DPT, DRL, DTA, DTD, DTE, DTT, EPS, EPSS, FACT, &
      &             FTAUE, FTAUI, H, PAL, PDL, PEL, PTL, RK13E, RK23E, RK3A, RK3D, RK3T, RNUA, RNUD, RNUE, RNUT, TAL, TAUA,   &
      &             TAUD, TAUE, TAUT, TDL, TEL, TTL, VTA, VTD, VTE, VTT, ZEFFL
       REAL(rkind),DIMENSION(NRMAX):: AJBSL
@@ -844,10 +840,6 @@
 !      DATA RK2 ,RA2 ,RB2 ,RC2 /0.66D0,1.03D0,0.31D0,0.74D0/
 
       IF(PBSCD.LE.0.D0) RETURN
-
-      AMD=PA(2)*AMP
-      AMT=PA(3)*AMP
-      AMA=PA(4)*AMP
 
       DO NR=1,NRMAX-1
 
@@ -868,9 +860,9 @@
          ZEFFL=0.5D0*(ZEFF(NR+1)+ZEFF(NR))
 
          TAUE = FTAUE(ANE,ANDX,TEL,ZEFFL)
-         TAUD = FTAUI(ANE,ANDX,TDL,PZ(2),PA(2))
-         TAUT = FTAUI(ANE,ANT ,TTL,PZ(3),PA(3))
-         TAUA = FTAUI(ANE,ANA ,TAL,PZ(4),PA(4))
+         TAUD = FTAUI(ANE,ANDX,TDL,PZ(NS_D),PA(NS_D))
+         TAUT = FTAUI(ANE,ANT ,TTL,PZ(NS_T),PA(NS_T))
+         TAUA = FTAUI(ANE,ANA ,TAL,PZ(NS_He4),PA(NS_He4))
 
          VTE=SQRT(TEL*RKEV/AME)
          VTD=SQRT(TDL*RKEV/AMD)
@@ -953,9 +945,9 @@
          ZEFFL=2.D0*ZEFF(NR-1)-ZEFF(NR-2)
 
          TAUE = FTAUE(ANE,ANDX,TEL,ZEFFL)
-         TAUD = FTAUI(ANE,ANDX,TDL,PZ(2),PA(2))
-         TAUT = FTAUI(ANE,ANT ,TTL,PZ(3),PA(3))
-         TAUA = FTAUI(ANE,ANA ,TAL,PZ(4),PA(4))
+         TAUD = FTAUI(ANE,ANDX,TDL,PZ(NS_D  ),PA(NS_D))
+         TAUT = FTAUI(ANE,ANT ,TTL,PZ(NS_T  ),PA(NS_T))
+         TAUA = FTAUI(ANE,ANA ,TAL,PZ(NS_He4),PA(NS_He4))
 
          VTE=SQRT(TEL*RKEV/AME)
          VTD=SQRT(TDL*RKEV/AMD)
@@ -1035,15 +1027,12 @@
 
       SUBROUTINE TRAJOH
 
-      USE TRCOMM, ONLY : &
-           AJ, AJBS, AJNB, AJOH, AJRF, AJTOR, BB, DR, DVRHO, ETA, EZOH, &
-           MDLEQB, MDLJQ, MDLUF, NRMAX, POH, RMU0, RR, TTRHO, TTRHOG, &
-           RDPVRHOG, PI,abvrhog, rkind
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER:: NR
       REAL(rkind)   :: FACTOR0, FACTORM, FACTORP
 
-      IF(MDLEQB.EQ.1.OR.MDLJQ.EQ.1.OR.(MDLUF.EQ.0.OR.MDLUF.EQ.3)) THEN
+      IF(MDLEQB.EQ.1.OR.MDLJQ.EQ.1) THEN
       NR=1
          FACTOR0=TTRHO(NR)**2/(RMU0*BB*DVRHO(NR))
          FACTORP=ABVRHOG(NR  )/TTRHOG(NR  )
@@ -1068,11 +1057,7 @@
 
       AJOH(1:NRMAX) = AJ(1:NRMAX)-(AJNB(1:NRMAX)+AJRF(1:NRMAX)+AJBS(1:NRMAX))
       EZOH(1:NRMAX) = ETA(1:NRMAX)*AJOH(1:NRMAX)
-!!!      IF(KUFDEV.EQ.'lhd') THEN
-!!!         POH(1:NRMAX)  = 0.D0
-!!!      ELSE
-         POH(1:NRMAX)  = EZOH(1:NRMAX)*AJOH(1:NRMAX)
-!!!      ENDIF
+      POH(1:NRMAX)  = EZOH(1:NRMAX)*AJOH(1:NRMAX)
 
       RETURN
       END SUBROUTINE TRAJOH
@@ -1085,8 +1070,7 @@
 
       SUBROUTINE TRSAWT
 
-      USE TRCOMM, ONLY : AR1RHOG, ARRHOG, BP, DR, DVRHO, DVRHOG, MDLST, NRMAX, NSMAX, PI, QP, RDP, RG, RM, RN, RR, RT, &
-     &                   T, TTRHOG, RDPVRHOG, rkind
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER:: IONE, IZEROX, LN, LQ, LT, NR, NS
       REAL(rkind)   :: RNN, RTN, SUML, SUML1, SUML2
@@ -1346,58 +1330,3 @@
 
       RETURN
       END FUNCTION COULOG
-
-!     ***********************************************************
-
-!           COLLISION TIME
-
-!     ***********************************************************
-
-!     between electrons and ions
-
-      FUNCTION FTAUE(ANEL,ANIL,TEL,ZL)
-
-!     ANEL : electron density [10^20 /m^3]
-!     ANIL : ion density [10^20 /m^3]
-!     TEL  : electron temperature [kev]
-!     ZL   : ion charge number
-
-      USE TRCOMM, ONLY : AEE, AME, EPS0, PI, PZ, RKEV, rkind
-      IMPLICIT NONE
-      REAL(rkind) :: ANEL, ANIL, TEL, ZL, FTAUE
-      REAL(rkind) :: COEF, COULOG
-
-      COEF = 6.D0*PI*SQRT(2.D0*PI)*EPS0**2*SQRT(AME)/(AEE**4*1.D20)
-      IF(ZL-PZ(2).LE.1.D-7) THEN
-         FTAUE = COEF*(TEL*RKEV)**1.5D0/(ANIL*ZL**2*COULOG(1,2,ANEL,TEL))
-      ELSE
-!     If the plasma contains impurities, we need to consider the
-!     effective charge number instead of ion charge number.
-!     From the definition of Zeff=sum(n_iZ_i^2)/n_e,
-!     n_iZ_i^2 is replaced by n_eZ_eff at the denominator of tau_e.
-         FTAUE = COEF*(TEL*RKEV)**1.5D0/(ANEL*ZL*COULOG(1,2,ANEL,TEL))
-      ENDIF
-
-      RETURN
-      END FUNCTION FTAUE
-
-!     between ions and ions
-
-      FUNCTION FTAUI(ANEL,ANIL,TIL,ZL,PAL)
-
-!     ANEL : electron density [10^20 /m^3]
-!     ANIL : ion density [10^20 /m^3]
-!     TIL  : ion temperature [kev]
-!     ZL   : ion charge number
-!     PAL  : ion atomic number
-
-      USE TRCOMM, ONLY : AEE, AMP, EPS0, PI, RKEV, rkind
-      IMPLICIT NONE
-      REAL(rkind):: ANEL, ANIL, PAL, TIL, ZL, FTAUI
-      REAL(rkind):: COEF, COULOG
-
-      COEF = 12.D0*PI*SQRT(PI)*EPS0**2*SQRT(PAL*AMP)/(AEE**4*1.D20)
-      FTAUI = COEF*(TIL*RKEV)**1.5D0/(ANIL*ZL**4*COULOG(2,2,ANEL,TIL))
-
-      RETURN
-      END FUNCTION FTAUI

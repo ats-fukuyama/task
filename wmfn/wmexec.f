@@ -4,7 +4,7 @@ C     ****** CALCULATE ANTENNA EXCITATION ******
 C
       SUBROUTINE WMEXEC(IERR)
 C
-      USE dpparm,ONLY: DPPREP
+      USE dpprep
       INCLUDE 'wmcomm.inc'
 C
       IERR=0
@@ -29,7 +29,7 @@ C            CALL WMPFLX
 C            CALL WMPANT
 C         endif
 C      else
-         CALL DPPREP(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),IERR)
+         CALL dp_prep_ns(ierr)
          IF(IERR.NE.0) RETURN
          nrmax=nrmax+1
          call wmfem_pre

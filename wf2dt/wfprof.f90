@@ -84,7 +84,7 @@ END SUBROUTINE WFBPSI
 
 SUBROUTINE WFSMAG(R,Z,BABS,AL)
 
-  USE wfcomm,ONLY: MODELG,rkind
+  USE wfcomm,ONLY: MODELG,rkind,modelb_wf,idebug_wf
   USE plload
   implicit none
   real(rkind),intent(in) :: R,Z
@@ -92,18 +92,22 @@ SUBROUTINE WFSMAG(R,Z,BABS,AL)
   REAL(rkind):: BR,BZ,BT
   integer:: IERR
 
-  SELECT CASE(MODELG)
-  CASE(0)
-     CALL WFSMAG0(R,Z,BABS,AL)
-  CASE(1,2)
-     CALL WFSMAG2(R,Z,BABS,AL)
-  CASE(12)
-     CALL pl_read_p2Dmag(R,Z,BR,BZ,BT,IERR)
-     BABS=SQRT(BR**2+BZ**2+BT**2)
-     AL(1)=BR/BABS
-     AL(2)=BT/BABS
-     AL(3)=BZ/BABS
-  END SELECT
+  IF(MODELB_wf.EQ.3) THEN
+     CALL WFSMAG3(R,Z,BABS,AL)
+  ELSE
+     SELECT CASE(MODELG)
+     CASE(0)
+        CALL WFSMAG0(R,Z,BABS,AL)
+     CASE(1,2)
+        CALL WFSMAG2(R,Z,BABS,AL)
+     CASE(12)
+        CALL pl_read_p2Dmag(R,Z,BR,BZ,BT,IERR)
+        BABS=SQRT(BR**2+BZ**2+BT**2)
+        AL(1)=BR/BABS
+        AL(2)=BT/BABS
+        AL(3)=BZ/BABS
+     END SELECT
+  END IF
   RETURN
 END SUBROUTINE WFSMAG
 
@@ -180,6 +184,42 @@ SUBROUTINE WFSMAG2(R,Z,BABS,AL)
   RETURN
 END SUBROUTINE WFSMAG2
 
+SUBROUTINE WFSMAG3(x,y,BABS,AL)
+
+  use wfcomm
+  implicit none
+  integer :: I
+  real(rkind),intent(in) :: x,y
+  real(rkind),intent(out):: BABS,AL(3)
+  real(rkind) :: BLO(3),LR,LZ
+  real(rkind) :: R,PH,Q
+
+! L : distance from the center of plasma
+! Q : safety factor
+
+  R=SQRT(x**2+y**2)
+  PH=ATAN2(y,x)
+
+  BABS=BB*RR/R
+  Q0 = 1.d0
+  QA = 3.d0
+  Q  = Q0+(QA-Q0)*((R-RR)/RA)**2
+
+  BLO(1) = -BABS*y/R 
+  BLO(2) =  BABS*x/R
+  BLO(3) =  BABS*(R-RR)/(Q*RR)
+
+  DO I=1,3
+     if(BABS.eq.0.d0) then
+        AL(I)=0.0
+     else
+        AL(I)=BLO(I)/BABS
+     end if
+  ENDDO
+  
+  RETURN
+END SUBROUTINE WFSMAG3
+
 !     ****** set density & collision frequency ******
 
 SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
@@ -218,6 +258,12 @@ SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
         ELSE
            factor=1.D0
         END IF
+     CASE(11)
+        IF(ABS(R-xpos_coll_enhance) .LE. xwidth_coll_enhance)THEN
+           factor=factor_coll_enhance
+        ELSE
+           factor=1.D0
+        END IF       
      CASE(2)
         arg=(Z-ypos_coll_enhance)**2/ywidth_coll_enhance**2
         IF(arg.LE.44.D0) THEN
@@ -257,7 +303,7 @@ SUBROUTINE WFSDEN0(R,Z,RN,RTPR,RTPP,RZCL)
 
   ! --- set DENSITY
 
-  SELECT CASE(MODELN)
+  SELECT CASE(model_prof)
   CASE(0)
      DO ns=1,nsmax
         rn(ns)=pn_corner(1,ns) &

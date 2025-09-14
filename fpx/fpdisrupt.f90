@@ -947,7 +947,7 @@ MODULE fpdisrupt
          RJ1_temp(NR)=SIGMA_SPP(NR)*EP(NR)*1.D-6
       END DO
       
-      IF(MODELD_n_RE.eq.1.and.RN_runaway(1).ge.1.D-40)THEN
+      IF(MODEL_RE_n.eq.1.and.RN_runaway(1).ge.1.D-40)THEN
          CALL N_RE_transport ! RN_runaway, RN_drei updated
       ELSE
          DO NR=NRSTART,NREND

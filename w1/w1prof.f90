@@ -27,10 +27,10 @@ CONTAINS
     DO NS = 1 , NSMAX
        DO NX = 1,NXPMAX
           X=XAM(NX)/RA
-          SELECT CASE(MODELN)
+          SELECT CASE(model_prof)
           CASE(0,1)
              IF(ABS(X).GT.1.D0) THEN
-                SELECT CASE(MODELN)
+                SELECT CASE(model_prof)
                 CASE(0)
                    PROFPN(NX,NS)=0.D0
                 CASE(1)
@@ -46,7 +46,7 @@ CONTAINS
              PROFPU(NX,NS)=PU(NS)
           CASE(10,11)
              IF(ABS(X).GT.1.D0) THEN
-                SELECT CASE(MODELN)
+                SELECT CASE(model_prof)
                 CASE(10)
                    PROFPN(NX,NS)=0.D0
                 CASE(11)

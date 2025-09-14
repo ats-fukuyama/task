@@ -151,22 +151,21 @@ CONTAINS
 
 !****** LOAD Maxwellian VELOCITY DISTRIBUTION DATA ******
 
-  SUBROUTINE DPLDFM(NSA,ID,IERR)
+  SUBROUTINE DPLDFM(NS,ID,IERR)
 
     USE dpcomm
     USE plprofw
     USE libbes
     IMPLICIT NONE
-    INTEGER,INTENT(IN):: NSA,ID  ! ID=0 : non-relativistic, ID=1: relativistic
+    INTEGER,INTENT(IN):: NS,ID  ! ID=0 : non-relativistic,
+                                    ! ID=1: relativistic
     INTEGER,INTENT(OUT):: IERR
     TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
-    INTEGER NR,NTH,NS,NP,NSA1
+    INTEGER NR,NTH,NSA,NP,NSA1
     REAL(rkind):: PTH0W,RHON,RN0,TPR,TPP,RT0,PN0,PT0,PTH0
     REAL(rkind):: TNPR,TNPP,SUM,PML,PPP,PPR,EX,TN00,FACTOR,TNL
 
-    NS=NS_NSA_DP(NSA)
-
-    CALL dpfp_allocate
+    nsa=nsa_ns_dp(ns)
 
     IF(NRMAX_DP.EQ.1) THEN
        DELR=0.1D0
@@ -284,26 +283,26 @@ CONTAINS
 
 !     ****** SET LOCAL VELOCITY DISTRIBUTION DATA ******
 
-  SUBROUTINE DPFPFL(NSA,mag,ierr)
+  SUBROUTINE DPFPFL(NS,mag,ierr)
 
     USE dpcomm
     USE plcomm_type
       USE plprof
       USE libspl1d
       IMPLICIT NONE
-      INTEGER,INTENT(IN):: NSA
+      INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
       INTEGER,INTENT(OUT):: IERR
       REAL(rkind),DimensION(:),ALLOCATABLE:: THT,FPT,FPTX,FPR,FPRX
       REAL(rkind),DimensION(:,:),ALLOCATABLE:: U2
-      INTEGER:: NS,NP,NTH,NR,ID,NTH2,NSA1
+      INTEGER:: NSA,NP,NTH,NR,ID,NTH2,NSA1
       REAL(rkind):: PN0,PT0,PTH0,PTH0W,RHON,BMINL,BMAXL,PSIS,TH,XX,X,Y
 
       ALLOCATE(THT(NTHMAX_DP+2),FPT(NTHMAX_DP+2),FPTX(NTHMAX_DP+2))
       ALLOCATE(FPR(NRMAX_DP+2),FPRX(NRMAX_DP+2))
       ALLOCATE(U2(4,NTHMAX_DP+2))
 
-      NS=NS_NSA_DP(NSA)
+      NSA=NSA_NS_DP(NS)
 
       PN0   =RNFP0(NSA)
       PT0   =RTFP0(NSA)
@@ -425,9 +424,7 @@ CONTAINS
       TYPE(pl_prfw_type),DIMENSION(nsmax),INTENT(IN):: plfw
       REAL(RKIND):: RN0,TPR,TPP,RT0,PN0,PT0,PTH0,PTH0W,TNPR,TNPP,SUM
       REAL(RKIND):: PPP,PPR,EX,EXX,TN0,TNL,PML,FACTOR
-      INTEGER:: NP,NTH,NSA
-
-      CALL dpfp_allocate
+      INTEGER:: NP,NTH,NSA,NS1,NSA1
 
       RHON_MIN=0.D0
       RHON_MAX=1.D0

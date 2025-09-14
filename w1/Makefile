@@ -1,34 +1,33 @@
 ### $Id$ ###
 include ../make.header
 
-.SUFFIXES:
-.SUFFIXES: .f90 .f .mod .o .a
-
 FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
-MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD)
+OBJDIR   = ./obj
 
-.f90.o :
+${OBJDIR}/%.o:%.f90
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
-.f.o :
+
+${OBJDIR}/%.o:%.f
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-SRCSFREE =w1comm.f90 w1lib.f90 w1init.f90 w1parm.f90 \
-          w1sub.f90 w1fflr.f90 w1prof.f90 w1out.f90 \
-	  w1prep.f90 w1prepost.f90 w1prepostx.f90 \
-          w1bcnd.f90 w1rslt.f90  \
-          w1alfa.f90 w1disp.f90 w1grf1.f90 w1grf2.f90 \
-          w1mlm.f90 w1fem.f90 w1intg.f90 w1gdsp.f90 \
-          w1exec6.f90 w1exec7.f90 w1exec8.f90 \
-          w1exec9.f90 w1exec10.f90 w1exec11.f90 \
-          w1exec12.f90 w1exec13.f90 w1exec14.f90 \
-          w1exec.f90 w1gout.f90 \
-          w1file.f90 w1menu.f90
+MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD)
+
+SRCS=w1comm.f90 w1lib.f90 w1init.f90 w1parm.f90 \
+     w1sub.f90 w1fflr.f90 w1prof.f90 w1out.f90 \
+     w1prep.f90 w1prepost.f90 w1prepostx.f90 \
+     w1bcnd.f90 w1rslt.f90 w1wkxm.f90 \
+     w1alfa.f90 w1disp.f90 w1grf1.f90 w1grf2.f90 \
+     w1mlm.f90 w1fem.f90 w1intg.f90 w1gdsp.f90 \
+     w1exec6.f90 w1exec7.f90 w1exec8.f90 \
+     w1exec9.f90 w1exec10.f90 w1exec11.f90 \
+     w1exec12.f90 w1exec13.f90 w1exec14.f90 \
+     w1exec.f90 w1gout.f90 \
+     w1file.f90 w1menu.f90
 
 
-#OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
-OBJS = $(SRCSFREE:.f90=.o) $(SRCSFIXED:.f=.o) 
+OBJS = $(addprefix $(OBJDIR)/, $(SRCS:.f90=.o)) 
 LIBS = libw1.a ../lib/libtask.a ../lib/libgrf.a ../../bpsd/libbpsd.a
 
 all: libs w1
@@ -47,43 +46,46 @@ libs:
 	(cd ../lib; make libtask.a)
 	(cd ../lib; make libgrf.a)
 
-w1 : libs libw1.a w1main.o
-	$(FCFREE) w1main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+w1 : $(LIBS) $(OBJDIR)/w1main.o
+	$(FCFREE) $(OBJDIR)/w1main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 clean:
-	-rm -f core ./*.o *.mod ./*~ ./\#* *.a $(MOD)/*.mod
+	-rm -f core *.a ./*~ 
+	-rm -f $(OBJDIR)/*.o
+	-rm -f mod/*.mod
+
 veryclean: clean
 	-rm -f w1 core
 
-w1main.o: w1comm.f90 w1main.f90
-w1menu.o: w1comm.f90 w1menu.f90
-w1init.o: w1comm.f90 w1init.f90
-w1parm.o: w1comm.f90 w1parm.f90
-w1file.o: w1comm.f90 w1file.f90
-w1exec.o: w1comm.f90 w1exec.f90
-w1exec6.o: w1comm.f90 w1exec6.f90
-w1exec7.o: w1comm.f90 w1exec7.f90
-w1exec8.o: w1comm.f90 w1exec8.f90
-w1exec9.o: w1comm.f90 w1exec9.f90
-w1exec10.o: w1comm.f90 w1exec10.f90
-w1exec11.o: w1comm.f90 w1exec11.f90
-w1exec12.o: w1comm.f90 w1exec12.f90
-w1exec13.o: w1comm.f90 w1exec13.f90
-w1exec14.o: w1comm.f90 w1exec14.f90
-w1prepost.o: w1comm.f90 w1prepost.f90
-w1prepostx.o: w1comm.f90 w1prepostx.f90
-w1prep.o: w1comm.f90 w1prep.f90
-w1prof.o: w1comm.f90 w1prof.f90
-w1bcnd.o: w1comm.f90 w1bcnd.f90
-w1rslt.o: w1comm.f90 w1rslt.f90
-w1out.o:  w1comm.f90 w1out.f90
-w1grf1.o: w1comm.f90 w1grf1.f90
-w1grf2.o: w1comm.f90 w1grf2.f90
-w1disp.o: w1comm.f90 w1disp.f90
-w1gdsp.o: w1comm.f90 w1gdsp.f90
-w1mlm.o:  w1comm.f90 w1mlm.f90
-w1fem.o:  w1comm.f90 w1fem.f90
-w1intg.o: w1comm.f90 w1intg.f90
-w1qtbl.o: w1comm.f90 w1qtbl.f90
-w1sub.o: w1comm.f90 w1sub.f90
-w1lib.o: w1lib.f90
+$(OBJDIR)/w1main.o: w1comm.f90 w1main.f90
+$(OBJDIR)/w1menu.o: w1comm.f90 w1menu.f90
+$(OBJDIR)/w1init.o: w1comm.f90 w1init.f90
+$(OBJDIR)/w1parm.o: w1comm.f90 w1parm.f90
+$(OBJDIR)/w1file.o: w1comm.f90 w1file.f90
+$(OBJDIR)/w1exec.o: w1comm.f90 w1exec.f90
+$(OBJDIR)/w1exec6.o: w1comm.f90 w1exec6.f90
+$(OBJDIR)/w1exec7.o: w1comm.f90 w1exec7.f90
+$(OBJDIR)/w1exec8.o: w1comm.f90 w1exec8.f90
+$(OBJDIR)/w1exec9.o: w1comm.f90 w1exec9.f90
+$(OBJDIR)/w1exec10.o: w1comm.f90 w1exec10.f90
+$(OBJDIR)/w1exec11.o: w1comm.f90 w1exec11.f90
+$(OBJDIR)/w1exec12.o: w1comm.f90 w1exec12.f90
+$(OBJDIR)/w1exec13.o: w1comm.f90 w1exec13.f90
+$(OBJDIR)/w1exec14.o: w1comm.f90 w1exec14.f90
+$(OBJDIR)/w1prepost.o: w1comm.f90 w1prepost.f90
+$(OBJDIR)/w1prepostx.o: w1comm.f90 w1prepostx.f90
+$(OBJDIR)/w1prep.o: w1comm.f90 w1prep.f90
+$(OBJDIR)/w1prof.o: w1comm.f90 w1prof.f90
+$(OBJDIR)/w1bcnd.o: w1comm.f90 w1bcnd.f90
+$(OBJDIR)/w1rslt.o: w1comm.f90 w1rslt.f90
+$(OBJDIR)/w1out.o:  w1comm.f90 w1out.f90
+$(OBJDIR)/w1grf1.o: w1comm.f90 w1grf1.f90
+$(OBJDIR)/w1grf2.o: w1comm.f90 w1grf2.f90
+$(OBJDIR)/w1disp.o: w1comm.f90 w1disp.f90
+$(OBJDIR)/w1gdsp.o: w1comm.f90 w1gdsp.f90
+$(OBJDIR)/w1mlm.o:  w1comm.f90 w1mlm.f90
+$(OBJDIR)/w1fem.o:  w1comm.f90 w1fem.f90
+$(OBJDIR)/w1intg.o: w1comm.f90 w1intg.f90
+$(OBJDIR)/w1qtbl.o: w1comm.f90 w1qtbl.f90
+$(OBJDIR)/w1sub.o: w1comm.f90 w1sub.f90
+$(OBJDIR)/w1lib.o: w1lib.f90

@@ -202,7 +202,8 @@ contains
       MODEL_CX_LOSS=0
       RN_NEU0 = 1.D-6
       RN_NEUS = 1.D-5
-!-----RADIAL DIFFUSION--------------------------------------------------
+
+      !-----RADIAL DIFFUSION--------------------------------------------------
 !     DRR0  : radial diffusion coefficient at magnetic axis [m^2/s]
 !     DRRS  : radial diffusion coefficient at plasma surface [m^2/s]
 !     FACTOR_CDBM : Multiplication factor for CDBM model
@@ -219,6 +220,18 @@ contains
       RHO_EDGE   = 0.95D0
       FACTOR_DRR_EDGE=0.1D0
       FACTOR_PINCH=1.0D0
+
+! --- EM diffusion --- modeld=2
+
+!     DRR_em_amp  : amplitude: delta_B / B_0
+!     DRR_em_r0   : radial position [r/a]
+!     DRR_em_rw   : radial width [r/a] (gaussian) DRR_EM EXP[-(r/a-r0)^2/rw^2]
+!     DRR_em_kdep : k_perp/k_para (~ m q R /r)  k_para~1/qR, k_perp~m/r
+      
+      DRR_em_amp  = 0.001D0
+      DRR_em_r0   = 0.5D0
+      DRR_em_rw   = 0.1D0
+      DRR_em_kdep = 30.D0
 
 !-----LOSS--------------------------------------------------------------
 !     TLOSS(ns): loss time [s] (0.D0 for no loss)
@@ -290,7 +303,9 @@ contains
 !                 3 for given wave E field model
 !                 4 for wave E field calculated by WM
 !     MODELD: 0 : without radial transport
-!             1 : with radial transport
+!             1 : with radial transport (amp given)
+!             2 : with radial transport (EM diffusion model)
+!             3 : with radial transport (EM diffusion model 2)
 !     MODELD_RDEP : 0 : fixed:    (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
 !                   1 : magnetic: QLM(NR)*deltaB_B**2 
 !                   2 : CDBM with FACTOR_CDBM
@@ -454,7 +469,7 @@ contains
 !                            1: fixed initial value
 !                            2: fixed disrupted value
 !     MODEL_RE_pmax    : RE non-RE boundary 0=NPMAX, 1=NPC_runaway
-!     MODELD_n_RE      : radial transport of RE density 0=off, 1=on
+!     MODEL_RE_n       : radial transport of RE density 0=off, 1=on
 !     MODEL_IMPURITY   :     0: Default
 !                            1: MGI: satisfy quasi-neutrality
 !     MODEL_SINK       :     0: Default
@@ -476,7 +491,7 @@ contains
       MODEL_jfp=0
       MODEL_LNL=0
       MODEL_RE_pmax=0
-      MODELD_n_RE=0
+      MODEL_RE_n=0
       MODEL_IMPURITY=0
       MODEL_SINK=0
 

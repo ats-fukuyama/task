@@ -30,8 +30,7 @@ contains
 !     ierr=7 : unknown MODE
 !     ierr=10X : input parameter out of range
 
-      USE plcomm,ONLY: MODEL_PROF,NSMAX, &
-           PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2
+      USE plcomm
       USE libkio
       IMPLICIT NONE
       INTEGER,INTENT(IN):: mode
@@ -41,17 +40,6 @@ contains
 
     1 CALL task_parm(mode,'FP',kin,fp_nlin,fp_plst,ierr)
       IF(ierr.NE.0) RETURN
-
-      IF(MODEL_PROF.EQ.0) THEN
-         DO NS=1,NSMAX
-            PROFN1(NS)=PROFN1(1)
-            PROFN2(NS)=PROFN2(1)
-            PROFT1(NS)=PROFT1(1)
-            PROFT2(NS)=PROFT2(1)
-            PROFU1(NS)=PROFU1(1)
-            PROFU2(NS)=PROFu2(1)
-         END DO
-      END IF
 
       CALL fp_check(ierr)
       IF(mode.EQ.0.AND.ierr.NE.0) GO TO 1
@@ -70,7 +58,7 @@ contains
       INTEGER,INTENT(OUT) :: ist,ierr
 
       NAMELIST /FP/ &
-           NSMAX,MODELG,MODELN,MODELQ,IDEBUG,MODEFR,MODEFW, &
+           NSMAX,MODELG,model_prof,MODELQ,IDEBUG,MODEFR,MODEFW, &
            RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
            PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
            RHOMIN,QMIN,RHOEDG,RHOITB,RHOGMN,RHOGMX, &
@@ -134,7 +122,7 @@ contains
 
   SUBROUTINE fp_plst
 
-      WRITE(6,*) '&FP : NSMAX,MODELG,MODELN,MODELQ,IDEBUG,MODEFR,MODEFW,'
+      WRITE(6,*) '&FP : NSMAX,MODELG,model_prof,MODELQ,IDEBUG,MODEFR,MODEFW,'
       WRITE(6,*) '      RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,'
       WRITE(6,*) '      PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'
       WRITE(6,*) '      RHOMIN,QMIN,RHOEDG,RHOITB,RHOGMN,RHOGMX,'
@@ -216,22 +204,22 @@ contains
 
       idata( 1)=NSMAX
       idata( 2)=MODELG
-      idata( 3)=MODELN
+      idata( 3)=model_prof
       idata( 4)=MODELQ
       idata( 5)=IDEBUG
       idata( 6)=MODEFR
       idata( 7)=MODEFW
-      idata( 8)=MODEL_PROF
-      idata( 9)=MODEL_PROF
+      idata( 8)=MODEL_PROF_time
 
-      CALL mtx_broadcast_integer(idata,7)
+      CALL mtx_broadcast_integer(idata,8)
       NSMAX =idata( 1)
       MODELG=idata( 2)
-      MODELN=idata( 3)
+      model_prof=idata( 3)
       MODELQ=idata( 4)
       IDEBUG=idata( 5)
       MODEFR=idata( 6)
       MODEFW=idata( 7)
+      MODEL_PROF_time=idata(8)
 
       rdata( 1)=RR
       rdata( 2)=RA

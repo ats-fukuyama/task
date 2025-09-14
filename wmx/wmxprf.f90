@@ -43,7 +43,7 @@ CONTAINS
 !=======================================================================
 
     USE wmcomm
-    USE plprof,ONLY: pl_wmxprf,wmspl_prof
+    USE plload,ONLY: pl_load_xprf,pl_read_xprf
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
     INTEGER,SAVE:: NRMAXSV=0,NTHMAXSV=0,NSUMAXSV=0,NSMAXSV=0
@@ -78,7 +78,7 @@ CONTAINS
 !----  PRFNE, PRFTE is data at the point divided equally by rho 
 !        defined by toroidal magnetic flux
 
-    CALL PL_WMXPRF(IERR) ! in pl/plprof.f
+    CALL pl_load_xprf(IERR) ! in pl/plload.f
 
     NRMAX1 = NRMAX
 
@@ -86,7 +86,7 @@ CONTAINS
 
     DO NR=1,NRMAX1
        DO NS=1,NSMAX
-          CALL WMSPL_PROF(XRHO(NR),NS,PN60(NR,NS),PT60(NR,NS))
+          CALL pl_read_xprf(XRHO(NR),NS,PN60(NR,NS),PT60(NR,NS))
        ENDDO
     ENDDO
 

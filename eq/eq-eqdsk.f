@@ -68,7 +68,7 @@ C
             R_ZSUMIN = RSU(i)
          end if
       enddo
-C      WRITE(6,'(A,1P5E12.4)') 'RR:',RR,RLEFT,RSUMIN,RSUMAX,RAXIS
+      WRITE(6,'(A,1P5E12.4)') 'RR:',RR,RSUMIN,RSUMAX
 C for negative Ip and negative BB
       IF(RIP.LT.0.D0) RIP=-RIP
       IF(Bctr.LT.0.D0) Bctr=-Bctr

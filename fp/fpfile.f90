@@ -316,7 +316,7 @@
       USE fpnfrr
       USE fpnflg
       USE fpoutdata
-      USE fpsub
+      USE fplib
 
       IMPLICIT NONE
       integer:: NSA, ierr, NR, NS, NP, NTH, NBEAM

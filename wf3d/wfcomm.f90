@@ -98,7 +98,7 @@ module wfcomm
   integer(ikind),dimension(:,:),ALLOCATABLE :: NDSID  !(2,NSDM)
   integer(ikind),dimension(:)  ,ALLOCATABLE :: KASID  !(NSDM) 
   integer(ikind),dimension(:,:),ALLOCATABLE :: NSDELM !(7,NEM)
-  integer(ikind),dimension(:,:),ALLOCATABLE :: NSDSRF !(3,NSFM)
+  integer(ikind),dimension(:,:),ALLOCATABLE :: NSDSRF !(3,NSRFM)
         
 !       /WFSRT/
   real(rkind)   ,dimension(:),ALLOCATABLE :: SINDEX               !(NEMAX)
@@ -124,10 +124,10 @@ module wfcomm
   integer(ikind),dimension(:,:),ALLOCATABLE :: NENBP,NDNBP       !(NBPM,NBMAX)
         
 !       /WFSRF/
-  integer(ikind):: NSFMAX
-  integer(ikind),dimension(:)  ,ALLOCATABLE :: INSRF,NESRF !(NSFMAX)
-  integer(ikind),dimension(:,:),ALLOCATABLE :: NDSRF,KNSRF !(3,NSFMAX)
-  integer(ikind),dimension(:,:),ALLOCATABLE :: NSFELM      !(4,NEMAX)
+  integer(ikind):: NSRFMAX
+  integer(ikind),dimension(:)  ,ALLOCATABLE :: INSRF,NESRF !(NSRFMAX)
+  integer(ikind),dimension(:,:),ALLOCATABLE :: NDSRF,KNSRF !(3,NSRFMAX)
+  integer(ikind),dimension(:,:),ALLOCATABLE :: NSRFELM      !(4,NEMAX)
         
 !       /WFSLV/
   integer(ikind):: MBND,MLEN,NNBMAX
@@ -360,12 +360,12 @@ contains
 !----
   subroutine wfsid_allocate
     implicit none
-    integer,save :: NSDMAX_save,NSFMAX_save,NEMAX_save
+    integer,save :: NSDMAX_save,NSRFMAX_save,NEMAX_save
     integer,save :: sidinit = 0
 
     if(sidinit.eq.1) then
        if((NSDMAX.eq.NSDMAX_save).and.&
-         &(NSFMAX.eq.NSFMAX_save).and.&
+         &(NSRFMAX.eq.NSRFMAX_save).and.&
          &( NEMAX.eq. NEMAX_save)) then
           return
        else
@@ -374,10 +374,10 @@ contains
     end if
 
     allocate(NDSID(2,NSDMAX),KASID(NSDMAX))
-    allocate(NSDSRF(3,NSFMAX),NSDELM(7,NEMAX))
+    allocate(NSDSRF(3,NSRFMAX),NSDELM(7,NEMAX))
 
     NSDMAX_save = NSDMAX
-    NSFMAX_save = NSFMAX
+    NSRFMAX_save = NSRFMAX
     sidinit = 1
     
     return
@@ -504,11 +504,11 @@ contains
 !-----
   subroutine wfsrf_allocate
     implicit none
-    integer,save :: NSFMAX_save,NEMAX_save
+    integer,save :: NSRFMAX_save,NEMAX_save
     integer,save :: srfinit = 0
 
     if(srfinit.eq.1) then
-       if((NSFMAX.eq.NSFMAX_save).and.&
+       if((NSRFMAX.eq.NSRFMAX_save).and.&
           ( NEMAX.eq. NEMAX_save)) then
           return
        else
@@ -516,11 +516,11 @@ contains
        end if
     end if
     
-    allocate(NSFELM(4,NEMAX))
-    allocate(INSRF(NSFMAX),NESRF(NSFMAX))
-    allocate(NDSRF(3,NSFMAX),KNSRF(3,NSFMAX))
+    allocate(NSRFELM(4,NEMAX))
+    allocate(INSRF(NSRFMAX),NESRF(NSRFMAX))
+    allocate(NDSRF(3,NSRFMAX),KNSRF(3,NSRFMAX))
 
-    NSFMAX_save = NSFMAX
+    NSRFMAX_save = NSRFMAX
      NEMAX_save = NEMAX
     srfinit = 1
     
@@ -531,7 +531,7 @@ contains
     implicit none
 
     IF(.NOT.ALLOCATED(INSRF)) RETURN
-    deallocate(INSRF,NESRF,NDSRF,KNSRF,NSFELM)
+    deallocate(INSRF,NESRF,NDSRF,KNSRF,NSRFELM)
 
     return
   end subroutine wfsrf_deallocate

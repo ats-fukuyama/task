@@ -188,6 +188,7 @@ CONTAINS
              IF(K2.EQ.'E') THEN
                 IF(NA3.EQ.1) THEN
                    CFL=CEFLD(NG3,NTH,NHH,NR)
+                   WRITE(21,'(3I8,2ES12.4)') NTH,NHH,NR,CEFLD(NG3,NTH,NHH,NR)
                 ELSEIF(NA3.EQ.2) THEN
                    CFL=CEN(NG3,NTH,NHH,NR)
                 ELSEIF(NA3.EQ.3) THEN
@@ -249,6 +250,7 @@ CONTAINS
        ENDDO
     ENDDO
 
+    WRITE(6,*) '@@@ point g1',NGRAPH
     IF(NGRAPH.EQ.0) THEN
        CALL wm_gfwr(GY,NHH,K2,K3,K4)
        GOTO 9000
@@ -516,7 +518,7 @@ CONTAINS
              GZL(NR,NTH)=GUCLIP(ZPSG(NTH,NR))
           ENDDO
        ENDDO
-    CASE(3)
+    CASE(3,5)
        ! RPSG and ZPSG loaded in wmsetg_tor
        DO NR=1,NRMAX+1
           DO NTH=1,nthmax_g
@@ -547,6 +549,8 @@ CONTAINS
              VAL=(1.D0-FACT)*DBLE(GGL(NR,NTH))+FACT*DBLE(GGL(NR,NTHP))
              GFL(NR,NTHL)=GUCLIP(VAL)
           ENDDO
+          WRITE(22,'(A,2I8,3ES12.4)') &
+               'GRL,GZL,GFL=',NR,NTH,GRL(NR,NTH),GZL(NR,NTH),GFL(NR,NTH)
        ENDDO
     ENDDO
 
@@ -695,7 +699,7 @@ CONTAINS
        END IF
     ENDDO
     CALL GMNMX2(GFL,nrmax+1,1,NRLCFS,1,1,nthmax_g,1,GFMIN,GFMAX)
-
+    WRITE(6,*) '@@@ gfmin/max: ',gfmin,gfmax
     IF(ABS(GFMIN).GT.GFMAX) GFMAX=ABS(GFMIN)
     GFMIN=-ABS(GFMAX)
     CALL GQSCAL(GFMIN,GFMAX,GGFMIN,GGFMAX,GGFSTP)
@@ -818,7 +822,7 @@ CONTAINS
              GZL(NR,NTH)=GUCLIP(ZPSG(NTH,NR))
           ENDDO
        ENDDO
-    CASE(3)
+    CASE(3,5)
        ! RPSG and ZPSG loaded in wmsetg_tor
        DO NR=1,NRMAX+1
           DO NTH=1,nthmax_g
@@ -1408,7 +1412,7 @@ CONTAINS
     IF(MODEEG.EQ.0) THEN
        CALL MOVE(XPOS,YPOS)
        CALL TEXT('RF:',3)
-       CALL NUMBD(RF,'(F9.4)',9)
+       CALL NUMBD(RF,'(F9.2)',9)
        YPOS= YPOS-2*DY
     ELSE
        CALL MOVE(XPOS,YPOS)

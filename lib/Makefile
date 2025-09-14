@@ -41,21 +41,29 @@ SRCSGRF   =  libgrf/grftype.f90 libgrf/grfutils.f90 libgrf/grdutils.f90 \
              libgrf/grd1dframe.f90 libgrf/grd2dframe.f90 \
 	     libgrf.f90
 
+SRCSPKF   =  libpkf/libpdkf_eul.f90 libpkf/libpdkf.f90 \
+             libpkf/libpdkf2.f90 libpkf/libpgkf.f90 \
+             libpkf/wieul.f90
+
 SRCSFIXED =  $(LAPACK)
 
 OBJSFREE  = $(addprefix $(OBJDIR)/,$(SRCSFREE:.f90=.o))
 OBJSFIXED = $(addprefix $(OBJDIR)/,$(SRCSFIXED:.f=.o))
 OBJSGRF = $(addprefix $(OBJDIR)/,$(SRCSGRF:.f90=.o))
+OBJSPKF = $(addprefix $(OBJDIR)/,$(SRCSPKF:.f90=.o))
 OBJSMDS = $(addprefix $(OBJDIR)/,$(MDSPLUS:.f=.o))
 
 
-all : libtask.a libgrf.a libmds.a
+all : libtask.a libgrf.a libpkf.a libmds.a
 
 libtask.a: $(OBJSFREE) $(OBJSFIXED)
 	$(LD) $(LDFLAGS) libtask.a $(OBJSFREE) $(OBJSFIXED)
 
 libgrf.a: $(OBJSGRF)
 	$(LD) $(LDFLAGS) libgrf.a $(OBJSGRF)
+
+libpkf.a: $(OBJSPKF)
+	$(LD) $(LDFLAGS) libpkf.a $(OBJSPKF)
 
 libmds.a: $(OBJSMDS)
 	$(LD) $(LDFLAGS) libmds.a $(OBJSMDS)
@@ -64,8 +72,8 @@ check :
 	ftnchek $(SRCSFREE) $(SRCSFIXED) $(MDSPLUS) | less
 
 clean:
-	-rm -f core* a.out *.o */*.o libgrf/*.o libufile/*.o $(OBJDIR)/*.o $(OBJDIR)/*/*.o $(MOD)/*.mod $(MOD)/*/*.mod *.a ./*~ ./#* $(MOD)/*.mod
-	-rm -f testairy testbes testell testfem testfem_func testgrd testgrf testqsort testspl testspl3d testpol testduo testrk testtri
+	-rm -f core* a.out *.o */*.o libgrf/*.o libpkf/*.o libufile/*.o $(OBJDIR)/*.o $(OBJDIR)/*/*.o $(MOD)/*.mod $(MOD)/*/*.mod *.a ./*~ ./#* $(MOD)/*.mod
+	-rm -f testsairy testbes testell testfem testfem_func testgrd testgrf testqsort testspl testspl3d testpol testduo testrk testtri testde
 
 veryclean: clean
 
@@ -106,6 +114,9 @@ testgrf: libtask.a libgrf.a $(OBJDIR)/testgrf.o
 testgrd: libtask.a libgrf.a $(OBJDIR)/testgrd.o 
 	$(FCFIXED) $(OBJDIR)/testgrd.o libtask.a libgrf.a $(FFLAGS) -o $@ $(FLIBS)
 
+testpkf: libtask.a libgrf.a libpkf.a $(OBJDIR)/testpkf.o 
+	$(FCFIXED) $(OBJDIR)/testpkf.o libtask.a libgrf.a libpkf.a $(FFLAGS) -o $@ $(FLIBS)
+
 testqsort: libtask.a $(OBJDIR)/testqsort.o 
 	$(FCFREE) $(OBJDIR)/testqsort.o libtask.a libgrf.a $(FFLAGS) -o $@ $(FLIBS)
 
@@ -113,6 +124,9 @@ testrk: libtask.a $(OBJDIR)/testrk.o
 	$(FCFREE) $(OBJDIR)/testrk.o libtask.a libgrf.a $(FFLAGS) -o $@ $(FLIBS)
 testpol: libtask.a $(OBJDIR)/testpol.o 
 	$(FCFREE) $(OBJDIR)/testpol.o libtask.a libgrf.a $(FFLAGS) -o $@ $(FLIBS)
+
+testde: libtask.a libgrf.a $(OBJDIR)/testde.o
+	$(FCFREE) $(OBJDIR)/testde.o libtask.a libgrf.a $(FFLAGS) -o $@ $(FLIBS)
 
 TASKCOMM=task_kinds.f90
 
@@ -193,4 +207,7 @@ $(OBJDIR)/libgrf.o: $(TASKCOMM) libgrf/grftype.f90 libgrf/grfutils.f90 \
           libgrf/grd2dframe.f90 libgrf/grd1dframe.f90 libgrf.f90 \
           libgrf/grdutils.f90
 
-
+$(OBJDIR)/libpkf/libpdkf_eul.o: libpkf/libpdkf_eul.f90
+$(OBJDIR)/libpkf/libpdkf.o: libpkf/libpdkf.f90
+$(OBJDIR)/libpkf/libpdkf2.o: libpkf/libpdkf2.f90
+$(OBJDIR)/libpkf/libgdkf.o: libpkf/libpgkf.f90

@@ -56,7 +56,7 @@ CONTAINS
                   PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PPN0,PTN0,&
                   NSMAX,NAMAX,MODELI,&
                   PROFN1,PROFN2,PROFT1,PROFT2,NCMIN,NCMAX, &
-                  MODELG,MODELB,MODELD,MODELP,MODELN,&
+                  MODELG,MODELB,MODELD,MODELP,model_prof,&
                   model_coll_enhance,factor_coll_enhance, &
                   xpos_coll_enhance,xwidth_coll_enhance, &
                   ypos_coll_enhance,ywidth_coll_enhance, &
@@ -76,6 +76,7 @@ CONTAINS
                   MODELWF, &
                   NGXMAX,NGYMAX,NGVMAX,IDEBUG, &
                   sort_weight_x,sort_weight_y, &
+                  r_corner,z_corner, &
                   br_corner,bz_corner,bt_corner, &
                   pn_corner,ptpr_corner,ptpp_corner, &
                   tolerance,wdamp,fdamp,gfactor, &
@@ -146,7 +147,7 @@ CONTAINS
        WRITE(6,*) '     PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PPN0,PTN0,'
        WRITE(6,*) '     NSMAX,NAMAX,MODELI,'
        WRITE(6,*) '     PROFN1,PROFN2,PROFT1,PROFT2,NCMIN,NCMAX,'
-       WRITE(6,*) '     MODELG,MODELB,MODELD,MODELP,MODELN,'
+       WRITE(6,*) '     MODELG,MODELB,MODELD,MODELP,model_prof,'
        WRITE(6,*) '     NPRINT,NDRAWD,NDRAWA,NDRAWE,NGRAPH,NDRAWV,'
        WRITE(6,*) '     model_coll_enhance,factor_coll_enhance,'
        WRITE(6,*) '     xpos_coll_enhance,xwidth_coll_enhance,'
@@ -165,7 +166,8 @@ CONTAINS
        WRITE(6,*) '     phase_wg_min,phase_wg_cen,phase_wg_max,'
        WRITE(6,*) '     MODELWF,'
        WRITE(6,*) '     NGXMAX,NGYMAX,NGVMAX,IDEBUG,'
-       WRITE(6,*) '     sort_weight_x,sort_weight_y'
+       WRITE(6,*) '     sort_weight_x,sort_weight_y,'
+       WRITE(6,*) '     r_corner,z_corner,'
        WRITE(6,*) '     br_corner,bz_corner,bt_corner,'
        WRITE(6,*) '     pn_corner,ptpr_corner,ptpp_corner,'
        WRITE(6,*) '     tolerance,wdamp,fdamp,gfactor,'
@@ -232,7 +234,7 @@ CONTAINS
 698    FORMAT(' ','NS     PA',10X,'PZ',10X,'PN',10X,'PNS',9X, &
              &           'PZCL',8X,'MODELP')
        SELECT CASE(MODELG)
-       CASE(0,12)
+       CASE(0,11,12)
           DO NS=1,NSMAX
              WRITE(6,614) NS,PA(NS),PZ(NS),pn_corner(1,NS),pn_corner(2,NS), &
                           PZCL(NS),MODELP(NS)
@@ -279,8 +281,8 @@ CONTAINS
   
   WRITE(6,*) '***** CONTROL *****'
   WRITE(6,604) 'MODELG',MODELG,'MODELB',MODELB,&
-               'MODELD',MODELD
-  WRITE(6,604) 'MODELN',MODELN,'MODELI',MODELI
+               'MODELD',MODELD,'MODELI',MODELI
+  WRITE(6,605) 'model_prof',model_prof
   WRITE(6,604) 'NPRINT',NPRINT,'NDRAWD',NDRAWD,&
                'NDRAWA',NDRAWA,'NDRAWE',NDRAWE
   WRITE(6,604) 'NGXMAX',NGXMAX,'NGYMAX',NGYMAX,&
@@ -339,7 +341,7 @@ SUBROUTINE wfparm_broadcast
      idata(5) =MODELB
      idata(6) =MODELD
      idata(7) =nlayer_max
-     idata(8) =MODELN
+     idata(8) =model_prof
      idata(9) =NPRINT
      idata(10)=NDRAWD
      idata(11)=NDRAWA
@@ -367,7 +369,7 @@ SUBROUTINE wfparm_broadcast
   MODELB=idata(5)
   MODELD=idata(6)
   nlayer_max=idata(7)
-  MODELN=idata(8)
+  model_prof=idata(8)
   NPRINT=idata(9)
   NDRAWD=idata(10)
   NDRAWA=idata(11)

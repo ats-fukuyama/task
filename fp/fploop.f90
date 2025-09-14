@@ -15,7 +15,7 @@
       use fpdisrupt
       use fpreadeg
       use fpoutdata
-      use fpfunc
+      use fplib
       use fpcalj
 
       contains
@@ -297,7 +297,7 @@
 !*************************************************************
 !     included in do while
       SUBROUTINE solve_matrix_update_FNS0(IERR)
-
+        USE fplib
       IMPLICIT NONE
       INTEGER:: NSA, NR, NP, NTH, NS, its
       INTEGER,intent(OUT):: IERR
@@ -338,9 +338,11 @@
             DO NR=NRSTARTW,NRENDWM
                DO NP=NPSTARTW,NPENDWM
                   DO NTH=1,NTHMAX
-                     FNSP(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)+FNSP_MXWL(NTH,NP,NR,NSA) ! at n step
+                     FNSP(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) &
+                          +FNSP_MXWL(NTH,NP,NR,NSA) ! at n step
                      FNSP_DEL(NTH,NP,NR,NSA)=FNS0(NTH,NP,NR,NSA) ! at n+1 step
-                     send(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)+FNSP_MXWL(NTH,NP,NR,NSA) ! MODEL_EX_READ_Tn=0
+                     send(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) &
+                          +FNSP_MXWL(NTH,NP,NR,NSA) ! MODEL_EX_READ_Tn=0
 !                     send(NTH,NP,NR,NSA)=FNSP_MXWL(NTH,NP,NR,NSA) ! MODEL_EX_READ_Tn=0
                   END DO
                END DO

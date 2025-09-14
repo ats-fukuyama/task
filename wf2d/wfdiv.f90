@@ -152,7 +152,7 @@ subroutine WFDIV
            
 33         CONTINUE
            WRITE(6,'(A,A1,A)') &
-                '# input minimum ',ch_layer_mode,' of layer 1?'
+                '# input minimum ',ch_layer_mode,' of layer    1?'
            READ(5,*,ERR=33,END=32) posl_nlayer(1)
            DO nlayer=1,nlayer_max
               WRITE(6,'(A,A1,A,I4,A)') &

@@ -77,16 +77,19 @@
 !     ======( PLASMA PARAMETERS )======
 
 !        NSMAX : Number of particle species
-!        NPA   : Atomic number (0 for electron)
-!        PA    : Mass number (to be replaced by PM)
+!        NPA   : number of protons: Atomic number (0 for electron)
+!        PA    : Atomic mass number
 !        PZ    : Charge number
 !        PN    : Density at center                     (1.0E20/m**3)
 !        PNS   : Density on plasma surface             (1.0E20/m**3)
+!        PNM   : Density on mid plasma                 (1.0E20/m**3)
 !        PTPR  : Parallel temperature at center                (keV)
 !        PTPP  : Perpendicular temperature at center           (keV)
 !        PTS   : Temperature on surface                        (keV)
+!        PTM   : Temperature on mid plamsma                    (keV)
 !        PU    : Toroidal rotation velocity at center          (m/s)
 !        PUS   : Toroidal rotation velocity on surface         (m/s)
+!        PUM   : Toroidal rotation velocity on mid plasma      (m/s)
 !        PUPR  : typical parallel velocity                     (m/s)
 !        PUPP  : typical perpendicular velocity                (m/s)
 !        RHOITB: rho at ITB (0 for no ITB)
@@ -105,120 +108,129 @@
 !                 0 : neutral
 !                 1 : ion
 !                 2 : fast ion
+!
+!        RN(rho)= (PN-PNS)*(1-rho^PROFN1)^PROFN2 + PNS
+!               + PNM*rho^PROFN3*(1-rho^PROFN3)
+!
 
+      NS_e=   1
+      NS_D=   2
+      NS_T=   3
+      NS_He4= 4
+      NS_He3= 5
+      NS_H=   6
+      NS_He5= 7
+      NS_n=  -1
+      
       NSMAX = 2                  ! Default number of particle species
 
 !     *** electron ***
-         NS = 1
 
-         KID_NS(NS)= ' e'
-         ID_NS(NS) = -1
-         NPA(NS)  = 0
-         PA(NS)   = AME/AMP
-         PZ(NS)   =-1.0D0
-         PN(NS)   = 1.0D0
-         PNS(NS)  = 0.0D0
-         PTPR(NS) = 5.0D0
-         PTPP(NS) = 5.0D0
-         PTS(NS)  = 0.05D0
-         PU(NS)   = 0.D0
-         PUS(NS)  = 0.D0
-         PUPR(NS) = 0.D0
-         PUPP(NS) = 0.D0
-         RHOITB(NS)=0.D0
-         PNITB(NS)= 0.D0
-         PTITB(NS)= 0.D0
-         PUITB(NS)= 0.D0
-         PNUC(NS) = 0.D0
-         PZCL(NS) = 0.D0
+      NS = 1
+
+      KID_NS(NS)= 'e   '
+      ID_NS(NS) = -1
+      NPA(NS)  = 0
+      PA(NS)   = AME/AMP
+      PZ(NS)   =-1.0D0
+      PN(NS)   = 1.0D0
+      PNS(NS)  = 0.0D0
+      PNM(NS)  = 0.0D0
+      PTPR(NS) = 5.0D0
+      PTPP(NS) = 5.0D0
+      PTS(NS)  = 0.05D0
+      PTM(NS)  = 0.0D0
+      PU(NS)   = 0.D0
+      PUS(NS)  = 0.D0
+      PUM(NS)  = 0.D0
+      PUPR(NS) = 0.D0
+      PUPP(NS) = 0.D0
+      RHOITB(NS)=0.D0
+      PNITB(NS)= 0.D0
+      PTITB(NS)= 0.D0
+      PUITB(NS)= 0.D0
+      PNUC(NS) = 0.D0
+      PZCL(NS) = 0.D0
 
 !     *** deuteron ***
-         NS = 2
 
-         KID_NS(NS)= ' D'
-         ID_NS(NS) = 1
-         NPA(NS)  = 1
-         PA(NS)   = 2.0D0
-         PZ(NS)   = 1.0D0
-         PN(NS)   = 1.0D0
-         PNS(NS)  = 0.0D0
-         PTPR(NS) = 5.0D0
-         PTPP(NS) = 5.0D0
-         PTS(NS)  = 0.05D0
-         PU(NS)   = 0.D0
-         PUS(NS)  = 0.D0
-         PUPR(NS) = 0.D0
-         PUPP(NS) = 0.D0
-         RHOITB(NS)=0.D0
-         PNITB(NS)= 0.D0
-         PTITB(NS)= 0.D0
-         PUITB(NS)= 0.D0
-         PNUC(NS) = 0.D0
-         PZCL(NS) = 0.D0
+      NS = 2
+
+      KID_NS(NS)= 'D   '
+      ID_NS(NS) = 1
+      NPA(NS)  = 1
+      PA(NS)   = 2.0D0
+      PZ(NS)   = 1.0D0
+      PN(NS)   = 1.0D0
+      PNS(NS)  = 0.0D0
+      PNM(NS)  = 0.0D0
+      PTPR(NS) = 5.0D0
+      PTPP(NS) = 5.0D0
+      PTS(NS)  = 0.05D0
+      PTM(NS)  = 0.D0
+      PU(NS)   = 0.D0
+      PUS(NS)  = 0.D0
+      PUM(NS)  = 0.D0
+      PUPR(NS) = 0.D0
+      PUPP(NS) = 0.D0
+      RHOITB(NS)=0.D0
+      PNITB(NS)= 0.D0
+      PTITB(NS)= 0.D0
+      PUITB(NS)= 0.D0
+      PNUC(NS) = 0.D0
+      PZCL(NS) = 0.D0
 
 !     *** triton ***
 
-         NS = 3
+      NS = 3
 
-         KID_NS(NS)= ' T'
-         ID_NS(NS) = 1
-         NPA(NS)  = 1
-         PA(NS)   = 3.0D0
-         PZ(NS)   = 1.0D0
-         PN(NS)   = 1.0D0
-         PNS(NS)  = 0.0D0
-         PTPR(NS) = 5.0D0
-         PTPP(NS) = 5.0D0
-         PTS(NS)  = 0.05D0
-         PU(NS)   = 0.D0
-         PUS(NS)  = 0.D0
-         PUPR(NS) = 0.D0
-         PUPP(NS) = 0.D0
-         RHOITB(NS)=0.D0
-         PNITB(NS)= 0.D0
-         PTITB(NS)= 0.D0
-         PUITB(NS)= 0.D0
-         PNUC(NS) = 0.D0
-         PZCL(NS) = 0.D0
+      KID_NS(NS)= 'T   '
+      ID_NS(NS) = 1
+      NPA(NS)  = 1
+      PA(NS)   = 3.0D0
+      PZ(NS)   = 1.0D0
 
-!     *** Helium ion ***
-         NS = 4
+!     *** Helium4 ion ***
 
-         KID_NS(NS)= 'He'
-         ID_NS(NS) = 1
-         NPA(NS)  = 2
-         PA(NS)   = 4.0D0
-         PZ(NS)   = 2.0D0
-         PN(NS)   = 1.0D0
-         PNS(NS)  = 0.0D0
-         PTPR(NS) = 5.0D0
-         PTPP(NS) = 5.0D0
-         PTS(NS)  = 0.05D0
-         PU(NS)   = 0.D0
-         PUS(NS)  = 0.D0
-         PUPR(NS) = 0.D0
-         PUPP(NS) = 0.D0
-         RHOITB(NS)=0.D0
-         PNITB(NS)= 0.D0
-         PTITB(NS)= 0.D0
-         PUITB(NS)= 0.D0
-         PNUC(NS) = 0.D0
-         PZCL(NS) = 0.D0
+      NS = 4
 
-         ! *** dummy ***
-      DO NS = 5, NSM
-         KID_NS(NS)= ' H'
+      KID_NS(NS)= 'He4 '
+      ID_NS(NS) = 1
+      NPA(NS)  = 2
+      PA(NS)   = 4.0D0
+      PZ(NS)   = 2.0D0
+
+!     *** Helium 3 ion ***
+
+      NS = 5
+
+      KID_NS(NS)= 'He3 '
+      ID_NS(NS) = 1
+      NPA(NS)  = 2
+      PA(NS)   = 3.0D0
+      PZ(NS)   = 2.0D0
+
+      ! *** default proton ***
+
+      DO NS=6,NSM
+         KID_NS(NS)= 'H   '
          ID_NS(NS)= 1
          NPA(NS)  = 1
          PA(NS)   = 1.0D0
          PZ(NS)   = 1.0D0
+      END DO
+
+      DO NS=3,NSM
          PN(NS)   = 0.0D0
          PNS(NS)  = 0.0D0
+         PNM(NS)  = 0.0D0
          PTPR(NS) = 5.0D0
          PTPP(NS) = 5.0D0
          PTS(NS)  = 0.0D0
+         PTM(NS)  = 0.0D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
+         PUM(NS)  = 0.D0
          PUPR(NS) = 0.D0
          PUPP(NS) = 0.D0
          RHOITB(NS)=0.D0
@@ -258,18 +270,24 @@
 
 !        PROFN1: Density profile parameter (power of rho)
 !        PROFN2: Density profile parameter (power of (1 - rho^PROFN1))
+!        PROFN3: Density profile parameter (power of rho) for PNM
 !        PROFT1: Temperature profile parameter (power of rho)
 !        PROFT2: Temperature profile parameter (power of (1 - rho^PROFN1))
+!        PROFT3: Temperature profile parameter (power of rho) for PTM
 !        PROFU1: Rotation profile parameter (power of rho)
 !        PROFU2: Rotation profile parameter (power of (1 - rho^PROFN1))
+!        PROFU2: Rotation profile parameter (power of rho) for PUM
 
   DO NS=1,NSM
      PROFN1(NS)= 2.D0
      PROFN2(NS)= 0.5D0
+     PROFN3(NS)= 2.D0
      PROFT1(NS)= 2.D0
      PROFT2(NS)= 1.D0
+     PROFT3(NS)= 2.D0
      PROFU1(NS)= 2.D0
      PROFU2(NS)= 1.D0
+     PROFU3(NS)= 2.D0
   END DO
 
 !     ======( TRAVIS PROFILE PARAMETERS )======
@@ -317,7 +335,7 @@
 !             12: 2D plane profile (B read from file)
 !             13: 2D plane profile (simple parabolic cylinder)
 
-!        MODELN: Control plasma profile
+!        model_prof: Control plasma profile
 !                   0: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; PN=0 in SOL
 !                   1: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; PNS in SOL
 !                   2: n,T from pressure profile; u from PU,PUS; PNS in SOL
@@ -326,6 +344,15 @@
 !                   9: Read from bpsd_plasmaf
 !                  21: Read from trdata
 !                  31: Calculated from profn_travis and proft_travis
+!                  41: Read profile data from TOTAL
+!        model_prof_time: time-dependent plasma profile   
+!                   0: no time dependence
+!                   1: read density profile
+!                   2: read temperature profile
+!                   3: read density and temperature profile
+!                   5: read density profile between rho_min and rho_max
+!                   6: read temperature profil nbetween rho_min and rho_max
+!                   7: read density and temperature profile between min and max
 !        MODELQ: Control safety factor profile (for MODELG=1,2)
 !                   0: Parabolic q profile (Q0,QA,RHOMIN)
 !                   1: Given current profile (RIP,PROFJ)
@@ -333,21 +360,25 @@
 !                   0: nu_coll=PZCL*omega
 !                   1: nu_coll=Coulomb collision freq.
 !                   2: nu_coll=Coulomb collision + neutral collision freq.
-!        MODEL_PROF: profile parameter
-!                   0: PROFX1(NS)=PROFX1(1),PROFX2(NS)=PROFX2(1): compatibility
-!                   1: PROFX1(NS),PROFX2(NS): defined separately
+!        model_sigv: collisional cross section 
+!                   0: sigmav=0.88D-20*vte
+!                   1: sigmav from atomic data
 !        MODEL_NPROF: neutral profile parameter
 !                   0: Flat profile
 !                   1: Flat only in plasma, 0 outside
 !                   2: (1-psi) dependence, 0 outside
+!        model_eqdsk_psi: 0 : definition of psi in EQDSK document
+!                         1 : definition of psi in QST EQDSK format
 
       MODELG= 2
       MODELB= 0
-      MODELN= 0
+      model_prof= 0
+      model_prof_time= 0
       MODELQ= 0
       model_coll=0
-      MODEL_PROF=0
+      model_sigv=0
       MODEL_NPROF=0
+      model_eqdsk_psi=1
 
 !        RHOMIN: rho at minimum q (0 for positive shear)
 !        QMIN  : q minimum for reversed shear
@@ -405,6 +436,8 @@
       KNAMFO = 'fodata'
       KNAMPF = 'pfdata'
       KNAMTR = 'trdata'
+      knam_profg_TOTAL='data/tr.f011v2.prof'
+      knam_profm_TOTAL='data/tr.f011v2.prof2'
 
 !     ======( FILE IO MODES )======
 

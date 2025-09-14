@@ -67,7 +67,7 @@ contains
       INTEGER,INTENT(OUT) :: ist,ierr
 
       NAMELIST /FP/ &
-           NSMAX,MODELG,MODELN,MODELQ,IDEBUG,MODEFR,MODEFW, &
+           NSMAX,MODELG,model_prof,MODELQ,IDEBUG,MODEFR,MODEFW, &
            RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
            PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
            RHOMIN,QMIN,RHOEDG,RHOITB,RHOGMN,RHOGMX, &
@@ -95,7 +95,7 @@ contains
            IMTX,MODEL_KSP,MODEL_PC,LMAXFP,LMAXE, &
            NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP, &
            MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp, &
-           MODEL_LNL,MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY, &
+           MODEL_LNL,MODEL_RE_pmax,MODEL_RE_n,MODEL_IMPURITY, &
            MODEL_SINK,N_IMPU,MODEL_DELTA_F, &
            N_partition_r,N_partition_s,N_partition_p, &
            PMAX,PMAX_BB,EMAX, &
@@ -109,6 +109,7 @@ contains
            SPFTOT,SPFR0,SPFRW,SPFENG, &
            DRR0,DRRS,FACTOR_CDBM,DRR_EDGE,RHO_EDGE, &
            FACTOR_DRR_EDGE,FACTOR_PINCH,deltaB_B,TLOSS, &
+           DRR_em_amp,DRR_em_r0,DRR_em_rw,DRR_em_kdep, &
            DELT,RIMPL,EPSFP,EPSM,EPSE,EPSDE,H0DE, &
            PGMAX,RGMAX,RGMIN, &
            T0_quench,tau_quench,tau_mgi, &
@@ -121,7 +122,8 @@ contains
            OUTPUT_TXT_F1,OUTPUT_TXT_DELTA_F,OUTPUT_TXT_HEAT_PROF, &
            OUTPUT_TXT_BEAM_WIDTH,OUTPUT_TXT_BEAM_DENS,NI_RATIO, &
            nthpmax, max_stp, model_obload, model_mkcsv, &
-           dir_text_data,dir_binary_data
+           dir_text_data,dir_binary_data, &
+           rd_em_amp,rd_em_k_ratio
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
       ierr=0
@@ -137,7 +139,7 @@ contains
 
   SUBROUTINE fp_plst
 
-      WRITE(6,*) '&FP : NSMAX,MODELG,MODELN,MODELQ,IDEBUG,MODEFR,MODEFW,'
+      WRITE(6,*) '&FP : NSMAX,MODELG,model_prof,MODELQ,IDEBUG,MODEFR,MODEFW,'
       WRITE(6,*) '      RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,'
       WRITE(6,*) '      PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'
       WRITE(6,*) '      RHOMIN,QMIN,RHOEDG,RHOITB,RHOGMN,RHOGMX,'
@@ -166,7 +168,7 @@ contains
       WRITE(6,*) '      IMTX,MODEL_KSP,MODEL_PC,LMAXFP,LMAXE,'
       WRITE(6,*) '      NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP,'
       WRITE(6,*) '      MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp,'
-      WRITE(6,*) '      MODEL_LNL,MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY,'
+      WRITE(6,*) '      MODEL_LNL,MODEL_RE_pmax,MODEL_RE_n,MODEL_IMPURITY,'
       WRITE(6,*) '      MODEL_SINK,N_IMPU,MODEL_DELTA_F'
       WRITE(6,*) '      N_partition_r,N_partition_s,N_partition_p,'
       WRITE(6,*) '      PMAX,PMAX_BB,EMAX'
@@ -181,6 +183,7 @@ contains
       WRITE(6,*) '      SPFTOT,SPFR0,SPFRW,SPFENG,'
       WRITE(6,*) '      DRR0,DRRS,FACTOR_CDBM,DRR_EDGE,RHO_EDGE,'
       WRITE(6,*) '      FACTOR_DRR_EDGE,FACTOR_PINCH,deltaB_B,TLOSS,'
+      WRITE(6,*) '      DRR_em_amp,DRR_em_r0,DRR_em_rw,DRR_em_kdep,'
       WRITE(6,*) '      DELT,RIMPL,EPSFP,EPSM,EPSE,EPSDE,H0DE,'
       WRITE(6,*) '      PGMAX,RGMAX,RGMIN,'
       WRITE(6,*) '      T0_quench,tau_quench,tau_mgi,'
@@ -195,7 +198,7 @@ contains
       WRITE(6,*) '      OUTPUT_TXT_HEAT_PROF,OUTPUT_TXT_BEAM_WIDTH'
       WRITE(6,*) '      OUTPUT_TXT_BEAM_DENS,NI_RATIO'
       WRITE(6,*) '      nthpmax,max_stp,model_obload,model_mkcsv'
-
+      WRITE(6,*) '      rd_em_amp,rd_em_k_ratio'
       RETURN
   END SUBROUTINE fp_plst
 
@@ -230,22 +233,22 @@ contains
 
       idata( 1)=NSMAX
       idata( 2)=MODELG
-      idata( 3)=MODELN
+      idata( 3)=model_prof
       idata( 4)=MODELQ
       idata( 5)=IDEBUG
       idata( 6)=MODEFR
       idata( 7)=MODEFW
       idata( 8)=MODEL_PROF
-      idata( 9)=MODEL_PROF
 
-      CALL mtx_broadcast_integer(idata,7)
+      CALL mtx_broadcast_integer(idata,8)
       NSMAX =idata( 1)
       MODELG=idata( 2)
-      MODELN=idata( 3)
+      model_prof=idata( 3)
       MODELQ=idata( 4)
       IDEBUG=idata( 5)
       MODEFR=idata( 6)
       MODEFW=idata( 7)
+      MODEL_PROF=idata( 8)
 
       rdata( 1)=RR
       rdata( 2)=RA
@@ -381,7 +384,7 @@ contains
       idata(49)=MODEL_jfp
       idata(50)=MODEL_LNL
       idata(51)=MODEL_RE_pmax
-      idata(52)=MODELD_n_RE
+      idata(52)=MODEL_RE_n
       idata(53)=MODEL_IMPURITY
       idata(54)=MODEL_SINK
       idata(55)=n_impu
@@ -458,7 +461,7 @@ contains
       MODEL_jfp      =idata(49)
       MODEL_LNL      =idata(50)
       MODEL_RE_pmax  =idata(51)
-      MODELD_n_RE    =idata(52)
+      MODEL_RE_n     =idata(52)
       MODEL_IMPURITY =idata(53)
       MODEL_SINK     =idata(54)
       n_impu         =idata(55)
@@ -568,8 +571,12 @@ contains
       rdata(71)=time_exp_offset
       rdata(72)=RN_NEU0
       rdata(73)=RN_NEUS
-
-      CALL mtx_broadcast_real8(rdata,73)
+      rdata(74)=DRR_em_amp
+      rdata(75)=DRR_em_r0
+      rdata(76)=DRR_em_rw
+      rdata(77)=DRR_em_kdep
+      
+      CALL mtx_broadcast_real8(rdata,77)
 
       R1               =rdata( 1)
       DELR1            =rdata( 2)
@@ -651,6 +658,11 @@ contains
       time_exp_offset  =rdata(71)
       RN_NEU0          =rdata(72)
       RN_NEUS          =rdata(73)
+      
+      DRR_em_amp       =rdata(74)
+      DRR_em_r0        =rdata(75)
+      DRR_em_rw        =rdata(76)
+      DRR_em_kdep      =rdata(77)
 
       CALL mtx_broadcast_real8(pmax,NSMAX)
       CALL mtx_broadcast_real8(pmax_bb,NSMAX)
@@ -868,7 +880,7 @@ contains
                    'MODEL_jfp       ',MODEL_jfp
       WRITE(6,606) 'MODEL_LNL       ',MODEL_LNL       , &
                    'MODEL_RE_pmax   ',MODEL_RE_pmax
-      WRITE(6,606) 'MODELD_n_RE     ',MODELD_n_RE     , &
+      WRITE(6,606) 'MODEL_RE_n      ',MODEL_RE_n     , &
                    'MODEL_IMPURITY  ',MODEL_IMPURITY
       WRITE(6,606) 'MODEL_LNL       ',MODEL_LNL       , &
                    'MODEL_RE_pmax   ',MODEL_RE_pmax
@@ -884,6 +896,8 @@ contains
       WRITE(6,604) 'target_zeff     ',target_zeff     , &
                    'SPITOT          ',SPITOT
       WRITE(6,606) 'MODEL_FOW       ',MODEL_FOW
+      WRITE(6,604) 'rd_em_amp       ',rd_em_amp
+      WRITE(6,604) 'rd_em_k_ratio   ',rd_em_k_ratio
 
       WRITE(6,*) "-------- PLASMA MODELS --------"
 
@@ -906,13 +920,13 @@ contains
       IF(MODELD.EQ.0)THEN
          WRITE(6,*) 'WITHOUT RADIAL TRANPORT'
       ELSE IF(MODELD.EQ.1)THEN
-         WRITE(6,*) 'WITH RADIAL TRANSPORT (const. for r,p,th, without pinch)'
+         WRITE(6,*) 'WITH RADIAL TRANSPORT (MODELD_RDEP,MODELD_PDEP,'
+         WRITE(6,*) '                       MODELD_EDGE,MODELD_PINCH,'
+         WRITE(6,*) '                       MODELD_BOUNDARY)'
       ELSE IF(MODELD.EQ.2)THEN
-         WRITE(6,*) 'WITH RADIAL TRANSPORT (const. for r,p,th, with pinch)'
+         WRITE(6,*) 'WITH RADIAL TRANSPORT (EM diffusion model)'
       ELSE IF(MODELD.EQ.3)THEN
-         WRITE(6,*) 'WITH RADIAL TRANSPORT (p dependence without pinch)'
-      ELSE IF(MODELD.EQ.4)THEN
-         WRITE(6,*) 'WITH RADIAL TRANSPORT (p dependence with pinch)'
+         WRITE(6,*) 'WITH RADIAL TRANSPORT (EM diffusion model 2)'
       ELSE
          WRITE(6,*) 'XX UNKNOWN MODELD: MODELD =',MODELD
       ENDIF

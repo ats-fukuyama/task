@@ -27,7 +27,8 @@ MODINCLUDE= -I./$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
 SRCS = 	femcomm.f90 wfcomm.f90 femmeshprep.f90 feminterpolate.f90 \
         wfinit.f90 wfparm.f90 wfload.f90 wfprof.f90 \
         wfsub.f90 wfsort.f90 wfindex.f90 wfgsub.f90 \
-	wfdiv_rect.f90 wfdiv_circle.f90 wfdiv.f90 \
+	wfdiv_rect.f90 wfdiv_circle.f90 wfdiv_eq.f90 wfdiv_layer.f90 \
+        wfdiv.f90 \
         wfant.f90 wfsolv.f90 \
 	wfwave.f90 wfgout.f90 wfmenu.f90
 
@@ -78,7 +79,12 @@ $(OBJDIR)/wfcomm.o: femcomm.f90 wfcomm.f90 ../pl/plcomm.f90
 $(OBJDIR)/wfmain.o: wfmain.f90 wfcomm.f90
 $(OBJDIR)/wfmenu.o: wfmenu.f90 wfcomm.f90
 $(OBJDIR)/wfinit.o: wfinit.f90 wfcomm.f90
-$(OBJDIR)/wfdiv.o: wfdiv.f90 wfcomm.f90
+$(OBJDIR)/wfdiv.o: wfdiv.f90 wfdiv_rect.f90 wfdiv_circle.f90 wfdiv_eq.f90 \
+                   wfcomm.f90
+$(OBJDIR)/wfdiv_rect.o: wfdiv_rect.f90 wfcomm.f90
+$(OBJDIR)/wfdiv_circle.o: wfdiv_circle.f90 wfcomm.f90
+$(OBJDIR)/wfdiv_eq.o: wfdiv_eq.f90 wfcomm.f90
+$(OBJDIR)/wfdiv_layer.o: wfdiv_layer.f90 wfcomm.f90
 $(OBJDIR)/wfant.o: wfant.f90 wfcomm.f90
 $(OBJDIR)/wfwave.o: wfwave.f90 wfcomm.f90
 $(OBJDIR)/wfsolv.o: wfsolv.f90 wfcomm.f90

@@ -5,6 +5,7 @@ C
       SUBROUTINE WMEXEC(IERR)
 C
       USE DPPARM
+      USE dpprep
       INCLUDE 'wmcomm.inc'
 C
       IERR=0
@@ -30,7 +31,9 @@ C            CALL WMPANT
 C         endif
 C      else
 C         CALL DPCHEK(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),RR,IERR)
-         CALL DPPREP_LOCAL(IERR)
+C         CALL DPPREP_LOCAL(IERR)
+      
+         CALL dp_prep_ns(ierr)
          IF(IERR.NE.0) RETURN
          nrmax=nrmax+1
          call wmfem_pre

@@ -44,7 +44,7 @@ CONTAINS
        WRITE(6,*) '## MODELJ=',MODELJ,': VACUUM EIGEN MODE ##'
     END SELECT
 
-    SELECT CASE(MODELN)
+    SELECT CASE(model_prof)
     CASE(7)
        WRITE(6,*) '## MODELN=7: READ PROFILE DATA : WMDPRF ##'
     CASE(8)
@@ -82,9 +82,10 @@ CONTAINS
     WRITE(6,602) 'NTH0  ',NTH0  ,'NPH0  ',NPH0  , &
                  'NHC   ',NHC   
     WRITE(6,602) 'MODELG',MODELG,'MODELB',MODELB, &
-                 'MODELN',MODELN,'MODELQ',MODELQ
+                 'MODELQ',MODELQ
     WRITE(6,602) 'MODELA',MODELA, & 
                  'MODEFR',MODEFR,'MODEFW',MODEFW
+    WRITE(6,'(A,I8)') 'model_prof=',model_prof
     WRITE(6,602) 'MODELM',MODELM, & 
                  'MDLWMK',MDLWMK, &
                  'MDLWMX',MDLWMX

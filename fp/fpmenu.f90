@@ -1,12 +1,12 @@
-!     $Id: fpmenu.f90,v 1.3 2013/01/14 16:48:26 fukuyama Exp $
-
-!     ***** TASK/FP MENU *****
+! fpmenu.f90
 
       MODULE fpmenu
 
       contains
 
-      SUBROUTINE fp_menu
+!     ***** TASK/FP MENU *****
+
+        SUBROUTINE fp_menu
 
       USE fpcomm
       USE libkio

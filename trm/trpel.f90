@@ -65,7 +65,7 @@
 
       DO NR=1,NRMAX
          SPEL=S0*DEXP(-((RA*RM(NR)-PELR0(npel))/PELRW(npel))**2)
-      DO NS=1,NSM
+      DO NS=1,NSMAX
          SPE_NSNPELNR(NS,NPEL,NR)=PELPAT(NS,npel)*SPEL
       ENDDO
       ENDDO
@@ -167,7 +167,7 @@
 
       SPEL=ANS*RPEL*0.5D0*(RPEL+RPELPRE)*RPELDOT*4.D0*PI*RA &
            /(DVRHO(NR)*PELVEL(npel))
-      DO NS=1,NSM
+      DO NS=1,NSMAX
          SPE(NR,NS)=PELPAT(NS,npel)*SPEL
       ENDDO
 
@@ -209,7 +209,7 @@
 
   100 ANE=RN(NR,NS_e)
       TE =RT(NR,NS_e)
-      ANA=RN(NR,NS_A)
+      ANA=RN(NR,NS_He4)
       ADIVE = ANA/ANE
 
       IF(ADIVE.GT.3.D-2) THEN

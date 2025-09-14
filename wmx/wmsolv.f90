@@ -15,6 +15,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER:: ierr
 
+    WRITE(6,*) '@@@ point 451'
     mblock_size=3*MDSIZ*NDSIZ
     ! mlen=NRMAX*mblock_size+MWGMAX*NAMAX defined in wm_alloc in wmcomm.f90
     ! mbnd=4*mblock_size-1 defined in wm_alloc in wmcomm.f90
@@ -64,10 +65,10 @@ CONTAINS
        IF(ierr.NE.0) STOP
     END IF
 
+    WRITE(6,*) '@@@ point 452'
     ALLOCATE(A(MBND))        ! local coefficient matrix
 
     CALL mtxc_setup(MLEN,istart,iend,jwidth=MBND)
-
     nr_start=(istart-1)/mblock_size+1    ! nr_start is nr including istart
     nr_end=(iend-1)/mblock_size+1        ! nr_end is nr including iend
     IF(nrank.EQ.nsize-1) nr_end=NRMAX+1
@@ -90,6 +91,7 @@ CONTAINS
                nr_end_nrank(n)-nr_start_nrank(n)+1
        END DO
     END IF
+    WRITE(6,*) '@@@ point 453'
 
 !   ***** CALCULATE MATRIX COEFFICIENTS *****
 
@@ -144,11 +146,13 @@ CONTAINS
        END IF
     END DO
 
+    WRITE(6,*) '@@@ point 454'
     itype=1  ! infolevel for MUMPS
     tolerance=1.D-12
     CALL mtxc_solve(itype,tolerance,its)
     IF(nrank.EQ.0) WRITE(6,'(A,I8)') '## wm_solv: iteration=',its
       
+    WRITE(6,*) '@@@ point 455'
     CALL mtxc_gather_vector(svec)
 
     IF(idebuga(69).NE.0.AND.nrank.EQ.0) THEN
@@ -158,6 +162,7 @@ CONTAINS
        END DO
     END IF
     CALL mtxc_cleanup
+    WRITE(6,*) '@@@ point 459'
 
     DEALLOCATE(A)
     IERR=0

@@ -68,18 +68,18 @@ CONTAINS
            profn_travis_g,profn_travis_h,profn_travis_p,profn_travis_q, &
            profn_travis_w,proft_travis_g,proft_travis_h,proft_travis_p, &
            proft_travis_q,proft_travis_w, &
-           MODELG,MODELB,MODELN,MODELQ,model_coll,MODEL_PROF,MODEL_NPROF, &
+           MODELG,MODELB,model_prof,MODELQ,model_coll,MODEL_PROF,MODEL_NPROF, &
            RHOGMN,RHOGMX, &
            KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
-           MODEFR,MODEFW,IDEBUG,mdlplw, &
+           MODEFR,MODEFW,idebug_wf,mdlplw, &
            !           
            MODELP,MODELV,NCMIN,NCMAX,MODEL_ES,EPSRT,LMAXRT, &
-           NS_NSA_DP,PMAX_dp,EMAX_dp,RHON_MIN,RHON_MAX, &
+           PMAX_dp,EMAX_dp,RHON_MIN,RHON_MAX, &
            NPMAX_DP,NTHMAX_DP,NRMAX_DP,NSAMAX_DP, &
            !
            model_config,model_shape, &
-           xdiv_min,xdiv_max,ydiv_min,ydiv_max,delx,dely, &
-           rdiv_min,rdiv_max,thdiv_min,thdiv_max, &
+           xdiv_min,xdiv_max,ydiv_min,ydiv_max,del_xdiv,del_ydiv, &
+           rdiv_min,rdiv_max,thdiv_min,thdiv_max,del_rdiv,del_thdiv, &
            RF,RKZ,nph,nant_max,AJ,APH,AWD,APOS,PIN,RD,THETJ1,THETJ2, &
            model_wg,model_wf,&
            xwg_min,xwg_max,ywg_min,ywg_max, &
@@ -98,8 +98,7 @@ CONTAINS
            sort_weight_x,sort_weight_y, &
            ngxmax,ngymax,ngvmax,gaspect,nxzone_max,nyzone_max, &
            tolerance,modeli, &
-           KFNAME,KFNAMA,KFNAMF,KFNAMB,KNAMWG, &
-           idebuga
+           KFNAME,KFNAMA,KFNAMF,KFNAMB,KNAMWG
 
     IERR=0
     
@@ -169,14 +168,14 @@ CONTAINS
     WRITE(6,*) 'proft_travis_w,'
     WRITE(6,*) 'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,'
     WRITE(6,*) 'PPN0,PTN0,RFCL,BAXIS_SCALED,'
-    WRITE(6,*) 'MODELG,MODELB,MODELN,MODELQ,'
+    WRITE(6,*) 'MODELG,MODELB,model_prof,MODELQ,'
     WRITE(6,*) 'model_coll,MODEL_PROF,MODEL_NPROF,RHOGMN,RHOGMX,'
     WRITE(6,*) 'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2'
-    WRITE(6,*) 'MODEFW,MODEFR,IDEBUG,mdlplw,'
+    WRITE(6,*) 'MODEFW,MODEFR,idebug_wf,mdlplw,'
     
     WRITE(6,*) 'MODELP,MODELV,NCMIN,NCMAX,'
     WRITE(6,*) 'MODEL_ES,EPSRT,LMAXRT,'
-    WRITE(6,*) 'NS_NSA_DP,PMAX_dp,EMAX_dp,ROHN_MIN,ROHN_MAX,'
+    WRITE(6,*) 'PMAX_dp,EMAX_dp,ROHN_MIN,ROHN_MAX,'
     WRITE(6,*) 'NPMAX_DP,NTHMAX_DP,NRMAX_DP,NSAMAX_DP,'
 
     WRITE(6,*) 'MODELI,KFNAME,KFNAMA,KFNAMF,KFNAMB,KNAMWG,'
@@ -197,7 +196,7 @@ CONTAINS
     WRITE(6,*) 'sort_weight_x,sort_weight_y,'
     WRITE(6,*) 'delr,delz,bdrmin,bdrmax,bdzmin,bdzmax,'
     WRITE(6,*) 'ngxmax,ngymax,ngvmax,gaspect,nxzone_max,nyzone_max,'
-    WRITE(6,*) 'tolerance,idebuga'
+    WRITE(6,*) 'tolerance'
     RETURN
   END SUBROUTINE wf_namelist
 
@@ -390,83 +389,87 @@ SUBROUTINE wfparm_broadcast
   ddata(2) =xdiv_max
   ddata(3) =ydiv_min
   ddata(4) =ydiv_max
-  ddata(5) =delx
-  ddata(6) =dely
+  ddata(5) =del_xdiv
+  ddata(6) =del_ydiv
   ddata(7) =rdiv_min
   ddata(8) =rdiv_max
   ddata(9) =thdiv_min
   ddata(10) =thdiv_max
-  ddata(11) =RF
-  ddata(12) =RKZ
-  ddata(13) =xwg_min
-  ddata(14) =xwg_max
-  ddata(15) =ywg_min
-  ddata(16) =ywg_max
-  ddata(17) =phase_wg_min
-  ddata(18) =phase_wg_cen
-  ddata(19) =phase_wg_max
-  ddata(20)=amp_wg
-  ddata(21)=angle_wg
-  ddata(22)=ellip_wg
-  ddata(23)=xdamp_min
-  ddata(24)=xdamp_max
-  ddata(25)=ydamp_min
-  ddata(26)=ydamp_max
-  ddata(27)=thdamp_min
-  ddata(28)=thdamp_max
-  ddata(29)=width_damp
-  ddata(30)=factor_damp
-  ddata(31)=factor_coll_enhance
-  ddata(32)=xpos_coll_enhance
-  ddata(33)=xwidth_coll_enhance
-  ddata(34)=ypos_coll_enhance
-  ddata(35)=ywidth_coll_enhance
-  ddata(36)=sort_weight_x
-  ddata(37)=sort_weight_y
-  ddata(38)=gaspect
-  ddata(39)=tolerance
+  ddata(11) =del_rdiv
+  ddata(12) =del_thdiv
+  ddata(13) =RF
+  ddata(14) =RKZ
+  ddata(15) =xwg_min
+  ddata(16) =xwg_max
+  ddata(17) =ywg_min
+  ddata(18) =ywg_max
+  ddata(19) =phase_wg_min
+  ddata(20) =phase_wg_cen
+  ddata(21) =phase_wg_max
+  ddata(22)=amp_wg
+  ddata(23)=angle_wg
+  ddata(24)=ellip_wg
+  ddata(25)=xdamp_min
+  ddata(26)=xdamp_max
+  ddata(27)=ydamp_min
+  ddata(28)=ydamp_max
+  ddata(29)=thdamp_min
+  ddata(30)=thdamp_max
+  ddata(31)=width_damp
+  ddata(32)=factor_damp
+  ddata(33)=factor_coll_enhance
+  ddata(34)=xpos_coll_enhance
+  ddata(35)=xwidth_coll_enhance
+  ddata(36)=ypos_coll_enhance
+  ddata(37)=ywidth_coll_enhance
+  ddata(38)=sort_weight_x
+  ddata(39)=sort_weight_y
+  ddata(40)=gaspect
+  ddata(41)=tolerance
 
-  call mtx_broadcast_real8(ddata,39)
+  call mtx_broadcast_real8(ddata,41)
   
   xdiv_min=ddata(1)
   xdiv_max=ddata(2)
   ydiv_min=ddata(3)
   ydiv_max=ddata(4)
-  delx=ddata(5)
-  dely=ddata(6)
+  del_xdiv=ddata(5)
+  del_ydiv=ddata(6)
   rdiv_min=ddata(7)
   rdiv_max=ddata(8)
   thdiv_min=ddata(9)
   thdiv_max=ddata(10)
-  RF=ddata(11)
-  RKZ=ddata(12)
-  xwg_min=ddata(13)
-  xwg_max=ddata(14)
-  ywg_min=ddata(15)
-  ywg_max=ddata(16)
-  phase_wg_min=ddata(17)
-  phase_wg_cen=ddata(18)
-  phase_wg_max=ddata(19)
-  amp_wg=ddata(20)
-  angle_wg=ddata(21)
-  ellip_wg=ddata(21)
-  xdamp_min=ddata(23)
-  xdamp_max=ddata(24)
-  ydamp_min=ddata(25)
-  ydamp_max=ddata(26)
-  thdamp_min=ddata(27)
-  thdamp_max=ddata(28)
-  width_damp=ddata(29)
-  factor_damp=ddata(30)
-  factor_coll_enhance=ddata(31)
-  xpos_coll_enhance=ddata(32)
-  xwidth_coll_enhance=ddata(33)
-  ypos_coll_enhance=ddata(34)
-  ywidth_coll_enhance=ddata(35)
-  sort_weight_x=ddata(36)
-  sort_weight_y=ddata(37)
-  gaspect=ddata(38)
-  tolerance=ddata(39)
+  del_rdiv=ddata(11)
+  del_thdiv=ddata(12)
+  RF=ddata(13)
+  RKZ=ddata(14)
+  xwg_min=ddata(15)
+  xwg_max=ddata(16)
+  ywg_min=ddata(17)
+  ywg_max=ddata(18)
+  phase_wg_min=ddata(19)
+  phase_wg_cen=ddata(20)
+  phase_wg_max=ddata(21)
+  amp_wg=ddata(22)
+  angle_wg=ddata(23)
+  ellip_wg=ddata(24)
+  xdamp_min=ddata(25)
+  xdamp_max=ddata(26)
+  ydamp_min=ddata(27)
+  ydamp_max=ddata(28)
+  thdamp_min=ddata(29)
+  thdamp_max=ddata(30)
+  width_damp=ddata(31)
+  factor_damp=ddata(32)
+  factor_coll_enhance=ddata(33)
+  xpos_coll_enhance=ddata(34)
+  xwidth_coll_enhance=ddata(35)
+  ypos_coll_enhance=ddata(36)
+  ywidth_coll_enhance=ddata(37)
+  sort_weight_x=ddata(38)
+  sort_weight_y=ddata(39)
+  gaspect=ddata(40)
+  tolerance=ddata(41)
 
   call mtx_broadcast_real8(AJ,nant_max)
   call mtx_broadcast_real8(APH,nant_max)
@@ -490,7 +493,7 @@ SUBROUTINE wfparm_broadcast
   call mtx_broadcast_real8(thmin_nmed,nmed_max)
   call mtx_broadcast_real8(thmax_nmed,nmed_max)
   
-  call mtx_broadcast_integer(idebuga,idebuga_max)
+  call mtx_broadcast_integer(idebug_wf,idebug_wfm)
 
 ! ------ broadcast character ------
 

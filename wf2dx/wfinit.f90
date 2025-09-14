@@ -39,8 +39,8 @@ CONTAINS
     ydiv_min=0.D0
     ydiv_max=1.D0
 
-    delx=0.01D0  ! typical division length
-    dely=0.01D0  ! typical division length
+    del_xdiv=0.01D0  ! typical division length
+    del_ydiv=0.01D0  ! typical division length
 
     ! --- model shape = 2 (circular) --- DEFINED in plcomm
 
@@ -55,6 +55,9 @@ CONTAINS
     rdiv_max=4.5D0
     thdiv_min=0.D0
     thdiv_max=90.D0
+
+    del_rdiv=0.03D0
+    del_thdiv=10.D0
 
     ! === magnetic field parameter ===
 
@@ -354,8 +357,8 @@ CONTAINS
     ! --- idebuga( 3) : wg e-field output ---
     ! --- idebuga( 4) : wfindex
 
-    DO id=1,idebuga_max
-       idebuga(id)=0
+    DO id=1,idebug_wfm
+       idebug_wf(id)=0
     END DO
 
     RETURN

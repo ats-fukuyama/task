@@ -7,7 +7,8 @@ PROGRAM task_wr_standalone
        core_profiles_ids, &
        ec_launchers_ids, &
        waves_ids
-  USE f90_file_reader, ONLY: file2buffer
+  USE f90_file_reader, ONLY: &
+       file2buffer
   USE codeparam_task_wr
   IMPLICIT NONE
   TYPE(ids_parameter_input):: codeparam_task_wr

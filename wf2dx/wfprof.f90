@@ -267,7 +267,7 @@ SUBROUTINE WFSDEN0(R,Z,RN,RTPR,RTPP,RZCL)
 
   ! --- set DENSITY
 
-  SELECT CASE(MODELN)
+  SELECT CASE(model_prof)
   CASE(0)
      DO ns=1,nsmax
         rn(ns)=pn_corner(1,ns) &
@@ -323,7 +323,7 @@ SUBROUTINE WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
         RTPR(NS)=(PTPR(NS)-PTS(NS))*(1.D0-PSI)+PTS(NS)
         RTPP(NS)=(PTPP(NS)-PTS(NS))*(1.D0-PSI)+PTS(NS)
      ELSE
-        IF(MODELN.EQ.0) THEN
+        IF(model_prof.EQ.0) THEN
            RN(NS)=0.D0
         ELSE
            RN(NS)=PNS(NS)

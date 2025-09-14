@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../make.header
 include ../mtxp/make.mtxp
-LIB_MTX=$(LIB_MTX_BND)
-LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_BND)
+#LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIB_MTX_PCG)
 #LIBX_MTX=$(LIBX_MTX_PCG)
 #LIB_MTX=$(LIB_MTX_MUMPS)
@@ -23,7 +23,7 @@ FFLAGS=$(OFLAGS)
 
 MODINCLUDE= -I $(MOD) -I../pl/$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) 
 
-SRCS = dpcomm.f90 dpinit.f90 dpfpin.f90 dpparm.f90 dpsub.f90  \
+SRCS = dpcomm.f90 dpinit.f90 dpfpin.f90 dpparm.f90 dpprep.f90 dpsub.f90  \
        dphotf.f90 dphotr.f90 \
        dptnsb1.f90 \
        dptnsr1.f90 dptnsr2.f90 dptnsr3.f90 dptnsr4.f90 dptnsr0.f90 \
@@ -85,6 +85,7 @@ PLPROF=../pl/plprof.f90 ../pl/plprofw.f90
 dpcomm.o: dpcomm.f90 ../pl/plcomm.f90
 dpinit.o: dpinit.f90 $(DPCOMM)
 dpparm.o: dpparm.f90 $(DPCOMM)
+dpprep.o: dpparm.f90 $(DPCOMM)
 dproot.o: dproot.f90 $(DPCOMM)
 dpcont.o: dpcont.f90 $(DPCOMM) $(PLPROF)
 dpcont4.o: dpcont4.f90 $(DPCOMM) $(PLPROF)

@@ -264,25 +264,25 @@ CONTAINS
                      END IF
                   END IF
 !                  IF(NSTN.EQ.0) THEN
-!                     IF(RN(NR,NSM).LT.1.D-70) THEN
-!                        RT(NR,NSM) = 0.D0
+!                     IF(RN(NR,NSMAX).LT.1.D-70) THEN
+!                        RT(NR,NSMAX) = 0.D0
 !                     ELSE
-!                        IF(NSSN.NE.NSM) THEN
+!                        IF(NSSN.NE.NSMAX) THEN
 !                           RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
 !                        ELSE
-!                           RT(NR,NSM) = XV(NEQ,NR)/RN(NR,NSM)
+!                           RT(NR,NSMAX) = XV(NEQ,NR)/RN(NR,NSMAX)
 !                        ENDIF
 !                     ENDIF
 !                  ELSE
-!                     IF(RN(NR,NSM).LT.1.D-70) THEN
-!                        RT(NR,NSM) = 0.03D0
+!                     IF(RN(NR,NSMAX).LT.1.D-70) THEN
+!                        RT(NR,NSMAX) = 0.03D0
 !                     ELSE
-!                        IF(NSSN.NE.NSM) THEN
+!                        IF(NSSN.NE.NSMAX) THEN
 !                           RT(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
 !                                +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSSN)
 !                        ELSE
-!                           RT(NR,NSM) = 0.5D0*(XV(NEQ,NR) &
-!                                +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSM)
+!                           RT(NR,NSMAX) = 0.5D0*(XV(NEQ,NR) &
+!                                +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSMAX)
 !                        ENDIF
 !                     ENDIF
                   IF(RT(NR,NSSN).LE.0.D0) THEN
@@ -312,6 +312,12 @@ CONTAINS
          DO NF=1,NFMAX
             RW(NR,NF)  = 0.5D0*(YV(NF,NR)+Y(NF,NR))
          END DO
+!         IF(NR.LE.2) THEN
+!            DO NF=1,NFMAX
+!               WRITE(26,'(A12,I4,I3,I3,9X,3ES12.4)') 'YV Y RW:    ', &
+!                    NT,NR,NF,YV(NF,NR),Y(NF,NR),RW(NR,NF)
+!            END DO
+!         END IF
       ENDDO
 
 6000  CONTINUE
@@ -337,31 +343,6 @@ CONTAINS
  4000 T=T+DT
       VSEC=VSEC+VLOOP*DT
       RIP=RIP+DIPDT*DT
-
-      IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
-
-!     calculate plasma current at next time from interpolating data
-
-         TSL=T
-         CALL TIMESPL(TSL,RIP,TMU1,RIPU,NTXMAX1,NTUM,IERR)
-         IF(MDLEQB.NE.0) THEN
-
-!     calculate poloidal flux (derivative) of uncalculated region
-!     i.e. rho < rhoa
-
-            IF(RHOA.NE.1.D0) NRMAX=NROMAX
-            DO NR=NRAMAX+1,NRMAX
-               CALL TIMESPL(TSL,AJL,TMU,AJU(1:NTUM,NR),NTXMAX,NTUM,IERR)
-               AJ(NR)=AJL
-               FACTOR0=RMU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
-               FACTORM=ABVRHOG(NR-1)/TTRHOG(NR-1)
-               FACTORP=ABVRHOG(NR  )/TTRHOG(NR  )
-               RDPVRHOG(NR)=(FACTOR0*DR+FACTORM*RDPVRHOG(NR-1))/FACTORP
-               RDP(NR)=RDPVRHOG(NR)*DVRHOG(NR)
-            ENDDO
-            IF(RHOA.NE.1.D0) NRMAX=NRAMAX
-         ENDIF
-      ENDIF
 
 !     /* Making new XV(NEQ,NR) and YV(NF,NR) */
       DO NEQ=1,NEQMAX
@@ -435,6 +416,7 @@ CONTAINS
       INTEGER,INTENT(OUT) :: IERR
       integer:: IDGLOB
 
+
       CALL TRCALC(IERR)
       IF(IERR.ne.0) RETURN
 
@@ -473,7 +455,7 @@ CONTAINS
       IMPLICIT NONE
       INTEGER, INTENT(INOUT):: NEQRMAX
       INTEGER:: KL, MV, MVV, MW, MWMAX, NEQ, NEQ1, NR
-      INTEGER:: NS, NS1, NSTN, NSW, NV, NW, NNB, NNF
+      INTEGER:: NS, NS1, NSTN, NSW, NV, NW, NNB, NNF, NF
       REAL(rkind)   :: ADV, C1, COEF, COULOG, DV53, FADV, PRV, RDPA, RLP
 
 ! Boundary condition for magnetic diffusion equation
@@ -490,9 +472,6 @@ CONTAINS
             ENDIF
             RLP=RA*(LOG(8.D0*RR/RA)-2.D0)
             RDPS= RDPA -4.D0*PI*PI*RMU0*RA*DVRHOG(NRMAX)/(RLP*ABVRHOG(NRMAX))
-         ENDIF
-         IF(MDLUF.NE.0) THEN
-            RDPS=2.D0*PI*RMU0*RIPA*1.D6*DVRHOG(NRMAX)/ABVRHOG(NRMAX)
          ENDIF
       ENDIF
 
@@ -576,16 +555,21 @@ CONTAINS
 
 !     ***** Evolution of fast ion components *****
 
-      DO NNB=1,NNBMAX
-         Y(NNB,NR)=(1.D0-PRV/TAUB(NNB,NR))*YV(NNB,NR) &
-              +PNB_NNBNR(NNB,NR)*DT/(RKEV*1.D20)
-         AY(NNB,NR)=1.D0+ADV/TAUB(NNB,NR)
-      END DO
-      DO NNF=1,NNFMAX
-         Y(NNBMAX+NNF,NR)=(1.D0-PRV/TAUF(NNF,NR))*YV(NNBMAX+NNF,NR) &
-              +PNF_NNFNR(NNF,NR)*DT/(RKEV*1.D20)
-         AY(NNBMAX+NNF,NR)=1.D0+ADV/TAUF(NNF,NR)
-      END DO
+         DO NNB=1,NNBMAX
+            Y(NNB,NR)=(1.D0-PRV/TAUB(NNB,NR))*YV(NNB,NR) &
+                 +PNB_NNBNR(NNB,NR)*DT/(RKEV*1.D20)
+            AY(NNB,NR)=1.D0+ADV/TAUB(NNB,NR)
+         END DO
+         
+         DO NNF=1,NNFMAX
+            Y(NNBMAX+NNF,NR)=(1.D0-PRV/TAUF(NNF,NR))*YV(NNBMAX+NNF,NR) &
+                 +PNF_NSNNFNR(NS_NNF(NNF),NNF,NR)*DT/(RKEV*1.D20)
+            AY(NNBMAX+NNF,NR)=1.D0+ADV/TAUF(NNF,NR)
+!            IF(NR.LE.2) &
+!                 WRITE(26,'(A12,I4,I3,4ES12.4)') 'YV,PNF,Y,AY:',NT,NR, &
+!                 YV(NNBMAX+NNF,NR),PNF_NNFNR(NNF,NR),Y(NNBMAX+NNF,NR), &
+!                 AY(NNBMAX+NNF,NR)
+         END DO
       
       IF(MDLTC.NE.0) THEN
          DO NS=1,NSMAX
@@ -649,13 +633,17 @@ CONTAINS
 
          DO NNB=1,NNBMAX
             Y(NNB,NR)=(1.D0-PRV/TAUB(NNB,NR))*YV(NNB,NR) &
-                 +PNB_NSNNBNR(NS_NNB(NNB),NNB,NR)*DT/(RKEV*1.D20)
+                 +PNB_NNBNR(NNB,NR)*DT/(RKEV*1.D20)
             AY(NNB,NR)=1.D0+ADV/TAUB(NNB,NR)
          END DO
          DO NNF=1,NNFMAX
             Y(NNBMAX+NNF,NR)=(1.D0-PRV/TAUF(NNF,NR))*YV(NNBMAX+NNF,NR) &
                  +PNF_NSNNFNR(NS_NNF(NNF),NNF,NR)*DT/(RKEV*1.D20)
             AY(NNBMAX+NNF,NR)=1.D0+ADV/TAUF(NNF,NR)
+!            IF(NR.LE.2) &
+!                 WRITE(26,'(A12,I4,I3,4ES12.4)') 'YV,PNF,Y,AY:',NT,NR, &
+!                 YV(NNBMAX+NNF,NR),PNF_NNFNR(NNF,NR),Y(NNBMAX+NNF,NR), &
+!                 AY(NNBMAX+NNF,NR)
          END DO
 
          IF(MDLTC.NE.0) THEN
@@ -722,7 +710,7 @@ CONTAINS
 
       DO NNB=1,NNBMAX
          Y(NNB,NR)=(1.D0-PRV/TAUB(NNB,NR))*YV(NNB,NR) &
-              +PNB_NSNNBNR(NS_NNB(NNB),NNB,NR)*DT/(RKEV*1.D20)
+              +PNB_NNBNR(NNB,NR)*DT/(RKEV*1.D20)
          AY(NNB,NR)=1.D0+ADV/TAUB(NNB,NR)
       END DO
       DO NNF=1,NNFMAX
@@ -1121,16 +1109,16 @@ CONTAINS
 !                        RT(NR,NSSN)=-RT(NR,NSSN)
                      END IF
                   END IF
-!                  IF(NSSN.NE.NSM) THEN
+!                  IF(NSSN.NE.NSMAX) THEN
 !                     RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
 !                  ELSE
-!                     IF(RN(NR,NSM).LT.1.D-70) THEN
-!                        RT(NR,NSM) = 0.D0
+!                     IF(RN(NR,NSMAX).LT.1.D-70) THEN
+!                        RT(NR,NSMAX) = 0.D0
 !                     ELSE
-!                        IF(RN(NR,NSM).LT.1.D-70) THEN
-!                           RT(NR,NSM)=0.03D0
+!                        IF(RN(NR,NSMAX).LT.1.D-70) THEN
+!                           RT(NR,NSMAX)=0.03D0
 !                        ELSE
-!                           RT(NR,NSM) = XV(NEQ,NR)/RN(NR,NSM)
+!                           RT(NR,NSMAX) = XV(NEQ,NR)/RN(NR,NSMAX)
 !                        END IF
 !                     END IF
 !                  END IF

@@ -421,6 +421,8 @@ SUBROUTINE CVSOLV
   IF(nrank.EQ.0) write(6,*) 'wfsolv: reduction started'
   NNZME=1
   DO NNZ=2,NNZMAX
+!     WRITE(6,'(A,4I12)') 'NNZ,NSEQ,NNZME,NSEQ=', &
+!          NNZ,NSEQ(NNZ),NNZME,NSEQ(NNZME)
      IF(NSEQ(NNZ).EQ.NSEQ(NNZME)) THEN
         CEQP(NNZME)=CEQP(NNZME)+CEQP(NNZ)
      ELSE

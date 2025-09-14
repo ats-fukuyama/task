@@ -142,7 +142,7 @@ SUBROUTINE WFINFO
   use wfcomm
   USE libchar
   implicit none
-  integer   :: IE,I,IN,NN,NE,NSF,IB,IA,IS,IN1,IN2,IN3,IDEBUGS,L
+  integer   :: IE,I,IN,NN,NE,NSRF,IB,IA,IS,IN1,IN2,IN3,IDEBUGS,L
   real(8)   :: RND,X,Y,Z
   character :: KID*1
 
@@ -182,12 +182,12 @@ SUBROUTINE WFINFO
                 end if
              end do
           end do
-          do NSF=1,NSFMAX
+          do NSRF=1,NSRFMAX
              do IN=1,3
-                if(NDSRF(IN,NSF).eq.NN) then
-                   WRITE(6,'(A,6I8)') '   NSF,IN,KN,ND=',&
-                                          NSF,IN,KNSRF(IN,NSF),&
-                             NDSRF(1,NSF),NDSRF(2,NSF),NDSRF(3,NSF)
+                if(NDSRF(IN,NSRF).eq.NN) then
+                   WRITE(6,'(A,6I8)') '   NSRF,IN,KN,ND=',&
+                                          NSRF,IN,KNSRF(IN,NSRF),&
+                             NDSRF(1,NSRF),NDSRF(2,NSRF),NDSRF(3,NSRF)
                 end if
              end do
           end do

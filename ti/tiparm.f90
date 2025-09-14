@@ -75,7 +75,7 @@ CONTAINS
            NPA,PM,PZ,PN,PNS,PT,PTS,PU,PUS, &
            ID_NS,NZMIN_NS,NZMAX_NS,NZINI_NS,KID_NS, &
            PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
-           MODELG,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF, &
+           MODELG,model_prof,MODELQ,MODEL_PROF,MODEL_NPROF, &
            KNAMEQ,KNAMEQ2,KNAMTR, &
            PT,PROFJ1,PROFJ2,DT, &
            NRMAX,NTMAX,NTSTEP,NGTSTEP,NGRSTEP, &
@@ -127,7 +127,7 @@ CONTAINS
       WRITE(6,'(A)') '        NPA,PM,PZ,PN,PNS,PT,PTS,PU,PUS,'
       WRITE(6,'(A)') '        ID_NS,NZMIN_NS,NZMAX_NS,NZINI_NS,KID_NS,'
       WRITE(6,'(A)') '        PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'
-      WRITE(6,'(A)') '        MODELG,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF,'
+      WRITE(6,'(A)') '        MODELG,model_prof,MODELQ,MODEL_PROF,MODEL_NPROF,'
       WRITE(6,'(A)') '        KNAMEQ,KNAMEQ2,KNAMTR,'
       WRITE(6,'(A)') '        PT,PROFJ1,PROFJ2,DT,'
       WRITE(6,'(A)') '        NRMAX,NTMAX,NTSTEP,NGTSTEP,NGRSTEP,'
@@ -216,7 +216,7 @@ CONTAINS
       WRITE(6,601) 'EPSLOOP     ',EPSLOOP, &
                    'EPSMAT      ',EPSMAT
       WRITE(6,602) 'MODELG      ',MODELG, &
-                   'MODELN      ',MODELN, &
+                   'model_prof  ',model_prof, &
                    'MODELQ      ',MODELQ, &
                    'MODEL_NPROF ',MODEL_NPROF
       WRITE(6,602) 'NTMAX       ',NTMAX, &
@@ -348,7 +348,7 @@ CONTAINS
 
       idata( 1)=NSMAX
       idata( 2)=MODELG
-      idata( 3)=MODELN
+      idata( 3)=model_prof
       idata( 4)=MODELQ
       idata( 5)=IDEBUG
       idata( 6)=MODEFR
@@ -359,7 +359,7 @@ CONTAINS
       CALL mtx_broadcast_integer(idata,9)
       NSMAX =idata( 1)
       MODELG=idata( 2)
-      MODELN=idata( 3)
+      model_prof=idata( 3)
       MODELQ=idata( 4)
       IDEBUG=idata( 5)
       MODEFR=idata( 6)

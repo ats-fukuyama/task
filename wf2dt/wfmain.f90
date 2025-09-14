@@ -34,7 +34,6 @@ program wfmain
   ! --- initialize ---
   call mtx_initialize
   call allocate_init
-  iddiv=0
 
   if(nrank.eq.0) then
      write(6,*) '## TASK/WF2  V1.0  2011/12/30 ###'

@@ -12,8 +12,9 @@
       IMPLICIT NONE
       INTEGER:: NEQ, NF, NMK, NR, NRL, NS, NSSN, NSSN1, NSVN, NSVN1, NSW, NW
       INTEGER:: NNB,NNF
-      REAL(rkind)   :: ANFSUM, C83, DRH, DV53, PAI, PLST, RNSUM, RNTSUM, &
+      REAL(rkind)   :: ANFSUM, C83, DRH, DV53, PMI, PLST, RNSUM, RNTSUM, &
            & RTSUM, RWSUM, SLST, SUMM, SUML, SUMP, VOL, WPOL
+      REAL(rkind):: ANSUM,PMSUM
       REAL(rkind),DIMENSION(NRMAX):: DSRHO
 
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
@@ -30,7 +31,7 @@
       SUMP=0.D0
       VOL =0.D0
       DO NR=1,NRMAX-1
-         SUML = (SUM(RN(NR,1:NSM)*RT(NR,1:NSM))  &
+         SUML = (SUM(RN(NR,1:NSMAX)*RT(NR,1:NSMAX))  &
                + SUM(RW(NR,1:NFMAX)))*RKEV*1.D20
 
 !!         DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RMJRHO(NR))
@@ -46,7 +47,7 @@
       ENDDO
 
       NR=NRMAX
-      SUML = (SUM(RN(NR,1:NSM)*RT(NR,1:NSM)) &
+      SUML = (SUM(RN(NR,1:NSMAX)*RT(NR,1:NSMAX)) &
             + SUM(RW(NR,1:NFMAX)))*RKEV*1.D20
 
 !!         DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RMJRHO(NR))
@@ -78,7 +79,7 @@
 !     *** Stored energy                           ***
 
 !     +++ for electron and bulk ions +++
-      DO NS=1,NSM
+      DO NS=1,NSMAX
          RNSUM = SUM(RN(1:NRMAX,NS)*DVRHO(1:NRMAX))
          RTSUM = SUM(RN(1:NRMAX,NS)*RT(1:NRMAX,NS)*DVRHO(1:NRMAX))
          ANSAV(NS) = RNSUM*DR/VOL
@@ -93,31 +94,6 @@
       ENDDO
 
 !     +++ for fast particles +++
-      IF(MDLUF.NE.0) THEN
-         ANFSUM = SUM(RNF(1:NRMAX,1)*DVRHO(1:NRMAX))
-         RNTSUM = SUM(RNF(1:NRMAX,1)*RT(1:NRMAX,2)*DVRHO(1:NRMAX))
-         RWSUM  = SUM(PBM(1:NRMAX)  *DVRHO(1:NRMAX))
-         NF=1
-            WFT(NF) = RWSUM*DR*1.D-6-1.5D0*RNTSUM*DR*RKEV*1.D14
-            ANFAV(NF) = ANFSUM*DR/VOL
-            ANF0(NF)  = FCTR(RM(1),RM(2),RNF(1,1),RNF(2,1))
-            IF(ANFSUM.GT.0.D0) THEN
-               TFAV(NF)  = RWSUM/(RKEV*1.D20)/ANFSUM
-            ELSE
-               TFAV(NF)  = 0.D0
-            ENDIF
-            IF(RNF(1,1).GT.0.D0) THEN
-               TF0(NF)  = FCTR(RM(1),RM(2),PBM(1),PBM(2))/(RKEV*1.D20)/ANF0(NF)
-            ELSE
-               TF0(NF)  = 0.D0
-            ENDIF
-         NF=2
-            WFT(NF) = 0.D0
-            ANFAV(NF) = 0.D0
-            ANF0(NF)  = 0.D0
-            TFAV(NF)  = 0.D0
-            TF0(NF)   = 0.D0
-      ELSE
          DO NF=1,NFMAX
             ANFSUM=0.D0
             RWSUM=0.D0
@@ -139,11 +115,10 @@
                TF0(NF)  = 0.D0
             ENDIF
          ENDDO
-      ENDIF
 
 !     *** Line-averaged densities ***
 
-      DO NS=1,NSM
+      DO NS=1,NSMAX
          ANLAV(NS)=SUM(RN(1:NRMAX,NS))*DR
       ENDDO
 
@@ -170,13 +145,13 @@
 
 !     *** External power typically for NBI from exp. data ***
 
-      DO NS=1,NSM
+      DO NS=1,NSMAX
          PEXT(NS) = SUM(PEX(1:NRMAX,NS)*DVRHO(1:NRMAX))*DR/1.D6
       ENDDO
 
 !     *** RF power ***
 
-      DO NS=1,NSM
+      DO NS=1,NSMAX
          PRFVT(NS,1) = SUM(PRFV(1:NRMAX,NS,1)*DVRHO(1:NRMAX))*DR/1.D6
          PRFVT(NS,2) = SUM(PRFV(1:NRMAX,NS,2)*DVRHO(1:NRMAX))*DR/1.D6
          PRFVT(NS,3) = SUM(PRFV(1:NRMAX,NS,3)*DVRHO(1:NRMAX))*DR/1.D6
@@ -185,17 +160,9 @@
 
 !     *** Total NBI power distributed on electrons and bulk ions ***
 
-      PNBINT=0.D0
-      DO NNB=1,NNBMAX
-         PNBINT = PNBINT &
-              +SUM(PNBIN_NNBNR(NNB,1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
-      END DO
+      PNBINT=PNBT
       DO NS=1,NSMAX
-         PNBCLT(NS)=0.D0
-         DO NNB=1,NNBMAX
-            PNBCLT(NS) = PNBCLT(NS) &
-                 +SUM(PNBCL_NSNNBNR(NS,NNB,1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
-         ENDDO
+         PNBCLT(NS)=PNBCL_NS(NS)
       END DO
 
 !     *** Total RF power distributed on electrons and bulk ions ***
@@ -291,17 +258,17 @@
 
 !     *** Pellet injection fuelling ***
 
-      DO NS=1,NSM
+      DO NS=1,NSMAX
          SPET(NS) = SUM(SPE(1:NRMAX,NS)*DVRHO(1:NRMAX))*DR/RKAP
       ENDDO
 
 !     *** Input and output sources and powers ***
 
-      WBULKT=SUM(WST(1:NSM))
-      PEXST =SUM(PEXT(1:NSM))
-      PRFST =SUM(PRFT(1:NSM))
-      PLST  =SUM(PLT(1:NSM))
-      SLST  =SUM(SLT(1:NSM))
+      WBULKT=SUM(WST(1:NSMAX))
+      PEXST =SUM(PEXT(1:NSMAX))
+      PRFST =SUM(PRFT(1:NSMAX))
+      PLST  =SUM(PLT(1:NSMAX))
+      SLST  =SUM(SLT(1:NSMAX))
       WTAILT=SUM(WFT(1:NFMAX))
 
       WPT =WBULKT+WTAILT
@@ -337,13 +304,24 @@
 !        TAUE98: IPB98(y,2) H-mode scaling with ELMs
 !        H98Y2: H-mode factor
 
-!     volume-averaged isotopic mass number
-      PAI = (PA(2)*ANSAV(2)+PA(3)*ANSAV(3)+PA(4)*ANSAV(4))  /(ANSAV(2)+ANSAV(3)+ANSAV(4))
+      !     volume-averaged isotopic mass number
+      PMSUM=0.D0
+      ANSUM=0.D0
+      DO NS=1,NSMAX
+         IF(ID_NS(NS).EQ.1) THEN ! ion only
+            PMSUM=PMSUM+PA(NS)*ANSAV(NS)
+            ANSUM=ANSUM+ANSAV(NS)
+         END IF
+      END DO
+      PMI=PMSUM/ANSUM
 
-      TAUE89=4.8D-2*(ABS(RIP)**0.85D0)    *(RR**1.2D0) *(RA**0.3D0)  *(RKAP**0.5D0) &
-     &             *(ANLAV(1)**0.1D0)*(ABS(BB)**0.2D0) *(PAI**0.5D0) *(PINT**(-0.5D0))
-      TAUE98=0.145D0*(ABS(RIP)**0.93D0)   *(RR**1.39D0)*(RA**0.58D0) *(RKAP**0.78D0) &
-     &            *(ANLAV(1)**0.41D0)*(ABS(BB)**0.15D0)*(PAI**0.19D0)*(PINT**(-0.69D0))
+      TAUE89=4.8D-2*(ABS(RIP)**0.85D0)*(RR**1.2D0)*(RA**0.3D0)*(RKAP**0.5D0) &
+           *(ANLAV(1)**0.1D0)*(ABS(BB)**0.2D0)*(PMI**0.5D0) &
+           *(PINT**(-0.5D0))
+      TAUE98=0.145D0*(ABS(RIP)**0.93D0)*(RR**1.39D0)*(RA**0.58D0) &
+           *(RKAP**0.78D0) &
+           *(ANLAV(1)**0.41D0)*(ABS(BB)**0.15D0)*(PMI**0.19D0) &
+           *(PINT**(-0.69D0))
       H98Y2=TAUE2/TAUE98
 
 !     *** Fusion production rate ***
@@ -425,17 +403,17 @@
       GVT(NGT,20) = GUCLIP(WST(4))
 
       IF(NFMAX.GT.0) THEN
-         GVT(NGT,21) = GUCLIP(ANF0(1))
-         GVT(NGT,22) = GUCLIP(ANF0(2))
-         GVT(NGT,23) = GUCLIP(ANFAV(1))
-         GVT(NGT,24) = GUCLIP(ANFAV(2))
-         GVT(NGT,25) = GUCLIP(TF0(1))
-         GVT(NGT,26) = GUCLIP(TF0(2))
-         GVT(NGT,27) = GUCLIP(TFAV(1))
-         GVT(NGT,28) = GUCLIP(TFAV(2))
+         IF(NFMAX.GE.1) GVT(NGT,21) = GUCLIP(ANF0(1))
+         IF(NFMAX.GE.2) GVT(NGT,22) = GUCLIP(ANF0(2))
+         IF(NFMAX.GE.1) GVT(NGT,23) = GUCLIP(ANFAV(1))
+         IF(NFMAX.GE.2) GVT(NGT,24) = GUCLIP(ANFAV(2))
+         IF(NFMAX.GE.1) GVT(NGT,25) = GUCLIP(TF0(1))
+         IF(NFMAX.GE.2) GVT(NGT,26) = GUCLIP(TF0(2))
+         IF(NFMAX.GE.1) GVT(NGT,27) = GUCLIP(TFAV(1))
+         IF(NFMAX.GE.2) GVT(NGT,28) = GUCLIP(TFAV(2))
 
-         GVT(NGT,29) = GUCLIP(WFT(1))
-         GVT(NGT,30) = GUCLIP(WFT(2))
+         IF(NFMAX.GE.1) GVT(NGT,29) = GUCLIP(WFT(1))
+         IF(NFMAX.GE.2) GVT(NGT,30) = GUCLIP(WFT(2))
       END IF
       GVT(NGT,31) = GUCLIP(WBULKT)
       GVT(NGT,32) = GUCLIP(WTAILT)
@@ -590,9 +568,10 @@
          GVRT(NR,NGT,43) = GUCLIP(AJRFV(NR,2))
          GVRT(NR,NGT,44) = GUCLIP(AJRFV(NR,3))
 
-         IF(NFMAX.GT.0) THEN
-            GVRT(NR,NGT,45) = GUCLIP(RW(NR,1)+RW(NR,2))
-         END IF
+         GVRT(NR,NGT,45)=0.D0
+         IF(NFMAX.EQ.1) GVRT(NR,NGT,45) = GUCLIP(RW(NR,1))
+         IF(NFMAX.GE.2) GVRT(NR,NGT,45) = GUCLIP(RW(NR,1)+RW(NR,2))
+
          GVRT(NR,NGT,46) = GUCLIP(ANC(NR)+ANFE(NR))
          GVRT(NR,NGT,47) = GUCLIP(BP(NR))
          GVRT(NR,NGT,48) = GUCLIP(RPSI(NR))
@@ -1009,6 +988,13 @@
       ENDIF
       ENDIF
 
+      IF(KID.EQ.'11') THEN
+         WRITE(6,1681)T,TAUE1,TAUE2,TAUE89,PINT
+ 1681     FORMAT(' ','# TIME : ',F7.3,' SEC'/ &
+     &          ' ',3X,'TAUE1 =',1PD10.3,'  TAUE2 =',1PD10.3, &
+     &               '  TAUE89=',1PD10.3,'  PINT  =',1PD10.3)
+      ENDIF
+
       IF(KID.EQ.'9') THEN
          CALL TRDATA
       ENDIF
@@ -1127,431 +1113,6 @@
       RETURN
       END SUBROUTINE TRSNAP
 
-
-!     ***********************************************************
-
-!           SAVE PROFILE DATA
-
-!     ***********************************************************
-
-      SUBROUTINE TRXOUT
-
-        USE TRCOMM, ONLY : MDLUF,KXNDEV,KXNDCG,KXNID,KDIRW1,KDIRW2
-        IMPLICIT NONE
-        INTEGER:: IERR, IKDIRW, IKNDCG, IKNDEV, IKNID
-        CHARACTER(LEN=80):: KDIRW, KFID
-
-
-      KXNDEV='X'
-      KXNDCG='test'
-      KXNID ='in'
-
-      IKNDEV=len_trim(KXNDEV)
-      IKNDCG=len_trim(KXNDCG)
-      IKNID =len_trim(KXNID )
-      KDIRW='./profile_data/'//KXNDEV(1:IKNDEV)//'/' &
-     &                          //KXNDCG(1:IKNDCG)//'/' &
-     &                          //KXNID (1:IKNID )//'/'
-!      KDIRW='../../tr.new/data/'//KXNDEV(1:IKNDEV)//'/' &
-!     &                          //KXNDCG(1:IKNDCG)//'/' &
-!     &                          //KXNID (1:IKNID )//'/'
-!!      KDIRW='../../../profile/profile_data/'//KXNDEV(1:IKNDEV)//'/'
-!!     &                          //KXNDCG(1:IKNDCG)//'/'
-!!     &                          //KXNID (1:IKNID )//'/'
-      IKDIRW=len_trim(KDIRW)
-      KDIRW1=KDIRW(1:IKDIRW)//KXNDEV(1:IKNDEV) &
-     &       //'1d'//KXNDCG(1:IKNDCG)//'.'
-      KDIRW2=KDIRW(1:IKDIRW)//KXNDEV(1:IKNDEV) &
-     &       //'2d'//KXNDCG(1:IKNDCG)//'.'
-
-!     *** 1D DATA ***
-
-      KFID='IP'
-      CALL TR_UFILE1D_CREATE(KFID,34,1.D6 ,IERR)
-
-      KFID='DIRECT'
-      CALL TR_UFILE1D_CREATE(KFID, 2,1.D0 ,IERR)
-
-      KFID='DIRECT'
-      CALL TR_UFILE1D_CREATE(KFID, 3,1.D0 ,IERR)
-
-      KFID='DIRECT'
-      CALL TR_UFILE1D_CREATE(KFID, 4,1.D0 ,IERR)
-
-      KFID='DIRECT'
-      CALL TR_UFILE1D_CREATE(KFID, 5,1.D0 ,IERR)
-
-      KFID='DIRECT'
-      CALL TR_UFILE1D_CREATE(KFID, 6,1.D0 ,IERR)
-
-      IF(MDLUF.NE.0) THEN
-      KFID='DIRECT'
-      CALL TR_UFILE1D_CREATE(KFID, 8,1.D0 ,IERR)
-      ELSE
-      KFID='PNBI'
-      CALL TR_UFILE1D_CREATE(KFID,41,1.D0 ,IERR)
-      ENDIF
-
-      KFID='DIRECT'
-      CALL TR_UFILE1D_CREATE(KFID, 9,1.D0 ,IERR)
-
-      KFID='DIRECT'
-      CALL TR_UFILE1D_CREATE(KFID,10,1.D0 ,IERR)
-
-      KFID='DIRECT'
-      CALL TR_UFILE1D_CREATE(KFID,11,1.D0 ,IERR)
-
-      KFID='PRAD'
-      CALL TR_UFILE1D_CREATE(KFID,60,1.D0 ,IERR)
-
-      KFID='ZEFF'
-      CALL TR_UFILE1D_CREATE(KFID,86,1.D0 ,IERR)
-
-      KFID='VSURF'
-      CALL TR_UFILE1D_CREATE(KFID,74,1.D0 ,IERR)
-
-      KFID='LI'
-      CALL TR_UFILE1D_CREATE(KFID,75,1.D0 ,IERR)
-
-      KFID='WTH'
-      CALL TR_UFILE1D_CREATE(KFID,31,1.D6 ,IERR)
-
-      KFID='WTOT'
-      CALL TR_UFILE1D_CREATE(KFID,33,1.D6 ,IERR)
-
-      KFID='TE0'
-      CALL TR_UFILE1D_CREATE(KFID, 9,1.D3 ,IERR)
-
-      KFID='TI0'
-      CALL TR_UFILE1D_CREATE(KFID,10,1.D3 ,IERR)
-
-      KFID='DIRECT'
-      CALL TR_UFILE1D_CREATE(KFID,26,1.D0 ,IERR)
-
-      KFID='POHM'
-      CALL TR_UFILE1D_CREATE(KFID,40,1.D0 ,IERR)
-
-      KFID='IBOOT'
-      CALL TR_UFILE1D_CREATE(KFID,38,1.D6 ,IERR)
-
-      KFID='DIRECT'
-      CALL TR_UFILE1D_CREATE(KFID,29,1.D0 ,IERR)
-
-      KFID='PFUSION'
-      CALL TR_UFILE1D_CREATE(KFID,46,1.D0 ,IERR)
-
-!     *** 2D DATA ***
-
-      KFID='TE'
-      CALL TR_UFILE2D_CREATE(KFID, 1,1.D3 ,0,IERR)
-
-      KFID='TI'
-      CALL TR_UFILE2D_CREATE(KFID, 2,1.D3 ,0,IERR)
-
-      KFID='NE'
-      CALL TR_UFILE2D_CREATE(KFID, 5,1.D20,0,IERR)
-
-      IF(MDLUF.NE.0) THEN
-      KFID='QNBIE'
-      CALL TR_UFILE2D_CREATE(KFID,89,1.D0 ,0,IERR)
-      ENDIF
-
-      KFID='QICRHE'
-      CALL TR_UFILE2D_CREATE(KFID,38,1.D0 ,0,IERR)
-
-      KFID='QECHE'
-      CALL TR_UFILE2D_CREATE(KFID,36,1.D0 ,0,IERR)
-
-      KFID='QLHE'
-      CALL TR_UFILE2D_CREATE(KFID,37,1.D0 ,0,IERR)
-
-      IF(MDLUF.NE.0) THEN
-      KFID='QNBII'
-      CALL TR_UFILE2D_CREATE(KFID,90,1.D0 ,0,IERR)
-      ENDIF
-
-      KFID='QICRHI'
-      CALL TR_UFILE2D_CREATE(KFID,41,1.D0 ,0,IERR)
-
-      KFID='QECHI'
-      CALL TR_UFILE2D_CREATE(KFID,39,1.D0 ,0,IERR)
-
-      KFID='QLHI'
-      CALL TR_UFILE2D_CREATE(KFID,40,1.D0 ,0,IERR)
-
-      KFID='CURNBI'
-      CALL TR_UFILE2D_CREATE(KFID,11,1.D0 ,0,IERR)
-
-      KFID='CURICRH'
-      CALL TR_UFILE2D_CREATE(KFID,44,1.D0 ,0,IERR)
-
-      KFID='CURECH'
-      CALL TR_UFILE2D_CREATE(KFID,42,1.D0 ,0,IERR)
-
-      KFID='CURLH'
-      CALL TR_UFILE2D_CREATE(KFID,43,1.D0 ,0,IERR)
-
-      KFID='NFAST'
-      CALL TR_UFILE2D_CREATE(KFID,45,1.D20,0,IERR)
-
-      KFID='QRAD'
-      CALL TR_UFILE2D_CREATE(KFID,22,1.D0 ,0,IERR)
-
-      KFID='ZEFFR'
-      CALL TR_UFILE2D_CREATE(KFID,33,1.D0 ,0,IERR)
-
-      KFID='Q'
-      CALL TR_UFILE2D_CREATE(KFID,27,1.D0 ,1,IERR)
-
-      KFID='CHIE'
-      CALL TR_UFILE2D_CREATE(KFID,34,1.D0 ,1,IERR)
-
-      KFID='CHII'
-      CALL TR_UFILE2D_CREATE(KFID,35,1.D0 ,1,IERR)
-
-      KFID='NM1'
-      CALL TR_UFILE2D_CREATE(KFID, 6,1.D20,0,IERR)
-
-      KFID='CURTOT'
-      CALL TR_UFILE2D_CREATE(KFID, 9,1.D0 ,0,IERR)
-
-      KFID='NIMP'
-      CALL TR_UFILE2D_CREATE(KFID,46,1.D20,0,IERR)
-
-      KFID='QOHM'
-      CALL TR_UFILE2D_CREATE(KFID,15,1.D0 ,0,IERR)
-
-      KFID='BPOL'
-      CALL TR_UFILE2D_CREATE(KFID,47,1.D0 ,1,IERR)
-
-      KFID='RMAJOR'
-      CALL TR_UFILE2D_CREATE(KFID,49,1.D0 ,0,IERR)
-
-      KFID='RMINOR'
-      CALL TR_UFILE2D_CREATE(KFID,50,1.D0 ,0,IERR)
-
-      KFID='VOLUME'
-      CALL TR_UFILE2D_CREATE(KFID,51,1.D0 ,0,IERR)
-
-      KFID='KAPPAR'
-      CALL TR_UFILE2D_CREATE(KFID,52,1.D0 ,0,IERR)
-
-      KFID='DELTAR'
-      CALL TR_UFILE2D_CREATE(KFID,53,1.D0 ,0,IERR)
-
-      KFID='GRHO1'
-      CALL TR_UFILE2D_CREATE(KFID,54,1.D0 ,0,IERR)
-
-      KFID='GRHO2'
-      CALL TR_UFILE2D_CREATE(KFID,55,1.D0 ,0,IERR)
-
-      KFID='CURBS'
-      CALL TR_UFILE2D_CREATE(KFID,13,1.D0 ,0,IERR)
-
-      KFID='CHITBE'
-      CALL TR_UFILE2D_CREATE(KFID,56,1.D0 ,1,IERR)
-
-      KFID='CHITBI'
-      CALL TR_UFILE2D_CREATE(KFID,57,1.D0 ,1,IERR)
-
-      KFID='ETAR'
-      CALL TR_UFILE2D_CREATE(KFID,32,1.D0 ,0,IERR)
-
-      RETURN
-      END SUBROUTINE TRXOUT
-
-!     *****
-
-      SUBROUTINE TR_UFILE1D_CREATE(KFID,NUM,AMP,IERR)
-
-      USE TRCOMM, ONLY : BB, GVRT, GT, GVT, MDLUF, NGT, NRAMAX, NRMAX, NROMAX, NTM, RA, RG, RHOA, RKAP, RR, rkind
-      USE libspl1d
-      IMPLICIT NONE
-      CHARACTER(LEN=80),INTENT(INOUT):: KFID
-      INTEGER,INTENT(IN) :: NUM
-      REAL(rkind),   INTENT(IN) :: AMP
-      INTEGER,INTENT(OUT):: IERR
-      INTEGER:: ID, NTL, NTLMAX
-      REAL(rkind)   :: DATOUT, DTL, FQ95, TIN
-      REAL,DIMENSION(NTM)  :: GTL, GF1
-      REAL(rkind),DIMENSION(NTM)  :: TF, DGT, DIN, DERIV
-      REAL(rkind),DIMENSION(NRMAX)  :: F1, DERIVQ
-      REAL(rkind),DIMENSION(4,NTM):: UOUT
-      REAL(rkind),DIMENSION(4,NRMAX):: UQ95
-      CHARACTER(LEN=80)::KERRF
-      REAL :: GUCLIP
-
-      IF(KFID.EQ.'DIRECT') THEN
-         IF(NUM.EQ.2) THEN
-            KFID='BT'
-            TF(1:NGT)=BB
-         ELSEIF(NUM.EQ.3) THEN
-            KFID='AMIN'
-            TF(1:NGT)=RA
-         ELSEIF(NUM.EQ.4) THEN
-            KFID='RGEO'
-            TF(1:NGT)=RR
-         ELSEIF(NUM.EQ.5) THEN
-            KFID='KAPPA'
-            TF(1:NGT)=RKAP
-         ELSEIF(NUM.EQ.6) THEN
-            KFID='DELTA'
-            TF(1:NGT)=0.D0
-         ELSEIF(NUM.EQ.8) THEN
-            KFID='PNBI'
-            TF(1:NGT)=DBLE(GVT(1:NGT,89)+GVT(1:NGT,90))
-         ELSEIF(NUM.EQ.9) THEN
-            KFID='PECH'
-            TF(1:NGT)=DBLE(GVT(1:NGT,91)+GVT(1:NGT,92))
-         ELSEIF(NUM.EQ.10) THEN
-            KFID='PICRH'
-            TF(1:NGT)=DBLE(GVT(1:NGT,95)+GVT(1:NGT,96))
-         ELSEIF(NUM.EQ.11) THEN
-            KFID='PLH'
-            TF(1:NGT)=DBLE(GVT(1:NGT,93)+GVT(1:NGT,94))
-         ELSEIF(NUM.EQ.26) THEN
-            KFID='Q95'
-            ID=0
-            IF(MDLUF.NE.0.AND.NRMAX.NE.NROMAX) THEN
-               ID=1
-               NRMAX=NROMAX
-            ENDIF
-            DO NTL=1,NGT
-               F1(1:NRMAX)=DBLE(GVRT(1:NRMAX,NTL,27))
-               CALL SPL1D (RG,F1,DERIVQ,UQ95,NRMAX,0,IERR)
-               CALL SPL1DF(0.95D0,FQ95,RG,UQ95,NRMAX,IERR)
-               TF(NTL)=FQ95
-            ENDDO
-            IF(ID.NE.0) NRMAX=NRAMAX
-         ELSEIF(NUM.EQ.29) THEN
-            KFID='RHOA'
-            TF(1:NGT)=RHOA
-         ENDIF
-
-         DGT(1:NGT)=DBLE(GT(1:NGT))
-         DIN(1:NGT)=DBLE(TF(1:NGT))
-         DERIV(1:NGT)=0.D0
-      ELSE
-         DGT(1:NGT)=DBLE(GT(1:NGT))
-         DIN(1:NGT)=DBLE(GVT(1:NGT,NUM))
-         DERIV(1:NGT)=0.D0
-      ENDIF
-
-      CALL SPL1D(DGT,DIN,DERIV,UOUT,NGT,0,IERR)
-      IF(IERR.NE.0) THEN
-         IF(KFID.EQ.'DIRECT') THEN
-            WRITE(6,'(A,I2,A,I2)') 'XX TRXOUT: SPL1D DIRECT(',NUM,'): IERR=',IERR
-         ELSE
-            WRITE(6,'(A,I2,A,I2)') 'XX TRXOUT: SPL1D GVT(',NUM,'): IERR=',IERR
-         ENDIF
-      ENDIF
-
-      DTL=0.05D0
-      NTLMAX=INT((GT(NGT)-GT(1))/SNGL(DTL))+1
-
-      DO NTL=1,NTLMAX
-         TIN=DBLE(GT(1))+DTL*DBLE(NTL-1)
-         CALL SPL1DF(TIN,DATOUT,DGT,UOUT,NGT,IERR)
-         WRITE(KERRF,'(A,I2,A,I2)') 'XX TRXOUT: SPL1DF GVT(',NUM,'): IERR=',IERR
-         IF(IERR.NE.0) WRITE(6,*) KERRF
-         GTL(NTL)=GUCLIP(TIN)
-         GF1(NTL)=GUCLIP(DATOUT*AMP)
-      ENDDO
-
-      CALL TRXW1D(KFID,GTL,GF1,NTM,NTLMAX)
-
-      RETURN
-      END SUBROUTINE TR_UFILE1D_CREATE
-
-!     *****
-
-      SUBROUTINE TR_UFILE2D_CREATE(KFID,NUM,AMP,ID,IERR)
-
-      USE TRCOMM, ONLY : GVRT, GRG, GRM, GT, NGT, NRMAX, NRMP, NTM, rkind
-      USE libitp  
-      USE libspl1d
-      IMPLICIT NONE
-      CHARACTER(LEN=80),INTENT(IN) :: KFID
-      INTEGER       ,INTENT(IN) :: NUM, ID
-      REAL(rkind)          ,INTENT(IN) :: AMP
-      INTEGER       ,INTENT(OUT):: IERR
-      INTEGER::NTL, NRLMAX, NTLMAX, NRL
-      REAL(rkind)   ::DTL, TIN, F0, R1, R2, F1, F2
-      REAL,DIMENSION(NRMP)    :: GRL
-      REAL,DIMENSION(NTM)     :: GTL
-      REAL,DIMENSION(NRMP,NTM):: GF2
-      REAL(rkind),DIMENSION(NTM)     :: DGT,DIN,DERIV
-      REAL(rkind),DIMENSION(4,NTM)   :: U
-      REAL   :: GUCLIP
-
-
-      DGT(1:NGT)=DBLE(GT(1:NGT))
-
-      NRLMAX=NRMAX
-      DTL=0.05D0
-      NTLMAX=INT((GT(NGT)-GT(1))/SNGL(DTL))+1
-      IF(ID.EQ.0) THEN
-         DO NRL=1,NRLMAX
-            GRL(NRL)=GRM(NRL)
-            DIN(1:NGT)=DBLE(GVRT(NRL,1:NGT,NUM))
-            CALL SPL1D(DGT,DIN,DERIV,U,NGT,0,IERR)
-            IF(IERR.NE.0) WRITE(6,'(A,I2,A,I2)') 'XX TRXOUT: SPL1D GVRT(',NUM,'): IERR=',IERR
-!
-            DO NTL=1,NTLMAX
-               TIN=DBLE(GT(1))+DTL*DBLE(NTL-1)
-               CALL SPL1DF(TIN,F0,DGT,U,NGT,IERR)
-               IF(IERR.NE.0) WRITE(*,'(A,I2,A,I2)') 'XX TRXOUT: SPL1DF GVRT(',NUM,'): IERR=',IERR
-               GTL(NTL)    =GUCLIP(TIN)
-               GF2(NRL,NTL)=GUCLIP(F0*AMP)
-            ENDDO
-         ENDDO
-      ELSEIF(ID.EQ.1) THEN
-         NRLMAX=NRMAX+1
-         NRL=1
-            GRL(NRL)=GRG(NRL)
-            IF(KFID.EQ.'Q') THEN
-               DIN(1:NGT)=(4.D0*DBLE(GVRT(NRL,1:NGT,NUM))-DBLE(GVRT(NRL+1,1:NGT,NUM)))/3.D0
-            ELSEIF(KFID.EQ.'BPOL') THEN
-               DIN(1:NGT)=0.D0
-            ELSE
-               DO NTL=1,NGT
-                  R1=DBLE(GRL(NRL))
-                  R2=DBLE(GRL(NRL+1))
-                  F1=DBLE(GVRT(NRL  ,NTL,NUM))
-                  F2=DBLE(GVRT(NRL+1,NTL,NUM))
-                  DIN(NTL)=FCTR(R1,R2,F1,F2)
-               ENDDO
-            ENDIF
-            CALL SPL1D(DGT,DIN,DERIV,U,NGT,0,IERR)
-            IF(IERR.NE.0) WRITE(6,'(A,I2,A,I2)') 'XX TRXOUT: SPL1D GVRT(',NUM,'): IERR=',IERR
-            DO NTL=1,NTLMAX
-               TIN=DBLE(GT(1))+DTL*DBLE(NTL-1)
-               CALL SPL1DF(TIN,F0,DGT,U,NGT,IERR)
-               IF(IERR.NE.0) WRITE(*,'(A,I2,A,I2)') 'XX TRXOUT: SPL1DF GVRT(',NUM,'): IERR=',IERR
-               GTL(NTL)    =GUCLIP(TIN)
-               GF2(NRL,NTL)=GUCLIP(F0*AMP)
-            ENDDO
-
-         DO NRL=2,NRLMAX
-            GRL(NRL)=GRG(NRL)
-            DIN(1:NGT)=DBLE(GVRT(NRL-1,1:NGT,NUM))
-            CALL SPL1D(DGT,DIN,DERIV,U,NGT,0,IERR)
-            IF(IERR.NE.0) WRITE(6,'(A,I2,A,I2)') 'XX TRXOUT: SPL1D GVRT(',NUM,'): IERR=',IERR
-            DO NTL=1,NTLMAX
-               TIN=DBLE(GT(1))+DTL*DBLE(NTL-1)
-               CALL SPL1DF(TIN,F0,DGT,U,NGT,IERR)
-               IF(IERR.NE.0) WRITE(*,'(A,I2,A,I2)') 'XX TRXOUT: SPL1DF GVRT(',NUM,'): IERR=',IERR
-               GTL(NTL)    =GUCLIP(TIN)
-               GF2(NRL,NTL)=GUCLIP(F0*AMP)
-            ENDDO
-         ENDDO
-      ENDIF
-      CALL TRXW2D(KFID,GTL,GRL,GF2,NRMP,NTM,NRLMAX,NTLMAX)
-
-      RETURN
-      END SUBROUTINE TR_UFILE2D_CREATE
-
-!     *****
 
       SUBROUTINE TRXW1D(KFID,GT,GF,NTM,NTXMAX)
 

@@ -55,7 +55,7 @@ CONTAINS
     NAMELIST /WF/ BB,RA,RR,RF,AJ,APH,AWD,APOS,NPH,RKZ,&
                   PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PPN0,PTN0,&
                   NSMAX,NAMAX,MODELI,&
-                  MODELG,MODELB,MODELD,MODELP,MODELN,&
+                  MODELG,MODELB_wf,MODELD,MODELP,model_prof,&
                   model_coll_enhance,factor_coll_enhance, &
                   xpos_coll_enhance,xwidth_coll_enhance, &
                   ypos_coll_enhance,ywidth_coll_enhance, &
@@ -75,8 +75,9 @@ CONTAINS
                   pn_corner,ptpr_corner,ptpp_corner, &
                   tolerance,wdamp,fdamp,gfactor, &
                   mdamp,rdamp_min,rdamp_max,zdamp_min,zdamp_max, &
+                  thdamp_min,thdamp_max, &
                   NCOILMAX,RCOIL,ZCOIL,BCOIL, &
-                  nxzone_max,nyzone_max
+                  nxzone_max,nyzone_max,idebug_wf
     IERR=0
     
     READ(NID,WF,IOSTAT=IST,ERR=9800,END=9900)
@@ -135,7 +136,7 @@ CONTAINS
        WRITE(6,*) '&WF: BB,RA,RR,RF,AJ,APH,AWD,APOS,NPH,RKZ,'
        WRITE(6,*) '     PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PPN0,PTN0,'
        WRITE(6,*) '     NSMAX,NAMAX,MODELI,'
-       WRITE(6,*) '     MODELG,MODELB,MODELD,MODELP,MODELN,'
+       WRITE(6,*) '     MODELG,MODELB_wf,MODELD,MODELP,model_prof,'
        WRITE(6,*) '     NPRINT,NDRAWD,NDRAWA,NDRAWE,NGRAPH,NDRAWV,'
        WRITE(6,*) '     model_coll_enhance,factor_coll_enhance,'
        WRITE(6,*) '     xpos_coll_enhance,xwidth_coll_enhance,'
@@ -155,6 +156,7 @@ CONTAINS
        WRITE(6,*) '     pn_corner,ptpr_corner,ptpp_corner,'
        WRITE(6,*) '     tolerance,wdamp,fdamp,gfactor,'
        WRITE(6,*) '     mdamp,rdamp_min,rdamp_max,zdamp_min,zdamp_max,'
+       WRITE(6,*) '     thdamp_min,thdamp_max,'
        WRITE(6,*) '     NCOILMAX,RCOIL,ZCOIL,BCOIL,'
        WRITE(6,*) '     nxzone_max,nyzone_max '
     end if
@@ -260,13 +262,13 @@ CONTAINS
   END IF
   
   WRITE(6,*) '***** CONTROL *****'
-  WRITE(6,604) 'MODELG',MODELG,'MODELB',MODELB,&
-               'MODELD',MODELD,'MODELP',MODELP
-  WRITE(6,604) 'MODELN',MODELN,'MODELI',MODELI
-  WRITE(6,604) 'NPRINT',NPRINT,'NDRAWD',NDRAWD,&
-               'NDRAWA',NDRAWA,'NDRAWE',NDRAWE
-  WRITE(6,604) 'NGXMAX',NGXMAX,'NGYMAX',NGYMAX,&
-               'NGVMAX',NGVMAX,'NGRAPH',NGRAPH
+  WRITE(6,605) 'MODELG    ',MODELG,'MODELB_wf ',MODELB_wf,&
+               'MODELD    ',MODELD,'MODELP    ',MODELP
+  WRITE(6,605) 'model_prof',model_prof,'MODELI    ',MODELI
+  WRITE(6,605) 'NPRINT    ',NPRINT,'NDRAWD    ',NDRAWD,&
+               'NDRAWA    ',NDRAWA,'NDRAWE    ',NDRAWE
+  WRITE(6,605) 'NGXMAX    ',NGXMAX,'NGYMAX    ',NGYMAX,&
+               'NGVMAX    ',NGVMAX,'NGRAPH    ',NGRAPH
   WRITE(6,601) 'PPN0  ',PPN0  ,'PTN0  ',PTN0  
   WRITE(6,602) 'tolerance ',tolerance,'wdamp     ',wdamp, &
                'fdamp     ',fdamp
@@ -275,6 +277,7 @@ CONTAINS
   WRITE(6,604) 'mdamp ',mdamp
   WRITE(6,602) 'rdamp_min ',rdamp_min,'rdamp_max ',rdamp_max
   WRITE(6,602) 'zdamp_min ',zdamp_min,'zdamp_max ',zdamp_max
+  WRITE(6,602) 'thdamp_min',thdamp_min,'thdamp_max',thdamp_max
   WRITE(6,605) 'nxzone_max',nxzone_max,'nyzone_max',nyzone_max
   RETURN
   
@@ -302,7 +305,7 @@ SUBROUTINE wfparm_broadcast
   IMPLICIT NONE
 
   INTEGER,DIMENSION(24) :: idata
-  REAL(rkind),DIMENSION(40) :: ddata
+  REAL(rkind),DIMENSION(42) :: ddata
   
 ! ---  broadcast integer data -----
 
@@ -311,10 +314,10 @@ SUBROUTINE wfparm_broadcast
      idata(2) =NAMAX
      idata(3) =MODELI
      idata(4) =MODELG
-     idata(5) =MODELB
+     idata(5) =MODELB_wf
      idata(6) =MODELD
      idata(7) =MODELP
-     idata(8) =MODELN
+     idata(8) =model_prof
      idata(9) =NPRINT
      idata(10)=NDRAWD
      idata(11)=NDRAWA
@@ -339,10 +342,10 @@ SUBROUTINE wfparm_broadcast
   NAMAX =idata(2)
   MODELI=idata(3)
   MODELG=idata(4)
-  MODELB=idata(5)
+  MODELB_wf=idata(5)
   MODELD=idata(6)
   MODELP=idata(7)
-  MODELN=idata(8)
+  model_prof=idata(8)
   NPRINT=idata(9)
   NDRAWD=idata(10)
   NDRAWA=idata(11)
@@ -403,9 +406,11 @@ SUBROUTINE wfparm_broadcast
      ddata(38)=xwidth_coll_enhance
      ddata(39)=ypos_coll_enhance
      ddata(40)=ywidth_coll_enhance
+     ddata(41)=thdamp_min
+     ddata(42)=thdamp_max
   end if
 
-  call mtx_broadcast_real8(ddata,40)
+  call mtx_broadcast_real8(ddata,42)
   
   BB    =ddata(1)
   RA    =ddata(2)
@@ -447,6 +452,8 @@ SUBROUTINE wfparm_broadcast
   xwidth_coll_enhance=ddata(38)
   ypos_coll_enhance=ddata(39)
   ywidth_coll_enhance=ddata(40)
+  thdamp_min=ddata(41)
+  thdamp_max=ddata(42)
 
   call mtx_broadcast_real8(AJ  ,8)
   call mtx_broadcast_real8(APH ,8)

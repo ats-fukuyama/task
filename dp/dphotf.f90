@@ -10,19 +10,22 @@
 MODULE dphotf
 
   PRIVATE
-  PUBLIC DP_HOTF,DP_HOTFR,DP_HOTFI
+  PUBLIC DP_HOTF
+  PUBLIC DP_HOTFR
+  PUBLIC DP_HOTFI
 
 CONTAINS
 
   SUBROUTINE DP_HOTF(CW,CKPR,CKPP,NSA,mag,CLDISP)
 
+    USE plcomm_type
+    USE plcomm
     USE dpcomm
     USE plprof
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NSA
     TYPE(pl_mag_type),INTENT(IN):: mag
-!    TYPE(pl_prf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     COMPLEX(rkind):: CLDISP1(6),CLDISP2(6)
     INTEGER:: I
@@ -41,6 +44,8 @@ CONTAINS
 
   SUBROUTINE DP_HOTFR(CW,CKPR,CKPP,NSA,mag,CLDISP)
 
+    USE plcomm
+    USE plcomm_type
     USE dpcomm
     USE plprof
     USE libbes,ONLY: bessjn
@@ -48,7 +53,6 @@ CONTAINS
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NSA
     TYPE(pl_mag_type),INTENT(IN):: mag
-!    TYPE(pl_prf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
     INTEGER:: NHMAX,NTH,NP,NC,NCD,NS
@@ -259,6 +263,7 @@ CONTAINS
 
   SUBROUTINE DP_HOTFI(CW,CKPR,CKPP,NSA,mag,CLDISP)
 
+    USE plcomm_type
     USE dpcomm
     USE plprof
     USE libbes,ONLY: bessjn
@@ -266,7 +271,6 @@ CONTAINS
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NSA
     TYPE(pl_mag_type),INTENT(IN):: mag
-!    TYPE(pl_prf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
     INTEGER:: NHMAX,NTH,NP,NC,NCD,NS

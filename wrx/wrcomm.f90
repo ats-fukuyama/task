@@ -14,7 +14,7 @@ MODULE wrcomm_parm
 
   INTEGER:: model_fdrv,model_fdrv_ds
   INTEGER:: NRAYMAX,NSTPMAX,NRSMAX,NRLMAX,LMAXNW
-  INTEGER:: mode_beam
+  INTEGER:: mode_beam,mode_wline,mode_fig,mode_write
   INTEGER:: MDLWRI,MDLWRG,MDLWRP,MDLWRQ,MDLWRW
   REAL(rkind):: SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW,EPSD0
   REAL(rkind):: pne_threshold,bdr_threshold
@@ -25,13 +25,13 @@ MODULE wrcomm_parm
   INTEGER:: nsamax_wr,ns_nsa_wr(nsm),nsa_grf
   REAL(rkind),ALLOCATABLE:: rsu_wr(:),zsu_wr(:)
   INTEGER:: nres_max,nres_type
+  CHARACTEr(len=256):: knamwrw
 
   REAL(rkind),DIMENSION(NRAYM):: &
        RFIN,RPIN,ZPIN,PHIIN,ANGTIN,ANGPIN,RNPHIN,RNZIN,RNKIN,UUIN, &
        RCURVAIN,RCURVBIN,RBRADAIN,RBRADBIN
   INTEGER,DIMENSION(NRAYM):: &
        MODEWIN
-  CHARACTER(len=80):: KNAMWRW
 
   INTEGER,DIMENSION(idebug_max):: idebug_wr
 

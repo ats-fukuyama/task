@@ -25,6 +25,7 @@
 !     pmax(nsb)  : maximum momentum (normailzed by central thermal momentum)
 !     Emax(nsb)  : if Emax is not 0, p upper boundary is defined from not pmax but sqrt(2*m*Emax)/PTFP0
 
+      
       nsamax = 1
       nsbmax = 1
       DO nsa=1,nsm
@@ -267,16 +268,18 @@
 !             1 for predicting electric field
 !     MODELA: 0 without bounce average
 !             1 with bounce average
-!     MODELC: 0 : non-relative background Maxwell
-!             1 : isotropic background f
-!             2 : isotropic background f, Temperature is updated
-!             4 : nonlinear collision operator (require to satisfy NSAMAX=NSBMAX)
-!             5 : linear coll. operator for different species (for debug)
-!             6 : nonlinear coll. operator for different species (for debug)
-!            -1 : linear collision operator for same with ion scattering
-!            -2 : nonlinear collision operator for same with ion scattering
+!     MODELC(ns): 0 : non-relativistic background Maxwell
+!                 1 : isotropic background f
+!                 2 : isotropic background f, Temperature is updated
+!                 4 : nonlinear collision operator
+!                 5 : linear col. operator for different species (for debug)
+!                 6 : nonlinear col. operator for different species (for debug)
+!                -1 : linear collision operator for same with ion scattering
+!                -2 : nonlinear collision operator for same with ion scattering
 !     MODELR: 0 : without relativistic effect
 !             1 : with relativistic effect
+!     MODEL_FOW: 0 : zero orbit width
+!                1 : finite orbit width
 !     MODELS : 0 No fusion reaction
 !              1 Constant isotropic fast ion source (For example fast alpha)
 !              2 Self-consistent fusion reaction source and loss term
@@ -355,8 +358,11 @@
 
       MODELE= 0
       MODELA= 0
-      MODELC= 0
+      DO NSA=1,NSM
+         MODELC(NSA)=0
+      END DO
       MODELR= 0
+      MODEL_FOW=0
       MODELS= 0
       DO NSA=1,NSM
          MODELW(NSA)=0
@@ -553,6 +559,28 @@
       N_partition_s = 1
       N_partition_r = nsize
       N_partition_p = 1
+
+!-----------------------------------------------------------------------
+!     FOW contraol parameter [*: default]
+
+! integer :: model_obload   ! 0 : exec TASK/OB anyway and
+!                                 do not save orbit_x to binary files
+!                           !*1 : If binary files exist in bin directory,
+!                                 load them, else exec TASK/OB
+
+! integer :: model_mkcsv    ! 0 : no csv file output
+!                           !*1 : output to csv files
+
+! integer :: max_stp        ! maximum step number for bounce average
+
+! integer :: nthpmax        ! number of poloidal angle grid points
+
+      model_obload=1
+      model_mkcsv=1
+      max_stp=20
+      nthpmax=24
+      dir_text_data='dat'
+      dir_binary_data='bin'
 
       RETURN
       END SUBROUTINE fp_init

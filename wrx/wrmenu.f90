@@ -22,12 +22,12 @@ CONTAINS
     USE wrsetup,ONLY: wr_setup
     USE wrexec,ONLY: wr_exec
     USE wrgout,ONLY: wr_gout
-    USE wrfile,ONLY: wr_save,wr_load,wr_write
+    USE wrfile,ONLY: wr_save,wr_load,wr_write,eccd_write
     USE libkio
     IMPLICIT NONE
     CHARACTER(LEN=1):: KID
     CHARACTER(LEN=80):: LINE
-    INTEGER:: NSTAT,IERR,MODE,NID
+    INTEGER:: NSTAT,IERR,MODE,NID,ns,nsa
 
     NSTAT=0
 
@@ -78,7 +78,12 @@ CONTAINS
       ELSEIF(KID.EQ.'L') THEN
          CALL wr_load(NSTAT)
       ELSEIF(KID.EQ.'W') THEN
-         CALL wr_write
+         SELECT CASE(mode_write)
+         CASE(0)
+            CALL wr_write
+         CASE(1)
+            CALL eccd_write
+         END SELECT
       ELSEIF(KID.EQ.'Q') THEN
          GOTO 9000
       ELSE

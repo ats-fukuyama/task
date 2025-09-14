@@ -90,9 +90,9 @@ SUBROUTINE WFWPRE(IERR)
   if (nrank.eq.0) then
      WRITE(6,'(6X,5A10)')  &
           &     '     NNMAX','     NEMAX','    NSDMAX',&
-          &     '    NSFMAX','      MLEN'
+          &     '    NSRFMAX','      MLEN'
      WRITE(6,'(A4,2X,6I10)') &
-          &     'USED',NNMAX,NEMAX,NSDMAX,NSFMAX,MLEN
+          &     'USED',NNMAX,NEMAX,NSDMAX,NSRFMAX,MLEN
   end if
   RETURN
 END SUBROUTINE WFWPRE
@@ -104,11 +104,11 @@ SUBROUTINE SETKAN(IERR)
   use wfcomm
   implicit none
 
-  integer :: IERR,NE,NB,NBP,IN,IN1,NN,NSF,ISD,IN2,IN3
+  integer :: IERR,NE,NB,NBP,IN,IN1,NN,NSRF,ISD,IN2,IN3
   integer :: KAN1,KAN2,KAN3,K1,K2,K3
 
   IERR=0
-  IF(MODELN.EQ.0.OR.MODELN.EQ.4) THEN
+  IF(model_prof.EQ.0.OR.model_prof.EQ.4) THEN
      NBMAX=0
      NMMAX=0
      NKMAX=1
@@ -116,9 +116,9 @@ SUBROUTINE SETKAN(IERR)
      DO NE=1,NEMAX
         KAELM(NE)=1
      ENDDO
-  ELSEIF(MODELN.EQ.1.OR.MODELN.EQ.5) THEN
+  ELSEIF(model_prof.EQ.1.OR.model_prof.EQ.5) THEN
      NBMAX=0
-  ELSEIF(MODELN.EQ.2.OR.MODELN.EQ.6) THEN
+  ELSEIF(model_prof.EQ.2.OR.model_prof.EQ.6) THEN
      NMMAX=1
      EPSDM(1)=1.D0
      AMUDM(1)=1.D0
@@ -128,7 +128,7 @@ SUBROUTINE SETKAN(IERR)
      DO NE=1,NEMAX
         KAELM(NE)=1
      ENDDO
-  ELSEIF(MODELN.GE.100) THEN
+  ELSEIF(model_prof.GE.100) THEN
      CALL SETWGB(IERR)
      IF(IERR.NE.0) RETURN
      NMMAX=1
@@ -165,9 +165,9 @@ SUBROUTINE SETKAN(IERR)
                           WRITE(6,'(A,5I8)') 'NB,NBP,NE,NN,KA=',&
                                               NB,NBP,NE,NN,KANOD(NN)
                        end if
-                       IF(MODELN.EQ.4  .OR.MODELN.EQ.5.OR.&
-                          MODELN.EQ.6  .OR.MODELN.EQ.7.OR.&
-                          MODELN.GE.100                   ) THEN
+                       IF(model_prof.EQ.4  .OR.model_prof.EQ.5.OR.&
+                          model_prof.EQ.6  .OR.model_prof.EQ.7.OR.&
+                          model_prof.GE.100                   ) THEN
                           KANOD(NN)=-NB
                        ELSE
                           KANOD(NN)=1
@@ -195,15 +195,15 @@ SUBROUTINE SETKAN(IERR)
         ENDDO
      ENDIF
 
-     DO NSF=1,NSFMAX
-        KAN1=KANOD(NDSRF(1,NSF))
-        KAN2=KANOD(NDSRF(2,NSF))
-        KAN3=KANOD(NDSRF(3,NSF))
+     DO NSRF=1,NSRFMAX
+        KAN1=KANOD(NDSRF(1,NSRF))
+        KAN2=KANOD(NDSRF(2,NSRF))
+        KAN3=KANOD(NDSRF(3,NSRF))
         IF(KAN1.EQ.-NB.AND.&
           &KAN2.EQ.-NB.AND.&
           &KAN3.EQ.-NB) THEN
            DO ISD=1,3
-              KASID(ABS(NSDSRF(ISD,NSF)))=-NB
+              KASID(ABS(NSDSRF(ISD,NSRF)))=-NB
            ENDDO
         ENDIF
      ENDDO

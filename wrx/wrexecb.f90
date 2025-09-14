@@ -61,7 +61,8 @@ CONTAINS
 
     USE wrcomm
     USE wrsub,ONLY: wrcale,wrcale_xyz,wr_cold_rkperp,wr_newton
-    USE plprof,ONLY: pl_mag_type,pl_mag,pl_prf_type,pl_prof
+    USE plcomm,ONLY: pl_mag_type,pl_prf_type
+    USE plprof,ONLY: pl_mag,pl_prof
     USE plprofw,ONLY: pl_prfw_type,pl_profw
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NRAY

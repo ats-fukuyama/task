@@ -14,7 +14,7 @@
 !----------------------------------------------------------------
       SUBROUTINE OUT_TXT_FNS_DEL
 
-      USE fpfunc
+      USE fplib
       USE fpreadeg
       IMPLICIT NONE
       INTEGER:: NSA, NR, NP, NTH, NS
@@ -62,7 +62,7 @@
 !------------------------------------------      
       SUBROUTINE OUT_TXT_F1
 
-      USE fpfunc
+      USE fplib
       USE fpreadeg
       IMPLICIT NONE
       INTEGER:: NP, NTH, NS_F1, DNTH
@@ -139,7 +139,7 @@
 !------------------------------------------      
       SUBROUTINE OUT_TXT_F1_PITCH
 
-      USE fpfunc
+      USE fplib
       IMPLICIT NONE
       INTEGER:: NTH, NP, NS_F1
       double precision:: RSUM_deno, RSUM_nume, PML, F_MX, RSUM_deno_high, RSUM_nume_high, Energy

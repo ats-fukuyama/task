@@ -19,7 +19,8 @@ CONTAINS
       USE tiexec
       USE tigout
       USE plload,ONLY: pl_load_trdata
-      USE plprof,ONLY: pl_prf_type,pl_prof
+      USE plprof,ONLY: pl_prof
+      USE plcomm_type,ONLY: pl_prf_type
       USE libkio
       USE libchar
       USE libmpi

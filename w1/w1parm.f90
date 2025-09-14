@@ -7,9 +7,9 @@ Module w1parm
        AJYH,AJZH,APYH,APZH,ALZH,APHH,AJYL,AJZL,APYL,APZL,ALZL,APHL,&
        PA,PZ,PN,PTPP,PTPR,PU,PNS,PTS,PZCL,NSMAX, &
        NXMAX,NZMAX,NPRINT,NFILE,NGRAPH,NLOOP,NSYM, &
-       NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NGDSP,MODELN, &
+       NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NGDSP,model_prof, &
        EPSH,ZEFF,WVYSIZ,NCDTYP,NXABS,IELEC, &
-       MDLWG,MDLWGS,WGZ1,WGZ2,WGAMP,WGNZ,job_id,nfile_data, &
+       MDLWG,MDLWGS,WGZ1,WGZ2,WGAMP,WGKZ,job_id,nfile_data, &
        xgmin,xgmax,ygmin,ygmax
   
   PRIVATE
@@ -92,9 +92,9 @@ CONTAINS
          '        AJYL,AJZL,APYL,APZL,ALZL,APHL,', &
          '        PA,PZ,PN,PTPP,PTPR,PU,PNS,PTS,PZCL,NSMAX,', &
          '        NXMAX,NZMAX,NPRINT,NFILE,NGRAPH,NLOOP,NSYM,', &
-         '        NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NGDSP,MODELN,', &
+         '        NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NGDSP,model_prof,', &
          '        EPSH,ZEFF,WVYSIZ,NCDTYP,NXABS,IELEC', &
-         '        MDLWG,MDLWGS,WGZ1,WGZ2,WGAMP,WGNZ,job_id,nfile_data', &
+         '        MDLWG,MDLWGS,WGZ1,WGZ2,WGAMP,WGKZ,job_id,nfile_data', &
          '        xgmin,xgmax,ygmin,ygmax'
     RETURN
 
@@ -142,7 +142,7 @@ CONTAINS
                  'EPSH  ',EPSH  ,'ZEFF  ',ZEFF, &
                  'WVYSIZ',WVYSIZ,'XDMAX ',XDMAX, &
                  'WGZ1  ',WGZ1  ,'WGZ1  ',WGZ2,  &
-                 'WGAMP ',WGAMP ,'WGNZ  ',WGNZ, &
+                 'WGAMP ',WGAMP ,'WGKZ  ',WGKZ, &
                  'xgmin ',xgmin ,'xgmax ',xgmax, &
                  'ygmin ',ygmin ,'ygmax ',ygmax
 
@@ -173,10 +173,11 @@ CONTAINS
                  'NPRINT',NPRINT,'NFILE ',NFILE, &
                  'NGRAPH',NGRAPH,'NLOOP ',NLOOP, &
                  'NSYM  ',NSYM  ,'NMODEL',NMODEL, &
-                 'NALPHA',NALPHA,'MODELN',MODELN, &
+                 'NALPHA',NALPHA, &
                  'NSYS  ',NSYS  ,'NGDSP ',NGDSP, &
                  'NCDTYP',NCDTYP,'NXABS ',NXABS, &
                  'MDLWG ',MDLWG ,'MDLWGS',MDLWGS
+    WRITE(6,'(A,I6)') 'model_prof',model_prof
     WRITE(6,'(A)') TRIM(job_id)
     WRITE(6,'(A,I6)') 'nfile_data = ',nfile_data
     RETURN

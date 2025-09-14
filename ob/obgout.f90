@@ -51,7 +51,8 @@ CONTAINS
 
     USE obcomm
     USE obprep,ONLY: psipa
-    USE plprof,ONLY: pl_rzsu,pl_mag_old,pl_mag_type,pl_mag
+    USE plcomm,ONLY: pl_mag_type
+    USE plprof,ONLY: pl_rzsu,pl_mag_old,pl_mag
     USE libgrf
     IMPLICIT NONE
     INTEGER,PARAMETER:: nx_max=101

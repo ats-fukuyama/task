@@ -53,7 +53,7 @@ CONTAINS
 
     NAMELIST /WIM/ NZMAX,NWMAX,ZMIN,ZMAX,PN0,DBDZ,ANX,BETA,NTMAX,TMAX, &
                    CER1,CEL1,CER2,CEL2,DZMAX,DZWID,PZCL,MODELW,MODELP, &
-                   IDEBUG
+                   IDEBUG_wim
 
     READ(NID,WIM,IOSTAT=IST,ERR=9800,END=9900)
 
@@ -72,7 +72,7 @@ CONTAINS
 
     IMPLICIT NONE
     WRITE(6,'(A/)') &
-    '# &WIM : NZMAX,NWMAX,ZMIN,ZMAX,PN0,DBDZ,ANX,BETA,NTMAX,IDEBUG,',&
+    '# &WIM : NZMAX,NWMAX,ZMIN,ZMAX,PN0,DBDZ,ANX,BETA,NTMAX,IDEBUG_WIM,',&
     '         TMAX,CER1,CEL1,CER2,CEL2,DZMAX,DZWID,PZCL,MODELW,MODELP'
     RETURN
 
@@ -103,7 +103,7 @@ CONTAINS
     implicit none
 
     WRITE(6,601) 'NZMAX   ',NZMAX   ,'NWMAX   ',NWMAX   , &
-                 'NTMAX   ',NTMAX   ,'IDEBUG  ',IDEBUG
+                 'NTMAX   ',NTMAX   ,'IDEBUG  ',IDEBUG_wim(1)
     WRITE(6,601) 'MODELW  ',MODELW  ,'MODELP  ',MODELP
     WRITE(6,602) 'ZMIN    ',ZMIN    ,'ZMAX    ',ZMAX    , &
                  'PN0     ',PN0     ,'DBDZ    ',DBDZ    , &

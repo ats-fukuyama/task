@@ -32,7 +32,7 @@ MODULE fpcomm_parm
       integer:: IMTX,MODEL_KSP,MODEL_PC,LMAXFP,LMAXE
       integer:: NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP
       integer:: MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp,MODEL_LNL
-      integer:: MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY,MODEL_SINK,N_IMPU
+      integer:: MODEL_RE_pmax,MODEL_RE_n,MODEL_IMPURITY,MODEL_SINK,N_IMPU
       integer:: MODEL_EX_READ_Tn,MODEL_EX_READ_DH_RATIO
       integer:: MODEL_BULK_CONST,MODEL_CX_LOSS
       INTEGER:: model_fow_fout
@@ -57,6 +57,7 @@ MODULE fpcomm_parm
       real(rkind):: SPFTOT,SPFR0,SPFRW,SPFENG
       real(rkind):: DRR0,DRRS,FACTOR_CDBM,DRR_EDGE,RHO_EDGE,FACTOR_DRR_EDGE
       real(rkind):: FACTOR_PINCH,deltaB_B
+      REAL(rkind):: DRR_em_amp,DRR_em_r0,DRR_em_rw,DRR_em_kdep
       real(rkind),dimension(NSM):: TLOSS
       real(rkind):: DELT,RIMPL,EPSFP,EPSM,EPSE,EPSDE,H0DE
       real(rkind):: PGMAX,RGMAX,RGMIN
@@ -66,6 +67,8 @@ MODULE fpcomm_parm
       real(rkind):: RN_NEU0, RN_NEUS ! temporal 
       real(rkind):: NI_RATIO(NSM)
       real(rkind):: FACT_NRAY(NRAYM)
+
+      REAL(rkind):: rd_em_amp,rd_em_k_ratio
 
 !     for read experiment data
       CHARACTER(len=80):: EG_NAME_TMS, EG_NAME_CX, EG_NAME_HA3

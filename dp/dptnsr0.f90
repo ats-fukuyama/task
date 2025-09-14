@@ -1,3 +1,5 @@
+! dptnsr0.f90
+
 MODULE DPTNSR0
 
 CONTAINS
@@ -33,16 +35,12 @@ CONTAINS
        ID1=MOD(MODELP(NS),100)
        ID2=MODELP(NS)/100
        IDV=MODELV(NS)
-       IF(IDV.NE.0) THEN
-          IF(ALLOCATED(NSA_NS_DP)) THEN
-             NSA=NSA_NS_DP(NS)
-             IF(NSA.EQ.0) IDV=0
-          ELSE
-             IDV=0
-          END IF
-       END IF
+       NSA=NSA_NS_DP(NS)
+!       WRITE(6,'(A,7I4)') &
+!            'NS,NSA,MODELP(NS),MODELV(NS),ID1,ID2,IDV=', &
+!            NS,NSA,MODELP(NS),MODELV(NS),ID1,ID2,IDV
        IF(mag%RHON.LT.RHON_MIN(NS).OR. &
-          mag%RHON.GT.RHON_MAX(NS)) IDV=0
+            mag%RHON.GT.RHON_MAX(NS)) IDV=0
        SELECT CASE(IDV)
        CASE(0)
           CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plfw,grd,CLDISP)
@@ -154,7 +152,7 @@ CONTAINS
          CALL DPTNFK2(CW,CKPR,CKPP,NS,mag,plfw,CLDISP)
       CASE(21) ! old WM drift kinetic model
          CALL DPTNDK0(CW,CKPR,CKPP,NS,mag,plfw,grd,CLDISP)
-      CASE(31) ! old WM drift kinetic model
+      CASE(31) ! kinetic with cold ring beam plasma model
          CALL dp_tnsb1(CW,CKPR,CKPP,NS,mag,plfw,CLDISP)
       CASE DEFAULT
          WRITE(6,*) 'XX WRONG MODELP IN DPTENS: ID1=',ID1

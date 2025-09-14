@@ -946,7 +946,8 @@
 ! ***********************************************************
 
       SUBROUTINE FPGRACA(STRING,FGA,MODE,NSA)
-       
+
+      USE fpcomm,ONLY: DRR
       IMPLICIT NONE
       REAL(rkind),DIMENSION(:,:,:,:):: FGA
       REAL(rkind),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
@@ -991,6 +992,7 @@
       ENDIF
       WRITE(STRING1,'(A,A1,I2,A1)') STRING,'(',NSA,')'
       CALL FPGRAC(TRIM(STRING1),TEMP,MODE,NSA)
+      
       RETURN
       END SUBROUTINE FPGRACA
 !---------------------------------------------------
@@ -1348,7 +1350,6 @@
 !      REAL,dimension(NTHMAX+1):: GTH
 !      REAL(rkind),dimension(8,NPMAX+1,NTHMAX+1)::KA
       CHARACTER(LEN=*),INTENT(IN):: STRING
-      CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
       REAL:: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
       INTEGER:: ILN(NGLM)
@@ -1496,7 +1497,7 @@
       CALL TEXT('PPERP',5)
 !
       CALL MOVE(3.0,12.5)
-      CALL TEXT(STRING1,LEN(STRING1))
+      CALL TEXT(TRIM(STRING),LEN(TRIM(STRING)))
       CALL MOVE(8.0,12.5)
       CALL TEXT('FMIN =',6)
       CALL NUMBR(GFMIN,'(1PE12.4)',12)
@@ -1522,7 +1523,6 @@
       REAL,dimension(NTHMAX+1):: GTH
       REAL(rkind),dimension(8,NPMAX+1,NTHMAX+1)::KA
       CHARACTER(LEN=*),INTENT(IN):: STRING
-      CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
       REAL:: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
       INTEGER:: ILN(NGLM)
@@ -1665,7 +1665,7 @@
       CALL TEXT('PPERP',5)
 !
       CALL MOVE(3.0,12.5)
-      CALL TEXT(STRING1,LEN(STRING1))
+      CALL TEXT(TRIM(STRING),LEN(TRIM(STRING)))
       CALL MOVE(8.0,12.5)
       CALL TEXT('FMIN =',6)
       CALL NUMBR(GFMIN,'(1PE12.4)',12)

@@ -48,6 +48,7 @@ SUBROUTINE CVSOLV
   real :: cputime1,cputime2
   real(rkind) :: x,y,val
   complex(rkind):: CEB
+  complex(rkind):: CM(6,6)
   complex(rkind),dimension(:),ALLOCATABLE :: CRVP,CEQP
   integer(long),dimension(:),ALLOCATABLE :: NSEQ
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: VAL_SORT
@@ -290,7 +291,7 @@ SUBROUTINE CVSOLV
 
   do NE=1,NEMAX
      if(NEFLAG(NE).eq.0) goto 8000
-     CALL CMCALC(NE)
+     CALL CMCALC(NE,CM)
      
 !    === ASSEMBLY ===
 !    If KK (or LL) is out of assigned range,  

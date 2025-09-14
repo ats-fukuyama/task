@@ -57,7 +57,10 @@ CONTAINS
       NAMELIST /PL/ &
            RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
            RMIR,ZBB,Hpitch1,Hpitch2,RRCH,RCOIL,ZCOIL,BCOIL,NCOILMAX, &
-           NSMAX,NPA,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PUPR,PUPP,PNUC,PZCL, &
+           NSMAX,NPA,PA,PZ, &
+           PN,PNS,PTPR,PTPP,PTS,PU,PUS,PUPR,PUPP,PNUC,PZCL, &
+           nsfmax,nszmax,nsnmax,nstmax, &
+           PNM,PTM,PUM,PROFN3,PROFT3,PROFU3, &
            ID_NS,KID_NS, &
            PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
            RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG, &
@@ -68,9 +71,12 @@ CONTAINS
            profn_travis_g,profn_travis_h,profn_travis_p,profn_travis_q, &
            profn_travis_w,proft_travis_g,proft_travis_h,proft_travis_p, &
            proft_travis_q,proft_travis_w, &
-           MODELG,MODELB,MODELN,MODELQ,model_coll,MODEL_PROF,MODEL_NPROF, &
+           MODELG,MODELB,MODELQ,model_coll,MODEL_NPROF, &
+           model_prof,model_prof_time,model_sigv, &
+           model_eqdsk_psi, &
            RHOGMN,RHOGMX, &
            KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
+           knam_profg_TOTAL,knam_profm_TOTAL, &
            MODEFR,MODEFW,IDEBUG,mdlplw
 
       READ(NID,PL,IOSTAT=IST,ERR=9800,END=9900)
@@ -79,10 +85,13 @@ CONTAINS
          DO NS=2,NSMAX
             PROFN1(NS)=PROFN1(1)
             PROFN2(NS)=PROFN2(1)
+            PROFN3(NS)=PROFN3(1)
             PROFT1(NS)=PROFT1(1)
             PROFT2(NS)=PROFT2(1)
+            PROFT3(NS)=PROFT3(1)
             PROFU1(NS)=PROFU1(1)
             PROFU2(NS)=PROFU2(1)
+            PROFU3(NS)=PROFU3(1)
          END DO
       END IF
 
@@ -106,6 +115,7 @@ CONTAINS
       WRITE(6,*) 'NSMAX,PA,PZ,PN,PNS,PTPR,PTPP,PTS,'
       WRITE(6,*) 'PU,PUS,PUPR,PUPP,PNUC,PZCL,ID_NS,KID_NS,'
       WRITE(6,*) 'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'
+      WRITE(6,*) 'PNM,PTM,PUM,PROFN3,PROFT3,PROFU3'
       WRITE(6,*) 'r_corner,z_corner,br_corner,bz_corner,bt_corner,'
       WRITE(6,*) 'pn_corner,ptpr_corner,ptpp_corner,'
       WRITE(6,*) 'profn_travis_g,profn_travis_h,profn_travis_p,'
@@ -114,9 +124,12 @@ CONTAINS
       WRITE(6,*) 'proft_travis_w,'
       WRITE(6,*) 'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,'
       WRITE(6,*) 'PPN0,PTN0,RFCL,BAXIS_SCALED,'
-      WRITE(6,*) 'MODELG,MODELB,MODELN,MODELQ,'
-      WRITE(6,*) 'model_coll,MODEL_PROF,MODEL_NPROF,RHOGMN,RHOGMX,'
+      WRITE(6,*) 'MODELG,MODELB,MODELQ,'
+      WRITE(6,*) 'model_coll,MODEL_NPROF,RHOGMN,RHOGMX,'
+      WRITE(6,*) 'model_prof,model_prof_time,model_sigv,'
+      WRITE(6,*) 'model_eqdsk_psi,'
       WRITE(6,*) 'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2'
+      WRITE(6,*) 'knam_profg_TOTAL,knam_profm_TOTAL'
       WRITE(6,*) 'MODEFW,MODEFR,IDEBUG,mdlplw'
       RETURN
     END SUBROUTINE plplst
@@ -137,8 +150,8 @@ CONTAINS
             WRITE(6,*) 'XX plcheck: INVALID MODELG: MODELG=',MODELG
             IERR=1
          ENDIF
-         IF((MODELN.LT.0).OR.(MODELN.GT.31)) THEN
-            WRITE(6,*) 'XX plcheck: INVALID MODELN: MODELN=',MODELN
+         IF((model_prof.LT.0).OR.(model_prof.GT.41)) THEN
+            WRITE(6,*) 'XX plcheck: INVALID model_prof: model_prof=',model_prof
             IERR=1
          ENDIF
          IF((MODELQ.NE.0).AND.(MODELQ.NE.1)) THEN
@@ -146,8 +159,8 @@ CONTAINS
             IERR=1
          ENDIF
       ELSE
-         IF((MODELN.LT.0).OR.(MODELN.GT.31)) THEN
-            WRITE(6,*) 'XX plcheck: INVALID MODELN: MODELN=',MODELN
+         IF((model_prof.LT.0).OR.(model_prof.GT.41)) THEN
+            WRITE(6,*) 'XX plcheck: INVALID model_prof: model_prof=',model_prof
             IERR=1
          ENDIF
          IF((MODELQ.NE.0).AND.(MODELQ.NE.1).AND.(MODELG.NE.3)) THEN
@@ -188,32 +201,34 @@ CONTAINS
     idata( 1)=NSMAX
     idata( 2)=MODELG
     idata( 3)=MODELB
-    idata( 4)=MODELN
+    idata( 4)=model_prof
     idata( 5)=MODELQ
     idata( 6)=IDEBUG
     idata( 7)=MODEFR
     idata( 8)=MODEFW
     idata( 9)=mdlplw
     idata(10)=model_coll
-    idata(11)=MODEL_PROF
+    idata(11)=model_prof_time
     idata(12)=MODEL_NPROF
     idata(13)=NCOILMAX
+    idata(14)=model_sigv
 
-    CALL mtx_broadcast_integer(idata,13)
+    CALL mtx_broadcast_integer(idata,14)
     
     NSMAX=idata( 1)
     MODELG=idata( 2)
     MODELB=idata( 3)
-    MODELN=idata( 4)
+    model_prof=idata( 4)
     MODELQ=idata( 5)
     IDEBUG=idata( 6)
     MODEFR=idata( 7)
     MODEFW=idata( 8)
     mdlplw=idata( 9)
     model_coll=idata(10)
-    MODEL_PROF=idata(11)
+    model_prof_time=idata(11)
     MODEL_NPROF=idata(12)
     NCOILMAX=idata(13)
+    model_sigv=idata(14)
 
     rdata( 1)=RR
     rdata( 2)=RA
@@ -287,6 +302,11 @@ CONTAINS
     proft_travis_w=rdata(33)
     BAXIS_SCALED=rdata(34)
 
+    CALL mtx_broadcast_integer(NPA,NSMAX)
+    CALL mtx_broadcast_integer(ID_NS,NSMAX)
+    DO NS=1,NSMAX
+       CALL mtx_broadcast_character(KID_NS(NS),4)
+    END DO
     CALL mtx_broadcast_real8(PA,NSMAX)
     CALL mtx_broadcast_real8(PZ,NSMAX)
     CALL mtx_broadcast_real8(PN,NSMAX)
@@ -304,17 +324,15 @@ CONTAINS
     CALL mtx_broadcast_real8(PUITB,NSMAX)
     CALL mtx_broadcast_real8(PROFN1,NSMAX)
     CALL mtx_broadcast_real8(PROFN2,NSMAX)
+    CALL mtx_broadcast_real8(PROFN3,NSMAX)
     CALL mtx_broadcast_real8(PROFT1,NSMAX)
     CALL mtx_broadcast_real8(PROFT2,NSMAX)
+    CALL mtx_broadcast_real8(PROFT3,NSMAX)
     CALL mtx_broadcast_real8(PROFU1,NSMAX)
     CALL mtx_broadcast_real8(PROFU2,NSMAX)
+    CALL mtx_broadcast_real8(PROFU3,NSMAX)
     CALL mtx_broadcast_real8(PNUC,NSMAX)
     CALL mtx_broadcast_real8(PZCL,NSMAX)
-    CALL mtx_broadcast_integer(NPA,NSMAX)
-    CALL mtx_broadcast_integer(ID_NS,NSMAX)
-    DO NS=1,NSMAX
-       CALL mtx_broadcast_character(KID_NS(NS),2)
-    END DO
 
     CALL mtx_broadcast_real8(RCOIL,NCOILMAX)
     CALL mtx_broadcast_real8(ZCOIL,NCOILMAX)
@@ -339,6 +357,8 @@ CONTAINS
     CALL mtx_broadcast_character(KNAMFO,80)
     CALL mtx_broadcast_character(KNAMTR,80)
     CALL mtx_broadcast_character(KNAMEQ2,80)
+    CALL mtx_broadcast_character(knam_profg_TOTAL,128)
+    CALL mtx_broadcast_character(knam_profm_TOTAL,128)
   END SUBROUTINE pl_broadcast
 
 !     ****** SHOW PARAMETERS ******
@@ -373,11 +393,15 @@ CONTAINS
       WRITE(6,601) 'RHOEDG',RHOEDG,'RHOGMN',RHOGMN, &
                    'RHOGMX',RHOGMX
       WRITE(6,604) 'MODELG',MODELG,'MODELB',MODELB, &
-                   'MODELN',MODELN,'MODELQ',MODELQ
+                   'MODELQ',MODELQ
       WRITE(6,604) 'MODEFR',MODEFR,'MODEFW',MODEFW, &
                    'mdlplw',mdlplw
-      WRITE(6,'(A,I5)') ' MODEL_PROF  =',MODEL_PROF
-      WRITE(6,'(A,I5)') ' MODEL_NPROF =',MODEL_NPROF
+      WRITE(6,'(A,I5)') ' model_prof      =',model_prof
+      WRITE(6,'(A,I5)') ' model_prof_time =',model_prof_time
+      WRITE(6,'(A,I5)') ' MODEL_NPROF     =',MODEL_NPROF
+      WRITE(6,'(A,I5)') ' model_eqdsk_psi =',model_eqdsk_psi
+      WRITE(6,'(A,I5)') ' model_coll      =',model_coll
+      WRITE(6,'(A,I5)') ' model_sigv      =',model_sigv
 
       WRITE(6,100)
       DO NS=1,NSMAX
@@ -419,21 +443,31 @@ CONTAINS
          END DO
       END IF
 
+      WRITE(6,'(A,A)') 'KNAMEQ  = ',TRIM(KNAMEQ)
+      WRITE(6,'(A,A)') 'KNAMWR  = ',TRIM(KNAMWR)
+      WRITE(6,'(A,A)') 'KNAMFP  = ',TRIM(KNAMFP)
+      WRITE(6,'(A,A)') 'KNAMWM  = ',TRIM(KNAMWM)
+      WRITE(6,'(A,A)') 'KNAMPF  = ',TRIM(KNAMPF)
+      WRITE(6,'(A,A)') 'KNAMFO  = ',TRIM(KNAMFO)
+      WRITE(6,'(A,A)') 'KNAMTR  = ',TRIM(KNAMTR)
+      WRITE(6,'(A,A)') 'KNAMEQ2 = ',TRIM(KNAMEQ2)
+      WRITE(6,'(A,A)') 'knam_profg_TOTAL = ',TRIM(knam_profg_TOTAL)
+      WRITE(6,'(A,A)') 'knam_profm_TOTAL = ',TRIM(knam_profm_TOTAL)
       RETURN
 
   100 FORMAT(' ','NS    NPA         PA          PZ          ', &
                        'PN          PNS')
-  110 FORMAT(' ',I2,' ',I5,7X,1P4E12.4)
+  110 FORMAT(' ',I3,' ',I5,7X,4ES12.4)
   120 FORMAT(' ','NS    PTPR        PTPP        PTS         ', &
                        'PU          PUS')
-  130 FORMAT(' ',I2,' ',1P5E12.4)                               
+  130 FORMAT(' ',I2,' ',1P5E12.4)
   131 FORMAT(' ','NS    PUPR        PUPP        PNUC        PZCL')
-  132 FORMAT(' ',I2,' ',1P4E12.4)                               
+  132 FORMAT(' ',I3,' ',1P4E12.4)
   140 FORMAT(' ','NS    RHOITB      PNITB       PTITB       PUITB')
-  150 FORMAT(' ',I2,' ',1P4E12.4)                               
+  150 FORMAT(' ',I3,' ',1P4E12.4)
   160 FORMAT(' ','NS    PROFN1      PROFN2      PROFT1      ', &
                        'PROFT2      PROFU1      PROFU2')
-  170 FORMAT(' ',I2,' ',1P6E12.4)                               
+  170 FORMAT(' ',I3,' ',1P6E12.4)
   601 FORMAT(' ',A6,'=',1PE11.3:2X,A6,'=',1PE11.3: &
              2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
   604 FORMAT(' ',A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &

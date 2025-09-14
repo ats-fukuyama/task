@@ -17,6 +17,7 @@ CONTAINS
 
     USE wrcomm
     USE wrcalpwr
+    USE wrsub
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: ierr
     REAL:: time1,time2
@@ -30,11 +31,14 @@ CONTAINS
        omega=2.D6*PI*RFIN(nray)
        rkv=omega/VC
        rnv=VC/omega
-       WRITE(6,'(A,I4,3ES12.4)') 'nray,omega,rkv,rnv=',nray,omega,rkv,rnv
 
        CALL wr_setup_start_point(NRAY,RAYS(0,0,NRAY),nstp,IERR)
        nstpmax_nray(nray)=nstp
-       IF(IERR.NE.0) CYCLE
+       IF(IERR.EQ.1) THEN ! no initial point in plasma
+          CALL WRCALE(RFIN(nray),RAYS(:,:,NRAY),nstp,NRAY)
+          CYCLE
+       END IF
+
        CALL wr_exec_single_ray(NRAY,RAYS(0,0,NRAY),nstp,IERR)
        nstpmax_nray(nray)=nstp
        IF(IERR.NE.0) CYCLE
@@ -68,7 +72,8 @@ CONTAINS
     USE wrcomm
     USE wrsub,ONLY: wrcale,wrcale_xyz,wr_cold_rkperp,wr_newton, &
          wr_write_line,wr_cal_ep
-    USE plprof,ONLY: pl_mag_type,pl_mag,pl_prf_type,pl_prof
+    USE plcomm,ONLY: pl_mag_type,pl_prf_type
+    USE plprof,ONLY: pl_mag,pl_prof
     USE plprofw,ONLY: pl_prfw_type,pl_profw
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NRAY
@@ -79,7 +84,7 @@ CONTAINS
     TYPE(pl_prfw_type),DIMENSION(nsmax):: plfw
     TYPE(pl_prf_type),DIMENSION(nsmax):: plf
     REAL(rkind):: RF,RP,ZP,PHI,ANGT,ANGP,RNK,UU
-    INTEGER:: MODEW,mode
+    INTEGER:: MODEW,mode,nsa
     REAL(rkind):: XP,YP,s,deg,factor,omega_pe2,rne,arg,err
     REAL(rkind):: rhon,rkpara,rkperp_1,rkperp_2
     REAL(rkind):: rk,rk_x,rk_y,rk_z,dXP,dYP,dZP
@@ -91,7 +96,7 @@ CONTAINS
     REAL(rkind):: rk_x2,rk_y2,rk_z2,rk_R2,rk_phi2
     REAL(rkind):: alpha_1,alpha_2,diff_1,diff_2
     COMPLEX(rkind):: cepola(3),cenorm(3)
-    
+
     IERR=0
     deg=PI/180.D0
 
@@ -170,6 +175,9 @@ CONTAINS
     YN(6,nstp)= RK_Z
     YN(7,nstp)= UU
     YN(8,nstp)= 0.D0
+    DO nsa=1,nsamax_dp
+       pwr_nsa_nstp(nsa,nstp)=0.D0
+    END DO
     CALL wr_write_line(NSTP,YN(0,NSTP),YN(1:NEQ,NSTP),YN(8,NSTP))
     
     ! --- set magnetic field and minor radius at the start point ---
@@ -227,6 +235,9 @@ CONTAINS
           YN(6,nstp)= RK_Z
           YN(7,nstp)= UU
           YN(8,nstp)= 0.D0
+          DO nsa=1,nsamax_dp
+             pwr_nsa_nstp(nsa,nstp)=0.D0
+          END DO
           CALL wr_write_line(NSTP,YN(0,NSTP),YN(1:NEQ,NSTP),YN(8,NSTP))
 
           
@@ -238,13 +249,13 @@ CONTAINS
              ZP.LT.ZMIN_WR.OR. &
              S.GT.SMAX) THEN
 
-             WRITE(6,'(A,2I6,2ES12.4)') &
-                  'wr_exec_ray_single: nray,nstp,R,Z=',NRAY,nstp,RP,ZP
-             WRITE(6,'(A,I4,6ES12.4)') 'RK:',nstp,RP,PHI,ZP,RK_R,RK_PHI,RK_Z
-             WRITE(6,'(A,3ES12.4)') 'R,min,max: ',RP,RMIN_WR,RMAX_WR
-             WRITE(6,'(A,3ES12.4)') 'Z,min,max: ',ZP,ZMIN_WR,ZMAX_WR
-             WRITE(6,'(A,2ES12.4)') 'S,max:     ',S,SMAX
-             IERR=2
+             WRITE(6,'(A)') 'XX wr_exec_ray_single: no start point in plasma'
+             WRITE(6,'(A,2I6,2ES12.4)')' nray,nstp,R,Z=',NRAY,nstp,RP,ZP
+             WRITE(6,'(A,I4,6ES12.4)') 'nstp,PHI,RK:',nstp,PHI,RK_R,RK_PHI,RK_Z
+             WRITE(6,'(A,3ES12.4)')    'R,min,max:  ',RP,RMIN_WR,RMAX_WR
+             WRITE(6,'(A,3ES12.4)')    'Z,min,max:  ',ZP,ZMIN_WR,ZMAX_WR
+             WRITE(6,'(A,2ES12.4)')    'S,max:      ',S,SMAX
+             IERR=1
              RETURN
           END IF
 
@@ -422,6 +433,9 @@ CONTAINS
     YN(6,nstp)= rk_z
     YN(7,nstp)= UU
     YN(8,nstp)= 0.D0
+    DO nsa=1,nsamax_dp
+       pwr_nsa_nstp(nsa,nstp)=0.D0
+    END DO
 
     IF(idebug_wr(7).NE.0) THEN
        CALL wr_cal_ep(nstp,nray,cepola,cenorm,err)
@@ -490,7 +504,7 @@ CONTAINS
     ELSEIF(MDLWRQ.EQ.6) THEN
        CALL WRRKFT_RKF_OXB(nstp,RAYS(:,:,NRAY),nstp_end)
     ELSE
-       WRITE(6,*) 'XX WRCALC: unknown MDLWRQ =', MDLWRQ
+       WRITE(6,*) 'XX wr_exec_single_ray: unknown MDLWRQ =', MDLWRQ
        IERR=1
        nstp_end=nstp
        RETURN
@@ -634,6 +648,7 @@ CONTAINS
 
     DO NSTP = nstp_start+1,NSTPLIM
        PW=Y(7)
+       R=SQRT(Y(1)**2+Y(2)**2)
        CALL ODERK(7,wr_fdrv,X0,XE,1,Y,YM,WORK)
 
        IF(idebug_wr(11).NE.0) THEN

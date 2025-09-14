@@ -7,8 +7,7 @@
 
       SUBROUTINE TRZEFF
 
-      USE TRCOMM, ONLY : &
-           ANC,ANFE,MDLEQN,MDLUF,NRMAX,PZ,PZC,PZFE,RN,RT,ZEFF,NSMAX,MDLIMP,rkind
+      USE TRCOMM
       IMPLICIT NONE
       INTEGER:: NR,NS
       REAL(rkind)   :: TE,TRZEC,TRZEFE,RNE
@@ -19,7 +18,6 @@
          PZFE(NR)=TRZEFE(TE)
       ENDDO
 
-      IF(MDLUF.EQ.0) THEN
          SELECT CASE(MDLIMP)
          CASE(3,4)
             DO NR=1,NRMAX
@@ -39,15 +37,6 @@
                     +PZFE(NR)**2*ANFE(NR)
             ZEFF(NR)=ZEFF(NR)/RN(NR,1)
          ENDDO
-      ELSE
-         IF(MDLEQN.EQ.0) THEN ! fixed density
-            ZEFF(NR) =0.D0
-            DO NS=2,NSMAX
-               ZEFF(NR)=ZEFF(NR) + PZ(NS)**2*RN(NR,NS)
-            END DO
-            ZEFF(NR)=ZEFF(NR)/RN(NR,1)
-         ENDIF
-      ENDIF
 
 !
       RETURN
@@ -260,10 +249,7 @@
 
       SUBROUTINE TRLOSS
 
-      USE TRCOMM, ONLY : AEE, ANC, ANFE, ANNU, DT, KUFDEV, MDLUF, MDLPR, &
-           NRMAX, NT, NTUM, PCX, PIE, PRB, PRC, PRSUM, PRL, PRLU, RKEV, RN, &
-           RT, SCX, SIE, TSCX, TSIE,NSMAX, rkind, &
-           NTAMAX, NTXMAX, PNBI, TMU
+      USE TRCOMM
       USE tr_cytran_mod, ONLY: tr_cytran
       USE libitp
       IMPLICIT NONE
@@ -271,43 +257,6 @@
       REAL(rkind):: ANDX, ANE, ANHE, ANT, EION, PLC, PLD, PLFE, PLHE, PLTT, &
            PRLL, SCH, SION, TD, TE, TN, TNU, TRRPC, TRRPFE, TSL
 
-      IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
-         IF(NT.EQ.0) THEN
-            TSL=DT*DBLE(1)
-            DO NR=1,NRMAX
-               PRSUM(NR)=PRLU(1,NR)
-            ENDDO
-         ELSE
-            TSL=DT*DBLE(NT)
-            IF(KUFDEV.EQ.'X') THEN
-               DO NR=1,NRMAX
-                  CALL TIMESPL(TSL,PRLL,TMU,PRLU(:,NR),NTXMAX,NTUM,IERR)
-                  PRSUM(NR)=PRLL
-               ENDDO
-            ELSE
-               DO NR=1,NRMAX
-                  IF(PNBI.LT.12.D6) THEN
-                     PRSUM(NR)=PRLU(1,NR)
-                  ELSE
-                     PRSUM(NR)=PRLU(2,NR)
-                     IF(NT.EQ.NTAMAX) PRSUM(NR)=PRLU(3,NR)
-                  ENDIF
-               ENDDO
-            ENDIF
-         ENDIF
-      ELSEIF(MDLUF.EQ.2) THEN
-         IF(NT.EQ.0) THEN
-            TSL=DT*DBLE(1)
-            DO NR=1,NRMAX
-               PRSUM(NR)=PRLU(1,NR)
-            ENDDO
-         ELSE
-            TSL=DT*DBLE(NT)
-            DO NR=1,NRMAX
-               PRSUM(NR)=PRLU(1,NR)
-            ENDDO
-         ENDIF
-      ELSE
          DO NR=1,NRMAX
             ANE =RN(NR,1)
             TE  =RT(NR,1)
@@ -343,7 +292,6 @@
                PRSUM(NR)=PRL(NR)+PRB(NR)+PRC(NR)
             END SELECT
          ENDDO
-      ENDIF
 
 !     ****** IONIZATION LOSS ******
 

@@ -233,21 +233,21 @@ END SUBROUTINE EFINDK
 
 !     ******* FIND SUFACE INCLUDING NODES N1,N2 *******
 
-SUBROUTINE EFINDS(NSF,N1,N2,ISF)
+SUBROUTINE EFINDS(NSRF,N1,N2,ISF)
 
   use wfcomm
   implicit none
-  integer :: NSF,I,J,K,ND1,N1,L,ND2,N2,ISF
+  integer :: NSRF,I,J,K,ND1,N1,L,ND2,N2,ISF
 
-  IF(NSF.LT.0.OR.NSF.GT.NSFMAX) GOTO 9000
-  DO I=1,MAX(NSFMAX-NSF,NSF)
+  IF(NSRF.LT.0.OR.NSRF.GT.NSRFMAX) GOTO 9000
+  DO I=1,MAX(NSRFMAX-NSRF,NSRF)
      DO J=1,2
         IF(J.EQ.1) THEN
-           ISF=NSF+I
+           ISF=NSRF+I
         ELSE
-           ISF=NSF-I
+           ISF=NSRF-I
         ENDIF
-        IF(ISF.GE.1.AND.ISF.LE.NSFMAX) THEN
+        IF(ISF.GE.1.AND.ISF.LE.NSRFMAX) THEN
            DO K=1,3
               ND1=NDSRF(K,ISF)
               IF(ND1.EQ.N1) THEN

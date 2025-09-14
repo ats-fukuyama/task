@@ -5,6 +5,7 @@
     REAL(rkind):: BNX,BNY,BNZ,BABS
     REAL(rkind),DIMENSION(NSM):: RN,RTPR,RTPP,RU,RUPL,RUPR,RUPP,RNUC
     REAL(rkind),DIMENSION(NSM):: RLN,RLRPT,RLTPP,RLU,RLUPL
+    REAL(rkind):: RQP
   END MODULE pllocal
 
   MODULE plprof
@@ -12,9 +13,6 @@
     USE plcomm_type
 
     PRIVATE
-    PUBLIC pl_mag_type
-    PUBLIC pl_prf_type
-    PUBLIC pl_grd_type
     PUBLIC pl_mag_old
     PUBLIC pl_mag
     PUBLIC pl_mag_rz
@@ -32,8 +30,6 @@
     PUBLIC pl_dvdrho
     PUBLIC pl_axis
     PUBLIC pl_rzsu
-    PUBLIC pl_wmxprf
-    PUBLIC wmspl_prof
     PUBLIC pl_getRZ
     PUBLIC pl_getRZB
     PUBLIC pl_getB
@@ -63,11 +59,11 @@
          USE bpsd_kinds
          REAL(rkind),INTENT(OUT):: RAXIS,ZAXIS
        END SUBROUTINE GETAXS
-       SUBROUTINE eqget_rzsu(rsu,zsu,nsumax)
+       SUBROUTINE GETRSU(rsu,zsu,nsumax)
          USE bpsd_kinds
          REAL(rkind),INTENT(OUT):: rsu(:),zsu(:)
-         INTEGER(ikind),INTENT(OUT):: nsumax
-       END SUBROUTINE eqget_rzsu
+         INTEGER,INTENT(OUT):: nsumax
+       END SUBROUTINE GETRSU
        SUBROUTINE GET_BMINMAX(rhon,BBMIN,BBMAX)
          USE bpsd_kinds
          REAL(rkind),INTENT(IN):: rhon
@@ -287,7 +283,7 @@
       REAL(rkind),INTENT(IN):: RHON
       REAL(rkind),INTENT(OUT),DIMENSION(NSMAX):: RN,RTPR,RTPP,RU
       TYPE(pl_prf_type),DIMENSION(NSMAX):: PLF
-      INTEGER(ikind):: NS
+      INTEGER:: NS
 
       CALL pl_prof(RHON,PLF)
       DO NS=1,NSMAX
@@ -475,21 +471,21 @@
 
     SUBROUTINE pl_prof(RHON,PLF)
 
-        USE plcomm,ONLY: PZ,PN,PTPR,PTPP,PU,PNS,PTS,PUS,NSMAX&
-             &,MODELN,RA,RB, PROFN1,PROFN2,PROFT1,PROFT2, PROFU1&
-             &,PROFU2, PNITB,PTITB,PUITB,RHOITB,RHOEDG
-        USE plload,ONLY: pl_read_trdata
+        USE plcomm
+        USE plload,ONLY: pl_read_trdata,pl_read_xprf
         USE plprof_travis
+        USE plprof_TOTAL
         USE plcoll
         IMPLICIT NONE
-        REAL(rkind),INTENT(IN):: RHON
+        REAL(dp),INTENT(IN):: RHON
         TYPE(pl_prf_type),DIMENSION(NSMAX),INTENT(OUT):: PLF
-        REAL(rkind):: RHOL, FACTN, FACTT, FACTU, FACTITB, PL0, PL,&
-             & FACT, FNX, DFNX, AN, BN, FTX, DFTX, AT, BT, FUX, DFUX,&
-             & AU, BU, VAL, PNL, PTL, profn, proft
-        INTEGER(ikind)  :: NS
-        REAL(rkind),DIMENSION(NSMAX) :: RN_PL,RT_PL,RTPR_PL,RTPP_PL&
-             &,RU_PL,RUPL_PL
+        REAL(rkind):: &
+             rhol,factn,factt,factu,factitb,pl0,pl, &
+             fact,fnx,dfnx,an,bn,ftx,dftx,at,bt,fux,dfux, &
+             au,bu,val,pnl,ptl,qpl,profn,proft,factnm,facttm,factum
+        INTEGER  :: NS,ierr
+        REAL(rkind),DIMENSION(NSMAX) :: &
+             rn_pl,rt_pl,rtpr_pl,rtpp_pl,ru_pl,rupl_pl
 
         IF(RHON.LE.0.D0) THEN
            RHOL=0.D0
@@ -501,11 +497,11 @@
            RHOL=RHON
         ENDIF
 
-        SELECT CASE(MODELN)
+        SELECT CASE(model_prof)
         CASE(0,1)
            IF(RHOL.GT.1.D0) THEN
               DO NS=1,NSMAX
-                 IF(MODELN.EQ.1) THEN
+                 IF(model_prof.EQ.1) THEN
                     PLF(NS)%RN  =PNS(NS)
                  ELSE
                     PLF(NS)%RN  =0.D0
@@ -518,12 +514,15 @@
            ELSE
               DO NS=1,NSMAX
                  FACTN=(1.D0-RHOL**PROFN1(NS))**PROFN2(NS)
+                 FACTNM=RHOL**PROFN3(NS)*(1.D0-RHOL**PROFN3(NS))
                  FACTT=(1.D0-RHOL**PROFT1(NS))**PROFT2(NS)
+                 FACTTM=RHOL**PROFT3(NS)*(1.D0-RHOL**PROFT3(NS))
                  FACTU=(1.D0-RHOL**PROFU1(NS))**PROFU2(NS)
-                 PLF(NS)%RN  =(PN(NS)  -PNS(NS))*FACTN+PNS(NS)
-                 PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACTT+PTS(NS)
-                 PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
-                 PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+                 FACTUM=RHOL**PROFU3(NS)*(1.D0-RHOL**PROFU3(NS))
+                 PLF(NS)%RN  =(PN(NS)  -PNS(NS))*FACTN+PNS(NS)+PNM(NS)*FACTNM
+                 PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACTT+PTS(NS)+PTM(NS)*FACTTM
+                 PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)+PTM(NS)*FACTTM
+                 PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)+PUM(NS)*FACTTM
                  PLF(NS)%RUPL=0.D0
                  IF(RHOL.LT.RHOITB(NS)) THEN
                     FACTITB =(1.D0-(RHOL/RHOITB(NS))**4)**2
@@ -551,11 +550,12 @@
               CALL GETPP(RHOL,PL)
               FACT=SQRT(PL/PL0)
               DO NS=1,NSMAX
-                 FACTU=(1.D0-RHOL**PROFU1(NS))**PROFU2(NS)
                  PLF(NS)%RN  =(PN(NS)-PNS(NS))*FACT+PNS(NS)
                  PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACT+PTS(NS)
                  PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACT+PTS(NS)
-                 PLF(NS)%RU  =(PU(NS)-PUS(NS))*FACTU+PUS(NS)
+                 FACTU=(1.D0-RHOL**PROFU1(NS))**PROFU2(NS)
+                 FACTUM=RHOL**PROFU3(NS)*(1.D0-RHOL**PROFU3(NS))
+                 PLF(NS)%RU  =(PU(NS)-PUS(NS))*FACTU+PUS(NS)+PNM(NS)*FACTUM
                  PLF(NS)%RUPL=0.D0
               ENDDO
            ENDIF
@@ -618,7 +618,7 @@
 
         CASE(8)
            DO NS=1,NSMAX
-              CALL WMSPL_PROF(Rhol,NS,RN_PL(NS),RT_PL(NS))
+              CALL pl_read_xprf(Rhol,NS,RN_PL(NS),RT_PL(NS))
            ENDDO
 
 !----  Modification for charge neutrality after spline interpolation
@@ -698,6 +698,17 @@
               PLF(NS)%RUPL=0.D0
            END DO
            CALL pl_set_rnuc(plf)
+
+        CASE(41,42)
+           CALL pl_read_prof_total(RHOL,nsmax,rn_pl,rt_pl)
+           DO NS=1,NSMAX
+              PLF(NS)%RN  =rn_pl(ns)
+              PLF(NS)%RTPR=rt_pl(ns)
+              PLF(NS)%RTPP=rt_pl(ns)
+              PLF(NS)%RU  =0.D0
+              PLF(NS)%RUPL=0.D0
+           END DO
+           CALL pl_set_rnuc(plf)
         END SELECT
 
         RETURN
@@ -740,7 +751,7 @@
       REAL(rkind),INTENT(IN):: rho
       REAL(rkind),DIMENSION(nsmax),INTENT(OUT):: rn,rtpr,rtpp,ru,rupl
       TYPE(bpsd_plasmaf_type),save :: plasmaf
-      INTEGER(ikind):: ns,ierr
+      INTEGER:: ns,ierr
 
       plasmaf%nrmax=1
       plasmaf%rho(1)=rho
@@ -939,29 +950,29 @@
 
 !     ***** PLASMA BOUNDARY *****
 
-    SUBROUTINE pl_rzsu(RSU,ZSU,NSUMAX)
+    SUBROUTINE pl_rzsu(RSU_pl,ZSU_pl,NSUMAX)
 
       USE plcomm,ONLY: PI,RA,RKAP,RR,MODELG
       IMPLICIT NONE
-      REAL(rkind),ALLOCATABLE,INTENT(OUT) :: RSU(:),ZSU(:)
-      INTEGER(ikind),INTENT(OUT):: NSUMAX
+      REAL(rkind),ALLOCATABLE,INTENT(OUT) :: RSU_pl(:),ZSU_pl(:)
+      INTEGER,INTENT(OUT):: NSUMAX
       REAL(rkind)     :: DTH, TH
-      INTEGER(ikind)  :: NSU
+      INTEGER  :: NSU
 
       SELECT CASE(MODELG)
       CASE(0:2)
-         IF(ALLOCATED(RSU)) DEALLOCATE(RSU)
-         IF(ALLOCATED(ZSU)) DEALLOCATE(ZSU)
+         IF(ALLOCATED(RSU_pl)) DEALLOCATE(RSU_pl)
+         IF(ALLOCATED(ZSU_pl)) DEALLOCATE(ZSU_pl)
          NSUMAX=256
-         ALLOCATE(RSU(NSUMAX),ZSU(NSUMAX))
+         ALLOCATE(RSU_pl(NSUMAX),ZSU_pl(NSUMAX))
          DTH=2.D0*PI/(NSUMAX-1)
          DO NSU=1,NSUMAX
             TH=(NSU-1)*DTH
-            RSU(NSU)=RR+     RA*COS(TH)
-            ZSU(NSU)=   RKAP*RA*SIN(TH)
+            RSU_pl(NSU)=RR+     RA*COS(TH)
+            ZSU_pl(NSU)=   RKAP*RA*SIN(TH)
          ENDDO
       CASE(3,5,8)
-         CALL eqget_rzsu(RSU,ZSU,NSUMAX)
+         CALL GETRSU(RSU_pl,ZSU_pl,NSUMAX)
       END SELECT
       RETURN
     END SUBROUTINE pl_rzsu
@@ -976,7 +987,7 @@
       IMPLICIT NONE
       REAL(rkind),DIMENSION(NXPRF,NXSPC):: PRFN,PRFT
       CHARACTER(LEN=80):: TRFILE='topics-data' ! fixed name
-      INTEGER(ikind):: ierr,ifno,nr,ns,irc,n,i
+      INTEGER:: ierr,ifno,nr,ns,irc,n,i
       REAL(rkind):: val
 
       ierr = 0
@@ -1037,19 +1048,19 @@
 
     SUBROUTINE wmspl_prof(Rhol,NS,PNL,PTL)
 
-      USE plcomm,ONLY: PNS,PTS,modeln
+      USE plcomm,ONLY: PNS,PTS,model_prof
       USE plxprf
       USE libspl1d
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: rhol   ! Normalized radius
-      INTEGER(ikind),INTENT(IN):: NS  ! Particle species
+      INTEGER,INTENT(IN):: NS  ! Particle species
       REAL(rkind),INTENT(OUT):: PNL   ! Density at Rhol
       REAL(rkind),INTENT(OUT):: PTL   ! Temperature at Rhol
       REAL(rkind):: PPL
-      INTEGER(ikind):: IERR
+      INTEGER:: IERR
 
       IF (Rhol.GT.1.0D0) THEN
-         IF(modeln.EQ.1) THEN
+         IF(model_prof.EQ.1) THEN
             PNL = PNS(NS)
          ELSE
             PNL = 0.D0

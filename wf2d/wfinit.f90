@@ -20,7 +20,7 @@ CONTAINS
 !              * 0 : exp(-i omega t)
 !                1 : exp( j omega t)
 
-!        MODELN : density profile model (defined in PL)
+!        model_prof : density profile model (defined in PL)
 !        MODELP : dielectric tensor model (defined in DP)
 
     CALL pl_allocate_ns

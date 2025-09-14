@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../make.header
 include ../mtxp/make.mtxp
-LIB_MTX=$(LIB_MTX_BND)
-LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_BND)
+#LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIB_MTX_PCG)
 #LIBX_MTX=$(LIBX_MTX_PCG)
 #LIB_MTX=$(LIB_MTX_MUMPS)
@@ -20,7 +20,7 @@ MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../dp/$(MOD) \
             -I../pl/$(MOD) -I../eq/$(MOD) \
             -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
-SRCFIXED1 = wmfem_comm.f  ../eq/wmeqin.f
+SRCFIXED1 = wmfem_comm.f  # ../eq/wmeqin.f
 SRCFIXED2 =        wmexec.f wmloop.f \
        wmxprf.f wmdprf.f \
        wmgout.f 

@@ -34,6 +34,7 @@ CONTAINS
     MODELG=2
     MODELD=0
     MODELP=2
+    MODELB_wf=0
 
 !        KFNAME: File name of element data
 !        KFNAMA: File name of antenna data
@@ -153,20 +154,28 @@ CONTAINS
     END DO
 
 !   Edge damping region (absorption ns=NSMAX)
-!      MDAMP=0 : no damping region
-!           <>0: damping region in all direction except wg layer
-!             1: no damp in the region r=rmin, zdamp_min<z<zdamp_max 
-!             2: no damp in the region r=rmax, zdamp_min<z<zdamp_max 
-!             3: no damp in the region z=zmin, rdamp_min<r<rdamp_max 
-!             4: no damp in the region z=zmax, rdamp_min<r<rdamp_max 
-!      WDAMP   : width of damping region [m]
-!      FDAMP   : damping factor
-!                       epsilon=FDAMP*(WDAMP-DX)/(DX+CI*PZCL(NSMAX))
+!      model_damp=-1 : no damping region
+!             0: all damping edge for antenna exciataion
+!             1: no damp in the region x=xmin, ydamp_min<y<ydamp_max 
+!             2: no damp in the region x=xmax, ydamp_min<y<ydamp_max 
+!             3: no damp in the region y=ymin, xdamp_min<x<xdamp_max 
+!             4: no damp in the region y=ymax, xdamp_min<x<xdamp_max 
+!             5: no damp in the region r=rmin, thdamp_min<th<thdamp_max 
+!             6: no damp in the region r=rmax, thdamp_min<th<thdamp_max 
+!      width_damp : width of damping region [m]
+!      factor_damp : damping factor: del=ABS(x-xmin)...
+!                    epsilon=facotr_damp*(width_damp-del)/(del+CI*PZCL(NSMAX))
 !      PZCL(NSMAX): damping factor: PN(NSMAX)=0
 
-    MDAMP=0
+    MDAMP=-1
     WDAMP=0.D0
     FDAMP=0.3D0
+    rdamp_min=0.D0
+    rdamp_max=0.D0
+    zdamp_min=0.D0
+    zdamp_max=0.D0
+    thdamp_min=0.D0
+    thdamp_max=0.D0
 
     ! *** collision enhancement near a layer ***
     !  model_coll_enhance:  0: no enhancement, 1: layer in x, 2: layer in y
@@ -331,10 +340,7 @@ CONTAINS
     nemax=0
     nsdmax=0
     mlen=0
-    rdamp_min=0.D0
-    rdamp_max=0.D0
-    zdamp_min=0.D0
-    zdamp_max=0.D0
+    mode_div=0
 
     NFOPEN = 0
     RNDMIN = 0.D0

@@ -42,6 +42,7 @@ module wfcomm
 
 !       --- common variables ---
   complex(rkind):: CII
+  INTEGER:: idebug_wf(100)
 
 !       /WFPRM/
   real(rkind):: RF,RKZ
@@ -50,7 +51,7 @@ module wfcomm
 !  real(rkind):: PPN0,PTN0
   real(rkind):: PIN
   integer(ikind):: NPRINT,NDRAWD,NDRAWA,NDRAWE,NGRAPH,NDRAWV
-  integer(ikind):: MODELI
+  integer(ikind):: MODELI,MODELB_WF
   integer(ikind):: MODELD,MODELP
   REAL(rkind):: sort_weight_x,sort_weight_y
   REAL(rkind):: PSIA
@@ -73,6 +74,10 @@ module wfcomm
 !       /WFPRD/
   real(rkind):: BDRMIN,BDRMAX,BDZMIN,BDZMAX
   real(rkind):: DELR,DELZ
+
+  REAL(rkind):: rmin_div,rmax_div,thmin_div,thmax_div
+  REAL(rkind):: delr_div,delth_div
+
   INTEGER:: nlayer_max
   REAL(rkind):: posl_nlayer(NLM+1),step_size_nlayer(NLM)
   REAL(rkind):: pos_min,pos_max,step_size
@@ -80,11 +85,16 @@ module wfcomm
   real(rkind):: RD,THETJ1,THETJ2
   integer(ikind):: NJMAX
   real(rkind),dimension(NAM):: AJ,APH,APOS,AWD
+
+!  integer(ikind):: mode_damp
+!  real(rkind):: width_damp,factor_damp
+!  real(rkind):: xdamp_min,xdamp_max,ydamp_min,ydamp_max,thdamp_min,thdamp_max
   integer(ikind):: MDAMP
-  real(rkind):: WDAMP,FDAMP,rdamp_min,rdamp_max,zdamp_min,zdamp_max
+  real(rkind):: WDAMP,FDAMP
+  real(rkind):: rdamp_min,rdamp_max,zdamp_min,zdamp_max,thdamp_min,thdamp_max
 
 !       /WFDIV/
-  integer(ikind):: iddiv
+  integer(ikind):: mode_div
          
 !       /WFELM/
   integer(ikind):: NNMAX,NEMAX,NBNOD,NBSID
@@ -156,7 +166,7 @@ module wfcomm
 !       /WFSLV/
   integer(ikind):: MLEN !,NNBMAX
   integer(ikind):: NMDMAX
-  complex(rkind):: CM(6,6)
+!  complex(rkind):: CM(6,6)
   complex(rkind),dimension(:)  ,ALLOCATABLE :: CSV    !(MLEN)
   complex(rkind),dimension(:,:),ALLOCATABLE :: CVTOT  !(6,NEMAX)
   complex(rkind),dimension(:)  ,ALLOCATABLE :: CQQ    !(MBND)
@@ -177,6 +187,7 @@ module wfcomm
 !       /WFPWR/
   real(rkind):: PABSTT
   real(rkind),dimension(NSM):: PABST
+  real(rkind),dimension(:,:),ALLOCATABLE:: PABS
 !  real(rkind),dimension(:)  ,ALLOCATABLE :: PABSS !(NSM)
 !  real(rkind),dimension(:)  ,ALLOCATABLE :: PABSK !(NKMAX)
 !  real(rkind),dimension(:)  ,ALLOCATABLE :: PABSTN!(NNMAX)
@@ -481,11 +492,15 @@ contains
     integer,save :: NSDMAX_save=0
     integer,save :: NNMAX_save=0
     integer,save :: NMDMAX_save=0
+    integer,save :: NSMAX_save=0
+    integer,save :: NEMAX_save=0
 
     if(fldinit.eq.1) then
        if((NSDMAX.eq.NSDMAX_save).and.&
          &( NNMAX.eq. NNMAX_save).and.&
-         &(NMDMAX.eq.NMDMAX_save)) THEN
+         &(NMDMAX.eq.NMDMAX_save).and.&
+         &( NEMAX.eq. NEMAX_save).and.&
+         &( NSMAX.eq. NSMAX_save)) THEN
 !          .and.&
 !         &( NBMAX.eq. NBMAX_save)) then
           return
@@ -493,15 +508,20 @@ contains
           call wffld_deallocate
           NSDMAX_save=0
           NNMAX_save=0
+          NEMAX_save=0
           NMDMAX_save=0
+          NSMAX_save=0
        end if
     end if
     allocate(CESD(NSDMAX),CEND(NNMAX))!,CEP(3,NNMAX))
     allocate(CBF(3,NNMAX),CBP(3,NNMAX),EMAX(4))   !,CRFL(NMDMAX,NBMAX))
+    ALLOCATE(PABS(NSMAX,NEMAX))
 
     NSDMAX_save = NSDMAX
      NNMAX_save = NNMAX
+     NEMAX_save = NEMAX
     NMDMAX_save = NMDMAX
+     NSMAX_save = NSMAX
 !     NBMAX_save = NBMAX
     fldinit = 1
 
@@ -511,7 +531,7 @@ contains
   subroutine wffld_deallocate
     implicit none
 
-    deallocate(CESD,CEND,CBF,CBP,EMAX) !,CRFL)!,CEP)
+    deallocate(CESD,CEND,CBF,CBP,EMAX,PABS)
 
     return
   end subroutine wffld_deallocate

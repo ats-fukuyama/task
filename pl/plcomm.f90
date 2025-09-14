@@ -39,9 +39,13 @@ MODULE plcomm_parm
       INTEGER,PARAMETER:: NCOILM=30 ! Maximum number of mirror coils
 
       INTEGER:: NSMAX,NCOILMAX
-      INTEGER:: MODELG,MODELB,MODELN,MODELQ,IDEBUG,MODEFR,MODEFW
+      INTEGER:: nsfmax,nszmax,nsnmax,nstmax
+      INTEGER:: MODELG,MODELB,MODELQ,IDEBUG,MODEFR,MODEFW
       INTEGER:: mdlplw
-      INTEGER:: MODEL_PROF,MODEL_NPROF,model_coll
+      INTEGER:: model_prof,model_nprof,model_coll,model_eqdsk_psi
+      INTEGER:: model_prof_time,model_sigv
+      INTEGER:: & ! NS of bulk species (first in NS)
+           NS_e,NS_D,NS_T,NS_He4,NS_He3,NS_H,NS_He5,NS_C,NS_Fe,Ns_n
 
       REAL(rkind):: RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ
       REAL(rkind):: RMIR,ZBB,Hpitch1,Hpitch2,RRCH
@@ -57,16 +61,23 @@ MODULE plcomm_parm
            proft_travis_p,proft_travis_q,proft_travis_w
 
       REAL(rkind),DIMENSION(NSM):: & 
-           PA,PZ,PN,PNS,PTPR,PTPP,PTS, &
-           PU,PUS,PUPR,PUPP, &
+           PA,PZ,PN,PNS,PNM,PTPR,PTPP,PTS,PTM, &
+           PU,PUS,PUM,PUPR,PUPP, &
            RHOITB,PNITB,PTITB,PUITB, &
-           PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
+           PROFN1,PROFN2,PROFN3,PROFT1,PROFT2,PROFT3,PROFU1,PROFU2,PROFU3, &
            PZCL,PNUC
       INTEGER,DIMENSION(NSM)::NPA,ID_NS
-      CHARACTER(len=2),DIMENSION(NSM)::KID_NS
+      CHARACTER(len=4),DIMENSION(NSM)::KID_NS
 
       CHARACTER(len=80):: KNAMEQ,KNAMWR,KNAMFP,KNAMWM,KNAMPF,KNAMFO,KNAMTR
       CHARACTER(len=80):: KNAMEQ2
+      CHARACTER(len=128):: knam_profg_TOTAL,knam_profm_TOTAL
+
+    CONTAINS
+
+      SUBROUTINE pl_parm_dumm
+        RETURN
+      END SUBROUTINE pl_parm_dumm
 
 END MODULE plcomm_parm
 
@@ -94,9 +105,9 @@ MODULE plxprf
 !     NXPRF : Maximum number of spatial points read from external file
 !     NXSPC : Maximum number of species read from external file
     
-  INTEGER(ikind),PARAMETER:: NXPRF=101,NXSPC=6
+  INTEGER,PARAMETER:: NXPRF=101,NXSPC=6
 
-  INTEGER(ikind):: NPRFMAX
+  INTEGER:: NPRFMAX
   REAL(rkind),DIMENSION(NXPRF):: PRFRHO,DERIV
   REAL(rkind),DIMENSION(4,NXPRF,NXSPC):: UPRFN,UPRFT
 

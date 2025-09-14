@@ -12,8 +12,10 @@ CONTAINS
   SUBROUTINE wr_prep(IERR)
 
     USE wrcomm_parm
-    USE dpparm,ONLY: dpprep_local
+    USE dpprep,ONLY: dp_prep_ns
     USE equnit
+    USE plload
+    USE plprof
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
     CHARACTER(LEN=80):: LINE
@@ -21,13 +23,9 @@ CONTAINS
     INTEGER:: nsu
     REAL(rkind):: dth
     EXTERNAL EQCALQ,EQGETB  !,eqget_rzsu
-    INTERFACE
-       SUBROUTINE eqget_rzsu(rsu,zsu,nsumax)
-         USE task_kinds,ONLY: dp
-         REAL(dp),ALLOCATABLE,INTENT(OUT):: rsu(:),zsu(:)
-         INTEGER,INTENT(OUT):: nsumax
-       END SUBROUTINE eqget_rzsu
-    END INTERFACE
+    INTEGER:: nrr,nrrmax_wr
+    REAL(rkind):: rr_wr,drr_wr
+    TYPE(pl_mag_type):: mag_wr
 
     IERR=0
 
@@ -35,15 +33,9 @@ CONTAINS
        IF(INITEQ.EQ.0) THEN
           CALL eq_load(MODELG,KNAMEQ,IERR)
           IF(IERR.EQ.0) THEN
-             WRITE(LINE,'(A,I5)') 'NRMAX =',51
-             CALL eq_parm(2,LINE,IERR)
-             WRITE(LINE,'(A,I5)') 'NTHMAX=',64
-             CALL eq_parm(2,LINE,IERR)
-             WRITE(LINE,'(A,I5)') 'NSUMAX=',64
-             CALL eq_parm(2,LINE,IERR)
              CALL EQCALQ(IERR)
              CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
-             CALL eqget_rzsu(rsu_wr,zsu_wr,nsumax)
+             CALL pl_rzsu(rsu_wr,zsu_wr,nsumax)
              rmax_eq=rsu_wr(1)
              rmin_eq=rsu_wr(1)
              zmax_eq=zsu_wr(1)
@@ -65,7 +57,7 @@ CONTAINS
           CALL eq_read(IERR)
           IF(IERR.EQ.0) THEN
              CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
-             CALL eqget_rzsu(rsu_wr,zsu_wr,nsumax)
+             CALL pl_rzsu(rsu_wr,zsu_wr,nsumax)
              rmax_eq=rsu_wr(1)
              rmin_eq=rsu_wr(1)
              zmax_eq=zsu_wr(1)
@@ -111,13 +103,23 @@ CONTAINS
        zmin_wr=zaxis_eq+bdr_threshold*(zmin_eq-zaxis_eq)
     END IF
     IF(rmin_wr.LT.0.D0) rmin_wr=0.D0
-    WRITE(6,'(A,4ES12.4)') 'rmin_wr:',rmin_wr,rmax_wr,zmin_wr,zmax_wr
- !            WRITE(6,'(A,4ES12.4)') '_eq:',rmin_eq,rmax_eq,zmin_eq,zmax_eq
- !            WRITE(6,'(A,2ES12.4)') '_ax:',raxis_eq,zaxis_eq
- !            WRITE(6,'(A,4ES12.4)') '_wr:',rmin_wr,rmax_wr,zmin_wr,zmax_wr
+    WRITE(6,'(A,4ES12.4)') '_eq:',rmin_eq,rmax_eq,zmin_eq,zmax_eq
+    WRITE(6,'(A,2ES12.4)') '_ax:',raxis_eq,zaxis_eq
+    WRITE(6,'(A,4ES12.4)') '_wr:',rmin_wr,rmax_wr,zmin_wr,zmax_wr
 
-    CALL DPPREP_LOCAL(IERR)
+    CALL pl_load(ierr)
+    
+    CALL dp_prep_ns(ierr)
 
+    nrrmax_wr=21
+    drr_wr=(rmax_wr-rmin_wr)/nrrmax_wr
+    DO nrr=1,nrrmax_wr
+       rr_wr=rmin_wr+drr_wr*(nrr-1)
+       CALL pl_mag(rr_wr,0.D0,0.D0,mag_wr)
+       WRITE(6,'(A,I4,6ES12.4)') 'nrr=', &
+            nrr,rr_wr,mag_wr%babs,rr_wr*mag_wr%babs, &
+            mag_wr%bnx,mag_wr%bny,mag_wr%bnz
+    END DO
     RETURN
   END SUBROUTINE wr_prep
 END MODULE wrprep

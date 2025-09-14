@@ -62,26 +62,29 @@ CONTAINS
 
     NAMELIST /WR/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
                   NSMAX,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PZCL, &
+                  PNM,PTM,PUM,PROFN3,PROFT3,PROFU3,model_eqdsk_psi, &
                   r_corner,z_corner, &
                   br_corner,bz_corner,bt_corner, &
                   pn_corner,ptpr_corner,ptpp_corner, &
                   PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
                   RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG, &
                   PPN0,PTN0,RF_PL, &
-                  MODELG,MODELN,MODELQ,model_coll,MODEL_PROF,MODEL_NPROF, &
+                  MODELG,model_prof,MODELQ,model_coll,MODEL_PROF,MODEL_NPROF, &
+                  model_eqdsk_psi, &
                   RHOGMN,RHOGMX, &
-                  KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2, &
+                  KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2,knamwrw, &
                   MODEFW,MODEFR,IDEBUG, &
-                  MODELP,MODELV,NCMIN,NCMAX,NS_NSA_DP,PMAX_DP,EMAX_DP, &
+                  MODELP,MODELV,NCMIN,NCMAX,PMAX_DP,EMAX_DP, &
                   RFIN,RPIN,ZPIN,PHIIN,RNPHIN,MODEWIN,RNKIN,UUIN, &
                   ANGTIN,ANGPIN,RCURVAIN,RCURVBIN,RBRADAIN,RBRADBIN, &
                   NRAYMAX,NSTPMAX,NRSMAX,NRLMAX,LMAXNW, &
                   NPMAX_DP,NTHMAX_DP,NRMAX_DP,NSAMAX_WR,NS_NSA_WR,nsa_grf, &
                   MDLWRI,MDLWRG,MDLWRP,MDLWRQ,MDLWRW,nres_max,nres_type, &
-                  model_fdrv,model_fdrv_ds, &
+                  model_fdrv,model_fdrv_ds,mode_wline,mode_fig,mode_write, &
                   SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW,EPSD0, &
                   mode_beam,pne_threshold,bdr_threshold, &
-                  Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr,ra_wr,idebug_wr,KNAMWRW
+                  Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr,ra_wr,idebug_wr, &
+                  knam_profm_TOTAL,knam_profg_TOTAL
 
     READ(NID,WR,IOSTAT=IST,ERR=9800,END=9900)
     
@@ -118,21 +121,22 @@ CONTAINS
              9X,'pn_corner,ptpr_corner,ptpp_corner,'/ &
              9X,'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,'/ &
              9X,'PPN0,PTN0,RFCL,'/ &
-             9X,'MODELG,MODELN,MODELQ,model_coll,MODEL_PROF,MODEL_NPROF,'/ &
+             9X,'MODELG,model_prof,MODELQ,model_coll,MODEL_PROF,MODEL_NPROF,'/ &
+             9X,'model_eqdsk_psi,'/ &
              9X,'RHOGMN,RHOGMX,'/ &
-             9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2'/ &
+             9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2,knamwrw,'/ &
              9X,'MODEFW,MODEFR,IDEBUG'/ &
-             9X,'MODELP,MODELV,NCMIN,NCMAX,NS_NSA_DP,PMAX_DP,EMAX_DP,'/ &
+             9X,'MODELP,MODELV,NCMIN,NCMAX,PMAX_DP,EMAX_DP,'/ &
              9X,'RFIN,RPIN,ZPIN,PHIIN,RNPHIN,MODEWIN,RNKIN,UUIN,'/ &
              9X,'ANGTIN,ANGPIN,RCURVAIN,RCURVBIN,RBRADAIN,RBRADBIN,'/ &
              9X,'NRAYMAX,NSTPMAX,NRSMAX,NRLMAX,LMAXNW,'/ &
              9X,'NPMAX_DP,NTHMAX_DP,NRMAX_DP,NSAMAX_WR,NS_NSA_WR,nsa_grf'/ &
              9X,'MDLWRI,MDLWRG,MDLWRP,MDLWRQ,MDLWRW,nres_max,nres_type,'/ &
-             9X,'model_fdrv,model_fdrv_ds,'/ &
+             9X,'model_fdrv,model_fdrv_ds,mode_wline,mode_fig,mode_write,'/ &
              9X,'SMAX,DELS,UUMIN,EPSRAY,DELRAY,DELDER,DELKR,EPSNW,EPSD0,'/ &
              9X,'mode_beam,pne_threshold,bdr_thershold'/ &
              9X,'Rmax_wr,Rmin_wr,Zmax_wr,Zmin_wr,ra_wr,idebug_wr'/ &
-             9X,'KNAMWRW')
+             9X,'knam_profm_TOTAL,knam_profg_TOTAL')
   END SUBROUTINE WRPLST
 
 END MODULE wrparm

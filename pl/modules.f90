@@ -1,5 +1,5 @@
 module var_equil3D
-  use bpsd, only: rkind,ikind,dp 
+  use bpsd, only: rkind,dp 
   implicit none
 
 !... wout file name
@@ -7,15 +7,15 @@ module var_equil3D
 
 !... data from wout_file 
   character(len=4)              :: version        ! version of vmec2000 ; accept '6.90' or '8.40' at present
-  integer(kind=ikind)           :: ns             ! the number of radial grids ; j=0:ns
-  integer(kind=ikind)           :: nsp1           ! = ns + 1
-  integer(kind=ikind)           :: nsm1           ! = ns - 1
-  integer(kind=ikind)           :: nfp            ! the number of toroidal field periods
-  integer(kind=ikind)           :: mpol           ! the number of poloidal modes ;  0 <= m <= mpol-1
-  integer(kind=ikind)           :: ntor           ! the number of toroidal modes ;  -ntor <= n <= ntor
-  integer(kind=ikind)           :: mnmax          ! the number of Fourier modes for R, Z, and lambda
-  integer(kind=ikind)           :: mnmax2         ! the number of Fourier modes for B and gsqrt ( =mnmax for version 6.9)
-  integer(kind=ikind)           :: isgn           ! sign of  gsqrth in vmec2000 (left-hand coordinates -> isgn=-1)
+  integer           :: ns             ! the number of radial grids ; j=0:ns
+  integer           :: nsp1           ! = ns + 1
+  integer           :: nsm1           ! = ns - 1
+  integer           :: nfp            ! the number of toroidal field periods
+  integer           :: mpol           ! the number of poloidal modes ;  0 <= m <= mpol-1
+  integer           :: ntor           ! the number of toroidal modes ;  -ntor <= n <= ntor
+  integer           :: mnmax          ! the number of Fourier modes for R, Z, and lambda
+  integer           :: mnmax2         ! the number of Fourier modes for B and gsqrt ( =mnmax for version 6.9)
+  integer           :: isgn           ! sign of  gsqrth in vmec2000 (left-hand coordinates -> isgn=-1)
   real(kind=rkind), allocatable :: xm(:)          ! poloidal mode number for R, Z, and lambda ; j=1:mnmax
   real(kind=rkind), allocatable :: xn(:)          ! toroidal mode number for R, Z, and lambda ; j=1:mnmax
   real(kind=rkind), allocatable :: xm2(:)         ! poloidal mode number for B and gsqrt      ; j=1:mnmax2

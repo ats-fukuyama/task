@@ -16,7 +16,7 @@
       USE libkio
 
       IMPLICIT NONE
-      INTEGER(ikind)    :: IERR, MODE
+      INTEGER    :: IERR, MODE
       CHARACTER         :: KID
       CHARACTER(LEN=80) :: LINE
 

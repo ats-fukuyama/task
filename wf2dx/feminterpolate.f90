@@ -6,8 +6,6 @@ MODULE feminterpolate
 ! INTEGER:: nxzone_max,nyzone_max   ! maximum division of zoning in x and y
 
   USE wfcomm,ONLY: rkind
-  INTEGER:: ncount_zone_max         ! maximum number of elements in a zone
-  REAL(rkind):: xlen_zone,ylen_zone ! length of rectangular zone in x or y
   INTEGER,ALLOCATABLE:: ncount_max_nxzone_nyzone(:,:)
                                  ! number of elements in a zone
   INTEGER,ALLOCATABLE:: nelm_ncount_nxzone_nyzone(:,:,:)
@@ -65,10 +63,6 @@ CONTAINS
           ncount_zone_max=MAX(ncount_zone_max,ncount_max_nxzone_nyzone(nx,ny))
        END DO
     ENDDO
-!       WRITE(29,'(A)') 'ncount_max_nxzone_nyzone(nx,ny)'
-!       WRITE(29,'(3I5)') &
-!            ((nx,ny,ncount_max_nxzone_nyzone(nx,ny), &
-!            ny=1,nyzone_max),nx=1,nxzone_max)
 
     ! Set nelm of elements in a zone
 
@@ -133,7 +127,7 @@ CONTAINS
     INTEGER,INTENT(IN):: nelm
     REAL(rkind),INTENT(OUT):: xmin,xmax,ymin,ymax
     INTEGER:: node,nside
-    
+
     node=node_nside_nelm(1,nelm)
     xmin=xnode(node)
     xmax=xnode(node)
@@ -165,7 +159,7 @@ CONTAINS
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: x,y
     INTEGER,INTENT(INOUT):: nelm
-    INTEGER:: nseg,nseg1
+    INTEGER(long):: nseg,nseg1
     INTEGER:: nside,node1,node2,nelm1,nside1,nelm2
     INTEGER:: nxzone,nyzone,ncount
     INTEGER:: nelm_ncount
@@ -354,6 +348,7 @@ CONTAINS
     REAL(rkind),INTENT(IN):: f_nelm(nelm_max)
     INTEGER,INTENT(IN):: id  ! 0 for new search, 1: use nelm previous search
     INTEGER,SAVE:: nelm_save=0
+    
     INTEGER:: nelm
 
     IF(id.EQ.0) THEN
@@ -373,7 +368,7 @@ CONTAINS
     SELECT CASE(model_interpolation)
     CASE(0)
        f=f_nelm(nelm)
-    CASE(1) ! linear interpolation (continuous)
+    CASE(2) ! linear interpolation (continuous)
        CALL fem_linear_interporate(x,y,nelm,f_nelm,f)
     END SELECT
     RETURN

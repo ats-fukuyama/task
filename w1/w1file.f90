@@ -4,6 +4,7 @@ MODULE w1file
   PRIVATE
   PUBLIC w1_save
   PUBLIC w1_load
+  PUBLIC w1_write
 
 CONTAINS
 
@@ -117,5 +118,39 @@ CONTAINS
     RETURN
   END SUBROUTINE w1_load
     
+  ! *** write data in csv***
+  
+  SUBROUTINE w1_write(ierr)
+    USE w1comm
+    USE libfio,ONLY: FWOPEN
+    IMPLICIT NONE
+    INTEGER,INTENT(OUT):: ierr
+    CHARACTER(LEN=128):: filename_write
+    INTEGER:: nfile_write,nx,nz
+    
+    filename_write=TRIM(job_id)//'.csv'
+    CALL FWOPEN(nfile_write,filename_write,1,0,'w1',ierr)
+    IF(ierr.EQ.0) THEN
+       WRITE(nfile_write,'(I8,2(",",I8))') NXMAX,NZMAX,NSMAX
+       DO NZ=1,NZMAX
+          WRITE(nfile_write,'(ES13.6)') ZA(NZ)
+          DO NX=1,NXMAX
+             WRITE(nfile_write,'(I8,14(",",ES13.6))') &
+                  NX,XA(NX),XAM(NX), &
+                  CE2DA(NZ,NX,1),CE2DA(NZ,NX,1),CE2DA(NZ,NX,3), &
+                  PABS2D(NZ,NX,1),PROFB(NX),PROFPN(NX,1),PROFPU(NX,1), &
+                  PROFTR(NX,1),PROFTP(NX,1)
+          END DO
+          NX=NXMAX
+          WRITE(nfile_write,'(I8,14(",",ES13.6))') &
+               NX+1,XA(NX+1),XAM(NX), &
+               CE2DA(NZ,NX+1,1),CE2DA(NZ,NX+1,1),CE2DA(NZ,NX+1,3), &
+               PABS2D(NZ,NX,1),PROFB(NX+1),PROFPN(NX+1,1),PROFPU(NX+1,1), &
+               PROFTR(NX+1,1),PROFTP(NX+1,1)
+       END DO
+    END IF
+    CLOSE(nfile_write)
+  END SUBROUTINE w1_write
+
 END MODULE w1file
 
