@@ -164,7 +164,7 @@
   603 FORMAT( &
      &' ','      ==== PLASMA PARAMETERS ===='/                          &
      &' ','  NSMAX  : NUMBER OF PARTICLE SPECIES (NS=1:ELECTRON)'/      &
-     &' ','  PM(IS) : ATOMIC NUMBER'/                                   &
+     &' ','  PA(IS) : ATOMIC NUMBER'/                                   &
      &' ','  PZ(IS) : CHARGE NUMBER'/                                   &
      &' ','  PN(IS) : INITIAL NUMBER DENSITY ON AXIS (1.E20 M**-3)'/    &
      &' ','  PNS(IS): INITIAL NUMBER DENSITY ON SURFACE (1.E20 M**-3)'/ &
@@ -240,7 +240,7 @@
      &' ','  MDLNF  : FUSION REACTION MODEL TYPE'/                  &
      &' ','           0:OFF  1:ON'/                                 &
      &' ','      ==== NBI HEATING PARAMETERS ===='/                 &
-     &' ','  PNBTOT : NBI TOTAL INPUT POWER (MW)'/                  &
+     &' ','  PNB_TOT: NBI TOTAL INPUT POWER (MW)'/                  &
      &' ','  PNBR0  : RADIAL POSITION OF NBI POWER DEPOSITION (M)'/ &
      &' ','  PNBRW  : RADIAL WIDTH OF NBI POWER DEPOSITION (M)'/    &
      &' ','  PNBVY  : VERTICAL POSITION OF NBI (M)'/                &

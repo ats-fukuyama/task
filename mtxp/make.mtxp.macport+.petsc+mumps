@@ -1,0 +1,64 @@
+### make.mtxp.macport+.petsc+mumps
+### Setup configureation for mumps with macports
+###    since 'sudo port install mumps' doesn't work on 2025-04-30
+###    directly install petsc with mumps
+###           
+###    Install required ports
+###       sudo port install gmake cmake imake gcc14 mpich
+###       sudo port select gcc mp-gcc14
+###       sudo port select mpi mpich-mp-fortran
+###       sudo port install fftw scalapack superlu hdf5
+###    Download petsc
+###       cd /opt/local/lib
+###       sudo git clone -b release https://gitlab.com/petsc/petsc.git petsc
+###       sudo chown petsc $USER
+###       copy $TASKDIR/mtxp/macports.py .
+###       ./macports.py
+###       export PETSC_DIR=/opt/local/petsc
+###       export PETSC_ARCH=macports
+
+
+EXEC=testbnd testbndc testpcg testdmumps testzmumps
+FLINKER=$(MFC)
+
+PETSC_DIR=/opt/local/petsc
+PETSC_ARCH=macports
+INCLUDE_MTX_PETSC=-I${PETSC_DIR}/include -I${PETSC_DIR}/include/petsc
+include ${PETSC_DIR}/lib/petsc/conf/variables
+PETSC_KSP_LIB=/opt/local/petsc/macports/lib/libpetsc.a
+
+INCLUDE_MTX_MUMPS=-I/opt/local/petsc/macports/include
+MUMPS_LIB=-L/opt/local/petsc/macports/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -L/opt/local/lib -lparmetis -lmetis -L/opt/local/lib/lapack -lblas -llapack
+
+
+LIBMTXMPI=../mtxp/libmtxmpi.o
+LIB_MTX_BND=$(LIBMTXMPI) ../mtxp/libmtxbndmpi.o
+LIB_MTX_PCG=$(LIBMTXMPI) ../mtxp/libmtxpcgmpi.o
+LIB_MTX_KSP=$(LIBMTXMPI) ../mtxp/libmtxksp.o
+LIB_MTX_MUMPS=$(LIBMTXMPI) ../mtxp/libmtxmumps.o
+
+LIBX_MTX_BND=$(LIB_MTX_BND)
+LIBX_MTX_PCG=$(LIB_MTX_PCG)
+LIBX_MTX_KSP=
+LIBX_MTX_MUMPS=$(LIB_MTX_MUMPS) $(MUMPS_LIB)
+
+### Selection of default setup ###
+###    overwritten in Makefile in each directory ###
+###    remove comment # of two lines in an appropriate block###
+
+## no MPI, band matrix solver
+#LIB_MTX=$(LIB_MTX_BND)
+#LIBX_MTX=$(LIBX_MTX_BND)
+
+## with MPI, band matrix solver
+#LIB_MTX=$(LIB_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_PCG)
+
+## with MPI, use PETSc for real matrix
+#LIB_MTX=$(LIB_MTX_KSP)
+#LIBX_MTX=$(LIBX_MTX_KSP)
+
+## with MPI, use MUMPS for real and complex matrix
+LIB_MTX=$(LIB_MTX_MUMPS)
+LIBX_MTX=$(LIBX_MTX_MUMPS)
+

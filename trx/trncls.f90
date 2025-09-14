@@ -153,10 +153,10 @@
       c_potb=SNGL(RKAP*BB/(2.D0*Q0**2))
       c_potl=SNGL(Q0*RR)
 
-      amu_i(1:NSLMAX)=SNGL(PM(1:NSLMAX))
+      amu_i(1:NSLMAX)=SNGL(PA(1:NSLMAX))
       IF(MDLEQZ.NE.0) THEN
          DO NSZ=1,NSZMAX
-            amu_i(NSLMAX+NSZ)=SNGL(PM(NSMAX+NSZ))
+            amu_i(NSLMAX+NSZ)=SNGL(PA(NSMAX+NSZ))
          ENDDO
       ENDIF
 
@@ -342,8 +342,8 @@
             btot=SQRT(btor**2+bpol**2)*btor/ABS(btor)
             DO i=1,m_s
                uthai=utheta_s(1,1,i)+utheta_s(1,2,i)+utheta_s(1,3,i)
-!               IF(DBLE(amu_i(jm_s(i))).eq.PM(2).and.iz.eq.int(PZ(2))) then
-               IF(amu_i(jm_s(i)).eq.PM(2).and.jz_s(i).eq.int(PZ(2))) then
+!               IF(DBLE(amu_i(jm_s(i))).eq.PA(NS_D).and.iz.eq.int(PZ(NS_D))) then
+               IF(amu_i(jm_s(i)).eq.PA(NS_D).and.jz_s(i).eq.int(PZ(NS_D))) then
 !     Poloidal
                   VPOL(NR)=uthai*bpol
 !     Parallel

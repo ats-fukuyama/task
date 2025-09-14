@@ -144,8 +144,8 @@
       ENDDO
       rmajor_exp=RR  ! geometrical major radius of magnetix axis [m]
 
-      zimp_exp=PZ(3)         ! Zimp; finite data is necessary
-      amassimp_exp=PM(3)     ! Aimp; finite data is necessary
+      zimp_exp=PZ(NS_T)         ! Zimp; finite data is necessary
+      amassimp_exp=PA(NS_T)     ! Aimp; finite data is necessary
 
       q_exp(1)=0.5D0*(Q0+QP(1))
       DO jm=2,jmaxm
@@ -161,7 +161,7 @@
          elong_exp(jm)=RKPRHO(jm)    ! local elongation
       ENDDO
 
-      amassgas_exp=PM(2) ! atomic num. of working gas
+      amassgas_exp=PA(NS_D) ! atomic num. of working gas
       alpha_e=1.D0       ! ExB shear stabilization (0=off,>0=on)
       x_alpha=1.D0       ! alpha stabilization (0=off,>0=on)
       i_delay=0          ! default(usually recommended)
@@ -438,11 +438,8 @@
 
 !***********************************************************************
 
-      USE TRCOMM, ONLY : &
-           AR1RHOG, AR2RHOG, BB, DR, EPSRHO, MDLDW, MDLKAI, MDLTPF, &
-           NRMAX, NT, PM, PNSS, PTS, PZ, QP, RA, RHOG, RHOM, RJCB, RKAP, &
-           RKEV, RMU0, RN, RR, RT, WEXB, S, rkind
-      USE libitp
+        USE TRCOMM
+        USE libitp
       IMPLICIT NONE
       INTEGER:: ist, nr
       REAL(rkind)   :: &
@@ -459,8 +456,8 @@
       ELSE
          IST=0
       ENDIF
-      ZL    = PZ(3)
-      AZL   = PM(3)
+      ZL    = PZ(NS_T)
+      AZL   = PA(NS_T)
       COLL  = 1.D0
       ELL   = 1.D0
       RLIST = 1.D0
@@ -468,7 +465,7 @@
       RIWL  = 2.D0
       RISBL = 2.D0
       SEARCH= 2.D0
-      PMA   = PM(2)
+      PMA   = PA(NS_D)
       ROTL  = 1.D0
       EPSA  = RA/RR
       DO NR=1,NRMAX-1
@@ -506,7 +503,7 @@
             FLL   = 2.D0*FLS/(1.D0+1.D0/TAUL)
          ENDIF
 
-!         COEF = PZ(2)**2*AEE**4*1.D20
+!         COEF = PZ(NS_D)**2*AEE**4*1.D20
 !     &         /(6.D0*PI*SQRT(2.D0*PI)*EPS0**2*SQRT(AME)*RKEV**1.5D0)
 !         RLAMB =15.2D0-0.5D0*DLOG(RNL)+DLOG(TEL)
 !         VEI  = COEF*RNL*RLAMB/TEL**1.5D0
@@ -580,13 +577,11 @@
 
       SUBROUTINE WEILAND_COEF(NR,CHIL,CHEL,DL,CHQL,DQL) !,SCHI,SCHE,SD,SCHQ,SDQ)
 
-      USE TRCOMM, ONLY : &
-           ADDW, ADDWD, ADDWP, AKDW, AKDWD, AKDWP, MDLWLD, NSMAX, PM, rkind
-      IMPLICIT NONE
-      INTEGER  :: NR
-!      REAL(rkind)     :: SCHE, SCHI, SCHQ, SD, SDQ
-      REAL(rkind),DIMENSION(5):: CHEL, CHIL, CHQL, DL, DQL
-      INTEGER:: ns, ns1
+        USE TRCOMM
+        IMPLICIT NONE
+        INTEGER  :: NR
+        REAL(rkind),DIMENSION(5):: CHEL, CHIL, CHQL, DL, DQL
+        INTEGER:: ns, ns1
 
 
 !     The diagonal value of the transport coefficient matrix
@@ -600,7 +595,7 @@
 
 !     It is assumed that De=Di in the followings.
 
-      IF(PM(3).EQ.3.D0) THEN
+      IF(PA(NS_T).EQ.3.D0) THEN
 !         AKDW(NR,1)=SCHE
          AKDW(NR,1)=CHEL(2)
          DO NS=2,NSMAX

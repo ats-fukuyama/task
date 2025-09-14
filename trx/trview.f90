@@ -34,10 +34,10 @@ CONTAINS
                    'BB    ',BB
 
       WRITE(6,611)
-611   FORMAT(' ','NS NPA',2X, &
+611   FORMAT(' ','NS  NPA',1X, &
              'PM          PZ          PN(E20)     PNS(E20)    PT(KEV)     PTS(KEV)')
       DO NS=1,NSMAX
-         WRITE(6,612) NS,NPA(NS),PM(NS),PZ(NS),PN(NS),PNS(NS),PT(NS),PTS(NS)
+         WRITE(6,612) NS,NPA(NS),PA(NS),PZ(NS),PN(NS),PNS(NS),PT(NS),PTS(NS)
       ENDDO
 
       WRITE(6,601) 'PROFN1',PROFN1,'PROFT1',PROFT1,'PROFU1',PROFU1,'PROFJ1',PROFJ1
@@ -53,6 +53,10 @@ CONTAINS
       WRITE(6,601) 'AD0   ',AD0,   'CHP   ',CHP,   'CWEB  ',CWEB,  'CALF  ',CALF
       WRITE(6,630)     'model_prof  ',model_prof
       WRITE(6,'(A,A)') 'knam_prof   ',knam_prof
+      WRITE(6,'(A,I4)')'model_profn_time',model_profn_time
+      WRITE(6,'(A,A)') 'knam_profn_time ',knam_profn_time
+      WRITE(6,'(A,I4)')'model_proft_time',model_proft_time
+      WRITE(6,'(A,A)') 'knam_proft_time ',knam_proft_time
       IF((MDLKAI.GE.1.AND.MDLKAI.LT.10).OR.ID.EQ.1) &
          WRITE(6,601) 'CKALFA',CKALFA,'CKBETA',CKBETA,'CKGUMA',CKGUMA
 
@@ -67,7 +71,7 @@ CONTAINS
       WRITE(6,602) 'LMAXTR',LMAXTR,'NRMAX ',NRMAX, 'NTMAX ',NTMAX, 'NTSTEP',NTSTEP
       WRITE(6,602) 'NGRSTP',NGRSTP,'NGTSTP',NGTSTP,'NGPST ',NGPST, 'IZERO ',IZERO
       WRITE(6,602) 'MDLST ',MDLST, 'MDLCD ',MDLCD
-      WRITE(6,630) 'model_nnf   ',model_nnf
+      WRITE(6,630) 'model_pnf   ',model_pnf
 
       IF(MDLIMP.GT.0) THEN
          WRITE(6,602) 'MDLIMP',MDLIMP
@@ -237,7 +241,6 @@ CONTAINS
       WRITE(6,'(A,A)') 'KFNLOG =',TRIM(kfnlog)
       WRITE(6,'(A,A)') 'KFNTXT =',TRIM(kfntxt)
       WRITE(6,'(A,A)') 'KFNCVS =',TRIM(kfncvs)
-
       RETURN
 
 601   FORMAT(' ',A6,'=',1PE11.3 :2X,A6,'=',1PE11.3: &
@@ -260,5 +263,6 @@ CONTAINS
 632   FORMAT(' ',I2,1X,A9,I5,4X,3(1X,A6,ES12.4))
 633   FORMAT(' ',I2,4(1X,A6,ES12.4))
 634   FORMAT(' ',I2,2(1X,A9,I5,4X),2(1X,A6,ES12.4))
+640   FORMAT(' ',A16,'=',I16)
     END SUBROUTINE tr_view
 END MODULE trview

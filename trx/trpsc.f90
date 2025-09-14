@@ -30,12 +30,12 @@
       SUBROUTINE TRPSCA
 
       USE TRCOMM, ONLY : DR, RA, RM, DVRHO, NRMAX, PZ, &
-           NPSCMAX, PSCIN, PSCR0, PSCRW, NSPSC, SPSC, rkind, NSMAX
+           NPSCMAX, PSCIN, PSCR0, PSCRW, NSPSC, SPSC_NSNR, rkind, NSMAX
       IMPLICIT NONE
       REAL(rkind)    :: SSUM, S0, SPSCL
       INTEGER :: NR, NS, NPSC
       
-      SPSC(1:NRMAX,1:NSMAX)=0.D0
+      SPSC_NSNR(1:NSMAX,1:NRMAX)=0.D0
       
       DO NPSC=1,NPSCMAX
          SSUM = 0.D0
@@ -49,8 +49,8 @@
 
          DO NR=1,NRMAX
             SPSCL = S0*DEXP(-((RA*RM(NR)-PSCR0(NPSC))/PSCRW(NPSC))**2)
-            SPSC(NR, 1)=SPSC(NR, 1) + PZ(NS)*SPSCL  ! Electron
-            SPSC(NR,NS)=SPSC(NR,NS) +        SPSCL  ! Ion
+            SPSC_NSNR( 1,NR)=SPSC_NSNR( 1,NR) + PZ(NS)*SPSCL  ! Electron
+            SPSC_NSNR(NS,NR)=SPSC_NSNR(NS,NR) +        SPSCL  ! Ion
          ENDDO
       ENDDO
 

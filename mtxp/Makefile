@@ -13,7 +13,10 @@ FFLAGS=$(OFLAGS)
 
 MODINCLUDE=-I./$(MOD) -I../lib/$(MOD) $(MPI_INC)
 
-all: libs $(EXEC)
+libmtxp.a: $(LIB_MTX)
+	$(LD) $(LDFLAGS) libmtxp.a $(LIB_MTX)
+
+all: libs libmtxp.a $(EXEC)
 
 testbnd: $(LIB_MTX_BND) testmtx.o 
 	-$(FLINKER) -g -o testbnd testmtx.o $(LIBX_MTX_BND) \

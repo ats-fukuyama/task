@@ -20,6 +20,7 @@ CONTAINS
     USE trgout
     USE trfout
     USE trpnf
+    USE libnf
       
     USE libfio
     USE libkio
@@ -31,6 +32,10 @@ CONTAINS
     CHARACTER(LEN=80):: LINE
     INTEGER:: IERR,MODE,NTMOLD
     INTEGER:: NR,NS,NF,NTYPE,id_loop
+    REAL(rkind),DIMENSION(npscm),SAVE:: PSCIN_FACTOR=1.D0
+    INTEGER:: NPSC
+    INTEGER:: id
+    REAL(rkind):: temp
 
 !     ------ SELECTION OF TASK TYPE ------
 
@@ -147,12 +152,30 @@ CONTAINS
             
     ELSE IF(KID.EQ.'B') THEN
 7777   CONTINUE
-       WRITE(6,*) '## INPUT T'
-       READ(5,*,END=7779) T
-       WRITE(6,*) '   sigma=',SIGMAM(T,T)
+       WRITE(6,*) '## INPUT id,T(kev)T'
+       READ(5,*,END=7779) id,temp
+       WRITE(6,*) '   sigma=',sigmav_nf(id,temp)
        GOTO 7777
 7779   CONTINUE
-       
+
+    ELSE IF(KID.EQ.'M') THEN
+7800   CONTINUE
+       WRITE(6,'(A)') '## INPUT M: modify (1:pscin_factor,X:end)'
+       READ(5,*,ERR=7800,END=1) KID
+       CALL toupper(KID)
+       SELECT CASE(KID)
+       CASE('1')
+          WRITE(6,'(A,I1,A)') '## INPUT pscin_factor(',npscmax,'):'
+          READ(5,*) (pscin_factor(npsc),NPSC=1,NPSCMAX)
+          DO NPSC=1,NPSCMAX
+             PSCIN(NPSC)=PSCIN_MAX(NPSC)*PSCIN_FACTOR(NPSC)
+          END DO
+          WRITE(6,'(A,5ES12.4)') '## PSCIN=', &
+               (PSCIN(NPSC),NPSC=1,MIN(5,NPSCMAX))
+       CASE('X')
+          GO TO 1
+       END SELECT
+       GO TO 7800
     ELSE IF(KID.EQ.'H') THEN
        CALL TRHELP('M')
        

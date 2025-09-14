@@ -117,8 +117,8 @@ CONTAINS
                    +PRF(NR,1)+PRF(NR,2)+PRF(NR,3)+PRF(NR,4))*1.D-6 ! Paux
             VCL(15)= PRF(NR,1)*1.D-6                         ! HICe
             VCL(16)=(PRF(NR,2)+PRF(NR,3)+PRF(NR,4))*1.D-6    ! HICi
-            VCL(17)= PFCL(NR,1)*1.D-6                        ! HALe
-            VCL(18)=(PFCL(NR,2)+PFCL(NR,3)+PFCL(NR,4))*1.D-6 ! HALi
+            VCL(17)=PNFCL_NSNR(1,NR)*1.D-6                        ! HALe
+            VCL(18)=SUM(PNFCL_NSNR(2:NSMAX,NR))*1.D-6 ! HALi
 !            VCL(19)= SPT(NR)*1.D1                            ! Sedge
 !            VCL(20)= SPL(NR)*1.D1                            ! Spel
             VCL(19)= 0.D0

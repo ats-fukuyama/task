@@ -45,7 +45,7 @@
 !     TEL  : electron temperature [kev]
 !     ZL   : ion charge number
 
-      USE TRCOMM, ONLY : AEE, AME, EPS0, PI, PZ, RKEV, rkind
+      USE TRCOMM
       IMPLICIT NONE
       REAL(rkind) :: ANEL, ANIL, TEL, ZL, FTAUE
       REAL(rkind) :: COEF, coulomb_log
@@ -55,7 +55,7 @@
          RETURN
       END IF
       COEF = 6.D0*PI*SQRT(2.D0*PI)*EPS0**2*SQRT(AME)/(AEE**4*1.D20)
-      IF(ZL-PZ(2).LE.1.D-7) THEN
+      IF(ZL-PZ(NS_D).LE.1.D-7) THEN
          FTAUE = COEF*(TEL*RKEV)**1.5D0/(ANIL*ZL**2*coulomb_log(1,2,ANEL,TEL))
       ELSE
 !     If the plasma contains impurities, we need to consider the

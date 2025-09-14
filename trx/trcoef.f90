@@ -149,7 +149,7 @@
 
       DO NR=1,NRMAX
 !     characteristic time of temporal change of transport coefficients
-         TAUK(NR)=QP(NR)*RR/SQRT(RT(NR,2)*RKEV/(PM(2)*AMP))*DBLE(MDLTC)
+         TAUK(NR)=QP(NR)*RR/SQRT(RT(NR,2)*RKEV/(PA(NS_D)*AMP))*DBLE(MDLTC)
 !         DRL=RJCB(NR)/DR
          DRL=1.D0/(DR*RA)
          EPS=EPSRHO(NR)
@@ -375,6 +375,13 @@
          S(NR)=RHOG(NR)/QL*DQ
 !     pressure gradient for MHD instability
          ALPHA(NR)=-2.D0*RMU0*QL**2*RR/BB**2*(DPP*1.D20*RKEV)
+         IF(ALPHA_MAX.GT.0.D0) THEN
+            IF(ALPHA(NR).GT.alpha_max) THEN
+               ALPHA(NR)=alpha_max
+            ELSE IF(ALPHA(NR).LT.-alpha_max) THEN
+               ALPHA(NR)=-alpha_max
+            END IF
+         END IF
 !     magnetic curvature
          RKCV(NR)=-EPS*(1.D0-1.D0/(QL*QL))
 
@@ -507,7 +514,7 @@
                DEDW = CK0*2.5D0*OMEGAS/PPK**2 &
      &               *(SQRT(EPS)*MIN(FDREV,EPS*OMEGAS/ANYUE)+OMEGAS/OMEGATT*MAX(1.D0,ANYUE/OMEGATT))
                RGL   = 2.5D0*OMEGAS*HETA*SQRT(2.D0*ABS(TI)*ABS(ETAI)*ABS(CLN)/(TE*RRSTAR))
-               TAUD = FTAUI(ANE,ANDX,TD,PZ(2),PM(2))
+               TAUD = FTAUI(ANE,ANDX,TD,PZ(NS_D),PA(NS_D))
                RNUZ= 1.D0/(TAUD*SQRT(EPS))
                XCHI1=SQRT(RNUZ)/(SQRT(RNUZ)+SQRT(RGL))
                XXH=2.D0/(1.D0+PPK**2)
@@ -602,7 +609,7 @@
                RG1=CWEB*FEXB(ABS(WE1),S(NR),ALPHA(NR))
 !               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
 !               DELTAE=SQRT(DELTA2)
-!               WE1=SQRT(PM(2)/PM(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
+!               WE1=SQRT(PA(NS_D)/PA(NS_e))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
 !               RG1=1.D0/(1.D0+RG1*WE1*WE1)
             ENDIF
 
@@ -702,7 +709,7 @@
                WE1=-QL*RR/(SL*VA)*DVE
 !               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
 !               DELTAE=SQRT(DELTA2)
-!               WE1=SQRT(PM(2)/PM(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
+!               WE1=SQRT(PA(NS_D)/PA(NS_e))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
             ENDIF
 
             F=VTE/VA
@@ -763,7 +770,7 @@
                AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
                AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
             case(50)
-               AEI=(PZ(2)*ANDX+PZ(3)*ANT+PZ(4)*ANA)*AEE/PNI
+               AEI=(PZ(NS_D)*ANDX+PZ(NS_T)*ANT+PZ(NS_He4)*ANA)*AEE/PNI
                WCI=AEI*BB/AMI
                PTI=(TD*ANDX+TT*ANT+TA*ANA)/PNI
                VTI=SQRT(ABS(PTI*RKEV/AMI))
@@ -837,10 +844,10 @@
                DTERHO=DTE/RJCB(NR)
                NR08=INT(0.8D0*NRMAX)
                CHIB  = (ABS(DPERHO*1.D3)/(ANE*BB))*QL*QL*((RT(NR08,1)-RT(NRMAX,1))/RT(NRMAX,1))
-               RHOS  = 1.02D-4*SQRT(PM(2)*TE*1.D3/PZ(2))/(RA*BB)
-!               RHOS  = SQRT(2.D0*AMP/AEE)*SQRT(PM(2)*TE*1.D3)/(PZ(2)*RA*BB)
+               RHOS  = 1.02D-4*SQRT(PA(NS_D)*TE*1.D3/PZ(NS_D))/(RA*BB)
+!               RHOS  = SQRT(2.D0*AMP/AEE)*SQRT(PA(NS_D)*TE*1.D3)/(PZ(NS_D)*RA*BB)
                CHIGB = RHOS*ABS(DTERHO*1.D3)/BB
-               CS    = SQRT(ABS(TE*RKEV/(PM(2)*AMP)))
+               CS    = SQRT(ABS(TE*RKEV/(PA(NS_D)*AMP)))
                ALNI  = ABS(DND/ANDX)
                ALTI  = ABS(DTD/TD)
                AGITG = 0.1D0*CS/RA*SQRT(RA*ALNI+RA*ALTI)*SQRT(TD/TE)
@@ -898,7 +905,7 @@
             PAL=0.D0
             PZL=0.D0
             DO NS=2,NSMAX
-               PAL=PAL+PM(NS)*RN(NR,NS)
+               PAL=PAL+PA(NS)*RN(NR,NS)
                PZL=PZL+PZ(NS)*RN(NR,NS)
             ENDDO
             PAL=PAL/RN(NR,1)
@@ -950,7 +957,7 @@
             AKDW(NR,2:NSMAX)=AKDWIL   ! ion thermal diffusivity
             ADDW(NR,1)=ADDWHL         ! electron partilcle diffusivity (adhoc)
             DO NS=2,NSMAX
-               IF(PM(NS).LE.3.D0.AND.PZ(NS).EQ.1.D0) THEN  
+               IF(PA(NS).LE.3.D0.AND.PZ(NS).EQ.1.D0) THEN  
                   ADDW(NR,2:NSMAX)=ADDWHL   ! hydrogen ion particle diffusivity
                ELSE
                   ADDW(NR,2:NSMAX)=ADDWZL   ! impurity ion particle diffusivity
@@ -984,7 +991,7 @@
             AKDW(NR,2:NSMAX)=CHII     ! ion thermal diffusivity
             ADDW(NR,1)=DIFH           ! electron partilcle diffusivity (adhoc)
             DO NS=2,NSMAX
-               IF(PM(NS).LE.3.D0.AND.PZ(NS).EQ.1.D0) THEN  
+               IF(PA(NS).LE.3.D0.AND.PZ(NS).EQ.1.D0) THEN  
                   ADDW(NR,2:NSMAX)=DIFH   ! hydrogen ion particle diffusivity
                ELSE
                   ADDW(NR,2:NSMAX)=DIFZ   ! impurity ion particle diffusivity
@@ -1023,7 +1030,7 @@
 
             PNI=ANDX+ANT+ANA
             DO NS=2,NSMAX
-               AMI=PM(NS)*AMP
+               AMI=PA(NS)*AMP
                VA=SQRT(BB**2/(RMU0*ANE*1.D20*AMI))
                WE1=-QL*RR/(SL*VA)*DVE
                RG1=CWEB*FEXB(ABS(WE1),S(NR),ALPHA(NR))
@@ -1157,23 +1164,23 @@
          VTT = SQRT(ABS(TT*RKEV/AMT))
          VTA = SQRT(ABS(TA*RKEV/AMA))
 
-         RHOE2=2.D0*AME*ABS(TE)*RKEV/(PZ(1)*AEE*BP(NR))**2
-         RHOD2=2.D0*AMD*ABS(TD)*RKEV/(PZ(2)*AEE*BP(NR))**2
+         RHOE2=2.D0*AME*ABS(TE)*RKEV/(PZ(NS_e)*AEE*BP(NR))**2
+         RHOD2=2.D0*AMD*ABS(TD)*RKEV/(PZ(NS_D)*AEE*BP(NR))**2
          RHOT2=RHOD2
          RHOA2=RHOD2
-         IF(NSMAX.GE.3) RHOT2=2.D0*AMT*ABS(TT)*RKEV/(PZ(3)*AEE*BP(NR))**2
-         IF(NSMAX.GE.4) RHOA2=2.D0*AMA*ABS(TA)*RKEV/(PZ(4)*AEE*BP(NR))**2
+         IF(NSMAX.GE.3) RHOT2=2.D0*AMT*ABS(TT)*RKEV/(PZ(NS_T)*AEE*BP(NR))**2
+         IF(NSMAX.GE.4) RHOA2=2.D0*AMA*ABS(TA)*RKEV/(PZ(NS_He4)*AEE*BP(NR))**2
 
 !$$$         TAUE = FTAUE(ANE,ANDX,TE,1.D0)
-!$$$         TAUD = FTAUI(ANE,ANDX,TD,1.D0,PM(2))
-!$$$         TAUT = FTAUI(ANE,ANT ,TT,1.D0,PM(3))
-!$$$         TAUA = FTAUI(ANE,ANA ,TA,2.D0,PM(4))
+!$$$         TAUD = FTAUI(ANE,ANDX,TD,1.D0,PA(NS_D))
+!$$$         TAUT = FTAUI(ANE,ANT ,TT,1.D0,PA(NS_T))
+!$$$         TAUA = FTAUI(ANE,ANA ,TA,2.D0,PA(NS_He4))
          TAUE = FTAUE(ANE,ANDX,TE,ZEFFL)
-         TAUD = FTAUI(ANE,ANDX,TD,PZ(2),PM(2))
+         TAUD = FTAUI(ANE,ANDX,TD,PZ(NS_D),PA(NS_D))
          TAUT=TAUD
          TAUA=TAUD
-         IF(NSMAX.GE.3) TAUT = FTAUI(ANE,ANT ,TT,PZ(3),PM(3))
-         IF(NSMAX.GE.4) TAUA = FTAUI(ANE,ANA ,TA,PZ(4),PM(4))
+         IF(NSMAX.GE.3) TAUT = FTAUI(ANE,ANT ,TT,PZ(NS_T),PA(NS_T))
+         IF(NSMAX.GE.4) TAUA = FTAUI(ANE,ANA ,TA,PZ(NS_He4),PA(NS_He4))
 
          RNUE=ABS(QL)*RR/(TAUE*VTE*EPSS)
          RNUD=ABS(QL)*RR/(TAUD*VTD*EPSS)
@@ -1320,10 +1327,11 @@
 
       SUBROUTINE TRCFET
 
-      USE TRCOMM
+        USE TRCOMM
+        USE trlib
       IMPLICIT NONE
       INTEGER:: NR
-      REAL(rkind)   :: ANE, ANI, CH, COULOG, CR, EPS, EPSS, ETAS, F33, F33TEFF, FT, FTAUE, FTPF, H, PHI, QL, RK33E, RLNLAME, &
+      REAL(rkind)   :: ANE, ANI, CH, CR, EPS, EPSS, ETAS, F33, F33TEFF, FT, FTAUE, FTPF, H, PHI, QL, RK33E, RLNLAME, &
      &             RNUE, RNUSE, RNZ, SGMSPTZ, TAUE, TAUEL, TE, TEL, VTE, XI, ZEFFL
       REAL(rkind):: RK33=1.83D0, RA33=0.68D0, RB33=0.32D0, RC33=0.66D0
 
@@ -1432,11 +1440,8 @@
 
       SUBROUTINE TRCFAD
 
-      USE TRCOMM, ONLY : AD, AD0, ADDW, ADDWD, ADDWP, ADLD, ADLP, ADNC, ADNCP, ADNCT, AEE, AKDW, ALP, AME, AMP, AV, AV0,    &
-     &                   AVDW, AVK, AVKDW, AVKNC, AVNC, BB, BP, CDH, CDP, CHP, CNH, CNN, CNP, CSPRS, EPSRHO, EZOH, MDDIAG,  &
-     &                   MDLDW, MDLEDGE, MDLAD, MDLAVK, MDLNCL, NREDGE, NRMAX, NSLMAX, NSM, PM, PN, PNSS, PROFN1, PROFN2, PTS,&
-     &                   PZ, QP, RA, RHOG, RKEV, RN, RM, RR, RT, ZEFF, rkind
-      IMPLICIT NONE
+        USE TRCOMM
+        IMPLICIT NONE
       INTEGER:: NR, NS, NS1, NA, NB
       REAL(rkind)   :: ANA, ANDX, ANE, ANED, ANI, ANT, BPL, CFNCI, CFNCNC, CFNCNH, CFNHI, CFNHNC, CFNHNH, DPROF, EDCM, EPS, EPSS,&
      &             EZOHL, FTAUE, FTAUI, H, PROF, PROF0, PROF1, PROF2, QPL, RHOE2, RK11E, RK13E, RK23E, RK3D, RNUD, RNUE, RX, &
@@ -1472,12 +1477,12 @@
                ANT    = 0.5D0*(RN(NR+1,3)+RN(NR  ,3))
                ANA    = 0.5D0*(RN(NR+1,4)+RN(NR  ,4))
             ENDIF
-            ADDW(NR,2) = PM(2)**ALP(2)*PZ(2)**ALP(3)*AD0*ALP(4)
-            ADDW(NR,3) = PM(3)**ALP(2)*PZ(3)**ALP(3)*AD0*ALP(5)
-            ADDW(NR,4) = PM(4)**ALP(2)*PZ(4)**ALP(3)*AD0*ALP(6)
-            ADDW(NR,1) =(PZ(2)*ANDX*ADDW(NR,2) &
-                        +PZ(3)*ANT *ADDW(NR,3) &
-                        +PZ(4)*ANA *ADDW(NR,4))/(ANDX+ANT+ANA)
+            ADDW(NR,2) = PA(NS_D  )**ALP(2)*PZ(NS_D  )**ALP(3)*AD0*ALP(4)
+            ADDW(NR,3) = PA(NS_T  )**ALP(2)*PZ(NS_T  )**ALP(3)*AD0*ALP(5)
+            ADDW(NR,4) = PA(NS_He4)**ALP(2)*PZ(NS_He4)**ALP(3)*AD0*ALP(6)
+            ADDW(NR,1) =(PZ(NS_D  )*ANDX*ADDW(NR,2) &
+                        +PZ(NS_T  )*ANT *ADDW(NR,3) &
+                        +PZ(NS_He4)*ANA *ADDW(NR,4))/(ANDX+ANT+ANA)
 
 !    ALP(4)~ALP(6) is arbitrary coef for deuterium,tritium,helium, respectively
 !            RX   = ALP(1)*RHOG(NR)
@@ -1510,9 +1515,9 @@
             ADDW(NR,2) = AD0*AKDW(NR,2)*ALP(4)
             ADDW(NR,3) = AD0*AKDW(NR,3)*ALP(5)
             ADDW(NR,4) = AD0*AKDW(NR,4)*ALP(6)
-            ADDW(NR,1) =(PZ(2)*ANDX*ADDW(NR,2) &
-                        +PZ(3)*ANT *ADDW(NR,3) &
-                        +PZ(4)*ANA *ADDW(NR,4))/(ANDX+ANT+ANA)
+            ADDW(NR,1) =(PZ(NS_D)*ANDX*ADDW(NR,2) &
+                        +PZ(NS_T)*ANT *ADDW(NR,3) &
+                        +PZ(NS_He4)*ANA *ADDW(NR,4))/(ANDX+ANT+ANA)
 
 !            RX   = ALP(1)*RHOG(NR)
 !            PROF0 = 1.D0-RX**PROFN1
@@ -1555,7 +1560,7 @@
             VTE   = SQRT(TE*RKEV/AME)
             TAUE  = FTAUE(ANE,ANI,TE,ZEFFL)
             RNUE  = ABS(QPL)*RR/(TAUE*VTE*EPSS)
-            RHOE2 = 2.D0*AME*TE*RKEV/(PZ(1)*AEE*BPL)**2
+            RHOE2 = 2.D0*AME*TE*RKEV/(PZ(NS_e)*AEE*BPL)**2
 
             RK13E = RK13/(1.D0+RA13*SQRT(RNUE)+RB13*RNUE)/(1.D0+RC13*RNUE*EPSS)
 
@@ -1599,7 +1604,7 @@
             VTE   = SQRT(TE*RKEV/AME)
             TAUE  = FTAUE(ANE,ANI,TE,ZEFFL)
             RNUE  = ABS(QPL)*RR/(TAUE*VTE*EPSS)
-            RHOE2 = 2.D0*AME*TE*RKEV/(PZ(1)*AEE*BPL)**2
+            RHOE2 = 2.D0*AME*TE*RKEV/(PZ(NS_e)*AEE*BPL)**2
 
             RK13E = RK13/(1.D0+RA13*SQRT(RNUE)+RB13*RNUE)/(1.D0+RC13*RNUE*EPSS)
 
@@ -1731,9 +1736,9 @@
          SGMNI=2.D0*EXP(SUMA)*1.D-4
          SGMNN=2.D0*EXP(SUMB)*1.D-4
 
-         VNI=SQRT(RT(NR,2)*RKEV/(PM(2)*AMP))
-         VNC=SQRT(0.025D-3*RKEV/(PM(7)*AMP))
-         VNH=SQRT(RT(NR,2)*RKEV/(PM(8)*AMP))
+         VNI=SQRT(RT(NR,2)*RKEV/(PA(NS_D)*AMP))
+         VNC=SQRT(0.025D-3*RKEV/(PA(7)*AMP))
+         VNH=SQRT(RT(NR,2)*RKEV/(PA(8)*AMP))
          CFNCI =RN(NR,2)*1.D20*SGMNI*VNI
          CFNCNC=RN(NR,7)*1.D20*SGMNN*VNC
          CFNCNH=RN(NR,8)*1.D20*SGMNN*VNH
@@ -1789,9 +1794,9 @@
             EPS   = EPSRHO(NR)
             EPSS  = SQRT(EPS)**3
             VTE   = SQRT(TE*RKEV/AME)
-            VTD   = SQRT(TD*RKEV/(PM(2)*AMP))
+            VTD   = SQRT(TD*RKEV/(PA(NS_D)*AMP))
             TAUE  = FTAUE(ANE,ANI,TE,ZEFFL)
-            TAUD  = FTAUI(ANE,ANI,TD,PZ(2),PM(2))
+            TAUD  = FTAUI(ANE,ANI,TD,PZ(NS_D),PA(NS_D))
             RNUE  = ABS(QPL)*RR/(TAUE*VTE*EPSS)
             RNUD  = ABS(QPL)*RR/(TAUD*VTD*EPSS)
 
@@ -1803,7 +1808,7 @@
             H     = BB/SQRT(BB**2+BPL**2)
             AVKNC(NR,1) = (-RK23E+2.5D0*RK13E)*SQRT(EPS)*EZOHL/BPL/H
             AVK(NR,1)   = CNH*AVKNC(NR,1)
-            AVKNC(NR,2:NSM) = RK3D/((1.D0+(RNUE*EPSS)**2)*PZ(2))*RK13E &
+            AVKNC(NR,2:NSM) = RK3D/((1.D0+(RNUE*EPSS)**2)*PZ(NS_D))*RK13E &
                  & *SQRT(EPS)*EZOHL/BPL/H*ANED
             AVKDW(NR,2:NSM) = 0.D0
          ENDDO

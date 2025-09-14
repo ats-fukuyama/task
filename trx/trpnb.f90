@@ -14,16 +14,16 @@
          SELECT CASE(model_nnb(NNB))
          CASE(0)
             TAUB(NNB,1:NRMAX)=1.D0
-            PNB_NNBNR(NNB,1:NRMAX)=0.D0
-            SNB_NNBNR(NNB,1:NRMAX)=0.D0
+            PNB_NSNNBNR(1:NSMAX,NNB,1:NRMAX)=0.D0
+            SNB_NSNNBNR(1:NSMAX,NNB,1:NRMAX)=0.D0
          CASE(1)
             CALL TRNBIA(NNB)
-            SNB_NNBNR(NNB,1:NRMAX)=0.D0
+            SNB_NSNNBNR(1:NSMAX,NNB,1:NRMAX)=0.D0
          CASE(2)
             CALL TRNBIA(NNB)
          CASE(3)
             CALL TRNBIB(NNB)
-            SNB_NNBNR(NNB,1:NRMAX)=0.D0
+            SNB_NSNNBNR(1:NSMAX,NNB,1:NRMAX)=0.D0
          CASE(4)
             CALL TRNBIB(NNB)
          END SELECT
@@ -38,78 +38,15 @@
 !              PBIN(NR),PBCL(NR,1),PBIN(NR),PBCL(NR,1)
 !      END DO
 
-      SNBT=0.D0
-      PNBT=0.D0
-      DO NS=1,NSMAX
-         SNB_NS(NS)=0.D0
-         PNB_NS(NS)=0.D0
-      END DO
       DO NR=1,NRMAX
-         SNB_NR(NR)=0.D0
-         PNB_NR(NR)=0.D0
          DO NS=1,NSMAX
-            SNB_NSNR(NS,NR)=0.D0
-            PNB_NSNR(NS,NR)=0.D0
+            SNB_NSNR(NS,NR)=SUM(SNB_NSNNBNR(NS,1:NNBMAX,NR))
+            PNBCL_NSNR(NS,NR)=SUM(PNBCL_NSNNBNR(NS,1:NNBMAX,NR))
+            AJNB_NSNR(NS,NR)=SUM(AJNB_NSNNBNR(NS,1:NNBMAX,NR))
          END DO
-         DO NNB=1,NNBMAX
-            NS=NS_NNB(NNB)
-            SNB_NS(NS)=SNB_NS(NS)+SNB_NNBNR(NNB,NR)
-            PNB_NS(NS)=PNB_NS(NS)+PNB_NNBNR(NNB,NR)
-            SNB_NSNR(NS,NR)=SNB_NSNR(NS,NR)+SNB_NNBNR(NNB,NR)
-            PNB_NSNR(NS,NR)=PNB_NSNR(NS,NR)+PNB_NNBNR(NNB,NR)
-         END DO
-         DO NS=1,NSMAX
-            SNB_NR(NR)=SNB_NR(NR)+PZ(NS)*SNB_NSNR(NS,NR)
-            PNB_NR(NR)=PNB_NR(NR)+PNB_NSNR(NS,NR)
-            SNB_NS(NS)=SNB_NS(NS)+SNB_NSNR(NS,NR)
-            PNB_NS(NS)=PNB_NS(NS)+PNB_NSNR(NS,NR)
-         END DO
-         SNBT=SNBT+SNB_NR(NR)
-         PNBT=PNBT+PNB_NR(NR)
+         AJNB(NR)=SUM(AJNB_NSNR(1:NSMAX,NR))
       END DO
 
-      DO NR=1,NRMAX
-         DO NS=1,NSMAX
-            PNBCL_NSNR(NS,NR)=0.D0
-            DO NNB=1,NNBMAX
-               PNBCL_NSNR(NS,NR)=PNBCL_NSNR(NS,NR)+PNBCL_NSNNBNR(NS,NNB,NR)
-            END DO
-         END DO
-         DO NNB=1,NNBMAX
-            PNBCL_NNBNR(NNB,NR)=0.D0
-            DO NS=1,NSMAX
-               PNBCL_NNBNR(NNB,NR)=PNBCL_NNBNR(NNB,NR)+PNBCL_NSNNBNR(NS,NNB,NR)
-            END DO
-         END DO
-      END DO
-      
-      DO NS=1,NSMAX
-         PNBCL_NS(NS)=0.D0
-         DO NR=1,NRMAX
-            PNBCL_NS(NS)=PNBCL_NS(NS)+PNBCL_NSNR(NS,NR)
-         END DO
-      END DO
-      DO NNB=1,NNBMAX
-         PNBCL_NNB(NNB)=0.D0
-         DO NR=1,NRMAX
-            PNBCL_NNB(NNB)=PNBCL_NNB(NNB)+PNBCL_NNBNR(NNB,NR)
-         END DO
-      END DO
-      PNB_TOT=0.D0
-      PNBIN_TOT=0.D0
-      PNBCL_TOT=0.D0
-      DO NNB=1,NNBMAX
-         PNB_TOT=PNB_TOT+PNBIN(NNB)
-         PNBIN_TOT=PNBIN_TOT+PNBIN_NNB(NNB)
-         PNBCL_TOT=PNBCL_TOT+PNBCL_NNB(NNB)
-      END DO
-
-      DO NR=1,NRMAX
-         AJNB(NR)=0.D0
-         DO NNB=1,NNBMAX
-            AJNB(NR)=AJNB(NR)+AJNB_NNBNR(NNB,NR)
-         END DO
-      END DO
       RETURN
       END SUBROUTINE TRPWNB
 
@@ -517,15 +454,16 @@
 
       SUBROUTINE TRPBCL(NNB)
 
-      USE TRCOMM
+        USE TRCOMM
+        USE trlib
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NNB
-      REAL(rkind)    :: ANE, AMB, COULOG, EC, EPS, HY, HYB, &
+      REAL(rkind)    :: ANE, AMB, EC, EPS,HYB, &
            P2, P3, P4, PMB, PZB, TAUS, TAUS0, TE, VB, VC3,  &
            VCA3, VCD3, VCR, VCT3, VE, WB, XB, ZEFFM, ZN, PB, EF
       INTEGER :: NR,NS
 
-      PMB=PM(NS_NNB(NNB))
+      PMB=PA(NS_NNB(NNB))
       PZB=PZ(NS_NNB(NNB))
       AMB=PMB*AMP
       VB=SQRT(2.D0*PNBENG(NNB)*RKEV/AMB)
@@ -539,9 +477,13 @@
             TAUS=0.D0
          ELSE
             P4 = 3.D0*SQRT(0.5D0*PI)*AME/ANE*(ABS(TE)*RKEV/AME)**1.5D0
-            VCD3 = P4*RN(NR,NS_D)*PZ(NS_D)**2/AMD
-            VCT3 = P4*RN(NR,NS_T)*PZ(NS_T)**2/AMT
-            VCA3 = P4*RN(NR,NS_A)*PZ(NS_A)**2/AMA
+            VCD3 = P4*RN(NR,NS_D  )*PZ(NS_D  )**2/AMD
+            VCT3 = P4*RN(NR,NS_T  )*PZ(NS_T  )**2/AMT
+            IF(NS_He3.NE.0) THEN
+               VCA3 = P4*RN(NR,NS_He3)*PZ(NS_He4)**2/AMA
+            ELSE
+               VCA3 = 0.D0
+            END IF
             VC3  = VCD3+VCT3+VCA3
             VCR  = VC3**(1.D0/3.D0)
             HYB  = HY(VB/VCR)
@@ -558,14 +500,14 @@
             RTF(NR,NNB)= 0.D0
          ENDIF
          PNBIN_NNBNR(NNB,NR)        = WB*RKEV*1.D20/TAUB(NNB,NR)
-         IF(NS_e.LE.NSMAX) &
-              PNBCL_NSNNBNR(NS_e,NNB,NR) =   (1.D0-HYB)*PNBIN_NNBNR(NNB,NR)
-         IF(NS_D.LE.NSMAX) &
-              PNBCL_NSNNBNR(NS_D,NNB,NR) = VCD3/VC3*HYB*PNBIN_NNBNR(NNB,NR)
-         IF(NS_T.LE.NSMAX) &
-              PNBCL_NSNNBNR(NS_T,NNB,NR) = VCT3/VC3*HYB*PNBIN_NNBNR(NNB,NR)
-         IF(NS_A.LE.NSMAX) &
-              PNBCL_NSNNBNR(NS_A,NNB,NR) = VCA3/VC3*HYB*PNBIN_NNBNR(NNB,NR)
+         IF(NS_e  .LE.NSMAX) &
+              PNBCL_NSNNBNR(NS_e,  NNB,NR) =   (1.D0-HYB)*PNBIN_NNBNR(NNB,NR)
+         IF(NS_D  .LE.NSMAX) &
+              PNBCL_NSNNBNR(NS_D,  NNB,NR) = VCD3/VC3*HYB*PNBIN_NNBNR(NNB,NR)
+         IF(NS_T  .LE.NSMAX) &
+              PNBCL_NSNNBNR(NS_T,  NNB,NR) = VCT3/VC3*HYB*PNBIN_NNBNR(NNB,NR)
+         IF(NS_He4.LE.NSMAX) &
+              PNBCL_NSNNBNR(NS_He4,NNB,NR) = VCA3/VC3*HYB*PNBIN_NNBNR(NNB,NR)
       END DO
 
       IF(PNBCD(NNB).LE.0.D0) THEN
@@ -591,9 +533,9 @@
             AJNB(NR)=0.D0
          ELSE
             TAUS=TAUS0*VE**3/ANE
-            ZEFFM = (PZ(NS_D)  *PZ(NS_D)  *RN(NR,NS_D)/PM(NS_D) &
-                    +PZ(NS_T)  *PZ(NS_T)  *RN(NR,NS_T)/PM(NS_T) &
-                    +PZ(NS_A)  *PZ(NS_A)  *RN(NR,NS_A)/PM(NS_A) &
+            ZEFFM = (PZ(NS_D  )  *PZ(NS_D  )  *RN(NR,NS_D  )/PA(NS_D  ) &
+                    +PZ(NS_T  )  *PZ(NS_T  )  *RN(NR,NS_T  )/PA(NS_T  ) &
+                    +PZ(NS_He4)  *PZ(NS_He4)  *RN(NR,NS_He4)/PA(NS_He4) &
                     +PZC(NR)   *PZC(NR)   *ANC(NR)/12.D0 &
                     +PZFE(NR)  *PZFE(NR)  *ANFE(NR)/52.D0)/ANE
             EC  = 14.8D0*TE*PMB*ZEFFM**(2.D0/3.D0)

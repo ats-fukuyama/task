@@ -12,9 +12,9 @@
 
       IF(npelmax.EQ.0) RETURN
 
-      SPE(1:nsmax,1:nrmax)=0.D0
+      SPEL_NSNR(1:nsmax,1:nrmax)=0.D0
       DO npel=1,npelmax
-         SPE_nsnpelnr(1:nsmax,npel,1:nrmax)=0.D0
+         SPEL_nsnpelnr(1:nsmax,npel,1:nrmax)=0.D0
       END DO
       
       DO npel=1,npelmax
@@ -34,7 +34,8 @@
 
       DO NR=1,NRMAX
          DO NS=1,NSMAX
-            SPE(ns,nr)=SPE(ns,nr)+SUM(SPE_NSNPELNR(ns,1:npelmax,nr))
+            SPEL_NSNR(ns,nr)=SPEL_NSNR(ns,nr) &
+                 +SUM(SPEL_NSNPELNR(ns,1:npelmax,nr))
          END DO
       END DO
       RETURN
@@ -66,12 +67,12 @@
       DO NR=1,NRMAX
          SPEL=S0*DEXP(-((RA*RM(NR)-PELR0(npel))/PELRW(npel))**2)
       DO NS=1,NSMAX
-         SPE_NSNPELNR(NS,NPEL,NR)=PELPAT(NS,npel)*SPEL
+         SPEL_NSNPELNR(NS,NPEL,NR)=PELPAT(NS,npel)*SPEL
       ENDDO
       ENDDO
 
       WRITE(6,*) 'TRPELA:'
-      WRITE(6,'(5ES12.4)') SPE(1:NRMAX,1)
+      WRITE(6,'(5ES12.4)') SPEL_NSNR(1,1:NRMAX)
 
       RETURN
       END  SUBROUTINE TRPELA
@@ -84,7 +85,8 @@
 
       SUBROUTINE TRPELB(npel)
 
-      USE TRCOMM
+        USE TRCOMM
+        USE trlib
       IMPLICIT NONE
       INTEGER,INTENT(IN):: npel
       REAL(rkind)    :: A1, A2, A3, AMB, AMF, AMPEL, ANE,&
@@ -92,7 +94,6 @@
             RPEL, RPELDOT, RPELPRE, SPEL, TAUS, TE, VCR, VB, VF, SUM, RNZZM
       REAL(rkind),ALLOCATABLE:: VB_NNB(:)
       INTEGER :: NR,NS,NNB,NNF,NSB,NSF
-      REAL(rkind)    :: COULOG   ! FUNCTION
 
       IF(NNBMAX.GT.0) ALLOCATE(VB_NNB(NNBMAX))
 
@@ -101,7 +102,7 @@
       PAP=0.D0
       DO NS=1,NSMAX
          IF(NS.NE.NS_e) THEN
-            PAP=PAP+PM(NS)*PELPAT(NS,npel)
+            PAP=PAP+PA(NS)*PELPAT(NS,npel)
          END IF
       END DO
       ROS= 89.D0*PAP
@@ -113,7 +114,7 @@
       P1   = 3.D0*SQRT(0.5D0*PI)*AME/ANE *(ABS(TE)*RKEV/AME)**1.5D0
       RNZZM=0.D0
       DO NS=1,NSMAX
-         RNZZM=RNZZM+RN(NR,NS)*PZ(NS)**2/(PM(NS)*AMP)
+         RNZZM=RNZZM+RN(NR,NS)*PZ(NS)**2/(PA(NS)*AMP)
       END DO
       VCR=(P1*RNZZM)**(1.D0/3.D0)
 
@@ -123,9 +124,9 @@
       B3=0.D0
       DO NNB=1,NNBMAX
          NSB=NS_NNB(NNB)
-         AMB=PM(NSB)*AMP
+         AMB=PA(NSB)*AMP
          VB=SQRT(2.D0*PNBENG(NNB)*RKEV/AMB)
-         TAUS = 0.2D0*PM(NSB)*ABS(TE)**1.5D0 &
+         TAUS = 0.2D0*PA(NSB)*ABS(TE)**1.5D0 &
               /(PZ(NNB)**2*ANE*COULOG(NS_e,NSB,ANE,TE))
          ANFAST=ANFAST+SNB_NNBNR(NNB,NR)*LOG(1.D0+(VB/VCR)**3)*TAUS/3.D0
          A1=SNB_NNBNR(NNB,NR)*(0.5D0*AMB*VCR*VCR/AEE)**3
@@ -134,9 +135,9 @@
          A3=A3+SNB_NNBNR(NNB,NR)*1.D20*AMB*((VB/VCR)**3-LOG(1.D0+(VB/VCR)**3))
       END DO
       DO NNF=1,NNFMAX
-         NSF=NS_NNF(NNF)
-         AMF=PM(NSF)*AMP
-         TAUS = 0.2D0*PM(NSF)*ABS(TE)**1.5D0 &
+         NSF=NSP_NNF(NNF)
+         AMF=PA(NSF)*AMP
+         TAUS = 0.2D0*PA(NSF)*ABS(TE)**1.5D0 &
               /(PZ(NSF)**2*ANE*COULOG(NS_e,NSF,ANE,TE))
          ANFAST=ANFAST+SNF_NNFNR(NNF,NR)*LOG(1.D0+(VF/VCR)**3)*TAUS/3.D0
          VF=SQRT(2.D0*ENF_NNF(NNF)*RKEV/AMF)
@@ -168,7 +169,7 @@
       SPEL=ANS*RPEL*0.5D0*(RPEL+RPELPRE)*RPELDOT*4.D0*PI*RA &
            /(DVRHO(NR)*PELVEL(npel))
       DO NS=1,NSMAX
-         SPE(NR,NS)=PELPAT(NS,npel)*SPEL
+         SPEL_NSNR(NS,NR)=PELPAT(NS,npel)*SPEL
       ENDDO
 
       NR = NR-1
@@ -200,7 +201,7 @@
       PAP=0.D0
       DO NS=1,NSMAX
          IF(NS.NE.NS_e) THEN
-            PAP=PAP+PM(NS)*PELPAT(NS,npel)
+            PAP=PAP+PA(NS)*PELPAT(NS,npel)
          END IF
       END DO
       ROS= 89.D0*PAP
@@ -209,7 +210,7 @@
 
   100 ANE=RN(NR,NS_e)
       TE =RT(NR,NS_e)
-      ANA=RN(NR,NS_A)
+      ANA=RN(NR,NS_He4)
       ADIVE = ANA/ANE
 
       IF(ADIVE.GT.3.D-2) THEN
@@ -236,10 +237,10 @@
 
       SPEL=ANP*RPEL*0.5D0*(RPEL+RPELPRE)*RPELDOT*4.D0*PI*RA &
            /(DVRHO(NR)*PELVEL(npel))
-      SPE(NR,1:NSMAX)=PELPAT(1:NSMAX,npel)*SPEL
+      SPEL_NSNR(1:NSMAX,NR)=PELPAT(1:NSMAX,npel)*SPEL
 
       WRITE(6,*) 'TRPELC:'
-      WRITE(6,'(5ES12.4)') SPE(1:NRMAX,1)
+      WRITE(6,'(5ES12.4)') SPEL_NSNR(1,1:NRMAX)
 
       NR = NR-1
       GOTO 100
