@@ -18,7 +18,7 @@ CONTAINS
       USE trcomm, ONLY : modelg, nrmax, knameq, knameq2, qpinv, rips
       USE trbpsd, ONLY: tr_bpsd_init,tr_bpsd_put,tr_bpsd_get, &
                         tr_rip_eq, tr_eq_init
-      USE equnit, ONLY: eq_parm,eq_prof,eq_calc,eq_load
+      USE equnit, ONLY: eq_parm,eq_calc,eq_load
       USE plvmec, ONLY: pl_vmec
       implicit none
       integer, intent(out):: ierr
@@ -54,7 +54,6 @@ CONTAINS
          call tr_bpsd_get(ierr)  ! 
 !         call trgout
       elseif(modelg.eq.9) then
-         call eq_prof ! initial calculation of eq
 !        --- Initial q-scaling. The cylindrical initial q (set in trprof) is
 !            not consistent with the commanded Ip on the real 2D equilibrium
 !            metric. Iterate the q-solver, scaling q (q ~ 1/Ip) until the

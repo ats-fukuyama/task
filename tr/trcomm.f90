@@ -515,6 +515,8 @@ MODULE TRCOMM
   SUBROUTINE DEALLOCATE_TRCOMM
     use trcom1, ONLY : DEALLOCATE_TRCOM1
 
+!   Skip if nothing was allocated (e.g. quit before any run or load).
+    if(.not.ALLOCATED(PNSS)) return
     DEALLOCATE(PNSS)
     DEALLOCATE(XV,YV, AY, Y,ZV, AZ, Z,AX,X)
     DEALLOCATE(RG,RM,RHOM,RHOG,BP,RDP,RPSI,RN,RT,RU,RW)
