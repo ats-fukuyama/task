@@ -12,7 +12,8 @@
       IMPLICIT NONE
       INTEGER:: NEQ, NF, NMK, NR, NRL, NS, NSSN, NSSN1, NSVN, NSVN1, NSW, NW
       REAL(rkind)   :: ANFSUM, C83, DRH, DV53, PAI, PLST, RNSUM, RNTSUM, &
-           & RTSUM, RWSUM, SLST, SUMM, SUML, SUMP, VOL, WPOL
+           & RN_EDGE, RNT_EDGE, RT_EDGE, RTSUM, RWSUM, SLST, SUMM, &
+           & SUML, SUMP, VOL, WPOL
       REAL(rkind),DIMENSION(NRMAX):: DSRHO
 
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
@@ -223,6 +224,14 @@
       NMK=2
       DRH=DR/DVRHO(NRL)**(2.D0/3.D0)
       C83=8.D0/3.D0
+!     PLT/SLT are set below only for species with a solved energy/density
+!     equation; clear them first so unsolved entries do not carry garbage
+!     into the sums (PLST,SLST) and the time-history plots.
+      PLT(:)=0.D0
+      SLT(:)=0.D0
+!     SUML is the outward transport through the last solved surface,
+!     reconstructed from the NMK=2 boundary coefficients.  Each NW term
+!     adds the contribution of one coupled density or pressure unknown.
       DO NEQ=1,NEQMAX
          NSSN=NSS(NEQ)
          NSVN=NSV(NEQ)
@@ -230,16 +239,26 @@
          DO NW=1,NEQMAX
             NSSN1=NSS(NW)
             NSVN1=NSV(NW)
+            IF(NSVN1.EQ.1.OR.NSVN1.EQ.2) THEN
+               IF(RHOA.EQ.1.D0) THEN
+                  RN_EDGE=PNSS(NSSN1)
+                  RT_EDGE=PTS (NSSN1)
+               ELSE
+                  RN_EDGE=PNSSA(NSSN1)
+                  RT_EDGE=PTSA (NSSN1)
+               ENDIF
+               RNT_EDGE=RN_EDGE*RT_EDGE
+            ENDIF
             IF(NSVN1.EQ.1) THEN
                SUML=SUML+(-DD(NEQ,NW,NMK,NSW)/3.D0)*DRH *RN(NRL-1,NSSN1) &
      &                  +  DD(NEQ,NW,NMK,NSW)*3.D0 *DRH *RN(NRL  ,NSSN1) &
-     &                  +( VV(NEQ,NW,NMK,NSW)      *DRH &
-     &                    -DD(NEQ,NW,NMK,NSW)*C83 )*DRH *PNSS(NSSN1)
+     &                  +( VV(NEQ,NW,NMK,NSW) &
+     &                    -DD(NEQ,NW,NMK,NSW)*C83 )*DRH *RN_EDGE
             ELSEIF(NSVN1.EQ.2) THEN
                SUML=SUML+(-DD(NEQ,NW,NMK,NSW)/3.D0)*DRH *RN(NRL-1,NSSN1)*RT(NRL-1,NSSN1) &
      &                  +  DD(NEQ,NW,NMK,NSW)*3.D0 *DRH *RN(NRL  ,NSSN1)*RT(NRL  ,NSSN1) &
-     &                  +( VV(NEQ,NW,NMK,NSW)      *DRH &
-     &                    -DD(NEQ,NW,NMK,NSW)*C83  *DRH)*PNSS(NSSN1)*PTS (NSSN1)
+     &                  +( VV(NEQ,NW,NMK,NSW) &
+     &                    -DD(NEQ,NW,NMK,NSW)*C83 )*DRH *RNT_EDGE
             ENDIF
          ENDDO
          IF(NSVN.EQ.1) THEN

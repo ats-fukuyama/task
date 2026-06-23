@@ -20,6 +20,9 @@ CONTAINS
       INTEGER:: NR, NS, NF
       REAL(rkind) :: PROF,qsurf,qaxis
 
+      PNSS (1:NSTM)=0.D0
+      PNSSA(1:NSTM)=0.D0
+      SUMPBM=0.D0
       CALL TR_EDGE_DETERMINER(0)
       CALL TR_EDGE_SELECTOR(0)
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
@@ -311,22 +314,24 @@ CONTAINS
             END IF
             RN(NR,2:NSMAX) = RN(NR,2:NSMAX)*DILUTE    ! main ions diluted
          ENDDO
+         PNSS(1:NSTM)=PNS(1:NSTM)
          PNSS(1)=PNS(1)
          PNSS(2:NSMAX)=PNS(2:NSMAX)*DILUTE
          PNSS(7)=PNS(7)
          PNSS(8)=PNS(8)
          IF(RHOA.NE.1.D0) THEN
+            PNSSA(1:NSTM)=PNSA(1:NSTM)
             PNSSA(1)=PNSA(1)
             PNSSA(2:NSMAX)=PNSA(2:NSMAX)*DILUTE
             PNSSA(7)=PNSA(7)
             PNSSA(8)=PNSA(8)
          ENDIF
       ELSE
-         PNSS(1:NSMAX)=PNS(1:NSMAX)
+         PNSS(1:NSTM)=PNS(1:NSTM)
          PNSS(7)=PNS(7)
          PNSS(8)=PNS(8)
          IF(RHOA.NE.1.D0) THEN
-            PNSSA(1:NSMAX)=PNSA(1:NSMAX)
+            PNSSA(1:NSTM)=PNSA(1:NSTM)
             PNSSA(7)=PNSA(7)
             PNSSA(8)=PNSA(8)
          ENDIF

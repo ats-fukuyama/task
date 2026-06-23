@@ -1805,7 +1805,7 @@
             AVK(NR,1)   = CNH*AVKNC(NR,1)
             AVKNC(NR,2:NSM) = RK3D/((1.D0+(RNUE*EPSS)**2)*PZ(2))*RK13E &
                  & *SQRT(EPS)*EZOHL/BPL/H*ANED
-            AVKDW(NR,2:NSM) = 0.D0
+            AVKDW(NR,1:NSM) = 0.D0
          ENDDO
       case default
          IF(MDLAVK.NE.0) WRITE(6,*) 'XX INVALID MDLAVK : ',MDLAVK
