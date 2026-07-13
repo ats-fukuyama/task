@@ -52,6 +52,12 @@ CONTAINS
       YY(1:NFM,1:NRMAX) = YV(1:NFM,1:NRMAX)
       IF(MDTC.NE.0) ZZ(1:NSMAX,1:NRMAX) = ZV(1:NSMAX,1:NRMAX)
 
+!     Advance the commanded plasma current to the END of this step BEFORE
+!     building the edge boundary condition (TRMTRX sets RDPS from RIP), so the
+!     current imposed for the step ending at T+DT is Ip(T+DT). Incrementing
+!     after the solve would lag the ramp by one step (Ip would never reach RIPE).
+      RIP=RIP+DIPDT*DT
+
  2000 CONTINUE
 
 !      CALL TR_EDGE_SELECTOR(0)
@@ -288,7 +294,6 @@ CONTAINS
 
  4000 T=T+DT
       VSEC=VSEC+VLOOP*DT
-      RIP=RIP+DIPDT*DT
 
 !      write(6,'(A,1P4E12.4)') "T,RIP,RIPE,DIP=",T,RIP,RIPE,DIPDT*DT
 
