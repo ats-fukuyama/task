@@ -9,18 +9,18 @@ System Requirements:
        X-Window library
        GSAF graphic library
           distributed with TASK
-          http://p-grp.nucleng.kyoto-u.ac.jp/~fukuyama/gsaf/
+          https://p-grp.nucleng.kyoto-u.ac.jp/~fukuyama/gsaf/
 
 Optional Libraries:
           Lapack    Linear algebra library 
-                        http://www.netlib.org/
+                        https://www.netlib.org/
           MPI       Parallel processing library
                         for example, MPICH implementation
-                        http://www-unix.mcs.anl.gov/mpi/mpich/
+                        https://www-unix.mcs.anl.gov/mpi/mpich/
           MDSplus   Scientific data base library
-                        http://www.mdsplus.org/
+                        https://www.mdsplus.org/
           PETSc     Paralle Matrix library
-                        http://www.mcs.anl.gov/petsc/
+                        https://www.mcs.anl.gov/petsc/
 
 Present modules: (*: under development)
     plx:   Module interface library
@@ -152,8 +152,8 @@ The following components may be copyrighted by the original authors.
   *CYTRAN:   Cyclotron radiation 
              W.A. Houlberg (ORNL)           imported from NTCC
       NTCC: National Transport Code Collaboration
-            http://w3.pppl.gov/ntcc/
-            see agreement: http://w3.pppl.gov/ntcc/downloads.html
+            https://w3.pppl.gov/ntcc/
+            see agreement: https://w3.pppl.gov/ntcc/downloads.html
 
   *Weiland:  Turbulent transport model
              J. Weiland (Chermers U)        by courtesy of the author
@@ -163,14 +163,14 @@ The following components may be copyrighted by the original authors.
 
    FFT:      Fast Fourier transform
              T. Ooura (Kyoto U)
-             http://www.kurims.kyoto-u.ac.jp/~ooura/fft.html
+             https://www.kurims.kyoto-u.ac.jp/~ooura/fft.html
 
    Bessel functions:    netlib
    Gamma functions:     netlib
    Error functions:     netlib
    Brent method:        netlib
    BSTAB matrix solver: netlib
-             netlib: http://www.netlib.org/
+             netlib: https://www.netlib.org/
 
 Acknowledgments: 
 
@@ -181,7 +181,7 @@ Acknowledgments:
    comments, questions and informations from the users of TASK system
    have been greatly appreciated.  The development of TASK system is a part
    of activities of Burning Plasma Simulation Initiative (BPSI:
-   http://bpsi.nucleng.kyoto-u.ac.jp/bpsi/).  
+   https://bpsi.nucleng.kyoto-u.ac.jp/bpsi/).  
 
 Licensing notification: 
 
@@ -205,7 +205,7 @@ covered by their own copyrights and licenses.
 UPDATE:
 
 The newest version of TASK system is available from
-        http://bpsi.nucleng.kyoto-u.ac.jp/task/
+        https://bpsi.nucleng.kyoto-u.ac.jp/task/
 
 Your comments as well as bug information on TASK system should be mailed to
 	fukuyama@nucleng.kyoto-u.ac.jp
