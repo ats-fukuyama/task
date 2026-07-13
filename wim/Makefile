@@ -7,54 +7,54 @@ include ../make.header
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
+OBJDIR=./obj
+
 MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD)
 
-.f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
-.f90.o :
+${OBJDIR}/%.o:%.f90
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-SRCSFIXED = 
-SRCSFREE = wimcomm.f90 wiminit.f90 wimparm.f90 wimexec.f90 wimgout.f90 \
-           wimmenu.f90
+SRCS = wimcomm.f90 wiminit.f90 wimparm.f90 libpdkf.f90 \
+       wimcalc.f90 wimexec.f90 wimgout.f90 \
+       wimmenu.f90
 
-OBJS = $(SRCSFREE:.f90=.o) 
+OBJS = $(addprefix $(OBJDIR)/, $(SRCS:.f90=.o))
 
 LIBS = libwim.a ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
 all : libs wim
 
+libwim.a: $(OBJS)
+	$(LD) $(LDFLAGS) libwim.a $(OBJS)
 ../lib/libtask.a:
 	(cd ../lib; make libtask.a)
 ../lib/libgrf.a:
 	(cd ../lib; make libgrf.a)
 ../../bpsd/libbpsd.a:
 	(cd ../../bpsd; make libbpsd.a)
-libwim.a: $(OBJS)
-	$(LD) $(LDFLAGS) libwim.a $(OBJS)
 
 libs:
 	(cd ../../bpsd; make libbpsd.a)
 	(cd ../lib; make libtask.a)
 	(cd ../lib; make libgrf.a)
 
-wim : $(LIBS) wimmain.o
-	$(FCFIXED) wimmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) \
-           $(MODDIR) $(MODINCLUDE)
+wim : $(LIBS) $(OBJDIR)/wimmain.o
+	$(FCFREE) $(OBJDIR)/wimmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 wimgconv: $(LIBS) wimgconv.o
-	$(FCFIXED) wimgconv.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) \
-           $(MODDIR) $(MODINCLUDE)
+	$(FCREE)/wimgconv.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 clean:
-	-rm -f core a.out *.o *.mod ./*~ ./#* *.a $(MOD)/*.mod
+	-rm -f core ./#* ./*~ $(OBJDIR)/*.o $(MOD)/*.mod coew *.a
 
 veryclean: clean
-	-rm -f xx
+	-rm -f wim
 
-wimmain.o: wimmain.f90 wimcomm.f90
-wimmenu.o: wimmenu.f90 wimcomm.f90
-wiminit.o: wiminit.f90 wimcomm.f90
-wimparm.o: wimparm.f90 wimcomm.f90
-wimexec.o: wimexec.f90 wimcomm.f90
-wimgout.o: wimgout.f90 wimcomm.f90
+$(OBJDIR)/wimmain.o: wimmain.f90 wimcomm.f90
+$(OBJDIR)/wimmenu.o: wimmenu.f90 wimcomm.f90
+$(OBJDIR)/wiminit.o: wiminit.f90 wimcomm.f90
+$(OBJDIR)/wimparm.o: wimparm.f90 wimcomm.f90
+$(OBJDIR)/libpdkf.o: libpdkf.f90
+$(OBJDIR)/wimcalc.o: wimcalc.f90 wimcomm.f90
+$(OBJDIR)/wimexec.o: wimexec.f90 wimcomm.f90
+$(OBJDIR)/wimgout.o: wimgout.f90 wimcomm.f90
