@@ -587,7 +587,9 @@ contains
 !     imodel(6) = 0: approximate coll. operator + 2nd moment
 !               = 1: full        coll. operator + 2nd moment
 !               = 2: approximate coll. operator + 3rd moment
+!                    with H&S finite-collisionality transition
 !               = 3: full        coll. operator + 3rd moment
+!                    with H&S finite-collisionality transition
 !
 !=======================================================================
     use tx_commons, only : cnpi => Pi, cnmp => AMP, cnec => AEE
@@ -606,7 +608,7 @@ contains
 !:: local
     real(8), allocatable :: lab(:,:,:,:), mab(:,:,:,:), nab(:,:,:,:), vt(:), vtn(:), xmu(:,:,:)
     real(8), allocatable :: alph(:,:,:), alphhat(:,:,:), emat(:,:), fmat(:,:) &
-         &   , delt(:,:), sumbc2(:), zast(:), zmas(:)
+         &   , delt(:,:), sumbc2(:), zast(:), zmas(:), hs_transition(:)
     real(8), allocatable :: laborg(:,:,:,:), laborgdef(:,:,:,:), labdef(:,:,:,:) &
          &   , labnrl(:,:,:,:), lab3(:,:,:)
     real(8) :: dx, eb, ec, err, fac, fdp, fm, fp, gfun &
@@ -619,7 +621,8 @@ contains
          &   , zomg, zp43, zu, zu2, zui, renorm, y &
          &   , xmu1, xmu2, xmu3, ell11, ell12, ell22, tmp &
          &   , yab, sqdnm, ytemab, denom &
-         &   , xlm, xln, yt, xab, xb2
+         &   , xlm, xln, yt, xab, xb2 &
+         &   , p22, nu_a2_energy, nu_a2_momentum, omega_t, rate_product
     real(8) :: xsign = -1.d0, void = 0.d0, wc13 = 1.d0 / 3.d0
     real(8) :: epsab, c2, f, alp, barK1, barK2, barK2mod &
          &   , c1, c1a, c3
@@ -646,6 +649,7 @@ contains
 
     allocate(xmu(isp,2,2)) ! Local variables. Different from xmu defined in tx_commons.
     allocate(alph(isp,isp,2), alphhat(isp,isp,2))
+    allocate(hs_transition(isp))
 
     allocate(emat(isp,isp))
     allocate(fmat, delt, mold=emat)
@@ -883,6 +887,30 @@ contains
              endif
           enddo
        enddo
+
+       ! Hirshman & Sigmar, Nucl. Fusion 21 (1981), Eq. (6.16):
+       ! u_a2 = F_a u_a2^(PS), with F_a evaluated species by species.
+       do i1=1,ispc
+          nu_a2_energy=0.d0
+          nu_a2_momentum=0.d0
+          do i2=1,ispc
+             xab2=(vtn(i2)/vtn(i1))**2
+             p22=-3.d0*xab2*(13.d0/4.d0+2.d0*xab2 &
+                  & +5.d0/2.d0*xab2**2)/(1.d0+xab2)**3.5d0
+             nu_a2_energy=nu_a2_energy+abs(p22)/ztau(i1,i2)
+             nu_a2_momentum=nu_a2_momentum-mab(i1,i2,3,3)/ztau(i1,i2)
+          enddo
+          nu_a2_momentum=max(0.d0,nu_a2_momentum)
+          omega_t=abs(vt(i1)*gmneo)
+          rate_product=nu_a2_energy*nu_a2_momentum
+          if(omega_t <= tiny(omega_t)) then
+             hs_transition(i1)=1.d0
+          else if(rate_product <= tiny(rate_product)) then
+             hs_transition(i1)=0.d0
+          else
+             hs_transition(i1)=rate_product/(rate_product+omega_t**2)
+          endif
+       enddo
        ! compute inverse matrix for ub2 (higher order) correction
        call matslv(ispc,ispc,emat,fmat,err,ill)
        ! alpha_hat^1, alpha_hat^2: NOT normalized
@@ -942,8 +970,10 @@ contains
                      &  *mab(i1,1:ispc,j1,3))
                 do j2=1,2
                    xln=sum( ztau(i1,i1)/ztau(i1,1:ispc) &
-                        &  *nab(i1,1:ispc,j1,3)*alphhat(1:ispc,i2,j2))
-                   lab(i1,i2,j1,j2)=-(xlm*alphhat(i1,i2,j2)+xln)
+                        &  *nab(i1,1:ispc,j1,3)*hs_transition(1:ispc) &
+                        &  *alphhat(1:ispc,i2,j2))
+                   lab(i1,i2,j1,j2)=-(xlm*hs_transition(i1) &
+                        &             *alphhat(i1,i2,j2)+xln)
                 enddo
              enddo
           enddo
@@ -1650,7 +1680,7 @@ contains
 !=======================================================================
 
     deallocate(zmas,zast)
-    deallocate(alph,alphhat,emat,fmat,delt)
+    deallocate(alph,alphhat,emat,fmat,delt,hs_transition)
     deallocate(lab,mab,nab,vt,vtn,xmu)
 
   end subroutine nccoe
