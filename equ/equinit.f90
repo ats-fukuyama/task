@@ -1,7 +1,6 @@
 ! equinit.f90
 
       module eqinit_mod
-      character(len=80) knamcoil
       public
       contains
 !     
@@ -10,7 +9,7 @@
 !=======================================================================
 !     DEFAULT VALUES FOR JT60
 !=======================================================================
-      USE plcomm,ONLY: KNAMEQ,MODEFW,pl_allocate_ns
+      USE plcomm,ONLY: KNAMEQ,MODEFW,pl_allocate_ns,knam_coil
       use aaa_mod
       use par_mod
       use geo_mod
@@ -327,14 +326,11 @@
          zlimt(i)=zlimt_l(i)
       enddo
 !
-!----- coil file name : 'init' for stdin
-!
-      knamcoil='init'
-!
 !----- equ file name : 'equfile'
 !
-      KNAMEQ='equdata'
-      MODEFW=5
+      knameq='equdata'
+      knam_coil='coildata'
+      modefw=5
       CALL pl_allocate_ns    ! necessary to link plcomm with iort
 !
       return
@@ -390,7 +386,6 @@
       use cnt_mod
       implicit none
       integer nid,ist,ierr
-      real*8    eqfile ! dummy namelist
       real*8    rwal,zwal
       character aname*(10)
       integer n,nn,il,nid1
@@ -408,7 +403,7 @@
            isep,dsep,ivtab,ivgrp,rloop,zloop, &
            ilimt,ivbnd,isvac,ieqout, &
            ieqrd,jeqrd,ieqwt,jeqwt, &
-           eqfile,rwal,zwal,knamcoil, &
+           knameq,rwal,zwal,knam_coil, &
            cvact
 !=======================================================================
       if(nid.lt.0) then
@@ -440,7 +435,6 @@
       use cnt_mod
       implicit none
       integer nid,ist,ierr
-      real*8    eqfile ! dummy namelist
       real*8    rwal,zwal
       character aname*(10)
       integer n,nn,il,nid1
@@ -497,7 +491,7 @@
       write(6,*) '   isep,dsep,ivtab,ivgrp,rloop,zloop,'
       write(6,*) '   ilimt,ivbnd,isvac,ieqout,'
       write(6,*) '   ieqrd,jeqrd,ieqwt,jeqwt,'
-      write(6,*) '   eqfile,rwal,zwal'
+      write(6,*) '   knameq,rwal,zwal,knam_coil'
       return
       end subroutine eqplst
 !

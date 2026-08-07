@@ -51,7 +51,7 @@ CONTAINS
          call tr_bpsd_get(ierr)  ! 
 !         call trgout
       elseif(modelg.eq.9) then
-         call eq_prof ! initial calculation of eq
+!         call eq_prof ! initial calculation of eq
          call eq_calc         ! recalculate eq
          call tr_bpsd_get(ierr)  ! 
 !         call trgout

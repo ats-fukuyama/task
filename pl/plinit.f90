@@ -439,6 +439,7 @@
 !        KNAMFO: Filename of File output
 !        KNAMPF: Filename of profile data
 !        KNAMTR: Filename of transport data
+!        knam_coil: Filename of equilibrium coil data
 
       KNAMEQ = 'eqdata'
       KNAMWR = 'wrdata'
@@ -449,6 +450,7 @@
       KNAMTR = 'trdata'
       knam_profg_TOTAL='data/tr.f011v2.prof'
       knam_profm_TOTAL='data/tr.f011v2.prof2'
+      knam_coil='knamcoil'
 
 !     ======( FILE IO MODES )======
 

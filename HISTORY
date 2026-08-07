@@ -1,3 +1,6 @@
+2026/06/23   eq/tr updated for coupled operation
+             modelg=9: p and q profiles calculated in tr are conserved in eq
+
 2026/04/20   imas/ids/ids_equilibrium.f90 wrond deallocate corrected
                 (reported by Dr. Yoshimi)
              tools/check_dealloc.py and tools/check_deallocate.md added

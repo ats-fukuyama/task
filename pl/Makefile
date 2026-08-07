@@ -36,6 +36,7 @@ OBJS_NOEQ=$(addprefix $(OBJDIR)/, $(SRCS_NOEQ:.f90=.o))
 OBJS_EQ=$(addprefix $(OBJDIR)/, $(SRCS_EQ:.f90=.o))
 
 LIBS = libpl.a ../eq/libeq.a ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a
+#LIBS = libpl.a  ../lib/libgrf.a ../lib/libtask.a ../../bpsd/libbpsd.a
 
 all : libs pl
 

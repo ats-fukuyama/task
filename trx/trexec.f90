@@ -256,7 +256,7 @@ CONTAINS
                         RT(NR,NSSN)=0.03D0
                      ELSE
 !                        RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
-!                        correction pointedby Kawamura 0206/05/21
+!                        correction pointedby Kawamura 2026/05/21
                         RT(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
                              +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSSN)
                      END IF

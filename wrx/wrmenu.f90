@@ -12,7 +12,7 @@ CONTAINS
   SUBROUTINE WR_MENU
 
     USE wrcomm
-    USE plparm,ONLY: pl_view
+    USE plview,ONLY: pl_view
     USE dpparm,ONLY: dp_view
     USE dproot,ONLY: dp_root,dpgrp1
     USE dpcont,ONLY: dp_cont2,dp_cont3

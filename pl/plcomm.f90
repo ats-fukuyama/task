@@ -75,6 +75,7 @@ MODULE plcomm_parm
 
       CHARACTER(len=80):: KNAMEQ,KNAMWR,KNAMFP,KNAMWM,KNAMPF,KNAMFO,KNAMTR
       CHARACTER(len=80):: KNAMEQ2
+      CHARACTER(len=80):: knam_coil
       CHARACTER(len=128):: knam_profg_TOTAL,knam_profm_TOTAL
 
     CONTAINS

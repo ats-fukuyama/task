@@ -105,7 +105,7 @@ CONTAINS
            model_eqdsk_psi, &
            RHOGMN,RHOGMX, &
            KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
-           knam_profg_TOTAL,knam_profm_TOTAL, &
+           knam_profg_TOTAL,knam_profm_TOTAL,knam_coil, &
            MODEFR,MODEFW,IDEBUG,mdlplw
 
       READ(NID,PL,IOSTAT=IST,ERR=9800,END=9900)
@@ -156,8 +156,8 @@ CONTAINS
       WRITE(6,*) 'model_coll,MODEL_NPROF,RHOGMN,RHOGMX,'
       WRITE(6,*) 'model_prof,model_prof_time,model_sigv,'
       WRITE(6,*) 'model_eqdsk_psi,'
-      WRITE(6,*) 'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2'
-      WRITE(6,*) 'knam_profg_TOTAL,knam_profm_TOTAL'
+      WRITE(6,*) 'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2,'
+      WRITE(6,*) 'knam_profg_TOTAL,knam_profm_TOTAL,knam_coil,'
       WRITE(6,*) 'MODEFW,MODEFR,IDEBUG,mdlplw'
       RETURN
     END SUBROUTINE plplst
@@ -385,6 +385,7 @@ CONTAINS
     CALL mtx_broadcast_character(KNAMFO,80)
     CALL mtx_broadcast_character(KNAMTR,80)
     CALL mtx_broadcast_character(KNAMEQ2,80)
+    CALL mtx_broadcast_character(knam_coil,80)
     CALL mtx_broadcast_character(knam_profg_TOTAL,128)
     CALL mtx_broadcast_character(knam_profm_TOTAL,128)
   END SUBROUTINE pl_broadcast

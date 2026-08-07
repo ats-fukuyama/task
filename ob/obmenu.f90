@@ -12,7 +12,7 @@ CONTAINS
   SUBROUTINE OB_MENU
 
     USE obcomm
-    USE plparm,ONLY: pl_view
+    USE plview,ONLY: pl_view
     USE obparm,ONLY: ob_parm
     USE obview,ONLY: ob_view
     USE obprep,ONLY: ob_prep
