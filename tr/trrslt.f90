@@ -227,8 +227,8 @@
 !     PLT/SLT are set below only for species with a solved energy/density
 !     equation; clear them first so unsolved entries do not carry garbage
 !     into the sums (PLST,SLST) and the time-history plots.
-      PLT(:)=0.D0
-      SLT(:)=0.D0
+      PLT(1:NSM)=0.D0
+      SLT(1:NSM)=0.D0
 !     SUML is the outward transport through the last solved surface,
 !     reconstructed from the NMK=2 boundary coefficients.  Each NW term
 !     adds the contribution of one coupled density or pressure unknown.
@@ -261,11 +261,19 @@
      &                    -DD(NEQ,NW,NMK,NSW)*C83 )*DRH *RNT_EDGE
             ENDIF
          ENDDO
-         IF(NSVN.EQ.1) THEN
-            SLT(NSSN)=SUML*RKEV*1.D14
-         ELSEIF(NSVN.EQ.2) THEN
-            PLT(NSSN)=SUML*RKEV*1.D14
-         ENDIF
+         IF(T.GT.0.D0) THEN
+            IF(NSVN.EQ.1) THEN
+               SLT(NSSN)=SUML*RKEV*1.D14
+            ELSEIF(NSVN.EQ.2) THEN
+               PLT(NSSN)=SUML*RKEV*1.D14
+            ENDIF
+         ELSE
+            IF(NSVN.EQ.1) THEN
+               SLT(NSSN)=0.D0
+            ELSEIF(NSVN.EQ.2) THEN
+               PLT(NSSN)=0.D0
+            ENDIF
+         END IF
       ENDDO
 
 !     *** Ionization, fusion and NBI fuelling ***
@@ -292,6 +300,16 @@
       WPT =WBULKT+WTAILT
       PINT=POHT+PNBT+PRFST+PNFT+PEXST
       POUT=PLST+PCXT+PIET+PRBT+PRCT+PRLT
+      WRITE(21,*) '     T:',T, &
+                  '  POUT:',POUT, &
+                  '  PLT1:',PLT(1), &
+                  '  PLT2:',PLT(2), &
+                  '  PLST:',PLST, &
+                  '  PCXT:',PCXT, &
+                  '  PIET:',PIET, &
+                  '  PRBT:',PRBT, &
+                  '  PRCT:',PRCT, &
+                  '  PRLT:',PRLT
       SINT=SIET+SNBT
       SOUT=SLST
 
@@ -299,11 +317,14 @@
 !        TAUE1: steady state
 !        TAUE2: transient
 
-      IF(ABS(T-TPRE).LE.1.D-70) THEN
+      IF(WPPRE.GT.0.D0) THEN
+         IF(T-TPRE.GT.0.D0) THEN
+            WPDOT=(WPT-WPPRE)/(T-TPRE)
+         ELSE
+            WPDOT=0.D0
+         ENDIF
          WPDOT=0.D0
-      ELSE
-         WPDOT=(WPT-WPPRE)/(T-TPRE)
-      ENDIF
+      END IF
       WPPRE=WPT
       TPRE=T
 

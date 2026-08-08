@@ -1,5 +1,8 @@
 2026/06/23   eq/tr updated for coupled operation
              modelg=9: p and q profiles calculated in tr are conserved in eq
+	     (not completed yet)
+
+2026/05/21   trx/trexec.f90 corrected
 
 2026/04/20   imas/ids/ids_equilibrium.f90 wrond deallocate corrected
                 (reported by Dr. Yoshimi)

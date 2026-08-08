@@ -51,6 +51,7 @@ CONTAINS
       NT    = 0
       T     = 0.D0
       TPRE  = 0.D0
+      WPPRE = 0.D0
       TST   = 0.D0
       VSEC  = 0.D0
       NGR   = 0
