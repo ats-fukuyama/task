@@ -122,6 +122,10 @@ contains
     !            = negative    : Does not allow to enlarge the trace step size if tracing fails.
     irktrc = 2
 
+    !    ipbtdir = 1           : Ip direction is parallel to Bt's
+    !            =-1           : Ip direction is opposite to Bt's
+    ipbtdir = 1
+
     !   ***** Particle diffusivity and viscosity parameters *****
 
     !   Turbulent pinch velocity parameter
@@ -1840,7 +1844,7 @@ module tx_parameter_control
        & PN0s,V0,rGamm0_in,rGASPF,PN0zs,V0z,rGamm0zz_in,rGamm0iz_in,rGASPFz,PNsSUP,PTsSUP, &
        & NTCOIL,DltRPn,kappa,m_pol,n_tor, &
        & DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH, &
-       & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,ieqread,irktrc, &
+       & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,ieqread,irktrc,ipbtdir, &
        & DelRho,DelN, &
 !       & DMAG0,RMAGMN,RMAGMX,EpsH,NCph,NCth, &
        & DMAG0,RMAGMN,RMAGMX, &
@@ -2052,7 +2056,7 @@ contains
          &       ' ',8X,'PN0s,V0,rGamm0_in,rGASPF,PN0zs,V0z,rGamm0zz_in,rGamm0iz_in,rGASPFz,PNsSUP,PTsSUP,'/ &
          &       ' ',8X,'NTCOIL,DltRPn,kappa,m_pol,n_tor,'/ &
          &       ' ',8X,'DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH,'/ &
-         &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,ieqread,irktrc,'/ &
+         &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,ieqread,irktrc,ipbtdir'/ &
          &       ' ',8X,'DelRho,DelN,'/ &
 !         &       ' ',8X,'Dmag0,RMAGMN,RMAGMX,EpsH,NCph,NCth,'/ & 
          &       ' ',8X,'Dmag0,RMAGMN,RMAGMX,EpsHM,HPN,'/ &   ! 10/08/06 miki_m
@@ -2169,6 +2173,7 @@ contains
          &   'NTMAX      ', NTMAX      , 'NTSTEP     ', NTSTEP     ,  &
          &   'NGRSTP     ', NGRSTP     , 'NGTSTP     ', NGTSTP     ,  &
          &   'NGVSTP     ', NGVSTP     , 'ieqread    ', ieqread    ,  &
+         &   'irktrc     ', irktrc     , 'ipbtdir    ', ipbtdir    ,  &
          &   'ICMAX      ', ICMAX      , 'MODEG      ', MODEG      ,  &
          &   'MODEAV     ', MODEAV     , 'MODEGL     ', MODEGL     ,  &
          &   'MDLPCK     ', MDLPCK     , 'MODECV     ', MODECV     ,  &
