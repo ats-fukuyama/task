@@ -787,8 +787,8 @@ contains
          tps = tps + 0.5d0 * (prv(n+1)**2+prv(n)**2) * (vlv(n+1)-vlv(n))
       end do
       ttprz = tpr
-      tpr   = tpr * (rMU0*1.d6)
-      prfac = prv(1) * vlv(nv) / tpr
+      prfac = prv(1) * vlv(nv) / ttprz ! peaking factor: p(0) V / int p dV
+      tpr   = tpr * (rMU0*1.d6)        ! prv [MPa] -> mu0 p [SI]
       if( iascii /= 0 ) then
          ttpr = ttprz
          tps  = tps * (rMU0*1.d6)**2
@@ -810,9 +810,8 @@ contains
     zzli =0.d0
     zzlam=0.d0
 !-----
-    do n = 1, nv
-       prv(n) = prv(n) / (rMU0*1.d6)
 !-----Minor radius
+    do n = 1, nv
        rov(n) = sqrt( vlv(n) / ( 2.0_8 * cnpi**2 * rmaj ) )
     enddo
 
@@ -1628,7 +1627,7 @@ contains
     fds(1:nv) = ffprim(1:nv)
     ! vlv will be computed in eqlin.
     qqv(1:nv) = qpsi(1:nv)
-    prv(1:nv) = pres(1:nv) * rMU0
+    prv(1:nv) = pres(1:nv) * 1.d-6 ! p [MPa], the MEUDAS internal unit (cf. ttcu in MA)
 
     btv   = rcentr * bcentr
     ttcu  = current * 1.d-6
