@@ -21,36 +21,45 @@ Optional Libraries:
                         http://www.mdsplus.org/
           PETSc     Paralle Matrix library
                         http://www.mcs.anl.gov/petsc/
+          MUMPS     Paralle Direct Matrix Solver
+                        https://mumps-solver.org/
 
-Present modules: (*: under development)
-    plx:   Module interface library
-    eq:    2D equilibrium module (fixed boundary)
-    equ:   2D equilibrium module (free boundary)
-    tr:    1D transport module (diffusive transport)
-    trn:   1D transport module (diffusive transport, new version)
-    tx:    1D transport module (dynamic transport)
-    txm:   1D transport module (dynamic transport, multi-species)*
-    fp:    3D Fokker Planck module (PETSc, MPI)
-    dp:    Wave dispersion module
-    wr:    3D ray tracing module
-    w1:    1D full wave module (FDM, MLM)
-    wm:    3D full wave module (FFT/FDM)
-    wmf:   3D full wave module (FFT/FEM)
-    wf2:   2D full wave module (FEM)
-    wf3:   3D full wave module (FEM)
-    wf2d:  2D full wave module (FEM, MUMPS, MPI)
-    wf3d:  3D full wave module (FEM, MUMPS, MPI)
-    fit3d: NBI module
-    tot:   all-in-one program (eq, tr, fp, wr, wm)
-    lib:   common libraries
-    mtxp:  parallel matrix libraries
-    tools: various tools to handle ufile
-
-To be removed near future
-    pl:    Module interface library (old verson)
-    mtx:   matrix libraries
-    mtxpc: parallel complex matrix libraries
-    mpi: interface 
+Present modules:
+    adpost:    atomic and nuclear data tables (1977 by D.E. Post et al.)
+    bin:       utility commands
+    doc:       documents
+    dp:        wave dispersion relation and dielectric tensor module
+    eq:        2D equilibrium module (fixed boundary)
+    equ:       2D equilibrium module (free boundary)
+    fit3d:     NBI module
+    fp:        3D Fokker Planck module
+    imas:      IMAS library form ITER
+    imas-ids:  IMAS interface module
+    lib:       common libraries
+    mtxp:      matrix solver libraries
+    ob:        particle orbit module
+    open-adas: interface for OPEN-ADAS atomic data library
+    pic:       particle simulation module
+    pl:        basic interface library
+    pt:        plot module
+    template:  template module
+    tf2d:      2D transport module (FEM) (under development)
+    ti:        1D impurity transport module
+    tools:     various tools to handle ufile
+    tot:       all-in-one interface program (eq, tr, fp, wr, wm)
+    tr:        1D transport module (diffusive transport)
+    trlib:     transport coefficients module
+    trmodels:  transport coefficients original codes
+    tx:        1D transport module (dynamic transport)
+    txnew:     1D transport module (dynamic transport, new-version by M. Honda)
+    wf1d:      1D full wave module (w1, wi, wim, wiq)
+    wf2d:      2D full wave module (FEM, MUMPS, MPI)
+    wf3d:      3D full wave module (FEM, MUMPS, MPI)
+    wm:        3D full wave module (FFT/FDM)
+    wmf:       3D full wave module (FFT/FEM)
+    wr:        3D ray and beam tracing module
+    wq:        3D quas-optical wave module
+    wr:        3D ray and beam tracing module
 
 Install: 
     0: Install GSAF graphic library, Before installing TASK

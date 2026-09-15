@@ -265,6 +265,7 @@ C
       FUNCTION EQFBND(X)
 C      
       INCLUDE '../eq/eqcomc.inc'
+      REAL(rkind):: EQFBND
 C
       EQFBND=ZBRF*COS(X+RDLT*SIN(X))-RKAP*SIN(X)
       RETURN

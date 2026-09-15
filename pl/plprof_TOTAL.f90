@@ -179,7 +179,7 @@ CONTAINS
     READ(21,'(A)') line ! skip time data
     READ(21,'(A)') line! skip label line
     DO nr=1,nrmax_profg_TOTAL
-       READ(21,'(E11.4,26(1X,E11.4))',ERR=790,END=800) &
+       READ(21,'(E11.4,26(1X,ES11.4))',ERR=790,END=800) &
             (data_profg(k,nr),k=1,27)
     END DO
     DO nr=1,nrmax_profg_TOTAL

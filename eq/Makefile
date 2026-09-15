@@ -59,7 +59,8 @@ all : libs eq
 	(cd ../pl; make libpl.a)
 
 libeq.a: $(OBJS) $(OBJ2D)
-	$(LD) $(LDFLAGS) libeq.a $(OBJS) $(OBJ2D) ../pl/libpl.a
+	$(LD) $(LDFLAGS) libeq.a $(OBJS) $(OBJ2D)
+#	$(LD) $(LDFLAGS) libeq.a $(OBJS) $(OBJ2D) ../pl/libpl.a
 libeq3.a: $(OBJS) $(OBJ3D)
 	$(LD) $(LDFLAGS) libeq3.a $(OBJS) $(OBJ3D)
 

@@ -20,13 +20,13 @@ SUBROUTINE PLSPSI(RL,ZL,PSI)
   RETURN
 END SUBROUTINE PLSPSI
 
-SUBROUTINE PLSMAG11(R,Z,BABS,AL)
+SUBROUTINE PLSMAG11(R,Z,BABS,AL,rhon)
 
   use plcomm
   USE plload
   implicit none
   real(rkind),intent(in) :: R,Z
-  real(rkind),intent(out):: BABS,AL(3)
+  real(rkind),intent(out):: BABS,AL(3),rhon
   real(rkind) :: rfactor,zfactor,br,bz,bt
 
   rfactor=(r-r_corner(1))/(r_corner(2)-r_corner(1))
@@ -42,16 +42,17 @@ SUBROUTINE PLSMAG11(R,Z,BABS,AL)
   al(1)=br/babs
   al(2)=bt/babs
   al(3)=bz/babs
+  rhon=2.D0*SQRT((rfactor-0.5D0)**2+(zfactor-0.5D0)**2)
   RETURN
 END SUBROUTINE PLSMAG11
 
-SUBROUTINE PLSMAG13(R,Z,BABS,AL)
+SUBROUTINE PLSMAG13(R,Z,BABS,AL,rhon)
 
   use PLcomm
   implicit none
   integer :: I
   real(rkind),intent(in) :: R,Z
-  real(rkind),intent(out):: BABS,AL(3)
+  real(rkind),intent(out):: BABS,AL(3),rhon
   real(rkind) :: BLO(3),LR,LZ
   real(rkind) :: L,Q
 
@@ -62,10 +63,11 @@ SUBROUTINE PLSMAG13(R,Z,BABS,AL)
   LR = R-RR
   LZ = Z
   L  = sqrt(LR*LR+LZ*LZ)
+  rhon=L/RA
 
   Q0 = 1.d0
   QA = 3.d0
-  Q  = Q0+(QA-Q0)*(L/RA)**2
+  Q  = Q0+(QA-Q0)*rhon**2
 
   BLO(1) =-BB*LZ/(Q*RR)  ! r   direction
   BLO(2) = BB*RR/(RR+LR) ! phi direction

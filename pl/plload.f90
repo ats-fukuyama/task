@@ -436,7 +436,7 @@ CONTAINS
 
 !     ***** 2D magnetic field profile *****
 
-    SUBROUTINE pl_read_p2Dmag(X,Y,BX,BY,BZ,IERR)
+    SUBROUTINE pl_read_p2Dmag(X,Y,BX,BY,BZ,rhon,IERR)
 
       USE plcomm,ONLY: rkind
       USE pl_p2Ddata
@@ -444,6 +444,7 @@ CONTAINS
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: X,Y       ! Position
       REAL(rkind),INTENT(OUT):: BX,BY,BZ ! magnetic field
+      REAL(rkind),INTENT(OUT):: rhon     ! normarized minor radius
       INTEGER,INTENT(OUT):: IERR  ! ERROR Indicator 
       REAL(rkind):: XL,YL
       INTEGER:: IERL
@@ -454,6 +455,8 @@ CONTAINS
       YL=Y
       IF(YL.LT.YD(1))     YL=YD(1)
       IF(YL.GT.YD(NYMAX)) YL=YD(NYMAX)
+      rhon=SQRT((XL-XD(1))/(XD(NXMAX)-XD(1)-0.5D0)**2 &
+               +(YL-YD(1))/(YD(NYMAX)-YD(1)-0.5D0)**2)
 
       IERR=0
       CALL SPL2DF(XL,YL,BX,XD,YD,UA(1,1,1,1,1),NXMAX,NXMAX,NYMAX,IERL)
