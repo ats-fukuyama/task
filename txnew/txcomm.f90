@@ -125,6 +125,16 @@ module tx_commons
 
   ! Numerical parameters
   real(8) :: DT, EPS, ADV, tiny_cap, CMESH0, WMESH0, CMESH, WMESH
+
+  !   Nonlinear-iteration index up to which the lagged quantities that feed the
+  !   transport coefficients -- PNsV_FIX, PTsV_FIX, ErV_FIX, SCX and ddPhidpsi --
+  !   are refreshed.  Beyond it they stay frozen at the iterate they had, which
+  !   is an O(DT) distance from the converged state and therefore costs the time
+  !   integration its second order however good the scheme is.  Freezing is there
+  !   to steady the nonlinear iteration and to keep an expensive transport model
+  !   from being re-evaluated every sweep; raise it to ICMAX where accuracy in
+  !   time matters and the model is cheap.
+  integer(4) :: ICCALC
   integer(4) :: ICMAX
 
   ! Mesh parameters
@@ -188,6 +198,13 @@ module tx_commons
 
   ! Configuration parameters
   integer(4) :: NQMAX, IERR, ICONT, IRPIN, irestart
+
+  !   Set once standard input has reached end of file.  After the first EOF a
+  !   read may report a positive iostat instead of a negative one (gfortran
+  !   returns 5001, "read past end of file"), and every interactive loop here
+  !   treats a positive iostat as a typo and asks again -- which spins forever
+  !   on a redirected or closed stdin.  Each loop consults this first.
+  logical :: stdin_ended = .false.
   real(4) :: AVE_IC
   real(8) :: rIP
   real(8) :: UHth, UHph
@@ -335,6 +352,11 @@ module tx_commons
   integer(4), dimension(:,:,:), allocatable :: NLCR
   integer(4), dimension(:),     allocatable :: NLCMAX
   real(8),    dimension(:,:),   allocatable :: X, XOLD
+
+  ! .false. while the two-step BDF has no genuine X(t-dt) to lean on: at a cold
+  ! start, and after a LOAD because XOLD does not travel in the save file.  A
+  ! CONT does have one and keeps it.  See TXCALB.
+  logical :: bdf_history_ready = .false.
 
   ! Diagnostics
   integer(4) :: MODEAV

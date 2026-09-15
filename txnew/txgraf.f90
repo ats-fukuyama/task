@@ -95,7 +95,7 @@ contains
   subroutine TXGOUT
     use libbes, only : BESINX
     use libgrf, only : GRD1D
-    use tx_commons, only : T_TX, TPRE, NQMAX, NRMAX, PI, ieqread!, &
+    use tx_commons, only : T_TX, TPRE, NQMAX, NRMAX, PI, ieqread, stdin_ended!, &
 !         &                 rhob, RA, RR, NRA, thrp, kappa, IRPIN, DltRPn, NTCOIL, DltRP_mid, DltRP, epst, rho 
     use tx_interface, only : TXGRUR, TOUPPER, TXGLOD
     use tx_ripple, only : ripple
@@ -133,11 +133,13 @@ contains
     OUTER : do
        write(6,*) '# select : Rn: Tn: Un: Vn: A,B: C: E: Dn: Fn: Gn: Hn: S,L,M:file'
        write(6,*) '           W(R,T,V)n:write I:init X:exit'
+       if (stdin_ended) return
        read(5,'(A5)',IOSTAT=IST) STR
        if (IST > 0) then
           write(6,*) '### ERROR : Invalid Command : ', STR
           cycle
        else if (IST < 0) then
+          stdin_ended = .true.
           return
        end if
 

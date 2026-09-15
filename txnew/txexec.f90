@@ -75,8 +75,8 @@ contains
     use tx_commons, only : T_TX, NTCUM, rIPe, rIPs, NTMAX, IGBDF, NQMAX, NRMAX, X, ICMAX, &
          &                 ErV, PNsV_FIX, PTsV_FIX, &
          &                 ErV_FIX, IERR, LQb1, LQn1, LQn2, LQr1, &
-         &                 tiny_cap, EPS, IDIAG, NTSTEP, &
-         &                 FSRP, MODEAV, XOLD, &
+         &                 tiny_cap, EPS, IDIAG, NTSTEP, ICCALC, &
+         &                 FSRP, MODEAV, XOLD, bdf_history_ready, &
          &                 NT, DT, rIP, MDLPCK, ICONT, AVE_IC, MODECV, oldmix, Var
     use tx_variables
     use tx_coefficients, only : TXCALA
@@ -161,8 +161,10 @@ contains
     prof_io_sum     = 0.d0
 #endif
 
-    ! Save X -> XP -> XOLD for BDF only at the beginning of the calculation
-    if(IGBDF /= 0 .and. (T_TX == 0.d0 .or. ICONT /= 0)) XOLD= X
+    ! Save X -> XP -> XOLD for BDF only when there is no X(t-dt) to lean on.
+    ! A RUN starts from scratch; a CONT continues with the history it has.
+    if(T_TX == 0.d0) bdf_history_ready = .false.
+    if(IGBDF /= 0 .and. .not. bdf_history_ready) XOLD = X
 
     L_NTDO:do NTDO = 1, NTMAX
        NT = NTDO
@@ -187,7 +189,7 @@ contains
           XP = XN
 
           call TXCALV(XP)
-          if(IC <= 2) then
+          if(IC <= ICCALC) then
              PNsV_FIX(:,:) = Var(:,:)%n
              PTsV_FIX(:,:) = Var(:,:)%T
              ErV_FIX (:) = ErV (:)
@@ -518,7 +520,10 @@ contains
        end if
 
        ! Save past X for BDF
-       if(IGBDF /= 0) XOLD = X
+       if(IGBDF /= 0) then
+          XOLD = X
+          bdf_history_ready = .true.
+       end if
 
        ! Calculation fully converged
        X = XN
@@ -657,7 +662,7 @@ contains
   subroutine TXCALB(BA,BL,BX)
 
     use tx_commons, only : IGBDF, ADV, MDLPCK, NQMAX, NRMAX, NLC, NLCR, CLC, BLC, ALC, NLCMAX, &
-         &              PLC, X, XOLD!, lqb1, pnbv
+         &              PLC, X, XOLD, bdf_history_ready!, lqb1, pnbv
     real(8), dimension(:,:), intent(inout) :: BA, BL
     real(8), dimension(:), intent(inout) :: BX
     INTEGER(4) :: J, NR, NQ, NC, NC1, IA, IB, IC, NCHvs, NC1Hvs, NC1Hvs2, NC2
@@ -665,7 +670,19 @@ contains
     real(8), parameter :: C43 = 4.d0/3.d0, C23 = 2.d0/3.d0, C13 = 1.d0/3.d0
     real(8) :: COEF1, COEF2, COEF3, COEF!, suml1,suml2
     
-    if(IGBDF /= 0) ADV = C23
+    ! The two-step BDF needs a genuine X(t-dt).  Where there is none, XOLD has
+    ! been seeded with X, and using the BDF weights there would solve
+    ! M u1 = M u0 + ADV dt (L u1 + S) with ADV = 2/3, advancing the solution by
+    ! two thirds of a step.  That single O(dt) error costs the whole run its
+    ! second order.  Take one backward-Euler step instead: its O(dt^2) local
+    ! error, once, leaves the order alone.
+    if(IGBDF /= 0) then
+       if(bdf_history_ready) then
+          ADV = C23
+       else
+          ADV = 1.d0
+       end if
+    end if
 
     !  NR : number of radial mesh 
     !  NQ : number of equation
@@ -880,7 +897,7 @@ contains
 
     BX = 0.d0 ! initialize BX array
 
-    if(IGBDF == 0) then
+    if(IGBDF == 0 .or. .not. bdf_history_ready) then
        COEF1 = 1.d0
        COEF2 = 0.d0
        COEF3 = 1.d0

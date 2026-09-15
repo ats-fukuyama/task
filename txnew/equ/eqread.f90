@@ -351,6 +351,18 @@ contains
     vro(0) = 0.d0
     vro(1:nrmax) = 2.d0 * PsitV(nra) * rho(1:nrmax) / hdt(1:nrmax)
 
+    ! ckt and vro both vanish at the magnetic axis, ckt like rho**2 and vro like
+    ! rho.  Their ratio G = ckt/vro**2 is finite and even there, but forming it
+    ! from the first few contour integrals on a Cartesian equilibrium grid
+    ! magnifies their independent discretization errors, and G is the coefficient
+    ! of the poloidal flux diffusion.  Continue G inward as c0+c2*rho**2 from the
+    ! first resolved contours and rebuild ckt from it, as TASK/EQ does for this
+    ! metric.  Frozen metrics only lose accuracy by it; metrics re-formed during
+    ! a run from an equilibrium solver close a loop on themselves through q and
+    ! lose stability, which is what this prevents.
+
+    call regularize_axis_grad_metric(rho_v)
+
     ! <B^2>
     
     bbt(:) = fourPisq*fourPisq * hdt(:)*hdt(:) / aat(:) + ckt(:) * sdt(:)*sdt(:)
@@ -430,6 +442,65 @@ contains
     deallocate(rho_v,pdst,fdst,zzv,zz,zzfunc)
 
   end subroutine intequ
+
+!=======================================================================
+! Continue G = ckt/vro**2 inward as c0 + c2 rho**2 from an annulus that
+! the equilibrium grid resolves, then rebuild ckt from it.  Both ckt and
+! vro vanish at the axis, so their ratio is finite and even there while
+! the two contour integrals carry independent discretization errors that
+! their ratio magnifies.
+!=======================================================================
+  subroutine regularize_axis_grad_metric(rho_equ)
+    use tx_commons, only : nrmax, rho, vro, ckt
+    real(8), intent(in) :: rho_equ(:)
+
+    integer(4) :: i, ifirst, nfit
+    real(8) :: fit_min, fit_max, replace_end, replace_full, x, y, weight
+    real(8) :: sx, sy, sxx, sxy, denom, c0, c2, gfit, graw
+
+    if(nrmax < 4 .or. size(rho_equ) < 4) return
+
+    ! Uniform-poloidal-flux equilibrium arrays have very sparse rho coverage
+    ! at the axis.  Start the fit no earlier than the fourth equilibrium
+    ! surface and use a finite annulus outside it.
+    ifirst = min(4,size(rho_equ))
+    fit_min = max(0.15d0,rho_equ(ifirst))
+    fit_max = min(0.55d0,fit_min+0.20d0)
+    replace_end = min(fit_min,0.40d0)
+    replace_full = 0.8d0*replace_end
+
+    sx = 0.d0; sy = 0.d0; sxx = 0.d0; sxy = 0.d0
+    nfit = 0
+    do i = 1, nrmax
+       if(rho(i) < fit_min .or. rho(i) > fit_max) cycle
+       if(vro(i) <= tiny(1.d0)) cycle
+       x = rho(i)**2
+       y = ckt(i)/vro(i)**2
+       sx = sx+x; sy = sy+y; sxx = sxx+x*x; sxy = sxy+x*y
+       nfit = nfit+1
+    end do
+    if(nfit < 2) return
+
+    denom = real(nfit,8)*sxx-sx*sx
+    if(abs(denom) <= tiny(1.d0)) return
+    c0 = (sy*sxx-sx*sxy)/denom
+    c2 = (real(nfit,8)*sxy-sx*sy)/denom
+    if(c0 <= 0.d0) return
+
+    do i = 1, nrmax
+       if(rho(i) >= replace_end) exit
+       graw = ckt(i)/vro(i)**2
+       gfit = c0+c2*rho(i)**2
+       if(rho(i) <= replace_full .or. replace_end <= replace_full) then
+          weight = 0.d0
+       else
+          x = (rho(i)-replace_full)/(replace_end-replace_full)
+          weight = x*x*(3.d0-2.d0*x)
+       end if
+       ckt(i) = ((1.d0-weight)*gfit+weight*graw)*vro(i)**2
+    end do
+    ckt(0) = 0.d0
+  end subroutine regularize_axis_grad_metric
 
 !=======================================================================
 ! Enforce regular near-axis triangularity and suppress Cartesian-grid

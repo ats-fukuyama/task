@@ -212,7 +212,7 @@ end FUNCTION rLINEAVE
 
 subroutine TXSAVE
   use tx_commons, only : &
-       & SLID,RA,rhob,rhoaccum,RR,BB,rbvt,ravl,rbvl,amas,achg,amb,achgb,rIPs,rIPe, &
+       & SLID,stdin_ended,RA,rhob,rhoaccum,RR,BB,rbvt,ravl,rbvl,amas,achg,amb,achgb,rIPs,rIPe, &
        & PN0,PNa,PTe0,PTea,PTi0,PTia,PTz0,PTza, &
        & PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,Uiph0,PROFD,PROFD1,PROFD2,PROFDB,PROFM,PROFM1,PROFMB,PROFC,PROFC1,PROFCB, &
        & Dfs0,VWpch0,rMus0,WPM0,Chis0,ChiNC,FSDFIX,FSANOM,FSCBKP,FSCBSH,rG1, &
@@ -241,10 +241,12 @@ subroutine TXSAVE
   do 
      write(6,*) '# INPUT : SAVE FILE NAME'
      flush(6)
+     if (stdin_ended) return
      read(*,'(A100)',iostat=IST) TXFNAM
      if (IST > 0) then
         cycle
      else if (IST < 0) then
+        stdin_ended = .true.
         return
      end if
      inquire(file=TXFNAM,exist=LEX)
@@ -351,7 +353,7 @@ subroutine TXLOAD(IST)
        & IGBDF,ISMTHD,iprestab,MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDANOM,iPoyntpol,iPoynttor, &
        & MDLETB,MDLNBD,MDBMCX,imodel_neo,PNBMPD,PNBPTC,rIP,thrp,kappa,CPsi,VPoynt,PoyntI, &
        & ErV,PTsV_FIX,PNsV_FIX,ErV_FIX, &
-       & rMU0,rMUb1,rMUb2,NEMAX,ICONT,TAUE2,LQb1,Var,irestart, NSM
+       & rMU0,rMUb1,rMUb2,NEMAX,ICONT,TAUE2,LQb1,Var,irestart, NSM,bdf_history_ready,stdin_ended
   use tx_init, only : TXCALM
   use tx_graphic, only : allocate_txgraf,deallocate_txgraf, &
        &                 MODEG,MODEGL,NGYTM,NGYVM,NGR,NGT,NGVV,NGRSTP,NGTSTP,NGVSTP, &
@@ -372,10 +374,12 @@ subroutine TXLOAD(IST)
   do 
      write(6,*) '# INPUT : LOAD FILE NAME'
      flush(6)
+     if (stdin_ended) return
      read(*,'(A100)',iostat=IST) TXFNAM
      if (IST > 0) then
         cycle
      else if (IST < 0) then
+        stdin_ended = .true.
         return
      end if
      inquire(file=TXFNAM,exist=LEX)
@@ -431,6 +435,9 @@ subroutine TXLOAD(IST)
   end if
 
   read(io) ((X(NR,NQ), NR=0, NRMAX), NQ=1, NQMAX)
+  ! XOLD does not travel in the save file, so the two-step BDF restarts
+  ! from a backward-Euler step (TXCALB).
+  bdf_history_ready = .false.
 
   read(io) NGT
   read(io) (GTX(I), I=0, NGT)
@@ -1250,6 +1257,7 @@ end function detect_datatype
 !***************************************************************
 
 subroutine outfile
+  use tx_commons, only : stdin_ended
   implicit none
   integer(4) :: n, ist
 
@@ -1257,10 +1265,12 @@ subroutine outfile
      write(6,'(1X,A,1X,I1)') '## outfile: input ?'
      write(6,'(1X,A)') '##          1: profiles, 2: 0d quantities, 3: 0d variables, ' &
           & // '4: for OFMC, 5: for TOPICS/NTMAIN, 6: for CHARROT, 9: exit'
+     if (stdin_ended) return
      read(*,'(I1)',iostat=ist) n
      if (ist > 0) then
         cycle
      else if (ist < 0) then
+        stdin_ended = .true.
         return
      end if
 

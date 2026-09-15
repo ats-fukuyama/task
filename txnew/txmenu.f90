@@ -17,7 +17,7 @@ contains
          &              rMU0, IERR, rMUb1, rMUb2, TMAX, DT, NTMAX, T_TX, PNBHT1, &
          &              PNBHT2, PNBHP, PNBHex, X, LQm4, NRMAX, TPRE, PNBCD, &
          &              iflag_file, gkilo, &
-         &              DelRho, DelN, Rho, LQe1, LQi1, LQz1, achg, ICONT, IRPIN, array_init_NR
+         &              DelRho, DelN, Rho, LQe1, LQi1, LQz1, achg, ICONT, IRPIN, array_init_NR, stdin_ended
     use tx_init, only : TXINIT, TXPROF
     use tx_main, only : TXEXEC
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGR, TXGOUT, allocate_txgraf, deallocate_txgraf, &
@@ -76,7 +76,9 @@ contains
        case('R')
           if (ICONT /= 0) then
              write(6,*) '# Would you like to restart? [y/N]'
+             if(stdin_ended) exit
              read(5,'(A1)',iostat=IST) KID
+             if(IST < 0) stdin_ended = .true.
              if(IST /= 0) cycle
              call TOUPPER(KID)
              if(KID /= 'Y') cycle
@@ -217,6 +219,7 @@ contains
 
   subroutine TXKLIN(LINE,KID,MODE)
 
+    use tx_commons, only : stdin_ended
     use tx_parameter_control, only : TXPARL
     use tx_interface, only : TOUPPER
     implicit none
@@ -227,6 +230,12 @@ contains
     integer(4) :: ID, I, IST
 
     !  ----- read line input input -----
+
+    if(stdin_ended) then
+       KID='Q'
+       MODE=1
+       return
+    end if
 
     read(5,'(A80)',iostat=IST) LINE
 
@@ -262,6 +271,7 @@ contains
 
        !  ----- input end -----
 
+       stdin_ended = .true.
        KID='Q'
        MODE=1
 

@@ -358,12 +358,13 @@ contains
     real(8) :: rhoni, dvexbdr ! CDBM
     real(8) :: xb, fp, fdp, gfun
     real(8), dimension(0:NRMAX) :: pres, ddPhidpsi, tmp
+    real(8) :: Scdbm   ! magnetic shear in the form CDBM takes, (r/q)dq/dr
     ! Mainly for derivatives
     ! NOTE:
     !   These SAVE workspaces are shared across calls to TXCALC.
     !   Current usage is serial-safe, but future OpenMP parallel calls would need
     !   thread-private workspaces.
-    real(8), dimension(:), allocatable, save :: dErdr, dpdr, dErdrS, ErVlc
+    real(8), dimension(:), allocatable, save :: dErdr, dpdr, dErdrS, ErVlc, drhodrpt
     real(8), dimension(:), allocatable, save :: dQdrho, dlnNedrhov
     real(8), dimension(:,:), allocatable, save :: dTsdV, dPsdV, dNsdV, dNsdrho, dTsdrho
 
@@ -444,13 +445,16 @@ contains
     !          directly calculated.
 
     if(.not. allocated(dErdr)) then
-       allocate(dErdr, dpdr, mold=array_init_NR)
+       allocate(dErdr, dpdr, drhodrpt, mold=array_init_NR)
     else if((lbound(dErdr,1) /= lbound(array_init_NR,1)) .or. (ubound(dErdr,1) /= ubound(array_init_NR,1))) then
-       deallocate(dErdr, dpdr)
-       allocate(dErdr, dpdr, mold=array_init_NR)
+       deallocate(dErdr, dpdr, drhodrpt)
+       allocate(dErdr, dpdr, drhodrpt, mold=array_init_NR)
     end if
     dErdr(:) = dfdx(rpt,ErVlc,NRMAX,0)
     dpdr (:) = dfdx(rpt,pres ,NRMAX,0)
+    ! drho/drpt, for turning the rho-based shear into the (r/q)dq/dr the CDBM
+    ! model is written for; rpt is the radius dpdr and rs are already taken with.
+    drhodrpt(:) = dfdx(rpt,rho  ,NRMAX,0)
 !    dpdr (:) = vro(:) / ravl * dfdx(vv ,pres ,NRMAX,0)
 
     if(.not. allocated(dQdrho)) then
@@ -508,7 +512,7 @@ contains
 
     !  --- For thermal neutrals originating from slow neutrals ---
 
-    if(IC == 1) then
+    if(IC <= ICCALC) then
        ! SCX : source of PN02V
        do NR = 0, NRMAX
           SCX(NR) = Var(NR,2)%n * SiVcx(Var(NR,2)%T) * PN01V(NR) * 1.D40
@@ -570,7 +574,7 @@ contains
     !      where rho is an arbitrary radial coordinate.
     !                      ^^^^^^^^^
     !   gr2phi = (dpsi/dV)^2 d/dpsi(dPhi/dpsi) if rho = V is assumed.
-    if( mod(MDOSQZ,10) /= 1 .or. IC == 1 ) THEN
+    if( mod(MDOSQZ,10) /= 1 .or. IC <= ICCALC ) THEN
        ddPhidpsi(0) = 0.d0 ! d/dpsi(dPhi/dpsi)
        do NR = 1, NRMAX-1
           ddPhidpsi(NR) = (  ( PhiV(NR+1) - PhiV(NR) ) / ( PsiV(NR+1) - PsiV(NR) ) &
@@ -929,6 +933,16 @@ contains
 
        !  Magnetic shear, normalized pressure gradient
        S(NR) = rho(NR) / Q(NR) * dQdrho(NR)
+       !  CDBM is written for the shear taken with the geometric minor radius,
+       !  (r/q)dq/dr, as TOPICS (cdbm.f: s = rl*dq/ql with dq = dq/dr [1/m]),
+       !  GOTRESS and TRESS all pass it.  S above is (rho/q)dq/drho; convert it
+       !  with the same rpt that dpdr and rs use.  The two agree for the
+       !  circular analytic geometries, where rpt = rho*ra and drho/drpt = 1/ra.
+       if(NR == 0) then
+          Scdbm = 0.d0
+       else
+          Scdbm = S(NR) / rho(NR) * (rpt(NR) * drhodrpt(NR))
+       end if
        Alpha(NR) = - Q(NR)*Q(NR) * RR * dpdr(NR) * 2.d0 * rMU0 / bbt(NR)
 
        !   ***** Heat pinch *****
@@ -948,7 +962,7 @@ contains
              dvexbdr = dErdrS(NR) / bbrt(NR)
 !             dvexbdr = dErdr(NR) / bbrt(NR)
 
-             call cdbm(BBL,rr,rpt(NR),elip(NR),Q(NR),S(NR),Var(NR,1)%n*1.d20,rhoni,dpdr(NR), &
+             call cdbm(BBL,rr,rpt(NR),elip(NR),Q(NR),Scdbm,Var(NR,1)%n*1.d20,rhoni,dpdr(NR), &
                   &    dvexbdr,FSCBAL,FSCBKP,rG1,model_cdbm,Dturb, &
                   &    FCDBM(NR),rKappa(NR),rG1h2(NR),wexb(NR))
 

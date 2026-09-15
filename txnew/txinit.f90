@@ -540,6 +540,11 @@ contains
     !   Iteration
     ICMAX = 100
 
+    !     Refresh the lagged quantities feeding the transport coefficients up to
+    !       this nonlinear iteration (see tx_commons).  2 reproduces the
+    !       historical behaviour; ICMAX or more removes the lag altogether.
+    ICCALC = 2
+
     !   Time-advancing method
     !     ADV = 0     : Explicit scheme       (Not usable)
     !           0.5   : Crank-Nicolson scheme (Not usable)
@@ -1843,7 +1848,7 @@ module tx_parameter_control
        & rNRFe,RRFew,RRFe0,PRFHe,Tqt0,Tqp0,rNRFi,RRFiw,RRFi0,PRFHi, &
        & PN0s,V0,rGamm0_in,rGASPF,PN0zs,V0z,rGamm0zz_in,rGamm0iz_in,rGASPFz,PNsSUP,PTsSUP, &
        & NTCOIL,DltRPn,kappa,m_pol,n_tor, &
-       & DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH, &
+       & DT,EPS,ICMAX,ICCALC,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH, &
        & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,ieqread,irktrc,ipbtdir, &
        & DelRho,DelN, &
 !       & DMAG0,RMAGMN,RMAGMX,EpsH,NCph,NCth, &
@@ -1869,6 +1874,10 @@ contains
     character(len=*)  :: KID
 
     do 
+       if(stdin_ended) then
+          KID='Q'
+          exit
+       end if
        write(6,*) '# INPUT &TX :'
        write(6,*) '  INPUT PARAMETERS MUST BE BRACKETED BETWEEN &TX AND &END; CTRL-D FOR EXIT.'
        read(5,TX,IOSTAT=IST)
@@ -1876,6 +1885,7 @@ contains
           call TXPLST
           cycle
        else if(IST < 0) then
+          stdin_ended = .true.
           KID='Q'
           exit
        else
@@ -2017,6 +2027,7 @@ contains
           exit ; else ; idx = idx + 1 ; end if
        if(DT < 0.d0 .or. EPS == 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(ICMAX < 0) then ; exit ; else ; idx = idx + 1 ; end if
+       if(ICCALC < 1) then ; exit ; else ; idx = idx + 1 ; end if
        if(ADV < 0.d0 .or. ADV > 1.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(tiny_cap < 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
        ! /// idx = 51 - 58 ///
@@ -2055,7 +2066,7 @@ contains
          &       ' ',8X,'PNBCD,PNBMPD,PNBPTC,rNRFe,RRFew,RRFe0,PRFHe,Tqt0,Tqp0,rNRFe,RRFew,RRFe0,PRFHe,'/&
          &       ' ',8X,'PN0s,V0,rGamm0_in,rGASPF,PN0zs,V0z,rGamm0zz_in,rGamm0iz_in,rGASPFz,PNsSUP,PTsSUP,'/ &
          &       ' ',8X,'NTCOIL,DltRPn,kappa,m_pol,n_tor,'/ &
-         &       ' ',8X,'DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH,'/ &
+         &       ' ',8X,'DT,EPS,ICMAX,ICCALC,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH,'/ &
          &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,ieqread,irktrc,ipbtdir'/ &
          &       ' ',8X,'DelRho,DelN,'/ &
 !         &       ' ',8X,'Dmag0,RMAGMN,RMAGMX,EpsH,NCph,NCth,'/ & 
@@ -2174,7 +2185,8 @@ contains
          &   'NGRSTP     ', NGRSTP     , 'NGTSTP     ', NGTSTP     ,  &
          &   'NGVSTP     ', NGVSTP     , 'ieqread    ', ieqread    ,  &
          &   'irktrc     ', irktrc     , 'ipbtdir    ', ipbtdir    ,  &
-         &   'ICMAX      ', ICMAX      , 'MODEG      ', MODEG      ,  &
+         &   'ICMAX      ', ICMAX      , 'ICCALC     ', ICCALC     ,  &
+         &   'MODEG      ', MODEG      ,  &
          &   'MODEAV     ', MODEAV     , 'MODEGL     ', MODEGL     ,  &
          &   'MDLPCK     ', MDLPCK     , 'MODECV     ', MODECV     ,  &
          &   'IDIAG      ', IDIAG      , 'midbg(1)   ', midbg(1)   ,  &
