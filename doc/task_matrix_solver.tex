@@ -1,0 +1,243 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\geometry{a4paper}
+\usepackage[dvips]{graphicx,color}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[varg]{txfonts}
+\usepackage{exscale}
+\usepackage{af}
+\usepackage{slide}
+\usepackage{card}
+\usepackage{sym}
+\usepackage{ulem}
+
+\newcommand{\epspath}{/Users/fukuyama/tex/eps}
+\newcommand{\ttype}[1]{\emC{\LARGE \texttt{#1}}}
+\newcommand{\tline}[1]{\qquad{\Large \texttt{#1}}\\[-3mm]}
+
+\let\Ra=\Rightarrow
+\let\Lra=\Longrightarrow
+
+\newenvironment{flist}{\par\noindent\begin{tabular}{%
+p{45mm}p{35mm}p{30mm}p{120mm}}}{\end{tabular}\par\bigskip}
+\newcommand{\fitem}[4]{\quad #1 & #2 & #3 & #4 \\}
+\newcommand{\ffitem}[2]{\multicolumn{3}{p{109mm}}{#1} & #2 \\}
+\newcommand{\fffitem}[1]{\multicolumn{4}{p{228mm}}{#1} \\}
+
+\newcommand{\vvd}{\vv_\mr{d}}
+\newcommand{\vd}{v_\mr{d}}
+\newcommand{\vvE}{\vv_E}
+\newcommand{\Epara}{E_\para}
+\newcommand{\Tperp}{T_\perp}
+\newcommand{\Tb}{T_\mr{b}}
+\newcommand{\kparam}{k_{\para m}}
+\newcommand{\energy}{\varepsilon}
+\newcommand{\tx}{TASK/TX}
+
+\newcommand{\xtitle}[2]{%
+{\fboxsep=10mm \fboxrule=3mm
+\cfbox{dbback}{#1}{%
+\begin{center}\Huge
+ \emC{#2}
+\end{center}
+}}
+}
+
+\begin{document}
+\huge\sf
+
+\begin{flushleft}
+\fig{0.70}{\epspath/logo/KUlogo.eps}
+\end{flushleft}
+\vspace*{-40mm}
+
+\begin{flushright}\LARGE
+  2026/03/07
+\end{flushright}
+\vspace{20mm}
+
+\xtitle{200mm}{%
+Matrix solver inteface mtxp in TASK
+}
+\medskip
+
+\begin{center}\huge
+\emB{A.~Fukuyama}
+\\
+\textcolor{fgreen}{\huge
+Professor Emeritus, Kyoto University 
+}
+\end{center}
+\medskip
+
+\begin{center}
+  \begin{minipage}{140mm}
+    \begin{enumerate}
+    \item
+      Purpose and limitation
+    \item
+      Available matrix solvers in mtxp
+    \item
+      mtxp routines
+    \item
+      Example
+    \end{enumerate}
+  \end{minipage}
+\end{center}
+
+\title{Purpose and limitations}
+\begin{itemize}
+\item
+  \emA{Various matrices are solvied in TASK.}
+  \begin{itemize}
+  \item
+    \emB{EQ,EQU}: Grad-Shafranov equation: R
+  \item
+    \emB{TR,TI,TX}: 1D Transport equation: R
+  \item
+    \emB{FP}: 2/3D Fokker-Planck equation: R
+  \item
+    \emB{WM,WF}: 1/2/3D fixed-frequency Maxwell's equation: C
+  \item
+    \emB{PIC}: Maxwell's equation: R
+  \end{itemize}
+\item
+  \emA{Various types of band matrix solver}
+  \begin{itemize}
+  \item
+    \emB{single process} vs \emB{MPI parallel process}
+  \item
+    \emB{iterative solver} vs \emB{direct solver}
+  \item
+    \emB{real variables} vs \emB{complex variables}
+  \end{itemize}
+\item
+  \emA{Same motrix solver interface}
+\item
+  \emA{Choice of matrix solver when compile}
+\item
+  \emA{Limitation of single choice over TASK}
+  \begin{itemize}
+  \item
+    \emB{single or multi},emB{iterative or direct}
+  \end{itemize}
+\end{itemize}
+
+\title{Available matrix solver}
+\begin{itemize}
+\item
+  \emA{single and direct}: band matrix solver
+  \begin{itemize}
+  \item
+    libmtxbnd.f90, lib/libbnd.f90
+  \end{itemize}
+\item
+  \emA{single and iterative}: PCGPME method
+  \begin{itemize}
+  \item
+    libmtxpcg.f90, lib/libpcgpme.f90
+  \end{itemize}
+\item
+  \emA{multi and direct}: MUMPS library
+  \begin{itemize}
+  \item
+    libmtxmumps.f90, DMUMPS and ZMUMPS
+  \end{itemize}
+\item
+  \emA{multi and iterative}: PETSC library
+  \begin{itemize}
+  \item
+    libmtxksp.f90, KSP and many others
+  \end{itemize}
+\end{itemize}
+
+\title{mtxp routines}
+
+\begin{itemize}
+\item
+  \emA{Routine name}
+  \begin{itemize}
+  \item
+    \emB{mtx} for real variables, 
+    \emB{mtxc} for complex variables
+  \end{itemize}
+\item
+  \emA{mtx\_initialize}: Initialize
+\item
+  \emA{mtx\_finalize}: Finalize
+\item
+  \emA{mtx\_setup}: Define matrix size
+\item
+  \emA{mtx\_set\_matrix}: Set matrix element
+\item
+  \emA{mtx\_set\_source}: Set source vector element
+\item
+  \emA{mtx\_set\_vector}: Set initial solution vector for iterative
+  scheme
+\item
+  \emA{mtx\_solve}: Solve matrix equation
+\item
+  \emA{mtx\_get\_vector\_j}: Get $j$-th component of solution vector
+\item
+  \emA{mtx\_get\_vector}: Get all components of solution vector on
+  single CPU
+\item
+  \emA{mtx\_gather\_vector}: Get all components of solution vec. for
+  multi CPU
+\item
+  \emA{mtx\_cleanup}: Clear matrix data
+\end{itemize}
+  
+\title{mtxp routines with arguments}
+
+\begin{itemize}
+\item
+  \emB{mtx\_setup(imax,istart,iend,jwidth,nzmax,idebug)
+    \begin{itemize}
+    \item
+      \emB{imax}: total number of matrix lines
+    \item
+      \emB{istart}: start of allocated range of lines
+    \item
+      \emB{iend}: end of allocated range of lines
+    \item
+      \emB{jwidth}: band matrix width
+    \item
+      \emB{nzmax}: number of nonzero components
+    \item
+      \emB{idebug}: debug level
+    \end{itemize}
+\item
+  \emB{mtx\_set\_matrix(i,j,v)}
+    \begin{itemize}
+    \item
+      \emB{i}: line of matrix element
+    \item
+      \emB{j}: row of matrix element
+    \item
+      \emB{v}: value of matrix element
+    \end{itemize}
+\item
+  \emB{mtx\_set\_source(i,v)}
+    \begin{itemize}
+    \item
+      \emB{i}: line of source vector element
+    \item
+      \emB{v}: value of source vector element
+    \end{itemize}
+\item
+  \emB{mtx\_set\_vector(j,v)}: for iterative method
+    \begin{itemize}
+    \item
+      \emB{j}: raw of initial variable vector element
+    \item
+      \emB{v}: value of initial variable vector element
+    \end{itemize}
+\item
+  \emB{mtx\_solve(itype,tolerance,its,methodKSP,methodPC)j,v)}: for iterative method
+    \begin{itemize}
+    \item
+      \emB{j}: raw of initial variable vector element
+    
+\end{document}

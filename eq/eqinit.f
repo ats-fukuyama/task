@@ -253,7 +253,7 @@ C
       NSUMAX = 65
 C
       NRVMAX = 50
-      NTVMAX = 200
+      NTVMAX = 400
 C
 C     *** CONTROL PARAMETERS ***
 C
@@ -264,7 +264,7 @@ C        DELNW  : Increment for derivative in newton method
 C        NLPNW  : Maximum iteration number in newton method
 C
       EPSEQ  = 1.D-6
-      NLPMAX = 20
+      NLPMAX = 100
       EPSNW  = 1.D-2
       DELNW  = 1.D-2
       NLPNW  = 20

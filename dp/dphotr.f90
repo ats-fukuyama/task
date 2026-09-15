@@ -302,8 +302,8 @@ CONTAINS
     COMPLEX(rkind):: CSM11,CSM12,CSM13,CSM22,CSM23,CSM33
     COMPLEX(rkind):: cdelta
 
-!    cdelta=CI*0.01D0
-    cdelta=CI*0.003D0
+    cdelta=CI*0.01D0
+!    cdelta=CI*0.003D0
 !    cdelta=CI*0.0D0
 
     NS=NS_NSA_DP(NSA)

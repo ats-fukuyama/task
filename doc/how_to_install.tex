@@ -55,7 +55,7 @@ p{45mm}p{35mm}p{30mm}p{120mm}}}{\end{tabular}\par\bigskip}
 \vspace*{-40mm}
 
 \begin{flushright}\LARGE
-  2025/02/24
+  2026/03/06
 \end{flushright}
 \vspace{20mm}
 
@@ -171,7 +171,7 @@ Professor Emeritus, Kyoto University
   \emA{FFT, parallel matrix solvers and file-access libraries}: if you want
   \begin{itemize}
   \item
-    \ttype{sudo port install fftw scalapack superlu mumps petsc hdf5}
+    \ttype{sudo port install fftw scalapack superlu mumps hdf5}
   \end{itemize}
 \end{itemize}
 
@@ -211,10 +211,61 @@ Professor Emeritus, Kyoto University
     \end{itemize}
 \end{itemize}
 
-  \title{In case of macOS major version-up}
+\title{Preparation for macOS (4)}
 \begin{itemize}
 \item
-  \emA{macOS major version-up}: e.g. 14.3 \s 15.0
+  \emA{Install PETSC} (PETCS in macports doesn't work at present)
+  \begin{itemize}
+  \item
+    \emB{Add to .zprofile}
+    \begin{itemize}
+      \item
+        \ttype{export PATH=/opt/local/bin:\$PATH}
+      \item
+        \ttype{export PETSC\_DIR=/opt/PETSc/petsc}
+      \item
+        \ttype{export PETSC\_ARCH=default}
+    \end{itemize}
+   \item
+     \emB{Setup to use python and mpi}
+     \begin{itemize}
+     \item
+       \ttype{sudo port select python python311}
+     \item
+       \ttype{sudo port select mpi mpich-mp-fortran}
+     \end{itemize}
+   \item
+     \emB{Install petsc}
+     \begin{itemize}
+     \item
+       \ttype{sudo mkdir /opt/PETSc}
+     \item
+       \ttype{sudo chown /opt/PETSc \$USERNAME}
+     \item
+       \ttype{cd /opt/PETSc}
+     \item
+       \ttype{git clone -b release https://gitlab.com/petsc/petsc.git petsc}
+     \item
+       \ttype{cd petsc}
+     \item
+       \ttype{cp ~/git/task/doc/default.py .}
+     \item
+       \ttype{chmod 755 default.py}
+     \item
+       \ttype{./default.py}
+     \item
+       \ttype{make}
+     \item
+       \ttype{make check}
+     \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\dummy{
+\title{Preparation for macOS (5)}
+\begin{itemize}
+\item
+  \emA{In case of macOS major version-up}: e.g. 14.3 \s 15.0
 \item
   \emA{Update Xcode and Command\_Line\_Tools} for the new version
 \item
@@ -248,6 +299,7 @@ Professor Emeritus, Kyoto University
 \item
   \emB{See more detail in https://trac.macports.org/wiki/Migration}
 \end{itemize}
+}
 
 \title{Preparation for Ubuntu}
 \begin{enumerate}
@@ -264,6 +316,8 @@ sudo apt-get install cmake
 sudo apt-get install python3
 
 sudo apt-get install mpich
+sudo apt-get install libmumps-dev
+sudo apt-get install petsc-dev
 \end{verbatim}
 \end{enumerate}
 
@@ -598,17 +652,15 @@ Data is saved in \$HOME/.gitconfig
   \emA{Compile modules}:
   \begin{itemize}
   \item
-    \emBs{cd lib}
+    \emBs{cd pl}
   \item
     \emBs{make}
-  \item
-    \emBs{cd ..}
 \end{itemize}
 \item
   \emA{Compile and run TASK module}: eq for example
   \begin{itemize}
   \item
-    \emBs{cd eq}
+    \emBs{cd ../eq}
   \item
     \emBs{make}
   \item
@@ -629,6 +681,8 @@ Data is saved in \$HOME/.gitconfig
     \emBs{q}
   \end{itemize}
 \end{itemize}
+
+\end{document}
 
 \title{How to use GSAF}
 \begin{itemize}
@@ -710,6 +764,8 @@ Data is saved in \$HOME/.gitconfig
 \end{itemize}
 \end{itemize}
 
+\end{document}
+
 \title{Typical File Name of TASK}
 \begin{itemize}
 \itemsep=3mm
@@ -771,8 +827,6 @@ Read a namelist file \ttype{XXparm} at the beginning of the program
 Setting by the input line
 \end{itemize}
 \end{itemize}
-
-\end{document}
 
 \title{Install PETSc (1)}
 

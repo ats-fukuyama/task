@@ -1,3 +1,4 @@
-gstops -ab gs/$1.gs >ps/$1.ps
-ps2pdf ps/$1.ps pdf/$1.pdf 
+gstops -ab gs/$1.gs >$1.ps
+ps2pdf $1.ps pdf/$1.pdf
+rm $1.ps
 open pdf/$1.pdf

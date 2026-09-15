@@ -130,8 +130,13 @@ C
          ISTEP=ISTEP+1
          GOTO 100
       ENDIF
-      WRITE(6,*) 'XX EQMAGS: NOT ENOUGH N'
-      pause
+      WRITE(6,*) 
+     & 'XX EQMAGS: NOT ENOUGH N (near-axis under-resolved): N,NMAX=',
+     & N,NMAX
+      WRITE(6,'(A,I5,A)') '   NSGMAX=',NSGMAX,
+     &     ' : set NSGMAX>=128 in eqparm & rerun.'
+      IF(NPRINT.GE.1) WRITE(6,'(A,1P4E12.4)')
+     &     '   R0,RAXIS,Yend=',RINIT,RAXIS,Y(1),Y(2)
       IERR=1
       RETURN
 C

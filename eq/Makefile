@@ -10,8 +10,8 @@ include ../mtxp/make.mtxp
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-#FFLAGS=-g $(OFLAGS)
-FFLAGS=$(DFLAGS)
+FFLAGS=-g $(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
 MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I../pl/$(MOD) -I../lib/$(MOD)
 
@@ -59,8 +59,7 @@ all : libs eq
 	(cd ../pl; make libpl.a)
 
 libeq.a: $(OBJS) $(OBJ2D)
-	$(LD) $(LDFLAGS) libeq.a $(OBJS) $(OBJ2D)
-#	$(LD) $(LDFLAGS) libeq.a $(OBJS) $(OBJ2D) ../pl/libpl.a
+	$(LD) $(LDFLAGS) libeq.a $(OBJS) $(OBJ2D) ../pl/libpl.a
 libeq3.a: $(OBJS) $(OBJ3D)
 	$(LD) $(LDFLAGS) libeq3.a $(OBJS) $(OBJ3D)
 

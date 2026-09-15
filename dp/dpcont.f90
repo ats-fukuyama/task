@@ -11,7 +11,8 @@ CONTAINS
 
     USE dpcomm_local
     USE plprof
-    USE PLPARM,ONLY: pl_parm,pl_view
+    USE plparm,ONLY: pl_parm
+    USE plview,ONLY: pl_view
     USE dpparm
     USE dpdisp
     USE libkio,ONLY: task_klin2

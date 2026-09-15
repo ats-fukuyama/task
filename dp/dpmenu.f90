@@ -15,7 +15,7 @@ CONTAINS
     USE dpcomm_local
     USE plprof
     USE plprofw
-    USE plparm,ONLY: pl_view
+    USE plview,ONLY: pl_view
     USE dpparm,ONLY: dp_parm,dp_view
     USE dpprep,ONLY: dp_prep_ns
     USE dproot,ONLY: dp_root,dpgrp1,dpgrp0

@@ -22,6 +22,19 @@ C
       USE libspl2d
       INCLUDE '../eq/eqcomq.inc'
 C
+C     --- out of range: set rhon>1.0 --- 
+      IF(RP.LE.RG(1).OR. 
+     &   RP.GT.RG(NRGMAX).OR. 
+     &   ZP.LE.ZG(1).OR. 
+     &   ZP.GT.ZG(NZGMAX)) THEN
+         BR=0.D0
+         BZ=0.D0
+         BT=B0*R0/RP
+         RHON=2.D0*SQRT(((RP-RG(1))/(RG(NRGMAX)-RG(1))-0.5D0)**2
+     &                 +((ZP-ZG(1))/(ZG(NZGMAX)-ZG(1))-0.5D0)**2)
+         RETURN
+      ENDIF
+C
       CALL SPL2DD(RP,ZP,PSI,DPSIR,DPSIZ,
      &            RG,ZG,UPSIRZ,NRGM,NRGMAX,NZGMAX,IERR)
 C

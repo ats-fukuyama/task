@@ -159,7 +159,6 @@ C
          DR=(RB-RA+REDGE-RAXIS)/(NRMAX-1)
          NRPMAX=NINT((REDGE-RAXIS)/DR)+1
       ENDIF
-!      write(6,*) 'nrmax,nrpmax,nsumax=',nrmax,nrpmax,nsumax
       DR=(REDGE-RAXIS)/(NRPMAX-1)
       DTH=2.d0*PI/NTHMAX
 C
@@ -1115,6 +1114,8 @@ C
       BETAP=PVAVE/(BPA**2/(2.D0*RMU0)) ! Poloidal beta
       QAXIS=FNQPS(0.D0)    ! Safety factor at the magnetic axis
       QSURF=FNQPS(1.D0)    ! Safety factor at the separatrix
+      IF(NPRINT.GE.1) WRITE(6,'(A,1P4E12.4)')
+     &     'BETAT,BETAP,QAXIS,QSURF =',BETAT,BETAP,QAXIS,QSURF
 C
       IF(NPRINT.GE.2) THEN
 c$$$         WRITE(6,'(A,1P4E12.4)') 
@@ -1182,7 +1183,8 @@ C
 C     ----- SET NUMBER OF DIVISION for integration -----
 C
 
-      NMAX=200
+C      NMAX=200
+      NMAX=400
       IF(NMAX.GT.NTVM) NMAX=NTVM
 C
 C     ----- CALCULATE PSIP, PSIT, PPS, TTS, RPS and ZPS -----
