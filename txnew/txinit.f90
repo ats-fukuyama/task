@@ -1818,6 +1818,10 @@ contains
        if (HPN(NHFM,1) == 0 .and. HPN(NHFM,2) > 0) UHphSwitch = 1
     end do
 
+    !  Put Phi and the diamagnetic flows on the constraints the solver enforces
+
+    call consistent_algebraic_init
+
     !  Define physical variables from X
 
     call TXCALV(X,0) ! Set variables as well as pres0 and ErV0
@@ -1833,6 +1837,122 @@ contains
     call TXGLOB
 
   end subroutine TXPROF
+
+!***************************************************************
+!
+!   Consistent initialisation of the algebraic variables Phi and BV_1s
+!
+!***************************************************************
+
+  subroutine consistent_algebraic_init
+
+!   TXPROF builds the diamagnetic flows BV_1s from dfdx-style derivatives while
+!   TXCALA enforces the same relation in its FEM weak form.  The two do not
+!   agree, so a run starts off that constraint and is thrown onto it by the
+!   first solve, by an amount independent of the step size: measured on the
+!   standard case, BV_1i moves by a factor of 170.  BV_1i is the worst of the
+!   three because it is the small difference of the pressure and the potential
+!   term, which nearly cancel for the ions.
+!
+!   The LQ*8 row is the n-weighted mass matrix acting on BV_1s with the pressure
+!   and potential gradients on the right, so given n, p and Phi it is one
+!   tridiagonal solve per species and nothing feeds back.  Nothing in the physics
+!   changes -- this is the same equation TXCALA writes, evaluated with the same
+!   operators.
+!
+!   Phi is deliberately left alone.  Its row, LQm1, is Poisson with 1/eps0 on
+!   the charge, so solving it for Phi at fixed densities makes Phi absorb a
+!   cancellation of two 1e19 densities and returns nonsense; in the real solve
+!   the densities move by the 1e-8 that Poisson asks of them instead.  Phi and
+!   the densities are only consistent jointly, which is the full projection --
+!   and that one makes the first ordinary step fail on a negative density.
+
+    use tx_commons
+    use tx_core_module, only : fem_int
+
+    integer(4) :: ne, i, L8l, LQs1, LQs5, LQs8
+    real(8), dimension(1:NEMAX,1:4) :: el
+    real(8), dimension(0:NRMAX) :: dl, dd, du, rhs, sol, fipolsdtl
+
+    ! TXCALA keeps this in a private module array; rebuild it here (LQcoef).
+    fipolsdtl(:) = fipol(:) / sdt(:)
+    L8l = iSUPG8 * 100
+
+    ! --- BV_1s, from the LQ*8 rows ---
+    do i = 1, 3
+       select case(i)
+       case(1) ; LQs1 = LQe1 ; LQs5 = LQe5 ; LQs8 = LQe8
+       case(2) ; LQs1 = LQi1 ; LQs5 = LQi5 ; LQs8 = LQi8
+       case(3) ; LQs1 = LQz1 ; LQs5 = LQz5 ; LQs8 = LQz8
+       end select
+
+       dl = 0.d0 ; dd = 0.d0 ; du = 0.d0 ; rhs = 0.d0
+
+       ! Every term is assembled exactly as TXCALA writes it; the unknown's term
+       ! stays on the left and the two known ones move right (add_rhs negates).
+       el = - fem_int(2+L8l,X(:,LQs1)) ; call add_lhs(el)
+
+       if( MDFIXT == 0 ) then
+          el = - rKilo / achg(i) * fem_int(5+L8l,fipolsdtl)
+          call add_rhs(el,X(:,LQs5))
+       else
+          el = - rKilo / achg(i) * (  fem_int(21+L8l,fipolsdtl,X(:,LQs5)) &
+               &                    + fem_int(22+L8l,fipolsdtl,X(:,LQs5)) )
+          call add_rhs(el,X(:,LQs1))
+       end if
+
+       el = - fem_int(22+L8l,fipolsdtl,X(:,LQs1))
+       call add_rhs(el,X(:,LQm1))
+
+       call tridiag(dl,dd,du,rhs,sol)
+       X(:,LQs8) = sol(:)
+    end do
+
+  contains
+
+    ! Elemental -> nodal, exactly as TXCALA does it: for element ne the four
+    ! entries are (ne-1,ne-1), (ne-1,ne), (ne,ne-1), (ne,ne).
+    subroutine add_lhs(e)
+      real(8), dimension(1:NEMAX,1:4), intent(in) :: e
+      do ne = 1, NEMAX
+         dd(ne-1) = dd(ne-1) + e(ne,1)
+         du(ne-1) = du(ne-1) + e(ne,2)
+         dl(ne  ) = dl(ne  ) + e(ne,3)
+         dd(ne  ) = dd(ne  ) + e(ne,4)
+      end do
+    end subroutine add_lhs
+
+    ! Same assembly against a known vector, moved to the right-hand side.
+    subroutine add_rhs(e,y)
+      real(8), dimension(1:NEMAX,1:4), intent(in) :: e
+      real(8), dimension(0:NRMAX), intent(in) :: y
+      do ne = 1, NEMAX
+         rhs(ne-1) = rhs(ne-1) - ( e(ne,1)*y(ne-1) + e(ne,2)*y(ne) )
+         rhs(ne  ) = rhs(ne  ) - ( e(ne,3)*y(ne-1) + e(ne,4)*y(ne) )
+      end do
+    end subroutine add_rhs
+
+    subroutine tridiag(a,b,c,d,x)
+      real(8), dimension(0:NRMAX), intent(in) :: a, b, c, d
+      real(8), dimension(0:NRMAX), intent(out) :: x
+      real(8), dimension(0:NRMAX) :: cp, dp
+      real(8) :: m
+      integer(4) :: k
+      cp(0) = c(0) / b(0)
+      dp(0) = d(0) / b(0)
+      do k = 1, NRMAX
+         m = b(k) - a(k) * cp(k-1)
+         cp(k) = c(k) / m
+         dp(k) = ( d(k) - a(k) * dp(k-1) ) / m
+      end do
+      x(NRMAX) = dp(NRMAX)
+      do k = NRMAX-1, 0, -1
+         x(k) = dp(k) - cp(k) * x(k+1)
+      end do
+    end subroutine tridiag
+
+  end subroutine consistent_algebraic_init
+
 
 end module tx_init
 

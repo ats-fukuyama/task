@@ -72,6 +72,12 @@ contains
 !#define DATADIR "data"
 !#endif
     character(len=*), parameter :: datadir = DATADIR
+    ! TXPROF and TXLOAD both build these tables, so a LOAD after a RUN in the
+    ! same process reaches here twice.  The arrays below are module-wide and
+    ! allocated unconditionally; free them first rather than aborting with
+    ! "allocatable array is already allocated".
+    call deallocate_spline_table_carbon_rate_coef_adas
+
 
     fcrca = trim(datadir)//'/Carbon-A6S5F6_20220606.txt'
 
@@ -264,6 +270,12 @@ contains
     real(8), dimension(:,:), allocatable :: ratedata, dx, dy, dxy
     integer(4) :: i, j, ierr
     real(8) :: Emax, Emin, dElin, Elin
+    ! TXPROF and TXLOAD both build these tables, so a LOAD after a RUN in the
+    ! same process reaches here twice.  The arrays below are module-wide and
+    ! allocated unconditionally; free them first rather than aborting with
+    ! "allocatable array is already allocated".
+    call deallocate_spline_table_beam_rate_coef
+
 
     !  H + H^+ -> H + H^+
     !  Charge exchange (A-27)
@@ -389,6 +401,12 @@ contains
     real(8), dimension(:,:), allocatable :: ratedata, dx, dy, dxy
     integer(4) :: i, j, ierr
     real(8) :: Emax, Emin, dElin, Elin
+    ! TXPROF and TXLOAD both build these tables, so a LOAD after a RUN in the
+    ! same process reaches here twice.  The arrays below are module-wide and
+    ! allocated unconditionally; free them first rather than aborting with
+    ! "allocatable array is already allocated".
+    call deallocate_spline_table_carbon_rate_coef
+
 
     !  C^+ + H -> C + H^+
     !  Charge exchange (1-14)
