@@ -701,9 +701,17 @@ contains
 
     !   Mode of linear solver
     !   0 : Use BANDRD
-    !   1 : Use LAPACK_DGBSV or LA_GBSV
-    !   2 : Use block-tridiagonal solver (fallback to GBSV if needed)
-    MDLPCK = 1
+    !   1 : Use LAPACK_DGBSV or LA_GBSV (plain band solve, no equilibration)
+    !   2 : Use block-tridiagonal solver with residual-checked iterative
+    !       refinement, falling back to 3 if the far blocks are not empty.
+    !       This is the default: the refinement lowers the floor the Picard
+    !       iteration comes to rest on by two to three orders, which is what
+    !       lets EPS go below 1e-5.  Block elimination on its own is worse than
+    !       a plain band solve, so the refinement is not optional here.
+    !       See claude_findings_picard_stall.md.
+    !   3 : Use DGBSVX with FACT='E': row and column equilibration, the band
+    !       solve, iterative refinement, and RCOND/FERR/BERR.
+    MDLPCK = 2
 
     !   Mode of fixed temperature profile
     !   0    : not fixed

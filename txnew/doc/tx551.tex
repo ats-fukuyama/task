@@ -2465,10 +2465,10 @@ TASK/TX V5.51 [22/10/25]
 \begin{tabular}{|c|c|c|c|c|c|}\hline
  num. & name & variable               & \shortstack{highest order\\ derivative} & center & edge \\\hline
  1    & LQm1 & $\Phi$                 & 2    &  N           & 0\\
- 2    & LQm2 & $\psitd$               & 2    &  0           & $\aves{|\nabla V|^2/R^2}|_{V_b}I_\r{vac}/(4\pi^2)$\\
- 3    & LQm3 & $\psid$                & 2    &  N           & $2\pi\mu_0I_\r{p}$\\
- 4    & LQm4 & $\psi$                 & 0    &  $\times$    & $\times$\\
- 5    & LQm5 & $\psit/\mu_0$          & 0    &  $\times$    & $\times$\\
+ 2    & LQm2 & $\psitd$               & 0    &  $\times$    & $\times$\\
+ 3    & LQm3 & $\psid$                & 0    &  $\times$    & $\times$\\
+ 4    & LQm4 & $\psi$                 & 2    &  N           & $2\pi\mu_0I_\r{p}$\\
+ 5    & LQm5 & $\psit/\mu_0$          & 2    &  0           & $\aves{|\nabla V|^2/R^2}|_{V_b}I_\r{vac}/(4\pi^2)$\\
  6    & LQe1 & $\nee$                 & 2    &  N           & N\\
  7    & LQe2 & $\nee\uV{e}$           & 1    &  0           & $\times$\\
  8    & LQe3 & $\aves{B\upara{e}}$    & 2(0) &  N($\times$) & N($\times$)\\
@@ -2514,8 +2514,25 @@ TASK/TX V5.51 [22/10/25]
 \medskip
 
 NOTE: The dependent variable of LQm4 turns to be $\psi/\mu_0$ when NB is
-applied. Subsequently, the boundary condition of LQm3 is also changed to
-$2\pi I_\r{p}$.
+applied. Subsequently, the edge boundary condition listed for that variable
+is also changed to $2\pi I_\r{p}$.
+
+NOTE: Rows 2 to 5 deserve a word, because the variable that carries the
+second-order operator is not the variable of the equation in which the
+operator is written. The LQm2 equation advances $\psitd$ and contains
+$\ddV[\ave{|\nabla V|^2/R^2}\aves{R^{-2}}^{-1}\ddV(\psit/\mu_0)]$; the
+LQm3 equation advances $\psid$ and contains
+$\ddV[\ave{|\nabla V|^2/R^2}\ddV\psi]$. Counting per dependent variable
+over the whole system, as this section does, $\psitd$ and $\psid$ are never
+differentiated and so take order 0 and no condition of their own, while
+$\psit/\mu_0$ and $\psi$ take order 2 and carry the two conditions each.
+The table above now reads that way.
+In the implementation the two conditions of each pair are applied to the
+LQm2 and LQm3 equation rows, since that is where the boundary term left by
+the integration by parts appears; this is the correct weak form and is not
+a discrepancy with the table. The axis condition of $\psit/\mu_0$ is imposed
+there as $\psitd|_{V=0}=0$, which holds $\psit(0)$ at its initial value,
+namely zero, and is therefore the Dirichlet condition listed.
 
 NOTE: In the table the column labeled by the highest order derivative means
 the order of the highest order derivative of a dependent variable, not

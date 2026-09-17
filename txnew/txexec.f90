@@ -4,6 +4,13 @@ module tx_main
   integer(4), dimension(1:2) :: iasg
   real(8), dimension(:), allocatable :: L2
   real(8), dimension(:,:), allocatable :: XN, XP, ASG
+  ! Quality report of the last DGBSVX band solve (MDLPCK = 3, and the MDLPCK = 2
+  ! fallback).  Kept here so the diagnostics can print it without threading it
+  ! through the call chain.
+  real(8) :: solq_rcond = 0.d0, solq_ferr = 0.d0, solq_berr = 0.d0
+  real(8) :: solq_berr_row = 0.d0, solq_berr_num = 0.d0, solq_berr_den = 0.d0
+  integer(4) :: solq_berr_idx = 0
+  character(len=1) :: solq_equed = 'N'
   public :: TXEXEC
 
 contains
@@ -209,6 +216,7 @@ contains
           call CPU_TIME(prof_t0)
 #endif
           call TXCALB(BA,BL,BX)
+          if(IDIAGL >= 6 .and. MDLPCK /= 0) call report_conditioning(BL,NQMAX,NRMAX,NT,IC)
 #ifdef TX_PROFILE
           call CPU_TIME(prof_t1)
           prof_txcalb_sum = prof_txcalb_sum + (prof_t1 - prof_t0)
@@ -237,19 +245,11 @@ contains
 #endif
              call TXSOLV_BLOCKTRI(BL, BX, NQMAX, NRMAX, ierr_la)
              if(ierr_la == -2) then
-                ! Fallback to band solver when BL has non-zero far blocks.
-#if   _LAPACK == 2
-                m    = NQMAX*(NRMAX+1)
-                kl   = 2*NQMAX-1
-                n    = m
-                ku   = kl
-                nrhs = 1
-                ldBL = 6*NQMAX-2
-                ldBX = NQMAX*(NRMAX+1)
-                call LAPACK_DGBSV(n,kl,ku,nrhs,BL,ldBL,ipiv,BX,ldBX,ierr_la)
-#else
-                call GBSV(BL,BX,INFO=ierr_la)
-#endif
+                ! Fallback when BL has non-zero far blocks: the equilibrated band
+                ! solve, not the plain one, so the fallback keeps the accuracy the
+                ! block path was chosen for.
+                call TXSOLV_BAND_EQUIL(BL, size(BL,1), BX, NQMAX, NRMAX, ierr_la, IDIAGL >= 6)
+                if(IDIAGL >= 6) call dump_solver_quality(NT,IC,'fallback')
              end if
              if(ierr_la /= 0) then
                 write(6,'(3(A,I6))') '### ERROR(TXLOOP) : BLKTRI, NT = ',  &
@@ -298,6 +298,16 @@ contains
                 solver_verify_done = .true.
              end if
 #endif
+          else if(MDLPCK == 3) then
+             call TXSOLV_BAND_EQUIL(BL, size(BL,1), BX, NQMAX, NRMAX, ierr_la, IDIAGL >= 6)
+             if(IDIAGL >= 6) call dump_solver_quality(NT,IC,'dgbsvx  ')
+             if(ierr_la /= 0) then
+                write(6,'(3(A,I6))') '### ERROR(TXLOOP) : DGBSVX, NT = ',  &
+                     &              NT, ' -', IC, ' step. IERR=',ierr_la
+                IERR = 1
+                XN = XP
+                goto 180
+             end if
           else
              ! +++ NOTE ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
              !  These LAPACK subroutines are threaded via BLAS in Intel MKL.
@@ -419,6 +429,7 @@ contains
 
           ! Convergence check
           call check_convergence(IC,IDIV,istat)
+          if(IDIAGL >= 5) call dump_iter_floor(NT,IC)
 #ifdef TX_PROFILE
           call CPU_TIME(prof_ic_t1)
           prof_ic_sum = prof_ic_sum + (prof_ic_t1 - prof_ic_t0)
@@ -1068,6 +1079,105 @@ contains
 
   end subroutine TXCALB
 
+  subroutine TXSOLV_BAND_EQUIL(BL, ldBL, BX, NQMAXL, NRMAXL, IER, detail)
+
+!   Band solve through DGBSVX with FACT = 'E': row and column equilibration, the
+!   factorisation, iterative refinement, and estimates of the condition and of
+!   the forward and backward error, in one call.
+!
+!   The forty equations are assembled in their own physical units -- 1e19 m^-3
+!   next to O(1) potentials next to 1e-3 flows -- so the row norms of BL span
+!   some seventeen orders of magnitude and the columns eight.  Measured on the
+!   standard case, that puts the 1-norm condition of the assembled matrix at
+!   ~9e22, of which twelve orders are pure scaling: equilibrating it brings the
+!   condition to ~2e11, which is what a second-order FEM operator on this mesh
+!   must cost and no more.  Equilibration matters beyond the error bound,
+!   because partial pivoting picks the largest entry in a column and would
+!   otherwise choose its pivot by the row's physical units rather than by the
+!   actual dependence.  Nothing here touches the equations or the variables.
+
+    integer(4), intent(in) :: ldBL, NQMAXL, NRMAXL
+    real(8), dimension(ldBL,*), intent(inout) :: BL
+    real(8), dimension(:), intent(inout) :: BX
+    integer(4), intent(out) :: IER
+    logical, intent(in), optional :: detail
+
+    integer(4) :: n, kl, ku, ldafb, i, j, i1, i2
+    real(8), dimension(:,:), allocatable, save :: AFB, ABsave
+    real(8), dimension(:), allocatable, save :: Req, Ceq, Bwk, Xwk, Bsave, work
+    integer(4), dimension(:), allocatable, save :: iwork, ipivl
+    real(8) :: ferr1(1), berr1(1), aij, num, den, brow
+    logical :: want
+
+    n     = NQMAXL * (NRMAXL + 1)
+    kl    = 2 * NQMAXL - 1
+    ku    = kl
+    ldafb = 2 * kl + ku + 1
+
+    if(allocated(AFB)) then
+       if(size(AFB,2) /= n .or. size(AFB,1) /= ldafb) then
+          deallocate(AFB, Req, Ceq, Bwk, Xwk, work, iwork, ipivl)
+          if(allocated(ABsave)) deallocate(ABsave, Bsave)
+       end if
+    end if
+    if(.not. allocated(AFB)) &
+         & allocate(AFB(ldafb,n), Req(n), Ceq(n), Bwk(n), Xwk(n), &
+         &          work(3*n), iwork(n), ipivl(n))
+
+    want = .false.
+    if(present(detail)) want = detail
+    ! DGBSVX overwrites BL with the equilibrated band and BX with diag(R)*BX, so
+    ! keep both originals when the backward error is to be attributed to a row.
+    ! Only the diagnostics need that, so the copies are not kept otherwise.
+    if(want) then
+       if(.not. allocated(ABsave)) allocate(ABsave(kl+ku+1,n), Bsave(n))
+       ABsave(1:kl+ku+1,1:n) = BL(kl+1:kl+ku+1+kl,1:n)
+       Bsave(1:n) = BX(1:n)
+    end if
+
+    Bwk(1:n) = BX(1:n)
+
+    ! BL holds the band in the DGBSV layout, i.e. the matrix proper starts at row
+    ! kl+1; DGBSVX wants it at row 1, so hand it that row with the same leading
+    ! dimension.
+    call DGBSVX('E', 'N', n, kl, ku, 1, BL(kl+1,1), ldBL, AFB, ldafb, ipivl, &
+         &      solq_equed, Req, Ceq, Bwk, n, Xwk, n, solq_rcond, ferr1, berr1, &
+         &      work, iwork, IER)
+
+    solq_ferr = ferr1(1)
+    solq_berr = berr1(1)
+
+    ! INFO = n+1 means RCOND is below machine precision.  DGBSVX has still
+    ! returned the solution together with FERR and BERR saying what it is worth,
+    ! so take it and let the caller's diagnostics speak.
+    if(IER == n + 1) IER = 0
+    if(IER == 0) BX(1:n) = Xwk(1:n)
+
+    ! Which row owns the componentwise backward error DGBSVX reports.  Same
+    ! formula as DGBRFS, on the original unequilibrated system:
+    !   berr_i = |b - A x|_i / ( (|A| |x|)_i + |b|_i )
+    if(want .and. IER == 0) then
+       solq_berr_row = 0.d0 ; solq_berr_idx = 0
+       do i = 1, n
+          num = Bsave(i) ; den = abs(Bsave(i))
+          i1 = max(1,i-kl) ; i2 = min(n,i+ku)
+          do j = i1, i2
+             aij = ABsave(ku+1+i-j,j)
+             num = num - aij * Xwk(j)
+             den = den + abs(aij) * abs(Xwk(j))
+          end do
+          if(den > 0.d0) then
+             brow = abs(num) / den
+             if(brow > solq_berr_row) then
+                solq_berr_row = brow ; solq_berr_idx = i
+                solq_berr_num = abs(num) ; solq_berr_den = den
+             end if
+          end if
+       end do
+    end if
+
+  end subroutine TXSOLV_BAND_EQUIL
+
   subroutine TXSOLV_BLOCKTRI(BL, BX, NQMAX, NRMAX, IER)
 
     real(8), dimension(:,:), intent(in) :: BL
@@ -1075,10 +1185,16 @@ contains
     integer(4), intent(in) :: NQMAX, NRMAX
     integer(4), intent(out) :: IER
 
-    integer(4), parameter :: NREFINE = 1
+    ! Cap on the refinement passes.  Block elimination on its own is *less*
+    ! accurate than band LU here -- pivoting is confined to the diagonal blocks,
+    ! and with no refinement the iteration floor on LQm2 is 1.3e-3 against the
+    ! band solver's 9.6e-6.  It is the refinement that makes this path the better
+    ! one, so the loop below checks its own residual rather than taking a fixed
+    ! number of blind passes.
+    integer(4), parameter :: NREFINE = 3
     integer(4) :: p, nb, n, ldbl, kl, ku, center
     integer(4) :: k, ir, jc, i, j, row, iter, bi, bj, i_min, i_max
-    real(8) :: max_far
+    real(8) :: max_far, resnorm, resprev
     real(8), dimension(:,:,:), allocatable :: DORG, DLU, LBLK, UBLK, WBLK
     real(8), dimension(:,:), allocatable :: RHSBLK, SOLBLK
     integer(4), dimension(:,:), allocatable :: IPIV
@@ -1175,15 +1291,21 @@ contains
        XWORK((k - 1) * p + 1:k * p) = SOLBLK(:,k)
     end do
 
+    resprev = huge(0.d0)
     do iter = 1, NREFINE
        call TXSOLV_BLOCKTRI_MATVEC(DORG, LBLK, UBLK, XWORK, AX)
        RES = RHS0 - AX
+       resnorm = maxval(abs(RES))
+       if(resnorm == 0.d0) exit
+       ! A pass that no longer halves the residual has nothing left to give.
+       if(iter > 1 .and. resnorm > 0.5d0 * resprev) exit
        call TXSOLV_BLOCKTRI_SOLVE_FACT(DLU, LBLK, WBLK, IPIV, RES, DX, IER)
        if(IER /= 0) then
           deallocate(DORG, DLU, LBLK, UBLK, WBLK, RHSBLK, SOLBLK, IPIV, RHS0, XWORK, AX, RES, DX)
           return
        end if
        XWORK = XWORK + DX
+       resprev = resnorm
     end do
 
     BX(1:n) = XWORK
@@ -1449,6 +1571,146 @@ contains
 !   Checking convergence
 !
 !***************************************************************
+
+  subroutine report_conditioning(BL,NQMAXL,NRMAXL,NTL,ICL)
+!   Condition of the assembled band matrix, as it stands and after LAPACK's
+!   row/column equilibration.  The equation set mixes 1e19 densities with O(1)
+!   potentials and O(1e-3) flows in one matrix; this says what that costs.
+
+    real(8), dimension(:,:), intent(in) :: BL
+    integer(4), intent(in) :: NQMAXL, NRMAXL, NTL, ICL
+
+    integer(4) :: n, kl, ku, ldab, i, j, i1, i2, info
+    real(8) :: anorm, anorme, rcond0, rcond1, rowcnd, colcnd, amax, csum
+    real(8), dimension(:,:), allocatable :: AB
+    real(8), dimension(:), allocatable :: R, C, work
+    integer(4), dimension(:), allocatable :: ipivl, iwork
+    character(len=1) :: equed
+    integer(4), save :: iuc
+    logical, save :: openedc = .false.
+
+    n    = NQMAXL * (NRMAXL + 1)
+    kl   = 2 * NQMAXL - 1
+    ku   = kl
+    ldab = size(BL,1)
+
+    if(.not. openedc) then
+       openedc = .true.
+       open(newunit=iuc, file='tx_cond.dat', status='replace', action='write')
+       write(iuc,'(A)') '#     NT     IC       anorm      rcond_raw       cond_raw' // &
+            & '     rcond_equil     cond_equil   rowcnd   colcnd equed'
+    end if
+
+    allocate(AB(ldab,n), R(n), C(n), work(3*n), ipivl(n), iwork(n))
+
+    ! --- as assembled
+    AB(:,1:n) = BL(:,1:n)
+    anorm = 0.d0
+    do j = 1, n
+       i1 = max(1,j-ku) ; i2 = min(n,j+kl) ; csum = 0.d0
+       do i = i1, i2
+          csum = csum + abs(AB(kl+ku+1+i-j,j))
+       end do
+       anorm = max(anorm,csum)
+    end do
+    call DGBTRF(n,n,kl,ku,AB,ldab,ipivl,info)
+    rcond0 = 0.d0
+    if(info == 0) call DGBCON('1',n,kl,ku,AB,ldab,ipivl,anorm,rcond0,work,iwork,info)
+
+    ! --- after row and column equilibration
+    AB(:,1:n) = BL(:,1:n)
+    call DGBEQU(n,n,kl,ku,AB(kl+1,1),ldab,R,C,rowcnd,colcnd,amax,info)
+    equed = 'N'
+    if(info == 0) then
+       call DLAQGB(n,n,kl,ku,AB(kl+1,1),ldab,R,C,rowcnd,colcnd,amax,equed)
+       anorme = 0.d0
+       do j = 1, n
+          i1 = max(1,j-ku) ; i2 = min(n,j+kl) ; csum = 0.d0
+          do i = i1, i2
+             csum = csum + abs(AB(kl+ku+1+i-j,j))
+          end do
+          anorme = max(anorme,csum)
+       end do
+       call DGBTRF(n,n,kl,ku,AB,ldab,ipivl,info)
+       rcond1 = 0.d0
+       if(info == 0) call DGBCON('1',n,kl,ku,AB,ldab,ipivl,anorme,rcond1,work,iwork,info)
+    else
+       rcond1 = 0.d0
+    end if
+
+    write(iuc,'(2I7,5ES16.6,2ES9.1,3X,A1)') NTL, ICL, anorm, rcond0, 1.d0/max(rcond0,1.d-300), &
+         & rcond1, 1.d0/max(rcond1,1.d-300), rowcnd, colcnd, equed
+    flush(iuc)
+
+    deallocate(AB,R,C,work,ipivl,iwork)
+
+  end subroutine report_conditioning
+
+  subroutine dump_solver_quality(NTL,ICL,tag)
+!   What DGBSVX reports about the solve it just did: the reciprocal condition of
+!   the equilibrated matrix, the estimated forward and backward error of this
+!   right-hand side, and which scaling it applied.
+
+    use tx_commons, only : nqmax_for_dump => NQMAX
+
+    integer(4), intent(in) :: NTL, ICL
+    character(len=*), intent(in) :: tag
+    integer(4), save :: iuq
+    logical, save :: openedq = .false.
+
+    if(.not. openedq) then
+       openedq = .true.
+       open(newunit=iuq, file='tx_solver.dat', status='replace', action='write')
+       write(iuq,'(A)') '#     NT     IC  path           rcond            cond' // &
+            & '            ferr            berr  equed   berr_row      NQ    NR' // &
+            & '     |resid|        |A||x|+|b|'
+    end if
+
+    write(iuq,'(2I7,2X,A8,4ES16.6,5X,A1,ES13.4,2I6,2ES16.6)') NTL, ICL, tag, solq_rcond, &
+         & 1.d0/max(solq_rcond,1.d-300), solq_ferr, solq_berr, solq_equed, &
+         & solq_berr_row, mod(solq_berr_idx-1,nqmax_for_dump)+1, (solq_berr_idx-1)/nqmax_for_dump, &
+         & solq_berr_num, solq_berr_den
+    flush(iuq)
+
+  end subroutine dump_solver_quality
+
+  subroutine dump_iter_floor(NTL,ICL)
+!   Per-sweep record of the Picard increment, normalised exactly as ASG is in
+!   check_convergence, for every equation at once.  check_convergence returns at
+!   the first node it finds unconverged, so its printout only ever shows the
+!   lowest-numbered offender; this writes the whole picture to tx_iter.dat.
+
+    use tx_commons, only : NRMAX, NQMAX, NEMAX, hv, vv
+
+    integer(4), intent(in) :: NTL, ICL
+    integer(4) :: NQ, NRL(1:NQMAX)
+    real(8) :: AV, AMX(1:NQMAX), AVS(1:NQMAX)
+    integer(4), save :: iunit
+    logical, save :: opened = .false.
+
+    if(.not. opened) then
+       opened = .true.
+       open(newunit=iunit, file='tx_iter.dat', status='replace', action='write')
+       write(iunit,'(A,I5,3(A,ES12.4))') '# NRMAX=', NRMAX, '  hv(1)=', hv(1), &
+            & '  hv(NEMAX)=', hv(NEMAX), '  vv(NRMAX)=', vv(NRMAX)
+       write(iunit,'(A)') '# NT IC  then per NQ: NR_of_max  ASG_max  AV(profile RMS)'
+    end if
+
+    do NQ = 1, NQMAX
+       AV = sqrt(sum(XN(:,NQ)**2) / NRMAX)
+       AVS(NQ) = AV
+       if(AV < epsilon(1.d0)) then
+          NRL(NQ) = 0 ; AMX(NQ) = 0.d0
+       else
+          NRL(NQ) = sum(maxloc(abs(XN(:,NQ) - XP(:,NQ)))) - 1
+          AMX(NQ) = abs(XN(NRL(NQ),NQ) - XP(NRL(NQ),NQ)) / AV
+       end if
+    end do
+
+    write(iunit,'(2I6,40(I4,2ES12.4))') NTL, ICL, (NRL(NQ), AMX(NQ), AVS(NQ), NQ = 1, NQMAX)
+    flush(iunit)
+
+  end subroutine dump_iter_floor
 
   subroutine check_convergence(IC,IDIV,istat)
     use tx_commons, only : MODECV, NRMAX, NQMAX, EPS, IDIAG, NT, ICMAX
