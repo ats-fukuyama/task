@@ -357,6 +357,9 @@ module tx_commons
   ! start, and after a LOAD because XOLD does not travel in the save file.  A
   ! CONT does have one and keeps it.  See TXCALB.
   logical :: bdf_history_ready = .false.
+  ! Step size the stored XOLD belongs to.  The two-step BDF weights are the
+  ! fixed-step ones, so the history is only usable while DT is unchanged.
+  real(8) :: bdf_history_dt = 0.d0
 
   ! Diagnostics
   integer(4) :: MODEAV

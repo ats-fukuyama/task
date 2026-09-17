@@ -9,6 +9,9 @@ module tx_main
   ! through the call chain.
   real(8) :: solq_rcond = 0.d0, solq_ferr = 0.d0, solq_berr = 0.d0
   real(8) :: solq_berr_row = 0.d0, solq_berr_num = 0.d0, solq_berr_den = 0.d0
+  ! How often the non-smooth guards actually bite.  Reported at the end of a RUN
+  ! under IDIAG >= 5; zero unless something fired.
+  integer(4) :: nsm_minus(1:4) = 0, nsm_tiny = 0, nsm_tiny_nq(1:64) = 0
   integer(4) :: solq_berr_idx = 0
   character(len=1) :: solq_equed = 'N'
   public :: TXEXEC
@@ -83,7 +86,7 @@ contains
          &                 ErV, PNsV_FIX, PTsV_FIX, &
          &                 ErV_FIX, IERR, LQb1, LQn1, LQn2, LQr1, &
          &                 tiny_cap, EPS, IDIAG, NTSTEP, ICCALC, &
-         &                 FSRP, MODEAV, XOLD, bdf_history_ready, &
+         &                 FSRP, MODEAV, XOLD, bdf_history_ready, bdf_history_dt, &
          &                 NT, DT, rIP, MDLPCK, ICONT, AVE_IC, MODECV, oldmix, Var
     use tx_variables
     use tx_coefficients, only : TXCALA
@@ -171,6 +174,15 @@ contains
     ! Save X -> XP -> XOLD for BDF only when there is no X(t-dt) to lean on.
     ! A RUN starts from scratch; a CONT continues with the history it has.
     if(T_TX == 0.d0) bdf_history_ready = .false.
+    ! XOLD belongs to the step size it was taken with.  The weights used here are
+    ! the fixed-step BDF2 ones, so carrying the history across a change of DT --
+    ! which is what P followed by C does -- is not BDF2 at all.  Measured on the
+    ! standard case, stepping to t = 1e-3 as 100 steps of 1e-7 then 79 of 1.25e-5
+    ! lands 2.0e-4 from a fine reference when the history is carried over and
+    ! 5.3e-6 when it is not, against 1.6e-5 for a uniform 1.25e-5.  Take one
+    ! backward-Euler step at the change instead; its O(dt^2) local error, once,
+    ! leaves the order alone.
+    if(DT /= bdf_history_dt) bdf_history_ready = .false.
     if(IGBDF /= 0 .and. .not. bdf_history_ready) XOLD = X
 
     L_NTDO:do NTDO = 1, NTMAX
@@ -392,6 +404,10 @@ contains
           IF(FSRP /= 0.d0) call MINUS_CHECK(XN,LQr1,2)
           ! Ignore tiny values
           do NQ = 1, NQMAX
+             if(any( abs(XN(:,NQ)) < tiny_array(NQ) .and. XN(:,NQ) /= 0.d0 )) then
+                nsm_tiny = nsm_tiny + 1
+                if(NQ <= size(nsm_tiny_nq)) nsm_tiny_nq(NQ) = nsm_tiny_nq(NQ) + 1
+             end if
              where( abs(XN(:,NQ)) < tiny_array(NQ) ) XN(:,NQ) = 0.d0
           end do
 !!$          ! In the case of NBI off after NBI on
@@ -534,6 +550,7 @@ contains
        if(IGBDF /= 0) then
           XOLD = X
           bdf_history_ready = .true.
+          bdf_history_dt = DT
        end if
 
        ! Calculation fully converged
@@ -634,6 +651,18 @@ contains
     prof_io_sum = prof_io_sum + (prof_t1 - prof_t0)
 #endif
     if(NTMAX /= 0) then
+       if(mod(IDIAG,10) >= 5) then
+          write(6,'(A,4I8,A,I8)') ' ## non-smooth guards fired (MINUS_CHECK ID=0,1,2,3):', &
+               & nsm_minus(1:4), '   tiny-zeroing (eq,step) pairs:', nsm_tiny
+          if(nsm_tiny > 0) then
+             write(6,'(A)',advance='no') ' ##   tiny-zeroing by NQ:'
+             do NQ = 1, min(NQMAX,size(nsm_tiny_nq))
+                if(nsm_tiny_nq(NQ) > 0) write(6,'(A,I0,A,I0)',advance='no') ' ', NQ, ':', nsm_tiny_nq(NQ)
+             end do
+             write(6,*)
+          end if
+       end if
+
        AVE_IC = real(ICSUM) / NTMAX
     else
        AVE_IC = 0.d0
@@ -1511,6 +1540,11 @@ contains
     integer(4) :: NR, NZERO, ind
 
     ind = 0
+    if(ID == 3) then
+       if(any(XL(:,LQ) < 0.d0)) nsm_minus(4) = nsm_minus(4) + 1
+    else
+       if(minval(XL(:,LQ)) < 0.d0) nsm_minus(ID+1) = nsm_minus(ID+1) + 1
+    end if
     if(ID == 0) then ! Negative values are set to zero inside rho=1.
        if(minval(XL(:,LQ)) < 0.d0) then
           ind = 1
