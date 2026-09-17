@@ -291,6 +291,8 @@ contains
 
     if(ICALA == 0) ICALA = 1
 
+    call dump_axis_LQs8
+
   end subroutine TXCALA
 
   subroutine ensure_txcala_workspace(NSMP)
@@ -3745,6 +3747,83 @@ contains
 !      NLCR(NC,NQ,1) : outer boundary (virtual wall)
 !
 !***************************************************************
+
+  subroutine dump_axis_LQs8
+
+!   Everything that enters the LQ*8 rows at the first few nodes, so that the
+!   near-axis behaviour of BV_1s can be attributed.  Written once per time step
+!   under IDIAG ones-digit >= 7; nothing here runs otherwise.
+!
+!   The axis row takes contributions from element 1 only.  With f = fipolsdt,
+!   n = n_s and h = hv(1), and the stencils of fem_int ids 2, 5 and 22, it reads
+!
+!     -h/12 [ (3n0+n1) BV0 + (n0+n1) BV1 ]
+!       - (rKilo/Z)(2f0+f1)/6 (p1-p0)
+!       - (3f0n0+f0n1+f1n0+f1n1)/12 (Phi1-Phi0)  =  0
+!
+!   which expands to the continuum relation with an O(h) truncation, so the row
+!   itself converges.  What is dumped here is each of those three pieces as the
+!   code actually forms them, plus the coefficients they are built from.
+
+    use tx_commons, only : IDIAG, NT, NTMAX, NRMAX, NEMAX, hv, vv, sdt, fipol, X, Var, &
+         &                 LQm1, LQe1, LQi1, LQz1, LQe5, LQi5, LQz5, LQe8, LQi8, LQz8, &
+         &                 achg, rKilo
+
+    integer(4), parameter :: NRD = 3
+    integer(4) :: nr, i, NEQ, LQs5, LQs8
+    integer(4), save :: iua, nt_done = -1
+    logical, save :: openeda = .false.
+    real(8) :: rowmass, rowpres, rowphi, rowsum
+
+    if(mod(IDIAG,10) < 7) return
+    if(NT == nt_done) return
+    nt_done = NT
+
+    if(.not. openeda) then
+       openeda = .true.
+       open(newunit=iua, file='tx_axis.dat', status='replace', action='write')
+       write(iua,'(A)') '# LQ*8 near-axis breakdown.  NRMAX, NT, species, NR, then:'
+       write(iua,'(A)') '#   vv  hv  sdt  fipol  fipolsdt  n_s  p_s  Phi'
+       write(iua,'(A)') '#   BLC(NR,1) ALC(NR,1) CLC(NR,1)   [mass, on LQ*8]'
+       write(iua,'(A)') '#   BLC(NR,2) ALC(NR,2) CLC(NR,2)   [pressure, on LQ*5]'
+       write(iua,'(A)') '#   BLC(NR,3) ALC(NR,3) CLC(NR,3)   [potential, on LQm1]'
+       write(iua,'(A)') '#   mass.BV  pres.p  phi.Phi  sum   BV_1s'
+    end if
+
+    do i = 1, 3
+       select case(i)
+       case(1) ; NEQ = LQe8 ; LQs5 = LQe5
+       case(2) ; NEQ = LQi8 ; LQs5 = LQi5
+       case(3) ; NEQ = LQz8 ; LQs5 = LQz5
+       end select
+       do nr = 0, NRD
+          ! the row as assembled, applied to the current X
+          rowmass = BLC(nr,1,NEQ)*X(nr,NEQ)
+          rowpres = BLC(nr,2,NEQ)*X(nr,LQs5)
+          rowphi  = BLC(nr,3,NEQ)*X(nr,LQm1)
+          if(nr < NRMAX) then
+             rowmass = rowmass + ALC(nr,1,NEQ)*X(nr+1,NEQ)
+             rowpres = rowpres + ALC(nr,2,NEQ)*X(nr+1,LQs5)
+             rowphi  = rowphi  + ALC(nr,3,NEQ)*X(nr+1,LQm1)
+          end if
+          if(nr > 0) then
+             rowmass = rowmass + CLC(nr,1,NEQ)*X(nr-1,NEQ)
+             rowpres = rowpres + CLC(nr,2,NEQ)*X(nr-1,LQs5)
+             rowphi  = rowphi  + CLC(nr,3,NEQ)*X(nr-1,LQm1)
+          end if
+          rowsum = rowmass + rowpres + rowphi
+          write(iua,'(4I6,22ES16.8)') NRMAX, NT, i, nr, &
+               & vv(nr), hv(max(nr,1)), sdt(nr), fipol(nr), fipol(nr)/sdt(nr), &
+               & Var(nr,i)%n, X(nr,LQs5), X(nr,LQm1), &
+               & BLC(nr,1,NEQ), ALC(nr,1,NEQ), CLC(nr,1,NEQ), &
+               & BLC(nr,2,NEQ), ALC(nr,2,NEQ), CLC(nr,2,NEQ), &
+               & BLC(nr,3,NEQ), ALC(nr,3,NEQ), CLC(nr,3,NEQ), &
+               & rowmass, rowpres, rowphi, rowsum, X(nr,NEQ)
+       end do
+    end do
+    flush(iua)
+
+  end subroutine dump_axis_LQs8
 
   subroutine BOUNDARY(NR,LQ,ID,VAL)
 
