@@ -218,6 +218,9 @@ module tx_commons
   ! Convergence parameter
   integer(4) :: MODECV, iprestab
   real(8) :: oldmix
+  ! Adaptive under-relaxation factor, engaged only on time steps where the
+  ! Picard sweep is measured not to contract.  See TXLOOP.  0 disables it.
+  real(8) :: oldmixa
 
   ! SUPG parameter
   integer(4) :: iSUPG3, iSUPG6, iSUPG8

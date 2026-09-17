@@ -87,7 +87,7 @@ contains
          &                 ErV_FIX, IERR, LQb1, LQn1, LQn2, LQr1, &
          &                 tiny_cap, EPS, IDIAG, NTSTEP, ICCALC, &
          &                 FSRP, MODEAV, XOLD, bdf_history_ready, bdf_history_dt, &
-         &                 NT, DT, rIP, MDLPCK, ICONT, AVE_IC, MODECV, oldmix, Var
+         &                 NT, DT, rIP, MDLPCK, ICONT, AVE_IC, MODECV, oldmix, oldmixa, Var
     use tx_variables
     use tx_coefficients, only : TXCALA
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ, &
@@ -108,6 +108,37 @@ contains
     real(8), dimension(:,:), allocatable :: BA, BL
     real(8), dimension(:),   allocatable :: BX
     integer(4) :: NR, NQ, IC = 0, IDIV, NTDO, ICSUM, IDIAGL, istat
+    ! --- adaptive under-relaxation ---------------------------------------
+    !  Below dt ~ 3e-6 the fixed-point map for the radial flows stops
+    !  contracting.  It does not blow up: the sweep increment simply sits at
+    !  O(1) and stays there -- LQz2 at 1.5 from sweep 2 to sweep 60 at
+    !  dt = 3.9e-7 -- so "the increment grew since the last sweep" cannot see
+    !  it, and neither can a ratio to the running minimum, which is larger at
+    !  the ordinary convergence floor than it is here.
+    !
+    !  ERRSWEEP is the increment normalised exactly as check_convergence
+    !  normalises it, so it is already dimensionless: the largest nodal change
+    !  in a sweep against that equation's profile RMS.  Past a few sweeps a
+    !  healthy iteration has it far below one.  Measured over every case on
+    !  disk that completes -- dt from 1e-4 to 7.8e-7, NRMAX 60 to 360, the
+    !  circular equilibrium, a hundred times heavier impurity influx -- the
+    !  largest value at sweep DIVIC or beyond is 0.145, while the two cases
+    !  that die on a negative density reach 3.1 and 7.7.  DIVBIG sits in that
+    !  gap.  One sweep over it is not enough, so the counter decrements on a
+    !  good sweep rather than resetting, and damping engages at DIVCNT: with
+    !  these settings no case that completes ever reaches 1, and the two that
+    !  fail reach 14 and 53.
+    !
+    !  Normalising against the first sweep was tried and rejected.  At the
+    !  start of a run LQm3 -- psi-dot, a divided difference -- can make sweep 1
+    !  a thousand times the later ones, and a sustained increment of 7.5 then
+    !  reads as 0.008 of it and goes unnoticed.
+    real(8) :: errsweep, relax, avnq
+    integer(4) :: ndiv, ndamp
+    logical :: damping
+    integer(4), parameter :: DIVIC = 8, DIVCNT = 6
+    real(8), parameter :: DIVBIG = 0.5d0, DIVCAP = 0.9d0
+    ! ---------------------------------------------------------------------
     ! *** LAPACK ************************************
     integer(4) :: ierr_la
 #if _LAPACK == 2
@@ -162,6 +193,7 @@ contains
     TIME0 = T_TX
     if(NTMAX /= 0) DIP = (rIPe - rIPs) / NTMAX
     ICSUM = 0
+    ndamp = 0
 #ifdef TX_PROFILE
     call CPU_TIME(prof_total_t0)
     prof_ic_sum    = 0.d0
@@ -193,6 +225,11 @@ contains
 
        ! Create new X := XN
        XN = X
+
+       ! The divergence latch is per time step.
+       ndiv    = 0
+       damping = .false.
+       relax   = oldmix
 
        ! Negligible order of magnitude for each variable
        do NQ = 1, NQMAX
@@ -453,7 +490,38 @@ contains
           if(istat == 0) then ! going to next time step
              exit L_IC
           else if(istat == 1) then
-              XN = (1.d0 - oldmix) * XN + oldmix * XP
+             ! Size of this sweep's increment, normalised exactly as
+             ! check_convergence normalises it.
+             errsweep = 0.d0
+             do NQ = 1, NQMAX
+                avnq = sqrt(sum(XN(:,NQ)**2) / NRMAX)
+                if(avnq > epsilon(1.d0)) &
+                     & errsweep = max(errsweep, maxval(abs(XN(:,NQ) - XP(:,NQ))) / avnq)
+             end do
+             if(oldmixa > 0.d0 .and. IC >= DIVIC) then
+                if(errsweep > DIVBIG) then
+                   ndiv = ndiv + 1
+                else
+                   ndiv = max(0, ndiv - 1)
+                end if
+                if(ndiv >= DIVCNT) then
+                   ndiv = 0
+                   if(.not. damping) then
+                      damping = .true.
+                      ndamp = ndamp + 1
+                      relax = max(relax, oldmixa)
+                   else
+                      ! still not contracting with the damping in hand; halve
+                      ! the distance to one, which is the only knob left
+                      relax = min(DIVCAP, 1.d0 - 0.5d0 * (1.d0 - relax))
+                   end if
+                   if(IDIAGL >= 3) write(6,'(A,I6,A,I4,2(A,ES10.3))') &
+                        & ' ## Picard not contracting: NT =', NT, ', IC =', IC, &
+                        & ', increment =', errsweep, ', relaxation now', relax
+                end if
+             end if
+
+             if(relax > 0.d0) XN = (1.d0 - relax) * XN + relax * XP
              cycle L_IC
           end if
 
@@ -652,6 +720,8 @@ contains
 #endif
     if(NTMAX /= 0) then
        if(mod(IDIAG,10) >= 5) then
+          write(6,'(A,I8,A,I8)') ' ## time steps where adaptive damping engaged:', ndamp, &
+               & '   out of', NTMAX
           write(6,'(A,4I8,A,I8)') ' ## non-smooth guards fired (MINUS_CHECK ID=0,1,2,3):', &
                & nsm_minus(1:4), '   tiny-zeroing (eq,step) pairs:', nsm_tiny
           if(nsm_tiny > 0) then

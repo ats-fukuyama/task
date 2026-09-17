@@ -594,6 +594,18 @@ contains
     !     0 <= oldmix <= 1
     oldmix = 0.d0
 
+    !   Adaptive under-relaxation.  Below dt ~ 3e-6 the fixed-point map for the
+    !   radial flows n_s u^V_s stops contracting -- LQz2 first, because the
+    !   impurity is the smallest density -- and the iterate oscillates at O(1)
+    !   until an intermediate state has a negative impurity density.  Applying
+    !   oldmix unconditionally cures that but costs an order of accuracy
+    !   (measured: p 2.00 -> 1.01) and doubles the sweep count, so it cannot be
+    !   a default.  This factor is applied only on the time steps where the
+    !   sweep is measured not to contract; on every case that converges today it
+    !   never engages.  0 disables the mechanism.
+    !     0 <= oldmixa <= 1
+    oldmixa = 0.5d0
+
     !   SUPG on/off switch
     !     iSUPG3 for LQ*3CC; LQb3CC only when iSUPG3 = -1
     !     iSUPG6 for LQ*6CC
@@ -1983,7 +1995,7 @@ module tx_parameter_control
        & DMAG0,RMAGMN,RMAGMX, &
        & rG1,FSHL,Q0,QA, &
        & rIPs,rIPe, &
-       & MODEG,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,iSUPG3,iSUPG6,iSUPG8,SUPGstab,iprestab, &
+       & MODEG,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,oldmixa,iSUPG3,iSUPG6,iSUPG8,SUPGstab,iprestab, &
        & MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDLETB, &
        & iPoyntpol,iPoynttor,IDIAG,midbg,IGBDF,ISMTHD,MDLNBD,MDBMCX,imodel_neo, & ! 09/06/17~ miki_m
        & EpsHM, HPN  ! 10/08/06 miki_m
@@ -2160,6 +2172,7 @@ contains
        if(tiny_cap < 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
        ! /// idx = 51 - 58 ///
        if(oldmix < 0.d0 .or. oldmix > 1.d0) then ; exit ; else ; idx = idx + 1 ; end if
+       if(oldmixa < 0.d0 .or. oldmixa > 1.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(CMESH0 < 0.d0 .or. CMESH < 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(WMESH0 < 0.d0 .or. WMESH < 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(MDLNEO /= 1 .and. MDLNEO /= 2 .and. MDLNEO /= 3) then ; exit ; else ; idx = idx + 1 ; end if
@@ -2201,7 +2214,7 @@ contains
          &       ' ',8X,'Dmag0,RMAGMN,RMAGMX,EpsHM,HPN,'/ &   ! 10/08/06 miki_m
          &       ' ',8X,'rG1,FSHL,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
-         &       ' ',8X,'MODEG,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,iSUPG3,iSUPG6,iSUPG8,SUPGstab,iprestab,'/ &
+         &       ' ',8X,'MODEG,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,oldmixa,iSUPG3,iSUPG6,iSUPG8,SUPGstab,iprestab,'/ &
          &       ' ',8X,'MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDLETB,' / & 
          &       ' ',8X,'IDIAG,midbg,IGBDF,ISMTHD,MDLNBD,MDBMCX,imodel_neo')
   end subroutine TXPLST
@@ -2298,7 +2311,8 @@ contains
          &   'RMAGMX     ', RMAGMX     ,  &
          &   'FSHL       ', FSHL       ,  &
          &   'Q0         ', Q0         , 'QA         ', QA         ,  &
-         &   'SUPGstb    ', SUPGstab  ,  'oldmix     ', oldmix     !, &
+         &   'SUPGstb    ', SUPGstab  ,  'oldmix     ', oldmix     ,  &
+         &   'oldmixa    ', oldmixa    !, &
 !!$         &   'EpsHM(1,0) ', EpsHM(1,0)  ,'EpsHM(1,1)', EpsHM(1,1)  , &
 !!$         &   'EpsHM(1,2) ', EpsHM(1,2)  ,'EpsHM(1,3)', EpsHM(1,3)  , &
 !!$         &   'EpsHM(2,0) ', EpsHM(2,0)  ,'EpsHM(2,1)', EpsHM(2,1)  , &
