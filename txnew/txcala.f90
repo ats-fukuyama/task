@@ -292,6 +292,9 @@ contains
     if(ICALA == 0) ICALA = 1
 
     call dump_axis_LQs8
+    call dump_axis_row(LQz1,'LQz1    ')
+    call dump_axis_row(LQi1,'LQi1    ')
+    call dump_axis_coefs
 
   end subroutine TXCALA
 
@@ -3824,6 +3827,82 @@ contains
     flush(iua)
 
   end subroutine dump_axis_LQs8
+
+  subroutine dump_axis_row(NEQ,tagc)
+
+!   Every term of one equation's row at the first few nodes, as assembled and
+!   applied to the current X, so that a non-smooth forcing can be attributed.
+!   Written under IDIAG ones-digit >= 7 alongside dump_axis_LQs8.
+!
+!   For LQz1 this matters because that row has no second-order term at all --
+!   the impurity continuity is first-order advection and reaction -- so n_z is
+!   not smoothed by its own equation and inherits the regularity of whatever
+!   forces it, term by term.
+
+    use tx_commons, only : IDIAG, NT, NRMAX, X, NQMAX
+
+    integer(4), intent(in) :: NEQ
+    character(len=*), intent(in) :: tagc
+    integer(4), parameter :: NRD = 5
+    integer(4) :: nr, nc, nv
+    integer(4), save :: iur, nt_done = -1
+    logical, save :: openedr = .false.
+    real(8) :: contrib(0:NCM), tot
+
+    if(mod(IDIAG,10) < 7) return
+
+    if(.not. openedr) then
+       openedr = .true.
+       open(newunit=iur, file='tx_axis_row.dat', status='replace', action='write')
+       write(iur,'(A)') '# per-term contribution to one row.  eq NRMAX NT NR nterm  then' // &
+            & ' (NLC, contribution) per term, then the total'
+    end if
+
+    do nr = 0, min(NRD,NRMAX)
+       do nc = 0, NLCMAX(NEQ)
+          nv = NLC(nc,NEQ)
+          if(nv == 0) then
+             contrib(nc) = PLC(nr,nc,NEQ)
+          else
+             contrib(nc) = BLC(nr,nc,NEQ) * X(nr,nv)
+             if(nr < NRMAX) contrib(nc) = contrib(nc) + ALC(nr,nc,NEQ) * X(nr+1,nv)
+             if(nr > 0)     contrib(nc) = contrib(nc) + CLC(nr,nc,NEQ) * X(nr-1,nv)
+          end if
+       end do
+       tot = sum(contrib(0:NLCMAX(NEQ)))
+       write(iur,'(A8,4I6,50(I4,ES15.7))') tagc, NRMAX, NT, nr, NLCMAX(NEQ), &
+            & (NLC(nc,NEQ), contrib(nc), nc = 0, NLCMAX(NEQ))
+       write(iur,'(A8,4I6,A,ES15.7)') tagc, NRMAX, NT, nr, -1, '   total', tot
+    end do
+
+  end subroutine dump_axis_row
+
+  subroutine dump_axis_coefs
+
+!   The coefficient arrays that force LQz1 and LQi1, at the first few nodes.
+
+    use tx_commons, only : IDIAG, NT, NRMAX, vv, UgV, SiVsefA, SiVa6A, SiVizA, &
+         &                 rNuL, rNuOL, SiLC, Var, PN01V, PN02V, PN0zV
+
+    integer(4), parameter :: NRD = 5
+    integer(4) :: nr
+    integer(4), save :: iuc2
+    logical, save :: openedc2 = .false.
+
+    if(mod(IDIAG,10) < 7) return
+    if(.not. openedc2) then
+       openedc2 = .true.
+       open(newunit=iuc2, file='tx_axis_coef.dat', status='replace', action='write')
+       write(iuc2,'(A)') '# NRMAX NT NR  vv  UgV  SiVsefA  SiVa6A  SiVizA  rNuL  rNuOL' // &
+            & '  SiLC  Te  ne  nz  n0z'
+    end if
+    do nr = 0, min(NRD,NRMAX)
+       write(iuc2,'(3I6,12ES15.7)') NRMAX, NT, nr, vv(nr), UgV(nr), SiVsefA(nr), &
+            & SiVa6A(nr), SiVizA(nr), rNuL(nr), rNuOL(nr), SiLC(nr), &
+            & Var(nr,1)%T, Var(nr,1)%n, Var(nr,3)%n, PN0zV(nr)
+    end do
+
+  end subroutine dump_axis_coefs
 
   subroutine BOUNDARY(NR,LQ,ID,VAL)
 
