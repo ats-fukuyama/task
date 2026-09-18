@@ -266,6 +266,7 @@ contains
 #endif
           call TXCALB(BA,BL,BX)
           if(IDIAGL >= 6 .and. MDLPCK /= 0) call report_conditioning(BL,NQMAX,NRMAX,NT,IC)
+          if(IDIAGL >= 8 .and. MDLPCK /= 0) call dump_matrix(BL,BX,NQMAX,NRMAX,NT,IC)
 #ifdef TX_PROFILE
           call CPU_TIME(prof_t1)
           prof_txcalb_sum = prof_txcalb_sum + (prof_t1 - prof_t0)
@@ -1675,6 +1676,53 @@ contains
 !   Checking convergence
 !
 !***************************************************************
+
+  subroutine dump_matrix(BL,BX,NQMAXL,NRMAXL,NTL,ICL)
+
+!   The assembled system, once, for offline analysis of the near-axis blocks.
+!   Writes the band LHS exactly as TXCALB built it, the right-hand side, and the
+!   elemental blocks term by term, the source vector PLC and the term-to-unknown
+!   maps, so the near-axis rows can be rebuilt offline.  Under IDIAG ones-digit
+!   >= 8, on the first sweep of the last time step only, so one file per run.
+
+    use tx_commons, only : NTMAX, BLC, ALC, CLC, PLC, NLC, NLCR, NLCMAX, NCM, &
+         &                  ADV, IGBDF, DT, bdf_history_ready, X, vv, rho
+
+    real(8), dimension(:,:), intent(in) :: BL
+    real(8), dimension(:), intent(in) :: BX
+    integer(4), intent(in) :: NQMAXL, NRMAXL, NTL, ICL
+
+    integer(4) :: n, kl, ku, ldab, io
+    real(8) :: coef1
+
+    if(NTL /= NTMAX .or. ICL /= 1) return
+
+    n    = NQMAXL * (NRMAXL + 1)
+    kl   = 2 * NQMAXL - 1
+    ku   = kl
+    ldab = size(BL,1)
+    coef1 = 1.d0
+    if(IGBDF /= 0 .and. bdf_history_ready) coef1 = 4.d0 / 3.d0
+
+    open(newunit=io, file='tx_matrix.bin', status='replace', &
+         & form='unformatted', access='stream')
+    write(io) NQMAXL, NRMAXL, n, kl, ku, ldab, NTL, ICL, NCM
+    write(io) DT, coef1, ADV
+    write(io) BL(1:ldab,1:n)
+    write(io) BX(1:n)
+    write(io) BLC(0:NRMAXL,0:NCM,1:NQMAXL)
+    write(io) ALC(0:NRMAXL,0:NCM,1:NQMAXL)
+    write(io) CLC(0:NRMAXL,0:NCM,1:NQMAXL)
+    write(io) PLC(0:NRMAXL,1:NCM,1:NQMAXL)
+    write(io) NLC(0:NCM,1:NQMAXL)
+    write(io) NLCR(0:NCM,0:NQMAXL,0:1)
+    write(io) NLCMAX(1:NQMAXL)
+    write(io) X(0:NRMAXL,1:NQMAXL)
+    write(io) vv(0:NRMAXL), rho(0:NRMAXL)
+    close(io)
+    write(6,'(A,2(A,I6))') ' ## tx_matrix.bin written', '  NT =', NTL, '  IC =', ICL
+
+  end subroutine dump_matrix
 
   subroutine report_conditioning(BL,NQMAXL,NRMAXL,NTL,ICL)
 !   Condition of the assembled band matrix, as it stands and after LAPACK's
