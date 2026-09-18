@@ -489,6 +489,8 @@ contains
           prof_ic_sum = prof_ic_sum + (prof_ic_t1 - prof_ic_t0)
 #endif
           if(istat == 0) then ! going to next time step
+             if(IDIAGL >= 8 .and. MDLPCK /= 0) &
+                  & call dump_matrix(BL,BX,NQMAX,NRMAX,NT,IC,final=.true.)
              exit L_IC
           else if(istat == 1) then
              ! Size of this sweep's increment, normalised exactly as
@@ -1677,25 +1679,36 @@ contains
 !
 !***************************************************************
 
-  subroutine dump_matrix(BL,BX,NQMAXL,NRMAXL,NTL,ICL)
+  subroutine dump_matrix(BL,BX,NQMAXL,NRMAXL,NTL,ICL,final)
 
 !   The assembled system, once, for offline analysis of the near-axis blocks.
 !   Writes the band LHS exactly as TXCALB built it, the right-hand side, and the
 !   elemental blocks term by term, the source vector PLC and the term-to-unknown
 !   maps, so the near-axis rows can be rebuilt offline.  Under IDIAG ones-digit
-!   >= 8, on the first sweep of the last time step only, so one file per run.
+!   >= 8, on the last time step only: the first sweep goes to tx_matrix.bin and
+!   the last sweep to tx_matrix_last.bin, the latter so that the nonlinear
+!   residual A(XP) XP - b(XP) of the iterate the sweep loop stopped on can be
+!   formed offline.
 
     use tx_commons, only : NTMAX, BLC, ALC, CLC, PLC, NLC, NLCR, NLCMAX, NCM, &
-         &                  ADV, IGBDF, DT, bdf_history_ready, X, vv, rho
+         &                  ADV, IGBDF, DT, bdf_history_ready, X, vv, rho, ICMAX
 
     real(8), dimension(:,:), intent(in) :: BL
     real(8), dimension(:), intent(in) :: BX
     integer(4), intent(in) :: NQMAXL, NRMAXL, NTL, ICL
+    logical, intent(in), optional :: final
 
     integer(4) :: n, kl, ku, ldab, io
     real(8) :: coef1
+    logical :: islast
+    character(len=32) :: fname
 
-    if(NTL /= NTMAX .or. ICL /= 1) return
+    if(NTL /= NTMAX) return
+    islast = (ICL == ICMAX)
+    if(present(final)) islast = islast .or. final
+    if(ICL /= 1 .and. .not. islast) return
+    fname = 'tx_matrix.bin'
+    if(ICL /= 1 .or. islast) fname = 'tx_matrix_last.bin'
 
     n    = NQMAXL * (NRMAXL + 1)
     kl   = 2 * NQMAXL - 1
@@ -1704,7 +1717,7 @@ contains
     coef1 = 1.d0
     if(IGBDF /= 0 .and. bdf_history_ready) coef1 = 4.d0 / 3.d0
 
-    open(newunit=io, file='tx_matrix.bin', status='replace', &
+    open(newunit=io, file=trim(fname), status='replace', &
          & form='unformatted', access='stream')
     write(io) NQMAXL, NRMAXL, n, kl, ku, ldab, NTL, ICL, NCM
     write(io) DT, coef1, ADV
@@ -1719,8 +1732,9 @@ contains
     write(io) NLCMAX(1:NQMAXL)
     write(io) X(0:NRMAXL,1:NQMAXL)
     write(io) vv(0:NRMAXL), rho(0:NRMAXL)
+    write(io) XP(0:NRMAXL,1:NQMAXL)
     close(io)
-    write(6,'(A,2(A,I6))') ' ## tx_matrix.bin written', '  NT =', NTL, '  IC =', ICL
+    write(6,'(3A,2(A,I6))') ' ## ', trim(fname), ' written', '  NT =', NTL, '  IC =', ICL
 
   end subroutine dump_matrix
 
