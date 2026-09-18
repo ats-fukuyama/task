@@ -85,7 +85,7 @@ contains
     use tx_commons, only : T_TX, NTCUM, rIPe, rIPs, NTMAX, IGBDF, NQMAX, NRMAX, X, ICMAX, &
          &                 ErV, PNsV_FIX, PTsV_FIX, &
          &                 ErV_FIX, IERR, LQb1, LQn1, LQn2, LQr1, &
-         &                 tiny_cap, EPS, IDIAG, NTSTEP, ICCALC, &
+         &                 tiny_cap, EPS, IDIAG, NTSTEP, ICCALC, iaxproj, &
          &                 FSRP, MODEAV, XOLD, bdf_history_ready, bdf_history_dt, &
          &                 NT, DT, rIP, MDLPCK, ICONT, AVE_IC, MODECV, oldmix, oldmixa, Var
     use tx_variables
@@ -626,6 +626,10 @@ contains
 
        ! Calculation fully converged
        X = XN
+
+       ! Diagnostic only (iaxproj /= 0): put the near-axis profiles back into the
+       ! regular subspace.  Off by default; see axis_regularity_projection.
+       if(iaxproj /= 0) call axis_regularity_projection
 
        ! Calculate mesh and coefficients at the next step
        call TXCALV(X,1) ! Set new values to pres0 and ErV0
@@ -1678,6 +1682,102 @@ contains
 !   Checking convergence
 !
 !***************************************************************
+
+  subroutine axis_regularity_projection
+
+!   Diagnostic only.  A profile that is smooth across the magnetic axis is an
+!   even function of rho, so its expansion starts q0 + q2 rho^2 + q4 rho^4.  The
+!   equation set does not enforce that anywhere -- BV_1s is the only quantity
+!   whose boundedness would, and its singular part is annihilated by the rho^2
+!   factors it meets in every other equation -- so a solution with a finite
+!   drho slope at the axis is admissible.  This projects the near-axis part of
+!   the chosen profiles back onto that even subspace, to test whether axis
+!   regularity is what is missing.  It is not a permanent fix and is off unless
+!   iaxproj is set.
+!
+!   The fit is least squares in the FEM volume weight, which makes the constant
+!   basis function exact and therefore conserves the particle (or energy)
+!   content of the window identically.
+
+    use tx_commons, only : NRMAX, rho, vv, X, iaxproj, rhoaxproj, IDIAG, NT, &
+         &                 LQe1, LQi1, LQz1, LQe5, LQi5, LQz5, LQm1
+
+    integer(4) :: nq(7), nn, k, m, NR, NRW, i, j, info, mode
+    integer(4) :: ipiv(3)
+    real(8) :: A(3,3), rhs(3), w(0:NRMAX), f(3,0:NRMAX), u, chg
+
+    mode = mod(iaxproj-1,3) + 1
+    nn = 0
+    if(mode >= 1) then
+       nq(nn+1) = LQz1 ; nq(nn+2) = LQz5 ; nn = nn + 2
+    end if
+    if(mode >= 2) then
+       nq(nn+1) = LQe1 ; nq(nn+2) = LQe5
+       nq(nn+3) = LQi1 ; nq(nn+4) = LQi5 ; nn = nn + 4
+    end if
+    if(mode >= 3) then
+       nq(nn+1) = LQm1 ; nn = nn + 1
+    end if
+
+    if(iaxproj >= 4) then
+       ! Local form: make the profile linear in V across the first two elements,
+       ! which is the same as saying it is even in rho with no rho^4 term there.
+       ! Only the axis node moves, and d q / d V at the axis becomes the slope of
+       ! the second element, which the outer solution already bounds.  This is the
+       ! operation the permanent fix would perform as a constraint on the trial
+       ! space, so the diagnostic and the candidate fix are the same statement.
+       do k = 1, nn
+          u = X(1,nq(k)) - (X(2,nq(k)) - X(1,nq(k))) * (vv(1) - vv(0)) / (vv(2) - vv(1))
+          if(mod(IDIAG,10) >= 3) write(6,'(A,I6,A,I4,A,ES11.3)') &
+               & ' ## axis relation: NT =', NT, ', NQ =', nq(k), &
+               & ', change =', u - X(0,nq(k))
+          X(0,nq(k)) = u
+       end do
+       return
+    end if
+
+    NRW = 0
+    do NR = 0, NRMAX
+       if(rho(NR) <= rhoaxproj) NRW = NR
+    end do
+    if(NRW < 4) return                      ! too few nodes to fit three modes
+
+    ! lumped FEM weight in V on the window
+    w = 0.d0
+    do NR = 0, NRW
+       if(NR > 0)     w(NR) = w(NR) + 0.5d0*(vv(NR) - vv(NR-1))
+       if(NR < NRMAX) w(NR) = w(NR) + 0.5d0*(vv(NR+1) - vv(NR))
+    end do
+
+    do NR = 0, NRW
+       u = rho(NR)/rhoaxproj
+       f(1,NR) = 1.d0
+       f(2,NR) = u*u
+       f(3,NR) = u*u*u*u
+    end do
+
+
+    do k = 1, nn
+       do i = 1, 3
+          do j = 1, 3
+             A(i,j) = sum(w(0:NRW)*f(i,0:NRW)*f(j,0:NRW))
+          end do
+          rhs(i) = sum(w(0:NRW)*f(i,0:NRW)*X(0:NRW,nq(k)))
+       end do
+       call DGESV(3, 1, A, 3, ipiv, rhs, 3, info)
+       if(info /= 0) cycle
+       chg = 0.d0
+       do NR = 0, NRW
+          u = rhs(1)*f(1,NR) + rhs(2)*f(2,NR) + rhs(3)*f(3,NR)
+          chg = max(chg, abs(u - X(NR,nq(k))))
+          X(NR,nq(k)) = u
+       end do
+       if(mod(IDIAG,10) >= 3) write(6,'(A,I6,2(A,I4),A,ES11.3)') &
+            & ' ## axis projection: NT =', NT, ', NQ =', nq(k), &
+            & ', nodes =', NRW+1, ', max change =', chg
+    end do
+
+  end subroutine axis_regularity_projection
 
   subroutine dump_matrix(BL,BX,NQMAXL,NRMAXL,NTL,ICL,final)
 

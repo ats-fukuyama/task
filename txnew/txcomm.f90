@@ -222,6 +222,11 @@ module tx_commons
   ! Picard sweep is measured not to contract.  See TXLOOP.  0 disables it.
   real(8) :: oldmixa
 
+  ! Diagnostic only: project the near-axis profiles onto the regular (even in rho)
+  ! subspace q0 + q2 rho^2 + q4 rho^4 after each time step.  Default off.
+  integer(4) :: iaxproj
+  real(8) :: rhoaxproj
+
   ! SUPG parameter
   integer(4) :: iSUPG3, iSUPG6, iSUPG8
   real(8) :: SUPGstab
