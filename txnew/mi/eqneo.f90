@@ -557,7 +557,7 @@ contains
   subroutine wrap_eqneo
     use tx_commons, only : ieqread, NRMAX, gamneo, Pisq, sdt, bbrt, mxneo, epst, fmneo, q, RR
     integer(4) :: NR, i
-    real(8) :: epsl, coefmneo, smallvalue = 1.d-4
+    real(8) :: epsl, coefmneo
 
     if( ieqread >= 2 ) then
        call eqneo
@@ -575,19 +575,24 @@ contains
           fmneo(mxneo(NR)+1:10,NR) = 0.d0
        end do
     end if
-    ! Even at axis, fmneo=0 should be avoided because it would cause K_PS = 0.
+    ! Magnetic axis.  (1 - sqrt(1-eps^2))/eps -> eps/2 as eps -> 0, so the
+    ! analytic limit of the Fourier factors is fmneo(i,0) = 0.  The expression
+    ! itself is 0/0 there, so the limit is imposed directly rather than
+    ! evaluated with a small-eps guard: evaluating it at eps = 1.d-4 left
+    ! fmneo(1,0) at a mesh-independent floor, whereas fmneo(1,1) = O(eps_1^2)
+    ! shrinks like h^2, so the axis picked up a spurious Pfirsch-Schlueter
+    ! viscosity whose relative size grew like 1/h^2 (0.2%, 0.7% and 2.7% of
+    ! fmneo(1,1) at NRMAX = 120, 240 and 480).
+    ! With fmneo(:,0) = 0 the Pfirsch-Schlueter part of the viscosity integral
+    ! vanishes at the axis and mat_inv's  zk = zkb zkps/(zkb+zkps)  returns
+    ! zero there (its zkb+zkps = 0 branch is already guarded), i.e. xmu(0) = 0.
+    ! That matches both the analytic limit and the xmuf(0) = 0 which mat_inv
+    ! already imposes for beam ions.  eqneo itself also sets fmnev(:,1) = 0 at
+    ! the equilibrium axis, so this no longer contradicts the ieqread >= 2 path.
     NR = 0
        gamneo(NR) = 4.d0 * Pisq * sdt(NR) / bbrt(NR) ! = bthco(NR) / bbrt(NR)
        mxneo(NR) = 3
-!       fmneo(1:10,NR) = 0.d0
-       epsl = smallvalue
-       coefmneo = 1.d0 - epsl**2
-       do i = 1, mxneo(NR)
-          fmneo(i,NR) = real(i,8)* ( (1.d0-sqrt(coefmneo))/epsl)**(2*i) &
-               &                 * (1.d0+real(i,8)*sqrt(coefmneo)) &
-               &                 / (coefmneo*sqrt(coefmneo)*(q(NR)*RR)**2)
-       end do
-       fmneo(mxneo(NR)+1:10,NR) = 0.d0
+       fmneo(1:10,NR) = 0.d0
 
   end subroutine wrap_eqneo
 
