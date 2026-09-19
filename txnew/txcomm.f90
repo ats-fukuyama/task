@@ -227,6 +227,11 @@ module tx_commons
   integer(4) :: iaxproj
   real(8) :: rhoaxproj
 
+  ! Diagnostic only: a conservative particle diffusion added to the continuity
+  ! equations, as a fraction of each species' own momentum diffusivity.  This is
+  ! a regularity-selection experiment, not a model term.  0 = off (default).
+  real(8) :: Dnfac
+
   ! SUPG parameter
   integer(4) :: iSUPG3, iSUPG6, iSUPG8
   real(8) :: SUPGstab

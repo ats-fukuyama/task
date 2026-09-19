@@ -2378,7 +2378,18 @@ contains
     ELM(:,:,8,NEQ) = - fem_int(2,rNuOL)
     NLC(8,NEQ) = LQz1
 
-    NLCMAX(NEQ) = 8
+    ! Diagnostic only (Dnfac /= 0): conservative particle diffusion with the
+    ! same operator and geometry the momentum equation uses.  This asks which
+    ! branch the zero-diffusion equations select as Dnfac -> 0+; it is not a
+    ! model term and is off by default.
+
+    if(Dnfac /= 0.d0) then
+       ELM(:,:,9,NEQ) = - Dnfac * fem_int(27,sst,rMus(:,i))
+       NLC(9,NEQ) = LQz1
+       NLCMAX(NEQ) = 9
+    else
+       NLCMAX(NEQ) = 8
+    end if
 
   end subroutine LQz1CC
 

@@ -615,6 +615,14 @@ contains
     iaxproj   = 0
     rhoaxproj = 0.05d0
 
+    !   Diagnostic only: conservative particle diffusion in the continuity
+    !   equations, d/dV( Dnfac * rMus * <|grad V|^2> * dn_s/dV ), i.e. the same
+    !   operator and geometry the momentum equation already uses, scaled by a
+    !   dimensionless fraction of that species' momentum diffusivity.  Used to
+    !   ask which branch the zero-diffusion equations select in the limit
+    !   Dnfac -> 0+.  Not a model term; 0 = off (default).
+    Dnfac = 0.d0
+
     !   SUPG on/off switch
     !     iSUPG3 for LQ*3CC; LQb3CC only when iSUPG3 = -1
     !     iSUPG6 for LQ*6CC
@@ -2004,7 +2012,7 @@ module tx_parameter_control
        & DMAG0,RMAGMN,RMAGMX, &
        & rG1,FSHL,Q0,QA, &
        & rIPs,rIPe, &
-       & MODEG,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,oldmixa,iaxproj,rhoaxproj, &
+       & MODEG,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,oldmixa,iaxproj,rhoaxproj,Dnfac, &
        & iSUPG3,iSUPG6,iSUPG8,SUPGstab,iprestab, &
        & MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDLETB, &
        & iPoyntpol,iPoynttor,IDIAG,midbg,IGBDF,ISMTHD,MDLNBD,MDBMCX,imodel_neo, & ! 09/06/17~ miki_m
@@ -2184,6 +2192,7 @@ contains
        if(oldmix < 0.d0 .or. oldmix > 1.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(oldmixa < 0.d0 .or. oldmixa > 1.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(iaxproj < 0 .or. iaxproj > 6) then ; exit ; else ; idx = idx + 1 ; end if
+       if(Dnfac < 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(rhoaxproj <= 0.d0 .or. rhoaxproj > 1.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(CMESH0 < 0.d0 .or. CMESH < 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(WMESH0 < 0.d0 .or. WMESH < 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
@@ -2226,7 +2235,7 @@ contains
          &       ' ',8X,'Dmag0,RMAGMN,RMAGMX,EpsHM,HPN,'/ &   ! 10/08/06 miki_m
          &       ' ',8X,'rG1,FSHL,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
-         &       ' ',8X,'MODEG,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,oldmixa,iaxproj,rhoaxproj,'/ &
+         &       ' ',8X,'MODEG,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,oldmixa,iaxproj,rhoaxproj,Dnfac,'/ &
          &       ' ',8X,'iSUPG3,iSUPG6,iSUPG8,SUPGstab,iprestab,'/ &
          &       ' ',8X,'MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDLETB,' / & 
          &       ' ',8X,'IDIAG,midbg,IGBDF,ISMTHD,MDLNBD,MDBMCX,imodel_neo')
