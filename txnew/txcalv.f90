@@ -257,7 +257,13 @@ contains
     if(ieqread == 0) then ! Perfect cylinder (Pfirsch-Schluter contribution nil)
        qhatsq(NR) = 0.d0
     else
-       qhatsq(NR) = Q(NR)**2
+       ! qhat^2 = I^2/(2<B_p^2>) (<1/R^2> - 1/<R^2>) is 0/0 at the axis, and
+       ! qhat^2 -> q^2 only in the circular large-aspect-ratio limit.  The
+       ! interior values are even in rho (their node-1 differences fall like
+       ! h^2), so take the limit from nodes 1 and 2, which is O(h^4).  For the
+       ! shaped equilibrium used here Q(0)^2 = 0.7974 overstates the interior
+       ! limit 0.68446 by 16.5%.
+       qhatsq(NR) = qhatsq(1) - (qhatsq(2) - qhatsq(1)) * vv(1) / (vv(2) - vv(1))
     end if
 
     do NR = 0, NRMAX
