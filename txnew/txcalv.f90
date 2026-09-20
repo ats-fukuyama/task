@@ -691,7 +691,7 @@ contains
        !     *** Impurity neutral diffusion coefficient (slow) ***
 
        !  Maxwellian velocity for slow impurity neutrals
-       V0ave = sqrt(4.d0 * V0*V0 / Pi)
+       V0ave = sqrt(4.d0 * V0z*V0z / Pi)
 
        !  Total Maxwellian rate coefficients
        Sitot = (SiVsefA(NR) + SiVa6A(NR)) * Var(NR,1)%n *1.d20
