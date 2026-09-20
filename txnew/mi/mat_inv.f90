@@ -68,8 +68,21 @@ contains
        epsL = epst(NR)
        ftl = ft(NR)
     else
-       ! --- Artificial potate orbit effect, i.e. finite f_t even at axis ---
-       !     It yields the finite banana viscosity at axis.
+       ! --- Artificial potato orbit effect, i.e. finite f_t even at axis ---
+       !     The equilibrium gives ft(0) = 0, so the banana viscosity would
+       !     vanish at the axis.  A small finite eps is used instead, which
+       !     keeps zkb (and, in booth9, the whole viscosity through xgt)
+       !     finite there.
+       !
+       !     Note on what this actually reaches.  Since the Pfirsch-Schlueter
+       !     Fourier factors take their analytic axis limit fmneo(:,0) = 0,
+       !     zkps(0) = 0, and nccoe's default harmonic mean
+       !     zk = zkb*zkps/(zkb+zkps) is zero whatever zkb is.  So for
+       !     MDLNEO = 2 with imodel_neo(5) = 0 (the default) or -1 these two
+       !     lines have no effect on the solution at all - verified to be
+       !     bit-identical with epsL = ftl = 0.  They do matter for
+       !     imodel_neo(5) = 1 (zk = zkb, banana only) and for MDLNEO = 1
+       !     (booth9), where epsL also enters eps**1.5 and xsta.
        epsL = smallvalue
        ftl = ftfunc(epsL)
        ! --------------------------------------------------------------------
