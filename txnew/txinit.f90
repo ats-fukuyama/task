@@ -194,6 +194,13 @@ contains
     !         for the sake of numerical stability.
     !     2 : Electron density gradient term is replaced using the dimagnetic flow
     !         for the sake of numerical stability.
+    !     3 : As 2, plus the multi-ion composition channel: every pair of thermal
+    !         ion species exchanges a force proportional to the difference of
+    !         their logarithmic density gradients, so that each ion also
+    !         diffuses on its own density gradient.  This is the passive-mixing
+    !         (common-diffusivity) limit written as a correction to the
+    !         common-velocity closure of 0/1/2; see twofluid.tex.  It must be
+    !         given for every species at once.
     FSTPTM(1:NSM) = 2
 
     !   ==== CDBM transport coefficient parameters ============================
@@ -2140,7 +2147,12 @@ contains
           idx = idx + 1 ; end if
        if(minval(FSMPCH) < 0.d0 .or. maxval(FSMPCH) > 1.d0) then ; exit ; else
           idx = idx + 1 ; end if
-       if(minval(FSTPTM) < 0.d0 .or. maxval(FSTPTM) > 2.d0) then ; exit ; else
+       if(minval(FSTPTM) < 0.d0 .or. maxval(FSTPTM) > 3.d0) then ; exit ; else
+          idx = idx + 1 ; end if
+       ! FSTPTM = 3 adds a force that couples pairs of thermal ion species, so
+       ! it only conserves momentum (and hence stays ambipolar) if every
+       ! species carries it.  Mixed 3 / non-3 settings are rejected.
+       if(maxval(FSTPTM) == 3.d0 .and. minval(FSTPTM) /= 3.d0) then ; exit ; else
           idx = idx + 1 ; end if
        if(minval(FSPARV) < 0.d0 .or. maxval(FSPARV) > 1.d0) then ; exit ; else
           idx = idx + 1 ; end if

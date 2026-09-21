@@ -19,6 +19,8 @@ module tx_coefficients
        &     fact = 1.d0 ! <= SOL loss accelerator
   integer(4), save :: ICALA = 0!, ICALA2 = 0
   integer(4) :: L3, L6, L8
+  ! Density equation of each thermal species, indexed the same way as Var(:,i).
+  integer(4), parameter :: LQsn(1:NSM) = [ LQe1, LQi1, LQz1 ]
   ! NOTE:
   !   These workspaces are module-wide shared arrays.
   !   Current TXLOOP usage is serial-safe, but OpenMP parallel calls to TXCALA
@@ -1789,7 +1791,7 @@ contains
 
   subroutine LQi4CC
 
-    integer(4) :: NEQ = LQi4, i = 2, j
+    integer(4) :: NEQ = LQi4, i = 2, j, NCcomp
     real(8) :: amasinv
 
     amasinv = 1.d0 / (amas(i) * amp)
@@ -1990,6 +1992,40 @@ contains
 !    NLC(33,NEQ) = LQi4
 
     NLCMAX(NEQ) = 32
+
+    ! Multi-ion composition channel (FSTPTM = 3).
+    !
+    !   Delta K_a = sum_{b /= a, thermal ions} L_ab ( X_a - X_b ),
+    !   X_a = (1/n_a) dn_a/dV,
+    !   L_ab = L_ba = e (dpsi/dV) <|grad V|^2> D_e^QL (Z_a n_a)(Z_b n_b)/n_e.
+    !
+    ! Each pair contributes equal and opposite forces, so sum_a Delta K_a = 0
+    ! holds element matrix by element matrix over whatever set of thermal ions
+    ! is present: no net toroidal momentum is added, and since
+    ! Gamma_a = -<R K_a1zeta>/(Z_a e dpsi/dV) that is the same statement as
+    ! sum_a Z_a Delta Gamma_a = 0.  Beam ions are left out - they are too fast
+    ! to be mixed by the background fluctuations - and their absence from the
+    ! sum does not spoil the cancellation.
+    !
+    ! The 1/n_a of X_a cancels against the Z_a n_a of L_ab, so nothing here
+    ! divides by a trace density.  With a single thermal ion the sum is empty
+    ! and FSTPTM = 3 reduces exactly to FSTPTM = 2.
+    if( FSTPTM(i) == 3.d0 ) then
+       NCcomp = NLCMAX(NEQ)
+       do j = 2, NSM
+          if( j == i ) cycle
+          NCcomp = NCcomp + 1
+          ELM(:,:,NCcomp,NEQ) =   achg(i) * achg(j) * aee * amasinv &
+               &                * fem_int(22,FQCcoef,Ratden(:,j,1))
+          NLC(NCcomp,NEQ) = LQsn(i)
+          NCcomp = NCcomp + 1
+          ELM(:,:,NCcomp,NEQ) = - achg(i) * achg(j) * aee * amasinv &
+               &                * fem_int(22,FQCcoef,Ratden(:,i,1))
+          NLC(NCcomp,NEQ) = LQsn(j)
+       end do
+       NLCMAX(NEQ) = NCcomp
+    end if
+
 
     if( MDFIXT /= 0 ) then ! Overwrite Pressure gradient force
        if( FSTPTM(i) == 0 ) then
@@ -2611,7 +2647,7 @@ contains
 
   subroutine LQz4CC
 
-    integer(4) :: NEQ = LQz4, i = 3, j
+    integer(4) :: NEQ = LQz4, i = 3, j, NCcomp
     real(8) :: amasinv
 
     amasinv = 1.d0 / (amas(i) * amp)
@@ -2786,6 +2822,40 @@ contains
     NLC(27,NEQ) = LQz4
 
     NLCMAX(NEQ) = 27
+
+    ! Multi-ion composition channel (FSTPTM = 3).
+    !
+    !   Delta K_a = sum_{b /= a, thermal ions} L_ab ( X_a - X_b ),
+    !   X_a = (1/n_a) dn_a/dV,
+    !   L_ab = L_ba = e (dpsi/dV) <|grad V|^2> D_e^QL (Z_a n_a)(Z_b n_b)/n_e.
+    !
+    ! Each pair contributes equal and opposite forces, so sum_a Delta K_a = 0
+    ! holds element matrix by element matrix over whatever set of thermal ions
+    ! is present: no net toroidal momentum is added, and since
+    ! Gamma_a = -<R K_a1zeta>/(Z_a e dpsi/dV) that is the same statement as
+    ! sum_a Z_a Delta Gamma_a = 0.  Beam ions are left out - they are too fast
+    ! to be mixed by the background fluctuations - and their absence from the
+    ! sum does not spoil the cancellation.
+    !
+    ! The 1/n_a of X_a cancels against the Z_a n_a of L_ab, so nothing here
+    ! divides by a trace density.  With a single thermal ion the sum is empty
+    ! and FSTPTM = 3 reduces exactly to FSTPTM = 2.
+    if( FSTPTM(i) == 3.d0 ) then
+       NCcomp = NLCMAX(NEQ)
+       do j = 2, NSM
+          if( j == i ) cycle
+          NCcomp = NCcomp + 1
+          ELM(:,:,NCcomp,NEQ) =   achg(i) * achg(j) * aee * amasinv &
+               &                * fem_int(22,FQCcoef,Ratden(:,j,1))
+          NLC(NCcomp,NEQ) = LQsn(i)
+          NCcomp = NCcomp + 1
+          ELM(:,:,NCcomp,NEQ) = - achg(i) * achg(j) * aee * amasinv &
+               &                * fem_int(22,FQCcoef,Ratden(:,i,1))
+          NLC(NCcomp,NEQ) = LQsn(j)
+       end do
+       NLCMAX(NEQ) = NCcomp
+    end if
+
 
     if( MDFIXT /= 0 ) then ! Overwrite Pressure gradient force
        if( FSTPTM(i) == 0 ) then

@@ -1151,6 +1151,11 @@ contains
 
        ! Coefficient of the force causing the quasilinear flux, induced by drift wave
        FQLcoef (NR) = sst(NR) * sdt(NR) * Dfs(NR,1) / (Var(NR,1)%T * rKilo)
+       ! Coefficient of the ion-composition channel used by FSTPTM = 3.  Same
+       ! <|grad V|^2> (dpsi/dV) D_e^QL as FQLcoef, but conjugate to a bare
+       ! density gradient instead of a force normalised by T_e, so without the
+       ! 1/(T_e rKilo).
+       FQCcoef (NR) = sst(NR) * sdt(NR) * Dfs(NR,1)
        FQLcoef1(NR) = FQLcoef(NR) * sdt(NR) / fipol(NR)
        if(NR /= 0) then
           FQLcoef2(NR) = FQLcoef(NR) * sdt(NR) * fipol(NR) / bri(NR)

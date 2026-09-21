@@ -274,7 +274,7 @@ module tx_commons
   real(8), dimension(:), allocatable :: &
        & rNuION, rNu0b, rNuL, rNuiCX, rNubCX, rNuiCXT, &
        & rNuei, rNuii, rNuiz, rNuTei, rNuTez, rNuTiz, rNuD, rNuOL, &
-       & WPM, FVpch, FQLcoef, FQLcoef1, FQLcoef2, &
+       & WPM, FVpch, FQLcoef, FQLcoef1, FQLcoef2, FQCcoef, &
        & rNuB, rNuLB, ft, VWpch, D01, D02, D03, D0z, &
        & SiVizA, SiVcxA, SiVa6A, SiVsefA, wexb, &
        & UgV, PNbVinv, Vbpara
@@ -459,7 +459,7 @@ contains
        allocate(rNuION,  rNu0b,   rNuL,    rNuiCX,  rNubCX,  rNuiCXT,   source=array_init_NR,   stat=ierl(1))
        allocate(rNuei,   rNuii,   rNuiz,   rNuTei,  rNuTez,  rNuTiz,    source=array_init_NR,   stat=ierl(2))
        allocate(rNuD,    rNuOL,                                         source=array_init_NR,   stat=ierl(3))
-       allocate(WPM,     FVpch,   FQLcoef, FQLcoef1, FQLcoef2,          source=array_init_NR,   stat=ierl(4))
+       allocate(WPM,     FVpch,   FQLcoef, FQLcoef1, FQLcoef2, FQCcoef, source=array_init_NR,   stat=ierl(4))
        allocate(rNuB,    rNuLB,   ft,      VWpch,                       source=array_init_NR,   stat=ierl(5))
        allocate(D01,     D02,     D03,     D0z,                         source=array_init_NR,   stat=ierl(6))
        allocate(SiVizA,  SiVcxA,  SiVa6A,  SiVsefA,  wexb,              source=array_init_NR,   stat=ierl(7))
@@ -595,7 +595,7 @@ contains
     deallocate(rNuION, rNu0b,  rNuL,   rNuiCX,  rNubCX,  rNuiCXT)
     deallocate(rNuei,  rNuii,  rNuiz,  rNuTei,  rNuTez,  rNuTiz)
     deallocate(rNuOL,  rNuD)
-    deallocate(WPM,    FVpch,  FQLcoef,FQLcoef1,FQLcoef2)
+    deallocate(WPM,    FVpch,  FQLcoef,FQLcoef1,FQLcoef2,FQCcoef)
     deallocate(rNuB,   rNuLB,  ft,     VWpch)
     deallocate(D01,    D02,    D03,    D0z)
     deallocate(UgV,    PNbVinv,Vbpara)
