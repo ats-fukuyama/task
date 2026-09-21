@@ -97,6 +97,18 @@ module tx_commons
   real(8) :: FSCBAL, FSCBKP, FSCBEL, FSCBSH, FSBOHM, FSVAHL
   real(8) :: PROFD, PROFD1, PROFD2, PROFDB, PROFM, PROFM1, PROFMB, PROFC, PROFC1, PROFCB
   real(8) :: FSCX, FSLC, FSLP, FSLPB, FSION, FSNCOL, FSD01, FSD02, FSD03, FSD0z, rG1, FSRP, FSNF
+
+  !   PROTOTYPE, not for production.
+  !   MDLNZD : radial transport model for the C0-C5 superstage LQnz.
+  !     0 : the hydrogen slow-neutral diffusivity D01 (current code).
+  !     1 : the charged-impurity diffusivity Dfs(:,1), i.e. the bundle is
+  !         transported as the magnetized C1+-C5+ population it is.
+  !     2 : charge-state-weighted,  D = F_0 D_C0 + (1-F_0) Dfs(:,1),  with the
+  !         effective pinch -(D_C0 - Dfs) dF_0/dV that the weighting implies.
+  !   MDLN0FL : Larsen flux limiter on the neutral diffusivities D01/D02/D03,
+  !     0 off, 1 on.  D -> D / (1 + D |grad n| / (FLlim n v_th)).
+  integer(4) :: MDLNZD, MDLN0FL
+  real(8) :: FLlim
   real(8) :: FSADV, FSADVB, FSUG, FSG0iz
   real(8), dimension(NSM) :: FSMPCH, FSTPTM, FSPARV, FSLTs
   real(8), dimension(1:2) :: FSNC, FSNCB
@@ -275,7 +287,7 @@ module tx_commons
        & rNuION, rNu0b, rNuL, rNuiCX, rNubCX, rNuiCXT, &
        & rNuei, rNuii, rNuiz, rNuTei, rNuTez, rNuTiz, rNuD, rNuOL, &
        & WPM, FVpch, FQLcoef, FQLcoef1, FQLcoef2, FQCcoef, &
-       & rNuB, rNuLB, ft, VWpch, D01, D02, D03, D0z, &
+       & rNuB, rNuLB, ft, VWpch, D01, D02, D03, D0z, Dnzb, Vnzb, FracC0, &
        & SiVizA, SiVcxA, SiVa6A, SiVsefA, wexb, &
        & UgV, PNbVinv, Vbpara
   real(8), dimension(:), allocatable :: & ! Ripple transport
@@ -462,6 +474,7 @@ contains
        allocate(WPM,     FVpch,   FQLcoef, FQLcoef1, FQLcoef2, FQCcoef, source=array_init_NR,   stat=ierl(4))
        allocate(rNuB,    rNuLB,   ft,      VWpch,                       source=array_init_NR,   stat=ierl(5))
        allocate(D01,     D02,     D03,     D0z,                         source=array_init_NR,   stat=ierl(6))
+       allocate(Dnzb,    Vnzb,    FracC0,                               source=array_init_NR,   stat=ierl(6))
        allocate(SiVizA,  SiVcxA,  SiVa6A,  SiVsefA,  wexb,              source=array_init_NR,   stat=ierl(7))
        allocate(UgV,     PNbVinv, Vbpara,                               source=array_init_NR,   stat=ierl(8))
        allocate(Ubrp,    RUbrp,   Dbrp,    DltRP,    DltRP_mid,         source=array_init_NR,   stat=ierl(9))
@@ -598,6 +611,7 @@ contains
     deallocate(WPM,    FVpch,  FQLcoef,FQLcoef1,FQLcoef2,FQCcoef)
     deallocate(rNuB,   rNuLB,  ft,     VWpch)
     deallocate(D01,    D02,    D03,    D0z)
+    deallocate(Dnzb,   Vnzb,   FracC0)
     deallocate(UgV,    PNbVinv,Vbpara)
     deallocate(Ubrp,   RUbrp,  Dbrp,   DltRP,   DltRP_mid)
     deallocate(rNubL,  rip_rat,rNubrp1,rNubrp2)

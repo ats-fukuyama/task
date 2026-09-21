@@ -332,7 +332,8 @@ contains
     use tx_ripple
     use cdbm_mod
     use mod_eqneo, only : wrap_eqneo
-    use mod_cross_section, only : RateCoef_C_RC_A6, RateCoef_C_IZ_S5, Fraction_C0toC5
+    use mod_cross_section, only : RateCoef_C_RC_A6, RateCoef_C_IZ_S5, Fraction_C0toC5, &
+         &                        RateCoef_C_IZ_S0, Fraction_C0
     use mod_coulomb, only : coulog
     use mod_savgol
     use libitp, only : aitken2p
@@ -350,6 +351,7 @@ contains
          &     rNuOLL, SiLCL, SiLCBL, SiLCphL, RL, DBW, &
          &     factor_bohm, rNustar, &
          &     RLOSS, sqz, rNuDL, Ln, LT, etai_chk, kthrhos, &
+         &     SitotC0, DC0, V0zave, dn0dV, &
          &     RhoSOL, V0ave, Viave, DturbA, rLmean, Sitot, &
          &     rGCIM, rGIM, rHIM, OMEGAPR !09/06/17~ miki_m
 !!$    real(8) ::Cs, Lc, PTiVA, Chicl, 
@@ -1270,6 +1272,48 @@ contains
     !     *** Calculate coefficients in the SOL ***
 
     call tx_sol_coefficients
+
+    !     *** PROTOTYPE (MDLNZD, MDLN0FL; see tx_commons).  Neither is a
+    !         production model: both default to the current behaviour. ***
+
+    do NR = 0, NRMAX
+       FracC0(NR) = Fraction_C0(Var(NR,1)%T, Var(NR,1)%n)
+    end do
+
+    select case(MDLNZD)
+    case(1)
+       !  The bundle is transported as the magnetized C1+-C5+ population it is.
+       Dnzb(:) = Dfs(:,1)
+       Vnzb(:) = 0.d0
+    case(2)
+       !  Charge-state-weighted:  D = F_0 D_C0 + (1-F_0) D_c,  with the effective
+       !  pinch -(D_C0 - D_c) dF_0/dV the weighting implies.  D_C0 uses the true
+       !  C0 destruction rate S_0 n_e, not the bundle -> C6+ rate SiVsefA.
+       V0zave = sqrt(4.d0 * V0z*V0z / Pi)
+       do NR = 0, NRMAX
+          SitotC0 = RateCoef_C_IZ_S0(Var(NR,1)%T, Var(NR,1)%n) * Var(NR,1)%n * 1.d20
+          DC0 = V0zave*V0zave / (3.d0 * SitotC0)
+          Dnzb(NR) = FracC0(NR) * DC0 + (1.d0 - FracC0(NR)) * Dfs(NR,1)
+          tmp(NR)  = DC0 - Dfs(NR,1)
+       end do
+       Vnzb(:) = - tmp(:) * dfdx(vv, FracC0, NRMAX, 0)
+    case default
+       Dnzb(:) = D01(:)
+       Vnzb(:) = 0.d0
+    end select
+
+    if( MDLN0FL /= 0 ) then
+       !  Larsen flux limiter on the slow-neutral diffusivity: the diffusive
+       !  flux D |grad n| may not exceed FLlim n v.  With lambda = 3 D / v this
+       !  is D -> D / (1 + (lambda/(3 FLlim)) |grad n| / n).
+       V0zave = sqrt(4.d0 * V0*V0 / Pi)
+       tmp(:) = dfdx(vv, PN01V, NRMAX, 0)
+       do NR = 0, NRMAX
+          if( PN01V(NR) <= 0.d0 ) cycle
+          dn0dV = abs(tmp(NR)) * sqrt(sst(NR)) / PN01V(NR)
+          D01(NR) = D01(NR) / (1.d0 + D01(NR) * dn0dV / (FLlim * V0zave))
+       end do
+    end if
 
     !     *** Linear growth rate for toroidal gamma_etai branch of the ITG mode ***
     !        (F.Crisanti et al, NF 41 (2001) 883)

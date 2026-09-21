@@ -3713,9 +3713,9 @@ contains
     ELM(:,:,1,NEQ) = - fem_int(6,UgV)
     NLC(1,NEQ) = LQnz
 
-    ! Diffusion of neutrals
+    ! Diffusion of neutrals.  Dnzb is D01 unless the MDLNZD prototype is on.
 
-    ELM(:,:,2,NEQ) = - fem_int(27,sst,D01)
+    ELM(:,:,2,NEQ) = - fem_int(27,sst,Dnzb)
     NLC(2,NEQ) = LQnz
 
     ! Effective ionization generating C^{6+}
@@ -3745,6 +3745,16 @@ contains
     NLC(8,NEQ) = 0
 
     NLCMAX(NEQ) = 8
+
+    ! PROTOTYPE (MDLNZD = 2): the effective pinch the charge-state weighting
+    ! implies, -n_b sum_q D_q dF_q/dV, in the same conservative form the
+    ! momentum pinch uses.
+
+    if( MDLNZD == 2 ) then
+       ELM(:,:,9,NEQ) = - fem_int(24,sst,Vnzb)
+       NLC(9,NEQ) = LQnz
+       NLCMAX(NEQ) = 9
+    end if
 
   end subroutine LQnzCC
 

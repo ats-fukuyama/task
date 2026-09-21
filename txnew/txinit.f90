@@ -754,6 +754,13 @@ contains
     !   1    : fixed
     MDFIXT = 0
 
+    !   PROTOTYPE, off by default (see tx_commons):
+    !     MDLNZD  : radial transport model for the C0-C5 superstage
+    !     MDLN0FL : Larsen flux limiter on the slow-neutral diffusivity D01
+    MDLNZD  = 0
+    MDLN0FL = 0
+    FLlim   = 1.d0
+
     !   Mode of equations solved for beam ions
     !   0    : minimum ; LQb1,       LQb3, LQb4, LQb7
     !   1    : more    ; LQb1, LQb2, LQb3, LQb4, LQb7, LQb8
@@ -2022,6 +2029,7 @@ module tx_parameter_control
        & MODEG,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,oldmixa,iaxproj,rhoaxproj,Dnfac, &
        & iSUPG3,iSUPG6,iSUPG8,SUPGstab,iprestab, &
        & MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDLETB, &
+       & MDLNZD,MDLN0FL,FLlim, &
        & iPoyntpol,iPoynttor,IDIAG,midbg,IGBDF,ISMTHD,MDLNBD,MDBMCX,imodel_neo, & ! 09/06/17~ miki_m
        & EpsHM, HPN  ! 10/08/06 miki_m
   private :: TXPLST
