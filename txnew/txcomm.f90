@@ -109,6 +109,12 @@ module tx_commons
   !     0 off, 1 on.  D -> D / (1 + D |grad n| / (FLlim n v_th)).
   integer(4) :: MDLNZD, MDLN0FL
   real(8) :: FLlim
+  !   MDLSOL : width over which the parallel loss turns on outside the separatrix.
+  !     0 : the historical DBW, built from half the on-axis ion temperature,
+  !         Q(NRA) and B_phi (current code).
+  !     1 : the ion banana width at the separatrix, sqrt(eps) rho_theta, from the
+  !         local edge T_i and B_theta.  Parameter-free.
+  integer(4) :: MDLSOL
   real(8) :: FSADV, FSADVB, FSUG, FSG0iz
   real(8), dimension(NSM) :: FSMPCH, FSTPTM, FSPARV, FSLTs
   real(8), dimension(1:2) :: FSNC, FSNCB
