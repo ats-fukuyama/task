@@ -351,7 +351,7 @@ contains
          &     rNuOLL, SiLCL, SiLCBL, SiLCphL, RL, DBW, &
          &     factor_bohm, rNustar, &
          &     RLOSS, sqz, rNuDL, Ln, LT, etai_chk, kthrhos, &
-         &     SitotC0, DC0, V0zave, dn0dV, &
+         &     SitotC0, DC0, V0zave, dn0dV, Swall, &
          &     RhoSOL, V0ave, Viave, DturbA, rLmean, Sitot, &
          &     rGCIM, rGIM, rHIM, OMEGAPR !09/06/17~ miki_m
 !!$    real(8) ::Cs, Lc, PTiVA, Chicl, 
@@ -1297,10 +1297,53 @@ contains
           tmp(NR)  = DC0 - Dfs(NR,1)
        end do
        Vnzb(:) = - tmp(:) * dfdx(vv, FracC0, NRMAX, 0)
+    case(3)
+       !  Two-component C0 / C1+-C5+ model, with the C0 fraction taken from a
+       !  LOCAL SOURCE BALANCE rather than from coronal equilibrium.
+       !
+       !  C0 is slaved: its lifetime 1/(S_0 n_e) is 7.7 us at the wall against
+       !  milliseconds for everything else here, so its density follows its
+       !  source instantaneously,
+       !
+       !     n_C0 = S_wall / (S_0 n_e),
+       !     S_wall = R_zz nu_L (n_z - n_z_div) + R_iz nu_L (n_i - n_i_div),
+       !
+       !  which is the same sputtering source LQnzCC already carries.  The
+       !  coronal F_0 misses this entirely: it is 4e-19 at the wall against
+       !  6e-3 here, because sputtered carbon arrives as C0 and takes 5.3 cm to
+       !  ionize.  Outside that layer S_wall vanishes and the model falls back
+       !  on the coronal value, so the two are combined as a maximum.
+       V0zave = sqrt(4.d0 * V0z*V0z / Pi)
+       do NR = 0, NRMAX
+          SitotC0 = RateCoef_C_IZ_S0(Var(NR,1)%T, Var(NR,1)%n) * Var(NR,1)%n * 1.d20
+          DC0 = V0zave*V0zave / (3.d0 * SitotC0)
+          Swall = rGamm0zz * rNuL(NR) * max(Var(NR,3)%n - PNsSUP(3), 0.d0) &
+               & + rGamm0iz * rNuL(NR) * max(Var(NR,2)%n - PNsSUP(2), 0.d0)
+          if( X(NR,LQnz) > 0.d0 ) then
+             FracC0(NR) = max( FracC0(NR), &
+                  &            min( Swall / ( SitotC0 * X(NR,LQnz) ), 1.d0 ) )
+          end if
+          Dnzb(NR) = FracC0(NR) * DC0 + (1.d0 - FracC0(NR)) * Dfs(NR,1)
+          tmp(NR)  = DC0 - Dfs(NR,1)
+       end do
+       Vnzb(:) = - tmp(:) * dfdx(vv, FracC0, NRMAX, 0)
     case default
        Dnzb(:) = D01(:)
        Vnzb(:) = 0.d0
     end select
+
+    if( MDLN0FL /= 0 .and. MDLNZD >= 2 ) then
+       !  The same Larsen limiter on the C0 part of the bundle diffusivity: the
+       !  C0 mean free path is 5.3 cm at the wall and the layer it makes is the
+       !  same 5.3 cm, so C0 has the hydrogen neutrals' Knudsen problem too.
+       V0zave = sqrt(4.d0 * V0z*V0z / Pi)
+       tmp(:) = dfdx(vv, X(:,LQnz), NRMAX, 0)
+       do NR = 0, NRMAX
+          if( X(NR,LQnz) <= 0.d0 ) cycle
+          dn0dV = abs(tmp(NR)) * sqrt(sst(NR)) / X(NR,LQnz)
+          Dnzb(NR) = Dnzb(NR) / (1.d0 + Dnzb(NR) * dn0dV / (FLlim * V0zave))
+       end do
+    end if
 
     if( MDLN0FL /= 0 ) then
        !  Larsen flux limiter on the slow-neutral diffusivity: the diffusive
