@@ -16,7 +16,7 @@ contains
     use tx_commons, only : allocate_txcomm, deallocate_txcomm, &
          &              rMU0, IERR, rMUb1, rMUb2, TMAX, DT, NTMAX, T_TX, PNBHT1, &
          &              PNBHT2, PNBHP, PNBHex, X, LQm4, NRMAX, TPRE, PNBCD, &
-         &              iflag_file, gkilo, &
+         &              iflag_file, &
          &              DelRho, DelN, Rho, LQe1, LQi1, LQz1, achg, ICONT, IRPIN, array_init_NR, stdin_ended
     use tx_init, only : TXINIT, TXPROF
     use tx_main, only : TXEXEC
@@ -41,7 +41,6 @@ contains
     if((PNBHP + PNBHT1 + PNBHT2 + PNBHex) /= 0) then
        rMUb1 = 1.D0
        rMUb2 = rMU0
-       GY%gnrm(4) = gkilo
     end if
 
     !  *** MENU ***
@@ -66,7 +65,6 @@ contains
                & (PNBHT1 /= 0.D0 .or. PNBHT2 /= 0.D0 .or. PNBHP /= 0.D0 .or. PNBHex /= 0.D0)) then
              rMUb1 = 1.D0
              rMUb2 = rMU0
-             GY%gnrm(4) = gkilo
              if(allocated(X)) X(0:NRMAX,LQm4) = X(0:NRMAX,LQm4) / rMUb2
           end if
           cycle
@@ -173,7 +171,6 @@ contains
                 if(rMUb2 == 1.D0) then
                    rMUb1 = 1.D0
                    rMUb2 = rMU0
-                   GY%gnrm(4) = gkilo
 
                    if(allocated(X)) X(LQm4,0:NRMAX) = X(LQm4,0:NRMAX) / rMUb2
                    if(T_TX /= 0.D0) call TXCALV(X)
