@@ -140,9 +140,9 @@ contains
                 exit
              end if
           end do
-          X(LQe1,I) = X(LQe1,I) + DelN
-          X(LQi1,I) = X(LQi1,I) + DelN * achg(2)
-          X(LQz1,I) = X(LQz1,I) + DelN * achg(3)
+          X(I,LQe1) = X(I,LQe1) + DelN
+          X(I,LQi1) = X(I,LQi1) + DelN * achg(2)
+          X(I,LQz1) = X(I,LQz1) + DelN * achg(3)
           call TXCALV(X)
        case('B')
           KID2=LINE(2:2)
@@ -172,7 +172,7 @@ contains
                    rMUb1 = 1.D0
                    rMUb2 = rMU0
 
-                   if(allocated(X)) X(LQm4,0:NRMAX) = X(LQm4,0:NRMAX) / rMUb2
+                   if(allocated(X)) X(0:NRMAX,LQm4) = X(0:NRMAX,LQm4) / rMUb2
                    if(T_TX /= 0.D0) call TXCALV(X)
                 end if
              end if
