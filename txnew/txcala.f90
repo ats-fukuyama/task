@@ -3746,14 +3746,26 @@ contains
 
     NLCMAX(NEQ) = 8
 
-    ! PROTOTYPE (MDLNZD = 2): the effective pinch the charge-state weighting
+    ! PROTOTYPE (MDLNZD >= 2): the effective pinch the charge-state weighting
     ! implies, -n_b sum_q D_q dF_q/dV, in the same conservative form the
-    ! momentum pinch uses.
+    ! momentum pinch uses.  Without it the C0 part of the flux is
+    ! -F_0 D_C0 dn_b/dV instead of -D_C0 d(F_0 n_b)/dV.
 
-    if( MDLNZD == 2 ) then
+    if( MDLNZD >= 2 ) then
        ELM(:,:,9,NEQ) = - fem_int(24,sst,Vnzb)
        NLC(9,NEQ) = LQnz
        NLCMAX(NEQ) = 9
+    end if
+
+    ! PROTOTYPE (MDLNZD = 4): the charged C1+-C5+ part of the bundle is lost
+    ! along the field in the SOL like any other ion, and the fraction rGamm0zz
+    ! of it comes back as sputtered C0 - the same recycling C6+ gets above.
+    ! No backflow from the divertor (the bundle has no PNsSUP).
+
+    if( MDLNZD == 4 ) then
+       ELM(:,:,10,NEQ) = - (1.d0 - rGamm0zz) * fem_int(2,rNuL*(1.d0-FracC0))
+       NLC(10,NEQ) = LQnz
+       NLCMAX(NEQ) = 10
     end if
 
   end subroutine LQnzCC

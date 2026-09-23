@@ -351,7 +351,7 @@ contains
          &     rNuOLL, SiLCL, SiLCBL, SiLCphL, RL, DBW, &
          &     factor_bohm, rNustar, &
          &     RLOSS, sqz, rNuDL, Ln, LT, etai_chk, kthrhos, &
-         &     SitotC0, DC0, V0zave, dn0dV, Swall, &
+         &     SitotC0, DC0, V0zave, dn0dV, Swall, fac, &
          &     RhoSOL, V0ave, Viave, DturbA, rLmean, Sitot, &
          &     rGCIM, rGIM, rHIM, OMEGAPR !09/06/17~ miki_m
 !!$    real(8) ::Cs, Lc, PTiVA, Chicl, 
@@ -1297,7 +1297,7 @@ contains
           tmp(NR)  = DC0 - Dfs(NR,1)
        end do
        Vnzb(:) = - tmp(:) * dfdx(vv, FracC0, NRMAX, 0)
-    case(3)
+    case(3, 4)
        !  Two-component C0 / C1+-C5+ model, with the C0 fraction taken from a
        !  LOCAL SOURCE BALANCE rather than from coronal equilibrium.
        !
@@ -1341,7 +1341,10 @@ contains
        do NR = 0, NRMAX
           if( X(NR,LQnz) <= 0.d0 ) cycle
           dn0dV = abs(tmp(NR)) * sqrt(sst(NR)) / X(NR,LQnz)
-          Dnzb(NR) = Dnzb(NR) / (1.d0 + Dnzb(NR) * dn0dV / (FLlim * V0zave))
+          !  The limiter scales the whole bundle flux, pinch included.
+          fac = 1.d0 / (1.d0 + Dnzb(NR) * dn0dV / (FLlim * V0zave))
+          Dnzb(NR) = Dnzb(NR) * fac
+          Vnzb(NR) = Vnzb(NR) * fac
        end do
     end if
 

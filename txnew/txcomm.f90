@@ -105,6 +105,8 @@ module tx_commons
   !         transported as the magnetized C1+-C5+ population it is.
   !     2 : charge-state-weighted,  D = F_0 D_C0 + (1-F_0) Dfs(:,1),  with the
   !         effective pinch -(D_C0 - Dfs) dF_0/dV that the weighting implies.
+  !     3 : as 2, with F_0 from the local sputtering-source balance.
+  !     4 : as 3, plus the parallel loss of the charged part in the SOL.
   !   MDLN0FL : Larsen flux limiter on the neutral diffusivities D01/D02/D03,
   !     0 off, 1 on.  D -> D / (1 + D |grad n| / (FLlim n v_th)).
   integer(4) :: MDLNZD, MDLN0FL
