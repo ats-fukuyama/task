@@ -3751,7 +3751,7 @@ contains
     ! momentum pinch uses.  Without it the C0 part of the flux is
     ! -F_0 D_C0 dn_b/dV instead of -D_C0 d(F_0 n_b)/dV.
 
-    if( MDLNZD >= 2 ) then
+    if( MDLNZD >= 2 .and. MDLNZD <= 4 ) then
        ELM(:,:,9,NEQ) = - fem_int(24,sst,Vnzb)
        NLC(9,NEQ) = LQnz
        NLCMAX(NEQ) = 9
@@ -3766,6 +3766,25 @@ contains
        ELM(:,:,10,NEQ) = - (1.d0 - rGamm0zz) * fem_int(2,rNuL*(1.d0-FracC0))
        NLC(10,NEQ) = LQnz
        NLCMAX(NEQ) = 10
+    end if
+
+    ! PROTOTYPE (MDLNZD = 5): the C0 excess flux -(D_C0 - D_c) dn_C0/dV of the
+    ! known field n_C0, and the parallel loss of the charged part n_b - n_C0.
+
+    if( MDLNZD == 5 ) then
+       ELM(:,:,9,NEQ) = - fem_int(27,sst,DC0z)
+       ELM(1:NEMAX,1,9,NEQ) = ELM(1:NEMAX,1,9,NEQ) * nC0z(0:NRMAX-1)
+       ELM(1:NEMAX,2,9,NEQ) = ELM(1:NEMAX,2,9,NEQ) * nC0z(1:NRMAX)
+       ELM(1:NEMAX,3,9,NEQ) = ELM(1:NEMAX,3,9,NEQ) * nC0z(0:NRMAX-1)
+       ELM(1:NEMAX,4,9,NEQ) = ELM(1:NEMAX,4,9,NEQ) * nC0z(1:NRMAX)
+       NLC(9,NEQ) = 0
+
+       ELM(:,:,10,NEQ) = - (1.d0 - rGamm0zz) * fem_int( 2,rNuL)
+       NLC(10,NEQ) = LQnz
+
+       ELM(:,:,11,NEQ) =   (1.d0 - rGamm0zz) * fem_int(-2,rNuL,nC0z)
+       NLC(11,NEQ) = 0
+       NLCMAX(NEQ) = 11
     end if
 
   end subroutine LQnzCC

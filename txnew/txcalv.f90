@@ -1327,12 +1327,38 @@ contains
           tmp(NR)  = DC0 - Dfs(NR,1)
        end do
        Vnzb(:) = - tmp(:) * dfdx(vv, FracC0, NRMAX, 0)
+    case(5)
+       !  Same physics as 4, written so that nothing divides by n_b.  C0 is
+       !  slaved to its source, n_C0 = S_wall/(S_0 n_e), and cannot exceed the
+       !  bundle; it enters LQnzCC as a known field lagged by one Picard sweep.
+       !  The charged part diffuses with Dfs; the extra C0 flux is
+       !  -(D_C0 - Dfs) dn_C0/dV.  The Larsen limiter acts on D_C0 through the
+       !  C0 gradient itself.
+       V0zave = sqrt(4.d0 * V0z*V0z / Pi)
+       do NR = 0, NRMAX
+          SitotC0 = RateCoef_C_IZ_S0(Var(NR,1)%T, Var(NR,1)%n) * Var(NR,1)%n * 1.d20
+          DC0z(NR) = V0zave*V0zave / (3.d0 * SitotC0)
+          Swall = rGamm0zz * rNuL(NR) * max(Var(NR,3)%n - PNsSUP(3), 0.d0) &
+               & + rGamm0iz * rNuL(NR) * max(Var(NR,2)%n - PNsSUP(2), 0.d0)
+          nC0z(NR) = min( Swall / SitotC0, max(X(NR,LQnz), 0.d0) )
+       end do
+       if( MDLN0FL /= 0 ) then
+          tmp(:) = dfdx(vv, nC0z, NRMAX, 0)
+          do NR = 0, NRMAX
+             if( nC0z(NR) <= 0.d0 ) cycle
+             dn0dV = abs(tmp(NR)) * sqrt(sst(NR)) / nC0z(NR)
+             DC0z(NR) = DC0z(NR) / (1.d0 + DC0z(NR) * dn0dV / (FLlim * V0zave))
+          end do
+       end if
+       Dnzb(:) = Dfs(:,1)
+       DC0z(:) = max(DC0z(:) - Dfs(:,1), 0.d0)
+       Vnzb(:) = 0.d0
     case default
        Dnzb(:) = D01(:)
        Vnzb(:) = 0.d0
     end select
 
-    if( MDLN0FL /= 0 .and. MDLNZD >= 2 ) then
+    if( MDLN0FL /= 0 .and. MDLNZD >= 2 .and. MDLNZD <= 4 ) then
        !  The same Larsen limiter on the C0 part of the bundle diffusivity: the
        !  C0 mean free path is 5.3 cm at the wall and the layer it makes is the
        !  same 5.3 cm, so C0 has the hydrogen neutrals' Knudsen problem too.

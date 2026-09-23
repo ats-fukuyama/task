@@ -107,6 +107,9 @@ module tx_commons
   !         effective pinch -(D_C0 - Dfs) dF_0/dV that the weighting implies.
   !     3 : as 2, with F_0 from the local sputtering-source balance.
   !     4 : as 3, plus the parallel loss of the charged part in the SOL.
+  !     5 : as 4, but with the C0 density n_C0 = min(S_wall/(S_0 n_e), n_b)
+  !         carried as a known field, so the flux -D_c dn_b/dV
+  !         - (D_C0-D_c) dn_C0/dV and the loss are linear in n_b.
   !   MDLN0FL : Larsen flux limiter on the neutral diffusivities D01/D02/D03,
   !     0 off, 1 on.  D -> D / (1 + D |grad n| / (FLlim n v_th)).
   integer(4) :: MDLNZD, MDLN0FL
@@ -295,7 +298,7 @@ module tx_commons
        & rNuION, rNu0b, rNuL, rNuiCX, rNubCX, rNuiCXT, &
        & rNuei, rNuii, rNuiz, rNuTei, rNuTez, rNuTiz, rNuD, rNuOL, &
        & WPM, FVpch, FQLcoef, FQLcoef1, FQLcoef2, FQCcoef, &
-       & rNuB, rNuLB, ft, VWpch, D01, D02, D03, D0z, Dnzb, Vnzb, FracC0, &
+       & rNuB, rNuLB, ft, VWpch, D01, D02, D03, D0z, Dnzb, Vnzb, FracC0, nC0z, DC0z, &
        & SiVizA, SiVcxA, SiVa6A, SiVsefA, wexb, &
        & UgV, PNbVinv, Vbpara
   real(8), dimension(:), allocatable :: & ! Ripple transport
@@ -482,7 +485,7 @@ contains
        allocate(WPM,     FVpch,   FQLcoef, FQLcoef1, FQLcoef2, FQCcoef, source=array_init_NR,   stat=ierl(4))
        allocate(rNuB,    rNuLB,   ft,      VWpch,                       source=array_init_NR,   stat=ierl(5))
        allocate(D01,     D02,     D03,     D0z,                         source=array_init_NR,   stat=ierl(6))
-       allocate(Dnzb,    Vnzb,    FracC0,                               source=array_init_NR,   stat=ierl(6))
+       allocate(Dnzb,    Vnzb,    FracC0,  nC0z, DC0z,                             source=array_init_NR,   stat=ierl(6))
        allocate(SiVizA,  SiVcxA,  SiVa6A,  SiVsefA,  wexb,              source=array_init_NR,   stat=ierl(7))
        allocate(UgV,     PNbVinv, Vbpara,                               source=array_init_NR,   stat=ierl(8))
        allocate(Ubrp,    RUbrp,   Dbrp,    DltRP,    DltRP_mid,         source=array_init_NR,   stat=ierl(9))
@@ -619,7 +622,7 @@ contains
     deallocate(WPM,    FVpch,  FQLcoef,FQLcoef1,FQLcoef2,FQCcoef)
     deallocate(rNuB,   rNuLB,  ft,     VWpch)
     deallocate(D01,    D02,    D03,    D0z)
-    deallocate(Dnzb,   Vnzb,   FracC0)
+    deallocate(Dnzb,   Vnzb,   FracC0, nC0z, DC0z)
     deallocate(UgV,    PNbVinv,Vbpara)
     deallocate(Ubrp,   RUbrp,  Dbrp,   DltRP,   DltRP_mid)
     deallocate(rNubL,  rip_rat,rNubrp1,rNubrp2)
