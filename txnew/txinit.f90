@@ -357,6 +357,8 @@ contains
     !   PROTOTYPE, off by default (see tx_commons):
     !     MDLSOL : width of the parallel-loss ramp outside the separatrix
     MDLSOL = 0
+    !     MDLWBC : density boundary condition at the wall (PROTOTYPE)
+    MDLWBC = 0
 
     !   Parameter of heat loss to divertor (default = 1.0)
     FSLTs(1:NSM) = 1.d0
@@ -2034,7 +2036,7 @@ module tx_parameter_control
        & iSUPG3,iSUPG6,iSUPG8,SUPGstab,iprestab, &
        & MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDLETB, &
        & MDLNZD,MDLN0FL,FLlim, &
-       & MDLSOL, &
+       & MDLSOL,MDLWBC, &
        & iPoyntpol,iPoynttor,IDIAG,midbg,IGBDF,ISMTHD,MDLNBD,MDBMCX,imodel_neo, & ! 09/06/17~ miki_m
        & EpsHM, HPN  ! 10/08/06 miki_m
   private :: TXPLST

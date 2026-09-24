@@ -277,6 +277,17 @@ contains
 !    call BOUNDARY(NRMAX,LQe1,0,Var(NRMAX-1,1)%n)
 !    call BOUNDARY(NRMAX,LQi1,0,Var(NRMAX-1,2)%n)
 !    call BOUNDARY(NRMAX,LQz1,0,Var(NRMAX-1,3)%n)
+
+    ! PROTOTYPE (MDLWBC = 1): the lines above, i.e. the zero density gradient
+    ! at the wall imposed explicitly instead of only weakly.  Without it the
+    ! radial particle flux through rho = rhob is not zero and depends on the
+    ! last element: from +57% to -40% of the separatrix flux between
+    ! NRMAX = 60 and 120 with MDLSOL = 1, FSLP = 1.
+    if( MDLWBC == 1 ) then
+       call BOUNDARY(NRMAX,LQe1,0,Var(NRMAX-1,1)%n)
+       call BOUNDARY(NRMAX,LQi1,0,Var(NRMAX-1,2)%n)
+       call BOUNDARY(NRMAX,LQz1,0,Var(NRMAX-1,3)%n)
+    end if
 !!    call BOUNDARY(0,LQe3,0,Var(1,1)%BUpar)
 !!    call BOUNDARY(0,LQi3,0,Var(1,2)%BUpar)
 !!    call BOUNDARY(0,LQz3,0,Var(1,3)%BUpar)

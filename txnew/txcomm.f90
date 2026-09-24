@@ -120,6 +120,10 @@ module tx_commons
   !     1 : the ion banana width at the separatrix, sqrt(eps) rho_theta, from the
   !         local edge T_i and B_theta.  Parameter-free.
   integer(4) :: MDLSOL
+  !   MDLWBC : density boundary condition at the wall rho = rhob.
+  !     0 : zero gradient imposed only weakly (current code).
+  !     1 : n(NRMAX) = n(NRMAX-1), the zero gradient imposed explicitly.
+  integer(4) :: MDLWBC
   real(8) :: FSADV, FSADVB, FSUG, FSG0iz
   real(8), dimension(NSM) :: FSMPCH, FSTPTM, FSPARV, FSLTs
   real(8), dimension(1:2) :: FSNC, FSNCB
