@@ -365,7 +365,8 @@ contains
     real(8) :: zrNuee, zxi, znusteinv, zLamEZ, zCRZ, zsigma0, zsigmaneo
     real(8) :: rhoni, dvexbdr ! CDBM
     real(8) :: xb, fp, fdp, gfun
-    real(8), dimension(0:NRMAX) :: pres, ddPhidpsi, tmp
+    real(8), dimension(0:NRMAX) :: pres, ddPhidpsi, tmp, tmp2
+    real(8), dimension(:), allocatable, save :: glC0, limC0, lim01
     real(8) :: Scdbm   ! magnetic shear in the form CDBM takes, (r/q)dq/dr
     ! Mainly for derivatives
     ! NOTE:
@@ -1343,12 +1344,32 @@ contains
           nC0z(NR) = min( Swall / SitotC0, max(X(NR,LQnz), 0.d0) )
        end do
        if( MDLN0FL /= 0 ) then
-          tmp(:) = dfdx(vv, nC0z, NRMAX, 0)
-          do NR = 0, NRMAX
-             if( nC0z(NR) <= 0.d0 ) cycle
-             dn0dV = abs(tmp(NR)) * sqrt(sst(NR)) / nC0z(NR)
-             DC0z(NR) = DC0z(NR) / (1.d0 + DC0z(NR) * dn0dV / (FLlim * V0zave))
-          end do
+          !  MDLN0FL = 3: |grad n_C0|/n_C0 is taken from the first sweep of the
+          !  time step (where the iterate is still the previous time level)
+          !  and held for the rest of the step.
+          if( .not. allocated(glC0) ) allocate(glC0(0:NRMAX), source=0.d0)
+          if( MDLN0FL /= 3 .or. IC == 1 ) then
+             tmp(:) = dfdx(vv, nC0z, NRMAX, 0)
+             do NR = 0, NRMAX
+                if( nC0z(NR) <= 0.d0 ) then
+                   glC0(NR) = 0.d0
+                else
+                   glC0(NR) = abs(tmp(NR)) * sqrt(sst(NR)) / nC0z(NR)
+                end if
+             end do
+          end if
+          if( MDLN0FL == 4 ) then
+             !  Same sweep averaging of the factor as for D01 below.
+             if( .not. allocated(limC0) ) allocate(limC0(0:NRMAX), source=1.d0)
+             if( IC == 1 ) then
+                limC0(:) = 1.d0 / (1.d0 + DC0z(:) * glC0(:) / (FLlim * V0zave))
+             else
+                limC0(:) = 0.5d0 * (limC0(:) + 1.d0 / (1.d0 + DC0z(:) * glC0(:) / (FLlim * V0zave)))
+             end if
+             DC0z(:) = DC0z(:) * limC0(:)
+          else
+             DC0z(:) = DC0z(:) / (1.d0 + DC0z(:) * glC0(:) / (FLlim * V0zave))
+          end if
        end if
        Dnzb(:) = Dfs(:,1)
        DC0z(:) = max(DC0z(:) - Dfs(:,1), 0.d0)
@@ -1379,11 +1400,44 @@ contains
        !  flux D |grad n| may not exceed FLlim n v.  With lambda = 3 D / v this
        !  is D -> D / (1 + (lambda/(3 FLlim)) |grad n| / n).
        V0zave = sqrt(4.d0 * V0*V0 / Pi)
-       tmp(:) = dfdx(vv, PN01V, NRMAX, 0)
+       !  MDLN0FL = 3 (diagnostic): the limiter factor from the previous time
+       !  level X instead of the current Picard iterate.
+       if( MDLN0FL == 3 ) then
+          tmp2(:) = X(:,LQn1)
+       else
+          tmp2(:) = PN01V(:)
+       end if
+       tmp(:) = dfdx(vv, tmp2, NRMAX, 0)
+       W01(:) = 0.d0
+       if( .not. allocated(lim01) ) allocate(lim01(0:NRMAX), source=1.d0)
        do NR = 0, NRMAX
-          if( PN01V(NR) <= 0.d0 ) cycle
-          dn0dV = abs(tmp(NR)) * sqrt(sst(NR)) / PN01V(NR)
-          D01(NR) = D01(NR) / (1.d0 + D01(NR) * dn0dV / (FLlim * V0zave))
+          if( tmp2(NR) <= 0.d0 ) cycle
+          dn0dV = abs(tmp(NR)) * sqrt(sst(NR)) / tmp2(NR)
+          fac = D01(NR) * dn0dV / (FLlim * V0zave)
+          if( MDLN0FL == 2 ) then
+             !  The flux -D n'/(1+R), R = D |grad n|/(FLlim v n), linearized
+             !  about the current iterate instead of lagging D/(1+R):
+             !     Gamma = -D/(1+R)^2 n' - D R/(1+R)^2 (n'/n) n,
+             !  which is the same flux at convergence.  Lagging D/(1+R) gives a
+             !  Picard multiplier -R/(1+R), i.e. a period-two cycle wherever the
+             !  limiter is active (R >> 1).
+             D01(NR) = D01(NR) / (1.d0 + fac)**2
+             W01(NR) = - D01(NR) * fac * tmp(NR) / tmp2(NR)
+          else if( MDLN0FL == 4 ) then
+             !  The factor 1/(1+R) averaged with its value from the previous
+             !  sweep of the same time step.  Lagging it outright gives the
+             !  Picard map a multiplier -R/(1+R) -> -1 where R >> 1 (a period
+             !  two cycle); averaging maps that multiplier to about 0.  The
+             !  fixed point is the same as for MDLN0FL = 1.
+             if( IC == 1 ) then
+                lim01(NR) = 1.d0 / (1.d0 + fac)
+             else
+                lim01(NR) = 0.5d0 * (lim01(NR) + 1.d0 / (1.d0 + fac))
+             end if
+             D01(NR) = D01(NR) * lim01(NR)
+          else
+             D01(NR) = D01(NR) / (1.d0 + fac)
+          end if
        end do
     end if
 

@@ -110,8 +110,12 @@ module tx_commons
   !     5 : as 4, but with the C0 density n_C0 = min(S_wall/(S_0 n_e), n_b)
   !         carried as a known field, so the flux -D_c dn_b/dV
   !         - (D_C0-D_c) dn_C0/dV and the loss are linear in n_b.
-  !   MDLN0FL : Larsen flux limiter on the neutral diffusivities D01/D02/D03,
-  !     0 off, 1 on.  D -> D / (1 + D |grad n| / (FLlim n v_th)).
+  !   MDLN0FL : Larsen flux limiter on the slow-neutral diffusivity D01,
+  !     0 off, 1 on (D/(1+R) lagged), 2 on (linearized: D/(1+R)^2 plus a
+  !     convective term, same flux at convergence), 3 on (D/(1+R) with R
+  !     from the previous time level, held fixed during the Picard sweeps),
+  !     4 on (1/(1+R) averaged with its previous-sweep value; same fixed
+  !     point as 1).  D -> D / (1 + D |grad n| / (FLlim n v_th)).
   integer(4) :: MDLNZD, MDLN0FL
   real(8) :: FLlim
   !   MDLSOL : width over which the parallel loss turns on outside the separatrix.
@@ -122,7 +126,9 @@ module tx_commons
   integer(4) :: MDLSOL
   !   MDLWBC : density boundary condition at the wall rho = rhob.
   !     0 : zero gradient imposed only weakly (current code).
-  !     1 : n(NRMAX) = n(NRMAX-1), the zero gradient imposed explicitly.
+  !     1 : n(NRMAX) = n(NRMAX-1), the zero gradient imposed explicitly
+  !         (Dirichlet value from the previous Picard sweep).
+  !     2 : the same condition as a row of the system, solved implicitly.
   integer(4) :: MDLWBC
   real(8) :: FSADV, FSADVB, FSUG, FSG0iz
   real(8), dimension(NSM) :: FSMPCH, FSTPTM, FSPARV, FSLTs
@@ -302,7 +308,7 @@ module tx_commons
        & rNuION, rNu0b, rNuL, rNuiCX, rNubCX, rNuiCXT, &
        & rNuei, rNuii, rNuiz, rNuTei, rNuTez, rNuTiz, rNuD, rNuOL, &
        & WPM, FVpch, FQLcoef, FQLcoef1, FQLcoef2, FQCcoef, &
-       & rNuB, rNuLB, ft, VWpch, D01, D02, D03, D0z, Dnzb, Vnzb, FracC0, nC0z, DC0z, &
+       & rNuB, rNuLB, ft, VWpch, D01, D02, D03, D0z, Dnzb, Vnzb, FracC0, nC0z, DC0z, W01, &
        & SiVizA, SiVcxA, SiVa6A, SiVsefA, wexb, &
        & UgV, PNbVinv, Vbpara
   real(8), dimension(:), allocatable :: & ! Ripple transport
@@ -489,7 +495,7 @@ contains
        allocate(WPM,     FVpch,   FQLcoef, FQLcoef1, FQLcoef2, FQCcoef, source=array_init_NR,   stat=ierl(4))
        allocate(rNuB,    rNuLB,   ft,      VWpch,                       source=array_init_NR,   stat=ierl(5))
        allocate(D01,     D02,     D03,     D0z,                         source=array_init_NR,   stat=ierl(6))
-       allocate(Dnzb,    Vnzb,    FracC0,  nC0z, DC0z,                             source=array_init_NR,   stat=ierl(6))
+       allocate(Dnzb,    Vnzb,    FracC0,  nC0z, DC0z, W01,                             source=array_init_NR,   stat=ierl(6))
        allocate(SiVizA,  SiVcxA,  SiVa6A,  SiVsefA,  wexb,              source=array_init_NR,   stat=ierl(7))
        allocate(UgV,     PNbVinv, Vbpara,                               source=array_init_NR,   stat=ierl(8))
        allocate(Ubrp,    RUbrp,   Dbrp,    DltRP,    DltRP_mid,         source=array_init_NR,   stat=ierl(9))
@@ -626,7 +632,7 @@ contains
     deallocate(WPM,    FVpch,  FQLcoef,FQLcoef1,FQLcoef2,FQCcoef)
     deallocate(rNuB,   rNuLB,  ft,     VWpch)
     deallocate(D01,    D02,    D03,    D0z)
-    deallocate(Dnzb,   Vnzb,   FracC0, nC0z, DC0z)
+    deallocate(Dnzb,   Vnzb,   FracC0, nC0z, DC0z, W01)
     deallocate(UgV,    PNbVinv,Vbpara)
     deallocate(Ubrp,   RUbrp,  Dbrp,   DltRP,   DltRP_mid)
     deallocate(rNubL,  rip_rat,rNubrp1,rNubrp2)

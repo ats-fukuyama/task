@@ -287,6 +287,12 @@ contains
        call BOUNDARY(NRMAX,LQe1,0,Var(NRMAX-1,1)%n)
        call BOUNDARY(NRMAX,LQi1,0,Var(NRMAX-1,2)%n)
        call BOUNDARY(NRMAX,LQz1,0,Var(NRMAX-1,3)%n)
+    else if( MDLWBC == 2 ) then
+       ! The same condition as a row of the system, n(NRMAX) - n(NRMAX-1) = 0,
+       ! rather than a Dirichlet value lagged by one Picard sweep.
+       call BOUNDARY_ZEROGRAD(LQe1)
+       call BOUNDARY_ZEROGRAD(LQi1)
+       call BOUNDARY_ZEROGRAD(LQz1)
     end if
 !!    call BOUNDARY(0,LQe3,0,Var(1,1)%BUpar)
 !!    call BOUNDARY(0,LQi3,0,Var(1,2)%BUpar)
@@ -3615,13 +3621,22 @@ contains
     ELM(:,:,6,NEQ) = - rGamm0 * PNsSUP(2) * fem_int(-1,rNuL)
     NLC(6,NEQ) = 0
 
+    NLCMAX(NEQ) = 6
+
+    ! PROTOTYPE (MDLN0FL = 2): the convective half of the linearized Larsen
+    ! flux, Gamma = sst W01 n (see TXCALV).
+
+    if( MDLN0FL == 2 ) then
+       ELM(:,:,7,NEQ) = - fem_int(24,sst,W01)
+       NLC(7,NEQ) = LQn1
+       NLCMAX(NEQ) = 7
+    end if
+
 !    ! Gas puff (alternative way to impose B.C.;
 !                Deactivate call boundary(lqn1) if this term is activated)
 !
 !    ELM(:,:,7,NEQ) = fem_int(-3,suft,rGASPFA)
 !    NLC(7,NEQ) = 0
-
-    NLCMAX(NEQ) = 6
 
   end subroutine LQn1CC
 
@@ -4127,6 +4142,29 @@ contains
     end if
 
   end subroutine BOUNDARY
+
+!***************************************************************
+!
+!   Zero-gradient row at the wall: X(NRMAX,LQ) - X(NRMAX-1,LQ) = 0
+!     (PROTOTYPE, MDLWBC = 2).  Only the row is replaced; the other
+!     equations keep their coupling to X(NRMAX,LQ), which is solved for.
+!
+!***************************************************************
+
+  subroutine BOUNDARY_ZEROGRAD(LQ)
+
+    integer(4), intent(in) :: LQ
+
+    ALC(NRMAX,:,LQ) = 0.d0
+    BLC(NRMAX,:,LQ) = 0.d0
+    CLC(NRMAX,:,LQ) = 0.d0
+    PLC(NRMAX,:,LQ) = 0.d0
+
+    NLCR(1,LQ,1) = LQ
+    BLC(NRMAX,1,LQ) =   1.d0
+    CLC(NRMAX,1,LQ) = - 1.d0
+
+  end subroutine BOUNDARY_ZEROGRAD
 
 !***************************************************************
 !
