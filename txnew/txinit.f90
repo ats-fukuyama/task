@@ -362,6 +362,7 @@ contains
     MDLC0FL = 0
     RLXN0   = 0.d0
     FLRAMP  = 0
+    IDGC0   = 0
 
     !   Parameter of heat loss to divertor (default = 1.0)
     FSLTs(1:NSM) = 1.d0
@@ -2042,7 +2043,7 @@ module tx_parameter_control
        & iSUPG3,iSUPG6,iSUPG8,SUPGstab,iprestab, &
        & MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDLETB, &
        & MDLNZD,MDLN0FL,FLlim, &
-       & MDLSOL,MDLWBC,MDLC0FL,RLXN0,FLRAMP, &
+       & MDLSOL,MDLWBC,MDLC0FL,RLXN0,FLRAMP,IDGC0, &
        & iPoyntpol,iPoynttor,IDIAG,midbg,IGBDF,ISMTHD,MDLNBD,MDBMCX,imodel_neo, & ! 09/06/17~ miki_m
        & EpsHM, HPN  ! 10/08/06 miki_m
   private :: TXPLST

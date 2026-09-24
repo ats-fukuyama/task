@@ -3738,6 +3738,8 @@ contains
   subroutine LQnzCC
 
     integer(4) :: NEQ = LQnz, i = 3, j = 2
+    integer(4) :: NE
+    real(8) :: V0zaveL, Del, sstl, dnC0, anC0, Fel
 
     ELM(:,:,0,NEQ) = fem_int(1) * invDT
     NLC(0,NEQ) = LQnz
@@ -3806,11 +3808,32 @@ contains
     ! known field n_C0, and the parallel loss of the charged part n_b - n_C0.
 
     if( MDLNZD == 5 ) then
-       ELM(:,:,9,NEQ) = - fem_int(27,sst,DC0z)
-       ELM(1:NEMAX,1,9,NEQ) = ELM(1:NEMAX,1,9,NEQ) * nC0z(0:NRMAX-1)
-       ELM(1:NEMAX,2,9,NEQ) = ELM(1:NEMAX,2,9,NEQ) * nC0z(1:NRMAX)
-       ELM(1:NEMAX,3,9,NEQ) = ELM(1:NEMAX,3,9,NEQ) * nC0z(0:NRMAX-1)
-       ELM(1:NEMAX,4,9,NEQ) = ELM(1:NEMAX,4,9,NEQ) * nC0z(1:NRMAX)
+       if( MDLC0FL == 2 ) then
+          ! The C0 excess flux assembled element by element, with the Larsen
+          ! limiter evaluated on the element (mean n_C0 and element gradient)
+          ! rather than at the nodes, where n_C0 = 0 inside the separatrix
+          ! makes |grad n_C0|/n_C0 a 0/0.  F_e enters the two rows of the
+          ! element with opposite signs, so the term is exactly conservative.
+          V0zaveL = sqrt(4.d0 * V0z*V0z / Pi)
+          ELM(:,:,9,NEQ) = 0.d0
+          do NE = 1, NEMAX
+             Del  = 0.5d0 * (DC0z(NE-1) + DC0z(NE))
+             sstl = 0.5d0 * (sst(NE-1)  + sst(NE))
+             dnC0 = nC0z(NE) - nC0z(NE-1)
+             anC0 = 0.5d0 * (nC0z(NE-1) + nC0z(NE))
+             if( anC0 > 0.d0 ) Del = Del / (1.d0 + Del * abs(dnC0) / hv(NE) * sqrt(sstl) &
+                  &                                    / (FLlim * V0zaveL * anC0))
+             Fel = sstl * Del * dnC0 / hv(NE)
+             ELM(NE,1,9,NEQ) =   Fel
+             ELM(NE,3,9,NEQ) = - Fel
+          end do
+       else
+          ELM(:,:,9,NEQ) = - fem_int(27,sst,DC0z)
+          ELM(1:NEMAX,1,9,NEQ) = ELM(1:NEMAX,1,9,NEQ) * nC0z(0:NRMAX-1)
+          ELM(1:NEMAX,2,9,NEQ) = ELM(1:NEMAX,2,9,NEQ) * nC0z(1:NRMAX)
+          ELM(1:NEMAX,3,9,NEQ) = ELM(1:NEMAX,3,9,NEQ) * nC0z(0:NRMAX-1)
+          ELM(1:NEMAX,4,9,NEQ) = ELM(1:NEMAX,4,9,NEQ) * nC0z(1:NRMAX)
+       end if
        NLC(9,NEQ) = 0
 
        ELM(:,:,10,NEQ) = - (1.d0 - rGamm0zz) * fem_int( 2,rNuL)

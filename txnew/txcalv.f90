@@ -365,7 +365,8 @@ contains
     real(8) :: zrNuee, zxi, znusteinv, zLamEZ, zCRZ, zsigma0, zsigmaneo
     real(8) :: rhoni, dvexbdr ! CDBM
     real(8) :: xb, fp, fdp, gfun
-    real(8), dimension(0:NRMAX) :: pres, ddPhidpsi, tmp, tmp2
+    real(8), dimension(0:NRMAX) :: pres, ddPhidpsi, tmp, tmp2, dc0diag
+    integer(4) :: iuc0
     real(8), dimension(:), allocatable, save :: glC0, limC0, lim01
     real(8) :: Scdbm   ! magnetic shear in the form CDBM takes, (r/q)dq/dr
     ! Mainly for derivatives
@@ -1342,8 +1343,9 @@ contains
           Swall = rGamm0zz * rNuL(NR) * max(Var(NR,3)%n - PNsSUP(3), 0.d0) &
                & + rGamm0iz * rNuL(NR) * max(Var(NR,2)%n - PNsSUP(2), 0.d0)
           nC0z(NR) = min( Swall / SitotC0, max(X(NR,LQnz), 0.d0) )
+          dc0diag(NR) = Swall / SitotC0
        end do
-       if( MDLN0FL /= 0 .or. MDLC0FL /= 0 ) then
+       if( MDLC0FL /= 2 .and. ( MDLN0FL /= 0 .or. MDLC0FL /= 0 ) ) then
           !  MDLN0FL = 3: |grad n_C0|/n_C0 is taken from the first sweep of the
           !  time step (where the iterate is still the previous time level)
           !  and held for the rest of the step.
@@ -1372,6 +1374,15 @@ contains
           end if
        end if
        Dnzb(:) = Dfs(:,1)
+       if( IDGC0 /= 0 ) then
+          open(newunit=iuc0, file='tx_c0.dat', status='replace', action='write')
+          write(iuc0,'(A)') '# NR rho vv SwallOverS0ne nC0z n_b DC0z_limited Dfs rNuL glC0'
+          do NR = 0, NRMAX
+             write(iuc0,'(I5,9ES14.6)') NR, rho(NR), vv(NR), dc0diag(NR), nC0z(NR), X(NR,LQnz), &
+                  & DC0z(NR), Dfs(NR,1), rNuL(NR), glC0(NR)
+          end do
+          close(iuc0)
+       end if
        DC0z(:) = max(DC0z(:) - Dfs(:,1), 0.d0)
        Vnzb(:) = 0.d0
     case default

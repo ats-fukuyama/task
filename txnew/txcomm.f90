@@ -119,11 +119,14 @@ module tx_commons
   integer(4) :: MDLNZD, MDLN0FL
   !   MDLC0FL : 1 applies the Larsen limiter to D_C0 of MDLNZD = 5 even when
   !     MDLN0FL = 0 (no limiter on the hydrogen slow neutrals).
+  !     2: the same limiter on the C0 flux, evaluated element by element.
   integer(4) :: MDLC0FL
   !   RLXN0  : Picard under-relaxation weight on LQn1-LQn3 only (0 = off).
   !   FLRAMP : sweeps over which the D01 limiter is ramped to full strength.
   real(8) :: RLXN0
   integer(4) :: FLRAMP
+  !   IDGC0 : /= 0 writes the C0 fields of MDLNZD = 5 to tx_c0.dat (diagnostic).
+  integer(4) :: IDGC0
   real(8) :: FLlim
   !   MDLSOL : width over which the parallel loss turns on outside the separatrix.
   !     0 : the historical DBW, built from half the on-axis ion temperature,
