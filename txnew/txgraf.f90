@@ -934,6 +934,14 @@ contains
        GTL(NG) = real(T_TX)
     end if
 
+    !  X(:,LQm4) carries psi / rMUb2 and rMUb2 is rMU0 once a beam is present,
+    !  so index 4 wants the kilo normalisation there and not otherwise.  It
+    !  belongs here, with every other gnrm: GY%gnrm is allocated by
+    !  allocate_txgraf, which TXMENU only reaches inside its RUN branch, so
+    !  setting it from TXMENU wrote past an unallocated array whenever the beam
+    !  came in on the parm file.  Here it also covers GYT, which TXMENU never did.
+    if( rMUb1 == 1.d0 ) GYL%gnrm(  4) = gkilo
+
     do NR = 0, NRMAX
 
        !  *** Dependent variables ***************************************

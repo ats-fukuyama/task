@@ -1557,7 +1557,10 @@ contains
           X(NR,LQe7) =-AJphVRL(NR) / (AEE * 1.D20)
           X(NR,LQe4) = X(NR,LQe7) / aat(NR) ! approx
           AJOH(NR)   = X(NR,LQe7) / ait(NR)
-          X(NR,LQm4) = PsiV(NR)
+          !  X(:,LQm4) carries psi / rMUb2 -- TXCALV forms PsiV as
+          !  X(:,LQm4) * rMUb2 -- and rMUb2 is rMU0 rather than 1 once a beam
+          !  is present.  PsiV here comes from the equilibrium in Wb.
+          X(NR,LQm4) = PsiV(NR) / rMUb2
        end do
 
     else
