@@ -1,6 +1,6 @@
 TASK/TX V5.52.20 compatibility parameters for the V5.60.00 executable.
 
-Merge these lines into the &tx group of a txparm to run V5.60.00 with the
+Merge the namelist lines below into the tx group of a txparm to run V5.60.00 with the
 default physics of V5.52.20.  They are the only defaults that changed
 between V5.52.20 and V5.60.00; all other defaults are unchanged.
 
