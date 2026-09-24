@@ -293,6 +293,14 @@ contains
        call BOUNDARY_ZEROGRAD(LQe1)
        call BOUNDARY_ZEROGRAD(LQi1)
        call BOUNDARY_ZEROGRAD(LQz1)
+    else if( MDLWBC == 3 ) then
+       ! Constrained-DOF form: with n(NRMAX) = n(NRMAX-1) the test function of
+       ! the last node is phi(NRMAX-1) + phi(NRMAX), so the wall row of the
+       ! continuity equation is added to row NRMAX-1 before being replaced by
+       ! the constraint.
+       call BOUNDARY_ZEROGRAD(LQe1, fold=.true.)
+       call BOUNDARY_ZEROGRAD(LQi1, fold=.true.)
+       call BOUNDARY_ZEROGRAD(LQz1, fold=.true.)
     end if
 !!    call BOUNDARY(0,LQe3,0,Var(1,1)%BUpar)
 !!    call BOUNDARY(0,LQi3,0,Var(1,2)%BUpar)
@@ -4151,9 +4159,24 @@ contains
 !
 !***************************************************************
 
-  subroutine BOUNDARY_ZEROGRAD(LQ)
+  subroutine BOUNDARY_ZEROGRAD(LQ,fold)
 
     integer(4), intent(in) :: LQ
+    logical, intent(in), optional :: fold
+    integer(4) :: NC
+
+    if( present(fold) ) then
+       if( fold ) then
+          ! Row NRMAX couples X(NRMAX-1,v) through CLC and X(NRMAX,v) through
+          ! BLC; in row NRMAX-1 the same unknowns sit in BLC and ALC.
+          do NC = 0, NLCMAX(LQ)
+             if( NLCR(NC,LQ,1) /= NLC(NC,LQ) ) stop 'BOUNDARY_ZEROGRAD: NLCR /= NLC'
+             BLC(NRMAX-1,NC,LQ) = BLC(NRMAX-1,NC,LQ) + CLC(NRMAX,NC,LQ)
+             ALC(NRMAX-1,NC,LQ) = ALC(NRMAX-1,NC,LQ) + BLC(NRMAX,NC,LQ)
+             if( NC >= 1 ) PLC(NRMAX-1,NC,LQ) = PLC(NRMAX-1,NC,LQ) + PLC(NRMAX,NC,LQ)
+          end do
+       end if
+    end if
 
     ALC(NRMAX,:,LQ) = 0.d0
     BLC(NRMAX,:,LQ) = 0.d0

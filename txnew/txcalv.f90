@@ -1343,7 +1343,7 @@ contains
                & + rGamm0iz * rNuL(NR) * max(Var(NR,2)%n - PNsSUP(2), 0.d0)
           nC0z(NR) = min( Swall / SitotC0, max(X(NR,LQnz), 0.d0) )
        end do
-       if( MDLN0FL /= 0 ) then
+       if( MDLN0FL /= 0 .or. MDLC0FL /= 0 ) then
           !  MDLN0FL = 3: |grad n_C0|/n_C0 is taken from the first sweep of the
           !  time step (where the iterate is still the previous time level)
           !  and held for the rest of the step.
@@ -1414,6 +1414,9 @@ contains
           if( tmp2(NR) <= 0.d0 ) cycle
           dn0dV = abs(tmp(NR)) * sqrt(sst(NR)) / tmp2(NR)
           fac = D01(NR) * dn0dV / (FLlim * V0zave)
+          ! PROTOTYPE (FLRAMP): continuation of the limiter strength over the
+          ! first FLRAMP sweeps of each time step; full strength from then on.
+          if( FLRAMP > 0 ) fac = fac * min(1.d0, dble(IC) / dble(FLRAMP))
           if( MDLN0FL == 2 ) then
              !  The flux -D n'/(1+R), R = D |grad n|/(FLlim v n), linearized
              !  about the current iterate instead of lagging D/(1+R):

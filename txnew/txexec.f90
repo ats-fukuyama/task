@@ -87,7 +87,7 @@ contains
          &                 ErV_FIX, IERR, LQb1, LQn1, LQn2, LQr1, &
          &                 tiny_cap, EPS, IDIAG, NTSTEP, ICCALC, iaxproj, &
          &                 FSRP, MODEAV, XOLD, bdf_history_ready, bdf_history_dt, &
-         &                 NT, DT, rIP, MDLPCK, ICONT, AVE_IC, MODECV, oldmix, oldmixa, Var
+         &                 NT, DT, rIP, MDLPCK, ICONT, AVE_IC, MODECV, oldmix, oldmixa, Var, RLXN0, FLRAMP, LQn1, LQn3
     use tx_variables
     use tx_coefficients, only : TXCALA
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ, &
@@ -483,6 +483,9 @@ contains
 
           ! Convergence check
           call check_convergence(IC,IDIV,istat)
+          ! PROTOTYPE (FLRAMP): the limiter strength is still being ramped up;
+          ! a sweep with it below full strength may not end the time step.
+          if(istat == 0 .and. FLRAMP > 0 .and. IC < FLRAMP) istat = 1
           if(IDIAGL >= 5) call dump_iter_floor(NT,IC)
 #ifdef TX_PROFILE
           call CPU_TIME(prof_ic_t1)
@@ -525,6 +528,10 @@ contains
              end if
 
              if(relax > 0.d0) XN = (1.d0 - relax) * XN + relax * XP
+             ! PROTOTYPE (RLXN0): under-relaxation of the three hydrogen neutral
+             ! densities only, RLXN0 being the weight of the previous sweep.
+             if(RLXN0 > 0.d0) XN(:,LQn1:LQn3) = (1.d0 - RLXN0) * XN(:,LQn1:LQn3) &
+                  &                           + RLXN0 * XP(:,LQn1:LQn3)
              cycle L_IC
           end if
 

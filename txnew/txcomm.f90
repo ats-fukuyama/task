@@ -117,6 +117,13 @@ module tx_commons
   !     4 on (1/(1+R) averaged with its previous-sweep value; same fixed
   !     point as 1).  D -> D / (1 + D |grad n| / (FLlim n v_th)).
   integer(4) :: MDLNZD, MDLN0FL
+  !   MDLC0FL : 1 applies the Larsen limiter to D_C0 of MDLNZD = 5 even when
+  !     MDLN0FL = 0 (no limiter on the hydrogen slow neutrals).
+  integer(4) :: MDLC0FL
+  !   RLXN0  : Picard under-relaxation weight on LQn1-LQn3 only (0 = off).
+  !   FLRAMP : sweeps over which the D01 limiter is ramped to full strength.
+  real(8) :: RLXN0
+  integer(4) :: FLRAMP
   real(8) :: FLlim
   !   MDLSOL : width over which the parallel loss turns on outside the separatrix.
   !     0 : the historical DBW, built from half the on-axis ion temperature,
@@ -129,6 +136,8 @@ module tx_commons
   !     1 : n(NRMAX) = n(NRMAX-1), the zero gradient imposed explicitly
   !         (Dirichlet value from the previous Picard sweep).
   !     2 : the same condition as a row of the system, solved implicitly.
+  !     3 : as 2, with the wall row of the continuity equation first added
+  !         to row NRMAX-1 (constrained-DOF Galerkin form).
   integer(4) :: MDLWBC
   real(8) :: FSADV, FSADVB, FSUG, FSG0iz
   real(8), dimension(NSM) :: FSMPCH, FSTPTM, FSPARV, FSLTs
