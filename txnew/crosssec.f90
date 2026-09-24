@@ -11,12 +11,13 @@ module mod_cross_section
   real(8), dimension(2) :: templim, denslim
   real(8), dimension(:),       allocatable :: ztemp, zdens
   real(8), dimension(:,:,:,:), allocatable :: urca6, urcs5, urcf5
-  !  C0 table (prototype): S_0, the C0 -> C1+ electron-impact ionization rate,
-  !  and F_0, the C0 fraction of the C0-C5 bundle in local ionization balance.
+  !  C0 table (MDLNZD = 1): S_0, the C0 -> C1+ electron-impact ionization rate.
+  !  The file also carries F_0, the C0 fraction of the bundle in local
+  !  ionization balance (below 2e-6 over the whole table), which is not used.
   !  Built from the same OpenADAS adf11 files (scd96_c, acd96_c) the A6/S5/F6
   !  table came from; F_6 rebuilt that way reproduces the shipped table to
   !  0.2-2.5 per cent over 5 eV - 30 keV and 1e17 - 1e21 m^-3.
-  real(8), dimension(:,:,:,:), allocatable :: urcs0, urcf0
+  real(8), dimension(:,:,:,:), allocatable :: urcs0
   
 
   ! Beam crosssections
@@ -103,7 +104,7 @@ contains
     allocate(dx(ntemp,ndens))
     allocate(dy, dxy, mold=dx)
     allocate(urca6(4,4,ntemp,ndens),urcs5(4,4,ntemp,ndens),urcf5(4,4,ntemp,ndens))
-    allocate(urcs0(4,4,ntemp,ndens),urcf0(4,4,ntemp,ndens))
+    allocate(urcs0(4,4,ntemp,ndens))
  
     !   Reac main body of data
     do in = 1, ndens
@@ -152,9 +153,6 @@ contains
     ! S_0; electron-impact ionization coefficients for iz=0
     call spl2d(ztemp,zdens,ratedata(:,:,1),dx,dy,dxy,urcs0,ntemp,ntemp,ndens,0,0,ierr)
     if( ierr /= 0 ) stop 'spl2d error in spline_table_carbon_rate_coef_adas; S_0.'
-    ! F_0; fraction of C0 within the C0-C5 bundle
-    call spl2d(ztemp,zdens,ratedata(:,:,2),dx,dy,dxy,urcf0,ntemp,ntemp,ndens,0,0,ierr)
-    if( ierr /= 0 ) stop 'spl2d error in spline_table_carbon_rate_coef_adas; F_0.'
 
     deallocate(ratedata,dx,dy,dxy)
 
@@ -164,7 +162,7 @@ contains
 
   subroutine deallocate_spline_table_carbon_rate_coef_adas
 
-    if(allocated(ztemp)) deallocate(ztemp,zdens,urca6,urcs5,urcf5,urcs0,urcf0)
+    if(allocated(ztemp)) deallocate(ztemp,zdens,urca6,urcs5,urcf5,urcs0)
 
   end subroutine deallocate_spline_table_carbon_rate_coef_adas
 
@@ -279,8 +277,8 @@ contains
 !***********************************************************************
 !
 !   Electron-impact ionization rate coefficient of neutral carbon,
-!     C0 -> C1+ (OpenADAS scd96_c, Z1=1).  Prototype: this is the rate that
-!     actually destroys C0, as opposed to the bundle -> C6+ rate SiVsefA.
+!     C0 -> C1+ (OpenADAS scd96_c, Z1=1): the rate that actually destroys
+!     C0, as opposed to the bundle -> C6+ rate SiVsefA.
 !
 !***********************************************************************
 
@@ -296,28 +294,6 @@ contains
     call spl2df(TeeV,dene,RateCoef_C_IZ_S0,ztemp,zdens,urcs0,ntemp,ntemp,ndens,ierr)
 
   end function RateCoef_C_IZ_S0
-
-!***********************************************************************
-!
-!   Fraction of C0 within the C0-C5 bundle in local ionization balance.
-!     Prototype.  Over the tabulated range it never exceeds 2e-6, so a bundle
-!     in local balance is a magnetized C1+-C5+ population, not a neutral one.
-!
-!***********************************************************************
-
-  function Fraction_C0(TekeV, dene20)
-    use libspl2d, only : spl2df
-    real(8), intent(in) :: TekeV, dene20
-    real(8) :: Fraction_C0
-    integer(4) :: ierr
-    real(8) :: TeeV, dene
-
-    TeeV = min(max(TekeV * 1.d3, templim(1)), templim(2))
-    dene = min(max(dene20 * 1.d20, denslim(1)), denslim(2))
-    call spl2df(TeeV,dene,Fraction_C0,ztemp,zdens,urcf0,ntemp,ntemp,ndens,ierr)
-    Fraction_C0 = min(max(Fraction_C0, 0.d0), 1.d0)
-
-  end function Fraction_C0
 
 !***********************************************************************
 !

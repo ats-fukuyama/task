@@ -333,7 +333,7 @@ contains
     use cdbm_mod
     use mod_eqneo, only : wrap_eqneo
     use mod_cross_section, only : RateCoef_C_RC_A6, RateCoef_C_IZ_S5, Fraction_C0toC5, &
-         &                        RateCoef_C_IZ_S0, Fraction_C0
+         &                        RateCoef_C_IZ_S0
     use mod_coulomb, only : coulog
     use mod_savgol
     use libitp, only : aitken2p
@@ -351,7 +351,7 @@ contains
          &     rNuOLL, SiLCL, SiLCBL, SiLCphL, RL, DBW, &
          &     factor_bohm, rNustar, &
          &     RLOSS, sqz, rNuDL, Ln, LT, etai_chk, kthrhos, &
-         &     SitotC0, DC0, V0zave, dn0dV, Swall, fac, &
+         &     SitotC0, V0zave, dn0dV, Swall, &
          &     RhoSOL, V0ave, Viave, DturbA, rLmean, Sitot, &
          &     rGCIM, rGIM, rHIM, OMEGAPR !09/06/17~ miki_m
 !!$    real(8) ::Cs, Lc, PTiVA, Chicl, 
@@ -365,9 +365,7 @@ contains
     real(8) :: zrNuee, zxi, znusteinv, zLamEZ, zCRZ, zsigma0, zsigmaneo
     real(8) :: rhoni, dvexbdr ! CDBM
     real(8) :: xb, fp, fdp, gfun
-    real(8), dimension(0:NRMAX) :: pres, ddPhidpsi, tmp, tmp2, dc0diag
-    integer(4) :: iuc0
-    real(8), dimension(:), allocatable, save :: glC0, limC0, lim01
+    real(8), dimension(0:NRMAX) :: pres, ddPhidpsi, tmp
     real(8) :: Scdbm   ! magnetic shear in the form CDBM takes, (r/q)dq/dr
     ! Mainly for derivatives
     ! NOTE:
@@ -1275,183 +1273,54 @@ contains
 
     call tx_sol_coefficients
 
-    !     *** PROTOTYPE (MDLNZD, MDLN0FL; see tx_commons).  Neither is a
-    !         production model: both default to the current behaviour. ***
-
-    do NR = 0, NRMAX
-       FracC0(NR) = Fraction_C0(Var(NR,1)%T, Var(NR,1)%n)
-    end do
+    !     *** Radial transport of the C0-C5 superstage LQnz (MDLNZD) ***
 
     select case(MDLNZD)
     case(1)
-       !  The bundle is transported as the magnetized C1+-C5+ population it is.
-       Dnzb(:) = Dfs(:,1)
-       Vnzb(:) = 0.d0
-    case(2)
-       !  Charge-state-weighted:  D = F_0 D_C0 + (1-F_0) D_c,  with the effective
-       !  pinch -(D_C0 - D_c) dF_0/dV the weighting implies.  D_C0 uses the true
-       !  C0 destruction rate S_0 n_e, not the bundle -> C6+ rate SiVsefA.
+       !  The bundle is transported as the magnetized C1+-C5+ population it
+       !  mostly is (diffusivity Dfs), except for the freshly sputtered C0,
+       !  which is slaved to its source: its lifetime 1/(S_0 n_e) is microseconds,
+       !  so its density follows the local source balance,
+       !
+       !     n_C0 = min( S_wall / (S_0 n_e), n_b ),
+       !     S_wall = R_zz nu_L max(n_z - n_z_div, 0) + R_iz nu_L max(n_i - n_i_div, 0),
+       !
+       !  with S_wall the same sputtering source LQnzCC carries.  n_C0 enters
+       !  LQnzCC as a known field, through the extra C0 flux
+       !  -(D_C0 - D_c) dn_C0/dV and the parallel loss of the charged part
+       !  n_b - n_C0.  DC0z holds D_C0 - D_c; the Larsen limiter on it is
+       !  applied element by element in LQnzCC.
        V0zave = sqrt(4.d0 * V0z*V0z / Pi)
        do NR = 0, NRMAX
           SitotC0 = RateCoef_C_IZ_S0(Var(NR,1)%T, Var(NR,1)%n) * Var(NR,1)%n * 1.d20
-          DC0 = V0zave*V0zave / (3.d0 * SitotC0)
-          Dnzb(NR) = FracC0(NR) * DC0 + (1.d0 - FracC0(NR)) * Dfs(NR,1)
-          tmp(NR)  = DC0 - Dfs(NR,1)
-       end do
-       Vnzb(:) = - tmp(:) * dfdx(vv, FracC0, NRMAX, 0)
-    case(3, 4)
-       !  Two-component C0 / C1+-C5+ model, with the C0 fraction taken from a
-       !  LOCAL SOURCE BALANCE rather than from coronal equilibrium.
-       !
-       !  C0 is slaved: its lifetime 1/(S_0 n_e) is 7.7 us at the wall against
-       !  milliseconds for everything else here, so its density follows its
-       !  source instantaneously,
-       !
-       !     n_C0 = S_wall / (S_0 n_e),
-       !     S_wall = R_zz nu_L (n_z - n_z_div) + R_iz nu_L (n_i - n_i_div),
-       !
-       !  which is the same sputtering source LQnzCC already carries.  The
-       !  coronal F_0 misses this entirely: it is 4e-19 at the wall against
-       !  6e-3 here, because sputtered carbon arrives as C0 and takes 5.3 cm to
-       !  ionize.  Outside that layer S_wall vanishes and the model falls back
-       !  on the coronal value, so the two are combined as a maximum.
-       V0zave = sqrt(4.d0 * V0z*V0z / Pi)
-       do NR = 0, NRMAX
-          SitotC0 = RateCoef_C_IZ_S0(Var(NR,1)%T, Var(NR,1)%n) * Var(NR,1)%n * 1.d20
-          DC0 = V0zave*V0zave / (3.d0 * SitotC0)
-          Swall = rGamm0zz * rNuL(NR) * max(Var(NR,3)%n - PNsSUP(3), 0.d0) &
-               & + rGamm0iz * rNuL(NR) * max(Var(NR,2)%n - PNsSUP(2), 0.d0)
-          if( X(NR,LQnz) > 0.d0 ) then
-             FracC0(NR) = max( FracC0(NR), &
-                  &            min( Swall / ( SitotC0 * X(NR,LQnz) ), 1.d0 ) )
-          end if
-          Dnzb(NR) = FracC0(NR) * DC0 + (1.d0 - FracC0(NR)) * Dfs(NR,1)
-          tmp(NR)  = DC0 - Dfs(NR,1)
-       end do
-       Vnzb(:) = - tmp(:) * dfdx(vv, FracC0, NRMAX, 0)
-    case(5)
-       !  Same physics as 4, written so that nothing divides by n_b.  C0 is
-       !  slaved to its source, n_C0 = S_wall/(S_0 n_e), and cannot exceed the
-       !  bundle; it enters LQnzCC as a known field lagged by one Picard sweep.
-       !  The charged part diffuses with Dfs; the extra C0 flux is
-       !  -(D_C0 - Dfs) dn_C0/dV.  The Larsen limiter acts on D_C0 through the
-       !  C0 gradient itself.
-       V0zave = sqrt(4.d0 * V0z*V0z / Pi)
-       do NR = 0, NRMAX
-          SitotC0 = RateCoef_C_IZ_S0(Var(NR,1)%T, Var(NR,1)%n) * Var(NR,1)%n * 1.d20
-          DC0z(NR) = V0zave*V0zave / (3.d0 * SitotC0)
+          DC0z(NR) = max(V0zave*V0zave / (3.d0 * SitotC0) - Dfs(NR,1), 0.d0)
           Swall = rGamm0zz * rNuL(NR) * max(Var(NR,3)%n - PNsSUP(3), 0.d0) &
                & + rGamm0iz * rNuL(NR) * max(Var(NR,2)%n - PNsSUP(2), 0.d0)
           nC0z(NR) = min( Swall / SitotC0, max(X(NR,LQnz), 0.d0) )
-          dc0diag(NR) = Swall / SitotC0
        end do
-       if( MDLC0FL /= 2 .and. ( MDLN0FL /= 0 .or. MDLC0FL /= 0 ) ) then
-          !  MDLN0FL = 3: |grad n_C0|/n_C0 is taken from the first sweep of the
-          !  time step (where the iterate is still the previous time level)
-          !  and held for the rest of the step.
-          if( .not. allocated(glC0) ) allocate(glC0(0:NRMAX), source=0.d0)
-          if( MDLN0FL /= 3 .or. IC == 1 ) then
-             tmp(:) = dfdx(vv, nC0z, NRMAX, 0)
-             do NR = 0, NRMAX
-                if( nC0z(NR) <= 0.d0 ) then
-                   glC0(NR) = 0.d0
-                else
-                   glC0(NR) = abs(tmp(NR)) * sqrt(sst(NR)) / nC0z(NR)
-                end if
-             end do
-          end if
-          if( MDLN0FL == 4 ) then
-             !  Same sweep averaging of the factor as for D01 below.
-             if( .not. allocated(limC0) ) allocate(limC0(0:NRMAX), source=1.d0)
-             if( IC == 1 ) then
-                limC0(:) = 1.d0 / (1.d0 + DC0z(:) * glC0(:) / (FLlim * V0zave))
-             else
-                limC0(:) = 0.5d0 * (limC0(:) + 1.d0 / (1.d0 + DC0z(:) * glC0(:) / (FLlim * V0zave)))
-             end if
-             DC0z(:) = DC0z(:) * limC0(:)
-          else
-             DC0z(:) = DC0z(:) / (1.d0 + DC0z(:) * glC0(:) / (FLlim * V0zave))
-          end if
-       end if
        Dnzb(:) = Dfs(:,1)
-       if( IDGC0 /= 0 ) then
-          open(newunit=iuc0, file='tx_c0.dat', status='replace', action='write')
-          write(iuc0,'(A)') '# NR rho vv SwallOverS0ne nC0z n_b DC0z_limited Dfs rNuL glC0'
-          do NR = 0, NRMAX
-             write(iuc0,'(I5,9ES14.6)') NR, rho(NR), vv(NR), dc0diag(NR), nC0z(NR), X(NR,LQnz), &
-                  & DC0z(NR), Dfs(NR,1), rNuL(NR), glC0(NR)
-          end do
-          close(iuc0)
-       end if
-       DC0z(:) = max(DC0z(:) - Dfs(:,1), 0.d0)
-       Vnzb(:) = 0.d0
     case default
+       !  V5.52 model: the hydrogen slow-neutral diffusivity D01.
        Dnzb(:) = D01(:)
-       Vnzb(:) = 0.d0
     end select
 
-    if( MDLN0FL /= 0 .and. MDLNZD >= 2 .and. MDLNZD <= 4 ) then
-       !  The same Larsen limiter on the C0 part of the bundle diffusivity: the
-       !  C0 mean free path is 5.3 cm at the wall and the layer it makes is the
-       !  same 5.3 cm, so C0 has the hydrogen neutrals' Knudsen problem too.
-       V0zave = sqrt(4.d0 * V0z*V0z / Pi)
-       tmp(:) = dfdx(vv, X(:,LQnz), NRMAX, 0)
-       do NR = 0, NRMAX
-          if( X(NR,LQnz) <= 0.d0 ) cycle
-          dn0dV = abs(tmp(NR)) * sqrt(sst(NR)) / X(NR,LQnz)
-          !  The limiter scales the whole bundle flux, pinch included.
-          fac = 1.d0 / (1.d0 + Dnzb(NR) * dn0dV / (FLlim * V0zave))
-          Dnzb(NR) = Dnzb(NR) * fac
-          Vnzb(NR) = Vnzb(NR) * fac
-       end do
-    end if
-
-    if( MDLN0FL /= 0 ) then
-       !  Larsen flux limiter on the slow-neutral diffusivity: the diffusive
-       !  flux D |grad n| may not exceed FLlim n v.  With lambda = 3 D / v this
-       !  is D -> D / (1 + (lambda/(3 FLlim)) |grad n| / n).
+    !     *** Larsen flux limiter on the slow-neutral diffusivity (MDLN0FL = 1) ***
+    !  OPTIONAL, not the default.  The diffusive flux D |grad n| may not exceed
+    !  FLlim n v:  D -> D / (1 + D |grad n| / (FLlim v n)).  In the SOL the ratio
+    !  R = D |grad n| / (FLlim v n) is 1e3 or more, and with D/(1+R) evaluated at
+    !  the current Picard iterate the fixed-point map then has a multiplier
+    !  close to -R/(1+R) = -1; use it with RLXN0 = 0.5 (neutral-only
+    !  under-relaxation in TXEXEC).  Even so a few steps can end at ICMAX,
+    !  which is why the limiter is not the default although the plain diffusion
+    !  flux exceeds the free-streaming limit by orders of magnitude in the SOL
+    !  (see doc/tx560.tex).
+    if( MDLN0FL == 1 ) then
        V0zave = sqrt(4.d0 * V0*V0 / Pi)
-       !  MDLN0FL = 3 (diagnostic): the limiter factor from the previous time
-       !  level X instead of the current Picard iterate.
-       if( MDLN0FL == 3 ) then
-          tmp2(:) = X(:,LQn1)
-       else
-          tmp2(:) = PN01V(:)
-       end if
-       tmp(:) = dfdx(vv, tmp2, NRMAX, 0)
-       W01(:) = 0.d0
-       if( .not. allocated(lim01) ) allocate(lim01(0:NRMAX), source=1.d0)
+       tmp(:) = dfdx(vv, PN01V, NRMAX, 0)
        do NR = 0, NRMAX
-          if( tmp2(NR) <= 0.d0 ) cycle
-          dn0dV = abs(tmp(NR)) * sqrt(sst(NR)) / tmp2(NR)
-          fac = D01(NR) * dn0dV / (FLlim * V0zave)
-          ! PROTOTYPE (FLRAMP): continuation of the limiter strength over the
-          ! first FLRAMP sweeps of each time step; full strength from then on.
-          if( FLRAMP > 0 ) fac = fac * min(1.d0, dble(IC) / dble(FLRAMP))
-          if( MDLN0FL == 2 ) then
-             !  The flux -D n'/(1+R), R = D |grad n|/(FLlim v n), linearized
-             !  about the current iterate instead of lagging D/(1+R):
-             !     Gamma = -D/(1+R)^2 n' - D R/(1+R)^2 (n'/n) n,
-             !  which is the same flux at convergence.  Lagging D/(1+R) gives a
-             !  Picard multiplier -R/(1+R), i.e. a period-two cycle wherever the
-             !  limiter is active (R >> 1).
-             D01(NR) = D01(NR) / (1.d0 + fac)**2
-             W01(NR) = - D01(NR) * fac * tmp(NR) / tmp2(NR)
-          else if( MDLN0FL == 4 ) then
-             !  The factor 1/(1+R) averaged with its value from the previous
-             !  sweep of the same time step.  Lagging it outright gives the
-             !  Picard map a multiplier -R/(1+R) -> -1 where R >> 1 (a period
-             !  two cycle); averaging maps that multiplier to about 0.  The
-             !  fixed point is the same as for MDLN0FL = 1.
-             if( IC == 1 ) then
-                lim01(NR) = 1.d0 / (1.d0 + fac)
-             else
-                lim01(NR) = 0.5d0 * (lim01(NR) + 1.d0 / (1.d0 + fac))
-             end if
-             D01(NR) = D01(NR) * lim01(NR)
-          else
-             D01(NR) = D01(NR) / (1.d0 + fac)
-          end if
+          if( PN01V(NR) <= 0.d0 ) cycle
+          dn0dV = abs(tmp(NR)) * sqrt(sst(NR)) / PN01V(NR)
+          D01(NR) = D01(NR) / (1.d0 + D01(NR) * dn0dV / (FLlim * V0zave))
        end do
     end if
 

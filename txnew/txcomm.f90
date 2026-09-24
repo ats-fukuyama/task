@@ -98,49 +98,32 @@ module tx_commons
   real(8) :: PROFD, PROFD1, PROFD2, PROFDB, PROFM, PROFM1, PROFMB, PROFC, PROFC1, PROFCB
   real(8) :: FSCX, FSLC, FSLP, FSLPB, FSION, FSNCOL, FSD01, FSD02, FSD03, FSD0z, rG1, FSRP, FSNF
 
-  !   PROTOTYPE, not for production.
-  !   MDLNZD : radial transport model for the C0-C5 superstage LQnz.
-  !     0 : the hydrogen slow-neutral diffusivity D01 (current code).
-  !     1 : the charged-impurity diffusivity Dfs(:,1), i.e. the bundle is
-  !         transported as the magnetized C1+-C5+ population it is.
-  !     2 : charge-state-weighted,  D = F_0 D_C0 + (1-F_0) Dfs(:,1),  with the
-  !         effective pinch -(D_C0 - Dfs) dF_0/dV that the weighting implies.
-  !     3 : as 2, with F_0 from the local sputtering-source balance.
-  !     4 : as 3, plus the parallel loss of the charged part in the SOL.
-  !     5 : as 4, but with the C0 density n_C0 = min(S_wall/(S_0 n_e), n_b)
-  !         carried as a known field, so the flux -D_c dn_b/dV
-  !         - (D_C0-D_c) dn_C0/dV and the loss are linear in n_b.
-  !   MDLN0FL : Larsen flux limiter on the slow-neutral diffusivity D01,
-  !     0 off, 1 on (D/(1+R) lagged), 2 on (linearized: D/(1+R)^2 plus a
-  !     convective term, same flux at convergence), 3 on (D/(1+R) with R
-  !     from the previous time level, held fixed during the Picard sweeps),
-  !     4 on (1/(1+R) averaged with its previous-sweep value; same fixed
-  !     point as 1).  D -> D / (1 + D |grad n| / (FLlim n v_th)).
+  !   MDLNZD : radial transport of the C0-C5 superstage LQnz.
+  !     0 : the hydrogen slow-neutral diffusivity D01 (V5.52).
+  !     1 : (V5.60 default) the bundle is diffused as the magnetized C1+-C5+
+  !         population it mostly is (diffusivity Dfs), and the freshly
+  !         sputtered C0 in it is slaved to its source: it adds its own flux
+  !         (Larsen-limited element by element with FLlim) and the charged part
+  !         of the bundle has a parallel loss in the SOL.
+  !   MDLN0FL : Larsen flux limiter on the slow-neutral diffusivity D01.
+  !     0 : off (V5.60 default).
+  !     1 : on, D -> D / (1 + D |grad n| / (FLlim n v)).  Optional; open issue.
+  !   FLlim : flux-limit factor alpha of the Larsen limiter (C0 of MDLNZD = 1,
+  !           and D01 with MDLN0FL = 1).
+  !   RLXN0 : under-relaxation weight of the previous Picard sweep on LQn1-LQn3,
+  !           used only with MDLN0FL = 1.
   integer(4) :: MDLNZD, MDLN0FL
-  !   MDLC0FL : 1 applies the Larsen limiter to D_C0 of MDLNZD = 5 even when
-  !     MDLN0FL = 0 (no limiter on the hydrogen slow neutrals).
-  !     2: the same limiter on the C0 flux, evaluated element by element.
-  integer(4) :: MDLC0FL
-  !   RLXN0  : Picard under-relaxation weight on LQn1-LQn3 only (0 = off).
-  !   FLRAMP : sweeps over which the D01 limiter is ramped to full strength.
-  real(8) :: RLXN0
-  integer(4) :: FLRAMP
-  !   IDGC0 : /= 0 writes the C0 fields of MDLNZD = 5 to tx_c0.dat (diagnostic).
-  integer(4) :: IDGC0
-  real(8) :: FLlim
+  real(8) :: FLlim, RLXN0
   !   MDLSOL : width over which the parallel loss turns on outside the separatrix.
   !     0 : the historical DBW, built from half the on-axis ion temperature,
-  !         Q(NRA) and B_phi (current code).
+  !         Q(NRA) and B_phi (V5.52).
   !     1 : the ion banana width at the separatrix, sqrt(eps) rho_theta, from the
-  !         local edge T_i and B_theta.  Parameter-free.
+  !         local edge T_i and B_theta (V5.60 default).
   integer(4) :: MDLSOL
   !   MDLWBC : density boundary condition at the wall rho = rhob.
-  !     0 : zero gradient imposed only weakly (current code).
-  !     1 : n(NRMAX) = n(NRMAX-1), the zero gradient imposed explicitly
-  !         (Dirichlet value from the previous Picard sweep).
-  !     2 : the same condition as a row of the system, solved implicitly.
-  !     3 : as 2, with the wall row of the continuity equation first added
-  !         to row NRMAX-1 (constrained-DOF Galerkin form).
+  !     0 : none (V5.52).
+  !     1 : zero gradient, n(NRMAX) = n(NRMAX-1), in constrained-DOF form
+  !         (V5.60 default; see BOUNDARY_ZEROGRAD in txcala.f90).
   integer(4) :: MDLWBC
   real(8) :: FSADV, FSADVB, FSUG, FSG0iz
   real(8), dimension(NSM) :: FSMPCH, FSTPTM, FSPARV, FSLTs
@@ -320,7 +303,7 @@ module tx_commons
        & rNuION, rNu0b, rNuL, rNuiCX, rNubCX, rNuiCXT, &
        & rNuei, rNuii, rNuiz, rNuTei, rNuTez, rNuTiz, rNuD, rNuOL, &
        & WPM, FVpch, FQLcoef, FQLcoef1, FQLcoef2, FQCcoef, &
-       & rNuB, rNuLB, ft, VWpch, D01, D02, D03, D0z, Dnzb, Vnzb, FracC0, nC0z, DC0z, W01, &
+       & rNuB, rNuLB, ft, VWpch, D01, D02, D03, D0z, Dnzb, nC0z, DC0z, &
        & SiVizA, SiVcxA, SiVa6A, SiVsefA, wexb, &
        & UgV, PNbVinv, Vbpara
   real(8), dimension(:), allocatable :: & ! Ripple transport
@@ -507,7 +490,7 @@ contains
        allocate(WPM,     FVpch,   FQLcoef, FQLcoef1, FQLcoef2, FQCcoef, source=array_init_NR,   stat=ierl(4))
        allocate(rNuB,    rNuLB,   ft,      VWpch,                       source=array_init_NR,   stat=ierl(5))
        allocate(D01,     D02,     D03,     D0z,                         source=array_init_NR,   stat=ierl(6))
-       allocate(Dnzb,    Vnzb,    FracC0,  nC0z, DC0z, W01,                             source=array_init_NR,   stat=ierl(6))
+       allocate(Dnzb,    nC0z,    DC0z,                                                 source=array_init_NR,   stat=ierl(6))
        allocate(SiVizA,  SiVcxA,  SiVa6A,  SiVsefA,  wexb,              source=array_init_NR,   stat=ierl(7))
        allocate(UgV,     PNbVinv, Vbpara,                               source=array_init_NR,   stat=ierl(8))
        allocate(Ubrp,    RUbrp,   Dbrp,    DltRP,    DltRP_mid,         source=array_init_NR,   stat=ierl(9))
@@ -644,7 +627,7 @@ contains
     deallocate(WPM,    FVpch,  FQLcoef,FQLcoef1,FQLcoef2,FQCcoef)
     deallocate(rNuB,   rNuLB,  ft,     VWpch)
     deallocate(D01,    D02,    D03,    D0z)
-    deallocate(Dnzb,   Vnzb,   FracC0, nC0z, DC0z, W01)
+    deallocate(Dnzb,   nC0z,   DC0z)
     deallocate(UgV,    PNbVinv,Vbpara)
     deallocate(Ubrp,   RUbrp,  Dbrp,   DltRP,   DltRP_mid)
     deallocate(rNubL,  rip_rat,rNubrp1,rNubrp2)

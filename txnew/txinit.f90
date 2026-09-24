@@ -351,18 +351,17 @@ contains
     !   Alpha heating paramter
     FSNF = 0.d0
 
-    !   Parameter of particle loss to divertor (default = 0.3)
-    FSLP = 0.3d0
+    !   Parameter of particle loss to divertor, k_L in nu_L = k_L C_s / (2 pi q R)
+    !   (V5.60: 1.0, the two-point value with 2 pi q R the target-to-target
+    !    length; V5.52 and before: 0.3)
+    FSLP = 1.d0
 
-    !   PROTOTYPE, off by default (see tx_commons):
     !     MDLSOL : width of the parallel-loss ramp outside the separatrix
-    MDLSOL = 0
-    !     MDLWBC : density boundary condition at the wall (PROTOTYPE)
-    MDLWBC = 0
-    MDLC0FL = 0
-    RLXN0   = 0.d0
-    FLRAMP  = 0
-    IDGC0   = 0
+    !              (0: V5.52 DBW, 1: separatrix banana width)
+    MDLSOL = 1
+    !     MDLWBC : density boundary condition at the wall
+    !              (0: none, V5.52; 1: zero gradient, constrained DOF)
+    MDLWBC = 1
 
     !   Parameter of heat loss to divertor (default = 1.0)
     FSLTs(1:NSM) = 1.d0
@@ -764,12 +763,16 @@ contains
     !   1    : fixed
     MDFIXT = 0
 
-    !   PROTOTYPE, off by default (see tx_commons):
-    !     MDLNZD  : radial transport model for the C0-C5 superstage
-    !     MDLN0FL : Larsen flux limiter on the slow-neutral diffusivity D01
-    MDLNZD  = 0
+    !     MDLNZD  : radial transport of the C0-C5 superstage
+    !               (0: D01, as in V5.52; 1: charged bundle plus source-slaved C0)
+    !     MDLN0FL : Larsen flux limiter on D01 (0: off; 1: optional, open issue)
+    !     FLlim   : flux-limit factor of the Larsen limiter (C0 with MDLNZD = 1,
+    !               D01 with MDLN0FL = 1)
+    !     RLXN0   : neutral-only Picard under-relaxation, used with MDLN0FL = 1
+    MDLNZD  = 1
     MDLN0FL = 0
-    FLlim   = 1.d0
+    FLlim   = 0.25d0
+    RLXN0   = 0.5d0
 
     !   Mode of equations solved for beam ions
     !   0    : minimum ; LQb1,       LQb3, LQb4, LQb7
@@ -2042,8 +2045,7 @@ module tx_parameter_control
        & MODEG,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,oldmixa,iaxproj,rhoaxproj,Dnfac, &
        & iSUPG3,iSUPG6,iSUPG8,SUPGstab,iprestab, &
        & MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDLETB, &
-       & MDLNZD,MDLN0FL,FLlim, &
-       & MDLSOL,MDLWBC,MDLC0FL,RLXN0,FLRAMP,IDGC0, &
+       & MDLNZD,MDLN0FL,FLlim,RLXN0,MDLSOL,MDLWBC, &
        & iPoyntpol,iPoynttor,IDIAG,midbg,IGBDF,ISMTHD,MDLNBD,MDBMCX,imodel_neo, & ! 09/06/17~ miki_m
        & EpsHM, HPN  ! 10/08/06 miki_m
   private :: TXPLST
@@ -2235,6 +2237,13 @@ contains
        if(PN0zs < 0.d0 .or. V0z < 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(abs(rGamm0zz_in) > 1.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(abs(rGamm0iz_in) > 1.d0) then ; exit ; else ; idx = idx + 1 ; end if
+       ! SOL / neutral models of V5.60
+       if(MDLSOL < 0 .or. MDLSOL > 1 .or. MDLWBC < 0 .or. MDLWBC > 1) then
+          exit ; else ; idx = idx + 1 ; end if
+       if(MDLNZD < 0 .or. MDLNZD > 1 .or. MDLN0FL < 0 .or. MDLN0FL > 1) then
+          exit ; else ; idx = idx + 1 ; end if
+       if(FLlim <= 0.d0 .or. RLXN0 < 0.d0 .or. RLXN0 >= 1.d0) then ; exit ; else
+          idx = idx + 1 ; end if
        return
     end do
 

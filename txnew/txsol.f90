@@ -49,8 +49,8 @@ contains
     ! past it samples open field lines, so the loss rate rises over one banana
     ! width,  w_b = sqrt(eps) rho_theta,  rho_theta = sqrt(T_i m_i)/(Z_i e B_th).
     !
-    ! PROTOTYPE, MDLSOL = 1: take T_i and B_theta AT the separatrix, which is
-    ! where the orbits in question are.  The default below instead uses half the
+    ! MDLSOL = 1 (default): take T_i and B_theta AT the separatrix, which is
+    ! where the orbits in question are.  MDLSOL = 0 (V5.52) instead uses half the
     ! ON-AXIS ion temperature and B_phi, and carries a factor 3 and a 1/sqrt(eps)
     ! rather than sqrt(eps); for eqdata that makes the width 1.8 times the whole
     ! SOL, so the ramp suppresses the parallel loss by 5.9 at the wall and by 63

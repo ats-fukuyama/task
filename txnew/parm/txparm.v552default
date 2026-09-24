@@ -1,0 +1,21 @@
+TASK/TX V5.52.20 compatibility parameters for the V5.60.00 executable.
+
+Merge these lines into the &tx group of a txparm to run V5.60.00 with the
+default physics of V5.52.20.  They are the only defaults that changed
+between V5.52.20 and V5.60.00; all other defaults are unchanged.
+
+  FSLP    = 0.3   k_L of the SOL parallel loss        (V5.60: 1.0)
+  MDLSOL  = 0     historical parallel-loss ramp width (V5.60: 1, banana width)
+  MDLNZD  = 0     C0-C5 bundle diffused with D01      (V5.60: 1, charged bundle + slaved C0)
+  MDLWBC  = 0     no density condition at the wall    (V5.60: 1, zero gradient)
+  MDLN0FL = 0     no Larsen limiter on D01            (same in V5.60)
+
+FLlim and RLXN0 are new in V5.60 and are not used with these settings.
+
+ &tx
+  FSLP    = 0.3d0
+  MDLSOL  = 0
+  MDLNZD  = 0
+  MDLWBC  = 0
+  MDLN0FL = 0
+ &end

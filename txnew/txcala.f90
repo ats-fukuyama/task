@@ -278,29 +278,15 @@ contains
 !    call BOUNDARY(NRMAX,LQi1,0,Var(NRMAX-1,2)%n)
 !    call BOUNDARY(NRMAX,LQz1,0,Var(NRMAX-1,3)%n)
 
-    ! PROTOTYPE (MDLWBC = 1): the lines above, i.e. the zero density gradient
-    ! at the wall imposed explicitly instead of only weakly.  Without it the
-    ! radial particle flux through rho = rhob is not zero and depends on the
-    ! last element: from +57% to -40% of the separatrix flux between
-    ! NRMAX = 60 and 120 with MDLSOL = 1, FSLP = 1.
+    ! MDLWBC = 1: the zero density gradient of the table in tx560.tex, imposed
+    ! as a constraint n(NRMAX) = n(NRMAX-1) on each charged density in
+    ! constrained-DOF form (see BOUNDARY_ZEROGRAD).  With MDLWBC = 0 (V5.52)
+    ! the density has no condition at the wall, and the radial particle flux
+    ! through rho = rhob then depends on the last element.
     if( MDLWBC == 1 ) then
-       call BOUNDARY(NRMAX,LQe1,0,Var(NRMAX-1,1)%n)
-       call BOUNDARY(NRMAX,LQi1,0,Var(NRMAX-1,2)%n)
-       call BOUNDARY(NRMAX,LQz1,0,Var(NRMAX-1,3)%n)
-    else if( MDLWBC == 2 ) then
-       ! The same condition as a row of the system, n(NRMAX) - n(NRMAX-1) = 0,
-       ! rather than a Dirichlet value lagged by one Picard sweep.
        call BOUNDARY_ZEROGRAD(LQe1)
        call BOUNDARY_ZEROGRAD(LQi1)
        call BOUNDARY_ZEROGRAD(LQz1)
-    else if( MDLWBC == 3 ) then
-       ! Constrained-DOF form: with n(NRMAX) = n(NRMAX-1) the test function of
-       ! the last node is phi(NRMAX-1) + phi(NRMAX), so the wall row of the
-       ! continuity equation is added to row NRMAX-1 before being replaced by
-       ! the constraint.
-       call BOUNDARY_ZEROGRAD(LQe1, fold=.true.)
-       call BOUNDARY_ZEROGRAD(LQi1, fold=.true.)
-       call BOUNDARY_ZEROGRAD(LQz1, fold=.true.)
     end if
 !!    call BOUNDARY(0,LQe3,0,Var(1,1)%BUpar)
 !!    call BOUNDARY(0,LQi3,0,Var(1,2)%BUpar)
@@ -3629,22 +3615,13 @@ contains
     ELM(:,:,6,NEQ) = - rGamm0 * PNsSUP(2) * fem_int(-1,rNuL)
     NLC(6,NEQ) = 0
 
-    NLCMAX(NEQ) = 6
-
-    ! PROTOTYPE (MDLN0FL = 2): the convective half of the linearized Larsen
-    ! flux, Gamma = sst W01 n (see TXCALV).
-
-    if( MDLN0FL == 2 ) then
-       ELM(:,:,7,NEQ) = - fem_int(24,sst,W01)
-       NLC(7,NEQ) = LQn1
-       NLCMAX(NEQ) = 7
-    end if
-
 !    ! Gas puff (alternative way to impose B.C.;
 !                Deactivate call boundary(lqn1) if this term is activated)
 !
 !    ELM(:,:,7,NEQ) = fem_int(-3,suft,rGASPFA)
 !    NLC(7,NEQ) = 0
+
+    NLCMAX(NEQ) = 6
 
   end subroutine LQn1CC
 
@@ -3749,7 +3726,7 @@ contains
     ELM(:,:,1,NEQ) = - fem_int(6,UgV)
     NLC(1,NEQ) = LQnz
 
-    ! Diffusion of neutrals.  Dnzb is D01 unless the MDLNZD prototype is on.
+    ! Diffusion: Dnzb = D01 (MDLNZD = 0) or Dfs (MDLNZD = 1), set in TXCALC.
 
     ELM(:,:,2,NEQ) = - fem_int(27,sst,Dnzb)
     NLC(2,NEQ) = LQnz
@@ -3782,58 +3759,34 @@ contains
 
     NLCMAX(NEQ) = 8
 
-    ! PROTOTYPE (MDLNZD >= 2): the effective pinch the charge-state weighting
-    ! implies, -n_b sum_q D_q dF_q/dV, in the same conservative form the
-    ! momentum pinch uses.  Without it the C0 part of the flux is
-    ! -F_0 D_C0 dn_b/dV instead of -D_C0 d(F_0 n_b)/dV.
+    ! MDLNZD = 1: the C0 part of the bundle, n_C0, is a known field slaved
+    ! to the sputtering source (see TXCALC).  It adds
+    !   - the excess C0 flux -(D_C0 - D_c) dn_C0/dV, and
+    !   - the parallel loss of the charged part n_b - n_C0 in the SOL, of which
+    !     the fraction rGamm0zz comes back as sputtered C0 (as for C6+ above).
+    !
+    ! The C0 flux is assembled element by element, with the Larsen limiter
+    ! evaluated on each element from the element mean of n_C0 and the element
+    ! gradient: at a node, |grad n_C0|/n_C0 is 0/0 at the separatrix, where the
+    ! source and hence n_C0 vanish, and whether rounding left rNuL(NRA) at 0 or
+    ! at 1e-25 decided whether that node got the unlimited D_C0.  The element
+    ! flux F_e enters the two rows of the element as +F_e and -F_e, so the
+    ! term is exactly conservative.
 
-    if( MDLNZD >= 2 .and. MDLNZD <= 4 ) then
-       ELM(:,:,9,NEQ) = - fem_int(24,sst,Vnzb)
-       NLC(9,NEQ) = LQnz
-       NLCMAX(NEQ) = 9
-    end if
-
-    ! PROTOTYPE (MDLNZD = 4): the charged C1+-C5+ part of the bundle is lost
-    ! along the field in the SOL like any other ion, and the fraction rGamm0zz
-    ! of it comes back as sputtered C0 - the same recycling C6+ gets above.
-    ! No backflow from the divertor (the bundle has no PNsSUP).
-
-    if( MDLNZD == 4 ) then
-       ELM(:,:,10,NEQ) = - (1.d0 - rGamm0zz) * fem_int(2,rNuL*(1.d0-FracC0))
-       NLC(10,NEQ) = LQnz
-       NLCMAX(NEQ) = 10
-    end if
-
-    ! PROTOTYPE (MDLNZD = 5): the C0 excess flux -(D_C0 - D_c) dn_C0/dV of the
-    ! known field n_C0, and the parallel loss of the charged part n_b - n_C0.
-
-    if( MDLNZD == 5 ) then
-       if( MDLC0FL == 2 ) then
-          ! The C0 excess flux assembled element by element, with the Larsen
-          ! limiter evaluated on the element (mean n_C0 and element gradient)
-          ! rather than at the nodes, where n_C0 = 0 inside the separatrix
-          ! makes |grad n_C0|/n_C0 a 0/0.  F_e enters the two rows of the
-          ! element with opposite signs, so the term is exactly conservative.
-          V0zaveL = sqrt(4.d0 * V0z*V0z / Pi)
-          ELM(:,:,9,NEQ) = 0.d0
-          do NE = 1, NEMAX
-             Del  = 0.5d0 * (DC0z(NE-1) + DC0z(NE))
-             sstl = 0.5d0 * (sst(NE-1)  + sst(NE))
-             dnC0 = nC0z(NE) - nC0z(NE-1)
-             anC0 = 0.5d0 * (nC0z(NE-1) + nC0z(NE))
-             if( anC0 > 0.d0 ) Del = Del / (1.d0 + Del * abs(dnC0) / hv(NE) * sqrt(sstl) &
-                  &                                    / (FLlim * V0zaveL * anC0))
-             Fel = sstl * Del * dnC0 / hv(NE)
-             ELM(NE,1,9,NEQ) =   Fel
-             ELM(NE,3,9,NEQ) = - Fel
-          end do
-       else
-          ELM(:,:,9,NEQ) = - fem_int(27,sst,DC0z)
-          ELM(1:NEMAX,1,9,NEQ) = ELM(1:NEMAX,1,9,NEQ) * nC0z(0:NRMAX-1)
-          ELM(1:NEMAX,2,9,NEQ) = ELM(1:NEMAX,2,9,NEQ) * nC0z(1:NRMAX)
-          ELM(1:NEMAX,3,9,NEQ) = ELM(1:NEMAX,3,9,NEQ) * nC0z(0:NRMAX-1)
-          ELM(1:NEMAX,4,9,NEQ) = ELM(1:NEMAX,4,9,NEQ) * nC0z(1:NRMAX)
-       end if
+    if( MDLNZD == 1 ) then
+       V0zaveL = sqrt(4.d0 * V0z*V0z / Pi)
+       ELM(:,:,9,NEQ) = 0.d0
+       do NE = 1, NEMAX
+          Del  = 0.5d0 * (DC0z(NE-1) + DC0z(NE))
+          sstl = 0.5d0 * (sst(NE-1)  + sst(NE))
+          dnC0 = nC0z(NE) - nC0z(NE-1)
+          anC0 = 0.5d0 * (nC0z(NE-1) + nC0z(NE))
+          if( anC0 > 0.d0 ) Del = Del / (1.d0 + Del * abs(dnC0) / hv(NE) * sqrt(sstl) &
+               &                                    / (FLlim * V0zaveL * anC0))
+          Fel = sstl * Del * dnC0 / hv(NE)
+          ELM(NE,1,9,NEQ) =   Fel
+          ELM(NE,3,9,NEQ) = - Fel
+       end do
        NLC(9,NEQ) = 0
 
        ELM(:,:,10,NEQ) = - (1.d0 - rGamm0zz) * fem_int( 2,rNuL)
@@ -4176,30 +4129,40 @@ contains
 
 !***************************************************************
 !
-!   Zero-gradient row at the wall: X(NRMAX,LQ) - X(NRMAX-1,LQ) = 0
-!     (PROTOTYPE, MDLWBC = 2).  Only the row is replaced; the other
-!     equations keep their coupling to X(NRMAX,LQ), which is solved for.
+!   Zero density gradient at the wall in constrained-DOF form (MDLWBC = 1)
+!
+!   For a linear system A x = b and the constraint x_N = x_(N-1), write
+!   x = T y with T copying y_(N-1) into x_N; the constrained Galerkin system
+!   is  T^T A T y = T^T b.  T^T adds row N to row N-1, A T adds column N to
+!   column N-1.  In P1 finite elements this is the basis reduction
+!   phi_(N-1) -> phi_(N-1) + phi_N, i.e. functions constant on the last
+!   element, which is the P1 form of dn/drho = 0.
+!
+!   The system is kept square: row N-1 <- row N-1 + row N, and row N is
+!   replaced by the constraint x_N - x_(N-1) = 0 (zero right-hand side).
+!   x_N stays an unknown and the other equations keep their coupling to it,
+!   so the column sum is carried by the constraint.  The time term and its
+!   right-hand side are built from the same ALC/BLC/CLC arrays, and PLC is
+!   folded with them, so the wall half-cell balance is not dropped: the sum
+!   of the rows of the continuity equation, i.e. the global particle
+!   balance, is unchanged.
+!
+!   Band storage: in row NR, ALC, BLC and CLC multiply X(NR+1,v), X(NR,v)
+!   and X(NR-1,v), v = NLC(NC,LQ) (NLCR(NC,LQ,1) in row NRMAX).
 !
 !***************************************************************
 
-  subroutine BOUNDARY_ZEROGRAD(LQ,fold)
+  subroutine BOUNDARY_ZEROGRAD(LQ)
 
     integer(4), intent(in) :: LQ
-    logical, intent(in), optional :: fold
     integer(4) :: NC
 
-    if( present(fold) ) then
-       if( fold ) then
-          ! Row NRMAX couples X(NRMAX-1,v) through CLC and X(NRMAX,v) through
-          ! BLC; in row NRMAX-1 the same unknowns sit in BLC and ALC.
-          do NC = 0, NLCMAX(LQ)
-             if( NLCR(NC,LQ,1) /= NLC(NC,LQ) ) stop 'BOUNDARY_ZEROGRAD: NLCR /= NLC'
-             BLC(NRMAX-1,NC,LQ) = BLC(NRMAX-1,NC,LQ) + CLC(NRMAX,NC,LQ)
-             ALC(NRMAX-1,NC,LQ) = ALC(NRMAX-1,NC,LQ) + BLC(NRMAX,NC,LQ)
-             if( NC >= 1 ) PLC(NRMAX-1,NC,LQ) = PLC(NRMAX-1,NC,LQ) + PLC(NRMAX,NC,LQ)
-          end do
-       end if
-    end if
+    do NC = 0, NLCMAX(LQ)
+       if( NLCR(NC,LQ,1) /= NLC(NC,LQ) ) stop 'BOUNDARY_ZEROGRAD: NLCR /= NLC'
+       BLC(NRMAX-1,NC,LQ) = BLC(NRMAX-1,NC,LQ) + CLC(NRMAX,NC,LQ)
+       ALC(NRMAX-1,NC,LQ) = ALC(NRMAX-1,NC,LQ) + BLC(NRMAX,NC,LQ)
+       if( NC >= 1 ) PLC(NRMAX-1,NC,LQ) = PLC(NRMAX-1,NC,LQ) + PLC(NRMAX,NC,LQ)
+    end do
 
     ALC(NRMAX,:,LQ) = 0.d0
     BLC(NRMAX,:,LQ) = 0.d0
