@@ -753,7 +753,8 @@ contains
     !       iteration comes to rest on by two to three orders, which is what
     !       lets EPS go below 1e-5.  Block elimination on its own is worse than
     !       a plain band solve, so the refinement is not optional here.
-    !       See claude_findings_picard_stall.md.
+    !       (Measured on the standard case: worst-equation floor about 1e-5
+    !       with 1, 5e-7 with 2; one refinement step is enough.)
     !   3 : Use DGBSVX with FACT='E': row and column equilibration, the band
     !       solve, iterative refinement, and RCOND/FERR/BERR.
     MDLPCK = 2
