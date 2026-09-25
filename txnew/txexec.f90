@@ -87,7 +87,7 @@ contains
          &                 ErV_FIX, IERR, LQb1, LQn1, LQn2, LQr1, &
          &                 tiny_cap, EPS, IDIAG, NTSTEP, ICCALC, iaxproj, &
          &                 FSRP, MODEAV, XOLD, bdf_history_ready, bdf_history_dt, &
-         &                 NT, DT, rIP, MDLPCK, ICONT, AVE_IC, MODECV, oldmix, oldmixa, Var
+         &                 NT, DT, rIP, MDLPCK, ICONT, AVE_IC, MODECV, oldmix, oldmixa, Var, RLXN0, MDLN0FL, LQn1, LQn3
     use tx_variables
     use tx_coefficients, only : TXCALA
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ, &
@@ -525,6 +525,12 @@ contains
              end if
 
              if(relax > 0.d0) XN = (1.d0 - relax) * XN + relax * XP
+             ! With the optional Larsen limiter (MDLN0FL = 1) the Picard map has a
+             ! multiplier near -1 in the neutral densities; under-relaxing them
+             ! alone, RLXN0 being the weight of the previous sweep, maps it to
+             ! about 1 - 2 RLXN0.  Not used otherwise.
+             if(MDLN0FL == 1 .and. RLXN0 > 0.d0) &
+                  & XN(:,LQn1:LQn3) = (1.d0 - RLXN0) * XN(:,LQn1:LQn3) + RLXN0 * XP(:,LQn1:LQn3)
              cycle L_IC
           end if
 

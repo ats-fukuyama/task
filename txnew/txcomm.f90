@@ -97,6 +97,34 @@ module tx_commons
   real(8) :: FSCBAL, FSCBKP, FSCBEL, FSCBSH, FSBOHM, FSVAHL
   real(8) :: PROFD, PROFD1, PROFD2, PROFDB, PROFM, PROFM1, PROFMB, PROFC, PROFC1, PROFCB
   real(8) :: FSCX, FSLC, FSLP, FSLPB, FSION, FSNCOL, FSD01, FSD02, FSD03, FSD0z, rG1, FSRP, FSNF
+
+  !   MDLNZD : radial transport of the C0-C5 superstage LQnz.
+  !     0 : the hydrogen slow-neutral diffusivity D01 (V5.52).
+  !     1 : (V5.60 default) the bundle is diffused as the magnetized C1+-C5+
+  !         population it mostly is (diffusivity Dfs), and the freshly
+  !         sputtered C0 in it is slaved to its source: it adds its own flux
+  !         (Larsen-limited element by element with FLlim) and the charged part
+  !         of the bundle has a parallel loss in the SOL.
+  !   MDLN0FL : Larsen flux limiter on the slow-neutral diffusivity D01.
+  !     0 : off (V5.60 default).
+  !     1 : on, D -> D / (1 + D |grad n| / (FLlim n v)).  Optional; open issue.
+  !   FLlim : flux-limit factor alpha of the Larsen limiter (C0 of MDLNZD = 1,
+  !           and D01 with MDLN0FL = 1).
+  !   RLXN0 : under-relaxation weight of the previous Picard sweep on LQn1-LQn3,
+  !           used only with MDLN0FL = 1.
+  integer(4) :: MDLNZD, MDLN0FL
+  real(8) :: FLlim, RLXN0
+  !   MDLSOL : width over which the parallel loss turns on outside the separatrix.
+  !     0 : the historical DBW, built from half the on-axis ion temperature,
+  !         Q(NRA) and B_phi (V5.52).
+  !     1 : the ion banana width at the separatrix, sqrt(eps) rho_theta, from the
+  !         local edge T_i and B_theta (V5.60 default).
+  integer(4) :: MDLSOL
+  !   MDLWBC : density boundary condition at the wall rho = rhob.
+  !     0 : none (V5.52).
+  !     1 : zero gradient, n(NRMAX) = n(NRMAX-1), in constrained-DOF form
+  !         (V5.60 default; see BOUNDARY_ZEROGRAD in txcala.f90).
+  integer(4) :: MDLWBC
   real(8) :: FSADV, FSADVB, FSUG, FSG0iz
   real(8), dimension(NSM) :: FSMPCH, FSTPTM, FSPARV, FSLTs
   real(8), dimension(1:2) :: FSNC, FSNCB
@@ -275,7 +303,7 @@ module tx_commons
        & rNuION, rNu0b, rNuL, rNuiCX, rNubCX, rNuiCXT, &
        & rNuei, rNuii, rNuiz, rNuTei, rNuTez, rNuTiz, rNuD, rNuOL, &
        & WPM, FVpch, FQLcoef, FQLcoef1, FQLcoef2, FQCcoef, &
-       & rNuB, rNuLB, ft, VWpch, D01, D02, D03, D0z, &
+       & rNuB, rNuLB, ft, VWpch, D01, D02, D03, D0z, Dnzb, nC0z, DC0z, &
        & SiVizA, SiVcxA, SiVa6A, SiVsefA, wexb, &
        & UgV, PNbVinv, Vbpara
   real(8), dimension(:), allocatable :: & ! Ripple transport
@@ -462,6 +490,7 @@ contains
        allocate(WPM,     FVpch,   FQLcoef, FQLcoef1, FQLcoef2, FQCcoef, source=array_init_NR,   stat=ierl(4))
        allocate(rNuB,    rNuLB,   ft,      VWpch,                       source=array_init_NR,   stat=ierl(5))
        allocate(D01,     D02,     D03,     D0z,                         source=array_init_NR,   stat=ierl(6))
+       allocate(Dnzb,    nC0z,    DC0z,                                                 source=array_init_NR,   stat=ierl(6))
        allocate(SiVizA,  SiVcxA,  SiVa6A,  SiVsefA,  wexb,              source=array_init_NR,   stat=ierl(7))
        allocate(UgV,     PNbVinv, Vbpara,                               source=array_init_NR,   stat=ierl(8))
        allocate(Ubrp,    RUbrp,   Dbrp,    DltRP,    DltRP_mid,         source=array_init_NR,   stat=ierl(9))
@@ -598,6 +627,7 @@ contains
     deallocate(WPM,    FVpch,  FQLcoef,FQLcoef1,FQLcoef2,FQCcoef)
     deallocate(rNuB,   rNuLB,  ft,     VWpch)
     deallocate(D01,    D02,    D03,    D0z)
+    deallocate(Dnzb,   nC0z,   DC0z)
     deallocate(UgV,    PNbVinv,Vbpara)
     deallocate(Ubrp,   RUbrp,  Dbrp,   DltRP,   DltRP_mid)
     deallocate(rNubL,  rip_rat,rNubrp1,rNubrp2)

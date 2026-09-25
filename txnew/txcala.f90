@@ -277,6 +277,17 @@ contains
 !    call BOUNDARY(NRMAX,LQe1,0,Var(NRMAX-1,1)%n)
 !    call BOUNDARY(NRMAX,LQi1,0,Var(NRMAX-1,2)%n)
 !    call BOUNDARY(NRMAX,LQz1,0,Var(NRMAX-1,3)%n)
+
+    ! MDLWBC = 1: the zero density gradient of the table in tx560.tex, imposed
+    ! as a constraint n(NRMAX) = n(NRMAX-1) on each charged density in
+    ! constrained-DOF form (see BOUNDARY_ZEROGRAD).  With MDLWBC = 0 (V5.52)
+    ! the density has no condition at the wall, and the radial particle flux
+    ! through rho = rhob then depends on the last element.
+    if( MDLWBC == 1 ) then
+       call BOUNDARY_ZEROGRAD(LQe1)
+       call BOUNDARY_ZEROGRAD(LQi1)
+       call BOUNDARY_ZEROGRAD(LQz1)
+    end if
 !!    call BOUNDARY(0,LQe3,0,Var(1,1)%BUpar)
 !!    call BOUNDARY(0,LQi3,0,Var(1,2)%BUpar)
 !!    call BOUNDARY(0,LQz3,0,Var(1,3)%BUpar)
@@ -3704,6 +3715,8 @@ contains
   subroutine LQnzCC
 
     integer(4) :: NEQ = LQnz, i = 3, j = 2
+    integer(4) :: NE
+    real(8) :: V0zaveL, Del, sstl, dnC0, anC0, Fel
 
     ELM(:,:,0,NEQ) = fem_int(1) * invDT
     NLC(0,NEQ) = LQnz
@@ -3713,9 +3726,9 @@ contains
     ELM(:,:,1,NEQ) = - fem_int(6,UgV)
     NLC(1,NEQ) = LQnz
 
-    ! Diffusion of neutrals
+    ! Diffusion: Dnzb = D01 (MDLNZD = 0) or Dfs (MDLNZD = 1), set in TXCALC.
 
-    ELM(:,:,2,NEQ) = - fem_int(27,sst,D01)
+    ELM(:,:,2,NEQ) = - fem_int(27,sst,Dnzb)
     NLC(2,NEQ) = LQnz
 
     ! Effective ionization generating C^{6+}
@@ -3745,6 +3758,44 @@ contains
     NLC(8,NEQ) = 0
 
     NLCMAX(NEQ) = 8
+
+    ! MDLNZD = 1: the C0 part of the bundle, n_C0, is a known field slaved
+    ! to the sputtering source (see TXCALC).  It adds
+    !   - the excess C0 flux -(D_C0 - D_c) dn_C0/dV, and
+    !   - the parallel loss of the charged part n_b - n_C0 in the SOL, of which
+    !     the fraction rGamm0zz comes back as sputtered C0 (as for C6+ above).
+    !
+    ! The C0 flux is assembled element by element, with the Larsen limiter
+    ! evaluated on each element from the element mean of n_C0 and the element
+    ! gradient: at a node, |grad n_C0|/n_C0 is 0/0 at the separatrix, where the
+    ! source and hence n_C0 vanish, and whether rounding left rNuL(NRA) at 0 or
+    ! at 1e-25 decided whether that node got the unlimited D_C0.  The element
+    ! flux F_e enters the two rows of the element as +F_e and -F_e, so the
+    ! term is exactly conservative.
+
+    if( MDLNZD == 1 ) then
+       V0zaveL = sqrt(4.d0 * V0z*V0z / Pi)
+       ELM(:,:,9,NEQ) = 0.d0
+       do NE = 1, NEMAX
+          Del  = 0.5d0 * (DC0z(NE-1) + DC0z(NE))
+          sstl = 0.5d0 * (sst(NE-1)  + sst(NE))
+          dnC0 = nC0z(NE) - nC0z(NE-1)
+          anC0 = 0.5d0 * (nC0z(NE-1) + nC0z(NE))
+          if( anC0 > 0.d0 ) Del = Del / (1.d0 + Del * abs(dnC0) / hv(NE) * sqrt(sstl) &
+               &                                    / (FLlim * V0zaveL * anC0))
+          Fel = sstl * Del * dnC0 / hv(NE)
+          ELM(NE,1,9,NEQ) =   Fel
+          ELM(NE,3,9,NEQ) = - Fel
+       end do
+       NLC(9,NEQ) = 0
+
+       ELM(:,:,10,NEQ) = - (1.d0 - rGamm0zz) * fem_int( 2,rNuL)
+       NLC(10,NEQ) = LQnz
+
+       ELM(:,:,11,NEQ) =   (1.d0 - rGamm0zz) * fem_int(-2,rNuL,nC0z)
+       NLC(11,NEQ) = 0
+       NLCMAX(NEQ) = 11
+    end if
 
   end subroutine LQnzCC
 
@@ -4075,6 +4126,54 @@ contains
     end if
 
   end subroutine BOUNDARY
+
+!***************************************************************
+!
+!   Zero density gradient at the wall in constrained-DOF form (MDLWBC = 1)
+!
+!   For a linear system A x = b and the constraint x_N = x_(N-1), write
+!   x = T y with T copying y_(N-1) into x_N; the constrained Galerkin system
+!   is  T^T A T y = T^T b.  T^T adds row N to row N-1, A T adds column N to
+!   column N-1.  In P1 finite elements this is the basis reduction
+!   phi_(N-1) -> phi_(N-1) + phi_N, i.e. functions constant on the last
+!   element, which is the P1 form of dn/drho = 0.
+!
+!   The system is kept square: row N-1 <- row N-1 + row N, and row N is
+!   replaced by the constraint x_N - x_(N-1) = 0 (zero right-hand side).
+!   x_N stays an unknown and the other equations keep their coupling to it,
+!   so the column sum is carried by the constraint.  The time term and its
+!   right-hand side are built from the same ALC/BLC/CLC arrays, and PLC is
+!   folded with them, so the wall half-cell balance is not dropped: the sum
+!   of the rows of the continuity equation, i.e. the global particle
+!   balance, is unchanged.
+!
+!   Band storage: in row NR, ALC, BLC and CLC multiply X(NR+1,v), X(NR,v)
+!   and X(NR-1,v), v = NLC(NC,LQ) (NLCR(NC,LQ,1) in row NRMAX).
+!
+!***************************************************************
+
+  subroutine BOUNDARY_ZEROGRAD(LQ)
+
+    integer(4), intent(in) :: LQ
+    integer(4) :: NC
+
+    do NC = 0, NLCMAX(LQ)
+       if( NLCR(NC,LQ,1) /= NLC(NC,LQ) ) stop 'BOUNDARY_ZEROGRAD: NLCR /= NLC'
+       BLC(NRMAX-1,NC,LQ) = BLC(NRMAX-1,NC,LQ) + CLC(NRMAX,NC,LQ)
+       ALC(NRMAX-1,NC,LQ) = ALC(NRMAX-1,NC,LQ) + BLC(NRMAX,NC,LQ)
+       if( NC >= 1 ) PLC(NRMAX-1,NC,LQ) = PLC(NRMAX-1,NC,LQ) + PLC(NRMAX,NC,LQ)
+    end do
+
+    ALC(NRMAX,:,LQ) = 0.d0
+    BLC(NRMAX,:,LQ) = 0.d0
+    CLC(NRMAX,:,LQ) = 0.d0
+    PLC(NRMAX,:,LQ) = 0.d0
+
+    NLCR(1,LQ,1) = LQ
+    BLC(NRMAX,1,LQ) =   1.d0
+    CLC(NRMAX,1,LQ) = - 1.d0
+
+  end subroutine BOUNDARY_ZEROGRAD
 
 !***************************************************************
 !

@@ -332,7 +332,8 @@ contains
     use tx_ripple
     use cdbm_mod
     use mod_eqneo, only : wrap_eqneo
-    use mod_cross_section, only : RateCoef_C_RC_A6, RateCoef_C_IZ_S5, Fraction_C0toC5
+    use mod_cross_section, only : RateCoef_C_RC_A6, RateCoef_C_IZ_S5, Fraction_C0toC5, &
+         &                        RateCoef_C_IZ_S0
     use mod_coulomb, only : coulog
     use mod_savgol
     use libitp, only : aitken2p
@@ -350,6 +351,7 @@ contains
          &     rNuOLL, SiLCL, SiLCBL, SiLCphL, RL, DBW, &
          &     factor_bohm, rNustar, &
          &     RLOSS, sqz, rNuDL, Ln, LT, etai_chk, kthrhos, &
+         &     SitotC0, V0zave, dn0dV, Swall, &
          &     RhoSOL, V0ave, Viave, DturbA, rLmean, Sitot, &
          &     rGCIM, rGIM, rHIM, OMEGAPR !09/06/17~ miki_m
 !!$    real(8) ::Cs, Lc, PTiVA, Chicl, 
@@ -1270,6 +1272,57 @@ contains
     !     *** Calculate coefficients in the SOL ***
 
     call tx_sol_coefficients
+
+    !     *** Radial transport of the C0-C5 superstage LQnz (MDLNZD) ***
+
+    select case(MDLNZD)
+    case(1)
+       !  The bundle is transported as the magnetized C1+-C5+ population it
+       !  mostly is (diffusivity Dfs), except for the freshly sputtered C0,
+       !  which is slaved to its source: its lifetime 1/(S_0 n_e) is microseconds,
+       !  so its density follows the local source balance,
+       !
+       !     n_C0 = min( S_wall / (S_0 n_e), n_b ),
+       !     S_wall = R_zz nu_L max(n_z - n_z_div, 0) + R_iz nu_L max(n_i - n_i_div, 0),
+       !
+       !  with S_wall the same sputtering source LQnzCC carries.  n_C0 enters
+       !  LQnzCC as a known field, through the extra C0 flux
+       !  -(D_C0 - D_c) dn_C0/dV and the parallel loss of the charged part
+       !  n_b - n_C0.  DC0z holds D_C0 - D_c; the Larsen limiter on it is
+       !  applied element by element in LQnzCC.
+       V0zave = sqrt(4.d0 * V0z*V0z / Pi)
+       do NR = 0, NRMAX
+          SitotC0 = RateCoef_C_IZ_S0(Var(NR,1)%T, Var(NR,1)%n) * Var(NR,1)%n * 1.d20
+          DC0z(NR) = max(V0zave*V0zave / (3.d0 * SitotC0) - Dfs(NR,1), 0.d0)
+          Swall = rGamm0zz * rNuL(NR) * max(Var(NR,3)%n - PNsSUP(3), 0.d0) &
+               & + rGamm0iz * rNuL(NR) * max(Var(NR,2)%n - PNsSUP(2), 0.d0)
+          nC0z(NR) = min( Swall / SitotC0, max(X(NR,LQnz), 0.d0) )
+       end do
+       Dnzb(:) = Dfs(:,1)
+    case default
+       !  V5.52 model: the hydrogen slow-neutral diffusivity D01.
+       Dnzb(:) = D01(:)
+    end select
+
+    !     *** Larsen flux limiter on the slow-neutral diffusivity (MDLN0FL = 1) ***
+    !  OPTIONAL, not the default.  The diffusive flux D |grad n| may not exceed
+    !  FLlim n v:  D -> D / (1 + D |grad n| / (FLlim v n)).  In the SOL the ratio
+    !  R = D |grad n| / (FLlim v n) is 1e3 or more, and with D/(1+R) evaluated at
+    !  the current Picard iterate the fixed-point map then has a multiplier
+    !  close to -R/(1+R) = -1; use it with RLXN0 = 0.5 (neutral-only
+    !  under-relaxation in TXEXEC).  Even so a few steps can end at ICMAX,
+    !  which is why the limiter is not the default although the plain diffusion
+    !  flux exceeds the free-streaming limit by orders of magnitude in the SOL
+    !  (see doc/tx560.tex).
+    if( MDLN0FL == 1 ) then
+       V0zave = sqrt(4.d0 * V0*V0 / Pi)
+       tmp(:) = dfdx(vv, PN01V, NRMAX, 0)
+       do NR = 0, NRMAX
+          if( PN01V(NR) <= 0.d0 ) cycle
+          dn0dV = abs(tmp(NR)) * sqrt(sst(NR)) / PN01V(NR)
+          D01(NR) = D01(NR) / (1.d0 + D01(NR) * dn0dV / (FLlim * V0zave))
+       end do
+    end if
 
     !     *** Linear growth rate for toroidal gamma_etai branch of the ITG mode ***
     !        (F.Crisanti et al, NF 41 (2001) 883)
