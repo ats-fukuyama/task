@@ -2,8 +2,8 @@ module tx_graphic
   implicit none
   private
   integer(4), parameter :: NGRM=20, NGTM=5000, NGVM=5000, &
-       &                   NGYRM=353, NGYTM=77, NGYVM=70, &
-       &                   NGPRM=31, NGPTM=9, NGPVM=18
+       &                   NGYRM=357, NGYTM=77, NGYVM=70, &
+       &                   NGPRM=32, NGPTM=9, NGPVM=18
   type graphic_data
      real(4), dimension(:)    , allocatable :: gnrm
      real(4), dimension(:,:,:), allocatable :: v
@@ -1309,6 +1309,26 @@ contains
        ! *** Miscellaneous **********************************************
 
        GYL%v(NR,NG,353) = real(dPhidV(NR))
+
+       ! *** C0-C5 superstage: the source-slaved C0 part (MDLNZD = 1) *****
+
+       !  n_C0, the freshly sputtered neutral carbon in the bundle
+       GYL%v(NR,NG,354) = real(nC0z(NR)*1.d20) ; GYL%gnrm(354) = 1.e15
+       !  its share of the bundle, n_C0 / n_0z
+       if( PN0zV(NR) > 0.d0 ) then
+          GYL%v(NR,NG,355) = real(nC0z(NR) / PN0zV(NR))
+       else
+          GYL%v(NR,NG,355) = 0.0
+       end if
+       !  sputtering source of the bundle, R_zz nu_L (n_z - n_z,div) + R_iz nu_L (n_i - n_i,div)
+       GYL%v(NR,NG,356) = real(( rGamm0zz * rNuL(NR) * (Var(NR,3)%n - PNsSUP(3)) &
+            &                 + rGamm0iz * rNuL(NR) * (Var(NR,2)%n - PNsSUP(2)) ) * 1.d20)
+       !  parallel loss of the charged part of the bundle, (1 - R_zz) nu_L (n_0z - n_C0)
+       if( MDLNZD == 1 ) then
+          GYL%v(NR,NG,357) = real((1.d0 - rGamm0zz) * rNuL(NR) * (PN0zV(NR) - nC0z(NR)) * 1.d20)
+       else
+          GYL%v(NR,NG,357) = 0.0
+       end if
        
     end do
 
@@ -2266,6 +2286,27 @@ contains
           end do
        end do
        call TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND,ILOGIN=1)
+
+    case(32)
+       k = 354 ; STR = '@n$-C0$=@'
+       call APPROPGY(MODEG, GY%v(:,:,k), GYL, NMAX, STR, GY%gnrm(k))
+       call TXGRFRX(0, GX, GYL, NRMAX, NGR, STR, MODE, IND)
+
+       k = 356 ; STR = '@Sputtering source@'
+       call APPROPGY(MODEG, GY%v(:,:,k), GYL, NMAX, STR, GY%gnrm(k))
+       call TXGRFRX(1, GX, GYL, NRMAX, NGR, STR, MODE, IND)
+
+       k = 355 ; STR = '@n$-C0$=/n$-0z$=@'
+       do NG = 0, NGR
+          do NR = 0, NRMAX
+             GYL(NR,NG) = GLOG(real(GY%v(NR,NG,k),8),1.D-10,1.D0)
+          end do
+       end do
+       call TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND,ILOGIN=1)
+
+       k = 357 ; STR = '@Parallel loss of charged bundle@'
+       call APPROPGY(MODEG, GY%v(:,:,k), GYL, NMAX, STR, GY%gnrm(k))
+       call TXGRFRX(3, GX, GYL, NRMAX, NGR, STR, MODE, IND)
 
     ! ------------------------------------------------------------------
 
