@@ -3761,7 +3761,7 @@ contains
 
     ! MDLNZD = 1: the C0 part of the bundle, n_C0, is a known field slaved
     ! to the sputtering source (see TXCALC).  It adds
-    !   - the excess C0 flux -(D_C0 - D_c) dn_C0/dV, and
+    !   - the C0 flux in excess of the D_c term, -(D_C0 - D_c) dn_C0/dV, and
     !   - the parallel loss of the charged part n_b - n_C0 in the SOL, of which
     !     the fraction rGamm0zz comes back as sputtered C0 (as for C6+ above).
     !
@@ -3772,7 +3772,11 @@ contains
     ! at 1e-25 decided whether that node got the unlimited D_C0.  The limiter
     ! acts on the whole D_C0, since it bounds the whole C0 flux by free
     ! streaming; D_c, whose part of the C0 flux is already in the D_c term,
-    ! is subtracted afterwards.  The element flux F_e enters the two rows of
+    ! is subtracted afterwards, with its sign: the bundle flux is then exactly
+    ! -D_c grad(n_b - n_C0) - D_C0 grad n_C0.  Delta D < 0, which occurs in
+    ! the first element outside the separatrix on fine meshes, where the
+    ! limited D_C0 falls to about alpha vbar_0z h / 2, only removes the D_c
+    ! part of the C0 flux; n_C0 is a known field, so the matrix is unchanged.  The element flux F_e enters the two rows of
     ! the element as +F_e and -F_e, so the term is exactly conservative.
     ! fem_int cannot be used here: its coefficients are nodal, while the
     ! limited diffusivity is defined per element.
@@ -3787,7 +3791,7 @@ contains
           anC0 = 0.5d0 * (nC0z(NE-1) + nC0z(NE))
           if( anC0 > 0.d0 ) Del = Del / (1.d0 + Del * abs(dnC0) / hv(NE) * sqrt(sstl) &
                &                                    / (FLlim * V0zaveL * anC0))
-          Del  = max(Del - 0.5d0 * (Dnzb(NE-1) + Dnzb(NE)), 0.d0)
+          Del  = Del - 0.5d0 * (Dnzb(NE-1) + Dnzb(NE))
           Fel = sstl * Del * dnC0 / hv(NE)
           ELM(NE,1,9,NEQ) =   Fel
           ELM(NE,3,9,NEQ) = - Fel

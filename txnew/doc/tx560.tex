@@ -2703,8 +2703,9 @@ source balance:
 where $S_0$ is the C$^0\to$C$^{1+}$ ionization rate (OpenADAS scd96,
 \texttt{data/Carbon-S0F0\_20260921.txt}).  $n_\r{C0}$ enters the $\nnz$
 equation as a known field through the excess flux with
-$\Delta D_\r{C0} = \max(D_\r{C0} - D_\r{c},0)$, the part of the C$^0$ flux
-$-D_\r{C0}\nabla n_\r{C0}$ that the $D_\r{c}$ term does not already carry.
+$\Delta D_\r{C0} = D_\r{C0} - D_\r{c}$, the part of the C$^0$ flux
+$-D_\r{C0}\nabla n_\r{C0}$ that the $D_\r{c}$ term does not already carry, so that the
+bundle flux is exactly $-D_\r{c}\nabla(\nnz-n_\r{C0}) - D_\r{C0}\nabla n_\r{C0}$.
 Here $D_\r{C0}$ is the Larsen-limited (see below) value of $\bar v_{0z}^2/(3S_0\nee)$,
 the short-mean-free-path diffusivity of C$^0$, and $\bar v_{0z} = \sqrt{4V_{0z}^2/\pi}$
 its mean speed ($V_{0z}$ = \texttt{V0z}), and through the parallel loss of the
@@ -2721,8 +2722,15 @@ $D_\r{C0}$ is Larsen-limited, $D\to D/(1+D|\nabla n_\r{C0}|/(\alpha\bar v_{0z}n_
 $\alpha$ = \texttt{FLlim}.  The limiter is evaluated on each element from the
 element mean of $n_\r{C0}$ and the element gradient.  It acts on the whole
 $D_\r{C0}$, because it bounds the whole C$^0$ flux by free streaming, and
-$D_\r{c}$ is subtracted afterwards: $\Delta D_e = \max(D_e - D_{\r{c},e},0)$, where
-$D_e$ is the limited $D_\r{C0}$ and $D_{\r{c},e}$ the element mean of $D_\r{c}$.  The element flux
+$D_\r{c}$ is subtracted afterwards with its sign: $\Delta D_e = D_e - D_{\r{c},e}$, where
+$D_e$ is the limited $D_\r{C0}$ and $D_{\r{c},e}$ the element mean of $D_\r{c}$.
+$\Delta D_e<0$ is not a negative diffusion: it removes the part $D_{\r{c},e}$ of the C$^0$
+flux that the $D_\r{c}$ term already carries, and since $n_\r{C0}$ is a known field
+the matrix is unchanged.  It occurs in the first element outside the separatrix,
+where $n_\r{C0}$ rises from zero within one element and the limited $D_\r{C0}$ falls to
+about $\alpha\bar v_{0z}h/2$ ($h$ the radial width of the element): at NRMAX = 480,
+not at NRMAX $\le$ 240.  Clipping $\Delta D_e$ at zero there would let the C$^0$ flux
+exceed free streaming by 7\%.  The element flux
 $F_e = \aves{|\nabla V|^2}_e \Delta D_e\,\Delta n_\r{C0}/\Delta V_e$ enters the two
 rows of the element as $+F_e$ and $-F_e$, so the term is exactly conservative.
 The element evaluation is needed because inside the separatrix the source, and
@@ -2741,15 +2749,19 @@ of C$^0$ is comparable to the width of the C$^0$ layer, so the local source
 balance does not resolve the inner structure of the layer.  Positivity of $\nnz$
 is kept by the limiter in the cases computed, but it is not guaranteed, because
 the divergence of the known C$^0$ flux is a source that does not scale with $\nnz$.
-The bound $n_\r{C0}=\nnz$ is never reached in the converged iterates of the
-production cases; it is reached only in the first sweep of a run started from
-the initial profiles, where $\nnz$ is still close to zero.  When it is
-forced (a C$^0$ ionization rate reduced 100-fold), the C$^0$ flux in the bounded
-nodes becomes a diffusion of $\nnz$ itself with $\Delta D_\r{C0}\approx 7$--$15\,D_\r{c}$,
-taken from the previous iterate, and the iteration diverges
-(with the bound taken from the previous time step, the time stepping does).
-A comparison with an independent C$^0$ transport equation or a kinetic
-(Monte-Carlo) treatment would delimit the validity of the approximation.
+The bound $n_\r{C0}=\nnz$ marks the limit of the model.  It is never reached in
+the converged iterates of the production cases; it is reached only in the first
+sweep of a run started from the initial profiles, where $\nnz$ is still close to
+zero.  Where it holds persistently, the lagged treatment of $n_\r{C0}$ is not
+appropriate: the C$^0$ flux in the bounded nodes is then a diffusion of $\nnz$ itself
+with $\Delta D_\r{C0}\approx 7$--$15\,D_\r{c}$, taken from the previous iterate, and the
+iteration diverges (forced with a C$^0$ ionization rate reduced 100-fold; with the
+bound taken from the previous time step, the time stepping diverges instead).
+\texttt{TXLOOP} warns when the bound is still active in the last Picard sweep of a
+step, and with \texttt{IDIAG} $\ge$ 2 prints the number of bounded nodes at every
+step.  Such conditions call for an independent C$^0$ transport equation, an
+implicit treatment of the C$^0$ flux, or a kinetic (Monte-Carlo) treatment, which
+would also delimit the validity of the approximation.
 
 \subsection{Larsen limiter on the hydrogen slow neutrals (optional; open issue)}
 

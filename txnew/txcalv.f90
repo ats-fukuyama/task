@@ -1292,14 +1292,20 @@ contains
        !  and the subtraction of D_c are applied element by element in LQnzCC.
        !  S_wall, S_0 n_e and the bound n_b are all taken from the current
        !  Picard iterate (Var, PN0zV), so that n_C0 <= n_b is imposed on the
-       !  bundle at the time level being solved for.
+       !  bundle at the time level being solved for.  The bound n_C0 = n_b is
+       !  the limit of this model: where it holds, the C0 flux is a diffusion of
+       !  the bundle itself, much stronger than D_c, taken from the previous
+       !  iterate, and the Picard iteration diverges.  NC0CAP counts the nodes
+       !  where it holds; TXLOOP warns when it survives to the last sweep.
        V0zave = sqrt(4.d0 * V0z*V0z / Pi)
+       NC0CAP = 0
        do NR = 0, NRMAX
           SitotC0 = RateCoef_C_IZ_S0(Var(NR,1)%T, Var(NR,1)%n) * Var(NR,1)%n * 1.d20
           DC0z(NR) = V0zave*V0zave / (3.d0 * SitotC0)
           Swall = rGamm0zz * rNuL(NR) * max(Var(NR,3)%n - PNsSUP(3), 0.d0) &
                & + rGamm0iz * rNuL(NR) * max(Var(NR,2)%n - PNsSUP(2), 0.d0)
           nC0z(NR) = min( Swall / SitotC0, max(PN0zV(NR), 0.d0) )
+          if( Swall / SitotC0 > max(PN0zV(NR), 0.d0) ) NC0CAP = NC0CAP + 1
        end do
        Dnzb(:) = Dfs(:,1)
     case default

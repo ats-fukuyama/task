@@ -87,7 +87,7 @@ contains
          &                 ErV_FIX, IERR, LQb1, LQn1, LQn2, LQr1, &
          &                 tiny_cap, EPS, IDIAG, NTSTEP, ICCALC, iaxproj, &
          &                 FSRP, MODEAV, XOLD, bdf_history_ready, bdf_history_dt, &
-         &                 NT, DT, rIP, MDLPCK, ICONT, AVE_IC, MODECV, oldmix, oldmixa, Var, RLXN0, MDLN0FL, LQn1, LQn3
+         &                 NT, DT, rIP, MDLPCK, ICONT, AVE_IC, MODECV, oldmix, oldmixa, Var, RLXN0, MDLN0FL, LQn1, LQn3, NC0CAP
     use tx_variables
     use tx_coefficients, only : TXCALA
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ, &
@@ -108,6 +108,7 @@ contains
     real(8), dimension(:,:), allocatable :: BA, BL
     real(8), dimension(:),   allocatable :: BX
     integer(4) :: NR, NQ, IC = 0, IDIV, NTDO, ICSUM, IDIAGL, istat
+    integer(4), save :: ntc0cap = 0
     ! --- adaptive under-relaxation ---------------------------------------
     !  Below dt ~ 3e-6 the fixed-point map for the radial flows stops
     !  contracting.  It does not blow up: the sweep increment simply sits at
@@ -537,6 +538,23 @@ contains
        end do L_IC
 
        ICSUM = ICSUM + IC
+
+       ! The bound n_C0 = n_b of the source-slaved C0 part (MDLNZD = 1) is the
+       ! limit of that model (see TXCALC).  Warn when it is still active in the
+       ! last sweep, at its onset and when it clears; IDIAG >= 2 prints the
+       ! number of bounded nodes at every step in between.
+       if(NC0CAP > 0) then
+          ntc0cap = ntc0cap + 1
+          if(ntc0cap == 1) then
+             write(6,'(A,I6,A,I4,A)') ' ## WARNING: n_C0 = n_b in the last Picard sweep at NT =', &
+                  & NT, ',', NC0CAP, ' nodes; the source-slaved C0 model is outside its range'
+          else if(IDIAGL >= 2) then
+             write(6,'(A,I6,A,I4)') ' ## n_C0 = n_b: NT =', NT, ', nodes =', NC0CAP
+          end if
+       else if(ntc0cap > 0) then
+          write(6,'(A,I6,A,I6,A)') ' ## n_C0 = n_b cleared at NT =', NT, ' after', ntc0cap, ' steps'
+          ntc0cap = 0
+       end if
 
 #ifdef TX_PROFILE
        call CPU_TIME(prof_t0)

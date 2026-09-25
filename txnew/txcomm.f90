@@ -114,6 +114,9 @@ module tx_commons
   !           used only with MDLN0FL = 1.
   integer(4) :: MDLNZD, MDLN0FL
   real(8) :: FLlim, RLXN0
+  !   NC0CAP : number of nodes at which the C0 part of the bundle was bounded
+  !            by the bundle itself, n_C0 = n_b, in the latest TXCALC.
+  integer(4) :: NC0CAP = 0
   !   MDLSOL : width over which the parallel loss turns on outside the separatrix.
   !     0 : the historical DBW, built from half the on-axis ion temperature,
   !         Q(NRA) and B_phi (V5.52).
