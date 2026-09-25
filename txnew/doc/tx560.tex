@@ -2710,8 +2710,9 @@ the short-mean-free-path diffusivity of C$^0$, and $\bar v_{0z} = \sqrt{4V_{0z}^
 its mean speed ($V_{0z}$ = \texttt{V0z}), and through the parallel loss of the
 charged part of the bundle, $(1-\gamma_\r{0z})\nuL(\nnz-n_\r{C0})$, of which the
 fraction $\gamma_\r{0z}$ is sputtered back (the $\nnz$ equations of Secs.~1 and 3).
-$n_\r{C0}$ is evaluated from the previous Picard iterate, so the $\nnz$ equation
-stays linear in $\nnz$.  With \texttt{MDLNZD} = 0 (the V5.52 model),
+$n_\r{C0}$ is evaluated from the previous Picard iterate, $S_\r{wall}$, $S_0\nee$ and the
+bound $\nnz$ alike, so the bound $n_\r{C0}\le\nnz$ applies to the bundle at the time level
+being solved for, and the $\nnz$ equation stays linear in $\nnz$.  With \texttt{MDLNZD} = 0 (the V5.52 model),
 $D_{n\r{z}} = D_{01}$, the diffusivity of the slow hydrogen neutrals, and the
 $n_\r{C0}$ terms are absent.
 
@@ -2731,6 +2732,24 @@ rounding.  The limiter is part of the model and is always applied with
 \texttt{MDLNZD} = 1.  Without it $D_\r{C0}$ becomes very large in the SOL, and the
 divergence of the known C$^0$ flux, a source that does not scale with $\nnz$,
 drives $\nnz$ negative just outside the separatrix.
+
+\paragraph{Validity of the source-slaved C$^0$ part.}
+The slaving of C$^0$ to its source is implemented and is part of the production
+model.  What remains open is the range of validity of this quasi-steady
+approximation and the lack of a formal positivity guarantee.  The mean free path
+of C$^0$ is comparable to the width of the C$^0$ layer, so the local source
+balance does not resolve the inner structure of the layer.  Positivity of $\nnz$
+is kept by the limiter in the cases computed, but it is not guaranteed, because
+the divergence of the known C$^0$ flux is a source that does not scale with $\nnz$.
+The bound $n_\r{C0}=\nnz$ is never reached in the converged iterates of the
+production cases; it is reached only in the first sweep of a run started from
+the initial profiles, where $\nnz$ is still close to zero.  When it is
+forced (a C$^0$ ionization rate reduced 100-fold), the C$^0$ flux in the bounded
+nodes becomes a diffusion of $\nnz$ itself with $\Delta D_\r{C0}\approx 7$--$15\,D_\r{c}$,
+taken from the previous iterate, and the iteration diverges
+(with the bound taken from the previous time step, the time stepping does).
+A comparison with an independent C$^0$ transport equation or a kinetic
+(Monte-Carlo) treatment would delimit the validity of the approximation.
 
 \subsection{Larsen limiter on the hydrogen slow neutrals (optional; open issue)}
 

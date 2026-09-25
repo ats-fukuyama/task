@@ -1290,13 +1290,16 @@ contains
        !  -(D_C0 - D_c) dn_C0/dV and the parallel loss of the charged part
        !  n_b - n_C0.  DC0z holds the unlimited D_C0; the Larsen limiter on it
        !  and the subtraction of D_c are applied element by element in LQnzCC.
+       !  S_wall, S_0 n_e and the bound n_b are all taken from the current
+       !  Picard iterate (Var, PN0zV), so that n_C0 <= n_b is imposed on the
+       !  bundle at the time level being solved for.
        V0zave = sqrt(4.d0 * V0z*V0z / Pi)
        do NR = 0, NRMAX
           SitotC0 = RateCoef_C_IZ_S0(Var(NR,1)%T, Var(NR,1)%n) * Var(NR,1)%n * 1.d20
           DC0z(NR) = V0zave*V0zave / (3.d0 * SitotC0)
           Swall = rGamm0zz * rNuL(NR) * max(Var(NR,3)%n - PNsSUP(3), 0.d0) &
                & + rGamm0iz * rNuL(NR) * max(Var(NR,2)%n - PNsSUP(2), 0.d0)
-          nC0z(NR) = min( Swall / SitotC0, max(X(NR,LQnz), 0.d0) )
+          nC0z(NR) = min( Swall / SitotC0, max(PN0zV(NR), 0.d0) )
        end do
        Dnzb(:) = Dfs(:,1)
     case default
