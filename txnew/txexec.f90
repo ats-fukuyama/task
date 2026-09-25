@@ -543,7 +543,7 @@ contains
              ! about 1 - 2 RLXN0.  Not used otherwise.
              if(MDLN0FL == 1 .and. RLXN0 > 0.d0) &
                   & XN(:,LQn1:LQn3) = (1.d0 - RLXN0) * XN(:,LQn1:LQn3) + RLXN0 * XP(:,LQn1:LQn3)
-             if(NANDER /= 0) call anderson_accelerate(IC)
+             if(NANDER /= 0) call anderson_accelerate(IC, damping)
              cycle L_IC
           end if
 
@@ -2017,7 +2017,7 @@ contains
 
   end subroutine dump_iter_floor
 
-  subroutine anderson_accelerate(IC)
+  subroutine anderson_accelerate(IC, noncontracting)
 
 !   Anderson acceleration (type II, mixing beta = 1, depth m = |NANDER|) of the
 !   Picard sweeps.  On entry XP is the iterate x_k of this sweep and XN its
@@ -2035,9 +2035,15 @@ contains
 !   correction is applied to all variables.  The history starts afresh at every
 !   time step, and is dropped whenever the least-squares solve fails or returns
 !   a combination larger than GAMCAP, in which case g_k is taken as it is.
+!   Once the adaptive relaxation has found the step not contracting
+!   (noncontracting = .true.), the rest of the step is left to the relaxation
+!   alone: the linear model behind the mixing does not hold there, and the
+!   extrapolation drives the iterate away, as in the first steps from the
+!   initial profiles at NRMAX = 960.
 
     use tx_commons, only : NQMAX, NRMAX, IDIAG, NT, NANDER
     integer(4), intent(in) :: IC
+    logical, intent(in) :: noncontracting
     real(8), parameter :: GAMCAP = 1.d3, RCOND = 1.d-12
     integer(4) :: N, mdep, NQ, NR, j, m, info, rank, lwork, liwork
     real(8) :: wq(1), t0, t1
@@ -2066,6 +2072,12 @@ contains
           and_sc(NQ) = sqrt(sum(XP(:,NQ)**2) / NRMAX)
           if(and_sc(NQ) <= 0.d0) and_sc(NQ) = 1.d0
        end do
+    end if
+    if(noncontracting) then
+       and_k = 0 ; and_have0 = .false.
+       call CPU_TIME(t1)
+       and_cpu = and_cpu + (t1 - t0)
+       return
     end if
 
     do NR = 0, NRMAX

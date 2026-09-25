@@ -2811,7 +2811,11 @@ convergence test.  With \texttt{NANDER} $< 0$ the rows of \texttt{LQm1}--\texttt
 enter the least-squares fit, because their increment sits at the rounding floor
 of the linear solve; the correction is applied to all variables.  The history
 is restarted at every time step, and dropped (the plain $g_k$ is used) if the
-least-squares solve fails or returns $|\gamma| > 10^3$.  A fixed point of $G$ is
+least-squares solve fails or returns $|\gamma| > 10^3$.  Once the adaptive
+relaxation of the step has found the iteration not contracting, the rest of the
+step is left to the relaxation alone: the linear model behind the mixing does not
+hold there, and with the mixing kept on the first steps from the initial profiles
+at \texttt{NRMAX} = 960 end in a negative density.  A fixed point of $G$ is
 a fixed point of the accelerated iteration, so the converged solution is that of
 plain Picard; \texttt{NANDER} = 0 (default) is bit-identical to the plain iteration.
 
