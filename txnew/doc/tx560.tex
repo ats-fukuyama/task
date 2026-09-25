@@ -2730,8 +2730,13 @@ parameter & V5.52 & V5.60 & meaning \\\hline
 
 These are all the defaults that differ.  \texttt{parm/txparm.v552default} sets
 \texttt{FSLP} = 0.3, \texttt{MDLSOL} = \texttt{MDLNZD} = \texttt{MDLWBC} =
-\texttt{MDLN0FL} = 0; with it V5.60 reproduces V5.52.20 to $3\times10^{-7}$ in
-every profile, the rounding of the optimized build.
+\texttt{MDLN0FL} = 0.  With it V5.60 is not bit-identical to V5.52.20 (the
+optimized build schedules the changed routines differently), but one step from
+the same state gives double-precision states that agree to $10^{-12}$ (median
+over the variables) and $10^{-9}$ at worst, except $\psitd$ at its Picard noise
+floor ($3\times10^{-7}$); the profile output agrees to its single-precision
+resolution.  The table \texttt{data/Carbon-S0F0\_20260921.txt} is read at start-up in
+either case.
 
 \subsection{Other changes since V5.51}
 
