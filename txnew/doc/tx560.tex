@@ -2597,13 +2597,22 @@ continuum limit is the step.  \texttt{MDLSOL} selects its width $\delta$:
 \end{tabular}
 \end{center}
 
-With \texttt{MDLSOL} = 0 the width is 1.8 times the whole SOL for the reference
-equilibrium, so $g$ is 0.17 at the wall and the ramp acts as a suppression factor
-rather than as smoothing.  \texttt{MDLSOL} = 1 gives $g\simeq 0.99$ at the wall.
-The default $k_L = 1$ is the sheath-limited two-point value when $2\pi qR$ is
-read as the target-to-target length ($n_\r{t}=n_\r{u}/2$); V5.52 used the
-empirical $k_L=0.3$, which with \texttt{MDLSOL} = 1 does not give a stable SOL
-on the X-point equilibrium.
+With \texttt{MDLSOL} = 0 the width is evaluated with half the on-axis ion
+temperature and the edge $q$; for the X-point test equilibrium distributed with
+the code (\texttt{eqdata}, $R=3.2$ m, $a=0.8$ m) it is 1.8 times the whole SOL, so
+$g$ is only 0.17 at the wall and the ramp suppresses the loss everywhere instead
+of smoothing its onset.  \texttt{MDLSOL} = 1 evaluates the banana width with the
+local ion temperature and poloidal field at the separatrix and gives
+$g\simeq 0.99$ at the wall.
+
+The default $k_L = 1$ is the value of the sheath-limited two-point model
+(pressure conservation, Mach number 1 at the target, upstream and target
+densities related by $n_\r{t}=n_\r{u}/2$) when $2\pi qR$ is read as the length
+between the two targets: a flux tube of that length loses $2n_\r{t}C_s$ per unit
+area while holding $n_\r{u}\,2\pi qR$, so $\nuL = C_s/(2\pi qR)$.  V5.52 used the
+empirical value $k_L=0.3$, a typical upstream Mach number of the SOL flow; with
+\texttt{MDLSOL} = 1 it does not give a stable SOL on the X-point test
+equilibrium.
 
 \subsection{Wall boundary condition for the densities}
 \label{sec:wallbc}
@@ -2613,12 +2622,15 @@ at the wall $\rho=\rho_b$, said to come naturally from the pressure equation.
 The natural boundary condition of that equation is, however, zero heat flux, not
 a condition on the density.  Up to V5.52 the densities therefore had no
 condition at the wall, and the radial particle flux through $\rho_b$ was fixed by
-the last element: from $+57$\% to $-40$\% of the separatrix flux between
-\texttt{NRMAX} = 60 and 120, and $-28$\% even at 480.  The radial flux
+the last element.  On the X-point test equilibrium the ratio of the ion flux
+through the wall to that through the separatrix,
+$\Gamma_\r{wall}/\Gamma_\r{sep}$, was $+0.57$, $-0.40$ and $-0.28$ at
+\texttt{NRMAX} = 60, 120 and 480: depending on the mesh the wall acted as a
+source or a sink of particles, and refining the mesh did not make it vanish.  The radial flux
 $n_s\uV{s}$ cannot take the condition instead: its equation is first order and
 not integrated by parts, so it already has its one condition at the axis.
-$\rho_b$ is a computational boundary for the charged species, whose exhaust is
-carried by $\nuL$.
+For the charged species $\rho_b$ is a computational boundary at the outer edge of
+the SOL, not a material wall: their exhaust is carried by $\nuL$.
 
 V5.60 (\texttt{MDLWBC} = 1) imposes $dn_s/d\rho = 0$ on $\nee$, $\ni$ and $\nz$.
 In the P1 basis this is the constraint
@@ -2662,16 +2674,28 @@ known terms.  For every term \texttt{NC = 0..NLCMAX}:
 \texttt{PLC(N-1)~+=~PLC(N)}; row \texttt{N} is then cleared and set to
 \texttt{BLC(N,1) = 1}, \texttt{CLC(N,1) = -1}.  The time term and its
 right-hand side are built from the same coefficient arrays, so they are folded
-with them.  The condition converges at first order: $\Gamma_\r{wall}/\Gamma_\r{sep}$
-is $-1.8$, $-1.1$, $-0.5$ and $-0.3$\% at \texttt{NRMAX} = 60, 120, 240 and 480.
+with them.  The condition converges at first order in the mesh size:
+$\Gamma_\r{wall}/\Gamma_\r{sep}$ is $-1.8$, $-1.1$, $-0.5$ and $-0.3$\% at
+\texttt{NRMAX} = 60, 120, 240 and 480.
 
-\subsection{C$^0$--C$^5$ superstage (M5)}
+\subsection{C$^0$--C$^{5+}$ superstage with a source-slaved C$^0$ part}
 
-With \texttt{MDLNZD} = 1 the bundle $\nnz$ is transported as the magnetized
-C$^{1+}$--C$^{5+}$ population it mostly is, $D_{n\r{z}} = D_\r{c}$ (the
-charged-impurity diffusivity \texttt{Dfs}), except for the freshly sputtered
-C$^0$.  Its lifetime $1/(S_0\nee)$ is microseconds, so its density is slaved to
-its source:
+Carbon is carried by two densities: $\nz$ for C$^{6+}$ and the superstage
+$\nnz = \sum_{q=0}^{5} n_{\r{C}^{q+}}$, called the bundle below.  The bundle
+exchanges particles with C$^{6+}$ through the effective ionization $f_5S_5$
+and recombination $A_6$ of Sec.~1, and is fed by sputtering in the SOL:
+$\gamma_\r{0z}$ (\texttt{rGamm0zz}) is the fraction of the C$^{6+}$ parallel loss
+and $\gamma_\r{i,z}$ (\texttt{rGamm0iz}) the fraction of the main-ion parallel
+loss that return as sputtered carbon.
+
+In local ionization balance the C$^0$ fraction of the bundle is below
+$2\times10^{-6}$, so the bundle is almost entirely magnetized C$^{1+}$--C$^{5+}$
+ions.  With \texttt{MDLNZD} = 1 it is therefore diffused with the anomalous
+particle diffusivity of the charged species, $D_{n\r{z}} = D_\r{c}$ (\texttt{Dfs}).
+The exception is the carbon that has just been sputtered, which enters as
+neutral C$^0$.  Its lifetime $1/(S_0\nee)$ is of the order of microseconds,
+shorter than every other time scale here, so its density follows its local
+source balance:
 \begin{equation}
   n_\r{C0} = \min\left(\frac{S_\r{wall}}{S_0\nee},\ \nnz\right),\quad
   S_\r{wall} = \gamma_\r{0z}\nuL \max(\nz-\nsup{z},0) + \gamma_\r{i,z}\nuL\max(\ni-\nsup{i},0),
@@ -2679,10 +2703,15 @@ its source:
 where $S_0$ is the C$^0\to$C$^{1+}$ ionization rate (OpenADAS scd96,
 \texttt{data/Carbon-S0F0\_20260921.txt}).  $n_\r{C0}$ enters the $\nnz$
 equation as a known field through the excess flux with
-$\Delta D_\r{C0} = D_\r{C0} - D_\r{c}$, $D_\r{C0} = \bar v_{0z}^2/(3S_0\nee)$, and
-through the parallel loss of the charged part, $(1-\gamma_\r{0z})\nuL(\nnz-n_\r{C0})$
-(equations in the previous sections).  With \texttt{MDLNZD} = 0 (V5.52),
-$D_{n\r{z}} = D_{01}$ and the $n_\r{C0}$ terms are absent.
+$\Delta D_\r{C0} = \max(D_\r{C0} - D_\r{c},0)$, where $D_\r{C0} = \bar v_{0z}^2/(3S_0\nee)$ is
+the short-mean-free-path diffusivity of C$^0$ and $\bar v_{0z} = \sqrt{4V_{0z}^2/\pi}$
+its mean speed ($V_{0z}$ = \texttt{V0z}), and through the parallel loss of the
+charged part of the bundle, $(1-\gamma_\r{0z})\nuL(\nnz-n_\r{C0})$, of which the
+fraction $\gamma_\r{0z}$ is sputtered back (the $\nnz$ equations of Secs.~1 and 3).
+$n_\r{C0}$ is evaluated from the previous Picard iterate, so the $\nnz$ equation
+stays linear in $\nnz$.  With \texttt{MDLNZD} = 0 (the V5.52 model),
+$D_{n\r{z}} = D_{01}$, the diffusivity of the slow hydrogen neutrals, and the
+$n_\r{C0}$ terms are absent.
 
 \paragraph{Element-based C$^0$ limiter.}
 $D_\r{C0}$ is Larsen-limited, $D\to D/(1+D|\nabla n_\r{C0}|/(\alpha\bar v_{0z}n_\r{C0}))$,
@@ -2690,24 +2719,35 @@ $\alpha$ = \texttt{FLlim}.  The limiter is evaluated on each element from the
 element mean of $n_\r{C0}$ and the element gradient, and the element flux
 $F_e = \aves{|\nabla V|^2}_e D_e\,\Delta n_\r{C0}/\Delta V_e$ enters the two
 rows of the element as $+F_e$ and $-F_e$, so the term is exactly conservative.
-Evaluated at the nodes, $|\nabla n_\r{C0}|/n_\r{C0}$ is $0/0$ at the separatrix,
-where the source and hence $n_\r{C0}$ vanish; rounding then decided whether that
-node got the unlimited $D_\r{C0}$, and the bundle inventory at \texttt{NRMAX} =
-120 came out 29\% above 60 and 240.  The limiter is part of the model: without
-it the known C$^0$ flux divergence, a source that does not scale with $\nnz$,
+The element evaluation is needed because inside the separatrix the source, and
+hence $n_\r{C0}$, vanishes: a nodal ratio $|\nabla n_\r{C0}|/n_\r{C0}$ would be
+$0/0$ at the separatrix node, and whether that node is limited would be left to
+rounding.  The limiter is part of the model and is always applied with
+\texttt{MDLNZD} = 1.  Without it $D_\r{C0}$ becomes very large in the SOL, and the
+divergence of the known C$^0$ flux, a source that does not scale with $\nnz$,
 drives $\nnz$ negative just outside the separatrix.
 
 \subsection{Larsen limiter on the hydrogen slow neutrals (optional; open issue)}
 
-\texttt{MDLN0FL} = 1 applies the same limiter to $D_{01}$.  It is off by
-default in V5.60, which is \textbf{not} a statement that it is unnecessary.  In the
-SOL the ratio $R = D|\nabla n|/(\alpha v n)$ is $10^3$--$2\times10^3$ (up to
-$2\times10^4$), so the plain diffusion flux far exceeds the free-streaming
-limit.  With the limiter, the Picard map has a multiplier near $-R/(1+R)=-1$
-and the iteration ends on a period-two cycle.  Under-relaxing the three neutral
-densities alone (\texttt{RLXN0} = 0.5, used only with \texttt{MDLN0FL} = 1)
-restores convergence in most steps, but a few steps still reach
-\texttt{ICMAX} at $\varepsilon=10^{-6}$.  The effect of the limiter on the plasma
+The slow hydrogen neutrals are diffused with the short-mean-free-path
+diffusivity $D_{01} = \bar v_0^2/(3S_\r{tot})$, $S_\r{tot}$ being the ionization plus
+charge-exchange rate.  \texttt{MDLN0FL} = 1 applies the same Larsen limiter to
+$D_{01}$, which keeps the diffusive flux below the free-streaming value
+$\alpha n\bar v_0$.  It is off by default in V5.60, which is \textbf{not} a
+statement that it is unnecessary.  In the SOL the ratio
+$R = D_{01}|\nabla n_{01}|/(\alpha\bar v_0 n_{01})$ ($\alpha=1/4$) is
+$10^3$--$2\times10^3$, and up to $2\times10^4$: the plain diffusion flux exceeds
+the free-streaming limit by three orders of magnitude.
+
+Each time step of TASK/TX is solved by Picard (fixed-point) iteration, repeated
+until the relative change of every variable is below \texttt{EPS} or
+\texttt{ICMAX} sweeps have been made.  With the limiter evaluated at the current
+iterate, the fixed-point map has a multiplier close to $-R/(1+R)\simeq-1$ and the
+iteration ends on a period-two cycle.  Under-relaxing the three hydrogen
+neutral densities alone with weight \texttt{RLXN0} on the previous sweep
+(0.5, used only with \texttt{MDLN0FL} = 1) maps that multiplier to about
+$1-2\,\texttt{RLXN0}\simeq0$ and restores convergence in most steps, but with
+\texttt{EPS} = $10^{-6}$ a few steps still reach \texttt{ICMAX}.  The effect of the limiter on the plasma
 is a few per cent (neutral inventory 25\%, ionization source 1--3\%,
 $\nee$(wall) 3\%, $Z_\r{eff}$ 0\%).  It is left for a better nonlinear
 treatment, another flux-limited diffusion, a moment model or Monte-Carlo neutral
@@ -2720,7 +2760,7 @@ transport.
 parameter & V5.52 & V5.60 & meaning \\\hline
 \texttt{FSLP}    & 0.3 & 1.0 & $k_L$ \\
 \texttt{MDLSOL}  & (0) & 1   & ramp width $\delta$ \\
-\texttt{MDLNZD}  & (0) & 1   & bundle transport, M5 \\
+\texttt{MDLNZD}  & (0) & 1   & bundle transport with the source-slaved C$^0$ part \\
 \texttt{MDLWBC}  & (0) & 1   & wall density condition \\
 \texttt{MDLN0FL} & (0) & 0   & Larsen limiter on $D_{01}$ \\
 \texttt{FLlim}   & --  & 0.25 & limiter factor $\alpha$ (C$^0$; $D_{01}$ with \texttt{MDLN0FL} = 1) \\
@@ -2728,7 +2768,9 @@ parameter & V5.52 & V5.60 & meaning \\\hline
 \end{tabular}
 \end{center}
 
-These are all the defaults that differ.  \texttt{parm/txparm.v552default} sets
+A value in parentheses means that the switch did not exist in V5.52 and that
+the value reproduces the V5.52 behaviour.  These are all the defaults that differ.
+\texttt{parm/txparm.v552default} sets
 \texttt{FSLP} = 0.3, \texttt{MDLSOL} = \texttt{MDLNZD} = \texttt{MDLWBC} =
 \texttt{MDLN0FL} = 0.  With it V5.60 is not bit-identical to V5.52.20 (the
 optimized build schedules the changed routines differently), but one step from
