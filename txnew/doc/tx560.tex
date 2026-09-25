@@ -2789,6 +2789,43 @@ $\nee$(wall) 3\%, $Z_\r{eff}$ 0\%).  It is left for a better nonlinear
 treatment, another flux-limited diffusion, a moment model or Monte-Carlo neutral
 transport.
 
+\subsection{Anderson acceleration of the Picard iteration (optional)}
+
+Each time step is solved by Picard iteration: the coefficients are evaluated
+from the previous iterate $x_k$ and the linear system gives $g_k = G(x_k)$.  On
+fine meshes the iteration has a slow mode localised on the first few nodes at
+the magnetic axis, in $BV_{1s}$ (\texttt{LQ*8}) of all species, whose contraction
+factor per sweep tends to 1 as the axis element shrinks (0.70, 0.91, 0.98 at
+\texttt{NRMAX} = 120, 240, 480 with $\Delta t = 10^{-4}$); at \texttt{NRMAX} = 480
+it takes about 500 sweeps to reach \texttt{EPS} = $10^{-6}$.
+
+With \texttt{NANDER} $\ne 0$ the next iterate is instead
+\[
+  x_{k+1} = g_k - \sum_j \gamma_j\,(\Delta x_j + \Delta f_j),\qquad
+  \gamma = \arg\min\Bigl|f_k - \sum_j \gamma_j \Delta f_j\Bigr|_2,
+\]
+with $f = g - x$ and $\Delta x_j$, $\Delta f_j$ the differences over the last
+$|\texttt{NANDER}|$ sweeps of the step (Anderson mixing with $\beta = 1$).  Each
+variable is scaled by its profile RMS at the first sweep of the step, as in the
+convergence test.  With \texttt{NANDER} $< 0$ the rows of \texttt{LQm1}--\texttt{LQm5} do not
+enter the least-squares fit, because their increment sits at the rounding floor
+of the linear solve; the correction is applied to all variables.  The history
+is restarted at every time step, and dropped (the plain $g_k$ is used) if the
+least-squares solve fails or returns $|\gamma| > 10^3$.  A fixed point of $G$ is
+a fixed point of the accelerated iteration, so the converged solution is that of
+plain Picard; \texttt{NANDER} = 0 (default) is bit-identical to the plain iteration.
+
+With \texttt{NANDER} = $-20$ (100 steps from $t = 0.02$, $\Delta t = 10^{-4}$,
+\texttt{EPS} = $10^{-6}$, \texttt{ICMAX} = 100, X-point equilibrium) the average
+number of sweeps falls from 22.7, 36.4, 99.4 to 16.0, 28.4, 58.8 at \texttt{NRMAX} =
+60, 120, 240, and the steps that reach \texttt{ICMAX} at \texttt{NRMAX} = 240 from 86 to 9;
+the circular equilibrium behaves alike.  The solution agrees with the plain
+iteration to within the convergence tolerance.  At \texttt{NRMAX} = 480 the
+\texttt{LQ*8} mode is removed as well, but almost every step still reaches \texttt{ICMAX}:
+the limiting increment is then that of $\psitd$ (\texttt{LQm2}), whose rounding floor
+($10^{-6}$--$10^{-5}$) lies above \texttt{EPS} and is not affected by the
+acceleration.
+
 \subsection{New defaults and V5.52 compatibility}
 
 \begin{center}
@@ -2800,7 +2837,8 @@ parameter & V5.52 & V5.60 & meaning \\\hline
 \texttt{MDLWBC}  & (0) & 1   & wall density condition \\
 \texttt{MDLN0FL} & (0) & 0   & Larsen limiter on $D_{01}$ \\
 \texttt{FLlim}   & --  & 0.25 & limiter factor $\alpha$ (C$^0$; $D_{01}$ with \texttt{MDLN0FL} = 1) \\
-\texttt{RLXN0}   & --  & 0.5 & neutral-only relaxation (\texttt{MDLN0FL} = 1 only) \\\hline
+\texttt{RLXN0}   & --  & 0.5 & neutral-only relaxation (\texttt{MDLN0FL} = 1 only) \\
+\texttt{NANDER}  & (0) & 0   & Anderson acceleration of the Picard sweeps \\\hline
 \end{tabular}
 \end{center}
 

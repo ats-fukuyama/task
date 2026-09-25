@@ -128,6 +128,16 @@ module tx_commons
   !     1 : zero gradient, n(NRMAX) = n(NRMAX-1), in constrained-DOF form
   !         (V5.60 default; see BOUNDARY_ZEROGRAD in txcala.f90).
   integer(4) :: MDLWBC
+  !   NANDER : Anderson acceleration of the Picard sweeps of each time step.
+  !     0 : plain Picard (default).
+  !     m : the next iterate is the Picard output corrected by the least-squares
+  !         combination of the last |m| differences of iterates and of residuals
+  !         (Anderson mixing, beta = 1, history restarted at every time step).
+  !         m < 0 leaves the rows of LQm1-LQm5 out of the least-squares fit;
+  !         their residual sits at the rounding floor of the linear solve and
+  !         would otherwise steer the fit.  The converged solution is that of
+  !         plain Picard.  -20 is the value validated for NRMAX >= 240.
+  integer(4) :: NANDER
   real(8) :: FSADV, FSADVB, FSUG, FSG0iz
   real(8), dimension(NSM) :: FSMPCH, FSTPTM, FSPARV, FSLTs
   real(8), dimension(1:2) :: FSNC, FSNCB

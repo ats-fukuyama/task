@@ -4,6 +4,15 @@ module tx_main
   integer(4), dimension(1:2) :: iasg
   real(8), dimension(:), allocatable :: L2
   real(8), dimension(:,:), allocatable :: XN, XP, ASG
+  ! Anderson acceleration (NANDER /= 0): scaled iterate and residual of the last
+  ! sweep, histories of their differences, workspace, and run statistics.
+  real(8), dimension(:,:), allocatable :: and_dx, and_df, and_A
+  real(8), dimension(:),   allocatable :: and_x0, and_f0, and_x, and_g, and_b, and_s, and_work
+  real(8), dimension(:),   allocatable :: and_sc
+  integer(4), dimension(:), allocatable :: and_iwork
+  integer(4) :: and_k = 0, and_ncall = 0, and_nrst = 0, and_nfail = 0
+  logical :: and_have0 = .false.
+  real(8) :: and_condmax = 0.d0, and_cpu = 0.d0
   ! Quality report of the last DGBSVX band solve (MDLPCK = 3, and the MDLPCK = 2
   ! fallback).  Kept here so the diagnostics can print it without threading it
   ! through the call chain.
@@ -87,7 +96,8 @@ contains
          &                 ErV_FIX, IERR, LQb1, LQn1, LQn2, LQr1, &
          &                 tiny_cap, EPS, IDIAG, NTSTEP, ICCALC, iaxproj, &
          &                 FSRP, MODEAV, XOLD, bdf_history_ready, bdf_history_dt, &
-         &                 NT, DT, rIP, MDLPCK, ICONT, AVE_IC, MODECV, oldmix, oldmixa, Var, RLXN0, MDLN0FL, LQn1, LQn3, NC0CAP
+         &                 NT, DT, rIP, MDLPCK, ICONT, AVE_IC, MODECV, oldmix, oldmixa, Var, RLXN0, MDLN0FL, LQn1, LQn3, NC0CAP, &
+         &                 NANDER
     use tx_variables
     use tx_coefficients, only : TXCALA
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ, &
@@ -195,6 +205,7 @@ contains
     if(NTMAX /= 0) DIP = (rIPe - rIPs) / NTMAX
     ICSUM = 0
     ndamp = 0
+    and_ncall = 0 ; and_nrst = 0 ; and_nfail = 0 ; and_condmax = 0.d0 ; and_cpu = 0.d0
 #ifdef TX_PROFILE
     call CPU_TIME(prof_total_t0)
     prof_ic_sum    = 0.d0
@@ -532,6 +543,7 @@ contains
              ! about 1 - 2 RLXN0.  Not used otherwise.
              if(MDLN0FL == 1 .and. RLXN0 > 0.d0) &
                   & XN(:,LQn1:LQn3) = (1.d0 - RLXN0) * XN(:,LQn1:LQn3) + RLXN0 * XP(:,LQn1:LQn3)
+             if(NANDER /= 0) call anderson_accelerate(IC)
              cycle L_IC
           end if
 
@@ -753,6 +765,9 @@ contains
        if(mod(IDIAG,10) >= 5) then
           write(6,'(A,I8,A,I8)') ' ## time steps where adaptive damping engaged:', ndamp, &
                & '   out of', NTMAX
+          if(NANDER /= 0) write(6,'(A,I9,A,I6,A,I6,A,ES10.3,A,F9.2,A)') ' ## Anderson: sweeps', and_ncall, &
+               & '   restarts', and_nrst, '   LS failures', and_nfail, '   max cond', and_condmax, &
+               & '   CPU', and_cpu, ' s'
           write(6,'(A,4I8,A,I8)') ' ## non-smooth guards fired (MINUS_CHECK ID=0,1,2,3):', &
                & nsm_minus(1:4), '   tiny-zeroing (eq,step) pairs:', nsm_tiny
           if(nsm_tiny > 0) then
@@ -2001,6 +2016,115 @@ contains
     flush(iunit)
 
   end subroutine dump_iter_floor
+
+  subroutine anderson_accelerate(IC)
+
+!   Anderson acceleration (type II, mixing beta = 1, depth m = |NANDER|) of the
+!   Picard sweeps.  On entry XP is the iterate x_k of this sweep and XN its
+!   Picard image g_k = G(x_k), after any relaxation; on exit XN is
+!
+!     x_{k+1} = g_k - sum_j gamma_j ( dx_j + df_j ),
+!     gamma = argmin | f_k - sum_j gamma_j df_j |_2,   f = g - x,
+!     dx_j = x_j - x_{j-1},  df_j = f_j - f_{j-1}   (the last m sweeps).
+!
+!   A fixed point of G is a fixed point of the accelerated iteration, so the
+!   converged solution is unchanged.  Each variable is scaled by its profile
+!   RMS at the first sweep of the step, as check_convergence scales its
+!   increment.  With NANDER < 0 the rows of LQm1-LQm5 do not enter the fit
+!   (their residual is the rounding floor of the linear solve), but the
+!   correction is applied to all variables.  The history starts afresh at every
+!   time step, and is dropped whenever the least-squares solve fails or returns
+!   a combination larger than GAMCAP, in which case g_k is taken as it is.
+
+    use tx_commons, only : NQMAX, NRMAX, IDIAG, NT, NANDER
+    integer(4), intent(in) :: IC
+    real(8), parameter :: GAMCAP = 1.d3, RCOND = 1.d-12
+    integer(4) :: N, mdep, NQ, NR, j, m, info, rank, lwork, liwork
+    real(8) :: wq(1), t0, t1
+    integer(4) :: iwq(1)
+
+    call CPU_TIME(t0)
+    N = NQMAX * (NRMAX + 1) ; mdep = abs(NANDER)
+    if(allocated(and_x0)) then
+       if(size(and_x0) /= N .or. size(and_dx,2) /= mdep) then
+          deallocate(and_dx, and_df, and_A, and_x0, and_f0, and_x, and_g, and_b, and_s, &
+               &     and_work, and_iwork, and_sc)
+       end if
+    end if
+    if(.not. allocated(and_x0)) then
+       allocate(and_dx(N,mdep), and_df(N,mdep), and_A(N,mdep), and_x0(N), and_f0(N), and_x(N), &
+            &   and_g(N), and_b(N), and_s(mdep), and_sc(NQMAX))
+       call DGELSD(N, mdep, 1, and_A, N, and_b, N, and_s, RCOND, rank, wq, -1, iwq, info)
+       lwork = int(wq(1)) ; liwork = max(1, iwq(1))
+       allocate(and_work(lwork), and_iwork(liwork))
+    end if
+    lwork = size(and_work) ; liwork = size(and_iwork)
+
+    if(IC == 1) then
+       and_k = 0 ; and_have0 = .false.
+       do NQ = 1, NQMAX
+          and_sc(NQ) = sqrt(sum(XP(:,NQ)**2) / NRMAX)
+          if(and_sc(NQ) <= 0.d0) and_sc(NQ) = 1.d0
+       end do
+    end if
+
+    do NR = 0, NRMAX
+       do NQ = 1, NQMAX
+          j = NQMAX*NR + NQ
+          and_x(j) = XP(NR,NQ) / and_sc(NQ)
+          and_g(j) = XN(NR,NQ) / and_sc(NQ)
+       end do
+    end do
+
+    ! update the history with this sweep: f_k - f_{k-1}, x_k - x_{k-1}
+    if(and_have0) then
+       if(and_k == mdep) then
+          and_dx(:,1:mdep-1) = and_dx(:,2:mdep)
+          and_df(:,1:mdep-1) = and_df(:,2:mdep)
+          and_k = mdep - 1
+       end if
+       and_k = and_k + 1
+       and_dx(:,and_k) = and_x - and_x0
+       and_df(:,and_k) = (and_g - and_x) - and_f0
+    end if
+    and_x0 = and_x ; and_f0 = and_g - and_x ; and_have0 = .true.
+
+    if(and_k > 0) then
+       m = and_k
+       and_ncall = and_ncall + 1
+       and_A(:,1:m) = and_df(:,1:m) ; and_b = and_f0
+       if(NANDER < 0) then
+          do NR = 0, NRMAX
+             and_A(NQMAX*NR+1:NQMAX*NR+5,1:m) = 0.d0
+             and_b(NQMAX*NR+1:NQMAX*NR+5)     = 0.d0
+          end do
+       end if
+       call DGELSD(N, m, 1, and_A, N, and_b, N, and_s, RCOND, rank, and_work, lwork, and_iwork, info)
+       if(info == 0 .and. maxval(abs(and_b(1:m))) < GAMCAP) then
+          if(and_s(max(rank,1)) > 0.d0) and_condmax = max(and_condmax, and_s(1) / and_s(max(rank,1)))
+          do NR = 0, NRMAX
+             do NQ = 1, NQMAX
+                j = NQMAX*NR + NQ
+                XN(NR,NQ) = ( and_g(j) - sum( and_b(1:m) * (and_dx(j,1:m) + and_df(j,1:m)) ) ) &
+                     &    * and_sc(NQ)
+             end do
+          end do
+       else
+          if(info /= 0) then
+             and_nfail = and_nfail + 1
+          else
+             and_nrst = and_nrst + 1
+          end if
+          if(mod(IDIAG,10) >= 3) write(6,'(A,I6,A,I4,A,I4,A,ES10.3)') &
+               & ' ## Anderson history dropped: NT =', NT, ', IC =', IC, ', info =', info, &
+               & ', max|gamma| =', maxval(abs(and_b(1:m)))
+          and_k = 0
+       end if
+    end if
+    call CPU_TIME(t1)
+    and_cpu = and_cpu + (t1 - t0)
+
+  end subroutine anderson_accelerate
 
   subroutine check_convergence(IC,IDIV,istat)
     use tx_commons, only : MODECV, NRMAX, NQMAX, EPS, IDIAG, NT, ICMAX
