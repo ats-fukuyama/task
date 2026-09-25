@@ -3769,9 +3769,13 @@ contains
     ! evaluated on each element from the element mean of n_C0 and the element
     ! gradient: at a node, |grad n_C0|/n_C0 is 0/0 at the separatrix, where the
     ! source and hence n_C0 vanish, and whether rounding left rNuL(NRA) at 0 or
-    ! at 1e-25 decided whether that node got the unlimited D_C0.  The element
-    ! flux F_e enters the two rows of the element as +F_e and -F_e, so the
-    ! term is exactly conservative.
+    ! at 1e-25 decided whether that node got the unlimited D_C0.  The limiter
+    ! acts on the whole D_C0, since it bounds the whole C0 flux by free
+    ! streaming; D_c, whose part of the C0 flux is already in the D_c term,
+    ! is subtracted afterwards.  The element flux F_e enters the two rows of
+    ! the element as +F_e and -F_e, so the term is exactly conservative.
+    ! fem_int cannot be used here: its coefficients are nodal, while the
+    ! limited diffusivity is defined per element.
 
     if( MDLNZD == 1 ) then
        V0zaveL = sqrt(4.d0 * V0z*V0z / Pi)
@@ -3783,6 +3787,7 @@ contains
           anC0 = 0.5d0 * (nC0z(NE-1) + nC0z(NE))
           if( anC0 > 0.d0 ) Del = Del / (1.d0 + Del * abs(dnC0) / hv(NE) * sqrt(sstl) &
                &                                    / (FLlim * V0zaveL * anC0))
+          Del  = max(Del - 0.5d0 * (Dnzb(NE-1) + Dnzb(NE)), 0.d0)
           Fel = sstl * Del * dnC0 / hv(NE)
           ELM(NE,1,9,NEQ) =   Fel
           ELM(NE,3,9,NEQ) = - Fel

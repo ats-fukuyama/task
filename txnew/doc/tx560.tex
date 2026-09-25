@@ -2703,8 +2703,10 @@ source balance:
 where $S_0$ is the C$^0\to$C$^{1+}$ ionization rate (OpenADAS scd96,
 \texttt{data/Carbon-S0F0\_20260921.txt}).  $n_\r{C0}$ enters the $\nnz$
 equation as a known field through the excess flux with
-$\Delta D_\r{C0} = \max(D_\r{C0} - D_\r{c},0)$, where $D_\r{C0} = \bar v_{0z}^2/(3S_0\nee)$ is
-the short-mean-free-path diffusivity of C$^0$ and $\bar v_{0z} = \sqrt{4V_{0z}^2/\pi}$
+$\Delta D_\r{C0} = \max(D_\r{C0} - D_\r{c},0)$, the part of the C$^0$ flux
+$-D_\r{C0}\nabla n_\r{C0}$ that the $D_\r{c}$ term does not already carry.
+Here $D_\r{C0}$ is the Larsen-limited (see below) value of $\bar v_{0z}^2/(3S_0\nee)$,
+the short-mean-free-path diffusivity of C$^0$, and $\bar v_{0z} = \sqrt{4V_{0z}^2/\pi}$
 its mean speed ($V_{0z}$ = \texttt{V0z}), and through the parallel loss of the
 charged part of the bundle, $(1-\gamma_\r{0z})\nuL(\nnz-n_\r{C0})$, of which the
 fraction $\gamma_\r{0z}$ is sputtered back (the $\nnz$ equations of Secs.~1 and 3).
@@ -2716,8 +2718,11 @@ $n_\r{C0}$ terms are absent.
 \paragraph{Element-based C$^0$ limiter.}
 $D_\r{C0}$ is Larsen-limited, $D\to D/(1+D|\nabla n_\r{C0}|/(\alpha\bar v_{0z}n_\r{C0}))$,
 $\alpha$ = \texttt{FLlim}.  The limiter is evaluated on each element from the
-element mean of $n_\r{C0}$ and the element gradient, and the element flux
-$F_e = \aves{|\nabla V|^2}_e D_e\,\Delta n_\r{C0}/\Delta V_e$ enters the two
+element mean of $n_\r{C0}$ and the element gradient.  It acts on the whole
+$D_\r{C0}$, because it bounds the whole C$^0$ flux by free streaming, and
+$D_\r{c}$ is subtracted afterwards: $\Delta D_e = \max(D_e - D_{\r{c},e},0)$, where
+$D_e$ is the limited $D_\r{C0}$ and $D_{\r{c},e}$ the element mean of $D_\r{c}$.  The element flux
+$F_e = \aves{|\nabla V|^2}_e \Delta D_e\,\Delta n_\r{C0}/\Delta V_e$ enters the two
 rows of the element as $+F_e$ and $-F_e$, so the term is exactly conservative.
 The element evaluation is needed because inside the separatrix the source, and
 hence $n_\r{C0}$, vanishes: a nodal ratio $|\nabla n_\r{C0}|/n_\r{C0}$ would be
