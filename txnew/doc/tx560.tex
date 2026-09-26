@@ -2808,8 +2808,9 @@ with $f = g - x$ and $\Delta x_j$, $\Delta f_j$ the differences over the last
 $|\texttt{NANDER}|$ sweeps of the step (Anderson mixing with $\beta = 1$).  Each
 variable is scaled by its profile RMS at the first sweep of the step, as in the
 convergence test.  With \texttt{NANDER} $< 0$ the rows of \texttt{LQm1}--\texttt{LQm5} do not
-enter the least-squares fit, because their increment sits at the rounding floor
-of the linear solve; the correction is applied to all variables.  The history
+enter the least-squares fit, because near convergence their increments are
+rounding (for $\psitd$ the floor of Sec.~\ref{sec:lqm2tol}); the correction is
+applied to all variables.  The history
 is restarted at every time step, and dropped (the plain $g_k$ is used) if the
 least-squares solve fails or returns $|\gamma| > 10^3$.  Once the adaptive
 relaxation of the step has found the iteration not contracting, the rest of the
@@ -2825,10 +2826,99 @@ number of sweeps falls from 22.7, 36.4, 99.4 to 16.0, 28.4, 58.8 at \texttt{NRMA
 60, 120, 240, and the steps that reach \texttt{ICMAX} at \texttt{NRMAX} = 240 from 86 to 9;
 the circular equilibrium behaves alike.  The solution agrees with the plain
 iteration to within the convergence tolerance.  At \texttt{NRMAX} = 480 the
-\texttt{LQ*8} mode is removed as well, but almost every step still reaches \texttt{ICMAX}:
-the limiting increment is then that of $\psitd$ (\texttt{LQm2}), whose rounding floor
-($10^{-6}$--$10^{-5}$) lies above \texttt{EPS} and is not affected by the
-acceleration.
+\texttt{LQ*8} mode is removed as well.  These figures were measured with the
+purely relative test of $\psitd$ (\texttt{LQm2}), under which almost every step at
+\texttt{NRMAX} = 480 still reached \texttt{ICMAX} on the rounding floor of $\psitd$,
+which the acceleration does not affect.  With the floor term of
+Sec.~\ref{sec:lqm2tol} the steps at \texttt{NRMAX} = 240 and 480 end when the
+other variables have converged: with \texttt{NANDER} = $-20$ the average number
+of sweeps is 33.5 (240) and 67.1 (480), and 3 of 100 steps at 480 reach
+\texttt{ICMAX}, on the other variables.
+
+\subsection{Convergence test of $\psitd$ (\texttt{LQm2})}
+\label{sec:lqm2tol}
+
+The sweeps of a time step stop when, for every variable $X_q$,
+$\max_j|\Delta X_{q,j}| \le \texttt{EPS}\,\mathrm{rms}(X_q)$, $\Delta X_q$ being the
+change over the sweep.  For $X_2 = \psitd$ this relative test has a floor that no
+iteration removes, and the test is
+\[
+  \max_j|\Delta X_{2,j}| \le \texttt{EPS}\,\mathrm{rms}(X_2)
+  + C_\r{r}\,\epsilon_\r{m}\,\texttt{NRMAX}^2\,
+    \frac{\mu_0\,\mathrm{rms}(X_5)}{\texttt{ADV}\,\Delta t},
+  \qquad C_\r{r} = 1,
+\]
+with $X_5 = \psit/\mu_0$ (\texttt{LQm5}), $\epsilon_\r{m}$ the machine epsilon and
+\texttt{ADV} the weight of the implicit terms (2/3 for BDF2, 1 in the first step).
+\texttt{LQm2} is not removed from the test: the relative term is kept as it is
+for every variable, and only the floor term is added.  The test of every other
+variable (including $\psid$, \texttt{LQm3}), the equations and the fixed point are
+unchanged.
+
+The floor has two factors.  $\psit$ is mostly vacuum flux, and in Amp\`ere's
+law (the \texttt{LQm2} row) the $\nabla\times B_\phi$ term applied to it is a
+cancellation of terms larger than the result, $|KX_5|/(|K||X_5|) = 3.4\times10^{-7}$
+at \texttt{NRMAX} = 60 falling as $\texttt{NRMAX}^{-2}$.  A rounding of relative
+size $\epsilon_\r{m}$ in that row, in the assembly or in the solve, leaves $\psit$
+determined only to $(0.05$--$0.07)\,\epsilon_\r{m}\texttt{NRMAX}^2$.  Faraday's
+law (the \texttt{LQm5} row) then gives $\psitd$ as the difference quotient
+$\mu_0(X_5 - X_5^\r{old})/(\texttt{ADV}\,\Delta t)$, which multiplies that rounding
+by $\psit/(\texttt{ADV}\,\Delta t\,|\psitd|)$, $7\times10^6$ at $\Delta t = 10^{-4}$,
+$t = 0.02$\,s, and without bound as $\psit$ approaches a steady state.  The
+relative floor of $\psitd$ is therefore about $4\times10^{-7}$, $1.5\times10^{-6}$,
+$4.6\times10^{-6}$, $1.8\times10^{-5}$ at \texttt{NRMAX} = 60, 120, 240, 480
+($\Delta t = 10^{-4}$, $t = 0.02$\,s), grows as $1/\Delta t$, and grows in time:
+at \texttt{NRMAX} = 60 it reaches $10^{-5}$ by $t = 0.5$\,s.  At the floor the
+equations are satisfied to rounding (backward error of the \texttt{LQm2} and
+\texttt{LQm5} rows $10^{-15}$--$10^{-11}$, normwise residual of every equation below
+$4\times10^{-9}$); the increment of $\psitd$ is the forward error of an
+ill-conditioned component, not an unconverged iteration.  The second term of the
+test is that floor with a safety factor.
+
+$C_\r{r}$ is not a physical tolerance on $\psitd$.  $C_\r{r} = 0.3$ lies on the
+largest floor observed (the rounding of $\psit$ reaches 4--6.5 times its geometric
+mean) and leaves no margin for rounding that depends on the compiler, the BLAS or
+the order of operations; $C_\r{r} = 1$, three to four times it, is used.  The two
+values give the same numbers of sweeps to within a few per cent and solutions
+that cannot be told apart.  The test on $\psitd$ keeps its role while the
+iteration converges, since $\psitd$ responds to a change of the currents about
+$10^4$ times more strongly than they change (\texttt{NRMAX} = 60).  In the printed and returned
+convergence measures the value for \texttt{LQm2} is the part of the relative
+increment above the floor term.
+
+Against a reference solved with the relative test and up to 300 (100 steps) or
+200 (3000 steps) sweeps per step, \texttt{NANDER} = $-20$, the test with the floor
+term gives (\texttt{EPS} = $10^{-6}$, \texttt{ICMAX} = 100, $\Delta t = 10^{-4}$)
+
+\begin{center}
+\begin{tabular}{|l|c|c|}\hline
+ & relative test & with the floor term \\
+ & sweeps / steps at \texttt{ICMAX} & sweeps / steps at \texttt{ICMAX} \\\hline
+X-point, 240, 100 steps       & 58.8 / 9    & 33.5 / 0 \\
+circular, 240, 100 steps      & 69.8 / 10   & 37.1 / 0 \\
+X-point, 480, 100 steps       & 99.6 / 97   & 67.1 / 3 \\
+circular, 480, 100 steps      & 99.3 / 95   & 77.0 / 5 \\
+X-point, 240, 3000 steps      & 89.0 / 2167 & 29.9 / 0 \\
+circular, 240, 3000 steps     & 89.6 / 2093 & 33.6 / 0 \\\hline
+\end{tabular}
+\end{center}
+
+The remaining steps at \texttt{ICMAX} are steps on which another variable has not
+converged.  Densities, temperatures, current and $Z_\r{eff}$ differ from the
+reference by less than $7\times10^{-8}$; $\psitd$ and the poloidal electric field derived from it by
+$0.2$--$1.5\times10^{-4}$, within the $0.3$--$2.1\times10^{-4}$ by which the
+relative test with \texttt{ICMAX} = 100 differs from the same reference, that is,
+within the floor.  The loop voltages and the Poynting-flux terms follow within
+$6\times10^{-7}$ over 3000 steps, except the rate of change of the poloidal
+electric-field energy, which is built on $\epsilon_0\psitd^2$ and carries the floor
+of $\psitd$ under either test.  Volume-averaged densities, stored energy and
+current agree to $10^{-10}$ and the toroidal angular momentum to $2\times10^{-8}$.
+The BDF2 errors and orders of $n$, $T$, $j$ and $Z_\r{eff}$ are unchanged
+(\texttt{NRMAX} = 60, $\Delta t = 4\times10^{-4}$--$2.5\times10^{-5}$,
+\texttt{EPS} = $10^{-8}$); only the self-convergence error of $\psitd$ between
+the two finest steps rises from $6$--$8\times10^{-6}$ to $1.5\times10^{-5}$, its
+floor.  With \texttt{NANDER} = 0 the slow \texttt{LQ*8} mode still decides most
+steps at \texttt{NRMAX} $\ge$ 240, and the floor term changes little.
 
 \subsection{New defaults and V5.52 compatibility}
 

@@ -134,8 +134,10 @@ module tx_commons
   !         combination of the last |m| differences of iterates and of residuals
   !         (Anderson mixing, beta = 1, history restarted at every time step).
   !         m < 0 leaves the rows of LQm1-LQm5 out of the least-squares fit;
-  !         their residual sits at the rounding floor of the linear solve and
-  !         would otherwise steer the fit.  The converged solution is that of
+  !         near convergence their increments are rounding (for psi_t dot the
+  !         cancellation in Ampere's law amplified by the difference quotient
+  !         of Faraday's law, see check_convergence) and would otherwise steer
+  !         the fit.  The converged solution is that of
   !         plain Picard.  -20 is the value validated for NRMAX >= 240.
   integer(4) :: NANDER
   real(8) :: FSADV, FSADVB, FSUG, FSG0iz

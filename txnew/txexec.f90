@@ -2031,8 +2031,9 @@ contains
 !   converged solution is unchanged.  Each variable is scaled by its profile
 !   RMS at the first sweep of the step, as check_convergence scales its
 !   increment.  With NANDER < 0 the rows of LQm1-LQm5 do not enter the fit
-!   (their residual is the rounding floor of the linear solve), but the
-!   correction is applied to all variables.  The history starts afresh at every
+!   (near convergence their increments are rounding; for psi_t dot, the
+!   floor described in check_convergence), but the correction is applied to
+!   all variables.  The history starts afresh at every
 !   time step, and is dropped whenever the least-squares solve fails or returns
 !   a combination larger than GAMCAP, in which case g_k is taken as it is.
 !   Once the adaptive relaxation has found the step not contracting
@@ -2139,15 +2140,35 @@ contains
   end subroutine anderson_accelerate
 
   subroutine check_convergence(IC,IDIV,istat)
-    use tx_commons, only : MODECV, NRMAX, NQMAX, EPS, IDIAG, NT, ICMAX
+    use tx_commons, only : MODECV, NRMAX, NQMAX, EPS, IDIAG, NT, ICMAX, &
+         &                 LQm2, LQm5, ADV, DT, rMU0
 
     integer(4), intent(in)  :: IC, IDIV
     integer(4), intent(out) :: istat
     integer(4) :: NR, NQ, NRAVM, IDISP, IDIAGL
-    real(8) :: EPSabs, AV, AVM, ERR1
+    real(8) :: EPSabs, AV, AVM, ERR1, FLOORm2
+    ! The increment of psi_t dot (LQm2) has a rounding floor that no iteration
+    ! removes.  psi_t is mostly vacuum flux, so in Ampere's law (the LQm2 row)
+    ! the rot B_phi term is a cancellation of terms larger than itself by a
+    ! factor ~ NRMAX**2, and psi_t is determined only to a relative
+    ! ~ 0.05-0.07 eps_mach NRMAX**2.  Faraday's law (the LQm5 row) then gives
+    ! psi_t dot = mu0 (X5 - X5_old) / (ADV DT) with X5 = psi_t / mu0, a
+    ! difference quotient that multiplies that rounding by
+    ! psi_t / (ADV DT |psi_t dot|), which grows without bound as psi_t
+    ! approaches a steady state.  LQm2 stays in the test: its increment is
+    ! tested against EPS * RMS(X2), as every variable is, plus this floor,
+    ! CRNDm2 eps_mach NRMAX**2 mu0 RMS(X5) / (ADV DT).  The test of every
+    ! other variable, and the fixed point, are unchanged.  CRNDm2 is not a
+    ! physical tolerance but a safety factor over the floor: 0.3 lies on the
+    ! largest floor observed and leaves no margin for rounding that depends on
+    ! the compiler, the BLAS or the order of operations; 1 is three to four
+    ! times it.
+    real(8), parameter :: CRNDm2 = 1.0d0
 
     IDIAGL = mod(IDIAG,10)
     EPSabs = abs(EPS)
+    FLOORm2 = CRNDm2 * epsilon(1.d0) * dble(NRMAX)**2 &
+         &  * rMU0 * sqrt(SUM(XN(:,LQm5)**2) / NRMAX) / (ADV * DT)
 
     if(MODECV == 0) then
 
@@ -2167,7 +2188,12 @@ contains
 
           ERR1  = 0.d0
           IDISP = IDIV
-          ASG(:,NQ) = abs(XN(:,NQ) - XP(:,NQ)) / AV
+          if(NQ == LQm2) then
+             ! the part of the increment above the rounding floor
+             ASG(:,NQ) = max(0.d0, abs(XN(:,NQ) - XP(:,NQ)) - FLOORm2) / AV
+          else
+             ASG(:,NQ) = abs(XN(:,NQ) - XP(:,NQ)) / AV
+          end if
 
           L_NR:do NR = 0, NRMAX
              ! Show results
