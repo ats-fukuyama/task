@@ -3593,7 +3593,39 @@ contains
 
     ! Diffusion of neutrals
 
-    ELM(:,:,2,NEQ) = - fem_int(27,sst,D01)
+    if( MDLN0FL == 2 ) then
+       ! Larsen limiter evaluated element by element, as for the C0 part of the
+       ! carbon bundle (LQnzCC): from the element mean nbar of n01 and the
+       ! element difference dn of the current iterate,
+       !   D_e = Dbar / (1 + Dbar |dn| sqrt(<|grad V|^2>) / (h FLlim vbar nbar)).
+       ! |dn|/nbar <= 2 on an element, so the factor is bounded by
+       ! 1 + 2 lambda/(3 FLlim h) whatever the local profile.  The limited
+       ! ionization front is exponential with the decay length FLlim lambda
+       ! (5 mm at rho ~ 0.87 with FLlim = 1/4), shorter than an element at
+       ! NRMAX = 60; the nodal form of MDLN0FL = 1 evaluates |grad n|/n on that
+       ! unresolved front and in the tiny-n01 tail inside it, where it is large
+       ! and erratic, and the Picard iteration does not settle.  This form
+       ! needs no relaxation.  D01 itself is left unlimited.
+       block
+         integer(4) :: NE
+         real(8) :: V0aveL, Del, sstl, dn, an
+         V0aveL = sqrt(4.d0 * V0*V0 / Pi)
+         do NE = 1, NEMAX
+            Del  = 0.5d0 * (D01(NE-1) + D01(NE))
+            sstl = 0.5d0 * (sst(NE-1) + sst(NE))
+            dn   = PN01V(NE) - PN01V(NE-1)
+            an   = 0.5d0 * (PN01V(NE-1) + PN01V(NE))
+            if( an > 0.d0 ) Del = Del / (1.d0 + Del * abs(dn) / hv(NE) * sqrt(sstl) &
+                 &                                    / (FLlim * V0aveL * an))
+            ELM(NE,1,2,NEQ) = - sstl * Del / hv(NE)
+            ELM(NE,2,2,NEQ) =   sstl * Del / hv(NE)
+            ELM(NE,3,2,NEQ) =   sstl * Del / hv(NE)
+            ELM(NE,4,2,NEQ) = - sstl * Del / hv(NE)
+         end do
+       end block
+    else
+       ELM(:,:,2,NEQ) = - fem_int(27,sst,D01)
+    end if
     NLC(2,NEQ) = LQn1
 
     ! Ionization by electron impact

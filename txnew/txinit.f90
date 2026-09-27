@@ -769,10 +769,12 @@ contains
 
     !     MDLNZD  : radial transport of the C0-C5 superstage
     !               (0: D01, as in V5.52; 1: charged bundle plus source-slaved C0)
-    !     MDLN0FL : Larsen flux limiter on D01 (0: off; 1: optional, open issue)
+    !     MDLN0FL : Larsen flux limiter on D01 (0: off; 1: legacy nodal form;
+    !               2: element form)
     !     FLlim   : flux-limit factor of the Larsen limiter (C0 with MDLNZD = 1,
-    !               D01 with MDLN0FL = 1)
-    !     RLXN0   : neutral-only Picard under-relaxation, used with MDLN0FL = 1
+    !               D01 with MDLN0FL = 1, 2)
+    !     RLXN0   : neutral-only Picard under-relaxation, used only with the
+    !               legacy MDLN0FL = 1
     MDLNZD  = 1
     MDLN0FL = 0
     FLlim   = 0.25d0
@@ -2245,7 +2247,7 @@ contains
        if(MDLSOL < 0 .or. MDLSOL > 1 .or. MDLWBC < 0 .or. MDLWBC > 1) then
           exit ; else ; idx = idx + 1 ; end if
        if(abs(NANDER) > 50) then ; exit ; else ; idx = idx + 1 ; end if
-       if(MDLNZD < 0 .or. MDLNZD > 1 .or. MDLN0FL < 0 .or. MDLN0FL > 1) then
+       if(MDLNZD < 0 .or. MDLNZD > 1 .or. MDLN0FL < 0 .or. MDLN0FL > 2) then
           exit ; else ; idx = idx + 1 ; end if
        if(FLlim <= 0.d0 .or. RLXN0 < 0.d0 .or. RLXN0 >= 1.d0) then ; exit ; else
           idx = idx + 1 ; end if

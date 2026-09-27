@@ -105,13 +105,18 @@ module tx_commons
   !         sputtered C0 in it is slaved to its source: it adds its own flux
   !         (Larsen-limited element by element with FLlim) and the charged part
   !         of the bundle has a parallel loss in the SOL.
-  !   MDLN0FL : Larsen flux limiter on the slow-neutral diffusivity D01.
+  !   MDLN0FL : Larsen flux limiter on the slow-neutral diffusivity D01,
+  !             D -> D / (1 + D |grad n| / (FLlim n v)).
   !     0 : off (V5.60 default).
-  !     1 : on, D -> D / (1 + D |grad n| / (FLlim n v)).  Optional; open issue.
+  !     1 : legacy: evaluated at the nodes with a spline gradient; not
+  !         recommended (the Picard iteration needs RLXN0 and still reaches
+  !         ICMAX at times on coarse meshes).
+  !     2 : evaluated element by element, as the C0 flux; converges without
+  !         relaxation.
   !   FLlim : flux-limit factor alpha of the Larsen limiter (C0 of MDLNZD = 1,
-  !           and D01 with MDLN0FL = 1).
+  !           and D01 with MDLN0FL = 1, 2).
   !   RLXN0 : under-relaxation weight of the previous Picard sweep on LQn1-LQn3,
-  !           used only with MDLN0FL = 1.
+  !           used only with the legacy MDLN0FL = 1.
   integer(4) :: MDLNZD, MDLN0FL
   real(8) :: FLlim, RLXN0
   !   NC0CAP : number of nodes at which the C0 part of the bundle was bounded

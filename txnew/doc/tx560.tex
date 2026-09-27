@@ -2763,31 +2763,56 @@ step.  Such conditions call for an independent C$^0$ transport equation, an
 implicit treatment of the C$^0$ flux, or a kinetic (Monte-Carlo) treatment, which
 would also delimit the validity of the approximation.
 
-\subsection{Larsen limiter on the hydrogen slow neutrals (optional; open issue)}
+\subsection{Larsen limiter on the hydrogen slow neutrals (optional)}
 
 The slow hydrogen neutrals are diffused with the short-mean-free-path
-diffusivity $D_{01} = \bar v_0^2/(3S_\r{tot})$, $S_\r{tot}$ being the ionization plus
-charge-exchange rate.  \texttt{MDLN0FL} = 1 applies the same Larsen limiter to
-$D_{01}$, which keeps the diffusive flux below the free-streaming value
-$\alpha n\bar v_0$.  It is off by default in V5.60, which is \textbf{not} a
-statement that it is unnecessary.  In the SOL the ratio
-$R = D_{01}|\nabla n_{01}|/(\alpha\bar v_0 n_{01})$ ($\alpha=1/4$) is
-$10^3$--$2\times10^3$, and up to $2\times10^4$: the plain diffusion flux exceeds
-the free-streaming limit by three orders of magnitude.
+diffusivity $D_{01} = \bar v_0^2/(3S_\r{tot}) = \lambda\bar v_0/3$, $S_\r{tot}$ being the
+ionization plus charge-exchange rate and $\lambda = \bar v_0/S_\r{tot}$ the mean free
+path.  The Larsen limiter replaces $D$ by $D/(1+R)$ with
+\[
+  R = \frac{D|\nabla n_{01}|}{\alpha\,\bar v_0\, n_{01}}
+    = \frac{\mbox{flux the diffusion law demands}}{\mbox{free-streaming flux it may not exceed}}
+    = \frac{\lambda}{3\alpha L_n},\qquad \alpha = \texttt{FLlim},
+\]
+$L_n$ being the gradient length: the limited flux $D|\nabla n|/(1+R)$ is the
+diffusion flux where $R\ll1$ and $\alpha\bar v_0 n$ where $R\gg1$.  $\alpha = 1/4$ is
+the one-sided flux of an isotropic population: for particles of speed $\bar v$
+spread uniformly over all directions, those crossing a plane in one direction
+carry $n\bar v\int_0^1\mu\,d\mu/2 = n\bar v/4$.  $\alpha = 1/2$ would correspond to
+all particles moving into one half-space, uniformly in angle, and $\alpha = 1$ to
+all of them moving in the same direction, the kinematic upper bound.  In the
+V5.60 solution without the limiter $R$ is 1--3 in the SOL, about 2 at the
+separatrix and up to 6 at $\rho\simeq0.8$--0.9 ($\mathrm{Kn} = \lambda/L_n\sim1$): the
+diffusion approximation is marginal wherever the neutrals matter.
 
-Each time step of TASK/TX is solved by Picard (fixed-point) iteration, repeated
-until the relative change of every variable is below \texttt{EPS} or
-\texttt{ICMAX} sweeps have been made.  With the limiter evaluated at the current
-iterate, the fixed-point map has a multiplier close to $-R/(1+R)\simeq-1$ and the
-iteration ends on a period-two cycle.  Under-relaxing the three hydrogen
-neutral densities alone with weight \texttt{RLXN0} on the previous sweep
-(0.5, used only with \texttt{MDLN0FL} = 1) maps that multiplier to about
-$1-2\,\texttt{RLXN0}\simeq0$ and restores convergence in most steps, but with
-\texttt{EPS} = $10^{-6}$ a few steps still reach \texttt{ICMAX}.  The effect of the limiter on the plasma
-is a few per cent (neutral inventory 25\%, ionization source 1--3\%,
-$\nee$(wall) 3\%, $Z_\r{eff}$ 0\%).  It is left for a better nonlinear
-treatment, another flux-limited diffusion, a moment model or Monte-Carlo neutral
-transport.
+\texttt{MDLN0FL} = 0 (default) leaves $D_{01}$ unlimited.  \texttt{MDLN0FL} = 2 evaluates
+the limiter element by element, as for the C$^0$ flux, from the element mean
+$\bar n$ and the element difference $\Delta n$ of the current iterate; since
+$|\Delta n|/\bar n\le2$ on an element, the factor is bounded by
+$1 + 2\lambda/(3\alpha h)$.  \texttt{MDLN0FL} = 1 is the earlier nodal form, with
+$|\nabla n|/n$ from the spline derivative, kept only to reproduce earlier runs.
+The limited ionization front at $\rho\simeq0.85$--0.9 is exponential with the decay
+length $\alpha\lambda\simeq5$\,mm, shorter than an element at \texttt{NRMAX} = 60
+(about 1\,cm).  On that unresolved front, and in the tiny-$n_{01}$ tail inside it,
+the nodal ratio is large and erratic, and the Picard iteration does not settle:
+with \texttt{MDLN0FL} = 1, 496 of 500 steps reach \texttt{ICMAX} at \texttt{NRMAX} = 60
+(\texttt{EPS} = $10^{-6}$), the neutral-only relaxation \texttt{RLXN0} = 0.5 (used only with
+\texttt{MDLN0FL} = 1) leaves 2--3.  \texttt{MDLN0FL} = 2 needs no relaxation: 20.0 / 21.7
+sweeps on average and no step at \texttt{ICMAX} (X-point / circular, \texttt{NRMAX} = 60),
+the same as without the limiter.  The two forms agree to 0.5--2\% where both
+converge.  Against the limiter off, the limiter raises the neutral inventory by
+about 30\% and changes $\nee$ at the separatrix and at the wall by $-3$\% and
+$+4$\%; $Z_\r{eff}(0)$ is unchanged.
+
+The limiter is a bound on the diffusion flux, not a substitute for kinetic
+neutral transport.  A straight-flight reference (the same sources, attenuated at
+$S_\r{tot}$) ionizes or charge-exchanges 35\% of the slow neutrals inside the
+separatrix (X-point, \texttt{NRMAX} = 240); plain diffusion gives 49\% and the limiter
+with $\alpha = 1/4$ 25\%, with almost nothing beyond $\rho = 0.95$ against 12\% in the
+reference.  $\alpha = 1/2$ recovers the total but not the ballistic tail, and no
+single $\alpha$ recovers both.  The difference between limiter on and off is of the
+size of the uncertainty from the neutral energy alone (the reference gives 24\%
+and 48\% at 0.5 and 4.5\,eV).  The limiter is therefore off by default.
 
 \subsection{Anderson acceleration of the Picard iteration (optional)}
 
@@ -2929,9 +2954,9 @@ parameter & V5.52 & V5.60 & meaning \\\hline
 \texttt{MDLSOL}  & (0) & 1   & ramp width $\delta$ \\
 \texttt{MDLNZD}  & (0) & 1   & bundle transport with the source-slaved C$^0$ part \\
 \texttt{MDLWBC}  & (0) & 1   & wall density condition \\
-\texttt{MDLN0FL} & (0) & 0   & Larsen limiter on $D_{01}$ \\
-\texttt{FLlim}   & --  & 0.25 & limiter factor $\alpha$ (C$^0$; $D_{01}$ with \texttt{MDLN0FL} = 1) \\
-\texttt{RLXN0}   & --  & 0.5 & neutral-only relaxation (\texttt{MDLN0FL} = 1 only) \\
+\texttt{MDLN0FL} & (0) & 0   & Larsen limiter on $D_{01}$ (2: element form; 1: legacy nodal form) \\
+\texttt{FLlim}   & --  & 0.25 & limiter factor $\alpha$ (C$^0$; $D_{01}$ with \texttt{MDLN0FL} = 1, 2) \\
+\texttt{RLXN0}   & --  & 0.5 & neutral-only relaxation (legacy \texttt{MDLN0FL} = 1 only) \\
 \texttt{NANDER}  & (0) & 0   & Anderson acceleration of the Picard sweeps \\\hline
 \end{tabular}
 \end{center}

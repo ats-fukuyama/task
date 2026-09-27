@@ -1313,16 +1313,14 @@ contains
        Dnzb(:) = D01(:)
     end select
 
-    !     *** Larsen flux limiter on the slow-neutral diffusivity (MDLN0FL = 1) ***
-    !  OPTIONAL, not the default.  The diffusive flux D |grad n| may not exceed
-    !  FLlim n v:  D -> D / (1 + D |grad n| / (FLlim v n)).  In the SOL the ratio
-    !  R = D |grad n| / (FLlim v n) is 1e3 or more, and with D/(1+R) evaluated at
-    !  the current Picard iterate the fixed-point map then has a multiplier
-    !  close to -R/(1+R) = -1; use it with RLXN0 = 0.5 (neutral-only
-    !  under-relaxation in TXEXEC).  Even so a few steps can end at ICMAX,
-    !  which is why the limiter is not the default although the plain diffusion
-    !  flux exceeds the free-streaming limit by orders of magnitude in the SOL
-    !  (see doc/tx560.tex).
+    !     *** Larsen flux limiter on the slow-neutral diffusivity, nodal (MDLN0FL = 1) ***
+    !  LEGACY, kept to reproduce earlier runs; use MDLN0FL = 2 (LQn1CC) instead.
+    !  D -> D / (1 + D |grad n| / (FLlim v n)) at the nodes, with |grad n|/n from
+    !  the global spline derivative of the current iterate.  The limited
+    !  ionization front at rho ~ 0.85-0.9 is shorter than an element on coarse
+    !  meshes, and in the tiny-n01 tail inside it this ratio is large and erratic:
+    !  without RLXN0 almost every step ends at ICMAX (NRMAX = 60), and RLXN0 = 0.5
+    !  still leaves a few (see doc/tx560.tex).
     if( MDLN0FL == 1 ) then
        V0zave = sqrt(4.d0 * V0*V0 / Pi)
        tmp(:) = dfdx(vv, PN01V, NRMAX, 0)

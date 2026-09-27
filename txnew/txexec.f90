@@ -537,10 +537,9 @@ contains
              end if
 
              if(relax > 0.d0) XN = (1.d0 - relax) * XN + relax * XP
-             ! With the optional Larsen limiter (MDLN0FL = 1) the Picard map has a
-             ! multiplier near -1 in the neutral densities; under-relaxing them
-             ! alone, RLXN0 being the weight of the previous sweep, maps it to
-             ! about 1 - 2 RLXN0.  Not used otherwise.
+             ! Legacy nodal Larsen limiter (MDLN0FL = 1) only: under-relax the
+             ! neutral densities alone, RLXN0 being the weight of the previous
+             ! sweep.  MDLN0FL = 2 does not need it.
              if(MDLN0FL == 1 .and. RLXN0 > 0.d0) &
                   & XN(:,LQn1:LQn3) = (1.d0 - RLXN0) * XN(:,LQn1:LQn3) + RLXN0 * XP(:,LQn1:LQn3)
              if(NANDER /= 0) call anderson_accelerate(IC, damping)
