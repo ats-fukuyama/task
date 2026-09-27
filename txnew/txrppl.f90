@@ -107,7 +107,7 @@ contains
                    exit
                 end if
                 theta1 = theta1 + PI * dlt
-                rho = rho(NR) * (1.D0 + (kappa - 1.D0) * sin(theta1))
+                rhol = rho(NR) * (1.D0 + (kappa - 1.D0) * sin(theta1))
                 width0 = ripple(rhol,theta1,FSRP)
                 width1 = EpsL * sin(theta1) / (NTCOIL * Q(NR))
                 ! Poloidal angle at which the difference between width0 and width1 is minimized.
