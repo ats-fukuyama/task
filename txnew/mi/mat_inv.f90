@@ -1498,9 +1498,13 @@ contains
                 y=(zz(ib)/zz(i))**2*den(ib)/den(i)*zp43/dlog(vbc3/vc3)
                 lab( i,ib,1,1)=y*(1.d0+mas(i)/mas(ib))*vtn(i)**3/vc3
                 lab( i, i,1,1)=lab(i, i,1,1)-lab(i,ib,1,1)
+                ! l_11^fi = l_11^if (Kikuchi and Azumi 1995, Appendix).  Row ib
+                ! is normalised by tau_ee/(m_e n_e) and row i by tau_ii/(m_i n_i),
+                ! so convert with the same collision times that undo the
+                ! normalisation; the Braginskii ratio would assume
+                ! lnLambda_ee = lnLambda_ii and leave sum_s F_s /= 0.
                 lab(ib, i,1,1)=lab(i,ib,1,1) &
-                     & *(den(i)*zz(i)**2/den(1))**2 &
-                     & *sqrt(mas(i)/mas(1))*(tem(1)/tem(i))**1.5d0
+                     & *(mas(i)*den(i)/ztau(i,i))*(ztau(1,1)/(mas(1)*den(1)))
                 lab(ib,ib,1,1)=lab(ib,ib,1,1)-lab(ib,i,1,1)
 !<i-b,1,2>
                 if(imodel(3).eq.0) then
@@ -2007,9 +2011,13 @@ contains
                 y=(zz(ib)/zz(i))**2*den(ib)/den(i)*zp43/log(vbc3/vc3)
                 lab( i,ib,1,1)=y*(1.d0+mas(i)/mas(ib))*vt(i)**3/vc3
                 lab( i, i,1,1)=lab(i, i,1,1)-lab(i,ib,1,1)
-                lab(ib, i,1,1)=lab(i,ib,1,1) & 
-                     &        *(den(i)*zz(i)**2/den(1))**2 &
-                     &        *sqrt(mas(i)/mas(1))*(tem(1)/tem(i))**1.5d0
+                ! l_11^fi = l_11^if (Kikuchi and Azumi 1995, Appendix).  Row ib
+                ! is normalised by tau_ee/(m_e n_e) and row i by tau_ii/(m_i n_i),
+                ! so convert with the same collision times that undo the
+                ! normalisation; the Braginskii ratio would assume
+                ! lnLambda_ee = lnLambda_ii and leave sum_s F_s /= 0.
+                lab(ib, i,1,1)=lab(i,ib,1,1) &
+                     & *(mas(i)*den(i)/ztau(i,i))*(ztau(1,1)/(mas(1)*den(1)))
                 lab(ib,ib,1,1)=lab(ib,ib,1,1)-lab(ib,i,1,1)
 !<i-b,1,2>
                 if(imodel(3).eq.0) then
