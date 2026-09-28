@@ -2191,7 +2191,8 @@ contains
           idx = idx + 1 ; end if
        if(FSBOHM < 0.d0 .or. minval(FSPCL) < 0.d0) then ; exit ; else
           idx = idx + 1 ; end if
-       if(FSLC < 0.d0 .or. FSRP < 0.d0 .or. minval(FSNC) < 0.d0 .or. minval(FSNCB) < 0.d0) then ; exit ; else
+       if(FSLC < 0.d0 .or. .not. any(FSRP == [0.d0, 1.d0, 2.d0]) .or. minval(FSNC) < 0.d0 .or. minval(FSNCB) < 0.d0) then
+          exit ; else
           idx = idx + 1 ; end if
        if(FSHL < 0.d0 .or. FSNF < 0.d0 .or. FSADV < 0.d0 .or. FSADVB < 0.d0 .or. FSUG < 0.d0) then
           exit ; else ; idx = idx + 1 ; end if

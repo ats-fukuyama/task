@@ -3203,8 +3203,9 @@ contains
     NLC(3,NEQ) = 0
 
     ! Extracted NBI perpendicular component fallen into the ripple well region
+    ! (only when the ripple trapped ions are solved, FSRP = 1; LQr1 receives it)
 
-    ELM(:,:,4,NEQ) = - fem_int(-2,SNBPDi,rip_rat)
+    ELM(:,:,4,NEQ) = - fem_int(-2,SNBPDi,rip_rat) * RpplSW
     NLC(4,NEQ) = 0
 
     ! Relaxation to thermal ions
