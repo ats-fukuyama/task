@@ -2596,7 +2596,11 @@ without it once the beam heats the edge.
 (ripple-trapped ions, LQr1, and ripple diffusion of $\nb$); 2, ripple diffusion
 of $\nb$ without ripple-trapped ions.  Other values are rejected.  The ripple
 amplitude is $\delta(r,\theta) = \delta_\r{min} I_0(N a_\delta/R_{\delta\r{min}})$
-with \texttt{DltRPn} $=\delta_\r{min}$; \texttt{FSRP} only switches it on.  A point
+with \texttt{DltRPn} $=\delta_\r{min}$; \texttt{FSRP} only switches it on.
+$R_{\delta\r{min}}$ is fixed at 2.4 m in the code.  The text of \cite{NF2008} gives
+2.8 m for JT-60U, while the centre of the ripple contours of its Fig.~1 lies near
+2.4 m; the origin of the code value has not been traced yet and neither value is
+taken as the error here.  A point
 of a flux surface lies in a ripple well when
 \begin{equation}
   \alpha \equiv \frac{\epsilon|\sin\theta|}{Nq\delta(r,\theta)} < 1,
@@ -2783,24 +2787,33 @@ charge exchange at the edge.
 $a=0.95$ m, $B=2.6$ T, $I_\r{p}=1$ MA, $\kappa=1.15$ for the ripple, $N=18$,
 $\delta_\r{min}=2\times10^{-6}$ (edge ripple 1.26\%), 3.2 MW co-tangential and 0.4 MW
 perpendicular NBI, $\chi = \mu = 0.22(1+19\rho^2)$ m$^2$/s, $D = 0.15(1+4\rho^2)$ m$^2$/s,
-0.6 s:
+1.5 s:
 \begin{center}
-\begin{tabular}{|l|c|c|c|c|c|}\hline
-case & $u_{\r{i}\phi}(0)$ & $u_{\r{i}\phi}(0.82)$ & $E_r(0.5)$ & $j_r(0.97)$ & $j\times B$ torque \\
- & km/s & km/s & kV/m & A/m$^2$ & N\,m \\\hline
-no ripple & 473 & 113 & $+61$ & $-0.02$ & $+0.16$ \\
-half ripple (FST) & 325 & 48 & $+27$ & $-0.10$ & $-3.05$ \\
-full ripple & 128 & $-35$ & $-17$ & $-0.18$ & $-7.05$ \\\hline
+\begin{tabular}{|l|c|c|c|c|c|c|}\hline
+case & $u_{\r{i}\phi}(0)$ & $u_{\r{i}\phi}(0.82)$ & $E_r(0.5)$ & $j_r(0.97)$ & $j\times B$ torque & $dL_\phi/dt$ \\
+ & km/s & km/s & kV/m & A/m$^2$ & N\,m & N\,m \\\hline
+no ripple & 658 & 152 & $+83$ & $-0.020$ & $+0.18$ & $+0.12$ \\
+half ripple (FST) & 417 & 60 & $+34$ & $-0.108$ & $-3.40$ & $+0.05$ \\
+full ripple & 128 & $-42$ & $-22$ & $-0.185$ & $-7.44$ & $0.00$ \\\hline
 \end{tabular}
 \end{center}
+An earlier version of this table gave the state at 0.6 s.  At that time the runs
+without ripple and with half the ripple were still transient ($dL_\phi/dt = +1.57$
+and $+0.87$ N\,m against the injected 6.73 N\,m; $u_{\r{i}\phi}(0)$ = 473 and
+325 km/s); the table now gives the quasi-steady state at 1.5 s, where
+$dL_\phi/dt$ is below 2\% of the injected torque in all three runs.  With ripple
+the return current and its $j\times B$ torque changed by 5--11\% from 0.6 s to 1.5 s,
+so the ripple results are qualitatively unchanged; the co-rotation without ripple
+is 40\% higher than at 0.6 s.
 The return current grows with the ripple and has the magnitude of \cite{NF2008}
 ($-0.08$ and $-0.16$ A/m$^2$ with and without FST), its torque is counter and
 grows, $E_r$ moves negative and the edge rotates counter with the full ripple;
 halving the ripple weakens all of these.  The qualitative physics of the 2008
 work is kept by B-full and the conservative LQr1.  The co-rotation without ripple
-is about twice that of \cite{NF2008} (300 km/s); this is a question of the beam
-torque and of the momentum damping (the losses concentrate at the edge in the
-V5.60 SOL and neutral models), not of the ripple model.
+is 2.2 times that of \cite{NF2008} (300 km/s).  The injected torque agrees with
+its analytic value, so this is a question of the momentum damping and transport
+(the losses concentrate at the edge in the V5.60 SOL and neutral models), not of
+the ripple model.
 
 
 
