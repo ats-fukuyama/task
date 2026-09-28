@@ -261,11 +261,13 @@ contains
     call BOUNDARY(NRMAX,LQn3,0)
 
     call BOUNDARY(0    ,LQb2,0)
-    ! When ripple effect is on (FSRP /= 0), ripple diffusion term will be activated.
-    ! Then we must impose two boundary conditions at each equation.
-!    call BOUNDARY(0    ,LQb3,0)
-!    call BOUNDARY(NRMAX,LQb3,0)
-!    IF(FSRP /= 0.d0) call BOUNDARY(0,LQr1,0)
+    ! No radial beam flux at rho = rhob.  With MDBEAM = 1, LQb2 is the Lagrange
+    ! multiplier of the beam radial force balance and nothing ties its wall
+    ! value to n_b; the fast-ion orbit width exceeds the SOL gradient length,
+    ! so that value is no outflow law.  The beam has no surface loss channel
+    ! in this model (outside rho = 1 it is lost by the volume loss nu_bL).
+    ! To be reconsidered with a finite-orbit-width or orbit-loss model.
+    if(MDBEAM == 1) call BOUNDARY(NRMAX,LQb2,0)
 
     ! Neumann condition of the continuity equation at the boundary is naturally
     ! imposed through the diffusion term in the pressure equation. However, this
