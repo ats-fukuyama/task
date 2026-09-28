@@ -220,7 +220,9 @@ contains
        Ubrp(0) = AITKEN2P(rpt(0),Ubrp(1),Ubrp(2),Ubrp(3),rpt(1),rpt(2),rpt(3))
        ! On the axis ripple amplitude is uniquely defined because of no poloidal variation.
        rNubrp1(0) = rNuD(0) / DltRP(0)
-       rNubrp2(0) = rNubrp1(0) * SQRT(DltRP(0))
+       ! rNubrp2 carries the poloidal weight fgaussian(theta_rim) of the rim, which the
+       ! axis does not have; extrapolate it as Ubrp(0) and Dbrp(0) are.
+       rNubrp2(0) = AITKEN2P(rpt(0),rNubrp2(1),rNubrp2(2),rNubrp2(3),rpt(1),rpt(2),rpt(3))
 
        ! Save for graphic
        if(IRPIN == 0) then
