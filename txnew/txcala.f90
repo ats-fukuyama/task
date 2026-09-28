@@ -3836,74 +3836,84 @@ contains
 
 !***************************************************************
 !
-!   Ripple Trapped Beam Ion Density (SUPG)
+!   Ripple Trapped Beam Ion Density
+!
+!     X(:,LQr1) = n_r, the density of the ripple-trapped beam ions inside
+!     the ripple wells, which occupy the fraction g = rip_rat of a flux
+!     surface.  The inventory per unit volume is N_r = g n_r, and the
+!     equation is the conservation law of N_r:
+!
+!       d(g n_r)/dt + d(g U n_r)/dV - d/dV(g K dn_r/dV)
+!         = g S_perp + g nu_2 n_b - g nu_1 n_r - g nu_B n_r,
+!
+!     U = <|grad V|> U_brp (vertical grad-B drift, V space), K = <|grad V|^2> D_brp.
+!     g stays inside every divergence: the flux vanishes where the wells end
+!     (g = 0), and no 1/g appears.  The exchange terms use the element
+!     matrices of LQb1, so n_b + g n_r is conserved exactly.  The advection is
+!     in strong form, so the ions leave at the wall with the flux g U n_r
+!     (the ripple loss); the diffusion has the natural condition.  Nodes with
+!     no well on either side carry the identity dn_r/dt = 0.
 !
 !***************************************************************
 
   subroutine LQr1CC
 
-    integer(4) :: ne, NEQ = LQr1
-    real(8) :: RUbrpl, SDbrpl, peclet, coef
+    integer(4) :: NEQ = LQr1, nr
+    real(8), dimension(0:NRMAX) :: gU
 
-    do ne = 1, nemax
-       RUbrpl = RUbrp(ne-1) + RUbrp(ne)
-       SDbrpl = Dbrp(ne-1)*vv(ne-1) + Dbrp(ne)*vv(ne)
-       if (RUbrpl == 0.d0) then
-          coef = 0.d0
-       elseif (SDbrpl == 0.d0) then
-          coef = 1.d0 / sqrt(15.d0) * hv(ne)
-       else
-          peclet = 0.5d0 * RUbrpl * hv(ne) / SDbrpl
-          coef = 0.5d0 * langevin(peclet) * hv(ne)
-       end if
-       coef=0.d0 !!! no SUPG
-
-       ELM(NE,1:4,0,NEQ) =   fem_int_point(1,NE) * invDT &
-            &              + fem_int_point(8,NE) * coef * invDT
+    if(RpplSW == 0.d0) then
+       ELM(:,:,0,NEQ) = fem_int(1) * invDT
        NLC(0,NEQ) = LQr1
+       NLCMAX(NEQ) = 0
+       return
+    end if
 
-       ! NBI perpendicular particle source (Both charge exchange and ionization)
-       ! (Beam ions by perpendicular NBI have few parallel velocity, hence
-       !  they can be easily trapped by ripple wells if they go into the ripple well region.)
-       !  (M.H. Redi, et al., NF 35 (1995) 1191, p.1201 sixth line from the bottom
-       !   at right-hand-side column)
-       
-       ELM(NE,1:4,1,NEQ) =(  fem_int_point(-1,NE,SNBPDi) &
-            &              + fem_int_point(-8,NE,SNBPDi) * coef) * RpplSW
-       NLC(1,NEQ) = 0
+    gU(0) = 0.d0
+    gU(1:NRMAX) = rip_rat(1:NRMAX) * suft(1:NRMAX) * Ubrp(1:NRMAX)
 
-       ! Ripple trapped beam ions collision with otherwise beam ions
-
-       ELM(NE,1:4,2,NEQ) =(  fem_int_point(2,NE,rNubrp2) &
-            &              + fem_int_point(9,NE,rNubrp2) * coef) * RpplSW
-       NLC(2,NEQ) = LQb1
-
-       ELM(NE,1:4,3,NEQ) =(- fem_int_point(2,NE,rNubrp1) &
-            &              - fem_int_point(9,NE,rNubrp1) * coef) * RpplSW
-       NLC(3,NEQ) = LQr1
-
-       ! Relaxation to thermal ions
-
-       ELM(NE,1:4,4,NEQ) =(- fem_int_point(2,NE,rNuB) &
-            &              - fem_int_point(9,NE,rNuB) * coef) * RpplSW
-       NLC(4,NEQ) = LQr1
-
-       ! Ripple loss transport (convective)
-
-       ELM(NE,1:4,5,NEQ) =(- fem_int_point( 3,NE,RUbrp) &
-            &              - fem_int_point(10,NE,RUbrp) * coef) * RpplSW
-       NLC(5,NEQ) = LQr1
-
-!!rp_conv       ELM(NE,1:4,5,NEQ) = - fem_int_point(2,NE,rNubL)
-!!rp_conv       NLC(5,NEQ) = LQr1
-!!rp_conv       ELM(NE,1:4,5,NEQ) = - fem_int_point(-2,NE,rNubL,PNbrpV)
-!!rp_conv       NLC(5,NEQ) = 0
-
-       ! Ripple loss transport (diffusive)
-
-       ELM(NE,1:4,6,NEQ) = - fem_int_point(27,NE,sst,Dbrp) * RpplSW
-       NLC(6,NEQ) = LQr1
+    ELM(:,:,0,NEQ) = fem_int(2,rip_rat) * invDT
+    do nr = 0, NRMAX
+       if(rip_rat(nr) /= 0.d0) cycle
+       if(nr > 0) then
+          if(rip_rat(nr-1) /= 0.d0) cycle
+       end if
+       if(nr < NRMAX) then
+          if(rip_rat(nr+1) /= 0.d0) cycle
+          ELM(nr+1,1,0,NEQ) = ELM(nr+1,1,0,NEQ) + hv(nr+1) * invDT
+       else
+          ELM(nr,4,0,NEQ) = ELM(nr,4,0,NEQ) + hv(nr) * invDT
+       end if
     end do
+    NLC(0,NEQ) = LQr1
+
+    ! NBI perpendicular particle source falling into the ripple wells
+    ! (M.H. Redi, et al., NF 35 (1995) 1191, p.1201)
+
+    ELM(:,:,1,NEQ) =   fem_int(-2,SNBPDi,rip_rat)
+    NLC(1,NEQ) = 0
+
+    ! Trapping of and detrapping to the ripple-untrapped beam ions
+
+    ELM(:,:,2,NEQ) =   fem_int(20,rNubrp2,rip_rat)
+    NLC(2,NEQ) = LQb1
+
+    ELM(:,:,3,NEQ) = - fem_int(20,rNubrp1,rip_rat)
+    NLC(3,NEQ) = LQr1
+
+    ! Relaxation to thermal ions
+
+    ELM(:,:,4,NEQ) = - fem_int(20,rNuB,rip_rat)
+    NLC(4,NEQ) = LQr1
+
+    ! Ripple loss transport (convective)
+
+    ELM(:,:,5,NEQ) = - fem_int(3,gU)
+    NLC(5,NEQ) = LQr1
+
+    ! Ripple loss transport (diffusive)
+
+    ELM(:,:,6,NEQ) = - fem_int(37,sst,rip_rat,Dbrp)
+    NLC(6,NEQ) = LQr1
 
     NLCMAX(NEQ) = 6
 
@@ -4209,25 +4219,5 @@ contains
     CLC(NRMAX,1,LQ) = - 1.d0
 
   end subroutine BOUNDARY_ZEROGRAD
-
-!***************************************************************
-!
-!   Approximate Langevin function
-!
-!***************************************************************
-
-  real(8) function langevin(x) result(y)
-
-    real(8), intent(in) :: x
-
-    if (x < -3.d0) then
-       y = - 1.d0 - 1.d0 / x
-    elseif (x > 3.d0) then
-       y =   1.d0 - 1.d0 / x
-    else
-       y = x / 3.d0 * (1.d0 - abs(x) / 9.d0)
-    end if
-
-  end function langevin
 
 end module tx_coefficients

@@ -72,13 +72,13 @@ contains
     end do
 
     ! Beam ion
-    ANFINT = intg_vol(PNbV) + intg_vol(PNbrpV)
+    ANFINT = intg_vol(PNbV) + intg_vol(rip_rat * PNbrpV)
     if(ANFINT > 0.d0) then
        RWINT  = intg_vol(SNB/rNuB)
        !     WFT(1) = 0.5d0*AMb*amp*RWINT**2*1.5d0*2.d0*PI*RR*2.d0*PI*elip(NRA)*1.D-6!rKeV*1.D14
        WFT(1) = 0.5d0*RWINT*Eb*rKeV*1.d20*toMega ! [MJ]
        ANFAV(1) = ANFINT / volume 
-       ANF0(1)  = PNbV(0) + PNbrpV(0)
+       ANF0(1)  = PNbV(0) + rip_rat(0) * PNbrpV(0)
        TFAV(1)  = 0.5d0*RWINT*Eb/ANFINT ! [keV]
        if(ANF0(1) > 0.d0) TF0(1) = SNB(0)/ANF0(1)
     else

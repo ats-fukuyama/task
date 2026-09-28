@@ -200,7 +200,7 @@ contains
 
     ! Effective charge
     do NR = 0, NRMAX
-       Zeff(NR) = ( sum(achg(2:)**2 * Var(NR,2:)%n) + achgb**2 * (PNbV(NR) + PNbRPV(NR)) ) &
+       Zeff(NR) = ( sum(achg(2:)**2 * Var(NR,2:)%n) + achgb**2 * (PNbV(NR) + rip_rat(NR) * PNbRPV(NR)) ) &
             &   / Var(NR,1)%n
     end do
 
