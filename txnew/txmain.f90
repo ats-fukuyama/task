@@ -90,10 +90,10 @@
 !   X13 = B V1e            X21 = B V1i             X29 = B V1z             *      *
 !   X30 = Nb                                                               *      *
 !   X31 = Nb * UbrV                                                        0      *
-!   X32 = <B Ubpara>                                                       *      *
+!   X32 = Nb * <B Ubpara>                                                  *      *
 !   X33 = Nb * <R UbPhi>                                                   *      *
 !   X34 = Nb <UbPhi/R>                                                     *      *
-!   X35 = B V1b                                                            *      *
+!   X35 = Nb * B V1b                                                       *      *
 !   X36 = Slow neutral                                                     N      D
 !   X37 = Thermal neutral                                                  N      0
 !   X38 = Halo Neutral                                                     N      0
