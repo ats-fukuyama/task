@@ -124,8 +124,8 @@ program TASK_TX
 
   !     ***** Version ID *****
   !     SLID is used to identify data file.
-  SLID = 'tx560.0'
-  write(6,*) '######## TASK/TX V5.60.00 26/09/25 ########'
+  SLID = 'tx561.0'
+  write(6,*) '######## TASK/TX V5.61.00 26/09/28 ########'
 
   call TXINIT
   KPNAME='txparm'
