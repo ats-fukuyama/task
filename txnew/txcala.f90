@@ -6,7 +6,7 @@ module tx_coefficients
   real(8), parameter :: fourPisq = 4.d0 * Pi * Pi
   real(8), dimension(:,:,:,:), allocatable :: ELM
   real(8), dimension(:), allocatable ::  &
-       & DTf, Dbrpft
+       & DTf
   real(8), dimension(:), allocatable :: &
        & rrtinv, aatinv, bthcoinv, ParatoZeta, ZetatoPara, &
        & aatq, PsitdotVBth, fipolinv, fipolsdt, dZetatoPara, ribi, ribsdt, &
@@ -59,7 +59,6 @@ contains
 
     ! Replace per-iteration allocate(...,source=0) with explicit clear.
     ELM = 0.d0
-    Dbrpft = 0.d0
     rrtinv = 0.d0
     aatinv = 0.d0
     bthcoinv = 0.d0
@@ -337,18 +336,16 @@ contains
       allocate(DTf(1:NQMAX))
     end if
 
-    need_nr = .not. allocated(Dbrpft)
+    need_nr = .not. allocated(rrtinv)
     if(.not. need_nr) then
-       need_nr = (lbound(Dbrpft,1) /= 0) .or. (ubound(Dbrpft,1) /= NRMAX)
+       need_nr = (lbound(rrtinv,1) /= 0) .or. (ubound(rrtinv,1) /= NRMAX)
     end if
     if(need_nr) then
-      if(allocated(Dbrpft)) deallocate(Dbrpft)
       if(allocated(rrtinv)) then
         deallocate(rrtinv, aatinv, bthcoinv, ParatoZeta, ZetatoPara, &
              &     aatq, PsitdotVBth, fipolinv, fipolsdt, dZetatoPara, ribi, ribsdt, &
              &     RatCXSNBe, RatCXSNBi, Ratdenhyd)
       end if
-      allocate(Dbrpft(0:NRMAX))
       allocate(rrtinv(0:NRMAX), aatinv(0:NRMAX), bthcoinv(0:NRMAX), ParatoZeta(0:NRMAX), ZetatoPara(0:NRMAX), &
            &   aatq(0:NRMAX), PsitdotVBth(0:NRMAX), fipolinv(0:NRMAX), fipolsdt(0:NRMAX), dZetatoPara(0:NRMAX), &
            &   ribi(0:NRMAX), ribsdt(0:NRMAX), RatCXSNBe(0:NRMAX), RatCXSNBi(0:NRMAX), Ratdenhyd(0:NRMAX))
@@ -403,7 +400,6 @@ contains
     use tx_interface, only : dfdx
     integer(4) :: i
 
-    Dbrpft(:) = Dbrp(:) * ft(:)
 
     do i = 1, NSM
        zChi(:,i,1) = Chis(:,i) + ChiNCt(:,i) + ChiNCp(:,i)
@@ -3362,19 +3358,16 @@ contains
        ELM(:,:,13,NEQ) =  amasinv * fem_int(-(1+L3),BSmb)
        NLC(13,NEQ) = 0
 
-       ! Momentum loss due to collisional ripple trapping
-
-       ELM(:,:,14,NEQ) = - fem_int(20+L3,rNubrp2,rip_rat) * RpplSW
-       NLC(14,NEQ) = LQb3
-
-       ! Momentum diffusion arising from beam ion convective flux due to ripple
-
-       ELM(:,:,15,NEQ) = - fem_int(37,sst,BUbparV,Dbrpft)
-       NLC(15,NEQ) = LQb1
+       ! Ripple trapping and ripple diffusion carry no beam momentum at the
+       ! order kept here: the ions scattered into the ripple wells have
+       ! |v_par|/v < sqrt(delta), and the banana ions that diffuse have zero
+       ! bounce-averaged parallel and toroidal momentum up to finite orbit
+       ! width, which this beam fluid (no beam viscosity) does not keep.
+       ! Neither LQb3 nor LQb4 has a ripple term (see doc/tx561.tex).
 
     end if
 
-    NLCMAX(NEQ) = 15
+    NLCMAX(NEQ) = 13
 
   end subroutine LQb3CC
 
