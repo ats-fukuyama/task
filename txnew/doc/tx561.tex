@@ -2597,10 +2597,14 @@ without it once the beam heats the edge.
 of $\nb$ without ripple-trapped ions.  Other values are rejected.  The ripple
 amplitude is $\delta(r,\theta) = \delta_\r{min} I_0(N a_\delta/R_{\delta\r{min}})$
 with \texttt{DltRPn} $=\delta_\r{min}$; \texttt{FSRP} only switches it on.
-$R_{\delta\r{min}}$ is fixed at 2.4 m in the code.  The text of \cite{NF2008} gives
-2.8 m for JT-60U, while the centre of the ripple contours of its Fig.~1 lies near
-2.4 m; the origin of the code value has not been traced yet and neither value is
-taken as the error here.  A point
+$R_{\delta\r{min}}$ is fixed at 2.4 m in the code, the JT-60U value that entered the
+2008 code together with the ripple model (``specific value for JT-60U'', also used by
+the routine that drew the ripple contours).  The text of \cite{NF2008} gives 2.8 m, but
+its own numbers require 2.4 m: with $\delta_\r{min} = 2\times10^{-6}$ and $N = 18$ the
+formula gives $\delta_a = 1.28$\% at the outboard midplane and $0.30$\% at
+$\theta = \pi/2$ with 2.4 m, the values quoted in \cite{NF2008}, and $0.085$\% and
+$0.043$\% with 2.8 m; the contours of its Fig.~1 are centred near 2.4 m.  The 2.8 m of
+the text is a misprint.  A point
 of a flux surface lies in a ripple well when
 \begin{equation}
   \alpha \equiv \frac{\epsilon|\sin\theta|}{Nq\delta(r,\theta)} < 1,
@@ -2743,6 +2747,34 @@ Applicability: the coefficients assume an isotropic fast-ion distribution and th
 slowing-down regime $v_\r{Ti} \ll v_\r{b}$, and they ignore the fast-ion heat flow;
 for a tangential beam the distribution is anisotropic.
 
+\subsection{Discrete momentum conservation of the friction}
+\label{sec:frictionfem}
+
+The friction force on species $a$ is $\sum_b \ell^{ab}\,u_b$ with $\sum_a\ell^{ab} = 0$,
+so the forces cancel for any flows.  The coefficients satisfy this at every node (to
+$10^{-8}$ of the diagonal, MI).  The equations of species $a$ are written per unit
+mass density, so the term of row $a$ acting on the momentum $X_b = n_b\aves{Ru_b}$ has
+the coefficient $\ell^{ab}/(m_a n_a)\times n_a/n_b$; up to V5.61.00 it was integrated
+as the product of the two interpolants (\texttt{fem\_int(20,lab,Ratden)}, and
+\texttt{fem\_int(20,lab,n)} in the parallel equations), while the diagonal term of
+the same column used the interpolated coefficient (\texttt{fem\_int(2,lab)}).  Per
+element the two differ by $-h\,\Delta a\,\Delta b\,(X_1+X_2)/12$, where $\Delta a$,
+$\Delta b$ are the changes of the two factors across the element, so the columns did
+not sum to zero and the friction left a net force of $O(h^2)$.  It was measured
+directly: the residual falls by 2.2--2.3 from \texttt{NRMAX} = 60 to 90 and by 3.8--3.9
+to 120, and in the JT-60U case it came almost entirely from the ion--impurity pair
+near $\rho = 0.8$, where $n_i/n_z$ and the coefficients vary most.  Every friction
+term of a column is now assembled from the nodal product of its row-dependent
+factors ($\ell^{ab}n_a/n_b$, $\ell^{ab}n_a$, and $\ell_{12}^{ab}n_a$ for the heat
+friction, with the row-independent factors $I/\aves{B^2}$ and $\partial_V T_b$
+integrated alike in every row).  The element matrices then sum to zero over a column
+whenever the nodal coefficients do, and the continuous equations are unchanged.  The
+change of the solution is $O(h^2)$: in the JT-60U case at 1.5 s, $u_{\r{i}\phi}(0)$
+goes from 658 to 656 km/s, the total angular momentum by $-0.2$\%, the impurity density
+by up to 1\% and $E_r$ by up to 0.7\% (normalised to their maxima); without NBI, where
+the spurious force was comparable to the whole toroidal angular momentum, the small
+rotation changes by up to 5\%.  The Picard counts are unchanged.
+
 \subsection{Validation}
 \label{sec:v561val}
 
@@ -2781,14 +2813,11 @@ the terms to $10^{-6}$ for all density and momentum equations; $\nb+g\nbrp$ clos
 with a residual below $10^{-5}$ of the NBI source.  The injected torque is 6.73 N\,m
 (analytic $2P R_\r{tan}/v_\r{b}$: 6.76 N\,m).  The friction between the beam and the
 thermal species conserves momentum since the correction of $\ell_{11}^{\r{f}k}$
-(Sec.~\ref{sec:v561friction}): the beam column of the friction terms sums to
-$1\times10^{-4}$ N\,m at 0.15 s and $1\times10^{-3}$ N\,m ($2\times10^{-4}$ of the
-injected torque) at 1.5 s, against 0.2 N\,m in V5.60.  The friction between the
-thermal ions and the impurity leaves a small discrete residual that grows with the
-rotation: the friction terms of all species sum to less than $10^{-3}$ N\,m up to
-0.35 s, but to $+0.037$ N\,m (0.55\% of the injected torque) at 1.5 s without ripple,
-almost all of it in the ion and impurity columns.  Its cause is under
-investigation.  The viscous flux at the wall is zero by the weak form; the rotation
+(Sec.~\ref{sec:v561friction}), and the friction terms of all species sum to less
+than $10^{-8}$ N\,m at all times since the assembly of Sec.~\ref{sec:frictionfem}; before
+that, the friction between the thermal ions and the impurity left a discrete
+residual that grew with the rotation to $+0.037$ N\,m (0.55\% of the injected
+torque) at 1.5 s.  The viscous flux at the wall is zero by the weak form; the rotation
 is damped by the SOL parallel loss and charge exchange at the edge.
 
 \paragraph{Ripple benchmark.}  JT-60U-like circular case of \cite{NF2008}: $R=3.4$ m,
