@@ -132,9 +132,18 @@ contains
     VWpch0 = 0.d0
 
     !   Electron-driven diffusion parameter
+    !     Only Dfs(:,1) = Dfs0(1) * profile enters the particle transport.
+    !     FSTPTM = 0, 1, 2: Dfs(:,1) is the electron quasilinear diffusivity D_e^QL;
+    !       ions and impurities have none of their own and move with the electron
+    !       turbulent velocity.
+    !     FSTPTM = 3: the same coefficient also sets the pairwise composition
+    !       transport of the thermal ions, so it reads as the common turbulent /
+    !       composition diffusion amplitude D_c; without fast ions each thermal
+    !       species then diffuses on its own gradient with D_c.
     Dfs0(1) = 0.1d0
 
     !   Ion and impurity driven diffusion parameter (usually inactive)
+    !     Kept as inputs for species-dependent amplitudes; not used at present.
     Dfs0(2:NSM) = 0.d0
 
     !   Electron, ion and impurity viscosity parameters
