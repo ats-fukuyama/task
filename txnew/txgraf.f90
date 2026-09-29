@@ -1091,7 +1091,8 @@ contains
 
        !  *** Diffusion coefficients ************************************
 
-       GYL%v(NR,NG,141) = real(sum(Dfs(NR,:)))
+       ! Only Dfs(:,1) enters the particle transport (FQLcoef, FQCcoef); Dfs(:,2:3) are unused
+       GYL%v(NR,NG,141) = real(Dfs(NR,1))
        GYL%v(NR,NG,142) = real(Deff(NR,1))
        GYL%v(NR,NG,143) = real(Deff(NR,2))
        GYL%v(NR,NG,144) = real(Deff(NR,3))
@@ -1416,7 +1417,7 @@ contains
     GVY(NGVV,48) = real( PN03V(0)   * 1.d20)
     GVY(NGVV,49) = real((PN01V(NRA) + PN02V(NRA) + PN03V(NRA)) * 1.d20)
 
-    GVY(NGVV,50) = real(sum(Dfs(NRC,:)))
+    GVY(NGVV,50) = real(Dfs(NRC,1))
     GVY(NGVV,51) = real(Deff(NRC,1))
     GVY(NGVV,52) = real(Chis(NRC,1))
     GVY(NGVV,53) = real(Chis(NRC,2))
@@ -1874,7 +1875,7 @@ contains
        GYMAX = maxval(GY%v(0:NRA,0:NGR,k))
        call TXGRFRX(0,GX,GY%v(0,0,k),NRMAX,NGR,STR,MODE,IND,GYMAX=GYMAX)
 
-       k = 141 ; STR = '@sum(D$-s$=)@'
+       k = 141 ; STR = '@D$-QL$=@'
        call TXGRFRX(1,GX,GY%v(0,0,k),NRMAX,NGR,STR,MODE,IND)
 
        k = 145 ; STR = '@$#c$#$-tbe$=@'
@@ -2249,7 +2250,7 @@ contains
        GYMIN = minval(GY%v(0:NRA,0:NGR,k))
        call TXGRFRX(0,GX,GY%v(0,0,k),NRMAX,NGR,STR,MODE,IND,GYMAX=GYMAX,GYMIN=GYMIN)
 
-       k = 141 ; STR = '@sum(D$-s$=)@'
+       k = 141 ; STR = '@D$-QL$=@'
        call TXGRFRX(1,GX,GY%v(0,0,k),NRMAX,NGR,STR,MODE,IND)
 
        k = 143 ; STR = '@D$-eff,i$=@'
@@ -5149,7 +5150,7 @@ contains
        STR = '@D$-eff$=(a/2)@'
        call TXGREVM(0, GVX, GVY(:,51), NGVV, 1, STR, MODE, IND)
 
-       STR = '@D$-e$=(a/2)+D$-i$=(a/2)+D$-z$=(a/2)@'
+       STR = '@D$-QL$=(a/2)@'
        call TXGREVM(1, GVX, GVY(:,50), NGVV, 1, STR, MODE, IND)
 
        STR = '@$#c$#$-tbe$=(a/2)@'
