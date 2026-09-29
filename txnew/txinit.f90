@@ -321,6 +321,13 @@ contains
     !   Impurity density limit in SOL Upstream Plasma (Target minimum density in SOL)
     PNsSUP(3) = (Zeffin - achg(2)) / (achg(3) * (achg(3) - achg(2))) * PNsSUP(1)
 !    PNsSUP(3) = 0.d0
+    PNsSUPlast(:) = PNsSUP(:)
+
+    !   Meaning of PNsSUP(2:3): 1 = derived from PNsSUP(1) and Zeffin whenever the
+    !   parameters are read (default), 0 = independent, PNsSUP(1:3) used as given.
+    !   PNsSUP(1) acts as the upstream SOL electron density: the SOL loss term
+    !   -nu_L (n - PNsSUP) holds the SOL density near PNsSUP (see tx562.tex).
+    MDLNSUP = 1
 
     !   Electron/Ion/Impurity temperature limit in SOL Upstream Plasma
     !   (Target minimum temperature in SOL)
@@ -2082,7 +2089,7 @@ module tx_parameter_control
        & MODEG,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,oldmixa,iaxproj,rhoaxproj,Dnfac, &
        & iSUPG3,iSUPG6,iSUPG8,SUPGstab,iprestab, &
        & MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDLETB, &
-       & MDLNZD,MDLN0FL,FLlim,RLXN0,MDLSOL,MDLWBC,NANDER, &
+       & MDLNZD,MDLN0FL,FLlim,RLXN0,MDLSOL,MDLWBC,MDLNSUP,NANDER, &
        & iPoyntpol,iPoynttor,IDIAG,midbg,IGBDF,ISMTHD,MDLNBD,MDBMCX,imodel_neo, & ! 09/06/17~ miki_m
        & EpsHM, HPN  ! 10/08/06 miki_m
   private :: TXPLST
@@ -2177,6 +2184,19 @@ contains
   subroutine TXPARM_CHECK
 
     integer(4) :: idx
+
+    ! SOL upstream densities of ions and impurities derived from PNsSUP(1) and
+    ! Zeffin (MDLNSUP = 1).  Values of PNsSUP(2:3) that differ from those last
+    ! set here or in TXINIT were given explicitly; they are overwritten, with a
+    ! warning.  Zeffin outside [1, achg(3)) is rejected below.
+    if( MDLNSUP == 1 .and. Zeffin >= 1.d0 .and. Zeffin < achg(3) ) then
+       if( any(PNsSUP(2:3) /= PNsSUPlast(2:3)) ) &
+            & write(6,'(A)') ' ## PNsSUP(2:3) given with MDLNSUP = 1 are recomputed from PNsSUP(1) and Zeffin;' &
+            &              //' set MDLNSUP = 0 to use them as given.'
+       PNsSUP(2) = (achg(3) - Zeffin) / (achg(2) * (achg(3) - achg(2))) * PNsSUP(1)
+       PNsSUP(3) = (Zeffin - achg(2)) / (achg(3) * (achg(3) - achg(2))) * PNsSUP(1)
+    end if
+    PNsSUPlast(:) = PNsSUP(:)
 
     idx = 1
     do 
@@ -2280,7 +2300,7 @@ contains
        if(abs(rGamm0zz_in) > 1.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(abs(rGamm0iz_in) > 1.d0) then ; exit ; else ; idx = idx + 1 ; end if
        ! SOL / neutral models of V5.60
-       if(MDLSOL < 0 .or. MDLSOL > 1 .or. MDLWBC < 0 .or. MDLWBC > 1) then
+       if(MDLSOL < 0 .or. MDLSOL > 1 .or. MDLWBC < 0 .or. MDLWBC > 1 .or. MDLNSUP < 0 .or. MDLNSUP > 1) then
           exit ; else ; idx = idx + 1 ; end if
        if(abs(NANDER) > 50) then ; exit ; else ; idx = idx + 1 ; end if
        if(MDLNZD < 0 .or. MDLNZD > 1 .or. MDLN0FL < 0 .or. MDLN0FL > 2) then

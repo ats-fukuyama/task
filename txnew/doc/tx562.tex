@@ -3418,6 +3418,15 @@ either case.
 \item Finite-collisionality closure for the higher-order flows; triangularity of
   grid-traced equilibria regularized; G-EQDSK $p'$ normalization corrected;
   \texttt{ipbtdir} = 1 by default.
+\item \texttt{MDLNSUP} (default 1): the SOL upstream densities of the ions and the
+  impurity, \texttt{PNsSUP(2:3)}, are derived from \texttt{PNsSUP(1)} and
+  \texttt{Zeffin} (quasi-neutral, $Z_\r{eff}$ = \texttt{Zeffin}) whenever the
+  parameters are read; before, they were set once from the defaults and a namelist
+  value of \texttt{PNsSUP(1)} or \texttt{Zeffin} left them unchanged.
+  \texttt{MDLNSUP} = 0 uses \texttt{PNsSUP(1:3)} as given.  The SOL loss
+  $-\nu_L(n_s - n_{\r{SUP},s})$ holds the SOL density near $n_{\r{SUP},s}$, so
+  \texttt{PNsSUP(1)} acts as the upstream SOL density and sets the density level of
+  the whole plasma.
 \item Diagnostic switches, off by default: \texttt{iaxproj} (near-axis
   regularity projection), \texttt{Dnfac} (particle diffusion in the impurity
   continuity equation).

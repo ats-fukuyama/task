@@ -133,6 +133,12 @@ module tx_commons
   !     1 : zero gradient, n(NRMAX) = n(NRMAX-1), in constrained-DOF form
   !         (V5.60 default; see BOUNDARY_ZEROGRAD in txcala.f90).
   integer(4) :: MDLWBC
+  !   MDLNSUP : meaning of the SOL upstream density inputs PNsSUP.
+  !     0 : independent, PNsSUP(1:3) are used as given.
+  !     1 : derived (default), PNsSUP(2:3) follow from PNsSUP(1) and Zeffin
+  !         (quasi-neutral, Z_eff = Zeffin, no fast ions in the SOL); recomputed
+  !         whenever the parameters are read.
+  integer(4) :: MDLNSUP
   !   NANDER : Anderson acceleration of the Picard sweeps of each time step.
   !     0 : plain Picard (default).
   !     m : the next iterate is the Picard output corrected by the least-squares
@@ -155,6 +161,8 @@ module tx_commons
   ! SOL parameters
   real(8) :: rLn, rLT  ! Scale lengths in SOL
   real(8), dimension(NSM) :: PNsSUP, PTsSUP
+  ! PNsSUP(2:3) as last set by TXINIT or TXPARM_CHECK, to tell input from derived values
+  real(8), dimension(NSM) :: PNsSUPlast
 
   ! Heat sources
   real(8) :: Ebmax, RNBP, RNBP0, RNBT1, RNBT2, RNBT10, RNBT20, &
