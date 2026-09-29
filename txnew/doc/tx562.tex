@@ -3409,9 +3409,14 @@ either case.
 \item $D_{0\r{z}}$ uses the impurity neutral speed $V_{0z}$.
 \item \texttt{FSTPTM} = 3 (default): multi-ion composition channel for the
   turbulent particle flux.  With \texttt{FSTPTM} = 2 the impurity is not diffused on
-  its own density gradient, and an odd-even mode of $n_\r{z}$ grows in long runs: the
-  JT-60U case of Sec.~\ref{sec:v561val} stops at 2.4 s, while with 3 it runs to 4 s
-  with the mode at the $10^{-3}$ level.  In the NBI cases $\nee$ and $u_{\r{i}\phi}$ change
+  its own density gradient, and in long runs a grid-scale mode of $n_\r{z}$ (wavelength
+  about three mesh intervals, sign-alternating) grows: the JT-60U case of
+  Sec.~\ref{sec:v561val} stops at 2.4 s with $T_\r{z} < 0$ at $\rho \approx 0.43$.  The mode
+  is tied to the mesh, not to a physical scale, and is not a physical impurity
+  instability; it is the discrete form of an under-regularized closure, in which nothing
+  damps short-wavelength perturbations of $n_\r{z}$.  The diffusion of each thermal ion on
+  its own gradient in \texttt{FSTPTM} = 3 damps them at the rate $D k^2$; the same case then
+  runs to 4 s with no grid-scale component above the curvature of the profile.  In the NBI cases $\nee$ and $u_{\r{i}\phi}$ change
   by less than 1.5\% (in the ohmic default case $u_{\r{i}\phi} \approx 0.5$ km/s changes by
   15\%), the core impurity density by 25--55\%.  \texttt{FSTPTM} = 2 remains
   available and must be given for every species (\texttt{FSTPTM} = 2, 2, 2).
