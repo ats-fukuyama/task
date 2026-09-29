@@ -1723,28 +1723,19 @@ contains
       g = sign(g, x)
     end function pinch_rln
 
-    ! Radial factor of the pinch: 1 inside RhoPch1, 0 outside RhoPch2
+    ! Radial factor of the pinch: 1 inside RhoPch1, 0 outside RhoPch2, quintic
+    ! smoothstep between (continuous up to the second derivative; exactly zero
+    ! outside RhoPch2, so that the pinch carries no momentum through the wall)
     real(8) function pinch_taper(r) result(t)
       real(8), intent(in) :: r
       real(8) :: xi
-      if(MDPCHT == 3) then
-         t = 0.5d0 * (1.d0 - tanh(6.d0 * (r - 0.5d0 * (RhoPch1 + RhoPch2)) / (RhoPch2 - RhoPch1)))
-         return
-      end if
       if(r <= RhoPch1) then
          t = 1.d0
       else if(r >= RhoPch2) then
          t = 0.d0
       else
          xi = (r - RhoPch1) / (RhoPch2 - RhoPch1)
-         select case(MDPCHT)
-         case(1)
-            t = 1.d0 - xi**2 * (3.d0 - 2.d0 * xi)
-         case(2)
-            t = 0.5d0 * (1.d0 + cos(Pi * xi))
-         case default
-            t = 1.d0 - xi**3 * (10.d0 - 15.d0 * xi + 6.d0 * xi**2)
-         end select
+         t = 1.d0 - xi**3 * (10.d0 - 15.d0 * xi + 6.d0 * xi**2)
       end if
     end function pinch_taper
 

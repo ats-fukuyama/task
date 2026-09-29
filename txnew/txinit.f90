@@ -188,18 +188,19 @@ contains
     !     1 : Momentum pinch effective
     FSMPCH(1:NSM) = 1.d0
 
-    !   Momentum pinch number beyond the empirical R/L_n range
-    !     -R V/mu = 1.1 g(R/L_n) + 1.0; g(x) = x for |x| <= PCHRLN, beyond which the
-    !     slope goes smoothly (width PCHWID) to PCHSLP times the Tala slope
-    PCHRLN = 1.d30
-    PCHSLP = 1.d0
+    !   Momentum pinch number, -R V/mu = 1.1 g(R/L_n) + 1.0 (Tala et al., FEC 2012)
+    !     g(x) = x up to the largest R/L_n of the multi-machine data, PCHRLN, beyond which
+    !     the slope goes smoothly (width PCHWID) to PCHSLP times the Tala slope, i.e. to
+    !     0.44, the R/L_n coefficient of the JETPEAK and GKW regressions (Weisen 2012).
+    !     PCHSLP = 0 saturates the pinch number (experimental option).
+    PCHRLN = 3.8d0
+    PCHSLP = 0.4d0
     PCHWID = 1.d0
 
-    !   Radial range of the momentum pinch: full inside RhoPch1, zero outside RhoPch2
-    !     MDPCHT = 0 : quintic smoothstep, 1 : cubic smoothstep, 2 : cosine, 3 : tanh
-    RhoPch1 = 1.d30
-    RhoPch2 = 2.d30
-    MDPCHT  = 0
+    !   Radial range of the momentum pinch, a core model: full inside RhoPch1 (the outer
+    !     edge of the data, rho = 0.8), zero outside RhoPch2, quintic smoothstep between
+    RhoPch1 = 0.8d0
+    RhoPch2 = 0.9d0
 
     !   Implementation of turbulent particle transport model
     !     0 : Electron density gradient term remains as it is.
@@ -2051,7 +2052,7 @@ module tx_parameter_control
        & PN0,PNa,PTe0,PTea,PTi0,PTia,PTz0,PTza,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,Uiph0, &
        & Dfs0,VWpch0,rMus0,WPM0,Chis0,ChiNC, &
        & FSDFIX,FSANOM,FSCBAL,FSCBKP,FSCBEL,FSCBSH,FSBOHM,FSPCL,FSVAHL,MDANOM,RhoETB, &
-       & FSMPCH,PCHRLN,PCHSLP,PCHWID,RhoPch1,RhoPch2,MDPCHT,FSTPTM,FSPARV,PROFD,PROFD1,PROFD2,PROFDB,PROFM,PROFM1,PROFMB,PROFC,PROFC1,PROFCB, &
+       & FSMPCH,PCHRLN,PCHSLP,PCHWID,RhoPch1,RhoPch2,FSTPTM,FSPARV,PROFD,PROFD1,PROFD2,PROFDB,PROFM,PROFM1,PROFMB,PROFC,PROFC1,PROFCB, &
        & FSCX,FSLC,FSRP,FSNF,FSADV,FSADVB,FSUG,FSNC,FSNCB,FSLP,FSLPB,FSLTs,FSION, &
        & FSNCOL,FSD01,FSD02,FSD03,FSD0z,MDLC,rLn,rLT,FSG0iz, &
        & Ebmax,esps,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,PNBCD,PNBMPD,PNBPTC, &
@@ -2196,7 +2197,7 @@ contains
           idx = idx + 1 ; end if
        if(PCHRLN <= 0.d0 .or. PCHSLP < 0.d0 .or. PCHSLP > 1.d0 .or. PCHWID <= 0.d0) then ; exit ; else
           idx = idx + 1 ; end if
-       if(RhoPch1 < 0.d0 .or. RhoPch2 <= RhoPch1 .or. MDPCHT < 0 .or. MDPCHT > 3) then ; exit ; else
+       if(RhoPch1 < 0.d0 .or. RhoPch2 <= RhoPch1) then ; exit ; else
           idx = idx + 1 ; end if
        if(minval(FSTPTM) < 0.d0 .or. maxval(FSTPTM) > 3.d0) then ; exit ; else
           idx = idx + 1 ; end if
@@ -2292,7 +2293,7 @@ contains
          &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PTz0,PTza,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,Uiph0,'/ &
          &       ' ',8X,'Dfs0,VWpch0,rMus0,WPM0,Chis0,ChiNC,'/ &
          &       ' ',8X,'FSDFIX,FSANOM,FSCBAL,FSCBKP,FSCBEL,FSCBSH,FSBOHM,FSPCL,FSVAHL,'/ &
-         &       ' ',8X,'MDANOM,RhoETB,FSMPCH,PCHRLN,PCHSLP,PCHWID,RhoPch1,RhoPch2,MDPCHT,FSTPTM,FSPARV'/ &
+         &       ' ',8X,'MDANOM,RhoETB,FSMPCH,PCHRLN,PCHSLP,PCHWID,RhoPch1,RhoPch2,FSTPTM,FSPARV'/ &
          &       ' ',8X,'PROFD,PROFD1,PROFD2,PROFDB,PROFM,PROFM1,PROFMB,PROFC,PROFC1,PROFCB,'/ &
          &       ' ',8X,'FSCX,FSLC,FSRP,FSNF,FSADV,FSADVB,FSUG,FSNC,FSNCB,FSLP,FSLTs,FSLPB,FSION,'/ &
          &       ' ',8X,'FSNCOL,FSD01,FSD02,FSD03,FSD0z,MDLC,rLn,rLT,FSG0iz'/ &

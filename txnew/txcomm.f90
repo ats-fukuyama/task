@@ -148,7 +148,6 @@ module tx_commons
   real(8) :: FSADV, FSADVB, FSUG, FSG0iz
   real(8), dimension(NSM) :: FSMPCH, FSTPTM, FSPARV, FSLTs
   real(8) :: PCHRLN, PCHSLP, PCHWID, RhoPch1, RhoPch2
-  integer(4) :: MDPCHT
   real(8), dimension(1:2) :: FSNC, FSNCB
   real(8), dimension(1:3) :: FSDFIX, FSANOM, RhoETB, FSPCL
   integer(4) :: MDLC, MDANOM
