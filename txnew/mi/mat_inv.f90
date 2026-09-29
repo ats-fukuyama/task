@@ -347,8 +347,13 @@ contains
     end do
 
     !-- Neoclassical particle flux: gflux = <Gamma . nabla psi>
+    !   The Ware term is n (I/<B^2>) <E.B> K and gflux carries n <|grad psi|^2>,
+    !   so its prefactor is I <E.B>/(<B^2> <|grad psi|^2>), <|grad psi|^2> = sst sdt^2
+    !   (as in the 2016 version).  I/(<B^2> <|grad V|> dpsi/dV) had been used,
+    !   which carries the extra factor <|grad V|^2>/<|grad V|> dpsi/dV ~ R B_p and so
+    !   made the Ware flux vanish towards the axis (by 1/4 at rho = 0.1).
     if( NR /= 0 ) then
-       fac = fipol(NR) / (bbt(NR) * (suft(NR) * sdt(NR)))
+       fac = fipol(NR) / (bbt(NR) * (sst(NR) * sdt(NR)**2))
     else
        fac = 0.d0
     end if
