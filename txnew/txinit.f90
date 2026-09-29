@@ -511,8 +511,12 @@ contains
     ! Number of toroidal field coils in JT-60U
     NTCOIL = 18
 
-    ! Minimum ripple amplitude in the system (R = Rmag0 = 2.4m on JT-60U)
+    ! Minimum ripple amplitude in the system, on the midplane at R = RDltRPn
     DltRPn = 0.0002d0 * 1.D-2
+
+    ! Major radius (m) of the minimum of the ripple amplitude on the midplane, where
+    !   the ripple amplitude is DltRPn; set by the TF coil geometry (2.4 m on JT-60U)
+    RDltRPn = 2.4d0
 
     ! Effective ellipticity for ripple amplitude estimation
     kappa = 1.2d0
@@ -2040,7 +2044,7 @@ module tx_parameter_control
        & Ebmax,esps,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,PNBCD,PNBMPD,PNBPTC, &
        & rNRFe,RRFew,RRFe0,PRFHe,Tqt0,Tqp0,rNRFi,RRFiw,RRFi0,PRFHi, &
        & PN0s,V0,rGamm0_in,rGASPF,PN0zs,V0z,rGamm0zz_in,rGamm0iz_in,rGASPFz,PNsSUP,PTsSUP, &
-       & NTCOIL,DltRPn,kappa,m_pol,n_tor, &
+       & NTCOIL,DltRPn,RDltRPn,kappa,m_pol,n_tor, &
        & DT,EPS,ICMAX,ICCALC,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH, &
        & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,ieqread,irktrc,ipbtdir, &
        & DelRho,DelN, &
@@ -2224,7 +2228,7 @@ contains
        if(rGASPF < 0.d0 .or. rGASPFz < 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(minval(PNsSUP) < 0.d0 .or. minval(PTsSUP) < 0.d0) then ; exit ; else
           idx = idx + 1 ; end if
-       if(NTCOIL <= 0 .or. DltRPn < 0.d0 .or. DltRPn > 1.d0 .or. kappa < 0.d0) then
+       if(NTCOIL <= 0 .or. DltRPn < 0.d0 .or. DltRPn > 1.d0 .or. kappa < 0.d0 .or. RDltRPn <= 0.d0) then
           exit ; else ; idx = idx + 1 ; end if
        if(DT < 0.d0 .or. EPS == 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(ICMAX < 0) then ; exit ; else ; idx = idx + 1 ; end if
@@ -2278,7 +2282,7 @@ contains
          &       ' ',8X,'Ebmax,esps,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,'/ &
          &       ' ',8X,'PNBCD,PNBMPD,PNBPTC,rNRFe,RRFew,RRFe0,PRFHe,Tqt0,Tqp0,rNRFe,RRFew,RRFe0,PRFHe,'/&
          &       ' ',8X,'PN0s,V0,rGamm0_in,rGASPF,PN0zs,V0z,rGamm0zz_in,rGamm0iz_in,rGASPFz,PNsSUP,PTsSUP,'/ &
-         &       ' ',8X,'NTCOIL,DltRPn,kappa,m_pol,n_tor,'/ &
+         &       ' ',8X,'NTCOIL,DltRPn,RDltRPn,kappa,m_pol,n_tor,'/ &
          &       ' ',8X,'DT,EPS,ICMAX,ICCALC,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH,'/ &
          &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,ieqread,irktrc,ipbtdir'/ &
          &       ' ',8X,'DelRho,DelN,'/ &
@@ -2376,7 +2380,8 @@ contains
          &   'PNeSUP     ', PNsSUP(1)  , 'PNiSUP     ', PNsSUP(2)  ,  &
          &   'PNzSUP     ', PNsSUP(3)  , 'PTeSUP     ', PTsSUP(1)  ,  &
          &   'PTiSUP     ', PTsSUP(2)  , 'PTzSUP     ', PTsSUP(3)  ,  &
-         &   'DltRPn     ', DltRPn     , 'kappa      ', kappa      ,  &
+         &   'DltRPn     ', DltRPn     , 'RDltRPn    ', RDltRPn    ,  &
+         &   'kappa      ', kappa      ,  &
          &   'PN0s       ', PN0s       , 'PN0zs      ', PN0zs      ,  &
          &   'EPS        ', EPS        , 'tiny_cap   ', tiny_cap   ,  &
          &   'DT         ', DT         , 'rG1        ', rG1        ,  &

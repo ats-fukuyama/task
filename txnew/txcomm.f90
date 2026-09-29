@@ -168,7 +168,7 @@ module tx_commons
   real(8) :: PN0zs, V0z, rGamm0zz, rGamm0iz, rGASPFz
 
   ! Ripple parameters
-  real(8) :: DltRPn, kappa
+  real(8) :: DltRPn, RDltRPn, kappa
   integer(4) :: NTCOIL, m_pol, n_tor
 
   ! Numerical parameters

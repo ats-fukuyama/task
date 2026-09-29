@@ -96,7 +96,7 @@ contains
     use libbes, only : BESINX
     use libgrf, only : GRD1D
     use tx_commons, only : T_TX, TPRE, NQMAX, NRMAX, PI, ieqread, stdin_ended!, &
-!         &                 rhob, RA, RR, NRA, thrp, kappa, IRPIN, DltRPn, NTCOIL, DltRP_mid, DltRP, epst, rho 
+!         &                 rhob, RA, RR, NRA, thrp, kappa, IRPIN, DltRPn, RDltRPn, NTCOIL, DltRP_mid, DltRP, epst, rho 
     use tx_interface, only : TXGRUR, TOUPPER, TXGLOD
     use tx_ripple, only : ripple
 
@@ -367,8 +367,8 @@ contains
 !!$                RRL(NX) = 2.0 + DR * (NX - 1)
 !!$                do NY = 1, NYMAX
 !!$                   ZZL(NY) = DZ * (NY - 1)
-!!$                   AL = SQRT(((RRL(NX) - 2.4)**2 + ZZL(NY)**2) * (2.4 / RRL(NX)))
-!!$                   VAL(NX,NY) = real(DltRPnL * BESINX(0,NTCOIL/2.4D0*AL))
+!!$                   AL = SQRT(((RRL(NX) - RDltRPn)**2 + ZZL(NY)**2) * (RDltRPn / RRL(NX)))
+!!$                   VAL(NX,NY) = real(DltRPnL * BESINX(0,NTCOIL/RDltRPn*AL))
 !!$                end do
 !!$             end do
 !!$

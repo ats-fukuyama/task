@@ -2597,9 +2597,14 @@ without it once the beam heats the edge.
 of $\nb$ without ripple-trapped ions.  Other values are rejected.  The ripple
 amplitude is $\delta(r,\theta) = \delta_\r{min} I_0(N a_\delta/R_{\delta\r{min}})$
 with \texttt{DltRPn} $=\delta_\r{min}$; \texttt{FSRP} only switches it on.
-$R_{\delta\r{min}}$ is fixed at 2.4 m in the code, the JT-60U value that entered the
-2008 code together with the ripple model (``specific value for JT-60U'', also used by
-the routine that drew the ripple contours).  The text of \cite{NF2008} gives 2.8 m, but
+$R_{\delta\r{min}}$ (input \texttt{RDltRPn}, default 2.4 m) is the major radius on the
+midplane where the ripple amplitude has its minimum $\delta_\r{min}$; the formula takes
+the surfaces $\delta$ = const as circles centred there, a property of the TF coil
+geometry (the coil shape and radial position), not of the plasma.  2.4 m is the JT-60U
+value that entered the 2008 code together with the ripple model (``specific value for
+JT-60U'', also used by the routine that drew the ripple contours); it was fixed in the
+code up to V5.61.00, and other devices need their own value.  The text of \cite{NF2008}
+gives 2.8 m, but
 its own numbers require 2.4 m: with $\delta_\r{min} = 2\times10^{-6}$ and $N = 18$ the
 formula gives $\delta_a = 1.28$\% at the outboard midplane and $0.30$\% at
 $\theta = \pi/2$ with 2.4 m, the values quoted in \cite{NF2008}, and $0.085$\% and
