@@ -1092,6 +1092,11 @@ contains
        !   [T. Tala et al., 2012, Proc. 24th IAEA FEC (San Diego) ITR/P1-19]
        !   The multi-machine data cover 0.4 < rho < 0.8 and R/L_n up to about 4;
        !   pinch_rln and pinch_taper treat larger R/L_n and the edge (see the inputs).
+       !   V is built from the ion viscosity and given to every thermal species, and the
+       !   viscous flux of species s is -mu_s n_s d<Ru_s>/dV (the form of the scaling),
+       !   so with a common mu the fluxes sum to V L - mu sum_s m_s n_s d<Ru_s>/dV, the
+       !   pinch of the total thermal momentum L (TOPICS); the u_s need not be equal.
+       !   With species-dependent rMus0 the pinch number -R V/mu_s differs by species.
 
        if(NR /= 0) then
           zvpch = - rMus(NR,2) / rr * (1.1d0 * pinch_rln(- rr * dlnNedrhov(NR)) + 1.d0) &
