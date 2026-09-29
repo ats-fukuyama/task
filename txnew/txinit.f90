@@ -188,6 +188,19 @@ contains
     !     1 : Momentum pinch effective
     FSMPCH(1:NSM) = 1.d0
 
+    !   Momentum pinch number beyond the empirical R/L_n range
+    !     -R V/mu = 1.1 g(R/L_n) + 1.0; g(x) = x for |x| <= PCHRLN, beyond which the
+    !     slope goes smoothly (width PCHWID) to PCHSLP times the Tala slope
+    PCHRLN = 1.d30
+    PCHSLP = 1.d0
+    PCHWID = 1.d0
+
+    !   Radial range of the momentum pinch: full inside RhoPch1, zero outside RhoPch2
+    !     MDPCHT = 0 : quintic smoothstep, 1 : cubic smoothstep, 2 : cosine, 3 : tanh
+    RhoPch1 = 1.d30
+    RhoPch2 = 2.d30
+    MDPCHT  = 0
+
     !   Implementation of turbulent particle transport model
     !     0 : Electron density gradient term remains as it is.
     !     1 : Electron density gradient term is replaced using the radial force balance equation
@@ -2038,7 +2051,7 @@ module tx_parameter_control
        & PN0,PNa,PTe0,PTea,PTi0,PTia,PTz0,PTza,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,Uiph0, &
        & Dfs0,VWpch0,rMus0,WPM0,Chis0,ChiNC, &
        & FSDFIX,FSANOM,FSCBAL,FSCBKP,FSCBEL,FSCBSH,FSBOHM,FSPCL,FSVAHL,MDANOM,RhoETB, &
-       & FSMPCH,FSTPTM,FSPARV,PROFD,PROFD1,PROFD2,PROFDB,PROFM,PROFM1,PROFMB,PROFC,PROFC1,PROFCB, &
+       & FSMPCH,PCHRLN,PCHSLP,PCHWID,RhoPch1,RhoPch2,MDPCHT,FSTPTM,FSPARV,PROFD,PROFD1,PROFD2,PROFDB,PROFM,PROFM1,PROFMB,PROFC,PROFC1,PROFCB, &
        & FSCX,FSLC,FSRP,FSNF,FSADV,FSADVB,FSUG,FSNC,FSNCB,FSLP,FSLPB,FSLTs,FSION, &
        & FSNCOL,FSD01,FSD02,FSD03,FSD0z,MDLC,rLn,rLT,FSG0iz, &
        & Ebmax,esps,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,PNBCD,PNBMPD,PNBPTC, &
@@ -2181,6 +2194,10 @@ contains
           idx = idx + 1 ; end if
        if(minval(FSMPCH) < 0.d0 .or. maxval(FSMPCH) > 1.d0) then ; exit ; else
           idx = idx + 1 ; end if
+       if(PCHRLN <= 0.d0 .or. PCHSLP < 0.d0 .or. PCHSLP > 1.d0 .or. PCHWID <= 0.d0) then ; exit ; else
+          idx = idx + 1 ; end if
+       if(RhoPch1 < 0.d0 .or. RhoPch2 <= RhoPch1 .or. MDPCHT < 0 .or. MDPCHT > 3) then ; exit ; else
+          idx = idx + 1 ; end if
        if(minval(FSTPTM) < 0.d0 .or. maxval(FSTPTM) > 3.d0) then ; exit ; else
           idx = idx + 1 ; end if
        ! FSTPTM = 3 adds a force that couples pairs of thermal ion species, so
@@ -2275,7 +2292,7 @@ contains
          &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PTz0,PTza,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,Uiph0,'/ &
          &       ' ',8X,'Dfs0,VWpch0,rMus0,WPM0,Chis0,ChiNC,'/ &
          &       ' ',8X,'FSDFIX,FSANOM,FSCBAL,FSCBKP,FSCBEL,FSCBSH,FSBOHM,FSPCL,FSVAHL,'/ &
-         &       ' ',8X,'MDANOM,RhoETB,FSMPCH,FSTPTM,FSPARV'/ &
+         &       ' ',8X,'MDANOM,RhoETB,FSMPCH,PCHRLN,PCHSLP,PCHWID,RhoPch1,RhoPch2,MDPCHT,FSTPTM,FSPARV'/ &
          &       ' ',8X,'PROFD,PROFD1,PROFD2,PROFDB,PROFM,PROFM1,PROFMB,PROFC,PROFC1,PROFCB,'/ &
          &       ' ',8X,'FSCX,FSLC,FSRP,FSNF,FSADV,FSADVB,FSUG,FSNC,FSNCB,FSLP,FSLTs,FSLPB,FSION,'/ &
          &       ' ',8X,'FSNCOL,FSD01,FSD02,FSD03,FSD0z,MDLC,rLn,rLT,FSG0iz'/ &
@@ -2328,7 +2345,10 @@ contains
          &   'ChiNC      ', ChiNC      , 'Chis0(1)   ', Chis0(1)   ,  &
          &   'Chis0(2)   ', Chis0(2)   , 'Chis0(3)   ', Chis0(3)   ,  &
          &   'FSMPCH(1)  ', FSMPCH(1)  , 'FSMPCH(2)  ', FSMPCH(2)  ,  &
-         &   'FSMPCH(3)  ', FSMPCH(3)  , 'FSTPTM(1)  ', FSTPTM(1)  ,  &
+         &   'FSMPCH(3)  ', FSMPCH(3)  , 'PCHRLN     ', PCHRLN     ,  &
+         &   'PCHSLP     ', PCHSLP     , 'PCHWID     ', PCHWID     ,  &
+         &   'RhoPch1    ', RhoPch1    , 'RhoPch2    ', RhoPch2    ,  &
+         &   'FSTPTM(1)  ', FSTPTM(1)  ,  &
          &   'FSTPTM(2)  ', FSTPTM(2)  , 'FSTPTM(3)  ', FSTPTM(3)  ,  &
          &   'FSPARV(1)  ', FSPARV(1)  , 'FSPARV(2)  ', FSPARV(2)  ,  &
          &   'FSPARV(3)  ', FSPARV(3)  ,  &

@@ -1088,16 +1088,14 @@ contains
        rMus(NR,:) = rMus0(:) * DeL
 
        !   ***** Momentum pinch *****
-       !   -R Vmpi/rMui = 1.1 R/Lne + 1.0
-       !   [T. Tala et al., 2012, Proc of 24th IAEA FEC (San Diego) ITR/P1-1]
+       !   -R V_pinch/mu = 1.1 R/L_ne + 1.0, both terms inward (V > 0 is outward)
+       !   [T. Tala et al., 2012, Proc. 24th IAEA FEC (San Diego) ITR/P1-19]
+       !   The multi-machine data cover 0.4 < rho < 0.8 and R/L_n up to about 4;
+       !   pinch_rln and pinch_taper treat larger R/L_n and the edge (see the inputs).
 
        if(NR /= 0) then
-!!$          zvpch = rMus(NR,2) / rr * (1.1d0 * rr * moving_average(NR,dlnNedrhov,NRMAX) + 1.d0)
-          zvpch = rMus(NR,2) / rr * (1.1d0 * rr * dlnNedrhov(NR) + 1.d0)
-!          ! +++ reducing Vpch near the separatrix +++
-!          zvpch = 0.5d0 * ( tanh(-30.d0*(rho(NR) - 0.98d0)) + 1.d0 ) * zvpch
-!          zvpch = (1.d0 - 0.8d0 * exp(- 0.5d0 * ((rho(NR) - 1.d0) / 0.05d0)**2)) * zvpch
-          ! +++++++++++++++++++++++++++++++++++++++++
+          zvpch = - rMus(NR,2) / rr * (1.1d0 * pinch_rln(- rr * dlnNedrhov(NR)) + 1.d0) &
+               &  * pinch_taper(rho(NR))
           if(izvpch == 0 .and. rho(NR) >= 0.1d0) then
              izvpch = 1
              do NR1 = 1, NR
@@ -1703,6 +1701,47 @@ contains
 !                 factor * profd at rho=1
 !
 !***************************************************************
+
+    ! g(R/L_n) of the pinch number: R/L_n itself up to PCHRLN, beyond which the
+    ! slope goes to PCHSLP over the width PCHWID (continuous up to the second
+    ! derivative); odd in R/L_n.
+    real(8) function pinch_rln(x) result(g)
+      real(8), intent(in) :: x
+      real(8) :: ax, d
+      ax = abs(x)
+      if(ax <= PCHRLN) then
+         g = ax
+      else
+         d = ax - PCHRLN
+         g = PCHRLN + PCHSLP * d + (1.d0 - PCHSLP) * PCHWID * tanh(d / PCHWID)
+      end if
+      g = sign(g, x)
+    end function pinch_rln
+
+    ! Radial factor of the pinch: 1 inside RhoPch1, 0 outside RhoPch2
+    real(8) function pinch_taper(r) result(t)
+      real(8), intent(in) :: r
+      real(8) :: xi
+      if(MDPCHT == 3) then
+         t = 0.5d0 * (1.d0 - tanh(6.d0 * (r - 0.5d0 * (RhoPch1 + RhoPch2)) / (RhoPch2 - RhoPch1)))
+         return
+      end if
+      if(r <= RhoPch1) then
+         t = 1.d0
+      else if(r >= RhoPch2) then
+         t = 0.d0
+      else
+         xi = (r - RhoPch1) / (RhoPch2 - RhoPch1)
+         select case(MDPCHT)
+         case(1)
+            t = 1.d0 - xi**2 * (3.d0 - 2.d0 * xi)
+         case(2)
+            t = 0.5d0 * (1.d0 + cos(Pi * xi))
+         case default
+            t = 1.d0 - xi**3 * (10.d0 - 15.d0 * xi + 6.d0 * xi**2)
+         end select
+      end if
+    end function pinch_taper
 
     real(8) function diff_prof(rho,factor,profd,power,base,fgfact,mu,sigma,pedfact,muped,sgped)
       use tx_interface, only : fgaussian
