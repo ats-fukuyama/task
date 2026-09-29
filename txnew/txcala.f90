@@ -13,7 +13,7 @@ module tx_coefficients
        & RatCXSNBe, RatCXSNBi, Ratdenhyd
 !!rp_conv       &, rNubLL
   real(8), dimension(:,:), allocatable :: UsrgV, fipolsdtPNsV, BUsparVbbt, &
-       & dlnPNsV, BpBVsdiag, tormflux, dtormflux, ribsdtNs!, RatPNbinv,
+       & dlnPNsV, BpBVsdiag, tormflux, dtormflux!, RatPNbinv,
   real(8), dimension(:,:,:), allocatable :: Ratden, zChi
   real(8) :: DTt, invDT, BeamSW, RpplSW, ThntSW, &
        &     fact = 1.d0 ! <= SOL loss accelerator
@@ -81,7 +81,6 @@ contains
     BpBVsdiag = 0.d0
     tormflux = 0.d0
     dtormflux = 0.d0
-    ribsdtNs = 0.d0
     Ratden = 0.d0
     zChi = 0.d0
 
@@ -360,11 +359,11 @@ contains
     end if
     if(need_nrns) then
       if(allocated(UsrgV)) then
-        deallocate(UsrgV, fipolsdtPNsV, BUsparVbbt, dlnPNsV, BpBVsdiag, tormflux, dtormflux, ribsdtNs)
+        deallocate(UsrgV, fipolsdtPNsV, BUsparVbbt, dlnPNsV, BpBVsdiag, tormflux, dtormflux)
       end if
       allocate(UsrgV(0:NRMAX,1:NSM), fipolsdtPNsV(0:NRMAX,1:NSM), BUsparVbbt(0:NRMAX,1:NSM), &
            &   dlnPNsV(0:NRMAX,1:NSM), BpBVsdiag(0:NRMAX,1:NSM), tormflux(0:NRMAX,1:NSM), &
-           &   dtormflux(0:NRMAX,1:NSM), ribsdtNs(0:NRMAX,1:NSM))
+           &   dtormflux(0:NRMAX,1:NSM))
     end if
 
     need_ratden = .not. allocated(Ratden)
@@ -408,6 +407,13 @@ contains
        zChi(:,i,2) = Chis(:,i) + ChiNCt(:,i)
     end do
 
+    ! The friction terms of all rows acting on one variable (one column) are
+    ! assembled from the nodal products of their row-dependent factors, e.g.
+    ! fem_int(2,lab*Ratden) rather than fem_int(20,lab,Ratden).  The column
+    ! sums of the element matrices then vanish whenever the nodal column sums
+    ! of the friction coefficients do (sum_a l^ab = 0), so that the friction
+    ! forces conserve momentum in the discrete equations as well; the product
+    ! of two interpolants left an O(h^2) net force.
     Ratden(:,1,2) = Var(:,1)%n / Var(:,2)%n ! Ne/Ni
     Ratden(:,1,3) = Var(:,1)%n / Var(:,3)%n ! Ne/Nz
     Ratden(:,2,1) = Var(:,2)%n / Var(:,1)%n ! Ni/Ne
@@ -443,7 +449,6 @@ contains
        tormflux(:,i)     = suft(:) * Vmps(:,i) * Var(:,i)%n * BpBVsdiag(:,i) &
             &            - sst(:)  * rMus(:,i) * Var(:,i)%n * dfdx(vv,BpBVsdiag(:,i),NRMAX,0)
        dtormflux(:,i)    = dfdx(vv,tormflux(:,i),NRMAX,0)
-       ribsdtNs(:,i)     = ribsdt(:) * Var(:,i)%n
 !       dlnPNsV(:,i)      = dfdx(vv,Var(:,i)%n,NRMAX,0) / Var(:,i)%n
 !       RatPNbinv(:,i)    = PNbV(:) / Var(:,i)%n ! Nb/Ns
     end do
@@ -793,37 +798,37 @@ contains
 
     ! Collisional friction force with electrons (self collision)
 
-    ELM(:,:, 6,NEQ) =   fem_int(20+L3,lab(:,i,1,1,1),Var(:,i)%n)
+    ELM(:,:, 6,NEQ) =   fem_int(2+L3,lab(:,i,1,1,1)*Var(:,i)%n)
     NLC( 6,NEQ) = LQe3
 
     ! Collisional friction force with ions
 
-    ELM(:,:, 7,NEQ) =   fem_int(20+L3,lab(:,i,2,1,1),Var(:,i)%n)
+    ELM(:,:, 7,NEQ) =   fem_int(2+L3,lab(:,i,2,1,1)*Var(:,i)%n)
     NLC( 7,NEQ) = LQi3
 
     ! Collisional friction force with impurities
 
-    ELM(:,:, 8,NEQ) =   fem_int(20+L3,lab(:,i,3,1,1),Var(:,i)%n)
+    ELM(:,:, 8,NEQ) =   fem_int(2+L3,lab(:,i,3,1,1)*Var(:,i)%n)
     NLC( 8,NEQ) = LQz3
 
     ! Collisional friction force with beam ions
 
-    ELM(:,:, 9,NEQ) =   fem_int(20+L3,laf(:,i,1,1),  Ratden(:,i,4))
+    ELM(:,:, 9,NEQ) =   fem_int(2+L3,laf(:,i,1,1)*Ratden(:,i,4))
     NLC( 9,NEQ) = LQb3
 
     ! Collisional heat friction force with electrons (self collision)
 
-    ELM(:,:,10,NEQ) = - fem_int(20+L3,lab(:,i,1,1,2),Var(:,i)%n)
+    ELM(:,:,10,NEQ) = - fem_int(2+L3,lab(:,i,1,1,2)*Var(:,i)%n)
     NLC(10,NEQ) = LQe6
 
     ! Collisional heat friction force with ions
 
-    ELM(:,:,11,NEQ) = - fem_int(20+L3,lab(:,i,2,1,2),Var(:,i)%n)
+    ELM(:,:,11,NEQ) = - fem_int(2+L3,lab(:,i,2,1,2)*Var(:,i)%n)
     NLC(11,NEQ) = LQi6
 
     ! Collisional heat friction force with impurities
 
-    ELM(:,:,12,NEQ) = - fem_int(20+L3,lab(:,i,3,1,2),Var(:,i)%n)
+    ELM(:,:,12,NEQ) = - fem_int(2+L3,lab(:,i,3,1,2)*Var(:,i)%n)
     NLC(12,NEQ) = LQz6
 
     ! Electric field forces
@@ -985,52 +990,52 @@ contains
 
     ! Collisional friction force with bulk ions
 
-    ELM(:,:, 8,NEQ) =   fem_int(20,lab(:,i,2,1,1),Ratden(:,i,2))
+    ELM(:,:, 8,NEQ) =   fem_int( 2,lab(:,i,2,1,1)*Ratden(:,i,2))
     NLC( 8,NEQ) = LQi4
 
     ! Collisional friction force with impurities
 
-    ELM(:,:, 9,NEQ) =   fem_int(20,lab(:,i,3,1,1),Ratden(:,i,3))
+    ELM(:,:, 9,NEQ) =   fem_int( 2,lab(:,i,3,1,1)*Ratden(:,i,3))
     NLC( 9,NEQ) = LQz4
 
     ! Collisional friction force with beam ions
 
 !    ELM(:,:,10,NEQ) =   fem_int(30,ParatoZeta,laf(:,i,1,1),Ratden(:,i,4))
 !    NLC(10,NEQ) = LQb3
-    ELM(:,:,10,NEQ) =   fem_int(20,laf(:,i,1,1),Ratden(:,i,4))
+    ELM(:,:,10,NEQ) =   fem_int( 2,laf(:,i,1,1)*Ratden(:,i,4))
     NLC(10,NEQ) = LQb4
 
     ! Collisional heat friction force with electrons (self collision)
 
     j = 1
-    ELM(:,:,11,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2),ribsdtNs(:,i),Var(:,j)%T)
+    ELM(:,:,11,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2)*Var(:,i)%n,ribsdt,Var(:,j)%T)
     NLC(11,NEQ) = 0
 !!$    ELM(:,:,11,NEQ) =   rKilo / achg(j) * fem_int(31,lab(:,i,j,1,2),ribsdt,Var(:,j)%T)
 !!$    NLC(11,NEQ) = LQe1
 
-    ELM(:,:,12,NEQ) = -                   fem_int(30,lab(:,i,j,1,2),ParatoZeta,Var(:,i)%n)
+    ELM(:,:,12,NEQ) = -                   fem_int(20,lab(:,i,j,1,2)*Var(:,i)%n,ParatoZeta)
     NLC(12,NEQ) = LQe6
 
     ! Collisional heat friction force with ions
 
     j = 2
-    ELM(:,:,13,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2),ribsdtNs(:,i),Var(:,j)%T)
+    ELM(:,:,13,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2)*Var(:,i)%n,ribsdt,Var(:,j)%T)
     NLC(13,NEQ) = 0
 !!$    ELM(:,:,13,NEQ) =   rKilo / achg(j) * fem_int(31,lab(:,i,j,1,2),ribsdt,Var(:,j)%T)
 !!$    NLC(13,NEQ) = LQe1
 
-    ELM(:,:,14,NEQ) = -                   fem_int(30,lab(:,i,j,1,2),ParatoZeta,Var(:,i)%n)
+    ELM(:,:,14,NEQ) = -                   fem_int(20,lab(:,i,j,1,2)*Var(:,i)%n,ParatoZeta)
     NLC(14,NEQ) = LQi6
 
     ! Collisional heat friction force with impurities
 
     j = 3
-    ELM(:,:,15,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2),ribsdtNs(:,i),Var(:,j)%T)
+    ELM(:,:,15,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2)*Var(:,i)%n,ribsdt,Var(:,j)%T)
     NLC(15,NEQ) = 0
 !!$    ELM(:,:,15,NEQ) =   rKilo / achg(j) * fem_int(31,lab(:,i,j,1,2),ribsdt,Var(:,j)%T)
 !!$    NLC(15,NEQ) = LQe1
 
-    ELM(:,:,16,NEQ) = -                   fem_int(30,lab(:,i,j,1,2),ParatoZeta,Var(:,i)%n)
+    ELM(:,:,16,NEQ) = -                   fem_int(20,lab(:,i,j,1,2)*Var(:,i)%n,ParatoZeta)
     NLC(16,NEQ) = LQz6
 
     ! Toroidal E force
@@ -1628,37 +1633,37 @@ contains
 
     ! Collisional friction force with electrons
 
-    ELM(:,:, 6,NEQ) =   fem_int(20+L3,lab(:,i,1,1,1),Var(:,i)%n)
+    ELM(:,:, 6,NEQ) =   fem_int(2+L3,lab(:,i,1,1,1)*Var(:,i)%n)
     NLC( 6,NEQ) = LQe3
 
     ! Collisional friction force with ions (self collision)
 
-    ELM(:,:, 7,NEQ) =   fem_int(20+L3,lab(:,i,2,1,1),Var(:,i)%n)
+    ELM(:,:, 7,NEQ) =   fem_int(2+L3,lab(:,i,2,1,1)*Var(:,i)%n)
     NLC( 7,NEQ) = LQi3
 
     ! Collisional friction force with impurities
 
-    ELM(:,:, 8,NEQ) =   fem_int(20+L3,lab(:,i,3,1,1),Var(:,i)%n)
+    ELM(:,:, 8,NEQ) =   fem_int(2+L3,lab(:,i,3,1,1)*Var(:,i)%n)
     NLC( 8,NEQ) = LQz3
 
     ! Collisional friction force with beam ions
 
-    ELM(:,:, 9,NEQ) =   fem_int(20+L3,laf(:,i,1,1),  Ratden(:,i,4))
+    ELM(:,:, 9,NEQ) =   fem_int(2+L3,laf(:,i,1,1)*Ratden(:,i,4))
     NLC( 9,NEQ) = LQb3
 
     ! Collisional heat friction force with electrons
 
-    ELM(:,:,10,NEQ) = - fem_int(20+L3,lab(:,i,1,1,2),Var(:,i)%n)
+    ELM(:,:,10,NEQ) = - fem_int(2+L3,lab(:,i,1,1,2)*Var(:,i)%n)
     NLC(10,NEQ) = LQe6
 
     ! Collisional heat friction force with ions (self collision)
 
-    ELM(:,:,11,NEQ) = - fem_int(20+L3,lab(:,i,2,1,2),Var(:,i)%n)
+    ELM(:,:,11,NEQ) = - fem_int(2+L3,lab(:,i,2,1,2)*Var(:,i)%n)
     NLC(11,NEQ) = LQi6
 
     ! Collisional heat friction force with impurities
 
-    ELM(:,:,12,NEQ) = - fem_int(20+L3,lab(:,i,3,1,2),Var(:,i)%n)
+    ELM(:,:,12,NEQ) = - fem_int(2+L3,lab(:,i,3,1,2)*Var(:,i)%n)
     NLC(12,NEQ) = LQz6
 
     ! Electric field forces
@@ -1840,7 +1845,7 @@ contains
 
     ! Collisional friction force with electrons
 
-    ELM(:,:, 7,NEQ) =   fem_int(20,lab(:,i,1,1,1),Ratden(:,i,1))
+    ELM(:,:, 7,NEQ) =   fem_int( 2,lab(:,i,1,1,1)*Ratden(:,i,1))
     NLC( 7,NEQ) = LQe4
 
     ! Collisional friction force with bulk ions (self collision)
@@ -1850,47 +1855,47 @@ contains
 
     ! Collisional friction force with impurities
 
-    ELM(:,:, 9,NEQ) =   fem_int(20,lab(:,i,3,1,1),Ratden(:,i,3))
+    ELM(:,:, 9,NEQ) =   fem_int( 2,lab(:,i,3,1,1)*Ratden(:,i,3))
     NLC( 9,NEQ) = LQz4
 
     ! Collisional friction force with beam ions
 
 !    ELM(:,:,10,NEQ) =   fem_int(30,ParatoZeta,laf(:,i,1,1),Ratden(:,i,4))
 !    NLC(10,NEQ) = LQb3
-    ELM(:,:,10,NEQ) =   fem_int(20,laf(:,i,1,1),Ratden(:,i,4))
+    ELM(:,:,10,NEQ) =   fem_int( 2,laf(:,i,1,1)*Ratden(:,i,4))
     NLC(10,NEQ) = LQb4
 
     ! Collisional heat friction force with electrons
 
     j = 1
-    ELM(:,:,11,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2),ribsdtNs(:,i),Var(:,j)%T)
+    ELM(:,:,11,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2)*Var(:,i)%n,ribsdt,Var(:,j)%T)
     NLC(11,NEQ) = 0
 !!$    ELM(:,:,11,NEQ) =   rKilo / achg(j) * fem_int(31,lab(:,i,j,1,2),ribsdt,Var(:,j)%T)
 !!$    NLC(11,NEQ) = LQi1
 
-    ELM(:,:,12,NEQ) = -                   fem_int(30,lab(:,i,j,1,2),ParatoZeta,Var(:,i)%n)
+    ELM(:,:,12,NEQ) = -                   fem_int(20,lab(:,i,j,1,2)*Var(:,i)%n,ParatoZeta)
     NLC(12,NEQ) = LQe6
 
     ! Collisional heat friction force with ions (self collision)
 
     j = 2
-    ELM(:,:,13,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2),ribsdtNs(:,i),Var(:,j)%T)
+    ELM(:,:,13,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2)*Var(:,i)%n,ribsdt,Var(:,j)%T)
     NLC(13,NEQ) = 0
 !!$    ELM(:,:,13,NEQ) =   rKilo / achg(j) * fem_int(31,lab(:,i,j,1,2),ribsdt,Var(:,j)%T)
 !!$    NLC(13,NEQ) = LQi1
 
-    ELM(:,:,14,NEQ) = -                   fem_int(30,lab(:,i,j,1,2),ParatoZeta,Var(:,i)%n)
+    ELM(:,:,14,NEQ) = -                   fem_int(20,lab(:,i,j,1,2)*Var(:,i)%n,ParatoZeta)
     NLC(14,NEQ) = LQi6
 
     ! Collisional heat friction force with impurities
 
     j = 3
-    ELM(:,:,15,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2),ribsdtNs(:,i),Var(:,j)%T)
+    ELM(:,:,15,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2)*Var(:,i)%n,ribsdt,Var(:,j)%T)
     NLC(15,NEQ) = 0
 !!$    ELM(:,:,15,NEQ) =   rKilo / achg(j) * fem_int(31,lab(:,i,j,1,2),ribsdt,Var(:,j)%T)
 !!$    NLC(15,NEQ) = LQi1
 
-    ELM(:,:,16,NEQ) = -                   fem_int(30,lab(:,i,j,1,2),ParatoZeta,Var(:,i)%n)
+    ELM(:,:,16,NEQ) = -                   fem_int(20,lab(:,i,j,1,2)*Var(:,i)%n,ParatoZeta)
     NLC(16,NEQ) = LQz6
 
     ! Toroidal E force
@@ -2509,37 +2514,37 @@ contains
 
     ! Collisional friction force with electrons
 
-    ELM(:,:, 6,NEQ) =   fem_int(20+L3,lab(:,i,1,1,1),Var(:,i)%n)
+    ELM(:,:, 6,NEQ) =   fem_int(2+L3,lab(:,i,1,1,1)*Var(:,i)%n)
     NLC( 6,NEQ) = LQe3
 
     ! Collisional friction force with ions
 
-    ELM(:,:, 7,NEQ) =   fem_int(20+L3,lab(:,i,2,1,1),Var(:,i)%n)
+    ELM(:,:, 7,NEQ) =   fem_int(2+L3,lab(:,i,2,1,1)*Var(:,i)%n)
     NLC( 7,NEQ) = LQi3
 
     ! Collisional friction force with impurities (self collision)
 
-    ELM(:,:, 8,NEQ) =   fem_int(20+L3,lab(:,i,3,1,1),Var(:,i)%n)
+    ELM(:,:, 8,NEQ) =   fem_int(2+L3,lab(:,i,3,1,1)*Var(:,i)%n)
     NLC( 8,NEQ) = LQz3
 
     ! Collisional friction force with beam ions
 
-    ELM(:,:, 9,NEQ) =   fem_int(20+L3,laf(:,i,1,1),  Ratden(:,i,4))
+    ELM(:,:, 9,NEQ) =   fem_int(2+L3,laf(:,i,1,1)*Ratden(:,i,4))
     NLC( 9,NEQ) = LQb3
 
     ! Collisional heat friction force with electrons
 
-    ELM(:,:,10,NEQ) = - fem_int(20+L3,lab(:,i,1,1,2),Var(:,i)%n)
+    ELM(:,:,10,NEQ) = - fem_int(2+L3,lab(:,i,1,1,2)*Var(:,i)%n)
     NLC(10,NEQ) = LQe6
 
     ! Collisional heat friction force with ions
 
-    ELM(:,:,11,NEQ) = - fem_int(20+L3,lab(:,i,2,1,2),Var(:,i)%n)
+    ELM(:,:,11,NEQ) = - fem_int(2+L3,lab(:,i,2,1,2)*Var(:,i)%n)
     NLC(11,NEQ) = LQi6
 
     ! Collisional heat friction force with impurities (self collision)
 
-    ELM(:,:,12,NEQ) = - fem_int(20+L3,lab(:,i,3,1,2),Var(:,i)%n)
+    ELM(:,:,12,NEQ) = - fem_int(2+L3,lab(:,i,3,1,2)*Var(:,i)%n)
     NLC(12,NEQ) = LQz6
 
     ! Electric field forces
@@ -2696,12 +2701,12 @@ contains
 
     ! Collisional friction force with electrons
 
-    ELM(:,:, 7,NEQ) =   fem_int(20,lab(:,i,1,1,1),Ratden(:,i,1))
+    ELM(:,:, 7,NEQ) =   fem_int( 2,lab(:,i,1,1,1)*Ratden(:,i,1))
     NLC( 7,NEQ) = LQe4
 
     ! Collisional friction force with bulk ions
 
-    ELM(:,:, 8,NEQ) =   fem_int(20,lab(:,i,2,1,1),Ratden(:,i,2))
+    ELM(:,:, 8,NEQ) =   fem_int( 2,lab(:,i,2,1,1)*Ratden(:,i,2))
     NLC( 8,NEQ) = LQi4
 
     ! Collisional friction force with impurities (self collision)
@@ -2713,40 +2718,40 @@ contains
 
 !    ELM(:,:,10,NEQ) =   fem_int(30,ParatoZeta,laf(:,i,1,1),Ratden(:,i,4))
 !    NLC(10,NEQ) = LQb3
-    ELM(:,:,10,NEQ) =   fem_int(20,laf(:,i,1,1),Ratden(:,i,4))
+    ELM(:,:,10,NEQ) =   fem_int( 2,laf(:,i,1,1)*Ratden(:,i,4))
     NLC(10,NEQ) = LQb4
 
     ! Collisional heat friction force with electrons
 
     j = 1
-    ELM(:,:,11,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2),ribsdtNs(:,i),Var(:,j)%T)
+    ELM(:,:,11,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2)*Var(:,i)%n,ribsdt,Var(:,j)%T)
     NLC(11,NEQ) = 0
 !!$    ELM(:,:,11,NEQ) =   rKilo / achg(j) * fem_int(31,lab(:,i,j,1,2),ribsdt,Var(:,j)%T)
 !!$    NLC(11,NEQ) = LQz1
 
-    ELM(:,:,12,NEQ) = -                   fem_int(30,lab(:,i,j,1,2),ParatoZeta,Var(:,i)%n)
+    ELM(:,:,12,NEQ) = -                   fem_int(20,lab(:,i,j,1,2)*Var(:,i)%n,ParatoZeta)
     NLC(12,NEQ) = LQe6
 
     ! Collisional heat friction force with ions
 
     j = 2
-    ELM(:,:,13,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2),ribsdtNs(:,i),Var(:,j)%T)
+    ELM(:,:,13,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2)*Var(:,i)%n,ribsdt,Var(:,j)%T)
     NLC(13,NEQ) = 0
 !!$    ELM(:,:,13,NEQ) =   rKilo / achg(j) * fem_int(31,lab(:,i,j,1,2),ribsdt,Var(:,j)%T)
 !!$    NLC(13,NEQ) = LQz1
 
-    ELM(:,:,14,NEQ) = -                   fem_int(30,lab(:,i,j,1,2),ParatoZeta,Var(:,i)%n)
+    ELM(:,:,14,NEQ) = -                   fem_int(20,lab(:,i,j,1,2)*Var(:,i)%n,ParatoZeta)
     NLC(14,NEQ) = LQi6
 
     ! Collisional heat friction force with impurities (self collision)
 
     j = 3
-    ELM(:,:,15,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2),ribsdtNs(:,i),Var(:,j)%T)
+    ELM(:,:,15,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2)*Var(:,i)%n,ribsdt,Var(:,j)%T)
     NLC(15,NEQ) = 0
 !!$    ELM(:,:,15,NEQ) =   rKilo / achg(j) * fem_int(31,lab(:,i,j,1,2),ribsdt,Var(:,j)%T)
 !!$    NLC(15,NEQ) = LQz1
 
-    ELM(:,:,16,NEQ) = -                   fem_int(30,lab(:,i,j,1,2),ParatoZeta,Var(:,i)%n)
+    ELM(:,:,16,NEQ) = -                   fem_int(20,lab(:,i,j,1,2)*Var(:,i)%n,ParatoZeta)
     NLC(16,NEQ) = LQz6
 
     ! Toroidal E force
@@ -3309,22 +3314,22 @@ contains
 
        ! Collisional friction force with beam ions (self collision)
 
-       ELM(:,:, 3,NEQ) =   (amas(1) / amb) * fem_int(20+L3,lff(:,1,1),Ratden(:,1,4))
+       ELM(:,:, 3,NEQ) =   (amas(1) / amb) * fem_int(2+L3,lff(:,1,1)*Ratden(:,1,4))
        NLC( 3,NEQ) = LQb3
 
        ! Collisional friction force with electrons
 
-       ELM(:,:, 4,NEQ) =   (amas(1) / amb) * fem_int(20+L3,lfb(:,1,1,1),Var(:,1)%n)
+       ELM(:,:, 4,NEQ) =   (amas(1) / amb) * fem_int(2+L3,lfb(:,1,1,1)*Var(:,1)%n)
        NLC( 4,NEQ) = LQe3
 
        ! Collisional friction force with ions
 
-       ELM(:,:, 5,NEQ) =   (amas(1) / amb) * fem_int(20+L3,lfb(:,2,1,1),Var(:,1)%n)
+       ELM(:,:, 5,NEQ) =   (amas(1) / amb) * fem_int(2+L3,lfb(:,2,1,1)*Var(:,1)%n)
        NLC( 5,NEQ) = LQi3
 
        ! Collisional friction force with impurities
 
-       ELM(:,:, 6,NEQ) =   (amas(1) / amb) * fem_int(20+L3,lfb(:,3,1,1),Var(:,1)%n)
+       ELM(:,:, 6,NEQ) =   (amas(1) / amb) * fem_int(2+L3,lfb(:,3,1,1)*Var(:,1)%n)
        NLC( 6,NEQ) = LQz3
 
        ! Electric field forces
@@ -3412,17 +3417,17 @@ contains
 
        ! Collisional friction force with bulk ions
 
-       ELM(:,:, 4,NEQ) =   (amas(1) / amb) * fem_int(20,lfb(:,2,1,1),Ratden(:,1,2))
+       ELM(:,:, 4,NEQ) =   (amas(1) / amb) * fem_int( 2,lfb(:,2,1,1)*Ratden(:,1,2))
        NLC( 4,NEQ) = LQi4
 
        ! Collisional friction force with impurities
 
-       ELM(:,:, 5,NEQ) =   (amas(1) / amb) * fem_int(20,lfb(:,3,1,1),Ratden(:,1,3))
+       ELM(:,:, 5,NEQ) =   (amas(1) / amb) * fem_int( 2,lfb(:,3,1,1)*Ratden(:,1,3))
        NLC( 5,NEQ) = LQz4
 
        ! Collisional friction force with beam ions (self collision)
 
-       ELM(:,:, 6,NEQ) =   (amas(1) / amb) * fem_int(20,lff(:,1,1),Ratden(:,1,4))
+       ELM(:,:, 6,NEQ) =   (amas(1) / amb) * fem_int( 2,lff(:,1,1)*Ratden(:,1,4))
        NLC( 6,NEQ) = LQb4
 
        ! Toroidal E force
