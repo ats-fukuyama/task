@@ -2653,7 +2653,9 @@ half ripple (FST) & 441 & 30 & $+24$ & $-0.108$ & $-3.39$ & 1.72 \\
 full ripple & 226 & $-11$ & $-9$ & $-0.185$ & $-7.43$ & 1.14 \\\hline
 \end{tabular}
 \end{center}
-V5.61 gave 658, 417 and 128 km/s.  The pinch number is 6.3 at $\rho$ = 0.5 and 7.9 at
+V5.61 gave 658, 417 and 128 km/s.  The table was computed with \texttt{FSTPTM} = 2; with the
+present default \texttt{FSTPTM} = 3 the rows without and with full ripple give 620 and 223 km/s
+and $\nee$ changes by less than 0.4\%.  The pinch number is 6.3 at $\rho$ = 0.5 and 7.9 at
 0.8 and vanishes outside 0.9; in V5.61 it was 14 at 0.9.  The profile is more peaked
 in the core (the constant term) and lower at the edge ($u_{\r{i}\phi}(0.9)$ = 46
 against 105 km/s).  The volume integrals close to $2\times10^{-5}$ of the injected
@@ -3405,8 +3407,14 @@ either case.
 \item Analytic axis limit of the Pfirsch--Schl\"uter Fourier factors,
   $f_m(\cdot,0) = 0$; $\hat q^2$ at the axis from the interior instead of $q(0)^2$.
 \item $D_{0\r{z}}$ uses the impurity neutral speed $V_{0z}$.
-\item \texttt{FSTPTM} = 3 (option): multi-ion composition channel for the
-  turbulent particle flux.
+\item \texttt{FSTPTM} = 3 (default): multi-ion composition channel for the
+  turbulent particle flux.  With \texttt{FSTPTM} = 2 the impurity is not diffused on
+  its own density gradient, and an odd-even mode of $n_\r{z}$ grows in long runs: the
+  JT-60U case of Sec.~\ref{sec:v561val} stops at 2.4 s, while with 3 it runs to 4 s
+  with the mode at the $10^{-3}$ level.  In the NBI cases $\nee$ and $u_{\r{i}\phi}$ change
+  by less than 1.5\% (in the ohmic default case $u_{\r{i}\phi} \approx 0.5$ km/s changes by
+  15\%), the core impurity density by 25--55\%.  \texttt{FSTPTM} = 2 remains
+  available and must be given for every species (\texttt{FSTPTM} = 2, 2, 2).
 \item Finite-collisionality closure for the higher-order flows; triangularity of
   grid-traced equilibria regularized; G-EQDSK $p'$ normalization corrected;
   \texttt{ipbtdir} = 1 by default.

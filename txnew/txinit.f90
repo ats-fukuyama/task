@@ -215,7 +215,11 @@ contains
     !         (common-diffusivity) limit written as a correction to the
     !         common-velocity closure of 0/1/2; see twofluid.tex.  It must be
     !         given for every species at once.
-    FSTPTM(1:NSM) = 2
+    !   Default 3: with 2 the impurity has no diffusion on its own density gradient
+    !   and an odd-even mode of n_z grows until T_z < 0 (JT-60U benchmark, 2.4 s);
+    !   3 suppresses it and changes n_e and u_iphi by less than 1%.  2 is kept for
+    !   comparison and must also be given for every species (FSTPTM = 2, 2, 2).
+    FSTPTM(1:NSM) = 3
 
     !   ==== CDBM transport coefficient parameters ============================
     !      The finer time step size, typically less than or equal to DT=5.D-4,
