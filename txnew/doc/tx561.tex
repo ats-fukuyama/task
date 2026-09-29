@@ -2722,6 +2722,7 @@ JT-60U case below.  It should be revisited if a finite-orbit-width or orbit-loss
 model is introduced.
 
 \subsection{Beam--thermal friction}
+\label{sec:v561friction}
 
 The friction between the beam and the thermal species follows the fast-ion
 coefficients of Kikuchi and Azumi \cite{KA1995} (\texttt{imodel\_neo(3)} = 2, isotropic fast
@@ -2777,11 +2778,18 @@ triggered by the state the ripple produces, not a defect of the ripple model.
 \paragraph{Conservation.}  Volume integrals of every term of every equation
 (JT-60U case below, every step): the discrete time derivative equals the sum of
 the terms to $10^{-6}$ for all density and momentum equations; $\nb+g\nbrp$ closes
-with a residual below $10^{-5}$ of the NBI source; the friction terms between all
-species, including the beam, sum to less than $3\times10^{-4}$ N\,m against an injected
-torque of 6.73 N\,m (analytic $2P R_\r{tan}/v_\r{b}$: 6.76 N\,m).  The viscous flux at the
-wall is zero by the weak form; the rotation is damped by the SOL parallel loss and
-charge exchange at the edge.
+with a residual below $10^{-5}$ of the NBI source.  The injected torque is 6.73 N\,m
+(analytic $2P R_\r{tan}/v_\r{b}$: 6.76 N\,m).  The friction between the beam and the
+thermal species conserves momentum since the correction of $\ell_{11}^{\r{f}k}$
+(Sec.~\ref{sec:v561friction}): the beam column of the friction terms sums to
+$1\times10^{-4}$ N\,m at 0.15 s and $1\times10^{-3}$ N\,m ($2\times10^{-4}$ of the
+injected torque) at 1.5 s, against 0.2 N\,m in V5.60.  The friction between the
+thermal ions and the impurity leaves a small discrete residual that grows with the
+rotation: the friction terms of all species sum to less than $10^{-3}$ N\,m up to
+0.35 s, but to $+0.037$ N\,m (0.55\% of the injected torque) at 1.5 s without ripple,
+almost all of it in the ion and impurity columns.  Its cause is under
+investigation.  The viscous flux at the wall is zero by the weak form; the rotation
+is damped by the SOL parallel loss and charge exchange at the edge.
 
 \paragraph{Ripple benchmark.}  JT-60U-like circular case of \cite{NF2008}: $R=3.4$ m,
 $a=0.95$ m, $B=2.6$ T, $I_\r{p}=1$ MA, $\kappa=1.15$ for the ripple, $N=18$,
