@@ -3465,6 +3465,48 @@ either case.
   digits, the profiles change by less than 0.5\% (JT-60U case to 4 s, \texttt{FSRP} = 0 and 1,
   \texttt{FSTPTM} = 2 and 3, X-point and circular test equilibria), and the Picard counts are
   unchanged.
+\item \texttt{FSTPTM} = 4 (option; the default stays 3): thermal-species self-gradient closure.
+  With fast ions, \texttt{FSTPTM} = 3 drives the common transport by $\nabla\nee$, which contains the
+  fast-ion charge gradient, and lets the main ions carry the fast-ion share of the electron flux
+  (weight $n_\r{i}+n_\r{b}$), so the main-ion continuity equation has a sink $\nabla\cdot(n_\r{b}u)$
+  that does not vanish with $n_\r{i}$.  \texttt{FSTPTM} = 4 drives the electrons by the thermal-ion
+  charge density $n_\r{th} = \sum_s Z_sn_s$, gives the reaction to the thermal ions with the
+  weights $Z_sn_s/n_\r{th}$ and uses $n_\r{th}$ in the composition pairs, so that every thermal
+  species diffuses on its own density gradient with the common thermodiffusion,
+  $\aves{\vec{\Gamma}_s\cdot\nabla V} = -D n_s(X_s + C_\r{T}X_T)$, also with fast ions, and the fast ions
+  have no turbulent flux.  Momentum and ambipolarity hold element by element (the weights sum
+  to one by construction).  Without fast ions it equals 3 (JT-60U ohmic, 300 steps: $10^{-7}$ in
+  the densities, $5\times10^{-5}$ in $u_{\r{i}\phi}$, the quasineutrality residual); it matches the
+  diagnostic implementation it was developed in to $5\times10^{-8}$; \texttt{FSTPTM} = 3 results are
+  bit-identical.  The formulation is in twofluid.tex.  It must be given for every species and
+  needs \texttt{MDFIXT} = 0; \texttt{NCM} and the save file are unchanged.  Known limits: the beam
+  friction (NBCD) and the beam radial flux still reach the thermal ions through ambipolarity, so
+  positivity of $n_\r{i}$ is not guaranteed structurally; the more peaked core densities expose the
+  axis \texttt{LQ*8} Picard stall below already at \texttt{NRMAX} = 60.  JT-60U case at 1.5 s
+  (\texttt{NRMAX} = 60), 4 against 3: $n_\r{e}(0)$ +17\% (\texttt{PNsSUP(1)} = 0.0125) and +21\%
+  (0.01), $n_\r{i}(0)$ +26\% and +36\%, $n_\r{b}/n_\r{i}(0)$ 0.31 $\to$ 0.21 and 0.42 $\to$ 0.26,
+  $u_{\r{i}\phi}(0)$ $-$11\% and $-$14\%; with 6.4 MW NBI $n_\r{i}(0)$ doubles
+  ($n_\r{b}/n_\r{i}(0)$ 0.92 $\to$ 0.35); $n_\r{e}$ at $\rho$ = 0.95 within 3\% in all cases, and
+  $\sum_sZ_s\Gamma_s$ inside the separatrix below $1.5\times10^{-7}$ of the electron flux.  In
+  the high-density cases (6.4 MW NBI, \texttt{Zeffin} = 2.5, gas puff 0.4) 216--722 steps of 15000
+  stall in short bursts (208 in the benchmark with 0.0125), none with \texttt{NRETRY} = 1, which
+  changes the profiles by less than $10^{-6}$.
+\item \texttt{NRETRY} = 1 (option, default 0): a step whose Picard iteration reaches \texttt{ICMAX}
+  without converging is taken again as two steps of $\Delta t/2$ (backward Euler, then BDF2; the
+  history is $X(t-\Delta t)$ again afterwards).  Converged steps are unchanged, and 0 is
+  bit-identical to before.  It is meant for sporadic stalls: from a stalled state of the
+  JT-60U case at \texttt{NRMAX} = 120 it leaves no unconverged step in 40 (4 without it), but at
+  240 nearly every step is retried and some still do not converge, so there the time step
+  itself has to be smaller.
+\item Known numerical limit, the axis \texttt{LQ*8}: the Picard map has a nearly neutral mode on the
+  first axis nodes of $BV_1$ (mostly the impurity), fed by the lagged density and flow
+  coefficients together (no single term dominates; the lagged viscous flux of the diamagnetic
+  flow stabilizes it).  In the JT-60U case its eigenvalue is 1.002 at \texttt{NRMAX} = 120 and 1.043
+  at 240, and a time step proportional to the mesh size restores convergence
+  ($\Delta t \le 10^{-4}\times 60/\texttt{NRMAX}$ s, roughly); at \texttt{NRMAX} = 240 an odd-even mode of
+  $BV_{1\r{z}}$ and $n_\r{z}$ grows on the axis within 0.1 s at $\Delta t = 10^{-4}$ s.  The continuum
+  solution is regular.  Use the smaller time step at high \texttt{NRMAX}, and \texttt{NRETRY} = 1 for
+  the occasional stalls with strongly peaked core densities.
 \item Recycling at the main wall.  The radial ion outflow through the wall $\rho_b$,
   $\Gamma_s(\rho_b)^+ = \max(n_s\aves{\vec{u}_s\cdot\nabla V}, 0)$ at \texttt{NRMAX}, returns as a
   wall-side inflow of neutrals like the gas puff: \texttt{RWALL} (default 0.98) of the bulk ions
