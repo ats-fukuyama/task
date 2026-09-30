@@ -1129,6 +1129,22 @@ contains
 
     NLCMAX(NEQ) = 26
 
+    ! FSTPTM = 4 (thermal-species self-gradient closure): the electrons are driven by the
+    ! thermal-ion charge density n_th = n_e - Z_b n_b instead of n_e, i.e. the force of
+    ! FSTPTM = 2/3 minus Z_b (T_e grad n_b + FSVAHL n_b grad T_e), with
+    ! n_b grad T_e = (n_b/n_e)(grad p_e - T_e grad n_e).  The thermal ions take the reaction
+    ! with the weights Z_s n_s/n_th (LQi4CC, LQz4CC); the beam has no turbulent force.
+    if( FSTPTM(i) == 4.d0 ) then
+       ELM(:,:,27,NEQ) = - achg(i) * achgb * rKeV * amasinv * fem_int(22,FQLcoef,Var(:,1)%T)
+       NLC(27,NEQ) = LQb1
+       ELM(:,:,28,NEQ) = - achg(i) * achgb * rKeV * amasinv * FSVAHL * fem_int(22,FQLcoef,PNbV/Var(:,1)%n)
+       NLC(28,NEQ) = LQe5
+       ELM(:,:,29,NEQ) =   achg(i) * achgb * rKeV * amasinv * FSVAHL &
+            &                           * fem_int(32,FQLcoef,Var(:,1)%T,PNbV/Var(:,1)%n)
+       NLC(29,NEQ) = LQe1
+       NLCMAX(NEQ) = 29
+    end if
+
     if( MDFIXT /= 0 ) then ! Overwrite Pressure gradient force
        if( FSTPTM(i) == 0 ) then
           ELM(:,:,19,NEQ) =   achg(i) * rKeV * amasinv * fem_int(22,FQLcoef,Var(:,1)%T)
@@ -1815,8 +1831,16 @@ contains
 
     integer(4) :: NEQ = LQi4, i = 2, j, NCcomp
     real(8) :: amasinv
+    real(8), dimension(0:NRMAX) :: nth, wel, wrt, wcomp
 
     amasinv = 1.d0 / (amas(i) * amp)
+    ! FSTPTM = 4: thermal-ion charge density n_th = sum_s Z_s n_s (thermal ions only)
+    if( FSTPTM(i) == 4.d0 ) then
+       nth(:) = 0.d0
+       do j = 2, NSM
+          nth(:) = nth(:) + achg(j) * Var(:,j)%n
+       end do
+    end if
 
     ! Uiphi'(0) : 0
 
@@ -1945,6 +1969,29 @@ contains
        ELM(:,:,23,NEQ) =   achg(i) * aee * amasinv * fem_int(22,FQLcoef,Var(:,i)%n+PNbV(:))
        NLC(23,NEQ) = LQm1
 
+    else if( FSTPTM(i) == 4.d0 ) then
+       ! The reaction of the electron force of LQe4CC with the weight Z_i n_i/n_th: the
+       ! BV1 and Phi' terms with n_i n_e/n_th, the gradient terms with n_i/n_th, the
+       ! corrections for the beam charge merged into terms 21 and 22, and -T_e grad n_b as 23.
+       wel(:) = Var(:,i)%n * Var(:,1)%n / nth(:)
+       wrt(:) = Var(:,i)%n / nth(:)
+       ELM(:,:,19,NEQ) =   achg(i) * aee * amasinv * fem_int(20,FQLcoef1,wel)
+       NLC(19,NEQ) = LQe8
+
+       ELM(:,:,20,NEQ) =   achg(i) * aee * amasinv * fem_int(22,FQLcoef,wel)
+       NLC(20,NEQ) = LQm1
+
+       ELM(:,:,21,NEQ) =   achg(i) * rKeV * amasinv &
+            &            * fem_int(22,FQLcoef,wrt*((FSVAHL - 1.d0) - FSVAHL * achgb * PNbV/Var(:,1)%n))
+       NLC(21,NEQ) = LQe5
+
+       ELM(:,:,22,NEQ) = - achg(i) * rKeV * amasinv &
+            &            * fem_int(32,FQLcoef,Var(:,1)%T,wrt*((FSVAHL - 1.d0) - FSVAHL * achgb * PNbV/Var(:,1)%n))
+       NLC(22,NEQ) = LQe1
+
+       ELM(:,:,23,NEQ) = - achg(i) * achgb * rKeV * amasinv * fem_int(32,FQLcoef,Var(:,1)%T,wrt)
+       NLC(23,NEQ) = LQb1
+
     else
        ELM(:,:,19,NEQ) =   achg(i) * aee * amasinv * fem_int(20,FQLcoef1,Var(:,i)%n+PNbV(:))
        NLC(19,NEQ) = LQe8
@@ -1961,8 +2008,12 @@ contains
        NLC(22,NEQ) = LQe1
 
     end if
-    if( FSTPTM(i) >= 2.d0 .and. MDFIXT == 0 ) &
-         & call turb_force_wall_row(NEQ, achg(i) * rKeV * amasinv, Ratdenhyd)
+    if( FSTPTM(i) == 4.d0 .and. MDFIXT == 0 ) then
+       ! direct gradient part in the wall row: FSVAHL (1 - Z_b n_b/n_e) grad p_e with n_i/n_th
+       call turb_force_wall_row(NEQ, achg(i) * rKeV * amasinv, wrt*(1.d0 - achgb * PNbV/Var(:,1)%n))
+    else if( FSTPTM(i) >= 2.d0 .and. MDFIXT == 0 ) then
+       call turb_force_wall_row(NEQ, achg(i) * rKeV * amasinv, Ratdenhyd)
+    end if
 
     !  -- Turbulent pinch term
 
@@ -2034,17 +2085,26 @@ contains
     ! The 1/n_a of X_a cancels against the Z_a n_a of L_ab, so nothing here
     ! divides by a trace density.  With a single thermal ion the sum is empty
     ! and FSTPTM = 3 reduces exactly to FSTPTM = 2.
-    if( FSTPTM(i) == 3.d0 ) then
+    !
+    ! FSTPTM = 4 uses the same pairs with n_th = sum_s Z_s n_s of the thermal ions in place
+    ! of n_e in L_ab, so that sum_b Z_b n_b/n_th = 1 exactly and the self-gradient part is
+    ! X_a - X_th whether or not fast ions are present.
+    if( FSTPTM(i) == 3.d0 .or. FSTPTM(i) == 4.d0 ) then
        NCcomp = NLCMAX(NEQ)
        do j = 2, NSM
           if( j == i ) cycle
+          if( FSTPTM(i) == 4.d0 ) then
+             wel(:) = Var(:,j)%n / nth(:) ; wcomp(:) = Var(:,i)%n / nth(:)
+          else
+             wel(:) = Ratden(:,j,1) ; wcomp(:) = Ratden(:,i,1)
+          end if
           NCcomp = NCcomp + 1
           ELM(:,:,NCcomp,NEQ) =   achg(i) * achg(j) * aee * amasinv &
-               &                * fem_int(22,FQCcoef,Ratden(:,j,1))
+               &                * fem_int(22,FQCcoef,wel)
           NLC(NCcomp,NEQ) = LQsn(i)
           NCcomp = NCcomp + 1
           ELM(:,:,NCcomp,NEQ) = - achg(i) * achg(j) * aee * amasinv &
-               &                * fem_int(22,FQCcoef,Ratden(:,i,1))
+               &                * fem_int(22,FQCcoef,wcomp)
           NLC(NCcomp,NEQ) = LQsn(j)
        end do
        NLCMAX(NEQ) = NCcomp
@@ -2673,8 +2733,16 @@ contains
 
     integer(4) :: NEQ = LQz4, i = 3, j, NCcomp
     real(8) :: amasinv
+    real(8), dimension(0:NRMAX) :: nth, wel, wrt, wcomp
 
     amasinv = 1.d0 / (amas(i) * amp)
+    ! FSTPTM = 4: thermal-ion charge density n_th = sum_s Z_s n_s (thermal ions only)
+    if( FSTPTM(i) == 4.d0 ) then
+       nth(:) = 0.d0
+       do j = 2, NSM
+          nth(:) = nth(:) + achg(j) * Var(:,j)%n
+       end do
+    end if
 
     ! Uiphi'(0) : 0
 
@@ -2803,6 +2871,25 @@ contains
        ELM(:,:,23,NEQ) =   achg(i) * aee * amasinv * fem_int(22,FQLcoef,Var(:,i)%n)
        NLC(23,NEQ) = LQm1
 
+    else if( FSTPTM(i) == 4.d0 ) then
+       ! As for the main ions (LQi4CC) with the weight Z_z n_z/n_th; -T_e grad n_b is added
+       ! after the composition terms.
+       wel(:) = Var(:,i)%n * Var(:,1)%n / nth(:)
+       wrt(:) = Var(:,i)%n / nth(:)
+       ELM(:,:,19,NEQ) =   achg(i) * aee * amasinv * fem_int(20,FQLcoef1,wel)
+       NLC(19,NEQ) = LQe8
+
+       ELM(:,:,20,NEQ) =   achg(i) * aee * amasinv * fem_int(22,FQLcoef,wel)
+       NLC(20,NEQ) = LQm1
+
+       ELM(:,:,21,NEQ) =   achg(i) * rKeV * amasinv &
+            &            * fem_int(22,FQLcoef,wrt*((FSVAHL - 1.d0) - FSVAHL * achgb * PNbV/Var(:,1)%n))
+       NLC(21,NEQ) = LQe5
+
+       ELM(:,:,22,NEQ) = - achg(i) * rKeV * amasinv &
+            &            * fem_int(32,FQLcoef,Var(:,1)%T,wrt*((FSVAHL - 1.d0) - FSVAHL * achgb * PNbV/Var(:,1)%n))
+       NLC(22,NEQ) = LQe1
+
     else
        ELM(:,:,19,NEQ) =   achg(i) * aee * amasinv * fem_int(20,FQLcoef1,Var(:,i)%n)
        NLC(19,NEQ) = LQe8
@@ -2819,8 +2906,11 @@ contains
        NLC(22,NEQ) = LQe1
 
     end if
-    if( FSTPTM(i) >= 2.d0 .and. MDFIXT == 0 ) &
-         & call turb_force_wall_row(NEQ, achg(i) * rKeV * amasinv, Ratden(:,i,1))
+    if( FSTPTM(i) == 4.d0 .and. MDFIXT == 0 ) then
+       call turb_force_wall_row(NEQ, achg(i) * rKeV * amasinv, wrt*(1.d0 - achgb * PNbV/Var(:,1)%n))
+    else if( FSTPTM(i) >= 2.d0 .and. MDFIXT == 0 ) then
+       call turb_force_wall_row(NEQ, achg(i) * rKeV * amasinv, Ratden(:,i,1))
+    end if
 
     !  -- Turbulent pinch term
 
@@ -2866,19 +2956,34 @@ contains
     ! The 1/n_a of X_a cancels against the Z_a n_a of L_ab, so nothing here
     ! divides by a trace density.  With a single thermal ion the sum is empty
     ! and FSTPTM = 3 reduces exactly to FSTPTM = 2.
-    if( FSTPTM(i) == 3.d0 ) then
+    !
+    ! FSTPTM = 4 uses the same pairs with n_th = sum_s Z_s n_s of the thermal ions in place
+    ! of n_e in L_ab, so that sum_b Z_b n_b/n_th = 1 exactly and the self-gradient part is
+    ! X_a - X_th whether or not fast ions are present.
+    if( FSTPTM(i) == 3.d0 .or. FSTPTM(i) == 4.d0 ) then
        NCcomp = NLCMAX(NEQ)
        do j = 2, NSM
           if( j == i ) cycle
+          if( FSTPTM(i) == 4.d0 ) then
+             wel(:) = Var(:,j)%n / nth(:) ; wcomp(:) = Var(:,i)%n / nth(:)
+          else
+             wel(:) = Ratden(:,j,1) ; wcomp(:) = Ratden(:,i,1)
+          end if
           NCcomp = NCcomp + 1
           ELM(:,:,NCcomp,NEQ) =   achg(i) * achg(j) * aee * amasinv &
-               &                * fem_int(22,FQCcoef,Ratden(:,j,1))
+               &                * fem_int(22,FQCcoef,wel)
           NLC(NCcomp,NEQ) = LQsn(i)
           NCcomp = NCcomp + 1
           ELM(:,:,NCcomp,NEQ) = - achg(i) * achg(j) * aee * amasinv &
-               &                * fem_int(22,FQCcoef,Ratden(:,i,1))
+               &                * fem_int(22,FQCcoef,wcomp)
           NLC(NCcomp,NEQ) = LQsn(j)
        end do
+       NLCMAX(NEQ) = NCcomp
+    end if
+    if( FSTPTM(i) == 4.d0 ) then   ! -T_e grad n_b with Z_z n_z/n_th (see LQe4CC)
+       NCcomp = NLCMAX(NEQ) + 1
+       ELM(:,:,NCcomp,NEQ) = - achg(i) * achgb * rKeV * amasinv * fem_int(32,FQLcoef,Var(:,1)%T,wrt)
+       NLC(NCcomp,NEQ) = LQb1
        NLCMAX(NEQ) = NCcomp
     end if
 

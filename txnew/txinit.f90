@@ -136,7 +136,7 @@ contains
     !     FSTPTM = 0, 1, 2: Dfs(:,1) is the electron quasilinear diffusivity D_e^QL;
     !       ions and impurities have none of their own and move with the electron
     !       turbulent velocity.
-    !     FSTPTM = 3: the same coefficient also sets the pairwise composition
+    !     FSTPTM = 3, 4: the same coefficient also sets the pairwise composition
     !       transport of the thermal ions, so it reads as the common turbulent /
     !       composition diffusion amplitude D_c; without fast ions each thermal
     !       species then diffuses on its own gradient with D_c.
@@ -224,6 +224,15 @@ contains
     !         (common-diffusivity) limit written as a correction to the
     !         common-velocity closure of 0/1/2; see twofluid.tex.  It must be
     !         given for every species at once.
+    !     4 : Thermal-species self-gradient closure (option, not the default): as 3, but the
+    !         turbulent transport of the thermal species is driven by the thermal-ion charge
+    !         density n_th = sum_s Z_s n_s instead of n_e.  The electron force is reduced by
+    !         the fast-ion charge gradient, the thermal ions take its reaction with the
+    !         weights Z_s n_s/n_th (no share of the beam), and the composition pairs use
+    !         n_th.  Each thermal species then diffuses on its own density gradient with the
+    !         common thermodiffusion also with fast ions; without them it equals 3.  It must
+    !         be given for every species and needs MDFIXT = 0.  The fast ions have no
+    !         turbulent flux.  See twofluid.tex.
     !   Default 3: with 2 the impurity has no diffusion on its own density gradient
     !   and an odd-even mode of n_z grows until T_z < 0 (JT-60U benchmark, 2.4 s);
     !   3 suppresses it and changes n_e and u_iphi by less than 1%.  2 is kept for
@@ -2260,12 +2269,13 @@ contains
           idx = idx + 1 ; end if
        if(RhoPch1 < 0.d0 .or. RhoPch2 <= RhoPch1) then ; exit ; else
           idx = idx + 1 ; end if
-       if(minval(FSTPTM) < 0.d0 .or. maxval(FSTPTM) > 3.d0) then ; exit ; else
+       if(minval(FSTPTM) < 0.d0 .or. maxval(FSTPTM) > 4.d0) then ; exit ; else
           idx = idx + 1 ; end if
-       ! FSTPTM = 3 adds a force that couples pairs of thermal ion species, so
-       ! it only conserves momentum (and hence stays ambipolar) if every
-       ! species carries it.  Mixed 3 / non-3 settings are rejected.
-       if(maxval(FSTPTM) == 3.d0 .and. minval(FSTPTM) /= 3.d0) then ; exit ; else
+       ! FSTPTM = 3 and 4 add forces that couple pairs of species, so they only
+       ! conserve momentum (and hence stay ambipolar) if every species carries the
+       ! same option.  Mixed settings are rejected, and 4 has no MDFIXT /= 0 form.
+       if((maxval(FSTPTM) >= 3.d0 .and. minval(FSTPTM) /= maxval(FSTPTM)) .or. &
+            & (maxval(FSTPTM) == 4.d0 .and. MDFIXT /= 0)) then ; exit ; else
           idx = idx + 1 ; end if
        if(minval(FSPARV) < 0.d0 .or. maxval(FSPARV) > 1.d0) then ; exit ; else
           idx = idx + 1 ; end if
