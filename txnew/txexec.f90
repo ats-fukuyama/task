@@ -243,9 +243,9 @@ contains
 
        L_SUB : do
        isub = isub + 1
-       if(nsub == 2) then   ! the two half steps of a retried step
+       if(nsub > 1) then   ! the substeps of a retried step
           T_TX = Tstart + DT * isub
-          rIP  = rIPs + DIP * (NT - 1 + 0.5d0 * isub)
+          rIP  = rIPs + DIP * (NT - 1 + real(isub,8) / nsub)
        end if
 
        ! Create new X := XN
@@ -501,7 +501,7 @@ contains
              call CPU_TIME(prof_t1)
              prof_io_sum = prof_io_sum + (prof_t1 - prof_t0)
 #endif
-             if(nsub == 2) DT = DTfull
+             if(nsub > 1) DT = DTfull
              return
           end if
 
@@ -562,22 +562,27 @@ contains
 
        end do L_IC
 
-       ! NRETRY = 1: a step whose Picard iteration reached ICMAX without converging is taken
-       ! again from its start as two steps of DT/2, the first backward Euler (no history at
-       ! DT/2), the second BDF2.  Afterwards the BDF2 history is X(t - DT) again, so the next
-       ! step is an ordinary one.  Converged steps are not touched.
-       if(NRETRY > 0 .and. nsub == 1 .and. IC >= ICMAX) then
-          nretried = nretried + 1
+       ! NRETRY = k > 0: a step (or substep) whose Picard iteration reached ICMAX without
+       ! converging is taken again from the start of the step as twice as many substeps,
+       ! down to DT/2**k; the first substep is backward Euler (no history at the new size),
+       ! the others BDF2.  Afterwards the BDF2 history is X(t - DT) again, so the next step
+       ! is an ordinary one.  Converged steps are not touched.
+       if(IC >= ICMAX .and. nsub < 2**NRETRY) then
+          if(nsub == 1) then
+             nretried = nretried + 1
+             DTfull = DT ; Tstart = T_TX - DT ; Xstart = X
+          else
+             X = Xstart
+          end if
+          nsub = 2 * nsub ; isub = 0
+          DT = DTfull / nsub
           if(IDIAGL >= 1) write(6,'(A,I6,A,ES10.3)') ' ## Picard not converged at NT =', NT, &
-               & ': retried as two steps of', 0.5d0 * DT
-          DTfull = DT ; Tstart = T_TX - DT ; Xstart = X
-          DT = 0.5d0 * DTfull
+               & ': retried as steps of', DT
           bdf_history_ready = .false.
           if(IGBDF /= 0) XOLD = X
-          nsub = 2 ; isub = 0
           cycle L_SUB
        end if
-       if(nsub == 2 .and. isub == 1) then   ! the first half step is the start of the second
+       if(nsub > 1 .and. isub < nsub) then   ! a substep is the start of the next one
           if(IGBDF /= 0) then
              XOLD = X ; bdf_history_ready = .true. ; bdf_history_dt = DT
           end if
@@ -588,7 +593,7 @@ contains
        end if
        exit L_SUB
        end do L_SUB
-       if(nsub == 2) then   ! back to DT; the history saved below is X(t - DT)
+       if(nsub > 1) then   ! back to DT; the history saved below is X(t - DT)
           DT = DTfull ; X = Xstart
        end if
 
@@ -737,7 +742,7 @@ contains
        prof_io_sum = prof_io_sum + (prof_t1 - prof_t0)
 #endif
 
-180    if(nsub == 2) DT = DTfull
+180    if(nsub > 1) DT = DTfull
        if (mod(NT, NGRSTP) == 0) then
 #ifdef TX_PROFILE
           call CPU_TIME(prof_t0)

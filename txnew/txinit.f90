@@ -409,8 +409,8 @@ contains
     !              (0: off; |NANDER| history depth; < 0 without LQm1-LQm5 in the fit)
     NANDER = 0
 
-    !     NRETRY : 1 = a step whose Picard iteration reaches ICMAX without converging is
-    !              taken again as two steps of DT/2 (see TXLOOP); 0 = off
+    !     NRETRY : k = 1..4: a step whose Picard iteration reaches ICMAX without converging
+    !              is taken again as 2, 4, ... substeps, down to DT/2**k (see TXLOOP); 0 = off
     NRETRY = 0
 
     !   Parameter of heat loss to divertor (default = 1.0)
@@ -2340,7 +2340,7 @@ contains
        ! SOL / neutral models of V5.60
        if(MDLSOL < 0 .or. MDLSOL > 1 .or. MDLWBC < 0 .or. MDLWBC > 1 .or. MDLNSUP < 0 .or. MDLNSUP > 1) then
           exit ; else ; idx = idx + 1 ; end if
-       if(abs(NANDER) > 50 .or. NRETRY < 0 .or. NRETRY > 1) then ; exit ; else ; idx = idx + 1 ; end if
+       if(abs(NANDER) > 50 .or. NRETRY < 0 .or. NRETRY > 4) then ; exit ; else ; idx = idx + 1 ; end if
        if(MDLNZD < 0 .or. MDLNZD > 1 .or. MDLN0FL < 0 .or. MDLN0FL > 2) then
           exit ; else ; idx = idx + 1 ; end if
        if(FLlim <= 0.d0 .or. RLXN0 < 0.d0 .or. RLXN0 >= 1.d0) then ; exit ; else
