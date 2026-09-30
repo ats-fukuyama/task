@@ -3500,8 +3500,8 @@ either case.
   itself has to be smaller.
 \item Known numerical limit, the axis \texttt{LQ*8}: the Picard map has a nearly neutral mode on the
   first axis nodes of $BV_1$ (mostly the impurity), fed by the lagged density and flow
-  coefficients together (no single term dominates; the lagged viscous flux of the diamagnetic
-  flow stabilizes it).  In the JT-60U case its eigenvalue is 1.002 at \texttt{NRMAX} = 120 and 1.043
+  coefficients together (no single term dominates; the lagged projection of the toroidal
+  viscous momentum flux onto the parallel flow equations, \texttt{FSPARV}, stabilizes it).  In the JT-60U case its eigenvalue is 1.002 at \texttt{NRMAX} = 120 and 1.043
   at 240, and a time step proportional to the mesh size restores convergence
   ($\Delta t \le 10^{-4}\times 60/\texttt{NRMAX}$ s, roughly); at \texttt{NRMAX} = 240 an odd-even mode of
   $BV_{1\r{z}}$ and $n_\r{z}$ grows on the axis within 0.1 s at $\Delta t = 10^{-4}$ s.  The continuum
