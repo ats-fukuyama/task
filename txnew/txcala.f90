@@ -299,8 +299,14 @@ contains
     !        See "sdtvac" in TXCALV.
     call BOUNDARY(NRMAX,LQm2,1, ckt(NRMAX)*fipol(NRMAX)/(fourPisq*rMU0))
     call BOUNDARY(NRMAX,LQm3,1, 2.d0*Pi*rMUb1*rIp*1.D6)
-    call BOUNDARY(NRMAX,LQn1,1, suft(NRMAX)*rGASPF)
-    call BOUNDARY(NRMAX,LQnz,1, suft(NRMAX)*rGASPFz)
+    ! Gas puff and recycling at the main wall: the radial ion outflow through the
+    ! wall (Picard-lagged) returns as a wall-side neutral inflow, bulk ions -> n01,
+    ! impurity ions (RWALLZ) and bulk-ion sputtering (RWALLIZ) -> impurity neutrals.
+    call BOUNDARY(NRMAX,LQn1,1, suft(NRMAX)*rGASPF &
+         & + RWALL   * max(Var(NRMAX,2)%n * Var(NRMAX,2)%UrV, 0.d0))
+    call BOUNDARY(NRMAX,LQnz,1, suft(NRMAX)*rGASPFz &
+         & + RWALLZ  * max(Var(NRMAX,3)%n * Var(NRMAX,3)%UrV, 0.d0) &
+         & + RWALLIZ * max(Var(NRMAX,2)%n * Var(NRMAX,2)%UrV, 0.d0))
 
     if(ICALA == 0) ICALA = 1
 

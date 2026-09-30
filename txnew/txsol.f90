@@ -196,7 +196,7 @@ contains
     yizphyssput = 0.1d0
     yizchemsput = 0.05d0
 
-    ! rGamm0zz : Recycling rate of impurity neutrals sputtered by bulk ions
+    ! rGamm0iz : Recycling rate of impurity neutrals sputtered by bulk ions
     rGamm0iz = factor * ( yizphyssput + yizchemsput ) * c3blk * FSG0iz
     if( rGamm0iz_in >= 0.d0 ) rGamm0iz = rGamm0iz_in
 

@@ -521,14 +521,18 @@ contains
     V0  = 1.6954D4 ! Hydrogen species
     V0z = 6.9206D3 ! Impurity species
 
-    !   Recycling rate in SOL
-    !     These are automatically calculated in tx_sol_parallel_loss if they are given -1.
-    !     They are fixed at these values if given as positive values.
-    rGamm0_in   = -1.d0 ! Bulk neutral recycling rate (0.98)
+    !   Recycling rate in SOL (target recycling of the SOL parallel loss)
+    !     With rGamm0**_in < 0 they are calculated in tx_sol_particle_balance from the
+    !     divertor recycling loop: rGamm0 = c1/(c1+c5) = 0.980 (escape of the recycled
+    !     neutrals to the upstream SOL against the pump), rGamm0zz = 0.0213 (reflection
+    !     and self-sputtering yield 0.42 times the escape factor of the impurity),
+    !     rGamm0iz = 0.0099 (sputtering by the bulk ions, with FSG0iz = 0.1).  The values
+    !     below are only initial values.  rGamm0**_in >= 0 fixes them at rGamm0**_in.
+    rGamm0_in   = -1.d0 ! Bulk neutral recycling rate
     rGamm0      =  0.98d0
-    rGamm0zz_in = -1.d0 ! Impurity self-recycling rate (0.02)
+    rGamm0zz_in = -1.d0 ! Impurity self-recycling rate
     rGamm0zz    =  0.02d0
-    rGamm0iz_in = -1.d0 ! Impurity supttering rate by bulk ions (0.10)
+    rGamm0iz_in = -1.d0 ! Impurity sputtering rate by bulk ions
     rGamm0iz    =  0.1d0
 
     !   Gas-puff particle flux (10^20 m^-2 1/s)
@@ -539,6 +543,25 @@ contains
     !               ~ Gamma_0 / (2.d0*PI*RR*2.d0*PI*RB)
     rGASPF  = 0.2d0 ! Hydrogen species
     rGASPFz = 0.0d0 ! Impurity species
+
+    !   Recycling at the main wall (rho = rhob)
+    !     The radial outflow of the ions through the wall, Gamma_s(rhob)^+ =
+    !     max(n_s <u_s.grad V>, 0) at NRMAX, returns as a wall-side inflow of neutrals,
+    !     like the gas puff.  This is a path separate from the target recycling of the
+    !     SOL parallel loss (rGamm0*), so the two are not counted twice.
+    !       RWALL   : bulk ions            -> bulk neutrals (n01)
+    !       RWALLZ  : impurity ions        -> impurity neutrals (reflection and
+    !                                         self-sputtering)
+    !       RWALLIZ : bulk-ion wall impact -> impurity neutrals (sputtering)
+    !     The impurity never returns as a hydrogen neutral.  There is no divertor loop at
+    !     the main wall (no pump, no escape factor), so the target values of
+    !     tx_sol_particle_balance are not reused as such: RWALL = 0.98 is a saturated wall
+    !     with a small retention; RWALLZ = 0.42 is the reflection (0.02) plus self-sputtering
+    !     (0.4) yield of the target model without its divertor escape factor; sputtering
+    !     of the wall by the bulk ions is off (its yield depends on the wall material).
+    RWALL   = 0.98d0
+    RWALLZ  = 0.42d0
+    RWALLIZ = 0.d0
 
     !   ***** Ripple loss parameters *****
 
@@ -2078,6 +2101,7 @@ module tx_parameter_control
        & Ebmax,esps,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,PNBCD,PNBMPD,PNBPTC, &
        & rNRFe,RRFew,RRFe0,PRFHe,Tqt0,Tqp0,rNRFi,RRFiw,RRFi0,PRFHi, &
        & PN0s,V0,rGamm0_in,rGASPF,PN0zs,V0z,rGamm0zz_in,rGamm0iz_in,rGASPFz,PNsSUP,PTsSUP, &
+       & RWALL,RWALLZ,RWALLIZ, &
        & NTCOIL,DltRPn,RDltRPn,kappa,m_pol,n_tor, &
        & DT,EPS,ICMAX,ICCALC,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH, &
        & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,ieqread,irktrc,ipbtdir, &
@@ -2276,7 +2300,8 @@ contains
        if(RRFi0 > rhob .or. RRFi0 < 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(PN0s < 0.d0 .or. V0 < 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(abs(rGamm0_in) > 1.d0) then ; exit ; else ; idx = idx + 1 ; end if
-       if(rGASPF < 0.d0 .or. rGASPFz < 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
+       if(rGASPF < 0.d0 .or. rGASPFz < 0.d0 .or. min(RWALL,RWALLZ,RWALLIZ) < 0.d0 .or. &
+            & max(RWALL,RWALLZ,RWALLIZ) > 1.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(minval(PNsSUP) < 0.d0 .or. minval(PTsSUP) < 0.d0) then ; exit ; else
           idx = idx + 1 ; end if
        if(NTCOIL <= 0 .or. DltRPn < 0.d0 .or. DltRPn > 1.d0 .or. kappa < 0.d0 .or. RDltRPn <= 0.d0) then
@@ -2333,6 +2358,7 @@ contains
          &       ' ',8X,'Ebmax,esps,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,'/ &
          &       ' ',8X,'PNBCD,PNBMPD,PNBPTC,rNRFe,RRFew,RRFe0,PRFHe,Tqt0,Tqp0,rNRFe,RRFew,RRFe0,PRFHe,'/&
          &       ' ',8X,'PN0s,V0,rGamm0_in,rGASPF,PN0zs,V0z,rGamm0zz_in,rGamm0iz_in,rGASPFz,PNsSUP,PTsSUP,'/ &
+         &       ' ',8X,'RWALL,RWALLZ,RWALLIZ,'/ &
          &       ' ',8X,'NTCOIL,DltRPn,RDltRPn,kappa,m_pol,n_tor,'/ &
          &       ' ',8X,'DT,EPS,ICMAX,ICCALC,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH,'/ &
          &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,ieqread,irktrc,ipbtdir'/ &
@@ -2431,6 +2457,8 @@ contains
          &   'rGASPF     ', rGASPF     , 'rGamm0zz_in', rGamm0zz_in,  &
          &   'rGamm0iz_in', rGamm0iz_in,  &
          &   'V0z        ', V0z        , 'rGASPFz    ', rGASPFz    ,  &
+         &   'RWALL      ', RWALL      , 'RWALLZ     ', RWALLZ     ,  &
+         &   'RWALLIZ    ', RWALLIZ    ,  &
          &   'PNeSUP     ', PNsSUP(1)  , 'PNiSUP     ', PNsSUP(2)  ,  &
          &   'PNzSUP     ', PNsSUP(3)  , 'PTeSUP     ', PTsSUP(1)  ,  &
          &   'PTiSUP     ', PTsSUP(2)  , 'PTzSUP     ', PTsSUP(3)  ,  &

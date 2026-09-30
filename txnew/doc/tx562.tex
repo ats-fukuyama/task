@@ -3465,6 +3465,25 @@ either case.
   digits, the profiles change by less than 0.5\% (JT-60U case to 4 s, \texttt{FSRP} = 0 and 1,
   \texttt{FSTPTM} = 2 and 3, X-point and circular test equilibria), and the Picard counts are
   unchanged.
+\item Recycling at the main wall.  The radial ion outflow through the wall $\rho_b$,
+  $\Gamma_s(\rho_b)^+ = \max(n_s\aves{\vec{u}_s\cdot\nabla V}, 0)$ at \texttt{NRMAX}, returns as a
+  wall-side inflow of neutrals like the gas puff: \texttt{RWALL} (default 0.98) of the bulk ions
+  to $n_{01}$, \texttt{RWALLZ} (0.42) of the impurity ions to the impurity neutrals, and
+  \texttt{RWALLIZ} (0, off) of the bulk ions to the impurity neutrals by sputtering; the impurity
+  never returns as a hydrogen neutral.  This path is separate from the target recycling of the
+  SOL parallel loss (\texttt{rGamm0}, \texttt{rGamm0zz}, \texttt{rGamm0iz}), which
+  \texttt{tx\_sol\_particle\_balance} computes from a divertor recycling loop (escape to the
+  upstream SOL against the pump, $c_1/(c_1+c_5)$ = 0.980 for the bulk ions; for the impurity the
+  reflection and self-sputtering yield 0.42 times an escape factor 0.051, 0.0213; sputtering by
+  the bulk ions 0.0099).  There is no such loop at the main wall, so \texttt{RWALL} is that of a
+  saturated wall with a small retention and \texttt{RWALLZ} the yield itself.  In the JT-60U case
+  the main wall returns $0.40\times10^{20}$ s$^{-1}$ (target recycling 14.4, gas puff 28.1); $\nee$
+  changes by 0.2\% (0.6\% with \texttt{FSRP} = 1), and even \texttt{RWALLIZ} = 0.15 changes the core
+  impurity density by 0.04\%, the wall source being screened by the SOL.  \texttt{W} (TXSTAT) and
+  \texttt{O 7} (\texttt{tx\_sources.dat}) print the SOL parallel loss, the wall fluxes and the
+  neutral sources by path (target, main wall, gas puff) with the ionization.  The three
+  coefficients are kept in the save file in a second extension record; older files load with
+  the current values and newer files load in older builds.
 \item Finite-collisionality closure for the higher-order flows; triangularity of
   grid-traced equilibria regularized; G-EQDSK $p'$ normalization corrected;
   \texttt{ipbtdir} = 1 by default.

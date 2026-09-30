@@ -175,6 +175,7 @@ module tx_commons
   real(8) :: rGamm0_in, rGamm0zz_in, rGamm0iz_in
   real(8) :: PN0s, V0, rGamm0, rGASPF
   real(8) :: PN0zs, V0z, rGamm0zz, rGamm0iz, rGASPFz
+  real(8) :: RWALL, RWALLZ, RWALLIZ
 
   ! Ripple parameters
   real(8) :: DltRPn, RDltRPn, kappa
