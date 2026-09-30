@@ -3444,6 +3444,27 @@ either case.
   by less than 1.5\% (in the ohmic default case $u_{\r{i}\phi} \approx 0.5$ km/s changes by
   15\%), the core impurity density by 25--55\%.  \texttt{FSTPTM} = 2 remains
   available and must be given for every species (\texttt{FSTPTM} = 2, 2, 2).
+\item Turbulent force of \texttt{FSTPTM} = 2, 3 in the wall row.  The pressure-gradient part
+  of the electron-driven turbulent force is assembled through the diamagnetic flow
+  ($n\,BV_1$, LQ*8) and $n\Phi'$.  LQe8 is the algebraic definition
+  $n_\r{e}BV_{1\r{e}} = -(I/\psi')(p_\r{e}'/(Z_\r{e}e) + n_\r{e}\Phi')$, so in the continuum this is
+  the direct $\partial_V p_\r{e}$ and the force is
+  \texttt{FSVAHL}\,$\partial_V p_\r{e}$ + (1 $-$ \texttt{FSVAHL})\,$T_\r{e}\partial_V\nee$.  Discretely
+  LQ*8 is solved with the SUPG weights $N_j + p h N_j'$ (\texttt{iSUPG8} = 1) and the force rows
+  with the Galerkin $N_i$: at an interior node the SUPG moments of the two elements around it
+  cancel to $O(h^2)$, but the wall node has the last element only, and there the two forms
+  differ by the order of the LQe8 residual.  The particle flux at the wall is fixed by the
+  wall row of LQ*4, so this gave a spurious wall flux (JT-60U case, \texttt{NRMAX} = 60: an
+  electron inflow of $0.22\times10^{20}$ s$^{-1}$).  The wall row (test function of node
+  \texttt{NRMAX}) now uses the direct-gradient form for every species (that of
+  \texttt{FSTPTM} = 0); not with \texttt{MDFIXT} $\neq$ 0.  The removed artificial part of the
+  electron wall flux is 0.38 and 0.20 $\times10^{20}$ s$^{-1}$ at \texttt{NRMAX} = 60 and 120 (1.3 s) and 0.16, 0.10 and 0.045 at 60, 120 and 240 (0.05 s), so it goes with the mesh; the
+  corrected wall flux itself converges slowly (+0.16 and +0.05 at 60 and 120; +0.18, +0.03 and +0.02 at 60, 120 and 240), being a small
+  difference of large terms in the wall row.  The non-ambipolar part of the wall flux (the
+  fast-ion return current), $j_r$, the $j\times B$ torque and $L_\phi$ are unchanged to three
+  digits, the profiles change by less than 0.5\% (JT-60U case to 4 s, \texttt{FSRP} = 0 and 1,
+  \texttt{FSTPTM} = 2 and 3, X-point and circular test equilibria), and the Picard counts are
+  unchanged.
 \item Finite-collisionality closure for the higher-order flows; triangularity of
   grid-traced equilibria regularized; G-EQDSK $p'$ normalization corrected;
   \texttt{ipbtdir} = 1 by default.

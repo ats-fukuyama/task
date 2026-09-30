@@ -1093,6 +1093,8 @@ contains
        NLC(22,NEQ) = LQe1
 
     end if
+    if( FSTPTM(i) >= 2.d0 .and. MDFIXT == 0 ) &
+         & call turb_force_wall_row(NEQ, achg(i) * rKeV * amasinv, spread(1.d0, 1, NRMAX+1))
 
     !  -- Turbulent pinch term
 
@@ -1953,6 +1955,8 @@ contains
        NLC(22,NEQ) = LQe1
 
     end if
+    if( FSTPTM(i) >= 2.d0 .and. MDFIXT == 0 ) &
+         & call turb_force_wall_row(NEQ, achg(i) * rKeV * amasinv, Ratdenhyd)
 
     !  -- Turbulent pinch term
 
@@ -2809,6 +2813,8 @@ contains
        NLC(22,NEQ) = LQe1
 
     end if
+    if( FSTPTM(i) >= 2.d0 .and. MDFIXT == 0 ) &
+         & call turb_force_wall_row(NEQ, achg(i) * rKeV * amasinv, Ratden(:,i,1))
 
     !  -- Turbulent pinch term
 
@@ -4087,6 +4093,45 @@ contains
     end do
 
   end subroutine dump_axis_coefs
+
+!***************************************************************
+!
+!   Turbulent force of FSTPTM = 2, 3 in the wall row
+!
+!***************************************************************
+
+  !  In FSTPTM = 2 and 3 the pressure-gradient part of the electron-driven
+  !  turbulent force goes through the diamagnetic flow: n BV1 (term 19) and
+  !  n Phi' (term 20), plus (FSVAHL-1)(grad p_e - T_e grad n_e) (terms 21, 22).
+  !  LQe8 defines n_e BV1 = -(I/psi')(p_e'/(Z_e e) + n_e Phi') algebraically, so
+  !  terms 19 + 20 are the direct FQLcoef grad p_e in the continuum and the force
+  !  is FSVAHL grad p_e + (1-FSVAHL) T_e grad n_e, the form of FSTPTM = 0.
+  !
+  !  Discretely the two differ where LQ*8 is solved with the SUPG weights
+  !  N_j + p h N_j' (iSUPG8 = 1) and the force rows with the Galerkin N_i.  At an
+  !  interior node the SUPG moments of the two elements around it cancel to
+  !  O(h^2); the wall node has the last element only, so there the BV1 route is
+  !  off by the order of the LQe8 residual itself.  The particle flux at the wall
+  !  is fixed by the wall row of LQ*4, and the difference appeared as a spurious
+  !  wall flux.  The wall row (test function of node NRMAX) is therefore built in
+  !  the direct-gradient form: terms 19 and 20 are dropped and term 21 becomes
+  !  FSVAHL grad p_e; term 22 already is (1-FSVAHL) T_e grad n_e.  Every species
+  !  takes the same electron force with its weight wgt, so the ambipolar
+  !  structure is kept.  With MDFIXT /= 0 the pressure-gradient force is
+  !  overwritten and this routine is not called.
+
+  subroutine turb_force_wall_row(NEQ, coef, wgt)
+    integer(4), intent(in) :: NEQ
+    real(8), intent(in) :: coef
+    real(8), dimension(0:NRMAX), intent(in) :: wgt
+    real(8), dimension(1:NEMAX,1:4) :: direct
+
+    direct = fem_int(22,FQLcoef,wgt)
+    ELM(NEMAX,3:4,19,NEQ) = 0.d0
+    ELM(NEMAX,3:4,20,NEQ) = 0.d0
+    ELM(NEMAX,3:4,21,NEQ) = coef * FSVAHL * direct(NEMAX,3:4)
+
+  end subroutine turb_force_wall_row
 
   subroutine BOUNDARY(NR,LQ,ID,VAL)
 
