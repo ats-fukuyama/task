@@ -226,7 +226,7 @@ subroutine TXSAVE
        & NLCMAX,NCM,NTCOIL,DltRPn,m_pol,n_tor, &
        & MODEAV,IDIAG,MDLPCK,MODECV,oldmix,iSUPG3,iSUPG6,iSUPG8,SUPGstab, &
        & IGBDF,ISMTHD,iprestab,MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDANOM,iPoyntpol,iPoynttor, &
-       & MDLETB,MDLNBD,MDBMCX,imodel_neo,PNBMPD,PNBPTC,thrp,kappa,CPsi,VPoynt,PoyntI,imodel_neo
+       & MDLETB,MDLNBD,MDBMCX,imodel_neo,PNBMPD,PNBPTC,thrp,kappa,CPsi,VPoynt,PoyntI,imodel_neo,MDLNSUP
   use tx_graphic, only : NGYTM,NGYVM,MODEG,MODEGL,NGT,NGVV,NGRSTP,NGTSTP,NGVSTP,GTY,GVY,GQY,GTX,GVX
   use tx_interface, only : TOUPPER
 
@@ -323,6 +323,9 @@ subroutine TXSAVE
   write(io) (CPsi(I), I=0, 3)
   write(io) (VPoynt(I), I=0, 3)
   write(io) (thrp(I), I=1, 2*NRMAX)
+  ! Extension record, version 1: inputs added after the layout above was fixed.
+  ! An older TXLOAD stops before it; TXLOAD reads it only when it is present.
+  write(io) 1, MDLNSUP
   close(io)
   write(6,*) '# DATA WAS SUCCESSFULLY SAVED IN THE FILE.'
 
@@ -353,7 +356,8 @@ subroutine TXLOAD(IST)
        & IGBDF,ISMTHD,iprestab,MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDANOM,iPoyntpol,iPoynttor, &
        & MDLETB,MDLNBD,MDBMCX,imodel_neo,PNBMPD,PNBPTC,rIP,thrp,kappa,CPsi,VPoynt,PoyntI, &
        & ErV,PTsV_FIX,PNsV_FIX,ErV_FIX, &
-       & rMU0,rMUb1,rMUb2,NEMAX,ICONT,TAUE2,LQb1,Var,irestart, NSM,bdf_history_ready,stdin_ended
+       & rMU0,rMUb1,rMUb2,NEMAX,ICONT,TAUE2,LQb1,Var,irestart, NSM,bdf_history_ready,stdin_ended, &
+       & MDLNSUP, PNsSUPlast
   use tx_init, only : TXCALM
   use tx_graphic, only : allocate_txgraf,deallocate_txgraf, &
        &                 MODEG,MODEGL,NGYTM,NGYVM,NGR,NGT,NGVV,NGRSTP,NGTSTP,NGVSTP, &
@@ -369,6 +373,7 @@ subroutine TXLOAD(IST)
   integer(4) :: NQ, NR, NC, I, IGYT, IGYV, io
   character(len=100) ::  TXFNAM, RCSId
   character(len=8) :: LOADSLID
+  integer(4) :: istx, iextver, mdlnsup_load
   logical :: LEX
 
   do 
@@ -450,7 +455,18 @@ subroutine TXLOAD(IST)
   read(io) (CPsi(I), I=0, 3)
   read(io) (VPoynt(I), I=0, 3)
   read(io) (thrp(I), I=1, 2*NRMAX)
+  ! Extension record (version 1), absent in files written before it was introduced:
+  ! then MDLNSUP keeps its current value.
+  read(io,iostat=istx) iextver, mdlnsup_load
+  if( istx == 0 .and. iextver >= 1 ) then
+     MDLNSUP = mdlnsup_load
+  else
+     write(6,'(A,I2)') ' ## No extension record in the file (older format): MDLNSUP kept at', MDLNSUP
+  end if
   close(io)
+  ! The loaded PNsSUP are the values last set, so TXPARM_CHECK does not take PNsSUP(2:3)
+  ! of the file for explicit input; with MDLNSUP = 1 it derives them again from PNsSUP(1).
+  PNsSUPlast(:) = PNsSUP(:)
   write(6,'(2A)') '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE. ID = ',LOADSLID
 
   rb = rhob * ra
