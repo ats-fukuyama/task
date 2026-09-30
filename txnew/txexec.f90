@@ -97,7 +97,7 @@ contains
          &                 tiny_cap, EPS, IDIAG, NTSTEP, ICCALC, iaxproj, &
          &                 FSRP, MODEAV, XOLD, bdf_history_ready, bdf_history_dt, &
          &                 NT, DT, rIP, MDLPCK, ICONT, AVE_IC, MODECV, oldmix, oldmixa, Var, RLXN0, MDLN0FL, LQn1, LQn3, NC0CAP, &
-         &                 NANDER
+         &                 NANDER, NRETRY
     use tx_variables
     use tx_coefficients, only : TXCALA
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ, &
@@ -119,6 +119,10 @@ contains
     real(8), dimension(:),   allocatable :: BX
     integer(4) :: NR, NQ, IC = 0, IDIV, NTDO, ICSUM, IDIAGL, istat
     integer(4), save :: ntc0cap = 0
+    ! --- retry of a non-converged step as two half steps (NRETRY = 1) ---
+    integer(4) :: nsub, isub, nretried
+    real(8) :: DTfull, Tstart
+    real(8), dimension(:,:), allocatable :: Xstart
     ! --- adaptive under-relaxation ---------------------------------------
     !  Below dt ~ 3e-6 the fixed-point map for the radial flows stops
     !  contracting.  It does not blow up: the sweep increment simply sits at
@@ -205,6 +209,7 @@ contains
     if(NTMAX /= 0) DIP = (rIPe - rIPs) / NTMAX
     ICSUM = 0
     ndamp = 0
+    nretried = 0 ; nsub = 1
     and_ncall = 0 ; and_nrst = 0 ; and_nfail = 0 ; and_condmax = 0.d0 ; and_cpu = 0.d0
 #ifdef TX_PROFILE
     call CPU_TIME(prof_total_t0)
@@ -234,6 +239,14 @@ contains
        NTCUM = NTCUM + 1
        T_TX = TIME0 + DT*NT
        rIP  = rIPs  + DIP*NT
+       nsub = 1 ; isub = 0
+
+       L_SUB : do
+       isub = isub + 1
+       if(nsub == 2) then   ! the two half steps of a retried step
+          T_TX = Tstart + DT * isub
+          rIP  = rIPs + DIP * (NT - 1 + 0.5d0 * isub)
+       end if
 
        ! Create new X := XN
        XN = X
@@ -488,6 +501,7 @@ contains
              call CPU_TIME(prof_t1)
              prof_io_sum = prof_io_sum + (prof_t1 - prof_t0)
 #endif
+             if(nsub == 2) DT = DTfull
              return
           end if
 
@@ -547,6 +561,36 @@ contains
           end if
 
        end do L_IC
+
+       ! NRETRY = 1: a step whose Picard iteration reached ICMAX without converging is taken
+       ! again from its start as two steps of DT/2, the first backward Euler (no history at
+       ! DT/2), the second BDF2.  Afterwards the BDF2 history is X(t - DT) again, so the next
+       ! step is an ordinary one.  Converged steps are not touched.
+       if(NRETRY > 0 .and. nsub == 1 .and. IC >= ICMAX) then
+          nretried = nretried + 1
+          if(IDIAGL >= 1) write(6,'(A,I6,A,ES10.3)') ' ## Picard not converged at NT =', NT, &
+               & ': retried as two steps of', 0.5d0 * DT
+          DTfull = DT ; Tstart = T_TX - DT ; Xstart = X
+          DT = 0.5d0 * DTfull
+          bdf_history_ready = .false.
+          if(IGBDF /= 0) XOLD = X
+          nsub = 2 ; isub = 0
+          cycle L_SUB
+       end if
+       if(nsub == 2 .and. isub == 1) then   ! the first half step is the start of the second
+          if(IGBDF /= 0) then
+             XOLD = X ; bdf_history_ready = .true. ; bdf_history_dt = DT
+          end if
+          X = XN
+          call TXCALV(X,1)
+          call TXCALC(IC)
+          cycle L_SUB
+       end if
+       exit L_SUB
+       end do L_SUB
+       if(nsub == 2) then   ! back to DT; the history saved below is X(t - DT)
+          DT = DTfull ; X = Xstart
+       end if
 
        ICSUM = ICSUM + IC
 
@@ -693,7 +737,8 @@ contains
        prof_io_sum = prof_io_sum + (prof_t1 - prof_t0)
 #endif
 
-180    if (mod(NT, NGRSTP) == 0) then
+180    if(nsub == 2) DT = DTfull
+       if (mod(NT, NGRSTP) == 0) then
 #ifdef TX_PROFILE
           call CPU_TIME(prof_t0)
 #endif

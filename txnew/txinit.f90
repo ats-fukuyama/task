@@ -400,6 +400,10 @@ contains
     !              (0: off; |NANDER| history depth; < 0 without LQm1-LQm5 in the fit)
     NANDER = 0
 
+    !     NRETRY : 1 = a step whose Picard iteration reaches ICMAX without converging is
+    !              taken again as two steps of DT/2 (see TXLOOP); 0 = off
+    NRETRY = 0
+
     !   Parameter of heat loss to divertor (default = 1.0)
     FSLTs(1:NSM) = 1.d0
 
@@ -2113,7 +2117,7 @@ module tx_parameter_control
        & MODEG,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,oldmixa,iaxproj,rhoaxproj,Dnfac, &
        & iSUPG3,iSUPG6,iSUPG8,SUPGstab,iprestab, &
        & MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDLETB, &
-       & MDLNZD,MDLN0FL,FLlim,RLXN0,MDLSOL,MDLWBC,MDLNSUP,NANDER, &
+       & MDLNZD,MDLN0FL,FLlim,RLXN0,MDLSOL,MDLWBC,MDLNSUP,NANDER,NRETRY, &
        & iPoyntpol,iPoynttor,IDIAG,midbg,IGBDF,ISMTHD,MDLNBD,MDBMCX,imodel_neo, & ! 09/06/17~ miki_m
        & EpsHM, HPN  ! 10/08/06 miki_m
   private :: TXPLST
@@ -2327,7 +2331,7 @@ contains
        ! SOL / neutral models of V5.60
        if(MDLSOL < 0 .or. MDLSOL > 1 .or. MDLWBC < 0 .or. MDLWBC > 1 .or. MDLNSUP < 0 .or. MDLNSUP > 1) then
           exit ; else ; idx = idx + 1 ; end if
-       if(abs(NANDER) > 50) then ; exit ; else ; idx = idx + 1 ; end if
+       if(abs(NANDER) > 50 .or. NRETRY < 0 .or. NRETRY > 1) then ; exit ; else ; idx = idx + 1 ; end if
        if(MDLNZD < 0 .or. MDLNZD > 1 .or. MDLN0FL < 0 .or. MDLN0FL > 2) then
           exit ; else ; idx = idx + 1 ; end if
        if(FLlim <= 0.d0 .or. RLXN0 < 0.d0 .or. RLXN0 >= 1.d0) then ; exit ; else
