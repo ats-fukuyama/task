@@ -2643,19 +2643,24 @@ radial restriction the old pinch reached a pinch number of 14 at $\rho$ = 0.9 an
 plasma (+0.04 N\,m in the JT-60U case).
 
 \paragraph{Validation.}  JT-60U-like case of Sec.~\ref{sec:v561val} (3.2 MW co-tangential and 0.4 MW
-perpendicular NBI, $\chi=\mu=0.22(1+19\rho^2)$ m$^2$/s), 1.5 s:
+perpendicular NBI, $\chi=\mu=0.22(1+19\rho^2)$ m$^2$/s, \texttt{PNsSUP(1)} = 0.0125 as explained
+below), production defaults (\texttt{FSTPTM} = 3), 1.5 s:
 \begin{center}
 \begin{tabular}{|l|c|c|c|c|c|c|}\hline
 case & $u_{\r{i}\phi}(0)$ & $u_{\r{i}\phi}(0.82)$ & $E_r(0.5)$ & $j_r(0.97)$ & $j\times B$ torque & $L_\phi$ \\
  & km/s & km/s & kV/m & A/m$^2$ & N\,m & N\,m\,s \\\hline
-no ripple & 621 & 66 & $+55$ & $-0.019$ & $+0.18$ & 2.23 \\
-half ripple (FST) & 441 & 30 & $+24$ & $-0.108$ & $-3.39$ & 1.72 \\
-full ripple & 226 & $-11$ & $-9$ & $-0.185$ & $-7.43$ & 1.14 \\\hline
+no ripple & 510 & 57 & $+44$ & $-0.017$ & $+0.16$ & 2.03 \\
+half ripple (FST) & 370 & 27 & $+22$ & $-0.103$ & $-3.25$ & 1.58 \\
+full ripple & 198 & $-8$ & $-5$ & $-0.180$ & $-7.28$ & 1.05 \\\hline
 \end{tabular}
 \end{center}
-V5.61 gave 658, 417 and 128 km/s.  The table was computed with \texttt{FSTPTM} = 2; with the
-present default \texttt{FSTPTM} = 3 the rows without and with full ripple give 620 and 223 km/s
-and $\nee$ changes by less than 0.4\%.  The pinch number is 6.3 at $\rho$ = 0.5 and 7.9 at
+The line-averaged density is $1.15\times10^{19}$ m$^{-3}$ and the thermal mass inside $\rho$ = 1 is 1.54--1.62 mg.
+The first version of this table used \texttt{PNsSUP(1)} = 0.01 (the default) and \texttt{FSTPTM} = 2:
+621, 441 and 226 km/s ($\bar n_\r{e} = 1.02\times10^{19}$ m$^{-3}$, thermal mass 1.29 mg);
+\texttt{FSTPTM} = 3 gives 620 and 223 km/s without and with full ripple at 0.01, and V5.61 gave 658,
+417 and 128 km/s.  The ripple changes the rotation, $E_r$, the return current and its torque at
+\texttt{PNsSUP(1)} = 0.0125 as at 0.01.  The rest of this paragraph refers to
+\texttt{PNsSUP(1)} = 0.01.  The pinch number is 6.3 at $\rho$ = 0.5 and 7.9 at
 0.8 and vanishes outside 0.9; in V5.61 it was 14 at 0.9.  The profile is more peaked
 in the core (the constant term) and lower at the edge ($u_{\r{i}\phi}(0.9)$ = 46
 against 105 km/s).  The volume integrals close to $2\times10^{-5}$ of the injected
@@ -2669,17 +2674,35 @@ reaches \texttt{ICMAX}.  The Tala law with the corrected sign but without the ra
 restriction and the slope reduction spins the JT-60U case up to 881 km/s and stops at
 1.4 s at the impurity grid mode of supersonic rotation.
 
+\paragraph{Density of the benchmark.}  \texttt{PNsSUP(1)} is the upstream SOL density and sets
+the density level of the whole plasma (Sec.~\ref{sec:v552other}); the shape of the density profile
+does not depend on it.  The benchmark input sets it to 0.0125 ($10^{20}$ m$^{-3}$), which gives
+$\bar n_\r{e} = 1.15\times10^{19}$ m$^{-3}$ and $n_\r{e}(\rho=1) = 0.22\times10^{19}$ m$^{-3}$.  The
+line-averaged density is the one estimated from the measured profile of the JT-60U L-mode
+discharge compared in \cite{NF2008} (Fig.~1 of \cite{Yoshida2006}, which gives no value), and
+the separatrix density lies at the lower end of the range expected for JT-60U L-modes
+(0.2--0.45$\times10^{19}$ m$^{-3}$).  This value normalizes the density of this benchmark; it is
+not a universal value, and the default of \texttt{PNsSUP(1)} stays 0.01.  A new device,
+discharge, equilibrium, heating scheme or particle-transport model needs its own value, found
+by an outer loop of two or three runs to the target density (secant in $\log$--$\log$; there is
+no density feedback inside the code).  The benchmark is JT-60U-like and not the discharge:
+$I_\r{p}$ = 1.0 MA against 1.23 MA, a circular cross-section against a D-shaped plasma of
+77 m$^3$, and the computed density profile falls more steeply towards the edge
+($n_\r{e}(0.9)/\bar n_\r{e}$ = 0.45 against 0.74).  The rotation was not used to choose
+\texttt{PNsSUP(1)}: it is a consistency check of the momentum model, not a fitting target.
+
 The reduced ripple model is judged by the changes with the ripple rather than by the
-absolute rotation.  The co-rotation without ripple is twice that of \cite{NF2008}; the
+absolute rotation.  The co-rotation without ripple is 1.7 times that of \cite{NF2008}
+(510 against 300 km/s); the
 states of that work, restored from its save files with the 2008 code, show why.  The
 2008 plasma was pure deuterium with a flat density ($n_\r{e}$ = 1.4--1.5$\times10^{19}$
-m$^{-3}$ up to $r/a$ = 0.7), 1.7 times heavier than the present one (thermal mass 2.30
-against 1.35 mg, moment of inertia $2.70$ against $1.58\times10^{-5}$ kg\,m$^2$); its
+m$^{-3}$ up to $r/a$ = 0.7), 1.4 times heavier than the present one (thermal mass 2.30
+against 1.59 mg, moment of inertia $2.70$ against $1.87\times10^{-5}$ kg\,m$^2$); its
 torque was 7.63 N\,m (85 keV, the whole beam velocity toroidal at $R_0$) with half of it
 deposited off axis, it had no momentum pinch, and its wall held $u_\phi = 0$.  The
 momentum confinement times $L_\phi/T_\r{NBI}$ of the thermal species are similar (0.137
-and 0.143 s), so the mass-weighted rotation $R_0L_\phi/I_\phi$ differs by 1.6 (132 and 207
-km/s) and the more peaked profile gives the rest of the factor 2.1 on axis.
+and 0.143 s), so the mass-weighted rotation $R_0L_\phi/I_\phi$ differs by 1.3 (132 and 174
+km/s) and the more peaked profile gives the rest of the factor 1.7 on axis.
 
 \paragraph{Limitations.}  The pinch number is taken from the electron density gradient
 alone; the dependences on $q$, $\hat{s}$, $\varepsilon$, $T_\r{i}/T_\r{e}$ found in
@@ -3395,6 +3418,7 @@ resolution.  The table \texttt{data/Carbon-S0F0\_20260921.txt} is read at start-
 either case.
 
 \subsection{Other changes since V5.51}
+\label{sec:v552other}
 
 \begin{itemize}
 \item \texttt{MDLPCK} = 2 (default): block-tridiagonal solver with one step of
@@ -3440,6 +3464,7 @@ either case.
 \begin{thebibliography}{9}
 \bibitem{NF2008} M. Honda, T. Takizuka, A. Fukuyama, M. Yoshida and T. Ozeki,
   Nucl. Fusion \textbf{48} (2008) 085003.
+\bibitem{Yoshida2006} M. Yoshida et al., Plasma Phys. Control. Fusion \textbf{48} (2006) 1673.
 \bibitem{KA1995} M. Kikuchi and M. Azumi, Plasma Phys. Control. Fusion \textbf{37} (1995) 1215,
   Appendix.
 \bibitem{Tala2012} T. Tala et al., Proc. 24th IAEA Fusion Energy Conf. (San Diego, 2012) ITR/P1-19.
