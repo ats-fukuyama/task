@@ -1163,6 +1163,14 @@ contains
           NLC(22,NEQ) = 0
 
        end if
+       if( FSTPTM(i) == 4.d0 ) then
+          ! terms 28 + 29, -FSVAHL Z_b (n_b/n_e)(grad p_e - T_e grad n_e) = -FSVAHL Z_b n_b grad T_e
+          ELM(:,:,28,NEQ) = - achg(i) * achgb * rKeV * amasinv * FSVAHL * fem_int(21,FQLcoef,Var(:,1)%T)
+          NLC(28,NEQ) = LQb1
+
+          ELM(:,:,29,NEQ) = 0.d0
+          NLC(29,NEQ) = 0
+       end if
     end if
 
   end subroutine LQe4CC
@@ -2120,6 +2128,16 @@ contains
                &                           * FSVAHL
           NLC(20,NEQ) = LQe5
 
+       else if( FSTPTM(i) == 4.d0 ) then
+          ! terms 21 + 22 of FSTPTM = 4, (n_i/n_th){(FSVAHL - 1) n_e - FSVAHL Z_b n_b} grad T_e
+          ELM(:,:,21,NEQ) =   achg(i) * rKeV * amasinv * fem_int(31,FQLcoef,wrt,Var(:,1)%T) &
+               &                           * (FSVAHL - 1.d0)
+          NLC(21,NEQ) = LQe1
+
+          ELM(:,:,22,NEQ) = - achg(i) * achgb * rKeV * amasinv * FSVAHL &
+               &                           * fem_int(31,FQLcoef,wrt,Var(:,1)%T)
+          NLC(22,NEQ) = LQb1
+
        else
           ELM(:,:,21,NEQ) =   achg(i) * rKeV * amasinv * fem_int(21,FQLcoef,Var(:,1)%T) &
                &                           * (FSVAHL - 1.d0)
@@ -2996,6 +3014,15 @@ contains
           ELM(:,:,20,NEQ) =   achg(i) * rKeV * amasinv * fem_int(22,FQLcoef,Var(:,i)%n) &
                &                           * FSVAHL
           NLC(20,NEQ) = LQe5
+
+       else if( FSTPTM(i) == 4.d0 ) then   ! as for the main ions (LQi4CC)
+          ELM(:,:,21,NEQ) =   achg(i) * rKeV * amasinv * fem_int(31,FQLcoef,wrt,Var(:,1)%T) &
+               &                           * (FSVAHL - 1.d0)
+          NLC(21,NEQ) = LQe1
+
+          ELM(:,:,22,NEQ) = - achg(i) * achgb * rKeV * amasinv * FSVAHL &
+               &                           * fem_int(31,FQLcoef,wrt,Var(:,1)%T)
+          NLC(22,NEQ) = LQb1
 
        else
           ELM(:,:,21,NEQ) =   achg(i) * rKeV * amasinv * fem_int(21,FQLcoef,Var(:,1)%T) &

@@ -231,8 +231,8 @@ contains
     !         weights Z_s n_s/n_th (no share of the beam), and the composition pairs use
     !         n_th.  Each thermal species then diffuses on its own density gradient with the
     !         common thermodiffusion also with fast ions; without them it equals 3.  It must
-    !         be given for every species and needs MDFIXT = 0.  The fast ions have no
-    !         turbulent flux.  See twofluid.tex.
+    !         be given for every species.  The fast ions have no turbulent flux.  See
+    !         twofluid.tex.
     !   Default 3: with 2 the impurity has no diffusion on its own density gradient
     !   and an odd-even mode of n_z grows until T_z < 0 (JT-60U benchmark, 2.4 s);
     !   3 suppresses it and changes n_e and u_iphi by less than 1%.  2 is kept for
@@ -2273,9 +2273,8 @@ contains
           idx = idx + 1 ; end if
        ! FSTPTM = 3 and 4 add forces that couple pairs of species, so they only
        ! conserve momentum (and hence stay ambipolar) if every species carries the
-       ! same option.  Mixed settings are rejected, and 4 has no MDFIXT /= 0 form.
-       if((maxval(FSTPTM) >= 3.d0 .and. minval(FSTPTM) /= maxval(FSTPTM)) .or. &
-            & (maxval(FSTPTM) == 4.d0 .and. MDFIXT /= 0)) then ; exit ; else
+       ! same option.  Mixed settings are rejected.
+       if(maxval(FSTPTM) >= 3.d0 .and. minval(FSTPTM) /= maxval(FSTPTM)) then ; exit ; else
           idx = idx + 1 ; end if
        if(minval(FSPARV) < 0.d0 .or. maxval(FSPARV) > 1.d0) then ; exit ; else
           idx = idx + 1 ; end if

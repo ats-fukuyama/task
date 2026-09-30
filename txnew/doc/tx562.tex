@@ -3478,8 +3478,12 @@ either case.
   to one by construction).  Without fast ions it equals 3 (JT-60U ohmic, 300 steps: $10^{-7}$ in
   the densities, $5\times10^{-5}$ in $u_{\r{i}\phi}$, the quasineutrality residual); it matches the
   diagnostic implementation it was developed in to $5\times10^{-8}$; \texttt{FSTPTM} = 3 results are
-  bit-identical.  The formulation is in twofluid.tex.  It must be given for every species and
-  needs \texttt{MDFIXT} = 0; \texttt{NCM} and the save file are unchanged.  Known limits: the beam
+  bit-identical.  The formulation is in twofluid.tex.  It must be given for every species;
+  \texttt{NCM} and the save file are unchanged.  With fixed temperatures (\texttt{MDFIXT} $\neq$ 0,
+  where \texttt{LQe5} carries $T_\r{e}$) the pressure-gradient parts are written with the given
+  $\partial_VT_\r{e}$ as for 2 and 3: $\alpha Z_\r{b}(n_\r{b}/n_\r{e})(\partial_Vp_\r{e} - T_\r{e}\partial_V\nee)
+  = \alpha Z_\r{b}n_\r{b}\partial_VT_\r{e}$ for the electrons and
+  $(n_s/n_\r{th})\{(\alpha - 1)\nee - \alpha Z_\r{b}n_\r{b}\}\partial_VT_\r{e}$ for the thermal ions.  Known limits: the beam
   friction (NBCD) and the beam radial flux still reach the thermal ions through ambipolarity, so
   positivity of $n_\r{i}$ is not guaranteed structurally; the more peaked core densities expose the
   axis \texttt{LQ*8} Picard stall below already at \texttt{NRMAX} = 60.  JT-60U case at 1.5 s
