@@ -3478,8 +3478,9 @@ either case.
   the bulk ions 0.0099).  There is no such loop at the main wall, so \texttt{RWALL} is that of a
   saturated wall with a small retention and \texttt{RWALLZ} the yield itself.  In the JT-60U case
   the main wall returns $0.40\times10^{20}$ s$^{-1}$ (target recycling 14.4, gas puff 28.1); $\nee$
-  changes by 0.2\% (0.6\% with \texttt{FSRP} = 1), and even \texttt{RWALLIZ} = 0.15 changes the core
-  impurity density by 0.04\%, the wall source being screened by the SOL.  \texttt{W} (TXSTAT) and
+  changes by 0.2\% (0.6\% with \texttt{FSRP} = 1), and even \texttt{RWALLIZ} = 0.15 (tested with
+  \texttt{RWALLZ} = 0.02) changes the core impurity density by 0.04\%, the wall source being screened
+  by the SOL.  \texttt{W} (TXSTAT) and
   \texttt{O 7} (\texttt{tx\_sources.dat}) print the SOL parallel loss, the wall fluxes and the
   neutral sources by path (target, main wall, gas puff) with the ionization.  The three
   coefficients are kept in the save file in a second extension record; older files load with
