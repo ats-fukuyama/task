@@ -410,8 +410,12 @@ contains
     NANDER = 0
 
     !     NRETRY : k = 1..4: a step whose Picard iteration reaches ICMAX without converging
-    !              is taken again as 2, 4, ... substeps, down to DT/2**k (see TXLOOP); 0 = off
-    NRETRY = 0
+    !              is taken again as 2, 4, ... substeps, down to DT/2**k (see TXLOOP); 0 = off.
+    !              Default 1: converged steps are untouched (bit-identical to 0 when no step
+    !              stalls); at NRMAX = 60, 120 it removes the stalls of the axis LQ*8 mode
+    !              with NBI.  NRMAX = 240 needs a smaller DT (or 2); the run summary warns
+    !              when more than 10% of the steps were retaken.
+    NRETRY = 1
 
     !   Parameter of heat loss to divertor (default = 1.0)
     FSLTs(1:NSM) = 1.d0

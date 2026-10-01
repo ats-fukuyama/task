@@ -3495,22 +3495,34 @@ either case.
   the high-density cases (6.4 MW NBI, \texttt{Zeffin} = 2.5, gas puff 0.4) 216--722 steps of 15000
   stall in short bursts (208 in the benchmark with 0.0125), none with \texttt{NRETRY} = 1, which
   changes the profiles by less than $10^{-6}$.
-\item \texttt{NRETRY} = 1 (option, default 0): a step whose Picard iteration reaches \texttt{ICMAX}
-  without converging is taken again as two steps of $\Delta t/2$ (backward Euler, then BDF2; the
-  history is $X(t-\Delta t)$ again afterwards).  Converged steps are unchanged, and 0 is
-  bit-identical to before.  It is meant for sporadic stalls: from a stalled state of the
-  JT-60U case at \texttt{NRMAX} = 120 it leaves no unconverged step in 40 (4 without it), but at
-  240 nearly every step is retried and some still do not converge, so there the time step
-  itself has to be smaller.
-\item Known numerical limit, the axis \texttt{LQ*8}: the Picard map has a nearly neutral mode on the
-  first axis nodes of $BV_1$ (mostly the impurity), fed by the lagged density and flow
-  coefficients together (no single term dominates; the lagged projection of the toroidal
-  viscous momentum flux onto the parallel flow equations, \texttt{FSPARV}, stabilizes it).  In the JT-60U case its eigenvalue is 1.002 at \texttt{NRMAX} = 120 and 1.043
-  at 240, and a time step proportional to the mesh size restores convergence
-  ($\Delta t \le 10^{-4}\times 60/\texttt{NRMAX}$ s, roughly); at \texttt{NRMAX} = 240 an odd-even mode of
-  $BV_{1\r{z}}$ and $n_\r{z}$ grows on the axis within 0.1 s at $\Delta t = 10^{-4}$ s.  The continuum
-  solution is regular.  Use the smaller time step at high \texttt{NRMAX}, and \texttt{NRETRY} = 1 for
-  the occasional stalls with strongly peaked core densities.
+\item \texttt{NRETRY} (default 1): a step whose Picard iteration reaches \texttt{ICMAX} without
+  converging is taken again from its start as 2, 4, \ldots\ substeps, down to $\Delta t/2^k$ for
+  \texttt{NRETRY} = $k$ ($\le 4$); the first substep is backward Euler, the others BDF2, and the
+  history is $X(t-\Delta t)$ again afterwards.  Converged steps are untouched: a run in which no
+  step stalls is bit-identical to \texttt{NRETRY} = 0.  The retried steps are first order in time
+  (one backward-Euler substep each): with every step retried, in the initial transient of the
+  JT-60U case, the error of $u_{\r{i}\phi}$ is 11 times that of BDF2 at $\Delta t = 10^{-4}$ s and halves
+  with $\Delta t$, while $n_\r{e}$ and $T_\r{e}$ change by a factor 1--2.  In practice 1--15\% of the
+  steps are retried, in quasi-steady phases: the JT-60U benchmark with \texttt{FSTPTM} = 4
+  (206 of 15000 steps) agrees at 1.5 s with a run at $\Delta t/2$ to $4\times10^{-7}$ in $n_\r{e}$ and
+  $4\times10^{-6}$ in $BV_{1\r{z}}$.  Across SAVE/LOAD it behaves as without retries.  The summary of a
+  run gives the number and share of retaken steps and the finest substep, and warns when more
+  than 10\% of the steps were retaken (a smaller base $\Delta t$ is then the right fix) or when
+  steps did not converge even at $\Delta t/2^{\texttt{NRETRY}}$.
+\item Known numerical limit, the axis \texttt{LQ*8}: with NBI the Picard map has a slowly contracting
+  mode on the axis node of $BV_1$ (mostly the impurity) and the poloidal field, of the form
+  $\lambda \approx A\Delta t/(1 + A\Delta t)$, $A \approx 2\times10^5$ s$^{-1}$ (a fast coupling taken
+  from the previous sweep), with $A$ growing with the mesh refinement and the core peaking of the
+  beam, impurity and ion densities.  Without NBI it does not appear up to \texttt{NRMAX} = 240.
+  At \texttt{NRMAX} = 60 it shows as bursts of steps needing 70--140 sweeps (6.4 MW NBI with
+  \texttt{FSTPTM} = 3 or 4, the benchmark with \texttt{FSTPTM} = 4), harmless for the solution
+  ($\le 2\times10^{-6}$) and removed by \texttt{NRETRY} = 1; at 120 it is sporadic to frequent
+  (\texttt{NRETRY} = 1 retakes up to 15\% of the steps with 3.2 MW, 65\% with 6.4 MW); at 240 it
+  is persistent, and without retries an odd-even mode of $BV_{1\r{z}}$ and $n_\r{z}$ grows on the
+  axis until $n_\r{z}(0) < 0$ at 0.1 s; with \texttt{NRETRY} $\ge 1$ or $\Delta t \le 5\times10^{-5}$ s the
+  run stays positive to 0.4 s but still stalls often, so $\Delta t$ of about $10^{-5}$ s is advised
+  there.  With 6.4 MW and \texttt{FSTPTM} = 4 at \texttt{NRMAX} = 120 the impurity density on the
+  axis becomes negative at 0.86 s even with \texttt{NRETRY} = 1.  The continuum solution is regular.
 \item Recycling at the main wall.  The radial ion outflow through the wall $\rho_b$,
   $\Gamma_s(\rho_b)^+ = \max(n_s\aves{\vec{u}_s\cdot\nabla V}, 0)$ at \texttt{NRMAX}, returns as a
   wall-side inflow of neutrals like the gas puff: \texttt{RWALL} (default 0.98) of the bulk ions
