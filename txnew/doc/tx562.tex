@@ -3511,9 +3511,20 @@ either case.
   rotation is 14\% lower.  The value of $C_\r{T}$ is a model choice in the direction suggested by
   gyrokinetic estimates (weaker thermodiffusion), not a fit to them, and the edge density is still to
   be compared with the experiment.  The old defaults are reproduced bit for bit by giving the
-  three inputs.  \texttt{FSTPTM} is not stored in the save file, while \texttt{FSVAHL} and \texttt{PNsSUP}
-  are: a run continued from an old file takes its \texttt{FSVAHL} and \texttt{PNsSUP} with \texttt{FSTPTM} = 4,
-  so give \texttt{FSTPTM} = 3 to continue it unchanged.  The benchmark results quoted above for the
+  three inputs.  The save file now stores \texttt{FSTPTM} as well (extension record 3; it was the one
+  turbulent-transport input missing from the layout, \texttt{FSVAHL} and \texttt{PNsSUP} being in it), so
+  a run continued from a file keeps its closure; a file written before has no such record, and then
+  \texttt{FSTPTM} keeps its current value (4 by default) with a message, so give \texttt{FSTPTM} = 3 or 2 to
+  continue such a run unchanged.  Older executables read the new files and skip the record.
+  \texttt{parm/txparm.v552default} sets all inputs whose defaults changed after V5.52.20 back to
+  the V5.52 values (also the pinch without saturation and taper, \texttt{FSTPTM} = 2,
+  \texttt{FSVAHL} = $-0.5$, the V5.52 \texttt{PNsSUP} with \texttt{MDLNSUP} = 0, no main-wall
+  recycling, \texttt{NRETRY} = 0) and lists what no input restores: the inward constant term of the
+  pinch, the discretely conserving friction, the V5.61 fast-ion fixes and the wall-row form.  In
+  the JT-60U-like case without NBI (1.5 s) the code just before the wall-row fix reproduces
+  V5.52.20 with these inputs to $2\times10^{-4}$ in the densities; the wall-row fix lowers the density
+  level by 4.8\% ($n_\r{z}$ by 8\%), uniformly in radius, and is the only noticeable difference; with NBI
+  the core rotation is 40\% higher than in V5.52.20 (pinch sign, V5.61 fast-ion fixes).  The benchmark results quoted above for the
   wall row, the recycling and \texttt{PNsSUP(1)} = 0.0125 refer to the old defaults.
 \item \texttt{NRETRY} (default 1): a step whose Picard iteration reaches \texttt{ICMAX} without
   converging is taken again from its start as 2, 4, \ldots\ substeps, down to $\Delta t/2^k$ for

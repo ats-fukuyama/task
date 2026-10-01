@@ -1,16 +1,51 @@
-TASK/TX V5.52.20 compatibility parameters for the V5.60.00 executable.
+TASK/TX V5.52.20 compatibility parameters for the current executable (V5.62 and later).
 
-Merge the namelist lines below into the tx group of a txparm to run V5.60.00 with the
-default physics of V5.52.20.  They are the only defaults that changed
-between V5.52.20 and V5.60.00; all other defaults are unchanged.
+Merge the namelist lines below into the tx group of a txparm to run the current code with the
+default physics of V5.52.20, as far as inputs can bring it back.  They are the defaults that
+changed after V5.52.20 (V5.60.00 and later); all other defaults are unchanged.
 
-  FSLP    = 0.3   k_L of the SOL parallel loss        (V5.60: 1.0)
-  MDLSOL  = 0     historical parallel-loss ramp width (V5.60: 1, banana width)
-  MDLNZD  = 0     C0-C5 bundle diffused with D01      (V5.60: 1, charged bundle + slaved C0)
-  MDLWBC  = 0     no density condition at the wall    (V5.60: 1, zero gradient)
-  MDLN0FL = 0     no Larsen limiter on D01            (same in V5.60)
+V5.60.00 (SOL / neutral models):
+  FSLP    = 0.3   k_L of the SOL parallel loss        (now 1.0)
+  MDLSOL  = 0     historical parallel-loss ramp width (now 1, banana width)
+  MDLNZD  = 0     C0-C5 bundle diffused with D01      (now 1, charged bundle + slaved C0)
+  MDLWBC  = 0     no density condition at the wall    (now 1, zero gradient)
+  MDLN0FL = 0     no Larsen limiter on D01            (same now)
+  FLlim and RLXN0 are not used with these settings.
+V5.62.00 (momentum pinch, T2):
+  PCHRLN  = 1e10  no change of the R/L_n slope        (now 3.8, slope to 0.44 beyond)
+  RhoPch1 = 10, RhoPch2 = 11
+                  no radial taper of the pinch        (now 1 inside 0.8, 0 outside 0.9)
+After V5.62.00 (particle transport, wall, time stepping):
+  FSTPTM  = 2     common-velocity closure, model 3    (now 4; 3 from 2026-09-29)
+  FSVAHL  = -0.5  thermodiffusion C_T                 (now -0.25)
+  PNsSUP  = 0.01, 0.009, 1.6667e-4 with MDLNSUP = 0
+                  SOL upstream densities as V5.52 set them once from the default
+                  Zeffin = 1.5 (now PNsSUP(1) = 0.026, and with MDLNSUP = 1 PNsSUP(2:3)
+                  are derived from PNsSUP(1) and the given Zeffin)
+  RWALL = RWALLZ = RWALLIZ = 0
+                  no recycling at the main wall       (now 0.98, 0.42, 0)
+  NRETRY  = 0     no retry of an unconverged step     (now 1)
 
-FLlim and RLXN0 are new in V5.60 and are not used with these settings.
+Not restored by any input (implementation changes; the results differ slightly):
+  - the constant term of the Tala momentum pinch is inward (V5.52: outward, a sign error
+    corrected in V5.62), so the pinch is -(mu/R)(1.1 R/L_n + 1), not (mu/R)(1.1 R dlnNe + 1);
+  - friction forces assembled with nodal products, conserving momentum discretely (V5.61; O(h^2));
+  - V5.61 fast-ion fixes: l_11^fi friction, beam flow variables carrying N_b, no radial beam
+    flux at the wall (MDBEAM = 1); they change runs with NBI (core rotation by 0.5-5%);
+    with FSRP = 0 the ripple changes do not act;
+  - the turbulent force in the wall row in the direct-gradient form, which removed a spurious
+    electron inflow at the wall (2026-09-30);
+  - the convergence test of psi_t dot with its rounding floor (iteration counts only).
+Check (JT-60U-like circular case without NBI, NRMAX = 60, EPS = 1e-6, 1.5 s): with these inputs
+the code just before the wall-row fix agrees with V5.52.20 to 2e-4 in n_e and n_i; the current
+code is lower by 4.8% in n_e and 8% in n_z, uniformly in radius (the wall-row fix), and agrees to
+2% in T_e and 0.5% in T_i.  The current defaults differ by up to 57% in n_e and 94% in n_z.
+With NBI (3.2 + 0.4 MW) the densities and temperatures agree to 5-8%, but the core rotation is
+40% higher (pinch sign and V5.61 fast-ion fixes).  V5.52.20 itself, run with EPS = 1e-6, stalls
+on psi_t dot near the wall; with its default EPS = 1e-3 it does not.
+NANDER = 0 and RDltRPn = 2.4 (the former fixed value) are the V5.52 behaviour already.
+The save file stores FSTPTM (with FSVAHL and PNsSUP), so a run continued from a file keeps
+its closure.
 
  &tx
   FSLP    = 0.3d0
@@ -18,4 +53,15 @@ FLlim and RLXN0 are new in V5.60 and are not used with these settings.
   MDLNZD  = 0
   MDLWBC  = 0
   MDLN0FL = 0
+  PCHRLN  = 1.d10
+  RhoPch1 = 10.d0
+  RhoPch2 = 11.d0
+  FSTPTM  = 2.d0, 2.d0, 2.d0
+  FSVAHL  = -0.5d0
+  MDLNSUP = 0
+  PNsSUP  = 0.01d0, 0.009d0, 1.6666666666666666d-4
+  RWALL   = 0.d0
+  RWALLZ  = 0.d0
+  RWALLIZ = 0.d0
+  NRETRY  = 0
  &end
