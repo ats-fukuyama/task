@@ -120,7 +120,10 @@ contains
     integer(4) :: NR, NQ, IC = 0, IDIV, NTDO, ICSUM, IDIAGL, istat
     integer(4), save :: ntc0cap = 0
     ! --- retry of a non-converged step as two half steps (NRETRY = 1) ---
-    integer(4) :: nsub, isub, nretried
+    integer(4) :: nsub, isub, nretried, nsubmax, nretryfail
+    logical :: stepfail
+    ! NRETRY summary: a warning when more than RETRYWARN of the steps of a run needed a retry
+    real(8), parameter :: RETRYWARN = 0.1d0
     real(8) :: DTfull, Tstart
     real(8), dimension(:,:), allocatable :: Xstart
     ! --- adaptive under-relaxation ---------------------------------------
@@ -209,7 +212,7 @@ contains
     if(NTMAX /= 0) DIP = (rIPe - rIPs) / NTMAX
     ICSUM = 0
     ndamp = 0
-    nretried = 0 ; nsub = 1
+    nretried = 0 ; nsub = 1 ; nsubmax = 1 ; nretryfail = 0
     and_ncall = 0 ; and_nrst = 0 ; and_nfail = 0 ; and_condmax = 0.d0 ; and_cpu = 0.d0
 #ifdef TX_PROFILE
     call CPU_TIME(prof_total_t0)
@@ -239,7 +242,7 @@ contains
        NTCUM = NTCUM + 1
        T_TX = TIME0 + DT*NT
        rIP  = rIPs  + DIP*NT
-       nsub = 1 ; isub = 0
+       nsub = 1 ; isub = 0 ; stepfail = .false.
 
        L_SUB : do
        isub = isub + 1
@@ -571,10 +574,13 @@ contains
           if(nsub == 1) then
              nretried = nretried + 1
              DTfull = DT ; Tstart = T_TX - DT ; Xstart = X
-          else
+          else   ! back to the start of the step, with its previous-time values (pres0, ErV0)
              X = Xstart
+             call TXCALV(X,1)
+             call TXCALC(IC)
           end if
           nsub = 2 * nsub ; isub = 0
+          nsubmax = max(nsubmax, nsub)
           DT = DTfull / nsub
           if(IDIAGL >= 1) write(6,'(A,I6,A,ES10.3)') ' ## Picard not converged at NT =', NT, &
                & ': retried as steps of', DT
@@ -582,6 +588,7 @@ contains
           if(IGBDF /= 0) XOLD = X
           cycle L_SUB
        end if
+       if(NRETRY > 0 .and. IC >= ICMAX) stepfail = .true.   ! not converged at DT/2**NRETRY either
        if(nsub > 1 .and. isub < nsub) then   ! a substep is the start of the next one
           if(IGBDF /= 0) then
              XOLD = X ; bdf_history_ready = .true. ; bdf_history_dt = DT
@@ -596,6 +603,7 @@ contains
        if(nsub > 1) then   ! back to DT; the history saved below is X(t - DT)
           DT = DTfull ; X = Xstart
        end if
+       if(stepfail) nretryfail = nretryfail + 1
 
        ICSUM = ICSUM + IC
 
@@ -797,6 +805,17 @@ contains
     end do L_NTDO
 
     rIPs = rIPe
+
+    if(NRETRY > 0 .and. nretried > 0) then
+       write(6,'(A,I7,A,I7,A,F6.2,A,I3,A,I7)') ' ## NRETRY: steps retaken', nretried, ' of', NT, &
+            & ' (', 100.d0 * nretried / max(NT,1), '%), finest DT/', nsubmax, &
+            & ', not converged at the finest', nretryfail
+       if(nretried > RETRYWARN * NT) write(6,'(A,I3,A)') &
+            & ' ## WARNING: many steps needed a retry; a base DT of about DT/', nsubmax, &
+            & ' is recommended'
+       if(nretryfail > 0) write(6,'(A)') &
+            & ' ## WARNING: steps did not converge even at DT/2**NRETRY; increase NRETRY or decrease DT'
+    end if
 
 #ifdef TX_PROFILE
     call CPU_TIME(prof_t0)
