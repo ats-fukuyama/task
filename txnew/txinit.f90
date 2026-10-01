@@ -224,7 +224,7 @@ contains
     !         (common-diffusivity) limit written as a correction to the
     !         common-velocity closure of 0/1/2; see twofluid.tex.  It must be
     !         given for every species at once.
-    !     4 : Thermal-species self-gradient closure (option, not the default): as 3, but the
+    !     4 : Thermal-species self-gradient closure (the default since 2026-10-01): as 3, but the
     !         turbulent transport of the thermal species is driven by the thermal-ion charge
     !         density n_th = sum_s Z_s n_s instead of n_e.  The electron force is reduced by
     !         the fast-ion charge gradient, the thermal ions take its reaction with the
@@ -233,11 +233,16 @@ contains
     !         common thermodiffusion also with fast ions; without them it equals 3.  It must
     !         be given for every species.  The fast ions have no turbulent flux.  See
     !         twofluid.tex.
-    !   Default 3: with 2 the impurity has no diffusion on its own density gradient
-    !   and an odd-even mode of n_z grows until T_z < 0 (JT-60U benchmark, 2.4 s);
-    !   3 suppresses it and changes n_e and u_iphi by less than 1%.  2 is kept for
-    !   comparison and must also be given for every species (FSTPTM = 2, 2, 2).
-    FSTPTM(1:NSM) = 3
+    !   Default 4 (with FSVAHL = -0.25 and PNsSUP(1) = 0.026): with fast ions 3 lets the
+    !   thermal ions carry the fast-ion charge gradient and they are depleted on the axis
+    !   for FSVAHL >= -0.4; 4 does not, and with the weaker thermodiffusion the JT-60U
+    !   benchmark keeps its line-averaged density, core profile and n_b/n_i with a
+    !   higher edge density.  Without fast ions 4 equals 3.  3 was the default before
+    !   (with FSVAHL = -0.5, PNsSUP(1) = 0.01; give all three to reproduce it); with 2
+    !   the impurity has no diffusion on its own density gradient and an odd-even mode of
+    !   n_z grows until T_z < 0 (JT-60U benchmark, 2.4 s).  Every species must be given
+    !   the same value.
+    FSTPTM(1:NSM) = 4
 
     !   ==== CDBM transport coefficient parameters ============================
     !      The finer time step size, typically less than or equal to DT=5.D-4,
@@ -286,8 +291,9 @@ contains
 
     !   =======================================================================
 
-    !   Controller for thermodiffusive pinch term of turbulent particle flux
-    FSVAHL =-0.5d0
+    !   Controller for thermodiffusive pinch term of turbulent particle flux (C_T).
+    !   Default -0.25 with FSTPTM = 4 (was -0.5 with 3; 0 collapses, BR-27/31)
+    FSVAHL =-0.25d0
 
     !   Particle diffusion coefficient profile parameter (D(r=a)/D(r=0))
     PROFD =  5.d0
@@ -321,8 +327,11 @@ contains
 
     !   ***** Parameters related to SOL plasma *****
 
-    !   Electron density limit in SOL Upstream Plasma (Target minimum density in SOL)
-    PNsSUP(1) = 0.01d0
+    !   Electron density limit in SOL Upstream Plasma (Target minimum density in SOL).
+    !   It sets the density level; 0.026 gives the JT-60U benchmark line average
+    !   1.14e19 m^-3 with FSTPTM = 4, FSVAHL = -0.25 (was 0.01; the benchmark used 0.0125
+    !   with FSTPTM = 3, FSVAHL = -0.5)
+    PNsSUP(1) = 0.026d0
 
     !   Ion density limit in SOL Upstream Plasma (Target minimum density in SOL)
     PNsSUP(2) = (achg(3) - Zeffin) / (achg(2) * (achg(3) - achg(2))) * PNsSUP(1)

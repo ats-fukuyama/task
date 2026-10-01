@@ -3465,7 +3465,7 @@ either case.
   digits, the profiles change by less than 0.5\% (JT-60U case to 4 s, \texttt{FSRP} = 0 and 1,
   \texttt{FSTPTM} = 2 and 3, X-point and circular test equilibria), and the Picard counts are
   unchanged.
-\item \texttt{FSTPTM} = 4 (option; the default stays 3): thermal-species self-gradient closure.
+\item \texttt{FSTPTM} = 4 (the default since the change below; 3 before): thermal-species self-gradient closure.
   With fast ions, \texttt{FSTPTM} = 3 drives the common transport by $\nabla\nee$, which contains the
   fast-ion charge gradient, and lets the main ions carry the fast-ion share of the electron flux
   (weight $n_\r{i}+n_\r{b}$), so the main-ion continuity equation has a sink $\nabla\cdot(n_\r{b}u)$
@@ -3495,6 +3495,26 @@ either case.
   the high-density cases (6.4 MW NBI, \texttt{Zeffin} = 2.5, gas puff 0.4) 216--722 steps of 15000
   stall in short bursts (208 in the benchmark with 0.0125), none with \texttt{NRETRY} = 1, which
   changes the profiles by less than $10^{-6}$.
+\item Production defaults of the particle transport: \texttt{FSTPTM} = 4, \texttt{FSVAHL} ($C_\r{T}$) = $-0.25$,
+  \texttt{PNsSUP(1)} = 0.026 (were 3, $-0.5$, 0.01; the JT-60U benchmark used 0.0125 with 3 and $-0.5$).  With
+  \texttt{FSTPTM} = 4 the thermal ions do not carry the fast-ion charge gradient, so a weaker
+  thermodiffusion no longer depletes them (\texttt{FSTPTM} = 3 does for $C_\r{T} \ge -0.4$; $C_\r{T} = 0$
+  collapses with either); $C_\r{T}$ then sets the density level at a given \texttt{PNsSUP}, the profile
+  shape staying nearly the same, and \texttt{PNsSUP(1)} = 0.026 restores the line average.  JT-60U
+  benchmark (3.2 MW, \texttt{FSRP} = 0, \texttt{NRMAX} = 60, 4 s), old (3, $-0.5$, 0.0125) against new:
+  line average 1.15 / 1.14 $\times10^{19}$ m$^{-3}$, $n_\r{e}(0)$ 1.79 / 1.72, $n_\r{i}(0)$ 1.26 / 1.22,
+  $n_\r{b}/n_\r{i}(0)$ 0.30 / 0.32, $n_\r{e}$ at $\rho$ = 0.8, 0.95, 1.0 0.69, 0.41, 0.22 / 0.68, 0.45,
+  0.33, peaking $n_\r{e}(0)/\bar n_\r{e}$ 1.55 / 1.51, $u_{\r{i}\phi}(0)$ 510 / 439 km/s, no Picard stall (one
+  retried step in the initial transient, where the source-slaved C0 bound is active), ambipolarity
+  $10^{-6}$; with \texttt{PNsSUP(1)} = 0.025 the line average is 1.12.  The core is kept and the edge density
+  rises by 10--50\%, toward the measured edge (which the old benchmark underestimated); the
+  rotation is 14\% lower.  The value of $C_\r{T}$ is a model choice in the direction suggested by
+  gyrokinetic estimates (weaker thermodiffusion), not a fit to them, and the edge density is still to
+  be compared with the experiment.  The old defaults are reproduced bit for bit by giving the
+  three inputs.  \texttt{FSTPTM} is not stored in the save file, while \texttt{FSVAHL} and \texttt{PNsSUP}
+  are: a run continued from an old file takes its \texttt{FSVAHL} and \texttt{PNsSUP} with \texttt{FSTPTM} = 4,
+  so give \texttt{FSTPTM} = 3 to continue it unchanged.  The benchmark results quoted above for the
+  wall row, the recycling and \texttt{PNsSUP(1)} = 0.0125 refer to the old defaults.
 \item \texttt{NRETRY} (default 1): a step whose Picard iteration reaches \texttt{ICMAX} without
   converging is taken again from its start as 2, 4, \ldots\ substeps, down to $\Delta t/2^k$ for
   \texttt{NRETRY} = $k$ ($\le 4$); the first substep is backward Euler, the others BDF2, and the
