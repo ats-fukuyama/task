@@ -1,0 +1,3608 @@
+\documentclass[11pt]{article}
+\usepackage[top=1.5cm, bottom=2cm, left=1.5cm, right=1.5cm]{geometry}
+\usepackage{color}
+%\usepackage{amsmath}
+
+%%%
+%\textheight 240mm % A4 297mm
+%\textwidth 160mm   % A4 210mm
+%\columnsep 10pt 
+%\columnseprule 0pt 
+%
+%\oddsidemargin 0pt 
+%\evensidemargin 0pt 
+%\marginparwidth 90pt 
+%\marginparsep 11pt 
+%
+%\topmargin 0pt 
+%\headheight 0pt 
+%\headsep 0pt 
+%\footskip 30pt 
+%
+%\parskip 0pt plus 1pt 
+%\parindent 1.5em 
+%\partopsep 3pt plus 2pt minus 2pt 
+%%%
+
+\makeatletter
+\def\eqnarray{\stepcounter{equation}\let\@currentlabel=\theequation
+\global\@eqnswtrue
+\global\@eqcnt\z@\tabskip\@centering\let\\=\@eqncr
+$$\halign to \displaywidth\bgroup\@eqnsel\hskip\@centering
+%%  $\displaystyle\tabskip\z@{##}$&\global\@eqcnt\@ne 
+    $\displaystyle\tabskip\z@{##}$&\global\@eqcnt\@ne 
+%%  \hskip 2\arraycolsep \hfil${##}$\hfil
+                         \hfil$\displaystyle{{}##{}}$\hfil
+%%  &\global\@eqcnt\tw@ \hskip 2\arraycolsep $\displaystyle\tabskip\z@{##}$\hfil 
+    &\global\@eqcnt\tw@                      $\displaystyle\tabskip\z@{##}$\hfil 
+   \tabskip\@centering&\llap{##}\tabskip\z@\cr}
+\makeatother
+
+\renewcommand{\labelenumi}{(\theenumi)}
+\renewcommand{\theenumi}{\alph{enumi}}
+\renewcommand{\theenumii}{(\arabic{enumi})}
+\renewcommand{\theequation}{\arabic{section}.\arabic{equation}}
+
+\def\baselinestretch{1.20}
+\def\bvec#1{\leavevmode\hbox{\boldmath$#1$}}
+\let\vec=\bvec
+\def\r#1{{\rm#1}}
+\def\ave#1{\left\langle#1\right\rangle}
+\def\aves#1{\langle#1\rangle}
+\def\dd#1#2{\frac{\partial #1}{\partial #2}}
+\def\tensor#1{\mathord{\displaystyle\mathop{#1}^\leftrightarrow}}
+\def\para{\parallel}
+\def\ddrho{\frac{\partial}{\partial\rho}}
+\def\ddV{\frac{\partial}{\partial V}}
+\def\ddt{\frac{\partial}{\partial t}}
+\def\ddr{\frac{\partial}{\partial r}}
+\def\dds{\frac{\partial}{\partial s}}
+\def\gradrho2{\aves{|\nabla\rho|^2}}
+\def\psid{\dot{\psi}}
+\def\psit{\psi_t}
+\def\psitd{\dot{\psit}}
+\def\Er{E_r}
+
+\def\me{m_\r{e}}
+\def\mi{m_\r{i}}
+\def\mz{m_\r{z}}
+\def\mb{m_\r{b}}
+\def\nee{n_\r{e}}
+\def\ni{n_\r{i}}
+\def\nz{n_\r{z}}
+\def\nb{n_\r{b}}
+\def\Te{T_\r{e}}
+\def\Ti{T_\r{i}}
+\def\Tz{T_\r{z}}
+\def\Tb{T_\r{b}}
+\def\Zi{Z_\r{i}}
+\def\Zz{Z_\r{z}}
+\def\Zb{Z_\r{b}}
+\def\uzt#1{u_{\r{#1}\zeta}}
+\def\qzt#1{\hat{q}_{\r{#1}\zeta}}
+\def\uszt{u_{s\zeta}}
+\def\upara#1{u_{\r{#1}\para}}
+\def\uhatth#1{\hat{u}_{\r{#1}\theta}}
+\def\qhatpara#1{\hat{q}_{\r{#1}\para}}
+\def\urho#1{u_\r{#1}^\rho}
+\def\ugrho{u_{g}^\rho}
+\def\uV#1{u_\r{#1}^V}
+\def\ugV{u_{g}^V}
+\def\chis#1{\chi_\r{#1}}
+\def\De{D_\r{e}}
+\def\nun#1{\nu_\r{0#1}}
+\def\nsup#1{n_\r{#1sup}}
+\def\Tsup#1{T_\r{#1sup}}
+\def\nuLT#1{\nu_{\r{L}T_\r{#1}}}
+\def\PRF#1{P_\r{RF#1}}
+\def\Palp#1{P_{\alpha\r{#1}}}
+\def\fei{f_\r{ei}}
+
+\def\nbrp{n_\r{b}^\r{rp}}
+\def\ubrp{u_\r{b}^\r{rp}}
+\def\Dbrp{D_\r{b}^\r{rp}}
+\def\Db{D_\r{b}}
+
+\def\bri{\aves{B^2}\aves{R^2} - I^2}
+%\def\rib{\aves{R^2}-\frac{I^2}{\aves{B^2}}}
+\def\uspara{u_{s\para}}
+\def\Pbpara{P_{\r{b}\parallel}}
+\def\Pbperp{P_{\r{b}\perp}}
+\def\PBr{P_\r{Br}}
+\def\Pb{P_\r{b}}
+\def\Eb{E_\r{b}}
+
+\def\EH{E_\r{H}}
+\def\nna{n_{01}}
+\def\nnb{n_{02}}
+\def\nnc{n_{03}}
+\def\nnz{\bar{n}_{z}}
+\def\Tna{T_{01}}
+\def\Tnb{T_{02}}
+\def\Tnc{T_{03}}
+
+\def\nueff{\nu_\r{eff}}
+\def\fCX{f_\r{CX}}
+\def\nuL{\nu_\r{L}}
+\def\nuCX{\nu_\r{CX}}
+\def\nuLC{\nu_\r{LC}}
+\def\nuion{\nu_\r{ionize}}
+\def\nub{\nu_\r{b}}
+\def\nuTei{\nu_\r{Tei}}
+\def\vb{v_\r{b}}
+\def\nuOL{\nu_\r{OL}}
+\def\nubL{\nu_\r{bL}}
+
+\newcommand{\Frac}[2]{%
+  {\displaystyle {\displaystyle #1\over \displaystyle #2}}%
+}
+\newcommand{\rdprd}[2]{\Frac{\partial #1}{\partial #2}}
+\newcommand{\aveaveB}[1]{\left< \!\! \left< #1 \right> \!\! \right>}
+%\newcommand{\hatomega}{\widehat{\omega}}
+
+\def\red#1{\textcolor{red}{#1}}
+\def\blue#1{\textcolor{blue}{#1}}
+
+\begin{document}
+
+\begin{center}
+TASK/TX V5.62 [26/09/29]
+\end{center}
+
+\section{Equations in $\rho$ coordinates}
+\vspace{-5mm}
+
+%
+\begin{eqnarray}
+%=======%
+% \phi  %
+%=======%
+  0 &=&
+%
+    \frac{1}{V'} \ddrho \left[ V' \gradrho2 \ddrho{\Phi} \right]
+%
+  + \frac{1}{\epsilon_0}
+%
+    \left(-e \nee + \Zi e \ni + \Zz e \nz + \Zb e \nb + \Zb e g \nbrp \right)
+\\[5mm]
+%=========%
+% \psitd  %
+%=========%
+  \frac{1}{c^2} \ddt \psitd &=&
+%
+    V' \ave{\frac{|\nabla\rho|^2}{R^2}} \ddrho \left[ \frac{1}{V'\aves{R^{-2}}}
+				         \ddrho \psit \right] \nonumber\\[3mm]&&{}
+%
+  + \frac{\mu_0}{\aves{B^\theta}}
+%
+    \left[-     e \nee \left( \aves{B\upara{e}} - I\ave{\frac{\uzt{e}}{R}} \right)
+          + \Zi e \ni  \left( \aves{B\upara{i}} - I\ave{\frac{\uzt{i}}{R}} \right)
+    \right.\nonumber\\[3mm]&&{}
+    \left.+ \Zz e \nz  \left( \aves{B\upara{z}} - I\ave{\frac{\uzt{z}}{R}} \right)
+          + \Zb e \nb  \left( \aves{B\upara{b}} - I\ave{\frac{\uzt{b}}{R}} \right) \right]
+\\[5mm]
+%========%
+% \psid  %
+%========%
+  \frac{1}{c^2} \ddt \psid &=&
+%
+  \frac{1}{V'\aves{R^{-2}}} \ddrho \left[ V'
+				    \ave{\frac{|\nabla\rho|^2}{R^2}}
+				    \ddrho \psi \right] \nonumber\\[3mm]&&{}
+%
+  - \frac{\mu_0}{\aves{R^{-2}}} \left(-e \nee \ave{\frac{\uzt{e}}{R}}
+			         + \Zi e \ni  \ave{\frac{\uzt{i}}{R}}
+			         + \Zz e \nz  \ave{\frac{\uzt{z}}{R}}
+			         + \Zb e \nb  \ave{\frac{\uzt{b}}{R}} \right)
+%
+%  + \mu_0 j_\r{virtual}
+\\[5mm]
+%======%
+% \psi %
+%======%
+  \ddt \psi &=&
+%
+  \psid
+\\[5mm]
+%========%
+% \psit  %
+%========%
+  \ddt \psit &=&
+%
+  \psitd
+\end{eqnarray}
+%
+
+%%%
+
+%
+\begin{eqnarray}
+%=======%
+% \nee  %
+%=======%
+  \frac{1}{V'} \ddt ( V' \nee ) &=&
+%
+  - \frac{1}{V'} \ddrho [ V' \nee (\urho{e} - \ugrho) ] 
+%
+  + \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, (\nna + \nnb + \nnc)
+\nonumber\\[3mm]&&{}
+%
+  + \Zz \nee \nnz f_5S_5 - \Zz \nee \nz A_6
+%
+  - \nuL (\nee - \nsup{e})
+%
+  + (1 - \fCX) \frac{\Pb}{\Eb}
+\\[5mm]
+%=========%
+% radial  %
+%=========%
+  0 &=&
+%
+  -        ( \bri ) \ddrho \nee \Te
+%
+  + e \nee ( \bri ) \ddrho \Phi
+\nonumber\\[3mm]&&{}
+%
+  - e \dd{\psi}{\rho} I          \nee \aves{B\upara{e}}
+%
+  + e \dd{\psi}{\rho} \aves{B^2} \nee \aves{R\uzt{e}}
+\\[5mm]
+%===============%
+% <B \upara{e}> %
+%===============%
+  \me \nee \ddt \aves{B \upara{e}} &=&
+%
+  - \hat{\mu}_1^\r{e} \aves{B \upara{e}} 
+  - \hat{\mu}_2^\r{e} \aves{B \qhatpara{e}} 
+%
+  + \hat{\mu}_1^\r{e} {B V_{1\r{e}}} 
+  + \hat{\mu}_2^\r{e} {B V_{2\r{e}}}
+\nonumber\\[3mm]&&{}
+%
+  + \ell_{11}^{\r{ee}} \aves{B \upara{e}}
+  + \ell_{11}^{\r{ei}} \aves{B \upara{i}}
+  + \ell_{11}^{\r{ez}} \aves{B \upara{z}}
+  + \ell_{11}^{\r{eb}} \aves{B \upara{b}}
+\nonumber\\[3mm]&&{}
+%
+  - \ell_{12}^{\r{ee}} \aves{B \qhatpara{e}} 
+  - \ell_{12}^{\r{ei}} \aves{B \qhatpara{i}} 
+  - \ell_{12}^{\r{ez}} \aves{B \qhatpara{z}} 
+\nonumber\\[3mm]&&{}
+%
+  - e \nee \aves{B E_\para}
+%
+%  + \aves{B S_{\r{m}\para}^\r{e}}
+%
+  - \nuL \me \nee \aves{B \upara{e}}
+%
+  - \nun{e} \me \nee \aves{B \upara{e}}
+\nonumber\\[3mm]&&{}
+%
+  - \frac{1}{V'} \ddrho V' \aves{|\nabla \rho|} v_{\r{e}\zeta} \me \nee \aves{B \upara{e}}
+%
+  + \aves{|\nabla \rho|} v_{\r{e}\zeta} \me \nee 
+  \biggl(\ddrho \frac{\aves{B^2}}{I} \biggl) \frac{I}{\aves{B^2}} \aves{B \upara{e}}
+\nonumber\\[3mm]&&{}
+%
+  + \frac{1}{V'} \ddrho V' \aves{|\nabla \rho|^2} \chis{e\zeta} \me \nee
+  \frac{\aves{B^2}}{I} \ddrho \frac{I}{\aves{B^2}} \aves{B \upara{e}}
+\nonumber\\[3mm]&&{}
+%
+  - \aves{|\nabla \rho|^2} \chis{e\zeta} \me \nee \biggl( \ddrho
+  \frac{\aves{B^2}}{I} \biggr) \ddrho \frac{I}{\aves{B^2}} \aves{B \upara{e}}
+%
+  - \frac{\aves{B^2}}{I} \frac{1}{V'} \ddrho V' \aves{\Pi_\r{e}^\r{res}}
+\nonumber\\[3mm]&&{}
+%
+  - \frac{1}{V'} \ddrho V' 
+    \left[  \aves{|\nabla\rho|} v_{\r{e}\zeta} \me \nee
+          \left(\aves{R^2} - \frac{I^2}{\aves{B^2}}\right) \frac{1}{I}BV_{1\r{e}} \right.
+\nonumber\\[3mm]&&{}
+    \left.- \aves{|\nabla\rho|^2} \chis{e\zeta} \me \nee
+          \ddrho \left(\aves{R^2} - \frac{I^2}{\aves{B^2}}\right) \frac{1}{I}BV_{1\r{e}}\right]
+\\[5mm]
+%================%
+% elec. toroidal %
+%================%
+ \frac{1}{V'} \ddt (V' \me \nee \aves{R \uzt{e}}) &=&
+%
+  - \frac{1}{V'} \ddrho V' \left[  \aves{|\nabla\rho|} v_{\r{e}\zeta} \me \nee \aves{R \uzt{e}}
+			       +   (\urho{e} - \ugrho) \me \nee \aves{R \uzt{e}} \right.
+\nonumber\\[3mm]&&{}
+                           \left.- \aves{|\nabla\rho|^2} \chis{e\zeta} \me \nee \ddrho \aves{R \uzt{e}}
+                               + \aves{\Pi_\r{e}^\r{res}} \right]
+\nonumber\\[3mm]&&{}
+%
+  + \ell_{11}^\r{ee} \aves{R \uzt{e}}
+  + \ell_{11}^\r{ei} \aves{R \uzt{i}}
+  + \ell_{11}^\r{ez} \aves{R \uzt{z}}
+  + \ell_{11}^\r{eb} \aves{R \uzt{b}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \ell_{12}^\r{ee} \aves{R \qzt{e}}
+  - \ell_{12}^\r{ei} \aves{R \qzt{i}}
+  - \ell_{12}^\r{ez} \aves{R \qzt{z}}
+\nonumber\\[2.5mm]&&{}
+%
+  - e                 \nee \aves{R E_\zeta}
+%
+  - e \dd{\psi}{\rho} \nee \urho{e}
+%
+\nonumber\\[2.5mm]&&{}
+%
+%  turbulent particle flux model
+%
+%  - \frac{e^2 \aves{|\nabla\rho|^2} \De}{\Te} \dd{\psi}{\rho} \nee
+%    \left[  \dd{\psi}{\rho} \frac{\aves{B^2}}{\bri} \aves{R \uzt{e}}
+%          - \dd{\psi}{\rho} \frac{I}{\bri} \aves{B \upara{e}} \right.
+%\nonumber\\[2.5mm]&&{}
+%    \left.+ \frac{C_\r{T}-1}{e} \ddrho \Te
+%	  + \ddrho \Phi
+%	  + \frac{\Te}{e} \dd{\psi}{\rho} C_\r{p} \right]
+%
+  - \frac{e \aves{|\nabla\rho|^2} \De}{\Te}  \dd{\psi}{\rho}
+  \left[  (1-C_\r{T})\Te \ddrho \nee
+        + C_\r{T} \ddrho \nee \Te
+	+ \nee \Te \dd{\psi}{\rho} C_\r{p}\right]
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL  \me \nee \aves{R \uzt{e}}
+%
+  - \nun{e} \me \nee \aves{R \uzt{e}}
+\\[5mm]
+%===========%
+% \nee \Te  %
+%===========%
+ \frac{3}{2}\frac{1}{V'^{5/3}} \ddt (V'^{5/3} \nee \Te ) &=& 
+%
+  - \frac{1}{V'} \ddrho V'
+    \left[ - \chis{e}       \aves{|\nabla\rho|^2} \nee \ddrho \Te
+           + V_\r{e}^\r{hp} \aves{|\nabla\rho|}   \nee \Te
+           + \frac{5}{2} \nee \Te ( \urho{e} - \ugrho ) \right]
+\nonumber\\[2.5mm]&&{}
+%
+  - \ugrho \ddrho \nee \Te
+%
+  - \urho{i} \ddrho \ni  \Ti
+  - \urho{z} \ddrho \nz  \Tz
+  - \uhatth{i} \aves{\vec{B}\cdot\nabla\cdot\tensor{\pi}_\r{i}}
+  - \uhatth{z} \aves{\vec{B}\cdot\nabla\cdot\tensor{\pi}_\r{z}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \frac{3}{2} \nee \frac{ \Te - \Ti }{\tau_\r{ei}}
+  - \frac{3}{2} \nee \frac{ \Te - \Tz }{\tau_\r{ez}}
+\nonumber\\[2.5mm]&&{}
+%
+%  - \dd{\rho}{\psi} \ddrho ( \nee \Te + \ni \Ti ) \psit
+%  - \frac{1}{\mu_0} \dd{\rho}{\psi} \dd{I}{\rho} I \aves{R^{-2}}
+%    \left( - \frac{\psitd}{q} + \psid \right)
+%\nonumber\\[2.5mm]&&{}
+%
+  - \dot{\psi}_t \aves{B^\theta} (-     e \nee \uhatth{e}
+                                  + \Zi e \ni  \uhatth{i}
+                                  + \Zz e \nz  \uhatth{z})
+\nonumber\\[2.5mm]&&{}
+%  - \frac{1}{\aves{B^2}}\dot{\psi}_t (-e \nee \aves{Bu_{\r{e}\para}} +
+%  Z_\r{i} e \ni \aves{Bu_{\r{i}\para}})
+%
+%  +\frac{1}{\aves{B^2}}\dot{\psi}_t (-e \nee BV_{1\r{e}} + Z_\r{i} e \ni
+%  BV_{1\r{i}})
+%\nonumber\\[2.5mm]&&{}
+%
+  +\dot{\psi}\left(-     e \nee \ave{\frac{\uzt{e}}{R}}
+	           + \Zi e \ni  \ave{\frac{\uzt{i}}{R}}
+	           + \Zz e \nz  \ave{\frac{\uzt{z}}{R}}\right)
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL \Te (\nee - \nsup{e})
+%
+  - \frac{3}{2} \nuLT{e} \nee (\Te - \Tsup{e})
+%
+\nonumber\\[2.5mm]&&{}
+  - \EH \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, (\nna + \nnb + \nnc)
+\nonumber\\[2.5mm]&&{}
+%
+  + \fei \Pb
+%
+%  + \mb \frac{\Pb}{\Eb} \aves{B \upara{b}} \frac{\aves{B \upara{e}}}{\aves{B^2}}
+%
+  + \Palp{e}
+%
+  + \PRF{e}
+%
+  - \PBr
+\\[5mm]
+%=====================%
+% 2<B \qepara>/(5 pe) %
+%=====================%
+ \frac{5}{2} \me \nee \ddt \aves{B \qhatpara{e}} &=&
+%
+  - \hat{\mu}_2^\r{e} \aves{B \upara{e}} 
+  - \hat{\mu}_3^\r{e} \aves{B \qhatpara{e}}
+%
+  + \hat{\mu}_2^\r{e} {B V_{1\r{e}}} 
+  + \hat{\mu}_3^\r{e} {B V_{2\r{e}}}
+\nonumber\\[3mm]&&{}
+%
+  - \ell_{21}^{\r{ee}} \aves{B \upara{e}}
+  - \ell_{21}^{\r{ei}} \aves{B \upara{i}}
+  - \ell_{21}^{\r{ez}} \aves{B \upara{z}}
+  - \ell_{21}^{\r{eb}} \aves{B \upara{b}}
+\nonumber\\[3mm]&&{}
+%
+  + \ell_{22}^{\r{ee}} \aves{B \qhatpara{e}}
+  + \ell_{22}^{\r{ei}} \aves{B \qhatpara{i}}
+  + \ell_{22}^{\r{ez}} \aves{B \qhatpara{z}}
+\nonumber\\[3mm]&&{}
+%
+  - \nuL \me \nee \aves{B \qhatpara{e}}
+%
+  - \nun{e} \me \nee \aves{B \qhatpara{e}}
+\end{eqnarray}
+%
+
+%
+\begin{eqnarray}
+%======%
+% \ni  %
+%======%
+  \frac{1}{V'} \ddt ( V' \ni ) &=&
+%
+  - \frac{1}{V'} \ddrho [ V' \ni (\urho{i} - \ugrho) ]
+%
+  + \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, (\nna + \nnb
+  + \nnc)
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL (\ni - \nsup{i}) 
+%
+  + \nub \nb
+%
+  + \nub g \nbrp
+%
+  - \fCX \frac{\Pb}{\Eb}
+%
+  + \nubL \nb
+%
+  + S_\r{LC}
+%
+  - \nuOL \ni
+%
+\\[5mm]
+%=========%
+% radial  %
+%=========%
+  0 &=&
+%
+  -           ( \bri ) \ddrho \ni \Ti
+%
+  - \Zi e \ni ( \bri ) \ddrho \Phi
+\nonumber\\[3mm]&&{}
+%
+  + \Zi e \ni \dd{\psi}{\rho} I          \aves{B\upara{i}}
+%
+  - \Zi e \ni \dd{\psi}{\rho} \aves{B^2} \aves{R\uzt{i}}
+\\[5mm]
+%===============%
+% <B \upara{i}> %
+%===============%
+  \mi \ni \ddt \aves{B \upara{i}} &=&
+%
+  - \hat{\mu}_1^\r{i} \aves{B \upara{i}} 
+  - \hat{\mu}_2^\r{i} \aves{B \qhatpara{i}}
+%
+  + \hat{\mu}_1^\r{i} {B V_{1\r{i}}} 
+  + \hat{\mu}_2^\r{i} {B V_{2\r{i}}}
+\nonumber\\[3mm]&&{}
+%
+  + \ell_{11}^{\r{ie}} \aves{B \upara{e}}
+  + \ell_{11}^{\r{ii}} \aves{B \upara{i}}
+  + \ell_{11}^{\r{iz}} \aves{B \upara{z}}
+  + \ell_{11}^{\r{ib}} \aves{B \upara{b}}
+\nonumber\\[3mm]&&{}
+%
+  - \ell_{12}^{\r{ie}} \aves{B \qhatpara{e}}
+  - \ell_{12}^{\r{ii}} \aves{B \qhatpara{i}}
+  - \ell_{12}^{\r{iz}} \aves{B \qhatpara{z}}
+\nonumber\\[3mm]&&{}
+%
+  + \Zi e \ni \aves{B E_\para}
+%
+%  + \aves{B S_{\r{m}\para}^\r{i}}
+%
+%  + \aves{B S_\r{LC\para}}
+%
+  - \nuL  \mi \ni \aves{B \upara{i}}
+%
+  + \nub  \mb \nb \aves{B \upara{b}}
+%
+  - \nun{i} \mi \ni \aves{B \upara{i}}
+\nonumber\\[3mm]&&{}
+%
+  - \nuCX \mi \ni \aves{B \upara{i}}
+%
+  - \nuOL \mi \ni \aves{B \upara{i}}
+\nonumber\\[3mm]&&{}
+%
+  - \frac{1}{V'} \ddrho V' \aves{|\nabla \rho|} v_{\r{i}\zeta} \mi \ni \aves{B \upara{i}}
+%
+  + \aves{|\nabla \rho|} v_{\r{i}\zeta} \mi \ni 
+  \biggl(\ddrho \frac{\aves{B^2}}{I} \biggl) \frac{I}{\aves{B^2}} \aves{B \upara{i}}
+\nonumber\\[3mm]&&{}
+%
+  + \frac{1}{V'} \ddrho V' \aves{|\nabla \rho|^2} \chis{i\zeta} \mi \ni
+  \frac{\aves{B^2}}{I} \ddrho \frac{I}{\aves{B^2}} \aves{B \upara{i}}
+\nonumber\\[3mm]&&{}
+%
+  - \aves{|\nabla \rho|^2} \chis{i\zeta} \mi \ni \biggl( \ddrho
+  \frac{\aves{B^2}}{I} \biggr) \ddrho \frac{I}{\aves{B^2}} \aves{B \upara{i}}
+%
+  - \frac{\aves{B^2}}{I} \frac{1}{V'} \ddrho V' \aves{\Pi_\r{i}^\r{res}}
+\nonumber\\[3mm]&&{}
+%
+  - \frac{1}{V'} \ddrho V' 
+    \left[  \aves{|\nabla\rho|} v_{\r{i}\zeta} \mi \ni
+          \left(\aves{R^2} - \frac{I^2}{\aves{B^2}}\right) \frac{1}{I}BV_{1\r{i}} \right.
+\nonumber\\[3mm]&&{}
+    \left.- \aves{|\nabla\rho|^2} \chis{i\zeta} \mi \ni
+          \ddrho \left(\aves{R^2} - \frac{I^2}{\aves{B^2}}\right) \frac{1}{I}BV_{1\r{i}}\right]
+\\[5mm]
+%==============%
+% ion toroidal %
+%==============%
+ \frac{1}{V'} \ddt (V' \mi \ni \aves{R \uzt{i}}) &=&
+%
+  - \frac{1}{V'} \ddrho V' \left[  \aves{|\nabla\rho|} v_{\r{i}\zeta} \mi \ni \aves{R \uzt{i}}
+			       +   (\urho{i} - \ugrho) \mi \ni \aves{R \uzt{i}} \right.
+\nonumber\\[3mm]&&{}
+                        \left. - \aves{|\nabla\rho|^2} \chis{i\zeta} \mi \ni
+			         \ddrho \aves{R \uzt{i}}
+                               + \aves{\Pi_\r{i}^\r{res}} \right]
+\nonumber\\[3mm]&&{}
+%
+  + \ell_{11}^\r{ie} \aves{R \uzt{e}}
+  + \ell_{11}^\r{ii} \aves{R \uzt{i}}
+  + \ell_{11}^\r{iz} \aves{R \uzt{z}}
+  + \ell_{11}^\r{ib} \aves{R \uzt{b}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \ell_{12}^\r{ie} \aves{R \qzt{e}}
+  - \ell_{12}^\r{ii} \aves{R \qzt{i}}
+  - \ell_{12}^\r{iz} \aves{R \qzt{z}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \Zi e                 \ni \aves{R E_\zeta}
+%
+  + \Zi e \dd{\psi}{\rho} \ni \urho{i}
+%
+\nonumber\\[2.5mm]&&{}
+%
+%  turbulent particle flux model
+%
+%  + \Zi \frac{e^2 \aves{|\nabla\rho|^2} \De}{\Te} \dd{\psi}{\rho} (\ni+\nb)
+%    \left[  \dd{\psi}{\rho} \frac{\aves{B^2}}{\bri} \aves{R \uzt{e}}
+%          - \dd{\psi}{\rho} \frac{I}{\bri} \aves{B \upara{e}} \right.
+%\nonumber\\[2.5mm]&&{}
+%    \left.+ \frac{C_\r{T}-1}{e} \ddrho \Te
+%	  + \ddrho \Phi
+%	  + \frac{\Te}{e} \dd{\psi}{\rho} C_\r{p} \right]
+%\nonumber\\[2.5mm]&&{}
+%
+  + \Zi \frac{e \aves{|\nabla\rho|^2} \De}{\Te} \dd{\psi}{\rho} \frac{\ni+\nb}{\nee}
+  \left[  (1-C_\r{T})\Te \ddrho \nee
+        + C_\r{T} \ddrho \nee \Te
+	+ \nee \Te \dd{\psi}{\rho} C_\r{p}\right]
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL  \mi \ni \aves{R \uzt{i}}
+%
+%  + \nub  \mb \frac{I}{\aves{B^2}} \nb \aves{B \upara{b}}
+  + \nub  \mb \nb \aves{R \uzt{b}}
+%
+  - \nun{i} \mi \ni \aves{R \uzt{i}}
+%
+  - \nuCX \mi \ni \aves{R \uzt{i}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuOL \mi \ni \aves{R \uzt{i}}
+\\[5mm]
+%==========%
+% \ni \Ti  %
+%==========%
+ \frac{3}{2}\frac{1}{V'^{5/3}} \ddt (V'^{5/3} \ni \Ti ) &=& 
+%
+  - \frac{1}{V'} \ddrho V'
+    \left[ - \chis{i}          \aves{|\nabla\rho|^2} \ni \ddrho \Ti
+           + V_\r{i}^\r{hp} \aves{|\nabla\rho|}   \ni \Ti
+           + \frac{5}{2} \ni \Ti ( \urho{i} - \ugrho ) \right]
+\nonumber\\[2.5mm]&&{}
+%
+  + ( \urho{i} - \ugrho ) \ddrho \ni \Ti
+%
+  + \uhatth{i} \aves{\vec{B}\cdot\nabla\cdot\tensor{\pi}_\r{i}}
+%
+  - \frac{3}{2} \ni \frac{ \Ti - \Te }{\tau_\r{ie}}
+  - \frac{3}{2} \ni \frac{ \Ti - \Tz }{\tau_\r{iz}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL \Ti (\ni - \nsup{i})
+%
+  - \frac{3}{2} \nuLT{i} \ni (\Ti - \Tsup{i})
+%
+\nonumber\\[2.5mm]&&{}
+  + \frac{3}{2} \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, (\nna \Tna +
+  \nnb \Tnb + \nnc \Tnc)
+\nonumber\\[2.5mm]&&{}
+%
+  - \frac{3}{2} \nuCX \ni (\Ti - \Tna)
+%
+  + (1 - \fei) \Pb
+%
+  + \mb \frac{\Pb}{\Eb} \aves{B \upara{b}} \frac{\aves{B \upara{i}}}{\aves{B^2}}
+%
+  + \Palp{i}
+%
+  + \PRF{i}
+\\[5mm]
+%=====================%
+% 2<B \qipara>/(5 pi) %
+%=====================%
+ \frac{5}{2} \mi \ni \ddt \aves{B \qhatpara{i}} &=&
+%
+  - \hat{\mu}_2^\r{i} \aves{B \upara{i}} 
+  - \hat{\mu}_3^\r{i} \aves{B \qhatpara{i}}
+%
+  + \hat{\mu}_2^\r{i} {B V_{1\r{i}}} 
+  + \hat{\mu}_3^\r{i} {B V_{2\r{i}}}
+\nonumber\\[3mm]&&{}
+%
+  - \ell_{21}^{\r{ie}} \aves{B \upara{e}}
+  - \ell_{21}^{\r{ii}} \aves{B \upara{i}}
+  - \ell_{21}^{\r{iz}} \aves{B \upara{z}}
+  - \ell_{21}^{\r{ib}} \aves{B \upara{b}}
+\nonumber\\[3mm]&&{}
+%
+  + \ell_{22}^{\r{ie}} \aves{B \qhatpara{e}}
+  + \ell_{22}^{\r{ii}} \aves{B \qhatpara{i}}
+  + \ell_{22}^{\r{iz}} \aves{B \qhatpara{z}}
+\nonumber\\[3mm]&&{}
+%
+  - \nuL \mi \ni \aves{B \qhatpara{i}}
+%
+  - \nun{i} \mi \ni \aves{B \qhatpara{i}}
+\end{eqnarray}
+%
+
+%
+\begin{eqnarray}
+%======%
+% \nz  %
+%======%
+  \frac{1}{V'} \ddt ( V' \nz ) &=&
+%
+  - \frac{1}{V'} \ddrho [ V' \nz (\urho{z} - \ugrho) ]
+%
+  + \nee \nnz f_5S_5 - \nee \nz A_6 
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL (\nz - \nsup{z}) 
+%
+  + S_\r{LC}
+%
+  - \nuOL \nz
+%
+\\[5mm]
+%=========%
+% radial  %
+%=========%
+  0 &=&
+%
+  -           ( \bri ) \ddrho \nz \Tz
+%
+  - \Zz e \nz ( \bri ) \ddrho \Phi
+\nonumber\\[3mm]&&{}
+%
+  + \Zz e \nz \dd{\psi}{\rho} I          \aves{B\upara{z}}
+%
+  - \Zz e \nz \dd{\psi}{\rho} \aves{B^2} \aves{R\uzt{z}}
+\\[5mm]
+%===============%
+% <B \upara{z}> %
+%===============%
+  \mz \nz \ddt \aves{B \upara{z}} &=&
+%
+  - \hat{\mu}_1^\r{z} \aves{B \upara{z}} 
+  - \hat{\mu}_2^\r{z} \aves{B \qhatpara{z}}
+%
+  + \hat{\mu}_1^\r{z} {B V_{1\r{z}}} 
+  + \hat{\mu}_2^\r{z} {B V_{2\r{z}}}
+\nonumber\\[3mm]&&{}
+%
+  + \ell_{11}^{\r{ze}} \aves{B \upara{e}}
+  + \ell_{11}^{\r{zi}} \aves{B \upara{i}}
+  + \ell_{11}^{\r{zz}} \aves{B \upara{z}}
+  + \ell_{11}^{\r{zb}} \aves{B \upara{b}}
+\nonumber\\[3mm]&&{}
+%
+  - \ell_{12}^{\r{ze}} \aves{B \qhatpara{e}}
+  - \ell_{12}^{\r{zi}} \aves{B \qhatpara{i}}
+  - \ell_{12}^{\r{zz}} \aves{B \qhatpara{z}}
+\nonumber\\[3mm]&&{}
+%
+  + \Zz e \nz \aves{B E_\para}
+%
+%  + \aves{B S_{\r{m}\para}^\r{i}}
+%
+%  + \aves{B S_\r{LC\para}}
+%
+  - \nuL  \mz \nz \aves{B \upara{z}}
+%
+  - \nun{z} \mz \nz \aves{B \upara{z}}
+%
+  - \nuOL \mz \nz \aves{B \upara{z}}
+\nonumber\\[3mm]&&{}
+%
+  - \frac{1}{V'} \ddrho V' \aves{|\nabla \rho|} v_{\r{z}\zeta} \mz \nz \aves{B \upara{z}}
+%
+  + \aves{|\nabla \rho|} v_{\r{z}\zeta} \mz \nz 
+  \biggl(\ddrho \frac{\aves{B^2}}{I} \biggl) \frac{I}{\aves{B^2}} \aves{B \upara{z}}
+\nonumber\\[3mm]&&{}
+%
+  + \frac{1}{V'} \ddrho V' \aves{|\nabla \rho|^2} \chis{z\zeta} \mz \nz
+  \frac{\aves{B^2}}{I} \ddrho \frac{I}{\aves{B^2}} \aves{B \upara{z}}
+\nonumber\\[3mm]&&{}
+%
+  - \aves{|\nabla \rho|^2} \chis{z\zeta} \mz \nz \biggl( \ddrho
+  \frac{\aves{B^2}}{I} \biggr) \ddrho \frac{I}{\aves{B^2}} \aves{B \upara{z}}
+%
+  - \frac{\aves{B^2}}{I} \frac{1}{V'} \ddrho V' \aves{\Pi_\r{z}^\r{res}}
+\nonumber\\[3mm]&&{}
+%
+  - \frac{1}{V'} \ddrho V' 
+    \left[  \aves{|\nabla\rho|} v_{\r{z}\zeta} \mz \nz
+          \left(\aves{R^2} - \frac{I^2}{\aves{B^2}}\right) \frac{1}{I}BV_{1\r{z}} \right.
+\nonumber\\[3mm]&&{}
+    \left.- \aves{|\nabla\rho|^2} \chis{z\zeta} \mz \nz
+          \ddrho \left(\aves{R^2} - \frac{I^2}{\aves{B^2}}\right) \frac{1}{I}BV_{1\r{z}}\right]
+\\[5mm]
+%==============%
+% imp toroidal %
+%==============%
+ \frac{1}{V'} \ddt (V' \mz \nz \aves{R \uzt{z}}) &=&
+%
+  - \frac{1}{V'} \ddrho V' \left[  \aves{|\nabla\rho|} v_{\r{z}\zeta} \mz \nz \aves{R \uzt{z}}
+			       +   (\urho{z} - \ugrho) \mz \nz \aves{R \uzt{z}} \right.
+\nonumber\\[3mm]&&{}
+                        \left. - \aves{|\nabla\rho|^2} \chis{z\zeta} \mz \nz
+			         \ddrho \aves{R \uzt{z}}
+                               + \aves{\Pi_\r{z}^\r{res}} \right]
+\nonumber\\[3mm]&&{}
+%
+  + \ell_{11}^\r{ze} \aves{R \uzt{e}}
+  + \ell_{11}^\r{zi} \aves{R \uzt{i}}
+  + \ell_{11}^\r{zz} \aves{R \uzt{z}}
+  + \ell_{11}^\r{zb} \aves{R \uzt{b}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \ell_{12}^\r{ze} \aves{R \qzt{e}}
+  - \ell_{12}^\r{zi} \aves{R \qzt{i}}
+  - \ell_{12}^\r{zz} \aves{R \qzt{z}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \Zz e                 \nz \aves{R E_\zeta}
+%
+  + \Zz e \dd{\psi}{\rho} \nz \urho{z}
+%
+\nonumber\\[2.5mm]&&{}
+%
+%  turbulent particle flux model
+%
+%  + \Zz \frac{e \aves{|\nabla\rho|^2} \De}{\Te} \dd{\psi}{\rho} \nz
+%    \left[  (1-C_\r{T})\frac{\Te}{\nee}\ddrho \nee
+%           + C_\r{T} \frac{1}{\nee} \ddrho \nee\Te
+%	  + \Te \dd{\psi}{\rho} C_\r{p} \right]
+%\nonumber\\[2.5mm]&&{}
+%
+  + \Zz \frac{e \aves{|\nabla\rho|^2} \De}{\Te} \dd{\psi}{\rho} \frac{\nz}{\nee}
+  \left[  (1-C_\r{T})\Te \ddrho \nee
+        + C_\r{T} \ddrho \nee \Te
+	+ \nee \Te \dd{\psi}{\rho} C_\r{p}\right]
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL    \mz \nz \aves{R \uzt{z}}
+%
+  - \nun{z} \mz \nz \aves{R \uzt{z}}
+%
+  - \nuOL   \mz \nz \aves{R \uzt{z}}
+\\[5mm]
+%==========%
+% \nz \Tz  %
+%==========%
+ \frac{3}{2}\frac{1}{V'^{5/3}} \ddt (V'^{5/3} \nz \Tz ) &=& 
+%
+  - \frac{1}{V'} \ddrho V'
+    \left[ - \chis{z}          \aves{|\nabla\rho|^2} \nz \ddrho \Tz
+           + V_\r{z}^\r{hp} \aves{|\nabla\rho|}   \nz \Tz
+           + \frac{5}{2} \nz \Tz ( \urho{z} - \ugrho ) \right]
+\nonumber\\[2.5mm]&&{}
+%
+  + ( \urho{z} - \ugrho ) \ddrho \nz \Tz
+%
+  + \uhatth{z} \aves{\vec{B}\cdot\nabla\cdot\tensor{\pi}_\r{z}}
+%
+  - \frac{3}{2} \nz \frac{ \Tz - \Te }{\tau_\r{ze}}
+  - \frac{3}{2} \nz \frac{ \Tz - \Ti }{\tau_\r{zi}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL \Tz (\nz - \nsup{z})
+%
+  - \frac{3}{2} \nuLT{z} \nz (\Tz - \Tsup{z})
+\nonumber\\[2.5mm]&&{}
+%
+  + \Palp{z}
+%
+  + \PRF{z}
+\\[5mm]
+%=====================%
+% 2<B \qzpara>/(5 pz) %
+%=====================%
+ \frac{5}{2} \mz \nz \ddt \aves{B \qhatpara{z}} &=&
+%
+  - \hat{\mu}_2^\r{z} \aves{B \upara{z}} 
+  - \hat{\mu}_3^\r{z} \aves{B \qhatpara{z}}
+%
+  + \hat{\mu}_2^\r{z} {B V_{1\r{z}}} 
+  + \hat{\mu}_3^\r{z} {B V_{2\r{z}}}
+\nonumber\\[3mm]&&{}
+%
+  - \ell_{21}^{\r{ze}} \aves{B \upara{e}}
+  - \ell_{21}^{\r{zi}} \aves{B \upara{i}}
+  - \ell_{21}^{\r{zz}} \aves{B \upara{z}}
+  - \ell_{21}^{\r{zb}} \aves{B \upara{b}}
+\nonumber\\[3mm]&&{}
+%
+  + \ell_{22}^{\r{ze}} \aves{B \qhatpara{e}}
+  + \ell_{22}^{\r{zi}} \aves{B \qhatpara{i}}
+  + \ell_{22}^{\r{zz}} \aves{B \qhatpara{z}}
+\nonumber\\[3mm]&&{}
+%
+  - \nuL \mz \nz \aves{B \qhatpara{z}}
+%
+  - \nun{z} \mz \nz \aves{B \qhatpara{z}}
+\end{eqnarray}
+%
+
+%
+\begin{eqnarray}
+%======%
+% \nb  %
+%======%
+  \frac{1}{V'} \ddt (V' \nb) &=&
+%
+  - \frac{1}{V'} \ddrho [ V' \nb (\urho{b} - \ugrho) ]
+%
+  + \frac{\Pb}{\Eb}
+%
+  - g \frac{\Pbperp}{\Eb}
+%
+  - \nub \nb
+%
+  - \nubL \nb
+%
+  - \nueff g (\sqrt{\delta} \nb - \nbrp)
+%
+\nonumber\\[2.5mm]&&{}
+  + \frac{1}{V'} \ddrho V'\aves{|\nabla\rho|^2} f_t \Db \ddrho \nb
+%
+\\[5mm]
+%=========%
+% radial  %
+%=========%
+  0 &=&
+%
+  -           ( \bri ) \ddrho \nb \Tb
+%
+  - \Zb e \nb ( \bri ) \ddrho \Phi
+\nonumber\\[3mm]&&{}
+%
+  + \Zb e \nb \dd{\psi}{\rho} I          \aves{B\upara{b}}
+%
+  - \Zb e \nb \dd{\psi}{\rho} \aves{B^2} \aves{R\uzt{b}}
+\\[5mm]
+%===========%
+% \upara{b} %
+%===========%
+  \mb \ddt \nb \aves{B \upara{b}} &=&
+%
+  - (\hat{\mu}_1^\r{b} - \ell_{11}^\r{bb}) \aves{B \upara{b}}
+%
+  + \sum_{a\neq\r{b}} \ell_{11}^{\r{b}a} \aves{B u_{a\para}}
+%
+  + \hat{\mu}_1^\r{b} {B V_{1\r{b}}}
+%
+  + \Zb e \nb \aves{B E_\para^A}
+\nonumber\\[2.5mm]&&{}
+%
+  - \nubL \mb \nb \aves{B\upara{b}}
+%
+  - \nub  \mb \nb \aves{B\upara{b}}
+%
+  - \nun{b} \mb \nb \aves{B\upara{b}}
+%
+  - \nuCX \mb \nb \aves{B\upara{b}}
+%
+  + \aves{B S_{\r{m}\para\r{b}}}
+%
+%  + \vbph \frac{\Pbpara}{\Eb}
+%
+\\[5mm]
+%===============%
+% beam toroidal %
+%===============%
+  \frac{1}{V'} \ddt (V' \mb \nb \aves{R \uzt{b}}) &=&
+%
+  - \frac{1}{V'} \dd{}{\rho}[ V' (\urho{b} - \ugrho) \mb \nb \aves{R \uzt{b}} ]
+%
+%  - \ddV [\aves{|\nabla V|} v_{\r{b}\zeta} \red{\nb \aves{R \uzt{b}}}]
+%\nonumber\\[3mm]&&{}
+%  + \ddV \aves{|\nabla V|^2} \chis{b\zeta} \ddV \red{\nb \aves{R \uzt{b}}}
+%  - \ddV \aves{|\nabla V|^2} \chis{b\zeta} \aves{R \uzt{b}}\ddV \red{\nb} 
+%  - \frac{1}{\mb} \ddV \aves{\Pi_\r{b}^\r{res}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \ell_{11}^\r{be} \aves{R \uzt{e}}
+  + \ell_{11}^\r{bi} \aves{R \uzt{i}}
+  + \ell_{11}^\r{bz} \aves{R \uzt{z}}
+%  + \hat{\ell}_{11}^\r{bb} \red{\ni \aves{R \uzt{b}}}
+  + \ell_{11}^\r{bb} \nb \aves{R \uzt{b}}
+\nonumber\\[2.5mm]&&{}
+%
+%  - \frac{1}{\mb} \ell_{12}^\r{be} \frac{I}{\aves{B^2}} \red{\aves{B \qhatpara{e}}}
+%  - \frac{1}{\mb} \ell_{12}^\r{bi} \frac{I}{\aves{B^2}} \red{\aves{B \qhatpara{i}}}
+%
+  + \Zb e              \nb \dot{\psi}
+%
+  + \Zb e \dd{\psi}{\rho} \nb \urho{b}
+%
+%%
+%%  turbulent particle flux model
+%%
+%  + \Zi \frac{e^2 \aves{|\nabla V|^2} \De}{\mi\Te} \dd{\psi}{V} 
+%%
+%    \left[  \dd{\psi}{V} \frac{\aves{B^2}}{\bri} \red{\nee \aves{R \uzt{e}}}
+%          - \dd{\psi}{V} \frac{I}{\bri} \nee \red{\aves{B \upara{e}}} \right.
+%\nonumber\\[2.5mm]&&{}
+%%
+%    \left.+ \frac{C_\r{T}-1}{e} \left(\ddV \red{\nee \Te} - \Te \ddV \red{\nee} \right)
+%	  + \nee \ddV \red{\Phi}
+%	  + \frac{\Te}{e} \dd{\psi}{V} C_\r{p} \red{\nee} \right]
+%\nonumber\\[2.5mm]&&{}
+%
+  - \nubL \mb \nb \aves{R \uzt{b}}
+%
+  - \nub  \mb \nb \aves{B \uzt{b}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \nun{i} \mb \nb \aves{R \uzt{b}}
+%
+  - \nuCX \mb \nb \aves{R \uzt{b}}
+%
+%  - \nuOL \mb \nb \aves{R \uzt{b}}
+%
+  + \frac{I}{\aves{B^2}} \aves{B S_{\r{m}\para\r{b}}}
+%
+\\[5mm]
+%=======%
+% \nna  %
+%=======%
+  \frac{1}{V'} \ddt (V' \nna) &=& 
+%
+    \frac{1}{V'} \ddrho V' \aves{|\nabla\rho|^2} D_{01} \ddrho \nna
+%
+  - \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, \nna
+%
+\nonumber\\[2.5mm]&&{}
+  - \nuCX\, \frac{\ni}{\nna + \nnb}\, \nna
+%
+  + \gamma_0 \nuL \, (\ni - \nsup{i})
+%
+  + \frac{1}{V'} \ddrho V' \aves{\vec{\Gamma}^\r{puff}_\r{i}\cdot\nabla\rho}\biggr|_\r{b}
+\\[5mm]
+%=======%
+% \nnb  %
+%=======%
+  \frac{1}{V'} \ddt (V' \nnb) &=& 
+%
+    \frac{1}{V'} \ddrho V' \aves{|\nabla\rho|^2} D_{02} \ddrho \nnb
+%
+  - \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, \nnb
+%
+%\nonumber\\[2.5mm]&&{}
+  + \nuCX\, \frac{\ni}{\nna + \nnb}\, \nna
+%
+%  + \fCX \frac{\Pb}{\Eb}
+\\[5mm]
+%=======%
+% \nnc  %
+%=======%
+  \frac{1}{V'} \ddt (V' \nnc) &=& 
+%
+    \frac{1}{V'} \ddrho V' \aves{|\nabla\rho|^2} D_{03} \ddrho \nnc
+%
+  - \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, \nnc
+%
+%\nonumber\\[2.5mm]&&{}
+  + \fCX \frac{\Pb}{\Eb}
+\\[5mm]
+%=======%
+% \nnz  %
+%=======%
+  \frac{1}{V'} \ddt (V' \nnz) &=& 
+%
+    \frac{1}{V'} \ddrho V' \aves{|\nabla\rho|^2} D_{n\r{z}} \ddrho \nnz
+%
+  + \frac{1}{V'} \ddrho V' \aves{|\nabla\rho|^2} \Delta D_{\r{C0}} \ddrho n_\r{C0}
+%
+  - \nee \nnz f_5S_5 + \nee \nz A_6 
+\nonumber\\[2.5mm]&&{}
+%
+  + \gamma_\r{0z} \nuL \, (\nz - \nsup{z})
+%
+  + \gamma_\r{i,z} \nuL \, (\ni - \nsup{i})
+%
+  - (1-\gamma_\r{0z}) \nuL \, (\nnz - n_\r{C0})
+\nonumber\\[2.5mm]&&{}
+%
+  + \frac{1}{V'} \ddrho V' \aves{\vec{\Gamma}^\r{puff}_\r{z}\cdot\nabla\rho}\biggr|_\r{b}
+\\[5mm]
+%========%
+% \nbrp  %
+%========%
+  \frac{1}{V'} \ddt (V' g \nbrp) &=&
+%
+    g \frac{\Pbperp}{\Eb}
+%
+  + g \nueff (\sqrt{\delta} \nb - \nbrp)
+%
+  - g \nub \nbrp
+%
+\nonumber\\[2.5mm]&&{}
+  - \frac{1}{V'} \ddrho V' g \left( \aves{|\nabla\rho|} \ubrp \nbrp - \aves{|\nabla\rho|^2} \Dbrp \ddrho \nbrp \right)
+%
+\end{eqnarray}
+
+\bigskip
+
+\section{Additional important relationship}
+\setcounter{equation}{0}
+
+\begin{eqnarray}
+%============================================%
+% superstaged impurity w/o fully striped one %
+%============================================%
+  \nnz &=&
+%
+ \sum_{i=0}^{\r{max}(Z)-1} n_i
+\\[5mm]
+%=======%
+% B_pol %
+%=======%
+  B_p &=&
+%
+  \frac{|\nabla\rho|}{R} \dd{\psi}{\rho},
+  \quad
+%===========%
+% <B_pol^2> %
+%===========%
+  \aves{B_p^2} =
+%
+  \ave{\frac{|\nabla V|^2}{R^2}} \left(\dd{\psi}{V}\right)^2
+\\[5mm]
+%=======%
+% B_tor %
+%=======%
+  B_t &=&
+%
+  \frac{I}{R}
+%
+  = \frac{1}{R} \frac{4\pi^2}{\aves{R^{-2}}} \dd{\psit}{V},
+  \quad
+%===========%
+% <B_tor^2> %
+%===========%
+  \aves{B_t^2} =
+%
+  \frac{16\pi^4}{\aves{R^{-2}}} \left(\dd{\psit}{V}\right)^2
+\\[5mm]
+%=======%
+% <B^2> %
+%=======%
+  \aves{B^2} &=&
+%
+  \aves{B_t^2} + \aves{B_p^2}
+%
+  = \frac{16\pi^4}{\aves{R^{-2}}}\left(\dd{\psit}{V}\right)^2
+  + \ave{\frac{|\nabla V|^2}{R^2}}\left(\dd{\psi}{V}\right)^2
+\\[5mm]
+%===========%
+% <B^theta> %
+%===========%
+  \aves{B^\theta} &=&
+%
+  \frac{4\pi^2}{V'} \dd{\psi}{\rho}
+%
+  = 4\pi^2 \dd{\psi}{V}
+%
+  = \frac{I\aves{R^{-2}}}{q}
+%
+  = 2\pi\left(\oint \frac{dl_p}{B_p}\right)^{-1}
+\\[5mm]
+%=======%
+% q hat %
+%=======%
+  \hat{q}^2 &\equiv& \frac{I^2}{2\aves{B_p^2}}\left(\ave{\frac{1}{R^2}}-\frac{1}{\aves{R^2}}\right)
+\\[5mm]
+%================%
+% <B^2><R^2>-I^2 %
+%================%
+  \bri &=&
+%
+  \aves{R^2} \ave{\frac{|\nabla V|^2}{R^2}} \left(\dd{\psi}{V}\right)^2 (1+2\hat{q}^2)
+\\[5mm]
+%===================%
+% 2<B \qpara>/(5 p) %
+%===================%
+ \aves{B\hat{q}_{s\para}} &\equiv&
+%
+ \frac{2\aves{Bq_{s\para}}}{5p_s}
+\\[5mm]
+%=============%
+% hat u_theta %
+%=============%
+  \hat{u}_{s\theta} &=&
+%
+  \frac{\aves{B\uspara} - BV_{1s}}{ \aves{B^2} }
+\\[5mm]
+%=====================%
+% <uzt/R> and <R uzt> %
+%=====================%
+  \ave{\frac{\uszt}{R}} &=&
+%
+  \frac{1}{1+2\hat{q}^2}\frac{1}{\aves{R^2}}\aves{R\uszt}+\frac{2\hat{q}^2}{1+2\hat{q}^2}\frac{1}{I}\aves{B\uspara}
+\\[2.5mm]
+%
+%  &=& \frac{\aves{R\uszt}}{\aves{R^2}}
+%
+%  + \frac{2\hat{q}^2}{1+2\hat{q}^2} \left( \frac{1}{I}\aves{B\uspara} - \frac{1}{\aves{R^2}}\aves{R\uszt}\right)
+%\nonumber\\[2.5mm]
+%
+  &=& \frac{\aves{R\uszt}}{\aves{R^2}}
+%
+  + \frac{I}{\aves{B^2}} \left(  \ave{\frac{1}{R^2}}
+			      - \frac{1}{\aves{R^2}} \right)
+    (\aves{B\uspara} - BV_{1s})
+\nonumber\\[2.5mm]
+%
+  &=& \frac{\aves{R\uszt}}{\aves{R^2}}
+%
+  + I \left(  \ave{\frac{1}{R^2}}
+			       - \frac{1}{\aves{R^2}} \right) \hat{u}_{s\theta}
+\nonumber\\[5mm]
+%=========%
+% <R qzt> %
+%=========%
+  \ave{R \qzt{s}} &=&
+%
+    \frac{1}{\aves{B^2}} \left( \bri \right) \frac{1}{I} B V_{2s}
+%
+  + \frac{I}{\aves{B^2}} \aves{B\qhatpara{s}}
+\\[5mm]
+%=======%
+% B V_1 %
+%=======%
+  B V_{1s} &=&
+%
+ - I \left( \frac{1}{e_s n_s} \dd{n_s T_s}{\psi} + \dd{\Phi}{\psi}\right),
+\quad
+%\\[5mm]
+%=======%
+% B V_2 %
+%=======%
+  B V_{2s} =
+%
+ - \frac{I}{e_s} \dd{T_s}{\psi}
+\\[5mm]
+%====================%
+% u.grad rho = u^rho %
+%====================%
+  u^\rho &\equiv&
+%
+  \aves{ \vec{u} \cdot \nabla\rho },
+%
+  \quad u^V = \aves{ \vec{u} \cdot \nabla V }
+\\[5mm]
+%===============%
+% grid velocity %
+%===============%
+  \ugrho &=&
+%
+  - \frac{4\pi^2}{IV'\aves{R^{-2}}} \psitd,
+%
+  \quad \ugV = - \frac{4\pi^2}{I\aves{R^{-2}}} \psitd = - \frac{V'}{2\rho\psi_{ta}}\psitd
+\\[5mm]
+  \frac{1}{V'}\dd{V'}{t} &=&
+%
+  \dd{}{V}\aves{\vec{u}_g\cdot\nabla V} = \dd{u_g^V}{V}
+\\[5mm]
+%======%
+% \Er  %
+%======%
+  \aves{\Er} &=&
+%
+  - \aves{|\nabla\rho|^2} \dd{r}{\rho} \ddrho \Phi
+\\[5mm]
+%============%
+% <B E_para> %
+%============%
+  \aves{B E_\para} &=&
+%
+  I \aves{R^{-2}} \left( - \frac{\psitd}{q} + \psid \right)
+\\[5mm]
+%=========%
+% R E_tor %
+%=========%
+  R E_\zeta &=&
+%
+  \psid
+%
+  = \frac{V_\r{loop}}{2\pi}
+\\[5mm]
+%=================%
+% viscous heating %
+%=================%
+  \aves{\vec{B}\cdot\nabla\cdot\tensor{\pi}_\r{i}} &=&
+%
+  \hat{\mu}_1^\r{i} ( \aves{Bu_{\r{i}\para}} - BV_{1\r{i}}) 
+%
+  + \hat{\mu}_2^\r{i} \left( \frac{2\aves{Bq_{\r{i}\para}}}{5p_\r{i}} -
+		       BV_{2\r{i}}\right)
+\\[5mm]
+%======================%
+% friction coefficient %
+%======================%
+  \hat{\ell}_{ij}^{ab} &\equiv& \frac{\ell_{ij}^{ab}}{m_an_a},
+  \quad
+%===========================%
+% beam friction coefficient %
+%===========================%
+  \hat{\ell}_{ij}^{\r{b}b} \equiv \frac{\ell_{ij}^{\r{b}b}}{m_\r{e}n_\r{e}}
+\\[5mm]
+%==========%
+% gas puff %
+%==========%
+  \Gamma^\r{puff} &\simeq& \frac{\aves{\vec{\Gamma}^\r{puff}\cdot\nabla\rho}}{\aves{|\nabla\rho|}}
+\end{eqnarray}
+
+\bigskip
+
+\section{Equations in the coordinates suitable for implementation}
+\setcounter{equation}{0}
+
+\begin{eqnarray}
+%=======%
+% \phi  %
+%=======%
+  0 &=&
+%
+    \ddV \left[ \aves{|\nabla V|^2} \ddV{\red{\Phi}} \right]
+%
+  + \frac{1}{\epsilon_0}
+%
+    \left(-e \red{\nee} + \Zi e \red{\ni} + \Zz e \red{\nz} + \Zb e \red{\nb} + \Zb e g \red{\nbrp} \right)
+\\[5mm]
+%=========%
+% \psitd  %
+%=========%
+%  \frac{1}{c^2} \ave{\frac{|\nabla V|^2}{R^2}}^{-1} \ddt \red{\psitd} &=&
+%%
+%   \ddV \left[ \frac{1}{\aves{R^{-2}}}
+%				         \ddV \red{\psit} \right]
+%%
+%  + \frac{\mu_0}{\aves{B^\theta}} \ave{\frac{|\nabla V|^2}{R^2}}^{-1}
+% \nonumber\\[3mm]&&{}
+%%
+%    \times \left[-     e \left( \nee \red{\aves{B\upara{e}}} - I\red{\nee \ave{\frac{\uzt{e}}{R}}} \right)
+%          + \Zi e \left( \ni \red{\aves{B\upara{i}}} - I\red{\ni  \ave{\frac{\uzt{i}}{R}}} \right)
+%    \right.\nonumber\\[3mm]&&{}
+%%    \left.+ \Zb e  \left( \red{\nb \aves{B\upara{b}}} - I\red{\nb \ave{\frac{\uzt{b}}{R}}} \right) \right]
+%    \left.+ \Zb e  \frac{1}{\aves{B^2}} \ave{\frac{|\nabla V|^2}{R^2}}
+%     \left(\dd{\psi}{V}\right)^2 \nb \red{\aves{B\upara{b}}} \right]
+%
+  \epsilon_0 \ddt \red{\psitd} &=&
+%
+     \ddV \left[ \ave{\frac{|\nabla V|^2}{R^2}} \frac{1}{\aves{R^{-2}}} \ddV \red{\frac{\psit}{\mu_0}} \right]
+   - \frac{1}{\aves{R^{-2}}} \ddV \left[ \ave{\frac{|\nabla V|^2}{R^2}}
+				  \right] \ddV  \red{\frac{\psit}{\mu_0}}
+ \nonumber\\[3mm]&&{}
+%
+  + \frac{1}{\aves{B^\theta}}
+%
+    \left[-     e \left( \nee \red{\aves{B\upara{e}}} - I\red{\nee \ave{\frac{\uzt{e}}{R}}} \right)
+          + \Zi e \left( \ni  \red{\aves{B\upara{i}}} - I\red{\ni  \ave{\frac{\uzt{i}}{R}}} \right)
+    \right.\nonumber\\[3mm]&&{}
+    \left.+ \Zz e \left( \nz  \red{\aves{B\upara{z}}} - I\red{\nz  \ave{\frac{\uzt{z}}{R}}} \right)
+          + \Zb e  \left( \red{\nb \aves{B\upara{b}}} - I\red{\nb  \ave{\frac{\uzt{b}}{R}}} \right) \right]
+%    \left.+ \Zb e  \frac{1}{\aves{B^2}} \ave{\frac{|\nabla V|^2}{R^2}}
+%     \left(\dd{\psi}{V}\right)^2 \red{\nb \aves{B\upara{b}}} \right]
+\\[5mm]
+%========%
+% \psid  %
+%========%
+  \frac{1}{c^2} \ave{\frac{1}{R^2}} \ddt \red{\psid} &=&
+%
+  \ddV \left[ \ave{\frac{|\nabla V|^2}{R^2}}
+				    \ddV \red{\psi} \right] \nonumber\\[3mm]&&{}
+%
+  - \mu_0 \left(-     e \red{\nee \ave{\frac{\uzt{e}}{R}}}
+                + \Zi e \red{\ni  \ave{\frac{\uzt{i}}{R}}}
+                + \Zz e \red{\nz  \ave{\frac{\uzt{z}}{R}}}
+	        + \Zb e \red{\nb  \ave{\frac{\uzt{b}}{R}}} \right)
+%	        + \Zb e \ave{\frac{1}{R^2}} \frac{I}{\aves{B^2}}
+%	        \red{\nb \aves{B \upara{b}} }\right)
+%
+%  + \mu_0 j_\r{virtual}
+\\[5mm]
+%=======%
+% \psi  %
+%=======%
+  \ddt \red{\psi} &=&
+%
+  \red{\psid}
+\\[5mm]
+%=========%
+% \psitd  %
+%=========%
+  \ddt \red{\frac{\psit}{\mu_0}} &=&
+%
+  \frac{\red{\psitd}}{\mu_0}
+\end{eqnarray}
+%
+
+%
+\begin{eqnarray}
+%=======%
+% \nee  %
+%=======%
+  \ddt \red{\nee}  &=&
+%
+  - \ddV \red{\nee\uV{e}}
+%
+  + \ugV \ddV \red{\nee}
+%
+  + \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, (\red{\nna} + \red{\nnb}
+  + \red{\nnc})
+\nonumber\\[3mm]&&{}
+%
+  + \Zz \nee \red{\nnz} f_5S_5 - \Zz \nee \red{\nz} A_6
+%
+  - \nuL (\red{\nee} - \nsup{e})
+%
+  + (1 - \fCX) \frac{\Pb}{\Eb}
+\\[5mm]
+%=========%
+% radial  %
+%=========%
+  0 &=&
+%
+  - \frac{e}{\me} \nee \left( \bri \right) \frac{1}{I} \red{BV_{1\r{e}}}
+%
+  - \frac{e}{\me} I \nee \red{\aves{B\upara{e}}}
+%
+  + \frac{e}{\me} \aves{B^2} \red{\nee \aves{R\uzt{e}}}
+\\[5mm]
+%===============%
+% <B \upara{e}> %
+%===============%
+  \nee \ddt \red{\aves{B \upara{e}}} &=&
+%
+  - \frac{1}{\me} \hat{\mu}_1^\r{e} \red{\aves{B \upara{e}}}
+  - \frac{1}{\me} \hat{\mu}_2^\r{e} \red{\aves{B \qhatpara{e}}}
+%
+  + \frac{1}{\me} \hat{\mu}_1^\r{e} \red{BV_{1\r{e}}}
+\nonumber\\[3mm]&&{}
+%
+%  + \frac{1}{\me} \hat{\mu}_2^\r{e} {B V_{2\r{e}}}
+  + \frac{1}{e\me} \hat{\mu}_2^\r{e} I \dd{V}{\psi} \frac{1}{\nee} \ddV
+  \red{\nee \Te}
+  - \frac{1}{e\me} \hat{\mu}_2^\r{e} I \dd{V}{\psi} \frac{\Te}{\nee} \ddV
+  \red{\nee}
+\nonumber\\[3mm]&&{}
+%
+  + \hat{\ell}_{11}^{\r{ee}} \nee \red{\aves{B \upara{e}}}
+  + \hat{\ell}_{11}^{\r{ei}} \nee \red{\aves{B \upara{i}}}
+  + \hat{\ell}_{11}^{\r{ez}} \nee \red{\aves{B \upara{z}}}
+  + \hat{\ell}_{11}^{\r{eb}} \frac{\nee}{\nb} \red{\nb \aves{B \upara{b}}}
+\nonumber\\[3mm]&&{}
+%
+  - \hat{\ell}_{12}^{\r{ee}} \nee \red{\aves{B \qhatpara{e}}}
+  - \hat{\ell}_{12}^{\r{ei}} \nee \red{\aves{B \qhatpara{i}}}
+  - \hat{\ell}_{12}^{\r{ez}} \nee \red{\aves{B \qhatpara{z}}}
+\nonumber\\[3mm]&&{}
+%
+  - e \frac{\nee}{\me} I \aves{R^{-2}} \left( - \frac{\red{\psitd}}{q} + \red{\psid} \right)
+%
+%  + \frac{1}{\me} \aves{B S_{\r{m}\para}^\r{e}}
+%
+  - \nuL \nee \red{\aves{B \upara{e}}}
+%
+  - \nun{e} \nee \red{\aves{B \upara{e}}}
+\nonumber\\[3mm]&&{}
+%
+  - \ddV \aves{|\nabla \rho|} v_{\r{e}\zeta} \nee \red{\aves{B \upara{e}}}
+%
+  + \aves{|\nabla V|} v_{\r{e}\zeta} \nee 
+  \biggl(\ddV \frac{\aves{B^2}}{I} \biggl) \frac{I}{\aves{B^2}} \red{\aves{B \upara{e}}}
+\nonumber\\[3mm]&&{}
+%
+  + \ddV \aves{|\nabla V|^2} \chis{e\zeta} \nee
+  \frac{\aves{B^2}}{I} \ddV \frac{I}{\aves{B^2}} \red{\aves{B \upara{e}}}
+\nonumber\\[3mm]&&{}
+%
+  - \aves{|\nabla V|^2} \chis{e\zeta} \nee \biggl( \ddV
+  \frac{\aves{B^2}}{I} \biggr) \ddV \frac{I}{\aves{B^2}} \red{\aves{B \upara{e}}}
+%
+  - \frac{1}{\me} \frac{\aves{B^2}}{I} \ddV \aves{\Pi_\r{e}^\r{res}}
+\nonumber\\[3mm]&&{}
+%
+  - \ddV
+    \left[  \aves{|\nabla V|} v_{\r{e}\zeta} \nee
+            \frac{\aves{R^2}}{\aves{B^2}}\ave{\frac{|\nabla V|^2}{R^2}}\dd{\psi}{V}(1+2\hat{q}^2)
+	    \frac{1}{I} \dd{\psi}{V} BV_{1\r{e}} \right.
+\nonumber\\[3mm]&&{}
+    \left.- \aves{|\nabla V|^2} \chis{e\zeta} \nee
+          \ddV \frac{\aves{R^2}}{\aves{B^2}}\ave{\frac{|\nabla V|^2}{R^2}}\dd{\psi}{V}(1+2\hat{q}^2)
+	  \frac{1}{I} \dd{\psi}{V} BV_{1\r{e}}\right]
+\\[5mm]
+%================%
+% elec. toroidal %
+%================%
+ \ddt \red{\nee \aves{R \uzt{e}}} &=&
+%
+  - (\uV{e} - \ugV) \ddV \red{\nee \aves{R \uzt{e}}}
+%
+  - \dd{\uV{e}}{V} \red{\nee \aves{R \uzt{e}}}
+%
+  - \ddV [\aves{|\nabla V|} v_{\r{e}\zeta} \red{\nee \aves{R \uzt{e}}}]
+\nonumber\\[3mm]&&{}
+  + \ddV \aves{|\nabla V|^2} \chis{e\zeta} \ddV \red{\nee \aves{R \uzt{e}}}
+  - \ddV \aves{|\nabla V|^2} \chis{e\zeta} \aves{R \uzt{e}} \ddV \red{\nee}
+  - \frac{1}{\me} \ddV \aves{\Pi_\r{e}^\r{res}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \hat{\ell}_{11}^\r{ee}                  \red{\nee \aves{R \uzt{e}}}
+  + \hat{\ell}_{11}^\r{ei} \frac{\nee}{\ni} \red{\ni  \aves{R \uzt{i}}}
+  + \hat{\ell}_{11}^\r{ez} \frac{\nee}{\nz} \red{\nz  \aves{R \uzt{z}}}
+  + \hat{\ell}_{11}^\r{eb} \frac{\nee}{\nb} \red{\nb  \aves{R \uzt{b}}}
+%  + \hat{\ell}_{11}^\r{eb} \frac{I}{\aves{B^2}} \frac{\nee}{\nb}
+%  \red{\nb \aves{B \upara{b}}}
+\nonumber\\[2.5mm]&&{}
+%
+%  - \hat{\ell}_{12}^\r{ee} \frac{I}{\aves{B^2}} \nee \red{\aves{B \qhatpara{e}}}
+%  - \hat{\ell}_{12}^\r{ei} \frac{I}{\aves{B^2}} \nee \red{\aves{B \qhatpara{i}}}
+%  - \hat{\ell}_{12}^\r{ez} \frac{I}{\aves{B^2}} \nee \red{\aves{B \qhatpara{z}}}
+  - \hat{\ell}_{12}^\r{ee} \nee \frac{1}{e} \frac{1}{\aves{B^2}} \left( \bri \right)
+    \dd{V}{\psi} \ddV \Te
+  - \hat{\ell}_{12}^\r{ee} \frac{I}{\aves{B^2}} \red{\aves{B \qhatpara{e}}}
+\nonumber\\[2.5mm]&&{}
+  + \hat{\ell}_{12}^\r{ei} \nee \frac{1}{\Zi e} \frac{1}{\aves{B^2}} \left( \bri \right)
+    \dd{V}{\psi} \ddV \Ti
+  - \hat{\ell}_{12}^\r{ei} \frac{I}{\aves{B^2}} \red{\aves{B \qhatpara{i}}}
+\nonumber\\[2.5mm]&&{}
+  + \hat{\ell}_{12}^\r{ez} \nee \frac{1}{\Zz e} \frac{1}{\aves{B^2}} \left( \bri \right)
+    \dd{V}{\psi} \ddV \Tz
+  - \hat{\ell}_{12}^\r{ez} \nee \frac{I}{\aves{B^2}} \red{\aves{B \qhatpara{z}}}
+\nonumber\\[2.5mm]&&{}
+%
+  - e \frac{\nee}{\me} \red{\psid}
+%
+  - e \frac{1}{\me} \dd{\psi}{V} \red{\nee \uV{e}}
+%
+\nonumber\\[2.5mm]&&{}
+%p
+%%%  turbulent particle flux model
+%
+  - \frac{e^2 \aves{|\nabla V|^2} \De}{\me\Te} \dd{\psi}{V} 
+%%%
+%    \left[  \dd{\psi}{V} \frac{\aves{B^2}}{\bri} \red{\nee \aves{R \uzt{e}}}
+%%
+%          - \dd{\psi}{V} \frac{I}{\bri} \nee \red{\aves{B \upara{e}}} \right.
+%\nonumber\\[2.5mm]&&{}
+%%
+%    \left.+ \frac{C_\r{T}-1}{e} \left( \ddV \red{\nee \Te} - \Te \ddV \red{\nee} \right)
+%%
+%	  + \nee \ddV \red{\Phi}
+%
+%    	  + \frac{\Te}{e} \dd{\psi}{V} C_\r{p} \red{\nee} \right]
+%%%
+  \left[ \nee \dd{\psi}{V} \frac{1}{I} \red{B V_{1\r{e}}}
+       + \nee \ddV \red{\Phi}
+       + \frac{C_\r{T}-1}{e} \left( \ddV \red{\nee \Te} - \Te \ddV
+				    \red{\nee} \right)
+       + \frac{\Te}{e} \dd{\psi}{V} C_\r{p} \red{\nee} \right]
+\nonumber\\[2.5mm]&&{}
+%%%
+  - \nuL  \red{\nee \aves{R \uzt{e}}}
+%
+  - \nun{e} \red{\nee \aves{R \uzt{e}}}
+\\[5mm]
+%===========%
+% \nee \Te  %
+%===========%
+ \frac{3}{2} \ddt \red{\nee \Te} &=& 
+%
+  - \frac{5}{2} ( \uV{e} - \ugV ) \ddV \red{\nee \Te}
+%
+  - \frac{5}{2} \dd{\uV{e}}{V} \red{\nee \Te}
+%
+  - \ddV [V_\r{e}^\r{hp} \aves{|\nabla V|}   \red{\nee \Te}]
+\nonumber\\[2.5mm]&&{}
+%
+  + \ddV \chis{e} \aves{|\nabla V|^2}\ddV \red{\nee \Te}
+  - \ddV \chis{e} \aves{|\nabla V|^2}\Te \ddV \red{\nee}
+\nonumber\\[2.5mm]&&{}
+%
+  - \ugV   \ddV \red{\nee \Te}
+  - \uV{i} \ddV \red{\ni  \Ti}
+  - \uV{z} \ddV \red{\nz  \Tz}
+%
+  - \uhatth{i} \aves{\vec{B}\cdot\nabla\cdot\tensor{\pi}_\r{i}}
+  - \uhatth{z} \aves{\vec{B}\cdot\nabla\cdot\tensor{\pi}_\r{z}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \frac{3}{2} \nu_\r{Tei} \left(\red{\nee \Te} - \frac{\nee}{\ni} \red{\ni \Ti}\right)
+  - \frac{3}{2} \nu_\r{Tez} \left(\red{\nee \Te} - \frac{\nee}{\nz} \red{\nz \Tz}\right)
+\nonumber\\[2.5mm]&&{}
+%
+%  - \dd{V}{\psi} \ddV ( \red{\nee \Te} + \red{\ni \Ti} ) \psit
+%
+%  - \frac{1}{\mu_0} \dd{V}{\psi} \dd{I}{V} I \aves{R^{-2}}
+%
+%    \left( - \frac{\red{\psitd}}{q} + \red{\psid} \right)
+  - 4\pi^2 \dd{\psi}{V} \dot{\psi}_t 
+  (-    e \nee \uhatth{e} + \Zi e \ni  \uhatth{i} + \Zz e \nz  \uhatth{z})
+%  - \frac{1}{\aves{B^2}}\dot{\psi}_t (-e \nee \red{\aves{Bu_{\r{e}\para}}} +
+%  Z_\r{i} e \ni \red{\aves{Bu_{\r{i}\para}}})
+%
+%  +\frac{1}{\aves{B^2}}\dot{\psi}_t (-e \nee BV_{1\r{e}} + Z_\r{i} e \ni
+%  BV_{1\r{i}})
+\nonumber\\[2.5mm]&&{}
+%
+  +\dot{\psi}\left(-     e \red{\nee \ave{\frac{\uzt{e}}{R}}}
+	           + \Zi e \red{\ni  \ave{\frac{\uzt{i}}{R}}}
+	           + \Zz e \red{\nz  \ave{\frac{\uzt{z}}{R}}}\right)
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL (\red{\nee\Te} - \nsup{e}\Te)
+%
+  - \frac{3}{2} \nuLT{e} (\red{\nee\Te} - \nee\Tsup{e})
+%
+  - \EH \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, (\red{\nna} + \red{\nnb} + \red{\nnc})
+\nonumber\\[2.5mm]&&{}
+%
+  + \fei \Pb
+%
+%  + \mb \frac{1}{\nb} \frac{\Pb}{\Eb} \frac{\aves{B \upara{e}}}{\aves{B^2}} \red{\nb \aves{B \upara{b}}}
+%
+  + \Palp{e}
+%
+  + \PRF{e}
+%
+  - \PBr
+\\[5mm]
+%=====================%
+% 2<B \qepara>/(5 pe) %
+%=====================%
+ \frac{5}{2} \nee \ddt \red{\aves{B \qhatpara{e}}} &=&
+%
+  - \frac{1}{\me} \hat{\mu}_2^\r{e} \red{\aves{B \upara{e}}}
+  - \frac{1}{\me} \hat{\mu}_3^\r{e} \red{\aves{B \qhatpara{e}}}
+%
+  + \frac{1}{\me} \hat{\mu}_2^\r{e} \red{B V_{1\r{e}}}
+\nonumber\\[3mm]&&{}
+%
+%  + \frac{1}{\me} \hat{\mu}_3^\r{e} {B V_{2\r{e}}}
+  + \frac{1}{e\me} \hat{\mu}_3^\r{e} I \dd{V}{\psi} \frac{1}{\nee} \ddV
+  \red{\nee \Te}
+  - \frac{1}{e\me} \hat{\mu}_3^\r{e} I \dd{V}{\psi} \frac{\Te}{\nee} \ddV
+  \red{\nee}
+\nonumber\\[3mm]&&{}
+%
+  - \hat{\ell}_{21}^{\r{ee}} \nee \red{\aves{B \upara{e}}}
+  - \hat{\ell}_{21}^{\r{ei}} \nee \red{\aves{B \upara{i}}}
+  - \hat{\ell}_{21}^{\r{ez}} \nee \red{\aves{B \upara{z}}}
+  - \hat{\ell}_{21}^{\r{eb}} \frac{\nee}{\nb} \red{\nb \aves{B \upara{b}}}
+\nonumber\\[3mm]&&{}
+%
+  + \hat{\ell}_{22}^{\r{ee}} \nee \red{\aves{B \qhatpara{e}}}
+  + \hat{\ell}_{22}^{\r{ei}} \nee \red{\aves{B \qhatpara{i}}}
+  + \hat{\ell}_{22}^{\r{ez}} \nee \red{\aves{B \qhatpara{z}}}
+\nonumber\\[3mm]&&{}
+%
+  - \nuL \nee \red{\aves{B \qhatpara{e}}}
+%
+  - \nun{e} \nee \red{\aves{B \qhatpara{e}}}
+\\[5mm]
+%=======================%
+% <uezt/R> and <R uezt> %
+%=======================%
+    0 &=&
+%
+  - \red{\nee \ave{\frac{\uzt{e}}{R}}}
+%
+  + \frac{1}{\aves{R^2}} \red{\nee \aves{R\uzt{e}}}
+%
+  - \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{\aves{R^2}}\red{\nee\aves{R\uzt{e}}}
+%
+  + \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{I}\nee \red{\aves{B\upara{e}}}
+\\[5mm]
+%=======%
+% BV_1e %
+%=======%
+    0 &=&
+%
+  - \nee \red{BV_{1\r{e}}}
+%
+  + \frac{1}{e} \dd{V}{\psi} I \ddV \red{\nee\Te}
+%
+  - \nee \dd{V}{\psi} I \ddV \red{\Phi}
+\end{eqnarray}
+%
+
+%\clearpage
+
+%
+\begin{eqnarray}
+%======%
+% \ni  %
+%======%
+  \ddt \red{\ni} &=&
+%
+  - \ddV \red{\ni\uV{i}}
+%
+  + \ugV \ddV \red{\ni}
+%
+  + \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, (\red{\nna} +
+  \red{\nnb} + \red{\nnc})
+%
+  - \nuL (\red{\ni} - \nsup{i}) 
+\nonumber\\[2.5mm]&&{}
+%
+  + \nub \red{\nb}
+%
+  + \nub g \red{\nbrp}
+%
+  - \fCX \frac{\Pb}{\Eb}
+%
+  + \nubL \red{\nb}
+%
+  + S_\r{LC}
+%
+  - \nuOL \red{\ni}
+%
+\\[5mm]
+%=========%
+% radial  %
+%=========%
+  0 &=&
+%
+    \Zi \frac{e}{\mi} \ni \left( \bri \right) \frac{1}{I} \red{B V_{1\r{i}}}
+%
+  + \Zi \frac{e}{\mi} I \ni \red{\aves{B\upara{i}}}
+%
+  - \Zi \frac{e}{\mi} \aves{B^2} \red{\ni \aves{R\uzt{i}}}
+\\[5mm]
+%===============%
+% <B \upara{i}> %
+%===============%
+  \ni \ddt \red{\aves{B \upara{i}}} &=&
+%
+  - \frac{1}{\mi} \hat{\mu}_1^\r{i} \red{\aves{B \upara{i}}}
+  - \frac{1}{\mi} \hat{\mu}_2^\r{i} \red{\aves{B \qhatpara{i}}}
+%
+  + \frac{1}{\mi} \hat{\mu}_1^\r{i} \red{B V_{1\r{i}}} 
+\nonumber\\[3mm]&&{}
+%
+%  + \frac{1}{\mi} \hat{\mu}_2^\r{i} {B V_{2\r{i}}}
+  - \frac{1}{\Zi e\mi} \hat{\mu}_2^\r{i} I \dd{V}{\psi} \frac{1}{\ni}
+  \ddV \red{\ni\Ti}
+  + \frac{1}{\Zi e\mi} \hat{\mu}_2^\r{i} I \dd{V}{\psi} \frac{\Ti}{\ni}
+  \ddV \red{\ni}
+\nonumber\\[3mm]&&{}
+%
+  + \hat{\ell}_{11}^{\r{ie}} \ni \red{\aves{B \upara{e}}}
+  + \hat{\ell}_{11}^{\r{ii}} \ni \red{\aves{B \upara{i}}}
+  + \hat{\ell}_{11}^{\r{iz}} \ni \red{\aves{B \upara{z}}}
+  + \hat{\ell}_{11}^{\r{ib}} \frac{\ni}{\nb} \red{\nb \aves{B \upara{b}}}
+\nonumber\\[3mm]&&{}
+%
+  - \hat{\ell}_{12}^{\r{ie}} \ni \red{\aves{B \qhatpara{e}}}
+  - \hat{\ell}_{12}^{\r{ii}} \ni \red{\aves{B \qhatpara{i}}}
+  - \hat{\ell}_{12}^{\r{iz}} \ni \red{\aves{B \qhatpara{z}}}
+\nonumber\\[3mm]&&{}
+%
+  + \Zi e \frac{\ni}{\mi} I \aves{R^{-2}} \left( - \frac{\red{\psitd}}{q} + \red{\psid} \right)
+%
+%  + \frac{1}{\mi} \aves{B S_{\r{m}\para}^\r{i}}
+%
+%  + \frac{1}{\mi} \aves{B S_\r{LC\para}}
+\nonumber\\[3mm]&&{}
+%
+  - \nuL  \ni \red{\aves{B \upara{i}}}
+%
+  + \nub  \frac{\mb}{\mi} \red{\nb \aves{B \upara{b}}}
+%
+  - \nun{i} \ni \red{\aves{B \upara{i}}}
+%
+  - \nuCX \ni \red{\aves{B \upara{i}}}
+%
+  - \nuLC \ni \red{\aves{B \upara{i}}}
+%
+  - \nuOL \ni \red{\aves{B \upara{i}}}
+\nonumber\\[3mm]&&{}
+%
+  - \ddV \aves{|\nabla \rho|} v_{\r{i}\zeta} \ni \red{\aves{B \upara{i}}}
+%
+  + \aves{|\nabla V|} v_{\r{i}\zeta} \ni 
+  \biggl(\ddV \frac{\aves{B^2}}{I} \biggl) \frac{I}{\aves{B^2}} \red{\aves{B \upara{i}}}
+\nonumber\\[3mm]&&{}
+%
+  + \ddV \aves{|\nabla V|^2} \chis{i\zeta} \ni
+  \frac{\aves{B^2}}{I} \ddV \frac{I}{\aves{B^2}} \red{\aves{B \upara{i}}}
+\nonumber\\[3mm]&&{}
+%
+  - \aves{|\nabla V|^2} \chis{i\zeta} \ni \biggl( \ddV
+  \frac{\aves{B^2}}{I} \biggr) \ddV \frac{I}{\aves{B^2}} \red{\aves{B \upara{i}}}
+%
+  - \frac{1}{\mi} \frac{\aves{B^2}}{I} \ddV \aves{\Pi_\r{i}^\r{res}}
+\nonumber\\[3mm]&&{}
+%
+  - \ddV
+    \left[  \aves{|\nabla V|} v_{\r{i}\zeta} \ni
+            \frac{\aves{R^2}}{\aves{B^2}}\ave{\frac{|\nabla V|^2}{R^2}}\dd{\psi}{V}(1+2\hat{q}^2)
+	    \frac{1}{I} \dd{\psi}{V} BV_{1\r{i}} \right.
+\nonumber\\[3mm]&&{}
+    \left.- \aves{|\nabla V|^2} \chis{i\zeta} \ni
+          \ddV \frac{\aves{R^2}}{\aves{B^2}}\ave{\frac{|\nabla V|^2}{R^2}}\dd{\psi}{V}(1+2\hat{q}^2)
+	  \frac{1}{I} \dd{\psi}{V} BV_{1\r{i}}\right]
+\\[5mm]
+%==============%
+% ion toroidal %
+%==============%
+  \ddt \red{\ni \aves{R \uzt{i}}} &=&
+%
+  - (\uV{i} - \ugV) \ddV \red{\ni \aves{R \uzt{i}}}
+%
+  - \dd{\uV{i}}{V} \red{\ni \aves{R \uzt{i}}}
+%
+  - \ddV \aves{|\nabla V|} v_{\r{i}\zeta} \red{\ni \aves{R \uzt{i}}}
+\nonumber\\[3mm]&&{}
+  + \ddV \aves{|\nabla V|^2} \chis{i\zeta} \ddV \red{\ni \aves{R \uzt{i}}}
+  - \ddV \aves{|\nabla V|^2} \chis{i\zeta} \aves{R \uzt{i}}\ddV \red{\ni} 
+  - \frac{1}{\mi} \ddV \aves{\Pi_\r{i}^\r{res}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \hat{\ell}_{11}^\r{ie} \frac{\ni}{\nee} \red{\nee \aves{R \uzt{e}}}
+  + \hat{\ell}_{11}^\r{ii}                  \red{\ni  \aves{R \uzt{i}}}
+  + \hat{\ell}_{11}^\r{iz} \frac{\ni}{\nz}  \red{\nz  \aves{R \uzt{z}}}
+  + \hat{\ell}_{11}^\r{ib} \frac{\ni}{\nb}  \red{\nb  \aves{R \uzt{b}}}
+%  + \hat{\ell}_{11}^\r{ib} \frac{I}{\aves{B^2}} \frac{\ni}{\nb} \red{\nb
+%  \aves{B \upara{b}}}
+\nonumber\\[2.5mm]&&{}
+%
+%  - \hat{\ell}_{12}^\r{ie} \frac{I}{\aves{B^2}} \ni \red{\aves{B \qhatpara{e}}}
+%  - \hat{\ell}_{12}^\r{ii} \frac{I}{\aves{B^2}} \ni \red{\aves{B \qhatpara{i}}}
+%  - \hat{\ell}_{12}^\r{iz} \frac{I}{\aves{B^2}} \ni \red{\aves{B \qhatpara{z}}}
+  - \hat{\ell}_{12}^\r{ie} \ni \frac{1}{e} \frac{1}{\aves{B^2}} \left( \bri \right)
+    \dd{V}{\psi} \ddV \Te
+  - \hat{\ell}_{12}^\r{ie} \ni \frac{I}{\aves{B^2}} \red{\aves{B \qhatpara{e}}}
+\nonumber\\[2.5mm]&&{}
+  + \hat{\ell}_{12}^\r{ii} \ni \frac{1}{\Zi e} \frac{1}{\aves{B^2}} \left( \bri \right)
+    \dd{V}{\psi} \ddV \Ti
+  - \hat{\ell}_{12}^\r{ii} \ni \frac{I}{\aves{B^2}} \red{\aves{B \qhatpara{i}}}
+\nonumber\\[2.5mm]&&{}
+  + \hat{\ell}_{12}^\r{iz} \ni \frac{1}{\Zz e} \frac{1}{\aves{B^2}} \left( \bri \right)
+    \dd{V}{\psi} \ddV \Tz
+  - \hat{\ell}_{12}^\r{iz} \ni \frac{I}{\aves{B^2}} \red{\aves{B \qhatpara{z}}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \Zi \frac{e}{\mi}              \ni \red{\dot{\psi}}
+%
+  + \Zi \frac{e}{\mi} \dd{\psi}{V} \red{\ni \uV{i}}
+%
+\nonumber\\[2.5mm]&&{}
+%
+%  turbulent particle flux model
+%
+  + \Zi \frac{e^2 \aves{|\nabla V|^2} \De}{\mi\Te} \dd{\psi}{V} 
+%%%
+%    \left[  \dd{\psi}{V} \frac{\aves{B^2}}{\bri} \frac{\ni+\nb}{\nee}
+%            \red{\nee \aves{R \uzt{e}}}
+%          - \dd{\psi}{V} \frac{I}{\bri} (\ni+\nb) \red{\aves{B \upara{e}}} \right.
+%\nonumber\\[2.5mm]&&{}
+%%
+%    \left.+ \frac{C_\r{T}-1}{e} \frac{\ni+\nb}{\nee}
+%     \left(\ddV \red{\nee \Te} - \Te \ddV \red{\nee} \right)
+%	  + (\ni+\nb) \ddV \red{\Phi}
+%	  + \frac{\Te}{e} \dd{\psi}{V} C_\r{p} \red{\ni}
+%	  + \frac{\Te}{e} \dd{\psi}{V} C_\r{p} \red{\nb} \right]
+%%%
+  \left[   (\ni + \nb) \dd{\psi}{V} \frac{1}{I} \red{B V_{1\r{e}}}
+         + (\ni + \nb) \ddV \red{\Phi} \right.
+\nonumber\\[2.5mm]&&{}
+  \left. + \frac{C_\r{T}-1}{e} \frac{\ni + \nb}{\nee}
+           \left( \ddV \red{\nee \Te} - \Te \ddV \red{\nee} \right)
+         + \frac{\Te}{e} \dd{\psi}{V} C_\r{p} \red{\ni}
+         + \frac{\Te}{e} \dd{\psi}{V} C_\r{p} \red{\nb} \right]
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL  \red{\ni \aves{R \uzt{i}}}
+%
+  + \nub  \frac{\mb}{\mi} \red{\nb \aves{B \uzt{b}}}
+%  + \nub  \frac{\mb}{\mi} \frac{I}{\aves{B^2}} \red{\nb \aves{B \upara{b}}}
+%
+  - \nun{i} \red{\ni \aves{R \uzt{i}}}
+%
+  - \nuCX \red{\ni \aves{R \uzt{i}}}
+%
+  - \nuOL \red{\ni \aves{R \uzt{i}}}
+\\[5mm]
+%==========%
+% \ni \Ti  %
+%==========%
+  \frac{3}{2} \ddt \red{\ni \Ti}  &=& 
+%
+  - \frac{5}{2} ( \uV{i} - \ugV ) \ddV \red{\ni \Ti}
+%
+  - \frac{5}{2} \dd{\uV{i}}{V} \red{\ni \Ti}
+%
+  - \ddV V_\r{i}^\r{hp} \aves{|\nabla V|} \red{\ni \Ti}
+\nonumber\\[2.5mm]&&{}
+  + \ddV \chis{i} \aves{|\nabla V|^2} \ddV \red{\ni \Ti}
+  - \ddV \chis{i} \aves{|\nabla V|^2} \Ti \ddV \red{\ni}
+\nonumber\\[2.5mm]&&{}
+%
+  + ( \uV{i} - \ugV ) \ddV \red{\ni \Ti}
+%
+  + \uhatth{i} \aves{\vec{B}\cdot\nabla\cdot\tensor{\pi}_\r{i}}
+%
+  - \frac{3}{2} \nu_\r{Tei} \left(\frac{\nee}{\ni} \red{\ni \Ti} - \red{\nee \Te} \right)
+  - \frac{3}{2} \nu_\r{Tiz} \left(\red{\ni \Ti} - \frac{\ni}{\nz}\red{\nz  \Tz} \right)
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL \left(\red{\ni \Ti}  - \nsup{i} \Ti \right)
+%
+  - \frac{3}{2} \nuLT{i} (\red{\ni \Ti} - \ni \Tsup{i})
+%
+\nonumber\\[2.5mm]&&{}
+  + \frac{3}{2} \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, (\red{\nna} \Tna +
+  \red{\nnb} \Tnb + \red{\nnc} \Tnc)
+\nonumber\\[2.5mm]&&{}
+%
+  - \frac{3}{2} \nuCX (\red{\ni \Ti} - \red{\ni} \Tna)
+%
+  + (1 - \fei) \Pb
+%
+  + \mb \frac{1}{\nb} \frac{\Pb}{\Eb} \frac{\aves{B
+  \upara{i}}}{\aves{B^2}} \red{\nb \aves{B \upara{b}}}
+%
+  + \Palp{i}
+%
+  + \PRF{i}
+\\[5mm]
+%=====================%
+% 2<B \qipara>/(5 pi) %
+%=====================%
+ \frac{5}{2} \ni \ddt \red{\aves{B \qhatpara{i}}} &=&
+%
+  - \frac{1}{\mi} \hat{\mu}_2^\r{i} \red{\aves{B \upara{i}}}
+  - \frac{1}{\mi} \hat{\mu}_3^\r{i} \red{\aves{B \qhatpara{i}}}
+%
+  + \frac{1}{\mi} \hat{\mu}_2^\r{i} \red{B V_{1\r{i}}} 
+\nonumber\\[3mm]&&{}
+%
+%  + \frac{1}{\mi} \hat{\mu}_3^\r{i} {B V_{2\r{i}}}
+  - \frac{1}{\Zi e\mi} \hat{\mu}_3^\r{i} I \dd{V}{\psi} \frac{1}{\ni}
+  \ddV \red{\ni\Ti}
+  + \frac{1}{\Zi e\mi} \hat{\mu}_3^\r{i} I \dd{V}{\psi} \frac{\Ti}{\ni}
+  \ddV \red{\ni}
+\nonumber\\[3mm]&&{}
+%
+  - \hat{\ell}_{21}^{\r{ie}} \ni \red{\aves{B \upara{e}}} 
+  - \hat{\ell}_{21}^{\r{ii}} \ni \red{\aves{B \upara{i}}} 
+  - \hat{\ell}_{21}^{\r{iz}} \ni \red{\aves{B \upara{z}}} 
+  - \hat{\ell}_{21}^{\r{ib}} \frac{\ni}{\nb} \red{\nb \aves{B \upara{b}}} 
+\nonumber\\[3mm]&&{}
+%
+  + \hat{\ell}_{22}^{\r{ie}} \ni \red{\aves{B \qhatpara{e}}} 
+  + \hat{\ell}_{22}^{\r{ii}} \ni \red{\aves{B \qhatpara{i}}} 
+  + \hat{\ell}_{22}^{\r{iz}} \ni \red{\aves{B \qhatpara{z}}} 
+\nonumber\\[3mm]&&{}
+%
+  - \nuL \ni \red{\aves{B \qhatpara{i}}}
+%
+  - \nun{i} \ni \red{\aves{B \qhatpara{i}}}
+\\[5mm]
+%=======================%
+% <uizt/R> and <R uizt> %
+%=======================%
+  0 &=&
+%
+  - \red{\ni \ave{\frac{\uzt{i}}{R}}}
+%
+  + \frac{1}{\aves{R^2}} \red{\ni \aves{R\uzt{i}}}
+%
+  - \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{\aves{R^2}}\red{\ni\aves{R\uzt{i}}}
+%
+  + \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{I}\ni \red{\aves{B\upara{i}}}
+\\[5mm]
+%=======%
+% BV_1i %
+%=======%
+    0 &=&
+%
+  - \ni \red{BV_{1\r{i}}}
+%
+  - \frac{1}{\Zi e} \dd{V}{\psi} I \ddV \red{\ni\Ti}
+%
+  - \ni \dd{V}{\psi} I \ddV \red{\Phi}
+\end{eqnarray}
+%
+
+%\clearpage
+
+%
+\begin{eqnarray}
+%======%
+% \nz  %
+%======%
+  \ddt \red{\nz} &=&
+%
+  - \ddV \red{\nz\uV{z}}
+%
+  + \ugV \ddV \red{\nz}
+%
+  + \nee \red{\nnz} f_5S_5 - \nee \red{\nz} A_6 
+%
+  - \nuL (\red{\nz} - \nsup{i}) 
+%
+  + S_\r{LC}
+%
+  - \nuOL \red{\nz}
+%
+\\[5mm]
+%=========%
+% radial  %
+%=========%
+  0 &=&
+%
+    \Zz \frac{e}{\mz} \nz \left( \bri \right) \frac{1}{I} \red{B V_{1\r{z}}}
+%
+  + \Zz \frac{e}{\mz} I \nz \red{\aves{B\upara{z}}}
+%
+  - \Zz \frac{e}{\mz} \aves{B^2} \red{\nz \aves{R\uzt{z}}}
+\\[5mm]
+%===============%
+% <B \upara{z}> %
+%===============%
+  \nz \ddt \red{\aves{B \upara{z}}} &=&
+%
+  - \frac{1}{\mi} \hat{\mu}_1^\r{z} \red{\aves{B \upara{z}}}
+  - \frac{1}{\mi} \hat{\mu}_2^\r{z} \red{\aves{B \qhatpara{z}}}
+%
+  + \frac{1}{\mz} \hat{\mu}_1^\r{i} \red{B V_{1\r{z}}} 
+\nonumber\\[3mm]&&{}
+%
+%  + \frac{1}{\mz} \hat{\mu}_2^\r{z} {B V_{2\r{z}}}
+  - \frac{1}{\Zz e\mz} \hat{\mu}_2^\r{z} I \dd{V}{\psi} \frac{1}{\nz}
+  \ddV \red{\nz\Tz}
+  + \frac{1}{\Zz e\mz} \hat{\mu}_2^\r{z} I \dd{V}{\psi} \frac{\Tz}{\nz}
+  \ddV \red{\nz}
+\nonumber\\[3mm]&&{}
+%
+  + \hat{\ell}_{11}^{\r{ze}} \nz \red{\aves{B \upara{e}}}
+  + \hat{\ell}_{11}^{\r{zi}} \nz \red{\aves{B \upara{i}}}
+  + \hat{\ell}_{11}^{\r{zz}} \nz \red{\aves{B \upara{z}}}
+  + \hat{\ell}_{11}^{\r{zb}} \frac{\nz}{\nb} \red{\nb \aves{B \upara{b}}}
+\nonumber\\[3mm]&&{}
+%
+  - \hat{\ell}_{12}^{\r{ze}} \nz \red{\aves{B \qhatpara{e}}}
+  - \hat{\ell}_{12}^{\r{zi}} \nz \red{\aves{B \qhatpara{i}}}
+  - \hat{\ell}_{12}^{\r{zz}} \nz \red{\aves{B \qhatpara{z}}}
+\nonumber\\[3mm]&&{}
+%
+  + \Zz e \frac{\nz}{\mz} I \aves{R^{-2}} \left( - \frac{\red{\psitd}}{q} + \red{\psid} \right)
+%
+%  + \frac{1}{\mz} \aves{B S_{\r{m}\para}^\r{z}}
+%
+%  + \frac{1}{\mz} \aves{B S_\r{LC\para}}
+\nonumber\\[3mm]&&{}
+%
+  - \nuL  \nz \red{\aves{B \upara{z}}}
+%
+  - \nun{z} \nz \red{\aves{B \upara{z}}}
+%
+  - \nuOL \nz \red{\aves{B \upara{z}}}
+\nonumber\\[3mm]&&{}
+%
+  - \ddV \aves{|\nabla \rho|} v_{\r{z}\zeta} \nz \red{\aves{B \upara{z}}}
+%
+  + \aves{|\nabla V|} v_{\r{z}\zeta} \nz 
+  \biggl(\ddV \frac{\aves{B^2}}{I} \biggl) \frac{I}{\aves{B^2}} \red{\aves{B \upara{z}}}
+\nonumber\\[3mm]&&{}
+%
+  + \ddV \aves{|\nabla V|^2} \chis{z\zeta} \nz
+  \frac{\aves{B^2}}{I} \ddV \frac{I}{\aves{B^2}} \red{\aves{B \upara{z}}}
+\nonumber\\[3mm]&&{}
+%
+  - \aves{|\nabla V|^2} \chis{z\zeta} \nz \biggl( \ddV
+  \frac{\aves{B^2}}{I} \biggr) \ddV \frac{I}{\aves{B^2}} \red{\aves{B \upara{z}}}
+%
+  - \frac{1}{\mz} \frac{\aves{B^2}}{I} \ddV \aves{\Pi_\r{z}^\r{res}}
+\nonumber\\[3mm]&&{}
+%
+  - \ddV
+    \left[  \aves{|\nabla V|} v_{\r{z}\zeta} \nz
+            \frac{\aves{R^2}}{\aves{B^2}}\ave{\frac{|\nabla V|^2}{R^2}}\dd{\psi}{V}(1+2\hat{q}^2)
+	    \frac{1}{I} \dd{\psi}{V} BV_{1\r{z}} \right.
+\nonumber\\[3mm]&&{}
+    \left.- \aves{|\nabla V|^2} \chis{z\zeta} \nz
+          \ddV \frac{\aves{R^2}}{\aves{B^2}}\ave{\frac{|\nabla V|^2}{R^2}}\dd{\psi}{V}(1+2\hat{q}^2)
+	  \frac{1}{I} \dd{\psi}{V} BV_{1\r{z}}\right]
+\\[5mm]
+%==============%
+% imp toroidal %
+%==============%
+  \ddt \red{\nz \aves{R \uzt{z}}} &=&
+%
+  - (\uV{z} - \ugV) \ddV \red{\nz \aves{R \uzt{z}}}
+%
+  - \dd{\uV{z}}{V} \red{\nz \aves{R \uzt{z}}}
+%
+  - \ddV \aves{|\nabla V|} v_{\r{z}\zeta} \red{\nz \aves{R \uzt{z}}}
+\nonumber\\[3mm]&&{}
+  + \ddV \aves{|\nabla V|^2} \chis{z\zeta} \ddV \red{\nz \aves{R \uzt{z}}}
+  - \ddV \aves{|\nabla V|^2} \chis{z\zeta} \aves{R \uzt{z}}\ddV \red{\nz} 
+  - \frac{1}{\mz} \ddV \aves{\Pi_\r{z}^\r{res}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \hat{\ell}_{11}^\r{ze} \frac{\nz}{\nee} \red{\nee \aves{R \uzt{e}}}
+  + \hat{\ell}_{11}^\r{zi} \frac{\nz}{\ni}  \red{\ni  \aves{R \uzt{i}}}
+  + \hat{\ell}_{11}^\r{zz}                  \red{\nz  \aves{R \uzt{z}}}
+  + \hat{\ell}_{11}^\r{zb} \frac{\nz}{\nb}  \red{\nb  \aves{R \uzt{b}}}
+%  + \hat{\ell}_{11}^\r{zb} \frac{I}{\aves{B^2}} \frac{\nz}{\nb} \red{\nb
+%  \aves{B \upara{b}}}
+\nonumber\\[2.5mm]&&{}
+%
+%  - \hat{\ell}_{12}^\r{ze} \frac{I}{\aves{B^2}} \nz \red{\aves{B \qhatpara{e}}}
+%  - \hat{\ell}_{12}^\r{zi} \frac{I}{\aves{B^2}} \nz \red{\aves{B \qhatpara{i}}}
+%  - \hat{\ell}_{12}^\r{zz} \frac{I}{\aves{B^2}} \nz \red{\aves{B \qhatpara{z}}}
+  - \hat{\ell}_{12}^\r{ze} \nz \frac{1}{e} \frac{1}{\aves{B^2}} \left( \bri \right)
+    \dd{V}{\psi} \ddV \Te
+  - \hat{\ell}_{12}^\r{ze} \nz \frac{I}{\aves{B^2}} \red{\aves{B \qhatpara{e}}}
+\nonumber\\[2.5mm]&&{}
+  + \hat{\ell}_{12}^\r{zi} \nz \frac{1}{\Zi e} \frac{1}{\aves{B^2}} \left( \bri \right)
+    \dd{V}{\psi} \ddV \Ti
+  - \hat{\ell}_{12}^\r{zi} \nz \frac{I}{\aves{B^2}} \red{\aves{B \qhatpara{i}}}
+\nonumber\\[2.5mm]&&{}
+  + \hat{\ell}_{12}^\r{zz} \nz \frac{1}{\Zz e} \frac{1}{\aves{B^2}} \left( \bri \right)
+    \dd{V}{\psi} \ddV \Tz
+  - \hat{\ell}_{12}^\r{zz} \nz \frac{I}{\aves{B^2}} \red{\aves{B \qhatpara{z}}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \Zz \frac{e}{\mz}              \nz \red{\dot{\psi}}
+%
+  + \Zz \frac{e}{\mz} \dd{\psi}{V} \red{\nz \uV{z}}
+%
+\nonumber\\[2.5mm]&&{}
+%
+%  turbulent particle flux model
+%
+  + \Zz \frac{e \aves{|\nabla V|^2} \De}{\mz\Te} \dd{\psi}{V} 
+%%%
+%    \left[  (1-C_\r{T})\Te \frac{\nz}{\nee} \ddV \red{\nee}
+%           + C_\r{T} \frac{\nz}{\nee} \ddV \red{\nee\Te}
+%	  + e \frac{\Te}{e} \dd{\psi}{V} C_\r{p} \red{\nz} \right]
+%%%
+  \left[   \nz \dd{\psi}{V} \frac{1}{I} \red{B V_{1\r{e}}}
+         + \nz \ddV \red{\Phi} \right.
+\nonumber\\[2.5mm]&&{}
+  \left. + \frac{C_\r{T}-1}{e} \frac{\nz}{\nee}
+           \left( \ddV \red{\nee \Te} - \Te \ddV \red{\nee} \right)
+         + \frac{\Te}{e} \dd{\psi}{V} C_\r{p} \red{\nz} \right]
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL  \red{\nz \aves{R \uzt{z}}}
+%
+  - \nun{z} \red{\nz \aves{R \uzt{z}}}
+%
+  - \nuOL \red{\nz \aves{R \uzt{z}}}
+\\[5mm]
+%==========%
+% \nz \Tz  %
+%==========%
+  \frac{3}{2} \ddt \red{\nz \Tz}  &=& 
+%
+  - \frac{5}{2} ( \uV{z} - \ugV ) \ddV \red{\nz \Tz}
+%
+  - \frac{5}{2} \dd{\uV{z}}{V} \red{\nz \Tz}
+%
+  - \ddV V_\r{z}^\r{hp} \aves{|\nabla V|} \red{\nz \Tz}
+\nonumber\\[2.5mm]&&{}
+  + \ddV \chis{z} \aves{|\nabla V|^2} \ddV \red{\nz \Tz}
+  - \ddV \chis{z} \aves{|\nabla V|^2} \Tz \ddV \red{\nz}
+\nonumber\\[2.5mm]&&{}
+%
+  + ( \uV{z} - \ugV ) \ddV \red{\nz \Tz}
+%
+  + \uhatth{z} \aves{\vec{B}\cdot\nabla\cdot\tensor{\pi}_\r{z}}
+%
+  - \frac{3}{2} \nu_\r{Tez} \left(\frac{\nee}{\nz} \red{\nz \Tz} - \red{\nee \Te} \right)
+  - \frac{3}{2} \nu_\r{Tiz} \left(\frac{\ni }{\nz} \red{\nz \Tz} - \red{\ni  \Ti} \right)
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuL \left(\red{\nz \Tz}  - \nsup{z} \Tz \right)
+%
+  - \frac{3}{2} \nuLT{z} (\red{\nz \Tz} - \nz \Tsup{z})
+%
+  + \Palp{z}
+%
+  + \PRF{z}
+\\[5mm]
+%=====================%
+% 2<B \qzpara>/(5 pz) %
+%=====================%
+ \frac{5}{2} \nz \ddt \red{\aves{B \qhatpara{z}}} &=&
+%
+  - \frac{1}{\mz} \hat{\mu}_2^\r{z} \red{\aves{B \upara{z}}}
+  - \frac{1}{\mz} \hat{\mu}_3^\r{z} \red{\aves{B \qhatpara{z}}}
+%
+  + \frac{1}{\mz} \hat{\mu}_2^\r{z} \red{B V_{1\r{z}}}
+\nonumber\\[3mm]&&{}
+%
+%  + \frac{1}{\mz} \hat{\mu}_3^\r{z} {B V_{2\r{z}}}
+  - \frac{1}{\Zz e\mz} \hat{\mu}_3^\r{z} I \dd{V}{\psi} \frac{1}{\nz}
+  \ddV \red{\nz\Tz}
+  + \frac{1}{\Zz e\mz} \hat{\mu}_3^\r{z} I \dd{V}{\psi} \frac{\Tz}{\nz}
+  \ddV \red{\nz}
+\nonumber\\[3mm]&&{}
+%
+  - \hat{\ell}_{21}^{\r{ze}} \nz \red{\aves{B \upara{e}}} 
+  - \hat{\ell}_{21}^{\r{zi}} \nz \red{\aves{B \upara{i}}} 
+  - \hat{\ell}_{21}^{\r{zz}} \nz \red{\aves{B \upara{z}}} 
+  - \hat{\ell}_{21}^{\r{zb}} \frac{\nz}{\nb} \red{\nb \aves{B \upara{b}}} 
+\nonumber\\[3mm]&&{}
+%
+  + \hat{\ell}_{22}^{\r{ze}} \nz \red{\aves{B \qhatpara{e}}} 
+  + \hat{\ell}_{22}^{\r{zi}} \nz \red{\aves{B \qhatpara{i}}} 
+  + \hat{\ell}_{22}^{\r{zz}} \nz \red{\aves{B \qhatpara{z}}} 
+\nonumber\\[3mm]&&{}
+%
+  - \nuL \nz \red{\aves{B \qhatpara{z}}}
+%
+  - \nun{z} \nz \red{\aves{B \qhatpara{z}}}
+\\[5mm]
+%=======================%
+% <uzzt/R> and <R uzzt> %
+%=======================%
+  0 &=&
+%
+  - \red{\nz \ave{\frac{\uzt{z}}{R}}}
+%
+  + \frac{1}{\aves{R^2}} \red{\nz \aves{R\uzt{z}}}
+%
+  - \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{\aves{R^2}}\red{\nz\aves{R\uzt{z}}}
+%
+  + \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{I}\nz \red{\aves{B\upara{z}}}
+\\[5mm]
+%=======%
+% BV_1z %
+%=======%
+    0 &=&
+%
+  - \nz \red{BV_{1\r{z}}}
+%
+  - \frac{1}{\Zz e} \dd{V}{\psi} I \ddV \red{\nz\Tz}
+%
+  - \nz \dd{V}{\psi} I \ddV \red{\Phi}
+\end{eqnarray}
+%
+
+\clearpage
+
+%
+\begin{eqnarray}
+%======%
+% \nb  %
+%======%
+  \ddt \red{\nb} &=&
+%
+  - \ddV \red{\nb\uV{b}}
+%
+  + \ugV \ddV \red{\nb}
+%
+  +  \frac{\Pb}{\Eb}
+%
+  - g \frac{\Pbperp}{\Eb}
+%
+  - \nub \red{\nb}
+%
+  - \nubL \red{\nb}
+%
+  - \nueff g (\sqrt{\delta} \red{\nb} - \red{\nbrp})
+%
+\nonumber\\[2.5mm]&&{}
+  + \ddV \aves{|\nabla V|^2} f_t \Db \ddV \red{\nb}
+%
+\\[5mm]
+%=========%
+% radial  %
+%=========%
+  0 &=&
+%
+    \Zb \frac{e}{\mb} \left( \bri \right) \frac{1}{I} \red{\nb B V_{1\r{b}}}
+%
+  + \Zb \frac{e}{\mb} I \red{\nb \aves{B\upara{b}}}
+%
+  - \Zb \frac{e}{\mb} \aves{B^2} \red{\nb \aves{R\uzt{b}}}
+\\[5mm]
+%===============%
+% \nb \upara{b} %
+%===============%
+  \ddt \red{\nb \aves{B \upara{b}}} &=&
+%
+  - \frac{1}{\mb \nb} \hat{\mu}_1^\r{b} \red{\nb \aves{B \upara{b}}}
+%
+  + \frac{1}{\mb \nb} \hat{\mu}_1^\r{b} \red{\nb B V_{1\r{b}}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \hat{\ell}_{11}^\r{bb} \frac{\me\nee}{\mb\nb} \red{\nb \aves{B \upara{b}}}
+%
+  + \sum_{a\neq\r{b}} \hat{\ell}_{11}^{\r{b}a} \frac{\me\nee}{\mb} \red{\aves{B u_{a\para}}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \Zb \frac{e}{\mb} \nb I \aves{R^{-2}} \left( - \frac{\red{\psitd}}{q} + \red{\psid} \right)
+%
+  - \nubL \red{\nb \aves{B\upara{b}}}
+%
+  - \nub  \red{\nb \aves{B\upara{b}}}
+%
+  - \nun{b} \red{\nb \aves{B\upara{b}}}
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuCX \red{\nb \aves{B\upara{b}}}
+%
+%  + \vbph \frac{\Pbpara}{\Eb}
+%
+  + \frac{1}{\mb} \aves{B S_{\r{m}\para\r{b}}}
+%
+\\[5mm]
+%===============%
+% beam toroidal %
+%===============%
+  \ddt \red{\nb \aves{R \uzt{b}}} &=&
+%
+  \ugV \ddV \red{\nb \aves{R \uzt{b}}}
+%
+  - \ddV \aves{R \uzt{b}} \red{\nb \uV{b}} 
+%
+%  - \ddV [\aves{|\nabla V|} v_{\r{b}\zeta} \red{\nb \aves{R \uzt{b}}}]
+%\nonumber\\[3mm]&&{}
+%  + \ddV \aves{|\nabla V|^2} \chis{b\zeta} \ddV \red{\nb \aves{R \uzt{b}}}
+%  - \ddV \aves{|\nabla V|^2} \chis{b\zeta} \aves{R \uzt{b}}\ddV \red{\nb} 
+%  - \frac{1}{\mb} \ddV \aves{\Pi_\r{b}^\r{res}}
+\nonumber\\[2.5mm]&&{}
+%
+  + \frac{1}{\mb} \ell_{11}^\r{be} \frac{1}{\nee} \red{\nee \aves{R \uzt{e}}}
+  + \frac{1}{\mb} \ell_{11}^\r{bi} \frac{1}{\ni}  \red{\ni  \aves{R \uzt{i}}}
+  + \frac{1}{\mb} \ell_{11}^\r{bz} \frac{1}{\nz}  \red{\nz  \aves{R \uzt{z}}}
+%  + \hat{\ell}_{11}^\r{bb} \red{\ni \aves{R \uzt{b}}}
+  + \frac{1}{\mb} \ell_{11}^\r{bb} \frac{1}{\nb}  \red{\nb  \aves{R \uzt{b}}}
+\nonumber\\[2.5mm]&&{}
+%
+%  - \frac{1}{\mb} \ell_{12}^\r{be} \frac{I}{\aves{B^2}} \red{\aves{B \qhatpara{e}}}
+%  - \frac{1}{\mb} \ell_{12}^\r{bi} \frac{I}{\aves{B^2}} \red{\aves{B \qhatpara{i}}}
+%
+  + \Zb \frac{e}{\mb}              \nb \red{\dot{\psi}}
+%
+  + \Zb \frac{e}{\mb} \dd{\psi}{V} \red{\nb \uV{b}}
+%
+\nonumber\\[2.5mm]&&{}
+%%
+%%  turbulent particle flux model
+%%
+%  + \Zi \frac{e^2 \aves{|\nabla V|^2} \De}{\mi\Te} \dd{\psi}{V} 
+%%
+%    \left[  \dd{\psi}{V} \frac{\aves{B^2}}{\bri} \red{\nee \aves{R \uzt{e}}}
+%          - \dd{\psi}{V} \frac{I}{\bri} \nee \red{\aves{B \upara{e}}} \right.
+%\nonumber\\[2.5mm]&&{}
+%%
+%    \left.+ \frac{C_\r{T}-1}{e} \left(\ddV \red{\nee \Te} - \Te \ddV \red{\nee} \right)
+%	  + \nee \ddV \red{\Phi}
+%	  + \frac{\Te}{e} \dd{\psi}{V} C_\r{p} \red{\nee} \right]
+%\nonumber\\[2.5mm]&&{}
+%
+  - \nubL  \red{\nb \aves{R \uzt{b}}}
+%
+  - \nub  \red{\nb \aves{B \uzt{b}}}
+%
+  - \nun{i} \red{\nb \aves{R \uzt{b}}}
+%
+  - \nuCX \red{\nb \aves{R \uzt{b}}}
+%
+%  - \nuOL \red{\nb \aves{R \uzt{b}}}
+%
+  + \frac{1}{\mb} \frac{I}{\aves{B^2}} \aves{B S_{\r{m}\para\r{b}}}
+%
+\\[5mm]
+%=======================%
+% <ubzt/R> and <R ubzt> %
+%=======================%
+  0 &=&
+%
+  - \red{\nb \ave{\frac{\uzt{b}}{R}}}
+%
+  + \frac{1}{\aves{R^2}} \red{\nb \aves{R\uzt{b}}}
+%
+  - \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{\aves{R^2}}\red{\nb\aves{R\uzt{b}}}
+%
+  + \frac{2\hat{q}^2}{1+2\hat{q}^2} \frac{1}{I}\red{\nb \aves{B\upara{b}}}
+\\[5mm]
+%=======%
+% BV_1b %
+%=======%
+    0 &=&
+%
+  - \red{\nb BV_{1\r{b}}}
+%
+  - \frac{1}{\Zb e} \dd{V}{\psi} I \red{\nb} \ddV \Tb 
+%
+  - \frac{1}{\Zb e} \dd{V}{\psi} I \Tb \ddV \red{\nb}
+%
+  - \nb \dd{V}{\psi} I \ddV \red{\Phi}
+\\[5mm]
+%=======%
+% \nna  %
+%=======%
+  \ddt \red{\nna} &=& 
+%
+  - \dd{\ugV}{V} \red{\nna}
+%
+  + \ddV \aves{|\nabla V|^2} D_{01} \ddV \red{\nna}
+%
+  - \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, \red{\nna}
+%
+\nonumber\\[2.5mm]&&{}
+  - \nuCX\, \frac{\ni}{\nna + \nnb}\, \red{\nna}
+%
+  + \gamma_0 \nuL (\red{\ni} - \nsup{i})
+%
+  + \ddV V' \Gamma^\r{puff}\biggr|_\r{b}
+\\[5mm]
+%=======%
+% \nnb  %
+%=======%
+  \ddt \red{\nnb} &=& 
+%
+  - \dd{\ugV}{V} \red{\nnb}
+%
+  + \ddV \aves{|\nabla V|^2} D_{02} \ddV \red{\nnb}
+%
+  - \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, \red{\nnb}
+%
+%\nonumber\\[2.5mm]&&{}
+  + \nuCX\, \frac{\ni}{\nna + \nnb}\, \red{\nna}
+%
+%  + \fCX \frac{\Pb}{\Eb}
+\\[5mm]
+%=======%
+% \nnc  %
+%=======%
+  \ddt \red{\nnc} &=& 
+%
+  - \dd{\ugV}{V} \red{\nnc}
+%
+  + \ddV \aves{|\nabla V|^2} D_{03} \ddV \red{\nnc}
+%
+  - \nuion\, \frac{\nee}{\nna + \nnb + \nnc}\, \red{\nnc}
+%
+  + \fCX \frac{\Pb}{\Eb}
+\\[5mm]
+%=======%
+% \nnz  %
+%=======%
+  \ddt \red{\nnz} &=& 
+%
+  - \dd{\ugV}{V} \red{\nnz}
+%
+  + \ddV \aves{|\nabla V|^2} D_{n\r{z}} \ddV \red{\nnz}
+%
+  + \ddV \aves{|\nabla V|^2} \Delta D_{\r{C0}} \ddV n_\r{C0}
+%
+  - \nee \red{\nnz} f_5S_5 + \nee \red{\nz} A_6 
+\nonumber\\[2.5mm]&&{}
+%
+  + \gamma_\r{0z} \nuL \, (\red{\nz} - \nsup{z})
+%
+  + \gamma_\r{i,z} \nuL \, (\red{\ni} - \nsup{i})
+%
+  - (1-\gamma_\r{0z}) \nuL \, (\red{\nnz} - n_\r{C0})
+\nonumber\\[2.5mm]&&{}
+%
+  + \ddV V' \Gamma^\r{puff}_\r{z}\biggr|_\r{b}
+\\[5mm]
+%========%
+% \nbrp  %
+%========%
+  \ddt (g \red{\nbrp}) &=&
+%
+    g \frac{\Pbperp}{\Eb}
+%
+  + g \nueff (\sqrt{\delta} \red{\nb} - \red{\nbrp})
+%
+  - g \nub \red{\nbrp}
+%
+\nonumber\\[2.5mm]&&{}
+  - \ddV g \aves{|\nabla V|} \ubrp \red{\nbrp}
+  + \ddV g \aves{|\nabla V|^2} \Dbrp \ddV \red{\nbrp}
+\end{eqnarray}
+
+\bigskip
+
+\section{Boundary Conditions}
+
+%
+\begin{tabular}{|c|c|c|c|c|c|}\hline
+ num. & name & variable               & \shortstack{highest order\\ derivative} & center & edge \\\hline
+ 1    & LQm1 & $\Phi$                 & 2    &  N           & 0\\
+ 2    & LQm2 & $\psitd$               & 0    &  $\times$    & $\times$\\
+ 3    & LQm3 & $\psid$                & 0    &  $\times$    & $\times$\\
+ 4    & LQm4 & $\psi$                 & 2    &  N           & $2\pi\mu_0I_\r{p}$\\
+ 5    & LQm5 & $\psit/\mu_0$          & 2    &  0           & $\aves{|\nabla V|^2/R^2}|_{V_b}I_\r{vac}/(4\pi^2)$\\
+ 6    & LQe1 & $\nee$                 & 2    &  N           & N$^\dagger$\\
+ 7    & LQe2 & $\nee\uV{e}$           & 1    &  0           & $\times$\\
+ 8    & LQe3 & $\aves{B\upara{e}}$    & 2(0) &  N($\times$) & N($\times$)\\
+ 9    & LQe4 & $\nee\aves{R\uzt{e}}$  & 2    &  N           & N\\
+ 10   & LQe5 & $\nee \Te$             & 2    &  N           & N\\
+ 11   & LQe6 & $\aves{B\qhatpara{e}}$ & 0    &  $\times$    & $\times$\\
+ 12   & LQe7 & $\nee\aves{\uzt{e}/R}$ & 0    &  $\times$    & $\times$\\
+ 13   & LQe8 & $B V_{1\r{e}}$         & 0    &  $\times$    & $\times$\\
+ 14   & LQi1 & $\ni$                  & 2    &  N           & N$^\dagger$\\
+ 15   & LQi2 & $\ni\uV{i}$            & 1    &  0           & $\times$\\
+ 16   & LQi3 & $\aves{B\upara{i}}$    & 2(0) &  N($\times$) & N($\times$)\\
+ 17   & LQi4 & $\ni\aves{R\uzt{i}}$   & 2    &  N           & N\\
+ 18   & LQi5 & $\ni \Ti$              & 2    &  N           & N\\
+ 19   & LQi6 & $\aves{B\qhatpara{i}}$ & 0    &  $\times$    & $\times$\\
+ 20   & LQi7 & $\ni\aves{\uzt{i}/R}$  & 0    &  $\times$    & $\times$\\
+ 21   & LQi8 & $B V_{1\r{i}}$         & 0    &  $\times$    & $\times$\\
+ 22   & LQz1 & $\nz$                  & 2    &  N           & N$^\dagger$\\
+ 23   & LQz2 & $\nz\uV{z}$            & 1    &  0           & $\times$\\
+ 24   & LQz3 & $\aves{B\upara{z}}$    & 2(0) &  N($\times$) & N($\times$)\\
+ 25   & LQz4 & $\nz\aves{R\uzt{z}}$   & 2    &  N           & N\\
+ 26   & LQz5 & $\nz \Tz$              & 2    &  N           & N\\
+ 27   & LQz6 & $\aves{B\qhatpara{z}}$ & 0    &  $\times$    & $\times$\\
+ 28   & LQz7 & $\nz\aves{\uzt{z}/R}$  & 0    &  $\times$    & $\times$\\
+ 29   & LQz8 & $B V_{1\r{z}}$         & 0    &  $\times$    & $\times$\\
+ 30   & LQb1 & $\nb$                  & 0(2) &  $\times$(N) & $\times$(N)\\
+ 31   & LQb2 & $\nb\uV{b}$            & 1    &  0           & 0$^\ddagger$\\
+ 32   & LQb3 & $\nb\aves{B\upara{b}}$ & 0    &  $\times$    & $\times$\\
+ 33   & LQb4 & $\nb\aves{R\uzt{b}}$   & 0    &  $\times$    & $\times$\\
+ 34   & LQb7 & $\nb\aves{\uzt{b}/R}$  & 0    &  $\times$    & $\times$\\
+ 35   & LQb8 & $B V_{1\r{b}}$         & 0    &  $\times$    & $\times$\\
+ 36   & LQn1 & $\nna$                 & 2    &  N           & $\aves{|\nabla V|}S_\r{gas}|_b$\\
+ 37   & LQn2 & $\nnb$                 & 2    &  N           & 0\\
+ 38   & LQn3 & $\nnc$                 & 2    &  N           & 0\\
+ 39   & LQnz & $\nnz$                 & 2    &  N           & $\aves{|\nabla V|}S_\r{gas,z}|_b$\\
+ 40   & LQr1 & $\nbrp$                & 0(2) &  $\times$(N) & $\times$(N)\\\hline
+ \multicolumn{5}{l}{0: Dirichlet condition $(u=0)$,\ 
+                    N: Neumann condition $(u'=0)$}\\
+ \multicolumn{5}{l}{value: Neumann condition $(u'=\mbox{value})$,\ 
+                    $\times$: no condition}\\
+ \multicolumn{5}{l}{$\dagger$: imposed as a constraint in V5.60 (\texttt{MDLWBC} = 1), see Sec.~\ref{sec:wallbc}}\\
+ \multicolumn{5}{l}{$\ddagger$: V5.61, \texttt{MDBEAM} = 1 only, see Sec.~\ref{sec:beamwall}}
+\end{tabular}
+%
+
+\medskip
+
+NOTE: The dependent variable of LQm4 turns to be $\psi/\mu_0$ when NB is
+applied. Subsequently, the edge boundary condition listed for that variable
+is also changed to $2\pi I_\r{p}$.
+
+NOTE: Rows 2 to 5 deserve a word, because the variable that carries the
+second-order operator is not the variable of the equation in which the
+operator is written. The LQm2 equation advances $\psitd$ and contains
+$\ddV[\ave{|\nabla V|^2/R^2}\aves{R^{-2}}^{-1}\ddV(\psit/\mu_0)]$; the
+LQm3 equation advances $\psid$ and contains
+$\ddV[\ave{|\nabla V|^2/R^2}\ddV\psi]$. Counting per dependent variable
+over the whole system, as this section does, $\psitd$ and $\psid$ are never
+differentiated and so take order 0 and no condition of their own, while
+$\psit/\mu_0$ and $\psi$ take order 2 and carry the two conditions each.
+The table above now reads that way.
+In the implementation the two conditions of each pair are applied to the
+LQm2 and LQm3 equation rows, since that is where the boundary term left by
+the integration by parts appears; this is the correct weak form and is not
+a discrepancy with the table. The axis condition of $\psit/\mu_0$ is imposed
+there as $\psitd|_{V=0}=0$, which holds $\psit(0)$ at its initial value,
+namely zero, and is therefore the Dirichlet condition listed.
+
+NOTE: In the table the column labeled by the highest order derivative means
+the order of the highest order derivative of a dependent variable, not
+an equation, in the corresponding row.
+Please note that the term not integrated by parts is never counted.
+For example, the first row shows the highest order of derivatives is
+equal to 2 for $\Phi$ because the LQm1 equation
+has the diffusion term having the second derivative of $\Phi$ with
+respect to $V$. In addition, the LQe2 and LQi2 equations also have the
+first derivative of $\Phi$, which is not a dependent variable of these
+equations. As a whole, the highest order derivative of $\Phi$ in this
+equation system is 2 that comes from the LQm1 equation.
+When we look at $\nee$, we find that the highest order derivative of
+$\nee$ is 2 shown in the LQe5 equation, even though no derivative
+appears in the LQe1 equation. The Neumann conditions for $\nee$ come
+from the LQe5 equation.
+When it comes to $\nee\uV{e}$, the highest derivative is found as order 1
+in the LQe1 equation, but this term is not integrated by parts.
+It means that any boundary condition is not naturally imposed on
+$\nee\uV{e}$. The Dirichlet boundary condition should be imposed at axis.
+
+
+
+
+
+\clearpage
+\section{Momentum pinch of V5.62}
+\setcounter{equation}{0}
+\label{sec:v562}
+
+V5.62 changes the turbulent momentum pinch of the thermal species.  The flux of
+toroidal angular momentum of species $s$ is written with the density outside the
+gradient (the form of the scaling used below),
+\begin{equation}
+  \Gamma_{\r{L},s} = m_s\left(\aves{|\nabla V|}\,V_\r{p}\,n_s\aves{Ru_{s\zeta}}
+   - \aves{|\nabla V|^2}\,\mu_s\,n_s\,\partial_V\aves{Ru_{s\zeta}}\right),
+\end{equation}
+with the momentum diffusivity $\mu_s$ and the pinch velocity $V_\r{p}$ ($V_\r{p}>0$
+outward).  The pinch is
+\begin{equation}
+  V_\r{p} = -\frac{\mu_\r{i}}{R_0}\left[1.1\,g\!\left(\frac{R_0}{L_n}\right) + 1.0\right] T(\rho),
+  \qquad \frac{R_0}{L_n} = -R_0\,\frac{d\ln n_\r{e}}{d\rho_V},
+  \label{eq:v562pinch}
+\end{equation}
+where $\rho_V$ is the volume radius and $n_\r{e}$ is smoothed as before.
+
+\paragraph{Origin and range of the scaling.}  The multi-machine scaling of Tala
+et al.\ \cite{Tala2012} is $-R_0V_\r{pinch}/\chi_\phi = 1.1\,R/L_n + 1.0$, both terms
+inward.  It was obtained from NBI modulation in JET, DIII-D and AUG and from
+magnetic perturbations in NSTX, with the pinch and the Prandtl number averaged over
+$0.4<\rho_\r{tor}<0.8$; the data cover $R/L_n$ = 1.2--3.6 (0.2--3.8 with NSTX) and
+pinch numbers 0.9--6.2.  The slopes of the single devices are 1.2 (JET, DIII-D), 1.5
+(AUG) and 0.6 (NSTX); gyrokinetic calculations give a dependence about half as strong.
+The profiles are ``not accurate in the edge region'', and an edge torque added to the
+analysis does not change the coefficients inside $r/a<0.8$.  The analysis method
+\cite{Mantica2010} and the JET subset \cite{Tala2011} write the flux in the form
+above; residual stress and intrinsic torque are neglected.  No upper limit of $R/L_n$
+is stated.  Beyond the range, the JETPEAK database \cite{Weisen2012} ($R/L_n$ = 1--10,
+$r/a$ up to 0.85) gives an $R/L_n$ coefficient of 0.41--0.66 for the steady-state
+rotation gradient (pinch and residual stress together), and the regression of GKW
+calculations 0.44; neither shows a saturation.
+
+\paragraph{The closure.}  Equation (\ref{eq:v562pinch}) is a reduced closure, not the
+Tala law extrapolated over the whole plasma: it is the Tala fit inside its data, it
+takes the slope beyond the data from the multi-machine and gyrokinetic information,
+and it is not applied in the edge and the SOL.
+\begin{itemize}
+\item $g(x) = x$ for $|x|\le x_1$ and
+\begin{equation}
+  g(x) = \mathrm{sgn}(x)\left[x_1 + s(|x|-x_1) + (1-s)\,w\tanh\frac{|x|-x_1}{w}\right]
+  \quad (|x|>x_1),
+\end{equation}
+with $x_1$ = 3.8 (\texttt{PCHRLN}, the largest $R/L_n$ of the fit), $s$ = 0.4
+(\texttt{PCHSLP}, so that the slope goes from 1.1 to 0.44) and $w$ = 1 (\texttt{PCHWID}).
+$g$ is continuous up to its second derivative.  The pinch number is 7.7 at $R/L_n$ = 8
+and 8.6 at 10, within the measured pinch numbers (up to about 8), against 9.8 and 12 for
+the linear law.  $s$ = 0 saturates the pinch number at $1+1.1(x_1+w)$; this is an
+experimental option without a basis in the literature.
+\item $T(\rho) = 1$ for $\rho\le\rho_1$ = 0.8 (\texttt{RhoPch1}, the outer edge of the
+data), $0$ for $\rho\ge\rho_2$ = 0.9 (\texttt{RhoPch2}) and the quintic smoothstep
+$1-\xi^3(10-15\xi+6\xi^2)$, $\xi=(\rho-\rho_1)/(\rho_2-\rho_1)$, between.  $T$ is
+continuous up to its second derivative and exactly zero outside $\rho_2$, so that the
+pinch carries no momentum through the wall.  The location follows the data
+(0.8), the momentum boundary of the TOPICS validation (0.9 \cite{Honda2013}) and the
+pedestal-top boundaries of present integrated modelling (0.8--0.94); the width is a
+numerical choice.  Outside $\rho_2$ the momentum is transported by the diffusion only.
+Cubic, cosine and tanh tapers with the same end points give the same rotation to three
+digits.
+\item $V_\r{p}$ is built from the ion viscosity and given to every thermal species; the
+beam has no turbulent momentum flux.  With a common $\mu$ the fluxes sum to
+$V_\r{p}L - \mu\sum_s m_sn_s\partial_V\aves{Ru_{s\zeta}}$ times the metric factors, the
+pinch of the total thermal momentum $L = \sum_s m_sn_s\aves{Ru_{s\zeta}}$ used in
+TOPICS \cite{Honda2013}, whether or not the species rotate alike.  With
+species-dependent \texttt{rMus0} the pinch number $-R_0V_\r{p}/\mu_s$ differs between
+species and this equivalence is lost.
+\end{itemize}
+
+\paragraph{Correction of the sign.}  Up to V5.61 the code evaluated
+$V_\r{p} = (\mu/R_0)(1.1R_0\,d\ln n_\r{e}/d\rho_V + 1)$, i.e.\
+$-R_0V_\r{p}/\mu = 1.1R_0/L_n - 1$: the constant term pointed outward, against the
+scaling it cited.  V5.62 uses $+1.0$ (verified on the output pinch velocity to three
+digits).  The commented-out edge suppressions of the old code (a tanh at $\rho$ = 0.98
+and a Gaussian at $\rho$ = 1) had no documented basis and are removed.  Without the
+radial restriction the old pinch reached a pinch number of 14 at $\rho$ = 0.9 and about
+140 at the separatrix, and the convective flux at the wall carried momentum into the
+plasma (+0.04 N\,m in the JT-60U case).
+
+\paragraph{Validation.}  JT-60U-like case of Sec.~\ref{sec:v561val} (3.2 MW co-tangential and 0.4 MW
+perpendicular NBI, $\chi=\mu=0.22(1+19\rho^2)$ m$^2$/s, \texttt{PNsSUP(1)} = 0.0125 as explained
+below), production defaults (\texttt{FSTPTM} = 3), 1.5 s:
+\begin{center}
+\begin{tabular}{|l|c|c|c|c|c|c|}\hline
+case & $u_{\r{i}\phi}(0)$ & $u_{\r{i}\phi}(0.82)$ & $E_r(0.5)$ & $j_r(0.97)$ & $j\times B$ torque & $L_\phi$ \\
+ & km/s & km/s & kV/m & A/m$^2$ & N\,m & N\,m\,s \\\hline
+no ripple & 510 & 57 & $+44$ & $-0.017$ & $+0.16$ & 2.03 \\
+half ripple (FST) & 370 & 27 & $+22$ & $-0.103$ & $-3.25$ & 1.58 \\
+full ripple & 198 & $-8$ & $-5$ & $-0.180$ & $-7.28$ & 1.05 \\\hline
+\end{tabular}
+\end{center}
+The line-averaged density is $1.15\times10^{19}$ m$^{-3}$ and the thermal mass inside $\rho$ = 1 is 1.54--1.62 mg.
+The first version of this table used \texttt{PNsSUP(1)} = 0.01 (the default) and \texttt{FSTPTM} = 2:
+621, 441 and 226 km/s ($\bar n_\r{e} = 1.02\times10^{19}$ m$^{-3}$, thermal mass 1.29 mg);
+\texttt{FSTPTM} = 3 gives 620 and 223 km/s without and with full ripple at 0.01, and V5.61 gave 658,
+417 and 128 km/s.  The ripple changes the rotation, $E_r$, the return current and its torque at
+\texttt{PNsSUP(1)} = 0.0125 as at 0.01.  The rest of this paragraph refers to
+\texttt{PNsSUP(1)} = 0.01.  The pinch number is 6.3 at $\rho$ = 0.5 and 7.9 at
+0.8 and vanishes outside 0.9; in V5.61 it was 14 at 0.9.  The profile is more peaked
+in the core (the constant term) and lower at the edge ($u_{\r{i}\phi}(0.9)$ = 46
+against 105 km/s).  The volume integrals close to $2\times10^{-5}$ of the injected
+torque in every row, the pinch flux at the wall is zero and the friction terms sum to
+$3\times10^{-9}$ N\,m.  With \texttt{NRMAX} = 120 the total angular momentum agrees
+with \texttt{NRMAX} = 60 to 0.5\% up to 0.8 s (the Picard iteration is limited there by
+the known impurity terms at the axis, as in V5.61).  On the test equilibria of
+Sec.~\ref{sec:v561val} densities and temperatures change by less than $3\times10^{-3}$
+and the rotation by 13--40\%; the mean Picard count rises by 1--4 and no step more
+reaches \texttt{ICMAX}.  The Tala law with the corrected sign but without the radial
+restriction and the slope reduction spins the JT-60U case up to 881 km/s and stops at
+1.4 s at the impurity grid mode of supersonic rotation.
+
+\paragraph{Density of the benchmark.}  \texttt{PNsSUP(1)} is the upstream SOL density and sets
+the density level of the whole plasma (Sec.~\ref{sec:v552other}); the shape of the density profile
+does not depend on it.  The benchmark input sets it to 0.0125 ($10^{20}$ m$^{-3}$), which gives
+$\bar n_\r{e} = 1.15\times10^{19}$ m$^{-3}$ and $n_\r{e}(\rho=1) = 0.22\times10^{19}$ m$^{-3}$.  The
+line-averaged density is the one estimated from the measured profile of the JT-60U L-mode
+discharge compared in \cite{NF2008} (Fig.~1 of \cite{Yoshida2006}, which gives no value), and
+the separatrix density lies at the lower end of the range expected for JT-60U L-modes
+(0.2--0.45$\times10^{19}$ m$^{-3}$).  This value normalizes the density of this benchmark; it is
+not a universal value, and the default of \texttt{PNsSUP(1)} stays 0.01.  A new device,
+discharge, equilibrium, heating scheme or particle-transport model needs its own value, found
+by an outer loop of two or three runs to the target density (secant in $\log$--$\log$; there is
+no density feedback inside the code).  The benchmark is JT-60U-like and not the discharge:
+$I_\r{p}$ = 1.0 MA against 1.23 MA, a circular cross-section against a D-shaped plasma of
+77 m$^3$, and the computed density profile falls more steeply towards the edge
+($n_\r{e}(0.9)/\bar n_\r{e}$ = 0.45 against 0.74).  The rotation was not used to choose
+\texttt{PNsSUP(1)}: it is a consistency check of the momentum model, not a fitting target.
+
+The reduced ripple model is judged by the changes with the ripple rather than by the
+absolute rotation.  The co-rotation without ripple is 1.7 times that of \cite{NF2008}
+(510 against 300 km/s); the
+states of that work, restored from its save files with the 2008 code, show why.  The
+2008 plasma was pure deuterium with a flat density ($n_\r{e}$ = 1.4--1.5$\times10^{19}$
+m$^{-3}$ up to $r/a$ = 0.7), 1.4 times heavier than the present one (thermal mass 2.30
+against 1.59 mg, moment of inertia $2.70$ against $1.87\times10^{-5}$ kg\,m$^2$); its
+torque was 7.63 N\,m (85 keV, the whole beam velocity toroidal at $R_0$) with half of it
+deposited off axis, it had no momentum pinch, and its wall held $u_\phi = 0$.  The
+momentum confinement times $L_\phi/T_\r{NBI}$ of the thermal species are similar (0.137
+and 0.143 s), so the mass-weighted rotation $R_0L_\phi/I_\phi$ differs by 1.3 (132 and 174
+km/s) and the more peaked profile gives the rest of the factor 1.7 on axis.
+
+\paragraph{Limitations.}  The pinch number is taken from the electron density gradient
+alone; the dependences on $q$, $\hat{s}$, $\varepsilon$, $T_\r{i}/T_\r{e}$ found in
+the regressions are not included, and no residual stress is modelled.  The radial
+restriction is fixed in $\rho$ and does not follow the pedestal of an H-mode.  The
+momentum diffusivity itself is prescribed ($\mu = \chi$ in the benchmark).  A
+Coriolis-type alternative with a geometric dependence ($-R_0V/\mu\propto\sqrt{r/R}$, as
+used for DTT \cite{Casiraghi2021}) rotates the JT-60U case 30\% more slowly; its
+coefficient is a calibration, not a universal constant, and it is not implemented in
+the production code.
+
+
+\section{Beam and ripple model of V5.61}
+\setcounter{equation}{0}
+\label{sec:v561}
+
+V5.61 changes the beam and ripple equations.  The model itself (its
+assumptions, the ordering behind each term and the comparison with the 2008
+ripple model \cite{NF2008}) is described in \texttt{beam\_ripple.tex}; this
+section states what the code solves and what changed.
+
+\begin{center}
+\begin{tabular}{|l|l|}\hline
+change & effect \\\hline
+ripple momentum terms of the beam removed (B-full) & \texttt{FSRP} = 1 with NBI \\
+LQr1 written as the conservation law of $g\nbrp$ & \texttt{FSRP} = 1 with NBI \\
+$\Gamma_\r{b}(\rho_b) = 0$ & \texttt{MDBEAM} = 1 with NBI \\
+fast-ion friction $\ell_{11}^{\r{f}k} = \ell_{11}^{k\r{f}}$ restored & NBI (\texttt{MDLNEO} = 1, 2) \\
+$Z_\r{eff}$ and the fast-ion inventory weighted by $g$ & \texttt{FSRP} = 1 with NBI \\
+\texttt{FSRP} restricted to 0, 1, 2; \texttt{FSRP} = 2 keeps $g P_{\r{b}\perp}$ in $\nb$ & input \\
+on-axis ripple trapping rate from the interior & \texttt{FSRP} = 1 with NBI \\\hline
+\end{tabular}
+\end{center}
+
+Runs without NBI are bit-identical to V5.60 (X-point and circular test
+equilibria, \texttt{NRMAX} = 60 and 240, \texttt{MDLNZD} = 0, \texttt{MDLN0FL} = 2,
+\texttt{FSRP} = 0 and 1).  No default switch changes.  For runs with NBI, and in
+particular with \texttt{FSRP} = 1, \texttt{NANDER} = $-20$ is recommended
+(Sec.~\ref{sec:anderson}): the impurity radial flux at the wall converges slowly
+without it once the beam heats the edge.
+
+\subsection{\texttt{FSRP} and the ripple-well fraction}
+
+\texttt{FSRP} is a mode, not a factor: 0, no ripple; 1, full ripple model
+(ripple-trapped ions, LQr1, and ripple diffusion of $\nb$); 2, ripple diffusion
+of $\nb$ without ripple-trapped ions.  Other values are rejected.  The ripple
+amplitude is $\delta(r,\theta) = \delta_\r{min} I_0(N a_\delta/R_{\delta\r{min}})$
+with \texttt{DltRPn} $=\delta_\r{min}$; \texttt{FSRP} only switches it on.
+$R_{\delta\r{min}}$ (input \texttt{RDltRPn}, default 2.4 m) is the major radius on the
+midplane where the ripple amplitude has its minimum $\delta_\r{min}$; the formula takes
+the surfaces $\delta$ = const as circles centred there, a property of the TF coil
+geometry (the coil shape and radial position), not of the plasma.  2.4 m is the JT-60U
+value that entered the 2008 code together with the ripple model (``specific value for
+JT-60U'', also used by the routine that drew the ripple contours); it was fixed in the
+code up to V5.61.00, and other devices need their own value.  The text of \cite{NF2008}
+gives 2.8 m, but
+its own numbers require 2.4 m: with $\delta_\r{min} = 2\times10^{-6}$ and $N = 18$ the
+formula gives $\delta_a = 1.28$\% at the outboard midplane and $0.30$\% at
+$\theta = \pi/2$ with 2.4 m, the values quoted in \cite{NF2008}, and $0.085$\% and
+$0.043$\% with 2.8 m; the contours of its Fig.~1 are centred near 2.4 m.  The 2.8 m of
+the text is a misprint.  A point
+of a flux surface lies in a ripple well when
+\begin{equation}
+  \alpha \equiv \frac{\epsilon|\sin\theta|}{Nq\delta(r,\theta)} < 1,
+\end{equation}
+and $g(\rho)$ (\texttt{rip\_rat}) is the fraction of the poloidal circumference where
+it holds, found by searching the rims on the low- and high-field sides.
+$g$ is not zero near the axis: close to the low-field-side midplane
+$\sin\theta\to0$ and a narrow arc always satisfies $\alpha<1$ (for the JT-60U
+case below $g = 0.22$, 0.06 and 0.43 at $\rho = 0.04$, 0.25 and 0.96).  V5.61
+counts these narrow core wells as the criterion gives them; no cut-off is applied.
+
+\subsection{Ripple-trapped beam density: conservation form}
+
+$\nbrp$ (LQr1) is the density of the ripple-trapped beam ions inside the wells;
+the inventory per unit volume is $N_\r{r} = g\nbrp$.  V5.61 solves the
+conservation law of $N_\r{r}$ with $\nbrp$ as the unknown,
+\begin{equation}
+  \ddt(g\nbrp) + \ddV\left(g U \nbrp\right) - \ddV\left(g K \ddV\nbrp\right)
+  = g\frac{\Pbperp}{\Eb} + g\nueff(\sqrt\delta\,\nb - \nbrp) - g\nub\nbrp ,
+  \label{eq:v561nr}
+\end{equation}
+\begin{equation}
+  U = \aves{|\nabla V|}\ubrp, \qquad K = \aves{|\nabla V|^2}\Dbrp .
+\end{equation}
+$g$ stays inside every divergence.  Written for $N_\r{r}$, the diffusive flux is
+$-gK\partial_V(N_\r{r}/g) = -K\partial_V N_\r{r} + K N_\r{r}\partial_V\ln g$; the
+second part, the $dg/dV$ term, is what makes the flux vanish where the wells end
+($g\to0$ with $\nbrp$ finite), so it cannot be dropped: without it the
+ripple-trapped ions diffuse out of the well region (a test with
+$-K\partial_V N_\r{r}$ alone lost 80\% of the inventory through the core-side rim).
+The form (\ref{eq:v561nr}) contains no $1/g$.
+
+Changes from V5.60, where LQr1 was $\partial_t\nbrp + \partial_V(r\ubrp\nbrp) - \partial_V(K\partial_V\nbrp) = \ldots$
+without $g$:
+\begin{itemize}
+\item the $dg/dV$ terms (above) were missing and $\nb + g\nbrp$ was not conserved:
+  the particle inventory of $\nb + g\nbrp$ was off by 2--9\% of the NBI source;
+\item the advection used $r\ubrp$ (a remnant of the $\psi = r^2$ coordinate of the
+  earlier code) instead of $\aves{|\nabla V|}\ubrp$, a factor $4\pi^2R$ too weak in
+  circular geometry;
+\item the source had no $g$, so $\nbrp$ grew where there are no wells.
+\end{itemize}
+Discretization: the mass, source, exchange and thermalization terms are the
+element matrices $\int g\,(\ldots)\,w\,dV$; the exchange terms are the same matrices
+as in LQb1 with opposite sign, so $\nb + g\nbrp$ is conserved exactly by the
+discrete equations.  The advection is in strong form, $-\int\partial_V(gU\nbrp)w\,dV$;
+its sum over the test functions is the wall flux $[gU\nbrp]_{V_b}$, the ripple loss
+out of the plasma, and no boundary condition is needed at either end ($gU = 0$ at
+the axis).  The diffusion has the natural condition.  A node with no well on
+either side gets the identity $\partial_t\nbrp = 0$.  No SUPG: the element P\'eclet
+number is 15--30 at the edge and $10^2$--$10^3$ inside, but the solution shows no
+grid-scale structure and converges with the mesh (Sec.~\ref{sec:v561val}).
+
+Every other equation already weighted $\nbrp$ by $g$ (LQb1, Poisson, LQi1); V5.61
+also weights $Z_\r{eff}$ and the fast-ion inventory (\texttt{ANFINT}) by $g$.
+
+\subsection{Ripple momentum closure of the beam (B-full)}
+
+In V5.60 the parallel beam momentum (LQb3) had the two ripple terms of the 2008
+model \cite{NF2008},
+\begin{equation}
+  -\nueff g\sqrt\delta\,\mb\nb\aves{B\upara{b}} , \qquad
+  +\ddV\aves{|\nabla V|^2}\aves{B\upara{b}}\,f_t\Db\,\ddV\nb ,
+\end{equation}
+the momentum removed by ripple trapping and the momentum carried by the ripple
+diffusion flux; the toroidal momentum (LQb4) had neither.  V5.61 removes both,
+and adds nothing to LQb4.  The reason is the order of these terms in the
+velocity moments of the beam distribution, not the numerical instability that
+the second term caused on linear elements:
+\begin{itemize}
+\item The ions scattered into the ripple wells have $|\upara{}|/v < \sqrt\delta$.
+  The momentum they take is $\int_{|\xi|<\sqrt\delta} m v\xi\,\nu f\,d^3v$, bounded by
+  $\sqrt\delta\,mv$ per ion and $O(\delta)\,mv$ for a smooth $f(\xi)$, against
+  $m\upara{b} = O(1)\,mv$ per ion in the 2008 form.  The same holds for $mRv_\zeta$
+  up to the drift, $O(\rho^*_\r{b})$.
+\item Ripple diffusion acts on the banana ions.  Their bounce-averaged
+  distribution is even in $\xi$, so the parallel momentum flux
+  $\int m v\xi\,\Gamma_r[f]\,d^3v$ vanishes at zero orbit width; the first
+  non-zero part comes from the offset of the two legs of the banana,
+  $O(\rho^*_\r{b})$.  For the toroidal momentum,
+  $\aves{mRv_\zeta}_\r{b} = P_\zeta + Ze\aves{\psi}_\r{b}$ with $v_\para = 0$ at the tips and
+  $\aves{v_\para}_\r{b} = 0$, again $O(\rho^*_\r{b})$.
+\item The beam fluid of TX keeps no finite-orbit-width physics (the beam viscosity
+  is zero), so keeping these $O(\delta)$ and $O(\rho^*_\r{b})$ terms alone would be
+  inconsistent.  $\rho^*_\r{b} = 0.1$--0.2 at the edge of JT-60U for 80 keV D: the
+  terms are dropped because the closure does not retain that order, not because
+  they are negligible.
+\end{itemize}
+Both components vanish, so the closure also respects the radial force balance
+(LQb2): a ripple term in LQb3 alone forces a spurious radial beam flux through the
+multiplier $\Gamma_\r{b}$.  Ripple particle transport is kept: the trapping,
+detrapping and diffusion of $\nb$ in LQb1, and LQr1.  The main effect of the ripple
+in the 2008 work, the torque of the return current, comes from the charge that
+these particle fluxes move and is unchanged (Sec.~\ref{sec:v561val}).
+
+\subsection{Radial beam flux at the wall}
+\label{sec:beamwall}
+
+With \texttt{MDBEAM} = 1, $\Gamma_\r{b} = \nb\uV{b}$ (LQb2) is the Lagrange multiplier of
+the beam radial force balance; V5.60 had no condition on it at $\rho_b$.  V5.61
+imposes
+\begin{equation}
+  \Gamma_\r{b}(\rho_b) = 0 .
+\end{equation}
+This is a closure of the reduced model, not a statement that fast ions are not
+lost to the wall.  The model has no surface or orbit-loss channel for the beam;
+outside the separatrix the beam is lost by the volume loss $\nubL\nb$.  The wall
+value of the multiplier was not an outflow law: it was whatever the force balance
+at the wall node required, with the diamagnetic term of a beam with fixed
+$T_\r{b} = 2\Eb/3$, whereas the fast-ion orbit width (10--20 cm) exceeds the gradient
+lengths of the SOL.  Left free, that value pushed $\nb$ at the wall node towards zero
+and made the Picard iteration cycle without converging (a period-5 cycle of
+$\Gamma_\r{b}$ on the circular test equilibrium).  The alternatives were rejected: the
+SOL beam removal used with \texttt{MDBEAM} = 0, 2 rewrites $\nb$ outside the equations
+and contradicts the constraint rows; an outflow $\Gamma_\r{b} = \nb v_\r{out}$ needs a
+physical $v_\r{out}$ and would double-count $\nubL$.  The condition changes runs with
+NBI by 1.5--5\% in the core rotation for perpendicular injection and by 0.5\% for the
+JT-60U case below.  It should be revisited if a finite-orbit-width or orbit-loss
+model is introduced.
+
+\subsection{Beam--thermal friction}
+\label{sec:v561friction}
+
+The friction between the beam and the thermal species follows the fast-ion
+coefficients of Kikuchi and Azumi \cite{KA1995} (\texttt{imodel\_neo(3)} = 2, isotropic fast
+ions in the pitch-angle-scattering regime): $\ell_{11}^{\r{fe}} = \ell_{11}^{\r{ef}}$,
+$\ell_{11}^{\r{f}k} = \ell_{11}^{k\r{f}}$ ($k$ = i, z),
+$\ell_{11}^{\r{ff}} = -\sum_k\ell_{11}^{\r{f}k}$, the Maxwellian $\ell_{11}^{kk}$ reduced
+by $\ell_{11}^{k\r{f}}$, and the heat friction $\ell_{21}^{\r{ef}} = -\frac32\ell_{11}^{\r{ef}}$ with
+$\ell_{21}^{\r{fe}} = 0$.  The 11 block is symmetric, so the friction forces sum to zero;
+only the heat friction is not symmetric, as the paper states.  In V5.60 the
+fast-ion row was obtained from the thermal row with the Braginskii ratio
+$\tau_{ee}/\tau_{ii}$, which assumes equal Coulomb logarithms, and converted back to
+physical units with the actual $\tau_{ee}$ and $\tau_{ii}$.  The result was
+$\ell_{11}^{\r{fi}}/\ell_{11}^{\r{if}} = \ln\Lambda_{ee}/\ln\Lambda_{ii}$ (0.82--0.86 for D,
+1.00--1.08 for C) and a net force of 2--10\% of the fast-ion friction: 3\% of the
+NBI torque in the JT-60U case, 13\% at lower $T_\r{e}$.  V5.61 converts with the same
+collision times; the column sums of the 11 block are now $10^{-16}$ of the diagonal.
+Applicability: the coefficients assume an isotropic fast-ion distribution and the
+slowing-down regime $v_\r{Ti} \ll v_\r{b}$, and they ignore the fast-ion heat flow;
+for a tangential beam the distribution is anisotropic.
+
+\subsection{Discrete momentum conservation of the friction}
+\label{sec:frictionfem}
+
+The friction force on species $a$ is $\sum_b \ell^{ab}\,u_b$ with $\sum_a\ell^{ab} = 0$,
+so the forces cancel for any flows.  The coefficients satisfy this at every node (to
+$10^{-8}$ of the diagonal, MI).  The equations of species $a$ are written per unit
+mass density, so the term of row $a$ acting on the momentum $X_b = n_b\aves{Ru_b}$ has
+the coefficient $\ell^{ab}/(m_a n_a)\times n_a/n_b$; up to V5.61.00 it was integrated
+as the product of the two interpolants (\texttt{fem\_int(20,lab,Ratden)}, and
+\texttt{fem\_int(20,lab,n)} in the parallel equations), while the diagonal term of
+the same column used the interpolated coefficient (\texttt{fem\_int(2,lab)}).  Per
+element the two differ by $-h\,\Delta a\,\Delta b\,(X_1+X_2)/12$, where $\Delta a$,
+$\Delta b$ are the changes of the two factors across the element, so the columns did
+not sum to zero and the friction left a net force of $O(h^2)$.  It was measured
+directly: the residual falls by 2.2--2.3 from \texttt{NRMAX} = 60 to 90 and by 3.8--3.9
+to 120, and in the JT-60U case it came almost entirely from the ion--impurity pair
+near $\rho = 0.8$, where $n_i/n_z$ and the coefficients vary most.  Every friction
+term of a column is now assembled from the nodal product of its row-dependent
+factors ($\ell^{ab}n_a/n_b$, $\ell^{ab}n_a$, and $\ell_{12}^{ab}n_a$ for the heat
+friction, with the row-independent factors $I/\aves{B^2}$ and $\partial_V T_b$
+integrated alike in every row).  The element matrices then sum to zero over a column
+whenever the nodal coefficients do, and the continuous equations are unchanged.  The
+change of the solution is $O(h^2)$: in the JT-60U case at 1.5 s, $u_{\r{i}\phi}(0)$
+goes from 658 to 656 km/s, the total angular momentum by $-0.2$\%, the impurity density
+by up to 1\% and $E_r$ by up to 0.7\% (normalised to their maxima); without NBI, where
+the spurious force was comparable to the whole toroidal angular momentum, the small
+rotation changes by up to 5\%.  The Picard counts are unchanged.
+
+\subsection{Validation}
+\label{sec:v561val}
+
+\paragraph{Regression.}  Without NBI all runs are bit-identical to V5.60 (see the
+start of this section).  With NBI and \texttt{FSRP} = 0 the solution changes by the
+intended $\Gamma_\r{b}(\rho_b)=0$ and the friction correction: on the X-point test
+equilibrium with 5 MW perpendicular NBI the total toroidal angular momentum at
+0.5 s is 16\% lower (the injected torque is zero there, so the spurious friction
+source was comparatively large), with 3 MW co-tangential plus 1 MW perpendicular
+2\% lower; bulk densities and temperatures change by less than $10^{-3}$.  On the
+circular test equilibrium the wall cycle of $\Gamma_\r{b}$ is gone (V5.60: 25 of 5000
+steps at \texttt{ICMAX}; V5.61: none).
+
+\paragraph{Stability matrix.}  \texttt{FSRP} = 1, perpendicular NBI, \texttt{NANDER} = $-20$,
+X-point and circular, 0.3 s (0.15 s for $\Delta t = 2.5\times10^{-5}$):
+\begin{center}
+\begin{tabular}{|l|c|c|}\hline
+case & X-point: steps at \texttt{ICMAX} / mean & circular \\\hline
+NRMAX 60, $\Delta t = 10^{-4}$, 2.5 / 5 / 10 MW & 1 / 15,\ 0 / 21,\ 0 / 28 & 0 / 19,\ 0 / 28,\ 0 / 34 \\
+$\Delta t = 2.5\times10^{-5}$, $2\times10^{-4}$ & 0 / 11,\ 0 / 28 & 0 / 14,\ 1 / 37 \\
+NRMAX 120 & 13 / 42 & 1020 / 68 \\\hline
+\end{tabular}
+\end{center}
+No run stops and none shows a grid-scale mode: the odd-even part of the beam
+parallel momentum near the edge is 0.016--0.026 of its maximum at \texttt{NRMAX} = 60,
+the level of the non-uniform mesh, and 0.005 at 120.  The steps at \texttt{ICMAX} on
+the circular equilibrium at \texttt{NRMAX} = 120 are limited by the impurity
+diamagnetic flow (LQz8) at the axis node.  They do not occur with \texttt{FSRP} = 0 and
+remain when the ripple terms inside $\rho = 0.3$ are removed (tested: $g = 0$ or
+$\Dbrp = 0$ there): it is the known weakness of the impurity equations at the axis,
+triggered by the state the ripple produces, not a defect of the ripple model.
+
+\paragraph{Conservation.}  Volume integrals of every term of every equation
+(JT-60U case below, every step): the discrete time derivative equals the sum of
+the terms to $10^{-6}$ for all density and momentum equations; $\nb+g\nbrp$ closes
+with a residual below $10^{-5}$ of the NBI source.  The injected torque is 6.73 N\,m
+(analytic $2P R_\r{tan}/v_\r{b}$: 6.76 N\,m).  The friction between the beam and the
+thermal species conserves momentum since the correction of $\ell_{11}^{\r{f}k}$
+(Sec.~\ref{sec:v561friction}), and the friction terms of all species sum to less
+than $10^{-8}$ N\,m at all times since the assembly of Sec.~\ref{sec:frictionfem}; before
+that, the friction between the thermal ions and the impurity left a discrete
+residual that grew with the rotation to $+0.037$ N\,m (0.55\% of the injected
+torque) at 1.5 s.  The viscous flux at the wall is zero by the weak form; the rotation
+is damped by the SOL parallel loss and charge exchange at the edge.
+
+\paragraph{Ripple benchmark.}  JT-60U-like circular case of \cite{NF2008}: $R=3.4$ m,
+$a=0.95$ m, $B=2.6$ T, $I_\r{p}=1$ MA, $\kappa=1.15$ for the ripple, $N=18$,
+$\delta_\r{min}=2\times10^{-6}$ (edge ripple 1.26\%), 3.2 MW co-tangential and 0.4 MW
+perpendicular NBI, $\chi = \mu = 0.22(1+19\rho^2)$ m$^2$/s, $D = 0.15(1+4\rho^2)$ m$^2$/s,
+1.5 s:
+\begin{center}
+\begin{tabular}{|l|c|c|c|c|c|c|}\hline
+case & $u_{\r{i}\phi}(0)$ & $u_{\r{i}\phi}(0.82)$ & $E_r(0.5)$ & $j_r(0.97)$ & $j\times B$ torque & $dL_\phi/dt$ \\
+ & km/s & km/s & kV/m & A/m$^2$ & N\,m & N\,m \\\hline
+no ripple & 658 & 152 & $+83$ & $-0.020$ & $+0.18$ & $+0.12$ \\
+half ripple (FST) & 417 & 60 & $+34$ & $-0.108$ & $-3.40$ & $+0.05$ \\
+full ripple & 128 & $-42$ & $-22$ & $-0.185$ & $-7.44$ & $0.00$ \\\hline
+\end{tabular}
+\end{center}
+An earlier version of this table gave the state at 0.6 s.  At that time the runs
+without ripple and with half the ripple were still transient ($dL_\phi/dt = +1.57$
+and $+0.87$ N\,m against the injected 6.73 N\,m; $u_{\r{i}\phi}(0)$ = 473 and
+325 km/s); the table now gives the quasi-steady state at 1.5 s, where
+$dL_\phi/dt$ is below 2\% of the injected torque in all three runs.  With ripple
+the return current and its $j\times B$ torque changed by 5--11\% from 0.6 s to 1.5 s,
+so the ripple results are qualitatively unchanged; the co-rotation without ripple
+is 40\% higher than at 0.6 s.
+The return current grows with the ripple and has the magnitude of \cite{NF2008}
+($-0.08$ and $-0.16$ A/m$^2$ with and without FST), its torque is counter and
+grows, $E_r$ moves negative and the edge rotates counter with the full ripple;
+halving the ripple weakens all of these.  The qualitative physics of the 2008
+work is kept by B-full and the conservative LQr1.  The co-rotation without ripple
+is 2.2 times that of \cite{NF2008} (300 km/s).  The injected torque agrees with
+its analytic value, so this is a question of the momentum damping and transport
+(the losses concentrate at the edge in the V5.60 SOL and neutral models), not of
+the ripple model.
+
+
+
+\section{Models, switches and defaults of V5.60}
+\setcounter{equation}{0}
+
+V5.60 changes the default SOL and neutral physics.  The detailed physics,
+the verification and the development history are in
+\texttt{neutral\_transport.tex}; this section states what the code solves.
+
+\subsection{SOL parallel loss}
+
+Outside the separatrix the parallel loss rate is
+\begin{equation}
+  \nuL = k_L \frac{C_s}{L_c}\, g(\rho),\qquad L_c = 2\pi q R,\qquad
+  g = \frac{x^2}{1+x^2},\quad x = \frac{r-a}{\delta}\ (r\ge a),\ x=0\ (r<a),
+\end{equation}
+and enters every SOL equation in Robin form, e.g.\ $-\nuL(n_s-\nsup{s})$.
+$k_L$ is \texttt{FSLP}.  The ramp $g(\rho)$ is numerical smoothing: it keeps
+$\nuL$ from jumping at $\rho=1$, which the FEM cannot represent, and its
+continuum limit is the step.  \texttt{MDLSOL} selects its width $\delta$:
+
+\begin{center}
+\begin{tabular}{|c|l|}\hline
+\texttt{MDLSOL} & $\delta$ \\\hline
+0 & $3\sqrt{0.5\,T_i(0)\,m_i}\,q(a)/(Z_ieB_\phi(a))/\sqrt{a/R}$ (V5.52) \\
+1 & ion banana width at the separatrix, $\sqrt{\epsilon}\,\sqrt{T_i m_i}/(Z_i e B_\theta)$ (default) \\\hline
+\end{tabular}
+\end{center}
+
+With \texttt{MDLSOL} = 0 the width is evaluated with half the on-axis ion
+temperature and the edge $q$; for the X-point test equilibrium distributed with
+the code (\texttt{eqdata}, $R=3.2$ m, $a=0.8$ m) it is 1.8 times the whole SOL, so
+$g$ is only 0.17 at the wall and the ramp suppresses the loss everywhere instead
+of smoothing its onset.  \texttt{MDLSOL} = 1 evaluates the banana width with the
+local ion temperature and poloidal field at the separatrix and gives
+$g\simeq 0.99$ at the wall.
+
+The default $k_L = 1$ is the value of the sheath-limited two-point model
+(pressure conservation, Mach number 1 at the target, upstream and target
+densities related by $n_\r{t}=n_\r{u}/2$) when $2\pi qR$ is read as the length
+between the two targets: a flux tube of that length loses $2n_\r{t}C_s$ per unit
+area while holding $n_\r{u}\,2\pi qR$, so $\nuL = C_s/(2\pi qR)$.  V5.52 used the
+empirical value $k_L=0.3$, a typical upstream Mach number of the SOL flow; with
+\texttt{MDLSOL} = 1 it does not give a stable SOL on the X-point test
+equilibrium.
+
+\subsection{Wall boundary condition for the densities}
+\label{sec:wallbc}
+
+The table of the previous section lists a Neumann condition for the densities
+at the wall $\rho=\rho_b$, said to come naturally from the pressure equation.
+The natural boundary condition of that equation is, however, zero heat flux, not
+a condition on the density.  Up to V5.52 the densities therefore had no
+condition at the wall, and the radial particle flux through $\rho_b$ was fixed by
+the last element.  On the X-point test equilibrium the ratio of the ion flux
+through the wall to that through the separatrix,
+$\Gamma_\r{wall}/\Gamma_\r{sep}$, was $+0.57$, $-0.40$ and $-0.28$ at
+\texttt{NRMAX} = 60, 120 and 480: depending on the mesh the wall acted as a
+source or a sink of particles, and refining the mesh did not make it vanish.  The radial flux
+$n_s\uV{s}$ cannot take the condition instead: its equation is first order and
+not integrated by parts, so it already has its one condition at the axis.
+For the charged species $\rho_b$ is a computational boundary at the outer edge of
+the SOL, not a material wall: their exhaust is carried by $\nuL$.
+
+V5.60 (\texttt{MDLWBC} = 1) imposes $dn_s/d\rho = 0$ on $\nee$, $\ni$ and $\nz$.
+In the P1 basis this is the constraint
+\begin{equation}
+  n_s(N) = n_s(N-1),\qquad N = \texttt{NRMAX}.
+\end{equation}
+
+\paragraph{Constrained degrees of freedom, in general.}
+For a linear system $A x = b$ with the constraint $x_N = x_{N-1}$, write
+$x = T y$, where $T$ is the identity on $y_1\dots y_{N-1}$ and copies $y_{N-1}$
+into $x_N$.  The constrained Galerkin system is
+\begin{equation}
+  T^\r{T} A T\, y = T^\r{T} b .
+\end{equation}
+$T^\r{T}$ adds row $N$ to row $N-1$; $AT$ adds column $N$ to column $N-1$.  In
+finite elements this is the basis reduction $\phi_{N-1}\to\phi_{N-1}+\phi_N$:
+the trial and test functions are constant on the last element, which is the
+P1 form of $dn/d\rho=0$.  The code keeps the system square and solves the
+equivalent
+\begin{equation}
+  \mbox{row } N-1 \leftarrow \mbox{row } N-1 + \mbox{row } N,\qquad
+  \mbox{row } N \leftarrow x_N - x_{N-1} = 0 ,
+\end{equation}
+with $x_N$ still an unknown, so the other equations keep their coupling to it and
+the column sum is carried by the constraint row.
+Since $\sum_i\phi_i = 1$, the sum of all rows of a continuity equation is the
+global particle balance; each column of $T^\r{T}$ sums to one, so that sum,
+and with it particle conservation, is unchanged.  Replacing row $N$ by the
+constraint without adding it to row $N-1$ would drop the particle balance of the
+wall half-cell, an $O(h)$ conservation error.
+
+\paragraph{Implementation.}
+\texttt{txcala.f90}, subroutine \texttt{BOUNDARY\_ZEROGRAD(LQ)}, called from the
+boundary-condition block of \texttt{TXCALA} for \texttt{LQe1}, \texttt{LQi1} and
+\texttt{LQz1} after the Dirichlet eliminations.  In the band storage the
+coefficient of term \texttt{NC} of equation \texttt{NQ} in row \texttt{NR} is
+\texttt{ALC}, \texttt{BLC} or \texttt{CLC}\texttt{(NR,NC,NQ)} for
+\texttt{X(NR+1)}, \texttt{X(NR)} or \texttt{X(NR-1)}, and \texttt{PLC} holds the
+known terms.  For every term \texttt{NC = 0..NLCMAX}:
+\texttt{BLC(N-1)~+=~CLC(N)}, \texttt{ALC(N-1)~+=~BLC(N)},
+\texttt{PLC(N-1)~+=~PLC(N)}; row \texttt{N} is then cleared and set to
+\texttt{BLC(N,1) = 1}, \texttt{CLC(N,1) = -1}.  The time term and its
+right-hand side are built from the same coefficient arrays, so they are folded
+with them.  The condition converges at first order in the mesh size:
+$\Gamma_\r{wall}/\Gamma_\r{sep}$ is $-1.8$, $-1.1$, $-0.5$ and $-0.3$\% at
+\texttt{NRMAX} = 60, 120, 240 and 480.
+
+\subsection{C$^0$--C$^{5+}$ superstage with a source-slaved C$^0$ part}
+
+Carbon is carried by two densities: $\nz$ for C$^{6+}$ and the superstage
+$\nnz = \sum_{q=0}^{5} n_{\r{C}^{q+}}$, called the bundle below.  The bundle
+exchanges particles with C$^{6+}$ through the effective ionization $f_5S_5$
+and recombination $A_6$ of Sec.~1, and is fed by sputtering in the SOL:
+$\gamma_\r{0z}$ (\texttt{rGamm0zz}) is the fraction of the C$^{6+}$ parallel loss
+and $\gamma_\r{i,z}$ (\texttt{rGamm0iz}) the fraction of the main-ion parallel
+loss that return as sputtered carbon.
+
+In local ionization balance the C$^0$ fraction of the bundle is below
+$2\times10^{-6}$, so the bundle is almost entirely magnetized C$^{1+}$--C$^{5+}$
+ions.  With \texttt{MDLNZD} = 1 it is therefore diffused with the anomalous
+particle diffusivity of the charged species, $D_{n\r{z}} = D_\r{c}$ (\texttt{Dfs}).
+The exception is the carbon that has just been sputtered, which enters as
+neutral C$^0$.  Its lifetime $1/(S_0\nee)$ is of the order of microseconds,
+shorter than every other time scale here, so its density follows its local
+source balance:
+\begin{equation}
+  n_\r{C0} = \min\left(\frac{S_\r{wall}}{S_0\nee},\ \nnz\right),\quad
+  S_\r{wall} = \gamma_\r{0z}\nuL \max(\nz-\nsup{z},0) + \gamma_\r{i,z}\nuL\max(\ni-\nsup{i},0),
+\end{equation}
+where $S_0$ is the C$^0\to$C$^{1+}$ ionization rate (OpenADAS scd96,
+\texttt{data/Carbon-S0F0\_20260921.txt}).  $n_\r{C0}$ enters the $\nnz$
+equation as a known field through the excess flux with
+$\Delta D_\r{C0} = D_\r{C0} - D_\r{c}$, the part of the C$^0$ flux
+$-D_\r{C0}\nabla n_\r{C0}$ that the $D_\r{c}$ term does not already carry, so that the
+bundle flux is exactly $-D_\r{c}\nabla(\nnz-n_\r{C0}) - D_\r{C0}\nabla n_\r{C0}$.
+Here $D_\r{C0}$ is the Larsen-limited (see below) value of $\bar v_{0z}^2/(3S_0\nee)$,
+the short-mean-free-path diffusivity of C$^0$, and $\bar v_{0z} = \sqrt{4V_{0z}^2/\pi}$
+its mean speed ($V_{0z}$ = \texttt{V0z}), and through the parallel loss of the
+charged part of the bundle, $(1-\gamma_\r{0z})\nuL(\nnz-n_\r{C0})$, of which the
+fraction $\gamma_\r{0z}$ is sputtered back (the $\nnz$ equations of Secs.~1 and 3).
+$n_\r{C0}$ is evaluated from the previous Picard iterate, $S_\r{wall}$, $S_0\nee$ and the
+bound $\nnz$ alike, so the bound $n_\r{C0}\le\nnz$ applies to the bundle at the time level
+being solved for, and the $\nnz$ equation stays linear in $\nnz$.  With \texttt{MDLNZD} = 0 (the V5.52 model),
+$D_{n\r{z}} = D_{01}$, the diffusivity of the slow hydrogen neutrals, and the
+$n_\r{C0}$ terms are absent.
+
+\paragraph{Element-based C$^0$ limiter.}
+$D_\r{C0}$ is Larsen-limited, $D\to D/(1+D|\nabla n_\r{C0}|/(\alpha\bar v_{0z}n_\r{C0}))$,
+$\alpha$ = \texttt{FLlim}.  The limiter is evaluated on each element from the
+element mean of $n_\r{C0}$ and the element gradient.  It acts on the whole
+$D_\r{C0}$, because it bounds the whole C$^0$ flux by free streaming, and
+$D_\r{c}$ is subtracted afterwards with its sign: $\Delta D_e = D_e - D_{\r{c},e}$, where
+$D_e$ is the limited $D_\r{C0}$ and $D_{\r{c},e}$ the element mean of $D_\r{c}$.
+$\Delta D_e<0$ is not a negative diffusion: it removes the part $D_{\r{c},e}$ of the C$^0$
+flux that the $D_\r{c}$ term already carries, and since $n_\r{C0}$ is a known field
+the matrix is unchanged.  It occurs in the first element outside the separatrix,
+where $n_\r{C0}$ rises from zero within one element and the limited $D_\r{C0}$ falls to
+about $\alpha\bar v_{0z}h/2$ ($h$ the radial width of the element): at NRMAX = 480,
+not at NRMAX $\le$ 240.  Clipping $\Delta D_e$ at zero there would let the C$^0$ flux
+exceed free streaming by 7\%.  The element flux
+$F_e = \aves{|\nabla V|^2}_e \Delta D_e\,\Delta n_\r{C0}/\Delta V_e$ enters the two
+rows of the element as $+F_e$ and $-F_e$, so the term is exactly conservative.
+The element evaluation is needed because inside the separatrix the source, and
+hence $n_\r{C0}$, vanishes: a nodal ratio $|\nabla n_\r{C0}|/n_\r{C0}$ would be
+$0/0$ at the separatrix node, and whether that node is limited would be left to
+rounding.  The limiter is part of the model and is always applied with
+\texttt{MDLNZD} = 1.  Without it $D_\r{C0}$ becomes very large in the SOL, and the
+divergence of the known C$^0$ flux, a source that does not scale with $\nnz$,
+drives $\nnz$ negative just outside the separatrix.
+
+\paragraph{Validity of the source-slaved C$^0$ part.}
+The slaving of C$^0$ to its source is implemented and is part of the production
+model.  What remains open is the range of validity of this quasi-steady
+approximation and the lack of a formal positivity guarantee.  The mean free path
+of C$^0$ is comparable to the width of the C$^0$ layer, so the local source
+balance does not resolve the inner structure of the layer.  Positivity of $\nnz$
+is kept by the limiter in the cases computed, but it is not guaranteed, because
+the divergence of the known C$^0$ flux is a source that does not scale with $\nnz$.
+The bound $n_\r{C0}=\nnz$ marks the limit of the model.  It is never reached in
+the converged iterates of the production cases; it is reached only in the first
+sweep of a run started from the initial profiles, where $\nnz$ is still close to
+zero.  Where it holds persistently, the lagged treatment of $n_\r{C0}$ is not
+appropriate: the C$^0$ flux in the bounded nodes is then a diffusion of $\nnz$ itself
+with $\Delta D_\r{C0}\approx 7$--$15\,D_\r{c}$, taken from the previous iterate, and the
+iteration diverges (forced with a C$^0$ ionization rate reduced 100-fold; with the
+bound taken from the previous time step, the time stepping diverges instead).
+\texttt{TXLOOP} warns when the bound is still active in the last Picard sweep of a
+step, and with \texttt{IDIAG} $\ge$ 2 prints the number of bounded nodes at every
+step.  Such conditions call for an independent C$^0$ transport equation, an
+implicit treatment of the C$^0$ flux, or a kinetic (Monte-Carlo) treatment, which
+would also delimit the validity of the approximation.
+
+\subsection{Larsen limiter on the hydrogen slow neutrals (optional)}
+
+The slow hydrogen neutrals are diffused with the short-mean-free-path
+diffusivity $D_{01} = \bar v_0^2/(3S_\r{tot}) = \lambda\bar v_0/3$, $S_\r{tot}$ being the
+ionization plus charge-exchange rate and $\lambda = \bar v_0/S_\r{tot}$ the mean free
+path.  The Larsen limiter replaces $D$ by $D/(1+R)$ with
+\[
+  R = \frac{D|\nabla n_{01}|}{\alpha\,\bar v_0\, n_{01}}
+    = \frac{\mbox{flux the diffusion law demands}}{\mbox{free-streaming flux it may not exceed}}
+    = \frac{\lambda}{3\alpha L_n},\qquad \alpha = \texttt{FLlim},
+\]
+$L_n$ being the gradient length: the limited flux $D|\nabla n|/(1+R)$ is the
+diffusion flux where $R\ll1$ and $\alpha\bar v_0 n$ where $R\gg1$.  $\alpha = 1/4$ is
+the one-sided flux of an isotropic population: for particles of speed $\bar v$
+spread uniformly over all directions, those crossing a plane in one direction
+carry $n\bar v\int_0^1\mu\,d\mu/2 = n\bar v/4$.  $\alpha = 1/2$ would correspond to
+all particles moving into one half-space, uniformly in angle, and $\alpha = 1$ to
+all of them moving in the same direction, the kinematic upper bound.  In the
+V5.60 solution without the limiter $R$ is 1--3 in the SOL, about 2 at the
+separatrix and up to 6 at $\rho\simeq0.8$--0.9 ($\mathrm{Kn} = \lambda/L_n\sim1$): the
+diffusion approximation is marginal wherever the neutrals matter.
+
+\texttt{MDLN0FL} = 0 (default) leaves $D_{01}$ unlimited.  \texttt{MDLN0FL} = 2 evaluates
+the limiter element by element, as for the C$^0$ flux, from the element mean
+$\bar n$ and the element difference $\Delta n$ of the current iterate; since
+$|\Delta n|/\bar n\le2$ on an element, the factor is bounded by
+$1 + 2\lambda/(3\alpha h)$.  \texttt{MDLN0FL} = 1 is the earlier nodal form, with
+$|\nabla n|/n$ from the spline derivative, kept only to reproduce earlier runs.
+The limited ionization front at $\rho\simeq0.85$--0.9 is exponential with the decay
+length $\alpha\lambda\simeq5$\,mm, shorter than an element at \texttt{NRMAX} = 60
+(about 1\,cm).  On that unresolved front, and in the tiny-$n_{01}$ tail inside it,
+the nodal ratio is large and erratic, and the Picard iteration does not settle:
+with \texttt{MDLN0FL} = 1, 496 of 500 steps reach \texttt{ICMAX} at \texttt{NRMAX} = 60
+(\texttt{EPS} = $10^{-6}$), the neutral-only relaxation \texttt{RLXN0} = 0.5 (used only with
+\texttt{MDLN0FL} = 1) leaves 2--3.  \texttt{MDLN0FL} = 2 needs no relaxation: 20.0 / 21.7
+sweeps on average and no step at \texttt{ICMAX} (X-point / circular, \texttt{NRMAX} = 60),
+the same as without the limiter.  The two forms agree to 0.5--2\% where both
+converge.  Against the limiter off, the limiter raises the neutral inventory by
+about 30\% and changes $\nee$ at the separatrix and at the wall by $-3$\% and
+$+4$\%; $Z_\r{eff}(0)$ is unchanged.
+
+The limiter is a bound on the diffusion flux, not a substitute for kinetic
+neutral transport.  A straight-flight reference (the same sources, attenuated at
+$S_\r{tot}$) ionizes or charge-exchanges 35\% of the slow neutrals inside the
+separatrix (X-point, \texttt{NRMAX} = 240); plain diffusion gives 49\% and the limiter
+with $\alpha = 1/4$ 25\%, with almost nothing beyond $\rho = 0.95$ against 12\% in the
+reference.  $\alpha = 1/2$ recovers the total but not the ballistic tail, and no
+single $\alpha$ recovers both.  The difference between limiter on and off is of the
+size of the uncertainty from the neutral energy alone (the reference gives 24\%
+and 48\% at 0.5 and 4.5\,eV).  The limiter is therefore off by default.
+
+\subsection{Anderson acceleration of the Picard iteration (optional)}
+\label{sec:anderson}
+
+Each time step is solved by Picard iteration: the coefficients are evaluated
+from the previous iterate $x_k$ and the linear system gives $g_k = G(x_k)$.  On
+fine meshes the iteration has a slow mode localised on the first few nodes at
+the magnetic axis, in $BV_{1s}$ (\texttt{LQ*8}) of all species, whose contraction
+factor per sweep tends to 1 as the axis element shrinks (0.70, 0.91, 0.98 at
+\texttt{NRMAX} = 120, 240, 480 with $\Delta t = 10^{-4}$); at \texttt{NRMAX} = 480
+it takes about 500 sweeps to reach \texttt{EPS} = $10^{-6}$.
+
+With \texttt{NANDER} $\ne 0$ the next iterate is instead
+\[
+  x_{k+1} = g_k - \sum_j \gamma_j\,(\Delta x_j + \Delta f_j),\qquad
+  \gamma = \arg\min\Bigl|f_k - \sum_j \gamma_j \Delta f_j\Bigr|_2,
+\]
+with $f = g - x$ and $\Delta x_j$, $\Delta f_j$ the differences over the last
+$|\texttt{NANDER}|$ sweeps of the step (Anderson mixing with $\beta = 1$).  Each
+variable is scaled by its profile RMS at the first sweep of the step, as in the
+convergence test.  With \texttt{NANDER} $< 0$ the rows of \texttt{LQm1}--\texttt{LQm5} do not
+enter the least-squares fit, because near convergence their increments are
+rounding (for $\psitd$ the floor of Sec.~\ref{sec:lqm2tol}); the correction is
+applied to all variables.  The history
+is restarted at every time step, and dropped (the plain $g_k$ is used) if the
+least-squares solve fails or returns $|\gamma| > 10^3$.  Once the adaptive
+relaxation of the step has found the iteration not contracting, the rest of the
+step is left to the relaxation alone: the linear model behind the mixing does not
+hold there, and with the mixing kept on the first steps from the initial profiles
+at \texttt{NRMAX} = 960 end in a negative density.  A fixed point of $G$ is
+a fixed point of the accelerated iteration, so the converged solution is that of
+plain Picard; \texttt{NANDER} = 0 (default) is bit-identical to the plain iteration.
+
+With \texttt{NANDER} = $-20$ (100 steps from $t = 0.02$, $\Delta t = 10^{-4}$,
+\texttt{EPS} = $10^{-6}$, \texttt{ICMAX} = 100, X-point equilibrium) the average
+number of sweeps falls from 22.7, 36.4, 99.4 to 16.0, 28.4, 58.8 at \texttt{NRMAX} =
+60, 120, 240, and the steps that reach \texttt{ICMAX} at \texttt{NRMAX} = 240 from 86 to 9;
+the circular equilibrium behaves alike.  The solution agrees with the plain
+iteration to within the convergence tolerance.  At \texttt{NRMAX} = 480 the
+\texttt{LQ*8} mode is removed as well.  These figures were measured with the
+purely relative test of $\psitd$ (\texttt{LQm2}), under which almost every step at
+\texttt{NRMAX} = 480 still reached \texttt{ICMAX} on the rounding floor of $\psitd$,
+which the acceleration does not affect.  With the floor term of
+Sec.~\ref{sec:lqm2tol} the steps at \texttt{NRMAX} = 240 and 480 end when the
+other variables have converged: with \texttt{NANDER} = $-20$ the average number
+of sweeps is 33.5 (240) and 67.1 (480), and 3 of 100 steps at 480 reach
+\texttt{ICMAX}, on the other variables.
+
+\subsection{Convergence test of $\psitd$ (\texttt{LQm2})}
+\label{sec:lqm2tol}
+
+The sweeps of a time step stop when, for every variable $X_q$,
+$\max_j|\Delta X_{q,j}| \le \texttt{EPS}\,\mathrm{rms}(X_q)$, $\Delta X_q$ being the
+change over the sweep.  For $X_2 = \psitd$ this relative test has a floor that no
+iteration removes, and the test is
+\[
+  \max_j|\Delta X_{2,j}| \le \texttt{EPS}\,\mathrm{rms}(X_2)
+  + C_\r{r}\,\epsilon_\r{m}\,\texttt{NRMAX}^2\,
+    \frac{\mu_0\,\mathrm{rms}(X_5)}{\texttt{ADV}\,\Delta t},
+  \qquad C_\r{r} = 1,
+\]
+with $X_5 = \psit/\mu_0$ (\texttt{LQm5}), $\epsilon_\r{m}$ the machine epsilon and
+\texttt{ADV} the weight of the implicit terms (2/3 for BDF2, 1 in the first step).
+\texttt{LQm2} is not removed from the test: the relative term is kept as it is
+for every variable, and only the floor term is added.  The test of every other
+variable (including $\psid$, \texttt{LQm3}), the equations and the fixed point are
+unchanged.
+
+The floor has two factors.  $\psit$ is mostly vacuum flux, and in Amp\`ere's
+law (the \texttt{LQm2} row) the $\nabla\times B_\phi$ term applied to it is a
+cancellation of terms larger than the result, $|KX_5|/(|K||X_5|) = 3.4\times10^{-7}$
+at \texttt{NRMAX} = 60 falling as $\texttt{NRMAX}^{-2}$.  A rounding of relative
+size $\epsilon_\r{m}$ in that row, in the assembly or in the solve, leaves $\psit$
+determined only to $(0.05$--$0.07)\,\epsilon_\r{m}\texttt{NRMAX}^2$.  Faraday's
+law (the \texttt{LQm5} row) then gives $\psitd$ as the difference quotient
+$\mu_0(X_5 - X_5^\r{old})/(\texttt{ADV}\,\Delta t)$, which multiplies that rounding
+by $\psit/(\texttt{ADV}\,\Delta t\,|\psitd|)$, $7\times10^6$ at $\Delta t = 10^{-4}$,
+$t = 0.02$\,s, and without bound as $\psit$ approaches a steady state.  The
+relative floor of $\psitd$ is therefore about $4\times10^{-7}$, $1.5\times10^{-6}$,
+$4.6\times10^{-6}$, $1.8\times10^{-5}$ at \texttt{NRMAX} = 60, 120, 240, 480
+($\Delta t = 10^{-4}$, $t = 0.02$\,s), grows as $1/\Delta t$, and grows in time:
+at \texttt{NRMAX} = 60 it reaches $10^{-5}$ by $t = 0.5$\,s.  At the floor the
+equations are satisfied to rounding (backward error of the \texttt{LQm2} and
+\texttt{LQm5} rows $10^{-15}$--$10^{-11}$, normwise residual of every equation below
+$4\times10^{-9}$); the increment of $\psitd$ is the forward error of an
+ill-conditioned component, not an unconverged iteration.  The second term of the
+test is that floor with a safety factor.
+
+$C_\r{r}$ is not a physical tolerance on $\psitd$.  $C_\r{r} = 0.3$ lies on the
+largest floor observed (the rounding of $\psit$ reaches 4--6.5 times its geometric
+mean) and leaves no margin for rounding that depends on the compiler, the BLAS or
+the order of operations; $C_\r{r} = 1$, three to four times it, is used.  The two
+values give the same numbers of sweeps to within a few per cent and solutions
+that cannot be told apart.  The test on $\psitd$ keeps its role while the
+iteration converges, since $\psitd$ responds to a change of the currents about
+$10^4$ times more strongly than they change (\texttt{NRMAX} = 60).  In the printed and returned
+convergence measures the value for \texttt{LQm2} is the part of the relative
+increment above the floor term.
+
+Against a reference solved with the relative test and up to 300 (100 steps) or
+200 (3000 steps) sweeps per step, \texttt{NANDER} = $-20$, the test with the floor
+term gives (\texttt{EPS} = $10^{-6}$, \texttt{ICMAX} = 100, $\Delta t = 10^{-4}$)
+
+\begin{center}
+\begin{tabular}{|l|c|c|}\hline
+ & relative test & with the floor term \\
+ & sweeps / steps at \texttt{ICMAX} & sweeps / steps at \texttt{ICMAX} \\\hline
+X-point, 240, 100 steps       & 58.8 / 9    & 33.5 / 0 \\
+circular, 240, 100 steps      & 69.8 / 10   & 37.1 / 0 \\
+X-point, 480, 100 steps       & 99.6 / 97   & 67.1 / 3 \\
+circular, 480, 100 steps      & 99.3 / 95   & 77.0 / 5 \\
+X-point, 240, 3000 steps      & 89.0 / 2167 & 29.9 / 0 \\
+circular, 240, 3000 steps     & 89.6 / 2093 & 33.6 / 0 \\\hline
+\end{tabular}
+\end{center}
+
+The remaining steps at \texttt{ICMAX} are steps on which another variable has not
+converged.  Densities, temperatures, current and $Z_\r{eff}$ differ from the
+reference by less than $7\times10^{-8}$; $\psitd$ and the poloidal electric field derived from it by
+$0.2$--$1.5\times10^{-4}$, within the $0.3$--$2.1\times10^{-4}$ by which the
+relative test with \texttt{ICMAX} = 100 differs from the same reference, that is,
+within the floor.  The loop voltages and the Poynting-flux terms follow within
+$6\times10^{-7}$ over 3000 steps, except the rate of change of the poloidal
+electric-field energy, which is built on $\epsilon_0\psitd^2$ and carries the floor
+of $\psitd$ under either test.  Volume-averaged densities, stored energy and
+current agree to $10^{-10}$ and the toroidal angular momentum to $2\times10^{-8}$.
+The BDF2 errors and orders of $n$, $T$, $j$ and $Z_\r{eff}$ are unchanged
+(\texttt{NRMAX} = 60, $\Delta t = 4\times10^{-4}$--$2.5\times10^{-5}$,
+\texttt{EPS} = $10^{-8}$); only the self-convergence error of $\psitd$ between
+the two finest steps rises from $6$--$8\times10^{-6}$ to $1.5\times10^{-5}$, its
+floor.  With \texttt{NANDER} = 0 the slow \texttt{LQ*8} mode still decides most
+steps at \texttt{NRMAX} $\ge$ 240, and the floor term changes little.
+
+\subsection{New defaults and V5.52 compatibility}
+
+\begin{center}
+\begin{tabular}{|l|c|c|l|}\hline
+parameter & V5.52 & V5.60 & meaning \\\hline
+\texttt{FSLP}    & 0.3 & 1.0 & $k_L$ \\
+\texttt{MDLSOL}  & (0) & 1   & ramp width $\delta$ \\
+\texttt{MDLNZD}  & (0) & 1   & bundle transport with the source-slaved C$^0$ part \\
+\texttt{MDLWBC}  & (0) & 1   & wall density condition \\
+\texttt{MDLN0FL} & (0) & 0   & Larsen limiter on $D_{01}$ (2: element form; 1: legacy nodal form) \\
+\texttt{FLlim}   & --  & 0.25 & limiter factor $\alpha$ (C$^0$; $D_{01}$ with \texttt{MDLN0FL} = 1, 2) \\
+\texttt{RLXN0}   & --  & 0.5 & neutral-only relaxation (legacy \texttt{MDLN0FL} = 1 only) \\
+\texttt{NANDER}  & (0) & 0   & Anderson acceleration of the Picard sweeps \\\hline
+\end{tabular}
+\end{center}
+
+A value in parentheses means that the switch did not exist in V5.52 and that
+the value reproduces the V5.52 behaviour.  These are all the defaults that differ.
+\texttt{parm/txparm.v552default} sets
+\texttt{FSLP} = 0.3, \texttt{MDLSOL} = \texttt{MDLNZD} = \texttt{MDLWBC} =
+\texttt{MDLN0FL} = 0.  With it V5.60 is not bit-identical to V5.52.20 (the
+optimized build schedules the changed routines differently), but one step from
+the same state gives double-precision states that agree to $10^{-12}$ (median
+over the variables) and $10^{-9}$ at worst, except $\psitd$ at its Picard noise
+floor ($3\times10^{-7}$); the profile output agrees to its single-precision
+resolution.  The table \texttt{data/Carbon-S0F0\_20260921.txt} is read at start-up in
+either case.
+
+\subsection{Other changes since V5.51}
+\label{sec:v552other}
+
+\begin{itemize}
+\item \texttt{MDLPCK} = 2 (default): block-tridiagonal solver with one step of
+  iterative refinement; the Picard floor falls from about $10^{-5}$ to
+  $5\times10^{-7}$ on the worst equation.
+\item \texttt{oldmixa} (default 0.5): Picard under-relaxation applied only on
+  time steps whose sweep is measured not to contract.
+\item BDF2 keeps its history across \texttt{CONT}; one backward-Euler step is
+  taken where there is none (cold start, \texttt{LOAD}).
+\item Analytic axis limit of the Pfirsch--Schl\"uter Fourier factors,
+  $f_m(\cdot,0) = 0$; $\hat q^2$ at the axis from the interior instead of $q(0)^2$.
+\item $D_{0\r{z}}$ uses the impurity neutral speed $V_{0z}$.
+\item \texttt{FSTPTM} = 3 (default): multi-ion composition channel for the
+  turbulent particle flux.  With \texttt{FSTPTM} = 2 the impurity is not diffused on
+  its own density gradient, and in long runs a grid-scale mode of $n_\r{z}$ (wavelength
+  about three mesh intervals, sign-alternating) grows: the JT-60U case of
+  Sec.~\ref{sec:v561val} stops at 2.4 s with $T_\r{z} < 0$ at $\rho \approx 0.43$.  The mode
+  is tied to the mesh, not to a physical scale, and is not a physical impurity
+  instability; it is the discrete form of an under-regularized closure, in which nothing
+  damps short-wavelength perturbations of $n_\r{z}$.  The diffusion of each thermal ion on
+  its own gradient in \texttt{FSTPTM} = 3 damps them at the rate $D k^2$; the same case then
+  runs to 4 s with no grid-scale component above the curvature of the profile.  In the NBI cases $\nee$ and $u_{\r{i}\phi}$ change
+  by less than 1.5\% (in the ohmic default case $u_{\r{i}\phi} \approx 0.5$ km/s changes by
+  15\%), the core impurity density by 25--55\%.  \texttt{FSTPTM} = 2 remains
+  available and must be given for every species (\texttt{FSTPTM} = 2, 2, 2).
+\item Turbulent force of \texttt{FSTPTM} = 2, 3 in the wall row.  The pressure-gradient part
+  of the electron-driven turbulent force is assembled through the diamagnetic flow
+  ($n\,BV_1$, LQ*8) and $n\Phi'$.  LQe8 is the algebraic definition
+  $n_\r{e}BV_{1\r{e}} = -(I/\psi')(p_\r{e}'/(Z_\r{e}e) + n_\r{e}\Phi')$, so in the continuum this is
+  the direct $\partial_V p_\r{e}$ and the force is
+  \texttt{FSVAHL}\,$\partial_V p_\r{e}$ + (1 $-$ \texttt{FSVAHL})\,$T_\r{e}\partial_V\nee$.  Discretely
+  LQ*8 is solved with the SUPG weights $N_j + p h N_j'$ (\texttt{iSUPG8} = 1) and the force rows
+  with the Galerkin $N_i$: at an interior node the SUPG moments of the two elements around it
+  cancel to $O(h^2)$, but the wall node has the last element only, and there the two forms
+  differ by the order of the LQe8 residual.  The particle flux at the wall is fixed by the
+  wall row of LQ*4, so this gave a spurious wall flux (JT-60U case, \texttt{NRMAX} = 60: an
+  electron inflow of $0.22\times10^{20}$ s$^{-1}$).  The wall row (test function of node
+  \texttt{NRMAX}) now uses the direct-gradient form for every species (that of
+  \texttt{FSTPTM} = 0); not with \texttt{MDFIXT} $\neq$ 0.  The removed artificial part of the
+  electron wall flux is 0.38 and 0.20 $\times10^{20}$ s$^{-1}$ at \texttt{NRMAX} = 60 and 120 (1.3 s) and 0.16, 0.10 and 0.045 at 60, 120 and 240 (0.05 s), so it goes with the mesh; the
+  corrected wall flux itself converges slowly (+0.16 and +0.05 at 60 and 120; +0.18, +0.03 and +0.02 at 60, 120 and 240), being a small
+  difference of large terms in the wall row.  The non-ambipolar part of the wall flux (the
+  fast-ion return current), $j_r$, the $j\times B$ torque and $L_\phi$ are unchanged to three
+  digits, the profiles change by less than 0.5\% (JT-60U case to 4 s, \texttt{FSRP} = 0 and 1,
+  \texttt{FSTPTM} = 2 and 3, X-point and circular test equilibria), and the Picard counts are
+  unchanged.
+\item \texttt{FSTPTM} = 4 (the default since the change below; 3 before): thermal-species self-gradient closure.
+  With fast ions, \texttt{FSTPTM} = 3 drives the common transport by $\nabla\nee$, which contains the
+  fast-ion charge gradient, and lets the main ions carry the fast-ion share of the electron flux
+  (weight $n_\r{i}+n_\r{b}$), so the main-ion continuity equation has a sink $\nabla\cdot(n_\r{b}u)$
+  that does not vanish with $n_\r{i}$.  \texttt{FSTPTM} = 4 drives the electrons by the thermal-ion
+  charge density $n_\r{th} = \sum_s Z_sn_s$, gives the reaction to the thermal ions with the
+  weights $Z_sn_s/n_\r{th}$ and uses $n_\r{th}$ in the composition pairs, so that every thermal
+  species diffuses on its own density gradient with the common thermodiffusion,
+  $\aves{\vec{\Gamma}_s\cdot\nabla V} = -D n_s(X_s + C_\r{T}X_T)$, also with fast ions, and the fast ions
+  have no turbulent flux.  Momentum and ambipolarity hold element by element (the weights sum
+  to one by construction).  Without fast ions it equals 3 (JT-60U ohmic, 300 steps: $10^{-7}$ in
+  the densities, $5\times10^{-5}$ in $u_{\r{i}\phi}$, the quasineutrality residual); it matches the
+  diagnostic implementation it was developed in to $5\times10^{-8}$; \texttt{FSTPTM} = 3 results are
+  bit-identical.  The formulation is in twofluid.tex.  It must be given for every species;
+  \texttt{NCM} and the save file are unchanged.  With fixed temperatures (\texttt{MDFIXT} $\neq$ 0,
+  where \texttt{LQe5} carries $T_\r{e}$) the pressure-gradient parts are written with the given
+  $\partial_VT_\r{e}$ as for 2 and 3: $\alpha Z_\r{b}(n_\r{b}/n_\r{e})(\partial_Vp_\r{e} - T_\r{e}\partial_V\nee)
+  = \alpha Z_\r{b}n_\r{b}\partial_VT_\r{e}$ for the electrons and
+  $(n_s/n_\r{th})\{(\alpha - 1)\nee - \alpha Z_\r{b}n_\r{b}\}\partial_VT_\r{e}$ for the thermal ions.  Known limits: the beam
+  friction (NBCD) and the beam radial flux still reach the thermal ions through ambipolarity, so
+  positivity of $n_\r{i}$ is not guaranteed structurally; the more peaked core densities expose the
+  axis \texttt{LQ*8} Picard stall below already at \texttt{NRMAX} = 60.  JT-60U case at 1.5 s
+  (\texttt{NRMAX} = 60), 4 against 3: $n_\r{e}(0)$ +17\% (\texttt{PNsSUP(1)} = 0.0125) and +21\%
+  (0.01), $n_\r{i}(0)$ +26\% and +36\%, $n_\r{b}/n_\r{i}(0)$ 0.31 $\to$ 0.21 and 0.42 $\to$ 0.26,
+  $u_{\r{i}\phi}(0)$ $-$11\% and $-$14\%; with 6.4 MW NBI $n_\r{i}(0)$ doubles
+  ($n_\r{b}/n_\r{i}(0)$ 0.92 $\to$ 0.35); $n_\r{e}$ at $\rho$ = 0.95 within 3\% in all cases, and
+  $\sum_sZ_s\Gamma_s$ inside the separatrix below $1.5\times10^{-7}$ of the electron flux.  In
+  the high-density cases (6.4 MW NBI, \texttt{Zeffin} = 2.5, gas puff 0.4) 216--722 steps of 15000
+  stall in short bursts (208 in the benchmark with 0.0125), none with \texttt{NRETRY} = 1, which
+  changes the profiles by less than $10^{-6}$.
+\item Production defaults of the particle transport: \texttt{FSTPTM} = 4, \texttt{FSVAHL} ($C_\r{T}$) = $-0.25$,
+  \texttt{PNsSUP(1)} = 0.026 (were 3, $-0.5$, 0.01; the JT-60U benchmark used 0.0125 with 3 and $-0.5$).  With
+  \texttt{FSTPTM} = 4 the thermal ions do not carry the fast-ion charge gradient, so a weaker
+  thermodiffusion no longer depletes them (\texttt{FSTPTM} = 3 does for $C_\r{T} \ge -0.4$; $C_\r{T} = 0$
+  collapses with either); $C_\r{T}$ then sets the density level at a given \texttt{PNsSUP}, the profile
+  shape staying nearly the same, and \texttt{PNsSUP(1)} = 0.026 restores the line average.  JT-60U
+  benchmark (3.2 MW, \texttt{FSRP} = 0, \texttt{NRMAX} = 60, 4 s), old (3, $-0.5$, 0.0125) against new:
+  line average 1.15 / 1.14 $\times10^{19}$ m$^{-3}$, $n_\r{e}(0)$ 1.79 / 1.72, $n_\r{i}(0)$ 1.26 / 1.22,
+  $n_\r{b}/n_\r{i}(0)$ 0.30 / 0.32, $n_\r{e}$ at $\rho$ = 0.8, 0.95, 1.0 0.69, 0.41, 0.22 / 0.68, 0.45,
+  0.33, peaking $n_\r{e}(0)/\bar n_\r{e}$ 1.55 / 1.51, $u_{\r{i}\phi}(0)$ 510 / 439 km/s, no Picard stall (one
+  retried step in the initial transient, where the source-slaved C0 bound is active), ambipolarity
+  $10^{-6}$; with \texttt{PNsSUP(1)} = 0.025 the line average is 1.12.  The core is kept and the edge density
+  rises by 10--50\%, toward the measured edge (which the old benchmark underestimated); the
+  rotation is 14\% lower.  The value of $C_\r{T}$ is a model choice in the direction suggested by
+  gyrokinetic estimates (weaker thermodiffusion), not a fit to them, and the edge density is still to
+  be compared with the experiment.  The old defaults are reproduced bit for bit by giving the
+  three inputs.  The save file now stores \texttt{FSTPTM} as well (extension record 3; it was the one
+  turbulent-transport input missing from the layout, \texttt{FSVAHL} and \texttt{PNsSUP} being in it), so
+  a run continued from a file keeps its closure; a file written before has no such record, and then
+  \texttt{FSTPTM} keeps its current value (4 by default) with a message, so give \texttt{FSTPTM} = 3 or 2 to
+  continue such a run unchanged.  Older executables read the new files and skip the record.
+  \texttt{parm/txparm.v552default} sets all inputs whose defaults changed after V5.52.20 back to
+  the V5.52 values (also the pinch without saturation and taper, \texttt{FSTPTM} = 2,
+  \texttt{FSVAHL} = $-0.5$, the V5.52 \texttt{PNsSUP} with \texttt{MDLNSUP} = 0, no main-wall
+  recycling, \texttt{NRETRY} = 0) and lists what no input restores: the inward constant term of the
+  pinch, the discretely conserving friction, the V5.61 fast-ion fixes and the wall-row form.  In
+  the JT-60U-like case without NBI (1.5 s) the code just before the wall-row fix reproduces
+  V5.52.20 with these inputs to $2\times10^{-4}$ in the densities; the wall-row fix lowers the density
+  level by 4.8\% ($n_\r{z}$ by 8\%), uniformly in radius, and is the only noticeable difference; with NBI
+  the core rotation is 40\% higher than in V5.52.20 (pinch sign, V5.61 fast-ion fixes).  The benchmark results quoted above for the
+  wall row, the recycling and \texttt{PNsSUP(1)} = 0.0125 refer to the old defaults.
+\item \texttt{NRETRY} (default 1): a step whose Picard iteration reaches \texttt{ICMAX} without
+  converging is taken again from its start as 2, 4, \ldots\ substeps, down to $\Delta t/2^k$ for
+  \texttt{NRETRY} = $k$ ($\le 4$); the first substep is backward Euler, the others BDF2, and the
+  history is $X(t-\Delta t)$ again afterwards.  Converged steps are untouched: a run in which no
+  step stalls is bit-identical to \texttt{NRETRY} = 0.  The retried steps are first order in time
+  (one backward-Euler substep each): with every step retried, in the initial transient of the
+  JT-60U case, the error of $u_{\r{i}\phi}$ is 11 times that of BDF2 at $\Delta t = 10^{-4}$ s and halves
+  with $\Delta t$, while $n_\r{e}$ and $T_\r{e}$ change by a factor 1--2.  In practice 1--15\% of the
+  steps are retried, in quasi-steady phases: the JT-60U benchmark with \texttt{FSTPTM} = 4
+  (206 of 15000 steps) agrees at 1.5 s with a run at $\Delta t/2$ to $4\times10^{-7}$ in $n_\r{e}$ and
+  $4\times10^{-6}$ in $BV_{1\r{z}}$.  Across SAVE/LOAD it behaves as without retries.  The summary of a
+  run gives the number and share of retaken steps and the finest substep, and warns when more
+  than 10\% of the steps were retaken (a smaller base $\Delta t$ is then the right fix) or when
+  steps did not converge even at $\Delta t/2^{\texttt{NRETRY}}$.
+\item Known numerical limit, the axis \texttt{LQ*8}: with NBI the Picard map has a slowly contracting
+  mode on the axis node of $BV_1$ (mostly the impurity) and the poloidal field, of the form
+  $\lambda \approx A\Delta t/(1 + A\Delta t)$, $A \approx 2\times10^5$ s$^{-1}$ (a fast coupling taken
+  from the previous sweep), with $A$ growing with the mesh refinement and the core peaking of the
+  beam, impurity and ion densities.  Without NBI it does not appear up to \texttt{NRMAX} = 240.
+  At \texttt{NRMAX} = 60 it shows as bursts of steps needing 70--140 sweeps (6.4 MW NBI with
+  \texttt{FSTPTM} = 3 or 4, the benchmark with \texttt{FSTPTM} = 4), harmless for the solution
+  ($\le 2\times10^{-6}$) and removed by \texttt{NRETRY} = 1; at 120 it is sporadic to frequent
+  (\texttt{NRETRY} = 1 retakes up to 15\% of the steps with 3.2 MW, 65\% with 6.4 MW); at 240 it
+  is persistent, and without retries an odd-even mode of $BV_{1\r{z}}$ and $n_\r{z}$ grows on the
+  axis until $n_\r{z}(0) < 0$ at 0.1 s; with \texttt{NRETRY} $\ge 1$ or $\Delta t \le 5\times10^{-5}$ s the
+  run stays positive to 0.4 s but still stalls often, so $\Delta t$ of about $10^{-5}$ s is advised
+  there.  With 6.4 MW and \texttt{FSTPTM} = 4 at \texttt{NRMAX} = 120 the impurity density on the
+  axis becomes negative at 0.86 s even with \texttt{NRETRY} = 1.  The continuum solution is regular.
+\item Recycling at the main wall.  The radial ion outflow through the wall $\rho_b$,
+  $\Gamma_s(\rho_b)^+ = \max(n_s\aves{\vec{u}_s\cdot\nabla V}, 0)$ at \texttt{NRMAX}, returns as a
+  wall-side inflow of neutrals like the gas puff: \texttt{RWALL} (default 0.98) of the bulk ions
+  to $n_{01}$, \texttt{RWALLZ} (0.42) of the impurity ions to the impurity neutrals, and
+  \texttt{RWALLIZ} (0, off) of the bulk ions to the impurity neutrals by sputtering; the impurity
+  never returns as a hydrogen neutral.  This path is separate from the target recycling of the
+  SOL parallel loss (\texttt{rGamm0}, \texttt{rGamm0zz}, \texttt{rGamm0iz}), which
+  \texttt{tx\_sol\_particle\_balance} computes from a divertor recycling loop (escape to the
+  upstream SOL against the pump, $c_1/(c_1+c_5)$ = 0.980 for the bulk ions; for the impurity the
+  reflection and self-sputtering yield 0.42 times an escape factor 0.051, 0.0213; sputtering by
+  the bulk ions 0.0099).  There is no such loop at the main wall, so \texttt{RWALL} is that of a
+  saturated wall with a small retention and \texttt{RWALLZ} the yield itself.  In the JT-60U case
+  the main wall returns $0.40\times10^{20}$ s$^{-1}$ (target recycling 14.4, gas puff 28.1); $\nee$
+  changes by 0.2\% (0.6\% with \texttt{FSRP} = 1), and even \texttt{RWALLIZ} = 0.15 (tested with
+  \texttt{RWALLZ} = 0.02) changes the core impurity density by 0.04\%, the wall source being screened
+  by the SOL.  \texttt{W} (TXSTAT) and
+  \texttt{O 7} (\texttt{tx\_sources.dat}) print the SOL parallel loss, the wall fluxes and the
+  neutral sources by path (target, main wall, gas puff) with the ionization.  The three
+  coefficients are kept in the save file in a second extension record; older files load with
+  the current values and newer files load in older builds.
+\item Finite-collisionality closure for the higher-order flows; triangularity of
+  grid-traced equilibria regularized; G-EQDSK $p'$ normalization corrected;
+  \texttt{ipbtdir} = 1 by default.
+\item \texttt{MDLNSUP} (default 1): the SOL upstream densities of the ions and the
+  impurity, \texttt{PNsSUP(2:3)}, are derived from \texttt{PNsSUP(1)} and
+  \texttt{Zeffin} (quasi-neutral, $Z_\r{eff}$ = \texttt{Zeffin}) whenever the
+  parameters are read; before, they were set once from the defaults and a namelist
+  value of \texttt{PNsSUP(1)} or \texttt{Zeffin} left them unchanged.
+  \texttt{MDLNSUP} = 0 uses \texttt{PNsSUP(1:3)} as given.  The SOL loss
+  $-\nu_L(n_s - n_{\r{SUP},s})$ holds the SOL density near $n_{\r{SUP},s}$, so
+  \texttt{PNsSUP(1)} acts as the upstream SOL density and sets the density level of
+  the whole plasma.
+\item Diagnostic switches, off by default: \texttt{iaxproj} (near-axis
+  regularity projection), \texttt{Dnfac} (particle diffusion in the impurity
+  continuity equation).
+\end{itemize}
+
+\begin{thebibliography}{9}
+\bibitem{NF2008} M. Honda, T. Takizuka, A. Fukuyama, M. Yoshida and T. Ozeki,
+  Nucl. Fusion \textbf{48} (2008) 085003.
+\bibitem{Yoshida2006} M. Yoshida et al., Plasma Phys. Control. Fusion \textbf{48} (2006) 1673.
+\bibitem{KA1995} M. Kikuchi and M. Azumi, Plasma Phys. Control. Fusion \textbf{37} (1995) 1215,
+  Appendix.
+\bibitem{Tala2012} T. Tala et al., Proc. 24th IAEA Fusion Energy Conf. (San Diego, 2012) ITR/P1-19.
+\bibitem{Tala2011} T. Tala et al., Nucl. Fusion \textbf{51} (2011) 123002.
+\bibitem{Mantica2010} P. Mantica et al., Phys. Plasmas \textbf{17} (2010) 092505.
+\bibitem{Weisen2012} H. Weisen et al., Nucl. Fusion \textbf{52} (2012) 042001; \textbf{52} (2012) 114024.
+\bibitem{Honda2013} M. Honda et al., Nucl. Fusion \textbf{53} (2013) 073050.
+\bibitem{Casiraghi2021} I. Casiraghi et al., Nucl. Fusion \textbf{61} (2021) 116068.
+\end{thebibliography}
+
+\end{document}

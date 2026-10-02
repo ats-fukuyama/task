@@ -291,7 +291,9 @@ contains
     call spln( bit,  PsitV, nrmaxx, biv,   hiv, nvmax, 151 )
     call spln( bbrt, PsitV, nrmaxx, brv,   hiv, nvmax, 151 )
     call spln( elip, PsitV, nrmaxx, elipv, hiv, nvmax,   0 )
-    call spln( trig, PsitV, nrmaxx, trigv, hiv, nvmax,   0 )
+    ! Triangularity is odd in the regular near-axis radial coordinate and
+    ! therefore scales with rho, rather than with the flux coordinate rho**2.
+    call spln( trig, rho,   nrmaxx, trigv, rho_v, nvmax,  0 )
 !!$    call spln( elip, PsitV, nrmaxx, elipv, hiv, nvmax, 151 )
 !!$    call spln( trig, PsitV, nrmaxx, trigv, hiv, nvmax, 151 )
     call spln( rtt,  PsitV, nrmaxx, rtv,   hiv, nvmax, 151 )
@@ -304,6 +306,11 @@ contains
     rpt(:) = rpt(:) * zscale
     call spln( pdst, PsitV, nrmaxx, pds,   hiv, nvmax,   0 ) ! Not extrapolated
     call spln( fdst, PsitV, nrmaxx, fds,   hiv, nvmax,   0 ) ! Not extrapolated
+
+    ! Do not let the smoothing stencil cross the LCFS into the extrapolated
+    ! open-field-line region.  The TRESS/GOTRESS meshes end at the LCFS,
+    ! whereas TASK/TX normally retains additional points outside rho=1.
+    call regularize_triangularity(rho,trig,nra)
 
     ! ft: Trapped particle fraction (ft^4 almost linearly scales with V or PsitV.)
 
@@ -343,6 +350,18 @@ contains
 
     vro(0) = 0.d0
     vro(1:nrmax) = 2.d0 * PsitV(nra) * rho(1:nrmax) / hdt(1:nrmax)
+
+    ! ckt and vro both vanish at the magnetic axis, ckt like rho**2 and vro like
+    ! rho.  Their ratio G = ckt/vro**2 is finite and even there, but forming it
+    ! from the first few contour integrals on a Cartesian equilibrium grid
+    ! magnifies their independent discretization errors, and G is the coefficient
+    ! of the poloidal flux diffusion.  Continue G inward as c0+c2*rho**2 from the
+    ! first resolved contours and rebuild ckt from it, as TASK/EQ does for this
+    ! metric.  Frozen metrics only lose accuracy by it; metrics re-formed during
+    ! a run from an equilibrium solver close a loop on themselves through q and
+    ! lose stability, which is what this prevents.
+
+    call regularize_axis_grad_metric(rho_v)
 
     ! <B^2>
     
@@ -423,6 +442,123 @@ contains
     deallocate(rho_v,pdst,fdst,zzv,zz,zzfunc)
 
   end subroutine intequ
+
+!=======================================================================
+! Continue G = ckt/vro**2 inward as c0 + c2 rho**2 from an annulus that
+! the equilibrium grid resolves, then rebuild ckt from it.  Both ckt and
+! vro vanish at the axis, so their ratio is finite and even there while
+! the two contour integrals carry independent discretization errors that
+! their ratio magnifies.
+!=======================================================================
+  subroutine regularize_axis_grad_metric(rho_equ)
+    use tx_commons, only : nrmax, rho, vro, ckt
+    real(8), intent(in) :: rho_equ(:)
+
+    integer(4) :: i, ifirst, nfit
+    real(8) :: fit_min, fit_max, replace_end, replace_full, x, y, weight
+    real(8) :: sx, sy, sxx, sxy, denom, c0, c2, gfit, graw
+
+    if(nrmax < 4 .or. size(rho_equ) < 4) return
+
+    ! Uniform-poloidal-flux equilibrium arrays have very sparse rho coverage
+    ! at the axis.  Start the fit no earlier than the fourth equilibrium
+    ! surface and use a finite annulus outside it.
+    ifirst = min(4,size(rho_equ))
+    fit_min = max(0.15d0,rho_equ(ifirst))
+    fit_max = min(0.55d0,fit_min+0.20d0)
+    replace_end = min(fit_min,0.40d0)
+    replace_full = 0.8d0*replace_end
+
+    sx = 0.d0; sy = 0.d0; sxx = 0.d0; sxy = 0.d0
+    nfit = 0
+    do i = 1, nrmax
+       if(rho(i) < fit_min .or. rho(i) > fit_max) cycle
+       if(vro(i) <= tiny(1.d0)) cycle
+       x = rho(i)**2
+       y = ckt(i)/vro(i)**2
+       sx = sx+x; sy = sy+y; sxx = sxx+x*x; sxy = sxy+x*y
+       nfit = nfit+1
+    end do
+    if(nfit < 2) return
+
+    denom = real(nfit,8)*sxx-sx*sx
+    if(abs(denom) <= tiny(1.d0)) return
+    c0 = (sy*sxx-sx*sxy)/denom
+    c2 = (real(nfit,8)*sxy-sx*sy)/denom
+    if(c0 <= 0.d0) return
+
+    do i = 1, nrmax
+       if(rho(i) >= replace_end) exit
+       graw = ckt(i)/vro(i)**2
+       gfit = c0+c2*rho(i)**2
+       if(rho(i) <= replace_full .or. replace_end <= replace_full) then
+          weight = 0.d0
+       else
+          x = (rho(i)-replace_full)/(replace_end-replace_full)
+          weight = x*x*(3.d0-2.d0*x)
+       end if
+       ckt(i) = ((1.d0-weight)*gfit+weight*graw)*vro(i)**2
+    end do
+    ckt(0) = 0.d0
+  end subroutine regularize_axis_grad_metric
+
+!=======================================================================
+! Enforce regular near-axis triangularity and suppress Cartesian-grid
+! contour noise with local quadratic fits on the actual transport mesh.
+!=======================================================================
+  subroutine regularize_triangularity(rho,trig,nrmax)
+    integer(4), intent(in) :: nrmax
+    real(8), intent(in) :: rho(0:nrmax)
+    real(8), intent(inout) :: trig(0:nrmax)
+    integer(4) :: i,k,nfit,pass
+    real(8) :: x,y,sx,sy,sxx,sxy,denom,c0,c2,fit,weight,z
+    real(8) :: sr(7),yr(7),coef(3)
+    real(8), allocatable :: work(:)
+    logical :: ok
+
+    if(nrmax < 8) return
+    sx=0.d0; sy=0.d0; sxx=0.d0; sxy=0.d0; nfit=0
+    do i=1,nrmax
+       if(rho(i) < 0.15d0 .or. rho(i) > 0.35d0) cycle
+       x=rho(i)**2; y=trig(i)/rho(i)
+       sx=sx+x; sy=sy+y; sxx=sxx+x*x; sxy=sxy+x*y; nfit=nfit+1
+    end do
+    if(nfit >= 2) then
+       denom=real(nfit,8)*sxx-sx*sx
+       if(abs(denom) > tiny(1.d0)) then
+          c0=(sy*sxx-sx*sxy)/denom
+          c2=(real(nfit,8)*sxy-sx*sy)/denom
+          do i=0,nrmax
+             if(rho(i) >= 0.22d0) exit
+             fit=rho(i)*(c0+c2*rho(i)**2)
+             if(rho(i) <= 0.15d0) then
+                weight=0.d0
+             else
+                z=(rho(i)-0.15d0)/0.07d0
+                weight=z*z*(3.d0-2.d0*z)
+             end if
+             trig(i)=(1.d0-weight)*fit+weight*trig(i)
+          end do
+       end if
+    end if
+    trig(0)=0.d0
+
+    allocate(work(0:nrmax))
+    do pass=1,2
+       work=trig
+       do i=3,nrmax-3
+          do k=-3,3
+             sr(k+4)=rho(i+k)-rho(i)
+             yr(k+4)=trig(i+k)
+          end do
+          call quadratic_least_squares(sr,yr,coef,ok)
+          if(ok) work(i)=coef(1)
+       end do
+       trig=work
+       trig(0)=0.d0
+    end do
+    deallocate(work)
+  end subroutine regularize_triangularity
 
 !=======================================================================
 !  Mesh 
@@ -722,8 +858,8 @@ contains
          tps = tps + 0.5d0 * (prv(n+1)**2+prv(n)**2) * (vlv(n+1)-vlv(n))
       end do
       ttprz = tpr
-      tpr   = tpr * (rMU0*1.d6)
-      prfac = prv(1) * vlv(nv) / tpr
+      prfac = prv(1) * vlv(nv) / ttprz ! peaking factor: p(0) V / int p dV
+      tpr   = tpr * (rMU0*1.d6)        ! prv [MPa] -> mu0 p [SI]
       if( iascii /= 0 ) then
          ttpr = ttprz
          tps  = tps * (rMU0*1.d6)**2
@@ -745,9 +881,8 @@ contains
     zzli =0.d0
     zzlam=0.d0
 !-----
-    do n = 1, nv
-       prv(n) = prv(n) / (rMU0*1.d6)
 !-----Minor radius
+    do n = 1, nv
        rov(n) = sqrt( vlv(n) / ( 2.0_8 * cnpi**2 * rmaj ) )
     enddo
 
@@ -832,7 +967,7 @@ contains
     use equ_params
     ! intf: num. of division in the direction of lambda for trapped particle fraction
     integer(4), parameter :: intf = 100
-    integer(4) :: i,i1,i2,i3,i4,ir,iz,istep,irst,ist,jr,k,ll,lm,lp,n,j
+    integer(4) :: i,i1,i2,i3,i4,ir,iz,istep,irst,ist,jr,k,ll,lm,lp,n,j,ntrace
     real(8) :: dpsi,psi0,x,r0,z0,r1,z1,s1,s2,s3,s4,dl &
          &     ,bp0,bl0,ds0,ck0,ss0,vl0,aa0,rr0,bb0,bi0,sh0 &
          &     ,bp1,bl1,ds1,ck1,ss1,vl1,aa1,rr1,bb1,bi1,sh1 &
@@ -842,13 +977,13 @@ contains
     real(8) :: fintx, hsq, h
     integer(4), dimension(:), allocatable :: nsul
     real(8), dimension(:), allocatable :: bmax,sdv,fint,flam,dll,zbl,zbpl &
-         &                               ,drl,dzl,rrl,zzl,dsrl,dszl
+         &                               ,drl,dzl,rrl,zzl,dsrl,dszl,rtrace,ztrace
 !=======================================================================
     allocate(bmax,sdv,mold=vlv)
     allocate(fint(0:intf),flam(0:intf))
     allocate(nsul(isrzdm),dll(isrzdm),zbl(isrzdm),zbpl(isrzdm) &
          &  ,drl(isrzdm),dzl(isrzdm),rrl(isrzdm),zzl(isrzdm) &
-         &  ,dsrl(isrzdm),dszl(isrzdm))
+         &  ,dsrl(isrzdm),dszl(isrzdm),rtrace(isrzdm),ztrace(isrzdm))
     do j = 0, intf
        flam(j)  = real( j, 8 ) / real( intf, 8 )
     end do
@@ -899,12 +1034,12 @@ contains
        brv(n)=0.d0
        bmax(n)=0.d0
 
-       x=(psi0-psi(i))/(psi(i+1)-psi(i))
+       x=edge_fraction_cubic(psi(i-1),psi(i),psi(i+1),psi(i+2),psi0)
        r1=rg(ir)+x*dr ! R
        z1=zg(iz)      ! Z
-       bp1=(rbp(i)+x*(rbp(i+1)-rbp(i)))/r1 ! Bp
-       dsr1=dsr(i)+x*(dsr(i+1)-dsr(i))     ! dpsi/dR
-       dsz1=dsz(i)+x*(dsz(i+1)-dsz(i))     ! dpsi/dZ
+       bp1=cubic_segment_value(rbp(i-1),rbp(i),rbp(i+1),rbp(i+2),x)/r1 ! Bp
+       dsr1=cubic_segment_value(dsr(i-1),dsr(i),dsr(i+1),dsr(i+2),x) ! dpsi/dR
+       dsz1=cubic_segment_value(dsz(i-1),dsz(i),dsz(i+1),dsz(i+2),x) ! dpsi/dZ
        vl1=r1*r1    ! R^2
        zl1=z1*z1    ! Z^2
        ds1=1.d0/bp1 ! 1/Bp
@@ -926,6 +1061,10 @@ contains
        zzmin=z1
        rzmax=-1000.d0
        rzmin= 1000.d0
+
+       ntrace=1
+       rtrace(ntrace)=r1
+       ztrace(ntrace)=z1
 
 !..trace contour
        k=1
@@ -968,42 +1107,42 @@ contains
        if(s4*s1 < 0.d0 .and. k /= 4) go to 60
        psi0=psi0+1.d-08*saxis
        go to 5
-30     x=s1/(s1-s2)
+30     x=edge_fraction_cubic(psi(i1-1),psi(i1),psi(i2),psi(i2+1),psi0)
        r1=rg(ir)+dr*x
        z1=zg(iz)
-       bp1=(rbp(i1)+x*(rbp(i2)-rbp(i1)))/r1
-       dsr1=dsr(i1)+x*(dsr(i2)-dsr(i1))
-       dsz1=dsz(i1)+x*(dsz(i2)-dsz(i1))
+       bp1=cubic_segment_value(rbp(i1-1),rbp(i1),rbp(i2),rbp(i2+1),x)/r1
+       dsr1=cubic_segment_value(dsr(i1-1),dsr(i1),dsr(i2),dsr(i2+1),x)
+       dsz1=cubic_segment_value(dsz(i1-1),dsz(i1),dsz(i2),dsz(i2+1),x)
        i=i+nr
        iz=iz+1
        k=3
        go to 70
-40     x=s2/(s2-s3)
+40     x=edge_fraction_cubic(psi(i2+nr),psi(i2),psi(i3),psi(i3-nr),psi0)
        r1=rg(ir+1)
        z1=zg(iz)-dz*x
-       bp1=(rbp(i2)+x*(rbp(i3)-rbp(i2)))/r1
-       dsr1=dsr(i2)+x*(dsr(i3)-dsr(i2))
-       dsz1=dsz(i2)+x*(dsz(i3)-dsz(i2))
+       bp1=cubic_segment_value(rbp(i2+nr),rbp(i2),rbp(i3),rbp(i3-nr),x)/r1
+       dsr1=cubic_segment_value(dsr(i2+nr),dsr(i2),dsr(i3),dsr(i3-nr),x)
+       dsz1=cubic_segment_value(dsz(i2+nr),dsz(i2),dsz(i3),dsz(i3-nr),x)
        i=i+1
        ir=ir+1
        k=4
        go to 70
-50     x=s4/(s4-s3)
+50     x=edge_fraction_cubic(psi(i4-1),psi(i4),psi(i3),psi(i3+1),psi0)
        r1=rg(ir)+dr*x
        z1=zg(iz-1)
-       bp1=(rbp(i4)+x*(rbp(i3)-rbp(i4)))/r1
-       dsr1=dsr(i4)+x*(dsr(i3)-dsr(i4))
-       dsz1=dsz(i4)+x*(dsz(i3)-dsz(i4))
+       bp1=cubic_segment_value(rbp(i4-1),rbp(i4),rbp(i3),rbp(i3+1),x)/r1
+       dsr1=cubic_segment_value(dsr(i4-1),dsr(i4),dsr(i3),dsr(i3+1),x)
+       dsz1=cubic_segment_value(dsz(i4-1),dsz(i4),dsz(i3),dsz(i3+1),x)
        i=i-nr
        iz=iz-1
        k=1
        go to 70
-60     x=s1/(s1-s4)
+60     x=edge_fraction_cubic(psi(i1+nr),psi(i1),psi(i4),psi(i4-nr),psi0)
        r1=rg(ir)
        z1=zg(iz)-dz*x
-       bp1=(rbp(i1)+x*(rbp(i4)-rbp(i1)))/r1
-       dsr1=dsr(i1)+x*(dsr(i4)-dsr(i1))
-       dsz1=dsz(i1)+x*(dsz(i4)-dsz(i1))
+       bp1=cubic_segment_value(rbp(i1+nr),rbp(i1),rbp(i4),rbp(i4-nr),x)/r1
+       dsr1=cubic_segment_value(dsr(i1+nr),dsr(i1),dsr(i4),dsr(i4-nr),x)
+       dsz1=cubic_segment_value(dsz(i1+nr),dsz(i1),dsz(i4),dsz(i4-nr),x)
        i=i-1
        ir=ir-1
        k=2
@@ -1012,6 +1151,10 @@ contains
        if( ir >= nrm  ) stop 'eqlin : out of range                     '
        if( iz <=  1   ) stop 'eqlin : out of range                     '
        if( iz >= nszm ) stop 'eqlin : out of range                     '
+       if(ntrace >= isrzdm) stop 'eqlin : contour workspace is too small'
+       ntrace=ntrace+1
+       rtrace(ntrace)=r1
+       ztrace(ntrace)=z1
 !..line integrals
        vl1=r1*r1 ! R^2
        zl1=z1*z1 ! Z^2
@@ -1127,6 +1270,12 @@ contains
        brv(n)=2.d0*zpi*brv(n)*sdv(n)
        sdw(n)=sdv(n)*sigcu
 
+       ! Discrete extrema of marching-squares points jump between Cartesian
+       ! grid lines.  Refine the four extrema in contour arc length before
+       ! constructing elongation and triangularity.
+       if(iudsym == 0) call refine_contour_geometry(rtrace,ztrace,ntrace, &
+            & rrmax,rrmin,zzmax,zzmin,rzmax,rzmin)
+
        rtv(n)=0.5d0*(rrmax+rrmin)
        rpv(n)=0.5d0*(rrmax-rrmin)
        epsv(n) =(rrmax-rrmin)/(rrmax+rrmin)
@@ -1212,10 +1361,150 @@ contains
 
     ftv(1) =0.d0
 
-    deallocate(bmax,sdv,fint,flam,nsul,dll,zbl,zbpl,drl,dzl,rrl,zzl,dsrl,dszl)
+    deallocate(bmax,sdv,fint,flam,nsul,dll,zbl,zbpl,drl,dzl,rrl,zzl,dsrl,dszl,rtrace,ztrace)
     return
     
   end subroutine eqlin
+
+!=======================================================================
+! Locate a flux-surface crossing on one grid edge with cubic Hermite data.
+!=======================================================================
+  real(8) function edge_fraction_cubic(fm1,f0,f1,f2,target) result(troot)
+    real(8), intent(in) :: fm1,f0,f1,f2,target
+    real(8) :: left,right,mid,fl,fm
+    integer(4) :: iter
+
+    if(f1 == f0) then
+       troot=0.5d0
+       return
+    end if
+    if((f0-target)*(f1-target) > 0.d0) then
+       troot=max(0.d0,min(1.d0,(target-f0)/(f1-f0)))
+       return
+    end if
+    left=0.d0; right=1.d0; fl=f0-target
+    do iter=1,40
+       mid=0.5d0*(left+right)
+       fm=cubic_segment_value(fm1,f0,f1,f2,mid)-target
+       if(fl*fm <= 0.d0) then
+          right=mid
+       else
+          left=mid
+          fl=fm
+       end if
+    end do
+    troot=0.5d0*(left+right)
+  end function edge_fraction_cubic
+
+!=======================================================================
+! Cubic Hermite value between the middle pair of four uniform-grid data.
+!=======================================================================
+  pure real(8) function cubic_segment_value(fm1,f0,f1,f2,t) result(value)
+    real(8), intent(in) :: fm1,f0,f1,f2,t
+    real(8) :: m0,m1,t2,t3
+    m0=0.5d0*(f1-fm1)
+    m1=0.5d0*(f2-f0)
+    t2=t*t; t3=t2*t
+    value=(2.d0*t3-3.d0*t2+1.d0)*f0+(t3-2.d0*t2+t)*m0 &
+         & +(-2.d0*t3+3.d0*t2)*f1+(t3-t2)*m1
+  end function cubic_segment_value
+
+!=======================================================================
+! Refine contour extrema below the Cartesian equilibrium-grid spacing.
+!=======================================================================
+  subroutine refine_contour_geometry(rc,zc,np,rmax,rmin,zmax,zmin,rzmax,rzmin)
+    integer(4), intent(in) :: np
+    real(8), intent(in) :: rc(:),zc(:)
+    real(8), intent(inout) :: rmax,rmin,zmax,zmin,rzmax,rzmin
+    integer(4) :: irmax,irmin,izmax,izmin
+    real(8) :: extremum,companion
+
+    if(np < 5) return
+    irmax=maxloc(rc(1:np),dim=1); irmin=minloc(rc(1:np),dim=1)
+    izmax=maxloc(zc(1:np),dim=1); izmin=minloc(zc(1:np),dim=1)
+    call refine_one_extremum(rc,zc,np,irmax,extremum,companion)
+    rmax=extremum
+    call refine_one_extremum(rc,zc,np,irmin,extremum,companion)
+    rmin=extremum
+    call refine_one_extremum(zc,rc,np,izmax,extremum,companion)
+    zmax=extremum; rzmax=companion
+    call refine_one_extremum(zc,rc,np,izmin,extremum,companion)
+    zmin=extremum; rzmin=companion
+  end subroutine refine_contour_geometry
+
+!=======================================================================
+! Fit an extremum and its companion coordinate to five contour points.
+!=======================================================================
+  subroutine refine_one_extremum(primary,secondary,np,ic,extremum,companion)
+    integer(4), intent(in) :: np,ic
+    real(8), intent(in) :: primary(:),secondary(:)
+    real(8), intent(out) :: extremum,companion
+    integer(4) :: k,idx(5)
+    real(8) :: ss(5),yp(5),ys(5),cp(3),cs(3),sv,curvature
+    logical :: okp,oks
+
+    do k=1,5
+       idx(k)=modulo(ic+k-4,np)+1
+       yp(k)=primary(idx(k)); ys(k)=secondary(idx(k))
+    end do
+    ss(3)=0.d0
+    ss(2)=-hypot(primary(idx(3))-primary(idx(2)),secondary(idx(3))-secondary(idx(2)))
+    ss(1)=ss(2)-hypot(primary(idx(2))-primary(idx(1)),secondary(idx(2))-secondary(idx(1)))
+    ss(4)=hypot(primary(idx(4))-primary(idx(3)),secondary(idx(4))-secondary(idx(3)))
+    ss(5)=ss(4)+hypot(primary(idx(5))-primary(idx(4)),secondary(idx(5))-secondary(idx(4)))
+    call quadratic_least_squares(ss,yp,cp,okp)
+    call quadratic_least_squares(ss,ys,cs,oks)
+    extremum=primary(ic); companion=secondary(ic)
+    if(.not.okp .or. .not.oks) return
+    curvature=cp(3)
+    if(abs(curvature) <= tiny(1.d0)) return
+    sv=-0.5d0*cp(2)/curvature
+    if(sv < ss(2) .or. sv > ss(4)) return
+    if(primary(ic) >= primary(idx(2)) .and. primary(ic) >= primary(idx(4))) then
+       if(curvature >= 0.d0) return
+    else
+       if(curvature <= 0.d0) return
+    end if
+    extremum=cp(1)+sv*(cp(2)+sv*cp(3))
+    companion=cs(1)+sv*(cs(2)+sv*cs(3))
+  end subroutine refine_one_extremum
+
+!=======================================================================
+! Least-squares coefficients c0+c1*s+c2*s^2 for local contour/profile data.
+!=======================================================================
+  subroutine quadratic_least_squares(s,y,c,ok)
+    real(8), intent(in) :: s(:),y(:)
+    real(8), intent(out) :: c(3)
+    logical, intent(out) :: ok
+    real(8) :: a(3,4),factor,pivot,rowtmp(4)
+    integer(4) :: i,k,ip,n
+
+    n=size(s)
+    if(size(y) /= n .or. n < 3) then
+       ok=.false.; c=0.d0; return
+    end if
+    a(1,:)=[real(n,8),sum(s),sum(s*s),sum(y)]
+    a(2,:)=[sum(s),sum(s*s),sum(s*s*s),sum(s*y)]
+    a(3,:)=[sum(s*s),sum(s*s*s),sum(s*s*s*s),sum(s*s*y)]
+    ok=.true.
+    do k=1,3
+       ip=k-1+maxloc(abs(a(k:3,k)),dim=1)
+       pivot=a(ip,k)
+       if(abs(pivot) <= tiny(1.d0)) then
+          ok=.false.; c=0.d0; return
+       end if
+       if(ip /= k) then
+          rowtmp=a(k,:); a(k,:)=a(ip,:); a(ip,:)=rowtmp
+       end if
+       a(k,k:4)=a(k,k:4)/a(k,k)
+       do i=1,3
+          if(i == k) cycle
+          factor=a(i,k)
+          a(i,k:4)=a(i,k:4)-factor*a(k,k:4)
+       end do
+    end do
+    c=a(:,4)
+  end subroutine quadratic_least_squares
 
 !=======================================================================
 ! Tracing flux surfaces using Runge-Kutta method
@@ -1409,7 +1698,7 @@ contains
     fds(1:nv) = ffprim(1:nv)
     ! vlv will be computed in eqlin.
     qqv(1:nv) = qpsi(1:nv)
-    prv(1:nv) = pres(1:nv) * rMU0
+    prv(1:nv) = pres(1:nv) * 1.d-6 ! p [MPa], the MEUDAS internal unit (cf. ttcu in MA)
 
     btv   = rcentr * bcentr
     ttcu  = current * 1.d-6
@@ -1833,4 +2122,3 @@ contains
 !!$  end subroutine gauss6
 
 end module eqread_mod
-

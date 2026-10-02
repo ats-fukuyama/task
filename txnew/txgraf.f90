@@ -2,8 +2,8 @@ module tx_graphic
   implicit none
   private
   integer(4), parameter :: NGRM=20, NGTM=5000, NGVM=5000, &
-       &                   NGYRM=353, NGYTM=77, NGYVM=70, &
-       &                   NGPRM=31, NGPTM=9, NGPVM=18
+       &                   NGYRM=357, NGYTM=77, NGYVM=70, &
+       &                   NGPRM=32, NGPTM=9, NGPVM=18
   type graphic_data
      real(4), dimension(:)    , allocatable :: gnrm
      real(4), dimension(:,:,:), allocatable :: v
@@ -95,8 +95,8 @@ contains
   subroutine TXGOUT
     use libbes, only : BESINX
     use libgrf, only : GRD1D
-    use tx_commons, only : T_TX, TPRE, NQMAX, NRMAX, PI, ieqread!, &
-!         &                 rhob, RA, RR, NRA, thrp, kappa, IRPIN, DltRPn, NTCOIL, DltRP_mid, DltRP, epst, rho 
+    use tx_commons, only : T_TX, TPRE, NQMAX, NRMAX, PI, ieqread, stdin_ended!, &
+!         &                 rhob, RA, RR, NRA, thrp, kappa, IRPIN, DltRPn, RDltRPn, NTCOIL, DltRP_mid, DltRP, epst, rho 
     use tx_interface, only : TXGRUR, TOUPPER, TXGLOD
     use tx_ripple, only : ripple
 
@@ -133,11 +133,13 @@ contains
     OUTER : do
        write(6,*) '# select : Rn: Tn: Un: Vn: A,B: C: E: Dn: Fn: Gn: Hn: S,L,M:file'
        write(6,*) '           W(R,T,V)n:write I:init X:exit'
+       if (stdin_ended) return
        read(5,'(A5)',IOSTAT=IST) STR
        if (IST > 0) then
           write(6,*) '### ERROR : Invalid Command : ', STR
           cycle
        else if (IST < 0) then
+          stdin_ended = .true.
           return
        end if
 
@@ -365,8 +367,8 @@ contains
 !!$                RRL(NX) = 2.0 + DR * (NX - 1)
 !!$                do NY = 1, NYMAX
 !!$                   ZZL(NY) = DZ * (NY - 1)
-!!$                   AL = SQRT(((RRL(NX) - 2.4)**2 + ZZL(NY)**2) * (2.4 / RRL(NX)))
-!!$                   VAL(NX,NY) = real(DltRPnL * BESINX(0,NTCOIL/2.4D0*AL))
+!!$                   AL = SQRT(((RRL(NX) - RDltRPn)**2 + ZZL(NY)**2) * (RDltRPn / RRL(NX)))
+!!$                   VAL(NX,NY) = real(DltRPnL * BESINX(0,NTCOIL/RDltRPn*AL))
 !!$                end do
 !!$             end do
 !!$
@@ -932,6 +934,14 @@ contains
        GTL(NG) = real(T_TX)
     end if
 
+    !  X(:,LQm4) carries psi / rMUb2 and rMUb2 is rMU0 once a beam is present,
+    !  so index 4 wants the kilo normalisation there and not otherwise.  It
+    !  belongs here, with every other gnrm: GY%gnrm is allocated by
+    !  allocate_txgraf, which TXMENU only reaches inside its RUN branch, so
+    !  setting it from TXMENU wrote past an unallocated array whenever the beam
+    !  came in on the parm file.  Here it also covers GYT, which TXMENU never did.
+    if( rMUb1 == 1.d0 ) GYL%gnrm(  4) = gkilo
+
     do NR = 0, NRMAX
 
        !  *** Dependent variables ***************************************
@@ -1081,7 +1091,8 @@ contains
 
        !  *** Diffusion coefficients ************************************
 
-       GYL%v(NR,NG,141) = real(sum(Dfs(NR,:)))
+       ! Only Dfs(:,1) enters the particle transport (FQLcoef, FQCcoef); Dfs(:,2:3) are unused
+       GYL%v(NR,NG,141) = real(Dfs(NR,1))
        GYL%v(NR,NG,142) = real(Deff(NR,1))
        GYL%v(NR,NG,143) = real(Deff(NR,2))
        GYL%v(NR,NG,144) = real(Deff(NR,3))
@@ -1299,6 +1310,26 @@ contains
        ! *** Miscellaneous **********************************************
 
        GYL%v(NR,NG,353) = real(dPhidV(NR))
+
+       ! *** C0-C5 superstage: the source-slaved C0 part (MDLNZD = 1) *****
+
+       !  n_C0, the freshly sputtered neutral carbon in the bundle
+       GYL%v(NR,NG,354) = real(nC0z(NR)*1.d20) ; GYL%gnrm(354) = 1.e15
+       !  its share of the bundle, n_C0 / n_0z
+       if( PN0zV(NR) > 0.d0 ) then
+          GYL%v(NR,NG,355) = real(nC0z(NR) / PN0zV(NR))
+       else
+          GYL%v(NR,NG,355) = 0.0
+       end if
+       !  sputtering source of the bundle, R_zz nu_L (n_z - n_z,div) + R_iz nu_L (n_i - n_i,div)
+       GYL%v(NR,NG,356) = real(( rGamm0zz * rNuL(NR) * (Var(NR,3)%n - PNsSUP(3)) &
+            &                 + rGamm0iz * rNuL(NR) * (Var(NR,2)%n - PNsSUP(2)) ) * 1.d20)
+       !  parallel loss of the charged part of the bundle, (1 - R_zz) nu_L (n_0z - n_C0)
+       if( MDLNZD == 1 ) then
+          GYL%v(NR,NG,357) = real((1.d0 - rGamm0zz) * rNuL(NR) * (PN0zV(NR) - nC0z(NR)) * 1.d20)
+       else
+          GYL%v(NR,NG,357) = 0.0
+       end if
        
     end do
 
@@ -1386,7 +1417,7 @@ contains
     GVY(NGVV,48) = real( PN03V(0)   * 1.d20)
     GVY(NGVV,49) = real((PN01V(NRA) + PN02V(NRA) + PN03V(NRA)) * 1.d20)
 
-    GVY(NGVV,50) = real(sum(Dfs(NRC,:)))
+    GVY(NGVV,50) = real(Dfs(NRC,1))
     GVY(NGVV,51) = real(Deff(NRC,1))
     GVY(NGVV,52) = real(Chis(NRC,1))
     GVY(NGVV,53) = real(Chis(NRC,2))
@@ -1844,7 +1875,7 @@ contains
        GYMAX = maxval(GY%v(0:NRA,0:NGR,k))
        call TXGRFRX(0,GX,GY%v(0,0,k),NRMAX,NGR,STR,MODE,IND,GYMAX=GYMAX)
 
-       k = 141 ; STR = '@sum(D$-s$=)@'
+       k = 141 ; STR = '@D$-QL$=@'
        call TXGRFRX(1,GX,GY%v(0,0,k),NRMAX,NGR,STR,MODE,IND)
 
        k = 145 ; STR = '@$#c$#$-tbe$=@'
@@ -2219,7 +2250,7 @@ contains
        GYMIN = minval(GY%v(0:NRA,0:NGR,k))
        call TXGRFRX(0,GX,GY%v(0,0,k),NRMAX,NGR,STR,MODE,IND,GYMAX=GYMAX,GYMIN=GYMIN)
 
-       k = 141 ; STR = '@sum(D$-s$=)@'
+       k = 141 ; STR = '@D$-QL$=@'
        call TXGRFRX(1,GX,GY%v(0,0,k),NRMAX,NGR,STR,MODE,IND)
 
        k = 143 ; STR = '@D$-eff,i$=@'
@@ -2256,6 +2287,27 @@ contains
           end do
        end do
        call TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND,ILOGIN=1)
+
+    case(32)
+       k = 354 ; STR = '@n$-C0$=@'
+       call APPROPGY(MODEG, GY%v(:,:,k), GYL, NMAX, STR, GY%gnrm(k))
+       call TXGRFRX(0, GX, GYL, NRMAX, NGR, STR, MODE, IND)
+
+       k = 356 ; STR = '@Sputtering source@'
+       call APPROPGY(MODEG, GY%v(:,:,k), GYL, NMAX, STR, GY%gnrm(k))
+       call TXGRFRX(1, GX, GYL, NRMAX, NGR, STR, MODE, IND)
+
+       k = 355 ; STR = '@n$-C0$=/n$-0z$=@'
+       do NG = 0, NGR
+          do NR = 0, NRMAX
+             GYL(NR,NG) = GLOG(real(GY%v(NR,NG,k),8),1.D-10,1.D0)
+          end do
+       end do
+       call TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND,ILOGIN=1)
+
+       k = 357 ; STR = '@Parallel loss of charged bundle@'
+       call APPROPGY(MODEG, GY%v(:,:,k), GYL, NMAX, STR, GY%gnrm(k))
+       call TXGRFRX(3, GX, GYL, NRMAX, NGR, STR, MODE, IND)
 
     ! ------------------------------------------------------------------
 
@@ -5098,7 +5150,7 @@ contains
        STR = '@D$-eff$=(a/2)@'
        call TXGREVM(0, GVX, GVY(:,51), NGVV, 1, STR, MODE, IND)
 
-       STR = '@D$-e$=(a/2)+D$-i$=(a/2)+D$-z$=(a/2)@'
+       STR = '@D$-QL$=(a/2)@'
        call TXGREVM(1, GVX, GVY(:,50), NGVV, 1, STR, MODE, IND)
 
        STR = '@$#c$#$-tbe$=(a/2)@'

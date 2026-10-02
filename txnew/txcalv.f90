@@ -200,7 +200,7 @@ contains
 
     ! Effective charge
     do NR = 0, NRMAX
-       Zeff(NR) = ( sum(achg(2:)**2 * Var(NR,2:)%n) + achgb**2 * (PNbV(NR) + PNbRPV(NR)) ) &
+       Zeff(NR) = ( sum(achg(2:)**2 * Var(NR,2:)%n) + achgb**2 * (PNbV(NR) + rip_rat(NR) * PNbRPV(NR)) ) &
             &   / Var(NR,1)%n
     end do
 
@@ -257,7 +257,13 @@ contains
     if(ieqread == 0) then ! Perfect cylinder (Pfirsch-Schluter contribution nil)
        qhatsq(NR) = 0.d0
     else
-       qhatsq(NR) = Q(NR)**2
+       ! qhat^2 = I^2/(2<B_p^2>) (<1/R^2> - 1/<R^2>) is 0/0 at the axis, and
+       ! qhat^2 -> q^2 only in the circular large-aspect-ratio limit.  The
+       ! interior values are even in rho (their node-1 differences fall like
+       ! h^2), so take the limit from nodes 1 and 2, which is O(h^4).  For the
+       ! shaped equilibrium used here Q(0)^2 = 0.7974 overstates the interior
+       ! limit 0.68446 by 16.5%.
+       qhatsq(NR) = qhatsq(1) - (qhatsq(2) - qhatsq(1)) * vv(1) / (vv(2) - vv(1))
     end if
 
     do NR = 0, NRMAX
@@ -326,7 +332,8 @@ contains
     use tx_ripple
     use cdbm_mod
     use mod_eqneo, only : wrap_eqneo
-    use mod_cross_section, only : RateCoef_C_RC_A6, RateCoef_C_IZ_S5, Fraction_C0toC5
+    use mod_cross_section, only : RateCoef_C_RC_A6, RateCoef_C_IZ_S5, Fraction_C0toC5, &
+         &                        RateCoef_C_IZ_S0
     use mod_coulomb, only : coulog
     use mod_savgol
     use libitp, only : aitken2p
@@ -344,6 +351,7 @@ contains
          &     rNuOLL, SiLCL, SiLCBL, SiLCphL, RL, DBW, &
          &     factor_bohm, rNustar, &
          &     RLOSS, sqz, rNuDL, Ln, LT, etai_chk, kthrhos, &
+         &     SitotC0, V0zave, dn0dV, Swall, &
          &     RhoSOL, V0ave, Viave, DturbA, rLmean, Sitot, &
          &     rGCIM, rGIM, rHIM, OMEGAPR !09/06/17~ miki_m
 !!$    real(8) ::Cs, Lc, PTiVA, Chicl, 
@@ -358,12 +366,13 @@ contains
     real(8) :: rhoni, dvexbdr ! CDBM
     real(8) :: xb, fp, fdp, gfun
     real(8), dimension(0:NRMAX) :: pres, ddPhidpsi, tmp
+    real(8) :: Scdbm   ! magnetic shear in the form CDBM takes, (r/q)dq/dr
     ! Mainly for derivatives
     ! NOTE:
     !   These SAVE workspaces are shared across calls to TXCALC.
     !   Current usage is serial-safe, but future OpenMP parallel calls would need
     !   thread-private workspaces.
-    real(8), dimension(:), allocatable, save :: dErdr, dpdr, dErdrS, ErVlc
+    real(8), dimension(:), allocatable, save :: dErdr, dpdr, dErdrS, ErVlc, drhodrpt
     real(8), dimension(:), allocatable, save :: dQdrho, dlnNedrhov
     real(8), dimension(:,:), allocatable, save :: dTsdV, dPsdV, dNsdV, dNsdrho, dTsdrho
 
@@ -444,13 +453,16 @@ contains
     !          directly calculated.
 
     if(.not. allocated(dErdr)) then
-       allocate(dErdr, dpdr, mold=array_init_NR)
+       allocate(dErdr, dpdr, drhodrpt, mold=array_init_NR)
     else if((lbound(dErdr,1) /= lbound(array_init_NR,1)) .or. (ubound(dErdr,1) /= ubound(array_init_NR,1))) then
-       deallocate(dErdr, dpdr)
-       allocate(dErdr, dpdr, mold=array_init_NR)
+       deallocate(dErdr, dpdr, drhodrpt)
+       allocate(dErdr, dpdr, drhodrpt, mold=array_init_NR)
     end if
     dErdr(:) = dfdx(rpt,ErVlc,NRMAX,0)
     dpdr (:) = dfdx(rpt,pres ,NRMAX,0)
+    ! drho/drpt, for turning the rho-based shear into the (r/q)dq/dr the CDBM
+    ! model is written for; rpt is the radius dpdr and rs are already taken with.
+    drhodrpt(:) = dfdx(rpt,rho  ,NRMAX,0)
 !    dpdr (:) = vro(:) / ravl * dfdx(vv ,pres ,NRMAX,0)
 
     if(.not. allocated(dQdrho)) then
@@ -508,7 +520,7 @@ contains
 
     !  --- For thermal neutrals originating from slow neutrals ---
 
-    if(IC == 1) then
+    if(IC <= ICCALC) then
        ! SCX : source of PN02V
        do NR = 0, NRMAX
           SCX(NR) = Var(NR,2)%n * SiVcx(Var(NR,2)%T) * PN01V(NR) * 1.D40
@@ -570,7 +582,7 @@ contains
     !      where rho is an arbitrary radial coordinate.
     !                      ^^^^^^^^^
     !   gr2phi = (dpsi/dV)^2 d/dpsi(dPhi/dpsi) if rho = V is assumed.
-    if( mod(MDOSQZ,10) /= 1 .or. IC == 1 ) THEN
+    if( mod(MDOSQZ,10) /= 1 .or. IC <= ICCALC ) THEN
        ddPhidpsi(0) = 0.d0 ! d/dpsi(dPhi/dpsi)
        do NR = 1, NRMAX-1
           ddPhidpsi(NR) = (  ( PhiV(NR+1) - PhiV(NR) ) / ( PsiV(NR+1) - PsiV(NR) ) &
@@ -687,7 +699,7 @@ contains
        !     *** Impurity neutral diffusion coefficient (slow) ***
 
        !  Maxwellian velocity for slow impurity neutrals
-       V0ave = sqrt(4.d0 * V0*V0 / Pi)
+       V0ave = sqrt(4.d0 * V0z*V0z / Pi)
 
        !  Total Maxwellian rate coefficients
        Sitot = (SiVsefA(NR) + SiVa6A(NR)) * Var(NR,1)%n *1.d20
@@ -929,6 +941,16 @@ contains
 
        !  Magnetic shear, normalized pressure gradient
        S(NR) = rho(NR) / Q(NR) * dQdrho(NR)
+       !  CDBM is written for the shear taken with the geometric minor radius,
+       !  (r/q)dq/dr, as TOPICS (cdbm.f: s = rl*dq/ql with dq = dq/dr [1/m]),
+       !  GOTRESS and TRESS all pass it.  S above is (rho/q)dq/drho; convert it
+       !  with the same rpt that dpdr and rs use.  The two agree for the
+       !  circular analytic geometries, where rpt = rho*ra and drho/drpt = 1/ra.
+       if(NR == 0) then
+          Scdbm = 0.d0
+       else
+          Scdbm = S(NR) / rho(NR) * (rpt(NR) * drhodrpt(NR))
+       end if
        Alpha(NR) = - Q(NR)*Q(NR) * RR * dpdr(NR) * 2.d0 * rMU0 / bbt(NR)
 
        !   ***** Heat pinch *****
@@ -948,7 +970,7 @@ contains
              dvexbdr = dErdrS(NR) / bbrt(NR)
 !             dvexbdr = dErdr(NR) / bbrt(NR)
 
-             call cdbm(BBL,rr,rpt(NR),elip(NR),Q(NR),S(NR),Var(NR,1)%n*1.d20,rhoni,dpdr(NR), &
+             call cdbm(BBL,rr,rpt(NR),elip(NR),Q(NR),Scdbm,Var(NR,1)%n*1.d20,rhoni,dpdr(NR), &
                   &    dvexbdr,FSCBAL,FSCBKP,rG1,model_cdbm,Dturb, &
                   &    FCDBM(NR),rKappa(NR),rG1h2(NR),wexb(NR))
 
@@ -1066,16 +1088,19 @@ contains
        rMus(NR,:) = rMus0(:) * DeL
 
        !   ***** Momentum pinch *****
-       !   -R Vmpi/rMui = 1.1 R/Lne + 1.0
-       !   [T. Tala et al., 2012, Proc of 24th IAEA FEC (San Diego) ITR/P1-1]
+       !   -R V_pinch/mu = 1.1 R/L_ne + 1.0, both terms inward (V > 0 is outward)
+       !   [T. Tala et al., 2012, Proc. 24th IAEA FEC (San Diego) ITR/P1-19]
+       !   The multi-machine data cover 0.4 < rho < 0.8 and R/L_n up to about 4;
+       !   pinch_rln and pinch_taper treat larger R/L_n and the edge (see the inputs).
+       !   V is built from the ion viscosity and given to every thermal species, and the
+       !   viscous flux of species s is -mu_s n_s d<Ru_s>/dV (the form of the scaling),
+       !   so with a common mu the fluxes sum to V L - mu sum_s m_s n_s d<Ru_s>/dV, the
+       !   pinch of the total thermal momentum L (TOPICS); the u_s need not be equal.
+       !   With species-dependent rMus0 the pinch number -R V/mu_s differs by species.
 
        if(NR /= 0) then
-!!$          zvpch = rMus(NR,2) / rr * (1.1d0 * rr * moving_average(NR,dlnNedrhov,NRMAX) + 1.d0)
-          zvpch = rMus(NR,2) / rr * (1.1d0 * rr * dlnNedrhov(NR) + 1.d0)
-!          ! +++ reducing Vpch near the separatrix +++
-!          zvpch = 0.5d0 * ( tanh(-30.d0*(rho(NR) - 0.98d0)) + 1.d0 ) * zvpch
-!          zvpch = (1.d0 - 0.8d0 * exp(- 0.5d0 * ((rho(NR) - 1.d0) / 0.05d0)**2)) * zvpch
-          ! +++++++++++++++++++++++++++++++++++++++++
+          zvpch = - rMus(NR,2) / rr * (1.1d0 * pinch_rln(- rr * dlnNedrhov(NR)) + 1.d0) &
+               &  * pinch_taper(rho(NR))
           if(izvpch == 0 .and. rho(NR) >= 0.1d0) then
              izvpch = 1
              do NR1 = 1, NR
@@ -1131,6 +1156,11 @@ contains
 
        ! Coefficient of the force causing the quasilinear flux, induced by drift wave
        FQLcoef (NR) = sst(NR) * sdt(NR) * Dfs(NR,1) / (Var(NR,1)%T * rKilo)
+       ! Coefficient of the ion-composition channel used by FSTPTM = 3.  Same
+       ! <|grad V|^2> (dpsi/dV) D_e^QL as FQLcoef, but conjugate to a bare
+       ! density gradient instead of a force normalised by T_e, so without the
+       ! 1/(T_e rKilo).
+       FQCcoef (NR) = sst(NR) * sdt(NR) * Dfs(NR,1)
        FQLcoef1(NR) = FQLcoef(NR) * sdt(NR) / fipol(NR)
        if(NR /= 0) then
           FQLcoef2(NR) = FQLcoef(NR) * sdt(NR) * fipol(NR) / bri(NR)
@@ -1245,6 +1275,64 @@ contains
     !     *** Calculate coefficients in the SOL ***
 
     call tx_sol_coefficients
+
+    !     *** Radial transport of the C0-C5 superstage LQnz (MDLNZD) ***
+
+    select case(MDLNZD)
+    case(1)
+       !  The bundle is transported as the magnetized C1+-C5+ population it
+       !  mostly is (diffusivity Dfs), except for the freshly sputtered C0,
+       !  which is slaved to its source: its lifetime 1/(S_0 n_e) is microseconds,
+       !  so its density follows the local source balance,
+       !
+       !     n_C0 = min( S_wall / (S_0 n_e), n_b ),
+       !     S_wall = R_zz nu_L max(n_z - n_z_div, 0) + R_iz nu_L max(n_i - n_i_div, 0),
+       !
+       !  with S_wall the same sputtering source LQnzCC carries.  n_C0 enters
+       !  LQnzCC as a known field, through the extra C0 flux
+       !  -(D_C0 - D_c) dn_C0/dV and the parallel loss of the charged part
+       !  n_b - n_C0.  DC0z holds the unlimited D_C0; the Larsen limiter on it
+       !  and the subtraction of D_c are applied element by element in LQnzCC.
+       !  S_wall, S_0 n_e and the bound n_b are all taken from the current
+       !  Picard iterate (Var, PN0zV), so that n_C0 <= n_b is imposed on the
+       !  bundle at the time level being solved for.  The bound n_C0 = n_b is
+       !  the limit of this model: where it holds, the C0 flux is a diffusion of
+       !  the bundle itself, much stronger than D_c, taken from the previous
+       !  iterate, and the Picard iteration diverges.  NC0CAP counts the nodes
+       !  where it holds; TXLOOP warns when it survives to the last sweep.
+       V0zave = sqrt(4.d0 * V0z*V0z / Pi)
+       NC0CAP = 0
+       do NR = 0, NRMAX
+          SitotC0 = RateCoef_C_IZ_S0(Var(NR,1)%T, Var(NR,1)%n) * Var(NR,1)%n * 1.d20
+          DC0z(NR) = V0zave*V0zave / (3.d0 * SitotC0)
+          Swall = rGamm0zz * rNuL(NR) * max(Var(NR,3)%n - PNsSUP(3), 0.d0) &
+               & + rGamm0iz * rNuL(NR) * max(Var(NR,2)%n - PNsSUP(2), 0.d0)
+          nC0z(NR) = min( Swall / SitotC0, max(PN0zV(NR), 0.d0) )
+          if( Swall / SitotC0 > max(PN0zV(NR), 0.d0) ) NC0CAP = NC0CAP + 1
+       end do
+       Dnzb(:) = Dfs(:,1)
+    case default
+       !  V5.52 model: the hydrogen slow-neutral diffusivity D01.
+       Dnzb(:) = D01(:)
+    end select
+
+    !     *** Larsen flux limiter on the slow-neutral diffusivity, nodal (MDLN0FL = 1) ***
+    !  LEGACY, kept to reproduce earlier runs; use MDLN0FL = 2 (LQn1CC) instead.
+    !  D -> D / (1 + D |grad n| / (FLlim v n)) at the nodes, with |grad n|/n from
+    !  the global spline derivative of the current iterate.  The limited
+    !  ionization front at rho ~ 0.85-0.9 is shorter than an element on coarse
+    !  meshes, and in the tiny-n01 tail inside it this ratio is large and erratic:
+    !  without RLXN0 almost every step ends at ICMAX (NRMAX = 60), and RLXN0 = 0.5
+    !  still leaves a few (see doc/tx560.tex).
+    if( MDLN0FL == 1 ) then
+       V0zave = sqrt(4.d0 * V0*V0 / Pi)
+       tmp(:) = dfdx(vv, PN01V, NRMAX, 0)
+       do NR = 0, NRMAX
+          if( PN01V(NR) <= 0.d0 ) cycle
+          dn0dV = abs(tmp(NR)) * sqrt(sst(NR)) / PN01V(NR)
+          D01(NR) = D01(NR) / (1.d0 + D01(NR) * dn0dV / (FLlim * V0zave))
+       end do
+    end if
 
     !     *** Linear growth rate for toroidal gamma_etai branch of the ITG mode ***
     !        (F.Crisanti et al, NF 41 (2001) 883)
@@ -1618,6 +1706,38 @@ contains
 !                 factor * profd at rho=1
 !
 !***************************************************************
+
+    ! g(R/L_n) of the pinch number: R/L_n itself up to PCHRLN, beyond which the
+    ! slope goes to PCHSLP over the width PCHWID (continuous up to the second
+    ! derivative); odd in R/L_n.
+    real(8) function pinch_rln(x) result(g)
+      real(8), intent(in) :: x
+      real(8) :: ax, d
+      ax = abs(x)
+      if(ax <= PCHRLN) then
+         g = ax
+      else
+         d = ax - PCHRLN
+         g = PCHRLN + PCHSLP * d + (1.d0 - PCHSLP) * PCHWID * tanh(d / PCHWID)
+      end if
+      g = sign(g, x)
+    end function pinch_rln
+
+    ! Radial factor of the pinch: 1 inside RhoPch1, 0 outside RhoPch2, quintic
+    ! smoothstep between (continuous up to the second derivative; exactly zero
+    ! outside RhoPch2, so that the pinch carries no momentum through the wall)
+    real(8) function pinch_taper(r) result(t)
+      real(8), intent(in) :: r
+      real(8) :: xi
+      if(r <= RhoPch1) then
+         t = 1.d0
+      else if(r >= RhoPch2) then
+         t = 0.d0
+      else
+         xi = (r - RhoPch1) / (RhoPch2 - RhoPch1)
+         t = 1.d0 - xi**3 * (10.d0 - 15.d0 * xi + 6.d0 * xi**2)
+      end if
+    end function pinch_taper
 
     real(8) function diff_prof(rho,factor,profd,power,base,fgfact,mu,sigma,pedfact,muped,sgped)
       use tx_interface, only : fgaussian

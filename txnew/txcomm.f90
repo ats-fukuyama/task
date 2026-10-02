@@ -97,8 +97,63 @@ module tx_commons
   real(8) :: FSCBAL, FSCBKP, FSCBEL, FSCBSH, FSBOHM, FSVAHL
   real(8) :: PROFD, PROFD1, PROFD2, PROFDB, PROFM, PROFM1, PROFMB, PROFC, PROFC1, PROFCB
   real(8) :: FSCX, FSLC, FSLP, FSLPB, FSION, FSNCOL, FSD01, FSD02, FSD03, FSD0z, rG1, FSRP, FSNF
+
+  !   MDLNZD : radial transport of the C0-C5 superstage LQnz.
+  !     0 : the hydrogen slow-neutral diffusivity D01 (V5.52).
+  !     1 : (V5.60 default) the bundle is diffused as the magnetized C1+-C5+
+  !         population it mostly is (diffusivity Dfs), and the freshly
+  !         sputtered C0 in it is slaved to its source: it adds its own flux
+  !         (Larsen-limited element by element with FLlim) and the charged part
+  !         of the bundle has a parallel loss in the SOL.
+  !   MDLN0FL : Larsen flux limiter on the slow-neutral diffusivity D01,
+  !             D -> D / (1 + D |grad n| / (FLlim n v)).
+  !     0 : off (V5.60 default).
+  !     1 : legacy: evaluated at the nodes with a spline gradient; not
+  !         recommended (the Picard iteration needs RLXN0 and still reaches
+  !         ICMAX at times on coarse meshes).
+  !     2 : evaluated element by element, as the C0 flux; converges without
+  !         relaxation.
+  !   FLlim : flux-limit factor alpha of the Larsen limiter (C0 of MDLNZD = 1,
+  !           and D01 with MDLN0FL = 1, 2).
+  !   RLXN0 : under-relaxation weight of the previous Picard sweep on LQn1-LQn3,
+  !           used only with the legacy MDLN0FL = 1.
+  integer(4) :: MDLNZD, MDLN0FL
+  real(8) :: FLlim, RLXN0
+  !   NC0CAP : number of nodes at which the C0 part of the bundle was bounded
+  !            by the bundle itself, n_C0 = n_b, in the latest TXCALC.
+  integer(4) :: NC0CAP = 0
+  !   MDLSOL : width over which the parallel loss turns on outside the separatrix.
+  !     0 : the historical DBW, built from half the on-axis ion temperature,
+  !         Q(NRA) and B_phi (V5.52).
+  !     1 : the ion banana width at the separatrix, sqrt(eps) rho_theta, from the
+  !         local edge T_i and B_theta (V5.60 default).
+  integer(4) :: MDLSOL
+  !   MDLWBC : density boundary condition at the wall rho = rhob.
+  !     0 : none (V5.52).
+  !     1 : zero gradient, n(NRMAX) = n(NRMAX-1), in constrained-DOF form
+  !         (V5.60 default; see BOUNDARY_ZEROGRAD in txcala.f90).
+  integer(4) :: MDLWBC
+  !   MDLNSUP : meaning of the SOL upstream density inputs PNsSUP.
+  !     0 : independent, PNsSUP(1:3) are used as given.
+  !     1 : derived (default), PNsSUP(2:3) follow from PNsSUP(1) and Zeffin
+  !         (quasi-neutral, Z_eff = Zeffin, no fast ions in the SOL); recomputed
+  !         whenever the parameters are read.
+  integer(4) :: MDLNSUP
+  !   NANDER : Anderson acceleration of the Picard sweeps of each time step.
+  !     0 : plain Picard (default).
+  !     m : the next iterate is the Picard output corrected by the least-squares
+  !         combination of the last |m| differences of iterates and of residuals
+  !         (Anderson mixing, beta = 1, history restarted at every time step).
+  !         m < 0 leaves the rows of LQm1-LQm5 out of the least-squares fit;
+  !         near convergence their increments are rounding (for psi_t dot the
+  !         cancellation in Ampere's law amplified by the difference quotient
+  !         of Faraday's law, see check_convergence) and would otherwise steer
+  !         the fit.  The converged solution is that of
+  !         plain Picard.  -20 is the value validated for NRMAX >= 240.
+  integer(4) :: NANDER
   real(8) :: FSADV, FSADVB, FSUG, FSG0iz
   real(8), dimension(NSM) :: FSMPCH, FSTPTM, FSPARV, FSLTs
+  real(8) :: PCHRLN, PCHSLP, PCHWID, RhoPch1, RhoPch2
   real(8), dimension(1:2) :: FSNC, FSNCB
   real(8), dimension(1:3) :: FSDFIX, FSANOM, RhoETB, FSPCL
   integer(4) :: MDLC, MDANOM
@@ -106,6 +161,8 @@ module tx_commons
   ! SOL parameters
   real(8) :: rLn, rLT  ! Scale lengths in SOL
   real(8), dimension(NSM) :: PNsSUP, PTsSUP
+  ! PNsSUP(2:3) as last set by TXINIT or TXPARM_CHECK, to tell input from derived values
+  real(8), dimension(NSM) :: PNsSUPlast
 
   ! Heat sources
   real(8) :: Ebmax, RNBP, RNBP0, RNBT1, RNBT2, RNBT10, RNBT20, &
@@ -118,13 +175,25 @@ module tx_commons
   real(8) :: rGamm0_in, rGamm0zz_in, rGamm0iz_in
   real(8) :: PN0s, V0, rGamm0, rGASPF
   real(8) :: PN0zs, V0z, rGamm0zz, rGamm0iz, rGASPFz
+  real(8) :: RWALL, RWALLZ, RWALLIZ
+  integer(4) :: NRETRY
 
   ! Ripple parameters
-  real(8) :: DltRPn, kappa
+  real(8) :: DltRPn, RDltRPn, kappa
   integer(4) :: NTCOIL, m_pol, n_tor
 
   ! Numerical parameters
   real(8) :: DT, EPS, ADV, tiny_cap, CMESH0, WMESH0, CMESH, WMESH
+
+  !   Nonlinear-iteration index up to which the lagged quantities that feed the
+  !   transport coefficients -- PNsV_FIX, PTsV_FIX, ErV_FIX, SCX and ddPhidpsi --
+  !   are refreshed.  Beyond it they stay frozen at the iterate they had, which
+  !   is an O(DT) distance from the converged state and therefore costs the time
+  !   integration its second order however good the scheme is.  Freezing is there
+  !   to steady the nonlinear iteration and to keep an expensive transport model
+  !   from being re-evaluated every sweep; raise it to ICMAX where accuracy in
+  !   time matters and the model is cheap.
+  integer(4) :: ICCALC
   integer(4) :: ICMAX
 
   ! Mesh parameters
@@ -188,6 +257,13 @@ module tx_commons
 
   ! Configuration parameters
   integer(4) :: NQMAX, IERR, ICONT, IRPIN, irestart
+
+  !   Set once standard input has reached end of file.  After the first EOF a
+  !   read may report a positive iostat instead of a negative one (gfortran
+  !   returns 5001, "read past end of file"), and every interactive loop here
+  !   treats a positive iostat as a typo and asks again -- which spins forever
+  !   on a redirected or closed stdin.  Each loop consults this first.
+  logical :: stdin_ended = .false.
   real(4) :: AVE_IC
   real(8) :: rIP
   real(8) :: UHth, UHph
@@ -201,6 +277,19 @@ module tx_commons
   ! Convergence parameter
   integer(4) :: MODECV, iprestab
   real(8) :: oldmix
+  ! Adaptive under-relaxation factor, engaged only on time steps where the
+  ! Picard sweep is measured not to contract.  See TXLOOP.  0 disables it.
+  real(8) :: oldmixa
+
+  ! Diagnostic only: project the near-axis profiles onto the regular (even in rho)
+  ! subspace q0 + q2 rho^2 + q4 rho^4 after each time step.  Default off.
+  integer(4) :: iaxproj
+  real(8) :: rhoaxproj
+
+  ! Diagnostic only: a conservative particle diffusion added to the continuity
+  ! equations, as a fraction of each species' own momentum diffusivity.  This is
+  ! a regularity-selection experiment, not a model term.  0 = off (default).
+  real(8) :: Dnfac
 
   ! SUPG parameter
   integer(4) :: iSUPG3, iSUPG6, iSUPG8
@@ -244,8 +333,8 @@ module tx_commons
   real(8), dimension(:), allocatable :: &
        & rNuION, rNu0b, rNuL, rNuiCX, rNubCX, rNuiCXT, &
        & rNuei, rNuii, rNuiz, rNuTei, rNuTez, rNuTiz, rNuD, rNuOL, &
-       & WPM, FVpch, FQLcoef, FQLcoef1, FQLcoef2, &
-       & rNuB, rNuLB, ft, VWpch, D01, D02, D03, D0z, &
+       & WPM, FVpch, FQLcoef, FQLcoef1, FQLcoef2, FQCcoef, &
+       & rNuB, rNuLB, ft, VWpch, D01, D02, D03, D0z, Dnzb, nC0z, DC0z, &
        & SiVizA, SiVcxA, SiVa6A, SiVsefA, wexb, &
        & UgV, PNbVinv, Vbpara
   real(8), dimension(:), allocatable :: & ! Ripple transport
@@ -336,6 +425,14 @@ module tx_commons
   integer(4), dimension(:),     allocatable :: NLCMAX
   real(8),    dimension(:,:),   allocatable :: X, XOLD
 
+  ! .false. while the two-step BDF has no genuine X(t-dt) to lean on: at a cold
+  ! start, and after a LOAD because XOLD does not travel in the save file.  A
+  ! CONT does have one and keeps it.  See TXCALB.
+  logical :: bdf_history_ready = .false.
+  ! Step size the stored XOLD belongs to.  The two-step BDF weights are the
+  ! fixed-step ones, so the history is only usable while DT is unchanged.
+  real(8) :: bdf_history_dt = 0.d0
+
   ! Diagnostics
   integer(4) :: MODEAV
 
@@ -421,9 +518,10 @@ contains
        allocate(rNuION,  rNu0b,   rNuL,    rNuiCX,  rNubCX,  rNuiCXT,   source=array_init_NR,   stat=ierl(1))
        allocate(rNuei,   rNuii,   rNuiz,   rNuTei,  rNuTez,  rNuTiz,    source=array_init_NR,   stat=ierl(2))
        allocate(rNuD,    rNuOL,                                         source=array_init_NR,   stat=ierl(3))
-       allocate(WPM,     FVpch,   FQLcoef, FQLcoef1, FQLcoef2,          source=array_init_NR,   stat=ierl(4))
+       allocate(WPM,     FVpch,   FQLcoef, FQLcoef1, FQLcoef2, FQCcoef, source=array_init_NR,   stat=ierl(4))
        allocate(rNuB,    rNuLB,   ft,      VWpch,                       source=array_init_NR,   stat=ierl(5))
        allocate(D01,     D02,     D03,     D0z,                         source=array_init_NR,   stat=ierl(6))
+       allocate(Dnzb,    nC0z,    DC0z,                                                 source=array_init_NR,   stat=ierl(6))
        allocate(SiVizA,  SiVcxA,  SiVa6A,  SiVsefA,  wexb,              source=array_init_NR,   stat=ierl(7))
        allocate(UgV,     PNbVinv, Vbpara,                               source=array_init_NR,   stat=ierl(8))
        allocate(Ubrp,    RUbrp,   Dbrp,    DltRP,    DltRP_mid,         source=array_init_NR,   stat=ierl(9))
@@ -557,9 +655,10 @@ contains
     deallocate(rNuION, rNu0b,  rNuL,   rNuiCX,  rNubCX,  rNuiCXT)
     deallocate(rNuei,  rNuii,  rNuiz,  rNuTei,  rNuTez,  rNuTiz)
     deallocate(rNuOL,  rNuD)
-    deallocate(WPM,    FVpch,  FQLcoef,FQLcoef1,FQLcoef2)
+    deallocate(WPM,    FVpch,  FQLcoef,FQLcoef1,FQLcoef2,FQCcoef)
     deallocate(rNuB,   rNuLB,  ft,     VWpch)
     deallocate(D01,    D02,    D03,    D0z)
+    deallocate(Dnzb,   nC0z,   DC0z)
     deallocate(UgV,    PNbVinv,Vbpara)
     deallocate(Ubrp,   RUbrp,  Dbrp,   DltRP,   DltRP_mid)
     deallocate(rNubL,  rip_rat,rNubrp1,rNubrp2)

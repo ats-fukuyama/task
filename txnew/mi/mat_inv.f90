@@ -68,8 +68,21 @@ contains
        epsL = epst(NR)
        ftl = ft(NR)
     else
-       ! --- Artificial potate orbit effect, i.e. finite f_t even at axis ---
-       !     It yields the finite banana viscosity at axis.
+       ! --- Artificial potato orbit effect, i.e. finite f_t even at axis ---
+       !     The equilibrium gives ft(0) = 0, so the banana viscosity would
+       !     vanish at the axis.  A small finite eps is used instead, which
+       !     keeps zkb (and, in booth9, the whole viscosity through xgt)
+       !     finite there.
+       !
+       !     Note on what this actually reaches.  Since the Pfirsch-Schlueter
+       !     Fourier factors take their analytic axis limit fmneo(:,0) = 0,
+       !     zkps(0) = 0, and nccoe's default harmonic mean
+       !     zk = zkb*zkps/(zkb+zkps) is zero whatever zkb is.  So for
+       !     MDLNEO = 2 with imodel_neo(5) = 0 (the default) or -1 these two
+       !     lines have no effect on the solution at all - verified to be
+       !     bit-identical with epsL = ftl = 0.  They do matter for
+       !     imodel_neo(5) = 1 (zk = zkb, banana only) and for MDLNEO = 1
+       !     (booth9), where epsL also enters eps**1.5 and xsta.
        epsL = smallvalue
        ftl = ftfunc(epsL)
        ! --------------------------------------------------------------------
@@ -334,8 +347,13 @@ contains
     end do
 
     !-- Neoclassical particle flux: gflux = <Gamma . nabla psi>
+    !   The Ware term is n (I/<B^2>) <E.B> K and gflux carries n <|grad psi|^2>,
+    !   so its prefactor is I <E.B>/(<B^2> <|grad psi|^2>), <|grad psi|^2> = sst sdt^2
+    !   (as in the 2016 version).  I/(<B^2> <|grad V|> dpsi/dV) had been used,
+    !   which carries the extra factor <|grad V|^2>/<|grad V|> dpsi/dV ~ R B_p and so
+    !   made the Ware flux vanish towards the axis (by 1/4 at rho = 0.1).
     if( NR /= 0 ) then
-       fac = fipol(NR) / (bbt(NR) * (suft(NR) * sdt(NR)))
+       fac = fipol(NR) / (bbt(NR) * (sst(NR) * sdt(NR)**2))
     else
        fac = 0.d0
     end if
@@ -1485,9 +1503,13 @@ contains
                 y=(zz(ib)/zz(i))**2*den(ib)/den(i)*zp43/dlog(vbc3/vc3)
                 lab( i,ib,1,1)=y*(1.d0+mas(i)/mas(ib))*vtn(i)**3/vc3
                 lab( i, i,1,1)=lab(i, i,1,1)-lab(i,ib,1,1)
+                ! l_11^fi = l_11^if (Kikuchi and Azumi 1995, Appendix).  Row ib
+                ! is normalised by tau_ee/(m_e n_e) and row i by tau_ii/(m_i n_i),
+                ! so convert with the same collision times that undo the
+                ! normalisation; the Braginskii ratio would assume
+                ! lnLambda_ee = lnLambda_ii and leave sum_s F_s /= 0.
                 lab(ib, i,1,1)=lab(i,ib,1,1) &
-                     & *(den(i)*zz(i)**2/den(1))**2 &
-                     & *sqrt(mas(i)/mas(1))*(tem(1)/tem(i))**1.5d0
+                     & *(mas(i)*den(i)/ztau(i,i))*(ztau(1,1)/(mas(1)*den(1)))
                 lab(ib,ib,1,1)=lab(ib,ib,1,1)-lab(ib,i,1,1)
 !<i-b,1,2>
                 if(imodel(3).eq.0) then
@@ -1994,9 +2016,13 @@ contains
                 y=(zz(ib)/zz(i))**2*den(ib)/den(i)*zp43/log(vbc3/vc3)
                 lab( i,ib,1,1)=y*(1.d0+mas(i)/mas(ib))*vt(i)**3/vc3
                 lab( i, i,1,1)=lab(i, i,1,1)-lab(i,ib,1,1)
-                lab(ib, i,1,1)=lab(i,ib,1,1) & 
-                     &        *(den(i)*zz(i)**2/den(1))**2 &
-                     &        *sqrt(mas(i)/mas(1))*(tem(1)/tem(i))**1.5d0
+                ! l_11^fi = l_11^if (Kikuchi and Azumi 1995, Appendix).  Row ib
+                ! is normalised by tau_ee/(m_e n_e) and row i by tau_ii/(m_i n_i),
+                ! so convert with the same collision times that undo the
+                ! normalisation; the Braginskii ratio would assume
+                ! lnLambda_ee = lnLambda_ii and leave sum_s F_s /= 0.
+                lab(ib, i,1,1)=lab(i,ib,1,1) &
+                     & *(mas(i)*den(i)/ztau(i,i))*(ztau(1,1)/(mas(1)*den(1)))
                 lab(ib,ib,1,1)=lab(ib,ib,1,1)-lab(ib,i,1,1)
 !<i-b,1,2>
                 if(imodel(3).eq.0) then

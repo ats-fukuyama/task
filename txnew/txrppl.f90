@@ -107,7 +107,7 @@ contains
                    exit
                 end if
                 theta1 = theta1 + PI * dlt
-                rho = rho(NR) * (1.D0 + (kappa - 1.D0) * sin(theta1))
+                rhol = rho(NR) * (1.D0 + (kappa - 1.D0) * sin(theta1))
                 width0 = ripple(rhol,theta1,FSRP)
                 width1 = EpsL * sin(theta1) / (NTCOIL * Q(NR))
                 ! Poloidal angle at which the difference between width0 and width1 is minimized.
@@ -220,7 +220,9 @@ contains
        Ubrp(0) = AITKEN2P(rpt(0),Ubrp(1),Ubrp(2),Ubrp(3),rpt(1),rpt(2),rpt(3))
        ! On the axis ripple amplitude is uniquely defined because of no poloidal variation.
        rNubrp1(0) = rNuD(0) / DltRP(0)
-       rNubrp2(0) = rNubrp1(0) * SQRT(DltRP(0))
+       ! rNubrp2 carries the poloidal weight fgaussian(theta_rim) of the rim, which the
+       ! axis does not have; extrapolate it as Ubrp(0) and Dbrp(0) are.
+       rNubrp2(0) = AITKEN2P(rpt(0),rNubrp2(1),rNubrp2(2),rNubrp2(3),rpt(1),rpt(2),rpt(3))
 
        ! Save for graphic
        if(IRPIN == 0) then
@@ -357,15 +359,21 @@ contains
 
   real(8) function ripple(rhol,theta,FSRP) result(f)
     use libbes, only : BESINX
-    use tx_commons, only : RR, NTCOIL, DltRPn, ra
+    use tx_commons, only : RR, NTCOIL, DltRPn, RDltRPn, ra
     real(8), intent(in) :: rhol, theta, FSRP
-    real(8) :: a, L0, rl, Rmag0 = 2.4D0 ! specific value for JT-60U
+    real(8) :: a, L0, rl
+    real(8), save :: rsave = -1.d0, rinv
 
     if(FSRP /= 0.D0) then
+       ! N / R_delta_min, formed as a product with a reciprocal kept across calls
+       if(RDltRPn /= rsave) then
+          rsave = RDltRPn
+          rinv  = 1.d0 / RDltRPn
+       end if
        rl = rhol * ra
-       L0 = RR - Rmag0
-       a = sqrt((RL**2+L0**2+2.D0*RL*L0*cos(theta))*(RR-L0)/(RR+RL*cos(theta)))
-       f = DltRPn * BESINX(0,NTCOIL/(RR-L0)*a)
+       L0 = RR - RDltRPn
+       a = sqrt((RL**2+L0**2+2.D0*RL*L0*cos(theta))*RDltRPn/(RR+RL*cos(theta)))
+       f = DltRPn * BESINX(0,NTCOIL*rinv*a)
     else
        f = 0.d0
     end if

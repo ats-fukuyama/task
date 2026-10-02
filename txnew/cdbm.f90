@@ -69,12 +69,14 @@ CONTAINS
 
     integer(ikind),parameter :: nexp = 2    ! Fixed numerical factor 
     real(rkind),parameter :: ckcdbm = 12.d0 ! Fixed numerical factor 
+    integer(ikind) :: modell
     real(rkind):: va,wpe2,delta2,alpha,curv,wexb,shearl,fs,fk,fe,gamcdbm,taua
 
-    if(model.lt.0.or.model.gt.7) then
+    if(model < 0 .or. model > 17) then
        write(6,*) 'XX cdbm: model: out of range'
        stop
     endif
+    modell = model
 
     !     Alfven wave velocity
     va=SQRT(bb**2/(RMU0*rhoni))
@@ -96,16 +98,23 @@ CONTAINS
     wexb = -qp*rr/(shearl*va)*dvexbdr
 !    write(6,'(5ES15.7)') qp,rr,1.d0/(shearl*va),dvexbdr,wexb
 
-    SELECT CASE(MOD(model,2))
+    SELECT CASE(MOD(modell,2))
     CASE(0)
        fk=1.d0
     CASE(1)
        fk=(2.D0*SQRT(rkap)/(1.D0+rkap**2))**1.5D0
     END SELECT
 
-    fs=trcofs(shear,calf*alpha,ckap*curv)
+    !  model < 10 : the form factor with the alpha = 0 crossing smoothed
+    !  model >= 10: the original, only C0 there
+    if(modell < 10) then
+       fs=trcofs_sig(shear,calf*alpha,ckap*curv)
+    else
+       fs=trcofs(shear,calf*alpha,ckap*curv)
+       modell = modell - 10
+    end if
 
-    SELECT CASE(MOD((model/2),4))
+    SELECT CASE(MOD((modell/2),4))
     CASE(0)
        fe=1.D0
     CASE(1)
@@ -130,6 +139,100 @@ CONTAINS
     
     RETURN
   END SUBROUTINE cdbm
+
+! *** Form factor in CDBM model, with the alpha = 0 crossing smoothed ***
+!
+!   trcofs picks MAX(fs1,fs2) on either side of alpha = 0 with the two branches
+!   evaluated from shear -+ alpha, so the form factor is only C0 there.  Inside
+!   |alpha| <= alpha_thres the two one-sided limits are joined by a sigmoid,
+!   which removes the kink without touching the model anywhere else.  Ported
+!   from GOTRESS/TRESS, where it is the branch the standard cases use.
+
+  real(8) function trcofs_sig(shear,alpha,curv)
+
+    real(8),intent(in):: shear ! Magnetic shear
+    real(8),intent(in):: alpha ! Normalized pressure gradient
+    real(8),intent(in):: curv  ! Magnetic curvature
+    real(8):: fs1,fs2,sa,fs1_bndl,fs1_bndr,fs2_bndl,fs2_bndr,fs_bndl,fs_bndr
+    real(8):: coef,expr,expl,a,b
+    real(8):: alpha_thres = 5.e-3_dp
+
+    if( abs(alpha) <= alpha_thres ) then
+       fs2_bndl = 0.0_dp
+       fs2_bndr = 0.0_dp
+       ! --- fs1_bndl: alpha < 0 ---
+       sa = alpha_thres - shear
+       if( sa >= 0.0_dp ) then
+          fs1_bndl = fs_a(sa)
+       else
+          fs1_bndl = fs_b(sa)
+       end if
+
+       if( curv < 0.0_dp ) fs2_bndl=sqrt(-curv)**3/(shear*shear)
+
+       fs_bndl = max(fs1_bndl,fs2_bndl)
+
+       ! --- fs_bndr: alpha > 0 ---
+       sa = shear - alpha_thres
+       if( sa >= 0.0_dp ) then 
+          fs1_bndr = fs_a(sa)
+       else
+          fs1_bndr = fs_b(sa)
+       end if
+
+       if( curv > 0.0_dp ) fs2_bndr=sqrt( curv)**3/(shear*shear)
+
+       fs_bndr = max(fs1_bndr,fs2_bndr)
+
+       ! --- interpolate b/w fs_bndl and fs_bndr by sigmoid function ---
+       coef  = 5.0_dp / alpha_thres ! assumed
+       expl  = exp(-coef*(- alpha_thres))
+       expr  = exp(-coef*   alpha_thres )
+       a     = (1.0_dp + expl)*(1.0_dp + expr) / (expr - expl) * (fs_bndl - fs_bndr)
+       b     = (fs_bndr * (1.0_dp + expr) - fs_bndl * (1.0_dp + expl)) / (expr - expl)
+
+       trcofs_sig = a / (1.0_dp + exp(-coef*alpha)) + b
+
+    else
+       fs2 = 0.0_dp
+       if( alpha >= 0.0_dp ) then
+          sa=shear-alpha
+          IF(sa >= 0.0_dp) THEN
+             fs1=fs_a(sa)
+          ELSE
+             fs1=fs_b(sa)
+          ENDIF
+          if(curv > 0.0_dp) fs2=sqrt(curv)**3/(shear*shear)
+
+       else
+          sa=alpha-shear
+          IF(sa >= 0.0_dp) THEN
+             fs1=fs_a(sa)
+          ELSE
+             fs1=fs_b(sa)
+          ENDIF
+          if(curv < 0.0_dp) fs2=sqrt(-curv)**3/(shear*shear)
+       end if
+
+       trcofs_sig=MAX(fs1,fs2)
+    end if
+
+  end function trcofs_sig
+
+  pure real(rkind) function fs_a(sa)
+    real(rkind), intent(in) :: sa
+
+    fs_a=(1.0_dp+9.0_dp*SQRT(2.0_dp)*sa**2.5_dp) &
+           /(SQRT(2.0_dp)*(1.0_dp+((-2.0_dp+(3.0_dp+2.0_dp*sa)*sa)*sa)))
+
+  end function fs_a
+
+  pure real(rkind) function fs_b(sa)
+    real(rkind), intent(in) :: sa
+
+    fs_b=1.0_dp/SQRT(2.0_dp*(1.0_dp-2.0_dp*sa)*(1.0_dp+(-2.0_dp+3.0_dp*sa)*sa))
+
+  end function fs_b
 
 ! *** Form factor in CDBM model ***
 

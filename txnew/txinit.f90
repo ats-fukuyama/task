@@ -122,15 +122,28 @@ contains
     !            = negative    : Does not allow to enlarge the trace step size if tracing fails.
     irktrc = 2
 
+    !    ipbtdir = 1           : Ip direction is parallel to Bt's
+    !            =-1           : Ip direction is opposite to Bt's
+    ipbtdir = 1
+
     !   ***** Particle diffusivity and viscosity parameters *****
 
     !   Turbulent pinch velocity parameter
     VWpch0 = 0.d0
 
     !   Electron-driven diffusion parameter
+    !     Only Dfs(:,1) = Dfs0(1) * profile enters the particle transport.
+    !     FSTPTM = 0, 1, 2: Dfs(:,1) is the electron quasilinear diffusivity D_e^QL;
+    !       ions and impurities have none of their own and move with the electron
+    !       turbulent velocity.
+    !     FSTPTM = 3, 4: the same coefficient also sets the pairwise composition
+    !       transport of the thermal ions, so it reads as the common turbulent /
+    !       composition diffusion amplitude D_c; without fast ions each thermal
+    !       species then diffuses on its own gradient with D_c.
     Dfs0(1) = 0.1d0
 
     !   Ion and impurity driven diffusion parameter (usually inactive)
+    !     Kept as inputs for species-dependent amplitudes; not used at present.
     Dfs0(2:NSM) = 0.d0
 
     !   Electron, ion and impurity viscosity parameters
@@ -184,13 +197,52 @@ contains
     !     1 : Momentum pinch effective
     FSMPCH(1:NSM) = 1.d0
 
+    !   Momentum pinch number, -R V/mu = 1.1 g(R/L_n) + 1.0 (Tala et al., FEC 2012)
+    !     g(x) = x up to the largest R/L_n of the multi-machine data, PCHRLN, beyond which
+    !     the slope goes smoothly (width PCHWID) to PCHSLP times the Tala slope, i.e. to
+    !     0.44, the R/L_n coefficient of the JETPEAK and GKW regressions (Weisen 2012).
+    !     PCHSLP = 0 saturates the pinch number (experimental option).
+    PCHRLN = 3.8d0
+    PCHSLP = 0.4d0
+    PCHWID = 1.d0
+
+    !   Radial range of the momentum pinch, a core model: full inside RhoPch1 (the outer
+    !     edge of the data, rho = 0.8), zero outside RhoPch2, quintic smoothstep between
+    RhoPch1 = 0.8d0
+    RhoPch2 = 0.9d0
+
     !   Implementation of turbulent particle transport model
     !     0 : Electron density gradient term remains as it is.
     !     1 : Electron density gradient term is replaced using the radial force balance equation
     !         for the sake of numerical stability.
     !     2 : Electron density gradient term is replaced using the dimagnetic flow
     !         for the sake of numerical stability.
-    FSTPTM(1:NSM) = 2
+    !     3 : As 2, plus the multi-ion composition channel: every pair of thermal
+    !         ion species exchanges a force proportional to the difference of
+    !         their logarithmic density gradients, so that each ion also
+    !         diffuses on its own density gradient.  This is the passive-mixing
+    !         (common-diffusivity) limit written as a correction to the
+    !         common-velocity closure of 0/1/2; see twofluid.tex.  It must be
+    !         given for every species at once.
+    !     4 : Thermal-species self-gradient closure (the default since 2026-10-01): as 3, but the
+    !         turbulent transport of the thermal species is driven by the thermal-ion charge
+    !         density n_th = sum_s Z_s n_s instead of n_e.  The electron force is reduced by
+    !         the fast-ion charge gradient, the thermal ions take its reaction with the
+    !         weights Z_s n_s/n_th (no share of the beam), and the composition pairs use
+    !         n_th.  Each thermal species then diffuses on its own density gradient with the
+    !         common thermodiffusion also with fast ions; without them it equals 3.  It must
+    !         be given for every species.  The fast ions have no turbulent flux.  See
+    !         twofluid.tex.
+    !   Default 4 (with FSVAHL = -0.25 and PNsSUP(1) = 0.026): with fast ions 3 lets the
+    !   thermal ions carry the fast-ion charge gradient and they are depleted on the axis
+    !   for FSVAHL >= -0.4; 4 does not, and with the weaker thermodiffusion the JT-60U
+    !   benchmark keeps its line-averaged density, core profile and n_b/n_i with a
+    !   higher edge density.  Without fast ions 4 equals 3.  3 was the default before
+    !   (with FSVAHL = -0.5, PNsSUP(1) = 0.01; give all three to reproduce it); with 2
+    !   the impurity has no diffusion on its own density gradient and an odd-even mode of
+    !   n_z grows until T_z < 0 (JT-60U benchmark, 2.4 s).  Every species must be given
+    !   the same value.
+    FSTPTM(1:NSM) = 4
 
     !   ==== CDBM transport coefficient parameters ============================
     !      The finer time step size, typically less than or equal to DT=5.D-4,
@@ -239,8 +291,9 @@ contains
 
     !   =======================================================================
 
-    !   Controller for thermodiffusive pinch term of turbulent particle flux
-    FSVAHL =-0.5d0
+    !   Controller for thermodiffusive pinch term of turbulent particle flux (C_T).
+    !   Default -0.25 with FSTPTM = 4 (was -0.5 with 3; 0 collapses, BR-27/31)
+    FSVAHL =-0.25d0
 
     !   Particle diffusion coefficient profile parameter (D(r=a)/D(r=0))
     PROFD =  5.d0
@@ -274,8 +327,11 @@ contains
 
     !   ***** Parameters related to SOL plasma *****
 
-    !   Electron density limit in SOL Upstream Plasma (Target minimum density in SOL)
-    PNsSUP(1) = 0.01d0
+    !   Electron density limit in SOL Upstream Plasma (Target minimum density in SOL).
+    !   It sets the density level; 0.026 gives the JT-60U benchmark line average
+    !   1.14e19 m^-3 with FSTPTM = 4, FSVAHL = -0.25 (was 0.01; the benchmark used 0.0125
+    !   with FSTPTM = 3, FSVAHL = -0.5)
+    PNsSUP(1) = 0.026d0
 
     !   Ion density limit in SOL Upstream Plasma (Target minimum density in SOL)
     PNsSUP(2) = (achg(3) - Zeffin) / (achg(2) * (achg(3) - achg(2))) * PNsSUP(1)
@@ -283,6 +339,13 @@ contains
     !   Impurity density limit in SOL Upstream Plasma (Target minimum density in SOL)
     PNsSUP(3) = (Zeffin - achg(2)) / (achg(3) * (achg(3) - achg(2))) * PNsSUP(1)
 !    PNsSUP(3) = 0.d0
+    PNsSUPlast(:) = PNsSUP(:)
+
+    !   Meaning of PNsSUP(2:3): 1 = derived from PNsSUP(1) and Zeffin whenever the
+    !   parameters are read (default), 0 = independent, PNsSUP(1:3) used as given.
+    !   PNsSUP(1) acts as the upstream SOL electron density: the SOL loss term
+    !   -nu_L (n - PNsSUP) holds the SOL density near PNsSUP (see tx562.tex).
+    MDLNSUP = 1
 
     !   Electron/Ion/Impurity temperature limit in SOL Upstream Plasma
     !   (Target minimum temperature in SOL)
@@ -340,8 +403,28 @@ contains
     !   Alpha heating paramter
     FSNF = 0.d0
 
-    !   Parameter of particle loss to divertor (default = 0.3)
-    FSLP = 0.3d0
+    !   Parameter of particle loss to divertor, k_L in nu_L = k_L C_s / (2 pi q R)
+    !   (V5.60: 1.0, the two-point value with 2 pi q R the target-to-target
+    !    length; V5.52 and before: 0.3)
+    FSLP = 1.d0
+
+    !     MDLSOL : width of the parallel-loss ramp outside the separatrix
+    !              (0: V5.52 DBW, 1: separatrix banana width)
+    MDLSOL = 1
+    !     MDLWBC : density boundary condition at the wall
+    !              (0: none, V5.52; 1: zero gradient, constrained DOF)
+    MDLWBC = 1
+    !     NANDER : Anderson acceleration of the Picard sweeps
+    !              (0: off; |NANDER| history depth; < 0 without LQm1-LQm5 in the fit)
+    NANDER = 0
+
+    !     NRETRY : k = 1..4: a step whose Picard iteration reaches ICMAX without converging
+    !              is taken again as 2, 4, ... substeps, down to DT/2**k (see TXLOOP); 0 = off.
+    !              Default 1: converged steps are untouched (bit-identical to 0 when no step
+    !              stalls); at NRMAX = 60, 120 it removes the stalls of the axis LQ*8 mode
+    !              with NBI.  NRMAX = 240 needs a smaller DT (or 2); the run summary warns
+    !              when more than 10% of the steps were retaken.
+    NRETRY = 1
 
     !   Parameter of heat loss to divertor (default = 1.0)
     FSLTs(1:NSM) = 1.d0
@@ -464,14 +547,18 @@ contains
     V0  = 1.6954D4 ! Hydrogen species
     V0z = 6.9206D3 ! Impurity species
 
-    !   Recycling rate in SOL
-    !     These are automatically calculated in tx_sol_parallel_loss if they are given -1.
-    !     They are fixed at these values if given as positive values.
-    rGamm0_in   = -1.d0 ! Bulk neutral recycling rate (0.98)
+    !   Recycling rate in SOL (target recycling of the SOL parallel loss)
+    !     With rGamm0**_in < 0 they are calculated in tx_sol_particle_balance from the
+    !     divertor recycling loop: rGamm0 = c1/(c1+c5) = 0.980 (escape of the recycled
+    !     neutrals to the upstream SOL against the pump), rGamm0zz = 0.0213 (reflection
+    !     and self-sputtering yield 0.42 times the escape factor of the impurity),
+    !     rGamm0iz = 0.0099 (sputtering by the bulk ions, with FSG0iz = 0.1).  The values
+    !     below are only initial values.  rGamm0**_in >= 0 fixes them at rGamm0**_in.
+    rGamm0_in   = -1.d0 ! Bulk neutral recycling rate
     rGamm0      =  0.98d0
-    rGamm0zz_in = -1.d0 ! Impurity self-recycling rate (0.02)
+    rGamm0zz_in = -1.d0 ! Impurity self-recycling rate
     rGamm0zz    =  0.02d0
-    rGamm0iz_in = -1.d0 ! Impurity supttering rate by bulk ions (0.10)
+    rGamm0iz_in = -1.d0 ! Impurity sputtering rate by bulk ions
     rGamm0iz    =  0.1d0
 
     !   Gas-puff particle flux (10^20 m^-2 1/s)
@@ -483,13 +570,36 @@ contains
     rGASPF  = 0.2d0 ! Hydrogen species
     rGASPFz = 0.0d0 ! Impurity species
 
+    !   Recycling at the main wall (rho = rhob)
+    !     The radial outflow of the ions through the wall, Gamma_s(rhob)^+ =
+    !     max(n_s <u_s.grad V>, 0) at NRMAX, returns as a wall-side inflow of neutrals,
+    !     like the gas puff.  This is a path separate from the target recycling of the
+    !     SOL parallel loss (rGamm0*), so the two are not counted twice.
+    !       RWALL   : bulk ions            -> bulk neutrals (n01)
+    !       RWALLZ  : impurity ions        -> impurity neutrals (reflection and
+    !                                         self-sputtering)
+    !       RWALLIZ : bulk-ion wall impact -> impurity neutrals (sputtering)
+    !     The impurity never returns as a hydrogen neutral.  There is no divertor loop at
+    !     the main wall (no pump, no escape factor), so the target values of
+    !     tx_sol_particle_balance are not reused as such: RWALL = 0.98 is a saturated wall
+    !     with a small retention; RWALLZ = 0.42 is the reflection (0.02) plus self-sputtering
+    !     (0.4) yield of the target model without its divertor escape factor; sputtering
+    !     of the wall by the bulk ions is off (its yield depends on the wall material).
+    RWALL   = 0.98d0
+    RWALLZ  = 0.42d0
+    RWALLIZ = 0.d0
+
     !   ***** Ripple loss parameters *****
 
     ! Number of toroidal field coils in JT-60U
     NTCOIL = 18
 
-    ! Minimum ripple amplitude in the system (R = Rmag0 = 2.4m on JT-60U)
+    ! Minimum ripple amplitude in the system, on the midplane at R = RDltRPn
     DltRPn = 0.0002d0 * 1.D-2
+
+    ! Major radius (m) of the minimum of the ripple amplitude on the midplane, where
+    !   the ripple amplitude is DltRPn; set by the TF coil geometry (2.4 m on JT-60U)
+    RDltRPn = 2.4d0
 
     ! Effective ellipticity for ripple amplitude estimation
     kappa = 1.2d0
@@ -535,6 +645,11 @@ contains
 
     !   Iteration
     ICMAX = 100
+
+    !     Refresh the lagged quantities feeding the transport coefficients up to
+    !       this nonlinear iteration (see tx_commons).  2 reproduces the
+    !       historical behaviour; ICMAX or more removes the lag altogether.
+    ICCALC = 2
 
     !   Time-advancing method
     !     ADV = 0     : Explicit scheme       (Not usable)
@@ -584,6 +699,35 @@ contains
     !   but requires more iteration numbers even when it is well behaved.
     !     0 <= oldmix <= 1
     oldmix = 0.d0
+
+    !   Adaptive under-relaxation.  Below dt ~ 3e-6 the fixed-point map for the
+    !   radial flows n_s u^V_s stops contracting -- LQz2 first, because the
+    !   impurity is the smallest density -- and the iterate oscillates at O(1)
+    !   until an intermediate state has a negative impurity density.  Applying
+    !   oldmix unconditionally cures that but costs an order of accuracy
+    !   (measured: p 2.00 -> 1.01) and doubles the sweep count, so it cannot be
+    !   a default.  This factor is applied only on the time steps where the
+    !   sweep is measured not to contract; on every case that converges today it
+    !   never engages.  0 disables the mechanism.
+    !     0 <= oldmixa <= 1
+    oldmixa = 0.5d0
+
+    !   Diagnostic only: project the near-axis profiles onto the regular
+    !   (even in rho) subspace q0 + q2 rho^2 + q4 rho^4 after each time step.
+    !     0 = off (default), 1 = impurity n and p, 2 = every species' n and p,
+    !     3 = 2 plus Phi.  4, 5, 6 use the local axis relation (linear in V
+    !     across the first two elements) with the same variable sets.
+    !     rhoaxproj is the radius of the projection window for 1, 2, 3.
+    iaxproj   = 0
+    rhoaxproj = 0.05d0
+
+    !   Diagnostic only: conservative particle diffusion in the continuity
+    !   equations, d/dV( Dnfac * rMus * <|grad V|^2> * dn_s/dV ), i.e. the same
+    !   operator and geometry the momentum equation already uses, scaled by a
+    !   dimensionless fraction of that species' momentum diffusivity.  Used to
+    !   ask which branch the zero-diffusion equations select in the limit
+    !   Dnfac -> 0+.  Not a model term; 0 = off (default).
+    Dnfac = 0.d0
 
     !   SUPG on/off switch
     !     iSUPG3 for LQ*3CC; LQb3CC only when iSUPG3 = -1
@@ -692,14 +836,36 @@ contains
 
     !   Mode of linear solver
     !   0 : Use BANDRD
-    !   1 : Use LAPACK_DGBSV or LA_GBSV
-    !   2 : Use block-tridiagonal solver (fallback to GBSV if needed)
-    MDLPCK = 1
+    !   1 : Use LAPACK_DGBSV or LA_GBSV (plain band solve, no equilibration)
+    !   2 : Use block-tridiagonal solver with residual-checked iterative
+    !       refinement, falling back to 3 if the far blocks are not empty.
+    !       This is the default: the refinement lowers the floor the Picard
+    !       iteration comes to rest on by two to three orders, which is what
+    !       lets EPS go below 1e-5.  Block elimination on its own is worse than
+    !       a plain band solve, so the refinement is not optional here.
+    !       (Measured on the standard case: worst-equation floor about 1e-5
+    !       with 1, 5e-7 with 2; one refinement step is enough.)
+    !   3 : Use DGBSVX with FACT='E': row and column equilibration, the band
+    !       solve, iterative refinement, and RCOND/FERR/BERR.
+    MDLPCK = 2
 
     !   Mode of fixed temperature profile
     !   0    : not fixed
     !   1    : fixed
     MDFIXT = 0
+
+    !     MDLNZD  : radial transport of the C0-C5 superstage
+    !               (0: D01, as in V5.52; 1: charged bundle plus source-slaved C0)
+    !     MDLN0FL : Larsen flux limiter on D01 (0: off; 1: legacy nodal form;
+    !               2: element form)
+    !     FLlim   : flux-limit factor of the Larsen limiter (C0 with MDLNZD = 1,
+    !               D01 with MDLN0FL = 1, 2)
+    !     RLXN0   : neutral-only Picard under-relaxation, used only with the
+    !               legacy MDLN0FL = 1
+    MDLNZD  = 1
+    MDLN0FL = 0
+    FLlim   = 0.25d0
+    RLXN0   = 0.5d0
 
     !   Mode of equations solved for beam ions
     !   0    : minimum ; LQb1,       LQb3, LQb4, LQb7
@@ -1491,7 +1657,10 @@ contains
           X(NR,LQe7) =-AJphVRL(NR) / (AEE * 1.D20)
           X(NR,LQe4) = X(NR,LQe7) / aat(NR) ! approx
           AJOH(NR)   = X(NR,LQe7) / ait(NR)
-          X(NR,LQm4) = PsiV(NR)
+          !  X(:,LQm4) carries psi / rMUb2 -- TXCALV forms PsiV as
+          !  X(:,LQm4) * rMUb2 -- and rMUb2 is rMU0 rather than 1 once a beam
+          !  is present.  PsiV here comes from the equilibrium in Wb.
+          X(NR,LQm4) = PsiV(NR) / rMUb2
        end do
 
     else
@@ -1801,6 +1970,10 @@ contains
        if (HPN(NHFM,1) == 0 .and. HPN(NHFM,2) > 0) UHphSwitch = 1
     end do
 
+    !  Put Phi and the diamagnetic flows on the constraints the solver enforces
+
+    call consistent_algebraic_init
+
     !  Define physical variables from X
 
     call TXCALV(X,0) ! Set variables as well as pres0 and ErV0
@@ -1817,6 +1990,122 @@ contains
 
   end subroutine TXPROF
 
+!***************************************************************
+!
+!   Consistent initialisation of the algebraic variables Phi and BV_1s
+!
+!***************************************************************
+
+  subroutine consistent_algebraic_init
+
+!   TXPROF builds the diamagnetic flows BV_1s from dfdx-style derivatives while
+!   TXCALA enforces the same relation in its FEM weak form.  The two do not
+!   agree, so a run starts off that constraint and is thrown onto it by the
+!   first solve, by an amount independent of the step size: measured on the
+!   standard case, BV_1i moves by a factor of 170.  BV_1i is the worst of the
+!   three because it is the small difference of the pressure and the potential
+!   term, which nearly cancel for the ions.
+!
+!   The LQ*8 row is the n-weighted mass matrix acting on BV_1s with the pressure
+!   and potential gradients on the right, so given n, p and Phi it is one
+!   tridiagonal solve per species and nothing feeds back.  Nothing in the physics
+!   changes -- this is the same equation TXCALA writes, evaluated with the same
+!   operators.
+!
+!   Phi is deliberately left alone.  Its row, LQm1, is Poisson with 1/eps0 on
+!   the charge, so solving it for Phi at fixed densities makes Phi absorb a
+!   cancellation of two 1e19 densities and returns nonsense; in the real solve
+!   the densities move by the 1e-8 that Poisson asks of them instead.  Phi and
+!   the densities are only consistent jointly, which is the full projection --
+!   and that one makes the first ordinary step fail on a negative density.
+
+    use tx_commons
+    use tx_core_module, only : fem_int
+
+    integer(4) :: ne, i, L8l, LQs1, LQs5, LQs8
+    real(8), dimension(1:NEMAX,1:4) :: el
+    real(8), dimension(0:NRMAX) :: dl, dd, du, rhs, sol, fipolsdtl
+
+    ! TXCALA keeps this in a private module array; rebuild it here (LQcoef).
+    fipolsdtl(:) = fipol(:) / sdt(:)
+    L8l = iSUPG8 * 100
+
+    ! --- BV_1s, from the LQ*8 rows ---
+    do i = 1, 3
+       select case(i)
+       case(1) ; LQs1 = LQe1 ; LQs5 = LQe5 ; LQs8 = LQe8
+       case(2) ; LQs1 = LQi1 ; LQs5 = LQi5 ; LQs8 = LQi8
+       case(3) ; LQs1 = LQz1 ; LQs5 = LQz5 ; LQs8 = LQz8
+       end select
+
+       dl = 0.d0 ; dd = 0.d0 ; du = 0.d0 ; rhs = 0.d0
+
+       ! Every term is assembled exactly as TXCALA writes it; the unknown's term
+       ! stays on the left and the two known ones move right (add_rhs negates).
+       el = - fem_int(2+L8l,X(:,LQs1)) ; call add_lhs(el)
+
+       if( MDFIXT == 0 ) then
+          el = - rKilo / achg(i) * fem_int(5+L8l,fipolsdtl)
+          call add_rhs(el,X(:,LQs5))
+       else
+          el = - rKilo / achg(i) * (  fem_int(21+L8l,fipolsdtl,X(:,LQs5)) &
+               &                    + fem_int(22+L8l,fipolsdtl,X(:,LQs5)) )
+          call add_rhs(el,X(:,LQs1))
+       end if
+
+       el = - fem_int(22+L8l,fipolsdtl,X(:,LQs1))
+       call add_rhs(el,X(:,LQm1))
+
+       call tridiag(dl,dd,du,rhs,sol)
+       X(:,LQs8) = sol(:)
+    end do
+
+  contains
+
+    ! Elemental -> nodal, exactly as TXCALA does it: for element ne the four
+    ! entries are (ne-1,ne-1), (ne-1,ne), (ne,ne-1), (ne,ne).
+    subroutine add_lhs(e)
+      real(8), dimension(1:NEMAX,1:4), intent(in) :: e
+      do ne = 1, NEMAX
+         dd(ne-1) = dd(ne-1) + e(ne,1)
+         du(ne-1) = du(ne-1) + e(ne,2)
+         dl(ne  ) = dl(ne  ) + e(ne,3)
+         dd(ne  ) = dd(ne  ) + e(ne,4)
+      end do
+    end subroutine add_lhs
+
+    ! Same assembly against a known vector, moved to the right-hand side.
+    subroutine add_rhs(e,y)
+      real(8), dimension(1:NEMAX,1:4), intent(in) :: e
+      real(8), dimension(0:NRMAX), intent(in) :: y
+      do ne = 1, NEMAX
+         rhs(ne-1) = rhs(ne-1) - ( e(ne,1)*y(ne-1) + e(ne,2)*y(ne) )
+         rhs(ne  ) = rhs(ne  ) - ( e(ne,3)*y(ne-1) + e(ne,4)*y(ne) )
+      end do
+    end subroutine add_rhs
+
+    subroutine tridiag(a,b,c,d,x)
+      real(8), dimension(0:NRMAX), intent(in) :: a, b, c, d
+      real(8), dimension(0:NRMAX), intent(out) :: x
+      real(8), dimension(0:NRMAX) :: cp, dp
+      real(8) :: m
+      integer(4) :: k
+      cp(0) = c(0) / b(0)
+      dp(0) = d(0) / b(0)
+      do k = 1, NRMAX
+         m = b(k) - a(k) * cp(k-1)
+         cp(k) = c(k) / m
+         dp(k) = ( d(k) - a(k) * dp(k-1) ) / m
+      end do
+      x(NRMAX) = dp(NRMAX)
+      do k = NRMAX-1, 0, -1
+         x(k) = dp(k) - cp(k) * x(k+1)
+      end do
+    end subroutine tridiag
+
+  end subroutine consistent_algebraic_init
+
+
 end module tx_init
 
 !*****************************************************************************************
@@ -1832,22 +2121,25 @@ module tx_parameter_control
        & PN0,PNa,PTe0,PTea,PTi0,PTia,PTz0,PTza,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,Uiph0, &
        & Dfs0,VWpch0,rMus0,WPM0,Chis0,ChiNC, &
        & FSDFIX,FSANOM,FSCBAL,FSCBKP,FSCBEL,FSCBSH,FSBOHM,FSPCL,FSVAHL,MDANOM,RhoETB, &
-       & FSMPCH,FSTPTM,FSPARV,PROFD,PROFD1,PROFD2,PROFDB,PROFM,PROFM1,PROFMB,PROFC,PROFC1,PROFCB, &
+       & FSMPCH,PCHRLN,PCHSLP,PCHWID,RhoPch1,RhoPch2,FSTPTM,FSPARV,PROFD,PROFD1,PROFD2,PROFDB,PROFM,PROFM1,PROFMB,PROFC,PROFC1,PROFCB, &
        & FSCX,FSLC,FSRP,FSNF,FSADV,FSADVB,FSUG,FSNC,FSNCB,FSLP,FSLPB,FSLTs,FSION, &
        & FSNCOL,FSD01,FSD02,FSD03,FSD0z,MDLC,rLn,rLT,FSG0iz, &
        & Ebmax,esps,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,PNBCD,PNBMPD,PNBPTC, &
        & rNRFe,RRFew,RRFe0,PRFHe,Tqt0,Tqp0,rNRFi,RRFiw,RRFi0,PRFHi, &
        & PN0s,V0,rGamm0_in,rGASPF,PN0zs,V0z,rGamm0zz_in,rGamm0iz_in,rGASPFz,PNsSUP,PTsSUP, &
-       & NTCOIL,DltRPn,kappa,m_pol,n_tor, &
-       & DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH, &
-       & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,ieqread,irktrc, &
+       & RWALL,RWALLZ,RWALLIZ, &
+       & NTCOIL,DltRPn,RDltRPn,kappa,m_pol,n_tor, &
+       & DT,EPS,ICMAX,ICCALC,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH, &
+       & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,ieqread,irktrc,ipbtdir, &
        & DelRho,DelN, &
 !       & DMAG0,RMAGMN,RMAGMX,EpsH,NCph,NCth, &
        & DMAG0,RMAGMN,RMAGMX, &
        & rG1,FSHL,Q0,QA, &
        & rIPs,rIPe, &
-       & MODEG,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,iSUPG3,iSUPG6,iSUPG8,SUPGstab,iprestab, &
+       & MODEG,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,oldmixa,iaxproj,rhoaxproj,Dnfac, &
+       & iSUPG3,iSUPG6,iSUPG8,SUPGstab,iprestab, &
        & MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDLETB, &
+       & MDLNZD,MDLN0FL,FLlim,RLXN0,MDLSOL,MDLWBC,MDLNSUP,NANDER,NRETRY, &
        & iPoyntpol,iPoynttor,IDIAG,midbg,IGBDF,ISMTHD,MDLNBD,MDBMCX,imodel_neo, & ! 09/06/17~ miki_m
        & EpsHM, HPN  ! 10/08/06 miki_m
   private :: TXPLST
@@ -1865,6 +2157,10 @@ contains
     character(len=*)  :: KID
 
     do 
+       if(stdin_ended) then
+          KID='Q'
+          exit
+       end if
        write(6,*) '# INPUT &TX :'
        write(6,*) '  INPUT PARAMETERS MUST BE BRACKETED BETWEEN &TX AND &END; CTRL-D FOR EXIT.'
        read(5,TX,IOSTAT=IST)
@@ -1872,6 +2168,7 @@ contains
           call TXPLST
           cycle
        else if(IST < 0) then
+          stdin_ended = .true.
           KID='Q'
           exit
        else
@@ -1938,6 +2235,19 @@ contains
 
     integer(4) :: idx
 
+    ! SOL upstream densities of ions and impurities derived from PNsSUP(1) and
+    ! Zeffin (MDLNSUP = 1).  Values of PNsSUP(2:3) that differ from those last
+    ! set here or in TXINIT were given explicitly; they are overwritten, with a
+    ! warning.  Zeffin outside [1, achg(3)) is rejected below.
+    if( MDLNSUP == 1 .and. Zeffin >= 1.d0 .and. Zeffin < achg(3) ) then
+       if( any(PNsSUP(2:3) /= PNsSUPlast(2:3)) ) &
+            & write(6,'(A)') ' ## PNsSUP(2:3) given with MDLNSUP = 1 are recomputed from PNsSUP(1) and Zeffin;' &
+            &              //' set MDLNSUP = 0 to use them as given.'
+       PNsSUP(2) = (achg(3) - Zeffin) / (achg(2) * (achg(3) - achg(2))) * PNsSUP(1)
+       PNsSUP(3) = (Zeffin - achg(2)) / (achg(3) * (achg(3) - achg(2))) * PNsSUP(1)
+    end if
+    PNsSUPlast(:) = PNsSUP(:)
+
     idx = 1
     do 
        ! /// idx = 1 - 10 ///
@@ -1968,7 +2278,16 @@ contains
           idx = idx + 1 ; end if
        if(minval(FSMPCH) < 0.d0 .or. maxval(FSMPCH) > 1.d0) then ; exit ; else
           idx = idx + 1 ; end if
-       if(minval(FSTPTM) < 0.d0 .or. maxval(FSTPTM) > 2.d0) then ; exit ; else
+       if(PCHRLN <= 0.d0 .or. PCHSLP < 0.d0 .or. PCHSLP > 1.d0 .or. PCHWID <= 0.d0) then ; exit ; else
+          idx = idx + 1 ; end if
+       if(RhoPch1 < 0.d0 .or. RhoPch2 <= RhoPch1) then ; exit ; else
+          idx = idx + 1 ; end if
+       if(minval(FSTPTM) < 0.d0 .or. maxval(FSTPTM) > 4.d0) then ; exit ; else
+          idx = idx + 1 ; end if
+       ! FSTPTM = 3 and 4 add forces that couple pairs of species, so they only
+       ! conserve momentum (and hence stay ambipolar) if every species carries the
+       ! same option.  Mixed settings are rejected.
+       if(maxval(FSTPTM) >= 3.d0 .and. minval(FSTPTM) /= maxval(FSTPTM)) then ; exit ; else
           idx = idx + 1 ; end if
        if(minval(FSPARV) < 0.d0 .or. maxval(FSPARV) > 1.d0) then ; exit ; else
           idx = idx + 1 ; end if
@@ -1977,7 +2296,8 @@ contains
           idx = idx + 1 ; end if
        if(FSBOHM < 0.d0 .or. minval(FSPCL) < 0.d0) then ; exit ; else
           idx = idx + 1 ; end if
-       if(FSLC < 0.d0 .or. FSRP < 0.d0 .or. minval(FSNC) < 0.d0 .or. minval(FSNCB) < 0.d0) then ; exit ; else
+       if(FSLC < 0.d0 .or. .not. any(FSRP == [0.d0, 1.d0, 2.d0]) .or. minval(FSNC) < 0.d0 .or. minval(FSNCB) < 0.d0) then
+          exit ; else
           idx = idx + 1 ; end if
        if(FSHL < 0.d0 .or. FSNF < 0.d0 .or. FSADV < 0.d0 .or. FSADVB < 0.d0 .or. FSUG < 0.d0) then
           exit ; else ; idx = idx + 1 ; end if
@@ -2006,17 +2326,23 @@ contains
        if(RRFi0 > rhob .or. RRFi0 < 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(PN0s < 0.d0 .or. V0 < 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(abs(rGamm0_in) > 1.d0) then ; exit ; else ; idx = idx + 1 ; end if
-       if(rGASPF < 0.d0 .or. rGASPFz < 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
+       if(rGASPF < 0.d0 .or. rGASPFz < 0.d0 .or. min(RWALL,RWALLZ,RWALLIZ) < 0.d0 .or. &
+            & max(RWALL,RWALLZ,RWALLIZ) > 1.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(minval(PNsSUP) < 0.d0 .or. minval(PTsSUP) < 0.d0) then ; exit ; else
           idx = idx + 1 ; end if
-       if(NTCOIL <= 0 .or. DltRPn < 0.d0 .or. DltRPn > 1.d0 .or. kappa < 0.d0) then
+       if(NTCOIL <= 0 .or. DltRPn < 0.d0 .or. DltRPn > 1.d0 .or. kappa < 0.d0 .or. RDltRPn <= 0.d0) then
           exit ; else ; idx = idx + 1 ; end if
        if(DT < 0.d0 .or. EPS == 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(ICMAX < 0) then ; exit ; else ; idx = idx + 1 ; end if
+       if(ICCALC < 1) then ; exit ; else ; idx = idx + 1 ; end if
        if(ADV < 0.d0 .or. ADV > 1.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(tiny_cap < 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
        ! /// idx = 51 - 58 ///
        if(oldmix < 0.d0 .or. oldmix > 1.d0) then ; exit ; else ; idx = idx + 1 ; end if
+       if(oldmixa < 0.d0 .or. oldmixa > 1.d0) then ; exit ; else ; idx = idx + 1 ; end if
+       if(iaxproj < 0 .or. iaxproj > 6) then ; exit ; else ; idx = idx + 1 ; end if
+       if(Dnfac < 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
+       if(rhoaxproj <= 0.d0 .or. rhoaxproj > 1.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(CMESH0 < 0.d0 .or. CMESH < 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(WMESH0 < 0.d0 .or. WMESH < 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(MDLNEO /= 1 .and. MDLNEO /= 2 .and. MDLNEO /= 3) then ; exit ; else ; idx = idx + 1 ; end if
@@ -2024,6 +2350,14 @@ contains
        if(PN0zs < 0.d0 .or. V0z < 0.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(abs(rGamm0zz_in) > 1.d0) then ; exit ; else ; idx = idx + 1 ; end if
        if(abs(rGamm0iz_in) > 1.d0) then ; exit ; else ; idx = idx + 1 ; end if
+       ! SOL / neutral models of V5.60
+       if(MDLSOL < 0 .or. MDLSOL > 1 .or. MDLWBC < 0 .or. MDLWBC > 1 .or. MDLNSUP < 0 .or. MDLNSUP > 1) then
+          exit ; else ; idx = idx + 1 ; end if
+       if(abs(NANDER) > 50 .or. NRETRY < 0 .or. NRETRY > 4) then ; exit ; else ; idx = idx + 1 ; end if
+       if(MDLNZD < 0 .or. MDLNZD > 1 .or. MDLN0FL < 0 .or. MDLN0FL > 2) then
+          exit ; else ; idx = idx + 1 ; end if
+       if(FLlim <= 0.d0 .or. RLXN0 < 0.d0 .or. RLXN0 >= 1.d0) then ; exit ; else
+          idx = idx + 1 ; end if
        return
     end do
 
@@ -2043,22 +2377,24 @@ contains
          &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PTz0,PTza,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,Uiph0,'/ &
          &       ' ',8X,'Dfs0,VWpch0,rMus0,WPM0,Chis0,ChiNC,'/ &
          &       ' ',8X,'FSDFIX,FSANOM,FSCBAL,FSCBKP,FSCBEL,FSCBSH,FSBOHM,FSPCL,FSVAHL,'/ &
-         &       ' ',8X,'MDANOM,RhoETB,FSMPCH,FSTPTM,FSPARV'/ &
+         &       ' ',8X,'MDANOM,RhoETB,FSMPCH,PCHRLN,PCHSLP,PCHWID,RhoPch1,RhoPch2,FSTPTM,FSPARV'/ &
          &       ' ',8X,'PROFD,PROFD1,PROFD2,PROFDB,PROFM,PROFM1,PROFMB,PROFC,PROFC1,PROFCB,'/ &
          &       ' ',8X,'FSCX,FSLC,FSRP,FSNF,FSADV,FSADVB,FSUG,FSNC,FSNCB,FSLP,FSLTs,FSLPB,FSION,'/ &
          &       ' ',8X,'FSNCOL,FSD01,FSD02,FSD03,FSD0z,MDLC,rLn,rLT,FSG0iz'/ &
          &       ' ',8X,'Ebmax,esps,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,'/ &
          &       ' ',8X,'PNBCD,PNBMPD,PNBPTC,rNRFe,RRFew,RRFe0,PRFHe,Tqt0,Tqp0,rNRFe,RRFew,RRFe0,PRFHe,'/&
          &       ' ',8X,'PN0s,V0,rGamm0_in,rGASPF,PN0zs,V0z,rGamm0zz_in,rGamm0iz_in,rGASPFz,PNsSUP,PTsSUP,'/ &
-         &       ' ',8X,'NTCOIL,DltRPn,kappa,m_pol,n_tor,'/ &
-         &       ' ',8X,'DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH,'/ &
-         &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,ieqread,irktrc,'/ &
+         &       ' ',8X,'RWALL,RWALLZ,RWALLIZ,'/ &
+         &       ' ',8X,'NTCOIL,DltRPn,RDltRPn,kappa,m_pol,n_tor,'/ &
+         &       ' ',8X,'DT,EPS,ICMAX,ICCALC,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH,'/ &
+         &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,ieqread,irktrc,ipbtdir'/ &
          &       ' ',8X,'DelRho,DelN,'/ &
 !         &       ' ',8X,'Dmag0,RMAGMN,RMAGMX,EpsH,NCph,NCth,'/ & 
          &       ' ',8X,'Dmag0,RMAGMN,RMAGMX,EpsHM,HPN,'/ &   ! 10/08/06 miki_m
          &       ' ',8X,'rG1,FSHL,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
-         &       ' ',8X,'MODEG,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,iSUPG3,iSUPG6,iSUPG8,SUPGstab,iprestab,'/ &
+         &       ' ',8X,'MODEG,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,oldmixa,iaxproj,rhoaxproj,Dnfac,'/ &
+         &       ' ',8X,'iSUPG3,iSUPG6,iSUPG8,SUPGstab,iprestab,'/ &
          &       ' ',8X,'MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDLETB,' / & 
          &       ' ',8X,'IDIAG,midbg,IGBDF,ISMTHD,MDLNBD,MDBMCX,imodel_neo')
   end subroutine TXPLST
@@ -2095,7 +2431,10 @@ contains
          &   'ChiNC      ', ChiNC      , 'Chis0(1)   ', Chis0(1)   ,  &
          &   'Chis0(2)   ', Chis0(2)   , 'Chis0(3)   ', Chis0(3)   ,  &
          &   'FSMPCH(1)  ', FSMPCH(1)  , 'FSMPCH(2)  ', FSMPCH(2)  ,  &
-         &   'FSMPCH(3)  ', FSMPCH(3)  , 'FSTPTM(1)  ', FSTPTM(1)  ,  &
+         &   'FSMPCH(3)  ', FSMPCH(3)  , 'PCHRLN     ', PCHRLN     ,  &
+         &   'PCHSLP     ', PCHSLP     , 'PCHWID     ', PCHWID     ,  &
+         &   'RhoPch1    ', RhoPch1    , 'RhoPch2    ', RhoPch2    ,  &
+         &   'FSTPTM(1)  ', FSTPTM(1)  ,  &
          &   'FSTPTM(2)  ', FSTPTM(2)  , 'FSTPTM(3)  ', FSTPTM(3)  ,  &
          &   'FSPARV(1)  ', FSPARV(1)  , 'FSPARV(2)  ', FSPARV(2)  ,  &
          &   'FSPARV(3)  ', FSPARV(3)  ,  &
@@ -2144,10 +2483,13 @@ contains
          &   'rGASPF     ', rGASPF     , 'rGamm0zz_in', rGamm0zz_in,  &
          &   'rGamm0iz_in', rGamm0iz_in,  &
          &   'V0z        ', V0z        , 'rGASPFz    ', rGASPFz    ,  &
+         &   'RWALL      ', RWALL      , 'RWALLZ     ', RWALLZ     ,  &
+         &   'RWALLIZ    ', RWALLIZ    ,  &
          &   'PNeSUP     ', PNsSUP(1)  , 'PNiSUP     ', PNsSUP(2)  ,  &
          &   'PNzSUP     ', PNsSUP(3)  , 'PTeSUP     ', PTsSUP(1)  ,  &
          &   'PTiSUP     ', PTsSUP(2)  , 'PTzSUP     ', PTsSUP(3)  ,  &
-         &   'DltRPn     ', DltRPn     , 'kappa      ', kappa      ,  &
+         &   'DltRPn     ', DltRPn     , 'RDltRPn    ', RDltRPn    ,  &
+         &   'kappa      ', kappa      ,  &
          &   'PN0s       ', PN0s       , 'PN0zs      ', PN0zs      ,  &
          &   'EPS        ', EPS        , 'tiny_cap   ', tiny_cap   ,  &
          &   'DT         ', DT         , 'rG1        ', rG1        ,  &
@@ -2155,7 +2497,8 @@ contains
          &   'RMAGMX     ', RMAGMX     ,  &
          &   'FSHL       ', FSHL       ,  &
          &   'Q0         ', Q0         , 'QA         ', QA         ,  &
-         &   'SUPGstb    ', SUPGstab  ,  'oldmix     ', oldmix     !, &
+         &   'SUPGstb    ', SUPGstab  ,  'oldmix     ', oldmix     ,  &
+         &   'oldmixa    ', oldmixa    !, &
 !!$         &   'EpsHM(1,0) ', EpsHM(1,0)  ,'EpsHM(1,1)', EpsHM(1,1)  , &
 !!$         &   'EpsHM(1,2) ', EpsHM(1,2)  ,'EpsHM(1,3)', EpsHM(1,3)  , &
 !!$         &   'EpsHM(2,0) ', EpsHM(2,0)  ,'EpsHM(2,1)', EpsHM(2,1)  , &
@@ -2169,7 +2512,9 @@ contains
          &   'NTMAX      ', NTMAX      , 'NTSTEP     ', NTSTEP     ,  &
          &   'NGRSTP     ', NGRSTP     , 'NGTSTP     ', NGTSTP     ,  &
          &   'NGVSTP     ', NGVSTP     , 'ieqread    ', ieqread    ,  &
-         &   'ICMAX      ', ICMAX      , 'MODEG      ', MODEG      ,  &
+         &   'irktrc     ', irktrc     , 'ipbtdir    ', ipbtdir    ,  &
+         &   'ICMAX      ', ICMAX      , 'ICCALC     ', ICCALC     ,  &
+         &   'MODEG      ', MODEG      ,  &
          &   'MODEAV     ', MODEAV     , 'MODEGL     ', MODEGL     ,  &
          &   'MDLPCK     ', MDLPCK     , 'MODECV     ', MODECV     ,  &
          &   'IDIAG      ', IDIAG      , 'midbg(1)   ', midbg(1)   ,  &

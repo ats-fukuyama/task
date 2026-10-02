@@ -11,6 +11,13 @@ module mod_cross_section
   real(8), dimension(2) :: templim, denslim
   real(8), dimension(:),       allocatable :: ztemp, zdens
   real(8), dimension(:,:,:,:), allocatable :: urca6, urcs5, urcf5
+  !  C0 table (MDLNZD = 1): S_0, the C0 -> C1+ electron-impact ionization rate.
+  !  The file also carries F_0, the C0 fraction of the bundle in local
+  !  ionization balance (below 2e-6 over the whole table), which is not used.
+  !  Built from the same OpenADAS adf11 files (scd96_c, acd96_c) the A6/S5/F6
+  !  table came from; F_6 rebuilt that way reproduces the shipped table to
+  !  0.2-2.5 per cent over 5 eV - 30 keV and 1e17 - 1e21 m^-3.
+  real(8), dimension(:,:,:,:), allocatable :: urcs0
   
 
   ! Beam crosssections
@@ -72,6 +79,12 @@ contains
 !#define DATADIR "data"
 !#endif
     character(len=*), parameter :: datadir = DATADIR
+    ! TXPROF and TXLOAD both build these tables, so a LOAD after a RUN in the
+    ! same process reaches here twice.  The arrays below are module-wide and
+    ! allocated unconditionally; free them first rather than aborting with
+    ! "allocatable array is already allocated".
+    call deallocate_spline_table_carbon_rate_coef_adas
+
 
     fcrca = trim(datadir)//'/Carbon-A6S5F6_20220606.txt'
 
@@ -91,6 +104,7 @@ contains
     allocate(dx(ntemp,ndens))
     allocate(dy, dxy, mold=dx)
     allocate(urca6(4,4,ntemp,ndens),urcs5(4,4,ntemp,ndens),urcf5(4,4,ntemp,ndens))
+    allocate(urcs0(4,4,ntemp,ndens))
  
     !   Reac main body of data
     do in = 1, ndens
@@ -118,6 +132,28 @@ contains
     call spl2d(ztemp,zdens,ratedata(:,:,3),dx,dy,dxy,urcf5,ntemp,ntemp,ndens,0,0,ierr)
     if( ierr /= 0 ) stop 'spl2d error in spline_table_carbon_rate_coef_adas; F_5.'
 
+    !   The C0 table, on the same grid
+
+    fcrca = trim(datadir)//'/Carbon-S0F0_20260921.txt'
+    open(newunit=iocrca,file=fcrca,iostat=ist,form='formatted',action='read')
+    if(ist /= 0) stop 'file open error.'
+    deallocate(fcrca)
+    read(iocrca,*)
+    read(iocrca,'(A)') readline
+    read(iocrca,*)
+    read(readline(3:),*) it, in
+    if( it /= ntemp .or. in /= ndens ) stop 'Carbon-S0F0: grid differs from Carbon-A6S5F6.'
+    do in = 1, ndens
+       do it = 1, ntemp
+          read(iocrca,*) zdum1, zdum2, (ratedata(it,in,i), i=1,2)
+       end do
+    end do
+    close(iocrca)
+
+    ! S_0; electron-impact ionization coefficients for iz=0
+    call spl2d(ztemp,zdens,ratedata(:,:,1),dx,dy,dxy,urcs0,ntemp,ntemp,ndens,0,0,ierr)
+    if( ierr /= 0 ) stop 'spl2d error in spline_table_carbon_rate_coef_adas; S_0.'
+
     deallocate(ratedata,dx,dy,dxy)
 
   end subroutine spline_table_carbon_rate_coef_adas
@@ -126,7 +162,7 @@ contains
 
   subroutine deallocate_spline_table_carbon_rate_coef_adas
 
-    if(allocated(ztemp)) deallocate(ztemp,zdens,urca6,urcs5,urcf5)
+    if(allocated(ztemp)) deallocate(ztemp,zdens,urca6,urcs5,urcf5,urcs0)
 
   end subroutine deallocate_spline_table_carbon_rate_coef_adas
 
@@ -240,6 +276,27 @@ contains
 
 !***********************************************************************
 !
+!   Electron-impact ionization rate coefficient of neutral carbon,
+!     C0 -> C1+ (OpenADAS scd96_c, Z1=1): the rate that actually destroys
+!     C0, as opposed to the bundle -> C6+ rate SiVsefA.
+!
+!***********************************************************************
+
+  function RateCoef_C_IZ_S0(TekeV, dene20)
+    use libspl2d, only : spl2df
+    real(8), intent(in) :: TekeV, dene20
+    real(8) :: RateCoef_C_IZ_S0
+    integer(4) :: ierr
+    real(8) :: TeeV, dene
+
+    TeeV = min(max(TekeV * 1.d3, templim(1)), templim(2))
+    dene = min(max(dene20 * 1.d20, denslim(1)), denslim(2))
+    call spl2df(TeeV,dene,RateCoef_C_IZ_S0,ztemp,zdens,urcs0,ntemp,ntemp,ndens,ierr)
+
+  end function RateCoef_C_IZ_S0
+
+!***********************************************************************
+!
 !   Spline Table of rate coefficients of beam ionization and charge exchange
 !     with Chebyshev polynomials fit
 !
@@ -264,6 +321,12 @@ contains
     real(8), dimension(:,:), allocatable :: ratedata, dx, dy, dxy
     integer(4) :: i, j, ierr
     real(8) :: Emax, Emin, dElin, Elin
+    ! TXPROF and TXLOAD both build these tables, so a LOAD after a RUN in the
+    ! same process reaches here twice.  The arrays below are module-wide and
+    ! allocated unconditionally; free them first rather than aborting with
+    ! "allocatable array is already allocated".
+    call deallocate_spline_table_beam_rate_coef
+
 
     !  H + H^+ -> H + H^+
     !  Charge exchange (A-27)
@@ -389,6 +452,12 @@ contains
     real(8), dimension(:,:), allocatable :: ratedata, dx, dy, dxy
     integer(4) :: i, j, ierr
     real(8) :: Emax, Emin, dElin, Elin
+    ! TXPROF and TXLOAD both build these tables, so a LOAD after a RUN in the
+    ! same process reaches here twice.  The arrays below are module-wide and
+    ! allocated unconditionally; free them first rather than aborting with
+    ! "allocatable array is already allocated".
+    call deallocate_spline_table_carbon_rate_coef
+
 
     !  C^+ + H -> C + H^+
     !  Charge exchange (1-14)

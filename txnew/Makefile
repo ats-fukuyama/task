@@ -17,10 +17,12 @@ PROFILE ?= 0
 SOLVER_BENCH ?= 0
 SOLVER_VERIFY ?= 0
 
-#PREPRO = -fpp
+# -cpp and -fpp select the same Fortran preprocessor on ifx (verified: the two
+# give byte-identical -E output on these sources).  -cpp is the spelling
+# gfortran also accepts, -fpp is Intel only, so keep -cpp.
 PREPRO = -cpp
 #PREPRO += -Ddebug # debug option
-#PREPRO += -D_LAPACK=1 # 0: self-compiled, 1: LAPACK95, 2: LAPACK77
+PREPRO += -D_LAPACK=1 # 0: self-compiled, 1: LAPACK95, 2: LAPACK77
 #PREPRO += -D_LAPACK=2 # 0: self-compiled, 1: LAPACK95, 2: LAPACK77
 #PREPRO += -D_LAPACK=0 # 0: self-compiled, 1: LAPACK95, 2: LAPACK77
 

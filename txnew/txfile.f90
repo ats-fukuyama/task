@@ -73,7 +73,7 @@ subroutine TXSTAT
        &                 BETAPA, BETAN, Q, ANSAV, rIp, PI, RA, NRA, NRMAX, &
        &                 rMus, Chis, TSAV, Gamma_a, TAUPA, achg, &
        &                 rKeV, amas, amp, RR, rNuei, rho, Var, vlt
-  use tx_glob, only : cal_flux
+  use tx_glob, only : cal_flux, particle_source_balance
   use libitp, only: aitken2p
   implicit none
   integer(4) :: NR, NRL1, NRL2
@@ -126,6 +126,7 @@ subroutine TXSTAT
        &        "Ion tor. velocity at 0.3 = ", uiphl
   write(6,cfmt) "Eff .col. freq. at 0.5   = ", rNueiL/WDe, &
        &        "Plasma volume inside sep.= ", vlt(NRA)
+  call particle_source_balance(6)
 
 end subroutine TXSTAT
 
@@ -212,7 +213,7 @@ end FUNCTION rLINEAVE
 
 subroutine TXSAVE
   use tx_commons, only : &
-       & SLID,RA,rhob,rhoaccum,RR,BB,rbvt,ravl,rbvl,amas,achg,amb,achgb,rIPs,rIPe, &
+       & SLID,stdin_ended,RA,rhob,rhoaccum,RR,BB,rbvt,ravl,rbvl,amas,achg,amb,achgb,rIPs,rIPe, &
        & PN0,PNa,PTe0,PTea,PTi0,PTia,PTz0,PTza, &
        & PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,Uiph0,PROFD,PROFD1,PROFD2,PROFDB,PROFM,PROFM1,PROFMB,PROFC,PROFC1,PROFCB, &
        & Dfs0,VWpch0,rMus0,WPM0,Chis0,ChiNC,FSDFIX,FSANOM,FSCBKP,FSCBSH,rG1, &
@@ -226,7 +227,8 @@ subroutine TXSAVE
        & NLCMAX,NCM,NTCOIL,DltRPn,m_pol,n_tor, &
        & MODEAV,IDIAG,MDLPCK,MODECV,oldmix,iSUPG3,iSUPG6,iSUPG8,SUPGstab, &
        & IGBDF,ISMTHD,iprestab,MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDANOM,iPoyntpol,iPoynttor, &
-       & MDLETB,MDLNBD,MDBMCX,imodel_neo,PNBMPD,PNBPTC,thrp,kappa,CPsi,VPoynt,PoyntI,imodel_neo
+       & MDLETB,MDLNBD,MDBMCX,imodel_neo,PNBMPD,PNBPTC,thrp,kappa,CPsi,VPoynt,PoyntI,imodel_neo,MDLNSUP, &
+       & RWALL,RWALLZ,RWALLIZ,FSTPTM,NSM
   use tx_graphic, only : NGYTM,NGYVM,MODEG,MODEGL,NGT,NGVV,NGRSTP,NGTSTP,NGVSTP,GTY,GVY,GQY,GTX,GVX
   use tx_interface, only : TOUPPER
 
@@ -241,10 +243,12 @@ subroutine TXSAVE
   do 
      write(6,*) '# INPUT : SAVE FILE NAME'
      flush(6)
+     if (stdin_ended) return
      read(*,'(A100)',iostat=IST) TXFNAM
      if (IST > 0) then
         cycle
      else if (IST < 0) then
+        stdin_ended = .true.
         return
      end if
      inquire(file=TXFNAM,exist=LEX)
@@ -321,6 +325,13 @@ subroutine TXSAVE
   write(io) (CPsi(I), I=0, 3)
   write(io) (VPoynt(I), I=0, 3)
   write(io) (thrp(I), I=1, 2*NRMAX)
+  ! Extension records for inputs added after the layout above was fixed, one record
+  ! per version (1: MDLNSUP, 2: main-wall recycling, 3: FSTPTM).  An older TXLOAD stops
+  ! before the records it does not know; TXLOAD reads each one only when it is present.
+  ! FSTPTM was missing from the layout although FSVAHL and the other FS* inputs are in it.
+  write(io) 1, MDLNSUP
+  write(io) 2, RWALL, RWALLZ, RWALLIZ
+  write(io) 3, FSTPTM(1:NSM)
   close(io)
   write(6,*) '# DATA WAS SUCCESSFULLY SAVED IN THE FILE.'
 
@@ -351,7 +362,8 @@ subroutine TXLOAD(IST)
        & IGBDF,ISMTHD,iprestab,MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDANOM,iPoyntpol,iPoynttor, &
        & MDLETB,MDLNBD,MDBMCX,imodel_neo,PNBMPD,PNBPTC,rIP,thrp,kappa,CPsi,VPoynt,PoyntI, &
        & ErV,PTsV_FIX,PNsV_FIX,ErV_FIX, &
-       & rMU0,rMUb1,rMUb2,NEMAX,ICONT,TAUE2,LQb1,Var,irestart, NSM
+       & rMU0,rMUb1,rMUb2,NEMAX,ICONT,TAUE2,LQb1,Var,irestart, NSM,bdf_history_ready,stdin_ended, &
+       & MDLNSUP, PNsSUPlast, RWALL, RWALLZ, RWALLIZ, FSTPTM
   use tx_init, only : TXCALM
   use tx_graphic, only : allocate_txgraf,deallocate_txgraf, &
        &                 MODEG,MODEGL,NGYTM,NGYVM,NGR,NGT,NGVV,NGRSTP,NGTSTP,NGVSTP, &
@@ -367,15 +379,20 @@ subroutine TXLOAD(IST)
   integer(4) :: NQ, NR, NC, I, IGYT, IGYV, io
   character(len=100) ::  TXFNAM, RCSId
   character(len=8) :: LOADSLID
+  integer(4) :: istx, iextver, mdlnsup_load
+  real(8), dimension(3) :: rwall_load
+  real(8), dimension(NSM) :: fstptm_load
   logical :: LEX
 
   do 
      write(6,*) '# INPUT : LOAD FILE NAME'
      flush(6)
+     if (stdin_ended) return
      read(*,'(A100)',iostat=IST) TXFNAM
      if (IST > 0) then
         cycle
      else if (IST < 0) then
+        stdin_ended = .true.
         return
      end if
      inquire(file=TXFNAM,exist=LEX)
@@ -431,6 +448,9 @@ subroutine TXLOAD(IST)
   end if
 
   read(io) ((X(NR,NQ), NR=0, NRMAX), NQ=1, NQMAX)
+  ! XOLD does not travel in the save file, so the two-step BDF restarts
+  ! from a backward-Euler step (TXCALB).
+  bdf_history_ready = .false.
 
   read(io) NGT
   read(io) (GTX(I), I=0, NGT)
@@ -443,7 +463,31 @@ subroutine TXLOAD(IST)
   read(io) (CPsi(I), I=0, 3)
   read(io) (VPoynt(I), I=0, 3)
   read(io) (thrp(I), I=1, 2*NRMAX)
+  ! Extension record (version 1), absent in files written before it was introduced:
+  ! then MDLNSUP keeps its current value.
+  read(io,iostat=istx) iextver, mdlnsup_load
+  if( istx == 0 .and. iextver >= 1 ) then
+     MDLNSUP = mdlnsup_load
+     read(io,iostat=istx) iextver, rwall_load(1:3)
+     if( istx == 0 .and. iextver >= 2 ) then
+        RWALL = rwall_load(1) ; RWALLZ = rwall_load(2) ; RWALLIZ = rwall_load(3)
+        read(io,iostat=istx) iextver, fstptm_load(1:NSM)
+        if( istx == 0 .and. iextver >= 3 ) then
+           FSTPTM(1:NSM) = fstptm_load(1:NSM)
+        else
+           write(6,'(A,3F4.1)') ' ## No record of FSTPTM in the file: FSTPTM kept at', FSTPTM(1:NSM)
+        end if
+     else
+        write(6,'(A,3F6.3)') ' ## No record of the main-wall recycling in the file: RWALL, RWALLZ, RWALLIZ kept at', &
+             & RWALL, RWALLZ, RWALLIZ
+     end if
+  else
+     write(6,'(A,I2)') ' ## No extension record in the file (older format): MDLNSUP kept at', MDLNSUP
+  end if
   close(io)
+  ! The loaded PNsSUP are the values last set, so TXPARM_CHECK does not take PNsSUP(2:3)
+  ! of the file for explicit input; with MDLNSUP = 1 it derives them again from PNsSUP(1).
+  PNsSUPlast(:) = PNsSUP(:)
   write(6,'(2A)') '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE. ID = ',LOADSLID
 
   rb = rhob * ra
@@ -1250,17 +1294,20 @@ end function detect_datatype
 !***************************************************************
 
 subroutine outfile
+  use tx_commons, only : stdin_ended
   implicit none
   integer(4) :: n, ist
 
   do
      write(6,'(1X,A,1X,I1)') '## outfile: input ?'
      write(6,'(1X,A)') '##          1: profiles, 2: 0d quantities, 3: 0d variables, ' &
-          & // '4: for OFMC, 5: for TOPICS/NTMAIN, 6: for CHARROT, 9: exit'
+          & // '4: for OFMC, 5: for TOPICS/NTMAIN, 6: for CHARROT, 7: particle sources, 9: exit'
+     if (stdin_ended) return
      read(*,'(I1)',iostat=ist) n
      if (ist > 0) then
         cycle
      else if (ist < 0) then
+        stdin_ended = .true.
         return
      end if
 
@@ -1277,12 +1324,32 @@ subroutine outfile
         call for_ntmain
      case(6)
         call for_charrot
+     case(7)
+        call write_sources
      case default
         exit
      end select
   end do
 
 end subroutine outfile
+
+!***************************************************************
+!
+!   Append the particle sources through the SOL and the wall
+!
+!***************************************************************
+
+subroutine write_sources
+  use tx_glob, only : particle_source_balance
+  implicit none
+  integer(4) :: iu
+
+  open(newunit=iu, file='tx_sources.dat', position='append', action='write')
+  call particle_source_balance(iu)
+  close(iu)
+  write(6,*) '# PARTICLE SOURCES APPENDED TO tx_sources.dat.'
+
+end subroutine write_sources
 
 !***************************************************************
 !

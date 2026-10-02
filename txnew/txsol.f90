@@ -32,7 +32,8 @@ contains
   subroutine tx_sol_parallel_loss
     use tx_commons, only : NRA, NRMAX, achg, Var, rKilo, amas, amqp, PI, Q, RR, rpt, ra &
          &               , rNuL, FSLP, EPS0, amp, AEE, Zeff, rNuLTs, FSLTs, PTsV_FIX, rKeV &
-         &               , PNsV_FIX, NSM, FSLPB, BphV, rNuLB, bbt, BUbparV
+         &               , PNsV_FIX, NSM, FSLPB, BphV, rNuLB, bbt, BUbparV &
+         &               , MDLSOL, BthV, epst
     use mod_coulomb, only : coulog
     integer(4) :: NR, i
     real(8) :: PTiVA, DBW, Cs, Lc, RL, Chicl, UbparaL, BBL, gsmth
@@ -43,11 +44,29 @@ contains
     rNuLTs(:NRA-1,:) = 0.d0
     rNuLB(:NRA-1)    = 0.d0
 
-    ! Banana width at separatrix
+    ! Width over which the parallel loss turns on outside the separatrix.  An ion
+    ! whose orbit is centred inside the separatrix but whose excursion reaches
+    ! past it samples open field lines, so the loss rate rises over one banana
+    ! width,  w_b = sqrt(eps) rho_theta,  rho_theta = sqrt(T_i m_i)/(Z_i e B_th).
+    !
+    ! MDLSOL = 1 (default): take T_i and B_theta AT the separatrix, which is
+    ! where the orbits in question are.  MDLSOL = 0 (V5.52) instead uses half the
+    ! ON-AXIS ion temperature and B_phi, and carries a factor 3 and a 1/sqrt(eps)
+    ! rather than sqrt(eps); for eqdata that makes the width 1.8 times the whole
+    ! SOL, so the ramp suppresses the parallel loss by 5.9 at the wall and by 63
+    ! at rho = 1.02 instead of turning it on.  It also scales as Q(NRA), which
+    ! puts a spurious Q^-2 on rNuL on top of the Q^-1 the connection length
+    ! carries; that is most of why the X-point case loses 2.5 times less than the
+    ! circular one.
+    if( MDLSOL == 1 ) then
+       DBW = sqrt(epst(NRA)) * sqrt(Var(NRA,2)%T * rKeV * (amas(2)*amp)) &
+            & / (achg(2) * AEE * BthV(NRA))
+    else
 !    PTiVA = Var(NRA,2)%T
-    PTiVA = 0.5d0 * Var(0,2)%T
-    DBW = 3.d0 * sqrt(PTiVA * rKeV * (amas(2)*amp)) * Q(NRA) / (achg(2) * AEE * BphV(NRA)) &
-         & / sqrt(ra / RR)
+       PTiVA = 0.5d0 * Var(0,2)%T
+       DBW = 3.d0 * sqrt(PTiVA * rKeV * (amas(2)*amp)) * Q(NRA) / (achg(2) * AEE * BphV(NRA)) &
+            & / sqrt(ra / RR)
+    end if
 
     !     *** Loss to divertor plasma region ***
 
@@ -177,7 +196,7 @@ contains
     yizphyssput = 0.1d0
     yizchemsput = 0.05d0
 
-    ! rGamm0zz : Recycling rate of impurity neutrals sputtered by bulk ions
+    ! rGamm0iz : Recycling rate of impurity neutrals sputtered by bulk ions
     rGamm0iz = factor * ( yizphyssput + yizchemsput ) * c3blk * FSG0iz
     if( rGamm0iz_in >= 0.d0 ) rGamm0iz = rGamm0iz_in
 

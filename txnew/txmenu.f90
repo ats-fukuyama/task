@@ -16,8 +16,8 @@ contains
     use tx_commons, only : allocate_txcomm, deallocate_txcomm, &
          &              rMU0, IERR, rMUb1, rMUb2, TMAX, DT, NTMAX, T_TX, PNBHT1, &
          &              PNBHT2, PNBHP, PNBHex, X, LQm4, NRMAX, TPRE, PNBCD, &
-         &              iflag_file, gkilo, &
-         &              DelRho, DelN, Rho, LQe1, LQi1, LQz1, achg, ICONT, IRPIN, array_init_NR
+         &              iflag_file, &
+         &              DelRho, DelN, Rho, LQe1, LQi1, LQz1, achg, ICONT, IRPIN, array_init_NR, stdin_ended
     use tx_init, only : TXINIT, TXPROF
     use tx_main, only : TXEXEC
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGR, TXGOUT, allocate_txgraf, deallocate_txgraf, &
@@ -41,7 +41,6 @@ contains
     if((PNBHP + PNBHT1 + PNBHT2 + PNBHex) /= 0) then
        rMUb1 = 1.D0
        rMUb2 = rMU0
-       GY%gnrm(4) = gkilo
     end if
 
     !  *** MENU ***
@@ -66,7 +65,6 @@ contains
                & (PNBHT1 /= 0.D0 .or. PNBHT2 /= 0.D0 .or. PNBHP /= 0.D0 .or. PNBHex /= 0.D0)) then
              rMUb1 = 1.D0
              rMUb2 = rMU0
-             GY%gnrm(4) = gkilo
              if(allocated(X)) X(0:NRMAX,LQm4) = X(0:NRMAX,LQm4) / rMUb2
           end if
           cycle
@@ -76,7 +74,9 @@ contains
        case('R')
           if (ICONT /= 0) then
              write(6,*) '# Would you like to restart? [y/N]'
+             if(stdin_ended) exit
              read(5,'(A1)',iostat=IST) KID
+             if(IST < 0) stdin_ended = .true.
              if(IST /= 0) cycle
              call TOUPPER(KID)
              if(KID /= 'Y') cycle
@@ -140,9 +140,9 @@ contains
                 exit
              end if
           end do
-          X(LQe1,I) = X(LQe1,I) + DelN
-          X(LQi1,I) = X(LQi1,I) + DelN * achg(2)
-          X(LQz1,I) = X(LQz1,I) + DelN * achg(3)
+          X(I,LQe1) = X(I,LQe1) + DelN
+          X(I,LQi1) = X(I,LQi1) + DelN * achg(2)
+          X(I,LQz1) = X(I,LQz1) + DelN * achg(3)
           call TXCALV(X)
        case('B')
           KID2=LINE(2:2)
@@ -171,9 +171,8 @@ contains
                 if(rMUb2 == 1.D0) then
                    rMUb1 = 1.D0
                    rMUb2 = rMU0
-                   GY%gnrm(4) = gkilo
 
-                   if(allocated(X)) X(LQm4,0:NRMAX) = X(LQm4,0:NRMAX) / rMUb2
+                   if(allocated(X)) X(0:NRMAX,LQm4) = X(0:NRMAX,LQm4) / rMUb2
                    if(T_TX /= 0.D0) call TXCALV(X)
                 end if
              end if
@@ -217,6 +216,7 @@ contains
 
   subroutine TXKLIN(LINE,KID,MODE)
 
+    use tx_commons, only : stdin_ended
     use tx_parameter_control, only : TXPARL
     use tx_interface, only : TOUPPER
     implicit none
@@ -227,6 +227,12 @@ contains
     integer(4) :: ID, I, IST
 
     !  ----- read line input input -----
+
+    if(stdin_ended) then
+       KID='Q'
+       MODE=1
+       return
+    end if
 
     read(5,'(A80)',iostat=IST) LINE
 
@@ -262,6 +268,7 @@ contains
 
        !  ----- input end -----
 
+       stdin_ended = .true.
        KID='Q'
        MODE=1
 

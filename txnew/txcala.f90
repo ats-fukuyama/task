@@ -6,19 +6,21 @@ module tx_coefficients
   real(8), parameter :: fourPisq = 4.d0 * Pi * Pi
   real(8), dimension(:,:,:,:), allocatable :: ELM
   real(8), dimension(:), allocatable ::  &
-       & DTf, Dbrpft
+       & DTf
   real(8), dimension(:), allocatable :: &
        & rrtinv, aatinv, bthcoinv, ParatoZeta, ZetatoPara, &
        & aatq, PsitdotVBth, fipolinv, fipolsdt, dZetatoPara, ribi, ribsdt, &
        & RatCXSNBe, RatCXSNBi, Ratdenhyd
 !!rp_conv       &, rNubLL
   real(8), dimension(:,:), allocatable :: UsrgV, fipolsdtPNsV, BUsparVbbt, &
-       & dlnPNsV, BpBVsdiag, tormflux, dtormflux, ribsdtNs!, RatPNbinv,
+       & dlnPNsV, BpBVsdiag, tormflux, dtormflux!, RatPNbinv,
   real(8), dimension(:,:,:), allocatable :: Ratden, zChi
   real(8) :: DTt, invDT, BeamSW, RpplSW, ThntSW, &
        &     fact = 1.d0 ! <= SOL loss accelerator
   integer(4), save :: ICALA = 0!, ICALA2 = 0
   integer(4) :: L3, L6, L8
+  ! Density equation of each thermal species, indexed the same way as Var(:,i).
+  integer(4), parameter :: LQsn(1:NSM) = [ LQe1, LQi1, LQz1 ]
   ! NOTE:
   !   These workspaces are module-wide shared arrays.
   !   Current TXLOOP usage is serial-safe, but OpenMP parallel calls to TXCALA
@@ -57,7 +59,6 @@ contains
 
     ! Replace per-iteration allocate(...,source=0) with explicit clear.
     ELM = 0.d0
-    Dbrpft = 0.d0
     rrtinv = 0.d0
     aatinv = 0.d0
     bthcoinv = 0.d0
@@ -80,7 +81,6 @@ contains
     BpBVsdiag = 0.d0
     tormflux = 0.d0
     dtormflux = 0.d0
-    ribsdtNs = 0.d0
     Ratden = 0.d0
     zChi = 0.d0
 
@@ -260,11 +260,13 @@ contains
     call BOUNDARY(NRMAX,LQn3,0)
 
     call BOUNDARY(0    ,LQb2,0)
-    ! When ripple effect is on (FSRP /= 0), ripple diffusion term will be activated.
-    ! Then we must impose two boundary conditions at each equation.
-!    call BOUNDARY(0    ,LQb3,0)
-!    call BOUNDARY(NRMAX,LQb3,0)
-!    IF(FSRP /= 0.d0) call BOUNDARY(0,LQr1,0)
+    ! No radial beam flux at rho = rhob.  With MDBEAM = 1, LQb2 is the Lagrange
+    ! multiplier of the beam radial force balance and nothing ties its wall
+    ! value to n_b; the fast-ion orbit width exceeds the SOL gradient length,
+    ! so that value is no outflow law.  The beam has no surface loss channel
+    ! in this model (outside rho = 1 it is lost by the volume loss nu_bL).
+    ! To be reconsidered with a finite-orbit-width or orbit-loss model.
+    if(MDBEAM == 1) call BOUNDARY(NRMAX,LQb2,0)
 
     ! Neumann condition of the continuity equation at the boundary is naturally
     ! imposed through the diffusion term in the pressure equation. However, this
@@ -275,6 +277,17 @@ contains
 !    call BOUNDARY(NRMAX,LQe1,0,Var(NRMAX-1,1)%n)
 !    call BOUNDARY(NRMAX,LQi1,0,Var(NRMAX-1,2)%n)
 !    call BOUNDARY(NRMAX,LQz1,0,Var(NRMAX-1,3)%n)
+
+    ! MDLWBC = 1: the zero density gradient of the table in tx560.tex, imposed
+    ! as a constraint n(NRMAX) = n(NRMAX-1) on each charged density in
+    ! constrained-DOF form (see BOUNDARY_ZEROGRAD).  With MDLWBC = 0 (V5.52)
+    ! the density has no condition at the wall, and the radial particle flux
+    ! through rho = rhob then depends on the last element.
+    if( MDLWBC == 1 ) then
+       call BOUNDARY_ZEROGRAD(LQe1)
+       call BOUNDARY_ZEROGRAD(LQi1)
+       call BOUNDARY_ZEROGRAD(LQz1)
+    end if
 !!    call BOUNDARY(0,LQe3,0,Var(1,1)%BUpar)
 !!    call BOUNDARY(0,LQi3,0,Var(1,2)%BUpar)
 !!    call BOUNDARY(0,LQz3,0,Var(1,3)%BUpar)
@@ -286,10 +299,21 @@ contains
     !        See "sdtvac" in TXCALV.
     call BOUNDARY(NRMAX,LQm2,1, ckt(NRMAX)*fipol(NRMAX)/(fourPisq*rMU0))
     call BOUNDARY(NRMAX,LQm3,1, 2.d0*Pi*rMUb1*rIp*1.D6)
-    call BOUNDARY(NRMAX,LQn1,1, suft(NRMAX)*rGASPF)
-    call BOUNDARY(NRMAX,LQnz,1, suft(NRMAX)*rGASPFz)
+    ! Gas puff and recycling at the main wall: the radial ion outflow through the
+    ! wall (Picard-lagged) returns as a wall-side neutral inflow, bulk ions -> n01,
+    ! impurity ions (RWALLZ) and bulk-ion sputtering (RWALLIZ) -> impurity neutrals.
+    call BOUNDARY(NRMAX,LQn1,1, suft(NRMAX)*rGASPF &
+         & + RWALL   * max(Var(NRMAX,2)%n * Var(NRMAX,2)%UrV, 0.d0))
+    call BOUNDARY(NRMAX,LQnz,1, suft(NRMAX)*rGASPFz &
+         & + RWALLZ  * max(Var(NRMAX,3)%n * Var(NRMAX,3)%UrV, 0.d0) &
+         & + RWALLIZ * max(Var(NRMAX,2)%n * Var(NRMAX,2)%UrV, 0.d0))
 
     if(ICALA == 0) ICALA = 1
+
+    call dump_axis_LQs8
+    call dump_axis_row(LQz1,'LQz1    ')
+    call dump_axis_row(LQi1,'LQi1    ')
+    call dump_axis_coefs
 
   end subroutine TXCALA
 
@@ -319,18 +343,16 @@ contains
       allocate(DTf(1:NQMAX))
     end if
 
-    need_nr = .not. allocated(Dbrpft)
+    need_nr = .not. allocated(rrtinv)
     if(.not. need_nr) then
-       need_nr = (lbound(Dbrpft,1) /= 0) .or. (ubound(Dbrpft,1) /= NRMAX)
+       need_nr = (lbound(rrtinv,1) /= 0) .or. (ubound(rrtinv,1) /= NRMAX)
     end if
     if(need_nr) then
-      if(allocated(Dbrpft)) deallocate(Dbrpft)
       if(allocated(rrtinv)) then
         deallocate(rrtinv, aatinv, bthcoinv, ParatoZeta, ZetatoPara, &
              &     aatq, PsitdotVBth, fipolinv, fipolsdt, dZetatoPara, ribi, ribsdt, &
              &     RatCXSNBe, RatCXSNBi, Ratdenhyd)
       end if
-      allocate(Dbrpft(0:NRMAX))
       allocate(rrtinv(0:NRMAX), aatinv(0:NRMAX), bthcoinv(0:NRMAX), ParatoZeta(0:NRMAX), ZetatoPara(0:NRMAX), &
            &   aatq(0:NRMAX), PsitdotVBth(0:NRMAX), fipolinv(0:NRMAX), fipolsdt(0:NRMAX), dZetatoPara(0:NRMAX), &
            &   ribi(0:NRMAX), ribsdt(0:NRMAX), RatCXSNBe(0:NRMAX), RatCXSNBi(0:NRMAX), Ratdenhyd(0:NRMAX))
@@ -343,11 +365,11 @@ contains
     end if
     if(need_nrns) then
       if(allocated(UsrgV)) then
-        deallocate(UsrgV, fipolsdtPNsV, BUsparVbbt, dlnPNsV, BpBVsdiag, tormflux, dtormflux, ribsdtNs)
+        deallocate(UsrgV, fipolsdtPNsV, BUsparVbbt, dlnPNsV, BpBVsdiag, tormflux, dtormflux)
       end if
       allocate(UsrgV(0:NRMAX,1:NSM), fipolsdtPNsV(0:NRMAX,1:NSM), BUsparVbbt(0:NRMAX,1:NSM), &
            &   dlnPNsV(0:NRMAX,1:NSM), BpBVsdiag(0:NRMAX,1:NSM), tormflux(0:NRMAX,1:NSM), &
-           &   dtormflux(0:NRMAX,1:NSM), ribsdtNs(0:NRMAX,1:NSM))
+           &   dtormflux(0:NRMAX,1:NSM))
     end if
 
     need_ratden = .not. allocated(Ratden)
@@ -385,13 +407,19 @@ contains
     use tx_interface, only : dfdx
     integer(4) :: i
 
-    Dbrpft(:) = Dbrp(:) * ft(:)
 
     do i = 1, NSM
        zChi(:,i,1) = Chis(:,i) + ChiNCt(:,i) + ChiNCp(:,i)
        zChi(:,i,2) = Chis(:,i) + ChiNCt(:,i)
     end do
 
+    ! The friction terms of all rows acting on one variable (one column) are
+    ! assembled from the nodal products of their row-dependent factors, e.g.
+    ! fem_int(2,lab*Ratden) rather than fem_int(20,lab,Ratden).  The column
+    ! sums of the element matrices then vanish whenever the nodal column sums
+    ! of the friction coefficients do (sum_a l^ab = 0), so that the friction
+    ! forces conserve momentum in the discrete equations as well; the product
+    ! of two interpolants left an O(h^2) net force.
     Ratden(:,1,2) = Var(:,1)%n / Var(:,2)%n ! Ne/Ni
     Ratden(:,1,3) = Var(:,1)%n / Var(:,3)%n ! Ne/Nz
     Ratden(:,2,1) = Var(:,2)%n / Var(:,1)%n ! Ni/Ne
@@ -427,7 +455,6 @@ contains
        tormflux(:,i)     = suft(:) * Vmps(:,i) * Var(:,i)%n * BpBVsdiag(:,i) &
             &            - sst(:)  * rMus(:,i) * Var(:,i)%n * dfdx(vv,BpBVsdiag(:,i),NRMAX,0)
        dtormflux(:,i)    = dfdx(vv,tormflux(:,i),NRMAX,0)
-       ribsdtNs(:,i)     = ribsdt(:) * Var(:,i)%n
 !       dlnPNsV(:,i)      = dfdx(vv,Var(:,i)%n,NRMAX,0) / Var(:,i)%n
 !       RatPNbinv(:,i)    = PNbV(:) / Var(:,i)%n ! Nb/Ns
     end do
@@ -777,37 +804,37 @@ contains
 
     ! Collisional friction force with electrons (self collision)
 
-    ELM(:,:, 6,NEQ) =   fem_int(20+L3,lab(:,i,1,1,1),Var(:,i)%n)
+    ELM(:,:, 6,NEQ) =   fem_int(2+L3,lab(:,i,1,1,1)*Var(:,i)%n)
     NLC( 6,NEQ) = LQe3
 
     ! Collisional friction force with ions
 
-    ELM(:,:, 7,NEQ) =   fem_int(20+L3,lab(:,i,2,1,1),Var(:,i)%n)
+    ELM(:,:, 7,NEQ) =   fem_int(2+L3,lab(:,i,2,1,1)*Var(:,i)%n)
     NLC( 7,NEQ) = LQi3
 
     ! Collisional friction force with impurities
 
-    ELM(:,:, 8,NEQ) =   fem_int(20+L3,lab(:,i,3,1,1),Var(:,i)%n)
+    ELM(:,:, 8,NEQ) =   fem_int(2+L3,lab(:,i,3,1,1)*Var(:,i)%n)
     NLC( 8,NEQ) = LQz3
 
     ! Collisional friction force with beam ions
 
-    ELM(:,:, 9,NEQ) =   fem_int(20+L3,laf(:,i,1,1),  Ratden(:,i,4))
+    ELM(:,:, 9,NEQ) =   fem_int(2+L3,laf(:,i,1,1)*Ratden(:,i,4))
     NLC( 9,NEQ) = LQb3
 
     ! Collisional heat friction force with electrons (self collision)
 
-    ELM(:,:,10,NEQ) = - fem_int(20+L3,lab(:,i,1,1,2),Var(:,i)%n)
+    ELM(:,:,10,NEQ) = - fem_int(2+L3,lab(:,i,1,1,2)*Var(:,i)%n)
     NLC(10,NEQ) = LQe6
 
     ! Collisional heat friction force with ions
 
-    ELM(:,:,11,NEQ) = - fem_int(20+L3,lab(:,i,2,1,2),Var(:,i)%n)
+    ELM(:,:,11,NEQ) = - fem_int(2+L3,lab(:,i,2,1,2)*Var(:,i)%n)
     NLC(11,NEQ) = LQi6
 
     ! Collisional heat friction force with impurities
 
-    ELM(:,:,12,NEQ) = - fem_int(20+L3,lab(:,i,3,1,2),Var(:,i)%n)
+    ELM(:,:,12,NEQ) = - fem_int(2+L3,lab(:,i,3,1,2)*Var(:,i)%n)
     NLC(12,NEQ) = LQz6
 
     ! Electric field forces
@@ -969,52 +996,52 @@ contains
 
     ! Collisional friction force with bulk ions
 
-    ELM(:,:, 8,NEQ) =   fem_int(20,lab(:,i,2,1,1),Ratden(:,i,2))
+    ELM(:,:, 8,NEQ) =   fem_int( 2,lab(:,i,2,1,1)*Ratden(:,i,2))
     NLC( 8,NEQ) = LQi4
 
     ! Collisional friction force with impurities
 
-    ELM(:,:, 9,NEQ) =   fem_int(20,lab(:,i,3,1,1),Ratden(:,i,3))
+    ELM(:,:, 9,NEQ) =   fem_int( 2,lab(:,i,3,1,1)*Ratden(:,i,3))
     NLC( 9,NEQ) = LQz4
 
     ! Collisional friction force with beam ions
 
 !    ELM(:,:,10,NEQ) =   fem_int(30,ParatoZeta,laf(:,i,1,1),Ratden(:,i,4))
 !    NLC(10,NEQ) = LQb3
-    ELM(:,:,10,NEQ) =   fem_int(20,laf(:,i,1,1),Ratden(:,i,4))
+    ELM(:,:,10,NEQ) =   fem_int( 2,laf(:,i,1,1)*Ratden(:,i,4))
     NLC(10,NEQ) = LQb4
 
     ! Collisional heat friction force with electrons (self collision)
 
     j = 1
-    ELM(:,:,11,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2),ribsdtNs(:,i),Var(:,j)%T)
+    ELM(:,:,11,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2)*Var(:,i)%n,ribsdt,Var(:,j)%T)
     NLC(11,NEQ) = 0
 !!$    ELM(:,:,11,NEQ) =   rKilo / achg(j) * fem_int(31,lab(:,i,j,1,2),ribsdt,Var(:,j)%T)
 !!$    NLC(11,NEQ) = LQe1
 
-    ELM(:,:,12,NEQ) = -                   fem_int(30,lab(:,i,j,1,2),ParatoZeta,Var(:,i)%n)
+    ELM(:,:,12,NEQ) = -                   fem_int(20,lab(:,i,j,1,2)*Var(:,i)%n,ParatoZeta)
     NLC(12,NEQ) = LQe6
 
     ! Collisional heat friction force with ions
 
     j = 2
-    ELM(:,:,13,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2),ribsdtNs(:,i),Var(:,j)%T)
+    ELM(:,:,13,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2)*Var(:,i)%n,ribsdt,Var(:,j)%T)
     NLC(13,NEQ) = 0
 !!$    ELM(:,:,13,NEQ) =   rKilo / achg(j) * fem_int(31,lab(:,i,j,1,2),ribsdt,Var(:,j)%T)
 !!$    NLC(13,NEQ) = LQe1
 
-    ELM(:,:,14,NEQ) = -                   fem_int(30,lab(:,i,j,1,2),ParatoZeta,Var(:,i)%n)
+    ELM(:,:,14,NEQ) = -                   fem_int(20,lab(:,i,j,1,2)*Var(:,i)%n,ParatoZeta)
     NLC(14,NEQ) = LQi6
 
     ! Collisional heat friction force with impurities
 
     j = 3
-    ELM(:,:,15,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2),ribsdtNs(:,i),Var(:,j)%T)
+    ELM(:,:,15,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2)*Var(:,i)%n,ribsdt,Var(:,j)%T)
     NLC(15,NEQ) = 0
 !!$    ELM(:,:,15,NEQ) =   rKilo / achg(j) * fem_int(31,lab(:,i,j,1,2),ribsdt,Var(:,j)%T)
 !!$    NLC(15,NEQ) = LQe1
 
-    ELM(:,:,16,NEQ) = -                   fem_int(30,lab(:,i,j,1,2),ParatoZeta,Var(:,i)%n)
+    ELM(:,:,16,NEQ) = -                   fem_int(20,lab(:,i,j,1,2)*Var(:,i)%n,ParatoZeta)
     NLC(16,NEQ) = LQz6
 
     ! Toroidal E force
@@ -1072,6 +1099,8 @@ contains
        NLC(22,NEQ) = LQe1
 
     end if
+    if( FSTPTM(i) >= 2.d0 .and. MDFIXT == 0 ) &
+         & call turb_force_wall_row(NEQ, achg(i) * rKeV * amasinv, spread(1.d0, 1, NRMAX+1))
 
     !  -- Turbulent pinch term
 
@@ -1100,6 +1129,22 @@ contains
 
     NLCMAX(NEQ) = 26
 
+    ! FSTPTM = 4 (thermal-species self-gradient closure): the electrons are driven by the
+    ! thermal-ion charge density n_th = n_e - Z_b n_b instead of n_e, i.e. the force of
+    ! FSTPTM = 2/3 minus Z_b (T_e grad n_b + FSVAHL n_b grad T_e), with
+    ! n_b grad T_e = (n_b/n_e)(grad p_e - T_e grad n_e).  The thermal ions take the reaction
+    ! with the weights Z_s n_s/n_th (LQi4CC, LQz4CC); the beam has no turbulent force.
+    if( FSTPTM(i) == 4.d0 ) then
+       ELM(:,:,27,NEQ) = - achg(i) * achgb * rKeV * amasinv * fem_int(22,FQLcoef,Var(:,1)%T)
+       NLC(27,NEQ) = LQb1
+       ELM(:,:,28,NEQ) = - achg(i) * achgb * rKeV * amasinv * FSVAHL * fem_int(22,FQLcoef,PNbV/Var(:,1)%n)
+       NLC(28,NEQ) = LQe5
+       ELM(:,:,29,NEQ) =   achg(i) * achgb * rKeV * amasinv * FSVAHL &
+            &                           * fem_int(32,FQLcoef,Var(:,1)%T,PNbV/Var(:,1)%n)
+       NLC(29,NEQ) = LQe1
+       NLCMAX(NEQ) = 29
+    end if
+
     if( MDFIXT /= 0 ) then ! Overwrite Pressure gradient force
        if( FSTPTM(i) == 0 ) then
           ELM(:,:,19,NEQ) =   achg(i) * rKeV * amasinv * fem_int(22,FQLcoef,Var(:,1)%T)
@@ -1117,6 +1162,14 @@ contains
           ELM(:,:,22,NEQ) = 0.d0
           NLC(22,NEQ) = 0
 
+       end if
+       if( FSTPTM(i) == 4.d0 ) then
+          ! terms 28 + 29, -FSVAHL Z_b (n_b/n_e)(grad p_e - T_e grad n_e) = -FSVAHL Z_b n_b grad T_e
+          ELM(:,:,28,NEQ) = - achg(i) * achgb * rKeV * amasinv * FSVAHL * fem_int(21,FQLcoef,Var(:,1)%T)
+          NLC(28,NEQ) = LQb1
+
+          ELM(:,:,29,NEQ) = 0.d0
+          NLC(29,NEQ) = 0
        end if
     end if
 
@@ -1612,37 +1665,37 @@ contains
 
     ! Collisional friction force with electrons
 
-    ELM(:,:, 6,NEQ) =   fem_int(20+L3,lab(:,i,1,1,1),Var(:,i)%n)
+    ELM(:,:, 6,NEQ) =   fem_int(2+L3,lab(:,i,1,1,1)*Var(:,i)%n)
     NLC( 6,NEQ) = LQe3
 
     ! Collisional friction force with ions (self collision)
 
-    ELM(:,:, 7,NEQ) =   fem_int(20+L3,lab(:,i,2,1,1),Var(:,i)%n)
+    ELM(:,:, 7,NEQ) =   fem_int(2+L3,lab(:,i,2,1,1)*Var(:,i)%n)
     NLC( 7,NEQ) = LQi3
 
     ! Collisional friction force with impurities
 
-    ELM(:,:, 8,NEQ) =   fem_int(20+L3,lab(:,i,3,1,1),Var(:,i)%n)
+    ELM(:,:, 8,NEQ) =   fem_int(2+L3,lab(:,i,3,1,1)*Var(:,i)%n)
     NLC( 8,NEQ) = LQz3
 
     ! Collisional friction force with beam ions
 
-    ELM(:,:, 9,NEQ) =   fem_int(20+L3,laf(:,i,1,1),  Ratden(:,i,4))
+    ELM(:,:, 9,NEQ) =   fem_int(2+L3,laf(:,i,1,1)*Ratden(:,i,4))
     NLC( 9,NEQ) = LQb3
 
     ! Collisional heat friction force with electrons
 
-    ELM(:,:,10,NEQ) = - fem_int(20+L3,lab(:,i,1,1,2),Var(:,i)%n)
+    ELM(:,:,10,NEQ) = - fem_int(2+L3,lab(:,i,1,1,2)*Var(:,i)%n)
     NLC(10,NEQ) = LQe6
 
     ! Collisional heat friction force with ions (self collision)
 
-    ELM(:,:,11,NEQ) = - fem_int(20+L3,lab(:,i,2,1,2),Var(:,i)%n)
+    ELM(:,:,11,NEQ) = - fem_int(2+L3,lab(:,i,2,1,2)*Var(:,i)%n)
     NLC(11,NEQ) = LQi6
 
     ! Collisional heat friction force with impurities
 
-    ELM(:,:,12,NEQ) = - fem_int(20+L3,lab(:,i,3,1,2),Var(:,i)%n)
+    ELM(:,:,12,NEQ) = - fem_int(2+L3,lab(:,i,3,1,2)*Var(:,i)%n)
     NLC(12,NEQ) = LQz6
 
     ! Electric field forces
@@ -1784,10 +1837,18 @@ contains
 
   subroutine LQi4CC
 
-    integer(4) :: NEQ = LQi4, i = 2, j
+    integer(4) :: NEQ = LQi4, i = 2, j, NCcomp
     real(8) :: amasinv
+    real(8), dimension(0:NRMAX) :: nth, wel, wrt, wcomp
 
     amasinv = 1.d0 / (amas(i) * amp)
+    ! FSTPTM = 4: thermal-ion charge density n_th = sum_s Z_s n_s (thermal ions only)
+    if( FSTPTM(i) == 4.d0 ) then
+       nth(:) = 0.d0
+       do j = 2, NSM
+          nth(:) = nth(:) + achg(j) * Var(:,j)%n
+       end do
+    end if
 
     ! Uiphi'(0) : 0
 
@@ -1824,7 +1885,7 @@ contains
 
     ! Collisional friction force with electrons
 
-    ELM(:,:, 7,NEQ) =   fem_int(20,lab(:,i,1,1,1),Ratden(:,i,1))
+    ELM(:,:, 7,NEQ) =   fem_int( 2,lab(:,i,1,1,1)*Ratden(:,i,1))
     NLC( 7,NEQ) = LQe4
 
     ! Collisional friction force with bulk ions (self collision)
@@ -1834,47 +1895,47 @@ contains
 
     ! Collisional friction force with impurities
 
-    ELM(:,:, 9,NEQ) =   fem_int(20,lab(:,i,3,1,1),Ratden(:,i,3))
+    ELM(:,:, 9,NEQ) =   fem_int( 2,lab(:,i,3,1,1)*Ratden(:,i,3))
     NLC( 9,NEQ) = LQz4
 
     ! Collisional friction force with beam ions
 
 !    ELM(:,:,10,NEQ) =   fem_int(30,ParatoZeta,laf(:,i,1,1),Ratden(:,i,4))
 !    NLC(10,NEQ) = LQb3
-    ELM(:,:,10,NEQ) =   fem_int(20,laf(:,i,1,1),Ratden(:,i,4))
+    ELM(:,:,10,NEQ) =   fem_int( 2,laf(:,i,1,1)*Ratden(:,i,4))
     NLC(10,NEQ) = LQb4
 
     ! Collisional heat friction force with electrons
 
     j = 1
-    ELM(:,:,11,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2),ribsdtNs(:,i),Var(:,j)%T)
+    ELM(:,:,11,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2)*Var(:,i)%n,ribsdt,Var(:,j)%T)
     NLC(11,NEQ) = 0
 !!$    ELM(:,:,11,NEQ) =   rKilo / achg(j) * fem_int(31,lab(:,i,j,1,2),ribsdt,Var(:,j)%T)
 !!$    NLC(11,NEQ) = LQi1
 
-    ELM(:,:,12,NEQ) = -                   fem_int(30,lab(:,i,j,1,2),ParatoZeta,Var(:,i)%n)
+    ELM(:,:,12,NEQ) = -                   fem_int(20,lab(:,i,j,1,2)*Var(:,i)%n,ParatoZeta)
     NLC(12,NEQ) = LQe6
 
     ! Collisional heat friction force with ions (self collision)
 
     j = 2
-    ELM(:,:,13,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2),ribsdtNs(:,i),Var(:,j)%T)
+    ELM(:,:,13,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2)*Var(:,i)%n,ribsdt,Var(:,j)%T)
     NLC(13,NEQ) = 0
 !!$    ELM(:,:,13,NEQ) =   rKilo / achg(j) * fem_int(31,lab(:,i,j,1,2),ribsdt,Var(:,j)%T)
 !!$    NLC(13,NEQ) = LQi1
 
-    ELM(:,:,14,NEQ) = -                   fem_int(30,lab(:,i,j,1,2),ParatoZeta,Var(:,i)%n)
+    ELM(:,:,14,NEQ) = -                   fem_int(20,lab(:,i,j,1,2)*Var(:,i)%n,ParatoZeta)
     NLC(14,NEQ) = LQi6
 
     ! Collisional heat friction force with impurities
 
     j = 3
-    ELM(:,:,15,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2),ribsdtNs(:,i),Var(:,j)%T)
+    ELM(:,:,15,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2)*Var(:,i)%n,ribsdt,Var(:,j)%T)
     NLC(15,NEQ) = 0
 !!$    ELM(:,:,15,NEQ) =   rKilo / achg(j) * fem_int(31,lab(:,i,j,1,2),ribsdt,Var(:,j)%T)
 !!$    NLC(15,NEQ) = LQi1
 
-    ELM(:,:,16,NEQ) = -                   fem_int(30,lab(:,i,j,1,2),ParatoZeta,Var(:,i)%n)
+    ELM(:,:,16,NEQ) = -                   fem_int(20,lab(:,i,j,1,2)*Var(:,i)%n,ParatoZeta)
     NLC(16,NEQ) = LQz6
 
     ! Toroidal E force
@@ -1916,6 +1977,29 @@ contains
        ELM(:,:,23,NEQ) =   achg(i) * aee * amasinv * fem_int(22,FQLcoef,Var(:,i)%n+PNbV(:))
        NLC(23,NEQ) = LQm1
 
+    else if( FSTPTM(i) == 4.d0 ) then
+       ! The reaction of the electron force of LQe4CC with the weight Z_i n_i/n_th: the
+       ! BV1 and Phi' terms with n_i n_e/n_th, the gradient terms with n_i/n_th, the
+       ! corrections for the beam charge merged into terms 21 and 22, and -T_e grad n_b as 23.
+       wel(:) = Var(:,i)%n * Var(:,1)%n / nth(:)
+       wrt(:) = Var(:,i)%n / nth(:)
+       ELM(:,:,19,NEQ) =   achg(i) * aee * amasinv * fem_int(20,FQLcoef1,wel)
+       NLC(19,NEQ) = LQe8
+
+       ELM(:,:,20,NEQ) =   achg(i) * aee * amasinv * fem_int(22,FQLcoef,wel)
+       NLC(20,NEQ) = LQm1
+
+       ELM(:,:,21,NEQ) =   achg(i) * rKeV * amasinv &
+            &            * fem_int(22,FQLcoef,wrt*((FSVAHL - 1.d0) - FSVAHL * achgb * PNbV/Var(:,1)%n))
+       NLC(21,NEQ) = LQe5
+
+       ELM(:,:,22,NEQ) = - achg(i) * rKeV * amasinv &
+            &            * fem_int(32,FQLcoef,Var(:,1)%T,wrt*((FSVAHL - 1.d0) - FSVAHL * achgb * PNbV/Var(:,1)%n))
+       NLC(22,NEQ) = LQe1
+
+       ELM(:,:,23,NEQ) = - achg(i) * achgb * rKeV * amasinv * fem_int(32,FQLcoef,Var(:,1)%T,wrt)
+       NLC(23,NEQ) = LQb1
+
     else
        ELM(:,:,19,NEQ) =   achg(i) * aee * amasinv * fem_int(20,FQLcoef1,Var(:,i)%n+PNbV(:))
        NLC(19,NEQ) = LQe8
@@ -1931,6 +2015,12 @@ contains
             &                           * (FSVAHL - 1.d0)
        NLC(22,NEQ) = LQe1
 
+    end if
+    if( FSTPTM(i) == 4.d0 .and. MDFIXT == 0 ) then
+       ! direct gradient part in the wall row: FSVAHL (1 - Z_b n_b/n_e) grad p_e with n_i/n_th
+       call turb_force_wall_row(NEQ, achg(i) * rKeV * amasinv, wrt*(1.d0 - achgb * PNbV/Var(:,1)%n))
+    else if( FSTPTM(i) >= 2.d0 .and. MDFIXT == 0 ) then
+       call turb_force_wall_row(NEQ, achg(i) * rKeV * amasinv, Ratdenhyd)
     end if
 
     !  -- Turbulent pinch term
@@ -1986,6 +2076,49 @@ contains
 
     NLCMAX(NEQ) = 32
 
+    ! Multi-ion composition channel (FSTPTM = 3).
+    !
+    !   Delta K_a = sum_{b /= a, thermal ions} L_ab ( X_a - X_b ),
+    !   X_a = (1/n_a) dn_a/dV,
+    !   L_ab = L_ba = e (dpsi/dV) <|grad V|^2> D_e^QL (Z_a n_a)(Z_b n_b)/n_e.
+    !
+    ! Each pair contributes equal and opposite forces, so sum_a Delta K_a = 0
+    ! holds element matrix by element matrix over whatever set of thermal ions
+    ! is present: no net toroidal momentum is added, and since
+    ! Gamma_a = -<R K_a1zeta>/(Z_a e dpsi/dV) that is the same statement as
+    ! sum_a Z_a Delta Gamma_a = 0.  Beam ions are left out - they are too fast
+    ! to be mixed by the background fluctuations - and their absence from the
+    ! sum does not spoil the cancellation.
+    !
+    ! The 1/n_a of X_a cancels against the Z_a n_a of L_ab, so nothing here
+    ! divides by a trace density.  With a single thermal ion the sum is empty
+    ! and FSTPTM = 3 reduces exactly to FSTPTM = 2.
+    !
+    ! FSTPTM = 4 uses the same pairs with n_th = sum_s Z_s n_s of the thermal ions in place
+    ! of n_e in L_ab, so that sum_b Z_b n_b/n_th = 1 exactly and the self-gradient part is
+    ! X_a - X_th whether or not fast ions are present.
+    if( FSTPTM(i) == 3.d0 .or. FSTPTM(i) == 4.d0 ) then
+       NCcomp = NLCMAX(NEQ)
+       do j = 2, NSM
+          if( j == i ) cycle
+          if( FSTPTM(i) == 4.d0 ) then
+             wel(:) = Var(:,j)%n / nth(:) ; wcomp(:) = Var(:,i)%n / nth(:)
+          else
+             wel(:) = Ratden(:,j,1) ; wcomp(:) = Ratden(:,i,1)
+          end if
+          NCcomp = NCcomp + 1
+          ELM(:,:,NCcomp,NEQ) =   achg(i) * achg(j) * aee * amasinv &
+               &                * fem_int(22,FQCcoef,wel)
+          NLC(NCcomp,NEQ) = LQsn(i)
+          NCcomp = NCcomp + 1
+          ELM(:,:,NCcomp,NEQ) = - achg(i) * achg(j) * aee * amasinv &
+               &                * fem_int(22,FQCcoef,wcomp)
+          NLC(NCcomp,NEQ) = LQsn(j)
+       end do
+       NLCMAX(NEQ) = NCcomp
+    end if
+
+
     if( MDFIXT /= 0 ) then ! Overwrite Pressure gradient force
        if( FSTPTM(i) == 0 ) then
           ELM(:,:,19,NEQ) =   achg(i) * rKeV * amasinv * fem_int(32,FQLcoef,Var(:,1)%T,Ratdenhyd)
@@ -1994,6 +2127,16 @@ contains
           ELM(:,:,20,NEQ) =   achg(i) * rKeV * amasinv * fem_int(22,FQLcoef,Var(:,i)%n+PNbV(:)) &
                &                           * FSVAHL
           NLC(20,NEQ) = LQe5
+
+       else if( FSTPTM(i) == 4.d0 ) then
+          ! terms 21 + 22 of FSTPTM = 4, (n_i/n_th){(FSVAHL - 1) n_e - FSVAHL Z_b n_b} grad T_e
+          ELM(:,:,21,NEQ) =   achg(i) * rKeV * amasinv * fem_int(31,FQLcoef,wrt,Var(:,1)%T) &
+               &                           * (FSVAHL - 1.d0)
+          NLC(21,NEQ) = LQe1
+
+          ELM(:,:,22,NEQ) = - achg(i) * achgb * rKeV * amasinv * FSVAHL &
+               &                           * fem_int(31,FQLcoef,wrt,Var(:,1)%T)
+          NLC(22,NEQ) = LQb1
 
        else
           ELM(:,:,21,NEQ) =   achg(i) * rKeV * amasinv * fem_int(21,FQLcoef,Var(:,1)%T) &
@@ -2373,7 +2516,18 @@ contains
     ELM(:,:,8,NEQ) = - fem_int(2,rNuOL)
     NLC(8,NEQ) = LQz1
 
-    NLCMAX(NEQ) = 8
+    ! Diagnostic only (Dnfac /= 0): conservative particle diffusion with the
+    ! same operator and geometry the momentum equation uses.  This asks which
+    ! branch the zero-diffusion equations select as Dnfac -> 0+; it is not a
+    ! model term and is off by default.
+
+    if(Dnfac /= 0.d0) then
+       ELM(:,:,9,NEQ) = - Dnfac * fem_int(27,sst,rMus(:,i))
+       NLC(9,NEQ) = LQz1
+       NLCMAX(NEQ) = 9
+    else
+       NLCMAX(NEQ) = 8
+    end if
 
   end subroutine LQz1CC
 
@@ -2448,37 +2602,37 @@ contains
 
     ! Collisional friction force with electrons
 
-    ELM(:,:, 6,NEQ) =   fem_int(20+L3,lab(:,i,1,1,1),Var(:,i)%n)
+    ELM(:,:, 6,NEQ) =   fem_int(2+L3,lab(:,i,1,1,1)*Var(:,i)%n)
     NLC( 6,NEQ) = LQe3
 
     ! Collisional friction force with ions
 
-    ELM(:,:, 7,NEQ) =   fem_int(20+L3,lab(:,i,2,1,1),Var(:,i)%n)
+    ELM(:,:, 7,NEQ) =   fem_int(2+L3,lab(:,i,2,1,1)*Var(:,i)%n)
     NLC( 7,NEQ) = LQi3
 
     ! Collisional friction force with impurities (self collision)
 
-    ELM(:,:, 8,NEQ) =   fem_int(20+L3,lab(:,i,3,1,1),Var(:,i)%n)
+    ELM(:,:, 8,NEQ) =   fem_int(2+L3,lab(:,i,3,1,1)*Var(:,i)%n)
     NLC( 8,NEQ) = LQz3
 
     ! Collisional friction force with beam ions
 
-    ELM(:,:, 9,NEQ) =   fem_int(20+L3,laf(:,i,1,1),  Ratden(:,i,4))
+    ELM(:,:, 9,NEQ) =   fem_int(2+L3,laf(:,i,1,1)*Ratden(:,i,4))
     NLC( 9,NEQ) = LQb3
 
     ! Collisional heat friction force with electrons
 
-    ELM(:,:,10,NEQ) = - fem_int(20+L3,lab(:,i,1,1,2),Var(:,i)%n)
+    ELM(:,:,10,NEQ) = - fem_int(2+L3,lab(:,i,1,1,2)*Var(:,i)%n)
     NLC(10,NEQ) = LQe6
 
     ! Collisional heat friction force with ions
 
-    ELM(:,:,11,NEQ) = - fem_int(20+L3,lab(:,i,2,1,2),Var(:,i)%n)
+    ELM(:,:,11,NEQ) = - fem_int(2+L3,lab(:,i,2,1,2)*Var(:,i)%n)
     NLC(11,NEQ) = LQi6
 
     ! Collisional heat friction force with impurities (self collision)
 
-    ELM(:,:,12,NEQ) = - fem_int(20+L3,lab(:,i,3,1,2),Var(:,i)%n)
+    ELM(:,:,12,NEQ) = - fem_int(2+L3,lab(:,i,3,1,2)*Var(:,i)%n)
     NLC(12,NEQ) = LQz6
 
     ! Electric field forces
@@ -2595,10 +2749,18 @@ contains
 
   subroutine LQz4CC
 
-    integer(4) :: NEQ = LQz4, i = 3, j
+    integer(4) :: NEQ = LQz4, i = 3, j, NCcomp
     real(8) :: amasinv
+    real(8), dimension(0:NRMAX) :: nth, wel, wrt, wcomp
 
     amasinv = 1.d0 / (amas(i) * amp)
+    ! FSTPTM = 4: thermal-ion charge density n_th = sum_s Z_s n_s (thermal ions only)
+    if( FSTPTM(i) == 4.d0 ) then
+       nth(:) = 0.d0
+       do j = 2, NSM
+          nth(:) = nth(:) + achg(j) * Var(:,j)%n
+       end do
+    end if
 
     ! Uiphi'(0) : 0
 
@@ -2635,12 +2797,12 @@ contains
 
     ! Collisional friction force with electrons
 
-    ELM(:,:, 7,NEQ) =   fem_int(20,lab(:,i,1,1,1),Ratden(:,i,1))
+    ELM(:,:, 7,NEQ) =   fem_int( 2,lab(:,i,1,1,1)*Ratden(:,i,1))
     NLC( 7,NEQ) = LQe4
 
     ! Collisional friction force with bulk ions
 
-    ELM(:,:, 8,NEQ) =   fem_int(20,lab(:,i,2,1,1),Ratden(:,i,2))
+    ELM(:,:, 8,NEQ) =   fem_int( 2,lab(:,i,2,1,1)*Ratden(:,i,2))
     NLC( 8,NEQ) = LQi4
 
     ! Collisional friction force with impurities (self collision)
@@ -2652,40 +2814,40 @@ contains
 
 !    ELM(:,:,10,NEQ) =   fem_int(30,ParatoZeta,laf(:,i,1,1),Ratden(:,i,4))
 !    NLC(10,NEQ) = LQb3
-    ELM(:,:,10,NEQ) =   fem_int(20,laf(:,i,1,1),Ratden(:,i,4))
+    ELM(:,:,10,NEQ) =   fem_int( 2,laf(:,i,1,1)*Ratden(:,i,4))
     NLC(10,NEQ) = LQb4
 
     ! Collisional heat friction force with electrons
 
     j = 1
-    ELM(:,:,11,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2),ribsdtNs(:,i),Var(:,j)%T)
+    ELM(:,:,11,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2)*Var(:,i)%n,ribsdt,Var(:,j)%T)
     NLC(11,NEQ) = 0
 !!$    ELM(:,:,11,NEQ) =   rKilo / achg(j) * fem_int(31,lab(:,i,j,1,2),ribsdt,Var(:,j)%T)
 !!$    NLC(11,NEQ) = LQz1
 
-    ELM(:,:,12,NEQ) = -                   fem_int(30,lab(:,i,j,1,2),ParatoZeta,Var(:,i)%n)
+    ELM(:,:,12,NEQ) = -                   fem_int(20,lab(:,i,j,1,2)*Var(:,i)%n,ParatoZeta)
     NLC(12,NEQ) = LQe6
 
     ! Collisional heat friction force with ions
 
     j = 2
-    ELM(:,:,13,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2),ribsdtNs(:,i),Var(:,j)%T)
+    ELM(:,:,13,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2)*Var(:,i)%n,ribsdt,Var(:,j)%T)
     NLC(13,NEQ) = 0
 !!$    ELM(:,:,13,NEQ) =   rKilo / achg(j) * fem_int(31,lab(:,i,j,1,2),ribsdt,Var(:,j)%T)
 !!$    NLC(13,NEQ) = LQz1
 
-    ELM(:,:,14,NEQ) = -                   fem_int(30,lab(:,i,j,1,2),ParatoZeta,Var(:,i)%n)
+    ELM(:,:,14,NEQ) = -                   fem_int(20,lab(:,i,j,1,2)*Var(:,i)%n,ParatoZeta)
     NLC(14,NEQ) = LQi6
 
     ! Collisional heat friction force with impurities (self collision)
 
     j = 3
-    ELM(:,:,15,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2),ribsdtNs(:,i),Var(:,j)%T)
+    ELM(:,:,15,NEQ) =   rKilo / achg(j) * fem_int(-22,lab(:,i,j,1,2)*Var(:,i)%n,ribsdt,Var(:,j)%T)
     NLC(15,NEQ) = 0
 !!$    ELM(:,:,15,NEQ) =   rKilo / achg(j) * fem_int(31,lab(:,i,j,1,2),ribsdt,Var(:,j)%T)
 !!$    NLC(15,NEQ) = LQz1
 
-    ELM(:,:,16,NEQ) = -                   fem_int(30,lab(:,i,j,1,2),ParatoZeta,Var(:,i)%n)
+    ELM(:,:,16,NEQ) = -                   fem_int(20,lab(:,i,j,1,2)*Var(:,i)%n,ParatoZeta)
     NLC(16,NEQ) = LQz6
 
     ! Toroidal E force
@@ -2727,6 +2889,25 @@ contains
        ELM(:,:,23,NEQ) =   achg(i) * aee * amasinv * fem_int(22,FQLcoef,Var(:,i)%n)
        NLC(23,NEQ) = LQm1
 
+    else if( FSTPTM(i) == 4.d0 ) then
+       ! As for the main ions (LQi4CC) with the weight Z_z n_z/n_th; -T_e grad n_b is added
+       ! after the composition terms.
+       wel(:) = Var(:,i)%n * Var(:,1)%n / nth(:)
+       wrt(:) = Var(:,i)%n / nth(:)
+       ELM(:,:,19,NEQ) =   achg(i) * aee * amasinv * fem_int(20,FQLcoef1,wel)
+       NLC(19,NEQ) = LQe8
+
+       ELM(:,:,20,NEQ) =   achg(i) * aee * amasinv * fem_int(22,FQLcoef,wel)
+       NLC(20,NEQ) = LQm1
+
+       ELM(:,:,21,NEQ) =   achg(i) * rKeV * amasinv &
+            &            * fem_int(22,FQLcoef,wrt*((FSVAHL - 1.d0) - FSVAHL * achgb * PNbV/Var(:,1)%n))
+       NLC(21,NEQ) = LQe5
+
+       ELM(:,:,22,NEQ) = - achg(i) * rKeV * amasinv &
+            &            * fem_int(32,FQLcoef,Var(:,1)%T,wrt*((FSVAHL - 1.d0) - FSVAHL * achgb * PNbV/Var(:,1)%n))
+       NLC(22,NEQ) = LQe1
+
     else
        ELM(:,:,19,NEQ) =   achg(i) * aee * amasinv * fem_int(20,FQLcoef1,Var(:,i)%n)
        NLC(19,NEQ) = LQe8
@@ -2742,6 +2923,11 @@ contains
             &                           * (FSVAHL - 1.d0)
        NLC(22,NEQ) = LQe1
 
+    end if
+    if( FSTPTM(i) == 4.d0 .and. MDFIXT == 0 ) then
+       call turb_force_wall_row(NEQ, achg(i) * rKeV * amasinv, wrt*(1.d0 - achgb * PNbV/Var(:,1)%n))
+    else if( FSTPTM(i) >= 2.d0 .and. MDFIXT == 0 ) then
+       call turb_force_wall_row(NEQ, achg(i) * rKeV * amasinv, Ratden(:,i,1))
     end if
 
     !  -- Turbulent pinch term
@@ -2771,6 +2957,55 @@ contains
 
     NLCMAX(NEQ) = 27
 
+    ! Multi-ion composition channel (FSTPTM = 3).
+    !
+    !   Delta K_a = sum_{b /= a, thermal ions} L_ab ( X_a - X_b ),
+    !   X_a = (1/n_a) dn_a/dV,
+    !   L_ab = L_ba = e (dpsi/dV) <|grad V|^2> D_e^QL (Z_a n_a)(Z_b n_b)/n_e.
+    !
+    ! Each pair contributes equal and opposite forces, so sum_a Delta K_a = 0
+    ! holds element matrix by element matrix over whatever set of thermal ions
+    ! is present: no net toroidal momentum is added, and since
+    ! Gamma_a = -<R K_a1zeta>/(Z_a e dpsi/dV) that is the same statement as
+    ! sum_a Z_a Delta Gamma_a = 0.  Beam ions are left out - they are too fast
+    ! to be mixed by the background fluctuations - and their absence from the
+    ! sum does not spoil the cancellation.
+    !
+    ! The 1/n_a of X_a cancels against the Z_a n_a of L_ab, so nothing here
+    ! divides by a trace density.  With a single thermal ion the sum is empty
+    ! and FSTPTM = 3 reduces exactly to FSTPTM = 2.
+    !
+    ! FSTPTM = 4 uses the same pairs with n_th = sum_s Z_s n_s of the thermal ions in place
+    ! of n_e in L_ab, so that sum_b Z_b n_b/n_th = 1 exactly and the self-gradient part is
+    ! X_a - X_th whether or not fast ions are present.
+    if( FSTPTM(i) == 3.d0 .or. FSTPTM(i) == 4.d0 ) then
+       NCcomp = NLCMAX(NEQ)
+       do j = 2, NSM
+          if( j == i ) cycle
+          if( FSTPTM(i) == 4.d0 ) then
+             wel(:) = Var(:,j)%n / nth(:) ; wcomp(:) = Var(:,i)%n / nth(:)
+          else
+             wel(:) = Ratden(:,j,1) ; wcomp(:) = Ratden(:,i,1)
+          end if
+          NCcomp = NCcomp + 1
+          ELM(:,:,NCcomp,NEQ) =   achg(i) * achg(j) * aee * amasinv &
+               &                * fem_int(22,FQCcoef,wel)
+          NLC(NCcomp,NEQ) = LQsn(i)
+          NCcomp = NCcomp + 1
+          ELM(:,:,NCcomp,NEQ) = - achg(i) * achg(j) * aee * amasinv &
+               &                * fem_int(22,FQCcoef,wcomp)
+          NLC(NCcomp,NEQ) = LQsn(j)
+       end do
+       NLCMAX(NEQ) = NCcomp
+    end if
+    if( FSTPTM(i) == 4.d0 ) then   ! -T_e grad n_b with Z_z n_z/n_th (see LQe4CC)
+       NCcomp = NLCMAX(NEQ) + 1
+       ELM(:,:,NCcomp,NEQ) = - achg(i) * achgb * rKeV * amasinv * fem_int(32,FQLcoef,Var(:,1)%T,wrt)
+       NLC(NCcomp,NEQ) = LQb1
+       NLCMAX(NEQ) = NCcomp
+    end if
+
+
     if( MDFIXT /= 0 ) then ! Overwrite Pressure gradient force
        if( FSTPTM(i) == 0 ) then
           ELM(:,:,19,NEQ) =   achg(i) * rKeV * amasinv * fem_int(32,FQLcoef,Var(:,1)%T,Ratden(:,i,1))
@@ -2779,6 +3014,15 @@ contains
           ELM(:,:,20,NEQ) =   achg(i) * rKeV * amasinv * fem_int(22,FQLcoef,Var(:,i)%n) &
                &                           * FSVAHL
           NLC(20,NEQ) = LQe5
+
+       else if( FSTPTM(i) == 4.d0 ) then   ! as for the main ions (LQi4CC)
+          ELM(:,:,21,NEQ) =   achg(i) * rKeV * amasinv * fem_int(31,FQLcoef,wrt,Var(:,1)%T) &
+               &                           * (FSVAHL - 1.d0)
+          NLC(21,NEQ) = LQe1
+
+          ELM(:,:,22,NEQ) = - achg(i) * achgb * rKeV * amasinv * FSVAHL &
+               &                           * fem_int(31,FQLcoef,wrt,Var(:,1)%T)
+          NLC(22,NEQ) = LQb1
 
        else
           ELM(:,:,21,NEQ) =   achg(i) * rKeV * amasinv * fem_int(21,FQLcoef,Var(:,1)%T) &
@@ -3106,8 +3350,9 @@ contains
     NLC(3,NEQ) = 0
 
     ! Extracted NBI perpendicular component fallen into the ripple well region
+    ! (only when the ripple trapped ions are solved, FSRP = 1; LQr1 receives it)
 
-    ELM(:,:,4,NEQ) = - fem_int(-2,SNBPDi,rip_rat)
+    ELM(:,:,4,NEQ) = - fem_int(-2,SNBPDi,rip_rat) * RpplSW
     NLC(4,NEQ) = 0
 
     ! Relaxation to thermal ions
@@ -3213,22 +3458,22 @@ contains
 
        ! Collisional friction force with beam ions (self collision)
 
-       ELM(:,:, 3,NEQ) =   (amas(1) / amb) * fem_int(20+L3,lff(:,1,1),Ratden(:,1,4))
+       ELM(:,:, 3,NEQ) =   (amas(1) / amb) * fem_int(2+L3,lff(:,1,1)*Ratden(:,1,4))
        NLC( 3,NEQ) = LQb3
 
        ! Collisional friction force with electrons
 
-       ELM(:,:, 4,NEQ) =   (amas(1) / amb) * fem_int(20+L3,lfb(:,1,1,1),Var(:,1)%n)
+       ELM(:,:, 4,NEQ) =   (amas(1) / amb) * fem_int(2+L3,lfb(:,1,1,1)*Var(:,1)%n)
        NLC( 4,NEQ) = LQe3
 
        ! Collisional friction force with ions
 
-       ELM(:,:, 5,NEQ) =   (amas(1) / amb) * fem_int(20+L3,lfb(:,2,1,1),Var(:,1)%n)
+       ELM(:,:, 5,NEQ) =   (amas(1) / amb) * fem_int(2+L3,lfb(:,2,1,1)*Var(:,1)%n)
        NLC( 5,NEQ) = LQi3
 
        ! Collisional friction force with impurities
 
-       ELM(:,:, 6,NEQ) =   (amas(1) / amb) * fem_int(20+L3,lfb(:,3,1,1),Var(:,1)%n)
+       ELM(:,:, 6,NEQ) =   (amas(1) / amb) * fem_int(2+L3,lfb(:,3,1,1)*Var(:,1)%n)
        NLC( 6,NEQ) = LQz3
 
        ! Electric field forces
@@ -3264,19 +3509,16 @@ contains
        ELM(:,:,13,NEQ) =  amasinv * fem_int(-(1+L3),BSmb)
        NLC(13,NEQ) = 0
 
-       ! Momentum loss due to collisional ripple trapping
-
-       ELM(:,:,14,NEQ) = - fem_int(20+L3,rNubrp2,rip_rat) * RpplSW
-       NLC(14,NEQ) = LQb3
-
-       ! Momentum diffusion arising from beam ion convective flux due to ripple
-
-       ELM(:,:,15,NEQ) = - fem_int(37,sst,BUbparV,Dbrpft)
-       NLC(15,NEQ) = LQb1
+       ! Ripple trapping and ripple diffusion carry no beam momentum at the
+       ! order kept here: the ions scattered into the ripple wells have
+       ! |v_par|/v < sqrt(delta), and the banana ions that diffuse have zero
+       ! bounce-averaged parallel and toroidal momentum up to finite orbit
+       ! width, which this beam fluid (no beam viscosity) does not keep.
+       ! Neither LQb3 nor LQb4 has a ripple term (see doc/tx561.tex).
 
     end if
 
-    NLCMAX(NEQ) = 15
+    NLCMAX(NEQ) = 13
 
   end subroutine LQb3CC
 
@@ -3319,17 +3561,17 @@ contains
 
        ! Collisional friction force with bulk ions
 
-       ELM(:,:, 4,NEQ) =   (amas(1) / amb) * fem_int(20,lfb(:,2,1,1),Ratden(:,1,2))
+       ELM(:,:, 4,NEQ) =   (amas(1) / amb) * fem_int( 2,lfb(:,2,1,1)*Ratden(:,1,2))
        NLC( 4,NEQ) = LQi4
 
        ! Collisional friction force with impurities
 
-       ELM(:,:, 5,NEQ) =   (amas(1) / amb) * fem_int(20,lfb(:,3,1,1),Ratden(:,1,3))
+       ELM(:,:, 5,NEQ) =   (amas(1) / amb) * fem_int( 2,lfb(:,3,1,1)*Ratden(:,1,3))
        NLC( 5,NEQ) = LQz4
 
        ! Collisional friction force with beam ions (self collision)
 
-       ELM(:,:, 6,NEQ) =   (amas(1) / amb) * fem_int(20,lff(:,1,1),Ratden(:,1,4))
+       ELM(:,:, 6,NEQ) =   (amas(1) / amb) * fem_int( 2,lff(:,1,1)*Ratden(:,1,4))
        NLC( 6,NEQ) = LQb4
 
        ! Toroidal E force
@@ -3496,7 +3738,39 @@ contains
 
     ! Diffusion of neutrals
 
-    ELM(:,:,2,NEQ) = - fem_int(27,sst,D01)
+    if( MDLN0FL == 2 ) then
+       ! Larsen limiter evaluated element by element, as for the C0 part of the
+       ! carbon bundle (LQnzCC): from the element mean nbar of n01 and the
+       ! element difference dn of the current iterate,
+       !   D_e = Dbar / (1 + Dbar |dn| sqrt(<|grad V|^2>) / (h FLlim vbar nbar)).
+       ! |dn|/nbar <= 2 on an element, so the factor is bounded by
+       ! 1 + 2 lambda/(3 FLlim h) whatever the local profile.  The limited
+       ! ionization front is exponential with the decay length FLlim lambda
+       ! (5 mm at rho ~ 0.87 with FLlim = 1/4), shorter than an element at
+       ! NRMAX = 60; the nodal form of MDLN0FL = 1 evaluates |grad n|/n on that
+       ! unresolved front and in the tiny-n01 tail inside it, where it is large
+       ! and erratic, and the Picard iteration does not settle.  This form
+       ! needs no relaxation.  D01 itself is left unlimited.
+       block
+         integer(4) :: NE
+         real(8) :: V0aveL, Del, sstl, dn, an
+         V0aveL = sqrt(4.d0 * V0*V0 / Pi)
+         do NE = 1, NEMAX
+            Del  = 0.5d0 * (D01(NE-1) + D01(NE))
+            sstl = 0.5d0 * (sst(NE-1) + sst(NE))
+            dn   = PN01V(NE) - PN01V(NE-1)
+            an   = 0.5d0 * (PN01V(NE-1) + PN01V(NE))
+            if( an > 0.d0 ) Del = Del / (1.d0 + Del * abs(dn) / hv(NE) * sqrt(sstl) &
+                 &                                    / (FLlim * V0aveL * an))
+            ELM(NE,1,2,NEQ) = - sstl * Del / hv(NE)
+            ELM(NE,2,2,NEQ) =   sstl * Del / hv(NE)
+            ELM(NE,3,2,NEQ) =   sstl * Del / hv(NE)
+            ELM(NE,4,2,NEQ) = - sstl * Del / hv(NE)
+         end do
+       end block
+    else
+       ELM(:,:,2,NEQ) = - fem_int(27,sst,D01)
+    end if
     NLC(2,NEQ) = LQn1
 
     ! Ionization by electron impact
@@ -3618,6 +3892,8 @@ contains
   subroutine LQnzCC
 
     integer(4) :: NEQ = LQnz, i = 3, j = 2
+    integer(4) :: NE
+    real(8) :: V0zaveL, Del, sstl, dnC0, anC0, Fel
 
     ELM(:,:,0,NEQ) = fem_int(1) * invDT
     NLC(0,NEQ) = LQnz
@@ -3627,9 +3903,9 @@ contains
     ELM(:,:,1,NEQ) = - fem_int(6,UgV)
     NLC(1,NEQ) = LQnz
 
-    ! Diffusion of neutrals
+    ! Diffusion: Dnzb = D01 (MDLNZD = 0) or Dfs (MDLNZD = 1), set in TXCALC.
 
-    ELM(:,:,2,NEQ) = - fem_int(27,sst,D01)
+    ELM(:,:,2,NEQ) = - fem_int(27,sst,Dnzb)
     NLC(2,NEQ) = LQnz
 
     ! Effective ionization generating C^{6+}
@@ -3660,78 +3936,135 @@ contains
 
     NLCMAX(NEQ) = 8
 
+    ! MDLNZD = 1: the C0 part of the bundle, n_C0, is a known field slaved
+    ! to the sputtering source (see TXCALC).  It adds
+    !   - the C0 flux in excess of the D_c term, -(D_C0 - D_c) dn_C0/dV, and
+    !   - the parallel loss of the charged part n_b - n_C0 in the SOL, of which
+    !     the fraction rGamm0zz comes back as sputtered C0 (as for C6+ above).
+    !
+    ! The C0 flux is assembled element by element, with the Larsen limiter
+    ! evaluated on each element from the element mean of n_C0 and the element
+    ! gradient: at a node, |grad n_C0|/n_C0 is 0/0 at the separatrix, where the
+    ! source and hence n_C0 vanish, and whether rounding left rNuL(NRA) at 0 or
+    ! at 1e-25 decided whether that node got the unlimited D_C0.  The limiter
+    ! acts on the whole D_C0, since it bounds the whole C0 flux by free
+    ! streaming; D_c, whose part of the C0 flux is already in the D_c term,
+    ! is subtracted afterwards, with its sign: the bundle flux is then exactly
+    ! -D_c grad(n_b - n_C0) - D_C0 grad n_C0.  Delta D < 0, which occurs in
+    ! the first element outside the separatrix on fine meshes, where the
+    ! limited D_C0 falls to about alpha vbar_0z h / 2, only removes the D_c
+    ! part of the C0 flux; n_C0 is a known field, so the matrix is unchanged.  The element flux F_e enters the two rows of
+    ! the element as +F_e and -F_e, so the term is exactly conservative.
+    ! fem_int cannot be used here: its coefficients are nodal, while the
+    ! limited diffusivity is defined per element.
+
+    if( MDLNZD == 1 ) then
+       V0zaveL = sqrt(4.d0 * V0z*V0z / Pi)
+       ELM(:,:,9,NEQ) = 0.d0
+       do NE = 1, NEMAX
+          Del  = 0.5d0 * (DC0z(NE-1) + DC0z(NE))
+          sstl = 0.5d0 * (sst(NE-1)  + sst(NE))
+          dnC0 = nC0z(NE) - nC0z(NE-1)
+          anC0 = 0.5d0 * (nC0z(NE-1) + nC0z(NE))
+          if( anC0 > 0.d0 ) Del = Del / (1.d0 + Del * abs(dnC0) / hv(NE) * sqrt(sstl) &
+               &                                    / (FLlim * V0zaveL * anC0))
+          Del  = Del - 0.5d0 * (Dnzb(NE-1) + Dnzb(NE))
+          Fel = sstl * Del * dnC0 / hv(NE)
+          ELM(NE,1,9,NEQ) =   Fel
+          ELM(NE,3,9,NEQ) = - Fel
+       end do
+       NLC(9,NEQ) = 0
+
+       ELM(:,:,10,NEQ) = - (1.d0 - rGamm0zz) * fem_int( 2,rNuL)
+       NLC(10,NEQ) = LQnz
+
+       ELM(:,:,11,NEQ) =   (1.d0 - rGamm0zz) * fem_int(-2,rNuL,nC0z)
+       NLC(11,NEQ) = 0
+       NLCMAX(NEQ) = 11
+    end if
+
   end subroutine LQnzCC
 
 !***************************************************************
 !
-!   Ripple Trapped Beam Ion Density (SUPG)
+!   Ripple Trapped Beam Ion Density
+!
+!     X(:,LQr1) = n_r, the density of the ripple-trapped beam ions inside
+!     the ripple wells, which occupy the fraction g = rip_rat of a flux
+!     surface.  The inventory per unit volume is N_r = g n_r, and the
+!     equation is the conservation law of N_r:
+!
+!       d(g n_r)/dt + d(g U n_r)/dV - d/dV(g K dn_r/dV)
+!         = g S_perp + g nu_2 n_b - g nu_1 n_r - g nu_B n_r,
+!
+!     U = <|grad V|> U_brp (vertical grad-B drift, V space), K = <|grad V|^2> D_brp.
+!     g stays inside every divergence: the flux vanishes where the wells end
+!     (g = 0), and no 1/g appears.  The exchange terms use the element
+!     matrices of LQb1, so n_b + g n_r is conserved exactly.  The advection is
+!     in strong form, so the ions leave at the wall with the flux g U n_r
+!     (the ripple loss); the diffusion has the natural condition.  Nodes with
+!     no well on either side carry the identity dn_r/dt = 0.
 !
 !***************************************************************
 
   subroutine LQr1CC
 
-    integer(4) :: ne, NEQ = LQr1
-    real(8) :: RUbrpl, SDbrpl, peclet, coef
+    integer(4) :: NEQ = LQr1, nr
+    real(8), dimension(0:NRMAX) :: gU
 
-    do ne = 1, nemax
-       RUbrpl = RUbrp(ne-1) + RUbrp(ne)
-       SDbrpl = Dbrp(ne-1)*vv(ne-1) + Dbrp(ne)*vv(ne)
-       if (RUbrpl == 0.d0) then
-          coef = 0.d0
-       elseif (SDbrpl == 0.d0) then
-          coef = 1.d0 / sqrt(15.d0) * hv(ne)
-       else
-          peclet = 0.5d0 * RUbrpl * hv(ne) / SDbrpl
-          coef = 0.5d0 * langevin(peclet) * hv(ne)
-       end if
-       coef=0.d0 !!! no SUPG
-
-       ELM(NE,1:4,0,NEQ) =   fem_int_point(1,NE) * invDT &
-            &              + fem_int_point(8,NE) * coef * invDT
+    if(RpplSW == 0.d0) then
+       ELM(:,:,0,NEQ) = fem_int(1) * invDT
        NLC(0,NEQ) = LQr1
+       NLCMAX(NEQ) = 0
+       return
+    end if
 
-       ! NBI perpendicular particle source (Both charge exchange and ionization)
-       ! (Beam ions by perpendicular NBI have few parallel velocity, hence
-       !  they can be easily trapped by ripple wells if they go into the ripple well region.)
-       !  (M.H. Redi, et al., NF 35 (1995) 1191, p.1201 sixth line from the bottom
-       !   at right-hand-side column)
-       
-       ELM(NE,1:4,1,NEQ) =(  fem_int_point(-1,NE,SNBPDi) &
-            &              + fem_int_point(-8,NE,SNBPDi) * coef) * RpplSW
-       NLC(1,NEQ) = 0
+    gU(0) = 0.d0
+    gU(1:NRMAX) = rip_rat(1:NRMAX) * suft(1:NRMAX) * Ubrp(1:NRMAX)
 
-       ! Ripple trapped beam ions collision with otherwise beam ions
-
-       ELM(NE,1:4,2,NEQ) =(  fem_int_point(2,NE,rNubrp2) &
-            &              + fem_int_point(9,NE,rNubrp2) * coef) * RpplSW
-       NLC(2,NEQ) = LQb1
-
-       ELM(NE,1:4,3,NEQ) =(- fem_int_point(2,NE,rNubrp1) &
-            &              - fem_int_point(9,NE,rNubrp1) * coef) * RpplSW
-       NLC(3,NEQ) = LQr1
-
-       ! Relaxation to thermal ions
-
-       ELM(NE,1:4,4,NEQ) =(- fem_int_point(2,NE,rNuB) &
-            &              - fem_int_point(9,NE,rNuB) * coef) * RpplSW
-       NLC(4,NEQ) = LQr1
-
-       ! Ripple loss transport (convective)
-
-       ELM(NE,1:4,5,NEQ) =(- fem_int_point( 3,NE,RUbrp) &
-            &              - fem_int_point(10,NE,RUbrp) * coef) * RpplSW
-       NLC(5,NEQ) = LQr1
-
-!!rp_conv       ELM(NE,1:4,5,NEQ) = - fem_int_point(2,NE,rNubL)
-!!rp_conv       NLC(5,NEQ) = LQr1
-!!rp_conv       ELM(NE,1:4,5,NEQ) = - fem_int_point(-2,NE,rNubL,PNbrpV)
-!!rp_conv       NLC(5,NEQ) = 0
-
-       ! Ripple loss transport (diffusive)
-
-       ELM(NE,1:4,6,NEQ) = - fem_int_point(27,NE,sst,Dbrp) * RpplSW
-       NLC(6,NEQ) = LQr1
+    ELM(:,:,0,NEQ) = fem_int(2,rip_rat) * invDT
+    do nr = 0, NRMAX
+       if(rip_rat(nr) /= 0.d0) cycle
+       if(nr > 0) then
+          if(rip_rat(nr-1) /= 0.d0) cycle
+       end if
+       if(nr < NRMAX) then
+          if(rip_rat(nr+1) /= 0.d0) cycle
+          ELM(nr+1,1,0,NEQ) = ELM(nr+1,1,0,NEQ) + hv(nr+1) * invDT
+       else
+          ELM(nr,4,0,NEQ) = ELM(nr,4,0,NEQ) + hv(nr) * invDT
+       end if
     end do
+    NLC(0,NEQ) = LQr1
+
+    ! NBI perpendicular particle source falling into the ripple wells
+    ! (M.H. Redi, et al., NF 35 (1995) 1191, p.1201)
+
+    ELM(:,:,1,NEQ) =   fem_int(-2,SNBPDi,rip_rat)
+    NLC(1,NEQ) = 0
+
+    ! Trapping of and detrapping to the ripple-untrapped beam ions
+
+    ELM(:,:,2,NEQ) =   fem_int(20,rNubrp2,rip_rat)
+    NLC(2,NEQ) = LQb1
+
+    ELM(:,:,3,NEQ) = - fem_int(20,rNubrp1,rip_rat)
+    NLC(3,NEQ) = LQr1
+
+    ! Relaxation to thermal ions
+
+    ELM(:,:,4,NEQ) = - fem_int(20,rNuB,rip_rat)
+    NLC(4,NEQ) = LQr1
+
+    ! Ripple loss transport (convective)
+
+    ELM(:,:,5,NEQ) = - fem_int(3,gU)
+    NLC(5,NEQ) = LQr1
+
+    ! Ripple loss transport (diffusive)
+
+    ELM(:,:,6,NEQ) = - fem_int(37,sst,rip_rat,Dbrp)
+    NLC(6,NEQ) = LQr1
 
     NLCMAX(NEQ) = 6
 
@@ -3745,6 +4078,198 @@ contains
 !      NLCR(NC,NQ,1) : outer boundary (virtual wall)
 !
 !***************************************************************
+
+  subroutine dump_axis_LQs8
+
+!   Everything that enters the LQ*8 rows at the first few nodes, so that the
+!   near-axis behaviour of BV_1s can be attributed.  Written once per time step
+!   under IDIAG ones-digit >= 7; nothing here runs otherwise.
+!
+!   The axis row takes contributions from element 1 only.  With f = fipolsdt,
+!   n = n_s and h = hv(1), and the stencils of fem_int ids 2, 5 and 22, it reads
+!
+!     -h/12 [ (3n0+n1) BV0 + (n0+n1) BV1 ]
+!       - (rKilo/Z)(2f0+f1)/6 (p1-p0)
+!       - (3f0n0+f0n1+f1n0+f1n1)/12 (Phi1-Phi0)  =  0
+!
+!   which expands to the continuum relation with an O(h) truncation, so the row
+!   itself converges.  What is dumped here is each of those three pieces as the
+!   code actually forms them, plus the coefficients they are built from.
+
+    use tx_commons, only : IDIAG, NT, NTMAX, NRMAX, NEMAX, hv, vv, sdt, fipol, X, Var, &
+         &                 LQm1, LQe1, LQi1, LQz1, LQe5, LQi5, LQz5, LQe8, LQi8, LQz8, &
+         &                 achg, rKilo
+
+    integer(4), parameter :: NRD = 3
+    integer(4) :: nr, i, NEQ, LQs5, LQs8
+    integer(4), save :: iua, nt_done = -1
+    logical, save :: openeda = .false.
+    real(8) :: rowmass, rowpres, rowphi, rowsum
+
+    if(mod(IDIAG,10) < 7) return
+    if(NT == nt_done) return
+    nt_done = NT
+
+    if(.not. openeda) then
+       openeda = .true.
+       open(newunit=iua, file='tx_axis.dat', status='replace', action='write')
+       write(iua,'(A)') '# LQ*8 near-axis breakdown.  NRMAX, NT, species, NR, then:'
+       write(iua,'(A)') '#   vv  hv  sdt  fipol  fipolsdt  n_s  p_s  Phi'
+       write(iua,'(A)') '#   BLC(NR,1) ALC(NR,1) CLC(NR,1)   [mass, on LQ*8]'
+       write(iua,'(A)') '#   BLC(NR,2) ALC(NR,2) CLC(NR,2)   [pressure, on LQ*5]'
+       write(iua,'(A)') '#   BLC(NR,3) ALC(NR,3) CLC(NR,3)   [potential, on LQm1]'
+       write(iua,'(A)') '#   mass.BV  pres.p  phi.Phi  sum   BV_1s'
+    end if
+
+    do i = 1, 3
+       select case(i)
+       case(1) ; NEQ = LQe8 ; LQs5 = LQe5
+       case(2) ; NEQ = LQi8 ; LQs5 = LQi5
+       case(3) ; NEQ = LQz8 ; LQs5 = LQz5
+       end select
+       do nr = 0, NRD
+          ! the row as assembled, applied to the current X
+          rowmass = BLC(nr,1,NEQ)*X(nr,NEQ)
+          rowpres = BLC(nr,2,NEQ)*X(nr,LQs5)
+          rowphi  = BLC(nr,3,NEQ)*X(nr,LQm1)
+          if(nr < NRMAX) then
+             rowmass = rowmass + ALC(nr,1,NEQ)*X(nr+1,NEQ)
+             rowpres = rowpres + ALC(nr,2,NEQ)*X(nr+1,LQs5)
+             rowphi  = rowphi  + ALC(nr,3,NEQ)*X(nr+1,LQm1)
+          end if
+          if(nr > 0) then
+             rowmass = rowmass + CLC(nr,1,NEQ)*X(nr-1,NEQ)
+             rowpres = rowpres + CLC(nr,2,NEQ)*X(nr-1,LQs5)
+             rowphi  = rowphi  + CLC(nr,3,NEQ)*X(nr-1,LQm1)
+          end if
+          rowsum = rowmass + rowpres + rowphi
+          write(iua,'(4I6,22ES16.8)') NRMAX, NT, i, nr, &
+               & vv(nr), hv(max(nr,1)), sdt(nr), fipol(nr), fipol(nr)/sdt(nr), &
+               & Var(nr,i)%n, X(nr,LQs5), X(nr,LQm1), &
+               & BLC(nr,1,NEQ), ALC(nr,1,NEQ), CLC(nr,1,NEQ), &
+               & BLC(nr,2,NEQ), ALC(nr,2,NEQ), CLC(nr,2,NEQ), &
+               & BLC(nr,3,NEQ), ALC(nr,3,NEQ), CLC(nr,3,NEQ), &
+               & rowmass, rowpres, rowphi, rowsum, X(nr,NEQ)
+       end do
+    end do
+    flush(iua)
+
+  end subroutine dump_axis_LQs8
+
+  subroutine dump_axis_row(NEQ,tagc)
+
+!   Every term of one equation's row at the first few nodes, as assembled and
+!   applied to the current X, so that a non-smooth forcing can be attributed.
+!   Written under IDIAG ones-digit >= 7 alongside dump_axis_LQs8.
+!
+!   For LQz1 this matters because that row has no second-order term at all --
+!   the impurity continuity is first-order advection and reaction -- so n_z is
+!   not smoothed by its own equation and inherits the regularity of whatever
+!   forces it, term by term.
+
+    use tx_commons, only : IDIAG, NT, NRMAX, X, NQMAX
+
+    integer(4), intent(in) :: NEQ
+    character(len=*), intent(in) :: tagc
+    integer(4), parameter :: NRD = 5
+    integer(4) :: nr, nc, nv
+    integer(4), save :: iur, nt_done = -1
+    logical, save :: openedr = .false.
+    real(8) :: contrib(0:NCM), tot
+
+    if(mod(IDIAG,10) < 7) return
+
+    if(.not. openedr) then
+       openedr = .true.
+       open(newunit=iur, file='tx_axis_row.dat', status='replace', action='write')
+       write(iur,'(A)') '# per-term contribution to one row.  eq NRMAX NT NR nterm  then' // &
+            & ' (NLC, contribution) per term, then the total'
+    end if
+
+    do nr = 0, min(NRD,NRMAX)
+       do nc = 0, NLCMAX(NEQ)
+          nv = NLC(nc,NEQ)
+          if(nv == 0) then
+             contrib(nc) = PLC(nr,nc,NEQ)
+          else
+             contrib(nc) = BLC(nr,nc,NEQ) * X(nr,nv)
+             if(nr < NRMAX) contrib(nc) = contrib(nc) + ALC(nr,nc,NEQ) * X(nr+1,nv)
+             if(nr > 0)     contrib(nc) = contrib(nc) + CLC(nr,nc,NEQ) * X(nr-1,nv)
+          end if
+       end do
+       tot = sum(contrib(0:NLCMAX(NEQ)))
+       write(iur,'(A8,4I6,50(I4,ES15.7))') tagc, NRMAX, NT, nr, NLCMAX(NEQ), &
+            & (NLC(nc,NEQ), contrib(nc), nc = 0, NLCMAX(NEQ))
+       write(iur,'(A8,4I6,A,ES15.7)') tagc, NRMAX, NT, nr, -1, '   total', tot
+    end do
+
+  end subroutine dump_axis_row
+
+  subroutine dump_axis_coefs
+
+!   The coefficient arrays that force LQz1 and LQi1, at the first few nodes.
+
+    use tx_commons, only : IDIAG, NT, NRMAX, vv, UgV, SiVsefA, SiVa6A, SiVizA, &
+         &                 rNuL, rNuOL, SiLC, Var, PN01V, PN02V, PN0zV
+
+    integer(4), parameter :: NRD = 5
+    integer(4) :: nr
+    integer(4), save :: iuc2
+    logical, save :: openedc2 = .false.
+
+    if(mod(IDIAG,10) < 7) return
+    if(.not. openedc2) then
+       openedc2 = .true.
+       open(newunit=iuc2, file='tx_axis_coef.dat', status='replace', action='write')
+       write(iuc2,'(A)') '# NRMAX NT NR  vv  UgV  SiVsefA  SiVa6A  SiVizA  rNuL  rNuOL' // &
+            & '  SiLC  Te  ne  nz  n0z'
+    end if
+    do nr = 0, min(NRD,NRMAX)
+       write(iuc2,'(3I6,12ES15.7)') NRMAX, NT, nr, vv(nr), UgV(nr), SiVsefA(nr), &
+            & SiVa6A(nr), SiVizA(nr), rNuL(nr), rNuOL(nr), SiLC(nr), &
+            & Var(nr,1)%T, Var(nr,1)%n, Var(nr,3)%n, PN0zV(nr)
+    end do
+
+  end subroutine dump_axis_coefs
+
+!***************************************************************
+!
+!   Turbulent force of FSTPTM = 2, 3 in the wall row
+!
+!***************************************************************
+
+  !  In FSTPTM = 2 and 3 the pressure-gradient part of the electron-driven
+  !  turbulent force goes through the diamagnetic flow: n BV1 (term 19) and
+  !  n Phi' (term 20), plus (FSVAHL-1)(grad p_e - T_e grad n_e) (terms 21, 22).
+  !  LQe8 defines n_e BV1 = -(I/psi')(p_e'/(Z_e e) + n_e Phi') algebraically, so
+  !  terms 19 + 20 are the direct FQLcoef grad p_e in the continuum and the force
+  !  is FSVAHL grad p_e + (1-FSVAHL) T_e grad n_e, the form of FSTPTM = 0.
+  !
+  !  Discretely the two differ where LQ*8 is solved with the SUPG weights
+  !  N_j + p h N_j' (iSUPG8 = 1) and the force rows with the Galerkin N_i.  At an
+  !  interior node the SUPG moments of the two elements around it cancel to
+  !  O(h^2); the wall node has the last element only, so there the BV1 route is
+  !  off by the order of the LQe8 residual itself.  The particle flux at the wall
+  !  is fixed by the wall row of LQ*4, and the difference appeared as a spurious
+  !  wall flux.  The wall row (test function of node NRMAX) is therefore built in
+  !  the direct-gradient form: terms 19 and 20 are dropped and term 21 becomes
+  !  FSVAHL grad p_e; term 22 already is (1-FSVAHL) T_e grad n_e.  Every species
+  !  takes the same electron force with its weight wgt, so the ambipolar
+  !  structure is kept.  With MDFIXT /= 0 the pressure-gradient force is
+  !  overwritten and this routine is not called.
+
+  subroutine turb_force_wall_row(NEQ, coef, wgt)
+    integer(4), intent(in) :: NEQ
+    real(8), intent(in) :: coef
+    real(8), dimension(0:NRMAX), intent(in) :: wgt
+    real(8), dimension(1:NEMAX,1:4) :: direct
+
+    direct = fem_int(22,FQLcoef,wgt)
+    ELM(NEMAX,3:4,19,NEQ) = 0.d0
+    ELM(NEMAX,3:4,20,NEQ) = 0.d0
+    ELM(NEMAX,3:4,21,NEQ) = coef * FSVAHL * direct(NEMAX,3:4)
+
+  end subroutine turb_force_wall_row
 
   subroutine BOUNDARY(NR,LQ,ID,VAL)
 
@@ -3839,22 +4364,50 @@ contains
 
 !***************************************************************
 !
-!   Approximate Langevin function
+!   Zero density gradient at the wall in constrained-DOF form (MDLWBC = 1)
+!
+!   For a linear system A x = b and the constraint x_N = x_(N-1), write
+!   x = T y with T copying y_(N-1) into x_N; the constrained Galerkin system
+!   is  T^T A T y = T^T b.  T^T adds row N to row N-1, A T adds column N to
+!   column N-1.  In P1 finite elements this is the basis reduction
+!   phi_(N-1) -> phi_(N-1) + phi_N, i.e. functions constant on the last
+!   element, which is the P1 form of dn/drho = 0.
+!
+!   The system is kept square: row N-1 <- row N-1 + row N, and row N is
+!   replaced by the constraint x_N - x_(N-1) = 0 (zero right-hand side).
+!   x_N stays an unknown and the other equations keep their coupling to it,
+!   so the column sum is carried by the constraint.  The time term and its
+!   right-hand side are built from the same ALC/BLC/CLC arrays, and PLC is
+!   folded with them, so the wall half-cell balance is not dropped: the sum
+!   of the rows of the continuity equation, i.e. the global particle
+!   balance, is unchanged.
+!
+!   Band storage: in row NR, ALC, BLC and CLC multiply X(NR+1,v), X(NR,v)
+!   and X(NR-1,v), v = NLC(NC,LQ) (NLCR(NC,LQ,1) in row NRMAX).
 !
 !***************************************************************
 
-  real(8) function langevin(x) result(y)
+  subroutine BOUNDARY_ZEROGRAD(LQ)
 
-    real(8), intent(in) :: x
+    integer(4), intent(in) :: LQ
+    integer(4) :: NC
 
-    if (x < -3.d0) then
-       y = - 1.d0 - 1.d0 / x
-    elseif (x > 3.d0) then
-       y =   1.d0 - 1.d0 / x
-    else
-       y = x / 3.d0 * (1.d0 - abs(x) / 9.d0)
-    end if
+    do NC = 0, NLCMAX(LQ)
+       if( NLCR(NC,LQ,1) /= NLC(NC,LQ) ) stop 'BOUNDARY_ZEROGRAD: NLCR /= NLC'
+       BLC(NRMAX-1,NC,LQ) = BLC(NRMAX-1,NC,LQ) + CLC(NRMAX,NC,LQ)
+       ALC(NRMAX-1,NC,LQ) = ALC(NRMAX-1,NC,LQ) + BLC(NRMAX,NC,LQ)
+       if( NC >= 1 ) PLC(NRMAX-1,NC,LQ) = PLC(NRMAX-1,NC,LQ) + PLC(NRMAX,NC,LQ)
+    end do
 
-  end function langevin
+    ALC(NRMAX,:,LQ) = 0.d0
+    BLC(NRMAX,:,LQ) = 0.d0
+    CLC(NRMAX,:,LQ) = 0.d0
+    PLC(NRMAX,:,LQ) = 0.d0
+
+    NLCR(1,LQ,1) = LQ
+    BLC(NRMAX,1,LQ) =   1.d0
+    CLC(NRMAX,1,LQ) = - 1.d0
+
+  end subroutine BOUNDARY_ZEROGRAD
 
 end module tx_coefficients

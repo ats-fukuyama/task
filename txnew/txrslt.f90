@@ -72,13 +72,13 @@ contains
     end do
 
     ! Beam ion
-    ANFINT = intg_vol(PNbV) + intg_vol(PNbrpV)
+    ANFINT = intg_vol(PNbV) + intg_vol(rip_rat * PNbrpV)
     if(ANFINT > 0.d0) then
        RWINT  = intg_vol(SNB/rNuB)
        !     WFT(1) = 0.5d0*AMb*amp*RWINT**2*1.5d0*2.d0*PI*RR*2.d0*PI*elip(NRA)*1.D-6!rKeV*1.D14
        WFT(1) = 0.5d0*RWINT*Eb*rKeV*1.d20*toMega ! [MJ]
        ANFAV(1) = ANFINT / volume 
-       ANF0(1)  = PNbV(0) + PNbrpV(0)
+       ANF0(1)  = PNbV(0) + rip_rat(0) * PNbrpV(0)
        TFAV(1)  = 0.5d0*RWINT*Eb/ANFINT ! [keV]
        if(ANF0(1) > 0.d0) TF0(1) = SNB(0)/ANF0(1)
     else
@@ -559,6 +559,52 @@ contains
     total_ion_save = total_ion
 
   end subroutine cal_flux
+
+
+!***********************************************************
+!
+!   Particle sources through the SOL and the wall
+!
+!***********************************************************
+
+  !  Particle sources and sinks of the bulk ions and the impurity in 1e20/s, split by
+  !  path: the SOL parallel loss nu_L (n_s - n_SUP,s) and its target recycling to the
+  !  neutrals (rGamm0, rGamm0zz, rGamm0iz, as in LQn1 and LQnz), the radial fluxes
+  !  through the wall rho_b and their main-wall recycling (RWALL, RWALLZ, RWALLIZ), the
+  !  gas puff and the ionization of the bulk neutrals.  The integrals are those of the
+  !  element matrices, so they close with the equations.
+
+  subroutine particle_source_balance(iu)
+
+    use tx_commons, only : NRMAX, T_TX, Var, PNbV, UbrVV, achg, achgb, rNuL, PNsSUP, &
+         &                 rGamm0, rGamm0zz, rGamm0iz, RWALL, RWALLZ, RWALLIZ, &
+         &                 rGASPF, rGASPFz, suft, SIET
+    use tx_core_module, only : fem_int
+    implicit none
+    integer(4), intent(in) :: iu
+    integer(4) :: i
+    real(8) :: Gw(1:3), Gbw, sol(2:3), sumnul, qwall
+
+    do i = 1, 3
+       Gw(i) = Var(NRMAX,i)%n * Var(NRMAX,i)%UrV
+    end do
+    Gbw = PNbV(NRMAX) * UbrVV(NRMAX)
+    sumnul = sum(fem_int(-1,rNuL))
+    do i = 2, 3
+       sol(i) = sum(fem_int(-2,rNuL,Var(:,i)%n)) - PNsSUP(i) * sumnul
+    end do
+    qwall = sum(achg(1:3) * Gw(1:3)) + achgb * Gbw
+
+    write(iu,'(1X,A,ES12.5)') '# Particle sources through the SOL and the wall [1e20/s], t =', T_TX
+    write(iu,'(1X,A,4ES12.4)') '  wall flux e, i, z, b        :', Gw(1:3), Gbw
+    write(iu,'(1X,A,ES12.4)')  '  net charge flux at the wall :', qwall
+    write(iu,'(1X,A,2ES12.4)') '  SOL parallel loss i, z      :', sol(2), sol(3)
+    write(iu,'(1X,A,4ES12.4)') '  n01 : target, wall, puff, ionization     :', rGamm0 * sol(2), &
+         & RWALL * max(Gw(2),0.d0), suft(NRMAX) * rGASPF, SIET * 1.d-20
+    write(iu,'(1X,A,5ES12.4)') '  n0z : target zz, iz, wall zz, iz, puff   :', rGamm0zz * sol(3), &
+         & rGamm0iz * sol(2), RWALLZ * max(Gw(3),0.d0), RWALLIZ * max(Gw(2),0.d0), suft(NRMAX) * rGASPFz
+
+  end subroutine particle_source_balance
 
 end module tx_glob
 
