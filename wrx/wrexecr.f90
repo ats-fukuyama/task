@@ -33,10 +33,16 @@ CONTAINS
 
        CALL wr_setup_start_point(NRAY,RAYS(0,0,NRAY),nstp,IERR)
        nstpmax_nray(nray)=nstp
-       IF(IERR.NE.0) CYCLE
+       IF(IERR.NE.0) THEN
+          WRITE(6,*) 'XXX wreexecr:37: IERR=',IERR
+          CYCLE
+       END IF
        CALL wr_exec_single_ray(NRAY,RAYS(0,0,NRAY),nstp,IERR)
        nstpmax_nray(nray)=nstp
-       IF(IERR.NE.0) CYCLE
+       IF(IERR.NE.0) THEN
+          WRITE(6,*) 'XXX wreexecr:43: nstp,IERR=',nstp,IERR
+          CYCLE
+       END IF
 
        DO nsa=1,nsamax_wr
           DO nstp=0,nstpmax_nray(nray)
@@ -135,6 +141,12 @@ CONTAINS
     XP=RP*COS(PHI)
     YP=RP*SIN(PHI)
     rk=rkv*rnk
+
+    ! --- poloidal angle fixed
+    !       rk_z = rk*sin angp
+    !       rk_xy= rk*cos angp
+    !       rk_x=  rk_xy*sin angt
+    !       rk_y=  rk_xy*cos angt
 
     SELECT CASE(MOD(mdlwri,10))
     CASE(1)
@@ -433,6 +445,7 @@ CONTAINS
     END DO
 
     IF(idebug_wr(7).NE.0) THEN
+       WRITE(6,'(A)') '*** idebug_wr(7): wr_setup_start_point: '
        CALL wr_cal_ep(nstp,nray,cepola,cenorm,err)
        WRITE(6,'(A,2i6)') 'polarization: nstp,nray=',nstp,nray
        WRITE(6,'(A,6ES12.4)') 'CEXYZ:',cepola(1),cepola(2),cepola(3)
@@ -612,7 +625,7 @@ CONTAINS
     REAL(rkind):: Y(NEQ)
     REAL(rkind):: YM(NEQ),WORK(2,NEQ),YK(3)
     INTEGER:: NSTPLIM,NSTPMIN,NSTP,I
-    REAL(rkind):: X0,XE,PW,DELTA,RHON,R,RF,omega
+    REAL(rkind):: X0,XE,PW,DELTA,RHON,R,Z,RF,omega
 
     RF=wr_nray_status%RF
     omega=2.D6*PI*RF
@@ -639,8 +652,11 @@ CONTAINS
        WRITE(6,'(A,4ES12.4)') '      y4,y5,y6,y7 =',Y(4),Y(5),Y(6),Y(7)
     END IF
 
+    WRITE(6,*) '@@@ point wr001'
+
     CALL wr_write_line(NSTP,X0,Y,YN(8,NSTP))
 
+    WRITE(6,*) '@@@ point wr002'
     DO NSTP = nstp_start+1,NSTPLIM
        PW=Y(7)
        R=SQRT(Y(1)**2+Y(2)**2)
@@ -654,13 +670,16 @@ CONTAINS
           WRITE(6,'(A,4ES12.4)') '      y4,y5,y6,y7 =',YM(4),YM(5),YM(6),YM(7)
        END IF
 
+       WRITE(6,*) '@@@ point wr003'
        DELTA=DISPXR(YM(1),YM(2),YM(3),YM(4),YM(5),YM(6),omega)
+       WRITE(6,*) '@@@ point wr004'
        IF (ABS(DELTA).GT.1.0D-6) THEN
           CALL WRMODNWTN(YM,omega,YK)
           DO I=1,3
              YM(I+3) = YK(I)
           END DO
        END IF
+       WRITE(6,*) '@@@ point wr005'
 
        YN(0,NSTP)=XE
        DO I=1,7
@@ -669,7 +688,9 @@ CONTAINS
        pwr_nsa_nstp(1,nstp)=PW-YM(7)
        YN(8,NSTP)=PW-YM(7)
 
+       WRITE(6,*) '@@@ point wr006'
        CALL wr_write_line(NSTP,XE,YM,YN(8,NSTP))
+       WRITE(6,*) '@@@ point wr007'
 
        DO I=1,7
           Y(I)=YM(I)
@@ -677,23 +698,35 @@ CONTAINS
        X0=XE
        XE=X0+DELS
        R=SQRT(Y(1)**2+Y(2)**2)
+       Z=Y(3)
+       WRITE(6,*) '@@@ point wr008'
        IF(Y(7).LT.UUMIN.OR. &
          (NSTP.GT.NSTPMIN.AND. &
          (R.GT.Rmax_wr.OR. &
           R.LT.Rmin_wr.OR. &
-          Y(3).GT.Zmax_wr.OR. &
-          Y(3).LT.Zmin_wr))) THEN
+          Z.GT.Zmax_wr.OR. &
+          Z.LT.Zmin_wr))) THEN
           nstp_end = NSTP
+          WRITE(6,'(A,I8)')      '*** WRRKFT_WITHD0: line 701'
+          WRITE(6,'(A,2ES12.4)') '       Y(7),UUMIN:',Y(7),UUMIN
+          WRITE(6,'(A,2I12)')    '     NSTP,NSTPMIN:',NSTP,NSTPMIN
+          WRITE(6,'(A,2ES12.4)') '        R,Rmax_wr:',R,Rmax_wr
+          WRITE(6,'(A,2ES12.4)') '        R,Rmin_wr:',R,Rmin_wr
+          WRITE(6,'(A,2ES12.4)') '        Z,Zmax_wr:',Z,Zmax_wr
+          WRITE(6,'(A,2ES12.4)') '        Z,Zmin_wr:',Z,Zmin_wr
           GOTO 11
        ENDIF
-       IF(MODELG.LE.10) THEN
-          CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
-          IF(RHON.GT.RB/RA*RKAP) THEN
-             nstp_end = NSTP
-             GOTO 11
-          ENDIF
-       END IF
+       WRITE(6,*) '@@@ point wr009'
+!       IF(MODELG.LE.10) THEN
+!          CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
+!          IF(RHON.GT.RB/RA*RKAP) THEN
+!            nstp_end = NSTP
+!            WRITE(6,*) '@@@ point wr011:RHON,RB/RA*RKAP:',RHON,RB/RA*RKAP
+!            GOTO 11
+!         ENDIF
+!       END IF
     END DO
+    WRITE(6,*) '@@@ point wr012'
     nstp_end=NSTPLIM
  
 11  IF(YN(7,nstp_end).LT.0.D0) YN(7,nstp_end)=0.D0

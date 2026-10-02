@@ -13,7 +13,7 @@ MODULE libpdkf_eul
 CONTAINS
 
   
-  !   ***** plasma dispersion kernel function (Euler transformation) *****
+  !   ***** plasma dispersion kernel function (with Euler transformation) *****
   !             real part: 0-pai/2, pai/2-3*pai/2, 3*pai/2-5*pai/2,...
   !             imag part: 0-pai, pai-2*pai, 2*pai-3*pai,...
 
