@@ -1,0 +1,44 @@
+\section{プラズマ輸送解析 ({\tt wffvol})}
+\begin{enumerate}
+\item
+機能
+\begin{itemize}
+\item
+プラズマの密度，温度，電位に対する発展方程式を，有限要素法を用いて連
+立方程式 $\mathbf{A}\cdot\vec{x}=\vec{b}$ に帰着し，それを解く．
+\end{itemize}
+
+\item
+手順
+\begin{enumerate}
+\item
+前処理
+\begin{itemize}
+\item
+DVDBND: \t{KBND(IN)}, \t{IBND(IN)} の設定，係数行列の長さ・幅の計算
+\item
+DVCALC: 右辺ベクトル $\vec{b}$ を計算
+\end{itemize}
+\item
+計算
+\begin{itemize}
+\item
+DVSOLV: 係数行列 $\mathbf{A}$ を要素毎に計算し，係数が計算された行から
+上三角帯行列に変換し，すべての行を変換後に後退代入によって $\vec{x}$ 
+を求める．
+\par\quad
+DMCALC: 各要素毎に行列方程式の係数を計算する．
+\par\quad\quad
+WFCOEF: 各節点における輸送係数を計算する．
+\end{itemize}
+\item
+後処理
+\begin{itemize}
+\item
+DALFLD: 解ベクトル $\vec{x}$ から，密度，温度，電位を計算する．
+\item
+WFEVST: 時間変化する変数を保存する．
+\end{itemize}
+\end{enumerate}
+\end{enumerate}
+

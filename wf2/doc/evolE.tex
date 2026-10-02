@@ -1,0 +1,47 @@
+\section{Transport analysis ({\tt wffvol})}
+\begin{enumerate}
+\item
+Function
+\begin{itemize}
+\item
+Time evolution equation for plasma density, temperature, and potential is
+reduced to a simultaneous equation $\mathbf{A}\cdot\vec{x}=\vec{b}$
+using the finite element method, and solve it numerically
+\end{itemize}
+
+\item
+Procedure
+\begin{enumerate}
+\item
+Pre-processing
+\begin{itemize}
+\item
+DVDBND: setup attribute, \t{KBND(IN)} and \t{IBND(IN)}, and calculate the
+width and length of the band coefficeint matrix.
+\item
+DVCALC: Calculate right-hand-side vector $\vec{b}$.
+\end{itemize}
+\item
+Solver
+\begin{itemize}
+\item
+DVSOLV: Calculate coefficient matrix $\mathbf{A}$ for each element,
+translate the calculated line to a upper triangular band matrix, and
+obtain $\vec{x}$ by backward substitution after translation completed.
+\par\quad
+DMCALC: Calculate coefficient matrix $\mathbf{A}$ for each element.
+\par\quad\quad
+WFCOEF: Calculate diffusion coefficient on the note.
+\end{itemize}
+\item
+Post-processing
+\begin{itemize}
+\item
+DALFLD: Calculate density, temperature and eletrostatic potential from
+the solution vector $\vec{x}$.
+\item
+WFEVST: Save varying variables.
+\end{itemize}
+\end{enumerate}
+\end{enumerate}
+

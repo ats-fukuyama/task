@@ -1,0 +1,87 @@
+\section{Division of elements ({\tt wfdiv})}
+\begin{enumerate}
+\item
+Function
+\begin{itemize}
+\item[D:]
+creation of node and element data
+\item[G:]
+graphic output of node and element data
+\item[W:]
+numerical output of node and element data
+\item[S:]
+save node and element data to a file
+\item[L:]
+load node and element data from a file
+\item[X:]
+exit
+\end{itemize}
+
+\item
+Type of division
+\begin{itemize}
+\item[X:]
+One rectangular
+\\\qquad BXMIN, BXMAX (minimum of $x$, maximum of $x$)
+\\\qquad BYMIN, BYMAX (minimum of $y$, maximum of $y$)
+\item[R:]
+Multi rectangular
+\\\qquad NYQMAX (number of YPOS data)
+\\\qquad\quad YPOS ($y$ position)
+\\\qquad\quad NXQMAX (number of XPOS data for $y$=YPOS)
+\\\qquad\quad\quad XPOS ($x$ position)
+\\\quad Divide in rectangulars
+\item[P:]
+One quadrangle (oblique shape, xmin = 0)
+\\\qquad BXMIN, BXMAX (xmax at BYMIN, xmax at BYMAX)
+\\\qquad BYMIN, BYMAX (minimum of $y$, maximum of $y$)
+\item[M:]
+Axisymmetric mirror
+\\\qquad BXMIN, BXMAX, BYMIN, BYMAX
+\\\qquad Divide in magnetic surface shape of axisymmetric mirror
+\item[V:]
+Translational mirror
+\\\qquad BXMIN, BXMAX, BYMIN, BYMAX
+\\\qquad Divide in magnetic surface shape of one-dimensional mirror
+\item[C:]
+Circular
+\\\qquad RB (wall radius)
+\item[T:]
+Tokamak (poloidal cross section)
+\\\qquad RB, BKAP, BDEL (wall radius, ellipticity, triangularity)
+\item[H:]
+Linear helical
+\\\qquad RB, BXMIN, BXMAX (wall radius, minimum $x$, maximum $x$)
+\end{itemize}
+
+\item
+Division step
+\begin{itemize}
+\item
+Divide with step less than DELX and DELY
+\end{itemize}
+
+\item
+Created data
+\begin{itemize}
+\item
+Position of nodes: \t{XD(IN)}, 
+\begin{itemize}
+\item
+\t{YD(IN)}\t{IN} = node number, 
+\quad maximum: \t{NNOD}
+\end{itemize}
+
+\item
+Node numbers of a triangular element: \t{IELM(3,IE)}
+\begin{itemize}
+\item
+\t{IE} = Element number
+\quad maximum: \t{NELM}
+\item
+anti-clock wise: 1, 2, 3
+\end{itemize}
+\end{itemize}
+
+\end{enumerate}
+

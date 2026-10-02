@@ -1,0 +1,151 @@
+0
+f
+gsdata.W
+c
+p
+ &wm modelg=0,modelp=0,q0=1.D8,qa=1.D8,nph0=10,mdlwmf=2
+     pn=0,0,pns=0,0,
+     modelj=21 nth0=0 &end
+r
+g
+rea
+x
+p
+ &wm modelj=21 nth0=1 &end
+r
+g
+rea
+x
+p
+ &wm modelj=21 nth0=2 &end
+r
+g
+rea
+x
+p
+ &wm modelj=21 nth0=3 &end
+r
+g
+rea
+x
+p
+ &wm modelj=31 nth0=0 &end
+r
+g
+rea
+x
+p
+ &wm modelj=31 nth0=1 &end
+r
+g
+rea
+x
+p
+ &wm modelj=31 nth0=2 &end
+r
+g
+rea
+x
+p
+ &wm modelj=31 nth0=3 &end
+r
+g
+rea
+x
+p
+ &wm modelj=22 nth0=0 &end
+r
+g
+rea
+x
+p
+ &wm modelj=22 nth0=1 &end
+r
+g
+rea
+x
+p
+ &wm modelj=22 nth0=2 &end
+r
+g
+rea
+x
+p
+ &wm modelj=22 nth0=3 &end
+r
+g
+rea
+x
+p
+ &wm modelj=32 nth0=0 &end
+r
+g
+rea
+x
+p
+ &wm modelj=32 nth0=1 &end
+r
+g
+rea
+x
+p
+ &wm modelj=32 nth0=2 &end
+r
+g
+rea
+x
+p
+ &wm modelj=32 nth0=3 &end
+r
+g
+rea
+x
+p
+ &wm modelj=23 nth0=0 &end
+r
+g
+rea
+x
+p
+ &wm modelj=23 nth0=1 &end
+r
+g
+rea
+x
+p
+ &wm modelj=23 nth0=2 &end
+r
+g
+rea
+x
+p
+ &wm modelj=23 nth0=3 &end
+r
+g
+rea
+x
+p
+ &wm modelj=33 nth0=0 &end
+r
+g
+rea
+x
+p
+ &wm modelj=33 nth0=1 &end
+r
+g
+rea
+x
+p
+ &wm modelj=33 nth0=2 &end
+r
+g
+rea
+x
+p
+ &wm modelj=33 nth0=3 &end
+r
+g
+rea
+x
+q

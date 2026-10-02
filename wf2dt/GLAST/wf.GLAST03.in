@@ -1,0 +1,99 @@
+0
+f
+wf.GLAST03.gs
+c
+p
+&wf
+RF=2450
+RR=0.20
+RA=0.10
+BB=0.055
+NPH=0
+PZCL(1)=0.0d-3
+PZCL(2)=0.0d-3
+PPN0=1.D0
+PTN0=0.03D0
+NDRAWE=1
+NGRAPH=1
+NGXMAX=151
+NGYMAX=151
+ AJ(1)=0.D0
+ r1wg=0.31
+ z1wg=-0.1
+ r2wg=0.32
+ z2wg=0.1
+ ph1wg=0.D0
+ ph2wg=0.D0
+ AMPWG=1.D0
+ ANGWG=0.0
+GFACTOR=0.5
+&end
+v
+d
+d
+c
+0.12
+0.005
+#g
+x
+a
+a
+1
+a
+40.0,-40.0,0.11,41
+g
+x
+###
+p
+&wf
+ANGWG=0.D0
+PN(1)=0.0D-4
+PN(2)=0.0D-4
+&end
+w
+g
+ME
+x
+###
+p
+&wf
+PPN0=0.001D0
+PN(1)=1.0D-5
+PN(2)=1.0D-5
+&end
+w
+g
+ME
+x
+###
+PPN0=0.01D0
+w
+g
+ME
+x
+###
+PPN0=0.1D0
+w
+g
+ME
+x
+###
+PPN0=1.D0
+w
+g
+ME
+x
+###
+PPN0=10.D0
+w
+g
+ME
+x
+###
+PPN0=100.D0
+w
+g
+ME
+x
+###
+q

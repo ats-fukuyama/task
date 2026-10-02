@@ -1,0 +1,161 @@
+\def\Xa{$\mathtt{X}_1$}
+\def\Xb{$\mathtt{X}_2$}
+\def\Xc{$\mathtt{X}_3$}
+
+\section{Graphic output ({\tt wfgout})}
+Indicate graphics of spatial profile and time evolution.  One graphic
+control command separated by a space corresponds to one figure.
+Multiple figures are drawn on a page by writing a number of commands in a
+line.
+
+\subsection{Example of input data}
+\begin{itemize}
+\item[]
+Example 1: \t{EXR EYI EZA}
+\begin{itemize}
+\item
+The following three figures are drawn on a page.
+\item[]
+Contour of the real part of the $x$ component of the wave electric
+filed $E_x$
+\item[]
+Contour of the imaginary part of the $x$ component of the wave electric
+filed $E_x$
+\item[]
+Contour of the absolute value of the $z$ component of the wave electric
+filed $E_z$
+\end{itemize}
+
+\item[]
+Example 2: \t{EYX0.0 PTEC PNIY0.0}
+\begin{itemize}
+\item[]
+$x$ dependence of the $y$ component of the wave electric field $E_y$ at $y=0.0$
+\item
+Contour of electron temperature
+\item
+$y$ dependence of the ion density at $x=0.0$
+\end{itemize}
+
+\item[]
+Example.3: \t{TN1}
+\begin{itemize}
+\item[]
+Time dependence of the electron density (solid line: average, dashed line:
+maximum, broken line: minimum)
+\end{itemize}
+
+\item[]
+Example 4: \t{5}
+\begin{itemize}
+\item[]
+Profiles of electrostatic potential, density, temperature
+\item
+Character strings defined by \t{KGINX(5)} in \t{WFINIT}.
+\end{itemize}
+\end{itemize}
+
+
+\subsection{Definition of graphic control command}
+\begin{tabular}{ll}
+\t{E}\Xa\Xb & spatial profile of wave E \\
+\t{B}\Xa\Xb & spatial profile of wave B \\
+\t{A}\Xa\Xb & spatial profile of wave potential \\
+\t{P}\Xa\Xb\Xc & spatial profile of plasma quantities \\
+\t{T}\Xa\Xb & time evolution of plasma quantities \\
+$n$            & combination of pre-defined string in (\t{KGINX}) \\
+\t{V}$n$       & combination of pre-defined string in (\t{KGINV}) \\
+\t{G}$n$       & type of graphic output \\
+\t{L}$n$       & number of figures in horizontal direction on a page \\
+\t{X}          & exit
+\end{tabular}
+
+\subsection{\t{E/B/A}}
+\begin{itemize}
+\item
+\Xa
+\begin{tabular}[t]{ll}
+\t{X} & x ê¨ï™ \\
+\t{Y} & y ê¨ï™ \\
+\t{Z} & z ê¨ï™ \\
+\t{+} & âEâÒÇËïŒîgê¨ï™ \\
+\t{-} & left-hand-side polarization component \\
+\t{P} & parallel component
+\end{tabular}
+
+\item
+\Xb
+\begin{tabular}[t]{ll}
+\t{R} & Contour of real part \\
+\t{I} & Contour of imaginary part \\
+\t{A} & Contour of absolute value \\
+\t{Xpos} & $x$ dependence at $y=\t{pos}$ \\
+\t{Ypos} & $y$ dependence at $x=\t{pos}$
+\end{tabular}
+\end{itemize}
+
+\subsection{\t{P}: spatial profile}
+\begin{itemize}
+\item
+\Xa
+\begin{tabular}[t]{ll}
+\t{P} & Absorbed power density \\
+\t{N} & Particle number density \\
+\t{T} & Temperature \\
+\t{B} & Magnetic field strength and flux \\
+\t{M} & Pressure \\
+\t{G} & Drift velocity \\
+\t{S} & Surface electric charge density \\
+\t{F} & Electrostatic potential \\
+\t{C} & Electrical charge density \\
+\t{R} & Collision frequency \\
+\t{U} & Parallel mobility: mu-para \\
+\t{V} & perpendicular mobility: mu-perp \\
+\t{D} & Particle diffusion coefficient: D-para \\
+\t{E} & Particle diffusion coefficient: D-perp \\
+\t{H} & Thermal diffusion coefficient: chi-para \\
+\t{K} & Thermal diffusion coefficient: chi-perp \\
+\t{I} & Ionization particle source
+\end{tabular}
+
+\item
+\Xb
+\begin{tabular}[t]{ll}
+\t{E} & Electron component \\
+\t{I} & Ion component \\
+\t{1} & First component (usually = electron) \\
+\t{2} & Second component (usually = ion)
+\end{tabular}
+
+\item
+\Xc
+\begin{tabular}[t]{ll}
+\t{C} & Contour plot \\
+\t{Xpos} & $x$ dependence at $y=\t{pos}$ \\
+\t{Ypos} & $y$ dependence at $x=\t{pos}$
+\end{tabular}
+\end{itemize}
+
+\subsection{\t{T}: time evolution}
+\begin{itemize}
+\item
+\Xa
+\begin{tabular}[t]{ll}
+\t{N} & particle density \\
+\t{T} & temperature \\
+\t{F} & electrostatic potential \\
+\t{P} & absorbed power
+\end{tabular}
+
+\item
+\Xb
+\begin{tabular}[t]{ll}
+\t{E} & Electron component \\
+\t{I} & Ion componentê¨ï™ \\
+\t{0} & not relevant (e.g. electrostatic potential)\\
+\t{1} & First component (usually = electron component) \\
+\t{2} & Second component (usually = ion component)
+\end{tabular}
+
+\end{itemize}
+

@@ -4,7 +4,7 @@
 !=======================================================================
       module equnit
       use eqbpsd
-      public eq_init,eq_parm,eq_calc,eq_load,eq_gout
+      public eq_init,eq_parm,eq_prof,eq_calc,eq_load,eq_gout
       private
       contains
 !=======================================================================
@@ -27,6 +27,15 @@
       call eqparm(mode,kin,ierr)
       return
       end subroutine eq_parm
+!=======================================================================
+!            setup  profile
+!-----------------------------------------------------------------------
+      subroutine eq_prof
+
+      implicit none
+!-----------------------------------------------------------------------
+      return
+      end subroutine eq_prof
 !=======================================================================
 !            calculate equilibrium
 !-----------------------------------------------------------------------
@@ -90,10 +99,7 @@
 
       implicit none
 !-----------------------------------------------------------------------
-!     MODE=1: the coupled eq_calc has done EQCALC+EQCALQ (same as the
-!     standalone solve), so both the (sigma,theta) GS solution (C series)
-!     and the flux-surface-averaged quantities (S series) are available.
-      call eqgout(1)
+      call eqgout(0)
       return
       end subroutine eq_gout
 !=======================================================================

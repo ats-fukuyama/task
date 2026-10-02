@@ -1,0 +1,181 @@
+\section{Creation of attribute data ({\tt wfzone})}
+\begin{enumerate}
+\item
+Function
+\begin{itemize}
+\item[Z:]
+creation of attribute data
+\item[G:]
+graphic output of attribute data
+\item[W:]
+numerical output of attribute data
+\item[S:]
+save attribute data to a file
+\item[L:]
+load attribute data from a file
+\item[X:]
+exit
+\end{itemize}
+
+\item
+Creation of attribute data
+\begin{itemize}
+\item[D:]
+Definition of element attribute data
+\begin{itemize}
+\item
+NDMAX: number of data
+\item
+ND,ID,XMIN,XMAX,YMIN,YMAX: element zone number, attribute of element,
+zone area
+\item
+Define element attribute of the elements in the zone
+\begin{itemize}
+\item
+ID=0: plasma (default)
+\item
+ID=1: vacuum
+\item
+ID$>$1: dielectric of specified dielectric attribute
+\end{itemize}
+\end{itemize}
+
+\item[E:]
+Definition of dielectric attribute
+\begin{itemize}
+\item
+NMMAX: number of dielectric attribute
+\item
+NM,EPSD: dielectric attribute number, relative dielectric constant
+\item
+Define relative dielectric constant for dielectric attribute number
+\end{itemize}
+
+\item[M:]
+Definition of permitive/dielectric/resistive attribute
+\begin{itemize}
+\item
+NMMAX: number of material attribute
+\item
+NM: dielectric attribute number
+\item
+EPSD: relative dielectric constant
+\item
+RMUD: relative permittivity constant
+\item
+SIGD: resisivity
+\end{itemize}
+
+\item[A:]
+Definition of wave boundary attribute
+\begin{itemize}
+\item
+NBMAX: number of wave boundary attributes
+\item
+NB,ID,XMIN,XMAX,YMIN,YMAX: wave boundary attribute number, type of
+wave boundary attribute, zone area
+\item
+Define wave boundary attribute of the boundary nodes in the zone
+\begin{itemize}
+\item
+ID=0: in the plasma (default)
+\item
+ID=1: boundary between plasma and conductor with potential 0
+\item
+ID=2: boundary between plasma and conductor with potential PHIW
+\item
+ID=3: boundary between plasma and conductor with potential continuously
+varying from 0 to PHIW
+\item
+\end{itemize}
+\end{itemize}
+
+\item[B:]
+Define transport boundary attribute
+\begin{itemize}
+\item
+NBMAX: number of transport boundary attributes
+\item
+NB,ID,XMIN,XMAX,YMIN,YMAX: transport boundary attribute number,
+transport boundary attribute, zone area
+\item
+Define transport boundary attribute of the boundary nodes in the zone
+\begin{itemize}
+\item
+ID=0: in a plasma (default)
+\item
+ID=1: boundary between plasma and conductor with potential 0
+\item
+ID=2: boundary between plasma and conductor with potential PHIES
+\item
+ID=3: boundary between plasma and conductor with potential
+continuously varying from 0 to PHIES.
+\item
+ID=4: boundary between plasma and conductor with potential oscillating
+with amplitude PHIES and frequency RFES
+\item
+ID=5: boundary between plasma and conductor with potential oscillating
+with amplitude varying form 0 to PHIES and frequency RFES
+\item
+ID=8: boundary between plasma and dielectric (insulator) without
+surface charge
+\item
+ID=9: boundary between plasma and dielectric (insulator) with
+surface charge
+\item
+ID=10: vacuum or dielectric (default)
+\item
+ID=11: boundary between vacuum/dielectric and conductor with potential 0
+\item
+ID=12: boundary between vacuum/dielectric and conductor with potential PHIES
+\item
+ID=13: boundary between vacuum/dielectric and conductor with potential
+continuously varying from 0 to PHIES.
+\item
+ID=14: boundary between vacuum/dielectric and conductor with potential oscillating
+with amplitude PHIES and frequency RFES
+\item
+ID=15: boundary between vacuum/dielectric and conductor with potential oscillating
+with amplitude varying form 0 to PHIES and frequency RFES
+\end{itemize}
+\end{itemize}
+
+\item[W:]
+Definition of wave boundary potential variation
+\begin{itemize}
+\item
+NVMAX: number of wave boundary potential variation
+\item
+NV,XMIN,XMAX,YMIN,YMAX: wave boundary potential variation number, wave
+boundary potential variation, zone area
+\item
+For wave boundary attribute ID=3, define the range of
+wave potential varying
+\\\qquad only NV=1 is available at present
+\\\qquad wave potential = 0 at X=XMIN, Y=YMIN
+\\\qquad and PHIW at X=XMAX, Y=YMAX
+\end{itemize}
+
+\item[P:]
+Definition of transport boundary potential variation
+\begin{itemize}
+\item
+NVMAX: number of transport boundary potential variation
+\item
+NV,XMIN,XMAX,YMIN,YMAX: transport boundary potential variation number,
+transport boundary potential variation, zone area
+\item
+For wave boundary attribute ID=3, 5, 13, 15, define the range of
+transport potential varying
+\\\qquad only NV=1 is available at present
+\\\qquad wave potential = 0 at X=XMIN, Y=YMIN
+\\\qquad and PHIS at X=XMAX, Y=YMAX
+\end{itemize}
+
+\item[V:]
+view attributes
+\item[X:]
+exit
+\end{itemize}
+\end{enumerate}
+

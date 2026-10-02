@@ -1,0 +1,141 @@
+0
+f
+gs/tr.mnbi01.gs
+c
+   modelg=2
+   RR=8.5D0
+   RA=2.42D0
+   RKAP=1.65D0
+   RDLT=0.33D0
+   BB=5.94D0
+   
+   NSMAX=4
+   PN=0.35D0,0.1575D0,0.1575D0,0.0175D0
+   PNS=0.1D0,0.045D0,0.045D0,0.005D0
+   PT=1.0D0,1.0D0,1.0D0,1.0D0
+   PTS=0.1D0,0.1D0,0.1D0,0.1D0
+   PROFN2=0.15D0
+   MDLNF=2
+
+   PNBENG=1000.D0,1000.D0
+   PNBRTG=6.2,6.2
+   PECCD=1.0D0
+   PNBCD=0.5D0,0.5D0
+   PECR0=1.2D0
+   PECRW=0.05D0  
+   PECNPR=5.0D0
+   MDLEDGE=1
+   CSPRS=0.1
+   MDLEQN=1
+   MDLAD=2
+
+   MDLPSC=1
+   NPSCMAX=2
+   NSPSC(1)=2
+   NSPSC(2)=3
+   PSCIN(1)=4.5D0
+   PSCIN(2)=4.5D0
+   PSCR0(1)=2.0
+   PSCR0(2)=2.0
+   PSCRW(1)=0.3
+   PSCRW(2)=0.3
+
+   NRMAX=50
+   DT=0.005D0
+   NTSTEP=2000
+   ngrstp=2000
+   ngtstp=40
+   NTMAX=15000
+   RIPS=4.5D0
+   RIPE=12.3D0
+   NNBMAX=2
+   MDLNB(1)=2
+   MDLNB(2)=2
+   NSPNB(1)=2
+   NSPNB(2)=3
+   PNBR0(1)=0.6
+   PNBR0(2)=0.8
+   PNBRW(1)=0.2
+   PNBRW(2)=0.2
+   NECMAX=1
+   PECIN(1)=0.0
+r
+   NTMAX=5000
+   PNBIN(1)=35.0
+   PNBIN(2)=35.0
+!   PSCIN(1)=28.D0
+!   PSCIN(2)=28.D0
+   MDLPR=1
+c
+g
+t6
+t7
+r1
+r2
+r4
+r7
+r9
+rb
+g1
+g2
+g3
+g4
+x
+f
+f
+sakamotoNEf05.csv
+RT5
+x
+f
+f
+sakamotoNDf05.csv
+RT6
+x
+f
+f
+sakamotoNTf05.csv
+RT7
+x
+f
+f
+sakamotoNAf05.csv
+RT8
+X
+f
+f
+sakamotof05ADe.csv
+RT63
+x
+f
+f
+sakamotof05ADd.csv
+RT64
+x
+! f
+! f
+! sakamotof05ADt.csv
+! RT65
+! x
+! f
+! f
+! sakamotof05ADa.csv
+! RT66
+! x
+! f
+! f
+! sakamotof05SNF.csv
+! RT67
+! x
+! f
+! f
+! sakamotof05SNB.csv
+! RT68
+! x
+! f
+! f
+! sakamotof05AVDD.csv
+! RT70
+X
+q
+
+

@@ -1,0 +1,53 @@
+\section{Wave analysis ({\tt wfwave})}
+\begin{enumerate}
+\item
+Functions
+\begin{itemize}
+\item
+Reduce Maxwell's equation for potential ($\vec{A}, \phi$) to a
+simultaneous equation $\mathbf{A}\cdot\vec{x}=\vec{b}$ with the finite
+element method, and calculate the wave electric field and the absorbed
+power density by solving the matrix equation.
+\end{itemize}
+
+\item
+Procedure
+\begin{enumerate}
+\item
+Pre-processing
+\begin{itemize}
+\item
+SETANT: Set antenna current
+\item
+CVDBND: Set node attribute (\t{KBND(IN)}, \t{IBND(IN)}) and calculate
+the size of coefficient matrix.
+\item
+CVCALC: Calculate right-hand-side vector $\vec{b}$ form the antenna current
+\end{itemize}
+\item
+Solver
+\begin{itemize}
+\item
+CVSOLV: Calculate coefficient matrix $\mathbf{A}$ for each element,
+translate the calculated line to a upper triangular band matrix, and
+obtain $\vec{x}$ by backward substitution after translation completed.
+\par\quad
+CMCALC: Calculate coefficient matrix $\mathbf{A}$ for each element.
+\par\quad\quad
+DTENSR: Calculate dielectric tensor at each node
+\end{itemize}
+\item
+Post-processing
+\begin{itemize}
+\item
+CALFLD: Calculate the wave electric field from the potential
+\item
+PWRABS: Calculate the absorbed power in each element and distribute it the
+nodes. 
+\item
+PWRRAD: Integrate the wave electric field along the antenna current to
+calculate the radiated power. 
+        \end{itemize}
+\end{enumerate}
+\end{enumerate}
+

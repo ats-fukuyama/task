@@ -38,7 +38,7 @@ C
          CALL EQCALQ(IERR)
             IF(IERR.NE.0) GOTO 1
 C
-         ELSEIF(KID.EQ.'C') THEN
+      ELSEIF(KID.EQ.'C') THEN
          IF(MSTAT.GE.1) THEN 
   101       WRITE(6,*) '#EQ> INPUT PP0,PP1,PP2,PJ0,PJ1,PJ2,RIP,HM:'
             READ(5,*,ERR=101,END=1) PP0,PP1,PP2,PJ0,PJ1,PJ2,RIP,HM

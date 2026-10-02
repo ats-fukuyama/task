@@ -1,0 +1,377 @@
+\documentclass[11pt]{jarticle}
+%\usepackage{multicol}
+\usepackage{af}
+\def\baselinestretch{1.0}
+\def\labelenumii{\arabic{enumii})\ }
+%\columnsep=5mm
+
+\def\r#1{\mathrm{#1}}
+\def\t#1{\texttt{#1}}
+\def\unit#1{\,\r{#1}}
+\newcommand\centered[1]{\par \hfill#1\hfill\ \par}
+
+\begin{document}
+\begin{flushright}
+96/11/13
+\end{flushright}
+\begin{center}
+波動伝播解析コード（有限要素法）TASK/WF
+\quad 
+コード解説
+\end{center}
+
+%\begin{multicols}{2}
+
+\section{全体構成}
+
+\begin{itemize}
+\item
+ソース・プログラム
+\[
+\begin{tabular}{lll}
+\hline
+ヘッダー
+& コモン変数定義 & wfcomm.h \\
+\hline
+機能部
+& 実行制御 & wfmain.f \\
+& 要素分割 & wfdiv.f \\
+& アンテナデータ作成 & wfant.f \\
+& 波動伝播解析 & wfwave.f \\
+& プラズマ輸送解析 & wfevol.f \\
+& 図形表示 & wfgout.f \\
+\hline
+共通部
+& ファイル入出力 & wffile.f \\
+& 共通ルーチン & wfsub.f \\
+& 図形ルーチン & wfgsub.f \\
+& 汎用ルーチン & wflib.f \\
+\hline
+\end{tabular}
+\]
+\item
+wfsub.f および wfgsub.f は wfcomm.h に依存するサブルーチン・ファイル
+\item
+wflib.f は wfcomm.h に依存しないサブルーチン・ファイル
+\end{itemize}
+
+\section{実行制御 (wfmain)}
+\begin{enumerate}
+\item
+機能
+\begin{itemize}
+\item
+コマンド入力の処理
+\[
+\begin{tabular}{ll@{\qquad}ll@{\qquad}ll}
+P:& パラメータの入力 &
+W:& 波動伝播解析 &
+G:& 図形表示 \\
+V:& パラメータの表示 &
+T:& プラズマ輸送解析 &
+L:& ファイル入力 \\
+D:& 要素分割 &
+R:& 波動・輸送解析の開始 &
+S:& ファイル出力 \\
+A:& アンテナデータの作成 &
+C:& 波動・輸送解析の続行 &
+Q:& 終了
+\end{tabular}
+\]
+\item
+パラメータの標準値設定
+\item
+パラメータの入力
+\item
+パラメータの表示
+\end{itemize}
+\end{enumerate}
+
+\section{要素分割 (wfdiv)}
+\begin{enumerate}
+\item
+機能
+\begin{itemize}
+\item
+節点・要素データの作成
+\item
+節点・要素データの図形表示・数値表示
+\item
+節点・要素データのファイル入出力
+\end{itemize}
+
+\item
+作成データ
+\begin{itemize}
+\item
+節点の位置：\t{XD(IN)}, \t{YD(IN)}
+\item
+要素を構成する節点番号：\t{IELM(3,IE)}
+\begin{itemize}
+\item
+反時計回りに 1, 2, 3
+\end{itemize}
+\item
+境界上の節点番号：\t{IBDY(IB)}
+\begin{itemize}
+\item
+時計回りに番号付け
+\end{itemize}
+\item
+節点の属性：\t{KBND(IN)}
+\begin{itemize}
+\item
+version により定義は異なる．
+\item
+例：
+   $ 0$ = 領域内，
+   $ 1$ = 境界上，
+   $-1$ = 対称軸上
+\end{itemize}
+\item
+節点上の変数の数：\t{IBND(IN)}
+\begin{itemize}
+\item
+領域内の節点に対しては 4
+\quad ($A_x$, $A_y$, $A_z$, $\phi$)
+\item
+境界上の点に対しては，境界条件により変数の数は変化する．
+\end{itemize}
+\item
+変数
+\begin{itemize}
+\item
+\t{IN} = 節点番号
+\quad 最大値：\t{NNOD}
+\item
+\t{IE} = 要素番号
+\quad 最大値：\t{NELM}
+\item
+\t{IB} = 境界点番号
+\quad 最大値：\t{NBND}
+\end{itemize}
+\end{itemize}
+
+\item
+手順
+\begin{enumerate}
+\item
+DFNODE: 節点の２次元配列を作成
+\quad \t{XDA(NX,NY)}, \t{YDA(NX,NY)}
+\begin{itemize}
+\item
+DFNODX: 長方形境界
+\item
+DFNODC: 円形境界
+\end{itemize}
+\item
+SETNOD: 節点に一連の節点番号を設定
+\quad \t{NXA(IN)}, \t{NYA(IN)}, \t{XD(IN)}, \t{YD(IN)}
+\item
+SETBDY: 境界データを作成
+\quad \t{IBDY(IB)}
+\item
+SETELM: 要素データを作成
+\quad \t{IELM(3,IE)}
+\item
+SETKBN: 属性データを作成
+\quad \t{KBND(IN)}
+\end{enumerate}
+\end{enumerate}
+
+\section{アンテナデータ作成 (WFANT)}
+\begin{enumerate}
+\item
+機能
+\begin{itemize}
+\item
+アンテナ基本データの作成（円形，円弧，点列）
+\item
+アンテナデータの図形表示・数値表示
+\item
+アンテナデータのファイル入出力
+\end{itemize}
+
+\item
+作成データ
+\begin{itemize}
+\item
+アンテナ節点位置：
+\quad \t{XJ0(NJ0,NA)}, \t{YJ0(NJ0,NA)}
+\item
+変数
+\begin{itemize}
+\item
+\t{NA} = アンテナ番号
+\quad 最大値：\t{NAMAX}
+\item
+\t{NJ0} = アンテナ節点番号
+\quad 最大値：\t{NJ0MAX(NA)}
+\end{itemize}
+\end{itemize}
+\end{enumerate}
+
+\section{波動伝播解析 (WFWAVE)}
+\begin{enumerate}
+\item
+機能
+\begin{itemize}
+\item
+ポテンシャル ($\vec{A}, \phi$) に対するマクスウェル方程式を，有限要素
+法を用いて連立方程式 $\mathbf{A}\cdot\vec{x}=\vec{b}$ に帰着し，それを
+解いて電界およびパワーを計算する．
+\end{itemize}
+
+\item
+手順
+\begin{enumerate}
+\item
+前処理
+\begin{itemize}
+\item
+SETANT: アンテナ電流の設定（アンテナ間の位相差）
+\item
+CVDBND: \t{KBND(IN)}, \t{IBND(IN)} の設定，係数行列の長さ・幅の計算
+\item
+CVCALC: アンテナ電流から右辺ベクトル $\vec{b}$ を計算
+\end{itemize}
+\item
+計算
+\begin{itemize}
+\item
+CVSOLV: 係数行列 $\mathbf{A}$ を要素毎に計算し，係数が計算された行から
+上三角帯行列に変換し，すべての行を変換後に後退代入によって $\vec{x}$ 
+を求める．
+\par\quad
+CMCALC: 各要素毎に行列方程式の係数を計算する．
+\par\quad\quad
+DTENSR: 各節点における誘電率テンソルを計算する．
+\end{itemize}
+\item
+後処理
+\begin{itemize}
+\item
+CALFLD: ポテンシャルから電界を計算する．
+\item
+PWRABS: 各要素内で吸収されるパワーを計算し，各節点に分配．
+\item
+PWRRAD: アンテナ電流に沿って電界を積分し，アンテナからの放射パワーを計
+算する．
+\end{itemize}
+\end{enumerate}
+\end{enumerate}
+
+\section{プラズマ輸送解析 (WFEVOL)}
+\begin{enumerate}
+\item
+機能
+\begin{itemize}
+\item
+プラズマの密度，温度，電位に対する発展方程式を，有限要素法を用いて連
+立方程式 $\mathbf{A}\cdot\vec{x}=\vec{b}$ に帰着し，それを解く．
+\end{itemize}
+
+\item
+手順
+\begin{enumerate}
+\item
+前処理
+\begin{itemize}
+\item
+DVDBND: \t{KBND(IN)}, \t{IBND(IN)} の設定，係数行列の長さ・幅の計算
+\item
+DVCALC: 右辺ベクトル $\vec{b}$ を計算
+\end{itemize}
+\item
+計算
+\begin{itemize}
+\item
+DVSOLV: 係数行列 $\mathbf{A}$ を要素毎に計算し，係数が計算された行から
+上三角帯行列に変換し，すべての行を変換後に後退代入によって $\vec{x}$ 
+を求める．
+\par\quad
+DMCALC: 各要素毎に行列方程式の係数を計算する．
+\par\quad\quad
+WFCOEF: 各節点における輸送係数を計算する．
+\end{itemize}
+\item
+後処理
+\begin{itemize}
+\item
+DALFLD: 解ベクトル $\vec{x}$ から，密度，温度，電位を計算する．
+\item
+WFEVST: 時間変化する変数を保存する．
+\end{itemize}
+\end{enumerate}
+\end{enumerate}
+
+\section{アンテナ電流分割 (MODANT)}
+\begin{enumerate}
+\item
+機能
+\begin{itemize}
+\item
+アンテナ節点データで定義された電流経路を，要素形状に合わせて要素境界で
+分割し，各要素毎に電流経路を定義する．
+\end{itemize}
+\item
+生成データ
+\begin{itemize}
+\item
+アンテナ節点位置：
+\quad \t{XJ(NJ,NA)}, \t{YJ(NJ,NA)}
+\item
+変数
+\begin{itemize}
+\item
+\t{NA} = アンテナ番号
+\quad 最大値：\t{NAMAX}
+\item
+\t{NJ} = アンテナ節点番号
+\quad 最大値：\t{NJMAX(NA)}
+\end{itemize}
+\end{itemize}
+
+\item
+手順
+\begin{enumerate}
+\item
+次のアンテナ節点が同一要素内にあれば，分割せずに次のアンテナ節点へ
+\item
+次のアンテナ節点と結んだ直線と要素境界線との交点を求めて，それを次のア
+ンテナ節点とし，その要素境界を共有する要素に移る．
+\begin{itemize}
+\item
+CROS: ２直線の交点を求める．
+\item
+EFIND: 現在の要素以外で，２つの節点を共有する要素を捜す．
+\end{itemize}
+\end{enumerate}
+\end{enumerate}
+
+\section{要素探索 (FEP)}
+\begin{enumerate}
+\item
+機能
+\begin{itemize}
+\item
+任意の位置の点を含む要素を捜す．
+\end{itemize}
+\item
+手順
+\begin{enumerate}
+\item
+FEPINT: あらかじめ，$x$ 座標が増加していく一連の節点系列に分け，それぞ
+れの系列に属する節点の $y$ 座標の範囲を調べておく．
+\item
+FEP: 対象になっている点の $y$ 座標を含む節点系列に対して，その系列中の
+要素が座標 ($x$, $y$) を含むかどうかを，順次調べる．
+\end{enumerate}
+\end{enumerate}
+
+
+%\end{multicols}
+
+\end{document}
+
+

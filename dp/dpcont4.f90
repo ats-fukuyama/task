@@ -12,8 +12,7 @@ CONTAINS
     USE dpcomm_local
     USE plprof
     USE plprofw
-    USE plparm,ONLY: pl_parm
-    USE plview,ONLY: pl_view
+    USE PLPARM,ONLY: pl_parm,pl_view
     USE dpparm
     USE dpdisp
     USE dpglib

@@ -1,0 +1,156 @@
+\section{サブルーチン一覧表}
+
+\begin{verbatim}
+MAIN (wfmain.f)                主プログラム
+
+   WFINIT (wfmain.f)           入力パラメータ等の初期化
+   WFPARM (wfmain.f)           パラメータの入力
+   WFVIEW (wfmain.f)           入力パラメータの表示
+
+   WFDIV  (wfdiv.f)            要素分割プログラム
+      DFNODX (wfdiv.f)         単一長方形領域の分割
+      DFNODR (wfdiv.f)         複数長方形領域の分割
+      DFNODM (wfdiv.f)         軸対称磁気ミラー領域の分割
+         BOUNDM (wfdiv.f)      軸対称磁気ミラー磁気面の定義
+      DFNODV (wfdiv.f)         ２次元磁気ミラー領域の分割
+         BOUNDV (wfdiv.f)      ２次元磁気ミラー磁気面の定義
+      DFNODC (wfdiv.f)         任意形状領域の分割（単連結）
+         BOUNDX (wfdiv.f)      x 方向境界の定義
+         BOUNDY (wfdiv.f)      y 方向境界の定義
+         BOUNDF (wfdiv.f)      境界の定義
+      SETNOD (wfdiv.f)         分割データから節点を定義
+      SETELM (wfdiv.f)         分割データから要素を定義
+      WFLDIV (wfdiv.f)         要素・節点データの数値表示
+      WFGDIV (wfdiv.f)         要素・節点データの図形表示
+         WFPRME (wfdiv.f)      節点数や要素数の図形表示
+      WFWELM (wffile.f)        要素データのファイル出力
+      WFRELM (wffile.f)        要素データのファイル入力
+
+   WFZONE (wfzone.f)           要素や節点の属性設定プログラム
+      WFXZON (wfzone.f)        要素や節点等の属性を設定
+      WFGZON (wfzone.f)        属性データの図形表示
+      WFLZON (wfzone.f)        属性データの数値表示
+      WFSETZ (wfzone.f)        属性データから属性配列を作成
+         SETBDY (wfzone.f)     属性データから境界配列を作成
+         EFINDK (wfzone.f)     指定された２つの節点を含む要素の探索
+      WFWZON (wffile.f)        属性データのファイル出力
+      WFRZON (wffile.f)        属性データのファイル入力
+
+   WFANT  (wfant.f)            アンテナデータの作成プログラム
+      WFDEFA (wfant.f)         アンテナデータの作成
+      WFPLTA (wfant.f)         アンテナデータの図形表示
+         WFPRMJ (wfant.f)      アンテナ数等の図形表示
+      WFWANT (wffile.f)        アンテナデータのファイル出力
+      WFRANT (wffile.f)        アンテナデータのファイル入力
+
+   WFWAVE (wfwave.f)           波動伝播解析プログラム
+      WFSETW (wfwave.f)        波動伝播解析の初期化
+      LPELMT (wfwave.f)        要素・節点データの表示
+      SETANT (wfwave.f)        アンテナ電流のフーリェ分解
+      INITEP (wfwave.f)        電界フーリェ成分計算の初期化
+      CVDBND (wfwave.f)        行列方程式計算の初期化
+      CVCALC (wfwave.f)        右辺ベクトルの計算
+      CVSOLV (wfwave.f)        行列方程式の計算
+         CMCALC (wfwave.f)     係数行列の計算
+            DTENSR (wfwave.f)  誘電率テンソルの計算
+      CALFLD (wfwave.f)        解ベクトルから波動電界を計算
+      PWRABS (wfwave.f)        吸収パワーの計算
+      PWRRAD (wfwave.f)        アンテナからの放射パワーの計算
+      TERMEP (wfwave.f)        電界フーリェ成分を逆変換
+      LPEFLD (wfwave.f)        電界の数値出力
+      WFWFLD (wffile.f)        波動電界データのファイル出力
+      WFRFLD (wffile.f)        波動電界データのファイル入力
+
+   WFEVIN (wfevol.f)           プラズマ輸送解析の初期化
+   WFEVOL (wfevol.f)           プラズマ輸送解析の１ステップ実行
+      DVDNOD (wfevol.f)        行列方程式計算の初期化
+      DVSOLV (wfevol.f)        行列方程式の計算
+         DMCALC (wfevol.f)     係数行列の計算
+         DMCALD (wfevol.f)     係数行列の計算（真空・絶縁体内）
+         DMCALP (wfevol.f)     係数行列の計算（プラズマ内）
+            WFCOEF (wfevol.f)  輸送係数等の計算
+      DALFLD (wfevol.f)        解ベクトルから密度・温度・電位等を計算
+   WFEVST (wfevol.f)           計算結果の時間発展を保存
+
+   WFGOUT (wfgout.f)           計算結果の図形表示
+      WFCTOG (wfgout.f)        複素３次元データの図形表示用配列への変換
+      WFATOG (wfgout.f)        複素４次元データの図形表示用配列への変換
+      WFDTOG (wfgout.f)        実数多次元データの図形表示用配列への変換
+      WFTTOG (wfgout.f)        時系列データの図形表示用配列への変換
+      WFCALB (wfgout.f)        波動磁界および電界偏波成分の計算
+
+      WFGINI (wfgsub.f)        図形表示領域決定の初期設定
+         WFGWIN (wfgsub.f)     図形表示領域の決定
+         WFGPFC (wfgsub.f)     空間分布の等高線表示（等間隔格子）
+         WFGPF3 (wfgsub.f)     空間分布の鳥瞰図表示（等間隔格子）
+         WFGPFF (wfgsub.f)     空間分布の等高線表示（波動電界節点データ）
+         WFGPFP (wfgsub.f)     空間分布の色塗り表示（等間隔格子）
+         TRGPFF (wfgsub.f)     空間分布の等高線表示（密度温度節点データ）
+         WFGPFR (wfgsub.f)     空間分布の１次元グラフ表示
+         WFGPFT (wfgsub.f)     時間発展の１次元グラフ表示
+         WFGPRM (wfgsub.f)     パラメータ等の図形表示
+         WFGNOD (wfgsub.f)     境界節点の属性データの図形表示
+         WFGBDY (wfgsub.f)     計算領域境界の図形表示
+         WFGPLA (wfgsub.f)     プラズマ境界の図形表示
+         WFGANT (wfgsub.f)     アンテナの図形表示
+         WFGELM (wfgsub.f)     要素・節点データの図形表示
+            GCLIP  (wfgsub.f)  倍精度実数データの単精度実数データへの変換
+            NGVLEN (wfgsub.f)  グラフ目盛り数値桁数決定
+            GUSRGB (wfgsub.f)  色塗り用 RGB データ作成
+
+以下は共通ルーチン
+
+   WFSPSI (wfprof.f)           任意の位置における磁気面関数の計算
+   WFSMAG (wfprof.f)           任意の節点における静磁界の計算
+      WFCOIL (wfprof.f)        円電流による静磁界の計算
+      APSI   (wfprof.f)        円電流によるベクトルポテンシャルの計算
+   WFSDEN (wfprof.f)           任意の節点における密度・温度等の計算
+      CALRNU (wfprof.f)        衝突周波数等の計算
+         ATINIT (atomic.f)     衝突断面積計算の初期化
+         ATSIGM (atomic.f)     衝突断面積の計算
+            ARDATA (atomic.f)  アルゴンの衝突断面積データ
+            H2DATA (atomic.f)  水素分子の衝突断面積データ
+            CF4DATA(atomic.f)  CF4 分子の衝突断面積データ
+
+   WFVNOD (wfsub.f)            要素体積の計算
+   MODANT (wfsub.f)            アンテナデータの要素にあわせた分割
+   CROS   (wfsub.f)            ２本の線分の交点の計算
+   EFINDL (wfsub.f)            ２つの節点を含む要素の決定
+   WFFEPI (wfsub.f)            要素検索ルーチンの初期化
+   WFFEP  (wfsub.f)            与えられた点を含む要素の検索
+   WFABC  (wfsub.f)            要素の線形補間関数の係数および面積の計算
+   WFNPOS (wfsub.f)            要素の節点座標の取得
+   FIELDE (wfsub.f)            任意位置の電界の内挿
+   FIELDC (wfsub.f)            任意位置の複素数データの内挿
+   FIELDD (wfsub.f)            任意位置の実数データの内挿
+   SETAIF (wfsub.f)            規格化要素における積分値の設定
+      AI2    (wfsub.f)         ２変数積分の積分値
+      AI3    (wfsub.f)         ３変数積分の積分値
+
+   FRGFLS (wflib.f)            非線形方程式の解法 (Regula Falsi)
+   DKBES  (wflib.f)            第２種変形ベッセル関数
+   ZETA   (wflib.f)            プラズマ分散関数
+   FFT2L  (wflib.f)            高速フーリェ変換
+      FFTSUB (wflib.f)         高速フーリェ変換実行ルーチン
+      SETTBL (wflib.f)         高速フーリェ変換表作成ルーチン
+      SETLST (wflib.f)         高速フーリェ変換リスト処理ルーチン
+   BESSI0 (wflib.f)            第１種変形ベッセル関数（０次）
+   BESSI1 (wflib.f)            第１種変形ベッセル関数（１次）
+   CELI1  (wflib.f)            第１種完全楕円積分
+   CELI2  (wflib.f)            第２種完全楕円積分
+
+   SPL1D  (libspl.f)           １次元スプライン係数計算
+   SPL1DF (libspl.f)           １次元スプライン補間（関数値）
+   SPL1DD (libspl.f)           １次元スプライン補間（関数値，微係数）
+   SPL2D  (libspl.f)           ２次元スプライン係数計算
+   SPL2DF (libspl.f)           ２次元スプライン補間（関数値）
+   SPL2DD (libspl.f)           ２次元スプライン補間（関数値，微係数）
+      BGLU1  (libspl.f)        帯行列の LU 分解
+      BGSLV1 (libspl.f)        帯行列の解法
+   CSPL1D (libspl.f)           複素１次元スプライン係数計算
+   CSPL1DF(libspl.f)           複素１次元スプライン補間（関数値）
+      CBGLU1 (libspl.f)        複素帯行列の LU 分解
+      CBGSLV1(libspl.f)        複素帯行列の解法
+   SPL1DX (atomic.f)           １次元スプライン補間（非等間隔）
+
+\end{verbatim}

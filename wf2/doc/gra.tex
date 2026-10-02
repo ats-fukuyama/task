@@ -1,0 +1,104 @@
+From To:takaura@ngenkai.kobe.mhi.co.jp Mon May 12 15:53:18 1997
+Date: Mon, 12 May 1997 15:53:18 JST
+To: takaura@ngenkai.kobe.mhi.co.jp (Katsuhisa Takaura)
+Subject: Re: WFの入力について
+In-Reply-To: <199705120551.OAA23131@ngenkaigw.ngenkai.kobe.mhi.co.jp>; from "Katsuhisa Takaura" at May 12, 97 2:48 pm
+Status: RO
+
+高浦様
+
+> 　WFで以下の入力メーセッジの内容についてご教示下さい。
+> 　##INPUT:E/B/A,X/Y/Z/+/-/P,R/I/A/Xpos/Ypos
+>                   P,P/N/T/S/F/C/R/U/V/D/E/H/K/I,E/I/1/2,C/Xpos/Ypos
+> 　　　　　　T,N/T/F,1/2, 0-7, V,1-5 X=EXIT
+
+図形表示コマンドの入力待ち
+
+１行に書かれた各コマンド毎の図を１頁に出力
+
+例１  EXR EYI EZA
+
+　　３枚のグラフ
+　　　　電界の x 成分 E_x の実数部の等高線
+　　　　電界の y 成分 E_y の虚数部の等高線
+　　　　電界の z 成分 E_z の絶対値の等高線
+
+例２ EXX0.0 PTEC PNIY0.0
+　　　　電界の x 成分の y=0.0 での x 依存性
+　　　　電子温度の等高線
+　　　　イオン密度の x=0.0 での y 依存性
+
+例３ TN1
+　　　　電子密度の時間依存性（実線：平均値，破線：最大値，一点鎖線：最小値）
+
+例４ 5
+　　　　静電ポテンシャル，密度，温度等の空間分布の表示．
+
+
+各文字の意味
+
+E : 電界
+B : 磁界
+A : ポテンシャル
+
+X : x 成分
+Y : y 成分
+Z : z 成分
++ : 右回り偏波成分
+- : 左回り偏波成分
+P : 磁界方向成分
+
+R : 実数部等高線
+I : 虚数部等高線
+A : 絶対値等高線
+Xpos : y=pos における x 依存性
+Ypos : x=pos における y 依存性
+
+P : 空間分布
+
+P : 吸収パワー
+N : 粒子密度
+T : 温度
+S : 表面電荷密度
+F : 静電ポテンシャル
+C : 電荷密度
+U : 移動度 mu-para
+V : 移動度 mu-perp
+D : 粒子拡散係数 D-para
+E : 粒子拡散係数 D-perp
+K : 熱拡散係数 chi-para
+H : 熱拡散係数 chi-perp
+I : 電離粒子源
+
+E : 電子成分
+I : イオン成分
+1 : 第１成分＝電子成分
+2 : 第２成分＝イオン成分
+
+C : 等高線
+Xpos : y=pos における x 依存性
+Ypos : x=pos における y 依存性
+
+T : 時間発展
+
+N : 粒子密度
+T : 温度
+F : 静電ポテンシャル 
+
+1 : 第１成分＝電子成分
+2 : 第２成分＝イオン成分
+
+0,1,2,3,4,5,6,7,8,9 : あらかじめ定められた組み合わせ （WFGOUT で定義）
+V1,V2,V3,V4,V5      : あらかじめ定められた組み合わせ （WFGOUT で定義）
+
+X : グラフィック終了
+
+
+１頁画面出力後，入力待ちとなるので，改行を入力すると処理を続行．
+
+
+福山 淳       岡山大学工学部電気電子工学科
+              fukuyama@plasma.elec.okayama-u.ac.jp
+              TEL: 086 251 8140    FAX: 086 255 8867
+              http://www.plasma.elec.okayama-u.ac.jp/~fukuyama/
+

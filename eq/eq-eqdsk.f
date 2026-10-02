@@ -42,7 +42,6 @@ C
       read (neqdsk,2020) zmaxis,xdum,sibry,xdum,xdum
       read (neqdsk,2020) (TTPS(i),i=1,NPSMAX)
       read (neqdsk,2020) (PPPS(i),i=1,NPSMAX)
-      WRITE(6,'(5ES12.4)') (PPPS(i),i=1,NPSMAX)
       read (neqdsk,2020) (TTDTTPS(i),i=1,NPSMAX)
       read (neqdsk,2020) (DPPPS(i),i=1,NPSMAX)
       read (neqdsk,2020) ((PSIRZ(i,j),i=1,NRGMAX),j=1,NZGMAX)

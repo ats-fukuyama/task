@@ -1,0 +1,156 @@
+\section{List of subroutines}
+
+\begin{verbatim}
+MAIN (wfmain.f)                main program
+
+   WFINIT (wfmain.f)           initialization of input parameters
+   WFPLST (wfmain.f)           show input parameter list
+   WFPARM (wfmain.f)           read input parameters
+   WFVIEW (wfmain.f)           view input parameters
+
+   WFDIV  (wfdiv.f)            division of element
+      DFNODX (wfdiv.f)         division of a rectangular
+      DFNODP (wfdiv.f)         division of a parallelogram
+      DFNODR (wfdiv.f)         division of multiple rectangulars
+      DFNODM (wfdiv.f)         division of axisymmetric mirror
+         BOUNDM (wfdiv.f)      definition of axisymmetric mirror
+      DFNODV (wfdiv.f)         division of translational mirror
+         BOUNDV (wfdiv.f)      definition of translational mirror
+      DFNODC (wfdiv.f)         division of arbitrary shaped region (simply connected)
+         BOUNDX (wfdiv.f)      definition of x-direction boundary
+         BOUNDY (wfdiv.f)      definition of y-direction boundary
+         BOUNDF (wfdiv.f)      definition of boundaries
+      SETNOD (wfdiv.f)         define node from division data
+      SETELM (wfdiv.f)         define element from division data
+      WFLDIV (wfdiv.f)         numerical output of node and element data
+      WFGDIV (wfdiv.f)         graphic output of node and element data
+         WFPRME (wfdiv.f)      graphic output of number of nodes and elements
+      WFWELM (wffile.f)        file output of element data
+      WFRELM (wffile.f)        file input of elemental data
+
+   WFZONE (wfzone.f)           setting attribute data
+      WFXZON (wfzone.f)        define attribute data
+      WFGZON (wfzone.f)        graphic output of attribute data
+      WFLZON (wfzone.f)        numerical output of attribute data
+      WFSETZ (wfzone.f)        create attribute array from attribute data
+         SETBDY (wfzone.f)     create boundary attribute array from attribute data
+         EFINDK (wfzone.f)     find an element including specified two nodes
+      WFWZON (wffile.f)        file output of attribute data
+      WFRZON (wffile.f)        file input of attribute data
+
+   WFANT  (wfant.f)            setting antenna data
+      WFDEFA (wfant.f)         define antenna data
+      WFPLTA (wfant.f)         graphic output of antenna data
+         WFPRMJ (wfant.f)      graphic output of antenna parameters
+      WFWANT (wffile.f)        file output of antenna data
+      WFRANT (wffile.f)        file input of antenna data
+
+   WFWAVE (wfwave.f)           wave analysis
+      WFSETW (wfwave.f)        initial setup of wave analysis
+      SETANT (wfwave.f)        Fourier decomposition of antenna current
+      CVDBND (wfwave.f)        initializatioin of matrix solver
+      CVCALC (wfwave.f)        calculation of right-hand-side vector
+      CVSOLV (wfwave.f)        matrix solver
+         CMCALC (wfwave.f)     calculation of matrix coefficient
+            DTENSR (wfwave.f)  calculation of dielectric tensor
+      CALFLD (wfwave.f)        calculation of wave E from solution vector
+      PWRABS (wfwave.f)        calculation of absorbed power
+      PWRRAD (wfwave.f)        calculation of radiated power from antenna
+      INITEP (wfwave.f)        initialization of Fourier component of wave E
+      TERMEP (wfwave.f)        Fourier composition of wave E
+      LPEFLD (wfwave.f)        numerical output of wave E data
+      LPELMT (wfwave.f)        numerical output of element and node data
+      WFWFLD (wffile.f)        file output of wave E data
+      WFRFLD (wffile.f)        file input of wave E data
+
+   WFEVIN (wfevol.f)           initialization of transport analysis
+   WFEVOL (wfevol.f)           one step of transport analysis
+      DVDNOD (wfevol.f)        initialization of matrix solver
+      DVSOLV (wfevol.f)        matrix solver
+         DMCALC (wfevol.f)     calculation of matrix coefficient
+         DMCALD (wfevol.f)     matrix coefficient in vaccum and dielectric
+         DMCALP (wfevol.f)     matrix coefficient in  plasma
+            WFCOEF (wfevol.f)  calculation of transport coefficients
+      DALFLD (wfevol.f)        calculation of density and temperature from solution vector
+   WFEVST (wfevol.f)           save time evolution of transport data
+
+   WFGOUT (wfgout.f)           graphic output control
+      WFCTOG (wfgout.f)        conversion of complex 3 data (Ex Ey Ez)
+      WFATOG (wfgout.f)        conversion of complex 4 data (Ax Ay Az phi)
+      WFDTOG (wfgout.f)        conversion of real data
+      WFTTOG (wfgout.f)        conversion of time evolution data
+      WFCALB (wfgout.f)        calculation of wave magnetic field and polarization
+      WFCALD (wfgout.f)        calculation of wave dispersion relation
+
+      WFGINI (wfgsub.f)        initialization of plot size
+         WFGWIN (wfgsub.f)     determinatioin of plot size
+         WFGVEW (wfgsub.f)     determinatioin of plot layout
+         WFGPFX (wfgsub.f)     contour plot of profile data
+         WFGPPR (wfgsub.f)     1D plot of profile data
+         WFGPPRX(wfgsub.f)    1D plot of profile data
+         WFGPFR (wfgsub.f)     1D plot of profile data
+         WFGPAR (wfgsub.f)     1D plot of profile data
+         WFGPFT (wfgsub.f)     1D plot of time evolution
+         WFGPRM (wfgsub.f)     draw computation parameters
+         WFGNOD (wfgsub.f)     draw attribute data boundary nodes
+         WFGBDY (wfgsub.f)     draw computatinal boundary
+         WFGPLA (wfgsub.f)     draw plasma boundary
+         WFGANT (wfgsub.f)     draw antenna data
+         WFGELM (wfgsub.f)     draw element and node data
+            GCLIP  (wfgsub.f)  conversion from double precision to single precision
+            NGVLEN (wfgsub.f)  determine number of digits of scale data
+            GUSRGB (wfgsub.f)  createion of paint colour RGB data
+
+Common routines
+
+   WFSPSI (wfprof.f)           calculation of magnetic flux
+      WFBPSI (wfprof.f)           calculation of magnetic flux
+   WFBMAG (wfprof.f)           calculation of magnetic field
+      WFCOIL (wfprof.f)        calculation of magnetic field by circular current
+      APSI   (wfprof.f)        calculation of vector potential by circular current
+   WFSDEN (wfprof.f)           calculation of density and temperature
+      CALRNU (wfprof.f)        calculation of collsion frequency
+         ATINIT (wfatmd.f)     initializatin of collsion cross section
+         ATSIGV (wfatmd.f)     calculation of collision data
+         ATSIGM (wfatmd.f)     calculation of collisional cross section
+            DATAAR (wfatmd.f)  collisional cross section data for Ar
+            DATAH2 (wfatmd.f)  collisional cross eection data for H
+            DATACA4(wfatmd.f)  collisional cross section data for CF4
+
+   WFVNOD (wfsub.f)            calculation of element volume
+   MODANT (wfsub.f)            division of antenna data accordint element
+   CROS   (wfsub.f)            calculation of crossing point of two line element
+   EFINDL (wfsub.f)            find an element including two specified nodes
+   WFFEPI (wfsub.f)            initializatioin of element find routine
+   WFFEP  (wfsub.f)            find an element including specified position
+   WFABC  (wfsub.f)            calculation of linear interporlate function and area
+   WFSELM (wfsub.f)            calculation of element area
+   WFNPOS (wfsub.f)            obtain node positons of an element
+   FIELDE (wfsub.f)            interpolation of wave E at given position
+   FIELDC (wfsub.f)            interpolation of complex data at given position
+   FIELDD (wfsub.f)            interpolation of real data at given position
+   SETAIF (wfsub.f)            calculation of integral in normalized element
+      AI2    (wfsub.f)         integral of 2 variable integral
+      AI3    (wfsub.f)         integral of 3 variable integral
+
+   FRGFLS (wflib.f)            Solution of nonlinear equation (Regula Falsi)
+   SPL1DX (atomic.f)           1D spline interporlation (non-even grid)
+   DEFIFE (atomic.f)           Half infinite integral by double-exponential formula
+
+   DSPFN  (lib/libdsp.f90)     Plasma dispersion function
+   FFT2L  (lib/libfft.f90)     Fast Fourier transform
+   BESIN  (lib/libbes.f90)     First kind of modified Bessel function
+   BESKN  (lib/libbes.f90)     Second kind of modified Bessel function
+   ELLFC  (lib/libell.f90)     First kind of complete elliptic integral
+   ELLEC  (lib/libell.f90)     Second kind of complete elliptic integral
+
+   SPL1D  (lib/libspl.f90)     calculation of 1D spline coeffficients
+   SPL1DF (lib/libspl.f90)     interpolation by 1D spline (function only)
+   SPL1DD (lib/libspl.f90)     interpolation by 1D spline (function, derivative)
+   SPL2D  (lib/libspl.f90)     calculation of 2D spline coeffficients
+   SPL2DF (lib/libspl.f90)     interpolation by 2D spline (function only)
+   SPL2DD (lib/libspl.f90)     interpolation by 1D spline (function, derivative)
+   CSPL1D (lib/libspl.f90)     calculation of 1D complex spline coeffficients
+   CSPL1DF(lib/libspl.f90)     interpolation by 1D complex spline (function only)
+
+\end{verbatim}

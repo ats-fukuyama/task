@@ -171,9 +171,9 @@ C
 C
       USE libbrent
       INCLUDE '../eq/eqcomc.inc'
-      EXTERNAL EQFBND
 C
       DIMENSION DRHOM(NTGM),DRHOG(NTGMP)
+      EXTERNAL EQFBND
 C
 C     ------ Define criteria for the Brent method ------
 C
@@ -265,7 +265,6 @@ C
       FUNCTION EQFBND(X)
 C      
       INCLUDE '../eq/eqcomc.inc'
-      REAL(rkind):: EQFBND
 C
       EQFBND=ZBRF*COS(X+RDLT*SIN(X))-RKAP*SIN(X)
       RETURN
@@ -280,13 +279,6 @@ C
       INCLUDE '../eq/eqcomc.inc'
 C
       IERR=0
-C
-C     ----- Adaptive under-relaxation of the GS Picard iteration -----
-C     A full Picard step (PSI <- solution) oscillates for stiff (high-q,
-C     low-current) equilibria. Damp the update when the residual grows and
-C     relax back towards a full step while it decreases.
-      OMEGA=1.D0
-      SULMP=1.D30
 C
       DO NLOOP=1,NLPMAX
          CALL EQBAND
@@ -303,21 +295,6 @@ C
             ENDDO
          ENDDO
          SUML=SQRT(SUM1/SUM0)
-C
-C        --- adapt the relaxation factor and damp the just-applied step ---
-         IF(SUML.GT.SULMP) THEN
-            OMEGA=MAX(0.1D0,0.5D0*OMEGA)
-         ELSE
-            OMEGA=MIN(1.D0,1.2D0*OMEGA)
-         ENDIF
-         SULMP=SUML
-         IF(OMEGA.LT.1.D0) THEN
-            DO NSG=1,NSGMAX
-               DO NTG=1,NTGMAX
-                  PSI(NTG,NSG)=PSI(NTG,NSG)-(1.D0-OMEGA)*DELPSI(NTG,NSG)
-               ENDDO
-            ENDDO
-         ENDIF
 C
          IF(SUML.LT.EPSEQ) THEN
             IF(NPRINT.GE.1) THEN

@@ -18,7 +18,6 @@
       USE fpfout
       USE plinit
       USE plparm
-      USE plview
       USE fpfile
       USE fpcaltp
       USE fpcalte

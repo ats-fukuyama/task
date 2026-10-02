@@ -11,6 +11,7 @@
   MODULE plprof
     USE bpsd_kinds
     USE plcomm_type
+
     PRIVATE
     PUBLIC pl_mag_old
     PUBLIC pl_mag
@@ -146,19 +147,19 @@
          BX = BR*RCOST-BT*RSINT
          BY = BR*RSINT+BT*RCOST
       CASE(11)
-         CALL PLSMAG11(X,Y,BABS,AL,rhon)
+         CALL PLSMAG11(X,Y,BABS,AL)
          BX = BABS*AL(1)
          BY = BABS*AL(2)
          BZ = BABS*AL(3)
       CASE(12)
-         CALL pl_read_p2Dmag(X,Y,BX,BY,BZ,rhon,IERR)
+         CALL pl_read_p2Dmag(X,Y,BX,BY,BZ,IERR)
       CASE(13)
-         CALL PLSMAG13(X,Y,BABS,AL,rhon)
+         CALL PLSMAG13(X,Y,BABS,AL)
          BX = BABS*AL(1)
          BY = BABS*AL(2)
          BZ = BABS*AL(3)
       CASE(14)
-         CALL pl_read_p2Dmag(X,Y,BX,BY,BZ,rhon,IERR)
+         CALL pl_read_p2Dmag(X,Y,BX,BY,BZ,IERR)
       END SELECT
 
       MAG%BABS = SQRT(BX**2+BY**2+BZ**2)
@@ -251,22 +252,22 @@
          CALL GETRZ(RL,Z,PP,BR,BZ,BT,RHON)
 
       CASE(11)
-         CALL plsmag11(X,Y,BABS,AL,rhon)
+         CALL plsmag11(X,Y,BABS,AL)
          BR=BABS*AL(1)
          BZ=BABS*AL(2)
          BT=BABS*AL(3)
 
       CASE(12)
-         CALL pl_read_p2Dmag(X,Y,BR,BZ,BT,rhon,IERR)
+         CALL pl_read_p2Dmag(X,Y,BR,BZ,BT,IERR)
 
       CASE(13)
-         CALL plsmag13(X,Y,BABS,AL,rhon)
+         CALL plsmag13(X,Y,BABS,AL)
          BR=BABS*AL(1)
          BZ=BABS*AL(2)
          BT=BABS*AL(3)
 
       CASE(14)
-         CALL pl_read_p2Dmag(X,Y,BR,BZ,BT,rhon,IERR)
+         CALL pl_read_p2Dmag(X,Y,BR,BZ,BT,IERR)
 
       END SELECT
 

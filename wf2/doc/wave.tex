@@ -1,0 +1,50 @@
+\section{波動伝播解析 ({\tt wfwave})}
+\begin{enumerate}
+\item
+機能
+\begin{itemize}
+\item
+ポテンシャル ($\vec{A}, \phi$) に対するマクスウェル方程式を，有限要素
+法を用いて連立方程式 $\mathbf{A}\cdot\vec{x}=\vec{b}$ に帰着し，それを
+解いて電界およびパワーを計算する．
+\end{itemize}
+
+\item
+手順
+\begin{enumerate}
+\item
+前処理
+\begin{itemize}
+\item
+SETANT: アンテナ電流の設定（アンテナ間の位相差）
+\item
+CVDBND: \t{KBND(IN)}, \t{IBND(IN)} の設定，係数行列の長さ・幅の計算
+\item
+CVCALC: アンテナ電流から右辺ベクトル $\vec{b}$ を計算
+\end{itemize}
+\item
+計算
+\begin{itemize}
+\item
+CVSOLV: 係数行列 $\mathbf{A}$ を要素毎に計算し，係数が計算された行から
+上三角帯行列に変換し，すべての行を変換後に後退代入によって $\vec{x}$ 
+を求める．
+\par\quad
+CMCALC: 各要素毎に行列方程式の係数を計算する．
+\par\quad\quad
+DTENSR: 各節点における誘電率テンソルを計算する．
+\end{itemize}
+\item
+後処理
+\begin{itemize}
+\item
+CALFLD: ポテンシャルから電界を計算する．
+\item
+PWRABS: 各要素内で吸収されるパワーを計算し，各節点に分配．
+\item
+PWRRAD: アンテナ電流に沿って電界を積分し，アンテナからの放射パワーを計
+算する．
+\end{itemize}
+\end{enumerate}
+\end{enumerate}
+

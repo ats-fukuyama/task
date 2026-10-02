@@ -1,0 +1,441 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\geometry{a4paper}
+\usepackage[dvips]{graphicx,color}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[varg]{txfonts}
+\usepackage{exscale}
+\usepackage{af}
+\usepackage{slide}
+\usepackage{card}
+\usepackage{sym}
+\usepackage{ulem}
+
+\newcommand{\epspath}{/Users/fukuyama/tex/eps}
+\newcommand{\ttype}[1]{\emC{\LARGE \texttt{#1}}}
+\newcommand{\tline}[1]{\qquad{\Large \texttt{#1}}\\[-3mm]}
+
+%\let\uetheta=\ueth
+%\let\uephi=\ueph
+\let\Ra=\Rightarrow
+\let\Lra=\Longrightarrow
+
+\newenvironment{flist}{\par\noindent\begin{tabular}{%
+p{45mm}p{35mm}p{30mm}p{120mm}}}{\end{tabular}\par\bigskip}
+\newcommand{\fitem}[4]{\quad #1 & #2 & #3 & #4 \\}
+\newcommand{\ffitem}[2]{\multicolumn{3}{p{109mm}}{#1} & #2 \\}
+\newcommand{\fffitem}[1]{\multicolumn{4}{p{228mm}}{#1} \\}
+
+\newcommand{\vvd}{\vv_\mr{d}}
+\newcommand{\vd}{v_\mr{d}}
+\newcommand{\vvE}{\vv_E}
+\newcommand{\Epara}{E_\para}
+\newcommand{\Tperp}{T_\perp}
+\newcommand{\Tb}{T_\mr{b}}
+\newcommand{\kparam}{k_{\para m}}
+\newcommand{\energy}{\varepsilon}
+\newcommand{\tx}{TASK/TX}
+
+\newcommand{\xtitle}[2]{%
+{\fboxsep=10mm \fboxrule=3mm
+\cfbox{dbback}{#1}{%
+\begin{center}\Huge
+ \emC{#2}
+\end{center}
+}}
+}
+
+\begin{document}
+\huge\sf
+
+\begin{flushleft}
+\fig{0.70}{\epspath/logo/KUlogo.eps}
+\end{flushleft}
+\vspace*{-40mm}
+
+\begin{flushright}\LARGE
+  2022/04/11
+\end{flushright}
+\vspace{20mm}
+
+\xtitle{160mm}{%
+Introduction to running TASK
+}
+\medskip
+
+\begin{center}\huge
+\emB{A.~Fukuyama}
+\\[8mm]
+\textcolor{fgreen}{\huge
+Professor Emeritus, Kyoto University 
+}
+\end{center}
+\medskip
+
+\begin{center}
+  \begin{minipage}{180mm}
+    \begin{enumerate}
+    \item
+      Basic operation
+    \item
+      How to setting parameters
+    \item
+      Operation of equilibrium module: TASK/EQ
+    \item
+      Operation of transport module: TASK/TR
+    \item
+      Coupled operation of TASK/EQ and TASK/TR
+    \end{enumerate}
+  \end{minipage}
+\end{center}
+
+\title{Basic operation}
+\begin{itemize}
+\item
+  \emA{Setup of graphic library GSAF}
+  \begin{itemize}
+  \item
+    \emB{At the beginning of TASK codes, setup of GSAF is required.}
+    \begin{itemize}
+    \item
+      \emC{Select graphic resolution} (0: metafile only, no graphics, n:)
+    \item
+      \emC{Input one character command}
+      \begin{itemize}
+      \item
+        c: continue
+      \item
+        f: set metafile name (e.g. xxx.gs) and start saving
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\item
+  \emA{Choice of graphic operation}
+  \begin{itemize}
+  \item
+    \emB{At the end of one page drawing, choose one char. command}
+    \begin{itemize}
+    \item
+      \emC{c} or \emC{CR}: change focus to original window and continue
+    \item
+      \emC{f}: set metafile name and start saving
+    \item
+      \emC{s}: start saving and save this page
+    \item
+      \emC{y}: save this page and continue
+    \item
+      \emC{n}: continue without saving
+    \item
+      \emC{d}: dump this page as a bitmap file ``gsdump\textit{n}''
+%    \item
+%      \emC{b}: switch on/off bell sound
+    \item
+      \emC{q}: quit program after confirmation
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+  
+
+\title{Graphic Utilities}
+\begin{itemize}
+\item
+\emA{Utility program}
+\begin{itemize}
+\item
+\emB{gsview}: View metafile
+\item
+\emB{gsprint}: Print metafile on a postscript printer
+\item
+\emB{gstoeps}: Convert metafile to eps files of each page
+\item
+\emB{gstops}: Convert metafile to a postscript file of all pages
+%\item
+%\emC{gstotgif}: Convert metafile to a tgif file for graphic editor tgif
+%\item
+%\emC{gstotsvg}: Convert metafile to a svg file for web browser
+\end{itemize}
+\item
+\emA{Options}
+\begin{itemize}
+\item
+\emC{-a}: output all pages, otherwise interactive mode
+\item
+\emC{-s ps}: output from page ps
+\item
+\emC{-e pe}: output until page pe
+\item
+\emC{-p \textit{np}}: output contiguous \textit{np} pages on a sheet
+\item
+\emC{-b}: output without title
+%\item
+%\emC{-r}: rotate page
+%\item
+%\emC{-z}: gray output
+\end{itemize}
+\item
+  \emA{Example}
+  \begin{itemize}
+    \item
+      \emC{gstops -ab xxx.gs}: convert all figures to one postscript file
+    \item
+      \emC{gstoeps -ab xxx.gs}: convert each figure to a eps file
+  \end{itemize}
+\end{itemize}
+
+\title{Typical File Name of TASK}
+\begin{itemize}
+\itemsep=3mm
+\item
+\ttype{XXcomm.f90}: Definition of global variables, allocation of arrays
+\item
+\ttype{XXmain.f90}: Main program for standalone use, read XXparm file
+\item
+\ttype{XXmenu.f90}: Command input
+\item
+\ttype{XXinit.f90}: Default values
+\item
+\ttype{XXparm.f90}: Read input parameters
+\item
+\ttype{XXview.f90}: Show input parameters
+\item
+\ttype{XXprep.f90}: Initialization of run, initial profile
+\item
+\ttype{XXexec.f90}: Execution of run
+\item
+\ttype{XXgout.f90}: Graphic output
+\item
+\ttype{XXfout.f90}: Text file output
+\item
+\ttype{XXsave.f90}: Binary file output
+\item
+\ttype{XXload.f90}: Binary file input
+\end{itemize}
+
+\title{Typical input command}
+\begin{itemize}
+\item
+  When input line includes \emA{=}, interpreted as a namelist
+  input (e.g., \ttype{rr=6.5})
+\item
+  When the first character is not an alphabet, interpreted as a
+  one-character command
+  \begin{itemize}
+  \item
+    \ttype{r}: Initialize profiles and execute
+  \item
+    \ttype{c}: Continue run
+  \item
+    \ttype{p}: Namelist input of input parameters
+  \item
+    \ttype{v}: Display of input parameters
+  \item
+    \ttype{g}: Graphic output
+  \item
+    \ttype{w}: print output
+  \item
+    \ttype{s}: Save results into a file
+  \item
+    \ttype{l}: Load results from a file
+  \item
+    \ttype{q}: End of the program
+  \end{itemize}
+\end{itemize}
+
+\title{How to setting input parameters}
+\begin{itemize}
+\item
+  \emA{Default setting of the module}
+  \begin{itemize}
+  \item
+    Default parameters are set at the subroutine \ttype{XX\_init} in
+    \ttype{XXinit.f90}
+  \end{itemize}
+\item
+  \emA{Preset parameter file}
+  \begin{itemize}
+  \item
+    If there is a namelist file \ttype{XXparm} in the executing
+    directory, the module reads the file after the default parameter
+    setting in \ttype{XX\_init}.
+  \item
+    Be careful not to leave an unnecessary file \ttype{XXparm} for
+    avoiding unintentional set of parameters.
+  \end{itemize}
+\item
+  \emA{Setup of parameters by input lines}
+  \begin{itemize}
+  \item
+    You can set parameters by an input line of the namelist form \\
+    \quad  \ttype{name1=value1, name2=value2, name3=value3}
+  \item
+    You can set a list of parameters by the input lines after the one
+    char. command ``p'' in the form of namelist file \\
+    \quad  \ttype{\&XX} \\
+    \quad  \ttype{name1=value1, name2=value2, name3=value3}
+    \quad \emBs{(more lines)}\\
+    \quad  \ttype{/}
+  \end{itemize}
+\end{itemize}
+
+\title{How to run TASK/EQ (1)}
+
+\begin{itemize}
+\item
+  \emA{Interactive operation with default parameters}
+  \begin{itemize}
+  \item
+    \quad \ttype{cd task/eq}
+  \item
+    \emBs{If there is a file named \ttype{eqparm} in this directory,
+      remove or rename it}
+  \item
+    \emBs{On macOS, start the module from a} \emAs{xterm}
+    \emBs{window, not from a terminal window.}
+  \item
+    Key input sequence \\
+    \quad \ttype{./eq} \qquad \emBs{start eq module)}\\
+    \quad \ttype{5} \qquad \emBs{(window size 1024x760)}\\
+    \quad \ttype{c} \qquad \emBs{(continue operation)}\\
+    \quad \ttype{r} \qquad \emBs{(run the module with default setting)}\\
+    \quad \ttype{g} \qquad \emBs{(start eq graphic interface)}\\
+    \quad \ttype{s2}\qquad \emBs{(2D standard plot)}\\
+    \quad \ttype{CR,CR,CR,CR}\qquad \emBs{(repeat Carriage Return 4 times)}\\
+    \quad \ttype{x} \qquad \emBs{(exit eq graphic interface)}\\
+    \quad \ttype{q} \qquad \emBs{(quit eq module)}
+  \end{itemize}
+\end{itemize}
+
+\title{How to run TASK/EQ (2)}
+
+\begin{itemize}
+\item
+  \emA{Interactive operation with a preset file}
+  \begin{itemize}
+  \item
+    \quad \ttype{cd task/eq}
+  \item
+    \quad \ttype{cp parm/eqparm.ITER eqparm}
+  \item
+    \emBs{On macOS, start the module from a} \emAs{xterm}
+    \emBs{window, not from a terminal window.}
+  \item
+    Key input sequence \\
+    \quad \ttype{./eq} \qquad \emBs{start eq module)}\\
+    \quad \ttype{5} \qquad \emBs{(window size 1024x760)}\\
+    \quad \ttype{c} \qquad \emBs{(continue operation)}\\
+    \quad \ttype{r} \qquad \emBs{(run the module with default setting)}\\
+    \quad \ttype{g} \qquad \emBs{(start eq graphic interface)}\\
+    \quad \ttype{s} \qquad \emBs{(1d and 2D standard plot)}\\
+    \quad \ttype{CR}$\times 10$ \qquad \emBs{(repeat Carriage Return 10 times)}\\
+    \quad \ttype{x} \qquad \emBs{(exit eq graphic interface)}\\
+    \quad \ttype{q} \qquad \emBs{(quit eq module)}
+  \end{itemize}
+\item
+  \quad \ttype{rm eqparm} \qquad \emBs{(remove eqparm file)}
+\end{itemize}
+
+\title{How to run TASK/EQ (3)}
+
+\begin{itemize}
+\item
+  \emA{Batch operation with an input file}
+  \begin{itemize}
+  \item
+    \quad \ttype{cd task/eq}
+  \item
+    Start the module which reads an existing input file
+    (\ttype{in/eq.ITER01.in}), 
+    writes an output file (\ttype{eq.ITER01.out}),
+    and generates a graphic metafile (\ttype{eq.ITER01.gs}) \\
+    \quad \ttype{./eq <in/eq.ITER01.in >eq.ITER01.out}
+  \item
+    View the graphic output \\
+    \emBs{On macOS, start from a} \emAs{xterm}
+    \emBs{window, not from a terminal window.} \\
+    \quad \ttype{gsview eq.ITER01.gs} \\
+    Enter figure page number or 0 for all
+  \item
+    Convert the graphic metafile to a postscript file \\
+    \quad \ttype{gstops -ab eq.ITER01.gs >eq.ITER01.ps}
+  \item
+    Convert all the figures in the graphic metafile to EPS files \\
+    \quad \ttype{gstoeps -ab eq.ITER01.gs}
+  \end{itemize}
+\end{itemize}
+
+\title{How to run TASK/TR (1)}
+
+\begin{itemize}
+\item
+  \emA{Interactive operation with default parameters}
+  \begin{itemize}
+  \item
+    Example of key input sequence \\
+    \quad \ttype{cd task/tr} \\
+    \quad \ttype{./tr2} \qquad \emBs{(start tr module: tr may conflict
+      with a unix command)}\\
+    \quad \ttype{5} \qquad \emBs{(window size 1024x760)}\\
+    \quad \ttype{c} \qquad \emBs{(continue operation)}\\
+    \quad \ttype{r} \qquad \emBs{(start a run with default setting)}\\
+    \quad \ttype{g} \qquad \emBs{(start tr graphic interface)}\\
+    \quad \ttype{t6} \qquad \emBs{(time evolution) CR for next graphic input}\\
+    \quad \ttype{r1} \qquad \emBs{(radial profile)}\\
+    \quad \ttype{x} \qquad \emBs{(exit tr graphic interface)} \\
+    \quad \ttype{c} \qquad \emBs{(continue the run)} \\
+    \quad \ttype{g} \qquad \emBs{(start tr graphic interface)}\\
+    \quad \ttype{t6} \qquad \emBs{(time evolution)}\\
+    \quad \ttype{r1} \qquad \emBs{(radial profile)}\\
+    \quad \ttype{x} \qquad \emBs{(exit tr graphic interface)} \\
+    \quad \ttype{q} \qquad \emBs{(quit eq module)}
+  \end{itemize}
+\end{itemize}
+
+\title{How to run TASK/TR (2)}
+
+\begin{itemize}
+\item
+  \emA{Interactive operation with a preset file}
+  \begin{itemize}
+  \item
+    \quad \ttype{cd task/eq}
+  \item
+    \quad \ttype{cp parm/trparm.ITER trparm}
+  \item
+    \quad \ttype{./tr2} \qquad \emBs{start tr module)}\\
+    \quad \ttype{5} \qquad \emBs{(window size 1024x760)}\\
+    \quad \ttype{c} \qquad \emBs{(continue operation)}\\
+    \quad \ttype{r} \qquad \emBs{(run the module with default setting)}\\
+    \quad \ttype{ntmax=1000 nbtot=25} \qquad \emBs{(change parameters)}\\
+    \quad \ttype{c} \qquad \emBs{(continue run)}\\
+    \quad \ttype{g} \qquad \emBs{(start eq graphic interface at 6 s)}\\
+    \quad \ttype{t6} \qquad \emBs{(time evolution, CR for next input)}\\
+    \quad \ttype{r1} \qquad \emBs{(radial profile)}\\
+    \quad \ttype{x} \qquad \emBs{(exit eq graphic interface)}\\
+    \quad \ttype{q} \qquad \emBs{(quit eq module)}
+  \item
+    \quad \ttype{rm trparm} \qquad \emBs{(remove trparm file)}
+  \end{itemize}
+\end{itemize}
+
+\title{How to run TASK/EQ (3)}
+
+\begin{itemize}
+\item
+  \emA{Batch operation with an input file}
+  \begin{itemize}
+  \item
+    Input file: \ttype{in/tr.ITER01.in}
+  \item
+    This example uses a fixed-boundary equilibrium file
+    \ttype{../eq/eqdata.ITER01} in a previous eq run
+  \item
+    \quad \ttype{cd task/eq}
+  \item
+    \quad \ttype{./tr2 <in/tr.ITER01.in | tee tr.ITER01.out}
+  \item
+    \quad \ttype{gsview tr.ITER01.gs}
+  \end{itemize}
+\end{itemize}
+
+\end{document}

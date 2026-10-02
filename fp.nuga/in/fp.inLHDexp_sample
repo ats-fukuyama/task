@@ -1,0 +1,247 @@
+0
+f
+fp.gs.beam
+c
+p
+ &fp
+   imtx=1
+   modelg=2
+   NSMAX=4
+   NSAMAX=1
+   NSBMAX=4
+   NS_NSA=2
+   NS_NSB=1,2,3,4
+   PA(2)=2.D0, 4.D0, 12.D0
+   PZ(2)=1.D0, 2.D0, 6.D0
+   PN(1)= 2.D-1, 2.D-1, 2.D-2, 2.D-2
+   PNS(1)=2.D-1, 2.D-1, 2.D-2, 2.D-2
+   PTPR(1)=3.D0, 3.D0, 3.D0, 3.D0
+   PTPP(1)=3.D0, 3.D0, 3.D0, 3.D0
+   PTS(1)=3.D0, 3.D0, 3.D0, 3.D0
+!device
+   RR=3.9D0
+   RA=0.6D0
+   RB=0.8D0
+   RIP=1.D0
+!profile
+   PROFN1=2.D0
+   PROFN2=0.67D0
+   PROFT1=2.D0
+   PROFT2=2.D0
+!model
+   MODELC=4,4,4,4
+   MODELS=-2
+   MODELS_full=1
+   MODELS_bt=1
+   MODELS_tt=1
+   MODELR=1
+   MODELA=0
+   MODELW=0,0
+   MODEL_EX_READ_Tn=1
+   MODEL_BULK_CONST=2
+   MODEL_DELTA_F(1)=0,1,0,0
+   MODEL_DELTA_F_NI_RATIO=2
+   MODEL_DELTA_F_CN=1
+   NI_RATIO=1.D0, 1.D0
+   DH_RATIO=1.D0
+   HHe_RATIO=0.9D0
+   given_zeff=1.2D0
+   time_exp_offset=3.3D0
+   OUTPUT_TXT_BEAM_WIDTH=0
+   OUTPUT_TXT_DELTA_F=0
+   OUTPUT_TXT_F1=0
+   OUTPUT_TXT_BEAM_DENS=1
+   OUTPUT_TXT_HEAT_PROF=1
+   NTH_F1=4
+   NR_F1=1
+   NSA_F1=1
+   MODEL_CX_LOSS=0
+   RN_NEU0=1.D-6
+   RN_NEUS=1.D-4
+   SHOT_NUMBER='164334'
+   EG_PATH='../dat/'
+   EG_NAME_TMS='tswpe_a99'
+   SV_FILE_NAME_D='../dat/sv_fp_164334.txt'
+!
+   MODEL_NBI=2
+   NBEAMMAX=1
+   NSSPB(1)=2
+   SPBTOT(1)=0.22207D0
+   SPBANG(1)=90.D0
+   SPBENG(1)=80.D3
+   SPBR0(1)=0.5D0
+   SPBRW(1)=0.1D0
+!grid
+   NTHMAX=64
+   NPMAX=128
+   PMAX(1)=13.D0, 13.D0
+   PMAX_BB(1)=3.D0, 3.D0
+   PMAX_TT(1)=3.D0, 3.D0
+   Emax(1)=100.D0, 259.2D0, 259.2D0, 259.2D0
+   LMAXFP=6
+   EPSFP=1.D-14
+   NTSTEP_COLL = 1
+   NTSTEP_COEF = 1
+   NTMAX=0
+   DELT=1.D-3
+   RMIN=0.00D0
+   RMAX=1.00D0
+   NGLINE=30
+   MODEL_KSP=8
+   NRMAX=16
+   R1=0.5D0
+   N_partition_r=16
+   N_partition_s=1
+   N_partition_p=4
+   LLMAX=2
+   NTG1STEP=10
+   NTG2STEP=10
+   FACT_BULK=3.D0
+   NF_IDMAX=2
+   OUTPUT_NFID=2
+   tloss(2)=0.005D0
+   tloss_PARA(2)=0.435D0
+   tloss_PERP(2)=0.053D0
+&end
+r
+   DELT=1.D-3
+   NTMAX=700
+c
+g
+n1
+f2
+4
+8
+0
+x
+   DELT=1.D-3
+   NTMAX=100
+c
+g
+n1
+f2
+4
+8
+0
+x
+   DELT=1.D-3
+   NTMAX=100
+c
+g
+n1
+f2
+4
+8
+0
+x
+   DELT=1.D-3
+   NTMAX=100
+c
+g
+n1
+f2
+4
+8
+0
+x
+   DELT=1.D-3
+   NTMAX=100
+c
+g
+n1
+f2
+4
+8
+0
+x
+   DELT=1.D-3
+   NTMAX=100
+c
+g
+n1
+f2
+4
+8
+0
+x
+   DELT=1.D-3
+   NTMAX=100
+c
+g
+n1
+f2
+4
+8
+0
+x
+   DELT=1.D-3
+   NTMAX=100
+c
+g
+n1
+f2
+4
+8
+0
+x
+   DELT=1.D-3
+   NTMAX=100
+c
+g
+n1
+f2
+4
+8
+0
+x
+   DELT=1.D-3
+   NTMAX=100
+c
+g
+n1
+f2
+4
+8
+0
+x
+   DELT=1.D-3
+   NTMAX=100
+c
+g
+n1
+f2
+4
+8
+0
+x
+   DELT=1.D-3
+   NTMAX=100
+c
+g
+n1
+f2
+4
+8
+0
+x
+   DELT=1.D-3
+   NTMAX=100
+c
+g
+n1
+f2
+4
+8
+0
+x
+   DELT=1.D-3
+   NTMAX=100
+c
+g
+n1
+f2
+4
+8
+0
+x
+q

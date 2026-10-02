@@ -1,0 +1,695 @@
+\section{List of COMMON variables}
+
+\begin{center}
+\hrule
+At present, this list is based on an old version of WF2. \\
+It will be updated later \\
+\hrule
+\end{center}
+
+\begin{itemize}
+ \item[] WFCNS1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[CI] imaginary unit
+      \item[PI] pi
+      \item[AEE] elementary charge
+      \item[AME] electron mass
+      \item[AMP] proton mass
+      \item[VC] light velocity in vacuum
+      \item[RMU0] permeability constant in vacuum
+      \item[EPS0] dielectric constant in vacuum
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRM1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[BB] central magnetic field
+      \item[RA] plasma minor radius
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRM2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[RR] plasma major radius (m)
+      \item[QA] safety factor on axis
+      \item[Q0] safety factor on surface
+      \item[RKAP] ellipticity of plasma cross section
+      \item[RDEL] triangularity of plasma cross section
+      \item[RMIR] mirror ratio
+      \item[ZBB] periodic length along magnetic axis (m)
+      \item[H1] helical pitch of magnetic field $2\pi /L$
+      \item[H2] helical pitch of distance $2\pi /L$
+      \item[RRC] coil radius in linear helical system (m)
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRM3
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[RF] wave frequency (MHz)
+      \item[RKZ] wave number in $z$ direction (${\rm m}^{-1}$)
+      \item[RZ] periodic length in $z$ direction (m)
+      \item[NPHI] mode number in azimuthal direction $\phi$
+   \end{namelist}
+   \end{itemize}
+ \item[] WFPRM4
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[PA(NSM)] mass number
+      \item[PZ(NSM)] charge number
+      \item[PN(NSM)] particle density on axis ($10^{20}/{\rm m}^3$)
+      \item[PNS(NSM)] particle density on surface ($10^{20}/{\rm m}^3$)
+      \item[PZCL(NSM)] ratio of collision frequency and wave frequency
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRM5
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[PTPR(NSM)] parallel component of central temperature (keV)
+      \item[PTPP(NSM)] perpendicular component of central density (keV)
+      \item[PTS(NSM)] surface temperature (keV)
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRM6
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[NSMAX] number of particle species 
+      \item[NAMAX] number of antenna
+      \item[NRMAX] number of radial mesh point for 1D plot
+      \item[NZMAX] number of Fourier modes in $z$ direction
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRM7
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[NPRINT] control ID of print output
+      \item[NDRAWD] control parameter for element plot
+      \item[NDRAWA] control parameter for antenna plot
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRM8
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[PNE0] initial electron density ($10^{20}/{\rm m}^3$)
+      \item[PTE0] initial electron temperature (eV)
+      \item[PTI0] initial ion temperature (eV)
+      \item[PPN0] initial neutral pressure (Pa)
+      \item[PTN0] initial neutral temperature (eV)
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRM9
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[PIN] ì¸óÕ (W)
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRK1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[KIDSYS] KID1/KID2/KID3/KID4
+      \item[KIDPOS] 
+      \item[KID1] magnetic field configuration
+      \item[KID2] element configuration
+      \item[KID3] dielectric tensor model
+      \item[KID4] radial profile
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRK2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[KFNAME] file name of element data
+      \item[KFNAMA] file name of antenna data
+      \item[KFNAMF] file name of field data
+   \end{namelist}
+   \end{itemize}
+
+ \item[] WFPRD1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[BXMIN] minimum value of $x$ (m)
+      \item[BXMAX] maximum value of $x$ (m)
+      \item[BYMIN] minimum value of $y$ (m)
+      \item[BYMAX] maximum value of $y$ (m)
+      \item[RB] boundary radius (m)
+      \item[BKAP] boundary ellipticity
+      \item[BDEL] boundary triangularity
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRD2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[DELX] typical element size in $x$ direction (m)
+      \item[DELY] typical element size in $y$ direction (m)
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRA1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[RD] antenna radius (m)
+      \item[THETJ1] initial angle of arc antenna (degree)
+      \item[THETJ2] end angle of arc antenna (degree)
+      \item[NJMAX] original number of antenna grid points
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRA2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[AJ(NAM)] antenna current (loop) / current density (line)
+      \item[APH(NAM)] antenna phase
+      \item[APOS(NAM)] antenna position in ($z$, $\phi$, $Z$) direction (degree)
+      \item[AWD(NAM)] antenna width in ($z$, $\phi$, $Z$) direction (degree)
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFDIV1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[XL(NYM)] left end position
+      \item[XR(NYM)] right end position
+      \item[NYMAX] number of division in $y$ direction
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFDIV2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[NXA(NYM)] number of nodes in $x$ direction
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFDIV3
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[XDA(NXM,NYM)] $x$ coordinates of the node (NX,NY)
+      \item[YDA(NXM,NYM)] $y$ coordinates of the node (NX,NY)
+      \item[NDA(NXM,NYM)] node number of the node (NX,NY)
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFDIV4
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[XDW(NXM,NYM)] weight center position in $x$ direction
+      \item[YDW(NXM,NYM)] weight center position in $y$ direction
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFDIV5
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[XF] fixed $x$ coordinates to find boundary
+      \item[YF] fixed $y$ coordinates to fine boundary
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFDIV6
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[VNOD(NNODM)] volume around a node
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFELM1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[NNOD] total number of nodes
+      \item[NELM] total number of elements
+      \item[NBDY] total number of boundary nodes
+      \item[MBND] width of coefficient matrix
+      \item[MLEN] length of coefficient matrix
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFELM2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[XD(NNODM)] $x$ coordinates of a node
+      \item[YD(NNODM)] $y$ coordinates of a node
+      \item[IELM(3,NELMM)] node numbers belonging to an element
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFELM3
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[IBND(NNODM)] minimum line number in the coefficient matrix for a node
+      \item[KBND(NNODM)] number of equations for a node
+      \item[IBDY(NBDYM)] node number of boundary nodes
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFSLV1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[KELM(3,NELMM)] work area for matrix solver
+      \item[JBND(NNODM)] work area for matrix solver
+   \end{namelist}
+   \end{itemize}
+ \item[] WFSLV2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[CM(4,4,3,3)] coefficient matrix for an element for wave analysis
+      \item[CRV(MLENM)] right-hand-side vector for wave analysis
+      \item[CSV(MLENM)] solution vector for wave analysis
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFSLV3
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[LDEST(NCNM)] work area for matrix solver
+      \item[NK(NCNM)] work area for matrix solver
+      \item[NFLG(NNODM)] work area for matrix solver
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFSLV4
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[CEQ(MBNDM,MBNDM)] work area for wave matrix solver
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFSLV5
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[LHED(MBNDM)] work area for matrix solver
+      \item[LPIV(MBNDM)] work area for matrix solver
+      \item[CQQ(MBNDM)] work area for wave matrix solver
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFSLV6
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[MLCO(MLENM)] work area for matrix solver
+      \item[MCOL(MLENM)] work area for matrix solver
+      \item[MPOS(MLENM)] work area for matrix solver
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFSLV7
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[MHED(MBUFM)] work area for matrix solver
+      \item[CBUF(MBUFM)] work area for wave matrix solver
+      \item[DBUF(MBUFM)] work area for transport matrix solver
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFAIF1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[AIF3(3,3,3)] integral of three interpolation functions
+      \item[AIF2(3,3)] integral of two interpolation functions
+      \item[AIF1(3)] integral of an interpolation function
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFEVO1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[DT] time step width
+      \item[T] time
+      \item[NTMAX] number of time step
+      \item[NTSTEP] number of transport steps for one wave step
+      \item[NEVOL] 0: fixed densityÅ@1: time evolution
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFEVO2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[PNE(NNODM)] electron density at a node ($10^{20}/{\rm m}^3$)
+      \item[PPE(NNODM)] electron pressure at a node (Pa)
+      \item[PTE(NNODM)] electron temperature at a node (eV)
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFEVO3
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[PNI(NNODM)] ion density at a node ($10^{20}/{\rm m}^3$)
+      \item[PPI(NNODM)] ion pressure at a node (Pa)
+      \item[PTI(NNODM)] ion temperature (eV)
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFEVO4
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[PHI(NNODM)] scalar potential
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFEVO5
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[DEQ(MBNDM,MBNDM)] work area for transport matrix solver
+      \item[DQQ(MBNDM)] work area for transport matrix solver
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFEVO6
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[DM(5,5,3,3)] coefficient matrix for an element for transport analysis
+      \item[DRV(MLENM)] right-hand-size vector for transport analysis
+      \item[DSV(MLENM)] solution vector for transport analysis
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFEVO7
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[PNET(NGTM,3)] time evolution of average electron number
+      \item[PTET(NGTM,3)] time evolution of average electron temperature
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFEVO8
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[PNIT(NGTM,3)] time evolution of average ion number
+      \item[PTIT(NGTM,3)] time evolution of average ion temperature
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFEVO9
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[PHIT(NGTM,3)] time evolution of $\Phi$
+      \item[TG(NGTM)] sampling time for time evolution plot
+      \item[NGTMAX] number of time evolution data
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFCAL1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[HA1] work variable for linear helical analysis
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFFEP1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[FMAX(NYM)] maximum $y$ belonging to NEY
+      \item[FMIN(NYM)] minimum $y$ belonging to NEY
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFFEP2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[NEMAX(NYM)] maximum element number belonging to NEY
+      \item[NEMIN(NYM)] minimum element number belonging to NEY
+      \item[NEYMAX] maximum of NEY
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFFLD1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[CAF(4,NNODM)] wave vector and scalar potential on a node
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+
+ \item[] WFFLD2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[CEF(3,NNODM)] wave electric field $(x, y, z)$
+      \item[CEP(3,NNODM)] wave electric field (RHS, LHS, parallel)
+      \item[CEFK(3,NNODM)] wave electric field for a single Fourier mode
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFFLD3
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[CBF(3,NNODM)] magnetic died $(x, y, z)$
+      \item[CBP(3,NNODM)] magnetic fieldÅiRHS, LHS, parallel)
+      \item[SA(NNODM)] area belonging an element
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFFLD4
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[EMAX(4)] maximum value of wave E field component
+      \item[ETMAX] maximum value of wave E
+      \item[PNMAX] maximum value of density
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPWR1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[TSPWR] total absorbed power
+      \item[PWR(NNODM)] absorbed power for a node
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPWR2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[TPWR(NSM)] total absorbed power for a particle species
+      \item[SPWR(NNODM,NSM)] absorbed power for a particle species at a
+        node
+   \end{namelist}
+   \end{itemize}
+ \item[] WFPWR3
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[RPWR(NRM)] absorbed power at a node
+      \item[RSPWR(NRM,NSM)] absorbed power for particle species at a node
+      \item[DR] number of division in radial direction
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFANT1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[CIMP(NAM)] loading impedance of each antenna
+      \item[CTIMP] total loading impedance
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFANT2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[XJ(JNUMM,NAM)] $x$ coordinates of antenna nodes after breakup
+      \item[YJ(JNUMM,NAM)] $y$ coordinates of antenna nodes after breakup
+      \item[CAJ(NAM)] complex antenna current of each antenna
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFANT3
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[XJ0(JNUMM,NAM)] $x$ coordinates of antenna nodes before breakup
+      \item[YJ0(JNUMM,NAM)] $y$ coordinates of antenna nodes before breakup
+      \item[JNUM0(NAM)] number of antenna nodes before breakup
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFANT4
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[JELMT(JNUMM,NAM)] element number of the element in which a part of
+        antenna belongs
+      \item[JNUM(NAM)] number of antenna nodes after breakup
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPWK1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[RKZF(NZM)] wave number of the Fourier component
+      \item[CAJF(NZM,NAM)] Fourier components of antenna current
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPWK2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[TSPWRF(NZM)] Fourier components of absorbed power
+      \item[TPWRF(NZM,NSM)] Fourier components of absorbed power for
+        each particle species.
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFWIN1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[XDMIN] work area for screen division
+      \item[XDMAX] work area for screen division
+      \item[YDMIN] work area for screen division
+      \item[YDMAX] work area for screen division
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFWIN2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[GXD(NNODM)] work area for screen division
+      \item[GYD(NNODM)] work area for screen division
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFWIN3
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[NFOPEN] work area for screen division
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] FFTWRK
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[CT(NZM*NZLM/2,2)] work area for fast Fourier transform
+      \item[LIST(NZM*NZLM)] work area for fast Fourier transform
+      \item[IFFT] work area for fast Fourier transform
+      \item[LP] work area for fast Fourier transform
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+\end{itemize}
